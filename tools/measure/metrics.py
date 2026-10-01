@@ -1,6 +1,6 @@
 import pandas as pd, numpy as np, json, glob, sys
 from matplotlib.path import Path
-Z=json.load(open('/home/claude/sim/zones.json'))['zones']
+Z=json.load(open(__import__('os').path.join(__import__('os').path.dirname(__import__('os').path.abspath('metrics.py')),'..','..','src','zones.json')))['zones']
 ZP=[(z['name'] or z['id'],Path(np.array(z['pts']))) for z in Z]
 def zone_of(x,y):
     pts=np.c_[x,y]; out=np.array(['—']*len(pts),dtype=object)

@@ -4,7 +4,7 @@
 сравнивает с про (демки) и с прошлым прогоном."""
 import sys, os, json, subprocess, pickle, glob, time
 import numpy as np, pandas as pd
-HERE=os.path.dirname(os.path.abspath(__file__)); SIM=os.path.dirname(HERE); CMP='/home/claude/heat/cmp'
+HERE=os.path.dirname(os.path.abspath(__file__)); SIM=os.path.dirname(os.path.dirname(HERE)); CMP=HERE
 os.chdir(CMP)
 G={}
 for f in ('metrics.py','extra.py','mech.py','smooth.py'):
@@ -18,7 +18,7 @@ for a in sys.argv[1:]:
 TICKS=200000
 OUT=os.path.join(HERE,'runs',label); os.makedirs(OUT,exist_ok=True)
 if '--no-build' not in sys.argv:
-    subprocess.run(['python3',os.path.join(os.path.dirname(SIM),'src','build.py'),os.path.join(os.path.dirname(SIM),'sim.html')],check=True)
+    subprocess.run(['python3',os.path.join(SIM,'src','build.py')],cwd=SIM,check=True)
 if '--no-play' not in sys.argv:
     tpl=open(os.path.join(HERE,'rec2.js')).read()
     for i in range(0,len(matches),2):
@@ -26,7 +26,7 @@ if '--no-play' not in sys.argv:
         for m in matches[i:i+2]:
             src=tpl.replace('__M__',str(m)).replace('__T__',str(TICKS))
             fo=open(os.path.join(OUT,f'rec_{m}.json'),'w')
-            ps.append((subprocess.Popen(['timeout','2400','node','q.js','sim.html',src],cwd=SIM,stdout=fo),fo))
+            ps.append((subprocess.Popen(['timeout','2400','node','src/q.js','sim.html',src],cwd=SIM,stdout=fo),fo))
         for p,fo in ps: p.wait(); fo.close()
 files=[os.path.join(OUT,f'rec_{m}.json') for m in matches]
 # --- загрузка ботов (с ножом) ---
@@ -49,6 +49,7 @@ M={}
 M.update(G['metrics'](R,K,P,'bot')); M.update(G['extra'](R,K,P))
 M.update(G['mech'](R,K,P,G['bomb_bot'](files),G['econ_bot'](files)))
 M.update(G['smooth'](G['bot_yaw'](files)))
+exec(open(os.path.join(HERE,'stack.py')).read(), G); M.update(G['stack_react'](R,P))
 M['с ножом в руках % времени']=round(knife*100,1) if knife==knife else None
 jit={'alive':0,'look':0,'moveEng':0,'moveIdle':0,'moveOther':0}; nd={'CT':0,'T':0}; nrounds=0; idle=[]
 for f in files:
@@ -85,6 +86,7 @@ if not os.path.exists(PF):
     Mp['гранат за раунд: CT']=9.9; Mp['гранат за раунд: T']=9.4
     json.dump(Mp,open(PF,'w'),ensure_ascii=False,indent=1)
 Mp=json.load(open(PF))
+Mp.update({'стак 3+ T у сайта: раундов':227,'стак: CT не с сайта идут к нему за 5 с %':19.0,'стак: CT уходят от сайта за 5 с %':4.8,'стак: CT на сайте через 5 с':2.08}) # stack.py по демкам про, 01.10
 Mp.update({'первым из T погиб: entry % раундов':22.3,'первым из T погиб: lurker % раундов':13.1,'первым из T погиб: awp % раундов':4.4})
 # --- прошлый прогон ---
 runs=sorted([d for d in glob.glob(os.path.join(HERE,'runs','*')) if os.path.isdir(d) and d!=OUT and os.path.exists(os.path.join(d,'metrics.json'))],key=os.path.getmtime)
@@ -95,7 +97,7 @@ KEY=['длительность раунда, медиана с','время пл
 'после фрага: остался (±40) %','после фрага: откатился (>40px дальше) %','плант: CT в 350px от сайта',
 'пост-плант: T ближе 150px к бомбе (на бомбе) % времени','сейв CT: живых CT после взрыва','последний против 2+: сколько живёт, медиана с',
 'взгляд туда-обратно >45° (на минуту)','стоя: средний поворот взгляда за 0,25 с, °','на бегу: взгляд вдоль движения (±30°) %',
-'смерть до планта: рядом (≤350px) был свой %','первым из T погиб: entry % раундов','первым из T погиб: lurker % раундов','первым из T погиб: awp % раундов','64Гц: флик взгляда туда-обратно вне боя (на минуту бота)','64Гц: ёрзание без задания (на минуту бота)','с ножом в руках % времени','гранат за раунд: CT','гранат за раунд: T']
+'смерть до планта: рядом (≤350px) был свой %','первым из T погиб: entry % раундов','первым из T погиб: lurker % раундов','первым из T погиб: awp % раундов','64Гц: флик взгляда туда-обратно вне боя (на минуту бота)','64Гц: ёрзание без задания (на минуту бота)','с ножом в руках % времени','гранат за раунд: CT','гранат за раунд: T','стак 3+ T у сайта: раундов','стак: CT не с сайта идут к нему за 5 с %','стак: CT уходят от сайта за 5 с %','стак: CT на сайте через 5 с']
 def fmt(v): return '—' if v is None else str(v)
 lines=[f"Прогон «{label}»: {len(R)} раундов, матчи {matches}; сравнение с «{prevname}»",'',f"{'метрика':62s} {'про':>8s} {'боты':>8s} {'было':>8s}"]
 for k in KEY:

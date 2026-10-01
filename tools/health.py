@@ -7,7 +7,11 @@ python3 tools/health.py sim.html   (печатает таблицу; --json — 
 - переключателей BAL.* (ключи объекта `var BAL = {...}`), из них включено,
   из них держат старый вариант рядом (`!BAL.x` у включённого), не используются;
 - вызовов назначения позиции `setPost(`, причин взгляда `lookReason =`,
-  заказов гранаты `assignNade(`, прямых бросков `throwNade(` (без объявлений).
+  заказов гранаты `assignNade(`, прямых бросков `throwNade(` (без объявлений);
+- знание о врагах: сколько отдельных хранилищ объявлено (картина `belief`,
+  журнал канала `teamIntel`, и прочие, если остались: `LKP`, `CLEARZ`),
+  записей тиммейтам «прямо в уши» (`kind:"call"` / `src:"call"`), читателей
+  журнала канала напрямую (`teamIntel….sig`).
 """
 import re, sys, json
 
@@ -44,6 +48,9 @@ def health(path):
         'причин взгляда (lookReason =)': len(re.findall(r'lookReason\s*=(?!=)', s)),
         'заказов гранаты (assignNade)': calls('assignNade'),
         'прямых бросков (throwNade)': calls('throwNade'),
+        'хранилищ знания о врагах (команда)': sum(1 for v in ('belief', 'teamIntel', 'LKP', 'CLEARZ') if re.search(r'^var ' + v + r'\b', s, re.M)),
+        'коллов «в уши» мимо канала': len(re.findall(r'(?:kind|src)\s*:\s*"call"', s)),
+        'читателей журнала канала напрямую': len(re.findall(r'teamIntel(?:\[[^\]]+\]|\.(?:CT|T))\.sig\b', s)) - 1,
         '_список: старый вариант': sorted(old),
         '_список: не используются': sorted(unused),
     }

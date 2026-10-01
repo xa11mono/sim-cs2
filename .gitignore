@@ -1,2 +1,4 @@
 sim.html
 tools/__pycache__/
+tools/measure/runs/
+tools/measure/__pycache__/
