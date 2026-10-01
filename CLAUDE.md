@@ -53,8 +53,15 @@ docs/tasks/02-mark-moment.md, раздел 5).
 устройство) и добавить запись в DECISIONS.md, закоммитить.
 
 ## Как собрать и проверить
-- Сборка: `cd src && python3 build.py ../sim.html` (patch*.py применяются к
-  orig.html по порядку, см. build.py). Публикуемая версия: `python3 mkpub.py`.
-- Замер 8 матчей: `tools/measure/measure.py <метка>` (пути внутри скриптов
-  указывают на /home/claude/sim — поправить под расположение репозитория).
+- Исходник игры — один файл `src/game.html` (с v168; раньше orig.html + патчи).
+  Правки поведения — прямо в нём. Сборка: `python3 src/build.py` → `sim.html`
+  (вставляет только генерируемое: список переменных для перемотки, пункты
+  PRINCIPLES для карточки, модуль `src/marks.js`). Публикуемая версия:
+  `python3 src/mkpub.py` → `ancient-radar.html` (её публикуем на страницу
+  https://claude.ai/artifact/8bpgTJoSqsGTYwjRc8ikDj — там же база отметок).
+- Здоровье кода: `python3 tools/health.py sim.html` — цифры для отчёта.
+- Правка «не должна менять игру» (чистка, перенос): `bash tools/measure/fingerprint.sh
+  sim.html <папка>` до и после, затем `diff -r` — пусто = 8 матчей сыграли бит в бит.
+- Замер 8 матчей против про: `tools/measure/measure.py <метка>` (пути внутри
+  скриптов указывают на /home/claude/sim — поправить под расположение репозитория).
 - Матч воспроизводим: `freshMatch(N)` даёт одинаковый результат.

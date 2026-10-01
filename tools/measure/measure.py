@@ -18,7 +18,7 @@ for a in sys.argv[1:]:
 TICKS=200000
 OUT=os.path.join(HERE,'runs',label); os.makedirs(OUT,exist_ok=True)
 if '--no-build' not in sys.argv:
-    subprocess.run(['python3','build.py','sim.html'],cwd=SIM,check=True)
+    subprocess.run(['python3',os.path.join(os.path.dirname(SIM),'src','build.py'),os.path.join(os.path.dirname(SIM),'sim.html')],check=True)
 if '--no-play' not in sys.argv:
     tpl=open(os.path.join(HERE,'rec2.js')).read()
     for i in range(0,len(matches),2):
