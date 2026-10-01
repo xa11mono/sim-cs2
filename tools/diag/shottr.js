@@ -1,0 +1,11 @@
+const { chromium } = require('playwright');
+(async()=>{ const br=await chromium.launch(); const pg=await br.newPage({viewport:{width:1300,height:900}}); const errs=[]; pg.on('pageerror',e=>errs.push(String(e)));
+await pg.route(/^https?:/, r=>r.abort());
+await pg.goto('file:///home/claude/sim/sim.html'); await pg.waitForTimeout(1500);
+await pg.evaluate(()=>__ev(`paused=true; for(var t=0;t<1200;t++) stepTick();
+ view.scale=1.6; view.panX = -(700*1.6) + 650; view.panY = -(900*1.6) + 450;
+ window.__inj = function(){ var cls=["pistol","deagle","smg","rifle","scout","awp"]; cls.forEach(function(c,i){ var y=820+i*38; for(var k=0;k<(c==="smg"?3:1);k++) tracers.push({wc:c, x1:560, y1:y+k*4, x2:860, y2:y-10+k*6, team:i%2?"CT":"T", born:nowTs-(c==="smg"?k*18:0)-15, hit:false, miss:true}); }); };
+ window.requestAnimationFrame=function(){}; __inj(); nowTs += 0; draw();`));
+await pg.waitForTimeout(40); console.log(await pg.evaluate(()=>__ev('JSON.stringify({n:tracers.length, now:nowTs, show:showTracers.checked, view:view, cw:cv.width, ch:cv.height})')));
+await pg.screenshot({path:'/home/claude/heat/tracers.png', clip:{x:380,y:380,width:620,height:420}});
+console.log(errs); await br.close(); })();

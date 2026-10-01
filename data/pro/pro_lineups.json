@@ -1,0 +1,7586 @@
+[
+ {
+  "team": "T",
+  "type": "flash",
+  "trigger": "setup",
+  "site": "B",
+  "from": {
+   "x": 886.8,
+   "y": 1625.8
+  },
+  "to": {
+   "x": 870.5,
+   "y": 1234.9
+  },
+  "n": 83,
+  "matches": 12,
+  "prob": 0.954,
+  "at": 8.8,
+  "lead": null,
+  "flight": 1.73,
+  "name": "про: флешка ? (сетап, B)",
+  "fromZone": "T Ramp",
+  "toZone": null,
+  "id": "pro0"
+ },
+ {
+  "team": "T",
+  "type": "flash",
+  "trigger": "setup",
+  "site": "A",
+  "from": {
+   "x": 886.8,
+   "y": 1630.4
+  },
+  "to": {
+   "x": 870.0,
+   "y": 1235.5
+  },
+  "n": 58,
+  "matches": 12,
+  "prob": 0.841,
+  "at": 9.1,
+  "lead": null,
+  "flight": 1.73,
+  "name": "про: флешка ? (сетап, A)",
+  "fromZone": "T Ramp",
+  "toZone": null,
+  "id": "pro1"
+ },
+ {
+  "team": "T",
+  "type": "smoke",
+  "trigger": "insta",
+  "site": "any",
+  "from": {
+   "x": 1024.4,
+   "y": 1780.3
+  },
+  "to": {
+   "x": 976.3,
+   "y": 762.7
+  },
+  "n": 206,
+  "matches": 14,
+  "prob": 0.766,
+  "at": 0.3,
+  "lead": null,
+  "flight": 5.7,
+  "name": "про: смок Sniper Nest (инста)",
+  "fromZone": "T Spawn",
+  "toZone": "Sniper Nest",
+  "id": "pro2"
+ },
+ {
+  "team": "CT",
+  "type": "smoke",
+  "trigger": "insta",
+  "site": "any",
+  "from": {
+   "x": 1039.0,
+   "y": 181.9
+  },
+  "to": {
+   "x": 738.5,
+   "y": 1212.8
+  },
+  "n": 172,
+  "matches": 14,
+  "prob": 0.639,
+  "at": 0.5,
+  "lead": null,
+  "flight": 6.05,
+  "name": "про: смок ? (инста)",
+  "fromZone": null,
+  "toZone": null,
+  "id": "pro3"
+ },
+ {
+  "team": "CT",
+  "type": "he",
+  "trigger": "timed",
+  "site": "any",
+  "from": {
+   "x": 982.8,
+   "y": 725.8
+  },
+  "to": {
+   "x": 833.6,
+   "y": 1160.4
+  },
+  "n": 164,
+  "matches": 13,
+  "prob": 0.61,
+  "at": 6.7,
+  "lead": null,
+  "flight": 1.72,
+  "name": "про: HE Lower Mid (по времени)",
+  "fromZone": "Sniper Nest",
+  "toZone": "Lower Mid",
+  "id": "pro4"
+ },
+ {
+  "team": "CT",
+  "type": "molly",
+  "trigger": "timed",
+  "site": "any",
+  "from": {
+   "x": 987.7,
+   "y": 586.7
+  },
+  "to": {
+   "x": 863.9,
+   "y": 1178.4
+  },
+  "n": 142,
+  "matches": 12,
+  "prob": 0.528,
+  "at": 5.0,
+  "lead": null,
+  "flight": 2.03,
+  "name": "про: молотов Mid (по времени)",
+  "fromZone": "Connector",
+  "toZone": "Mid",
+  "id": "pro5"
+ },
+ {
+  "team": "CT",
+  "type": "flash",
+  "trigger": "timed",
+  "site": "any",
+  "from": {
+   "x": 982.5,
+   "y": 744.8
+  },
+  "to": {
+   "x": 838.7,
+   "y": 1157.2
+  },
+  "n": 130,
+  "matches": 13,
+  "prob": 0.483,
+  "at": 6.8,
+  "lead": null,
+  "flight": 1.72,
+  "name": "про: флешка Lower Mid (по времени)",
+  "fromZone": "Sniper Nest",
+  "toZone": "Lower Mid",
+  "id": "pro6"
+ },
+ {
+  "team": "CT",
+  "type": "he",
+  "trigger": "timed",
+  "site": "any",
+  "from": {
+   "x": 1448.2,
+   "y": 714.8
+  },
+  "to": {
+   "x": 1462.9,
+   "y": 1169.2
+  },
+  "n": 121,
+  "matches": 11,
+  "prob": 0.45,
+  "at": 9.4,
+  "lead": null,
+  "flight": 1.72,
+  "name": "про: HE T Lower (по времени)",
+  "fromZone": "Second Lane",
+  "toZone": "T Lower",
+  "id": "pro7"
+ },
+ {
+  "team": "CT",
+  "type": "molly",
+  "trigger": "timed",
+  "site": "any",
+  "from": {
+   "x": 1444.2,
+   "y": 607.8
+  },
+  "to": {
+   "x": 1440.6,
+   "y": 1207.5
+  },
+  "n": 118,
+  "matches": 13,
+  "prob": 0.439,
+  "at": 8.2,
+  "lead": null,
+  "flight": 2.12,
+  "name": "про: молотов T Lower (по времени)",
+  "fromZone": "Second Lane",
+  "toZone": "T Lower",
+  "id": "pro8"
+ },
+ {
+  "team": "T",
+  "type": "he",
+  "trigger": "setup",
+  "site": "A",
+  "from": {
+   "x": 690.5,
+   "y": 1283.2
+  },
+  "to": {
+   "x": 957.3,
+   "y": 934.0
+  },
+  "n": 30,
+  "matches": 12,
+  "prob": 0.435,
+  "at": 6.8,
+  "lead": null,
+  "flight": 1.73,
+  "name": "про: HE Mid (сетап, A)",
+  "fromZone": "Split",
+  "toZone": "Mid",
+  "id": "pro9"
+ },
+ {
+  "team": "T",
+  "type": "flash",
+  "trigger": "setup",
+  "site": "any",
+  "from": {
+   "x": 886.8,
+   "y": 1626.5
+  },
+  "to": {
+   "x": 871.3,
+   "y": 1237.1
+  },
+  "n": 100,
+  "matches": 13,
+  "prob": 0.372,
+  "at": 8.8,
+  "lead": null,
+  "flight": 1.73,
+  "name": "про: флешка ? (сетап)",
+  "fromZone": "T Ramp",
+  "toZone": null,
+  "id": "pro10"
+ },
+ {
+  "team": "CT",
+  "type": "molly",
+  "trigger": "timed",
+  "site": "any",
+  "from": {
+   "x": 1399.1,
+   "y": 513.8
+  },
+  "to": {
+   "x": 1697.5,
+   "y": 1030.0
+  },
+  "n": 95,
+  "matches": 12,
+  "prob": 0.353,
+  "at": 7.6,
+  "lead": null,
+  "flight": 2.12,
+  "name": "про: молотов Ramp (по времени)",
+  "fromZone": "Alley",
+  "toZone": "Ramp",
+  "id": "pro11"
+ },
+ {
+  "team": "CT",
+  "type": "smoke",
+  "trigger": "insta",
+  "site": "any",
+  "from": {
+   "x": 1079.4,
+   "y": 200.3
+  },
+  "to": {
+   "x": 1620.9,
+   "y": 1260.1
+  },
+  "n": 86,
+  "matches": 13,
+  "prob": 0.32,
+  "at": 0.8,
+  "lead": null,
+  "flight": 6.01,
+  "name": "про: смок Ruins (инста)",
+  "fromZone": null,
+  "toZone": "Ruins",
+  "id": "pro12"
+ },
+ {
+  "team": "T",
+  "type": "flash",
+  "trigger": "exec",
+  "site": "A",
+  "from": {
+   "x": 369.2,
+   "y": 791.5
+  },
+  "to": {
+   "x": 510.1,
+   "y": 451.6
+  },
+  "n": 21,
+  "matches": 5,
+  "prob": 0.304,
+  "at": 32.9,
+  "lead": 13.6,
+  "flight": 1.72,
+  "name": "про: флешка Back Site (выход, A)",
+  "fromZone": "A Main",
+  "toZone": "Back Site",
+  "id": "pro13"
+ },
+ {
+  "team": "T",
+  "type": "molly",
+  "trigger": "setup",
+  "site": "B",
+  "from": {
+   "x": 1574.3,
+   "y": 1333.9
+  },
+  "to": {
+   "x": 1682.8,
+   "y": 941.3
+  },
+  "n": 26,
+  "matches": 12,
+  "prob": 0.299,
+  "at": 8.6,
+  "lead": null,
+  "flight": 1.5,
+  "name": "про: молотов Ramp (сетап, B)",
+  "fromZone": "Ruins",
+  "toZone": "Ramp",
+  "id": "pro14"
+ },
+ {
+  "team": "T",
+  "type": "he",
+  "trigger": "setup",
+  "site": "B",
+  "from": {
+   "x": 688.9,
+   "y": 1283.2
+  },
+  "to": {
+   "x": 952.2,
+   "y": 936.5
+  },
+  "n": 24,
+  "matches": 10,
+  "prob": 0.276,
+  "at": 6.8,
+  "lead": null,
+  "flight": 1.73,
+  "name": "про: HE Mid (сетап, B)",
+  "fromZone": "Split",
+  "toZone": "Mid",
+  "id": "pro15"
+ },
+ {
+  "team": "T",
+  "type": "molly",
+  "trigger": "setup",
+  "site": "A",
+  "from": {
+   "x": 712.0,
+   "y": 1235.7
+  },
+  "to": {
+   "x": 1109.7,
+   "y": 938.8
+  },
+  "n": 15,
+  "matches": 9,
+  "prob": 0.217,
+  "at": 6.8,
+  "lead": null,
+  "flight": 1.41,
+  "name": "про: молотов Jungle (сетап, A)",
+  "fromZone": "Lower Mid",
+  "toZone": "Jungle",
+  "id": "pro16"
+ },
+ {
+  "team": "T",
+  "type": "molly",
+  "trigger": "setup",
+  "site": "B",
+  "from": {
+   "x": 714.6,
+   "y": 1235.5
+  },
+  "to": {
+   "x": 1092.7,
+   "y": 948.8
+  },
+  "n": 18,
+  "matches": 10,
+  "prob": 0.207,
+  "at": 7.0,
+  "lead": null,
+  "flight": 1.38,
+  "name": "про: молотов Jungle (сетап, B)",
+  "fromZone": "Lower Mid",
+  "toZone": "Jungle",
+  "id": "pro17"
+ },
+ {
+  "team": "CT",
+  "type": "molly",
+  "trigger": "timed",
+  "site": "any",
+  "from": {
+   "x": 981.7,
+   "y": 680.6
+  },
+  "to": {
+   "x": 828.0,
+   "y": 1130.3
+  },
+  "n": 55,
+  "matches": 12,
+  "prob": 0.204,
+  "at": 5.8,
+  "lead": null,
+  "flight": 2.03,
+  "name": "про: молотов Lower Mid (по времени)",
+  "fromZone": "Sniper Nest",
+  "toZone": "Lower Mid",
+  "id": "pro18"
+ },
+ {
+  "team": "T",
+  "type": "molly",
+  "trigger": "setup",
+  "site": "A",
+  "from": {
+   "x": 1576.5,
+   "y": 1343.0
+  },
+  "to": {
+   "x": 1690.8,
+   "y": 957.3
+  },
+  "n": 14,
+  "matches": 9,
+  "prob": 0.203,
+  "at": 8.4,
+  "lead": null,
+  "flight": 1.25,
+  "name": "про: молотов Ramp (сетап, A)",
+  "fromZone": "Ruins",
+  "toZone": "Ramp",
+  "id": "pro19"
+ },
+ {
+  "team": "T",
+  "type": "molly",
+  "trigger": "setup",
+  "site": "A",
+  "from": {
+   "x": 708.1,
+   "y": 1238.4
+  },
+  "to": {
+   "x": 919.1,
+   "y": 1096.2
+  },
+  "n": 14,
+  "matches": 8,
+  "prob": 0.203,
+  "at": 7.3,
+  "lead": null,
+  "flight": 0.78,
+  "name": "про: молотов Mid (сетап, A)",
+  "fromZone": "Lower Mid",
+  "toZone": "Mid",
+  "id": "pro20"
+ },
+ {
+  "team": "T",
+  "type": "molly",
+  "trigger": "setup",
+  "site": "B",
+  "from": {
+   "x": 707.5,
+   "y": 1235.9
+  },
+  "to": {
+   "x": 914.1,
+   "y": 1101.0
+  },
+  "n": 16,
+  "matches": 9,
+  "prob": 0.184,
+  "at": 7.2,
+  "lead": null,
+  "flight": 0.74,
+  "name": "про: молотов Mid (сетап, B)",
+  "fromZone": "Lower Mid",
+  "toZone": "Mid",
+  "id": "pro21"
+ },
+ {
+  "team": "CT",
+  "type": "smoke",
+  "trigger": "timed",
+  "site": "any",
+  "from": {
+   "x": 1369.2,
+   "y": 1006.3
+  },
+  "to": {
+   "x": 1264.1,
+   "y": 1199.0
+  },
+  "n": 40,
+  "matches": 12,
+  "prob": 0.149,
+  "at": 20.8,
+  "lead": null,
+  "flight": 1.78,
+  "name": "про: смок T Upper (по времени)",
+  "fromZone": "Lamp Room",
+  "toZone": "T Upper",
+  "id": "pro22"
+ },
+ {
+  "team": "T",
+  "type": "flash",
+  "trigger": "exec",
+  "site": "B",
+  "from": {
+   "x": 1605.0,
+   "y": 1239.4
+  },
+  "to": {
+   "x": 1482.1,
+   "y": 825.4
+  },
+  "n": 13,
+  "matches": 8,
+  "prob": 0.149,
+  "at": 16.9,
+  "lead": 13.0,
+  "flight": 1.73,
+  "name": "про: флешка Site B (выход, B)",
+  "fromZone": "Ruins",
+  "toZone": "Site B",
+  "id": "pro23"
+ },
+ {
+  "team": "T",
+  "type": "flash",
+  "trigger": "setup",
+  "site": "B",
+  "from": {
+   "x": 670.4,
+   "y": 1307.6
+  },
+  "to": {
+   "x": 861.0,
+   "y": 1193.8
+  },
+  "n": 13,
+  "matches": 9,
+  "prob": 0.149,
+  "at": 9.6,
+  "lead": null,
+  "flight": 1.73,
+  "name": "про: флешка Mid (сетап, B)",
+  "fromZone": "Split",
+  "toZone": "Mid",
+  "id": "pro24"
+ },
+ {
+  "team": "T",
+  "type": "smoke",
+  "trigger": "setup",
+  "site": "B",
+  "from": {
+   "x": 1570.0,
+   "y": 1146.6
+  },
+  "to": {
+   "x": 1434.6,
+   "y": 1206.5
+  },
+  "n": 13,
+  "matches": 9,
+  "prob": 0.149,
+  "at": 10.6,
+  "lead": null,
+  "flight": 0.69,
+  "name": "про: смок T Lower (сетап, B)",
+  "fromZone": "T Lower",
+  "toZone": "T Lower",
+  "id": "pro25"
+ },
+ {
+  "team": "T",
+  "type": "smoke",
+  "trigger": "setup",
+  "site": "B",
+  "from": {
+   "x": 886.8,
+   "y": 1720.0
+  },
+  "to": {
+   "x": 841.9,
+   "y": 950.9
+  },
+  "n": 13,
+  "matches": 7,
+  "prob": 0.149,
+  "at": 3.6,
+  "lead": null,
+  "flight": 5.8,
+  "name": "про: смок Chamber Lane (сетап, B)",
+  "fromZone": "T Spawn",
+  "toZone": "Chamber Lane",
+  "id": "pro26"
+ },
+ {
+  "team": "T",
+  "type": "molly",
+  "trigger": "exec",
+  "site": "A",
+  "from": {
+   "x": 388.8,
+   "y": 799.9
+  },
+  "to": {
+   "x": 466.7,
+   "y": 400.9
+  },
+  "n": 10,
+  "matches": 7,
+  "prob": 0.145,
+  "at": 49.8,
+  "lead": 14.5,
+  "flight": 1.56,
+  "name": "про: молотов Back Site (выход, A)",
+  "fromZone": "A Main",
+  "toZone": "Back Site",
+  "id": "pro27"
+ },
+ {
+  "team": "T",
+  "type": "molly",
+  "trigger": "exec",
+  "site": "A",
+  "from": {
+   "x": 368.9,
+   "y": 739.0
+  },
+  "to": {
+   "x": 874.4,
+   "y": 432.8
+  },
+  "n": 10,
+  "matches": 8,
+  "prob": 0.145,
+  "at": 37.5,
+  "lead": 8.9,
+  "flight": 2.08,
+  "name": "про: молотов CT Lane (выход, A)",
+  "fromZone": "Long",
+  "toZone": "CT Lane",
+  "id": "pro28"
+ },
+ {
+  "team": "T",
+  "type": "smoke",
+  "trigger": "insta",
+  "site": "any",
+  "from": {
+   "x": 886.8,
+   "y": 1720.0
+  },
+  "to": {
+   "x": 839.3,
+   "y": 952.0
+  },
+  "n": 38,
+  "matches": 11,
+  "prob": 0.141,
+  "at": 2.6,
+  "lead": null,
+  "flight": 6.14,
+  "name": "про: смок Chamber Lane (инста)",
+  "fromZone": "T Spawn",
+  "toZone": "Chamber Lane",
+  "id": "pro29"
+ },
+ {
+  "team": "T",
+  "type": "he",
+  "trigger": "setup",
+  "site": "any",
+  "from": {
+   "x": 689.6,
+   "y": 1283.3
+  },
+  "to": {
+   "x": 958.4,
+   "y": 933.6
+  },
+  "n": 37,
+  "matches": 11,
+  "prob": 0.138,
+  "at": 6.8,
+  "lead": null,
+  "flight": 1.73,
+  "name": "про: HE Mid (сетап)",
+  "fromZone": "Split",
+  "toZone": "Mid",
+  "id": "pro30"
+ },
+ {
+  "team": "T",
+  "type": "he",
+  "trigger": "setup",
+  "site": "B",
+  "from": {
+   "x": 687.2,
+   "y": 1326.8
+  },
+  "to": {
+   "x": 739.8,
+   "y": 1206.9
+  },
+  "n": 11,
+  "matches": 5,
+  "prob": 0.126,
+  "at": 10.1,
+  "lead": null,
+  "flight": 1.73,
+  "name": "про: HE ? (сетап, B)",
+  "fromZone": "Split",
+  "toZone": null,
+  "id": "pro31"
+ },
+ {
+  "team": "T",
+  "type": "molly",
+  "trigger": "exec",
+  "site": "B",
+  "from": {
+   "x": 1604.5,
+   "y": 1240.3
+  },
+  "to": {
+   "x": 1454.4,
+   "y": 828.6
+  },
+  "n": 11,
+  "matches": 7,
+  "prob": 0.126,
+  "at": 49.1,
+  "lead": 18.0,
+  "flight": 2.12,
+  "name": "про: молотов Site B (выход, B)",
+  "fromZone": "Ruins",
+  "toZone": "Site B",
+  "id": "pro32"
+ },
+ {
+  "team": "T",
+  "type": "molly",
+  "trigger": "setup",
+  "site": "any",
+  "from": {
+   "x": 1578.0,
+   "y": 1347.3
+  },
+  "to": {
+   "x": 1688.1,
+   "y": 953.8
+  },
+  "n": 32,
+  "matches": 11,
+  "prob": 0.119,
+  "at": 8.5,
+  "lead": null,
+  "flight": 1.19,
+  "name": "про: молотов Ramp (сетап)",
+  "fromZone": "Ruins",
+  "toZone": "Ramp",
+  "id": "pro33"
+ },
+ {
+  "team": "T",
+  "type": "flash",
+  "trigger": "exec",
+  "site": "A",
+  "from": {
+   "x": 362.0,
+   "y": 774.6
+  },
+  "to": {
+   "x": 610.7,
+   "y": 480.1
+  },
+  "n": 8,
+  "matches": 5,
+  "prob": 0.116,
+  "at": 75.2,
+  "lead": 11.9,
+  "flight": 1.73,
+  "name": "про: флешка Def (выход, A)",
+  "fromZone": "Long",
+  "toZone": "Def",
+  "id": "pro34"
+ },
+ {
+  "team": "T",
+  "type": "flash",
+  "trigger": "setup",
+  "site": "A",
+  "from": {
+   "x": 679.2,
+   "y": 1301.8
+  },
+  "to": {
+   "x": 871.8,
+   "y": 1211.2
+  },
+  "n": 8,
+  "matches": 6,
+  "prob": 0.116,
+  "at": 9.4,
+  "lead": null,
+  "flight": 1.73,
+  "name": "про: флешка ? (сетап, A)",
+  "fromZone": "Split",
+  "toZone": null,
+  "id": "pro35"
+ },
+ {
+  "team": "T",
+  "type": "flash",
+  "trigger": "setup",
+  "site": "A",
+  "from": {
+   "x": 1094.8,
+   "y": 1643.2
+  },
+  "to": {
+   "x": 1060.4,
+   "y": 1234.6
+  },
+  "n": 8,
+  "matches": 4,
+  "prob": 0.116,
+  "at": 7.2,
+  "lead": null,
+  "flight": 1.73,
+  "name": "про: флешка ? (сетап, A)",
+  "fromZone": "T Ramp",
+  "toZone": null,
+  "id": "pro36"
+ },
+ {
+  "team": "T",
+  "type": "flash",
+  "trigger": "setup",
+  "site": "A",
+  "from": {
+   "x": 682.1,
+   "y": 1493.5
+  },
+  "to": {
+   "x": 765.7,
+   "y": 1166.4
+  },
+  "n": 8,
+  "matches": 4,
+  "prob": 0.116,
+  "at": 13.9,
+  "lead": null,
+  "flight": 1.73,
+  "name": "про: флешка ? (сетап, A)",
+  "fromZone": "T Ramp",
+  "toZone": null,
+  "id": "pro37"
+ },
+ {
+  "team": "T",
+  "type": "he",
+  "trigger": "setup",
+  "site": "A",
+  "from": {
+   "x": 657.1,
+   "y": 1496.6
+  },
+  "to": {
+   "x": 769.3,
+   "y": 1209.3
+  },
+  "n": 8,
+  "matches": 4,
+  "prob": 0.116,
+  "at": 11.2,
+  "lead": null,
+  "flight": 1.73,
+  "name": "про: HE ? (сетап, A)",
+  "fromZone": "T Ramp",
+  "toZone": null,
+  "id": "pro38"
+ },
+ {
+  "team": "T",
+  "type": "molly",
+  "trigger": "exec",
+  "site": "A",
+  "from": {
+   "x": 367.2,
+   "y": 753.3
+  },
+  "to": {
+   "x": 761.5,
+   "y": 546.2
+  },
+  "n": 8,
+  "matches": 5,
+  "prob": 0.116,
+  "at": 27.2,
+  "lead": 15.2,
+  "flight": 2.11,
+  "name": "про: молотов ? (выход, A)",
+  "fromZone": "Long",
+  "toZone": null,
+  "id": "pro39"
+ },
+ {
+  "team": "T",
+  "type": "molly",
+  "trigger": "setup",
+  "site": "A",
+  "from": {
+   "x": 1604.5,
+   "y": 1240.6
+  },
+  "to": {
+   "x": 1450.8,
+   "y": 828.9
+  },
+  "n": 8,
+  "matches": 3,
+  "prob": 0.116,
+  "at": 59.2,
+  "lead": null,
+  "flight": 2.12,
+  "name": "про: молотов Site B (сетап, A)",
+  "fromZone": "Ruins",
+  "toZone": "Site B",
+  "id": "pro40"
+ },
+ {
+  "team": "T",
+  "type": "molly",
+  "trigger": "setup",
+  "site": "B",
+  "from": {
+   "x": 1604.5,
+   "y": 1240.1
+  },
+  "to": {
+   "x": 1451.3,
+   "y": 829.3
+  },
+  "n": 10,
+  "matches": 5,
+  "prob": 0.115,
+  "at": 42.3,
+  "lead": null,
+  "flight": 2.11,
+  "name": "про: молотов Site B (сетап, B)",
+  "fromZone": "Ruins",
+  "toZone": "Site B",
+  "id": "pro41"
+ },
+ {
+  "team": "CT",
+  "type": "flash",
+  "trigger": "timed",
+  "site": "any",
+  "from": {
+   "x": 949.0,
+   "y": 712.5
+  },
+  "to": {
+   "x": 1081.6,
+   "y": 1190.8
+  },
+  "n": 30,
+  "matches": 8,
+  "prob": 0.112,
+  "at": 12.2,
+  "lead": null,
+  "flight": 1.72,
+  "name": "про: флешка Triple (по времени)",
+  "fromZone": "Sniper Nest",
+  "toZone": "Triple",
+  "id": "pro42"
+ },
+ {
+  "team": "T",
+  "type": "smoke",
+  "trigger": "exec",
+  "site": "B",
+  "from": {
+   "x": 1604.5,
+   "y": 1240.0
+  },
+  "to": {
+   "x": 1449.4,
+   "y": 694.2
+  },
+  "n": 9,
+  "matches": 8,
+  "prob": 0.103,
+  "at": 41.5,
+  "lead": 15.3,
+  "flight": 4.06,
+  "name": "про: смок Second Lane (выход, B)",
+  "fromZone": "Ruins",
+  "toZone": "Second Lane",
+  "id": "pro43"
+ },
+ {
+  "team": "T",
+  "type": "flash",
+  "trigger": "setup",
+  "site": "A",
+  "from": {
+   "x": 1604.8,
+   "y": 1226.9
+  },
+  "to": {
+   "x": 1611.8,
+   "y": 962.5
+  },
+  "n": 7,
+  "matches": 4,
+  "prob": 0.101,
+  "at": 11.5,
+  "lead": null,
+  "flight": 1.73,
+  "name": "про: флешка B Site (сетап, A)",
+  "fromZone": "Ruins",
+  "toZone": "B Site",
+  "id": "pro44"
+ },
+ {
+  "team": "T",
+  "type": "molly",
+  "trigger": "setup",
+  "site": "A",
+  "from": {
+   "x": 1323.5,
+   "y": 1216.2
+  },
+  "to": {
+   "x": 1344.9,
+   "y": 1043.6
+  },
+  "n": 7,
+  "matches": 5,
+  "prob": 0.101,
+  "at": 18.0,
+  "lead": null,
+  "flight": 1.34,
+  "name": "про: молотов Lamp Room (сетап, A)",
+  "fromZone": "T Upper",
+  "toZone": "Lamp Room",
+  "id": "pro45"
+ },
+ {
+  "team": "T",
+  "type": "smoke",
+  "trigger": "setup",
+  "site": "A",
+  "from": {
+   "x": 1598.9,
+   "y": 1130.0
+  },
+  "to": {
+   "x": 1432.4,
+   "y": 1188.3
+  },
+  "n": 7,
+  "matches": 5,
+  "prob": 0.101,
+  "at": 10.7,
+  "lead": null,
+  "flight": 0.66,
+  "name": "про: смок T Lower (сетап, A)",
+  "fromZone": "T Lower",
+  "toZone": "T Lower",
+  "id": "pro46"
+ },
+ {
+  "team": "CT",
+  "type": "molly",
+  "trigger": "timed",
+  "site": "any",
+  "from": {
+   "x": 1368.8,
+   "y": 1005.1
+  },
+  "to": {
+   "x": 1296.6,
+   "y": 1219.2
+  },
+  "n": 27,
+  "matches": 8,
+  "prob": 0.1,
+  "at": 12.5,
+  "lead": null,
+  "flight": 1.14,
+  "name": "про: молотов T Upper (по времени)",
+  "fromZone": "Lamp Room",
+  "toZone": "T Upper",
+  "id": "pro47"
+ },
+ {
+  "team": "CT",
+  "type": "flash",
+  "trigger": "timed",
+  "site": "any",
+  "from": {
+   "x": 1419.3,
+   "y": 510.7
+  },
+  "to": {
+   "x": 1682.3,
+   "y": 996.5
+  },
+  "n": 25,
+  "matches": 10,
+  "prob": 0.093,
+  "at": 15.0,
+  "lead": null,
+  "flight": 1.73,
+  "name": "про: флешка Ramp (по времени)",
+  "fromZone": "Alley",
+  "toZone": "Ramp",
+  "id": "pro48"
+ },
+ {
+  "team": "T",
+  "type": "smoke",
+  "trigger": "insta",
+  "site": "any",
+  "from": {
+   "x": 906.0,
+   "y": 1852.8
+  },
+  "to": {
+   "x": 1299.9,
+   "y": 1117.4
+  },
+  "n": 25,
+  "matches": 7,
+  "prob": 0.093,
+  "at": 2.3,
+  "lead": null,
+  "flight": 5.11,
+  "name": "про: смок Lamp Room (инста)",
+  "fromZone": null,
+  "toZone": "Lamp Room",
+  "id": "pro49"
+ },
+ {
+  "team": "T",
+  "type": "flash",
+  "trigger": "exec",
+  "site": "B",
+  "from": {
+   "x": 1638.7,
+   "y": 1419.0
+  },
+  "to": {
+   "x": 1605.2,
+   "y": 967.6
+  },
+  "n": 8,
+  "matches": 6,
+  "prob": 0.092,
+  "at": 24.6,
+  "lead": 15.8,
+  "flight": 1.72,
+  "name": "про: флешка B Site (выход, B)",
+  "fromZone": "Ruins",
+  "toZone": "B Site",
+  "id": "pro50"
+ },
+ {
+  "team": "T",
+  "type": "he",
+  "trigger": "setup",
+  "site": "B",
+  "from": {
+   "x": 1645.2,
+   "y": 1228.7
+  },
+  "to": {
+   "x": 1659.7,
+   "y": 744.6
+  },
+  "n": 8,
+  "matches": 5,
+  "prob": 0.092,
+  "at": 24.7,
+  "lead": null,
+  "flight": 1.72,
+  "name": "про: HE 90 (сетап, B)",
+  "fromZone": "Ruins",
+  "toZone": "90",
+  "id": "pro51"
+ },
+ {
+  "team": "T",
+  "type": "molly",
+  "trigger": "exec",
+  "site": "B",
+  "from": {
+   "x": 1699.7,
+   "y": 1074.4
+  },
+  "to": {
+   "x": 1450.2,
+   "y": 513.0
+  },
+  "n": 8,
+  "matches": 5,
+  "prob": 0.092,
+  "at": 37.5,
+  "lead": 9.5,
+  "flight": 2.06,
+  "name": "про: молотов Back Halls (выход, B)",
+  "fromZone": "Ramp",
+  "toZone": "Back Halls",
+  "id": "pro52"
+ },
+ {
+  "team": "T",
+  "type": "molly",
+  "trigger": "setup",
+  "site": "B",
+  "from": {
+   "x": 644.5,
+   "y": 1322.3
+  },
+  "to": {
+   "x": 1086.7,
+   "y": 930.9
+  },
+  "n": 8,
+  "matches": 5,
+  "prob": 0.092,
+  "at": 10.2,
+  "lead": null,
+  "flight": 2.12,
+  "name": "про: молотов Jungle (сетап, B)",
+  "fromZone": "Split",
+  "toZone": "Jungle",
+  "id": "pro53"
+ },
+ {
+  "team": "T",
+  "type": "smoke",
+  "trigger": "setup",
+  "site": "B",
+  "from": {
+   "x": 906.0,
+   "y": 1852.8
+  },
+  "to": {
+   "x": 1300.3,
+   "y": 1116.9
+  },
+  "n": 8,
+  "matches": 6,
+  "prob": 0.092,
+  "at": 4.1,
+  "lead": null,
+  "flight": 5.1,
+  "name": "про: смок Lamp Room (сетап, B)",
+  "fromZone": null,
+  "toZone": "Lamp Room",
+  "id": "pro54"
+ },
+ {
+  "team": "CT",
+  "type": "he",
+  "trigger": "timed",
+  "site": "any",
+  "from": {
+   "x": 1439.5,
+   "y": 646.6
+  },
+  "to": {
+   "x": 1659.0,
+   "y": 1071.5
+  },
+  "n": 24,
+  "matches": 12,
+  "prob": 0.089,
+  "at": 9.5,
+  "lead": null,
+  "flight": 1.72,
+  "name": "про: HE Ramp (по времени)",
+  "fromZone": "Second Lane",
+  "toZone": "Ramp",
+  "id": "pro55"
+ },
+ {
+  "team": "T",
+  "type": "smoke",
+  "trigger": "exec",
+  "site": "A",
+  "from": {
+   "x": 387.5,
+   "y": 734.8
+  },
+  "to": {
+   "x": 735.8,
+   "y": 443.0
+  },
+  "n": 6,
+  "matches": 6,
+  "prob": 0.087,
+  "at": 71.7,
+  "lead": 16.5,
+  "flight": 3.24,
+  "name": "про: смок CT Lane (выход, A)",
+  "fromZone": null,
+  "toZone": "CT Lane",
+  "id": "pro56"
+ },
+ {
+  "team": "CT",
+  "type": "flash",
+  "trigger": "timed",
+  "site": "any",
+  "from": {
+   "x": 1442.3,
+   "y": 661.8
+  },
+  "to": {
+   "x": 1672.3,
+   "y": 1034.4
+  },
+  "n": 23,
+  "matches": 10,
+  "prob": 0.086,
+  "at": 10.5,
+  "lead": null,
+  "flight": 1.73,
+  "name": "про: флешка Ramp (по времени)",
+  "fromZone": "Second Lane",
+  "toZone": "Ramp",
+  "id": "pro57"
+ },
+ {
+  "team": "CT",
+  "type": "flash",
+  "trigger": "timed",
+  "site": "any",
+  "from": {
+   "x": 955.0,
+   "y": 841.8
+  },
+  "to": {
+   "x": 825.4,
+   "y": 1125.0
+  },
+  "n": 23,
+  "matches": 10,
+  "prob": 0.086,
+  "at": 7.6,
+  "lead": null,
+  "flight": 1.72,
+  "name": "про: флешка Lower Mid (по времени)",
+  "fromZone": "Top Mid",
+  "toZone": "Lower Mid",
+  "id": "pro58"
+ },
+ {
+  "team": "T",
+  "type": "molly",
+  "trigger": "setup",
+  "site": "any",
+  "from": {
+   "x": 708.1,
+   "y": 1235.0
+  },
+  "to": {
+   "x": 917.6,
+   "y": 1091.5
+  },
+  "n": 23,
+  "matches": 12,
+  "prob": 0.086,
+  "at": 7.4,
+  "lead": null,
+  "flight": 0.8,
+  "name": "про: молотов Mid (сетап)",
+  "fromZone": "Lower Mid",
+  "toZone": "Mid",
+  "id": "pro59"
+ },
+ {
+  "team": "T",
+  "type": "flash",
+  "trigger": "exec",
+  "site": "B",
+  "from": {
+   "x": 1538.7,
+   "y": 1430.0
+  },
+  "to": {
+   "x": 1797.8,
+   "y": 1059.0
+  },
+  "n": 7,
+  "matches": 5,
+  "prob": 0.08,
+  "at": 11.0,
+  "lead": 12.2,
+  "flight": 1.72,
+  "name": "про: флешка ? (выход, B)",
+  "fromZone": "Ruins",
+  "toZone": null,
+  "id": "pro60"
+ },
+ {
+  "team": "T",
+  "type": "smoke",
+  "trigger": "exec",
+  "site": "B",
+  "from": {
+   "x": 1683.6,
+   "y": 1459.2
+  },
+  "to": {
+   "x": 1693.5,
+   "y": 715.5
+  },
+  "n": 7,
+  "matches": 4,
+  "prob": 0.08,
+  "at": 21.0,
+  "lead": 20.0,
+  "flight": 5.12,
+  "name": "про: смок First Lane (выход, B)",
+  "fromZone": "Ruins",
+  "toZone": "First Lane",
+  "id": "pro61"
+ },
+ {
+  "team": "CT",
+  "type": "flash",
+  "trigger": "timed",
+  "site": "any",
+  "from": {
+   "x": 987.0,
+   "y": 583.3
+  },
+  "to": {
+   "x": 910.5,
+   "y": 1162.0
+  },
+  "n": 21,
+  "matches": 9,
+  "prob": 0.078,
+  "at": 10.8,
+  "lead": null,
+  "flight": 1.72,
+  "name": "про: флешка Mid (по времени)",
+  "fromZone": "Connector",
+  "toZone": "Mid",
+  "id": "pro62"
+ },
+ {
+  "team": "CT",
+  "type": "flash",
+  "trigger": "timed",
+  "site": "any",
+  "from": {
+   "x": 949.9,
+   "y": 588.0
+  },
+  "to": {
+   "x": 1054.9,
+   "y": 1130.4
+  },
+  "n": 20,
+  "matches": 7,
+  "prob": 0.074,
+  "at": 8.8,
+  "lead": null,
+  "flight": 1.73,
+  "name": "про: флешка Mid (по времени)",
+  "fromZone": "Connector",
+  "toZone": "Mid",
+  "id": "pro63"
+ },
+ {
+  "team": "T",
+  "type": "flash",
+  "trigger": "exec",
+  "site": "A",
+  "from": {
+   "x": 491.6,
+   "y": 994.9
+  },
+  "to": {
+   "x": 347.4,
+   "y": 728.1
+  },
+  "n": 5,
+  "matches": 4,
+  "prob": 0.072,
+  "at": 30.7,
+  "lead": 18.9,
+  "flight": 1.72,
+  "name": "про: флешка Long (выход, A)",
+  "fromZone": null,
+  "toZone": "Long",
+  "id": "pro64"
+ },
+ {
+  "team": "T",
+  "type": "flash",
+  "trigger": "setup",
+  "site": "A",
+  "from": {
+   "x": 686.1,
+   "y": 1283.3
+  },
+  "to": {
+   "x": 918.4,
+   "y": 982.8
+  },
+  "n": 5,
+  "matches": 3,
+  "prob": 0.072,
+  "at": 28.3,
+  "lead": null,
+  "flight": 1.73,
+  "name": "про: флешка Mid (сетап, A)",
+  "fromZone": null,
+  "toZone": "Mid",
+  "id": "pro65"
+ },
+ {
+  "team": "T",
+  "type": "flash",
+  "trigger": "setup",
+  "site": "A",
+  "from": {
+   "x": 1619.7,
+   "y": 1119.2
+  },
+  "to": {
+   "x": 1254.4,
+   "y": 1219.6
+  },
+  "n": 5,
+  "matches": 5,
+  "prob": 0.072,
+  "at": 12.4,
+  "lead": null,
+  "flight": 1.72,
+  "name": "про: флешка T Upper (сетап, A)",
+  "fromZone": "T Lower",
+  "toZone": "T Upper",
+  "id": "pro66"
+ },
+ {
+  "team": "T",
+  "type": "flash",
+  "trigger": "setup",
+  "site": "A",
+  "from": {
+   "x": 1630.4,
+   "y": 1419.9
+  },
+  "to": {
+   "x": 1628.5,
+   "y": 952.1
+  },
+  "n": 5,
+  "matches": 3,
+  "prob": 0.072,
+  "at": 11.0,
+  "lead": null,
+  "flight": 1.73,
+  "name": "про: флешка B Site (сетап, A)",
+  "fromZone": "Ruins",
+  "toZone": "B Site",
+  "id": "pro67"
+ },
+ {
+  "team": "T",
+  "type": "he",
+  "trigger": "setup",
+  "site": "A",
+  "from": {
+   "x": 725.7,
+   "y": 1216.7
+  },
+  "to": {
+   "x": 969.9,
+   "y": 993.0
+  },
+  "n": 5,
+  "matches": 5,
+  "prob": 0.072,
+  "at": 7.4,
+  "lead": null,
+  "flight": 1.73,
+  "name": "про: HE Mid (сетап, A)",
+  "fromZone": "Lower Mid",
+  "toZone": "Mid",
+  "id": "pro68"
+ },
+ {
+  "team": "T",
+  "type": "smoke",
+  "trigger": "setup",
+  "site": "A",
+  "from": {
+   "x": 1604.5,
+   "y": 1240.4
+  },
+  "to": {
+   "x": 1448.5,
+   "y": 694.4
+  },
+  "n": 5,
+  "matches": 4,
+  "prob": 0.072,
+  "at": 31.0,
+  "lead": null,
+  "flight": 4.11,
+  "name": "про: смок Second Lane (сетап, A)",
+  "fromZone": "Ruins",
+  "toZone": "Second Lane",
+  "id": "pro69"
+ },
+ {
+  "team": "T",
+  "type": "smoke",
+  "trigger": "setup",
+  "site": "A",
+  "from": {
+   "x": 712.7,
+   "y": 1211.4
+  },
+  "to": {
+   "x": 865.9,
+   "y": 1170.2
+  },
+  "n": 5,
+  "matches": 5,
+  "prob": 0.072,
+  "at": 7.4,
+  "lead": null,
+  "flight": 0.61,
+  "name": "про: смок Mid (сетап, A)",
+  "fromZone": "Lower Mid",
+  "toZone": "Mid",
+  "id": "pro70"
+ },
+ {
+  "team": "T",
+  "type": "smoke",
+  "trigger": "setup",
+  "site": "A",
+  "from": {
+   "x": 886.8,
+   "y": 1720.0
+  },
+  "to": {
+   "x": 842.3,
+   "y": 952.2
+  },
+  "n": 5,
+  "matches": 4,
+  "prob": 0.072,
+  "at": 4.2,
+  "lead": null,
+  "flight": 5.73,
+  "name": "про: смок Chamber Lane (сетап, A)",
+  "fromZone": "T Spawn",
+  "toZone": "Chamber Lane",
+  "id": "pro71"
+ },
+ {
+  "team": "CT",
+  "type": "he",
+  "trigger": "call",
+  "site": "B",
+  "from": {
+   "x": 1444.3,
+   "y": 730.9
+  },
+  "to": {
+   "x": 1457.9,
+   "y": 1169.2
+  },
+  "n": 6,
+  "matches": 4,
+  "prob": 0.069,
+  "at": 9.4,
+  "lead": null,
+  "flight": 1.72,
+  "name": "про: HE T Lower (задержка выхода, B)",
+  "fromZone": "B Site",
+  "toZone": "T Lower",
+  "id": "pro72"
+ },
+ {
+  "team": "T",
+  "type": "flash",
+  "trigger": "exec",
+  "site": "B",
+  "from": {
+   "x": 1705.4,
+   "y": 1028.0
+  },
+  "to": {
+   "x": 1401.0,
+   "y": 786.2
+  },
+  "n": 6,
+  "matches": 3,
+  "prob": 0.069,
+  "at": 74.4,
+  "lead": 8.2,
+  "flight": 1.72,
+  "name": "про: флешка Cave (выход, B)",
+  "fromZone": "Ramp",
+  "toZone": "Cave",
+  "id": "pro73"
+ },
+ {
+  "team": "T",
+  "type": "flash",
+  "trigger": "exec",
+  "site": "B",
+  "from": {
+   "x": 1683.6,
+   "y": 1458.8
+  },
+  "to": {
+   "x": 1752.4,
+   "y": 1001.1
+  },
+  "n": 6,
+  "matches": 3,
+  "prob": 0.069,
+  "at": 23.5,
+  "lead": 17.8,
+  "flight": 1.72,
+  "name": "про: флешка ? (выход, B)",
+  "fromZone": "Ruins",
+  "toZone": null,
+  "id": "pro74"
+ },
+ {
+  "team": "T",
+  "type": "flash",
+  "trigger": "setup",
+  "site": "B",
+  "from": {
+   "x": 1094.8,
+   "y": 1644.7
+  },
+  "to": {
+   "x": 1029.2,
+   "y": 1251.9
+  },
+  "n": 6,
+  "matches": 3,
+  "prob": 0.069,
+  "at": 8.2,
+  "lead": null,
+  "flight": 1.73,
+  "name": "про: флешка ? (сетап, B)",
+  "fromZone": "T Ramp",
+  "toZone": null,
+  "id": "pro75"
+ },
+ {
+  "team": "T",
+  "type": "molly",
+  "trigger": "setup",
+  "site": "B",
+  "from": {
+   "x": 1322.9,
+   "y": 1217.1
+  },
+  "to": {
+   "x": 1348.4,
+   "y": 1044.8
+  },
+  "n": 6,
+  "matches": 4,
+  "prob": 0.069,
+  "at": 20.7,
+  "lead": null,
+  "flight": 1.34,
+  "name": "про: молотов Lamp Room (сетап, B)",
+  "fromZone": "T Upper",
+  "toZone": "Lamp Room",
+  "id": "pro76"
+ },
+ {
+  "team": "T",
+  "type": "smoke",
+  "trigger": "setup",
+  "site": "B",
+  "from": {
+   "x": 1683.6,
+   "y": 1459.2
+  },
+  "to": {
+   "x": 1692.1,
+   "y": 716.5
+  },
+  "n": 6,
+  "matches": 4,
+  "prob": 0.069,
+  "at": 28.1,
+  "lead": null,
+  "flight": 5.74,
+  "name": "про: смок First Lane (сетап, B)",
+  "fromZone": "Ruins",
+  "toZone": "First Lane",
+  "id": "pro77"
+ },
+ {
+  "team": "CT",
+  "type": "flash",
+  "trigger": "timed",
+  "site": "any",
+  "from": {
+   "x": 843.0,
+   "y": 944.6
+  },
+  "to": {
+   "x": 1158.0,
+   "y": 1205.8
+  },
+  "n": 17,
+  "matches": 5,
+  "prob": 0.063,
+  "at": 12.6,
+  "lead": null,
+  "flight": 1.72,
+  "name": "про: флешка Triple (по времени)",
+  "fromZone": "Chamber Lane",
+  "toZone": "Triple",
+  "id": "pro78"
+ },
+ {
+  "team": "CT",
+  "type": "he",
+  "trigger": "timed",
+  "site": "any",
+  "from": {
+   "x": 1445.0,
+   "y": 758.1
+  },
+  "to": {
+   "x": 1455.4,
+   "y": 1178.7
+  },
+  "n": 17,
+  "matches": 6,
+  "prob": 0.063,
+  "at": 9.6,
+  "lead": null,
+  "flight": 1.72,
+  "name": "про: HE T Lower (по времени)",
+  "fromZone": "B Site",
+  "toZone": "T Lower",
+  "id": "pro79"
+ },
+ {
+  "team": "CT",
+  "type": "smoke",
+  "trigger": "timed",
+  "site": "any",
+  "from": {
+   "x": 1697.5,
+   "y": 679.3
+  },
+  "to": {
+   "x": 1682.3,
+   "y": 969.8
+  },
+  "n": 17,
+  "matches": 9,
+  "prob": 0.063,
+  "at": 31.4,
+  "lead": null,
+  "flight": 3.17,
+  "name": "про: смок Ramp (по времени)",
+  "fromZone": "First Lane",
+  "toZone": "Ramp",
+  "id": "pro80"
+ },
+ {
+  "team": "T",
+  "type": "molly",
+  "trigger": "setup",
+  "site": "any",
+  "from": {
+   "x": 642.4,
+   "y": 1323.9
+  },
+  "to": {
+   "x": 1089.3,
+   "y": 929.9
+  },
+  "n": 16,
+  "matches": 9,
+  "prob": 0.059,
+  "at": 9.4,
+  "lead": null,
+  "flight": 2.11,
+  "name": "про: молотов Jungle (сетап)",
+  "fromZone": "Split",
+  "toZone": "Jungle",
+  "id": "pro81"
+ },
+ {
+  "team": "T",
+  "type": "flash",
+  "trigger": "setup",
+  "site": "A",
+  "from": {
+   "x": 1603.4,
+   "y": 1217.7
+  },
+  "to": {
+   "x": 1250.4,
+   "y": 1171.5
+  },
+  "n": 4,
+  "matches": 4,
+  "prob": 0.058,
+  "at": 19.7,
+  "lead": null,
+  "flight": 1.73,
+  "name": "про: флешка Lamp Room (сетап, A)",
+  "fromZone": "T Lower",
+  "toZone": "Lamp Room",
+  "id": "pro82"
+ },
+ {
+  "team": "T",
+  "type": "he",
+  "trigger": "setup",
+  "site": "A",
+  "from": {
+   "x": 682.7,
+   "y": 1332.4
+  },
+  "to": {
+   "x": 737.9,
+   "y": 1204.4
+  },
+  "n": 4,
+  "matches": 4,
+  "prob": 0.058,
+  "at": 11.8,
+  "lead": null,
+  "flight": 1.78,
+  "name": "про: HE Lower Mid (сетап, A)",
+  "fromZone": "Split",
+  "toZone": "Lower Mid",
+  "id": "pro83"
+ },
+ {
+  "team": "T",
+  "type": "molly",
+  "trigger": "setup",
+  "site": "A",
+  "from": {
+   "x": 1618.3,
+   "y": 1242.0
+  },
+  "to": {
+   "x": 1372.6,
+   "y": 986.5
+  },
+  "n": 4,
+  "matches": 3,
+  "prob": 0.058,
+  "at": 9.7,
+  "lead": null,
+  "flight": 1.97,
+  "name": "про: молотов Dark (сетап, A)",
+  "fromZone": "Ruins",
+  "toZone": "Dark",
+  "id": "pro84"
+ },
+ {
+  "team": "T",
+  "type": "molly",
+  "trigger": "setup",
+  "site": "A",
+  "from": {
+   "x": 647.3,
+   "y": 1320.7
+  },
+  "to": {
+   "x": 1083.0,
+   "y": 937.7
+  },
+  "n": 4,
+  "matches": 4,
+  "prob": 0.058,
+  "at": 10.1,
+  "lead": null,
+  "flight": 2.12,
+  "name": "про: молотов Jungle (сетап, A)",
+  "fromZone": "Split",
+  "toZone": "Jungle",
+  "id": "pro85"
+ },
+ {
+  "team": "T",
+  "type": "smoke",
+  "trigger": "exec",
+  "site": "A",
+  "from": {
+   "x": 323.6,
+   "y": 1267.2
+  },
+  "to": {
+   "x": 751.9,
+   "y": 415.6
+  },
+  "n": 4,
+  "matches": 4,
+  "prob": 0.058,
+  "at": 43.4,
+  "lead": 20.4,
+  "flight": 5.27,
+  "name": "про: смок CT Lane (выход, A)",
+  "fromZone": "Sticks",
+  "toZone": "CT Lane",
+  "id": "pro86"
+ },
+ {
+  "team": "T",
+  "type": "smoke",
+  "trigger": "setup",
+  "site": "A",
+  "from": {
+   "x": 843.1,
+   "y": 1183.9
+  },
+  "to": {
+   "x": 956.5,
+   "y": 730.5
+  },
+  "n": 4,
+  "matches": 3,
+  "prob": 0.058,
+  "at": 27.1,
+  "lead": null,
+  "flight": 3.11,
+  "name": "про: смок Sniper Nest (сетап, A)",
+  "fromZone": "Lower Mid",
+  "toZone": "Sniper Nest",
+  "id": "pro87"
+ },
+ {
+  "team": "CT",
+  "type": "flash",
+  "trigger": "call",
+  "site": "B",
+  "from": {
+   "x": 1005.3,
+   "y": 435.2
+  },
+  "to": {
+   "x": 1633.4,
+   "y": 470.9
+  },
+  "n": 5,
+  "matches": 4,
+  "prob": 0.057,
+  "at": 62.0,
+  "lead": null,
+  "flight": 1.84,
+  "name": "про: флешка Back Halls (задержка выхода, B)",
+  "fromZone": "CT Spawn",
+  "toZone": "Back Halls",
+  "id": "pro88"
+ },
+ {
+  "team": "CT",
+  "type": "flash",
+  "trigger": "call",
+  "site": "B",
+  "from": {
+   "x": 1335.2,
+   "y": 869.9
+  },
+  "to": {
+   "x": 1532.0,
+   "y": 706.7
+  },
+  "n": 5,
+  "matches": 4,
+  "prob": 0.057,
+  "at": 24.3,
+  "lead": null,
+  "flight": 1.73,
+  "name": "про: флешка ? (задержка выхода, B)",
+  "fromZone": "Cave",
+  "toZone": null,
+  "id": "pro89"
+ },
+ {
+  "team": "T",
+  "type": "flash",
+  "trigger": "exec",
+  "site": "B",
+  "from": {
+   "x": 1645.2,
+   "y": 1233.3
+  },
+  "to": {
+   "x": 1695.3,
+   "y": 771.7
+  },
+  "n": 5,
+  "matches": 2,
+  "prob": 0.057,
+  "at": 36.9,
+  "lead": 11.1,
+  "flight": 1.83,
+  "name": "про: флешка ? (выход, B)",
+  "fromZone": "Ruins",
+  "toZone": null,
+  "id": "pro90"
+ },
+ {
+  "team": "T",
+  "type": "flash",
+  "trigger": "exec",
+  "site": "B",
+  "from": {
+   "x": 1581.2,
+   "y": 1415.0
+  },
+  "to": {
+   "x": 1764.8,
+   "y": 989.5
+  },
+  "n": 5,
+  "matches": 2,
+  "prob": 0.057,
+  "at": 19.7,
+  "lead": 12.5,
+  "flight": 1.73,
+  "name": "про: флешка ? (выход, B)",
+  "fromZone": "Ruins",
+  "toZone": null,
+  "id": "pro91"
+ },
+ {
+  "team": "T",
+  "type": "flash",
+  "trigger": "setup",
+  "site": "B",
+  "from": {
+   "x": 417.7,
+   "y": 811.2
+  },
+  "to": {
+   "x": 298.7,
+   "y": 655.3
+  },
+  "n": 5,
+  "matches": 3,
+  "prob": 0.057,
+  "at": 25.4,
+  "lead": null,
+  "flight": 1.72,
+  "name": "про: флешка ? (сетап, B)",
+  "fromZone": "A Main",
+  "toZone": null,
+  "id": "pro92"
+ },
+ {
+  "team": "T",
+  "type": "molly",
+  "trigger": "setup",
+  "site": "B",
+  "from": {
+   "x": 1617.6,
+   "y": 1239.0
+  },
+  "to": {
+   "x": 1373.9,
+   "y": 985.3
+  },
+  "n": 5,
+  "matches": 4,
+  "prob": 0.057,
+  "at": 9.8,
+  "lead": null,
+  "flight": 1.95,
+  "name": "про: молотов Dark (сетап, B)",
+  "fromZone": "Ruins",
+  "toZone": "Dark",
+  "id": "pro93"
+ },
+ {
+  "team": "T",
+  "type": "smoke",
+  "trigger": "exec",
+  "site": "B",
+  "from": {
+   "x": 1485.2,
+   "y": 1520.0
+  },
+  "to": {
+   "x": 1397.5,
+   "y": 773.7
+  },
+  "n": 5,
+  "matches": 5,
+  "prob": 0.057,
+  "at": 10.1,
+  "lead": 16.4,
+  "flight": 5.97,
+  "name": "про: смок Cave (выход, B)",
+  "fromZone": "Water",
+  "toZone": "Cave",
+  "id": "pro94"
+ },
+ {
+  "team": "T",
+  "type": "smoke",
+  "trigger": "exec",
+  "site": "B",
+  "from": {
+   "x": 1683.6,
+   "y": 1459.2
+  },
+  "to": {
+   "x": 1454.3,
+   "y": 662.7
+  },
+  "n": 5,
+  "matches": 4,
+  "prob": 0.057,
+  "at": 17.3,
+  "lead": 18.2,
+  "flight": 4.98,
+  "name": "про: смок Second Lane (выход, B)",
+  "fromZone": "Ruins",
+  "toZone": "Second Lane",
+  "id": "pro95"
+ },
+ {
+  "team": "T",
+  "type": "smoke",
+  "trigger": "setup",
+  "site": "B",
+  "from": {
+   "x": 1604.6,
+   "y": 1241.9
+  },
+  "to": {
+   "x": 1450.8,
+   "y": 697.3
+  },
+  "n": 5,
+  "matches": 4,
+  "prob": 0.057,
+  "at": 46.3,
+  "lead": null,
+  "flight": 3.89,
+  "name": "про: смок Second Lane (сетап, B)",
+  "fromZone": "Ruins",
+  "toZone": "Second Lane",
+  "id": "pro96"
+ },
+ {
+  "team": "CT",
+  "type": "flash",
+  "trigger": "timed",
+  "site": "any",
+  "from": {
+   "x": 1711.2,
+   "y": 659.2
+  },
+  "to": {
+   "x": 1693.8,
+   "y": 950.4
+  },
+  "n": 15,
+  "matches": 7,
+  "prob": 0.056,
+  "at": 16.8,
+  "lead": null,
+  "flight": 1.73,
+  "name": "про: флешка Ramp (по времени)",
+  "fromZone": "First Lane",
+  "toZone": "Ramp",
+  "id": "pro97"
+ },
+ {
+  "team": "CT",
+  "type": "he",
+  "trigger": "timed",
+  "site": "any",
+  "from": {
+   "x": 967.3,
+   "y": 500.0
+  },
+  "to": {
+   "x": 968.5,
+   "y": 770.0
+  },
+  "n": 15,
+  "matches": 8,
+  "prob": 0.056,
+  "at": 15.4,
+  "lead": null,
+  "flight": 1.72,
+  "name": "про: HE Sniper Nest (по времени)",
+  "fromZone": "Connector",
+  "toZone": "Sniper Nest",
+  "id": "pro98"
+ },
+ {
+  "team": "CT",
+  "type": "he",
+  "trigger": "timed",
+  "site": "any",
+  "from": {
+   "x": 1477.7,
+   "y": 607.2
+  },
+  "to": {
+   "x": 1425.3,
+   "y": 1199.5
+  },
+  "n": 15,
+  "matches": 4,
+  "prob": 0.056,
+  "at": 9.6,
+  "lead": null,
+  "flight": 1.72,
+  "name": "про: HE T Lower (по времени)",
+  "fromZone": "Second Lane",
+  "toZone": "T Lower",
+  "id": "pro99"
+ },
+ {
+  "team": "CT",
+  "type": "smoke",
+  "trigger": "timed",
+  "site": "any",
+  "from": {
+   "x": 1228.8,
+   "y": 1054.6
+  },
+  "to": {
+   "x": 1284.9,
+   "y": 1220.9
+  },
+  "n": 15,
+  "matches": 7,
+  "prob": 0.056,
+  "at": 21.4,
+  "lead": null,
+  "flight": 1.31,
+  "name": "про: смок T Upper (по времени)",
+  "fromZone": "Lamp Room",
+  "toZone": "T Upper",
+  "id": "pro100"
+ },
+ {
+  "team": "CT",
+  "type": "smoke",
+  "trigger": "timed",
+  "site": "any",
+  "from": {
+   "x": 1453.0,
+   "y": 680.0
+  },
+  "to": {
+   "x": 1683.7,
+   "y": 1005.7
+  },
+  "n": 15,
+  "matches": 8,
+  "prob": 0.056,
+  "at": 15.8,
+  "lead": null,
+  "flight": 2.2,
+  "name": "про: смок Ramp (по времени)",
+  "fromZone": "Second Lane",
+  "toZone": "Ramp",
+  "id": "pro101"
+ },
+ {
+  "team": "CT",
+  "type": "smoke",
+  "trigger": "timed",
+  "site": "any",
+  "from": {
+   "x": 745.2,
+   "y": 504.0
+  },
+  "to": {
+   "x": 352.3,
+   "y": 714.3
+  },
+  "n": 15,
+  "matches": 10,
+  "prob": 0.056,
+  "at": 30.8,
+  "lead": null,
+  "flight": 2.41,
+  "name": "про: смок Long (по времени)",
+  "fromZone": "Triple Box",
+  "toZone": "Long",
+  "id": "pro102"
+ },
+ {
+  "team": "T",
+  "type": "flash",
+  "trigger": "setup",
+  "site": "any",
+  "from": {
+   "x": 682.1,
+   "y": 1318.3
+  },
+  "to": {
+   "x": 856.1,
+   "y": 1213.5
+  },
+  "n": 15,
+  "matches": 8,
+  "prob": 0.056,
+  "at": 10.1,
+  "lead": null,
+  "flight": 1.72,
+  "name": "про: флешка ? (сетап)",
+  "fromZone": "Split",
+  "toZone": null,
+  "id": "pro103"
+ },
+ {
+  "team": "T",
+  "type": "molly",
+  "trigger": "setup",
+  "site": "any",
+  "from": {
+   "x": 718.3,
+   "y": 1231.8
+  },
+  "to": {
+   "x": 1108.7,
+   "y": 941.0
+  },
+  "n": 15,
+  "matches": 8,
+  "prob": 0.056,
+  "at": 6.9,
+  "lead": null,
+  "flight": 1.36,
+  "name": "про: молотов Jungle (сетап)",
+  "fromZone": "Lower Mid",
+  "toZone": "Jungle",
+  "id": "pro104"
+ },
+ {
+  "team": "CT",
+  "type": "he",
+  "trigger": "timed",
+  "site": "any",
+  "from": {
+   "x": 981.3,
+   "y": 694.9
+  },
+  "to": {
+   "x": 882.2,
+   "y": 1215.6
+  },
+  "n": 14,
+  "matches": 8,
+  "prob": 0.052,
+  "at": 6.6,
+  "lead": null,
+  "flight": 1.72,
+  "name": "про: HE Mid (по времени)",
+  "fromZone": "Sniper Nest",
+  "toZone": "Mid",
+  "id": "pro105"
+ },
+ {
+  "team": "CT",
+  "type": "he",
+  "trigger": "timed",
+  "site": "any",
+  "from": {
+   "x": 1446.5,
+   "y": 721.5
+  },
+  "to": {
+   "x": 1549.1,
+   "y": 1166.4
+  },
+  "n": 14,
+  "matches": 9,
+  "prob": 0.052,
+  "at": 9.2,
+  "lead": null,
+  "flight": 1.72,
+  "name": "про: HE T Lower (по времени)",
+  "fromZone": "Second Lane",
+  "toZone": "T Lower",
+  "id": "pro106"
+ },
+ {
+  "team": "CT",
+  "type": "he",
+  "trigger": "timed",
+  "site": "any",
+  "from": {
+   "x": 969.6,
+   "y": 842.0
+  },
+  "to": {
+   "x": 817.1,
+   "y": 1131.6
+  },
+  "n": 14,
+  "matches": 8,
+  "prob": 0.052,
+  "at": 7.5,
+  "lead": null,
+  "flight": 1.72,
+  "name": "про: HE Lower Mid (по времени)",
+  "fromZone": "Top Mid",
+  "toZone": "Lower Mid",
+  "id": "pro107"
+ },
+ {
+  "team": "T",
+  "type": "he",
+  "trigger": "setup",
+  "site": "any",
+  "from": {
+   "x": 683.4,
+   "y": 1319.4
+  },
+  "to": {
+   "x": 744.0,
+   "y": 1200.2
+  },
+  "n": 14,
+  "matches": 8,
+  "prob": 0.052,
+  "at": 10.8,
+  "lead": null,
+  "flight": 1.83,
+  "name": "про: HE Lower Mid (сетап)",
+  "fromZone": "Split",
+  "toZone": "Lower Mid",
+  "id": "pro108"
+ },
+ {
+  "team": "CT",
+  "type": "flash",
+  "trigger": "timed",
+  "site": "any",
+  "from": {
+   "x": 1392.1,
+   "y": 852.5
+  },
+  "to": {
+   "x": 1313.1,
+   "y": 1035.0
+  },
+  "n": 13,
+  "matches": 7,
+  "prob": 0.048,
+  "at": 16.6,
+  "lead": null,
+  "flight": 1.72,
+  "name": "про: флешка Lamp Room (по времени)",
+  "fromZone": "Cave",
+  "toZone": "Lamp Room",
+  "id": "pro109"
+ },
+ {
+  "team": "CT",
+  "type": "he",
+  "trigger": "timed",
+  "site": "any",
+  "from": {
+   "x": 930.5,
+   "y": 672.4
+  },
+  "to": {
+   "x": 978.9,
+   "y": 774.5
+  },
+  "n": 13,
+  "matches": 5,
+  "prob": 0.048,
+  "at": 14.0,
+  "lead": null,
+  "flight": 1.72,
+  "name": "про: HE Sniper Nest (по времени)",
+  "fromZone": "Sniper Nest",
+  "toZone": "Sniper Nest",
+  "id": "pro110"
+ },
+ {
+  "team": "T",
+  "type": "flash",
+  "trigger": "setup",
+  "site": "any",
+  "from": {
+   "x": 682.1,
+   "y": 1501.6
+  },
+  "to": {
+   "x": 763.6,
+   "y": 1176.9
+  },
+  "n": 13,
+  "matches": 6,
+  "prob": 0.048,
+  "at": 13.6,
+  "lead": null,
+  "flight": 1.72,
+  "name": "про: флешка ? (сетап)",
+  "fromZone": "T Ramp",
+  "toZone": null,
+  "id": "pro111"
+ },
+ {
+  "team": "CT",
+  "type": "flash",
+  "trigger": "call",
+  "site": "B",
+  "from": {
+   "x": 1739.6,
+   "y": 639.1
+  },
+  "to": {
+   "x": 1377.6,
+   "y": 826.9
+  },
+  "n": 4,
+  "matches": 3,
+  "prob": 0.046,
+  "at": 55.8,
+  "lead": null,
+  "flight": 1.73,
+  "name": "про: флешка Cave (задержка выхода, B)",
+  "fromZone": "First Lane",
+  "toZone": "Cave",
+  "id": "pro112"
+ },
+ {
+  "team": "CT",
+  "type": "flash",
+  "trigger": "call",
+  "site": "B",
+  "from": {
+   "x": 842.1,
+   "y": 944.6
+  },
+  "to": {
+   "x": 1173.6,
+   "y": 1213.6
+  },
+  "n": 4,
+  "matches": 3,
+  "prob": 0.046,
+  "at": 12.7,
+  "lead": null,
+  "flight": 1.72,
+  "name": "про: флешка ? (задержка выхода, B)",
+  "fromZone": "Chamber Lane",
+  "toZone": null,
+  "id": "pro113"
+ },
+ {
+  "team": "CT",
+  "type": "flash",
+  "trigger": "call",
+  "site": "B",
+  "from": {
+   "x": 957.8,
+   "y": 744.7
+  },
+  "to": {
+   "x": 1047.1,
+   "y": 1100.9
+  },
+  "n": 4,
+  "matches": 4,
+  "prob": 0.046,
+  "at": 11.3,
+  "lead": null,
+  "flight": 1.73,
+  "name": "про: флешка Mid (задержка выхода, B)",
+  "fromZone": "Sniper Nest",
+  "toZone": "Mid",
+  "id": "pro114"
+ },
+ {
+  "team": "CT",
+  "type": "flash",
+  "trigger": "call",
+  "site": "B",
+  "from": {
+   "x": 1140.0,
+   "y": 555.4
+  },
+  "to": {
+   "x": 1647.8,
+   "y": 537.2
+  },
+  "n": 4,
+  "matches": 3,
+  "prob": 0.046,
+  "at": 47.4,
+  "lead": null,
+  "flight": 1.73,
+  "name": "про: флешка Back Halls (задержка выхода, B)",
+  "fromZone": "Alley",
+  "toZone": "Back Halls",
+  "id": "pro115"
+ },
+ {
+  "team": "CT",
+  "type": "molly",
+  "trigger": "call",
+  "site": "B",
+  "from": {
+   "x": 1411.6,
+   "y": 552.8
+  },
+  "to": {
+   "x": 1688.0,
+   "y": 1033.8
+  },
+  "n": 4,
+  "matches": 4,
+  "prob": 0.046,
+  "at": 8.3,
+  "lead": null,
+  "flight": 2.12,
+  "name": "про: молотов Ramp (задержка выхода, B)",
+  "fromZone": "Alley",
+  "toZone": "Ramp",
+  "id": "pro116"
+ },
+ {
+  "team": "T",
+  "type": "flash",
+  "trigger": "exec",
+  "site": "B",
+  "from": {
+   "x": 1650.5,
+   "y": 1164.3
+  },
+  "to": {
+   "x": 1771.7,
+   "y": 929.0
+  },
+  "n": 4,
+  "matches": 2,
+  "prob": 0.046,
+  "at": 62.0,
+  "lead": 15.9,
+  "flight": 1.72,
+  "name": "про: флешка ? (выход, B)",
+  "fromZone": "T Lower",
+  "toZone": null,
+  "id": "pro117"
+ },
+ {
+  "team": "T",
+  "type": "flash",
+  "trigger": "setup",
+  "site": "B",
+  "from": {
+   "x": 1492.3,
+   "y": 1468.4
+  },
+  "to": {
+   "x": 1696.8,
+   "y": 1190.3
+  },
+  "n": 4,
+  "matches": 3,
+  "prob": 0.046,
+  "at": 16.0,
+  "lead": null,
+  "flight": 1.72,
+  "name": "про: флешка T Lower (сетап, B)",
+  "fromZone": "Ruins",
+  "toZone": "T Lower",
+  "id": "pro118"
+ },
+ {
+  "team": "T",
+  "type": "flash",
+  "trigger": "setup",
+  "site": "B",
+  "from": {
+   "x": 685.3,
+   "y": 1283.2
+  },
+  "to": {
+   "x": 929.1,
+   "y": 995.3
+  },
+  "n": 4,
+  "matches": 3,
+  "prob": 0.046,
+  "at": 10.9,
+  "lead": null,
+  "flight": 1.73,
+  "name": "про: флешка Mid (сетап, B)",
+  "fromZone": null,
+  "toZone": "Mid",
+  "id": "pro119"
+ },
+ {
+  "team": "T",
+  "type": "flash",
+  "trigger": "setup",
+  "site": "B",
+  "from": {
+   "x": 1492.4,
+   "y": 1126.4
+  },
+  "to": {
+   "x": 1244.0,
+   "y": 1148.6
+  },
+  "n": 4,
+  "matches": 2,
+  "prob": 0.046,
+  "at": 12.1,
+  "lead": null,
+  "flight": 1.72,
+  "name": "про: флешка Lamp Room (сетап, B)",
+  "fromZone": "T Lower",
+  "toZone": "Lamp Room",
+  "id": "pro120"
+ },
+ {
+  "team": "T",
+  "type": "he",
+  "trigger": "setup",
+  "site": "B",
+  "from": {
+   "x": 1327.8,
+   "y": 1210.3
+  },
+  "to": {
+   "x": 1374.5,
+   "y": 1047.2
+  },
+  "n": 4,
+  "matches": 4,
+  "prob": 0.046,
+  "at": 21.0,
+  "lead": null,
+  "flight": 1.73,
+  "name": "про: HE Lamp Room (сетап, B)",
+  "fromZone": "T Upper",
+  "toZone": "Lamp Room",
+  "id": "pro121"
+ },
+ {
+  "team": "T",
+  "type": "he",
+  "trigger": "setup",
+  "site": "B",
+  "from": {
+   "x": 715.2,
+   "y": 1226.1
+  },
+  "to": {
+   "x": 977.9,
+   "y": 1043.9
+  },
+  "n": 4,
+  "matches": 4,
+  "prob": 0.046,
+  "at": 8.2,
+  "lead": null,
+  "flight": 1.72,
+  "name": "про: HE Mid (сетап, B)",
+  "fromZone": "Lower Mid",
+  "toZone": "Mid",
+  "id": "pro122"
+ },
+ {
+  "team": "T",
+  "type": "he",
+  "trigger": "setup",
+  "site": "B",
+  "from": {
+   "x": 1251.4,
+   "y": 1146.4
+  },
+  "to": {
+   "x": 1325.1,
+   "y": 916.5
+  },
+  "n": 4,
+  "matches": 3,
+  "prob": 0.046,
+  "at": 33.2,
+  "lead": null,
+  "flight": 1.72,
+  "name": "про: HE Cave (сетап, B)",
+  "fromZone": "Lamp Room",
+  "toZone": "Cave",
+  "id": "pro123"
+ },
+ {
+  "team": "T",
+  "type": "he",
+  "trigger": "setup",
+  "site": "B",
+  "from": {
+   "x": 1475.2,
+   "y": 1127.7
+  },
+  "to": {
+   "x": 1246.2,
+   "y": 1146.1
+  },
+  "n": 4,
+  "matches": 3,
+  "prob": 0.046,
+  "at": 14.2,
+  "lead": null,
+  "flight": 1.73,
+  "name": "про: HE Lamp Room (сетап, B)",
+  "fromZone": "T Lower",
+  "toZone": "Lamp Room",
+  "id": "pro124"
+ },
+ {
+  "team": "T",
+  "type": "molly",
+  "trigger": "exec",
+  "site": "B",
+  "from": {
+   "x": 1701.3,
+   "y": 1079.4
+  },
+  "to": {
+   "x": 1480.5,
+   "y": 787.6
+  },
+  "n": 4,
+  "matches": 3,
+  "prob": 0.046,
+  "at": 46.3,
+  "lead": 13.1,
+  "flight": 1.86,
+  "name": "про: молотов ? (выход, B)",
+  "fromZone": "Ramp",
+  "toZone": null,
+  "id": "pro125"
+ },
+ {
+  "team": "T",
+  "type": "molly",
+  "trigger": "exec",
+  "site": "B",
+  "from": {
+   "x": 1683.6,
+   "y": 1459.2
+  },
+  "to": {
+   "x": 1465.0,
+   "y": 961.5
+  },
+  "n": 4,
+  "matches": 3,
+  "prob": 0.046,
+  "at": 25.1,
+  "lead": 20.2,
+  "flight": 2.11,
+  "name": "про: молотов B Site (выход, B)",
+  "fromZone": "Ruins",
+  "toZone": "B Site",
+  "id": "pro126"
+ },
+ {
+  "team": "T",
+  "type": "molly",
+  "trigger": "setup",
+  "site": "B",
+  "from": {
+   "x": 927.2,
+   "y": 1154.4
+  },
+  "to": {
+   "x": 981.1,
+   "y": 507.2
+  },
+  "n": 4,
+  "matches": 3,
+  "prob": 0.046,
+  "at": 21.2,
+  "lead": null,
+  "flight": 1.99,
+  "name": "про: молотов Connector (сетап, B)",
+  "fromZone": "Mid",
+  "toZone": "Connector",
+  "id": "pro127"
+ },
+ {
+  "team": "T",
+  "type": "molly",
+  "trigger": "setup",
+  "site": "B",
+  "from": {
+   "x": 1567.8,
+   "y": 1316.5
+  },
+  "to": {
+   "x": 1696.3,
+   "y": 1069.4
+  },
+  "n": 4,
+  "matches": 3,
+  "prob": 0.046,
+  "at": 8.6,
+  "lead": null,
+  "flight": 2.11,
+  "name": "про: молотов Ramp (сетап, B)",
+  "fromZone": "Ruins",
+  "toZone": "Ramp",
+  "id": "pro128"
+ },
+ {
+  "team": "T",
+  "type": "smoke",
+  "trigger": "exec",
+  "site": "B",
+  "from": {
+   "x": 1330.1,
+   "y": 819.0
+  },
+  "to": {
+   "x": 1679.9,
+   "y": 727.4
+  },
+  "n": 4,
+  "matches": 3,
+  "prob": 0.046,
+  "at": 86.7,
+  "lead": 11.3,
+  "flight": 2.25,
+  "name": "про: смок 90 (выход, B)",
+  "fromZone": "Cave",
+  "toZone": "90",
+  "id": "pro129"
+ },
+ {
+  "team": "T",
+  "type": "smoke",
+  "trigger": "setup",
+  "site": "B",
+  "from": {
+   "x": 1099.7,
+   "y": 1170.1
+  },
+  "to": {
+   "x": 977.0,
+   "y": 720.5
+  },
+  "n": 4,
+  "matches": 4,
+  "prob": 0.046,
+  "at": 50.5,
+  "lead": null,
+  "flight": 3.0,
+  "name": "про: смок Sniper Nest (сетап, B)",
+  "fromZone": "Triple",
+  "toZone": "Sniper Nest",
+  "id": "pro130"
+ },
+ {
+  "team": "CT",
+  "type": "flash",
+  "trigger": "timed",
+  "site": "any",
+  "from": {
+   "x": 952.8,
+   "y": 744.8
+  },
+  "to": {
+   "x": 1054.1,
+   "y": 1108.8
+  },
+  "n": 12,
+  "matches": 3,
+  "prob": 0.045,
+  "at": 9.8,
+  "lead": null,
+  "flight": 1.72,
+  "name": "про: флешка Mid (по времени)",
+  "fromZone": "Sniper Nest",
+  "toZone": "Mid",
+  "id": "pro131"
+ },
+ {
+  "team": "CT",
+  "type": "he",
+  "trigger": "timed",
+  "site": "any",
+  "from": {
+   "x": 1369.0,
+   "y": 1008.3
+  },
+  "to": {
+   "x": 1305.0,
+   "y": 1221.5
+  },
+  "n": 12,
+  "matches": 6,
+  "prob": 0.045,
+  "at": 12.8,
+  "lead": null,
+  "flight": 1.72,
+  "name": "про: HE T Upper (по времени)",
+  "fromZone": "Lamp Room",
+  "toZone": "T Upper",
+  "id": "pro132"
+ },
+ {
+  "team": "CT",
+  "type": "he",
+  "trigger": "timed",
+  "site": "any",
+  "from": {
+   "x": 1659.1,
+   "y": 710.0
+  },
+  "to": {
+   "x": 1643.5,
+   "y": 1163.8
+  },
+  "n": 12,
+  "matches": 6,
+  "prob": 0.045,
+  "at": 15.8,
+  "lead": null,
+  "flight": 1.73,
+  "name": "про: HE T Lower (по времени)",
+  "fromZone": "First Lane",
+  "toZone": "T Lower",
+  "id": "pro133"
+ },
+ {
+  "team": "CT",
+  "type": "smoke",
+  "trigger": "timed",
+  "site": "any",
+  "from": {
+   "x": 952.2,
+   "y": 1048.0
+  },
+  "to": {
+   "x": 717.5,
+   "y": 1185.8
+  },
+  "n": 12,
+  "matches": 8,
+  "prob": 0.045,
+  "at": 20.8,
+  "lead": null,
+  "flight": 1.98,
+  "name": "про: смок Lower Mid (по времени)",
+  "fromZone": "Mid",
+  "toZone": "Lower Mid",
+  "id": "pro134"
+ },
+ {
+  "team": "CT",
+  "type": "smoke",
+  "trigger": "timed",
+  "site": "any",
+  "from": {
+   "x": 1577.4,
+   "y": 949.4
+  },
+  "to": {
+   "x": 1679.1,
+   "y": 1023.3
+  },
+  "n": 12,
+  "matches": 9,
+  "prob": 0.045,
+  "at": 21.9,
+  "lead": null,
+  "flight": 1.46,
+  "name": "про: смок Ramp (по времени)",
+  "fromZone": "B Site",
+  "toZone": "Ramp",
+  "id": "pro135"
+ },
+ {
+  "team": "CT",
+  "type": "smoke",
+  "trigger": "timed",
+  "site": "any",
+  "from": {
+   "x": 1408.6,
+   "y": 778.9
+  },
+  "to": {
+   "x": 1334.0,
+   "y": 1070.4
+  },
+  "n": 12,
+  "matches": 7,
+  "prob": 0.045,
+  "at": 46.8,
+  "lead": null,
+  "flight": 1.89,
+  "name": "про: смок Lamp Room (по времени)",
+  "fromZone": "Cave",
+  "toZone": "Lamp Room",
+  "id": "pro136"
+ },
+ {
+  "team": "T",
+  "type": "flash",
+  "trigger": "setup",
+  "site": "any",
+  "from": {
+   "x": 372.1,
+   "y": 796.8
+  },
+  "to": {
+   "x": 519.8,
+   "y": 453.0
+  },
+  "n": 12,
+  "matches": 7,
+  "prob": 0.045,
+  "at": 24.5,
+  "lead": null,
+  "flight": 1.72,
+  "name": "про: флешка Back Site (сетап)",
+  "fromZone": "A Main",
+  "toZone": "Back Site",
+  "id": "pro137"
+ },
+ {
+  "team": "CT",
+  "type": "flash",
+  "trigger": "retake",
+  "site": "A",
+  "from": {
+   "x": 1054.3,
+   "y": 1065.5
+  },
+  "to": {
+   "x": 614.5,
+   "y": 829.9
+  },
+  "n": 3,
+  "matches": 3,
+  "prob": 0.043,
+  "at": 41.5,
+  "lead": null,
+  "flight": 1.72,
+  "name": "про: флешка Short (ретейк, A)",
+  "fromZone": "Mid",
+  "toZone": "Short",
+  "id": "pro138"
+ },
+ {
+  "team": "T",
+  "type": "flash",
+  "trigger": "exec",
+  "site": "A",
+  "from": {
+   "x": 466.7,
+   "y": 1047.6
+  },
+  "to": {
+   "x": 455.9,
+   "y": 730.2
+  },
+  "n": 3,
+  "matches": 3,
+  "prob": 0.043,
+  "at": 33.5,
+  "lead": 16.1,
+  "flight": 1.72,
+  "name": "про: флешка ? (выход, A)",
+  "fromZone": "A Hall",
+  "toZone": null,
+  "id": "pro139"
+ },
+ {
+  "team": "T",
+  "type": "flash",
+  "trigger": "exec",
+  "site": "A",
+  "from": {
+   "x": 439.4,
+   "y": 851.9
+  },
+  "to": {
+   "x": 294.4,
+   "y": 653.2
+  },
+  "n": 3,
+  "matches": 2,
+  "prob": 0.043,
+  "at": 21.7,
+  "lead": 17.2,
+  "flight": 1.73,
+  "name": "про: флешка ? (выход, A)",
+  "fromZone": "A Main",
+  "toZone": null,
+  "id": "pro140"
+ },
+ {
+  "team": "T",
+  "type": "flash",
+  "trigger": "setup",
+  "site": "A",
+  "from": {
+   "x": 683.4,
+   "y": 1369.3
+  },
+  "to": {
+   "x": 819.4,
+   "y": 1263.8
+  },
+  "n": 3,
+  "matches": 3,
+  "prob": 0.043,
+  "at": 10.6,
+  "lead": null,
+  "flight": 1.73,
+  "name": "про: флешка ? (сетап, A)",
+  "fromZone": "Split",
+  "toZone": null,
+  "id": "pro141"
+ },
+ {
+  "team": "T",
+  "type": "flash",
+  "trigger": "setup",
+  "site": "A",
+  "from": {
+   "x": 895.7,
+   "y": 1653.8
+  },
+  "to": {
+   "x": 1090.1,
+   "y": 1255.4
+  },
+  "n": 3,
+  "matches": 2,
+  "prob": 0.043,
+  "at": 9.1,
+  "lead": null,
+  "flight": 1.72,
+  "name": "про: флешка ? (сетап, A)",
+  "fromZone": "T Ramp",
+  "toZone": null,
+  "id": "pro142"
+ },
+ {
+  "team": "T",
+  "type": "he",
+  "trigger": "exec",
+  "site": "A",
+  "from": {
+   "x": 362.3,
+   "y": 724.7
+  },
+  "to": {
+   "x": 737.4,
+   "y": 477.4
+  },
+  "n": 3,
+  "matches": 3,
+  "prob": 0.043,
+  "at": 64.2,
+  "lead": 10.5,
+  "flight": 1.73,
+  "name": "про: HE Triple Box (выход, A)",
+  "fromZone": "Long",
+  "toZone": "Triple Box",
+  "id": "pro143"
+ },
+ {
+  "team": "T",
+  "type": "he",
+  "trigger": "postplant",
+  "site": "A",
+  "from": {
+   "x": 616.3,
+   "y": 627.6
+  },
+  "to": {
+   "x": 863.8,
+   "y": 444.0
+  },
+  "n": 3,
+  "matches": 2,
+  "prob": 0.043,
+  "at": 75.2,
+  "lead": null,
+  "flight": 1.72,
+  "name": "про: HE CT Lane (пост-плант, A)",
+  "fromZone": "A Site",
+  "toZone": "CT Lane",
+  "id": "pro144"
+ },
+ {
+  "team": "T",
+  "type": "he",
+  "trigger": "setup",
+  "site": "A",
+  "from": {
+   "x": 1255.9,
+   "y": 1141.2
+  },
+  "to": {
+   "x": 1329.8,
+   "y": 921.6
+  },
+  "n": 3,
+  "matches": 3,
+  "prob": 0.043,
+  "at": 53.4,
+  "lead": null,
+  "flight": 1.72,
+  "name": "про: HE Cave (сетап, A)",
+  "fromZone": "Lamp Room",
+  "toZone": "Cave",
+  "id": "pro145"
+ },
+ {
+  "team": "T",
+  "type": "molly",
+  "trigger": "exec",
+  "site": "A",
+  "from": {
+   "x": 589.3,
+   "y": 605.4
+  },
+  "to": {
+   "x": 670.7,
+   "y": 900.6
+  },
+  "n": 3,
+  "matches": 2,
+  "prob": 0.043,
+  "at": 21.6,
+  "lead": 14.3,
+  "flight": 1.05,
+  "name": "про: молотов Donut (выход, A)",
+  "fromZone": "A Site",
+  "toZone": "Donut",
+  "id": "pro146"
+ },
+ {
+  "team": "T",
+  "type": "molly",
+  "trigger": "exec",
+  "site": "A",
+  "from": {
+   "x": 360.2,
+   "y": 781.8
+  },
+  "to": {
+   "x": 588.2,
+   "y": 414.7
+  },
+  "n": 3,
+  "matches": 3,
+  "prob": 0.043,
+  "at": 39.7,
+  "lead": 16.9,
+  "flight": 1.58,
+  "name": "про: молотов Temple (выход, A)",
+  "fromZone": "A Main",
+  "toZone": "Temple",
+  "id": "pro147"
+ },
+ {
+  "team": "T",
+  "type": "molly",
+  "trigger": "exec",
+  "site": "A",
+  "from": {
+   "x": 634.5,
+   "y": 756.0
+  },
+  "to": {
+   "x": 519.1,
+   "y": 410.6
+  },
+  "n": 3,
+  "matches": 2,
+  "prob": 0.043,
+  "at": 40.8,
+  "lead": 6.5,
+  "flight": 1.22,
+  "name": "про: молотов Back Site (выход, A)",
+  "fromZone": "Short",
+  "toZone": "Back Site",
+  "id": "pro148"
+ },
+ {
+  "team": "T",
+  "type": "molly",
+  "trigger": "exec",
+  "site": "A",
+  "from": {
+   "x": 636.8,
+   "y": 648.9
+  },
+  "to": {
+   "x": 840.8,
+   "y": 464.8
+  },
+  "n": 3,
+  "matches": 2,
+  "prob": 0.043,
+  "at": 50.7,
+  "lead": 8.1,
+  "flight": 1.55,
+  "name": "про: молотов CT Lane (выход, A)",
+  "fromZone": "A Site",
+  "toZone": "CT Lane",
+  "id": "pro149"
+ },
+ {
+  "team": "T",
+  "type": "molly",
+  "trigger": "setup",
+  "site": "A",
+  "from": {
+   "x": 946.6,
+   "y": 1139.7
+  },
+  "to": {
+   "x": 988.5,
+   "y": 522.4
+  },
+  "n": 3,
+  "matches": 3,
+  "prob": 0.043,
+  "at": 36.8,
+  "lead": null,
+  "flight": 1.84,
+  "name": "про: молотов Connector (сетап, A)",
+  "fromZone": "Mid",
+  "toZone": "Connector",
+  "id": "pro150"
+ },
+ {
+  "team": "CT",
+  "type": "flash",
+  "trigger": "timed",
+  "site": "any",
+  "from": {
+   "x": 1416.8,
+   "y": 785.1
+  },
+  "to": {
+   "x": 1706.4,
+   "y": 1049.9
+  },
+  "n": 11,
+  "matches": 6,
+  "prob": 0.041,
+  "at": 17.1,
+  "lead": null,
+  "flight": 1.72,
+  "name": "про: флешка Ramp (по времени)",
+  "fromZone": "Cave",
+  "toZone": "Ramp",
+  "id": "pro151"
+ },
+ {
+  "team": "CT",
+  "type": "flash",
+  "trigger": "timed",
+  "site": "any",
+  "from": {
+   "x": 862.6,
+   "y": 912.2
+  },
+  "to": {
+   "x": 902.4,
+   "y": 1126.8
+  },
+  "n": 11,
+  "matches": 4,
+  "prob": 0.041,
+  "at": 11.0,
+  "lead": null,
+  "flight": 1.72,
+  "name": "про: флешка Mid (по времени)",
+  "fromZone": "Chamber Lane",
+  "toZone": "Mid",
+  "id": "pro152"
+ },
+ {
+  "team": "CT",
+  "type": "smoke",
+  "trigger": "timed",
+  "site": "any",
+  "from": {
+   "x": 1390.2,
+   "y": 905.5
+  },
+  "to": {
+   "x": 1368.0,
+   "y": 1038.3
+  },
+  "n": 11,
+  "matches": 7,
+  "prob": 0.041,
+  "at": 42.2,
+  "lead": null,
+  "flight": 1.36,
+  "name": "про: смок Lamp Room (по времени)",
+  "fromZone": "Cave",
+  "toZone": "Lamp Room",
+  "id": "pro153"
+ },
+ {
+  "team": "T",
+  "type": "smoke",
+  "trigger": "setup",
+  "site": "any",
+  "from": {
+   "x": 886.8,
+   "y": 1720.0
+  },
+  "to": {
+   "x": 844.2,
+   "y": 936.6
+  },
+  "n": 11,
+  "matches": 6,
+  "prob": 0.041,
+  "at": 3.3,
+  "lead": null,
+  "flight": 6.08,
+  "name": "про: смок Chamber Lane (сетап)",
+  "fromZone": "T Spawn",
+  "toZone": "Chamber Lane",
+  "id": "pro154"
+ },
+ {
+  "team": "CT",
+  "type": "molly",
+  "trigger": "timed",
+  "site": "any",
+  "from": {
+   "x": 992.6,
+   "y": 556.5
+  },
+  "to": {
+   "x": 878.6,
+   "y": 1194.3
+  },
+  "n": 10,
+  "matches": 5,
+  "prob": 0.037,
+  "at": 4.6,
+  "lead": null,
+  "flight": 2.1,
+  "name": "про: молотов Mid (по времени)",
+  "fromZone": "Connector",
+  "toZone": "Mid",
+  "id": "pro155"
+ },
+ {
+  "team": "CT",
+  "type": "smoke",
+  "trigger": "timed",
+  "site": "any",
+  "from": {
+   "x": 623.6,
+   "y": 812.6
+  },
+  "to": {
+   "x": 812.3,
+   "y": 939.5
+  },
+  "n": 10,
+  "matches": 5,
+  "prob": 0.037,
+  "at": 47.4,
+  "lead": null,
+  "flight": 1.75,
+  "name": "про: смок Chamber Lane (по времени)",
+  "fromZone": "Short",
+  "toZone": "Chamber Lane",
+  "id": "pro156"
+ },
+ {
+  "team": "T",
+  "type": "flash",
+  "trigger": "setup",
+  "site": "any",
+  "from": {
+   "x": 1613.4,
+   "y": 1235.6
+  },
+  "to": {
+   "x": 1602.8,
+   "y": 935.8
+  },
+  "n": 10,
+  "matches": 5,
+  "prob": 0.037,
+  "at": 10.0,
+  "lead": null,
+  "flight": 1.72,
+  "name": "про: флешка B Site (сетап)",
+  "fromZone": "Ruins",
+  "toZone": "B Site",
+  "id": "pro157"
+ },
+ {
+  "team": "T",
+  "type": "flash",
+  "trigger": "setup",
+  "site": "any",
+  "from": {
+   "x": 1094.8,
+   "y": 1643.3
+  },
+  "to": {
+   "x": 1078.3,
+   "y": 1253.9
+  },
+  "n": 10,
+  "matches": 4,
+  "prob": 0.037,
+  "at": 11.4,
+  "lead": null,
+  "flight": 1.73,
+  "name": "про: флешка ? (сетап)",
+  "fromZone": "T Ramp",
+  "toZone": null,
+  "id": "pro158"
+ },
+ {
+  "team": "T",
+  "type": "molly",
+  "trigger": "setup",
+  "site": "any",
+  "from": {
+   "x": 1604.6,
+   "y": 1241.5
+  },
+  "to": {
+   "x": 1457.6,
+   "y": 829.1
+  },
+  "n": 10,
+  "matches": 8,
+  "prob": 0.037,
+  "at": 33.5,
+  "lead": null,
+  "flight": 2.12,
+  "name": "про: молотов Site B (сетап)",
+  "fromZone": "Ruins",
+  "toZone": "Site B",
+  "id": "pro159"
+ },
+ {
+  "team": "T",
+  "type": "smoke",
+  "trigger": "insta",
+  "site": "any",
+  "from": {
+   "x": 930.5,
+   "y": 1706.7
+  },
+  "to": {
+   "x": 972.6,
+   "y": 769.1
+  },
+  "n": 10,
+  "matches": 4,
+  "prob": 0.037,
+  "at": 1.6,
+  "lead": null,
+  "flight": 5.56,
+  "name": "про: смок Sniper Nest (инста)",
+  "fromZone": null,
+  "toZone": "Sniper Nest",
+  "id": "pro160"
+ },
+ {
+  "team": "CT",
+  "type": "he",
+  "trigger": "retake",
+  "site": "B",
+  "from": {
+   "x": 1489.7,
+   "y": 522.6
+  },
+  "to": {
+   "x": 1474.4,
+   "y": 931.7
+  },
+  "n": 3,
+  "matches": 3,
+  "prob": 0.034,
+  "at": 58.0,
+  "lead": null,
+  "flight": 1.73,
+  "name": "про: HE B Site (ретейк, B)",
+  "fromZone": "Back Halls",
+  "toZone": "B Site",
+  "id": "pro161"
+ },
+ {
+  "team": "CT",
+  "type": "molly",
+  "trigger": "call",
+  "site": "B",
+  "from": {
+   "x": 1450.5,
+   "y": 603.9
+  },
+  "to": {
+   "x": 1428.6,
+   "y": 1212.7
+  },
+  "n": 3,
+  "matches": 3,
+  "prob": 0.034,
+  "at": 8.1,
+  "lead": null,
+  "flight": 2.11,
+  "name": "про: молотов T Lower (задержка выхода, B)",
+  "fromZone": "Second Lane",
+  "toZone": "T Lower",
+  "id": "pro162"
+ },
+ {
+  "team": "CT",
+  "type": "molly",
+  "trigger": "call",
+  "site": "B",
+  "from": {
+   "x": 1496.8,
+   "y": 526.6
+  },
+  "to": {
+   "x": 1484.2,
+   "y": 910.9
+  },
+  "n": 3,
+  "matches": 3,
+  "prob": 0.034,
+  "at": 67.5,
+  "lead": null,
+  "flight": 1.8,
+  "name": "про: молотов B Site (задержка выхода, B)",
+  "fromZone": "Back Halls",
+  "toZone": "B Site",
+  "id": "pro163"
+ },
+ {
+  "team": "CT",
+  "type": "molly",
+  "trigger": "call",
+  "site": "B",
+  "from": {
+   "x": 1367.5,
+   "y": 1007.3
+  },
+  "to": {
+   "x": 1311.4,
+   "y": 1225.9
+  },
+  "n": 3,
+  "matches": 2,
+  "prob": 0.034,
+  "at": 12.4,
+  "lead": null,
+  "flight": 1.27,
+  "name": "про: молотов T Upper (задержка выхода, B)",
+  "fromZone": "Lamp Room",
+  "toZone": "T Upper",
+  "id": "pro164"
+ },
+ {
+  "team": "CT",
+  "type": "molly",
+  "trigger": "retake",
+  "site": "B",
+  "from": {
+   "x": 1505.4,
+   "y": 506.1
+  },
+  "to": {
+   "x": 1484.4,
+   "y": 903.5
+  },
+  "n": 3,
+  "matches": 3,
+  "prob": 0.034,
+  "at": 59.2,
+  "lead": null,
+  "flight": 1.75,
+  "name": "про: молотов B Site (ретейк, B)",
+  "fromZone": "Back Halls",
+  "toZone": "B Site",
+  "id": "pro165"
+ },
+ {
+  "team": "CT",
+  "type": "smoke",
+  "trigger": "call",
+  "site": "B",
+  "from": {
+   "x": 1429.2,
+   "y": 698.8
+  },
+  "to": {
+   "x": 1699.8,
+   "y": 977.3
+  },
+  "n": 3,
+  "matches": 3,
+  "prob": 0.034,
+  "at": 69.8,
+  "lead": null,
+  "flight": 2.41,
+  "name": "про: смок Ramp (задержка выхода, B)",
+  "fromZone": "Second Lane",
+  "toZone": "Ramp",
+  "id": "pro166"
+ },
+ {
+  "team": "T",
+  "type": "flash",
+  "trigger": "exec",
+  "site": "B",
+  "from": {
+   "x": 1636.8,
+   "y": 1418.7
+  },
+  "to": {
+   "x": 1456.0,
+   "y": 844.0
+  },
+  "n": 3,
+  "matches": 3,
+  "prob": 0.034,
+  "at": 63.1,
+  "lead": 13.0,
+  "flight": 1.73,
+  "name": "про: флешка Site B (выход, B)",
+  "fromZone": "Ruins",
+  "toZone": "Site B",
+  "id": "pro167"
+ },
+ {
+  "team": "T",
+  "type": "flash",
+  "trigger": "exec",
+  "site": "B",
+  "from": {
+   "x": 1615.7,
+   "y": 1233.2
+  },
+  "to": {
+   "x": 1606.1,
+   "y": 937.4
+  },
+  "n": 3,
+  "matches": 3,
+  "prob": 0.034,
+  "at": 30.1,
+  "lead": 15.1,
+  "flight": 1.72,
+  "name": "про: флешка B Site (выход, B)",
+  "fromZone": "Ruins",
+  "toZone": "B Site",
+  "id": "pro168"
+ },
+ {
+  "team": "T",
+  "type": "flash",
+  "trigger": "exec",
+  "site": "B",
+  "from": {
+   "x": 1610.7,
+   "y": 1235.0
+  },
+  "to": {
+   "x": 1440.1,
+   "y": 999.4
+  },
+  "n": 3,
+  "matches": 2,
+  "prob": 0.034,
+  "at": 19.6,
+  "lead": 17.5,
+  "flight": 1.73,
+  "name": "про: флешка Bonger (выход, B)",
+  "fromZone": "Ruins",
+  "toZone": "Bonger",
+  "id": "pro169"
+ },
+ {
+  "team": "T",
+  "type": "flash",
+  "trigger": "exec",
+  "site": "B",
+  "from": {
+   "x": 1676.2,
+   "y": 1416.8
+  },
+  "to": {
+   "x": 1498.8,
+   "y": 1201.0
+  },
+  "n": 3,
+  "matches": 3,
+  "prob": 0.034,
+  "at": 26.5,
+  "lead": 23.3,
+  "flight": 1.73,
+  "name": "про: флешка T Lower (выход, B)",
+  "fromZone": "Ruins",
+  "toZone": "T Lower",
+  "id": "pro170"
+ },
+ {
+  "team": "T",
+  "type": "flash",
+  "trigger": "setup",
+  "site": "B",
+  "from": {
+   "x": 1293.2,
+   "y": 1091.0
+  },
+  "to": {
+   "x": 1327.9,
+   "y": 920.5
+  },
+  "n": 3,
+  "matches": 3,
+  "prob": 0.034,
+  "at": 47.6,
+  "lead": null,
+  "flight": 1.73,
+  "name": "про: флешка Cave (сетап, B)",
+  "fromZone": "Lamp Room",
+  "toZone": "Cave",
+  "id": "pro171"
+ },
+ {
+  "team": "T",
+  "type": "flash",
+  "trigger": "setup",
+  "site": "B",
+  "from": {
+   "x": 1604.3,
+   "y": 1218.4
+  },
+  "to": {
+   "x": 1232.1,
+   "y": 1171.3
+  },
+  "n": 3,
+  "matches": 3,
+  "prob": 0.034,
+  "at": 11.9,
+  "lead": null,
+  "flight": 1.72,
+  "name": "про: флешка ? (сетап, B)",
+  "fromZone": "T Lower",
+  "toZone": null,
+  "id": "pro172"
+ },
+ {
+  "team": "T",
+  "type": "flash",
+  "trigger": "setup",
+  "site": "B",
+  "from": {
+   "x": 1610.2,
+   "y": 1235.4
+  },
+  "to": {
+   "x": 1594.8,
+   "y": 936.1
+  },
+  "n": 3,
+  "matches": 3,
+  "prob": 0.034,
+  "at": 9.3,
+  "lead": null,
+  "flight": 1.72,
+  "name": "про: флешка B Site (сетап, B)",
+  "fromZone": "Ruins",
+  "toZone": "B Site",
+  "id": "pro173"
+ },
+ {
+  "team": "T",
+  "type": "flash",
+  "trigger": "setup",
+  "site": "B",
+  "from": {
+   "x": 708.7,
+   "y": 1254.1
+  },
+  "to": {
+   "x": 914.9,
+   "y": 1219.0
+  },
+  "n": 3,
+  "matches": 2,
+  "prob": 0.034,
+  "at": 8.9,
+  "lead": null,
+  "flight": 1.73,
+  "name": "про: флешка Mid (сетап, B)",
+  "fromZone": "Lower Mid",
+  "toZone": "Mid",
+  "id": "pro174"
+ },
+ {
+  "team": "T",
+  "type": "he",
+  "trigger": "exec",
+  "site": "B",
+  "from": {
+   "x": 1329.7,
+   "y": 1215.7
+  },
+  "to": {
+   "x": 1370.7,
+   "y": 1031.7
+  },
+  "n": 3,
+  "matches": 3,
+  "prob": 0.034,
+  "at": 24.4,
+  "lead": 15.9,
+  "flight": 1.72,
+  "name": "про: HE Lamp Room (выход, B)",
+  "fromZone": "T Upper",
+  "toZone": "Lamp Room",
+  "id": "pro175"
+ },
+ {
+  "team": "T",
+  "type": "he",
+  "trigger": "exec",
+  "site": "B",
+  "from": {
+   "x": 1666.3,
+   "y": 1080.5
+  },
+  "to": {
+   "x": 1674.7,
+   "y": 944.0
+  },
+  "n": 3,
+  "matches": 2,
+  "prob": 0.034,
+  "at": 71.7,
+  "lead": 14.5,
+  "flight": 1.72,
+  "name": "про: HE Ramp (выход, B)",
+  "fromZone": "Ramp",
+  "toZone": "Ramp",
+  "id": "pro176"
+ },
+ {
+  "team": "T",
+  "type": "he",
+  "trigger": "exec",
+  "site": "B",
+  "from": {
+   "x": 1377.8,
+   "y": 827.3
+  },
+  "to": {
+   "x": 1719.0,
+   "y": 605.6
+  },
+  "n": 3,
+  "matches": 2,
+  "prob": 0.034,
+  "at": 90.7,
+  "lead": 7.4,
+  "flight": 1.73,
+  "name": "про: HE First Lane (выход, B)",
+  "fromZone": "Cave",
+  "toZone": "First Lane",
+  "id": "pro177"
+ },
+ {
+  "team": "T",
+  "type": "he",
+  "trigger": "setup",
+  "site": "B",
+  "from": {
+   "x": 656.8,
+   "y": 1479.0
+  },
+  "to": {
+   "x": 771.8,
+   "y": 1210.5
+  },
+  "n": 3,
+  "matches": 2,
+  "prob": 0.034,
+  "at": 11.6,
+  "lead": null,
+  "flight": 1.72,
+  "name": "про: HE ? (сетап, B)",
+  "fromZone": "T Ramp",
+  "toZone": null,
+  "id": "pro178"
+ },
+ {
+  "team": "T",
+  "type": "he",
+  "trigger": "setup",
+  "site": "B",
+  "from": {
+   "x": 698.8,
+   "y": 1214.3
+  },
+  "to": {
+   "x": 1092.4,
+   "y": 1128.2
+  },
+  "n": 3,
+  "matches": 3,
+  "prob": 0.034,
+  "at": 9.0,
+  "lead": null,
+  "flight": 1.72,
+  "name": "про: HE ? (сетап, B)",
+  "fromZone": "Lower Mid",
+  "toZone": null,
+  "id": "pro179"
+ },
+ {
+  "team": "T",
+  "type": "he",
+  "trigger": "setup",
+  "site": "B",
+  "from": {
+   "x": 1457.3,
+   "y": 1486.0
+  },
+  "to": {
+   "x": 1604.5,
+   "y": 1246.6
+  },
+  "n": 3,
+  "matches": 2,
+  "prob": 0.034,
+  "at": 6.5,
+  "lead": null,
+  "flight": 1.73,
+  "name": "про: HE Ruins (сетап, B)",
+  "fromZone": "Water",
+  "toZone": "Ruins",
+  "id": "pro180"
+ },
+ {
+  "team": "T",
+  "type": "molly",
+  "trigger": "exec",
+  "site": "B",
+  "from": {
+   "x": 1626.4,
+   "y": 1248.7
+  },
+  "to": {
+   "x": 1708.9,
+   "y": 715.5
+  },
+  "n": 3,
+  "matches": 3,
+  "prob": 0.034,
+  "at": 73.2,
+  "lead": 13.4,
+  "flight": 2.22,
+  "name": "про: молотов First Lane (выход, B)",
+  "fromZone": "Ruins",
+  "toZone": "First Lane",
+  "id": "pro181"
+ },
+ {
+  "team": "T",
+  "type": "molly",
+  "trigger": "exec",
+  "site": "B",
+  "from": {
+   "x": 1333.4,
+   "y": 832.7
+  },
+  "to": {
+   "x": 1682.3,
+   "y": 687.6
+  },
+  "n": 3,
+  "matches": 3,
+  "prob": 0.034,
+  "at": 102.3,
+  "lead": 7.4,
+  "flight": 1.17,
+  "name": "про: молотов First Lane (выход, B)",
+  "fromZone": "Cave",
+  "toZone": "First Lane",
+  "id": "pro182"
+ },
+ {
+  "team": "T",
+  "type": "molly",
+  "trigger": "exec",
+  "site": "B",
+  "from": {
+   "x": 1593.0,
+   "y": 1312.2
+  },
+  "to": {
+   "x": 1698.2,
+   "y": 948.1
+  },
+  "n": 3,
+  "matches": 2,
+  "prob": 0.034,
+  "at": 8.9,
+  "lead": 22.1,
+  "flight": 1.19,
+  "name": "про: молотов Ramp (выход, B)",
+  "fromZone": "Ruins",
+  "toZone": "Ramp",
+  "id": "pro183"
+ },
+ {
+  "team": "T",
+  "type": "molly",
+  "trigger": "exec",
+  "site": "B",
+  "from": {
+   "x": 1480.5,
+   "y": 913.4
+  },
+  "to": {
+   "x": 1396.0,
+   "y": 496.4
+  },
+  "n": 3,
+  "matches": 2,
+  "prob": 0.034,
+  "at": 33.3,
+  "lead": 6.9,
+  "flight": 1.25,
+  "name": "про: молотов Alley (выход, B)",
+  "fromZone": "B Site",
+  "toZone": "Alley",
+  "id": "pro184"
+ },
+ {
+  "team": "T",
+  "type": "molly",
+  "trigger": "setup",
+  "site": "B",
+  "from": {
+   "x": 1481.7,
+   "y": 1129.9
+  },
+  "to": {
+   "x": 1249.9,
+   "y": 1168.5
+  },
+  "n": 3,
+  "matches": 2,
+  "prob": 0.034,
+  "at": 20.1,
+  "lead": null,
+  "flight": 1.5,
+  "name": "про: молотов Lamp Room (сетап, B)",
+  "fromZone": "T Lower",
+  "toZone": "Lamp Room",
+  "id": "pro185"
+ },
+ {
+  "team": "T",
+  "type": "molly",
+  "trigger": "setup",
+  "site": "B",
+  "from": {
+   "x": 699.2,
+   "y": 1209.8
+  },
+  "to": {
+   "x": 1099.5,
+   "y": 1130.5
+  },
+  "n": 3,
+  "matches": 3,
+  "prob": 0.034,
+  "at": 8.1,
+  "lead": null,
+  "flight": 1.75,
+  "name": "про: молотов ? (сетап, B)",
+  "fromZone": "Lower Mid",
+  "toZone": null,
+  "id": "pro186"
+ },
+ {
+  "team": "T",
+  "type": "molly",
+  "trigger": "setup",
+  "site": "B",
+  "from": {
+   "x": 1267.0,
+   "y": 1116.6
+  },
+  "to": {
+   "x": 1353.0,
+   "y": 939.0
+  },
+  "n": 3,
+  "matches": 2,
+  "prob": 0.034,
+  "at": 39.4,
+  "lead": null,
+  "flight": 1.19,
+  "name": "про: молотов Cave (сетап, B)",
+  "fromZone": "Lamp Room",
+  "toZone": "Cave",
+  "id": "pro187"
+ },
+ {
+  "team": "T",
+  "type": "molly",
+  "trigger": "setup",
+  "site": "B",
+  "from": {
+   "x": 718.3,
+   "y": 1223.7
+  },
+  "to": {
+   "x": 969.0,
+   "y": 958.7
+  },
+  "n": 3,
+  "matches": 2,
+  "prob": 0.034,
+  "at": 6.7,
+  "lead": null,
+  "flight": 1.81,
+  "name": "про: молотов Mid (сетап, B)",
+  "fromZone": "Lower Mid",
+  "toZone": "Mid",
+  "id": "pro188"
+ },
+ {
+  "team": "T",
+  "type": "smoke",
+  "trigger": "exec",
+  "site": "B",
+  "from": {
+   "x": 1616.1,
+   "y": 1247.6
+  },
+  "to": {
+   "x": 1483.1,
+   "y": 1182.6
+  },
+  "n": 3,
+  "matches": 3,
+  "prob": 0.034,
+  "at": 9.6,
+  "lead": 12.5,
+  "flight": 1.31,
+  "name": "про: смок T Lower (выход, B)",
+  "fromZone": "Ruins",
+  "toZone": "T Lower",
+  "id": "pro189"
+ },
+ {
+  "team": "T",
+  "type": "smoke",
+  "trigger": "setup",
+  "site": "B",
+  "from": {
+   "x": 1683.6,
+   "y": 1459.2
+  },
+  "to": {
+   "x": 1452.3,
+   "y": 666.0
+  },
+  "n": 3,
+  "matches": 3,
+  "prob": 0.034,
+  "at": 61.3,
+  "lead": null,
+  "flight": 4.69,
+  "name": "про: смок Second Lane (сетап, B)",
+  "fromZone": "Ruins",
+  "toZone": "Second Lane",
+  "id": "pro190"
+ },
+ {
+  "team": "T",
+  "type": "smoke",
+  "trigger": "setup",
+  "site": "B",
+  "from": {
+   "x": 1485.2,
+   "y": 1520.0
+  },
+  "to": {
+   "x": 1397.2,
+   "y": 768.9
+  },
+  "n": 3,
+  "matches": 3,
+  "prob": 0.034,
+  "at": 7.8,
+  "lead": null,
+  "flight": 5.73,
+  "name": "про: смок Cave (сетап, B)",
+  "fromZone": "Water",
+  "toZone": "Cave",
+  "id": "pro191"
+ },
+ {
+  "team": "T",
+  "type": "smoke",
+  "trigger": "setup",
+  "site": "B",
+  "from": {
+   "x": 843.9,
+   "y": 1193.3
+  },
+  "to": {
+   "x": 973.6,
+   "y": 735.0
+  },
+  "n": 3,
+  "matches": 3,
+  "prob": 0.034,
+  "at": 34.1,
+  "lead": null,
+  "flight": 2.91,
+  "name": "про: смок Sniper Nest (сетап, B)",
+  "fromZone": "Lower Mid",
+  "toZone": "Sniper Nest",
+  "id": "pro192"
+ },
+ {
+  "team": "CT",
+  "type": "flash",
+  "trigger": "timed",
+  "site": "any",
+  "from": {
+   "x": 940.8,
+   "y": 728.3
+  },
+  "to": {
+   "x": 983.8,
+   "y": 838.7
+  },
+  "n": 9,
+  "matches": 5,
+  "prob": 0.033,
+  "at": 12.3,
+  "lead": null,
+  "flight": 1.72,
+  "name": "про: флешка Top Mid (по времени)",
+  "fromZone": "Sniper Nest",
+  "toZone": "Top Mid",
+  "id": "pro193"
+ },
+ {
+  "team": "CT",
+  "type": "flash",
+  "trigger": "timed",
+  "site": "any",
+  "from": {
+   "x": 1478.7,
+   "y": 647.3
+  },
+  "to": {
+   "x": 1426.1,
+   "y": 1124.6
+  },
+  "n": 9,
+  "matches": 5,
+  "prob": 0.033,
+  "at": 13.1,
+  "lead": null,
+  "flight": 1.72,
+  "name": "про: флешка T Lower (по времени)",
+  "fromZone": "Second Lane",
+  "toZone": "T Lower",
+  "id": "pro194"
+ },
+ {
+  "team": "CT",
+  "type": "he",
+  "trigger": "timed",
+  "site": "any",
+  "from": {
+   "x": 1106.2,
+   "y": 957.2
+  },
+  "to": {
+   "x": 727.4,
+   "y": 1271.3
+  },
+  "n": 9,
+  "matches": 6,
+  "prob": 0.033,
+  "at": 10.7,
+  "lead": null,
+  "flight": 1.72,
+  "name": "про: HE Split (по времени)",
+  "fromZone": "Jungle",
+  "toZone": "Split",
+  "id": "pro195"
+ },
+ {
+  "team": "CT",
+  "type": "he",
+  "trigger": "timed",
+  "site": "any",
+  "from": {
+   "x": 1124.2,
+   "y": 954.2
+  },
+  "to": {
+   "x": 763.5,
+   "y": 1194.4
+  },
+  "n": 9,
+  "matches": 4,
+  "prob": 0.033,
+  "at": 11.2,
+  "lead": null,
+  "flight": 1.72,
+  "name": "про: HE Lower Mid (по времени)",
+  "fromZone": "Jungle",
+  "toZone": "Lower Mid",
+  "id": "pro196"
+ },
+ {
+  "team": "CT",
+  "type": "he",
+  "trigger": "timed",
+  "site": "any",
+  "from": {
+   "x": 956.6,
+   "y": 842.2
+  },
+  "to": {
+   "x": 875.4,
+   "y": 1186.6
+  },
+  "n": 9,
+  "matches": 6,
+  "prob": 0.033,
+  "at": 7.4,
+  "lead": null,
+  "flight": 1.73,
+  "name": "про: HE Mid (по времени)",
+  "fromZone": "Top Mid",
+  "toZone": "Mid",
+  "id": "pro197"
+ },
+ {
+  "team": "CT",
+  "type": "he",
+  "trigger": "timed",
+  "site": "any",
+  "from": {
+   "x": 1586.2,
+   "y": 928.3
+  },
+  "to": {
+   "x": 1612.6,
+   "y": 1172.3
+  },
+  "n": 9,
+  "matches": 5,
+  "prob": 0.033,
+  "at": 14.2,
+  "lead": null,
+  "flight": 1.72,
+  "name": "про: HE T Lower (по времени)",
+  "fromZone": "B Site",
+  "toZone": "T Lower",
+  "id": "pro198"
+ },
+ {
+  "team": "CT",
+  "type": "he",
+  "trigger": "timed",
+  "site": "any",
+  "from": {
+   "x": 1660.9,
+   "y": 547.0
+  },
+  "to": {
+   "x": 1651.6,
+   "y": 1143.7
+  },
+  "n": 8,
+  "matches": 4,
+  "prob": 0.03,
+  "at": 12.4,
+  "lead": null,
+  "flight": 1.72,
+  "name": "про: HE T Lower (по времени)",
+  "fromZone": "Back Halls",
+  "toZone": "T Lower",
+  "id": "pro199"
+ },
+ {
+  "team": "CT",
+  "type": "smoke",
+  "trigger": "timed",
+  "site": "any",
+  "from": {
+   "x": 826.1,
+   "y": 418.4
+  },
+  "to": {
+   "x": 348.7,
+   "y": 715.1
+  },
+  "n": 8,
+  "matches": 7,
+  "prob": 0.03,
+  "at": 34.6,
+  "lead": null,
+  "flight": 2.56,
+  "name": "про: смок Long (по времени)",
+  "fromZone": "CT Lane",
+  "toZone": "Long",
+  "id": "pro200"
+ },
+ {
+  "team": "T",
+  "type": "flash",
+  "trigger": "setup",
+  "site": "any",
+  "from": {
+   "x": 1295.3,
+   "y": 1108.8
+  },
+  "to": {
+   "x": 1328.9,
+   "y": 923.2
+  },
+  "n": 8,
+  "matches": 5,
+  "prob": 0.03,
+  "at": 63.1,
+  "lead": null,
+  "flight": 1.73,
+  "name": "про: флешка Cave (сетап)",
+  "fromZone": "Lamp Room",
+  "toZone": "Cave",
+  "id": "pro201"
+ },
+ {
+  "team": "T",
+  "type": "molly",
+  "trigger": "setup",
+  "site": "any",
+  "from": {
+   "x": 1622.2,
+   "y": 1246.5
+  },
+  "to": {
+   "x": 1375.3,
+   "y": 986.7
+  },
+  "n": 8,
+  "matches": 3,
+  "prob": 0.03,
+  "at": 9.4,
+  "lead": null,
+  "flight": 1.91,
+  "name": "про: молотов Dark (сетап)",
+  "fromZone": "Ruins",
+  "toZone": "Dark",
+  "id": "pro202"
+ },
+ {
+  "team": "T",
+  "type": "molly",
+  "trigger": "setup",
+  "site": "any",
+  "from": {
+   "x": 1329.7,
+   "y": 1218.5
+  },
+  "to": {
+   "x": 1349.0,
+   "y": 1048.3
+  },
+  "n": 8,
+  "matches": 6,
+  "prob": 0.03,
+  "at": 24.5,
+  "lead": null,
+  "flight": 1.29,
+  "name": "про: молотов Lamp Room (сетап)",
+  "fromZone": "T Upper",
+  "toZone": "Lamp Room",
+  "id": "pro203"
+ },
+ {
+  "team": "T",
+  "type": "smoke",
+  "trigger": "insta",
+  "site": "any",
+  "from": {
+   "x": 896.7,
+   "y": 1792.7
+  },
+  "to": {
+   "x": 840.0,
+   "y": 937.2
+  },
+  "n": 8,
+  "matches": 3,
+  "prob": 0.03,
+  "at": 2.6,
+  "lead": null,
+  "flight": 4.89,
+  "name": "про: смок Chamber Lane (инста)",
+  "fromZone": "T Spawn",
+  "toZone": "Chamber Lane",
+  "id": "pro204"
+ },
+ {
+  "team": "T",
+  "type": "smoke",
+  "trigger": "setup",
+  "site": "any",
+  "from": {
+   "x": 1609.7,
+   "y": 1207.0
+  },
+  "to": {
+   "x": 1427.7,
+   "y": 1202.1
+  },
+  "n": 8,
+  "matches": 7,
+  "prob": 0.03,
+  "at": 10.6,
+  "lead": null,
+  "flight": 0.83,
+  "name": "про: смок T Lower (сетап)",
+  "fromZone": "T Lower",
+  "toZone": "T Lower",
+  "id": "pro205"
+ },
+ {
+  "team": "CT",
+  "type": "flash",
+  "trigger": "timed",
+  "site": "any",
+  "from": {
+   "x": 502.6,
+   "y": 459.5
+  },
+  "to": {
+   "x": 947.2,
+   "y": 817.9
+  },
+  "n": 7,
+  "matches": 5,
+  "prob": 0.026,
+  "at": 13.9,
+  "lead": null,
+  "flight": 1.73,
+  "name": "про: флешка Top Mid (по времени)",
+  "fromZone": "Back Site",
+  "toZone": "Top Mid",
+  "id": "pro206"
+ },
+ {
+  "team": "CT",
+  "type": "he",
+  "trigger": "timed",
+  "site": "any",
+  "from": {
+   "x": 694.3,
+   "y": 907.0
+  },
+  "to": {
+   "x": 838.9,
+   "y": 944.7
+  },
+  "n": 7,
+  "matches": 5,
+  "prob": 0.026,
+  "at": 16.2,
+  "lead": null,
+  "flight": 1.72,
+  "name": "про: HE Chamber Lane (по времени)",
+  "fromZone": "Donut",
+  "toZone": "Chamber Lane",
+  "id": "pro207"
+ },
+ {
+  "team": "CT",
+  "type": "he",
+  "trigger": "timed",
+  "site": "any",
+  "from": {
+   "x": 989.7,
+   "y": 727.1
+  },
+  "to": {
+   "x": 780.1,
+   "y": 1186.9
+  },
+  "n": 7,
+  "matches": 5,
+  "prob": 0.026,
+  "at": 7.3,
+  "lead": null,
+  "flight": 1.72,
+  "name": "про: HE Lower Mid (по времени)",
+  "fromZone": "Sniper Nest",
+  "toZone": "Lower Mid",
+  "id": "pro208"
+ },
+ {
+  "team": "CT",
+  "type": "molly",
+  "trigger": "timed",
+  "site": "any",
+  "from": {
+   "x": 1429.4,
+   "y": 633.6
+  },
+  "to": {
+   "x": 1711.0,
+   "y": 1145.8
+  },
+  "n": 7,
+  "matches": 6,
+  "prob": 0.026,
+  "at": 8.8,
+  "lead": null,
+  "flight": 1.89,
+  "name": "про: молотов T Lower (по времени)",
+  "fromZone": "Second Lane",
+  "toZone": "T Lower",
+  "id": "pro209"
+ },
+ {
+  "team": "CT",
+  "type": "smoke",
+  "trigger": "timed",
+  "site": "any",
+  "from": {
+   "x": 1464.6,
+   "y": 897.4
+  },
+  "to": {
+   "x": 1688.6,
+   "y": 983.0
+  },
+  "n": 7,
+  "matches": 2,
+  "prob": 0.026,
+  "at": 15.6,
+  "lead": null,
+  "flight": 1.72,
+  "name": "про: смок Ramp (по времени)",
+  "fromZone": "B Site",
+  "toZone": "Ramp",
+  "id": "pro210"
+ },
+ {
+  "team": "CT",
+  "type": "smoke",
+  "trigger": "timed",
+  "site": "any",
+  "from": {
+   "x": 1491.0,
+   "y": 761.7
+  },
+  "to": {
+   "x": 1679.9,
+   "y": 985.4
+  },
+  "n": 7,
+  "matches": 6,
+  "prob": 0.026,
+  "at": 18.5,
+  "lead": null,
+  "flight": 2.22,
+  "name": "про: смок Ramp (по времени)",
+  "fromZone": "B Site",
+  "toZone": "Ramp",
+  "id": "pro211"
+ },
+ {
+  "team": "CT",
+  "type": "smoke",
+  "trigger": "timed",
+  "site": "any",
+  "from": {
+   "x": 1065.7,
+   "y": 953.0
+  },
+  "to": {
+   "x": 713.4,
+   "y": 1187.6
+  },
+  "n": 7,
+  "matches": 3,
+  "prob": 0.026,
+  "at": 22.1,
+  "lead": null,
+  "flight": 2.48,
+  "name": "про: смок Lower Mid (по времени)",
+  "fromZone": "Mid",
+  "toZone": "Lower Mid",
+  "id": "pro212"
+ },
+ {
+  "team": "T",
+  "type": "flash",
+  "trigger": "setup",
+  "site": "any",
+  "from": {
+   "x": 1624.5,
+   "y": 1419.6
+  },
+  "to": {
+   "x": 1604.7,
+   "y": 957.8
+  },
+  "n": 7,
+  "matches": 6,
+  "prob": 0.026,
+  "at": 14.6,
+  "lead": null,
+  "flight": 1.83,
+  "name": "про: флешка B Site (сетап)",
+  "fromZone": "Ruins",
+  "toZone": "B Site",
+  "id": "pro213"
+ },
+ {
+  "team": "T",
+  "type": "he",
+  "trigger": "setup",
+  "site": "any",
+  "from": {
+   "x": 732.8,
+   "y": 1206.2
+  },
+  "to": {
+   "x": 971.6,
+   "y": 964.3
+  },
+  "n": 7,
+  "matches": 5,
+  "prob": 0.026,
+  "at": 7.4,
+  "lead": null,
+  "flight": 1.72,
+  "name": "про: HE Mid (сетап)",
+  "fromZone": "Lower Mid",
+  "toZone": "Mid",
+  "id": "pro214"
+ },
+ {
+  "team": "T",
+  "type": "molly",
+  "trigger": "setup",
+  "site": "any",
+  "from": {
+   "x": 371.8,
+   "y": 813.3
+  },
+  "to": {
+   "x": 472.0,
+   "y": 423.6
+  },
+  "n": 7,
+  "matches": 4,
+  "prob": 0.026,
+  "at": 48.5,
+  "lead": null,
+  "flight": 1.67,
+  "name": "про: молотов Back Site (сетап)",
+  "fromZone": "A Main",
+  "toZone": "Back Site",
+  "id": "pro215"
+ },
+ {
+  "team": "T",
+  "type": "molly",
+  "trigger": "setup",
+  "site": "any",
+  "from": {
+   "x": 698.9,
+   "y": 1210.1
+  },
+  "to": {
+   "x": 1073.5,
+   "y": 1130.1
+  },
+  "n": 7,
+  "matches": 5,
+  "prob": 0.026,
+  "at": 8.0,
+  "lead": null,
+  "flight": 1.69,
+  "name": "про: молотов Mid (сетап)",
+  "fromZone": "Lower Mid",
+  "toZone": "Mid",
+  "id": "pro216"
+ },
+ {
+  "team": "T",
+  "type": "smoke",
+  "trigger": "setup",
+  "site": "any",
+  "from": {
+   "x": 1683.6,
+   "y": 1459.2
+  },
+  "to": {
+   "x": 1690.5,
+   "y": 716.9
+  },
+  "n": 7,
+  "matches": 4,
+  "prob": 0.026,
+  "at": 23.2,
+  "lead": null,
+  "flight": 5.98,
+  "name": "про: смок First Lane (сетап)",
+  "fromZone": "Ruins",
+  "toZone": "First Lane",
+  "id": "pro217"
+ },
+ {
+  "team": "T",
+  "type": "smoke",
+  "trigger": "setup",
+  "site": "any",
+  "from": {
+   "x": 1604.5,
+   "y": 1240.3
+  },
+  "to": {
+   "x": 1448.6,
+   "y": 695.2
+  },
+  "n": 7,
+  "matches": 5,
+  "prob": 0.026,
+  "at": 43.8,
+  "lead": null,
+  "flight": 4.09,
+  "name": "про: смок Second Lane (сетап)",
+  "fromZone": "Ruins",
+  "toZone": "Second Lane",
+  "id": "pro218"
+ },
+ {
+  "team": "CT",
+  "type": "flash",
+  "trigger": "timed",
+  "site": "any",
+  "from": {
+   "x": 1356.1,
+   "y": 853.6
+  },
+  "to": {
+   "x": 1531.7,
+   "y": 704.0
+  },
+  "n": 6,
+  "matches": 3,
+  "prob": 0.022,
+  "at": 25.6,
+  "lead": null,
+  "flight": 1.73,
+  "name": "про: флешка ? (по времени)",
+  "fromZone": "Cave",
+  "toZone": null,
+  "id": "pro219"
+ },
+ {
+  "team": "CT",
+  "type": "flash",
+  "trigger": "timed",
+  "site": "any",
+  "from": {
+   "x": 1437.0,
+   "y": 536.7
+  },
+  "to": {
+   "x": 1652.4,
+   "y": 917.2
+  },
+  "n": 6,
+  "matches": 2,
+  "prob": 0.022,
+  "at": 13.7,
+  "lead": null,
+  "flight": 1.73,
+  "name": "про: флешка Ramp (по времени)",
+  "fromZone": "Back Halls",
+  "toZone": "Ramp",
+  "id": "pro220"
+ },
+ {
+  "team": "CT",
+  "type": "he",
+  "trigger": "timed",
+  "site": "any",
+  "from": {
+   "x": 1447.2,
+   "y": 633.7
+  },
+  "to": {
+   "x": 1725.4,
+   "y": 1148.5
+  },
+  "n": 6,
+  "matches": 4,
+  "prob": 0.022,
+  "at": 9.4,
+  "lead": null,
+  "flight": 1.72,
+  "name": "про: HE T Lower (по времени)",
+  "fromZone": "Second Lane",
+  "toZone": "T Lower",
+  "id": "pro221"
+ },
+ {
+  "team": "CT",
+  "type": "he",
+  "trigger": "timed",
+  "site": "any",
+  "from": {
+   "x": 924.4,
+   "y": 932.9
+  },
+  "to": {
+   "x": 713.6,
+   "y": 1211.7
+  },
+  "n": 6,
+  "matches": 3,
+  "prob": 0.022,
+  "at": 8.6,
+  "lead": null,
+  "flight": 1.73,
+  "name": "про: HE Lower Mid (по времени)",
+  "fromZone": "Mid",
+  "toZone": "Lower Mid",
+  "id": "pro222"
+ },
+ {
+  "team": "CT",
+  "type": "he",
+  "trigger": "timed",
+  "site": "any",
+  "from": {
+   "x": 1464.0,
+   "y": 845.5
+  },
+  "to": {
+   "x": 1556.9,
+   "y": 1116.2
+  },
+  "n": 6,
+  "matches": 3,
+  "prob": 0.022,
+  "at": 10.9,
+  "lead": null,
+  "flight": 1.72,
+  "name": "про: HE T Lower (по времени)",
+  "fromZone": "Site B",
+  "toZone": "T Lower",
+  "id": "pro223"
+ },
+ {
+  "team": "CT",
+  "type": "he",
+  "trigger": "timed",
+  "site": "any",
+  "from": {
+   "x": 1354.3,
+   "y": 949.5
+  },
+  "to": {
+   "x": 1241.1,
+   "y": 1159.3
+  },
+  "n": 6,
+  "matches": 3,
+  "prob": 0.022,
+  "at": 12.1,
+  "lead": null,
+  "flight": 1.72,
+  "name": "про: HE Lamp Room (по времени)",
+  "fromZone": "Dark",
+  "toZone": "Lamp Room",
+  "id": "pro224"
+ },
+ {
+  "team": "CT",
+  "type": "molly",
+  "trigger": "timed",
+  "site": "any",
+  "from": {
+   "x": 954.7,
+   "y": 578.9
+  },
+  "to": {
+   "x": 1041.5,
+   "y": 1176.3
+  },
+  "n": 6,
+  "matches": 5,
+  "prob": 0.022,
+  "at": 21.9,
+  "lead": null,
+  "flight": 1.88,
+  "name": "про: молотов Xbox (по времени)",
+  "fromZone": "Connector",
+  "toZone": "Xbox",
+  "id": "pro225"
+ },
+ {
+  "team": "CT",
+  "type": "molly",
+  "trigger": "timed",
+  "site": "any",
+  "from": {
+   "x": 838.7,
+   "y": 424.2
+  },
+  "to": {
+   "x": 358.1,
+   "y": 723.5
+  },
+  "n": 6,
+  "matches": 4,
+  "prob": 0.022,
+  "at": 23.6,
+  "lead": null,
+  "flight": 1.94,
+  "name": "про: молотов Long (по времени)",
+  "fromZone": "CT Lane",
+  "toZone": "Long",
+  "id": "pro226"
+ },
+ {
+  "team": "CT",
+  "type": "molly",
+  "trigger": "timed",
+  "site": "any",
+  "from": {
+   "x": 1440.3,
+   "y": 665.9
+  },
+  "to": {
+   "x": 1667.2,
+   "y": 1055.9
+  },
+  "n": 6,
+  "matches": 5,
+  "prob": 0.022,
+  "at": 8.9,
+  "lead": null,
+  "flight": 1.59,
+  "name": "про: молотов Ramp (по времени)",
+  "fromZone": "Second Lane",
+  "toZone": "Ramp",
+  "id": "pro227"
+ },
+ {
+  "team": "CT",
+  "type": "smoke",
+  "trigger": "timed",
+  "site": "any",
+  "from": {
+   "x": 1054.9,
+   "y": 1107.0
+  },
+  "to": {
+   "x": 702.0,
+   "y": 1192.3
+  },
+  "n": 6,
+  "matches": 4,
+  "prob": 0.022,
+  "at": 22.9,
+  "lead": null,
+  "flight": 2.33,
+  "name": "про: смок Lower Mid (по времени)",
+  "fromZone": "Mid",
+  "toZone": "Lower Mid",
+  "id": "pro228"
+ },
+ {
+  "team": "T",
+  "type": "smoke",
+  "trigger": "setup",
+  "site": "any",
+  "from": {
+   "x": 702.9,
+   "y": 1281.8
+  },
+  "to": {
+   "x": 839.9,
+   "y": 1146.1
+  },
+  "n": 6,
+  "matches": 5,
+  "prob": 0.022,
+  "at": 6.3,
+  "lead": null,
+  "flight": 0.86,
+  "name": "про: смок Lower Mid (сетап)",
+  "fromZone": "Split",
+  "toZone": "Lower Mid",
+  "id": "pro229"
+ },
+ {
+  "team": "CT",
+  "type": "flash",
+  "trigger": "timed",
+  "site": "any",
+  "from": {
+   "x": 1479.7,
+   "y": 691.0
+  },
+  "to": {
+   "x": 1634.6,
+   "y": 1098.2
+  },
+  "n": 5,
+  "matches": 4,
+  "prob": 0.019,
+  "at": 11.3,
+  "lead": null,
+  "flight": 1.72,
+  "name": "про: флешка ? (по времени)",
+  "fromZone": "Second Lane",
+  "toZone": null,
+  "id": "pro230"
+ },
+ {
+  "team": "CT",
+  "type": "flash",
+  "trigger": "timed",
+  "site": "any",
+  "from": {
+   "x": 943.1,
+   "y": 712.0
+  },
+  "to": {
+   "x": 1122.4,
+   "y": 1180.7
+  },
+  "n": 5,
+  "matches": 3,
+  "prob": 0.019,
+  "at": 11.9,
+  "lead": null,
+  "flight": 1.72,
+  "name": "про: флешка Triple (по времени)",
+  "fromZone": "Sniper Nest",
+  "toZone": "Triple",
+  "id": "pro231"
+ },
+ {
+  "team": "CT",
+  "type": "flash",
+  "trigger": "timed",
+  "site": "any",
+  "from": {
+   "x": 1502.4,
+   "y": 922.8
+  },
+  "to": {
+   "x": 1701.0,
+   "y": 1035.3
+  },
+  "n": 5,
+  "matches": 4,
+  "prob": 0.019,
+  "at": 12.5,
+  "lead": null,
+  "flight": 1.83,
+  "name": "про: флешка Ramp (по времени)",
+  "fromZone": "B Site",
+  "toZone": "Ramp",
+  "id": "pro232"
+ },
+ {
+  "team": "CT",
+  "type": "flash",
+  "trigger": "timed",
+  "site": "any",
+  "from": {
+   "x": 648.8,
+   "y": 860.5
+  },
+  "to": {
+   "x": 1039.2,
+   "y": 1083.9
+  },
+  "n": 5,
+  "matches": 4,
+  "prob": 0.019,
+  "at": 10.2,
+  "lead": null,
+  "flight": 1.72,
+  "name": "про: флешка Mid (по времени)",
+  "fromZone": "Donut",
+  "toZone": "Mid",
+  "id": "pro233"
+ },
+ {
+  "team": "CT",
+  "type": "he",
+  "trigger": "timed",
+  "site": "any",
+  "from": {
+   "x": 1438.7,
+   "y": 683.0
+  },
+  "to": {
+   "x": 1489.0,
+   "y": 1084.3
+  },
+  "n": 5,
+  "matches": 4,
+  "prob": 0.019,
+  "at": 8.9,
+  "lead": null,
+  "flight": 1.72,
+  "name": "про: HE ? (по времени)",
+  "fromZone": "Second Lane",
+  "toZone": null,
+  "id": "pro234"
+ },
+ {
+  "team": "CT",
+  "type": "he",
+  "trigger": "timed",
+  "site": "any",
+  "from": {
+   "x": 968.2,
+   "y": 1053.6
+  },
+  "to": {
+   "x": 719.7,
+   "y": 1290.2
+  },
+  "n": 5,
+  "matches": 4,
+  "prob": 0.019,
+  "at": 12.9,
+  "lead": null,
+  "flight": 1.73,
+  "name": "про: HE Split (по времени)",
+  "fromZone": "Mid",
+  "toZone": "Split",
+  "id": "pro235"
+ },
+ {
+  "team": "CT",
+  "type": "molly",
+  "trigger": "timed",
+  "site": "any",
+  "from": {
+   "x": 1387.1,
+   "y": 509.9
+  },
+  "to": {
+   "x": 1657.7,
+   "y": 952.8
+  },
+  "n": 5,
+  "matches": 3,
+  "prob": 0.019,
+  "at": 7.5,
+  "lead": null,
+  "flight": 1.86,
+  "name": "про: молотов Ramp (по времени)",
+  "fromZone": "Alley",
+  "toZone": "Ramp",
+  "id": "pro236"
+ },
+ {
+  "team": "CT",
+  "type": "smoke",
+  "trigger": "timed",
+  "site": "any",
+  "from": {
+   "x": 1454.9,
+   "y": 1126.6
+  },
+  "to": {
+   "x": 1643.0,
+   "y": 1256.9
+  },
+  "n": 5,
+  "matches": 5,
+  "prob": 0.019,
+  "at": 30.2,
+  "lead": null,
+  "flight": 1.77,
+  "name": "про: смок ? (по времени)",
+  "fromZone": "T Lower",
+  "toZone": null,
+  "id": "pro237"
+ },
+ {
+  "team": "T",
+  "type": "flash",
+  "trigger": "setup",
+  "site": "any",
+  "from": {
+   "x": 366.4,
+   "y": 1008.0
+  },
+  "to": {
+   "x": 325.8,
+   "y": 617.2
+  },
+  "n": 5,
+  "matches": 4,
+  "prob": 0.019,
+  "at": 20.2,
+  "lead": null,
+  "flight": 1.73,
+  "name": "про: флешка Back Site (сетап)",
+  "fromZone": "A Hall",
+  "toZone": "Back Site",
+  "id": "pro238"
+ },
+ {
+  "team": "T",
+  "type": "flash",
+  "trigger": "setup",
+  "site": "any",
+  "from": {
+   "x": 686.6,
+   "y": 1283.2
+  },
+  "to": {
+   "x": 929.0,
+   "y": 984.5
+  },
+  "n": 5,
+  "matches": 2,
+  "prob": 0.019,
+  "at": 20.5,
+  "lead": null,
+  "flight": 1.72,
+  "name": "про: флешка Mid (сетап)",
+  "fromZone": null,
+  "toZone": "Mid",
+  "id": "pro239"
+ },
+ {
+  "team": "T",
+  "type": "flash",
+  "trigger": "setup",
+  "site": "any",
+  "from": {
+   "x": 1601.1,
+   "y": 1209.5
+  },
+  "to": {
+   "x": 1254.2,
+   "y": 1170.2
+  },
+  "n": 5,
+  "matches": 4,
+  "prob": 0.019,
+  "at": 17.2,
+  "lead": null,
+  "flight": 1.73,
+  "name": "про: флешка Lamp Room (сетап)",
+  "fromZone": "T Lower",
+  "toZone": "Lamp Room",
+  "id": "pro240"
+ },
+ {
+  "team": "T",
+  "type": "flash",
+  "trigger": "setup",
+  "site": "any",
+  "from": {
+   "x": 1605.2,
+   "y": 1196.7
+  },
+  "to": {
+   "x": 1604.4,
+   "y": 1119.1
+  },
+  "n": 5,
+  "matches": 4,
+  "prob": 0.019,
+  "at": 13.9,
+  "lead": null,
+  "flight": 1.72,
+  "name": "про: флешка T Lower (сетап)",
+  "fromZone": "T Lower",
+  "toZone": "T Lower",
+  "id": "pro241"
+ },
+ {
+  "team": "T",
+  "type": "flash",
+  "trigger": "setup",
+  "site": "any",
+  "from": {
+   "x": 1593.8,
+   "y": 1118.6
+  },
+  "to": {
+   "x": 1235.8,
+   "y": 1217.2
+  },
+  "n": 5,
+  "matches": 4,
+  "prob": 0.019,
+  "at": 12.1,
+  "lead": null,
+  "flight": 1.72,
+  "name": "про: флешка T Upper (сетап)",
+  "fromZone": "T Lower",
+  "toZone": "T Upper",
+  "id": "pro242"
+ },
+ {
+  "team": "T",
+  "type": "he",
+  "trigger": "setup",
+  "site": "any",
+  "from": {
+   "x": 698.9,
+   "y": 1211.3
+  },
+  "to": {
+   "x": 1084.1,
+   "y": 1129.3
+  },
+  "n": 5,
+  "matches": 5,
+  "prob": 0.019,
+  "at": 9.2,
+  "lead": null,
+  "flight": 1.72,
+  "name": "про: HE ? (сетап)",
+  "fromZone": "Lower Mid",
+  "toZone": null,
+  "id": "pro243"
+ },
+ {
+  "team": "T",
+  "type": "molly",
+  "trigger": "setup",
+  "site": "any",
+  "from": {
+   "x": 712.1,
+   "y": 1231.8
+  },
+  "to": {
+   "x": 1002.6,
+   "y": 975.6
+  },
+  "n": 5,
+  "matches": 4,
+  "prob": 0.019,
+  "at": 7.4,
+  "lead": null,
+  "flight": 1.62,
+  "name": "про: молотов Mid (сетап)",
+  "fromZone": "Lower Mid",
+  "toZone": "Mid",
+  "id": "pro244"
+ },
+ {
+  "team": "T",
+  "type": "molly",
+  "trigger": "setup",
+  "site": "any",
+  "from": {
+   "x": 1007.6,
+   "y": 1155.3
+  },
+  "to": {
+   "x": 958.3,
+   "y": 516.8
+  },
+  "n": 5,
+  "matches": 4,
+  "prob": 0.019,
+  "at": 43.3,
+  "lead": null,
+  "flight": 2.03,
+  "name": "про: молотов Connector (сетап)",
+  "fromZone": "Mid",
+  "toZone": "Connector",
+  "id": "pro245"
+ },
+ {
+  "team": "T",
+  "type": "smoke",
+  "trigger": "insta",
+  "site": "any",
+  "from": {
+   "x": 886.8,
+   "y": 1720.0
+  },
+  "to": {
+   "x": 1242.5,
+   "y": 1183.3
+  },
+  "n": 5,
+  "matches": 3,
+  "prob": 0.019,
+  "at": 2.6,
+  "lead": null,
+  "flight": 6.44,
+  "name": "про: смок T Upper (инста)",
+  "fromZone": "T Spawn",
+  "toZone": "T Upper",
+  "id": "pro246"
+ },
+ {
+  "team": "T",
+  "type": "smoke",
+  "trigger": "setup",
+  "site": "any",
+  "from": {
+   "x": 1485.2,
+   "y": 1520.0
+  },
+  "to": {
+   "x": 1397.3,
+   "y": 770.4
+  },
+  "n": 5,
+  "matches": 4,
+  "prob": 0.019,
+  "at": 12.9,
+  "lead": null,
+  "flight": 5.92,
+  "name": "про: смок Cave (сетап)",
+  "fromZone": "Water",
+  "toZone": "Cave",
+  "id": "pro247"
+ },
+ {
+  "team": "T",
+  "type": "smoke",
+  "trigger": "setup",
+  "site": "any",
+  "from": {
+   "x": 906.0,
+   "y": 1852.8
+  },
+  "to": {
+   "x": 1299.3,
+   "y": 1118.5
+  },
+  "n": 5,
+  "matches": 3,
+  "prob": 0.019,
+  "at": 4.5,
+  "lead": null,
+  "flight": 5.02,
+  "name": "про: смок Lamp Room (сетап)",
+  "fromZone": null,
+  "toZone": "Lamp Room",
+  "id": "pro248"
+ },
+ {
+  "team": "T",
+  "type": "smoke",
+  "trigger": "setup",
+  "site": "any",
+  "from": {
+   "x": 700.4,
+   "y": 1197.1
+  },
+  "to": {
+   "x": 892.4,
+   "y": 1187.4
+  },
+  "n": 5,
+  "matches": 5,
+  "prob": 0.019,
+  "at": 8.5,
+  "lead": null,
+  "flight": 0.75,
+  "name": "про: смок Mid (сетап)",
+  "fromZone": "Lower Mid",
+  "toZone": "Mid",
+  "id": "pro249"
+ },
+ {
+  "team": "CT",
+  "type": "flash",
+  "trigger": "timed",
+  "site": "any",
+  "from": {
+   "x": 846.1,
+   "y": 945.5
+  },
+  "to": {
+   "x": 1026.1,
+   "y": 1078.4
+  },
+  "n": 4,
+  "matches": 3,
+  "prob": 0.015,
+  "at": 11.9,
+  "lead": null,
+  "flight": 1.72,
+  "name": "про: флешка Mid (по времени)",
+  "fromZone": "Chamber Lane",
+  "toZone": "Mid",
+  "id": "pro250"
+ },
+ {
+  "team": "CT",
+  "type": "flash",
+  "trigger": "timed",
+  "site": "any",
+  "from": {
+   "x": 1144.8,
+   "y": 555.9
+  },
+  "to": {
+   "x": 1666.7,
+   "y": 522.5
+  },
+  "n": 4,
+  "matches": 3,
+  "prob": 0.015,
+  "at": 56.8,
+  "lead": null,
+  "flight": 1.73,
+  "name": "про: флешка Back Halls (по времени)",
+  "fromZone": "Alley",
+  "toZone": "Back Halls",
+  "id": "pro251"
+ },
+ {
+  "team": "CT",
+  "type": "flash",
+  "trigger": "timed",
+  "site": "any",
+  "from": {
+   "x": 857.0,
+   "y": 935.8
+  },
+  "to": {
+   "x": 1063.5,
+   "y": 1198.1
+  },
+  "n": 4,
+  "matches": 4,
+  "prob": 0.015,
+  "at": 13.6,
+  "lead": null,
+  "flight": 1.73,
+  "name": "про: флешка Mid (по времени)",
+  "fromZone": "Chamber Lane",
+  "toZone": "Mid",
+  "id": "pro252"
+ },
+ {
+  "team": "CT",
+  "type": "flash",
+  "trigger": "timed",
+  "site": "any",
+  "from": {
+   "x": 548.2,
+   "y": 926.3
+  },
+  "to": {
+   "x": 711.3,
+   "y": 928.0
+  },
+  "n": 4,
+  "matches": 3,
+  "prob": 0.015,
+  "at": 74.6,
+  "lead": null,
+  "flight": 1.73,
+  "name": "про: флешка Donut (по времени)",
+  "fromZone": "Donut",
+  "toZone": "Donut",
+  "id": "pro253"
+ },
+ {
+  "team": "CT",
+  "type": "flash",
+  "trigger": "timed",
+  "site": "any",
+  "from": {
+   "x": 1237.6,
+   "y": 1140.4
+  },
+  "to": {
+   "x": 1439.5,
+   "y": 1143.5
+  },
+  "n": 4,
+  "matches": 4,
+  "prob": 0.015,
+  "at": 26.1,
+  "lead": null,
+  "flight": 1.72,
+  "name": "про: флешка T Lower (по времени)",
+  "fromZone": "Lamp Room",
+  "toZone": "T Lower",
+  "id": "pro254"
+ },
+ {
+  "team": "CT",
+  "type": "flash",
+  "trigger": "timed",
+  "site": "any",
+  "from": {
+   "x": 1560.7,
+   "y": 500.5
+  },
+  "to": {
+   "x": 1635.4,
+   "y": 834.4
+  },
+  "n": 4,
+  "matches": 2,
+  "prob": 0.015,
+  "at": 14.6,
+  "lead": null,
+  "flight": 1.73,
+  "name": "про: флешка B Site (по времени)",
+  "fromZone": "Back Halls",
+  "toZone": "B Site",
+  "id": "pro255"
+ },
+ {
+  "team": "CT",
+  "type": "flash",
+  "trigger": "timed",
+  "site": "any",
+  "from": {
+   "x": 1706.9,
+   "y": 566.0
+  },
+  "to": {
+   "x": 1680.4,
+   "y": 955.9
+  },
+  "n": 4,
+  "matches": 3,
+  "prob": 0.015,
+  "at": 13.1,
+  "lead": null,
+  "flight": 1.73,
+  "name": "про: флешка Ramp (по времени)",
+  "fromZone": "First Lane",
+  "toZone": "Ramp",
+  "id": "pro256"
+ },
+ {
+  "team": "CT",
+  "type": "he",
+  "trigger": "timed",
+  "site": "any",
+  "from": {
+   "x": 825.4,
+   "y": 934.7
+  },
+  "to": {
+   "x": 1233.6,
+   "y": 1177.5
+  },
+  "n": 4,
+  "matches": 4,
+  "prob": 0.015,
+  "at": 13.1,
+  "lead": null,
+  "flight": 1.73,
+  "name": "про: HE ? (по времени)",
+  "fromZone": "Chamber Lane",
+  "toZone": null,
+  "id": "pro257"
+ },
+ {
+  "team": "CT",
+  "type": "he",
+  "trigger": "timed",
+  "site": "any",
+  "from": {
+   "x": 980.1,
+   "y": 801.6
+  },
+  "to": {
+   "x": 740.4,
+   "y": 1178.9
+  },
+  "n": 4,
+  "matches": 4,
+  "prob": 0.015,
+  "at": 7.4,
+  "lead": null,
+  "flight": 1.73,
+  "name": "про: HE Lower Mid (по времени)",
+  "fromZone": "Top Mid",
+  "toZone": "Lower Mid",
+  "id": "pro258"
+ },
+ {
+  "team": "CT",
+  "type": "he",
+  "trigger": "timed",
+  "site": "any",
+  "from": {
+   "x": 1004.3,
+   "y": 442.4
+  },
+  "to": {
+   "x": 728.7,
+   "y": 450.0
+  },
+  "n": 4,
+  "matches": 3,
+  "prob": 0.015,
+  "at": 23.9,
+  "lead": null,
+  "flight": 1.73,
+  "name": "про: HE CT Lane (по времени)",
+  "fromZone": "CT Spawn",
+  "toZone": "CT Lane",
+  "id": "pro259"
+ },
+ {
+  "team": "CT",
+  "type": "molly",
+  "trigger": "timed",
+  "site": "any",
+  "from": {
+   "x": 749.1,
+   "y": 473.1
+  },
+  "to": {
+   "x": 358.3,
+   "y": 742.6
+  },
+  "n": 4,
+  "matches": 3,
+  "prob": 0.015,
+  "at": 64.2,
+  "lead": null,
+  "flight": 1.79,
+  "name": "про: молотов Long (по времени)",
+  "fromZone": "CT Lane",
+  "toZone": "Long",
+  "id": "pro260"
+ },
+ {
+  "team": "CT",
+  "type": "molly",
+  "trigger": "timed",
+  "site": "any",
+  "from": {
+   "x": 970.8,
+   "y": 689.7
+  },
+  "to": {
+   "x": 906.5,
+   "y": 1216.9
+  },
+  "n": 4,
+  "matches": 3,
+  "prob": 0.015,
+  "at": 6.0,
+  "lead": null,
+  "flight": 1.47,
+  "name": "про: молотов Mid (по времени)",
+  "fromZone": "Sniper Nest",
+  "toZone": "Mid",
+  "id": "pro261"
+ },
+ {
+  "team": "CT",
+  "type": "molly",
+  "trigger": "timed",
+  "site": "any",
+  "from": {
+   "x": 623.4,
+   "y": 618.2
+  },
+  "to": {
+   "x": 379.1,
+   "y": 708.0
+  },
+  "n": 4,
+  "matches": 3,
+  "prob": 0.015,
+  "at": 23.4,
+  "lead": null,
+  "flight": 1.69,
+  "name": "про: молотов Long (по времени)",
+  "fromZone": "A Site",
+  "toZone": "Long",
+  "id": "pro262"
+ },
+ {
+  "team": "CT",
+  "type": "smoke",
+  "trigger": "timed",
+  "site": "any",
+  "from": {
+   "x": 987.4,
+   "y": 577.9
+  },
+  "to": {
+   "x": 876.9,
+   "y": 1178.7
+  },
+  "n": 4,
+  "matches": 4,
+  "prob": 0.015,
+  "at": 4.8,
+  "lead": null,
+  "flight": 2.71,
+  "name": "про: смок Mid (по времени)",
+  "fromZone": "Connector",
+  "toZone": "Mid",
+  "id": "pro263"
+ },
+ {
+  "team": "CT",
+  "type": "smoke",
+  "trigger": "timed",
+  "site": "any",
+  "from": {
+   "x": 492.2,
+   "y": 605.5
+  },
+  "to": {
+   "x": 360.2,
+   "y": 734.0
+  },
+  "n": 4,
+  "matches": 4,
+  "prob": 0.015,
+  "at": 31.6,
+  "lead": null,
+  "flight": 1.6,
+  "name": "про: смок Long (по времени)",
+  "fromZone": "Boost",
+  "toZone": "Long",
+  "id": "pro264"
+ },
+ {
+  "team": "T",
+  "type": "flash",
+  "trigger": "setup",
+  "site": "any",
+  "from": {
+   "x": 896.3,
+   "y": 1631.3
+  },
+  "to": {
+   "x": 1091.9,
+   "y": 1266.3
+  },
+  "n": 4,
+  "matches": 3,
+  "prob": 0.015,
+  "at": 8.3,
+  "lead": null,
+  "flight": 1.83,
+  "name": "про: флешка ? (сетап)",
+  "fromZone": "T Ramp",
+  "toZone": null,
+  "id": "pro265"
+ },
+ {
+  "team": "T",
+  "type": "flash",
+  "trigger": "setup",
+  "site": "any",
+  "from": {
+   "x": 1667.5,
+   "y": 1128.3
+  },
+  "to": {
+   "x": 1673.2,
+   "y": 695.8
+  },
+  "n": 4,
+  "matches": 4,
+  "prob": 0.015,
+  "at": 42.6,
+  "lead": null,
+  "flight": 1.73,
+  "name": "про: флешка First Lane (сетап)",
+  "fromZone": "T Lower",
+  "toZone": "First Lane",
+  "id": "pro266"
+ },
+ {
+  "team": "T",
+  "type": "flash",
+  "trigger": "setup",
+  "site": "any",
+  "from": {
+   "x": 438.3,
+   "y": 853.5
+  },
+  "to": {
+   "x": 304.1,
+   "y": 653.2
+  },
+  "n": 4,
+  "matches": 2,
+  "prob": 0.015,
+  "at": 13.0,
+  "lead": null,
+  "flight": 1.72,
+  "name": "про: флешка Back Site (сетап)",
+  "fromZone": "A Main",
+  "toZone": "Back Site",
+  "id": "pro267"
+ },
+ {
+  "team": "T",
+  "type": "flash",
+  "trigger": "setup",
+  "site": "any",
+  "from": {
+   "x": 687.3,
+   "y": 1326.3
+  },
+  "to": {
+   "x": 780.2,
+   "y": 1157.3
+  },
+  "n": 4,
+  "matches": 2,
+  "prob": 0.015,
+  "at": 14.1,
+  "lead": null,
+  "flight": 1.72,
+  "name": "про: флешка Lower Mid (сетап)",
+  "fromZone": "Split",
+  "toZone": "Lower Mid",
+  "id": "pro268"
+ },
+ {
+  "team": "T",
+  "type": "he",
+  "trigger": "setup",
+  "site": "any",
+  "from": {
+   "x": 1645.2,
+   "y": 1224.5
+  },
+  "to": {
+   "x": 1654.7,
+   "y": 709.5
+  },
+  "n": 4,
+  "matches": 4,
+  "prob": 0.015,
+  "at": 56.5,
+  "lead": null,
+  "flight": 1.73,
+  "name": "про: HE First Lane (сетап)",
+  "fromZone": "Ruins",
+  "toZone": "First Lane",
+  "id": "pro269"
+ },
+ {
+  "team": "T",
+  "type": "molly",
+  "trigger": "setup",
+  "site": "any",
+  "from": {
+   "x": 1636.3,
+   "y": 1240.1
+  },
+  "to": {
+   "x": 1713.4,
+   "y": 709.4
+  },
+  "n": 4,
+  "matches": 4,
+  "prob": 0.015,
+  "at": 46.5,
+  "lead": null,
+  "flight": 2.22,
+  "name": "про: молотов ? (сетап)",
+  "fromZone": null,
+  "toZone": null,
+  "id": "pro270"
+ },
+ {
+  "team": "T",
+  "type": "smoke",
+  "trigger": "setup",
+  "site": "any",
+  "from": {
+   "x": 886.8,
+   "y": 1720.0
+  },
+  "to": {
+   "x": 1246.4,
+   "y": 1167.0
+  },
+  "n": 4,
+  "matches": 3,
+  "prob": 0.015,
+  "at": 4.8,
+  "lead": null,
+  "flight": 5.54,
+  "name": "про: смок Lamp Room (сетап)",
+  "fromZone": "T Spawn",
+  "toZone": "Lamp Room",
+  "id": "pro271"
+ },
+ {
+  "team": "T",
+  "type": "smoke",
+  "trigger": "setup",
+  "site": "any",
+  "from": {
+   "x": 1559.4,
+   "y": 1118.5
+  },
+  "to": {
+   "x": 1447.9,
+   "y": 1208.1
+  },
+  "n": 4,
+  "matches": 3,
+  "prob": 0.015,
+  "at": 11.1,
+  "lead": null,
+  "flight": 0.62,
+  "name": "про: смок T Lower (сетап)",
+  "fromZone": "T Lower",
+  "toZone": "T Lower",
+  "id": "pro272"
+ },
+ {
+  "team": "T",
+  "type": "smoke",
+  "trigger": "setup",
+  "site": "any",
+  "from": {
+   "x": 323.6,
+   "y": 1267.2
+  },
+  "to": {
+   "x": 729.6,
+   "y": 403.2
+  },
+  "n": 4,
+  "matches": 2,
+  "prob": 0.015,
+  "at": 19.9,
+  "lead": null,
+  "flight": 6.32,
+  "name": "про: смок CT Lane (сетап)",
+  "fromZone": "Sticks",
+  "toZone": "CT Lane",
+  "id": "pro273"
+ },
+ {
+  "team": "T",
+  "type": "smoke",
+  "trigger": "setup",
+  "site": "any",
+  "from": {
+   "x": 809.1,
+   "y": 1156.9
+  },
+  "to": {
+   "x": 849.7,
+   "y": 922.0
+  },
+  "n": 4,
+  "matches": 3,
+  "prob": 0.015,
+  "at": 24.1,
+  "lead": null,
+  "flight": 4.03,
+  "name": "про: смок Chamber Lane (сетап)",
+  "fromZone": "Lower Mid",
+  "toZone": "Chamber Lane",
+  "id": "pro274"
+ },
+ {
+  "team": "CT",
+  "type": "flash",
+  "trigger": "timed",
+  "site": "any",
+  "from": {
+   "x": 1480.1,
+   "y": 698.3
+  },
+  "to": {
+   "x": 1747.5,
+   "y": 1111.6
+  },
+  "n": 3,
+  "matches": 3,
+  "prob": 0.011,
+  "at": 13.5,
+  "lead": null,
+  "flight": 1.73,
+  "name": "про: флешка T Lower (по времени)",
+  "fromZone": "Second Lane",
+  "toZone": "T Lower",
+  "id": "pro275"
+ },
+ {
+  "team": "CT",
+  "type": "flash",
+  "trigger": "timed",
+  "site": "any",
+  "from": {
+   "x": 1224.0,
+   "y": 541.1
+  },
+  "to": {
+   "x": 1610.6,
+   "y": 548.3
+  },
+  "n": 3,
+  "matches": 3,
+  "prob": 0.011,
+  "at": 40.1,
+  "lead": null,
+  "flight": 1.72,
+  "name": "про: флешка Back Halls (по времени)",
+  "fromZone": "Alley",
+  "toZone": "Back Halls",
+  "id": "pro276"
+ },
+ {
+  "team": "CT",
+  "type": "flash",
+  "trigger": "timed",
+  "site": "any",
+  "from": {
+   "x": 926.0,
+   "y": 675.7
+  },
+  "to": {
+   "x": 1050.2,
+   "y": 1107.8
+  },
+  "n": 3,
+  "matches": 2,
+  "prob": 0.011,
+  "at": 12.9,
+  "lead": null,
+  "flight": 1.72,
+  "name": "про: флешка Mid (по времени)",
+  "fromZone": "Sniper Nest",
+  "toZone": "Mid",
+  "id": "pro277"
+ },
+ {
+  "team": "CT",
+  "type": "flash",
+  "trigger": "timed",
+  "site": "any",
+  "from": {
+   "x": 1366.6,
+   "y": 507.4
+  },
+  "to": {
+   "x": 1757.9,
+   "y": 700.9
+  },
+  "n": 3,
+  "matches": 2,
+  "prob": 0.011,
+  "at": 26.0,
+  "lead": null,
+  "flight": 1.72,
+  "name": "про: флешка ? (по времени)",
+  "fromZone": "Alley",
+  "toZone": null,
+  "id": "pro278"
+ },
+ {
+  "team": "CT",
+  "type": "flash",
+  "trigger": "timed",
+  "site": "any",
+  "from": {
+   "x": 1739.6,
+   "y": 636.1
+  },
+  "to": {
+   "x": 1377.4,
+   "y": 813.9
+  },
+  "n": 3,
+  "matches": 3,
+  "prob": 0.011,
+  "at": 82.1,
+  "lead": null,
+  "flight": 1.72,
+  "name": "про: флешка Cave (по времени)",
+  "fromZone": "First Lane",
+  "toZone": "Cave",
+  "id": "pro279"
+ },
+ {
+  "team": "CT",
+  "type": "flash",
+  "trigger": "timed",
+  "site": "any",
+  "from": {
+   "x": 980.7,
+   "y": 716.5
+  },
+  "to": {
+   "x": 922.7,
+   "y": 1166.5
+  },
+  "n": 3,
+  "matches": 3,
+  "prob": 0.011,
+  "at": 6.6,
+  "lead": null,
+  "flight": 1.73,
+  "name": "про: флешка Mid (по времени)",
+  "fromZone": "Sniper Nest",
+  "toZone": "Mid",
+  "id": "pro280"
+ },
+ {
+  "team": "CT",
+  "type": "flash",
+  "trigger": "timed",
+  "site": "any",
+  "from": {
+   "x": 1330.5,
+   "y": 824.7
+  },
+  "to": {
+   "x": 1557.1,
+   "y": 783.7
+  },
+  "n": 3,
+  "matches": 3,
+  "prob": 0.011,
+  "at": 36.3,
+  "lead": null,
+  "flight": 1.72,
+  "name": "про: флешка B Site (по времени)",
+  "fromZone": "Cave",
+  "toZone": "B Site",
+  "id": "pro281"
+ },
+ {
+  "team": "CT",
+  "type": "flash",
+  "trigger": "timed",
+  "site": "any",
+  "from": {
+   "x": 1449.8,
+   "y": 568.4
+  },
+  "to": {
+   "x": 1584.1,
+   "y": 768.4
+  },
+  "n": 3,
+  "matches": 2,
+  "prob": 0.011,
+  "at": 13.9,
+  "lead": null,
+  "flight": 1.72,
+  "name": "про: флешка B Site (по времени)",
+  "fromZone": "Second Lane",
+  "toZone": "B Site",
+  "id": "pro282"
+ },
+ {
+  "team": "CT",
+  "type": "flash",
+  "trigger": "timed",
+  "site": "any",
+  "from": {
+   "x": 983.2,
+   "y": 663.7
+  },
+  "to": {
+   "x": 835.0,
+   "y": 1192.1
+  },
+  "n": 3,
+  "matches": 2,
+  "prob": 0.011,
+  "at": 6.4,
+  "lead": null,
+  "flight": 1.72,
+  "name": "про: флешка Lower Mid (по времени)",
+  "fromZone": "Sniper Nest",
+  "toZone": "Lower Mid",
+  "id": "pro283"
+ },
+ {
+  "team": "CT",
+  "type": "flash",
+  "trigger": "timed",
+  "site": "any",
+  "from": {
+   "x": 1377.2,
+   "y": 514.8
+  },
+  "to": {
+   "x": 857.3,
+   "y": 549.2
+  },
+  "n": 3,
+  "matches": 2,
+  "prob": 0.011,
+  "at": 16.9,
+  "lead": null,
+  "flight": 1.73,
+  "name": "про: флешка ? (по времени)",
+  "fromZone": "Alley",
+  "toZone": null,
+  "id": "pro284"
+ },
+ {
+  "team": "CT",
+  "type": "flash",
+  "trigger": "timed",
+  "site": "any",
+  "from": {
+   "x": 1366.3,
+   "y": 1001.4
+  },
+  "to": {
+   "x": 1215.4,
+   "y": 1206.1
+  },
+  "n": 3,
+  "matches": 3,
+  "prob": 0.011,
+  "at": 12.2,
+  "lead": null,
+  "flight": 1.72,
+  "name": "про: флешка T Upper (по времени)",
+  "fromZone": "Dark",
+  "toZone": "T Upper",
+  "id": "pro285"
+ },
+ {
+  "team": "CT",
+  "type": "flash",
+  "trigger": "timed",
+  "site": "any",
+  "from": {
+   "x": 1634.7,
+   "y": 548.5
+  },
+  "to": {
+   "x": 1641.8,
+   "y": 767.7
+  },
+  "n": 3,
+  "matches": 2,
+  "prob": 0.011,
+  "at": 9.6,
+  "lead": null,
+  "flight": 1.73,
+  "name": "про: флешка B Site (по времени)",
+  "fromZone": "Back Halls",
+  "toZone": "B Site",
+  "id": "pro286"
+ },
+ {
+  "team": "CT",
+  "type": "flash",
+  "trigger": "timed",
+  "site": "any",
+  "from": {
+   "x": 1013.2,
+   "y": 426.1
+  },
+  "to": {
+   "x": 588.9,
+   "y": 487.6
+  },
+  "n": 3,
+  "matches": 3,
+  "prob": 0.011,
+  "at": 30.7,
+  "lead": null,
+  "flight": 1.72,
+  "name": "про: флешка Def (по времени)",
+  "fromZone": "CT Spawn",
+  "toZone": "Def",
+  "id": "pro287"
+ },
+ {
+  "team": "CT",
+  "type": "he",
+  "trigger": "timed",
+  "site": "any",
+  "from": {
+   "x": 615.4,
+   "y": 843.2
+  },
+  "to": {
+   "x": 826.8,
+   "y": 939.8
+  },
+  "n": 3,
+  "matches": 3,
+  "prob": 0.011,
+  "at": 16.5,
+  "lead": null,
+  "flight": 1.72,
+  "name": "про: HE Chamber Lane (по времени)",
+  "fromZone": "Short",
+  "toZone": "Chamber Lane",
+  "id": "pro288"
+ },
+ {
+  "team": "CT",
+  "type": "he",
+  "trigger": "timed",
+  "site": "any",
+  "from": {
+   "x": 1655.5,
+   "y": 562.3
+  },
+  "to": {
+   "x": 1662.2,
+   "y": 1055.0
+  },
+  "n": 3,
+  "matches": 2,
+  "prob": 0.011,
+  "at": 10.7,
+  "lead": null,
+  "flight": 1.73,
+  "name": "про: HE Ramp (по времени)",
+  "fromZone": "First Lane",
+  "toZone": "Ramp",
+  "id": "pro289"
+ },
+ {
+  "team": "CT",
+  "type": "he",
+  "trigger": "timed",
+  "site": "any",
+  "from": {
+   "x": 977.4,
+   "y": 665.3
+  },
+  "to": {
+   "x": 848.7,
+   "y": 1186.2
+  },
+  "n": 3,
+  "matches": 3,
+  "prob": 0.011,
+  "at": 6.2,
+  "lead": null,
+  "flight": 1.72,
+  "name": "про: HE Mid (по времени)",
+  "fromZone": "Sniper Nest",
+  "toZone": "Mid",
+  "id": "pro290"
+ },
+ {
+  "team": "CT",
+  "type": "he",
+  "trigger": "timed",
+  "site": "any",
+  "from": {
+   "x": 746.1,
+   "y": 489.6
+  },
+  "to": {
+   "x": 356.3,
+   "y": 772.5
+  },
+  "n": 3,
+  "matches": 3,
+  "prob": 0.011,
+  "at": 32.7,
+  "lead": null,
+  "flight": 1.72,
+  "name": "про: HE Long (по времени)",
+  "fromZone": "Triple Box",
+  "toZone": "Long",
+  "id": "pro291"
+ },
+ {
+  "team": "CT",
+  "type": "he",
+  "trigger": "timed",
+  "site": "any",
+  "from": {
+   "x": 1225.6,
+   "y": 1101.4
+  },
+  "to": {
+   "x": 1478.0,
+   "y": 1111.5
+  },
+  "n": 3,
+  "matches": 2,
+  "prob": 0.011,
+  "at": 14.8,
+  "lead": null,
+  "flight": 1.72,
+  "name": "про: HE T Lower (по времени)",
+  "fromZone": "Lamp Room",
+  "toZone": "T Lower",
+  "id": "pro292"
+ },
+ {
+  "team": "CT",
+  "type": "molly",
+  "trigger": "timed",
+  "site": "any",
+  "from": {
+   "x": 1508.5,
+   "y": 503.9
+  },
+  "to": {
+   "x": 1479.3,
+   "y": 887.7
+  },
+  "n": 3,
+  "matches": 2,
+  "prob": 0.011,
+  "at": 31.3,
+  "lead": null,
+  "flight": 1.75,
+  "name": "про: молотов Site B (по времени)",
+  "fromZone": "Back Halls",
+  "toZone": "Site B",
+  "id": "pro293"
+ },
+ {
+  "team": "CT",
+  "type": "molly",
+  "trigger": "timed",
+  "site": "any",
+  "from": {
+   "x": 1456.7,
+   "y": 849.4
+  },
+  "to": {
+   "x": 1655.7,
+   "y": 1031.9
+  },
+  "n": 3,
+  "matches": 2,
+  "prob": 0.011,
+  "at": 11.2,
+  "lead": null,
+  "flight": 1.23,
+  "name": "про: молотов Ramp (по времени)",
+  "fromZone": "Site B",
+  "toZone": "Ramp",
+  "id": "pro294"
+ },
+ {
+  "team": "CT",
+  "type": "molly",
+  "trigger": "timed",
+  "site": "any",
+  "from": {
+   "x": 1473.3,
+   "y": 728.9
+  },
+  "to": {
+   "x": 1697.5,
+   "y": 1163.1
+  },
+  "n": 3,
+  "matches": 3,
+  "prob": 0.011,
+  "at": 9.9,
+  "lead": null,
+  "flight": 1.61,
+  "name": "про: молотов T Lower (по времени)",
+  "fromZone": "B Site",
+  "toZone": "T Lower",
+  "id": "pro295"
+ },
+ {
+  "team": "CT",
+  "type": "molly",
+  "trigger": "timed",
+  "site": "any",
+  "from": {
+   "x": 1078.5,
+   "y": 480.1
+  },
+  "to": {
+   "x": 963.7,
+   "y": 766.9
+  },
+  "n": 3,
+  "matches": 3,
+  "prob": 0.011,
+  "at": 28.1,
+  "lead": null,
+  "flight": 1.52,
+  "name": "про: молотов Sniper Nest (по времени)",
+  "fromZone": "Alley",
+  "toZone": "Sniper Nest",
+  "id": "pro296"
+ },
+ {
+  "team": "CT",
+  "type": "molly",
+  "trigger": "timed",
+  "site": "any",
+  "from": {
+   "x": 947.8,
+   "y": 1051.7
+  },
+  "to": {
+   "x": 717.6,
+   "y": 1185.3
+  },
+  "n": 3,
+  "matches": 2,
+  "prob": 0.011,
+  "at": 52.1,
+  "lead": null,
+  "flight": 1.19,
+  "name": "про: молотов Lower Mid (по времени)",
+  "fromZone": "Mid",
+  "toZone": "Lower Mid",
+  "id": "pro297"
+ },
+ {
+  "team": "CT",
+  "type": "molly",
+  "trigger": "timed",
+  "site": "any",
+  "from": {
+   "x": 1389.7,
+   "y": 879.2
+  },
+  "to": {
+   "x": 1335.7,
+   "y": 1080.8
+  },
+  "n": 3,
+  "matches": 3,
+  "prob": 0.011,
+  "at": 37.1,
+  "lead": null,
+  "flight": 0.69,
+  "name": "про: молотов Lamp Room (по времени)",
+  "fromZone": "Cave",
+  "toZone": "Lamp Room",
+  "id": "pro298"
+ },
+ {
+  "team": "CT",
+  "type": "molly",
+  "trigger": "timed",
+  "site": "any",
+  "from": {
+   "x": 1432.3,
+   "y": 678.7
+  },
+  "to": {
+   "x": 1560.1,
+   "y": 1121.5
+  },
+  "n": 3,
+  "matches": 3,
+  "prob": 0.011,
+  "at": 10.6,
+  "lead": null,
+  "flight": 2.12,
+  "name": "про: молотов T Lower (по времени)",
+  "fromZone": "Second Lane",
+  "toZone": "T Lower",
+  "id": "pro299"
+ },
+ {
+  "team": "CT",
+  "type": "molly",
+  "trigger": "timed",
+  "site": "any",
+  "from": {
+   "x": 616.7,
+   "y": 807.7
+  },
+  "to": {
+   "x": 802.6,
+   "y": 911.6
+  },
+  "n": 3,
+  "matches": 2,
+  "prob": 0.011,
+  "at": 72.2,
+  "lead": null,
+  "flight": 1.36,
+  "name": "про: молотов Chamber Lane (по времени)",
+  "fromZone": "Short",
+  "toZone": "Chamber Lane",
+  "id": "pro300"
+ },
+ {
+  "team": "CT",
+  "type": "smoke",
+  "trigger": "insta",
+  "site": "any",
+  "from": {
+   "x": 996.2,
+   "y": 206.1
+  },
+  "to": {
+   "x": 1580.0,
+   "y": 1199.6
+  },
+  "n": 3,
+  "matches": 2,
+  "prob": 0.011,
+  "at": 0.9,
+  "lead": null,
+  "flight": 5.72,
+  "name": "про: смок T Lower (инста)",
+  "fromZone": null,
+  "toZone": "T Lower",
+  "id": "pro301"
+ },
+ {
+  "team": "CT",
+  "type": "smoke",
+  "trigger": "timed",
+  "site": "any",
+  "from": {
+   "x": 480.2,
+   "y": 425.9
+  },
+  "to": {
+   "x": 344.5,
+   "y": 712.5
+  },
+  "n": 3,
+  "matches": 2,
+  "prob": 0.011,
+  "at": 21.0,
+  "lead": null,
+  "flight": 1.88,
+  "name": "про: смок Long (по времени)",
+  "fromZone": "Back Site",
+  "toZone": "Long",
+  "id": "pro302"
+ },
+ {
+  "team": "CT",
+  "type": "smoke",
+  "trigger": "timed",
+  "site": "any",
+  "from": {
+   "x": 1577.3,
+   "y": 888.1
+  },
+  "to": {
+   "x": 1613.6,
+   "y": 1256.6
+  },
+  "n": 3,
+  "matches": 3,
+  "prob": 0.011,
+  "at": 26.5,
+  "lead": null,
+  "flight": 2.89,
+  "name": "про: смок Ruins (по времени)",
+  "fromZone": "B Site",
+  "toZone": "Ruins",
+  "id": "pro303"
+ },
+ {
+  "team": "CT",
+  "type": "smoke",
+  "trigger": "timed",
+  "site": "any",
+  "from": {
+   "x": 1211.5,
+   "y": 1082.0
+  },
+  "to": {
+   "x": 1322.3,
+   "y": 1194.7
+  },
+  "n": 3,
+  "matches": 3,
+  "prob": 0.011,
+  "at": 25.7,
+  "lead": null,
+  "flight": 1.62,
+  "name": "про: смок T Upper (по времени)",
+  "fromZone": "Lamp Room",
+  "toZone": "T Upper",
+  "id": "pro304"
+ },
+ {
+  "team": "T",
+  "type": "flash",
+  "trigger": "setup",
+  "site": "any",
+  "from": {
+   "x": 1604.7,
+   "y": 1236.9
+  },
+  "to": {
+   "x": 1480.3,
+   "y": 828.8
+  },
+  "n": 3,
+  "matches": 3,
+  "prob": 0.011,
+  "at": 37.7,
+  "lead": null,
+  "flight": 1.73,
+  "name": "про: флешка Site B (сетап)",
+  "fromZone": "Ruins",
+  "toZone": "Site B",
+  "id": "pro305"
+ },
+ {
+  "team": "T",
+  "type": "flash",
+  "trigger": "setup",
+  "site": "any",
+  "from": {
+   "x": 1492.4,
+   "y": 1475.8
+  },
+  "to": {
+   "x": 1685.1,
+   "y": 1166.4
+  },
+  "n": 3,
+  "matches": 2,
+  "prob": 0.011,
+  "at": 18.5,
+  "lead": null,
+  "flight": 1.73,
+  "name": "про: флешка T Lower (сетап)",
+  "fromZone": "Water",
+  "toZone": "T Lower",
+  "id": "pro306"
+ },
+ {
+  "team": "T",
+  "type": "flash",
+  "trigger": "setup",
+  "site": "any",
+  "from": {
+   "x": 491.6,
+   "y": 946.3
+  },
+  "to": {
+   "x": 378.6,
+   "y": 740.8
+  },
+  "n": 3,
+  "matches": 3,
+  "prob": 0.011,
+  "at": 28.6,
+  "lead": null,
+  "flight": 1.72,
+  "name": "про: флешка Long (сетап)",
+  "fromZone": null,
+  "toZone": "Long",
+  "id": "pro307"
+ },
+ {
+  "team": "T",
+  "type": "molly",
+  "trigger": "setup",
+  "site": "any",
+  "from": {
+   "x": 1672.7,
+   "y": 1293.2
+  },
+  "to": {
+   "x": 1439.4,
+   "y": 1118.0
+  },
+  "n": 3,
+  "matches": 3,
+  "prob": 0.011,
+  "at": 56.8,
+  "lead": null,
+  "flight": 1.19,
+  "name": "про: молотов T Lower (сетап)",
+  "fromZone": "Ruins",
+  "toZone": "T Lower",
+  "id": "pro308"
+ },
+ {
+  "team": "T",
+  "type": "molly",
+  "trigger": "setup",
+  "site": "any",
+  "from": {
+   "x": 873.6,
+   "y": 1195.9
+  },
+  "to": {
+   "x": 1009.2,
+   "y": 694.0
+  },
+  "n": 3,
+  "matches": 3,
+  "prob": 0.011,
+  "at": 37.5,
+  "lead": null,
+  "flight": 1.58,
+  "name": "про: молотов Sniper Nest (сетап)",
+  "fromZone": "Mid",
+  "toZone": "Sniper Nest",
+  "id": "pro309"
+ },
+ {
+  "team": "T",
+  "type": "molly",
+  "trigger": "setup",
+  "site": "any",
+  "from": {
+   "x": 1578.9,
+   "y": 1375.2
+  },
+  "to": {
+   "x": 1698.8,
+   "y": 1018.8
+  },
+  "n": 3,
+  "matches": 3,
+  "prob": 0.011,
+  "at": 8.2,
+  "lead": null,
+  "flight": 1.02,
+  "name": "про: молотов Ramp (сетап)",
+  "fromZone": "Ruins",
+  "toZone": "Ramp",
+  "id": "pro310"
+ },
+ {
+  "team": "T",
+  "type": "molly",
+  "trigger": "setup",
+  "site": "any",
+  "from": {
+   "x": 360.8,
+   "y": 711.1
+  },
+  "to": {
+   "x": 763.7,
+   "y": 538.7
+  },
+  "n": 3,
+  "matches": 3,
+  "prob": 0.011,
+  "at": 22.1,
+  "lead": null,
+  "flight": 2.03,
+  "name": "про: молотов ? (сетап)",
+  "fromZone": "Long",
+  "toZone": null,
+  "id": "pro311"
+ },
+ {
+  "team": "T",
+  "type": "molly",
+  "trigger": "setup",
+  "site": "any",
+  "from": {
+   "x": 1700.0,
+   "y": 1074.8
+  },
+  "to": {
+   "x": 1445.3,
+   "y": 529.6
+  },
+  "n": 3,
+  "matches": 3,
+  "prob": 0.011,
+  "at": 27.4,
+  "lead": null,
+  "flight": 1.98,
+  "name": "про: молотов Back Halls (сетап)",
+  "fromZone": "Ramp",
+  "toZone": "Back Halls",
+  "id": "pro312"
+ },
+ {
+  "team": "T",
+  "type": "smoke",
+  "trigger": "setup",
+  "site": "any",
+  "from": {
+   "x": 735.5,
+   "y": 1413.6
+  },
+  "to": {
+   "x": 717.5,
+   "y": 498.4
+  },
+  "n": 3,
+  "matches": 3,
+  "prob": 0.011,
+  "at": 6.5,
+  "lead": null,
+  "flight": 6.25,
+  "name": "про: смок Triple Box (сетап)",
+  "fromZone": "Split",
+  "toZone": "Triple Box",
+  "id": "pro313"
+ },
+ {
+  "team": "T",
+  "type": "smoke",
+  "trigger": "setup",
+  "site": "any",
+  "from": {
+   "x": 1683.6,
+   "y": 1459.2
+  },
+  "to": {
+   "x": 1456.7,
+   "y": 671.2
+  },
+  "n": 3,
+  "matches": 3,
+  "prob": 0.011,
+  "at": 47.1,
+  "lead": null,
+  "flight": 4.88,
+  "name": "про: смок Second Lane (сетап)",
+  "fromZone": "Ruins",
+  "toZone": "Second Lane",
+  "id": "pro314"
+ },
+ {
+  "team": "T",
+  "type": "smoke",
+  "trigger": "setup",
+  "site": "any",
+  "from": {
+   "x": 857.6,
+   "y": 1204.5
+  },
+  "to": {
+   "x": 985.2,
+   "y": 732.1
+  },
+  "n": 3,
+  "matches": 3,
+  "prob": 0.011,
+  "at": 36.8,
+  "lead": null,
+  "flight": 3.02,
+  "name": "про: смок Sniper Nest (сетап)",
+  "fromZone": "Mid",
+  "toZone": "Sniper Nest",
+  "id": "pro315"
+ }
+]

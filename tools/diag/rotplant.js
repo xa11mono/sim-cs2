@@ -1,0 +1,4 @@
+paused=true; __F__ var rows=[], rs=null, done=false;
+for(var m of [3,7]){ matchNum=m; newMatch(); for(var t=0;t<120000;t++){ stepTick(); if(roundState!==rs){ if(roundState==='live') done=false; rs=roundState; }
+ if(roundState==='live' && !done && bomb.state==='planted'){ done=true; var S=SITES[bomb.site], c=bots.filter(function(b){return b.alive&&b.team==='CT'}); rows.push({site:bomb.site, alive:c.length, near:c.filter(function(b){return Math.hypot(b.x-S.x,b.y-S.y)<600}).length, far:c.filter(function(b){return Math.hypot(b.x-S.x,b.y-S.y)>=900}).length}); } } }
+var o={}; ['A','B'].forEach(function(k){ var r=rows.filter(function(x){return x.site===k}); if(!r.length) return; o[k]={n:r.length, alive:+(r.reduce(function(a,x){return a+x.alive},0)/r.length).toFixed(2), near600:+(r.reduce(function(a,x){return a+x.near},0)/r.length).toFixed(2), far:+(r.reduce(function(a,x){return a+x.far},0)/r.length).toFixed(2)}; }); JSON.stringify(o)
