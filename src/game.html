@@ -2346,19 +2346,30 @@ var T_TACTICS = [
     groups:[{roles:["entry","igl"], via:["T Ramp","Tunnel","Water","Ruins"]},
             {roles:["awp","support"], via:["Split","Lower Mid","Mid","Top Mid","Sniper Nest","Red Room","Alley"], stage:"Back Halls", look:"Second Lane"}]}
 ];
-var tSiteHist = []; // раздел 12: куда T реально выходили по раундам (для стака CT)
+// ---- ПАМЯТЬ О СОПЕРНИКЕ (одна на матч; знание о текущем раунде — в картине команды) ----
+// Что команды узнали друг о друге за прошлые раунды этого матча:
+//   tacMem / tacHist   — IGL T: какие тактики сыграны, победы, планты
+//   ctRead             — что T видели в начале раунда: сколько CT на A и на B
+//   roundHist / tSiteHist / siteHeat(+Pending) — куда T реально выходили, итоги раундов
+//   ctHabit            — любимые углы конкретных CT (где стояли / где убили)
+//   ctSetupHist / ctSetupMem — какие расстановки CT играли и что сработало
+//   aggrObs            — кто как часто сам лезет в дуэль
+//   RMEM               — откуда стрелял AWP CT, агрессия CT, раши, ранние смерти мидера
+//   TDEATHS            — где умирали T
+//   nadeLandHistory    — куда команда кидает молотов/HE по сайту
+// Между матчами её половинная копия хранится в браузере (OPP, ниже).
+var MEMORY = {tSiteHist:[], siteHeatPending:{}, siteHeat:{A:1, B:1},
+  tacMem:{}, ctRead:[], roundHist:[], ctHabit:{}, tacHist:[], ctSetupHist:[], ctSetupMem:{},
+  aggrObs:{}, TDEATHS:{m:-1, list:[]}, RMEM:{awp:[], aggro:[], rush:[], midDeath:[]}, nadeLandHistory:{A:[], B:[]}};
 var teamTac = { T: null, CT: {call:null} };
-var siteHeatPending = {};
-var siteHeat = {A:1, B:1}; // CT "запоминают", куда T чаще выходят в этом матче
 var lastTacticId = null;
 // ======================= РАЗДЕЛ 13 (п.1–5): АДАПТАЦИЯ ВНУТРИ МАТЧА =======================
 // Всё — только по событиям текущего матча, сбрасывается с новым матчем.
-//   tacMem   — IGL T: сколько раз сыграна тактика, победы, планты
-//   ctRead   — что T видели в начале раунда: сколько CT было на A и на B
-//   roundHist— итоги раундов для CT: куда шли T, был ли плант, кто выиграл, когда выход
-//   ctHabit  — любимые углы конкретных CT (по нику): где их видели стоящими / где убили
-var tacMem = {}, ctRead = [], roundHist = [], ctHabit = {}, tacHist = [], ctSetupHist = [], ctSetupMem = {};
-function resetMatchMemory(){ tacMem = {}; ctRead = []; roundHist = []; ctHabit = {}; tacHist = []; ctSetupHist = []; ctSetupMem = {}; aggrObs = {}; bots.forEach(function(b){ b._mistakes = 0; }); loadOppProfile(); }
+//   MEMORY.tacMem   — IGL T: сколько раз сыграна тактика, победы, планты
+//   MEMORY.ctRead   — что T видели в начале раунда: сколько CT было на A и на B
+//   MEMORY.roundHist— итоги раундов для CT: куда шли T, был ли плант, кто выиграл, когда выход
+//   MEMORY.ctHabit  — любимые углы конкретных CT (по нику): где их видели стоящими / где убили
+function resetMatchMemory(){ MEMORY.tacMem = {}; MEMORY.ctRead = []; MEMORY.roundHist = []; MEMORY.ctHabit = {}; MEMORY.tacHist = []; MEMORY.ctSetupHist = []; MEMORY.ctSetupMem = {}; MEMORY.aggrObs = {}; bots.forEach(function(b){ b._mistakes = 0; }); loadOppProfile(); }
 // Профиль соперника: что команды выучили друг о друге за матч (тактики, что
 // сработало у CT, любимые углы каждого игрока, кто как агрессивен) — сохраняется
 // в конце матча; следующий матч стартует с этим знанием (вес половинный, дальше
@@ -2369,10 +2380,10 @@ function saveOppProfile(){
   var P = OPP || {matches:0, tacMem:{}, ctSetupMem:{}, habit:{}, aggr:{}};
   var half = function(o, keys){ var r = {}; for(var k in o){ r[k] = {}; keys.forEach(function(f){ r[k][f] = (o[k][f]||0); }); } return r; };
   var mergeCnt = function(dst, src, keys){ for(var k in src){ var d = dst[k] || (dst[k] = {}); keys.forEach(function(f){ d[f] = (d[f]||0)*0.5 + (src[k][f]||0); }); } };
-  mergeCnt(P.tacMem, tacMem, ["n","w","plants"]);
-  mergeCnt(P.ctSetupMem, ctSetupMem, ["n","w"]);
-  mergeCnt(P.aggr, aggrObs, ["e","r"]);
-  for(var id in ctHabit){ var H = P.habit[id] || (P.habit[id] = {}); for(var c in ctHabit[id]){ var h = ctHabit[id][c], o = H[c];
+  mergeCnt(P.tacMem, MEMORY.tacMem, ["n","w","plants"]);
+  mergeCnt(P.ctSetupMem, MEMORY.ctSetupMem, ["n","w"]);
+  mergeCnt(P.aggr, MEMORY.aggrObs, ["e","r"]);
+  for(var id in MEMORY.ctHabit){ var H = P.habit[id] || (P.habit[id] = {}); for(var c in MEMORY.ctHabit[id]){ var h = MEMORY.ctHabit[id][c], o = H[c];
     if(o){ o.x = (o.x*o.n*0.5 + h.x*h.n)/(o.n*0.5 + h.n); o.y = (o.y*o.n*0.5 + h.y*h.n)/(o.n*0.5 + h.n); o.n = o.n*0.5 + h.n; } else H[c] = {x:h.x, y:h.y, n:h.n}; } }
   P.matches++;
   OPP = P; try{ localStorage.setItem(OPP_KEY, JSON.stringify(P)); }catch(e){}
@@ -2381,10 +2392,10 @@ function saveOppProfile(){
 function loadOppProfile(){
   if(!OPP || !OPP.matches) return;
   var cp = function(src, keys, k0){ var r = {}; for(var k in src){ r[k] = {}; keys.forEach(function(f){ r[k][f] = (src[k][f]||0)*k0; }); } return r; };
-  tacMem = cp(OPP.tacMem, ["n","w","plants"], 0.5);
-  ctSetupMem = cp(OPP.ctSetupMem, ["n","w"], 0.5);
-  aggrObs = cp(OPP.aggr, ["e","r"], 0.5);
-  ctHabit = {}; for(var id in OPP.habit){ ctHabit[id] = {}; for(var c in OPP.habit[id]){ var h = OPP.habit[id][c]; ctHabit[id][c] = {x:h.x, y:h.y, n:h.n*0.5}; } }
+  MEMORY.tacMem = cp(OPP.tacMem, ["n","w","plants"], 0.5);
+  MEMORY.ctSetupMem = cp(OPP.ctSetupMem, ["n","w"], 0.5);
+  MEMORY.aggrObs = cp(OPP.aggr, ["e","r"], 0.5);
+  MEMORY.ctHabit = {}; for(var id in OPP.habit){ MEMORY.ctHabit[id] = {}; for(var c in OPP.habit[id]){ var h = OPP.habit[id][c]; MEMORY.ctHabit[id][c] = {x:h.x, y:h.y, n:h.n*0.5}; } }
   logEvent("Профиль соперника загружен (матчей: "+OPP.matches+") — IGL и CT стартуют с поправкой на привычки");
 }
 function weightedChoice(items, weights, seed){
@@ -2394,7 +2405,7 @@ function weightedChoice(items, weights, seed){
 }
 // ---- IGL: чтение CT по прошлым раундам ----
 function readCT(){
-  var last = ctRead.slice(-3), out = {stack:null, n:0, of:last.length};
+  var last = MEMORY.ctRead.slice(-3), out = {stack:null, n:0, of:last.length};
   // "стак" — видели у сайта 2+ CT и больше, чем у другого, в 2 из 3 последних раундов
   ["A","B"].forEach(function(k){ var o = k === "A" ? "B" : "A"; var n = last.filter(function(r){ return r[k] >= 2 && r[k] > r[o]; }).length; if(n >= 2 && n > out.n){ out.stack = k; out.n = n; } });
   return out;
@@ -2412,7 +2423,7 @@ function timeoutCheck(winner){
     T0.streak++;
     if(T0.streak >= 3 && T0.left > 0 && roundNum !== HALF_ROUNDS && roundState !== "matchover"){
       T0.left--; T0.streak = 0; T0.until = roundNum + 4;
-      T0.avoid = team === "T" ? tacHist.slice(-3) : ctSetupHist.slice(-3);
+      T0.avoid = team === "T" ? MEMORY.tacHist.slice(-3) : MEMORY.ctSetupHist.slice(-3);
       var names = team === "T" ? T0.avoid.map(function(id){ var t = T_TACTICS.filter(function(x){ return x.id === id; })[0]; return t ? t.name : id; })
                                : T0.avoid.map(function(id){ var t = CT_SETUPS.filter(function(x){ return x.id === id; })[0]; return t ? t.name : id; });
       logEvent("ТАЙМ-АУТ "+team+" — три поражения подряд. "+(team === "T" ? "IGL: не повторяем «"+names.join("», «")+"»" : "CT: меняем расстановку, уходим от «"+names.join("», «")+"»")+" (осталось тайм-аутов: "+T0.left+")", true);
@@ -2424,9 +2435,9 @@ var HALF_ADJ = {tac:{}, ctSite:null};
 function halfReview(){
   HALF_ADJ = {tac:{}, ctSite:null};
   var bad = [], good = [];
-  T_TACTICS.forEach(function(t){ var M = tacMem[t.id]; if(!M || M.n < 2) return; var r = M.w/M.n;
+  T_TACTICS.forEach(function(t){ var M = MEMORY.tacMem[t.id]; if(!M || M.n < 2) return; var r = M.w/M.n;
     if(r < 0.2){ HALF_ADJ.tac[t.id] = 0.25; bad.push(t.name); } else if(r >= 0.6){ HALF_ADJ.tac[t.id] = 1.4; good.push(t.name); } });
-  var hA = 0, hB = 0; roundHist.forEach(function(r){ if(r.site === "A") hA++; else if(r.site === "B") hB++; });
+  var hA = 0, hB = 0; MEMORY.roundHist.forEach(function(r){ if(r.site === "A") hA++; else if(r.site === "B") hB++; });
   if(hA + hB >= 6 && Math.max(hA, hB) >= Math.min(hA, hB)*1.6) HALF_ADJ.ctSite = hA > hB ? "A" : "B";
   logEvent("ПЕРЕРЫВ — IGL T: "+(bad.length ? "убираем «"+bad.join("», «")+"»" : "тактики без изменений")+(good.length ? "; чаще «"+good.join("», «")+"»" : "")+
     ". CT: "+(HALF_ADJ.ctSite ? "T ходили на "+HALF_ADJ.ctSite+" "+Math.max(hA, hB)+" раз из "+(hA+hB)+" — усиливаем "+HALF_ADJ.ctSite : "расстановка без изменений"), true);
@@ -2436,16 +2447,16 @@ function chooseTactic(){
   var pool = T_TACTICS.filter(function(t){ return t.pools.indexOf(type) >= 0; });
   var rd = readCT(), readTxt = null;
   var tempoRead = null;
-  if(BAL.tempoShift){ var lastT = roundHist.slice(-2);
+  if(BAL.tempoShift){ var lastT = MEMORY.roundHist.slice(-2);
     if(lastT.length === 2 && lastT.every(function(r){ return r.winner === "CT"; })){
       var fast = lastT.every(function(r){ return r.execSec != null && r.execSec < 32; }), slow = lastT.every(function(r){ return r.execSec == null || r.execSec >= 45; });
       tempoRead = fast ? "slow" : (slow ? "fast" : null); } }
   var weights = pool.map(function(t){
-    var M = tacMem[t.id] || {n:0, w:0};
+    var M = MEMORY.tacMem[t.id] || {n:0, w:0};
     var w = 0.5 + 1.5*((M.w + 1)/(M.n + 2));             // удачные всплывают, проваленные тонут
     if(t.style === "split") w *= 1.6;                    // заходы с двух сторон — чаще
     if(t.id === "caveB") w *= 1.5;                       // кейв — не забывать
-    var l1 = tacHist[tacHist.length-1], l2 = tacHist[tacHist.length-2];
+    var l1 = MEMORY.tacHist[MEMORY.tacHist.length-1], l2 = MEMORY.tacHist[MEMORY.tacHist.length-2];
     if(l1 === t.id) w *= 0.35;                          // только что играли
     if(l1 === t.id && l2 === t.id) w *= 0.1;            // третий раз подряд — прочитана
     if(BAL.halfReview && roundNum > HALF_ROUNDS && HALF_ADJ.tac[t.id]) w *= HALF_ADJ.tac[t.id]; // выводы перерыва
@@ -2468,7 +2479,7 @@ function chooseTactic(){
     var rW = 0, nW = 0; pool.forEach(function(t, i){ if(t.style === "rush") rW += weights[i]; else nW += weights[i]; });
     if(rW > 0 && nW > 0){ var kR = RP > 0 ? (RP/(1-RP))*nW/rW : 0; pool.forEach(function(t, i){ if(t.style === "rush") weights[i] *= kR; }); }
   var tac = pool[weightedChoice(pool, weights, roundNum*7919 + matchNum*104729 + 17)];
-  lastTacticId = tac.id; tacHist.push(tac.id);
+  lastTacticId = tac.id; MEMORY.tacHist.push(tac.id);
   // тайминг выхода гуляет от раунда к раунду (иначе его читают): ~25% —
   // быстрый (на 30% раньше), ~50% — обычный ±4с, ~25% — поздний (+10…18с)
   var setupSec = tac.setupEnd, tmode = "";
@@ -2500,7 +2511,7 @@ function chooseTactic(){
   teamTac.T = {tac:tac, site:tac.site, phase: tac.setupEnd > 0 ? "setup" : "execute", execTick: roundStartTick + setupSec*64, defUntil: defUntil, minExec: (tac.setupEnd > 0) ? Math.min(setupSec, 30) : 0, needT: (tac.setupEnd > 0) ? Math.max(14, tac.setupEnd - 6) : 0,
                execStart: tac.setupEnd > 0 ? null : tick, // раш: выход сразу — отсчёт задержек ролей с начала раунда
                read: readTxt, seenCT:{A:0, B:0}, setupSec:setupSec};
-  var M = tacMem[tac.id];
+  var M = MEMORY.tacMem[tac.id];
   var igl = bots.filter(function(b){ return b.team==="T" && b.tRole==="igl"; })[0];
   if(readTxt) logEvent("IGL "+(igl?igl.id:"T")+": "+readTxt);
   logEvent("IGL "+(igl?igl.id:"T")+": тактика «"+tac.name+"» ("+ROUND_TYPE_LABEL[type]+(tac.setupEnd?", выход на "+setupSec+"с"+tmode:", сразу")+
@@ -2640,9 +2651,9 @@ var CT_SETUPS = [
     roles:{mid:{pos:["Red Room","Sniper Nest"], look:"Top Mid"}, roamer:{pos:["Short"], look:"Donut"}}}
 ];
 function chooseCtSetup(){
-  var last = roundHist.slice(-4), heat = {A:0, B:0}, lost = {A:0, B:0};
+  var last = MEMORY.roundHist.slice(-4), heat = {A:0, B:0}, lost = {A:0, B:0};
   last.forEach(function(r){ heat[r.site]++; if(r.planted && r.winner === "T") lost[r.site]++; });
-  var execs = roundHist.slice(-3).map(function(r){ return r.execSec; }).filter(function(x){ return x != null; });
+  var execs = MEMORY.roundHist.slice(-3).map(function(r){ return r.execSec; }).filter(function(x){ return x != null; });
   var avgExec = execs.length ? execs.reduce(function(a,x){ return a+x; }, 0)/execs.length : 45;
   var why = {};
   var weights = CT_SETUPS.map(function(S){
@@ -2652,19 +2663,19 @@ function chooseCtSetup(){
     if(S.roles && Object.keys(S.roles).some(function(r){ return S.roles[r].early; })){
       if(avgExec < 25) w *= 0.4; else if(avgExec > 45){ w *= 1.15; why[S.id] = "T выходят поздно (~"+Math.round(avgExec)+"с) — есть время за инфой"; }
     }
-    var l1 = ctSetupHist[ctSetupHist.length-1], l2 = ctSetupHist[ctSetupHist.length-2];
+    var l1 = MEMORY.ctSetupHist[MEMORY.ctSetupHist.length-1], l2 = MEMORY.ctSetupHist[MEMORY.ctSetupHist.length-2];
     if(l1 === S.id && l2 === S.id) w *= 0.15;
     // (1) мидер рано умирал в 2 из 3 последних раундов — агрессивный мид реже
-    if(BAL.roundMem && S.id === "midAggro" && rmemRecent(RMEM.midDeath, 3).length >= 2){ w *= 0.2; why[S.id] = null; }
+    if(BAL.roundMem && S.id === "midAggro" && rmemRecent(MEMORY.RMEM.midDeath, 3).length >= 2){ w *= 0.2; why[S.id] = null; }
     // CT тоже помнят, какие расстановки в этом матче сработали, а какие нет
-    var CM = ctSetupMem[S.id] || {n:0, w:0};
+    var CM = MEMORY.ctSetupMem[S.id] || {n:0, w:0};
     w *= 0.3 + 1.7*((CM.w + 1)/(CM.n + 2));
     if(BAL.halfReview && roundNum > HALF_ROUNDS && HALF_ADJ.ctSite && S.stack === HALF_ADJ.ctSite) w *= 2.5; // выводы перерыва
     if(roundNum <= TOUT.CT.until && TOUT.CT.avoid.indexOf(S.id) >= 0) w *= 0.15; // после тайм-аута
     return w;
   });
   var S = BAL.ctSetups ? CT_SETUPS[weightedChoice(CT_SETUPS, weights, roundNum*4217 + matchNum*881 + 5)] : (BAL.ctSetup === "1-1-1" ? CT_SETUPS[1] : CT_SETUPS[0]);
-  ctSetupHist.push(S.id);
+  MEMORY.ctSetupHist.push(S.id);
   teamTac.CT = {call:null, saving:false, stack:S.stack||null, setup:S, setupWhy: why[S.id]||null};
   // против эко: без ранних пиков и доборов — не дарить оружие, держать вместе
   if(BAL.ctAntiEco){ var Ee = teamEco.CT.enemyGuess || enemyEcoGuess("CT"); if(Ee.eco && (teamEco.CT.roundType === "full" || teamEco.CT.roundType === "force")){ teamTac.CT.antiEco = true; logEvent("CT: у T, похоже, эко — играем аккуратно: без ранних пиков, не отдаём оружие"); } }
@@ -2714,14 +2725,14 @@ var simTime = 0; // тоже нужен logEvent-у при старте
 if(typeof OPP !== "undefined" && OPP && OPP.matches) loadOppProfile();
 // итог раунда — в память обеих сторон
 function rememberRound(winner){
-  bots.forEach(function(b){ var A = aggrObs[b.id] || (aggrObs[b.id] = {e:0, r:0}); A.r++; });
+  bots.forEach(function(b){ var A = MEMORY.aggrObs[b.id] || (MEMORY.aggrObs[b.id] = {e:0, r:0}); A.r++; });
   var tt = teamTac.T; if(!tt) return;
-  var M = tacMem[tt.tac.id] || (tacMem[tt.tac.id] = {n:0, w:0, plants:0});
+  var M = MEMORY.tacMem[tt.tac.id] || (MEMORY.tacMem[tt.tac.id] = {n:0, w:0, plants:0});
   M.n++; if(winner === "T") M.w++; if(bomb && (bomb.state === "planted" || bomb.state === "exploded" || bomb.state === "defused")) M.plants++;
-  ctRead.push({A: tt.seenCT.A, B: tt.seenCT.B});
+  MEMORY.ctRead.push({A: tt.seenCT.A, B: tt.seenCT.B});
   var cs = teamTac.CT && teamTac.CT.setup;
-  if(cs){ var CM = ctSetupMem[cs.id] || (ctSetupMem[cs.id] = {n:0, w:0}); CM.n++; if(winner === "CT") CM.w++; }
-  roundHist.push({site: tt.site, planted: !!(bomb && bomb.plantTick && bomb.plantTick >= roundStartTick), winner: winner,
+  if(cs){ var CM = MEMORY.ctSetupMem[cs.id] || (MEMORY.ctSetupMem[cs.id] = {n:0, w:0}); CM.n++; if(winner === "CT") CM.w++; }
+  MEMORY.roundHist.push({site: tt.site, planted: !!(bomb && bomb.plantTick && bomb.plantTick >= roundStartTick), winner: winner,
                   execSec: tt.execStart ? (tt.execStart - roundStartTick)/TICK_HZ : null});
 }
 // ---- любимые углы CT (для T) ----
@@ -2732,19 +2743,18 @@ function noteMistake(b, what){
 }
 // наблюдённая агрессия игрока: сколько раз за раунд он сам лезет в дуэль (по
 // сравнению со средним) — копится у соперника за матч и между матчами
-var aggrObs = {};
-function aggrNote(id){ var A = aggrObs[id] || (aggrObs[id] = {e:0, r:0}); A.e++; }
+function aggrNote(id){ var A = MEMORY.aggrObs[id] || (MEMORY.aggrObs[id] = {e:0, r:0}); A.e++; }
 function aggrRate(id){
-  var A = aggrObs[id]; if(!A || A.r < 3) return 1;
-  var tot = 0, n = 0; for(var k in aggrObs){ if(aggrObs[k].r >= 3){ tot += aggrObs[k].e/aggrObs[k].r; n++; } }
+  var A = MEMORY.aggrObs[id]; if(!A || A.r < 3) return 1;
+  var tot = 0, n = 0; for(var k in MEMORY.aggrObs){ if(MEMORY.aggrObs[k].r >= 3){ tot += MEMORY.aggrObs[k].e/MEMORY.aggrObs[k].r; n++; } }
   var avg = n ? tot/n : 1; return avg > 0 ? (A.e/A.r)/avg : 1;
 }
 function habitAdd(ctId, x, y, w){
-  var H = ctHabit[ctId] || (ctHabit[ctId] = {}), k = Math.round(x/48)+","+Math.round(y/48);
+  var H = MEMORY.ctHabit[ctId] || (MEMORY.ctHabit[ctId] = {}), k = Math.round(x/48)+","+Math.round(y/48);
   var c = H[k] || (H[k] = {x:0, y:0, n:0}); c.x = (c.x*c.n + x*w)/(c.n + w); c.y = (c.y*c.n + y*w)/(c.n + w); c.n += w;
 }
 function habitTop(ctId, minN){
-  var H = ctHabit[ctId], best = null; if(!H) return null;
+  var H = MEMORY.ctHabit[ctId], best = null; if(!H) return null;
   for(var k in H){ if(H[k].n >= (minN||2) && (!best || H[k].n > best.n)) best = H[k]; }
   return best;
 }
@@ -2824,12 +2834,11 @@ var SHIFT_TO = { A: [{pos:"Donut", look:"Short"}, {pos:"Chamber Lane", look:"Top
                  B: [{pos:"Lamp Room", look:"Cave"}, {pos:"T Upper", look:"Lamp Room"}] };
 // ---- память смертей T за матч (про меняют паттерн: умер дважды в A Main —
 // в третий раз туда иначе или не идут) ----
-var TDEATHS = {m:-1, list:[]};
-function tDeathAdd(v){ if(TDEATHS.m !== matchNum) TDEATHS = {m:matchNum, list:[]};
-  TDEATHS.list.push({x:v.x, y:v.y, round:roundNum, id:v.id, tag: v.post ? v.post.tag : ""}); }
-function tDeathsNear(x, y, r, id){ if(TDEATHS.m !== matchNum) return 0;
-  return TDEATHS.list.filter(function(d){ return d.round < roundNum && Math.hypot(d.x-x, d.y-y) < r && (!id || d.id === id); }).length; }
-function tDeathSpots(){ return TDEATHS.m === matchNum ? TDEATHS.list.filter(function(d){ return d.round < roundNum; }) : []; }
+function tDeathAdd(v){ if(MEMORY.TDEATHS.m !== matchNum) MEMORY.TDEATHS = {m:matchNum, list:[]};
+  MEMORY.TDEATHS.list.push({x:v.x, y:v.y, round:roundNum, id:v.id, tag: v.post ? v.post.tag : ""}); }
+function tDeathsNear(x, y, r, id){ if(MEMORY.TDEATHS.m !== matchNum) return 0;
+  return MEMORY.TDEATHS.list.filter(function(d){ return d.round < roundNum && Math.hypot(d.x-x, d.y-y) < r && (!id || d.id === id); }).length; }
+function tDeathSpots(){ return MEMORY.TDEATHS.m === matchNum ? MEMORY.TDEATHS.list.filter(function(d){ return d.round < roundNum; }) : []; }
 function tProbes(tt, ts){
   if(tick - roundStartTick < 10*TICK_HZ) return;
   if(tick > tt.execTick - 3*TICK_HZ) return;          // перед выходом — все на местах
@@ -2864,7 +2873,7 @@ function tProbes(tt, ts){
     }
     if(P.ph === 0){ // ждёт в укрытии (пост группы уже стоит)
       // на этом выходе только что убили своего — не пикать туда же ещё раз
-      if(tick >= P.until && teamIntel.T.sig.some(function(sg){ return sg.type === "died" && tick - sg.tick < 10*TICK_HZ && Math.hypot(sg.x-to.x, sg.y-to.y) < 400; })){ P.until = tick + 6*TICK_HZ; return; }
+      if(tick >= P.until && picEvents("T").some(function(sg){ return sg.type === "died" && tick - sg.tick < 10*TICK_HZ && Math.hypot(sg.x-to.x, sg.y-to.y) < 400; })){ P.until = tick + 6*TICK_HZ; return; }
       // адаптация: здесь в этом матче уже умирали ≥2 раз — на сухую не пикаем
       if(tick >= P.until && BAL.tAdapt && tDeathsNear(to.x, to.y, 450) >= 2){
         var hasU = ts.some(function(o){ return Math.hypot(o.x-pb.x, o.y-pb.y) < 500 && o.nades && (o.nades.flash > 0 || o.nades.smoke > 0); });
@@ -3061,7 +3070,7 @@ function tIglReplan(tt, site, other, secLeft){
     // НЕ считается пустым — заходим туда обычным выходом, с гранатами и чеком углов
     if(BAL.rotRead && !tt.rebound && !tt._rotDone && aliveT >= 3 && secLeft > 45 && tick % 16 === 0){
       var RH = tt._rotH || (tt._rotH = {});
-      teamIntel.T.sig.forEach(function(sg){ if((sg.type !== "spotted" && sg.type !== "sound") || !sg.id || sg.id === "?" || tick - sg.tick > 16) return;
+      picEvents("T").forEach(function(sg){ if((sg.type !== "spotted" && sg.type !== "sound") || !sg.id || sg.id === "?" || tick - sg.tick > 16) return;
         var h = RH[sg.id] || (RH[sg.id] = []); if(!h.length || sg.tick - h[h.length-1].tick >= TICK_HZ){ h.push({x:sg.x, y:sg.y, tick:sg.tick}); if(h.length > 3) h.shift(); } });
       var toward = [];
       for(var rid in RH){ var h = RH[rid]; if(h.length < 2) continue; var a0 = h[0], a1 = h[h.length-1]; if(tick - a1.tick > 6*TICK_HZ) continue;
@@ -3149,7 +3158,7 @@ function tBrain(){
   if(tt.seenCT && tick % 16 === 0 && (tt.phase === "setup" || (tt.execStart && tick - tt.execStart < 8*TICK_HZ))){
     ["A","B"].forEach(function(k){ var e = intelEstimate("T", SITES[k].x, SITES[k].y, 450, 4*TICK_HZ); if(e.seen > tt.seenCT[k]) tt.seenCT[k] = e.seen; });
   }
-  if(tt.phase !== "setup" && !tt.histed){ tt.histed = true; tSiteHist.push(tt.site); }
+  if(tt.phase !== "setup" && !tt.histed){ tt.histed = true; MEMORY.tSiteHist.push(tt.site); }
   var tac = tt.tac, site = SITES[tt.site], g = GEO[tt.site];
   var other = tt.site === "A" ? "B" : "A";
   var plantPt = site.plant || site;
@@ -3174,7 +3183,7 @@ function tBrain(){
       goNow = false; if(!tt._smWaitLog){ tt._smWaitLog = true; logEvent("T: ждём, пока встанут смоки"); }
     }
     if(goNow){
-      tt.phase = "execute"; tt.execStart = tick; if(BAL.noLeaks) siteHeatPending[tt.site] = 1; else siteHeat[tt.site] = (siteHeat[tt.site]||0) + 1;
+      tt.phase = "execute"; tt.execStart = tick; if(BAL.noLeaks) MEMORY.siteHeatPending[tt.site] = 1; else MEMORY.siteHeat[tt.site] = (MEMORY.siteHeat[tt.site]||0) + 1;
       logEvent("T: выход на "+tt.site+"!"+(tt._waitLog ? " (все собрались)" : ""));
     }
   }
@@ -3184,10 +3193,10 @@ function tBrain(){
     // только если сняли того, кто держит сам сайт (опорника или игрока прямо на
     // точке), а не первого встречного на подходах
     var ancR = tt.site === "A" ? "anchorA" : "anchorB";
-    var pickSig = teamIntel.T.sig.filter(function(s){ return s.type === "kill" && tick - s.tick < 3*64 &&
+    var pickSig = picEvents("T").filter(function(s){ return s.type === "kill" && tick - s.tick < 3*64 &&
       (s.role === ancR ? Math.hypot(s.x-site.x, s.y-site.y) < 600 : Math.hypot(s.x-site.x, s.y-site.y) < 350); })[0];
     if(pickSig && aliveCount("T") >= 4 && (tick - roundStartTick > 22*TICK_HZ)){
-      tt.phase = "execute"; tt.execStart = tick; if(BAL.noLeaks) siteHeatPending[tt.site] = 1; else siteHeat[tt.site] = (siteHeat[tt.site]||0) + 1;
+      tt.phase = "execute"; tt.execStart = tick; if(BAL.noLeaks) MEMORY.siteHeatPending[tt.site] = 1; else MEMORY.siteHeat[tt.site] = (MEMORY.siteHeat[tt.site]||0) + 1;
       voiceLog("T", "pick"+tt.site, pickSig.by, "минус на "+tt.site+", заходим сразу!");
       logEvent("T: выход на "+tt.site+"! (сняли CT на сайте)");
     }
@@ -3228,7 +3237,7 @@ function tBrain(){
     // (раньше хватало любого килла в 600px от сайта — и килл мидера на Top Mid
     // считался "минусом на B": перекол на B с пустым мидом вместо захода через мид)
     var ancO = other === "A" ? "anchorA" : "anchorB";
-    var pickOther = tt.phase === "setup" && teamIntel.T.sig.some(function(sg){ return sg.type === "kill" && tick - sg.tick < 3*TICK_HZ &&
+    var pickOther = tt.phase === "setup" && picEvents("T").some(function(sg){ return sg.type === "kill" && tick - sg.tick < 3*TICK_HZ &&
       (sg.role === ancO ? Math.hypot(sg.x-SITES[other].x, sg.y-SITES[other].y) < 600 : Math.hypot(sg.x-SITES[other].x, sg.y-SITES[other].y) < 350); });
     if(pickOther && aliveT >= 3 && beliefCount("T", BZ.siteNear[other]||[]) < 0.9 && there < 1.5 && iglReads(tt, "po")){
       tt.rebound = true;
@@ -3257,7 +3266,7 @@ function tBrain(){
   // ---- мид наш: сняли мидера CT → двое идут через Red Room на сторону CT и
   // заходят на наш сайт оттуда, пока остальные — с обычной стороны ----
   if(BAL.midTake && tt.phase === "setup" && !tt.midTaken && aliveCount("T") >= 4 && tick - roundStartTick > 8*TICK_HZ){
-    var midKill = teamIntel.T.sig.filter(function(sg){ return sg.type === "kill" && tick - sg.tick < 3*TICK_HZ && sg.role === "mid"; })[0];
+    var midKill = picEvents("T").filter(function(sg){ return sg.type === "kill" && tick - sg.tick < 3*TICK_HZ && sg.role === "mid"; })[0];
     if(midKill){
       tt.midTaken = tick;
       var tsM = bots.filter(function(b){ return b.team === "T" && b.alive && b.tRole !== "lurker" && !(bomb.state === "carried" && bomb.carrier === b); });
@@ -3277,7 +3286,7 @@ function tBrain(){
     var eS = intelEstimate("T", site.x, site.y, 420, 5*TICK_HZ);
     var aliveT2 = aliveCount("T");
     if(eS.seen === 1 && beliefCount("T", BZ.siteNear[tt.site]||[]) < 1.4 && aliveT2 >= 4 && iglReads(tt, "so")){
-      tt.soloGo = true; tt.phase = "execute"; tt.execStart = tick; if(BAL.noLeaks) siteHeatPending[tt.site] = 1; else siteHeat[tt.site] = (siteHeat[tt.site]||0) + 1;
+      tt.soloGo = true; tt.phase = "execute"; tt.execStart = tick; if(BAL.noLeaks) MEMORY.siteHeatPending[tt.site] = 1; else MEMORY.siteHeat[tt.site] = (MEMORY.siteHeat[tt.site]||0) + 1;
       voiceLog("T", "solo"+tt.site, "IGL", "на "+tt.site+" один — заходим сейчас!");
       logEvent("T: выход на "+tt.site+"! (по инфе там соло)");
     }
@@ -3419,7 +3428,7 @@ function tBrain(){
         if(!tt.fakeOn){ tt.fakeOn = tick;
           logEvent("T: фейк на "+fk+" — шумим и кидаем гранаты, выход на "+tt.site);
           if(fakers[0]) voiceLog("T", "fake"+fk, fakers[0].id, "делаю фейк на "+fk+", вы ждите на "+tt.site); }
-        var fakeDied = teamIntel.T.sig.some(function(sg){ return sg.type === "died" && tick - sg.tick < 10*TICK_HZ && Math.hypot(sg.x-gf.tEntry.x, sg.y-gf.tEntry.y) < 450; });
+        var fakeDied = picEvents("T").some(function(sg){ return sg.type === "died" && tick - sg.tick < 10*TICK_HZ && Math.hypot(sg.x-gf.tEntry.x, sg.y-gf.tEntry.y) < 450; });
         if(fakeDied){ stagePost(fakers, fk); if(!tt._fakeHoldLog){ tt._fakeHoldLog = true; logEvent("T: на фейке сняли своего — второй не лезет туда же, держит"); } }
         else groupPost(fakers, gf.tEntry, gf.anchor, "fake"+fk, {rMax:120, minGap:40, see:[gf.anchor]});
         // раздел 13: "купились ли CT на фейк" — IGL примерно оценивает это по
@@ -3471,7 +3480,7 @@ function tBrain(){
     if(!rush && !tt.wave2){
       var w1 = ts.filter(function(b){ return b.tRole === "entry" || b.tRole === "support" || b.tRole === "awp"; });
       var contact = w1.some(function(b){ return b._sawEnemy; }) ||
-        teamIntel.T.sig.some(function(sg){ return (sg.type === "kill" || sg.type === "died") && sg.tick >= (tt.execStart||0); });
+        picEvents("T").some(function(sg){ return (sg.type === "kill" || sg.type === "died") && sg.tick >= (tt.execStart||0); });
       if(contact && !tt.w1Contact) tt.w1Contact = tick;
       if((tt.w1Contact && tick - tt.w1Contact > 48) || since > 4.5*TICK_HZ || ts.length <= 2){
         tt.wave2 = tick; logEvent("T: вторая волна заходит на "+tt.site+(tt.w1Contact ? " (после первого контакта)" : ""));
@@ -4140,6 +4149,9 @@ function picKnown(team){
     out[id] = e; }
   return (_picCache[team] = out);
 }
+// лента событий картины: смерти, фраги, звуки, «вижу» — по порядку, за ~12 с
+// (пишет только общий канал intelPush). Читать события — только отсюда.
+function picEvents(team){ return teamIntel[team].sig; }
 function picNear(team, x, y, r){ var n = 0, S = beliefSeen[team]; Object.keys(belief[team]).forEach(function(eid){ if(S[eid] != null && beliefMassNear(team, eid, x, y, r) >= 0.35) n++; }); return n; }
 // свежие наблюдения команды: [{id,x,y,tick,src}] не старше maxAge тиков
 function picRecent(team, maxAge){ var L = beliefLast[team] || {}, out = [];
@@ -4223,7 +4235,7 @@ function intelEstimate(team, x, y, r, windowTicks){
   return {n: n, seen: sN, heard: hN, conf: cf, last: ls};
 }
 function intelDeathsNear(team, x, y, r, windowTicks){
-  return teamIntel[team].sig.filter(function(s){ return s.type === "died" && tick - s.tick <= windowTicks && Math.hypot(s.x-x, s.y-y) < r; }).length;
+  return picEvents(team).filter(function(s){ return s.type === "died" && tick - s.tick <= windowTicks && Math.hypot(s.x-x, s.y-y) < r; }).length;
 }
 // смерть тиммейта — сигнал для всех + реакция ближних: трейд
 // ---- названия зон (редактируются кликом по зоне при включённом слое «зоны») ----
@@ -4285,7 +4297,6 @@ function voiceLog(team, key, who, text){ intelCallLog(team, "v:"+key, "[войс
 function aliveCount(team){ return bots.filter(function(b){ return b.team===team && b.alive; }).length; }
 // (10) память между раундами: откуда стрелял AWP CT, где CT агрессивно
 // пикнули на стороне T, какой сайт T рашили, где рано умирал мидер CT
-var RMEM = {awp:[], aggro:[], rush:[], midDeath:[]};
 // зона на "стороне T": до неё от спавна T ближе, чем от спавна CT (агрессия CT)
 function tSideZone(x, y){
   var z = bzOf(x, y); if(z < 0) return false;
@@ -4297,11 +4308,11 @@ function intelDeath(victim, killer){
   if(!victim || roundState !== "live") return;
   if(BAL.roundMem && killer){
     var secR = (tick - roundStartTick)/TICK_HZ;
-    if(killer.team === "CT" && killer.weapon && killer.weapon.key === "AWP") RMEM.awp.push({x:killer.x, y:killer.y, round:roundNum});
+    if(killer.team === "CT" && killer.weapon && killer.weapon.key === "AWP") MEMORY.RMEM.awp.push({x:killer.x, y:killer.y, round:roundNum});
     if(killer.team === "CT" && victim.team === "T" && secR < 30 && tSideZone(killer.x, killer.y))
-      RMEM.aggro.push({x:killer.x, y:killer.y, round:roundNum, id:killer.id});
-    if(victim.team === "CT" && victim.tRole === "mid" && secR < 30) RMEM.midDeath.push({round:roundNum});
-    ["awp","aggro","midDeath"].forEach(function(k){ if(RMEM[k].length > 12) RMEM[k].shift(); });
+      MEMORY.RMEM.aggro.push({x:killer.x, y:killer.y, round:roundNum, id:killer.id});
+    if(victim.team === "CT" && victim.tRole === "mid" && secR < 30) MEMORY.RMEM.midDeath.push({round:roundNum});
+    ["awp","aggro","midDeath"].forEach(function(k){ if(MEMORY.RMEM[k].length > 12) MEMORY.RMEM[k].shift(); });
   }
   var saw = killer && hasVision(victim.x, victim.y, killer.x, killer.y);
   intelPush(victim.team, {type:"died", x:victim.x, y:victim.y, id:victim.id, conf:1, kx: saw ? killer.x : null, ky: saw ? killer.y : null});
@@ -4811,7 +4822,7 @@ function prePeekDecide(b, C, zB){
   var L = picKnown(b.team) || {}, holder = null;
   for(var e in L){ var q = L[e]; if(tick - q.tick < 8*TICK_HZ && Math.hypot(q.x-C.beyond.x, q.y-C.beyond.y) < 450){ holder = q; break; } }
   // (10) в прошлых раундах CT пикнули отсюда агрессивно — считаем, что угол держат
-  if(!holder && BAL.roundMem && b.team === "T"){ var ag = rmemRecent(RMEM.aggro, 2).filter(function(e){ return Math.hypot(e.x-C.beyond.x, e.y-C.beyond.y) < 380; })[0];
+  if(!holder && BAL.roundMem && b.team === "T"){ var ag = rmemRecent(MEMORY.RMEM.aggro, 2).filter(function(e){ return Math.hypot(e.x-C.beyond.x, e.y-C.beyond.y) < 380; })[0];
     if(ag){ holder = {x:ag.x, y:ag.y, tick:tick}; if(!b._agV || b._agV !== roundNum){ b._agV = roundNum; logEvent(b.id+": в прошлом раунде отсюда пикнули ("+ag.id+", "+calloutName(ag.x, ag.y)+") — беру угол аккуратно"); } } }
   var info = !!holder || beliefZoneKnown(b.team, zB) >= 0.45;
   var heardMe = BAL.heardMe && b._noisyT && tick - b._noisyT < 3*TICK_HZ;       // (4) он меня, скорее всего, слышал
@@ -5340,9 +5351,9 @@ function lookUrgent(b){
   if(b._sawEnemy || b.lookReason === "enemy" || b.lookReason === "cover" || b.lookReason === "spam") return 2;
   if(b.planting || b.defusing) return 2;
   if(tick < (b.blindUntil||0) + 32) return 2;
+  // тревога — только от своих глаз и ушей; инфа тиммейтов (картина команды)
+  // меняет то, КУДА смотреть (вес кандидата в lookCands), а не плавность
   if(b.lastIntel && tick - b.lastIntel.tick < 48) return 1;
-  // свежая инфа команды рядом (тиммейт видит/слышит врага) — тоже тревога
-  if(picRecent(b.team, 48).some(function(q){ return Math.hypot(q.x-b.x, q.y-b.y) < 700; })) return 1;
   var hs = b.heardSound;
   if(hs && hs.team && hs.team !== b.team && tick - hs.tick < 24 && Math.hypot(hs.x-b.x, hs.y-b.y) < 700) return 1;
   return 0;
@@ -5956,7 +5967,7 @@ function ctEarlyPeek(b, ct){
   if(!b.prof || pa < 0.7 || b._sawEnemy) return false;
   if(BAL.numbersPlay && aliveCount("CT") < aliveCount("T")) return false; // нас меньше — не рискуем ранним пиком
   if(teamTac.CT && teamTac.CT.antiEco) return false; // против эко — не пикаем рано
-  if(BAL.roundMem && b.tRole === "mid" && rmemRecent(RMEM.midDeath, 3).length >= 2) return false; // мидера рано снимают — без ранних пиков
+  if(BAL.roundMem && b.tRole === "mid" && rmemRecent(MEMORY.RMEM.midDeath, 3).length >= 2) return false; // мидера рано снимают — без ранних пиков
   var since = (tick - roundStartTick)/TICK_HZ;
   var E = b._early;
   if(!E || E.round !== roundNum){
@@ -6573,7 +6584,7 @@ function ctBrain(){
     if(BAL.midCover && !ct.call && cts.length >= 3 && midCoverPost(b, cts)) return;
     // ---- слышит нескольких, но со своей точки их не видно — выйти туда, откуда видно ----
     if(BAL.reangle && b.atPost && !b._sawEnemy && tick >= (b._reangleNext||0) && /^(anchor|stack|set:)/.test(b.post.tag)){
-      var sg2 = teamIntel.CT.sig, srcs = {}, sx = 0, sy = 0, sn = 0;
+      var sg2 = picEvents("CT"), srcs = {}, sx = 0, sy = 0, sn = 0;
       for(var q2=sg2.length-1; q2>=0; q2--){
         var g2 = sg2[q2]; if(tick - g2.tick > 5*TICK_HZ) break;
         if(g2.type !== "sound" || srcs[g2.id]) continue;
@@ -6717,7 +6728,7 @@ function ctBrain(){
       // Connector сторона), откуда их встретит вместе с тиммейтами
       if(BAL.midSafe && !b._sawEnemy){
         var nMid = intelEstimate("CT", GEO.ctMid, 750, 4*TICK_HZ).n;
-        var midCare = BAL.roundMem && rmemRecent(RMEM.midDeath, 3).length >= 2;   // (10) рано умирал — отходит уже от одного
+        var midCare = BAL.roundMem && rmemRecent(MEMORY.RMEM.midDeath, 3).length >= 2;   // (10) рано умирал — отходит уже от одного
         if(nMid >= (midCare ? 1 : 2) || (b._midBack && b._midBack.round === roundNum && tick < b._midBack.until)){
           if(!b._midBack || b._midBack.round !== roundNum){
             var deep = namedSpot("Red Room", GEO.ctMid, {hideFrom:[GEO.tMid], see:[GEO.ctMid], key:"midback"}) ||
@@ -6735,7 +6746,7 @@ function ctBrain(){
       // вперёд (Top Mid/Sniper Nest) — реже; чаще глубже (Jungle/Red Room)
       var mNames = BAL.midSafe ? ["Jungle","Red Room","Sniper Nest","Top Mid"] : POS.M.ctHold, mi = weightedPick(mNames.length, roundNum*191 + matchNum*433 + 7);
       // (10) мидер рано умирал в 2 из 3 последних раундов — в этом раунде глубже
-      if(BAL.roundMem && rmemRecent(RMEM.midDeath, 3).length >= 2){ mNames = ["Red Room","Jungle"]; mi = weightedPick(2, roundNum*191 + matchNum*433 + 7);
+      if(BAL.roundMem && rmemRecent(MEMORY.RMEM.midDeath, 3).length >= 2){ mNames = ["Red Room","Jungle"]; mi = weightedPick(2, roundNum*191 + matchNum*433 + 7);
         if(b._midCareV !== roundNum){ b._midCareV = roundNum; voiceLog("CT", "midcare"+roundNum, b.id, "меня на миде рано снимают — сегодня играю глубже"); } }
       var mp = !midThreat ? namedSpot(mNames[mi], GEO.ctMid, {see:[GEO.ctMidLook, GEO.tMid], hideFrom:[GEO.tMid], key:"mid"}) : null;
       // (мидер) разбор ранних смертей: в 6 из 14 у мидера был пистолет против AK
@@ -6760,7 +6771,7 @@ function ctBrain(){
     else if(role === "rotator"){
       if(ct.setup ? ct.setup.rot === "212" : BAL.ctSetup === "2-1-2"){
         // второй на сайт: ставим к опорнику того сайта, на который T чаще ходят в этом матче
-        var ks = siteHeat.A >= siteHeat.B ? "A" : "B";
+        var ks = MEMORY.siteHeat.A >= MEMORY.siteHeat.B ? "A" : "B";
         var ap2 = anchorPosOf(ks);
         if(!proRolePost(b, "rot", PRO_ROLE.rot212, GEO.rotator || CT_SPAWN, GEO.ctMid, "rotator"))
         groupPost([b], GEO[ks].anchor, GEO[ks].tEntry, "anchor2"+ks, {rMin:70, rMax:230, minGap:60, see:[GEO[ks].tEntry], hideFrom:[GEO[ks].tStage],
@@ -6779,7 +6790,7 @@ function ctBrain(){
           // Alley и так закрывают мид и опорники — ротатор ждёт ближе к сайту,
           // куда T чаще ходят: у A — CT Lane, у B — Back Halls; оттуда он и
           // помогает быстрее, и сам держит полезный угол на сайт
-          var hotR = siteHeat.A >= siteHeat.B ? "A" : "B";
+          var hotR = MEMORY.siteHeat.A >= MEMORY.siteHeat.B ? "A" : "B";
           var rpn = hotR === "A" ? "CT Lane" : "Back Halls";
           var rEnts = [GEO[hotR].tEntry].concat(entryPts(hotR)).concat([SITES[hotR]]);
           var rp = namedSpot(rpn, SITES[hotR], {see:rEnts, key:"rot"+hotR}) || GEO.rotator;
@@ -6798,7 +6809,7 @@ function ctBrain(){
       // 2-1-2 = двое на A, один мид, двое на B: ротатор — вторым на "горячий"
       // сайт, роумер — вторым на другой (раньше роумер бродил своим маршрутом
       // и часто уходил на тот же A, а на B оставался один опорник)
-      var hot = siteHeat.A >= siteHeat.B ? "A" : "B", ko2 = hot === "A" ? "B" : "A", apR = anchorPosOf(ko2);
+      var hot = MEMORY.siteHeat.A >= MEMORY.siteHeat.B ? "A" : "B", ko2 = hot === "A" ? "B" : "A", apR = anchorPosOf(ko2);
       if(!proRolePost(b, "roam", PRO_ROLE.roam212, GEO.B.anchor, GEO.B.tEntry, "anchor2B"))
       groupPost([b], GEO[ko2].anchor, GEO[ko2].tEntry, "anchor2"+ko2, {rMin:70, rMax:230, minGap:60, see:[GEO[ko2].tEntry], hideFrom:[GEO[ko2].tStage],
         cross: apR ? {from:apR, pt:GEO[ko2].tEntry} : null});
@@ -6840,17 +6851,16 @@ var NADE = {
 var NADE_THROW_RANGE = 820;
 var NADE_HEAR_R = 550; // раздел 11.1: с какого расстояния слышно чеку/бросок гранаты противника
 var nadesInAir = [];   // {type, x,y, vx,vy, born, thrower, team, trail:[]}
-var nadeLandHistory = {A:[], B:[]}; // раздел 11.1: где команда обычно кидает молотов/HE по сайту, по матчу
 function recordNadeLand(n){
   if(n.type !== "molly" && n.type !== "he") return;
   ["A","B"].forEach(function(k){
     if(Math.hypot(n.x-SITES[k].x, n.y-SITES[k].y) < 750){
-      nadeLandHistory[k].push({x:n.x, y:n.y, team:n.team});
-      if(nadeLandHistory[k].length > 14) nadeLandHistory[k].shift();
+      MEMORY.nadeLandHistory[k].push({x:n.x, y:n.y, team:n.team});
+      if(MEMORY.nadeLandHistory[k].length > 14) MEMORY.nadeLandHistory[k].shift();
     }
   });
 }
-function enemyNadeSpots(team, site){ return nadeLandHistory[site].filter(function(h){ return h.team !== team; }); }
+function enemyNadeSpots(team, site){ return MEMORY.nadeLandHistory[site].filter(function(h){ return h.team !== team; }); }
 var smokes = [];       // {x,y,born,until}
 var fires = [];        // {x,y,born,until,team,thrower}
 var nadeFx = [];       // визуальные вспышки/взрывы {type,x,y,born}
@@ -7429,7 +7439,7 @@ function nadeReact(){
       if(!an || antiEco("CT")) return;
       // (гранаты CT впустую) раньше кидал вслепую в ~35% раундов. Теперь — только
       // если во входе/на подходе к нему есть инфа (видели/слышали за 4с)
-      var rushMem = BAL.roundMem && rmemRecent(RMEM.rush, 2).some(function(e){ return e.site === k; });
+      var rushMem = BAL.roundMem && rmemRecent(MEMORY.RMEM.rush, 2).some(function(e){ return e.site === k; });
       if(!rushMem){ var eI = intelEstimate("CT", ent.x, ent.y, 700, 4*TICK_HZ); if(eI.seen + eI.heard === 0) return; }
       var tp = an.nades.molly > 0 ? "molly" : "he";
       if(assignNade(an, tp, ent, "ранняя граната на задержку "+k, {now:true})){ nadeFlags[key] = true; voiceLog("CT", "early"+k, an.id, (tp === "molly" ? "молотов" : "HE")+" во вход "+k+" — задержу, если идут"); }
@@ -7487,7 +7497,7 @@ function nadeBrains(){
   // (10) AWP CT в прошлых раундах стрелял с одной точки — смок на его линию,
   // когда кто-то из T проходит рядом (один раз за раунд, запас смоков на выход не трогаем)
   if(BAL.roundMem && tt.phase === "setup" && !nadeFlags.antiAwp && tick - roundStartTick > 6*TICK_HZ && BAL.tUtil){
-    var aw = rmemRecent(RMEM.awp, 3);
+    var aw = rmemRecent(MEMORY.RMEM.awp, 3);
     if(aw.length){
       var A0 = aw[aw.length-1];
       var smA = ts.filter(function(b){ return b.tRole !== "lurker" && b.nades.smoke > 0 && !b.nadeTask && Math.hypot(b.x-A0.x, b.y-A0.y) < 1250 && Math.hypot(b.x-A0.x, b.y-A0.y) > 350; })
@@ -7702,7 +7712,7 @@ function updateRoamer(bot){
   var snd = null, sndKey = null;
   if(bot.heardSound && tick - bot.heardSound.tick < 4){ snd = bot.heardSound; sndKey = "own"+snd.tick; }
   else if(typeof teamIntel !== "undefined"){
-    var TIsig = teamIntel[bot.team].sig;
+    var TIsig = picEvents(bot.team);
     for(var si2 = TIsig.length-1; si2 >= 0; si2--){
       var sgz = TIsig[si2];
       if(tick - sgz.tick > 3*TICK_HZ) break;
@@ -9591,11 +9601,11 @@ function freshMatch(n, keepProfile){
   tick = 0; simTime = 0; roundStartTick = 0;
   if(!keepProfile) OPP = null;
   var clr = function(o){ for(var k in o) delete o[k]; };
-  [spotCache, OUTWARD_CACHE, _ED, EWL, APPEAR, HOLD_CANDS, nadeFlags, comboCd, siteHeatPending].forEach(function(o){ if(o) clr(o); });
-  nadeLandHistory = {A:[], B:[]};
+  [spotCache, OUTWARD_CACHE, _ED, EWL, APPEAR, HOLD_CANDS, nadeFlags, comboCd, MEMORY.siteHeatPending].forEach(function(o){ if(o) clr(o); });
+  MEMORY.nadeLandHistory = {A:[], B:[]};
   commQueue = []; tracers.length = 0; soundPings.length = 0; nadesInAir.length = 0; smokes.length = 0; fires.length = 0; nadeFx.length = 0;
   groundWeapons.length = 0; events.length = 0; killfeed.length = 0;
-  LAST_CLEAR = {CT:{}, T:{}}; TDEATHS = {m:-1, list:[]};
+  LAST_CLEAR = {CT:{}, T:{}}; MEMORY.TDEATHS = {m:-1, list:[]};
   if(typeof beliefReset === "function") beliefReset();
   clutchInfo = null;
   nadeReactCd = {CT:0, T:0}; awpSmokeCd = {CT:0, T:0};
@@ -9611,7 +9621,7 @@ function freshMatch(n, keepProfile){
 }
 function newMatch(){
   matchNum++;
-  siteHeat = {A:1, B:1}; tSiteHist = []; resetMatchMemory(); RMEM = {awp:[], aggro:[], rush:[], midDeath:[]}; HALF_ADJ = {tac:{}, ctSite:null}; timeoutsReset();
+  MEMORY.siteHeat = {A:1, B:1}; MEMORY.tSiteHist = []; resetMatchMemory(); MEMORY.RMEM = {awp:[], aggro:[], rush:[], midDeath:[]}; HALF_ADJ = {tac:{}, ctSite:null}; timeoutsReset();
   score.CT = 0; score.T = 0;
   roundNum = 0;
   bots.forEach(function(b){ b.kills = 0; b.deaths = 0; });
@@ -9649,9 +9659,9 @@ function checkRoundEnd(){
   endRound(ctAlive ? "CT" : (tAlive ? "T" : null), "elim");
 }
 function endRound(winner, reason){
-  for(var shk in siteHeatPending){ siteHeat[shk] = (siteHeat[shk]||0) + 1; } siteHeatPending = {};
+  for(var shk in MEMORY.siteHeatPending){ MEMORY.siteHeat[shk] = (MEMORY.siteHeat[shk]||0) + 1; } MEMORY.siteHeatPending = {};
   if(winner){ score[winner]++; }
-  if(BAL.roundMem && teamTac.T && teamTac.T.tac && teamTac.T.tac.style === "rush"){ RMEM.rush.push({site:teamTac.T.site, round:roundNum}); if(RMEM.rush.length > 6) RMEM.rush.shift(); }
+  if(BAL.roundMem && teamTac.T && teamTac.T.tac && teamTac.T.tac.style === "rush"){ MEMORY.RMEM.rush.push({site:teamTac.T.site, round:roundNum}); if(MEMORY.RMEM.rush.length > 6) MEMORY.RMEM.rush.shift(); }
   rememberRound(winner);
   timeoutCheck(winner);
   showRoundCard(winner, reason);
@@ -11828,7 +11838,7 @@ function draw(){
     ["CT","T"].forEach(function(team){
       var col = team === "CT" ? "90,155,217" : "217,162,74";
       var lastBy = {};
-      teamIntel[team].sig.forEach(function(sg){ if(tick - sg.tick < 4*TICK_HZ) lastBy[sg.type+sg.id] = sg; });
+      picEvents(team).forEach(function(sg){ if(tick - sg.tick < 4*TICK_HZ) lastBy[sg.type+sg.id] = sg; });
       Object.keys(lastBy).forEach(function(k){
         var sg = lastBy[k], a = Math.max(0, 1 - (tick - sg.tick)/(4*TICK_HZ)), r = 15/view.scale;
         ctx.lineWidth = 1.6/view.scale;

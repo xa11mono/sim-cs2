@@ -13,8 +13,10 @@ for f in ('metrics.py','extra.py','mech.py','smooth.py'):
 args=[a for a in sys.argv[1:] if not a.startswith('--')]
 label=args[0] if args else time.strftime('run_%H%M')
 matches=[3,7,11,13,17,19,23,29]
+SIMFILE='sim.html'   # --sim=путь: замерить другую сборку (например, старую версию)
 for a in sys.argv[1:]:
     if a.startswith('--matches'): matches=[int(x) for x in a.split('=')[1].split(',')]
+    if a.startswith('--sim='): SIMFILE=os.path.abspath(a.split('=',1)[1])
 TICKS=200000
 OUT=os.path.join(HERE,'runs',label); os.makedirs(OUT,exist_ok=True)
 if '--no-build' not in sys.argv:
@@ -26,7 +28,7 @@ if '--no-play' not in sys.argv:
         for m in matches[i:i+2]:
             src=tpl.replace('__M__',str(m)).replace('__T__',str(TICKS))
             fo=open(os.path.join(OUT,f'rec_{m}.json'),'w')
-            ps.append((subprocess.Popen(['timeout','2400','node','src/q.js','sim.html',src],cwd=SIM,stdout=fo),fo))
+            ps.append((subprocess.Popen(['timeout','2400','node','src/q.js',SIMFILE,src],cwd=SIM,stdout=fo),fo))
         for p,fo in ps: p.wait(); fo.close()
 files=[os.path.join(OUT,f'rec_{m}.json') for m in matches]
 # --- загрузка ботов (с ножом) ---

@@ -50,7 +50,8 @@ def health(path):
         'прямых бросков (throwNade)': calls('throwNade'),
         'хранилищ знания о врагах (команда)': sum(1 for v in ('belief', 'teamIntel', 'LKP', 'CLEARZ') if re.search(r'^var ' + v + r'\b', s, re.M)),
         'коллов «в уши» мимо канала': len(re.findall(r'(?:kind|src)\s*:\s*"call"', s)),
-        'читателей журнала канала напрямую': len(re.findall(r'teamIntel(?:\[[^\]]+\]|\.(?:CT|T))\.sig\b', s)) - 1,
+        # без записи в канал (.push) и без самой «ленты событий» картины (picEvents)
+        'читателей журнала канала напрямую': len(re.findall(r'teamIntel(?:\[[^\]]+\]|\.(?:CT|T))\.sig\b(?!\.push\()', re.sub(r'function picEvents\(.*', '', s))),
         '_список: старый вариант': sorted(old),
         '_список: не используются': sorted(unused),
     }
