@@ -7,4 +7,4 @@
 - `tools/measure/` — автозамер 8 матчей и сравнение с про; `results/` — итоги прогонов.
 - `tools/` — разбор демок; `tools/diag/` — разовые диагностические скрипты.
 - `data/` — выгрузки 10 демок Ancient и обработанные данные про.
-- `CLAUDE.md` — правила работы; `docs/ARCHITECTURE.md` — устройство; `docs/DECISIONS.md` — журнал.
+- `CLAUDE.md` — правила работы; `docs/ARCHITECTURE.md` — устройство; `docs/DECISIONS.md` — журнал; `docs/PRINCIPLES.md` — список того, как должны играть боты (с отметками «сделано»).
