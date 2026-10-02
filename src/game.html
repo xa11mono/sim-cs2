@@ -6440,18 +6440,23 @@ function ctBrain(){
     }
   }
   var planted = bomb.state === "planted";
+  // сколько секунд нужно лучшему CT, чтобы обезвредить бомбу: кто уже дефузит —
+  // остаток его дефуза; остальные — реальный путь до бомбы / скорость + дефуз
+  // (с китом или без). Одна оценка и для решения «сейв», и для «сейв → ретейк».
+  function ctDefuseNeedSecs(){
+    var need = Infinity;
+    cts.forEach(function(b){
+      var t = b.defusing ? (b.defuseUntil - tick)/TICK_HZ : pathLenTo(b, bomb.x, bomb.y)/SPEED + (b.kit ? 5 : 10) + 1.0;
+      if(t < need) need = t;
+    });
+    return need;
+  }
   // сейв: ретейк безнадёжен (сильно меньше людей или не успеть дойти+дефузнуть) —
   // CT не идут умирать, а сохраняют оружие на следующий раунд
   if(planted && !ct.saving && !ct._noResave){
     var tsAlive = bots.filter(function(b){ return b.team==="T" && b.alive; }).length;
     var secs = bombTimeLeftTicks()/TICK_HZ;
-    // честный расчёт (план §8): для каждого CT — длина реального пути до бомбы
-    // / скорость + время дефуза ЕГО (с китом или без); берём лучший вариант
-    var needSecs = Infinity;
-    cts.forEach(function(b){
-      var t = pathLenTo(b, bomb.x, bomb.y)/SPEED + (b.kit ? 5 : 10) + 1.0;
-      if(t < needSecs) needSecs = t;
-    });
+    var needSecs = ctDefuseNeedSecs();
     // сейвить имеет смысл только то, что стоит денег: с пистолетами и без
     // брони терять нечего — лучше попробовать ретейк
     var equip = cts.reduce(function(a,b){ return a + (b.primary ? WEAPONS[b.primary].price : 0) + (b.armor ? 650 : 0); }, 0) / Math.max(1, cts.length);
@@ -6469,10 +6474,10 @@ function ctBrain(){
   if(BAL.saveRetake && ct.saving && cts.length && tick % 16 === 0){
     var tsS = aliveCount("T");
     if(planted){
-      var secsS = bombTimeLeftTicks()/TICK_HZ, needS = Infinity;
-      cts.forEach(function(b){ var t = pathLenTo(b, bomb.x, bomb.y)/SPEED + (b.kit ? 5 : 10) + 1.0; if(t < needS) needS = t; });
+      var secsS = bombTimeLeftTicks()/TICK_HZ, needS = ctDefuseNeedSecs();
       var evenS = cts.length >= tsS || (cts.length === tsS - 1 && needS + 7 < secsS);
-      if(evenS && needS + 2 < secsS && tsS > 0){
+      // врагов не осталось — сейвить не от кого: идём дефузить, если успеваем
+      if(evenS && needS + (tsS ? 2 : 0) < secsS){
         ct.saving = false; ct._noResave = true; cts.forEach(function(b){ b._saveSpot = null; });
         logEvent("CT: сейв → ретейк — теперь "+cts.length+"v"+tsS+", успеваем ("+Math.round(secsS)+"с)");
         voiceLog("CT", "sv2rt", cts[0].id, cts.length+" на "+tsS+" — успеваем, идём ретейкать!");
