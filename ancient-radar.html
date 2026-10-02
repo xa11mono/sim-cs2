@@ -1507,7 +1507,6 @@ var BAL = {
   proW: 1.5,          // вес про-плотности при выборе точки (pickSpots)
   proFloor: 0.08,
   ppSpread: true,
-  proLook: true,      // v148: без инфы — туда, куда смотрят про с этой точки (демки)
   claimStrong: true,
   enemyward: true,
   smokeSpam: true,    // v150: прострел смоков по тому, что бот знает (частоты — по демкам)
@@ -1968,9 +1967,9 @@ function proSnap(b, pt, look, tag){
 // поручила команда, или свежая угроза важнее.
 function proDirs(b, moving){
   var P = !moving && b.atPost && b.post && b.post.pro;
-  if(P && P.m && P.m.length) return P.m.map(function(m){ return {a:m[0], w:LOOK.proSpot*m[1]}; });
+  if(P && P.m && P.m.length) return P.m.map(function(m){ return {a:m[0], w:m[1]}; });
   var PL = proLookAt(b.team, b.x, b.y); if(!PL) return [];
-  return [{a:Math.atan2(PL.dy, PL.dx), w:LOOK.proLook*PL.R}];
+  return [{a:Math.atan2(PL.dy, PL.dx), w:PL.R}];
 }
 // (v162) отдельно стоящие ящики/колонны — небольшие замкнутые контуры стен
 var _WB = null, _WBn = -1;
@@ -5015,7 +5014,7 @@ var LOOK = {
   distMove: 400,     // …на ходу (ближние углы важнее)
   closeR: 280, closeK: 2.0,      // совсем рядом — не стоять к нему спиной
   freshK: 2.5,       // свежая инфа (видели/слышали ≤3с рядом с точкой)
-  postK: 1.5,        // направление поста по сетапу — вес роли, не приказ
+  postK: 1.2,        // (v176) направление поста — подсказка между равными угрозами, не причина
   headK: 1.3,        // на ходу: по направлению движения
   behindMove: 0.35,  // на ходу: за спиной (>110°)
   behindMoveCov: 0.15, // …и спину рядом прикрывает тиммейт
@@ -5027,8 +5026,10 @@ var LOOK = {
   stick: 1.35,       // бонус текущему направлению (инерция)
   minDwell: 48,      // тиков (~0.75с) минимум на одном направлении без свежей инфы
   switchK: 2.0,      // раньше minDwell переключаемся, только если новое в 2 раза лучше
-  timingW: 0,        // вес "сюда враг может успеть раньше всего" (когда инфы нет)
-  timingSec: 12,     // за сколько секунд до возможного прихода врага начинаем туда смотреть
+  reachW: 0.08,      // (v176) вес "враг мог сюда дойти по времени" (REACH картины команды)
+  reachFade: 12,     // сек: угол, открытый давно и без инфы, гаснет — "если бы шёл, уже вышел бы"
+  reachFloor: 0.15,  // …но не до нуля: враг мог и ждать
+  retakeW: 0.6,      // (v176) сбор на ретейк: выходы с сайта, где бомба, к собирающемуся
   entryExp: 0.9,     // открытость прохода в свою зону (он всегда простреливает позицию)
   uncheckW: 0.05,    // вес непроверенного угла, куда враг мог успеть (когда реальной инфы нет)
   reachSlack: 4,     // сек: запас к таймингу — "мог прибежать чуть раньше расчёта"
@@ -5037,10 +5038,9 @@ var LOOK = {
   contactW: 1.2,     // свежий звук/вижу-потерял рядом (≤1.5с, ≤700px) — даже в своей же зоне
   rearMargin: 150,   // px пути: проход дальше от врага, чем я, на это — мой тыл
   rearInfo: 0.15,    // …но если там по инфе вероятен враг (люркер, фланг) — смотрим
-  proLook: 0.035,    // вес "куда смотрят про с этой точки" (× согласованность): ниже любой реальной инфы
-  proSpot: 0.06,     // вес направления про-точки (× доля этого направления у про), когда бот стоит на ней
+  proHint: 0.2,      // (v176) "как у про" — только подсказка: угроза по направлению про × (1 + 0.2 × доля)
   claimMin: 0.08,    // делить направления в команде, только если угроза заметная
-  postBase: 0.004,   // вес угла поста, когда угроз нет совсем
+  postBase: 0.004,   // угол поста — только когда угроз нет совсем (запасной вариант, не соперник угрозам)
   minScore: 0.0005    // ниже — "ничего не угрожает": смотрим по ходу / на пост
 };
 // "не проверено": зону давно (или никогда) не видел никто из своих, и враг по
@@ -5052,6 +5052,16 @@ function enemySpawnDist(team){
   if(_ED[team] && _ED[team].n === BZ.ids.length) return _ED[team].D;
   var sp = team === "CT" ? T_SPAWN : CT_SPAWN, z0 = bzOf(sp.x, sp.y);
   var D = bzDist(z0 >= 0 ? [z0] : []); _ED[team] = {n:BZ.ids.length, D:D}; return D;
+}
+// (v176) "враг мог сюда дойти": 0 — не мог (по REACH ещё дальше запаса); перед
+// возможным приходом растёт, в момент прихода — 1; дальше гаснет до reachFloor:
+// путь открыт давно, а никто так и не вышел. Зона и её соседи (кроме зоны бота).
+function reachW(team, j, zb){
+  var R = REACH[team]; if(!R) return 0;
+  var rmin = R[j]; BZ.nbr[j].forEach(function(nn){ if(nn !== zb && R[nn] < rmin) rmin = R[nn]; });
+  if(!isFinite(rmin) || rmin - tick > LOOK.reachSlack*TICK_HZ) return 0;
+  if(rmin > tick) return Math.exp(-(rmin - tick)/(LOOK.reachSlack*TICK_HZ));
+  return Math.max(LOOK.reachFloor, Math.exp(-(tick - rmin)/(LOOK.reachFade*TICK_HZ)));
 }
 function uncheckedW(team, j){
   var R = REACH[team];
@@ -5172,12 +5182,10 @@ function lookCands(b, W){
       if(PW[j+","+nn]) v *= LOOK.watchedNbr;          // вход видит свой — враг выйдет на него первым
       th += v; if(v > nVal){ nVal = v; nBest = nn; } });
     if(habZ[j] && reachPossible(team, j)) th += LOOK.habitW;
-    if(moving) th += LOOK.uncheckW * uncheckedW(team, j);   // стоя — держит главный угол, непроверенные углы чекает на ходу
-    // тайминг: инфы ещё нет — смотрим туда, где враг МОЖЕТ появиться раньше всего.
-    // Зона, куда враг не может попасть незаметно (тупик за спиной своего), даёт 0
-    var R = REACH[team];
-    if(R){ var rmin = R[j]; BZ.nbr[j].forEach(function(nn){ if(nn !== zb && R[nn] < rmin) rmin = R[nn]; });
-      if(isFinite(rmin)) th += LOOK.timingW * Math.exp(-Math.max(0, rmin - tick)/(LOOK.timingSec*TICK_HZ)); }
+    // (v176) реальная угроза: враг мог дойти (гаснет, если путь открыт давно) и
+    // давно не проверяли — только если дойти мог. Не мог — 0, кроме инфы (belief выше)
+    var rw = reachW(team, j, zb);
+    th += LOOK.reachW * rw + (rw > 0 ? LOOK.uncheckW * uncheckedW(team, j) : 0);
     if(th <= 0) return;
     // 2) точка взгляда: видимая точка зоны, ближайшая к проходу, откуда идёт угроза
     var ref = (nBest >= 0 && nVal > beliefZoneKnown(team, j)) ? (BZ.portal && BZ.portal[j][nBest]) || BZ.cent[nBest] : null;
@@ -5224,7 +5232,8 @@ function lookCands(b, W){
     BZ.nbr[nn].forEach(function(n2){ if(n2 === zb) return; if(!reachPossible(team, n2)) return;
       var v = LOOK.nbrW * beliefZoneKnown(team, n2); if(PW[nn+","+n2]) v *= LOOK.watchedNbr; th += v; });
     if(habZ[nn]) th += LOOK.habitW;
-    if(moving) th += LOOK.uncheckW * uncheckedW(team, nn);
+    var rwn = reachW(team, nn, zb);
+    th += LOOK.reachW * rwn + (rwn > 0 ? LOOK.uncheckW * uncheckedW(team, nn) : 0);
     if(th <= 0) return;
     var c = p;
     // (v151) не середина прохода, а место, где враг из этой зоны реально появится
@@ -5259,17 +5268,27 @@ function lookCands(b, W){
     if(!pt) return;
     out.push({j:q.id ? "snd:"+q.id : "snd"+Math.round(q.x/80)+","+Math.round(q.y/80), pt:pt, sc:LOOK.contactW * (d < 300 ? 2 : 1) / (1 + d/700) * (1 - q.age/192), fresh:true, a:za, snd:true});
   });
-  // (v148) без инфы — туда, куда смотрят про с этой точки (по 12 демкам).
-  // Вес маленький: реальная угроза его перебивает, а "почти нули" — нет
-  if(BAL.proLook) proDirs(b, moving).forEach(function(pd, ip){
-    var ae = pd.a, cl = rayClipWalls(b.x, b.y, b.x+Math.cos(ae)*420, b.y+Math.sin(ae)*420), dl = Math.hypot(cl.x-b.x, cl.y-b.y);
-    if(dl <= 90) return;
-    var scp = pd.w;
-    if(moving){ var hdp = _angOff(ae, b.heading); if(hdp < 0.9) scp *= LOOK.headK; else if(BAL.cornerAim) scp = 0; else if(hdp > 1.9) scp *= rearCov ? LOOK.behindMoveCov : LOOK.behindMove; }
-    if(scp > 0) out.push({j:"pl"+ip, pt:{x:cl.x, y:cl.y}, sc:scp, fresh:false, a:ae, pro:true}); });
-  // угол поста по сетапу — тоже кандидат (слабый), чтобы и он шёл через делёж:
-  // двое на соседних постах не смотрят в одну точку, когда угроз нет
-  if(atHold){ var pl = cornerLook(b, b.post.look) || b.post.look;
+  // (v176) сбор на ретейк: угроза — T на сайте с бомбой; смотрим туда, где T с
+  // сайта появится на пути к нам (выход с сайта), а не на точку бомбы за стеной.
+  // Тот, кто смотрит в спину на люрк (backWatch), — по обычным угрозам
+  var RT = bomb && bomb.state === "planted" && bomb.retake;
+  if(team === "CT" && RT && (RT.phase === "gather" || RT.phase === "util") && b.post && /^gather/.test(b.post.tag||"") && RT.backWatch !== b.id){
+    var rz = {}, zb0 = bzOf(bomb.x, bomb.y); if(zb0 >= 0) rz[zb0] = 1;
+    BZ.cent.forEach(function(c, i){ if(c && Math.hypot(c.x-bomb.x, c.y-bomb.y) <= 380) rz[i] = 1; });
+    Object.keys(rz).forEach(function(is){ var ap = appearPoint(b, +is); if(!ap) return;
+      var d = Math.hypot(ap.x-b.x, ap.y-b.y); if(d < 50 || d > LOOK.maxDist) return;
+      var c = ap; if(d < 200){ var ext = {x:b.x+(c.x-b.x)/d*200, y:b.y+(c.y-b.y)/d*200}; if(hasLOS(b.x, b.y, ext.x, ext.y)) c = ext; }
+      out.push({j:"rt"+is, pt:c, sc:LOOK.retakeW/(1 + d/LOOK.distHold), fresh:false, a:Math.atan2(c.y-b.y, c.x-b.x), rt:true}); });
+  }
+  // (v176) "как у про" — не кандидат, а подсказка: угроза по направлению, куда
+  // смотрят про с этой точки, чуть важнее равной ей угрозы в другую сторону
+  var PD = proDirs(b, moving);
+  if(PD.length) out.forEach(function(c){ if(c.snd) return; var ag = 0;
+    PD.forEach(function(pd){ if(_angOff(c.a, pd.a) < 0.5) ag = Math.max(ag, pd.w); });
+    if(ag > 0){ c.sc *= 1 + LOOK.proHint*ag; c.pro = true; } });
+  // угол поста — только когда реальной угрозы нет совсем (запасной вариант):
+  // не соперник угрозам, а "куда смотреть, если смотреть некуда"
+  if(atHold && !out.some(function(c){ return c.sc >= LOOK.minScore; })){ var pl = cornerLook(b, b.post.look) || b.post.look;
     // (v149) точку взгляда поста отсюда не видно (стоит на краю поста, за углом) —
     // cornerLook вёл "по пути к ней", часто назад; берём видимый проход к врагу
     if(BAL.enemyward && !hasLOS(b.x, b.y, b.post.look.x, b.post.look.y)){ var ew0 = enemywardLook(team, b); if(ew0) pl = ew0; }
@@ -5277,7 +5296,7 @@ function lookCands(b, W){
     // берём видимый проход, откуда враг придёт раньше всего
     if(BAL.enemyward){ var zpl = bzOf(pl.x, pl.y), zbb = bzOf(b.x, b.y);
       if(zpl >= 0 && zbb >= 0 && zpl !== zbb && isRearZone(team, zbb, zpl) || Math.hypot(pl.x-b.x, pl.y-b.y) < 60){ var ew = enemywardLook(team, b); if(ew) pl = cornerLook(b, ew) || ew; } }
-    out.push({j:"post"+b.id, pt:pl, sc:LOOK.postBase, fresh:false, a:Math.atan2(pl.y-b.y, pl.x-b.x)}); }
+    out.push({j:"post"+b.id, pt:pl, sc:LOOK.postBase, fresh:false, a:Math.atan2(pl.y-b.y, pl.x-b.x), post:true}); }
   // все кандидаты уже видимые (точка выбирается только с линией видимости)
   return out;
 }
@@ -5314,7 +5333,7 @@ function lookPlan(team){
     }
     if((p ? p.j : null) !== b._lkZ){ b._lkSince = tick; b._lkZ = p ? p.j : null; }
     b._lkPt = p ? p.pt : null;
-    b._lkTop = b._lkC.slice().sort(function(x, y){ return y.sc - x.sc; }).slice(0, 3).map(function(c){ return [c.pro ? "как у про" : c.snd ? "звук/контакт" : typeof c.j === "string" ? "свой угол" : c.j >= 1000 ? "выход из " + (ZONE_NAMES[BZ.ids[c.j-1000]] || BZ.ids[c.j-1000]) : (ZONE_NAMES[BZ.ids[c.j]] || BZ.ids[c.j]), c.sc]; });
+    b._lkTop = b._lkC.slice().sort(function(x, y){ return y.sc - x.sc; }).slice(0, 3).map(function(c){ var nm = c.snd ? "звук/контакт" : c.post ? "свой угол (угроз нет)" : c.rt ? "выход с сайта (ретейк)" : c.j >= 1000 ? "выход из " + (ZONE_NAMES[BZ.ids[c.j-1000]] || BZ.ids[c.j-1000]) : (ZONE_NAMES[BZ.ids[c.j]] || BZ.ids[c.j]); return [c.pro ? nm + " (как у про)" : nm, c.sc]; });
   });
 }
 // итоговая точка взгляда бота (кроме "вижу врага" — это выше)
