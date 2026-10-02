@@ -1557,7 +1557,7 @@ var BAL = {
   ctClutch: true,   // последний CT до планта: выбирает сайт (по инфе или угадывает) и играет его, не мечется
   midCover: true,
   midSafe: true,    // мидер CT: чаще глубокие позиции; двое+ T на миде — отходит, а не дуэлит один
-  heClearsSmoke: true, // HE в дыму на ~1.3с проделывает дыру; ждущий у смока с HE кидает её в дым перед проходом
+  heClearsSmoke: true, // HE в дыму на ~1.3с проделывает дыру (кидают её в смок — smokeHeTick)
   clearOrder: true, // энтри на выходе чистит углы по очереди (ближний → следующий), каждый — короткий чек
   defuseSmoke: true,// ретейк: смок на бомбу, дефуз под ним
   utilDump: true,   // мало HP и враг рядом — выкинуть оставшиеся гранаты во врага, пока жив
@@ -1608,7 +1608,6 @@ var BAL = {
   coverPlant: true, // пока ставят — двое прикрывают подходы к ставящему
   defuseReach: true,// услышали дефуз, но не успеть — сейв вместо бега на троих
   rotRead: true,    // T слышат ротацию CT на свой сайт — (не всегда) переходят на другой, но не считают его пустым
-  retakeAwpSmoke: true, // ретейк: смок на линию известного AWP T
   ppSplit: true,    // пост-плант 2v2: не стоять вдвоём в одной точке     // стоящий в краю дыма видит наружу, а его снаружи — нет (ван-вей)   // убили мидера — ротатор/роумер берёт мид с безопасной позиции// CT в начале раунда: молотов/HE во вход T на задержку, флешка себе под ранний пик     // пост-плант: CT не идут — T отходят дальше от бомбы и играют на время (слушают дефуз)// бомбу несёт не энтри/лёркер/AWP; носитель не идёт первым      // T сейвят, когда раунд безнадёжен (1v3+ мало времени, 2v4), вместо смертника на плант // после колла "чисто" не срываются на бег, если враг недавно был рядом с путём // взгляд не упирается в стену в метре: цель за стеной — смотрит в ближайший открытый проход к ней // шифт там, где враг МОЖЕТ быть (по таймингу и карте вероятностей), бег — где точно пусто или надо спешить // CT не бегут сбивать плант в меньшинстве (кроме конца раунда)
   pairs: true,     // пробы/пики парой: второй в 1–2с за первым, держит тот же угол и разменивает
   probeUtil: true, // проба выходит под флешку/смок тиммейта, если есть
@@ -2347,13 +2346,13 @@ var T_TACTICS = [
 //   ctHabit            — любимые углы конкретных CT (где стояли / где убили)
 //   ctSetupHist / ctSetupMem — какие расстановки CT играли и что сработало
 //   aggrObs            — кто как часто сам лезет в дуэль
-//   RMEM               — откуда стрелял AWP CT, агрессия CT, раши, ранние смерти мидера
+//   RMEM               — агрессия CT, раши, ранние смерти мидера
 //   TDEATHS            — где умирали T
 //   nadeLandHistory    — куда команда кидает молотов/HE по сайту
 // Между матчами её половинная копия хранится в браузере (OPP, ниже).
 var MEMORY = {tSiteHist:[], siteHeatPending:{}, siteHeat:{A:1, B:1},
   tacMem:{}, ctRead:[], roundHist:[], ctHabit:{}, tacHist:[], ctSetupHist:[], ctSetupMem:{},
-  aggrObs:{}, TDEATHS:{m:-1, list:[]}, RMEM:{awp:[], aggro:[], rush:[], midDeath:[]}, nadeLandHistory:{A:[], B:[]}};
+  aggrObs:{}, TDEATHS:{m:-1, list:[]}, RMEM:{aggro:[], rush:[], midDeath:[]}, nadeLandHistory:{A:[], B:[]}};
 var teamTac = { T: null, CT: {call:null} };
 var lastTacticId = null;
 // ======================= РАЗДЕЛ 13 (п.1–5): АДАПТАЦИЯ ВНУТРИ МАТЧА =======================
@@ -4008,18 +4007,6 @@ function retakeUtil(R, alive){
   var gs = GEO[bomb.site];
   var smr = alive.filter(function(b){ return b !== fl && b.nades && b.nades.smoke > 0; })[0];
   if(smr && !nadeFlags.retakeSmoke && retakeCutUseful()){ nadeFlags.retakeSmoke = true; assignNade(smr, "smoke", gs.tEntry, "отрезать вход T", {bkey:"CT.retake.smoke."+bomb.site, now:true}); }
-  if(BAL.retakeAwpSmoke && !nadeFlags.retakeAwpSmoke){
-    var BLr = beliefLast.CT || {}, awpT = null;
-    for(var eidR in BLr){ var loR = BLr[eidR]; if(loR.src !== "spotted" || tick - loR.tick > 10*TICK_HZ) continue; var eR = bots.filter(function(o){ return o.id === eidR; })[0];
-      if(eR && eR.alive && eR.primary === "AWP" && Math.hypot(loR.x-bp.x, loR.y-bp.y) < 1000){ awpT = loR; break; } }
-    if(awpT){
-      var ap0 = R.approaches[0] || bp;
-      var smA = alive.filter(function(b){ return b !== fl && b.nades && b.nades.smoke > 0 && !b.nadeTask; })[0];
-      var spA = {x: awpT.x + (ap0.x-awpT.x)*0.4, y: awpT.y + (ap0.y-awpT.y)*0.4};
-      if(smA && assignNade(smA, "smoke", spA, "ретейк: смок на AWP", {now:true})){ nadeFlags.retakeAwpSmoke = true;
-        voiceLog("CT", "rtawp", smA.id, "у них AWP "+calloutName(awpT.x, awpT.y)+" — смок на его линию"); }
-    }
-  }
   voiceLog("CT", "rtflash", fl.id, "даю флешку "+(tgt === bp ? "на бомбу" : "на "+calloutName(tgt.x, tgt.y))+" — заходим на хлопок");
   return fl.id+" кидает флешку"+(smr ? ", "+smr.id+" — смок" : "");
 }
@@ -4301,11 +4288,10 @@ function intelDeath(victim, killer){
   if(!victim || roundState !== "live") return;
   if(BAL.roundMem && killer){
     var secR = (tick - roundStartTick)/TICK_HZ;
-    if(killer.team === "CT" && killer.weapon && killer.weapon.key === "AWP") MEMORY.RMEM.awp.push({x:killer.x, y:killer.y, round:roundNum});
     if(killer.team === "CT" && victim.team === "T" && secR < 30 && tSideZone(killer.x, killer.y))
       MEMORY.RMEM.aggro.push({x:killer.x, y:killer.y, round:roundNum, id:killer.id});
     if(victim.team === "CT" && victim.tRole === "mid" && secR < 30) MEMORY.RMEM.midDeath.push({round:roundNum});
-    ["awp","aggro","midDeath"].forEach(function(k){ if(MEMORY.RMEM[k].length > 12) MEMORY.RMEM[k].shift(); });
+    ["aggro","midDeath"].forEach(function(k){ if(MEMORY.RMEM[k].length > 12) MEMORY.RMEM[k].shift(); });
   }
   var saw = killer && hasVision(victim.x, victim.y, killer.x, killer.y);
   intelPush(victim.team, {type:"died", x:victim.x, y:victim.y, id:victim.id, conf:1, kx: saw ? killer.x : null, ky: saw ? killer.y : null});
@@ -5990,8 +5976,7 @@ function ctEarlyPeek(b, ct){
     // флешка себе под ранний пик (если есть и не эко у соперника)
     if(BAL.ctEarlyUtil && b.nades && b.nades.flash > 0 && !antiEco("CT") && hashRand(roundNum*97 + b.id.charCodeAt(2)*5) < 0.6){
       var whyF = "себе под ранний пик "+b.id;
-      throwNade(b, "flash", stg.x, stg.y, true, whyF);
-      b._waitPopUntil = tick + Math.round(1.1*TICK_HZ); b._waitPopKey = "pop:"+whyF;
+      if(assignNade(b, "flash", stg, whyF, {now:true, range:1600})){ b._waitPopUntil = tick + Math.round(1.1*TICK_HZ); b._waitPopKey = "pop:"+whyF; }
     }
   }
   if(b.atPost && b.post && b.post.tag === "earlyPeek"){
@@ -6233,11 +6218,6 @@ function smokeEdgeTick(){
         if(still && (why || tick - W.start > 9*TICK_HZ)){ b._smokePush = {until: tick + 4*TICK_HZ, reason: why || "долго ждать нельзя"}; logEvent(b.id+": пушит в смок — "+b._smokePush.reason); }
         if(W.want) setPost(b, W.want[0], W.want[1], W.want[2], W.want[3]);
         return;
-      }
-      // ждёт у дыма, за ним враг — HE в дым: и урон, и дыра, через которую видно
-      if(BAL.heClearsSmoke && b.nades && b.nades.he > 0 && !b.nadeTask && !W.heDone && tick - W.start > 20){
-        W.heDone = true; assignNade(b, "he", {x:W.S.x, y:W.S.y}, "HE в смок — разогнать", {now:true});
-        voiceLog(b.team, "hesm"+b.id, b.id, "кидаю HE в смок — разгоню и посмотрю");
       }
       b._smokeWaitLock = 0; setPost(b, W.edge, {x:W.S.x, y:W.S.y}, true, "smokeWait"); b._smokeWaitLock = tick;
       return;
@@ -7040,8 +7020,15 @@ function assignNade(b, type, target, why, opts){
   // себе, дамп…) не дублируют уже летящую/назначенную туда же
   if(BAL.nadeDedup && type !== "smoke" && (nadesInAir.some(function(n){ return n.team === b.team && n.type === type && Math.hypot((n.tx||n.x)-target.x, (n.ty||n.y)-target.y) < 120; }) ||
      bots.some(function(o){ return o !== b && o.alive && o.team === b.team && o.nadeTask && o.nadeTask.type === type && Math.hypot(o.nadeTask.x-target.x, o.nadeTask.y-target.y) < 120; }))) return false;
-  b.nadeTask = {type:type, x:target.x, y:target.y, until: tick + 10*64, why:why||"", start:tick, lob:true, range:(opts && opts.range) || NADE_THROW_RANGE, now:!!(opts && opts.now)};
+  b.nadeTask = {type:type, x:target.x, y:target.y, until: tick + ((opts && opts.sec) || 10)*TICK_HZ, why:why||"", start:tick, lob:true, range:(opts && opts.range) || NADE_THROW_RANGE, now:!!(opts && opts.now)};
+  if(opts && opts.from){ b.nadeTask.from = {x:opts.from.x, y:opts.from.y}; b.nadeTask.lineup = true; }
   return true;
+}
+// (Г1) флешка не летит в лицо врагу, с которым уже контакт: по картине команды
+// враг виден прямо сейчас (≤0,5 с) в 400 px от точки хлопка — он смотрит в нашу
+// сторону и стреляет, флешка его не ослепит, а своих — может. Флешка — до пика.
+function flashIntoFight(b, t){
+  return picRecent(b.team, TICK_HZ/2).some(function(q){ return q.src === "spotted" && Math.hypot(q.x-t.x, q.y-t.y) < 400; });
 }
 // задание на гранату выполняется, как только точка видна и в пределах броска
 function updateNadeTasks(){
@@ -7054,7 +7041,9 @@ function updateNadeTasks(){
       return; }
     if(b.planting || b.defusing) return;
     var d = Math.hypot(t.x-b.x, t.y-b.y);
-    if(t.type === "smoke" && smokeCovered(t.x, t.y)){ b.nadeTask = null; return; }
+    if((t.type === "smoke" && smokeCovered(t.x, t.y)) || (t.type === "flash" && flashIntoFight(b, t))){
+      if(t.type === "flash") logEvent(b.id+": флешку «"+t.why+"» не кидает — там уже стреляют");
+      b.nadeTask = null; if(b.post && b.post.tag === "lineup"){ b._lineupLock = 0; clearPost(b); } return; }
     if(t.from){ // свой лайнап: сначала встать ровно в точку броска
       // раньше кидал только ближе 22px к точке, а "дошёл до поста" считается
       // уже с 34px — бот вставал в 23–34px и стоял до конца задания, не кидая
@@ -7083,11 +7072,7 @@ var BUILTIN_OFF_BAKED = {}, BUILTIN_OFF_KEY = "ancient-live-radar-builtin-off-v1
 function builtinAllowed(key){
   if(BUILTIN_OFF[key]) return false;
   if(proCovers(key)) return false;
-  // заменена своим лайнапом — встроенная не летит, если свой в этом раунде назначен
-  // кому-то (или ещё ждёт своего момента); если свой не нашёл бросающего — летит встроенная
-  var rep = allLineups().filter(function(L){ return L.replaces === key; });
-  if(!rep.length) return true;
-  return rep.every(function(L){ return nadeFlags["lu"+L.id] && !nadeFlags["luok"+L.id]; });
+  return !allLineups().some(function(L){ return L.replaces === key; }); // заменена своим лайнапом
 }
 function allLineups(){ var L = LINEUPS_BAKED.concat(USER_LINEUPS); return L.concat(proLineups()); }
 var LU_TRIG = {insta:"инста", setup:"сетап T", exec:"выход T", postplant:"пост-плант", call:"колл CT", retake:"ретейк"};
@@ -7158,9 +7143,7 @@ function lineupTick(){
       nadeFlags[key] = true; return; // так и не нашли, кто бросит — сдаёмся
     }
     nadeFlags[key] = true;
-    nadeFlags["luok"+L.id] = true;
-    cand.nadeTask = {type:L.type, x:L.to.x, y:L.to.y, from:{x:L.from.x, y:L.from.y}, until: tick + (hot ? ((BAL.nadeReach && L.trigger === "timed") ? 12 : 7) : 20)*TICK_HZ, why:"лайнап «"+(L.name||LU_TYPE[L.type])+"»",
-                     start:tick, lob:true, range:4000, now:true, lineup:true};
+    if(!assignNade(cand, L.type, L.to, "лайнап «"+(L.name||LU_TYPE[L.type])+"»", {from:L.from, now:true, range:4000, sec: hot ? ((BAL.nadeReach && L.trigger === "timed") ? 12 : 7) : 20})) return;
     logEvent(cand.id+": идёт на лайнап «"+(L.name||LU_TYPE[L.type])+"»");
   });
 }
@@ -7378,35 +7361,64 @@ function nadeCombos(){
 //    HE туда, если рядом нет своих;
 //  • флешка себе под пик: идёт один на угол, за которым свежая инфа о враге
 //    (≤5с) — кидает флешку через угол и выходит на хлопок.
+// ---- граната по свежему врагу: одна реакция, тип и цель по ситуации ----
+//  • мало HP (≤25) и враг рядом — выкинуть оставшиеся гранаты в него, пока жив;
+//  • раненый (≤28) за укрытием — HE добить;
+//  • двое почти в одной точке — HE в стак (раз в 10 с на команду);
+//  • сам видел врага, он ушёл за укрытие (0,4–2,5 с назад) — молотов/HE выкурить.
+// Не туда, где рядом свои; заказ — через общую дверь.
 var nadeReactCd = {CT:0, T:0};
+function nadeOnEnemy(){
+  var alive = function(id){ return bots.some(function(o){ return o.id === id && o.alive; }); };
+  var mateNear = function(team, p, r, ex){ return bots.some(function(o){ return o !== ex && o.alive && o.team === team && Math.hypot(o.x-p.x, o.y-p.y) < r; }); };
+  var free = function(b){ return b.alive && b.nades && !b.nadeTask && !b.planting && !b.defusing; };
+  var picks = []; // [бот, тип, цель, почему, ключ голоса, фраза, после]
+  ["CT","T"].forEach(function(team){
+    var BL = beliefLast[team] || {}, fresh = [];
+    for(var eid in BL){ var lo = BL[eid]; if(tick - lo.tick <= 3*TICK_HZ && alive(eid)) fresh.push({id:eid, x:lo.x, y:lo.y}); }
+    var mine = bots.filter(function(b){ return b.team === team && free(b); });
+    if(BAL.utilDump) mine.forEach(function(b){
+      if(b.hp > 25 || tick < (b._dumpCd||0)) return;
+      var tp = b.nades.molly > 0 ? "molly" : b.nades.he > 0 ? "he" : b.nades.flash > 0 ? "flash" : null; if(!tp) return;
+      var tg = null, bd = Infinity;
+      fresh.forEach(function(q){ var dd = Math.hypot(q.x-b.x, q.y-b.y); if(dd > 140 && dd < NADE_THROW_RANGE && dd < bd){ bd = dd; tg = q; } });
+      if(!tg || mateNear(team, tg, 150, b)) return;
+      b._dumpCd = tick + 3*TICK_HZ;
+      picks.push([b, tp, tg, "у меня "+b.hp+" — кидаю всё", b._dumpVoice ? null : "dump"+b.id, "у меня "+b.hp+" — выкидываю гранаты", function(){ b._dumpVoice = roundNum; }]);
+    });
+    var HT = BAL.heFinish && teamIntel[team].hurt;
+    if(HT) fresh.forEach(function(q){ var h = HT[q.id];
+      if(!h || h.hp > 28 || tick - h.tick > 8*TICK_HZ || h._heDone || mateNear(team, q, 170)) return;
+      var th = mine.filter(function(b){ var dd = Math.hypot(b.x-q.x, b.y-q.y); return b.nades.he > 0 && !b._sawEnemy && dd > 150 && dd < NADE_THROW_RANGE && !hasLOS(b.x, b.y, q.x, q.y); })[0];
+      if(th) picks.push([th, "he", q, "HE добить "+q.id, "hefin"+q.id, q.id+" на "+h.hp+" за углом — HE", function(){ h._heDone = true; }]);
+    });
+    if(tick >= nadeReactCd[team]) for(var i=0;i<fresh.length;i++) for(var j=i+1;j<fresh.length;j++){
+      if(Math.hypot(fresh[i].x-fresh[j].x, fresh[i].y-fresh[j].y) > 160) continue;
+      var tg = {x:(fresh[i].x+fresh[j].x)/2, y:(fresh[i].y+fresh[j].y)/2};
+      if(mateNear(team, tg, 170)) continue;
+      var th = mine.filter(function(b){ var dd = Math.hypot(b.x-tg.x, b.y-tg.y); return b.nades.he > 0 && !b._sawEnemy && dd > 250 && dd < NADE_THROW_RANGE; })
+        .sort(function(a, c){ return Math.hypot(a.x-tg.x, a.y-tg.y) - Math.hypot(c.x-tg.x, c.y-tg.y); })[0];
+      if(th){ picks.push([th, "he", tg, "HE в стак", "hestack"+tick, "их двое "+calloutName(tg.x, tg.y)+" — кидаю HE", function(){ nadeReactCd[team] = tick + 10*TICK_HZ; }]); i = fresh.length; break; }
+    }
+    mine.forEach(function(b){
+      if(b._sawEnemy || tick < (b._nadeCd||0) || !b.lastIntel) return;
+      var age = tick - b.lastIntel.tick; if(age < 26 || age > 160) return;
+      var tp = b.nades.molly > 0 ? "molly" : (b.nades.he > 0 ? "he" : null); if(!tp) return;
+      var L = b.lastIntel, dd = Math.hypot(L.x-b.x, L.y-b.y);
+      if(dd > NADE_THROW_RANGE || dd < 120 || fires.some(function(f){ return Math.hypot(f.x-L.x, f.y-L.y) < 100; }) || mateNear(team, L, 130)) return;
+      b._nadeCd = tick + 8*TICK_HZ;
+      picks.push([b, tp, {x:L.x, y:L.y}, "по инфе — выкурить", null, null, null]);
+    });
+  });
+  picks.forEach(function(P){
+    if(P[0].nadeTask || !assignNade(P[0], P[1], {x:P[2].x, y:P[2].y}, P[3], {now:true})) return;
+    if(P[6]) P[6]();
+    if(P[4]) voiceLog(P[0].team, P[4], P[0].id, P[5]);
+  });
+}
 function nadeReact(){
   if(tick % 8) return;
-  // (19) мало HP и враг рядом — выкинуть оставшиеся гранаты во врага, пока жив
-  if(BAL.utilDump) bots.forEach(function(b){
-    if(!b.alive || b.hp > 25 || b.nadeTask || b.planting || b.defusing || !b.nades || tick < (b._dumpCd||0)) return;
-    var tp = b.nades.molly > 0 ? "molly" : b.nades.he > 0 ? "he" : b.nades.flash > 0 ? "flash" : null; if(!tp) return;
-    var BLd = beliefLast[b.team] || {}, tg = null, bd = Infinity;
-    for(var eD in BLd){ var lo = BLd[eD]; if(tick - lo.tick > 3*TICK_HZ) continue; if(!bots.some(function(o){ return o.id === eD && o.alive; })) continue;
-      var dd = Math.hypot(lo.x-b.x, lo.y-b.y); if(dd > 140 && dd < NADE_THROW_RANGE && dd < bd){ bd = dd; tg = lo; } }
-    if(!tg) return;
-    if(bots.some(function(o){ return o !== b && o.alive && o.team === b.team && Math.hypot(o.x-tg.x, o.y-tg.y) < 150; })) return;
-    b._dumpCd = tick + 3*TICK_HZ;
-    if(assignNade(b, tp, {x:tg.x, y:tg.y}, "у меня "+b.hp+" — кидаю всё", {now:true}) && !b._dumpVoice){ b._dumpVoice = roundNum; voiceLog(b.team, "dump"+b.id, b.id, "у меня "+b.hp+" — выкидываю гранаты"); }
-  });
-  // (16) HE по раненому за укрытием (HE до 57 урона, по броне вдвое меньше)
-  if(BAL.heFinish) ["CT","T"].forEach(function(team){
-    var HT = teamIntel[team].hurt; if(!HT) return;
-    var BLh = beliefLast[team] || {};
-    for(var eH in HT){ var h = HT[eH]; if(h.hp > 28 || tick - h.tick > 8*TICK_HZ || h._heDone) continue;
-      var lo = BLh[eH]; if(!lo || tick - lo.tick > 3*TICK_HZ) continue;
-      if(!bots.some(function(o){ return o.id === eH && o.alive; })) continue;
-      if(bots.some(function(o){ return o.alive && o.team === team && Math.hypot(o.x-lo.x, o.y-lo.y) < 170; })) continue;
-      var th = bots.filter(function(b){ return b.alive && b.team === team && b.nades && b.nades.he > 0 && !b.nadeTask && !b._sawEnemy &&
-        Math.hypot(b.x-lo.x, b.y-lo.y) > 150 && Math.hypot(b.x-lo.x, b.y-lo.y) < NADE_THROW_RANGE && !hasLOS(b.x, b.y, lo.x, lo.y); })[0];
-      if(th && assignNade(th, "he", {x:lo.x, y:lo.y}, "HE добить "+eH, {now:true})){ h._heDone = true;
-        voiceLog(team, "hefin"+eH, th.id, eH+" на "+h.hp+" за углом — HE"); }
-    }
-  });
+  nadeOnEnemy();
   ["A","B"].forEach(function(k){
     if(nadeFlags["rushMolly"+k] || !(bomb.state !== "planted")) return;
     var g = GEO[k], ent = g.tEntry, srcs = {};
@@ -7445,40 +7457,6 @@ function nadeReact(){
       if(assignNade(an, tp, ent, "ранняя граната на задержку "+k, {now:true})){ nadeFlags[key] = true; voiceLog("CT", "early"+k, an.id, (tp === "molly" ? "молотов" : "HE")+" во вход "+k+" — задержу, если идут"); }
     });
   }
-  ["CT","T"].forEach(function(team){
-    if(tick < nadeReactCd[team]) return;
-    var L = beliefLast[team] || {}, pts = [];
-    for(var eid in L){ var lo = L[eid]; if(tick - lo.tick > 3*TICK_HZ) continue; var e = bots.filter(function(o){ return o.id === eid; })[0]; if(e && e.alive) pts.push(lo); }
-    for(var i=0;i<pts.length;i++) for(var j=i+1;j<pts.length;j++){
-      if(Math.hypot(pts[i].x-pts[j].x, pts[i].y-pts[j].y) > 160) continue;
-      var tg = {x:(pts[i].x+pts[j].x)/2, y:(pts[i].y+pts[j].y)/2};
-      if(bots.some(function(o){ return o.alive && o.team === team && Math.hypot(o.x-tg.x, o.y-tg.y) < 170; })) continue;
-      var th = bots.filter(function(b){ return b.alive && b.team === team && b.nades && b.nades.he > 0 && !b.nadeTask && !b._sawEnemy && !b.planting && !b.defusing &&
-        Math.hypot(b.x-tg.x, b.y-tg.y) > 250 && Math.hypot(b.x-tg.x, b.y-tg.y) < NADE_THROW_RANGE; })
-        .sort(function(a, b2){ return Math.hypot(a.x-tg.x, a.y-tg.y) - Math.hypot(b2.x-tg.x, b2.y-tg.y); })[0];
-      if(th && assignNade(th, "he", tg, "HE в стак", {now:true})){ nadeReactCd[team] = tick + 10*TICK_HZ;
-        voiceLog(team, "hestack"+tick, th.id, "их двое "+calloutName(tg.x, tg.y)+" — кидаю HE"); return; }
-    }
-  });
-  bots.forEach(function(b){
-    if(!b.alive || b._sawEnemy || b.nadeTask || b.planting || b.defusing || !b.nades || b.nades.flash <= 0) return;
-    if(!b.post || b.atPost || b.state !== "patrol" || tick < (b._selfFlashCd||0)) return;
-    if(bomb.state === "carried" && bomb.carrier === b) return;
-    if(bots.some(function(o){ return o !== b && o.alive && o.team === b.team && Math.hypot(o.x-b.x, o.y-b.y) < 220; })) return; // не один — пикнут вместе
-    var dP = Math.hypot(b.post.x-b.x, b.post.y-b.y); if(dP > 260 || dP < 50) return;
-    var L = beliefLast[b.team] || {}, tgt = null;
-    for(var eid in L){ var lo = L[eid]; if(tick - lo.tick > 5*TICK_HZ) continue;
-      var e = bots.filter(function(o){ return o.id === eid; })[0]; if(!e || !e.alive) continue;
-      if(Math.hypot(lo.x-b.post.x, lo.y-b.post.y) > 420 || hasLOS(b.x, b.y, lo.x, lo.y)) continue;
-      tgt = lo; break; }
-    if(!tgt) return;
-    if(nadesInAir.some(function(n){ return n.team === b.team && n.type === "flash" && Math.hypot((n.tx||n.x)-tgt.x, (n.ty||n.y)-tgt.y) < 150; })) return; // туда уже летит флешка
-    b._selfFlashCd = tick + 12*TICK_HZ;
-    var why = "себе под пик "+b.id;
-    throwNade(b, "flash", tgt.x, tgt.y, true, why);
-    b._waitPopUntil = tick + Math.round(1.1*TICK_HZ); b._waitPopKey = "pop:"+why;
-    voiceLog(b.team, "sflash"+b.id, b.id, "флешу себе и выхожу");
-  });
 }
 function nadeBrains(){
   var tt = teamTac.T; if(!tt) return;
@@ -7493,21 +7471,6 @@ function nadeBrains(){
     var ist = ts.filter(function(b){ return b.nades.smoke > 0 && (b.tRole === "awp" || b.tRole === "lurker"); })[0];
     var midChoke = {x:(GEO.tMid.x+GEO.ctMid.x)/2, y:(GEO.tMid.y+GEO.ctMid.y)/2};
     if(ist) assignNade(ist, "smoke", midChoke, "инстасмок мид", {range:1500, now:true, bkey:"T.insta.mid"});
-  }
-  // (10) AWP CT в прошлых раундах стрелял с одной точки — смок на его линию,
-  // когда кто-то из T проходит рядом (один раз за раунд, запас смоков на выход не трогаем)
-  if(BAL.roundMem && tt.phase === "setup" && !nadeFlags.antiAwp && tick - roundStartTick > 6*TICK_HZ && BAL.tUtil){
-    var aw = rmemRecent(MEMORY.RMEM.awp, 3);
-    if(aw.length){
-      var A0 = aw[aw.length-1];
-      var smA = ts.filter(function(b){ return b.tRole !== "lurker" && b.nades.smoke > 0 && !b.nadeTask && Math.hypot(b.x-A0.x, b.y-A0.y) < 1250 && Math.hypot(b.x-A0.x, b.y-A0.y) > 350; })
-        .sort(function(a, c){ return Math.hypot(a.x-A0.x, a.y-A0.y) - Math.hypot(c.x-A0.x, c.y-A0.y); })[0];
-      if(smA && tSmokeReserveOk()){
-        var spAw = {x: A0.x + (smA.x-A0.x)*0.3, y: A0.y + (smA.y-A0.y)*0.3};
-        if(assignNade(smA, "smoke", spAw, "смок на линию AWP", {now:true, range:1300})){ nadeFlags.antiAwp = true;
-          voiceLog("T", "antiawp", smA.id, "их AWP в прошлых раундах бил "+calloutName(A0.x, A0.y)+" — смок на его линию"); }
-      } else if(tick - roundStartTick > 25*TICK_HZ) nadeFlags.antiAwp = true;
-    } else nadeFlags.antiAwp = true;
   }
   // раздел 12: фейк — смок на вход CT и флешка на фейковый сайт, чтобы звучало
   // и выглядело как настоящий выход
@@ -7618,23 +7581,6 @@ function nadeBrains(){
   // несколько РАЗНЫХ типов от РАЗНЫХ тиммейтов синхронно по одному только что
   // замеченному защитнику, чтобы сдвинуть/выбить его перед проходом
   nadeCombos();
-  // план §7: молотов/HE по СВЕЖЕЙ инфе — враг только что был виден и ушёл за
-  // укрытие → выкурить его оттуда. Не чаще раза в 8с на бота, не туда, где уже
-  // горит, и не туда, где рядом свои.
-  bots.forEach(function(b){
-    if(!b.alive || b._sawEnemy || b.nadeTask || b.planting || b.defusing) return;
-    if(tick < (b._nadeCd||0) || !b.lastIntel) return;
-    var age = tick - b.lastIntel.tick;
-    if(age < 26 || age > 160) return;
-    var type = b.nades.molly > 0 ? "molly" : (b.nades.he > 0 ? "he" : null);
-    if(!type) return;
-    var L = b.lastIntel, dd = Math.hypot(L.x-b.x, L.y-b.y);
-    if(dd > NADE_THROW_RANGE || dd < 120) return;
-    if(fires.some(function(f){ return Math.hypot(f.x-L.x, f.y-L.y) < 100; })) return;
-    if(bots.some(function(o){ return o.alive && o.team === b.team && Math.hypot(o.x-L.x, o.y-L.y) < 130; })) return;
-    b._nadeCd = tick + 8*TICK_HZ;
-    assignNade(b, type, {x:L.x, y:L.y}, "по инфе — выкурить", {now:true});
-  });
   if(BAL.nadeReact) nadeReact();
   // план §7: граната на отходе — проигрывает дуэль и уходит: смок между собой
   // и врагом (или флешка в него), чтобы выйти живым. Реакция, а не план.
@@ -7642,18 +7588,9 @@ function nadeBrains(){
     if(!b.alive || b.state !== "retreat" || b._retreatNade === roundNum) return;
     var foe = b._nearestEnemyBot; if(!foe || !b._sawEnemy) return;
     var mid = {x:b.x + (foe.x-b.x)*0.35, y:b.y + (foe.y-b.y)*0.35};
-    if(b.nades.smoke > 0 && !smokeCovered(mid.x, mid.y)){ b._retreatNade = roundNum; throwNade(b, "smoke", mid.x, mid.y, false, "на отходе"); }
-    else if(b.nades.flash > 0){ b._retreatNade = roundNum; throwNade(b, "flash", foe.x, foe.y, false, "на отходе"); }
+    if(b.nades.smoke > 0 && assignNade(b, "smoke", mid, "на отходе", {now:true})) b._retreatNade = roundNum;
+    else if(b.nades.flash > 0 && assignNade(b, "flash", {x:foe.x, y:foe.y}, "на отходе", {now:true})) b._retreatNade = roundNum;
   });
-  // CT ретейк: перед заходом — флешка на сайт
-  if(bomb && bomb.state === "planted" && !(teamTac.CT && teamTac.CT.saving) && !nadeFlags.retakeFlash && bomb.retake && bomb.retake.phase === "go"){
-    var gs = GEO[bomb.site];
-    // заходим — флешка на бомбу с точки сбора, смок на подход T (отрезать подмогу)
-    var fl = cts.filter(function(b){ return b.nades.flash > 0; })[0];
-    if(fl){ nadeFlags.retakeFlash = true; assignNade(fl, "flash", {x:bomb.x, y:bomb.y}, "ретейк", {bkey:"CT.retake.flash."+bomb.site}); }
-    var smr = cts.filter(function(b){ return b !== fl && b.nades.smoke > 0; })[0];
-    if(smr && !nadeFlags.retakeSmoke){ nadeFlags.retakeSmoke = true; if(retakeCutUseful()) assignNade(smr, "smoke", gs.tEntry, "отрезать вход T", {bkey:"CT.retake.smoke."+bomb.site}); }
-  }
 }
 // смок "отрезать вход T" на ретейке нужен, только если кто-то из T может
 // прийти на подмогу снаружи; если все T по инфе уже на сайте — смок пустой
@@ -9618,7 +9555,7 @@ function freshMatch(n, keepProfile){
 }
 function newMatch(){
   matchNum++;
-  MEMORY.siteHeat = {A:1, B:1}; MEMORY.tSiteHist = []; resetMatchMemory(); MEMORY.RMEM = {awp:[], aggro:[], rush:[], midDeath:[]}; HALF_ADJ = {tac:{}, ctSite:null}; timeoutsReset();
+  MEMORY.siteHeat = {A:1, B:1}; MEMORY.tSiteHist = []; resetMatchMemory(); MEMORY.RMEM = {aggro:[], rush:[], midDeath:[]}; HALF_ADJ = {tac:{}, ctSite:null}; timeoutsReset();
   score.CT = 0; score.T = 0;
   roundNum = 0;
   bots.forEach(function(b){ b.kills = 0; b.deaths = 0; });
@@ -12519,7 +12456,7 @@ var __SNAP = [
 ["bannerTimer", function(){ return bannerTimer; }, function(v){ try{ bannerTimer = v; }catch(e){} }],
 ["cardTimer", function(){ return cardTimer; }, function(v){ try{ cardTimer = v; }catch(e){} }]
 ];
-var MK_PRINCIPLES = [{"id": "В1", "sec": "Взгляд", "text": "Не смотрит в ровную стену в упор. Край угла держать можно, стену — нет.", "done": false}, {"id": "В2", "sec": "Взгляд", "text": "Не идёт спиной к непроверенному углу. Поднимаясь по рампе — сначала ближайший угол, потом дальше; не «чекает бэксайд» спиной к T Lower.", "done": false}, {"id": "В3", "sec": "Взгляд", "text": "Нет разворотов на 180–360° перед пиком: к углу подходит уже с прицелом на нём.", "done": false}, {"id": "В4", "sec": "Взгляд", "text": "Отошёл перезарядиться/за укрытие — не «забывает» врага: прицел на месте, где враг пропал, 3–5 с; на отходе пятится лицом к врагу.", "done": false}, {"id": "В5", "sec": "Взгляд", "text": "Звук за стеной — смотрит на место, где враг выйдет (проём, край), а не сквозь стену на звук.", "done": false}, {"id": "В6", "sec": "Взгляд", "text": "Взгляд плавный: без дёрганья туда-обратно и «ёрзания» стоя. (шаг 2)", "done": false}, {"id": "В7", "sec": "Взгляд", "text": "На бегу чекает ближайшие опасные углы, а не смотрит всё время строго по ходу и не в спину тиммейту.", "done": false}, {"id": "В8", "sec": "Взгляд", "text": "Держит угол, откуда реально выйдет враг; не смотрит туда, где уже стоит свой.", "done": false}, {"id": "П1", "sec": "Позиция", "text": "Стоит прижавшись к укрытию и открыт только на свой угол; не стоит по центру сайта / в открытую.", "done": false}, {"id": "П2", "sec": "Позиция", "text": "Позиции — реальные про-позиции на Ancient, а не «точка рядом с центром зоны».", "done": false}, {"id": "П3", "sec": "Позиция", "text": "Не выбирает точки, куда физически не может встать (в стене, за коллизией).", "done": false}, {"id": "П4", "sec": "Позиция", "text": "Двое на сайте не держат один и тот же угол.", "done": false}, {"id": "П5", "sec": "Позиция", "text": "Один подпушил вперёд (например, в T Lower) — второй меняет угол или встаёт под размен, а не продолжает смотреть рампу.", "done": false}, {"id": "П6", "sec": "Позиция", "text": "Погиб мидер — мид берёт ближайший свободный CT, не уходят с сайта, где есть инфа; не идёт через всю карту.", "done": false}, {"id": "К1", "sec": "Команда", "text": "Увидели 3+ врагов (колл) — вся команда сразу меняет план: стягиваются, готовят ретейк/ротацию; никто не продолжает «своё».", "done": false}, {"id": "К2", "sec": "Команда", "text": "Договариваются, кто какой угол держит (никто не дублирует, пустых нет).", "done": false}, {"id": "К3", "sec": "Команда", "text": "Не дерутся в одиночку: рядом есть тиммейт для размена (у про ~75% смертей с тиммейтом ≤350 px).", "done": false}, {"id": "К4", "sec": "Команда", "text": "Размен сразу (≤3 с) после смерти тиммейта, если это возможно (у про ~17%).", "done": false}, {"id": "К5", "sec": "Команда", "text": "Последнего добивают быстро и вдвоём; клатчи выигрываются редко (у про ~2%).", "done": false}, {"id": "К6", "sec": "Команда", "text": "Решение команды видно в движении игроков (решили «ретейк» — встают под ретейк), а не только в тексте войса.", "done": false}, {"id": "Г1", "sec": "Гранаты", "text": "Флешку кидают до своего пика или под пик тиммейта — не в лицо врагу, который уже стреляет.", "done": false}, {"id": "Г2", "sec": "Гранаты", "text": "Гранаты не «на рандом»: лайнапы про (инстасмоки, задержка выхода, выход на сайт) в нужный момент и из нужной точки.", "done": false}, {"id": "Г3", "sec": "Гранаты", "text": "CT используют утилиту рано, на задержку выхода (у про ~8 гранат CT в первые 20 с).", "done": false}, {"id": "Г4", "sec": "Гранаты", "text": "Перед смертью не «вываливают» гранаты бесцельно.", "done": false}, {"id": "Г5", "sec": "Гранаты", "text": "Закуп гранат как у про: на фулле ~3 на игрока, на эко — 1.", "done": false}, {"id": "Э1", "sec": "Закуп и экономика", "text": "Оружие по мете: на фулле CT — M4A4/M4A1-S, T — AK; FAMAS/Galil — только на форсе.", "done": false}, {"id": "Э2", "sec": "Закуп и экономика", "text": "Что покупают в каком раунде — по таблице из демок про, а не по придуманным вероятностям.", "done": false}, {"id": "Э3", "sec": "Закуп и экономика", "text": "Доли фулл/форс/эко как у про (CT 77/9/14).", "done": false}, {"id": "Т1", "sec": "Темп и макро", "text": "T начинают с дефолта, выход по времени как у про (плант ~66 с).", "done": false}, {"id": "Т2", "sec": "Темп и макро", "text": "Раши редко (в основном эко/пистолетка).", "done": false}, {"id": "Т3", "sec": "Темп и макро", "text": "Ранних смертей до 45 с — как у про (T ~1,5, CT ~1,3); сейчас ~1,9.", "done": false}, {"id": "Н1", "sec": "Войс и подписи", "text": "Войс говорит правильными терминами CS. «Префайр» — только когда прострел угла при пике; не «префайр по памяти» на каждом шагу.", "done": false}, {"id": "Н2", "sec": "Войс и подписи", "text": "Подпись соответствует тому, что бот делает сейчас («идёт на мид», а не «держит мид», пока идёт).", "done": false}, {"id": "И1", "sec": "Визуал и инструменты", "text": "Кружки ботов чуть меньше исходных.", "done": true}, {"id": "И2", "sec": "Визуал и инструменты", "text": "Видно, за каким укрытием стоит бот (контуры стен, ящики).", "done": false}, {"id": "И3", "sec": "Визуал и инструменты", "text": "Направление взгляда видно меткой-каплей, без лишнего шума.", "done": false}, {"id": "И4", "sec": "Визуал и инструменты", "text": "Кнопка «Отметить момент» + перемотка (назад на 10 с, к отметке), чтобы показывать ситуации точно.", "done": false}];
+var MK_PRINCIPLES = [{"id": "В1", "sec": "Взгляд", "text": "Не смотрит в ровную стену в упор. Край угла держать можно, стену — нет.", "done": false}, {"id": "В2", "sec": "Взгляд", "text": "Не идёт спиной к непроверенному углу. Поднимаясь по рампе — сначала ближайший угол, потом дальше; не «чекает бэксайд» спиной к T Lower.", "done": false}, {"id": "В3", "sec": "Взгляд", "text": "Нет разворотов на 180–360° перед пиком: к углу подходит уже с прицелом на нём.", "done": false}, {"id": "В4", "sec": "Взгляд", "text": "Отошёл перезарядиться/за укрытие — не «забывает» врага: прицел на месте, где враг пропал, 3–5 с; на отходе пятится лицом к врагу.", "done": false}, {"id": "В5", "sec": "Взгляд", "text": "Звук за стеной — смотрит на место, где враг выйдет (проём, край), а не сквозь стену на звук.", "done": false}, {"id": "В6", "sec": "Взгляд", "text": "Взгляд плавный: без дёрганья туда-обратно и «ёрзания» стоя. (шаг 2)", "done": false}, {"id": "В7", "sec": "Взгляд", "text": "На бегу чекает ближайшие опасные углы, а не смотрит всё время строго по ходу и не в спину тиммейту.", "done": false}, {"id": "В8", "sec": "Взгляд", "text": "Держит угол, откуда реально выйдет враг; не смотрит туда, где уже стоит свой.", "done": false}, {"id": "П1", "sec": "Позиция", "text": "Стоит прижавшись к укрытию и открыт только на свой угол; не стоит по центру сайта / в открытую.", "done": false}, {"id": "П2", "sec": "Позиция", "text": "Позиции — реальные про-позиции на Ancient, а не «точка рядом с центром зоны».", "done": false}, {"id": "П3", "sec": "Позиция", "text": "Не выбирает точки, куда физически не может встать (в стене, за коллизией).", "done": false}, {"id": "П4", "sec": "Позиция", "text": "Двое на сайте не держат один и тот же угол.", "done": false}, {"id": "П5", "sec": "Позиция", "text": "Один подпушил вперёд (например, в T Lower) — второй меняет угол или встаёт под размен, а не продолжает смотреть рампу.", "done": false}, {"id": "П6", "sec": "Позиция", "text": "Погиб мидер — мид берёт ближайший свободный CT, не уходят с сайта, где есть инфа; не идёт через всю карту.", "done": false}, {"id": "К1", "sec": "Команда", "text": "Увидели 3+ врагов (колл) — вся команда сразу меняет план: стягиваются, готовят ретейк/ротацию; никто не продолжает «своё».", "done": false}, {"id": "К2", "sec": "Команда", "text": "Договариваются, кто какой угол держит (никто не дублирует, пустых нет).", "done": false}, {"id": "К3", "sec": "Команда", "text": "Не дерутся в одиночку: рядом есть тиммейт для размена (у про ~75% смертей с тиммейтом ≤350 px).", "done": false}, {"id": "К4", "sec": "Команда", "text": "Размен сразу (≤3 с) после смерти тиммейта, если это возможно (у про ~17%).", "done": false}, {"id": "К5", "sec": "Команда", "text": "Последнего добивают быстро и вдвоём; клатчи выигрываются редко (у про ~2%).", "done": false}, {"id": "К6", "sec": "Команда", "text": "Решение команды видно в движении игроков (решили «ретейк» — встают под ретейк), а не только в тексте войса.", "done": false}, {"id": "Г1", "sec": "Гранаты", "text": "Флешку кидают до своего пика или под пик тиммейта — не в лицо врагу, который уже стреляет.", "done": false}, {"id": "Г2", "sec": "Гранаты", "text": "Гранаты не «на рандом»: лайнапы про (инстасмоки, задержка выхода, выход на сайт) в нужный момент и из нужной точки.", "done": false}, {"id": "Г3", "sec": "Гранаты", "text": "CT используют утилиту рано, на задержку выхода (у про ~8 гранат CT в первые 20 с).", "done": false}, {"id": "Г4", "sec": "Гранаты", "text": "Перед смертью не «вываливают» гранаты бесцельно. — лучше в v172 (1,09 → 0,70 на раунд, у про 0,37), не дотянуто.", "done": false}, {"id": "Г5", "sec": "Гранаты", "text": "Закуп гранат как у про: на фулле ~3 на игрока, на эко — 1.", "done": false}, {"id": "Э1", "sec": "Закуп и экономика", "text": "Оружие по мете: на фулле CT — M4A4/M4A1-S, T — AK; FAMAS/Galil — только на форсе.", "done": false}, {"id": "Э2", "sec": "Закуп и экономика", "text": "Что покупают в каком раунде — по таблице из демок про, а не по придуманным вероятностям.", "done": false}, {"id": "Э3", "sec": "Закуп и экономика", "text": "Доли фулл/форс/эко как у про (CT 77/9/14).", "done": false}, {"id": "Т1", "sec": "Темп и макро", "text": "T начинают с дефолта, выход по времени как у про (плант ~66 с).", "done": false}, {"id": "Т2", "sec": "Темп и макро", "text": "Раши редко (в основном эко/пистолетка).", "done": false}, {"id": "Т3", "sec": "Темп и макро", "text": "Ранних смертей до 45 с — как у про (T ~1,5, CT ~1,3); сейчас ~1,9.", "done": false}, {"id": "Н1", "sec": "Войс и подписи", "text": "Войс говорит правильными терминами CS. «Префайр» — только когда прострел угла при пике; не «префайр по памяти» на каждом шагу.", "done": false}, {"id": "Н2", "sec": "Войс и подписи", "text": "Подпись соответствует тому, что бот делает сейчас («идёт на мид», а не «держит мид», пока идёт).", "done": false}, {"id": "И1", "sec": "Визуал и инструменты", "text": "Кружки ботов чуть меньше исходных.", "done": true}, {"id": "И2", "sec": "Визуал и инструменты", "text": "Видно, за каким укрытием стоит бот (контуры стен, ящики).", "done": false}, {"id": "И3", "sec": "Визуал и инструменты", "text": "Направление взгляда видно меткой-каплей, без лишнего шума.", "done": false}, {"id": "И4", "sec": "Визуал и инструменты", "text": "Кнопка «Отметить момент» + перемотка (назад на 10 с, к отметке), чтобы показывать ситуации точно.", "done": false}];
 // ======================= v167: «Отметить момент», карточка «Я понял так», перемотка =======================
 // Инструмент для владельца и Claude, мозг ботов не трогает. Описание — docs/tasks/02-mark-moment.md.
 // Снимки состояния: __SNAP (список переменных симулятора, генерирует patch170.py при сборке).

@@ -4,7 +4,9 @@ var M0=matchNum;
 var REC={rounds:[], kills:[], pos:[], plants:[], buys:[], nades:[], jit:{alive:0, look:0, moveEng:0, moveIdle:0, moveOther:0, ev:[]}}, rs=null, cur=null;
 var ofk=feedKill; feedKill=function(att,vic,weap,hs){ REC.kills.push([tick, att?att.id:null, att?att.team:null, att?Math.round(att.x):null, att?Math.round(att.y):null, vic.id, vic.team, Math.round(vic.x), Math.round(vic.y), String(weap), hs?1:0, att&&att.weapon?att.weapon.key:null, vic.tRole||'']); return ofk.apply(this,arguments); };
 var oer=endRound; endRound=function(w,reason){ if(cur){ cur.t1=tick; cur.winner=w; cur.reason=reason; cur.bomb=bomb.state; } return oer.apply(this,arguments); };
-var otn=throwNade; throwNade=function(b,type){ if(roundState==='live') REC.nades.push([tick, b.team, type, b.id, (b.tRole||b.ctRole||'')]); return otn.apply(this,arguments); };
+var otn=throwNade; throwNade=function(b,type,tx,ty){ if(roundState==='live' && b.nades && b.nades[type]>0) REC.nades.push([tick, b.team, type, b.id, (b.tRole||b.ctRole||''), Math.round(b.x), Math.round(b.y), Math.round(tx), Math.round(ty), tick-(b.lastShotTick||-999)]); return otn.apply(this,arguments); };
+// гранатные детекторы: где разорвалась и стрелял ли рядом враг бросавшего за последнюю секунду
+REC.det=[]; var odt=detonate; detonate=function(n){ if(roundState==='live'){ var sh=0; bots.forEach(function(o){ if(o.alive && o.team!==n.team && Math.hypot(o.x-n.x,o.y-n.y)<400 && tick-(o.lastShotTick||-999)<=64) sh++; }); REC.det.push([tick, n.team, n.type, Math.round(n.x), Math.round(n.y), sh, n.thrower?n.thrower.id:'', String(n.why||'')]); } return odt.apply(this,arguments); };
 var H={};
 for(var t=0;t<__T__;t++){ stepTick();
  if(matchNum!==M0) break;
