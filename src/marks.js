@@ -2,7 +2,7 @@
 // Инструмент для владельца и Claude, мозг ботов не трогает. Описание — docs/tasks/02-mark-moment.md.
 // Снимки состояния: __SNAP (список переменных симулятора, генерирует patch170.py при сборке).
   var MK = { cps: [], snap: null, cur: null, list: [], db: null, assets: null, sample: null, busy: false,
-             lastCpTick: -1, cpMatch: -1, restarts: 0, pick: false, CP_EVERY: 640, CP_KEEP: 40 };
+             lastCpTick: -1, cpMatch: -1, pick: false, CP_EVERY: 640, CP_KEEP: 40 };
   var MK_CATS = ["Взгляд", "Позиция", "Команда", "Гранаты", "Закуп", "Темп", "Войс", "Визуал"];
   var MK_SEC = {"Взгляд":"В", "Позиция":"П", "Команда":"К", "Гранаты":"Г", "Закуп":"Э", "Темп":"Т", "Войс":"Н", "Визуал":"И"};
 
@@ -19,6 +19,56 @@ function mkSnapList(){
 }
 function mkSnapshot(){ var o = {}; mkSnapList().forEach(function(e){ o[e[0]] = e[1](); }); return structuredClone(o); }
 function mkRestore(data){ var c = structuredClone(data); mkSnapList().forEach(function(e){ if(e[0] in c) e[2](c[e[0]]); }); }
+// (v175) снимок → текст и обратно, чтобы хранить его в отметке файлом. В снимке
+// объекты ссылаются друг на друга (бот → цель → бот), поэтому каждый объект
+// записывается один раз, а ссылки — номером. Сохраняются Map/Set, массивы чисел,
+// регулярные выражения, NaN/Infinity/-0/undefined — ровно то, что умеет structuredClone.
+function mkPack(root){
+  var ids = new Map(), objs = [];
+  function num(v){ return v !== v ? {n:"NaN"} : v === Infinity ? {n:"I"} : v === -Infinity ? {n:"-I"} : (v === 0 && 1/v < 0) ? {n:"-0"} : v; }
+  function enc(v){
+    if(v === undefined) return {u:1};
+    if(typeof v === "number") return num(v);
+    if(v === null || typeof v !== "object") return v;
+    if(ids.has(v)) return {r:ids.get(v)};
+    var id = objs.length, o, i; ids.set(v, id); objs.push(null);
+    if(Array.isArray(v)){ o = {a:[]}; for(i = 0; i < v.length; i++) o.a.push(enc(v[i])); }
+    else if(v instanceof Map){ o = {m:[]}; v.forEach(function(x, k){ o.m.push([enc(k), enc(x)]); }); }
+    else if(v instanceof Set){ o = {s:[]}; v.forEach(function(x){ o.s.push(enc(x)); }); }
+    else if(ArrayBuffer.isView(v)){ o = {t:v.constructor.name, d:[]}; for(i = 0; i < v.length; i++) o.d.push(num(v[i])); }
+    else if(v instanceof Date){ o = {dt:+v}; }
+    else if(v instanceof RegExp){ o = {re:[v.source, v.flags]}; }
+    else { o = {o:{}}; for(var k in v) if(Object.prototype.hasOwnProperty.call(v, k)) o.o[k] = enc(v[k]); }
+    objs[id] = o; return {r:id};
+  }
+  var root2 = enc(root);
+  return JSON.stringify({v:1, root:root2, objs:objs});
+}
+function mkUnpack(text){
+  var P = JSON.parse(text), objs = P.objs;
+  var made = objs.map(function(o){
+    return o.a ? new Array(o.a.length) : o.m ? new Map() : o.s ? new Set() : o.t ? new self[o.t](o.d.length) : o.dt != null ? new Date(o.dt) : o.re ? new RegExp(o.re[0], o.re[1]) : {};
+  });
+  function dec(v){
+    if(v === null || typeof v !== "object") return v;
+    if(v.r != null) return made[v.r];
+    if(v.u) return undefined;
+    return v.n === "NaN" ? NaN : v.n === "I" ? Infinity : v.n === "-I" ? -Infinity : -0;
+  }
+  objs.forEach(function(o, i){ var t = made[i], j;
+    if(o.a) for(j = 0; j < o.a.length; j++) t[j] = dec(o.a[j]);
+    else if(o.m) o.m.forEach(function(e){ t.set(dec(e[0]), dec(e[1])); });
+    else if(o.s) o.s.forEach(function(e){ t.add(dec(e)); });
+    else if(o.t) for(j = 0; j < o.d.length; j++) t[j] = dec(o.d[j]);
+    else if(o.o) for(var k in o.o) t[k] = dec(o.o[k]);
+  });
+  return dec(P.root);
+}
+// открыть момент из снимка отметки: вся игра ровно как в момент нажатия
+function mkOpenSnap(text){
+  mkRestore(mkUnpack(text));
+  paused = true; MK.cps = []; MK.cpMatch = matchNum; MK.lastCpTick = -1;
+}
 // «отпечаток» настроек: если стены/зоны/лайнапы/переключатели поменялись — матч пойдёт иначе
 function mkFp(){
   var s = JSON.stringify(BAL) + "|" + MANUAL_WALLS.length + "|" + (USER_LINEUPS||[]).length + "|" + (USER_ZONES||[]).length + "|" + JSON.stringify(navTransform||null) + "|" + JSON.stringify(zoneLayer||null);
@@ -54,7 +104,7 @@ function mkGoTo(match, target, done){
   if(match === matchNum) MK.cps.forEach(function(c){ if(c.fp === fp && c.match === match && c.tick <= target && (!cp || c.tick > cp.tick)) cp = c; });
   if(match === matchNum && tick <= target && (!cp || tick >= cp.tick)){ /* идём вперёд от текущего */ }
   else if(cp) mkRestore(cp.data);
-  else { freshMatch(match); MK.cps = []; MK.cpMatch = matchNum; MK.restarts = 0; }
+  else { freshMatch(match); MK.cps = []; MK.cpMatch = matchNum; }
   var from = tick, total = Math.max(1, target - from);
   var prog = document.getElementById("mkProg");
   function step(){
@@ -180,8 +230,8 @@ function mkStart(){
   if(MK.busy) return;
   if(MK.cur){ mkEl("mkText").focus(); return; }
   paused = true; mkPauseLabel();
-  MK.cur = { state: mkState(), match: matchNum, tick: tick, round: roundNum, roundTime: Math.round((simTime - roundStartTime)*10)/10,
-             fp: mkFp(), restarts: MK.restarts, bot: null, text: "", category: "Взгляд", priority: "normal" };
+  MK.cur = { snap: mkSnapshot(), state: mkState(), match: matchNum, tick: tick, round: roundNum, roundTime: Math.round((simTime - roundStartTime)*10)/10,
+             fp: mkFp(), bot: null, text: "", category: "Взгляд", priority: "normal" };
   MK.pick = true;
   mkEl("mkMoment").textContent = "Матч " + MK.cur.match + " · раунд " + MK.cur.round + " · " + mkClock(MK.cur.roundTime) + " раунда · тик " + MK.cur.tick;
   mkEl("mkText").value = ""; mkEl("mkBot").textContent = "не выбран — кликни по боту на радаре (необязательно)";
@@ -240,8 +290,11 @@ async function mkSave(m, status){
   var doc = { match: m.match, tick: m.tick, round: m.round, roundTime: m.roundTime, category: m.category, priority: m.priority,
     text: m.text, bot: m.frameBot || m.bot || null, understood: a.understood || null, principle: a.principle || null,
     newItem: a.newItem || null, unsure: a.unsure || null, status: status, version: null,
-    fp: m.fp, restarts: m.restarts, state: m.state, frameAsset: null, created: Date.now(), updated: Date.now() };
+    fp: m.fp, state: m.state, frameAsset: null, created: Date.now(), updated: Date.now() };
   if(MK.assets && m.frameUrl){ try{ var up = await MK.assets.upload(mkUrlToBlob(m.frameUrl)); doc.frameAsset = up.id; }catch(e){} }
+  // полный снимок игры в момент нажатия — по нему отметка открывается у владельца и у Claude
+  doc.snapAsset = null;
+  if(MK.assets && m.snap){ try{ var us = await MK.assets.upload(new Blob([mkPack(m.snap)], {type: "application/json"})); doc.snapAsset = us.id; }catch(e){ mkToast("Снимок игры не сохранился: " + (e && (e.code || e.message))); } }
   if(!MK.db){ MK.local = MK.local || []; doc.id = "local" + doc.created; MK.local.push(doc); mkRenderList(); mkToast("Базы страницы нет (открыто не в Claude) — отметка только до перезагрузки"); return; }
   try{ await MK.db.collection("marks").doc("m" + doc.created).set(doc); }
   catch(e){ mkToast("Не удалось сохранить отметку: " + (e && (e.code || e.message))); }
@@ -275,15 +328,13 @@ function mkRenderList(){
 }
 function mkJump(d){
   mkEl("mkList").style.display = "none";
-  mkGoTo(d.match, d.tick, function(ok){
-    if(!ok){ mkToast("Не удалось перемотать к отметке"); return; }
-    var bad = 0;
-    (d.state && d.state.bots || []).forEach(function(s){ var b = bots.filter(function(o){ return o.id === s.id; })[0];
-      if(!b || Math.abs(b.x - s.x) > 0.5 || Math.abs(b.y - s.y) > 0.5 || b.hp !== s.hp || !!b.alive !== s.alive) bad++; });
-    var warn = (d.fp && d.fp !== mkFp()) ? " Настройки/стены с тех пор менялись." : (d.restarts ? " В том матче был «Рестарт раунда»." : "");
-    mkToast(bad === 0 ? "К отметке: матч " + d.match + ", тик " + d.tick + " — совпало, все 10 ботов на тех же местах" :
-      "К отметке: матч " + d.match + ", тик " + d.tick + " — НЕ совпало (" + bad + " ботов иначе)." + warn);
-  });
+  if(!d.snapAsset){ mkToast("У этой отметки нет снимка игры (сделана до v175) — открыть точно нельзя"); return; }
+  if(MK.busy) return;
+  MK.busy = true; paused = true; mkPauseLabel();
+  fetch("/_blob/" + d.snapAsset).then(function(r){ if(!r.ok) throw new Error("HTTP " + r.status); return r.text(); })
+    .then(function(t){ mkOpenSnap(t); MK.busy = false; mkPauseLabel();
+      mkToast("Отметка: матч " + d.match + ", раунд " + d.round + ", " + mkClock(d.roundTime) + " — открыта из снимка"); })
+    .catch(function(e){ MK.busy = false; mkToast("Не удалось открыть снимок отметки: " + (e && e.message)); });
 }
 function mkCopyAll(){
   var t = mkSorted().map(function(d){
@@ -356,8 +407,8 @@ function mkShowCopy(t){ var a = mkEl("mkCopyBox"); a.value = t; a.style.display 
     var tg = e.target && e.target.tagName; if(tg === "INPUT" || tg === "TEXTAREA" || tg === "SELECT") return;
     if((e.key === "m" || e.key === "M" || e.key === "ь" || e.key === "Ь") && !e.ctrlKey && !e.metaKey && !e.altKey){ mkStart(); e.preventDefault(); }
   });
-  mkEl("btnRestartRound").addEventListener("click", function(){ MK.restarts++; MK.cps = []; });
-  mkEl("btnFreshMatch").addEventListener("click", function(){ MK.restarts = 0; MK.cps = []; });
+  mkEl("btnRestartRound").addEventListener("click", function(){ MK.cps = []; });
+  mkEl("btnFreshMatch").addEventListener("click", function(){ MK.cps = []; });
   // возможности страницы в Claude: база отметок, картинки кадров, вопрос Claude
   if(window.claude && claude.use){
     claude.use("db").then(function(db){ if(!db) return; MK.db = db;
