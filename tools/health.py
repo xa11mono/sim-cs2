@@ -6,7 +6,9 @@ python3 tools/health.py sim.html   (печатает таблицу; --json — 
 - строк в файле;
 - переключателей BAL.* (ключи объекта `var BAL = {...}`), из них включено,
   из них держат старый вариант рядом (`!BAL.x` у включённого), не используются;
-- вызовов назначения позиции `setPost(`, причин взгляда `lookReason =`,
+- вызовов назначения позиции `setPost(` и функций, где он вызывается; замков
+  «кто кого перебивает» (старые поля-замки; одна таблица TASK_PRIO = 1);
+- вызовов `setPost(`, причин взгляда `lookReason =`,
   заказов гранаты `assignNade(`, прямых бросков `throwNade(` (без объявлений);
 - знание о врагах: сколько отдельных хранилищ объявлено (картина `belief`,
   журнал канала `teamIntel`, и прочие, если остались: `LKP`, `CLEARZ`),
@@ -45,6 +47,9 @@ def health(path):
         '  держат старый вариант рядом (!BAL.x)': len(old),
         '  не используются нигде': len(unused),
         'вызовов setPost (позиция)': calls('setPost'),
+        'функций, которые ставят позицию': len(set(m.group(1) for m in re.finditer(r'\nfunction (\w+)\(', s) if m.group(1) != 'setPost' and re.search(r'(?<![\w.])setPost\(', s[m.end():s.find('\nfunction ', m.end()) if s.find('\nfunction ', m.end()) > 0 else len(s)]))),
+        # замки в setPost «кто кого перебивает»: отдельные поля-замки (до v173 — 8 + маршрут)
+        'замков «кто кого перебивает» (поля)': len(set(re.findall(r'\b\w+\.(_(?:trade|eg|pick|smokeWait|lineup|probe)Lock|_reposUntil|_rebal)\b', s))) + (1 if 'TASK_PRIO' in s else 0),
         'причин взгляда (lookReason =)': len(re.findall(r'lookReason\s*=(?!=)', s)),
         'заказов гранаты (assignNade)': calls('assignNade'),
         'прямых бросков (throwNade)': calls('throwNade'),
