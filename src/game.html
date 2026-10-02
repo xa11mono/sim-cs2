@@ -1538,7 +1538,6 @@ var BAL = {
   styles: true,
   smartPlant: true,
   dangerWalk: true,
-  noWallStare: true,
   clearQuiet: true,
   tSave: true,
   timingVar: true,  // время выхода T гуляет: быстрый / обычный / поздний
@@ -1964,21 +1963,15 @@ function proSnap(b, pt, look, tag){
   b._psV = best;
   return best;
 }
-// взгляд на про-точке: направление, которое там держат про; из двух — ближайшее
-// к тому, что команда поручила смотреть (раскладка углов); свежая инфа важнее
-function proSpotLook(b){
-  var P = b.post.pro; if(!P) return null;
-  if(b._lkPick && b._lkPick.fresh && b._lkPt) return null;
-  var M = P.m, ref = b._lkPt ? Math.atan2(b._lkPt.y-b.y, b._lkPt.x-b.x) : (b.post.look ? Math.atan2(b.post.look.y-b.post.y, b.post.look.x-b.post.x) : null);
-  var S = b._proM;
-  if(!S || S.k !== P.k || S.r !== roundNum || tick - S.t > 3*TICK_HZ){
-    var bi = 0, bsc = -1e9;
-    M.forEach(function(m, i){ var sc = m[1] - (ref === null ? 0 : _angOff(m[0], ref)/Math.PI*0.6); if(sc > bsc){ bsc = sc; bi = i; } });
-    if(S && S.k === P.k && S.r === roundNum && S.i !== bi){ var cur = M[S.i]; var curSc = cur ? cur[1] - (ref === null ? 0 : _angOff(cur[0], ref)/Math.PI*0.6) : -1e9; if(curSc > bsc - 0.15) bi = S.i; }
-    S = b._proM = {k:P.k, r:roundNum, i:bi, t:tick};
-  }
-  var a = M[S.i][0];
-  return {x: b.x + Math.cos(a)*300, y: b.y + Math.sin(a)*300};
+// «как у про» — один источник для дележа углов: на про-точке — направления,
+// которые держат про именно с этой точки (доля каждого), иначе — сетка
+// взглядов из демок по месту. Это вес кандидата, а не приказ: угол, который
+// поручила команда, или свежая угроза важнее.
+function proDirs(b, moving){
+  var P = !moving && b.atPost && b.post && b.post.pro;
+  if(P && P.m && P.m.length) return P.m.map(function(m){ return {a:m[0], w:LOOK.proSpot*m[1]}; });
+  var PL = proLookAt(b.team, b.x, b.y); if(!PL) return [];
+  return [{a:Math.atan2(PL.dy, PL.dx), w:LOOK.proLook*PL.R}];
 }
 // (v162) отдельно стоящие ящики/колонны — небольшие замкнутые контуры стен
 var _WB = null, _WBn = -1;
@@ -4967,22 +4960,25 @@ function cornerLook(b, p, from){
   b._cornerPt = best || null;   // не нашли видимого угла — не смотреть сквозь стену
   return b._cornerPt;
 }
-function openLook(b, look){
+// одна последняя проверка «не смотреть в стену» (для взглядов, заданных
+// задачей, и когда бот стоит без цели): ровная стена ближе 80 — ближайшее
+// открытое направление ±90°; любая стена/угол ближе 45 — открытое ±70°;
+// открытого рядом нет — не поворачиваемся в стену
+function wallSafeLook(b, look){
+  var a = look ? Math.atan2(look.y-b.y, look.x-b.x) : (!(b.curSpeed > 15*SPD_K) && b.facing !== undefined ? b.facing : null);
+  if(a === null) return look;
+  if(flatWallAhead(b, a, 80)){ var wal = openDirNear(b, a); if(wal) b.lookReason = (b.lookReason||"") + "+open"; return wal || null; }
+  if(!look) return look;
   var k = Math.round(look.x/24)+","+Math.round(look.y/24)+"|"+Math.round(b.x/12)+","+Math.round(b.y/12);
   if(b._olK === k) return b._olV;
   b._olK = k; b._olV = look;
-  var a = Math.atan2(look.y-b.y, look.x-b.x), dl = Math.hypot(look.x-b.x, look.y-b.y);
-  if(dl < 60) return look;
+  if(Math.hypot(look.x-b.x, look.y-b.y) < 60) return look;
   var free = function(an, r){ var c = rayClipWalls(b.x, b.y, b.x+Math.cos(an)*r, b.y+Math.sin(an)*r); return Math.hypot(c.x-b.x, c.y-b.y); };
   if(free(a, 120) >= 45) return look;
-  for(var st = 1; st <= 7; st++){
-    for(var sg = -1; sg <= 1; sg += 2){
-      var an = a + sg*st*0.1745;
-      if(free(an, 220) >= 110){ b._olV = {x:b.x+Math.cos(an)*200, y:b.y+Math.sin(an)*200}; return b._olV; }
-    }
-  }
-  if(BAL.noWallLook){ b._olV = null; return null; }   // открытого направления рядом нет — не поворачиваемся в стену
-  return look;
+  for(var st = 1; st <= 7; st++) for(var sg = -1; sg <= 1; sg += 2){
+    var an = a + sg*st*0.1745;
+    if(free(an, 220) >= 110){ b._olV = {x:b.x+Math.cos(an)*200, y:b.y+Math.sin(an)*200}; return b._olV; } }
+  b._olV = null; return null;
 }
 
 // ---- опасность зоны для взгляда (помощники нового взгляда, см. ниже) ----
@@ -5061,6 +5057,7 @@ var LOOK = {
   rearMargin: 150,   // px пути: проход дальше от врага, чем я, на это — мой тыл
   rearInfo: 0.15,    // …но если там по инфе вероятен враг (люркер, фланг) — смотрим
   proLook: 0.035,    // вес "куда смотрят про с этой точки" (× согласованность): ниже любой реальной инфы
+  proSpot: 0.06,     // вес направления про-точки (× доля этого направления у про), когда бот стоит на ней
   claimMin: 0.08,    // делить направления в команде, только если угроза заметная
   postBase: 0.004,   // вес угла поста, когда угроз нет совсем
   minScore: 0.0005    // ниже — "ничего не угрожает": смотрим по ходу / на пост
@@ -5266,10 +5263,12 @@ function lookCands(b, W){
   // свежий контакт рядом: услышал шаги/выстрел или только что видел — в упор это
   // главнее всего, даже если враг в той же зоне, что и бот
   var cts = [];
-  var hs = b.heardSound; if(hs && tick - hs.tick <= 96) cts.push({x:hs.x, y:hs.y, age:tick-hs.tick});
+  // у контакта — имя врага (а не клетка, где он сейчас): враг сдвинулся — это
+  // тот же контакт, и инерция взгляда работает, а не «новый угол» каждые 80 px
+  var hs = b.heardSound; if(hs && tick - hs.tick <= 96) cts.push({x:hs.x, y:hs.y, age:tick-hs.tick, id:hs.src && hs.src !== "?" ? hs.src : null});
   var BLc = beliefLast[team] || {};
   for(var eid in BLc){ var lo = BLc[eid]; if(tick - lo.tick > 96) continue;
-    var eb = bots.filter(function(o){ return o.id === eid; })[0]; if(!eb || !eb.alive) continue; cts.push({x:lo.x, y:lo.y, age:tick-lo.tick}); }
+    var eb = bots.filter(function(o){ return o.id === eid; })[0]; if(!eb || !eb.alive) continue; cts.push({x:lo.x, y:lo.y, age:tick-lo.tick, id:eid}); }
   cts.forEach(function(q){
     var d = Math.hypot(q.x-b.x, q.y-b.y); if(d > 700 || d < 20) return;
     var za = Math.atan2(q.y-b.y, q.x-b.x);
@@ -5277,15 +5276,16 @@ function lookCands(b, W){
     if(moving && _angOff(za, b.heading) > 1.9 && (q.age > 20 || d > 250)) return;
     var pt = cornerLook(b, q) || (BAL.noWallLook ? appearFrom(b, q) : q);
     if(!pt) return;
-    out.push({j:"snd"+Math.round(q.x/80)+","+Math.round(q.y/80), pt:pt, sc:LOOK.contactW * (d < 300 ? 2 : 1) / (1 + d/700) * (1 - q.age/192), fresh:true, a:za, snd:true});
+    out.push({j:q.id ? "snd:"+q.id : "snd"+Math.round(q.x/80)+","+Math.round(q.y/80), pt:pt, sc:LOOK.contactW * (d < 300 ? 2 : 1) / (1 + d/700) * (1 - q.age/192), fresh:true, a:za, snd:true});
   });
   // (v148) без инфы — туда, куда смотрят про с этой точки (по 12 демкам).
   // Вес маленький: реальная угроза его перебивает, а "почти нули" — нет
-  if(BAL.proLook){ var PL = proLookAt(team, b.x, b.y);
-    if(PL){ var ae = Math.atan2(PL.dy, PL.dx), cl = rayClipWalls(b.x, b.y, b.x+PL.dx*420, b.y+PL.dy*420), dl = Math.hypot(cl.x-b.x, cl.y-b.y);
-      if(dl > 90){ var scp = LOOK.proLook * PL.R;
-        if(moving){ var hdp = _angOff(ae, b.heading); if(hdp < 0.9) scp *= LOOK.headK; else if(BAL.cornerAim) scp = 0; else if(hdp > 1.9) scp *= rearCov ? LOOK.behindMoveCov : LOOK.behindMove; }
-        if(scp > 0) out.push({j:"pl", pt:{x:cl.x, y:cl.y}, sc:scp, fresh:false, a:ae, pro:true}); } } }
+  if(BAL.proLook) proDirs(b, moving).forEach(function(pd, ip){
+    var ae = pd.a, cl = rayClipWalls(b.x, b.y, b.x+Math.cos(ae)*420, b.y+Math.sin(ae)*420), dl = Math.hypot(cl.x-b.x, cl.y-b.y);
+    if(dl <= 90) return;
+    var scp = pd.w;
+    if(moving){ var hdp = _angOff(ae, b.heading); if(hdp < 0.9) scp *= LOOK.headK; else if(BAL.cornerAim) scp = 0; else if(hdp > 1.9) scp *= rearCov ? LOOK.behindMoveCov : LOOK.behindMove; }
+    if(scp > 0) out.push({j:"pl"+ip, pt:{x:cl.x, y:cl.y}, sc:scp, fresh:false, a:ae, pro:true}); });
   // угол поста по сетапу — тоже кандидат (слабый), чтобы и он шёл через делёж:
   // двое на соседних постах не смотрят в одну точку, когда угроз нет
   if(atHold){ var pl = cornerLook(b, b.post.look) || b.post.look;
@@ -5297,6 +5297,7 @@ function lookCands(b, W){
     if(BAL.enemyward){ var zpl = bzOf(pl.x, pl.y), zbb = bzOf(b.x, b.y);
       if(zpl >= 0 && zbb >= 0 && zpl !== zbb && isRearZone(team, zbb, zpl) || Math.hypot(pl.x-b.x, pl.y-b.y) < 60){ var ew = enemywardLook(team, b); if(ew) pl = cornerLook(b, ew) || ew; } }
     out.push({j:"post"+b.id, pt:pl, sc:LOOK.postBase, fresh:false, a:Math.atan2(pl.y-b.y, pl.x-b.x)}); }
+  // все кандидаты уже видимые (точка выбирается только с линией видимости)
   return out;
 }
 // раз в 8 тиков: кандидаты всем + делёж направлений внутри команды
@@ -5366,7 +5367,7 @@ function smoothLookFilter(b, look, urgent){
     else if(tick >= (b._glNext||0)){
       b._glNext = tick + SL.glEvery[0] + Math.floor(hashRand(tick*13 + b.id.charCodeAt(b.id.length-1)*7)*(SL.glEvery[1]-SL.glEvery[0]));
       var best = null, bs = SL.glSc;
-      (typeof lookCands === "function" ? lookCands(b) : []).forEach(function(c){
+      (b._lkC || []).forEach(function(c){   // кандидаты из дележа углов команды (lookPlan), без своего пересчёта
         if(!c || !c.pt) return;
         var a = Math.atan2(c.pt.y-b.y, c.pt.x-b.x), d = Math.abs(((a-b.heading+Math.PI)%(2*Math.PI)+2*Math.PI)%(2*Math.PI)-Math.PI);
         if(d < SL.glMin || d > SL.glMax) return;
@@ -5396,10 +5397,9 @@ function newLookFor(b){
   // задачи, где взгляд задан самой задачей
   if(b.roamChecking && b.roamLookPt){ b.lookReason = "roam"; return b.roamLookPt; }
   if(b.fakeHoldUntil && tick < b.fakeHoldUntil && bomb && bomb.site){ b.lookReason = "fake"; return GEO[bomb.site].tEntry; }
-  if(BAL.proSpots && b.atPost && b.post && b.post.pro && !(b.curSpeed > 60*SPD_K)){ var plk = proSpotLook(b); if(plk){ b.lookReason = "pro"; return plk; } }
+  // всё остальное — делёж углов команды: угроза, порученный угол, «как у про»,
+  // угол поста — веса кандидатов в lookCands, а не отдельные ступени
   if(b._lkPt){ b.lookReason = "look"; return cornerLook(b, b._lkPt) || b._lkPt; }
-  var moving = b.curSpeed > 60*SPD_K && b.heading !== undefined;
-  if(!moving && b.atPost && b.post && b.post.look){ b.lookReason = "post"; return cornerLook(b, b.post.look) || b.post.look; }
   b.lookReason = null; return null;
 }
 
@@ -9183,8 +9183,9 @@ function resolveEngagements(){
   });
 
   // ---------- куда смотрит бот ----------
-  // видимый враг → иначе одна цепочка нового взгляда (newLookFor, ниже —
-  // делёж углов lookPlan) → две страховки "не в стену" → плавность.
+  // видимый враг → задачи со своим взглядом → делёж углов команды (lookPlan,
+  // в нём же «как у про» и угол поста как веса) → одна проверка "не в стену"
+  // → плавность.
   // Поворот плавный, но быстрый (AIM_TURN_RATE), и стрелять можно только
   // когда прицел уже почти на цели (AIM_FIRE_CONE) — отсюда естественная
   // задержка "развернулся → выстрелил", когда враг появился сбоку/сзади.
@@ -9198,11 +9199,7 @@ function resolveEngagements(){
     // страховка "не смотреть в стену": если прямо по взгляду стена ближе ~1м
     // (цель — за стеной: инфа/звук/последний враг), берём ближайшее открытое
     // направление в пределах ±70° — туда, откуда реально можно увидеть выход
-    if(look && BAL.noWallStare && b.lookReason !== "enemy" && b.lookReason !== "pro") look = openLook(b, look);
-    if(BAL.noWallLook && !b._sawEnemy && !/^(enemy|spam|cover)$/.test(b.lookReason || "")){
-      var wla = look ? Math.atan2(look.y-b.y, look.x-b.x) : (!(b.curSpeed > 15*SPD_K) && b.facing !== undefined ? b.facing : null);
-      if(wla !== null && flatWallAhead(b, wla, 80)){ var wal = openDirNear(b, wla); look = wal || (look ? null : null); if(wal) b.lookReason = (b.lookReason||"") + "+open"; }
-    }
+    if(BAL.noWallLook && !b._sawEnemy && !/^(enemy|spam|cover)$/.test(b.lookReason || "")) look = wallSafeLook(b, look);
     var slUrg = BAL.smoothLook ? lookUrgent(b) : true;
     if(BAL.smoothLook){ look = smoothLookFilter(b, look, slUrg); }
     b.lookTarget = look ? {x:look.x, y:look.y} : null;
