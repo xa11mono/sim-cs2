@@ -208,7 +208,7 @@ function tBrain(){
   tt.go = {};
   if(tt.phase === "execute"){
     var since = tick - (tt.execStart || tick), rush = tac.style === "rush";
-    var DELAY = {entry:0, awp:40, support:20, igl:90};
+    var DELAY = tac.style === "split" ? {entry:0, awp:10, support:0, igl:30} : {entry:0, awp:40, support:20, igl:90}; // сплит: обе группы заходят разом
     if(rush && tac.rushVia && tick - roundStartTick < 4*TICK_HZ) ts.forEach(function(b){ if(b.tRole !== "lurker") startRoute(b, tac.rushVia, tac.id); });
     if(!rush && !tt.wave2){
       var w1 = ts.filter(function(b){ return b.tRole === "entry" || b.tRole === "support" || b.tRole === "awp"; });

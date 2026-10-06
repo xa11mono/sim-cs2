@@ -282,7 +282,7 @@ function draw(){
     });
   }
 
-  if(showMarkup.checked) drawMarkup();
+  if(chkPtEd.checked) drawPoints();
 
   var contacts = 0;
   // контакты для HUD — считаем всегда, независимо от отрисовки
@@ -764,42 +764,27 @@ function draw(){
 }
 
 
-// ---------- слой «разметка» (01_markup.js): укрытия и точки встречи у входов ----------
-// Все входы — бледно; вход под курсором (или вход укрытия под курсором) — ярко,
-// с подписями. Зелёная точка — укрытие, красная стрелка — куда смотреть (где
-// появится враг), красный крестик — точка встречи.
-function drawMarkup(){
-  var M = markupGet(), sc = view.scale, H = markupHover, focus = null, bd = 45;
-  if(H) M.entries.forEach(function(E){
-    var d = Math.hypot(E.p.x-H.x, E.p.y-H.y); if(d < bd){ bd = d; focus = {E:E}; }
-    E.sides.forEach(function(S){ S.covers.forEach(function(c){ var dc = Math.hypot(c.x-H.x, c.y-H.y); if(dc < Math.min(bd, 14)){ bd = dc; focus = {E:E, S:S, c:c}; } }); });
-  });
-  var arrow = function(c, a){ var x2 = c.meet.x, y2 = c.meet.y, ang = Math.atan2(y2-c.y, x2-c.x), h = 7/sc;
-    ctx.globalAlpha = a; ctx.strokeStyle = "#ff5a4e"; ctx.lineWidth = 1.2/sc;
-    ctx.beginPath(); ctx.moveTo(c.x, c.y); ctx.lineTo(x2, y2); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(x2, y2); ctx.lineTo(x2-h*Math.cos(ang-0.4), y2-h*Math.sin(ang-0.4)); ctx.moveTo(x2, y2); ctx.lineTo(x2-h*Math.cos(ang+0.4), y2-h*Math.sin(ang+0.4)); ctx.stroke(); };
-  var dot = function(c, a, r){ ctx.globalAlpha = a; ctx.fillStyle = "#5fe07a"; ctx.strokeStyle = "#0b1a0e"; ctx.lineWidth = 1/sc;
-    ctx.beginPath(); ctx.arc(c.x, c.y, r/sc, 0, Math.PI*2); ctx.fill(); ctx.stroke(); };
-  var label = function(t, x, y, col){ ctx.globalAlpha = 1; ctx.font = (11/sc)+"px sans-serif"; var w = ctx.measureText(t).width;
-    ctx.fillStyle = "rgba(6,8,6,0.82)"; ctx.fillRect(x-2/sc, y-11/sc, w+4/sc, 14/sc); ctx.fillStyle = col; ctx.fillText(t, x, y); };
+// ---------- (v193) слой «точки углов» (01_points.js) — правка в 18_ui_editors.js ----------
+// CT — синие, T — оранжевые, обе — зелёные; буква — район; линия — куда смотреть
+function drawPoints(){
+  var sc = view.scale, P = pointsGet(), sel = PTED.sel, H = PTED.hover, hov = null, bd = 10/sc;
+  var COL = {CT:"#5aa8ff", T:"#ffaa3c", both:"#5fe07a"};
+  if(H && !PTED.drag) P.forEach(function(p){ if(!ptEdVisible(p)) return; var d = Math.hypot(p.x-H.x, p.y-H.y); if(d < bd){ bd = d; hov = p; } });
   ctx.save();
-  M.entries.forEach(function(E){
-    var on = focus && focus.E === E, a = focus ? (on ? 1 : 0.18) : 0.75;
-    ctx.globalAlpha = a; ctx.strokeStyle = "#ffb43a"; ctx.lineWidth = (on ? 3 : 2)/sc;
-    ctx.beginPath(); ctx.moveTo(E.seg[0].x, E.seg[0].y); ctx.lineTo(E.seg[1].x, E.seg[1].y); ctx.stroke();
-    E.sides.forEach(function(S){ S.covers.forEach(function(c){
-      var me = focus && focus.c === c, ca = focus ? (me ? 1 : on && !focus.c ? 0.9 : on ? 0.35 : 0.12) : 0.55;
-      if(on) arrow(c, ca*0.8);
-      else { var aa = c.look, L = 26/sc; ctx.globalAlpha = ca*0.8; ctx.strokeStyle = "#ff5a4e"; ctx.lineWidth = 1.4/sc;
-        ctx.beginPath(); ctx.moveTo(c.x, c.y); ctx.lineTo(c.x+L*Math.cos(aa), c.y+L*Math.sin(aa)); ctx.stroke(); }
-      dot(c, ca, me ? 5 : 3.2); }); });
+  P.forEach(function(p){
+    if(!ptEdVisible(p)) return;
+    var on = p === sel || p === hov, a = sel ? (p === sel ? 1 : 0.45) : 0.85;
+    ctx.globalAlpha = a*0.9; ctx.strokeStyle = "#ff5a4e"; ctx.lineWidth = (on ? 1.6 : 1.1)/sc;
+    var ang = Math.atan2(p.ly-p.y, p.lx-p.x), L = on ? Math.hypot(p.lx-p.x, p.ly-p.y) : 22/sc;
+    ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(p.x+L*Math.cos(ang), p.y+L*Math.sin(ang)); ctx.stroke();
+    ctx.globalAlpha = a; ctx.fillStyle = COL[p.side] || "#ccc"; ctx.strokeStyle = "#0b0f0b"; ctx.lineWidth = 1/sc;
+    ctx.beginPath(); ctx.arc(p.x, p.y, (on ? 5.5 : 3.6)/sc, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+    if(p.area){ ctx.font = (9/sc)+"px sans-serif"; ctx.fillStyle = "#e8eee8"; ctx.fillText(p.area === "M" ? "м" : p.area, p.x+4.5/sc, p.y-3.5/sc); }
   });
-  if(focus){ var E = focus.E;
-    label(E.nameA+" ↔ "+E.nameB+" · ширина "+E.w, E.p.x+8/sc, E.p.y-8/sc, "#ffb43a");
-    if(focus.c){ var c = focus.c, S = focus.S;
-      label("держит из «"+(E.a === S.hold ? E.nameA : E.nameB)+"» выход из «"+(E.a === S.from ? E.nameA : E.nameB)+"»", c.x+9/sc, c.y+4/sc, "#5fe07a");
-      label("проход виден "+Math.round(c.vis*100)+"% · открыт врагу "+Math.round(c.open*100)+"% · других углов "+c.dirs+" · угол "+(c.span < 0.25 ? "узкий" : "широкий"), c.x+9/sc, c.y+19/sc, "#cfd8cf");
-    }
-  }
+  if(sel){ ctx.globalAlpha = 1; ctx.fillStyle = "#ff5a4e"; ctx.strokeStyle = "#fff"; ctx.lineWidth = 1.2/sc;
+    ctx.beginPath(); ctx.arc(sel.lx, sel.ly, 6/sc, 0, Math.PI*2); ctx.fill(); ctx.stroke(); }
+  if(hov && hov !== sel){ var t = hov.id+" · "+(hov.side === "both" ? "обе" : hov.side)+" · "+(hov.area === "M" ? "мид" : hov.area || "вне районов")+(hov.name ? " · выход из «"+hov.name+"»" : "");
+    ctx.globalAlpha = 1; ctx.font = (11/sc)+"px sans-serif"; var w = ctx.measureText(t).width;
+    ctx.fillStyle = "rgba(6,8,6,0.85)"; ctx.fillRect(hov.x+7/sc, hov.y+2/sc, w+6/sc, 15/sc); ctx.fillStyle = "#e8eee8"; ctx.fillText(t, hov.x+10/sc, hov.y+13/sc); }
   ctx.restore();
 }

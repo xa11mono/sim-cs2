@@ -143,10 +143,16 @@ function throwNade(b, type, tx, ty, lob, why){
     var le = BAL.lobErr * leMul * hashRand(tick*71 + b.id.charCodeAt(0)*5), la2 = hashRand(tick*13 + b.id.length*97)*Math.PI*2;
     nd.lob = true; nd.sx = b.x; nd.sy = b.y; nd.tx = tx + Math.cos(la2)*le; nd.ty = ty + Math.sin(la2)*le; nd.flight = Math.max(30, Math.round(d/650*TICK_HZ));
   }
-  // кто может увернуться от этой флешки: видел бросающего или был рядом (слышит чеку)
-  if(type === "flash" && BAL.flashAware){
-    nd.aware = {};
-    bots.forEach(function(o){ if(o.alive && o.team !== b.team && (Math.hypot(o.x-b.x, o.y-b.y) < 450 || hasVision(o.x, o.y, b.x, b.y))) nd.aware[o.id] = true; });
+  // (В12) уход от флешки: кто знает о броске (видел бросающего, слышал чеку рядом, видит полёт)
+  // и видит место хлопка — через реакцию отворачивается, после хлопка взгляд возвращается (10_look.js)
+  if(type === "flash"){
+    var flx = nd.lob ? nd.tx : tx, fly = nd.lob ? nd.ty : ty;
+    bots.forEach(function(o){
+      if(!o.alive || o.team === b.team) return;
+      var knows = Math.hypot(o.x-b.x, o.y-b.y) < 450 || hasVision(o.x, o.y, b.x, b.y) || hasVision(o.x, o.y, (b.x+flx)/2, (b.y+fly)/2);
+      if(knows && Math.hypot(o.x-flx, o.y-fly) < 1000 && hasLOS(o.x, o.y, flx, fly))
+        o._flashAway = {x:flx, y:fly, from:tick + (o.reactionTicks || 20), until:tick + NADE.flash.fuse + 8};
+    });
   }
   nadesInAir.push(nd);
   b.throwUntil = tick + 18; // ~0.3с стоит на броске
@@ -344,15 +350,8 @@ function detonate(n){
       var a = Math.atan2(n.y-b.y, n.x-b.x);
       var off = b.facing === undefined ? 0 : Math.abs(((a - b.facing + Math.PI) % (2*Math.PI) + 2*Math.PI) % (2*Math.PI) - Math.PI);
       var dirK = off < 0.55 ? 1 : (off < 1.6 ? 0.5 : 0.12);  // смотрел прямо / краем глаза / спиной
-      // враг, который видел/слышал летящую флешку, может успеть отвернуться —
-      // тем вероятнее, чем выше навык (раньше флешка слепила "по учебнику" всегда)
-      if(b.team !== n.team){
-        // увернуться можно, только если знал о флешке (видел/слышал бросок);
-        // поп-флешка из-за стены почти всегда застаёт врасплох
-        var pD = BAL.flashAware ? ((n.aware && n.aware[b.id]) ? 0.65 + 0.1*(b.skill-0.8)/0.4 : 0.3) : 0.25 + 0.3*(b.skill-0.8)/0.4;
-        var dodge = hashRand(tick*29 + b.id.charCodeAt(0)*13 + b.id.length*7) < pD;
-        if(dodge){ dirK *= 0.3; if(BAL.flashAware && dirK > 0.1) logEvent(b.id+" отвернулся от флешки"); }
-      }
+      // (В12) успел отвернуться или нет — видно по тому, куда он сейчас смотрит (dirK выше), без кубика
+      if(b.team !== n.team && b.lookReason === "flash" && dirK < 0.5) logEvent(b.id+" отвернулся от флешки");
       var secs = BAL.flashMax * dirK * Math.max(0, 1 - d/1100);
       // свои знают про флешку (колл "флешу!") и отворачиваются — слепит их редко и слабо
       if(b.team === n.team) secs *= (b === n.thrower ? 0.05 : 0.18);

@@ -594,6 +594,7 @@ var SL = {holdStand: 51, holdMove: 32, backBlock: 96, holdAlert: 16, backAlert: 
 // 1 — тревога (свежий звук/контакт рядом): поворот быстрый, но тоже без
 //     метаний — держит новое направление хотя бы 0,25с; 0 — спокойно
 function lookUrgent(b){
+  if(b.lookReason === "flash") return 2;
   if(b._sawEnemy || b.lookReason === "enemy" || b.lookReason === "cover" || b.lookReason === "spam") return 2;
   if(b.planting || b.defusing) return 2;
   if(tick < (b.blindUntil||0) + 32) return 2;
@@ -621,6 +622,12 @@ function smoothLookFilter(b, look, urgent){
   }
   b._sl = {pt:{x:look.x, y:look.y}, since:tick, prev:S.pt, left:tick};
   return look;
+}
+// (В12) флешка летит в мою сторону: отвернуться (смотреть от места хлопка, хоть в стену) до хлопка
+function flashAwayLook(b){
+  var F = b._flashAway; if(!F || tick < F.from) return null;
+  if(tick >= F.until){ b._flashAway = null; return null; }
+  return {x:b.x - (F.x-b.x), y:b.y - (F.y-b.y)};
 }
 function newLookFor(b){
   if(BAL.coverFix && b._coverDir && tick < b._coverDir.until && !b._sawEnemy){ b.lookReason = "cover"; return cornerLook(b, b._coverDir.pt) || b._coverDir.pt; }

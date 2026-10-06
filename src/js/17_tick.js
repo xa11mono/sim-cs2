@@ -85,7 +85,7 @@ function stepTick(){
        (BAL.cautious && bot.post && bot.state === "patrol" && /^(retake|defuse)$/.test(bot.post.tag) &&
         Math.hypot(bot.post.x-bot.baseX, bot.post.y-bot.baseY) < 350) ||
        // лёркер в сетапе ходит тихо
-       (bot.tRole === "lurker" && bot.team === "T" && teamTac.T && teamTac.T.phase === "setup" && bot.post && /^stage/.test(bot.post.tag)) ||
+       (bot.tRole === "lurker" && bot.team === "T" && teamTac.T && teamTac.T.phase === "setup" && bot.post && /^(stage|lurk)/.test(bot.post.tag)) ||
        (BAL.dangerWalk && dangerWalk(bot)) ||
        // ниндзя-дефуз: последние ~3м к бомбе шифтом, если время позволяет
        (BAL.ninjaDefuse && bomb && bomb.retake && bomb.retake.ninja && bot.post && bot.post.tag === "defuse" &&

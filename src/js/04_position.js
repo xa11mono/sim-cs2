@@ -210,7 +210,7 @@ function setPost(b, pt, look, hold, tag, spreadIdx){
   if(tag === "lineup") b._route = null;
   if(b._route && !/^route/.test(tag)){
     var R = b._route;
-    if(/^(retake|gather|defuse|flee|save|fetch|postplant|antidefuse|take|plantspot)/.test(tag) || (bomb && bomb.state === "planted")){ b._route = null; }
+    if(/^(retake|gather|defuse|flee|save|fetch|postplant|antidefuse|take|entry|trade|carry|plantspot|repos|fallback)/.test(tag) || (bomb && bomb.state === "planted")){ b._route = null; }
     else if(R.idx < R.pts.length){
       R.want = [pt, look, hold, tag, spreadIdx];
       var cp = R.pts[R.idx], nx = R.pts[R.idx+1] || pt;

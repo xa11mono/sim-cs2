@@ -693,12 +693,14 @@ function resolveEngagements(){
   bots.forEach(function(b){
     if(!b.alive) return;
     var look = null;
-    if(b._sawEnemy && b._nearestEnemyBot){ look = b._nearestEnemyBot; b.lookReason = "enemy"; }
+    var fa = flashAwayLook(b);
+    if(fa){ look = fa; b.lookReason = "flash"; }
+    else if(b._sawEnemy && b._nearestEnemyBot){ look = b._nearestEnemyBot; b.lookReason = "enemy"; }
     else look = newLookFor(b);
     // страховка "не смотреть в стену": если прямо по взгляду стена ближе ~1м
     // (цель — за стеной: инфа/звук/последний враг), берём ближайшее открытое
     // направление в пределах ±70° — туда, откуда реально можно увидеть выход
-    if(BAL.noWallLook && !b._sawEnemy && !/^(enemy|spam|cover)$/.test(b.lookReason || "")) look = wallSafeLook(b, look);
+    if(BAL.noWallLook && !b._sawEnemy && !/^(enemy|spam|cover|flash)$/.test(b.lookReason || "")) look = wallSafeLook(b, look);
     var slUrg = BAL.smoothLook ? lookUrgent(b) : true;
     if(BAL.smoothLook){ look = smoothLookFilter(b, look, slUrg); }
     b.lookTarget = look ? {x:look.x, y:look.y} : null;

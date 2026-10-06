@@ -25,7 +25,6 @@ fit();
 
 var showNavmesh = document.getElementById("chkNavmesh"); // navmesh-полигоны (NAVAREAS) — точная геометрия проходимости
 var showPortals = document.getElementById("chkPortals");
-var showMarkup = document.getElementById("chkMarkup");   // разметка карты (укрытия и точки встречи, 01_markup.js) — только показ
 var showWalls = document.getElementById("chkWalls");
 var showZones = document.getElementById("chkZones");     // именованные зоны из Zone Editor (ZONEMAP.zones) — семантический слой поверх навмеша
 var showPoints = document.getElementById("chkPoints");   // тактические точки из Zone Editor (ZONEMAP.points)
@@ -35,13 +34,12 @@ var showTracers = document.getElementById("chkTracers");
 var showCalls = document.getElementById("chkCalls");
 var showWhy = document.getElementById("chkWhy");
 // подпись "почему": задача (пост) · куда смотрит и из-за чего
-var WHY_POST = [[/^hold:(.*)/,"держит вход $1"],[/^gather/,"сбор на ретейк"],[/^retakeEntry/,"заходит первым"],[/^retake/,"заход на ретейк"],[/^mid:back/,"мид: отошёл (их больше)"],[/^repos:finish/,"добивает раненого"],[/^repos:coverblind/,"держит угол слепого тиммейта"],[/^coverplant/,"прикрывает ставящего"],[/^bombwatch/,"держит упавшую бомбу"],[/^postplant:split/,"пост-плант, другой угол"],[/^clutch:(.*)/,"клатч: играет $1"],[/^rebal/,"сменил угол: вход держат"],[/^midcover:go/,"идёт на мид (мидер погиб)"],[/^midcover/,"держит мид вместо мидера"],[/^postplant:time/,"играет на время"],[/^repos:lowhp/,"мало HP — к своим"],[/^repos:rlcover/,"перезарядка за укрытием"],[/^repos:assist/,"дабл-пик с тиммейтом"],[/^repos:reload/,"пикает на перезарядку"],[/^rotateHold/,"ждёт ретейк (их больше)"],[/^earlyPeek/,"ранний пик за инфой"],[/^repos:swing/,"добирает после фрага"],[/^anchor2/,"второй на сайте"],[/^anchor/,"опорник"],[/^mid/,"мид"],[/^rotat/,"ротатор"],[/^rotate/,"ротация"],
-  [/^stack/,"стак"],[/^stage/,"сбор перед выходом"],[/^probePair/,"напарник пробы"],[/^probe/,"проба за инфой"],[/^lurk/,"лурк"],[/^route:(.*)/,"идёт: $1"],
-  [/^siteholdA?B?:?(.*)/,"держит сайт $1"],[/^clear/,"зачистка сайта"],[/^tradeR/,"РАЗМЕН"],[/^trade/,"прикрывает вход"],
-  [/^flee/,"уходит от бомбы"],[/^save/,"сейв"],[/^retakeEntry/,"ретейк: заходит первым"],[/^retakeCover/,"ретейк: дефузит за первым"],[/^retake/,"ретейк"],[/^defuse/,"дефуз"],[/^postplant/,"пост-плант"],
-  [/^endhunt/,"охота на последних"],[/^repos/,"меняет позицию"],[/^fake/,"фейк"],[/^shift/,"смещается"],[/^awpline/,"AWP линия"],
-  [/^pickup/,"за оружием"],[/^plantspot/,"плант"],[/^fetch/,"за бомбой"],[/^antidefuse/,"сбить дефуз"],[/^stopplant/,"сбить плант"],
-  [/^gather/,"сбор на ретейк"],[/^flank/,"фланг"],[/^lineup/,"идёт кидать гранату"],[/^smokeWait/,"ждёт у смока"],[/^tmid/,"мид T"],[/^cts:/,"сетап CT"]];
+var WHY_POST = [[/^hold:(.*)/,"держит вход $1"],[/^retakeHold:(.*)/,"играет от ретейка: $1"],[/^gather/,"сбор на ретейк"],[/^retakeEntry/,"ретейк: заходит первым"],[/^retake/,"ретейк"],
+  [/^peek:(.*)/,"ранний пик за инфой: $1"],[/^push:(.*)/,"подпуш: $1"],[/^jiggle/,"джиггл на звук"],[/^back:(.*)/,"назад после хода ($1)"],[/^repos:(.*)/,"меняет позицию: $1"],[/^fallback/,"отходит (ранен, их больше)"],
+  [/^stage/,"сбор перед выходом"],[/^control/,"контроль области"],[/^probe/,"проба за инфой"],[/^lurk/,"лёрк"],[/^route:(.*)/,"идёт: $1"],
+  [/^entry/,"энтри: заходит первым"],[/^trade/,"за энтри на размен"],[/^take/,"заход на сайт"],[/^carry/,"бомба за группой"],[/^plantspot/,"плант"],
+  [/^flee/,"уходит от бомбы"],[/^save/,"сейв"],[/^defuse/,"дефуз"],[/^postplant/,"пост-плант с дистанции"],[/^antidefuse/,"сбить дефуз"],
+  [/^pickup/,"за оружием"],[/^fetch/,"за бомбой"],[/^lineup/,"идёт кидать гранату"]];
 var WHY_LOOK = {spam:"простреливает смок", look:"угроза", enemy:"видит врага", corner:"край угла впереди", cover:"держит второй угол за тиммейта", open:"открытый угол (свой угол держит тиммейт)", flank:"фланг за тиммейтом", death:"туда, где убили своего", sweep:"чекает после смока", sound:"на звук", threat:"угроза", post:"свой угол", preaim:"по плану", roam:"проверяет точку",
   hunt:"ищет последнего", save:"сейв: проходы", fake:"фейк-дефуз", intel:"инфа", call:"колл", lkp:"где видели", habit:"привычка врага", belief:"вероятность"};
 function whyText(b){
@@ -77,9 +75,6 @@ cv.addEventListener("mousemove", function(e){
   var w = navScreenToWorld(e.clientX, e.clientY);
   hoverZoneId = findZoneMapZoneAt(w.x, w.y);
 });
-// разметка: где курсор (подсветить ближайший вход)
-var markupHover = null;
-cv.addEventListener("mousemove", function(e){ markupHover = showMarkup.checked ? navScreenToWorld(e.clientX, e.clientY) : null; });
 document.getElementById("btnRecomputeDanger").addEventListener("click", function(){
   computeZoneDanger();
   logEvent("Таблица опасности пересчитана ("+ZONEMAP.zones.length+" зон)", "round");
@@ -722,6 +717,7 @@ document.getElementById("btnZoneNameReset").addEventListener("click", function()
 document.getElementById("btnZoneNameClose").addEventListener("click", function(){ zoneNamePanel.style.display = "none"; zoneNameSel = null; draw(); });
 zoneNameInput2.addEventListener("keydown", function(e){ if(e.key === "Enter"){ saveZoneNameFromInput(); e.preventDefault(); } e.stopPropagation(); });
 cv.addEventListener("mousedown", function(e){
+  if(e.button === 0 && chkPtEd.checked){ ptEdDown(e); e.preventDefault(); e.stopImmediatePropagation(); return; }
   if(e.button === 0 && chkLineups.checked){ lineupClick(e); e.preventDefault(); return; }
   // слой «зоны» без других режимов редактирования: клик по зоне — её название
   if(e.button === 0 && showZones.checked && !chkNavWarp.checked && !chkZoneEdit.checked && !chkWallEdit.checked &&
@@ -1093,3 +1089,94 @@ btnNavReset.addEventListener("click", function(){
   }
 })();
 
+
+// ---- (v193) редактор точек углов (01_points.js): как редактор стен ----
+// Правки сразу идут в игру (POINTS) и сами сохраняются в базу страницы
+// (коллекция points, документ map) через 1,5 с; Claude переносит их в
+// src/data/points.json. Нет базы — «Экспорт» даёт JSON, его можно прислать в чат.
+var chkPtEd = document.getElementById("chkPtEd"), ptEdPanel = document.getElementById("ptEdPanel");
+var PTED = {sel:null, drag:null, hover:null, db:null, dirty:false, savedAt:null, timer:null, lastT:0};
+function ptEdEl(id){ return document.getElementById(id); }
+function ptEdVisible(p){ var f = ptEdEl("ptEdShow").value; return f === "all" || p.side === f || p.side === "both"; }
+function ptEdFind(w){ var best = null, bd = 10/view.scale;
+  pointsGet().forEach(function(p){ if(!ptEdVisible(p)) return; var d = Math.hypot(p.x-w.x, p.y-w.y); if(d < bd){ bd = d; best = p; } });
+  return best; }
+// точку правили — её «знание» (какой вход, насколько открыта) пересчитать; каталог ботов — заново
+function ptEdTouched(p){ if(p){ delete p.hold; delete p.from; delete p.open; delete p.dirs; delete p.key; delete p.name; }
+  TEAM_COV = null; PTED.dirty = true; POINTS_SRC = "правка на странице (ещё не в коде)"; ptEdSaveSoon(); ptEdRefresh(); }
+function ptEdRefresh(){
+  if(!ptEdPanel) return;
+  var P = pointsGet(), n = {CT:0, T:0, both:0}; P.forEach(function(p){ n[p.side] = (n[p.side]||0)+1; });
+  ptEdEl("ptEdCount").textContent = "· "+P.length+" (CT "+n.CT+", T "+n.T+", обе "+n.both+")";
+  var p = PTED.sel && P.indexOf(PTED.sel) >= 0 ? PTED.sel : (PTED.sel = null);
+  ptEdEl("ptEdFields").style.display = p ? "grid" : "none";
+  if(p){ if(p.open == null) pointDerive(p);
+    ptEdEl("ptEdSel").innerHTML = "<b style='color:var(--text)'>"+esc2(p.id)+"</b> · стоит: "+esc2(zoneNameAt(p.x, p.y))+
+      "<br>держит выход из: <b style='color:var(--text)'>"+esc2(p.name || "?")+"</b><br>открыта врагу "+Math.round((p.open||0)*100)+"% · других углов "+(p.dirs||0);
+    ptEdEl("ptEdSide").value = p.side; ptEdEl("ptEdArea").value = p.area || "";
+  } else ptEdEl("ptEdSel").textContent = "точка не выбрана";
+  ptEdEl("ptEdStatus").textContent = "сейчас в игре: "+POINTS_SRC+(PTED.db ? (PTED.dirty ? " · сохраняю…" : PTED.savedAt ? " · сохранено "+PTED.savedAt : "") : " · база страницы недоступна — используй «Экспорт»");
+}
+function zoneNameAt(x, y){ var z = bzOf(x, y); return z >= 0 ? (ZONE_NAMES[ZONEMAP.zones[z].id] || ZONEMAP.zones[z].id) : "?"; }
+function ptEdPack(){ return pointsGet().map(function(p){ var o = {id:p.id, x:Math.round(p.x*10)/10, y:Math.round(p.y*10)/10, lx:Math.round(p.lx*10)/10, ly:Math.round(p.ly*10)/10, side:p.side, area:p.area || ""};
+  ["key","hold","from","name","open","dirs"].forEach(function(k){ if(p[k] != null) o[k] = p[k]; }); return o; }); }
+function ptEdSaveSoon(){ clearTimeout(PTED.timer); PTED.timer = setTimeout(ptEdSave, 1500); }
+function ptEdSave(){
+  if(!PTED.db){ ptEdRefresh(); return; }
+  var t = Date.now(); PTED.lastT = t;
+  PTED.db.collection("points").doc("map").set({pts:ptEdPack(), t:t, n:pointsGet().length})
+    .then(function(){ PTED.dirty = false; PTED.savedAt = new Date(t).toLocaleTimeString("ru-RU"); ptEdRefresh(); })
+    .catch(function(){ PTED.savedAt = null; ptEdEl("ptEdStatus").textContent = "не удалось сохранить в базу — используй «Экспорт»"; });
+}
+function ptEdDown(e){
+  var w = navScreenToWorld(e.clientX, e.clientY), p = PTED.sel;
+  // красный кружок выбранной точки — куда смотреть
+  if(p && Math.hypot(p.lx-w.x, p.ly-w.y) < 9/view.scale){ PTED.drag = {p:p, look:true}; return; }
+  var hit = ptEdFind(w);
+  if(hit){ PTED.sel = hit; PTED.drag = {p:hit, look:false, dx:hit.x-w.x, dy:hit.y-w.y, lx:hit.lx-hit.x, ly:hit.ly-hit.y, moved:false}; ptEdRefresh(); draw(); return; }
+  PTED.sel = null; ptEdRefresh(); draw();
+}
+cv.addEventListener("dblclick", function(e){
+  if(!chkPtEd.checked) return;
+  var w = navScreenToWorld(e.clientX, e.clientY); if(ptEdFind(w)) return;
+  var f = ptEdEl("ptEdShow").value, P = pointsGet(), k = 1; P.forEach(function(p){ var m = /^p(\d+)$/.exec(p.id); if(m) k = Math.max(k, +m[1]+1); });
+  var a = teamAreaOf(w), p = {id:"p"+k, x:Math.round(w.x*10)/10, y:Math.round(w.y*10)/10, lx:Math.round(w.x*10)/10 + 120, ly:Math.round(w.y*10)/10, side: f === "T" ? "T" : "CT", area: a || ""};
+  P.push(p); PTED.sel = p; ptEdTouched(p); draw();
+});
+window.addEventListener("mousemove", function(e){
+  if(!chkPtEd.checked) return;
+  var w = navScreenToWorld(e.clientX, e.clientY);
+  PTED.hover = w;
+  var D = PTED.drag; if(!D) return;
+  if(D.look){ D.p.lx = Math.round(w.x*10)/10; D.p.ly = Math.round(w.y*10)/10; }
+  else { D.p.x = Math.round((w.x+D.dx)*10)/10; D.p.y = Math.round((w.y+D.dy)*10)/10; D.p.lx = D.p.x + D.lx; D.p.ly = D.p.y + D.ly; }
+  D.moved = true; draw();
+});
+window.addEventListener("mouseup", function(){ var D = PTED.drag; PTED.drag = null; if(D && (D.moved || D.look)) ptEdTouched(D.p); });
+window.addEventListener("keydown", function(e){
+  if(!chkPtEd.checked || !PTED.sel) return;
+  var tg = e.target && e.target.tagName; if(tg === "INPUT" || tg === "TEXTAREA" || tg === "SELECT") return;
+  if(e.key === "Delete" || e.key === "Backspace"){ ptEdDelete(); e.preventDefault(); }
+});
+function ptEdDelete(){ var P = pointsGet(), i = P.indexOf(PTED.sel); if(i < 0) return; P.splice(i, 1); PTED.sel = null; ptEdTouched(null); draw(); }
+chkPtEd.addEventListener("change", function(){ ptEdPanel.style.display = chkPtEd.checked ? "block" : "none"; if(chkPtEd.checked){ chkLineups.checked = false; lineupPanel.style.display = "none"; } PTED.sel = null; ptEdRefresh(); draw(); });
+ptEdEl("ptEdShow").addEventListener("change", function(){ PTED.sel = null; ptEdRefresh(); draw(); });
+ptEdEl("ptEdSide").addEventListener("change", function(){ if(PTED.sel){ PTED.sel.side = this.value; ptEdTouched(null); draw(); } });
+ptEdEl("ptEdArea").addEventListener("change", function(){ if(PTED.sel){ PTED.sel.area = this.value; ptEdTouched(null); draw(); } });
+ptEdEl("ptEdDel").addEventListener("click", ptEdDelete);
+ptEdEl("ptEdSave").addEventListener("click", function(){ clearTimeout(PTED.timer); ptEdSave(); });
+ptEdEl("ptEdExport").addEventListener("click", function(){ var a = ptEdEl("ptEdOut"); a.style.display = "block"; a.value = JSON.stringify({v:1, pts:ptEdPack()}); a.select(); try{ document.execCommand("copy"); }catch(e){} });
+ptEdEl("ptEdRevert").addEventListener("click", function(){
+  if(!confirm("Вернуть точки из кода? Правки на странице пропадут (в базе тоже).")) return;
+  pointsSet(POINTS_CODE.pts, "код"); PTED.sel = null; PTED.dirty = true; ptEdSave(); ptEdRefresh(); draw(); });
+// база страницы: точки владельца — в игру (с нового раунда)
+if(window.claude && claude.use){
+  claude.use("db").then(function(db){ if(!db) return; PTED.db = db;
+    db.collection("points").onSnapshot(function(snap){
+      var d = snap.docs.filter(function(x){ return x.id === "map"; })[0]; if(!d) { ptEdRefresh(); return; }
+      var v = d.data(); if(v && v.t && v.t !== PTED.lastT){ PTED.lastT = v.t; PTED.savedAt = new Date(v.t).toLocaleTimeString("ru-RU"); pointsFromDb(v); }
+      ptEdRefresh();
+    }, function(){ PTED.db = null; ptEdRefresh(); });
+  });
+}
+ptEdRefresh();

@@ -124,20 +124,21 @@
   .mk-urg{color:var(--danger);} .mk-st{font-size:11px;color:var(--text-dim);} .mk-st-fixed{color:#ffd76a;} .mk-st-unparsed{color:var(--site);}
   .mk-toast{position:absolute;left:50%;bottom:24px;transform:translateX(-50%);z-index:60;background:rgba(10,14,9,0.96);border:1px solid var(--accent);color:var(--text);padding:8px 14px;border-radius:6px;max-width:80%;}
   .mk-prog{position:absolute;left:50%;top:45%;transform:translate(-50%,-50%);z-index:60;background:rgba(10,14,9,0.96);border:1px solid var(--accent);color:var(--accent);padding:14px 22px;border-radius:8px;font-size:15px;}
+  .ptsel{background:var(--panel-2);color:var(--text);border:1px solid var(--line);border-radius:4px;padding:2px 4px;}
 </style>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 
 <div id="app">
   <div id="topbar">
     <h1>ANCIENT — LIVE RADAR</h1>
-    <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 192 · 06.10</div>
+    <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 193 · 06.10</div>
     <button id="btnPause">Пауза</button>
     <button id="btnRestartRound" title="Немедленно сбросить текущий раунд — на случай если боты застряли">Рестарт раунда</button>
     <span class="chk" title="Матч с одним номером всегда проходит одинаково. Увидел баг — запиши номер матча и тик, введи номер и нажми «Сыграть»: матч повторится с начала">матч № <input id="inpMatchNum" type="number" min="1" value="1" style="width:52px"> <button id="btnFreshMatch">Сыграть</button> <span id="matchTick" style="opacity:.75"></span></span>
     <label class="chk"><input type="checkbox" id="chkWalls"> стены</label>
     <label class="chk"><input type="checkbox" id="chkNavmesh"> навмеш</label>
     <label class="chk"><input type="checkbox" id="chkPortals"> порталы</label>
-    <label class="chk" title="Разметка карты: у каждого входа — точки укрытий (зелёные: стоишь у стены, проход видно, сам почти закрыт) и где оттуда появится враг (красная стрелка — куда смотреть). Наведи на вход или точку — подробно"><input type="checkbox" id="chkMarkup"> разметка</label>
+    <label class="chk" title="Точки углов: откуда боты держат угол и куда смотрят. Можно править: удалить, поставить, сдвинуть, задать взгляд, сторону и район"><input type="checkbox" id="chkPtEd"> точки углов (правка)</label>
     <label class="chk" title="Слой зон карты. Клик по зоне — переименовать её (Кейв, Донат, Мейн…)"><input type="checkbox" id="chkZones"> зоны (клик — название)</label>
     <label class="chk"><input type="checkbox" id="chkPoints"> точки</label>
     <label class="chk" title="Наведи курсор на зону (при включённом слое «зоны») — подсветятся все зоны, откуда её простреливают"><input type="checkbox" id="chkDanger"> опасность (наведи)</label>
@@ -249,6 +250,26 @@
         <span class="lab">scale</span><input type="number" id="zlScale" value="1" step="0.01" style="width:80px;background:var(--panel-2);color:var(--text);border:1px solid var(--line);border-radius:4px;padding:2px 5px;">
       </div>
       <button id="btnZlReset" style="width:100%;">Сброс (к зашитому)</button>
+    </div>
+    <div id="ptEdPanel" style="display:none;position:absolute;top:10px;right:12px;background:rgba(10,14,9,0.95);border:1px solid var(--accent-dim);padding:10px 12px;border-radius:6px;font-size:11px;line-height:1.6;width:280px;z-index:7;max-height:84vh;overflow:auto;">
+      <div style="color:var(--accent);font-weight:600;margin-bottom:4px;">Точки углов <span id="ptEdCount" style="color:var(--text-dim);font-weight:400"></span></div>
+      <div style="color:var(--text-dim);margin-bottom:6px;">клик — выбрать · тащи точку — сдвинуть · тащи красный кружок — куда смотреть · двойной клик по пустому — новая точка · Delete — удалить · ПКМ — двигать карту</div>
+      <div style="display:grid;grid-template-columns:auto 1fr;gap:4px 6px;align-items:center;margin-bottom:6px;">
+        <span>показывать</span><select id="ptEdShow" class="ptsel"><option value="all">все</option><option value="CT">только CT</option><option value="T">только T</option></select>
+      </div>
+      <div id="ptEdSel" style="border-top:1px solid var(--line);padding-top:6px;margin-bottom:6px;color:var(--text-dim);">точка не выбрана</div>
+      <div id="ptEdFields" style="display:none;grid-template-columns:auto 1fr;gap:4px 6px;align-items:center;margin-bottom:6px;">
+        <span>сторона</span><select id="ptEdSide" class="ptsel"><option value="CT">CT</option><option value="T">T</option><option value="both">обе</option></select>
+        <span>район</span><select id="ptEdArea" class="ptsel"><option value="A">A</option><option value="M">мид</option><option value="B">B</option><option value="">вне районов (пик/подпуш)</option></select>
+        <span></span><button id="ptEdDel">Удалить точку</button>
+      </div>
+      <div style="border-top:1px solid var(--line);padding-top:6px;display:grid;gap:4px;">
+        <div id="ptEdStatus" style="color:var(--text-dim);"></div>
+        <button id="ptEdSave">Сохранить сейчас</button>
+        <button id="ptEdExport">Экспорт (JSON — если база недоступна)</button>
+        <button id="ptEdRevert">Вернуть точки из кода</button>
+        <textarea id="ptEdOut" style="display:none;width:100%;height:80px;font-size:10px;"></textarea>
+      </div>
     </div>
     <div id="lineupPanel" style="display:none;position:absolute;top:10px;right:12px;background:rgba(10,14,9,0.95);border:1px solid var(--accent-dim);padding:10px 12px;border-radius:6px;font-size:11px;line-height:1.6;width:270px;z-index:7;max-height:80vh;overflow:auto;">
       <div style="color:var(--accent);font-weight:600;margin-bottom:4px;">Свои лайнапы</div>

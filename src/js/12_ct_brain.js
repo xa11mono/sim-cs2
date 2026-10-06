@@ -149,6 +149,14 @@ function ctBrain(){
   }
   ct.need = need;
   ctAssign(cts, need);
+  // IGL по ходу: долго никого не видно и не слышно — один (ближе к линиям T, меньше нужен на месте) идёт проверить
+  var secIn = simTime - roundStartTime, quietS = (tick - teamLastInfo("CT"))/TICK_HZ;
+  if(!planted0 && !ct.call && secIn > 30 && quietS > 20 && cts.length >= 3){
+    if(!ct.wantInfo || !cts.some(function(o){ return o.id === ct.wantInfo; })){
+      var chk = cts.filter(function(o){ return !teamNeededHere("CT", o); }).sort(function(p, q){ return (q.tRole === "mid" || q.tRole === "roamer" ? 1 : 0) - (p.tRole === "mid" || p.tRole === "roamer" ? 1 : 0); })[0] || cts[0];
+      ct.wantInfo = chk.id; var igl0 = cts[0]; newsAdd(igl0, {k:"askcheck", id:chk.id, x:chk.x, y:chk.y});
+    }
+  } else ct.wantInfo = null;
   var planted = bomb.state === "planted";
   // сколько секунд нужно лучшему CT, чтобы обезвредить бомбу: кто уже дефузит —
   // остаток его дефуза; остальные — реальный путь до бомбы / скорость + дефуз

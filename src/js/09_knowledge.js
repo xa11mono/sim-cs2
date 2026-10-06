@@ -658,7 +658,7 @@ var VOICE_STATS = {n:0, sec:0, words:0, lost:0, late:0, urgent:0, stale:0, ex:[]
 var SAID_TTL = 6*64; // тиков (64 в секунду; TICK_HZ объявлен позже, в 17_tick.js)
 // сколько запись в блокноте ещё стоит говорить (тиков): шаги и «вижу» — свежие
 // только секунду-полторы; минус, бомба, плант — дольше; план — до смены плана
-var TALK_TTL = {see:64, hear:96, hurt:128, kill:128, clear:128, nade:96, doing:128, need2:128, holdmine:128, pull:96, flashme:64,
+var TALK_TTL = {see:64, hear:96, hurt:128, kill:128, clear:128, nade:96, doing:128, need2:128, askcheck:192, holdmine:128, pull:96, flashme:64,
   dead:192, bomb:192, bombground:192, buy:384, plan:256, _retry:96, take:128, go:96, cant:96};
 function talkTTL(it){ return it.k === "hear" && (it.kind === "plant" || it.kind === "defuse") ? 192 : (TALK_TTL[it.k] || 96); }
 // не устарело ли (проверка перед тем, как сказать, и когда фраза дошла): говорить
@@ -689,9 +689,9 @@ function newsAdd(b, it){ if(!b) return; it.t = tick; (b._news || (b._news = []))
 function talkSpeaking(team, except){ return VOICE[team].filter(function(u){ return !u.done && u.end > tick && u.by !== except; }).length; }
 var TALK_NUM = ["", "один", "двое", "трое", "четверо", "пятеро"];
 var TALK_NADE = {smoke:"смок", flash:"флешку", he:"HE", molly:"молотов"}; // «кидаю …» — что кидаю
-var TALK_DO = [["tradeR","меняю"], ["probe","подпушу"], ["lurk","иду в люрк"], ["rotate","ротируюсь"], ["save","сейвлю"],
-  ["defuse","дефужу"], ["plantspot","ставлю"], ["antidefuse","иду на бомбу"], ["retakeEntry","захожу первым"], ["stopplant","сбиваю плант"],
-  ["flank","захожу им в спину"], ["endhunt","иду на последнего"], ["fetch","беру бомбу"], ["midcover","беру мид"], ["bombwatch","держу бомбу"]];
+var TALK_DO = [["peek","пикну за инфой"], ["probe","пробую"], ["lurk","иду в люрк"], ["save","сейвлю"], ["defuse","дефужу"],
+  ["plantspot","ставлю"], ["antidefuse","иду на бомбу"], ["retakeEntry","захожу первым"], ["fetch","беру бомбу"], ["entry","захожу первым"],
+  ["trade","иду за энтри"], ["repos","меняю позицию"], ["fallback","отхожу"], ["retakeHold","играю от ретейка"], ["carry","бомба за вами"]];
 function talkWhere(x, y, from){ return calloutName(x, y, from).replace(/[«»]/g, ""); }
 // из записи блокнота — сообщение: что сказать полностью и коротко, срочно ли, что передаёт
 function talkMsg(b, it){
@@ -721,7 +721,9 @@ function talkMsg(b, it){
     case "buy": return {key:"buy"+it.read, pr:3, short:it.read === "eco" ? "у них эко" : "у них закуп", full:it.read === "eco" ? "у них пистолеты — эко" : "у них винтовки — закуп"};
     case "nade": return {key:"nd"+b.id+it.start, pr:5, short:TALK_NADE[it.type]+" "+w, full:"кидаю "+TALK_NADE[it.type]+" "+w};
     case "doing": return {key:"do"+b.id+it.verb+w, pr:3, short:it.verb, full:it.verb+(w ? " — "+w : "")};
-    case "need2": return {key:"n2"+b.id+w, pr:6, short:"нужен второй "+w, full:"иду "+w+" — нужен второй"};
+    case "need2": return it.push ? {key:"n2"+b.id+w, pr:6, short:"пушу "+w+" — со мной", full:"пушу "+w+" — иди со мной"}
+                                 : {key:"n2"+b.id+w, pr:6, short:"нужен второй "+w, full:"иду "+w+" — нужен второй"};
+    case "askcheck": return {key:"ask"+it.id, pr:6, short:nick(it.id)+", чекни", full:"давно тихо — "+nick(it.id)+", чекни инфу"};
     case "holdmine": { var wf = talkWhere(it.x, it.y, true); // «с CT Lane», а не «с на CT Lane»
       return {key:"hm"+b.id+w, pr:6, short:"подержите "+w, full:"ухожу "+wf+" — подержите угол"}; }
     case "pull": return {key:"pull"+w, pr:7, short:"стяните одного "+w, full:"их тут больше — стяните одного "+w};
@@ -747,12 +749,7 @@ function talkSelf(b){
   // граната: сказать, куда кидаю (тиммейты ждут хлопка)
   if(b.nadeTask && b._talkNade !== b.nadeTask.start){ b._talkNade = b.nadeTask.start;
     if(b.nadeTask.now) newsAdd(b, {k:"nade", type:b.nadeTask.type, x:b.nadeTask.x, y:b.nadeTask.y, start:b.nadeTask.start}); }
-  // иду туда, где по картине вероятен враг, а своих ни рядом, ни там нет
-  if(b.post && !b.atPost && Math.hypot(b.post.x-b.x, b.post.y-b.y) > 300){
-    var zp = bzOf(b.post.x, b.post.y);
-    if(zp >= 0 && reachPossible(team, zp) && beliefZoneFresh(team, zp) >= 0.4 && !near(b, 450) && !near(b.post, 450))
-      newsAdd(b, {k:"need2", x:b.post.x, y:b.post.y});
-  }
+  // «пушу X — иди со мной» говорит сам выбор действия (12_team.js, подпуш)
   // держал угол — ухожу, а там никого из своих не остаётся
   // (CT «ухожу — подержите» говорит выбор действия, 12_team.js)
   if(team === "CT") b._talkHold = null;

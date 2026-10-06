@@ -399,7 +399,7 @@ function resetRound(){
     b.state = "patrol"; b.decisionTick = -999; b.holding = false; b.forcedRetreat = false;
     b.facing = undefined; b.heading = undefined; b.curSpeed = 0; b.crouching = false; b.holdSinceTick = -999; b.onStairs = false;
     b.lastIntel = null; b.walking = false; b.lastStepTick = -999; b.heardSound = null; b.ears = []; b._heardReload = null;
-    b.burstCount = 0; b._fire = null; b.lastShotTick = -999; b._ammoFor = null; b._reloading = false; b._onPistol = null; b._secAmmo = null; b._blind = null; b._ds = null; b._trail = []; b._tagUntil = 0; b._knife = false; b._drawUntil = 0; b.peekType = null; b.peekSinceTick = 0; b.stuckTicks = 0;
+    b.burstCount = 0; b._fire = null; b.lastShotTick = -999; b._ammoFor = null; b._reloading = false; b._onPistol = null; b._secAmmo = null; b._blind = null; b._ds = null; b._trail = []; b._tagUntil = 0; b._knife = false; b._drawUntil = 0; b.peekType = null; b.peekSinceTick = 0; b.stuckTicks = 0; b._flashAway = null; b._actCd = null;
     b._prevOffX = 0; b._prevOffY = 0; b.lookTarget = null; b.lookReason = null;
     initRoam(b);
   });
@@ -413,6 +413,7 @@ function resetRound(){
   // киллфид — только текущий раунд
   killfeed.length = 0; renderFeed();
   resetTeamIntel();
+  pointsApplyPending();   // точки углов, поправленные на странице, — с нового раунда
   beliefReset();
   clutchShown = null; clutchInfo = null;
   bots.forEach(function(b){ b.roundKills = 0; b.roundDmg = 0; b._dmgBy = {}; b._blindBy = null; b.post = null; b.atPost = false; b.planting = false; b.defusing = false; b._saveSpot = null; b._huntIdx = undefined; b._huntArrive = 0; b._lurkIdx = 0; b._lurkArr = 0; b._lurkPh = undefined; });
