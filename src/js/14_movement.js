@@ -275,7 +275,7 @@ var SOUND = {
   defusing:{open:DEFUSE_HEAR, wall:DEFUSE_HEAR, say:"дефуз"},   // тот же звук продолжается (не новый)
   pickup:  {open:250, wall:150, say:"подбор оружия"}
 };
-var EARS_KEEP = 3*TICK_HZ;
+var EARS_KEEP = 3*64; // тиков (64 в секунду; TICK_HZ объявлен позже, в 17_tick.js)
 function hearPos(o, sx, sy, seed, occl){
   var d = Math.hypot(sx-o.x, sy-o.y), a = Math.atan2(sy-o.y, sx-o.x);
   var sa = occl ? 0.30 : 0.10, sd = occl ? 0.30 : 0.15;

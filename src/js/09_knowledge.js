@@ -696,10 +696,11 @@ function beliefZoneFresh(team, i){
 var VOICE = {CT:[], T:[]};
 var TALK_PLAN = {CT:"", T:""};
 var VOICE_STATS = {n:0, sec:0, words:0, lost:0, late:0, urgent:0, ex:[]};
-var NEWS_TTL = 4*TICK_HZ, SAID_TTL = 6*TICK_HZ;
+var NEWS_TTL = 4*64, SAID_TTL = 6*64; // тиков (64 в секунду; TICK_HZ объявлен позже, в 17_tick.js)
 function newsAdd(b, it){ if(!b) return; it.t = tick; (b._news || (b._news = [])).push(it); }
 function talkSpeaking(team, except){ return VOICE[team].filter(function(u){ return !u.done && u.end > tick && u.by !== except; }).length; }
 var TALK_NUM = ["", "один", "двое", "трое", "четверо", "пятеро"];
+var TALK_NADE = {smoke:"смок", flash:"флешку", he:"HE", molly:"молотов"}; // «кидаю …» — что кидаю
 var TALK_DO = [["tradeR","меняю"], ["probe","подпушу"], ["lurk","иду в люрк"], ["rotate","ротируюсь"], ["save","сейвлю"],
   ["defuse","дефужу"], ["plantspot","ставлю"], ["antidefuse","иду на бомбу"], ["retakeEntry","захожу первым"], ["stopplant","сбиваю плант"],
   ["flank","захожу им в спину"], ["endhunt","иду на последнего"], ["fetch","беру бомбу"], ["midcover","беру мид"], ["bombwatch","держу бомбу"]];
@@ -714,7 +715,7 @@ function talkMsg(b, it){
     case "kill": return {key:"kill"+it.id, pr:8, urgent:true, short:"снял "+nick(it.id), full:"снял "+nick(it.id)+" "+w};
     case "bomb": return {key:"bomb"+it.id+w, pr:9, urgent:true, short:"бомба у "+nick(it.id), full:"бомба у "+nick(it.id)+" "+w};
     case "bombground": return {key:"bombg"+w, pr:8, urgent:true, short:"бомба лежит "+w, full:"бомба лежит "+w};
-    case "see": return {key:"see"+w+it.n+(it.awp ? "a" : ""), pr:7, urgent:true, short:(it.n >= 2 ? TALK_NUM[Math.min(5, it.n)]+" " : "")+w+(it.awp ? ", AWP" : ""),
+    case "see": return {key:"see"+w+it.n+(it.awp ? "a" : ""), pr:7, urgent:true, short:TALK_NUM[Math.min(5, it.n)]+" "+w+(it.awp ? ", AWP" : ""),
       full:"вижу "+(it.n >= 2 ? TALK_NUM[Math.min(5, it.n)] : nick(it.ids[0]))+" "+w+(it.awp ? " — AWP на линии" : "")};
     case "hear": {
       if(it.kind === "plant") return {key:"plant", pr:10, urgent:true, short:"плант!", full:"плантят "+w+"!"};
@@ -730,7 +731,7 @@ function talkMsg(b, it){
     case "hurt": return {key:"hurt"+it.id, pr:6, short:"ранил "+nick(it.id), full:nick(it.id)+" ранен, ~"+it.hp};
     case "clear": return {key:"clr"+w, pr:4, short:"пусто "+w, full:"проверил "+w+" — пусто"};
     case "buy": return {key:"buy"+it.read, pr:3, short:it.read === "eco" ? "у них эко" : "у них закуп", full:it.read === "eco" ? "у них пистолеты — эко" : "у них винтовки — закуп"};
-    case "nade": return {key:"nd"+b.id+it.start, pr:5, short:NADE[it.type].name+" "+w, full:"кидаю "+NADE[it.type].name+" "+w};
+    case "nade": return {key:"nd"+b.id+it.start, pr:5, short:TALK_NADE[it.type]+" "+w, full:"кидаю "+TALK_NADE[it.type]+" "+w};
     case "doing": return {key:"do"+b.id+it.verb+w, pr:3, short:it.verb, full:it.verb+(w ? " — "+w : "")};
     case "need2": return {key:"n2"+b.id+w, pr:6, short:"нужен второй "+w, full:"иду "+w+" — нужен второй"};
     case "holdmine": return {key:"hm"+b.id+w, pr:6, short:"подержите "+w, full:"ухожу с "+w+" — подержите угол"};
