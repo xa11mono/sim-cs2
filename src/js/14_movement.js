@@ -120,7 +120,6 @@ function tracerClass(w){
 var soundPings = []; // {x,y,team,born,radius} — footstep events, visual only (hearing itself is handled via bot.heardSound)
 var nowTs = 0;
 
-var SPRAY_RESET_TICKS = 32; // ~0.5с без выстрела — отдача "вернулась"
 var PX_UNITS = 2.5;   // 1px радара ≈ 2.5 юнита CS2 (Ancient: scale 5.0 на 1024px, у нас 2048px)
 var BODY_HALF = 6.4;  // полуширина модели, px (32 юнита)
 var HEAD_HALF = 2.2;  // полуразмер головы, px (~11 юнитов)
@@ -445,7 +444,7 @@ function pistolSwap(b){
   b._onPistol = {prim:b.primary, ammo:Math.max(0, b.ammo||0)};
   b.weapon = W; b._ammoFor = W.key; b.ammo = b._secAmmo != null ? b._secAmmo : W.mag; b._reloading = false; b.reloadUntil = 0;
   b.nextShotTick = Math.max(b.nextShotTick||0, tick + 14); // ~0.2с достать пистолет
-  b.burstCount = 0;
+  b.burstCount = 0; b._fire = null;   // другое оружие — новая очередь
   logEvent(b.id+": кончились патроны — на пистолет ("+W.name+")");
   return true;
 }

@@ -158,14 +158,17 @@ function stepTick(){
                !burn && tick >= (bot.blindUntil||0) && duelStrafeOk(bot);
     if(dsOn){
       var DS = bot._ds;
-      if(!DS){ DS = bot._ds = {dir: (hashRand(tick*13 + bot.id.charCodeAt(1)) < 0.5 ? 1 : -1), moving:false, until: tick + 10}; } // сначала выстрел
-      if(tick >= DS.until){
-        if(DS.moving){ DS.moving = false; DS.until = tick + (BAL.strafeFix ? 13 : 9); }   // контр-страф и выстрел (v131: окно на 2 выстрела, а не на 1)
+      if(!DS){ DS = bot._ds = {dir: (hashRand(tick*13 + bot.id.charCodeAt(1)) < 0.5 ? 1 : -1), moving:false, stopT: tick, until: tick + 40}; } // сначала выстрел
+      // (С1) стоп → очередь (длину решает режим огня) → шаг → стоп. Стоит, пока не
+      // отстрелял очередь (не дольше ~0,6 с, если выстрелить не вышло)
+      var burstDone = bot.lastShotTick >= DS.stopT && !(bot._fire && bot._fire.left > 0);
+      if(DS.moving ? tick >= DS.until : (burstDone || tick >= DS.until)){
+        if(DS.moving){ DS.moving = false; DS.stopT = tick; DS.until = tick + 40; }   // контрстрейф — и очередь
         else { DS.moving = true; DS.dir = -DS.dir;
           // на средней дистанции с винтовкой — короткий шаг (под бёрст), вдали и с пистолетом — шире
           var enD = bot._nearestEnemyBot ? Math.hypot(bot._nearestEnemyBot.x-bot.x, bot._nearestEnemyBot.y-bot.y) : 600;
           var shortS = bot.weapon && bot.weapon.slot !== "secondary" && enD < 600;
-          DS.until = tick + (BAL.strafeFix ? (shortS ? 5 : 8) : (shortS ? 6 : 10)) + Math.floor(hashRand(tick*7 + bot.id.charCodeAt(1)*3)*(BAL.strafeFix ? (shortS ? 3 : 5) : (shortS ? 4 : 8))); }
+          DS.until = tick + (shortS ? 5 : 8) + Math.floor(hashRand(tick*7 + bot.id.charCodeAt(1)*3)*(shortS ? 3 : 5)); }
       }
       if(DS.moving){
         var en = bot._nearestEnemyBot, pA = Math.atan2(en.y-bot.baseY, en.x-bot.baseX) + Math.PI/2;

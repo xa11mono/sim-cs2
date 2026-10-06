@@ -404,7 +404,7 @@ function resetRound(){
     b.state = "patrol"; b.decisionTick = -999; b.holding = false; b.forcedRetreat = false;
     b.facing = undefined; b.heading = undefined; b.curSpeed = 0; b.crouching = false; b.holdSinceTick = -999; b.onStairs = false;
     b.lastIntel = null; b.walking = false; b.lastStepTick = -999; b.heardSound = null;
-    b.burstCount = 0; b.lastShotTick = -999; b._ammoFor = null; b._reloading = false; b._onPistol = null; b._secAmmo = null; b._blind = null; b._ds = null; b._trail = []; b._tagUntil = 0; b._knife = false; b._drawUntil = 0; b.peekType = null; b.peekSinceTick = 0; b.stuckTicks = 0;
+    b.burstCount = 0; b._fire = null; b.lastShotTick = -999; b._ammoFor = null; b._reloading = false; b._onPistol = null; b._secAmmo = null; b._blind = null; b._ds = null; b._trail = []; b._tagUntil = 0; b._knife = false; b._drawUntil = 0; b.peekType = null; b.peekSinceTick = 0; b.stuckTicks = 0;
     b._prevOffX = 0; b._prevOffY = 0; b.lookTarget = null; b.lookReason = null;
     initRoam(b);
   });

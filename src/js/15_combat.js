@@ -8,6 +8,47 @@ function sprayPat(w, i){
   var x = i < 7 ? 0.03*i : X*Math.sin((i-7)/2.6) * (w.key === "AK" ? 1.2 : 1);
   return {x:x*d2r, y:y*d2r};
 }
+// С1. Режим огня — решение бота, как у игрока, одно место на ритм стрельбы.
+// Перед очередью бот прикидывает по своему оружию, сколько пуль подряд ещё лягут
+// в корпус на этой дистанции: отдача (часть гасит по навыку), разброс от частой
+// стрельбы, разброс стоя / на ходу, своя точность. Далеко — одна (тап), средне —
+// короткая очередь, вблизи — спрей; AWP/скаут — выстрел и затвор (темп оружия),
+// дигл — тап (большой разброс от частой стрельбы). Внутри очереди — ровно темп
+// оружия; после очереди — пауза, пока отдача и разброс не вернутся (w.reset).
+// Контрстрейф и фаза шага стрейф-дуэли — здесь же: на бегу винтовкой не стреляет.
+function sprayComp(sh){ return 0.55 + 0.35*Math.max(0, Math.min(1, ((sh.skill||1)-0.8)/0.4)); }
+// разброс оружия стоя/сидя/на ходу (до ~34% скорости — "шаг", почти без штрафа), рад
+function weaponSpread(sh, w){
+  var speedFrac = Math.min(1, (sh.curSpeed||0) / SPEED), runK = Math.max(0, (speedFrac - 0.34)/0.66);
+  return (w.stand*(sh.crouching ? 0.75 : 1) + w.move*(runK + 0.08*speedFrac)) / 1000;
+}
+function aimSkillErr(sh){ return 0.0045 + 0.020*Math.max(0, 1.2 - (sh.skill||1)); }   // своя точность наведения, рад
+function bulletErr(sh, w, k){   // ожидаемая ошибка k-й пули очереди (рад), без учёта цели
+  var wS = weaponSpread(sh, w), aim = aimSkillErr(sh);
+  var sp = sprayPat(w, k), res = Math.hypot(sp.x, sp.y) * (1 - Math.min(0.95, sprayComp(sh) + 0.08));
+  var spm = (w.spam||0)/1000 * k;
+  return Math.sqrt(wS*wS + aim*aim + res*res + spm*spm);
+}
+// сколько пуль очереди, начиная с k0-й, ещё лягут в корпус на дистанции dist
+function burstLen(sh, w, dist, k0){
+  var bA = Math.atan(BODY_HALF/Math.max(8, dist)), n = 0, cap = Math.max(1, sh.ammo|0);
+  while(n < cap && n < 40 && bulletErr(sh, w, k0 + n) <= bA) n++;
+  return k0 === 0 ? Math.max(1, n) : n;   // после паузы первую пулю — всегда (тап)
+}
+// можно ли выстрелить сейчас по ритму огня (тик и прицел уже проверены)
+function fireReady(sh, w, dist){
+  if(sh._ds && sh._ds.moving) return false;   // фаза шага стрейфа: выстрел — после остановки
+  // контрстрейф: с винтовкой/AWP на бегу не стреляют — сначала стоп.
+  // Исключения: в упор, отход под огнём; ПП и пистолеты стреляют на ходу
+  if(w.move >= 60 && sh.curSpeed > SPEED*0.4 && dist > 110 && sh.state !== "retreat") return false;
+  var F = sh._fire || (sh._fire = {left:0, pause:0});
+  if(F.left > 0 && tick - sh.lastShotTick > w.fireIntervalTicks*1.6 + 1){ F.left = 0; F.pause = sh.lastShotTick + w.reset; } // очередь прервалась
+  if(F.left > 0) return true;
+  if(tick < F.pause) return false;
+  sh.burstCount = 0; F.left = burstLen(sh, w, dist, 0);
+  return true;
+}
+function fireShot(sh, w){ var F = sh._fire; if(F && --F.left <= 0){ F.left = 0; F.pause = tick + w.reset; } }
 function tryShoot(shooter, target, dist){
   if(!shooter.alive || !target.alive) return;
   if(shooter._knife || (shooter._drawUntil && tick < shooter._drawUntil)){ if(shooter._knife){ shooter._knife = false; shooter._drawUntil = tick + Math.round(0.4*TICK_HZ); } return; } // достаёт оружие
@@ -84,16 +125,12 @@ function tryShoot(shooter, target, dist){
   var w = shooter.weapon;
   if(dist > w.range) return;
   if(tick < shooter.nextShotTick) return;
-  if(shooter._ds && shooter._ds.moving) return; // в фазе шага — не стреляет (выстрел только после контр-страфа)
   var thruSmoke = !!shooter._smokeShot;
   // раздел 14: магазин и перезарядка — во время перезарядки не стреляет
   updateReload(shooter);
   if(shooter._reloading || shooter.ammo <= 0) return;
-  // контр-страф: с винтовкой/AWP на бегу не стреляют (всё равно мимо) —
-  // сначала останавливаются. Исключения: в упор, отход под огнём, SMG/пистолеты
-  if(w.move >= 60 && shooter.curSpeed > SPEED*0.4 && dist > 110 && shooter.state !== "retreat") return;
   // угловые размеры цели (px радара ≈ 2.5 юнита CS2): тело ~32u шириной, голова ~11u
-  var hA = Math.atan(HEAD_HALF/Math.max(8,dist)), bA = Math.atan(BODY_HALF/Math.max(8,dist));
+  var bA = Math.atan(BODY_HALF/Math.max(8,dist));
   // стреляет только туда, куда смотрит: прицел должен быть почти на цели —
   // вблизи цель большая, можно стрелять сразу; вдали надо довести прицел
   var aimD = 0;
@@ -102,24 +139,14 @@ function tryShoot(shooter, target, dist){
     aimD = Math.abs(((aimA - shooter.facing + Math.PI) % (2*Math.PI) + 2*Math.PI) % (2*Math.PI) - Math.PI);
     if(aimD > Math.min(AIM_FIRE_CONE, Math.max(0.05, 2.5*bA))) return;
   }
-
-  // раздел 14 (пересмотр): разброс от частой стрельбы — "нагрев", который
-  // остывает со временем. Не на близкой дистанции — бот не спамит, а тапает:
-  // ждёт, пока разброс остынет настолько, чтобы следующая пуля шла в корпус
-  var heat = Math.max(0, (shooter._heat||0) - (tick - shooter.lastShotTick)/(w.recov||8));
-  // с какой дистанции уже тапают и насколько строго ждут остывания: USP — почти
-  // всегда тапом (быстро жмут только вплотную), дигл — всегда, остальные
-  // пистолеты — с ~110px, ПП и винтовки — с ~160px
-  var tapFrom = w.key === "USP" ? 45 : (w.spam >= 30 ? 0 : (w.slot === "secondary" ? 110 : 160));
-  var tapK = w.key === "USP" ? 0.4 : 0.7;
-  if(w.spam && dist > tapFrom && w.spam/1000*heat > tapK*bA) return;
-  if(tick - shooter.lastShotTick > SPRAY_RESET_TICKS) shooter.burstCount = 0;
+  if(!fireReady(shooter, w, dist)) return;
   var burstIdx = shooter.burstCount;
   shooter.burstCount++;
   shooter.lastShotTick = tick;
   target._shotAtT = tick; target._shotAtBy = shooter;
   shooter.nextShotTick = tick + w.fireIntervalTicks;
   shooter.ammo--;
+  fireShot(shooter, w);
 
   // ---- раздел 14: попадание — не "шанс N%", а угловая ошибка прицела ----
   // Итоговая ошибка σ (рад) складывается из: разброса оружия (стоя/на бегу,
@@ -129,14 +156,11 @@ function tryShoot(shooter, target, dist){
   // в упор цель огромная и промахнуться почти невозможно, на длинной дистанции
   // в голову попадают редко — как в CS, а не одинаковые 50% на любой дистанции.
   var sk = shooter.skill;
-  var speedFrac = Math.min(1, shooter.curSpeed / SPEED);
-  var runK = Math.max(0, (speedFrac - 0.34)/0.66);         // до ~34% скорости — "шаг", почти без штрафа
-  var wSpread = (w.stand*(shooter.crouching ? 0.75 : 1) + w.move*(runK + 0.08*speedFrac)) / 1000;
-  var comp = 0.55 + 0.35*Math.max(0, Math.min(1, (sk-0.8)/0.4));
+  var wSpread = weaponSpread(shooter, w);
+  var comp = sprayComp(shooter);
   var recoilErr = w.recoil/1000 * Math.max(0, burstIdx-1) * (1-comp) * 1.6;
-  var spamErr = (w.spam||0)/1000 * heat;
-  shooter._heat = heat + 1;
-  var aimErr = 0.0045 + 0.020*Math.max(0, 1.2 - sk);
+  var spamErr = (w.spam||0)/1000 * burstIdx;   // разброс от частой стрельбы внутри очереди (пауза его сбрасывает)
+  var aimErr = aimSkillErr(shooter);
   var settle = Math.max(0, 1 - (shooter.contactStreak - effReaction)/24);
   var flick = 0.018 * settle * Math.min(shooter._preAim||1, (shooter._reactMul||1) < 1 ? 0.35 : 1); // держал угол / заходил с прицелом — уже "на цели"
   // движущуюся цель сложнее вести: ошибка растёт с её угловой скоростью поперёк
@@ -150,8 +174,8 @@ function tryShoot(shooter, target, dist){
   // догоняет после каждой смены направления. Раньше стрейфер стрелял вдвое
   // реже стоящего и при этом попадать в него было так же легко — стоящий
   // выигрывал 8 из 10. Теперь в стрейфера заметно труднее попасть
-  if(BAL.strafeFix && target._ds && target._ds.moving) trackErr = Math.max(trackErr, 0.010) * 2.2;
-  if(BAL.hitbox) recoilErr *= 0.3; // (6) отдача теперь — паттерн (ниже), тут только её "шум"
+  if(target._ds && target._ds.moving) trackErr = Math.max(trackErr, 0.010) * 2.2;
+  recoilErr *= 0.3; // (6) отдача — паттерн (ниже), тут только её "шум"
   var sigma = Math.sqrt(wSpread*wSpread + recoilErr*recoilErr + spamErr*spamErr + aimErr*aimErr + flick*flick + 0.5*aimD*aimD + trackErr*trackErr);
   if(shooter.onStairs) sigma *= 2.2;
   // AWP в упор — ноускоп: без прицела, быстро, но разброс большой
@@ -161,7 +185,6 @@ function tryShoot(shooter, target, dist){
   if(thruSmoke) sigma *= 3.2;   // не видит цель — стреляет по памяти, почти вслепую
   if(shooter.atPost && shooter.curSpeed < 10) sigma /= BAL.holdAcc;
   if(w.scoped && shooter.curSpeed < 10 && dist > 300) sigma *= 0.8; // AUG/SG в прицеле на дистанции
-  var pIn = function(R){ return 1 - Math.exp(-(R*R)/(2*sigma*sigma)); };
   var seedS = tick*104729 + shooter.id.charCodeAt(0)*31 + shooter.id.length*7 + target.id.charCodeAt(0)*17 + Math.floor(shooter.nextShotTick*8);
   // сильные игроки чаще целятся в голову; AWP — всегда в корпус
   var pAimHead = 0.25 + 0.45*Math.max(0, Math.min(1, (sk-0.8)/0.4));
@@ -170,12 +193,12 @@ function tryShoot(shooter, target, dist){
   if(BAL.duelPlace && burstIdx <= 1 && shooter._place != null){
     pAimHead = Math.min(0.92, pAimHead * (0.45 + 0.9*shooter._place) * (0.6 + 0.6*(shooter._headLvl||0.7)));
   }
-  if(BAL.hitbox) pAimHead *= (BAL.hbHead || 0.75);
-  if(BAL.hitbox && burstIdx >= 3) pAimHead *= 0.35; // спрей — в корпус: отдача сама тянет в голову
+  pAimHead *= (BAL.hbHead || 0.75);
+  if(burstIdx >= 3) pAimHead *= 0.35; // спрей — в корпус: отдача сама тянет в голову
   if(w.key === "SSG") pAimHead = Math.max(pAimHead, 0.8); // скаут — в голову (корпус не убивает)
   var aimHead = w.key !== "AWP" && hashRand(seedS+5) < pAimHead;
-  var pHead, pAny, headshot, hit, hbZone = null;
-  if(BAL.hitbox){
+  var headshot, hit, hbZone = null;
+  {
     // (6) хитбоксы: пуля летит в точку прицела + ошибка по двум осям +
     // паттерн отдачи (вверх, потом влево-вправо), который бот гасит по навыку.
     // Куда попала — голова/грудь/живот/ноги — по реальной высоте модели,
@@ -197,22 +220,15 @@ function tryShoot(shooter, target, dist){
     if(BAL.hbCover && hbZone && (hbZone === "stomach" || hbZone === "legs") && target.atPost && target.curSpeed < 10 && target.post && target.post.hold &&
        !target._ds && hashRand(pHash(target.post.id || "p") + 17) < 0.6) hbZone = null;
     headshot = hbZone === "head"; hit = !!hbZone;
-  } else {
-  if(aimHead){ pHead = pIn(hA); pAny = pIn(bA*1.25); }
-  else { pAny = pIn(bA*1.6); pHead = 0.10*pAny; }
-  var r = hashRand(seedS);
-  headshot = r < pHead; hit = r < pAny;
+    var bulletDev = ex;   // куда реально ушла пуля по горизонтали (рад) — по ней и трассер
   }
   var endX = target.x, endY = target.y, hitZone = null;
   if(hit){
     var base = w.dmg * Math.pow(w.rm, dist*PX_UNITS/500);
-    var zr = hashRand(seedS+11), mult, armored;
+    var mult, armored;
     if(headshot){ mult = 4; armored = target.helmet; hitZone = "head"; }
     else if(hbZone === "legs"){ mult = 0.75; armored = false; hitZone = "legs"; }
     else if(hbZone === "stomach"){ mult = 1.25; armored = target.armor; hitZone = "stomach"; }
-    else if(hbZone === "chest"){ mult = 1.0; armored = target.armor; hitZone = "chest"; }
-    else if(zr < 0.22){ mult = 0.75; armored = false; hitZone = "legs"; }   // ноги броня не закрывает
-    else if(zr < 0.42){ mult = 1.25; armored = target.armor; hitZone = "stomach"; }
     else { mult = 1.0; armored = target.armor; hitZone = "chest"; }
     var dmg = base * mult; if(armored) dmg *= w.armorPen;
     dmg = Math.max(1, Math.round(dmg));
@@ -263,12 +279,12 @@ function tryShoot(shooter, target, dist){
   } else {
     // AWP промахнулся, враг близко — не ждёт перезатвора, а достаёт пистолет
     if(BAL.awpClose && w.key === "AWP" && dist < 280 && target.alive && shooter.secondary && hashRand(seedS+41) < 0.6 && pistolSwap(shooter)) logEvent(shooter.id+" (AWP): промах вблизи — на пистолет");
-    // промах: пуля уходит мимо на величину реальной ошибки и летит дальше
-    // цели до первой стены (раньше трассер обрывался в воздухе у цели)
+    // промах: пуля летит туда, куда реально ушла (ошибка прицела + рисунок
+    // отдачи по горизонтали), дальше цели до первой стены. Мимо над головой —
+    // трассер проходит над целью; спрей — расходится по рисунку отдачи
     var dx = target.x-shooter.x, dy = target.y-shooter.y;
     var ang = Math.atan2(dy,dx);
-    var sgn = hashRand(seedS+3) < 0.5 ? -1 : 1;
-    var dev = sgn * (bA*1.15 + Math.abs(hashRand(seedS+7)-0.5)*2*sigma);
+    var dev = bulletDev;
     var far = Math.min(w.range, Math.hypot(dx,dy)*1.6 + 60);
     var ex = shooter.x + Math.cos(ang+dev)*far, ey = shooter.y + Math.sin(ang+dev)*far;
     var cl = rayClipWalls(shooter.x, shooter.y, ex, ey);
@@ -698,8 +714,10 @@ function resolveEngagements(){
 
   // цель держится, пока видна (раньше каждый тик бралась ближайшая: при двух
   // врагах на похожей дистанции прицел метался между ними и выстрелы срывались).
-  // Сменить цель (убил / пропала из вида): с шансом по навыку — перевести спрей
-  // сразу, иначе короткая пауза и новая очередь
+  // Сменить цель (убил / пропала из вида) посреди очереди: спрей переводится,
+  // пока следующие пули ещё лягут в корпус нового врага (режим огня, С1), иначе
+  // очередь кончилась — пауза на возврат отдачи. Доводка прицела — сама: прицел
+  // поворачивается с конечной скоростью, а стреляет бот только наведённым
   bots.forEach(function(b){
     if(!b.alive || !b._sawEnemy) return;
     var T0 = b._tgt;
@@ -708,10 +726,9 @@ function resolveEngagements(){
       if(d0 <= b._nearestEnemyDist*1.4 + 20){ b._nearestEnemyBot = T0; b._nearestEnemyDist = d0; return; }
     }
     var NT = b._nearestEnemyBot;
-    if(T0 && NT && T0 !== NT && tick - (b.lastShotTick||-999) < 20){
-      var pT = 0.3 + 0.4*Math.max(0, Math.min(1, ((b.skill||1)-0.8)/0.4));
-      if(hashRand(tick*37 + b.id.charCodeAt(1)*5) < pT){ if(hashRand(tick+11) < 0.3) logEvent(b.id+": перевёл спрей на "+NT.id); }
-      else { b.nextShotTick = Math.max(b.nextShotTick, tick + 8); b.burstCount = 0; }
+    if(T0 && NT && T0 !== NT && b._fire && b._fire.left > 0 && b.weapon){
+      b._fire.left = Math.min(b._fire.left, burstLen(b, b.weapon, Math.hypot(NT.x-b.x, NT.y-b.y), b.burstCount));
+      if(!b._fire.left) b._fire.pause = tick + b.weapon.reset;
     }
     b._tgt = NT;
   });

@@ -12,7 +12,7 @@ var SMK = {
   pMem: 0.8,     // шанс начать прострел, если за дымом только что видел/слышал врага
   pBelief: 0.45, // …если по карте вероятностей там вероятно враг
   pEntry: 0.22,  // …если инфы нет, но смок на входе на сайт (за ним почти всегда кто-то)
-  burstsMin: 2, burstsMax: 5, burstGap: 32, bullets: 3,
+  burstsMin: 2, burstsMax: 5,   // очередей на прострел; длина очереди и пауза — режим огня (С1)
   heP: 0.4,      // шанс разогнать HE смок на своём объекте, если за ним вероятен враг
   shiftP: 0.25   // шанс сменить позицию, когда смок закрыл угол, который держал
 };
@@ -61,8 +61,8 @@ function smokeSpamTick(){
         if(_angOff(Math.atan2(e.y-b.y, e.x-b.x), aim) > 0.12 || !hasLOS(b.x, b.y, e.x, e.y) || !smokeBlocks(b.x, b.y, e.x, e.y)) return; foe = e; });
       var fired = false;
       if(foe){ var a0 = b.ammo; b._smokeShot = true; tryShoot(b, foe, Math.hypot(foe.x-b.x, foe.y-b.y)); b._smokeShot = false; fired = b.ammo !== a0; }
-      else fired = blindBullet(b, P.pt);
-      if(fired && ++P.shot >= SMK.bullets){ P.shot = 0; P.bursts--; P.nextBurst = tick + SMK.burstGap; if(P.bursts <= 0) b._spam = null; }
+      else if(fireReady(b, b.weapon, Math.hypot(P.pt.x-b.x, P.pt.y-b.y))){ fired = blindBullet(b, P.pt); if(fired){ b.burstCount++; fireShot(b, b.weapon); } }
+      if(fired && !(b._fire && b._fire.left > 0)){ P.bursts--; if(P.bursts <= 0) b._spam = null; }
       return;
     }
     if(b._sawEnemy || b.planting || b.defusing || b._reloading || tick < b.blindUntil || b.ammo <= 0 || !b.weapon) return;
@@ -78,7 +78,7 @@ function smokeSpamTick(){
       D[k] = go;
       if(!go) return;
       var nb = SMK.burstsMin + Math.floor(hashRand(s.born*29 + b.id.charCodeAt(1))*(SMK.burstsMax - SMK.burstsMin + 1));
-      b._spam = {pt:ev.pt, bursts:nb, shot:0, nextBurst:tick + 10, until:tick + 8*TICK_HZ};
+      b._spam = {pt:ev.pt, bursts:nb, nextBurst:tick + 10, until:tick + 8*TICK_HZ};
       logEvent(b.id+": простреливает смок "+calloutName(s.x, s.y)+" ("+({mem:"только что был враг", belief:"там вероятно враг", entry:"смок на входе"})[ev.kind]+")");
     });
   });
