@@ -24,11 +24,11 @@
   #hud{position:absolute;top:10px;left:12px;background:rgba(10,14,9,0.88);border:1px solid var(--line);padding:10px 12px;border-radius:6px;font-size:11px;line-height:1.7;min-width:190px;}
   #hud .row{display:flex;justify-content:space-between;gap:14px;}
   #hud .lab{color:var(--text-dim);}
-  #contact{position:absolute;top:10px;right:280px;background:rgba(224,92,82,0.15);border:1px solid var(--danger);color:var(--danger);padding:8px 14px;border-radius:6px;font-size:12px;font-weight:600;letter-spacing:.02em;display:none;}
+  #contact{position:absolute;top:10px;right:250px;background:rgba(224,92,82,0.15);border:1px solid var(--danger);color:var(--danger);padding:8px 14px;border-radius:6px;font-size:12px;font-weight:600;letter-spacing:.02em;display:none;}
   #legend{position:absolute;bottom:10px;left:12px;background:rgba(10,14,9,0.88);border:1px solid var(--line);padding:8px 12px;border-radius:6px;font-size:11px;display:flex;gap:16px;}
   #legend span{display:flex;align-items:center;gap:6px;color:var(--text-dim);}
   #legend i{width:9px;height:9px;border-radius:50%;display:inline-block;}
-  #killfeed{position:absolute;top:56px;right:280px;width:320px;display:flex;flex-direction:column;gap:3px;pointer-events:none;font-family:'IBM Plex Sans','Segoe UI',Arial,sans-serif;font-size:11.5px;}
+  #killfeed{position:absolute;top:56px;right:250px;width:320px;display:flex;flex-direction:column;gap:3px;pointer-events:none;font-family:'IBM Plex Sans','Segoe UI',Arial,sans-serif;font-size:11.5px;}
   #killfeed .kf{align-self:flex-end;display:flex;align-items:center;gap:5px;background:rgba(8,10,8,0.62);border-radius:3px;padding:2px 8px;height:19px;color:var(--text);white-space:nowrap;}
   #killfeed .kf .ct{color:#8fc3f2;font-weight:600;} #killfeed .kf .t{color:#f0b84a;font-weight:600;}
   #killfeed .kf .pl{color:#e8e8e2;margin:0 -1px;} #killfeed .kf svg{flex:none;} #killfeed .kf svg.wp{margin:0 2px;}
@@ -36,66 +36,55 @@
   #killfeed .kf.ev{font-weight:600;border:1px solid var(--line);} #killfeed .kf.bomb{border-color:#e05c52;color:#ff9a8f;} #killfeed .kf.defuse{border-color:#5a9bd9;color:#9ec6ef;}
   #killfeed .kf.clutch{border-color:#ffd76a;color:#ffe49a;}
   #killfeed .kf.boom{border-color:#e05c52;background:rgba(80,20,15,0.85);color:#ffb3aa;} #killfeed .kf.round{opacity:.6;font-weight:400;}
-  /* табло как на трансляции (Н6) — по образцу ESL Pro League, без «рваных» краёв */
-  #scoreboard{position:absolute;top:8px;left:50%;transform:translateX(-50%);pointer-events:none;z-index:4;display:flex;flex-direction:column;align-items:center;font-family:'Barlow Condensed','Arial Narrow','Roboto Condensed','Liberation Sans Narrow','DejaVu Sans Condensed',sans-serif;font-weight:700;color:#fff;}
-  #scoreboard .sb-head{position:relative;display:flex;align-items:stretch;width:100%;height:30px;background:#121212;}
-  #scoreboard .sb-head .gr{width:22px;background:#54e100;flex:none;}
-  #scoreboard .sb-head .tx{flex:1;display:flex;align-items:center;justify-content:center;font-size:19px;letter-spacing:.02em;text-transform:uppercase;line-height:1;}
-  #scoreboard .sb-head .em{width:56px;flex:none;background:#54e100;clip-path:polygon(0 0,100% 0,72% 100%,28% 100%);}
-  #scoreboard .sb-main{position:relative;display:flex;align-items:center;height:74px;background:#141414;margin-top:12px;padding:0 14px;gap:0;}
-  #scoreboard .sb-side{display:flex;align-items:center;gap:16px;}
-  #scoreboard .sb-side.ct{flex-direction:row-reverse;}
-  #scoreboard .sb-logo{width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;color:#141414;overflow:hidden;flex:none;}
+  /* табло как на трансляции (Н6): плоское, без «рваной бумаги» */
+  #scoreboard{position:absolute;top:8px;left:50%;transform:translateX(-50%);pointer-events:none;z-index:4;font-family:'IBM Plex Sans','Segoe UI',Arial,sans-serif;display:flex;flex-direction:column;align-items:center;}
+  #scoreboard .sb-head{display:flex;justify-content:space-between;align-items:center;width:100%;box-sizing:border-box;padding:3px 12px;background:#121a10;border-top:2px solid var(--accent);border-radius:4px 4px 0 0;color:#cfe3a8;font-size:10.5px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;}
+  #scoreboard .sb-main{display:flex;align-items:stretch;background:rgba(8,10,8,0.92);border-radius:0 0 4px 4px;}
+  #scoreboard .sb-team{display:flex;align-items:center;gap:10px;padding:6px 12px;}
+  #scoreboard .sb-team.t{border-bottom:3px solid var(--t);} #scoreboard .sb-team.ct{border-bottom:3px solid var(--ct);flex-direction:row-reverse;}
+  #scoreboard .sb-logo{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;color:#0b0f0b;overflow:hidden;}
   #scoreboard .sb-logo img{width:100%;height:100%;object-fit:contain;}
-  #scoreboard .t .sb-logo{background:#d9a24a;} #scoreboard .ct .sb-logo{background:#5a9bd9;}
-  #scoreboard .sb-maps{display:flex;flex-direction:column;gap:5px;}
-  #scoreboard .sb-maps i{display:block;width:12px;height:12px;background:#8f8f8f;} #scoreboard .sb-maps i.on{background:#fefefe;}
-  #scoreboard .sb-score{position:relative;font-size:62px;line-height:1;min-width:52px;text-align:center;}
-  #scoreboard .sb-score::before{content:"";position:absolute;top:-13px;left:50%;transform:translateX(-50%);width:66px;height:7px;}
-  #scoreboard .t .sb-score::before{background:#fde3a0;} #scoreboard .ct .sb-score::before{background:#98bad5;}
-  #scoreboard .sb-mid{display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:104px;padding:0 14px;line-height:1;}
-  #scoreboard .sb-round{font-size:22px;letter-spacing:.01em;}
-  #scoreboard .sb-time{font-size:31px;margin-top:3px;}
-  #scoreboard .sb-time.low{color:#ff6b5e;} #scoreboard .sb-time.bomb{color:#ff4a3c;}
-  #scoreboard .sb-alive{display:flex;margin-top:20px;}
-  #scoreboard .sb-alive b{width:44px;height:44px;display:flex;align-items:center;justify-content:center;font-size:30px;font-weight:700;}
-  #scoreboard .sb-alive b.t{background:rgba(110,102,78,0.82);color:#ded6b2;}
-  #scoreboard .sb-alive b.vs{background:rgba(150,156,166,0.72);color:#e6e9ee;font-size:22px;}
-  #scoreboard .sb-alive b.ct{background:rgba(70,92,114,0.85);color:#b4cce0;}
-  /* панели игроков (Н7) — как на трансляции: T слева, CT справа */
-  .pl-col{position:absolute;top:50%;transform:translateY(-50%);width:262px;display:flex;flex-direction:column;gap:4px;pointer-events:none;z-index:3;font-family:'Barlow Condensed','Arial Narrow','Roboto Condensed','Liberation Sans Narrow','DejaVu Sans Condensed',sans-serif;font-weight:700;color:#fff;}
-  #plT{left:6px;align-items:flex-start;} #plCT{right:6px;align-items:flex-end;}
-  .pl-tag{padding:2px 9px;font-size:15px;letter-spacing:.03em;text-transform:uppercase;color:#141414;}
-  #plT .pl-tag{background:#f1d68e;} #plCT .pl-tag{background:#a9cdea;}
-  .pl-card{position:relative;display:flex;align-items:stretch;width:100%;height:54px;}
+  #scoreboard .t .sb-logo{background:var(--t);} #scoreboard .ct .sb-logo{background:var(--ct);}
+  #scoreboard .sb-score{font-size:34px;font-weight:700;color:#fff;min-width:30px;text-align:center;line-height:1;}
+  #scoreboard .sb-mid{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:4px 14px;min-width:82px;background:rgba(255,255,255,0.04);}
+  #scoreboard .sb-round{font-size:10.5px;font-weight:600;letter-spacing:.08em;color:#cfd5c6;}
+  #scoreboard .sb-time{font-family:'IBM Plex Mono',monospace;font-size:19px;font-weight:600;color:#fff;line-height:1.15;}
+  #scoreboard .sb-time.low{color:#ff8a7e;} #scoreboard .sb-time.bomb{color:#ff5a4c;}
+  #scoreboard .sb-alive{display:flex;align-items:center;gap:8px;margin-top:6px;font-size:12px;color:var(--text-dim);}
+  #scoreboard .sb-alive b{display:inline-block;min-width:26px;padding:2px 7px;text-align:center;border-radius:3px;font-size:15px;color:#fff;}
+  #scoreboard .sb-alive b.t{background:rgba(217,162,74,0.45);} #scoreboard .sb-alive b.ct{background:rgba(90,155,217,0.45);}
+  /* панели игроков (Н7) — в стиле табло: тёмные, ровные, один шрифт */
+  .pl-col{position:absolute;top:150px;width:226px;display:flex;flex-direction:column;gap:3px;pointer-events:none;z-index:3;font-family:'IBM Plex Sans','Segoe UI',Arial,sans-serif;color:var(--text);}
+  #plT{left:12px;} #plCT{right:12px;}
+  .pl-tag{display:flex;justify-content:space-between;align-items:center;height:22px;padding:0 10px;background:#121a10;font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#cfe3a8;}
+  #plT .pl-tag{border-left:3px solid var(--t);} #plCT .pl-tag{border-right:3px solid var(--ct);flex-direction:row-reverse;}
+  .pl-card{position:relative;display:flex;gap:8px;height:50px;padding:5px 8px 7px;background:rgba(8,10,8,0.9);box-sizing:border-box;}
   #plCT .pl-card{flex-direction:row-reverse;}
-  .pl-num{width:13px;display:flex;align-items:flex-start;justify-content:center;font-size:12px;padding-top:2px;}
-  #plT .pl-num{color:#f1d68e;} #plCT .pl-num{color:#a9cdea;}
-  .pl-info{width:96px;display:flex;flex-direction:column;justify-content:center;padding:0 6px;background:rgba(20,22,24,0.78);line-height:1.1;}
-  #plCT .pl-info{align-items:flex-end;}
-  .pl-nick{font-size:14.5px;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;}
-  .pl-kd{font-size:12px;color:#d8d8d8;font-weight:600;} .pl-kd span{margin-right:5px;}
-  .pl-money{font-size:12.5px;color:#9fe07a;}
-  .pl-ava{width:50px;height:50px;margin:2px 0;flex:none;border:2px solid #f4f4f4;background:#3a3d40;display:flex;align-items:flex-end;justify-content:center;overflow:hidden;box-sizing:border-box;}
-  .pl-ava svg{width:42px;height:42px;fill:#8a8f94;} .pl-ava img{width:100%;height:100%;object-fit:cover;}
-  .pl-gear{position:relative;flex:1;display:flex;flex-direction:column;justify-content:space-between;padding:3px 7px;overflow:hidden;background:rgba(20,22,24,0.7);}
-  .pl-hpbar{position:absolute;top:0;bottom:0;left:0;} #plCT .pl-hpbar{left:auto;right:0;}
-  #plT .pl-hpbar{background:rgba(150,124,52,0.88);} #plCT .pl-hpbar{background:rgba(33,62,96,0.92);}
-  .pl-hpbar.low{background:rgba(160,48,40,0.9)!important;}
-  .pl-row{position:relative;display:flex;align-items:center;justify-content:space-between;gap:6px;}
-  #plCT .pl-row{flex-direction:row-reverse;}
-  .pl-wp svg{height:15px;width:auto;fill:#fff;} #plCT .pl-wp svg{transform:scaleX(-1);}
-  .pl-hp{font-size:25px;line-height:1;}
-  .pl-ut{display:flex;gap:4px;align-items:center;font-size:11px;color:#eee;} .pl-ut svg{height:12px;width:auto;fill:#f2f2f2;}
-  .pl-card.dead .pl-info,.pl-card.dead .pl-gear{background:rgba(70,72,74,0.55);} .pl-card.dead .pl-ava{filter:grayscale(1) brightness(.6);}
-  .pl-card.dead .pl-nick{color:#cfcfcf;} .pl-skull{position:relative;align-self:center;font-size:22px;opacity:.55;margin:auto;}
-  .pl-card.sel .pl-ava{border-color:#ffd76a;}
-  #plFocus{position:absolute;left:50%;bottom:18px;transform:translateX(-50%);display:none;flex-direction:column;align-items:stretch;pointer-events:none;z-index:4;font-family:'Barlow Condensed','Arial Narrow','Roboto Condensed','DejaVu Sans Condensed',sans-serif;font-weight:700;}
-  #plFocus.show{display:flex;}
-  #plFocus .pf-photo{align-self:center;width:136px;height:112px;border:5px solid #f4f4f4;background:#3a3d40;display:flex;align-items:flex-end;justify-content:center;overflow:hidden;}
-  #plFocus .pf-photo svg{width:98px;height:98px;fill:#8a8f94;} #plFocus .pf-photo img{width:100%;height:100%;object-fit:cover;}
-  #plFocus .pf-bar{display:flex;justify-content:space-between;align-items:center;gap:40px;min-width:210px;padding:3px 10px;margin-top:6px;font-size:18px;color:#141414;}
-  #plFocus.t .pf-bar{background:#f1d68e;} #plFocus.ct .pf-bar{background:#a9cdea;}
+  .pl-ava{width:38px;height:38px;flex:none;border-radius:3px;background:#2a2f28;display:flex;align-items:flex-end;justify-content:center;overflow:hidden;}
+  .pl-ava svg{width:32px;height:32px;fill:#6f776c;} .pl-ava img{width:100%;height:100%;object-fit:cover;}
+  .pl-body{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:space-between;}
+  .pl-line{display:flex;align-items:center;justify-content:space-between;gap:6px;height:13px;}
+  #plCT .pl-line{flex-direction:row-reverse;}
+  .pl-nick{font-size:12.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .pl-nick i{font-style:normal;color:var(--text-dim);font-weight:500;margin:0 5px 0 0;} #plCT .pl-nick i{margin:0 0 0 5px;}
+  .pl-hp{font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600;color:#fff;}
+  .pl-hp.low{color:#ff8a7e;}
+  .pl-gear{display:flex;align-items:center;gap:4px;height:12px;}
+  #plCT .pl-gear{flex-direction:row-reverse;}
+  .pl-gear svg{height:11px;width:auto;fill:#d8dcd0;flex:none;} .pl-gear svg.wp{height:12px;margin:0 3px 0 0;} #plCT .pl-gear svg.wp{margin:0 0 0 3px;transform:scaleX(-1);}
+  .pl-stat{font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--text-dim);white-space:nowrap;}
+  .pl-money{font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:#94b449;}
+  .pl-bar{position:absolute;left:0;right:0;bottom:0;height:3px;background:rgba(255,255,255,0.06);}
+  .pl-bar b{display:block;height:100%;} #plT .pl-bar b{background:var(--t);} #plCT .pl-bar b{background:var(--ct);margin-left:auto;}
+  .pl-bar b.low{background:var(--danger)!important;}
+  .pl-card.dead{opacity:.42;} .pl-card.dead .pl-ava{filter:grayscale(1);}
+  .pl-card.sel{box-shadow:inset 0 0 0 1px #ffd76a;}
+  #plFocus{position:absolute;left:50%;bottom:12px;transform:translateX(-50%);display:none;align-items:center;gap:10px;padding:6px 12px 6px 6px;background:rgba(8,10,8,0.92);pointer-events:none;z-index:4;font-family:'IBM Plex Sans','Segoe UI',Arial,sans-serif;}
+  #plFocus.show{display:flex;} #plFocus.t{border-bottom:3px solid var(--t);} #plFocus.ct{border-bottom:3px solid var(--ct);}
+  #plFocus .pf-photo{width:64px;height:64px;border-radius:3px;background:#2a2f28;display:flex;align-items:flex-end;justify-content:center;overflow:hidden;}
+  #plFocus .pf-photo svg{width:54px;height:54px;fill:#6f776c;} #plFocus .pf-photo img{width:100%;height:100%;object-fit:cover;}
+  #plFocus .pf-bar{display:flex;flex-direction:column;gap:2px;min-width:110px;}
+  #plFocus #pfNick{font-size:17px;font-weight:600;color:#fff;} #plFocus #pfHp{font-family:'IBM Plex Mono',monospace;font-size:13px;color:var(--text-dim);}
   #banner{position:absolute;top:200px;left:50%;transform:translateX(-50%) scale(.9);opacity:0;transition:all .25s;pointer-events:none;font-family:'IBM Plex Sans',sans-serif;font-weight:700;font-size:22px;letter-spacing:.04em;padding:8px 22px;border-radius:6px;background:rgba(10,14,9,0.88);border:1px solid var(--accent-dim);color:#fff;}
   #banner.show{opacity:1;transform:translateX(-50%) scale(1);} #banner.ct{border-color:var(--ct);color:#cfe4f8;} #banner.t{border-color:var(--t);color:#f6ddb3;}
   #roundCard{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) scale(.94);opacity:0;transition:all .3s;pointer-events:none;min-width:340px;text-align:center;background:rgba(10,14,9,0.93);border:1px solid var(--accent-dim);border-radius:10px;padding:16px 22px;font-family:'IBM Plex Sans',sans-serif;color:var(--text);}
@@ -108,7 +97,7 @@
   #econ .tm.ct{color:var(--ct);} #econ .tm.t{color:var(--t);}
   #econ table{width:100%;border-collapse:collapse;} #econ td{padding:0 3px;white-space:nowrap;}
   #econ td.m{color:#94b449;text-align:right;} #econ tr.dead td{opacity:.4;}
-  #logBox{position:absolute;bottom:10px;right:280px;width:300px;display:flex;flex-direction:column;gap:6px;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:10.5px;line-height:1.55;}
+  #logBox{position:absolute;bottom:10px;right:250px;width:300px;display:flex;flex-direction:column;gap:6px;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:10.5px;line-height:1.55;}
   #logBox .pan{background:rgba(10,14,9,0.88);border:1px solid var(--line);border-radius:6px;padding:6px 10px 8px;overflow-y:auto;color:var(--text-dim);}
   #logBox .hd{display:flex;justify-content:space-between;align-items:center;color:var(--text-dim);font-size:10px;letter-spacing:.04em;text-transform:uppercase;margin-bottom:3px;}
   #logBox .hd label{text-transform:none;letter-spacing:0;cursor:pointer;display:flex;gap:4px;align-items:center;}
@@ -136,12 +125,12 @@
   .mk-toast{position:absolute;left:50%;bottom:24px;transform:translateX(-50%);z-index:60;background:rgba(10,14,9,0.96);border:1px solid var(--accent);color:var(--text);padding:8px 14px;border-radius:6px;max-width:80%;}
   .mk-prog{position:absolute;left:50%;top:45%;transform:translate(-50%,-50%);z-index:60;background:rgba(10,14,9,0.96);border:1px solid var(--accent);color:var(--accent);padding:14px 22px;border-radius:8px;font-size:15px;}
 </style>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&family=Barlow+Condensed:wght@700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 
 <div id="app">
   <div id="topbar">
     <h1>ANCIENT — LIVE RADAR</h1>
-    <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 187 · 06.10</div>
+    <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 188 · 06.10</div>
     <button id="btnPause">Пауза</button>
     <button id="btnRestartRound" title="Немедленно сбросить текущий раунд — на случай если боты застряли">Рестарт раунда</button>
     <span class="chk" title="Матч с одним номером всегда проходит одинаково. Увидел баг — запиши номер матча и тик, введи номер и нажми «Сыграть»: матч повторится с начала">матч № <input id="inpMatchNum" type="number" min="1" value="1" style="width:52px"> <button id="btnFreshMatch">Сыграть</button> <span id="matchTick" style="opacity:.75"></span></span>
@@ -301,13 +290,13 @@
       <div class="row"><span class="lab">Бомба</span><span class="mono" id="hBomb">—</span></div>
     </div>
     <div id="scoreboard">
-      <div class="sb-head"><span class="gr"></span><span class="tx">Ancient</span><span class="em"></span><span class="tx" id="sbMatch">Match 1</span><span class="gr"></span></div>
+      <div class="sb-head"><span>Ancient</span><span id="sbMatch">матч № 1</span></div>
       <div class="sb-main">
-        <div class="sb-side t"><div class="sb-logo" id="sbLogoT">T</div><div class="sb-maps"><i class="on"></i><i></i></div><div class="sb-score" id="sbScoreT">0</div></div>
-        <div class="sb-mid"><div class="sb-round" id="sbRound">ROUND 1</div><div class="sb-time" id="sbTime">1:55</div></div>
-        <div class="sb-side ct"><div class="sb-logo" id="sbLogoCT">CT</div><div class="sb-maps"><i class="on"></i><i></i></div><div class="sb-score" id="sbScoreCT">0</div></div>
+        <div class="sb-team t"><div class="sb-logo" id="sbLogoT">T</div><div class="sb-score" id="sbScoreT">0</div></div>
+        <div class="sb-mid"><div class="sb-round" id="sbRound">РАУНД 1</div><div class="sb-time" id="sbTime">1:55</div></div>
+        <div class="sb-team ct"><div class="sb-logo" id="sbLogoCT">CT</div><div class="sb-score" id="sbScoreCT">0</div></div>
       </div>
-      <div class="sb-alive"><b class="t" id="sbAliveT">5</b><b class="vs">VS</b><b class="ct" id="sbAliveCT">5</b></div>
+      <div class="sb-alive"><b class="t" id="sbAliveT">5</b><span>vs</span><b class="ct" id="sbAliveCT">5</b></div>
     </div>
     <div class="pl-col" id="plT"></div>
     <div class="pl-col" id="plCT"></div>
@@ -11742,7 +11731,7 @@ function draw(){
   if(roundState === "freeze"){
     ctx.save(); ctx.setTransform(1,0,0,1,0,0);
     var fzl = Math.max(0, roundStartTime - simTime);
-    var fy = 190; // под табло
+    var fy = 112; // под табло
     ctx.fillStyle = "rgba(10,14,9,0.85)"; ctx.fillRect(cv.width/2-230, fy, 460, 44);
     ctx.strokeStyle = "rgba(148,180,73,0.7)"; ctx.strokeRect(cv.width/2-230, fy, 460, 44);
     ctx.fillStyle = "#e8ecdd"; ctx.textAlign = "center"; ctx.font = "600 15px 'IBM Plex Sans',sans-serif";
@@ -12678,8 +12667,8 @@ function scoreboardUpdate(rtLeft){
     $("sbScore"+t).textContent = score[t];
     $("sbAlive"+t).textContent = bots.filter(function(b){ return b.team === t && b.alive; }).length;
   });
-  $("sbMatch").textContent = "Match "+matchNum;
-  $("sbRound").textContent = "ROUND "+Math.max(1, roundNum);
+  $("sbMatch").textContent = "матч № "+matchNum;
+  $("sbRound").textContent = "РАУНД "+Math.max(1, roundNum);
   var tm = $("sbTime"), planted = bomb && bomb.state === "planted" && roundState === "live";
   // бомба стоит — как в CS2: вместо времени раунда значок бомбы (время до взрыва зрители не видят)
   if(planted){ tm.textContent = "💣"; tm.className = "sb-time bomb"; return; }
@@ -12709,31 +12698,33 @@ var plSelected = null;
 function plNum(b){ var i = +b.id.replace(/\D/g, ""); return b.team === "T" ? i + 1 : (i + 6) % 10; }
 function plPhoto(b){ var p = PLAYER_PHOTO[nick(b.id)]; return p ? '<img alt="" src="'+p+'">' : PL_SIL; }
 function plCard(b){
-  var t = b.team, sel = plSelected === b.id ? " sel" : "", n = nick(b.id);
-  var info = '<div class="pl-info"><div class="pl-nick">'+esc(n)+'</div><div class="pl-kd"><span>⊕ '+(b.kills||0)+'</span><span>☠ '+(b.deaths||0)+'</span></div><div class="pl-money">$ '+(b.money||0).toLocaleString("en-US")+'</div></div>';
-  var ava = '<div class="pl-ava">'+plPhoto(b)+'</div>';
-  if(!b.alive) return '<div class="pl-card dead'+sel+'"><div class="pl-num">'+plNum(b)+'</div>'+info+ava+'<div class="pl-gear"><div class="pl-skull">💀</div></div></div>';
-  var w = b.weapon && b.weapon.key, wkey = w || "KNIFE";
-  var wsvg = (KF_ICON[wkey] ? '<svg viewBox="'+KF_ICON[wkey].vb+'">'+KF_ICON[wkey].svg+'</svg>' : esc(b.weapon ? b.weapon.name : ""));
-  var hp = Math.max(0, Math.round(b.hp)), ut = "";
-  if(b.helmet) ut += PL_ICON.helmet; else if(b.armor) ut += PL_ICON.armor;
-  if(t === "CT" && b.kit) ut += PL_ICON.kit;
-  if(t === "T" && bomb && bomb.state === "carried" && bomb.carrier === b) ut += PL_ICON.c4;
-  var N = b.nades || {}; ["smoke","flash","he","molly"].forEach(function(k){ for(var i=0;i<(N[k]||0);i++) ut += PL_ICON[k]; });
-  return '<div class="pl-card'+sel+'"><div class="pl-num">'+plNum(b)+'</div>'+info+ava+'<div class="pl-gear"><div class="pl-hpbar'+(hp <= 25 ? " low" : "")+'" style="width:'+hp+'%"></div>'+
-    '<div class="pl-row"><span class="pl-wp">'+wsvg+'</span><span class="pl-hp">'+hp+'</span></div><div class="pl-row"><span class="pl-ut">'+ut+'</span></div></div></div>';
+  var sel = plSelected === b.id ? " sel" : "", n = nick(b.id), hp = b.alive ? Math.max(0, Math.round(b.hp)) : 0, low = hp > 0 && hp <= 25 ? " low" : "";
+  var gear = "";
+  if(b.alive){
+    var wkey = (b.weapon && b.weapon.key) || "KNIFE", ic = KF_ICON[wkey];
+    if(ic) gear += '<svg class="wp" viewBox="'+ic.vb+'">'+ic.svg+'</svg>';
+    if(b.helmet) gear += PL_ICON.helmet; else if(b.armor) gear += PL_ICON.armor;
+    if(b.team === "CT" && b.kit) gear += PL_ICON.kit;
+    if(b.team === "T" && bomb && bomb.state === "carried" && bomb.carrier === b) gear += PL_ICON.c4;
+    var N = b.nades || {}; ["smoke","flash","he","molly"].forEach(function(k){ for(var i=0;i<(N[k]||0);i++) gear += PL_ICON[k]; });
+  }
+  return '<div class="pl-card'+(b.alive ? "" : " dead")+sel+'"><div class="pl-ava">'+plPhoto(b)+'</div><div class="pl-body">'+
+    '<div class="pl-line"><span class="pl-nick">'+(b.team === "CT" ? esc(n)+'<i>'+plNum(b)+'</i>' : '<i>'+plNum(b)+'</i>'+esc(n))+'</span><span class="pl-hp'+low+'">'+(b.alive ? hp : "☠")+'</span></div>'+
+    '<div class="pl-gear">'+gear+'</div>'+
+    '<div class="pl-line"><span class="pl-stat">'+(b.kills||0)+' / '+(b.deaths||0)+'</span><span class="pl-money">$'+(b.money||0).toLocaleString("en-US")+'</span></div>'+
+    '</div><div class="pl-bar"><b class="'+low.trim()+'" style="width:'+hp+'%"></b></div></div>';
 }
 function playersUpdate(){
   ["T","CT"].forEach(function(t){
     var el = document.getElementById("pl"+t); if(!el) return;
-    el.innerHTML = '<div class="pl-tag">'+esc(TEAM_NAME[t])+'</div>'+bots.filter(function(b){ return b.team === t; }).map(plCard).join("");
+    el.innerHTML = '<div class="pl-tag"><span>'+esc(TEAM_NAME[t])+'</span></div>'+bots.filter(function(b){ return b.team === t; }).map(plCard).join("");
   });
   var f = document.getElementById("plFocus"), b = plSelected && botById(plSelected);
   if(!b || !b.alive){ plSelected = null; f.className = ""; return; }
   f.className = "show "+b.team.toLowerCase();
   var ph = document.getElementById("pfPhoto"); if(ph.dataset.id !== b.id){ ph.dataset.id = b.id; ph.innerHTML = plPhoto(b); }
-  document.getElementById("pfNick").textContent = nick(b.id).toUpperCase();
-  document.getElementById("pfHp").textContent = Math.max(0, Math.round(b.hp));
+  document.getElementById("pfNick").textContent = nick(b.id);
+  document.getElementById("pfHp").textContent = Math.max(0, Math.round(b.hp))+" HP · "+((b.weapon && b.weapon.name) || "");
 }
 // клик по игроку на радаре (не перетаскивание камеры) — он в центре; мимо — убрать
 (function(){

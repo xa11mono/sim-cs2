@@ -729,7 +729,7 @@ function draw(){
   if(roundState === "freeze"){
     ctx.save(); ctx.setTransform(1,0,0,1,0,0);
     var fzl = Math.max(0, roundStartTime - simTime);
-    var fy = 190; // под табло
+    var fy = 112; // под табло
     ctx.fillStyle = "rgba(10,14,9,0.85)"; ctx.fillRect(cv.width/2-230, fy, 460, 44);
     ctx.strokeStyle = "rgba(148,180,73,0.7)"; ctx.strokeRect(cv.width/2-230, fy, 460, 44);
     ctx.fillStyle = "#e8ecdd"; ctx.textAlign = "center"; ctx.font = "600 15px 'IBM Plex Sans',sans-serif";

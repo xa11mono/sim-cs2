@@ -159,8 +159,8 @@ function scoreboardUpdate(rtLeft){
     $("sbScore"+t).textContent = score[t];
     $("sbAlive"+t).textContent = bots.filter(function(b){ return b.team === t && b.alive; }).length;
   });
-  $("sbMatch").textContent = "Match "+matchNum;
-  $("sbRound").textContent = "ROUND "+Math.max(1, roundNum);
+  $("sbMatch").textContent = "матч № "+matchNum;
+  $("sbRound").textContent = "РАУНД "+Math.max(1, roundNum);
   var tm = $("sbTime"), planted = bomb && bomb.state === "planted" && roundState === "live";
   // бомба стоит — как в CS2: вместо времени раунда значок бомбы (время до взрыва зрители не видят)
   if(planted){ tm.textContent = "💣"; tm.className = "sb-time bomb"; return; }
@@ -190,31 +190,33 @@ var plSelected = null;
 function plNum(b){ var i = +b.id.replace(/\D/g, ""); return b.team === "T" ? i + 1 : (i + 6) % 10; }
 function plPhoto(b){ var p = PLAYER_PHOTO[nick(b.id)]; return p ? '<img alt="" src="'+p+'">' : PL_SIL; }
 function plCard(b){
-  var t = b.team, sel = plSelected === b.id ? " sel" : "", n = nick(b.id);
-  var info = '<div class="pl-info"><div class="pl-nick">'+esc(n)+'</div><div class="pl-kd"><span>⊕ '+(b.kills||0)+'</span><span>☠ '+(b.deaths||0)+'</span></div><div class="pl-money">$ '+(b.money||0).toLocaleString("en-US")+'</div></div>';
-  var ava = '<div class="pl-ava">'+plPhoto(b)+'</div>';
-  if(!b.alive) return '<div class="pl-card dead'+sel+'"><div class="pl-num">'+plNum(b)+'</div>'+info+ava+'<div class="pl-gear"><div class="pl-skull">💀</div></div></div>';
-  var w = b.weapon && b.weapon.key, wkey = w || "KNIFE";
-  var wsvg = (KF_ICON[wkey] ? '<svg viewBox="'+KF_ICON[wkey].vb+'">'+KF_ICON[wkey].svg+'</svg>' : esc(b.weapon ? b.weapon.name : ""));
-  var hp = Math.max(0, Math.round(b.hp)), ut = "";
-  if(b.helmet) ut += PL_ICON.helmet; else if(b.armor) ut += PL_ICON.armor;
-  if(t === "CT" && b.kit) ut += PL_ICON.kit;
-  if(t === "T" && bomb && bomb.state === "carried" && bomb.carrier === b) ut += PL_ICON.c4;
-  var N = b.nades || {}; ["smoke","flash","he","molly"].forEach(function(k){ for(var i=0;i<(N[k]||0);i++) ut += PL_ICON[k]; });
-  return '<div class="pl-card'+sel+'"><div class="pl-num">'+plNum(b)+'</div>'+info+ava+'<div class="pl-gear"><div class="pl-hpbar'+(hp <= 25 ? " low" : "")+'" style="width:'+hp+'%"></div>'+
-    '<div class="pl-row"><span class="pl-wp">'+wsvg+'</span><span class="pl-hp">'+hp+'</span></div><div class="pl-row"><span class="pl-ut">'+ut+'</span></div></div></div>';
+  var sel = plSelected === b.id ? " sel" : "", n = nick(b.id), hp = b.alive ? Math.max(0, Math.round(b.hp)) : 0, low = hp > 0 && hp <= 25 ? " low" : "";
+  var gear = "";
+  if(b.alive){
+    var wkey = (b.weapon && b.weapon.key) || "KNIFE", ic = KF_ICON[wkey];
+    if(ic) gear += '<svg class="wp" viewBox="'+ic.vb+'">'+ic.svg+'</svg>';
+    if(b.helmet) gear += PL_ICON.helmet; else if(b.armor) gear += PL_ICON.armor;
+    if(b.team === "CT" && b.kit) gear += PL_ICON.kit;
+    if(b.team === "T" && bomb && bomb.state === "carried" && bomb.carrier === b) gear += PL_ICON.c4;
+    var N = b.nades || {}; ["smoke","flash","he","molly"].forEach(function(k){ for(var i=0;i<(N[k]||0);i++) gear += PL_ICON[k]; });
+  }
+  return '<div class="pl-card'+(b.alive ? "" : " dead")+sel+'"><div class="pl-ava">'+plPhoto(b)+'</div><div class="pl-body">'+
+    '<div class="pl-line"><span class="pl-nick">'+(b.team === "CT" ? esc(n)+'<i>'+plNum(b)+'</i>' : '<i>'+plNum(b)+'</i>'+esc(n))+'</span><span class="pl-hp'+low+'">'+(b.alive ? hp : "☠")+'</span></div>'+
+    '<div class="pl-gear">'+gear+'</div>'+
+    '<div class="pl-line"><span class="pl-stat">'+(b.kills||0)+' / '+(b.deaths||0)+'</span><span class="pl-money">$'+(b.money||0).toLocaleString("en-US")+'</span></div>'+
+    '</div><div class="pl-bar"><b class="'+low.trim()+'" style="width:'+hp+'%"></b></div></div>';
 }
 function playersUpdate(){
   ["T","CT"].forEach(function(t){
     var el = document.getElementById("pl"+t); if(!el) return;
-    el.innerHTML = '<div class="pl-tag">'+esc(TEAM_NAME[t])+'</div>'+bots.filter(function(b){ return b.team === t; }).map(plCard).join("");
+    el.innerHTML = '<div class="pl-tag"><span>'+esc(TEAM_NAME[t])+'</span></div>'+bots.filter(function(b){ return b.team === t; }).map(plCard).join("");
   });
   var f = document.getElementById("plFocus"), b = plSelected && botById(plSelected);
   if(!b || !b.alive){ plSelected = null; f.className = ""; return; }
   f.className = "show "+b.team.toLowerCase();
   var ph = document.getElementById("pfPhoto"); if(ph.dataset.id !== b.id){ ph.dataset.id = b.id; ph.innerHTML = plPhoto(b); }
-  document.getElementById("pfNick").textContent = nick(b.id).toUpperCase();
-  document.getElementById("pfHp").textContent = Math.max(0, Math.round(b.hp));
+  document.getElementById("pfNick").textContent = nick(b.id);
+  document.getElementById("pfHp").textContent = Math.max(0, Math.round(b.hp))+" HP · "+((b.weapon && b.weapon.name) || "");
 }
 // клик по игроку на радаре (не перетаскивание камеры) — он в центре; мимо — убрать
 (function(){
