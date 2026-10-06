@@ -95,7 +95,7 @@ def top_vars(src):
 STATIC = set("""ZONEMAP ZONEMAP_RAW NAVAREAS NAVAREAS_RAW NAV_BOUNDARY_SEGS_RAW NAV_BOUNDARY_VERTS_RAW zonesById zoneGraph ZONE_SAMPLES
 ZONE_DANGER_LINE PRO_LINEUPS_RAW BOT_INIT POINTS_CODE TEAM_COV""".split())
 SETTINGS = set("""BAL MANUAL_WALLS WALL_OBJECTS wallSegs wallSegsLOS USER_ZONES USER_LINEUPS POINTS POINTS_SRC POINTS_PENDING ZONE_NAMES ZONE_SHAPES navAnchors navTransform zoneLayer""".split())
-UI = set("view paused lastFrame accumulator nowTs".split())
+UI = set("view paused lastFrame accumulator nowTs PTED chkPtEd ptEdPanel".split())
 V = [v for v in top_vars(s) if v not in STATIC | SETTINGS | UI and not v.startswith('__') and not v.startswith('MK') and not v.startswith('mk')]
 for must in ['tick', 'bots', 'bomb', 'roundNum', 'matchNum', 'teamTac', 'belief', 'smokes', 'score', 'roundState']:
     assert must in V, must
