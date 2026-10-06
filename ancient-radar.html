@@ -36,7 +36,24 @@
   #killfeed .kf.ev{font-weight:600;border:1px solid var(--line);} #killfeed .kf.bomb{border-color:#e05c52;color:#ff9a8f;} #killfeed .kf.defuse{border-color:#5a9bd9;color:#9ec6ef;}
   #killfeed .kf.clutch{border-color:#ffd76a;color:#ffe49a;}
   #killfeed .kf.boom{border-color:#e05c52;background:rgba(80,20,15,0.85);color:#ffb3aa;} #killfeed .kf.round{opacity:.6;font-weight:400;}
-  #banner{position:absolute;top:70px;left:50%;transform:translateX(-50%) scale(.9);opacity:0;transition:all .25s;pointer-events:none;font-family:'IBM Plex Sans',sans-serif;font-weight:700;font-size:22px;letter-spacing:.04em;padding:8px 22px;border-radius:6px;background:rgba(10,14,9,0.88);border:1px solid var(--accent-dim);color:#fff;}
+  /* табло как на трансляции (Н6): плоское, без «рваной бумаги» */
+  #scoreboard{position:absolute;top:8px;left:50%;transform:translateX(-50%);pointer-events:none;z-index:4;font-family:'IBM Plex Sans','Segoe UI',Arial,sans-serif;display:flex;flex-direction:column;align-items:center;}
+  #scoreboard .sb-head{display:flex;justify-content:space-between;align-items:center;width:100%;box-sizing:border-box;padding:3px 12px;background:#121a10;border-top:2px solid var(--accent);border-radius:4px 4px 0 0;color:#cfe3a8;font-size:10.5px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;}
+  #scoreboard .sb-main{display:flex;align-items:stretch;background:rgba(8,10,8,0.92);border-radius:0 0 4px 4px;}
+  #scoreboard .sb-team{display:flex;align-items:center;gap:10px;padding:6px 12px;}
+  #scoreboard .sb-team.t{border-bottom:3px solid var(--t);} #scoreboard .sb-team.ct{border-bottom:3px solid var(--ct);flex-direction:row-reverse;}
+  #scoreboard .sb-logo{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;color:#0b0f0b;overflow:hidden;}
+  #scoreboard .sb-logo img{width:100%;height:100%;object-fit:contain;}
+  #scoreboard .t .sb-logo{background:var(--t);} #scoreboard .ct .sb-logo{background:var(--ct);}
+  #scoreboard .sb-score{font-size:34px;font-weight:700;color:#fff;min-width:30px;text-align:center;line-height:1;}
+  #scoreboard .sb-mid{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:4px 14px;min-width:82px;background:rgba(255,255,255,0.04);}
+  #scoreboard .sb-round{font-size:10.5px;font-weight:600;letter-spacing:.08em;color:#cfd5c6;}
+  #scoreboard .sb-time{font-family:'IBM Plex Mono',monospace;font-size:19px;font-weight:600;color:#fff;line-height:1.15;}
+  #scoreboard .sb-time.low{color:#ff8a7e;} #scoreboard .sb-time.bomb{color:#ff5a4c;}
+  #scoreboard .sb-alive{display:flex;align-items:center;gap:8px;margin-top:6px;font-size:12px;color:var(--text-dim);}
+  #scoreboard .sb-alive b{display:inline-block;min-width:26px;padding:2px 7px;text-align:center;border-radius:3px;font-size:15px;color:#fff;}
+  #scoreboard .sb-alive b.t{background:rgba(217,162,74,0.45);} #scoreboard .sb-alive b.ct{background:rgba(90,155,217,0.45);}
+  #banner{position:absolute;top:130px;left:50%;transform:translateX(-50%) scale(.9);opacity:0;transition:all .25s;pointer-events:none;font-family:'IBM Plex Sans',sans-serif;font-weight:700;font-size:22px;letter-spacing:.04em;padding:8px 22px;border-radius:6px;background:rgba(10,14,9,0.88);border:1px solid var(--accent-dim);color:#fff;}
   #banner.show{opacity:1;transform:translateX(-50%) scale(1);} #banner.ct{border-color:var(--ct);color:#cfe4f8;} #banner.t{border-color:var(--t);color:#f6ddb3;}
   #roundCard{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) scale(.94);opacity:0;transition:all .3s;pointer-events:none;min-width:340px;text-align:center;background:rgba(10,14,9,0.93);border:1px solid var(--accent-dim);border-radius:10px;padding:16px 22px;font-family:'IBM Plex Sans',sans-serif;color:var(--text);}
   #roundCard.show{opacity:1;transform:translate(-50%,-50%) scale(1);}
@@ -81,7 +98,7 @@
 <div id="app">
   <div id="topbar">
     <h1>ANCIENT — LIVE RADAR</h1>
-    <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 185 · 06.10</div>
+    <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 186 · 06.10</div>
     <button id="btnPause">Пауза</button>
     <button id="btnRestartRound" title="Немедленно сбросить текущий раунд — на случай если боты застряли">Рестарт раунда</button>
     <span class="chk" title="Матч с одним номером всегда проходит одинаково. Увидел баг — запиши номер матча и тик, введи номер и нажми «Сыграть»: матч повторится с начала">матч № <input id="inpMatchNum" type="number" min="1" value="1" style="width:52px"> <button id="btnFreshMatch">Сыграть</button> <span id="matchTick" style="opacity:.75"></span></span>
@@ -237,13 +254,17 @@
     <div id="hud">
       <div class="row"><span class="lab">Тик</span><span class="mono" id="hTick">0</span></div>
       <div class="row"><span class="lab">Время</span><span class="mono" id="hTime">0.0s</span></div>
-      <div class="row"><span class="lab">CT живы</span><span class="mono" id="hCt">5</span></div>
-      <div class="row"><span class="lab">T живы</span><span class="mono" id="hT">5</span></div>
       <div class="row"><span class="lab">Контактов сейчас</span><span class="mono" id="hContacts">0</span></div>
-      <div class="row"><span class="lab">Раунд</span><span class="mono" id="hRound">1</span></div>
-      <div class="row"><span class="lab">Счёт CT:T</span><span class="mono" id="hScore">0:0</span></div>
-      <div class="row"><span class="lab">До конца раунда</span><span class="mono" id="hRoundTime">1:55</span></div>
       <div class="row"><span class="lab">Бомба</span><span class="mono" id="hBomb">—</span></div>
+    </div>
+    <div id="scoreboard">
+      <div class="sb-head"><span>Ancient</span><span id="sbMatch">матч № 1</span></div>
+      <div class="sb-main">
+        <div class="sb-team t"><div class="sb-logo" id="sbLogoT">T</div><div class="sb-score" id="sbScoreT">0</div></div>
+        <div class="sb-mid"><div class="sb-round" id="sbRound">РАУНД 1</div><div class="sb-time" id="sbTime">1:55</div></div>
+        <div class="sb-team ct"><div class="sb-logo" id="sbLogoCT">CT</div><div class="sb-score" id="sbScoreCT">0</div></div>
+      </div>
+      <div class="sb-alive"><b class="t" id="sbAliveT">5</b><span>vs</span><b class="ct" id="sbAliveCT">5</b></div>
     </div>
     <div id="contact">ОБНАРУЖЕН КОНТАКТ</div>
     <div id="warn"></div>
@@ -11655,10 +11676,6 @@ function draw(){
   document.getElementById("contact").style.display = contacts>0 ? "block" : "none";
   document.getElementById("hTick").textContent = tick;
   document.getElementById("hTime").textContent = simTime.toFixed(1)+"s";
-  document.getElementById("hCt").textContent = bots.filter(function(b){return b.team==="CT"&&b.alive;}).length;
-  document.getElementById("hT").textContent = bots.filter(function(b){return b.team==="T"&&b.alive;}).length;
-  document.getElementById("hRound").textContent = roundNum;
-  document.getElementById("hScore").textContent = score.CT+":"+score.T;
   var rtLeft = roundState === "live" ? Math.max(0, ROUND_TIME_SEC - (simTime - roundStartTime)) : (roundState === "freeze" ? ROUND_TIME_SEC : 0);
   if(bomb && bomb.state === "planted") rtLeft = Math.max(0, (bomb.explodeTick - tick)/TICK_HZ);
   var bst = "—";
@@ -11672,18 +11689,19 @@ function draw(){
     else if(bomb.state === "exploded") bst = "взорвалась";
   }
   document.getElementById("hBomb").textContent = bst;
-  document.getElementById("hRoundTime").textContent = Math.floor(rtLeft/60)+":"+("0"+Math.floor(rtLeft%60)).slice(-2);
+  scoreboardUpdate(rtLeft);
   if(!draw._econN || ++draw._econN > 8){ draw._econN = 1; renderEcon(); }
 
   if(roundState === "freeze"){
     ctx.save(); ctx.setTransform(1,0,0,1,0,0);
     var fzl = Math.max(0, roundStartTime - simTime);
-    ctx.fillStyle = "rgba(10,14,9,0.85)"; ctx.fillRect(cv.width/2-230, 12, 460, 44);
-    ctx.strokeStyle = "rgba(148,180,73,0.7)"; ctx.strokeRect(cv.width/2-230, 12, 460, 44);
+    var fy = 112; // под табло
+    ctx.fillStyle = "rgba(10,14,9,0.85)"; ctx.fillRect(cv.width/2-230, fy, 460, 44);
+    ctx.strokeStyle = "rgba(148,180,73,0.7)"; ctx.strokeRect(cv.width/2-230, fy, 460, 44);
     ctx.fillStyle = "#e8ecdd"; ctx.textAlign = "center"; ctx.font = "600 15px 'IBM Plex Sans',sans-serif";
-    ctx.fillText("ЗАКУПКА · раунд "+roundNum+" · "+fzl.toFixed(1)+"с", cv.width/2, 32);
+    ctx.fillText("ЗАКУПКА · "+fzl.toFixed(1)+"с", cv.width/2, fy+20);
     ctx.font = "11px 'IBM Plex Mono',monospace"; ctx.fillStyle = "#8b9a80";
-    ctx.fillText("CT: "+ROUND_TYPE_LABEL[teamEco.CT.roundType]+" · T: "+ROUND_TYPE_LABEL[teamEco.T.roundType]+(teamTac.T?" · «"+teamTac.T.tac.name+"»":""), cv.width/2, 48);
+    ctx.fillText("CT: "+ROUND_TYPE_LABEL[teamEco.CT.roundType]+" · T: "+ROUND_TYPE_LABEL[teamEco.T.roundType]+(teamTac.T?" · «"+teamTac.T.tac.name+"»":""), cv.width/2, fy+36);
     ctx.restore();
   }
   if(roundState === "matchover"){
@@ -12178,9 +12196,10 @@ var __SNAP = [
 ["KF_ICON", function(){ return KF_ICON; }, function(v){ try{ KF_ICON = v; }catch(e){} }],
 ["KF_MOD_T", function(){ return KF_MOD_T; }, function(v){ try{ KF_MOD_T = v; }catch(e){} }],
 ["bannerTimer", function(){ return bannerTimer; }, function(v){ try{ bannerTimer = v; }catch(e){} }],
-["cardTimer", function(){ return cardTimer; }, function(v){ try{ cardTimer = v; }catch(e){} }]
+["cardTimer", function(){ return cardTimer; }, function(v){ try{ cardTimer = v; }catch(e){} }],
+["TEAM_LOGO", function(){ return TEAM_LOGO; }, function(v){ try{ TEAM_LOGO = v; }catch(e){} }]
 ];
-var MK_PRINCIPLES = [{"id": "В11", "sec": "Взгляд", "text": "НОВОЕ 06.10. Префайр: слышит, что за углом сейчас выйдут, — заранее ставит прицел туда, где появится голова (широко / узко — по углу). Выходящий тоже идёт с прицелом на обычных позициях, где его принимают. (чат 06.10)", "done": false}, {"id": "К10", "sec": "Команда", "text": "НОВОЕ 06.10. Тимспик как в реальной игре: инфа, просьбы («подпушу донат, пошли со мной»), план IGL на старте и перестройка по ходу («30 с никого на Б — один чекает мид»). Сказать — 0,5–2 с, услышать — сразу. Каждый реаги", "done": false}, {"id": "К11", "sec": "Команда", "text": "НОВОЕ 06.10. Своё восприятие как у игрока: сколько шагов и откуда, гранаты (откуда кинули, где упали), киллфид (кто, из чего — роль по нику, закуп по оружию), время раунда; выводы из этого — в общую картину. (чат 06.10)", "done": false}, {"id": "Н3", "sec": "Войс, консоль, киллфид", "text": "НОВОЕ 06.10. Консоль справа снизу — без лишних сообщений: только то, что важно смотрящему (фраги, коллы тимспика, решения команды). (чат 06.10)", "done": false}, {"id": "Н4", "sec": "Войс, консоль, киллфид", "text": "НОВОЕ 06.10. Киллфид как в CS2, компактно: `Убийца + Ассистент [иконка оружия] [значки: через смок, прострел, хедшот, ноускоп, ослеплён] Жертва`; ники цветом команды, иконки — белые силуэты оружия, значки — только те, чт", "done": false}, {"id": "Н5", "sec": "Войс, консоль, киллфид", "text": "НОВОЕ 06.10. Иконки киллфида — готовые SVG владельца из его другого проекта (оружие, гранаты, нож, значки), а не самодельные силуэты. (чат 06.10, архив иконок)", "done": false}, {"id": "С1", "sec": "Стрельба", "text": "НОВОЕ 06.10. Стреляют как настоящий игрок: тап далеко, короткие очереди на средней, спрей вблизи, контрстрейф; ритм ровный по темпу оружия; трассеры уходят по рисунку отдачи, а не случайным веером. (чат 06.10)", "done": false}];
+var MK_PRINCIPLES = [{"id": "В11", "sec": "Взгляд", "text": "НОВОЕ 06.10. Префайр: слышит, что за углом сейчас выйдут, — заранее ставит прицел туда, где появится голова (широко / узко — по углу). Выходящий тоже идёт с прицелом на обычных позициях, где его принимают. (чат 06.10)", "done": false}, {"id": "К10", "sec": "Команда", "text": "НОВОЕ 06.10. Тимспик как в реальной игре: инфа, просьбы («подпушу донат, пошли со мной»), план IGL на старте и перестройка по ходу («30 с никого на Б — один чекает мид»). Сказать — 0,5–2 с, услышать — сразу. Каждый реаги", "done": false}, {"id": "К11", "sec": "Команда", "text": "НОВОЕ 06.10. Своё восприятие как у игрока: сколько шагов и откуда, гранаты (откуда кинули, где упали), киллфид (кто, из чего — роль по нику, закуп по оружию), время раунда; выводы из этого — в общую картину. (чат 06.10)", "done": false}, {"id": "Н3", "sec": "Войс, консоль, киллфид", "text": "НОВОЕ 06.10. Консоль справа снизу — без лишних сообщений: только то, что важно смотрящему (фраги, коллы тимспика, решения команды). (чат 06.10)", "done": false}, {"id": "Н4", "sec": "Войс, консоль, киллфид", "text": "НОВОЕ 06.10. Киллфид как в CS2, компактно: `Убийца + Ассистент [иконка оружия] [значки: через смок, прострел, хедшот, ноускоп, ослеплён] Жертва`; ники цветом команды, иконки — белые силуэты оружия, значки — только те, чт", "done": false}, {"id": "Н5", "sec": "Войс, консоль, киллфид", "text": "НОВОЕ 06.10. Иконки киллфида — готовые SVG владельца из его другого проекта (оружие, гранаты, нож, значки), а не самодельные силуэты. (чат 06.10, архив иконок)", "done": false}, {"id": "Н6", "sec": "Войс, консоль, киллфид", "text": "НОВОЕ 06.10. Табло как на трансляции (образец — скриншот ESL Pro League): сверху по центру счёт команд, раунд, таймер, «живые: 3 vs 5» цветами команд; без стиля «рваной бумаги»; логотипы команд владелец пришлёт позже. (ч", "done": false}, {"id": "С1", "sec": "Стрельба", "text": "НОВОЕ 06.10. Стреляют как настоящий игрок: тап далеко, короткие очереди на средней, спрей вблизи, контрстрейф; ритм ровный по темпу оружия; трассеры уходят по рисунку отдачи, а не случайным веером. (чат 06.10)", "done": false}];
 // ======================= v167: «Отметить момент», карточка «Я понял так», перемотка =======================
 // Инструмент для владельца и Claude, мозг ботов не трогает. Описание — docs/tasks/02-mark-moment.md.
 // Снимки состояния: __SNAP (список переменных симулятора, генерирует patch170.py при сборке).
@@ -12605,6 +12624,27 @@ function mkShowCopy(t){ var a = mkEl("mkCopyBox"); a.value = t; a.style.display 
 
 // (v167) каждый сеанс начинается с чистого матча 1 — как в замерах, чтобы отметки повторялись
 freshMatch(1); paused = false;
+// ---------- табло (Н6): счёт, раунд, таймер, живые — как на трансляции ----------
+// Логотипы команд — TEAM_LOGO (картинка data:/svg); пока нет — буква стороны.
+var TEAM_LOGO = {T:null, CT:null};
+function scoreboardUpdate(rtLeft){
+  var $ = function(id){ return document.getElementById(id); };
+  ["T","CT"].forEach(function(t){
+    var lg = $("sbLogo"+t);
+    if(TEAM_LOGO[t] && lg.dataset.src !== TEAM_LOGO[t]){ lg.dataset.src = TEAM_LOGO[t]; lg.innerHTML = '<img alt="" src="'+TEAM_LOGO[t]+'">'; }
+    $("sbScore"+t).textContent = score[t];
+    $("sbAlive"+t).textContent = bots.filter(function(b){ return b.team === t && b.alive; }).length;
+  });
+  $("sbMatch").textContent = "матч № "+matchNum;
+  $("sbRound").textContent = "РАУНД "+Math.max(1, roundNum);
+  var tm = $("sbTime"), planted = bomb && bomb.state === "planted" && roundState === "live";
+  // бомба стоит — как в CS2: вместо времени раунда значок бомбы (время до взрыва зрители не видят)
+  if(planted){ tm.textContent = "💣"; tm.className = "sb-time bomb"; return; }
+  var sec = roundState === "freeze" ? Math.max(0, roundStartTime - simTime) : rtLeft;
+  tm.textContent = Math.floor(sec/60)+":"+("0"+Math.floor(sec%60)).slice(-2);
+  tm.className = "sb-time" + (roundState === "live" && sec <= 10 ? " low" : "");
+}
+
 requestAnimationFrame(frame);
 
 document.getElementById("chkLogDbg").addEventListener("change", function(){

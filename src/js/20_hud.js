@@ -157,6 +157,27 @@ document.getElementById("btnFreshMatch").addEventListener("click", function(){ v
 setInterval(function(){ var el = document.getElementById("matchTick"); if(el) el.textContent = "· сейчас матч "+matchNum+", тик "+tick; }, 250);
 var BOT_INIT = bots.map(function(b){ var o = {keys:{}, vals:{}}; for(var k in b){ o.keys[k] = 1; var v = b[k]; if(v === null || (typeof v !== "object" && typeof v !== "function")) o.vals[k] = v; } return o; });
 /*@@BUILD: здесь build.py вставляет __SNAP, MK_PRINCIPLES и marks.js@@*/
+// ---------- табло (Н6): счёт, раунд, таймер, живые — как на трансляции ----------
+// Логотипы команд — TEAM_LOGO (картинка data:/svg); пока нет — буква стороны.
+var TEAM_LOGO = {T:null, CT:null};
+function scoreboardUpdate(rtLeft){
+  var $ = function(id){ return document.getElementById(id); };
+  ["T","CT"].forEach(function(t){
+    var lg = $("sbLogo"+t);
+    if(TEAM_LOGO[t] && lg.dataset.src !== TEAM_LOGO[t]){ lg.dataset.src = TEAM_LOGO[t]; lg.innerHTML = '<img alt="" src="'+TEAM_LOGO[t]+'">'; }
+    $("sbScore"+t).textContent = score[t];
+    $("sbAlive"+t).textContent = bots.filter(function(b){ return b.team === t && b.alive; }).length;
+  });
+  $("sbMatch").textContent = "матч № "+matchNum;
+  $("sbRound").textContent = "РАУНД "+Math.max(1, roundNum);
+  var tm = $("sbTime"), planted = bomb && bomb.state === "planted" && roundState === "live";
+  // бомба стоит — как в CS2: вместо времени раунда значок бомбы (время до взрыва зрители не видят)
+  if(planted){ tm.textContent = "💣"; tm.className = "sb-time bomb"; return; }
+  var sec = roundState === "freeze" ? Math.max(0, roundStartTime - simTime) : rtLeft;
+  tm.textContent = Math.floor(sec/60)+":"+("0"+Math.floor(sec%60)).slice(-2);
+  tm.className = "sb-time" + (roundState === "live" && sec <= 10 ? " low" : "");
+}
+
 window.__ev=function(src){return eval(src);};
 requestAnimationFrame(frame);
 

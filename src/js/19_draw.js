@@ -709,10 +709,6 @@ function draw(){
   document.getElementById("contact").style.display = contacts>0 ? "block" : "none";
   document.getElementById("hTick").textContent = tick;
   document.getElementById("hTime").textContent = simTime.toFixed(1)+"s";
-  document.getElementById("hCt").textContent = bots.filter(function(b){return b.team==="CT"&&b.alive;}).length;
-  document.getElementById("hT").textContent = bots.filter(function(b){return b.team==="T"&&b.alive;}).length;
-  document.getElementById("hRound").textContent = roundNum;
-  document.getElementById("hScore").textContent = score.CT+":"+score.T;
   var rtLeft = roundState === "live" ? Math.max(0, ROUND_TIME_SEC - (simTime - roundStartTime)) : (roundState === "freeze" ? ROUND_TIME_SEC : 0);
   if(bomb && bomb.state === "planted") rtLeft = Math.max(0, (bomb.explodeTick - tick)/TICK_HZ);
   var bst = "—";
@@ -726,18 +722,19 @@ function draw(){
     else if(bomb.state === "exploded") bst = "взорвалась";
   }
   document.getElementById("hBomb").textContent = bst;
-  document.getElementById("hRoundTime").textContent = Math.floor(rtLeft/60)+":"+("0"+Math.floor(rtLeft%60)).slice(-2);
+  scoreboardUpdate(rtLeft);
   if(!draw._econN || ++draw._econN > 8){ draw._econN = 1; renderEcon(); }
 
   if(roundState === "freeze"){
     ctx.save(); ctx.setTransform(1,0,0,1,0,0);
     var fzl = Math.max(0, roundStartTime - simTime);
-    ctx.fillStyle = "rgba(10,14,9,0.85)"; ctx.fillRect(cv.width/2-230, 12, 460, 44);
-    ctx.strokeStyle = "rgba(148,180,73,0.7)"; ctx.strokeRect(cv.width/2-230, 12, 460, 44);
+    var fy = 112; // под табло
+    ctx.fillStyle = "rgba(10,14,9,0.85)"; ctx.fillRect(cv.width/2-230, fy, 460, 44);
+    ctx.strokeStyle = "rgba(148,180,73,0.7)"; ctx.strokeRect(cv.width/2-230, fy, 460, 44);
     ctx.fillStyle = "#e8ecdd"; ctx.textAlign = "center"; ctx.font = "600 15px 'IBM Plex Sans',sans-serif";
-    ctx.fillText("ЗАКУПКА · раунд "+roundNum+" · "+fzl.toFixed(1)+"с", cv.width/2, 32);
+    ctx.fillText("ЗАКУПКА · "+fzl.toFixed(1)+"с", cv.width/2, fy+20);
     ctx.font = "11px 'IBM Plex Mono',monospace"; ctx.fillStyle = "#8b9a80";
-    ctx.fillText("CT: "+ROUND_TYPE_LABEL[teamEco.CT.roundType]+" · T: "+ROUND_TYPE_LABEL[teamEco.T.roundType]+(teamTac.T?" · «"+teamTac.T.tac.name+"»":""), cv.width/2, 48);
+    ctx.fillText("CT: "+ROUND_TYPE_LABEL[teamEco.CT.roundType]+" · T: "+ROUND_TYPE_LABEL[teamEco.T.roundType]+(teamTac.T?" · «"+teamTac.T.tac.name+"»":""), cv.width/2, fy+36);
     ctx.restore();
   }
   if(roundState === "matchover"){
