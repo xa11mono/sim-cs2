@@ -1,5 +1,5 @@
 # Публикуемая версия: python3 mkpub.py  → ../ancient-radar.html
-# Собирает игру из game.html, убирает обёртку <head> (её добавляет публикация)
+# Собирает игру из src/page.html + src/js/ + src/data/, убирает обёртку <head> (её добавляет публикация)
 # и тестовый вход window.__ev (нужен только для замеров).
 import subprocess, os, sys
 HERE = os.path.dirname(os.path.abspath(__file__))

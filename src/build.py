@@ -1,17 +1,36 @@
 #!/usr/bin/env python3
 """Сборка симулятора: python3 build.py ../sim.html
-Исходник игры — один файл game.html (до v168 игра собиралась из orig.html +
-патчей patch*.py; их склеили в game.html, сборка дала тот же файл бит в бит).
-Сборка только вставляет на место метки @@BUILD@@ то, что генерируется:
+Исходник игры (с v177) — маленькие файлы:
+  - page.html — страница (кнопки, стили); на месте <!--@@JS@@--> встаёт код;
+  - js/NN_*.js — код по смыслу; склеиваются по порядку номеров;
+  - data/* — данные (навмеш, зоны, стены, картинка радара, про-данные,
+    лайнапы); в коде на их месте метка @@DATA:имя@@ (или @@PNG:имя@@ для
+    картинки — вставляется как base64).
+Склейка даёт ровно ту же страницу, что раньше давал один файл game.html.
+Потом сборка вставляет на место метки @@BUILD@@ то, что генерируется:
   - __SNAP — список переменных симулятора для снимков/перемотки (marks.js);
   - MK_PRINCIPLES — пункты из docs/PRINCIPLES.md для карточки «Я понял так»;
   - сам модуль marks.js.
-Правка поведения ботов — прямо в game.html."""
+Правка поведения ботов — в нужном файле js/."""
 import re, json, sys, os
 OUT = os.path.abspath(sys.argv[1] if len(sys.argv) > 1 else os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'sim.html'))
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 MARK = "/*@@BUILD: здесь build.py вставляет __SNAP, MK_PRINCIPLES и marks.js@@*/\n"
-s = open('game.html', encoding='utf-8').read()
+import base64, glob
+def assemble():
+    page = open('page.html', encoding='utf-8').read()
+    js = ''.join(open(f, encoding='utf-8').read() for f in sorted(glob.glob('js/[0-9][0-9]_*.js')))
+    assert page.count('<!--@@JS@@-->\n') == 1
+    out = page.replace('<!--@@JS@@-->\n', js)
+    def data(m):
+        t = open(os.path.join('data', m.group(1)), encoding='utf-8').read()
+        return t[:-1] if t.endswith('\n') else t
+    out, nd = re.subn(r'@@DATA:([\w.]+)@@', data, out)
+    out, npng = re.subn(r'@@PNG:([\w.]+)@@', lambda m: base64.b64encode(open(os.path.join('data', m.group(1)), 'rb').read()).decode(), out)
+    assert nd == len([f for f in os.listdir('data') if f.endswith('.json')]) and npng == 1, (nd, npng)
+    assert '@@DATA:' not in out and '@@PNG:' not in out
+    return out
+s = assemble()
 assert s.count(MARK) == 1
 
 # ---------- пункты PRINCIPLES (заголовки с номерами) ----------
