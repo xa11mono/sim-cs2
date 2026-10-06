@@ -85,8 +85,8 @@ function makeTeam(team, spawnPt, count, weapon){
       path: [], pathIdx: 0, alive: true, hp: 100,
       pickTick: -999, weapon: weapon,
       contactStreak: 0, nextShotTick: 0,
-      reactionTicks: 14 + Math.floor(hashRand(seed)*16), // 0.22–0.47с — реакция живого игрока, не 0.3–0.75с
-      skill: 0.8 + hashRand(seed+1)*0.4,
+      reactionTicks: 20, // ≈0,31 с — одинаковая у всех (индивидуальных профилей нет)
+      skill: 1.0,
       state: "patrol", decisionTick: -999, holding: false,
       curSpeed: 0,
       crouching: false, holdSinceTick: -999, onStairs: false,

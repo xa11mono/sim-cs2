@@ -292,16 +292,14 @@ function startHalf(silent){
 // (v152) воспроизводимый старт: всё, что влияет на решения ботов, — с нуля.
 // Кэши чистим целиком: часть ключей содержит tick, и после сброса tick старые
 // записи прошлого матча подставлялись бы в новый.
-function freshMatch(n, keepProfile){
+function freshMatch(n){
   paused = true;
   tick = 0; simTime = 0; roundStartTick = 0;
-  if(!keepProfile) OPP = null;
   var clr = function(o){ for(var k in o) delete o[k]; };
-  [spotCache, OUTWARD_CACHE, _ED, EWL, APPEAR, HOLD_CANDS, nadeFlags, comboCd, MEMORY.siteHeatPending].forEach(function(o){ if(o) clr(o); });
-  MEMORY.nadeLandHistory = {A:[], B:[]};
+  [spotCache, OUTWARD_CACHE, _ED, EWL, APPEAR, HOLD_CANDS, nadeFlags, comboCd].forEach(function(o){ if(o) clr(o); });
   commQueue = []; tracers.length = 0; soundPings.length = 0; nadesInAir.length = 0; smokes.length = 0; fires.length = 0; nadeFx.length = 0;
   groundWeapons.length = 0; events.length = 0; killfeed.length = 0;
-  LAST_CLEAR = {CT:{}, T:{}}; MEMORY.TDEATHS = {m:-1, list:[]};
+  LAST_CLEAR = {CT:{}, T:{}};
   if(typeof beliefReset === "function") beliefReset();
   clutchInfo = null;
   nadeReactCd = {CT:0, T:0}; awpSmokeCd = {CT:0, T:0};
@@ -317,7 +315,6 @@ function freshMatch(n, keepProfile){
 }
 function newMatch(){
   matchNum++;
-  MEMORY.siteHeat = {A:1, B:1}; MEMORY.tSiteHist = []; resetMatchMemory(); MEMORY.RMEM = {aggro:[], rush:[], midDeath:[]}; HALF_ADJ = {tac:{}, ctSite:null}; timeoutsReset();
   score.CT = 0; score.T = 0;
   roundNum = 0;
   bots.forEach(function(b){ b.kills = 0; b.deaths = 0; });
@@ -355,11 +352,7 @@ function checkRoundEnd(){
   endRound(ctAlive ? "CT" : (tAlive ? "T" : null), "elim");
 }
 function endRound(winner, reason){
-  for(var shk in MEMORY.siteHeatPending){ MEMORY.siteHeat[shk] = (MEMORY.siteHeat[shk]||0) + 1; } MEMORY.siteHeatPending = {};
   if(winner){ score[winner]++; }
-  if(BAL.roundMem && teamTac.T && teamTac.T.tac && teamTac.T.tac.style === "rush"){ MEMORY.RMEM.rush.push({site:teamTac.T.site, round:roundNum}); if(MEMORY.RMEM.rush.length > 6) MEMORY.RMEM.rush.shift(); }
-  rememberRound(winner);
-  timeoutCheck(winner);
   showRoundCard(winner, reason);
   payRoundEconomy(winner, reason);
   roundState = "ending";
@@ -380,7 +373,6 @@ function endRound(winner, reason){
     roundState = "matchover";
     var mw = score.CT > score.T ? "CT" : (score.T > score.CT ? "T" : null);
     logEvent("МАТЧ ОКОНЧЕН — "+(mw ? "победа "+mw : "ничья")+" "+score.CT+":"+score.T, "round");
-    saveOppProfile();
   }
 }
 
@@ -392,7 +384,6 @@ function resetRound(){
     bots.forEach(function(b){ b.money = OT_MONEY; });
     logEvent("Овертайм: половина — по $"+OT_MONEY, "round");
   }
-  if(BAL.halfReview && roundNum === HALF_ROUNDS+1) halfReview();
   bots.forEach(function(b){
     var sp = b.spawnPt;
     var spp = spawnPosFor(sp, b.spawnOx, b.spawnOy);

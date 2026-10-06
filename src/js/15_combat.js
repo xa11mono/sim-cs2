@@ -87,15 +87,6 @@ function tryShoot(shooter, target, dist){
     shooter._place = Math.max(0, Math.min(1, 1 - hD/0.35));
     shooter._headLvl = 0.55 + 0.4*skN;
   }
-  if(shooter.contactStreak <= 1){
-    shooter._hes = 0;
-    if(BAL.execErr && shooter.prof && hashRand(tick*23 + shooter.id.charCodeAt(1)*13 + target.id.charCodeAt(1)) < 0.015 + (1-prof(shooter,"disc"))*0.05){
-      shooter._hes = 8 + Math.floor(hashRand(tick*5 + 3)*10);
-      noteMistake(shooter, "замешкался на пике "+target.id);
-    }
-  }
-  // в клатче навык игрока в клатчах немного меняет реакцию
-  var clutchMul = (aliveCount(shooter.team) === 1 && shooter.prof) ? (1.1 - 0.2*prof(shooter, "clutch")) : 1;
   // частичная видимость: неподвижного (особенно сидящего) врага вдали
   // замечают позже — виден кусок модели на фоне угла; бегущего — сразу
   var visLag = 0;
@@ -105,7 +96,7 @@ function tryShoot(shooter, target, dist){
     else if(tsp > 100*SPD_K) visLag = -2;
     shooter._visLag = visLag;
   } else if(BAL.partialVis) visLag = shooter._visLag || 0;
-  effReaction = Math.max(4, Math.round(shooter.reactionTicks * (shooter._reactMul || 1) * clutchMul) + (shooter._peekLag || 0) + ((BAL.awpClose && shooter.weapon.key === "AWP" && dist < 230) ? 0 : (shooter.weapon.scopeTicks || 0)) + (shooter._hes || 0) + visLag);
+  effReaction = Math.max(4, Math.round(shooter.reactionTicks * (shooter._reactMul || 1)) + (shooter._peekLag || 0) + ((BAL.awpClose && shooter.weapon.key === "AWP" && dist < 230) ? 0 : (shooter.weapon.scopeTicks || 0)) + (shooter._hes || 0) + visLag);
   if(shooter._smokeShot){ /* прострел смока — без реакции на "появление", он и не появлялся */ }
   else if(shooter.contactStreak < effReaction){
     // префаер — только по тому, что сам только что видел (≤1.4с), а не по коллу/
@@ -259,7 +250,7 @@ function tryShoot(shooter, target, dist){
       // он держал точку, а рядом ещё живые враги, — на несколько секунд уходит
       // на соседнюю позицию, а не ждёт трейда на том же месте
       shooter._exposedUntil = tick + 4*TICK_HZ;
-      var postKill = BAL.awpRepos || BAL.styles ? afterKillMove(shooter, target, w) : false;
+      var postKill = BAL.awpRepos ? afterKillMove(shooter, target, w) : false;
       if(!postKill && BAL.repos && shooter.atPost && shooter.post && shooter.post.hold && !shooter.planting && !shooter.defusing &&
          bots.some(function(o){ return o.alive && o.team === target.team && Math.hypot(o.x-shooter.x, o.y-shooter.y) < 900; })){
         var alt = pickSpots("repos"+Math.round(shooter.post.x/30)+","+Math.round(shooter.post.y/30), shooter.post, 3,
@@ -268,7 +259,7 @@ function tryShoot(shooter, target, dist){
         if(ap && Math.hypot(ap.x-shooter.post.x, ap.y-shooter.post.y) > 40){
           var lk = shooter.post.look;
           
-          setPost(shooter, ap, lk, true, "repos"); if(BAL.awpRepos || BAL.styles) leaveHold(shooter);
+          setPost(shooter, ap, lk, true, "repos"); if(BAL.awpRepos) leaveHold(shooter);
           holdTask(shooter, "repos", tick + 5*TICK_HZ);
           logEvent(shooter.id+": после килла меняет позицию");
         }
@@ -474,15 +465,6 @@ function decideAction(bot, nearestDist, alliesNear, enemiesSeen){
       if(nearestDist > 230){ engageScore -= 0.25; retreatScore += 0.15; holdScore -= 0.05; }
     }
   }
-  if(BAL.profiles && bot.prof){
-    var pa = prof(bot, "aggr"), pd = prof(bot, "disc"), pr = prof(bot, "risk");
-    engageScore += (pa-0.5)*0.24;
-    holdScore   += (pd-0.5)*0.12 - (pa-0.5)*0.08;
-    retreatScore+= (0.5-pr)*0.12*(1-hpFrac+0.3);
-    // враг, про которого известно, что он агрессивно пикает, — пусть сам выйдет под прицел
-    var ne = bot._nearestEnemyBot;
-    if(ne && aggrRate(ne.id) > 1.3){ holdScore += 0.06; engageScore -= 0.03; }
-  }
   var best = "hold", bestScore = holdScore;
   if(engageScore > bestScore){ best = "engage"; bestScore = engageScore; }
   if(retreatScore > bestScore){ best = "retreat"; bestScore = retreatScore; }
@@ -514,7 +496,7 @@ function postKillDecide(sh, tg, vp, here){
   var HT = teamIntel[sh.team] && teamIntel[sh.team].hurt, hurtK = known.some(function(k){ var h = HT && HT[k.id]; return h && h.hp <= 40 && tick - h.tick < 8*TICK_HZ; });
   var tPP = sh.team === "T" && bomb && bomb.state === "planted";
   var ctMust = sh.team === "CT" && bomb && bomb.state === "planted";
-  var pa = prof(sh, "aggr"), seed = tick*53 + (sh.id.charCodeAt(sh.id.length-1)||0)*17;
+  var seed = tick*53 + (sh.id.charCodeAt(sh.id.length-1)||0)*17;
   // 1) откат: их рядом двое и больше (и нас тут меньше), или мало HP — уйти с засвеченной точки
   if(!ctMust && ((known.length >= 2 && known.length > mates) || sh.hp <= 45)){
     var dvx = here.x - vp.x, dvy = here.y - vp.y, dvl = Math.max(1, Math.hypot(dvx, dvy));
@@ -531,7 +513,7 @@ function postKillDecide(sh, tg, vp, here){
   }
   // 2) добор: известный враг рядом один (или ранен), сам цел, есть размен или перевес
   if(!tPP && known.length <= 1 && sh.hp > 50 && (mates >= 1 || my > their || hurtK || ctMust)){
-    var pPush = (ctMust ? 0.75 : 0.35 + 0.4*pa);
+    var pPush = (ctMust ? 0.75 : 0.55);
     if(hashRand(seed) < pPush){
       var tgt = known[0] ? {x:known[0].x, y:known[0].y} : vp;
       var sw = pickSpots("pkp"+tick+sh.id, vp, 4, {rMax:150, minGap:40, see:[tgt]})
@@ -558,14 +540,8 @@ function afterKillMove(sh, tg, w){
   if(!foesNear.length) return false;
   // ещё кого-то видит прямо сейчас — продолжает стрелять, не бегает
   if((sh._visible||[]).some(function(o){ return o.alive && o !== tg; })) return false;
-  var pa = prof(sh, "aggr"), pr = prof(sh, "risk"), pd = prof(sh, "disc");
   var vp = {x:tg.x, y:tg.y}, here = {x:sh.x, y:sh.y};
   if(BAL.awpRepos && w && w.key === "AWP" && (!BAL.awpSide || BAL.awpSide === sh.team)){
-    if(BAL.styles && pa > 0.7 && pr > 0.7 && sh._repeeked !== roundNum && hashRand(tick*37 + sh.id.charCodeAt(1)*5) < 0.35){
-      sh._repeeked = roundNum;
-      logEvent(sh.id+" (AWP): рискует — остаётся на том же угле");
-      return true;
-    }
     // новая точка: та же линия под другим углом, и не на виду у остальных
     // известных врагов (иначе по дороге его снимает второй)
     var others = [];
@@ -579,7 +555,7 @@ function afterKillMove(sh, tg, w){
     setPost(sh, ap, vp, true, "repos");
     if(!sh.post || sh.post.tag !== "repos") return false; // пост перебит (размен/лайнап) — не уходит
     leaveHold(sh);
-    holdTask(sh, "repos", tick + Math.round((5 + 2*pd)*TICK_HZ));
+    holdTask(sh, "repos", tick + 6*TICK_HZ);
     logEvent(sh.id+" (AWP): после фрага уходит с угла — новый угол, держит "+calloutName(vp.x, vp.y));
     return true;
   }
@@ -589,20 +565,7 @@ function afterKillMove(sh, tg, w){
   // и от известных врагов, но так, чтобы видеть тот же вход; до конца раунда
   // это его новая точка (роль больше не возвращает на старую)
   if(BAL.postKill){ var pkR = postKillDecide(sh, tg, vp, here); if(pkR) return true; }
-  var foes700 = foesNear.filter(function(o){ return Math.hypot(o.x-sh.x, o.y-sh.y) < 700; });
-  if(BAL.styles && !(sh.team === "CT" && teamTac.CT && teamTac.CT.antiEco) && pa >= 0.75 && pr >= 0.7 && sh.hp > 60 && foes700.length >= 1 && foes700.length <= 2 && hashRand(tick*41 + sh.id.charCodeAt(1)*3) < pa*0.6){
-    var sw = pickSpots("swing"+tick+sh.id, vp, 3, {rMax:140, minGap:40})[0] || vp;
-    var nf = foesNear.slice().sort(function(a, c){ return Math.hypot(a.x-vp.x, a.y-vp.y) - Math.hypot(c.x-vp.x, c.y-vp.y); })[0];
-    
-    setPost(sh, sw, {x:nf.x, y:nf.y}, true, "repos:swing");
-    if(!sh.post || sh.post.tag !== "repos:swing") return false;
-    leaveHold(sh);
-    holdTask(sh, "repos", tick + 3*TICK_HZ);
-    logEvent(sh.id+": агрессивно добирает после фрага — выходит за вторым");
-    return true;
-  }
-  // (смена позиции после фрага) — после проверки агрессивного добора: раньше
-  // шла первой и агрессивный стиль "убил — сразу за вторым" почти не срабатывал
+  // смена позиции после фрага
   if(BAL.holdShift && foesNear.length >= 1 && shiftHold(sh, vp, tg.id, "после фрага засветился")) return true;
   return false;
 }
@@ -767,7 +730,6 @@ function resolveEngagements(){
     if(next !== b.state){
       logEvent(b.id+": "+STATE_LABEL[next]+" (HP "+Math.max(0,b.hp)+"%, союзников рядом "+alliesNear+", врагов видит "+enemiesSeen+")");
       if(next === "engage"){
-        aggrNote(b.id);
         var outnum = Math.max(0, enemiesSeen - alliesNear);
         b.peekType = outnum > 0 ? "jiggle" : (alliesNear >= enemiesSeen && b.hp > 60 ? "wide" : "shoulder");
         // против AWP не выходят широко в одиночку: джиггл/плечо — вызвать выстрел
@@ -776,15 +738,6 @@ function resolveEngagements(){
         if(BAL.duelPlace && nbA && nbA.weapon && nbA.weapon.key === "AWP" && b.weapon && b.weapon.key !== "AWP"){
           var mate250 = bots.some(function(o){ return o !== b && o.alive && o.team === b.team && Math.hypot(o.x-b.x, o.y-b.y) < 250; });
           b.peekType = mate250 && b.hp > 60 ? "wide" : (outnum > 0 ? "jiggle" : "shoulder");
-        }
-        if(BAL.profiles && b.prof){
-          var pa2 = prof(b, "aggr");
-          if(b.peekType === "wide" && pa2 < 0.35) b.peekType = "shoulder";        // терпеливый — без широких выходов
-          if(b.peekType === "shoulder" && pa2 > 0.8 && b.hp > 50) b.peekType = "wide";
-          // ошибка исполнения: агрессивный "переиграл" — широкий пик даже на двоих
-          if(outnum > 0 && hashRand(tick*19 + b.id.charCodeAt(1)*7) < pa2*0.3*(1.2-prof(b,"disc"))){
-            b.peekType = "wide"; noteMistake(b, "переиграл — широкий пик на "+(outnum+1));
-          }
         }
         // (2) тип пика решён ещё до контакта (флешка себе / вдвоём — широкий, один — джиггл)
         if(b._plannedPeek && b._plannedPeek.type && tick - b._plannedPeek.t < 3*TICK_HZ && tick >= b._plannedPeek.t - 2*TICK_HZ) b.peekType = b._plannedPeek.type;

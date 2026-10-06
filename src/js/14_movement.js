@@ -302,7 +302,7 @@ function reloadPeek(b){
   var d = Math.hypot(R.x-b.x, R.y-b.y); if(d > 450 || d < 60) return false;
   b._rlPeekDone = R.until;
   var downN = BAL.numbersPlay && aliveCount(b.team) < aliveCount(b.team === "CT" ? "T" : "CT");
-  if(hashRand(tick*43 + (b.id.charCodeAt(b.id.length-1)||0)*3) > (0.35 + 0.5*prof(b, "aggr"))*(downN ? 0.5 : 1)) return false;
+  if(hashRand(tick*43 + (b.id.charCodeAt(b.id.length-1)||0)*3) > 0.6*(downN ? 0.5 : 1)) return false;
   var sp = pickSpots("rlpeek"+tick+b.id, {x:b.x, y:b.y}, 2, {rMax:140, minGap:40, see:[{x:R.x, y:R.y}]})[0];
   if(!sp) return false;
   

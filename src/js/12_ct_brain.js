@@ -1,90 +1,24 @@
-var PRO_PRIOR = @@DATA:pro_prior.json@@;
-var PRO_LOOK = @@DATA:pro_look.json@@;
 var PRO_LINEUPS_RAW = @@DATA:lineups_pro.json@@;
-// =====================================================================
-// (v147) ПРО-ПОЗИЦИИ ИЗ ДЕМОК. PRO_PRIOR — где реально стоят про на Ancient
-// (12 матчей), по стороне и фазе раунда; после планта — отдельно для A и B.
-// Используется двумя способами:
-//  1) бонус точке при любом выборе позиции (pickSpots, holdSpot): при прочих
-//     равных бот встаёт туда, где обычно стоят про;
-//  2) выбор позиции из списка названий (опорник, второй на сайте, роль по
-//     сетапу) — не "первые в списке чаще", а пропорционально тому, сколько
-//     времени про реально проводят в этой зоне.
-// =====================================================================
-var PP = {grids:{}, zc:null};
-function ppLayer(team){
-  if(!team) return null;
-  if(bomb && bomb.state === "planted" && bomb.site) return team + "|post" + bomb.site;
-  var sec = (tick - roundStartTick)/TICK_HZ;
-  return team + "|" + (sec < 20 ? "early" : sec < 50 ? "setup" : "late");
-}
-function ppGrid(layer){
-  if(!layer || typeof PRO_PRIOR === "undefined") return null;
-  if(PP.grids[layer]) return PP.grids[layer];
-  var L = PRO_PRIOR.layers[layer]; if(!L) return null;
-  var g = new Float32Array(PRO_PRIOR.n*PRO_PRIOR.n);
-  for(var i=0;i<L.length;i++) g[L[i][0]] = L[i][1]/1000;
-  PP.grids[layer] = g; return g;
-}
-// 0..1: насколько типично для про стоять в этой точке сейчас
-function proAt(team, x, y, layer){
-  var g = ppGrid(layer || ppLayer(team)); if(!g) return 0;
-  var C = PRO_PRIOR.cell, n = PRO_PRIOR.n, cx = Math.floor(x/C), cy = Math.floor(y/C);
-  if(cx < 0 || cy < 0 || cx >= n || cy >= n) return 0;
-  return g[cy*n + cx];
-}
-// клетки сетки внутри каждой зоны (один раз)
-function ppZoneCells(){
-  if(PP.zc) return PP.zc;
-  PP.zc = {}; var C = PRO_PRIOR.cell, n = PRO_PRIOR.n;
-  ZONEMAP.zones.forEach(function(z){
-    var xs = z.points.map(function(p){ return p.x; }), ys = z.points.map(function(p){ return p.y; });
-    var x0 = Math.max(0, Math.floor(Math.min.apply(null, xs)/C)), x1 = Math.min(n-1, Math.floor(Math.max.apply(null, xs)/C));
-    var y0 = Math.max(0, Math.floor(Math.min.apply(null, ys)/C)), y1 = Math.min(n-1, Math.floor(Math.max.apply(null, ys)/C));
-    var cells = [];
-    for(var cy=y0; cy<=y1; cy++) for(var cx=x0; cx<=x1; cx++) if(pointInPoly(cx*C+C/2, cy*C+C/2, z.points)) cells.push(cy*n+cx);
-    PP.zc[z.id] = cells;
-  });
-  return PP.zc;
-}
-// сколько "про-времени" в зоне с таким названием (относительная величина)
-function proZoneShare(team, name, layer){
-  var g = ppGrid(layer || ppLayer(team)); if(!g) return 0;
-  var ZC = ppZoneCells(), t = 0;
-  zonesByName(name).forEach(function(id){ (ZC[id]||[]).forEach(function(ci){ t += g[ci]; }); });
-  return t;
-}
-// выбор названия позиции: вероятность ∝ про-времени в зоне (+ небольшой пол,
-// чтобы редкие офф-углы тоже иногда случались). Детерминированно по seed.
-function proPick(team, names, seed, layer){
-  var sh = names.map(function(n){ return proZoneShare(team, n, layer); });
-  var mx = Math.max.apply(null, sh.concat([1e-9]));
-  var w = sh.map(function(v){ return BAL.proFloor + v/mx; });
-  var tot = w.reduce(function(a, v){ return a+v; }, 0), r = hashRand(seed)*tot;
-  for(var i=0;i<w.length;i++){ r -= w[i]; if(r <= 0) return i; }
-  return w.length-1;
-}
-// Стандартная расстановка по данным демок (где CT реально стоят на 25-й секунде):
-// A держат 1–2 игрока, и половину раундов один из них впереди (Short/Donut);
-// на B двое, один из них часто выдвинут (Cave/Lamp Room/Dark); ещё один — сзади,
-// на путях ротации (Alley/спавн/Back Halls). Название выбирается по про-частоте.
-var PRO_ROLE = {
+// Названные места для ролей CT (знание карты): опорники A/B, ротатор сзади,
+// второй на B впереди. Из списка — лучшее по обзору и укрытию (bestNamed).
+var CT_ROLE_SPOTS = {
   anchorA: ["Back Site","A Site","Temple","Short","Donut","Triple Box","Boost","Box","Plat"],
   anchorB: ["B Site","Site B","First Lane","Second Lane","90","Bonger"],
-  rot212:  ["Alley","Red Room"],   // (v149) без Back Halls, спавна и CT Lane: оттуда нет полезного угла, про там только проходят
+  rot212:  ["Alley","Red Room"],   // (v149) без Back Halls, спавна и CT Lane: оттуда нет полезного угла
   roam212: ["Cave","Lamp Room","Dark"]
 };
-function proRolePost(b, key, names, ref, look, tag){
-  var P = b._proRole;
+// к какому сайту склоняться без явной инфы — где по картине команды сейчас больше вероятность T
+function ctLeanSite(){ return beliefCount("CT", BZ.siteNear.A||[]) >= beliefCount("CT", BZ.siteNear.B||[]) ? "A" : "B"; }
+function rolePost(b, key, names, ref, look, tag){
+  var P = b._roleSpot;
   if(!(P && P.round === roundNum && P.m === matchNum && P.key === key)){
-    var nm = names[proPick("CT", names, roundNum*389 + matchNum*53 + key.length*7 + b.id.charCodeAt(2||1), "CT|setup")];
-    var p = namedSpot(nm, ref, {see: look ? [look] : [], key:"pr"+key+nm});
-    if(!p) return false;
-    // (v149) взгляд с этой точки — туда, откуда враг придёт раньше всего,
-    // а не заданная заранее точка (с Back Halls "на мид" = в свой коридор)
-    if(BAL.enemyward){ var ewp = enemywardLook("CT", p); if(ewp) look = ewp; }
-    P = b._proRole = {round:roundNum, m:matchNum, key:key, p:p, look:look, nm:nm};
-    logEvent(b.id+": "+({rot:"сзади на ротации", roam:"второй на B"})[key]+" — «"+nm+"»");
+    var bn = bestNamed(names, ref, "CT", {see: look ? [look] : [], key:"pr"+key});
+    if(!bn) return false;
+    var lk = look;
+    // (v149) взгляд с этой точки — туда, откуда враг придёт раньше всего
+    if(BAL.enemyward){ var ewp = enemywardLook("CT", bn.p); if(ewp) lk = ewp; }
+    P = b._roleSpot = {round:roundNum, m:matchNum, key:key, p:bn.p, look:lk, nm:bn.nm};
+    logEvent(b.id+": "+({rot:"сзади на ротации", roam:"второй на B"})[key]+" — «"+bn.nm+"»");
   }
   setPost(b, P.p, P.look, true, tag);
   return true;
@@ -141,47 +75,6 @@ function flankPost(b, F, planted){
     if(!F.arr) F.arr = tick;
     if(tick - F.arr > 40){ F.stage++; F.arr = 0; }   // коротко проверил угол — дальше
   }
-  return true;
-}
-// ранний пик за инфой: агрессивный CT (опорник/роумер/AWP) в начале раунда
-// иногда выходит вперёд — к подходу T, пока они ещё не дошли, — пару секунд
-// смотрит и возвращается на своё место. Раз за раунд, только без инфы о T рядом.
-function ctEarlyPeek(b, ct){
-  var pa = prof(b, "aggr");
-  if(!b.prof || pa < 0.7 || b._sawEnemy) return false;
-  if(BAL.numbersPlay && aliveCount("CT") < aliveCount("T")) return false; // нас меньше — не рискуем ранним пиком
-  if(teamTac.CT && teamTac.CT.antiEco) return false; // против эко — не пикаем рано
-  if(BAL.roundMem && b.tRole === "mid" && rmemRecent(MEMORY.RMEM.midDeath, 3).length >= 2) return false; // мидера рано снимают — без ранних пиков
-  var since = (tick - roundStartTick)/TICK_HZ;
-  var E = b._early;
-  if(!E || E.round !== roundNum){
-    E = b._early = {round:roundNum, go: hashRand(roundNum*733 + matchNum*41 + b.id.charCodeAt(2)*9) < (pa-0.5)*1.3, st:0};
-  }
-  if(!E.go || E.st === 2) return false;
-  if(ct.call || since > 24){ if(E.st === 1){ E.st = 2; } return false; }
-  if(since < 6) return false;
-  var k = Math.hypot(b.x-SITES.A.x, b.y-SITES.A.y) < Math.hypot(b.x-SITES.B.x, b.y-SITES.B.y) ? "A" : "B";
-  if(!/^(anchor|roamer|mid)/.test(b.tRole)) return false;
-  var g = GEO[k], stg = b.tRole === "mid" ? (GEO.tMid || g.tStage) : g.tStage;
-  // уже слышим/видим T рядом с точкой выхода — поздно, не лезем
-  if(intelEstimate("CT", g.tEntry.x, g.tEntry.y, 600, 4*TICK_HZ).n > 0){ E.st = 2; return false; }
-  if(!E.pt){
-    var from = b.tRole === "mid" ? GEO.ctMid : g.tEntry;
-    E.pt = pickSpots("early"+k+b.tRole, from, 1, {rMax:220, minGap:40, see:[stg]})[0];
-    if(!E.pt){ E.st = 2; return false; }
-    E.st = 1;
-    voiceLog("CT", "early"+b.id, b.id, "выгляну за инфой "+calloutName(E.pt.x, E.pt.y));
-    // флешка себе под ранний пик (если есть и не эко у соперника)
-    if(BAL.ctEarlyUtil && b.nades && b.nades.flash > 0 && !antiEco("CT") && hashRand(roundNum*97 + b.id.charCodeAt(2)*5) < 0.6){
-      var whyF = "себе под ранний пик "+b.id;
-      if(assignNade(b, "flash", stg, whyF, {now:true, range:1600})){ b._waitPopUntil = tick + Math.round(1.1*TICK_HZ); b._waitPopKey = "pop:"+whyF; }
-    }
-  }
-  if(b.atPost && b.post && b.post.tag === "earlyPeek"){
-    if(!E.arr) E.arr = tick;
-    if(tick - E.arr > 2.5*TICK_HZ){ E.st = 2; logEvent(b.id+": ранний пик — никого, назад на точку"); return false; }
-  }
-  setPost(b, E.pt, stg, true, "earlyPeek");
   return true;
 }
 // ---- клатч CT до планта ----
@@ -733,7 +626,6 @@ function ctBrain(){
       setPost(b, b._saveSpot, {x:bomb.x, y:bomb.y}, true, "save"); return;
     }
     if(planted){ retakePost(b, cts); return; }
-    if(BAL.styles && ctEarlyPeek(b, ct)) return;
     // ---- слышно плант рядом: сбить его — выйти на линию, откуда видно того, кто ставит ----
     var PHs = teamIntel.CT.plantHeard;
     // с умом: под плант лезут, только если нас там не меньше, чем их (или время
@@ -847,23 +739,16 @@ function ctBrain(){
       // заученной точке (в CS тоже меняют позиции, чтобы не читали)
       var kA = role === "anchorA" ? "A" : "B";
       // раздел 11.1: точки оценены и по второму направлению обзора (мид —
-      // коннектор, "двойное покрытие"), и со штрафом за места, куда T в этом
-      // матче уже кидали молотов/HE по этому сайту ("занимают под раскид")
+      // коннектор, "двойное покрытие")
       var opts = pickSpots("anchorOpts"+kA, GEO[kA].anchor, 5, {rMax:230, minGap:60,
-        see:[GEO[kA].tEntry], seeW:[{pt:GEO.ctMid, w:0.6}], hideFrom:[GEO[kA].tStage],
-        avoidNades: enemyNadeSpots("CT", kA)});
+        see:[GEO[kA].tEntry], seeW:[{pt:GEO.ctMid, w:0.6}], hideFrom:[GEO[kA].tStage]});
       var pickI = weightedPick(opts.length, roundNum*131 + matchNum*977 + (kA==="A"?1:2));
       // позиции по названиям зон (Temple, Back Site, 90, First Lane…): каждый
       // раунд — одна из них; первые в списке чаще, последние — как офф-угол
-      var names = PRO_ROLE["anchor"+kA], ents = [GEO[kA].tEntry].concat(entryPts(kA));
-      var ni = BAL.proPrior ? proPick("CT", names, roundNum*131 + matchNum*977 + (kA==="A"?1:2)) : weightedPick(names.length, roundNum*131 + matchNum*977 + (kA==="A"?1:2));
-      var offP = (BAL.styles && b.prof) ? 0.08 + 0.3*prof(b, "aggr") : 0.2; // агрессивный чаще берёт нестандартный угол
-      var off = BAL.offAngle && hashRand(roundNum*577 + matchNum*31 + (kA==="A"?3:4)) < offP;
-      if(BAL.proPrior) off = false;
-      if(off) ni = names.length - 1 - Math.floor(hashRand(roundNum*11 + matchNum)*Math.min(3, names.length));
-      var nsp = namedSpot(names[ni], GEO[kA].anchor, {see:ents, hideFrom:[GEO[kA].tStage], key:"hold"+kA});
-      var holdPt = nsp || opts[pickI];
-      if(nsp && b._holdLog !== roundNum){ b._holdLog = roundNum; logEvent(b.id+": держит "+kA+" с «"+names[ni]+"»"+(off ? " (офф-угол)" : "")); }
+      var ents = [GEO[kA].tEntry].concat(entryPts(kA));
+      var bnA = bestNamed(CT_ROLE_SPOTS["anchor"+kA], GEO[kA].anchor, "CT", {see:ents, hideFrom:[GEO[kA].tStage], key:"hold"+kA});
+      var holdPt = bnA ? bnA.p : opts[pickI];
+      if(bnA && b._holdLog !== roundNum){ b._holdLog = roundNum; logEvent(b.id+": держит "+kA+" с «"+bnA.nm+"»"); }
       // (плант 74%) опорник один на сайте, а туда идут 3+ (колл/гранаты выхода):
       // раньше стоял на своём угле и умирал первым, и сайт брали 4 на 0. Про в
       // такой ситуации отходит к входу CT, тянет время и остаётся живым на ретейк
@@ -911,8 +796,7 @@ function ctBrain(){
       // Connector сторона), откуда их встретит вместе с тиммейтами
       if(BAL.midSafe && !b._sawEnemy){
         var nMid = intelEstimate("CT", GEO.ctMid, 750, 4*TICK_HZ).n;
-        var midCare = BAL.roundMem && rmemRecent(MEMORY.RMEM.midDeath, 3).length >= 2;   // (10) рано умирал — отходит уже от одного
-        if(nMid >= (midCare ? 1 : 2) || (b._midBack && b._midBack.round === roundNum && tick < b._midBack.until)){
+        if(nMid >= 2 || (b._midBack && b._midBack.round === roundNum && tick < b._midBack.until)){
           if(!b._midBack || b._midBack.round !== roundNum){
             var deep = namedSpot("Red Room", GEO.ctMid, {hideFrom:[GEO.tMid], see:[GEO.ctMid], key:"midback"}) ||
                        pickSpots("midback", GEO.ctMid, 2, {rMin:180, rMax:420, minGap:60, hideFrom:[GEO.tMid, GEO.ctMidLook]})[0];
@@ -928,9 +812,6 @@ function ctBrain(){
       var midPick = weightedPick(midOpts.length, roundNum*191 + matchNum*433);
       // вперёд (Top Mid/Sniper Nest) — реже; чаще глубже (Jungle/Red Room)
       var mNames = BAL.midSafe ? ["Jungle","Red Room","Sniper Nest","Top Mid"] : POS.M.ctHold, mi = weightedPick(mNames.length, roundNum*191 + matchNum*433 + 7);
-      // (10) мидер рано умирал в 2 из 3 последних раундов — в этом раунде глубже
-      if(BAL.roundMem && rmemRecent(MEMORY.RMEM.midDeath, 3).length >= 2){ mNames = ["Red Room","Jungle"]; mi = weightedPick(2, roundNum*191 + matchNum*433 + 7);
-        if(b._midCareV !== roundNum){ b._midCareV = roundNum; voiceLog("CT", "midcare"+roundNum, b.id, "меня на миде рано снимают — сегодня играю глубже"); } }
       var mp = !midThreat ? namedSpot(mNames[mi], GEO.ctMid, {see:[GEO.ctMidLook, GEO.tMid], hideFrom:[GEO.tMid], key:"mid"}) : null;
       // (мидер) разбор ранних смертей: в 6 из 14 у мидера был пистолет против AK
       // на 450–530px (заведомо проигранная дуэль), AWP умирал на 250px в упор.
@@ -953,10 +834,10 @@ function ctBrain(){
     }
     else if(role === "rotator"){
       if(ct.setup ? ct.setup.rot === "212" : BAL.ctSetup === "2-1-2"){
-        // второй на сайт: ставим к опорнику того сайта, на который T чаще ходят в этом матче
-        var ks = MEMORY.siteHeat.A >= MEMORY.siteHeat.B ? "A" : "B";
+        // второй на сайт: к опорнику того сайта, где по картине команды вероятнее T
+        var ks = ctLeanSite();
         var ap2 = anchorPosOf(ks);
-        if(!proRolePost(b, "rot", PRO_ROLE.rot212, GEO.rotator || CT_SPAWN, GEO.ctMid, "rotator"))
+        if(!rolePost(b, "rot", CT_ROLE_SPOTS.rot212, GEO.rotator || CT_SPAWN, GEO.ctMid, "rotator"))
         groupPost([b], GEO[ks].anchor, GEO[ks].tEntry, "anchor2"+ks, {rMin:70, rMax:230, minGap:60, see:[GEO[ks].tEntry], hideFrom:[GEO[ks].tStage],
           cross: ap2 ? {from:ap2, pt:GEO[ks].tEntry} : null});
       } else {
@@ -971,9 +852,9 @@ function ctBrain(){
           setPost(b, mpp, GEO.ctMidLook, true, "mid");
         } else {
           // Alley и так закрывают мид и опорники — ротатор ждёт ближе к сайту,
-          // куда T чаще ходят: у A — CT Lane, у B — Back Halls; оттуда он и
-          // помогает быстрее, и сам держит полезный угол на сайт
-          var hotR = MEMORY.siteHeat.A >= MEMORY.siteHeat.B ? "A" : "B";
+          // где по картине команды вероятнее T: у A — CT Lane, у B — Back Halls;
+          // оттуда он и помогает быстрее, и сам держит полезный угол на сайт
+          var hotR = ctLeanSite();
           var rpn = hotR === "A" ? "CT Lane" : "Back Halls";
           var rEnts = [GEO[hotR].tEntry].concat(entryPts(hotR)).concat([SITES[hotR]]);
           var rp = namedSpot(rpn, SITES[hotR], {see:rEnts, key:"rot"+hotR}) || GEO.rotator;
@@ -992,8 +873,8 @@ function ctBrain(){
       // 2-1-2 = двое на A, один мид, двое на B: ротатор — вторым на "горячий"
       // сайт, роумер — вторым на другой (раньше роумер бродил своим маршрутом
       // и часто уходил на тот же A, а на B оставался один опорник)
-      var hot = MEMORY.siteHeat.A >= MEMORY.siteHeat.B ? "A" : "B", ko2 = hot === "A" ? "B" : "A", apR = anchorPosOf(ko2);
-      if(!proRolePost(b, "roam", PRO_ROLE.roam212, GEO.B.anchor, GEO.B.tEntry, "anchor2B"))
+      var hot = ctLeanSite(), ko2 = hot === "A" ? "B" : "A", apR = anchorPosOf(ko2);
+      if(!rolePost(b, "roam", CT_ROLE_SPOTS.roam212, GEO.B.anchor, GEO.B.tEntry, "anchor2B"))
       groupPost([b], GEO[ko2].anchor, GEO[ko2].tEntry, "anchor2"+ko2, {rMin:70, rMax:230, minGap:60, see:[GEO[ko2].tEntry], hideFrom:[GEO[ko2].tStage],
         cross: apR ? {from:apR, pt:GEO[ko2].tEntry} : null});
     }

@@ -470,19 +470,6 @@ function stepTick(){
       // a wall — clamp to the path position if the lean would clip one
       if(crossesWall(bot.baseX,bot.baseY,bot.baseX+offX,bot.baseY+offY)){ offX = 0; offY = 0; }
     }
-    if(bot.roamChecking && bot.state === "patrol" && bot.roamLookPt){
-      // на чеке роумер не стоит столбом, а джиглит угол — короткие выглядывания
-      var rla = Math.atan2(bot.roamLookPt.y-bot.baseY, bot.roamLookPt.x-bot.baseX) + Math.PI/2;
-      var ramp;
-      if(BAL.roamSmooth){
-        // цикл ~2,1с: выглянуть 0,35с → постоять 0,5с → назад 0,35с → пауза
-        var cyc = (tick - bot.roamCheckStart) % 136, e3 = function(u){ u = Math.max(0, Math.min(1, u)); return u*u*(3-2*u); };
-        var sgn = (Math.floor((tick - bot.roamCheckStart)/136) % 2) ? -1 : 1;
-        ramp = sgn*12*(cyc < 22 ? e3(cyc/22) : cyc < 54 ? 1 : cyc < 76 ? 1-e3((cyc-54)/22) : 0);
-      } else ramp = 14*Math.sin((tick - bot.roamCheckStart)*0.3);
-      offX = Math.cos(rla)*ramp; offY = Math.sin(rla)*ramp;
-      if(crossesWall(bot.baseX,bot.baseY,bot.baseX+offX,bot.baseY+offY)){ offX = 0; offY = 0; }
-    }
     // Пик закончился (или бот перешёл из "атакует" в "держит угол"), пока он
     // всё ещё видит врага: раньше смещение пика просто обнулялось, и бот
     // мгновенно "телепортировался" на 30-85px обратно за угол — терял

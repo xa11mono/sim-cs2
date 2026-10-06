@@ -80,9 +80,6 @@ function prePeekDecide(b, C, zB){
   // инфа, что угол держат: свежая точка врага за углом или высокая вероятность
   var L = picKnown(b.team) || {}, holder = null;
   for(var e in L){ var q = L[e]; if(tick - q.tick < 8*TICK_HZ && Math.hypot(q.x-C.beyond.x, q.y-C.beyond.y) < 450){ holder = q; break; } }
-  // (10) в прошлых раундах CT пикнули отсюда агрессивно — считаем, что угол держат
-  if(!holder && BAL.roundMem && b.team === "T"){ var ag = rmemRecent(MEMORY.RMEM.aggro, 2).filter(function(e){ return Math.hypot(e.x-C.beyond.x, e.y-C.beyond.y) < 380; })[0];
-    if(ag){ holder = {x:ag.x, y:ag.y, tick:tick}; if(!b._agV || b._agV !== roundNum){ b._agV = roundNum; logEvent(b.id+": в прошлом раунде отсюда пикнули ("+ag.id+", "+calloutName(ag.x, ag.y)+") — беру угол аккуратно"); } } }
   var info = !!holder || beliefZoneKnown(b.team, zB) >= 0.45;
   var heardMe = BAL.heardMe && b._noisyT && tick - b._noisyT < 3*TICK_HZ;       // (4) он меня, скорее всего, слышал
   var repeek = b._avoidPeekUntil > tick && b._avoidPeekAt && Math.hypot(b._avoidPeekAt.x-C.beyond.x, b._avoidPeekAt.y-C.beyond.y) < 450;
@@ -295,7 +292,6 @@ var LOOK = {
   maxDist: 1100,     // дальше этой дистанции зону как угрозу не рассматриваем
   nbrW: 0.6,         // вклад врага за входом в зону (он оттуда выйдет)
   watchedNbr: 0.25,  // …если этот вход видит тиммейт — враг сначала выйдет на него
-  habitW: 0.25,      // любимое место соперника (память прошлых раундов)
   distHold: 700,     // затухание веса с расстоянием, стоя
   distMove: 400,     // …на ходу (ближние углы важнее)
   closeR: 280, closeK: 2.0,      // совсем рядом — не стоять к нему спиной
@@ -324,7 +320,6 @@ var LOOK = {
   contactW: 1.2,     // свежий звук/вижу-потерял рядом (≤1.5с, ≤700px) — даже в своей же зоне
   rearMargin: 150,   // px пути: проход дальше от врага, чем я, на это — мой тыл
   rearInfo: 0.15,    // …но если там по инфе вероятен враг (люркер, фланг) — смотрим
-  proHint: 0.2,      // (v176) "как у про" — только подсказка: угроза по направлению про × (1 + 0.2 × доля)
   claimMin: 0.08,    // делить направления в команде, только если угроза заметная
   postBase: 0.004,   // угол поста — только когда угроз нет совсем (запасной вариант, не соперник угрозам)
   minScore: 0.0005    // ниже — "ничего не угрожает": смотрим по ходу / на пост
@@ -400,20 +395,6 @@ function appearPoint(o, j){
   if(Object.keys(APPEAR).length > 20000) APPEAR = {};
   APPEAR[k] = last; return last;
 }
-var PL_GRID = {};
-function proLookAt(team, x, y){
-  if(typeof PRO_LOOK === "undefined") return null;
-  var layer = ppLayer(team), G = PL_GRID[layer];
-  if(!G){ var L = PRO_LOOK.layers[layer]; if(!L) return null; G = PL_GRID[layer] = {}; L.forEach(function(r){ G[r[0]] = r; }); }
-  var n = PRO_LOOK.n, C = PRO_LOOK.cell, cx = Math.floor(x/C), cy = Math.floor(y/C), best = null;
-  // своя клетка; если там нет данных — соседние
-  for(var dy=-1; dy<=1; dy++) for(var dx=-1; dx<=1; dx++){
-    var r = G[(cy+dy)*n + (cx+dx)]; if(!r) continue;
-    var w = r[3] * (dx === 0 && dy === 0 ? 1 : 0.6);
-    if(!best || w > best.w) best = {dx:r[1], dy:r[2], R:r[3], w:w};
-  }
-  return best;
-}
 function _angOff(a, ref){ return Math.abs(((a-ref+Math.PI)%(2*Math.PI)+2*Math.PI)%(2*Math.PI)-Math.PI); }
 // точка прохода между двумя зонами (середина общей границы полигонов)
 function bzPortalPt(za, zb){
@@ -453,8 +434,6 @@ function lookCands(b, W){
   var postA = (b.post && b.post.look && !(b.post.tag === "save")) ? Math.atan2(b.post.look.y-(b.post.y||b.y), b.post.look.x-(b.post.x||b.x)) : null;
   var mates = bots.filter(function(o){ return o !== b && o.alive && o.team === team; });
   var rearCov = moving && mates.some(function(o){ return Math.hypot(o.x-b.x, o.y-b.y) < 500; });
-  var habZ = {};
-  if(BAL.habits) bots.forEach(function(o){ if(!o.alive || o.team === team) return; var h = habitTop(o.id, 2); if(h){ var zh = bzOf(h.x, h.y); if(zh >= 0) habZ[zh] = 1; } });
   var Wd = ZONE_DANGER_W[BZ.ids[zb]] || {}, PW = PORTAL_W[team] || {};
   (ZONE_DANGER[BZ.ids[zb]]||[]).forEach(function(zid){
     var j = BZ.idx[zid]; if(j === undefined || j === zb) return;
@@ -467,7 +446,6 @@ function lookCands(b, W){
       var v = LOOK.nbrW * beliefZoneKnown(team, nn);
       if(PW[j+","+nn]) v *= LOOK.watchedNbr;          // вход видит свой — враг выйдет на него первым
       th += v; if(v > nVal){ nVal = v; nBest = nn; } });
-    if(habZ[j] && reachPossible(team, j)) th += LOOK.habitW;
     // (v176) реальная угроза: враг мог дойти (гаснет, если путь открыт давно) и
     // давно не проверяли — только если дойти мог. Не мог — 0, кроме инфы (belief выше)
     var rw = reachW(team, j, zb);
@@ -517,7 +495,6 @@ function lookCands(b, W){
     var th = beliefZoneKnown(team, nn);
     BZ.nbr[nn].forEach(function(n2){ if(n2 === zb) return; if(!reachPossible(team, n2)) return;
       var v = LOOK.nbrW * beliefZoneKnown(team, n2); if(PW[nn+","+n2]) v *= LOOK.watchedNbr; th += v; });
-    if(habZ[nn]) th += LOOK.habitW;
     var rwn = reachW(team, nn, zb);
     th += LOOK.reachW * rwn + (rwn > 0 ? LOOK.uncheckW * uncheckedW(team, nn) : 0);
     if(th <= 0) return;
@@ -566,12 +543,6 @@ function lookCands(b, W){
       var c = ap; if(d < 200){ var ext = {x:b.x+(c.x-b.x)/d*200, y:b.y+(c.y-b.y)/d*200}; if(hasLOS(b.x, b.y, ext.x, ext.y)) c = ext; }
       out.push({j:"rt"+is, pt:c, sc:LOOK.retakeW/(1 + d/LOOK.distHold), fresh:false, a:Math.atan2(c.y-b.y, c.x-b.x), rt:true}); });
   }
-  // (v176) "как у про" — не кандидат, а подсказка: угроза по направлению, куда
-  // смотрят про с этой точки, чуть важнее равной ей угрозы в другую сторону
-  var PD = proDirs(b, moving);
-  if(PD.length) out.forEach(function(c){ if(c.snd) return; var ag = 0;
-    PD.forEach(function(pd){ if(_angOff(c.a, pd.a) < 0.5) ag = Math.max(ag, pd.w); });
-    if(ag > 0){ c.sc *= 1 + LOOK.proHint*ag; c.pro = true; } });
   // угол поста — только когда реальной угрозы нет совсем (запасной вариант):
   // не соперник угрозам, а "куда смотреть, если смотреть некуда"
   if(atHold && !out.some(function(c){ return c.sc >= LOOK.minScore; })){ var pl = cornerLook(b, b.post.look) || b.post.look;
@@ -619,7 +590,7 @@ function lookPlan(team){
     }
     if((p ? p.j : null) !== b._lkZ){ b._lkSince = tick; b._lkZ = p ? p.j : null; }
     b._lkPt = p ? p.pt : null;
-    b._lkTop = b._lkC.slice().sort(function(x, y){ return y.sc - x.sc; }).slice(0, 3).map(function(c){ var nm = c.snd ? "звук/контакт" : c.post ? "свой угол (угроз нет)" : c.rt ? "выход с сайта (ретейк)" : c.j >= 1000 ? "выход из " + (ZONE_NAMES[BZ.ids[c.j-1000]] || BZ.ids[c.j-1000]) : (ZONE_NAMES[BZ.ids[c.j]] || BZ.ids[c.j]); return [c.pro ? nm + " (как у про)" : nm, c.sc]; });
+    b._lkTop = b._lkC.slice().sort(function(x, y){ return y.sc - x.sc; }).slice(0, 3).map(function(c){ var nm = c.snd ? "звук/контакт" : c.post ? "свой угол (угроз нет)" : c.rt ? "выход с сайта (ретейк)" : c.j >= 1000 ? "выход из " + (ZONE_NAMES[BZ.ids[c.j-1000]] || BZ.ids[c.j-1000]) : (ZONE_NAMES[BZ.ids[c.j]] || BZ.ids[c.j]); return [nm, c.sc]; });
   });
 }
 // итоговая точка взгляда бота (кроме "вижу врага" — это выше)
@@ -629,8 +600,7 @@ function lookPlan(team){
 // бота на другой вход и тут же вернуть. Теперь: без срочной причины новое
 // направление принимается, только если старое продержалось ≥0,8с (стоя) /
 // 0,5с (на ходу), и не возвращаемся к только что брошенному направлению 1,5с.
-var SL = {holdStand: 51, holdMove: 32, backBlock: 96, holdAlert: 16, backAlert: 40, same: 0.35, calmRate: 4.5, ease: 0.2, minStep: 0.012,
-          glEvery: [70, 120], glDur: 44, glMin: 0.55, glMax: 2.2, glSc: 0.05};
+var SL = {holdStand: 51, holdMove: 32, backBlock: 96, holdAlert: 16, backAlert: 40, same: 0.35, calmRate: 4.5, ease: 0.2, minStep: 0.012};
 // 2 — бой (враг виден, прикрытие ослеплённого, спам, бросок): без фильтра;
 // 1 — тревога (свежий звук/контакт рядом): поворот быстрый, но тоже без
 //     метаний — держит новое направление хотя бы 0,25с; 0 — спокойно
@@ -647,20 +617,6 @@ function lookUrgent(b){
 }
 function smoothLookFilter(b, look, urgent){
   var moving = b.curSpeed > 60*SPD_K && b.heading !== undefined;
-  // на бегу без цели — изредка короткий взгляд на опасный угол сбоку
-  if(!look && !urgent && BAL.runGlance && moving){
-    if(b._gl && tick < b._gl.until) look = b._gl.pt;
-    else if(tick >= (b._glNext||0)){
-      b._glNext = tick + SL.glEvery[0] + Math.floor(hashRand(tick*13 + b.id.charCodeAt(b.id.length-1)*7)*(SL.glEvery[1]-SL.glEvery[0]));
-      var best = null, bs = SL.glSc;
-      (b._lkC || []).forEach(function(c){   // кандидаты из дележа углов команды (lookPlan), без своего пересчёта
-        if(!c || !c.pt) return;
-        var a = Math.atan2(c.pt.y-b.y, c.pt.x-b.x), d = Math.abs(((a-b.heading+Math.PI)%(2*Math.PI)+2*Math.PI)%(2*Math.PI)-Math.PI);
-        if(d < SL.glMin || d > SL.glMax) return;
-        if(c.sc > bs){ bs = c.sc; best = c.pt; } });
-      if(best){ b._gl = {pt:{x:best.x, y:best.y}, until: tick + SL.glDur}; look = b._gl.pt; b.lookReason = "glance"; }
-    }
-  } else if(!moving) b._gl = null;
   if(!look){ if(moving) b._sl = null; return look; }
   var S = b._sl, aN = Math.atan2(look.y-b.y, look.x-b.x);
   if(urgent === 2 || !S){ b._sl = {pt:{x:look.x, y:look.y}, since:tick, prev: S ? S.pt : null, left: tick}; return look; }
@@ -729,7 +685,6 @@ var HOLD = {
   cross: 0.8,       // кроссфаер: тот же главный вход под углом 50–120°
   travel: 0.6,      // штраф за путь, на 1000px
   objDist: 0.3,     // штраф за удалённость от цели (на весь радиус)
-  pro: 1.2,         // бонус точке, где обычно стоят про (0..1 из демок)
   keep: 0.35,       // бонус текущей точке
   reeval: 128,      // тиков между пересчётами (2с), раньше — если сменился главный вход
   minW: 0.02        // вход с опасностью ниже — не учитываем
@@ -772,7 +727,6 @@ function holdSpot(b, T){
         var da = _angOff(a1, a2); if(da > 0.87 && da < 2.1) s += HOLD.cross; else if(da > 0.5) s += HOLD.cross*0.4;
       }
     });
-    if(BAL.proPrior) s += HOLD.pro * proAt(team, c.x, c.y);
     s -= HOLD.travel * Math.hypot(c.x-b.x, c.y-b.y)*1.2/1000;
     s -= HOLD.objDist * c.d / (T.rMax || 340);
     if(b._hTask && b._hTask.key === T.key && Math.hypot(c.x-b._hTask.pt.x, c.y-b._hTask.pt.y) < 40) s += HOLD.keep;

@@ -107,8 +107,7 @@ function teamInfoTick(){
       // один и тот же враг — не чаще раза в 8 тиков на команду (память не раздувается)
       if(!(LS[e.id] && tick - LS[e.id] < 8)){ LS[e.id] = tick;
         // сам видит — знает сразу (lastIntel), команда — через колл
-        commSend(b.team, {type:"spotted", x:e.x, y:e.y, id:e.id, by:b.id, conf:1}, b.id);
-        if(e.curSpeed < 30 && bomb.state !== "planted") habitAdd(e.id, e.x, e.y, 0.125); }
+        commSend(b.team, {type:"spotted", x:e.x, y:e.y, id:e.id, by:b.id, conf:1}, b.id); }
       if(bomb && bomb.state === "carried" && bomb.carrier === e){
         var prevCar = teamIntel[b.team].carrier;
         if(!prevCar || tick - prevCar.tick > 5*64)
@@ -208,24 +207,8 @@ function calloutName(x, y, from){
 }
 function voiceLog(team, key, who, text){ intelCallLog(team, "v:"+key, "[войс "+team+"] "+who+": "+text); }
 function aliveCount(team){ return bots.filter(function(b){ return b.team===team && b.alive; }).length; }
-// (10) память между раундами: откуда стрелял AWP CT, где CT агрессивно
-// пикнули на стороне T, какой сайт T рашили, где рано умирал мидер CT
-// зона на "стороне T": до неё от спавна T ближе, чем от спавна CT (агрессия CT)
-function tSideZone(x, y){
-  var z = bzOf(x, y); if(z < 0) return false;
-  ["CT","T"].forEach(function(t){ if(!ED_CACHE[t]){ var sp = t === "CT" ? T_SPAWN : CT_SPAWN, z0 = bzOf(sp.x, sp.y); ED_CACHE[t] = bzDist(z0 >= 0 ? [z0] : []); } });
-  return ED_CACHE.CT[z] < ED_CACHE.T[z] * 0.95;   // ED_CACHE.CT — от спавна T
-}
-function rmemRecent(list, rounds){ return list.filter(function(e){ return roundNum - e.round <= rounds && e.round < roundNum; }); }
 function intelDeath(victim, killer){
   if(!victim || roundState !== "live") return;
-  if(BAL.roundMem && killer){
-    var secR = (tick - roundStartTick)/TICK_HZ;
-    if(killer.team === "CT" && victim.team === "T" && secR < 30 && tSideZone(killer.x, killer.y))
-      MEMORY.RMEM.aggro.push({x:killer.x, y:killer.y, round:roundNum, id:killer.id});
-    if(victim.team === "CT" && victim.tRole === "mid" && secR < 30) MEMORY.RMEM.midDeath.push({round:roundNum});
-    ["aggro","midDeath"].forEach(function(k){ if(MEMORY.RMEM[k].length > 12) MEMORY.RMEM[k].shift(); });
-  }
   var saw = killer && hasVision(victim.x, victim.y, killer.x, killer.y);
   intelPush(victim.team, {type:"died", x:victim.x, y:victim.y, id:victim.id, conf:1, kx: saw ? killer.x : null, ky: saw ? killer.y : null});
   if(saw) intelPush(victim.team, {type:"spotted", x:killer.x, y:killer.y, id:killer.id, by:victim.id, conf:1});
@@ -249,7 +232,6 @@ function intelDeath(victim, killer){
   }
   // команда убийцы тоже "знает", где и кого сняли (свой же игрок сказал "минус ...")
   if(killer) intelPush(killer.team, {type:"kill", x:victim.x, y:victim.y, id:victim.id, role:victim.tRole, by:killer.id, conf:1});
-  if(victim.team === "T" && !(bomb && bomb.state === "planted")) tDeathAdd(victim);
   // журнал смертей для IGL: кто, где, в какой фазе, откуда стреляли, разменяли ли
   if(teamTac.T && bomb && bomb.state !== "planted"){
     var TTd = teamTac.T; TTd._dl = TTd._dl || [];
@@ -262,7 +244,6 @@ function intelDeath(victim, killer){
       TTd._dl.forEach(function(e){ if(e.t === "T" && !e.traded && tick - e.tick < 3*TICK_HZ && (e.kid === victim.id || Math.hypot(e.x-victim.x, e.y-victim.y) < 600)) e.traded = true; });
     }
   }
-  if((victim.curSpeed||0) < 40 && !(bomb && bomb.state === "planted")) habitAdd(victim.id, victim.x, victim.y, 1);
   // ---- размен как рефлекс (про-уровень: тиммейт умер рядом — ближайший
   // сразу выходит на убийцу, пока тот перезаряжается/меняет позицию; это
   // срывает бота с тактики на ~3.5с). Разменивают 1–2 ближайших ПО ПУТИ.
@@ -286,7 +267,6 @@ function intelDeath(victim, killer){
     if(cands[1] && cands[1].L <= (BAL.groupPlay ? 450 : 350) && aliveCount(victim.team) >= 3) traders.push(cands[1]);
     traders.forEach(function(T, k){
       var o = T.b;
-      if(BAL.execErr && o.prof && hashRand(tick*29 + o.id.charCodeAt(1)*11) < (1-prof(o, "disc"))*0.12){ noteMistake(o, "не разменял "+victim.id); return; }
       // выходит НЕ в ту же точку, где умер тиммейт (туда у убийцы уже стоит
       // прицел), а под другим углом — чтобы тому пришлось доводить прицел
       var swC = pickSpots("tradeR"+tick+o.id, {x:victim.x, y:victim.y}, 5, {rMax:170, minGap:30, see:[kp]});
@@ -325,7 +305,6 @@ function intelDeath(victim, killer){
     // размен уже взял ближайший — остальные не лезут в тот же прострелянный угол
     if(BAL.tradeReflex && traders.length){ b._avoidPeekUntil = tick + 8*TICK_HZ; b._avoidPeekAt = {x:victim.x, y:victim.y}; return; }
     // "меня убили отсюда" — ближние тиммейты смотрят туда и идут разменивать
-    if(BAL.execErr && b.prof && hashRand(tick*29 + b.id.charCodeAt(1)*11) < (1-prof(b, "disc"))*0.12){ noteMistake(b, "не разменял "+victim.id); return; }
     // стрелка не видели и он не рядом — это не трейд, а второй пик в тот же
     // прострелянный угол: не лезть туда же ~8с (держать, ждать, обходить)
     if(!saw || (killer && Math.hypot(killer.x-b.x, killer.y-b.y) > 650)){

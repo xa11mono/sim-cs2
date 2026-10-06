@@ -133,7 +133,7 @@ function renderEcon(){
       var arm = (b.helmet ? "КШ" : (b.armor ? "К" : "—")) + (b.kit ? "+кит" : "");
       var c4 = bomb && bomb.carrier === b ? " 💣" : "";
       var nd = b.nades ? ("●".repeat(b.nades.smoke) + "✦".repeat(b.nades.flash) + "▲".repeat(b.nades.he) + "♨".repeat(b.nades.molly)) : "";
-      h += '<tr class="'+(b.alive?'':'dead')+'"><td title="'+esc(b.prof ? b.prof.style+" · aim "+b.prof.aim+", агрессия "+b.prof.aggr+", дисциплина "+b.prof.disc+(b._mistakes ? " · ошибок: "+b._mistakes : "") : "")+'">'+pnum(b.id)+' '+esc(nick(b.id))+c4+'</td><td>'+(ROLE_LABEL[b.tRole]||"")+(b.retakeRole && bomb && bomb.state==="planted" && !cl0save() ? ' · '+({defuser:"дефузер",cover:"прикрытие",flank:"фланг"}[b.retakeRole]) : "")+'</td><td>'+wpn+'</td><td>'+arm+'</td><td title="● дым · ✦ флешка · ▲ HE · ♨ молотов">'+nd+'</td><td>'+b.kills+'/'+b.deaths+'</td><td class="m">$'+b.money+'</td></tr>';
+      h += '<tr class="'+(b.alive?'':'dead')+'"><td>'+pnum(b.id)+' '+esc(nick(b.id))+c4+'</td><td>'+(ROLE_LABEL[b.tRole]||"")+(b.retakeRole && bomb && bomb.state==="planted" && !cl0save() ? ' · '+({defuser:"дефузер",cover:"прикрытие",flank:"фланг"}[b.retakeRole]) : "")+'</td><td>'+wpn+'</td><td>'+arm+'</td><td title="● дым · ✦ флешка · ▲ HE · ♨ молотов">'+nd+'</td><td>'+b.kills+'/'+b.deaths+'</td><td class="m">$'+b.money+'</td></tr>';
     });
     h += '</table>';
   });
@@ -183,7 +183,6 @@ document.getElementById("btnExportProject").addEventListener("click", function()
     zoneNames: ZONE_NAMES,
     lineups: USER_LINEUPS,
     zoneShapes: ZONE_SHAPES,
-    oppProfile: OPP,
     builtinOff: BUILTIN_OFF
   };
   var ta = document.getElementById("projectExportArea");

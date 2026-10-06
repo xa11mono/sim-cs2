@@ -16,16 +16,6 @@ var NADE = {
 var NADE_THROW_RANGE = 820;
 var NADE_HEAR_R = 550; // раздел 11.1: с какого расстояния слышно чеку/бросок гранаты противника
 var nadesInAir = [];   // {type, x,y, vx,vy, born, thrower, team, trail:[]}
-function recordNadeLand(n){
-  if(n.type !== "molly" && n.type !== "he") return;
-  ["A","B"].forEach(function(k){
-    if(Math.hypot(n.x-SITES[k].x, n.y-SITES[k].y) < 750){
-      MEMORY.nadeLandHistory[k].push({x:n.x, y:n.y, team:n.team});
-      if(MEMORY.nadeLandHistory[k].length > 14) MEMORY.nadeLandHistory[k].shift();
-    }
-  });
-}
-function enemyNadeSpots(team, site){ return MEMORY.nadeLandHistory[site].filter(function(h){ return h.team !== team; }); }
 var smokes = [];       // {x,y,born,until}
 var fires = [];        // {x,y,born,until,team,thrower}
 var nadeFx = [];       // визуальные вспышки/взрывы {type,x,y,born}
@@ -42,16 +32,8 @@ var NADE_WISH = {
   anchorA:["molly","smoke","he"], anchorB:["molly","smoke","he"], rotator:["smoke","flash"], mid:["flash","smoke"], roamer:["flash","he"]
 };
 function nadePrice(type, team){ return (type === "molly" && team === "CT") ? NADE.molly.priceCT : NADE[type].price; }
-// (v151) у про на полном закупе почти каждый берёт 3–4 гранаты (за раунд CT
-// кидают ~10, T ~9.4); набор по роли игрока (демки): саппорт/снайпер — больше утилиты
-var NADE_WISH_PRO = {
-  entry:["flash","flash","smoke","molly"], support:["flash","smoke","molly","he"], igl:["smoke","molly","flash","flash"],
-  lurker:["smoke","flash","molly","he"], awp:["smoke","flash","molly","he"],
-  anchorA:["molly","smoke","flash","he"], anchorB:["molly","smoke","flash","he"], rotator:["smoke","flash","he","molly"],
-  mid:["flash","smoke","he","molly"], roamer:["flash","smoke","he","molly"]
-};
 function buyNades(b, type){
-  var wish = (BAL.proNades ? NADE_WISH_PRO[b.tRole] : null) || NADE_WISH[b.tRole] || [];
+  var wish = NADE_WISH[b.tRole] || [];
   var budget = type === "full" ? 99 : (type === "force" || type === "half" ? 2 : 0);
   if(type === "pistol" || type === "eco") budget = 1;
   var keepEco = (type === "eco") ? fullNeed(b) - nextLossIncome(b.team) : -1e9;
@@ -156,8 +138,8 @@ function throwNade(b, type, tx, ty, lob, why){
   var nd = {type:type, x:b.x, y:b.y, vx:Math.cos(a)*v0, vy:Math.sin(a)*v0, born:tick, thrower:b, team:b.team, trail:[], why:why||""};
   if(lob){
     // лайнап не идеален: небольшой разброс точки падения
-    var leMul = b.prof ? (1.5 - prof(b, "util")) : 1;
-    if(BAL.execErr && b.prof && hashRand(tick*43 + b.id.charCodeAt(1)*3) < (1-prof(b, "util"))*0.08){ leMul *= 3; noteMistake(b, "промахнулся гранатой ("+NADE[type].name+")"); }
+    var leMul = 1;
+
     var le = BAL.lobErr * leMul * hashRand(tick*71 + b.id.charCodeAt(0)*5), la2 = hashRand(tick*13 + b.id.length*97)*Math.PI*2;
     nd.lob = true; nd.sx = b.x; nd.sy = b.y; nd.tx = tx + Math.cos(la2)*le; nd.ty = ty + Math.sin(la2)*le; nd.flight = Math.max(30, Math.round(d/650*TICK_HZ));
   }
@@ -310,7 +292,7 @@ function lineupTick(){
     // "по времени" — ~4 м (не бросать позицию ради гранаты)
     if(L.pro && L.trigger === "setup") maxD = BAL.nadeReach ? 1100 : 700;
     if(L.pro && L.trigger === "timed"){ maxD = BAL.nadeReach ? 850 : 400; hot = true; }
-    var cost = function(b){ return Math.hypot(b.x-L.from.x, b.y-L.from.y) + (b.tRole === "entry" ? 300 : 0) + nadeRoleCost(b); };
+    var cost = function(b){ return Math.hypot(b.x-L.from.x, b.y-L.from.y) + (b.tRole === "entry" ? 300 : 0); };
     var cand = bots.filter(function(b){ return b.team === L.team && b.alive && b.nades && b.nades[L.type] > 0 && !b.nadeTask &&
       !b.planting && !b.defusing && !(bomb.state === "carried" && bomb.carrier === b) && Math.hypot(b.x-L.from.x, b.y-L.from.y) < maxD; })
       .sort(function(a, b2){ return cost(a) - cost(b2); })[0];
@@ -365,7 +347,7 @@ function detonate(n){
       if(b.team !== n.team){
         // увернуться можно, только если знал о флешке (видел/слышал бросок);
         // поп-флешка из-за стены почти всегда застаёт врасплох
-        var pD = BAL.flashAware ? ((n.aware && n.aware[b.id]) ? 0.5 + 0.3*prof(b, "disc") + 0.1*(b.skill-0.8)/0.4 : 0.3) : 0.25 + 0.3*(b.skill-0.8)/0.4;
+        var pD = BAL.flashAware ? ((n.aware && n.aware[b.id]) ? 0.65 + 0.1*(b.skill-0.8)/0.4 : 0.3) : 0.25 + 0.3*(b.skill-0.8)/0.4;
         var dodge = hashRand(tick*29 + b.id.charCodeAt(0)*13 + b.id.length*7) < pD;
         if(dodge){ dirK *= 0.3; if(BAL.flashAware && dirK > 0.1) logEvent(b.id+" отвернулся от флешки"); }
       }
@@ -396,7 +378,6 @@ function detonate(n){
     });
   }
   nadeFx.push({type:T, x:n.x, y:n.y, born:tick});
-  recordNadeLand(n);
 }
 function applyDamage(att, b, dmg, src){
   if(!b.alive || dmg <= 0) return;
@@ -637,8 +618,7 @@ function nadeReact(){
       if(!an || antiEco("CT")) return;
       // (гранаты CT впустую) раньше кидал вслепую в ~35% раундов. Теперь — только
       // если во входе/на подходе к нему есть инфа (видели/слышали за 4с)
-      var rushMem = BAL.roundMem && rmemRecent(MEMORY.RMEM.rush, 2).some(function(e){ return e.site === k; });
-      if(!rushMem){ var eI = intelEstimate("CT", ent.x, ent.y, 700, 4*TICK_HZ); if(eI.seen + eI.heard === 0) return; }
+      var eI = intelEstimate("CT", ent.x, ent.y, 700, 4*TICK_HZ); if(eI.seen + eI.heard === 0) return;
       var tp = an.nades.molly > 0 ? "molly" : "he";
       if(assignNade(an, tp, ent, "ранняя граната на задержку "+k, {now:true})){ nadeFlags[key] = true; voiceLog("CT", "early"+k, an.id, (tp === "molly" ? "молотов" : "HE")+" во вход "+k+" — задержу, если идут"); }
     });
@@ -700,14 +680,6 @@ function nadeBrains(){
     var mol = keepMol ? null : mollies.filter(function(b){ return !(bomb.state === "carried" && bomb.carrier === b); })[0] || mollies[0];
     if(keepMol) logEvent("T: единственный молотов берегут на пост-плант");
     var molT = g.anchor, molWhy = "выжечь опорника";
-    if(BAL.habits){
-      bots.forEach(function(o){
-        if(o.team !== "CT" || !o.alive) return;
-        var h = habitTop(o.id, 2); if(!h || Math.hypot(h.x-site.x, h.y-site.y) > 380) return;
-        molT = {x:h.x, y:h.y}; molWhy = "в любимый угол "+o.id;
-      });
-      if(molWhy !== "выжечь опорника") logEvent("T: знают привычку — молотов "+molWhy+" ("+(zoneUserName(zoneIdAt(molT.x, molT.y))||"сайт "+tt.site)+")");
-    }
     if(BAL.tMolly && mol) assignNade(mol, "molly", molT, molWhy, {bkey:"T.exec.molly."+tt.site, now:true, range:1200});
   }
   // (7) молотов "на всякий" в угол: на выходе, не зная, есть ли там кто, —

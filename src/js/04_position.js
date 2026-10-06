@@ -19,30 +19,6 @@ bots.forEach(function(b){
   var idx = parseInt(b.id.replace(/\D/g,""),10);
   b.tRole = TEAM_ROLES[b.team][idx];
 });
-// ======================= РАЗДЕЛ 13 (п.6–7): ПРОФИЛИ ИГРОКОВ =======================
-// Личный стиль поверх роли (0…1): aggr — агрессия (первым лезет в дуэли, широкие
-// пики), disc — дисциплина (держит угол, не суетится, реже ошибается), risk —
-// склонность к риску (не отходит на низком HP), util — гранаты (точность
-// лайнапов), clutch — игра в клатчах. aim — навык стрельбы, react — реакция (тики).
-// Средние по командам одинаковые — профили меняют стиль, а не силу команды.
-var PROFILES = {
-  T0:  {aim:1.18, react:16, aggr:0.95, disc:0.45, risk:0.85, util:0.45, clutch:0.70, style:"агрессивный энтри, лезет первым"},
-  T1:  {aim:1.08, react:18, aggr:0.25, disc:0.95, risk:0.25, util:0.60, clutch:0.90, style:"терпеливый снайпер, ждёт ошибку"},
-  T2:  {aim:0.96, react:22, aggr:0.50, disc:0.70, risk:0.50, util:0.80, clutch:0.55, style:"саппорт, гранаты и трейды"},
-  T3:  {aim:0.92, react:23, aggr:0.40, disc:0.80, risk:0.40, util:0.90, clutch:0.60, style:"IGL, играет от инфы"},
-  T4:  {aim:0.96, react:22, aggr:0.55, disc:0.60, risk:0.60, util:0.60, clutch:0.75, style:"лёркер, тихие обходы"},
-  CT0: {aim:1.05, react:18, aggr:0.80, disc:0.50, risk:0.75, util:0.50, clutch:0.70, style:"агрессивный опорник, пикает первым"},
-  CT1: {aim:1.14, react:17, aggr:0.75, disc:0.55, risk:0.80, util:0.55, clutch:0.80, style:"рискованный AWP, агрессивные пики"},
-  CT2: {aim:0.95, react:23, aggr:0.45, disc:0.75, risk:0.45, util:0.70, clutch:0.60, style:"надёжный опорник, держит сайт"},
-  CT3: {aim:0.82, react:27, aggr:0.40, disc:0.85, risk:0.50, util:0.95, clutch:0.55, style:"IGL, гранаты и коллы"},
-  CT4: {aim:1.06, react:19, aggr:0.70, disc:0.60, risk:0.65, util:0.60, clutch:0.75, style:"роумер, ищет фраг и инфу"}
-};
-bots.forEach(function(b){
-  var P = PROFILES[b.id]; if(!P) return;
-  b.prof = P; b.skill = P.aim; b.reactionTicks = P.react;
-});
-function prof(b, k, def){ return b && b.prof && b.prof[k] != null ? b.prof[k] : (def == null ? 0.5 : def); }
-
 function centroidOf(pts){ var cx=0, cy=0; pts.forEach(function(p){ cx+=p.x; cy+=p.y; }); return {x:cx/pts.length, y:cy/pts.length}; }
 
 // ---------- сайты и авто-геометрия (проходы, точки сбора, позиции) ----------
@@ -199,9 +175,8 @@ function spotExposure(team, x, y){
 }
 function pickSpots(key, center, count, o){
   var expT = BAL.openAngles ? ((o && o.team) || SPOT_TEAM) : null;
-  var ppTeam = BAL.proPrior ? ((o && o.team) || SPOT_TEAM) : null, ppL = ppTeam ? ppLayer(ppTeam) : null;
   var ck = key+"|"+count+"|"+Math.round(center.x)+","+Math.round(center.y) + (expT ? "|e"+expT : "") +
-    (o && o.cross ? "|x"+Math.round(o.cross.from.x/40)+","+Math.round(o.cross.from.y/40) : "") + (ppL ? "|p"+ppL : "");
+    (o && o.cross ? "|x"+Math.round(o.cross.from.x/40)+","+Math.round(o.cross.from.y/40) : "");
   if(spotCache[ck]) return spotCache[ck];
   o = o || {};
   var rMin = o.rMin||0, rMax = o.rMax||170, gap = o.minGap||55;
@@ -220,9 +195,6 @@ function pickSpots(key, center, count, o){
     // раздел 11.1: двойное покрытие — точка ценна не только видимостью основного
     // подхода, но и тем, что попутно простреливает второе направление (коннектор)
     (o.seeW||[]).forEach(function(h){ if(hasLOS(c.x, c.y, h.pt.x, h.pt.y)) sc += h.w; });
-    // раздел 11.1: "занимают под раскид" — держат точку с поправкой на то, куда
-    // враг обычно кидает молотов/HE в этом матче, а не только от пуль
-    (o.avoidNades||[]).forEach(function(h){ var hd = Math.hypot(c.x-h.x, c.y-h.y); if(hd < 220) sc -= 1.4*(1 - hd/220); });
     // раздел 12: кроссфаер — вторая точка смотрит на тот же вход под другим
     // углом, чем первый защитник (50–120°): у кого-то из двоих всегда есть выстрел,
     // и заходящий не может взять обоих одним пиком
@@ -235,7 +207,6 @@ function pickSpots(key, center, count, o){
       }
     }
     sc -= d/(rMax*3); // при прочих равных — ближе к центру
-    if(ppL) sc += BAL.proW * proAt(ppTeam, c.x, c.y, ppL);
     if(expT){ var ex = spotExposure(expT, c.x, c.y); if(ex > 1) sc -= 0.8*(ex - 1); }
     cands.push({x:c.x, y:c.y, sc:sc});
   });
@@ -298,41 +269,6 @@ function routeTick(){
       if(W) setPost(b, W[0], W[1], W[2], W[3], W[4]);
     }
   });
-}
-// (v162) ПРО-ТОЧКИ: [x, y, раундов, угол1, доля1, угол2?, доля2?] по слоям "сторона|pre/post"
-var PRO_SPOTS = @@DATA:pro_spots.json@@;
-var PSN = {R:120, occ:45, maxOff:1.05};
-var PSN_TAGS = /^(rebal|anchor|rotator|mid$|set:|clutch|stage|lurkStage|lurk$|awpline|postplant|repos:fallback|repos:back|sitehold|rotateHold|midcover|cts:|stack)/;
-function proSnap(b, pt, look, tag){
-  if(!PSN_TAGS.test(tag || "")) return null;
-  var layer = b.team + "|" + (bomb && bomb.state === "planted" ? "post" : "pre");
-  var key = layer+"|"+tag+"|"+Math.round(pt.x/8)+","+Math.round(pt.y/8)+"|"+(look ? Math.round(look.x/40)+","+Math.round(look.y/40) : "");
-  if(b._psK === key && b._psR === roundNum && b._psM === matchNum) return b._psV;
-  b._psK = key; b._psR = roundNum; b._psM = matchNum; b._psV = null;
-  var L = PRO_SPOTS[layer]; if(!L) return null;
-  var best = null, bs = -1e9;
-  for(var i=0;i<L.length;i++){
-    var s = L[i], d = Math.hypot(s[0]-pt.x, s[1]-pt.y); if(d > PSN.R) continue;
-    if(!hasLOS(s[0], s[1], pt.x, pt.y) || insideSolidWall(s[0], s[1])) continue;
-    if(bots.some(function(o){ return o !== b && o.alive && o.team === b.team && o.post && Math.hypot(o.post.x-s[0], o.post.y-s[1]) < PSN.occ; })) continue;
-    var modes = [[s[3], s[4]]]; if(s.length > 5) modes.push([s[5], s[6]]);
-    var md = 0;
-    if(look){ var wa = Math.atan2(look.y-s[1], look.x-s[0]); md = Math.min.apply(null, modes.map(function(m){ return _angOff(m[0], wa); })); if(md > PSN.maxOff) continue; }
-    var sc = Math.log(1 + s[2]) - 1.5*d/PSN.R - 0.8*md;
-    if(sc > bs){ bs = sc; best = {pt:{x:s[0], y:s[1]}, sp:{m:modes, r:s[2], k:i}}; }
-  }
-  b._psV = best;
-  return best;
-}
-// «как у про» — один источник для дележа углов: на про-точке — направления,
-// которые держат про именно с этой точки (доля каждого), иначе — сетка
-// взглядов из демок по месту. Это вес кандидата, а не приказ: угол, который
-// поручила команда, или свежая угроза важнее.
-function proDirs(b, moving){
-  var P = !moving && b.atPost && b.post && b.post.pro;
-  if(P && P.m && P.m.length) return P.m.map(function(m){ return {a:m[0], w:m[1]}; });
-  var PL = proLookAt(b.team, b.x, b.y); if(!PL) return [];
-  return [{a:Math.atan2(PL.dy, PL.dx), w:PL.R}];
 }
 // (v162) отдельно стоящие ящики/колонны — небольшие замкнутые контуры стен
 var _WB = null, _WBn = -1;
@@ -400,8 +336,6 @@ function setPost(b, pt, look, hold, tag, spreadIdx){
     }
   }
   if(b._rebal && b._rebal.round === roundNum && !/^(rebal|retake|defuse|flee|save|fetch|stopplant|antidefuse|tradeR|repos|clutch|rotate|endhunt|gather|midcover|lineup|smokeWait|pickup)/.test(tag)) return;
-  var psn = (BAL.proSpots && hold && pt) ? proSnap(b, pt, look, tag) : null;
-  if(psn){ pt = psn.pt; spreadIdx = 0; }
   var id = tag + "|" + Math.round(pt.x) + "," + Math.round(pt.y);
   if(b.post && b.post.id === id) return;
   var x = pt.x, y = pt.y;
@@ -412,7 +346,6 @@ function setPost(b, pt, look, hold, tag, spreadIdx){
     if(!insideSolidWall(nx, ny) && !segCrossesManualWalls(x, y, nx, ny)){ x = nx; y = ny; }
   }
   b.post = {id:id, x:x, y:y, look:look||null, hold:hold, tag:tag};
-  if(psn) b.post.pro = psn.sp;
   b.atPost = false;
   if(b.state === "patrol"){ b.path = []; b.pathIdx = 0; }
 }
@@ -425,7 +358,7 @@ function updatePost(b){
   if(b.post.hold){
     // точка планта: "дошёл" — это именно внутри зоны сайта, а не в 34px от точки
     // (иначе носитель останавливался у края зоны, снаружи, и не мог заложить)
-    var arrived = b.post.tag === "plantspot" && teamTac.T && SITES[teamTac.T.site] ? (d < 10 || onSite(SITES[teamTac.T.site], b.baseX, b.baseY) && d < 60) : d < ((BAL.proSpots && b.post.pro) ? 9 : 34);
+    var arrived = b.post.tag === "plantspot" && teamTac.T && SITES[teamTac.T.site] ? (d < 10 || onSite(SITES[teamTac.T.site], b.baseX, b.baseY) && d < 60) : d < 34;
     // (опорник "не дошёл") точка поста чуть внутри угла/стены: бот доходил на
     // 30–60px и крутился рядом, не "вставая" на пост. Не приближается ~1.5с — встал
     if(BAL.arriveNear && !b.atPost && !arrived && b.post.tag !== "plantspot"){

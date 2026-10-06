@@ -37,163 +37,40 @@ var T_TACTICS = [
     groups:[{roles:["entry","igl"], via:["T Ramp","Tunnel","Water","Ruins"]},
             {roles:["awp","support"], via:["Split","Lower Mid","Mid","Top Mid","Sniper Nest","Red Room","Alley"], stage:"Back Halls", look:"Second Lane"}]}
 ];
-// ---- ПАМЯТЬ О СОПЕРНИКЕ (одна на матч; знание о текущем раунде — в картине команды) ----
-// Что команды узнали друг о друге за прошлые раунды этого матча:
-//   tacMem / tacHist   — IGL T: какие тактики сыграны, победы, планты
-//   ctRead             — что T видели в начале раунда: сколько CT на A и на B
-//   roundHist / tSiteHist / siteHeat(+Pending) — куда T реально выходили, итоги раундов
-//   ctHabit            — любимые углы конкретных CT (где стояли / где убили)
-//   ctSetupHist / ctSetupMem — какие расстановки CT играли и что сработало
-//   aggrObs            — кто как часто сам лезет в дуэль
-//   RMEM               — агрессия CT, раши, ранние смерти мидера
-//   TDEATHS            — где умирали T
-//   nadeLandHistory    — куда команда кидает молотов/HE по сайту
-// Между матчами её половинная копия хранится в браузере (OPP, ниже).
-var MEMORY = {tSiteHist:[], siteHeatPending:{}, siteHeat:{A:1, B:1},
-  tacMem:{}, ctRead:[], roundHist:[], ctHabit:{}, tacHist:[], ctSetupHist:[], ctSetupMem:{},
-  aggrObs:{}, TDEATHS:{m:-1, list:[]}, RMEM:{aggro:[], rush:[], midDeath:[]}, nadeLandHistory:{A:[], B:[]}};
 var teamTac = { T: null, CT: {call:null} };
 var lastTacticId = null;
-// ======================= РАЗДЕЛ 13 (п.1–5): АДАПТАЦИЯ ВНУТРИ МАТЧА =======================
-// Всё — только по событиям текущего матча, сбрасывается с новым матчем.
-//   MEMORY.tacMem   — IGL T: сколько раз сыграна тактика, победы, планты
-//   MEMORY.ctRead   — что T видели в начале раунда: сколько CT было на A и на B
-//   MEMORY.roundHist— итоги раундов для CT: куда шли T, был ли плант, кто выиграл, когда выход
-//   MEMORY.ctHabit  — любимые углы конкретных CT (по нику): где их видели стоящими / где убили
-function resetMatchMemory(){ MEMORY.tacMem = {}; MEMORY.ctRead = []; MEMORY.roundHist = []; MEMORY.ctHabit = {}; MEMORY.tacHist = []; MEMORY.ctSetupHist = []; MEMORY.ctSetupMem = {}; MEMORY.aggrObs = {}; bots.forEach(function(b){ b._mistakes = 0; }); loadOppProfile(); }
-// Профиль соперника: что команды выучили друг о друге за матч (тактики, что
-// сработало у CT, любимые углы каждого игрока, кто как агрессивен) — сохраняется
-// в конце матча; следующий матч стартует с этим знанием (вес половинный, дальше
-// уточняется уже по новому матчу). Хранится в браузере и в «Экспорт проекта».
-var OPP_KEY = "ancient-live-radar-opp-v1", OPP = null;
-try{ OPP = JSON.parse(localStorage.getItem(OPP_KEY)||"null"); }catch(e){}
-function saveOppProfile(){
-  var P = OPP || {matches:0, tacMem:{}, ctSetupMem:{}, habit:{}, aggr:{}};
-  var half = function(o, keys){ var r = {}; for(var k in o){ r[k] = {}; keys.forEach(function(f){ r[k][f] = (o[k][f]||0); }); } return r; };
-  var mergeCnt = function(dst, src, keys){ for(var k in src){ var d = dst[k] || (dst[k] = {}); keys.forEach(function(f){ d[f] = (d[f]||0)*0.5 + (src[k][f]||0); }); } };
-  mergeCnt(P.tacMem, MEMORY.tacMem, ["n","w","plants"]);
-  mergeCnt(P.ctSetupMem, MEMORY.ctSetupMem, ["n","w"]);
-  mergeCnt(P.aggr, MEMORY.aggrObs, ["e","r"]);
-  for(var id in MEMORY.ctHabit){ var H = P.habit[id] || (P.habit[id] = {}); for(var c in MEMORY.ctHabit[id]){ var h = MEMORY.ctHabit[id][c], o = H[c];
-    if(o){ o.x = (o.x*o.n*0.5 + h.x*h.n)/(o.n*0.5 + h.n); o.y = (o.y*o.n*0.5 + h.y*h.n)/(o.n*0.5 + h.n); o.n = o.n*0.5 + h.n; } else H[c] = {x:h.x, y:h.y, n:h.n}; } }
-  P.matches++;
-  OPP = P; try{ localStorage.setItem(OPP_KEY, JSON.stringify(P)); }catch(e){}
-  logEvent("Профиль соперника обновлён (матчей: "+P.matches+")");
-}
-function loadOppProfile(){
-  if(!OPP || !OPP.matches) return;
-  var cp = function(src, keys, k0){ var r = {}; for(var k in src){ r[k] = {}; keys.forEach(function(f){ r[k][f] = (src[k][f]||0)*k0; }); } return r; };
-  MEMORY.tacMem = cp(OPP.tacMem, ["n","w","plants"], 0.5);
-  MEMORY.ctSetupMem = cp(OPP.ctSetupMem, ["n","w"], 0.5);
-  MEMORY.aggrObs = cp(OPP.aggr, ["e","r"], 0.5);
-  MEMORY.ctHabit = {}; for(var id in OPP.habit){ MEMORY.ctHabit[id] = {}; for(var c in OPP.habit[id]){ var h = OPP.habit[id][c]; MEMORY.ctHabit[id][c] = {x:h.x, y:h.y, n:h.n*0.5}; } }
-  logEvent("Профиль соперника загружен (матчей: "+OPP.matches+") — IGL и CT стартуют с поправкой на привычки");
-}
 function weightedChoice(items, weights, seed){
   var tot = weights.reduce(function(a, w){ return a + Math.max(0, w); }, 0), r = hashRand(seed)*tot, acc = 0;
   for(var i=0;i<items.length;i++){ acc += Math.max(0, weights[i]); if(r < acc) return i; }
   return items.length - 1;
 }
-// ---- IGL: чтение CT по прошлым раундам ----
-function readCT(){
-  var last = MEMORY.ctRead.slice(-3), out = {stack:null, n:0, of:last.length};
-  // "стак" — видели у сайта 2+ CT и больше, чем у другого, в 2 из 3 последних раундов
-  ["A","B"].forEach(function(k){ var o = k === "A" ? "B" : "A"; var n = last.filter(function(r){ return r[k] >= 2 && r[k] > r[o]; }).length; if(n >= 2 && n > out.n){ out.stack = k; out.n = n; } });
-  return out;
-}
-// ---- тайм-ауты ----
-// Проиграли 3 раунда подряд — IGL берёт тайм-аут (в турнирах их несколько по
-// 30с; у нас 3 на матч). После него на 4 раунда: T не повторяют последние
-// тактики, которые не сработали; CT уходят от своих последних расстановок.
-var TOUT = {CT:{left:3, streak:0, until:0, avoid:[]}, T:{left:3, streak:0, until:0, avoid:[]}};
-function timeoutsReset(){ TOUT = {CT:{left:3, streak:0, until:0, avoid:[]}, T:{left:3, streak:0, until:0, avoid:[]}}; }
-function timeoutCheck(winner){
-  ["CT","T"].forEach(function(team){
-    var T0 = TOUT[team];
-    if(team === winner){ T0.streak = 0; return; }
-    T0.streak++;
-    if(T0.streak >= 3 && T0.left > 0 && roundNum !== HALF_ROUNDS && roundState !== "matchover"){
-      T0.left--; T0.streak = 0; T0.until = roundNum + 4;
-      T0.avoid = team === "T" ? MEMORY.tacHist.slice(-3) : MEMORY.ctSetupHist.slice(-3);
-      var names = team === "T" ? T0.avoid.map(function(id){ var t = T_TACTICS.filter(function(x){ return x.id === id; })[0]; return t ? t.name : id; })
-                               : T0.avoid.map(function(id){ var t = CT_SETUPS.filter(function(x){ return x.id === id; })[0]; return t ? t.name : id; });
-      logEvent("ТАЙМ-АУТ "+team+" — три поражения подряд. "+(team === "T" ? "IGL: не повторяем «"+names.join("», «")+"»" : "CT: меняем расстановку, уходим от «"+names.join("», «")+"»")+" (осталось тайм-аутов: "+T0.left+")", "team");
-    }
-  });
-}
-// ---- перерыв: выводы по первой половине ----
-var HALF_ADJ = {tac:{}, ctSite:null};
-function halfReview(){
-  HALF_ADJ = {tac:{}, ctSite:null};
-  var bad = [], good = [];
-  T_TACTICS.forEach(function(t){ var M = MEMORY.tacMem[t.id]; if(!M || M.n < 2) return; var r = M.w/M.n;
-    if(r < 0.2){ HALF_ADJ.tac[t.id] = 0.25; bad.push(t.name); } else if(r >= 0.6){ HALF_ADJ.tac[t.id] = 1.4; good.push(t.name); } });
-  var hA = 0, hB = 0; MEMORY.roundHist.forEach(function(r){ if(r.site === "A") hA++; else if(r.site === "B") hB++; });
-  if(hA + hB >= 6 && Math.max(hA, hB) >= Math.min(hA, hB)*1.6) HALF_ADJ.ctSite = hA > hB ? "A" : "B";
-  logEvent("ПЕРЕРЫВ — IGL T: "+(bad.length ? "убираем «"+bad.join("», «")+"»" : "тактики без изменений")+(good.length ? "; чаще «"+good.join("», «")+"»" : "")+
-    ". CT: "+(HALF_ADJ.ctSite ? "T ходили на "+HALF_ADJ.ctSite+" "+Math.max(hA, hB)+" раз из "+(hA+hB)+" — усиливаем "+HALF_ADJ.ctSite : "расстановка без изменений"), "team");
-}
 function chooseTactic(){
   var type = teamEco.T.roundType;
   var pool = T_TACTICS.filter(function(t){ return t.pools.indexOf(type) >= 0; });
-  var rd = readCT(), readTxt = null;
-  var tempoRead = null;
-  if(BAL.tempoShift){ var lastT = MEMORY.roundHist.slice(-2);
-    if(lastT.length === 2 && lastT.every(function(r){ return r.winner === "CT"; })){
-      var fast = lastT.every(function(r){ return r.execSec != null && r.execSec < 32; }), slow = lastT.every(function(r){ return r.execSec == null || r.execSec >= 45; });
-      tempoRead = fast ? "slow" : (slow ? "fast" : null); } }
   var weights = pool.map(function(t){
-    var M = MEMORY.tacMem[t.id] || {n:0, w:0};
-    var w = 0.5 + 1.5*((M.w + 1)/(M.n + 2));             // удачные всплывают, проваленные тонут
+    var w = 1;
     if(t.style === "split") w *= 1.6;                    // заходы с двух сторон — чаще
     if(t.id === "caveB") w *= 1.5;                       // кейв — не забывать
-    var l1 = MEMORY.tacHist[MEMORY.tacHist.length-1], l2 = MEMORY.tacHist[MEMORY.tacHist.length-2];
-    if(l1 === t.id) w *= 0.35;                          // только что играли
-    if(l1 === t.id && l2 === t.id) w *= 0.1;            // третий раз подряд — прочитана
-    if(BAL.halfReview && roundNum > HALF_ROUNDS && HALF_ADJ.tac[t.id]) w *= HALF_ADJ.tac[t.id]; // выводы перерыва
-    if(roundNum <= TOUT.T.until){ if(TOUT.T.avoid.indexOf(t.id) >= 0) w *= 0.15; else w *= 1.3; } // после тайм-аута
-    // (8) темп по счёту: два проигрыша подряд быстрыми выходами — медленнее
-    // (дефолт), два проигрыша медленными — быстрее (раш/ранний выход)
-    if(BAL.tempoShift && tempoRead){ if(tempoRead === "slow"){ if(t.style === "default") w *= 2.2; if(t.style === "rush") w *= 0.3; }
-      else { if(t.style === "rush" || (t.setupEnd && t.setupEnd <= 44)) w *= 1.8; if(t.style === "default") w *= 0.4; } }
-    if(rd.stack){                                       // CT стакают сайт — уходим / фейкуем его
-      if(t.site === rd.stack && t.style !== "fake") w *= 0.3;
-      else if(t.style === "fake" && t.fake === rd.stack) w *= 2.5;
-      else if(t.site !== rd.stack) w *= 1.4;
-    }
     return w;
   });
-  if(rd.stack) readTxt = "читаем CT: "+rd.stack+" — стак "+rd.n+" из "+rd.of+" раундов → уходим от "+rd.stack+" / фейк на "+rd.stack;
   // (v155) у про плант раньше 35с — 13% плантов; у ботов было 26%, раши шли
   // в 19% раундов. Доля рашей теперь задана по типу закупа, остальное — выходы
   var RP = {pistol:0.20, eco:0.25, force:0.08, half:0, full:0}[type] || 0;
     var rW = 0, nW = 0; pool.forEach(function(t, i){ if(t.style === "rush") rW += weights[i]; else nW += weights[i]; });
     if(rW > 0 && nW > 0){ var kR = RP > 0 ? (RP/(1-RP))*nW/rW : 0; pool.forEach(function(t, i){ if(t.style === "rush") weights[i] *= kR; }); }
   var tac = pool[weightedChoice(pool, weights, roundNum*7919 + matchNum*104729 + 17)];
-  lastTacticId = tac.id; MEMORY.tacHist.push(tac.id);
+  lastTacticId = tac.id;
   // тайминг выхода гуляет от раунда к раунду (иначе его читают): ~25% —
   // быстрый (на 30% раньше), ~50% — обычный ±4с, ~25% — поздний (+10…18с)
   var setupSec = tac.setupEnd, tmode = "";
-  if(tempoRead) logEvent("IGL: два раунда проиграли "+(tempoRead === "slow" ? "быстрыми выходами — сейчас медленно, от дефолта" : "медленно — сейчас быстрее, пока не ждут"), "team");
   if(BAL.timingVar && setupSec > 0){
     var rT = hashRand(roundNum*6271 + matchNum*353 + 29);
-    if(tempoRead === "slow") rT = 0.8 + 0.2*rT; else if(tempoRead === "fast") rT = 0.2*rT;   // (8) темп
     if(rT < 0.25){ tmode = ", быстрый"; setupSec = Math.max(16, Math.round(setupSec*0.7)); }
     else if(rT < 0.75){ setupSec = Math.max(12, Math.round(setupSec + (hashRand(roundNum*97 + matchNum*13)-0.5)*8)); }
     else { tmode = ", поздний"; setupSec = Math.min(ROUND_TIME_SEC - 38, setupSec + 10 + Math.round(hashRand(roundNum*131 + matchNum*7)*8)); }
   }
   var defUntil = null;
   if(tac.setupEnd > 0){
-    // время планта — из распределения про (квантили 10/25/50/75/90% = 34/44/66/88/103с),
-    // выход ~12с до планта (у ботов от выхода до планта 10–15с); стиль тактики сдвигает: выходы раньше, дефолт/фейк позже
-    var u = hashRand(roundNum*6271 + matchNum*353 + 29);
-    if(tempoRead === "slow") u = 0.5 + 0.5*u; else if(tempoRead === "fast") u = 0.5*u;
-    var bias = {exec:[0, 0.8], split:[0.05, 0.9], fake:[0.25, 0.75], "default":[0.3, 0.7]}[tac.style] || [0, 1];
-    u = bias[0] + bias[1]*u;
-    var QX = [0, 0.10, 0.25, 0.50, 0.75, 0.90, 1], QY = [22, 34, 44, 66, 88, 100, 106], pT = QY[QY.length-1];
-    for(var qi = 1; qi < QX.length; qi++){ if(u <= QX[qi]){ pT = QY[qi-1] + (QY[qi]-QY[qi-1])*(u-QX[qi-1])/(QX[qi]-QX[qi-1]); break; } }
-    setupSec = Math.round(Math.max(tac.setupEnd*0.6, Math.min(ROUND_TIME_SEC - 26, pT - 12)));
-    tmode = setupSec < tac.setupEnd - 6 ? ", быстрый" : (setupSec > tac.setupEnd + 8 ? ", поздний" : "");
     // длинный сетап: сначала дефолт (контроль карты), свою расстановку тактика
     // занимает за столько же секунд до выхода, сколько ей нужно было с начала раунда
     var need = Math.max(14, tac.setupEnd - 6);
@@ -201,12 +78,9 @@ function chooseTactic(){
   }
   teamTac.T = {tac:tac, site:tac.site, phase: tac.setupEnd > 0 ? "setup" : "execute", execTick: roundStartTick + setupSec*64, defUntil: defUntil, minExec: (tac.setupEnd > 0) ? Math.min(setupSec, 30) : 0, needT: (tac.setupEnd > 0) ? Math.max(14, tac.setupEnd - 6) : 0,
                execStart: tac.setupEnd > 0 ? null : tick, // раш: выход сразу — отсчёт задержек ролей с начала раунда
-               read: readTxt, seenCT:{A:0, B:0}, setupSec:setupSec};
-  var M = MEMORY.tacMem[tac.id];
+               setupSec:setupSec};
   var igl = bots.filter(function(b){ return b.team==="T" && b.tRole==="igl"; })[0];
-  if(readTxt) logEvent("IGL "+(igl?igl.id:"T")+": "+readTxt, "team");
-  logEvent("IGL "+(igl?igl.id:"T")+": тактика «"+tac.name+"» ("+ROUND_TYPE_LABEL[type]+(tac.setupEnd?", выход на "+setupSec+"с"+tmode:", сразу")+
-    (M && M.n ? ", в этом матче "+M.w+"/"+M.n : "")+")", "team");
+  logEvent("IGL "+(igl?igl.id:"T")+": тактика «"+tac.name+"» ("+ROUND_TYPE_LABEL[type]+(tac.setupEnd?", выход на "+setupSec+"с"+tmode:", сразу")+")", "team");
   chooseCtSetup();
 }
 // ---- позиции по названиям зон: кто где держит, занимает, ставит, ретейкает ----
@@ -233,6 +107,16 @@ function namedSpot(name, near, o){
   o = o || {};
   var sp = pickSpots("nm:"+name+":"+(o.key||""), zp, 1, {rMax:o.rMax||110, minGap:40, see:o.see||[], hideFrom:o.hideFrom||[], must:o.must, cross:o.cross})[0];
   return sp || zp;
+}
+// из нескольких названных мест — лучшее по обзору и укрытию: видно больше
+// нужных точек (see), меньше открыто со стороны врага, ближе к ref
+function bestNamed(names, ref, team, o){
+  o = o || {}; var best = null, bs = -1e9;
+  names.forEach(function(nm, i){ var p = namedSpot(nm, ref, o); if(!p) return;
+    var s = (o.see||[]).filter(function(q){ return hasLOS(p.x, p.y, q.x, q.y); }).length
+      - 0.5*Math.max(0, spotExposure(team, p.x, p.y) - 1) - Math.hypot(p.x-ref.x, p.y-ref.y)/600;
+    if(s > bs){ bs = s; best = {i:i, nm:nm, p:p}; } });
+  return best;
 }
 function entryPts(k){ return POS[k].entries.map(function(n){ return zonePoint(n, SITES[k]); }).filter(Boolean); }
 // не смотрим "сквозь" своего тиммейта в упор: если по прямой от поста до
@@ -342,31 +226,12 @@ var CT_SETUPS = [
     roles:{mid:{pos:["Red Room","Sniper Nest"], look:"Top Mid"}, roamer:{pos:["Short"], look:"Donut"}}}
 ];
 function chooseCtSetup(){
-  var last = MEMORY.roundHist.slice(-4), heat = {A:0, B:0}, lost = {A:0, B:0};
-  last.forEach(function(r){ heat[r.site]++; if(r.planted && r.winner === "T") lost[r.site]++; });
-  var execs = MEMORY.roundHist.slice(-3).map(function(r){ return r.execSec; }).filter(function(x){ return x != null; });
-  var avgExec = execs.length ? execs.reduce(function(a,x){ return a+x; }, 0)/execs.length : 45;
   var why = {};
   var weights = CT_SETUPS.map(function(S){
     var w = {std212:4, std111:1.5, midAggro:0.5, pickA:0.4, pickB:0.4, redRoom:0.6, cavePush:0.5, stackA:0.2, stackB:0.2, retakeA:0.2, retakeB:0.2}[S.id] || 1;
-    if(S.stack){ var h = heat[S.stack]; if(last.length >= 3 && h >= 3){ w = 1.2; why[S.id] = "T ходили на "+S.stack+" "+h+" из "+last.length; } else if(h >= 2) w = 0.4; }
-    if(/^retake/.test(S.id)){ var k = S.id.slice(-1); if(lost[k] >= 2){ w = 1.2; why[S.id] = "на "+k+" проигрываем "+lost[k]+" раунда — играем от ретейка"; } }
-    if(S.roles && Object.keys(S.roles).some(function(r){ return S.roles[r].early; })){
-      if(avgExec < 25) w *= 0.4; else if(avgExec > 45){ w *= 1.15; why[S.id] = "T выходят поздно (~"+Math.round(avgExec)+"с) — есть время за инфой"; }
-    }
-    var l1 = MEMORY.ctSetupHist[MEMORY.ctSetupHist.length-1], l2 = MEMORY.ctSetupHist[MEMORY.ctSetupHist.length-2];
-    if(l1 === S.id && l2 === S.id) w *= 0.15;
-    // (1) мидер рано умирал в 2 из 3 последних раундов — агрессивный мид реже
-    if(BAL.roundMem && S.id === "midAggro" && rmemRecent(MEMORY.RMEM.midDeath, 3).length >= 2){ w *= 0.2; why[S.id] = null; }
-    // CT тоже помнят, какие расстановки в этом матче сработали, а какие нет
-    var CM = MEMORY.ctSetupMem[S.id] || {n:0, w:0};
-    w *= 0.3 + 1.7*((CM.w + 1)/(CM.n + 2));
-    if(BAL.halfReview && roundNum > HALF_ROUNDS && HALF_ADJ.ctSite && S.stack === HALF_ADJ.ctSite) w *= 2.5; // выводы перерыва
-    if(roundNum <= TOUT.CT.until && TOUT.CT.avoid.indexOf(S.id) >= 0) w *= 0.15; // после тайм-аута
     return w;
   });
   var S = BAL.ctSetups ? CT_SETUPS[weightedChoice(CT_SETUPS, weights, roundNum*4217 + matchNum*881 + 5)] : (BAL.ctSetup === "1-1-1" ? CT_SETUPS[1] : CT_SETUPS[0]);
-  MEMORY.ctSetupHist.push(S.id);
   teamTac.CT = {call:null, saving:false, stack:S.stack||null, setup:S, setupWhy: why[S.id]||null};
   // против эко: без ранних пиков и доборов — не дарить оружие, держать вместе
   if(BAL.ctAntiEco){ var Ee = teamEco.CT.enemyGuess || enemyEcoGuess("CT"); if(Ee.eco && (teamEco.CT.roundType === "full" || teamEco.CT.roundType === "force")){ teamTac.CT.antiEco = true; logEvent("CT: у T, похоже, эко — играем аккуратно: без ранних пиков, не отдаём оружие", "team"); } }
@@ -390,8 +255,8 @@ function ctSetupRole(b, role, ct){
     if(ea && b._earlySaw !== roundNum && picNear("CT", ea.x, ea.y, 600) === 0) markClear("CT", ea.x, ea.y, b.id);
   }
   if(!P.pos) return false;
-  var nm = BAL.proPrior ? P.pos[proPick("CT", P.pos, roundNum*97 + role.length*13 + matchNum)] : P.pos[Math.floor(hashRand(roundNum*97 + role.length*13 + matchNum) * P.pos.length)];
   var ref = role === "anchorA" ? GEO.A.anchor : role === "anchorB" ? GEO.B.anchor : GEO.ctMid;
+  var bn = bestNamed(P.pos, ref, "CT", {see:[(P.look && zonePoint(P.look, ref)) || ref], key:"cts"+role}), nm = bn ? bn.nm : P.pos[0];
   var c = zonePoint(nm, ref); if(!c) return false;
   var lk = (P.look && zonePoint(P.look, c)) || ref;
   // прятаться от мида по умолчанию — но не тогда, когда сам взгляд НАПРАВЛЕН
@@ -411,44 +276,8 @@ function ctSetupRole(b, role, ct){
   return true;
 }
 function ROLE_LABEL_CT(r){ return {anchorA:"опорник A", anchorB:"опорник B", mid:"мидер", rotator:"ротатор", roamer:"роумер"}[r] || r; }
-var events = []; var killfeed = []; // объявлены здесь, до loadOppProfile(), которая пишет в лог сразу при старте
-var simTime = 0; // тоже нужен logEvent-у при старте
-if(typeof OPP !== "undefined" && OPP && OPP.matches) loadOppProfile();
-// итог раунда — в память обеих сторон
-function rememberRound(winner){
-  bots.forEach(function(b){ var A = MEMORY.aggrObs[b.id] || (MEMORY.aggrObs[b.id] = {e:0, r:0}); A.r++; });
-  var tt = teamTac.T; if(!tt) return;
-  var M = MEMORY.tacMem[tt.tac.id] || (MEMORY.tacMem[tt.tac.id] = {n:0, w:0, plants:0});
-  M.n++; if(winner === "T") M.w++; if(bomb && (bomb.state === "planted" || bomb.state === "exploded" || bomb.state === "defused")) M.plants++;
-  MEMORY.ctRead.push({A: tt.seenCT.A, B: tt.seenCT.B});
-  var cs = teamTac.CT && teamTac.CT.setup;
-  if(cs){ var CM = MEMORY.ctSetupMem[cs.id] || (MEMORY.ctSetupMem[cs.id] = {n:0, w:0}); CM.n++; if(winner === "CT") CM.w++; }
-  MEMORY.roundHist.push({site: tt.site, planted: !!(bomb && bomb.plantTick && bomb.plantTick >= roundStartTick), winner: winner,
-                  execSec: tt.execStart ? (tt.execStart - roundStartTick)/TICK_HZ : null});
-}
-// ---- любимые углы CT (для T) ----
-// ошибки исполнения — в лог не каждую (чтобы не засорять), но видно, что они есть
-function noteMistake(b, what){
-  b._mistakes = (b._mistakes||0) + 1;
-  if(hashRand(tick*3 + b.id.charCodeAt(1)) < 0.35) logEvent(b.id+": ошибка — "+what);
-}
-// наблюдённая агрессия игрока: сколько раз за раунд он сам лезет в дуэль (по
-// сравнению со средним) — копится у соперника за матч и между матчами
-function aggrNote(id){ var A = MEMORY.aggrObs[id] || (MEMORY.aggrObs[id] = {e:0, r:0}); A.e++; }
-function aggrRate(id){
-  var A = MEMORY.aggrObs[id]; if(!A || A.r < 3) return 1;
-  var tot = 0, n = 0; for(var k in MEMORY.aggrObs){ if(MEMORY.aggrObs[k].r >= 3){ tot += MEMORY.aggrObs[k].e/MEMORY.aggrObs[k].r; n++; } }
-  var avg = n ? tot/n : 1; return avg > 0 ? (A.e/A.r)/avg : 1;
-}
-function habitAdd(ctId, x, y, w){
-  var H = MEMORY.ctHabit[ctId] || (MEMORY.ctHabit[ctId] = {}), k = Math.round(x/48)+","+Math.round(y/48);
-  var c = H[k] || (H[k] = {x:0, y:0, n:0}); c.x = (c.x*c.n + x*w)/(c.n + w); c.y = (c.y*c.n + y*w)/(c.n + w); c.n += w;
-}
-function habitTop(ctId, minN){
-  var H = MEMORY.ctHabit[ctId], best = null; if(!H) return null;
-  for(var k in H){ if(H[k].n >= (minN||2) && (!best || H[k].n > best.n)) best = H[k]; }
-  return best;
-}
+var events = []; var killfeed = [];
+var simTime = 0; // нужен logEvent-у при старте
 var roundStartTick = 0;
 
 // ---------- лёркер (план §5: "держит фланг") ----------
@@ -523,13 +352,6 @@ function lurkerBrain(b, tt, other){
 // куда перетянуть двоих, если подпуш показал "пусто"
 var SHIFT_TO = { A: [{pos:"Donut", look:"Short"}, {pos:"Chamber Lane", look:"Top Mid"}],
                  B: [{pos:"Lamp Room", look:"Cave"}, {pos:"T Upper", look:"Lamp Room"}] };
-// ---- память смертей T за матч (про меняют паттерн: умер дважды в A Main —
-// в третий раз туда иначе или не идут) ----
-function tDeathAdd(v){ if(MEMORY.TDEATHS.m !== matchNum) MEMORY.TDEATHS = {m:matchNum, list:[]};
-  MEMORY.TDEATHS.list.push({x:v.x, y:v.y, round:roundNum, id:v.id, tag: v.post ? v.post.tag : ""}); }
-function tDeathsNear(x, y, r, id){ if(MEMORY.TDEATHS.m !== matchNum) return 0;
-  return MEMORY.TDEATHS.list.filter(function(d){ return d.round < roundNum && Math.hypot(d.x-x, d.y-y) < r && (!id || d.id === id); }).length; }
-function tDeathSpots(){ return MEMORY.TDEATHS.m === matchNum ? MEMORY.TDEATHS.list.filter(function(d){ return d.round < roundNum; }) : []; }
 function tProbes(tt, ts){
   if(tick - roundStartTick < 10*TICK_HZ) return;
   if(tick > tt.execTick - 3*TICK_HZ) return;          // перед выходом — все на местах
@@ -548,10 +370,8 @@ function tProbes(tt, ts){
   Object.keys(groups).forEach(function(key){
     var gr = groups[key].filter(function(b){ return b.tRole !== "awp" || key !== "M"; }); // AWP на миде держит линию
     if(!gr.length) return;
-    // кто пробует — не всегда один и тот же (иначе CT читают "4-й всегда первый
-    // на мид"): роль + случайная добавка на раунд; кто уже умирал на этой пробе
-    // в этом матче — реже
-    var ordK = function(o){ return (PRI[o.tRole]||9) + (BAL.tAdapt ? 1.3*hashRand(roundNum*97 + matchNum*13 + o.id.charCodeAt(1)*7) : 0) + (BAL.tAdapt ? 1.5*tDeathsNear(o.x, o.y, 700, o.id) : 0); };
+    // кто пробует — по роли (энтри первым)
+    var ordK = function(o){ return PRI[o.tRole]||9; };
     gr.sort(function(a,b2){ return ordK(a) - ordK(b2); });
     var pb = gr[0];
     var from, to, look, SI = pb._stageInfo;
@@ -565,12 +385,6 @@ function tProbes(tt, ts){
     if(P.ph === 0){ // ждёт в укрытии (пост группы уже стоит)
       // на этом выходе только что убили своего — не пикать туда же ещё раз
       if(tick >= P.until && picEvents("T").some(function(sg){ return sg.type === "died" && tick - sg.tick < 10*TICK_HZ && Math.hypot(sg.x-to.x, sg.y-to.y) < 400; })){ P.until = tick + 6*TICK_HZ; return; }
-      // адаптация: здесь в этом матче уже умирали ≥2 раз — на сухую не пикаем
-      if(tick >= P.until && BAL.tAdapt && tDeathsNear(to.x, to.y, 450) >= 2){
-        var hasU = ts.some(function(o){ return Math.hypot(o.x-pb.x, o.y-pb.y) < 500 && o.nades && (o.nades.flash > 0 || o.nades.smoke > 0); });
-        if(!hasU){ P.until = tick + 30*TICK_HZ; if(!tt["_ad"+key]){ tt["_ad"+key] = true; logEvent("T: на «"+(zoneUserName(zoneIdAt(to.x, to.y)) || key)+"» уже умирали "+tDeathsNear(to.x, to.y, 450)+" раза — без гранат туда не пикаем"); } return; }
-        P.needUtil = true;
-      }
       if(tick >= P.until){ P.ph = 1; P.n++; P.since = tick;
         // напарник: второй встаёт в 1–2с позади и держит тот же угол — если
         // пробу снимут, он первый на размен
@@ -586,8 +400,8 @@ function tProbes(tt, ts){
           var uFp = {x: to.x + (look.x-to.x)*0.3, y: to.y + (look.y-to.y)*0.3};
           var uFl = ts.filter(function(o){ return o !== pb && !o.nadeTask && o.nades && o.nades.flash > 0 && Math.hypot(o.x-pb.x, o.y-pb.y) < 500; })[0];
           var uSm = ts.filter(function(o){ return !o.nadeTask && o.nades && o.nades.smoke > 0 && Math.hypot(o.x-pb.x, o.y-pb.y) < 600; })[0];
-          if(uFl && (P.needUtil || P.n === 1 || hashRand(tick + 3) < 0.6)){ assignNade(uFl, "flash", uFp, "под пробу", {now:true}); P.util = "flash"; }
-          else if(uSm && (key === "M" || P.needUtil) && tSmokeReserveOk()){ var smP = {x: to.x + (look.x-to.x)*0.5, y: to.y + (look.y-to.y)*0.5}; if(assignNade(uSm, "smoke", smP, "смок под пробу", {now:true})) P.util = "smoke"; }
+          if(uFl && (P.n === 1 || hashRand(tick + 3) < 0.6)){ assignNade(uFl, "flash", uFp, "под пробу", {now:true}); P.util = "flash"; }
+          else if(uSm && key === "M" && tSmokeReserveOk()){ var smP = {x: to.x + (look.x-to.x)*0.5, y: to.y + (look.y-to.y)*0.5}; if(assignNade(uSm, "smoke", smP, "смок под пробу", {now:true})) P.util = "smoke"; }
         }
         // со второго раза — глубже, за фрагом, но только парой (есть кому
         // разменять) и если по инфе там не стак
@@ -679,13 +493,6 @@ function markClear(team, x, y, who){
   beliefClearAt(team, x, y);
   voiceLog(team, "clz"+zid, who, "чекнул "+(zoneUserName(zid) || calloutName(x, y))+" — пусто");
   return zid;
-}
-// IGL не идеален: примерно в четверти случаев повод для колла (соло, пустой
-// сайт, стак) он пропускает — решение принимается один раз на повод за раунд
-function iglReads(tt, kind){
-  var k = "_ir"+kind; if(tt[k] === undefined) tt[k] = hashRand(roundNum*131 + matchNum*17 + kind.charCodeAt(0)*7) >= (BAL.iglErr||0);
-  if(!tt[k] && !tt[k+"log"]){ tt[k+"log"] = true; logEvent("IGL: не среагировал на инфу ("+({po:"пустой сайт", st:"стак", so:"соло"})[kind]+") — играем по плану"); }
-  return tt[k];
 }
 function soloMayWalk(b){
   var secLeft = ROUND_TIME_SEC - (simTime - roundStartTime);

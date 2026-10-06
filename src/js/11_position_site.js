@@ -113,28 +113,6 @@ function smokeShiftOnDetonate(s){
   });
 }
 
-// =====================================================================
-// (v151) РОЛИ КАК У ПРО (12 матчей). У каждого бота — роль игрока:
-//   энтри — первая дуэль в 39% раундов за T; второй (размен) — сразу за энтри;
-//   саппорт — больше всех гранат (2.3 за раунд), часто IGL; лёркер — дальше всех
-//   от команды; снайпер — AWP ~35% времени, гранат тоже много (2.4).
-// За CT те же типы игроков встают так: лёркер — один выдвинут на B (Cave/Lamp,
-// 42%), энтри — мид/вперёд за инфой, саппорт — опорник B, снайпер — гибко.
-// Выдвинутый CT у про берёт инфу и ОТКАТЫВАЕТСЯ (ранних смертей CT у про 0.41
-// за 20с против 0.68 у ботов) — это поведение ниже (infoFallbackTick).
-// =====================================================================
-var PRO_PROLE = {
-  // внутренние роли T в симуляторе → роль игрока
-  T:  {entry:"entry", support:"second", igl:"support", lurker:"lurker", awp:"awp"},
-  CT: {anchorA:"second", mid:"awp", anchorB:"support", rotator:"support", roamer:"lurker"}
-};
-var PROLE_NADES = {T:{entry:1.6, second:1.6, support:2.3, lurker:1.8, awp:2.35}, CT:{second:1.9, awp:2.0, support:2.06, lurker:2.0, entry:2.08}};
-function pRole(b){ var M = PRO_PROLE[b.team]; return (M && M[b.tRole]) || b.tRole; }
-// кто кидает лайнап: при прочих равных — тот, чья роль кидает больше гранат
-function nadeRoleCost(b){
-  var r = (PROLE_NADES[b.team]||{})[pRole(b)]; if(r == null) return 0;
-  return (2.4 - r) * BAL.utilRoleK;
-}
 var FB = { enemies:2, window:3, deathR:900, hurtHp:70, back:320, rMax:220, gainED:150, lock:10 };
 function tFallbackTick(){
   if(tick % 8 || roundState !== "live" || (bomb && bomb.state === "planted")) return;
@@ -170,33 +148,32 @@ function tFallbackTick(){
 }
 // (v165) ПЕРЕРАСПРЕДЕЛЕНИЕ САЙТА. Точка, куда смотрит защитник = луч взгляда с
 // его поста до стены (≤500px). Двое смотрят в одну точку, или туда уже вышел
-// тиммейт — второй берёт угол, который про с этого сайта держат, а сейчас не
-// держит никто; не нашёл — встаёт глубже, под размен вышедшего вперёд.
+// тиммейт — второй берёт вход на сайт, который сейчас не держит никто (точка —
+// по навмешу: видит вход, меньше открыта, ближе); не нашёл — встаёт глубже,
+// под размен вышедшего вперёд.
 var REBAL = {every:48, minHold:5, R:560, same:190, fwdR:230, freeR:260};
 function rebalTarget(px, py, a){ var c = rayClipWalls(px, py, px + Math.cos(a)*500, py + Math.sin(a)*500); return {x:c.x, y:c.y}; }
 function rebalLookOf(o){
   var px = o.post.x, py = o.post.y, a;
-  if(o.post.pro && o._proM && o._proM.k === o.post.pro.k && o.post.pro.m[o._proM.i]) a = o.post.pro.m[o._proM.i][0];
-  else if(o.post.look) a = Math.atan2(o.post.look.y-py, o.post.look.x-px);
+  if(o.post.look) a = Math.atan2(o.post.look.y-py, o.post.look.x-px);
   else a = o.facing || 0;
   return rebalTarget(px, py, a);
 }
 function rebalSpot(b, k, taken, avoidPts, opt){
-  var L = PRO_SPOTS["CT|pre"] || [], best = null, bs = -1e9;
+  var L = holdCands(SITES[k], 0, REBAL.R), ents = entryPts(k), best = null, bs = -1e9;
   for(var i=0;i<L.length;i++){ var s = L[i];
-    if(Math.hypot(s[0]-SITES[k].x, s[1]-SITES[k].y) > REBAL.R || insideSolidWall(s[0], s[1])) continue;
-    if(bots.some(function(o){ return o !== b && o.alive && o.team === "CT" && Math.hypot(o.x-s[0], o.y-s[1]) < 70; })) continue;
-    var modes = [[s[3], s[4]]]; if(s.length > 5) modes.push([s[5], s[6]]);
-    modes.forEach(function(m){
-      var t = rebalTarget(s[0], s[1], m[0]);
-      if(Math.hypot(t.x-s[0], t.y-s[1]) < 90) return;
-      if(opt && opt.see){ if(!hasLOS(s[0], s[1], opt.see.x, opt.see.y) || Math.hypot(s[0]-SITES[k].x, s[1]-SITES[k].y) > Math.hypot(opt.see.x-SITES[k].x, opt.see.y-SITES[k].y) - 60) return;
-        if(_angOff(m[0], Math.atan2(opt.see.y-s[1], opt.see.x-s[0])) > 0.7) return; }
+    if(bots.some(function(o){ return o !== b && o.alive && o.team === "CT" && Math.hypot(o.x-s.x, o.y-s.y) < 70; })) continue;
+    var ex = spotExposure("CT", s.x, s.y), base = -Math.max(0, ex - 1)*0.5 - Math.hypot(s.x-b.x, s.y-b.y)/400;
+    var dirs = opt && opt.see ? [opt.see] : ents;
+    dirs.forEach(function(e){
+      if(!hasLOS(s.x, s.y, e.x, e.y)) return;
+      var a = Math.atan2(e.y-s.y, e.x-s.x), t = rebalTarget(s.x, s.y, a);
+      if(Math.hypot(t.x-s.x, t.y-s.y) < 90) return;
+      if(opt && opt.see){ if(Math.hypot(s.x-SITES[k].x, s.y-SITES[k].y) > Math.hypot(e.x-SITES[k].x, e.y-SITES[k].y) - 60) return; }
       else if(taken.some(function(q){ return Math.hypot(q.x-t.x, q.y-t.y) < REBAL.freeR; }) || avoidPts.some(function(q){ return Math.hypot(q.x-t.x, q.y-t.y) < REBAL.freeR; })) return;
       // угол в сторону своего спавна/тыла — не угол
-      if(Math.hypot(t.x-CT_SPAWN.x, t.y-CT_SPAWN.y) < Math.hypot(s[0]-CT_SPAWN.x, s[1]-CT_SPAWN.y) - 120) return;
-      var sc = Math.log(1 + s[2]) + 1.2*m[1] - Math.hypot(s[0]-b.x, s[1]-b.y)/400;
-      if(sc > bs){ bs = sc; best = {pt:{x:s[0], y:s[1]}, look:{x:s[0] + Math.cos(m[0])*300, y:s[1] + Math.sin(m[0])*300}, t:t}; }
+      if(Math.hypot(t.x-CT_SPAWN.x, t.y-CT_SPAWN.y) < Math.hypot(s.x-CT_SPAWN.x, s.y-CT_SPAWN.y) - 120) return;
+      if(base > bs){ bs = base; best = {pt:{x:s.x, y:s.y}, look:{x:s.x + Math.cos(a)*300, y:s.y + Math.sin(a)*300}, t:t}; }
     });
   }
   return best;

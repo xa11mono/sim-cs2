@@ -74,8 +74,7 @@ function tDefuseGo(tt, ts){
   var near = heard.slice().sort(function(a, c){ return pathLenTo(a, bomb.x, bomb.y) - pathLenTo(c, bomb.x, bomb.y); })[0];
   var travel = pathLenTo(near, bomb.x, bomb.y)/SPEED*TICK_HZ;
   var canWait = travel + 60 < kitGuess && bombTimeLeftTicks() > kitGuess + 40;
-  var aggr = near.prof ? prof(near, "aggr") : 0.5;
-  var rush = hashRand(h0*7 + near.id.charCodeAt(1)) < 0.25*aggr;           // горячий — иногда без раздумий
+  var rush = hashRand(h0*7 + near.id.charCodeAt(1)) < 0.125;               // иногда без раздумий
   if(!canWait || rush) return true;
   if(tick - h0 < 52) return false;                                          // слушают ~0.8с
   if(tt._dfFake !== h0){ tt._dfFake = h0; voiceLog("T", "dffake"+h0, near.id, "тапнул и замолчал — фейк, не выходим, держим углы"); }
@@ -100,16 +99,10 @@ function bombTick(){
         var sh = c._shotAtBy, dSh = sh ? Math.hypot(sh.x-c.x, sh.y-c.y) : 0;
         var hitRecent = c._hurtT && tick - c._hurtT < 20;
         if(sh && sh.alive && (hitRecent || dSh < 700)){
-          c.planting = false; c._noPlantUntil = tick + 1.2*TICK_HZ; c._fakePlantAt = 0;
+          c.planting = false; c._noPlantUntil = tick + 1.2*TICK_HZ;
           if(!c._prV || tick - c._prV > 8*TICK_HZ){ c._prV = tick; logEvent(c.id+": по мне стреляют — бросил плант, отвечаю"); }
           return;
         }
-      }
-      // фейк-плант: начал ставить — CT слышат и выходят сбивать — прервал
-      if(c._fakePlantAt && tick >= c._fakePlantAt){
-        c.planting = false; c._fakePlantAt = 0; c._noPlantUntil = tick + 90;
-        voiceLog("T", "fakeplant", c.id, "фейк-плант — сейчас выйдут сбивать, держите!");
-        return;
       }
       if(tick >= c.plantUntil){
         c.planting = false;
@@ -127,16 +120,6 @@ function bombTick(){
     var nearFoe = c._sawEnemy && c._nearestEnemyDist < 500;
     if(site && tac.phase !== "setup" && c.state === "patrol" && !nearFoe && onSite(site, c.baseX, c.baseY) && !(c._noPlantUntil > tick)){
       c.planting = true; c.plantUntil = tick + PLANT_TICKS; c.path = []; c.pathIdx = 0;
-      // фейк-плант (раз за раунд): свои рядом держат углы, CT по инфе рядом —
-      // начать и через ~1с бросить: CT на звук выйдут под прицел
-      if(BAL.fakePlant && c._fakePlanted !== roundNum){
-        var BLf = beliefLast.T || {}, ctNearF = false;
-        for(var eF in BLf){ if(tick - BLf[eF].tick < 6*TICK_HZ && Math.hypot(BLf[eF].x-c.x, BLf[eF].y-c.y) < 700) ctNearF = true; }
-        var mateF = bots.some(function(o){ return o !== c && o.alive && o.team === "T" && Math.hypot(o.x-c.x, o.y-c.y) < 350; });
-        if(ctNearF && mateF && bombTimeLeftTicks() && (ROUND_TIME_SEC - (simTime - roundStartTime)) > 25 && hashRand(roundNum*433 + matchNum*19) < 0.35){
-          c._fakePlanted = roundNum; c._fakePlantAt = tick + 64;
-        }
-      }
       logEvent(c.id+" закладывает бомбу на "+tac.site+"…", "bomb");
       // звук планта (писк C4): CT рядом (≤520px, или ≤850 по прямой видимости) слышат
       // и сразу говорят в войс — это самый сильный повод для колла/ротации

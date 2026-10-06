@@ -11,7 +11,7 @@ function bStageFix(){
   if(up) GEO.B.tStageUp = pickSpots("bstageUp", up, 1, {rMax:140, minGap:40, hideFrom:[SITES.B, GEO.B.anchor]})[0] || up;
 }
 function stagePost(mem, k){
-  var g = GEO[k], opt = {rMax:200, minGap:50, hideFrom:[SITES[k], g.anchor], see:[g.tEntry], avoidNades: BAL.tAdapt ? tDeathSpots() : []};
+  var g = GEO[k], opt = {rMax:200, minGap:50, hideFrom:[SITES[k], g.anchor], see:[g.tEntry]};
   if(!mem.length) return;
   if(k === "B" && g.tStageUp && mem.length >= 3){
     // двое-трое ниже (T Lower → Ramp), один-двое выше (T Upper → Rat/Dark): выход с двух сторон
@@ -30,10 +30,6 @@ function tBrain(){
   var tt = teamTac.T; if(!tt) return;
   if(tt.phase === "setup" && tt.minExec && tt.execTick < roundStartTick + tt.minExec*TICK_HZ) tt.execTick = roundStartTick + tt.minExec*TICK_HZ;
   bStageFix();
-  if(tt.seenCT && tick % 16 === 0 && (tt.phase === "setup" || (tt.execStart && tick - tt.execStart < 8*TICK_HZ))){
-    ["A","B"].forEach(function(k){ var e = intelEstimate("T", SITES[k].x, SITES[k].y, 450, 4*TICK_HZ); if(e.seen > tt.seenCT[k]) tt.seenCT[k] = e.seen; });
-  }
-  if(tt.phase !== "setup" && !tt.histed){ tt.histed = true; MEMORY.tSiteHist.push(tt.site); }
   var tac = tt.tac, site = SITES[tt.site], g = GEO[tt.site];
   var other = tt.site === "A" ? "B" : "A";
   var plantPt = site.plant || site;
@@ -58,7 +54,7 @@ function tBrain(){
       goNow = false; if(!tt._smWaitLog){ tt._smWaitLog = true; logEvent("T: ждём, пока встанут смоки"); }
     }
     if(goNow){
-      tt.phase = "execute"; tt.execStart = tick; if(BAL.noLeaks) MEMORY.siteHeatPending[tt.site] = 1; else MEMORY.siteHeat[tt.site] = (MEMORY.siteHeat[tt.site]||0) + 1;
+      tt.phase = "execute"; tt.execStart = tick;
       logEvent("T: выход на "+tt.site+"!"+(tt._waitLog ? " (все собрались)" : ""), "team");
     }
   }
@@ -71,7 +67,7 @@ function tBrain(){
     var pickSig = picEvents("T").filter(function(s){ return s.type === "kill" && tick - s.tick < 3*64 &&
       (s.role === ancR ? Math.hypot(s.x-site.x, s.y-site.y) < 600 : Math.hypot(s.x-site.x, s.y-site.y) < 350); })[0];
     if(pickSig && aliveCount("T") >= 4 && (tick - roundStartTick > 22*TICK_HZ)){
-      tt.phase = "execute"; tt.execStart = tick; if(BAL.noLeaks) MEMORY.siteHeatPending[tt.site] = 1; else MEMORY.siteHeat[tt.site] = (MEMORY.siteHeat[tt.site]||0) + 1;
+      tt.phase = "execute"; tt.execStart = tick;
       voiceLog("T", "pick"+tt.site, pickSig.by, "минус на "+tt.site+", заходим сразу!");
       logEvent("T: выход на "+tt.site+"! (сняли CT на сайте)", "team");
     }
@@ -114,7 +110,7 @@ function tBrain(){
     var ancO = other === "A" ? "anchorA" : "anchorB";
     var pickOther = tt.phase === "setup" && picEvents("T").some(function(sg){ return sg.type === "kill" && tick - sg.tick < 3*TICK_HZ &&
       (sg.role === ancO ? Math.hypot(sg.x-SITES[other].x, sg.y-SITES[other].y) < 600 : Math.hypot(sg.x-SITES[other].x, sg.y-SITES[other].y) < 350); });
-    if(pickOther && aliveT >= 3 && beliefCount("T", BZ.siteNear[other]||[]) < 0.9 && there < 1.5 && iglReads(tt, "po")){
+    if(pickOther && aliveT >= 3 && beliefCount("T", BZ.siteNear[other]||[]) < 0.9 && there < 1.5){
       tt.rebound = true;
       voiceLog("T", "reb"+other, "IGL", "минус на "+other+", там пусто — все на "+other+"!");
       logEvent("IGL: перекол → "+other+" (сняли CT, сайт пустой)", "team");
@@ -127,7 +123,7 @@ function tBrain(){
                                          : (here - there >= 2 && (here >= 3.5 || deathsHere >= 2));
     // стак = минимум двое реально замечены/услышаны у сайта сейчас (или минус там)
     if(BAL.recallStrict && stackRead && (freshC[tt.site]||0) < 2 && deathsHere < 1) stackRead = false;
-    if(aliveT >= needAlive && stackRead && iglReads(tt, "st")){
+    if(aliveT >= needAlive && stackRead){
       tt.rebound = true;
       logEvent("IGL: на "+tt.site+" стак (~"+Math.round(here)+"), перепривязка → "+other, "team");
       // перекол не значит "сразу выход": группа переходит и выходит примерно по
@@ -160,8 +156,8 @@ function tBrain(){
   if(tt.phase === "setup" && tick - roundStartTick > 28*TICK_HZ && !tt.soloGo && !(hashRand(roundNum*577 + matchNum*41 + 3) < 0.5)){
     var eS = intelEstimate("T", site.x, site.y, 420, 5*TICK_HZ);
     var aliveT2 = aliveCount("T");
-    if(eS.seen === 1 && beliefCount("T", BZ.siteNear[tt.site]||[]) < 1.4 && aliveT2 >= 4 && iglReads(tt, "so")){
-      tt.soloGo = true; tt.phase = "execute"; tt.execStart = tick; if(BAL.noLeaks) MEMORY.siteHeatPending[tt.site] = 1; else MEMORY.siteHeat[tt.site] = (MEMORY.siteHeat[tt.site]||0) + 1;
+    if(eS.seen === 1 && beliefCount("T", BZ.siteNear[tt.site]||[]) < 1.4 && aliveT2 >= 4){
+      tt.soloGo = true; tt.phase = "execute"; tt.execStart = tick;
       voiceLog("T", "solo"+tt.site, "IGL", "на "+tt.site+" один — заходим сейчас!");
       logEvent("T: выход на "+tt.site+"! (по инфе там соло)", "team");
     }
@@ -241,7 +237,7 @@ function tBrain(){
       voiceLog("T", "solo", solo.id, "я один — иду ставить на "+ks2+", в дуэли не лезу");
     }
   }
-  var stageOpt = function(k){ return {rMax:200, minGap:50, hideFrom:[SITES[k], GEO[k].anchor], see:[GEO[k].tEntry], avoidNades: BAL.tAdapt ? tDeathSpots() : []}; };
+  var stageOpt = function(k){ return {rMax:200, minGap:50, hideFrom:[SITES[k], GEO[k].anchor], see:[GEO[k].tEntry]}; };
   var midOpt = {rMax:160, minGap:50, see:[GEO.tMidLook]};
   if(!tt.tMidPick){
     var tm = POS.M.tHold, tmi = weightedPick(tm.length, roundNum*389 + matchNum*7);
