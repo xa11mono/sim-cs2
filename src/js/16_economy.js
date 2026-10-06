@@ -299,7 +299,7 @@ function freshMatch(n){
   paused = true;
   tick = 0; simTime = 0; roundStartTick = 0;
   var clr = function(o){ for(var k in o) delete o[k]; };
-  [_ED, EWL, APPEAR, nadeFlags, comboCd].forEach(function(o){ if(o) clr(o); });
+  [_ED, APPEAR, nadeFlags, comboCd].forEach(function(o){ if(o) clr(o); });
   tracers.length = 0; soundPings.length = 0; nadesInAir.length = 0; smokes.length = 0; fires.length = 0; nadeFx.length = 0;
   groundWeapons.length = 0; events.length = 0; killfeed.length = 0;
   LAST_CLEAR = {CT:{}, T:{}};
@@ -413,7 +413,6 @@ function resetRound(){
   // киллфид — только текущий раунд
   killfeed.length = 0; renderFeed();
   resetTeamIntel();
-  pointsApplyPending();   // точки углов, поправленные на странице, — с нового раунда
   beliefReset();
   clutchShown = null; clutchInfo = null;
   bots.forEach(function(b){ b.roundKills = 0; b.roundDmg = 0; b._dmgBy = {}; b._blindBy = null; b.post = null; b.atPost = false; b.planting = false; b.defusing = false; b._saveSpot = null; b._huntIdx = undefined; b._huntArrive = 0; b._lurkIdx = 0; b._lurkArr = 0; b._lurkPh = undefined; });

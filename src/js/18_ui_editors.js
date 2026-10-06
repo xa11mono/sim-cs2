@@ -717,7 +717,6 @@ document.getElementById("btnZoneNameReset").addEventListener("click", function()
 document.getElementById("btnZoneNameClose").addEventListener("click", function(){ zoneNamePanel.style.display = "none"; zoneNameSel = null; draw(); });
 zoneNameInput2.addEventListener("keydown", function(e){ if(e.key === "Enter"){ saveZoneNameFromInput(); e.preventDefault(); } e.stopPropagation(); });
 cv.addEventListener("mousedown", function(e){
-  if(e.button === 0 && chkPtEd.checked){ ptEdDown(e); e.preventDefault(); e.stopImmediatePropagation(); return; }
   if(e.button === 0 && chkLineups.checked){ lineupClick(e); e.preventDefault(); return; }
   // слой «зоны» без других режимов редактирования: клик по зоне — её название
   if(e.button === 0 && showZones.checked && !chkNavWarp.checked && !chkZoneEdit.checked && !chkWallEdit.checked &&
@@ -1088,95 +1087,3 @@ btnNavReset.addEventListener("click", function(){
     el.style.display = "block";
   }
 })();
-
-
-// ---- (v193) редактор точек углов (01_points.js): как редактор стен ----
-// Правки сразу идут в игру (POINTS) и сами сохраняются в базу страницы
-// (коллекция points, документ map) через 1,5 с; Claude переносит их в
-// src/data/points.json. Нет базы — «Экспорт» даёт JSON, его можно прислать в чат.
-var chkPtEd = document.getElementById("chkPtEd"), ptEdPanel = document.getElementById("ptEdPanel");
-var PTED = {sel:null, drag:null, hover:null, db:null, dirty:false, savedAt:null, timer:null, lastT:0};
-function ptEdEl(id){ return document.getElementById(id); }
-function ptEdVisible(p){ var f = ptEdEl("ptEdShow").value; return f === "all" || p.side === f || p.side === "both"; }
-function ptEdFind(w){ var best = null, bd = 10/view.scale;
-  pointsGet().forEach(function(p){ if(!ptEdVisible(p)) return; var d = Math.hypot(p.x-w.x, p.y-w.y); if(d < bd){ bd = d; best = p; } });
-  return best; }
-// точку правили — её «знание» (какой вход, насколько открыта) пересчитать; каталог ботов — заново
-function ptEdTouched(p){ if(p){ delete p.hold; delete p.from; delete p.open; delete p.dirs; delete p.key; delete p.name; }
-  TEAM_COV = null; PTED.dirty = true; POINTS_SRC = "правка на странице (ещё не в коде)"; ptEdSaveSoon(); ptEdRefresh(); }
-function ptEdRefresh(){
-  if(!ptEdPanel) return;
-  var P = pointsGet(), n = {CT:0, T:0, both:0}; P.forEach(function(p){ n[p.side] = (n[p.side]||0)+1; });
-  ptEdEl("ptEdCount").textContent = "· "+P.length+" (CT "+n.CT+", T "+n.T+", обе "+n.both+")";
-  var p = PTED.sel && P.indexOf(PTED.sel) >= 0 ? PTED.sel : (PTED.sel = null);
-  ptEdEl("ptEdFields").style.display = p ? "grid" : "none";
-  if(p){ if(p.open == null) pointDerive(p);
-    ptEdEl("ptEdSel").innerHTML = "<b style='color:var(--text)'>"+esc2(p.id)+"</b> · стоит: "+esc2(zoneNameAt(p.x, p.y))+
-      "<br>держит выход из: <b style='color:var(--text)'>"+esc2(p.name || "?")+"</b><br>открыта врагу "+Math.round((p.open||0)*100)+"% · других углов "+(p.dirs||0);
-    ptEdEl("ptEdSide").value = p.side; ptEdEl("ptEdArea").value = p.area || "";
-  } else ptEdEl("ptEdSel").textContent = "точка не выбрана";
-  ptEdEl("ptEdStatus").textContent = "сейчас в игре: "+POINTS_SRC+(PTED.db ? (PTED.dirty ? " · сохраняю…" : PTED.savedAt ? " · сохранено "+PTED.savedAt : "") : " · база страницы недоступна — используй «Экспорт»");
-}
-function zoneNameAt(x, y){ var z = bzOf(x, y); return z >= 0 ? (ZONE_NAMES[ZONEMAP.zones[z].id] || ZONEMAP.zones[z].id) : "?"; }
-function ptEdPack(){ return pointsGet().map(function(p){ var o = {id:p.id, x:Math.round(p.x*10)/10, y:Math.round(p.y*10)/10, lx:Math.round(p.lx*10)/10, ly:Math.round(p.ly*10)/10, side:p.side, area:p.area || ""};
-  ["key","hold","from","name","open","dirs"].forEach(function(k){ if(p[k] != null) o[k] = p[k]; }); return o; }); }
-function ptEdSaveSoon(){ clearTimeout(PTED.timer); PTED.timer = setTimeout(ptEdSave, 1500); }
-function ptEdSave(){
-  if(!PTED.db){ ptEdRefresh(); return; }
-  var t = Date.now(); PTED.lastT = t;
-  PTED.db.collection("points").doc("map").set({pts:ptEdPack(), t:t, n:pointsGet().length})
-    .then(function(){ PTED.dirty = false; PTED.savedAt = new Date(t).toLocaleTimeString("ru-RU"); ptEdRefresh(); })
-    .catch(function(){ PTED.savedAt = null; ptEdEl("ptEdStatus").textContent = "не удалось сохранить в базу — используй «Экспорт»"; });
-}
-function ptEdDown(e){
-  var w = navScreenToWorld(e.clientX, e.clientY), p = PTED.sel;
-  // красный кружок выбранной точки — куда смотреть
-  if(p && Math.hypot(p.lx-w.x, p.ly-w.y) < 9/view.scale){ PTED.drag = {p:p, look:true}; return; }
-  var hit = ptEdFind(w);
-  if(hit){ PTED.sel = hit; PTED.drag = {p:hit, look:false, dx:hit.x-w.x, dy:hit.y-w.y, lx:hit.lx-hit.x, ly:hit.ly-hit.y, moved:false}; ptEdRefresh(); draw(); return; }
-  PTED.sel = null; ptEdRefresh(); draw();
-}
-cv.addEventListener("dblclick", function(e){
-  if(!chkPtEd.checked) return;
-  var w = navScreenToWorld(e.clientX, e.clientY); if(ptEdFind(w)) return;
-  var f = ptEdEl("ptEdShow").value, P = pointsGet(), k = 1; P.forEach(function(p){ var m = /^p(\d+)$/.exec(p.id); if(m) k = Math.max(k, +m[1]+1); });
-  var a = teamAreaOf(w), p = {id:"p"+k, x:Math.round(w.x*10)/10, y:Math.round(w.y*10)/10, lx:Math.round(w.x*10)/10 + 120, ly:Math.round(w.y*10)/10, side: f === "T" ? "T" : "CT", area: a || ""};
-  P.push(p); PTED.sel = p; ptEdTouched(p); draw();
-});
-window.addEventListener("mousemove", function(e){
-  if(!chkPtEd.checked) return;
-  var w = navScreenToWorld(e.clientX, e.clientY);
-  PTED.hover = w;
-  var D = PTED.drag; if(!D) return;
-  if(D.look){ D.p.lx = Math.round(w.x*10)/10; D.p.ly = Math.round(w.y*10)/10; }
-  else { D.p.x = Math.round((w.x+D.dx)*10)/10; D.p.y = Math.round((w.y+D.dy)*10)/10; D.p.lx = D.p.x + D.lx; D.p.ly = D.p.y + D.ly; }
-  D.moved = true; draw();
-});
-window.addEventListener("mouseup", function(){ var D = PTED.drag; PTED.drag = null; if(D && (D.moved || D.look)) ptEdTouched(D.p); });
-window.addEventListener("keydown", function(e){
-  if(!chkPtEd.checked || !PTED.sel) return;
-  var tg = e.target && e.target.tagName; if(tg === "INPUT" || tg === "TEXTAREA" || tg === "SELECT") return;
-  if(e.key === "Delete" || e.key === "Backspace"){ ptEdDelete(); e.preventDefault(); }
-});
-function ptEdDelete(){ var P = pointsGet(), i = P.indexOf(PTED.sel); if(i < 0) return; P.splice(i, 1); PTED.sel = null; ptEdTouched(null); draw(); }
-chkPtEd.addEventListener("change", function(){ ptEdPanel.style.display = chkPtEd.checked ? "block" : "none"; if(chkPtEd.checked){ chkLineups.checked = false; lineupPanel.style.display = "none"; } PTED.sel = null; ptEdRefresh(); draw(); });
-ptEdEl("ptEdShow").addEventListener("change", function(){ PTED.sel = null; ptEdRefresh(); draw(); });
-ptEdEl("ptEdSide").addEventListener("change", function(){ if(PTED.sel){ PTED.sel.side = this.value; ptEdTouched(null); draw(); } });
-ptEdEl("ptEdArea").addEventListener("change", function(){ if(PTED.sel){ PTED.sel.area = this.value; ptEdTouched(null); draw(); } });
-ptEdEl("ptEdDel").addEventListener("click", ptEdDelete);
-ptEdEl("ptEdSave").addEventListener("click", function(){ clearTimeout(PTED.timer); ptEdSave(); });
-ptEdEl("ptEdExport").addEventListener("click", function(){ var a = ptEdEl("ptEdOut"); a.style.display = "block"; a.value = JSON.stringify({v:1, pts:ptEdPack()}); a.select(); try{ document.execCommand("copy"); }catch(e){} });
-ptEdEl("ptEdRevert").addEventListener("click", function(){
-  if(!confirm("Вернуть точки из кода? Правки на странице пропадут (в базе тоже).")) return;
-  pointsSet(POINTS_CODE.pts, "код"); PTED.sel = null; PTED.dirty = true; ptEdSave(); ptEdRefresh(); draw(); });
-// база страницы: точки владельца — в игру (с нового раунда)
-if(window.claude && claude.use){
-  claude.use("db").then(function(db){ if(!db) return; PTED.db = db;
-    db.collection("points").onSnapshot(function(snap){
-      var d = snap.docs.filter(function(x){ return x.id === "map"; })[0]; if(!d) { ptEdRefresh(); return; }
-      var v = d.data(); if(v && v.t && v.t !== PTED.lastT){ PTED.lastT = v.t; PTED.savedAt = new Date(v.t).toLocaleTimeString("ru-RU"); pointsFromDb(v); }
-      ptEdRefresh();
-    }, function(){ PTED.db = null; ptEdRefresh(); });
-  });
-}
-ptEdRefresh();

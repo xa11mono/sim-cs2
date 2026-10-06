@@ -8,17 +8,18 @@
 //  • План IGL — вход, а не позиция: сколько людей нужно в каждом районе
 //    (teamTac.CT.need — 12_ct_brain.js), фаза ретейка, сейв.
 //  • Раз в 0,5 с каждый бот оценивает варианты одной суммой целей и берёт
-//    лучший; текущий получает надбавку (не дёргается). Варианты — укрытия из
-//    точек углов владельца (01_points.js): держать вход, точка сбора на ретейк, заход к
-//    бомбе, дефуз, сейв.
+//    лучший; текущий получает надбавку (не дёргается). Места — любые места карты
+//    своей стороны (01_spots.js, v195): бот выбирает по ситуации (что видно, какой
+//    вход нужен, укрытие, кто из своих что держит); место из демок своей фазы даёт
+//    только небольшой плюс (W.lib) — желательное, не обязательное.
 //  • Опустевший угол (свой погиб или сказал «ухожу — подержите») и просьба
 //    «нужен второй» достаются тому, кому ближе и кто меньше нужен на своём
 //    месте; он говорит «беру X» / «иду» / «не могу».
 // =====================================================================
 var TEAM = {CT:null, T:null};
 // веса целей: размен (trade) весит больше, чем «вижу вход» (threat) — урок отката v173
-var ACT = {every:32, W:{need:1.6, threat:1.0, trade:1.3, alone:0.6, stack:0.9, risk:1.0, dist:0.07, dup:0.4, same:3, cur:0.35, poi:1.0, repos:0.9, deep:0.9, keep:1.2}};
-var TEAM_COV = null;   // каталог укрытий из разметки (статичный, считается один раз)
+var ACT = {every:32, W:{need:1.6, threat:1.0, trade:1.3, alone:0.6, stack:0.9, risk:1.0, lib:0.3, dist:0.07, dup:0.4, same:3, cur:0.35, poi:1.0, repos:0.9, deep:0.9, keep:1.2}};
+var TEAM_COV = null;   // каталог мест: места карты + места из демок (статичный, считается один раз)
 // район точки: зоны мида (Connector, Sniper Nest, Top Mid…) — мид (знание карты:
 // так их зовут игроки); иначе ближайший из A / B / мид в пределах радиуса района
 var MID_ZONES = {"Mid":1, "Top Mid":1, "Sniper Nest":1, "Connector / Red Room / Red":1, "Jungle / Pit":1, "Xbox":1, "Lower Mid / Start Mid":1, "Chamber Lane":1};
@@ -30,14 +31,13 @@ function teamAreaOf(p){
     var d = Math.hypot(p.x-a[1].x, p.y-a[1].y); if(d < a[2] && d/a[2] < bd){ bd = d/a[2]; best = a[0]; } });
   return best;
 }
-// каталог точек углов (01_points.js — точки владельца): чья точка, район, какой вход держит
-function teamCovers(){
-  if(TEAM_COV) return TEAM_COV;
-  return (TEAM_COV = pointsGet().map(function(p){
-    return {x:p.x, y:p.y, meet:{x:p.lx, y:p.ly}, open:p.open, dirs:p.dirs, side:p.key, hold:p.hold, from:p.from, name:p.name || "",
-      ct: p.side !== "T", t: p.side !== "CT", area: p.area || null, id:p.id};
-  }));
-}
+// каталог мест (01_spots.js): места карты обеих сторон + места из демок (фаза, взгляд)
+function teamCovers(){ return TEAM_COV || (TEAM_COV = placesGet()); }
+// места своей стороны, подходящие по условию (из демок или нет — решает сумма целей)
+function spotsOf(C, team, ok){ return C.filter(function(c){ return (team === "CT" ? c.ct : c.t) && ok(c); }); }
+// вариант «встать на место»: несёт с собой, из демок ли оно и куда с него смотрят
+function spotCand(c, extra){ var o = {x:c.x, y:c.y, meet:c.meet, looks:c.looks, lib:c.lib, ph:c.ph, side:c.side, area:c.area, name:c.name, open:c.open, dirs:c.dirs};
+  for(var k in extra) o[k] = extra[k]; return o; }
 function teamRow(team, id){ var T = TEAM[team]; return T && T.rows[id]; }
 // новый раунд — пустая таблица
 function teamReset(team){ TEAM[team] = {round:roundNum, rows:{}, vac:[], req:[], said:{}, refused:{}}; }
@@ -66,7 +66,7 @@ function teamTableTick(team){
     }
     r.role = o.tRole; r.x = o.x; r.y = o.y;
     var at = null, bd = 60;
-    if(o.curSpeed < 40) C.forEach(function(c){ var d = Math.hypot(c.x-o.x, c.y-o.y); if(d < bd){ bd = d; at = c; } });
+    if(o.curSpeed < 40) C.forEach(function(c){ if(team === "CT" ? !c.ct : !c.t) return; var d = Math.hypot(c.x-o.x, c.y-o.y); if(d < bd){ bd = d; at = c; } });
     var cl = r.claim && tick - r.claim.t < 15*TICK_HZ ? r.claim : null;
     r.side = at ? at.side : cl ? cl.side : null;
     r.area = ((teamTac[team] || {}).assign || {})[o.id] || (at ? at.area : cl ? cl.area : teamAreaOf(o));
@@ -124,6 +124,7 @@ function actScore(b, c, X){
     if(!c.v) s += W.threat * teamThreat(team, c);                        // держать нужный вход
   }
   s += c.gain || 0;                                                      // выгода варианта (пик, проба, энтри…) минус его риск
+  if(c.lib && c.ph === X.ph) s += W.lib;                                 // (v195) место из демок этой фазы — небольшой плюс
   // не стоять одному без размена и не вплотную
   var dm = 1e9; X.mates.forEach(function(m){ var d = Math.hypot(m.x-c.x, m.y-c.y); if(d < dm) dm = d;
     if(m.side && m.side === c.side) s -= W.dup;
@@ -155,8 +156,8 @@ function actPick(b, cands, X, tag){
   cands.forEach(function(c){ var s = actScore(b, c, X); if(s > bs){ bs = s; best = c; } });
   if(!best) return null;
   var prev = b._act && b._act.round === roundNum && !b._act.v ? b._act : null;
-  b._act = {x:best.x, y:best.y, side:best.side || null, from:best.from, hold:best.hold, area:best.area || null, name:best.name || "", sc:bs, mode:X.mode, t:tick, round:roundNum, v:ACTV[best.v] ? best.v : null};
-  if(b._act.v){ b._act.phase = "out"; b._act.home = best.home || (prev ? {x:prev.x, y:prev.y, meet:null} : {x:b.x, y:b.y, meet:null}); b._act.look = best.look || ACTV[best.v].look; }
+  b._act = {x:best.x, y:best.y, side:best.side || null, from:best.from, hold:best.hold, area:best.area || null, name:best.name || "", sc:bs, mode:X.mode, t:tick, round:roundNum, v:ACTV[best.v] ? best.v : null, looks:best.lib && best.ph === X.ph ? best.looks : null};
+  if(b._act.v){ b._act.phase = "out"; b._act.home = best.home || (prev ? {x:prev.x, y:prev.y, meet:null, looks:prev.looks} : {x:b.x, y:b.y, meet:null}); b._act.look = best.look || ACTV[best.v].look; }
   var tg = best.v ? best.v+":"+(best.name || "") : (X.repos && Math.hypot(best.x-X.repos.x, best.y-X.repos.y) > 90 ? "repos:"+(best.name || "") : tag(best));
   setPost(b, {x:best.x, y:best.y}, best.meet || X.look || null, true, tg);
   if(best.say) newsAdd(b, best.say);
@@ -180,7 +181,7 @@ function actRun(b, team){
     return true;
   }
   if(b.atPost || tick - A.tb > 8*TICK_HZ){ (b._actCd || (b._actCd = {}))[A.v] = tick + ACTV[A.v].cd*TICK_HZ;
-    b._act = {x:A.home.x, y:A.home.y, round:roundNum, mode:"hold", t:tick}; return false; }
+    b._act = {x:A.home.x, y:A.home.y, round:roundNum, mode:"hold", t:tick, looks:A.home.looks || null}; return false; }
   return true;
 }
 function actCdOk(b, v){ return !(b._actCd && b._actCd[v] > tick); }
@@ -252,7 +253,7 @@ function teamActTick(team, cts){
     // засветился (стрелял, ранен, по мне стреляли), а их рядом ещё много — сменить позицию
     var burned = tick - (b.lastShotTick||-1e9) < 3*TICK_HZ || tick - (b._hurtT||-1e9) < 4*TICK_HZ || tick - (b._shotAtT||-1e9) < 3*TICK_HZ;
     var foesNear = foes.filter(function(f){ return Math.hypot(f.x-b.x, f.y-b.y) < 1300; }).length + (burned && b.heardSound && tick - b.heardSound.tick < 2*TICK_HZ ? 1 : 0);
-    var X = {mode:"hold", myArea:(ct.assign || {})[b.id] || null, mates:teamMatePts(team, b), foes:foes, pois:[], cur:b._act && b._act.round === roundNum ? b._act : null,
+    var X = {mode:"hold", ph: planted ? (team === "T" ? "post" : "retake") : "pre", myArea:(ct.assign || {})[b.id] || null, mates:teamMatePts(team, b), foes:foes, pois:[], cur:b._act && b._act.round === roundNum ? b._act : null,
       riskMul: (b.hp < 50 ? 1.6 : 1) * (b._reloading ? 2 : 1) * actMoneyRisk(team), noCur: !!b._reloading,
       repos: burned && foesNear >= 1 && !(planted && team === "CT") ? {x:b.x, y:b.y} : null, foesNear:foesNear, burned:burned};
     myTr.forEach(function(P){ X.pois.push(P); });
@@ -291,14 +292,14 @@ function ctChoose(b, X, ct, cts, C){
     if(R.phase === "gather" || R.phase === "util"){
       // точка сбора: укрытие своей стороны у входа на сайт с бомбой, бомбу оттуда не видно
       X.mode = "gather"; X.look = bp;
-      var G = C.filter(function(c){ var d = Math.hypot(c.x-bp.x, c.y-bp.y); return c.ct && d > 220 && d < 700 && !hasLOS(c.x, c.y, bp.x, bp.y); });
+      var G = spotsOf(C, "CT", function(c){ var d = Math.hypot(c.x-bp.x, c.y-bp.y); return d > 220 && d < 700 && !hasLOS(c.x, c.y, bp.x, bp.y); });
       if(!G.length) G = [{x:GEO[bomb.site].ctEntry.x, y:GEO[bomb.site].ctEntry.y, meet:bp}];
       picked = actPick(b, G, X, function(){ return "gather"; });
     } else {
       // заход: укрытия у бомбы с линией на неё
       X.mode = "go"; X.look = bp;
-      var Gg = C.filter(function(c){ var d = Math.hypot(c.x-bp.x, c.y-bp.y); return d > 60 && d < 480 && hasLOS(c.x, c.y, bp.x, bp.y); })
-        .map(function(c){ return {x:c.x, y:c.y, meet:bp, side:c.side, area:c.area, name:c.name, open:c.open, dirs:c.dirs}; });
+      var Gg = spotsOf(C, "CT", function(c){ var d = Math.hypot(c.x-bp.x, c.y-bp.y); return d > 60 && d < 480 && hasLOS(c.x, c.y, bp.x, bp.y); })
+        .map(function(c){ return spotCand(c, {meet:bp, looks:null}); });
       if(!Gg.length) Gg = [{x:bp.x, y:bp.y, meet:bp}];
       picked = actPick(b, Gg, X, function(){ return R.entryId === b.id ? "retakeEntry" : "retake"; });
     }
@@ -328,8 +329,13 @@ function ctVariants(b, X, ct, cts, C, sty){
   var quiet = (tick - teamLastInfo(team))/TICK_HZ, aT = aliveCount("T"), aC = cts.length;
   var util = b.nades && (b.nades.flash > 0 || b.nades.smoke > 0), aggr = b.tRole === "mid" || b.tRole === "roamer" || b.tRole === "rotator";
   var Tm = TEAM.CT, busy = function(v){ return cts.some(function(o){ return o !== b && o._act && o._act.v === v && o._act.round === roundNum; }); };
-  var home = X.cur && !X.cur.v ? {x:X.cur.x, y:X.cur.y, meet:null} : null;
-  var fwd = C.filter(function(c){ return c.ct && !c.area && my && teamAreaOf(c) === my || (c.ct && !c.area && my === "M" && Math.hypot(c.x-GEO.ctMid.x, c.y-GEO.ctMid.y) < 700); });
+  var home = X.cur && !X.cur.v ? {x:X.cur.x, y:X.cur.y, meet:null, looks:X.cur.looks} : null;
+  // передние места моего района (ближе к врагу, чем обычно держат): у сайта — ближе к входу T,
+  // чем 0,65 пути от центра сайта; на миде — впереди CT-мида в сторону T
+  var fwd = C.filter(function(c){ if(!c.ct || !my) return false;
+    if(my === "M") return (c.area === "M" || !c.area) && Math.hypot(c.x-GEO.tMid.x, c.y-GEO.tMid.y) < 0.8*Math.hypot(GEO.ctMid.x-GEO.tMid.x, GEO.ctMid.y-GEO.tMid.y);
+    var g = GEO[my], s0 = SITES[my]; return (c.area === my || (!c.area && Math.hypot(c.x-s0.x, c.y-s0.y) < 1100)) &&
+      Math.hypot(c.x-g.tEntry.x, c.y-g.tEntry.y) < 0.65*Math.hypot(s0.x-g.tEntry.x, s0.y-g.tEntry.y); });
   var foeReach = function(c){ return c.from >= 0 ? reachW("CT", c.from, c.hold) : 0; };
   var wantInfo = ct.wantInfo === b.id;
   // ранний пик за инфой: первые 8–25 с (или IGL просит чекнуть), выйти на линию подхода, увидеть — назад
@@ -339,7 +345,7 @@ function ctVariants(b, X, ct, cts, C, sty){
       var r = foeReach(c), info = picNear("CT", c.x, c.y, 700) ? 0.1 : 0.6;
       var g = (0.5 + info + (aggr ? 0.35 : 0) + (util ? 0.3 : 0) + (mate ? 0.3 : -0.4) + (sty[my] || 0) + (wantInfo ? 0.8 : 0) +
               ((teamEco.CT.enemyGuess || {}).eco ? 0.2 : 0))*mood - 1.4*r*actMoneyRisk(team) - (b.hp < 70 ? 0.6 : 0);
-      out.push({x:c.x, y:c.y, meet:c.meet, v:"peek", gain:g, home:home, name:c.name, open:c.open, dirs:c.dirs, side:c.side, area:null});
+      out.push(spotCand(c, {v:"peek", gain:g, home:home, area:null}));
     });
   }
   // подпуш парой: инфы давно нет, нас не меньше, есть граната — «пушу X, иди со мной»
@@ -347,8 +353,7 @@ function ctVariants(b, X, ct, cts, C, sty){
     fwd.forEach(function(c){
       var r = foeReach(c);
       var g = (0.3 + Math.min(1, quiet/25)*0.6 + (util ? 0.4 : -0.3) + (aggr ? 0.3 : 0) + (sty.push === my ? 0.6 : 0) + (wantInfo ? 0.6 : 0))*mood - 1.2*r*actMoneyRisk(team) - (b.hp < 70 ? 0.8 : 0);
-      out.push({x:c.x, y:c.y, meet:c.meet, v:"push", gain:g, home:home, name:c.name, open:c.open, dirs:c.dirs, side:c.side, area:null,
-        say:{k:"need2", push:true, x:c.x, y:c.y}});
+      out.push(spotCand(c, {v:"push", gain:g, home:home, area:null, say:{k:"need2", push:true, x:c.x, y:c.y}}));
     });
   }
   out = out.concat(sharedVariants(b, X, "CT", C, home));
@@ -371,7 +376,7 @@ function sharedVariants(b, X, team, C, home){
     C.forEach(function(c){ if(team === "CT" ? !c.ct : !c.t) return; var d = Math.hypot(c.x-b.x, c.y-b.y); if(d < 250 || d > 900) return;
       var seen = X.foes.some(function(f){ return hasLOS(c.x, c.y, f.x, f.y); }); if(seen) return;
       var far = Math.min.apply(null, X.foes.map(function(f){ return Math.hypot(c.x-f.x, c.y-f.y); }).concat([1500]));
-      out.push({x:c.x, y:c.y, meet:c.meet, v:"fallback", gain:0.6 + 1.2*(50 - b.hp)/50 + Math.min(1, far/1200)*0.6, name:c.name, open:c.open, dirs:c.dirs, side:c.side, area:null}); });
+      out.push(spotCand(c, {v:"fallback", gain:0.6 + 1.2*(50 - b.hp)/50 + Math.min(1, far/1200)*0.6, area:null})); });
   }
   return out;
 }
@@ -388,7 +393,7 @@ function tChoose(b, X, tt, ts, C){
     if(tt.antiDef && Math.hypot(b.x-bp.x, b.y-bp.y) < 1100 && !(tt.lateIds && tt.lateIds[b.id])){
       // дефузят — все, кто успевает, на линию к бомбе
       X.mode = "anti"; X.look = bp; X.riskMul *= 0.4;
-      var AD = C.filter(function(c){ var d = Math.hypot(c.x-bp.x, c.y-bp.y); return d > 40 && d < 360 && hasLOS(c.x, c.y, bp.x, bp.y); });
+      var AD = spotsOf(C, "T", function(c){ var d = Math.hypot(c.x-bp.x, c.y-bp.y); return d > 40 && d < 360 && hasLOS(c.x, c.y, bp.x, bp.y); });
       if(!AD.length) AD = [{x:bp.x, y:bp.y, meet:bp}];
       b._stopPlantUntil = tick + 30;
       return actPick(b, AD, X, function(){ return "antidefuse"; });
@@ -397,9 +402,9 @@ function tChoose(b, X, tt, ts, C){
     X.mode = "pp"; X.look = bp;
     var mAng = ts.filter(function(o){ return o !== b && Math.hypot(o.x-bp.x, o.y-bp.y) < 1100; }).map(function(o){ return Math.atan2(o.y-bp.y, o.x-bp.x); });
     var ppC = function(c, d){ var a = Math.atan2(c.y-bp.y, c.x-bp.x), cross = mAng.every(function(m){ return Math.abs(((a-m+Math.PI)%(2*Math.PI)+2*Math.PI)%(2*Math.PI)-Math.PI) > 0.8; });
-      return {x:c.x, y:c.y, meet:c.meet, side:c.side, area:c.area, name:c.name, open:c.open, dirs:c.dirs, gain:(cross && mAng.length ? 0.6 : 0) + (d > 350 && d < 750 ? 0.3 : 0)}; };
-    var PP = []; C.forEach(function(c){ var d = Math.hypot(c.x-bp.x, c.y-bp.y); if(c.t && d > 260 && d < 950 && hasLOS(c.x, c.y, bp.x, bp.y)) PP.push(ppC(c, d)); });
-    if(!PP.length) C.forEach(function(c){ var d = Math.hypot(c.x-bp.x, c.y-bp.y); if(d > 150 && d < 950 && hasLOS(c.x, c.y, bp.x, bp.y)) PP.push(ppC(c, d)); });
+      return spotCand(c, {gain:(cross && mAng.length ? 0.6 : 0) + (d > 350 && d < 750 ? 0.3 : 0)}); };
+    var PP = spotsOf(C, "T", function(c){ var d = Math.hypot(c.x-bp.x, c.y-bp.y); return d > 150 && d < 950 && hasLOS(c.x, c.y, bp.x, bp.y); })
+      .map(function(c){ return ppC(c, Math.hypot(c.x-bp.x, c.y-bp.y)); });
     if(!PP.length) PP = [{x:gs.tStage.x, y:gs.tStage.y, meet:bp}];
     return actPick(b, PP.concat(sharedVariants(b, X, "T", C, null)), X, function(c){ return "postplant:"+(c.name||""); });
   }
@@ -422,10 +427,10 @@ function tChoose(b, X, tt, ts, C){
     var entry = ts.filter(function(o){ return o.tRole === "entry"; })[0];
     var buddy = entry && entry !== b ? ts.filter(function(o){ return o !== entry && !(bomb.state === "carried" && bomb.carrier === o); })
       .sort(function(p, q){ return Math.hypot(p.x-entry.x, p.y-entry.y) - Math.hypot(q.x-entry.x, q.y-entry.y); })[0] : null;
-    var TK = C.filter(function(c){ return c.t && c.area === k; }).map(function(c){
+    var TK = spotsOf(C, "T", function(c){ return c.area === k; }).map(function(c){
       var depth = Math.min(1, Math.hypot(c.x-g.tStage.x, c.y-g.tStage.y)/700), dS = Math.hypot(c.x-site.x, c.y-site.y);
       var gn = role === "entry" ? 1.0*depth : role === "awp" ? (dS > 350 ? 0.7 : 0) : 0;
-      return {x:c.x, y:c.y, meet:c.meet, side:c.side, area:c.area, name:c.name, open:c.open, dirs:c.dirs, gain:gn}; });
+      return spotCand(c, {gain:gn}); });
     if(!TK.length) TK = [{x:site.x, y:site.y, meet:g.ctEntry}];
     if(buddy === b){ var ea = Math.atan2(g.tStage.y-entry.y, g.tStage.x-entry.x), fx = entry.x + Math.cos(ea)*170, fy = entry.y + Math.sin(ea)*170;
       if(!insideSolidWall(fx, fy)) TK.push({x:fx, y:fy, meet:entry.post && entry.post.look || g.ctEntry, v:"trade", gain:1.3, name:"за энтри", area:k}); }
@@ -436,11 +441,15 @@ function tChoose(b, X, tt, ts, C){
   var P = A ? A.pt : g.tStage, sty = T_STYLE[tt.tac.style] || {}, mood = actMood(b), look = A && A.look || g.tEntry;
   if(A && A.via && A.via.length && !A.routed){ A.routed = true; startRoute(b, A.via, "plan"+roundNum+":"+A.key); }
   X.mode = "stage";
-  var home = {x:P.x, y:P.y, meet:look};
-  var ST = C.filter(function(c){ return c.t && Math.hypot(c.x-P.x, c.y-P.y) < 300; });
-  ST.push({x:P.x, y:P.y, meet:look, v:"control", gain:0.25 + (sty.control || 0), name:"", area:A ? A.area : k});
+  // контроль области у точки сбора — стоять и слушать с разменом на местах рядом с ней
+  // (в 300 px; нет таких — два ближайших в 700 px; нет и их — сама точка сбора)
+  var near = C.filter(function(c){ return c.t; }).map(function(c){ return [c, Math.hypot(c.x-P.x, c.y-P.y)]; }).sort(function(a, q){ return a[1] - q[1]; });
+  var SC = near.filter(function(e){ return e[1] < 300; }); if(!SC.length) SC = near.filter(function(e){ return e[1] < 700; }).slice(0, 2);
+  var ST = SC.map(function(e){ return spotCand(e[0], {gain:0.25 + (sty.control || 0), area:A ? A.area : k}); });
+  if(!ST.length) ST.push({x:P.x, y:P.y, meet:look, gain:0.25 + (sty.control || 0), name:"", area:A ? A.area : k});
+  var home = {x:ST[0].x, y:ST[0].y, meet:ST[0].meet, looks:ST[0].looks};
   if(role === "lurker"){ var oth = k === "A" ? "B" : "A", ge = GEO[oth].tEntry;
-    C.forEach(function(c){ if(c.t && Math.hypot(c.x-ge.x, c.y-ge.y) < 520) ST.push({x:c.x, y:c.y, meet:c.meet, v:"lurk", gain:0.9, name:c.name, open:c.open, dirs:c.dirs, side:c.side, area:oth}); }); }
+    C.forEach(function(c){ if(c.t && Math.hypot(c.x-ge.x, c.y-ge.y) < 520) ST.push(spotCand(c, {v:"lurk", gain:0.9, area:oth})); }); }
   // проба: инфы нет, до выхода ещё есть время — один выходит под флешку, смотрит, откатывается
   var sec = simTime - roundStartTime, quiet = (tick - teamLastInfo("T"))/TICK_HZ;
   var busyP = ts.some(function(o){ return o !== b && o._act && o._act.v === "probe" && o._act.round === roundNum; });
@@ -449,17 +458,18 @@ function tChoose(b, X, tt, ts, C){
     var tgt = pt || {x:look.x, y:look.y, meet:null};
     var util = b.nades && b.nades.flash > 0, mate = ts.some(function(o){ return o !== b && Math.hypot(o.x-P.x, o.y-P.y) < 400; });
     var gp = (0.5 + Math.min(1, quiet/20)*0.5 + (util ? 0.3 : 0) + (mate ? 0.3 : -0.4) + (sty.probe || 0) + (role === "entry" ? 0.2 : 0))*mood - (b.hp < 60 ? 0.6 : 0);
-    ST.push({x:tgt.x, y:tgt.y, meet:tgt.meet || site, v:"probe", gain:gp, home:home, name:tgt.name || "", open:tgt.open, dirs:tgt.dirs, area:null});
+    ST.push({x:tgt.x, y:tgt.y, meet:tgt.meet || site, looks:tgt.looks || null, lib:tgt.lib, ph:tgt.ph, v:"probe", gain:gp, home:home, name:tgt.name || "", open:tgt.open, dirs:tgt.dirs, area:null});
   }
-  return actPick(b, ST.concat(sharedVariants(b, X, "T", C, X.cur && !X.cur.v ? {x:X.cur.x, y:X.cur.y, meet:null} : null)), X, function(c){ return "stage"+(A ? A.area : k); });
+  return actPick(b, ST.concat(sharedVariants(b, X, "T", C, X.cur && !X.cur.v ? {x:X.cur.x, y:X.cur.y, meet:null, looks:X.cur.looks} : null)), X, function(c){ return "stage"+(A ? A.area : k); });
 }
 // характер тактики T: дефолт — контроль областей и пробы; сплит — контроль; раш — без проб
 var T_STYLE = {"default":{probe:0.5, control:0.4}, split:{control:0.3, probe:0.1}, exec:{probe:0.2}, fake:{probe:0.1}, rush:{probe:-9, control:-9}};
-// сейв: укрытие подальше от бомбы и от известных T, откуда их не видно (из разметки)
+// сейв: место своей стороны подальше от бомбы и от известных врагов, откуда их не видно
 function actSave(b){
   if(b._act && b._act.mode === "save" && b._act.round === roundNum && b._act.ok){ setPost(b, b._act, null, true, "save"); return; }
   var ts = picRecent(b.team, 15*TICK_HZ), best = null, bs = -1e9, C = teamCovers();
   C.forEach(function(c){
+    if(b.team === "CT" ? !c.ct : !c.t) return;
     if(bomb && bomb.state === "planted" && Math.hypot(c.x-bomb.x, c.y-bomb.y) < BOMB_KILL_RADIUS + 150) return;
     var dT = 1e9, seen = false;
     ts.forEach(function(t){ dT = Math.min(dT, Math.hypot(c.x-t.x, c.y-t.y)); if(hasLOS(c.x, c.y, t.x, t.y)) seen = true; });
@@ -469,6 +479,7 @@ function actSave(b){
     if(s > bs){ bs = s; best = c; }
   });
   var p = best || (b.team === "T" ? {x:T_SPAWN.x, y:T_SPAWN.y} : {x:CT_SPAWN.x, y:CT_SPAWN.y});
-  b._act = {x:p.x, y:p.y, mode:"save", round:roundNum, ok:true, t:tick};
+  var ph = bomb && bomb.state === "planted" ? (b.team === "T" ? "post" : "retake") : "pre";
+  b._act = {x:p.x, y:p.y, mode:"save", round:roundNum, ok:true, t:tick, looks:p.lib && p.ph === ph ? p.looks : null};
   setPost(b, p, bomb && bomb.state === "planted" ? {x:bomb.x, y:bomb.y} : null, true, "save");
 }

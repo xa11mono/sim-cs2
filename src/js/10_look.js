@@ -285,7 +285,8 @@ var LOOK = {
   distMove: 400,     // …на ходу (ближние углы важнее)
   closeR: 280, closeK: 2.0,      // совсем рядом — не стоять к нему спиной
   freshK: 2.5,       // свежая инфа (видели/слышали ≤3с рядом с точкой)
-  postK: 1.2,        // (v176) направление поста — подсказка между равными угрозами, не причина
+  spotW: 0.05,       // (v195) взгляд с места из демок без инфы: ниже любой угрозы с инфой
+  spotCycle: 8,      // сек: с двумя направлениями — доли времени как в демках, по кругу
   headK: 1.3,        // на ходу: по направлению движения
   behindMove: 0.35,  // на ходу: за спиной (>110°)
   behindMoveCov: 0.15, // …и спину рядом прикрывает тиммейт
@@ -310,7 +311,7 @@ var LOOK = {
   rearMargin: 150,   // px пути: проход дальше от врага, чем я, на это — мой тыл
   rearInfo: 0.15,    // …но если там по инфе вероятен враг (люркер, фланг) — смотрим
   claimMin: 0.08,    // делить направления в команде, только если угроза заметная
-  postBase: 0.004,   // угол поста — только когда угроз нет совсем (запасной вариант, не соперник угрозам)
+  postBase: 0.004,   // угол поста (место не из демок) — только когда угроз нет совсем
   minScore: 0.0005    // ниже — "ничего не угрожает": смотрим по ходу / на пост
 };
 // "не проверено": зону давно (или никогда) не видел никто из своих, и враг по
@@ -350,40 +351,6 @@ function isRearZone(team, zb, j){
   if(beliefZoneKnown(team, j) >= LOOK.rearInfo) return false;
   if(BZ.cent[j] && freshThreatNear(team, BZ.cent[j])) return false;
   return true;
-}
-// (v149) "куда смотреть отсюда без инфы": видимый проход, за которым зона
-// ближе всего к вражескому спавну — откуда враг придёт раньше всего. Тыл
-// (дальше от врага, чем я) не берётся. Кэш по клетке 24px.
-var EWL = {};
-function enemywardLook(team, p){
-  if(!BZ.portal) bzPortals();
-  var k = team+Math.round(p.x/24)+","+Math.round(p.y/24)+"|"+Math.floor(tick/(2*TICK_HZ)); if(k in EWL) return EWL[k];
-  if(Object.keys(EWL).length > 20000) EWL = {};
-  var ED = enemySpawnDist(team), zp = bzOf(p.x, p.y), best = null, bs = Infinity;
-  if(zp >= 0) BZ.portal.forEach(function(row, i){ for(var js in row){ var j = +js, q = row[j];
-    // проход из зоны i в зону j, смотрим "в сторону j"
-    var d = Math.hypot(q.x-p.x, q.y-p.y); if(d < 60 || d > 900) continue;
-    if(j === zp) continue;                          // проход в мою же зону (он у меня за спиной)
-    if(!(ED[j] < ED[i])) continue;                  // только проходы, ведущие к врагу
-    if(ED[j] > ED[zp] + LOOK.rearMargin) continue;  // не в тыл
-    if(!hasLOS(p.x, p.y, q.x, q.y)) continue;
-    // (В13) раньше всего враг: по таймингу картины команды (REACH), иначе по пути от его спавна
-    var Rr = REACH[team], tj = Rr && isFinite(Rr[j]) ? Math.max(0, Rr[j] - tick)/TICK_HZ*SPEED : ED[j];
-    var sc = tj + 0.35*d;
-    if(sc < bs){ bs = sc; best = {x:q.x, y:q.y}; } } });
-  // прохода к врагу отсюда не видно — где появится враг, идущий ко мне из соседней зоны
-  // (не тыл), которую он займёт раньше всего; иначе — видимое место такой зоны
-  if(!best && zp >= 0){ var Rr2 = REACH[team];
-    BZ.nbr[zp].forEach(function(nn){ if(isRearZone(team, zp, nn)) return; var ap = appearPoint(p, nn); if(!ap) return;
-      var d = Math.hypot(ap.x-p.x, ap.y-p.y); if(d < 60) return;
-      var tn = Rr2 && isFinite(Rr2[nn]) ? Math.max(0, Rr2[nn] - tick)/TICK_HZ*SPEED : ED[nn], sc = tn + 0.35*d;
-      if(sc < bs){ bs = sc; best = {x:ap.x, y:ap.y}; } }); }
-  if(!best && zp >= 0){
-    BZ.ids.forEach(function(zid, j){ if(j === zp || isRearZone(team, zp, j)) return;
-      var tj2 = Rr2 && isFinite(Rr2[j]) ? Math.max(0, Rr2[j] - tick)/TICK_HZ*SPEED : ED[j];
-      (ZONE_SAMPLES[zid] || []).forEach(function(q){ var d = Math.hypot(q.x-p.x, q.y-p.y); if(d < 80 || d > LOOK.maxDist) return;
-        var sc = tj2 + 0.35*d; if(sc < bs && hasLOS(p.x, p.y, q.x, q.y)){ bs = sc; best = {x:q.x, y:q.y}; } }); }); }
-  EWL[k] = best; return best;
 }
 // (v151) где враг появится, если пойдёт из зоны j ко мне: последняя видимая
 // мне точка его пути по навмешу (угол, из-за которого он выйдет) — туда и
@@ -437,6 +404,10 @@ function lookCands(b, W){
   if(zb < 0) zb = bzOf(b.x, b.y); if(zb < 0) return [];
   var team = b.team, out = [], moving = b.curSpeed > 60*SPD_K && b.heading !== undefined;
   var atHold = !moving && b.post && b.post.look && Math.hypot(b.post.x-b.x, b.post.y-b.y) < 160;
+  // (v195) стоит на месте из демок: без инфы смотрит, как смотрят с этого места в демках;
+  // угрозы без инфы (прогноз картины, тайминг, «давно не проверяли») здесь не кандидаты
+  var A = b._act, spl = !moving && A && A.round === roundNum && A.looks && b.post && Math.hypot(b.post.x-A.x, b.post.y-A.y) < 2 &&
+    Math.hypot(b.x-A.x, b.y-A.y) < 60 ? A.looks : null;
   var postA = (b.post && b.post.look && !(b.post.tag === "save")) ? Math.atan2(b.post.look.y-(b.post.y||b.y), b.post.look.x-(b.post.x||b.x)) : null;
   var mates = bots.filter(function(o){ return o !== b && o.alive && o.team === team; });
   var rearCov = moving && mates.some(function(o){ return Math.hypot(o.x-b.x, o.y-b.y) < 500; });
@@ -466,6 +437,7 @@ function lookCands(b, W){
       if(bzOf(lr.x, lr.y) !== j) continue;
       var er = bots.filter(function(o){ return o.id === eidr; })[0]; if(!er || !er.alive) continue;
       lkBest = lr; lkAge = tick - lr.tick; }
+    if(spl && !lkBest && !freshThreatNear(team, BZ.cent[j] || cz)) return;   // (v195) без инфы — взгляд с места
     if(lkBest && LOOK.lkRef !== false) ref = lkBest;
     var apZ = (BAL.cornerAim && !lkBest) ? appearPoint(b, (nBest >= 0 && nVal > beliefZoneKnown(team, j)) ? nBest : j) : null;
     var smp = ZONE_SAMPLES[zid] || [cz], c = null, cd = Infinity;
@@ -482,7 +454,6 @@ function lookCands(b, W){
     var behind = moving ? _angOff(za, b.heading) > 1.9 : (atHold && postA !== null && _angOff(za, postA) > 2.2);
     if(d < LOOK.closeR && !behind) sc *= LOOK.closeK;
     if(fresh) sc *= LOOK.freshK;
-    if(postA !== null && _angOff(za, postA) < 0.9) sc *= LOOK.postK;
     if(moving){ var hd = _angOff(za, b.heading); if(hd < 0.9) sc *= LOOK.headK; else if(hd > 1.9 && !fresh) sc *= rearCov ? LOOK.behindMoveCov : LOOK.behindMove; }
     else if(behind && !fresh) sc *= LOOK.behindHold;
     if(!fresh){
@@ -498,6 +469,7 @@ function lookCands(b, W){
     var p = BZ.portal[zb][nn]; if(!p) return;
     if(isRearZone(team, zb, nn)) return;   // (v148) проход в свой тыл — не угроза
     var d = Math.hypot(p.x-b.x, p.y-b.y); if(d < 40 || d > LOOK.maxDist || !hasLOS(b.x, b.y, p.x, p.y)) return;
+    if(spl && !freshThreatNear(team, p)) return;   // (v195) без инфы — взгляд с места
     var th = beliefZoneKnown(team, nn);
     BZ.nbr[nn].forEach(function(n2){ if(n2 === zb) return; if(!reachPossible(team, n2)) return;
       var v = LOOK.nbrW * beliefZoneKnown(team, n2); if(PW[nn+","+n2]) v *= LOOK.watchedNbr; th += v; });
@@ -513,7 +485,6 @@ function lookCands(b, W){
     var behind = moving ? _angOff(za, b.heading) > 1.9 : (atHold && postA !== null && _angOff(za, postA) > 2.2);
     if(d < LOOK.closeR && !behind) sc *= LOOK.closeK;
     if(fresh) sc *= LOOK.freshK;
-    if(postA !== null && _angOff(za, postA) < 0.9) sc *= LOOK.postK;
     if(moving){ var hd = _angOff(za, b.heading); if(hd < 0.9) sc *= LOOK.headK; else if(hd > 1.9 && !fresh) sc *= rearCov ? LOOK.behindMoveCov : LOOK.behindMove; }
     else if(behind && !fresh) sc *= LOOK.behindHold;
     if(!fresh && mates.some(function(o){ return Math.hypot(o.x-p.x, o.y-p.y) < 140; })) sc *= LOOK.mateThere;
@@ -549,13 +520,15 @@ function lookCands(b, W){
       var c = ap; if(d < 200){ var ext = {x:b.x+(c.x-b.x)/d*200, y:b.y+(c.y-b.y)/d*200}; if(hasLOS(b.x, b.y, ext.x, ext.y)) c = ext; }
       out.push({j:"rt"+is, pt:c, sc:LOOK.retakeW/(1 + d/LOOK.distHold), fresh:false, a:Math.atan2(c.y-b.y, c.x-b.x), rt:true}); });
   }
-  // угол поста — только когда реальной угрозы нет совсем (запасной вариант):
-  // не соперник угрозам, а "куда смотреть, если смотреть некуда"
-  // (В13) угроз с инфой нет: проход, откуда враг может прийти раньше всего (по таймингу);
-  // направление поста — только если такого прохода отсюда не видно
-  if(atHold && !out.some(function(c){ return c.sc >= LOOK.minScore; })){
-    var ew = BAL.enemyward ? enemywardLook(team, b) : null, pl = ew ? (cornerLook(b, ew) || ew) : (cornerLook(b, b.post.look) || b.post.look);
-    out.push({j:"post"+b.id, pt:pl, sc:LOOK.postBase, fresh:false, a:Math.atan2(pl.y-b.y, pl.x-b.x), post:!ew, early:!!ew}); }
+  // (v195) место из демок: 1–2 направления взгляда с него; с двумя — по очереди, доли
+  // времени как в демках (у каждого бота свой сдвиг по кругу)
+  if(spl){ var tw = spl.reduce(function(a, l){ return a + l.w; }, 0) || 1, ph = ((tick/TICK_HZ + (b.id.charCodeAt(0)*7 % 11)) / LOOK.spotCycle) % 1, acc = 0;
+    spl.forEach(function(l, i){ var on = ph >= acc && ph < acc + l.w/tw; acc += l.w/tw;
+      out.push({j:"spot"+i, pt:{x:l.x, y:l.y}, sc:LOOK.spotW * (on ? 1 : 0.3), fresh:false, a:Math.atan2(l.y-b.y, l.x-b.x), spot:true}); }); }
+  // место не из демок (точка планта, бомба, сбор по плану): угол поста — только когда угроз нет совсем
+  else if(atHold && !out.some(function(c){ return c.sc >= LOOK.minScore; })){
+    var pl = cornerLook(b, b.post.look) || b.post.look;
+    out.push({j:"post"+b.id, pt:pl, sc:LOOK.postBase, fresh:false, a:Math.atan2(pl.y-b.y, pl.x-b.x), post:true}); }
   // все кандидаты уже видимые (точка выбирается только с линией видимости)
   return out;
 }
@@ -592,7 +565,7 @@ function lookPlan(team){
     }
     if((p ? p.j : null) !== b._lkZ){ b._lkSince = tick; b._lkZ = p ? p.j : null; }
     b._lkPt = p ? p.pt : null;
-    b._lkTop = b._lkC.slice().sort(function(x, y){ return y.sc - x.sc; }).slice(0, 3).map(function(c){ var nm = c.snd ? "звук/контакт" : c.post ? "свой угол (угроз нет)" : c.early ? "ранний проход (без инфы)" : c.rt ? "выход с сайта (ретейк)" : c.j >= 1000 ? "выход из " + (ZONE_NAMES[BZ.ids[c.j-1000]] || BZ.ids[c.j-1000]) : (ZONE_NAMES[BZ.ids[c.j]] || BZ.ids[c.j]); return [nm, c.sc]; });
+    b._lkTop = b._lkC.slice().sort(function(x, y){ return y.sc - x.sc; }).slice(0, 3).map(function(c){ var nm = c.snd ? "звук/контакт" : c.post ? "свой угол (угроз нет)" : c.spot ? "как в демках с этого места" : c.rt ? "выход с сайта (ретейк)" : c.j >= 1000 ? "выход из " + (ZONE_NAMES[BZ.ids[c.j-1000]] || BZ.ids[c.j-1000]) : (ZONE_NAMES[BZ.ids[c.j]] || BZ.ids[c.j]); return [nm, c.sc]; });
   });
 }
 // итоговая точка взгляда бота (кроме "вижу врага" — это выше)

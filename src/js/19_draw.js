@@ -282,7 +282,7 @@ function draw(){
     });
   }
 
-  if(chkPtEd.checked) drawPoints();
+  if(chkSpots.checked) drawSpots();
 
   var contacts = 0;
   // контакты для HUD — считаем всегда, независимо от отрисовки
@@ -764,27 +764,23 @@ function draw(){
 }
 
 
-// ---------- (v193) слой «точки углов» (01_points.js) — правка в 18_ui_editors.js ----------
-// CT — синие, T — оранжевые, обе — зелёные; буква — район; линия — куда смотреть
-function drawPoints(){
-  var sc = view.scale, P = pointsGet(), sel = PTED.sel, H = PTED.hover, hov = null, bd = 10/sc;
-  var COL = {CT:"#5aa8ff", T:"#ffaa3c", both:"#5fe07a"};
-  if(H && !PTED.drag) P.forEach(function(p){ if(!ptEdVisible(p)) return; var d = Math.hypot(p.x-H.x, p.y-H.y); if(d < bd){ bd = d; hov = p; } });
+// ---------- (v195) слой «места из демок» (01_spots.js), только показ ----------
+// CT — синие, T — оранжевые; кольцо — после планта (T) / ретейк (CT); стрелки —
+// 1–2 направления взгляда (толщина — доля времени); буква — район
+var chkSpots = document.getElementById("chkSpots");
+chkSpots.addEventListener("change", function(){ draw(); });
+function drawSpots(){
+  var sc = view.scale, COL = {CT:"#5aa8ff", T:"#ffaa3c"};
   ctx.save();
-  P.forEach(function(p){
-    if(!ptEdVisible(p)) return;
-    var on = p === sel || p === hov, a = sel ? (p === sel ? 1 : 0.45) : 0.85;
-    ctx.globalAlpha = a*0.9; ctx.strokeStyle = "#ff5a4e"; ctx.lineWidth = (on ? 1.6 : 1.1)/sc;
-    var ang = Math.atan2(p.ly-p.y, p.lx-p.x), L = on ? Math.hypot(p.lx-p.x, p.ly-p.y) : 22/sc;
-    ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(p.x+L*Math.cos(ang), p.y+L*Math.sin(ang)); ctx.stroke();
-    ctx.globalAlpha = a; ctx.fillStyle = COL[p.side] || "#ccc"; ctx.strokeStyle = "#0b0f0b"; ctx.lineWidth = 1/sc;
-    ctx.beginPath(); ctx.arc(p.x, p.y, (on ? 5.5 : 3.6)/sc, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+  spotsGet().forEach(function(p){
+    var c = COL[p.side] || "#ccc";
+    ctx.globalAlpha = 0.85; ctx.strokeStyle = c;
+    p.looks.forEach(function(l){ var ang = Math.atan2(l.y-p.y, l.x-p.x), L = 22/sc;
+      ctx.lineWidth = (0.8 + 2*l.w)/sc; ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(p.x+L*Math.cos(ang), p.y+L*Math.sin(ang)); ctx.stroke(); });
+    ctx.fillStyle = c; ctx.strokeStyle = "#0b0f0b"; ctx.lineWidth = 1/sc;
+    ctx.beginPath(); ctx.arc(p.x, p.y, 3.4/sc, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+    if(p.phase !== "pre"){ ctx.strokeStyle = c; ctx.beginPath(); ctx.arc(p.x, p.y, 6/sc, 0, Math.PI*2); ctx.stroke(); }
     if(p.area){ ctx.font = (9/sc)+"px sans-serif"; ctx.fillStyle = "#e8eee8"; ctx.fillText(p.area === "M" ? "м" : p.area, p.x+4.5/sc, p.y-3.5/sc); }
   });
-  if(sel){ ctx.globalAlpha = 1; ctx.fillStyle = "#ff5a4e"; ctx.strokeStyle = "#fff"; ctx.lineWidth = 1.2/sc;
-    ctx.beginPath(); ctx.arc(sel.lx, sel.ly, 6/sc, 0, Math.PI*2); ctx.fill(); ctx.stroke(); }
-  if(hov && hov !== sel){ var t = hov.id+" · "+(hov.side === "both" ? "обе" : hov.side)+" · "+(hov.area === "M" ? "мид" : hov.area || "вне районов")+(hov.name ? " · выход из «"+hov.name+"»" : "");
-    ctx.globalAlpha = 1; ctx.font = (11/sc)+"px sans-serif"; var w = ctx.measureText(t).width;
-    ctx.fillStyle = "rgba(6,8,6,0.85)"; ctx.fillRect(hov.x+7/sc, hov.y+2/sc, w+6/sc, 15/sc); ctx.fillStyle = "#e8eee8"; ctx.fillText(t, hov.x+10/sc, hov.y+13/sc); }
   ctx.restore();
 }
