@@ -28,8 +28,29 @@ def assemble():
     out, nd = re.subn(r'@@DATA:([\w.]+)@@', data, out)
     out, npng = re.subn(r'@@PNG:([\w.]+)@@', lambda m: base64.b64encode(open(os.path.join('data', m.group(1)), 'rb').read()).decode(), out)
     assert nd == len([f for f in os.listdir('data') if f.endswith('.json')]) and npng == 1, (nd, npng)
+    out, nkf = re.subn(r'@@KFICONS@@', lambda m: kf_icons(), out)
+    assert nkf == 1, nkf
     assert '@@DATA:' not in out and '@@PNG:' not in out
     return out
+# Иконки киллфида (v180): data/killfeed/<ключ>.svg — ключ = оружие из WEAPONS
+# (AK, M4…), KNIFE_T, HE, MOLOTOV или значок (hs, smoke, wall, noscope, blind,
+# flash). В страницу встают очищенными: без заголовков редактора, без
+# неиспользуемых <symbol>, числа до 0,1, id с префиксом ключа.
+def kf_icons():
+    res = {}
+    for f in sorted(glob.glob('data/killfeed/*.svg')):
+        key = os.path.basename(f)[:-4]
+        t = open(f, encoding='utf-8').read()
+        t = re.sub(r'<\?xml.*?\?>|<!DOCTYPE.*?>|<!--.*?-->|<symbol\b.*?</symbol>', '', t, flags=re.S)
+        vb = re.search(r'<svg\b[^>]*?viewBox="([^"]+)"', t, re.S).group(1).split()
+        t = re.sub(r'<svg\b[^>]*>', '', t, count=1, flags=re.S).replace('</svg>', '')
+        t = re.sub(r'\bid="([^"]+)"', lambda m: 'id="kf_%s_%s"' % (key, m.group(1)), t)
+        t = re.sub(r'url\(#([^)]+)\)', lambda m: 'url(#kf_%s_%s)' % (key, m.group(1)), t)
+        # 1 знак после точки: иконка ~16 px при высоте 32 → точность 0,05 px
+        t = re.sub(r'\d*\.\d+', lambda m: ('%.1f' % float(m.group(0))).rstrip('0').rstrip('.') or '0', t)
+        t = re.sub(r'\s+', ' ', t).replace('> <', '><').strip()
+        res[key] = {"vb": ' '.join(vb), "w": float(vb[2]), "h": float(vb[3]), "svg": t}
+    return json.dumps(res, ensure_ascii=False)
 s = assemble()
 assert s.count(MARK) == 1
 
