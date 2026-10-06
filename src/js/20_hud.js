@@ -168,8 +168,8 @@ function scoreboardUpdate(rtLeft){
     $("sbScore"+t).textContent = score[t];
     $("sbAlive"+t).textContent = bots.filter(function(b){ return b.team === t && b.alive; }).length;
   });
-  $("sbMatch").textContent = "матч № "+matchNum;
-  $("sbRound").textContent = "РАУНД "+Math.max(1, roundNum);
+  $("sbMatch").textContent = "Match "+matchNum;
+  $("sbRound").textContent = "ROUND "+Math.max(1, roundNum);
   var tm = $("sbTime"), planted = bomb && bomb.state === "planted" && roundState === "live";
   // бомба стоит — как в CS2: вместо времени раунда значок бомбы (время до взрыва зрители не видят)
   if(planted){ tm.textContent = "💣"; tm.className = "sb-time bomb"; return; }

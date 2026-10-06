@@ -36,24 +36,33 @@
   #killfeed .kf.ev{font-weight:600;border:1px solid var(--line);} #killfeed .kf.bomb{border-color:#e05c52;color:#ff9a8f;} #killfeed .kf.defuse{border-color:#5a9bd9;color:#9ec6ef;}
   #killfeed .kf.clutch{border-color:#ffd76a;color:#ffe49a;}
   #killfeed .kf.boom{border-color:#e05c52;background:rgba(80,20,15,0.85);color:#ffb3aa;} #killfeed .kf.round{opacity:.6;font-weight:400;}
-  /* табло как на трансляции (Н6): плоское, без «рваной бумаги» */
-  #scoreboard{position:absolute;top:8px;left:50%;transform:translateX(-50%);pointer-events:none;z-index:4;font-family:'IBM Plex Sans','Segoe UI',Arial,sans-serif;display:flex;flex-direction:column;align-items:center;}
-  #scoreboard .sb-head{display:flex;justify-content:space-between;align-items:center;width:100%;box-sizing:border-box;padding:3px 12px;background:#121a10;border-top:2px solid var(--accent);border-radius:4px 4px 0 0;color:#cfe3a8;font-size:10.5px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;}
-  #scoreboard .sb-main{display:flex;align-items:stretch;background:rgba(8,10,8,0.92);border-radius:0 0 4px 4px;}
-  #scoreboard .sb-team{display:flex;align-items:center;gap:10px;padding:6px 12px;}
-  #scoreboard .sb-team.t{border-bottom:3px solid var(--t);} #scoreboard .sb-team.ct{border-bottom:3px solid var(--ct);flex-direction:row-reverse;}
-  #scoreboard .sb-logo{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;color:#0b0f0b;overflow:hidden;}
+  /* табло как на трансляции (Н6) — по образцу ESL Pro League, без «рваных» краёв */
+  #scoreboard{position:absolute;top:8px;left:50%;transform:translateX(-50%);pointer-events:none;z-index:4;display:flex;flex-direction:column;align-items:center;font-family:'Barlow Condensed','Arial Narrow','Roboto Condensed','Liberation Sans Narrow','DejaVu Sans Condensed',sans-serif;font-weight:700;color:#fff;}
+  #scoreboard .sb-head{position:relative;display:flex;align-items:stretch;width:100%;height:30px;background:#121212;}
+  #scoreboard .sb-head .gr{width:22px;background:#54e100;flex:none;}
+  #scoreboard .sb-head .tx{flex:1;display:flex;align-items:center;justify-content:center;font-size:19px;letter-spacing:.02em;text-transform:uppercase;line-height:1;}
+  #scoreboard .sb-head .em{width:56px;flex:none;background:#54e100;clip-path:polygon(0 0,100% 0,72% 100%,28% 100%);}
+  #scoreboard .sb-main{position:relative;display:flex;align-items:center;height:74px;background:#141414;margin-top:12px;padding:0 14px;gap:0;}
+  #scoreboard .sb-side{display:flex;align-items:center;gap:16px;}
+  #scoreboard .sb-side.ct{flex-direction:row-reverse;}
+  #scoreboard .sb-logo{width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;color:#141414;overflow:hidden;flex:none;}
   #scoreboard .sb-logo img{width:100%;height:100%;object-fit:contain;}
-  #scoreboard .t .sb-logo{background:var(--t);} #scoreboard .ct .sb-logo{background:var(--ct);}
-  #scoreboard .sb-score{font-size:34px;font-weight:700;color:#fff;min-width:30px;text-align:center;line-height:1;}
-  #scoreboard .sb-mid{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:4px 14px;min-width:82px;background:rgba(255,255,255,0.04);}
-  #scoreboard .sb-round{font-size:10.5px;font-weight:600;letter-spacing:.08em;color:#cfd5c6;}
-  #scoreboard .sb-time{font-family:'IBM Plex Mono',monospace;font-size:19px;font-weight:600;color:#fff;line-height:1.15;}
-  #scoreboard .sb-time.low{color:#ff8a7e;} #scoreboard .sb-time.bomb{color:#ff5a4c;}
-  #scoreboard .sb-alive{display:flex;align-items:center;gap:8px;margin-top:6px;font-size:12px;color:var(--text-dim);}
-  #scoreboard .sb-alive b{display:inline-block;min-width:26px;padding:2px 7px;text-align:center;border-radius:3px;font-size:15px;color:#fff;}
-  #scoreboard .sb-alive b.t{background:rgba(217,162,74,0.45);} #scoreboard .sb-alive b.ct{background:rgba(90,155,217,0.45);}
-  #banner{position:absolute;top:130px;left:50%;transform:translateX(-50%) scale(.9);opacity:0;transition:all .25s;pointer-events:none;font-family:'IBM Plex Sans',sans-serif;font-weight:700;font-size:22px;letter-spacing:.04em;padding:8px 22px;border-radius:6px;background:rgba(10,14,9,0.88);border:1px solid var(--accent-dim);color:#fff;}
+  #scoreboard .t .sb-logo{background:#d9a24a;} #scoreboard .ct .sb-logo{background:#5a9bd9;}
+  #scoreboard .sb-maps{display:flex;flex-direction:column;gap:5px;}
+  #scoreboard .sb-maps i{display:block;width:12px;height:12px;background:#8f8f8f;} #scoreboard .sb-maps i.on{background:#fefefe;}
+  #scoreboard .sb-score{position:relative;font-size:62px;line-height:1;min-width:52px;text-align:center;}
+  #scoreboard .sb-score::before{content:"";position:absolute;top:-13px;left:50%;transform:translateX(-50%);width:66px;height:7px;}
+  #scoreboard .t .sb-score::before{background:#fde3a0;} #scoreboard .ct .sb-score::before{background:#98bad5;}
+  #scoreboard .sb-mid{display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:104px;padding:0 14px;line-height:1;}
+  #scoreboard .sb-round{font-size:22px;letter-spacing:.01em;}
+  #scoreboard .sb-time{font-size:31px;margin-top:3px;}
+  #scoreboard .sb-time.low{color:#ff6b5e;} #scoreboard .sb-time.bomb{color:#ff4a3c;}
+  #scoreboard .sb-alive{display:flex;margin-top:20px;}
+  #scoreboard .sb-alive b{width:44px;height:44px;display:flex;align-items:center;justify-content:center;font-size:30px;font-weight:700;}
+  #scoreboard .sb-alive b.t{background:rgba(110,102,78,0.82);color:#ded6b2;}
+  #scoreboard .sb-alive b.vs{background:rgba(150,156,166,0.72);color:#e6e9ee;font-size:22px;}
+  #scoreboard .sb-alive b.ct{background:rgba(70,92,114,0.85);color:#b4cce0;}
+  #banner{position:absolute;top:200px;left:50%;transform:translateX(-50%) scale(.9);opacity:0;transition:all .25s;pointer-events:none;font-family:'IBM Plex Sans',sans-serif;font-weight:700;font-size:22px;letter-spacing:.04em;padding:8px 22px;border-radius:6px;background:rgba(10,14,9,0.88);border:1px solid var(--accent-dim);color:#fff;}
   #banner.show{opacity:1;transform:translateX(-50%) scale(1);} #banner.ct{border-color:var(--ct);color:#cfe4f8;} #banner.t{border-color:var(--t);color:#f6ddb3;}
   #roundCard{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) scale(.94);opacity:0;transition:all .3s;pointer-events:none;min-width:340px;text-align:center;background:rgba(10,14,9,0.93);border:1px solid var(--accent-dim);border-radius:10px;padding:16px 22px;font-family:'IBM Plex Sans',sans-serif;color:var(--text);}
   #roundCard.show{opacity:1;transform:translate(-50%,-50%) scale(1);}
@@ -93,7 +102,7 @@
   .mk-toast{position:absolute;left:50%;bottom:24px;transform:translateX(-50%);z-index:60;background:rgba(10,14,9,0.96);border:1px solid var(--accent);color:var(--text);padding:8px 14px;border-radius:6px;max-width:80%;}
   .mk-prog{position:absolute;left:50%;top:45%;transform:translate(-50%,-50%);z-index:60;background:rgba(10,14,9,0.96);border:1px solid var(--accent);color:var(--accent);padding:14px 22px;border-radius:8px;font-size:15px;}
 </style>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&family=Barlow+Condensed:wght@700&display=swap">
 
 <div id="app">
   <div id="topbar">
@@ -258,13 +267,13 @@
       <div class="row"><span class="lab">Бомба</span><span class="mono" id="hBomb">—</span></div>
     </div>
     <div id="scoreboard">
-      <div class="sb-head"><span>Ancient</span><span id="sbMatch">матч № 1</span></div>
+      <div class="sb-head"><span class="gr"></span><span class="tx">Ancient</span><span class="em"></span><span class="tx" id="sbMatch">Match 1</span><span class="gr"></span></div>
       <div class="sb-main">
-        <div class="sb-team t"><div class="sb-logo" id="sbLogoT">T</div><div class="sb-score" id="sbScoreT">0</div></div>
-        <div class="sb-mid"><div class="sb-round" id="sbRound">РАУНД 1</div><div class="sb-time" id="sbTime">1:55</div></div>
-        <div class="sb-team ct"><div class="sb-logo" id="sbLogoCT">CT</div><div class="sb-score" id="sbScoreCT">0</div></div>
+        <div class="sb-side t"><div class="sb-logo" id="sbLogoT">T</div><div class="sb-maps"><i class="on"></i><i></i></div><div class="sb-score" id="sbScoreT">0</div></div>
+        <div class="sb-mid"><div class="sb-round" id="sbRound">ROUND 1</div><div class="sb-time" id="sbTime">1:55</div></div>
+        <div class="sb-side ct"><div class="sb-logo" id="sbLogoCT">CT</div><div class="sb-maps"><i class="on"></i><i></i></div><div class="sb-score" id="sbScoreCT">0</div></div>
       </div>
-      <div class="sb-alive"><b class="t" id="sbAliveT">5</b><span>vs</span><b class="ct" id="sbAliveCT">5</b></div>
+      <div class="sb-alive"><b class="t" id="sbAliveT">5</b><b class="vs">VS</b><b class="ct" id="sbAliveCT">5</b></div>
     </div>
     <div id="contact">ОБНАРУЖЕН КОНТАКТ</div>
     <div id="warn"></div>
