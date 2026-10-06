@@ -229,8 +229,11 @@ function tryShoot(shooter, target, dist){
     if(target.hp > 0){
       var HT = teamIntel[shooter.team].hurt || (teamIntel[shooter.team].hurt = {});
       var prevH = HT[target.id];
-      HT[target.id] = {hp:target.hp, tick:tick, by:shooter.id};
-      if(target.hp <= 40 && (!prevH || prevH.hp > 40)) voiceLog(shooter.team, "hurt"+target.id, shooter.id, target.id+" на "+target.hp+"!");
+      // сколько у него осталось — по своему урону (стрелок видит, что попал и
+      // примерно на сколько), а не настоящее HP
+      HT[target.id] = {hp:(prevH ? prevH.hp : 100) - dmg, tick:tick, by:shooter.id};
+      var hEst = HT[target.id].hp;
+      if(hEst <= 40 && (!prevH || prevH.hp > 40)) voiceLog(shooter.team, "hurt"+target.id, shooter.id, target.id+" сильно ранен, ~"+Math.max(1, Math.round(hEst/10)*10)+"!");
     }
     target._hitFx = {t:nowTs, head:headshot};
     if(target.hp <= 0 && target.alive){
@@ -284,20 +287,9 @@ function tryShoot(shooter, target, dist){
   tracers.push({wc:tracerClass(shooter.weapon), x1:shooter.x, y1:shooter.y, x2:endX, y2:endY, team:shooter.team, born:nowTs, hit:hit, head:headshot, prefire:prefire, miss:!hit, zone:hitZone});
   // выстрел слышно далеко (шаг 5: с конусом обзора боты не видят спиной —
   // но разворачиваются на звук стрельбы; в кого попали — точно знает откуда)
-  bots.forEach(function(o){
-    if(!o.alive || o.team === shooter.team) return;
-    var dG = Math.hypot(o.x-shooter.x, o.y-shooter.y);
-    if(o === target){ o.heardSound = {x:shooter.x, y:shooter.y, tick:tick, team:shooter.team, src:shooter.id, kind:"hit"}; return; }
-    // слышимость выстрела: на прямой видимости дальше, через стены глуше
-    // (раньше было 900px во все стороны — слышали полкарты)
-    var hearR = (hasLOS(o.x, o.y, shooter.x, shooter.y) ? GUN_HEAR_OPEN : GUN_HEAR_WALL) * (w.silenced ? 0.55 : 1); // глушитель — слышно ближе
-    if(dG < hearR){
-      var jg = 15 + dG*0.06, ja = hashRand(tick*17 + o.id.charCodeAt(0)*7 + shooter.nextShotTick)*Math.PI*2;
-      var hpS = hearPos(o, shooter.x, shooter.y, tick*17 + o.id.charCodeAt(0)*7 + (shooter.nextShotTick|0), hearR === GUN_HEAR_WALL);
-      o.heardSound = hpS ? {x:hpS.x, y:hpS.y, tick:tick, team:shooter.team, src:shooter.id, kind:"shots"}
-                         : {x:shooter.x+Math.cos(ja)*jg, y:shooter.y+Math.sin(ja)*jg, tick:tick, team:shooter.team, src:shooter.id, kind:"shots"};
-    }
-  });
+  // глушитель — слышно ближе; в кого попали — тот понимает, откуда стреляют
+  makeSound(shooter, shooter.x, shooter.y, "shots", {mul: w.silenced ? 0.55 : 1, seed: shooter.nextShotTick|0});
+  if(target && target.alive && target.team !== shooter.team) makeSound(shooter, shooter.x, shooter.y, "hit", {only: target, seed: 5});
   if(tracers.length > 60) tracers.shift();
   if(prefire) logEvent(shooter.id+": префайр по памяти о "+target.id+" (увер. "+Math.round(prefireConfidence*100)+"%)"+(hit?" — попал":""));
 }
@@ -319,9 +311,9 @@ function duelContext(bot, enemiesSeen, alliesNear){
   var e = bot._nearestEnemyBot;
   if(e){
     var HT = teamIntel[bot.team] && teamIntel[bot.team].hurt, hk = HT && HT[e.id];
-    o.hurtFoe = !!(hk && hk.hp <= 40 && tick - hk.tick < 8*TICK_HZ) || e.hp <= 40;
+    o.hurtFoe = !!(hk && hk.hp <= 40 && tick - hk.tick < 8*TICK_HZ);
     o.awpLine = !!(e.weapon && e.weapon.key === "AWP");
-    o.flashed = tick < (e.blindUntil || 0);
+    o.flashed = tick < (e.blindUntil || 0) && !!e._blindBy; // ослепили мы — видели, что флешка хлопнула на нём
   }
   return o;
 }

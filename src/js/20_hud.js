@@ -22,6 +22,7 @@ function killAssist(att, vic){
 // mods: smoke — через смок, wall — прострел, noscope — без прицела, blind — убийца ослеплён
 function feedKill(att, vic, wkey, hs, mods){
   mods = mods || {};
+  killfeedRead(att, vic, wkey); // киллфид видят и боты — закуп и роли врага (09_knowledge.js)
   var as = killAssist(att, vic);
   killfeed.unshift({kind:"kill", att:att?nick(att.id):"?", attTeam:att?att.team:"", as:as?nick(as.id):null, asFlash:as&&as.flash,
     vic:nick(vic.id), vicTeam:vic.team, w:wkey, hs:hs, smoke:!!mods.smoke, wall:!!mods.wall, noscope:!!mods.noscope, blind:!!mods.blind, t:nowTs});

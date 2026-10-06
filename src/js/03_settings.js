@@ -12,7 +12,6 @@ var BAL = {
   duelValue: true,    // v154: дуэль оценивается с учётом размена рядом (≤350px), перевеса и ситуации: один без размена — не лезет
   smoothLook: true,   // v153: взгляд держит направление 0,5–0,8с, не мечется туда-обратно; вне боя поворот плавный и медленнее, стоя — без дрожи
   holdTask: true,
-  noLeaks: true,      // v146: команды решают только по тому, что реально знают
   egFix: true,
   ppSpread: true,
   claimStrong: true,
@@ -112,7 +111,7 @@ var BAL = {
   shiftOnClear: true, // проба увидела "пусто" → двое идут брать контроль в другом месте
   soloSlow: true,     // T в клатче с бомбой без инфы идёт на шифте, а не бежит // постоянная инфа: последняя известная позиция врага держится, пока не обновят
    ctSetups: true, smokeEntry: true, // раздел 13: привычки CT для T, пул расстановок CT
-  midTake: true, stopPlant: true, reangle: true, silentWalk: true,
+  midTake: true, stopPlant: true, reangle: true,
   antiDefuse: true, lurkCheck: true,
   plantChoice: true, repos: true, keepMol: true, // раздел 12 (хвосты)
   ctSetup: "2-1-2",   // расстановка CT: "1-1-1" (ротатор между сайтами) или "2-1-2" (ротатор вторым на сайт)

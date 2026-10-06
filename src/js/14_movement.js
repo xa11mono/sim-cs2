@@ -205,6 +205,7 @@ function weaponPickupTick(){
       groundWeapons.splice(i, 1);
       if(b.primary) groundWeapons.push({key:b.primary, x:b.x, y:b.y, t:tick, from:b.id});
       b.primary = G.key; b.weapon = WEAPONS[G.key]; b._ammoFor = null; dropTask(b, "pickup");
+      makeSound(b, b.x, b.y, "pickup");
       logEvent(b.id+" подобрал "+WEAPONS[G.key].name+(G.from ? " ("+G.from+")" : ""));
       return;
     }
@@ -250,11 +251,31 @@ function weaponPickupTick(){
     setPost(b, {x:best.x, y:best.y}, null, true, "pickup"); holdTask(b, "pickup", tick+1);
   });
 }
-// ======================= ЗВУК: направление, стены, новые источники =======================
-// Как слышит человек в CS2: НАПРАВЛЕНИЕ понятно довольно точно (±5–7°), дистанция —
-// примерно (±15%). Через стену звук глуше: слышно ближе, направление расплывается
-// (±15–20°), дистанция гуляет сильнее (±30%). Раньше услышанная точка = реальная
-// + случайный сдвиг в ЛЮБУЮ сторону, одинаковый для открытого места и стен.
+// ======================= ЗВУК: одно место на все звуки (К11) =======================
+// Всё, что в CS2 можно услышать, рождается только здесь — makeSound. Слышат
+// враги в радиусе своего звука; через стену — ближе и неточнее. Человек по звуку
+// понимает НАПРАВЛЕНИЕ довольно точно (±6°), дистанцию — примерно (±15%); через
+// стену направление расплывается (±17°), дистанция гуляет (±30%). Ника по звуку
+// не узнать: в услышанном нет «кто», только «что и примерно откуда».
+// У бота — короткий список услышанного за 3 с (b.ears): по нему видно, один
+// источник или несколько с разных сторон. b.heardSound — последний звук.
+// Бег слышно, шифт — нет (кроме воды). Прыжков в игре нет — их звука тоже.
+var SOUND = {
+  steps:   {open:SOUND_RADIUS_RUN, wall:SOUND_RADIUS_RUN*0.75, say:"шаги"},
+  water:   {open:460, wall:345, say:"всплески в воде"},
+  shots:   {open:GUN_HEAR_OPEN, wall:GUN_HEAR_WALL, say:"стрельбу"},
+  hit:     {open:1e9, wall:1e9, say:"что стреляют по мне"},
+  reload:  {open:380, wall:220, say:"перезарядку"},
+  zoom:    {open:200, wall:120, say:"зум AWP"},
+  nade:    {open:NADE_HEAR_R, wall:NADE_HEAR_R, say:"бросок гранаты"},
+  pop:     {open:900, wall:650, see:1400, say:"разрыв гранаты"},
+  nadefly: {open:0, wall:0, see:1200, say:"гранату — прилетела"},   // видел полёт: откуда кинули — примерно
+  plant:   {open:850, wall:520, say:"плант"},
+  defuse:  {open:DEFUSE_HEAR, wall:DEFUSE_HEAR, say:"дефуз"},
+  defusing:{open:DEFUSE_HEAR, wall:DEFUSE_HEAR, say:"дефуз"},   // тот же звук продолжается (не новый)
+  pickup:  {open:250, wall:150, say:"подбор оружия"}
+};
+var EARS_KEEP = 3*TICK_HZ;
 function hearPos(o, sx, sy, seed, occl){
   var d = Math.hypot(sx-o.x, sy-o.y), a = Math.atan2(sy-o.y, sx-o.x);
   var sa = occl ? 0.30 : 0.10, sd = occl ? 0.30 : 0.15;
@@ -263,40 +284,66 @@ function hearPos(o, sx, sy, seed, occl){
   var pd = Math.max(20, d*(1 + rd*sd)), pa = a + ra*sa;
   return {x:o.x + Math.cos(pa)*pd, y:o.y + Math.sin(pa)*pd};
 }
+// src — кто шумит (только для того, кому звук слышен: враги src); opt:
+//   mul — громкость (глушитель 0.55), only — слышит только этот бот (попадание),
+//   info — что звук говорит сам по себе (перезарядка: сколько длится по оружию)
+function makeSound(src, x, y, kind, opt){
+  opt = opt || {};
+  var S = SOUND[kind], heard = [], mul = opt.mul || 1, via = opt.via || {x:x, y:y};
+  var seed0 = tick*331 + (src.id.charCodeAt(src.id.length-1)||0)*17 + (src.id.charCodeAt(0)||0)*7 + (opt.seed||0);
+  bots.forEach(function(o){
+    if(!o.alive || o.team === src.team) return;
+    if(opt.only && o !== opt.only) return;
+    // via — что именно видно/слышно (полёт гранаты), x,y — что из этого понятно (откуда кинули)
+    var d = Math.hypot(o.x-via.x, o.y-via.y), los = opt.via ? hasVision(o.x, o.y, via.x, via.y) : hasLOS(o.x, o.y, x, y);
+    var seen = S.see && los && d <= S.see;
+    if(!seen && d > (los ? S.open : S.wall)*mul) return;
+    if(opt.skip && opt.skip(o)) return; // уже видел сам источник
+    var p = hearPos(o, x, y, seed0 + (o.id.charCodeAt(o.id.length-1)||0)*131 + (o.id.charCodeAt(0)||0)*11, !los || !!opt.via);
+    var e = {x:p.x, y:p.y, tick:tick, team:src.team, kind:kind, occl:!los};
+    if(opt.info) for(var k in opt.info) e[k] = opt.info[k];
+    if(kind === "defusing"){ o._defuseCont = tick; heard.push(o); return; } // продолжение — не новый звук
+    if(kind === "defuse"){ if(tick - (o._defuseHeard||-9999) > 80) o._defuseStart = tick; o._defuseHeard = tick; }
+    var E = o.ears || (o.ears = []);
+    while(E.length && tick - E[0].tick > EARS_KEEP) E.shift();
+    E.push(e); o.heardSound = e;
+    heard.push(o);
+  });
+  return heard;
+}
+// сколько разных источников бот слышит сейчас (за win тиков): звуки дальше
+// ~150 px друг от друга или под разными углами (>25°) — разные люди
+function earsSources(o, win, kinds){
+  var E = (o.ears||[]).filter(function(e){ return tick - e.tick <= win && (!kinds || kinds.indexOf(e.kind) >= 0); }), C = [];
+  E.forEach(function(e){
+    var ae = Math.atan2(e.y-o.y, e.x-o.x);
+    var same = C.some(function(c){ var da = Math.abs(((ae - c.a + Math.PI)%(2*Math.PI)+2*Math.PI)%(2*Math.PI) - Math.PI);
+      return Math.hypot(c.x-e.x, c.y-e.y) < 150 || da < 0.44; });
+    if(!same) C.push({x:e.x, y:e.y, a:ae});
+  });
+  return C.length;
+}
 var WATER_Z = {};
 function inWater(x, y){
   var zid = zoneIdAt(x, y); if(!zid) return false;
   if(!(zid in WATER_Z)) WATER_Z[zid] = /water|вода/i.test(zoneUserName(zid) || "");
   return WATER_Z[zid];
 }
-// один звук для всех врагов в радиусе: по прямой слышно дальше, через стену — ближе
-function emitSound(src, x, y, rOpen, rWall, kind, seed){
-  var heard = [];
-  bots.forEach(function(o){
-    if(!o.alive || o.team === src.team) return;
-    var d = Math.hypot(o.x-x, o.y-y); if(d > rOpen) return;
-    var occl = !hasLOS(o.x, o.y, x, y); if(occl && d > rWall) return;
-    var p = hearPos(o, x, y, seed + (o.id.charCodeAt(o.id.length-1)||0)*131, occl) || {x:x, y:y};
-    o.heardSound = {x:p.x, y:p.y, tick:tick, team:src.team, src:src.id, kind:kind};
-    heard.push(o);
-  });
-  return heard;
-}
-// услышал перезарядку — окно, пока у врага пустой магазин: держащий рядом
-// выглядывает на него (у про — классика "он перезаряжается, пушу")
+// перезарядку слышно, и по звуку понятно, каким оружием (а значит, сколько
+// она длится) — но не кто именно. Окно «у него пустой магазин» — от услышанного
 function reloadHeard(b, w){
-  var hs = emitSound(b, b.x, b.y, 380, 220, "reload", tick*29 + (b.id.charCodeAt(b.id.length-1)||0)*7);
+  var hs = makeSound(b, b.x, b.y, "reload", {info:{until: tick + Math.round(w.reload*TICK_HZ)}});
   hs.forEach(function(o){
-    o._heardReload = {id:b.id, x:o.heardSound.x, y:o.heardSound.y, until:b.reloadUntil};
-    if(!o._rlVoice || o._rlVoice + 3*TICK_HZ < tick){ o._rlVoice = tick; voiceLog(o.team, "rl"+b.id, o.id, b.id+" перезаряжается "+calloutName(o.heardSound.x, o.heardSound.y)+"!"); }
-    // по голосу знают и ближние тиммейты
-    bots.forEach(function(m){ if(m !== o && m.alive && m.team === o.team && Math.hypot(m.x-o.x, m.y-o.y) < 500) m._heardReload = o._heardReload; });
+    o._heardReload = {x:o.heardSound.x, y:o.heardSound.y, until:o.heardSound.until};
+    if(!o._rlVoice || o._rlVoice + 3*TICK_HZ < tick){ o._rlVoice = tick; voiceLog(o.team, "rl"+Math.round(o.heardSound.x/150)+","+Math.round(o.heardSound.y/150), o.id, "перезарядка "+calloutName(o.heardSound.x, o.heardSound.y)+"!"); }
   });
 }
 // пик на перезарядку: держит угол рядом (≤450), сам не в бою, HP > 50 —
 // коротко выходит на линию, откуда видно место звука. Агрессивные — чаще.
 function reloadPeek(b){
-  var R = b._heardReload;
+  // слышал сам — или тиммейт сказал «перезарядка там» (через тимспик)
+  var R = b._heardReload && tick < b._heardReload.until ? b._heardReload : null;
+  if(!R){ var EV = picEvents(b.team); for(var i = EV.length-1; i >= 0; i--){ var sg = EV[i]; if(sg.type === "sound" && sg.kind === "reload" && sg.until > tick){ R = sg; break; } } }
   if(!R || tick >= R.until || b._sawEnemy || b.planting || b.defusing || b.hp <= 50) return false;
   if(b._rlPeekDone === R.until) return false;
   var d = Math.hypot(R.x-b.x, R.y-b.y); if(d > 450 || d < 60) return false;
@@ -309,7 +356,7 @@ function reloadPeek(b){
   setPost(b, sp, {x:R.x, y:R.y}, true, "repos:reload");
   if(!b.post || b.post.tag !== "repos:reload") return false;
   holdTask(b, "repos", Math.min(R.until + 32, tick + 3*TICK_HZ));
-  logEvent(b.id+": пикает на перезарядку "+R.id);
+  logEvent(b.id+": пикает на перезарядку "+calloutName(R.x, R.y));
   return true;
 }
 // ---- пас бомбы ----

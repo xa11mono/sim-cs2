@@ -890,7 +890,7 @@ function teamBrains(){
   if(roundState !== "live") return; // дефуз мог только что закончить раунд
   routeTick();
   SPOT_TEAM = "T"; tBrain(); SPOT_TEAM = "CT"; ctBrain(); SPOT_TEAM = null; endgameBrain(); lineupTick(); smokeEdgeTick(); weaponPickupTick(); picCheckTick();
-  bots.forEach(function(b){ if(b.alive && b._heardReload) reloadPeek(b); });
+  bots.forEach(function(b){ if(b.alive) reloadPeek(b); });
   if(tick % 4 === 0) bots.forEach(function(b){ if(b.alive) assistPeek(b); });
   if(tick % 8 === 2) bots.forEach(function(b){ if(b.alive) lowHpBack(b); });
   if(tick % 8 === 4) bots.forEach(function(b){ if(b.alive) finishPush(b); });

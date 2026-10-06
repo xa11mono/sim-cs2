@@ -47,19 +47,14 @@ function dropBomb(b){
 // звук дефуза слышат T в радиусе 700px — именно звук, а не "всезнание":
 // T, которые не рядом, про дефуз не знают
 var DEFUSE_HEAR = 700;
-function defuseSound(ct){
-  bots.forEach(function(o){
-    if(!o.alive || o.team !== "T") return;
-    if(Math.hypot(o.x-bomb.x, o.y-bomb.y) < DEFUSE_HEAR){ o._defuseHeard = tick; o.heardSound = {x:bomb.x, y:bomb.y, tick:tick, team:"CT"}; }
-  });
-}
+function defuseSound(ct){ makeSound(ct, bomb.x, bomb.y, "defuse"); }
 // (6) звук дефуза длится, пока дефузят: T рядом слышат, что он продолжается
 // (фейк — короткий "тап" и тишина). По этому и отличают фейк от настоящего
 function defuseContTick(){
   if(!bomb || bomb.state !== "planted") return;
-  var dfz = bots.some(function(o){ return o.alive && o.defusing; });
+  var dfz = bots.filter(function(o){ return o.alive && o.defusing; })[0];
   if(!dfz || tick % 8) return;
-  bots.forEach(function(o){ if(o.alive && o.team === "T" && Math.hypot(o.x-bomb.x, o.y-bomb.y) < DEFUSE_HEAR) o._defuseCont = tick; });
+  makeSound(dfz, bomb.x, bomb.y, "defusing");
 }
 // T решают, бежать ли на звук дефуза сейчас: если время позволяет — ~0.8с
 // ждут, продолжается ли звук (настоящий дефуз) или стих (фейк — CT ждут пика).
@@ -70,7 +65,7 @@ function tDefuseGo(tt, ts){
   var h0 = Math.max.apply(null, heard.map(function(b){ return b._defuseHeard; }));
   var cont = ts.some(function(b){ return (b._defuseCont||-9999) > h0 + 36; });
   if(cont){ if(tt._dfRead !== h0){ tt._dfRead = h0; voiceLog("T", "dfreal"+h0, heard[0].id, "дефуз не прекращается — настоящий, все на бомбу!"); } return true; }
-  var kitGuess = teamEco.CT.roundType === "full" ? DEFUSE_KIT_TICKS : DEFUSE_TICKS;
+  var kitGuess = tDefuseNeed();
   var near = heard.slice().sort(function(a, c){ return pathLenTo(a, bomb.x, bomb.y) - pathLenTo(c, bomb.x, bomb.y); })[0];
   var travel = pathLenTo(near, bomb.x, bomb.y)/SPEED*TICK_HZ;
   var canWait = travel + 60 < kitGuess && bombTimeLeftTicks() > kitGuess + 40;
@@ -79,6 +74,17 @@ function tDefuseGo(tt, ts){
   if(tick - h0 < 52) return false;                                          // слушают ~0.8с
   if(tt._dfFake !== h0){ tt._dfFake = h0; voiceLog("T", "dffake"+h0, near.id, "тапнул и замолчал — фейк, не выходим, держим углы"); }
   return false;
+}
+// сколько длится дефуз по мнению T: с китом ли — не знаем, считаем по тому,
+// что поняли об их закупе (видели винтовки — значит, и кит, скорее всего, есть)
+function tDefuseNeed(){
+  var BR = teamIntel.T.buy, EG = teamEco.T.enemyGuess;
+  return (BR && BR.read ? BR.read === "buy" : !!(EG && EG.full)) ? DEFUSE_KIT_TICKS : DEFUSE_TICKS;
+}
+// сколько ему ещё дефузить по мнению T: от того, когда услышали начало
+function tDefuseLeftGuess(ts){
+  var st = -1; ts.forEach(function(b){ if(tick - (b._defuseHeard||-9999) < 110) st = Math.max(st, b._defuseStart||-1); });
+  return st < 0 ? null : Math.max(0, st + tDefuseNeed() - tick);
 }
 function bombTimeLeftTicks(){ return bomb && bomb.state==="planted" ? bomb.explodeTick - tick : Infinity; }
 
@@ -123,20 +129,8 @@ function bombTick(){
       logEvent(c.id+" закладывает бомбу на "+tac.site+"…", "bomb");
       // звук планта (писк C4): CT рядом (≤520px, или ≤850 по прямой видимости) слышат
       // и сразу говорят в войс — это самый сильный повод для колла/ротации
-      var heard = null;
-      bots.forEach(function(o){
-        if(o.team !== "CT" || !o.alive) return;
-        var dH = Math.hypot(o.x-c.x, o.y-c.y);
-        if(dH < 520 || (dH < 850 && hasLOS(o.x, o.y, c.x, c.y))){
-          o.heardSound = {x:c.x, y:c.y, tick:tick, team:"T", src:c.id, kind:"plant"};
-          if(!heard) heard = o;
-        }
-      });
-      if(heard){
-        intelPush("CT", {type:"sound", x:c.x, y:c.y, id:c.id, by:heard.id, kind:"plant", conf:0.9});
-        teamIntel.CT.plantHeard = {site:tac.site, tick:tick, x:c.x, y:c.y};
-        voiceLog("CT", "plant"+tac.site, heard.id, "плантят на "+tac.site+"! "+calloutName(c.x, c.y));
-      }
+      // (что плантят и на каком сайте, CT узнают, когда услышавший скажет — тимспик)
+      makeSound(c, c.x, c.y, "plant");
     }
   } else if(bomb.state === "dropped"){
     // подбирает любой живой T, пробежавший рядом

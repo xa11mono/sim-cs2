@@ -66,7 +66,7 @@ var GUN_HEAR_OPEN = 350, GUN_HEAR_WALL = 260; // px — слышно выстр�
 var AIM_TURN_RATE = 11;     // рад/с — разворот прицела (180° примерно за 0.3с)
 var AIM_FIRE_CONE = 0.30;   // рад (~17°) — насколько прицел должен быть на цели, чтобы стрелять
 var PREFIRE_RADIUS = 140; // px — насколько близко цель должна появиться к последней известной позиции, чтобы засчитать префайр
-var SOUND_RADIUS_RUN = 380, SOUND_RADIUS_WALK = 130; // v118: слышно дальше (было 250/90) — бег ≈950 юнитов CS2; // бег 250px по фидбеку; тихий шаг в той же пропорции (~0.36 от бега) // px — без учёта затухания через стены (упрощение v1, см. план §13)
+var SOUND_RADIUS_RUN = 380; // px — бег слышно по прямой (через стену — 0,75); шифт не слышно
 var FOOTSTEP_INTERVAL_RUN = 14, FOOTSTEP_INTERVAL_WALK = 20; // ticks между "шагами"-событиями
 var bots = [];
 var START_MONEY = 800, MAX_MONEY = 16000;
@@ -92,7 +92,7 @@ function makeTeam(team, spawnPt, count, weapon){
       crouching: false, holdSinceTick: -999, onStairs: false,
       burstCount: 0, lastShotTick: -999,
       peekType: null, peekSinceTick: 0,
-      lastIntel: null, walking: false, lastStepTick: -999, heardSound: null,
+      lastIntel: null, walking: false, lastStepTick: -999, heardSound: null, ears: [],
       // экономика (шаг 3)
       money: START_MONEY, primary: null, secondary: team==="CT" ? "USP" : "GLOCK",
       armor: false, helmet: false, kills: 0, deaths: 0, roundKills: 0

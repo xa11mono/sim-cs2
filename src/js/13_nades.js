@@ -158,18 +158,18 @@ function throwNade(b, type, tx, ty, lob, why){
   // ЧЕКУ/бросок и понимает направление и примерную дистанцию, откуда кинули,
   // даже без визуального контакта.
   if(typeof teamIntel !== "undefined"){
-    var enemyTeam = b.team === "CT" ? "T" : "CT";
+    var enemyTeam = b.team === "CT" ? "T" : "CT", sawThrow = {};
     bots.forEach(function(o){
-      if(!o.alive || o.team !== enemyTeam) return;
-      var dd = Math.hypot(o.x-b.x, o.y-b.y);
-      if(hasVision(o.x, o.y, b.x, b.y)){
-        intelPush(enemyTeam, {type:"spotted", x:b.x, y:b.y, id:b.id, by:o.id, conf:1});
-        o.lastIntel = {x:b.x, y:b.y, tick:tick};
-      } else if(dd <= NADE_HEAR_R){
-        intelPush(enemyTeam, {type:"sound", x:b.x, y:b.y, id:b.id, by:o.id, conf:0.5, kind:"nade"});
-        o.heardSound = {x:b.x, y:b.y, tick:tick, team:b.team, src:b.id, kind:"nade"};
-      }
+      if(!o.alive || o.team !== enemyTeam || !hasVision(o.x, o.y, b.x, b.y)) return;
+      sawThrow[o.id] = true;
+      intelPush(enemyTeam, {type:"spotted", x:b.x, y:b.y, id:b.id, by:o.id, conf:1});
+      o.lastIntel = {x:b.x, y:b.y, tick:tick};
     });
+    var notSaw = function(o){ return sawThrow[o.id]; };
+    makeSound(b, b.x, b.y, "nade", {skip: notSaw});
+    // видел полёт (треть пути), но не того, кто кинул, — понимает примерно, откуда
+    var fx = b.x + ((nd.lob ? nd.tx : tx) - b.x)*0.35, fy = b.y + ((nd.lob ? nd.ty : ty) - b.y)*0.35;
+    makeSound(b, b.x, b.y, "nadefly", {via:{x:fx, y:fy}, skip: notSaw});
   }
   return true;
 }
@@ -325,7 +325,9 @@ function nadeWallHit(x1,y1,x2,y2){
 function detonate(n){
   var T = n.type;
   // (11) гранаты видно/слышно: где разорвалась граната врага — это инфа о его плане
-  if(BAL.tacRead && roundState === "live" && T !== "decoy"){ var foeT = n.team === "T" ? "CT" : "T"; var NS = teamIntel[foeT].nadeSeen || (teamIntel[foeT].nadeSeen = []); NS.push({x:n.x, y:n.y, type:T, tick:tick}); if(NS.length > 30) NS.shift(); }
+  // — но только тем, кто её услышал или увидел (makeSound "pop"), и команда
+  // узнаёт через колл (intelPush → nadeSeen)
+  if(roundState === "live" && T !== "decoy" && n.thrower) makeSound(n.thrower, n.x, n.y, "pop", {info:{ntype:T}});
   if(T === "smoke"){ smokes.push({x:n.x, y:n.y, born:tick, until:tick+NADE.smoke.life, team:n.team}); if(BAL.smokeReact) smokeShiftOnDetonate(smokes[smokes.length-1]); }
   else if(T === "molly"){
     // молотов, упавший в дым, гаснет (как в CS2 — наоборот тоже: дым тушит огонь)
@@ -464,13 +466,16 @@ function antiEco(team){
 }
 // (13) инфа о закупе врага по первым контактам: увидели — запомнили, с чем он.
 // Двое+ с пистолетами → эко; хоть одна винтовка/AWP → закуп (эко-оценка снимается)
-function buyReadSee(team, eid){
-  var e = bots.filter(function(o){ return o.id === eid; })[0]; if(!e || !e.alive) return;
+// wkey — оружие, которое реально видели (в руках или в киллфиде): с пистолетом
+// в руках он для нас «с пистолетом», даже если винтовка за спиной
+function buyReadSee(team, eid, wkey){
   var TI = teamIntel[team], R = TI.buy || (TI.buy = {seen:{}, n:0, pistols:0, rifles:0, smg:0, read:null});
-  if(R.seen[eid]) return;
-  var k = e.primary || null, W = k && WEAPONS[k];
-  R.seen[eid] = k || "pistol"; R.n++;
-  if(!W) R.pistols++; else if(W.price >= 2000) R.rifles++; else R.smg++;
+  var W = WEAPONS[wkey]; if(!W) return;
+  var prevK = R.seen[eid], isPistol = W.slot === "secondary";
+  if(prevK && (isPistol || WEAPONS[prevK].slot !== "secondary")) return; // уже видели; пистолет → винтовка — уточняем
+  if(prevK){ R.pistols--; R.n--; }
+  R.seen[eid] = wkey; R.n++;
+  if(isPistol) R.pistols++; else if(W.price >= 2000) R.rifles++; else R.smg++;
   var prev = R.read;
   if(R.rifles >= 1 || (R.smg + R.rifles >= 2)) R.read = "buy";
   else if(R.pistols >= 2) R.read = "eco";
@@ -479,7 +484,7 @@ function buyReadSee(team, eid){
   if(R.read && R.read !== prev){
     var mate = bots.filter(function(o){ return o.team === team && o.alive; })[0];
     if(mate) voiceLog(team, "buy"+R.read, mate.id, R.read === "eco" ? "у них пистолеты ("+R.pistols+" видели) — эко, не лезем в упор, держим дистанцию"
-      : "у "+eid+" "+(W ? W.name : "оружие")+" — это закуп, не эко");
+      : "у "+eid+" "+W.name+" — это закуп, не эко");
     logEvent(team+": закуп врага по контактам — "+(R.read === "eco" ? "эко" : "закуп")+" (видели: "+R.n+", винтовок "+R.rifles+", пистолетов "+R.pistols+")");
   }
 }
@@ -596,8 +601,8 @@ function nadeReact(){
     var early = tick - roundStartTick < 25*TICK_HZ;
     picRecent("CT", 2.5*TICK_HZ).forEach(function(q){ if(Math.hypot(q.x-ent.x, q.y-ent.y) < 700) srcs[q.id] = 1; });
     if(Object.keys(srcs).length < (early ? 1 : 2)) return;
-    if(BAL.noLeaks){ var onS = {}; picRecent("CT", 1.5*TICK_HZ).forEach(function(q){ if(q.src === "spotted" && Math.hypot(q.x-SITES[k].x, q.y-SITES[k].y) < 220) onS[q.id] = 1; }); if(Object.keys(onS).length > 1) return; }
-    else if(bots.filter(function(o){ return o.alive && o.team === "T" && Math.hypot(o.x-SITES[k].x, o.y-SITES[k].y) < 220; }).length > 1) return; // уже зашли — поздно
+    // двое уже на сайте (видели) — зашли, поздно
+    var onS = {}; picRecent("CT", 1.5*TICK_HZ).forEach(function(q){ if(q.src === "spotted" && Math.hypot(q.x-SITES[k].x, q.y-SITES[k].y) < 220) onS[q.id] = 1; }); if(Object.keys(onS).length > 1) return;
     var c = bots.filter(function(b){ return b.alive && b.team === "CT" && b.nades && b.nades.molly > 0 && !b.nadeTask && !b._sawEnemy &&
       Math.hypot(b.x-ent.x, b.y-ent.y) < NADE_THROW_RANGE*1.1 && Math.hypot(b.x-ent.x, b.y-ent.y) > 150; })
       .sort(function(a, b2){ return Math.hypot(a.x-ent.x, a.y-ent.y) - Math.hypot(b2.x-ent.x, b2.y-ent.y); })[0];

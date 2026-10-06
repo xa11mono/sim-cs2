@@ -144,7 +144,7 @@ function exposedShiftTick(b){
   if(!hurt && !shot) return;
   if(b._esT && tick - b._esT < 6*TICK_HZ) return; b._esT = tick;
   var foe = b.team === "CT" ? "T" : "CT";
-  if(BAL.noLeaks ? aliveCount(foe) === 0 : !bots.some(function(o){ return o.alive && o.team === foe && Math.hypot(o.x-b.x, o.y-b.y) < 1400; })) return;
+  if(aliveCount(foe) === 0) return;
   shiftHold(b, {x:li.x, y:li.y}, null, hurt ? "ранили, позиция известна" : "по мне стреляли, позиция известна");
 }
 // (v163) где враг из точки q выйдет на линию бота: идём по его пути к боту,

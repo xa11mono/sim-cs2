@@ -48,6 +48,7 @@ function payRoundEconomy(winner, reason){
       var inc = income;
       if(!won && team === "T" && reason === "time" && b.alive) inc = 0;
       b.money = Math.min(MAX_MONEY, b.money + inc);
+      foeIncome(team === "CT" ? "T" : "CT", b.id, inc); // доход видно всем: счёт, плант, кто дожил
     });
     te.lastIncome = income;
     if(roundNum === 1 || roundNum === HALF_ROUNDS+1) te.wonPistol = won;
@@ -87,13 +88,13 @@ function fullNeed(b){
 }
 function nextLossIncome(team){ return LOSS_BONUS[Math.min(4, teamEco[team].lossLevel)]; }
 
-// оценка денег соперника: про считают по лосс-бонусу и тому, что те сохранили;
-// у нас — реальная средняя сумма с погрешностью ±$500 (не телепатия, а подсчёт)
+// оценка денег соперника — подсчёт по открытому (FOE в 09_knowledge.js:
+// доход по итогам раундов, фраги из киллфида, что они, скорее всего, купили),
+// а не их настоящие деньги; «сохранили оружие» — дожили с ним, и его видели
 function enemyEcoGuess(team){
-  var en = team === "CT" ? "T" : "CT", ms = bots.filter(function(b){ return b.team === en; });
-  var avg = ms.reduce(function(a, b){ return a + b.money; }, 0) / Math.max(1, ms.length);
-  var guns = ms.filter(function(b){ return b.primary && WEAPONS[b.primary].tier >= 5; }).length; // сохранили винтовки
-  avg += (hashRand(roundNum*557 + matchNum*19 + (team === "CT" ? 1 : 2)) - 0.5)*1000;
+  var ms = bots.filter(function(b){ return b.team !== team; });
+  var avg = ms.reduce(function(a, b){ return a + foeMoney(team, b.id); }, 0) / Math.max(1, ms.length);
+  var guns = ms.filter(function(b){ var g = FOE[team].gun[b.id]; return g && WEAPONS[g].tier >= 5; }).length;
   var full = guns >= 3 || avg >= 4200;
   var eco = !full && guns <= 1 && avg < 2300;
   return {avg:avg, full:full, eco:eco, guns:guns};
@@ -103,6 +104,7 @@ function decideRoundType(team){
   if(base === "pistol") return base;
   var E = enemyEcoGuess(team), te = teamEco[team];
   te.enemyGuess = E; // оценка ДО закупа — по ней CT потом решают "играем против эко"
+  foeBuyGuess(team);  // и сразу: что они на это, скорее всего, купили
   var mates = bots.filter(function(b){ return b.team === team; });
   var avg = mates.reduce(function(a, b){ return a + b.money; }, 0) / mates.length;
   var lastOfHalf = lastOfHalfNow();
@@ -282,6 +284,7 @@ function buyPhase(){
 }
 
 function startHalf(silent){
+  foeEcoHalf();
   bots.forEach(function(b){
     b.money = START_MONEY; b.primary = null; b.secondary = b.team==="CT" ? "USP" : "GLOCK";
     b.armor = false; b.helmet = false; b.kit = false; b.weapon = WEAPONS[b.secondary]; b.nades = emptyNades();
@@ -315,6 +318,7 @@ function freshMatch(n){
 }
 function newMatch(){
   matchNum++;
+  foeReset();
   score.CT = 0; score.T = 0;
   roundNum = 0;
   bots.forEach(function(b){ b.kills = 0; b.deaths = 0; });
@@ -394,7 +398,7 @@ function resetRound(){
     b.pickTick = -999; b.contactStreak = 0; b.nextShotTick = 0;
     b.state = "patrol"; b.decisionTick = -999; b.holding = false; b.forcedRetreat = false;
     b.facing = undefined; b.heading = undefined; b.curSpeed = 0; b.crouching = false; b.holdSinceTick = -999; b.onStairs = false;
-    b.lastIntel = null; b.walking = false; b.lastStepTick = -999; b.heardSound = null;
+    b.lastIntel = null; b.walking = false; b.lastStepTick = -999; b.heardSound = null; b.ears = []; b._heardReload = null;
     b.burstCount = 0; b._fire = null; b.lastShotTick = -999; b._ammoFor = null; b._reloading = false; b._onPistol = null; b._secAmmo = null; b._blind = null; b._ds = null; b._trail = []; b._tagUntil = 0; b._knife = false; b._drawUntil = 0; b.peekType = null; b.peekSinceTick = 0; b.stuckTicks = 0;
     b._prevOffX = 0; b._prevOffY = 0; b.lookTarget = null; b.lookReason = null;
     initRoam(b);

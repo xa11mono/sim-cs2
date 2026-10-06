@@ -74,6 +74,7 @@ function computeApproaches(){
   return out;
 }
 function updateRetake(cts){
+  var BP = ctBombPos(); // где бомба по мнению CT (писк), а не точка в игре
   var R = bomb.retake;
   if(!R){
     R = bomb.retake = {approaches: computeApproaches(), assign:{}, phase:"gather", goTick:-1};
@@ -105,13 +106,13 @@ function updateRetake(cts){
   var prevDef = R.defId && alive.filter(function(b){ return b.id === R.defId; })[0];
   if(prevDef) def = prevDef;
   else alive.forEach(function(b){
-    var d = Math.hypot(b.baseX-bomb.x, b.baseY-bomb.y) - (b.kit ? 400 : 0); // кит важнее пары метров
+    var d = Math.hypot(b.baseX-BP.x, b.baseY-BP.y) - (b.kit ? 400 : 0); // кит важнее пары метров
     if(d < dBest){ dBest = d; def = b; }
   });
   if(def) R.defId = def.id;
   alive.forEach(function(b){ b.retakeRole = (b === def) ? "defuser" : (R.assign[b.id] !== 0 ? "flank" : "cover"); });
   if(BAL.ninjaDefuse && (R.phase === "gather" || R.phase === "util") && def && ninjaOk()){
-    var tLeftN = bombTimeLeftTicks()/TICK_HZ, dN = Math.hypot(def.x-bomb.x, def.y-bomb.y);
+    var tLeftN = bombTimeLeftTicks()/TICK_HZ, dN = Math.hypot(def.x-BP.x, def.y-BP.y);
     if(tLeftN > dN/SPEED*1.3 + (def.kit ? 5 : 10) + 1){
       R.phase = "go"; R.goTick = tick; R.ninja = tick; R.entryId = "-";
       voiceLog("CT", "ninja", def.id, "их нет у бомбы — тихо дефузю, прикройте");
@@ -125,7 +126,7 @@ function updateRetake(cts){
       // у про второй заходит через ~3с после первого, у ботов было 5с: ждём
       // каждого, кто успевает дойти до своей точки сбора и ещё зайти на дефуз
       var sL = bombTimeLeftTicks()/TICK_HZ, aD = R.approaches[R.assign[def.id]] || R.approaches[0];
-      var gN = Math.hypot(aD.x-bomb.x, aD.y-bomb.y)/SPEED*1.3 + (def.kit ? 5 : 10) + 1.5;
+      var gN = Math.hypot(aD.x-BP.x, aD.y-BP.y)/SPEED*1.3 + (def.kit ? 5 : 10) + 1.5;
       need = alive.filter(function(b){ var ap = R.approaches[R.assign[b.id]] || aD; return pathLenTo(b, ap.x, ap.y)/SPEED <= sL - gN - 2; }).length;
       need = Math.max(1, need);
       if(!R.gStart) R.gStart = tick;
@@ -133,7 +134,7 @@ function updateRetake(cts){
     var secsLeft = bombTimeLeftTicks()/TICK_HZ;
     // сколько нужно на заход: от точки сбора до бомбы + дефуз
     var a0 = R.approaches[R.assign[def.id]];
-    var goNeed = Math.hypot(a0.x-bomb.x, a0.y-bomb.y)/SPEED*1.3 + (def.kit ? 5 : 10) + 1.5;
+    var goNeed = Math.hypot(a0.x-BP.x, a0.y-BP.y)/SPEED*1.3 + (def.kit ? 5 : 10) + 1.5;
     var late = secsLeft - goNeed < 3;
     if(ready >= need || late){
       // ретейк как команда: сначала утилита (флешка на сайт/на известного T,
@@ -149,7 +150,7 @@ function updateRetake(cts){
   }
   if(R.phase === "util"){
     var popped = nadeFlags["pop:ретейк"] !== undefined && tick - nadeFlags["pop:ретейк"] >= 6;
-    var lateU = bombTimeLeftTicks()/TICK_HZ - ((def ? Math.hypot(def.x-bomb.x, def.y-bomb.y) : 400)/SPEED*1.3 + (def && def.kit ? 5 : 10) + 1.5) < 3;
+    var lateU = bombTimeLeftTicks()/TICK_HZ - ((def ? Math.hypot(def.x-BP.x, def.y-BP.y) : 400)/SPEED*1.3 + (def && def.kit ? 5 : 10) + 1.5) < 3;
     if(popped || tick - R.utilTick > 2.2*TICK_HZ || lateU){
       R.phase = "go"; R.goTick = tick;
       logEvent("CT: ретейк — заходим"+(popped ? " под флешку!" : "!"), "team");
@@ -168,7 +169,7 @@ function updateRetake(cts){
   // первый входящий: не дефузер, из основной точки захода, ближе всех к бомбе
   if(R.phase === "go" && BAL.retakeRoles && !R.entryId){
     var ents = alive.filter(function(b){ return b !== def; });
-    ents.sort(function(a, c){ return ((R.assign[a.id] === 0 ? 0 : 300) + Math.hypot(a.x-bomb.x, a.y-bomb.y)) - ((R.assign[c.id] === 0 ? 0 : 300) + Math.hypot(c.x-bomb.x, c.y-bomb.y)); });
+    ents.sort(function(a, c){ return ((R.assign[a.id] === 0 ? 0 : 300) + Math.hypot(a.x-BP.x, a.y-BP.y)) - ((R.assign[c.id] === 0 ? 0 : 300) + Math.hypot(c.x-BP.x, c.y-BP.y)); });
     R.entryId = ents[0] ? ents[0].id : "-";
     if(ents[0]) voiceLog("CT", "rtentry", ents[0].id, "захожу первым, "+(def ? def.id+" дефузит за мной" : "прикрывайте"));
   }
@@ -222,8 +223,8 @@ function retakePost(b, cts){
   if(BAL.groupRetake && R.goTick >= 0){
     if(!R.delay){
       R.delay = {}; var dm = 0;
-      R.approaches.forEach(function(ap){ dm = Math.max(dm, Math.hypot(ap.x-bomb.x, ap.y-bomb.y)); });
-      R.approaches.forEach(function(ap, i){ R.delay[i] = Math.min(2.5*TICK_HZ, Math.max(0, (dm - Math.hypot(ap.x-bomb.x, ap.y-bomb.y))/SPEED*TICK_HZ)); });
+      R.approaches.forEach(function(ap){ dm = Math.max(dm, Math.hypot(ap.x-bp.x, ap.y-bp.y)); });
+      R.approaches.forEach(function(ap, i){ R.delay[i] = Math.min(2.5*TICK_HZ, Math.max(0, (dm - Math.hypot(ap.x-bp.x, ap.y-bp.y))/SPEED*TICK_HZ)); });
     }
     var dl = R.delay[R.assign[b.id]||0] || 0;
     if(tick - R.goTick < dl){ setPost(b, a, bp, true, "gather"+(R.assign[b.id]||0), 0); return; }
@@ -238,12 +239,13 @@ function retakePost(b, cts){
   setPost(b, spots[oi] || bp, bp, true, (BAL.retakeRoles && b.id === R.entryId) ? "retakeEntry" : "retake");
 }
 function retakeDefGo(b, R, cts){
+  var bp = ctBombPos();
   var secsLeft = bombTimeLeftTicks()/TICK_HZ;
-  var late2 = secsLeft - (Math.hypot(b.x-bomb.x, b.y-bomb.y)/SPEED*1.2 + (b.kit ? 5 : 10) + 1) < 2.5;
+  var late2 = secsLeft - (Math.hypot(b.x-bp.x, b.y-bp.y)/SPEED*1.2 + (b.kit ? 5 : 10) + 1) < 2.5;
   if(late2) return true;
   if(cts.filter(function(o){ return !o._saveSpot; }).length <= 1) return true;
   var ent = R.entryId && bots.filter(function(o){ return o.id === R.entryId; })[0];
   if(!ent || !ent.alive) return true;
-  if(Math.hypot(ent.x-bomb.x, ent.y-bomb.y) < 280) return true;
+  if(Math.hypot(ent.x-bp.x, ent.y-bp.y) < 280) return true;
   return tick - R.goTick > 2.5*TICK_HZ;
 }

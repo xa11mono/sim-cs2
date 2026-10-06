@@ -81,7 +81,7 @@
 <div id="app">
   <div id="topbar">
     <h1>ANCIENT — LIVE RADAR</h1>
-    <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 182 · 06.10</div>
+    <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 183 · 06.10</div>
     <button id="btnPause">Пауза</button>
     <button id="btnRestartRound" title="Немедленно сбросить текущий раунд — на случай если боты застряли">Рестарт раунда</button>
     <span class="chk" title="Матч с одним номером всегда проходит одинаково. Увидел баг — запиши номер матча и тик, введи номер и нажми «Сыграть»: матч повторится с начала">матч № <input id="inpMatchNum" type="number" min="1" value="1" style="width:52px"> <button id="btnFreshMatch">Сыграть</button> <span id="matchTick" style="opacity:.75"></span></span>
@@ -1384,7 +1384,7 @@ var GUN_HEAR_OPEN = 350, GUN_HEAR_WALL = 260; // px — слышно выстр�
 var AIM_TURN_RATE = 11;     // рад/с — разворот прицела (180° примерно за 0.3с)
 var AIM_FIRE_CONE = 0.30;   // рад (~17°) — насколько прицел должен быть на цели, чтобы стрелять
 var PREFIRE_RADIUS = 140; // px — насколько близко цель должна появиться к последней известной позиции, чтобы засчитать префайр
-var SOUND_RADIUS_RUN = 380, SOUND_RADIUS_WALK = 130; // v118: слышно дальше (было 250/90) — бег ≈950 юнитов CS2; // бег 250px по фидбеку; тихий шаг в той же пропорции (~0.36 от бега) // px — без учёта затухания через стены (упрощение v1, см. план §13)
+var SOUND_RADIUS_RUN = 380; // px — бег слышно по прямой (через стену — 0,75); шифт не слышно
 var FOOTSTEP_INTERVAL_RUN = 14, FOOTSTEP_INTERVAL_WALK = 20; // ticks между "шагами"-событиями
 var bots = [];
 var START_MONEY = 800, MAX_MONEY = 16000;
@@ -1410,7 +1410,7 @@ function makeTeam(team, spawnPt, count, weapon){
       crouching: false, holdSinceTick: -999, onStairs: false,
       burstCount: 0, lastShotTick: -999,
       peekType: null, peekSinceTick: 0,
-      lastIntel: null, walking: false, lastStepTick: -999, heardSound: null,
+      lastIntel: null, walking: false, lastStepTick: -999, heardSound: null, ears: [],
       // экономика (шаг 3)
       money: START_MONEY, primary: null, secondary: team==="CT" ? "USP" : "GLOCK",
       armor: false, helmet: false, kills: 0, deaths: 0, roundKills: 0
@@ -1506,7 +1506,6 @@ var BAL = {
   duelValue: true,    // v154: дуэль оценивается с учётом размена рядом (≤350px), перевеса и ситуации: один без размена — не лезет
   smoothLook: true,   // v153: взгляд держит направление 0,5–0,8с, не мечется туда-обратно; вне боя поворот плавный и медленнее, стоя — без дрожи
   holdTask: true,
-  noLeaks: true,      // v146: команды решают только по тому, что реально знают
   egFix: true,
   ppSpread: true,
   claimStrong: true,
@@ -1606,7 +1605,7 @@ var BAL = {
   shiftOnClear: true, // проба увидела "пусто" → двое идут брать контроль в другом месте
   soloSlow: true,     // T в клатче с бомбой без инфы идёт на шифте, а не бежит // постоянная инфа: последняя известная позиция врага держится, пока не обновят
    ctSetups: true, smokeEntry: true, // раздел 13: привычки CT для T, пул расстановок CT
-  midTake: true, stopPlant: true, reangle: true, silentWalk: true,
+  midTake: true, stopPlant: true, reangle: true,
   antiDefuse: true, lurkCheck: true,
   plantChoice: true, repos: true, keepMol: true, // раздел 12 (хвосты)
   ctSetup: "2-1-2",   // расстановка CT: "1-1-1" (ротатор между сайтами) или "2-1-2" (ротатор вторым на сайт)
@@ -1998,7 +1997,7 @@ function updatePost(b){
       // встал с AWP на угол — щелчок зума слышно рядом (≤200 по прямой, ≤120 за стеной)
       if(b.weapon && b.weapon.key === "AWP" && roundState === "live" && tick - (b._zoomTick||-9999) > 3*TICK_HZ){
         b._zoomTick = tick;
-        emitSound(b, b.x, b.y, 200, 120, "zoom", tick*53 + (b.id.charCodeAt(b.id.length-1)||0)).forEach(function(o){
+        makeSound(b, b.x, b.y, "zoom").forEach(function(o){
           voiceLog(o.team, "zoom"+b.id, o.id, "слышу зум AWP "+calloutName(o.heardSound.x, o.heardSound.y));
         });
       }
@@ -2056,19 +2055,14 @@ function dropBomb(b){
 // звук дефуза слышат T в радиусе 700px — именно звук, а не "всезнание":
 // T, которые не рядом, про дефуз не знают
 var DEFUSE_HEAR = 700;
-function defuseSound(ct){
-  bots.forEach(function(o){
-    if(!o.alive || o.team !== "T") return;
-    if(Math.hypot(o.x-bomb.x, o.y-bomb.y) < DEFUSE_HEAR){ o._defuseHeard = tick; o.heardSound = {x:bomb.x, y:bomb.y, tick:tick, team:"CT"}; }
-  });
-}
+function defuseSound(ct){ makeSound(ct, bomb.x, bomb.y, "defuse"); }
 // (6) звук дефуза длится, пока дефузят: T рядом слышат, что он продолжается
 // (фейк — короткий "тап" и тишина). По этому и отличают фейк от настоящего
 function defuseContTick(){
   if(!bomb || bomb.state !== "planted") return;
-  var dfz = bots.some(function(o){ return o.alive && o.defusing; });
+  var dfz = bots.filter(function(o){ return o.alive && o.defusing; })[0];
   if(!dfz || tick % 8) return;
-  bots.forEach(function(o){ if(o.alive && o.team === "T" && Math.hypot(o.x-bomb.x, o.y-bomb.y) < DEFUSE_HEAR) o._defuseCont = tick; });
+  makeSound(dfz, bomb.x, bomb.y, "defusing");
 }
 // T решают, бежать ли на звук дефуза сейчас: если время позволяет — ~0.8с
 // ждут, продолжается ли звук (настоящий дефуз) или стих (фейк — CT ждут пика).
@@ -2079,7 +2073,7 @@ function tDefuseGo(tt, ts){
   var h0 = Math.max.apply(null, heard.map(function(b){ return b._defuseHeard; }));
   var cont = ts.some(function(b){ return (b._defuseCont||-9999) > h0 + 36; });
   if(cont){ if(tt._dfRead !== h0){ tt._dfRead = h0; voiceLog("T", "dfreal"+h0, heard[0].id, "дефуз не прекращается — настоящий, все на бомбу!"); } return true; }
-  var kitGuess = teamEco.CT.roundType === "full" ? DEFUSE_KIT_TICKS : DEFUSE_TICKS;
+  var kitGuess = tDefuseNeed();
   var near = heard.slice().sort(function(a, c){ return pathLenTo(a, bomb.x, bomb.y) - pathLenTo(c, bomb.x, bomb.y); })[0];
   var travel = pathLenTo(near, bomb.x, bomb.y)/SPEED*TICK_HZ;
   var canWait = travel + 60 < kitGuess && bombTimeLeftTicks() > kitGuess + 40;
@@ -2088,6 +2082,17 @@ function tDefuseGo(tt, ts){
   if(tick - h0 < 52) return false;                                          // слушают ~0.8с
   if(tt._dfFake !== h0){ tt._dfFake = h0; voiceLog("T", "dffake"+h0, near.id, "тапнул и замолчал — фейк, не выходим, держим углы"); }
   return false;
+}
+// сколько длится дефуз по мнению T: с китом ли — не знаем, считаем по тому,
+// что поняли об их закупе (видели винтовки — значит, и кит, скорее всего, есть)
+function tDefuseNeed(){
+  var BR = teamIntel.T.buy, EG = teamEco.T.enemyGuess;
+  return (BR && BR.read ? BR.read === "buy" : !!(EG && EG.full)) ? DEFUSE_KIT_TICKS : DEFUSE_TICKS;
+}
+// сколько ему ещё дефузить по мнению T: от того, когда услышали начало
+function tDefuseLeftGuess(ts){
+  var st = -1; ts.forEach(function(b){ if(tick - (b._defuseHeard||-9999) < 110) st = Math.max(st, b._defuseStart||-1); });
+  return st < 0 ? null : Math.max(0, st + tDefuseNeed() - tick);
 }
 function bombTimeLeftTicks(){ return bomb && bomb.state==="planted" ? bomb.explodeTick - tick : Infinity; }
 
@@ -2132,20 +2137,8 @@ function bombTick(){
       logEvent(c.id+" закладывает бомбу на "+tac.site+"…", "bomb");
       // звук планта (писк C4): CT рядом (≤520px, или ≤850 по прямой видимости) слышат
       // и сразу говорят в войс — это самый сильный повод для колла/ротации
-      var heard = null;
-      bots.forEach(function(o){
-        if(o.team !== "CT" || !o.alive) return;
-        var dH = Math.hypot(o.x-c.x, o.y-c.y);
-        if(dH < 520 || (dH < 850 && hasLOS(o.x, o.y, c.x, c.y))){
-          o.heardSound = {x:c.x, y:c.y, tick:tick, team:"T", src:c.id, kind:"plant"};
-          if(!heard) heard = o;
-        }
-      });
-      if(heard){
-        intelPush("CT", {type:"sound", x:c.x, y:c.y, id:c.id, by:heard.id, kind:"plant", conf:0.9});
-        teamIntel.CT.plantHeard = {site:tac.site, tick:tick, x:c.x, y:c.y};
-        voiceLog("CT", "plant"+tac.site, heard.id, "плантят на "+tac.site+"! "+calloutName(c.x, c.y));
-      }
+      // (что плантят и на каком сайте, CT узнают, когда услышавший скажет — тимспик)
+      makeSound(c, c.x, c.y, "plant");
     }
   } else if(bomb.state === "dropped"){
     // подбирает любой живой T, пробежавший рядом
@@ -2535,8 +2528,8 @@ function lurkerBrain(b, tt, other){
     return;
   }
   if(tt.phase === "postplant"){
-    var R = bomb && bomb.retake;
-    if(BAL.noLeaks && GEO[tt.site] && GEO[tt.site].ctEntry){ R = {approaches:[GEO[tt.site].ctEntry]}; }
+    // откуда пойдёт ретейк — T не знают план CT, только вход CT на этот сайт
+    var R = GEO[tt.site] && GEO[tt.site].ctEntry ? {approaches:[GEO[tt.site].ctEntry]} : null;
     if(R && R.approaches && R.approaches.length){
       var a = R.approaches[0];
       // за точкой сбора CT, со стороны их спавна — в спину ретейку
@@ -3309,9 +3302,8 @@ function tBrain(){
       // (S6) не успеть — не бежать на троих: сколько осталось дефузить (кит
       // не знаем — считаем, что есть, если у CT был фулл-бай), и сколько бежать
       if(BAL.defuseReach){
-        var dfz = bots.filter(function(o){ return o.defusing && o.alive; })[0];
-        var remT = dfz ? Math.max(0, (dfz.defuseUntil||tick) - tick) : 0;
-        if(dfz && !(dfz.defuseUntil) ) remT = (teamEco.CT.roundType === "full" ? DEFUSE_KIT_TICKS : DEFUSE_TICKS);
+        // слышали, когда начали, а с китом ли — догадка по их закупу
+        var remT = tDefuseLeftGuess(ts), dfz = remT != null;
         var late = antiDef.filter(function(b){ return pathLenTo(b, bpA.x, bpA.y)/SPEED*TICK_HZ > remT + 24; });
         if(dfz && late.length === antiDef.length && late.length && !tt._defLate){
           tt._defLate = tick;
@@ -3335,13 +3327,10 @@ function tBrain(){
     // лёркер, оставшийся последним (уже не лёркер), — тоже на пост-плант, а не стоит где поставил
     if(!lurker) group = group.concat(ts.filter(function(b){ return b.tRole === "lurker" && antiDef.indexOf(b) < 0 && group.indexOf(b) < 0 && !b.planting; }));
     // CT ушли в сейв и времени много — пара T идёт выбивать оружие
-    var ctSaving = teamTac.CT && teamTac.CT.saving;
-    if(BAL.noLeaks){
-      // CT не идут на ретейк: после планта прошло 15с+, у бомбы и на подходах их
-      // не видели и не слышали 10с, и их меньше нас — похоже на сейв
-      var ctNearB = intelEstimate("T", bomb.x, bomb.y, 1200, 10*TICK_HZ);
-      ctSaving = tick - bomb.plantTick > 15*TICK_HZ && (ctNearB.seen + ctNearB.heard) === 0 && aliveCount("CT") < ts.length;
-    }
+    // CT не идут на ретейк: после планта прошло 15с+, у бомбы и на подходах их
+    // не видели и не слышали 10с, и их меньше нас — похоже на сейв
+    var ctNearB = intelEstimate("T", bomb.x, bomb.y, 1200, 10*TICK_HZ);
+    var ctSaving = tick - bomb.plantTick > 15*TICK_HZ && (ctNearB.seen + ctNearB.heard) === 0 && aliveCount("CT") < ts.length;
     if(ctSaving && bombTimeLeftTicks() > 12*TICK_HZ){
       var hunters = group.filter(function(b){ return b.tRole==="entry" || b.tRole==="support"; });
       // где CT вероятнее всего прячутся: раньше было всего 2-3 фиксированные
@@ -3597,6 +3586,7 @@ function computeApproaches(){
   return out;
 }
 function updateRetake(cts){
+  var BP = ctBombPos(); // где бомба по мнению CT (писк), а не точка в игре
   var R = bomb.retake;
   if(!R){
     R = bomb.retake = {approaches: computeApproaches(), assign:{}, phase:"gather", goTick:-1};
@@ -3628,13 +3618,13 @@ function updateRetake(cts){
   var prevDef = R.defId && alive.filter(function(b){ return b.id === R.defId; })[0];
   if(prevDef) def = prevDef;
   else alive.forEach(function(b){
-    var d = Math.hypot(b.baseX-bomb.x, b.baseY-bomb.y) - (b.kit ? 400 : 0); // кит важнее пары метров
+    var d = Math.hypot(b.baseX-BP.x, b.baseY-BP.y) - (b.kit ? 400 : 0); // кит важнее пары метров
     if(d < dBest){ dBest = d; def = b; }
   });
   if(def) R.defId = def.id;
   alive.forEach(function(b){ b.retakeRole = (b === def) ? "defuser" : (R.assign[b.id] !== 0 ? "flank" : "cover"); });
   if(BAL.ninjaDefuse && (R.phase === "gather" || R.phase === "util") && def && ninjaOk()){
-    var tLeftN = bombTimeLeftTicks()/TICK_HZ, dN = Math.hypot(def.x-bomb.x, def.y-bomb.y);
+    var tLeftN = bombTimeLeftTicks()/TICK_HZ, dN = Math.hypot(def.x-BP.x, def.y-BP.y);
     if(tLeftN > dN/SPEED*1.3 + (def.kit ? 5 : 10) + 1){
       R.phase = "go"; R.goTick = tick; R.ninja = tick; R.entryId = "-";
       voiceLog("CT", "ninja", def.id, "их нет у бомбы — тихо дефузю, прикройте");
@@ -3648,7 +3638,7 @@ function updateRetake(cts){
       // у про второй заходит через ~3с после первого, у ботов было 5с: ждём
       // каждого, кто успевает дойти до своей точки сбора и ещё зайти на дефуз
       var sL = bombTimeLeftTicks()/TICK_HZ, aD = R.approaches[R.assign[def.id]] || R.approaches[0];
-      var gN = Math.hypot(aD.x-bomb.x, aD.y-bomb.y)/SPEED*1.3 + (def.kit ? 5 : 10) + 1.5;
+      var gN = Math.hypot(aD.x-BP.x, aD.y-BP.y)/SPEED*1.3 + (def.kit ? 5 : 10) + 1.5;
       need = alive.filter(function(b){ var ap = R.approaches[R.assign[b.id]] || aD; return pathLenTo(b, ap.x, ap.y)/SPEED <= sL - gN - 2; }).length;
       need = Math.max(1, need);
       if(!R.gStart) R.gStart = tick;
@@ -3656,7 +3646,7 @@ function updateRetake(cts){
     var secsLeft = bombTimeLeftTicks()/TICK_HZ;
     // сколько нужно на заход: от точки сбора до бомбы + дефуз
     var a0 = R.approaches[R.assign[def.id]];
-    var goNeed = Math.hypot(a0.x-bomb.x, a0.y-bomb.y)/SPEED*1.3 + (def.kit ? 5 : 10) + 1.5;
+    var goNeed = Math.hypot(a0.x-BP.x, a0.y-BP.y)/SPEED*1.3 + (def.kit ? 5 : 10) + 1.5;
     var late = secsLeft - goNeed < 3;
     if(ready >= need || late){
       // ретейк как команда: сначала утилита (флешка на сайт/на известного T,
@@ -3672,7 +3662,7 @@ function updateRetake(cts){
   }
   if(R.phase === "util"){
     var popped = nadeFlags["pop:ретейк"] !== undefined && tick - nadeFlags["pop:ретейк"] >= 6;
-    var lateU = bombTimeLeftTicks()/TICK_HZ - ((def ? Math.hypot(def.x-bomb.x, def.y-bomb.y) : 400)/SPEED*1.3 + (def && def.kit ? 5 : 10) + 1.5) < 3;
+    var lateU = bombTimeLeftTicks()/TICK_HZ - ((def ? Math.hypot(def.x-BP.x, def.y-BP.y) : 400)/SPEED*1.3 + (def && def.kit ? 5 : 10) + 1.5) < 3;
     if(popped || tick - R.utilTick > 2.2*TICK_HZ || lateU){
       R.phase = "go"; R.goTick = tick;
       logEvent("CT: ретейк — заходим"+(popped ? " под флешку!" : "!"), "team");
@@ -3691,7 +3681,7 @@ function updateRetake(cts){
   // первый входящий: не дефузер, из основной точки захода, ближе всех к бомбе
   if(R.phase === "go" && BAL.retakeRoles && !R.entryId){
     var ents = alive.filter(function(b){ return b !== def; });
-    ents.sort(function(a, c){ return ((R.assign[a.id] === 0 ? 0 : 300) + Math.hypot(a.x-bomb.x, a.y-bomb.y)) - ((R.assign[c.id] === 0 ? 0 : 300) + Math.hypot(c.x-bomb.x, c.y-bomb.y)); });
+    ents.sort(function(a, c){ return ((R.assign[a.id] === 0 ? 0 : 300) + Math.hypot(a.x-BP.x, a.y-BP.y)) - ((R.assign[c.id] === 0 ? 0 : 300) + Math.hypot(c.x-BP.x, c.y-BP.y)); });
     R.entryId = ents[0] ? ents[0].id : "-";
     if(ents[0]) voiceLog("CT", "rtentry", ents[0].id, "захожу первым, "+(def ? def.id+" дефузит за мной" : "прикрывайте"));
   }
@@ -3745,8 +3735,8 @@ function retakePost(b, cts){
   if(BAL.groupRetake && R.goTick >= 0){
     if(!R.delay){
       R.delay = {}; var dm = 0;
-      R.approaches.forEach(function(ap){ dm = Math.max(dm, Math.hypot(ap.x-bomb.x, ap.y-bomb.y)); });
-      R.approaches.forEach(function(ap, i){ R.delay[i] = Math.min(2.5*TICK_HZ, Math.max(0, (dm - Math.hypot(ap.x-bomb.x, ap.y-bomb.y))/SPEED*TICK_HZ)); });
+      R.approaches.forEach(function(ap){ dm = Math.max(dm, Math.hypot(ap.x-bp.x, ap.y-bp.y)); });
+      R.approaches.forEach(function(ap, i){ R.delay[i] = Math.min(2.5*TICK_HZ, Math.max(0, (dm - Math.hypot(ap.x-bp.x, ap.y-bp.y))/SPEED*TICK_HZ)); });
     }
     var dl = R.delay[R.assign[b.id]||0] || 0;
     if(tick - R.goTick < dl){ setPost(b, a, bp, true, "gather"+(R.assign[b.id]||0), 0); return; }
@@ -3761,13 +3751,14 @@ function retakePost(b, cts){
   setPost(b, spots[oi] || bp, bp, true, (BAL.retakeRoles && b.id === R.entryId) ? "retakeEntry" : "retake");
 }
 function retakeDefGo(b, R, cts){
+  var bp = ctBombPos();
   var secsLeft = bombTimeLeftTicks()/TICK_HZ;
-  var late2 = secsLeft - (Math.hypot(b.x-bomb.x, b.y-bomb.y)/SPEED*1.2 + (b.kit ? 5 : 10) + 1) < 2.5;
+  var late2 = secsLeft - (Math.hypot(b.x-bp.x, b.y-bp.y)/SPEED*1.2 + (b.kit ? 5 : 10) + 1) < 2.5;
   if(late2) return true;
   if(cts.filter(function(o){ return !o._saveSpot; }).length <= 1) return true;
   var ent = R.entryId && bots.filter(function(o){ return o.id === R.entryId; })[0];
   if(!ent || !ent.alive) return true;
-  if(Math.hypot(ent.x-bomb.x, ent.y-bomb.y) < 280) return true;
+  if(Math.hypot(ent.x-bp.x, ent.y-bp.y) < 280) return true;
   return tick - R.goTick > 2.5*TICK_HZ;
 }
 // ======================= РАЗДЕЛ 11: командная информация (коллы) =======================
@@ -3795,11 +3786,10 @@ function commSend(team, sig, by){
   // увиденный враг в CS2 сразу появляется на радаре у всей команды — точка
   // без задержки. Задерживается только то, что надо СКАЗАТЬ голосом: звук
   if(sig.type === "spotted"){ intelPush(team, sig); return; }
-  // "замес" — за последнюю секунду в эфире инфа про 3+ разных врагов
-  var ids = {}; commQueue.forEach(function(q){ if(q.team === team && tick - q.sent < TICK_HZ) ids[q.sig.id] = 1; });
-  var busy = Object.keys(ids).length >= 3;
+  // "замес" — за последнюю секунду в эфире уже 3+ коллов
+  var busy = commQueue.filter(function(q){ return q.team === team && tick - q.sent < TICK_HZ; }).length >= 3;
   var hs = tick*41 + (by ? by.charCodeAt(by.length-1)*13 : 7) + (sig.id ? String(sig.id).charCodeAt(String(sig.id).length-1)*3 : 0);
-  if(busy && sig.type === "sound" && hashRand(hs+5) < 0.35) return; // не успел сказать — потерялось
+  if(busy && sig.type === "sound" && (sig.kind === "steps" || sig.kind === "shots") && hashRand(hs+5) < 0.35) return; // не успел сказать — потерялось
   var delay = 20 + Math.round(hashRand(hs)*38) + (busy ? 20 : 0);
   var nx = (hashRand(hs+11)-0.5)*(sig.type === "spotted" ? 50 : 30), ny = (hashRand(hs+17)-0.5)*(sig.type === "spotted" ? 50 : 30);
   var s2 = {}; for(var k in sig) s2[k] = sig[k]; s2.x += nx; s2.y += ny;
@@ -3814,7 +3804,11 @@ function commFlush(){
 function resetTeamIntel(){ commQueue = []; teamIntel = { CT:{sig:[], carrier:null, lastCall:{}}, T:{sig:[], carrier:null, lastCall:{}} }; }
 resetTeamIntel();
 function intelPush(team, sig){ sig.tick = tick; teamIntel[team].sig.push(sig); if(typeof beliefObserve === "function") beliefObserve(team, sig);
-  if(BAL.buyRead && sig.type === "spotted" && sig.id && sig.id !== "?") buyReadSee(team, sig.id); }
+  // где разорвалась граната врага (услышали/увидели) — читают выход по гранатам
+  if(sig.type === "nade"){ var NS = teamIntel[team].nadeSeen || (teamIntel[team].nadeSeen = []); NS.push({x:sig.x, y:sig.y, type:sig.ntype, tick:tick}); if(NS.length > 30) NS.shift(); }
+  if(sig.type === "spotted" && sig.id && sig.id !== "?"){ var sf = botById(sig.id); if(sf){ foeSeen(team, sig.id, sig.x, sig.y);
+    if(BAL.buyRead && sf.weapon) buyReadSee(team, sig.id, sf.weapon.key);
+    if(sf.weapon && sf.weapon.slot === "primary") FOE[team].gun[sig.id] = sf.weapon.key; } } }
 // ---- КАРТИНА КОМАНДЫ: единственное знание о врагах ----
 // belief (где вероятно каждый враг, по зонам) + beliefLast (последнее реальное
 // наблюдение по каждому врагу) + LAST_CLEAR/REACH (что проверено, куда враг мог
@@ -3887,12 +3881,18 @@ function teamInfoTick(){
         teamIntel[b.team].carrier = {x:e.x, y:e.y, tick:tick, by:b.id};
       }
     });
-    // слышу (только свежие события этого тика)
-    if(b.heardSound && b.heardSound.tick === tick && b.heardSound.team !== b.team &&
-       !(LS["snd"+b.heardSound.src] && tick - LS["snd"+b.heardSound.src] < 8)){
-      LS["snd"+b.heardSound.src] = tick;
-      commSend(b.team, {type:"sound", x:b.heardSound.x, y:b.heardSound.y, id:b.heardSound.src||"?", kind:b.heardSound.kind||"", by:b.id, conf:0.4}, b.id);
-    }
+    // слышу (только свежие звуки этого тика). Кто шумит — не знаю: в канал идёт
+    // «что и откуда» и сколько разных источников слышно рядом; кому из врагов
+    // это приписать, решает картина команды (beliefObserve)
+    (b.ears||[]).forEach(function(e){
+      if(e.tick !== tick) return;
+      var key = "snd"+e.kind+Math.round(e.x/120)+","+Math.round(e.y/120);
+      if(LS[key] && tick - LS[key] < 8) return; LS[key] = tick;
+      var sg = {type: e.kind === "pop" ? "nade" : "sound", x:e.x, y:e.y, id:"?", kind:e.kind, by:b.id, conf:0.4};
+      if(e.until) sg.until = e.until; if(e.ntype) sg.ntype = e.ntype;
+      if(e.kind === "steps" || e.kind === "water") sg.n = earsSources(b, TICK_HZ, ["steps","water"]);
+      commSend(b.team, sg, b.id);
+    });
   });
   ["CT","T"].forEach(function(t){
     var TI = teamIntel[t];
@@ -3984,17 +3984,19 @@ function intelDeath(victim, killer){
   var saw = killer && hasVision(victim.x, victim.y, killer.x, killer.y);
   intelPush(victim.team, {type:"died", x:victim.x, y:victim.y, id:victim.id, conf:1, kx: saw ? killer.x : null, ky: saw ? killer.y : null});
   if(saw) intelPush(victim.team, {type:"spotted", x:killer.x, y:killer.y, id:killer.id, by:victim.id, conf:1});
-  else if(killer){
-    // не видел, кто убил, но по попаданиям/звуку выстрела понятно, откуда
-    // стреляли — примерно (±~90px), как "убили откуда-то с ..." в войсе
-    var jx = (hashRand(tick*31 + (victim.id.charCodeAt(victim.id.length-1)||0)) - 0.5) * 180;
-    var jy = (hashRand(tick*57 + 7) - 0.5) * 180;
-    intelPush(victim.team, {type:"sound", x:killer.x+jx, y:killer.y+jy, id:killer.id, by:victim.id, kind:"shot", conf:0.6});
+  // где убийца по мнению команды: видел — точно; не видел — по тому, откуда
+  // прилетели пули (направление попаданий, дистанция примерно); ник — из киллфида
+  var kEst = null;
+  if(killer){
+    var hs0 = victim.heardSound;
+    kEst = saw ? {x:killer.x, y:killer.y} : (hs0 && hs0.kind === "hit" && tick - hs0.tick < 8) ? {x:hs0.x, y:hs0.y}
+      : hearPos(victim, killer.x, killer.y, tick*31 + (victim.id.charCodeAt(victim.id.length-1)||0), true);
+    if(!saw) intelPush(victim.team, {type:"sound", x:kEst.x, y:kEst.y, id:killer.id, by:victim.id, kind:"hit", conf:0.6});
   }
   var place = calloutName(victim.x, victim.y);
   var mine = aliveCount(victim.team), theirs = aliveCount(victim.team === "CT" ? "T" : "CT");
   voiceLog(victim.team, "die"+victim.id, victim.id, "минус "+place+
-    (killer ? (saw ? ", убил "+killer.id+" "+calloutName(killer.x, killer.y, true) : ", стреляли "+calloutName(killer.x, killer.y, true)) : "")+
+    (killer ? (saw ? ", убил "+killer.id+" "+calloutName(kEst.x, kEst.y, true) : ", стреляли "+calloutName(kEst.x, kEst.y, true)) : "")+
     " — нас "+mine+" против "+theirs);
   if(mine === 1 && theirs >= 2){
     var last = bots.filter(function(o){ return o.team === victim.team && o.alive; })[0];
@@ -4003,12 +4005,13 @@ function intelDeath(victim, killer){
        victim.team === "T" && bomb && bomb.state === "planted" ? "сижу у бомбы, жду дефуз" : "беру по одному"));
   }
   // команда убийцы тоже "знает", где и кого сняли (свой же игрок сказал "минус ...")
-  if(killer) intelPush(killer.team, {type:"kill", x:victim.x, y:victim.y, id:victim.id, role:victim.tRole, by:killer.id, conf:1});
+  // роль убитого — не «знаем», а что команда о нём поняла за матч (foeRole)
+  if(killer) intelPush(killer.team, {type:"kill", x:victim.x, y:victim.y, id:victim.id, role:foeRole(killer.team, victim.id), by:killer.id, conf:1});
   // журнал смертей для IGL: кто, где, в какой фазе, откуда стреляли, разменяли ли
   if(teamTac.T && bomb && bomb.state !== "planted"){
     var TTd = teamTac.T; TTd._dl = TTd._dl || [];
     if(victim.team === "T"){
-      var kx0 = killer ? (saw ? killer.x : killer.x + (hashRand(tick*17+3)-0.5)*160) : null, ky0 = killer ? (saw ? killer.y : killer.y + (hashRand(tick*19+5)-0.5)*160) : null;
+      var kx0 = kEst ? kEst.x : null, ky0 = kEst ? kEst.y : null;
       TTd._dl.push({t:"T", tick:tick, x:victim.x, y:victim.y, kx:kx0, ky:ky0, kid:killer ? killer.id : null, role:victim.tRole, phase:TTd.phase, traded:false});
     } else {
       TTd._dl.push({t:"CT", tick:tick, x:victim.x, y:victim.y, phase:TTd.phase});
@@ -4021,7 +4024,7 @@ function intelDeath(victim, killer){
   // срывает бота с тактики на ~3.5с). Разменивают 1–2 ближайших ПО ПУТИ.
   var traders = [];
   if(BAL.tradeReflex && killer && killer.alive){
-    var kp = saw ? {x:killer.x, y:killer.y} : {x:killer.x + (hashRand(tick*31 + 5)-0.5)*160, y:killer.y + (hashRand(tick*57 + 9)-0.5)*160};
+    var kp = kEst;
     var cands = [];
     bots.forEach(function(o){
       if(!o.alive || o.team !== victim.team || o === victim || o.planting || o.defusing || o._sawEnemy) return;
@@ -4057,7 +4060,7 @@ function intelDeath(victim, killer){
   // ближайший с флешкой кидает поп-флешку на убийцу, размен идёт под неё
   if(BAL.iglReplan && victim.team === "T" && killer && killer.alive && teamTac.T && teamTac.T.phase === "execute" &&
      (victim.tRole === "entry" || !teamTac.T._popDone)){
-    var kpF = {x:killer.x + (saw ? 0 : (hashRand(tick*23+1)-0.5)*140), y:killer.y + (saw ? 0 : (hashRand(tick*29+2)-0.5)*140)};
+    var kpF = kEst;
     var flc = bots.filter(function(o){ return o.alive && o.team === "T" && o !== victim && o.nades && o.nades.flash > 0 && !o.planting &&
       !(bomb.state === "carried" && bomb.carrier === o) && Math.hypot(o.x-victim.x, o.y-victim.y) < 750; })
       .sort(function(a, c){ var ta = traders.some(function(T){ return T.b === a; }) ? 200 : 0, tc = traders.some(function(T){ return T.b === c; }) ? 200 : 0;
@@ -4079,7 +4082,7 @@ function intelDeath(victim, killer){
     // "меня убили отсюда" — ближние тиммейты смотрят туда и идут разменивать
     // стрелка не видели и он не рядом — это не трейд, а второй пик в тот же
     // прострелянный угол: не лезть туда же ~8с (держать, ждать, обходить)
-    if(!saw || (killer && Math.hypot(killer.x-b.x, killer.y-b.y) > 650)){
+    if(!saw || (killer && Math.hypot(kEst.x-b.x, kEst.y-b.y) > 650)){
       b._avoidPeekUntil = tick + 8*TICK_HZ; b._avoidPeekAt = {x:victim.x, y:victim.y};
       return;
     }
@@ -4093,6 +4096,75 @@ function intelCallLog(team, key, text){
   L[key] = tick; logEvent(text, "voice");
 }
 
+
+// ---- кто есть кто у врага (только этот матч) ----
+// Ник врага видно, когда он в прицеле и в киллфиде. За матч команда понимает,
+// кто у них где играет: CT — по тому, где его видели в начале раунда (A, B,
+// мид); T — кто с AWP, кто первым выходит на сайт (энтри), кто ходит один
+// далеко от своих (люркер). Роль — где больше всего раз видели, от 2 раз.
+// Деньги врага — подсчёт по открытому (как у про): у всех $800 в начале
+// половины, + доход по итогу раунда (победа/поражение, лосс-бонус, плант —
+// видно всем), + награды за фраги из киллфида, − что он, скорее всего, купил;
+// винтовку сохранил тот, кто дожил до конца раунда и с ней был виден.
+// Это часть картины команды; между матчами не хранится.
+var FOE = {CT:{roles:{}, money:{}, gun:{}}, T:{roles:{}, money:{}, gun:{}}};
+function foeReset(){ FOE = {CT:{roles:{}, money:{}, gun:{}}, T:{roles:{}, money:{}, gun:{}}}; }
+function foeEcoHalf(){ ["CT","T"].forEach(function(t){ FOE[t].money = {}; FOE[t].gun = {}; }); }
+function foeMoney(team, eid){ var m = FOE[team].money[eid]; return m == null ? START_MONEY : m; }
+// доход врага за раунд — его считает каждый, кто видел счёт и киллфид
+function foeIncome(team, eid, inc){ FOE[team].money[eid] = Math.min(MAX_MONEY, foeMoney(team, eid) + inc); }
+// после их закупа: с сохранённой винтовкой — только броня/гранаты; иначе
+// фулл, если хватает, или копят (эко). Оружие узнаем, когда увидим
+function foeBuyGuess(team){
+  bots.forEach(function(e){ if(e.team === team) return; var m = foeMoney(team, e.id), g = FOE[team].gun[e.id];
+    var spend = g ? Math.min(m, 1000) : m >= 3900 ? 3700 : m >= 2500 ? m - 600 : 0;
+    FOE[team].money[e.id] = m - spend; });
+}
+function foeNote(team, eid, what){
+  var R = FOE[team].roles, F = R[eid] || (R[eid] = {}), key = what+":"+roundNum;
+  if(F[key]) return; F[key] = 1; F[what] = (F[what]||0) + 1;
+}
+function foeRole(team, eid){
+  var F = FOE[team] && FOE[team].roles[eid]; if(!F) return null;
+  var best = null, bn = 1;
+  ["anchorA","anchorB","mid","awp","entry","lurker"].forEach(function(r){ if((F[r]||0) > bn){ bn = F[r]; best = r; } });
+  return best;
+}
+// что видно глазами в момент «вижу»: где стоит (в начале раунда — его место),
+// с каким оружием, один ли он
+function foeSeen(team, eid, x, y){
+  var foe = botById(eid); if(!foe) return;
+  var t = tick - roundStartTick;
+  if(foe.weapon && foe.weapon.key === "AWP") foeNote(team, eid, "awp");
+  if(foe.team === "CT" && t < 35*TICK_HZ){
+    var C = [["anchorA", SITES.A], ["anchorB", SITES.B], ["mid", GEO.ctMid]], best = null, bd = 650;
+    C.forEach(function(c){ if(!c[1]) return; var d = Math.hypot(c[1].x-x, c[1].y-y); if(d < bd){ bd = d; best = c[0]; } });
+    if(best) foeNote(team, eid, best);
+  }
+  if(foe.team === "T"){
+    var L = beliefLast[team], others = 0, firstAtSite = true;
+    for(var id in L){ if(id === eid || L[id].gone) continue; var o = botById(id); if(!o || !o.alive) continue;
+      if(tick - L[id].tick < 4*TICK_HZ && Math.hypot(L[id].x-x, L[id].y-y) < 700) others++;
+      if(L[id].tick >= roundStartTick && SITES.A && Math.min(Math.hypot(L[id].x-SITES.A.x, L[id].y-SITES.A.y), Math.hypot(L[id].x-SITES.B.x, L[id].y-SITES.B.y)) < 600) firstAtSite = false; }
+    var atSite = SITES.A && Math.min(Math.hypot(x-SITES.A.x, y-SITES.A.y), Math.hypot(x-SITES.B.x, y-SITES.B.y)) < 600;
+    if(atSite && firstAtSite) foeNote(team, eid, "entry");
+    // один, а остальных команда за 4 с слышала/видела далеко — ходит один
+    var anyFar = Object.keys(L).some(function(id){ return id !== eid && !L[id].gone && tick - L[id].tick < 4*TICK_HZ && Math.hypot(L[id].x-x, L[id].y-y) > 1100; });
+    if(!others && anyFar && t > 20*TICK_HZ) foeNote(team, eid, "lurker");
+  }
+}
+// киллфид видят все: кто кого, из чего. Отсюда — закуп врага (оружие убийцы)
+// и роль (кто открыл раунд на сайте, кто с AWP)
+function killfeedRead(att, vic, wkey){
+  if(!att || !vic || att.team === vic.team || roundState !== "live") return;
+  var team = vic.team;
+  if(wkey === "AWP") foeNote(team, att.id, "awp");
+  if(BAL.buyRead && WEAPONS[wkey]) buyReadSee(team, att.id, wkey);
+  var W = WEAPONS[wkey];
+  foeIncome(team, att.id, W ? (W.killReward || 300) : 300);
+  if(W && W.slot === "primary") FOE[team].gun[att.id] = wkey;
+  FOE[att.team].gun[vic.id] = null; // убит — оружие осталось лежать
+}
 
 // ======================= РАЗДЕЛ 13: КАРТА ВЕРОЯТНОСТЕЙ ВРАГА =======================
 // Для каждой команды и КАЖДОГО врага отдельно — распределение "где он может
@@ -4256,22 +4328,50 @@ function beliefSet(team, eid, zi, w){
   for(var i=0;i<P.length;i++) P[i] *= (1-w);
   P[zi] += w;
 }
+// кому из врагов команда приписывает услышанное: ник по звуку не узнать —
+// берём того, кто по картине вероятнее всего там (и не виден прямо сейчас
+// в другом месте); n разных источников — n разных врагов. Это догадка команды:
+// двоих, идущих вплотную, легко принять за одного
+function soundWho(team, x, y, n){
+  var B = belief[team], L = beliefLast[team], S = beliefSeen[team], c = [];
+  Object.keys(B).forEach(function(eid){
+    var lo = L[eid];
+    if(lo && !lo.gone && lo.src === "spotted" && tick - lo.tick < 12 && Math.hypot(lo.x-x, lo.y-y) > 250) return;
+    var old = S[eid] == null ? 1 : Math.min(1, (tick - S[eid])/(20*TICK_HZ));
+    c.push({id:eid, w: beliefMassNear(team, eid, x, y, 300) + 0.001*old});
+  });
+  c.sort(function(p, q){ return q.w - p.w; });
+  return c.slice(0, Math.max(1, n||1)).map(function(q){ return q.id; });
+}
 // вызывается из intelPush — каждое событие восприятия сразу правит карту
 function beliefObserve(team, sg){
   if(!BZ.ids.length) return;
+  if(sg.type === "sound" && sg.kind === "plant" && SITES.A && SITES.B){
+    var st = Math.hypot(sg.x-SITES.A.x, sg.y-SITES.A.y) < Math.hypot(sg.x-SITES.B.x, sg.y-SITES.B.y) ? "A" : "B";
+    if(!(teamIntel[team].plantHeard && teamIntel[team].plantHeard.site === st && tick - teamIntel[team].plantHeard.tick < 5*TICK_HZ))
+      voiceLog(team, "plant"+st, sg.by || "?", "плантят на "+st+"! "+calloutName(sg.x, sg.y));
+    teamIntel[team].plantHeard = {site:st, tick:tick, x:sg.x, y:sg.y};
+  }
+  var ids = [sg.id];
+  if(sg.type === "sound" && (!sg.id || sg.id === "?")){ ids = soundWho(team, sg.x, sg.y, sg.n); sg.id = ids[0]; }
   if((sg.type === "spotted" || sg.type === "sound") && sg.id && sg.id !== "?"){
     reachOpen(team, sg.x, sg.y);
-    var bl = beliefLast[team][sg.id];
-    if(!(bl && bl.src === "spotted" && sg.type === "sound" && tick - bl.tick < 2*TICK_HZ)){
-      var zn = calloutName(sg.x, sg.y);
-      // в войс — только когда инфа НОВАЯ: впервые засветился или перешёл в другую зону
-      if(!bl || bl.gone || bl.zn !== zn){ var foe = botById(sg.id);
-        intelCallLog(team, "lkp"+sg.id, "[войс "+team+"] инфа: " + sg.id + (foe && foe.primary === "AWP" ? " с AWP" : "") + " — " + zn + (sg.type === "sound" ? " (слышно)" : " (видели)") + (bl && !bl.gone ? ", был " + bl.zn : "")); }
-      beliefLast[team][sg.id] = {x:sg.x, y:sg.y, tick:tick, src:sg.type, zn:zn};
-    }
+    var zn = calloutName(sg.x, sg.y);
+    if(sg.type === "spotted"){ var blp = beliefLast[team][sg.id]; sg._new = !blp || blp.gone || blp.zn !== zn; }
+    ids.forEach(function(eid){
+      var bl = beliefLast[team][eid];
+      if(bl && bl.src === "spotted" && sg.type === "sound" && tick - bl.tick < 2*TICK_HZ) return;
+      beliefLast[team][eid] = {x:sg.x, y:sg.y, tick:tick, src:sg.type, zn:zn};
+    });
+    // в войс — только когда инфа НОВАЯ (в этой зоне её ещё не говорили).
+    // Ник и оружие — только если видели; по звуку — что слышно и сколько
+    var bl0 = beliefLast[team][sg.id], fresh = sg.type === "spotted" && bl0 && bl0.tick === tick;
+    if(sg.type === "spotted" && fresh && sg._new){ var foe = botById(sg.id), seenW = foe && foe.weapon;
+      intelCallLog(team, "lkp"+sg.id, "[войс "+team+"] "+(sg.by||"?")+": вижу "+sg.id+(seenW ? " ("+seenW.name+")" : "")+" — "+zn); }
+    else if(SOUND[sg.kind]) intelCallLog(team, "snd"+sg.kind+zn, "[войс "+team+"] "+(sg.by||"?")+": слышу "+SOUND[sg.kind].say+(sg.n >= 2 ? " — их "+sg.n : "")+" "+zn);
   }
   if(sg.type === "spotted") beliefSet(team, sg.id, bzOf(sg.x, sg.y), 1);
-  else if(sg.type === "sound") beliefSet(team, sg.id, bzOf(sg.x, sg.y), sg.kind === "nade" ? 0.8 : 0.65);
+  else if(sg.type === "sound") ids.forEach(function(eid){ beliefSet(team, eid, bzOf(sg.x, sg.y), sg.kind === "nade" ? 0.8 : 0.65); });
   else if(sg.type === "died" && sg.kx == null){
     // стрелявшего не видели: он в одной из зон, откуда простреливается место смерти
     var dz = bzOf(sg.x, sg.y); if(dz < 0) return;
@@ -4547,7 +4647,7 @@ function exposedShiftTick(b){
   if(!hurt && !shot) return;
   if(b._esT && tick - b._esT < 6*TICK_HZ) return; b._esT = tick;
   var foe = b.team === "CT" ? "T" : "CT";
-  if(BAL.noLeaks ? aliveCount(foe) === 0 : !bots.some(function(o){ return o.alive && o.team === foe && Math.hypot(o.x-b.x, o.y-b.y) < 1400; })) return;
+  if(aliveCount(foe) === 0) return;
   shiftHold(b, {x:li.x, y:li.y}, null, hurt ? "ранили, позиция известна" : "по мне стреляли, позиция известна");
 }
 // (v163) где враг из точки q выйдет на линию бота: идём по его пути к боту,
@@ -5213,9 +5313,7 @@ function blindBullet(b, pt){
   var a = Math.atan2(pt.y-b.y, pt.x-b.x) + (hashRand(tick*31 + b.id.charCodeAt(1))-0.5)*0.08;
   var cl = rayClipWalls(b.x, b.y, b.x + Math.cos(a)*(w.range||900), b.y + Math.sin(a)*(w.range||900));
   tracers.push({wc:tracerClass(b.weapon), x1:b.x, y1:b.y, x2:cl.x, y2:cl.y, team:b.team, born:nowTs, hit:false, miss:true}); if(tracers.length > 60) tracers.shift();
-  bots.forEach(function(o){ if(!o.alive || o.team === b.team) return;
-    var hr = (hasLOS(o.x, o.y, b.x, b.y) ? GUN_HEAR_OPEN : GUN_HEAR_WALL) * (w.silenced ? 0.55 : 1);
-    if(Math.hypot(o.x-b.x, o.y-b.y) < hr) o.heardSound = {x:b.x, y:b.y, tick:tick, team:b.team, src:b.id, kind:"shots"}; });
+  makeSound(b, b.x, b.y, "shots", {mul: w.silenced ? 0.55 : 1});
   return true;
 }
 function smokeSpamTick(){
@@ -6326,7 +6424,7 @@ function teamBrains(){
   if(roundState !== "live") return; // дефуз мог только что закончить раунд
   routeTick();
   SPOT_TEAM = "T"; tBrain(); SPOT_TEAM = "CT"; ctBrain(); SPOT_TEAM = null; endgameBrain(); lineupTick(); smokeEdgeTick(); weaponPickupTick(); picCheckTick();
-  bots.forEach(function(b){ if(b.alive && b._heardReload) reloadPeek(b); });
+  bots.forEach(function(b){ if(b.alive) reloadPeek(b); });
   if(tick % 4 === 0) bots.forEach(function(b){ if(b.alive) assistPeek(b); });
   if(tick % 8 === 2) bots.forEach(function(b){ if(b.alive) lowHpBack(b); });
   if(tick % 8 === 4) bots.forEach(function(b){ if(b.alive) finishPush(b); });
@@ -6493,18 +6591,18 @@ function throwNade(b, type, tx, ty, lob, why){
   // ЧЕКУ/бросок и понимает направление и примерную дистанцию, откуда кинули,
   // даже без визуального контакта.
   if(typeof teamIntel !== "undefined"){
-    var enemyTeam = b.team === "CT" ? "T" : "CT";
+    var enemyTeam = b.team === "CT" ? "T" : "CT", sawThrow = {};
     bots.forEach(function(o){
-      if(!o.alive || o.team !== enemyTeam) return;
-      var dd = Math.hypot(o.x-b.x, o.y-b.y);
-      if(hasVision(o.x, o.y, b.x, b.y)){
-        intelPush(enemyTeam, {type:"spotted", x:b.x, y:b.y, id:b.id, by:o.id, conf:1});
-        o.lastIntel = {x:b.x, y:b.y, tick:tick};
-      } else if(dd <= NADE_HEAR_R){
-        intelPush(enemyTeam, {type:"sound", x:b.x, y:b.y, id:b.id, by:o.id, conf:0.5, kind:"nade"});
-        o.heardSound = {x:b.x, y:b.y, tick:tick, team:b.team, src:b.id, kind:"nade"};
-      }
+      if(!o.alive || o.team !== enemyTeam || !hasVision(o.x, o.y, b.x, b.y)) return;
+      sawThrow[o.id] = true;
+      intelPush(enemyTeam, {type:"spotted", x:b.x, y:b.y, id:b.id, by:o.id, conf:1});
+      o.lastIntel = {x:b.x, y:b.y, tick:tick};
     });
+    var notSaw = function(o){ return sawThrow[o.id]; };
+    makeSound(b, b.x, b.y, "nade", {skip: notSaw});
+    // видел полёт (треть пути), но не того, кто кинул, — понимает примерно, откуда
+    var fx = b.x + ((nd.lob ? nd.tx : tx) - b.x)*0.35, fy = b.y + ((nd.lob ? nd.ty : ty) - b.y)*0.35;
+    makeSound(b, b.x, b.y, "nadefly", {via:{x:fx, y:fy}, skip: notSaw});
   }
   return true;
 }
@@ -6660,7 +6758,9 @@ function nadeWallHit(x1,y1,x2,y2){
 function detonate(n){
   var T = n.type;
   // (11) гранаты видно/слышно: где разорвалась граната врага — это инфа о его плане
-  if(BAL.tacRead && roundState === "live" && T !== "decoy"){ var foeT = n.team === "T" ? "CT" : "T"; var NS = teamIntel[foeT].nadeSeen || (teamIntel[foeT].nadeSeen = []); NS.push({x:n.x, y:n.y, type:T, tick:tick}); if(NS.length > 30) NS.shift(); }
+  // — но только тем, кто её услышал или увидел (makeSound "pop"), и команда
+  // узнаёт через колл (intelPush → nadeSeen)
+  if(roundState === "live" && T !== "decoy" && n.thrower) makeSound(n.thrower, n.x, n.y, "pop", {info:{ntype:T}});
   if(T === "smoke"){ smokes.push({x:n.x, y:n.y, born:tick, until:tick+NADE.smoke.life, team:n.team}); if(BAL.smokeReact) smokeShiftOnDetonate(smokes[smokes.length-1]); }
   else if(T === "molly"){
     // молотов, упавший в дым, гаснет (как в CS2 — наоборот тоже: дым тушит огонь)
@@ -6799,13 +6899,16 @@ function antiEco(team){
 }
 // (13) инфа о закупе врага по первым контактам: увидели — запомнили, с чем он.
 // Двое+ с пистолетами → эко; хоть одна винтовка/AWP → закуп (эко-оценка снимается)
-function buyReadSee(team, eid){
-  var e = bots.filter(function(o){ return o.id === eid; })[0]; if(!e || !e.alive) return;
+// wkey — оружие, которое реально видели (в руках или в киллфиде): с пистолетом
+// в руках он для нас «с пистолетом», даже если винтовка за спиной
+function buyReadSee(team, eid, wkey){
   var TI = teamIntel[team], R = TI.buy || (TI.buy = {seen:{}, n:0, pistols:0, rifles:0, smg:0, read:null});
-  if(R.seen[eid]) return;
-  var k = e.primary || null, W = k && WEAPONS[k];
-  R.seen[eid] = k || "pistol"; R.n++;
-  if(!W) R.pistols++; else if(W.price >= 2000) R.rifles++; else R.smg++;
+  var W = WEAPONS[wkey]; if(!W) return;
+  var prevK = R.seen[eid], isPistol = W.slot === "secondary";
+  if(prevK && (isPistol || WEAPONS[prevK].slot !== "secondary")) return; // уже видели; пистолет → винтовка — уточняем
+  if(prevK){ R.pistols--; R.n--; }
+  R.seen[eid] = wkey; R.n++;
+  if(isPistol) R.pistols++; else if(W.price >= 2000) R.rifles++; else R.smg++;
   var prev = R.read;
   if(R.rifles >= 1 || (R.smg + R.rifles >= 2)) R.read = "buy";
   else if(R.pistols >= 2) R.read = "eco";
@@ -6814,7 +6917,7 @@ function buyReadSee(team, eid){
   if(R.read && R.read !== prev){
     var mate = bots.filter(function(o){ return o.team === team && o.alive; })[0];
     if(mate) voiceLog(team, "buy"+R.read, mate.id, R.read === "eco" ? "у них пистолеты ("+R.pistols+" видели) — эко, не лезем в упор, держим дистанцию"
-      : "у "+eid+" "+(W ? W.name : "оружие")+" — это закуп, не эко");
+      : "у "+eid+" "+W.name+" — это закуп, не эко");
     logEvent(team+": закуп врага по контактам — "+(R.read === "eco" ? "эко" : "закуп")+" (видели: "+R.n+", винтовок "+R.rifles+", пистолетов "+R.pistols+")");
   }
 }
@@ -6931,8 +7034,8 @@ function nadeReact(){
     var early = tick - roundStartTick < 25*TICK_HZ;
     picRecent("CT", 2.5*TICK_HZ).forEach(function(q){ if(Math.hypot(q.x-ent.x, q.y-ent.y) < 700) srcs[q.id] = 1; });
     if(Object.keys(srcs).length < (early ? 1 : 2)) return;
-    if(BAL.noLeaks){ var onS = {}; picRecent("CT", 1.5*TICK_HZ).forEach(function(q){ if(q.src === "spotted" && Math.hypot(q.x-SITES[k].x, q.y-SITES[k].y) < 220) onS[q.id] = 1; }); if(Object.keys(onS).length > 1) return; }
-    else if(bots.filter(function(o){ return o.alive && o.team === "T" && Math.hypot(o.x-SITES[k].x, o.y-SITES[k].y) < 220; }).length > 1) return; // уже зашли — поздно
+    // двое уже на сайте (видели) — зашли, поздно
+    var onS = {}; picRecent("CT", 1.5*TICK_HZ).forEach(function(q){ if(q.src === "spotted" && Math.hypot(q.x-SITES[k].x, q.y-SITES[k].y) < 220) onS[q.id] = 1; }); if(Object.keys(onS).length > 1) return;
     var c = bots.filter(function(b){ return b.alive && b.team === "CT" && b.nades && b.nades.molly > 0 && !b.nadeTask && !b._sawEnemy &&
       Math.hypot(b.x-ent.x, b.y-ent.y) < NADE_THROW_RANGE*1.1 && Math.hypot(b.x-ent.x, b.y-ent.y) > 150; })
       .sort(function(a, b2){ return Math.hypot(a.x-ent.x, a.y-ent.y) - Math.hypot(b2.x-ent.x, b2.y-ent.y); })[0];
@@ -7307,6 +7410,7 @@ function weaponPickupTick(){
       groundWeapons.splice(i, 1);
       if(b.primary) groundWeapons.push({key:b.primary, x:b.x, y:b.y, t:tick, from:b.id});
       b.primary = G.key; b.weapon = WEAPONS[G.key]; b._ammoFor = null; dropTask(b, "pickup");
+      makeSound(b, b.x, b.y, "pickup");
       logEvent(b.id+" подобрал "+WEAPONS[G.key].name+(G.from ? " ("+G.from+")" : ""));
       return;
     }
@@ -7352,11 +7456,31 @@ function weaponPickupTick(){
     setPost(b, {x:best.x, y:best.y}, null, true, "pickup"); holdTask(b, "pickup", tick+1);
   });
 }
-// ======================= ЗВУК: направление, стены, новые источники =======================
-// Как слышит человек в CS2: НАПРАВЛЕНИЕ понятно довольно точно (±5–7°), дистанция —
-// примерно (±15%). Через стену звук глуше: слышно ближе, направление расплывается
-// (±15–20°), дистанция гуляет сильнее (±30%). Раньше услышанная точка = реальная
-// + случайный сдвиг в ЛЮБУЮ сторону, одинаковый для открытого места и стен.
+// ======================= ЗВУК: одно место на все звуки (К11) =======================
+// Всё, что в CS2 можно услышать, рождается только здесь — makeSound. Слышат
+// враги в радиусе своего звука; через стену — ближе и неточнее. Человек по звуку
+// понимает НАПРАВЛЕНИЕ довольно точно (±6°), дистанцию — примерно (±15%); через
+// стену направление расплывается (±17°), дистанция гуляет (±30%). Ника по звуку
+// не узнать: в услышанном нет «кто», только «что и примерно откуда».
+// У бота — короткий список услышанного за 3 с (b.ears): по нему видно, один
+// источник или несколько с разных сторон. b.heardSound — последний звук.
+// Бег слышно, шифт — нет (кроме воды). Прыжков в игре нет — их звука тоже.
+var SOUND = {
+  steps:   {open:SOUND_RADIUS_RUN, wall:SOUND_RADIUS_RUN*0.75, say:"шаги"},
+  water:   {open:460, wall:345, say:"всплески в воде"},
+  shots:   {open:GUN_HEAR_OPEN, wall:GUN_HEAR_WALL, say:"стрельбу"},
+  hit:     {open:1e9, wall:1e9, say:"что стреляют по мне"},
+  reload:  {open:380, wall:220, say:"перезарядку"},
+  zoom:    {open:200, wall:120, say:"зум AWP"},
+  nade:    {open:NADE_HEAR_R, wall:NADE_HEAR_R, say:"бросок гранаты"},
+  pop:     {open:900, wall:650, see:1400, say:"разрыв гранаты"},
+  nadefly: {open:0, wall:0, see:1200, say:"гранату — прилетела"},   // видел полёт: откуда кинули — примерно
+  plant:   {open:850, wall:520, say:"плант"},
+  defuse:  {open:DEFUSE_HEAR, wall:DEFUSE_HEAR, say:"дефуз"},
+  defusing:{open:DEFUSE_HEAR, wall:DEFUSE_HEAR, say:"дефуз"},   // тот же звук продолжается (не новый)
+  pickup:  {open:250, wall:150, say:"подбор оружия"}
+};
+var EARS_KEEP = 3*TICK_HZ;
 function hearPos(o, sx, sy, seed, occl){
   var d = Math.hypot(sx-o.x, sy-o.y), a = Math.atan2(sy-o.y, sx-o.x);
   var sa = occl ? 0.30 : 0.10, sd = occl ? 0.30 : 0.15;
@@ -7365,40 +7489,66 @@ function hearPos(o, sx, sy, seed, occl){
   var pd = Math.max(20, d*(1 + rd*sd)), pa = a + ra*sa;
   return {x:o.x + Math.cos(pa)*pd, y:o.y + Math.sin(pa)*pd};
 }
+// src — кто шумит (только для того, кому звук слышен: враги src); opt:
+//   mul — громкость (глушитель 0.55), only — слышит только этот бот (попадание),
+//   info — что звук говорит сам по себе (перезарядка: сколько длится по оружию)
+function makeSound(src, x, y, kind, opt){
+  opt = opt || {};
+  var S = SOUND[kind], heard = [], mul = opt.mul || 1, via = opt.via || {x:x, y:y};
+  var seed0 = tick*331 + (src.id.charCodeAt(src.id.length-1)||0)*17 + (src.id.charCodeAt(0)||0)*7 + (opt.seed||0);
+  bots.forEach(function(o){
+    if(!o.alive || o.team === src.team) return;
+    if(opt.only && o !== opt.only) return;
+    // via — что именно видно/слышно (полёт гранаты), x,y — что из этого понятно (откуда кинули)
+    var d = Math.hypot(o.x-via.x, o.y-via.y), los = opt.via ? hasVision(o.x, o.y, via.x, via.y) : hasLOS(o.x, o.y, x, y);
+    var seen = S.see && los && d <= S.see;
+    if(!seen && d > (los ? S.open : S.wall)*mul) return;
+    if(opt.skip && opt.skip(o)) return; // уже видел сам источник
+    var p = hearPos(o, x, y, seed0 + (o.id.charCodeAt(o.id.length-1)||0)*131 + (o.id.charCodeAt(0)||0)*11, !los || !!opt.via);
+    var e = {x:p.x, y:p.y, tick:tick, team:src.team, kind:kind, occl:!los};
+    if(opt.info) for(var k in opt.info) e[k] = opt.info[k];
+    if(kind === "defusing"){ o._defuseCont = tick; heard.push(o); return; } // продолжение — не новый звук
+    if(kind === "defuse"){ if(tick - (o._defuseHeard||-9999) > 80) o._defuseStart = tick; o._defuseHeard = tick; }
+    var E = o.ears || (o.ears = []);
+    while(E.length && tick - E[0].tick > EARS_KEEP) E.shift();
+    E.push(e); o.heardSound = e;
+    heard.push(o);
+  });
+  return heard;
+}
+// сколько разных источников бот слышит сейчас (за win тиков): звуки дальше
+// ~150 px друг от друга или под разными углами (>25°) — разные люди
+function earsSources(o, win, kinds){
+  var E = (o.ears||[]).filter(function(e){ return tick - e.tick <= win && (!kinds || kinds.indexOf(e.kind) >= 0); }), C = [];
+  E.forEach(function(e){
+    var ae = Math.atan2(e.y-o.y, e.x-o.x);
+    var same = C.some(function(c){ var da = Math.abs(((ae - c.a + Math.PI)%(2*Math.PI)+2*Math.PI)%(2*Math.PI) - Math.PI);
+      return Math.hypot(c.x-e.x, c.y-e.y) < 150 || da < 0.44; });
+    if(!same) C.push({x:e.x, y:e.y, a:ae});
+  });
+  return C.length;
+}
 var WATER_Z = {};
 function inWater(x, y){
   var zid = zoneIdAt(x, y); if(!zid) return false;
   if(!(zid in WATER_Z)) WATER_Z[zid] = /water|вода/i.test(zoneUserName(zid) || "");
   return WATER_Z[zid];
 }
-// один звук для всех врагов в радиусе: по прямой слышно дальше, через стену — ближе
-function emitSound(src, x, y, rOpen, rWall, kind, seed){
-  var heard = [];
-  bots.forEach(function(o){
-    if(!o.alive || o.team === src.team) return;
-    var d = Math.hypot(o.x-x, o.y-y); if(d > rOpen) return;
-    var occl = !hasLOS(o.x, o.y, x, y); if(occl && d > rWall) return;
-    var p = hearPos(o, x, y, seed + (o.id.charCodeAt(o.id.length-1)||0)*131, occl) || {x:x, y:y};
-    o.heardSound = {x:p.x, y:p.y, tick:tick, team:src.team, src:src.id, kind:kind};
-    heard.push(o);
-  });
-  return heard;
-}
-// услышал перезарядку — окно, пока у врага пустой магазин: держащий рядом
-// выглядывает на него (у про — классика "он перезаряжается, пушу")
+// перезарядку слышно, и по звуку понятно, каким оружием (а значит, сколько
+// она длится) — но не кто именно. Окно «у него пустой магазин» — от услышанного
 function reloadHeard(b, w){
-  var hs = emitSound(b, b.x, b.y, 380, 220, "reload", tick*29 + (b.id.charCodeAt(b.id.length-1)||0)*7);
+  var hs = makeSound(b, b.x, b.y, "reload", {info:{until: tick + Math.round(w.reload*TICK_HZ)}});
   hs.forEach(function(o){
-    o._heardReload = {id:b.id, x:o.heardSound.x, y:o.heardSound.y, until:b.reloadUntil};
-    if(!o._rlVoice || o._rlVoice + 3*TICK_HZ < tick){ o._rlVoice = tick; voiceLog(o.team, "rl"+b.id, o.id, b.id+" перезаряжается "+calloutName(o.heardSound.x, o.heardSound.y)+"!"); }
-    // по голосу знают и ближние тиммейты
-    bots.forEach(function(m){ if(m !== o && m.alive && m.team === o.team && Math.hypot(m.x-o.x, m.y-o.y) < 500) m._heardReload = o._heardReload; });
+    o._heardReload = {x:o.heardSound.x, y:o.heardSound.y, until:o.heardSound.until};
+    if(!o._rlVoice || o._rlVoice + 3*TICK_HZ < tick){ o._rlVoice = tick; voiceLog(o.team, "rl"+Math.round(o.heardSound.x/150)+","+Math.round(o.heardSound.y/150), o.id, "перезарядка "+calloutName(o.heardSound.x, o.heardSound.y)+"!"); }
   });
 }
 // пик на перезарядку: держит угол рядом (≤450), сам не в бою, HP > 50 —
 // коротко выходит на линию, откуда видно место звука. Агрессивные — чаще.
 function reloadPeek(b){
-  var R = b._heardReload;
+  // слышал сам — или тиммейт сказал «перезарядка там» (через тимспик)
+  var R = b._heardReload && tick < b._heardReload.until ? b._heardReload : null;
+  if(!R){ var EV = picEvents(b.team); for(var i = EV.length-1; i >= 0; i--){ var sg = EV[i]; if(sg.type === "sound" && sg.kind === "reload" && sg.until > tick){ R = sg; break; } } }
   if(!R || tick >= R.until || b._sawEnemy || b.planting || b.defusing || b.hp <= 50) return false;
   if(b._rlPeekDone === R.until) return false;
   var d = Math.hypot(R.x-b.x, R.y-b.y); if(d > 450 || d < 60) return false;
@@ -7411,7 +7561,7 @@ function reloadPeek(b){
   setPost(b, sp, {x:R.x, y:R.y}, true, "repos:reload");
   if(!b.post || b.post.tag !== "repos:reload") return false;
   holdTask(b, "repos", Math.min(R.until + 32, tick + 3*TICK_HZ));
-  logEvent(b.id+": пикает на перезарядку "+R.id);
+  logEvent(b.id+": пикает на перезарядку "+calloutName(R.x, R.y));
   return true;
 }
 // ---- пас бомбы ----
@@ -8009,8 +8159,11 @@ function tryShoot(shooter, target, dist){
     if(target.hp > 0){
       var HT = teamIntel[shooter.team].hurt || (teamIntel[shooter.team].hurt = {});
       var prevH = HT[target.id];
-      HT[target.id] = {hp:target.hp, tick:tick, by:shooter.id};
-      if(target.hp <= 40 && (!prevH || prevH.hp > 40)) voiceLog(shooter.team, "hurt"+target.id, shooter.id, target.id+" на "+target.hp+"!");
+      // сколько у него осталось — по своему урону (стрелок видит, что попал и
+      // примерно на сколько), а не настоящее HP
+      HT[target.id] = {hp:(prevH ? prevH.hp : 100) - dmg, tick:tick, by:shooter.id};
+      var hEst = HT[target.id].hp;
+      if(hEst <= 40 && (!prevH || prevH.hp > 40)) voiceLog(shooter.team, "hurt"+target.id, shooter.id, target.id+" сильно ранен, ~"+Math.max(1, Math.round(hEst/10)*10)+"!");
     }
     target._hitFx = {t:nowTs, head:headshot};
     if(target.hp <= 0 && target.alive){
@@ -8064,20 +8217,9 @@ function tryShoot(shooter, target, dist){
   tracers.push({wc:tracerClass(shooter.weapon), x1:shooter.x, y1:shooter.y, x2:endX, y2:endY, team:shooter.team, born:nowTs, hit:hit, head:headshot, prefire:prefire, miss:!hit, zone:hitZone});
   // выстрел слышно далеко (шаг 5: с конусом обзора боты не видят спиной —
   // но разворачиваются на звук стрельбы; в кого попали — точно знает откуда)
-  bots.forEach(function(o){
-    if(!o.alive || o.team === shooter.team) return;
-    var dG = Math.hypot(o.x-shooter.x, o.y-shooter.y);
-    if(o === target){ o.heardSound = {x:shooter.x, y:shooter.y, tick:tick, team:shooter.team, src:shooter.id, kind:"hit"}; return; }
-    // слышимость выстрела: на прямой видимости дальше, через стены глуше
-    // (раньше было 900px во все стороны — слышали полкарты)
-    var hearR = (hasLOS(o.x, o.y, shooter.x, shooter.y) ? GUN_HEAR_OPEN : GUN_HEAR_WALL) * (w.silenced ? 0.55 : 1); // глушитель — слышно ближе
-    if(dG < hearR){
-      var jg = 15 + dG*0.06, ja = hashRand(tick*17 + o.id.charCodeAt(0)*7 + shooter.nextShotTick)*Math.PI*2;
-      var hpS = hearPos(o, shooter.x, shooter.y, tick*17 + o.id.charCodeAt(0)*7 + (shooter.nextShotTick|0), hearR === GUN_HEAR_WALL);
-      o.heardSound = hpS ? {x:hpS.x, y:hpS.y, tick:tick, team:shooter.team, src:shooter.id, kind:"shots"}
-                         : {x:shooter.x+Math.cos(ja)*jg, y:shooter.y+Math.sin(ja)*jg, tick:tick, team:shooter.team, src:shooter.id, kind:"shots"};
-    }
-  });
+  // глушитель — слышно ближе; в кого попали — тот понимает, откуда стреляют
+  makeSound(shooter, shooter.x, shooter.y, "shots", {mul: w.silenced ? 0.55 : 1, seed: shooter.nextShotTick|0});
+  if(target && target.alive && target.team !== shooter.team) makeSound(shooter, shooter.x, shooter.y, "hit", {only: target, seed: 5});
   if(tracers.length > 60) tracers.shift();
   if(prefire) logEvent(shooter.id+": префайр по памяти о "+target.id+" (увер. "+Math.round(prefireConfidence*100)+"%)"+(hit?" — попал":""));
 }
@@ -8099,9 +8241,9 @@ function duelContext(bot, enemiesSeen, alliesNear){
   var e = bot._nearestEnemyBot;
   if(e){
     var HT = teamIntel[bot.team] && teamIntel[bot.team].hurt, hk = HT && HT[e.id];
-    o.hurtFoe = !!(hk && hk.hp <= 40 && tick - hk.tick < 8*TICK_HZ) || e.hp <= 40;
+    o.hurtFoe = !!(hk && hk.hp <= 40 && tick - hk.tick < 8*TICK_HZ);
     o.awpLine = !!(e.weapon && e.weapon.key === "AWP");
-    o.flashed = tick < (e.blindUntil || 0);
+    o.flashed = tick < (e.blindUntil || 0) && !!e._blindBy; // ослепили мы — видели, что флешка хлопнула на нём
   }
   return o;
 }
@@ -8760,6 +8902,7 @@ function payRoundEconomy(winner, reason){
       var inc = income;
       if(!won && team === "T" && reason === "time" && b.alive) inc = 0;
       b.money = Math.min(MAX_MONEY, b.money + inc);
+      foeIncome(team === "CT" ? "T" : "CT", b.id, inc); // доход видно всем: счёт, плант, кто дожил
     });
     te.lastIncome = income;
     if(roundNum === 1 || roundNum === HALF_ROUNDS+1) te.wonPistol = won;
@@ -8799,13 +8942,13 @@ function fullNeed(b){
 }
 function nextLossIncome(team){ return LOSS_BONUS[Math.min(4, teamEco[team].lossLevel)]; }
 
-// оценка денег соперника: про считают по лосс-бонусу и тому, что те сохранили;
-// у нас — реальная средняя сумма с погрешностью ±$500 (не телепатия, а подсчёт)
+// оценка денег соперника — подсчёт по открытому (FOE в 09_knowledge.js:
+// доход по итогам раундов, фраги из киллфида, что они, скорее всего, купили),
+// а не их настоящие деньги; «сохранили оружие» — дожили с ним, и его видели
 function enemyEcoGuess(team){
-  var en = team === "CT" ? "T" : "CT", ms = bots.filter(function(b){ return b.team === en; });
-  var avg = ms.reduce(function(a, b){ return a + b.money; }, 0) / Math.max(1, ms.length);
-  var guns = ms.filter(function(b){ return b.primary && WEAPONS[b.primary].tier >= 5; }).length; // сохранили винтовки
-  avg += (hashRand(roundNum*557 + matchNum*19 + (team === "CT" ? 1 : 2)) - 0.5)*1000;
+  var ms = bots.filter(function(b){ return b.team !== team; });
+  var avg = ms.reduce(function(a, b){ return a + foeMoney(team, b.id); }, 0) / Math.max(1, ms.length);
+  var guns = ms.filter(function(b){ var g = FOE[team].gun[b.id]; return g && WEAPONS[g].tier >= 5; }).length;
   var full = guns >= 3 || avg >= 4200;
   var eco = !full && guns <= 1 && avg < 2300;
   return {avg:avg, full:full, eco:eco, guns:guns};
@@ -8815,6 +8958,7 @@ function decideRoundType(team){
   if(base === "pistol") return base;
   var E = enemyEcoGuess(team), te = teamEco[team];
   te.enemyGuess = E; // оценка ДО закупа — по ней CT потом решают "играем против эко"
+  foeBuyGuess(team);  // и сразу: что они на это, скорее всего, купили
   var mates = bots.filter(function(b){ return b.team === team; });
   var avg = mates.reduce(function(a, b){ return a + b.money; }, 0) / mates.length;
   var lastOfHalf = lastOfHalfNow();
@@ -8994,6 +9138,7 @@ function buyPhase(){
 }
 
 function startHalf(silent){
+  foeEcoHalf();
   bots.forEach(function(b){
     b.money = START_MONEY; b.primary = null; b.secondary = b.team==="CT" ? "USP" : "GLOCK";
     b.armor = false; b.helmet = false; b.kit = false; b.weapon = WEAPONS[b.secondary]; b.nades = emptyNades();
@@ -9027,6 +9172,7 @@ function freshMatch(n){
 }
 function newMatch(){
   matchNum++;
+  foeReset();
   score.CT = 0; score.T = 0;
   roundNum = 0;
   bots.forEach(function(b){ b.kills = 0; b.deaths = 0; });
@@ -9106,7 +9252,7 @@ function resetRound(){
     b.pickTick = -999; b.contactStreak = 0; b.nextShotTick = 0;
     b.state = "patrol"; b.decisionTick = -999; b.holding = false; b.forcedRetreat = false;
     b.facing = undefined; b.heading = undefined; b.curSpeed = 0; b.crouching = false; b.holdSinceTick = -999; b.onStairs = false;
-    b.lastIntel = null; b.walking = false; b.lastStepTick = -999; b.heardSound = null;
+    b.lastIntel = null; b.walking = false; b.lastStepTick = -999; b.heardSound = null; b.ears = []; b._heardReload = null;
     b.burstCount = 0; b._fire = null; b.lastShotTick = -999; b._ammoFor = null; b._reloading = false; b._onPistol = null; b._secAmmo = null; b._blind = null; b._ds = null; b._trail = []; b._tagUntil = 0; b._knife = false; b._drawUntil = 0; b.peekType = null; b.peekSinceTick = 0; b.stuckTicks = 0;
     b._prevOffX = 0; b._prevOffY = 0; b.lookTarget = null; b.lookReason = null;
     initRoam(b);
@@ -9347,40 +9493,19 @@ function stepTick(){
       } else if(bot.curSpeed <= STRAFE) bot.curSpeed = 0;
     } else if(bot._hold && !bot.atPost && !bot.holding){ bot._hold = null; }
 
-    // ---------- эмиссия звука шагов (план §13, минимальная версия для §3) ----------
-    // Дискретные "шаги" с интервалом, не сплошное поле — бег громче и чаще,
-    // тихий шаг тише и реже. Без затухания через стены (упрощение v1 — если
-    // понадобится точнее, тут же место, где учитывать hasLOS/дистанцию до стены).
-    // вода (Ancient: Water между мидом и B) — всплески слышно громче, и даже шифтом
+    // ---------- шаги: бег слышно, шифт — нет (вода плещет и под шифтом) ----------
     var wet = bot.curSpeed > 5 && inWater(bot.baseX, bot.baseY);
-    if(bot.curSpeed > 5 && (!(BAL.silentWalk && bot.walking) || wet)){ // шифт (тихий шаг) не слышно, как в CS
+    if(bot.curSpeed > 5 && (!bot.walking || wet)){
       var stepInterval = bot.walking ? FOOTSTEP_INTERVAL_WALK : FOOTSTEP_INTERVAL_RUN;
       if(tick - bot.lastStepTick >= stepInterval){
         bot.lastStepTick = tick;
-        var soundRadius = (wet ? (bot.walking ? 220 : 460) : (bot.walking ? SOUND_RADIUS_WALK : SOUND_RADIUS_RUN)) * (BAL.stepHearMul || 1);
+        var soundRadius = wet ? (bot.walking ? 220 : SOUND.water.open) : SOUND.steps.open;
         soundPings.push({x:bot.baseX, y:bot.baseY, team:bot.team, born:nowTs, radius:soundRadius});
         // (4) сам знает, что шумит: бежал в пределах слышимости места, где враг вероятен
         if(BAL.heardMe && roundState === "live"){ var zN = bzOf(bot.x, bot.y); if(zN >= 0){ var nearZ = [zN].concat(BZ.nbr[zN]||[]);
           if(nearZ.some(function(j){ var cj = BZ.cent[j]; return cj && Math.hypot(cj.x-bot.x, cj.y-bot.y) < soundRadius && reachPossible(bot.team, j) && beliefZoneKnown(bot.team, j) >= 0.2; })) bot._noisyT = tick; } }
         if(soundPings.length > 40) soundPings.shift();
-        bots.forEach(function(listener){
-          if(listener===bot || !listener.alive || listener.team===bot.team) return;
-          var dHear = Math.hypot(listener.x-bot.x, listener.y-bot.y);
-          if(dHear > soundRadius) return;
-          // через стену шаги глуше: слышно только ближе (~75% радиуса)
-          var occS = !hasLOS(listener.x, listener.y, bot.x, bot.y);
-          if(occS && dHear > soundRadius*0.75) return;
-          var wasStale = !listener.heardSound || (tick - listener.heardSound.tick) > 90;
-          // звук как вероятностное пятно, не точная координата (план §13) —
-          // джиттер растёт вместе с дистанцией до источника
-          var jitterMag = 20 + dHear*0.12;
-          var jr = hashRand(tick*331 + bot.id.charCodeAt(0)*17 + listener.id.charCodeAt(0)*11 + bot.lastStepTick);
-          var jang = jr * Math.PI*2;
-          var hpF = hearPos(listener, bot.x, bot.y, tick*331 + bot.id.charCodeAt(0)*17 + listener.id.charCodeAt(0)*11 + bot.lastStepTick, occS);
-          listener.heardSound = hpF ? {x:hpF.x, y:hpF.y, tick:tick, team:bot.team, src:bot.id, kind: wet ? "water" : "steps"}
-                                    : {x:bot.x+Math.cos(jang)*jitterMag, y:bot.y+Math.sin(jang)*jitterMag, tick:tick, team:bot.team, src:bot.id, kind:"steps"};
-          if(wasStale) logEvent(listener.id+" услышал "+(wet ? "всплески в воде" : "шаги")+" ("+bot.team+")"+(bot.walking?" (тихо)":"")+(occS ? " за стеной" : ""));
-        });
+        makeSound(bot, bot.x, bot.y, wet ? "water" : "steps", {mul: wet && bot.walking ? 220/SOUND.water.open : 1, seed: bot.lastStepTick});
       }
     }
 
@@ -11501,6 +11626,7 @@ function killAssist(att, vic){
 // mods: smoke — через смок, wall — прострел, noscope — без прицела, blind — убийца ослеплён
 function feedKill(att, vic, wkey, hs, mods){
   mods = mods || {};
+  killfeedRead(att, vic, wkey); // киллфид видят и боты — закуп и роли врага (09_knowledge.js)
   var as = killAssist(att, vic);
   killfeed.unshift({kind:"kill", att:att?nick(att.id):"?", attTeam:att?att.team:"", as:as?nick(as.id):null, asFlash:as&&as.flash,
     vic:nick(vic.id), vicTeam:vic.team, w:wkey, hs:hs, smoke:!!mods.smoke, wall:!!mods.wall, noscope:!!mods.noscope, blind:!!mods.blind, t:nowTs});
@@ -11684,7 +11810,6 @@ var __SNAP = [
 ["AIM_FIRE_CONE", function(){ return AIM_FIRE_CONE; }, function(v){ try{ AIM_FIRE_CONE = v; }catch(e){} }],
 ["PREFIRE_RADIUS", function(){ return PREFIRE_RADIUS; }, function(v){ try{ PREFIRE_RADIUS = v; }catch(e){} }],
 ["SOUND_RADIUS_RUN", function(){ return SOUND_RADIUS_RUN; }, function(v){ try{ SOUND_RADIUS_RUN = v; }catch(e){} }],
-["SOUND_RADIUS_WALK", function(){ return SOUND_RADIUS_WALK; }, function(v){ try{ SOUND_RADIUS_WALK = v; }catch(e){} }],
 ["FOOTSTEP_INTERVAL_RUN", function(){ return FOOTSTEP_INTERVAL_RUN; }, function(v){ try{ FOOTSTEP_INTERVAL_RUN = v; }catch(e){} }],
 ["FOOTSTEP_INTERVAL_WALK", function(){ return FOOTSTEP_INTERVAL_WALK; }, function(v){ try{ FOOTSTEP_INTERVAL_WALK = v; }catch(e){} }],
 ["bots", function(){ return bots; }, function(v){ try{ bots = v; }catch(e){} }],
@@ -11734,6 +11859,7 @@ var __SNAP = [
 ["ZONE_DEFAULT_LABEL", function(){ return ZONE_DEFAULT_LABEL; }, function(v){ try{ ZONE_DEFAULT_LABEL = v; }catch(e){} }],
 ["ZONE_SYNONYMS", function(){ return ZONE_SYNONYMS; }, function(v){ try{ ZONE_SYNONYMS = v; }catch(e){} }],
 ["_zbnCache", function(){ return _zbnCache; }, function(v){ try{ _zbnCache = v; }catch(e){} }],
+["FOE", function(){ return FOE; }, function(v){ try{ FOE = v; }catch(e){} }],
 ["BZ", function(){ return BZ; }, function(v){ try{ BZ = v; }catch(e){} }],
 ["belief", function(){ return belief; }, function(v){ try{ belief = v; }catch(e){} }],
 ["beliefSeen", function(){ return beliefSeen; }, function(v){ try{ beliefSeen = v; }catch(e){} }],
@@ -11786,6 +11912,8 @@ var __SNAP = [
 ["HEAD_HALF", function(){ return HEAD_HALF; }, function(v){ try{ HEAD_HALF = v; }catch(e){} }],
 ["groundWeapons", function(){ return groundWeapons; }, function(v){ try{ groundWeapons = v; }catch(e){} }],
 ["WSPEED", function(){ return WSPEED; }, function(v){ try{ WSPEED = v; }catch(e){} }],
+["SOUND", function(){ return SOUND; }, function(v){ try{ SOUND = v; }catch(e){} }],
+["EARS_KEEP", function(){ return EARS_KEEP; }, function(v){ try{ EARS_KEEP = v; }catch(e){} }],
 ["WATER_Z", function(){ return WATER_Z; }, function(v){ try{ WATER_Z = v; }catch(e){} }],
 ["awpSmokeCd", function(){ return awpSmokeCd; }, function(v){ try{ awpSmokeCd = v; }catch(e){} }],
 ["STATE_LABEL", function(){ return STATE_LABEL; }, function(v){ try{ STATE_LABEL = v; }catch(e){} }],

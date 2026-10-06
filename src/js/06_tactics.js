@@ -332,8 +332,8 @@ function lurkerBrain(b, tt, other){
     return;
   }
   if(tt.phase === "postplant"){
-    var R = bomb && bomb.retake;
-    if(BAL.noLeaks && GEO[tt.site] && GEO[tt.site].ctEntry){ R = {approaches:[GEO[tt.site].ctEntry]}; }
+    // откуда пойдёт ретейк — T не знают план CT, только вход CT на этот сайт
+    var R = GEO[tt.site] && GEO[tt.site].ctEntry ? {approaches:[GEO[tt.site].ctEntry]} : null;
     if(R && R.approaches && R.approaches.length){
       var a = R.approaches[0];
       // за точкой сбора CT, со стороны их спавна — в спину ретейку

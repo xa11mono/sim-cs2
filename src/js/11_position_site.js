@@ -39,9 +39,7 @@ function blindBullet(b, pt){
   var a = Math.atan2(pt.y-b.y, pt.x-b.x) + (hashRand(tick*31 + b.id.charCodeAt(1))-0.5)*0.08;
   var cl = rayClipWalls(b.x, b.y, b.x + Math.cos(a)*(w.range||900), b.y + Math.sin(a)*(w.range||900));
   tracers.push({wc:tracerClass(b.weapon), x1:b.x, y1:b.y, x2:cl.x, y2:cl.y, team:b.team, born:nowTs, hit:false, miss:true}); if(tracers.length > 60) tracers.shift();
-  bots.forEach(function(o){ if(!o.alive || o.team === b.team) return;
-    var hr = (hasLOS(o.x, o.y, b.x, b.y) ? GUN_HEAR_OPEN : GUN_HEAR_WALL) * (w.silenced ? 0.55 : 1);
-    if(Math.hypot(o.x-b.x, o.y-b.y) < hr) o.heardSound = {x:b.x, y:b.y, tick:tick, team:b.team, src:b.id, kind:"shots"}; });
+  makeSound(b, b.x, b.y, "shots", {mul: w.silenced ? 0.55 : 1});
   return true;
 }
 function smokeSpamTick(){

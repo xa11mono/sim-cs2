@@ -483,9 +483,8 @@ function tBrain(){
       // (S6) не успеть — не бежать на троих: сколько осталось дефузить (кит
       // не знаем — считаем, что есть, если у CT был фулл-бай), и сколько бежать
       if(BAL.defuseReach){
-        var dfz = bots.filter(function(o){ return o.defusing && o.alive; })[0];
-        var remT = dfz ? Math.max(0, (dfz.defuseUntil||tick) - tick) : 0;
-        if(dfz && !(dfz.defuseUntil) ) remT = (teamEco.CT.roundType === "full" ? DEFUSE_KIT_TICKS : DEFUSE_TICKS);
+        // слышали, когда начали, а с китом ли — догадка по их закупу
+        var remT = tDefuseLeftGuess(ts), dfz = remT != null;
         var late = antiDef.filter(function(b){ return pathLenTo(b, bpA.x, bpA.y)/SPEED*TICK_HZ > remT + 24; });
         if(dfz && late.length === antiDef.length && late.length && !tt._defLate){
           tt._defLate = tick;
@@ -509,13 +508,10 @@ function tBrain(){
     // лёркер, оставшийся последним (уже не лёркер), — тоже на пост-плант, а не стоит где поставил
     if(!lurker) group = group.concat(ts.filter(function(b){ return b.tRole === "lurker" && antiDef.indexOf(b) < 0 && group.indexOf(b) < 0 && !b.planting; }));
     // CT ушли в сейв и времени много — пара T идёт выбивать оружие
-    var ctSaving = teamTac.CT && teamTac.CT.saving;
-    if(BAL.noLeaks){
-      // CT не идут на ретейк: после планта прошло 15с+, у бомбы и на подходах их
-      // не видели и не слышали 10с, и их меньше нас — похоже на сейв
-      var ctNearB = intelEstimate("T", bomb.x, bomb.y, 1200, 10*TICK_HZ);
-      ctSaving = tick - bomb.plantTick > 15*TICK_HZ && (ctNearB.seen + ctNearB.heard) === 0 && aliveCount("CT") < ts.length;
-    }
+    // CT не идут на ретейк: после планта прошло 15с+, у бомбы и на подходах их
+    // не видели и не слышали 10с, и их меньше нас — похоже на сейв
+    var ctNearB = intelEstimate("T", bomb.x, bomb.y, 1200, 10*TICK_HZ);
+    var ctSaving = tick - bomb.plantTick > 15*TICK_HZ && (ctNearB.seen + ctNearB.heard) === 0 && aliveCount("CT") < ts.length;
     if(ctSaving && bombTimeLeftTicks() > 12*TICK_HZ){
       var hunters = group.filter(function(b){ return b.tRole==="entry" || b.tRole==="support"; });
       // где CT вероятнее всего прячутся: раньше было всего 2-3 фиксированные

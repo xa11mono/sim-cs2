@@ -213,40 +213,19 @@ function stepTick(){
       } else if(bot.curSpeed <= STRAFE) bot.curSpeed = 0;
     } else if(bot._hold && !bot.atPost && !bot.holding){ bot._hold = null; }
 
-    // ---------- эмиссия звука шагов (план §13, минимальная версия для §3) ----------
-    // Дискретные "шаги" с интервалом, не сплошное поле — бег громче и чаще,
-    // тихий шаг тише и реже. Без затухания через стены (упрощение v1 — если
-    // понадобится точнее, тут же место, где учитывать hasLOS/дистанцию до стены).
-    // вода (Ancient: Water между мидом и B) — всплески слышно громче, и даже шифтом
+    // ---------- шаги: бег слышно, шифт — нет (вода плещет и под шифтом) ----------
     var wet = bot.curSpeed > 5 && inWater(bot.baseX, bot.baseY);
-    if(bot.curSpeed > 5 && (!(BAL.silentWalk && bot.walking) || wet)){ // шифт (тихий шаг) не слышно, как в CS
+    if(bot.curSpeed > 5 && (!bot.walking || wet)){
       var stepInterval = bot.walking ? FOOTSTEP_INTERVAL_WALK : FOOTSTEP_INTERVAL_RUN;
       if(tick - bot.lastStepTick >= stepInterval){
         bot.lastStepTick = tick;
-        var soundRadius = (wet ? (bot.walking ? 220 : 460) : (bot.walking ? SOUND_RADIUS_WALK : SOUND_RADIUS_RUN)) * (BAL.stepHearMul || 1);
+        var soundRadius = wet ? (bot.walking ? 220 : SOUND.water.open) : SOUND.steps.open;
         soundPings.push({x:bot.baseX, y:bot.baseY, team:bot.team, born:nowTs, radius:soundRadius});
         // (4) сам знает, что шумит: бежал в пределах слышимости места, где враг вероятен
         if(BAL.heardMe && roundState === "live"){ var zN = bzOf(bot.x, bot.y); if(zN >= 0){ var nearZ = [zN].concat(BZ.nbr[zN]||[]);
           if(nearZ.some(function(j){ var cj = BZ.cent[j]; return cj && Math.hypot(cj.x-bot.x, cj.y-bot.y) < soundRadius && reachPossible(bot.team, j) && beliefZoneKnown(bot.team, j) >= 0.2; })) bot._noisyT = tick; } }
         if(soundPings.length > 40) soundPings.shift();
-        bots.forEach(function(listener){
-          if(listener===bot || !listener.alive || listener.team===bot.team) return;
-          var dHear = Math.hypot(listener.x-bot.x, listener.y-bot.y);
-          if(dHear > soundRadius) return;
-          // через стену шаги глуше: слышно только ближе (~75% радиуса)
-          var occS = !hasLOS(listener.x, listener.y, bot.x, bot.y);
-          if(occS && dHear > soundRadius*0.75) return;
-          var wasStale = !listener.heardSound || (tick - listener.heardSound.tick) > 90;
-          // звук как вероятностное пятно, не точная координата (план §13) —
-          // джиттер растёт вместе с дистанцией до источника
-          var jitterMag = 20 + dHear*0.12;
-          var jr = hashRand(tick*331 + bot.id.charCodeAt(0)*17 + listener.id.charCodeAt(0)*11 + bot.lastStepTick);
-          var jang = jr * Math.PI*2;
-          var hpF = hearPos(listener, bot.x, bot.y, tick*331 + bot.id.charCodeAt(0)*17 + listener.id.charCodeAt(0)*11 + bot.lastStepTick, occS);
-          listener.heardSound = hpF ? {x:hpF.x, y:hpF.y, tick:tick, team:bot.team, src:bot.id, kind: wet ? "water" : "steps"}
-                                    : {x:bot.x+Math.cos(jang)*jitterMag, y:bot.y+Math.sin(jang)*jitterMag, tick:tick, team:bot.team, src:bot.id, kind:"steps"};
-          if(wasStale) logEvent(listener.id+" услышал "+(wet ? "всплески в воде" : "шаги")+" ("+bot.team+")"+(bot.walking?" (тихо)":"")+(occS ? " за стеной" : ""));
-        });
+        makeSound(bot, bot.x, bot.y, wet ? "water" : "steps", {mul: wet && bot.walking ? 220/SOUND.water.open : 1, seed: bot.lastStepTick});
       }
     }
 
