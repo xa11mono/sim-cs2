@@ -20,6 +20,7 @@ fit();
 
 var showNavmesh = document.getElementById("chkNavmesh"); // navmesh-полигоны (NAVAREAS) — точная геометрия проходимости
 var showPortals = document.getElementById("chkPortals");
+var showMarkup = document.getElementById("chkMarkup");   // разметка карты (укрытия и точки встречи, 01_markup.js) — только показ
 var showWalls = document.getElementById("chkWalls");
 var showZones = document.getElementById("chkZones");     // именованные зоны из Zone Editor (ZONEMAP.zones) — семантический слой поверх навмеша
 var showPoints = document.getElementById("chkPoints");   // тактические точки из Zone Editor (ZONEMAP.points)
@@ -71,6 +72,9 @@ cv.addEventListener("mousemove", function(e){
   var w = navScreenToWorld(e.clientX, e.clientY);
   hoverZoneId = findZoneMapZoneAt(w.x, w.y);
 });
+// разметка: где курсор (подсветить ближайший вход)
+var markupHover = null;
+cv.addEventListener("mousemove", function(e){ markupHover = showMarkup.checked ? navScreenToWorld(e.clientX, e.clientY) : null; });
 document.getElementById("btnRecomputeDanger").addEventListener("click", function(){
   computeZoneDanger();
   logEvent("Таблица опасности пересчитана ("+ZONEMAP.zones.length+" зон)", "round");

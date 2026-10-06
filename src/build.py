@@ -12,7 +12,17 @@
   - MK_PRINCIPLES — пункты из docs/PRINCIPLES.md для карточки «Я понял так»;
   - сам модуль marks.js.
 Правка поведения ботов — в нужном файле js/."""
-import re, json, sys, os
+import re, json, sys, os, hashlib
+# Разметка карты (01_markup.js, v189) считается ~9 с, поэтому запекается в
+# data/markup.json (node tools/markup_bake.js). Отпечаток входов — чтобы сборка
+# заметила, что стены / навмеш / зоны поменялись, а разметка старая.
+MARKUP_INPUTS = ['data/walls.json', 'data/navmesh.json', 'data/zonemap.json', 'data/zone_names.json', 'data/zone_shapes.json', 'js/01_map.js', 'js/01_markup.js']
+def markup_hash():
+    h = hashlib.sha1()
+    for f in MARKUP_INPUTS: h.update(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), f), 'rb').read())
+    return h.hexdigest()[:12]
+if len(sys.argv) > 1 and sys.argv[1] == '--markup-hash':
+    print(markup_hash()); sys.exit(0)
 OUT = os.path.abspath(sys.argv[1] if len(sys.argv) > 1 else os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'sim.html'))
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 MARK = "/*@@BUILD: здесь build.py вставляет __SNAP, MK_PRINCIPLES и marks.js@@*/\n"
@@ -93,7 +103,7 @@ def top_vars(src):
         if x not in out: out.append(x)
     return out
 STATIC = set("""ZONEMAP ZONEMAP_RAW NAVAREAS NAVAREAS_RAW NAV_BOUNDARY_SEGS_RAW NAV_BOUNDARY_VERTS_RAW zonesById zoneGraph ZONE_SAMPLES
-ZONE_DANGER_LINE PRO_LINEUPS_RAW BOT_INIT""".split())
+ZONE_DANGER_LINE PRO_LINEUPS_RAW BOT_INIT MARKUP MARKUP_BAKED MK_CFG""".split())
 SETTINGS = set("""BAL MANUAL_WALLS WALL_OBJECTS wallSegs wallSegsLOS USER_ZONES USER_LINEUPS ZONE_NAMES ZONE_SHAPES navAnchors navTransform zoneLayer""".split())
 UI = set("view paused lastFrame accumulator nowTs".split())
 V = [v for v in top_vars(s) if v not in STATIC | SETTINGS | UI and not v.startswith('__') and not v.startswith('MK') and not v.startswith('mk')]
@@ -104,3 +114,7 @@ mod = open('marks.js', encoding='utf-8').read()
 s = s.replace(MARK, snap + "var MK_PRINCIPLES = " + json.dumps(P, ensure_ascii=False) + ";\n" + mod +
     "\n// (v167) каждый сеанс начинается с чистого матча 1 — как в замерах, чтобы отметки повторялись\nfreshMatch(1); paused = false;\n")
 open(OUT, 'w', encoding='utf-8').write(s)
+_mk = json.load(open('data/markup.json', encoding='utf-8')).get('src')
+if _mk != markup_hash():
+    print('ВНИМАНИЕ: разметка карты (data/markup.json) устарела — стены/навмеш/зоны или её код поменялись. '
+          'Пересчитать: node tools/markup_bake.js, потом собрать ещё раз.')

@@ -87,6 +87,9 @@ docs/tasks/02-mark-moment.md, раздел 5).
   пункты PRINCIPLES для карточки, модуль `src/marks.js`). Публикуемая версия:
   `python3 src/mkpub.py` → `ancient-radar.html` (её публикуем на страницу
   https://claude.ai/artifact/8bpgTJoSqsGTYwjRc8ikDj — там же база отметок).
+- Разметка карты (входы, укрытия, точки встречи) запечена в `src/data/markup.json`.
+  Поменяли стены / навмеш / зоны или `src/js/01_markup.js` — сборка напишет
+  «разметка устарела»: `node tools/markup_bake.js`, потом собрать ещё раз.
 - Здоровье кода: `python3 tools/health.py sim.html` — цифры для отчёта.
 - Правка «не должна менять игру» (чистка, перенос): `bash tools/measure/fingerprint.sh
   sim.html <папка>` до и после, затем `diff -r` — пусто = 8 матчей сыграли бит в бит.
