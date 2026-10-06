@@ -103,7 +103,7 @@ function prePeekDecide(b, C, zB){
     var second = dirs.slice(1).filter(function(x){ return Math.abs(((x.a-dirs[0].a+Math.PI)%(2*Math.PI)+2*Math.PI)%(2*Math.PI)-Math.PI) > 0.9; })[0];
     if(second){
       var cm = mates[0];
-      if(cm){ cm._coverDir = {pt:second.pt, until: tick + 4*TICK_HZ}; voiceLog(b.team, "cov"+b.id+key, b.id, "беру "+calloutName(dirs[0].pt.x, dirs[0].pt.y)+", "+cm.id+" — смотри "+calloutName(second.pt.x, second.pt.y)); }
+      if(cm){ cm._coverDir = {pt:second.pt, until: tick + 4*TICK_HZ}; }
       else if(b.nades && b.nades.flash > 1 && !b.nadeTask && assignNade(b, "flash", second.pt, "закрыть второй угол", {now:true, range:700})) {}
     }
   }
@@ -118,6 +118,7 @@ function prePeekDecide(b, C, zB){
   if(hPos){ var fr = [0.35, 0.5, 0.22, 0.65];
     for(var fi=0; fi<fr.length; fi++){ var P = {x: C.pt.x + (hPos.x-C.pt.x)*fr[fi], y: C.pt.y + (hPos.y-C.pt.y)*fr[fi]};
       if(!insideSolidWall(P.x, P.y) && hasLOS(hPos.x, hPos.y, P.x, P.y) && Math.hypot(P.x-hPos.x, P.y-hPos.y) > 90){ popPt = P; break; } } }
+  if(holder && !(b.nades && b.nades.flash > 0)) b._peekNeed = {pt:popPt, t:tick}; // своей флешки нет — попросить (тимспик)
   if(b.nades && b.nades.flash > 0 && !b.nadeTask && b._ppFlashR !== roundNum && holder && assignNade(b, "flash", popPt, "флешу себе под пик", {now:true, range:700})){
     b._ppFlashR = roundNum; b._ppWaitUntil = tick + 40; b._ppMate = null; b._plannedPeek = {type:"wide", t:tick};
     if(!b._ppV || tick - b._ppV > 6*TICK_HZ){ b._ppV = tick; logEvent(b.id+": угол держат — флешу себе и выхожу широко"); }

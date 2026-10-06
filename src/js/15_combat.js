@@ -233,7 +233,7 @@ function tryShoot(shooter, target, dist){
       // примерно на сколько), а не настоящее HP
       HT[target.id] = {hp:(prevH ? prevH.hp : 100) - dmg, tick:tick, by:shooter.id};
       var hEst = HT[target.id].hp;
-      if(hEst <= 40 && (!prevH || prevH.hp > 40)) voiceLog(shooter.team, "hurt"+target.id, shooter.id, target.id+" сильно ранен, ~"+Math.max(1, Math.round(hEst/10)*10)+"!");
+      if(hEst <= 40 && (!prevH || prevH.hp > 40)) newsAdd(shooter, {k:"hurt", id:target.id, hp:Math.max(10, Math.round(hEst/10)*10)});
     }
     target._hitFx = {t:nowTs, head:headshot};
     if(target.hp <= 0 && target.alive){
@@ -342,7 +342,7 @@ function decideAction(bot, nearestDist, alliesNear, enemiesSeen){
     for(var eC in LKc){ var qC = LKc[eC]; if(tick - qC.tick < 3*TICK_HZ && Math.hypot(qC.x-bot.x, qC.y-bot.y) < 700 && bots.some(function(o){ return o.id === eC && o.alive; })) kF = Math.max(kF, 1) + (enemiesSeen ? 0 : 0); }
     var kN = 0; for(var eC2 in LKc){ var q2 = LKc[eC2]; if(tick - q2.tick < 3*TICK_HZ && Math.hypot(q2.x-bot.x, q2.y-bot.y) < 700) kN++; }
     if(Math.max(enemiesSeen, kN) >= 2){ retreatScore += 0.4; engageScore -= 0.3;
-      if(bot._tcV !== roundNum){ bot._tcV = roundNum; voiceLog("T", "tcl"+roundNum, bot.id, "я один против "+aliveCount("CT")+" — не беру двоих сразу, по одному"); } }
+      }
   }
   // (1) мидер/роумер CT против группы T на миде: раньше "союзников рядом" считались
   // все в 550px (стоят на сайте за стеной и помочь не могут) — и мидер держал
@@ -354,7 +354,7 @@ function decideAction(bot, nearestDist, alliesNear, enemiesSeen){
     knownF = Math.max(knownF, enemiesSeen);
     var tradeM = bots.filter(function(o){ return o !== bot && o.alive && o.team === bot.team && Math.hypot(o.x-bot.x, o.y-bot.y) < 300; }).length;
     if(knownF >= 2 && knownF > tradeM + 1){ retreatScore += 0.35 + 0.1*(knownF - tradeM - 2); engageScore -= 0.25; holdScore -= 0.1;
-      if(bot._moV !== roundNum){ bot._moV = roundNum; voiceLog("CT", "mo"+bot.id+roundNum, bot.id, "их "+knownF+" на миде, я один — отхожу, не дуэлю"); } }
+      }
   }
   // (v154) ценность дуэли. По демкам: у про в момент смерти в 71–77% рядом (≤350px)
   // есть свой на размен, у ботов было 38–54% — боты дерутся в одиночку.

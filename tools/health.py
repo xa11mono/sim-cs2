@@ -58,6 +58,8 @@ def health(path):
         # без записи в канал (.push) и без самой «ленты событий» картины (picEvents)
         # К11: всё услышанное пишется в одном месте (makeSound), не null-сброс
         'мест, где бот «слышит» (пишут услышанное)': len(re.findall(r'\.heardSound[ \t]*=(?![ \t]*null)(?!=)', s)),
+        # К10: фразы в войс пишутся в одном месте (тимспик), не готовыми строками по коду
+        'мест, где пишется фраза в войс': len(re.findall(r'(?<!function )\b(?:voiceLog|intelCallLog)\(', s)) + len(re.findall(r'"voice"\)', s)),
         'читателей журнала канала напрямую': len(re.findall(r'teamIntel(?:\[[^\]]+\]|\.(?:CT|T))\.sig\b(?!\.push\()', re.sub(r'function picEvents\(.*', '', s))),
         '_список: старый вариант': sorted(old),
         '_список: не используются': sorted(unused),

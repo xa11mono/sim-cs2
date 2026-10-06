@@ -466,7 +466,8 @@ function stepTick(){
   if(BAL.smokeSpam) smokeSpamTick(); else smokeShots();
   infoFallbackTick();
   if(BAL.smokeReact) smokeHeTick();
-  teamInfoTick(); // раздел 11: коллы из восприятия этого тика → командная память
+  teamInfoTick(); // раздел 11: восприятие этого тика → радар и блокнот бота
+  talkTick();     // тимспик: кто что говорит, кто что услышал (К10)
   beliefTick();   // раздел 13: карта вероятностей врага
   checkRoundEnd();
 }

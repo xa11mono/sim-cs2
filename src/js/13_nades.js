@@ -483,8 +483,7 @@ function buyReadSee(team, eid, wkey){
   if(R.read && R.read !== prev && team === "CT" && teamTac.CT){ var myT = teamEco.CT && teamEco.CT.roundType; teamTac.CT.antiEco = R.read === "eco" && (myT === "full" || myT === "force" || myT === "half"); }
   if(R.read && R.read !== prev){
     var mate = bots.filter(function(o){ return o.team === team && o.alive; })[0];
-    if(mate) voiceLog(team, "buy"+R.read, mate.id, R.read === "eco" ? "у них пистолеты ("+R.pistols+" видели) — эко, не лезем в упор, держим дистанцию"
-      : "у "+eid+" "+W.name+" — это закуп, не эко");
+    if(mate) newsAdd(mate, {k:"buy", read:R.read});
     logEvent(team+": закуп врага по контактам — "+(R.read === "eco" ? "эко" : "закуп")+" (видели: "+R.n+", винтовок "+R.rifles+", пистолетов "+R.pistols+")");
   }
 }
@@ -585,7 +584,6 @@ function nadeOnEnemy(){
   picks.forEach(function(P){
     if(P[0].nadeTask || !assignNade(P[0], P[1], {x:P[2].x, y:P[2].y}, P[3], {now:true})) return;
     if(P[6]) P[6]();
-    if(P[4]) voiceLog(P[0].team, P[4], P[0].id, P[5]);
   });
 }
 function nadeReact(){
@@ -608,7 +606,7 @@ function nadeReact(){
       .sort(function(a, b2){ return Math.hypot(a.x-ent.x, a.y-ent.y) - Math.hypot(b2.x-ent.x, b2.y-ent.y); })[0];
     if(!c) return;
     if(assignNade(c, "molly", ent, "молотов на раш "+k, {now:true})){ nadeFlags["rushMolly"+k] = tick;
-      voiceLog("CT", "rushm"+k, c.id, "слышу раш на "+k+" — молотов во вход!"); }
+      }
   });
   // CT ранняя граната на задержку: опорник в первые 7–18с иногда (≈35%) кидает
   // молотов/HE во вход T на своём сайте — сбить ранний раш и время T
@@ -625,7 +623,7 @@ function nadeReact(){
       // если во входе/на подходе к нему есть инфа (видели/слышали за 4с)
       var eI = intelEstimate("CT", ent.x, ent.y, 700, 4*TICK_HZ); if(eI.seen + eI.heard === 0) return;
       var tp = an.nades.molly > 0 ? "molly" : "he";
-      if(assignNade(an, tp, ent, "ранняя граната на задержку "+k, {now:true})){ nadeFlags[key] = true; voiceLog("CT", "early"+k, an.id, (tp === "molly" ? "молотов" : "HE")+" во вход "+k+" — задержу, если идут"); }
+      if(assignNade(an, tp, ent, "ранняя граната на задержку "+k, {now:true})){ nadeFlags[key] = true; }
     });
   }
 }

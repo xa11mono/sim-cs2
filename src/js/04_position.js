@@ -371,7 +371,6 @@ function updatePost(b){
       if(b.weapon && b.weapon.key === "AWP" && roundState === "live" && tick - (b._zoomTick||-9999) > 3*TICK_HZ){
         b._zoomTick = tick;
         makeSound(b, b.x, b.y, "zoom").forEach(function(o){
-          voiceLog(o.team, "zoom"+b.id, o.id, "слышу зум AWP "+calloutName(o.heardSound.x, o.heardSound.y));
         });
       }
     }

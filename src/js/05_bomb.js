@@ -64,7 +64,7 @@ function tDefuseGo(tt, ts){
   if(!heard.length) return false;
   var h0 = Math.max.apply(null, heard.map(function(b){ return b._defuseHeard; }));
   var cont = ts.some(function(b){ return (b._defuseCont||-9999) > h0 + 36; });
-  if(cont){ if(tt._dfRead !== h0){ tt._dfRead = h0; voiceLog("T", "dfreal"+h0, heard[0].id, "дефуз не прекращается — настоящий, все на бомбу!"); } return true; }
+  if(cont){ return true; }
   var kitGuess = tDefuseNeed();
   var near = heard.slice().sort(function(a, c){ return pathLenTo(a, bomb.x, bomb.y) - pathLenTo(c, bomb.x, bomb.y); })[0];
   var travel = pathLenTo(near, bomb.x, bomb.y)/SPEED*TICK_HZ;
@@ -72,7 +72,6 @@ function tDefuseGo(tt, ts){
   var rush = hashRand(h0*7 + near.id.charCodeAt(1)) < 0.125;               // иногда без раздумий
   if(!canWait || rush) return true;
   if(tick - h0 < 52) return false;                                          // слушают ~0.8с
-  if(tt._dfFake !== h0){ tt._dfFake = h0; voiceLog("T", "dffake"+h0, near.id, "тапнул и замолчал — фейк, не выходим, держим углы"); }
   return false;
 }
 // сколько длится дефуз по мнению T: с китом ли — не знаем, считаем по тому,

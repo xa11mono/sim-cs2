@@ -14,33 +14,10 @@
 // тактику на другой сайт.
 var teamIntel = { CT:{sig:[], carrier:null}, T:{sig:[], carrier:null} };
 var INTEL_KEEP = 12*64;
-// ---- коллы с задержкой (раздел: инфа как у людей) ----
-// Увидел/услышал один — тиммейты узнают не в тот же тик, а когда он это
-// скажет: через 0.3–0.9с, с погрешностью в позиции. В замесе (много коллов
-// за секунду) эфир забит: задержка больше, часть звуковой инфы теряется.
-var commQueue = [];
-function commSend(team, sig, by){
-  // увиденный враг в CS2 сразу появляется на радаре у всей команды — точка
-  // без задержки. Задерживается только то, что надо СКАЗАТЬ голосом: звук
-  if(sig.type === "spotted"){ intelPush(team, sig); return; }
-  // "замес" — за последнюю секунду в эфире уже 3+ коллов
-  var busy = commQueue.filter(function(q){ return q.team === team && tick - q.sent < TICK_HZ; }).length >= 3;
-  var hs = tick*41 + (by ? by.charCodeAt(by.length-1)*13 : 7) + (sig.id ? String(sig.id).charCodeAt(String(sig.id).length-1)*3 : 0);
-  if(busy && sig.type === "sound" && (sig.kind === "steps" || sig.kind === "shots") && hashRand(hs+5) < 0.35) return; // не успел сказать — потерялось
-  var delay = 20 + Math.round(hashRand(hs)*38) + (busy ? 20 : 0);
-  var nx = (hashRand(hs+11)-0.5)*(sig.type === "spotted" ? 50 : 30), ny = (hashRand(hs+17)-0.5)*(sig.type === "spotted" ? 50 : 30);
-  var s2 = {}; for(var k in sig) s2[k] = sig[k]; s2.x += nx; s2.y += ny;
-  commQueue.push({team:team, sig:s2, sent:tick, at:tick + delay});
-}
-function commFlush(){
-  if(!commQueue.length) return;
-  var keep = [];
-  commQueue.forEach(function(q){ if(q.at <= tick){ if(roundState === "live") intelPush(q.team, q.sig); } else keep.push(q); });
-  commQueue = keep;
-}
-function resetTeamIntel(){ commQueue = []; teamIntel = { CT:{sig:[], carrier:null, lastCall:{}}, T:{sig:[], carrier:null, lastCall:{}} }; }
+function resetTeamIntel(){ teamIntel = { CT:{sig:[], carrier:null, said:{}}, T:{sig:[], carrier:null, said:{}} }; VOICE = {CT:[], T:[]}; TALK_PLAN = {CT:"", T:""}; }
 resetTeamIntel();
 function intelPush(team, sig){ sig.tick = tick; teamIntel[team].sig.push(sig); if(typeof beliefObserve === "function") beliefObserve(team, sig);
+  if(sig.type === "carrier"){ teamIntel[team].carrier = {x:sig.x, y:sig.y, tick:tick, by:sig.by}; intelPush(team, {type:"spotted", x:sig.x, y:sig.y, id:sig.id, by:sig.by, conf:1}); }
   // где разорвалась граната врага (услышали/увидели) — читают выход по гранатам
   if(sig.type === "nade"){ var NS = teamIntel[team].nadeSeen || (teamIntel[team].nadeSeen = []); NS.push({x:sig.x, y:sig.y, type:sig.ntype, tick:tick}); if(NS.length > 30) NS.shift(); }
   if(sig.type === "spotted" && sig.id && sig.id !== "?"){ var sf = botById(sig.id); if(sf){ foeSeen(team, sig.id, sig.x, sig.y);
@@ -94,41 +71,32 @@ function picCheckTick(){
       if(checker){
         e.gone = tick; _picCache[team] = null;
         beliefClearAt(team, e.x, e.y, id);
-        voiceLog(team, "clr"+id, checker.id, "проверил "+calloutName(e.x, e.y)+" — "+id+" там уже нет");
+        newsAdd(checker, {k:"clear", x:e.x, y:e.y});
       }
     });
   });
 }
 function teamInfoTick(){
   if(roundState !== "live") return;
-  commFlush();
   bots.forEach(function(b){
     if(!b.alive) return;
-    // вижу
+    // вижу — в CS2 увиденный враг сразу на радаре у всей команды
     var LS = teamIntel[b.team].lastSpot || (teamIntel[b.team].lastSpot = {});
     (b._visible||[]).forEach(function(e){
       // один и тот же враг — не чаще раза в 8 тиков на команду (память не раздувается)
-      if(!(LS[e.id] && tick - LS[e.id] < 8)){ LS[e.id] = tick;
-        // сам видит — знает сразу (lastIntel), команда — через колл
-        commSend(b.team, {type:"spotted", x:e.x, y:e.y, id:e.id, by:b.id, conf:1}, b.id); }
-      if(bomb && bomb.state === "carried" && bomb.carrier === e){
-        var prevCar = teamIntel[b.team].carrier;
-        if(!prevCar || tick - prevCar.tick > 5*64)
-          voiceLog(b.team, "bomb", b.id, "бомба у "+e.id+" "+calloutName(e.x, e.y)+"!");
-        teamIntel[b.team].carrier = {x:e.x, y:e.y, tick:tick, by:b.id};
-      }
+      if(!(LS[e.id] && tick - LS[e.id] < 8)){ LS[e.id] = tick; intelPush(b.team, {type:"spotted", x:e.x, y:e.y, id:e.id, by:b.id, conf:1}); }
+      // бомба у него за спиной — видно; команда узнает, когда скажу
+      if(bomb && bomb.state === "carried" && bomb.carrier === e)
+        newsAdd(b, {k:"bomb", id:e.id, x:e.x, y:e.y, sigs:[{type:"carrier", x:e.x, y:e.y, id:e.id, by:b.id}]});
     });
-    // слышу (только свежие звуки этого тика). Кто шумит — не знаю: в канал идёт
-    // «что и откуда» и сколько разных источников слышно рядом; кому из врагов
-    // это приписать, решает картина команды (beliefObserve)
+    // слышу (свежие звуки этого тика): в свой блокнот — что и откуда; команда
+    // узнает, когда я это скажу (talkTick), кому приписать — решит картина
     (b.ears||[]).forEach(function(e){
       if(e.tick !== tick) return;
-      var key = "snd"+e.kind+Math.round(e.x/120)+","+Math.round(e.y/120);
-      if(LS[key] && tick - LS[key] < 8) return; LS[key] = tick;
       var sg = {type: e.kind === "pop" ? "nade" : "sound", x:e.x, y:e.y, id:"?", kind:e.kind, by:b.id, conf:0.4};
       if(e.until) sg.until = e.until; if(e.ntype) sg.ntype = e.ntype;
       if(e.kind === "steps" || e.kind === "water") sg.n = earsSources(b, TICK_HZ, ["steps","water"]);
-      commSend(b.team, sg, b.id);
+      newsAdd(b, {k:"hear", kind:e.kind, x:e.x, y:e.y, n:sg.n||1, sigs:[sg]});
     });
   });
   ["CT","T"].forEach(function(t){
@@ -214,13 +182,11 @@ function calloutName(x, y, from){
   C.forEach(function(c){ if(!c[0]) return; var d = Math.hypot(c[0].x-x, c[0].y-y); if(d < bd){ bd = d; best = c; } });
   return best ? best[from ? 2 : 1] : "?";
 }
-function voiceLog(team, key, who, text){ intelCallLog(team, "v:"+key, "[войс "+team+"] "+who+": "+text); }
 function aliveCount(team){ return bots.filter(function(b){ return b.team===team && b.alive; }).length; }
 function intelDeath(victim, killer){
   if(!victim || roundState !== "live") return;
   var saw = killer && hasVision(victim.x, victim.y, killer.x, killer.y);
   intelPush(victim.team, {type:"died", x:victim.x, y:victim.y, id:victim.id, conf:1, kx: saw ? killer.x : null, ky: saw ? killer.y : null});
-  if(saw) intelPush(victim.team, {type:"spotted", x:killer.x, y:killer.y, id:killer.id, by:victim.id, conf:1});
   // где убийца по мнению команды: видел — точно; не видел — по тому, откуда
   // прилетели пули (направление попаданий, дистанция примерно); ник — из киллфида
   var kEst = null;
@@ -228,22 +194,15 @@ function intelDeath(victim, killer){
     var hs0 = victim.heardSound;
     kEst = saw ? {x:killer.x, y:killer.y} : (hs0 && hs0.kind === "hit" && tick - hs0.tick < 8) ? {x:hs0.x, y:hs0.y}
       : hearPos(victim, killer.x, killer.y, tick*31 + (victim.id.charCodeAt(victim.id.length-1)||0), true);
-    if(!saw) intelPush(victim.team, {type:"sound", x:kEst.x, y:kEst.y, id:killer.id, by:victim.id, kind:"hit", conf:0.6});
   }
-  var place = calloutName(victim.x, victim.y);
-  var mine = aliveCount(victim.team), theirs = aliveCount(victim.team === "CT" ? "T" : "CT");
-  voiceLog(victim.team, "die"+victim.id, victim.id, "минус "+place+
-    (killer ? (saw ? ", убил "+killer.id+" "+calloutName(kEst.x, kEst.y, true) : ", стреляли "+calloutName(kEst.x, kEst.y, true)) : "")+
-    " — нас "+mine+" против "+theirs);
-  if(mine === 1 && theirs >= 2){
-    var last = bots.filter(function(o){ return o.team === victim.team && o.alive; })[0];
-    if(last) voiceLog(victim.team, "clutch", last.id, "я один против "+theirs+" — "+
-      (victim.team === "CT" && bomb && bomb.state !== "planted" ? "тяну время, беру по одному" :
-       victim.team === "T" && bomb && bomb.state === "planted" ? "сижу у бомбы, жду дефуз" : "беру по одному"));
-  }
-  // команда убийцы тоже "знает", где и кого сняли (свой же игрок сказал "минус ...")
+  // откуда убили — команда узнает из «минуса» убитого (он успевает сказать,
+  // как в про-матче); убийца говорит «снял X» — своей команде
+  victim._deadT = tick;
+  newsAdd(victim, {k:"dead", x:victim.x, y:victim.y, kid:killer ? killer.id : null, kx:kEst ? kEst.x : null, ky:kEst ? kEst.y : null, saw:!!saw,
+    sigs: killer ? [saw ? {type:"spotted", x:killer.x, y:killer.y, id:killer.id, by:victim.id, conf:1} : {type:"sound", x:kEst.x, y:kEst.y, id:killer.id, by:victim.id, kind:"hit", conf:0.6}] : []});
   // роль убитого — не «знаем», а что команда о нём поняла за матч (foeRole)
-  if(killer) intelPush(killer.team, {type:"kill", x:victim.x, y:victim.y, id:victim.id, role:foeRole(killer.team, victim.id), by:killer.id, conf:1});
+  if(killer && killer.alive) newsAdd(killer, {k:"kill", id:victim.id, x:victim.x, y:victim.y,
+    sigs:[{type:"kill", x:victim.x, y:victim.y, id:victim.id, role:foeRole(killer.team, victim.id), by:killer.id, conf:1}]});
   // журнал смертей для IGL: кто, где, в какой фазе, откуда стреляли, разменяли ли
   if(teamTac.T && bomb && bomb.state !== "planted"){
     var TTd = teamTac.T; TTd._dl = TTd._dl || [];
@@ -290,7 +249,6 @@ function intelDeath(victim, killer){
       setPost(o, sw, kp, true, "tradeR");
       holdTask(o, "tradeR", tick + Math.round(3.5*TICK_HZ), {at:{x:victim.x, y:victim.y}, kp:kp});
       o._tradeUntil = tick + Math.round(3.5*TICK_HZ);
-      if(k === 0) voiceLog(o.team, "trade"+victim.id, o.id, "меняю "+victim.id+"!");
     });
   }
   // IGL: энтри сняли на выходе — вторая волна не пикает тот же угол "в лоб":
@@ -304,7 +262,6 @@ function intelDeath(victim, killer){
         return (Math.hypot(a.x-victim.x, a.y-victim.y) + ta) - (Math.hypot(c.x-victim.x, c.y-victim.y) + tc); })[0];
     if(flc && assignNade(flc, "flash", kpF, "поп на убийцу "+victim.id, {now:true, range:900})){
       teamTac.T._popDone = true;
-      voiceLog("T", "pop"+victim.id, flc.id, "даю флешку на "+killer.id+" "+calloutName(kpF.x, kpF.y)+" — меняйте под неё!");
       // размен ждёт хлопка (не дольше ~1.2с): не выбегает раньше флешки
       traders.forEach(function(T){ T.b._waitPopUntil = tick + Math.round(1.2*TICK_HZ); T.b._waitPopKey = "pop:поп на убийцу "+victim.id; });
     }
@@ -325,12 +282,6 @@ function intelDeath(victim, killer){
     }
     b._tradeUntil = tick + 150;
   });
-}
-// лог коллов — не спамить: раз в 4с на команду+зону
-function intelCallLog(team, key, text){
-  var L = teamIntel[team].lastCall;
-  if(L[key] && tick - L[key] < 4*64) return;
-  L[key] = tick; logEvent(text, "voice");
 }
 
 
@@ -585,8 +536,6 @@ function beliefObserve(team, sg){
   if(!BZ.ids.length) return;
   if(sg.type === "sound" && sg.kind === "plant" && SITES.A && SITES.B){
     var st = Math.hypot(sg.x-SITES.A.x, sg.y-SITES.A.y) < Math.hypot(sg.x-SITES.B.x, sg.y-SITES.B.y) ? "A" : "B";
-    if(!(teamIntel[team].plantHeard && teamIntel[team].plantHeard.site === st && tick - teamIntel[team].plantHeard.tick < 5*TICK_HZ))
-      voiceLog(team, "plant"+st, sg.by || "?", "плантят на "+st+"! "+calloutName(sg.x, sg.y));
     teamIntel[team].plantHeard = {site:st, tick:tick, x:sg.x, y:sg.y};
   }
   var ids = [sg.id];
@@ -594,18 +543,11 @@ function beliefObserve(team, sg){
   if((sg.type === "spotted" || sg.type === "sound") && sg.id && sg.id !== "?"){
     reachOpen(team, sg.x, sg.y);
     var zn = calloutName(sg.x, sg.y);
-    if(sg.type === "spotted"){ var blp = beliefLast[team][sg.id]; sg._new = !blp || blp.gone || blp.zn !== zn; }
     ids.forEach(function(eid){
       var bl = beliefLast[team][eid];
       if(bl && bl.src === "spotted" && sg.type === "sound" && tick - bl.tick < 2*TICK_HZ) return;
       beliefLast[team][eid] = {x:sg.x, y:sg.y, tick:tick, src:sg.type, zn:zn};
     });
-    // в войс — только когда инфа НОВАЯ (в этой зоне её ещё не говорили).
-    // Ник и оружие — только если видели; по звуку — что слышно и сколько
-    var bl0 = beliefLast[team][sg.id], fresh = sg.type === "spotted" && bl0 && bl0.tick === tick;
-    if(sg.type === "spotted" && fresh && sg._new){ var foe = botById(sg.id), seenW = foe && foe.weapon;
-      intelCallLog(team, "lkp"+sg.id, "[войс "+team+"] "+(sg.by||"?")+": вижу "+sg.id+(seenW ? " ("+seenW.name+")" : "")+" — "+zn); }
-    else if(SOUND[sg.kind]) intelCallLog(team, "snd"+sg.kind+zn, "[войс "+team+"] "+(sg.by||"?")+": слышу "+SOUND[sg.kind].say+(sg.n >= 2 ? " — их "+sg.n : "")+" "+zn);
   }
   if(sg.type === "spotted") beliefSet(team, sg.id, bzOf(sg.x, sg.y), 1);
   else if(sg.type === "sound") ids.forEach(function(eid){ beliefSet(team, eid, bzOf(sg.x, sg.y), sg.kind === "nade" ? 0.8 : 0.65); });
@@ -737,4 +679,194 @@ function beliefZoneFresh(team, i){
     t += B[eid][i] * (fresh ? 1 : 0.3);
   });
   return t;
+}
+
+
+// ======================= ТИМСПИК (К10, rework B2): один общий голосовой канал =======================
+// Как войс в CS2. Каждый бот ведёт «блокнот» _news — что он сам узнал или сделал
+// (увидел, услышал, умер, убил, ранил, проверил — пусто; его задача сменилась).
+// Раз в 1/8 с он решает, что из этого сказать, сверяя с тем, что команда уже
+// слышала (teamIntel.said), и добавляет просьбы из того, что делает сам.
+// Фраза длится 0,5–2 с по числу слов; команда слышит её целиком, когда она
+// договорена, — тогда же инфа попадает в картину (intelPush). Говорить можно
+// одновременно; срочное короткое («минус», «вижу двоих», «бомба») доходит всегда,
+// а длинное при 3+ голосах сразу может пропасть или дойти позже. Поэтому бот,
+// который слышит, что эфир занят, говорит коротко и только срочное.
+// Реакции на услышанное здесь нет — это следующий шаг (B3).
+var VOICE = {CT:[], T:[]};
+var TALK_PLAN = {CT:"", T:""};
+var VOICE_STATS = {n:0, sec:0, words:0, lost:0, late:0, urgent:0, ex:[]};
+var NEWS_TTL = 4*TICK_HZ, SAID_TTL = 6*TICK_HZ;
+function newsAdd(b, it){ if(!b) return; it.t = tick; (b._news || (b._news = [])).push(it); }
+function talkSpeaking(team, except){ return VOICE[team].filter(function(u){ return !u.done && u.end > tick && u.by !== except; }).length; }
+var TALK_NUM = ["", "один", "двое", "трое", "четверо", "пятеро"];
+var TALK_DO = [["tradeR","меняю"], ["probe","подпушу"], ["lurk","иду в люрк"], ["rotate","ротируюсь"], ["save","сейвлю"],
+  ["defuse","дефужу"], ["plantspot","ставлю"], ["antidefuse","иду на бомбу"], ["retakeEntry","захожу первым"], ["stopplant","сбиваю плант"],
+  ["flank","захожу им в спину"], ["endhunt","иду на последнего"], ["fetch","беру бомбу"], ["midcover","беру мид"], ["bombwatch","держу бомбу"]];
+function talkWhere(x, y, from){ return calloutName(x, y, from).replace(/[«»]/g, ""); }
+// из записи блокнота — сообщение: что сказать полностью и коротко, срочно ли, что передаёт
+function talkMsg(b, it){
+  var team = b.team, foe = team === "CT" ? "T" : "CT", w = it.x != null ? talkWhere(it.x, it.y) : "";
+  switch(it.k){
+    case "dead": { var mine = aliveCount(team), th = aliveCount(foe);
+      var who = it.kid ? (it.saw ? nick(it.kid)+" "+talkWhere(it.kx, it.ky, true) : "стреляли "+talkWhere(it.kx, it.ky, true)) : "";
+      return {key:"dead"+b.id, pr:10, urgent:true, short:"минус"+(who ? ", "+who : ""), full:"минус"+(who ? ", "+who : "")+" — "+mine+" на "+th}; }
+    case "kill": return {key:"kill"+it.id, pr:8, urgent:true, short:"снял "+nick(it.id), full:"снял "+nick(it.id)+" "+w};
+    case "bomb": return {key:"bomb"+it.id+w, pr:9, urgent:true, short:"бомба у "+nick(it.id), full:"бомба у "+nick(it.id)+" "+w};
+    case "bombground": return {key:"bombg"+w, pr:8, urgent:true, short:"бомба лежит "+w, full:"бомба лежит "+w};
+    case "see": return {key:"see"+w+it.n+(it.awp ? "a" : ""), pr:7, urgent:true, short:(it.n >= 2 ? TALK_NUM[Math.min(5, it.n)]+" " : "")+w+(it.awp ? ", AWP" : ""),
+      full:"вижу "+(it.n >= 2 ? TALK_NUM[Math.min(5, it.n)] : nick(it.ids[0]))+" "+w+(it.awp ? " — AWP на линии" : "")};
+    case "hear": {
+      if(it.kind === "plant") return {key:"plant", pr:10, urgent:true, short:"плант!", full:"плантят "+w+"!"};
+      if(it.kind === "defuse") return {key:"defuse", pr:10, urgent:true, short:"дефуз!", full:"дефузят!"};
+      if(it.kind === "reload") return {key:"rl"+w, pr:6, short:"перезарядка "+w, full:"перезарядка "+w+"!"};
+      if(it.kind === "zoom") return {key:"zoom"+w, pr:6, short:"AWP "+w, full:"слышу зум — AWP "+w};
+      if(it.kind === "pop") return {key:"pop"+w, pr:3, short:"гранаты "+w, full:"гранаты "+w};
+      if(it.kind === "nadefly") return {key:"nfly"+talkWhere(it.x, it.y, true), pr:4, short:"кинули "+talkWhere(it.x, it.y, true), full:"граната — кинули "+talkWhere(it.x, it.y, true)};
+      if(it.kind === "hit") return null; // «по мне стреляют» — сам разберусь; если убьют — скажу в минусе
+      var what = SOUND[it.kind] ? SOUND[it.kind].say : "шаги";
+      return {key:"hear"+it.kind+w+(it.n||1), pr:5, short:(it.n >= 2 ? TALK_NUM[Math.min(5, it.n)]+" " : "")+w,
+        full:"слышу "+what+(it.n >= 2 ? ", их "+TALK_NUM[Math.min(5, it.n)] : "")+" — "+w}; }
+    case "hurt": return {key:"hurt"+it.id, pr:6, short:"ранил "+nick(it.id), full:nick(it.id)+" ранен, ~"+it.hp};
+    case "clear": return {key:"clr"+w, pr:4, short:"пусто "+w, full:"проверил "+w+" — пусто"};
+    case "buy": return {key:"buy"+it.read, pr:3, short:it.read === "eco" ? "у них эко" : "у них закуп", full:it.read === "eco" ? "у них пистолеты — эко" : "у них винтовки — закуп"};
+    case "nade": return {key:"nd"+b.id+it.start, pr:5, short:NADE[it.type].name+" "+w, full:"кидаю "+NADE[it.type].name+" "+w};
+    case "doing": return {key:"do"+b.id+it.verb+w, pr:3, short:it.verb, full:it.verb+(w ? " — "+w : "")};
+    case "need2": return {key:"n2"+b.id+w, pr:6, short:"нужен второй "+w, full:"иду "+w+" — нужен второй"};
+    case "holdmine": return {key:"hm"+b.id+w, pr:6, short:"подержите "+w, full:"ухожу с "+w+" — подержите угол"};
+    case "pull": return {key:"pull"+w, pr:7, short:"стяните одного "+w, full:"их тут больше — стяните одного "+w};
+    case "flashme": return {key:"fm"+b.id, pr:6, short:"флешку мне "+w, full:"дайте флешку мне на пик "+w};
+    case "plan": return {key:"plan"+it.sig, pr:8, short:it.short, full:it.full};
+    case "_retry": return {key:it.m.key, pr:it.m.pr, urgent:it.m.urgent, short:it.m.short, full:it.m.short, retry:true};
+  }
+  return null;
+}
+// просьбы и «что делаю» — из своей задачи и картины команды (не из готовых случаев)
+function talkSelf(b){
+  var team = b.team, mates = bots.filter(function(o){ return o !== b && o.alive && o.team === team; });
+  var near = function(p, r){ return mates.some(function(o){ return Math.hypot(o.x-p.x, o.y-p.y) < r; }); };
+  var tag = (b.post && b.post.tag) || "";
+  // что делаю: задача сменилась на заметную для команды
+  var base = tag.split(":")[0];
+  if(base !== b._talkTag){ b._talkTag = base;
+    var D = TALK_DO.filter(function(d){ return base === d[0]; })[0];
+    if(D && b.post) newsAdd(b, {k:"doing", verb:D[1], x:b.post.x, y:b.post.y}); }
+  // граната: сказать, куда кидаю (тиммейты ждут хлопка)
+  if(b.nadeTask && b._talkNade !== b.nadeTask.start){ b._talkNade = b.nadeTask.start;
+    if(b.nadeTask.now) newsAdd(b, {k:"nade", type:b.nadeTask.type, x:b.nadeTask.x, y:b.nadeTask.y, start:b.nadeTask.start}); }
+  // иду туда, где по картине вероятен враг, а своих ни рядом, ни там нет
+  if(b.post && !b.atPost && Math.hypot(b.post.x-b.x, b.post.y-b.y) > 300){
+    var zp = bzOf(b.post.x, b.post.y);
+    if(zp >= 0 && reachPossible(team, zp) && beliefZoneFresh(team, zp) >= 0.4 && !near(b, 450) && !near(b.post, 450))
+      newsAdd(b, {k:"need2", x:b.post.x, y:b.post.y});
+  }
+  // держал угол — ухожу, а там никого из своих не остаётся
+  if(b.atPost && b.post && b.post.look) b._talkHold = {x:b.post.x, y:b.post.y};
+  else if(b._talkHold && b.post && Math.hypot(b.post.x-b._talkHold.x, b.post.y-b._talkHold.y) > 250){
+    if(!near(b._talkHold, 450) && !(bomb && bomb.state === "planted")) newsAdd(b, {k:"holdmine", x:b._talkHold.x, y:b._talkHold.y});
+    b._talkHold = null;
+  }
+  // по картине их рядом со мной на 2+ больше, чем нас
+  if(picOutnumbered(team, b.x, b.y, b)) newsAdd(b, {k:"pull", x:b.x, y:b.y});
+  // собираюсь выйти на угол, который держат, а своей флешки нет — у соседа есть
+  if(b._peekNeed && tick - b._peekNeed.t < 16 && !(b.nades && b.nades.flash > 0) &&
+     mates.some(function(o){ return o.nades && o.nades.flash > 0 && Math.hypot(o.x-b.x, o.y-b.y) < 400; }))
+    newsAdd(b, {k:"flashme", x:b._peekNeed.pt.x, y:b._peekNeed.pt.y});
+  // вижу: сколько и где (на радаре точка уже есть — голосом «сколько, где, с чем»)
+  var vis = (b._visible||[]).filter(function(e){ return e.alive; });
+  if(vis.length){ var g = {}; vis.forEach(function(e){ var z = talkWhere(e.x, e.y); (g[z] || (g[z] = [])).push(e); });
+    for(var z in g){ var L = g[z]; newsAdd(b, {k:"see", n:L.length, ids:L.map(function(e){ return e.id; }), x:L[0].x, y:L[0].y,
+      awp:L.some(function(e){ return e.weapon && e.weapon.key === "AWP"; })}); } }
+  // бомба лежит на земле — видно (T видят её на радаре и так)
+  if(team === "CT" && bomb && bomb.state === "dropped" && Math.hypot(bomb.x-b.x, bomb.y-b.y) < 1000 && hasVision(b.x, b.y, bomb.x, bomb.y))
+    newsAdd(b, {k:"bombground", x:bomb.x, y:bomb.y});
+}
+// план IGL: что команда делает сейчас — подпись плана; сменилась — IGL говорит
+function talkPlan(team){
+  var igl = bots.filter(function(b){ return b.alive && b.team === team && (team === "CT" || b.tRole === "igl"); })[0] ||
+            bots.filter(function(b){ return b.alive && b.team === team; })[0];
+  if(!igl) return;
+  var sig = "", full = "", short = "", eco = teamEco[team] && ROUND_TYPE_LABEL[teamEco[team].roundType];
+  if(team === "T"){ var tt = teamTac.T; if(!tt) return;
+    sig = tt.site+"|"+tt.phase+"|"+(tt.saving ? "s" : "");
+    if(tt.saving){ short = "сейв"; full = "сейвимся, не умираем зря"; }
+    else if(tt.phase === "postplant"){ short = "пост-плант"; full = "бомба стоит — держим её, играем на время"; }
+    else if(tt.phase === "execute"){ short = "заходим "+tt.site; full = "заходим на "+tt.site+"!"; }
+    else if(TALK_PLAN.T && TALK_PLAN.T.split("|")[0] !== tt.site){ short = "все на "+tt.site; full = "перекол — все на "+tt.site; }
+    else { short = tt.tac.name; full = (eco ? eco+", " : "")+tt.tac.name+(tt.tac.setupEnd ? ", выходим на "+tt.site+" позже" : ""); }
+  } else { var ct = teamTac.CT; if(!ct) return;
+    var planted = bomb && bomb.state === "planted";
+    sig = (ct.setup ? ct.setup.id : "")+"|"+(ct.call ? ct.call.site : "")+"|"+(ct.saving ? "s" : "")+"|"+(planted ? bomb.site : "");
+    if(ct.saving){ short = "сейв"; full = "не успеваем — сейв"; }
+    else if(planted){ short = "ретейк "+bomb.site; full = "бомба на "+bomb.site+" — собираемся на ретейк"; }
+    else if(ct.call){ short = "они на "+ct.call.site; full = "они на "+ct.call.site+" (~"+Math.max(1, Math.round(ct.call.count))+") — ротация"; }
+    else { short = ct.setup ? ct.setup.name : "стандарт"; full = (eco ? eco+", " : "")+(ct.setup ? ct.setup.name : "стандарт"); }
+  }
+  if(sig === TALK_PLAN[team]) return;
+  TALK_PLAN[team] = sig;
+  newsAdd(igl, {k:"plan", sig:sig, short:short, full:full});
+}
+function talkWords(t){ return String(t).split(/\s+/).filter(function(w){ return /[0-9A-Za-zА-Яа-яЁё]/.test(w); }).length; }
+function talkTick(){
+  if(roundState !== "live") return;
+  voiceTick();
+  if(tick % 8) return;
+  ["CT","T"].forEach(function(team){
+    talkPlan(team);
+    var said = teamIntel[team].said;
+    bots.forEach(function(b){
+      if(b.team !== team) return;
+      var deadOk = !b.alive && b._deadT != null && tick - b._deadT < 3*TICK_HZ;
+      if(!b.alive && !deadOk){ b._news = null; return; }
+      if(b.alive) talkSelf(b);
+      var N = (b._news || []).filter(function(it){ return tick - it.t <= NEWS_TTL; });
+      if(!b.alive) N = N.filter(function(it){ return it.k === "dead"; }); // мёртвый успевает сказать только «минус»
+      b._news = N;
+      if(!N.length || VOICE[team].some(function(u){ return u.by === b.id && !u.done; })) return; // уже говорю
+      var talking = talkSpeaking(team, b.id), now = {};
+      VOICE[team].forEach(function(u){ if(!u.done) now[u.key] = 1; });
+      // одна запись → одно сообщение; одинаковые (тот же ключ) — вместе (сигналы всех)
+      var M = {};
+      N.forEach(function(it){ var m = talkMsg(b, it); if(!m) return; it._key = m.key;
+        if(now[m.key] || (said[m.key] && tick - said[m.key] < (m.key.indexOf("plan") === 0 ? 1e9 : SAID_TTL))) return;
+        if(M[m.key]){ M[m.key].sigs = M[m.key].sigs.concat(it.sigs || []); return; }
+        m.sigs = (it.sigs || []).slice(); M[m.key] = m; });
+      var C = Object.keys(M).map(function(k){ return M[k]; });
+      // эфир занят (говорят двое+) — только срочное; кто-то говорит — коротко
+      if(talking >= 2) C = C.filter(function(m){ return m.urgent; });
+      if(!C.length) return;
+      C.sort(function(p, q){ return q.pr - p.pr; });
+      var m = C[0], text = (talking >= 1 || m.retry) ? m.short : m.full;
+      var words = talkWords(text), dur = Math.round(Math.max(0.5, Math.min(2, 0.25 + 0.17*words))*TICK_HZ);
+      VOICE[team].push({by:b.id, key:m.key, text:text, urgent:!!m.urgent, sigs:m.sigs, start:tick, end:tick + dur, words:words, msg:m});
+      b._news = N.filter(function(it){ return it._key !== m.key; });
+    });
+  });
+}
+// конец фразы: слышат все — или (3+ голоса сразу, несрочное) пропало / опоздало
+function voiceTick(){
+  ["CT","T"].forEach(function(team){
+    var V = VOICE[team];
+    V.forEach(function(u){
+      if(u.done || u.end > tick) return;
+      var over = V.filter(function(o){ return o !== u && o.start < u.end && o.end > u.start; });
+      if(over.length + 1 >= 3 && !u.urgent && !u.lateOnce){
+        var h = hashRand(u.start*13 + (u.by.charCodeAt(u.by.length-1)||0)*7 + u.words);
+        if(h < 0.5){ u.done = true; VOICE_STATS.lost++;
+          logEvent("(эфир) "+nick(u.by)+" не услышали: "+u.text);
+          var sp = botById(u.by); // говорящий понял, что перебили, — скажет ещё раз коротко, если это ещё важно
+          if(sp && sp.alive && !u.msg.retry){ u.msg.retry = true; newsAdd(sp, {k:"_retry", m:u.msg, sigs:u.sigs}); }
+          return; }
+        var e2 = Math.max.apply(null, over.map(function(o){ return o.end; }));
+        if(e2 > tick){ u.end = e2; u.lateOnce = true; VOICE_STATS.late++; return; }
+      }
+      u.done = true;
+      teamIntel[team].said[u.key] = tick;
+      VOICE_STATS.n++; VOICE_STATS.words += u.words; VOICE_STATS.sec += (u.end - u.start)/TICK_HZ; if(u.urgent) VOICE_STATS.urgent++;
+      if(VOICE_STATS.ex.length < 60) VOICE_STATS.ex.push([matchNum, roundNum, tick, team, u.by, u.text]);
+      logEvent("[войс "+team+"] "+nick(u.by)+": "+u.text, "voice");
+      (u.sigs || []).forEach(function(sg){ var s2 = {}; for(var k in sg) s2[k] = sg[k]; intelPush(team, s2); });
+    });
+    VOICE[team] = V.filter(function(u){ return !u.done || tick - u.end < 5*TICK_HZ; });
+  });
 }

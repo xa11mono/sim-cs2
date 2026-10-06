@@ -98,18 +98,16 @@ function ctClutch(b, ct){
   if(!C.site){
     C.site = want || (Math.hypot(b.x-SITES.A.x, b.y-SITES.A.y) < Math.hypot(b.x-SITES.B.x, b.y-SITES.B.y) ? "A" : "B");
     C.since = tick; C.want = want; C.wantSince = tick;
-    voiceLog("CT", "clutch", b.id, "я один против "+nT+" — "+(want ? "по инфе они на "+C.site+", играю "+C.site : "угадываю "+C.site+", тяну время"));
   } else if(want && want !== C.site){
     if(C.want !== want){ C.want = want; C.wantSince = tick; }
     if(plantSite || carSite || tick - C.wantSince > 8*TICK_HZ){
       C.site = want; C.since = tick;
-      voiceLog("CT", "clutchsw"+C.site, b.id, (plantSite ? "плант на "+want : carSite ? "бомба у "+want : "инфа на "+want)+" — иду туда");
     }
   }
   var k = C.site, g = GEO[k];
   if(BAL.holdTask){
     holdGroup([b], {key:"clutch"+k, center:g.anchor, rArea:280, rMax:340,
-      voice:function(bb, r){ if(r.main) voiceLog("CT", "clutchpos"+k+Math.round(r.main.pt.x/60), bb.id, "встаю под "+calloutName(r.main.pt.x, r.main.pt.y).replace(/^на /,"")+(r.open - (r.main ? r.main.wn : 0) < 0.2 ? ", остальные входы закрыты" : "")); }}, "clutch:"+k);
+      voice:function(){}}, "clutch:"+k);
     return true;
   }
   // (v142) позиция под реальные входы: откуда вероятно придут — туда смотреть
@@ -127,7 +125,7 @@ function ctClutch(b, ct){
         var sp = pickSpots("clutchdyn"+sig, g.anchor, 1, {rMax:340, minGap:60, must:[see[0]], see:see, hideFrom:hide})[0] ||
                  pickSpots("clutchdyn2"+sig, g.anchor, 1, {rMax:340, minGap:60, see:see, hideFrom:hide})[0];
         if(sp){ C.pt = sp; C.ptSite = k; C.look = see[0];
-          voiceLog("CT", "clutchpos"+sig, b.id, "встаю под "+calloutName(see[0].x, see[0].y).replace(/^на /,"")+(hide.length ? ", закрываюсь от остальных входов" : "")); }
+          }
       }
     }
   }
@@ -165,7 +163,6 @@ function midCoverPost(b, cts){
     if(!M2 || M2.round !== roundNum){
       var sps2 = pickSpots("midcover", GEO.ctMid, 3, {rMin:60, rMax:300, minGap:60, see:[GEO.ctMidLook], hideFrom:[GEO.tMid]});
       M2 = b._midCover = {round:roundNum, pt: sps2[0] || GEO.ctMid};
-      voiceLog("CT", "midcover"+roundNum, b.id, "минус мид — я ближе всех, беру мид");
     }
     var far = Math.hypot(b.x-M2.pt.x, b.y-M2.pt.y) > 220;
     setPost(b, M2.pt, GEO.ctMidLook, true, far ? "midcover:go" : "midcover");
@@ -178,7 +175,6 @@ function midCoverPost(b, cts){
   if(!M || M.round !== roundNum){
     var sps = pickSpots("midcover", GEO.ctMid, 3, {rMin:60, rMax:300, minGap:60, see:[GEO.ctMidLook], hideFrom:[GEO.tMid]});
     M = b._midCover = {round:roundNum, pt: sps[0] || GEO.ctMid};
-    voiceLog("CT", "midcover", b.id, "минус мид — держу мид сам, с укрытия");
   }
   setPost(b, M.pt, GEO.ctMidLook, true, "midcover");
   return true;
@@ -225,7 +221,6 @@ function endgameBrain(){
     var egId = K.id + "|" + nFoe;
     if(teamTac[team] && teamTac[team]._egKey !== egId){
       teamTac[team]._egKey = egId;
-      voiceLog(team, "eg"+gk, mine[0].id, (nFoe === 1 ? "последний" : "их двое")+" "+calloutName(kp.x, kp.y)+" — все на него!");
     }
     mine.forEach(function(b){
       if(b.planting || b.defusing || b._sawEnemy || b._stopPlantUntil > tick) return;
@@ -397,18 +392,7 @@ function ctBrain(){
   if(best){
     var isNew = !ct.call || ct.call.site !== best.site;
     if(isNew || best.count > ct.call.count + 0.4 || tick - ct.call.tick > 64){
-      var prevCnt = isNew ? 0 : ct.call.count, prevLogged = isNew ? 0 : (ct.call.logged || 0);
-      ct.call = {logged: prevLogged, site:best.site, count:best.count, tick:tick, evTick:tick, since:(!isNew && ct.call.since) || tick, sinceSite:best.site, undefended:best.undefended, bombSeen: best.carrier || best.plant, seen: best.est ? best.est.seen : 0, nades: best.nades || 0};
-      var how = best.plant ? "слышно плант" : (best.nades >= 2 && !best.est.seen) ? "гранаты на "+best.site+" — выход" : best.undefended ? "сайт пустой, опорник погиб" : best.carrier ? "бомба замечена" : best.deaths ? "минус на сайте" : (best.est.seen ? "вижу "+best.est.seen : best.est.heard ? "слышу" : "по инфе");
-      var n1 = Math.max(1, Math.round(best.count));
-      // в войс — только новый колл или когда их стало БОЛЬШЕ, чем уже говорили
-      // (повтор колла) колл снялся и через пару секунд поднялся снова по той же
-      // инфе — раньше в войс шёл тот же текст ещё раз. Повторяем, только если их
-      // стало больше или прошло 15с
-      var CM = ct._callMem || (ct._callMem = {}), cm = CM[best.site];
-      var dup = BAL.callDedup && cm && n1 <= cm.n && tick - cm.tick < 15*TICK_HZ;
-      if((isNew || n1 > prevLogged) && !dup){ ct.call.logged = n1; CM[best.site] = {n:n1, tick:tick}; intelCallLog("CT", "site"+best.site+n1, "CT колл: T на "+best.site+" (~"+n1+", "+how+")"); }
-      else if(dup) ct.call.logged = Math.max(ct.call.logged||0, cm.n);
+      ct.call = {site:best.site, count:best.count, tick:tick, evTick:tick, since:(!isNew && ct.call.since) || tick, sinceSite:best.site, undefended:best.undefended, bombSeen: best.carrier || best.plant, seen: best.est ? best.est.seen : 0, nades: best.nades || 0};
     } else { ct.call.evTick = tick; ct.call.undefended = best.undefended; if(best.carrier || best.plant) ct.call.bombSeen = true; }
   } else if(ct.call){
     // новой инфы нет — оценка "сколько там" только тает вместе с картой
@@ -419,7 +403,7 @@ function ctBrain(){
     var massNow = beliefCount("CT", BZ.siteNear[ct.call.site]||[]);
     var lkpHere = picNear("CT", SITES[ct.call.site].x, SITES[ct.call.site].y, 500);
     if(lkpHere === 0 && ((quiet > 6*64 && massNow < 0.6) || quiet > 18*64)){
-      logEvent("CT: по "+ct.call.site+" давно тихо"+(massNow < 0.6 ? " и там вероятно пусто" : "")+" — по местам", "team");
+      logEvent("CT: по "+ct.call.site+" давно тихо"+(massNow < 0.6 ? " и там вероятно пусто" : "")+" — по местам");
       ct.call = null;
     }
   }
@@ -448,7 +432,7 @@ function ctBrain(){
       if(ct._patLog !== ks+roundNum+"|"+ct.call.since){ ct._patLog = ks+roundNum+"|"+ct.call.since; }
     }
     if(ct.call.bombSeen && !ct["_bv"+ks]){ ct["_bv"+ks] = true;
-      voiceLog("CT", "bombrot"+ks, "CT", "бомба на "+ks+" — ротатор"+(midMass < 0.9 ? " и мид" : "")+" на "+ks+"!"); }
+      }
     if(!ct.call.since || ct.call.sinceSite !== ks){ ct.call.since = tick; ct.call.sinceSite = ks; }
     var confirmed = tick - ct.call.since > 1.5*TICK_HZ; // мидер/второй опорник снимаются не с первого звука
     var midMass = beliefMass("CT", BZ.midZ), otherMass = beliefMass("CT", BZ.siteNear[ko]||[]);
@@ -470,12 +454,12 @@ function ctBrain(){
       allIn = here >= 2 && tAliveN >= 2 && unacc === 0 && elseAny === 0 && confirmed;
       if(allIn){ need = Math.max(need, here + 1); send = Math.max(0, Math.min(4, need - defenders)); }
       if(allIn && ct._allInLog !== ks+roundNum){ ct._allInLog = ks+roundNum;
-        voiceLog("CT", "allin"+ks, "CT", "все "+tAliveN+" на "+ks+" — "+ko+" пустой, все на "+ks+"!"); }
+        }
       // нас меньше, а на сайт идёт стак — не в одиночку на сайт, а ретейк
       var stackIn = here >= defenders + 2 && here >= 3;
       if(stackIn && cts.length < tAliveN && !ct.call.bombSeen){
         if(!ct.playRetake || ct.playRetake.site !== ks){ ct.playRetake = {site:ks, tick:tick};
-          voiceLog("CT", "prt"+ks, "CT", "их больше ("+here+" на "+ks+", нас "+cts.length+") — не лезем по одному, играем ретейк"); }
+          }
       } else if(ct.playRetake && (ct.playRetake.site !== ks || ct.call.bombSeen)) ct.playRetake = null;
     }
     // (7) расстановка 1-1-1 (T разошлись: у A, на миде и у B по одному):
@@ -491,7 +475,6 @@ function ctBrain(){
       spread = areas >= 3 && ct.call.count < 2.5;
       if(spread){
         allIn = false; keepOther = true; keepMid = true; send = Math.min(send, 1);
-        if(ct._s111Log !== roundNum){ ct._s111Log = roundNum; voiceLog("CT", "s111", "CT", "они разошлись по одному (A, мид, B) — держим свои, не перекручиваемся, играем от количества"); }
       }
     }
     ct.spread = spread;
@@ -532,7 +515,6 @@ function ctBrain(){
       .sort(function(a, b2){ return (a.tRole === "mid" ? 0 : 1) - (b2.tRole === "mid" ? 0 : 1); })[0];
     if(cand){
       ct.flank = {id:cand.id, site:fs, stage:0, arr:0};
-      voiceLog("CT", "flank"+fs, cand.id, "захожу им в спину через мид на "+fs);
     }
   }
   var planted = bomb.state === "planted";
@@ -562,7 +544,7 @@ function ctBrain(){
       (cts.length === 1 && tsAlive === 2 && !(cts[0].kit && needSecs + 8 < secs)); // 2v4 — ещё пробуем, 1v3/1v4/2v5 — сейв
     if(cts.length && hopeless && (equip >= 1800 || needSecs > secs)){
       ct.saving = true;
-      logEvent("CT: сейв — ретейк "+cts.length+"v"+tsAlive+(needSecs > secs ? ", не успеть" : "")+", сохраняем оружие", "team");
+      logEvent("CT: сейв — ретейк "+cts.length+"v"+tsAlive+(needSecs > secs ? ", не успеть" : "")+", сохраняем оружие");
     }
   }
   // (8) сейв → ретейк: на сейве сняли T и расклад выровнялся (1v1, 2v2, 1v2 при
@@ -575,12 +557,11 @@ function ctBrain(){
       // врагов не осталось — сейвить не от кого: идём дефузить, если успеваем
       if(evenS && needS + (tsS ? 2 : 0) < secsS){
         ct.saving = false; ct._noResave = true; cts.forEach(function(b){ b._saveSpot = null; });
-        logEvent("CT: сейв → ретейк — теперь "+cts.length+"v"+tsS+", успеваем ("+Math.round(secsS)+"с)", "team");
-        voiceLog("CT", "sv2rt", cts[0].id, cts.length+" на "+tsS+" — успеваем, идём ретейкать!");
+        logEvent("CT: сейв → ретейк — теперь "+cts.length+"v"+tsS+", успеваем ("+Math.round(secsS)+"с)");
       }
     } else if(ct.preSave && cts.length >= tsS){
       ct.saving = false; ct.preSave = false; ct._noResave = true; cts.forEach(function(b){ b._saveSpot = null; });
-      logEvent("CT: сейв → ретейк — теперь "+cts.length+"v"+tsS+", играем раунд", "team");
+      logEvent("CT: сейв → ретейк — теперь "+cts.length+"v"+tsS+", играем раунд");
     }
   }
   // сейв CT до планта: 1v3+/2v5, T уже заходят на сайт, у нас есть что сохранять
@@ -589,8 +570,7 @@ function ctBrain(){
     var secL2 = ROUND_TIME_SEC - (simTime - roundStartTime);
     if(((cts.length === 1 && tsA2 >= 3) || (cts.length === 2 && tsA2 >= 5)) && eq2 >= 2700 && secL2 > 25){
       ct.saving = true; ct.preSave = true;
-      logEvent("CT: сейв до планта — "+cts.length+"v"+tsA2+", выход на "+ct.call.site+" — сохраняем оружие", "team");
-      voiceLog("CT", "presave", cts[0].id, cts.length+" против "+tsA2+", они уже на "+ct.call.site+" — сейв");
+      logEvent("CT: сейв до планта — "+cts.length+"v"+tsA2+", выход на "+ct.call.site+" — сохраняем оружие");
     }
   }
   // (S4) бомба лежит на виду у CT — один держит её из укрытия: T придут за ней
@@ -602,7 +582,6 @@ function ctBrain(){
       if(seer && cts.length >= 2){
         var bwp = pickSpots("bombwatch"+Math.round(bomb.x/30)+","+Math.round(bomb.y/30), {x:seer.x, y:seer.y}, 2, {rMax:200, minGap:40, must:[{x:bomb.x, y:bomb.y}], hideFrom:[GEO.A.tStage, GEO.B.tStage]})[0] || {x:seer.x, y:seer.y};
         ct.bombWatch = {id:seer.id, pt:bwp};
-        voiceLog("CT", "bombw", seer.id, "бомба лежит "+calloutName(bomb.x, bomb.y)+" — держу её");
       }
     } else if(!cts.some(function(o){ return o.id === ct.bombWatch.id; })) ct.bombWatch = null;
   }
@@ -622,7 +601,7 @@ function ctBrain(){
     if(ct.flank && !ct.flank.dead && ct.flank.id === b.id && !ct.saving && flankPost(b, ct.flank, planted)) return;
     // (35) ретейк 2 на 3+ — AWP не несут в почти проигранный ретейк: снайпер сейвит
     if(BAL.awpSave && planted && b.primary === "AWP" && cts.length === 2 && aliveCount("T") >= 3){
-      if(!b._saveSpot){ b._saveSpot = pickSaveSpot(b); voiceLog("CT", "awpsave"+b.id, b.id, "2 на "+aliveCount("T")+" — сейвлю AWP"); }
+      if(!b._saveSpot){ b._saveSpot = pickSaveSpot(b); }
       setPost(b, b._saveSpot, {x:bomb.x, y:bomb.y}, true, "save"); return;
     }
     if(planted){ retakePost(b, cts); return; }
@@ -639,7 +618,7 @@ function ctBrain(){
       var secLeftP = ROUND_TIME_SEC - (simTime - roundStartTime);
       spSmart = ctNearP >= tNearP || secLeftP < 12 || hasLOS(b.x, b.y, PHs.x, PHs.y);
       if(!spSmart && b._noStopLog !== PHs.tick){ b._noStopLog = PHs.tick;
-        voiceLog("CT", "nostop"+b.id, b.id, "их "+tNearP+", нас "+ctNearP+" — под плант не лезу, держу и играем ретейк"); }
+        }
     }
     if(BAL.stopPlant && spSmart && PHs && tick - PHs.tick < PLANT_TICKS + 32 && Math.hypot(b.x-PHs.x, b.y-PHs.y) < 480 && !ct.saving){
       var ppt = {x:PHs.x, y:PHs.y};
@@ -647,7 +626,6 @@ function ctBrain(){
       var bsp = null, bsd = Infinity;
       sps.forEach(function(q){ var d = Math.hypot(q.x-b.x, q.y-b.y); if(d < bsd){ bsd = d; bsp = q; } });
       if(bsp){
-        if(b._stopPlantLog !== PHs.tick){ b._stopPlantLog = PHs.tick; voiceLog("CT", "stop"+b.id, b.id, "слышу плант — иду сбивать!"); }
         b._stopPlantUntil = tick + 2*TICK_HZ; dropTask(b, "repos");
         setPost(b, bsp, ppt, true, "stopplant");
         return;
@@ -707,7 +685,7 @@ function ctBrain(){
         var RG = ct._rg || (ct._rg = {}); var rg = RG[call.site] || (RG[call.site] = {since:tick, go:false});
         var atEnt = cts.filter(function(o){ return ct.rot[o.id] && Math.hypot(o.x-gc.ctEntry.x, o.y-gc.ctEntry.y) < 280; }).length;
         if(!rg.go && (atEnt >= 2 || tick - rg.since > 5*TICK_HZ || Object.keys(ct.rot).length <= 1)){ rg.go = true;
-          if(atEnt >= 2) voiceLog("CT", "rgo"+call.site+roundNum, b.id, "мы вдвоём у входа — заходим вместе"); }
+           }
         if(!rg.go){
           var hs0 = pickSpots("rg"+call.site, gc.ctEntry, 3, {rMin:40, rMax:220, minGap:55, hideFrom:[siteC, gc.tEntry], see:[gc.ctEntry]});
           setPost(b, hs0[Object.keys(ct.rot).sort().indexOf(b.id) % Math.max(1, hs0.length)] || gc.ctEntry, siteC, true, "rotateHold");
@@ -759,7 +737,6 @@ function ctBrain(){
         if(!b._afPt || b._afPt.round !== roundNum || b._afPt.k !== kA){
           var afp = pickSpots("afall"+kA, GEO[kA].ctEntry, 3, {rMin:40, rMax:260, minGap:50, hideFrom:[GEO[kA].tEntry, SITES[kA]], see:[GEO[kA].ctEntry]})[0];
           b._afPt = {round:roundNum, k:kA, pt: afp || GEO[kA].ctEntry};
-          voiceLog("CT", "afall"+kA+roundNum, b.id, "их ~"+Math.round(cl.count)+" на "+kA+", я один — отхожу к CT, тяну время, ретейк с ротацией");
         }
         setPost(b, b._afPt.pt, SITES[kA], true, "anchor:fall");
         return;
@@ -801,7 +778,6 @@ function ctBrain(){
             var deep = namedSpot("Red Room", GEO.ctMid, {hideFrom:[GEO.tMid], see:[GEO.ctMid], key:"midback"}) ||
                        pickSpots("midback", GEO.ctMid, 2, {rMin:180, rMax:420, minGap:60, hideFrom:[GEO.tMid, GEO.ctMidLook]})[0];
             b._midBack = {round:roundNum, pt:deep || GEO.ctMid, until: tick + 12*TICK_HZ};
-            voiceLog("CT", "midback", b.id, "на миде их "+nMid+" — отхожу глубже, не дуэлю один");
           }
           if(nMid >= 2) b._midBack.until = tick + 8*TICK_HZ;
           setPost(b, b._midBack.pt, GEO.ctMid, true, "mid:back");

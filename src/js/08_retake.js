@@ -21,7 +21,7 @@ function ctBombPos(){
   if(!bomb || bomb.state !== "planted") return {x:bomb.x, y:bomb.y};
   if(!bomb.ctSeen){
     var seen = bots.some(function(o){ return o.alive && o.team === "CT" && (Math.hypot(o.x-bomb.x, o.y-bomb.y) < 300 || (Math.hypot(o.x-bomb.x, o.y-bomb.y) < 1100 && hasVision(o.x, o.y, bomb.x, bomb.y))); });
-    if(seen){ bomb.ctSeen = tick; voiceLog("CT", "bombseen", "CT", "вижу бомбу — "+calloutName(bomb.x, bomb.y)); }
+    if(seen){ bomb.ctSeen = tick; }
   }
   if(bomb.ctSeen) return {x:bomb.x, y:bomb.y};
   if(!bomb.ctNoise){ var a = hashRand(bomb.plantTick*7 + 3)*Math.PI*2, r = 60 + hashRand(bomb.plantTick*11 + 5)*80; bomb.ctNoise = {dx:Math.cos(a)*r, dy:Math.sin(a)*r}; }
@@ -79,7 +79,7 @@ function updateRetake(cts){
   if(!R){
     R = bomb.retake = {approaches: computeApproaches(), assign:{}, phase:"gather", goTick:-1};
     logEvent("CT: ретейк "+bomb.site+" — "+R.approaches.length+" точк"+(R.approaches.length===1?"а":"и")+" сбора"+
-      (R.approaches.some(function(a){ return a.name; }) ? " ("+R.approaches.map(function(a){ return a.name || "укрытие"; }).join(", ")+")" : ""), "team");
+      (R.approaches.some(function(a){ return a.name; }) ? " ("+R.approaches.map(function(a){ return a.name || "укрытие"; }).join(", ")+")" : ""));
   }
   // роли: дефузер — с китом и ближе всех; фланг — самый дальний от основной точки,
   // если людей 3+ и точек сбора больше одной; остальные — прикрытие
@@ -115,8 +115,7 @@ function updateRetake(cts){
     var tLeftN = bombTimeLeftTicks()/TICK_HZ, dN = Math.hypot(def.x-BP.x, def.y-BP.y);
     if(tLeftN > dN/SPEED*1.3 + (def.kit ? 5 : 10) + 1){
       R.phase = "go"; R.goTick = tick; R.ninja = tick; R.entryId = "-";
-      voiceLog("CT", "ninja", def.id, "их нет у бомбы — тихо дефузю, прикройте");
-      logEvent("CT: ниндзя-дефуз — все T известны далеко от бомбы", "team");
+      logEvent("CT: ниндзя-дефуз — все T известны далеко от бомбы");
     }
   }
   if(R.phase === "gather"){
@@ -142,9 +141,9 @@ function updateRetake(cts){
       // поджимает — сразу
       var util = BAL.retakeRoles && !late && alive.length >= 2 && retakeUtil(R, alive);
       if(util){ R.phase = "util"; R.utilTick = tick;
-        logEvent("CT: ретейк — все на точках ("+ready+"/"+alive.length+"), "+util+" — заход под флешку", "team"); }
+        logEvent("CT: ретейк — все на точках ("+ready+"/"+alive.length+"), "+util+" — заход под флешку"); }
       else { R.phase = "go"; R.goTick = tick;
-        logEvent("CT: ретейк — заходим! ("+ready+"/"+alive.length+" на точках"+(late ? ", время поджимает" : "")+")", "team"); }
+        logEvent("CT: ретейк — заходим! ("+ready+"/"+alive.length+" на точках"+(late ? ", время поджимает" : "")+")"); }
     }
     R.ready = ready; R.need = need;
   }
@@ -153,7 +152,7 @@ function updateRetake(cts){
     var lateU = bombTimeLeftTicks()/TICK_HZ - ((def ? Math.hypot(def.x-BP.x, def.y-BP.y) : 400)/SPEED*1.3 + (def && def.kit ? 5 : 10) + 1.5) < 3;
     if(popped || tick - R.utilTick > 2.2*TICK_HZ || lateU){
       R.phase = "go"; R.goTick = tick;
-      logEvent("CT: ретейк — заходим"+(popped ? " под флешку!" : "!"), "team");
+      logEvent("CT: ретейк — заходим"+(popped ? " под флешку!" : "!"));
     }
   }
   // дефуз под смоком: дефузер подходит к бомбе — смок на неё (его или тиммейта),
@@ -163,7 +162,7 @@ function updateRetake(cts){
     if(dDef < 420 && !smokeCovered(bpS.x, bpS.y)){
       var smk = [def].concat(alive.filter(function(b){ return b !== def; })).filter(function(b){ return b.nades && b.nades.smoke > 0 && !b.nadeTask && Math.hypot(b.x-bpS.x, b.y-bpS.y) < NADE_THROW_RANGE; })[0];
       if(smk && assignNade(smk, "smoke", bpS, "смок на бомбу — дефуз под ним", {now:true})){ nadeFlags.defSmoke = tick;
-        voiceLog("CT", "defsmk", smk.id, smk === def ? "кидаю смок на бомбу, дефужу под ним" : "смок на бомбу — "+def.id+", дефузь под ним"); }
+        }
     }
   }
   // первый входящий: не дефузер, из основной точки захода, ближе всех к бомбе
@@ -171,7 +170,6 @@ function updateRetake(cts){
     var ents = alive.filter(function(b){ return b !== def; });
     ents.sort(function(a, c){ return ((R.assign[a.id] === 0 ? 0 : 300) + Math.hypot(a.x-BP.x, a.y-BP.y)) - ((R.assign[c.id] === 0 ? 0 : 300) + Math.hypot(c.x-BP.x, c.y-BP.y)); });
     R.entryId = ents[0] ? ents[0].id : "-";
-    if(ents[0]) voiceLog("CT", "rtentry", ents[0].id, "захожу первым, "+(def ? def.id+" дефузит за мной" : "прикрывайте"));
   }
 }
 // утилита перед заходом на ретейк: кто кидает флешку (не дефузер, если можно)
@@ -190,7 +188,6 @@ function retakeUtil(R, alive){
   var gs = GEO[bomb.site];
   var smr = alive.filter(function(b){ return b !== fl && b.nades && b.nades.smoke > 0; })[0];
   if(smr && !nadeFlags.retakeSmoke && retakeCutUseful()){ nadeFlags.retakeSmoke = true; assignNade(smr, "smoke", gs.tEntry, "отрезать вход T", {bkey:"CT.retake.smoke."+bomb.site, now:true}); }
-  voiceLog("CT", "rtflash", fl.id, "даю флешку "+(tgt === bp ? "на бомбу" : "на "+calloutName(tgt.x, tgt.y))+" — заходим на хлопок");
   return fl.id+" кидает флешку"+(smr ? ", "+smr.id+" — смок" : "");
 }
 function retakePost(b, cts){
@@ -203,7 +200,7 @@ function retakePost(b, cts){
     // прийти лёркер (проход между сайтами), пока T ещё хватает на люрк
     if(BAL.lurkCheck && aliveCount("T") >= 2){
       if(!R.backWatch){ var bwb = null, bwd = Infinity; cts.forEach(function(c){ var d = Math.hypot(c.x-GEO.rotator.x, c.y-GEO.rotator.y); if(d < bwd){ bwd = d; bwb = c; } }); R.backWatch = bwb ? bwb.id : "-";
-        if(bwb) voiceLog("CT", "back", bwb.id, "смотрю спину — может прийти люрк"); }
+         }
       if(R.backWatch === b.id){ setPost(b, a, GEO.rotator, true, "gather"+(R.assign[b.id]||0), 0); return; }
     }
     setPost(b, a, bp, true, "gather"+(R.assign[b.id]||0), 0);

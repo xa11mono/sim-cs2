@@ -274,12 +274,12 @@ function buyPhase(){
     teamEco[team].antiEcoSmg = false;
     var type = decideRoundType(team);
     teamEco[team].roundType = type;
-    if(teamEco[team].ecoWhy) logEvent(team+": "+teamEco[team].ecoWhy, "team");
+    if(teamEco[team].ecoWhy) logEvent(team+": "+teamEco[team].ecoWhy);
     if(type === "full") teamAwp(team);
     if(type === "full") teamDrops(team);
     var spent = 0;
     bots.filter(function(b){ return b.team === team; }).forEach(function(b, i){ spent += buyForPlayer(b, type, i); });
-    logEvent(team+": "+ROUND_TYPE_LABEL[type]+" (потрачено $"+spent+")", "team");
+    logEvent(team+": "+ROUND_TYPE_LABEL[type]+" (потрачено $"+spent+")");
   });
 }
 
@@ -300,7 +300,7 @@ function freshMatch(n){
   tick = 0; simTime = 0; roundStartTick = 0;
   var clr = function(o){ for(var k in o) delete o[k]; };
   [spotCache, OUTWARD_CACHE, _ED, EWL, APPEAR, HOLD_CANDS, nadeFlags, comboCd].forEach(function(o){ if(o) clr(o); });
-  commQueue = []; tracers.length = 0; soundPings.length = 0; nadesInAir.length = 0; smokes.length = 0; fires.length = 0; nadeFx.length = 0;
+  tracers.length = 0; soundPings.length = 0; nadesInAir.length = 0; smokes.length = 0; fires.length = 0; nadeFx.length = 0;
   groundWeapons.length = 0; events.length = 0; killfeed.length = 0;
   LAST_CLEAR = {CT:{}, T:{}};
   if(typeof beliefReset === "function") beliefReset();

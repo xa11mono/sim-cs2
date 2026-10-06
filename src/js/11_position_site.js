@@ -95,7 +95,7 @@ function smokeHeTick(){
       if(!near){ D[k] = false; return; }
       var ev = smkEvidence(b, s); if(!ev || ev.kind === "entry"){ return; }
       D[k] = hashRand(s.born*41 + b.id.charCodeAt(0)*17 + b.id.length) < SMK.heP;
-      if(D[k] && assignNade(b, "he", {x:s.x, y:s.y}, "HE в смок — разогнать", {now:true})) voiceLog(b.team, "hesmk"+k, b.id, "кидаю HE в смок "+calloutName(s.x, s.y));
+      if(D[k]) assignNade(b, "he", {x:s.x, y:s.y}, "HE в смок — разогнать", {now:true});
     });
   });
 }
@@ -141,7 +141,6 @@ function tFallbackTick(){
     b._fbRound = roundNum; 
     setPost(b, sp, th || null, true, "repos:fallback");
     holdTask(b, "repos", tick + FB.lock*TICK_HZ);
-    voiceLog("T", "tfb"+b.id+roundNum, b.id, why+" ("+calloutName(sp.x, sp.y).replace(/^на /,"")+")");
   });
 }
 // (v165) ПЕРЕРАСПРЕДЕЛЕНИЕ САЙТА. Точка, куда смотрит защитник = луч взгляда с
@@ -185,7 +184,7 @@ function siteRebalanceTick(){
     if(tick - R.t < REBAL.minHold*TICK_HZ) return;
     var q = bots.filter(function(x){ return x.id === R.by; })[0];
     var still = q && q.alive && (R.fwd ? Math.hypot(q.x-R.fx, q.y-R.fy) < 220 : true);
-    if(!still){ o._rebal = null; voiceLog("CT", "rebalOff"+o.id+tick, o.id, "возвращаюсь на свой угол"); }
+    if(!still){ o._rebal = null; }
   });
   ["A","B"].forEach(function(k){
     var site = SITES[k];
@@ -209,7 +208,6 @@ function siteRebalanceTick(){
       if(!sp) return;
       o._rebal = {round:roundNum, t:tick, by:by.id, fwd:fwd, fx:by.x, fy:by.y};
       setPost(o, sp.pt, sp.look, true, "rebal"+k);
-      voiceLog("CT", "rebal"+o.id+tick, o.id, why);
     });
   });
 }
@@ -254,7 +252,6 @@ function infoFallbackTick(){
     
     setPost(b, sp, th || null, true, "repos:fallback");
     holdTask(b, "repos", tick + FB.lock*TICK_HZ);
-    voiceLog("CT", "fb"+b.id+roundNum, b.id, why+" ("+calloutName(sp.x, sp.y).replace(/^на /,"")+")");
   });
 }
 

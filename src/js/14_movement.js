@@ -306,7 +306,10 @@ function makeSound(src, x, y, kind, opt){
     if(kind === "defuse"){ if(tick - (o._defuseHeard||-9999) > 80) o._defuseStart = tick; o._defuseHeard = tick; }
     var E = o.ears || (o.ears = []);
     while(E.length && tick - E[0].tick > EARS_KEEP) E.shift();
-    E.push(e); o.heardSound = e;
+    E.push(e);
+    // последний услышанный ЧЕЛОВЕК (взгляд, осторожность, роумер): разрыв гранаты —
+    // это где граната, а не где враг (В10: CT на сборе смотрели на молотовы)
+    if(kind !== "pop") o.heardSound = e;
     heard.push(o);
   });
   return heard;
@@ -335,7 +338,6 @@ function reloadHeard(b, w){
   var hs = makeSound(b, b.x, b.y, "reload", {info:{until: tick + Math.round(w.reload*TICK_HZ)}});
   hs.forEach(function(o){
     o._heardReload = {x:o.heardSound.x, y:o.heardSound.y, until:o.heardSound.until};
-    if(!o._rlVoice || o._rlVoice + 3*TICK_HZ < tick){ o._rlVoice = tick; voiceLog(o.team, "rl"+Math.round(o.heardSound.x/150)+","+Math.round(o.heardSound.y/150), o.id, "перезарядка "+calloutName(o.heardSound.x, o.heardSound.y)+"!"); }
   });
 }
 // пик на перезарядку: держит угол рядом (≤450), сам не в бою, HP > 50 —
@@ -382,7 +384,6 @@ function bombPassTick(){
   // бросает под ноги тиммейту — тот подбирает (как дроп в CS)
   bomb.state = "dropped"; bomb.carrier = null; bomb.x = to.baseX; bomb.y = to.baseY;
   tt.fetchId = to.id;
-  voiceLog("T", "pass"+c.id, c.id, "отдаю бомбу "+to.id+" ("+why+")");
   logEvent(c.id+" отдал бомбу → "+to.id);
 }
 // ---- (S1) добить раненого ----
@@ -407,7 +408,6 @@ function finishPush(b){
   setPost(b, sp, {x:tgt.x, y:tgt.y}, true, "repos:finish");
   if(!b.post || b.post.tag !== "repos:finish") return;
   b._finId = tid; holdTask(b, "repos", tick + 3*TICK_HZ);
-  voiceLog(b.team, "fin"+tid+b.id, b.id, tid+" на "+HT[tid].hp+" — добиваю");
 }
 // ---- (S7) смок уходит — готовность к выходу из-за него ----
 function smokeFadeTick(){
@@ -425,7 +425,6 @@ function smokeFadeTick(){
       if(!far) return;
       sm._fadeReady[b.id] = 1;
       var a = Math.atan2(sm.y-b.y, sm.x-b.x), ex = {x: sm.x + Math.cos(a)*NADE.smoke.radius, y: sm.y + Math.sin(a)*NADE.smoke.radius};
-      if(!sm._fadeVoice){ sm._fadeVoice = 1; voiceLog(b.team, "fade"+Math.round(sm.x)+b.team, b.id, "смок уходит — готовы, они за ним"); }
     });
   });
 }
@@ -446,7 +445,7 @@ function awpSmokeTick(){
       var sp = {x: ap.x + (th.post.x-ap.x)*0.35, y: ap.y + (th.post.y-ap.y)*0.35};
       if(Math.hypot(sp.x-th.x, sp.y-th.y) > NADE_THROW_RANGE*1.1 || smokeCovered(sp.x, sp.y)) continue;
       if(assignNade(th, "smoke", sp, "смок на AWP "+eid, {now:true})){ awpSmokeCd[team] = tick + 15*TICK_HZ;
-        voiceLog(team, "awps"+eid, th.id, "AWP "+calloutName(ap.x, ap.y)+" — даю смок на его линию"); return; }
+        return; }
     }
   });
 }
@@ -477,8 +476,8 @@ function onBlind(b, threat){
             .filter(function(q){ return hasLOS(q.x, q.y, threat.x, threat.y) && Math.hypot(q.x-b.x, q.y-b.y) > 60 && !(back && Math.hypot(q.x-back.x, q.y-back.y) < 60); })[0])
         : pickSpots("covblind"+tick+cov.id, {x:b.baseX, y:b.baseY}, 2, {rMax:110, minGap:24, see:[threat]})
         .filter(function(q){ return hasLOS(q.x, q.y, threat.x, threat.y); })[0];
-      if(BAL.coverFix && !cs){ cov._coverDir = {pt:{x:threat.x, y:threat.y}, until:b.blindUntil}; voiceLog(b.team, "cb"+b.id+tick, cov.id, "держу угол за "+b.id); }
-      if(cs){ setPost(cov, cs, threat, true, "repos:coverblind"); if(cov.post && cov.post.tag === "repos:coverblind"){ holdTask(cov, "repos", tick + Math.max(2*TICK_HZ, b.blindUntil - tick)); voiceLog(b.team, "cb"+b.id, cov.id, b.id+" слепой — держу его угол"); } }
+      if(BAL.coverFix && !cs){ cov._coverDir = {pt:{x:threat.x, y:threat.y}, until:b.blindUntil}; }
+      if(cs){ setPost(cov, cs, threat, true, "repos:coverblind"); if(cov.post && cov.post.tag === "repos:coverblind"){ holdTask(cov, "repos", tick + Math.max(2*TICK_HZ, b.blindUntil - tick)); } }
     }
   }
 }
@@ -545,7 +544,6 @@ function safeRotate(b, dest, site){
   if(Lv > Ld*1.7 + 150) { logEvent(b.id+": путь на "+site+" опасный, но крюк слишком длинный — иду напрямую, тихо"); return; }
   if(pathDanger("CT", far(v1.concat(v2.slice(1))))) { logEvent(b.id+": к "+site+" оба пути опасные — иду напрямую, тихо"); return; }
   startRoute(b, ["CT Spawn"], key);
-  voiceLog("CT", "saferot"+b.id, b.id, "на "+site+" иду через спавн — там, где короче, их видели");
 }
 // ---- (4) ниндзя-дефуз ----
 // все живые T засвечены недавно (≤8с) и все далеко от бомбы (>700px) — не
@@ -602,7 +600,6 @@ function lowHpBack(b){
   if(!b.post || b.post.tag !== "repos:lowhp") return;
   if(b.state === "hold") leaveHold(b);
   holdTask(b, "repos", tick + 6*TICK_HZ); b._lowHpNext = tick + 10*TICK_HZ;
-  voiceLog(b.team, "lowhp"+b.id, b.id, "у меня "+b.hp+" — отхожу к "+m.id);
 }
 // ---- шифт по угрозе ----
 // Раньше боты бегали всегда, кроме нескольких частных случаев (слышал/видел
@@ -696,7 +693,6 @@ function assistPeek(b){
   if(!b.post || b.post.tag !== "repos:assist") return false;
   if(b.state === "hold") leaveHold(b);
   holdTask(b, "repos", tick + 2*TICK_HZ);
-  if(!b._assistVoice || tick - b._assistVoice > 4*TICK_HZ){ b._assistVoice = tick; voiceLog(b.team, "assist"+b.id, b.id, "выхожу с "+mate.id+" на "+E.id+" — дабл!"); }
   return true;
 }
 function updateReload(b){
