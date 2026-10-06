@@ -17,7 +17,7 @@
 // =====================================================================
 var TEAM = {CT:null, T:null};
 // веса целей: размен (trade) весит больше, чем «вижу вход» (threat) — урок отката v173
-var ACT = {every:32, W:{need:1.6, threat:1.0, trade:1.3, alone:0.6, stack:0.9, risk:1.0, dist:0.07, dup:0.4, same:3, cur:0.35, poi:1.0, repos:0.9, deep:0.9}};
+var ACT = {every:32, W:{need:1.6, threat:1.0, trade:1.3, alone:0.6, stack:0.9, risk:1.0, dist:0.07, dup:0.4, same:3, cur:0.35, poi:1.0, repos:0.9, deep:0.9, keep:1.2}};
 var TEAM_COV = null;   // каталог укрытий из разметки (статичный, считается один раз)
 // район точки: зоны мида (Connector, Sniper Nest, Top Mid…) — мид (знание карты:
 // так их зовут игроки); иначе ближайший из A / B / мид в пределах радиуса района
@@ -40,14 +40,17 @@ function teamCovers(){
 }
 function teamRow(team, id){ var T = TEAM[team]; return T && T.rows[id]; }
 // новый раунд — пустая таблица
-function teamReset(team){ TEAM[team] = {round:roundNum, rows:{}, vac:[], req:[], said:{}}; }
+function teamReset(team){ TEAM[team] = {round:roundNum, rows:{}, vac:[], req:[], said:{}, refused:{}}; }
 // услышали в тимспике (voiceTick): «беру X» — его вход; «ухожу — подержите» — угол опустел;
 // «нужен второй» — просьба; «иду» / «не могу» — ответ
 function teamHear(team, byId, it){
   var T = TEAM[team]; if(!T || !it) return;
   if(it.k === "take"){ var r = T.rows[byId] || (T.rows[byId] = {}); r.claim = {side:it.side, x:it.x, y:it.y, area:it.area, t:tick}; }
-  if(it.k === "holdmine") T.vac.push({x:it.x, y:it.y, side:it.side || null, t:tick, by:byId});
-  if(it.k === "need2") T.req.push({x:it.x, y:it.y, t:tick, by:byId});
+  // (К13) одна просьба — одна запись: тот же игрок про то же место, пока прежняя жива, — не новая
+  var dupOf = function(L){ return L.some(function(q){ return q.by === byId && Math.hypot(q.x-it.x, q.y-it.y) < 300; }); };
+  if(it.k === "holdmine" && !dupOf(T.vac)) T.vac.push({x:it.x, y:it.y, side:it.side || null, t:tick, by:byId});
+  if(it.k === "need2" && !dupOf(T.req)) T.req.push({x:it.x, y:it.y, t:tick, by:byId});
+  if(it.k === "cant") T.refused[byId] = tick;
 }
 // таблица из того, что видно и слышно: район и вход каждого
 function teamTableTick(team){
@@ -68,8 +71,8 @@ function teamTableTick(team){
     r.side = at ? at.side : cl ? cl.side : null;
     r.area = ((teamTac[team] || {}).assign || {})[o.id] || (at ? at.area : cl ? cl.area : teamAreaOf(o));
   });
-  T.vac = T.vac.filter(function(v){ return tick - v.t < 12*TICK_HZ; });
-  T.req = T.req.filter(function(q){ return tick - q.t < 10*TICK_HZ; });
+  T.vac = T.vac.filter(function(v){ return tick - v.t < 12*TICK_HZ && !v.done; });
+  T.req = T.req.filter(function(q){ return tick - q.t < 10*TICK_HZ && !q.done; });
 }
 // сколько своих (кроме me) уже в районе по таблице
 function teamAreaCount(team, area, me){
@@ -86,7 +89,9 @@ function teamNeededHere(team, o){
 // кому достаётся опустевший угол / просьба: ближе всех и меньше нужен на своём месте
 function teamResponder(team, p, except){
   var best = null, bs = 1e9;
+  var Rf = (TEAM[team] || {}).refused || {};
   bots.forEach(function(o){ if(!o.alive || o.team !== team || o.id === except || o.defusing || o.planting) return;
+    if(tick - (Rf[o.id] == null ? -1e9 : Rf[o.id]) < 20*TICK_HZ) return;   // (К13) ответил «не могу» — его не спрашивают
     var s = Math.hypot(o.x-p.x, o.y-p.y)/SPEED + (teamNeededHere(team, o) ? 4 : 0);
     if(s < bs){ bs = s; best = o; } });
   return best ? {b:best, cost:bs} : null;
@@ -138,7 +143,9 @@ function actScore(b, c, X){
   // смена позиции после контакта: пострелял / ранен / засветился, а их рядом ещё много —
   // соседнее укрытие (враг целится туда, где меня видел)
   if(X.repos && !isCur){ var dr = Math.hypot(c.x-X.repos.x, c.y-X.repos.y); if(dr > 90 && dr < 480) s += W.repos; }
-  if(isCur && !X.noCur && !X.repos) s += W.cur;                          // текущий вариант — надбавка (не дёргаться)
+  if(isCur && !X.noCur && !X.repos) s += W.cur;
+  if(X.keep && !c.v && Math.hypot(c.x-X.keep.x, c.y-X.keep.y) < 1) s += W.keep;    // (К13) взял угол — держит
+  if(X.keep && ACTV[c.v]) s -= W.keep;                          // текущий вариант — надбавка (не дёргаться)
   return s;
 }
 // выбрать лучшее и встать; короткий ход (пик, подпуш, джиггл, проба) — с фазами
@@ -251,12 +258,20 @@ function teamActTick(team, cts){
     myTr.forEach(function(P){ X.pois.push(P); });
     pois.forEach(function(P){ if(P.near && Math.hypot(P.x-b.x, P.y-b.y) > P.near) return; if(P.who && P.who !== b.id) return; X.pois.push(P); });
     T.vac.forEach(function(v){ if(v.resp === b.id && v.ok) X.pois.push({x:v.x, y:v.y, r:300, side:v.side, w:1.4, vac:v}); });
-    T.req.forEach(function(q){ if(q.resp === b.id && q.ok) X.pois.push({x:q.x, y:q.y, r:450, w:1.4}); });
+    T.req.forEach(function(q){ if(q.resp === b.id && q.ok) X.pois.push({x:q.x, y:q.y, r:450, w:1.4, req:q}); });
+    // (К13) взял угол по просьбе — держит, пока ситуация не изменилась (контакт, размен) или 15 с
+    if(b._keep && (b._keep.round !== roundNum || tick > b._keep.until || burned || trNew)) b._keep = null;
+    X.keep = b._keep;
     var prev = b._act;
     var picked = team === "CT" ? ctChoose(b, X, ct, cts, C) : tChoose(b, X, ct, cts, C);
     if(!picked || picked === true) return;
     // сказать, что беру вход, если ухожу на другой (команда должна знать, кто где)
-    if(picked && X.mode === "hold" && (!prev || prev.round !== roundNum || prev.side !== picked.side) && Math.hypot(picked.x-b.x, picked.y-b.y) > 250)
+    if(!b._keep && X.pois.some(function(P){ return (P.vac || P.req) && Math.hypot(P.x-picked.x, P.y-picked.y) < P.r; })){
+      b._keep = {x:picked.x, y:picked.y, until:tick + 15*TICK_HZ, round:roundNum};
+      X.pois.forEach(function(P){ if(P.vac) P.vac.done = true; if(P.req) P.req.done = true; });
+    }
+    var claimed = X.mates.some(function(m){ var r = T.rows[m.id]; return r && r.claim && r.claim.side === picked.side && tick - r.claim.t < 10*TICK_HZ; });
+    if(picked && !claimed && X.mode === "hold" && (!prev || prev.round !== roundNum || prev.side !== picked.side) && Math.hypot(picked.x-b.x, picked.y-b.y) > 250)
       newsAdd(b, {k:"take", x:picked.x, y:picked.y, side:picked.side, area:picked.area, name:picked.name.split(" / ")[0]});
     // ухожу из района с угла, откуда может выйти враг, а его больше никто не держит, — «подержите»
     if(picked && prev && prev.round === roundNum && prev.mode === "hold" && prev.side && prev.area !== picked.area && Math.hypot(b.x-prev.x, b.y-prev.y) < 80 &&

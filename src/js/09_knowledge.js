@@ -750,14 +750,7 @@ function talkSelf(b){
   if(b.nadeTask && b._talkNade !== b.nadeTask.start){ b._talkNade = b.nadeTask.start;
     if(b.nadeTask.now) newsAdd(b, {k:"nade", type:b.nadeTask.type, x:b.nadeTask.x, y:b.nadeTask.y, start:b.nadeTask.start}); }
   // «пушу X — иди со мной» говорит сам выбор действия (12_team.js, подпуш)
-  // держал угол — ухожу, а там никого из своих не остаётся
-  // (CT «ухожу — подержите» говорит выбор действия, 12_team.js)
-  if(team === "CT") b._talkHold = null;
-  else if(b.atPost && b.post && b.post.look) b._talkHold = {x:b.post.x, y:b.post.y};
-  else if(b._talkHold && b.post && Math.hypot(b.post.x-b._talkHold.x, b.post.y-b._talkHold.y) > 250){
-    if(!near(b._talkHold, 450) && !(bomb && bomb.state === "planted")) newsAdd(b, {k:"holdmine", x:b._talkHold.x, y:b._talkHold.y});
-    b._talkHold = null;
-  }
+  // «ухожу — подержите» говорит выбор действия (12_team.js) — обе команды, только при уходе из района
   // по картине их рядом со мной на 2+ больше, чем нас
   if(picOutnumbered(team, b.x, b.y, b)) newsAdd(b, {k:"pull", x:b.x, y:b.y});
   // собираюсь выйти на угол, который держат, а своей флешки нет — у соседа есть
