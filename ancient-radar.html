@@ -81,7 +81,7 @@
 <div id="app">
   <div id="topbar">
     <h1>ANCIENT — LIVE RADAR</h1>
-    <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 184 · 06.10</div>
+    <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 185 · 06.10</div>
     <button id="btnPause">Пауза</button>
     <button id="btnRestartRound" title="Немедленно сбросить текущий раунд — на случай если боты застряли">Рестарт раунда</button>
     <span class="chk" title="Матч с одним номером всегда проходит одинаково. Увидел баг — запиши номер матча и тик, введи номер и нажми «Сыграть»: матч повторится с начала">матч № <input id="inpMatchNum" type="number" min="1" value="1" style="width:52px"> <button id="btnFreshMatch">Сыграть</button> <span id="matchTick" style="opacity:.75"></span></span>
@@ -4431,8 +4431,37 @@ function beliefZoneFresh(team, i){
 // Реакции на услышанное здесь нет — это следующий шаг (B3).
 var VOICE = {CT:[], T:[]};
 var TALK_PLAN = {CT:"", T:""};
-var VOICE_STATS = {n:0, sec:0, words:0, lost:0, late:0, urgent:0, ex:[]};
-var NEWS_TTL = 4*64, SAID_TTL = 6*64; // тиков (64 в секунду; TICK_HZ объявлен позже, в 17_tick.js)
+var VOICE_STATS = {n:0, sec:0, words:0, lost:0, late:0, urgent:0, stale:0, ex:[]};
+var SAID_TTL = 6*64; // тиков (64 в секунду; TICK_HZ объявлен позже, в 17_tick.js)
+// сколько запись в блокноте ещё стоит говорить (тиков): шаги и «вижу» — свежие
+// только секунду-полторы; минус, бомба, плант — дольше; план — до смены плана
+var TALK_TTL = {see:64, hear:96, hurt:128, kill:128, clear:128, nade:96, doing:128, need2:128, holdmine:128, pull:96, flashme:64,
+  dead:192, bomb:192, bombground:192, buy:384, plan:256, _retry:96};
+function talkTTL(it){ return it.k === "hear" && (it.kind === "plant" || it.kind === "defuse") ? 192 : (TALK_TTL[it.k] || 96); }
+// не устарело ли (проверка перед тем, как сказать, и когда фраза дошла): говорить
+// стоит только то, что тиммейтам ещё полезно и чего они не знают новее
+function talkStale(team, byId, it){
+  if(it.k === "_retry") return tick - it.t > TALK_TTL._retry || talkStale(team, byId, it.src || {});
+  if(tick - it.t > talkTTL(it)) return true;
+  var foe = team === "CT" ? "T" : "CT";
+  if(!bots.some(function(o){ return o.alive && o.team === team && o.id !== byId; })) return true; // некому слушать
+  if(aliveCount(foe) === 0 && it.k !== "plan") return true;                                       // врагов не осталось
+  var dead = function(id){ var o = botById(id); return !o || !o.alive; };
+  if(it.k === "see") return it.ids.every(dead);
+  if(it.k === "hurt" || it.k === "bomb") return dead(it.id);
+  if(it.k === "dead") return it.kid && dead(it.kid);
+  if(it.k === "hear" || it.k === "clear"){
+    if(it.kind === "plant" || it.kind === "defuse") return false;
+    var near = function(x, y, r){ return Math.hypot(x-it.x, y-it.y) < r; };
+    // там уже бой: свои видят врага рядом с этим местом
+    if(bots.some(function(o){ return o.alive && o.team === team && (o._visible||[]).some(function(e){ return near(e.x, e.y, 400); }); })) return true;
+    // команда уже знает новее: после этого врага там видели или там кто-то погиб
+    var L = beliefLast[team] || {};
+    for(var id in L){ var lo = L[id]; if(lo.tick > it.t && lo.src === "spotted" && near(lo.x, lo.y, 400)) return true; }
+    if(picEvents(team).some(function(sg){ return sg.tick > it.t && (sg.type === "died" || sg.type === "kill") && near(sg.x, sg.y, 500); })) return true;
+  }
+  return false;
+}
 function newsAdd(b, it){ if(!b) return; it.t = tick; (b._news || (b._news = [])).push(it); }
 function talkSpeaking(team, except){ return VOICE[team].filter(function(u){ return !u.done && u.end > tick && u.by !== except; }).length; }
 var TALK_NUM = ["", "один", "двое", "трое", "четверо", "пятеро"];
@@ -4445,9 +4474,9 @@ function talkWhere(x, y, from){ return calloutName(x, y, from).replace(/[«»]/g
 function talkMsg(b, it){
   var team = b.team, foe = team === "CT" ? "T" : "CT", w = it.x != null ? talkWhere(it.x, it.y) : "";
   switch(it.k){
-    case "dead": { var mine = aliveCount(team), th = aliveCount(foe);
+    case "dead": { // счёт живых видят все — в «минусе» только кто и откуда
       var who = it.kid ? (it.saw ? nick(it.kid)+" "+talkWhere(it.kx, it.ky, true) : "стреляли "+talkWhere(it.kx, it.ky, true)) : "";
-      return {key:"dead"+b.id, pr:10, urgent:true, short:"минус"+(who ? ", "+who : ""), full:"минус"+(who ? ", "+who : "")+" — "+mine+" на "+th}; }
+      return {key:"dead"+b.id, pr:10, urgent:true, short:"минус"+(who ? ", "+who : ""), full:"минус"+(who ? ", "+who : "")}; }
     case "kill": return {key:"kill"+it.id, pr:8, urgent:true, short:"снял "+nick(it.id), full:"снял "+nick(it.id)+" "+w};
     case "bomb": return {key:"bomb"+it.id+w, pr:9, urgent:true, short:"бомба у "+nick(it.id), full:"бомба у "+nick(it.id)+" "+w};
     case "bombground": return {key:"bombg"+w, pr:8, urgent:true, short:"бомба лежит "+w, full:"бомба лежит "+w};
@@ -4470,7 +4499,8 @@ function talkMsg(b, it){
     case "nade": return {key:"nd"+b.id+it.start, pr:5, short:TALK_NADE[it.type]+" "+w, full:"кидаю "+TALK_NADE[it.type]+" "+w};
     case "doing": return {key:"do"+b.id+it.verb+w, pr:3, short:it.verb, full:it.verb+(w ? " — "+w : "")};
     case "need2": return {key:"n2"+b.id+w, pr:6, short:"нужен второй "+w, full:"иду "+w+" — нужен второй"};
-    case "holdmine": return {key:"hm"+b.id+w, pr:6, short:"подержите "+w, full:"ухожу с "+w+" — подержите угол"};
+    case "holdmine": { var wf = talkWhere(it.x, it.y, true); // «с CT Lane», а не «с на CT Lane»
+      return {key:"hm"+b.id+w, pr:6, short:"подержите "+w, full:"ухожу "+wf+" — подержите угол"}; }
     case "pull": return {key:"pull"+w, pr:7, short:"стяните одного "+w, full:"их тут больше — стяните одного "+w};
     case "flashme": return {key:"fm"+b.id, pr:6, short:"флешку мне "+w, full:"дайте флешку мне на пик "+w};
     case "plan": return {key:"plan"+it.sig, pr:8, short:it.short, full:it.full};
@@ -4556,7 +4586,7 @@ function talkTick(){
       var deadOk = !b.alive && b._deadT != null && tick - b._deadT < 3*TICK_HZ;
       if(!b.alive && !deadOk){ b._news = null; return; }
       if(b.alive) talkSelf(b);
-      var N = (b._news || []).filter(function(it){ return tick - it.t <= NEWS_TTL; });
+      var N = (b._news || []).filter(function(it){ return !talkStale(team, b.id, it); });
       if(!b.alive) N = N.filter(function(it){ return it.k === "dead"; }); // мёртвый успевает сказать только «минус»
       b._news = N;
       if(!N.length || VOICE[team].some(function(u){ return u.by === b.id && !u.done; })) return; // уже говорю
@@ -4567,7 +4597,7 @@ function talkTick(){
       N.forEach(function(it){ var m = talkMsg(b, it); if(!m) return; it._key = m.key;
         if(now[m.key] || (said[m.key] && tick - said[m.key] < (m.key.indexOf("plan") === 0 ? 1e9 : SAID_TTL))) return;
         if(M[m.key]){ M[m.key].sigs = M[m.key].sigs.concat(it.sigs || []); return; }
-        m.sigs = (it.sigs || []).slice(); M[m.key] = m; });
+        m.sigs = (it.sigs || []).slice(); m.it = it; M[m.key] = m; });
       var C = Object.keys(M).map(function(k){ return M[k]; });
       // эфир занят (говорят двое+) — только срочное; кто-то говорит — коротко
       if(talking >= 2) C = C.filter(function(m){ return m.urgent; });
@@ -4592,15 +4622,17 @@ function voiceTick(){
         if(h < 0.5){ u.done = true; VOICE_STATS.lost++;
           logEvent("(эфир) "+nick(u.by)+" не услышали: "+u.text);
           var sp = botById(u.by); // говорящий понял, что перебили, — скажет ещё раз коротко, если это ещё важно
-          if(sp && sp.alive && !u.msg.retry){ u.msg.retry = true; newsAdd(sp, {k:"_retry", m:u.msg, sigs:u.sigs}); }
+          if(sp && sp.alive && !u.msg.retry){ u.msg.retry = true; newsAdd(sp, {k:"_retry", m:u.msg, sigs:u.sigs, src:u.msg.it}); }
           return; }
         var e2 = Math.max.apply(null, over.map(function(o){ return o.end; }));
         if(e2 > tick){ u.end = e2; u.lateOnce = true; VOICE_STATS.late++; return; }
       }
       u.done = true;
+      // дошла с опозданием — пока говорил, всё могло кончиться: устаревшее не доходит
+      if(u.lateOnce && u.msg.it && talkStale(team, u.by, u.msg.it)){ VOICE_STATS.stale = (VOICE_STATS.stale||0) + 1; return; }
       teamIntel[team].said[u.key] = tick;
       VOICE_STATS.n++; VOICE_STATS.words += u.words; VOICE_STATS.sec += (u.end - u.start)/TICK_HZ; if(u.urgent) VOICE_STATS.urgent++;
-      if(VOICE_STATS.ex.length < 60) VOICE_STATS.ex.push([matchNum, roundNum, tick, team, u.by, u.text]);
+      if(roundNum >= 3 && VOICE_STATS.ex.length < 60) VOICE_STATS.ex.push([matchNum, roundNum, tick, team, u.by, u.text]);
       logEvent("[войс "+team+"] "+nick(u.by)+": "+u.text, "voice");
       (u.sigs || []).forEach(function(sg){ var s2 = {}; for(var k in sg) s2[k] = sg[k]; intelPush(team, s2); });
     });
@@ -11943,8 +11975,8 @@ var __SNAP = [
 ["VOICE", function(){ return VOICE; }, function(v){ try{ VOICE = v; }catch(e){} }],
 ["TALK_PLAN", function(){ return TALK_PLAN; }, function(v){ try{ TALK_PLAN = v; }catch(e){} }],
 ["VOICE_STATS", function(){ return VOICE_STATS; }, function(v){ try{ VOICE_STATS = v; }catch(e){} }],
-["NEWS_TTL", function(){ return NEWS_TTL; }, function(v){ try{ NEWS_TTL = v; }catch(e){} }],
 ["SAID_TTL", function(){ return SAID_TTL; }, function(v){ try{ SAID_TTL = v; }catch(e){} }],
+["TALK_TTL", function(){ return TALK_TTL; }, function(v){ try{ TALK_TTL = v; }catch(e){} }],
 ["TALK_NUM", function(){ return TALK_NUM; }, function(v){ try{ TALK_NUM = v; }catch(e){} }],
 ["TALK_NADE", function(){ return TALK_NADE; }, function(v){ try{ TALK_NADE = v; }catch(e){} }],
 ["TALK_DO", function(){ return TALK_DO; }, function(v){ try{ TALK_DO = v; }catch(e){} }],
