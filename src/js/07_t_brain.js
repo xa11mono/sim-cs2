@@ -633,28 +633,6 @@ function tBrain(){
   }
 }
 
-function pickSaveSpot(b){
-  // только то, что команда знает (радар/слышали за 15с), а не настоящие позиции T
-  var ts = [], BLs = beliefLast.CT || {};
-  for(var eidS in BLs){ var loS = BLs[eidS]; if(tick - loS.tick > 15*TICK_HZ) continue; if(bots.some(function(o){ return o.id === eidS && o.alive; })) ts.push({x:loS.x, y:loS.y}); }
-  var best = null, bs = -Infinity;
-  NAVAREAS.forEach(function(z, i){
-    if(i % 3) return; // прореживаем кандидатов — ~650 хватает с запасом
-    if(NAV_BLOCKED[z.id] || !(zoneGraph[z.id]||[]).length) return;
-    var c = zoneCentroid(z);
-    if(insideSolidWall(c.x, c.y)) return;
-    var dB = Math.hypot(c.x-bomb.x, c.y-bomb.y);
-    if(dB < BOMB_KILL_RADIUS + 150) return;
-    var dT = Infinity, seen = false;
-    ts.forEach(function(t){ dT = Math.min(dT, Math.hypot(c.x-t.x, c.y-t.y)); if(hasLOS(c.x,c.y,t.x,t.y)) seen = true; });
-    if(seen || dT < 500) return;
-    if(Math.hypot(c.x-CT_SPAWN.x, c.y-CT_SPAWN.y) < 220) return; // не на самом спавне
-    var dSelf = Math.hypot(c.x-b.baseX, c.y-b.baseY);
-    var sc = Math.min(dT, 1200)*0.6 - dSelf; // подальше от T, но не бежать через всю карту
-    if(sc > bs){ bs = sc; best = c; }
-  });
-  return best ? {x:best.x, y:best.y} : {x:CT_SPAWN.x, y:CT_SPAWN.y};
-}
 // укрытие для сейва T: подальше от известных CT и от сайтов, не на виду у живых CT
 function pickSaveSpotT(b){
   var cts = [], BLt = beliefLast.T || {};

@@ -103,7 +103,7 @@ def top_vars(src):
         if x not in out: out.append(x)
     return out
 STATIC = set("""ZONEMAP ZONEMAP_RAW NAVAREAS NAVAREAS_RAW NAV_BOUNDARY_SEGS_RAW NAV_BOUNDARY_VERTS_RAW zonesById zoneGraph ZONE_SAMPLES
-ZONE_DANGER_LINE PRO_LINEUPS_RAW BOT_INIT MARKUP MARKUP_BAKED MK_CFG""".split())
+ZONE_DANGER_LINE PRO_LINEUPS_RAW BOT_INIT MARKUP MARKUP_BAKED MK_CFG TEAM_COV""".split())
 SETTINGS = set("""BAL MANUAL_WALLS WALL_OBJECTS wallSegs wallSegsLOS USER_ZONES USER_LINEUPS ZONE_NAMES ZONE_SHAPES navAnchors navTransform zoneLayer""".split())
 UI = set("view paused lastFrame accumulator nowTs".split())
 V = [v for v in top_vars(s) if v not in STATIC | SETTINGS | UI and not v.startswith('__') and not v.startswith('MK') and not v.startswith('mk')]

@@ -238,6 +238,7 @@ function intelDeath(victim, killer){
     if(cands[1] && cands[1].L <= (BAL.groupPlay ? 450 : 350) && aliveCount(victim.team) >= 3) traders.push(cands[1]);
     traders.forEach(function(T, k){
       var o = T.b;
+      if(o.team === "CT") return; // (v190) размен у CT — выбор действия 12_team.js; T — до шага 2б
       // выходит НЕ в ту же точку, где умер тиммейт (туда у убийцы уже стоит
       // прицел), а под другим углом — чтобы тому пришлось доводить прицел
       var swC = pickSpots("tradeR"+tick+o.id, {x:victim.x, y:victim.y}, 5, {rMax:170, minGap:30, see:[kp]});
@@ -397,7 +398,7 @@ function beliefBuild(){
   ["A","B"].forEach(function(k){ if(SITES[k]){ var z = bzOf(SITES[k].x, SITES[k].y); if(z >= 0){ sinksT.push(z); sinksCT.push(z); } } });
   if(GEO.ctMid){ var zm = bzOf(GEO.ctMid.x, GEO.ctMid.y); if(zm >= 0) sinksCT.push(zm); }
   BZ.potT = bzDist(sinksT); BZ.potCT = bzDist(sinksCT);
-  BZ.DT = null; if(typeof OUTWARD_CACHE !== "undefined") OUTWARD_CACHE = {};
+  BZ.DT = null;
 }
 function bzDist(src){
   var n = BZ.ids.length, D = new Float32Array(n).fill(1e9), done = new Uint8Array(n);
@@ -700,7 +701,7 @@ var SAID_TTL = 6*64; // тиков (64 в секунду; TICK_HZ объявле
 // сколько запись в блокноте ещё стоит говорить (тиков): шаги и «вижу» — свежие
 // только секунду-полторы; минус, бомба, плант — дольше; план — до смены плана
 var TALK_TTL = {see:64, hear:96, hurt:128, kill:128, clear:128, nade:96, doing:128, need2:128, holdmine:128, pull:96, flashme:64,
-  dead:192, bomb:192, bombground:192, buy:384, plan:256, _retry:96};
+  dead:192, bomb:192, bombground:192, buy:384, plan:256, _retry:96, take:128, go:96, cant:96};
 function talkTTL(it){ return it.k === "hear" && (it.kind === "plant" || it.kind === "defuse") ? 192 : (TALK_TTL[it.k] || 96); }
 // не устарело ли (проверка перед тем, как сказать, и когда фраза дошла): говорить
 // стоит только то, что тиммейтам ещё полезно и чего они не знают новее
@@ -766,6 +767,9 @@ function talkMsg(b, it){
     case "holdmine": { var wf = talkWhere(it.x, it.y, true); // «с CT Lane», а не «с на CT Lane»
       return {key:"hm"+b.id+w, pr:6, short:"подержите "+w, full:"ухожу "+wf+" — подержите угол"}; }
     case "pull": return {key:"pull"+w, pr:7, short:"стяните одного "+w, full:"их тут больше — стяните одного "+w};
+    case "take": return {key:"tk"+b.id+it.side, pr:5, short:"беру "+it.name, full:"беру "+it.name};
+    case "go": return {key:"go"+b.id+w, pr:6, short:"иду", full:"иду к тебе "+w};
+    case "cant": return {key:"cant"+b.id+w, pr:5, short:"не могу", full:"не могу — держу своё"};
     case "flashme": return {key:"fm"+b.id, pr:6, short:"флешку мне "+w, full:"дайте флешку мне на пик "+w};
     case "plan": return {key:"plan"+it.sig, pr:8, short:it.short, full:it.full};
     case "_retry": return {key:it.m.key, pr:it.m.pr, urgent:it.m.urgent, short:it.m.short, full:it.m.short, retry:true};
@@ -792,7 +796,9 @@ function talkSelf(b){
       newsAdd(b, {k:"need2", x:b.post.x, y:b.post.y});
   }
   // держал угол — ухожу, а там никого из своих не остаётся
-  if(b.atPost && b.post && b.post.look) b._talkHold = {x:b.post.x, y:b.post.y};
+  // (CT «ухожу — подержите» говорит выбор действия, 12_team.js)
+  if(team === "CT") b._talkHold = null;
+  else if(b.atPost && b.post && b.post.look) b._talkHold = {x:b.post.x, y:b.post.y};
   else if(b._talkHold && b.post && Math.hypot(b.post.x-b._talkHold.x, b.post.y-b._talkHold.y) > 250){
     if(!near(b._talkHold, 450) && !(bomb && bomb.state === "planted")) newsAdd(b, {k:"holdmine", x:b._talkHold.x, y:b._talkHold.y});
     b._talkHold = null;
@@ -898,6 +904,7 @@ function voiceTick(){
       VOICE_STATS.n++; VOICE_STATS.words += u.words; VOICE_STATS.sec += (u.end - u.start)/TICK_HZ; if(u.urgent) VOICE_STATS.urgent++;
       if(roundNum >= 3 && VOICE_STATS.ex.length < 60) VOICE_STATS.ex.push([matchNum, roundNum, tick, team, u.by, u.text]);
       logEvent("[войс "+team+"] "+nick(u.by)+": "+u.text, "voice");
+      if(u.msg && u.msg.it) teamHear(team, u.by, u.msg.it);   // таблица команды: кто что держит, просьбы
       (u.sigs || []).forEach(function(sg){ var s2 = {}; for(var k in sg) s2[k] = sg[k]; intelPush(team, s2); });
     });
     VOICE[team] = V.filter(function(u){ return !u.done || tick - u.end < 5*TICK_HZ; });

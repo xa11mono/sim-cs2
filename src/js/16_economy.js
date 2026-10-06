@@ -299,7 +299,7 @@ function freshMatch(n){
   paused = true;
   tick = 0; simTime = 0; roundStartTick = 0;
   var clr = function(o){ for(var k in o) delete o[k]; };
-  [spotCache, OUTWARD_CACHE, _ED, EWL, APPEAR, HOLD_CANDS, nadeFlags, comboCd].forEach(function(o){ if(o) clr(o); });
+  [spotCache, _ED, EWL, APPEAR, HOLD_CANDS, nadeFlags, comboCd].forEach(function(o){ if(o) clr(o); });
   tracers.length = 0; soundPings.length = 0; nadesInAir.length = 0; smokes.length = 0; fires.length = 0; nadeFx.length = 0;
   groundWeapons.length = 0; events.length = 0; killfeed.length = 0;
   LAST_CLEAR = {CT:{}, T:{}};

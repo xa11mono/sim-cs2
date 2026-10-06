@@ -343,6 +343,7 @@ function reloadHeard(b, w){
 // пик на перезарядку: держит угол рядом (≤450), сам не в бою, HP > 50 —
 // коротко выходит на линию, откуда видно место звука. Агрессивные — чаще.
 function reloadPeek(b){
+  if(b.team === "CT") return; // (v190) CT — выбор действия 12_team.js; T — до шага 2б
   // слышал сам — или тиммейт сказал «перезарядка там» (через тимспик)
   var R = b._heardReload && tick < b._heardReload.until ? b._heardReload : null;
   if(!R){ var EV = picEvents(b.team); for(var i = EV.length-1; i >= 0; i--){ var sg = EV[i]; if(sg.type === "sound" && sg.kind === "reload" && sg.until > tick){ R = sg; break; } } }
@@ -388,6 +389,7 @@ function bombPassTick(){
 }
 // ---- (S1) добить раненого ----
 function finishPush(b){
+  if(b.team === "CT") return; // (v190) CT — выбор действия 12_team.js; T — до шага 2б
   if(b._sawEnemy || b.planting || b.defusing || b.hp <= 50 || tick < (b._finNext||0)) return;
   if(b.post && /^(defuse|plantspot|flee|save|repos|tradeR|antidefuse|stopplant|fetch|lineup|clutch)/.test(b.post.tag)) return;
   if(bomb && bomb.state === "carried" && bomb.carrier === b) return;
@@ -477,7 +479,7 @@ function onBlind(b, threat){
         : pickSpots("covblind"+tick+cov.id, {x:b.baseX, y:b.baseY}, 2, {rMax:110, minGap:24, see:[threat]})
         .filter(function(q){ return hasLOS(q.x, q.y, threat.x, threat.y); })[0];
       if(BAL.coverFix && !cs){ cov._coverDir = {pt:{x:threat.x, y:threat.y}, until:b.blindUntil}; }
-      if(cs){ setPost(cov, cs, threat, true, "repos:coverblind"); if(cov.post && cov.post.tag === "repos:coverblind"){ holdTask(cov, "repos", tick + Math.max(2*TICK_HZ, b.blindUntil - tick)); } }
+      if(cs && cov.team !== "CT"){ setPost(cov, cs, threat, true, "repos:coverblind"); if(cov.post && cov.post.tag === "repos:coverblind"){ holdTask(cov, "repos", tick + Math.max(2*TICK_HZ, b.blindUntil - tick)); } }
     }
   }
 }
@@ -564,6 +566,7 @@ function exposedTo(b, maxD, maxAge){
   return out;
 }
 function coverForReload(b, from){
+  if(b.team === "CT") return false; // (v190) CT — выбор действия 12_team.js; T — до шага 2б
   if(b._rlCoverT && tick - b._rlCoverT < 3*TICK_HZ) return true;
   b._rlCoverT = tick;
   var sp = pickSpots("rlcov"+tick+b.id, {x:b.x, y:b.y}, 2, {rMin:30, rMax:150, minGap:30, hideFrom:from})
@@ -578,6 +581,7 @@ function coverForReload(b, from){
 }
 // ---- (8) мало HP — к своим ----
 function lowHpBack(b){
+  if(b.team === "CT") return; // (v190) CT — выбор действия 12_team.js; T — до шага 2б
   if(b.hp > 30 || b._sawEnemy || b.planting || b.defusing || tick < (b._lowHpNext||0)) return;
   if(bomb && bomb.state === "planted") return; // ретейк/пост-плант — бомба важнее
   var defending = b.team === "CT" && b.post && /^(anchor|stack|set:|cts:|clutch|midcover)/.test(b.post.tag);
@@ -669,6 +673,7 @@ function dangerWalk(b){
 // видит врага и стреляет, мне его не видно — выхожу на соседнюю точку с линией
 // на того врага (рядом с тиммейтом, но не в его же клетку), двое на одного.
 function assistPeek(b){
+  if(b.team === "CT") return false; // (v190) CT — выбор действия 12_team.js; T — до шага 2б
   if(b._sawEnemy || b.planting || b.defusing || b.hp <= 35) return false;
   if(tick < (b._assistNext||0)) return false;
   if(b.post && /^(defuse|plantspot|lineup|flee|save|repos|tradeR|stopplant|antidefuse|fetch)/.test(b.post.tag)) return false;

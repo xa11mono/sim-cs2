@@ -464,7 +464,7 @@ function stepTick(){
   });
   resolveEngagements();
   if(BAL.smokeSpam) smokeSpamTick(); else smokeShots();
-  infoFallbackTick();
+  tFallbackTick();
   if(BAL.smokeReact) smokeHeTick();
   teamInfoTick(); // раздел 11: восприятие этого тика → радар и блокнот бота
   talkTick();     // тимспик: кто что говорит, кто что услышал (К10)

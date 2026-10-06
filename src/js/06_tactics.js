@@ -87,14 +87,10 @@ function chooseTactic(){
 // Порядок = приоритет (первые выбираются чаще, последние — реже, как офф-углы).
 var POS = {
   A: { ctHold:["A Site","Triple Box","Back Site","Temple","Plat","Single","Box","Boost","Def"],
-       ctSecond:["Temple","Back Site","Triple Box","Plat","Single"],
-       ctRetake:["Temple","CT Lane","Triple Box"],
        tClear:["Back Site","Triple Box","Box","Def","Boost","Temple"],
        tPost:["Long","Short","Boost","Back Site","Box"],
        entries:["Long","Short"] },
   B: { ctHold:["B Site","Site B","90","First Lane","Second Lane","Dark Box","Bonger"],
-       ctSecond:["90","First Lane","Second Lane","Site B","Dark Box"],
-       ctRetake:["Back Halls","Second Lane","First Lane","90"],
        tClear:["90","Second Lane","Site B","Dark Box","First Lane"],
        tPost:["Ramp","T Lower","Cave","Dark","Rat"],
        entries:["Ramp","Cave"] },
@@ -108,122 +104,14 @@ function namedSpot(name, near, o){
   var sp = pickSpots("nm:"+name+":"+(o.key||""), zp, 1, {rMax:o.rMax||110, minGap:40, see:o.see||[], hideFrom:o.hideFrom||[], must:o.must, cross:o.cross})[0];
   return sp || zp;
 }
-// из нескольких названных мест — лучшее по обзору и укрытию: видно больше
-// нужных точек (see), меньше открыто со стороны врага, ближе к ref
-function bestNamed(names, ref, team, o){
-  o = o || {}; var best = null, bs = -1e9;
-  names.forEach(function(nm, i){ var p = namedSpot(nm, ref, o); if(!p) return;
-    var s = (o.see||[]).filter(function(q){ return hasLOS(p.x, p.y, q.x, q.y); }).length
-      - 0.5*Math.max(0, spotExposure(team, p.x, p.y) - 1) - Math.hypot(p.x-ref.x, p.y-ref.y)/600;
-    if(s > bs){ bs = s; best = {i:i, nm:nm, p:p}; } });
-  return best;
-}
 function entryPts(k){ return POS[k].entries.map(function(n){ return zonePoint(n, SITES[k]); }).filter(Boolean); }
-// не смотрим "сквозь" своего тиммейта в упор: если по прямой от поста до
-// цели взгляда в 15–92% пути стоит живой союзник ближе чем на 70px к этой
-// линии — считаем цель загороженной (в реальной игре так не расставляются
-// кроссфаером, это выглядит как "уставился на напарника", а не на вход)
-function sightBlockedByAlly(b, from, to){
-  if(!b || !b.team) return false;
-  var dx = to.x-from.x, dy = to.y-from.y, len2 = dx*dx+dy*dy;
-  if(len2 < 1) return false;
-  return bots.some(function(o){
-    if(o === b || !o.alive || o.team !== b.team) return false;
-    var t = ((o.x-from.x)*dx + (o.y-from.y)*dy)/len2;
-    if(t < 0.15 || t > 0.92) return false;
-    return distToSeg(o.x, o.y, [from.x, from.y, to.x, to.y]) < 70;
-  });
-}
-// центр зоны-входа (например, Cave) может оказаться у холда ЗА СПИНОЙ: он
-// стоит в дальнем конце коридора, у Dark, а центр Cave — ближе к сайту.
-// Тогда "смотреть на вход" = смотреть назад, на свой же сайт. Если по пути
-// до T-спавна холд уже ближе, чем центр входа, — смотрим дальше НАРУЖУ по
-// этому пути (Dark / Lamp Room / T Upper), а видимый угол найдёт cornerLook
-var OUTWARD_CACHE = {};
-function outwardLook(p, e){
-  // Куда смотреть, стоя В коридоре входа (Cave, Short…): дальше по ЭТОМУ
-  // коридору наружу, туда, откуда по нему придут T. Раньше бралось "по пути
-  // до T-спавна" — а из верхней части Cave кратчайший путь до T идёт через
-  // сайт и Ramp, и холд смотрел на сайт, спиной к Dark. Теперь — по графу
-  // зон: из зоны входа — в соседнюю зону, которая ближе всех к T-спавну и не
-  // является самим сайтом (для Cave это Dark)
-  var key = Math.round(p.x/8)+","+Math.round(p.y/8)+"|"+Math.round(e.x/8)+","+Math.round(e.y/8);
-  if(key in OUTWARD_CACHE) return OUTWARD_CACHE[key];
-  var res = null;
-  if(!BZ.ids.length) beliefBuild();
-  var ze = bzOf(e.x, e.y), zp = bzOf(p.x, p.y);
-  if(!BZ.DT){ var zs = bzOf(T_SPAWN.x, T_SPAWN.y); BZ.DT = bzDist(zs >= 0 ? [zs] : []); }
-  // холд стоит ещё дальше наружу, чем сам вход (опорник "Cave" встал в Dark) —
-  // смотрим наружу уже из СВОЕЙ зоны (из Dark — на Lamp Room), а не назад на Cave
-  var zb0 = ze;
-  if(zp >= 0 && ze >= 0 && zp !== ze && BZ.DT[zp] < BZ.DT[ze] && Math.hypot(p.x-e.x, p.y-e.y) < 350) zb0 = zp;
-  if(ze >= 0 && (zp === ze || zb0 === zp || Math.hypot(p.x-e.x, p.y-e.y) < 120)){
-    var nearSite = function(i){ var c = BZ.cent[i]; return !c || ["A","B"].some(function(k){ return SITES[k] && Math.hypot(c.x-SITES[k].x, c.y-SITES[k].y) < 200; }); };
-    var best = -1, bd = Infinity;
-    (BZ.nbr[zb0]||[]).forEach(function(n){ if(nearSite(n)) return; if(BZ.DT[n] < bd){ bd = BZ.DT[n]; best = n; } });
-    if(best >= 0 && bd < BZ.DT[zb0]) res = walk(BZ.cent[best]);
-  }
-  OUTWARD_CACHE[key] = res;
-  return res;
-}
-// куда смотреть из точки: первый видимый вход сайта
-function lookFrom(p, list, fb, b){
-  // если холд стоит прямо в одном из входов (например, в самом Cave, а не на
-  // открытой части сайта) — смотрит дальше в СВОЙ коридор (туда, откуда сам
-  // и пришёл бы враг), а не переключается на другой, "главный" вход только
-  // потому что он в списке первый и тоже виден — иначе стоял спиной к своему
-  // же тоннелю, глядя через сайт на чужой вход
-  // не требуем прямой видимости центра зоны-входа — угол к ней всё равно
-  // находит cornerLook по пути; тут просто предпочитаем САМЫЙ БЛИЖНИЙ вход,
-  // если стоим внутри его коридора, а не первый по списку с видимостью
-  var near = null, nd = 350;
-  list.forEach(function(e){ if(!e) return; if(sightBlockedByAlly(b, p, e)) return; var d = Math.hypot(e.x-p.x, e.y-p.y); if(d < nd){ nd = d; near = e; } });
-  if(near) return outwardLook(p, near) || near;
-  for(var i=0;i<list.length;i++){ if(list[i] && !sightBlockedByAlly(b, p, list[i]) && hasLOS(p.x, p.y, list[i].x, list[i].y)) return list[i]; }
-  // ничего не подошло по 350px/прямой видимости (это нормально — точную
-  // видимость дальше находит cornerLook по пути), но какой-то вход всё же
-  // не закрыт союзником — берём ближайший из них, уже без ограничения в 350,
-  // лишь бы не смотреть "сквозь" тиммейта
-  var near2 = null, nd2 = Infinity;
-  list.forEach(function(e){ if(!e || sightBlockedByAlly(b, p, e)) return; var d = Math.hypot(e.x-p.x, e.y-p.y); if(d < nd2){ nd2 = d; near2 = e; } });
-  if(near2) return near2;
-  // абсолютно все варианты закрыты союзником — лучше смотреть хоть куда-то
-  // полезное, чем никуда: берём ближайший вообще, без фильтра по союзнику
-  var near3 = null, nd3 = Infinity;
-  list.forEach(function(e){ if(!e) return; var d = Math.hypot(e.x-p.x, e.y-p.y); if(d < nd3){ nd3 = d; near3 = e; } });
-  return near3 || fb;
-}
-// ---- пул расстановок CT (раздел 12/13) ----
-// roles: позиции по названиям зон; early — куда встать в первые sec секунд
-// (выход за инфой), потом — pos. rot: "212" — ротатор вторым на "горячий" сайт,
-// "111" — ротатор между сайтами. stack — сайт, на который встаёт роумер.
+// ---- пул расстановок CT: план IGL — сколько людей в каком районе (CT_NEED,
+// 12_ct_brain.js); куда именно встать — выбор действия (12_team.js) ----
 var CT_SETUPS = [
-  {id:"std212", name:"Стандарт 2-1-2", rot:"212"},
-  {id:"std111", name:"1-1-1 с ротатором", rot:"111"},
-  {id:"stackA", name:"Стак A", rot:"stack", stack:"A",
-    roles:{rotator:{pos:["Triple Box","Temple"], look:"A Site"}, roamer:{pos:["Back Site","Plat"], look:"Long"}}},
-  {id:"stackB", name:"Стак B", rot:"stack", stack:"B",
-    roles:{rotator:{pos:["Site B","90"], look:"Ramp"}, roamer:{pos:["Second Lane","B Site"], look:"Cave"}}},
-  {id:"midAggro", name:"Агрессия мидом за инфой", rot:"212",
-    roles:{mid:{early:{pos:["Mid","Chamber Lane"], look:"Lower Mid", sec:22}}, roamer:{early:{pos:["Top Mid"], look:"Mid", sec:22}}}},
-  {id:"retakeA", name:"Ретейк-сетап A (A отдают, играют ретейк)", rot:"111",
-    roles:{anchorA:{pos:["Temple"], look:"A Site"}, rotator:{pos:["CT Lane"], look:"Triple Box"}}},
-  {id:"retakeB", name:"Ретейк-сетап B", rot:"111",
-    roles:{anchorB:{pos:["Second Lane"], look:"B Site"}, rotator:{pos:["Back Halls"], look:"Second Lane"}}},
-  {id:"pickA", name:"Пик мейна A за инфой", rot:"212",
-    roles:{anchorA:{early:{pos:["Long"], look:"A Main", sec:12}}}},
-  {id:"pickB", name:"Пик рампы B за инфой", rot:"212",
-    roles:{anchorB:{early:{pos:["Ramp"], look:"T Lower", sec:12}}}},
-  {id:"cavePush", name:"Пуш кейва за инфой (до Lamp Room)", rot:"212",
-    // после инфы (20с) роумер не бросает глубокую точку ради дубля кейва —
-    // остаётся в Dark/Lamp Room и держит именно этот подход (его напарник
-    // anchorB уже смотрит на Dark со стороны кейва — вместе перекрёсток).
-    // hideFrom:false — обоим нужно смотреть именно в сторону мида/тоннеля,
-    // прятаться от него тут в принципе не нужно
-    roles:{roamer:{early:{pos:["Dark","Lamp Room"], look:"T Upper", sec:20}, pos:["Dark","Lamp Room"], look:"T Upper", hideFrom:false},
-           anchorB:{pos:["Cave","B Site"], look:"Dark", hideFrom:false}}},
-  {id:"redRoom", name:"Контроль Red Room + Short", rot:"212",
-    roles:{mid:{pos:["Red Room","Sniper Nest"], look:"Top Mid"}, roamer:{pos:["Short"], look:"Donut"}}}
+  {id:"std212", name:"Стандарт 2-1-2"}, {id:"std111", name:"1-1-1 с ротатором"},
+  {id:"stackA", name:"Стак A"}, {id:"stackB", name:"Стак B"}, {id:"midAggro", name:"Двое на миде"},
+  {id:"retakeA", name:"Ретейк-сетап A (A отдают, играют ретейк)"}, {id:"retakeB", name:"Ретейк-сетап B"},
+  {id:"pickA", name:"Стандарт 2-1-2 (A)"}, {id:"pickB", name:"Стандарт 2-1-2 (B)"}, {id:"cavePush", name:"Стандарт 2-1-2 (кейв)"}, {id:"redRoom", name:"Стандарт 2-1-2 (Red Room)"}
 ];
 function chooseCtSetup(){
   var why = {};
@@ -232,50 +120,11 @@ function chooseCtSetup(){
     return w;
   });
   var S = BAL.ctSetups ? CT_SETUPS[weightedChoice(CT_SETUPS, weights, roundNum*4217 + matchNum*881 + 5)] : (BAL.ctSetup === "1-1-1" ? CT_SETUPS[1] : CT_SETUPS[0]);
-  teamTac.CT = {call:null, saving:false, stack:S.stack||null, setup:S, setupWhy: why[S.id]||null};
+  teamTac.CT = {call:null, saving:false, setup:S, setupWhy: why[S.id]||null};
   // против эко: без ранних пиков и доборов — не дарить оружие, держать вместе
   if(BAL.ctAntiEco){ var Ee = teamEco.CT.enemyGuess || enemyEcoGuess("CT"); if(Ee.eco && (teamEco.CT.roundType === "full" || teamEco.CT.roundType === "force")){ teamTac.CT.antiEco = true; logEvent("CT: у T, похоже, эко — играем аккуратно: без ранних пиков, не отдаём оружие"); } }
   logEvent("CT: расстановка «"+S.name+"»"+(why[S.id] ? " — "+why[S.id] : ""));
 }
-// роль CT по расстановке: позиция по названию зоны (из нескольких — по раунду)
-function ctSetupRole(b, role, ct){
-  var S = ct.setup; if(!S || !S.roles || !S.roles[role]) return false;
-  var R = S.roles[role];
-  // мидер с пистолетом/ПП или с AWP на агрессивной расстановке — позиция мида
-  // по оружию (ближний угол / дальняя точка), а не вперёд в дуэль на дистанции
-  if(BAL.midWeapon && role === "mid" && b.weapon && (b.weapon.tier < 5 || ((b.weapon.key === "AWP" || b.weapon.key === "SSG") && R.early))) return false;
-  var early = R.early && tick - roundStartTick < R.early.sec*TICK_HZ;
-  var P = early ? R.early : R;
-  if(early && b._sawEnemy) b._earlySaw = roundNum;
-  if(early && b.atPost) b._earlyAt = {round:roundNum, x:b.x, y:b.y};
-  // выход за инфой закончился: никого не увидел и не услышал — отметить "пусто"
-  if(!early && R.early && b._earlyDone !== roundNum){
-    b._earlyDone = roundNum;
-    var ea = b._earlyAt && b._earlyAt.round === roundNum ? b._earlyAt : null;
-    if(ea && b._earlySaw !== roundNum && picNear("CT", ea.x, ea.y, 600) === 0) markClear("CT", ea.x, ea.y, b.id);
-  }
-  if(!P.pos) return false;
-  var ref = role === "anchorA" ? GEO.A.anchor : role === "anchorB" ? GEO.B.anchor : GEO.ctMid;
-  var bn = bestNamed(P.pos, ref, "CT", {see:[(P.look && zonePoint(P.look, ref)) || ref], key:"cts"+role}), nm = bn ? bn.nm : P.pos[0];
-  var c = zonePoint(nm, ref); if(!c) return false;
-  var lk = (P.look && zonePoint(P.look, c)) || ref;
-  // прятаться от мида по умолчанию — но не тогда, когда сам взгляд НАПРАВЛЕН
-  // в сторону мида/тоннеля (Пуш кейва): иначе позицию тянуло в укромный
-  // уголок, откуда "спрятанное от мида" направление и есть тот самый Dark/
-  // Lamp Room, который нужно смотреть — в итоге стоял к нему спиной
-  var hideMid = R.hideFrom === false ? [] : [GEO.tMid];
-  var spots = pickSpots("cts:"+S.id+":"+role+":"+nm, c, 3, {rMax:150, minGap:45, see:[lk], hideFrom:hideMid});
-  var tag = (role === "anchorA" || role === "anchorB") ? "anchor" : role === "mid" ? "mid" : "set:"+role;
-  var spC = spots[weightedPick(spots.length, roundNum*53 + b.id.charCodeAt(2||1))];
-  // встал в той самой зоне, куда велено смотреть (роумер в Cave с взглядом
-  // "на Cave") — смотрим дальше НАРУЖУ по пути к T, а не себе под ноги/на сайт
-  if(spC && lk && Math.hypot(spC.x-lk.x, spC.y-lk.y) < 150){ var ow = outwardLook(spC, lk); if(ow) lk = ow; }
-  setPost(b, spC, lk, true, tag);
-  if(early && !b._earlyLog){ b._earlyLog = roundNum; }
-  if(early && b._earlyLogged !== roundNum){ b._earlyLogged = roundNum; logEvent(b.id+" ("+ROLE_LABEL_CT(role)+"): выход за инфой — "+nm); }
-  return true;
-}
-function ROLE_LABEL_CT(r){ return {anchorA:"опорник A", anchorB:"опорник B", mid:"мидер", rotator:"ротатор", roamer:"роумер"}[r] || r; }
 var events = []; var killfeed = [];
 var simTime = 0; // нужен logEvent-у при старте
 var roundStartTick = 0;

@@ -51,7 +51,7 @@ function buildSites(){
     SITES[k] = {key:k, x:sp.x, y:sp.y, poly:poly};
     var ps = sitePlantSpot(SITES[k]); SITES[k].plant = ps;
   });
-  spotCache = {}; OUTWARD_CACHE = {}; EXP_CACHE = {}; ED_CACHE = {CT:null, T:null};
+  spotCache = {}; EXP_CACHE = {}; ED_CACHE = {CT:null, T:null};
   ["A","B"].forEach(function(k){
     var s = SITES[k];
     var tp = pathPts(T_SPAWN.x, T_SPAWN.y, s.x, s.y);
@@ -335,7 +335,6 @@ function setPost(b, pt, look, hold, tag, spreadIdx){
       return setPost(b, cp, nx, true, "route:"+R.names[Math.min(R.idx, R.names.length-1)]);
     }
   }
-  if(b._rebal && b._rebal.round === roundNum && !/^(rebal|retake|defuse|flee|save|fetch|stopplant|antidefuse|tradeR|repos|clutch|rotate|endhunt|gather|midcover|lineup|smokeWait|pickup)/.test(tag)) return;
   var id = tag + "|" + Math.round(pt.x) + "," + Math.round(pt.y);
   if(b.post && b.post.id === id) return;
   var x = pt.x, y = pt.y;

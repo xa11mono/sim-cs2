@@ -45,7 +45,7 @@ function pieAllowed(b){
   if(/^(endhunt|hunt|probe|earlyPeek|flank|lurk|midcover|clear|roam|shift|clutch)/.test(tag)) return true;
   if(bomb && bomb.state === "planted") return false;
   if(b.team === "T") return !!(tt && tt.phase === "setup");
-  return !(ct && (ct.call || (ct.rot && ct.rot[b.id]))) && !/^(rotate|gather|stack|anchor2)/.test(tag);
+  return !(ct && ct.call) && !/^(gather|retake)/.test(tag);
 }
 function pieBusy(b){
   return !b.alive || !pieAllowed(b) || b.state !== "patrol" || b._sawEnemy || b.planting || b.defusing || b.holding || b.atPost ||

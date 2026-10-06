@@ -254,7 +254,7 @@ function tryShoot(shooter, target, dist){
       // на соседнюю позицию, а не ждёт трейда на том же месте
       shooter._exposedUntil = tick + 4*TICK_HZ;
       var postKill = BAL.awpRepos ? afterKillMove(shooter, target, w) : false;
-      if(!postKill && BAL.repos && shooter.atPost && shooter.post && shooter.post.hold && !shooter.planting && !shooter.defusing &&
+      if(!postKill && BAL.repos && shooter.team !== "CT" && shooter.atPost && shooter.post && shooter.post.hold && !shooter.planting && !shooter.defusing &&
          bots.some(function(o){ return o.alive && o.team === target.team && Math.hypot(o.x-shooter.x, o.y-shooter.y) < 900; })){
         var alt = pickSpots("repos"+Math.round(shooter.post.x/30)+","+Math.round(shooter.post.y/30), shooter.post, 3,
           {rMin:55, rMax:170, minGap:40, see: shooter.post.look ? [shooter.post.look] : [], hideFrom:[{x:target.x, y:target.y}]});
@@ -478,6 +478,7 @@ function leaveHold(b){ b.state = "patrol"; b.holding = false; b.crouching = fals
 // (v156) решение после фрага — только по тому, что команда знает (ЛИП ≤5с),
 // а не по настоящим позициям врагов
 function postKillDecide(sh, tg, vp, here){
+  if(sh.team === "CT") return false; // (v190) CT — выбор действия 12_team.js; T — до шага 2б
   if(sh.post && /^(lineup|plantspot|defuse|save|fetch|antidefuse|stopplant)/.test(sh.post.tag || "")) return false;
   var known = [], LK = picKnown(sh.team) || {};
   for(var eid in LK){ var q = LK[eid]; if(eid === tg.id || tick - q.tick > 5*TICK_HZ) continue;
@@ -519,6 +520,7 @@ function postKillDecide(sh, tg, vp, here){
   return false;
 }
 function afterKillMove(sh, tg, w){
+  if(sh.team === "CT") return false; // (v190) CT — выбор действия 12_team.js; T — до шага 2б
   if(!sh.alive || sh.planting || sh.defusing || (bomb && bomb.state === "carried" && bomb.carrier === sh)) return false;
   // (9) на сейве убил — позиция засвечена (звук выстрела, килфид): уходит на
   // другое укрытие, откуда не видно место убийства и старую точку
@@ -564,6 +566,7 @@ function afterKillMove(sh, tg, w){
 // уйти с засвеченного угла чуть глубже: скрыто от точки контакта и известных
 // врагов, но видно тот же вход; до конца раунда это его новая точка
 function shiftHold(sh, vp, exceptId, why){
+  if(sh.team === "CT") return false; // (v190) CT — выбор действия 12_team.js; T — до шага 2б
   if(!(sh.atPost && sh.post && sh.post.hold) || /^(save|repos|defuse|plantspot|lineup|pickup|endhunt|retake|gather|stopplant|antidefuse)/.test(sh.post.tag)) return false;
   if(sh._hs && sh._hs.round === roundNum && tick - sh._hs.t < 8*TICK_HZ) return false;
   var here = {x:sh.x, y:sh.y}, knownE = [], LKs = picKnown(sh.team) || {};
