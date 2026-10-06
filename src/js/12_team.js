@@ -17,12 +17,16 @@
 // =====================================================================
 var TEAM = {CT:null, T:null};
 // веса целей: размен (trade) весит больше, чем «вижу вход» (threat) — урок отката v173
-var ACT = {every:32, W:{need:1.6, threat:1.0, trade:1.3, alone:0.6, stack:0.9, risk:1.0, dist:0.07, dup:1.2, same:3, cur:0.35, poi:1.0}};
+var ACT = {every:32, W:{need:1.6, threat:1.0, trade:1.3, alone:0.6, stack:0.9, risk:1.0, dist:0.07, dup:0.4, same:3, cur:0.35, poi:1.0, burned:0.8}};
 var TEAM_COV = null;   // каталог укрытий из разметки (статичный, считается один раз)
-// район точки: ближайший из A / B / мид (в пределах радиуса района)
+// район точки: зоны мида (Connector, Sniper Nest, Top Mid…) — мид (знание карты:
+// так их зовут игроки); иначе ближайший из A / B / мид в пределах радиуса района
+var MID_ZONES = {"Mid":1, "Top Mid":1, "Sniper Nest":1, "Connector / Red Room / Red":1, "Jungle / Pit":1, "Xbox":1, "Lower Mid / Start Mid":1, "Chamber Lane":1};
 function teamAreaOf(p){
+  var zi = bzOf(p.x, p.y), zn = zi >= 0 ? ZONE_NAMES[ZONEMAP.zones[zi].id] : null;
+  if(zn && MID_ZONES[zn]) return "M";
   var best = null, bd = 1e9;
-  [["A", SITES.A, 620], ["B", SITES.B, 620], ["M", GEO.ctMid, 520]].forEach(function(a){ if(!a[1]) return;
+  [["A", SITES.A, 620], ["B", SITES.B, 620]].forEach(function(a){ if(!a[1]) return;
     var d = Math.hypot(p.x-a[1].x, p.y-a[1].y); if(d < a[2] && d/a[2] < bd){ bd = d/a[2]; best = a[0]; } });
   return best;
 }
@@ -126,16 +130,17 @@ function actScore(b, c, X){
   var dm = 1e9; X.mates.forEach(function(m){ var d = Math.hypot(m.x-c.x, m.y-c.y); if(d < dm) dm = d;
     if(m.side && m.side === c.side) s -= W.dup;
     if(Math.hypot(m.x-c.x, m.y-c.y) < 40) s -= W.same; });
-  if(X.mates.length){ if(dm < 110) s -= W.stack; else if(dm < 480) s += W.trade; else if(dm > 750) s -= W.alone; }
+  if(X.mates.length){ if(dm < 80) s -= W.stack; else if(dm < 480) s += W.trade; else if(dm > 750) s -= W.alone; }
   // не умереть зря: открытость + известные враги, которые её видят
   var dyn = 0; X.foes.forEach(function(f){ if(Math.hypot(f.x-c.x, f.y-c.y) < 1400 && hasLOS(c.x, c.y, f.x, f.y)) dyn += 0.7; });
-  s -= W.risk * X.riskMul * ((c.open || 0) + 0.12*(c.dirs || 0) + Math.min(2, dyn));
+  s -= W.risk * X.riskMul * ((c.open || 0) + 0.06*(c.dirs || 0) + Math.min(2, dyn));
   // точки интереса: опустевший угол, просьба, бомба, плант, враг тиммейта (размен)
   X.pois.forEach(function(P){ var d = Math.hypot(P.x-c.x, P.y-c.y);
     if(d > P.r || (P.side && P.side !== c.side && !P.see)) return;
     if(P.see && !hasLOS(c.x, c.y, P.x, P.y)) return;
     s += P.w; });
-  if(X.cur && X.cur.x === c.x && X.cur.y === c.y && !X.noCur) s += W.cur;
+  // текущий вариант — надбавка; только что стрелял отсюда — засветился (враг знает, где я)
+  if(X.cur && X.cur.x === c.x && X.cur.y === c.y){ if(X.burned) s -= W.burned; else if(!X.noCur) s += W.cur; }
   return s;
 }
 // выбрать лучшее и встать
@@ -173,6 +178,14 @@ function ctActTick(cts){
     if(picEvents(team).some(function(sg){ return sg.type === "died" && tick - sg.tick < 3*TICK_HZ && Math.hypot(sg.x-f.x, sg.y-f.y) < 700; }) ||
        cts.some(function(o){ return o._sawEnemy && Math.hypot(o.x-f.x, o.y-f.y) < 700; }))
       pois.push({x:f.x, y:f.y, r:650, see:true, w:0.9, near:600}); });
+  // свой погиб, а где убийца — известно: двое ближайших сразу берут его линию (размен)
+  var trades = [];
+  picEvents(team).forEach(function(sg){ if(sg.type !== "died" || tick - sg.tick > 3*TICK_HZ) return;
+    var k = foes.filter(function(f){ return Math.hypot(f.x-sg.x, f.y-sg.y) < 900 && tick - f.tick < 3*TICK_HZ; })
+      .sort(function(a, c){ return c.tick - a.tick; })[0]; if(!k) return;
+    var ids = cts.filter(function(o){ return Math.hypot(o.x-sg.x, o.y-sg.y) < 900; })
+      .sort(function(a, c){ return Math.hypot(a.x-sg.x, a.y-sg.y) - Math.hypot(c.x-sg.x, c.y-sg.y); }).slice(0, 2).map(function(o){ return o.id; });
+    if(ids.length) trades.push({x:k.x, y:k.y, r:650, see:true, w:2.0, ids:ids, key:sg.tick+"|"+k.id}); });
   // опустевшие углы и просьбы — кому они достаются (один раз на запись)
   T.vac.forEach(function(v){ if(!v.resp){ var rp = teamResponder(team, v, v.by); v.resp = rp ? rp.b.id : "-"; v.ok = rp && !teamNeededHere(team, rp.b); } });
   T.req.forEach(function(q){ if(!q.resp){ var rp = teamResponder(team, q, q.by); q.resp = rp ? rp.b.id : "-";
@@ -180,13 +193,17 @@ function ctActTick(cts){
     if(rp) newsAdd(rp.b, {k: q.ok ? "go" : "cant", x:q.x, y:q.y, to:q.by}); } });
   cts.forEach(function(b, i){
     if(b.defusing || b.planting) return;
-    var due = !b.post || !b._act || b._act.round !== roundNum || (tick + i*6) % ACT.every === 0;
+    var myTr = trades.filter(function(P){ return P.ids.indexOf(b.id) >= 0; });
+    var trNew = myTr.some(function(P){ return b._trKey !== P.key; });
+    var due = trNew || !b.post || !b._act || b._act.round !== roundNum || (tick + i*6) % ACT.every === 0;
     if(!due) return;
+    if(trNew) b._trKey = myTr[myTr.length-1].key;
     if(b.nadeTask || (b.post && /^(lineup|pickup)/.test(b.post.tag||""))) return;   // бросок по лайнапу / подбор — свои исполнители
     if(b._sawEnemy && !b._reloading) return;                                        // в бою место не меняют
     if(tick < (b.blindUntil||0)) return;
     var X = {mode:"hold", myArea:(ct.assign || {})[b.id] || null, mates:teamMatePts(team, b), foes:foes, pois:[], cur:b._act && b._act.round === roundNum ? b._act : null,
-      riskMul: (b.hp < 50 ? 1.6 : 1) * (b._reloading ? 2 : 1), noCur: !!b._reloading};
+      riskMul: (b.hp < 50 ? 1.6 : 1) * (b._reloading ? 2 : 1), noCur: !!b._reloading, burned: tick - (b.lastShotTick||-1e9) < 3*TICK_HZ};
+    myTr.forEach(function(P){ X.pois.push(P); });
     pois.forEach(function(P){ if(P.near && Math.hypot(P.x-b.x, P.y-b.y) > P.near) return; if(P.who && P.who !== b.id) return; X.pois.push(P); });
     T.vac.forEach(function(v){ if(v.resp === b.id && v.ok) X.pois.push({x:v.x, y:v.y, r:300, side:v.side, w:1.4, vac:v}); });
     T.req.forEach(function(q){ if(q.resp === b.id && q.ok) X.pois.push({x:q.x, y:q.y, r:450, w:1.4}); });
