@@ -723,6 +723,7 @@ function draw(){
   }
   document.getElementById("hBomb").textContent = bst;
   scoreboardUpdate(rtLeft);
+  if(!draw._plN || ++draw._plN > 6){ draw._plN = 1; playersUpdate(); }
   if(!draw._econN || ++draw._econN > 8){ draw._econN = 1; renderEcon(); }
 
   if(roundState === "freeze"){

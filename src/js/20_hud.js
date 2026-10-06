@@ -128,15 +128,6 @@ function renderEcon(){
       if(teamTac.T.read) h += '<div style="color:var(--t);opacity:.7;font-size:10px">IGL: '+teamTac.T.read+'</div>'; }
     if(team === "CT" && teamTac.CT && teamTac.CT.setup){ h += '<div style="color:var(--ct);opacity:.8;font-size:10px">расстановка: «'+teamTac.CT.setup.name+'»'+(teamTac.CT.setupWhy ? ' — '+teamTac.CT.setupWhy : '')+'</div>'; }
     if(team === "CT"){ var cl = teamTac.CT && teamTac.CT.call; h += '<div style="color:var(--ct);opacity:.85">'+(bomb && bomb.state==="planted" ? (cl0save() ? "сейв" : (bomb.retake ? (bomb.retake.phase==="gather" ? "ретейк "+bomb.site+": сбор "+(bomb.retake.ready||0)+"/"+(bomb.retake.need||"?") : bomb.retake.phase==="util" ? "ретейк "+bomb.site+": флешка — сейчас заход" : "ретейк "+bomb.site+": заход!") : "ретейк "+bomb.site)) : (cl ? "колл: T на "+cl.site+" (~"+Math.max(1,Math.round(cl.count))+") — ротируют "+Object.keys(teamTac.CT.rot||{}).length : "расстановка по ролям"))+'</div>'; }
-    h += '<table>';
-    mates.forEach(function(b){
-      var wpn = WEAPONS[b.primary || b.secondary].name;
-      var arm = (b.helmet ? "КШ" : (b.armor ? "К" : "—")) + (b.kit ? "+кит" : "");
-      var c4 = bomb && bomb.carrier === b ? " 💣" : "";
-      var nd = b.nades ? ("●".repeat(b.nades.smoke) + "✦".repeat(b.nades.flash) + "▲".repeat(b.nades.he) + "♨".repeat(b.nades.molly)) : "";
-      h += '<tr class="'+(b.alive?'':'dead')+'"><td>'+pnum(b.id)+' '+esc(nick(b.id))+c4+'</td><td>'+(ROLE_LABEL[b.tRole]||"")+(b.retakeRole && bomb && bomb.state==="planted" && !cl0save() ? ' · '+({defuser:"дефузер",cover:"прикрытие",flank:"фланг"}[b.retakeRole]) : "")+'</td><td>'+wpn+'</td><td>'+arm+'</td><td title="● дым · ✦ флешка · ▲ HE · ♨ молотов">'+nd+'</td><td>'+b.kills+'/'+b.deaths+'</td><td class="m">$'+b.money+'</td></tr>';
-    });
-    h += '</table>';
   });
   el.innerHTML = h;
 }
@@ -178,6 +169,66 @@ function scoreboardUpdate(rtLeft){
   tm.className = "sb-time" + (roundState === "live" && sec <= 10 ? " low" : "");
 }
 
+// ---------- панели игроков (Н7): как на трансляции; по центру — выбранный кликом ----------
+// Названия — настоящие команды по составу (ники NICKS). Фото — PLAYER_PHOTO[ник]
+// (картинка data:/svg); пока нет — серый силуэт.
+var TEAM_NAME = {T:"Team Spirit", CT:"Team Falcons"};
+var PLAYER_PHOTO = {};
+var PL_SIL = '<svg viewBox="0 0 40 40"><circle cx="20" cy="14" r="8"/><path d="M4 40c0-9 7-15 16-15s16 6 16 15z"/></svg>';
+var PL_ICON = {
+  armor:'<svg viewBox="0 0 12 14"><path d="M6 0L12 2.2V7c0 3.6-2.6 6-6 7-3.4-1-6-3.4-6-7V2.2z"/></svg>',
+  helmet:'<svg viewBox="0 0 12 14"><path d="M6 0L12 2.2V7c0 3.6-2.6 6-6 7-3.4-1-6-3.4-6-7V2.2z"/><path d="M3.5 4h1.6v2.2h1.8V4h1.6v6H6.9V7.7H5.1V10H3.5z" fill="#222"/></svg>',
+  kit:'<svg viewBox="0 0 14 12"><path d="M1 3h3V1h6v2h3v8H1zm4.5-1v1h3V2z"/></svg>',
+  c4:'<svg viewBox="0 0 16 10"><rect x="0" y="1" width="16" height="8" rx="1"/><rect x="2" y="3" width="5" height="4" fill="#c33"/></svg>',
+  smoke:'<svg viewBox="0 0 8 13"><rect x="1" y="2" width="6" height="11" rx="1.5"/><rect x="2.5" y="0" width="3" height="2"/></svg>',
+  flash:'<svg viewBox="0 0 8 13"><rect x="1.5" y="3" width="5" height="10" rx="1"/><rect x="2.5" y="0" width="3" height="3"/></svg>',
+  he:'<svg viewBox="0 0 10 13"><circle cx="5" cy="8" r="4.6"/><rect x="3.5" y="0" width="3" height="3.5"/></svg>',
+  molly:'<svg viewBox="0 0 8 14"><path d="M2.5 0h3v4l2 2v8h-7V6l2-2z"/></svg>'
+};
+var plSelected = null;
+// номер как на трансляции: T — 1…5, CT — 6…9, 0
+function plNum(b){ var i = +b.id.replace(/\D/g, ""); return b.team === "T" ? i + 1 : (i + 6) % 10; }
+function plPhoto(b){ var p = PLAYER_PHOTO[nick(b.id)]; return p ? '<img alt="" src="'+p+'">' : PL_SIL; }
+function plCard(b){
+  var t = b.team, sel = plSelected === b.id ? " sel" : "", n = nick(b.id);
+  var info = '<div class="pl-info"><div class="pl-nick">'+esc(n)+'</div><div class="pl-kd"><span>⊕ '+(b.kills||0)+'</span><span>☠ '+(b.deaths||0)+'</span></div><div class="pl-money">$ '+(b.money||0).toLocaleString("en-US")+'</div></div>';
+  var ava = '<div class="pl-ava">'+plPhoto(b)+'</div>';
+  if(!b.alive) return '<div class="pl-card dead'+sel+'"><div class="pl-num">'+plNum(b)+'</div>'+info+ava+'<div class="pl-gear"><div class="pl-skull">💀</div></div></div>';
+  var w = b.weapon && b.weapon.key, wkey = w || "KNIFE";
+  var wsvg = (KF_ICON[wkey] ? '<svg viewBox="'+KF_ICON[wkey].vb+'">'+KF_ICON[wkey].svg+'</svg>' : esc(b.weapon ? b.weapon.name : ""));
+  var hp = Math.max(0, Math.round(b.hp)), ut = "";
+  if(b.helmet) ut += PL_ICON.helmet; else if(b.armor) ut += PL_ICON.armor;
+  if(t === "CT" && b.kit) ut += PL_ICON.kit;
+  if(t === "T" && bomb && bomb.state === "carried" && bomb.carrier === b) ut += PL_ICON.c4;
+  var N = b.nades || {}; ["smoke","flash","he","molly"].forEach(function(k){ for(var i=0;i<(N[k]||0);i++) ut += PL_ICON[k]; });
+  return '<div class="pl-card'+sel+'"><div class="pl-num">'+plNum(b)+'</div>'+info+ava+'<div class="pl-gear"><div class="pl-hpbar'+(hp <= 25 ? " low" : "")+'" style="width:'+hp+'%"></div>'+
+    '<div class="pl-row"><span class="pl-wp">'+wsvg+'</span><span class="pl-hp">'+hp+'</span></div><div class="pl-row"><span class="pl-ut">'+ut+'</span></div></div></div>';
+}
+function playersUpdate(){
+  ["T","CT"].forEach(function(t){
+    var el = document.getElementById("pl"+t); if(!el) return;
+    el.innerHTML = '<div class="pl-tag">'+esc(TEAM_NAME[t])+'</div>'+bots.filter(function(b){ return b.team === t; }).map(plCard).join("");
+  });
+  var f = document.getElementById("plFocus"), b = plSelected && botById(plSelected);
+  if(!b || !b.alive){ plSelected = null; f.className = ""; return; }
+  f.className = "show "+b.team.toLowerCase();
+  var ph = document.getElementById("pfPhoto"); if(ph.dataset.id !== b.id){ ph.dataset.id = b.id; ph.innerHTML = plPhoto(b); }
+  document.getElementById("pfNick").textContent = nick(b.id).toUpperCase();
+  document.getElementById("pfHp").textContent = Math.max(0, Math.round(b.hp));
+}
+// клик по игроку на радаре (не перетаскивание камеры) — он в центре; мимо — убрать
+(function(){
+  var down = null;
+  cv.addEventListener("mousedown", function(e){ if(e.button === 0) down = {x:e.clientX, y:e.clientY}; });
+  cv.addEventListener("mouseup", function(e){
+    if(e.button !== 0 || !down || Math.hypot(e.clientX-down.x, e.clientY-down.y) > 4){ down = null; return; }
+    down = null;
+    var w = navScreenToWorld(e.clientX, e.clientY), best = null, bd = 16/view.scale;
+    bots.forEach(function(b){ if(!b.alive) return; var d = Math.hypot(b.x-w.x, b.y-w.y); if(d < bd){ bd = d; best = b; } });
+    plSelected = best ? best.id : null;
+    playersUpdate();
+  });
+})();
 window.__ev=function(src){return eval(src);};
 requestAnimationFrame(frame);
 
