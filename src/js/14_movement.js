@@ -177,11 +177,11 @@ function awpAllowed(b){
 }
 function weaponPickupTick(){
   if(roundState !== "live") return;
-  if(!groundWeapons.length){ bots.forEach(function(b){ if(b.alive && b.post && b.post.tag === "pickup"){ clearPost(b); dropTask(b, "pickup"); } }); return; }
+  if(!groundWeapons.length){ bots.forEach(function(b){ if(b.alive && b.post && b.post.tag === "pickup"){ clearPost(b); } }); return; }
   bots.forEach(function(b){
     if(!b.alive || b.planting || b.defusing) return;
     // оружие уже подобрал кто-то другой — пост "за оружием" снять (иначе стоял на пустом месте)
-    if(b.post && b.post.tag === "pickup" && !groundWeapons.some(function(G){ return Math.hypot(G.x-b.post.x, G.y-b.post.y) < 40; })){ clearPost(b); dropTask(b, "pickup"); }
+    if(b.post && b.post.tag === "pickup" && !groundWeapons.some(function(G){ return Math.hypot(G.x-b.post.x, G.y-b.post.y) < 40; })){ clearPost(b); }
     // идёт за оружием — держим блок каждый тик: раньше блок жил 1 тик, и через
     // тик пост роли и "за оружием" перебивали друг друга (путь пересчитывался)
     else if(b.post && b.post.tag === "pickup" && b.state === "patrol" && !b._sawEnemy){
@@ -193,8 +193,7 @@ function weaponPickupTick(){
       // на "хожу за оружием" — 7с, потом 8с не отвлекается на ганы
       if(!b._pickSince || tick - b._pickSeen > 4) b._pickSince = tick; b._pickSeen = tick;
       var pickTooLong = BAL.pickFix && tick - b._pickSince > 7*TICK_HZ;
-      if((b.atPost && tick - b._pickT.t > TICK_HZ) || tick - b._pickT.t > 6*TICK_HZ || pickTooLong){ b._pickIgnore = {x:b.post.x, y:b.post.y, round:roundNum}; if(pickTooLong) b._pickBan = tick + 8*TICK_HZ; clearPost(b); dropTask(b, "pickup"); b._pickSince = 0; }
-      else holdTask(b, "pickup", tick+1);
+      if((b.atPost && tick - b._pickT.t > TICK_HZ) || tick - b._pickT.t > 6*TICK_HZ || pickTooLong){ b._pickIgnore = {x:b.post.x, y:b.post.y, round:roundNum}; if(pickTooLong) b._pickBan = tick + 8*TICK_HZ; clearPost(b); b._pickSince = 0; }
     }
     var cur = weaponValue(b.primary);
     // подобрать под ногами
@@ -204,7 +203,7 @@ function weaponPickupTick(){
       if(G.key === "AWP" && !awpAllowed(b) && cur >= 5) continue; // снайпу — снайперу
       groundWeapons.splice(i, 1);
       if(b.primary) groundWeapons.push({key:b.primary, x:b.x, y:b.y, t:tick, from:b.id});
-      b.primary = G.key; b.weapon = WEAPONS[G.key]; b._ammoFor = null; dropTask(b, "pickup");
+      b.primary = G.key; b.weapon = WEAPONS[G.key]; b._ammoFor = null;
       makeSound(b, b.x, b.y, "pickup");
       logEvent(b.id+" подобрал "+WEAPONS[G.key].name+(G.from ? " ("+G.from+")" : ""));
       return;
@@ -225,7 +224,7 @@ function weaponPickupTick(){
       if(gBest && (b.state !== "patrol" || intelEstimate(b.team, gBest.x, gBest.y, 450, 3*TICK_HZ).n > 0)){
         b._fpT = tick;
         if(b.state !== "patrol"){ b.state = "patrol"; b.holding = false; b.stateSince = tick; }
-        setPost(b, {x:gBest.x, y:gBest.y}, null, true, "pickup"); holdTask(b, "pickup", tick+1);
+        setPost(b, {x:gBest.x, y:gBest.y}, null, true, "pickup");
         if(!b._fpV || tick - b._fpV > 5*TICK_HZ){ b._fpV = tick; logEvent(b.id+": в бою — подбираю "+WEAPONS[gBest.key].name); }
         return;
       }
@@ -234,7 +233,7 @@ function weaponPickupTick(){
     if(b.state !== "patrol" || b._sawEnemy || (bomb.state === "carried" && bomb.carrier === b)) return;
     if(bomb.state === "planted" || (teamTac.CT && teamTac.CT.saving && b.team === "CT")) return; // ретейк/дефуз/сейв/отход — не до того
     if(b.post && /^(defuse|flee|save|retake|gather|antidefuse|stopplant|plantspot|fetch|lineup)/.test(b.post.tag)) return;
-    if(taskOn(b, "pickup")) return;
+    if(b.post && b.post.tag === "pickup") return;
     if(BAL.pickFix && b._pickBan > tick) return;
     var best = null, bd = 420;
     groundWeapons.forEach(function(G){
@@ -248,7 +247,7 @@ function weaponPickupTick(){
     if(!best) return;
     var danger = intelEstimate(b.team, best.x, best.y, 450, 3*TICK_HZ).n > 0;
     if(danger) return;
-    setPost(b, {x:best.x, y:best.y}, null, true, "pickup"); holdTask(b, "pickup", tick+1);
+    setPost(b, {x:best.x, y:best.y}, null, true, "pickup");
   });
 }
 // ======================= ЗВУК: одно место на все звуки (К11) =======================
@@ -340,28 +339,6 @@ function reloadHeard(b, w){
     o._heardReload = {x:o.heardSound.x, y:o.heardSound.y, until:o.heardSound.until};
   });
 }
-// пик на перезарядку: держит угол рядом (≤450), сам не в бою, HP > 50 —
-// коротко выходит на линию, откуда видно место звука. Агрессивные — чаще.
-function reloadPeek(b){
-  if(b.team === "CT") return; // (v190) CT — выбор действия 12_team.js; T — до шага 2б
-  // слышал сам — или тиммейт сказал «перезарядка там» (через тимспик)
-  var R = b._heardReload && tick < b._heardReload.until ? b._heardReload : null;
-  if(!R){ var EV = picEvents(b.team); for(var i = EV.length-1; i >= 0; i--){ var sg = EV[i]; if(sg.type === "sound" && sg.kind === "reload" && sg.until > tick){ R = sg; break; } } }
-  if(!R || tick >= R.until || b._sawEnemy || b.planting || b.defusing || b.hp <= 50) return false;
-  if(b._rlPeekDone === R.until) return false;
-  var d = Math.hypot(R.x-b.x, R.y-b.y); if(d > 450 || d < 60) return false;
-  b._rlPeekDone = R.until;
-  var downN = BAL.numbersPlay && aliveCount(b.team) < aliveCount(b.team === "CT" ? "T" : "CT");
-  if(hashRand(tick*43 + (b.id.charCodeAt(b.id.length-1)||0)*3) > 0.6*(downN ? 0.5 : 1)) return false;
-  var sp = pickSpots("rlpeek"+tick+b.id, {x:b.x, y:b.y}, 2, {rMax:140, minGap:40, see:[{x:R.x, y:R.y}]})[0];
-  if(!sp) return false;
-  
-  setPost(b, sp, {x:R.x, y:R.y}, true, "repos:reload");
-  if(!b.post || b.post.tag !== "repos:reload") return false;
-  holdTask(b, "repos", Math.min(R.until + 32, tick + 3*TICK_HZ));
-  logEvent(b.id+": пикает на перезарядку "+calloutName(R.x, R.y));
-  return true;
-}
 // ---- пас бомбы ----
 // Про не носят бомбу тем, кто лезет первым или ходит в одиночку: лёркер и
 // энтри отдают её тому, кто рядом из основной группы; раненый носитель (≤30 HP)
@@ -386,30 +363,6 @@ function bombPassTick(){
   bomb.state = "dropped"; bomb.carrier = null; bomb.x = to.baseX; bomb.y = to.baseY;
   tt.fetchId = to.id;
   logEvent(c.id+" отдал бомбу → "+to.id);
-}
-// ---- (S1) добить раненого ----
-function finishPush(b){
-  if(b.team === "CT") return; // (v190) CT — выбор действия 12_team.js; T — до шага 2б
-  if(b._sawEnemy || b.planting || b.defusing || b.hp <= 50 || tick < (b._finNext||0)) return;
-  if(b.post && /^(defuse|plantspot|flee|save|repos|tradeR|antidefuse|stopplant|fetch|lineup|clutch)/.test(b.post.tag)) return;
-  if(bomb && bomb.state === "carried" && bomb.carrier === b) return;
-  if((b.team === "CT" && teamTac.CT && teamTac.CT.saving) || (b.team === "T" && teamTac.T && teamTac.T.saving)) return;
-  var HT = teamIntel[b.team].hurt; if(!HT) return;
-  b._finNext = tick + 16;
-  var BL = beliefLast[b.team] || {}, tgt = null, tid = null;
-  for(var eid in HT){ var h = HT[eid]; if(h.hp > 35 || tick - h.tick > 8*TICK_HZ) continue;
-    var e = bots.filter(function(o){ return o.id === eid; })[0]; if(!e || !e.alive) continue;
-    var lo = BL[eid]; if(!lo || tick - lo.tick > 4*TICK_HZ || Math.hypot(lo.x-b.x, lo.y-b.y) > 600) continue;
-    if(bots.some(function(o){ return o !== b && o.alive && o.team === b.team && o.post && o.post.tag === "repos:finish" && o._finId === eid; })) continue; // уже идёт другой
-    if(picOutnumbered(b.team, lo.x, lo.y, b)) continue; // раненый не один — добивать под их стволы нельзя
-    tgt = lo; tid = eid; break; }
-  if(!tgt) return;
-  var sp = pickSpots("finish"+tick+b.id, {x:b.x, y:b.y}, 2, {rMax:200, minGap:40, see:[{x:tgt.x, y:tgt.y}]})[0];
-  if(!sp) return;
-  
-  setPost(b, sp, {x:tgt.x, y:tgt.y}, true, "repos:finish");
-  if(!b.post || b.post.tag !== "repos:finish") return;
-  b._finId = tid; holdTask(b, "repos", tick + 3*TICK_HZ);
 }
 // ---- (S7) смок уходит — готовность к выходу из-за него ----
 function smokeFadeTick(){
@@ -469,17 +422,7 @@ function onBlind(b, threat){
     var cov = mates.filter(function(o){ return o.hp > 50 && !(o.post && /^(defuse|plantspot|lineup|flee|save|tradeR)/.test(o.post.tag)); })
       .sort(function(a, c){ return Math.hypot(a.x-b.x, a.y-b.y) - Math.hypot(c.x-b.x, c.y-b.y); })[0];
     if(cov){
-      var cs = BAL.coverFix
-        // (v151) раньше точка бралась вплотную к ослеплённому — а он в это время
-        // отходит по тому же проходу: оба упирались друг в друга и дёргались.
-        // Теперь: если угол и так видно — стоим и целимся; иначе шаг рядом с собой,
-        // не ближе ~1м к слепому и к точке, куда он отходит
-        ? (hasLOS(cov.x, cov.y, threat.x, threat.y) ? null : pickSpots("covblind"+tick+cov.id, {x:cov.x, y:cov.y}, 3, {rMax:130, minGap:24, see:[threat]})
-            .filter(function(q){ return hasLOS(q.x, q.y, threat.x, threat.y) && Math.hypot(q.x-b.x, q.y-b.y) > 60 && !(back && Math.hypot(q.x-back.x, q.y-back.y) < 60); })[0])
-        : pickSpots("covblind"+tick+cov.id, {x:b.baseX, y:b.baseY}, 2, {rMax:110, minGap:24, see:[threat]})
-        .filter(function(q){ return hasLOS(q.x, q.y, threat.x, threat.y); })[0];
-      if(BAL.coverFix && !cs){ cov._coverDir = {pt:{x:threat.x, y:threat.y}, until:b.blindUntil}; }
-      if(cs && cov.team !== "CT"){ setPost(cov, cs, threat, true, "repos:coverblind"); if(cov.post && cov.post.tag === "repos:coverblind"){ holdTask(cov, "repos", tick + Math.max(2*TICK_HZ, b.blindUntil - tick)); } }
+      if(BAL.coverFix){ cov._coverDir = {pt:{x:threat.x, y:threat.y}, until:b.blindUntil}; }
     }
   }
 }
@@ -565,46 +508,6 @@ function exposedTo(b, maxD, maxAge){
     if(Math.hypot(lo.x-b.x, lo.y-b.y) < maxD && hasLOS(b.x, b.y, lo.x, lo.y)) out.push({x:lo.x, y:lo.y}); }
   return out;
 }
-function coverForReload(b, from){
-  if(b.team === "CT") return false; // (v190) CT — выбор действия 12_team.js; T — до шага 2б
-  if(b._rlCoverT && tick - b._rlCoverT < 3*TICK_HZ) return true;
-  b._rlCoverT = tick;
-  var sp = pickSpots("rlcov"+tick+b.id, {x:b.x, y:b.y}, 2, {rMin:30, rMax:150, minGap:30, hideFrom:from})
-    .filter(function(q){ return from.every(function(f){ return !hasLOS(q.x, q.y, f.x, f.y); }); })[0];
-  if(!sp) return false;
-  
-  setPost(b, sp, from[0], true, "repos:rlcover");
-  if(!b.post || b.post.tag !== "repos:rlcover") return false;
-  holdTask(b, "repos", tick + 3*TICK_HZ);
-  logEvent(b.id+": уходит за укрытие перезарядиться");
-  return true;
-}
-// ---- (8) мало HP — к своим ----
-function lowHpBack(b){
-  if(b.team === "CT") return; // (v190) CT — выбор действия 12_team.js; T — до шага 2б
-  if(b.hp > 30 || b._sawEnemy || b.planting || b.defusing || tick < (b._lowHpNext||0)) return;
-  if(bomb && bomb.state === "planted") return; // ретейк/пост-плант — бомба важнее
-  var defending = b.team === "CT" && b.post && /^(anchor|stack|set:|cts:|clutch|midcover)/.test(b.post.tag);
-  if(bomb && bomb.state === "carried" && bomb.carrier === b) return;
-  if(b.post && /^(defuse|plantspot|flee|save|repos|tradeR|antidefuse|stopplant|fetch|lineup)/.test(b.post.tag)) return;
-  b._lowHpNext = tick + TICK_HZ;
-  var mates = bots.filter(function(o){ return o !== b && o.alive && o.team === b.team; });
-  if(!mates.length) return; // один — отходить не к кому
-  if(mates.some(function(o){ return Math.hypot(o.x-b.x, o.y-b.y) < 350; })) return; // рядом уже есть свой
-  var threat = exposedTo(b).concat([]); var BL = beliefLast[b.team] || {};
-  var near = false; for(var eid in BL){ var lo = BL[eid]; if(tick - lo.tick < 8*TICK_HZ && Math.hypot(lo.x-b.x, lo.y-b.y) < 700){ near = true; threat.push({x:lo.x, y:lo.y}); } }
-  if(!near) return;
-  // опорник на своём сайте с малым HP сайт не бросает — отходит, только если
-  // совсем мало (≤20) и на него идут двое+
-  if(defending){ var nNear = 0; for(var eid2 in BL){ var lo2 = BL[eid2]; if(tick - lo2.tick < 6*TICK_HZ && Math.hypot(lo2.x-b.x, lo2.y-b.y) < 700) nNear++; } if(b.hp > 20 || nNear < 2) return; }
-  var m = mates.sort(function(a, c){ return Math.hypot(a.x-b.x, a.y-b.y) - Math.hypot(c.x-b.x, c.y-b.y); })[0];
-  var sp = pickSpots("lowhp"+tick+b.id, {x:m.x, y:m.y}, 2, {rMin:40, rMax:180, minGap:40, hideFrom:threat.slice(0, 3)})[0] || {x:m.x, y:m.y};
-  
-  setPost(b, sp, threat[0], true, "repos:lowhp");
-  if(!b.post || b.post.tag !== "repos:lowhp") return;
-  if(b.state === "hold") leaveHold(b);
-  holdTask(b, "repos", tick + 6*TICK_HZ); b._lowHpNext = tick + 10*TICK_HZ;
-}
 // ---- шифт по угрозе ----
 // Раньше боты бегали всегда, кроме нескольких частных случаев (слышал/видел
 // только что, заход на ретейк, проба, лёркер…). Как будто точно знали, что
@@ -666,40 +569,6 @@ function dangerWalk(b){
   }
   return b._dwVal;
 }
-// ---- дабл-пик: помочь тиммейту в перестрелке ----
-// Раньше, если тиммейт в упор рядом перестреливался, а самому врага не видно
-// (стоял за углом/смотрел свой угол), бот так и стоял: реакции на "рядом идёт
-// бой" не было — только размен ПОСЛЕ смерти. Теперь: тиммейт ≤160px уже ~0.3с
-// видит врага и стреляет, мне его не видно — выхожу на соседнюю точку с линией
-// на того врага (рядом с тиммейтом, но не в его же клетку), двое на одного.
-function assistPeek(b){
-  if(b.team === "CT") return false; // (v190) CT — выбор действия 12_team.js; T — до шага 2б
-  if(b._sawEnemy || b.planting || b.defusing || b.hp <= 35) return false;
-  if(tick < (b._assistNext||0)) return false;
-  if(b.post && /^(defuse|plantspot|lineup|flee|save|repos|tradeR|stopplant|antidefuse|fetch)/.test(b.post.tag)) return false;
-  if(bomb && bomb.state === "carried" && bomb.carrier === b) return false; // носитель в дуэли не лезет
-  var mate = null, E = null;
-  bots.forEach(function(m){
-    if(mate || m === b || !m.alive || m.team !== b.team || !m._sawEnemy || (m.contactStreak||0) < 20) return;
-    if(Math.hypot(m.x-b.x, m.y-b.y) > (BAL.groupPlay ? 300 : 160)) return;
-    var e = m._nearestEnemyBot; if(!e || !e.alive || Math.hypot(e.x-b.x, e.y-b.y) > 900) return;
-    mate = m; E = e;
-  });
-  if(!mate) return false;
-  b._assistNext = tick + 24;
-  // линия есть, но смотрит в другую сторону — разворот на врага по коллу тиммейта
-  if(hasVision(b.x, b.y, E.x, E.y)) return false; // врага видит тиммейт — он уже в картине команды, разворот — по ней
-  var ep = {x:E.x, y:E.y};
-  var sp = pickSpots("assist"+tick+b.id, BAL.groupPlay ? {x:mate.x, y:mate.y} : {x:(b.x+mate.x)/2, y:(b.y+mate.y)/2}, 3, {rMax: BAL.groupPlay ? 140 : 110, minGap:24, must:[ep]})
-    .filter(function(q){ return Math.hypot(q.x-mate.x, q.y-mate.y) > 22 && hasLOS(q.x, q.y, ep.x, ep.y); })[0];
-  if(!sp) return false;
-  
-  setPost(b, sp, ep, true, "repos:assist");
-  if(!b.post || b.post.tag !== "repos:assist") return false;
-  if(b.state === "hold") leaveHold(b);
-  holdTask(b, "repos", tick + 2*TICK_HZ);
-  return true;
-}
 function updateReload(b){
   var w = b.weapon; if(!w || !b.alive) return;
   if(b._ammoFor !== w.key){ b._ammoFor = w.key; b.ammo = w.mag; b._reloading = false; b.reloadUntil = 0; }
@@ -711,12 +580,6 @@ function updateReload(b){
   // на который пикают
   var rlFrac = 0.75, rlWait = 96;
   var tacRl = !b._reloading && b.ammo > 0 && !b._sawEnemy && b.ammo < w.mag*rlFrac && tick - (b.lastShotTick||-999) > rlWait;
-  // тактическая перезарядка на виду у известного врага — сначала за укрытие
-  // (если патронов ещё не критично мало)
-  if(tacRl && BAL.reloadCover && b.ammo > w.mag*0.2 && !b.planting && !b.defusing){
-    var ex = exposedTo(b);
-    if(ex.length){ coverForReload(b, ex); tacRl = false; }
-  }
   if(!b._reloading && (b.ammo <= 0 || tacRl)){
     b._reloading = true; b.reloadUntil = tick + Math.round(w.reload*TICK_HZ);
     if(b.ammo <= 0) logEvent(b.id+": перезарядка ("+w.name+", "+w.reload+"с)");

@@ -215,43 +215,7 @@ function intelDeath(victim, killer){
       TTd._dl.forEach(function(e){ if(e.t === "T" && !e.traded && tick - e.tick < 3*TICK_HZ && (e.kid === victim.id || Math.hypot(e.x-victim.x, e.y-victim.y) < 600)) e.traded = true; });
     }
   }
-  // ---- размен как рефлекс (про-уровень: тиммейт умер рядом — ближайший
-  // сразу выходит на убийцу, пока тот перезаряжается/меняет позицию; это
-  // срывает бота с тактики на ~3.5с). Разменивают 1–2 ближайших ПО ПУТИ.
-  var traders = [];
-  if(BAL.tradeReflex && killer && killer.alive){
-    var kp = kEst;
-    var cands = [];
-    bots.forEach(function(o){
-      if(!o.alive || o.team !== victim.team || o === victim || o.planting || o.defusing || o._sawEnemy) return;
-      if(BAL.bombCarrier && bomb && bomb.state === "carried" && bomb.carrier === o && aliveCount(o.team) >= 3) return; // носитель не бежит менять — бомба не должна умереть на входе
-      // (v154) снайпер и лёркер T в дефолте на размен не срываются: у про их роль — держать свою линию
-      if(BAL.duelValue && !(bomb && bomb.state === "planted") && ((o.weapon && o.weapon.key === "AWP") || (o.team === "T" && o.tRole === "lurker" && teamTac.T && teamTac.T.phase === "setup"))) return;
-      if(Math.hypot(o.x-victim.x, o.y-victim.y) > 700) return;
-      var L = polyLen(pathPts(o.x, o.y, victim.x, victim.y));
-      if(L <= 480) cands.push({b:o, L:L});
-    });
-    cands.sort(function(a, c){ return a.L - c.L; });
-    // по картине у убийцы стак, а нас тут один-два — не размен, а смерть следом
-    if(cands[0] && picOutnumbered(victim.team, kp.x, kp.y, cands[0].b)) cands = [];
-    if(cands[0]) traders.push(cands[0]);
-    if(cands[1] && cands[1].L <= (BAL.groupPlay ? 450 : 350) && aliveCount(victim.team) >= 3) traders.push(cands[1]);
-    traders.forEach(function(T, k){
-      var o = T.b;
-      if(o.team === "CT") return; // (v190) размен у CT — выбор действия 12_team.js; T — до шага 2б
-      // выходит НЕ в ту же точку, где умер тиммейт (туда у убийцы уже стоит
-      // прицел), а под другим углом — чтобы тому пришлось доводить прицел
-      var swC = pickSpots("tradeR"+tick+o.id, {x:victim.x, y:victim.y}, 5, {rMax:170, minGap:30, see:[kp]});
-      var aV = Math.atan2(victim.y-kp.y, victim.x-kp.x), sw = null, sBest = -1;
-      swC.forEach(function(q){ var da = Math.abs(((Math.atan2(q.y-kp.y, q.x-kp.x)-aV+Math.PI)%(2*Math.PI)+2*Math.PI)%(2*Math.PI)-Math.PI);
-        var sc = Math.min(da, 0.8) - Math.hypot(q.x-o.x, q.y-o.y)/1500; if(sc > sBest){ sBest = sc; sw = q; } });
-      sw = sw || {x:victim.x, y:victim.y};
-      o._route = null; 
-      setPost(o, sw, kp, true, "tradeR");
-      holdTask(o, "tradeR", tick + Math.round(3.5*TICK_HZ), {at:{x:victim.x, y:victim.y}, kp:kp});
-      o._tradeUntil = tick + Math.round(3.5*TICK_HZ);
-    });
-  }
+  // размен — выбор действия (12_team.js): двое ближайших сразу берут линию на убийцу
   // IGL: энтри сняли на выходе — вторая волна не пикает тот же угол "в лоб":
   // ближайший с флешкой кидает поп-флешку на убийцу, размен идёт под неё
   if(BAL.iglReplan && victim.team === "T" && killer && killer.alive && teamTac.T && teamTac.T.phase === "execute" &&
@@ -259,21 +223,15 @@ function intelDeath(victim, killer){
     var kpF = kEst;
     var flc = bots.filter(function(o){ return o.alive && o.team === "T" && o !== victim && o.nades && o.nades.flash > 0 && !o.planting &&
       !(bomb.state === "carried" && bomb.carrier === o) && Math.hypot(o.x-victim.x, o.y-victim.y) < 750; })
-      .sort(function(a, c){ var ta = traders.some(function(T){ return T.b === a; }) ? 200 : 0, tc = traders.some(function(T){ return T.b === c; }) ? 200 : 0;
-        return (Math.hypot(a.x-victim.x, a.y-victim.y) + ta) - (Math.hypot(c.x-victim.x, c.y-victim.y) + tc); })[0];
+      .sort(function(a, c){ return Math.hypot(a.x-victim.x, a.y-victim.y) - Math.hypot(c.x-victim.x, c.y-victim.y); })[0];
     if(flc && assignNade(flc, "flash", kpF, "поп на убийцу "+victim.id, {now:true, range:900})){
       teamTac.T._popDone = true;
-      // размен ждёт хлопка (не дольше ~1.2с): не выбегает раньше флешки
-      traders.forEach(function(T){ T.b._waitPopUntil = tick + Math.round(1.2*TICK_HZ); T.b._waitPopKey = "pop:поп на убийцу "+victim.id; });
     }
   }
   bots.forEach(function(b){
     if(!b.alive || b.team !== victim.team) return;
-    if(traders.some(function(T){ return T.b === b; })) return;
     var d = Math.hypot(b.x-victim.x, b.y-victim.y);
     if(d > 550) return;
-    // размен уже взял ближайший — остальные не лезут в тот же прострелянный угол
-    if(BAL.tradeReflex && traders.length){ b._avoidPeekUntil = tick + 8*TICK_HZ; b._avoidPeekAt = {x:victim.x, y:victim.y}; return; }
     // "меня убили отсюда" — ближние тиммейты смотрят туда и идут разменивать
     // стрелка не видели и он не рядом — это не трейд, а второй пик в тот же
     // прострелянный угол: не лезть туда же ~8с (держать, ждать, обходить)

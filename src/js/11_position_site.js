@@ -99,47 +99,11 @@ function smokeHeTick(){
     });
   });
 }
-// смок закрыл угол, который держал: часть игроков меняет позицию (отходит глубже)
-function smokeShiftOnDetonate(s){
-  bots.forEach(function(b){
-    if(!b.alive || b.team === s.team || b._sawEnemy || !(b.atPost && b.post && b.post.hold)) return;
-    var d = Math.hypot(s.x-b.x, s.y-b.y); if(d < 150 || d > 700 || !hasLOS(b.x, b.y, s.x, s.y)) return;
-    var lk = b.lookTarget || b.post.look; if(!lk) return;
-    if(!segHitsCircle(b.x, b.y, lk.x, lk.y, s.x, s.y, NADE.smoke.radius)) return;   // смок не на его линии
-    if(hashRand(s.born*53 + b.id.charCodeAt(0)*29 + b.id.length) >= SMK.shiftP) return;
-    shiftHold(b, {x:s.x, y:s.y}, null, "смок закрыл угол");
-  });
-}
-
-var FB = { enemies:2, window:3, deathR:900, hurtHp:70, back:320, rMax:220, gainED:150, lock:10 };
-function tFallbackTick(){
-  if(tick % 8 || roundState !== "live" || (bomb && bomb.state === "planted")) return;
-  var tt = teamTac.T; if(!tt || tt.phase !== "setup") return;
-  var secLeft = ROUND_TIME_SEC - (simTime - roundStartTime); if(secLeft < 35) return;
-  var ED = enemySpawnDist("T");
-  bots.forEach(function(b){
-    if(!b.alive || b.team !== "T" || b._sawEnemy || b.planting || b._fbRound === roundNum) return;
-    if(bomb && bomb.state === "carried" && bomb.carrier === b && tt.phase !== "setup") return;
-    if(b.post && /^(repos|plantspot|lineup|tradeR|endhunt|fetch|coverplant|exec|stage|gather|save)/.test(b.post.tag||"")) return;
-    var zb = bzOf(b.x, b.y); if(zb < 0) return;
-    var L = beliefLast.T || {}, ids = 0, cx = 0, cy = 0;
-    for(var eid in L){ var lo = L[eid]; if(tick - lo.tick > FB.window*TICK_HZ) continue; var eb = bots.filter(function(o){ return o.id === eid; })[0]; if(!eb || !eb.alive) continue;
-      if(Math.hypot(lo.x-b.x, lo.y-b.y) > 900) continue; ids++; cx += lo.x; cy += lo.y; }
-    var mates = bots.filter(function(o){ return o !== b && o.alive && o.team === "T" && Math.hypot(o.x-b.x, o.y-b.y) <= 350; }).length;
-    var died = intelDeathsNear("T", b.x, b.y, FB.deathR, FB.window*TICK_HZ) > 0;
-    var hurt = b._hurtT && tick - b._hurtT < 2*TICK_HZ && b.hp < FB.hurtHp;
-    // повод: их больше, чем нас тут; погиб свой рядом без размена; ранен
-    var solo = b.tRole === "lurker" && mates === 0;
-    var why = ((ids >= 2 && ids > mates + 1) || (solo && ids >= 1)) ? "их "+ids+" — отхожу" : (died && mates === 0) ? "минус рядом — отхожу" : hurt ? "ранен — отхожу" : null;
-    if(!why) return;
-    var th = ids ? {x:cx/ids, y:cy/ids} : (b.lastIntel ? {x:b.lastIntel.x, y:b.lastIntel.y} : null);
-    var dx = th ? b.x-th.x : 0, dy = th ? b.y-th.y : 0, dl = Math.hypot(dx, dy);
-    var center = dl > 1 ? walk({x:b.x+dx/dl*FB.back, y:b.y+dy/dl*FB.back}) : null;
-    var cand = center ? pickSpots("tfb"+tick+b.id, center, 4, {rMax:FB.rMax, minGap:40, hideFrom: th ? [th] : []}) : [];
-    var sp = cand.filter(function(q){ var zq = bzOf(q.x, q.y); return zq >= 0 && ED[zq] >= ED[zb] + FB.gainED && (!th || !hasLOS(q.x, q.y, th.x, th.y)); })[0];
-    if(!sp) return;
-    b._fbRound = roundNum; 
-    setPost(b, sp, th || null, true, "repos:fallback");
-    holdTask(b, "repos", tick + FB.lock*TICK_HZ);
-  });
+// за смоком враг? (картина команды: свежие наблюдения по ту сторону или вероятность в зоне смока)
+function enemyBeyondSmoke(b, S, r){
+  var ax = S.x - b.x, ay = S.y - b.y;
+  if(picRecent(b.team, 6*TICK_HZ).some(function(g){ return Math.hypot(g.x-S.x, g.y-S.y) <= r + 350 && (g.x-b.x)*ax + (g.y-b.y)*ay > 0; })) return true; // по ту сторону, куда идём
+  var zi = bzOf(S.x, S.y); if(zi < 0) return false;
+  var m = beliefZoneFresh(b.team, zi); (BZ.nbr[zi]||[]).forEach(function(n){ m += 0.5*beliefZoneFresh(b.team, n); });
+  return m > 0.6;
 }

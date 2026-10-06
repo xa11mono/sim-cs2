@@ -71,34 +71,27 @@ function stepTick(){
     // уже означает "готов стрелять", там скорость и так 0). bot._sawEnemy
     // тут — с прошлого тика (resolveEngagements считается в конце stepTick),
     // отставание на один тик не критично для решения "идти тише".
-    bot.walking = (bot._pie && bot._pie.slice && tick - bot._pie.t < 16 && !bot.holding && !bot._sawEnemy && !(bot.post && /^repos/.test(bot.post.tag))) || !bot.holding && !bot._sawEnemy && !(bot._stopPlantUntil > tick) && !taskOn(bot, "tradeR") &&
-      // уход с засвеченного угла после фрага — бегом, а не шифтом (позиция и так известна)
-      !(bot.post && /^repos/.test(bot.post.tag) && taskOn(bot, "repos")) &&
+    bot.walking = (bot._pie && bot._pie.slice && tick - bot._pie.t < 16 && !bot.holding && !bot._sawEnemy) || !bot.holding && !bot._sawEnemy && !(bot._stopPlantUntil > tick) &&
       ((bot.lastIntel && tick - bot.lastIntel.tick < CAUTION_TICKS) ||
        (bot.heardSound && tick - bot.heardSound.tick < SOUND_CAUTION_TICKS) ||
        // роумер подходит к точке чека тихо
        (bot.role === "roamer" && !bot.roamChecking && bot.roamTarget && bot.state === "patrol" &&
         Math.hypot(bot.roamTarget.x-bot.baseX, bot.roamTarget.y-bot.baseY) < ROAM_QUIET_RADIUS) ||
-       // заход на занятый врагом сайт (ретейк/ротация) — последние метры шагом
-       (bot.post && bot.state === "patrol" && (bot.post.tag === "flank1" || bot.post.tag === "flank2")) ||
+       // заход на занятый врагом сайт (сбор на ретейк) — последние метры шагом
        (bot.post && bot.state === "patrol" && /^gather/.test(bot.post.tag) && Math.hypot(bot.post.x-bot.baseX, bot.post.y-bot.baseY) < 500) ||
-       (bot.post && bot.state === "patrol" && /^probe/.test(bot.post.tag) && Math.hypot(bot.post.x-bot.baseX, bot.post.y-bot.baseY) < 420) ||
-       (bot.post && bot.state === "patrol" && bot.post.tag === "shift" && Math.hypot(bot.post.x-bot.baseX, bot.post.y-bot.baseY) < 450) ||
        // клатч T с бомбой: без инфы — на шифте (не палится бегом); бежит,
        // только если время поджимает или все CT известны и далеко
        (BAL.soloSlow && bot.team === "T" && bomb && bomb.state === "carried" && bomb.carrier === bot && aliveCount("T") === 1 && soloMayWalk(bot)) ||
-       (BAL.cautious && bot.post && bot.state === "patrol" && /^(retake|rotate|defuse)$/.test(bot.post.tag) &&
+       (BAL.cautious && bot.post && bot.state === "patrol" && /^(retake|defuse)$/.test(bot.post.tag) &&
         Math.hypot(bot.post.x-bot.baseX, bot.post.y-bot.baseY) < 350) ||
-       // лёркер ходит тихо всегда, кроме самого начала (до своей точки на сетапе)
-       (bot.tRole === "lurker" && bot.post && bot.state === "patrol" && /^lurk/.test(bot.post.tag) && bot.post.tag !== "lurkStage"+(teamTac.T && teamTac.T.site==="A"?"B":"A")) ||
+       // лёркер в сетапе ходит тихо
+       (bot.tRole === "lurker" && bot.team === "T" && teamTac.T && teamTac.T.phase === "setup" && bot.post && /^stage/.test(bot.post.tag)) ||
        (BAL.dangerWalk && dangerWalk(bot)) ||
        // ниндзя-дефуз: последние ~3м к бомбе шифтом, если время позволяет
        (BAL.ninjaDefuse && bomb && bomb.retake && bomb.retake.ninja && bot.post && bot.post.tag === "defuse" &&
         Math.hypot(bot.post.x-bot.baseX, bot.post.y-bot.baseY) < 300 &&
-        bombTimeLeftTicks()/TICK_HZ > Math.hypot(bot.post.x-bot.baseX, bot.post.y-bot.baseY)/(SPEED*WALK_SPEED_FRAC) + (bot.kit ? 5 : 10) + 1.5) ||
-       // добивание последнего — не бегом в открытую: последние метры тихим шагом
-       (bot.post && bot.state === "patrol" && bot.post.tag === "endhunt" && Math.hypot(bot.post.x-bot.baseX, bot.post.y-bot.baseY) < 350));
-    knifeTick(bot); prePeekTick(bot); exposedShiftTick(bot);
+        bombTimeLeftTicks()/TICK_HZ > Math.hypot(bot.post.x-bot.baseX, bot.post.y-bot.baseY)/(SPEED*WALK_SPEED_FRAC) + (bot.kit ? 5 : 10) + 1.5));
+    knifeTick(bot); prePeekTick(bot);
     var runSpeed = (bot.walking ? SPEED*WALK_SPEED_FRAC : SPEED) * weaponSpeedMul(bot);
     // атакующий, который прямо сейчас видит врага, останавливается и
     // стреляет (контр-страф), а не продолжает бежать по патрульному пути —
@@ -188,7 +181,7 @@ function stepTick(){
     // в пределах ~25px, иногда замирает. Это настоящее движение (с коллизией),
     // не только анимация. Как только видит врага — сразу стоп (контр-страф).
     var idleHold = (bot.atPost || (bot.holding && !bot._sawEnemy)) && !bot._sawEnemy && !bot.planting && !bot.defusing &&
-                   !(bot.post && /^(gather|retake|defuse|save|stopplant|antidefuse|lineup|pickup)/.test(bot.post.tag)) &&
+                   !(bot.post && /^(gather|retake|defuse|save|antidefuse|lineup|pickup|fetch|plantspot|flee)/.test(bot.post.tag)) &&
                    tick >= (bot.throwUntil||0) && !burn && !(bot.fakeHoldUntil && tick < bot.fakeHoldUntil);
     if(idleHold){
       if(!bot._hold || bot._hold.post !== bot.post){ bot._hold = {post: bot.post, ax: bot.baseX, ay: bot.baseY, dir: 0, until: tick}; }
@@ -464,7 +457,6 @@ function stepTick(){
   });
   resolveEngagements();
   if(BAL.smokeSpam) smokeSpamTick(); else smokeShots();
-  tFallbackTick();
   if(BAL.smokeReact) smokeHeTick();
   teamInfoTick(); // раздел 11: восприятие этого тика → радар и блокнот бота
   talkTick();     // тимспик: кто что говорит, кто что услышал (К10)

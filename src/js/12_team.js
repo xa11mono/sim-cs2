@@ -43,7 +43,7 @@ function teamCovers(){
       var a = teamAreaOf(c), az = a ? AZ[a] : -1;
       if(a && az >= 0 && !(D[S.from] < D[S.hold] && D[S.from] <= D[zCT] - 340 && D[S.hold] >= D[az] - FWD[a])) a = null;
       out.push({x:c.x, y:c.y, meet:c.meet, open:c.open, dirs:c.dirs, side:key, hold:S.hold, from:S.from,
-        name:from, ct: D[S.hold] > D[S.from], area:a}); });
+        name:from, ct: D[S.hold] > D[S.from], area:a, geo:teamAreaOf(c)}); });
   }); });
   return (TEAM_COV = out);
 }
@@ -152,9 +152,10 @@ function actPick(b, cands, X, tag){
   setPost(b, {x:best.x, y:best.y}, best.meet || X.look || null, true, tag(best));
   return best;
 }
-// раз в 0,5 с (боты по очереди) — CT
-function ctActTick(cts){
-  var team = "CT", ct = teamTac.CT; if(!ct) return;
+// раз в 0,5 с (боты по очереди) — обе команды; что именно выбирать — по плану
+// своей команды (ctChoose / tChoose)
+function teamActTick(team, cts){
+  var ct = teamTac[team]; if(!ct) return;
   teamTableTick(team);
   var T = TEAM[team], C = teamCovers();
   var planted = bomb.state === "planted", R = planted ? bomb.retake : null;
@@ -162,16 +163,23 @@ function ctActTick(cts){
   // точки интереса команды (общие)
   var pois = [];
   // бомба на земле на виду — её держат из укрытия
-  if(bomb.state === "dropped"){
+  if(team === "CT" && bomb.state === "dropped"){
     var seer = cts.filter(function(o){ return Math.hypot(o.x-bomb.x, o.y-bomb.y) < 1000 && hasVision(o.x, o.y, bomb.x, bomb.y); })
       .sort(function(a, c){ return Math.hypot(a.x-bomb.x, a.y-bomb.y) - Math.hypot(c.x-bomb.x, c.y-bomb.y); })[0];
     if(seer && cts.length >= 2) pois.push({x:bomb.x, y:bomb.y, r:900, see:true, w:0.8, who:seer.id});
   }
   // плант слышен рядом — выйти на линию, откуда видно ставящего (если нас там не меньше)
   var PH = teamIntel.CT.plantHeard;
-  if(!planted && PH && tick - PH.tick < PLANT_TICKS + 32){
+  if(team === "CT" && !planted && PH && tick - PH.tick < PLANT_TICKS + 32){
     var tN = Math.max(1, intelEstimate("CT", PH.x, PH.y, 450, 5*TICK_HZ).n), cN = cts.filter(function(o){ return Math.hypot(o.x-PH.x, o.y-PH.y) < 600; }).length;
     if(cN >= tN || ROUND_TIME_SEC - (simTime - roundStartTime) < 12) pois.push({x:PH.x, y:PH.y, r:450, see:true, w:1.5});
+  }
+  // ставят бомбу — двое ближних прикрывают ставящего (линия на подходы к нему)
+  var car = bomb.state === "carried" ? bomb.carrier : null;
+  if(team === "T" && car && car.alive && (car.planting || (car.post && car.post.tag === "plantspot" && Math.hypot(car.x-car.post.x, car.y-car.post.y) < 120))){
+    var cov = cts.filter(function(o){ return o !== car && !o._sawEnemy && Math.hypot(o.x-car.x, o.y-car.y) < 550; })
+      .sort(function(a, c){ return Math.hypot(a.x-car.x, a.y-car.y) - Math.hypot(c.x-car.x, c.y-car.y); }).slice(0, 2);
+    cov.forEach(function(o){ pois.push({x:car.x, y:car.y, r:260, see:true, w:1.2, who:o.id}); });
   }
   // размен: враг, которого свои видят/видели только что рядом с тиммейтом, — его линию держат ближние
   foes.forEach(function(f){ if(tick - f.tick > 1.5*TICK_HZ) return;
@@ -202,37 +210,14 @@ function ctActTick(cts){
     if(b._sawEnemy && !b._reloading) return;                                        // в бою место не меняют
     if(tick < (b.blindUntil||0)) return;
     var X = {mode:"hold", myArea:(ct.assign || {})[b.id] || null, mates:teamMatePts(team, b), foes:foes, pois:[], cur:b._act && b._act.round === roundNum ? b._act : null,
-      riskMul: (b.hp < 50 ? 1.6 : 1) * (b._reloading ? 2 : 1), noCur: !!b._reloading, burned: tick - (b.lastShotTick||-1e9) < 3*TICK_HZ};
+      riskMul: (b.hp < 50 ? 1.6 : 1) * (b._reloading ? 2 : 1), noCur: !!b._reloading, burned: tick - (b.lastShotTick||-1e9) < 3*TICK_HZ || tick - (b._hurtT||-1e9) < 4*TICK_HZ || tick - (b._shotAtT||-1e9) < 3*TICK_HZ};
     myTr.forEach(function(P){ X.pois.push(P); });
     pois.forEach(function(P){ if(P.near && Math.hypot(P.x-b.x, P.y-b.y) > P.near) return; if(P.who && P.who !== b.id) return; X.pois.push(P); });
     T.vac.forEach(function(v){ if(v.resp === b.id && v.ok) X.pois.push({x:v.x, y:v.y, r:300, side:v.side, w:1.4, vac:v}); });
     T.req.forEach(function(q){ if(q.resp === b.id && q.ok) X.pois.push({x:q.x, y:q.y, r:450, w:1.4}); });
     var prev = b._act;
-    // ---- сейв: ретейк безнадёжен — подальше от бомбы и известных T, не на виду ----
-    if(ct.saving || b._awpSave){ actSave(b); return; }
-    var picked = null;
-    if(planted && R){
-      var bp = ctBombPos();
-      if(R.defId === b.id && (R.phase === "go") && retakeDefGo(b, R, cts)){
-        b._act = {x:bp.x, y:bp.y, mode:"defuse", round:roundNum, t:tick}; setPost(b, bp, null, true, "defuse"); return; }
-      if(R.phase === "gather" || R.phase === "util"){
-        // точка сбора: укрытие своей стороны у входа на сайт с бомбой, бомбу оттуда не видно
-        X.mode = "gather"; X.look = bp;
-        var G = C.filter(function(c){ var d = Math.hypot(c.x-bp.x, c.y-bp.y); return c.ct && d > 220 && d < 700 && !hasLOS(c.x, c.y, bp.x, bp.y); });
-        if(!G.length) G = [{x:GEO[bomb.site].ctEntry.x, y:GEO[bomb.site].ctEntry.y, meet:bp}];
-        picked = actPick(b, G, X, function(){ return "gather"; });
-      } else {
-        // заход: укрытия у бомбы с линией на неё
-        X.mode = "go"; X.look = bp;
-        var Gg = C.filter(function(c){ var d = Math.hypot(c.x-bp.x, c.y-bp.y); return d > 60 && d < 480 && hasLOS(c.x, c.y, bp.x, bp.y); })
-          .map(function(c){ return {x:c.x, y:c.y, meet:bp, side:c.side, area:c.area, name:c.name, open:c.open, dirs:c.dirs}; });
-        if(!Gg.length) Gg = [{x:bp.x, y:bp.y, meet:bp}];
-        picked = actPick(b, Gg, X, function(){ return R.entryId === b.id ? "retakeEntry" : "retake"; });
-      }
-    } else {
-      var H = C.filter(function(c){ return c.ct && c.area; });
-      picked = actPick(b, H, X, function(c){ return "hold:"+c.name; });
-    }
+    var picked = team === "CT" ? ctChoose(b, X, ct, cts, C) : tChoose(b, X, ct, cts, C);
+    if(!picked || picked === true) return;
     // сказать, что беру вход, если ухожу на другой (команда должна знать, кто где)
     if(picked && X.mode === "hold" && (!prev || prev.round !== roundNum || prev.side !== picked.side) && Math.hypot(picked.x-b.x, picked.y-b.y) > 250)
       newsAdd(b, {k:"take", x:picked.x, y:picked.y, side:picked.side, area:picked.area, name:picked.name.split(" / ")[0]});
@@ -241,6 +226,82 @@ function ctActTick(cts){
        !X.mates.some(function(m){ return m.side === prev.side; }) && teamThreat(team, prev) > 0.15)
       newsAdd(b, {k:"holdmine", x:prev.x, y:prev.y, side:prev.side});
   });
+}
+// CT: план — район (ct.assign), ретейк (фазы), сейв
+function ctChoose(b, X, ct, cts, C){
+  // ---- сейв: ретейк безнадёжен — подальше от бомбы и известных T, не на виду ----
+  if(ct.saving || b._awpSave){ actSave(b); return true; }
+  var picked = null, planted = bomb.state === "planted", R = planted ? bomb.retake : null;
+  if(planted && R){
+    var bp = ctBombPos();
+    if(R.defId === b.id && (R.phase === "go") && retakeDefGo(b, R, cts)){
+      b._act = {x:bp.x, y:bp.y, mode:"defuse", round:roundNum, t:tick}; setPost(b, bp, null, true, "defuse"); return true; }
+    if(R.phase === "gather" || R.phase === "util"){
+      // точка сбора: укрытие своей стороны у входа на сайт с бомбой, бомбу оттуда не видно
+      X.mode = "gather"; X.look = bp;
+      var G = C.filter(function(c){ var d = Math.hypot(c.x-bp.x, c.y-bp.y); return c.ct && d > 220 && d < 700 && !hasLOS(c.x, c.y, bp.x, bp.y); });
+      if(!G.length) G = [{x:GEO[bomb.site].ctEntry.x, y:GEO[bomb.site].ctEntry.y, meet:bp}];
+      picked = actPick(b, G, X, function(){ return "gather"; });
+    } else {
+      // заход: укрытия у бомбы с линией на неё
+      X.mode = "go"; X.look = bp;
+      var Gg = C.filter(function(c){ var d = Math.hypot(c.x-bp.x, c.y-bp.y); return d > 60 && d < 480 && hasLOS(c.x, c.y, bp.x, bp.y); })
+        .map(function(c){ return {x:c.x, y:c.y, meet:bp, side:c.side, area:c.area, name:c.name, open:c.open, dirs:c.dirs}; });
+      if(!Gg.length) Gg = [{x:bp.x, y:bp.y, meet:bp}];
+      picked = actPick(b, Gg, X, function(){ return R.entryId === b.id ? "retakeEntry" : "retake"; });
+    }
+  } else {
+    var H = C.filter(function(c){ return c.ct && c.area; });
+    picked = actPick(b, H, X, function(c){ return "hold:"+c.name; });
+  }
+  return picked;
+}
+// T: план IGL — у каждого точка сбора (сетап), выход на сайт по готовности,
+// бомба (плант, за бомбой), пост-плант, анти-дефуз, отход от взрыва, сейв
+function tChoose(b, X, tt, ts, C){
+  var A = (tt.stage || {})[b.id], k = tt.site, g = GEO[k], site = SITES[k];
+  if(tt.saving || b._awpSave || (tt._defLate && bomb.state === "planted")){ actSave(b); return true; }
+  var car = bomb.state === "carried" && bomb.carrier === b;
+  if(bomb.state === "planted"){
+    var bp = {x:bomb.x, y:bomb.y}, gs = GEO[bomb.site];
+    if(tt.flee){ var fp = bombFleePoint(b) || gs.tStage; b._act = {x:fp.x, y:fp.y, mode:"flee", round:roundNum, t:tick}; setPost(b, fp, bp, true, "flee"); return true; }
+    if(tt.antiDef && Math.hypot(b.x-bp.x, b.y-bp.y) < 1100 && !(tt.lateIds && tt.lateIds[b.id])){
+      // дефузят — все, кто успевает, на линию к бомбе
+      X.mode = "anti"; X.look = bp; X.riskMul *= 0.4;
+      var AD = C.filter(function(c){ var d = Math.hypot(c.x-bp.x, c.y-bp.y); return d > 40 && d < 360 && hasLOS(c.x, c.y, bp.x, bp.y); });
+      if(!AD.length) AD = [{x:bp.x, y:bp.y, meet:bp}];
+      b._stopPlantUntil = tick + 30;
+      return actPick(b, AD, X, function(){ return "antidefuse"; });
+    }
+    // пост-плант: бомбу видно (снять дефузера), смотрит на подходы CT
+    X.mode = "pp"; X.look = bp;
+    var PP = C.filter(function(c){ var d = Math.hypot(c.x-bp.x, c.y-bp.y); return !c.ct && d > 90 && d < 650 && hasLOS(c.x, c.y, bp.x, bp.y); });
+    if(!PP.length) PP = C.filter(function(c){ var d = Math.hypot(c.x-bp.x, c.y-bp.y); return d > 90 && d < 650 && hasLOS(c.x, c.y, bp.x, bp.y); });
+    if(!PP.length) PP = [{x:gs.tStage.x, y:gs.tStage.y, meet:bp}];
+    return actPick(b, PP, X, function(c){ return "postplant:"+(c.name||""); });
+  }
+  if(bomb.state === "dropped" && tt.fetchId === b.id){
+    b._act = {x:bomb.x, y:bomb.y, mode:"fetch", round:roundNum, t:tick}; setPost(b, {x:bomb.x, y:bomb.y}, null, false, "fetch"); return true; }
+  var go = tt.phase === "execute" && (tt.go || {})[b.id];
+  if(go && car){
+    if(BAL.plantChoice && !tt.plantPick && Math.hypot(b.x-site.x, b.y-site.y) < 500) choosePlant(tt);
+    var pp = tt.plantPick ? tt.plantPick.pt : (site.plant || site);
+    b._act = {x:pp.x, y:pp.y, mode:"plant", round:roundNum, t:tick}; setPost(b, pp, g.ctEntry, true, "plantspot"); return true;
+  }
+  if(go){
+    // заход: укрытия на сайте, откуда видно подходы CT
+    X.mode = "take";
+    var TK = C.filter(function(c){ return !c.ct && c.geo === k; });
+    if(!TK.length) TK = [{x:site.x, y:site.y, meet:g.ctEntry}];
+    return actPick(b, TK, X, function(c){ return "take"+k+":"+(c.name||""); });
+  }
+  // сетап: укрытия своей стороны у точки сбора по плану IGL
+  var P = A ? A.pt : g.tStage;
+  if(A && A.via && A.via.length && !A.routed){ A.routed = true; startRoute(b, A.via, "plan"+roundNum+":"+A.key); }
+  X.mode = "stage";
+  var ST = C.filter(function(c){ return !c.ct && Math.hypot(c.x-P.x, c.y-P.y) < 300; });
+  if(!ST.length) ST = [{x:P.x, y:P.y, meet:A && A.look || g.tEntry}];
+  return actPick(b, ST, X, function(){ return "stage"+(A ? A.area : k); });
 }
 // сейв: укрытие подальше от бомбы и от известных T, откуда их не видно (из разметки)
 function actSave(b){
@@ -251,10 +312,11 @@ function actSave(b){
     var dT = 1e9, seen = false;
     ts.forEach(function(t){ dT = Math.min(dT, Math.hypot(c.x-t.x, c.y-t.y)); if(hasLOS(c.x, c.y, t.x, t.y)) seen = true; });
     if(seen || dT < 500) return;
-    var s = Math.min(dT, 1200)*0.6 - Math.hypot(c.x-b.x, c.y-b.y) - 300*(c.open || 0);
+    if(b.team === "T" && Math.min(Math.hypot(c.x-SITES.A.x, c.y-SITES.A.y), Math.hypot(c.x-SITES.B.x, c.y-SITES.B.y)) < 500) return;
+    var s = Math.min(dT, 1200)*0.6 - Math.hypot(c.x-b.x, c.y-b.y) - 300*(c.open || 0) - (b.team === "T" ? 0.15*Math.hypot(c.x-T_SPAWN.x, c.y-T_SPAWN.y) : 0);
     if(s > bs){ bs = s; best = c; }
   });
-  var p = best || {x:CT_SPAWN.x, y:CT_SPAWN.y};
+  var p = best || (b.team === "T" ? {x:T_SPAWN.x, y:T_SPAWN.y} : {x:CT_SPAWN.x, y:CT_SPAWN.y});
   b._act = {x:p.x, y:p.y, mode:"save", round:roundNum, ok:true, t:tick};
   setPost(b, p, bomb && bomb.state === "planted" ? {x:bomb.x, y:bomb.y} : null, true, "save");
 }

@@ -1,3 +1,8 @@
+// расстояние от точки до отрезка (редакторы: клик рядом с линией)
+function segPtDist(px, py, x1, y1, x2, y2){
+  var dx = x2-x1, dy = y2-y1, L = dx*dx + dy*dy, t = L ? Math.max(0, Math.min(1, ((px-x1)*dx + (py-y1)*dy)/L)) : 0;
+  return Math.hypot(px - (x1 + t*dx), py - (y1 + t*dy));
+}
 // ---------- render ----------
 var cv = document.getElementById("cv"), ctx = cv.getContext("2d");
 var wrap = document.getElementById("main");
@@ -654,7 +659,7 @@ function saveZoneShape(id){
 }
 function rebuildAfterZoneShape(){
   if(zsRebuildTimer) clearTimeout(zsRebuildTimer);
-  zsRebuildTimer = setTimeout(function(){ zsRebuildTimer = null; spotCache = {}; _zbnCache = {}; applyZoneLayer(true); draw(); }, 150);
+  zsRebuildTimer = setTimeout(function(){ zsRebuildTimer = null; _zbnCache = {}; applyZoneLayer(true); draw(); }, 150);
 }
 document.getElementById("chkZoneShape").addEventListener("change", function(){
   document.getElementById("zoneShapeHint").style.display = this.checked ? "block" : "none"; draw();

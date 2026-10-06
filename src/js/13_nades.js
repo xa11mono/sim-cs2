@@ -204,18 +204,18 @@ function updateNadeTasks(){
     if(!b.alive || tick > t.until || !b.nades || b.nades[t.type] <= 0){
       b.nadeTask = null;
       // задание сгорело, а пост "лайнап" остался — снять, иначе стоит на точке броска весь раунд
-      if(b.post && b.post.tag === "lineup"){ dropTask(b, "lineup"); clearPost(b); }
+      if(b.post && b.post.tag === "lineup"){ clearPost(b); }
       return; }
     if(b.planting || b.defusing) return;
     var d = Math.hypot(t.x-b.x, t.y-b.y);
     if((t.type === "smoke" && smokeCovered(t.x, t.y)) || (t.type === "flash" && flashIntoFight(b, t))){
       if(t.type === "flash") logEvent(b.id+": флешку «"+t.why+"» не кидает — там уже стреляют");
-      b.nadeTask = null; if(b.post && b.post.tag === "lineup"){ dropTask(b, "lineup"); clearPost(b); } return; }
+      b.nadeTask = null; if(b.post && b.post.tag === "lineup"){ clearPost(b); } return; }
     if(t.from){ // свой лайнап: сначала встать ровно в точку броска
       // раньше кидал только ближе 22px к точке, а "дошёл до поста" считается
       // уже с 34px — бот вставал в 23–34px и стоял до конца задания, не кидая
-      if(Math.hypot(t.from.x-b.baseX, t.from.y-b.baseY) > 36 && !(b.atPost && b.post && b.post.tag === "lineup")){ if(b.state === "patrol"){ setPost(b, t.from, {x:t.x, y:t.y}, true, "lineup"); holdTask(b, "lineup", tick+1); } return; }
-      dropTask(b, "lineup"); throwNade(b, t.type, t.x, t.y, true, t.why); b.nadeTask = null; if(b.post && b.post.tag === "lineup") clearPost(b); return;
+      if(Math.hypot(t.from.x-b.baseX, t.from.y-b.baseY) > 36 && !(b.atPost && b.post && b.post.tag === "lineup")){ if(b.state === "patrol"){ setPost(b, t.from, {x:t.x, y:t.y}, true, "lineup"); } return; }
+      throwNade(b, t.type, t.x, t.y, true, t.why); b.nadeTask = null; if(b.post && b.post.tag === "lineup") clearPost(b); return;
     }
     if(d <= t.range && hasLOS(b.x, b.y, t.x, t.y)){
       throwNade(b, t.type, t.x, t.y, false, t.why); b.nadeTask = null;
@@ -328,7 +328,7 @@ function detonate(n){
   // — но только тем, кто её услышал или увидел (makeSound "pop"), и команда
   // узнаёт через колл (intelPush → nadeSeen)
   if(roundState === "live" && T !== "decoy" && n.thrower) makeSound(n.thrower, n.x, n.y, "pop", {info:{ntype:T}});
-  if(T === "smoke"){ smokes.push({x:n.x, y:n.y, born:tick, until:tick+NADE.smoke.life, team:n.team}); if(BAL.smokeReact) smokeShiftOnDetonate(smokes[smokes.length-1]); }
+  if(T === "smoke"){ smokes.push({x:n.x, y:n.y, born:tick, until:tick+NADE.smoke.life, team:n.team}); }
   else if(T === "molly"){
     // молотов, упавший в дым, гаснет (как в CS2 — наоборот тоже: дым тушит огонь)
     if(!smokes.some(function(s){ return Math.hypot(s.x-n.x, s.y-n.y) < smokeRadiusNow(s); }))

@@ -51,7 +51,6 @@ function buildSites(){
     SITES[k] = {key:k, x:sp.x, y:sp.y, poly:poly};
     var ps = sitePlantSpot(SITES[k]); SITES[k].plant = ps;
   });
-  spotCache = {}; EXP_CACHE = {}; ED_CACHE = {CT:null, T:null};
   ["A","B"].forEach(function(k){
     var s = SITES[k];
     var tp = pathPts(T_SPAWN.x, T_SPAWN.y, s.x, s.y);
@@ -139,104 +138,6 @@ function sitePlantSpot(site){
   return best ? {x:best.x, y:best.y} : {x:site.x, y:site.y};
 }
 
-// ---------- выбор позиций: не "в ряд у одной точки", а разные укрытые места ----------
-// Кандидаты — центры проходимых полигонов навмеша в кольце [rMin, rMax] вокруг
-// центра. Оценка: must — обязательная видимость (например, бомбы для пост-планта),
-// hideFrom — точки, откуда НЕ должно быть видно (укрытие от CT), see — точки,
-// которые хорошо бы видеть (проход). Жадно набираем count мест с отступом
-// minGap друг от друга. Кэш на раунд — чтобы позиции не прыгали каждый тик.
-var spotCache = {};
-// (2) открытые углы: сколько РАЗНЫХ направлений со стороны врага (зоны ближе
-// к его спавну, чем моя) видят точку. Про встаёт так, чтобы его видели с
-// одного выхода за раз; точка под 3–4 выходами — смерть от первого же захода
-var SPOT_TEAM = null, ED_CACHE = {CT:null, T:null}, EXP_CACHE = {};
-function spotExposure(team, x, y){
-  if(!BZ.ids.length || !team) return 0;
-  var ck = team+Math.round(x/12)+","+Math.round(y/12); if(EXP_CACHE[ck] !== undefined) return EXP_CACHE[ck];
-  var ED = ED_CACHE[team];
-  if(!ED){ var sp = team === "CT" ? T_SPAWN : CT_SPAWN, z0 = bzOf(sp.x, sp.y); ED = ED_CACHE[team] = bzDist(z0 >= 0 ? [z0] : []); }
-  var zc = bzOf(x, y), bins = {}, n = 0;
-  if(zc >= 0){
-    var my = ED[zc];
-    for(var j=0;j<BZ.ids.length;j++){
-      if(j === zc || !(ED[j] < my - 80)) continue;
-      var smp = ZONE_SAMPLES[BZ.ids[j]] || (BZ.cent[j] ? [BZ.cent[j]] : []);
-      for(var k=0;k<smp.length && k<5;k++){
-        var q = smp[k], d = Math.hypot(q.x-x, q.y-y); if(d < 60 || d > 1000) continue;
-        if(!hasLOS(x, y, q.x, q.y)) continue;
-        var bi = Math.round(Math.atan2(q.y-y, q.x-x)/0.55); if(bi === -6) bi = 6;
-        if(!bins[bi]){ bins[bi] = 1; n++; }
-        break;
-      }
-    }
-  }
-  EXP_CACHE[ck] = n;
-  return n;
-}
-function pickSpots(key, center, count, o){
-  var expT = BAL.openAngles ? ((o && o.team) || SPOT_TEAM) : null;
-  var ck = key+"|"+count+"|"+Math.round(center.x)+","+Math.round(center.y) + (expT ? "|e"+expT : "") +
-    (o && o.cross ? "|x"+Math.round(o.cross.from.x/40)+","+Math.round(o.cross.from.y/40) : "");
-  if(spotCache[ck]) return spotCache[ck];
-  o = o || {};
-  var rMin = o.rMin||0, rMax = o.rMax||170, gap = o.minGap||55;
-  var cands = [];
-  NAVAREAS.forEach(function(z){
-    if(NAV_BLOCKED[z.id] || !(zoneGraph[z.id]||[]).length) return;
-    var c = zoneCentroid(z);
-    var d = Math.hypot(c.x-center.x, c.y-center.y);
-    if(d < rMin || d > rMax) return;
-    if(insideSolidWall(c.x, c.y)) return;
-    if(o.must && !o.must.every(function(m){ return hasLOS(c.x, c.y, m.x, m.y); })) return;
-    if(o.reach && segCrossesManualWalls(center.x, center.y, c.x, c.y) && d < 60) return;
-    var sc = 0;
-    (o.hideFrom||[]).forEach(function(h){ if(!hasLOS(c.x, c.y, h.x, h.y)) sc += 2; });
-    (o.see||[]).forEach(function(h){ if(hasLOS(c.x, c.y, h.x, h.y)) sc += 1; });
-    // раздел 11.1: двойное покрытие — точка ценна не только видимостью основного
-    // подхода, но и тем, что попутно простреливает второе направление (коннектор)
-    (o.seeW||[]).forEach(function(h){ if(hasLOS(c.x, c.y, h.pt.x, h.pt.y)) sc += h.w; });
-    // раздел 12: кроссфаер — вторая точка смотрит на тот же вход под другим
-    // углом, чем первый защитник (50–120°): у кого-то из двоих всегда есть выстрел,
-    // и заходящий не может взять обоих одним пиком
-    if(o.cross){
-      var X = o.cross, pt = X.pt;
-      if(hasLOS(c.x, c.y, pt.x, pt.y) && Math.hypot(c.x-X.from.x, c.y-X.from.y) > 90){
-        var a1 = Math.atan2(c.y-pt.y, c.x-pt.x), a2 = Math.atan2(X.from.y-pt.y, X.from.x-pt.x);
-        var da = Math.abs(((a1-a2+Math.PI)%(2*Math.PI)+2*Math.PI)%(2*Math.PI)-Math.PI);
-        if(da > 0.87 && da < 2.1) sc += 1.5; else if(da > 0.5) sc += 0.6;
-      }
-    }
-    sc -= d/(rMax*3); // при прочих равных — ближе к центру
-    if(expT){ var ex = spotExposure(expT, c.x, c.y); if(ex > 1) sc -= 0.8*(ex - 1); }
-    cands.push({x:c.x, y:c.y, sc:sc});
-  });
-  cands.sort(function(a,b){ return b.sc - a.sc; });
-  var out = [];
-  for(var i=0;i<cands.length && out.length<count;i++){
-    var c = cands[i];
-    if(out.some(function(q){ return Math.hypot(q.x-c.x, q.y-c.y) < gap; })) continue;
-    out.push(c);
-  }
-  while(out.length < count) out.push({x:center.x, y:center.y}); // запас, если места не нашлось
-  spotCache[ck] = out;
-  return out;
-}
-// раздел 11.1: не строго лучший вариант, но лучший — чаще; сохраняет
-// непредсказуемость выбора позиции (её не должны "читать" по одному прогону),
-// но мягко тянет к точкам с лучшим покрытием / меньшей историей вражеских гранат
-function weightedPick(n, seed){
-  if(n <= 1) return 0;
-  var total = n*(n+1)/2, r = hashRand(seed)*total, acc = 0;
-  for(var i=0;i<n;i++){ acc += (n-i); if(r < acc) return i; }
-  return n-1;
-}
-// поставить группу ботов на разные позиции вокруг точки
-function groupPost(members, center, look, tag, o){
-  if(!members.length) return;
-  var spots = pickSpots(tag, center, members.length, o);
-  members.forEach(function(b, i){ setPost(b, spots[i], look, true, tag); });
-}
-
 // ---------- посты: "куда встать и куда смотреть" ----------
 // Когда у бота в патруле есть пост — он идёт к нему, а дойдя (hold) стоит и
 // смотрит в look. Бой (engage/hold/retreat) по-прежнему перебивает всё.
@@ -302,33 +203,14 @@ function wallBoxes(){
   });
   return _WB;
 }
-// (v173) одна задача бота и её важность: кто кого перебивает при выборе позиции.
-// Выше — важнее; пост без задачи (роль, план) — 1.
-var TASK_PRIO = [[/^(defuse|flee|plantspot|stopplant|antidefuse)/, 10], [/^tradeR/, 9], [/^(save|fetch)/, 8],
-  [/^(retake|postplant)/, 7], [/^lineup/, 6], [/^(smokeWait|pickup)/, 5], [/^repos/, 4], [/^endhunt/, 3], [/^probe/, 2]];
-function taskPrio(tag){ for(var i=0;i<TASK_PRIO.length;i++) if(TASK_PRIO[i][0].test(tag || "")) return TASK_PRIO[i][1]; return 1; }
-function taskOn(b, kind){ var T = b._task; return !!(T && tick <= T.until && (!kind || T.k === kind)); }
-// занять задачу до тика until; более важную текущую задачу не перебивает
-function holdTask(b, kind, until, data){ var T = b._task, p = taskPrio(kind);
-  if(T && tick <= T.until && T.k !== kind && T.p > p) return;
-  b._task = {k:kind, p:p, until:until, d:data || null}; }
-function dropTask(b, kind){ if(b._task && b._task.k === kind) b._task = null; }
+// (v192) «иди сюда и смотри туда» — исполнитель. Куда встать решает одно место:
+// выбор действия (12_team.js); бросок по лайнапу и подбор оружия — свои
+// исполнители (выбор их не перебивает). Приоритета задач больше нет.
 function setPost(b, pt, look, hold, tag, spreadIdx){
-  // сменил позицию после фрага — роль в этом раунде ставит его уже на новую точку
-  if(BAL.holdShift && b._hs && b._hs.round === roundNum && b._hs.tag === tag && pt && Math.hypot(pt.x-b._hs.pt.x, pt.y-b._hs.pt.y) < 320) pt = b._hs.pt;
-  // (v173) кто кого перебивает — один приоритет задач вместо 9 замков: у бота
-  // одна текущая задача (важность + срок); пост с меньшей важностью её не
-  // перебивает. Таблица важности — TASK_PRIO.
-  var T = b._task;
-  if(T && T.k === "tradeR" && tick > T.until){ b._avoidPeekUntil = tick + 6*TICK_HZ; b._avoidPeekAt = T.d.at; b._task = T = null; }
-  if(T && tick <= T.until && T.p > taskPrio(tag)){
-    if(T.k === "smokeWait" && b._smokeWait) b._smokeWait.want = [pt, look, hold, tag];
-    return;
-  }
   if(tag === "lineup") b._route = null;
   if(b._route && !/^route/.test(tag)){
     var R = b._route;
-    if(/^(retake|defuse|flee|save|fetch|postplant|hunt|repos|stopplant|antidefuse|endhunt)/.test(tag) || (bomb && bomb.state === "planted" && b.team === "CT")){ b._route = null; }
+    if(/^(retake|gather|defuse|flee|save|fetch|postplant|antidefuse|take|plantspot)/.test(tag) || (bomb && bomb.state === "planted")){ b._route = null; }
     else if(R.idx < R.pts.length){
       R.want = [pt, look, hold, tag, spreadIdx];
       var cp = R.pts[R.idx], nx = R.pts[R.idx+1] || pt;
