@@ -272,12 +272,12 @@ function buyPhase(){
     teamEco[team].antiEcoSmg = false;
     var type = decideRoundType(team);
     teamEco[team].roundType = type;
-    if(teamEco[team].ecoWhy) logEvent(team+": "+teamEco[team].ecoWhy);
+    if(teamEco[team].ecoWhy) logEvent(team+": "+teamEco[team].ecoWhy, "team");
     if(type === "full") teamAwp(team);
     if(type === "full") teamDrops(team);
     var spent = 0;
     bots.filter(function(b){ return b.team === team; }).forEach(function(b, i){ spent += buyForPlayer(b, type, i); });
-    logEvent(team+": "+ROUND_TYPE_LABEL[type]+" (потрачено $"+spent+")");
+    logEvent(team+": "+ROUND_TYPE_LABEL[type]+" (потрачено $"+spent+")", "team");
   });
 }
 
@@ -287,7 +287,7 @@ function startHalf(silent){
     b.armor = false; b.helmet = false; b.kit = false; b.weapon = WEAPONS[b.secondary]; b.nades = emptyNades();
   });
   teamEco.CT.lossLevel = 1; teamEco.T.lossLevel = 1;
-  if(!silent) logEvent("ВТОРАЯ ПОЛОВИНА — деньги сброшены до $"+START_MONEY, true);
+  if(!silent) logEvent("ВТОРАЯ ПОЛОВИНА — деньги сброшены до $"+START_MONEY, "round");
 }
 // (v152) воспроизводимый старт: всё, что влияет на решения ботов, — с нуля.
 // Кэши чистим целиком: часть ключей содержит tick, и после сброса tick старые
@@ -322,7 +322,7 @@ function newMatch(){
   roundNum = 0;
   bots.forEach(function(b){ b.kills = 0; b.deaths = 0; });
   startHalf(true);
-  logEvent("Новый матч #"+matchNum, true);
+  logEvent("Новый матч #"+matchNum, "round");
   resetRound(); // roundNum → 1, закуп пистолетного
 }
 
@@ -342,7 +342,7 @@ function checkRoundEnd(){
           b.nades = emptyNades();
         }
       });
-      logEvent("БОМБА ВЗОРВАЛАСЬ на "+bomb.site, true);
+      logEvent("БОМБА ВЗОРВАЛАСЬ на "+bomb.site, "bomb");
       feedEvent("boom", "Бомба взорвалась на "+bomb.site);
       endRound("T", "bomb");
     }
@@ -365,7 +365,7 @@ function endRound(winner, reason){
   roundState = "ending";
   roundEndTime = simTime;
   var why = reason === "time" ? " (время вышло)" : (reason === "bomb" ? " (взрыв)" : (reason === "defuse" ? " (дефуз)" : ""));
-  logEvent("Раунд "+roundNum+" завершён"+(winner? " — победа "+winner+why : " — обе команды уничтожены")+". Счёт CT:"+score.CT+" T:"+score.T, true);
+  logEvent("Раунд "+roundNum+" завершён"+(winner? " — победа "+winner+why : " — обе команды уничтожены")+". Счёт CT:"+score.CT+" T:"+score.T, "round");
   var over;
   var tgt = matchWinTarget();
     if(roundNum < regRounds()) over = score.CT >= MATCH_WIN || score.T >= MATCH_WIN;
@@ -375,11 +375,11 @@ function endRound(winner, reason){
       if(!over && (roundNum - regRounds()) % (OT_HALF*2) === 0 && otIndex() + 1 >= OT_MAX) over = true; // предохранитель
     }
     if(!over && roundNum >= regRounds() && (roundNum - regRounds()) % (OT_HALF*2) === 0)
-      logEvent((roundNum === regRounds() ? "" : "ещё ")+"ОВЕРТАЙМ при "+score.CT+":"+score.T+" — MR3, по $"+OT_MONEY+", до "+(MATCH_WIN + OT_HALF*(otIndex(roundNum+1)+1))+" побед", true);
+      logEvent((roundNum === regRounds() ? "" : "ещё ")+"ОВЕРТАЙМ при "+score.CT+":"+score.T+" — MR3, по $"+OT_MONEY+", до "+(MATCH_WIN + OT_HALF*(otIndex(roundNum+1)+1))+" побед", "round");
   if(over){
     roundState = "matchover";
     var mw = score.CT > score.T ? "CT" : (score.T > score.CT ? "T" : null);
-    logEvent("МАТЧ ОКОНЧЕН — "+(mw ? "победа "+mw : "ничья")+" "+score.CT+":"+score.T, true);
+    logEvent("МАТЧ ОКОНЧЕН — "+(mw ? "победа "+mw : "ничья")+" "+score.CT+":"+score.T, "round");
     saveOppProfile();
   }
 }
@@ -390,7 +390,7 @@ function resetRound(){
   if(roundNum > regRounds() && (roundNum - regRounds() - 1) % OT_HALF === 0){
     startHalf(true);
     bots.forEach(function(b){ b.money = OT_MONEY; });
-    logEvent("Овертайм: половина — по $"+OT_MONEY, true);
+    logEvent("Овертайм: половина — по $"+OT_MONEY, "round");
   }
   if(BAL.halfReview && roundNum === HALF_ROUNDS+1) halfReview();
   bots.forEach(function(b){
@@ -420,12 +420,12 @@ function resetRound(){
   resetTeamIntel();
   beliefReset();
   clutchShown = null; clutchInfo = null;
-  bots.forEach(function(b){ b.roundKills = 0; b.roundDmg = 0; b.post = null; b.atPost = false; b.planting = false; b.defusing = false; b._saveSpot = null; b._huntIdx = undefined; b._huntArrive = 0; b._lurkIdx = 0; b._lurkArr = 0; b._lurkPh = undefined; });
+  bots.forEach(function(b){ b.roundKills = 0; b.roundDmg = 0; b._dmgBy = {}; b._blindBy = null; b.post = null; b.atPost = false; b.planting = false; b.defusing = false; b._saveSpot = null; b._huntIdx = undefined; b._huntArrive = 0; b._lurkIdx = 0; b._lurkArr = 0; b._lurkPh = undefined; });
   spotCache = {};
   resetNades();
   buyPhase();
   resetBomb();
   chooseTactic();
-  logEvent("Раунд "+roundNum+" начался");
+  logEvent("Раунд "+roundNum+" начался", "round");
 }
 

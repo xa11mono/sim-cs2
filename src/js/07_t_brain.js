@@ -59,7 +59,7 @@ function tBrain(){
     }
     if(goNow){
       tt.phase = "execute"; tt.execStart = tick; if(BAL.noLeaks) MEMORY.siteHeatPending[tt.site] = 1; else MEMORY.siteHeat[tt.site] = (MEMORY.siteHeat[tt.site]||0) + 1;
-      logEvent("T: выход на "+tt.site+"!"+(tt._waitLog ? " (все собрались)" : ""));
+      logEvent("T: выход на "+tt.site+"!"+(tt._waitLog ? " (все собрались)" : ""), "team");
     }
   }
   // войс: "минус опорник на A" в сетапе — сайт сейчас слабый, заходим сразу,
@@ -73,7 +73,7 @@ function tBrain(){
     if(pickSig && aliveCount("T") >= 4 && (tick - roundStartTick > 22*TICK_HZ)){
       tt.phase = "execute"; tt.execStart = tick; if(BAL.noLeaks) MEMORY.siteHeatPending[tt.site] = 1; else MEMORY.siteHeat[tt.site] = (MEMORY.siteHeat[tt.site]||0) + 1;
       voiceLog("T", "pick"+tt.site, pickSig.by, "минус на "+tt.site+", заходим сразу!");
-      logEvent("T: выход на "+tt.site+"! (сняли CT на сайте)");
+      logEvent("T: выход на "+tt.site+"! (сняли CT на сайте)", "team");
     }
   }
   if(bomb.state === "planted" && tt.phase !== "postplant"){ tt.phase = "postplant";
@@ -117,7 +117,7 @@ function tBrain(){
     if(pickOther && aliveT >= 3 && beliefCount("T", BZ.siteNear[other]||[]) < 0.9 && there < 1.5 && iglReads(tt, "po")){
       tt.rebound = true;
       voiceLog("T", "reb"+other, "IGL", "минус на "+other+", там пусто — все на "+other+"!");
-      logEvent("IGL: перекол → "+other+" (сняли CT, сайт пустой)");
+      logEvent("IGL: перекол → "+other+" (сняли CT, сайт пустой)", "team");
       tt.site = other; tt.phase = "setup"; tt.execTick = tick + 3*TICK_HZ; tt.execStart = null; tt.plantPick = null;
       nadeFlags.tExec = false; nadeFlags.tExecSm = false; nadeFlags.peekFlashPlanned = false;
       return;
@@ -129,7 +129,7 @@ function tBrain(){
     if(BAL.recallStrict && stackRead && (freshC[tt.site]||0) < 2 && deathsHere < 1) stackRead = false;
     if(aliveT >= needAlive && stackRead && iglReads(tt, "st")){
       tt.rebound = true;
-      logEvent("IGL: на "+tt.site+" стак (~"+Math.round(here)+"), перепривязка → "+other);
+      logEvent("IGL: на "+tt.site+" стак (~"+Math.round(here)+"), перепривязка → "+other, "team");
       // перекол не значит "сразу выход": группа переходит и выходит примерно по
       // исходному таймингу (минимум через 8с, чтобы успеть дойти)
       tt.site = other; tt.phase = "setup"; tt.execTick = Math.max(tick + 8*TICK_HZ, tt.execTick - 8*TICK_HZ); tt.execStart = null; tt.plantPick = null;
@@ -152,7 +152,7 @@ function tBrain(){
         startRoute(b, ["Mid","Top Mid","Sniper Nest","Red Room","Alley"], "midct"+roundNum); });
       tt.execTick = Math.max(tick + 18*TICK_HZ, Math.min(tt.execTick, tick + 30*TICK_HZ));
       voiceLog("T", "midtake", midKill.by, "мид наш! "+fl2.map(function(b){ return b.id; }).join(" и ")+" — через Red Room, "+tt.site+" с двух сторон");
-      logEvent("IGL: мид взят — заход на "+tt.site+" с двух сторон (через Red Room)");
+      logEvent("IGL: мид взят — заход на "+tt.site+" с двух сторон (через Red Room)", "team");
     }
   }
   // раздел 12: проба увидела на нашем сайте ровно одного, и по карте там больше
@@ -163,7 +163,7 @@ function tBrain(){
     if(eS.seen === 1 && beliefCount("T", BZ.siteNear[tt.site]||[]) < 1.4 && aliveT2 >= 4 && iglReads(tt, "so")){
       tt.soloGo = true; tt.phase = "execute"; tt.execStart = tick; if(BAL.noLeaks) MEMORY.siteHeatPending[tt.site] = 1; else MEMORY.siteHeat[tt.site] = (MEMORY.siteHeat[tt.site]||0) + 1;
       voiceLog("T", "solo"+tt.site, "IGL", "на "+tt.site+" один — заходим сейчас!");
-      logEvent("T: выход на "+tt.site+"! (по инфе там соло)");
+      logEvent("T: выход на "+tt.site+"! (по инфе там соло)", "team");
     }
   }
   var ts = bots.filter(function(b){ return b.team==="T" && b.alive; });
@@ -183,7 +183,7 @@ function tBrain(){
     var hopeless = (aT === 1 && aC >= 3 && secLeft < 30) || (aT === 1 && aC >= 4 && secLeft < 55) || (aT === 2 && aC >= 4 && secLeft < 30);
     if(hopeless && gunVal >= 1500 && !carOn){
       tt.saving = tick;
-      logEvent("T: сейв — "+aT+"v"+aC+", "+Math.round(secLeft)+"с — сохраняем оружие");
+      logEvent("T: сейв — "+aT+"v"+aC+", "+Math.round(secLeft)+"с — сохраняем оружие", "team");
       voiceLog("T", "tsave", ts[0].id, aT === 1 ? "я один против "+aC+" — сейвлю" : "двое на "+aC+", мало времени — сейв");
     }
   }
@@ -301,7 +301,7 @@ function tBrain(){
         stagePost(fakers, fk);
       } else {
         if(!tt.fakeOn){ tt.fakeOn = tick;
-          logEvent("T: фейк на "+fk+" — шумим и кидаем гранаты, выход на "+tt.site);
+          logEvent("T: фейк на "+fk+" — шумим и кидаем гранаты, выход на "+tt.site, "team");
           if(fakers[0]) voiceLog("T", "fake"+fk, fakers[0].id, "делаю фейк на "+fk+", вы ждите на "+tt.site); }
         var fakeDied = picEvents("T").some(function(sg){ return sg.type === "died" && tick - sg.tick < 10*TICK_HZ && Math.hypot(sg.x-gf.tEntry.x, sg.y-gf.tEntry.y) < 450; });
         if(fakeDied){ stagePost(fakers, fk); if(!tt._fakeHoldLog){ tt._fakeHoldLog = true; logEvent("T: на фейке сняли своего — второй не лезет туда же, держит"); } }
@@ -325,12 +325,12 @@ function tBrain(){
             var save = Math.min(8*TICK_HZ, Math.max(0, tt.execTick - tick - 4*TICK_HZ));
             if(save > 0){
               tt.execTick -= save;
-              logEvent("IGL: фейк на "+fk+" сработал — опорник ушёл, ускоряем выход на "+tt.site);
+              logEvent("IGL: фейк на "+fk+" сработал — опорник ушёл, ускоряем выход на "+tt.site, "team");
               voiceLog("T", "fakeworked", "IGL", "они купились, идём на "+tt.site+" раньше");
             }
           } else if(sawCtAtFakeEarly && stillThere && tick - tt.fakeOn > 10*TICK_HZ){
             tt._fakeRead = tick;
-            logEvent("IGL: на "+fk+" не купились — держит место, играем по плану");
+            logEvent("IGL: на "+fk+" не купились — держит место, играем по плану", "team");
           }
         }
       }
@@ -358,7 +358,7 @@ function tBrain(){
         picEvents("T").some(function(sg){ return (sg.type === "kill" || sg.type === "died") && sg.tick >= (tt.execStart||0); });
       if(contact && !tt.w1Contact) tt.w1Contact = tick;
       if((tt.w1Contact && tick - tt.w1Contact > 48) || since > 4.5*TICK_HZ || ts.length <= 2){
-        tt.wave2 = tick; logEvent("T: вторая волна заходит на "+tt.site+(tt.w1Contact ? " (после первого контакта)" : ""));
+        tt.wave2 = tick; logEvent("T: вторая волна заходит на "+tt.site+(tt.w1Contact ? " (после первого контакта)" : ""), "team");
       }
     }
     var carrier = bomb.state === "carried" ? bomb.carrier : null;
@@ -570,7 +570,7 @@ function tBrain(){
         var hp = tt.huntPts[b._huntIdx];
         setPost(b, hp, bomb ? {x:bomb.x, y:bomb.y} : null, true, "hunt");
       });
-      if(hunters.length && !tt.huntLogged){ tt.huntLogged = true; logEvent("T: CT сейвят — "+hunters.map(function(h){return h.id;}).join(", ")+" идут выбивать оружие"); }
+      if(hunters.length && !tt.huntLogged){ tt.huntLogged = true; logEvent("T: CT сейвят — "+hunters.map(function(h){return h.id;}).join(", ")+" идут выбивать оружие", "team"); }
       group = group.filter(function(b){ return hunters.indexOf(b) < 0; });
     }
     // пост-плант: видеть бомбу (чтобы снять дефузера), но не стоять на виду у входа CT

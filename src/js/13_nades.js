@@ -375,6 +375,7 @@ function detonate(n){
       if(secs > 0.35){
         var lkBefore = b.lastIntel || (b._nearestEnemyBot ? {x:b._nearestEnemyBot.x, y:b._nearestEnemyBot.y, tick:tick} : null);
         b.blindUntil = Math.max(b.blindUntil, tick + Math.round(secs*TICK_HZ));
+        if(n.thrower && n.thrower.team !== b.team) b._blindBy = n.thrower.id; // для киллфида: «+ ослепил»
         b.contactStreak = 0; b.lastIntel = null;
         if(secs > 1.2) logEvent(b.id+" ослеплён"+(b.team===n.team?" своей флешкой":"")+" ("+secs.toFixed(1)+"с)");
         if(BAL.blindPlay && b.team !== n.team && secs > 0.8) onBlind(b, lkBefore || {x:n.x, y:n.y});
@@ -399,7 +400,7 @@ function detonate(n){
 }
 function applyDamage(att, b, dmg, src){
   if(!b.alive || dmg <= 0) return;
-  if(att && att.team !== b.team) att.roundDmg = (att.roundDmg||0) + Math.min(dmg, Math.max(0,b.hp));
+  noteDmg(att, b, dmg);
   b.hp -= dmg;
   if(b.hp <= 0){
     b.alive = false; b.deaths++;
@@ -409,8 +410,8 @@ function applyDamage(att, b, dmg, src){
     dropBomb(b);
     intelDeath(b, att);
     if(att && att.team !== b.team){ att.kills++; att.roundKills++; att.money = Math.min(MAX_MONEY, att.money + 300); }
-    logEvent((att?att.id:"?")+" ["+src+"] устранил "+b.id, true);
-    feedKill(att, b, src, false);
+    logEvent((att?att.id:"?")+" ["+src+"] устранил "+b.id, "kill");
+    feedKill(att, b, src === "HE" ? "HE" : "MOLOTOV", false, {});
   }
 }
 function nadesTick(){

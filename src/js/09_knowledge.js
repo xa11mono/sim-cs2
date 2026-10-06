@@ -339,7 +339,7 @@ function intelDeath(victim, killer){
 function intelCallLog(team, key, text){
   var L = teamIntel[team].lastCall;
   if(L[key] && tick - L[key] < 4*64) return;
-  L[key] = tick; logEvent(text);
+  L[key] = tick; logEvent(text, "voice");
 }
 
 

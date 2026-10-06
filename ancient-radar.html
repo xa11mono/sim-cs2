@@ -28,11 +28,12 @@
   #legend{position:absolute;bottom:10px;left:12px;background:rgba(10,14,9,0.88);border:1px solid var(--line);padding:8px 12px;border-radius:6px;font-size:11px;display:flex;gap:16px;}
   #legend span{display:flex;align-items:center;gap:6px;color:var(--text-dim);}
   #legend i{width:9px;height:9px;border-radius:50%;display:inline-block;}
-  #killfeed{position:absolute;top:56px;right:12px;width:300px;display:flex;flex-direction:column;gap:3px;pointer-events:none;font-family:'IBM Plex Mono',monospace;font-size:11.5px;}
-  #killfeed .kf{align-self:flex-end;background:rgba(10,14,9,0.82);border:1px solid var(--line);border-radius:4px;padding:3px 8px;color:var(--text);white-space:nowrap;}
-  #killfeed .kf .ct{color:var(--ct);font-weight:600;} #killfeed .kf .t{color:var(--t);font-weight:600;}
-  #killfeed .kf .w{color:var(--text-dim);font-size:10.5px;} #killfeed .kf .hs{color:#ff6b5e;font-weight:700;}
-  #killfeed .kf.ev{font-weight:600;} #killfeed .kf.bomb{border-color:#e05c52;color:#ff9a8f;} #killfeed .kf.defuse{border-color:#5a9bd9;color:#9ec6ef;}
+  #killfeed{position:absolute;top:56px;right:12px;width:320px;display:flex;flex-direction:column;gap:3px;pointer-events:none;font-family:'IBM Plex Sans','Segoe UI',Arial,sans-serif;font-size:11.5px;}
+  #killfeed .kf{align-self:flex-end;display:flex;align-items:center;gap:5px;background:rgba(8,10,8,0.62);border-radius:3px;padding:2px 8px;height:19px;color:var(--text);white-space:nowrap;}
+  #killfeed .kf .ct{color:#8fc3f2;font-weight:600;} #killfeed .kf .t{color:#f0b84a;font-weight:600;}
+  #killfeed .kf .pl{color:#e8e8e2;margin:0 -1px;} #killfeed .kf svg{fill:#f4f4ee;flex:none;} #killfeed .kf svg.wp{margin:0 2px;} #killfeed .kf svg.fl{fill:#fff8c8;}
+  #killfeed .kf .w{color:#f4f4ee;font-size:10.5px;font-weight:600;}
+  #killfeed .kf.ev{font-weight:600;border:1px solid var(--line);} #killfeed .kf.bomb{border-color:#e05c52;color:#ff9a8f;} #killfeed .kf.defuse{border-color:#5a9bd9;color:#9ec6ef;}
   #killfeed .kf.clutch{border-color:#ffd76a;color:#ffe49a;}
   #killfeed .kf.boom{border-color:#e05c52;background:rgba(80,20,15,0.85);color:#ffb3aa;} #killfeed .kf.round{opacity:.6;font-weight:400;}
   #banner{position:absolute;top:70px;left:50%;transform:translateX(-50%) scale(.9);opacity:0;transition:all .25s;pointer-events:none;font-family:'IBM Plex Sans',sans-serif;font-weight:700;font-size:22px;letter-spacing:.04em;padding:8px 22px;border-radius:6px;background:rgba(10,14,9,0.88);border:1px solid var(--accent-dim);color:#fff;}
@@ -47,9 +48,13 @@
   #econ .tm.ct{color:var(--ct);} #econ .tm.t{color:var(--t);}
   #econ table{width:100%;border-collapse:collapse;} #econ td{padding:0 3px;white-space:nowrap;}
   #econ td.m{color:#94b449;text-align:right;} #econ tr.dead td{opacity:.4;}
-  #log{position:absolute;bottom:10px;right:12px;width:290px;max-height:200px;overflow-y:auto;background:rgba(10,14,9,0.88);border:1px solid var(--line);border-radius:6px;padding:8px 10px;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:10.5px;line-height:1.6;color:var(--text-dim);}
-  #log .ev{color:var(--text);}
-  #log .ev.kill{color:var(--danger);}
+  #logBox{position:absolute;bottom:10px;right:12px;width:300px;display:flex;flex-direction:column;gap:6px;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:10.5px;line-height:1.55;}
+  #logBox .pan{background:rgba(10,14,9,0.88);border:1px solid var(--line);border-radius:6px;padding:6px 10px 8px;overflow-y:auto;color:var(--text-dim);}
+  #logBox .hd{display:flex;justify-content:space-between;align-items:center;color:var(--text-dim);font-size:10px;letter-spacing:.04em;text-transform:uppercase;margin-bottom:3px;}
+  #logBox .hd label{text-transform:none;letter-spacing:0;cursor:pointer;display:flex;gap:4px;align-items:center;}
+  #log{max-height:200px;overflow-y:auto;} #logDbgPan{display:none;max-height:300px;} #logDbg{max-height:270px;overflow-y:auto;}
+  #logBox .ev{color:var(--text);} #logBox .ev.kill{color:var(--danger);} #logBox .ev.bomb{color:#ff9a8f;} #logBox .ev.voice{color:#cfe3a8;}
+  #logBox .ev.team{color:#e9e2c6;} #logBox .ev.round{color:var(--text-dim);} #logBox .ev.dbg{color:var(--text-dim);opacity:.85;}
   #warn{position:absolute;top:336px;left:12px;background:rgba(217,131,47,0.15);border:1px solid var(--site);color:var(--site);padding:6px 12px;border-radius:6px;font-size:10.5px;max-width:340px;display:none;}
   .mk-panel{position:absolute;top:10px;right:12px;width:min(640px,calc(100% - 24px));max-height:calc(100% - 20px);overflow-y:auto;z-index:50;background:#0a0e09;border:1px solid var(--accent-dim);border-radius:8px;padding:12px 14px;font-size:13px;line-height:1.5;}
   .mk-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;color:var(--accent);font-size:14px;}
@@ -76,7 +81,7 @@
 <div id="app">
   <div id="topbar">
     <h1>ANCIENT — LIVE RADAR</h1>
-    <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 177 · 06.10</div>
+    <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 178 · 06.10</div>
     <button id="btnPause">Пауза</button>
     <button id="btnRestartRound" title="Немедленно сбросить текущий раунд — на случай если боты застряли">Рестарт раунда</button>
     <span class="chk" title="Матч с одним номером всегда проходит одинаково. Увидел баг — запиши номер матча и тик, введи номер и нажми «Сыграть»: матч повторится с начала">матч № <input id="inpMatchNum" type="number" min="1" value="1" style="width:52px"> <button id="btnFreshMatch">Сыграть</button> <span id="matchTick" style="opacity:.75"></span></span>
@@ -242,7 +247,10 @@
     </div>
     <div id="contact">ОБНАРУЖЕН КОНТАКТ</div>
     <div id="warn"></div>
-    <div id="log"></div>
+    <div id="logBox">
+      <div class="pan" id="logDbgPan"><div class="hd"><span>Отладка — всё подряд</span></div><div id="logDbg"></div></div>
+      <div class="pan"><div class="hd"><span>Консоль</span><label><input type="checkbox" id="chkLogDbg">отладка</label></div><div id="log"></div></div>
+    </div>
     <div id="econ"></div>
     <div id="killfeed"></div>
     <div id="banner"></div>
@@ -2126,7 +2134,7 @@ function resetBomb(){
 function dropBomb(b){
   if(bomb && bomb.state === "carried" && bomb.carrier === b){
     bomb.state = "dropped"; bomb.x = b.x; bomb.y = b.y; bomb.carrier = null;
-    logEvent(b.id+" погиб с бомбой — C4 на земле");
+    logEvent(b.id+" погиб с бомбой — C4 на земле", "bomb");
   }
 }
 // звук дефуза слышат T в радиусе 700px — именно звук, а не "всезнание":
@@ -2201,7 +2209,7 @@ function bombTick(){
         bomb.state = "planted"; bomb.site = tac.site; bomb.x = c.baseX; bomb.y = c.baseY;
         bomb.plantTick = tick; bomb.explodeTick = tick + BOMB_TICKS; bomb.carrier = null;
         c.money = Math.min(MAX_MONEY, c.money + 300);
-        logEvent(c.id+" заложил бомбу на "+tac.site+" (+$300)", true);
+        logEvent(c.id+" заложил бомбу на "+tac.site+" (+$300)", "bomb");
         feedEvent("bomb", c.id+" заложил бомбу на "+tac.site);
       }
       return;
@@ -2222,7 +2230,7 @@ function bombTick(){
           c._fakePlanted = roundNum; c._fakePlantAt = tick + 64;
         }
       }
-      logEvent(c.id+" закладывает бомбу на "+tac.site+"…");
+      logEvent(c.id+" закладывает бомбу на "+tac.site+"…", "bomb");
       // звук планта (писк C4): CT рядом (≤520px, или ≤850 по прямой видимости) слышат
       // и сразу говорят в войс — это самый сильный повод для колла/ротации
       var heard = null;
@@ -2258,11 +2266,11 @@ function bombTick(){
       // дефуз в огне (как в CS) продолжается, если HP хватает дожить до конца
       if(inFire(def.x, def.y) && def.hp < (def.defuseUntil - tick)/TICK_HZ*40 + 10){ def.defusing = false; def.defuseCooldownUntil = tick + 32; logEvent(def.id+" прервал дефуз — молотов, не доживёт"); return; }
       if(def._sawEnemy && def.contactStreak > 6 && bombTimeLeftTicks() > need + 192){
-        def.defusing = false; def.defuseCooldownUntil = tick + 96; logEvent(def.id+" прервал дефуз — враг рядом");
+        def.defusing = false; def.defuseCooldownUntil = tick + 96; logEvent(def.id+" прервал дефуз — враг рядом", "bomb");
       } else if(tick >= def.defuseUntil){
         def.defusing = false; bomb.state = "defused";
         def.money = Math.min(MAX_MONEY, def.money + 300);
-        logEvent(def.id+" обезвредил бомбу (+$300)", true);
+        logEvent(def.id+" обезвредил бомбу (+$300)", "bomb");
         feedEvent("defuse", def.id+" обезвредил бомбу"+(bots.some(function(o){ return o.team==="T" && o.alive; }) ? " под носом у T" : ""));
         endRound("CT", "defuse");
       }
@@ -2287,7 +2295,7 @@ function bombTick(){
           cand.defusing = true; cand.defuseUntil = tick + dTicks;
           cand.path = []; cand.pathIdx = 0;
           defuseSound(cand);
-          logEvent(cand.id+" дефузит"+(cand.kit?" с китом (5с)":" без кита (10с)")+"…");
+          logEvent(cand.id+" дефузит"+(cand.kit?" с китом (5с)":" без кита (10с)")+"…", "bomb");
         }
       }
     }
@@ -2413,7 +2421,7 @@ function timeoutCheck(winner){
       T0.avoid = team === "T" ? MEMORY.tacHist.slice(-3) : MEMORY.ctSetupHist.slice(-3);
       var names = team === "T" ? T0.avoid.map(function(id){ var t = T_TACTICS.filter(function(x){ return x.id === id; })[0]; return t ? t.name : id; })
                                : T0.avoid.map(function(id){ var t = CT_SETUPS.filter(function(x){ return x.id === id; })[0]; return t ? t.name : id; });
-      logEvent("ТАЙМ-АУТ "+team+" — три поражения подряд. "+(team === "T" ? "IGL: не повторяем «"+names.join("», «")+"»" : "CT: меняем расстановку, уходим от «"+names.join("», «")+"»")+" (осталось тайм-аутов: "+T0.left+")", true);
+      logEvent("ТАЙМ-АУТ "+team+" — три поражения подряд. "+(team === "T" ? "IGL: не повторяем «"+names.join("», «")+"»" : "CT: меняем расстановку, уходим от «"+names.join("», «")+"»")+" (осталось тайм-аутов: "+T0.left+")", "team");
     }
   });
 }
@@ -2427,7 +2435,7 @@ function halfReview(){
   var hA = 0, hB = 0; MEMORY.roundHist.forEach(function(r){ if(r.site === "A") hA++; else if(r.site === "B") hB++; });
   if(hA + hB >= 6 && Math.max(hA, hB) >= Math.min(hA, hB)*1.6) HALF_ADJ.ctSite = hA > hB ? "A" : "B";
   logEvent("ПЕРЕРЫВ — IGL T: "+(bad.length ? "убираем «"+bad.join("», «")+"»" : "тактики без изменений")+(good.length ? "; чаще «"+good.join("», «")+"»" : "")+
-    ". CT: "+(HALF_ADJ.ctSite ? "T ходили на "+HALF_ADJ.ctSite+" "+Math.max(hA, hB)+" раз из "+(hA+hB)+" — усиливаем "+HALF_ADJ.ctSite : "расстановка без изменений"), true);
+    ". CT: "+(HALF_ADJ.ctSite ? "T ходили на "+HALF_ADJ.ctSite+" "+Math.max(hA, hB)+" раз из "+(hA+hB)+" — усиливаем "+HALF_ADJ.ctSite : "расстановка без изменений"), "team");
 }
 function chooseTactic(){
   var type = teamEco.T.roundType;
@@ -2470,7 +2478,7 @@ function chooseTactic(){
   // тайминг выхода гуляет от раунда к раунду (иначе его читают): ~25% —
   // быстрый (на 30% раньше), ~50% — обычный ±4с, ~25% — поздний (+10…18с)
   var setupSec = tac.setupEnd, tmode = "";
-  if(tempoRead) logEvent("IGL: два раунда проиграли "+(tempoRead === "slow" ? "быстрыми выходами — сейчас медленно, от дефолта" : "медленно — сейчас быстрее, пока не ждут"));
+  if(tempoRead) logEvent("IGL: два раунда проиграли "+(tempoRead === "slow" ? "быстрыми выходами — сейчас медленно, от дефолта" : "медленно — сейчас быстрее, пока не ждут"), "team");
   if(BAL.timingVar && setupSec > 0){
     var rT = hashRand(roundNum*6271 + matchNum*353 + 29);
     if(tempoRead === "slow") rT = 0.8 + 0.2*rT; else if(tempoRead === "fast") rT = 0.2*rT;   // (8) темп
@@ -2500,9 +2508,9 @@ function chooseTactic(){
                read: readTxt, seenCT:{A:0, B:0}, setupSec:setupSec};
   var M = MEMORY.tacMem[tac.id];
   var igl = bots.filter(function(b){ return b.team==="T" && b.tRole==="igl"; })[0];
-  if(readTxt) logEvent("IGL "+(igl?igl.id:"T")+": "+readTxt);
+  if(readTxt) logEvent("IGL "+(igl?igl.id:"T")+": "+readTxt, "team");
   logEvent("IGL "+(igl?igl.id:"T")+": тактика «"+tac.name+"» ("+ROUND_TYPE_LABEL[type]+(tac.setupEnd?", выход на "+setupSec+"с"+tmode:", сразу")+
-    (M && M.n ? ", в этом матче "+M.w+"/"+M.n : "")+")");
+    (M && M.n ? ", в этом матче "+M.w+"/"+M.n : "")+")", "team");
   chooseCtSetup();
 }
 // ---- позиции по названиям зон: кто где держит, занимает, ставит, ретейкает ----
@@ -2665,8 +2673,8 @@ function chooseCtSetup(){
   MEMORY.ctSetupHist.push(S.id);
   teamTac.CT = {call:null, saving:false, stack:S.stack||null, setup:S, setupWhy: why[S.id]||null};
   // против эко: без ранних пиков и доборов — не дарить оружие, держать вместе
-  if(BAL.ctAntiEco){ var Ee = teamEco.CT.enemyGuess || enemyEcoGuess("CT"); if(Ee.eco && (teamEco.CT.roundType === "full" || teamEco.CT.roundType === "force")){ teamTac.CT.antiEco = true; logEvent("CT: у T, похоже, эко — играем аккуратно: без ранних пиков, не отдаём оружие"); } }
-  logEvent("CT: расстановка «"+S.name+"»"+(why[S.id] ? " — "+why[S.id] : ""));
+  if(BAL.ctAntiEco){ var Ee = teamEco.CT.enemyGuess || enemyEcoGuess("CT"); if(Ee.eco && (teamEco.CT.roundType === "full" || teamEco.CT.roundType === "force")){ teamTac.CT.antiEco = true; logEvent("CT: у T, похоже, эко — играем аккуратно: без ранних пиков, не отдаём оружие", "team"); } }
+  logEvent("CT: расстановка «"+S.name+"»"+(why[S.id] ? " — "+why[S.id] : ""), "team");
 }
 // роль CT по расстановке: позиция по названию зоны (из нескольких — по раунду)
 function ctSetupRole(b, role, ct){
@@ -3027,7 +3035,7 @@ function tIglReplan(tt, site, other, secLeft){
         tt._rpFast = true;
         tt.execTick = Math.max(tick + 4*TICK_HZ, Math.min(tt.execTick, tick + 6*TICK_HZ));
         voiceLog("T", "rpfast", "IGL", "их игрок "+calloutName(last.kx, last.ky)+" — на "+tt.site+" без него, заходим раньше!");
-        logEvent("IGL: минус в сетапе, но CT далеко от "+tt.site+" — выход раньше");
+        logEvent("IGL: минус в сетапе, но CT далеко от "+tt.site+" — выход раньше", "team");
       }
     }
     // (0) сняли CT в сетапе, мы в большинстве — не спешим: контроль карты и
@@ -3039,7 +3047,7 @@ function tIglReplan(tt, site, other, secLeft){
         tt._upSlow = tick; tt._rpFast = true; // и не ускоряемся на следующий минус
         if(tt.execTick - tick < 8*TICK_HZ) tt.execTick = tick + 8*TICK_HZ;
         voiceLog("T", "upslow", "IGL", aliveT+" на "+aliveCT+" — не спешим, берём карту и заходим все вместе");
-        logEvent("IGL: численный перевес "+aliveT+"v"+aliveCT+" — без спешки, выход всей группой");
+        logEvent("IGL: численный перевес "+aliveT+"v"+aliveCT+" — без спешки, выход всей группой", "team");
       }
     }
     // (2) двое без размена — лёркер к нам
@@ -3050,7 +3058,7 @@ function tIglReplan(tt, site, other, secLeft){
       if(lk){ lk._route = null; lk._routeDone = null; }
       tt.execTick = Math.max(tt.execTick, tick + 5*TICK_HZ); // дать дойти
       voiceLog("T", "regroup", "IGL", "минус два — "+(lk ? lk.id+" к нам, " : "")+"заходим все вместе");
-      logEvent("IGL: потеряли двоих без размена — перегруппировка"+(lk ? " (лёркер "+lk.id+" к основной группе)" : ""));
+      logEvent("IGL: потеряли двоих без размена — перегруппировка"+(lk ? " (лёркер "+lk.id+" к основной группе)" : ""), "team");
     }
     // (S8) слышим ротацию CT на наш сайт — можно перейти на другой. Но это
     // только чтение, не гарантия: IGL верит ему не всегда (~60%), и другой сайт
@@ -3072,13 +3080,13 @@ function tIglReplan(tt, site, other, secLeft){
           tsR.forEach(function(b){ ctrR.x += b.x/tsR.length; ctrR.y += b.y/tsR.length; });
           var trvR = Math.hypot(ctrR.x-SITES[other].x, ctrR.y-SITES[other].y)*1.4/SPEED;
           voiceLog("T", "rotread", "IGL", toward.length+" CT ротируют на "+tt.site+" — идём на "+other+", но углы чекаем, там может кто-то остаться");
-          logEvent("IGL: слышим ротацию CT на "+tt.site+" → перекол на "+other+" (не значит, что там пусто)");
+          logEvent("IGL: слышим ротацию CT на "+tt.site+" → перекол на "+other+" (не значит, что там пусто)", "team");
           tt.site = other; tt.phase = "setup"; tt.execStart = null; tt.plantPick = null; tt.takeAssign = null;
           tt.execTick = tick + Math.round(Math.min(Math.max(4, trvR*0.7), 12)*TICK_HZ);
           nadeFlags.tExec = false; nadeFlags.tExecSm = false; nadeFlags.peekFlashPlanned = false;
           bots.forEach(function(b){ if(b.team === "T"){ b._route = null; b._routeDone = null; b._stageInfo = null; } });
           return true;
-        } else logEvent("IGL: слышим ротацию CT на "+tt.site+", но это может быть фейк — играем по плану");
+        } else logEvent("IGL: слышим ротацию CT на "+tt.site+", но это может быть фейк — играем по плану", "team");
       }
     }
     return false;
@@ -3099,11 +3107,11 @@ function tIglReplan(tt, site, other, secLeft){
       if(goOther){
         tt.site = other; tt.phase = "setup"; tt.execStart = null; tt.execTick = tick + Math.round(Math.min(travel*0.8, 14)*TICK_HZ);
         voiceLog("T", "abort", "IGL", "выход не прошёл — отходим, все на "+other+"!");
-        logEvent("IGL: выход провалился ("+tD+" наших против "+cD+") — отход, перекол на "+other);
+        logEvent("IGL: выход провалился ("+tD+" наших против "+cD+") — отход, перекол на "+other, "team");
       } else {
         tt.phase = "setup"; tt.execStart = null; tt.execTick = tick + 6*TICK_HZ;
         voiceLog("T", "abort", "IGL", "стоп, отходим — перегруппируемся и заходим вместе");
-        logEvent("IGL: выход провалился ("+tD+" наших против "+cD+") — отход и повторный заход на "+tt.site);
+        logEvent("IGL: выход провалился ("+tD+" наших против "+cD+") — отход и повторный заход на "+tt.site, "team");
       }
       return true;
     }
@@ -3171,7 +3179,7 @@ function tBrain(){
     }
     if(goNow){
       tt.phase = "execute"; tt.execStart = tick; if(BAL.noLeaks) MEMORY.siteHeatPending[tt.site] = 1; else MEMORY.siteHeat[tt.site] = (MEMORY.siteHeat[tt.site]||0) + 1;
-      logEvent("T: выход на "+tt.site+"!"+(tt._waitLog ? " (все собрались)" : ""));
+      logEvent("T: выход на "+tt.site+"!"+(tt._waitLog ? " (все собрались)" : ""), "team");
     }
   }
   // войс: "минус опорник на A" в сетапе — сайт сейчас слабый, заходим сразу,
@@ -3185,7 +3193,7 @@ function tBrain(){
     if(pickSig && aliveCount("T") >= 4 && (tick - roundStartTick > 22*TICK_HZ)){
       tt.phase = "execute"; tt.execStart = tick; if(BAL.noLeaks) MEMORY.siteHeatPending[tt.site] = 1; else MEMORY.siteHeat[tt.site] = (MEMORY.siteHeat[tt.site]||0) + 1;
       voiceLog("T", "pick"+tt.site, pickSig.by, "минус на "+tt.site+", заходим сразу!");
-      logEvent("T: выход на "+tt.site+"! (сняли CT на сайте)");
+      logEvent("T: выход на "+tt.site+"! (сняли CT на сайте)", "team");
     }
   }
   if(bomb.state === "planted" && tt.phase !== "postplant"){ tt.phase = "postplant";
@@ -3229,7 +3237,7 @@ function tBrain(){
     if(pickOther && aliveT >= 3 && beliefCount("T", BZ.siteNear[other]||[]) < 0.9 && there < 1.5 && iglReads(tt, "po")){
       tt.rebound = true;
       voiceLog("T", "reb"+other, "IGL", "минус на "+other+", там пусто — все на "+other+"!");
-      logEvent("IGL: перекол → "+other+" (сняли CT, сайт пустой)");
+      logEvent("IGL: перекол → "+other+" (сняли CT, сайт пустой)", "team");
       tt.site = other; tt.phase = "setup"; tt.execTick = tick + 3*TICK_HZ; tt.execStart = null; tt.plantPick = null;
       nadeFlags.tExec = false; nadeFlags.tExecSm = false; nadeFlags.peekFlashPlanned = false;
       return;
@@ -3241,7 +3249,7 @@ function tBrain(){
     if(BAL.recallStrict && stackRead && (freshC[tt.site]||0) < 2 && deathsHere < 1) stackRead = false;
     if(aliveT >= needAlive && stackRead && iglReads(tt, "st")){
       tt.rebound = true;
-      logEvent("IGL: на "+tt.site+" стак (~"+Math.round(here)+"), перепривязка → "+other);
+      logEvent("IGL: на "+tt.site+" стак (~"+Math.round(here)+"), перепривязка → "+other, "team");
       // перекол не значит "сразу выход": группа переходит и выходит примерно по
       // исходному таймингу (минимум через 8с, чтобы успеть дойти)
       tt.site = other; tt.phase = "setup"; tt.execTick = Math.max(tick + 8*TICK_HZ, tt.execTick - 8*TICK_HZ); tt.execStart = null; tt.plantPick = null;
@@ -3264,7 +3272,7 @@ function tBrain(){
         startRoute(b, ["Mid","Top Mid","Sniper Nest","Red Room","Alley"], "midct"+roundNum); });
       tt.execTick = Math.max(tick + 18*TICK_HZ, Math.min(tt.execTick, tick + 30*TICK_HZ));
       voiceLog("T", "midtake", midKill.by, "мид наш! "+fl2.map(function(b){ return b.id; }).join(" и ")+" — через Red Room, "+tt.site+" с двух сторон");
-      logEvent("IGL: мид взят — заход на "+tt.site+" с двух сторон (через Red Room)");
+      logEvent("IGL: мид взят — заход на "+tt.site+" с двух сторон (через Red Room)", "team");
     }
   }
   // раздел 12: проба увидела на нашем сайте ровно одного, и по карте там больше
@@ -3275,7 +3283,7 @@ function tBrain(){
     if(eS.seen === 1 && beliefCount("T", BZ.siteNear[tt.site]||[]) < 1.4 && aliveT2 >= 4 && iglReads(tt, "so")){
       tt.soloGo = true; tt.phase = "execute"; tt.execStart = tick; if(BAL.noLeaks) MEMORY.siteHeatPending[tt.site] = 1; else MEMORY.siteHeat[tt.site] = (MEMORY.siteHeat[tt.site]||0) + 1;
       voiceLog("T", "solo"+tt.site, "IGL", "на "+tt.site+" один — заходим сейчас!");
-      logEvent("T: выход на "+tt.site+"! (по инфе там соло)");
+      logEvent("T: выход на "+tt.site+"! (по инфе там соло)", "team");
     }
   }
   var ts = bots.filter(function(b){ return b.team==="T" && b.alive; });
@@ -3295,7 +3303,7 @@ function tBrain(){
     var hopeless = (aT === 1 && aC >= 3 && secLeft < 30) || (aT === 1 && aC >= 4 && secLeft < 55) || (aT === 2 && aC >= 4 && secLeft < 30);
     if(hopeless && gunVal >= 1500 && !carOn){
       tt.saving = tick;
-      logEvent("T: сейв — "+aT+"v"+aC+", "+Math.round(secLeft)+"с — сохраняем оружие");
+      logEvent("T: сейв — "+aT+"v"+aC+", "+Math.round(secLeft)+"с — сохраняем оружие", "team");
       voiceLog("T", "tsave", ts[0].id, aT === 1 ? "я один против "+aC+" — сейвлю" : "двое на "+aC+", мало времени — сейв");
     }
   }
@@ -3413,7 +3421,7 @@ function tBrain(){
         stagePost(fakers, fk);
       } else {
         if(!tt.fakeOn){ tt.fakeOn = tick;
-          logEvent("T: фейк на "+fk+" — шумим и кидаем гранаты, выход на "+tt.site);
+          logEvent("T: фейк на "+fk+" — шумим и кидаем гранаты, выход на "+tt.site, "team");
           if(fakers[0]) voiceLog("T", "fake"+fk, fakers[0].id, "делаю фейк на "+fk+", вы ждите на "+tt.site); }
         var fakeDied = picEvents("T").some(function(sg){ return sg.type === "died" && tick - sg.tick < 10*TICK_HZ && Math.hypot(sg.x-gf.tEntry.x, sg.y-gf.tEntry.y) < 450; });
         if(fakeDied){ stagePost(fakers, fk); if(!tt._fakeHoldLog){ tt._fakeHoldLog = true; logEvent("T: на фейке сняли своего — второй не лезет туда же, держит"); } }
@@ -3437,12 +3445,12 @@ function tBrain(){
             var save = Math.min(8*TICK_HZ, Math.max(0, tt.execTick - tick - 4*TICK_HZ));
             if(save > 0){
               tt.execTick -= save;
-              logEvent("IGL: фейк на "+fk+" сработал — опорник ушёл, ускоряем выход на "+tt.site);
+              logEvent("IGL: фейк на "+fk+" сработал — опорник ушёл, ускоряем выход на "+tt.site, "team");
               voiceLog("T", "fakeworked", "IGL", "они купились, идём на "+tt.site+" раньше");
             }
           } else if(sawCtAtFakeEarly && stillThere && tick - tt.fakeOn > 10*TICK_HZ){
             tt._fakeRead = tick;
-            logEvent("IGL: на "+fk+" не купились — держит место, играем по плану");
+            logEvent("IGL: на "+fk+" не купились — держит место, играем по плану", "team");
           }
         }
       }
@@ -3470,7 +3478,7 @@ function tBrain(){
         picEvents("T").some(function(sg){ return (sg.type === "kill" || sg.type === "died") && sg.tick >= (tt.execStart||0); });
       if(contact && !tt.w1Contact) tt.w1Contact = tick;
       if((tt.w1Contact && tick - tt.w1Contact > 48) || since > 4.5*TICK_HZ || ts.length <= 2){
-        tt.wave2 = tick; logEvent("T: вторая волна заходит на "+tt.site+(tt.w1Contact ? " (после первого контакта)" : ""));
+        tt.wave2 = tick; logEvent("T: вторая волна заходит на "+tt.site+(tt.w1Contact ? " (после первого контакта)" : ""), "team");
       }
     }
     var carrier = bomb.state === "carried" ? bomb.carrier : null;
@@ -3682,7 +3690,7 @@ function tBrain(){
         var hp = tt.huntPts[b._huntIdx];
         setPost(b, hp, bomb ? {x:bomb.x, y:bomb.y} : null, true, "hunt");
       });
-      if(hunters.length && !tt.huntLogged){ tt.huntLogged = true; logEvent("T: CT сейвят — "+hunters.map(function(h){return h.id;}).join(", ")+" идут выбивать оружие"); }
+      if(hunters.length && !tt.huntLogged){ tt.huntLogged = true; logEvent("T: CT сейвят — "+hunters.map(function(h){return h.id;}).join(", ")+" идут выбивать оружие", "team"); }
       group = group.filter(function(b){ return hunters.indexOf(b) < 0; });
     }
     // пост-плант: видеть бомбу (чтобы снять дефузера), но не стоять на виду у входа CT
@@ -3891,7 +3899,7 @@ function updateRetake(cts){
   if(!R){
     R = bomb.retake = {approaches: computeApproaches(), assign:{}, phase:"gather", goTick:-1};
     logEvent("CT: ретейк "+bomb.site+" — "+R.approaches.length+" точк"+(R.approaches.length===1?"а":"и")+" сбора"+
-      (R.approaches.some(function(a){ return a.name; }) ? " ("+R.approaches.map(function(a){ return a.name || "укрытие"; }).join(", ")+")" : ""));
+      (R.approaches.some(function(a){ return a.name; }) ? " ("+R.approaches.map(function(a){ return a.name || "укрытие"; }).join(", ")+")" : ""), "team");
   }
   // роли: дефузер — с китом и ближе всех; фланг — самый дальний от основной точки,
   // если людей 3+ и точек сбора больше одной; остальные — прикрытие
@@ -3928,7 +3936,7 @@ function updateRetake(cts){
     if(tLeftN > dN/SPEED*1.3 + (def.kit ? 5 : 10) + 1){
       R.phase = "go"; R.goTick = tick; R.ninja = tick; R.entryId = "-";
       voiceLog("CT", "ninja", def.id, "их нет у бомбы — тихо дефузю, прикройте");
-      logEvent("CT: ниндзя-дефуз — все T известны далеко от бомбы");
+      logEvent("CT: ниндзя-дефуз — все T известны далеко от бомбы", "team");
     }
   }
   if(R.phase === "gather"){
@@ -3954,9 +3962,9 @@ function updateRetake(cts){
       // поджимает — сразу
       var util = BAL.retakeRoles && !late && alive.length >= 2 && retakeUtil(R, alive);
       if(util){ R.phase = "util"; R.utilTick = tick;
-        logEvent("CT: ретейк — все на точках ("+ready+"/"+alive.length+"), "+util+" — заход под флешку"); }
+        logEvent("CT: ретейк — все на точках ("+ready+"/"+alive.length+"), "+util+" — заход под флешку", "team"); }
       else { R.phase = "go"; R.goTick = tick;
-        logEvent("CT: ретейк — заходим! ("+ready+"/"+alive.length+" на точках"+(late ? ", время поджимает" : "")+")"); }
+        logEvent("CT: ретейк — заходим! ("+ready+"/"+alive.length+" на точках"+(late ? ", время поджимает" : "")+")", "team"); }
     }
     R.ready = ready; R.need = need;
   }
@@ -3965,7 +3973,7 @@ function updateRetake(cts){
     var lateU = bombTimeLeftTicks()/TICK_HZ - ((def ? Math.hypot(def.x-bomb.x, def.y-bomb.y) : 400)/SPEED*1.3 + (def && def.kit ? 5 : 10) + 1.5) < 3;
     if(popped || tick - R.utilTick > 2.2*TICK_HZ || lateU){
       R.phase = "go"; R.goTick = tick;
-      logEvent("CT: ретейк — заходим"+(popped ? " под флешку!" : "!"));
+      logEvent("CT: ретейк — заходим"+(popped ? " под флешку!" : "!"), "team");
     }
   }
   // дефуз под смоком: дефузер подходит к бомбе — смок на неё (его или тиммейта),
@@ -4401,7 +4409,7 @@ function intelDeath(victim, killer){
 function intelCallLog(team, key, text){
   var L = teamIntel[team].lastCall;
   if(L[key] && tick - L[key] < 4*64) return;
-  L[key] = tick; logEvent(text);
+  L[key] = tick; logEvent(text, "voice");
 }
 
 
@@ -6342,7 +6350,7 @@ function ctBrain(){
     var massNow = beliefCount("CT", BZ.siteNear[ct.call.site]||[]);
     var lkpHere = picNear("CT", SITES[ct.call.site].x, SITES[ct.call.site].y, 500);
     if(lkpHere === 0 && ((quiet > 6*64 && massNow < 0.6) || quiet > 18*64)){
-      logEvent("CT: по "+ct.call.site+" давно тихо"+(massNow < 0.6 ? " и там вероятно пусто" : "")+" — по местам");
+      logEvent("CT: по "+ct.call.site+" давно тихо"+(massNow < 0.6 ? " и там вероятно пусто" : "")+" — по местам", "team");
       ct.call = null;
     }
   }
@@ -6485,7 +6493,7 @@ function ctBrain(){
       (cts.length === 1 && tsAlive === 2 && !(cts[0].kit && needSecs + 8 < secs)); // 2v4 — ещё пробуем, 1v3/1v4/2v5 — сейв
     if(cts.length && hopeless && (equip >= 1800 || needSecs > secs)){
       ct.saving = true;
-      logEvent("CT: сейв — ретейк "+cts.length+"v"+tsAlive+(needSecs > secs ? ", не успеть" : "")+", сохраняем оружие");
+      logEvent("CT: сейв — ретейк "+cts.length+"v"+tsAlive+(needSecs > secs ? ", не успеть" : "")+", сохраняем оружие", "team");
     }
   }
   // (8) сейв → ретейк: на сейве сняли T и расклад выровнялся (1v1, 2v2, 1v2 при
@@ -6498,12 +6506,12 @@ function ctBrain(){
       // врагов не осталось — сейвить не от кого: идём дефузить, если успеваем
       if(evenS && needS + (tsS ? 2 : 0) < secsS){
         ct.saving = false; ct._noResave = true; cts.forEach(function(b){ b._saveSpot = null; });
-        logEvent("CT: сейв → ретейк — теперь "+cts.length+"v"+tsS+", успеваем ("+Math.round(secsS)+"с)");
+        logEvent("CT: сейв → ретейк — теперь "+cts.length+"v"+tsS+", успеваем ("+Math.round(secsS)+"с)", "team");
         voiceLog("CT", "sv2rt", cts[0].id, cts.length+" на "+tsS+" — успеваем, идём ретейкать!");
       }
     } else if(ct.preSave && cts.length >= tsS){
       ct.saving = false; ct.preSave = false; ct._noResave = true; cts.forEach(function(b){ b._saveSpot = null; });
-      logEvent("CT: сейв → ретейк — теперь "+cts.length+"v"+tsS+", играем раунд");
+      logEvent("CT: сейв → ретейк — теперь "+cts.length+"v"+tsS+", играем раунд", "team");
     }
   }
   // сейв CT до планта: 1v3+/2v5, T уже заходят на сайт, у нас есть что сохранять
@@ -6512,7 +6520,7 @@ function ctBrain(){
     var secL2 = ROUND_TIME_SEC - (simTime - roundStartTime);
     if(((cts.length === 1 && tsA2 >= 3) || (cts.length === 2 && tsA2 >= 5)) && eq2 >= 2700 && secL2 > 25){
       ct.saving = true; ct.preSave = true;
-      logEvent("CT: сейв до планта — "+cts.length+"v"+tsA2+", выход на "+ct.call.site+" — сохраняем оружие");
+      logEvent("CT: сейв до планта — "+cts.length+"v"+tsA2+", выход на "+ct.call.site+" — сохраняем оружие", "team");
       voiceLog("CT", "presave", cts[0].id, cts.length+" против "+tsA2+", они уже на "+ct.call.site+" — сейв");
     }
   }
@@ -7209,6 +7217,7 @@ function detonate(n){
       if(secs > 0.35){
         var lkBefore = b.lastIntel || (b._nearestEnemyBot ? {x:b._nearestEnemyBot.x, y:b._nearestEnemyBot.y, tick:tick} : null);
         b.blindUntil = Math.max(b.blindUntil, tick + Math.round(secs*TICK_HZ));
+        if(n.thrower && n.thrower.team !== b.team) b._blindBy = n.thrower.id; // для киллфида: «+ ослепил»
         b.contactStreak = 0; b.lastIntel = null;
         if(secs > 1.2) logEvent(b.id+" ослеплён"+(b.team===n.team?" своей флешкой":"")+" ("+secs.toFixed(1)+"с)");
         if(BAL.blindPlay && b.team !== n.team && secs > 0.8) onBlind(b, lkBefore || {x:n.x, y:n.y});
@@ -7233,7 +7242,7 @@ function detonate(n){
 }
 function applyDamage(att, b, dmg, src){
   if(!b.alive || dmg <= 0) return;
-  if(att && att.team !== b.team) att.roundDmg = (att.roundDmg||0) + Math.min(dmg, Math.max(0,b.hp));
+  noteDmg(att, b, dmg);
   b.hp -= dmg;
   if(b.hp <= 0){
     b.alive = false; b.deaths++;
@@ -7243,8 +7252,8 @@ function applyDamage(att, b, dmg, src){
     dropBomb(b);
     intelDeath(b, att);
     if(att && att.team !== b.team){ att.kills++; att.roundKills++; att.money = Math.min(MAX_MONEY, att.money + 300); }
-    logEvent((att?att.id:"?")+" ["+src+"] устранил "+b.id, true);
-    feedKill(att, b, src, false);
+    logEvent((att?att.id:"?")+" ["+src+"] устранил "+b.id, "kill");
+    feedKill(att, b, src === "HE" ? "HE" : "MOLOTOV", false, {});
   }
 }
 function nadesTick(){
@@ -7703,14 +7712,26 @@ function updateRoamer(bot){
 // ---------- combat ----------
 var DECISION_INTERVAL_TICKS = 12;
 
-function logEvent(text, isKill){
-  text = nickify(text);
-  events.unshift({t: simTime.toFixed(1), text: text, kill: !!isKill});
-  if(events.length > 40) events.length = 40;
-  var el = document.getElementById("log");
-  el.innerHTML = events.map(function(e){
-    return '<div class="ev'+(e.kill?' kill':'')+'">['+e.t+'s] '+e.text+'</div>';
-  }).join("");
+// Одна запись для консоли. kind — что это для смотрящего: kill (фраг), bomb
+// (плант/дефуз/взрыв), team (решение команды: план, перестройка, сейв, ретейк),
+// voice (колл в тимспике), round (раунд/матч). Без kind — отладка: только в
+// скрытом журнале (галочка «отладка»), в консоль не попадает.
+function logEvent(text, kind){
+  var e = {t: simTime.toFixed(1), text: nickify(text), kind: kind || "dbg"};
+  events.unshift(e);
+  if(events.length > 400) events.length = 400;
+  if(e.kind !== "dbg") renderLog("log", true);
+  if(logDebugOpen) renderLog("logDbg", false);
+}
+var logDebugOpen = false;
+function renderLog(id, mainOnly){
+  var el = document.getElementById(id); if(!el) return;
+  var h = "", n = 0;
+  for(var i = 0; i < events.length && n < (mainOnly ? 40 : 400); i++){
+    var e = events[i]; if(mainOnly && e.kind === "dbg") continue; n++;
+    h += '<div class="ev '+e.kind+'">['+e.t+'s] '+esc(e.text)+'</div>';
+  }
+  el.innerHTML = h;
 }
 var tracers = [];
 // (v151) как выглядит выстрел у разного оружия: пистолет — тонкий короткий след и
@@ -8511,7 +8532,7 @@ function tryShoot(shooter, target, dist){
     else { mult = 1.0; armored = target.armor; hitZone = "chest"; }
     var dmg = base * mult; if(armored) dmg *= w.armorPen;
     dmg = Math.max(1, Math.round(dmg));
-    shooter.roundDmg = (shooter.roundDmg||0) + Math.min(dmg, Math.max(0, target.hp));
+    noteDmg(shooter, target, dmg);
     target.hp -= dmg; target._hurtT = tick;
     if(BAL.tagging) target._tagUntil = tick + 16; // попали — на ~0.25с замедлен
     if(target.hp > 0){
@@ -8552,8 +8573,8 @@ function tryShoot(shooter, target, dist){
           logEvent(shooter.id+": после килла меняет позицию");
         }
       }
-      logEvent(shooter.id+" ["+w.name+"] устранил "+target.id+(headshot?" (в голову)":"")+" (дист. "+Math.round(dist)+", +$"+(w.killReward||300)+")", true);
-      feedKill(shooter, target, w.name, headshot);
+      logEvent(shooter.id+" ["+w.name+"] устранил "+target.id+(headshot?" (в голову)":"")+" (дист. "+Math.round(dist)+", +$"+(w.killReward||300)+")", "kill");
+      feedKill(shooter, target, w.key, headshot, {smoke:thruSmoke, noscope:noscope, blind:shooter.blindUntil > tick});
     }
   } else {
     // AWP промахнулся, враг близко — не ждёт перезатвора, а достаёт пистолет
@@ -9529,12 +9550,12 @@ function buyPhase(){
     teamEco[team].antiEcoSmg = false;
     var type = decideRoundType(team);
     teamEco[team].roundType = type;
-    if(teamEco[team].ecoWhy) logEvent(team+": "+teamEco[team].ecoWhy);
+    if(teamEco[team].ecoWhy) logEvent(team+": "+teamEco[team].ecoWhy, "team");
     if(type === "full") teamAwp(team);
     if(type === "full") teamDrops(team);
     var spent = 0;
     bots.filter(function(b){ return b.team === team; }).forEach(function(b, i){ spent += buyForPlayer(b, type, i); });
-    logEvent(team+": "+ROUND_TYPE_LABEL[type]+" (потрачено $"+spent+")");
+    logEvent(team+": "+ROUND_TYPE_LABEL[type]+" (потрачено $"+spent+")", "team");
   });
 }
 
@@ -9544,7 +9565,7 @@ function startHalf(silent){
     b.armor = false; b.helmet = false; b.kit = false; b.weapon = WEAPONS[b.secondary]; b.nades = emptyNades();
   });
   teamEco.CT.lossLevel = 1; teamEco.T.lossLevel = 1;
-  if(!silent) logEvent("ВТОРАЯ ПОЛОВИНА — деньги сброшены до $"+START_MONEY, true);
+  if(!silent) logEvent("ВТОРАЯ ПОЛОВИНА — деньги сброшены до $"+START_MONEY, "round");
 }
 // (v152) воспроизводимый старт: всё, что влияет на решения ботов, — с нуля.
 // Кэши чистим целиком: часть ключей содержит tick, и после сброса tick старые
@@ -9579,7 +9600,7 @@ function newMatch(){
   roundNum = 0;
   bots.forEach(function(b){ b.kills = 0; b.deaths = 0; });
   startHalf(true);
-  logEvent("Новый матч #"+matchNum, true);
+  logEvent("Новый матч #"+matchNum, "round");
   resetRound(); // roundNum → 1, закуп пистолетного
 }
 
@@ -9599,7 +9620,7 @@ function checkRoundEnd(){
           b.nades = emptyNades();
         }
       });
-      logEvent("БОМБА ВЗОРВАЛАСЬ на "+bomb.site, true);
+      logEvent("БОМБА ВЗОРВАЛАСЬ на "+bomb.site, "bomb");
       feedEvent("boom", "Бомба взорвалась на "+bomb.site);
       endRound("T", "bomb");
     }
@@ -9622,7 +9643,7 @@ function endRound(winner, reason){
   roundState = "ending";
   roundEndTime = simTime;
   var why = reason === "time" ? " (время вышло)" : (reason === "bomb" ? " (взрыв)" : (reason === "defuse" ? " (дефуз)" : ""));
-  logEvent("Раунд "+roundNum+" завершён"+(winner? " — победа "+winner+why : " — обе команды уничтожены")+". Счёт CT:"+score.CT+" T:"+score.T, true);
+  logEvent("Раунд "+roundNum+" завершён"+(winner? " — победа "+winner+why : " — обе команды уничтожены")+". Счёт CT:"+score.CT+" T:"+score.T, "round");
   var over;
   var tgt = matchWinTarget();
     if(roundNum < regRounds()) over = score.CT >= MATCH_WIN || score.T >= MATCH_WIN;
@@ -9632,11 +9653,11 @@ function endRound(winner, reason){
       if(!over && (roundNum - regRounds()) % (OT_HALF*2) === 0 && otIndex() + 1 >= OT_MAX) over = true; // предохранитель
     }
     if(!over && roundNum >= regRounds() && (roundNum - regRounds()) % (OT_HALF*2) === 0)
-      logEvent((roundNum === regRounds() ? "" : "ещё ")+"ОВЕРТАЙМ при "+score.CT+":"+score.T+" — MR3, по $"+OT_MONEY+", до "+(MATCH_WIN + OT_HALF*(otIndex(roundNum+1)+1))+" побед", true);
+      logEvent((roundNum === regRounds() ? "" : "ещё ")+"ОВЕРТАЙМ при "+score.CT+":"+score.T+" — MR3, по $"+OT_MONEY+", до "+(MATCH_WIN + OT_HALF*(otIndex(roundNum+1)+1))+" побед", "round");
   if(over){
     roundState = "matchover";
     var mw = score.CT > score.T ? "CT" : (score.T > score.CT ? "T" : null);
-    logEvent("МАТЧ ОКОНЧЕН — "+(mw ? "победа "+mw : "ничья")+" "+score.CT+":"+score.T, true);
+    logEvent("МАТЧ ОКОНЧЕН — "+(mw ? "победа "+mw : "ничья")+" "+score.CT+":"+score.T, "round");
     saveOppProfile();
   }
 }
@@ -9647,7 +9668,7 @@ function resetRound(){
   if(roundNum > regRounds() && (roundNum - regRounds() - 1) % OT_HALF === 0){
     startHalf(true);
     bots.forEach(function(b){ b.money = OT_MONEY; });
-    logEvent("Овертайм: половина — по $"+OT_MONEY, true);
+    logEvent("Овертайм: половина — по $"+OT_MONEY, "round");
   }
   if(BAL.halfReview && roundNum === HALF_ROUNDS+1) halfReview();
   bots.forEach(function(b){
@@ -9677,13 +9698,13 @@ function resetRound(){
   resetTeamIntel();
   beliefReset();
   clutchShown = null; clutchInfo = null;
-  bots.forEach(function(b){ b.roundKills = 0; b.roundDmg = 0; b.post = null; b.atPost = false; b.planting = false; b.defusing = false; b._saveSpot = null; b._huntIdx = undefined; b._huntArrive = 0; b._lurkIdx = 0; b._lurkArr = 0; b._lurkPh = undefined; });
+  bots.forEach(function(b){ b.roundKills = 0; b.roundDmg = 0; b._dmgBy = {}; b._blindBy = null; b.post = null; b.atPost = false; b.planting = false; b.defusing = false; b._saveSpot = null; b._huntIdx = undefined; b._huntArrive = 0; b._lurkIdx = 0; b._lurkArr = 0; b._lurkPh = undefined; });
   spotCache = {};
   resetNades();
   buyPhase();
   resetBomb();
   chooseTactic();
-  logEvent("Раунд "+roundNum+" начался");
+  logEvent("Раунд "+roundNum+" начался", "round");
 }
 
 // ---------- fixed-tick sim ----------
@@ -10265,7 +10286,7 @@ cv.addEventListener("mousemove", function(e){
 });
 document.getElementById("btnRecomputeDanger").addEventListener("click", function(){
   computeZoneDanger();
-  logEvent("Таблица опасности пересчитана ("+ZONEMAP.zones.length+" зон)");
+  logEvent("Таблица опасности пересчитана ("+ZONEMAP.zones.length+" зон)", "round");
 });
 
 // ---------- navmesh align mode: drag to move, wheel to scale ----------
@@ -10333,7 +10354,7 @@ btnWallRevert.addEventListener("click", function(){
   selectedObjId = null;
   rebuildManualWalls();
   updateWallEditCount();
-  logEvent("Стены сброшены к версии из кода");
+  logEvent("Стены сброшены к версии из кода", "round");
 });
 btnWallExport.addEventListener("click", function(){
   // absolute points for every object, baked (ignores fromRaw/wallTransform/
@@ -12046,8 +12067,28 @@ function cl0save(){ return teamTac.CT && teamTac.CT.saving; }
 
 var clutchShown = null, clutchInfo = null;
 function esc(t){ return String(t).replace(/[&<>]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;"}[c]; }); }
-function feedKill(att, vic, weap, hs){
-  killfeed.unshift({kind:"kill", att:att?nick(att.id):"?", attTeam:att?att.team:"", vic:nick(vic.id), vicTeam:vic.team, weap:weap, hs:hs, t:nowTs});
+// Урон по жертве за раунд (кто сколько снял) — для MVP и ассиста в киллфиде.
+function noteDmg(att, vic, dmg){
+  if(!att || att.team === vic.team) return;
+  var dealt = Math.min(dmg, Math.max(0, vic.hp));
+  att.roundDmg = (att.roundDmg||0) + dealt;
+  var D = vic._dmgBy || (vic._dmgBy = {});
+  D[att.id] = (D[att.id]||0) + dealt;
+}
+// Ассист, как в CS2: другой игрок снял жертве 40+ HP, иначе — ослепил её флешкой
+function killAssist(att, vic){
+  var best = null, bd = 39, D = vic._dmgBy || {};
+  for(var id in D) if((!att || id !== att.id) && D[id] > bd){ bd = D[id]; best = id; }
+  if(best) return {id:best, flash:false};
+  if(vic._blindBy && vic.blindUntil > tick && (!att || vic._blindBy !== att.id)) return {id:vic._blindBy, flash:true};
+  return null;
+}
+// mods: smoke — через смок, wall — прострел, noscope — без прицела, blind — убийца ослеплён
+function feedKill(att, vic, wkey, hs, mods){
+  mods = mods || {};
+  var as = killAssist(att, vic);
+  killfeed.unshift({kind:"kill", att:att?nick(att.id):"?", attTeam:att?att.team:"", as:as?nick(as.id):null, asFlash:as&&as.flash,
+    vic:nick(vic.id), vicTeam:vic.team, w:wkey, hs:hs, smoke:!!mods.smoke, wall:!!mods.wall, noscope:!!mods.noscope, blind:!!mods.blind, t:nowTs});
   if(killfeed.length > 8) killfeed.length = 8;
   renderFeed();
   // мультикилл-баннер
@@ -12056,6 +12097,69 @@ function feedKill(att, vic, weap, hs){
     showBanner((att.roundKills >= 5 ? "ACE — " : lbl+" — ")+nick(att.id), att.team, 2200);
   }
   checkClutch();
+}
+// ---- белые силуэты оружия (свои простые, ствол вправо, к жертве) ----
+// Винтовка/ПП собирается из частей: приклад, корпус, ствол, магазин, рукоять, прицел, глушитель.
+function gunSvg(g){
+  var L = g.L, H = 16, p = [];
+  var by = 4, bh = g.bh || 5;                                    // корпус
+  var rx0 = g.r0, rx1 = g.r1;
+  p.push('M'+rx0+' '+by+'h'+(rx1-rx0)+'v'+bh+'h'+(-(rx1-rx0))+'z');
+  if(g.hg) p.push('M'+rx1+' '+(by+0.5)+'h'+g.hg+'v'+(bh-1.5)+'h'+(-g.hg)+'z');            // цевьё
+  var bx = rx1 + (g.hg||0);                                       // ствол
+  p.push('M'+bx+' '+(by+1)+'h'+(L-bx)+'v1.6h'+(-(L-bx))+'z');
+  if(g.sup) p.push('M'+(L-g.sup)+' '+(by+0.2)+'h'+g.sup+'v3.4h'+(-g.sup)+'z');           // глушитель
+  if(g.st === "solid") p.push('M0 '+(by+0.5)+'L'+rx0+' '+by+'v'+bh+'L1 '+(by+bh+3)+'H0z'); // приклад
+  else if(g.st === "thin") p.push('M0 '+(by+1)+'h'+rx0+'v1.6h'+(-rx0)+'z M0 '+(by+1)+'h1.6v5h-1.6z');
+  else if(g.st === "bull") p.push('M0 '+(by)+'h'+rx0+'v'+(bh+3)+'h'+(-rx0)+'z');
+  var gx = g.gx || (rx0+3);                                        // рукоять
+  p.push('M'+gx+' '+(by+bh)+'h3l-1.2 5h-3z');
+  if(g.mag === "curve") p.push('M'+g.mx+' '+(by+bh)+'h3.2q0.5 4 2.2 6.5l-2.8 0.8q-1.8-3-2.6-7.3z');
+  else if(g.mag === "straight") p.push('M'+g.mx+' '+(by+bh)+'h3v6h-3z');
+  else if(g.mag === "long") p.push('M'+g.mx+' '+(by+bh)+'h2.4v'+(H-by-bh)+'h-2.4z');
+  if(g.sc) p.push('M'+g.sc[0]+' 0.6h'+g.sc[1]+'v2.6h'+(-g.sc[1])+'z M'+(g.sc[0]+2)+' 3h1.5v1h-1.5z');
+  else if(g.rail) p.push('M'+g.rail[0]+' 2.6h'+g.rail[1]+'v1.4h'+(-g.rail[1])+'z');
+  if(g.top) p.push('M'+g.top[0]+' 1.5h'+g.top[1]+'v2.5h'+(-g.top[1])+'z');                  // P90: магазин сверху
+  return {w:L, d:p.join(' ')};
+}
+function pistolSvg(len, big){
+  var h = big ? 4.5 : 3.6;
+  return {w:len+2, d:'M2 3h'+len+'v'+h+'h'+(-len)+'z M3 '+(3+h)+'h4.4l-1.4 '+(big?6.5:6)+'h-4.4z M7.6 '+(3+h)+'h2v1.4h-2z'};
+}
+var WEAPON_ICON = (function(){
+  var I = {
+    AK:    gunSvg({L:46, st:"solid", r0:9,  r1:24, hg:8, mag:"curve", mx:21, gx:15, rail:[19,3]}),
+    M4:    gunSvg({L:46, st:"thin",  r0:9,  r1:25, hg:8, mag:"straight", mx:21, gx:15, rail:[12,12]}),
+    M4S:   gunSvg({L:50, st:"thin",  r0:9,  r1:25, hg:7, mag:"straight", mx:21, gx:15, rail:[12,12], sup:12}),
+    FAMAS: gunSvg({L:42, st:"bull",  r0:6,  r1:28, bh:4.5, mag:"straight", mx:9, gx:19, rail:[10,15]}),
+    GALIL: gunSvg({L:45, st:"thin",  r0:9,  r1:24, hg:8, mag:"curve", mx:20, gx:14}),
+    SG:    gunSvg({L:46, st:"solid", r0:9,  r1:25, hg:7, mag:"curve", mx:21, gx:15, sc:[13,9]}),
+    AUG:   gunSvg({L:42, st:"bull",  r0:5,  r1:26, bh:5.5, mag:"straight", mx:8, gx:18, sc:[12,10]}),
+    AWP:   gunSvg({L:56, st:"solid", r0:11, r1:27, mag:"straight", mx:22, gx:17, sc:[15,13]}),
+    SSG:   gunSvg({L:50, st:"thin",  r0:9,  r1:24, mag:"straight", mx:20, gx:15, sc:[13,10]}),
+    MP9:   gunSvg({L:32, st:"thin",  r0:7,  r1:20, mag:"long", mx:13, gx:13}),
+    MAC10: gunSvg({L:27, r0:3, r1:20, bh:5.5, mag:"long", mx:6, gx:6}),
+    UMP:   gunSvg({L:36, st:"thin",  r0:8,  r1:24, mag:"curve", mx:18, gx:12}),
+    MP7:   gunSvg({L:32, st:"thin",  r0:7,  r1:21, mag:"long", mx:12, gx:12, rail:[10,8]}),
+    P90:   gunSvg({L:36, st:"bull",  r0:4,  r1:28, bh:6, gx:16, top:[8,18]}),
+    GLOCK: pistolSvg(13), USP: pistolSvg(16), P250: pistolSvg(13), FIVE7: pistolSvg(14),
+    TEC9:  {w:20, d:'M2 3h16v3.6h-16z M5 6.6h4l-1 6h-4z M11 6.6h2.4v6h-2.4z'},
+    DEAGLE: pistolSvg(17, true),
+    KNIFE: {w:30, d:'M1 6h10v4h-10z M11 5h3v6h-3z M14 6.5h10l5-1.5-3 4.5h-12z'},
+    HE:    {w:12, d:'M6 15a5 5.5 0 1 1 0.01 0z M4.5 3h3v2.5h-3z M7.5 3.5l3.5-1.5 0.6 1.2-3.6 1.6z'},
+    MOLOTOV: {w:12, d:'M4 6h4v1.5l1.5 2v6h-7v-6l1.5-2z M4.6 1.5h2.8v4h-2.8z M6 0c2.5 0.5 3 2.5 1.6 4l-1.6-1z'}
+  };
+  return I;
+})();
+var KF_MOD = {  // значки после оружия (свои простые силуэты)
+  smoke:   {w:14, d:'M3 13a3 3 0 0 1 0-6a4 4 0 0 1 7.5-1.5a3.2 3.2 0 0 1 0.5 7.5z', t:"через смок"},
+  wall:    {w:14, d:'M5 1h3v14h-3z M0 7.2h4.5v1.6h-4.5z M9 7.2h5v1.6h-5z', t:"прострел"},
+  hs:      {w:13, d:'M6.5 1a5.5 5.5 0 0 1 5.5 5.5c0 2-1 3.4-2.4 4.2v2.8h-6.2v-2.8a5 5 0 0 1-2.4-4.2a5.5 5.5 0 0 1 5.5-5.5z M3.6 5.6h2.2v2.4h-2.2z M7.2 5.6h2.2v2.4h-2.2z', t:"в голову", ev:1},
+  noscope: {w:14, d:'M7 1.5a5.5 5.5 0 1 1 0 11a5.5 5.5 0 1 1 0-11z M7 3.1a3.9 3.9 0 1 0 0 7.8a3.9 3.9 0 1 0 0-7.8z M1.2 2.3l1.1-1.1 10.5 10.5-1.1 1.1z', t:"без прицела", ev:1},
+  blind:   {w:15, d:'M7.5 3c3.5 0 6 2.5 7 4.5c-1 2-3.5 4.5-7 4.5s-6-2.5-7-4.5c1-2 3.5-4.5 7-4.5z M7.5 5a2.5 2.5 0 1 0 0.01 0z M1.5 1.5l1-1 12 12-1 1z', t:"убийца ослеплён", ev:1}
+};
+function kfSvg(ic, cls, title){
+  return '<svg class="'+cls+'" viewBox="0 0 '+ic.w+' 16" width="'+(ic.w*0.95).toFixed(1)+'" height="15.2" '+(ic.ev?'fill-rule="evenodd" ':'')+'aria-label="'+title+'"><title>'+title+'</title><path d="'+ic.d+'"/></svg>';
 }
 function feedEvent(kind, text){
   killfeed.unshift({kind:kind, text:nickify(text), t:nowTs});
@@ -12066,7 +12170,12 @@ function renderFeed(){
   var el = document.getElementById("killfeed"); if(!el) return;
   el.innerHTML = killfeed.map(function(k){
     if(k.kind === "kill"){
-      return '<div class="kf"><span class="'+k.attTeam.toLowerCase()+'">'+esc(k.att)+'</span> <span class="w">'+esc(k.weap)+'</span>'+(k.hs?' <span class="hs" title="в голову">⌖</span>':'')+' <span class="'+k.vicTeam.toLowerCase()+'">'+esc(k.vic)+'</span></div>';
+      var W = WEAPONS[k.w], ic = WEAPON_ICON[k.w], wn = W ? W.name : (k.w === "MOLOTOV" ? "молотов" : k.w === "KNIFE" ? "нож" : k.w);
+      var h = '<span class="'+k.attTeam.toLowerCase()+'">'+esc(k.att)+'</span>';
+      if(k.as) h += '<span class="pl">+</span>'+(k.asFlash ? kfSvg({w:9, d:'M4.5 1l1.2 3.8 3.3-1.6-1.9 3.3 1.9 3.3-3.3-1.6-1.2 3.8-1.2-3.8-3.3 1.6 1.9-3.3-1.9-3.3 3.3 1.6z'}, "md fl", "ассист флешкой") : '')+'<span class="'+k.attTeam.toLowerCase()+' as">'+esc(k.as)+'</span>';
+      h += ic ? kfSvg(ic, "wp", wn) : '<span class="w">'+esc(wn)+'</span>';
+      ["smoke","wall","hs","noscope","blind"].forEach(function(m){ if(k[m]) h += kfSvg(KF_MOD[m], "md", KF_MOD[m].t); });
+      return '<div class="kf">'+h+'<span class="'+k.vicTeam.toLowerCase()+'">'+esc(k.vic)+'</span></div>';
     }
     return '<div class="kf ev '+k.kind+'">'+esc(k.text)+'</div>';
   }).join("");
@@ -12108,7 +12217,7 @@ function showRoundCard(winner, reason){
   if(clutch){
     clutchShown = clutchInfo.id;
     showBanner("КЛАТЧ 1v"+clutchInfo.n+" — "+clutchInfo.id+"!", winner, 3200);
-    logEvent("Клатч выигран: "+clutchInfo.id+" (1v"+clutchInfo.n+")", true);
+    logEvent("Клатч выигран: "+clutchInfo.id+" (1v"+clutchInfo.n+")", "round");
     feedEvent("clutch", "Клатч 1v"+clutchInfo.n+" — "+clutchInfo.id);
   }
   el.innerHTML = '<div class="rc-t '+(winner||"").toLowerCase()+'">'+(winner ? "ПОБЕДА "+winner : "НИЧЬЯ")+'</div>'+
@@ -12158,7 +12267,7 @@ function frame(ts){
   draw();
   requestAnimationFrame(frame);
 }
-document.getElementById("btnFreshMatch").addEventListener("click", function(){ var n = Math.max(1, parseInt(document.getElementById("inpMatchNum").value, 10) || 1); freshMatch(n); paused = false; var bp = document.getElementById("btnPause"); if(bp){ bp.textContent = "Пауза"; bp.classList.remove("active"); } logEvent("Матч №"+n+" с чистого листа (воспроизводимый)", true); });
+document.getElementById("btnFreshMatch").addEventListener("click", function(){ var n = Math.max(1, parseInt(document.getElementById("inpMatchNum").value, 10) || 1); freshMatch(n); paused = false; var bp = document.getElementById("btnPause"); if(bp){ bp.textContent = "Пауза"; bp.classList.remove("active"); } logEvent("Матч №"+n+" с чистого листа (воспроизводимый)", "round"); });
 setInterval(function(){ var el = document.getElementById("matchTick"); if(el) el.textContent = "· сейчас матч "+matchNum+", тик "+tick; }, 250);
 var BOT_INIT = bots.map(function(b){ var o = {keys:{}, vals:{}}; for(var k in b){ o.keys[k] = 1; var v = b[k]; if(v === null || (typeof v !== "object" && typeof v !== "function")) o.vals[k] = v; } return o; });
 var __SNAP = [
@@ -12317,6 +12426,7 @@ var __SNAP = [
 ["FOV_NEAR", function(){ return FOV_NEAR; }, function(v){ try{ FOV_NEAR = v; }catch(e){} }],
 ["CONE_R", function(){ return CONE_R; }, function(v){ try{ CONE_R = v; }catch(e){} }],
 ["DECISION_INTERVAL_TICKS", function(){ return DECISION_INTERVAL_TICKS; }, function(v){ try{ DECISION_INTERVAL_TICKS = v; }catch(e){} }],
+["logDebugOpen", function(){ return logDebugOpen; }, function(v){ try{ logDebugOpen = v; }catch(e){} }],
 ["tracers", function(){ return tracers; }, function(v){ try{ tracers = v; }catch(e){} }],
 ["TRACER_STYLE", function(){ return TRACER_STYLE; }, function(v){ try{ TRACER_STYLE = v; }catch(e){} }],
 ["soundPings", function(){ return soundPings; }, function(v){ try{ soundPings = v; }catch(e){} }],
@@ -12473,10 +12583,12 @@ var __SNAP = [
 ["zoneNameInput2", function(){ return zoneNameInput2; }, function(v){ try{ zoneNameInput2 = v; }catch(e){} }],
 ["clutchShown", function(){ return clutchShown; }, function(v){ try{ clutchShown = v; }catch(e){} }],
 ["clutchInfo", function(){ return clutchInfo; }, function(v){ try{ clutchInfo = v; }catch(e){} }],
+["WEAPON_ICON", function(){ return WEAPON_ICON; }, function(v){ try{ WEAPON_ICON = v; }catch(e){} }],
+["KF_MOD", function(){ return KF_MOD; }, function(v){ try{ KF_MOD = v; }catch(e){} }],
 ["bannerTimer", function(){ return bannerTimer; }, function(v){ try{ bannerTimer = v; }catch(e){} }],
 ["cardTimer", function(){ return cardTimer; }, function(v){ try{ cardTimer = v; }catch(e){} }]
 ];
-var MK_PRINCIPLES = [{"id": "В1", "sec": "Взгляд", "text": "Не смотрит в ровную стену в упор. Край угла держать можно, стену — нет.", "done": false}, {"id": "В2", "sec": "Взгляд", "text": "Не идёт спиной к непроверенному углу. Поднимаясь по рампе — сначала ближайший угол, потом дальше; не «чекает бэксайд» спиной к T Lower.", "done": false}, {"id": "В3", "sec": "Взгляд", "text": "Нет разворотов на 180–360° перед пиком: к углу подходит уже с прицелом на нём.", "done": false}, {"id": "В4", "sec": "Взгляд", "text": "Отошёл перезарядиться/за укрытие — не «забывает» врага: прицел на месте, где враг пропал, 3–5 с; на отходе пятится лицом к врагу.", "done": false}, {"id": "В5", "sec": "Взгляд", "text": "Звук за стеной — смотрит на место, где враг выйдет (проём, край), а не сквозь стену на звук.", "done": false}, {"id": "В6", "sec": "Взгляд", "text": "Взгляд плавный: без дёрганья туда-обратно и «ёрзания» стоя. (шаг 2)", "done": false}, {"id": "В7", "sec": "Взгляд", "text": "На бегу чекает ближайшие опасные углы, а не смотрит всё время строго по ходу и не в спину тиммейту. — дополнение 02.10: T с бомбой бежит на A, не глядя на Back Site и Temple (отметка: матч 1, раунд 3, 36.1 с, тик 15951 —", "done": false}, {"id": "В8", "sec": "Взгляд", "text": "Держит угол, откуда реально выйдет враг; не смотрит туда, где уже стоит свой.", "done": false}, {"id": "В9", "sec": "Взгляд", "text": "НОВОЕ 02.10. Смотрит только туда, откуда враг может появиться сейчас (успел дойти по времени и маршруту); «как у про» — не причина сама по себе. (отметка: матч 1, раунд 3, 19.2 с, тик 14867 — CT0 смотрит «как у про», неп", "done": false}, {"id": "В10", "sec": "Взгляд", "text": "НОВОЕ 02.10. Перед ретейком (сбор) смотрит на выходы с сайта, где бомба, а не спиной к сайту. (отметка: матч 1, раунд 1, 65.3 с, тик 5139 — №8 karrigan в Donut спиной к A, а не на Short)", "done": false}, {"id": "П1", "sec": "Позиция", "text": "Стоит прижавшись к укрытию и открыт только на свой угол; не стоит по центру сайта / в открытую.", "done": false}, {"id": "П2", "sec": "Позиция", "text": "Позиции — реальные про-позиции на Ancient, а не «точка рядом с центром зоны».", "done": false}, {"id": "П3", "sec": "Позиция", "text": "Не выбирает точки, куда физически не может встать (в стене, за коллизией).", "done": false}, {"id": "П4", "sec": "Позиция", "text": "Двое на сайте не держат один и тот же угол.", "done": false}, {"id": "П5", "sec": "Позиция", "text": "Один подпушил вперёд (например, в T Lower) — второй меняет угол или встаёт под размен, а не продолжает смотреть рампу.", "done": false}, {"id": "П6", "sec": "Позиция", "text": "Погиб мидер — мид берёт ближайший свободный CT, не уходят с сайта, где есть инфа; не идёт через всю карту.", "done": false}, {"id": "П7", "sec": "Позиция", "text": "НОВОЕ 02.10. У ротатора всегда понятная задача (помочь с рампой, забрать кейв, закрыть угол) — не стоит без цели в точке, не связанной с ситуацией. (отметка: матч 1, раунд 4, 11 с, тик 19697 — ротатор №8 karrigan у Back ", "done": false}, {"id": "П8", "sec": "Позиция", "text": "НОВОЕ 02.10. Кинув гранату в смок у сайта, не уходят с сайта без инфы: T может просто переждать и пройти; и помнят, что бросок выдаёт их позицию. (отметка: матч 1, раунд 5, 24.6 с, тик 25769 — №8 и №9 кинули гранату и уш", "done": false}, {"id": "К1", "sec": "Команда", "text": "Увидели 3+ врагов (колл) — вся команда сразу меняет план: стягиваются, готовят ретейк/ротацию; никто не продолжает «своё».", "done": false}, {"id": "К2", "sec": "Команда", "text": "Договариваются, кто какой угол держит (никто не дублирует, пустых нет).", "done": false}, {"id": "К3", "sec": "Команда", "text": "Не дерутся в одиночку: рядом есть тиммейт для размена (у про ~75% смертей с тиммейтом ≤350 px). — детектор (v173): CT погиб у сайта без своего ближе 350 px — 61,5% смертей, у про 32,3. Главный разрыв по позиции.", "done": false}, {"id": "К4", "sec": "Команда", "text": "Размен сразу (≤3 с) после смерти тиммейта, если это возможно (у про ~17%).", "done": false}, {"id": "К5", "sec": "Команда", "text": "Последнего добивают быстро и вдвоём; клатчи выигрываются редко (у про ~2%).", "done": false}, {"id": "К6", "sec": "Команда", "text": "Решение команды видно в движении игроков (решили «ретейк» — встают под ретейк), а не только в тексте войса.", "done": false}, {"id": "К7", "sec": "Команда", "text": "НОВОЕ 02.10. Нет «сейва», когда врагов не осталось: свой дефузит при 3 на 0 — остальные не убегают и не пишут «сейвим». (отметка: матч 1, раунд 1, 91.6 с, тик 6822 — karrigan дефузит, TeSeS и NiKo «сейвим»)", "done": false}, {"id": "К8", "sec": "Команда", "text": "НОВОЕ 02.10. Команда всегда знает, где тиммейты и что делают (как игрок на радаре): подпушил — ближайший поддерживает против перевеса; ушёл со своей точки — освободившийся угол сразу закрывает ближайший свободный. (отмет", "done": false}, {"id": "К9", "sec": "Команда", "text": "НОВОЕ 02.10. T с бомбой не идёт на сайт один и без инфы: ждёт тиммейта рядом или сначала проверяет ключевые углы (Back Site, Temple). (отметка: матч 1, раунд 3, 36.1 с, тик 15951 — T3 magixx один несёт бомбу на A); см. т", "done": false}, {"id": "Г1", "sec": "Гранаты", "text": "Флешку кидают до своего пика или под пик тиммейта — не в лицо врагу, который уже стреляет.", "done": false}, {"id": "Г2", "sec": "Гранаты", "text": "Гранаты не «на рандом»: лайнапы про (инстасмоки, задержка выхода, выход на сайт) в нужный момент и из нужной точки.", "done": false}, {"id": "Г3", "sec": "Гранаты", "text": "CT используют утилиту рано, на задержку выхода (у про ~8 гранат CT в первые 20 с).", "done": false}, {"id": "Г4", "sec": "Гранаты", "text": "Перед смертью не «вываливают» гранаты бесцельно. — лучше в v172 (1,09 → 0,70 на раунд, у про 0,37), не дотянуто.", "done": false}, {"id": "Г5", "sec": "Гранаты", "text": "Закуп гранат как у про: на фулле ~3 на игрока, на эко — 1.", "done": false}, {"id": "Э1", "sec": "Закуп и экономика", "text": "Оружие по мете: на фулле CT — M4A4/M4A1-S, T — AK; FAMAS/Galil — только на форсе.", "done": false}, {"id": "Э2", "sec": "Закуп и экономика", "text": "Что покупают в каком раунде — по таблице из демок про, а не по придуманным вероятностям.", "done": false}, {"id": "Э3", "sec": "Закуп и экономика", "text": "Доли фулл/форс/эко как у про (CT 77/9/14).", "done": false}, {"id": "Т1", "sec": "Темп и макро", "text": "T начинают с дефолта, выход по времени как у про (плант ~66 с).", "done": false}, {"id": "Т2", "sec": "Темп и макро", "text": "Раши редко (в основном эко/пистолетка).", "done": false}, {"id": "Т3", "sec": "Темп и макро", "text": "Ранних смертей до 45 с — как у про (T ~1,5, CT ~1,3); сейчас ~1,9.", "done": false}, {"id": "Н1", "sec": "Войс и подписи", "text": "Войс говорит правильными терминами CS. «Префайр» — только когда прострел угла при пике; не «префайр по памяти» на каждом шагу.", "done": false}, {"id": "Н2", "sec": "Войс и подписи", "text": "Подпись соответствует тому, что бот делает сейчас («идёт на мид», а не «держит мид», пока идёт).", "done": false}, {"id": "И1", "sec": "Визуал и инструменты", "text": "Кружки ботов чуть меньше исходных.", "done": true}, {"id": "И2", "sec": "Визуал и инструменты", "text": "Видно, за каким укрытием стоит бот (контуры стен, ящики).", "done": false}, {"id": "И3", "sec": "Визуал и инструменты", "text": "Направление взгляда видно меткой-каплей, без лишнего шума.", "done": false}, {"id": "И4", "sec": "Визуал и инструменты", "text": "Кнопка «Отметить момент» + перемотка (назад на 10 с, к отметке), чтобы показывать ситуации точно. — 02.10: отметка хранит полный снимок игры и открывается из него (v175), ждёт проверки.", "done": false}];
+var MK_PRINCIPLES = [{"id": "В11", "sec": "Взгляд", "text": "НОВОЕ 06.10. Префайр: слышит, что за углом сейчас выйдут, — заранее ставит прицел туда, где появится голова (широко / узко — по углу). Выходящий тоже идёт с прицелом на обычных позициях, где его принимают. (чат 06.10)", "done": false}, {"id": "К10", "sec": "Команда", "text": "НОВОЕ 06.10. Тимспик как в реальной игре: инфа, просьбы («подпушу донат, пошли со мной»), план IGL на старте и перестройка по ходу («30 с никого на Б — один чекает мид»). Сказать — 0,5–2 с, услышать — сразу. Каждый реаги", "done": false}, {"id": "К11", "sec": "Команда", "text": "НОВОЕ 06.10. Своё восприятие как у игрока: сколько шагов и откуда, гранаты (откуда кинули, где упали), киллфид (кто, из чего — роль по нику, закуп по оружию), время раунда; выводы из этого — в общую картину. (чат 06.10)", "done": false}, {"id": "Н3", "sec": "Войс, консоль, киллфид", "text": "НОВОЕ 06.10. Консоль справа снизу — без лишних сообщений: только то, что важно смотрящему (фраги, коллы тимспика, решения команды). (чат 06.10)", "done": false}, {"id": "Н4", "sec": "Войс, консоль, киллфид", "text": "НОВОЕ 06.10. Киллфид как в CS2, компактно: `Убийца + Ассистент [иконка оружия] [значки: через смок, прострел, хедшот, ноускоп, ослеплён] Жертва`; ники цветом команды, иконки — белые силуэты оружия, значки — только те, чт", "done": false}];
 // ======================= v167: «Отметить момент», карточка «Я понял так», перемотка =======================
 // Инструмент для владельца и Claude, мозг ботов не трогает. Описание — docs/tasks/02-mark-moment.md.
 // Снимки состояния: __SNAP (список переменных симулятора, генерирует patch170.py при сборке).
@@ -12903,6 +13015,11 @@ function mkShowCopy(t){ var a = mkEl("mkCopyBox"); a.value = t; a.style.display 
 freshMatch(1); paused = false;
 requestAnimationFrame(frame);
 
+document.getElementById("chkLogDbg").addEventListener("change", function(){
+  logDebugOpen = this.checked;
+  document.getElementById("logDbgPan").style.display = logDebugOpen ? "block" : "none";
+  if(logDebugOpen) renderLog("logDbg", false);
+});
 document.getElementById("btnPause").addEventListener("click", function(){
   paused = !paused;
   this.textContent = paused ? "Продолжить" : "Пауза";
@@ -12935,7 +13052,7 @@ document.getElementById("btnExportProject").addEventListener("click", function()
 document.getElementById("btnRestartRound").addEventListener("click", function(){
   // manual escape hatch for stuck bots — resetRound() doesn't care what
   // roundState was (live/ending), it just respawns everyone and sets "live"
-  logEvent("Раунд "+roundNum+" сброшен вручную");
+  logEvent("Раунд "+roundNum+" сброшен вручную", "round");
   resetRound();
   draw();
 });

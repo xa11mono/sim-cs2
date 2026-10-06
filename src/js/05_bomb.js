@@ -41,7 +41,7 @@ function resetBomb(){
 function dropBomb(b){
   if(bomb && bomb.state === "carried" && bomb.carrier === b){
     bomb.state = "dropped"; bomb.x = b.x; bomb.y = b.y; bomb.carrier = null;
-    logEvent(b.id+" погиб с бомбой — C4 на земле");
+    logEvent(b.id+" погиб с бомбой — C4 на земле", "bomb");
   }
 }
 // звук дефуза слышат T в радиусе 700px — именно звук, а не "всезнание":
@@ -116,7 +116,7 @@ function bombTick(){
         bomb.state = "planted"; bomb.site = tac.site; bomb.x = c.baseX; bomb.y = c.baseY;
         bomb.plantTick = tick; bomb.explodeTick = tick + BOMB_TICKS; bomb.carrier = null;
         c.money = Math.min(MAX_MONEY, c.money + 300);
-        logEvent(c.id+" заложил бомбу на "+tac.site+" (+$300)", true);
+        logEvent(c.id+" заложил бомбу на "+tac.site+" (+$300)", "bomb");
         feedEvent("bomb", c.id+" заложил бомбу на "+tac.site);
       }
       return;
@@ -137,7 +137,7 @@ function bombTick(){
           c._fakePlanted = roundNum; c._fakePlantAt = tick + 64;
         }
       }
-      logEvent(c.id+" закладывает бомбу на "+tac.site+"…");
+      logEvent(c.id+" закладывает бомбу на "+tac.site+"…", "bomb");
       // звук планта (писк C4): CT рядом (≤520px, или ≤850 по прямой видимости) слышат
       // и сразу говорят в войс — это самый сильный повод для колла/ротации
       var heard = null;
@@ -173,11 +173,11 @@ function bombTick(){
       // дефуз в огне (как в CS) продолжается, если HP хватает дожить до конца
       if(inFire(def.x, def.y) && def.hp < (def.defuseUntil - tick)/TICK_HZ*40 + 10){ def.defusing = false; def.defuseCooldownUntil = tick + 32; logEvent(def.id+" прервал дефуз — молотов, не доживёт"); return; }
       if(def._sawEnemy && def.contactStreak > 6 && bombTimeLeftTicks() > need + 192){
-        def.defusing = false; def.defuseCooldownUntil = tick + 96; logEvent(def.id+" прервал дефуз — враг рядом");
+        def.defusing = false; def.defuseCooldownUntil = tick + 96; logEvent(def.id+" прервал дефуз — враг рядом", "bomb");
       } else if(tick >= def.defuseUntil){
         def.defusing = false; bomb.state = "defused";
         def.money = Math.min(MAX_MONEY, def.money + 300);
-        logEvent(def.id+" обезвредил бомбу (+$300)", true);
+        logEvent(def.id+" обезвредил бомбу (+$300)", "bomb");
         feedEvent("defuse", def.id+" обезвредил бомбу"+(bots.some(function(o){ return o.team==="T" && o.alive; }) ? " под носом у T" : ""));
         endRound("CT", "defuse");
       }
@@ -202,7 +202,7 @@ function bombTick(){
           cand.defusing = true; cand.defuseUntil = tick + dTicks;
           cand.path = []; cand.pathIdx = 0;
           defuseSound(cand);
-          logEvent(cand.id+" дефузит"+(cand.kit?" с китом (5с)":" без кита (10с)")+"…");
+          logEvent(cand.id+" дефузит"+(cand.kit?" с китом (5с)":" без кита (10с)")+"…", "bomb");
         }
       }
     }

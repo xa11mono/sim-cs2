@@ -216,7 +216,7 @@ function tryShoot(shooter, target, dist){
     else { mult = 1.0; armored = target.armor; hitZone = "chest"; }
     var dmg = base * mult; if(armored) dmg *= w.armorPen;
     dmg = Math.max(1, Math.round(dmg));
-    shooter.roundDmg = (shooter.roundDmg||0) + Math.min(dmg, Math.max(0, target.hp));
+    noteDmg(shooter, target, dmg);
     target.hp -= dmg; target._hurtT = tick;
     if(BAL.tagging) target._tagUntil = tick + 16; // попали — на ~0.25с замедлен
     if(target.hp > 0){
@@ -257,8 +257,8 @@ function tryShoot(shooter, target, dist){
           logEvent(shooter.id+": после килла меняет позицию");
         }
       }
-      logEvent(shooter.id+" ["+w.name+"] устранил "+target.id+(headshot?" (в голову)":"")+" (дист. "+Math.round(dist)+", +$"+(w.killReward||300)+")", true);
-      feedKill(shooter, target, w.name, headshot);
+      logEvent(shooter.id+" ["+w.name+"] устранил "+target.id+(headshot?" (в голову)":"")+" (дист. "+Math.round(dist)+", +$"+(w.killReward||300)+")", "kill");
+      feedKill(shooter, target, w.key, headshot, {smoke:thruSmoke, noscope:noscope, blind:shooter.blindUntil > tick});
     }
   } else {
     // AWP промахнулся, враг близко — не ждёт перезатвора, а достаёт пистолет

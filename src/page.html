@@ -28,11 +28,12 @@
   #legend{position:absolute;bottom:10px;left:12px;background:rgba(10,14,9,0.88);border:1px solid var(--line);padding:8px 12px;border-radius:6px;font-size:11px;display:flex;gap:16px;}
   #legend span{display:flex;align-items:center;gap:6px;color:var(--text-dim);}
   #legend i{width:9px;height:9px;border-radius:50%;display:inline-block;}
-  #killfeed{position:absolute;top:56px;right:12px;width:300px;display:flex;flex-direction:column;gap:3px;pointer-events:none;font-family:'IBM Plex Mono',monospace;font-size:11.5px;}
-  #killfeed .kf{align-self:flex-end;background:rgba(10,14,9,0.82);border:1px solid var(--line);border-radius:4px;padding:3px 8px;color:var(--text);white-space:nowrap;}
-  #killfeed .kf .ct{color:var(--ct);font-weight:600;} #killfeed .kf .t{color:var(--t);font-weight:600;}
-  #killfeed .kf .w{color:var(--text-dim);font-size:10.5px;} #killfeed .kf .hs{color:#ff6b5e;font-weight:700;}
-  #killfeed .kf.ev{font-weight:600;} #killfeed .kf.bomb{border-color:#e05c52;color:#ff9a8f;} #killfeed .kf.defuse{border-color:#5a9bd9;color:#9ec6ef;}
+  #killfeed{position:absolute;top:56px;right:12px;width:320px;display:flex;flex-direction:column;gap:3px;pointer-events:none;font-family:'IBM Plex Sans','Segoe UI',Arial,sans-serif;font-size:11.5px;}
+  #killfeed .kf{align-self:flex-end;display:flex;align-items:center;gap:5px;background:rgba(8,10,8,0.62);border-radius:3px;padding:2px 8px;height:19px;color:var(--text);white-space:nowrap;}
+  #killfeed .kf .ct{color:#8fc3f2;font-weight:600;} #killfeed .kf .t{color:#f0b84a;font-weight:600;}
+  #killfeed .kf .pl{color:#e8e8e2;margin:0 -1px;} #killfeed .kf svg{fill:#f4f4ee;flex:none;} #killfeed .kf svg.wp{margin:0 2px;} #killfeed .kf svg.fl{fill:#fff8c8;}
+  #killfeed .kf .w{color:#f4f4ee;font-size:10.5px;font-weight:600;}
+  #killfeed .kf.ev{font-weight:600;border:1px solid var(--line);} #killfeed .kf.bomb{border-color:#e05c52;color:#ff9a8f;} #killfeed .kf.defuse{border-color:#5a9bd9;color:#9ec6ef;}
   #killfeed .kf.clutch{border-color:#ffd76a;color:#ffe49a;}
   #killfeed .kf.boom{border-color:#e05c52;background:rgba(80,20,15,0.85);color:#ffb3aa;} #killfeed .kf.round{opacity:.6;font-weight:400;}
   #banner{position:absolute;top:70px;left:50%;transform:translateX(-50%) scale(.9);opacity:0;transition:all .25s;pointer-events:none;font-family:'IBM Plex Sans',sans-serif;font-weight:700;font-size:22px;letter-spacing:.04em;padding:8px 22px;border-radius:6px;background:rgba(10,14,9,0.88);border:1px solid var(--accent-dim);color:#fff;}
@@ -47,9 +48,13 @@
   #econ .tm.ct{color:var(--ct);} #econ .tm.t{color:var(--t);}
   #econ table{width:100%;border-collapse:collapse;} #econ td{padding:0 3px;white-space:nowrap;}
   #econ td.m{color:#94b449;text-align:right;} #econ tr.dead td{opacity:.4;}
-  #log{position:absolute;bottom:10px;right:12px;width:290px;max-height:200px;overflow-y:auto;background:rgba(10,14,9,0.88);border:1px solid var(--line);border-radius:6px;padding:8px 10px;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:10.5px;line-height:1.6;color:var(--text-dim);}
-  #log .ev{color:var(--text);}
-  #log .ev.kill{color:var(--danger);}
+  #logBox{position:absolute;bottom:10px;right:12px;width:300px;display:flex;flex-direction:column;gap:6px;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:10.5px;line-height:1.55;}
+  #logBox .pan{background:rgba(10,14,9,0.88);border:1px solid var(--line);border-radius:6px;padding:6px 10px 8px;overflow-y:auto;color:var(--text-dim);}
+  #logBox .hd{display:flex;justify-content:space-between;align-items:center;color:var(--text-dim);font-size:10px;letter-spacing:.04em;text-transform:uppercase;margin-bottom:3px;}
+  #logBox .hd label{text-transform:none;letter-spacing:0;cursor:pointer;display:flex;gap:4px;align-items:center;}
+  #log{max-height:200px;overflow-y:auto;} #logDbgPan{display:none;max-height:300px;} #logDbg{max-height:270px;overflow-y:auto;}
+  #logBox .ev{color:var(--text);} #logBox .ev.kill{color:var(--danger);} #logBox .ev.bomb{color:#ff9a8f;} #logBox .ev.voice{color:#cfe3a8;}
+  #logBox .ev.team{color:#e9e2c6;} #logBox .ev.round{color:var(--text-dim);} #logBox .ev.dbg{color:var(--text-dim);opacity:.85;}
   #warn{position:absolute;top:336px;left:12px;background:rgba(217,131,47,0.15);border:1px solid var(--site);color:var(--site);padding:6px 12px;border-radius:6px;font-size:10.5px;max-width:340px;display:none;}
   .mk-panel{position:absolute;top:10px;right:12px;width:min(640px,calc(100% - 24px));max-height:calc(100% - 20px);overflow-y:auto;z-index:50;background:#0a0e09;border:1px solid var(--accent-dim);border-radius:8px;padding:12px 14px;font-size:13px;line-height:1.5;}
   .mk-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;color:var(--accent);font-size:14px;}
@@ -76,7 +81,7 @@
 <div id="app">
   <div id="topbar">
     <h1>ANCIENT — LIVE RADAR</h1>
-    <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 177 · 06.10</div>
+    <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 178 · 06.10</div>
     <button id="btnPause">Пауза</button>
     <button id="btnRestartRound" title="Немедленно сбросить текущий раунд — на случай если боты застряли">Рестарт раунда</button>
     <span class="chk" title="Матч с одним номером всегда проходит одинаково. Увидел баг — запиши номер матча и тик, введи номер и нажми «Сыграть»: матч повторится с начала">матч № <input id="inpMatchNum" type="number" min="1" value="1" style="width:52px"> <button id="btnFreshMatch">Сыграть</button> <span id="matchTick" style="opacity:.75"></span></span>
@@ -242,7 +247,10 @@
     </div>
     <div id="contact">ОБНАРУЖЕН КОНТАКТ</div>
     <div id="warn"></div>
-    <div id="log"></div>
+    <div id="logBox">
+      <div class="pan" id="logDbgPan"><div class="hd"><span>Отладка — всё подряд</span></div><div id="logDbg"></div></div>
+      <div class="pan"><div class="hd"><span>Консоль</span><label><input type="checkbox" id="chkLogDbg">отладка</label></div><div id="log"></div></div>
+    </div>
     <div id="econ"></div>
     <div id="killfeed"></div>
     <div id="banner"></div>

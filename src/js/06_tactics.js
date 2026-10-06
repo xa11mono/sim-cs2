@@ -117,7 +117,7 @@ function timeoutCheck(winner){
       T0.avoid = team === "T" ? MEMORY.tacHist.slice(-3) : MEMORY.ctSetupHist.slice(-3);
       var names = team === "T" ? T0.avoid.map(function(id){ var t = T_TACTICS.filter(function(x){ return x.id === id; })[0]; return t ? t.name : id; })
                                : T0.avoid.map(function(id){ var t = CT_SETUPS.filter(function(x){ return x.id === id; })[0]; return t ? t.name : id; });
-      logEvent("ТАЙМ-АУТ "+team+" — три поражения подряд. "+(team === "T" ? "IGL: не повторяем «"+names.join("», «")+"»" : "CT: меняем расстановку, уходим от «"+names.join("», «")+"»")+" (осталось тайм-аутов: "+T0.left+")", true);
+      logEvent("ТАЙМ-АУТ "+team+" — три поражения подряд. "+(team === "T" ? "IGL: не повторяем «"+names.join("», «")+"»" : "CT: меняем расстановку, уходим от «"+names.join("», «")+"»")+" (осталось тайм-аутов: "+T0.left+")", "team");
     }
   });
 }
@@ -131,7 +131,7 @@ function halfReview(){
   var hA = 0, hB = 0; MEMORY.roundHist.forEach(function(r){ if(r.site === "A") hA++; else if(r.site === "B") hB++; });
   if(hA + hB >= 6 && Math.max(hA, hB) >= Math.min(hA, hB)*1.6) HALF_ADJ.ctSite = hA > hB ? "A" : "B";
   logEvent("ПЕРЕРЫВ — IGL T: "+(bad.length ? "убираем «"+bad.join("», «")+"»" : "тактики без изменений")+(good.length ? "; чаще «"+good.join("», «")+"»" : "")+
-    ". CT: "+(HALF_ADJ.ctSite ? "T ходили на "+HALF_ADJ.ctSite+" "+Math.max(hA, hB)+" раз из "+(hA+hB)+" — усиливаем "+HALF_ADJ.ctSite : "расстановка без изменений"), true);
+    ". CT: "+(HALF_ADJ.ctSite ? "T ходили на "+HALF_ADJ.ctSite+" "+Math.max(hA, hB)+" раз из "+(hA+hB)+" — усиливаем "+HALF_ADJ.ctSite : "расстановка без изменений"), "team");
 }
 function chooseTactic(){
   var type = teamEco.T.roundType;
@@ -174,7 +174,7 @@ function chooseTactic(){
   // тайминг выхода гуляет от раунда к раунду (иначе его читают): ~25% —
   // быстрый (на 30% раньше), ~50% — обычный ±4с, ~25% — поздний (+10…18с)
   var setupSec = tac.setupEnd, tmode = "";
-  if(tempoRead) logEvent("IGL: два раунда проиграли "+(tempoRead === "slow" ? "быстрыми выходами — сейчас медленно, от дефолта" : "медленно — сейчас быстрее, пока не ждут"));
+  if(tempoRead) logEvent("IGL: два раунда проиграли "+(tempoRead === "slow" ? "быстрыми выходами — сейчас медленно, от дефолта" : "медленно — сейчас быстрее, пока не ждут"), "team");
   if(BAL.timingVar && setupSec > 0){
     var rT = hashRand(roundNum*6271 + matchNum*353 + 29);
     if(tempoRead === "slow") rT = 0.8 + 0.2*rT; else if(tempoRead === "fast") rT = 0.2*rT;   // (8) темп
@@ -204,9 +204,9 @@ function chooseTactic(){
                read: readTxt, seenCT:{A:0, B:0}, setupSec:setupSec};
   var M = MEMORY.tacMem[tac.id];
   var igl = bots.filter(function(b){ return b.team==="T" && b.tRole==="igl"; })[0];
-  if(readTxt) logEvent("IGL "+(igl?igl.id:"T")+": "+readTxt);
+  if(readTxt) logEvent("IGL "+(igl?igl.id:"T")+": "+readTxt, "team");
   logEvent("IGL "+(igl?igl.id:"T")+": тактика «"+tac.name+"» ("+ROUND_TYPE_LABEL[type]+(tac.setupEnd?", выход на "+setupSec+"с"+tmode:", сразу")+
-    (M && M.n ? ", в этом матче "+M.w+"/"+M.n : "")+")");
+    (M && M.n ? ", в этом матче "+M.w+"/"+M.n : "")+")", "team");
   chooseCtSetup();
 }
 // ---- позиции по названиям зон: кто где держит, занимает, ставит, ретейкает ----
@@ -369,8 +369,8 @@ function chooseCtSetup(){
   MEMORY.ctSetupHist.push(S.id);
   teamTac.CT = {call:null, saving:false, stack:S.stack||null, setup:S, setupWhy: why[S.id]||null};
   // против эко: без ранних пиков и доборов — не дарить оружие, держать вместе
-  if(BAL.ctAntiEco){ var Ee = teamEco.CT.enemyGuess || enemyEcoGuess("CT"); if(Ee.eco && (teamEco.CT.roundType === "full" || teamEco.CT.roundType === "force")){ teamTac.CT.antiEco = true; logEvent("CT: у T, похоже, эко — играем аккуратно: без ранних пиков, не отдаём оружие"); } }
-  logEvent("CT: расстановка «"+S.name+"»"+(why[S.id] ? " — "+why[S.id] : ""));
+  if(BAL.ctAntiEco){ var Ee = teamEco.CT.enemyGuess || enemyEcoGuess("CT"); if(Ee.eco && (teamEco.CT.roundType === "full" || teamEco.CT.roundType === "force")){ teamTac.CT.antiEco = true; logEvent("CT: у T, похоже, эко — играем аккуратно: без ранних пиков, не отдаём оружие", "team"); } }
+  logEvent("CT: расстановка «"+S.name+"»"+(why[S.id] ? " — "+why[S.id] : ""), "team");
 }
 // роль CT по расстановке: позиция по названию зоны (из нескольких — по раунду)
 function ctSetupRole(b, role, ct){
@@ -731,7 +731,7 @@ function tIglReplan(tt, site, other, secLeft){
         tt._rpFast = true;
         tt.execTick = Math.max(tick + 4*TICK_HZ, Math.min(tt.execTick, tick + 6*TICK_HZ));
         voiceLog("T", "rpfast", "IGL", "их игрок "+calloutName(last.kx, last.ky)+" — на "+tt.site+" без него, заходим раньше!");
-        logEvent("IGL: минус в сетапе, но CT далеко от "+tt.site+" — выход раньше");
+        logEvent("IGL: минус в сетапе, но CT далеко от "+tt.site+" — выход раньше", "team");
       }
     }
     // (0) сняли CT в сетапе, мы в большинстве — не спешим: контроль карты и
@@ -743,7 +743,7 @@ function tIglReplan(tt, site, other, secLeft){
         tt._upSlow = tick; tt._rpFast = true; // и не ускоряемся на следующий минус
         if(tt.execTick - tick < 8*TICK_HZ) tt.execTick = tick + 8*TICK_HZ;
         voiceLog("T", "upslow", "IGL", aliveT+" на "+aliveCT+" — не спешим, берём карту и заходим все вместе");
-        logEvent("IGL: численный перевес "+aliveT+"v"+aliveCT+" — без спешки, выход всей группой");
+        logEvent("IGL: численный перевес "+aliveT+"v"+aliveCT+" — без спешки, выход всей группой", "team");
       }
     }
     // (2) двое без размена — лёркер к нам
@@ -754,7 +754,7 @@ function tIglReplan(tt, site, other, secLeft){
       if(lk){ lk._route = null; lk._routeDone = null; }
       tt.execTick = Math.max(tt.execTick, tick + 5*TICK_HZ); // дать дойти
       voiceLog("T", "regroup", "IGL", "минус два — "+(lk ? lk.id+" к нам, " : "")+"заходим все вместе");
-      logEvent("IGL: потеряли двоих без размена — перегруппировка"+(lk ? " (лёркер "+lk.id+" к основной группе)" : ""));
+      logEvent("IGL: потеряли двоих без размена — перегруппировка"+(lk ? " (лёркер "+lk.id+" к основной группе)" : ""), "team");
     }
     // (S8) слышим ротацию CT на наш сайт — можно перейти на другой. Но это
     // только чтение, не гарантия: IGL верит ему не всегда (~60%), и другой сайт
@@ -776,13 +776,13 @@ function tIglReplan(tt, site, other, secLeft){
           tsR.forEach(function(b){ ctrR.x += b.x/tsR.length; ctrR.y += b.y/tsR.length; });
           var trvR = Math.hypot(ctrR.x-SITES[other].x, ctrR.y-SITES[other].y)*1.4/SPEED;
           voiceLog("T", "rotread", "IGL", toward.length+" CT ротируют на "+tt.site+" — идём на "+other+", но углы чекаем, там может кто-то остаться");
-          logEvent("IGL: слышим ротацию CT на "+tt.site+" → перекол на "+other+" (не значит, что там пусто)");
+          logEvent("IGL: слышим ротацию CT на "+tt.site+" → перекол на "+other+" (не значит, что там пусто)", "team");
           tt.site = other; tt.phase = "setup"; tt.execStart = null; tt.plantPick = null; tt.takeAssign = null;
           tt.execTick = tick + Math.round(Math.min(Math.max(4, trvR*0.7), 12)*TICK_HZ);
           nadeFlags.tExec = false; nadeFlags.tExecSm = false; nadeFlags.peekFlashPlanned = false;
           bots.forEach(function(b){ if(b.team === "T"){ b._route = null; b._routeDone = null; b._stageInfo = null; } });
           return true;
-        } else logEvent("IGL: слышим ротацию CT на "+tt.site+", но это может быть фейк — играем по плану");
+        } else logEvent("IGL: слышим ротацию CT на "+tt.site+", но это может быть фейк — играем по плану", "team");
       }
     }
     return false;
@@ -803,11 +803,11 @@ function tIglReplan(tt, site, other, secLeft){
       if(goOther){
         tt.site = other; tt.phase = "setup"; tt.execStart = null; tt.execTick = tick + Math.round(Math.min(travel*0.8, 14)*TICK_HZ);
         voiceLog("T", "abort", "IGL", "выход не прошёл — отходим, все на "+other+"!");
-        logEvent("IGL: выход провалился ("+tD+" наших против "+cD+") — отход, перекол на "+other);
+        logEvent("IGL: выход провалился ("+tD+" наших против "+cD+") — отход, перекол на "+other, "team");
       } else {
         tt.phase = "setup"; tt.execStart = null; tt.execTick = tick + 6*TICK_HZ;
         voiceLog("T", "abort", "IGL", "стоп, отходим — перегруппируемся и заходим вместе");
-        logEvent("IGL: выход провалился ("+tD+" наших против "+cD+") — отход и повторный заход на "+tt.site);
+        logEvent("IGL: выход провалился ("+tD+" наших против "+cD+") — отход и повторный заход на "+tt.site, "team");
       }
       return true;
     }

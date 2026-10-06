@@ -526,7 +526,7 @@ function ctBrain(){
     var massNow = beliefCount("CT", BZ.siteNear[ct.call.site]||[]);
     var lkpHere = picNear("CT", SITES[ct.call.site].x, SITES[ct.call.site].y, 500);
     if(lkpHere === 0 && ((quiet > 6*64 && massNow < 0.6) || quiet > 18*64)){
-      logEvent("CT: по "+ct.call.site+" давно тихо"+(massNow < 0.6 ? " и там вероятно пусто" : "")+" — по местам");
+      logEvent("CT: по "+ct.call.site+" давно тихо"+(massNow < 0.6 ? " и там вероятно пусто" : "")+" — по местам", "team");
       ct.call = null;
     }
   }
@@ -669,7 +669,7 @@ function ctBrain(){
       (cts.length === 1 && tsAlive === 2 && !(cts[0].kit && needSecs + 8 < secs)); // 2v4 — ещё пробуем, 1v3/1v4/2v5 — сейв
     if(cts.length && hopeless && (equip >= 1800 || needSecs > secs)){
       ct.saving = true;
-      logEvent("CT: сейв — ретейк "+cts.length+"v"+tsAlive+(needSecs > secs ? ", не успеть" : "")+", сохраняем оружие");
+      logEvent("CT: сейв — ретейк "+cts.length+"v"+tsAlive+(needSecs > secs ? ", не успеть" : "")+", сохраняем оружие", "team");
     }
   }
   // (8) сейв → ретейк: на сейве сняли T и расклад выровнялся (1v1, 2v2, 1v2 при
@@ -682,12 +682,12 @@ function ctBrain(){
       // врагов не осталось — сейвить не от кого: идём дефузить, если успеваем
       if(evenS && needS + (tsS ? 2 : 0) < secsS){
         ct.saving = false; ct._noResave = true; cts.forEach(function(b){ b._saveSpot = null; });
-        logEvent("CT: сейв → ретейк — теперь "+cts.length+"v"+tsS+", успеваем ("+Math.round(secsS)+"с)");
+        logEvent("CT: сейв → ретейк — теперь "+cts.length+"v"+tsS+", успеваем ("+Math.round(secsS)+"с)", "team");
         voiceLog("CT", "sv2rt", cts[0].id, cts.length+" на "+tsS+" — успеваем, идём ретейкать!");
       }
     } else if(ct.preSave && cts.length >= tsS){
       ct.saving = false; ct.preSave = false; ct._noResave = true; cts.forEach(function(b){ b._saveSpot = null; });
-      logEvent("CT: сейв → ретейк — теперь "+cts.length+"v"+tsS+", играем раунд");
+      logEvent("CT: сейв → ретейк — теперь "+cts.length+"v"+tsS+", играем раунд", "team");
     }
   }
   // сейв CT до планта: 1v3+/2v5, T уже заходят на сайт, у нас есть что сохранять
@@ -696,7 +696,7 @@ function ctBrain(){
     var secL2 = ROUND_TIME_SEC - (simTime - roundStartTime);
     if(((cts.length === 1 && tsA2 >= 3) || (cts.length === 2 && tsA2 >= 5)) && eq2 >= 2700 && secL2 > 25){
       ct.saving = true; ct.preSave = true;
-      logEvent("CT: сейв до планта — "+cts.length+"v"+tsA2+", выход на "+ct.call.site+" — сохраняем оружие");
+      logEvent("CT: сейв до планта — "+cts.length+"v"+tsA2+", выход на "+ct.call.site+" — сохраняем оружие", "team");
       voiceLog("CT", "presave", cts[0].id, cts.length+" против "+tsA2+", они уже на "+ct.call.site+" — сейв");
     }
   }

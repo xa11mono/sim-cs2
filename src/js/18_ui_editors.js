@@ -73,7 +73,7 @@ cv.addEventListener("mousemove", function(e){
 });
 document.getElementById("btnRecomputeDanger").addEventListener("click", function(){
   computeZoneDanger();
-  logEvent("Таблица опасности пересчитана ("+ZONEMAP.zones.length+" зон)");
+  logEvent("Таблица опасности пересчитана ("+ZONEMAP.zones.length+" зон)", "round");
 });
 
 // ---------- navmesh align mode: drag to move, wheel to scale ----------
@@ -141,7 +141,7 @@ btnWallRevert.addEventListener("click", function(){
   selectedObjId = null;
   rebuildManualWalls();
   updateWallEditCount();
-  logEvent("Стены сброшены к версии из кода");
+  logEvent("Стены сброшены к версии из кода", "round");
 });
 btnWallExport.addEventListener("click", function(){
   // absolute points for every object, baked (ignores fromRaw/wallTransform/

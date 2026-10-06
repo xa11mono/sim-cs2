@@ -75,14 +75,26 @@ function updateRoamer(bot){
 // ---------- combat ----------
 var DECISION_INTERVAL_TICKS = 12;
 
-function logEvent(text, isKill){
-  text = nickify(text);
-  events.unshift({t: simTime.toFixed(1), text: text, kill: !!isKill});
-  if(events.length > 40) events.length = 40;
-  var el = document.getElementById("log");
-  el.innerHTML = events.map(function(e){
-    return '<div class="ev'+(e.kill?' kill':'')+'">['+e.t+'s] '+e.text+'</div>';
-  }).join("");
+// Одна запись для консоли. kind — что это для смотрящего: kill (фраг), bomb
+// (плант/дефуз/взрыв), team (решение команды: план, перестройка, сейв, ретейк),
+// voice (колл в тимспике), round (раунд/матч). Без kind — отладка: только в
+// скрытом журнале (галочка «отладка»), в консоль не попадает.
+function logEvent(text, kind){
+  var e = {t: simTime.toFixed(1), text: nickify(text), kind: kind || "dbg"};
+  events.unshift(e);
+  if(events.length > 400) events.length = 400;
+  if(e.kind !== "dbg") renderLog("log", true);
+  if(logDebugOpen) renderLog("logDbg", false);
+}
+var logDebugOpen = false;
+function renderLog(id, mainOnly){
+  var el = document.getElementById(id); if(!el) return;
+  var h = "", n = 0;
+  for(var i = 0; i < events.length && n < (mainOnly ? 40 : 400); i++){
+    var e = events[i]; if(mainOnly && e.kind === "dbg") continue; n++;
+    h += '<div class="ev '+e.kind+'">['+e.t+'s] '+esc(e.text)+'</div>';
+  }
+  el.innerHTML = h;
 }
 var tracers = [];
 // (v151) как выглядит выстрел у разного оружия: пистолет — тонкий короткий след и

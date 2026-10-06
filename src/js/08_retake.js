@@ -78,7 +78,7 @@ function updateRetake(cts){
   if(!R){
     R = bomb.retake = {approaches: computeApproaches(), assign:{}, phase:"gather", goTick:-1};
     logEvent("CT: ретейк "+bomb.site+" — "+R.approaches.length+" точк"+(R.approaches.length===1?"а":"и")+" сбора"+
-      (R.approaches.some(function(a){ return a.name; }) ? " ("+R.approaches.map(function(a){ return a.name || "укрытие"; }).join(", ")+")" : ""));
+      (R.approaches.some(function(a){ return a.name; }) ? " ("+R.approaches.map(function(a){ return a.name || "укрытие"; }).join(", ")+")" : ""), "team");
   }
   // роли: дефузер — с китом и ближе всех; фланг — самый дальний от основной точки,
   // если людей 3+ и точек сбора больше одной; остальные — прикрытие
@@ -115,7 +115,7 @@ function updateRetake(cts){
     if(tLeftN > dN/SPEED*1.3 + (def.kit ? 5 : 10) + 1){
       R.phase = "go"; R.goTick = tick; R.ninja = tick; R.entryId = "-";
       voiceLog("CT", "ninja", def.id, "их нет у бомбы — тихо дефузю, прикройте");
-      logEvent("CT: ниндзя-дефуз — все T известны далеко от бомбы");
+      logEvent("CT: ниндзя-дефуз — все T известны далеко от бомбы", "team");
     }
   }
   if(R.phase === "gather"){
@@ -141,9 +141,9 @@ function updateRetake(cts){
       // поджимает — сразу
       var util = BAL.retakeRoles && !late && alive.length >= 2 && retakeUtil(R, alive);
       if(util){ R.phase = "util"; R.utilTick = tick;
-        logEvent("CT: ретейк — все на точках ("+ready+"/"+alive.length+"), "+util+" — заход под флешку"); }
+        logEvent("CT: ретейк — все на точках ("+ready+"/"+alive.length+"), "+util+" — заход под флешку", "team"); }
       else { R.phase = "go"; R.goTick = tick;
-        logEvent("CT: ретейк — заходим! ("+ready+"/"+alive.length+" на точках"+(late ? ", время поджимает" : "")+")"); }
+        logEvent("CT: ретейк — заходим! ("+ready+"/"+alive.length+" на точках"+(late ? ", время поджимает" : "")+")", "team"); }
     }
     R.ready = ready; R.need = need;
   }
@@ -152,7 +152,7 @@ function updateRetake(cts){
     var lateU = bombTimeLeftTicks()/TICK_HZ - ((def ? Math.hypot(def.x-bomb.x, def.y-bomb.y) : 400)/SPEED*1.3 + (def && def.kit ? 5 : 10) + 1.5) < 3;
     if(popped || tick - R.utilTick > 2.2*TICK_HZ || lateU){
       R.phase = "go"; R.goTick = tick;
-      logEvent("CT: ретейк — заходим"+(popped ? " под флешку!" : "!"));
+      logEvent("CT: ретейк — заходим"+(popped ? " под флешку!" : "!"), "team");
     }
   }
   // дефуз под смоком: дефузер подходит к бомбе — смок на неё (его или тиммейта),
