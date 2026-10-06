@@ -11,7 +11,7 @@ roundStartTime = BAL.freeze; roundStartTick = Math.round(BAL.freeze*TICK_HZ);
 buyPhase(); // закуп первого (пистолетного) раунда — после объявления simTime (logEvent его использует)
 resetBomb();
 chooseTactic();
-beliefBuild(); beliefReset(); // раздел 13: карта вероятностей врага
+beliefBuild(); knowReset(); // знание о врагах (09_knowledge.js)
 
 function stepTick(){
   tick++;
@@ -216,7 +216,7 @@ function stepTick(){
         soundPings.push({x:bot.baseX, y:bot.baseY, team:bot.team, born:nowTs, radius:soundRadius});
         // (4) сам знает, что шумит: бежал в пределах слышимости места, где враг вероятен
         if(BAL.heardMe && roundState === "live"){ var zN = bzOf(bot.x, bot.y); if(zN >= 0){ var nearZ = [zN].concat(BZ.nbr[zN]||[]);
-          if(nearZ.some(function(j){ var cj = BZ.cent[j]; return cj && Math.hypot(cj.x-bot.x, cj.y-bot.y) < soundRadius && reachPossible(bot.team, j) && beliefZoneKnown(bot.team, j) >= 0.2; })) bot._noisyT = tick; } }
+          if(nearZ.some(function(j){ var cj = BZ.cent[j]; return cj && Math.hypot(cj.x-bot.x, cj.y-bot.y) < soundRadius && reachPossible(bot.team, j) && infoZone(bot.team, j) >= 0.2; })) bot._noisyT = tick; } }
         if(soundPings.length > 40) soundPings.shift();
         makeSound(bot, bot.x, bot.y, wet ? "water" : "steps", {mul: wet && bot.walking ? 220/SOUND.water.open : 1, seed: bot.lastStepTick});
       }
@@ -460,7 +460,7 @@ function stepTick(){
   if(BAL.smokeReact) smokeHeTick();
   teamInfoTick(); // раздел 11: восприятие этого тика → радар и блокнот бота
   talkTick();     // тимспик: кто что говорит, кто что услышал (К10)
-  beliefTick();   // раздел 13: карта вероятностей врага
+  knowTick();   // знание о врагах: что видят свои — закрыто (REACH)
   checkRoundEnd();
 }
 

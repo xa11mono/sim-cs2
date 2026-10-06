@@ -891,7 +891,7 @@ function applyZoneLayer(heavy){
   ZONEMAP.zones.forEach(function(z){ ZONE_CENTROIDS[z.id] = zoneMapCentroid(z); });
   computeZoneDanger();
   applyUserZones(); // пул точек, спавны (resnap), маршруты роумеров, сайты
-  if(typeof beliefBuild === "function"){ beliefBuild(); beliefReset(); }
+  if(typeof beliefBuild === "function"){ beliefBuild(); knowReset(); }
 }
 // walls block movement, not just sight — hasLOS above is line-of-sight only
 // (bullets/visibility); this is the same wall geometry used as a physical

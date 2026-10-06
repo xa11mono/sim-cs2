@@ -131,7 +131,7 @@
 <div id="app">
   <div id="topbar">
     <h1>ANCIENT — LIVE RADAR</h1>
-    <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 195 · 07.10</div>
+    <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 196 · 07.10</div>
     <button id="btnPause">Пауза</button>
     <button id="btnRestartRound" title="Немедленно сбросить текущий раунд — на случай если боты застряли">Рестарт раунда</button>
     <span class="chk" title="Матч с одним номером всегда проходит одинаково. Увидел баг — запиши номер матча и тик, введи номер и нажми «Сыграть»: матч повторится с начала">матч № <input id="inpMatchNum" type="number" min="1" value="1" style="width:52px"> <button id="btnFreshMatch">Сыграть</button> <span id="matchTick" style="opacity:.75"></span></span>
@@ -139,6 +139,7 @@
     <label class="chk"><input type="checkbox" id="chkNavmesh"> навмеш</label>
     <label class="chk"><input type="checkbox" id="chkPortals"> порталы</label>
     <label class="chk" title="Места из демок: где про держат угол и куда оттуда смотрят (CT — синие, T — оранжевые; кольцо — после планта / ретейк). Боты выбирают места только отсюда"><input type="checkbox" id="chkSpots"> места из демок</label>
+    <label class="chk" title="Углы у выбранного игрока (клик по нему на радаре): что он видит, края стен, за которыми может стоять враг, их опасность (красный — опасно сейчас, жёлтый — инфа, серый — враг ещё не мог дойти, синий — за краем свой) и какой край он держит (кольцо)"><input type="checkbox" id="chkCorners"> углы</label>
     <label class="chk" title="Слой зон карты. Клик по зоне — переименовать её (Кейв, Донат, Мейн…)"><input type="checkbox" id="chkZones"> зоны (клик — название)</label>
     <label class="chk"><input type="checkbox" id="chkPoints"> точки</label>
     <label class="chk" title="Наведи курсор на зону (при включённом слое «зоны») — подсветятся все зоны, откуда её простреливают"><input type="checkbox" id="chkDanger"> опасность (наведи)</label>
@@ -1215,7 +1216,7 @@ function applyZoneLayer(heavy){
   ZONEMAP.zones.forEach(function(z){ ZONE_CENTROIDS[z.id] = zoneMapCentroid(z); });
   computeZoneDanger();
   applyUserZones(); // пул точек, спавны (resnap), маршруты роумеров, сайты
-  if(typeof beliefBuild === "function"){ beliefBuild(); beliefReset(); }
+  if(typeof beliefBuild === "function"){ beliefBuild(); knowReset(); }
 }
 // walls block movement, not just sight — hasLOS above is line-of-sight only
 // (bullets/visibility); this is the same wall geometry used as a physical
@@ -1385,70 +1386,36 @@ applyUserZones();
 // SPOTS[i] = {id, x, y — где стоять; side "CT" | "T"; phase "pre" (до планта)
 //   | "post" (T после планта) | "retake" (CT после планта); area "A" | "B" |
 //   "M" | "" (вне районов); looks — 1–2 направления взгляда {x, y, w — доля
-//   времени}; n — сколько раз там стояли}. Что игра считает сама по стенам и
-//   зонам по главному направлению взгляда (spotDerive): hold — зона, где стоишь;
-//   from — зона, откуда придёт враг; key — какой это вход; open — доля мест
-//   врага, откуда точку видно; dirs — сколько других направлений её видят.
+//   времени}; n — сколько раз там стояли}. Что видно с места и какие входы
+//   открыты — по углам (10_corners.js), как с любой точки.
 var SPOTS_DATA = {"v":1,"note":"библиотека мест из демок (tools/spots_bake.py): стоят и держат угол, не в бою; looks — 1–2 частых направления взгляда","demos":12,"segs":3313,"spots":[{"x":613.5,"y":825.2,"side":"CT","phase":"pre","area":"A","zone":"Donut","looks":[{"x":722.4,"y":885.0,"w":0.74}],"n":61,"m":11,"sec":427,"t":26,"id":"s1"},{"x":1703.3,"y":767.5,"side":"CT","phase":"pre","area":"B","zone":"B Site","looks":[{"x":1584.7,"y":785.5,"w":0.81}],"n":56,"m":12,"sec":337,"t":46,"id":"s2"},{"x":1420.0,"y":786.6,"side":"CT","phase":"pre","area":"B","zone":"Cave / House","looks":[{"x":1389.2,"y":902.5,"w":0.6}],"n":44,"m":11,"sec":250,"t":44,"id":"s3"},{"x":555.9,"y":396.9,"side":"CT","phase":"pre","area":"A","zone":"Def","looks":[{"x":496.9,"y":501.4,"w":0.88}],"n":38,"m":10,"sec":389,"t":38,"id":"s4"},{"x":1473.8,"y":992.8,"side":"CT","phase":"pre","area":"B","zone":"Lamp Room / Excavation","looks":[{"x":1593.3,"y":981.8,"w":0.31},{"x":1479.0,"y":1112.7,"w":0.26}],"n":37,"m":10,"sec":264,"t":23,"id":"s5"},{"x":486.7,"y":477.2,"side":"CT","phase":"pre","area":"A","zone":"A Site","looks":[{"x":429.8,"y":582.9,"w":0.78}],"n":34,"m":9,"sec":360,"t":23,"id":"s6"},{"x":1739.2,"y":655.8,"side":"CT","phase":"pre","area":"B","zone":"B Site","looks":[{"x":1631.4,"y":708.4,"w":0.75}],"n":32,"m":10,"sec":288,"t":26,"id":"s7"},{"x":707.1,"y":997.8,"side":"CT","phase":"pre","area":"A","zone":"Donut","looks":[{"x":545.0,"y":480.5,"w":0.73}],"n":31,"m":9,"sec":188,"t":44,"id":"s8"},{"x":1334.1,"y":762.8,"side":"CT","phase":"pre","area":"B","zone":"Dark Box","looks":[{"x":1354.0,"y":999.8,"w":0.84}],"n":29,"m":9,"sec":236,"t":58,"id":"s9"},{"x":1400.4,"y":492.8,"side":"CT","phase":"pre","area":"B","zone":"Alley","looks":[{"x":1484.8,"y":676.5,"w":0.73}],"n":29,"m":10,"sec":126,"t":28,"id":"s10"},{"x":1406.8,"y":898.4,"side":"CT","phase":"pre","area":"B","zone":"Dark","looks":[{"x":1324.9,"y":986.2,"w":0.78}],"n":26,"m":10,"sec":271,"t":34,"id":"s11"},{"x":465.5,"y":392.2,"side":"CT","phase":"pre","area":"A","zone":"A Site","looks":[{"x":437.4,"y":513.5,"w":1.0}],"n":26,"m":8,"sec":213,"t":16,"id":"s12"},{"x":986.4,"y":619.3,"side":"CT","phase":"pre","area":"M","zone":"Sniper Nest","looks":[{"x":889.4,"y":1224.1,"w":0.95}],"n":26,"m":10,"sec":98,"t":17,"id":"s13"},{"x":798.7,"y":920.0,"side":"CT","phase":"pre","area":"M","zone":"Chamber Lane","looks":[{"x":895.4,"y":991.1,"w":0.96}],"n":25,"m":10,"sec":157,"t":40,"id":"s14"},{"x":1420.7,"y":704.5,"side":"CT","phase":"pre","area":"B","zone":"Cave / House","looks":[{"x":1507.6,"y":787.3,"w":0.89}],"n":23,"m":10,"sec":178,"t":45,"id":"s15"},{"x":1579.4,"y":965.5,"side":"CT","phase":"pre","area":"B","zone":"Bonger / Wood / Ninja","looks":[{"x":1696.3,"y":992.9,"w":0.71}],"n":22,"m":6,"sec":81,"t":33,"id":"s16"},{"x":567.1,"y":861.6,"side":"CT","phase":"pre","area":"A","zone":"Donut","looks":[{"x":679.7,"y":903.2,"w":0.82}],"n":20,"m":6,"sec":89,"t":58,"id":"s17"},{"x":1657.0,"y":769.2,"side":"CT","phase":"pre","area":"B","zone":"Site B","looks":[{"x":1657.0,"y":889.2,"w":0.98}],"n":19,"m":7,"sec":109,"t":31,"id":"s18"},{"x":1023.6,"y":684.8,"side":"CT","phase":"pre","area":"M","zone":"Sniper Nest","looks":[{"x":896.5,"y":994.8,"w":0.92}],"n":18,"m":10,"sec":120,"t":29,"id":"s19"},{"x":549.7,"y":979.1,"side":"CT","phase":"pre","area":"A","zone":"Donut","looks":[{"x":669.4,"y":969.8,"w":0.98}],"n":18,"m":3,"sec":112,"t":61,"id":"s20"},{"x":469.9,"y":712.6,"side":"CT","phase":"pre","area":"A","zone":"A Main","looks":[{"x":351.1,"y":729.6,"w":0.87}],"n":17,"m":7,"sec":103,"t":31,"id":"s21"},{"x":1191.6,"y":1089.9,"side":"CT","phase":"pre","area":"B","zone":"Lamp Room / Excavation","looks":[{"x":1306.5,"y":1124.4,"w":0.7}],"n":17,"m":7,"sec":78,"t":32,"id":"s22"},{"x":518.5,"y":391.0,"side":"CT","phase":"pre","area":"A","zone":"Def","looks":[{"x":455.8,"y":493.4,"w":0.66},{"x":548.0,"y":507.3,"w":0.33}],"n":17,"m":10,"sec":88,"t":46,"id":"s23"},{"x":1057.3,"y":1126.5,"side":"CT","phase":"pre","area":"M","zone":"Mid","looks":[{"x":691.3,"y":1204.5,"w":0.85}],"n":17,"m":4,"sec":77,"t":31,"id":"s24"},{"x":1123.3,"y":983.0,"side":"CT","phase":"pre","area":"B","zone":"Lamp Room / Excavation","looks":[{"x":1004.0,"y":996.1,"w":0.79}],"n":16,"m":7,"sec":72,"t":28,"id":"s25"},{"x":722.6,"y":889.2,"side":"CT","phase":"pre","area":"M","zone":"Chamber Lane","looks":[{"x":827.0,"y":948.4,"w":0.95}],"n":15,"m":8,"sec":180,"t":29,"id":"s26"},{"x":938.6,"y":558.2,"side":"CT","phase":"pre","area":"M","zone":"Sniper Nest","looks":[{"x":1026.2,"y":906.6,"w":1.0}],"n":15,"m":8,"sec":54,"t":48,"id":"s27"},{"x":1392.8,"y":936.2,"side":"CT","phase":"pre","area":"B","zone":"Dark","looks":[{"x":1280.7,"y":979.1,"w":0.64}],"n":14,"m":6,"sec":144,"t":40,"id":"s28"},{"x":1425.0,"y":987.5,"side":"CT","phase":"pre","area":"B","zone":"Lamp Room / Excavation","looks":[{"x":1712.5,"y":920.3,"w":0.94}],"n":14,"m":4,"sec":61,"t":35,"id":"s29"},{"x":381.2,"y":420.3,"side":"CT","phase":"pre","area":"A","zone":"A Site","looks":[{"x":515.4,"y":692.2,"w":0.79}],"n":13,"m":6,"sec":194,"t":35,"id":"s30"},{"x":1368.8,"y":985.7,"side":"CT","phase":"pre","area":"B","zone":"Lamp Room / Excavation","looks":[{"x":1304.2,"y":1086.9,"w":0.92}],"n":13,"m":7,"sec":132,"t":31,"id":"s31"},{"x":1523.0,"y":800.5,"side":"CT","phase":"pre","area":"B","zone":"Site B","looks":[{"x":1739.7,"y":1119.0,"w":0.9}],"n":13,"m":7,"sec":100,"t":27,"id":"s32"},{"x":1605.6,"y":726.4,"side":"CT","phase":"pre","area":"B","zone":"Site B","looks":[{"x":1641.7,"y":978.3,"w":0.94}],"n":13,"m":4,"sec":88,"t":45,"id":"s33"},{"x":1185.6,"y":632.0,"side":"CT","phase":"pre","area":"M","zone":"Sniper Nest","looks":[{"x":1112.7,"y":536.7,"w":0.86}],"n":13,"m":5,"sec":53,"t":65,"id":"s34"},{"x":967.4,"y":365.1,"side":"CT","phase":"pre","area":"M","zone":"Connector / Red Room / Red","looks":[{"x":860.2,"y":419.2,"w":0.99}],"n":12,"m":8,"sec":159,"t":21,"id":"s35"},{"x":924.9,"y":385.1,"side":"CT","phase":"pre","area":"M","zone":"Connector / Red Room / Red","looks":[{"x":817.7,"y":439.0,"w":0.88}],"n":12,"m":6,"sec":67,"t":32,"id":"s36"},{"x":1309.6,"y":937.5,"side":"CT","phase":"pre","area":"B","zone":"Dark","looks":[{"x":1426.4,"y":964.9,"w":0.73}],"n":11,"m":6,"sec":69,"t":68,"id":"s37"},{"x":1024.3,"y":738.9,"side":"CT","phase":"pre","area":"M","zone":"Top Mid","looks":[{"x":907.2,"y":765.2,"w":0.53}],"n":11,"m":8,"sec":58,"t":26,"id":"s38"},{"x":1541.6,"y":969.6,"side":"CT","phase":"pre","area":"B","zone":"Bonger / Wood / Ninja","looks":[{"x":1546.8,"y":1089.5,"w":0.6},{"x":1660.7,"y":983.9,"w":0.32}],"n":11,"m":6,"sec":42,"t":26,"id":"s39"},{"x":1388.5,"y":529.6,"side":"CT","phase":"pre","area":"B","zone":"Alley","looks":[{"x":1269.4,"y":544.0,"w":0.48},{"x":1447.7,"y":633.9,"w":0.51}],"n":11,"m":5,"sec":60,"t":41,"id":"s40"},{"x":763.3,"y":542.5,"side":"CT","phase":"pre","area":"A","zone":"A Site","looks":[{"x":648.4,"y":577.1,"w":0.94}],"n":11,"m":7,"sec":38,"t":39,"id":"s41"},{"x":686.2,"y":947.5,"side":"CT","phase":"pre","area":"A","zone":"Donut","looks":[{"x":1108.8,"y":985.8,"w":0.62},{"x":604.0,"y":700.7,"w":0.37}],"n":10,"m":4,"sec":60,"t":33,"id":"s42"},{"x":1656.0,"y":517.5,"side":"CT","phase":"pre","area":"B","zone":"Second Lane","looks":[{"x":1640.3,"y":978.3,"w":1.0}],"n":10,"m":4,"sec":72,"t":34,"id":"s43"},{"x":928.0,"y":698.8,"side":"CT","phase":"pre","area":"M","zone":"Top Mid","looks":[{"x":1076.5,"y":1120.1,"w":0.49}],"n":10,"m":7,"sec":35,"t":8,"id":"s44"},{"x":1257.7,"y":1024.7,"side":"CT","phase":"pre","area":"B","zone":"Lamp Room / Excavation","looks":[{"x":1249.9,"y":1231.7,"w":1.0}],"n":10,"m":6,"sec":40,"t":34,"id":"s45"},{"x":1651.6,"y":1071.6,"side":"CT","phase":"pre","area":"B","zone":"Rat","looks":[{"x":1661.3,"y":1224.3,"w":0.96}],"n":9,"m":6,"sec":54,"t":54,"id":"s46"},{"x":595.3,"y":872.8,"side":"CT","phase":"pre","area":"A","zone":"Donut","looks":[{"x":1076.5,"y":1032.4,"w":0.96}],"n":9,"m":7,"sec":52,"t":33,"id":"s47"},{"x":1192.8,"y":1137.6,"side":"CT","phase":"pre","area":"B","zone":"Triple / Window / Cat","looks":[{"x":691.4,"y":1207.3,"w":0.61},{"x":1263.7,"y":1234.5,"w":0.39}],"n":9,"m":5,"sec":42,"t":44,"id":"s48"},{"x":1478.5,"y":678.4,"side":"CT","phase":"pre","area":"B","zone":"Cave / House","looks":[{"x":1535.1,"y":784.2,"w":0.99}],"n":9,"m":5,"sec":49,"t":15,"id":"s49"},{"x":1409.3,"y":548.1,"side":"CT","phase":"pre","area":"B","zone":"Dark Box","looks":[{"x":1465.0,"y":654.4,"w":1.0}],"n":9,"m":5,"sec":30,"t":37,"id":"s50"},{"x":364.6,"y":920.3,"side":"CT","phase":"pre","area":"A","zone":"A Hall","looks":[{"x":383.2,"y":1038.9,"w":1.0}],"n":9,"m":4,"sec":26,"t":53,"id":"s51"},{"x":1311.5,"y":1026.6,"side":"CT","phase":"pre","area":"B","zone":"Lamp Room / Excavation","looks":[{"x":1235.2,"y":1176.3,"w":1.0}],"n":9,"m":2,"sec":30,"t":48,"id":"s52"},{"x":601.5,"y":781.5,"side":"CT","phase":"pre","area":"A","zone":"Donut","looks":[{"x":637.9,"y":480.9,"w":0.55},{"x":684.8,"y":867.9,"w":0.3}],"n":9,"m":6,"sec":27,"t":41,"id":"s53"},{"x":1442.3,"y":757.4,"side":"CT","phase":"pre","area":"B","zone":"Cave / House","looks":[{"x":1382.3,"y":861.3,"w":0.57},{"x":1525.6,"y":978.0,"w":0.25}],"n":8,"m":5,"sec":40,"t":30,"id":"s54"},{"x":1380.3,"y":1030.8,"side":"CT","phase":"pre","area":"B","zone":"Lamp Room / Excavation","looks":[{"x":1235.0,"y":1163.5,"w":0.9}],"n":8,"m":4,"sec":45,"t":25,"id":"s55"},{"x":1625.2,"y":968.3,"side":"CT","phase":"pre","area":"B","zone":"Bonger / Wood / Ninja","looks":[{"x":1539.3,"y":1052.1,"w":0.48},{"x":1638.0,"y":1087.6,"w":0.31}],"n":8,"m":6,"sec":48,"t":41,"id":"s56"},{"x":415.9,"y":648.9,"side":"CT","phase":"pre","area":"A","zone":"A Main","looks":[{"x":384.2,"y":764.6,"w":1.0}],"n":8,"m":5,"sec":40,"t":16,"id":"s57"},{"x":1476.0,"y":1059.6,"side":"CT","phase":"pre","area":"B","zone":"Lamp Room / Excavation","looks":[{"x":1482.9,"y":1179.4,"w":0.37}],"n":8,"m":3,"sec":30,"t":93,"id":"s58"},{"x":574.6,"y":954.4,"side":"CT","phase":"pre","area":"A","zone":"Donut","looks":[{"x":614.2,"y":841.2,"w":0.57},{"x":694.3,"y":945.7,"w":0.38}],"n":8,"m":3,"sec":30,"t":42,"id":"s59"},{"x":656.5,"y":662.5,"side":"CT","phase":"pre","area":"A","zone":"Short","looks":[{"x":537.1,"y":650.6,"w":0.76}],"n":7,"m":5,"sec":59,"t":39,"id":"s60"},{"x":274.6,"y":857.9,"side":"CT","phase":"pre","area":"A","zone":"Main Hall / Candle","looks":[{"x":390.2,"y":889.9,"w":0.53}],"n":7,"m":3,"sec":50,"t":27,"id":"s61"},{"x":1122.3,"y":603.6,"side":"CT","phase":"pre","area":"M","zone":"Sniper Nest","looks":[{"x":882.0,"y":523.9,"w":0.97}],"n":7,"m":2,"sec":37,"t":39,"id":"s62"},{"x":1608.4,"y":560.0,"side":"CT","phase":"pre","area":"B","zone":"Second Lane","looks":[{"x":1658.6,"y":669.0,"w":0.21}],"n":7,"m":5,"sec":27,"t":50,"id":"s63"},{"x":1493.0,"y":804.8,"side":"CT","phase":"pre","area":"B","zone":"Cave / House","looks":[{"x":1660.6,"y":821.2,"w":0.41}],"n":7,"m":4,"sec":26,"t":18,"id":"s64"},{"x":413.6,"y":783.1,"side":"CT","phase":"pre","area":"A","zone":"A Main","looks":[{"x":488.3,"y":1100.8,"w":1.0}],"n":7,"m":3,"sec":21,"t":28,"id":"s65"},{"x":1725.0,"y":629.6,"side":"CT","phase":"pre","area":"B","zone":"B Site","looks":[{"x":1631.6,"y":704.9,"w":0.8}],"n":7,"m":3,"sec":24,"t":64,"id":"s66"},{"x":1069.7,"y":1094.8,"side":"CT","phase":"pre","area":"M","zone":"Mid","looks":[{"x":691.4,"y":1208.7,"w":1.0}],"n":7,"m":5,"sec":20,"t":34,"id":"s67"},{"x":992.2,"y":742.9,"side":"CT","phase":"pre","area":"M","zone":"Top Mid","looks":[{"x":904.9,"y":1002.8,"w":0.89}],"n":7,"m":5,"sec":20,"t":9,"id":"s68"},{"x":1388.1,"y":1086.7,"side":"CT","phase":"pre","area":"B","zone":"Lamp Room / Excavation","looks":[{"x":1184.7,"y":1097.0,"w":0.86}],"n":7,"m":5,"sec":17,"t":43,"id":"s69"},{"x":1374.0,"y":775.0,"side":"CT","phase":"pre","area":"B","zone":"Cave / House","looks":[{"x":1469.7,"y":847.4,"w":0.84}],"n":6,"m":5,"sec":81,"t":47,"id":"s70"},{"x":681.4,"y":851.3,"side":"CT","phase":"pre","area":"M","zone":"Chamber Lane","looks":[{"x":641.3,"y":738.1,"w":0.55}],"n":6,"m":3,"sec":56,"t":39,"id":"s71"},{"x":1706.2,"y":664.3,"side":"CT","phase":"pre","area":"B","zone":"B Site","looks":[{"x":1597.6,"y":715.3,"w":0.69}],"n":6,"m":4,"sec":25,"t":30,"id":"s72"},{"x":533.7,"y":917.7,"side":"CT","phase":"pre","area":"A","zone":"Donut","looks":[{"x":680.7,"y":770.4,"w":0.63}],"n":6,"m":2,"sec":21,"t":55,"id":"s73"},{"x":1176.1,"y":504.0,"side":"CT","phase":"pre","area":"B","zone":"Alley","looks":[{"x":1163.2,"y":623.3,"w":0.82}],"n":6,"m":3,"sec":30,"t":56,"id":"s74"},{"x":1311.5,"y":835.3,"side":"CT","phase":"pre","area":"B","zone":"Cave / House","looks":[{"x":1353.4,"y":999.8,"w":0.95}],"n":6,"m":4,"sec":22,"t":53,"id":"s75"},{"x":1133.1,"y":516.8,"side":"CT","phase":"pre","area":"A","zone":"Alley","looks":[{"x":930.1,"y":606.1,"w":0.87}],"n":6,"m":3,"sec":22,"t":53,"id":"s76"},{"x":1000.5,"y":350.2,"side":"CT","phase":"pre","area":"M","zone":"Connector / Red Room / Red","looks":[{"x":892.8,"y":403.3,"w":1.0}],"n":6,"m":4,"sec":22,"t":32,"id":"s77"},{"x":1440.0,"y":626.6,"side":"CT","phase":"pre","area":"B","zone":"Dark Box","looks":[{"x":1499.5,"y":730.8,"w":1.0}],"n":6,"m":4,"sec":16,"t":28,"id":"s78"},{"x":1503.8,"y":964.9,"side":"CT","phase":"pre","area":"B","zone":"Lamp Room / Excavation","looks":[{"x":1623.7,"y":978.3,"w":0.85}],"n":6,"m":3,"sec":16,"t":31,"id":"s79"},{"x":845.2,"y":960.6,"side":"CT","phase":"pre","area":"M","zone":"Chamber Lane","looks":[{"x":941.3,"y":1032.6,"w":0.88}],"n":6,"m":4,"sec":16,"t":14,"id":"s80"},{"x":755.4,"y":509.2,"side":"CT","phase":"pre","area":"A","zone":"A Site","looks":[{"x":643.6,"y":552.6,"w":0.78}],"n":6,"m":4,"sec":14,"t":38,"id":"s81"},{"x":638.2,"y":836.6,"side":"CT","phase":"pre","area":"A","zone":"Donut","looks":[{"x":755.2,"y":810.1,"w":0.54},{"x":816.8,"y":964.5,"w":0.44}],"n":6,"m":4,"sec":15,"t":41,"id":"s82"},{"x":885.4,"y":405.7,"side":"CT","phase":"pre","area":"M","zone":"Connector / Red Room / Red","looks":[{"x":779.3,"y":461.8,"w":1.0}],"n":5,"m":3,"sec":45,"t":15,"id":"s83"},{"x":1068.5,"y":470.7,"side":"CT","phase":"pre","area":"A","zone":"Alley","looks":[{"x":1006.6,"y":573.5,"w":1.0}],"n":5,"m":4,"sec":43,"t":30,"id":"s84"},{"x":1482.5,"y":563.1,"side":"CT","phase":"pre","area":"B","zone":"Second Lane","looks":[{"x":1362.5,"y":561.9,"w":0.93}],"n":5,"m":3,"sec":29,"t":42,"id":"s85"},{"x":1218.1,"y":590.4,"side":"CT","phase":"pre","area":"B","zone":"Alley","looks":[{"x":953.3,"y":495.0,"w":0.7}],"n":5,"m":3,"sec":27,"t":51,"id":"s86"},{"x":1499.7,"y":527.9,"side":"CT","phase":"pre","area":"B","zone":"Second Lane","looks":[{"x":1467.9,"y":643.7,"w":0.62},{"x":1375.5,"y":534.9,"w":0.36}],"n":5,"m":4,"sec":22,"t":72,"id":"s87"},{"x":499.8,"y":437.1,"side":"CT","phase":"pre","area":"A","zone":"A Site","looks":[{"x":585.1,"y":521.5,"w":0.53},{"x":448.7,"y":545.7,"w":0.37}],"n":5,"m":5,"sec":22,"t":12,"id":"s88"},{"x":1644.4,"y":490.0,"side":"CT","phase":"pre","area":"B","zone":"Back Halls / Back Alley","looks":[{"x":1646.2,"y":610.0,"w":1.0}],"n":5,"m":3,"sec":25,"t":31,"id":"s89"},{"x":1642.6,"y":558.5,"side":"CT","phase":"pre","area":"B","zone":"Second Lane","looks":[{"x":1644.6,"y":678.5,"w":1.0}],"n":5,"m":3,"sec":23,"t":14,"id":"s90"},{"x":1381.7,"y":1223.3,"side":"CT","phase":"pre","area":"B","zone":"T Upper / Heaven","looks":[{"x":1501.3,"y":1213.1,"w":0.59},{"x":1266.5,"y":1189.6,"w":0.39}],"n":5,"m":3,"sec":20,"t":74,"id":"s91"},{"x":756.5,"y":406.5,"side":"CT","phase":"pre","area":"A","zone":"Triple Box","looks":[{"x":552.2,"y":1008.0,"w":0.8}],"n":5,"m":3,"sec":15,"t":85,"id":"s92"},{"x":606.3,"y":752.3,"side":"CT","phase":"pre","area":"A","zone":"Short","looks":[{"x":679.8,"y":847.1,"w":0.37},{"x":662.4,"y":540.1,"w":0.27}],"n":5,"m":4,"sec":12,"t":34,"id":"s93"},{"x":1650.4,"y":718.2,"side":"CT","phase":"pre","area":"B","zone":"Site B","looks":[{"x":1653.0,"y":838.1,"w":1.0}],"n":5,"m":5,"sec":12,"t":45,"id":"s94"},{"x":566.4,"y":495.5,"side":"CT","phase":"pre","area":"A","zone":"A Site","looks":[{"x":325.5,"y":748.1,"w":1.0}],"n":5,"m":3,"sec":11,"t":35,"id":"s95"},{"x":712.4,"y":463.6,"side":"CT","phase":"pre","area":"A","zone":"A Site","looks":[{"x":611.1,"y":528.0,"w":0.99}],"n":4,"m":3,"sec":43,"t":38,"id":"s96"},{"x":1040.2,"y":332.7,"side":"CT","phase":"pre","area":"M","zone":"Connector / Red Room / Red","looks":[{"x":909.5,"y":395.3,"w":1.0}],"n":4,"m":3,"sec":30,"t":18,"id":"s97"},{"x":593.9,"y":289.4,"side":"CT","phase":"pre","area":"A","zone":"Temple","looks":[{"x":590.9,"y":446.7,"w":1.0}],"n":4,"m":3,"sec":24,"t":40,"id":"s98"},{"x":1272.3,"y":1175.4,"side":"CT","phase":"pre","area":"B","zone":"T Upper / Heaven","looks":[{"x":752.4,"y":1205.4,"w":0.5},{"x":1682.5,"y":1224.2,"w":0.5}],"n":4,"m":3,"sec":20,"t":54,"id":"s99"},{"x":887.8,"y":310.6,"side":"CT","phase":"pre","area":"A","zone":"CT Lane","looks":[{"x":1038.8,"y":458.1,"w":0.78}],"n":4,"m":3,"sec":20,"t":60,"id":"s100"},{"x":1626.2,"y":741.2,"side":"CT","phase":"pre","area":"B","zone":"Site B","looks":[{"x":1669.7,"y":1224.3,"w":1.0}],"n":4,"m":3,"sec":20,"t":33,"id":"s101"},{"x":1061.9,"y":1206.8,"side":"CT","phase":"pre","area":"M","zone":"Mid","looks":[{"x":691.3,"y":1199.4,"w":0.72}],"n":4,"m":3,"sec":16,"t":65,"id":"s102"},{"x":769.2,"y":1130.6,"side":"CT","phase":"pre","area":"M","zone":"Lower Mid / Start Mid","looks":[{"x":1442.5,"y":1214.3,"w":0.5}],"n":4,"m":3,"sec":12,"t":19,"id":"s103"},{"x":703.6,"y":521.5,"side":"CT","phase":"pre","area":"A","zone":"A Site","looks":[{"x":597.2,"y":577.0,"w":0.78}],"n":4,"m":2,"sec":16,"t":66,"id":"s104"},{"x":978.9,"y":1080.8,"side":"CT","phase":"pre","area":"M","zone":"Mid","looks":[{"x":768.1,"y":1172.0,"w":0.7}],"n":4,"m":3,"sec":14,"t":28,"id":"s105"},{"x":634.4,"y":635.3,"side":"CT","phase":"pre","area":"A","zone":"Short","looks":[{"x":313.4,"y":658.7,"w":1.0}],"n":4,"m":4,"sec":10,"t":41,"id":"s106"},{"x":1473.0,"y":647.0,"side":"CT","phase":"pre","area":"B","zone":"Cave / House","looks":[{"x":1530.9,"y":752.1,"w":0.65}],"n":4,"m":3,"sec":10,"t":14,"id":"s107"},{"x":1694.0,"y":716.9,"side":"CT","phase":"pre","area":"B","zone":"B Site","looks":[{"x":1432.1,"y":951.4,"w":0.68}],"n":4,"m":4,"sec":10,"t":50,"id":"s108"},{"x":826.7,"y":1131.4,"side":"CT","phase":"pre","area":"M","zone":"Lower Mid / Start Mid","looks":[{"x":743.9,"y":1218.3,"w":1.0}],"n":3,"m":2,"sec":22,"t":35,"id":"s109"},{"x":530.9,"y":642.4,"side":"CT","phase":"pre","area":"A","zone":"Short","looks":[{"x":430.0,"y":707.4,"w":0.73}],"n":3,"m":3,"sec":22,"t":46,"id":"s110"},{"x":380.7,"y":854.6,"side":"CT","phase":"pre","area":"A","zone":"A Hall","looks":[{"x":499.7,"y":869.2,"w":0.89}],"n":3,"m":2,"sec":19,"t":26,"id":"s111"},{"x":955.4,"y":1047.4,"side":"CT","phase":"pre","area":"M","zone":"Mid","looks":[{"x":770.5,"y":1205.6,"w":1.0}],"n":3,"m":2,"sec":19,"t":45,"id":"s112"},{"x":1734.8,"y":1206.4,"side":"CT","phase":"pre","area":"B","zone":"T Lower","looks":[{"x":1540.2,"y":1223.0,"w":0.94}],"n":3,"m":2,"sec":16,"t":75,"id":"s113"},{"x":1691.7,"y":974.9,"side":"CT","phase":"pre","area":"B","zone":"B Site","looks":[{"x":1649.4,"y":1108.8,"w":0.78}],"n":3,"m":2,"sec":19,"t":21,"id":"s114"},{"x":1003.0,"y":509.6,"side":"CT","phase":"pre","area":"M","zone":"Connector / Red Room / Red","looks":[{"x":904.4,"y":1002.3,"w":1.0}],"n":3,"m":3,"sec":15,"t":27,"id":"s115"},{"x":920.0,"y":734.9,"side":"CT","phase":"pre","area":"M","zone":"Top Mid","looks":[{"x":1034.3,"y":771.4,"w":0.5},{"x":1011.0,"y":581.4,"w":0.27}],"n":3,"m":3,"sec":16,"t":56,"id":"s116"},{"x":278.9,"y":784.7,"side":"CT","phase":"pre","area":"A","zone":"A Main","looks":[{"x":398.5,"y":775.6,"w":0.51}],"n":3,"m":3,"sec":17,"t":99,"id":"s117"},{"x":1448.8,"y":942.4,"side":"CT","phase":"pre","area":"B","zone":"Dark","looks":[{"x":1454.6,"y":485.3,"w":0.51},{"x":1591.6,"y":978.2,"w":0.4}],"n":3,"m":2,"sec":13,"t":82,"id":"s118"},{"x":929.6,"y":526.8,"side":"CT","phase":"pre","area":"M","zone":"Sniper Nest","looks":[{"x":1026.2,"y":893.7,"w":1.0}],"n":3,"m":3,"sec":12,"t":38,"id":"s119"},{"x":797.1,"y":960.1,"side":"CT","phase":"pre","area":"M","zone":"Chamber Lane","looks":[{"x":1026.1,"y":871.6,"w":0.53}],"n":3,"m":3,"sec":11,"t":45,"id":"s120"},{"x":1453.3,"y":496.5,"side":"CT","phase":"pre","area":"B","zone":"Alley","looks":[{"x":1348.5,"y":554.9,"w":0.57}],"n":3,"m":3,"sec":10,"t":97,"id":"s121"},{"x":599.6,"y":433.6,"side":"CT","phase":"pre","area":"A","zone":"A Site","looks":[{"x":501.7,"y":364.2,"w":0.82}],"n":3,"m":2,"sec":12,"t":57,"id":"s122"},{"x":962.7,"y":500.0,"side":"CT","phase":"pre","area":"M","zone":"Connector / Red Room / Red","looks":[{"x":987.2,"y":1224.1,"w":0.98}],"n":3,"m":3,"sec":12,"t":9,"id":"s123"},{"x":1350.9,"y":951.9,"side":"CT","phase":"pre","area":"B","zone":"Dark","looks":[{"x":1362.5,"y":1071.3,"w":0.82}],"n":3,"m":2,"sec":11,"t":41,"id":"s124"},{"x":1315.8,"y":888.7,"side":"CT","phase":"pre","area":"B","zone":"Cave / House","looks":[{"x":1411.8,"y":816.7,"w":0.54},{"x":1389.5,"y":1055.1,"w":0.27}],"n":3,"m":2,"sec":10,"t":66,"id":"s125"},{"x":1210.1,"y":1226.8,"side":"CT","phase":"pre","area":"B","zone":"T Upper / Heaven","looks":[{"x":1380.1,"y":1229.5,"w":0.44},{"x":1111.5,"y":1158.4,"w":0.29}],"n":3,"m":3,"sec":11,"t":32,"id":"s126"},{"x":1586.1,"y":498.6,"side":"CT","phase":"pre","area":"B","zone":"Second Lane","looks":[{"x":1354.9,"y":527.1,"w":0.75}],"n":3,"m":2,"sec":9,"t":49,"id":"s127"},{"x":943.0,"y":655.6,"side":"CT","phase":"pre","area":"M","zone":"Sniper Nest","looks":[{"x":970.0,"y":772.6,"w":1.0}],"n":3,"m":3,"sec":9,"t":9,"id":"s128"},{"x":848.3,"y":913.8,"side":"CT","phase":"pre","area":"M","zone":"Chamber Lane","looks":[{"x":889.9,"y":1026.4,"w":0.64}],"n":3,"m":2,"sec":10,"t":21,"id":"s129"},{"x":1341.9,"y":795.2,"side":"CT","phase":"pre","area":"B","zone":"Cave / House","looks":[{"x":1353.1,"y":999.8,"w":1.0}],"n":3,"m":2,"sec":8,"t":55,"id":"s130"},{"x":981.1,"y":1130.0,"side":"CT","phase":"pre","area":"M","zone":"Mid","looks":[{"x":768.0,"y":1176.5,"w":0.62}],"n":3,"m":3,"sec":8,"t":38,"id":"s131"},{"x":714.7,"y":559.5,"side":"CT","phase":"pre","area":"A","zone":"A Site","looks":[{"x":600.0,"y":594.8,"w":1.0}],"n":3,"m":2,"sec":10,"t":73,"id":"s132"},{"x":1238.3,"y":1164.0,"side":"CT","phase":"pre","area":"B","zone":"Triple / Window / Cat","looks":[{"x":1357.3,"y":1179.5,"w":0.72}],"n":3,"m":2,"sec":7,"t":37,"id":"s133"},{"x":1220.6,"y":1082.5,"side":"CT","phase":"pre","area":"B","zone":"Lamp Room / Excavation","looks":[{"x":1338.8,"y":1025.2,"w":0.69},{"x":1288.6,"y":1181.4,"w":0.31}],"n":3,"m":2,"sec":9,"t":84,"id":"s134"},{"x":1327.7,"y":751.3,"side":"CT","phase":"retake","area":"B","zone":"Dark Box","looks":[{"x":1350.6,"y":999.8,"w":0.35},{"x":1423.1,"y":824.2,"w":0.31}],"n":8,"m":3,"sec":48,"t":52,"id":"s135"},{"x":1251.9,"y":1025.9,"side":"CT","phase":"retake","area":"B","zone":"Lamp Room / Excavation","looks":[{"x":1266.1,"y":1231.6,"w":0.99}],"n":7,"m":2,"sec":24,"t":80,"id":"s136"},{"x":1737.3,"y":648.1,"side":"CT","phase":"retake","area":"B","zone":"B Site","looks":[{"x":1629.5,"y":701.0,"w":0.87}],"n":6,"m":4,"sec":26,"t":85,"id":"s137"},{"x":930.4,"y":375.8,"side":"CT","phase":"retake","area":"M","zone":"Connector / Red Room / Red","looks":[{"x":822.8,"y":428.8,"w":0.51},{"x":1058.4,"y":458.0,"w":0.3}],"n":6,"m":4,"sec":22,"t":81,"id":"s138"},{"x":511.6,"y":829.0,"side":"CT","phase":"retake","area":"A","zone":"Donut","looks":[{"x":455.6,"y":935.1,"w":1.0}],"n":6,"m":2,"sec":27,"t":116,"id":"s139"},{"x":845.2,"y":472.2,"side":"CT","phase":"retake","area":"M","zone":"Connector / Red Room / Red","looks":[{"x":730.7,"y":436.4,"w":0.76}],"n":5,"m":4,"sec":16,"t":58,"id":"s140"},{"x":1390.8,"y":533.1,"side":"CT","phase":"retake","area":"B","zone":"Dark Box","looks":[{"x":1271.6,"y":546.8,"w":0.54},{"x":1406.5,"y":652.1,"w":0.26}],"n":5,"m":2,"sec":15,"t":73,"id":"s141"},{"x":1469.3,"y":578.2,"side":"CT","phase":"retake","area":"B","zone":"Second Lane","looks":[{"x":1362.9,"y":522.7,"w":0.61}],"n":4,"m":2,"sec":38,"t":98,"id":"s142"},{"x":736.3,"y":324.8,"side":"CT","phase":"retake","area":"A","zone":"Triple Box","looks":[{"x":619.3,"y":351.5,"w":1.0}],"n":4,"m":3,"sec":18,"t":55,"id":"s143"},{"x":1094.8,"y":1521.6,"side":"CT","phase":"retake","area":"","zone":"T Ramp","looks":[{"x":1108.7,"y":1640.8,"w":0.95}],"n":4,"m":2,"sec":15,"t":58,"id":"s144"},{"x":994.8,"y":1727.1,"side":"CT","phase":"retake","area":"","zone":"T Ramp","looks":[{"x":1082.2,"y":1644.9,"w":1.0}],"n":4,"m":2,"sec":14,"t":131,"id":"s145"},{"x":549.0,"y":983.1,"side":"CT","phase":"retake","area":"A","zone":"Donut","looks":[{"x":664.5,"y":717.7,"w":1.0}],"n":4,"m":3,"sec":11,"t":36,"id":"s146"},{"x":1376.4,"y":1748.6,"side":"CT","phase":"retake","area":"","zone":"Tunnel","looks":[{"x":1387.7,"y":1629.1,"w":0.92}],"n":3,"m":2,"sec":25,"t":116,"id":"s147"},{"x":527.2,"y":393.6,"side":"CT","phase":"retake","area":"A","zone":"Def","looks":[{"x":559.3,"y":509.3,"w":0.94}],"n":3,"m":3,"sec":29,"t":93,"id":"s148"},{"x":1708.7,"y":608.0,"side":"CT","phase":"retake","area":"B","zone":"First Lane","looks":[{"x":1638.9,"y":705.7,"w":0.9}],"n":3,"m":2,"sec":28,"t":54,"id":"s149"},{"x":925.1,"y":1658.7,"side":"CT","phase":"retake","area":"","zone":"T Ramp","looks":[{"x":1094.7,"y":1630.1,"w":0.9}],"n":3,"m":2,"sec":25,"t":125,"id":"s150"},{"x":1204.1,"y":613.7,"side":"CT","phase":"retake","area":"B","zone":"Alley","looks":[{"x":1059.7,"y":474.4,"w":0.74},{"x":1263.4,"y":485.4,"w":0.26}],"n":3,"m":2,"sec":12,"t":51,"id":"s151"},{"x":1654.9,"y":713.1,"side":"CT","phase":"retake","area":"B","zone":"Site B","looks":[{"x":1511.6,"y":978.0,"w":0.42},{"x":1310.0,"y":836.3,"w":0.25}],"n":3,"m":2,"sec":10,"t":114,"id":"s152"},{"x":437.7,"y":519.1,"side":"T","phase":"post","area":"A","zone":"A Site","looks":[{"x":508.8,"y":422.4,"w":0.28}],"n":17,"m":8,"sec":123,"t":58,"id":"s153"},{"x":1379.4,"y":1748.3,"side":"T","phase":"post","area":"","zone":"Tunnel","looks":[{"x":1407.4,"y":1631.6,"w":0.55}],"n":17,"m":6,"sec":75,"t":104,"id":"s154"},{"x":1324.0,"y":749.2,"side":"T","phase":"post","area":"B","zone":"Dark Box","looks":[{"x":1357.0,"y":999.7,"w":0.61}],"n":14,"m":7,"sec":64,"t":91,"id":"s155"},{"x":1549.4,"y":968.3,"side":"T","phase":"post","area":"B","zone":"Bonger / Wood / Ninja","looks":[{"x":1438.0,"y":825.1,"w":0.43},{"x":1738.2,"y":485.2,"w":0.34}],"n":8,"m":5,"sec":24,"t":55,"id":"s156"},{"x":1393.7,"y":748.6,"side":"T","phase":"post","area":"B","zone":"Dark Box","looks":[{"x":1357.5,"y":1004.1,"w":0.73}],"n":7,"m":4,"sec":21,"t":42,"id":"s157"},{"x":1549.3,"y":710.8,"side":"T","phase":"post","area":"B","zone":"Cave / House","looks":[{"x":1430.5,"y":694.3,"w":0.47},{"x":1432.2,"y":820.0,"w":0.37}],"n":7,"m":3,"sec":17,"t":48,"id":"s158"},{"x":677.8,"y":764.0,"side":"T","phase":"post","area":"A","zone":"Donut","looks":[{"x":645.4,"y":648.5,"w":0.76}],"n":6,"m":3,"sec":33,"t":95,"id":"s159"},{"x":1655.7,"y":1004.2,"side":"T","phase":"post","area":"B","zone":"Rat","looks":[{"x":1598.4,"y":898.8,"w":1.0}],"n":6,"m":2,"sec":31,"t":49,"id":"s160"},{"x":541.6,"y":390.4,"side":"T","phase":"post","area":"A","zone":"Def","looks":[{"x":561.2,"y":508.8,"w":0.58},{"x":661.2,"y":380.5,"w":0.32}],"n":6,"m":5,"sec":35,"t":69,"id":"s161"},{"x":1646.9,"y":1431.4,"side":"T","phase":"post","area":"B","zone":"Ruins","looks":[{"x":1374.6,"y":1501.3,"w":0.54},{"x":1621.9,"y":1314.1,"w":0.45}],"n":5,"m":4,"sec":41,"t":51,"id":"s162"},{"x":349.9,"y":435.6,"side":"T","phase":"post","area":"A","zone":"A Site","looks":[{"x":466.1,"y":405.6,"w":0.57},{"x":435.2,"y":520.0,"w":0.43}],"n":4,"m":4,"sec":51,"t":81,"id":"s163"},{"x":696.3,"y":851.2,"side":"T","phase":"post","area":"M","zone":"Chamber Lane","looks":[{"x":769.8,"y":946.1,"w":0.9}],"n":4,"m":2,"sec":25,"t":54,"id":"s164"},{"x":759.9,"y":598.5,"side":"T","phase":"post","area":"A","zone":"A Site","looks":[{"x":666.1,"y":673.2,"w":0.43},{"x":761.1,"y":478.5,"w":0.51}],"n":4,"m":4,"sec":20,"t":44,"id":"s165"},{"x":1476.2,"y":599.4,"side":"T","phase":"post","area":"B","zone":"Second Lane","looks":[{"x":1377.0,"y":532.0,"w":1.0}],"n":4,"m":2,"sec":16,"t":64,"id":"s166"},{"x":533.4,"y":963.3,"side":"T","phase":"post","area":"A","zone":"Donut","looks":[{"x":653.4,"y":963.9,"w":0.6},{"x":680.8,"y":759.7,"w":0.35}],"n":4,"m":3,"sec":16,"t":104,"id":"s167"},{"x":328.7,"y":451.2,"side":"T","phase":"post","area":"A","zone":"A Site","looks":[{"x":445.0,"y":421.4,"w":1.0}],"n":4,"m":2,"sec":13,"t":98,"id":"s168"},{"x":1661.1,"y":613.3,"side":"T","phase":"post","area":"B","zone":"Second Lane","looks":[{"x":1650.1,"y":774.3,"w":0.55}],"n":4,"m":3,"sec":12,"t":57,"id":"s169"},{"x":594.0,"y":400.5,"side":"T","phase":"post","area":"A","zone":"Def","looks":[{"x":491.1,"y":462.2,"w":0.73}],"n":4,"m":2,"sec":9,"t":70,"id":"s170"},{"x":315.6,"y":795.9,"side":"T","phase":"post","area":"A","zone":"A Hall","looks":[{"x":540.7,"y":448.3,"w":1.0}],"n":3,"m":2,"sec":24,"t":109,"id":"s171"},{"x":1416.9,"y":880.0,"side":"T","phase":"post","area":"B","zone":"Cave / House","looks":[{"x":1312.2,"y":821.4,"w":0.76}],"n":3,"m":2,"sec":18,"t":102,"id":"s172"},{"x":1202.8,"y":1136.0,"side":"T","phase":"post","area":"B","zone":"Triple / Window / Cat","looks":[{"x":1225.6,"y":1253.8,"w":1.0}],"n":3,"m":2,"sec":22,"t":105,"id":"s173"},{"x":533.5,"y":913.1,"side":"T","phase":"post","area":"A","zone":"Donut","looks":[{"x":680.6,"y":777.9,"w":0.81}],"n":3,"m":2,"sec":14,"t":117,"id":"s174"},{"x":1739.2,"y":626.7,"side":"T","phase":"post","area":"B","zone":"B Site","looks":[{"x":1640.1,"y":694.4,"w":0.66},{"x":1621.5,"y":603.5,"w":0.34}],"n":3,"m":2,"sec":12,"t":43,"id":"s175"},{"x":1734.8,"y":1028.0,"side":"T","phase":"post","area":"B","zone":"T Lower","looks":[{"x":1620.2,"y":992.4,"w":0.53},{"x":1582.1,"y":1235.9,"w":0.37}],"n":3,"m":3,"sec":13,"t":78,"id":"s176"},{"x":716.4,"y":621.7,"side":"T","phase":"post","area":"A","zone":"Short","looks":[{"x":628.6,"y":539.9,"w":0.67},{"x":714.4,"y":501.7,"w":0.33}],"n":3,"m":2,"sec":11,"t":54,"id":"s177"},{"x":571.3,"y":858.6,"side":"T","phase":"post","area":"A","zone":"Donut","looks":[{"x":855.5,"y":964.5,"w":1.0}],"n":3,"m":2,"sec":12,"t":52,"id":"s178"},{"x":1734.4,"y":1185.3,"side":"T","phase":"post","area":"B","zone":"T Lower","looks":[{"x":834.4,"y":1180.7,"w":0.73}],"n":3,"m":2,"sec":9,"t":85,"id":"s179"},{"x":1613.6,"y":1223.2,"side":"T","phase":"post","area":"B","zone":"T Lower","looks":[{"x":1494.3,"y":1210.2,"w":1.0}],"n":3,"m":3,"sec":10,"t":110,"id":"s180"},{"x":1453.6,"y":952.1,"side":"T","phase":"post","area":"B","zone":"Dark","looks":[{"x":1488.1,"y":485.3,"w":1.0}],"n":3,"m":2,"sec":8,"t":36,"id":"s181"},{"x":572.8,"y":947.9,"side":"T","phase":"post","area":"A","zone":"Donut","looks":[{"x":664.4,"y":690.5,"w":0.97}],"n":3,"m":3,"sec":8,"t":67,"id":"s182"},{"x":1443.0,"y":990.4,"side":"T","phase":"post","area":"B","zone":"Lamp Room / Excavation","looks":[{"x":1437.4,"y":870.5,"w":0.55},{"x":1746.8,"y":602.8,"w":0.38}],"n":3,"m":3,"sec":7,"t":79,"id":"s183"},{"x":1382.1,"y":1227.0,"side":"T","phase":"post","area":"B","zone":"T Upper / Heaven","looks":[{"x":1264.1,"y":1205.0,"w":1.0}],"n":3,"m":2,"sec":8,"t":88,"id":"s184"},{"x":887.4,"y":1631.0,"side":"T","phase":"pre","area":"","zone":"T Ramp","looks":[{"x":881.2,"y":1483.1,"w":0.99}],"n":55,"m":10,"sec":237,"t":5,"id":"s185"},{"x":1638.8,"y":1124.6,"side":"T","phase":"pre","area":"B","zone":"T Lower","looks":[{"x":1639.8,"y":1004.6,"w":0.73}],"n":51,"m":11,"sec":240,"t":26,"id":"s186"},{"x":1605.9,"y":1230.2,"side":"T","phase":"pre","area":"B","zone":"T Lower","looks":[{"x":1486.8,"y":1215.5,"w":0.57},{"x":1711.4,"y":1017.3,"w":0.27}],"n":49,"m":12,"sec":176,"t":35,"id":"s187"},{"x":1563.2,"y":1293.7,"side":"T","phase":"pre","area":"B","zone":"T Lower","looks":[{"x":1649.1,"y":1210.0,"w":0.44}],"n":48,"m":12,"sec":316,"t":28,"id":"s188"},{"x":1606.8,"y":1458.9,"side":"T","phase":"pre","area":"B","zone":"Ruins","looks":[{"x":1628.8,"y":1256.4,"w":0.99}],"n":34,"m":8,"sec":254,"t":31,"id":"s189"},{"x":1632.5,"y":1253.3,"side":"T","phase":"pre","area":"B","zone":"T Lower","looks":[{"x":1657.6,"y":1136.0,"w":0.74}],"n":34,"m":8,"sec":140,"t":31,"id":"s190"},{"x":323.6,"y":1266.8,"side":"T","phase":"pre","area":"","zone":"A Stairs","looks":[{"x":375.4,"y":1158.5,"w":0.47},{"x":564.1,"y":1275.2,"w":0.28}],"n":33,"m":10,"sec":214,"t":19,"id":"s191"},{"x":699.5,"y":1188.9,"side":"T","phase":"pre","area":"M","zone":"Lower Mid / Start Mid","looks":[{"x":1208.2,"y":1148.7,"w":0.72}],"n":27,"m":9,"sec":117,"t":18,"id":"s192"},{"x":446.2,"y":779.4,"side":"T","phase":"pre","area":"A","zone":"Donut","looks":[{"x":328.8,"y":754.6,"w":0.59}],"n":22,"m":10,"sec":66,"t":34,"id":"s193"},{"x":673.7,"y":1503.3,"side":"T","phase":"pre","area":"","zone":"T Ramp","looks":[{"x":735.6,"y":1281.1,"w":0.81}],"n":21,"m":7,"sec":105,"t":8,"id":"s194"},{"x":1682.5,"y":1457.3,"side":"T","phase":"pre","area":"","zone":"Ruins","looks":[{"x":1685.4,"y":1224.1,"w":0.41}],"n":20,"m":9,"sec":88,"t":37,"id":"s195"},{"x":1636.3,"y":1427.9,"side":"T","phase":"pre","area":"B","zone":"Ruins","looks":[{"x":1620.9,"y":1308.9,"w":0.86}],"n":20,"m":7,"sec":114,"t":34,"id":"s196"},{"x":703.2,"y":1244.9,"side":"T","phase":"pre","area":"M","zone":"Lower Mid / Start Mid","looks":[{"x":798.7,"y":1172.1,"w":0.92}],"n":18,"m":8,"sec":96,"t":21,"id":"s197"},{"x":1327.2,"y":1089.0,"side":"T","phase":"pre","area":"B","zone":"Lamp Room / Excavation","looks":[{"x":1361.5,"y":974.0,"w":0.98}],"n":18,"m":6,"sec":55,"t":59,"id":"s198"},{"x":732.6,"y":1277.2,"side":"T","phase":"pre","area":"M","zone":"Lower Mid / Start Mid","looks":[{"x":612.6,"y":1277.3,"w":0.52}],"n":17,"m":10,"sec":56,"t":35,"id":"s199"},{"x":377.3,"y":1016.7,"side":"T","phase":"pre","area":"A","zone":"A Hall","looks":[{"x":359.8,"y":898.0,"w":0.61},{"x":497.2,"y":1021.5,"w":0.25}],"n":16,"m":7,"sec":108,"t":59,"id":"s200"},{"x":497.3,"y":781.6,"side":"T","phase":"pre","area":"A","zone":"Donut","looks":[{"x":377.7,"y":771.8,"w":0.92}],"n":16,"m":7,"sec":64,"t":32,"id":"s201"},{"x":1375.5,"y":1226.2,"side":"T","phase":"pre","area":"B","zone":"T Upper / Heaven","looks":[{"x":1235.0,"y":1167.6,"w":0.83}],"n":16,"m":8,"sec":64,"t":36,"id":"s202"},{"x":1682.2,"y":1284.6,"side":"T","phase":"pre","area":"B","zone":"Ruins","looks":[{"x":1583.9,"y":1215.8,"w":0.66}],"n":16,"m":7,"sec":72,"t":38,"id":"s203"},{"x":631.8,"y":1328.4,"side":"T","phase":"pre","area":"","zone":"Split","looks":[{"x":715.6,"y":1242.5,"w":0.85}],"n":15,"m":6,"sec":61,"t":23,"id":"s204"},{"x":1200.6,"y":1136.4,"side":"T","phase":"pre","area":"B","zone":"Triple / Window / Cat","looks":[{"x":1226.0,"y":1253.7,"w":0.68},{"x":785.4,"y":1205.7,"w":0.32}],"n":13,"m":7,"sec":70,"t":66,"id":"s205"},{"x":1063.2,"y":1198.4,"side":"T","phase":"pre","area":"M","zone":"Mid","looks":[{"x":851.9,"y":906.8,"w":0.49}],"n":13,"m":6,"sec":46,"t":31,"id":"s206"},{"x":736.5,"y":1230.4,"side":"T","phase":"pre","area":"M","zone":"Lower Mid / Start Mid","looks":[{"x":824.9,"y":1149.3,"w":0.74}],"n":12,"m":4,"sec":60,"t":31,"id":"s207"},{"x":658.3,"y":1406.6,"side":"T","phase":"pre","area":"","zone":"Split","looks":[{"x":704.3,"y":1295.8,"w":0.63},{"x":770.8,"y":1448.4,"w":0.33}],"n":12,"m":4,"sec":53,"t":26,"id":"s208"},{"x":497.7,"y":809.1,"side":"T","phase":"pre","area":"A","zone":"Donut","looks":[{"x":384.2,"y":770.3,"w":0.96}],"n":12,"m":4,"sec":54,"t":52,"id":"s209"},{"x":895.2,"y":1209.8,"side":"T","phase":"pre","area":"M","zone":"Mid","looks":[{"x":1007.0,"y":495.0,"w":0.99}],"n":11,"m":5,"sec":53,"t":42,"id":"s210"},{"x":1468.8,"y":1075.2,"side":"T","phase":"pre","area":"B","zone":"Lamp Room / Excavation","looks":[{"x":1403.1,"y":1175.6,"w":0.74}],"n":11,"m":6,"sec":33,"t":42,"id":"s211"},{"x":1597.5,"y":1279.2,"side":"T","phase":"pre","area":"B","zone":"Ruins","looks":[{"x":1711.8,"y":985.8,"w":0.8}],"n":11,"m":4,"sec":33,"t":29,"id":"s212"},{"x":1490.5,"y":1484.1,"side":"T","phase":"pre","area":"","zone":"Water","looks":[{"x":1626.7,"y":1251.0,"w":1.0}],"n":10,"m":4,"sec":50,"t":19,"id":"s213"},{"x":735.4,"y":1404.8,"side":"T","phase":"pre","area":"","zone":"T Ramp","looks":[{"x":737.6,"y":1284.8,"w":0.68}],"n":10,"m":7,"sec":48,"t":25,"id":"s214"},{"x":864.3,"y":1210.8,"side":"T","phase":"pre","area":"M","zone":"Mid","looks":[{"x":908.8,"y":1099.3,"w":0.7}],"n":10,"m":5,"sec":31,"t":24,"id":"s215"},{"x":1326.1,"y":1167.7,"side":"T","phase":"pre","area":"B","zone":"T Upper / Heaven","looks":[{"x":1739.6,"y":1147.2,"w":0.39},{"x":1206.1,"y":1166.7,"w":0.28}],"n":10,"m":7,"sec":40,"t":32,"id":"s216"},{"x":1734.8,"y":1032.2,"side":"T","phase":"pre","area":"B","zone":"T Lower","looks":[{"x":1626.8,"y":979.9,"w":0.96}],"n":9,"m":7,"sec":50,"t":32,"id":"s217"},{"x":1131.0,"y":1138.2,"side":"T","phase":"pre","area":"B","zone":"Triple / Window / Cat","looks":[{"x":1238.0,"y":1192.6,"w":0.47}],"n":9,"m":7,"sec":32,"t":30,"id":"s218"},{"x":639.4,"y":1289.9,"side":"T","phase":"pre","area":"","zone":"Split","looks":[{"x":754.3,"y":1255.1,"w":0.85}],"n":9,"m":4,"sec":39,"t":36,"id":"s219"},{"x":405.8,"y":701.5,"side":"T","phase":"pre","area":"A","zone":"A Main","looks":[{"x":373.2,"y":817.0,"w":0.37},{"x":451.0,"y":526.4,"w":0.31}],"n":9,"m":5,"sec":33,"t":48,"id":"s220"},{"x":1391.0,"y":926.1,"side":"T","phase":"pre","area":"B","zone":"Dark","looks":[{"x":1350.3,"y":1038.9,"w":0.5},{"x":1388.4,"y":742.2,"w":0.48}],"n":9,"m":2,"sec":37,"t":46,"id":"s221"},{"x":734.4,"y":1322.5,"side":"T","phase":"pre","area":"M","zone":"Lower Mid / Start Mid","looks":[{"x":744.1,"y":1202.9,"w":0.75}],"n":9,"m":6,"sec":38,"t":17,"id":"s222"},{"x":490.9,"y":1002.4,"side":"T","phase":"pre","area":"A","zone":"Donut","looks":[{"x":400.5,"y":780.4,"w":0.9}],"n":8,"m":3,"sec":68,"t":27,"id":"s223"},{"x":1468.0,"y":1526.2,"side":"T","phase":"pre","area":"","zone":"Water","looks":[{"x":1627.6,"y":1253.3,"w":0.78}],"n":8,"m":4,"sec":41,"t":28,"id":"s224"},{"x":614.6,"y":1415.8,"side":"T","phase":"pre","area":"","zone":"Split","looks":[{"x":570.2,"y":1304.3,"w":0.73}],"n":8,"m":5,"sec":35,"t":17,"id":"s225"},{"x":347.5,"y":942.4,"side":"T","phase":"pre","area":"A","zone":"A Hall","looks":[{"x":425.0,"y":354.9,"w":0.96}],"n":8,"m":5,"sec":35,"t":24,"id":"s226"},{"x":1238.8,"y":1117.7,"side":"T","phase":"pre","area":"B","zone":"Triple / Window / Cat","looks":[{"x":1345.6,"y":1030.7,"w":1.0}],"n":7,"m":3,"sec":41,"t":60,"id":"s227"},{"x":770.0,"y":1130.1,"side":"T","phase":"pre","area":"M","zone":"Lower Mid / Start Mid","looks":[{"x":1076.5,"y":1124.0,"w":0.81}],"n":7,"m":4,"sec":43,"t":16,"id":"s228"},{"x":517.2,"y":1116.9,"side":"T","phase":"pre","area":"A","zone":"A Stairs","looks":[{"x":429.6,"y":1034.9,"w":1.0}],"n":7,"m":4,"sec":28,"t":16,"id":"s229"},{"x":271.0,"y":807.6,"side":"T","phase":"pre","area":"A","zone":"Main Hall / Candle","looks":[{"x":388.6,"y":745.9,"w":0.95}],"n":7,"m":4,"sec":38,"t":40,"id":"s230"},{"x":1273.7,"y":1169.6,"side":"T","phase":"pre","area":"B","zone":"T Upper / Heaven","looks":[{"x":1329.5,"y":1063.4,"w":0.58},{"x":1153.9,"y":1176.4,"w":0.36}],"n":7,"m":6,"sec":30,"t":58,"id":"s231"},{"x":1172.2,"y":1179.5,"side":"T","phase":"pre","area":"B","zone":"Triple / Window / Cat","looks":[{"x":1292.2,"y":1174.7,"w":0.59},{"x":1073.6,"y":1111.2,"w":0.31}],"n":7,"m":6,"sec":26,"t":32,"id":"s232"},{"x":445.6,"y":1209.1,"side":"T","phase":"pre","area":"","zone":"A Stairs","looks":[{"x":445.2,"y":780.8,"w":0.96}],"n":7,"m":5,"sec":26,"t":21,"id":"s233"},{"x":1604.5,"y":1179.9,"side":"T","phase":"pre","area":"B","zone":"T Lower","looks":[{"x":704.5,"y":1183.2,"w":0.57},{"x":1671.7,"y":1080.5,"w":0.4}],"n":7,"m":3,"sec":21,"t":34,"id":"s234"},{"x":819.6,"y":1132.8,"side":"T","phase":"pre","area":"M","zone":"Lower Mid / Start Mid","looks":[{"x":1380.1,"y":1219.2,"w":0.65}],"n":7,"m":6,"sec":20,"t":20,"id":"s235"},{"x":1436.3,"y":1102.2,"side":"T","phase":"pre","area":"B","zone":"Lamp Room / Excavation","looks":[{"x":1739.5,"y":1161.2,"w":0.87}],"n":7,"m":4,"sec":16,"t":26,"id":"s236"},{"x":1326.5,"y":1219.6,"side":"T","phase":"pre","area":"B","zone":"T Upper / Heaven","looks":[{"x":1229.9,"y":1148.4,"w":0.58}],"n":7,"m":5,"sec":16,"t":33,"id":"s237"},{"x":674.8,"y":1287.1,"side":"T","phase":"pre","area":"","zone":"Split","looks":[{"x":759.7,"y":1202.2,"w":0.9}],"n":6,"m":3,"sec":30,"t":34,"id":"s238"},{"x":1661.7,"y":1036.4,"side":"T","phase":"pre","area":"B","zone":"Rat","looks":[{"x":1604.2,"y":931.1,"w":0.49}],"n":6,"m":3,"sec":28,"t":45,"id":"s239"},{"x":402.7,"y":1180.1,"side":"T","phase":"pre","area":"","zone":"A Stairs","looks":[{"x":442.5,"y":1066.9,"w":1.0}],"n":6,"m":3,"sec":24,"t":34,"id":"s240"},{"x":1673.2,"y":861.0,"side":"T","phase":"pre","area":"B","zone":"B Site","looks":[{"x":1490.7,"y":706.2,"w":0.55}],"n":6,"m":2,"sec":26,"t":54,"id":"s241"},{"x":886.7,"y":1597.9,"side":"T","phase":"pre","area":"","zone":"T Ramp","looks":[{"x":872.0,"y":1478.8,"w":0.72},{"x":1297.9,"y":1577.8,"w":0.28}],"n":6,"m":4,"sec":24,"t":12,"id":"s242"},{"x":824.7,"y":1203.3,"side":"T","phase":"pre","area":"M","zone":"Mid","looks":[{"x":883.5,"y":1098.7,"w":0.56},{"x":1302.2,"y":1174.6,"w":0.43}],"n":6,"m":4,"sec":22,"t":30,"id":"s243"},{"x":684.5,"y":1394.3,"side":"T","phase":"pre","area":"","zone":"Split","looks":[{"x":735.5,"y":1230.2,"w":0.5}],"n":6,"m":5,"sec":19,"t":13,"id":"s244"},{"x":1424.5,"y":1146.7,"side":"T","phase":"pre","area":"B","zone":"Wood","looks":[{"x":1622.4,"y":1135.7,"w":0.38}],"n":6,"m":4,"sec":17,"t":61,"id":"s245"},{"x":863.9,"y":1128.7,"side":"T","phase":"pre","area":"M","zone":"Mid","looks":[{"x":1088.9,"y":908.3,"w":0.39},{"x":1448.2,"y":1214.3,"w":0.28}],"n":6,"m":3,"sec":18,"t":32,"id":"s246"},{"x":1195.9,"y":1031.3,"side":"T","phase":"pre","area":"B","zone":"Lamp Room / Excavation","looks":[{"x":1333.0,"y":1020.7,"w":0.33}],"n":6,"m":4,"sec":19,"t":46,"id":"s247"},{"x":543.8,"y":880.7,"side":"T","phase":"pre","area":"A","zone":"Donut","looks":[{"x":672.7,"y":811.5,"w":0.99}],"n":5,"m":3,"sec":45,"t":53,"id":"s248"},{"x":274.4,"y":778.9,"side":"T","phase":"pre","area":"A","zone":"A Main","looks":[{"x":394.2,"y":771.8,"w":0.85}],"n":5,"m":3,"sec":37,"t":38,"id":"s249"},{"x":692.1,"y":854.7,"side":"T","phase":"pre","area":"M","zone":"Chamber Lane","looks":[{"x":760.4,"y":955.9,"w":0.63}],"n":5,"m":3,"sec":30,"t":35,"id":"s250"},{"x":1034.3,"y":1766.0,"side":"T","phase":"pre","area":"","zone":"T Spawn","looks":[{"x":1094.6,"y":1645.8,"w":0.9}],"n":5,"m":3,"sec":42,"t":65,"id":"s251"},{"x":1565.2,"y":1123.9,"side":"T","phase":"pre","area":"B","zone":"T Lower","looks":[{"x":1682.9,"y":1147.2,"w":0.59}],"n":5,"m":3,"sec":23,"t":30,"id":"s252"},{"x":1161.6,"y":1138.2,"side":"T","phase":"pre","area":"B","zone":"Triple / Window / Cat","looks":[{"x":1253.1,"y":1215.8,"w":0.74}],"n":5,"m":3,"sec":20,"t":43,"id":"s253"},{"x":1228.8,"y":1070.6,"side":"T","phase":"pre","area":"B","zone":"Lamp Room / Excavation","looks":[{"x":1346.7,"y":1030.7,"w":0.99}],"n":5,"m":2,"sec":19,"t":56,"id":"s254"},{"x":1521.4,"y":1421.7,"side":"T","phase":"pre","area":"B","zone":"Water","looks":[{"x":1737.9,"y":1020.9,"w":1.0}],"n":5,"m":3,"sec":20,"t":35,"id":"s255"},{"x":1421.6,"y":884.9,"side":"T","phase":"pre","area":"B","zone":"Dark","looks":[{"x":1538.7,"y":858.6,"w":0.75}],"n":5,"m":2,"sec":17,"t":50,"id":"s256"},{"x":439.4,"y":1097.4,"side":"T","phase":"pre","area":"A","zone":"A Stairs","looks":[{"x":432.1,"y":880.1,"w":0.84}],"n":5,"m":3,"sec":22,"t":36,"id":"s257"},{"x":325.5,"y":706.5,"side":"T","phase":"pre","area":"A","zone":"A Main","looks":[{"x":662.3,"y":522.3,"w":0.99}],"n":5,"m":2,"sec":18,"t":40,"id":"s258"},{"x":743.3,"y":1452.0,"side":"T","phase":"pre","area":"","zone":"T Ramp","looks":[{"x":744.7,"y":1205.4,"w":0.66}],"n":5,"m":3,"sec":15,"t":26,"id":"s259"},{"x":932.0,"y":787.9,"side":"T","phase":"pre","area":"M","zone":"Top Mid","looks":[{"x":933.9,"y":907.9,"w":0.43}],"n":5,"m":4,"sec":19,"t":43,"id":"s260"},{"x":293.1,"y":842.7,"side":"T","phase":"pre","area":"A","zone":"Main Hall / Candle","looks":[{"x":540.7,"y":446.4,"w":1.0}],"n":5,"m":3,"sec":16,"t":54,"id":"s261"},{"x":1305.2,"y":1108.5,"side":"T","phase":"pre","area":"B","zone":"Lamp Room / Excavation","looks":[{"x":1356.7,"y":1000.1,"w":0.99}],"n":4,"m":3,"sec":43,"t":57,"id":"s262"},{"x":669.9,"y":1333.9,"side":"T","phase":"pre","area":"","zone":"Split","looks":[{"x":735.4,"y":1219.6,"w":1.0}],"n":4,"m":2,"sec":20,"t":10,"id":"s263"},{"x":947.6,"y":1780.8,"side":"T","phase":"pre","area":"","zone":"T Spawn","looks":[{"x":1039.8,"y":1704.0,"w":0.83}],"n":4,"m":3,"sec":20,"t":0,"id":"s264"},{"x":1433.5,"y":1068.1,"side":"T","phase":"pre","area":"B","zone":"Lamp Room / Excavation","looks":[{"x":1535.1,"y":1132.0,"w":0.88}],"n":4,"m":3,"sec":17,"t":19,"id":"s265"},{"x":470.4,"y":708.6,"side":"T","phase":"pre","area":"A","zone":"Short","looks":[{"x":501.5,"y":592.7,"w":0.65}],"n":4,"m":2,"sec":22,"t":49,"id":"s266"},{"x":397.5,"y":726.6,"side":"T","phase":"pre","area":"A","zone":"A Main","looks":[{"x":446.6,"y":524.3,"w":0.61}],"n":4,"m":3,"sec":16,"t":39,"id":"s267"},{"x":1379.3,"y":1195.2,"side":"T","phase":"pre","area":"B","zone":"T Upper / Heaven","looks":[{"x":874.0,"y":1209.7,"w":0.63}],"n":4,"m":3,"sec":20,"t":34,"id":"s268"},{"x":349.8,"y":443.6,"side":"T","phase":"pre","area":"A","zone":"A Site","looks":[{"x":466.4,"y":415.4,"w":0.9}],"n":4,"m":3,"sec":13,"t":55,"id":"s269"},{"x":1094.8,"y":1647.4,"side":"T","phase":"pre","area":"","zone":"T Ramp","looks":[{"x":1086.5,"y":1527.7,"w":0.86}],"n":4,"m":3,"sec":14,"t":6,"id":"s270"},{"x":655.3,"y":1457.6,"side":"T","phase":"pre","area":"","zone":"Split","looks":[{"x":735.5,"y":1243.4,"w":0.84}],"n":4,"m":3,"sec":18,"t":32,"id":"s271"},{"x":911.1,"y":1840.7,"side":"T","phase":"pre","area":"","zone":"T Spawn","looks":[{"x":973.8,"y":1717.9,"w":0.49}],"n":4,"m":2,"sec":14,"t":39,"id":"s272"},{"x":1338.1,"y":1031.1,"side":"T","phase":"pre","area":"B","zone":"Lamp Room / Excavation","looks":[{"x":1368.2,"y":915.0,"w":0.76}],"n":4,"m":3,"sec":14,"t":58,"id":"s273"},{"x":609.9,"y":796.9,"side":"T","phase":"pre","area":"A","zone":"Donut","looks":[{"x":664.3,"y":682.8,"w":1.0}],"n":4,"m":2,"sec":11,"t":65,"id":"s274"},{"x":367.2,"y":926.4,"side":"T","phase":"pre","area":"A","zone":"A Hall","looks":[{"x":371.9,"y":806.5,"w":0.95}],"n":4,"m":3,"sec":10,"t":19,"id":"s275"},{"x":886.8,"y":1663.2,"side":"T","phase":"pre","area":"","zone":"T Ramp","looks":[{"x":882.8,"y":1483.5,"w":1.0}],"n":4,"m":3,"sec":12,"t":5,"id":"s276"},{"x":323.0,"y":783.2,"side":"T","phase":"pre","area":"A","zone":"A Main","looks":[{"x":540.6,"y":461.5,"w":0.98}],"n":4,"m":2,"sec":11,"t":43,"id":"s277"},{"x":437.4,"y":901.9,"side":"T","phase":"pre","area":"A","zone":"Donut","looks":[{"x":395.6,"y":789.4,"w":0.57},{"x":488.0,"y":1088.4,"w":0.33}],"n":4,"m":3,"sec":10,"t":30,"id":"s278"},{"x":1655.8,"y":1004.5,"side":"T","phase":"pre","area":"B","zone":"Rat","looks":[{"x":1598.8,"y":899.0,"w":1.0}],"n":4,"m":2,"sec":10,"t":32,"id":"s279"},{"x":1641.2,"y":1150.3,"side":"T","phase":"pre","area":"B","zone":"T Lower","looks":[{"x":1644.6,"y":1030.4,"w":0.6},{"x":997.7,"y":1224.1,"w":0.36}],"n":4,"m":2,"sec":10,"t":14,"id":"s280"},{"x":720.9,"y":1371.3,"side":"T","phase":"pre","area":"M","zone":"Lower Mid / Start Mid","looks":[{"x":710.9,"y":1179.5,"w":0.6},{"x":605.4,"y":1284.7,"w":0.31}],"n":4,"m":4,"sec":9,"t":17,"id":"s281"},{"x":1652.5,"y":1286.6,"side":"T","phase":"pre","area":"B","zone":"Ruins","looks":[{"x":1590.0,"y":1184.1,"w":0.95}],"n":4,"m":2,"sec":10,"t":14,"id":"s282"},{"x":959.3,"y":500.4,"side":"T","phase":"pre","area":"M","zone":"Connector / Red Room / Red","looks":[{"x":1230.7,"y":568.2,"w":0.97}],"n":3,"m":2,"sec":31,"t":62,"id":"s283"},{"x":920.0,"y":675.3,"side":"T","phase":"pre","area":"M","zone":"Top Mid","looks":[{"x":1012.9,"y":599.2,"w":1.0}],"n":3,"m":2,"sec":33,"t":71,"id":"s284"},{"x":302.6,"y":807.1,"side":"T","phase":"pre","area":"A","zone":"A Hall","looks":[{"x":540.8,"y":437.5,"w":0.84}],"n":3,"m":2,"sec":19,"t":72,"id":"s285"},{"x":406.4,"y":1210.4,"side":"T","phase":"pre","area":"","zone":"A Stairs","looks":[{"x":432.1,"y":1093.2,"w":0.77}],"n":3,"m":3,"sec":17,"t":25,"id":"s286"},{"x":1125.2,"y":912.3,"side":"T","phase":"pre","area":"M","zone":"Jungle / Pit","looks":[{"x":672.3,"y":932.3,"w":1.0}],"n":3,"m":2,"sec":16,"t":57,"id":"s287"},{"x":1733.7,"y":1075.2,"side":"T","phase":"pre","area":"B","zone":"T Lower","looks":[{"x":1625.1,"y":1024.1,"w":0.67}],"n":3,"m":2,"sec":14,"t":69,"id":"s288"},{"x":436.9,"y":518.5,"side":"T","phase":"pre","area":"A","zone":"A Site","looks":[{"x":394.9,"y":406.1,"w":0.61}],"n":3,"m":3,"sec":13,"t":58,"id":"s289"},{"x":1191.7,"y":1078.5,"side":"T","phase":"pre","area":"B","zone":"Lamp Room / Excavation","looks":[{"x":1389.6,"y":1027.1,"w":0.76}],"n":3,"m":2,"sec":10,"t":32,"id":"s290"},{"x":1461.0,"y":991.1,"side":"T","phase":"pre","area":"B","zone":"Lamp Room / Excavation","looks":[{"x":1438.1,"y":485.3,"w":1.0}],"n":3,"m":2,"sec":12,"t":47,"id":"s291"},{"x":1072.5,"y":1087.7,"side":"T","phase":"pre","area":"M","zone":"Mid","looks":[{"x":879.6,"y":978.7,"w":0.98}],"n":3,"m":2,"sec":12,"t":44,"id":"s292"},{"x":1577.6,"y":1208.6,"side":"T","phase":"pre","area":"B","zone":"T Lower","looks":[{"x":1740.0,"y":1051.5,"w":0.75},{"x":1235.1,"y":1169.9,"w":0.25}],"n":3,"m":3,"sec":9,"t":38,"id":"s293"},{"x":689.1,"y":657.9,"side":"T","phase":"pre","area":"A","zone":"Short","looks":[{"x":735.3,"y":547.1,"w":0.77}],"n":3,"m":2,"sec":9,"t":52,"id":"s294"},{"x":498.5,"y":1187.1,"side":"T","phase":"pre","area":"","zone":"A Stairs","looks":[{"x":408.2,"y":992.3,"w":0.77}],"n":3,"m":2,"sec":9,"t":25,"id":"s295"},{"x":1016.7,"y":670.8,"side":"T","phase":"pre","area":"M","zone":"Sniper Nest","looks":[{"x":941.2,"y":577.6,"w":0.49},{"x":888.7,"y":987.4,"w":0.26}],"n":3,"m":3,"sec":10,"t":35,"id":"s296"},{"x":1221.6,"y":1218.3,"side":"T","phase":"pre","area":"B","zone":"T Upper / Heaven","looks":[{"x":1739.5,"y":1182.2,"w":0.43},{"x":1338.8,"y":1025.4,"w":0.46}],"n":3,"m":3,"sec":9,"t":32,"id":"s297"},{"x":879.7,"y":972.4,"side":"T","phase":"pre","area":"M","zone":"Chamber Lane","looks":[{"x":766.6,"y":932.2,"w":0.7},{"x":936.7,"y":866.8,"w":0.3}],"n":3,"m":3,"sec":9,"t":73,"id":"s298"},{"x":945.1,"y":879.0,"side":"T","phase":"pre","area":"M","zone":"Mid","looks":[{"x":1002.6,"y":495.0,"w":0.68}],"n":3,"m":2,"sec":8,"t":60,"id":"s299"},{"x":1490.5,"y":862.7,"side":"T","phase":"pre","area":"B","zone":"Cave / House","looks":[{"x":1411.4,"y":772.5,"w":0.47}],"n":3,"m":3,"sec":10,"t":52,"id":"s300"},{"x":557.1,"y":1446.4,"side":"T","phase":"pre","area":"","zone":"Split","looks":[{"x":489.3,"y":1107.3,"w":1.0}],"n":3,"m":3,"sec":8,"t":10,"id":"s301"},{"x":1492.0,"y":1118.4,"side":"T","phase":"pre","area":"B","zone":"Wood","looks":[{"x":1313.6,"y":1231.5,"w":0.66}],"n":3,"m":3,"sec":8,"t":27,"id":"s302"},{"x":1680.6,"y":1344.3,"side":"T","phase":"pre","area":"B","zone":"Ruins","looks":[{"x":1617.7,"y":1242.1,"w":0.65},{"x":1374.5,"y":1552.6,"w":0.35}],"n":3,"m":2,"sec":6,"t":26,"id":"s303"},{"x":423.1,"y":778.8,"side":"T","phase":"pre","area":"A","zone":"A Main","looks":[{"x":308.3,"y":743.8,"w":0.32},{"x":374.0,"y":669.4,"w":0.52}],"n":3,"m":3,"sec":6,"t":56,"id":"s304"}]};
 var SPOTS = null;
 function spotsGet(){
-  if(!SPOTS) SPOTS = SPOTS_DATA.spots.map(function(p){ var q = Object.assign({}, p); q.lx = p.looks[0].x; q.ly = p.looks[0].y; return spotDerive(q); });
+  if(!SPOTS) SPOTS = SPOTS_DATA.spots.map(function(p){ var q = Object.assign({}, p); q.lx = p.looks[0].x; q.ly = p.looks[0].y; return q; });
   return SPOTS;
 }
-// (v195, решение владельца 07.10) места из демок — желательные, не обязательные. Бот
-// выбирает место сам по ситуации из любых мест карты: точки, по которым игра знает
-// карту (ZONE_SAMPLES, ~8 на зону), с направлением на проход, откуда придёт враг этой
-// стороны; место из демок даёт только небольшой плюс (ACT.W.lib в 12_team.js).
-// Каталог считается один раз: места карты обеих сторон + библиотека.
+// (v196, В15) где можно встать — проверочные точки по полу (сетка 32 px внутри зон
+// карты, не в стене; «укрытие» — стена ближе 34 px) + места из демок своей стороны
+// (небольшой плюс своей фазе, ACT.W.lib). У точки нет заранее заданного взгляда и
+// входа: что отсюда видно, какие входы открыты и насколько они опасны сейчас,
+// считает выбор действия по углам (placeEval, 12_team.js). Заменило
+// «места карты» v195 (точки зон с готовым направлением на проход).
+var _PROBES = null;
+function wallDist(x, y){ var best = 1e9;
+  for(var i=0;i<wallSegsLOS.length;i++){ var s = wallSegsLOS[i], vx = s[2]-s[0], vy = s[3]-s[1], L = vx*vx+vy*vy, t = L ? Math.max(0, Math.min(1, ((x-s[0])*vx+(y-s[1])*vy)/L)) : 0;
+    var d = Math.hypot(x-(s[0]+vx*t), y-(s[1]+vy*t)); if(d < best) best = d; }
+  return best; }
 function placesGet(){
   var out = [];
-  ["CT", "T"].forEach(function(team){
-    var ED = enemySpawnDist(team); if(!BZ.portal) bzPortals();
-    for(var zid in ZONE_SAMPLES) (ZONE_SAMPLES[zid] || []).forEach(function(q){
-      var zp = bzOf(q.x, q.y); if(zp < 0) return;
-      // куда смотреть отсюда: видимый проход к врагу (ведёт ближе к его спавну, не в тыл), ближайший к нему
-      var best = null, bs = Infinity;
-      BZ.portal.forEach(function(row, i){ for(var js in row){ var j = +js, pt = row[j];
-        if(j === zp || !(ED[j] < ED[i]) || ED[j] > ED[zp] + LOOK.rearMargin) continue;
-        var d = Math.hypot(pt.x-q.x, pt.y-q.y); if(d < 60 || d > 900 || !hasLOS(q.x, q.y, pt.x, pt.y)) continue;
-        var sc = ED[j] + 0.35*d; if(sc < bs){ bs = sc; best = pt; } } });
-      if(!best) return;   // отсюда не видно ни одного прохода к врагу — держать нечего
-      var p = spotDerive({x:q.x, y:q.y, lx:best.x, ly:best.y});
-      out.push({x:p.x, y:p.y, meet:{x:p.lx, y:p.ly}, looks:null, open:p.open, dirs:p.dirs, side:p.key, hold:p.hold, from:p.from, name:p.name || "",
-        ct: team === "CT", t: team === "T", ph:null, lib:false, area: teamAreaOf(p) || null});
-    });
-  });
+  for(var x=16; x<2048; x+=32) for(var y=16; y<2048; y+=32){
+    if(!zoneIdAt(x, y) || insideSolidWall(x, y)) continue;
+    var wd = wallDist(x, y); if(wd < 10) continue;
+    out.push({x:x, y:y, meet:null, looks:null, ct:true, t:true, ph:null, lib:false, cover:wd < 34, area:teamAreaOf({x:x, y:y}) || null, side:null, name:""});
+  }
   spotsGet().forEach(function(p){
-    out.push({x:p.x, y:p.y, meet:{x:p.lx, y:p.ly}, looks:p.looks, open:p.open, dirs:p.dirs, side:p.key, hold:p.hold, from:p.from, name:p.name || "",
-      ct: p.side === "CT", t: p.side === "T", ph:p.phase, lib:true, area: p.area || null, id:p.id});
+    out.push({x:p.x, y:p.y, meet:null, looks:p.looks, ct:p.side === "CT", t:p.side === "T", ph:p.phase, lib:true, cover:wallDist(p.x, p.y) < 34, area:p.area || null, side:null, name:"", id:p.id});
   });
-  return out;
-}
-// знание точки, которое есть у любого игрока: какой проход она держит и насколько открыта
-function spotDerive(p){
-  var zn = function(i){ return i >= 0 ? (ZONE_NAMES[ZONEMAP.zones[i].id] || ZONEMAP.zones[i].id) : ""; };
-  var hold = bzOf(p.x, p.y), from = -1, dx = p.lx - p.x, dy = p.ly - p.y, L = Math.hypot(dx, dy) || 1;
-  // откуда придёт враг: первая зона с другим названием по линии взгляда (до 1,6 длины)
-  for(var s = 8; s < L*1.6 + 200; s += 8){ var x = p.x + dx/L*s, y = p.y + dy/L*s; if(insideSolidWall(x, y) && s > L) break;
-    var z = bzOf(x, y); if(z >= 0 && z !== hold && zn(z) !== zn(hold)){ from = z; break; } }
-  if(from < 0) from = bzOf(p.lx, p.ly);
-  p.hold = hold; p.from = from; p.key = "z"+hold+":"+from; p.name = zn(from);
-  // открыта ли врагу: какая доля точек его стороны (зона врага и соседние, кроме моей) видит меня
-  var foeZ = [from]; (BZ.nbr[from] || []).forEach(function(i){ if(i !== hold && foeZ.indexOf(i) < 0) foeZ.push(i); });
-  var seen = 0, tot = 0;
-  foeZ.forEach(function(zi){ if(zi < 0) return; (ZONE_SAMPLES[ZONEMAP.zones[zi].id] || []).forEach(function(q){
-    var d = Math.hypot(q.x-p.x, q.y-p.y); if(d < 40 || d > 900) return; tot++; if(hasLOS(p.x, p.y, q.x, q.y)) seen++; }); });
-  p.open = tot ? +(seen/tot).toFixed(2) : 0;
-  // открыта ли с других направлений (кроме взгляда): по одному лучу на 0,55 рад
-  var ang0 = Math.atan2(dy, dx), bins = {}, dirs = 0;
-  ZONEMAP.zones.forEach(function(Z, zi){ if(zi === hold || zi === from) return;
-    var sm = ZONE_SAMPLES[Z.id] || [];
-    for(var k = 0; k < sm.length && k < 5; k++){ var q = sm[k], dq = Math.hypot(q.x-p.x, q.y-p.y); if(dq < 60 || dq > 1000) continue;
-      var aq = Math.atan2(q.y-p.y, q.x-p.x), da = Math.abs(((aq-ang0+Math.PI)%(2*Math.PI)+2*Math.PI)%(2*Math.PI)-Math.PI);
-      if(da < 0.6) break; if(!hasLOS(p.x, p.y, q.x, q.y)) continue;
-      var bi = Math.round(aq/0.55); if(bi === -6) bi = 6; if(!bins[bi]){ bins[bi] = 1; dirs++; } break; } });
-  p.dirs = dirs;
-  return p;
+  return (_PROBES = out);
 }
 // ---------- weapons ----------
 // weapon defines what combat is physically capable of; skill (below) decides how a
@@ -1635,11 +1602,9 @@ var BAL = {
   groupRetake: true,  // v158: ретейк ждёт всех, кто успевает дойти; заход синхронный (ближние ждут дальних, ≤2,5с); сейв при меньшинстве на 2
   duelValue: true,    // v154: дуэль оценивается с учётом размена рядом (≤350px), перевеса и ситуации: один без размена — не лезет
   smoothLook: true,   // v153: взгляд держит направление 0,5–0,8с, не мечется туда-обратно; вне боя поворот плавный и медленнее, стоя — без дрожи
-  claimStrong: true,
   smokeSpam: true,    // v150: прострел смоков по тому, что бот знает (частоты — по демкам)
   smokeReact: true,
   coverFix: true,
-  cornerAim: true,
   fireExit: true,
   tracerStyle: true,  // v151: трассер и вспышка зависят от оружия (пистолет, ПП, винтовка, AWP)
   smoothPeek: true,
@@ -1693,7 +1658,6 @@ var BAL = {
   saveRetake: true,  // (8) на сейве выровняли (1v1/2v2/1v2 со временем) — идут ретейкать
   plantReact: true,  // (7) по плантеру стреляют — бросает плант и отвечает
   recallStrict: true, // перекол "стак" — только по свежей реальной инфе (≥2 видели/слышали), не по памяти
-  reachBlock: true,  // (фото) враг не проходит сквозь зону, которую держит/видит живой свой
   realSpeed: true,
   cornerSlow: true,  // (10) на крутом повороте притормаживает, а не трётся дугой о угол   // (3) скорость бега как в CS2 (было в 1.5 раза быстрее)
   setup111: true,    // (7) CT читают расстановку 1-1-1: не ротируют всей командой на одну инфу
@@ -2007,7 +1971,7 @@ function bombFleePoint(b){
     // старт уже внутри радиуса — путь неизбежно начинается в нём; штрафуем
     // только если путь уходит к бомбе ближе, чем бот стоит сейчас
     var dNow = Math.hypot(b.x-bomb.x, b.y-bomb.y);
-    var sc = L + (minD < Math.min(R*0.75, dNow - 30) ? 900 : 0) + 600*beliefZoneKnown(b.team, i);
+    var sc = L + (minD < Math.min(R*0.75, dNow - 30) ? 900 : 0) + 600*infoZone(b.team, i);
     if(sc < bs){ bs = sc; best = q; }
   });
   b._flee = {round:roundNum, m:matchNum, pt:best};
@@ -2395,7 +2359,7 @@ function tIglReplan(tt, site, other, secLeft){
     var cD = DL.filter(function(e){ return e.t === "CT" && e.tick >= tt.execStart; }).length;
     if(tD - cD >= 2 && aliveT <= 3 && aliveCT >= aliveT){
       tt.aborted = tick;
-      var otherB = beliefCount("T", BZ.siteNear[other]||[]);
+      var otherB = infoCount("T", BZ.siteNear[other]||[], 10);
       var ctr = {x:0, y:0}, tsA = bots.filter(function(b){ return b.team === "T" && b.alive; });
       tsA.forEach(function(b){ ctr.x += b.x/tsA.length; ctr.y += b.y/tsA.length; });
       var travel = Math.hypot(ctr.x-SITES[other].x, ctr.y-SITES[other].y)*1.4/SPEED;
@@ -2494,7 +2458,7 @@ function tBrain(){
     var ancO = other === "A" ? "anchorA" : "anchorB";
     var pickOther = tt.phase === "setup" && picEvents("T").some(function(sg){ return sg.type === "kill" && tick - sg.tick < 3*TICK_HZ &&
       (sg.role === ancO ? Math.hypot(sg.x-SITES[other].x, sg.y-SITES[other].y) < 600 : Math.hypot(sg.x-SITES[other].x, sg.y-SITES[other].y) < 350); });
-    if(pickOther && aliveT >= 3 && beliefCount("T", BZ.siteNear[other]||[]) < 0.9 && there < 1.5){
+    if(pickOther && aliveT >= 3 && infoCount("T", BZ.siteNear[other]||[], 10) < 0.9 && there < 1.5){
       tt.rebound = true;
       logEvent("IGL: перекол → "+other+" (сняли CT, сайт пустой)");
       tt.site = other; tt.phase = "setup"; tt.execTick = tick + 3*TICK_HZ; tt.execStart = null; tt.plantPick = null;
@@ -2522,7 +2486,7 @@ function tBrain(){
   if(tt.phase === "setup" && tick - roundStartTick > 28*TICK_HZ && !tt.soloGo && !(hashRand(roundNum*577 + matchNum*41 + 3) < 0.5)){
     var eS = intelEstimate("T", site.x, site.y, 420, 5*TICK_HZ);
     var aliveT2 = aliveCount("T");
-    if(eS.seen === 1 && beliefCount("T", BZ.siteNear[tt.site]||[]) < 1.4 && aliveT2 >= 4){
+    if(eS.seen === 1 && infoCount("T", BZ.siteNear[tt.site]||[], 10) < 1.4 && aliveT2 >= 4){
       tt.soloGo = true; tt.phase = "execute"; tt.execStart = tick;
       logEvent("T: выход на "+tt.site+"! (по инфе там соло)");
     }
@@ -2572,7 +2536,7 @@ function tBrain(){
     var solo = ts[0];
     if(!tt.soloPlan){
       // сайт, где по инфе меньше CT (и ближе); сразу выход — ждать некого
-      var sc = function(k){ return beliefCount("T", BZ.siteNear[k]||[]) * 400 + Math.hypot(solo.x-SITES[k].x, solo.y-SITES[k].y); };
+      var sc = function(k){ return infoCount("T", BZ.siteNear[k]||[], 10) * 400 + Math.hypot(solo.x-SITES[k].x, solo.y-SITES[k].y); };
       var ks2 = sc("A") <= sc("B") ? "A" : "B";
       tt.soloPlan = ks2;
       if(ks2 !== tt.site){ tt.site = ks2; tt.plantPick = null; site = SITES[ks2]; g = GEO[ks2]; other = ks2 === "A" ? "B" : "A"; plantPt = site.plant || site; }
@@ -2846,7 +2810,7 @@ function intelPush(team, sig){ sig.tick = tick; teamIntel[team].sig.push(sig); i
     if(BAL.buyRead && sf.weapon) buyReadSee(team, sig.id, sf.weapon.key);
     if(sf.weapon && sf.weapon.slot === "primary") FOE[team].gun[sig.id] = sf.weapon.key; } } }
 // ---- КАРТИНА КОМАНДЫ: единственное знание о врагах ----
-// belief (где вероятно каждый враг, по зонам) + beliefLast (последнее реальное
+// beliefLast (последнее реальное
 // наблюдение по каждому врагу) + LAST_CLEAR/REACH (что проверено, куда враг мог
 // успеть). Вход — только общий канал (intelPush). Здесь — чтение «кому из
 // последних наблюдений ещё верить» (раньше — отдельное хранилище ЛИП) и
@@ -2860,14 +2824,14 @@ function picKnown(team){
   var L = beliefLast[team] || {}, out = {};
   for(var id in L){ var e = L[id]; if(e.gone) continue;
     var foe = botById(id); if(!foe || !foe.alive) continue;
-    if(tick - e.tick >= 3*TICK_HZ && beliefMassNear(team, id, e.x, e.y, 260) < 0.12) continue;
+    if(tick - e.tick >= 10*TICK_HZ) continue;   // старше 10 с — уже не «знаем, где он», а «куда мог успеть» (REACH)
     out[id] = e; }
   return (_picCache[team] = out);
 }
 // лента событий картины: смерти, фраги, звуки, «вижу» — по порядку, за ~12 с
 // (пишет только общий канал intelPush). Читать события — только отсюда.
 function picEvents(team){ return teamIntel[team].sig; }
-function picNear(team, x, y, r){ var n = 0, S = beliefSeen[team]; Object.keys(belief[team]).forEach(function(eid){ if(S[eid] != null && beliefMassNear(team, eid, x, y, r) >= 0.35) n++; }); return n; }
+function picNear(team, x, y, r){ return infoNear(team, x, y, r, 10); }
 // свежие наблюдения команды: [{id,x,y,tick,src}] не старше maxAge тиков
 function picRecent(team, maxAge){ var L = beliefLast[team] || {}, out = [];
   for(var id in L){ var e = L[id]; if(tick - e.tick > maxAge) continue; var foe = botById(id); if(!foe || !foe.alive) continue; out.push({id:id, x:e.x, y:e.y, tick:e.tick, src:e.src}); }
@@ -2892,7 +2856,6 @@ function picCheckTick(){
         hasVision(b.x, b.y, e.x, e.y) && inFov(b, e.x, e.y) && b._visible.indexOf(foe) < 0; })[0];
       if(checker){
         e.gone = tick; _picCache[team] = null;
-        beliefClearAt(team, e.x, e.y, id);
         newsAdd(checker, {k:"clear", x:e.x, y:e.y});
       }
     });
@@ -2929,16 +2892,14 @@ function teamInfoTick(){
 }
 // сколько врагов команда "знает" рядом с точкой за последние windowTicks
 function intelEstimate(team, x, y, r, windowTicks){
-  // из картины команды: враг "здесь", пока его вероятность рядом ≥0.35 —
-  // не "пока не прошло N секунд". seen/heard — было ли РЕАЛЬНОЕ наблюдение
-  // здесь за окно (для решений "видели недавно")
-  var B = belief[team], S = beliefSeen[team], L = beliefLast[team], n = 0, sN = 0, hN = 0, cf = 0, ls = -1;
-  Object.keys(B).forEach(function(eid){
-    if(S[eid] == null) return;
-    if(beliefMassNear(team, eid, x, y, r) < 0.35) return;
+  // по инфе команды (v196, без вероятности): враг «здесь», пока инфе о нём рядом ≤10 с;
+  // seen/heard — было ли реальное наблюдение здесь за окно (для решений «видели недавно»)
+  var L = beliefLast[team], n = 0, sN = 0, hN = 0, cf = 0, ls = -1;
+  Object.keys(L).forEach(function(eid){
+    var lo = L[eid]; if(lo.gone || tick - lo.tick > 10*TICK_HZ || Math.hypot(lo.x-x, lo.y-y) > r) return;
+    var foe = botById(eid); if(!foe || !foe.alive) return;
     n++;
-    var lo = L[eid];
-    if(lo && tick - lo.tick <= windowTicks && Math.hypot(lo.x-x, lo.y-y) <= r){
+    if(tick - lo.tick <= windowTicks){
       if(lo.src === "spotted"){ sN++; cf = 1; } else { hN++; cf = Math.max(cf, 0.5); }
       ls = Math.max(ls, lo.tick);
     } else cf = Math.max(cf, 0.3);
@@ -3171,13 +3132,6 @@ function beliefBuild(){
   });
   BZ.midZ = [];
   if(GEO.ctMid) BZ.cent.forEach(function(c,i){ if(Math.hypot(c.x-GEO.ctMid.x, c.y-GEO.ctMid.y) < 260) BZ.midZ.push(i); });
-  // модель движения врага — не случайное блуждание, а "идут к цели": потенциал
-  // зоны = путь по графу до ближайшей цели. T идут к сайтам; CT — к сайтам и миду
-  // (занимают позиции). Вероятность перетекает "под горку" быстрее, чем обратно.
-  var sinksT = [], sinksCT = [];
-  ["A","B"].forEach(function(k){ if(SITES[k]){ var z = bzOf(SITES[k].x, SITES[k].y); if(z >= 0){ sinksT.push(z); sinksCT.push(z); } } });
-  if(GEO.ctMid){ var zm = bzOf(GEO.ctMid.x, GEO.ctMid.y); if(zm >= 0) sinksCT.push(zm); }
-  BZ.potT = bzDist(sinksT); BZ.potCT = bzDist(sinksCT);
   BZ.DT = null;
 }
 function bzDist(src){
@@ -3204,29 +3158,23 @@ function bzOf(x, y){
   BZ.grid[k] = best;
   return best;
 }
-var belief = {CT:{}, T:{}};
-function beliefReset(){
+// ЕДИНОЕ хранилище знания о врагах (v196, без «расплывания» вероятности по зонам):
+//  • инфа — beliefLast[team][враг]: последнее реальное наблюдение (видели / слышали /
+//    колл): точка, когда, откуда; «проверили — пусто» — gone. Сколько их — по числу
+//    записей (звук «слышу троих» — трое разных врагов, soundWho);
+//  • куда враг мог успеть — REACH[team][зона]: самый ранний тик, когда там может
+//    оказаться враг: от его спавна бегом или от места последней инфы;
+//  • закрыто своими — зона, которую видят свои и там пусто, в REACH закрыта и через
+//    неё путь не идёт, пока враг не мог бы обойти (reachStep).
+// Остальное (колл, «сколько их тут», куда смотреть) только читает отсюда.
+var beliefSeen = {CT:{}, T:{}}; // когда по этому врагу последний раз была реальная инфа
+var beliefLast = {CT:{}, T:{}};
+function knowReset(){
   if(!BZ.ids.length) beliefBuild();
-  var n = BZ.ids.length;
   beliefSeen = {CT:{}, T:{}}; beliefLast = {CT:{}, T:{}}; LAST_CLEAR = {CT:{}, T:{}};
   reachReset();
-  bots.forEach(function(o){ o._tLookZ = null; o._tLook = null; o._tLookT = null; o._lkZ = null; o._lkPt = null; o._lkC = null; o._lkTop = null; });
-  ["CT","T"].forEach(function(team){
-    belief[team] = {};
-    bots.forEach(function(e){
-      if(e.team === team) return;
-      var P = new Float32Array(n), sp = e.team === "CT" ? CT_SPAWN : T_SPAWN, zi = bzOf(sp.x, sp.y);
-      if(zi >= 0) P[zi] = 1; belief[team][e.id] = P;
-    });
-  });
+  bots.forEach(function(o){ o._tLookZ = null; o._tLook = null; o._tLookT = null; o._lkZ = null; o._lkPt = null; o._lkC = null; o._lkTop = null; o._cChk = null; });
 }
-var beliefSeen = {CT:{}, T:{}}; // когда по этому врагу последний раз была реальная инфа
-// ЕДИНОЕ хранилище инфы о врагах: belief (где вероятно каждый враг, по зонам) +
-// beliefLast (последнее реальное наблюдение: точка, когда, видели/слышали).
-// Всё остальное — "последняя позиция" (ЛИП), "проверено — пусто", оценка
-// "сколько их тут" — теперь только ЧИТАЕТ отсюда и ПИШЕТ сюда, а не хранит
-// свою отдельную копию: раньше пять копий расходились между собой
-var beliefLast = {CT:{}, T:{}};
 // ---- тайминги (как думают про): "видел там 10с назад — сейчас может быть уже здесь" ----
 // REACH[team][зона] = самый ранний тик, когда там МОЖЕТ оказаться враг: от его
 // спавна бегом; зона, в которую свои сейчас смотрят и там пусто, снова
@@ -3246,73 +3194,62 @@ function reachReset(){
 }
 function reachOpen(team, x, y){ var R = REACH[team]; if(!R) return; var zi = bzOf(x, y); if(zi >= 0) R[zi] = Math.min(R[zi], tick); }
 function reachPossible(team, i){ var R = REACH[team]; return !R || R[i] <= tick; }
+// каждые 0,25 с: зоны, которые видят свои (и там пусто), закрыты; остальные
+// закрытые пересчитываются от открытых по времени бега; через закрытую свою зону
+// путь не идёт (держат свои), пока её не «откроет» контакт или уход своего
 function reachStep(team, clearList){
   var R = REACH[team]; if(!R) return;
-  clearList.forEach(function(cz){ if(cz[1] >= 0.5) R[cz[0]] = Math.max(R[cz[0]], tick + BELIEF_STEP + 1); });
-  if(BAL.reachBlock){
-    // (фото) раньше "куда враг мог успеть" считалось один раз от спавна по
-    // свободной карте — и зоны за живым мидером считались достижимыми, хотя
-    // пройти туда можно только через него. Теперь каждый шаг: закрытые зоны
-    // пересчитываются от открытых, а зона, которую держит/видит свой, — стена:
-    // через неё путь не идёт, пока её не "откроет" контакт или уход своего
-    var n = R.length, fixed = new Uint8Array(n), D = new Float64Array(n);
-    clearList.forEach(function(cz){ if(cz[1] >= 0.5) fixed[cz[0]] = 1; });
-    for(var i0=0;i0<n;i0++) D[i0] = (R[i0] <= tick || fixed[i0]) ? R[i0] : Infinity;
-    var done = new Uint8Array(n);
-    for(var it0=0; it0<n; it0++){
-      var u = -1, bd = Infinity;
-      for(var i1=0;i1<n;i1++) if(!done[i1] && D[i1] < bd){ bd = D[i1]; u = i1; }
-      if(u < 0) break; done[u] = 1;
-      if(fixed[u] && R[u] > tick) continue; // держат свои — дальше через неё не пройти
-      var nbu = BZ.nbr[u], cu = BZ.cent[u]; if(!cu) continue;
-      for(var k0=0;k0<nbu.length;k0++){ var v = nbu[k0], cv = BZ.cent[v]; if(!cv || done[v] || fixed[v] || R[v] <= tick) continue;
-        var tv = D[u] + Math.hypot(cu.x-cv.x, cu.y-cv.y)/SPEED*TICK_HZ; if(tv < D[v]) D[v] = tv; }
-    }
-    for(var i2=0;i2<n;i2++) if(R[i2] > tick && !fixed[i2]) R[i2] = D[i2];
-    return;
+  clearList.forEach(function(cz){ if(cz[1] >= 0.5) R[cz[0]] = Math.max(R[cz[0]], tick + KNOW_STEP + 1); });
+  var n = R.length, fixed = new Uint8Array(n), D = new Float64Array(n);
+  clearList.forEach(function(cz){ if(cz[1] >= 0.5) fixed[cz[0]] = 1; });
+  for(var i0=0;i0<n;i0++) D[i0] = (R[i0] <= tick || fixed[i0]) ? R[i0] : Infinity;
+  var done = new Uint8Array(n);
+  for(var it0=0; it0<n; it0++){
+    var u = -1, bd = Infinity;
+    for(var i1=0;i1<n;i1++) if(!done[i1] && D[i1] < bd){ bd = D[i1]; u = i1; }
+    if(u < 0) break; done[u] = 1;
+    if(fixed[u] && R[u] > tick) continue;
+    var nbu = BZ.nbr[u], cu = BZ.cent[u]; if(!cu) continue;
+    for(var k0=0;k0<nbu.length;k0++){ var v = nbu[k0], cv = BZ.cent[v]; if(!cv || done[v] || fixed[v] || R[v] <= tick) continue;
+      var tv = D[u] + Math.hypot(cu.x-cv.x, cu.y-cv.y)/SPEED*TICK_HZ; if(tv < D[v]) D[v] = tv; }
   }
-  for(var it=0; it<3; it++){
-    for(var i=0;i<R.length;i++){
-      var nb = BZ.nbr[i], ci = BZ.cent[i]; if(!ci) continue;
-      for(var k=0;k<nb.length;k++){ var j = nb[k], cj = BZ.cent[j]; if(!cj) continue;
-        var t = R[j] + Math.hypot(ci.x-cj.x, ci.y-cj.y)/SPEED*TICK_HZ;
-        if(t < R[i]) R[i] = t; }
-    }
-  }
+  for(var i2=0;i2<n;i2++) if(R[i2] > tick && !fixed[i2]) R[i2] = D[i2];
 }
-function beliefMassNear(team, eid, x, y, r){
-  var P = belief[team] && belief[team][eid]; if(!P) return 0;
-  var t = 0, z0 = bzOf(x, y);
-  for(var i=0;i<P.length;i++){ if(!P[i]) continue; var c = BZ.cent[i]; if(i === z0 || (c && Math.hypot(c.x-x, c.y-y) <= r)) t += P[i]; }
-  return t;
+// насколько свежа инфа о враге: ≤4 с — 1, к 20 с — 0 (дальше он мог уйти куда угодно —
+// это уже не «знаю, где он», а «куда мог успеть» по REACH)
+function infoW(team, eid){
+  var lo = beliefLast[team][eid]; if(!lo || lo.gone) return 0;
+  var foe = botById(eid); if(!foe || !foe.alive) return 0;   // смерть врага видна в киллфиде
+  var a = (tick - lo.tick)/TICK_HZ; return a <= 4 ? 1 : a >= 20 ? 0 : 1 - (a-4)/16;
 }
-// "проверили — пусто": стираем вероятность врага в этой зоне (и в хранилище)
-function beliefClearAt(team, x, y, eidOnly){
-  var zi = bzOf(x, y); if(zi < 0 || !belief[team]) return;
-  Object.keys(belief[team]).forEach(function(eid){ if(eidOnly && eid !== eidOnly) return; belief[team][eid][zi] *= 0.08; });
-}
-function beliefSet(team, eid, zi, w){
-  var P = belief[team] && belief[team][eid]; if(!P || zi < 0) return;
-  beliefSeen[team][eid] = tick;
-  for(var i=0;i<P.length;i++) P[i] *= (1-w);
-  P[zi] += w;
-}
-// кому из врагов команда приписывает услышанное: ник по звуку не узнать —
-// берём того, кто по картине вероятнее всего там (и не виден прямо сейчас
-// в другом месте); n разных источников — n разных врагов. Это догадка команды:
-// двоих, идущих вплотную, легко принять за одного
+// инфа о врагах в зоне (сумма свежести)
+function infoZone(team, i){ var L = beliefLast[team], t = 0; for(var eid in L){ var lo = L[eid]; if(bzOf(lo.x, lo.y) === i) t += infoW(team, eid); } return t; }
+// сколько врагов по инфе в наборе зон (не старше maxSec)
+function infoCount(team, zoneList, maxSec){ var L = beliefLast[team], n = 0;
+  for(var eid in L){ var lo = L[eid]; if(lo.gone || tick - lo.tick > maxSec*TICK_HZ) continue; var foe = botById(eid); if(!foe || !foe.alive) continue;
+    if(zoneList.indexOf(bzOf(lo.x, lo.y)) >= 0) n++; }
+  return n; }
+// сколько врагов по инфе в радиусе r (не старше maxSec)
+function infoNear(team, x, y, r, maxSec){ var L = beliefLast[team], n = 0;
+  for(var eid in L){ var lo = L[eid]; if(lo.gone || tick - lo.tick > maxSec*TICK_HZ) continue; var foe = botById(eid); if(!foe || !foe.alive) continue;
+    if(Math.hypot(lo.x-x, lo.y-y) <= r) n++; }
+  return n; }
+// кому из врагов команда приписывает услышанное: ник по звуку не узнать — тому, кто
+// по последней инфе успевал туда добежать (ближе — вероятнее), иначе тому, о ком
+// инфы нет дольше всех; n разных источников — n разных врагов. Это догадка команды
 function soundWho(team, x, y, n){
-  var B = belief[team], L = beliefLast[team], S = beliefSeen[team], c = [];
-  Object.keys(B).forEach(function(eid){
-    var lo = L[eid];
+  var L = beliefLast[team], S = beliefSeen[team], c = [];
+  bots.forEach(function(e){ if(e.team === team || !e.alive) return; var eid = e.id, lo = L[eid];
     if(lo && !lo.gone && lo.src === "spotted" && tick - lo.tick < 12 && Math.hypot(lo.x-x, lo.y-y) > 250) return;
-    var old = S[eid] == null ? 1 : Math.min(1, (tick - S[eid])/(20*TICK_HZ));
-    c.push({id:eid, w: beliefMassNear(team, eid, x, y, 300) + 0.001*old});
-  });
+    var w;
+    if(lo && !lo.gone){ var age = (tick - lo.tick)/TICK_HZ, d = Math.hypot(lo.x-x, lo.y-y), can = SPEED*age*1.2 + 250;
+      w = d <= can ? 1 + (1 - d/can) : 0.001; }
+    else w = 0.5 + 0.001*(S[eid] == null ? 1 : Math.min(1, (tick - S[eid])/(20*TICK_HZ)));
+    c.push({id:eid, w:w}); });
   c.sort(function(p, q){ return q.w - p.w; });
   return c.slice(0, Math.max(1, n||1)).map(function(q){ return q.id; });
 }
-// вызывается из intelPush — каждое событие восприятия сразу правит карту
+// вызывается из intelPush — каждое событие восприятия сразу правит знание
 function beliefObserve(team, sg){
   if(!BZ.ids.length) return;
   if(sg.type === "sound" && sg.kind === "plant" && SITES.A && SITES.B){
@@ -3328,71 +3265,19 @@ function beliefObserve(team, sg){
       var bl = beliefLast[team][eid];
       if(bl && bl.src === "spotted" && sg.type === "sound" && tick - bl.tick < 2*TICK_HZ) return;
       beliefLast[team][eid] = {x:sg.x, y:sg.y, tick:tick, src:sg.type, zn:zn};
-    });
-  }
-  if(sg.type === "spotted") beliefSet(team, sg.id, bzOf(sg.x, sg.y), 1);
-  else if(sg.type === "sound") ids.forEach(function(eid){ beliefSet(team, eid, bzOf(sg.x, sg.y), sg.kind === "nade" ? 0.8 : 0.65); });
-  else if(sg.type === "died" && sg.kx == null){
-    // стрелявшего не видели: он в одной из зон, откуда простреливается место смерти
-    var dz = bzOf(sg.x, sg.y); if(dz < 0) return;
-    var from = ZONE_DANGER[BZ.ids[dz]] || [], Wd = ZONE_DANGER_W[BZ.ids[dz]] || {};
-    var add = new Float32Array(BZ.ids.length), tot = 0;
-    from.forEach(function(zid){
-      var j = BZ.idx[zid]; if(j === undefined) return;
-      var d = Math.hypot(BZ.cent[j].x-sg.x, BZ.cent[j].y-sg.y);
-      var w = (Wd[zid]||0.1) / (1 + d/400); add[j] += w; tot += w;
-    });
-    if(tot <= 0) return;
-    Object.keys(belief[team]).forEach(function(eid){
-      var P = belief[team][eid];
-      for(var i=0;i<P.length;i++) P[i] = P[i]*0.7 + 0.3*add[i]/tot;
+      beliefSeen[team][eid] = tick;
     });
   }
 }
-var BELIEF_STEP = 16; // тиков (0.25с)
-function beliefTick(){
-  if(roundState !== "live" || tick % BELIEF_STEP !== 0 || !BZ.ids.length) return;
-  // средний переход между зонами ~160px ≈ 1с бегом; враг в среднем не бежит всё
-  // время по прямой (стоит, чекает углы) — берём ~половину скорости
-  var n = BZ.ids.length, m = 0.12;
+var KNOW_STEP = 16; // тиков (0.25с)
+// раз в 0,25 с: что видят свои — там врага нет (закрыто своими → REACH)
+function knowTick(){
+  if(roundState !== "live" || tick % KNOW_STEP !== 0 || !BZ.ids.length) return;
   ["CT","T"].forEach(function(team){
-    var B = belief[team];
-    var PWb = PORTAL_W[team] = portalWatched(team);
-    Object.keys(B).forEach(function(eid){
-      var e = bots.filter(function(o){ return o.id === eid; })[0];
-      if(!e || !e.alive){ delete B[eid]; return; } // смерть врага видна в киллфиде
-      var P = B[eid], Q = new Float32Array(n), pot = e.team === "T" ? BZ.potT : BZ.potCT;
-      // (v144) цель CT после планта — бомба (ретейк), а не "свои позиции"
-      if(BAL.ppBelief !== false && e.team === "CT" && bomb && bomb.state === "planted"){
-        // CT сначала собираются у входа на сайт со своей стороны, оттуда заходят
-        var ge = GEO[bomb.site] && GEO[bomb.site].ctEntry, bzB = ge ? bzOf(ge.x, ge.y) : bzOf(bomb.x, bomb.y);
-        if(BAL.ppSinkBomb) bzB = bzOf(bomb.x, bomb.y);
-        if(!BZ.potBomb || BZ.potBomb.z !== bzB){ BZ.potBomb = {z:bzB, D: bzDist(bzB >= 0 ? [bzB] : [])}; }
-        pot = BZ.potBomb.D;
-      }
-      for(var i=0;i<n;i++){
-        var nb = BZ.nbr[i], deg = nb.length;
-        if(!deg || P[i] < 1e-7){ Q[i] += P[i]; continue; }
-        // веса соседей: к цели (потенциал ниже) — охотнее, от цели — реже
-        var ws = 0, wl = [];
-        for(var k=0;k<deg;k++){ var dp = pot[nb[k]] - pot[i]; var w = Math.exp(-Math.max(-2.5, Math.min(2.5, dp/140))); wl.push(w); ws += w; }
-        // у самой цели (все соседи "в гору") — чаще остаются на месте: заняли позицию
-        var go = m * Math.min(1.3, ws/deg);
-        Q[i] += P[i]*(1-go);
-        for(var k2=0;k2<deg;k2++){
-          // (v141) враг не может незаметно пройти через проход, который видит свой:
-          // эта доля вероятности просто исчезает (прошёл бы — его бы увидели)
-          if(PWb[i+","+nb[k2]]) continue;
-          Q[nb[k2]] += P[i]*go*wl[k2]/ws; }
-      }
-      B[eid] = Q;
-    });
-    // отрицательная информация: что видят живые тиммейты — там врага нет
     var clearAll = [];
     bots.forEach(function(b){
       if(!b.alive || b.team !== team) return;
       var zb = bzOf(b.x, b.y); if(zb < 0) return;
-      var seenIds = {}; (b._visible||[]).forEach(function(e){ seenIds[e.id] = true; });
       var clear = [[zb, 0.92]];
       var W = ZONE_DANGER_W[BZ.ids[zb]] || {};
       (ZONE_DANGER[BZ.ids[zb]]||[]).forEach(function(zid){
@@ -3402,64 +3287,12 @@ function beliefTick(){
         if(!inFov(b, c.x, c.y) && d > FOV_NEAR*2) return;
         clear.push([j, Math.min(0.9, 0.35 + 0.9*(W[zid]||0))]);
       });
-      Object.keys(B).forEach(function(eid){
-        if(seenIds[eid]) return;
-        var P = B[eid];
-        clear.forEach(function(cz){ P[cz[0]] *= (1-cz[1]); });
-      });
       // зона, где сейчас стоит видимый враг, не "закрывается"
       if(!(b._visible||[]).length) clearAll.push.apply(clearAll, clear);
     });
     reachStep(team, clearAll);
     var CLT = LAST_CLEAR[team] || (LAST_CLEAR[team] = {}); clearAll.forEach(function(cz){ if(cz[1] >= 0.5) CLT[cz[0]] = tick; });
-    if(BAL.reachBlock && REACH[team]){ var RR = REACH[team];
-      Object.keys(B).forEach(function(eid){ var P = B[eid]; for(var i4=0;i4<n;i4++) if(RR[i4] > tick) P[i4] *= 0.5; }); }
-    Object.keys(B).forEach(function(eid){
-      var P = B[eid], sum = 0;
-      for(var i=0;i<n;i++) sum += P[i];
-      if(sum < 1e-6){
-        // вся инфа противоречит — не "везде поровну" (тогда и в проверенных
-        // тупиках снова появлялся враг), а только там, куда враг мог дойти и
-        // что сейчас никто не видит
-        var clr = {}; clearAll.forEach(function(cz){ if(cz[1] >= 0.5) clr[cz[0]] = 1; });
-        var pot = (bots.filter(function(o){ return o.id === eid; })[0]||{}).team === "T" ? BZ.potT : BZ.potCT, s2 = 0;
-        for(var i5=0;i5<n;i5++){ P[i5] = (!clr[i5] && reachPossible(team, i5)) ? Math.exp(-pot[i5]/600) : 0; s2 += P[i5]; }
-        if(s2 <= 0){ for(var i6=0;i6<n;i6++) P[i6] = 1/n; } else for(var i7=0;i7<n;i7++) P[i7] /= s2;
-      }
-      else if(sum < 1e-6){ for(var i2=0;i2<n;i2++) P[i2] = 1/n; }
-      else for(var i3=0;i3<n;i3++) P[i3] /= sum;
-    });
   });
-}
-// сколько врагов команда ожидает в наборе зон (сумма по всем живым врагам)
-function beliefMass(team, zoneList){
-  var B = belief[team], tot = 0;
-  Object.keys(B).forEach(function(eid){ var P = B[eid]; zoneList.forEach(function(i){ tot += P[i]; }); });
-  return tot;
-}
-// "сколько их там" для колла: враги, по которым была свежая инфа (≤10с), —
-// всей своей вероятностью; остальные ("куда-то идут") — только малой долей,
-// иначе априорный дрейф к сайтам сам по себе раздувал бы колл до 3-4
-function beliefCount(team, zoneList){
-  var B = belief[team], tot = 0;
-  Object.keys(B).forEach(function(eid){
-    var P = B[eid], pe = 0; zoneList.forEach(function(i){ pe += P[i]; });
-    var fresh = tick - (beliefSeen[team][eid] == null ? -1e9 : beliefSeen[team][eid]) < 10*TICK_HZ;
-    tot += fresh ? pe : 0.25*pe;
-  });
-  return tot;
-}
-// как beliefZone, но дисконтирует "чистый прогноз" (никогда/давно не видели
-// этого врага живьём) — иначе идле-боты стоят пред-прицелившись точно в
-// статистически вероятную клетку так, будто реально знают, где враг, хотя
-// это просто "скорее всего туда пошёл" без единого реального контакта
-function beliefZoneFresh(team, i){
-  var B = belief[team], seen = beliefSeen[team], t = 0;
-  Object.keys(B).forEach(function(eid){
-    var fresh = tick - (seen[eid] == null ? -1e9 : seen[eid]) < 10*TICK_HZ;
-    t += B[eid][i] * (fresh ? 1 : 0.3);
-  });
-  return t;
 }
 
 
@@ -3481,7 +3314,7 @@ var SAID_TTL = 6*64; // тиков (64 в секунду; TICK_HZ объявле
 // сколько запись в блокноте ещё стоит говорить (тиков): шаги и «вижу» — свежие
 // только секунду-полторы; минус, бомба, плант — дольше; план — до смены плана
 var TALK_TTL = {see:64, hear:96, hurt:128, kill:128, clear:128, nade:96, doing:128, need2:128, askcheck:192, holdmine:128, pull:96, flashme:64,
-  dead:192, bomb:192, bombground:192, buy:384, plan:256, _retry:96, take:128, go:96, cant:96};
+  dead:192, bomb:192, bombground:192, buy:384, plan:256, _retry:96, take:128, take2:128, go:96, cant:96};
 function talkTTL(it){ return it.k === "hear" && (it.kind === "plant" || it.kind === "defuse") ? 192 : (TALK_TTL[it.k] || 96); }
 // не устарело ли (проверка перед тем, как сказать, и когда фраза дошла): говорить
 // стоит только то, что тиммейтам ещё полезно и чего они не знают новее
@@ -3550,6 +3383,7 @@ function talkMsg(b, it){
       return {key:"hm"+b.id+w, pr:6, short:"подержите "+w, full:"ухожу "+wf+" — подержите угол"}; }
     case "pull": return {key:"pull"+w, pr:7, short:"стяните одного "+w, full:"их тут больше — стяните одного "+w};
     case "take": return {key:"tk"+b.id+it.side, pr:5, short:"беру "+it.name, full:"беру "+it.name};
+    case "take2": return {key:"t2"+b.id+it.side, pr:6, short:"возьми "+it.name, full:"я под два входа — возьми "+it.name};
     case "go": return {key:"go"+b.id+w, pr:6, short:"иду", full:"иду к тебе "+w};
     case "cant": return {key:"cant"+b.id+w, pr:5, short:"не могу", full:"не могу — держу своё"};
     case "flashme": return {key:"fm"+b.id, pr:6, short:"флешку мне "+w, full:"дайте флешку мне на пик "+w};
@@ -3680,6 +3514,105 @@ function voiceTick(){
     VOICE[team] = V.filter(function(u){ return !u.done || tick - u.end < 5*TICK_HZ; });
   });
 }
+// =====================================================================
+// (v196, В15) УГЛЫ: бот видит карту углами, а не зонами.
+// Видимая область с точки — лучи до стен (CORNER.rays штук); «край» (угол) —
+// место, где соседние лучи резко расходятся по длине: ближний упёрся в кромку
+// стены, дальний ушёл за неё — оттуда может выйти враг. Для каждого края:
+//   cx, cy — кромка стены; x, y — куда целиться (чуть за кромку, на уровне
+//   головы); a — направление; d — расстояние; z — зона прохода за краем
+//   (откуда придёт враг); gap — насколько глубоко уходит проход (широкий/узкий угол).
+// Геометрия зависит только от стен — кэш по клетке 12 px. Дым — отдельно
+// (cornersSeen: край за дымом не виден).
+// Опасность края (cornerDanger) — из картины команды: может ли враг уже быть там
+// (REACH: по секундам от спавна / от последней инфы, проходы, которые видят свои,
+// закрыты), что известно (видел / слышал / колл), стоит ли там свой.
+// =====================================================================
+var CORNER = {rays:180, R:1100, cell:12, jump:55, jumpK:0.3, minD:24};
+var _CRN = {}, _CRN_N = 0;
+var _CSEG = null;
+// стены по клеткам 64 px — луч проверяет только стены клеток, через которые проходит
+function cornerSegs(){
+  if(_CSEG && _CSEG.n === wallSegsLOS.length) return _CSEG;
+  var n = wallSegsLOS.length, A = new Float64Array(n*4), G = {}, CS = 64;
+  for(var i=0;i<n;i++){ var s = wallSegsLOS[i]; A[i*4] = s[0]; A[i*4+1] = s[1]; A[i*4+2] = s[2]; A[i*4+3] = s[3];
+    var L = Math.hypot(s[2]-s[0], s[3]-s[1]), steps = Math.max(1, Math.ceil(L/16));
+    for(var k=0;k<=steps;k++){ var x = s[0] + (s[2]-s[0])*k/steps, y = s[1] + (s[3]-s[1])*k/steps;
+      for(var ox=-1;ox<=1;ox+=2) for(var oy=-1;oy<=1;oy+=2){ var key = Math.floor((x+ox*2)/CS)+","+Math.floor((y+oy*2)/CS), c = G[key] || (G[key] = []); if(c[c.length-1] !== i && c.indexOf(i) < 0) c.push(i); } } }
+  return (_CSEG = {n:n, A:A, G:G, CS:CS});
+}
+// длина луча до первой стены: идём по клеткам вдоль луча (DDA), в каждой — её стены
+function cornerRay(x, y, dx, dy, R){
+  var S = cornerSegs(), A = S.A, G = S.G, CS = S.CS, best = R;
+  var cx = Math.floor(x/CS), cy = Math.floor(y/CS), stx = dx > 0 ? 1 : -1, sty = dy > 0 ? 1 : -1;
+  var tdx = dx !== 0 ? Math.abs(CS/dx) : Infinity, tdy = dy !== 0 ? Math.abs(CS/dy) : Infinity;
+  var tmx = dx !== 0 ? ((dx > 0 ? (cx+1)*CS - x : x - cx*CS)/Math.abs(dx)) : Infinity;
+  var tmy = dy !== 0 ? ((dy > 0 ? (cy+1)*CS - y : y - cy*CS)/Math.abs(dy)) : Infinity;
+  var tcell = 0;
+  while(tcell < best){
+    var L = G[cx+","+cy];
+    if(L) for(var q=0;q<L.length;q++){ var i = L[q];
+      var x1 = A[i*4], y1 = A[i*4+1], sx = A[i*4+2]-x1, sy = A[i*4+3]-y1, den = dx*sy - dy*sx;
+      if(den > -1e-9 && den < 1e-9) continue;
+      var qx = x1-x, qy = y1-y, t = (qx*sy - qy*sx)/den; if(t <= 0 || t >= best) continue;
+      var u = (qx*dy - qy*dx)/den; if(u >= 0 && u <= 1) best = t; }
+    if(tmx < tmy){ tcell = tmx; tmx += tdx; cx += stx; } else { tcell = tmy; tmy += tdy; cy += sty; }
+  }
+  return best;
+}
+// видимая область и края с точки (только стены; кэш по клетке)
+function cornersAt(x, y){
+  var k = Math.round(x/CORNER.cell)+","+Math.round(y/CORNER.cell);
+  var C = _CRN[k]; if(C) return C;
+  if(_CRN_N > 30000){ _CRN = {}; _CRN_N = 0; }
+  var px = Math.round(x/CORNER.cell)*CORNER.cell, py = Math.round(y/CORNER.cell)*CORNER.cell;
+  if(insideSolidWall(px, py)){ px = x; py = y; }
+  var N = CORNER.rays, R = CORNER.R, D = new Float64Array(N), st = 2*Math.PI/N;
+  for(var i=0;i<N;i++){ var a = i*st; D[i] = cornerRay(px, py, Math.cos(a), Math.sin(a), R); }
+  var E = [], z0 = bzOf(px, py);
+  for(var i2=0;i2<N;i2++){
+    var j = (i2+1) % N, dn = Math.min(D[i2], D[j]), df = Math.max(D[i2], D[j]);
+    if(df - dn < Math.max(CORNER.jump, CORNER.jumpK*dn) || dn < CORNER.minD || dn >= R - 1) continue;
+    var near = D[i2] < D[j] ? i2 : j, far = near === i2 ? j : i2, an = near*st, af = far*st, sgn = far === j ? 1 : -1;
+    var cx = px + Math.cos(an)*dn, cy = py + Math.sin(an)*dn;
+    // куда целиться: чуть за кромку, на той же дальности (голова выходящего)
+    var aa = an + sgn*st*0.75, ax = px + Math.cos(aa)*(dn + 6), ay = py + Math.sin(aa)*(dn + 6);
+    // откуда придёт враг: зона за кромкой (по дальнему лучу, чуть глубже кромки)
+    var z = -1; for(var s = dn + 40; s < Math.min(df, dn + 400); s += 30){ var zz = bzOf(px + Math.cos(af)*s, py + Math.sin(af)*s); if(zz >= 0){ z = zz; if(zz !== z0) break; } }
+    if(z < 0) continue;
+    var dup = E.filter(function(e){ return Math.hypot(e.cx-cx, e.cy-cy) < 26; })[0];
+    if(dup){ if(df - dn > dup.gap) { dup.gap = df - dn; dup.z = z; } continue; }
+    E.push({cx:cx, cy:cy, x:ax, y:ay, a:aa, d:dn, z:z, gap:df - dn, side:sgn, key:"c"+Math.round(cx/20)+","+Math.round(cy/20)});
+  }
+  C = {x:px, y:py, D:D, E:E, z:z0}; _CRN[k] = C; _CRN_N++;
+  return C;
+}
+// края, которые сейчас видно (дым закрывает)
+function cornersSeen(x, y){
+  var C = cornersAt(x, y);
+  if(typeof smokes === "undefined" || !smokes.length) return C.E;
+  return C.E.filter(function(e){ return hasVision(x, y, e.x, e.y); });
+}
+// опасность края для команды сейчас:
+//  t — 0, если враг туда ещё не мог дойти (REACH), иначе 1 → гаснет до 0,15, если путь открыт
+//      давно, а никто не вышел; eta — через сколько секунд сможет (для «без угроз»);
+//  info — враги, о которых есть инфа (видел / слышал / колл) за этим краем;
+//  mate — за краем (ближе к врагу) стоит свой: враг выйдет сначала на него.
+function cornerDanger(team, e, me){
+  var R = REACH[team], r = R ? R[e.z] : 0, eta = 0, t = 0;
+  if(R && !isFinite(r)) return {v:0, t:0, eta:Infinity, info:0, mate:false};
+  if(r > tick) eta = (r - tick)/TICK_HZ;
+  else t = Math.max(LOOK.reachFloor, Math.exp(-(tick - r)/(LOOK.reachFade*TICK_HZ)));
+  var info = 0, L = beliefLast[team] || {};
+  for(var eid in L){ var lo = L[eid]; if(!lo || lo.gone) continue; var age = (tick - lo.tick)/TICK_HZ; if(age > 8) continue;
+    var foe = botById(eid); if(!foe || !foe.alive) continue;
+    var zl = bzOf(lo.x, lo.y); if(zl !== e.z && (BZ.nbr[e.z]||[]).indexOf(zl) < 0) continue;
+    if(Math.hypot(lo.x-e.x, lo.y-e.y) > 650) continue;
+    info += age <= 3 ? 1 : 1 - 0.6*(age-3)/5; }
+  var mate = bots.some(function(o){ return o !== me && o.alive && o.team === team && bzOf(o.x, o.y) === e.z && Math.hypot(o.x-e.cx, o.y-e.cy) < 450; });
+  var v = mate ? 0.1*(t + 2.5*info) : t + 2.5*info;
+  return {v:v, t:t, eta:eta, info:info, mate:mate};
+}
 // куда смотреть, стоя на посту без свежей инфы: зона, откуда меня могут
 // простреливать, с наибольшей вероятностью врага (кэш на 0.25с)
 // куда смотреть на "невидимую" точку (звук, где только что был враг, вход
@@ -3743,7 +3676,7 @@ function prePeekTick(b){
       // за углом враг может быть (по таймингу/инфе) и там не стоит свой
       var open = zB >= 0 && reachPossible(b.team, zB) &&
         !bots.some(function(o){ return o !== b && o.alive && o.team === b.team && Math.hypot(o.x-C.beyond.x, o.y-C.beyond.y) < 160; });
-      C.danger = open ? (beliefZoneKnown(b.team, zB) + 0.1) : 0;
+      C.danger = open ? (infoZone(b.team, zB) + 0.1) : 0;
       C.slice = open && C.dist < 110;
       C.t = tick; b._pie = C;
       if(open && C.dist < 150) prePeekDecide(b, C, zB);
@@ -3762,7 +3695,7 @@ function prePeekDecide(b, C, zB){
   // инфа, что угол держат: свежая точка врага за углом или высокая вероятность
   var L = picKnown(b.team) || {}, holder = null;
   for(var e in L){ var q = L[e]; if(tick - q.tick < 8*TICK_HZ && Math.hypot(q.x-C.beyond.x, q.y-C.beyond.y) < 450){ holder = q; break; } }
-  var info = !!holder || beliefZoneKnown(b.team, zB) >= 0.45;
+  var info = !!holder || infoZone(b.team, zB) >= 0.45;
   var heardMe = BAL.heardMe && b._noisyT && tick - b._noisyT < 3*TICK_HZ;       // (4) он меня, скорее всего, слышал
   var repeek = b._avoidPeekUntil > tick && b._avoidPeekAt && Math.hypot(b._avoidPeekAt.x-C.beyond.x, b._avoidPeekAt.y-C.beyond.y) < 450;
   var tt = teamTac.T, execEntry = b.team === "T" && tt && tt.phase === "execute" && b.tRole === "entry";
@@ -3776,7 +3709,7 @@ function prePeekDecide(b, C, zB){
     // почти никогда не видны, и механика не срабатывала. Теперь — любые видимые
     // точки зоны (и соседей соседей), враг там может быть по таймингу
     var addD = function(j){ if(j < 0 || zs[j] || !reachPossible(b.team, j)) return; zs[j] = 1;
-      var bj = beliefZoneKnown(b.team, j); if(bj < 0.04) return;
+      var bj = infoZone(b.team, j) + 0.1;
       var smp = ZONE_SAMPLES[BZ.ids[j]] || (BZ.cent[j] ? [BZ.cent[j]] : []), bestQ = null, bdq = Infinity;
       smp.forEach(function(q){ var dq = Math.hypot(q.x-C.beyond.x, q.y-C.beyond.y); if(dq > 60 && dq < 900 && dq < bdq && hasLOS(C.beyond.x, C.beyond.y, q.x, q.y)){ bdq = dq; bestQ = q; } });
       if(bestQ) dirs.push({pt:bestQ, a:Math.atan2(bestQ.y-C.beyond.y, bestQ.x-C.beyond.x), w:bj, d:bdq}); };
@@ -3795,7 +3728,7 @@ function prePeekDecide(b, C, zB){
   // смотрит (или вообще не видит): из 13 флешек слепила одна. Поп-флешка
   // должна хлопнуть у него перед глазами: на линии "держащий → край угла"
   var hPos = holder ? {x:holder.x, y:holder.y} : null;
-  if(!hPos){ var bz0 = -1, bv0 = 0; [zB].concat(BZ.nbr[zB]||[]).forEach(function(j){ var v = beliefZoneKnown(b.team, j); if(v > bv0 && BZ.cent[j]){ bv0 = v; bz0 = j; } }); if(bz0 >= 0) hPos = BZ.cent[bz0]; }
+  if(!hPos){ var bz0 = -1, bv0 = 0; [zB].concat(BZ.nbr[zB]||[]).forEach(function(j){ var v = infoZone(b.team, j); if(v > bv0 && BZ.cent[j]){ bv0 = v; bz0 = j; } }); if(bz0 >= 0) hPos = BZ.cent[bz0]; }
   var popPt = C.beyond;
   if(hPos){ var fr = [0.35, 0.5, 0.22, 0.65];
     for(var fi=0; fi<fr.length; fi++){ var P = {x: C.pt.x + (hPos.x-C.pt.x)*fr[fi], y: C.pt.y + (hPos.y-C.pt.y)*fr[fi]};
@@ -3840,26 +3773,6 @@ function appearFrom(b, q){
   }
   return null;
 }
-function flatWallAhead(b, a, R){
-  var dx = Math.cos(a), dy = Math.sin(a), best = null;
-  for(var i=0;i<MANUAL_WALLS.length;i++){ var w = MANUAL_WALLS[i];
-    if(Math.max(w[0],w[2]) < b.x-R || Math.min(w[0],w[2]) > b.x+R || Math.max(w[1],w[3]) < b.y-R || Math.min(w[1],w[3]) > b.y+R) continue;
-    var sx = w[2]-w[0], sy = w[3]-w[1], den = dx*sy - dy*sx; if(Math.abs(den) < 1e-9) continue;
-    var qx = w[0]-b.x, qy = w[1]-b.y, t = (qx*sy - qy*sx)/den, u = (qx*dy - qy*dx)/den;
-    if(t > 0 && t < R && u >= 0 && u <= 1 && (!best || t < best.t)) best = {t:t, e:Math.min(u, 1-u)*Math.hypot(sx, sy)};
-  }
-  return !!(best && best.e > 18);
-}
-function openDirNear(b, a){
-  var k = Math.round(a*20)+"|"+Math.round(b.x/10)+","+Math.round(b.y/10);
-  if(b._odK === k) return b._odV;
-  b._odK = k; b._odV = null;
-  for(var st=1; st<=9; st++) for(var sg=-1; sg<=1; sg+=2){
-    var an = a + sg*st*0.1745, c = rayClipWalls(b.x, b.y, b.x+Math.cos(an)*160, b.y+Math.sin(an)*160);
-    if(Math.hypot(c.x-b.x, c.y-b.y) >= 140){ b._odV = {x:b.x+Math.cos(an)*220, y:b.y+Math.sin(an)*220}; return b._odV; }
-  }
-  return null;
-}
 function cornerLook(b, p, from){
   if(!p) return p;
   var o = from || b;
@@ -3901,7 +3814,6 @@ function cornerLook(b, p, from){
 function wallSafeLook(b, look){
   var a = look ? Math.atan2(look.y-b.y, look.x-b.x) : (!(b.curSpeed > 15*SPD_K) && b.facing !== undefined ? b.facing : null);
   if(a === null) return look;
-  if(flatWallAhead(b, a, 80)){ var wal = openDirNear(b, a); if(wal) b.lookReason = (b.lookReason||"") + "+open"; return wal || null; }
   if(!look) return look;
   var k = Math.round(look.x/24)+","+Math.round(look.y/24)+"|"+Math.round(b.x/12)+","+Math.round(b.y/12);
   if(b._olK === k) return b._olV;
@@ -3915,135 +3827,71 @@ function wallSafeLook(b, look){
   b._olV = null; return null;
 }
 
-// ---- опасность зоны для взгляда (помощники нового взгляда, см. ниже) ----
-// Опасность зоны = вероятность врага в ней по карте belief (она сама
-// расползается по соседним зонам со временем и чистится там, куда свои
-// реально смотрят). Инфа НЕ забывается по таймеру: враг, которого в этом
-// раунде хоть раз видели/слышали, весит полностью всё время; "чистый прогноз"
-// (ни разу не засвечен) — 0.3. Кандидаты — только зоны, которые видно с моей
-// точки: враг за стеной на T Upper поднимает опасность выхода из Lamp Room,
-// который мне виден (через соседей), — поэтому "далёкая стрельба за стеной"
-// не отвлекает, а бой в двух шагах по пути — отвлекает.
-function beliefZoneKnown(team, i){
-  // инфа не забывается, но её ТОЧНОСТЬ со временем падает (враг мог уйти куда
-  // угодно, это уже учтено расползанием): свежая (≤6с) — вес 1, к 25с — 0.5,
-  // дальше держится на 0.5. Ни разу не засвеченный враг — 0.3 (чистый прогноз)
-  var B = belief[team], seen = beliefSeen[team], L = beliefLast[team] || {}, t = 0;
-  Object.keys(B).forEach(function(eid){
-    var w = 0.3;
-    if(seen[eid] != null){ var lo = L[eid], age = lo ? (tick - lo.tick)/TICK_HZ : 30; w = age <= 6 ? 1 : Math.max(0.5, 1 - 0.5*(age-6)/19); }
-    t += B[eid][i] * w;
-  });
-  return t;
-}
-// в этой зоне (или рядом, ≤400) есть враг, которого видели/слышали ≤3с назад
-function freshThreatNear(team, c){
-  var L = beliefLast[team] || {};
-  for(var eid in L){ var lo = L[eid]; if(tick - lo.tick <= 3*TICK_HZ && Math.hypot(lo.x-c.x, lo.y-c.y) < 400){ var e = bots.filter(function(o){ return o.id === eid; })[0]; if(e && e.alive) return true; } }
-  return false;
-}
-
 // =====================================================================
-// НОВЫЙ ВЗГЛЯД (v141): одна оценка вместо очереди из ~15 функций.
+// ВЗГЛЯД ПО УГЛАМ (v196, В15; заменил взгляд по зонам v141–v195).
 // Каждые 8 тиков для каждой команды:
-//  1) для каждого живого бота собираем кандидатов — зоны, откуда простреливается
-//     его позиция (таблица опасности), и точку взгляда на каждую;
-//  2) вес кандидата = сколько врагов вероятно выйдет оттуда (карта вероятностей:
-//     враг в самой зоне + враг за её входами, если эти входы никто не видит)
-//     × открытость линии × близость × поправки на роль/движение;
-//  3) команда делит направления: жадно, от самого важного — кто взял
-//     направление, у тех, кто рядом, вес этого же направления падает (LOOK.claim);
-//  4) инерция: текущее направление держится, пока новое не лучше заметно
-//     (LOOK.stick) или не пришла свежая инфа.
-// Всё, что раньше было отдельными правилами (звук, смерть тиммейта, колл, ЛИП,
-// привычки соперника, "спину прикрывает свой", "не смотреть в тиммейта"), —
-// теперь либо уже в карте вероятностей, либо один множитель ниже.
+//  1) кандидаты бота — края стен, которые он видит (10_corners.js): за краем
+//     может стоять враг; цель — чуть за кромку, на уровне головы;
+//  2) вес края = опасность сейчас (cornerDanger: враг мог дойти по REACH — иначе 0;
+//     инфа — видели / слышали / колл; за краем свой — почти 0) / расстояние;
+//     звук и свежий контакт рядом — отдельные кандидаты, сильнее всего;
+//  3) команда делит края: кто взял край, у остальных рядом этот же край ×0,2 —
+//     всегда, не только при большой угрозе;
+//  4) угроз нет — край, где враг появится раньше всего (по REACH), слабым весом;
+//  5) инерция: текущий край держится, пока новый не лучше заметно.
+// На ходу: по направлению движения и ближние первыми; проверенный край (смотрел
+// на него ≥0,5 с) ×0,3 на 2 с — углы по очереди.
+// Удалено (v196): веса зон, «свой угол (угроз нет)», поворот «+open», тыл по
+// расстоянию от спавна (isRearZone), видимые проходы (PORTAL_W), выходы с сайта на ретейке.
 // =====================================================================
 var LOOK = {
-  maxDist: 1100,     // дальше этой дистанции зону как угрозу не рассматриваем
-  nbrW: 0.6,         // вклад врага за входом в зону (он оттуда выйдет)
-  watchedNbr: 0.25,  // …если этот вход видит тиммейт — враг сначала выйдет на него
   distHold: 700,     // затухание веса с расстоянием, стоя
   distMove: 400,     // …на ходу (ближние углы важнее)
   closeR: 280, closeK: 2.0,      // совсем рядом — не стоять к нему спиной
-  freshK: 2.5,       // свежая инфа (видели/слышали ≤3с рядом с точкой)
-  spotW: 0.05,       // (v195) взгляд с места из демок без инфы: ниже любой угрозы с инфой
-  spotCycle: 8,      // сек: с двумя направлениями — доли времени как в демках, по кругу
   headK: 1.3,        // на ходу: по направлению движения
-  behindMove: 0.35,  // на ходу: за спиной (>110°)
+  behindMove: 0.35,  // на ходу: за спиной (>110°), без инфы
   behindMoveCov: 0.15, // …и спину рядом прикрывает тиммейт
-  behindHold: 0.5,   // стоя: за спиной относительно поста (>125°)
-  mateThere: 0.15,   // в этой зоне/у точки стоит свой
-  mateInLine: 0.15,  // на линии взгляда стоит свой (смотрел бы ему в спину)
-  claim: 0.2,        // это направление уже взял тиммейт рядом
-  claimR: 900,       // "рядом" для дележа направлений
-  stick: 1.35,       // бонус текущему направлению (инерция)
-  minDwell: 48,      // тиков (~0.75с) минимум на одном направлении без свежей инфы
-  switchK: 2.0,      // раньше minDwell переключаемся, только если новое в 2 раза лучше
-  reachW: 0.3,       // (v176, В13 v194) вес "как скоро враг может сюда дойти" (REACH картины команды)
-  reachFade: 12,     // сек: угол, открытый давно и без инфы, гаснет — "если бы шёл, уже вышел бы"
+  mateInLine: 0.15,  // на линии взгляда стоит свой (враг выйдет сначала на него)
+  claim: 0.2,        // этот край уже взял тиммейт рядом
+  claimR: 900,       // "рядом" для дележа
+  stick: 1.35,       // бонус текущему краю (инерция)
+  minDwell: 48,      // тиков (~0.75с) минимум на одном крае без свежей инфы
+  switchK: 2.0,      // раньше minDwell переключаемся, только если новый в 2 раза лучше
+  reachFade: 12,     // сек: край, открытый давно и без инфы, гаснет — "если бы шёл, уже вышел бы"
   reachFloor: 0.15,  // …но не до нуля: враг мог и ждать
-  retakeW: 0.6,      // (v176) сбор на ретейк: выходы с сайта, где бомба, к собирающемуся
-  entryExp: 0.9,     // открытость прохода в свою зону (он всегда простреливает позицию)
-  uncheckW: 0.05,    // вес непроверенного угла, куда враг мог успеть (когда реальной инфы нет)
-  reachHorizon: 6,   // сек: (В13) вес прохода, куда враг ещё не дошёл, ×e на каждые 6 с до его прихода
-  recheckSec: 8,     // сек: через сколько проверенный угол снова считается непроверенным
+  etaBase: 0.004,    // угроз нет: край, где враг появится раньше всего — слабый вес
+  checkedK: 0.3, checkedSec: 2,  // на ходу: только что проверенный край
+  libK: 1.3,         // (v195) край в сторону взгляда с места из демок — небольшой плюс
+  contactW: 1.2,     // свежий звук/вижу-потерял рядом (≤1.5с, ≤700px)
+  recheckSec: 8,     // сек: через сколько проверенная зона снова считается непроверенной
   uncheckWalk: 0.13, // для шифта: непроверенный угол рядом с путём — идём тихо
-  contactW: 1.2,     // свежий звук/вижу-потерял рядом (≤1.5с, ≤700px) — даже в своей же зоне
-  rearMargin: 150,   // px пути: проход дальше от врага, чем я, на это — мой тыл
-  rearInfo: 0.15,    // …но если там по инфе вероятен враг (люркер, фланг) — смотрим
-  claimMin: 0.08,    // делить направления в команде, только если угроза заметная
-  postBase: 0.004,   // угол поста (место не из демок) — только когда угроз нет совсем
-  minScore: 0.0005    // ниже — "ничего не угрожает": смотрим по ходу / на пост
+  minScore: 0.0005
 };
 // "не проверено": зону давно (или никогда) не видел никто из своих, и враг по
-// таймингу мог туда успеть (с запасом: тайминг — оценка, враг мог бежать быстрее).
-// 0 — только что проверили или враг туда не мог попасть; 1 — давно не смотрели.
+// таймингу мог туда успеть. 0 — только что проверили или враг туда не мог попасть
 var LAST_CLEAR = {CT:{}, T:{}};
-var _ED = {};
-function enemySpawnDist(team){
-  if(_ED[team] && _ED[team].n === BZ.ids.length) return _ED[team].D;
-  var sp = team === "CT" ? T_SPAWN : CT_SPAWN, z0 = bzOf(sp.x, sp.y);
-  var D = bzDist(z0 >= 0 ? [z0] : []); _ED[team] = {n:BZ.ids.length, D:D}; return D;
-}
-// (v176) "враг мог сюда дойти": 0 — не мог (по REACH ещё дальше запаса); перед
-// возможным приходом растёт, в момент прихода — 1; дальше гаснет до reachFloor:
-// путь открыт давно, а никто так и не вышел. Зона и её соседи (кроме зоны бота).
+// "враг мог сюда дойти" по REACH: не мог — 0; в момент прихода — 1; дальше гаснет до
+// reachFloor (путь открыт давно, а никто так и не вышел). Зона и её соседи (кроме зоны бота)
 function reachW(team, j, zb){
   var R = REACH[team]; if(!R) return 0;
   var rmin = R[j]; BZ.nbr[j].forEach(function(nn){ if(nn !== zb && R[nn] < rmin) rmin = R[nn]; });
-  // (В13) враг ещё не мог дойти — вес тем больше, чем раньше он может появиться
-  // (без обрыва в ноль: самый ранний проход всегда важнее дальних)
-  if(!isFinite(rmin)) return 0;
-  if(rmin > tick) return Math.exp(-(rmin - tick)/(LOOK.reachHorizon*TICK_HZ));
+  if(!isFinite(rmin) || rmin > tick) return 0;
   return Math.max(LOOK.reachFloor, Math.exp(-(tick - rmin)/(LOOK.reachFade*TICK_HZ)));
 }
 function uncheckedW(team, j){
   var R = REACH[team];
-  if(R && R[j] > tick) return 0;   // (В14) враг сюда ещё не мог дойти — проверять нечего
-  if(R && !isFinite(R[j])) return 0;
+  if(R && (R[j] > tick || !isFinite(R[j]))) return 0;
   var lc = (LAST_CLEAR[team]||{})[j], age = lc == null ? 1e9 : tick - lc;
   return Math.min(1, age/(LOOK.recheckSec*TICK_HZ));
 }
-// тыл: зона дальше от вражеского спавна, чем моя, и по инфе там никого — враг
-// туда может попасть только через нас или тиммейтов (Alley, 90, First Lane у CT)
-function isRearZone(team, zb, j){
-  var ED = enemySpawnDist(team);
-  if(!(ED[j] > ED[zb] + LOOK.rearMargin)) return false;
-  if(beliefZoneKnown(team, j) >= LOOK.rearInfo) return false;
-  if(BZ.cent[j] && freshThreatNear(team, BZ.cent[j])) return false;
-  return true;
-}
 // (v151) где враг появится, если пойдёт из зоны j ко мне: последняя видимая
-// мне точка его пути по навмешу (угол, из-за которого он выйдет) — туда и
-// пре-эйм. Кэш по клетке 24px и зоне.
+// мне точка его пути по навмешу (угол, из-за которого он выйдет). Кэш по клетке 24px и зоне.
 var APPEAR = {};
 function appearPoint(o, j){
   var c = BZ.cent[j]; if(!c) return null;
   var k = Math.round(o.x/24)+","+Math.round(o.y/24)+"|"+j;
   if(k in APPEAR) return APPEAR[k];
   var wp = buildWaypointPath(c.x, c.y, 0, o.x, o.y, 0), last = null;
-  // идём по пути врага к нам: первая точка, которую видно, — место появления
   for(var i=0; i<wp.length; i++){ var q = {x:wp[i][0], y:wp[i][1]}, d = Math.hypot(q.x-o.x, q.y-o.y);
     if(d < 50) break;
     if(hasLOS(o.x, o.y, q.x, q.y)){ last = q; break; } }
@@ -4051,176 +3899,51 @@ function appearPoint(o, j){
   APPEAR[k] = last; return last;
 }
 function _angOff(a, ref){ return Math.abs(((a-ref+Math.PI)%(2*Math.PI)+2*Math.PI)%(2*Math.PI)-Math.PI); }
-// точка прохода между двумя зонами (середина общей границы полигонов)
-function bzPortalPt(za, zb){
-  var A = za.points, B = zb.points, sx = 0, sy = 0, n = 0;
-  var dSeg = function(px, py, a, b){ var vx=b.x-a.x, vy=b.y-a.y, L=vx*vx+vy*vy, t = L ? Math.max(0, Math.min(1, ((px-a.x)*vx+(py-a.y)*vy)/L)) : 0; return Math.hypot(px-(a.x+vx*t), py-(a.y+vy*t)); };
-  for(var i=0;i<A.length;i++){ var a = A[i], a2 = A[(i+1)%A.length];
-    for(var s=0;s<=8;s++){ var px = a.x+(a2.x-a.x)*s/8, py = a.y+(a2.y-a.y)*s/8;
-      for(var k=0;k<B.length;k++){ if(dSeg(px, py, B[k], B[(k+1)%B.length]) < 10){ sx += px; sy += py; n++; break; } } } }
-  return n ? {x:sx/n, y:sy/n} : null;
-}
-function bzPortals(){
-  BZ.portal = BZ.ids.map(function(){ return {}; });
-  BZ.nbr.forEach(function(L, i){ L.forEach(function(j){ if(j < i) return;
-    var p = bzPortalPt(ZONEMAP.zones[i], ZONEMAP.zones[j]);
-    if(!p){ var ci = BZ.cent[i], cj = BZ.cent[j]; p = {x:(ci.x+cj.x)/2, y:(ci.y+cj.y)/2}; }
-    BZ.portal[i][j] = p; BZ.portal[j][i] = p; }); });
-}
-// какие проходы между зонами сейчас видит команда (враг, прошедший через них, был бы замечен)
-function portalWatched(team){
-  if(!BZ.portal) bzPortals();
-  var mates = bots.filter(function(o){ return o.alive && o.team === team && tick >= (o.blindUntil||0); });
-  var W = {};
-  BZ.portal.forEach(function(row, i){ for(var js in row){ var j = +js; if(j < i) continue; var p = row[j], ok = false;
-    for(var m=0;m<mates.length && !ok;m++){ var o = mates[m], d = Math.hypot(p.x-o.x, p.y-o.y);
-      if(d < 90) ok = true;
-      else if(d < CONE_R*1.4 && inFov(o, p.x, p.y) && hasVision(o.x, o.y, p.x, p.y)) ok = true; }
-    if(ok){ W[i+","+j] = 1; W[j+","+i] = 1; } } });
-  return W;
-}
-var PORTAL_W = {CT:{}, T:{}};
 // кандидаты взгляда для одного бота: [{j, pt, sc, fresh}]
-function lookCands(b, W){
-  var zb = (b.atPost && b.post) ? bzOf(b.post.x, b.post.y) : bzOf(b.x, b.y);
-  if(zb < 0) zb = bzOf(b.x, b.y); if(zb < 0) return [];
+function lookCands(b){
   var team = b.team, out = [], moving = b.curSpeed > 60*SPD_K && b.heading !== undefined;
-  var atHold = !moving && b.post && b.post.look && Math.hypot(b.post.x-b.x, b.post.y-b.y) < 160;
-  // (v195) стоит на месте из демок: без инфы смотрит, как смотрят с этого места в демках;
-  // угрозы без инфы (прогноз картины, тайминг, «давно не проверяли») здесь не кандидаты
-  var A = b._act, spl = !moving && A && A.round === roundNum && A.looks && b.post && Math.hypot(b.post.x-A.x, b.post.y-A.y) < 2 &&
-    Math.hypot(b.x-A.x, b.y-A.y) < 60 ? A.looks : null;
-  var postA = (b.post && b.post.look && !(b.post.tag === "save")) ? Math.atan2(b.post.look.y-(b.post.y||b.y), b.post.look.x-(b.post.x||b.x)) : null;
   var mates = bots.filter(function(o){ return o !== b && o.alive && o.team === team; });
   var rearCov = moving && mates.some(function(o){ return Math.hypot(o.x-b.x, o.y-b.y) < 500; });
-  var Wd = ZONE_DANGER_W[BZ.ids[zb]] || {}, PW = PORTAL_W[team] || {};
-  (ZONE_DANGER[BZ.ids[zb]]||[]).forEach(function(zid){
-    var j = BZ.idx[zid]; if(j === undefined || j === zb) return;
-    var cz = BZ.cent[j]; if(!cz || Math.hypot(cz.x-b.x, cz.y-b.y) > LOOK.maxDist) return;
-    if(isRearZone(team, zb, j)) return;   // (v148) свой тыл — не угроза
-    // 1) сколько врагов оттуда вероятно выйдет
-    var th = beliefZoneKnown(team, j), nBest = -1, nVal = 0;
-    BZ.nbr[j].forEach(function(nn){ if(nn === zb) return;
-      if(!reachPossible(team, nn)) return;
-      var v = LOOK.nbrW * beliefZoneKnown(team, nn);
-      if(PW[j+","+nn]) v *= LOOK.watchedNbr;          // вход видит свой — враг выйдет на него первым
-      th += v; if(v > nVal){ nVal = v; nBest = nn; } });
-    // (v176) реальная угроза: враг мог дойти (гаснет, если путь открыт давно) и
-    // давно не проверяли — только если дойти мог. Не мог — 0, кроме инфы (belief выше)
-    var rw = reachW(team, j, zb);
-    th += LOOK.reachW * rw + LOOK.uncheckW * uncheckedW(team, j);
-    if(th <= 0) return;
-    // 2) точка взгляда: видимая точка зоны, ближайшая к проходу, откуда идёт угроза
-    var ref = (nBest >= 0 && nVal > beliefZoneKnown(team, j)) ? (BZ.portal && BZ.portal[j][nBest]) || BZ.cent[nBest] : null;
-    // врага в этой зоне недавно (≤8с) видели/слышали — целимся туда, где он был,
-    // а не в любую точку большой зоны (Mid — это полкарты)
-    var BLr = beliefLast[team] || {}, lkBest = null, lkAge = 1e9;
-    for(var eidr in BLr){ var lr = BLr[eidr]; if(!lr || tick - lr.tick > 8*TICK_HZ || tick - lr.tick >= lkAge) continue;
-      if(bzOf(lr.x, lr.y) !== j) continue;
-      var er = bots.filter(function(o){ return o.id === eidr; })[0]; if(!er || !er.alive) continue;
-      lkBest = lr; lkAge = tick - lr.tick; }
-    if(spl && !lkBest && !freshThreatNear(team, BZ.cent[j] || cz)) return;   // (v195) без инфы — взгляд с места
-    if(lkBest && LOOK.lkRef !== false) ref = lkBest;
-    var apZ = (BAL.cornerAim && !lkBest) ? appearPoint(b, (nBest >= 0 && nVal > beliefZoneKnown(team, j)) ? nBest : j) : null;
-    var smp = ZONE_SAMPLES[zid] || [cz], c = null, cd = Infinity;
-    smp.forEach(function(q){ var dq = Math.hypot(q.x-b.x, q.y-b.y); if(dq < 50 || !hasLOS(b.x, b.y, q.x, q.y)) return;
-      var key = ref ? Math.hypot(q.x-ref.x, q.y-ref.y) : dq; if(key < cd){ cd = key; c = q; } });
-    if(apZ && bzOf(apZ.x, apZ.y) === j || apZ && (nBest >= 0 && bzOf(apZ.x, apZ.y) === nBest)) c = apZ;
-    if(!c) return;
-    var d = Math.hypot(c.x-b.x, c.y-b.y);
-    if(d < 200){ var ext = {x:b.x+(c.x-b.x)/d*200, y:b.y+(c.y-b.y)/d*200}; if(hasLOS(b.x, b.y, ext.x, ext.y)) c = ext; d = 200; }
-    var za = Math.atan2(c.y-b.y, c.x-b.x);
-    var fresh = freshThreatNear(team, c);
-    // 3) оценка
-    var sc = th * (0.4 + (Wd[zid]||0)) / (1 + d/(moving ? LOOK.distMove : LOOK.distHold));
-    var behind = moving ? _angOff(za, b.heading) > 1.9 : (atHold && postA !== null && _angOff(za, postA) > 2.2);
-    if(d < LOOK.closeR && !behind) sc *= LOOK.closeK;
-    if(fresh) sc *= LOOK.freshK;
-    if(moving){ var hd = _angOff(za, b.heading); if(hd < 0.9) sc *= LOOK.headK; else if(hd > 1.9 && !fresh) sc *= rearCov ? LOOK.behindMoveCov : LOOK.behindMove; }
-    else if(behind && !fresh) sc *= LOOK.behindHold;
-    if(!fresh){
-      if(mates.some(function(o){ return Math.hypot(o.x-c.x, o.y-c.y) < 140 || (bzOf(o.x, o.y) === j && Math.hypot(o.x-c.x, o.y-c.y) < 260); })) sc *= LOOK.mateThere;
-      else if(mates.some(function(o){ var dm = Math.hypot(o.x-b.x, o.y-b.y); return dm > 20 && dm < d && _angOff(Math.atan2(o.y-b.y, o.x-b.x), za) < 0.3; })) sc *= LOOK.mateInLine;   // (В14) впереди свой — враг выйдет сначала на него
-    }
-    out.push({j:j, pt:c, sc:sc, fresh:fresh, a:za});
+  var A = b._act, lib = !moving && A && A.round === roundNum && A.looks && Math.hypot(b.x-A.x, b.y-A.y) < 60 ? A.looks : null;
+  var CK = b._cChk || (b._cChk = {}), later = [];
+  cornersSeen(b.x, b.y).forEach(function(e){
+    var D = cornerDanger(team, e, b), za = Math.atan2(e.y-b.y, e.x-b.x), d = Math.hypot(e.x-b.x, e.y-b.y);
+    if(D.v <= 0){ if(!D.mate && isFinite(D.eta) && D.eta > 0) later.push({e:e, eta:D.eta, d:d, a:za}); return; }
+    var fresh = D.info > 0;
+    var sc = D.v / (1 + d/(moving ? LOOK.distMove : LOOK.distHold));
+    if(d < LOOK.closeR) sc *= LOOK.closeK;
+    if(moving){ var hd = _angOff(za, b.heading); if(hd < 0.9) sc *= LOOK.headK; else if(hd > 1.9 && !fresh) sc *= rearCov ? LOOK.behindMoveCov : LOOK.behindMove;
+      if(!fresh && CK[e.key] && tick - CK[e.key] < LOOK.checkedSec*TICK_HZ) sc *= LOOK.checkedK; }
+    if(!fresh && mates.some(function(o){ var dm = Math.hypot(o.x-b.x, o.y-b.y); return dm > 20 && dm < d && _angOff(Math.atan2(o.y-b.y, o.x-b.x), za) < 0.3; })) sc *= LOOK.mateInLine;
+    if(lib && lib.some(function(l){ return _angOff(Math.atan2(l.y-b.y, l.x-b.x), za) < 0.45; })) sc *= LOOK.libK;
+    out.push({j:e.key, pt:{x:e.x, y:e.y}, sc:sc, fresh:fresh, a:za, e:e, D:D});
   });
-  // входы в СВОЮ зону: враг из соседней зоны сначала войдёт туда, где стоит бот
-  // (раньше такие входы не считались вообще — бот на CT-спавне не смотрел на
-  // выходы из Alley/Temple, хотя там был враг). Смотрим на сам проход.
-  if(BZ.portal) BZ.nbr[zb].forEach(function(nn){
-    var p = BZ.portal[zb][nn]; if(!p) return;
-    if(isRearZone(team, zb, nn)) return;   // (v148) проход в свой тыл — не угроза
-    var d = Math.hypot(p.x-b.x, p.y-b.y); if(d < 40 || d > LOOK.maxDist || !hasLOS(b.x, b.y, p.x, p.y)) return;
-    if(spl && !freshThreatNear(team, p)) return;   // (v195) без инфы — взгляд с места
-    var th = beliefZoneKnown(team, nn);
-    BZ.nbr[nn].forEach(function(n2){ if(n2 === zb) return; if(!reachPossible(team, n2)) return;
-      var v = LOOK.nbrW * beliefZoneKnown(team, n2); if(PW[nn+","+n2]) v *= LOOK.watchedNbr; th += v; });
-    var rwn = reachW(team, nn, zb);
-    th += LOOK.reachW * rwn + LOOK.uncheckW * uncheckedW(team, nn);
-    if(th <= 0) return;
-    var c = p;
-    // (v151) не середина прохода, а место, где враг из этой зоны реально появится
-    if(BAL.cornerAim){ var ap = appearPoint(b, nn); if(ap){ c = ap; d = Math.hypot(ap.x-b.x, ap.y-b.y); } }
-    if(d < 200){ var ext = {x:b.x+(c.x-b.x)/d*200, y:b.y+(c.y-b.y)/d*200}; if(hasLOS(b.x, b.y, ext.x, ext.y)) c = ext; }
-    var za = Math.atan2(c.y-b.y, c.x-b.x), fresh = freshThreatNear(team, p);
-    var sc = th * LOOK.entryExp / (1 + Math.max(d,200)/(moving ? LOOK.distMove : LOOK.distHold));
-    var behind = moving ? _angOff(za, b.heading) > 1.9 : (atHold && postA !== null && _angOff(za, postA) > 2.2);
-    if(d < LOOK.closeR && !behind) sc *= LOOK.closeK;
-    if(fresh) sc *= LOOK.freshK;
-    if(moving){ var hd = _angOff(za, b.heading); if(hd < 0.9) sc *= LOOK.headK; else if(hd > 1.9 && !fresh) sc *= rearCov ? LOOK.behindMoveCov : LOOK.behindMove; }
-    else if(behind && !fresh) sc *= LOOK.behindHold;
-    if(!fresh && mates.some(function(o){ return Math.hypot(o.x-p.x, o.y-p.y) < 140; })) sc *= LOOK.mateThere;
-    out.push({j:1000+nn, pt:c, sc:sc, fresh:fresh, a:za});
-  });
-  // свежий контакт рядом: услышал шаги/выстрел или только что видел — в упор это
-  // главнее всего, даже если враг в той же зоне, что и бот
+  // свежий контакт рядом: услышал шаги/выстрел или только что видел — главнее всего,
+  // даже если враг в той же зоне. У контакта — имя врага (не клетка): инерция работает
   var cts = [];
-  // у контакта — имя врага (а не клетка, где он сейчас): враг сдвинулся — это
-  // тот же контакт, и инерция взгляда работает, а не «новый угол» каждые 80 px
   var hs = b.heardSound; if(hs && tick - hs.tick <= 96) cts.push({x:hs.x, y:hs.y, age:tick-hs.tick, id:hs.src && hs.src !== "?" ? hs.src : null});
   var BLc = beliefLast[team] || {};
   for(var eid in BLc){ var lo = BLc[eid]; if(tick - lo.tick > 96) continue;
-    var eb = bots.filter(function(o){ return o.id === eid; })[0]; if(!eb || !eb.alive) continue; cts.push({x:lo.x, y:lo.y, age:tick-lo.tick, id:eid}); }
+    var eb = botById(eid); if(!eb || !eb.alive) continue; cts.push({x:lo.x, y:lo.y, age:tick-lo.tick, id:eid}); }
   cts.forEach(function(q){
     var d = Math.hypot(q.x-b.x, q.y-b.y); if(d > 700 || d < 20) return;
     var za = Math.atan2(q.y-b.y, q.x-b.x);
-    // на бегу за спину — только на самый свежий и близкий
     if(moving && _angOff(za, b.heading) > 1.9 && (q.age > 20 || d > 250)) return;
-    var pt = cornerLook(b, q) || (BAL.noWallLook ? appearFrom(b, q) : q);
+    var pt = cornerLook(b, q) || appearFrom(b, q);
     if(!pt) return;
     out.push({j:q.id ? "snd:"+q.id : "snd"+Math.round(q.x/80)+","+Math.round(q.y/80), pt:pt, sc:LOOK.contactW * (d < 300 ? 2 : 1) / (1 + d/700) * (1 - q.age/192), fresh:true, a:za, snd:true});
   });
-  // (v176) сбор на ретейк: угроза — T на сайте с бомбой; смотрим туда, где T с
-  // сайта появится на пути к нам (выход с сайта), а не на точку бомбы за стеной.
-  // Тот, кто смотрит в спину на люрк (backWatch), — по обычным угрозам
-  var RT = bomb && bomb.state === "planted" && bomb.retake;
-  if(team === "CT" && RT && (RT.phase === "gather" || RT.phase === "util") && b.post && /^gather/.test(b.post.tag||"") && RT.backWatch !== b.id){
-    var rz = {}, zb0 = bzOf(bomb.x, bomb.y); if(zb0 >= 0) rz[zb0] = 1;
-    BZ.cent.forEach(function(c, i){ if(c && Math.hypot(c.x-bomb.x, c.y-bomb.y) <= 380) rz[i] = 1; });
-    Object.keys(rz).forEach(function(is){ var ap = appearPoint(b, +is); if(!ap) return;
-      var d = Math.hypot(ap.x-b.x, ap.y-b.y); if(d < 50 || d > LOOK.maxDist) return;
-      var c = ap; if(d < 200){ var ext = {x:b.x+(c.x-b.x)/d*200, y:b.y+(c.y-b.y)/d*200}; if(hasLOS(b.x, b.y, ext.x, ext.y)) c = ext; }
-      out.push({j:"rt"+is, pt:c, sc:LOOK.retakeW/(1 + d/LOOK.distHold), fresh:false, a:Math.atan2(c.y-b.y, c.x-b.x), rt:true}); });
-  }
-  // (v195) место из демок: 1–2 направления взгляда с него; с двумя — по очереди, доли
-  // времени как в демках (у каждого бота свой сдвиг по кругу)
-  if(spl){ var tw = spl.reduce(function(a, l){ return a + l.w; }, 0) || 1, ph = ((tick/TICK_HZ + (b.id.charCodeAt(0)*7 % 11)) / LOOK.spotCycle) % 1, acc = 0;
-    spl.forEach(function(l, i){ var on = ph >= acc && ph < acc + l.w/tw; acc += l.w/tw;
-      out.push({j:"spot"+i, pt:{x:l.x, y:l.y}, sc:LOOK.spotW * (on ? 1 : 0.3), fresh:false, a:Math.atan2(l.y-b.y, l.x-b.x), spot:true}); }); }
-  // место не из демок (точка планта, бомба, сбор по плану): угол поста — только когда угроз нет совсем
-  else if(atHold && !out.some(function(c){ return c.sc >= LOOK.minScore; })){
-    var pl = cornerLook(b, b.post.look) || b.post.look;
-    out.push({j:"post"+b.id, pt:pl, sc:LOOK.postBase, fresh:false, a:Math.atan2(pl.y-b.y, pl.x-b.x), post:true}); }
-  // все кандидаты уже видимые (точка выбирается только с линией видимости)
+  // угроз нет совсем: края, где враг появится раньше всего (по таймингу) — слабым весом,
+  // раньше — сильнее (делятся между тиммейтами, как и угрозы)
+  if(!out.some(function(c){ return c.sc >= LOOK.minScore; }))
+    later.forEach(function(q){ out.push({j:q.e.key, pt:{x:q.e.x, y:q.e.y}, sc:LOOK.etaBase*Math.exp(-q.eta/6)/(1 + q.d/LOOK.distHold), fresh:false, a:q.a, e:q.e, early:true, eta:q.eta}); });
   return out;
 }
 // раз в 8 тиков: кандидаты всем + делёж направлений внутри команды
 function lookPlan(team){
-  PORTAL_W[team] = portalWatched(team);
-  var W = PORTAL_W[team];
   var list = bots.filter(function(b){ return b.alive && b.team === team && !b._sawEnemy; });
   list.forEach(function(b){
-    b._lkC = lookCands(b, W);
+    b._lkC = lookCands(b);
     // инерция: текущее направление получает бонус
     b._lkC.forEach(function(c){ if(c.j === b._lkZ) c.sc *= LOOK.stick; });
     b._lkPick = null;
@@ -4233,7 +3956,7 @@ function lookPlan(team){
     if(!bestB){ left.forEach(function(b){ b._lkPick = null; }); break; }
     bestB._lkPick = bestC;
     left.splice(left.indexOf(bestB), 1);
-    if(!(BAL.claimStrong && bestC.sc < LOOK.claimMin)) left.forEach(function(o){ if(Math.hypot(o.x-bestB.x, o.y-bestB.y) > LOOK.claimR) return;
+    left.forEach(function(o){ if(Math.hypot(o.x-bestB.x, o.y-bestB.y) > LOOK.claimR) return;
       o._lkC.forEach(function(c){ if(c.fresh) return;
         if(c.j === bestC.j || Math.hypot(c.pt.x-bestC.pt.x, c.pt.y-bestC.pt.y) < 220) c.sc *= LOOK.claim; }); });
   }
@@ -4247,7 +3970,9 @@ function lookPlan(team){
     }
     if((p ? p.j : null) !== b._lkZ){ b._lkSince = tick; b._lkZ = p ? p.j : null; }
     b._lkPt = p ? p.pt : null;
-    b._lkTop = b._lkC.slice().sort(function(x, y){ return y.sc - x.sc; }).slice(0, 3).map(function(c){ var nm = c.snd ? "звук/контакт" : c.post ? "свой угол (угроз нет)" : c.spot ? "как в демках с этого места" : c.rt ? "выход с сайта (ретейк)" : c.j >= 1000 ? "выход из " + (ZONE_NAMES[BZ.ids[c.j-1000]] || BZ.ids[c.j-1000]) : (ZONE_NAMES[BZ.ids[c.j]] || BZ.ids[c.j]); return [nm, c.sc]; });
+    if(p && p.e && tick - b._lkSince > 32) (b._cChk || (b._cChk = {}))[p.j] = tick;   // смотрел на край ≥0,5 с — проверен
+    b._lkTop = b._lkC.slice().sort(function(x, y){ return y.sc - x.sc; }).slice(0, 3).map(function(c){ var zn = c.e ? (ZONE_NAMES[BZ.ids[c.e.z]] || BZ.ids[c.e.z]) : "";
+      var nm = c.snd ? "звук/контакт" : c.early ? "край к "+zn+" (враг через "+Math.round(c.eta)+" с)" : "край к "+zn+(c.D && c.D.info > 0 ? " (инфа)" : ""); return [nm, c.sc]; });
   });
 }
 // итоговая точка взгляда бота (кроме "вижу врага" — это выше)
@@ -4416,7 +4141,7 @@ function enemyBeyondSmoke(b, S, r){
   var ax = S.x - b.x, ay = S.y - b.y;
   if(picRecent(b.team, 6*TICK_HZ).some(function(g){ return Math.hypot(g.x-S.x, g.y-S.y) <= r + 350 && (g.x-b.x)*ax + (g.y-b.y)*ay > 0; })) return true; // по ту сторону, куда идём
   var zi = bzOf(S.x, S.y); if(zi < 0) return false;
-  var m = beliefZoneFresh(b.team, zi); (BZ.nbr[zi]||[]).forEach(function(n){ m += 0.5*beliefZoneFresh(b.team, n); });
+  var m = infoZone(b.team, zi); (BZ.nbr[zi]||[]).forEach(function(n){ m += 0.5*infoZone(b.team, n); });
   return m > 0.6;
 }
 var PRO_LINEUPS_RAW = [{"id":"pro0","team":"T","type":"flash","trigger":"setup","site":"B","name":"про: флешка ? (сетап, B)","from":{"x":886.8,"y":1625.8},"to":{"x":870.5,"y":1234.9},"prob":0.954,"at":8.8,"n":83},{"id":"pro1","team":"T","type":"flash","trigger":"setup","site":"A","name":"про: флешка ? (сетап, A)","from":{"x":886.8,"y":1630.4},"to":{"x":870.0,"y":1235.5},"prob":0.841,"at":9.1,"n":58},{"id":"pro2","team":"T","type":"smoke","trigger":"insta","site":"any","name":"про: смок Sniper Nest (инста)","from":{"x":1024.4,"y":1780.3},"to":{"x":976.3,"y":762.7},"prob":0.766,"at":0.3,"n":206},{"id":"pro3","team":"CT","type":"smoke","trigger":"insta","site":"any","name":"про: смок ? (инста)","from":{"x":1039.0,"y":181.9},"to":{"x":738.5,"y":1212.8},"prob":0.639,"at":0.5,"n":172},{"id":"pro4","team":"CT","type":"he","trigger":"timed","site":"any","name":"про: HE Lower Mid (по времени)","from":{"x":982.8,"y":725.8},"to":{"x":833.6,"y":1160.4},"prob":0.61,"at":6.7,"n":164},{"id":"pro5","team":"CT","type":"molly","trigger":"timed","site":"any","name":"про: молотов Mid (по времени)","from":{"x":987.7,"y":586.7},"to":{"x":863.9,"y":1178.4},"prob":0.528,"at":5.0,"n":142},{"id":"pro6","team":"CT","type":"flash","trigger":"timed","site":"any","name":"про: флешка Lower Mid (по времени)","from":{"x":982.5,"y":744.8},"to":{"x":838.7,"y":1157.2},"prob":0.483,"at":6.8,"n":130},{"id":"pro7","team":"CT","type":"he","trigger":"timed","site":"any","name":"про: HE T Lower (по времени)","from":{"x":1448.2,"y":714.8},"to":{"x":1462.9,"y":1169.2},"prob":0.45,"at":9.4,"n":121},{"id":"pro8","team":"CT","type":"molly","trigger":"timed","site":"any","name":"про: молотов T Lower (по времени)","from":{"x":1444.2,"y":607.8},"to":{"x":1440.6,"y":1207.5},"prob":0.439,"at":8.2,"n":118},{"id":"pro9","team":"T","type":"he","trigger":"setup","site":"A","name":"про: HE Mid (сетап, A)","from":{"x":690.5,"y":1283.2},"to":{"x":957.3,"y":934.0},"prob":0.435,"at":6.8,"n":30},{"id":"pro10","team":"T","type":"flash","trigger":"setup","site":"any","name":"про: флешка ? (сетап)","from":{"x":886.8,"y":1626.5},"to":{"x":871.3,"y":1237.1},"prob":0.372,"at":8.8,"n":100},{"id":"pro11","team":"CT","type":"molly","trigger":"timed","site":"any","name":"про: молотов Ramp (по времени)","from":{"x":1399.1,"y":513.8},"to":{"x":1697.5,"y":1030.0},"prob":0.353,"at":7.6,"n":95},{"id":"pro12","team":"CT","type":"smoke","trigger":"insta","site":"any","name":"про: смок Ruins (инста)","from":{"x":1079.4,"y":200.3},"to":{"x":1620.9,"y":1260.1},"prob":0.32,"at":0.8,"n":86},{"id":"pro13","team":"T","type":"flash","trigger":"exec","site":"A","name":"про: флешка Back Site (выход, A)","from":{"x":369.2,"y":791.5},"to":{"x":510.1,"y":451.6},"prob":0.304,"at":32.9,"n":21},{"id":"pro14","team":"T","type":"molly","trigger":"setup","site":"B","name":"про: молотов Ramp (сетап, B)","from":{"x":1574.3,"y":1333.9},"to":{"x":1682.8,"y":941.3},"prob":0.299,"at":8.6,"n":26},{"id":"pro15","team":"T","type":"he","trigger":"setup","site":"B","name":"про: HE Mid (сетап, B)","from":{"x":688.9,"y":1283.2},"to":{"x":952.2,"y":936.5},"prob":0.276,"at":6.8,"n":24},{"id":"pro16","team":"T","type":"molly","trigger":"setup","site":"A","name":"про: молотов Jungle (сетап, A)","from":{"x":712.0,"y":1235.7},"to":{"x":1109.7,"y":938.8},"prob":0.217,"at":6.8,"n":15},{"id":"pro17","team":"T","type":"molly","trigger":"setup","site":"B","name":"про: молотов Jungle (сетап, B)","from":{"x":714.6,"y":1235.5},"to":{"x":1092.7,"y":948.8},"prob":0.207,"at":7.0,"n":18},{"id":"pro18","team":"CT","type":"molly","trigger":"timed","site":"any","name":"про: молотов Lower Mid (по времени)","from":{"x":981.7,"y":680.6},"to":{"x":828.0,"y":1130.3},"prob":0.204,"at":5.8,"n":55},{"id":"pro19","team":"T","type":"molly","trigger":"setup","site":"A","name":"про: молотов Ramp (сетап, A)","from":{"x":1576.5,"y":1343.0},"to":{"x":1690.8,"y":957.3},"prob":0.203,"at":8.4,"n":14},{"id":"pro20","team":"T","type":"molly","trigger":"setup","site":"A","name":"про: молотов Mid (сетап, A)","from":{"x":708.1,"y":1238.4},"to":{"x":919.1,"y":1096.2},"prob":0.203,"at":7.3,"n":14},{"id":"pro21","team":"T","type":"molly","trigger":"setup","site":"B","name":"про: молотов Mid (сетап, B)","from":{"x":707.5,"y":1235.9},"to":{"x":914.1,"y":1101.0},"prob":0.184,"at":7.2,"n":16},{"id":"pro22","team":"CT","type":"smoke","trigger":"timed","site":"any","name":"про: смок T Upper (по времени)","from":{"x":1369.2,"y":1006.3},"to":{"x":1264.1,"y":1199.0},"prob":0.149,"at":20.8,"n":40},{"id":"pro23","team":"T","type":"flash","trigger":"exec","site":"B","name":"про: флешка Site B (выход, B)","from":{"x":1605.0,"y":1239.4},"to":{"x":1482.1,"y":825.4},"prob":0.149,"at":16.9,"n":13},{"id":"pro24","team":"T","type":"flash","trigger":"setup","site":"B","name":"про: флешка Mid (сетап, B)","from":{"x":670.4,"y":1307.6},"to":{"x":861.0,"y":1193.8},"prob":0.149,"at":9.6,"n":13},{"id":"pro25","team":"T","type":"smoke","trigger":"setup","site":"B","name":"про: смок T Lower (сетап, B)","from":{"x":1570.0,"y":1146.6},"to":{"x":1434.6,"y":1206.5},"prob":0.149,"at":10.6,"n":13},{"id":"pro26","team":"T","type":"smoke","trigger":"setup","site":"B","name":"про: смок Chamber Lane (сетап, B)","from":{"x":886.8,"y":1720.0},"to":{"x":841.9,"y":950.9},"prob":0.149,"at":3.6,"n":13},{"id":"pro27","team":"T","type":"molly","trigger":"exec","site":"A","name":"про: молотов Back Site (выход, A)","from":{"x":388.8,"y":799.9},"to":{"x":466.7,"y":400.9},"prob":0.145,"at":49.8,"n":10},{"id":"pro28","team":"T","type":"molly","trigger":"exec","site":"A","name":"про: молотов CT Lane (выход, A)","from":{"x":368.9,"y":739.0},"to":{"x":874.4,"y":432.8},"prob":0.145,"at":37.5,"n":10},{"id":"pro29","team":"T","type":"smoke","trigger":"insta","site":"any","name":"про: смок Chamber Lane (инста)","from":{"x":886.8,"y":1720.0},"to":{"x":839.3,"y":952.0},"prob":0.141,"at":2.6,"n":38},{"id":"pro30","team":"T","type":"he","trigger":"setup","site":"any","name":"про: HE Mid (сетап)","from":{"x":689.6,"y":1283.3},"to":{"x":958.4,"y":933.6},"prob":0.138,"at":6.8,"n":37},{"id":"pro31","team":"T","type":"he","trigger":"setup","site":"B","name":"про: HE ? (сетап, B)","from":{"x":687.2,"y":1326.8},"to":{"x":739.8,"y":1206.9},"prob":0.126,"at":10.1,"n":11},{"id":"pro32","team":"T","type":"molly","trigger":"exec","site":"B","name":"про: молотов Site B (выход, B)","from":{"x":1604.5,"y":1240.3},"to":{"x":1454.4,"y":828.6},"prob":0.126,"at":49.1,"n":11},{"id":"pro33","team":"T","type":"molly","trigger":"setup","site":"any","name":"про: молотов Ramp (сетап)","from":{"x":1578.0,"y":1347.3},"to":{"x":1688.1,"y":953.8},"prob":0.119,"at":8.5,"n":32},{"id":"pro34","team":"T","type":"flash","trigger":"exec","site":"A","name":"про: флешка Def (выход, A)","from":{"x":362.0,"y":774.6},"to":{"x":610.7,"y":480.1},"prob":0.116,"at":75.2,"n":8},{"id":"pro35","team":"T","type":"flash","trigger":"setup","site":"A","name":"про: флешка ? (сетап, A)","from":{"x":679.2,"y":1301.8},"to":{"x":871.8,"y":1211.2},"prob":0.116,"at":9.4,"n":8},{"id":"pro36","team":"T","type":"flash","trigger":"setup","site":"A","name":"про: флешка ? (сетап, A)","from":{"x":1094.8,"y":1643.2},"to":{"x":1060.4,"y":1234.6},"prob":0.116,"at":7.2,"n":8},{"id":"pro37","team":"T","type":"flash","trigger":"setup","site":"A","name":"про: флешка ? (сетап, A)","from":{"x":682.1,"y":1493.5},"to":{"x":765.7,"y":1166.4},"prob":0.116,"at":13.9,"n":8},{"id":"pro38","team":"T","type":"he","trigger":"setup","site":"A","name":"про: HE ? (сетап, A)","from":{"x":657.1,"y":1496.6},"to":{"x":769.3,"y":1209.3},"prob":0.116,"at":11.2,"n":8},{"id":"pro39","team":"T","type":"molly","trigger":"exec","site":"A","name":"про: молотов ? (выход, A)","from":{"x":367.2,"y":753.3},"to":{"x":761.5,"y":546.2},"prob":0.116,"at":27.2,"n":8},{"id":"pro40","team":"T","type":"molly","trigger":"setup","site":"A","name":"про: молотов Site B (сетап, A)","from":{"x":1604.5,"y":1240.6},"to":{"x":1450.8,"y":828.9},"prob":0.116,"at":59.2,"n":8},{"id":"pro41","team":"T","type":"molly","trigger":"setup","site":"B","name":"про: молотов Site B (сетап, B)","from":{"x":1604.5,"y":1240.1},"to":{"x":1451.3,"y":829.3},"prob":0.115,"at":42.3,"n":10},{"id":"pro42","team":"CT","type":"flash","trigger":"timed","site":"any","name":"про: флешка Triple (по времени)","from":{"x":949.0,"y":712.5},"to":{"x":1081.6,"y":1190.8},"prob":0.112,"at":12.2,"n":30},{"id":"pro43","team":"T","type":"smoke","trigger":"exec","site":"B","name":"про: смок Second Lane (выход, B)","from":{"x":1604.5,"y":1240.0},"to":{"x":1449.4,"y":694.2},"prob":0.103,"at":41.5,"n":9},{"id":"pro44","team":"T","type":"flash","trigger":"setup","site":"A","name":"про: флешка B Site (сетап, A)","from":{"x":1604.8,"y":1226.9},"to":{"x":1611.8,"y":962.5},"prob":0.101,"at":11.5,"n":7},{"id":"pro45","team":"T","type":"molly","trigger":"setup","site":"A","name":"про: молотов Lamp Room (сетап, A)","from":{"x":1323.5,"y":1216.2},"to":{"x":1344.9,"y":1043.6},"prob":0.101,"at":18.0,"n":7},{"id":"pro46","team":"T","type":"smoke","trigger":"setup","site":"A","name":"про: смок T Lower (сетап, A)","from":{"x":1598.9,"y":1130.0},"to":{"x":1432.4,"y":1188.3},"prob":0.101,"at":10.7,"n":7},{"id":"pro47","team":"CT","type":"molly","trigger":"timed","site":"any","name":"про: молотов T Upper (по времени)","from":{"x":1368.8,"y":1005.1},"to":{"x":1296.6,"y":1219.2},"prob":0.1,"at":12.5,"n":27},{"id":"pro48","team":"CT","type":"flash","trigger":"timed","site":"any","name":"про: флешка Ramp (по времени)","from":{"x":1419.3,"y":510.7},"to":{"x":1682.3,"y":996.5},"prob":0.093,"at":15.0,"n":25},{"id":"pro49","team":"T","type":"smoke","trigger":"insta","site":"any","name":"про: смок Lamp Room (инста)","from":{"x":906.0,"y":1852.8},"to":{"x":1299.9,"y":1117.4},"prob":0.093,"at":2.3,"n":25},{"id":"pro50","team":"T","type":"flash","trigger":"exec","site":"B","name":"про: флешка B Site (выход, B)","from":{"x":1638.7,"y":1419.0},"to":{"x":1605.2,"y":967.6},"prob":0.092,"at":24.6,"n":8},{"id":"pro51","team":"T","type":"he","trigger":"setup","site":"B","name":"про: HE 90 (сетап, B)","from":{"x":1645.2,"y":1228.7},"to":{"x":1659.7,"y":744.6},"prob":0.092,"at":24.7,"n":8},{"id":"pro52","team":"T","type":"molly","trigger":"exec","site":"B","name":"про: молотов Back Halls (выход, B)","from":{"x":1699.7,"y":1074.4},"to":{"x":1450.2,"y":513.0},"prob":0.092,"at":37.5,"n":8},{"id":"pro53","team":"T","type":"molly","trigger":"setup","site":"B","name":"про: молотов Jungle (сетап, B)","from":{"x":644.5,"y":1322.3},"to":{"x":1086.7,"y":930.9},"prob":0.092,"at":10.2,"n":8},{"id":"pro54","team":"T","type":"smoke","trigger":"setup","site":"B","name":"про: смок Lamp Room (сетап, B)","from":{"x":906.0,"y":1852.8},"to":{"x":1300.3,"y":1116.9},"prob":0.092,"at":4.1,"n":8},{"id":"pro55","team":"CT","type":"he","trigger":"timed","site":"any","name":"про: HE Ramp (по времени)","from":{"x":1439.5,"y":646.6},"to":{"x":1659.0,"y":1071.5},"prob":0.089,"at":9.5,"n":24},{"id":"pro56","team":"T","type":"smoke","trigger":"exec","site":"A","name":"про: смок CT Lane (выход, A)","from":{"x":387.5,"y":734.8},"to":{"x":735.8,"y":443.0},"prob":0.087,"at":71.7,"n":6},{"id":"pro57","team":"CT","type":"flash","trigger":"timed","site":"any","name":"про: флешка Ramp (по времени)","from":{"x":1442.3,"y":661.8},"to":{"x":1672.3,"y":1034.4},"prob":0.086,"at":10.5,"n":23},{"id":"pro58","team":"CT","type":"flash","trigger":"timed","site":"any","name":"про: флешка Lower Mid (по времени)","from":{"x":955.0,"y":841.8},"to":{"x":825.4,"y":1125.0},"prob":0.086,"at":7.6,"n":23},{"id":"pro59","team":"T","type":"molly","trigger":"setup","site":"any","name":"про: молотов Mid (сетап)","from":{"x":708.1,"y":1235.0},"to":{"x":917.6,"y":1091.5},"prob":0.086,"at":7.4,"n":23},{"id":"pro60","team":"T","type":"flash","trigger":"exec","site":"B","name":"про: флешка ? (выход, B)","from":{"x":1538.7,"y":1430.0},"to":{"x":1797.8,"y":1059.0},"prob":0.08,"at":11.0,"n":7},{"id":"pro61","team":"T","type":"smoke","trigger":"exec","site":"B","name":"про: смок First Lane (выход, B)","from":{"x":1683.6,"y":1459.2},"to":{"x":1693.5,"y":715.5},"prob":0.08,"at":21.0,"n":7},{"id":"pro62","team":"CT","type":"flash","trigger":"timed","site":"any","name":"про: флешка Mid (по времени)","from":{"x":987.0,"y":583.3},"to":{"x":910.5,"y":1162.0},"prob":0.078,"at":10.8,"n":21},{"id":"pro63","team":"CT","type":"flash","trigger":"timed","site":"any","name":"про: флешка Mid (по времени)","from":{"x":949.9,"y":588.0},"to":{"x":1054.9,"y":1130.4},"prob":0.074,"at":8.8,"n":20},{"id":"pro64","team":"T","type":"flash","trigger":"exec","site":"A","name":"про: флешка Long (выход, A)","from":{"x":491.6,"y":994.9},"to":{"x":347.4,"y":728.1},"prob":0.072,"at":30.7,"n":5},{"id":"pro65","team":"T","type":"flash","trigger":"setup","site":"A","name":"про: флешка Mid (сетап, A)","from":{"x":686.1,"y":1283.3},"to":{"x":918.4,"y":982.8},"prob":0.072,"at":28.3,"n":5},{"id":"pro66","team":"T","type":"flash","trigger":"setup","site":"A","name":"про: флешка T Upper (сетап, A)","from":{"x":1619.7,"y":1119.2},"to":{"x":1254.4,"y":1219.6},"prob":0.072,"at":12.4,"n":5},{"id":"pro67","team":"T","type":"flash","trigger":"setup","site":"A","name":"про: флешка B Site (сетап, A)","from":{"x":1630.4,"y":1419.9},"to":{"x":1628.5,"y":952.1},"prob":0.072,"at":11.0,"n":5},{"id":"pro68","team":"T","type":"he","trigger":"setup","site":"A","name":"про: HE Mid (сетап, A)","from":{"x":725.7,"y":1216.7},"to":{"x":969.9,"y":993.0},"prob":0.072,"at":7.4,"n":5},{"id":"pro69","team":"T","type":"smoke","trigger":"setup","site":"A","name":"про: смок Second Lane (сетап, A)","from":{"x":1604.5,"y":1240.4},"to":{"x":1448.5,"y":694.4},"prob":0.072,"at":31.0,"n":5},{"id":"pro70","team":"T","type":"smoke","trigger":"setup","site":"A","name":"про: смок Mid (сетап, A)","from":{"x":712.7,"y":1211.4},"to":{"x":865.9,"y":1170.2},"prob":0.072,"at":7.4,"n":5},{"id":"pro71","team":"T","type":"smoke","trigger":"setup","site":"A","name":"про: смок Chamber Lane (сетап, A)","from":{"x":886.8,"y":1720.0},"to":{"x":842.3,"y":952.2},"prob":0.072,"at":4.2,"n":5},{"id":"pro72","team":"CT","type":"he","trigger":"call","site":"B","name":"про: HE T Lower (задержка выхода, B)","from":{"x":1444.3,"y":730.9},"to":{"x":1457.9,"y":1169.2},"prob":0.069,"at":9.4,"n":6},{"id":"pro73","team":"T","type":"flash","trigger":"exec","site":"B","name":"про: флешка Cave (выход, B)","from":{"x":1705.4,"y":1028.0},"to":{"x":1401.0,"y":786.2},"prob":0.069,"at":74.4,"n":6},{"id":"pro74","team":"T","type":"flash","trigger":"exec","site":"B","name":"про: флешка ? (выход, B)","from":{"x":1683.6,"y":1458.8},"to":{"x":1752.4,"y":1001.1},"prob":0.069,"at":23.5,"n":6},{"id":"pro75","team":"T","type":"flash","trigger":"setup","site":"B","name":"про: флешка ? (сетап, B)","from":{"x":1094.8,"y":1644.7},"to":{"x":1029.2,"y":1251.9},"prob":0.069,"at":8.2,"n":6},{"id":"pro76","team":"T","type":"molly","trigger":"setup","site":"B","name":"про: молотов Lamp Room (сетап, B)","from":{"x":1322.9,"y":1217.1},"to":{"x":1348.4,"y":1044.8},"prob":0.069,"at":20.7,"n":6},{"id":"pro77","team":"T","type":"smoke","trigger":"setup","site":"B","name":"про: смок First Lane (сетап, B)","from":{"x":1683.6,"y":1459.2},"to":{"x":1692.1,"y":716.5},"prob":0.069,"at":28.1,"n":6},{"id":"pro78","team":"CT","type":"flash","trigger":"timed","site":"any","name":"про: флешка Triple (по времени)","from":{"x":843.0,"y":944.6},"to":{"x":1158.0,"y":1205.8},"prob":0.063,"at":12.6,"n":17},{"id":"pro79","team":"CT","type":"he","trigger":"timed","site":"any","name":"про: HE T Lower (по времени)","from":{"x":1445.0,"y":758.1},"to":{"x":1455.4,"y":1178.7},"prob":0.063,"at":9.6,"n":17},{"id":"pro80","team":"CT","type":"smoke","trigger":"timed","site":"any","name":"про: смок Ramp (по времени)","from":{"x":1697.5,"y":679.3},"to":{"x":1682.3,"y":969.8},"prob":0.063,"at":31.4,"n":17},{"id":"pro81","team":"T","type":"molly","trigger":"setup","site":"any","name":"про: молотов Jungle (сетап)","from":{"x":642.4,"y":1323.9},"to":{"x":1089.3,"y":929.9},"prob":0.059,"at":9.4,"n":16},{"id":"pro82","team":"T","type":"flash","trigger":"setup","site":"A","name":"про: флешка Lamp Room (сетап, A)","from":{"x":1603.4,"y":1217.7},"to":{"x":1250.4,"y":1171.5},"prob":0.058,"at":19.7,"n":4},{"id":"pro83","team":"T","type":"he","trigger":"setup","site":"A","name":"про: HE Lower Mid (сетап, A)","from":{"x":682.7,"y":1332.4},"to":{"x":737.9,"y":1204.4},"prob":0.058,"at":11.8,"n":4},{"id":"pro84","team":"T","type":"molly","trigger":"setup","site":"A","name":"про: молотов Dark (сетап, A)","from":{"x":1618.3,"y":1242.0},"to":{"x":1372.6,"y":986.5},"prob":0.058,"at":9.7,"n":4},{"id":"pro85","team":"T","type":"molly","trigger":"setup","site":"A","name":"про: молотов Jungle (сетап, A)","from":{"x":647.3,"y":1320.7},"to":{"x":1083.0,"y":937.7},"prob":0.058,"at":10.1,"n":4},{"id":"pro86","team":"T","type":"smoke","trigger":"exec","site":"A","name":"про: смок CT Lane (выход, A)","from":{"x":323.6,"y":1267.2},"to":{"x":751.9,"y":415.6},"prob":0.058,"at":43.4,"n":4},{"id":"pro87","team":"T","type":"smoke","trigger":"setup","site":"A","name":"про: смок Sniper Nest (сетап, A)","from":{"x":843.1,"y":1183.9},"to":{"x":956.5,"y":730.5},"prob":0.058,"at":27.1,"n":4},{"id":"pro88","team":"CT","type":"flash","trigger":"call","site":"B","name":"про: флешка Back Halls (задержка выхода, B)","from":{"x":1005.3,"y":435.2},"to":{"x":1633.4,"y":470.9},"prob":0.057,"at":62.0,"n":5},{"id":"pro89","team":"CT","type":"flash","trigger":"call","site":"B","name":"про: флешка ? (задержка выхода, B)","from":{"x":1335.2,"y":869.9},"to":{"x":1532.0,"y":706.7},"prob":0.057,"at":24.3,"n":5},{"id":"pro90","team":"T","type":"flash","trigger":"exec","site":"B","name":"про: флешка ? (выход, B)","from":{"x":1645.2,"y":1233.3},"to":{"x":1695.3,"y":771.7},"prob":0.057,"at":36.9,"n":5},{"id":"pro91","team":"T","type":"flash","trigger":"exec","site":"B","name":"про: флешка ? (выход, B)","from":{"x":1581.2,"y":1415.0},"to":{"x":1764.8,"y":989.5},"prob":0.057,"at":19.7,"n":5},{"id":"pro92","team":"T","type":"flash","trigger":"setup","site":"B","name":"про: флешка ? (сетап, B)","from":{"x":417.7,"y":811.2},"to":{"x":298.7,"y":655.3},"prob":0.057,"at":25.4,"n":5},{"id":"pro93","team":"T","type":"molly","trigger":"setup","site":"B","name":"про: молотов Dark (сетап, B)","from":{"x":1617.6,"y":1239.0},"to":{"x":1373.9,"y":985.3},"prob":0.057,"at":9.8,"n":5},{"id":"pro94","team":"T","type":"smoke","trigger":"exec","site":"B","name":"про: смок Cave (выход, B)","from":{"x":1485.2,"y":1520.0},"to":{"x":1397.5,"y":773.7},"prob":0.057,"at":10.1,"n":5},{"id":"pro95","team":"T","type":"smoke","trigger":"exec","site":"B","name":"про: смок Second Lane (выход, B)","from":{"x":1683.6,"y":1459.2},"to":{"x":1454.3,"y":662.7},"prob":0.057,"at":17.3,"n":5},{"id":"pro96","team":"T","type":"smoke","trigger":"setup","site":"B","name":"про: смок Second Lane (сетап, B)","from":{"x":1604.6,"y":1241.9},"to":{"x":1450.8,"y":697.3},"prob":0.057,"at":46.3,"n":5},{"id":"pro97","team":"CT","type":"flash","trigger":"timed","site":"any","name":"про: флешка Ramp (по времени)","from":{"x":1711.2,"y":659.2},"to":{"x":1693.8,"y":950.4},"prob":0.056,"at":16.8,"n":15},{"id":"pro98","team":"CT","type":"he","trigger":"timed","site":"any","name":"про: HE Sniper Nest (по времени)","from":{"x":967.3,"y":500.0},"to":{"x":968.5,"y":770.0},"prob":0.056,"at":15.4,"n":15},{"id":"pro99","team":"CT","type":"he","trigger":"timed","site":"any","name":"про: HE T Lower (по времени)","from":{"x":1477.7,"y":607.2},"to":{"x":1425.3,"y":1199.5},"prob":0.056,"at":9.6,"n":15},{"id":"pro100","team":"CT","type":"smoke","trigger":"timed","site":"any","name":"про: смок T Upper (по времени)","from":{"x":1228.8,"y":1054.6},"to":{"x":1284.9,"y":1220.9},"prob":0.056,"at":21.4,"n":15},{"id":"pro101","team":"CT","type":"smoke","trigger":"timed","site":"any","name":"про: смок Ramp (по времени)","from":{"x":1453.0,"y":680.0},"to":{"x":1683.7,"y":1005.7},"prob":0.056,"at":15.8,"n":15},{"id":"pro102","team":"CT","type":"smoke","trigger":"timed","site":"any","name":"про: смок Long (по времени)","from":{"x":745.2,"y":504.0},"to":{"x":352.3,"y":714.3},"prob":0.056,"at":30.8,"n":15},{"id":"pro103","team":"T","type":"flash","trigger":"setup","site":"any","name":"про: флешка ? (сетап)","from":{"x":682.1,"y":1318.3},"to":{"x":856.1,"y":1213.5},"prob":0.056,"at":10.1,"n":15},{"id":"pro104","team":"T","type":"molly","trigger":"setup","site":"any","name":"про: молотов Jungle (сетап)","from":{"x":718.3,"y":1231.8},"to":{"x":1108.7,"y":941.0},"prob":0.056,"at":6.9,"n":15},{"id":"pro105","team":"CT","type":"he","trigger":"timed","site":"any","name":"про: HE Mid (по времени)","from":{"x":981.3,"y":694.9},"to":{"x":882.2,"y":1215.6},"prob":0.052,"at":6.6,"n":14},{"id":"pro106","team":"CT","type":"he","trigger":"timed","site":"any","name":"про: HE T Lower (по времени)","from":{"x":1446.5,"y":721.5},"to":{"x":1549.1,"y":1166.4},"prob":0.052,"at":9.2,"n":14},{"id":"pro107","team":"CT","type":"he","trigger":"timed","site":"any","name":"про: HE Lower Mid (по времени)","from":{"x":969.6,"y":842.0},"to":{"x":817.1,"y":1131.6},"prob":0.052,"at":7.5,"n":14},{"id":"pro108","team":"T","type":"he","trigger":"setup","site":"any","name":"про: HE Lower Mid (сетап)","from":{"x":683.4,"y":1319.4},"to":{"x":744.0,"y":1200.2},"prob":0.052,"at":10.8,"n":14}];
@@ -4496,7 +4221,7 @@ function ctBrain(){
           nadeHere += q.type === "flash" ? 0.5 : 1; });
     }
     var ev = evN + (carrierHere ? 1 : 0) + (carrierTo ? 0.5 : 0) + (undefended ? 1 : 0) + deathsHere + (plantHere ? 2 : 0) + (nadeHere >= 2 ? 1.2 : nadeHere * 0.4);
-    var mass = beliefCount("CT", BZ.siteNear[k]||[]);
+    var mass = infoCount("CT", BZ.siteNear[k]||[], 10);
     // повод — не только реальный контакт РЯДОМ с сайтом, но и когда карта
     // вероятностей (по контакту где-то ещё, например засветили у КТ-спавна на
     // пути к Б) уже уверенно "верит", что враг у этого сайта — иначе колл на
@@ -4515,11 +4240,11 @@ function ctBrain(){
     } else { ct.call.evTick = tick; ct.call.undefended = best.undefended; if(best.carrier || best.plant) ct.call.bombSeen = true; }
   } else if(ct.call){
     // новой инфы нет — оценка "сколько там" только тает вместе с картой
-    ct.call.count = Math.min(ct.call.count, beliefCount("CT", BZ.siteNear[ct.call.site]||[]) + 0.3);
+    ct.call.count = Math.min(ct.call.count, infoCount("CT", BZ.siteNear[ct.call.site]||[], 10) + 0.3);
   }
   if(ct.call){
     var quiet = tick - (ct.call.evTick||ct.call.tick);
-    var massNow = beliefCount("CT", BZ.siteNear[ct.call.site]||[]);
+    var massNow = infoCount("CT", BZ.siteNear[ct.call.site]||[], 10);
     var lkpHere = picNear("CT", SITES[ct.call.site].x, SITES[ct.call.site].y, 500);
     if(lkpHere === 0 && ((quiet > 6*64 && massNow < 0.6) || quiet > 18*64)){
       logEvent("CT: по "+ct.call.site+" давно тихо"+(massNow < 0.6 ? " и там вероятно пусто" : "")+" — по местам");
@@ -4535,7 +4260,7 @@ function ctBrain(){
   ["A","M","B"].forEach(function(a){ need[a] = base[a]; });
   var sumN = function(){ return need.A + need.M + need.B; };
   var cut = function(order, floor){ order.forEach(function(a){ while(sumN() > n && need[a] > (floor[a]||0)) need[a]--; }); };
-  var weaker = beliefMass("CT", BZ.siteNear.A||[]) < beliefMass("CT", BZ.siteNear.B||[]) ? "A" : "B";
+  var weaker = infoCount("CT", BZ.siteNear.A||[], 20) < infoCount("CT", BZ.siteNear.B||[], 20) ? "A" : "B";
   cut(["M", weaker, weaker === "A" ? "B" : "A"], {M:0, A:1, B:1}); cut(["M","A","B"], {});
   ct.spread = false;
   if(ct.call && !planted0){
@@ -4560,7 +4285,7 @@ function ctBrain(){
       var zA = 0, zB = 0, zM = 0, PK2 = picKnown("CT");
       for(var eidS in PK2){ var eS = PK2[eidS]; if(tick - eS.tick > 10*TICK_HZ) continue;
         if(Math.hypot(eS.x-SITES.A.x, eS.y-SITES.A.y) < 800) zA++; else if(Math.hypot(eS.x-SITES.B.x, eS.y-SITES.B.y) < 800) zB++; else if(Math.hypot(eS.x-GEO.ctMid.x, eS.y-GEO.ctMid.y) < 700 || Math.hypot(eS.x-GEO.tMid.x, eS.y-GEO.tMid.y) < 500) zM++; }
-      var bA = beliefMass("CT", BZ.siteNear.A||[]), bB = beliefMass("CT", BZ.siteNear.B||[]), bM = beliefMass("CT", BZ.midZ);
+      var bA = infoCount("CT", BZ.siteNear.A||[], 20), bB = infoCount("CT", BZ.siteNear.B||[], 20), bM = infoCount("CT", BZ.midZ, 20);
       ct.spread = ((zA || bA > 0.6) ? 1 : 0) + ((zB || bB > 0.6) ? 1 : 0) + ((zM || bM > 0.6) ? 1 : 0) >= 3 && ct.call.count < 2.5;
       if(ct.spread){ want = Math.min(want, need[ks] + 1); keepOther = true; keepMid = true; }
     }
@@ -4659,7 +4384,7 @@ function ctAssign(cts, need){
       var free = cts.filter(function(o){ return !A[o.id]; }).sort(function(p, q){ return Math.hypot(p.x-ap.x, p.y-ap.y) - Math.hypot(q.x-ap.x, q.y-ap.y); })[0];
       if(!free) break; A[free.id] = a; } });
   // свободные (сверх плана) — к сайту, где по картине команды вероятнее T
-  var lean = beliefMass("CT", BZ.siteNear.A||[]) >= beliefMass("CT", BZ.siteNear.B||[]) ? "A" : "B";
+  var lean = infoCount("CT", BZ.siteNear.A||[], 20) >= infoCount("CT", BZ.siteNear.B||[], 20) ? "A" : "B";
   cts.forEach(function(b){ if(!A[b.id]) A[b.id] = lean; });
 }
 function teamBrains(){
@@ -4692,8 +4417,8 @@ function teamBrains(){
 // =====================================================================
 var TEAM = {CT:null, T:null};
 // веса целей: размен (trade) весит больше, чем «вижу вход» (threat) — урок отката v173
-var ACT = {every:32, W:{need:1.6, threat:1.0, trade:1.3, alone:0.6, stack:0.9, risk:1.0, lib:0.3, dist:0.07, dup:0.4, same:3, cur:0.35, poi:1.0, repos:0.9, deep:0.9, keep:1.2}};
-var TEAM_COV = null;   // каталог мест: места карты + места из демок (статичный, считается один раз)
+var ACT = {every:32, W:{need:1.6, threat:1.0, trade:1.3, alone:0.6, stack:0.9, risk:1.0, lib:0.3, extra:0.35, cover:0.25, dist:0.07, dup:0.4, same:3, cur:0.35, poi:1.0, repos:0.9, deep:0.9, keep:1.2}};
+var TEAM_COV = null;   // каталог мест: проверочные точки пола + места из демок (статичный, считается один раз)
 // район точки: зоны мида (Connector, Sniper Nest, Top Mid…) — мид (знание карты:
 // так их зовут игроки); иначе ближайший из A / B / мид в пределах радиуса района
 var MID_ZONES = {"Mid":1, "Top Mid":1, "Sniper Nest":1, "Connector / Red Room / Red":1, "Jungle / Pit":1, "Xbox":1, "Lower Mid / Start Mid":1, "Chamber Lane":1};
@@ -4705,12 +4430,12 @@ function teamAreaOf(p){
     var d = Math.hypot(p.x-a[1].x, p.y-a[1].y); if(d < a[2] && d/a[2] < bd){ bd = d/a[2]; best = a[0]; } });
   return best;
 }
-// каталог мест (01_spots.js): места карты обеих сторон + места из демок (фаза, взгляд)
+// каталог мест (01_spots.js): проверочные точки пола + места из демок (фаза, взгляд)
 function teamCovers(){ return TEAM_COV || (TEAM_COV = placesGet()); }
 // места своей стороны, подходящие по условию (из демок или нет — решает сумма целей)
 function spotsOf(C, team, ok){ return C.filter(function(c){ return (team === "CT" ? c.ct : c.t) && ok(c); }); }
 // вариант «встать на место»: несёт с собой, из демок ли оно и куда с него смотрят
-function spotCand(c, extra){ var o = {x:c.x, y:c.y, meet:c.meet, looks:c.looks, lib:c.lib, ph:c.ph, side:c.side, area:c.area, name:c.name, open:c.open, dirs:c.dirs};
+function spotCand(c, extra){ var o = {x:c.x, y:c.y, meet:c.meet, looks:c.looks, lib:c.lib, ph:c.ph, side:c.side, area:c.area, name:c.name, cover:c.cover};
   for(var k in extra) o[k] = extra[k]; return o; }
 function teamRow(team, id){ var T = TEAM[team]; return T && T.rows[id]; }
 // новый раунд — пустая таблица
@@ -4724,6 +4449,8 @@ function teamHear(team, byId, it){
   var dupOf = function(L){ return L.some(function(q){ return q.by === byId && Math.hypot(q.x-it.x, q.y-it.y) < 300; }); };
   if(it.k === "holdmine" && !dupOf(T.vac)) T.vac.push({x:it.x, y:it.y, side:it.side || null, t:tick, by:byId});
   if(it.k === "need2" && !dupOf(T.req)) T.req.push({x:it.x, y:it.y, t:tick, by:byId});
+  // (v196) «возьми X»: просят взять второй вход, чтобы не стоять под два
+  if(it.k === "take2" && !dupOf(T.req)) T.req.push({x:it.x, y:it.y, t:tick, by:byId, side:it.side, name:it.name, take2:true});
   if(it.k === "cant") T.refused[byId] = tick;
 }
 // таблица из того, что видно и слышно: район и вход каждого
@@ -4739,10 +4466,10 @@ function teamTableTick(team){
       return;
     }
     r.role = o.tRole; r.x = o.x; r.y = o.y;
-    var at = null, bd = 60;
-    if(o.curSpeed < 40) C.forEach(function(c){ if(team === "CT" ? !c.ct : !c.t) return; var d = Math.hypot(c.x-o.x, c.y-o.y); if(d < bd){ bd = d; at = c; } });
+    // какой вход он держит: стоит на своём месте и смотрит на вход (видно на радаре) или сказал «беру X»
+    var A = o._act, at = o.curSpeed < 40 && A && A.round === roundNum && !A.v && A.side && Math.hypot(A.x-o.x, A.y-o.y) < 60 ? A : null;
     var cl = r.claim && tick - r.claim.t < 15*TICK_HZ ? r.claim : null;
-    r.side = at ? at.side : cl ? cl.side : null;
+    r.side = cl ? cl.side : at ? at.side : null;
     r.area = ((teamTac[team] || {}).assign || {})[o.id] || (at ? at.area : cl ? cl.area : teamAreaOf(o));
   });
   T.vac = T.vac.filter(function(v){ return tick - v.t < 12*TICK_HZ && !v.done; });
@@ -4770,15 +4497,25 @@ function teamResponder(team, p, except){
     if(s < bs){ bs = s; best = o; } });
   return best ? {b:best, cost:bs} : null;
 }
-// угроза входа: сколько врагов по картине команды может выйти оттуда сейчас
-var _thr = {t:-1, v:{}};
-function teamThreat(team, c){
-  if(_thr.t !== tick){ _thr = {t:tick, v:{}}; }
-  if(_thr.v[c.side] != null) return _thr.v[c.side];
-  var j = c.from, m = beliefZoneKnown(team, j);
-  (BZ.nbr[j]||[]).forEach(function(n){ if(n !== c.hold) m += 0.5*beliefZoneKnown(team, n); });
-  var v = (1 - Math.exp(-1.5*m)) * Math.max(0.15, reachW(team, j, c.hold));
-  return (_thr.v[c.side] = v);
+// (v196, В15) место по углам: какие входы отсюда видны и насколько каждый опасен
+// сейчас (cornerDanger: враг мог дойти / инфа / за краем свой). Вход = зона за краем;
+// несколько краёв в одну зону — один вход. Кэш на тик.
+var _PEV = {t:-1, v:{}};
+function placeEval(team, x, y){
+  if(_PEV.t !== tick) _PEV = {t:tick, v:{}};
+  var k = team+Math.round(x)+","+Math.round(y); if(_PEV.v[k]) return _PEV.v[k];
+  var ent = {};
+  cornersAt(x, y).E.forEach(function(e){ var D = cornerDanger(team, e, null), q = ent[e.z];
+    if(!q || D.v > q.v || (D.v === q.v && D.eta < q.eta)) ent[e.z] = {z:e.z, e:e, v:D.v, eta:D.eta, mate:D.mate}; });
+  var L = Object.keys(ent).map(function(z){ return ent[z]; }).filter(function(q){ return !q.mate && (q.v > 0 || q.eta < 12); });
+  return (_PEV.v[k] = {ent:L});
+}
+// вход, который держит место для этого бота: самый опасный из тех, что не держат свои
+// (по таблице команды); угроз нет — тот, где враг появится раньше всего
+function placeMain(ev, held){
+  var free = ev.ent.filter(function(q){ return !held["z"+q.z]; }), best = null;
+  free.forEach(function(q){ if(!best || q.v > best.v || (q.v === best.v && q.eta < best.eta)) best = q; });
+  return best;
 }
 // где свои: по таблице (радар), у кого есть сказанная цель — она
 function teamMatePts(team, me){
@@ -4792,10 +4529,13 @@ function teamMatePts(team, me){
 function actScore(b, c, X){
   var W = ACT.W, s = 0, team = b.team;
   s -= W.dist * Math.hypot(c.x-b.x, c.y-b.y)*1.2/SPEED;                // дойти
+  // (v196) углы: какой вход отсюда держу и сколько ещё входов открыто (под них «фонюсь»)
+  var ev = placeEval(team, c.x, c.y), mn = placeMain(ev, X.held || {});
+  c.side = mn ? "z"+mn.z : null; c._mn = mn;
   if(X.mode === "hold"){
     if(c.v) s += W.need;                                                 // вариант идёт от моего района (пик, подпуш, отход)
     else if(c.area) s += c.area === X.myArea ? W.need : -W.need;         // план IGL: мой район
-    if(!c.v) s += W.threat * teamThreat(team, c);                        // держать нужный вход
+    if(!c.v && mn) s += W.threat * (mn.v > 0 ? Math.min(1.5, mn.v) : 0.5*Math.exp(-mn.eta/8));   // держать нужный вход (нет угроз — куда враг придёт раньше)
   }
   s += c.gain || 0;                                                      // выгода варианта (пик, проба, энтри…) минус его риск
   if(c.lib && c.ph === X.ph) s += W.lib;                                 // (v195) место из демок этой фазы — небольшой плюс
@@ -4806,7 +4546,8 @@ function actScore(b, c, X){
   if(X.mates.length){ if(dm < 80) s -= W.stack; else if(dm < 480) s += W.trade; else if(dm > 750) s -= W.alone; }
   // не умереть зря: открытость + известные враги, которые её видят
   var dyn = 0; X.foes.forEach(function(f){ if(Math.hypot(f.x-c.x, f.y-c.y) < 1400 && hasLOS(c.x, c.y, f.x, f.y)) dyn += 0.7; });
-  s -= W.risk * X.riskMul * ((c.open || 0) + 0.06*(c.dirs || 0) + Math.min(2, dyn));
+  s -= W.risk * X.riskMul * (W.extra * Math.max(0, ev.ent.length - 1) + Math.min(2, dyn));   // лишние открытые входы
+  if(c.cover) s += W.cover;                                              // рядом стена — укрытие
   // точки интереса: опустевший угол, просьба, бомба, плант, враг тиммейта (размен)
   X.pois.forEach(function(P){ var d = Math.hypot(P.x-c.x, P.y-c.y);
     if(d > P.r || (P.side && P.side !== c.side && !P.see)) return;
@@ -4833,7 +4574,9 @@ function actPick(b, cands, X, tag){
   b._act = {x:best.x, y:best.y, side:best.side || null, from:best.from, hold:best.hold, area:best.area || null, name:best.name || "", sc:bs, mode:X.mode, t:tick, round:roundNum, v:ACTV[best.v] ? best.v : null, looks:best.lib && best.ph === X.ph ? best.looks : null};
   if(b._act.v){ b._act.phase = "out"; b._act.home = best.home || (prev ? {x:prev.x, y:prev.y, meet:null, looks:prev.looks} : {x:b.x, y:b.y, meet:null}); b._act.look = best.look || ACTV[best.v].look; }
   var tg = best.v ? best.v+":"+(best.name || "") : (X.repos && Math.hypot(best.x-X.repos.x, best.y-X.repos.y) > 90 ? "repos:"+(best.name || "") : tag(best));
-  setPost(b, {x:best.x, y:best.y}, best.meet || X.look || null, true, tg);
+  var mlook = best.meet || (best._mn ? {x:best._mn.e.x, y:best._mn.e.y} : null) || X.look || null;
+  if(!best.name && best._mn) b._act.name = ZONE_NAMES[BZ.ids[best._mn.z]] || BZ.ids[best._mn.z] || "";
+  setPost(b, {x:best.x, y:best.y}, mlook, true, tg);
   if(best.say) newsAdd(b, best.say);
   return best;
 }
@@ -4911,7 +4654,7 @@ function teamActTick(team, cts){
   T.vac.forEach(function(v){ if(!v.resp){ var rp = teamResponder(team, v, v.by); v.resp = rp ? rp.b.id : "-"; v.ok = rp && !teamNeededHere(team, rp.b); } });
   T.req.forEach(function(q){ if(!q.resp){ var rp = teamResponder(team, q, q.by); q.resp = rp ? rp.b.id : "-";
     q.ok = !!(rp && !teamNeededHere(team, rp.b) && rp.cost < 9);
-    if(rp) newsAdd(rp.b, {k: q.ok ? "go" : "cant", x:q.x, y:q.y, to:q.by}); } });
+    if(rp) newsAdd(rp.b, q.ok && q.take2 ? {k:"take", x:q.x, y:q.y, side:q.side, name:q.name} : {k: q.ok ? "go" : "cant", x:q.x, y:q.y, to:q.by}); } });
   cts.forEach(function(b, i){
     if(b.defusing || b.planting) return;
     var myTr = trades.filter(function(P){ return P.ids.indexOf(b.id) >= 0; });
@@ -4927,13 +4670,14 @@ function teamActTick(team, cts){
     // засветился (стрелял, ранен, по мне стреляли), а их рядом ещё много — сменить позицию
     var burned = tick - (b.lastShotTick||-1e9) < 3*TICK_HZ || tick - (b._hurtT||-1e9) < 4*TICK_HZ || tick - (b._shotAtT||-1e9) < 3*TICK_HZ;
     var foesNear = foes.filter(function(f){ return Math.hypot(f.x-b.x, f.y-b.y) < 1300; }).length + (burned && b.heardSound && tick - b.heardSound.tick < 2*TICK_HZ ? 1 : 0);
-    var X = {mode:"hold", ph: planted ? (team === "T" ? "post" : "retake") : "pre", myArea:(ct.assign || {})[b.id] || null, mates:teamMatePts(team, b), foes:foes, pois:[], cur:b._act && b._act.round === roundNum ? b._act : null,
+    var held = {}; teamMatePts(team, b).forEach(function(m){ if(m.side) held[m.side] = 1; });
+    var X = {held:held, mode:"hold", ph: planted ? (team === "T" ? "post" : "retake") : "pre", myArea:(ct.assign || {})[b.id] || null, mates:teamMatePts(team, b), foes:foes, pois:[], cur:b._act && b._act.round === roundNum ? b._act : null,
       riskMul: (b.hp < 50 ? 1.6 : 1) * (b._reloading ? 2 : 1) * actMoneyRisk(team), noCur: !!b._reloading,
       repos: burned && foesNear >= 1 && !(planted && team === "CT") ? {x:b.x, y:b.y} : null, foesNear:foesNear, burned:burned};
     myTr.forEach(function(P){ X.pois.push(P); });
     pois.forEach(function(P){ if(P.near && Math.hypot(P.x-b.x, P.y-b.y) > P.near) return; if(P.who && P.who !== b.id) return; X.pois.push(P); });
     T.vac.forEach(function(v){ if(v.resp === b.id && v.ok) X.pois.push({x:v.x, y:v.y, r:300, side:v.side, w:1.4, vac:v}); });
-    T.req.forEach(function(q){ if(q.resp === b.id && q.ok) X.pois.push({x:q.x, y:q.y, r:450, w:1.4, req:q}); });
+    T.req.forEach(function(q){ if(q.resp === b.id && q.ok) X.pois.push(q.take2 ? {x:q.x, y:q.y, r:600, w:1.4, req:q, see:true} : {x:q.x, y:q.y, r:450, w:1.4, req:q}); });
     // (К13) взял угол по просьбе — держит, пока ситуация не изменилась (контакт, размен) или 15 с
     if(b._keep && (b._keep.round !== roundNum || tick > b._keep.until || burned || trNew)) b._keep = null;
     X.keep = b._keep;
@@ -4946,11 +4690,18 @@ function teamActTick(team, cts){
       X.pois.forEach(function(P){ if(P.vac) P.vac.done = true; if(P.req) P.req.done = true; });
     }
     var claimed = X.mates.some(function(m){ var r = T.rows[m.id]; return r && r.claim && r.claim.side === picked.side && tick - r.claim.t < 10*TICK_HZ; });
+    // (v196) место открыто на два входа, второй никто не держит — попросить ближайшего взять его («возьми X»)
+    if(X.mode === "hold" && !picked.v && picked.side && (!b._ask2 || b._ask2.round !== roundNum || tick - b._ask2.t > 15*TICK_HZ)){
+      var ev2 = placeEval(team, picked.x, picked.y), mn2 = picked._mn;
+      var sec2 = ev2.ent.filter(function(q){ return mn2 && q.z !== mn2.z && !held["z"+q.z] && (q.v > 0.25 || (mn2.v <= 0 && q.eta < 6)); })
+        .sort(function(p, q){ return q.v - p.v || p.eta - q.eta; })[0];
+      if(sec2 && X.mates.length){ b._ask2 = {round:roundNum, t:tick};
+        newsAdd(b, {k:"take2", x:sec2.e.x, y:sec2.e.y, side:"z"+sec2.z, name:(ZONE_NAMES[BZ.ids[sec2.z]] || BZ.ids[sec2.z] || "").split(" / ")[0]}); } }
     if(picked && !claimed && X.mode === "hold" && (!prev || prev.round !== roundNum || prev.side !== picked.side) && Math.hypot(picked.x-b.x, picked.y-b.y) > 250)
-      newsAdd(b, {k:"take", x:picked.x, y:picked.y, side:picked.side, area:picked.area, name:picked.name.split(" / ")[0]});
+      newsAdd(b, {k:"take", x:picked.x, y:picked.y, side:picked.side, area:picked.area, name:(picked.name || b._act.name || "").split(" / ")[0]});
     // ухожу из района с угла, откуда может выйти враг, а его больше никто не держит, — «подержите»
     if(picked && prev && prev.round === roundNum && prev.mode === "hold" && prev.side && prev.area !== picked.area && Math.hypot(b.x-prev.x, b.y-prev.y) < 80 &&
-       !X.mates.some(function(m){ return m.side === prev.side; }) && teamThreat(team, prev) > 0.15)
+       !X.mates.some(function(m){ return m.side === prev.side; }) && placeEval(team, prev.x, prev.y).ent.some(function(q){ return q.v > 0.15; }))
       newsAdd(b, {k:"holdmine", x:prev.x, y:prev.y, side:prev.side});
   });
 }
@@ -5010,7 +4761,7 @@ function ctVariants(b, X, ct, cts, C, sty){
     if(my === "M") return (c.area === "M" || !c.area) && Math.hypot(c.x-GEO.tMid.x, c.y-GEO.tMid.y) < 0.8*Math.hypot(GEO.ctMid.x-GEO.tMid.x, GEO.ctMid.y-GEO.tMid.y);
     var g = GEO[my], s0 = SITES[my]; return (c.area === my || (!c.area && Math.hypot(c.x-s0.x, c.y-s0.y) < 1100)) &&
       Math.hypot(c.x-g.tEntry.x, c.y-g.tEntry.y) < 0.65*Math.hypot(s0.x-g.tEntry.x, s0.y-g.tEntry.y); });
-  var foeReach = function(c){ return c.from >= 0 ? reachW("CT", c.from, c.hold) : 0; };
+  var foeReach = function(c){ var ev = placeEval("CT", c.x, c.y), t = 0; ev.ent.forEach(function(q){ if(q.v > t) t = Math.min(1, q.v); }); return t; };
   var wantInfo = ct.wantInfo === b.id;
   // ранний пик за инфой: первые 8–25 с (или IGL просит чекнуть), выйти на линию подхода, увидеть — назад
   if(my && home && actCdOk(b, "peek") && !busy("peek") && !ct.call && aC >= aT && ((sec > 8 && sec < 25) || wantInfo)){
@@ -5042,7 +4793,7 @@ function sharedVariants(b, X, team, C, home){
     if(E.length){
       var lk = b.post.look, a = Math.atan2(lk.y-b.y, lk.x-b.x), jx = b.x + Math.cos(a)*48, jy = b.y + Math.sin(a)*48;
       if(!insideSolidWall(jx, jy) && !segCrossesManualWalls(b.x, b.y, jx, jy))
-        out.push({x:jx, y:jy, meet:lk, v:"jiggle", gain:0.4 + 0.5*actMood(b) + (X.cur ? W_CUR() : 0), home:{x:b.x, y:b.y, meet:lk}, name:"", open:0, dirs:0, area:null});
+        out.push({x:jx, y:jy, meet:lk, v:"jiggle", gain:0.4 + 0.5*actMood(b) + (X.cur ? W_CUR() : 0), home:{x:b.x, y:b.y, meet:lk}, name:"", area:null});
     }
   }
   // отход: ранен, размена нет, их рядом больше — назад, туда, где меня не видят
@@ -5132,7 +4883,7 @@ function tChoose(b, X, tt, ts, C){
     var tgt = pt || {x:look.x, y:look.y, meet:null};
     var util = b.nades && b.nades.flash > 0, mate = ts.some(function(o){ return o !== b && Math.hypot(o.x-P.x, o.y-P.y) < 400; });
     var gp = (0.5 + Math.min(1, quiet/20)*0.5 + (util ? 0.3 : 0) + (mate ? 0.3 : -0.4) + (sty.probe || 0) + (role === "entry" ? 0.2 : 0))*mood - (b.hp < 60 ? 0.6 : 0);
-    ST.push({x:tgt.x, y:tgt.y, meet:tgt.meet || site, looks:tgt.looks || null, lib:tgt.lib, ph:tgt.ph, v:"probe", gain:gp, home:home, name:tgt.name || "", open:tgt.open, dirs:tgt.dirs, area:null});
+    ST.push({x:tgt.x, y:tgt.y, meet:tgt.meet || site, looks:tgt.looks || null, lib:tgt.lib, ph:tgt.ph, v:"probe", gain:gp, home:home, name:tgt.name || "", cover:tgt.cover, area:null});
   }
   return actPick(b, ST.concat(sharedVariants(b, X, "T", C, X.cur && !X.cur.v ? {x:X.cur.x, y:X.cur.y, meet:null, looks:X.cur.looks} : null)), X, function(c){ return "stage"+(A ? A.area : k); });
 }
@@ -5149,7 +4900,7 @@ function actSave(b){
     ts.forEach(function(t){ dT = Math.min(dT, Math.hypot(c.x-t.x, c.y-t.y)); if(hasLOS(c.x, c.y, t.x, t.y)) seen = true; });
     if(seen || dT < 500) return;
     if(b.team === "T" && Math.min(Math.hypot(c.x-SITES.A.x, c.y-SITES.A.y), Math.hypot(c.x-SITES.B.x, c.y-SITES.B.y)) < 500) return;
-    var s = Math.min(dT, 1200)*0.6 - Math.hypot(c.x-b.x, c.y-b.y) - 300*(c.open || 0) - (b.team === "T" ? 0.15*Math.hypot(c.x-T_SPAWN.x, c.y-T_SPAWN.y) : 0);
+    var s = Math.min(dT, 1200)*0.6 - Math.hypot(c.x-b.x, c.y-b.y) - 100*placeEval(b.team, c.x, c.y).ent.length - (b.team === "T" ? 0.15*Math.hypot(c.x-T_SPAWN.x, c.y-T_SPAWN.y) : 0);
     if(s > bs){ bs = s; best = c; }
   });
   var p = best || (b.team === "T" ? {x:T_SPAWN.x, y:T_SPAWN.y} : {x:CT_SPAWN.x, y:CT_SPAWN.y});
@@ -6398,7 +6149,7 @@ function pathDanger(team, pts){
   for(var i = 0; i < pts.length; i++){
     var q = pts[i];
     for(var f = 0; f < foes.length; f++) if(Math.hypot(q[0]-foes[f].x, q[1]-foes[f].y) < 380) return true;
-    if(i % 2 === 0 && BZ.ids.length){ var zi = bzOf(q[0], q[1]); if(zi >= 0 && beliefZoneKnown(team, zi) >= 0.6) return true; }
+    if(i % 2 === 0 && BZ.ids.length){ var zi = bzOf(q[0], q[1]); if(zi >= 0 && infoZone(team, zi) >= 0.6) return true; }
   }
   return false;
 }
@@ -6473,8 +6224,8 @@ function dangerWalk(b){
   var seenZ = {}, dz = 0;
   pts.forEach(function(q){
     var zi = bzOf(q[0], q[1]); if(zi < 0 || seenZ[zi]) return; seenZ[zi] = 1;
-    var own = reachPossible(foe, zi) ? beliefZoneKnown(foe, zi) : 0;
-    var nb = 0; (BZ.nbr[zi]||[]).forEach(function(j){ if(reachPossible(foe, j)) nb = Math.max(nb, beliefZoneKnown(foe, j)); });
+    var own = reachPossible(foe, zi) ? infoZone(foe, zi) : 0;
+    var nb = 0; (BZ.nbr[zi]||[]).forEach(function(j){ if(reachPossible(foe, j)) nb = Math.max(nb, infoZone(foe, j)); });
     dz = Math.max(dz, own + 0.5*nb);
     // (v143) непроверенный угол вплотную к пути, куда враг мог успеть — тихо,
     // чтобы чекнуть его и не спалиться (у про: "иду шифтом, чекаю каждый угол")
@@ -7618,11 +7369,11 @@ function freshMatch(n){
   paused = true;
   tick = 0; simTime = 0; roundStartTick = 0;
   var clr = function(o){ for(var k in o) delete o[k]; };
-  [_ED, APPEAR, nadeFlags, comboCd].forEach(function(o){ if(o) clr(o); });
+  [APPEAR, nadeFlags, comboCd].forEach(function(o){ if(o) clr(o); });
   tracers.length = 0; soundPings.length = 0; nadesInAir.length = 0; smokes.length = 0; fires.length = 0; nadeFx.length = 0;
   groundWeapons.length = 0; events.length = 0; killfeed.length = 0;
   LAST_CLEAR = {CT:{}, T:{}};
-  if(typeof beliefReset === "function") beliefReset();
+  if(typeof knowReset === "function") knowReset();
   clutchInfo = null;
   nadeReactCd = {CT:0, T:0}; awpSmokeCd = {CT:0, T:0};
   teamEco = { CT: {lossLevel: 1, roundType: "pistol", lastIncome: 0}, T: {lossLevel: 1, roundType: "pistol", lastIncome: 0} };
@@ -7732,7 +7483,7 @@ function resetRound(){
   // киллфид — только текущий раунд
   killfeed.length = 0; renderFeed();
   resetTeamIntel();
-  beliefReset();
+  knowReset();
   clutchShown = null; clutchInfo = null;
   bots.forEach(function(b){ b.roundKills = 0; b.roundDmg = 0; b._dmgBy = {}; b._blindBy = null; b.post = null; b.atPost = false; b.planting = false; b.defusing = false; b._saveSpot = null; b._huntIdx = undefined; b._huntArrive = 0; b._lurkIdx = 0; b._lurkArr = 0; b._lurkPh = undefined; });
   resetNades();
@@ -7755,7 +7506,7 @@ roundStartTime = BAL.freeze; roundStartTick = Math.round(BAL.freeze*TICK_HZ);
 buyPhase(); // закуп первого (пистолетного) раунда — после объявления simTime (logEvent его использует)
 resetBomb();
 chooseTactic();
-beliefBuild(); beliefReset(); // раздел 13: карта вероятностей врага
+beliefBuild(); knowReset(); // знание о врагах (09_knowledge.js)
 
 function stepTick(){
   tick++;
@@ -7960,7 +7711,7 @@ function stepTick(){
         soundPings.push({x:bot.baseX, y:bot.baseY, team:bot.team, born:nowTs, radius:soundRadius});
         // (4) сам знает, что шумит: бежал в пределах слышимости места, где враг вероятен
         if(BAL.heardMe && roundState === "live"){ var zN = bzOf(bot.x, bot.y); if(zN >= 0){ var nearZ = [zN].concat(BZ.nbr[zN]||[]);
-          if(nearZ.some(function(j){ var cj = BZ.cent[j]; return cj && Math.hypot(cj.x-bot.x, cj.y-bot.y) < soundRadius && reachPossible(bot.team, j) && beliefZoneKnown(bot.team, j) >= 0.2; })) bot._noisyT = tick; } }
+          if(nearZ.some(function(j){ var cj = BZ.cent[j]; return cj && Math.hypot(cj.x-bot.x, cj.y-bot.y) < soundRadius && reachPossible(bot.team, j) && infoZone(bot.team, j) >= 0.2; })) bot._noisyT = tick; } }
         if(soundPings.length > 40) soundPings.shift();
         makeSound(bot, bot.x, bot.y, wet ? "water" : "steps", {mul: wet && bot.walking ? 220/SOUND.water.open : 1, seed: bot.lastStepTick});
       }
@@ -8204,7 +7955,7 @@ function stepTick(){
   if(BAL.smokeReact) smokeHeTick();
   teamInfoTick(); // раздел 11: восприятие этого тика → радар и блокнот бота
   talkTick();     // тимспик: кто что говорит, кто что услышал (К10)
-  beliefTick();   // раздел 13: карта вероятностей врага
+  knowTick();   // знание о врагах: что видят свои — закрыто (REACH)
   checkRoundEnd();
 }
 
@@ -9582,6 +9333,7 @@ function draw(){
   }
 
   if(chkSpots.checked) drawSpots();
+  if(chkCorners.checked) drawCorners();
 
   var contacts = 0;
   // контакты для HUD — считаем всегда, независимо от отрисовки
@@ -10083,6 +9835,33 @@ function drawSpots(){
   });
   ctx.restore();
 }
+
+// ---------- (v196, В15) слой «углы» (10_corners.js), только показ ----------
+// у выбранного кликом игрока (или у CORNER_SHOW — для снимков): видимая область,
+// края, их опасность сейчас и какой край он держит (куда смотрит)
+var chkCorners = document.getElementById("chkCorners");
+chkCorners.addEventListener("change", function(){ draw(); });
+var CORNER_SHOW = null;
+function drawCorners(){
+  var ids = CORNER_SHOW || (plSelected ? [plSelected] : []), sc = view.scale;
+  ids.forEach(function(id){ var b = botById(id); if(!b || !b.alive) return;
+    var C = cornersAt(b.x, b.y), N = C.D.length, st = 2*Math.PI/N;
+    ctx.save();
+    ctx.globalAlpha = 0.16; ctx.fillStyle = b.team === "CT" ? "#5aa8ff" : "#ffaa3c";
+    ctx.beginPath(); for(var i=0;i<N;i++){ var a = i*st, x = C.x + Math.cos(a)*C.D[i], y = C.y + Math.sin(a)*C.D[i]; if(i) ctx.lineTo(x, y); else ctx.moveTo(x, y); } ctx.closePath(); ctx.fill();
+    var fa = b.facing || 0, held = null, hd = 0.35;
+    C.E.forEach(function(e){ var da = Math.abs(Math.atan2(Math.sin(Math.atan2(e.y-b.y, e.x-b.x)-fa), Math.cos(Math.atan2(e.y-b.y, e.x-b.x)-fa))); if(da < hd){ hd = da; held = e; } });
+    C.E.forEach(function(e){
+      var D = cornerDanger(b.team, e, b), col = D.mate ? "#6aa0ff" : D.info > 0 ? "#ffd84a" : D.t > 0 ? "#ff5a4e" : "#8a8f86";
+      ctx.globalAlpha = 0.95; ctx.strokeStyle = col; ctx.lineWidth = 1.2/sc;
+      ctx.beginPath(); ctx.moveTo(e.cx, e.cy); ctx.lineTo(e.x + Math.cos(e.a)*18/sc, e.y + Math.sin(e.a)*18/sc); ctx.stroke();
+      ctx.fillStyle = col; ctx.beginPath(); ctx.arc(e.x, e.y, (e === held ? 5 : 3.2)/sc, 0, Math.PI*2); ctx.fill();
+      if(e === held){ ctx.strokeStyle = "#ffffff"; ctx.lineWidth = 1.6/sc; ctx.beginPath(); ctx.arc(e.x, e.y, 8/sc, 0, Math.PI*2); ctx.stroke(); }
+      ctx.font = (9/sc)+"px sans-serif"; ctx.fillStyle = "#f0f2ea";
+      ctx.fillText(D.t > 0 || D.info > 0 ? D.v.toFixed(2) : (isFinite(D.eta) ? Math.round(D.eta)+"с" : "—"), e.x + 5/sc, e.y - 4/sc);
+    });
+    ctx.restore(); });
+}
 function cl0save(){ return teamTac.CT && teamTac.CT.saving; }
 // ======================= РАЗДЕЛ 9: подача матча =======================
 
@@ -10324,11 +10103,10 @@ var __SNAP = [
 ["_zbnCache", function(){ return _zbnCache; }, function(v){ try{ _zbnCache = v; }catch(e){} }],
 ["FOE", function(){ return FOE; }, function(v){ try{ FOE = v; }catch(e){} }],
 ["BZ", function(){ return BZ; }, function(v){ try{ BZ = v; }catch(e){} }],
-["belief", function(){ return belief; }, function(v){ try{ belief = v; }catch(e){} }],
 ["beliefSeen", function(){ return beliefSeen; }, function(v){ try{ beliefSeen = v; }catch(e){} }],
 ["beliefLast", function(){ return beliefLast; }, function(v){ try{ beliefLast = v; }catch(e){} }],
 ["REACH", function(){ return REACH; }, function(v){ try{ REACH = v; }catch(e){} }],
-["BELIEF_STEP", function(){ return BELIEF_STEP; }, function(v){ try{ BELIEF_STEP = v; }catch(e){} }],
+["KNOW_STEP", function(){ return KNOW_STEP; }, function(v){ try{ KNOW_STEP = v; }catch(e){} }],
 ["VOICE", function(){ return VOICE; }, function(v){ try{ VOICE = v; }catch(e){} }],
 ["TALK_PLAN", function(){ return TALK_PLAN; }, function(v){ try{ TALK_PLAN = v; }catch(e){} }],
 ["VOICE_STATS", function(){ return VOICE_STATS; }, function(v){ try{ VOICE_STATS = v; }catch(e){} }],
@@ -10339,9 +10117,7 @@ var __SNAP = [
 ["TALK_DO", function(){ return TALK_DO; }, function(v){ try{ TALK_DO = v; }catch(e){} }],
 ["LOOK", function(){ return LOOK; }, function(v){ try{ LOOK = v; }catch(e){} }],
 ["LAST_CLEAR", function(){ return LAST_CLEAR; }, function(v){ try{ LAST_CLEAR = v; }catch(e){} }],
-["_ED", function(){ return _ED; }, function(v){ try{ _ED = v; }catch(e){} }],
 ["APPEAR", function(){ return APPEAR; }, function(v){ try{ APPEAR = v; }catch(e){} }],
-["PORTAL_W", function(){ return PORTAL_W; }, function(v){ try{ PORTAL_W = v; }catch(e){} }],
 ["SL", function(){ return SL; }, function(v){ try{ SL = v; }catch(e){} }],
 ["SMK", function(){ return SMK; }, function(v){ try{ SMK = v; }catch(e){} }],
 ["CT_NEED", function(){ return CT_NEED; }, function(v){ try{ CT_NEED = v; }catch(e){} }],
@@ -10350,7 +10126,7 @@ var __SNAP = [
 ["TEAM", function(){ return TEAM; }, function(v){ try{ TEAM = v; }catch(e){} }],
 ["ACT", function(){ return ACT; }, function(v){ try{ ACT = v; }catch(e){} }],
 ["MID_ZONES", function(){ return MID_ZONES; }, function(v){ try{ MID_ZONES = v; }catch(e){} }],
-["_thr", function(){ return _thr; }, function(v){ try{ _thr = v; }catch(e){} }],
+["_PEV", function(){ return _PEV; }, function(v){ try{ _PEV = v; }catch(e){} }],
 ["ACTV", function(){ return ACTV; }, function(v){ try{ ACTV = v; }catch(e){} }],
 ["CT_STYLE", function(){ return CT_STYLE; }, function(v){ try{ CT_STYLE = v; }catch(e){} }],
 ["T_STYLE", function(){ return T_STYLE; }, function(v){ try{ T_STYLE = v; }catch(e){} }],
@@ -10533,6 +10309,7 @@ var __SNAP = [
 ["zoneNamePanel", function(){ return zoneNamePanel; }, function(v){ try{ zoneNamePanel = v; }catch(e){} }],
 ["zoneNameInput2", function(){ return zoneNameInput2; }, function(v){ try{ zoneNameInput2 = v; }catch(e){} }],
 ["chkSpots", function(){ return chkSpots; }, function(v){ try{ chkSpots = v; }catch(e){} }],
+["chkCorners", function(){ return chkCorners; }, function(v){ try{ chkCorners = v; }catch(e){} }],
 ["clutchShown", function(){ return clutchShown; }, function(v){ try{ clutchShown = v; }catch(e){} }],
 ["clutchInfo", function(){ return clutchInfo; }, function(v){ try{ clutchInfo = v; }catch(e){} }],
 ["KF_ICON", function(){ return KF_ICON; }, function(v){ try{ KF_ICON = v; }catch(e){} }],
@@ -10546,7 +10323,7 @@ var __SNAP = [
 ["PL_ICON", function(){ return PL_ICON; }, function(v){ try{ PL_ICON = v; }catch(e){} }],
 ["plSelected", function(){ return plSelected; }, function(v){ try{ plSelected = v; }catch(e){} }]
 ];
-var MK_PRINCIPLES = [{"id": "В11", "sec": "Взгляд", "text": "НОВОЕ 06.10. Префайр: слышит, что за углом сейчас выйдут, — заранее ставит прицел туда, где появится голова (широко / узко — по углу). Выходящий тоже идёт с прицелом на обычных позициях, где его принимают. (чат 06.10)", "done": false}, {"id": "В12", "sec": "Взгляд", "text": "НОВОЕ 06.10. Уход от флешки: услышал или увидел бросок флешки в свою сторону — отворачивается (смотрит в стену), потом возвращает прицел на угол. (чат 06.10)", "done": false}, {"id": "В13", "sec": "Взгляд", "text": "НОВОЕ 06.10. Без инфы взгляд — на проход, откуда враг может прийти раньше всего, а не на угол с почти нулевой угрозой (матч 1, р1, ~22 с: CT 5 Back Site, 7 Second Lane, 8 Temple — веса 0,01–0,10). (чат 06.10, скриншот)", "done": false}, {"id": "В14", "sec": "Взгляд", "text": "НОВОЕ 06.10. Взгляд по таймингу: откуда и как скоро враг может появиться; не чекать места, куда враг ещё не мог дойти, и не смотреть туда, где впереди свои или куда врагу не добежать (близко к В9). (чат 06.10)", "done": false}, {"id": "П9", "sec": "Позиция", "text": "НОВОЕ 07.10. Места, где держать угол, — из наших демок, а не по стенам: где про стоят и держат угол (не бегут, не в бою), для какой стороны, у какого района, в какой фазе (до выхода / после планта / ретейк), и куда оттуд", "done": false}, {"id": "К10", "sec": "Команда", "text": "НОВОЕ 06.10. Тимспик как в реальной игре: инфа, просьбы («подпушу донат, пошли со мной»), план IGL на старте и перестройка по ходу («30 с никого на Б — один чекает мид»). Сказать — 0,5–2 с, услышать — сразу. Каждый реаги", "done": false}, {"id": "К11", "sec": "Команда", "text": "НОВОЕ 06.10. Своё восприятие как у игрока: сколько шагов и откуда, гранаты (откуда кинули, где упали), киллфид (кто, из чего — роль по нику, закуп по оружию), время раунда; выводы из этого — в общую картину. (чат 06.10)", "done": false}, {"id": "К12", "sec": "Команда", "text": "НОВОЕ 06.10. Активная игра: CT либо держат по расстановке, либо играют за инфой (ранний пик, подпуш парой, джиггл) и подстраиваются; T — контроль областей, пробы, лёрк, выход с энтри первым. Один подпушил — остальные пер", "done": false}, {"id": "К13", "sec": "Команда", "text": "НОВОЕ 06.10. Просьбы без повторов: одна просьба — один ответ; кто ответил «не могу», его больше не спрашивают; кто взял угол — держит, пока ситуация не изменилась; в консоли нет «подержите» / «не могу» по кругу (после v1", "done": false}, {"id": "Н3", "sec": "Войс, консоль, киллфид", "text": "НОВОЕ 06.10. Консоль справа снизу — без лишних сообщений: только то, что важно смотрящему (фраги, коллы тимспика, решения команды). (чат 06.10)", "done": false}, {"id": "Н4", "sec": "Войс, консоль, киллфид", "text": "НОВОЕ 06.10. Киллфид как в CS2, компактно: `Убийца + Ассистент [иконка оружия] [значки: через смок, прострел, хедшот, ноускоп, ослеплён] Жертва`; ники цветом команды, иконки — белые силуэты оружия, значки — только те, чт", "done": false}, {"id": "Н5", "sec": "Войс, консоль, киллфид", "text": "НОВОЕ 06.10. Иконки киллфида — готовые SVG владельца из его другого проекта (оружие, гранаты, нож, значки), а не самодельные силуэты. (чат 06.10, архив иконок)", "done": false}, {"id": "Н6", "sec": "Войс, консоль, киллфид", "text": "НОВОЕ 06.10. Табло как на трансляции (образец — скриншот ESL Pro League): сверху по центру счёт команд, раунд, таймер, «живые: 3 vs 5» цветами команд; без стиля «рваной бумаги»; логотипы команд владелец пришлёт позже. (ч", "done": false}, {"id": "Н7", "sec": "Войс, консоль, киллфид", "text": "НОВОЕ 06.10. Панели игроков как на трансляции (образец — скриншот PARIVISION/FURIA): T слева, CT справа, сверху плашка с настоящим названием команды; у каждого — номер, ник, фраги/смерти, деньги, фото (пока серый силуэт)", "done": false}, {"id": "С1", "sec": "Стрельба", "text": "НОВОЕ 06.10. Стреляют как настоящий игрок: тап далеко, короткие очереди на средней, спрей вблизи, контрстрейф; ритм ровный по темпу оружия; трассеры уходят по рисунку отдачи, а не случайным веером. (чат 06.10)", "done": false}];
+var MK_PRINCIPLES = [{"id": "В11", "sec": "Взгляд", "text": "НОВОЕ 06.10. Префайр: слышит, что за углом сейчас выйдут, — заранее ставит прицел туда, где появится голова (широко / узко — по углу). Выходящий тоже идёт с прицелом на обычных позициях, где его принимают. (чат 06.10)", "done": false}, {"id": "В12", "sec": "Взгляд", "text": "НОВОЕ 06.10. Уход от флешки: услышал или увидел бросок флешки в свою сторону — отворачивается (смотрит в стену), потом возвращает прицел на угол. (чат 06.10)", "done": false}, {"id": "В13", "sec": "Взгляд", "text": "НОВОЕ 06.10. Без инфы взгляд — на проход, откуда враг может прийти раньше всего, а не на угол с почти нулевой угрозой (матч 1, р1, ~22 с: CT 5 Back Site, 7 Second Lane, 8 Temple — веса 0,01–0,10). (чат 06.10, скриншот)", "done": false}, {"id": "В14", "sec": "Взгляд", "text": "НОВОЕ 06.10. Взгляд по таймингу: откуда и как скоро враг может появиться; не чекать места, куда враг ещё не мог дойти, и не смотреть туда, где впереди свои или куда врагу не добежать (близко к В9). (чат 06.10)", "done": false}, {"id": "В15", "sec": "Взгляд", "text": "НОВОЕ 07.10. Бот видит карту углами, а не зонами: что видит со своей точки, где эту область обрезает край стены (там может выйти враг), насколько каждый край опасен (тайминг, инфа, держит ли тиммейт). Взгляд — на самый о", "done": false}, {"id": "П9", "sec": "Позиция", "text": "НОВОЕ 07.10. Места, где держать угол, — из наших демок, а не по стенам: где про стоят и держат угол (не бегут, не в бою), для какой стороны, у какого района, в какой фазе (до выхода / после планта / ретейк), и куда оттуд", "done": false}, {"id": "К10", "sec": "Команда", "text": "НОВОЕ 06.10. Тимспик как в реальной игре: инфа, просьбы («подпушу донат, пошли со мной»), план IGL на старте и перестройка по ходу («30 с никого на Б — один чекает мид»). Сказать — 0,5–2 с, услышать — сразу. Каждый реаги", "done": false}, {"id": "К11", "sec": "Команда", "text": "НОВОЕ 06.10. Своё восприятие как у игрока: сколько шагов и откуда, гранаты (откуда кинули, где упали), киллфид (кто, из чего — роль по нику, закуп по оружию), время раунда; выводы из этого — в общую картину. (чат 06.10)", "done": false}, {"id": "К12", "sec": "Команда", "text": "НОВОЕ 06.10. Активная игра: CT либо держат по расстановке, либо играют за инфой (ранний пик, подпуш парой, джиггл) и подстраиваются; T — контроль областей, пробы, лёрк, выход с энтри первым. Один подпушил — остальные пер", "done": false}, {"id": "К13", "sec": "Команда", "text": "НОВОЕ 06.10. Просьбы без повторов: одна просьба — один ответ; кто ответил «не могу», его больше не спрашивают; кто взял угол — держит, пока ситуация не изменилась; в консоли нет «подержите» / «не могу» по кругу (после v1", "done": false}, {"id": "Н3", "sec": "Войс, консоль, киллфид", "text": "НОВОЕ 06.10. Консоль справа снизу — без лишних сообщений: только то, что важно смотрящему (фраги, коллы тимспика, решения команды). (чат 06.10)", "done": false}, {"id": "Н4", "sec": "Войс, консоль, киллфид", "text": "НОВОЕ 06.10. Киллфид как в CS2, компактно: `Убийца + Ассистент [иконка оружия] [значки: через смок, прострел, хедшот, ноускоп, ослеплён] Жертва`; ники цветом команды, иконки — белые силуэты оружия, значки — только те, чт", "done": false}, {"id": "Н5", "sec": "Войс, консоль, киллфид", "text": "НОВОЕ 06.10. Иконки киллфида — готовые SVG владельца из его другого проекта (оружие, гранаты, нож, значки), а не самодельные силуэты. (чат 06.10, архив иконок)", "done": false}, {"id": "Н6", "sec": "Войс, консоль, киллфид", "text": "НОВОЕ 06.10. Табло как на трансляции (образец — скриншот ESL Pro League): сверху по центру счёт команд, раунд, таймер, «живые: 3 vs 5» цветами команд; без стиля «рваной бумаги»; логотипы команд владелец пришлёт позже. (ч", "done": false}, {"id": "Н7", "sec": "Войс, консоль, киллфид", "text": "НОВОЕ 06.10. Панели игроков как на трансляции (образец — скриншот PARIVISION/FURIA): T слева, CT справа, сверху плашка с настоящим названием команды; у каждого — номер, ник, фраги/смерти, деньги, фото (пока серый силуэт)", "done": false}, {"id": "С1", "sec": "Стрельба", "text": "НОВОЕ 06.10. Стреляют как настоящий игрок: тап далеко, короткие очереди на средней, спрей вблизи, контрстрейф; ритм ровный по темпу оружия; трассеры уходят по рисунку отдачи, а не случайным веером. (чат 06.10)", "done": false}];
 // ======================= v167: «Отметить момент», карточка «Я понял так», перемотка =======================
 // Инструмент для владельца и Claude, мозг ботов не трогает. Описание — docs/tasks/02-mark-moment.md.
 // Снимки состояния: __SNAP (список переменных симулятора, генерирует patch170.py при сборке).

@@ -470,7 +470,7 @@ function pathDanger(team, pts){
   for(var i = 0; i < pts.length; i++){
     var q = pts[i];
     for(var f = 0; f < foes.length; f++) if(Math.hypot(q[0]-foes[f].x, q[1]-foes[f].y) < 380) return true;
-    if(i % 2 === 0 && BZ.ids.length){ var zi = bzOf(q[0], q[1]); if(zi >= 0 && beliefZoneKnown(team, zi) >= 0.6) return true; }
+    if(i % 2 === 0 && BZ.ids.length){ var zi = bzOf(q[0], q[1]); if(zi >= 0 && infoZone(team, zi) >= 0.6) return true; }
   }
   return false;
 }
@@ -545,8 +545,8 @@ function dangerWalk(b){
   var seenZ = {}, dz = 0;
   pts.forEach(function(q){
     var zi = bzOf(q[0], q[1]); if(zi < 0 || seenZ[zi]) return; seenZ[zi] = 1;
-    var own = reachPossible(foe, zi) ? beliefZoneKnown(foe, zi) : 0;
-    var nb = 0; (BZ.nbr[zi]||[]).forEach(function(j){ if(reachPossible(foe, j)) nb = Math.max(nb, beliefZoneKnown(foe, j)); });
+    var own = reachPossible(foe, zi) ? infoZone(foe, zi) : 0;
+    var nb = 0; (BZ.nbr[zi]||[]).forEach(function(j){ if(reachPossible(foe, j)) nb = Math.max(nb, infoZone(foe, j)); });
     dz = Math.max(dz, own + 0.5*nb);
     // (v143) непроверенный угол вплотную к пути, куда враг мог успеть — тихо,
     // чтобы чекнуть его и не спалиться (у про: "иду шифтом, чекаю каждый угол")

@@ -21,7 +21,7 @@ function bombFleePoint(b){
     // старт уже внутри радиуса — путь неизбежно начинается в нём; штрафуем
     // только если путь уходит к бомбе ближе, чем бот стоит сейчас
     var dNow = Math.hypot(b.x-bomb.x, b.y-bomb.y);
-    var sc = L + (minD < Math.min(R*0.75, dNow - 30) ? 900 : 0) + 600*beliefZoneKnown(b.team, i);
+    var sc = L + (minD < Math.min(R*0.75, dNow - 30) ? 900 : 0) + 600*infoZone(b.team, i);
     if(sc < bs){ bs = sc; best = q; }
   });
   b._flee = {round:roundNum, m:matchNum, pt:best};

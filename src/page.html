@@ -131,7 +131,7 @@
 <div id="app">
   <div id="topbar">
     <h1>ANCIENT — LIVE RADAR</h1>
-    <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 195 · 07.10</div>
+    <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 196 · 07.10</div>
     <button id="btnPause">Пауза</button>
     <button id="btnRestartRound" title="Немедленно сбросить текущий раунд — на случай если боты застряли">Рестарт раунда</button>
     <span class="chk" title="Матч с одним номером всегда проходит одинаково. Увидел баг — запиши номер матча и тик, введи номер и нажми «Сыграть»: матч повторится с начала">матч № <input id="inpMatchNum" type="number" min="1" value="1" style="width:52px"> <button id="btnFreshMatch">Сыграть</button> <span id="matchTick" style="opacity:.75"></span></span>
@@ -139,6 +139,7 @@
     <label class="chk"><input type="checkbox" id="chkNavmesh"> навмеш</label>
     <label class="chk"><input type="checkbox" id="chkPortals"> порталы</label>
     <label class="chk" title="Места из демок: где про держат угол и куда оттуда смотрят (CT — синие, T — оранжевые; кольцо — после планта / ретейк). Боты выбирают места только отсюда"><input type="checkbox" id="chkSpots"> места из демок</label>
+    <label class="chk" title="Углы у выбранного игрока (клик по нему на радаре): что он видит, края стен, за которыми может стоять враг, их опасность (красный — опасно сейчас, жёлтый — инфа, серый — враг ещё не мог дойти, синий — за краем свой) и какой край он держит (кольцо)"><input type="checkbox" id="chkCorners"> углы</label>
     <label class="chk" title="Слой зон карты. Клик по зоне — переименовать её (Кейв, Донат, Мейн…)"><input type="checkbox" id="chkZones"> зоны (клик — название)</label>
     <label class="chk"><input type="checkbox" id="chkPoints"> точки</label>
     <label class="chk" title="Наведи курсор на зону (при включённом слое «зоны») — подсветятся все зоны, откуда её простреливают"><input type="checkbox" id="chkDanger"> опасность (наведи)</label>

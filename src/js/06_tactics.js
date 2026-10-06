@@ -222,7 +222,7 @@ function tIglReplan(tt, site, other, secLeft){
     var cD = DL.filter(function(e){ return e.t === "CT" && e.tick >= tt.execStart; }).length;
     if(tD - cD >= 2 && aliveT <= 3 && aliveCT >= aliveT){
       tt.aborted = tick;
-      var otherB = beliefCount("T", BZ.siteNear[other]||[]);
+      var otherB = infoCount("T", BZ.siteNear[other]||[], 10);
       var ctr = {x:0, y:0}, tsA = bots.filter(function(b){ return b.team === "T" && b.alive; });
       tsA.forEach(function(b){ ctr.x += b.x/tsA.length; ctr.y += b.y/tsA.length; });
       var travel = Math.hypot(ctr.x-SITES[other].x, ctr.y-SITES[other].y)*1.4/SPEED;

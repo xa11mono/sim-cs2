@@ -283,6 +283,7 @@ function draw(){
   }
 
   if(chkSpots.checked) drawSpots();
+  if(chkCorners.checked) drawCorners();
 
   var contacts = 0;
   // контакты для HUD — считаем всегда, независимо от отрисовки
@@ -783,4 +784,31 @@ function drawSpots(){
     if(p.area){ ctx.font = (9/sc)+"px sans-serif"; ctx.fillStyle = "#e8eee8"; ctx.fillText(p.area === "M" ? "м" : p.area, p.x+4.5/sc, p.y-3.5/sc); }
   });
   ctx.restore();
+}
+
+// ---------- (v196, В15) слой «углы» (10_corners.js), только показ ----------
+// у выбранного кликом игрока (или у CORNER_SHOW — для снимков): видимая область,
+// края, их опасность сейчас и какой край он держит (куда смотрит)
+var chkCorners = document.getElementById("chkCorners");
+chkCorners.addEventListener("change", function(){ draw(); });
+var CORNER_SHOW = null;
+function drawCorners(){
+  var ids = CORNER_SHOW || (plSelected ? [plSelected] : []), sc = view.scale;
+  ids.forEach(function(id){ var b = botById(id); if(!b || !b.alive) return;
+    var C = cornersAt(b.x, b.y), N = C.D.length, st = 2*Math.PI/N;
+    ctx.save();
+    ctx.globalAlpha = 0.16; ctx.fillStyle = b.team === "CT" ? "#5aa8ff" : "#ffaa3c";
+    ctx.beginPath(); for(var i=0;i<N;i++){ var a = i*st, x = C.x + Math.cos(a)*C.D[i], y = C.y + Math.sin(a)*C.D[i]; if(i) ctx.lineTo(x, y); else ctx.moveTo(x, y); } ctx.closePath(); ctx.fill();
+    var fa = b.facing || 0, held = null, hd = 0.35;
+    C.E.forEach(function(e){ var da = Math.abs(Math.atan2(Math.sin(Math.atan2(e.y-b.y, e.x-b.x)-fa), Math.cos(Math.atan2(e.y-b.y, e.x-b.x)-fa))); if(da < hd){ hd = da; held = e; } });
+    C.E.forEach(function(e){
+      var D = cornerDanger(b.team, e, b), col = D.mate ? "#6aa0ff" : D.info > 0 ? "#ffd84a" : D.t > 0 ? "#ff5a4e" : "#8a8f86";
+      ctx.globalAlpha = 0.95; ctx.strokeStyle = col; ctx.lineWidth = 1.2/sc;
+      ctx.beginPath(); ctx.moveTo(e.cx, e.cy); ctx.lineTo(e.x + Math.cos(e.a)*18/sc, e.y + Math.sin(e.a)*18/sc); ctx.stroke();
+      ctx.fillStyle = col; ctx.beginPath(); ctx.arc(e.x, e.y, (e === held ? 5 : 3.2)/sc, 0, Math.PI*2); ctx.fill();
+      if(e === held){ ctx.strokeStyle = "#ffffff"; ctx.lineWidth = 1.6/sc; ctx.beginPath(); ctx.arc(e.x, e.y, 8/sc, 0, Math.PI*2); ctx.stroke(); }
+      ctx.font = (9/sc)+"px sans-serif"; ctx.fillStyle = "#f0f2ea";
+      ctx.fillText(D.t > 0 || D.info > 0 ? D.v.toFixed(2) : (isFinite(D.eta) ? Math.round(D.eta)+"с" : "—"), e.x + 5/sc, e.y - 4/sc);
+    });
+    ctx.restore(); });
 }

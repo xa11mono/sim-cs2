@@ -93,11 +93,11 @@ def top_vars(src):
         if x not in out: out.append(x)
     return out
 STATIC = set("""ZONEMAP ZONEMAP_RAW NAVAREAS NAVAREAS_RAW NAV_BOUNDARY_SEGS_RAW NAV_BOUNDARY_VERTS_RAW zonesById zoneGraph ZONE_SAMPLES
-ZONE_DANGER_LINE PRO_LINEUPS_RAW BOT_INIT SPOTS_DATA SPOTS TEAM_COV""".split())
+ZONE_DANGER_LINE PRO_LINEUPS_RAW BOT_INIT SPOTS_DATA SPOTS TEAM_COV _CRN _CRN_N _CSEG CORNER CORNER_SHOW _PROBES""".split())
 SETTINGS = set("""BAL MANUAL_WALLS WALL_OBJECTS wallSegs wallSegsLOS USER_ZONES USER_LINEUPS ZONE_NAMES ZONE_SHAPES navAnchors navTransform zoneLayer""".split())
 UI = set("view paused lastFrame accumulator nowTs".split())
 V = [v for v in top_vars(s) if v not in STATIC | SETTINGS | UI and not v.startswith('__') and not v.startswith('MK') and not v.startswith('mk')]
-for must in ['tick', 'bots', 'bomb', 'roundNum', 'matchNum', 'teamTac', 'belief', 'smokes', 'score', 'roundState']:
+for must in ['tick', 'bots', 'bomb', 'roundNum', 'matchNum', 'teamTac', 'beliefLast', 'smokes', 'score', 'roundState']:
     assert must in V, must
 snap = "var __SNAP = [\n" + ",\n".join('["%s", function(){ return %s; }, function(v){ try{ %s = v; }catch(e){} }]' % (v, v, v) for v in V) + "\n];\n"
 mod = open('marks.js', encoding='utf-8').read()

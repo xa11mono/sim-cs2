@@ -24,7 +24,7 @@ function intelPush(team, sig){ sig.tick = tick; teamIntel[team].sig.push(sig); i
     if(BAL.buyRead && sf.weapon) buyReadSee(team, sig.id, sf.weapon.key);
     if(sf.weapon && sf.weapon.slot === "primary") FOE[team].gun[sig.id] = sf.weapon.key; } } }
 // ---- КАРТИНА КОМАНДЫ: единственное знание о врагах ----
-// belief (где вероятно каждый враг, по зонам) + beliefLast (последнее реальное
+// beliefLast (последнее реальное
 // наблюдение по каждому врагу) + LAST_CLEAR/REACH (что проверено, куда враг мог
 // успеть). Вход — только общий канал (intelPush). Здесь — чтение «кому из
 // последних наблюдений ещё верить» (раньше — отдельное хранилище ЛИП) и
@@ -38,14 +38,14 @@ function picKnown(team){
   var L = beliefLast[team] || {}, out = {};
   for(var id in L){ var e = L[id]; if(e.gone) continue;
     var foe = botById(id); if(!foe || !foe.alive) continue;
-    if(tick - e.tick >= 3*TICK_HZ && beliefMassNear(team, id, e.x, e.y, 260) < 0.12) continue;
+    if(tick - e.tick >= 10*TICK_HZ) continue;   // старше 10 с — уже не «знаем, где он», а «куда мог успеть» (REACH)
     out[id] = e; }
   return (_picCache[team] = out);
 }
 // лента событий картины: смерти, фраги, звуки, «вижу» — по порядку, за ~12 с
 // (пишет только общий канал intelPush). Читать события — только отсюда.
 function picEvents(team){ return teamIntel[team].sig; }
-function picNear(team, x, y, r){ var n = 0, S = beliefSeen[team]; Object.keys(belief[team]).forEach(function(eid){ if(S[eid] != null && beliefMassNear(team, eid, x, y, r) >= 0.35) n++; }); return n; }
+function picNear(team, x, y, r){ return infoNear(team, x, y, r, 10); }
 // свежие наблюдения команды: [{id,x,y,tick,src}] не старше maxAge тиков
 function picRecent(team, maxAge){ var L = beliefLast[team] || {}, out = [];
   for(var id in L){ var e = L[id]; if(tick - e.tick > maxAge) continue; var foe = botById(id); if(!foe || !foe.alive) continue; out.push({id:id, x:e.x, y:e.y, tick:e.tick, src:e.src}); }
@@ -70,7 +70,6 @@ function picCheckTick(){
         hasVision(b.x, b.y, e.x, e.y) && inFov(b, e.x, e.y) && b._visible.indexOf(foe) < 0; })[0];
       if(checker){
         e.gone = tick; _picCache[team] = null;
-        beliefClearAt(team, e.x, e.y, id);
         newsAdd(checker, {k:"clear", x:e.x, y:e.y});
       }
     });
@@ -107,16 +106,14 @@ function teamInfoTick(){
 }
 // сколько врагов команда "знает" рядом с точкой за последние windowTicks
 function intelEstimate(team, x, y, r, windowTicks){
-  // из картины команды: враг "здесь", пока его вероятность рядом ≥0.35 —
-  // не "пока не прошло N секунд". seen/heard — было ли РЕАЛЬНОЕ наблюдение
-  // здесь за окно (для решений "видели недавно")
-  var B = belief[team], S = beliefSeen[team], L = beliefLast[team], n = 0, sN = 0, hN = 0, cf = 0, ls = -1;
-  Object.keys(B).forEach(function(eid){
-    if(S[eid] == null) return;
-    if(beliefMassNear(team, eid, x, y, r) < 0.35) return;
+  // по инфе команды (v196, без вероятности): враг «здесь», пока инфе о нём рядом ≤10 с;
+  // seen/heard — было ли реальное наблюдение здесь за окно (для решений «видели недавно»)
+  var L = beliefLast[team], n = 0, sN = 0, hN = 0, cf = 0, ls = -1;
+  Object.keys(L).forEach(function(eid){
+    var lo = L[eid]; if(lo.gone || tick - lo.tick > 10*TICK_HZ || Math.hypot(lo.x-x, lo.y-y) > r) return;
+    var foe = botById(eid); if(!foe || !foe.alive) return;
     n++;
-    var lo = L[eid];
-    if(lo && tick - lo.tick <= windowTicks && Math.hypot(lo.x-x, lo.y-y) <= r){
+    if(tick - lo.tick <= windowTicks){
       if(lo.src === "spotted"){ sN++; cf = 1; } else { hN++; cf = Math.max(cf, 0.5); }
       ls = Math.max(ls, lo.tick);
     } else cf = Math.max(cf, 0.3);
@@ -349,13 +346,6 @@ function beliefBuild(){
   });
   BZ.midZ = [];
   if(GEO.ctMid) BZ.cent.forEach(function(c,i){ if(Math.hypot(c.x-GEO.ctMid.x, c.y-GEO.ctMid.y) < 260) BZ.midZ.push(i); });
-  // модель движения врага — не случайное блуждание, а "идут к цели": потенциал
-  // зоны = путь по графу до ближайшей цели. T идут к сайтам; CT — к сайтам и миду
-  // (занимают позиции). Вероятность перетекает "под горку" быстрее, чем обратно.
-  var sinksT = [], sinksCT = [];
-  ["A","B"].forEach(function(k){ if(SITES[k]){ var z = bzOf(SITES[k].x, SITES[k].y); if(z >= 0){ sinksT.push(z); sinksCT.push(z); } } });
-  if(GEO.ctMid){ var zm = bzOf(GEO.ctMid.x, GEO.ctMid.y); if(zm >= 0) sinksCT.push(zm); }
-  BZ.potT = bzDist(sinksT); BZ.potCT = bzDist(sinksCT);
   BZ.DT = null;
 }
 function bzDist(src){
@@ -382,29 +372,23 @@ function bzOf(x, y){
   BZ.grid[k] = best;
   return best;
 }
-var belief = {CT:{}, T:{}};
-function beliefReset(){
+// ЕДИНОЕ хранилище знания о врагах (v196, без «расплывания» вероятности по зонам):
+//  • инфа — beliefLast[team][враг]: последнее реальное наблюдение (видели / слышали /
+//    колл): точка, когда, откуда; «проверили — пусто» — gone. Сколько их — по числу
+//    записей (звук «слышу троих» — трое разных врагов, soundWho);
+//  • куда враг мог успеть — REACH[team][зона]: самый ранний тик, когда там может
+//    оказаться враг: от его спавна бегом или от места последней инфы;
+//  • закрыто своими — зона, которую видят свои и там пусто, в REACH закрыта и через
+//    неё путь не идёт, пока враг не мог бы обойти (reachStep).
+// Остальное (колл, «сколько их тут», куда смотреть) только читает отсюда.
+var beliefSeen = {CT:{}, T:{}}; // когда по этому врагу последний раз была реальная инфа
+var beliefLast = {CT:{}, T:{}};
+function knowReset(){
   if(!BZ.ids.length) beliefBuild();
-  var n = BZ.ids.length;
   beliefSeen = {CT:{}, T:{}}; beliefLast = {CT:{}, T:{}}; LAST_CLEAR = {CT:{}, T:{}};
   reachReset();
-  bots.forEach(function(o){ o._tLookZ = null; o._tLook = null; o._tLookT = null; o._lkZ = null; o._lkPt = null; o._lkC = null; o._lkTop = null; });
-  ["CT","T"].forEach(function(team){
-    belief[team] = {};
-    bots.forEach(function(e){
-      if(e.team === team) return;
-      var P = new Float32Array(n), sp = e.team === "CT" ? CT_SPAWN : T_SPAWN, zi = bzOf(sp.x, sp.y);
-      if(zi >= 0) P[zi] = 1; belief[team][e.id] = P;
-    });
-  });
+  bots.forEach(function(o){ o._tLookZ = null; o._tLook = null; o._tLookT = null; o._lkZ = null; o._lkPt = null; o._lkC = null; o._lkTop = null; o._cChk = null; });
 }
-var beliefSeen = {CT:{}, T:{}}; // когда по этому врагу последний раз была реальная инфа
-// ЕДИНОЕ хранилище инфы о врагах: belief (где вероятно каждый враг, по зонам) +
-// beliefLast (последнее реальное наблюдение: точка, когда, видели/слышали).
-// Всё остальное — "последняя позиция" (ЛИП), "проверено — пусто", оценка
-// "сколько их тут" — теперь только ЧИТАЕТ отсюда и ПИШЕТ сюда, а не хранит
-// свою отдельную копию: раньше пять копий расходились между собой
-var beliefLast = {CT:{}, T:{}};
 // ---- тайминги (как думают про): "видел там 10с назад — сейчас может быть уже здесь" ----
 // REACH[team][зона] = самый ранний тик, когда там МОЖЕТ оказаться враг: от его
 // спавна бегом; зона, в которую свои сейчас смотрят и там пусто, снова
@@ -424,73 +408,62 @@ function reachReset(){
 }
 function reachOpen(team, x, y){ var R = REACH[team]; if(!R) return; var zi = bzOf(x, y); if(zi >= 0) R[zi] = Math.min(R[zi], tick); }
 function reachPossible(team, i){ var R = REACH[team]; return !R || R[i] <= tick; }
+// каждые 0,25 с: зоны, которые видят свои (и там пусто), закрыты; остальные
+// закрытые пересчитываются от открытых по времени бега; через закрытую свою зону
+// путь не идёт (держат свои), пока её не «откроет» контакт или уход своего
 function reachStep(team, clearList){
   var R = REACH[team]; if(!R) return;
-  clearList.forEach(function(cz){ if(cz[1] >= 0.5) R[cz[0]] = Math.max(R[cz[0]], tick + BELIEF_STEP + 1); });
-  if(BAL.reachBlock){
-    // (фото) раньше "куда враг мог успеть" считалось один раз от спавна по
-    // свободной карте — и зоны за живым мидером считались достижимыми, хотя
-    // пройти туда можно только через него. Теперь каждый шаг: закрытые зоны
-    // пересчитываются от открытых, а зона, которую держит/видит свой, — стена:
-    // через неё путь не идёт, пока её не "откроет" контакт или уход своего
-    var n = R.length, fixed = new Uint8Array(n), D = new Float64Array(n);
-    clearList.forEach(function(cz){ if(cz[1] >= 0.5) fixed[cz[0]] = 1; });
-    for(var i0=0;i0<n;i0++) D[i0] = (R[i0] <= tick || fixed[i0]) ? R[i0] : Infinity;
-    var done = new Uint8Array(n);
-    for(var it0=0; it0<n; it0++){
-      var u = -1, bd = Infinity;
-      for(var i1=0;i1<n;i1++) if(!done[i1] && D[i1] < bd){ bd = D[i1]; u = i1; }
-      if(u < 0) break; done[u] = 1;
-      if(fixed[u] && R[u] > tick) continue; // держат свои — дальше через неё не пройти
-      var nbu = BZ.nbr[u], cu = BZ.cent[u]; if(!cu) continue;
-      for(var k0=0;k0<nbu.length;k0++){ var v = nbu[k0], cv = BZ.cent[v]; if(!cv || done[v] || fixed[v] || R[v] <= tick) continue;
-        var tv = D[u] + Math.hypot(cu.x-cv.x, cu.y-cv.y)/SPEED*TICK_HZ; if(tv < D[v]) D[v] = tv; }
-    }
-    for(var i2=0;i2<n;i2++) if(R[i2] > tick && !fixed[i2]) R[i2] = D[i2];
-    return;
+  clearList.forEach(function(cz){ if(cz[1] >= 0.5) R[cz[0]] = Math.max(R[cz[0]], tick + KNOW_STEP + 1); });
+  var n = R.length, fixed = new Uint8Array(n), D = new Float64Array(n);
+  clearList.forEach(function(cz){ if(cz[1] >= 0.5) fixed[cz[0]] = 1; });
+  for(var i0=0;i0<n;i0++) D[i0] = (R[i0] <= tick || fixed[i0]) ? R[i0] : Infinity;
+  var done = new Uint8Array(n);
+  for(var it0=0; it0<n; it0++){
+    var u = -1, bd = Infinity;
+    for(var i1=0;i1<n;i1++) if(!done[i1] && D[i1] < bd){ bd = D[i1]; u = i1; }
+    if(u < 0) break; done[u] = 1;
+    if(fixed[u] && R[u] > tick) continue;
+    var nbu = BZ.nbr[u], cu = BZ.cent[u]; if(!cu) continue;
+    for(var k0=0;k0<nbu.length;k0++){ var v = nbu[k0], cv = BZ.cent[v]; if(!cv || done[v] || fixed[v] || R[v] <= tick) continue;
+      var tv = D[u] + Math.hypot(cu.x-cv.x, cu.y-cv.y)/SPEED*TICK_HZ; if(tv < D[v]) D[v] = tv; }
   }
-  for(var it=0; it<3; it++){
-    for(var i=0;i<R.length;i++){
-      var nb = BZ.nbr[i], ci = BZ.cent[i]; if(!ci) continue;
-      for(var k=0;k<nb.length;k++){ var j = nb[k], cj = BZ.cent[j]; if(!cj) continue;
-        var t = R[j] + Math.hypot(ci.x-cj.x, ci.y-cj.y)/SPEED*TICK_HZ;
-        if(t < R[i]) R[i] = t; }
-    }
-  }
+  for(var i2=0;i2<n;i2++) if(R[i2] > tick && !fixed[i2]) R[i2] = D[i2];
 }
-function beliefMassNear(team, eid, x, y, r){
-  var P = belief[team] && belief[team][eid]; if(!P) return 0;
-  var t = 0, z0 = bzOf(x, y);
-  for(var i=0;i<P.length;i++){ if(!P[i]) continue; var c = BZ.cent[i]; if(i === z0 || (c && Math.hypot(c.x-x, c.y-y) <= r)) t += P[i]; }
-  return t;
+// насколько свежа инфа о враге: ≤4 с — 1, к 20 с — 0 (дальше он мог уйти куда угодно —
+// это уже не «знаю, где он», а «куда мог успеть» по REACH)
+function infoW(team, eid){
+  var lo = beliefLast[team][eid]; if(!lo || lo.gone) return 0;
+  var foe = botById(eid); if(!foe || !foe.alive) return 0;   // смерть врага видна в киллфиде
+  var a = (tick - lo.tick)/TICK_HZ; return a <= 4 ? 1 : a >= 20 ? 0 : 1 - (a-4)/16;
 }
-// "проверили — пусто": стираем вероятность врага в этой зоне (и в хранилище)
-function beliefClearAt(team, x, y, eidOnly){
-  var zi = bzOf(x, y); if(zi < 0 || !belief[team]) return;
-  Object.keys(belief[team]).forEach(function(eid){ if(eidOnly && eid !== eidOnly) return; belief[team][eid][zi] *= 0.08; });
-}
-function beliefSet(team, eid, zi, w){
-  var P = belief[team] && belief[team][eid]; if(!P || zi < 0) return;
-  beliefSeen[team][eid] = tick;
-  for(var i=0;i<P.length;i++) P[i] *= (1-w);
-  P[zi] += w;
-}
-// кому из врагов команда приписывает услышанное: ник по звуку не узнать —
-// берём того, кто по картине вероятнее всего там (и не виден прямо сейчас
-// в другом месте); n разных источников — n разных врагов. Это догадка команды:
-// двоих, идущих вплотную, легко принять за одного
+// инфа о врагах в зоне (сумма свежести)
+function infoZone(team, i){ var L = beliefLast[team], t = 0; for(var eid in L){ var lo = L[eid]; if(bzOf(lo.x, lo.y) === i) t += infoW(team, eid); } return t; }
+// сколько врагов по инфе в наборе зон (не старше maxSec)
+function infoCount(team, zoneList, maxSec){ var L = beliefLast[team], n = 0;
+  for(var eid in L){ var lo = L[eid]; if(lo.gone || tick - lo.tick > maxSec*TICK_HZ) continue; var foe = botById(eid); if(!foe || !foe.alive) continue;
+    if(zoneList.indexOf(bzOf(lo.x, lo.y)) >= 0) n++; }
+  return n; }
+// сколько врагов по инфе в радиусе r (не старше maxSec)
+function infoNear(team, x, y, r, maxSec){ var L = beliefLast[team], n = 0;
+  for(var eid in L){ var lo = L[eid]; if(lo.gone || tick - lo.tick > maxSec*TICK_HZ) continue; var foe = botById(eid); if(!foe || !foe.alive) continue;
+    if(Math.hypot(lo.x-x, lo.y-y) <= r) n++; }
+  return n; }
+// кому из врагов команда приписывает услышанное: ник по звуку не узнать — тому, кто
+// по последней инфе успевал туда добежать (ближе — вероятнее), иначе тому, о ком
+// инфы нет дольше всех; n разных источников — n разных врагов. Это догадка команды
 function soundWho(team, x, y, n){
-  var B = belief[team], L = beliefLast[team], S = beliefSeen[team], c = [];
-  Object.keys(B).forEach(function(eid){
-    var lo = L[eid];
+  var L = beliefLast[team], S = beliefSeen[team], c = [];
+  bots.forEach(function(e){ if(e.team === team || !e.alive) return; var eid = e.id, lo = L[eid];
     if(lo && !lo.gone && lo.src === "spotted" && tick - lo.tick < 12 && Math.hypot(lo.x-x, lo.y-y) > 250) return;
-    var old = S[eid] == null ? 1 : Math.min(1, (tick - S[eid])/(20*TICK_HZ));
-    c.push({id:eid, w: beliefMassNear(team, eid, x, y, 300) + 0.001*old});
-  });
+    var w;
+    if(lo && !lo.gone){ var age = (tick - lo.tick)/TICK_HZ, d = Math.hypot(lo.x-x, lo.y-y), can = SPEED*age*1.2 + 250;
+      w = d <= can ? 1 + (1 - d/can) : 0.001; }
+    else w = 0.5 + 0.001*(S[eid] == null ? 1 : Math.min(1, (tick - S[eid])/(20*TICK_HZ)));
+    c.push({id:eid, w:w}); });
   c.sort(function(p, q){ return q.w - p.w; });
   return c.slice(0, Math.max(1, n||1)).map(function(q){ return q.id; });
 }
-// вызывается из intelPush — каждое событие восприятия сразу правит карту
+// вызывается из intelPush — каждое событие восприятия сразу правит знание
 function beliefObserve(team, sg){
   if(!BZ.ids.length) return;
   if(sg.type === "sound" && sg.kind === "plant" && SITES.A && SITES.B){
@@ -506,71 +479,19 @@ function beliefObserve(team, sg){
       var bl = beliefLast[team][eid];
       if(bl && bl.src === "spotted" && sg.type === "sound" && tick - bl.tick < 2*TICK_HZ) return;
       beliefLast[team][eid] = {x:sg.x, y:sg.y, tick:tick, src:sg.type, zn:zn};
-    });
-  }
-  if(sg.type === "spotted") beliefSet(team, sg.id, bzOf(sg.x, sg.y), 1);
-  else if(sg.type === "sound") ids.forEach(function(eid){ beliefSet(team, eid, bzOf(sg.x, sg.y), sg.kind === "nade" ? 0.8 : 0.65); });
-  else if(sg.type === "died" && sg.kx == null){
-    // стрелявшего не видели: он в одной из зон, откуда простреливается место смерти
-    var dz = bzOf(sg.x, sg.y); if(dz < 0) return;
-    var from = ZONE_DANGER[BZ.ids[dz]] || [], Wd = ZONE_DANGER_W[BZ.ids[dz]] || {};
-    var add = new Float32Array(BZ.ids.length), tot = 0;
-    from.forEach(function(zid){
-      var j = BZ.idx[zid]; if(j === undefined) return;
-      var d = Math.hypot(BZ.cent[j].x-sg.x, BZ.cent[j].y-sg.y);
-      var w = (Wd[zid]||0.1) / (1 + d/400); add[j] += w; tot += w;
-    });
-    if(tot <= 0) return;
-    Object.keys(belief[team]).forEach(function(eid){
-      var P = belief[team][eid];
-      for(var i=0;i<P.length;i++) P[i] = P[i]*0.7 + 0.3*add[i]/tot;
+      beliefSeen[team][eid] = tick;
     });
   }
 }
-var BELIEF_STEP = 16; // тиков (0.25с)
-function beliefTick(){
-  if(roundState !== "live" || tick % BELIEF_STEP !== 0 || !BZ.ids.length) return;
-  // средний переход между зонами ~160px ≈ 1с бегом; враг в среднем не бежит всё
-  // время по прямой (стоит, чекает углы) — берём ~половину скорости
-  var n = BZ.ids.length, m = 0.12;
+var KNOW_STEP = 16; // тиков (0.25с)
+// раз в 0,25 с: что видят свои — там врага нет (закрыто своими → REACH)
+function knowTick(){
+  if(roundState !== "live" || tick % KNOW_STEP !== 0 || !BZ.ids.length) return;
   ["CT","T"].forEach(function(team){
-    var B = belief[team];
-    var PWb = PORTAL_W[team] = portalWatched(team);
-    Object.keys(B).forEach(function(eid){
-      var e = bots.filter(function(o){ return o.id === eid; })[0];
-      if(!e || !e.alive){ delete B[eid]; return; } // смерть врага видна в киллфиде
-      var P = B[eid], Q = new Float32Array(n), pot = e.team === "T" ? BZ.potT : BZ.potCT;
-      // (v144) цель CT после планта — бомба (ретейк), а не "свои позиции"
-      if(BAL.ppBelief !== false && e.team === "CT" && bomb && bomb.state === "planted"){
-        // CT сначала собираются у входа на сайт со своей стороны, оттуда заходят
-        var ge = GEO[bomb.site] && GEO[bomb.site].ctEntry, bzB = ge ? bzOf(ge.x, ge.y) : bzOf(bomb.x, bomb.y);
-        if(BAL.ppSinkBomb) bzB = bzOf(bomb.x, bomb.y);
-        if(!BZ.potBomb || BZ.potBomb.z !== bzB){ BZ.potBomb = {z:bzB, D: bzDist(bzB >= 0 ? [bzB] : [])}; }
-        pot = BZ.potBomb.D;
-      }
-      for(var i=0;i<n;i++){
-        var nb = BZ.nbr[i], deg = nb.length;
-        if(!deg || P[i] < 1e-7){ Q[i] += P[i]; continue; }
-        // веса соседей: к цели (потенциал ниже) — охотнее, от цели — реже
-        var ws = 0, wl = [];
-        for(var k=0;k<deg;k++){ var dp = pot[nb[k]] - pot[i]; var w = Math.exp(-Math.max(-2.5, Math.min(2.5, dp/140))); wl.push(w); ws += w; }
-        // у самой цели (все соседи "в гору") — чаще остаются на месте: заняли позицию
-        var go = m * Math.min(1.3, ws/deg);
-        Q[i] += P[i]*(1-go);
-        for(var k2=0;k2<deg;k2++){
-          // (v141) враг не может незаметно пройти через проход, который видит свой:
-          // эта доля вероятности просто исчезает (прошёл бы — его бы увидели)
-          if(PWb[i+","+nb[k2]]) continue;
-          Q[nb[k2]] += P[i]*go*wl[k2]/ws; }
-      }
-      B[eid] = Q;
-    });
-    // отрицательная информация: что видят живые тиммейты — там врага нет
     var clearAll = [];
     bots.forEach(function(b){
       if(!b.alive || b.team !== team) return;
       var zb = bzOf(b.x, b.y); if(zb < 0) return;
-      var seenIds = {}; (b._visible||[]).forEach(function(e){ seenIds[e.id] = true; });
       var clear = [[zb, 0.92]];
       var W = ZONE_DANGER_W[BZ.ids[zb]] || {};
       (ZONE_DANGER[BZ.ids[zb]]||[]).forEach(function(zid){
@@ -580,64 +501,12 @@ function beliefTick(){
         if(!inFov(b, c.x, c.y) && d > FOV_NEAR*2) return;
         clear.push([j, Math.min(0.9, 0.35 + 0.9*(W[zid]||0))]);
       });
-      Object.keys(B).forEach(function(eid){
-        if(seenIds[eid]) return;
-        var P = B[eid];
-        clear.forEach(function(cz){ P[cz[0]] *= (1-cz[1]); });
-      });
       // зона, где сейчас стоит видимый враг, не "закрывается"
       if(!(b._visible||[]).length) clearAll.push.apply(clearAll, clear);
     });
     reachStep(team, clearAll);
     var CLT = LAST_CLEAR[team] || (LAST_CLEAR[team] = {}); clearAll.forEach(function(cz){ if(cz[1] >= 0.5) CLT[cz[0]] = tick; });
-    if(BAL.reachBlock && REACH[team]){ var RR = REACH[team];
-      Object.keys(B).forEach(function(eid){ var P = B[eid]; for(var i4=0;i4<n;i4++) if(RR[i4] > tick) P[i4] *= 0.5; }); }
-    Object.keys(B).forEach(function(eid){
-      var P = B[eid], sum = 0;
-      for(var i=0;i<n;i++) sum += P[i];
-      if(sum < 1e-6){
-        // вся инфа противоречит — не "везде поровну" (тогда и в проверенных
-        // тупиках снова появлялся враг), а только там, куда враг мог дойти и
-        // что сейчас никто не видит
-        var clr = {}; clearAll.forEach(function(cz){ if(cz[1] >= 0.5) clr[cz[0]] = 1; });
-        var pot = (bots.filter(function(o){ return o.id === eid; })[0]||{}).team === "T" ? BZ.potT : BZ.potCT, s2 = 0;
-        for(var i5=0;i5<n;i5++){ P[i5] = (!clr[i5] && reachPossible(team, i5)) ? Math.exp(-pot[i5]/600) : 0; s2 += P[i5]; }
-        if(s2 <= 0){ for(var i6=0;i6<n;i6++) P[i6] = 1/n; } else for(var i7=0;i7<n;i7++) P[i7] /= s2;
-      }
-      else if(sum < 1e-6){ for(var i2=0;i2<n;i2++) P[i2] = 1/n; }
-      else for(var i3=0;i3<n;i3++) P[i3] /= sum;
-    });
   });
-}
-// сколько врагов команда ожидает в наборе зон (сумма по всем живым врагам)
-function beliefMass(team, zoneList){
-  var B = belief[team], tot = 0;
-  Object.keys(B).forEach(function(eid){ var P = B[eid]; zoneList.forEach(function(i){ tot += P[i]; }); });
-  return tot;
-}
-// "сколько их там" для колла: враги, по которым была свежая инфа (≤10с), —
-// всей своей вероятностью; остальные ("куда-то идут") — только малой долей,
-// иначе априорный дрейф к сайтам сам по себе раздувал бы колл до 3-4
-function beliefCount(team, zoneList){
-  var B = belief[team], tot = 0;
-  Object.keys(B).forEach(function(eid){
-    var P = B[eid], pe = 0; zoneList.forEach(function(i){ pe += P[i]; });
-    var fresh = tick - (beliefSeen[team][eid] == null ? -1e9 : beliefSeen[team][eid]) < 10*TICK_HZ;
-    tot += fresh ? pe : 0.25*pe;
-  });
-  return tot;
-}
-// как beliefZone, но дисконтирует "чистый прогноз" (никогда/давно не видели
-// этого врага живьём) — иначе идле-боты стоят пред-прицелившись точно в
-// статистически вероятную клетку так, будто реально знают, где враг, хотя
-// это просто "скорее всего туда пошёл" без единого реального контакта
-function beliefZoneFresh(team, i){
-  var B = belief[team], seen = beliefSeen[team], t = 0;
-  Object.keys(B).forEach(function(eid){
-    var fresh = tick - (seen[eid] == null ? -1e9 : seen[eid]) < 10*TICK_HZ;
-    t += B[eid][i] * (fresh ? 1 : 0.3);
-  });
-  return t;
 }
 
 
@@ -659,7 +528,7 @@ var SAID_TTL = 6*64; // тиков (64 в секунду; TICK_HZ объявле
 // сколько запись в блокноте ещё стоит говорить (тиков): шаги и «вижу» — свежие
 // только секунду-полторы; минус, бомба, плант — дольше; план — до смены плана
 var TALK_TTL = {see:64, hear:96, hurt:128, kill:128, clear:128, nade:96, doing:128, need2:128, askcheck:192, holdmine:128, pull:96, flashme:64,
-  dead:192, bomb:192, bombground:192, buy:384, plan:256, _retry:96, take:128, go:96, cant:96};
+  dead:192, bomb:192, bombground:192, buy:384, plan:256, _retry:96, take:128, take2:128, go:96, cant:96};
 function talkTTL(it){ return it.k === "hear" && (it.kind === "plant" || it.kind === "defuse") ? 192 : (TALK_TTL[it.k] || 96); }
 // не устарело ли (проверка перед тем, как сказать, и когда фраза дошла): говорить
 // стоит только то, что тиммейтам ещё полезно и чего они не знают новее
@@ -728,6 +597,7 @@ function talkMsg(b, it){
       return {key:"hm"+b.id+w, pr:6, short:"подержите "+w, full:"ухожу "+wf+" — подержите угол"}; }
     case "pull": return {key:"pull"+w, pr:7, short:"стяните одного "+w, full:"их тут больше — стяните одного "+w};
     case "take": return {key:"tk"+b.id+it.side, pr:5, short:"беру "+it.name, full:"беру "+it.name};
+    case "take2": return {key:"t2"+b.id+it.side, pr:6, short:"возьми "+it.name, full:"я под два входа — возьми "+it.name};
     case "go": return {key:"go"+b.id+w, pr:6, short:"иду", full:"иду к тебе "+w};
     case "cant": return {key:"cant"+b.id+w, pr:5, short:"не могу", full:"не могу — держу своё"};
     case "flashme": return {key:"fm"+b.id, pr:6, short:"флешку мне "+w, full:"дайте флешку мне на пик "+w};

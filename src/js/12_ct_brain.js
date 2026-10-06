@@ -75,7 +75,7 @@ function ctBrain(){
           nadeHere += q.type === "flash" ? 0.5 : 1; });
     }
     var ev = evN + (carrierHere ? 1 : 0) + (carrierTo ? 0.5 : 0) + (undefended ? 1 : 0) + deathsHere + (plantHere ? 2 : 0) + (nadeHere >= 2 ? 1.2 : nadeHere * 0.4);
-    var mass = beliefCount("CT", BZ.siteNear[k]||[]);
+    var mass = infoCount("CT", BZ.siteNear[k]||[], 10);
     // повод — не только реальный контакт РЯДОМ с сайтом, но и когда карта
     // вероятностей (по контакту где-то ещё, например засветили у КТ-спавна на
     // пути к Б) уже уверенно "верит", что враг у этого сайта — иначе колл на
@@ -94,11 +94,11 @@ function ctBrain(){
     } else { ct.call.evTick = tick; ct.call.undefended = best.undefended; if(best.carrier || best.plant) ct.call.bombSeen = true; }
   } else if(ct.call){
     // новой инфы нет — оценка "сколько там" только тает вместе с картой
-    ct.call.count = Math.min(ct.call.count, beliefCount("CT", BZ.siteNear[ct.call.site]||[]) + 0.3);
+    ct.call.count = Math.min(ct.call.count, infoCount("CT", BZ.siteNear[ct.call.site]||[], 10) + 0.3);
   }
   if(ct.call){
     var quiet = tick - (ct.call.evTick||ct.call.tick);
-    var massNow = beliefCount("CT", BZ.siteNear[ct.call.site]||[]);
+    var massNow = infoCount("CT", BZ.siteNear[ct.call.site]||[], 10);
     var lkpHere = picNear("CT", SITES[ct.call.site].x, SITES[ct.call.site].y, 500);
     if(lkpHere === 0 && ((quiet > 6*64 && massNow < 0.6) || quiet > 18*64)){
       logEvent("CT: по "+ct.call.site+" давно тихо"+(massNow < 0.6 ? " и там вероятно пусто" : "")+" — по местам");
@@ -114,7 +114,7 @@ function ctBrain(){
   ["A","M","B"].forEach(function(a){ need[a] = base[a]; });
   var sumN = function(){ return need.A + need.M + need.B; };
   var cut = function(order, floor){ order.forEach(function(a){ while(sumN() > n && need[a] > (floor[a]||0)) need[a]--; }); };
-  var weaker = beliefMass("CT", BZ.siteNear.A||[]) < beliefMass("CT", BZ.siteNear.B||[]) ? "A" : "B";
+  var weaker = infoCount("CT", BZ.siteNear.A||[], 20) < infoCount("CT", BZ.siteNear.B||[], 20) ? "A" : "B";
   cut(["M", weaker, weaker === "A" ? "B" : "A"], {M:0, A:1, B:1}); cut(["M","A","B"], {});
   ct.spread = false;
   if(ct.call && !planted0){
@@ -139,7 +139,7 @@ function ctBrain(){
       var zA = 0, zB = 0, zM = 0, PK2 = picKnown("CT");
       for(var eidS in PK2){ var eS = PK2[eidS]; if(tick - eS.tick > 10*TICK_HZ) continue;
         if(Math.hypot(eS.x-SITES.A.x, eS.y-SITES.A.y) < 800) zA++; else if(Math.hypot(eS.x-SITES.B.x, eS.y-SITES.B.y) < 800) zB++; else if(Math.hypot(eS.x-GEO.ctMid.x, eS.y-GEO.ctMid.y) < 700 || Math.hypot(eS.x-GEO.tMid.x, eS.y-GEO.tMid.y) < 500) zM++; }
-      var bA = beliefMass("CT", BZ.siteNear.A||[]), bB = beliefMass("CT", BZ.siteNear.B||[]), bM = beliefMass("CT", BZ.midZ);
+      var bA = infoCount("CT", BZ.siteNear.A||[], 20), bB = infoCount("CT", BZ.siteNear.B||[], 20), bM = infoCount("CT", BZ.midZ, 20);
       ct.spread = ((zA || bA > 0.6) ? 1 : 0) + ((zB || bB > 0.6) ? 1 : 0) + ((zM || bM > 0.6) ? 1 : 0) >= 3 && ct.call.count < 2.5;
       if(ct.spread){ want = Math.min(want, need[ks] + 1); keepOther = true; keepMid = true; }
     }
@@ -238,7 +238,7 @@ function ctAssign(cts, need){
       var free = cts.filter(function(o){ return !A[o.id]; }).sort(function(p, q){ return Math.hypot(p.x-ap.x, p.y-ap.y) - Math.hypot(q.x-ap.x, q.y-ap.y); })[0];
       if(!free) break; A[free.id] = a; } });
   // свободные (сверх плана) — к сайту, где по картине команды вероятнее T
-  var lean = beliefMass("CT", BZ.siteNear.A||[]) >= beliefMass("CT", BZ.siteNear.B||[]) ? "A" : "B";
+  var lean = infoCount("CT", BZ.siteNear.A||[], 20) >= infoCount("CT", BZ.siteNear.B||[], 20) ? "A" : "B";
   cts.forEach(function(b){ if(!A[b.id]) A[b.id] = lean; });
 }
 function teamBrains(){

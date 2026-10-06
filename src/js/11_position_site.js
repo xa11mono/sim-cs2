@@ -104,6 +104,6 @@ function enemyBeyondSmoke(b, S, r){
   var ax = S.x - b.x, ay = S.y - b.y;
   if(picRecent(b.team, 6*TICK_HZ).some(function(g){ return Math.hypot(g.x-S.x, g.y-S.y) <= r + 350 && (g.x-b.x)*ax + (g.y-b.y)*ay > 0; })) return true; // по ту сторону, куда идём
   var zi = bzOf(S.x, S.y); if(zi < 0) return false;
-  var m = beliefZoneFresh(b.team, zi); (BZ.nbr[zi]||[]).forEach(function(n){ m += 0.5*beliefZoneFresh(b.team, n); });
+  var m = infoZone(b.team, zi); (BZ.nbr[zi]||[]).forEach(function(n){ m += 0.5*infoZone(b.team, n); });
   return m > 0.6;
 }

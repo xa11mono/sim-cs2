@@ -18,8 +18,8 @@
 // =====================================================================
 var TEAM = {CT:null, T:null};
 // веса целей: размен (trade) весит больше, чем «вижу вход» (threat) — урок отката v173
-var ACT = {every:32, W:{need:1.6, threat:1.0, trade:1.3, alone:0.6, stack:0.9, risk:1.0, lib:0.3, dist:0.07, dup:0.4, same:3, cur:0.35, poi:1.0, repos:0.9, deep:0.9, keep:1.2}};
-var TEAM_COV = null;   // каталог мест: места карты + места из демок (статичный, считается один раз)
+var ACT = {every:32, W:{need:1.6, threat:1.0, trade:1.3, alone:0.6, stack:0.9, risk:1.0, lib:0.3, extra:0.35, cover:0.25, dist:0.07, dup:0.4, same:3, cur:0.35, poi:1.0, repos:0.9, deep:0.9, keep:1.2}};
+var TEAM_COV = null;   // каталог мест: проверочные точки пола + места из демок (статичный, считается один раз)
 // район точки: зоны мида (Connector, Sniper Nest, Top Mid…) — мид (знание карты:
 // так их зовут игроки); иначе ближайший из A / B / мид в пределах радиуса района
 var MID_ZONES = {"Mid":1, "Top Mid":1, "Sniper Nest":1, "Connector / Red Room / Red":1, "Jungle / Pit":1, "Xbox":1, "Lower Mid / Start Mid":1, "Chamber Lane":1};
@@ -31,12 +31,12 @@ function teamAreaOf(p){
     var d = Math.hypot(p.x-a[1].x, p.y-a[1].y); if(d < a[2] && d/a[2] < bd){ bd = d/a[2]; best = a[0]; } });
   return best;
 }
-// каталог мест (01_spots.js): места карты обеих сторон + места из демок (фаза, взгляд)
+// каталог мест (01_spots.js): проверочные точки пола + места из демок (фаза, взгляд)
 function teamCovers(){ return TEAM_COV || (TEAM_COV = placesGet()); }
 // места своей стороны, подходящие по условию (из демок или нет — решает сумма целей)
 function spotsOf(C, team, ok){ return C.filter(function(c){ return (team === "CT" ? c.ct : c.t) && ok(c); }); }
 // вариант «встать на место»: несёт с собой, из демок ли оно и куда с него смотрят
-function spotCand(c, extra){ var o = {x:c.x, y:c.y, meet:c.meet, looks:c.looks, lib:c.lib, ph:c.ph, side:c.side, area:c.area, name:c.name, open:c.open, dirs:c.dirs};
+function spotCand(c, extra){ var o = {x:c.x, y:c.y, meet:c.meet, looks:c.looks, lib:c.lib, ph:c.ph, side:c.side, area:c.area, name:c.name, cover:c.cover};
   for(var k in extra) o[k] = extra[k]; return o; }
 function teamRow(team, id){ var T = TEAM[team]; return T && T.rows[id]; }
 // новый раунд — пустая таблица
@@ -50,6 +50,8 @@ function teamHear(team, byId, it){
   var dupOf = function(L){ return L.some(function(q){ return q.by === byId && Math.hypot(q.x-it.x, q.y-it.y) < 300; }); };
   if(it.k === "holdmine" && !dupOf(T.vac)) T.vac.push({x:it.x, y:it.y, side:it.side || null, t:tick, by:byId});
   if(it.k === "need2" && !dupOf(T.req)) T.req.push({x:it.x, y:it.y, t:tick, by:byId});
+  // (v196) «возьми X»: просят взять второй вход, чтобы не стоять под два
+  if(it.k === "take2" && !dupOf(T.req)) T.req.push({x:it.x, y:it.y, t:tick, by:byId, side:it.side, name:it.name, take2:true});
   if(it.k === "cant") T.refused[byId] = tick;
 }
 // таблица из того, что видно и слышно: район и вход каждого
@@ -65,10 +67,10 @@ function teamTableTick(team){
       return;
     }
     r.role = o.tRole; r.x = o.x; r.y = o.y;
-    var at = null, bd = 60;
-    if(o.curSpeed < 40) C.forEach(function(c){ if(team === "CT" ? !c.ct : !c.t) return; var d = Math.hypot(c.x-o.x, c.y-o.y); if(d < bd){ bd = d; at = c; } });
+    // какой вход он держит: стоит на своём месте и смотрит на вход (видно на радаре) или сказал «беру X»
+    var A = o._act, at = o.curSpeed < 40 && A && A.round === roundNum && !A.v && A.side && Math.hypot(A.x-o.x, A.y-o.y) < 60 ? A : null;
     var cl = r.claim && tick - r.claim.t < 15*TICK_HZ ? r.claim : null;
-    r.side = at ? at.side : cl ? cl.side : null;
+    r.side = cl ? cl.side : at ? at.side : null;
     r.area = ((teamTac[team] || {}).assign || {})[o.id] || (at ? at.area : cl ? cl.area : teamAreaOf(o));
   });
   T.vac = T.vac.filter(function(v){ return tick - v.t < 12*TICK_HZ && !v.done; });
@@ -96,15 +98,25 @@ function teamResponder(team, p, except){
     if(s < bs){ bs = s; best = o; } });
   return best ? {b:best, cost:bs} : null;
 }
-// угроза входа: сколько врагов по картине команды может выйти оттуда сейчас
-var _thr = {t:-1, v:{}};
-function teamThreat(team, c){
-  if(_thr.t !== tick){ _thr = {t:tick, v:{}}; }
-  if(_thr.v[c.side] != null) return _thr.v[c.side];
-  var j = c.from, m = beliefZoneKnown(team, j);
-  (BZ.nbr[j]||[]).forEach(function(n){ if(n !== c.hold) m += 0.5*beliefZoneKnown(team, n); });
-  var v = (1 - Math.exp(-1.5*m)) * Math.max(0.15, reachW(team, j, c.hold));
-  return (_thr.v[c.side] = v);
+// (v196, В15) место по углам: какие входы отсюда видны и насколько каждый опасен
+// сейчас (cornerDanger: враг мог дойти / инфа / за краем свой). Вход = зона за краем;
+// несколько краёв в одну зону — один вход. Кэш на тик.
+var _PEV = {t:-1, v:{}};
+function placeEval(team, x, y){
+  if(_PEV.t !== tick) _PEV = {t:tick, v:{}};
+  var k = team+Math.round(x)+","+Math.round(y); if(_PEV.v[k]) return _PEV.v[k];
+  var ent = {};
+  cornersAt(x, y).E.forEach(function(e){ var D = cornerDanger(team, e, null), q = ent[e.z];
+    if(!q || D.v > q.v || (D.v === q.v && D.eta < q.eta)) ent[e.z] = {z:e.z, e:e, v:D.v, eta:D.eta, mate:D.mate}; });
+  var L = Object.keys(ent).map(function(z){ return ent[z]; }).filter(function(q){ return !q.mate && (q.v > 0 || q.eta < 12); });
+  return (_PEV.v[k] = {ent:L});
+}
+// вход, который держит место для этого бота: самый опасный из тех, что не держат свои
+// (по таблице команды); угроз нет — тот, где враг появится раньше всего
+function placeMain(ev, held){
+  var free = ev.ent.filter(function(q){ return !held["z"+q.z]; }), best = null;
+  free.forEach(function(q){ if(!best || q.v > best.v || (q.v === best.v && q.eta < best.eta)) best = q; });
+  return best;
 }
 // где свои: по таблице (радар), у кого есть сказанная цель — она
 function teamMatePts(team, me){
@@ -118,10 +130,13 @@ function teamMatePts(team, me){
 function actScore(b, c, X){
   var W = ACT.W, s = 0, team = b.team;
   s -= W.dist * Math.hypot(c.x-b.x, c.y-b.y)*1.2/SPEED;                // дойти
+  // (v196) углы: какой вход отсюда держу и сколько ещё входов открыто (под них «фонюсь»)
+  var ev = placeEval(team, c.x, c.y), mn = placeMain(ev, X.held || {});
+  c.side = mn ? "z"+mn.z : null; c._mn = mn;
   if(X.mode === "hold"){
     if(c.v) s += W.need;                                                 // вариант идёт от моего района (пик, подпуш, отход)
     else if(c.area) s += c.area === X.myArea ? W.need : -W.need;         // план IGL: мой район
-    if(!c.v) s += W.threat * teamThreat(team, c);                        // держать нужный вход
+    if(!c.v && mn) s += W.threat * (mn.v > 0 ? Math.min(1.5, mn.v) : 0.5*Math.exp(-mn.eta/8));   // держать нужный вход (нет угроз — куда враг придёт раньше)
   }
   s += c.gain || 0;                                                      // выгода варианта (пик, проба, энтри…) минус его риск
   if(c.lib && c.ph === X.ph) s += W.lib;                                 // (v195) место из демок этой фазы — небольшой плюс
@@ -132,7 +147,8 @@ function actScore(b, c, X){
   if(X.mates.length){ if(dm < 80) s -= W.stack; else if(dm < 480) s += W.trade; else if(dm > 750) s -= W.alone; }
   // не умереть зря: открытость + известные враги, которые её видят
   var dyn = 0; X.foes.forEach(function(f){ if(Math.hypot(f.x-c.x, f.y-c.y) < 1400 && hasLOS(c.x, c.y, f.x, f.y)) dyn += 0.7; });
-  s -= W.risk * X.riskMul * ((c.open || 0) + 0.06*(c.dirs || 0) + Math.min(2, dyn));
+  s -= W.risk * X.riskMul * (W.extra * Math.max(0, ev.ent.length - 1) + Math.min(2, dyn));   // лишние открытые входы
+  if(c.cover) s += W.cover;                                              // рядом стена — укрытие
   // точки интереса: опустевший угол, просьба, бомба, плант, враг тиммейта (размен)
   X.pois.forEach(function(P){ var d = Math.hypot(P.x-c.x, P.y-c.y);
     if(d > P.r || (P.side && P.side !== c.side && !P.see)) return;
@@ -159,7 +175,9 @@ function actPick(b, cands, X, tag){
   b._act = {x:best.x, y:best.y, side:best.side || null, from:best.from, hold:best.hold, area:best.area || null, name:best.name || "", sc:bs, mode:X.mode, t:tick, round:roundNum, v:ACTV[best.v] ? best.v : null, looks:best.lib && best.ph === X.ph ? best.looks : null};
   if(b._act.v){ b._act.phase = "out"; b._act.home = best.home || (prev ? {x:prev.x, y:prev.y, meet:null, looks:prev.looks} : {x:b.x, y:b.y, meet:null}); b._act.look = best.look || ACTV[best.v].look; }
   var tg = best.v ? best.v+":"+(best.name || "") : (X.repos && Math.hypot(best.x-X.repos.x, best.y-X.repos.y) > 90 ? "repos:"+(best.name || "") : tag(best));
-  setPost(b, {x:best.x, y:best.y}, best.meet || X.look || null, true, tg);
+  var mlook = best.meet || (best._mn ? {x:best._mn.e.x, y:best._mn.e.y} : null) || X.look || null;
+  if(!best.name && best._mn) b._act.name = ZONE_NAMES[BZ.ids[best._mn.z]] || BZ.ids[best._mn.z] || "";
+  setPost(b, {x:best.x, y:best.y}, mlook, true, tg);
   if(best.say) newsAdd(b, best.say);
   return best;
 }
@@ -237,7 +255,7 @@ function teamActTick(team, cts){
   T.vac.forEach(function(v){ if(!v.resp){ var rp = teamResponder(team, v, v.by); v.resp = rp ? rp.b.id : "-"; v.ok = rp && !teamNeededHere(team, rp.b); } });
   T.req.forEach(function(q){ if(!q.resp){ var rp = teamResponder(team, q, q.by); q.resp = rp ? rp.b.id : "-";
     q.ok = !!(rp && !teamNeededHere(team, rp.b) && rp.cost < 9);
-    if(rp) newsAdd(rp.b, {k: q.ok ? "go" : "cant", x:q.x, y:q.y, to:q.by}); } });
+    if(rp) newsAdd(rp.b, q.ok && q.take2 ? {k:"take", x:q.x, y:q.y, side:q.side, name:q.name} : {k: q.ok ? "go" : "cant", x:q.x, y:q.y, to:q.by}); } });
   cts.forEach(function(b, i){
     if(b.defusing || b.planting) return;
     var myTr = trades.filter(function(P){ return P.ids.indexOf(b.id) >= 0; });
@@ -253,13 +271,14 @@ function teamActTick(team, cts){
     // засветился (стрелял, ранен, по мне стреляли), а их рядом ещё много — сменить позицию
     var burned = tick - (b.lastShotTick||-1e9) < 3*TICK_HZ || tick - (b._hurtT||-1e9) < 4*TICK_HZ || tick - (b._shotAtT||-1e9) < 3*TICK_HZ;
     var foesNear = foes.filter(function(f){ return Math.hypot(f.x-b.x, f.y-b.y) < 1300; }).length + (burned && b.heardSound && tick - b.heardSound.tick < 2*TICK_HZ ? 1 : 0);
-    var X = {mode:"hold", ph: planted ? (team === "T" ? "post" : "retake") : "pre", myArea:(ct.assign || {})[b.id] || null, mates:teamMatePts(team, b), foes:foes, pois:[], cur:b._act && b._act.round === roundNum ? b._act : null,
+    var held = {}; teamMatePts(team, b).forEach(function(m){ if(m.side) held[m.side] = 1; });
+    var X = {held:held, mode:"hold", ph: planted ? (team === "T" ? "post" : "retake") : "pre", myArea:(ct.assign || {})[b.id] || null, mates:teamMatePts(team, b), foes:foes, pois:[], cur:b._act && b._act.round === roundNum ? b._act : null,
       riskMul: (b.hp < 50 ? 1.6 : 1) * (b._reloading ? 2 : 1) * actMoneyRisk(team), noCur: !!b._reloading,
       repos: burned && foesNear >= 1 && !(planted && team === "CT") ? {x:b.x, y:b.y} : null, foesNear:foesNear, burned:burned};
     myTr.forEach(function(P){ X.pois.push(P); });
     pois.forEach(function(P){ if(P.near && Math.hypot(P.x-b.x, P.y-b.y) > P.near) return; if(P.who && P.who !== b.id) return; X.pois.push(P); });
     T.vac.forEach(function(v){ if(v.resp === b.id && v.ok) X.pois.push({x:v.x, y:v.y, r:300, side:v.side, w:1.4, vac:v}); });
-    T.req.forEach(function(q){ if(q.resp === b.id && q.ok) X.pois.push({x:q.x, y:q.y, r:450, w:1.4, req:q}); });
+    T.req.forEach(function(q){ if(q.resp === b.id && q.ok) X.pois.push(q.take2 ? {x:q.x, y:q.y, r:600, w:1.4, req:q, see:true} : {x:q.x, y:q.y, r:450, w:1.4, req:q}); });
     // (К13) взял угол по просьбе — держит, пока ситуация не изменилась (контакт, размен) или 15 с
     if(b._keep && (b._keep.round !== roundNum || tick > b._keep.until || burned || trNew)) b._keep = null;
     X.keep = b._keep;
@@ -272,11 +291,18 @@ function teamActTick(team, cts){
       X.pois.forEach(function(P){ if(P.vac) P.vac.done = true; if(P.req) P.req.done = true; });
     }
     var claimed = X.mates.some(function(m){ var r = T.rows[m.id]; return r && r.claim && r.claim.side === picked.side && tick - r.claim.t < 10*TICK_HZ; });
+    // (v196) место открыто на два входа, второй никто не держит — попросить ближайшего взять его («возьми X»)
+    if(X.mode === "hold" && !picked.v && picked.side && (!b._ask2 || b._ask2.round !== roundNum || tick - b._ask2.t > 15*TICK_HZ)){
+      var ev2 = placeEval(team, picked.x, picked.y), mn2 = picked._mn;
+      var sec2 = ev2.ent.filter(function(q){ return mn2 && q.z !== mn2.z && !held["z"+q.z] && (q.v > 0.25 || (mn2.v <= 0 && q.eta < 6)); })
+        .sort(function(p, q){ return q.v - p.v || p.eta - q.eta; })[0];
+      if(sec2 && X.mates.length){ b._ask2 = {round:roundNum, t:tick};
+        newsAdd(b, {k:"take2", x:sec2.e.x, y:sec2.e.y, side:"z"+sec2.z, name:(ZONE_NAMES[BZ.ids[sec2.z]] || BZ.ids[sec2.z] || "").split(" / ")[0]}); } }
     if(picked && !claimed && X.mode === "hold" && (!prev || prev.round !== roundNum || prev.side !== picked.side) && Math.hypot(picked.x-b.x, picked.y-b.y) > 250)
-      newsAdd(b, {k:"take", x:picked.x, y:picked.y, side:picked.side, area:picked.area, name:picked.name.split(" / ")[0]});
+      newsAdd(b, {k:"take", x:picked.x, y:picked.y, side:picked.side, area:picked.area, name:(picked.name || b._act.name || "").split(" / ")[0]});
     // ухожу из района с угла, откуда может выйти враг, а его больше никто не держит, — «подержите»
     if(picked && prev && prev.round === roundNum && prev.mode === "hold" && prev.side && prev.area !== picked.area && Math.hypot(b.x-prev.x, b.y-prev.y) < 80 &&
-       !X.mates.some(function(m){ return m.side === prev.side; }) && teamThreat(team, prev) > 0.15)
+       !X.mates.some(function(m){ return m.side === prev.side; }) && placeEval(team, prev.x, prev.y).ent.some(function(q){ return q.v > 0.15; }))
       newsAdd(b, {k:"holdmine", x:prev.x, y:prev.y, side:prev.side});
   });
 }
@@ -336,7 +362,7 @@ function ctVariants(b, X, ct, cts, C, sty){
     if(my === "M") return (c.area === "M" || !c.area) && Math.hypot(c.x-GEO.tMid.x, c.y-GEO.tMid.y) < 0.8*Math.hypot(GEO.ctMid.x-GEO.tMid.x, GEO.ctMid.y-GEO.tMid.y);
     var g = GEO[my], s0 = SITES[my]; return (c.area === my || (!c.area && Math.hypot(c.x-s0.x, c.y-s0.y) < 1100)) &&
       Math.hypot(c.x-g.tEntry.x, c.y-g.tEntry.y) < 0.65*Math.hypot(s0.x-g.tEntry.x, s0.y-g.tEntry.y); });
-  var foeReach = function(c){ return c.from >= 0 ? reachW("CT", c.from, c.hold) : 0; };
+  var foeReach = function(c){ var ev = placeEval("CT", c.x, c.y), t = 0; ev.ent.forEach(function(q){ if(q.v > t) t = Math.min(1, q.v); }); return t; };
   var wantInfo = ct.wantInfo === b.id;
   // ранний пик за инфой: первые 8–25 с (или IGL просит чекнуть), выйти на линию подхода, увидеть — назад
   if(my && home && actCdOk(b, "peek") && !busy("peek") && !ct.call && aC >= aT && ((sec > 8 && sec < 25) || wantInfo)){
@@ -368,7 +394,7 @@ function sharedVariants(b, X, team, C, home){
     if(E.length){
       var lk = b.post.look, a = Math.atan2(lk.y-b.y, lk.x-b.x), jx = b.x + Math.cos(a)*48, jy = b.y + Math.sin(a)*48;
       if(!insideSolidWall(jx, jy) && !segCrossesManualWalls(b.x, b.y, jx, jy))
-        out.push({x:jx, y:jy, meet:lk, v:"jiggle", gain:0.4 + 0.5*actMood(b) + (X.cur ? W_CUR() : 0), home:{x:b.x, y:b.y, meet:lk}, name:"", open:0, dirs:0, area:null});
+        out.push({x:jx, y:jy, meet:lk, v:"jiggle", gain:0.4 + 0.5*actMood(b) + (X.cur ? W_CUR() : 0), home:{x:b.x, y:b.y, meet:lk}, name:"", area:null});
     }
   }
   // отход: ранен, размена нет, их рядом больше — назад, туда, где меня не видят
@@ -458,7 +484,7 @@ function tChoose(b, X, tt, ts, C){
     var tgt = pt || {x:look.x, y:look.y, meet:null};
     var util = b.nades && b.nades.flash > 0, mate = ts.some(function(o){ return o !== b && Math.hypot(o.x-P.x, o.y-P.y) < 400; });
     var gp = (0.5 + Math.min(1, quiet/20)*0.5 + (util ? 0.3 : 0) + (mate ? 0.3 : -0.4) + (sty.probe || 0) + (role === "entry" ? 0.2 : 0))*mood - (b.hp < 60 ? 0.6 : 0);
-    ST.push({x:tgt.x, y:tgt.y, meet:tgt.meet || site, looks:tgt.looks || null, lib:tgt.lib, ph:tgt.ph, v:"probe", gain:gp, home:home, name:tgt.name || "", open:tgt.open, dirs:tgt.dirs, area:null});
+    ST.push({x:tgt.x, y:tgt.y, meet:tgt.meet || site, looks:tgt.looks || null, lib:tgt.lib, ph:tgt.ph, v:"probe", gain:gp, home:home, name:tgt.name || "", cover:tgt.cover, area:null});
   }
   return actPick(b, ST.concat(sharedVariants(b, X, "T", C, X.cur && !X.cur.v ? {x:X.cur.x, y:X.cur.y, meet:null, looks:X.cur.looks} : null)), X, function(c){ return "stage"+(A ? A.area : k); });
 }
@@ -475,7 +501,7 @@ function actSave(b){
     ts.forEach(function(t){ dT = Math.min(dT, Math.hypot(c.x-t.x, c.y-t.y)); if(hasLOS(c.x, c.y, t.x, t.y)) seen = true; });
     if(seen || dT < 500) return;
     if(b.team === "T" && Math.min(Math.hypot(c.x-SITES.A.x, c.y-SITES.A.y), Math.hypot(c.x-SITES.B.x, c.y-SITES.B.y)) < 500) return;
-    var s = Math.min(dT, 1200)*0.6 - Math.hypot(c.x-b.x, c.y-b.y) - 300*(c.open || 0) - (b.team === "T" ? 0.15*Math.hypot(c.x-T_SPAWN.x, c.y-T_SPAWN.y) : 0);
+    var s = Math.min(dT, 1200)*0.6 - Math.hypot(c.x-b.x, c.y-b.y) - 100*placeEval(b.team, c.x, c.y).ent.length - (b.team === "T" ? 0.15*Math.hypot(c.x-T_SPAWN.x, c.y-T_SPAWN.y) : 0);
     if(s > bs){ bs = s; best = c; }
   });
   var p = best || (b.team === "T" ? {x:T_SPAWN.x, y:T_SPAWN.y} : {x:CT_SPAWN.x, y:CT_SPAWN.y});

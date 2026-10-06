@@ -77,7 +77,7 @@ function tBrain(){
     var ancO = other === "A" ? "anchorA" : "anchorB";
     var pickOther = tt.phase === "setup" && picEvents("T").some(function(sg){ return sg.type === "kill" && tick - sg.tick < 3*TICK_HZ &&
       (sg.role === ancO ? Math.hypot(sg.x-SITES[other].x, sg.y-SITES[other].y) < 600 : Math.hypot(sg.x-SITES[other].x, sg.y-SITES[other].y) < 350); });
-    if(pickOther && aliveT >= 3 && beliefCount("T", BZ.siteNear[other]||[]) < 0.9 && there < 1.5){
+    if(pickOther && aliveT >= 3 && infoCount("T", BZ.siteNear[other]||[], 10) < 0.9 && there < 1.5){
       tt.rebound = true;
       logEvent("IGL: перекол → "+other+" (сняли CT, сайт пустой)");
       tt.site = other; tt.phase = "setup"; tt.execTick = tick + 3*TICK_HZ; tt.execStart = null; tt.plantPick = null;
@@ -105,7 +105,7 @@ function tBrain(){
   if(tt.phase === "setup" && tick - roundStartTick > 28*TICK_HZ && !tt.soloGo && !(hashRand(roundNum*577 + matchNum*41 + 3) < 0.5)){
     var eS = intelEstimate("T", site.x, site.y, 420, 5*TICK_HZ);
     var aliveT2 = aliveCount("T");
-    if(eS.seen === 1 && beliefCount("T", BZ.siteNear[tt.site]||[]) < 1.4 && aliveT2 >= 4){
+    if(eS.seen === 1 && infoCount("T", BZ.siteNear[tt.site]||[], 10) < 1.4 && aliveT2 >= 4){
       tt.soloGo = true; tt.phase = "execute"; tt.execStart = tick;
       logEvent("T: выход на "+tt.site+"! (по инфе там соло)");
     }
@@ -155,7 +155,7 @@ function tBrain(){
     var solo = ts[0];
     if(!tt.soloPlan){
       // сайт, где по инфе меньше CT (и ближе); сразу выход — ждать некого
-      var sc = function(k){ return beliefCount("T", BZ.siteNear[k]||[]) * 400 + Math.hypot(solo.x-SITES[k].x, solo.y-SITES[k].y); };
+      var sc = function(k){ return infoCount("T", BZ.siteNear[k]||[], 10) * 400 + Math.hypot(solo.x-SITES[k].x, solo.y-SITES[k].y); };
       var ks2 = sc("A") <= sc("B") ? "A" : "B";
       tt.soloPlan = ks2;
       if(ks2 !== tt.site){ tt.site = ks2; tt.plantPick = null; site = SITES[ks2]; g = GEO[ks2]; other = ks2 === "A" ? "B" : "A"; plantPt = site.plant || site; }
