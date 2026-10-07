@@ -13,7 +13,7 @@ resetBomb();
 
 // Тик движка (v197 — без мозга): бомба, гранаты, подбор оружия, движение по
 // пути (путь задаёт мозг; сейчас его нет — боты стоят), шаги, кто кого видит и
-// стрельба, конец раунда.
+// стрельба, стойка (присел/стоит), конец раунда.
 function stepTick(){
   tick++;
   simTime = tick * TICK_MS / 1000;
@@ -50,7 +50,8 @@ function stepTick(){
     // этаж под ботом (метка уровня на радаре) — раз в 16 тиков хватает
     if(tick % 16 === 0){ var za = zoneOf(bot.baseX, bot.baseY); bot._zArea = za ? za.z : 0; }
     bot.onStairs = false; // движение ниже выставит заново, если бот на лестнице
-    var runSpeed = (bot.walking ? SPEED*WALK_SPEED_FRAC : SPEED) * weaponSpeedMul(bot);
+    // присев — 34 % скорости бега (CS2), шаг — 50 %
+    var runSpeed = (bot.crouching ? SPEED*CROUCH_SPEED_FRAC : (bot.walking ? SPEED*WALK_SPEED_FRAC : SPEED)) * weaponSpeedMul(bot);
     var hasPath = bot.path.length > 0 && bot.pathIdx < bot.path.length;
     var targetSpeed = (!hasPath || bot.planting || bot.defusing || tick < (bot.throwUntil||0)) ? 0 : runSpeed;
     if(hasPath){
@@ -64,14 +65,14 @@ function stepTick(){
 
     // ---------- шаги: бег слышно, шифт — нет (вода плещет и под шифтом) ----------
     var wet = bot.curSpeed > 5 && inWater(bot.baseX, bot.baseY);
-    if(bot.curSpeed > 5 && (!bot.walking || wet)){
-      var stepInterval = bot.walking ? FOOTSTEP_INTERVAL_WALK : FOOTSTEP_INTERVAL_RUN;
+    if(bot.curSpeed > 5 && ((!bot.walking && !bot.crouching) || wet)){
+      var stepInterval = (bot.walking || bot.crouching) ? FOOTSTEP_INTERVAL_WALK : FOOTSTEP_INTERVAL_RUN;
       if(tick - bot.lastStepTick >= stepInterval){
         bot.lastStepTick = tick;
-        var soundRadius = wet ? (bot.walking ? 220 : SOUND.water.open) : SOUND.steps.open;
+        var soundRadius = wet ? (bot.walking || bot.crouching ? 220 : SOUND.water.open) : SOUND.steps.open;
         soundPings.push({x:bot.baseX, y:bot.baseY, team:bot.team, born:nowTs, radius:soundRadius});
         if(soundPings.length > 40) soundPings.shift();
-        makeSound(bot, bot.x, bot.y, wet ? "water" : "steps", {mul: wet && bot.walking ? 220/SOUND.water.open : 1, seed: bot.lastStepTick});
+        makeSound(bot, bot.x, bot.y, wet ? "water" : "steps", {mul: wet && (bot.walking || bot.crouching) ? 220/SOUND.water.open : 1, seed: bot.lastStepTick});
       }
     }
 
@@ -255,5 +256,6 @@ function stepTick(){
     bot.y = bot.baseY;
   });
   resolveEngagements();
+  bots.forEach(function(b){ if(b.alive) b.crouching = stubCrouch(b); });   // стойка — заглушка (12_stub.js)
   checkRoundEnd();
 }

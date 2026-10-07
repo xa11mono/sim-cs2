@@ -12,6 +12,7 @@ function draw(){
   }
   hgtDraw();          // слой «высоты» (19_map_heights.js), если включён
   covDraw();          // слой «укрытия» (19_map_obstacles.js), если включён
+  visToolDraw();      // проверка «кто кого видит» (19_vis_tool.js), если включена
 
   if(showNavmesh.checked){
     // official navmesh areas (1970) — this is the real pathing geometry
@@ -121,6 +122,7 @@ function draw(){
   if(showDanger.checked && hoverZoneId){
     // предрасчитанная таблица опасности (план §2): зоны, откуда простреливается
     // наведённая — красным; сама наведённая зона — жёлтым контуром
+    zoneDangerReady();
     var dangerIds = ZONE_DANGER[hoverZoneId] || [];
     dangerIds.forEach(function(id){
       var z = ZONEMAP.zones.find(function(zz){ return zz.id===id; });
@@ -243,7 +245,7 @@ function draw(){
   // контакты для HUD — считаем всегда, независимо от отрисовки
   bots.forEach(function(ct){
     if(ct.team!=="CT"||!ct.alive) return;
-    bots.forEach(function(t){ if(t.team==="T" && t.alive && hasVision(ct.x,ct.y,t.x,t.y)) contacts++; });
+    bots.forEach(function(t){ if(t.team==="T" && t.alive && ((ct._visible||[]).indexOf(t) >= 0 || (t._visible||[]).indexOf(ct) >= 0)) contacts++; });   // кто-то из пары видит другого (resolveEngagements)
   });
 
   bots.forEach(function(b){ b._visFacing = b.facing; }); // направление взгляда для рисования
@@ -256,10 +258,10 @@ function draw(){
     bots.forEach(function(b){
       if(!b.alive || b._visFacing === undefined) return;
       var bx = b.x, by = b.y, R = CONE_R;
-      // только стены рядом (ускорение: не проверять все ~800 сегментов на каждый луч)
-      var near = [];
-      for(var wi=0; wi<MANUAL_WALLS.length; wi++){
-        var w = MANUAL_WALLS[wi];
+      // только высокие стены рядом (низкие укрытия видно поверх — конус их не режет)
+      var near = [], HW = visHighWalls();
+      for(var wi=0; wi<HW.length; wi++){
+        var w = HW[wi];
         if(Math.max(w[0],w[2]) < bx-R || Math.min(w[0],w[2]) > bx+R || Math.max(w[1],w[3]) < by-R || Math.min(w[1],w[3]) > by+R) continue;
         near.push(w);
       }
@@ -503,6 +505,13 @@ function draw(){
     ctx.fillStyle = bot.team==="CT" ? "#5a9bd9" : "#d9a24a";
     ctx.fill();
     ctx.lineWidth = 1.5/view.scale; ctx.strokeStyle="#0b0f0b"; ctx.stroke();
+    if(bot.crouching){
+      // присел — белая «галочка вниз» под кружком (v201)
+      var cy0 = ry + r + 2.2/view.scale, cw = 4.2/view.scale, ch = 3.2/view.scale;
+      ctx.beginPath(); ctx.moveTo(rx - cw, cy0); ctx.lineTo(rx, cy0 + ch); ctx.lineTo(rx + cw, cy0);
+      ctx.lineJoin = "round"; ctx.strokeStyle = "#0b0f0b"; ctx.lineWidth = 3.4/view.scale; ctx.stroke();
+      ctx.strokeStyle = "#ffffff"; ctx.lineWidth = 1.6/view.scale; ctx.stroke(); ctx.lineJoin = "miter";
+    }
     var bw = 18/view.scale, bh = 2.5/view.scale;
     ctx.fillStyle = "rgba(0,0,0,0.5)"; ctx.fillRect(rx-bw/2, ry-r-8/view.scale, bw, bh);
     ctx.fillStyle = bot.hp>50 ? "#94b449" : (bot.hp>25 ? "#d9832f" : "#c1584f");

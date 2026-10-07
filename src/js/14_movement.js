@@ -1,17 +1,4 @@
-// ---------- поле зрения ----------
-// Бот видит врага, только если тот в конусе взгляда (FOV_DEG) или совсем
-// рядом (слышно/"спиной почувствовал" — FOV_NEAR), либо контакт уже идёт
-// (не теряет цель, повернувшись к ней). Раньше обзор был на 360° — тогда
-// и конус на радаре врал бы, и "держать угол" ничего не значило.
-var FOV_DEG = BAL.fov, FOV_NEAR = 70, CONE_R = 520;
-function inFov(b, x, y){
-  if(b.facing === undefined) return true;
-  var d = Math.hypot(x-b.x, y-b.y);
-  if(d < FOV_NEAR) return true;
-  var a = Math.atan2(y-b.y, x-b.x);
-  var off = Math.abs(((a - b.facing + Math.PI) % (2*Math.PI) + 2*Math.PI) % (2*Math.PI) - Math.PI);
-  return off <= FOV_DEG*Math.PI/360;
-}
+// поле зрения inFov и всё про «кто кого видит» — 10_vision.js (v201)
 
 // Одна запись для консоли. kind — что это для смотрящего: kill (фраг), bomb
 // (плант/дефуз/взрыв), team (решение команды: план, перестройка, сейв, ретейк),
@@ -145,7 +132,10 @@ function makeSound(src, x, y, kind, opt){
     if(!o.alive || o.team === src.team) return;
     if(opt.only && o !== opt.only) return;
     // via — что именно видно/слышно (полёт гранаты), x,y — что из этого понятно (откуда кинули)
-    var d = Math.hypot(o.x-via.x, o.y-via.y), los = opt.via ? hasVision(o.x, o.y, via.x, via.y) : hasLOS(o.x, o.y, x, y);
+    // открыто или через стену: глаза слушающего → источник (полёт гранаты — видно ли его, с дымом)
+    var d = Math.hypot(o.x-via.x, o.y-via.y), oz = visEyeZ(o);
+    var los = opt.via ? visLine(o.x, o.y, oz, via.x, via.y, visFloorAt(via.x, via.y) + 90, true)
+                      : visLine(o.x, o.y, oz, x, y, visFloorAt(x, y) + VIS_EYE.stand);
     var seen = S.see && los && d <= S.see;
     if(!seen && d > (los ? S.open : S.wall)*mul) return;
     if(opt.skip && opt.skip(o)) return; // уже видел сам источник

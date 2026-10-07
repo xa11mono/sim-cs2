@@ -49,8 +49,11 @@ function fireReady(sh, w, dist){
   return true;
 }
 function fireShot(sh, w){ var F = sh._fire; if(F && --F.left <= 0){ F.left = 0; F.pause = tick + w.reset; } }
-function tryShoot(shooter, target, dist){
+// parts — что у цели видно стрелку ({head, body}, visPair): видна только голова —
+// целится только в голову, пули ниже головы попадают в укрытие
+function tryShoot(shooter, target, dist, parts){
   if(!shooter.alive || !target.alive) return;
+  if(!parts || (!parts.head && !parts.body)) return;   // ничего не видно — не стреляет
   if(shooter.planting || shooter.defusing) return; // руки заняты
   if(tick < shooter.blindUntil || tick < (shooter.throwUntil||0)) return; // ослеплён / бросает гранату
   // Преимущество того, кто стоит на месте и уже смотрит туда,
@@ -153,6 +156,8 @@ function tryShoot(shooter, target, dist){
   if(burstIdx >= 3) pAimHead *= 0.35; // спрей — в корпус: отдача сама тянет в голову
   if(w.key === "SSG") pAimHead = Math.max(pAimHead, 0.8); // скаут — в голову (корпус не убивает)
   var aimHead = w.key !== "AWP" && hashRand(seedS+5) < pAimHead;
+  if(!parts.body) aimHead = true;        // видна только голова (укрытие по грудь) — только в голову
+  else if(!parts.head) aimHead = false;  // голову закрывает (потолок, край) — в тело
   var headshot, hit, hbZone = null;
   {
     // (6) хитбоксы: пуля летит в точку прицела + ошибка по двум осям +
@@ -171,6 +176,10 @@ function tryShoot(shooter, target, dist){
     else if(uy >= hH-20*kC && uy < hH-6*kC && Math.abs(ux) < 15) hbZone = "chest";
     else if(uy >= hH-30*kC && uy < hH-20*kC && Math.abs(ux) < 13) hbZone = "stomach";
     else if(uy >= 0 && uy < hH-30*kC && Math.abs(ux) < 10) hbZone = "legs";
+    // пуля в закрытую часть модели — в укрытие (видна только голова — всё ниже головы;
+    // не видна голова — голова)
+    var coverHit = !!hbZone && ((!parts.body && hbZone !== "head") || (!parts.head && hbZone === "head"));
+    if(coverHit) hbZone = null;
     headshot = hbZone === "head"; hit = !!hbZone;
     var bulletDev = ex;   // куда реально ушла пуля по горизонтали (рад) — по ней и трассер
   }
@@ -213,6 +222,7 @@ function tryShoot(shooter, target, dist){
     var ex = shooter.x + Math.cos(ang+dev)*far, ey = shooter.y + Math.sin(ang+dev)*far;
     var cl = rayClipWalls(shooter.x, shooter.y, ex, ey);
     endX = cl.x; endY = cl.y;
+    if(coverHit){ endX = target.x - dx/Math.max(1, Math.hypot(dx, dy))*8; endY = target.y - dy/Math.max(1, Math.hypot(dx, dy))*8; } // в укрытие перед целью
   }
   tracers.push({wc:tracerClass(shooter.weapon), x1:shooter.x, y1:shooter.y, x2:endX, y2:endY, team:shooter.team, born:nowTs, hit:hit, head:headshot, miss:!hit, zone:hitZone});
   // выстрел слышно далеко (шаг 5: с конусом обзора боты не видят спиной —
@@ -224,8 +234,9 @@ function tryShoot(shooter, target, dist){
 }
 
 // ---------- кто кого видит, поворот прицела, выстрел (движок) ----------
-// Видит тот, у кого враг в линии взгляда (стены, дым, ван-вей), в конусе обзора
-// (или вплотную, или контакт уже идёт) и кто не ослеплён. Видимый враг — цель:
+// Видит тот, у кого враг в линии взгляда (стены, укрытия, пол и потолки по высоте,
+// дым, ван-вей), в конусе обзора (или вплотную, или контакт уже идёт) и кто не
+// ослеплён — visPair (10_vision.js); там же — что видно у врага: голова/тело. Видимый враг — цель:
 // прицел поворачивается к ней с конечной скоростью (AIM_TURN_RATE), а стреляет
 // бот только наведённым (tryShoot). Без врага взгляд — куда велит заглушка
 // (stubLook в 12_stub.js), поворот тот же.
@@ -239,16 +250,12 @@ function resolveEngagements(){
       var dist = Math.hypot(ct.x-t.x, ct.y-t.y);
       var maxRange = Math.max(ct.weapon.range, t.weapon.range);
       if(dist > maxRange) return;
-      if(!hasLOS(ct.x,ct.y,t.x,t.y)) return;
-      // ван-вей: стоящий в самом краю дыма видит наружу, а его снаружи — нет
-      var smk = smokeBlocks(ct.x,ct.y,t.x,t.y), ctOW = false, tOW = false;
-      if(smk){ ctOW = oneWaySees(ct, t); tOW = oneWaySees(t, ct); if(!ctOW && !tOW) return; }
-      var ctSees = (!smk || ctOW) && tick >= ct.blindUntil && (inFov(ct, t.x, t.y) || ct.contactStreak > 0);
-      var tSees  = (!smk || tOW) && tick >= t.blindUntil  && (inFov(t, ct.x, ct.y) || t.contactStreak > 0);
-      if(!ctSees && !tSees) return;
+      // кто кого видит и что именно (голова/тело) — одно место, visPair (10_vision.js)
+      var vp = visPair(ct, t); if(!vp) return;
+      var ctSees = !!vp.ab, tSees = !!vp.ba;
       if(ctSees){ ct._sawEnemy = true; ct._lastSawT = tick; ct._visible.push(t); if(dist < ct._nearestEnemyDist){ ct._nearestEnemyDist = dist; ct._nearestEnemyBot = t; } }
       if(tSees){ t._sawEnemy = true; t._lastSawT = tick; t._visible.push(ct); if(dist < t._nearestEnemyDist){ t._nearestEnemyDist = dist; t._nearestEnemyBot = ct; } }
-      pairs.push({ct:ct, t:t, dist:dist, ctSees:ctSees, tSees:tSees});
+      pairs.push({ct:ct, t:t, dist:dist, ctSees:ctSees, tSees:tSees, ctParts:vp.ab, tParts:vp.ba});
     });
   });
   // цель держится, пока видна (иначе при двух врагах на похожей дистанции прицел
@@ -290,8 +297,8 @@ function resolveEngagements(){
     b.facing += Math.max(-aimStep, Math.min(aimStep, dd));
   });
   pairs.forEach(function(p){
-    if(p.ctSees && p.ct._nearestEnemyBot === p.t) tryShoot(p.ct, p.t, p.dist);
-    if(p.tSees && p.t._nearestEnemyBot === p.ct) tryShoot(p.t, p.ct, p.dist);
+    if(p.ctSees && p.ct._nearestEnemyBot === p.t) tryShoot(p.ct, p.t, p.dist, p.ctParts);
+    if(p.tSees && p.t._nearestEnemyBot === p.ct) tryShoot(p.t, p.ct, p.dist, p.tParts);
   });
 }
 

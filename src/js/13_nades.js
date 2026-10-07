@@ -21,50 +21,7 @@ function emptyNades(){ return {smoke:0, flash:0, he:0, molly:0}; }
 bots.forEach(function(b){ b.nades = emptyNades(); b.blindUntil = 0; });
 
 
-// ---------- дым перекрывает обзор ----------
-function segHitsCircle(x1,y1,x2,y2,cx,cy,r){
-  var dx=x2-x1, dy=y2-y1, L2=dx*dx+dy*dy;
-  var t = L2 < 1e-9 ? 0 : Math.max(0, Math.min(1, ((cx-x1)*dx+(cy-y1)*dy)/L2));
-  var px = x1+t*dx - cx, py = y1+t*dy - cy;
-  return px*px+py*py < r*r;
-}
-function smokeBlocks(x1,y1,x2,y2){
-  for(var i=0;i<smokes.length;i++){
-    var s = smokes[i], r = smokeRadiusNow(s);
-    if(r > 8 && segHitsCircle(x1,y1,x2,y2,s.x,s.y,r)) return true;
-  }
-  return false;
-}
-function smokeRadiusNow(s){
-  var age = tick - s.born, left = s.until - tick;
-  var grow = Math.min(1, age/40), fade = Math.min(1, left/64); // раскрывается ~0.6с, в конце рассеивается
-  // HE в дыму: на ~1.3с дым разлетается (дыра), потом снова затягивается
-  var hole = 1;
-  if(s.holeUntil && tick < s.holeUntil){ var hp = (s.holeUntil - tick)/s.holeLen; hole = 0.3 + 0.7*(1 - Math.min(1, hp*1.4)); }
-  return NADE.smoke.radius * grow * (0.4 + 0.6*fade) * hole;
-}
-function hasVision(x1,y1,x2,y2){ return hasLOS(x1,y1,x2,y2) && !smokeBlocks(x1,y1,x2,y2); }
-// видит ли v цель t сквозь дым "ван-веем": v в самом краю дыма (глубина ≤30%
-// радиуса) и смотрит НАРУЖУ — видит; снаружи в дым видно только того, кто
-// стоит на самой кромке (≤8%). Любой другой дым на линии — закрывает.
-function oneWaySees(v, t){
-  var ok = true, any = false;
-  for(var i=0;i<smokes.length;i++){
-    var s = smokes[i], r = smokeRadiusNow(s);
-    if(r <= 8 || !segHitsCircle(v.x, v.y, t.x, t.y, s.x, s.y, r)) continue;
-    any = true;
-    var dv = Math.hypot(v.x-s.x, v.y-s.y), dt = Math.hypot(t.x-s.x, t.y-s.y);
-    if(dv < r && dt >= r){
-      var depth = (r - dv)/r;
-      var ox = v.x-s.x, oy = v.y-s.y, lx = t.x-v.x, ly = t.y-v.y;
-      var cosA = (ox*lx + oy*ly)/Math.max(1, Math.hypot(ox, oy)*Math.hypot(lx, ly));
-      if(!(depth <= 0.3 && cosA > 0.34)) ok = false;
-    } else if(dv >= r && dt < r){
-      if((r - dt)/r > 0.08) ok = false;       // цель в дыму глубже кромки — снаружи не видно
-    } else ok = false;
-  }
-  return any && ok;
-}
+// дым перекрывает обзор: smokeBlocks, smokeRadiusNow, ван-вей — 10_vision.js (v201)
 function stepBlocked(x1,y1,x2,y2,b){ return crossesWall(x1,y1,x2,y2); }
 
 // ---------- бросок ----------
@@ -131,7 +88,8 @@ function detonate(n){
     bots.forEach(function(b){
       if(!b.alive) return;
       var d = Math.hypot(b.x-n.x, b.y-n.y);
-      if(d > 1000 || !hasVision(b.x, b.y, n.x, n.y)) return;
+      // видит ли разрыв: глаза → флешка (рвётся в воздухе, ~1 м над полом), дым закрывает
+      if(d > 1000 || !visLine(b.x, b.y, visEyeZ(b), n.x, n.y, visFloorAt(n.x, n.y) + 40, true)) return;
       var a = Math.atan2(n.y-b.y, n.x-b.x);
       var off = b.facing === undefined ? 0 : Math.abs(((a - b.facing + Math.PI) % (2*Math.PI) + 2*Math.PI) % (2*Math.PI) - Math.PI);
       var dirK = off < 0.55 ? 1 : (off < 1.6 ? 0.5 : 0.12);  // смотрел прямо / краем глаза / спиной
@@ -154,7 +112,8 @@ function detonate(n){
     bots.forEach(function(b){
       if(!b.alive || b.team === n.team) return;
       var d = Math.hypot(b.x-n.x, b.y-n.y);
-      if(d > NADE.he.radius || !hasLOS(n.x, n.y, b.x, b.y)) return;
+      // осколки: от разрыва (у пола) до тела, без дыма
+      if(d > NADE.he.radius || !visLine(n.x, n.y, visFloorAt(n.x, n.y) + 10, b.x, b.y, visFloorAt(b.x, b.y) + 36, false)) return;
       var dmg = Math.round(NADE.he.dmg * (1 - d/NADE.he.radius) * (b.armor ? 0.5 : 1));
       applyDamage(n.thrower, b, dmg, "HE");
     });

@@ -218,7 +218,7 @@ var MED_H_HINTS = {
 mapEdAddTab({
   id: "heights", label: "высоты", doc: "heights",
   get: function(){ return HGT_OWN; },
-  set: function(d){ HGT_OWN = mapEdClone(d); },
+  set: function(d){ HGT_OWN = mapEdClone(d); visInvalidate(); },
   code: function(){ return mapEdClone(HGT_OWN_CODE); },
   toDoc: function(d){ return {own: hgtOwnToList(d)}; },
   fromDoc: function(b){

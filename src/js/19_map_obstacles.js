@@ -201,7 +201,7 @@ var MED_C_HINTS = {
 mapEdAddTab({
   id: "cover", label: "укрытия", doc: "cover",
   get: function(){ return COV_OWN; },
-  set: function(d){ COV_OWN = mapEdClone(d); },
+  set: function(d){ COV_OWN = mapEdClone(d); visInvalidate(); },
   code: function(){ return mapEdClone(COV_OWN_CODE); },
   toDoc: function(d){ return {own: covOwnToList(d)}; },
   fromDoc: function(b){

@@ -239,7 +239,7 @@ function applyNavTransform(){
 // построенный по этим полигонам, физически не может пройти сквозь стену —
 // в отличие от старого способа (ручные зоны + отдельно нарисованные стены,
 // которые могли не совпадать друг с другом).
-var zonesById, zoneGraph, portalCount, portalMissing, wallSegs, wallSegsLOS;
+var zonesById, zoneGraph, portalCount, portalMissing, wallSegs;
 
 function pointInPoly(px,py,points){
   var inside = false;
@@ -340,8 +340,9 @@ function computePortal(za, zb){
 // граф навмеша, спавны, сайты, таблицу простреливаемости зон).
 var WALL_POLYS_CODE = @@DATA:walls.json@@;
 var WALL_POLYS = JSON.parse(JSON.stringify(WALL_POLYS_CODE));
-// отрезки стен [x1,y1,x2,y2] — по ним видимость (hasLOS), движение (crossesWall),
-// гранаты, трассеры. Массив один и тот же (wallSegs/wallSegsLOS ссылаются на него).
+// отрезки стен [x1,y1,x2,y2] — по ним движение (crossesWall), гранаты, трассеры;
+// видимость — 10_vision.js (высокие стены — отрезками, низкие — по высоте).
+// wallSegs ссылается на тот же массив.
 var MANUAL_WALLS = [];
 var WALL_SOLID_POLYS = []; // те же стены как многоугольники {x,y} — «точка внутри стены»
 var WALLS_SIG = "";         // подпись набора стен (отметки: снимок с другими стенами не годится)
@@ -363,7 +364,7 @@ function applyWalls(full){
   if(typeof resnapSpawns === "function") resnapSpawns();
   if(typeof SITES_READY !== "undefined" && SITES_READY) buildSites();
   if(typeof PRO_LINEUPS !== "undefined") PRO_LINEUPS = null;
-  if(typeof computeZoneDanger === "function") computeZoneDanger();
+  if(typeof visInvalidate === "function") visInvalidate();   // видимость и таблица опасности — заново
 }
 applyWalls();
 
@@ -523,10 +524,9 @@ function rebuildNav(){
     });
   })();
 
-  // стены — от руки (WALL_POLYS, см. applyWalls); wallSegs и wallSegsLOS —
+  // стены — от руки (WALL_POLYS, см. applyWalls); wallSegs —
   // тот же массив MANUAL_WALLS, rebuildNav его не меняет
   wallSegs = MANUAL_WALLS;
-  wallSegsLOS = MANUAL_WALLS;
 
   // any in-flight bot paths were computed against the previous geometry —
   // drop them so bots re-path against the new one instead of walking a now
@@ -692,13 +692,6 @@ function ccw(ax,ay,bx,by,cx,cy){ return (cy-ay)*(bx-ax) > (cx-ax)*(by-ay); }
 function segIntersect(ax,ay,bx,by,cx,cy,dx,dy){
   return ccw(ax,ay,cx,cy,dx,dy) !== ccw(bx,by,cx,cy,dx,dy) && ccw(ax,ay,bx,by,cx,cy) !== ccw(ax,ay,bx,by,dx,dy);
 }
-function hasLOS(x1,y1,x2,y2){
-  for(var i=0;i<wallSegsLOS.length;i++){
-    var s = wallSegsLOS[i];
-    if(segIntersect(x1,y1,x2,y2,s[0],s[1],s[2],s[3])) return false;
-  }
-  return true;
-}
 
 // ---------- предрасчёт опасности (план §2) ----------
 // "для каждой точки считаем множество других точек, которые её простреливают,
@@ -748,22 +741,24 @@ function sampleZone(z){
   if(!out.length) out.push(c);
   return out;
 }
-function computeZoneDanger(){
+// v201: видимость — одно место (visParts, 10_vision.js): стоящий в точке a видит
+// голову или тело стоящего в точке b (стены, укрытия, пол, потолки). Считается
+// лениво — при первом показе слоя «опасность» и после правки карты/зон.
+var ZONE_DANGER_DIRTY = true;
+function computeZoneDanger(){ ZONE_DANGER_DIRTY = true; }
+function zoneDangerReady(){
+  if(!ZONE_DANGER_DIRTY) return;
+  ZONE_DANGER_DIRTY = false;
   var zs = ZONEMAP.zones, ids = zs.map(function(z){ return z.id; });
   ids.forEach(function(id){ ZONE_DANGER[id] = []; ZONE_DANGER_W[id] = {}; ZONE_DANGER_LINE[id] = {}; });
   zs.forEach(function(z){ ZONE_SAMPLES[z.id] = sampleZone(z); });
   for(var i=0;i<ids.length;i++){
     for(var j=i+1;j<ids.length;j++){
       var A = ZONE_SAMPLES[ids[i]], B = ZONE_SAMPLES[ids[j]];
-      // стены только в общей рамке двух зон — быстрее, чем все ~800 на каждую линию
-      var bx0=Infinity,by0=Infinity,bx1=-Infinity,by1=-Infinity;
-      A.concat(B).forEach(function(p){ if(p.x<bx0)bx0=p.x; if(p.y<by0)by0=p.y; if(p.x>bx1)bx1=p.x; if(p.y>by1)by1=p.y; });
-      var walls = MANUAL_WALLS.filter(function(w){ return !(Math.max(w[0],w[2])<bx0 || Math.min(w[0],w[2])>bx1 || Math.max(w[1],w[3])<by0 || Math.min(w[1],w[3])>by1); });
       var seen = 0, first = null;
       for(var a=0;a<A.length;a++) for(var b=0;b<B.length;b++){
-        var pa = A[a], pb = B[b], ok = true;
-        for(var k=0;k<walls.length;k++){ var w = walls[k]; if(segIntersect(pa.x,pa.y,pb.x,pb.y,w[0],w[1],w[2],w[3])){ ok = false; break; } }
-        if(ok){ seen++; if(!first) first = [pa, pb]; }
+        var pa = A[a], pb = B[b], v = visParts(pa.x, pa.y, false, pb.x, pb.y, false);
+        if(v.head || v.body){ seen++; if(!first) first = [pa, pb]; }
       }
       if(seen > 0){
         var wgt = seen/(A.length*B.length);
@@ -774,7 +769,6 @@ function computeZoneDanger(){
     }
   }
 }
-computeZoneDanger(); // once at load, per plan §2 — not re-run every tick
 var zoneLayerRebuildTimer = null;
 function applyZoneLayer(heavy){
   applyZoneLayerToData();
@@ -792,9 +786,8 @@ function applyZoneLayer(heavy){
   computeZoneDanger();
   applyUserZones(); // пул точек, спавны (resnap), сайты
 }
-// walls block movement, not just sight — hasLOS above is line-of-sight only
-// (bullets/visibility); this is the same wall geometry used as a physical
-// obstacle for bot movement (see stepTick's wall-slide below).
+// стены — препятствие для движения (видимость — 10_vision.js); те же отрезки стен,
+// что рисуются на радаре (см. стену-слайд в stepTick).
 function crossesWall(x1,y1,x2,y2){
   for(var i=0;i<wallSegs.length;i++){
     var s = wallSegs[i];
