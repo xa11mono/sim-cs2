@@ -31,30 +31,11 @@ var showPoints = document.getElementById("chkPoints");   // тактически
 var showDanger = document.getElementById("chkDanger");   // hover-проверка предрасчитанной таблицы ZONE_DANGER
 var showLos = document.getElementById("chkLos");
 var showTracers = document.getElementById("chkTracers");
-var showCalls = document.getElementById("chkCalls");
 var showWhy = document.getElementById("chkWhy");
-// подпись "почему": задача (пост) · куда смотрит и из-за чего
-var WHY_POST = [[/^hold:(.*)/,"держит вход $1"],[/^retakeHold:(.*)/,"играет от ретейка: $1"],[/^gather/,"сбор на ретейк"],[/^retakeEntry/,"ретейк: заходит первым"],[/^retake/,"ретейк"],
-  [/^peek:(.*)/,"ранний пик за инфой: $1"],[/^push:(.*)/,"подпуш: $1"],[/^jiggle/,"джиггл на звук"],[/^back:(.*)/,"назад после хода ($1)"],[/^repos:(.*)/,"меняет позицию: $1"],[/^fallback/,"отходит (ранен, их больше)"],
-  [/^stage/,"сбор перед выходом"],[/^control/,"контроль области"],[/^probe/,"проба за инфой"],[/^lurk/,"лёрк"],[/^route:(.*)/,"идёт: $1"],
-  [/^entry/,"энтри: заходит первым"],[/^trade/,"за энтри на размен"],[/^take/,"заход на сайт"],[/^carry/,"бомба за группой"],[/^plantspot/,"плант"],
-  [/^flee/,"уходит от бомбы"],[/^save/,"сейв"],[/^defuse/,"дефуз"],[/^postplant/,"пост-плант с дистанции"],[/^antidefuse/,"сбить дефуз"],
-  [/^pickup/,"за оружием"],[/^fetch/,"за бомбой"],[/^lineup/,"идёт кидать гранату"]];
-var WHY_LOOK = {spam:"простреливает смок", look:"угроза", enemy:"видит врага", corner:"край угла впереди", cover:"держит второй угол за тиммейта", open:"открытый угол (свой угол держит тиммейт)", flank:"фланг за тиммейтом", death:"туда, где убили своего", sweep:"чекает после смока", sound:"на звук", threat:"угроза", post:"свой угол", preaim:"по плану", roam:"проверяет точку",
-  hunt:"ищет последнего", save:"сейв: проходы", fake:"фейк-дефуз", intel:"инфа", call:"колл", lkp:"где видели", habit:"привычка врага", belief:"вероятность"};
+// подпись "что делает": без мозга задач нет — только действие движка и взгляд
 function whyText(b){
-  var t = b.post ? b.post.tag : "", pt = "без задачи";
-  for(var i=0;i<WHY_POST.length;i++){ var m = WHY_POST[i][0].exec(t); if(m){ pt = WHY_POST[i][1].replace("$1", (m[1]||"").replace(/^[AB]:?/,"")); break; } }
-  if(t && pt === "без задачи") pt = t;
-  if(b.planting) pt = "ставит бомбу"; if(b.defusing) pt = "дефузит";
-  var lr = b.lookReason, lt = lr ? (WHY_LOOK[lr] || lr) : "по ходу движения";
-  if(b.state === "engage" && b.peekType) pt = "бой · пик " + ({wide:"широкий", shoulder:"плечом", jiggle:"джиггл"})[b.peekType];
-  else if(b.state === "hold") pt = "бой · держит угол";
-  else if(b.state === "retreat") pt = "бой · отходит";
-  if(lr === "look" && b._lkTop && b._lkTop.length){
-    lt = "смотрит: " + b._lkTop.map(function(t){ return t[0] + " " + t[1].toFixed(2); }).join(" › ");
-    return pt + " · " + lt; }
-  if(b.lookTarget && (lr === "threat" || lr === "post" || lr === "sound" || lr === "preaim" || lr === "enemy")) lt += " → " + calloutName(b.lookTarget.x, b.lookTarget.y).replace(/^на «(.*)»$/, "$1");
+  var pt = b.planting ? "ставит бомбу" : b.defusing ? "дефузит" : (b.path && b.pathIdx < b.path.length) ? "идёт" : "стоит";
+  var lt = b.lookReason === "enemy" ? "видит врага" : b.lookReason === "stub" ? "смотрит вперёд (заглушка)" : "по ходу движения";
   return pt + " · " + lt;
 }
 var showSound = document.getElementById("chkSound");
@@ -486,55 +467,9 @@ cv.addEventListener("contextmenu", function(e){ e.preventDefault(); });
 var chkLineups = document.getElementById("chkLineups"), lineupPanel = document.getElementById("lineupPanel");
 var luPending = null, luHover = null;
 var LU_COL = {smoke:"rgba(200,205,210,0.95)", flash:"rgba(255,240,150,0.95)", molly:"rgba(255,140,60,0.95)", he:"rgba(150,230,120,0.95)"};
-// встроенные гранаты — то, что боты кидают сами (цели считаются так же, как в
-// nadeBrains/комбо); "откуда" — примерная точка, где обычно стоит бросающий
-function builtinLineups(){
-  if(!GEO.A || !GEO.B) return [];
-  var out = [], mid = function(a, b2, f){ f = f == null ? 0.5 : f; return {x:a.x+(b2.x-a.x)*f, y:a.y+(b2.y-a.y)*f}; };
-  out.push({key:"T.insta.mid", team:"T", type:"smoke", trigger:"insta", site:"any", name:"инстасмок мид", from:T_SPAWN, to:mid(GEO.tMid, GEO.ctMid)});
-  ["A","B"].forEach(function(k){
-    var g = GEO[k], st = SITES[k];
-    out.push({key:"T.exec.ctEntry."+k, team:"T", type:"smoke", trigger:"exec", site:k, name:"вход CT", from:g.tStage, to:g.ctEntry});
-    out.push({key:"T.exec.cross."+k, team:"T", type:"smoke", trigger:"exec", site:k, name:"кросс", from:g.tStage, to:mid(g.anchor, g.ctEntry)});
-    out.push({key:"T.exec.flash."+k, team:"T", type:"flash", trigger:"exec", site:k, name:"под пик энтри", from:g.tStage, to:mid(g.tEntry, st, 0.35)});
-    out.push({key:"T.exec.molly."+k, team:"T", type:"molly", trigger:"exec", site:k, name:"выжечь опорника / любимый угол", from:g.tStage, to:g.anchor});
-    out.push({key:"T.fake.smoke."+k, team:"T", type:"smoke", trigger:"setup", site:k, name:"фейк-смок (фейк на "+k+")", from:g.tStage, to:g.ctEntry});
-    out.push({key:"T.fake.flash."+k, team:"T", type:"flash", trigger:"setup", site:k, name:"фейк-флешка (фейк на "+k+")", from:g.tStage, to:mid(g.tEntry, st, 0.4)});
-    out.push({key:"T.pp.molly."+k, team:"T", type:"molly", trigger:"postplant", site:k, name:"на дефуз", from:g.tEntry, to:st.plant || st});
-    out.push({key:"CT.call.molly."+k, team:"CT", type:"molly", trigger:"call", site:k, name:"задержать выход", from:g.anchor, to:g.tEntry});
-    out.push({key:"CT.call.smoke."+k, team:"CT", type:"smoke", trigger:"call", site:k, name:"перекрыть вход", from:g.anchor, to:g.tEntry});
-    out.push({key:"CT.take.he."+k, team:"CT", type:"he", trigger:"exec", site:k, name:"в смок — не дать занять сайт", from:g.anchor, to:mid(g.tEntry, st, 0.35)});
-    out.push({key:"CT.retake.flash."+k, team:"CT", type:"flash", trigger:"retake", site:k, name:"ретейк", from:g.ctEntry, to:st.plant || st});
-    out.push({key:"CT.retake.smoke."+k, team:"CT", type:"smoke", trigger:"retake", site:k, name:"отрезать вход T", from:g.ctEntry, to:g.tEntry});
-  });
-  return out;
-}
 function drawLineups(){
   var show = chkLineups && chkLineups.checked; if(!show) return;
   ctx.save();
-  var bShow = document.getElementById("luShowBuiltin");
-  if(bShow && bShow.checked){
-    // одна точка падения — одна подпись (несколько гранат в одну цель — списком)
-    var groups = {};
-    builtinLineups().forEach(function(L){
-      if(!builtinAllowed(L.key)) return;
-      var col = (LU_COL[L.type] || "#fff").replace("0.95)", "0.45)");
-      ctx.strokeStyle = col; ctx.lineWidth = 1/view.scale;
-      ctx.setLineDash([2/view.scale, 6/view.scale]);
-      ctx.beginPath(); ctx.moveTo(L.from.x, L.from.y); ctx.lineTo(L.to.x, L.to.y); ctx.stroke(); ctx.setLineDash([]);
-      ctx.beginPath(); ctx.arc(L.to.x, L.to.y, (L.type === "smoke" ? 20 : 10)/view.scale, 0, 7); ctx.stroke();
-      var k = Math.round(L.to.x/25)+","+Math.round(L.to.y/25);
-      (groups[k] = groups[k] || {x:L.to.x, y:L.to.y, items:[]}).items.push(L);
-    });
-    ctx.font = (9/view.scale)+"px 'IBM Plex Mono',monospace"; ctx.textAlign = "left";
-    Object.keys(groups).forEach(function(k){
-      var G = groups[k];
-      G.items.forEach(function(L, i){
-        ctx.fillStyle = (LU_COL[L.type] || "#fff").replace("0.95)", "0.8)");
-        ctx.fillText(L.team+" "+LU_TYPE[L.type]+": "+L.name, G.x + 24/view.scale, G.y + (i*10 - (G.items.length-1)*5 + 3)/view.scale);
-      });
-    });
-  }
   allLineups().forEach(function(L, i){
     var col = LU_COL[L.type] || "#fff", isSel = typeof luSel !== "undefined" && luSel !== null && USER_LINEUPS[luSel] === L;
     ctx.strokeStyle = col; ctx.fillStyle = col; ctx.lineWidth = (isSel ? 3 : 1.6)/view.scale;
@@ -552,7 +487,7 @@ function drawLineups(){
   ctx.restore();
 }
 function esc2(t){ return String(t).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
-var luSel = null, luDrag = null, luBuiltinOpen = false;
+var luSel = null, luDrag = null;
 function luFieldsFrom(L){
   document.getElementById("luTeam").value = L.team; document.getElementById("luType").value = L.type;
   document.getElementById("luTrigger").value = L.trigger; document.getElementById("luSite").value = L.site;
@@ -570,44 +505,24 @@ function selectLineup(i){ luSel = i; luPending = null; if(i !== null && USER_LIN
   });
   el.addEventListener("keydown", function(e){ e.stopPropagation(); });
 });
-function builtinCopy(key){
-  var B = builtinLineups().filter(function(L){ return L.key === key; })[0]; if(!B) return;
-  var ex = USER_LINEUPS.findIndex(function(L){ return L.replaces === key; });
-  if(ex >= 0){ selectLineup(ex); return; }
-  USER_LINEUPS.push({id:"lu"+Date.now().toString(36)+Math.floor(Math.random()*1000), team:B.team, type:B.type, trigger:B.trigger, site:B.site,
-    name:B.name, from:{x:Math.round(B.from.x*10)/10, y:Math.round(B.from.y*10)/10}, to:{x:Math.round(B.to.x*10)/10, y:Math.round(B.to.y*10)/10}, replaces:key});
-  saveLineups(); selectLineup(USER_LINEUPS.length-1);
-}
 function refreshLineupList(){
   var el = document.getElementById("lineupList"), h = "";
   USER_LINEUPS.forEach(function(L, i){
     var sel = i === luSel;
     h += '<div data-sel="'+i+'" style="display:flex;justify-content:space-between;gap:6px;border-top:1px solid var(--line);padding:3px 4px;cursor:pointer;'+(sel?'background:rgba(255,215,106,0.12);border-left:2px solid #ffd76a;':'')+'"><span>'+L.team+' · '+LU_TYPE[L.type]+' · '+LU_TRIG[L.trigger]+(L.site!=="any"?" "+L.site:"")+
-      (L.replaces ? ' <span style="color:var(--accent-dim)">(вместо встроенной)</span>' : '')+'<br><span style="color:var(--text-dim)">'+esc2(L.name||"")+'</span></span><button data-lu="'+i+'" title="удалить" style="height:22px;">✕</button></div>';
+'<br><span style="color:var(--text-dim)">'+esc2(L.name||"")+'</span></span><button data-lu="'+i+'" title="удалить" style="height:22px;">✕</button></div>';
   });
   if(!USER_LINEUPS.length) h = '<div style="color:var(--text-dim)">пока нет своих лайнапов</div>';
   el.innerHTML = h;
-  var BL = builtinLineups();
-  var hb = '<details'+(luBuiltinOpen?' open':'')+' id="luBuiltinDet"><summary style="cursor:pointer;color:var(--accent-dim);">встроенные гранаты ('+BL.length+') — ✎ правка, выкл</summary>';
-  BL.forEach(function(L){
-    var rep = USER_LINEUPS.some(function(U){ return U.replaces === L.key; }), off = !!BUILTIN_OFF[L.key];
-    hb += '<div style="display:flex;justify-content:space-between;gap:4px;align-items:center;padding:1px 0;'+(off||rep?'opacity:.45;':'')+'"><span>'+L.team+' · '+LU_TYPE[L.type]+' · '+LU_TRIG[L.trigger]+(L.site!=="any"?" "+L.site:"")+' — '+esc2(L.name)+(rep?' (заменена)':'')+'</span>'+
-      '<span style="white-space:nowrap"><button data-bedit="'+L.key+'" title="скопировать в свои и править (встроенная отключится)" style="height:20px;padding:0 5px;">✎</button> <button data-boff="'+L.key+'" title="выключить/включить" style="height:20px;padding:0 5px;">'+(off?'вкл':'выкл')+'</button></span></div>';
-  });
-  document.getElementById("lineupBuiltin").innerHTML = hb + '</details>';
-  var det = document.getElementById("luBuiltinDet"); det.addEventListener("toggle", function(){ luBuiltinOpen = det.open; });
   Array.prototype.forEach.call(el.querySelectorAll("button[data-lu]"), function(btn){
     btn.addEventListener("click", function(ev){ ev.stopPropagation(); var i = +btn.getAttribute("data-lu"); USER_LINEUPS.splice(i, 1); if(luSel === i) luSel = null; else if(luSel > i) luSel--; saveLineups(); refreshLineupList(); draw(); });
   });
   Array.prototype.forEach.call(el.querySelectorAll("div[data-sel]"), function(row){
     row.addEventListener("click", function(){ var i = +row.getAttribute("data-sel"); selectLineup(luSel === i ? null : i); });
   });
-  Array.prototype.forEach.call(document.querySelectorAll("button[data-bedit]"), function(btn){ btn.addEventListener("click", function(){ builtinCopy(btn.getAttribute("data-bedit")); }); });
-  Array.prototype.forEach.call(document.querySelectorAll("button[data-boff]"), function(btn){ btn.addEventListener("click", function(){ var k = btn.getAttribute("data-boff"); if(BUILTIN_OFF[k]) delete BUILTIN_OFF[k]; else BUILTIN_OFF[k] = true; saveLineups(); refreshLineupList(); draw(); }); });
   document.getElementById("lineupHint").textContent = luSel !== null ? "правка: тащи точки ● (откуда) и ○ (куда) · поля ниже меняют лайнап · клик мимо — снять выбор"
     : luPending ? "клик 2 — куда летит (Esc — отмена)" : "клик 1 — откуда кидают · клик 2 — куда летит · клик по своему лайнапу — выбрать и править";
 }
-document.getElementById("luShowBuiltin").addEventListener("change", function(){ draw(); });
 chkLineups.addEventListener("change", function(){ lineupPanel.style.display = chkLineups.checked ? "block" : "none"; luPending = null; luSel = null; refreshLineupList(); draw(); });
 document.addEventListener("keydown", function(e){ if(e.key === "Escape" && (luPending || luSel !== null)){ luPending = null; luSel = null; refreshLineupList(); draw(); } });
 cv.addEventListener("mousemove", function(e){
@@ -654,7 +569,7 @@ function saveZoneShape(id){
 }
 function rebuildAfterZoneShape(){
   if(zsRebuildTimer) clearTimeout(zsRebuildTimer);
-  zsRebuildTimer = setTimeout(function(){ zsRebuildTimer = null; _zbnCache = {}; applyZoneLayer(true); draw(); }, 150);
+  zsRebuildTimer = setTimeout(function(){ zsRebuildTimer = null; applyZoneLayer(true); draw(); }, 150);
 }
 document.getElementById("chkZoneShape").addEventListener("change", function(){
   document.getElementById("zoneShapeHint").style.display = this.checked ? "block" : "none"; draw();
@@ -1074,7 +989,8 @@ btnNavReset.addEventListener("click", function(){
   try{
     ZONEMAP.portals.forEach(function(pp){
       var a = ZONE_CENTROIDS[pp.a], c = ZONE_CENTROIDS[pp.b]; if(!a || !c) return;
-      var A = walk(a), C = walk(c), st = Math.hypot(A.x-C.x, A.y-C.y), L = polyLen(pathPts(A.x, A.y, C.x, C.y));
+      var A = snapToWalkable(a.x, a.y), C = snapToWalkable(c.x, c.y), st = Math.hypot(A.x-C.x, A.y-C.y), L = 0, px = A.x, py = A.y;
+      buildWaypointPath(A.x, A.y, 0, C.x, C.y, 0).forEach(function(q){ L += Math.hypot(q[0]-px, q[1]-py); px = q[0]; py = q[1]; });
       if(L > Math.max(2.2*st, st + 400)) broken.push((zoneUserName(pp.a) || pp.a) + " ↔ " + (zoneUserName(pp.b) || pp.b));
     });
   }catch(e){}

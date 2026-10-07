@@ -1,4 +1,3 @@
-function cl0save(){ return teamTac.CT && teamTac.CT.saving; }
 // ======================= РАЗДЕЛ 9: подача матча =======================
 
 var clutchShown = null, clutchInfo = null;
@@ -22,7 +21,6 @@ function killAssist(att, vic){
 // mods: smoke — через смок, wall — прострел, noscope — без прицела, blind — убийца ослеплён
 function feedKill(att, vic, wkey, hs, mods){
   mods = mods || {};
-  killfeedRead(att, vic, wkey); // киллфид видят и боты — закуп и роли врага (09_knowledge.js)
   var as = killAssist(att, vic);
   killfeed.unshift({kind:"kill", att:att?nick(att.id):"?", attTeam:att?att.team:"", as:as?nick(as.id):null, asFlash:as&&as.flash,
     vic:nick(vic.id), vicTeam:vic.team, w:wkey, hs:hs, smoke:!!mods.smoke, wall:!!mods.wall, noscope:!!mods.noscope, blind:!!mods.blind, t:nowTs});
@@ -109,7 +107,7 @@ function showRoundCard(winner, reason){
   el.innerHTML = '<div class="rc-t '+(winner||"").toLowerCase()+'">'+(winner ? "ПОБЕДА "+winner : "НИЧЬЯ")+'</div>'+
     '<div class="rc-r">Раунд '+roundNum+' · '+why+'</div>'+
     (clutch ? '<div class="rc-c">клатч 1v'+clutchInfo.n+' выигран — '+esc(nick(clutchInfo.id))+'</div>' : '')+
-    (mvp && mvp.b ? '<div class="rc-m">MVP: <b>'+esc(nick(mvp.b.id))+'</b> ('+(ROLE_LABEL[mvp.b.tRole]||"")+') · '+(mvp.b.roundKills||0)+' фраг(а), '+Math.round(mvp.b.roundDmg||0)+' урона</div>' : '')+
+    (mvp && mvp.b ? '<div class="rc-m">MVP: <b>'+esc(nick(mvp.b.id))+'</b> · '+(mvp.b.roundKills||0)+' фраг(а), '+Math.round(mvp.b.roundDmg||0)+' урона</div>' : '')+
     '<div class="rc-s">CT '+score.CT+' : '+score.T+' T</div>';
   el.className = "show";
   if(cardTimer) clearTimeout(cardTimer);
@@ -124,10 +122,6 @@ function renderEcon(){
     var mates = bots.filter(function(b){ return b.team===team; });
     var total = mates.reduce(function(a,b){ return a+b.money; }, 0);
     h += '<div class="tm '+team.toLowerCase()+'"><span>'+team+' · '+ROUND_TYPE_LABEL[te.roundType]+'</span><span>$'+total+' · при поражении +'+LOSS_BONUS[Math.min(4,te.lossLevel)]+'</span></div>';
-    if(team === "T" && teamTac.T){ var PH = {setup:"сетап", execute:"выход", postplant:"пост-плант"}; h += '<div style="color:var(--t);opacity:.85">тактика: «'+teamTac.T.tac.name+'» · '+PH[teamTac.T.phase]+'</div>';
-      if(teamTac.T.read) h += '<div style="color:var(--t);opacity:.7;font-size:10px">IGL: '+teamTac.T.read+'</div>'; }
-    if(team === "CT" && teamTac.CT && teamTac.CT.setup){ h += '<div style="color:var(--ct);opacity:.8;font-size:10px">расстановка: «'+teamTac.CT.setup.name+'»'+(teamTac.CT.setupWhy ? ' — '+teamTac.CT.setupWhy : '')+'</div>'; }
-    if(team === "CT"){ var cl = teamTac.CT && teamTac.CT.call; h += '<div style="color:var(--ct);opacity:.85">'+(bomb && bomb.state==="planted" ? (cl0save() ? "сейв" : (bomb.retake ? (bomb.retake.phase==="gather" ? "ретейк "+bomb.site+": сбор "+(bomb.retake.ready||0)+"/"+(bomb.retake.need||"?") : bomb.retake.phase==="util" ? "ретейк "+bomb.site+": флешка — сейчас заход" : "ретейк "+bomb.site+": заход!") : "ретейк "+bomb.site)) : (cl ? "колл: T на "+cl.site+" (~"+Math.max(1,Math.round(cl.count))+") — ротируют "+Object.keys(teamTac.CT.rot||{}).length : "расстановка по ролям"))+'</div>'; }
   });
   el.innerHTML = h;
 }
@@ -257,8 +251,7 @@ document.getElementById("btnExportProject").addEventListener("click", function()
     zoneLayer: zoneLayer,
     zoneNames: ZONE_NAMES,
     lineups: USER_LINEUPS,
-    zoneShapes: ZONE_SHAPES,
-    builtinOff: BUILTIN_OFF
+    zoneShapes: ZONE_SHAPES
   };
   var ta = document.getElementById("projectExportArea");
   ta.value = JSON.stringify(data);

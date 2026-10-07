@@ -890,8 +890,7 @@ function applyZoneLayer(heavy){
   }
   ZONEMAP.zones.forEach(function(z){ ZONE_CENTROIDS[z.id] = zoneMapCentroid(z); });
   computeZoneDanger();
-  applyUserZones(); // пул точек, спавны (resnap), маршруты роумеров, сайты
-  if(typeof beliefBuild === "function"){ beliefBuild(); knowReset(); }
+  applyUserZones(); // пул точек, спавны (resnap), сайты
 }
 // walls block movement, not just sight — hasLOS above is line-of-sight only
 // (bullets/visibility); this is the same wall geometry used as a physical
@@ -1030,9 +1029,9 @@ function applyUserZones(){
     else { POINT_POOL.push({ name: z.name || ZONE_KIND_LABELS[z.kind], x: c.x, y: c.y, z: 0 }); }
   });
   resnapSpawns();
-  if(ROAM_READY){ buildRoamRoutes(); buildSites(); }
+  if(SITES_READY) buildSites();
 }
-var ROAM_READY = false; // становится true после инициализации модуля роумера (ниже, после создания ботов)
+var SITES_READY = false; // true после первой сборки сайтов (04_sites.js): правка зон пересобирает сайты
 // спавн внутри стены → ближайшее проходимое место. Желаемая точка хранится
 // отдельно (_baseX — исходная, _wantX — с учётом нарисованной зоны спавна),
 // чтобы при следующей правке стен пересчитывать от неё, а не от уже сдвинутой.

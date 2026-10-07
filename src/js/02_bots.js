@@ -1,8 +1,4 @@
 // ---------- weapons ----------
-// weapon defines what combat is physically capable of; skill (below) decides how a
-// given bot *uses* that capability (plan §13: "ошибки исполнения через
-// seed-детерминированный навык"). No abstract morale/aggression stat — plan §13
-// explicitly rejects that; decisions read real causes (HP, numbers, range) instead.
 // Шаг 3 (план §4): полный набор оружия с ценами CS2. price — цена в магазине,
 // side — кто может купить ("CT"/"T"/"both"), slot — primary/secondary,
 // tier — грубая "сила" для решения "уже есть не хуже, не покупаем",
@@ -53,19 +49,9 @@ for(var wk in WEAPONS){ WEAPONS[wk].key = wk; WEAPONS[wk].fireIntervalTicks = 38
 var SPEED = 150; // px/sec, full-speed movement
 var ACCEL = 700; // px/sec^2 — counter-strafe/acceleration rate (plan §3)
 var WALK_SPEED_FRAC = 0.5; // "тихий шаг" (план §3) — медленнее, но тише
-// одно окно свежести на два смежных механизма плана §3: как долго "видел
-// врага здесь" (§6 память) остаётся годным поводом для префайра, и как
-// долго это же ощущение настороженности держит бота на тихом шаге вместо
-// бега — оба про одно и то же "я думаю, тут кто-то есть", не про разное
-var CAUTION_TICKS = 160; // ~2.5s at 64Hz — свежий визуальный контакт (перестаёт быть "только что видел")
-// звук держится в памяти дольше визуального контакта: услышанная позиция —
-// это "где он стоял", и если враг не двигался (не шумел дальше), она всё ещё
-// актуальна намного дольше 2.5с, которые годятся только для мгновенного виз. контакта
-var SOUND_CAUTION_TICKS = 384; // ~6s at 64Hz
 var GUN_HEAR_OPEN = 350, GUN_HEAR_WALL = 260; // px — слышно выстрел: по прямой / через стены
 var AIM_TURN_RATE = 11;     // рад/с — разворот прицела (180° примерно за 0.3с)
 var AIM_FIRE_CONE = 0.30;   // рад (~17°) — насколько прицел должен быть на цели, чтобы стрелять
-var PREFIRE_RADIUS = 140; // px — насколько близко цель должна появиться к последней известной позиции, чтобы засчитать префайр
 var SOUND_RADIUS_RUN = 380; // px — бег слышно по прямой (через стену — 0,75); шифт не слышно
 var FOOTSTEP_INTERVAL_RUN = 14, FOOTSTEP_INTERVAL_WALK = 20; // ticks между "шагами"-событиями
 var bots = [];
@@ -87,12 +73,10 @@ function makeTeam(team, spawnPt, count, weapon){
       contactStreak: 0, nextShotTick: 0,
       reactionTicks: 20, // ≈0,31 с — одинаковая у всех (индивидуальных профилей нет)
       skill: 1.0,
-      state: "patrol", decisionTick: -999, holding: false,
       curSpeed: 0,
-      crouching: false, holdSinceTick: -999, onStairs: false,
+      crouching: false, onStairs: false,
       burstCount: 0, lastShotTick: -999,
-      peekType: null, peekSinceTick: 0,
-      lastIntel: null, walking: false, lastStepTick: -999, heardSound: null, ears: [],
+      walking: false, lastStepTick: -999, heardSound: null, ears: [],
       // экономика (шаг 3)
       money: START_MONEY, primary: null, secondary: team==="CT" ? "USP" : "GLOCK",
       armor: false, helmet: false, kills: 0, deaths: 0, roundKills: 0
@@ -102,75 +86,3 @@ function makeTeam(team, spawnPt, count, weapon){
 }
 makeTeam("CT", CT_SPAWN, 5, WEAPONS.M4);
 makeTeam("T", T_SPAWN, 5, WEAPONS.AK);
-
-// ---------- роумер (план §3 "скаутинг/патрулирование") ----------
-// Роумер не стоит на одной точке и не ходит по случайным точкам, как
-// остальные в патруле: у него свой маршрут из 3-5 позиций, и цикл
-// "дойти (у точки — тихим шагом) → выглянуть и подержать угол → отметить
-// «чисто» → следующая". Услышал шаги — меняет порядок и идёт чекать
-// ближайшую к звуку точку. Играет от информации: чуть охотнее отходит
-// после контакта, и отходит не на спавн, а на предыдущую точку маршрута.
-// Маршрут: точки "маршрут роумера CT/T" из инструмента зон (в порядке
-// рисования, минимум 2), иначе — автоматически: самые простреливаемые
-// позиции своей половины карты по таблице опасности (план §2).
-var ROAM_CHECK_TICKS = 96;       // ~1.5с держит угол на каждой точке
-var ROAM_RECHECK_TICKS = 64*8;   // точку, проверенную <8с назад, по звуку заново не чекает
-var ROAM_QUIET_RADIUS = 260;     // ближе этого к точке — тихий шаг
-var ROAM_ROUTES = {CT:[], T:[]};
-function buildAutoRoamRoute(team){
-  var own = team==="CT" ? CT_SPAWN : T_SPAWN, enemy = team==="CT" ? T_SPAWN : CT_SPAWN;
-  var cands = [];
-  ZONEMAP.zones.forEach(function(z){
-    var c = ZONE_CENTROIDS[z.id]; if(!c) return;
-    var dOwn = Math.hypot(c.x-own.x, c.y-own.y), dEn = Math.hypot(c.x-enemy.x, c.y-enemy.y);
-    if(dOwn > dEn*0.95 || dOwn < 260) return; // своя половина, но не у самого спавна
-    var sp = snapToWalkable(c.x, c.y);
-    if(insideSolidWall(sp.x, sp.y)) return;
-    cands.push({x:sp.x, y:sp.y, name:z.name||z.id, danger:(ZONE_DANGER[z.id]||[]).length});
-  });
-  cands.sort(function(a,b){ return b.danger-a.danger; });
-  var picked = [];
-  cands.forEach(function(c){
-    if(picked.length >= 4) return;
-    if(picked.some(function(p){ return Math.hypot(p.x-c.x, p.y-c.y) < 240; })) return;
-    picked.push(c);
-  });
-  // порядок обхода — ближайший сосед, начиная от ближайшей к своему спавну
-  var route = [], left = picked.slice(), cur = {x:own.x, y:own.y};
-  while(left.length){
-    var bi = 0, bd = Infinity;
-    left.forEach(function(p,i){ var d = Math.hypot(p.x-cur.x, p.y-cur.y); if(d<bd){ bd=d; bi=i; } });
-    cur = left.splice(bi,1)[0]; route.push(cur);
-  }
-  return route;
-}
-function buildRoamRoutes(){
-  ["CT","T"].forEach(function(team){
-    var kind = team==="CT" ? "roam_ct" : "roam_t";
-    var user = USER_ZONES.filter(function(z){ return z.kind===kind && z.basePoints.length; }).map(function(z, i){
-      var c = zoneObjCentroid(z), sp = snapToWalkable(c.x, c.y);
-      return {x:sp.x, y:sp.y, name: z.name || ("роум "+team+" "+(i+1))};
-    });
-    ROAM_ROUTES[team] = user.length >= 2 ? user : buildAutoRoamRoute(team);
-    ROAM_ROUTES[team].forEach(function(p){ p.cleared = -99999; });
-  });
-  bots.forEach(function(b){ if(b.role==="roamer"){ b.roamIdx = 0; b.roamChecking = false; b.roamTarget = null; b.path = []; b.pathIdx = 0; } });
-}
-function initRoam(b){
-  b.roamIdx = 0; b.roamChecking = false; b.roamCheckUntil = 0; b.roamCheckStart = 0;
-  b.roamTarget = null; b.roamPrevPt = null; b.roamLookPt = null; b._roamSoundHandled = -1; b._roamSoundLockUntil = 0;
-}
-// по одному роумеру в команде — последний бот (CT4 / T4)
-// роумер — только у CT (CT4); у T последний бот — лёркер со своей логикой (lurkerBrain)
-bots.forEach(function(b){ b.role = (b.id==="CT4") ? "roamer" : null; initRoam(b); });
-buildRoamRoutes();
-ROAM_READY = true;
-
-// ======================= ШАГ 4: роли, тактики, бомба (план §5, §8) =======================
-// Роли — это веса и "пост" (куда встать и куда смотреть), а не отдельный код
-// под каждую роль. Тактика T — последовательность фаз с таймингами: setup →
-// execute → post-plant. CT — расстановка по ролям + ротации по "коллу"
-// своего, кто увидел врага у сайта. Бомба — минимальная версия (носитель,
-// дроп/подбор, плант 3.2с, взрыв через 40с, дефуз 10с / 5с с китом);
-// полноценный синхронный ретейк — шаг 6.
-

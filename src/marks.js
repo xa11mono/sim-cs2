@@ -140,12 +140,12 @@ function mkState(){
       x: bomb.x != null ? Math.round(bomb.x) : null, y: bomb.y != null ? Math.round(bomb.y) : null},
     bots: bots.map(function(b){
       var f = b.facing || 0, ray = rayClipWalls(b.x, b.y, b.x + Math.cos(f)*700, b.y + Math.sin(f)*700);
-      return { id: b.id, num: pnum(b.id), nick: nick(b.id), team: b.team, role: b.tRole || b.ctRole || "",
+      return { id: b.id, num: pnum(b.id), nick: nick(b.id), team: b.team,
         alive: !!b.alive, hp: b.hp, weapon: b.weapon ? b.weapon.key : "",
         x: Math.round(b.x*10)/10, y: Math.round(b.y*10)/10, place: mkPlace(b.x, b.y),
         facingDeg: mkDeg(f), look: b.lookTarget ? {x: Math.round(b.lookTarget.x), y: Math.round(b.lookTarget.y), place: mkPlace(b.lookTarget.x, b.lookTarget.y)} : null,
         wallAhead: ray.wall ? Math.round(Math.hypot(ray.x-b.x, ray.y-b.y)) : null,
-        task: b.post ? b.post.tag : "", lookReason: b.lookReason || "", why: whyText(b),
+        lookReason: b.lookReason || "", why: whyText(b),
         sees: (b._visible || []).map(function(e){ return e.id; }), moving: b.curSpeed > 15*SPD_K };
     }),
     smokes: smokes.map(function(s){ return {x: Math.round(s.x), y: Math.round(s.y), place: mkPlace(s.x, s.y)}; }),
@@ -169,7 +169,7 @@ function mkFrame(botId){
     draw();
     ctx.save(); ctx.font = "600 14px 'IBM Plex Sans', system-ui, sans-serif"; ctx.textAlign = "center";
     var seen = {};
-    BZ.ids.forEach(function(id, i){ var p = BZ.cent[i]; if(!p) return;
+    ZONEMAP.zones.forEach(function(z){ var p = ZONE_CENTROIDS[z.id]; if(!p) return;
       var sx = p.x*K + view.panX, sy = p.y*K + view.panY; if(sx < 40 || sx > W-40 || sy < 18 || sy > H-12) return;
       var nm = mkPlace(p.x, p.y); if(!nm || nm === "?" || seen[nm]) return; seen[nm] = 1;
       ctx.lineWidth = 4; ctx.strokeStyle = "rgba(0,0,0,0.75)"; ctx.strokeText(nm, sx, sy); ctx.fillStyle = "#f3efe4"; ctx.fillText(nm, sx, sy); });
@@ -189,7 +189,7 @@ function mkPrompt(m){
   var st = m.state;
   var data = { матч: st.match, раунд: st.round, время_раунда_с: st.roundTime, счёт: st.score, бомба: st.bomb,
     о_ком_по_клику_владельца: m.bot || null, смоки: st.smokes, молотовы: st.fires,
-    боты: st.bots.map(function(b){ return { id: b.id, номер_на_радаре: b.num, ник: b.nick, команда: b.team, роль: b.role, жив: b.alive, hp: b.hp, оружие: b.weapon,
+    боты: st.bots.map(function(b){ return { id: b.id, номер_на_радаре: b.num, ник: b.nick, команда: b.team, жив: b.alive, hp: b.hp, оружие: b.weapon,
       где: b.place, x: b.x, y: b.y, взгляд_градусы: b.facingDeg, смотрит_на: b.look ? b.look.place : null, стена_по_взгляду_px: b.wallAhead,
       задача_и_взгляд: b.why, видит_врагов: b.sees, идёт: b.moving }; }) };
   return "Ты помогаешь владельцу симулятора CS2 (карта Ancient, вид сверху, 5 CT против 5 T) разобрать замечание к моменту матча.\n" +

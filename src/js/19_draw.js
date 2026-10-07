@@ -282,8 +282,6 @@ function draw(){
     });
   }
 
-  if(chkSpots.checked) drawSpots();
-  if(chkCorners.checked) drawCorners();
 
   var contacts = 0;
   // контакты для HUD — считаем всегда, независимо от отрисовки
@@ -292,20 +290,7 @@ function draw(){
     bots.forEach(function(t){ if(t.team==="T" && t.alive && hasVision(ct.x,ct.y,t.x,t.y)) contacts++; });
   });
 
-  // ---------- анимация ожидания (только визуал, на симуляцию не влияет) ----------
-  // Стоящий на посту / держащий угол / ждущий выхода бот не замирает
-  // статуей: взгляд плавно "поводит" по углу, вокруг — едва заметное дыхание.
-  bots.forEach(function(b){
-    if(!b.alive){ b._visFacing = b.facing; return; }
-    var ph = (b.id.charCodeAt(0)*13 + b.id.charCodeAt(b.id.length-1)*7) % 100;
-    b._idle = b.curSpeed < 6 && (b.atPost || b.holding || b.roamChecking || b.planting || b.defusing);
-    var sway = 0;
-    if(b._idle && !b._sawEnemy && !b.planting && !b.defusing){
-      sway = 0;
-    }
-    b._visFacing = b.facing === undefined ? undefined : b.facing + sway;
-    b._idlePhase = ph;
-  });
+  bots.forEach(function(b){ b._visFacing = b.facing; }); // направление взгляда для рисования
 
   // ---------- конусы обзора (вместо линий) ----------
   // Конус — реальное поле зрения бота (FOV_DEG), обрезанное стенами и дымом:
@@ -485,56 +470,6 @@ function draw(){
     }
   }
 
-  // коллы (раздел 11): что знает каждая команда. Для каждого врага — только
-  // последняя отметка; старше 4с не рисуем (память живёт дольше, но на радаре шум)
-  // «проверили — пусто»: места последних наблюдений, где свои посмотрели и врага нет
-  if(showCalls && showCalls.checked){
-    ["CT","T"].forEach(function(team){
-      var L = beliefLast[team] || {};
-      for(var id in L){
-        var c = L[id]; if(!c.gone || tick - c.gone > 15*TICK_HZ) continue;
-        var age = Math.round((tick-c.gone)/TICK_HZ);
-        ctx.save(); ctx.fillStyle = team === "T" ? "rgba(230,160,60,0.85)" : "rgba(90,160,230,0.85)";
-        ctx.font = "600 "+(8/view.scale)+"px 'IBM Plex Mono',monospace"; ctx.textAlign = "center";
-        ctx.fillText("✓ пусто ("+team+") "+age+"с", c.x, c.y - 12/view.scale); ctx.restore();
-      }
-    });
-  }
-  if(showCalls && showCalls.checked){
-    ["CT","T"].forEach(function(team){
-      for(var id in picKnown(team)){
-        var e = picKnown(team)[id], col = team === "CT" ? "rgba(230,160,60," : "rgba(90,160,230,"; // цвет — того, кого запомнили
-        ctx.save(); ctx.strokeStyle = col+"0.8)"; ctx.fillStyle = col+"0.9)"; ctx.lineWidth = 1.4/view.scale;
-        ctx.setLineDash([3/view.scale, 3/view.scale]); ctx.beginPath(); ctx.arc(e.x, e.y, 9/view.scale, 0, 7); ctx.stroke(); ctx.setLineDash([]);
-        ctx.font = "600 "+(8/view.scale)+"px 'IBM Plex Mono',monospace"; ctx.textAlign = "center";
-        ctx.fillText(pnum(id)+" · "+Math.round((tick-e.tick)/TICK_HZ)+"с", e.x, e.y + 3/view.scale);
-        ctx.restore();
-      }
-    });
-  }
-  if(showCalls && showCalls.checked && typeof teamIntel !== "undefined"){
-    ["CT","T"].forEach(function(team){
-      var col = team === "CT" ? "90,155,217" : "217,162,74";
-      var lastBy = {};
-      picEvents(team).forEach(function(sg){ if(tick - sg.tick < 4*TICK_HZ) lastBy[sg.type+sg.id] = sg; });
-      Object.keys(lastBy).forEach(function(k){
-        var sg = lastBy[k], a = Math.max(0, 1 - (tick - sg.tick)/(4*TICK_HZ)), r = 15/view.scale;
-        ctx.lineWidth = 1.6/view.scale;
-        if(sg.type === "spotted"){
-          ctx.fillStyle = "rgba("+col+","+(0.10*a)+")"; ctx.strokeStyle = "rgba("+col+","+(0.95*a)+")"; ctx.lineWidth = 2.2/view.scale;
-          ctx.beginPath(); ctx.moveTo(sg.x, sg.y-r); ctx.lineTo(sg.x+r, sg.y); ctx.lineTo(sg.x, sg.y+r); ctx.lineTo(sg.x-r, sg.y); ctx.closePath(); ctx.fill(); ctx.stroke();
-        } else if(sg.type === "sound"){
-          ctx.strokeStyle = "rgba("+col+","+(0.6*a)+")"; ctx.setLineDash([3/view.scale, 3/view.scale]);
-          ctx.beginPath(); ctx.arc(sg.x, sg.y, 22/view.scale, 0, Math.PI*2); ctx.stroke(); ctx.setLineDash([]);
-        } else if(sg.type === "died"){
-          ctx.strokeStyle = "rgba("+col+","+(0.9*a)+")";
-          ctx.beginPath(); ctx.moveTo(sg.x-r, sg.y-r); ctx.lineTo(sg.x+r, sg.y+r); ctx.moveTo(sg.x+r, sg.y-r); ctx.lineTo(sg.x-r, sg.y+r); ctx.stroke();
-          if(sg.kx != null){ ctx.setLineDash([2/view.scale, 4/view.scale]); ctx.beginPath(); ctx.moveTo(sg.x, sg.y); ctx.lineTo(sg.kx, sg.ky); ctx.stroke(); ctx.setLineDash([]); }
-        }
-      });
-    });
-  }
-
   var alpha = Math.max(0, Math.min(1, accumulator / TICK_MS));
   // сайты и бомба (шаг 4)
   ["A","B"].forEach(function(k){
@@ -559,28 +494,6 @@ function draw(){
       ctx.fillText(Math.max(0,(bomb.explodeTick-tick)/TICK_HZ).toFixed(1)+"с", bomb.x, bomb.y-10/view.scale);
     }
   }
-  if(document.getElementById("chkRoam").checked){
-    ["CT","T"].forEach(function(team){
-      var route = ROAM_ROUTES[team]; if(!route.length) return;
-      var col = team==="CT" ? "rgba(120,200,255," : "rgba(255,200,110,";
-      ctx.strokeStyle = col+"0.45)"; ctx.lineWidth = 1.3/view.scale;
-      ctx.setLineDash([6/view.scale, 5/view.scale]);
-      ctx.beginPath();
-      route.forEach(function(p,i){ if(i===0) ctx.moveTo(p.x,p.y); else ctx.lineTo(p.x,p.y); });
-      if(route.length > 2) ctx.closePath();
-      ctx.stroke(); ctx.setLineDash([]);
-      route.forEach(function(p){
-        var fresh = tick - p.cleared < ROAM_RECHECK_TICKS;
-        ctx.beginPath(); ctx.arc(p.x, p.y, 5/view.scale, 0, Math.PI*2);
-        ctx.fillStyle = fresh ? col+"0.95)" : "rgba(20,24,20,0.9)"; ctx.fill();
-        ctx.strokeStyle = col+"0.9)"; ctx.lineWidth = 1.5/view.scale; ctx.stroke();
-        ctx.fillStyle = col+"0.9)";
-        ctx.font = (9.5/view.scale)+"px 'IBM Plex Mono',monospace"; ctx.textAlign = "left";
-        var lbl = p.name + (p.cleared > 0 ? " · чисто "+((tick-p.cleared)/TICK_HZ).toFixed(0)+"с назад" : "");
-        ctx.fillText(lbl, p.x+8/view.scale, p.y+3/view.scale);
-      });
-    });
-  }
   // оружие на земле
   groundWeapons.forEach(function(G){
     ctx.save(); ctx.fillStyle = "rgba(210,210,200,0.85)"; ctx.strokeStyle = "rgba(20,20,20,0.8)"; ctx.lineWidth = 1/view.scale;
@@ -603,24 +516,11 @@ function draw(){
     var rx = bot.px + (bot.x-bot.px)*alpha;
     var ry = bot.py + (bot.y-bot.py)*alpha;
     var r = (bot.crouching ? 6.2 : 7)/view.scale; // сидя — чуть меньше (v161: кружки меньше, не закрывают мелкие укрытия)
-    if(bot._idle && false){
-      var br = r;
-      ctx.beginPath(); ctx.arc(rx, ry, br, 0, Math.PI*2);
-      ctx.strokeStyle = bot.team==="CT" ? "rgba(90,155,217,0.35)" : "rgba(217,162,74,0.35)";
-      ctx.lineWidth = 1.2/view.scale; ctx.stroke();
-    }
     if(bot._reloading && bot.weapon){
       // раздел 14: перезарядка — белая дуга заполняется до конца перезарядки
       var rl = bot.weapon.reload*TICK_HZ, done = 1 - Math.max(0, bot.reloadUntil - tick)/rl;
       ctx.beginPath(); ctx.arc(rx, ry, r + 3.5/view.scale, -Math.PI/2, -Math.PI/2 + Math.PI*2*done);
       ctx.strokeStyle = "rgba(255,255,255,0.85)"; ctx.lineWidth = 1.8/view.scale; ctx.stroke();
-    }
-    var tt4 = teamTac.T;
-    if(bot.team === "T" && tt4 && tt4.phase === "setup" && bot.atPost && tt4.tac.setupEnd > 0){
-      // ждёт выхода — дуга обратного отсчёта до execute
-      var total = (tt4.setupSec || tt4.tac.setupEnd)*TICK_HZ, leftT = Math.max(0, tt4.execTick - tick);
-      ctx.beginPath(); ctx.arc(rx, ry, r + 6/view.scale, -Math.PI/2, -Math.PI/2 + Math.PI*2*(leftT/total));
-      ctx.strokeStyle = "rgba(255,214,140,0.8)"; ctx.lineWidth = 1.8/view.scale; ctx.stroke();
     }
     // этажи (раздел 9): верхний уровень — светлый внешний ободок и тень снизу,
     // нижний (подвал/проходы под картой) — тёмный пунктирный ободок
@@ -647,30 +547,12 @@ function draw(){
     ctx.fillStyle = bot.team==="CT" ? "#5a9bd9" : "#d9a24a";
     ctx.fill();
     ctx.lineWidth = 1.5/view.scale; ctx.strokeStyle="#0b0f0b"; ctx.stroke();
-    if(false){
-      var fx = rx + Math.cos(vf)*r*1.8;
-      var fy = ry + Math.sin(vf)*r*1.8;
-      ctx.strokeStyle = "#fff"; ctx.lineWidth = 2/view.scale;
-      ctx.beginPath(); ctx.moveTo(rx,ry); ctx.lineTo(fx,fy); ctx.stroke();
-    }
     var bw = 18/view.scale, bh = 2.5/view.scale;
     ctx.fillStyle = "rgba(0,0,0,0.5)"; ctx.fillRect(rx-bw/2, ry-r-8/view.scale, bw, bh);
     ctx.fillStyle = bot.hp>50 ? "#94b449" : (bot.hp>25 ? "#d9832f" : "#c1584f");
     ctx.fillRect(rx-bw/2, ry-r-8/view.scale, bw*Math.max(0,bot.hp)/100, bh);
-    if(bot.state && bot.state !== "patrol"){
-      var stCol = bot.state==="engage" ? "#c1584f" : (bot.state==="hold" ? "#d9832f" : "#8fb3d9");
-      var stCh = bot.state==="engage" ? "!" : (bot.state==="hold" ? "=" : "«");
-      ctx.fillStyle = stCol;
-      ctx.font = (10/view.scale)+"px 'IBM Plex Mono',monospace";
-      ctx.textAlign = "center";
-      ctx.fillText(stCh, rx, ry-r-11/view.scale);
-    }
-    if(bot.tRole){
-      ctx.fillStyle = "#fff"; ctx.font = "600 "+(7.5/view.scale)+"px 'IBM Plex Mono',monospace";
-      ctx.font = "700 "+(8.5/view.scale)+"px 'IBM Plex Mono',monospace";
-      ctx.textAlign = "center"; ctx.fillText(String(pnum(bot.id)), rx, ry+3/view.scale);
-    }
-    if(bot._knife){ ctx.fillStyle = "#e8ecdd"; ctx.font = (7/view.scale)+"px 'IBM Plex Mono',monospace"; ctx.textAlign = "center"; ctx.fillText("нож", rx, ry-r-14/view.scale); }
+    ctx.fillStyle = "#fff"; ctx.font = "700 "+(8.5/view.scale)+"px 'IBM Plex Mono',monospace";
+    ctx.textAlign = "center"; ctx.fillText(String(pnum(bot.id)), rx, ry+3/view.scale);
     if(showWhy && showWhy.checked){
       var wt = whyText(bot);
       ctx.font = (7.5/view.scale)+"px 'IBM Plex Mono',monospace"; ctx.textAlign = "center";
@@ -738,7 +620,7 @@ function draw(){
     ctx.fillStyle = "#e8ecdd"; ctx.textAlign = "center"; ctx.font = "600 15px 'IBM Plex Sans',sans-serif";
     ctx.fillText("ЗАКУПКА · "+fzl.toFixed(1)+"с", cv.width/2, fy+20);
     ctx.font = "11px 'IBM Plex Mono',monospace"; ctx.fillStyle = "#8b9a80";
-    ctx.fillText("CT: "+ROUND_TYPE_LABEL[teamEco.CT.roundType]+" · T: "+ROUND_TYPE_LABEL[teamEco.T.roundType]+(teamTac.T?" · «"+teamTac.T.tac.name+"»":""), cv.width/2, fy+36);
+    ctx.fillText("CT: "+ROUND_TYPE_LABEL[teamEco.CT.roundType]+" · T: "+ROUND_TYPE_LABEL[teamEco.T.roundType], cv.width/2, fy+36);
     ctx.restore();
   }
   if(roundState === "matchover"){
@@ -762,53 +644,4 @@ function draw(){
     ctx.fillText("следующий раунд через "+Math.max(0, (ROUND_RESTART_DELAY_SEC-(simTime-roundEndTime))).toFixed(1)+"с", cv.width/2, cv.height/2 + 115);
     ctx.restore();
   }
-}
-
-
-// ---------- (v195) слой «места из демок» (01_spots.js), только показ ----------
-// CT — синие, T — оранжевые; кольцо — после планта (T) / ретейк (CT); стрелки —
-// 1–2 направления взгляда (толщина — доля времени); буква — район
-var chkSpots = document.getElementById("chkSpots");
-chkSpots.addEventListener("change", function(){ draw(); });
-function drawSpots(){
-  var sc = view.scale, COL = {CT:"#5aa8ff", T:"#ffaa3c"};
-  ctx.save();
-  spotsGet().forEach(function(p){
-    var c = COL[p.side] || "#ccc";
-    ctx.globalAlpha = 0.85; ctx.strokeStyle = c;
-    p.looks.forEach(function(l){ var ang = Math.atan2(l.y-p.y, l.x-p.x), L = 22/sc;
-      ctx.lineWidth = (0.8 + 2*l.w)/sc; ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(p.x+L*Math.cos(ang), p.y+L*Math.sin(ang)); ctx.stroke(); });
-    ctx.fillStyle = c; ctx.strokeStyle = "#0b0f0b"; ctx.lineWidth = 1/sc;
-    ctx.beginPath(); ctx.arc(p.x, p.y, 3.4/sc, 0, Math.PI*2); ctx.fill(); ctx.stroke();
-    if(p.phase !== "pre"){ ctx.strokeStyle = c; ctx.beginPath(); ctx.arc(p.x, p.y, 6/sc, 0, Math.PI*2); ctx.stroke(); }
-    if(p.area){ ctx.font = (9/sc)+"px sans-serif"; ctx.fillStyle = "#e8eee8"; ctx.fillText(p.area === "M" ? "м" : p.area, p.x+4.5/sc, p.y-3.5/sc); }
-  });
-  ctx.restore();
-}
-
-// ---------- (v196, В15) слой «углы» (10_corners.js), только показ ----------
-// у выбранного кликом игрока (или у CORNER_SHOW — для снимков): видимая область,
-// края, их опасность сейчас и какой край он держит (куда смотрит)
-var chkCorners = document.getElementById("chkCorners");
-chkCorners.addEventListener("change", function(){ draw(); });
-var CORNER_SHOW = null;
-function drawCorners(){
-  var ids = CORNER_SHOW || (plSelected ? [plSelected] : []), sc = view.scale;
-  ids.forEach(function(id){ var b = botById(id); if(!b || !b.alive) return;
-    var C = cornersAt(b.x, b.y), N = C.D.length, st = 2*Math.PI/N;
-    ctx.save();
-    ctx.globalAlpha = 0.16; ctx.fillStyle = b.team === "CT" ? "#5aa8ff" : "#ffaa3c";
-    ctx.beginPath(); for(var i=0;i<N;i++){ var a = i*st, x = C.x + Math.cos(a)*C.D[i], y = C.y + Math.sin(a)*C.D[i]; if(i) ctx.lineTo(x, y); else ctx.moveTo(x, y); } ctx.closePath(); ctx.fill();
-    var fa = b.facing || 0, held = null, hd = 0.35;
-    C.E.forEach(function(e){ var da = Math.abs(Math.atan2(Math.sin(Math.atan2(e.y-b.y, e.x-b.x)-fa), Math.cos(Math.atan2(e.y-b.y, e.x-b.x)-fa))); if(da < hd){ hd = da; held = e; } });
-    C.E.forEach(function(e){
-      var D = cornerDanger(b.team, e, b), col = D.mate ? "#6aa0ff" : D.info > 0 ? "#ffd84a" : D.t > 0 ? "#ff5a4e" : "#8a8f86";
-      ctx.globalAlpha = 0.95; ctx.strokeStyle = col; ctx.lineWidth = 1.2/sc;
-      ctx.beginPath(); ctx.moveTo(e.cx, e.cy); ctx.lineTo(e.x + Math.cos(e.a)*18/sc, e.y + Math.sin(e.a)*18/sc); ctx.stroke();
-      ctx.fillStyle = col; ctx.beginPath(); ctx.arc(e.x, e.y, (e === held ? 5 : 3.2)/sc, 0, Math.PI*2); ctx.fill();
-      if(e === held){ ctx.strokeStyle = "#ffffff"; ctx.lineWidth = 1.6/sc; ctx.beginPath(); ctx.arc(e.x, e.y, 8/sc, 0, Math.PI*2); ctx.stroke(); }
-      ctx.font = (9/sc)+"px sans-serif"; ctx.fillStyle = "#f0f2ea";
-      ctx.fillText(D.t > 0 || D.info > 0 ? D.v.toFixed(2) : (isFinite(D.eta) ? Math.round(D.eta)+"с" : "—"), e.x + 5/sc, e.y - 4/sc);
-    });
-    ctx.restore(); });
 }

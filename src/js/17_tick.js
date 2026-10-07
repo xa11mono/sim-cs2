@@ -10,9 +10,10 @@ roundState = BAL.freeze > 0 ? "freeze" : "live";
 roundStartTime = BAL.freeze; roundStartTick = Math.round(BAL.freeze*TICK_HZ);
 buyPhase(); // закуп первого (пистолетного) раунда — после объявления simTime (logEvent его использует)
 resetBomb();
-chooseTactic();
-beliefBuild(); knowReset(); // знание о врагах (09_knowledge.js)
 
+// Тик движка (v197 — без мозга): бомба, гранаты, подбор оружия, движение по
+// пути (путь задаёт мозг; сейчас его нет — боты стоят), шаги, кто кого видит и
+// стрельба, конец раунда.
 function stepTick(){
   tick++;
   simTime = tick * TICK_MS / 1000;
@@ -28,183 +29,38 @@ function stepTick(){
     if(simTime >= roundStartTime){ roundState = "live"; logEvent("Freeze-тайм окончен — раунд пошёл"); }
     return;
   }
-  teamBrains(); // шаг 4: тактика T / расстановка и ротации CT / бомба
-  if(roundState !== "live") return;
-  nadeBrains(); updateNadeTasks(); nadesTick(); // шаг 5: гранаты
+  bombTick();
+  if(roundState !== "live") return; // дефуз мог только что закончить раунд
+  weaponPickupTick();
+  nadesTick();
   if(roundState !== "live") return;
   var dtSec = TICK_MS/1000, maxDelta = ACCEL*dtSec;
-  // movement tuning (plan-driven "natural, not robotic" pass):
-  // ARRIVE_RADIUS = corner-rounding radius — a waypoint counts as "passed"
-  //   once the bot is this close, instead of demanding pixel-exact arrival,
-  //   so the bot curves through a corner rather than stopping dead at it.
-  // BRAKE_RADIUS = braking point — start easing off full speed this far from
-  //   the true final destination, so a patrol stop looks like deceleration,
-  //   not a hard freeze.
-  // TURN_RATE = max heading change per second — movement direction eases
-  //   toward the target direction instead of snapping instantly, which is
-  //   what actually produces a curved, natural-looking turn (the funnel path
-  //   above already cut the corner geometrically; this is what makes the
-  //   bot's own motion trace that curve smoothly instead of in dead-straight
-  //   segments with instant pivots at each vertex).
-  var ARRIVE_RADIUS = 40, BRAKE_RADIUS = 90, TURN_RATE = BAL.turnRate || 6.0; // (10) на повороте бот шёл дугой и тёрся о угол
+  // ARRIVE_RADIUS — точка пути считается пройденной на этом расстоянии (бот
+  //   срезает угол дугой, а не встаёт в вершине); BRAKE_RADIUS — с какого
+  //   расстояния до конца пути тормозить; TURN_RATE — макс. поворот направления
+  //   движения в секунду (плавная дуга вместо поворота на месте)
+  var ARRIVE_RADIUS = 40, BRAKE_RADIUS = 90, TURN_RATE = 6.0;
   // slope = |Δz|/расстояние по отрезку пути; 0.35 отсекает обычные пологие
-  // перепады этажей и ловит именно лестницы/рампы (плюс любой резкий обрыв,
-  // что по факту тоже честная "точность падает, не задерживайся" ситуация)
+  // перепады этажей и ловит именно лестницы/рампы
   var STAIRS_SLOPE_THRESHOLD = 0.35;
   bots.forEach(function(bot){
     if(!bot.alive) return;
     bot.px = bot.x; bot.py = bot.y;
-    updatePost(bot);
     updateReload(bot);
-    if(!bot.post) updateRoamer(bot);
-    // этаж под ботом (раздел 9: метка уровня на радаре) — раз в 16 тиков хватает
+    // этаж под ботом (метка уровня на радаре) — раз в 16 тиков хватает
     if(tick % 16 === 0){ var za = zoneOf(bot.baseX, bot.baseY); bot._zArea = za ? za.z : 0; }
-    // "на лестнице" пересчитывается только в ветке движения — если бот
-    // остановился (держит угол, стоит на посту), флаг раньше оставался от
-    // последнего отрезка пути навсегда: бот, дошедший до поста по лестнице,
-    // весь раунд стрелял со штрафом лестницы 0.35 и не мог выбрать "держать
-    // угол". Сбрасываем каждый тик; движение ниже выставит заново, если надо.
-    bot.onStairs = false;
-    // "тихий шаг" (план §3): осторожен, если подозревает, что враг рядом —
-    // либо только что видел (lastIntel), либо услышал шаги (heardSound) —
-    // но сам сейчас его не видит и не держит угол в открытую (holding
-    // уже означает "готов стрелять", там скорость и так 0). bot._sawEnemy
-    // тут — с прошлого тика (resolveEngagements считается в конце stepTick),
-    // отставание на один тик не критично для решения "идти тише".
-    bot.walking = (bot._pie && bot._pie.slice && tick - bot._pie.t < 16 && !bot.holding && !bot._sawEnemy) || !bot.holding && !bot._sawEnemy && !(bot._stopPlantUntil > tick) &&
-      ((bot.lastIntel && tick - bot.lastIntel.tick < CAUTION_TICKS) ||
-       (bot.heardSound && tick - bot.heardSound.tick < SOUND_CAUTION_TICKS) ||
-       // роумер подходит к точке чека тихо
-       (bot.role === "roamer" && !bot.roamChecking && bot.roamTarget && bot.state === "patrol" &&
-        Math.hypot(bot.roamTarget.x-bot.baseX, bot.roamTarget.y-bot.baseY) < ROAM_QUIET_RADIUS) ||
-       // заход на занятый врагом сайт (сбор на ретейк) — последние метры шагом
-       (bot.post && bot.state === "patrol" && /^gather/.test(bot.post.tag) && Math.hypot(bot.post.x-bot.baseX, bot.post.y-bot.baseY) < 500) ||
-       // клатч T с бомбой: без инфы — на шифте (не палится бегом); бежит,
-       // только если время поджимает или все CT известны и далеко
-       (BAL.soloSlow && bot.team === "T" && bomb && bomb.state === "carried" && bomb.carrier === bot && aliveCount("T") === 1 && soloMayWalk(bot)) ||
-       (BAL.cautious && bot.post && bot.state === "patrol" && /^(retake|defuse)$/.test(bot.post.tag) &&
-        Math.hypot(bot.post.x-bot.baseX, bot.post.y-bot.baseY) < 350) ||
-       // лёркер в сетапе ходит тихо
-       (bot.tRole === "lurker" && bot.team === "T" && teamTac.T && teamTac.T.phase === "setup" && bot.post && /^(stage|lurk)/.test(bot.post.tag)) ||
-       (BAL.dangerWalk && dangerWalk(bot)) ||
-       // ниндзя-дефуз: последние ~3м к бомбе шифтом, если время позволяет
-       (BAL.ninjaDefuse && bomb && bomb.retake && bomb.retake.ninja && bot.post && bot.post.tag === "defuse" &&
-        Math.hypot(bot.post.x-bot.baseX, bot.post.y-bot.baseY) < 300 &&
-        bombTimeLeftTicks()/TICK_HZ > Math.hypot(bot.post.x-bot.baseX, bot.post.y-bot.baseY)/(SPEED*WALK_SPEED_FRAC) + (bot.kit ? 5 : 10) + 1.5));
-    knifeTick(bot); prePeekTick(bot);
+    bot.onStairs = false; // движение ниже выставит заново, если бот на лестнице
     var runSpeed = (bot.walking ? SPEED*WALK_SPEED_FRAC : SPEED) * weaponSpeedMul(bot);
-    // атакующий, который прямо сейчас видит врага, останавливается и
-    // стреляет (контр-страф), а не продолжает бежать по патрульному пути —
-    // иначе он сам уходил из линии огня посреди перестрелки. Боковое
-    // движение при этом даёт пик (см. peekType ниже).
-    // ждёт хлопка флешки тиммейта (поп на убийцу / ретейк) — не выбегает раньше неё
-    var waitPop = (bot._waitPopUntil > tick && nadeFlags[bot._waitPopKey] === undefined && !bot._sawEnemy) || (bot._ppWaitUntil > tick && !bot._sawEnemy);
-    if(bot._pie && bot._pie.slice && tick - bot._pie.t < 16 && !bot._sawEnemy) runSpeed *= 0.75; // режет угол
-    var targetSpeed = (waitPop || bot.holding || bot.roamChecking || bot.atPost || bot.planting || bot.defusing || tick < (bot.throwUntil||0) || (bot.state === "engage" && bot._sawEnemy)) ? 0 : runSpeed;
-    // стоит в огне — выбегает из него прямо сейчас, что бы ни делал
-    var burn = inFire(bot.baseX, bot.baseY);
-    if(burn && !bot.planting && !fireCommit(bot)){
-      // Из огня бот ВЫХОДИТ обычным бегом по пути к ближайшему краю (раньше его
-      // каждый тик сдвигало наружу напрямую — выглядело как отбрасывание).
-      bot.atPost = false; bot.defusing = false;
-      bot._burning = true;
-      if(!bot._fireExit || inFire(bot._fireExit.x, bot._fireExit.y) || bot._fireExitFire !== burn){
-        var best = null, bd = Infinity;
-        for(var ai=0; ai<12; ai++){
-          var aa = ai*Math.PI/6, rr = NADE.molly.radius + 28;
-          var qx = burn.x + Math.cos(aa)*rr, qy = burn.y + Math.sin(aa)*rr;
-          if(insideSolidWall(qx, qy) || crossesWall(bot.baseX, bot.baseY, qx, qy)) continue;
-          var dq = Math.hypot(qx-bot.baseX, qy-bot.baseY);
-          // ближе всего — и лучше в сторону, куда бот и так шёл
-          if(bot.post) dq += Math.hypot(qx-bot.post.x, qy-bot.post.y)*(BAL.fireExit ? 0.08 : 0.3);   // (v151) ближний край важнее, не через весь огонь
-          if(dq < bd){ bd = dq; best = {x:qx, y:qy}; }
-        }
-        bot._fireExit = best; bot._fireExitFire = burn;
-        if(best){ bot.path = [[best.x, best.y, bot.z]]; bot.pathIdx = 0; }
-      }
-      // (v151) раньше путь наружу перебивали пост/бой каждый тик, а держащий угол
-      // вообще не двигался — стоял в огне. Теперь, пока горит, путь только наружу
-      if(BAL.fireExit && bot._fireExit){
-        bot.holding = false;
-        var fw = bot.path && bot.path[bot.path.length-1];
-        if(!fw || Math.hypot(fw[0]-bot._fireExit.x, fw[1]-bot._fireExit.y) > 4){ bot.path = [[bot._fireExit.x, bot._fireExit.y, bot.z]]; bot.pathIdx = 0; }
-        bot.walking = false; bot.crouching = false;   // из огня — бегом, не шифтом
-      }
-      targetSpeed = BAL.fireExit ? SPEED * weaponSpeedMul(bot) : runSpeed;
-    } else { bot._burning = false; if(bot._fireExit){ bot._fireExit = null; bot._fireExitFire = null; } }
-    if(!bot.holding && bot.path.length){
+    var hasPath = bot.path.length > 0 && bot.pathIdx < bot.path.length;
+    var targetSpeed = (!hasPath || bot.planting || bot.defusing || tick < (bot.throwUntil||0)) ? 0 : runSpeed;
+    if(hasPath){
       var finalWp = bot.path[bot.path.length-1];
       var dFinal = Math.hypot(finalWp[0]-bot.baseX, finalWp[1]-bot.baseY);
       if(dFinal < BRAKE_RADIUS) targetSpeed = runSpeed * Math.max(0.35, dFinal/BRAKE_RADIUS);
     }
-    // ослеплён: либо шаг назад за угол (путь уже задан в onBlind), либо стоп
-    if(BAL.blindPlay && bot._blind && tick < bot._blind.until && !burn){
-      targetSpeed = bot._blind.back ? runSpeed*0.55 : 0;
-      if(!bot._blind.back) bot.crouching = true;
-    } else if(bot._blind && tick >= bot._blind.until){ bot._blind = null; }
     if(bot.curSpeed < targetSpeed) bot.curSpeed = Math.min(targetSpeed, bot.curSpeed+maxDelta);
     else if(bot.curSpeed > targetSpeed) bot.curSpeed = Math.max(targetSpeed, bot.curSpeed-maxDelta);
-    if(BAL.tagging && tick < (bot._tagUntil||0)) bot.curSpeed = Math.min(bot.curSpeed, SPEED*0.4);
-    if(tick % 16 === 0){ var TR = bot._trail || (bot._trail = []); TR.push({x:bot.baseX, y:bot.baseY}); if(TR.length > 8) TR.shift(); }
-    // стрейф между выстрелами в дальней дуэли
-    var dsOn = BAL.duelStrafe && bot._sawEnemy && (bot.state === "engage" || bot.state === "hold") && !bot.peekType && !bot.planting && !bot.defusing &&
-               !burn && tick >= (bot.blindUntil||0) && duelStrafeOk(bot);
-    if(dsOn){
-      var DS = bot._ds;
-      if(!DS){ DS = bot._ds = {dir: (hashRand(tick*13 + bot.id.charCodeAt(1)) < 0.5 ? 1 : -1), moving:false, stopT: tick, until: tick + 40}; } // сначала выстрел
-      // (С1) стоп → очередь (длину решает режим огня) → шаг → стоп. Стоит, пока не
-      // отстрелял очередь (не дольше ~0,6 с, если выстрелить не вышло)
-      var burstDone = bot.lastShotTick >= DS.stopT && !(bot._fire && bot._fire.left > 0);
-      if(DS.moving ? tick >= DS.until : (burstDone || tick >= DS.until)){
-        if(DS.moving){ DS.moving = false; DS.stopT = tick; DS.until = tick + 40; }   // контрстрейф — и очередь
-        else { DS.moving = true; DS.dir = -DS.dir;
-          // на средней дистанции с винтовкой — короткий шаг (под бёрст), вдали и с пистолетом — шире
-          var enD = bot._nearestEnemyBot ? Math.hypot(bot._nearestEnemyBot.x-bot.x, bot._nearestEnemyBot.y-bot.y) : 600;
-          var shortS = bot.weapon && bot.weapon.slot !== "secondary" && enD < 600;
-          DS.until = tick + (shortS ? 5 : 8) + Math.floor(hashRand(tick*7 + bot.id.charCodeAt(1)*3)*(shortS ? 3 : 5)); }
-      }
-      if(DS.moving){
-        var en = bot._nearestEnemyBot, pA = Math.atan2(en.y-bot.baseY, en.x-bot.baseX) + Math.PI/2;
-        var stp = 105*SPD_K*dtSec, nx2 = bot.baseX + Math.cos(pA)*DS.dir*stp, ny2 = bot.baseY + Math.sin(pA)*DS.dir*stp;
-        // не выходить из линии на врага и не лезть в стену: иначе разворот
-        if(stepBlocked(bot.baseX, bot.baseY, nx2, ny2, bot) || !hasLOS(nx2, ny2, en.x, en.y) || Math.hypot(nx2-(DS.ax||bot.baseX), ny2-(DS.ay||bot.baseY)) > 70){
-          DS.dir = -DS.dir; nx2 = bot.baseX; ny2 = bot.baseY;
-        }
-        if(DS.ax == null){ DS.ax = bot.baseX; DS.ay = bot.baseY; }
-        bot.baseX = nx2; bot.baseY = ny2; bot.curSpeed = 105*SPD_K; bot.crouching = false;
-      } else bot.curSpeed = 0;
-    } else if(bot._ds){ bot._ds = null; }
-
-    // ---------- держит угол "живьём" ----------
-    // Стоящий на посту / держащий угол без контакта не стоит статуей: медленно
-    // (шагом, тихо) переставляется влево-вправо поперёк направления взгляда
-    // в пределах ~25px, иногда замирает. Это настоящее движение (с коллизией),
-    // не только анимация. Как только видит врага — сразу стоп (контр-страф).
-    var idleHold = (bot.atPost || (bot.holding && !bot._sawEnemy)) && !bot._sawEnemy && !bot.planting && !bot.defusing &&
-                   !(bot.post && /^(gather|retake|defuse|save|antidefuse|lineup|pickup|fetch|plantspot|flee)/.test(bot.post.tag)) &&
-                   tick >= (bot.throwUntil||0) && !burn && !(bot.fakeHoldUntil && tick < bot.fakeHoldUntil);
-    if(idleHold){
-      if(!bot._hold || bot._hold.post !== bot.post){ bot._hold = {post: bot.post, ax: bot.baseX, ay: bot.baseY, dir: 0, until: tick}; }
-      var H = bot._hold;
-      if(tick >= H.until){
-        var hr = hashRand(tick*7 + bot.id.charCodeAt(0)*31 + bot.id.length*101);
-        H.dir = hr < 0.25 ? 0 : (hr < 0.62 ? 1 : -1);          // иногда просто стоит
-        H.until = tick + 55 + Math.floor(hashRand(tick*3 + bot.id.charCodeAt(0))*110);
-        H.fwd = (hashRand(tick*11 + bot.id.length) - 0.5) * 14;  // чуть вперёд/назад
-      }
-      var lookA = bot.facing !== undefined ? bot.facing : 0;
-      var pa = lookA + Math.PI/2;
-      var tx = H.ax + Math.cos(pa)*H.dir*24 + Math.cos(lookA)*(H.fwd||0);
-      var ty = H.ay + Math.sin(pa)*H.dir*24 + Math.sin(lookA)*(H.fwd||0);
-      var sdx = tx - bot.baseX, sdy = ty - bot.baseY, sd = Math.hypot(sdx, sdy);
-      var STRAFE = 38*SPD_K; // px/с — медленнее тихого шага
-      if(sd > 1.5){
-        var st = Math.min(sd, STRAFE*dtSec);
-        var sx = bot.baseX + sdx/sd*st, sy = bot.baseY + sdy/sd*st;
-        if(!stepBlocked(bot.baseX, bot.baseY, sx, sy, bot)){ bot.baseX = sx; bot.baseY = sy; bot.curSpeed = STRAFE; bot.walking = true; }
-        else H.until = tick; // упёрся — сменить направление
-      } else if(bot.curSpeed <= STRAFE) bot.curSpeed = 0;
-    } else if(bot._hold && !bot.atPost && !bot.holding){ bot._hold = null; }
+    if(tick < (bot._tagUntil||0)) bot.curSpeed = Math.min(bot.curSpeed, SPEED*0.4); // попадание замедляет (как в CS2)
 
     // ---------- шаги: бег слышно, шифт — нет (вода плещет и под шифтом) ----------
     var wet = bot.curSpeed > 5 && inWater(bot.baseX, bot.baseY);
@@ -214,18 +70,14 @@ function stepTick(){
         bot.lastStepTick = tick;
         var soundRadius = wet ? (bot.walking ? 220 : SOUND.water.open) : SOUND.steps.open;
         soundPings.push({x:bot.baseX, y:bot.baseY, team:bot.team, born:nowTs, radius:soundRadius});
-        // (4) сам знает, что шумит: бежал в пределах слышимости места, где враг вероятен
-        if(BAL.heardMe && roundState === "live"){ var zN = bzOf(bot.x, bot.y); if(zN >= 0){ var nearZ = [zN].concat(BZ.nbr[zN]||[]);
-          if(nearZ.some(function(j){ var cj = BZ.cent[j]; return cj && Math.hypot(cj.x-bot.x, cj.y-bot.y) < soundRadius && reachPossible(bot.team, j) && infoZone(bot.team, j) >= 0.2; })) bot._noisyT = tick; } }
         if(soundPings.length > 40) soundPings.shift();
         makeSound(bot, bot.x, bot.y, wet ? "water" : "steps", {mul: wet && bot.walking ? 220/SOUND.water.open : 1, seed: bot.lastStepTick});
       }
     }
 
-    if(!((bot.holding && !bot._burning) || bot.curSpeed <= 0.5)){
+    if(bot.curSpeed > 0.5){
       if(bot.path.length === 0 || bot.pathIdx >= bot.path.length){
-        if(bot.forcedRetreat) bot.forcedRetreat = false;
-        assignNewDestination(bot, tick);
+        bot.path = []; bot.pathIdx = 0;   // путь кончился — стоит (новый путь задаёт мозг)
       } else {
         // corner rounding: skip ahead past any waypoint already within
         // ARRIVE_RADIUS (except the last — that one must be actually reached)
@@ -263,9 +115,7 @@ function stepTick(){
         if(bot.heading === undefined) bot.heading = desiredHeading;
         var da = desiredHeading - bot.heading;
         da = ((da + Math.PI) % (2*Math.PI) + 2*Math.PI) % (2*Math.PI) - Math.PI; // shortest signed angle
-        // при отходе разворачиваемся сразу, а не плавной дугой: иначе бот по
-        // инерции ещё несколько шагов бежал туда же, куда бежал — то есть на врага
-        var maxTurn = TURN_RATE * dtSec * (bot.state === "retreat" ? 5 : 1);
+        var maxTurn = TURN_RATE * dtSec;
         bot.heading += Math.max(-maxTurn, Math.min(maxTurn, da));
         if(bot.facing === undefined) bot.facing = bot.heading; // first tick / just respawned — nothing to derive an actual-movement facing from yet
         // NOTE: bot.facing (the rendered/visual direction) is otherwise set
@@ -279,7 +129,7 @@ function stepTick(){
           // (10) крутой поворот: сбросить скорость, а не бежать дугой по старому
           // направлению в угол стены (там бот тёрся и "залипал")
           var daLeft = Math.abs(((desiredHeading - bot.heading + Math.PI) % (2*Math.PI) + 2*Math.PI) % (2*Math.PI) - Math.PI);
-          if(BAL.cornerSlow && daLeft > 0.5){ var cs = Math.max(0.3, 1 - (daLeft-0.5)/1.6); step *= cs; bot.curSpeed = Math.min(bot.curSpeed, Math.max(bot.curSpeed*0.9, runSpeed*cs)); }
+          if(daLeft > 0.5){ var cs = Math.max(0.3, 1 - (daLeft-0.5)/1.6); step *= cs; bot.curSpeed = Math.min(bot.curSpeed, Math.max(bot.curSpeed*0.9, runSpeed*cs)); }
           moveX = Math.cos(bot.heading) * step;
           moveY = Math.sin(bot.heading) * step;
         }
@@ -401,66 +251,9 @@ function stepTick(){
       }
     }
 
-    var offX = 0, offY = 0;
-    if(bot.state === "engage" && bot.peekType){
-      var nb = bot._nearestEnemyBot;
-      var dirAng = bot._peekDir != null ? bot._peekDir : (nb ? Math.atan2(nb.y-bot.baseY, nb.x-bot.baseX) : (bot.facing||0));
-      var perp = dirAng + Math.PI/2;
-      var side = bot._peekSide || ((bot.id.charCodeAt(bot.id.length-1) % 2 === 0) ? 1 : -1);
-      var dt2 = tick - bot.peekSinceTick, amp = 0, stillActive = true;
-      // пока из пика реально видно врага — не уходим обратно за угол
-      // посреди перестрелки: фаза "стою выглянув" продлевается, пока есть контакт
-      if(bot._sawEnemy){
-        var pkS0 = SPEED*weaponSpeedMul(bot)/TICK_HZ;
-        var holdEnd = BAL.smoothPeek ? (bot.peekType === "wide" ? Math.round(42/pkS0*1.3)+24-1 : (bot.peekType === "shoulder" ? Math.round(16/pkS0*1.2)+6-1 : -1))
-                                     : (bot.peekType === "wide" ? 8+24-1 : (bot.peekType === "shoulder" ? 4+10-1 : -1));
-        if(holdEnd > 0 && dt2 > holdEnd){ bot.peekSinceTick = tick - holdEnd; dt2 = holdEnd; }
-      }
-      // (v151) раньше широкий пик сдвигал на 60px за 0.12с — в ~5 раз быстрее бега.
-      // Теперь пик идёт со скоростью бега этим оружием, плавно (разгон/торможение)
-      var pkS = BAL.smoothPeek ? SPEED*weaponSpeedMul(bot)/TICK_HZ : 0;
-      var ease = function(u){ u = Math.max(0, Math.min(1, u)); return u*u*(3-2*u); };
-      if(bot.peekType === "wide"){
-        var A1 = BAL.smoothPeek ? 42 : 60, r1 = BAL.smoothPeek ? Math.round(A1/pkS*1.3) : 8, h1 = 24;
-        if(dt2<r1) amp = A1*(BAL.smoothPeek ? ease(dt2/r1) : dt2/r1);
-        else if(dt2<r1+h1) amp = A1;
-        else if(dt2<r1*2+h1) amp = A1*(BAL.smoothPeek ? 1-ease((dt2-r1-h1)/r1) : 1-(dt2-r1-h1)/r1);
-        else stillActive = false;
-      } else if(bot.peekType === "shoulder"){
-        var A2 = BAL.smoothPeek ? 16 : 32, r2 = BAL.smoothPeek ? Math.round(A2/pkS*1.2) : 4, h2 = BAL.smoothPeek ? 6 : 10;
-        if(dt2<r2) amp = A2*(BAL.smoothPeek ? ease(dt2/r2) : dt2/r2);
-        else if(dt2<r2+h2) amp = A2;
-        else if(dt2<r2*2+h2) amp = A2*(BAL.smoothPeek ? 1-ease((dt2-r2-h2)/r2) : 1-(dt2-r2-h2)/r2);
-        else stillActive = false;
-      } else if(bot.peekType === "jiggle"){
-        amp = BAL.smoothPeek ? 12*Math.sin(dt2*0.2) : 22*Math.sin(dt2*0.35);
-      }
-      if(!stillActive){ bot.peekType = null; }
-      offX = Math.cos(perp)*side*amp;
-      offY = Math.sin(perp)*side*amp;
-      // don't let a peek lean shove the bot's rendered/combat position through
-      // a wall — clamp to the path position if the lean would clip one
-      if(crossesWall(bot.baseX,bot.baseY,bot.baseX+offX,bot.baseY+offY)){ offX = 0; offY = 0; }
-    }
-    // Пик закончился (или бот перешёл из "атакует" в "держит угол"), пока он
-    // всё ещё видит врага: раньше смещение пика просто обнулялось, и бот
-    // мгновенно "телепортировался" на 30-85px обратно за угол — терял
-    // линию обзора, и стрельба с обеих сторон обрывалась. Теперь позиция,
-    // где он стоял в момент пика, становится его реальной позицией.
-    if(offX === 0 && offY === 0 && (bot._prevOffX || bot._prevOffY) && bot._sawEnemy){
-      var cX = bot.baseX + bot._prevOffX, cY = bot.baseY + bot._prevOffY;
-      if(!crossesWall(bot.baseX, bot.baseY, cX, cY)){ bot.baseX = cX; bot.baseY = cY; }
-    }
-    bot._prevOffX = offX; bot._prevOffY = offY;
-    bot.x = bot.baseX + offX;
-    bot.y = bot.baseY + offY;
+    bot.x = bot.baseX;
+    bot.y = bot.baseY;
   });
   resolveEngagements();
-  if(BAL.smokeSpam) smokeSpamTick(); else smokeShots();
-  if(BAL.smokeReact) smokeHeTick();
-  teamInfoTick(); // раздел 11: восприятие этого тика → радар и блокнот бота
-  talkTick();     // тимспик: кто что говорит, кто что услышал (К10)
-  knowTick();   // знание о врагах: что видят свои — закрыто (REACH)
   checkRoundEnd();
 }
-
