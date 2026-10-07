@@ -93,9 +93,10 @@ def top_vars(src):
         if x not in out: out.append(x)
     return out
 STATIC = set("""ZONEMAP ZONEMAP_RAW NAVAREAS NAVAREAS_RAW NAV_BOUNDARY_SEGS_RAW NAV_BOUNDARY_VERTS_RAW zonesById zoneGraph ZONE_SAMPLES
-ZONE_DANGER_LINE PRO_LINEUPS_RAW BOT_INIT""".split())
-SETTINGS = set("""BAL MANUAL_WALLS WALL_OBJECTS wallSegs wallSegsLOS USER_ZONES USER_LINEUPS ZONE_NAMES ZONE_SHAPES navAnchors navTransform zoneLayer""".split())
-UI = set("view paused lastFrame accumulator nowTs".split())
+ZONE_DANGER_LINE PRO_LINEUPS_RAW BOT_INIT
+WALL_POLYS_CODE WALL_SOLID_POLYS WALLS_SIG NAV_BLOCKED navBlockedCount navCutPortals navNarrowPortals ZONE_DANGER ZONE_DANGER_W _WB _WBn""".split())
+SETTINGS = set("""BAL MANUAL_WALLS WALL_POLYS wallSegs wallSegsLOS USER_ZONES USER_LINEUPS ZONE_NAMES ZONE_SHAPES navAnchors navTransform zoneLayer""".split())
+UI = set("view paused lastFrame accumulator nowTs MAPED MED_W MED_W_HINTS".split())  # редактор карты (MAPED — с базой страницы, MED_W — вкладка «стены») в снимок не попадает
 V = [v for v in top_vars(s) if v not in STATIC | SETTINGS | UI and not v.startswith('__') and not v.startswith('MK') and not v.startswith('mk')]
 for must in ['tick', 'bots', 'bomb', 'roundNum', 'matchNum', 'smokes', 'score', 'roundState']:
     assert must in V, must

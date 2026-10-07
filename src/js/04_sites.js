@@ -43,10 +43,10 @@ function sitePlantSpot(site){
   return best ? {x:best.x, y:best.y} : {x:site.x, y:site.y};
 }
 // (v162) отдельно стоящие ящики/колонны — небольшие замкнутые контуры стен
-var _WB = null, _WBn = -1;
+var _WB = null, _WBn = "";
 function wallBoxes(){
-  if(_WB && _WBn === MANUAL_WALLS.length) return _WB;
-  _WBn = MANUAL_WALLS.length; _WB = [];
+  if(_WB && _WBn === WALLS_SIG) return _WB;
+  _WBn = WALLS_SIG; _WB = [];
   var W = MANUAL_WALLS, par = W.map(function(_, i){ return i; });
   var f = function(i){ while(par[i] !== i){ par[i] = par[par[i]]; i = par[i]; } return i; };
   var K = function(x, y){ return Math.round(x/3)+","+Math.round(y/3); }, idx = {};

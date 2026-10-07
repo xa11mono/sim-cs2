@@ -159,7 +159,9 @@ function draw(){
       ctx.fillText((hz.name||hz.id)+": простреливается с "+dangerIds.length, cx, cy - 16/view.scale);
     }
   }
-  if(!(showWalls.checked || chkWallEdit.checked) && document.getElementById("chkOutline") && document.getElementById("chkOutline").checked){
+  // вкладка «стены» редактора карты рисует стены сама (с выделением и точками)
+  var wallsByEditor = mapEdOn() && MAPED.tab === "walls";
+  if(!showWalls.checked && !wallsByEditor && document.getElementById("chkOutline") && document.getElementById("chkOutline").checked){
     var BX = wallBoxes();
     ctx.fillStyle = "rgba(150,152,146,0.55)";
     BX.forEach(function(poly){ ctx.beginPath(); poly.forEach(function(p, i){ if(i) ctx.lineTo(p[0], p[1]); else ctx.moveTo(p[0], p[1]); }); ctx.closePath(); ctx.fill(); });
@@ -168,9 +170,7 @@ function draw(){
     MANUAL_WALLS.forEach(function(s){ ctx.moveTo(s[0], s[1]); ctx.lineTo(s[2], s[3]); });
     ctx.stroke(); ctx.lineCap = "butt";
   }
-  if(showWalls.checked || chkWallEdit.checked){
-    // MANUAL_WALLS — each segment is exactly what the user drew, so unlike
-    // the old auto-derived set this needs no cosmetic extension/inset at all.
+  if(showWalls.checked && !wallsByEditor){
     ctx.strokeStyle = "rgba(193,88,79,0.85)"; ctx.lineWidth = 2/view.scale;
     ctx.lineCap = "round"; ctx.lineJoin = "round";
     ctx.beginPath();
@@ -181,53 +181,7 @@ function draw(){
     ctx.stroke();
     ctx.lineCap = "butt"; ctx.lineJoin = "miter";
   }
-  if(chkWallEdit.checked){
-    // live preview of the wall currently being dragged out
-    if(wallDrawing && wallDrawStart && wallDrawCur){
-      ctx.strokeStyle = "rgba(232,220,90,0.9)"; ctx.lineWidth = 2/view.scale;
-      ctx.setLineDash([6/view.scale, 4/view.scale]);
-      ctx.beginPath();
-      ctx.moveTo(wallDrawStart.x, wallDrawStart.y);
-      ctx.lineTo(wallDrawCur.x, wallDrawCur.y);
-      ctx.stroke();
-      ctx.setLineDash([]);
-    }
-    // selected object: dashed bounding box + a square scale handle at its
-    // corner, Photoshop-style — drag the box body to move, the handle to scale.
-    // In vertex/pen mode this is replaced entirely by per-point handles below —
-    // the two modes edit the object in fundamentally different ways (whole
-    // object vs. one point), so showing both at once would be misleading.
-    if(selectedObjId !== null && WALL_OBJECTS[selectedObjId] && !chkVertexEdit.checked){
-      var selPts = objectAbsPoints(WALL_OBJECTS[selectedObjId]);
-      var minX=Infinity,minY=Infinity,maxX=-Infinity,maxY=-Infinity;
-      selPts.forEach(function(p){ if(p.x<minX)minX=p.x; if(p.y<minY)minY=p.y; if(p.x>maxX)maxX=p.x; if(p.y>maxY)maxY=p.y; });
-      ctx.strokeStyle = "rgba(232,220,90,0.95)"; ctx.lineWidth = 1.5/view.scale;
-      ctx.setLineDash([5/view.scale, 4/view.scale]);
-      ctx.strokeRect(minX, minY, maxX-minX, maxY-minY);
-      ctx.setLineDash([]);
-      var hs = 7/view.scale; // handle half-size, in world units so it stays a constant screen size
-      ctx.fillStyle = "rgba(232,220,90,0.95)";
-      ctx.fillRect(maxX-hs, maxY-hs, hs*2, hs*2);
-      ctx.strokeStyle = "rgba(20,20,10,0.9)"; ctx.lineWidth = 1/view.scale;
-      ctx.strokeRect(maxX-hs, maxY-hs, hs*2, hs*2);
-    }
-    // pen/vertex mode: every point of the selected object gets its own
-    // draggable handle — click+drag a dot to reshape just that corner,
-    // Shift+click a dot to delete it, click a highlighted edge midpoint-ish
-    // spot to insert a new point there (see mousedown handler)
-    if(selectedObjId !== null && WALL_OBJECTS[selectedObjId] && chkVertexEdit.checked){
-      var vPts = objectAbsPoints(WALL_OBJECTS[selectedObjId]);
-      var vr = 5.5/view.scale;
-      vPts.forEach(function(p, vi){
-        var isDrag = vertexDragging && vertexDragObjId===selectedObjId && vertexDragIdx===vi;
-        ctx.beginPath(); ctx.arc(p.x, p.y, vr, 0, Math.PI*2);
-        ctx.fillStyle = isDrag ? "#ffffff" : "rgba(232,220,90,0.95)";
-        ctx.fill();
-        ctx.strokeStyle = "rgba(20,20,10,0.9)"; ctx.lineWidth = 1.2/view.scale;
-        ctx.stroke();
-      });
-    }
-  }
+  if(mapEdOn()) mapEdDraw();
   if(chkNavWarp.checked){
     // real navmesh perimeter (edges with no neighbor on the other side —
     // by the game's own construction this is what should sit flush against

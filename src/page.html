@@ -124,6 +124,20 @@
   .mk-urg{color:var(--danger);} .mk-st{font-size:11px;color:var(--text-dim);} .mk-st-fixed{color:#ffd76a;} .mk-st-unparsed{color:var(--site);}
   .mk-toast{position:absolute;left:50%;bottom:24px;transform:translateX(-50%);z-index:60;background:rgba(10,14,9,0.96);border:1px solid var(--accent);color:var(--text);padding:8px 14px;border-radius:6px;max-width:80%;}
   .mk-prog{position:absolute;left:50%;top:45%;transform:translate(-50%,-50%);z-index:60;background:rgba(10,14,9,0.96);border:1px solid var(--accent);color:var(--accent);padding:14px 22px;border-radius:8px;font-size:15px;}
+  .med{position:absolute;top:10px;right:12px;width:300px;background:rgba(10,14,9,0.94);border:1px solid var(--accent-dim);padding:10px 12px;border-radius:6px;font-size:12px;line-height:1.5;z-index:6;}
+  .med-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px;color:var(--accent);}
+  .med-tabs button{font-size:11px;padding:2px 8px;margin-left:4px;}
+  .med-tabs button.on{background:var(--accent);color:#0a0e09;border-color:var(--accent);}
+  .med-src{font-size:11px;color:var(--text-dim);margin-bottom:8px;}
+  .med-tools{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:8px;}
+  .med-tools button{flex:1 1 auto;font-size:11px;padding:3px 6px;}
+  .med-tools button.on{background:var(--accent);color:#0a0e09;border-color:var(--accent);}
+  .med-hint{color:var(--text);background:var(--panel-2);border-radius:4px;padding:6px 8px;margin-bottom:8px;font-size:11.5px;}
+  .med-hint ul{margin:4px 0 0;padding-left:16px;} .med-hint li{margin:1px 0;}
+  .med-info{font-size:11px;color:var(--text-dim);margin-bottom:8px;}
+  .med-row{display:flex;gap:6px;margin-bottom:6px;} .med-row button{flex:1;font-size:11px;padding:4px 6px;}
+  .med-save{font-size:11px;color:var(--text-dim);}
+  .med-save.warn{color:#ffd76a;} .med-save.ok{color:var(--accent);}
   .ptsel{background:var(--panel-2);color:var(--text);border:1px solid var(--line);border-radius:4px;padding:2px 4px;}
 </style>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
@@ -131,7 +145,7 @@
 <div id="app">
   <div id="topbar">
     <h1>ANCIENT — LIVE RADAR</h1>
-    <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 197 · 07.10</div>
+    <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 198 · 07.10</div>
     <button id="btnPause">Пауза</button>
     <button id="btnRestartRound" title="Немедленно сбросить текущий раунд — на случай если боты застряли">Рестарт раунда</button>
     <span class="chk" title="Матч с одним номером всегда проходит одинаково. Увидел баг — запиши номер матча и тик, введи номер и нажми «Сыграть»: матч повторится с начала">матч № <input id="inpMatchNum" type="number" min="1" value="1" style="width:52px"> <button id="btnFreshMatch">Сыграть</button> <span id="matchTick" style="opacity:.75"></span></span>
@@ -141,52 +155,31 @@
     <label class="chk" title="Слой зон карты. Клик по зоне — переименовать её (Кейв, Донат, Мейн…)"><input type="checkbox" id="chkZones"> зоны (клик — название)</label>
     <label class="chk"><input type="checkbox" id="chkPoints"> точки</label>
     <label class="chk" title="Наведи курсор на зону (при включённом слое «зоны») — подсветятся все зоны, откуда её простреливают"><input type="checkbox" id="chkDanger"> опасность (наведи)</label>
-    <button id="btnExportProject" title="Всё, что сохранено только в этом браузере (стены, точки калибровки, зоны) — одним JSON, чтобы зашить в код">Экспорт проекта</button>
-    <button id="btnRecomputeDanger" title="Пересчитать LOS-таблицу опасности после правки стен">Пересчитать опасность</button>
+    <button id="btnExportProject" title="Всё, что сохранено только в этом браузере (точки калибровки, зоны, лайнапы) — одним JSON, чтобы зашить в код">Экспорт проекта</button>
+    <button id="btnRecomputeDanger" title="Пересчитать LOS-таблицу опасности после правки зон (после правки стен она пересчитывается сама)">Пересчитать опасность</button>
     <label class="chk"><input type="checkbox" id="chkLos"> конусы обзора</label>
     <label class="chk"><input type="checkbox" id="chkOutline" checked> контуры укрытий</label>
     <label class="chk"><input type="checkbox" id="chkTracers" checked> трассеры</label>
     <label class="chk"><input type="checkbox" id="chkSound" checked> звук шагов</label>
     <label class="chk" title="Под каждым игроком: что он делает (стоит/идёт/ставит/дефузит) и куда смотрит. Пока мозга нет — задач нет"><input type="checkbox" id="chkWhy"> почему</label>
-    <label class="chk" style="border-left:1px solid var(--line);padding-left:14px;"><input type="checkbox" id="chkAlign"> выравнивание navmesh</label>
+    <label class="chk" style="border-left:1px solid var(--line);padding-left:14px;" title="Редактор карты: стены (дальше — высоты, укрытия, прострелы). Правки сразу в игре и сохраняются на странице"><input type="checkbox" id="chkMapEdit"> <b>правка карты</b></label>
+    <label class="chk"><input type="checkbox" id="chkAlign"> выравнивание navmesh</label>
     <label class="chk"><input type="checkbox" id="chkNavWarp" title="Навмеш смещён от стен по-разному в разных углах карты — обычный общий сдвиг/масштаб это не лечит, нужно несколько опорных точек"> калибровка навмеша (точки)</label>
-    <label class="chk"><input type="checkbox" id="chkWallAlign"> выравнивание стен</label>
     <label class="chk" title="Сдвинуть/отмасштабировать весь слой зон и тактических точек целиком"><input type="checkbox" id="chkZoneAlign"> выравнивание зон</label>
-    <label class="chk"><input type="checkbox" id="chkWallEdit"> рисовать стены вручную</label>
     <label class="chk"><input type="checkbox" id="chkZoneEdit"> зоны спавнов/сайтов (перо)</label>
     <label class="chk" title="Свои лайнапы: откуда кидают и куда летит смок/флешка/молотов/HE, и когда"><input type="checkbox" id="chkLineups"> лайнапы (гранаты)</label>
   </div>
   <div id="main">
     <canvas id="cv"></canvas>
-    <div id="wallEditPanel" style="display:none;position:absolute;top:10px;right:12px;background:rgba(10,14,9,0.92);border:1px solid var(--accent-dim);padding:10px 12px;border-radius:6px;font-size:11px;line-height:1.6;min-width:220px;z-index:5;">
-      <div style="color:var(--accent);font-weight:600;margin-bottom:4px;">Стены — объекты</div>
-      <div style="color:var(--text-dim);margin-bottom:8px;" id="wallEditHint">клик — выделить · тащи тело — двигать · тащи уголок (квадратик) — масштаб · колесо — тоже масштаб · тащи пустое место — новая стена</div>
-      <label class="chk" style="margin-bottom:8px;"><input type="checkbox" id="chkVertexEdit"> редактировать точки (перо)</label>
-      <div class="row" style="display:flex;justify-content:space-between;gap:8px;align-items:center;margin-bottom:8px;">
-        <span class="lab">объектов</span><span class="mono" id="wallEditCount">0</span>
+    <div id="mapEdPanel" class="med" style="display:none;">
+      <div class="med-head"><b>Правка карты</b><span id="mapEdTabs" class="med-tabs"></span></div>
+      <div id="mapEdSrc" class="med-src"></div>
+      <div id="mapEdBody"></div>
+      <div class="med-row">
+        <button id="mapEdUndo" title="Ctrl+Z">Отменить</button>
+        <button id="mapEdReset" title="Убрать все правки этой вкладки и вернуть данные, которые сейчас в коде игры">Вернуть как в коде</button>
       </div>
-      <div style="color:var(--text-dim);font-size:10px;margin-bottom:8px;">Правки теперь автосохраняются в этом браузере — переживают перезагрузку страницы.</div>
-      <button id="btnWallDelete" style="width:100%;margin-bottom:6px;">Удалить выделенный</button>
-      <button id="btnWallUndo" style="width:100%;margin-bottom:6px;">Отменить последнюю добавленную</button>
-      <button id="btnWallClear" style="width:100%;margin-bottom:6px;">Очистить всё</button>
-      <button id="btnWallRevert" style="width:100%;margin-bottom:6px;">Сбросить к версии из кода</button>
-      <hr style="border:none;border-top:1px solid var(--line);margin:8px 0;">
-      <button id="btnWallExport" style="width:100%;margin-bottom:6px;">Экспорт стен (JSON)</button>
-      <textarea id="wallExportArea" readonly style="width:100%;height:90px;font-family:'IBM Plex Mono',monospace;font-size:10px;background:#060806;color:var(--accent);border:1px solid var(--line);border-radius:5px;padding:6px;display:none;" placeholder="Нажми «Экспорт стен» — сюда попадёт JSON, скопируй и пришли его"></textarea>
-    </div>
-    <div id="wallAlignPanel" style="display:none;position:absolute;top:10px;right:12px;background:rgba(10,14,9,0.92);border:1px solid var(--accent-dim);padding:10px 12px;border-radius:6px;font-size:11px;line-height:1.6;min-width:210px;z-index:5;">
-      <div style="color:var(--accent);font-weight:600;margin-bottom:4px;">Выравнивание стен (все сразу)</div>
-      <div style="color:var(--text-dim);margin-bottom:8px;">двигает/масштабирует весь старый набор стен целиком · твои ручные добавления не трогает · тащи мышью — двигать · колесо — масштаб</div>
-      <div class="row" style="display:flex;justify-content:space-between;gap:8px;align-items:center;margin-bottom:4px;">
-        <span class="lab">dx</span><input type="number" id="wallDx" value="0" step="1" style="width:80px;background:var(--panel-2);color:var(--text);border:1px solid var(--line);border-radius:4px;padding:2px 5px;">
-      </div>
-      <div class="row" style="display:flex;justify-content:space-between;gap:8px;align-items:center;margin-bottom:4px;">
-        <span class="lab">dy</span><input type="number" id="wallDy" value="0" step="1" style="width:80px;background:var(--panel-2);color:var(--text);border:1px solid var(--line);border-radius:4px;padding:2px 5px;">
-      </div>
-      <div class="row" style="display:flex;justify-content:space-between;gap:8px;align-items:center;margin-bottom:8px;">
-        <span class="lab">scale</span><input type="number" id="wallScale" value="1" step="0.01" style="width:80px;background:var(--panel-2);color:var(--text);border:1px solid var(--line);border-radius:4px;padding:2px 5px;">
-      </div>
-      <button id="btnWallAlignReset" style="width:100%;">Сброс</button>
+      <div id="mapEdSave" class="med-save"></div>
     </div>
     <div id="alignPanel" style="display:none;position:absolute;top:10px;right:12px;background:rgba(10,14,9,0.92);border:1px solid var(--accent-dim);padding:10px 12px;border-radius:6px;font-size:11px;line-height:1.6;min-width:190px;z-index:5;">
       <div style="color:var(--accent);font-weight:600;margin-bottom:4px;">Выравнивание navmesh</div>

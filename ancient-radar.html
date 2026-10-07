@@ -124,6 +124,20 @@
   .mk-urg{color:var(--danger);} .mk-st{font-size:11px;color:var(--text-dim);} .mk-st-fixed{color:#ffd76a;} .mk-st-unparsed{color:var(--site);}
   .mk-toast{position:absolute;left:50%;bottom:24px;transform:translateX(-50%);z-index:60;background:rgba(10,14,9,0.96);border:1px solid var(--accent);color:var(--text);padding:8px 14px;border-radius:6px;max-width:80%;}
   .mk-prog{position:absolute;left:50%;top:45%;transform:translate(-50%,-50%);z-index:60;background:rgba(10,14,9,0.96);border:1px solid var(--accent);color:var(--accent);padding:14px 22px;border-radius:8px;font-size:15px;}
+  .med{position:absolute;top:10px;right:12px;width:300px;background:rgba(10,14,9,0.94);border:1px solid var(--accent-dim);padding:10px 12px;border-radius:6px;font-size:12px;line-height:1.5;z-index:6;}
+  .med-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px;color:var(--accent);}
+  .med-tabs button{font-size:11px;padding:2px 8px;margin-left:4px;}
+  .med-tabs button.on{background:var(--accent);color:#0a0e09;border-color:var(--accent);}
+  .med-src{font-size:11px;color:var(--text-dim);margin-bottom:8px;}
+  .med-tools{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:8px;}
+  .med-tools button{flex:1 1 auto;font-size:11px;padding:3px 6px;}
+  .med-tools button.on{background:var(--accent);color:#0a0e09;border-color:var(--accent);}
+  .med-hint{color:var(--text);background:var(--panel-2);border-radius:4px;padding:6px 8px;margin-bottom:8px;font-size:11.5px;}
+  .med-hint ul{margin:4px 0 0;padding-left:16px;} .med-hint li{margin:1px 0;}
+  .med-info{font-size:11px;color:var(--text-dim);margin-bottom:8px;}
+  .med-row{display:flex;gap:6px;margin-bottom:6px;} .med-row button{flex:1;font-size:11px;padding:4px 6px;}
+  .med-save{font-size:11px;color:var(--text-dim);}
+  .med-save.warn{color:#ffd76a;} .med-save.ok{color:var(--accent);}
   .ptsel{background:var(--panel-2);color:var(--text);border:1px solid var(--line);border-radius:4px;padding:2px 4px;}
 </style>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
@@ -131,7 +145,7 @@
 <div id="app">
   <div id="topbar">
     <h1>ANCIENT — LIVE RADAR</h1>
-    <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 197 · 07.10</div>
+    <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 198 · 07.10</div>
     <button id="btnPause">Пауза</button>
     <button id="btnRestartRound" title="Немедленно сбросить текущий раунд — на случай если боты застряли">Рестарт раунда</button>
     <span class="chk" title="Матч с одним номером всегда проходит одинаково. Увидел баг — запиши номер матча и тик, введи номер и нажми «Сыграть»: матч повторится с начала">матч № <input id="inpMatchNum" type="number" min="1" value="1" style="width:52px"> <button id="btnFreshMatch">Сыграть</button> <span id="matchTick" style="opacity:.75"></span></span>
@@ -141,52 +155,31 @@
     <label class="chk" title="Слой зон карты. Клик по зоне — переименовать её (Кейв, Донат, Мейн…)"><input type="checkbox" id="chkZones"> зоны (клик — название)</label>
     <label class="chk"><input type="checkbox" id="chkPoints"> точки</label>
     <label class="chk" title="Наведи курсор на зону (при включённом слое «зоны») — подсветятся все зоны, откуда её простреливают"><input type="checkbox" id="chkDanger"> опасность (наведи)</label>
-    <button id="btnExportProject" title="Всё, что сохранено только в этом браузере (стены, точки калибровки, зоны) — одним JSON, чтобы зашить в код">Экспорт проекта</button>
-    <button id="btnRecomputeDanger" title="Пересчитать LOS-таблицу опасности после правки стен">Пересчитать опасность</button>
+    <button id="btnExportProject" title="Всё, что сохранено только в этом браузере (точки калибровки, зоны, лайнапы) — одним JSON, чтобы зашить в код">Экспорт проекта</button>
+    <button id="btnRecomputeDanger" title="Пересчитать LOS-таблицу опасности после правки зон (после правки стен она пересчитывается сама)">Пересчитать опасность</button>
     <label class="chk"><input type="checkbox" id="chkLos"> конусы обзора</label>
     <label class="chk"><input type="checkbox" id="chkOutline" checked> контуры укрытий</label>
     <label class="chk"><input type="checkbox" id="chkTracers" checked> трассеры</label>
     <label class="chk"><input type="checkbox" id="chkSound" checked> звук шагов</label>
     <label class="chk" title="Под каждым игроком: что он делает (стоит/идёт/ставит/дефузит) и куда смотрит. Пока мозга нет — задач нет"><input type="checkbox" id="chkWhy"> почему</label>
-    <label class="chk" style="border-left:1px solid var(--line);padding-left:14px;"><input type="checkbox" id="chkAlign"> выравнивание navmesh</label>
+    <label class="chk" style="border-left:1px solid var(--line);padding-left:14px;" title="Редактор карты: стены (дальше — высоты, укрытия, прострелы). Правки сразу в игре и сохраняются на странице"><input type="checkbox" id="chkMapEdit"> <b>правка карты</b></label>
+    <label class="chk"><input type="checkbox" id="chkAlign"> выравнивание navmesh</label>
     <label class="chk"><input type="checkbox" id="chkNavWarp" title="Навмеш смещён от стен по-разному в разных углах карты — обычный общий сдвиг/масштаб это не лечит, нужно несколько опорных точек"> калибровка навмеша (точки)</label>
-    <label class="chk"><input type="checkbox" id="chkWallAlign"> выравнивание стен</label>
     <label class="chk" title="Сдвинуть/отмасштабировать весь слой зон и тактических точек целиком"><input type="checkbox" id="chkZoneAlign"> выравнивание зон</label>
-    <label class="chk"><input type="checkbox" id="chkWallEdit"> рисовать стены вручную</label>
     <label class="chk"><input type="checkbox" id="chkZoneEdit"> зоны спавнов/сайтов (перо)</label>
     <label class="chk" title="Свои лайнапы: откуда кидают и куда летит смок/флешка/молотов/HE, и когда"><input type="checkbox" id="chkLineups"> лайнапы (гранаты)</label>
   </div>
   <div id="main">
     <canvas id="cv"></canvas>
-    <div id="wallEditPanel" style="display:none;position:absolute;top:10px;right:12px;background:rgba(10,14,9,0.92);border:1px solid var(--accent-dim);padding:10px 12px;border-radius:6px;font-size:11px;line-height:1.6;min-width:220px;z-index:5;">
-      <div style="color:var(--accent);font-weight:600;margin-bottom:4px;">Стены — объекты</div>
-      <div style="color:var(--text-dim);margin-bottom:8px;" id="wallEditHint">клик — выделить · тащи тело — двигать · тащи уголок (квадратик) — масштаб · колесо — тоже масштаб · тащи пустое место — новая стена</div>
-      <label class="chk" style="margin-bottom:8px;"><input type="checkbox" id="chkVertexEdit"> редактировать точки (перо)</label>
-      <div class="row" style="display:flex;justify-content:space-between;gap:8px;align-items:center;margin-bottom:8px;">
-        <span class="lab">объектов</span><span class="mono" id="wallEditCount">0</span>
+    <div id="mapEdPanel" class="med" style="display:none;">
+      <div class="med-head"><b>Правка карты</b><span id="mapEdTabs" class="med-tabs"></span></div>
+      <div id="mapEdSrc" class="med-src"></div>
+      <div id="mapEdBody"></div>
+      <div class="med-row">
+        <button id="mapEdUndo" title="Ctrl+Z">Отменить</button>
+        <button id="mapEdReset" title="Убрать все правки этой вкладки и вернуть данные, которые сейчас в коде игры">Вернуть как в коде</button>
       </div>
-      <div style="color:var(--text-dim);font-size:10px;margin-bottom:8px;">Правки теперь автосохраняются в этом браузере — переживают перезагрузку страницы.</div>
-      <button id="btnWallDelete" style="width:100%;margin-bottom:6px;">Удалить выделенный</button>
-      <button id="btnWallUndo" style="width:100%;margin-bottom:6px;">Отменить последнюю добавленную</button>
-      <button id="btnWallClear" style="width:100%;margin-bottom:6px;">Очистить всё</button>
-      <button id="btnWallRevert" style="width:100%;margin-bottom:6px;">Сбросить к версии из кода</button>
-      <hr style="border:none;border-top:1px solid var(--line);margin:8px 0;">
-      <button id="btnWallExport" style="width:100%;margin-bottom:6px;">Экспорт стен (JSON)</button>
-      <textarea id="wallExportArea" readonly style="width:100%;height:90px;font-family:'IBM Plex Mono',monospace;font-size:10px;background:#060806;color:var(--accent);border:1px solid var(--line);border-radius:5px;padding:6px;display:none;" placeholder="Нажми «Экспорт стен» — сюда попадёт JSON, скопируй и пришли его"></textarea>
-    </div>
-    <div id="wallAlignPanel" style="display:none;position:absolute;top:10px;right:12px;background:rgba(10,14,9,0.92);border:1px solid var(--accent-dim);padding:10px 12px;border-radius:6px;font-size:11px;line-height:1.6;min-width:210px;z-index:5;">
-      <div style="color:var(--accent);font-weight:600;margin-bottom:4px;">Выравнивание стен (все сразу)</div>
-      <div style="color:var(--text-dim);margin-bottom:8px;">двигает/масштабирует весь старый набор стен целиком · твои ручные добавления не трогает · тащи мышью — двигать · колесо — масштаб</div>
-      <div class="row" style="display:flex;justify-content:space-between;gap:8px;align-items:center;margin-bottom:4px;">
-        <span class="lab">dx</span><input type="number" id="wallDx" value="0" step="1" style="width:80px;background:var(--panel-2);color:var(--text);border:1px solid var(--line);border-radius:4px;padding:2px 5px;">
-      </div>
-      <div class="row" style="display:flex;justify-content:space-between;gap:8px;align-items:center;margin-bottom:4px;">
-        <span class="lab">dy</span><input type="number" id="wallDy" value="0" step="1" style="width:80px;background:var(--panel-2);color:var(--text);border:1px solid var(--line);border-radius:4px;padding:2px 5px;">
-      </div>
-      <div class="row" style="display:flex;justify-content:space-between;gap:8px;align-items:center;margin-bottom:8px;">
-        <span class="lab">scale</span><input type="number" id="wallScale" value="1" step="0.01" style="width:80px;background:var(--panel-2);color:var(--text);border:1px solid var(--line);border-radius:4px;padding:2px 5px;">
-      </div>
-      <button id="btnWallAlignReset" style="width:100%;">Сброс</button>
+      <div id="mapEdSave" class="med-save"></div>
     </div>
     <div id="alignPanel" style="display:none;position:absolute;top:10px;right:12px;background:rgba(10,14,9,0.92);border:1px solid var(--accent-dim);padding:10px 12px;border-radius:6px;font-size:11px;line-height:1.6;min-width:190px;z-index:5;">
       <div style="color:var(--accent);font-weight:600;margin-bottom:4px;">Выравнивание navmesh</div>
@@ -649,134 +642,42 @@ function computePortal(za, zb){
   return {mid:mid, seg:longest};
 }
 
-// ---------- wall segments, auto-derived from the navmesh itself ----------
-
-
-// The wall set actually used for collision (crossesWall) and shooting/LOS
-// (hasLOS) — see the "рисовать стены вручную" UI. Seeded from WALLEDGES_RAW
-// below (the pre-navmesh hand-traced solid-prop outlines — much cleaner
-// than anything auto-derived from navmesh triangulation ever was), then
-// never touched by rebuildNav again; only the align-walls and draw-mode UI
-// mutate it from here on.
+// ---------- стены (v198) ----------
+// Одно место хранения стен: WALL_POLYS — список замкнутых многоугольников
+// [[x,y],...] в координатах радара 0..2048, ровно в формате src/data/walls.json.
+// Из кода берётся walls.json; если владелец правил стены редактором карты
+// (вкладка «стены», 21_map_editor.js), его правка из базы страницы заменяет их.
+// После любой правки вызывается applyWalls() — пересобирает всё, что игра
+// строит из стен (отрезки для видимости и движения, сплошные многоугольники,
+// граф навмеша, спавны, сайты, таблицу простреливаемости зон).
+var WALL_POLYS_CODE = [[[1483.9,566.5],[1647.4,564.2],[1647.8,706.2],[1485.1,706.2]],[[1230.7,556.7],[1378.4,556.2],[1416.6,556.4],[1416.2,625],[1406.2,625],[1406.5,637.6],[1415.9,637],[1415.6,704.7],[1403.6,705.7],[1404,714.8],[1431.7,714.5],[1432,767.7],[1401.8,767.4],[1401.8,742.2],[1310.1,741.9],[1309.9,948.2],[1333.6,947.7],[1334.6,976.5],[1329.4,976.2],[1329.6,1000.2],[1357.6,999.7],[1357.4,1010.7],[1357.8,1030.2],[1338.8,1031],[1338.8,1020.7],[1194,1021.9],[1193.6,1032.2],[1189.2,1032.2],[1183.7,1032.6],[1184.8,1106.4],[1214.6,1105.6],[1214.6,1132.2],[1234.4,1132.6],[1235.2,1177.4],[1207.9,1177.8],[1208.3,1134.2],[1076.5,1134.6],[1076.5,985.4],[1137.2,986.2],[1138.8,909.2],[1026.2,907.2],[1025.8,789.2],[1006.8,789],[1006.6,738.3],[1030.3,738.3],[1030.3,725],[1030.3,711.3],[1030.8,696.8],[1030.6,685.8],[1029.8,677.2],[1018.1,677.2],[1018.4,658.9],[999.5,659.2],[988.7,630.9],[991,627.7],[995.7,628.2],[1002.7,646.9],[1005.6,634.7],[1010.6,616],[1011,579.7],[1036.8,580.3],[1038.4,618.4],[1138.2,617.8],[1137.7,603.7],[1169.5,604],[1169.8,632.6],[1230.6,632.6]],[[1482.7,814.2],[1527.9,814.2],[1527.9,827.5],[1521.7,827.5],[1521.4,859.2],[1487.4,859.7],[1487.2,855.7],[1479.4,855],[1478.9,822.5],[1482.7,822.2]],[[1406.1,805.7],[1430.9,806],[1431.4,820],[1438,820],[1438,922.7],[1431.6,923],[1432.4,973.2],[1411.8,972.7],[1412.2,990.2],[1423.6,990.5],[1424.5,1006.8],[1482.8,1007.2],[1483.2,977.9],[1643.5,978.3],[1642.7,1109.2],[1484.8,1109.2],[1484,1061.6],[1423.3,1062.4],[1422.9,1156],[1312.6,1156.4],[1311.8,1174.6],[1281.6,1174.6],[1282.4,1135.8],[1305.8,1135],[1305.5,1104],[1389.3,1099.7],[1389.6,1021],[1380.4,1021],[1380.4,1000.5],[1385.6,1000.7],[1384.6,977.5],[1376.4,975.7],[1376.6,947.2],[1400.6,947.7],[1400.4,920.2],[1428.6,920.5],[1428.1,886.5],[1407.1,886],[1406.4,839.5]],[[735.4,1205.3],[873.9,1206.4],[874.6,1224.1],[1095.4,1224.1],[1095.4,1214.5],[1197.5,1216.4],[1197.5,1231.8],[1380.1,1231.4],[1380.1,1214.9],[1540.2,1213.4],[1540.2,1223.7],[1582.1,1224.1],[1581.9,1282],[1549.9,1282.4],[1549.2,1357.7],[1460.7,1441.8],[1374.7,1443.3],[1374.4,1578.4],[1093.8,1576.1],[1093.5,1525.7],[1037.5,1517.3],[1037.2,1524.6],[927.1,1525.3],[926.4,1494.5],[830.2,1470.2],[810,1453.7],[736.1,1452.2]],[[589.7,907.6],[596,908.3],[596.5,897.6],[665.7,897.6],[665.7,908.3],[672.5,908.6],[672,970.1],[666.5,970.2],[666,978.2],[595.5,978.3],[595.7,969.3],[590,969.3]],[[374.5,855.5],[425.5,856.1],[425.8,864.3],[432.1,864],[432.4,880.1],[426.4,880.4],[425.8,992.4],[367.8,992.2],[368.5,914.4],[361.3,914.4],[361.9,871.9],[374.5,872.2]],[[540.9,420],[574.1,420.3],[574.4,430.5],[587.6,430.8],[587.4,446.8],[605.8,446.5],[607.1,481],[540.4,480.5]],[[644.9,447.3],[666.6,446.5],[666.1,430],[684.9,429.8],[684.6,383],[666.4,383.3],[666.4,337.8],[695.9,337.5],[695.4,355.8],[755.6,355.3],[755.9,343.5],[815.9,343.8],[815.6,356.3],[868.6,356],[868.6,344.5],[881.1,344.3],[881.1,338.3],[907.9,338],[907.9,356.3],[910.4,355.8],[909.4,402],[707,398.4],[705.9,481.3],[646.1,481]],[[575.2,1334.3],[671.1,1334.6],[671.1,1404.1],[577.1,1404.8]],[[726,961],[743,960.5],[742.9,956],[772.2,955.8],[771.8,964.5],[864.7,964.5],[906.7,1004.5],[906.2,1076],[869,1117.9],[768.5,1117.1],[768,1178.8],[691,1179.8],[692.4,1285],[563.9,1284.6],[565,1238.7],[516.8,1169.7],[516.8,1137.7],[516.1,1115],[500.8,1115.3],[500.3,1107.5],[488.5,1107.3],[487.5,1071.6],[494.3,1071.6],[493.7,976.9],[493.7,881.9],[484.3,881.3],[484.5,864.6],[498.5,864.9],[498.7,844.7],[509.7,844.2],[510.4,799.1],[497.2,798.9],[497.2,781.3],[393.7,780.3],[393.4,771.8],[388.2,771.6],[388.7,740.4],[397.9,740.1],[397.9,726.3],[435.4,725.6],[472.5,725.6],[466.2,720],[465.6,711.8],[471.9,702],[487,694.5],[515.4,694.7],[515.4,647.2],[574.4,647.7],[574.7,667.7],[589.7,668],[589.7,680.2],[604.4,680.2],[603.7,718],[595.7,718],[595.9,746.2],[585.9,757.2],[585.7,791.5],[595.4,800.7],[595.9,830.2],[606.4,830.2],[606.1,844.4],[569.6,844.8],[559.6,853.3],[548.6,864.1],[535.8,874.8],[527.7,882.3],[527.6,975.4],[528.1,987.4],[537.7,995.1],[548.9,1004.9],[562.6,1017.9],[691.3,1017],[705,1004.1],[726.3,981.7]],[[933.8,1675.9],[1027.4,1675.9],[1027.4,1718.5],[934.1,1717.4]],[[662.8,830.3],[673,830.6],[672.5,800.3],[680.5,793.3],[680.8,756.1],[671.5,747.8],[671.8,717.6],[664.5,717.8],[664.3,679.8],[680.3,680.6],[680,667.8],[696.3,667.8],[696,648.1],[708.8,648.6],[709.5,604.6],[760.8,604.3],[760.9,544.7],[771,544.1],[770.4,497.8],[761.5,498.5],[760.6,461],[822.5,461.2],[823.4,480.1],[882,480.7],[882.3,458.2],[942,458.5],[942.3,475.2],[995.4,474.3],[996.3,458.2],[1059.6,458],[1059.8,495.6],[1039.4,495],[1039.1,509.3],[1012.9,509.9],[1012.6,495],[894.5,495],[894.5,514.8],[882,514.8],[882,569.6],[893.6,569.9],[893.6,580.4],[929.2,580.7],[930.1,606.1],[933,622.7],[937.4,640.5],[938,626.2],[945.2,626.8],[945.5,659.2],[929.8,659.2],[930.3,676.3],[915.8,676.8],[916.1,685.8],[915.8,699],[915.8,708.3],[915.8,719.5],[916.6,737.8],[938.8,737.8],[938.6,788.9],[916.1,789.4],[917.1,905.9],[805.1,907.4],[803.6,881.9],[772.4,880.7],[772.1,903.9],[742.1,903.7],[741.1,896.2],[722.9,894.9],[721.9,874.9],[708.4,864.7],[688.4,846.7],[662.5,845.1]],[[1480.5,1723.5],[1480.3,1716],[1482.4,1530.3],[1504,1473],[1680.4,1472.6],[1679.6,1282],[1638.1,1281.3],[1623,1241],[1631.2,1237.7],[1643,1261.2],[1651.9,1224.4],[1739.3,1223.7],[1740.1,1020.9],[1711.4,1020.6],[1712.6,912.9],[1684.9,912.9],[1685.9,880.1],[1673.9,851.5],[1666.7,850.5],[1656.3,800.5],[1648.7,797.6],[1649.3,774.3],[1712,773.1],[1712,666],[1746.7,665.4],[1747,485.2],[1704.1,485.2],[1704.5,467],[1575,466],[1574.7,485.2],[1171.3,485.5],[1170,538.1],[1138.5,536.9],[1137.9,495.6],[1114.9,495.9],[1114.6,458.5],[1158.1,458.1],[1156.7,154.9],[1858.2,214.9],[1864,1713.9]],[[1522,1723.9],[1480.3,1717.7],[1380.4,1729.2],[1376.6,1620.8],[1094.7,1621.2],[1093.6,1862.3],[1029,1871.9],[1027.9,1856.5],[930.5,1856.1],[884.9,1826.7],[880.7,1600.7],[814.8,1550.5],[806.1,1544.3],[736.8,1540.7],[652.4,1510.6],[567.2,1489.1],[528.5,1450],[485.8,1372.8],[466.2,1353.3],[419.8,1303.2],[399.3,1283],[312.5,1268.1],[292.1,1250],[142.1,1247.7],[119.2,1926],[1530.4,1937.5]],[[320.2,1269.9],[321.1,1169.4],[332.1,1170.1],[332.1,1161.2],[406.6,1162.5],[406.5,1115.5],[415.8,1115.5],[416,1107],[432,1106.5],[432.3,1071.8],[425.3,1072],[425.3,1033.8],[368.4,1033.5],[368.3,1058],[294.1,1057.5],[293.9,913.3],[302.1,913.5],[301.9,872.3],[266.4,872],[265.4,846.5],[255.9,845.8],[256.1,796],[266.4,795.8],[266.1,782],[318.4,781.5],[318.6,772.8],[325.4,771.3],[325.6,740.3],[317.9,740],[317.4,727.8],[314.1,727.8],[313.4,655.3],[313.1,641],[313.6,615],[313.6,598.8],[313.9,351.8],[309.4,220.7],[155.1,211.6],[160.9,1269]],[[308.6,355.5],[435.9,354.8],[436.1,383],[539.1,383],[539.6,390.3],[570.4,389.4],[572.1,383.3],[587.6,384.5],[587.9,342.4],[581.7,342.1],[581.9,320.9],[582.4,295.9],[588.4,296.4],[588.7,264.4],[665.4,264.1],[666.2,291.6],[696.7,291.6],[696.7,281.4],[701.7,281.1],[702.2,270.4],[755.4,269.9],[755.9,281.1],[816.4,281.1],[816.7,269.6],[870.2,269.6],[869.7,281.4],[880.9,281.6],[882.2,281.9],[882.2,291.6],[907.7,291.9],[907.4,281.9],[910.2,280.6],[910.4,247.3],[909.8,226.7],[910.3,155.9],[1157.7,154.4],[929.8,154.9],[910.5,154.6],[292.8,214.1]],[[1344.7,556.4],[1345.1,527.1],[1375.6,527.1],[1375.3,556.7]],[[662.4,513.1],[675.4,512.9],[675.4,511.6],[690.4,512.4],[703.9,512.4],[703.9,539.4],[699.4,539.4],[700.2,571.4],[668.2,571.4],[667.7,539.9],[662.2,540.1]],[[453.1,486.1],[486.2,502.5],[468.9,535.3],[434.6,518.3]],[[372.5,424.4],[365.9,438.3],[377.6,443],[383.5,430.1]],[[367.2,437.3],[352.7,460],[377.2,472.3],[388.9,449.6]],[[1622,1110.4],[1622.4,1136.9],[1649.8,1137.3],[1650.2,1108.8]],[[1613.9,1402.8],[1644.7,1391.8],[1656.8,1422.7],[1626.7,1433.3]],[[605.8,446.5],[645.6,446.5],[645.9,481],[607.1,480.3]]];
+var WALL_POLYS = JSON.parse(JSON.stringify(WALL_POLYS_CODE));
+// отрезки стен [x1,y1,x2,y2] — по ним видимость (hasLOS), движение (crossesWall),
+// гранаты, трассеры. Массив один и тот же (wallSegs/wallSegsLOS ссылаются на него).
 var MANUAL_WALLS = [];
-
-// Hand-traced solid building/prop outlines from the original (pre-navmesh)
-// wall system — each a closed polygon in the same 0..2048 map space as
-// NAVAREAS. Traced against an earlier version of the radar image, so it's
-// not pixel-perfect against the current one — the "выравнивание стен" align
-// mode below (same dx/dy/scale-drag mechanism as navmesh alignment) nudges
-// it into place; after that, edit by hand same as before.
-var WALLPOLYS_RAW = [[[1483.9,566.5],[1647.4,564.2],[1647.8,706.2],[1485.1,706.2]],[[1230.7,556.7],[1378.4,556.2],[1416.6,556.4],[1416.2,625],[1406.2,625],[1406.5,637.6],[1415.9,637],[1415.6,704.7],[1403.6,705.7],[1404,714.8],[1431.7,714.5],[1432,767.7],[1401.8,767.4],[1401.8,742.2],[1310.1,741.9],[1309.9,948.2],[1333.6,947.7],[1334.6,976.5],[1329.4,976.2],[1329.6,1000.2],[1357.6,999.7],[1357.4,1010.7],[1357.8,1030.2],[1338.8,1031],[1338.8,1020.7],[1194,1021.9],[1193.6,1032.2],[1189.2,1032.2],[1183.7,1032.6],[1184.8,1106.4],[1214.6,1105.6],[1214.6,1132.2],[1234.4,1132.6],[1235.2,1177.4],[1207.9,1177.8],[1208.3,1134.2],[1076.5,1134.6],[1076.5,985.4],[1137.2,986.2],[1138.8,909.2],[1026.2,907.2],[1025.8,789.2],[1006.8,789],[1006.6,738.3],[1030.3,738.3],[1030.3,725],[1030.3,711.3],[1030.8,696.8],[1030.6,685.8],[1029.8,677.2],[1018.1,677.2],[1018.4,658.9],[999.5,659.2],[988.7,630.9],[991,627.7],[995.7,628.2],[1002.7,646.9],[1005.6,634.7],[1010.6,616],[1011,579.7],[1036.8,580.3],[1038.4,618.4],[1138.2,617.8],[1137.7,603.7],[1169.5,604],[1169.8,632.6],[1230.6,632.6]],[[1482.7,814.2],[1527.9,814.2],[1527.9,827.5],[1521.7,827.5],[1521.4,859.2],[1487.4,859.7],[1487.2,855.7],[1479.4,855],[1478.9,822.5],[1482.7,822.2]],[[1406.1,805.7],[1430.9,806],[1431.4,820],[1438,820],[1438,922.7],[1431.6,923],[1432.4,973.2],[1411.8,972.7],[1412.2,990.2],[1423.6,990.5],[1424.5,1006.8],[1482.8,1007.2],[1483.2,977.9],[1643.5,978.3],[1642.7,1109.2],[1484.8,1109.2],[1484,1061.6],[1423.3,1062.4],[1422.9,1156],[1312.6,1156.4],[1311.8,1174.6],[1281.6,1174.6],[1282.4,1135.8],[1305.8,1135],[1305.5,1104],[1389.3,1099.7],[1389.6,1021],[1380.4,1021],[1380.4,1000.5],[1385.6,1000.7],[1384.6,977.5],[1376.4,975.7],[1376.6,947.2],[1400.6,947.7],[1400.4,920.2],[1428.6,920.5],[1428.1,886.5],[1407.1,886],[1406.4,839.5]],[[735.4,1205.3],[873.9,1206.4],[874.6,1224.1],[1095.4,1224.1],[1095.4,1214.5],[1197.5,1216.4],[1197.5,1231.8],[1380.1,1231.4],[1380.1,1214.9],[1540.2,1213.4],[1540.2,1223.7],[1582.1,1224.1],[1581.9,1282],[1549.9,1282.4],[1549.2,1357.7],[1460.7,1441.8],[1374.7,1443.3],[1374.4,1578.4],[1093.8,1576.1],[1093.5,1525.7],[1037.5,1517.3],[1037.2,1524.6],[927.1,1525.3],[926.4,1494.5],[830.2,1470.2],[810,1453.7],[736.1,1452.2]],[[589.7,907.6],[596,908.3],[596.5,897.6],[665.7,897.6],[665.7,908.3],[672.5,908.6],[672,970.1],[666.5,970.2],[666,978.2],[595.5,978.3],[595.7,969.3],[590,969.3]],[[374.5,855.5],[425.5,856.1],[425.8,864.3],[432.1,864],[432.4,880.1],[426.4,880.4],[425.8,992.4],[367.8,992.2],[368.5,914.4],[361.3,914.4],[361.9,871.9],[374.5,872.2]],[[540.9,420],[574.1,420.3],[574.4,430.5],[587.6,430.8],[587.4,446.8],[605.8,446.5],[607.1,481],[540.4,480.5]],[[644.9,447.3],[666.6,446.5],[666.1,430],[684.9,429.8],[684.6,383],[666.4,383.3],[666.4,337.8],[695.9,337.5],[695.4,355.8],[755.6,355.3],[755.9,343.5],[815.9,343.8],[815.6,356.3],[868.6,356],[868.6,344.5],[881.1,344.3],[881.1,338.3],[907.9,338],[907.9,356.3],[910.4,355.8],[909.4,402],[707,398.4],[705.9,481.3],[646.1,481]],[[575.2,1334.3],[671.1,1334.6],[671.1,1404.1],[577.1,1404.8]],[[726,961],[743,960.5],[742.9,956],[772.2,955.8],[771.8,964.5],[864.7,964.5],[906.7,1004.5],[906.2,1076],[869,1117.9],[768.5,1117.1],[768,1178.8],[691,1179.8],[692.4,1285],[563.9,1284.6],[565,1238.7],[516.8,1169.7],[516.8,1137.7],[516.1,1115],[500.8,1115.3],[500.3,1107.5],[488.5,1107.3],[487.5,1071.6],[494.3,1071.6],[493.7,976.9],[493.7,881.9],[484.3,881.3],[484.5,864.6],[498.5,864.9],[498.7,844.7],[509.7,844.2],[510.4,799.1],[497.2,798.9],[497.2,781.3],[393.7,780.3],[393.4,771.8],[388.2,771.6],[388.7,740.4],[397.9,740.1],[397.9,726.3],[435.4,725.6],[472.5,725.6],[466.2,720],[465.6,711.8],[471.9,702],[487,694.5],[515.4,694.7],[515.4,647.2],[574.4,647.7],[574.7,667.7],[589.7,668],[589.7,680.2],[604.4,680.2],[603.7,718],[595.7,718],[595.9,746.2],[585.9,757.2],[585.7,791.5],[595.4,800.7],[595.9,830.2],[606.4,830.2],[606.1,844.4],[569.6,844.8],[559.6,853.3],[548.6,864.1],[535.8,874.8],[527.7,882.3],[527.6,975.4],[528.1,987.4],[537.7,995.1],[548.9,1004.9],[562.6,1017.9],[691.3,1017],[705,1004.1],[726.3,981.7]],[[933.8,1675.9],[1027.4,1675.9],[1027.4,1718.5],[934.1,1717.4]],[[662.8,830.3],[673,830.6],[672.5,800.3],[680.5,793.3],[680.8,756.1],[671.5,747.8],[671.8,717.6],[664.5,717.8],[664.3,679.8],[680.3,680.6],[680,667.8],[696.3,667.8],[696,648.1],[708.8,648.6],[709.5,604.6],[760.8,604.3],[760.9,544.7],[771,544.1],[770.4,497.8],[761.5,498.5],[760.6,461],[822.5,461.2],[823.4,480.1],[882,480.7],[882.3,458.2],[942,458.5],[942.3,475.2],[995.4,474.3],[996.3,458.2],[1059.6,458],[1059.8,495.6],[1039.4,495],[1039.1,509.3],[1012.9,509.9],[1012.6,495],[894.5,495],[894.5,514.8],[882,514.8],[882,569.6],[893.6,569.9],[893.6,580.4],[929.2,580.7],[930.1,606.1],[933,622.7],[937.4,640.5],[938,626.2],[945.2,626.8],[945.5,659.2],[929.8,659.2],[930.3,676.3],[915.8,676.8],[916.1,685.8],[915.8,699],[915.8,708.3],[915.8,719.5],[916.6,737.8],[938.8,737.8],[938.6,788.9],[916.1,789.4],[917.1,905.9],[805.1,907.4],[803.6,881.9],[772.4,880.7],[772.1,903.9],[742.1,903.7],[741.1,896.2],[722.9,894.9],[721.9,874.9],[708.4,864.7],[688.4,846.7],[662.5,845.1]],[[1480.5,1723.5],[1480.3,1716],[1482.4,1530.3],[1504,1473],[1680.4,1472.6],[1679.6,1282],[1638.1,1281.3],[1623,1241],[1631.2,1237.7],[1643,1261.2],[1651.9,1224.4],[1739.3,1223.7],[1740.1,1020.9],[1711.4,1020.6],[1712.6,912.9],[1684.9,912.9],[1685.9,880.1],[1673.9,851.5],[1666.7,850.5],[1656.3,800.5],[1648.7,797.6],[1649.3,774.3],[1712,773.1],[1712,666],[1746.7,665.4],[1747,485.2],[1704.1,485.2],[1704.5,467],[1575,466],[1574.7,485.2],[1171.3,485.5],[1170,538.1],[1138.5,536.9],[1137.9,495.6],[1114.9,495.9],[1114.6,458.5],[1158.1,458.1],[1156.7,154.9],[1858.2,214.9],[1864,1713.9]],[[1522,1723.9],[1480.3,1717.7],[1380.4,1729.2],[1376.6,1620.8],[1094.7,1621.2],[1093.6,1862.3],[1029,1871.9],[1027.9,1856.5],[930.5,1856.1],[884.9,1826.7],[880.7,1600.7],[814.8,1550.5],[806.1,1544.3],[736.8,1540.7],[652.4,1510.6],[567.2,1489.1],[528.5,1450],[485.8,1372.8],[466.2,1353.3],[419.8,1303.2],[399.3,1283],[312.5,1268.1],[292.1,1250],[142.1,1247.7],[119.2,1926],[1530.4,1937.5]],[[320.2,1269.9],[321.1,1169.4],[332.1,1170.1],[332.1,1161.2],[406.6,1162.5],[406.5,1115.5],[415.8,1115.5],[416,1107],[432,1106.5],[432.3,1071.8],[425.3,1072],[425.3,1033.8],[368.4,1033.5],[368.3,1058],[294.1,1057.5],[293.9,913.3],[302.1,913.5],[301.9,872.3],[266.4,872],[265.4,846.5],[255.9,845.8],[256.1,796],[266.4,795.8],[266.1,782],[318.4,781.5],[318.6,772.8],[325.4,771.3],[325.6,740.3],[317.9,740],[317.4,727.8],[314.1,727.8],[313.4,655.3],[313.1,641],[313.6,615],[313.6,598.8],[313.9,351.8],[309.4,220.7],[155.1,211.6],[160.9,1269]],[[308.6,355.5],[435.9,354.8],[436.1,383],[539.1,383],[539.6,390.3],[570.4,389.4],[572.1,383.3],[587.6,384.5],[587.9,342.4],[581.7,342.1],[581.9,320.9],[582.4,295.9],[588.4,296.4],[588.7,264.4],[665.4,264.1],[666.2,291.6],[696.7,291.6],[696.7,281.4],[701.7,281.1],[702.2,270.4],[755.4,269.9],[755.9,281.1],[816.4,281.1],[816.7,269.6],[870.2,269.6],[869.7,281.4],[880.9,281.6],[882.2,281.9],[882.2,291.6],[907.7,291.9],[907.4,281.9],[910.2,280.6],[910.4,247.3],[909.8,226.7],[910.3,155.9],[1157.7,154.4],[929.8,154.9],[910.5,154.6],[292.8,214.1]],[[1344.7,556.4],[1345.1,527.1],[1375.6,527.1],[1375.3,556.7]],[[662.4,513.1],[675.4,512.9],[675.4,511.6],[690.4,512.4],[703.9,512.4],[703.9,539.4],[699.4,539.4],[700.2,571.4],[668.2,571.4],[667.7,539.9],[662.2,540.1]],[[453.1,486.1],[486.2,502.5],[468.9,535.3],[434.6,518.3]],[[372.5,424.4],[365.9,438.3],[377.6,443],[383.5,430.1]],[[367.2,437.3],[352.7,460],[377.2,472.3],[388.9,449.6]],[[1622,1110.4],[1622.4,1136.9],[1649.8,1137.3],[1650.2,1108.8]],[[1613.9,1402.8],[1644.7,1391.8],[1656.8,1422.7],[1626.7,1433.3]],[[605.8,446.5],[645.6,446.5],[645.9,481],[607.1,480.3]]];
-// Each wall is a movable/scalable OBJECT (Photoshop-style: click to select,
-// drag its body to move, drag its corner handle to scale — see the wall
-// editing UI further down), not a single global transform over everything.
-// obj = { basePoints:[{x,y},...], closed:bool, dx, dy, scale, fromRaw }
-//  - WALLPOLYS_RAW above is now the per-vertex-edited ("pen tool") result,
-//    baked as absolute points — dragged/tweaked corner-by-corner by hand
-//    until every polygon matched the radar image. fromRaw is false for all
-//    of them: the old global "выравнивание стен" wallTransform pass (one
-//    coarse move+scale pivoted at the map center) is no longer needed on
-//    top of this set, since the alignment is now baked into the points
-//    themselves. wallTransform is kept at identity below so it stays inert
-//    unless a future fromRaw:true object is added.
-//  - hand-drawn objects (from draw mode) also use fromRaw:false, so
-//    they're unaffected either way.
-var WALL_OBJECTS = [];
-WALLPOLYS_RAW.forEach(function(poly){
-  WALL_OBJECTS.push({
-    basePoints: poly.map(function(p){ return {x:p[0], y:p[1]}; }),
-    closed: true, dx: 0, dy: 0, scale: 1, fromRaw: false,
-    // traced: marks this as one of the original baked-in polygons, purely so
-    // "Отменить" (undo) below refuses to delete it — unrelated to fromRaw,
-    // which now only controls the (inert) wallTransform pass.
-    traced: true
-  });
-});
-
-// ---------- autosave (план: правки стен не должны пропадать при перезагрузке) ----------
-// Ручные правки (перо/двигать/масштаб) раньше жили только в памяти вкладки и
-// терялись при любой перезагрузке — в частности при автообновлении артефакта
-// после публикации новой версии. Теперь каждое изменение геометрии (см. конец
-// rebuildManualWalls) сохраняет WALL_OBJECTS целиком в localStorage, с debounce,
-// чтобы не писать на каждый мышемув во время перетаскивания.
-var WALLS_STORAGE_KEY = "ancient-live-radar-walls-v1";
-var wallsSaveTimer = null;
-function saveWallsDebounced(){
-  if(wallsSaveTimer) clearTimeout(wallsSaveTimer);
-  wallsSaveTimer = setTimeout(function(){
-    try{ localStorage.setItem(WALLS_STORAGE_KEY, JSON.stringify(WALL_OBJECTS)); }catch(e){}
-  }, 250);
-}
-function loadSavedWalls(){
-  try{
-    var raw = localStorage.getItem(WALLS_STORAGE_KEY);
-    if(!raw) return false;
-    var arr = JSON.parse(raw);
-    if(!Array.isArray(arr) || !arr.length) return false;
-    WALL_OBJECTS.length = 0;
-    arr.forEach(function(o){ WALL_OBJECTS.push(o); });
-    return true;
-  }catch(e){ return false; }
-}
-var wallsRestoredFromStorage = loadSavedWalls(); // overrides the WALLPOLYS_RAW seed above, if a saved copy exists
-// the coarse whole-set alignment (dx -15.7 / dy 36.7 / scale 0.83) used to
-// live here and get applied on top of WALLPOLYS_RAW every frame. It is now
-// baked directly into WALLPOLYS_RAW's points (via the per-vertex pen-tool
-// pass), so this stays at identity — kept only so objectAbsPoints() still
-// has something inert to apply if a future fromRaw:true object shows up.
-var wallTransform = { dx: 0, dy: 0, scale: 1 };
-
-function objectAbsPoints(obj){
-  var src = obj.basePoints;
-  if(obj.fromRaw){
-    var t = wallTransform;
-    src = src.map(function(p){
-      return { x:(p.x-1024)*t.scale+1024+t.dx, y:(p.y-1024)*t.scale+1024+t.dy };
-    });
-  }
-  var cx=0, cy=0;
-  src.forEach(function(p){ cx+=p.x; cy+=p.y; });
-  cx/=src.length; cy/=src.length;
-  return src.map(function(p){
-    return { x:(p.x-cx)*obj.scale+cx+obj.dx, y:(p.y-cy)*obj.scale+cy+obj.dy };
-  });
-}
-function objectCentroid(obj){
-  var pts = objectAbsPoints(obj);
-  var cx=0, cy=0;
-  pts.forEach(function(p){ cx+=p.x; cy+=p.y; });
-  return {x:cx/pts.length, y:cy/pts.length};
-}
-// bbox corner used as the scale handle — computed fresh each time from the
-// object's CURRENT absolute points, so the handle always sits at the
-// visible bounding-box corner regardless of past scale/move edits.
-function objectHandlePos(obj){
-  var pts = objectAbsPoints(obj);
-  var maxX=-Infinity, maxY=-Infinity;
-  pts.forEach(function(p){ if(p.x>maxX)maxX=p.x; if(p.y>maxY)maxY=p.y; });
-  return {x:maxX, y:maxY};
-}
-function rebuildManualWalls(){
+var WALL_SOLID_POLYS = []; // те же стены как многоугольники {x,y} — «точка внутри стены»
+var WALLS_SIG = "";         // подпись набора стен (отметки: снимок с другими стенами не годится)
+function applyWalls(full){
   MANUAL_WALLS.length = 0;
-  WALL_SOLID_POLYS = WALL_OBJECTS.filter(function(o){ return o.closed; }).map(objectAbsPoints);
-  // стены поменялись → граф навмеша надо пересчитать (какие полигоны/порталы
-  // теперь внутри/поперёк стен). С задержкой, чтобы не пересчитывать на каждый
-  // мышемув при перетаскивании.
-  if(typeof zonesById !== "undefined" && zonesById){
-    if(navRebuildForWallsTimer) clearTimeout(navRebuildForWallsTimer);
-    navRebuildForWallsTimer = setTimeout(function(){ navRebuildForWallsTimer = null; rebuildNav(); if(typeof resnapSpawns==="function") resnapSpawns(); }, 400);
-  }
-  WALL_OBJECTS.forEach(function(obj){
-    var pts = objectAbsPoints(obj);
-    var n = obj.closed ? pts.length : pts.length-1;
-    for(var i=0;i<n;i++){
-      var a = pts[i], b = pts[(i+1)%pts.length];
-      MANUAL_WALLS.push([a.x,a.y,b.x,b.y]);
+  WALL_SOLID_POLYS = WALL_POLYS.map(function(poly){ return poly.map(function(p){ return {x:p[0], y:p[1]}; }); });
+  var h = 0;
+  WALL_POLYS.forEach(function(poly){
+    for(var i=0;i<poly.length;i++){
+      var a = poly[i], b = poly[(i+1)%poly.length];
+      MANUAL_WALLS.push([a[0],a[1],b[0],b[1]]);
+      h = (h*31 + Math.round(a[0]*10)*7 + Math.round(a[1]*10)) % 2147483647;
     }
   });
-  saveWallsDebounced();
+  WALLS_SIG = MANUAL_WALLS.length + ":" + h;
+  // при загрузке (full не задан) остальное строится дальше по коду само
+  if(!full || typeof zonesById === "undefined" || !zonesById) return;
+  rebuildNav();
+  if(typeof resnapSpawns === "function") resnapSpawns();
+  if(typeof SITES_READY !== "undefined" && SITES_READY) buildSites();
+  if(typeof PRO_LINEUPS !== "undefined") PRO_LINEUPS = null;
+  if(typeof computeZoneDanger === "function") computeZoneDanger();
 }
-rebuildManualWalls();
+applyWalls();
 
 function zoneCentroid(z){
   var cx=0,cy=0; z.points.forEach(function(p){cx+=p.x;cy+=p.y;}); return {x:cx/z.points.length, y:cy/z.points.length};
@@ -789,7 +690,6 @@ function zoneCentroid(z){
 // live visual feedback; this heavier rebuild (graph + both wall sets) is
 // debounced to run only after the user stops adjusting. ----------
 var NAV_BLOCKED = {}, navBlockedCount = 0, navCutPortals = 0, navNarrowPortals = 0;
-var WALL_SOLID_POLYS = WALL_SOLID_POLYS || []; // (уже заполнен первым вызовом rebuildManualWalls выше — не затираем) абсолютные точки замкнутых стен — пересобирается в rebuildManualWalls
 function insideSolidWall(x, y){
   for(var i=0;i<WALL_SOLID_POLYS.length;i++){
     if(pointInPoly(x, y, WALL_SOLID_POLYS[i])) return true;
@@ -816,7 +716,6 @@ function snapToWalkable(x, y){
   });
   return best ? {x:best.x, y:best.y} : {x:x, y:y};
 }
-var navRebuildForWallsTimer = null;
 function rebuildNav(){
   applyNavTransform();
   // rescale edge-matching tolerances to the current navmesh scale (see the
@@ -936,14 +835,8 @@ function rebuildNav(){
     });
   })();
 
-  // Walls are no longer auto-derived from the navmesh at all — every attempt
-  // at that (inset/MIN_KEEP tuning, then chain-stitching) kept trading one
-  // failure mode for another (holes vs. chaotic noise vs. stuck-tick
-  // regressions), so the user asked to place them by hand instead. wallSegs
-  // and wallSegsLOS both point at the SAME array (MANUAL_WALLS, see the
-  // manual-wall-editing UI further down) so drawing/deleting a wall there
-  // takes effect immediately with no rebuild step needed. rebuildNav() only
-  // touches the pathing graph now (zoneGraph/zonesById), never this array.
+  // стены — от руки (WALL_POLYS, см. applyWalls); wallSegs и wallSegsLOS —
+  // тот же массив MANUAL_WALLS, rebuildNav его не меняет
   wallSegs = MANUAL_WALLS;
   wallSegsLOS = MANUAL_WALLS;
 
@@ -1292,10 +1185,7 @@ loadUserZones();
   if(fixed){ try{ localStorage.setItem(USER_ZONES_KEY, JSON.stringify(USER_ZONES)); }catch(e){} }
 })();
 
-// те же формулы, что objectAbsPoints/objectCentroid/objectHandlePos у стен,
-// но без fromRaw/wallTransform — у зон нет отдельного "сырого" исходника с
-// глобальной выравнивающей трансформацией, только свой dx/dy/scale вокруг
-// собственного центра.
+// у зоны свой dx/dy/scale вокруг собственного центра
 function zoneObjAbsPoints(obj){
   var src = obj.basePoints;
   var cx=0, cy=0;
@@ -1523,10 +1413,10 @@ function sitePlantSpot(site){
   return best ? {x:best.x, y:best.y} : {x:site.x, y:site.y};
 }
 // (v162) отдельно стоящие ящики/колонны — небольшие замкнутые контуры стен
-var _WB = null, _WBn = -1;
+var _WB = null, _WBn = "";
 function wallBoxes(){
-  if(_WB && _WBn === MANUAL_WALLS.length) return _WB;
-  _WBn = MANUAL_WALLS.length; _WB = [];
+  if(_WB && _WBn === WALLS_SIG) return _WB;
+  _WBn = WALLS_SIG; _WB = [];
   var W = MANUAL_WALLS, par = W.map(function(_, i){ return i; });
   var f = function(i){ while(par[i] !== i){ par[i] = par[par[i]]; i = par[i]; } return i; };
   var K = function(x, y){ return Math.round(x/3)+","+Math.round(y/3); }, idx = {};
@@ -2938,7 +2828,7 @@ function findZoneMapZoneAt(x, y){
 cv.addEventListener("mousemove", function(e){
   if(!showDanger.checked){ if(hoverZoneId!==null){ hoverZoneId=null; } return; }
   // don't fight the existing drag modes (wall edit/align/nav align/pan) for the cursor
-  if(chkWallEdit.checked || chkWallAlign.checked || chkAlign.checked) return;
+  if(mapEdOn() || chkAlign.checked) return;
   var w = navScreenToWorld(e.clientX, e.clientY);
   hoverZoneId = findZoneMapZoneAt(w.x, w.y);
 });
@@ -2986,92 +2876,10 @@ function navScreenToWorld(clientX, clientY){
 var navDragging = false, navDragStart = null, navDragOrig = null;
 var camDragging = false, camDragStart = null, camDragOrig = null;
 
-// ---------- manual wall editing, Photoshop-style: click an object to select
-// it (dashed box + a corner handle), drag its body to MOVE it, drag the
-// handle to SCALE it (from its own center). Click empty space to draw a new
-// wall object instead (or to deselect). Takes priority over align-mode/
-// camera-pan dragging whenever it's on. ----------
-var chkWallEdit = document.getElementById("chkWallEdit");
-var wallEditPanel = document.getElementById("wallEditPanel");
-var wallEditCount = document.getElementById("wallEditCount");
-var btnWallUndo = document.getElementById("btnWallUndo");
-var btnWallClear = document.getElementById("btnWallClear");
-var btnWallDelete = document.getElementById("btnWallDelete");
-var btnWallExport = document.getElementById("btnWallExport");
-var wallExportArea = document.getElementById("wallExportArea");
-var btnWallRevert = document.getElementById("btnWallRevert");
-btnWallRevert.addEventListener("click", function(){
-  // discards the autosaved browser copy and rebuilds fresh from the
-  // WALLPOLYS_RAW seed baked into this artifact's source — for when local
-  // edits went sideways and you want to start over from what's actually published
-  try{ localStorage.removeItem(WALLS_STORAGE_KEY); }catch(e){}
-  WALL_OBJECTS.length = 0;
-  WALLPOLYS_RAW.forEach(function(poly){
-    WALL_OBJECTS.push({ basePoints: poly.map(function(p){ return {x:p[0], y:p[1]}; }), closed:true, dx:0, dy:0, scale:1, fromRaw:false, traced:true });
-  });
-  selectedObjId = null;
-  rebuildManualWalls();
-  updateWallEditCount();
-  logEvent("Стены сброшены к версии из кода", "round");
-});
-btnWallExport.addEventListener("click", function(){
-  // absolute points for every object, baked (ignores fromRaw/wallTransform/
-  // obj dx-dy-scale entirely — this is "what's actually on screen right now",
-  // exactly what needs to go back into the source to make it permanent)
-  var out = WALL_OBJECTS.map(function(obj){
-    var pts = objectAbsPoints(obj);
-    return { points: pts.map(function(p){ return {x:Math.round(p.x*10)/10, y:Math.round(p.y*10)/10}; }), closed: obj.closed };
-  });
-  wallExportArea.style.display = "block";
-  wallExportArea.value = JSON.stringify(out);
-  wallExportArea.select();
-  try{ document.execCommand("copy"); }catch(e){}
-});
-var wallDrawing = false, wallDrawStart = null, wallDrawCur = null;
+// допуски попадания мышью (редактор зон)
 var HIT_TOL_PX = 8;   // screen px, converted to world units by /view.scale below
 var HANDLE_TOL_PX = 10;
-var selectedObjId = null; // index into WALL_OBJECTS, or null
-var objMoving = false, objMoveStart = null, objMoveOrig = null;
-var objScaling = false, objScaleCenter = null, objScaleBaseDist = 1;
-
-var chkVertexEdit = document.getElementById("chkVertexEdit");
-var wallEditHint = document.getElementById("wallEditHint");
-var vertexDragging = false, vertexDragObjId = null, vertexDragIdx = -1;
 var VERTEX_TOL_PX = 10;
-var HINT_OBJECT_MODE = "клик — выделить · тащи тело — двигать · тащи уголок (квадратик) — масштаб · колесо — тоже масштаб · тащи пустое место — новая стена";
-var HINT_VERTEX_MODE = "клик по точке — выделить объект · тащи точку — сдвинуть её · клик на ребре между точками — вставить новую точку туда (перо) · Shift+клик по точке — удалить её";
-function updateWallEditHint(){ wallEditHint.textContent = chkVertexEdit.checked ? HINT_VERTEX_MODE : HINT_OBJECT_MODE; }
-chkVertexEdit.addEventListener("change", function(){
-  // switching modes mid-drag would leave a half-finished move/scale/drag dangling
-  objMoving = false; objScaling = false; vertexDragging = false;
-  updateWallEditHint();
-});
-
-// как только правишь точки объекта индивидуально, он отсоединяется от любых
-// групповых трансформаций — тот же приём, что уже применяется к hand-drawn
-// объектам (см. WALL_OBJECTS выше): иначе "куда сместилась эта точка"
-// зависело бы ещё и от dx/dy/scale объекта и от общего выравнивания стен
-function bakeObjectTransform(obj){
-  if(obj.fromRaw || obj.dx!==0 || obj.dy!==0 || obj.scale!==1){
-    obj.basePoints = objectAbsPoints(obj);
-    obj.dx = 0; obj.dy = 0; obj.scale = 1; obj.fromRaw = false;
-  }
-}
-function findVertexNear(obj, wx, wy){
-  var tol = VERTEX_TOL_PX / view.scale;
-  var pts = objectAbsPoints(obj);
-  var best = -1, bestD = tol;
-  pts.forEach(function(p, i){
-    var d = Math.hypot(p.x-wx, p.y-wy);
-    if(d < bestD){ bestD = d; best = i; }
-  });
-  return best;
-}
-
-function updateWallEditCount(){ wallEditCount.textContent = WALL_OBJECTS.length; btnWallDelete.disabled = selectedObjId===null; }
-updateWallEditCount();
-updateWallEditHint();
-
 function distToSeg(px,py, s){
   var x1=s[0],y1=s[1],x2=s[2],y2=s[3];
   var dx=x2-x1, dy=y2-y1;
@@ -3080,84 +2888,7 @@ function distToSeg(px,py, s){
   var cx = x1+t*dx, cy = y1+t*dy;
   return Math.hypot(px-cx, py-cy);
 }
-// nearest OBJECT (not raw segment) to a world point, for select/move-drag
-function findObjectNear(wx, wy){
-  var tol = HIT_TOL_PX / view.scale;
-  var best = -1, bestD = tol;
-  WALL_OBJECTS.forEach(function(obj, i){
-    var pts = objectAbsPoints(obj);
-    var n = obj.closed ? pts.length : pts.length-1;
-    for(var k=0;k<n;k++){
-      var a = pts[k], b = pts[(k+1)%pts.length];
-      var d = distToSeg(wx, wy, [a.x,a.y,b.x,b.y]);
-      if(d < bestD){ bestD = d; best = i; }
-    }
-  });
-  return best;
-}
 
-chkWallEdit.addEventListener("change", function(){
-  if(chkWallEdit.checked) setMode("wallEdit"); else { setMode(null); selectedObjId = null; updateWallEditCount(); }
-});
-btnWallUndo.addEventListener("click", function(){
-  // only undoes hand-drawn additions, never one of the 25 traced originals
-  for(var i=WALL_OBJECTS.length-1;i>=0;i--){
-    if(!WALL_OBJECTS[i].traced){ WALL_OBJECTS.splice(i,1); break; }
-  }
-  if(selectedObjId!==null && selectedObjId>=WALL_OBJECTS.length) selectedObjId=null;
-  rebuildManualWalls();
-  updateWallEditCount();
-});
-btnWallClear.addEventListener("click", function(){
-  if(WALL_OBJECTS.length && !confirm("Удалить все "+WALL_OBJECTS.length+" объект(ов) стен?")) return;
-  WALL_OBJECTS.length = 0;
-  selectedObjId = null;
-  rebuildManualWalls();
-  updateWallEditCount();
-});
-btnWallDelete.addEventListener("click", function(){
-  if(selectedObjId===null) return;
-  WALL_OBJECTS.splice(selectedObjId, 1);
-  selectedObjId = null;
-  rebuildManualWalls();
-  updateWallEditCount();
-});
-window.addEventListener("keydown", function(e){
-  if(!chkWallEdit.checked || selectedObjId===null) return;
-  if(e.key==="Delete" || e.key==="Backspace"){
-    WALL_OBJECTS.splice(selectedObjId, 1);
-    selectedObjId = null;
-    rebuildManualWalls();
-    updateWallEditCount();
-    e.preventDefault();
-  }
-});
-
-// ---------- global wall alignment: one coarse move+scale over the whole
-// traced set (see objectAbsPoints — only fromRaw:true objects are affected,
-// and none currently are, since the traced set was baked point-by-point via
-// the pen tool — see WALLPOLYS_RAW above). Left in place, inert, in case a
-// future fromRaw:true batch is added and needs this coarse pass again.
-// Same drag/wheel mechanism as navmesh alignment. ----------
-var chkWallAlign = document.getElementById("chkWallAlign");
-var wallAlignPanel = document.getElementById("wallAlignPanel");
-var inWallDx = document.getElementById("wallDx");
-var inWallDy = document.getElementById("wallDy");
-var inWallScale = document.getElementById("wallScale");
-var btnWallAlignReset = document.getElementById("btnWallAlignReset");
-var wallAlignDragging = false, wallAlignDragStart = null, wallAlignDragOrig = null;
-
-function updateWallAlignInputs(){
-  inWallDx.value = wallTransform.dx.toFixed(1);
-  inWallDy.value = wallTransform.dy.toFixed(1);
-  inWallScale.value = wallTransform.scale.toFixed(3);
-}
-updateWallAlignInputs();
-
-// ---------- navmesh multi-anchor calibration UI: click a navmesh vertex,
-// then click where it should actually be — repeat 3+ times in different
-// corners of the map to fix the non-uniform drift a single affine
-// transform can't (see navMapPoint/rebuildNavWarp above). ----------
 var chkNavWarp = document.getElementById("chkNavWarp");
 var navWarpPanel = document.getElementById("navWarpPanel");
 var navWarpHint = document.getElementById("navWarpHint");
@@ -3307,18 +3038,15 @@ function setMode(which){
   // exactly one of these (or none) is active at a time
   if(which !== "align" && chkAlign.checked){ chkAlign.checked = false; }
   if(which !== "navWarp" && chkNavWarp.checked){ chkNavWarp.checked = false; }
-  if(which !== "wallEdit" && chkWallEdit.checked){ chkWallEdit.checked = false; }
-  if(which !== "wallAlign" && chkWallAlign.checked){ chkWallAlign.checked = false; }
+  if(which !== "mapEdit" && mapEdOn()) mapEdSetOn(false);
   if(which !== "zoneEdit" && chkZoneEdit.checked){ chkZoneEdit.checked = false; }
   if(which !== "zoneAlign" && chkZoneAlign.checked){ chkZoneAlign.checked = false; }
   zoneAlignPanel.style.display = chkZoneAlign.checked ? "block" : "none";
   alignPanel.style.display = chkAlign.checked ? "block" : "none";
   navWarpPanel.style.display = chkNavWarp.checked ? "block" : "none";
-  wallEditPanel.style.display = chkWallEdit.checked ? "block" : "none";
-  wallAlignPanel.style.display = chkWallAlign.checked ? "block" : "none";
   zoneEditPanel.style.display = chkZoneEdit.checked ? "block" : "none";
   if(!chkZoneEdit.checked){ zoneDrawing=false; zoneDrawPts=[]; btnZoneFinish.disabled=true; selectedZoneId=null; updateZoneEditCount(); }
-  cv.style.cursor = chkAlign.checked ? "move" : chkNavWarp.checked ? "crosshair" : chkWallEdit.checked ? "default" : chkWallAlign.checked ? "move" : chkZoneEdit.checked ? "default" : chkZoneAlign.checked ? "move" : "";
+  cv.style.cursor = chkAlign.checked ? "move" : chkNavWarp.checked ? "crosshair" : mapEdOn() ? "crosshair" : chkZoneEdit.checked ? "default" : chkZoneAlign.checked ? "move" : "";
 }
 chkZoneEdit.addEventListener("change", function(){ if(chkZoneEdit.checked) setMode("zoneEdit"); else setMode(null); });
 chkZoneAlign.addEventListener("change", function(){ if(chkZoneAlign.checked) setMode("zoneAlign"); else setMode(null); });
@@ -3328,26 +3056,6 @@ chkNavWarp.addEventListener("change", function(){
   navWarpPending = null;
   updateNavWarpHint();
 });
-chkWallAlign.addEventListener("change", function(){
-  if(chkWallAlign.checked) setMode("wallAlign"); else setMode(null);
-});
-var WALL_ALIGN_BASELINE = { dx: 0, dy: 0, scale: 1 }; // identity — the old confirmed-good coarse pass (-15.7/36.7/0.83) is now baked directly into WALLPOLYS_RAW's points, not applied here
-btnWallAlignReset.addEventListener("click", function(){
-  wallTransform.dx = WALL_ALIGN_BASELINE.dx; wallTransform.dy = WALL_ALIGN_BASELINE.dy; wallTransform.scale = WALL_ALIGN_BASELINE.scale;
-  rebuildManualWalls();
-  updateWallAlignInputs();
-  updateWallEditCount();
-});
-[inWallDx,inWallDy,inWallScale].forEach(function(el){
-  el.addEventListener("change", function(){
-    wallTransform.dx = parseFloat(inWallDx.value)||0;
-    wallTransform.dy = parseFloat(inWallDy.value)||0;
-    wallTransform.scale = parseFloat(inWallScale.value)||1;
-    rebuildManualWalls();
-    updateWallEditCount();
-  });
-});
-
 cv.addEventListener("contextmenu", function(e){ e.preventDefault(); });
 // ---- редактор лайнапов ----
 var chkLineups = document.getElementById("chkLineups"), lineupPanel = document.getElementById("lineupPanel");
@@ -3520,8 +3228,8 @@ zoneNameInput2.addEventListener("keydown", function(e){ if(e.key === "Enter"){ s
 cv.addEventListener("mousedown", function(e){
   if(e.button === 0 && chkLineups.checked){ lineupClick(e); e.preventDefault(); return; }
   // слой «зоны» без других режимов редактирования: клик по зоне — её название
-  if(e.button === 0 && showZones.checked && !chkNavWarp.checked && !chkZoneEdit.checked && !chkWallEdit.checked &&
-     !chkAlign.checked && !chkWallAlign.checked && !chkZoneAlign.checked){
+  if(e.button === 0 && showZones.checked && !chkNavWarp.checked && !chkZoneEdit.checked && !mapEdOn() &&
+     !chkAlign.checked && !chkZoneAlign.checked){
     if(zoneShapeOn() && zoneShapeMouseDown(e)){ e.preventDefault(); return; }
     var zw = navScreenToWorld(e.clientX, e.clientY), zid = zoneIdAt(zw.x, zw.y);
     if(zid){ openZoneName(zid); e.preventDefault(); return; }
@@ -3627,87 +3335,10 @@ cv.addEventListener("mousedown", function(e){
     e.preventDefault();
     return;
   }
-  if(chkWallEdit.checked && chkVertexEdit.checked){
-    // pen/vertex mode — never moves or scales the whole object, and never
-    // starts a fresh wall; only selects objects and edits their points
-    var wv = navScreenToWorld(e.clientX, e.clientY);
-    if(selectedObjId !== null){
-      var vobj = WALL_OBJECTS[selectedObjId];
-      var vi = findVertexNear(vobj, wv.x, wv.y);
-      if(vi >= 0){
-        var minPts = vobj.closed ? 3 : 2;
-        var curPts = objectAbsPoints(vobj);
-        if(e.shiftKey){
-          if(curPts.length > minPts){
-            bakeObjectTransform(vobj);
-            vobj.basePoints.splice(vi, 1);
-            rebuildManualWalls();
-          }
-        } else {
-          bakeObjectTransform(vobj);
-          vertexDragging = true; vertexDragObjId = selectedObjId; vertexDragIdx = vi;
-        }
-        e.preventDefault();
-        return;
-      }
-      // not on a point — on an edge of the SAME selected object? insert a new point there
-      var ePts = objectAbsPoints(vobj);
-      var eN = vobj.closed ? ePts.length : ePts.length-1;
-      var insTol = HIT_TOL_PX/view.scale;
-      for(var ek=0; ek<eN; ek++){
-        var ea = ePts[ek], eb = ePts[(ek+1)%ePts.length];
-        if(distToSeg(wv.x, wv.y, [ea.x,ea.y,eb.x,eb.y]) < insTol){
-          bakeObjectTransform(vobj);
-          vobj.basePoints.splice(ek+1, 0, {x:wv.x, y:wv.y});
-          rebuildManualWalls();
-          vertexDragging = true; vertexDragObjId = selectedObjId; vertexDragIdx = ek+1;
-          e.preventDefault();
-          return;
-        }
-      }
-    }
-    // clicked elsewhere — (re)select whichever object is under the cursor, if any
-    var hitv = findObjectNear(wv.x, wv.y);
-    selectedObjId = hitv >= 0 ? hitv : null;
-    updateWallEditCount();
-    e.preventDefault();
-    return;
-  }
-  if(chkWallEdit.checked){
-    var w = navScreenToWorld(e.clientX, e.clientY);
-    // the selected object's own scale handle takes priority over everything
-    if(selectedObjId !== null){
-      var h = objectHandlePos(WALL_OBJECTS[selectedObjId]);
-      if(Math.hypot(w.x-h.x, w.y-h.y) < HANDLE_TOL_PX/view.scale){
-        objScaling = true;
-        objScaleCenter = objectCentroid(WALL_OBJECTS[selectedObjId]);
-        objScaleBaseDist = Math.max(1, Math.hypot(h.x-objScaleCenter.x, h.y-objScaleCenter.y)) / WALL_OBJECTS[selectedObjId].scale;
-        e.preventDefault();
-        return;
-      }
-    }
-    var hit = findObjectNear(w.x, w.y);
-    if(hit >= 0){
-      selectedObjId = hit;
-      updateWallEditCount();
-      objMoving = true;
-      objMoveStart = w;
-      objMoveOrig = {dx:WALL_OBJECTS[hit].dx, dy:WALL_OBJECTS[hit].dy};
-    } else {
-      selectedObjId = null;
-      updateWallEditCount();
-      wallDrawing = true;
-      wallDrawStart = w;
-      wallDrawCur = w;
-    }
-  } else if(chkZoneAlign.checked){
+  if(chkZoneAlign.checked){
     zlDragging = true;
     zlDragStart = navScreenToWorld(e.clientX, e.clientY);
     zlDragOrig = {dx:zoneLayer.dx, dy:zoneLayer.dy};
-  } else if(chkWallAlign.checked){
-    wallAlignDragging = true;
-    wallAlignDragStart = navScreenToWorld(e.clientX, e.clientY);
-    wallAlignDragOrig = {dx:wallTransform.dx, dy:wallTransform.dy};
   } else if(chkAlign.checked){
     navDragging = true;
     navDragStart = navScreenToWorld(e.clientX, e.clientY);
@@ -3737,35 +3368,11 @@ window.addEventListener("mousemove", function(e){
     var zwv = navScreenToWorld(e.clientX, e.clientY);
     USER_ZONES[selectedZoneId].basePoints[zoneVertexIdx] = {x:zwv.x, y:zwv.y};
     applyUserZones(); saveUserZonesDebounced();
-  } else if(objScaling){
-    var w = navScreenToWorld(e.clientX, e.clientY);
-    var d = Math.hypot(w.x-objScaleCenter.x, w.y-objScaleCenter.y);
-    WALL_OBJECTS[selectedObjId].scale = Math.max(0.1, Math.min(10, d/objScaleBaseDist));
-    rebuildManualWalls();
-  } else if(objMoving){
-    var w = navScreenToWorld(e.clientX, e.clientY);
-    WALL_OBJECTS[selectedObjId].dx = objMoveOrig.dx + (w.x-objMoveStart.x);
-    WALL_OBJECTS[selectedObjId].dy = objMoveOrig.dy + (w.y-objMoveStart.y);
-    rebuildManualWalls();
-  } else if(vertexDragging){
-    // baked already (fromRaw:false, dx/dy 0, scale 1) at drag start, so the
-    // absolute point IS the basePoint — no transform to invert here
-    var wv2 = navScreenToWorld(e.clientX, e.clientY);
-    WALL_OBJECTS[vertexDragObjId].basePoints[vertexDragIdx] = {x:wv2.x, y:wv2.y};
-    rebuildManualWalls();
-  } else if(wallDrawing){
-    wallDrawCur = navScreenToWorld(e.clientX, e.clientY);
   } else if(zlDragging){
     var zc = navScreenToWorld(e.clientX, e.clientY);
     zoneLayer.dx = zlDragOrig.dx + (zc.x - zlDragStart.x);
     zoneLayer.dy = zlDragOrig.dy + (zc.y - zlDragStart.y);
     applyZoneLayer(false); updateZlInputs();
-  } else if(wallAlignDragging){
-    var cur = navScreenToWorld(e.clientX, e.clientY);
-    wallTransform.dx = wallAlignDragOrig.dx + (cur.x - wallAlignDragStart.x);
-    wallTransform.dy = wallAlignDragOrig.dy + (cur.y - wallAlignDragStart.y);
-    rebuildManualWalls();
-    updateWallAlignInputs();
   } else if(navDragging){
     var cur = navScreenToWorld(e.clientX, e.clientY);
     navTransform.dx = navDragOrig.dx + (cur.x - navDragStart.x);
@@ -3779,20 +3386,6 @@ window.addEventListener("mousemove", function(e){
   }
 });
 window.addEventListener("mouseup", function(e){
-  if(wallDrawing){
-    wallDrawing = false;
-    var w = navScreenToWorld(e.clientX, e.clientY);
-    var len = Math.hypot(w.x-wallDrawStart.x, w.y-wallDrawStart.y);
-    if(len > 2/view.scale){ // ignore accidental clicks-as-zero-length-drags
-      WALL_OBJECTS.push({ basePoints:[{x:wallDrawStart.x,y:wallDrawStart.y},{x:w.x,y:w.y}], closed:false, dx:0, dy:0, scale:1, fromRaw:false });
-      rebuildManualWalls();
-      updateWallEditCount();
-    }
-    wallDrawStart = null; wallDrawCur = null;
-  }
-  objMoving = false; objScaling = false;
-  vertexDragging = false; vertexDragObjId = null; vertexDragIdx = -1;
-  wallAlignDragging = false;
   if(zlDragging){ zlDragging = false; applyZoneLayer(true); }
   zoneMoving = false; zoneScaling = false;
   zoneVertexDragging = false; zoneVertexIdx = -1;
@@ -3805,13 +3398,7 @@ window.addEventListener("mouseup", function(e){
 });
 cv.addEventListener("wheel", function(e){
   e.preventDefault();
-  if(chkWallEdit.checked && selectedObjId !== null){
-    // scale the selected object from its own center
-    var wfac = e.deltaY < 0 ? 1.06 : (1/1.06);
-    var obj = WALL_OBJECTS[selectedObjId];
-    obj.scale = Math.max(0.1, Math.min(10, obj.scale*wfac));
-    rebuildManualWalls();
-  } else if(chkZoneEdit.checked && selectedZoneId !== null){
+  if(chkZoneEdit.checked && selectedZoneId !== null){
     var zwfac = e.deltaY < 0 ? 1.06 : (1/1.06);
     var zobj = USER_ZONES[selectedZoneId];
     zobj.scale = Math.max(0.1, Math.min(10, zobj.scale*zwfac));
@@ -3820,12 +3407,6 @@ cv.addEventListener("wheel", function(e){
     var zf2 = e.deltaY < 0 ? 1.03 : (1/1.03);
     zoneLayer.scale = Math.max(0.3, Math.min(3, zoneLayer.scale*zf2));
     applyZoneLayer(false); updateZlInputs();
-  } else if(chkWallAlign.checked){
-    // wall-align mode: wheel resizes the old wall set relative to the image
-    var wfactor = e.deltaY < 0 ? 1.04 : (1/1.04);
-    wallTransform.scale = Math.max(0.3, Math.min(2.5, wallTransform.scale*wfactor));
-    rebuildManualWalls();
-    updateWallAlignInputs();
   } else if(chkAlign.checked){
     // align mode: wheel resizes the navmesh itself relative to the image
     var factor = e.deltaY < 0 ? 1.04 : (1/1.04);
@@ -4050,7 +3631,9 @@ function draw(){
       ctx.fillText((hz.name||hz.id)+": простреливается с "+dangerIds.length, cx, cy - 16/view.scale);
     }
   }
-  if(!(showWalls.checked || chkWallEdit.checked) && document.getElementById("chkOutline") && document.getElementById("chkOutline").checked){
+  // вкладка «стены» редактора карты рисует стены сама (с выделением и точками)
+  var wallsByEditor = mapEdOn() && MAPED.tab === "walls";
+  if(!showWalls.checked && !wallsByEditor && document.getElementById("chkOutline") && document.getElementById("chkOutline").checked){
     var BX = wallBoxes();
     ctx.fillStyle = "rgba(150,152,146,0.55)";
     BX.forEach(function(poly){ ctx.beginPath(); poly.forEach(function(p, i){ if(i) ctx.lineTo(p[0], p[1]); else ctx.moveTo(p[0], p[1]); }); ctx.closePath(); ctx.fill(); });
@@ -4059,9 +3642,7 @@ function draw(){
     MANUAL_WALLS.forEach(function(s){ ctx.moveTo(s[0], s[1]); ctx.lineTo(s[2], s[3]); });
     ctx.stroke(); ctx.lineCap = "butt";
   }
-  if(showWalls.checked || chkWallEdit.checked){
-    // MANUAL_WALLS — each segment is exactly what the user drew, so unlike
-    // the old auto-derived set this needs no cosmetic extension/inset at all.
+  if(showWalls.checked && !wallsByEditor){
     ctx.strokeStyle = "rgba(193,88,79,0.85)"; ctx.lineWidth = 2/view.scale;
     ctx.lineCap = "round"; ctx.lineJoin = "round";
     ctx.beginPath();
@@ -4072,53 +3653,7 @@ function draw(){
     ctx.stroke();
     ctx.lineCap = "butt"; ctx.lineJoin = "miter";
   }
-  if(chkWallEdit.checked){
-    // live preview of the wall currently being dragged out
-    if(wallDrawing && wallDrawStart && wallDrawCur){
-      ctx.strokeStyle = "rgba(232,220,90,0.9)"; ctx.lineWidth = 2/view.scale;
-      ctx.setLineDash([6/view.scale, 4/view.scale]);
-      ctx.beginPath();
-      ctx.moveTo(wallDrawStart.x, wallDrawStart.y);
-      ctx.lineTo(wallDrawCur.x, wallDrawCur.y);
-      ctx.stroke();
-      ctx.setLineDash([]);
-    }
-    // selected object: dashed bounding box + a square scale handle at its
-    // corner, Photoshop-style — drag the box body to move, the handle to scale.
-    // In vertex/pen mode this is replaced entirely by per-point handles below —
-    // the two modes edit the object in fundamentally different ways (whole
-    // object vs. one point), so showing both at once would be misleading.
-    if(selectedObjId !== null && WALL_OBJECTS[selectedObjId] && !chkVertexEdit.checked){
-      var selPts = objectAbsPoints(WALL_OBJECTS[selectedObjId]);
-      var minX=Infinity,minY=Infinity,maxX=-Infinity,maxY=-Infinity;
-      selPts.forEach(function(p){ if(p.x<minX)minX=p.x; if(p.y<minY)minY=p.y; if(p.x>maxX)maxX=p.x; if(p.y>maxY)maxY=p.y; });
-      ctx.strokeStyle = "rgba(232,220,90,0.95)"; ctx.lineWidth = 1.5/view.scale;
-      ctx.setLineDash([5/view.scale, 4/view.scale]);
-      ctx.strokeRect(minX, minY, maxX-minX, maxY-minY);
-      ctx.setLineDash([]);
-      var hs = 7/view.scale; // handle half-size, in world units so it stays a constant screen size
-      ctx.fillStyle = "rgba(232,220,90,0.95)";
-      ctx.fillRect(maxX-hs, maxY-hs, hs*2, hs*2);
-      ctx.strokeStyle = "rgba(20,20,10,0.9)"; ctx.lineWidth = 1/view.scale;
-      ctx.strokeRect(maxX-hs, maxY-hs, hs*2, hs*2);
-    }
-    // pen/vertex mode: every point of the selected object gets its own
-    // draggable handle — click+drag a dot to reshape just that corner,
-    // Shift+click a dot to delete it, click a highlighted edge midpoint-ish
-    // spot to insert a new point there (see mousedown handler)
-    if(selectedObjId !== null && WALL_OBJECTS[selectedObjId] && chkVertexEdit.checked){
-      var vPts = objectAbsPoints(WALL_OBJECTS[selectedObjId]);
-      var vr = 5.5/view.scale;
-      vPts.forEach(function(p, vi){
-        var isDrag = vertexDragging && vertexDragObjId===selectedObjId && vertexDragIdx===vi;
-        ctx.beginPath(); ctx.arc(p.x, p.y, vr, 0, Math.PI*2);
-        ctx.fillStyle = isDrag ? "#ffffff" : "rgba(232,220,90,0.95)";
-        ctx.fill();
-        ctx.strokeStyle = "rgba(20,20,10,0.9)"; ctx.lineWidth = 1.2/view.scale;
-        ctx.stroke();
-      });
-    }
-  }
+  if(mapEdOn()) mapEdDraw();
   if(chkNavWarp.checked){
     // real navmesh perimeter (edges with no neighbor on the other side —
     // by the game's own construction this is what should sit flush against
@@ -4536,6 +4071,378 @@ function draw(){
     ctx.restore();
   }
 }
+// ======================= v198: редактор карты для владельца (19_map_editor.js) =======================
+// Галочка «правка карты» → панель с вкладками. Сейчас одна вкладка — «стены»;
+// «высоты», «укрытия», «прострелы» добавляются так же: mapEdAddTab({...}).
+// Общее у всех вкладок: панель, отмена (Ctrl+Z и кнопка, несколько шагов),
+// сохранение в базу страницы (коллекция `map`, у каждой вкладки свой документ),
+// «вернуть как в коде». У каждой вкладки свой слой данных.
+// Всё состояние редактора — в MAPED; в снимок игры (отметки, перемотка) оно
+// не попадает (src/build.py, список UI).
+var MAPED = {
+  on: false, tab: null, tabs: {}, order: [],
+  undo: [], UNDO_MAX: 80,       // [{tab, data}] — общая отмена для всех вкладок
+  pending: null,                // данные вкладки до начала действия (перетаскивание)
+  db: null, dbState: "wait",    // wait | none | ok
+  src: {},                      // tab → {from: "code"|"page", t}
+  save: {},                     // tab → {state: "idle"|"queued"|"saving"|"ok"|"fail", t, err}
+  saveTimer: {}
+};
+function mapEdOn(){ return !!(MAPED && MAPED.on); }
+function mapEdEl(id){ return document.getElementById(id); }
+function mapEdTab(){ return MAPED.tabs[MAPED.tab]; }
+function mapEdClone(v){ return JSON.parse(JSON.stringify(v)); }
+
+// ---------- вкладки ----------
+// tab = { id, label, doc (имя документа в коллекции map),
+//   get() → данные слоя, set(data) → применить в игре, code() → данные из кода,
+//   toDoc(data) → тело документа, fromDoc(body) → данные или null (если битые),
+//   render(body) — нарисовать свою часть панели, refresh() — обновить её,
+//   down(w, e) → true, если клик забран; move(w, e); up(w, e); key(e) → true, если клавиша забрана;
+//   draw() — рисунок поверх радара; reset() — сброс выделения/режима }
+function mapEdAddTab(t){ MAPED.tabs[t.id] = t; MAPED.order.push(t.id); MAPED.src[t.id] = {from: "code"}; MAPED.save[t.id] = {state: "idle"}; if(!MAPED.tab) MAPED.tab = t.id; }
+
+// ---------- общая отмена ----------
+// перед действием: mapEdBegin(); после — mapEdCommit(): шаг отмены пишется,
+// только если данные правда поменялись (клик без сдвига шага не оставляет)
+function mapEdBegin(){ MAPED.pending = {tab: MAPED.tab, data: mapEdClone(mapEdTab().get())}; }
+function mapEdCommit(){
+  var p = MAPED.pending; MAPED.pending = null;
+  if(!p) return;
+  var t = MAPED.tabs[p.tab];
+  if(JSON.stringify(p.data) === JSON.stringify(t.get())) return;
+  MAPED.undo.push(p); if(MAPED.undo.length > MAPED.UNDO_MAX) MAPED.undo.shift();
+  t.set(t.get());           // полная пересборка игры по новым данным
+  mapEdChanged(t.id);
+}
+// одним шагом: сделать правку fn() и записать её в отмену
+function mapEdDo(fn){ mapEdBegin(); fn(); mapEdCommit(); }
+function mapEdUndo(){
+  var u = MAPED.undo.pop(); if(!u) return;
+  var t = MAPED.tabs[u.tab];
+  if(t.reset) t.reset();
+  t.set(u.data);
+  if(MAPED.tab !== u.tab) mapEdSwitch(u.tab);
+  mapEdChanged(u.tab);
+}
+function mapEdChanged(tabId){
+  // вернулись ровно к данным из кода (например, отменой) — значит, «из кода»
+  var t = MAPED.tabs[tabId], same = JSON.stringify(t.get()) === JSON.stringify(t.code());
+  MAPED.src[tabId] = same ? {from: "code"} : {from: "page", t: Date.now()};
+  mapEdQueueSave(tabId);
+  mapEdRefresh();
+}
+
+// ---------- база страницы ----------
+function mapEdQueueSave(tabId){
+  var S = MAPED.save[tabId];
+  if(MAPED.dbState !== "ok"){ S.state = MAPED.dbState === "wait" ? "queued" : "idle"; return; }
+  S.state = "queued";
+  clearTimeout(MAPED.saveTimer[tabId]);
+  MAPED.saveTimer[tabId] = setTimeout(function(){ mapEdSaveNow(tabId); }, 1000);
+}
+function mapEdSaveNow(tabId){
+  var t = MAPED.tabs[tabId], S = MAPED.save[tabId], src = MAPED.src[tabId];
+  if(!MAPED.db) return;
+  S.state = "saving"; mapEdRefresh();
+  var p;
+  try{
+    var ref = MAPED.db.collection("map").doc(t.doc);
+    if(src.from === "code") p = ref.delete();
+    else { var body = t.toDoc(t.get()); body.t = src.t || Date.now(); p = ref.set(body); }
+  }catch(e){ p = Promise.reject(e); }
+  Promise.resolve(p).then(function(){ S.state = "ok"; S.t = Date.now(); S.err = null; mapEdRefresh(); },
+    function(e){ S.state = "fail"; S.err = (e && (e.code || e.message)) || "ошибка"; mapEdRefresh(); });
+}
+function mapEdLoadFromDb(){
+  MAPED.order.forEach(function(id){
+    var t = MAPED.tabs[id];
+    var p;
+    try{ p = MAPED.db.collection("map").doc(t.doc).get(); }catch(e){ p = Promise.reject(e); }
+    Promise.resolve(p).then(function(snap){
+      // владелец уже успел поправить до ответа базы — его правка главнее
+      if(MAPED.save[id].state === "queued"){ mapEdQueueSave(id); return; }
+      if(!snap || !snap.exists) return;
+      var data = null;
+      try{ data = t.fromDoc(snap.data()); }catch(e){ data = null; }
+      if(!data) return;
+      t.set(data);
+      var tt = +(snap.data() || {}).t;
+      MAPED.src[id] = {from: "page", t: tt > 0 ? tt : null};
+      logEvent("Карта: " + t.label + " — правка с этой страницы" + (tt > 0 ? " от " + mapEdDate(tt) : ""), "round");
+      mapEdRefresh();
+    }, function(){ MAPED.save[id] = {state: "fail", err: "не удалось прочитать базу"}; mapEdRefresh(); });
+  });
+}
+function mapEdDate(t){
+  var d = new Date(t), z = function(n){ return (n < 10 ? "0" : "") + n; };
+  return z(d.getDate()) + "." + z(d.getMonth()+1) + " " + z(d.getHours()) + ":" + z(d.getMinutes());
+}
+function mapEdResetToCode(){
+  var t = mapEdTab();
+  mapEdBegin();
+  if(t.reset) t.reset();
+  t.set(t.code());
+  var p = MAPED.pending; MAPED.pending = null;
+  if(JSON.stringify(p.data) !== JSON.stringify(t.get())){ MAPED.undo.push(p); if(MAPED.undo.length > MAPED.UNDO_MAX) MAPED.undo.shift(); }
+  MAPED.src[t.id] = {from: "code"};
+  mapEdQueueSave(t.id);       // в базе документ удаляется → при загрузке берётся код
+  mapEdRefresh();
+}
+
+// ---------- панель ----------
+function mapEdSetOn(on){
+  MAPED.on = !!on;
+  mapEdEl("chkMapEdit").checked = MAPED.on;
+  mapEdEl("mapEdPanel").style.display = MAPED.on ? "block" : "none";
+  var t = mapEdTab(); if(t && t.reset) t.reset();
+  if(MAPED.on){ mapEdSwitch(MAPED.tab); if(typeof chkLineups !== "undefined" && chkLineups.checked){ chkLineups.checked = false; lineupPanel.style.display = "none"; } }
+}
+function mapEdSwitch(id){
+  var old = mapEdTab(); if(old && old.reset) old.reset();
+  MAPED.tab = id;
+  var tabs = mapEdEl("mapEdTabs"); tabs.innerHTML = "";
+  MAPED.order.forEach(function(k){
+    var b = document.createElement("button"); b.textContent = MAPED.tabs[k].label;
+    if(k === id) b.className = "on";
+    b.addEventListener("click", function(){ mapEdSwitch(k); });
+    tabs.appendChild(b);
+  });
+  var body = mapEdEl("mapEdBody"); body.innerHTML = "";
+  mapEdTab().render(body);
+  mapEdRefresh();
+}
+function mapEdRefresh(){
+  if(!MAPED.tab || !mapEdEl("mapEdPanel")) return;
+  var t = mapEdTab(), src = MAPED.src[t.id], S = MAPED.save[t.id];
+  mapEdEl("mapEdSrc").textContent = "Сейчас в игре: " + (src.from === "page" ? "правка на странице" + (src.t ? " от " + mapEdDate(src.t) : "") : "из кода");
+  mapEdEl("mapEdUndo").disabled = !MAPED.undo.length;
+  mapEdEl("mapEdUndo").textContent = "Отменить" + (MAPED.undo.length ? " (" + MAPED.undo.length + ")" : "");
+  var sv = mapEdEl("mapEdSave"), txt, cls = "med-save";
+  if(MAPED.dbState === "none"){ txt = "Не сохраняется: страница открыта не на claude.ai. Правки действуют до перезагрузки."; cls += " warn"; }
+  else if(MAPED.dbState === "wait") txt = "Подключаюсь к базе страницы…";
+  else if(S.state === "queued") txt = "Сохраню через секунду…";
+  else if(S.state === "saving") txt = "Сохраняю…";
+  else if(S.state === "ok"){ txt = "Сохранено на странице · " + mapEdDate(S.t); cls += " ok"; }
+  else if(S.state === "fail"){ txt = "Не удалось сохранить (" + S.err + ") — правка действует только до перезагрузки."; cls += " warn"; }
+  else txt = "Правки сохраняются на странице сами, через секунду.";
+  sv.textContent = txt; sv.className = cls;
+  if(t.refresh) t.refresh();
+}
+function mapEdDraw(){ if(mapEdOn() && mapEdTab()) mapEdTab().draw(); }
+
+// =========================== вкладка «стены» ===========================
+// Слой данных — WALL_POLYS (01_map.js), формат src/data/walls.json.
+var MED_W = { tool: "select", sel: -1, drag: null, rect: null, poly: [], cur: null };
+function medWSet(data){
+  var c = data.map(function(p){ return p.map(function(q){ return [q[0], q[1]]; }); });
+  WALL_POLYS.length = 0; c.forEach(function(p){ WALL_POLYS.push(p); });
+  if(MED_W.sel >= WALL_POLYS.length) MED_W.sel = -1;
+  applyWalls(true);
+}
+function medWR(v){ return Math.round(v*10)/10; }
+function medWArea(p){ var a = 0; for(var i=0;i<p.length;i++){ var b = p[(i+1)%p.length]; a += p[i][0]*b[1] - b[0]*p[i][1]; } return Math.abs(a)/2; }
+function medWEdgeDist(p, x, y){
+  var best = Infinity;
+  for(var i=0;i<p.length;i++){ var a = p[i], b = p[(i+1)%p.length]; best = Math.min(best, distToSeg(x, y, [a[0],a[1],b[0],b[1]])); }
+  return best;
+}
+// какая стена под курсором: сначала та, у которой край ближе всего (в пределах
+// 8 px экрана), иначе самая маленькая из тех, внутри которых курсор
+function medWHit(x, y){
+  var tol = 8/view.scale, best = -1, bd = tol;
+  WALL_POLYS.forEach(function(p, i){ var d = medWEdgeDist(p, x, y); if(d < bd){ bd = d; best = i; } });
+  if(best >= 0) return best;
+  var ba = Infinity;
+  WALL_POLYS.forEach(function(p, i){ if(pointInPoly(x, y, p.map(function(q){ return {x:q[0], y:q[1]}; }))){ var a = medWArea(p); if(a < ba){ ba = a; best = i; } } });
+  return best;
+}
+function medWVertexAt(i, x, y){
+  if(i < 0 || !WALL_POLYS[i]) return -1;
+  var tol = 9/view.scale, best = -1, bd = tol;
+  WALL_POLYS[i].forEach(function(q, k){ var d = Math.hypot(q[0]-x, q[1]-y); if(d < bd){ bd = d; best = k; } });
+  return best;
+}
+function medWEdgeAt(i, x, y){
+  if(i < 0 || !WALL_POLYS[i]) return -1;
+  var p = WALL_POLYS[i], tol = 7/view.scale;
+  for(var k=0;k<p.length;k++){ var a = p[k], b = p[(k+1)%p.length]; if(distToSeg(x, y, [a[0],a[1],b[0],b[1]]) < tol) return k; }
+  return -1;
+}
+function medWDelete(){
+  if(MED_W.sel < 0) return;
+  var i = MED_W.sel;
+  mapEdDo(function(){ WALL_POLYS.splice(i, 1); });
+  MED_W.sel = -1; mapEdRefresh();
+}
+function medWFinishPoly(){
+  var pts = MED_W.poly;
+  if(pts.length >= 3) mapEdDo(function(){ WALL_POLYS.push(pts.map(function(q){ return [medWR(q[0]), medWR(q[1])]; })); MED_W.sel = WALL_POLYS.length-1; });
+  MED_W.poly = []; mapEdRefresh();
+}
+var MED_W_HINTS = {
+  select: "<b>Выбор.</b><ul><li>Клик по стене — выделить (жёлтая).</li><li>Тащи выделенную стену — сдвинуть её целиком.</li><li>Тащи кружок-уголок — сдвинуть один угол.</li><li>Двойной клик по краю — новый уголок там.</li><li>Shift + клик по уголку — убрать уголок.</li><li>Delete — удалить стену.</li><li>Тащи пустое место — двигать карту.</li></ul>",
+  rect: "<b>Прямоугольник.</b><ul><li>Зажми мышь в одном углу и протяни до другого — появится стена-прямоугольник.</li></ul>",
+  poly: "<b>Многоугольник.</b><ul><li>Кликай по углам новой стены по порядку.</li><li>Клик по первой точке, двойной клик или Enter — готово.</li><li>Backspace — убрать последнюю точку, Esc — бросить.</li></ul>"
+};
+mapEdAddTab({
+  id: "walls", label: "стены", doc: "walls",
+  get: function(){ return WALL_POLYS; },
+  set: medWSet,
+  code: function(){ return mapEdClone(WALL_POLYS_CODE); },
+  toDoc: function(d){ return {walls: mapEdClone(d)}; },
+  fromDoc: function(b){
+    var w = b && b.walls;
+    if(!Array.isArray(w) || !w.length) return null;
+    var ok = w.every(function(p){ return Array.isArray(p) && p.length >= 3 && p.every(function(q){ return Array.isArray(q) && isFinite(q[0]) && isFinite(q[1]); }); });
+    return ok ? w.map(function(p){ return p.map(function(q){ return [+q[0], +q[1]]; }); }) : null;
+  },
+  reset: function(){ MED_W.drag = null; MED_W.rect = null; MED_W.poly = []; if(MED_W.sel >= WALL_POLYS.length) MED_W.sel = -1; },
+  render: function(body){
+    body.innerHTML = '<div class="med-tools">' +
+      '<button data-t="select">Выбор</button><button data-t="rect">+ Прямоугольник</button><button data-t="poly">+ Многоугольник</button></div>' +
+      '<div class="med-hint" id="medWHint"></div>' +
+      '<div class="med-info" id="medWInfo"></div>' +
+      '<div class="med-row"><button id="medWDel">Удалить стену</button></div>';
+    body.querySelectorAll("[data-t]").forEach(function(b){ b.addEventListener("click", function(){
+      MED_W.tool = b.getAttribute("data-t"); MED_W.poly = []; MED_W.rect = null; MED_W.drag = null; mapEdRefresh(); }); });
+    mapEdEl("medWDel").addEventListener("click", medWDelete);
+  },
+  refresh: function(){
+    var body = mapEdEl("mapEdBody"); if(!body || !mapEdEl("medWHint")) return;
+    body.querySelectorAll("[data-t]").forEach(function(b){ b.className = b.getAttribute("data-t") === MED_W.tool ? "on" : ""; });
+    mapEdEl("medWHint").innerHTML = MED_W_HINTS[MED_W.tool];
+    var s = MED_W.sel >= 0 && WALL_POLYS[MED_W.sel];
+    mapEdEl("medWInfo").textContent = "Стен на карте: " + WALL_POLYS.length + (s ? " · выделена: " + s.length + " уголков" : " · ничего не выделено") +
+      (MED_W.tool === "poly" && MED_W.poly.length ? " · новая: " + MED_W.poly.length + " точек" : "");
+    mapEdEl("medWDel").disabled = !s;
+  },
+  down: function(w, e){
+    var x = w.x, y = w.y;
+    if(MED_W.tool === "rect"){ MED_W.rect = {x0: x, y0: y, x1: x, y1: y}; return true; }
+    if(MED_W.tool === "poly"){
+      var P = MED_W.poly;
+      if(P.length >= 3 && Math.hypot(P[0][0]-x, P[0][1]-y) < 10/view.scale){ medWFinishPoly(); return true; }
+      if(e.detail >= 2 && P.length >= 3){ medWFinishPoly(); return true; }
+      if(!P.length || Math.hypot(P[P.length-1][0]-x, P[P.length-1][1]-y) > 2/view.scale) P.push([x, y]);
+      mapEdRefresh(); return true;
+    }
+    // выбор
+    var s = MED_W.sel, vi = medWVertexAt(s, x, y);
+    if(vi >= 0){
+      if(e.shiftKey){ if(WALL_POLYS[s].length > 3) mapEdDo(function(){ WALL_POLYS[s].splice(vi, 1); }); mapEdRefresh(); return true; }
+      mapEdBegin(); MED_W.drag = {kind: "vertex", i: s, k: vi}; return true;
+    }
+    if(e.detail >= 2){
+      var ek = medWEdgeAt(s, x, y);
+      if(ek >= 0){ mapEdDo(function(){ WALL_POLYS[s].splice(ek+1, 0, [medWR(x), medWR(y)]); }); mapEdRefresh(); return true; }
+    }
+    var hit = medWHit(x, y);
+    MED_W.sel = hit; mapEdRefresh();
+    if(hit < 0) return false;          // пустое место — двигаем карту, как обычно
+    mapEdBegin(); MED_W.drag = {kind: "move", i: hit, x: x, y: y, orig: mapEdClone(WALL_POLYS[hit])};
+    return true;
+  },
+  move: function(w){
+    MED_W.cur = [w.x, w.y];
+    var d = MED_W.drag;
+    if(MED_W.rect){ MED_W.rect.x1 = w.x; MED_W.rect.y1 = w.y; return; }
+    if(!d) return;
+    if(d.kind === "vertex"){ WALL_POLYS[d.i][d.k] = [medWR(w.x), medWR(w.y)]; applyWalls(false); }
+    else if(d.kind === "move"){
+      var dx = w.x - d.x, dy = w.y - d.y;
+      WALL_POLYS[d.i] = d.orig.map(function(q){ return [medWR(q[0]+dx), medWR(q[1]+dy)]; });
+      applyWalls(false);
+    }
+  },
+  up: function(w){
+    if(MED_W.rect){
+      var r = MED_W.rect; MED_W.rect = null;
+      var x0 = medWR(Math.min(r.x0, r.x1)), x1 = medWR(Math.max(r.x0, r.x1)), y0 = medWR(Math.min(r.y0, r.y1)), y1 = medWR(Math.max(r.y0, r.y1));
+      if(x1-x0 >= 3 && y1-y0 >= 3) mapEdDo(function(){ WALL_POLYS.push([[x0,y0],[x1,y0],[x1,y1],[x0,y1]]); MED_W.sel = WALL_POLYS.length-1; });
+      mapEdRefresh(); return;
+    }
+    if(MED_W.drag){ MED_W.drag = null; mapEdCommit(); }
+  },
+  key: function(e){
+    if((e.key === "Delete" || e.key === "Backspace") && MED_W.tool === "select" && MED_W.sel >= 0){ medWDelete(); return true; }
+    if(MED_W.tool === "poly"){
+      if(e.key === "Enter"){ medWFinishPoly(); return true; }
+      if(e.key === "Escape"){ MED_W.poly = []; mapEdRefresh(); return true; }
+      if(e.key === "Backspace"){ MED_W.poly.pop(); mapEdRefresh(); return true; }
+    }
+    if(e.key === "Escape"){ MED_W.sel = -1; mapEdRefresh(); return true; }
+    return false;
+  },
+  draw: function(){
+    var S = view.scale, path = function(p){ ctx.beginPath(); p.forEach(function(q, k){ if(k) ctx.lineTo(q[0], q[1]); else ctx.moveTo(q[0], q[1]); }); ctx.closePath(); };
+    ctx.lineJoin = "round";
+    WALL_POLYS.forEach(function(p, i){
+      if(i === MED_W.sel) return;
+      path(p); ctx.fillStyle = "rgba(193,88,79,0.22)"; ctx.fill();
+      ctx.strokeStyle = "rgba(225,95,85,0.95)"; ctx.lineWidth = 2/S; ctx.stroke();
+    });
+    var s = MED_W.sel >= 0 && WALL_POLYS[MED_W.sel];
+    if(s){
+      path(s); ctx.fillStyle = "rgba(255,215,90,0.28)"; ctx.fill();
+      ctx.strokeStyle = "rgba(255,215,90,1)"; ctx.lineWidth = 2.5/S; ctx.stroke();
+      if(MED_W.tool === "select") s.forEach(function(q, k){
+        ctx.beginPath(); ctx.arc(q[0], q[1], 5/S, 0, Math.PI*2);
+        ctx.fillStyle = MED_W.drag && MED_W.drag.kind === "vertex" && MED_W.drag.k === k ? "#fff" : "rgba(255,215,90,1)"; ctx.fill();
+        ctx.strokeStyle = "rgba(20,20,10,0.9)"; ctx.lineWidth = 1.2/S; ctx.stroke();
+      });
+    }
+    ctx.setLineDash([6/S, 4/S]); ctx.strokeStyle = "rgba(120,230,140,1)"; ctx.lineWidth = 2/S;
+    if(MED_W.rect){ var r = MED_W.rect; ctx.strokeRect(Math.min(r.x0,r.x1), Math.min(r.y0,r.y1), Math.abs(r.x1-r.x0), Math.abs(r.y1-r.y0)); }
+    var P = MED_W.poly;
+    if(P.length){
+      ctx.beginPath(); P.forEach(function(q, k){ if(k) ctx.lineTo(q[0], q[1]); else ctx.moveTo(q[0], q[1]); });
+      if(MED_W.cur) ctx.lineTo(MED_W.cur[0], MED_W.cur[1]);
+      ctx.stroke();
+      P.forEach(function(q, k){ ctx.beginPath(); ctx.arc(q[0], q[1], (k ? 4 : 6)/S, 0, Math.PI*2); ctx.fillStyle = "rgba(120,230,140,1)"; ctx.fill(); });
+    }
+    ctx.setLineDash([]); ctx.lineJoin = "miter";
+  }
+});
+
+// ---------- мышь и клавиши (только когда редактор включён) ----------
+// левая кнопка — вкладке; если она клик не забрала (пустое место), событие
+// уходит дальше — карта двигается, как обычно. Правая кнопка — всегда карта.
+cv.addEventListener("mousedown", function(e){
+  if(!mapEdOn() || e.button !== 0) return;
+  if(mapEdTab().down(navScreenToWorld(e.clientX, e.clientY), e)){ e.stopImmediatePropagation(); e.preventDefault(); }
+}, true);
+window.addEventListener("mousemove", function(e){ if(mapEdOn()) mapEdTab().move(navScreenToWorld(e.clientX, e.clientY), e); });
+window.addEventListener("mouseup", function(e){ if(mapEdOn()) mapEdTab().up(navScreenToWorld(e.clientX, e.clientY), e); });
+window.addEventListener("keydown", function(e){
+  if(!mapEdOn()) return;
+  // в полях ввода клавиши не перехватываем (галочки и кнопки — не поля)
+  var tg = e.target && e.target.tagName; if((tg === "INPUT" && !/^(checkbox|radio|button)$/.test(e.target.type)) || tg === "TEXTAREA" || tg === "SELECT") return;
+  if((e.ctrlKey || e.metaKey) && (e.code === "KeyZ" || e.key === "z" || e.key === "я")){ mapEdUndo(); e.preventDefault(); e.stopImmediatePropagation(); return; }
+  if(mapEdTab().key(e)){ e.preventDefault(); e.stopImmediatePropagation(); }
+}, true);
+mapEdEl("chkMapEdit").addEventListener("change", function(){
+  if(this.checked){ mapEdSetOn(true); setMode("mapEdit"); } else { mapEdSetOn(false); setMode(null); }
+});
+mapEdEl("mapEdUndo").addEventListener("click", mapEdUndo);
+mapEdEl("mapEdReset").addEventListener("click", function(){
+  if(!confirm("Убрать все правки вкладки «" + mapEdTab().label + "» и вернуть как в коде? (Можно отменить кнопкой «Отменить».)")) return;
+  mapEdResetToCode();
+});
+
+// ---------- подключение к базе страницы при загрузке ----------
+(function(){
+  if(!(window.claude && claude.use)){ MAPED.dbState = "none"; mapEdRefresh(); return; }
+  try{
+    Promise.resolve(claude.use("db")).then(function(db){
+      if(!db){ MAPED.dbState = "none"; mapEdRefresh(); return; }
+      MAPED.db = db; MAPED.dbState = "ok";
+      mapEdLoadFromDb();
+      mapEdRefresh();
+    }, function(){ MAPED.dbState = "none"; mapEdRefresh(); });
+  }catch(e){ MAPED.dbState = "none"; }
+})();
+mapEdRefresh();
 // ======================= РАЗДЕЛ 9: подача матча =======================
 
 var clutchShown = null, clutchInfo = null;
@@ -4690,21 +4597,8 @@ var __SNAP = [
 ["portalMissing", function(){ return portalMissing; }, function(v){ try{ portalMissing = v; }catch(e){} }],
 ["PORTAL_TOL", function(){ return PORTAL_TOL; }, function(v){ try{ PORTAL_TOL = v; }catch(e){} }],
 ["PORTAL_MIN_OVERLAP", function(){ return PORTAL_MIN_OVERLAP; }, function(v){ try{ PORTAL_MIN_OVERLAP = v; }catch(e){} }],
-["WALLPOLYS_RAW", function(){ return WALLPOLYS_RAW; }, function(v){ try{ WALLPOLYS_RAW = v; }catch(e){} }],
-["WALLS_STORAGE_KEY", function(){ return WALLS_STORAGE_KEY; }, function(v){ try{ WALLS_STORAGE_KEY = v; }catch(e){} }],
-["wallsSaveTimer", function(){ return wallsSaveTimer; }, function(v){ try{ wallsSaveTimer = v; }catch(e){} }],
-["wallsRestoredFromStorage", function(){ return wallsRestoredFromStorage; }, function(v){ try{ wallsRestoredFromStorage = v; }catch(e){} }],
-["wallTransform", function(){ return wallTransform; }, function(v){ try{ wallTransform = v; }catch(e){} }],
-["NAV_BLOCKED", function(){ return NAV_BLOCKED; }, function(v){ try{ NAV_BLOCKED = v; }catch(e){} }],
-["navBlockedCount", function(){ return navBlockedCount; }, function(v){ try{ navBlockedCount = v; }catch(e){} }],
-["navCutPortals", function(){ return navCutPortals; }, function(v){ try{ navCutPortals = v; }catch(e){} }],
-["navNarrowPortals", function(){ return navNarrowPortals; }, function(v){ try{ navNarrowPortals = v; }catch(e){} }],
-["WALL_SOLID_POLYS", function(){ return WALL_SOLID_POLYS; }, function(v){ try{ WALL_SOLID_POLYS = v; }catch(e){} }],
-["navRebuildForWallsTimer", function(){ return navRebuildForWallsTimer; }, function(v){ try{ navRebuildForWallsTimer = v; }catch(e){} }],
 ["ZONE_CENTROIDS", function(){ return ZONE_CENTROIDS; }, function(v){ try{ ZONE_CENTROIDS = v; }catch(e){} }],
-["ZONE_DANGER", function(){ return ZONE_DANGER; }, function(v){ try{ ZONE_DANGER = v; }catch(e){} }],
 ["DANGER_SAMPLES", function(){ return DANGER_SAMPLES; }, function(v){ try{ DANGER_SAMPLES = v; }catch(e){} }],
-["ZONE_DANGER_W", function(){ return ZONE_DANGER_W; }, function(v){ try{ ZONE_DANGER_W = v; }catch(e){} }],
 ["zoneLayerRebuildTimer", function(){ return zoneLayerRebuildTimer; }, function(v){ try{ zoneLayerRebuildTimer = v; }catch(e){} }],
 ["pointsByName", function(){ return pointsByName; }, function(v){ try{ pointsByName = v; }catch(e){} }],
 ["CT_SPAWN", function(){ return CT_SPAWN; }, function(v){ try{ CT_SPAWN = v; }catch(e){} }],
@@ -4734,8 +4628,6 @@ var __SNAP = [
 ["SPD_K", function(){ return SPD_K; }, function(v){ try{ SPD_K = v; }catch(e){} }],
 ["NICKS", function(){ return NICKS; }, function(v){ try{ NICKS = v; }catch(e){} }],
 ["SITES", function(){ return SITES; }, function(v){ try{ SITES = v; }catch(e){} }],
-["_WB", function(){ return _WB; }, function(v){ try{ _WB = v; }catch(e){} }],
-["_WBn", function(){ return _WBn; }, function(v){ try{ _WBn = v; }catch(e){} }],
 ["PLANT_TICKS", function(){ return PLANT_TICKS; }, function(v){ try{ PLANT_TICKS = v; }catch(e){} }],
 ["BOMB_TICKS", function(){ return BOMB_TICKS; }, function(v){ try{ BOMB_TICKS = v; }catch(e){} }],
 ["DEFUSE_TICKS", function(){ return DEFUSE_TICKS; }, function(v){ try{ DEFUSE_TICKS = v; }catch(e){} }],
@@ -4826,44 +4718,9 @@ var __SNAP = [
 ["camDragging", function(){ return camDragging; }, function(v){ try{ camDragging = v; }catch(e){} }],
 ["camDragStart", function(){ return camDragStart; }, function(v){ try{ camDragStart = v; }catch(e){} }],
 ["camDragOrig", function(){ return camDragOrig; }, function(v){ try{ camDragOrig = v; }catch(e){} }],
-["chkWallEdit", function(){ return chkWallEdit; }, function(v){ try{ chkWallEdit = v; }catch(e){} }],
-["wallEditPanel", function(){ return wallEditPanel; }, function(v){ try{ wallEditPanel = v; }catch(e){} }],
-["wallEditCount", function(){ return wallEditCount; }, function(v){ try{ wallEditCount = v; }catch(e){} }],
-["btnWallUndo", function(){ return btnWallUndo; }, function(v){ try{ btnWallUndo = v; }catch(e){} }],
-["btnWallClear", function(){ return btnWallClear; }, function(v){ try{ btnWallClear = v; }catch(e){} }],
-["btnWallDelete", function(){ return btnWallDelete; }, function(v){ try{ btnWallDelete = v; }catch(e){} }],
-["btnWallExport", function(){ return btnWallExport; }, function(v){ try{ btnWallExport = v; }catch(e){} }],
-["wallExportArea", function(){ return wallExportArea; }, function(v){ try{ wallExportArea = v; }catch(e){} }],
-["btnWallRevert", function(){ return btnWallRevert; }, function(v){ try{ btnWallRevert = v; }catch(e){} }],
-["wallDrawing", function(){ return wallDrawing; }, function(v){ try{ wallDrawing = v; }catch(e){} }],
-["wallDrawStart", function(){ return wallDrawStart; }, function(v){ try{ wallDrawStart = v; }catch(e){} }],
-["wallDrawCur", function(){ return wallDrawCur; }, function(v){ try{ wallDrawCur = v; }catch(e){} }],
 ["HIT_TOL_PX", function(){ return HIT_TOL_PX; }, function(v){ try{ HIT_TOL_PX = v; }catch(e){} }],
 ["HANDLE_TOL_PX", function(){ return HANDLE_TOL_PX; }, function(v){ try{ HANDLE_TOL_PX = v; }catch(e){} }],
-["selectedObjId", function(){ return selectedObjId; }, function(v){ try{ selectedObjId = v; }catch(e){} }],
-["objMoving", function(){ return objMoving; }, function(v){ try{ objMoving = v; }catch(e){} }],
-["objMoveStart", function(){ return objMoveStart; }, function(v){ try{ objMoveStart = v; }catch(e){} }],
-["objMoveOrig", function(){ return objMoveOrig; }, function(v){ try{ objMoveOrig = v; }catch(e){} }],
-["objScaling", function(){ return objScaling; }, function(v){ try{ objScaling = v; }catch(e){} }],
-["objScaleCenter", function(){ return objScaleCenter; }, function(v){ try{ objScaleCenter = v; }catch(e){} }],
-["objScaleBaseDist", function(){ return objScaleBaseDist; }, function(v){ try{ objScaleBaseDist = v; }catch(e){} }],
-["chkVertexEdit", function(){ return chkVertexEdit; }, function(v){ try{ chkVertexEdit = v; }catch(e){} }],
-["wallEditHint", function(){ return wallEditHint; }, function(v){ try{ wallEditHint = v; }catch(e){} }],
-["vertexDragging", function(){ return vertexDragging; }, function(v){ try{ vertexDragging = v; }catch(e){} }],
-["vertexDragObjId", function(){ return vertexDragObjId; }, function(v){ try{ vertexDragObjId = v; }catch(e){} }],
-["vertexDragIdx", function(){ return vertexDragIdx; }, function(v){ try{ vertexDragIdx = v; }catch(e){} }],
 ["VERTEX_TOL_PX", function(){ return VERTEX_TOL_PX; }, function(v){ try{ VERTEX_TOL_PX = v; }catch(e){} }],
-["HINT_OBJECT_MODE", function(){ return HINT_OBJECT_MODE; }, function(v){ try{ HINT_OBJECT_MODE = v; }catch(e){} }],
-["HINT_VERTEX_MODE", function(){ return HINT_VERTEX_MODE; }, function(v){ try{ HINT_VERTEX_MODE = v; }catch(e){} }],
-["chkWallAlign", function(){ return chkWallAlign; }, function(v){ try{ chkWallAlign = v; }catch(e){} }],
-["wallAlignPanel", function(){ return wallAlignPanel; }, function(v){ try{ wallAlignPanel = v; }catch(e){} }],
-["inWallDx", function(){ return inWallDx; }, function(v){ try{ inWallDx = v; }catch(e){} }],
-["inWallDy", function(){ return inWallDy; }, function(v){ try{ inWallDy = v; }catch(e){} }],
-["inWallScale", function(){ return inWallScale; }, function(v){ try{ inWallScale = v; }catch(e){} }],
-["btnWallAlignReset", function(){ return btnWallAlignReset; }, function(v){ try{ btnWallAlignReset = v; }catch(e){} }],
-["wallAlignDragging", function(){ return wallAlignDragging; }, function(v){ try{ wallAlignDragging = v; }catch(e){} }],
-["wallAlignDragStart", function(){ return wallAlignDragStart; }, function(v){ try{ wallAlignDragStart = v; }catch(e){} }],
-["wallAlignDragOrig", function(){ return wallAlignDragOrig; }, function(v){ try{ wallAlignDragOrig = v; }catch(e){} }],
 ["chkNavWarp", function(){ return chkNavWarp; }, function(v){ try{ chkNavWarp = v; }catch(e){} }],
 ["navWarpPanel", function(){ return navWarpPanel; }, function(v){ try{ navWarpPanel = v; }catch(e){} }],
 ["navWarpHint", function(){ return navWarpHint; }, function(v){ try{ navWarpHint = v; }catch(e){} }],
@@ -4901,7 +4758,6 @@ var __SNAP = [
 ["zlDragging", function(){ return zlDragging; }, function(v){ try{ zlDragging = v; }catch(e){} }],
 ["zlDragStart", function(){ return zlDragStart; }, function(v){ try{ zlDragStart = v; }catch(e){} }],
 ["zlDragOrig", function(){ return zlDragOrig; }, function(v){ try{ zlDragOrig = v; }catch(e){} }],
-["WALL_ALIGN_BASELINE", function(){ return WALL_ALIGN_BASELINE; }, function(v){ try{ WALL_ALIGN_BASELINE = v; }catch(e){} }],
 ["chkLineups", function(){ return chkLineups; }, function(v){ try{ chkLineups = v; }catch(e){} }],
 ["lineupPanel", function(){ return lineupPanel; }, function(v){ try{ lineupPanel = v; }catch(e){} }],
 ["luPending", function(){ return luPending; }, function(v){ try{ luPending = v; }catch(e){} }],
@@ -5001,7 +4857,7 @@ function mkOpenSnap(text){
 }
 // «отпечаток» настроек: если стены/зоны/лайнапы/переключатели поменялись — матч пойдёт иначе
 function mkFp(){
-  var s = JSON.stringify(BAL) + "|" + MANUAL_WALLS.length + "|" + (USER_LINEUPS||[]).length + "|" + (USER_ZONES||[]).length + "|" + JSON.stringify(navTransform||null) + "|" + JSON.stringify(zoneLayer||null);
+  var s = JSON.stringify(BAL) + "|" + WALLS_SIG + "|" + (USER_LINEUPS||[]).length + "|" + (USER_ZONES||[]).length + "|" + JSON.stringify(navTransform||null) + "|" + JSON.stringify(zoneLayer||null);
   var h = 2166136261; for(var i=0;i<s.length;i++){ h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); }
   return (h >>> 0).toString(36);
 }
@@ -5449,11 +5305,10 @@ document.getElementById("btnPause").addEventListener("click", function(){
 });
 
 document.getElementById("btnExportProject").addEventListener("click", function(){
-  // всё состояние, которое живёт только в localStorage этого браузера
+  // всё состояние, которое живёт только в localStorage этого браузера (стены — в базе страницы, их забирает tools/map_pull.py)
   var box = document.getElementById("projectExportBox");
   if(box.style.display === "block"){ box.style.display = "none"; return; }
   var data = {
-    walls: WALL_OBJECTS.map(function(obj){ return { points: objectAbsPoints(obj).map(function(p){ return {x:Math.round(p.x*10)/10, y:Math.round(p.y*10)/10}; }), closed: obj.closed }; }),
     navAnchors: navAnchors,
     userZones: USER_ZONES.map(function(z){ return { name:z.name, kind:z.kind, points: zoneObjAbsPoints(z).map(function(p){ return {x:Math.round(p.x*10)/10, y:Math.round(p.y*10)/10}; }) }; }),
     navTransform: navTransform,

@@ -330,134 +330,42 @@ function computePortal(za, zb){
   return {mid:mid, seg:longest};
 }
 
-// ---------- wall segments, auto-derived from the navmesh itself ----------
-
-
-// The wall set actually used for collision (crossesWall) and shooting/LOS
-// (hasLOS) — see the "рисовать стены вручную" UI. Seeded from WALLEDGES_RAW
-// below (the pre-navmesh hand-traced solid-prop outlines — much cleaner
-// than anything auto-derived from navmesh triangulation ever was), then
-// never touched by rebuildNav again; only the align-walls and draw-mode UI
-// mutate it from here on.
+// ---------- стены (v198) ----------
+// Одно место хранения стен: WALL_POLYS — список замкнутых многоугольников
+// [[x,y],...] в координатах радара 0..2048, ровно в формате src/data/walls.json.
+// Из кода берётся walls.json; если владелец правил стены редактором карты
+// (вкладка «стены», 21_map_editor.js), его правка из базы страницы заменяет их.
+// После любой правки вызывается applyWalls() — пересобирает всё, что игра
+// строит из стен (отрезки для видимости и движения, сплошные многоугольники,
+// граф навмеша, спавны, сайты, таблицу простреливаемости зон).
+var WALL_POLYS_CODE = @@DATA:walls.json@@;
+var WALL_POLYS = JSON.parse(JSON.stringify(WALL_POLYS_CODE));
+// отрезки стен [x1,y1,x2,y2] — по ним видимость (hasLOS), движение (crossesWall),
+// гранаты, трассеры. Массив один и тот же (wallSegs/wallSegsLOS ссылаются на него).
 var MANUAL_WALLS = [];
-
-// Hand-traced solid building/prop outlines from the original (pre-navmesh)
-// wall system — each a closed polygon in the same 0..2048 map space as
-// NAVAREAS. Traced against an earlier version of the radar image, so it's
-// not pixel-perfect against the current one — the "выравнивание стен" align
-// mode below (same dx/dy/scale-drag mechanism as navmesh alignment) nudges
-// it into place; after that, edit by hand same as before.
-var WALLPOLYS_RAW = @@DATA:walls.json@@;
-// Each wall is a movable/scalable OBJECT (Photoshop-style: click to select,
-// drag its body to move, drag its corner handle to scale — see the wall
-// editing UI further down), not a single global transform over everything.
-// obj = { basePoints:[{x,y},...], closed:bool, dx, dy, scale, fromRaw }
-//  - WALLPOLYS_RAW above is now the per-vertex-edited ("pen tool") result,
-//    baked as absolute points — dragged/tweaked corner-by-corner by hand
-//    until every polygon matched the radar image. fromRaw is false for all
-//    of them: the old global "выравнивание стен" wallTransform pass (one
-//    coarse move+scale pivoted at the map center) is no longer needed on
-//    top of this set, since the alignment is now baked into the points
-//    themselves. wallTransform is kept at identity below so it stays inert
-//    unless a future fromRaw:true object is added.
-//  - hand-drawn objects (from draw mode) also use fromRaw:false, so
-//    they're unaffected either way.
-var WALL_OBJECTS = [];
-WALLPOLYS_RAW.forEach(function(poly){
-  WALL_OBJECTS.push({
-    basePoints: poly.map(function(p){ return {x:p[0], y:p[1]}; }),
-    closed: true, dx: 0, dy: 0, scale: 1, fromRaw: false,
-    // traced: marks this as one of the original baked-in polygons, purely so
-    // "Отменить" (undo) below refuses to delete it — unrelated to fromRaw,
-    // which now only controls the (inert) wallTransform pass.
-    traced: true
-  });
-});
-
-// ---------- autosave (план: правки стен не должны пропадать при перезагрузке) ----------
-// Ручные правки (перо/двигать/масштаб) раньше жили только в памяти вкладки и
-// терялись при любой перезагрузке — в частности при автообновлении артефакта
-// после публикации новой версии. Теперь каждое изменение геометрии (см. конец
-// rebuildManualWalls) сохраняет WALL_OBJECTS целиком в localStorage, с debounce,
-// чтобы не писать на каждый мышемув во время перетаскивания.
-var WALLS_STORAGE_KEY = "ancient-live-radar-walls-v1";
-var wallsSaveTimer = null;
-function saveWallsDebounced(){
-  if(wallsSaveTimer) clearTimeout(wallsSaveTimer);
-  wallsSaveTimer = setTimeout(function(){
-    try{ localStorage.setItem(WALLS_STORAGE_KEY, JSON.stringify(WALL_OBJECTS)); }catch(e){}
-  }, 250);
-}
-function loadSavedWalls(){
-  try{
-    var raw = localStorage.getItem(WALLS_STORAGE_KEY);
-    if(!raw) return false;
-    var arr = JSON.parse(raw);
-    if(!Array.isArray(arr) || !arr.length) return false;
-    WALL_OBJECTS.length = 0;
-    arr.forEach(function(o){ WALL_OBJECTS.push(o); });
-    return true;
-  }catch(e){ return false; }
-}
-var wallsRestoredFromStorage = loadSavedWalls(); // overrides the WALLPOLYS_RAW seed above, if a saved copy exists
-// the coarse whole-set alignment (dx -15.7 / dy 36.7 / scale 0.83) used to
-// live here and get applied on top of WALLPOLYS_RAW every frame. It is now
-// baked directly into WALLPOLYS_RAW's points (via the per-vertex pen-tool
-// pass), so this stays at identity — kept only so objectAbsPoints() still
-// has something inert to apply if a future fromRaw:true object shows up.
-var wallTransform = { dx: 0, dy: 0, scale: 1 };
-
-function objectAbsPoints(obj){
-  var src = obj.basePoints;
-  if(obj.fromRaw){
-    var t = wallTransform;
-    src = src.map(function(p){
-      return { x:(p.x-1024)*t.scale+1024+t.dx, y:(p.y-1024)*t.scale+1024+t.dy };
-    });
-  }
-  var cx=0, cy=0;
-  src.forEach(function(p){ cx+=p.x; cy+=p.y; });
-  cx/=src.length; cy/=src.length;
-  return src.map(function(p){
-    return { x:(p.x-cx)*obj.scale+cx+obj.dx, y:(p.y-cy)*obj.scale+cy+obj.dy };
-  });
-}
-function objectCentroid(obj){
-  var pts = objectAbsPoints(obj);
-  var cx=0, cy=0;
-  pts.forEach(function(p){ cx+=p.x; cy+=p.y; });
-  return {x:cx/pts.length, y:cy/pts.length};
-}
-// bbox corner used as the scale handle — computed fresh each time from the
-// object's CURRENT absolute points, so the handle always sits at the
-// visible bounding-box corner regardless of past scale/move edits.
-function objectHandlePos(obj){
-  var pts = objectAbsPoints(obj);
-  var maxX=-Infinity, maxY=-Infinity;
-  pts.forEach(function(p){ if(p.x>maxX)maxX=p.x; if(p.y>maxY)maxY=p.y; });
-  return {x:maxX, y:maxY};
-}
-function rebuildManualWalls(){
+var WALL_SOLID_POLYS = []; // те же стены как многоугольники {x,y} — «точка внутри стены»
+var WALLS_SIG = "";         // подпись набора стен (отметки: снимок с другими стенами не годится)
+function applyWalls(full){
   MANUAL_WALLS.length = 0;
-  WALL_SOLID_POLYS = WALL_OBJECTS.filter(function(o){ return o.closed; }).map(objectAbsPoints);
-  // стены поменялись → граф навмеша надо пересчитать (какие полигоны/порталы
-  // теперь внутри/поперёк стен). С задержкой, чтобы не пересчитывать на каждый
-  // мышемув при перетаскивании.
-  if(typeof zonesById !== "undefined" && zonesById){
-    if(navRebuildForWallsTimer) clearTimeout(navRebuildForWallsTimer);
-    navRebuildForWallsTimer = setTimeout(function(){ navRebuildForWallsTimer = null; rebuildNav(); if(typeof resnapSpawns==="function") resnapSpawns(); }, 400);
-  }
-  WALL_OBJECTS.forEach(function(obj){
-    var pts = objectAbsPoints(obj);
-    var n = obj.closed ? pts.length : pts.length-1;
-    for(var i=0;i<n;i++){
-      var a = pts[i], b = pts[(i+1)%pts.length];
-      MANUAL_WALLS.push([a.x,a.y,b.x,b.y]);
+  WALL_SOLID_POLYS = WALL_POLYS.map(function(poly){ return poly.map(function(p){ return {x:p[0], y:p[1]}; }); });
+  var h = 0;
+  WALL_POLYS.forEach(function(poly){
+    for(var i=0;i<poly.length;i++){
+      var a = poly[i], b = poly[(i+1)%poly.length];
+      MANUAL_WALLS.push([a[0],a[1],b[0],b[1]]);
+      h = (h*31 + Math.round(a[0]*10)*7 + Math.round(a[1]*10)) % 2147483647;
     }
   });
-  saveWallsDebounced();
+  WALLS_SIG = MANUAL_WALLS.length + ":" + h;
+  // при загрузке (full не задан) остальное строится дальше по коду само
+  if(!full || typeof zonesById === "undefined" || !zonesById) return;
+  rebuildNav();
+  if(typeof resnapSpawns === "function") resnapSpawns();
+  if(typeof SITES_READY !== "undefined" && SITES_READY) buildSites();
+  if(typeof PRO_LINEUPS !== "undefined") PRO_LINEUPS = null;
+  if(typeof computeZoneDanger === "function") computeZoneDanger();
 }
-rebuildManualWalls();
+applyWalls();
 
 function zoneCentroid(z){
   var cx=0,cy=0; z.points.forEach(function(p){cx+=p.x;cy+=p.y;}); return {x:cx/z.points.length, y:cy/z.points.length};
@@ -470,7 +378,6 @@ function zoneCentroid(z){
 // live visual feedback; this heavier rebuild (graph + both wall sets) is
 // debounced to run only after the user stops adjusting. ----------
 var NAV_BLOCKED = {}, navBlockedCount = 0, navCutPortals = 0, navNarrowPortals = 0;
-var WALL_SOLID_POLYS = WALL_SOLID_POLYS || []; // (уже заполнен первым вызовом rebuildManualWalls выше — не затираем) абсолютные точки замкнутых стен — пересобирается в rebuildManualWalls
 function insideSolidWall(x, y){
   for(var i=0;i<WALL_SOLID_POLYS.length;i++){
     if(pointInPoly(x, y, WALL_SOLID_POLYS[i])) return true;
@@ -497,7 +404,6 @@ function snapToWalkable(x, y){
   });
   return best ? {x:best.x, y:best.y} : {x:x, y:y};
 }
-var navRebuildForWallsTimer = null;
 function rebuildNav(){
   applyNavTransform();
   // rescale edge-matching tolerances to the current navmesh scale (see the
@@ -617,14 +523,8 @@ function rebuildNav(){
     });
   })();
 
-  // Walls are no longer auto-derived from the navmesh at all — every attempt
-  // at that (inset/MIN_KEEP tuning, then chain-stitching) kept trading one
-  // failure mode for another (holes vs. chaotic noise vs. stuck-tick
-  // regressions), so the user asked to place them by hand instead. wallSegs
-  // and wallSegsLOS both point at the SAME array (MANUAL_WALLS, see the
-  // manual-wall-editing UI further down) so drawing/deleting a wall there
-  // takes effect immediately with no rebuild step needed. rebuildNav() only
-  // touches the pathing graph now (zoneGraph/zonesById), never this array.
+  // стены — от руки (WALL_POLYS, см. applyWalls); wallSegs и wallSegsLOS —
+  // тот же массив MANUAL_WALLS, rebuildNav его не меняет
   wallSegs = MANUAL_WALLS;
   wallSegsLOS = MANUAL_WALLS;
 
@@ -973,10 +873,7 @@ loadUserZones();
   if(fixed){ try{ localStorage.setItem(USER_ZONES_KEY, JSON.stringify(USER_ZONES)); }catch(e){} }
 })();
 
-// те же формулы, что objectAbsPoints/objectCentroid/objectHandlePos у стен,
-// но без fromRaw/wallTransform — у зон нет отдельного "сырого" исходника с
-// глобальной выравнивающей трансформацией, только свой dx/dy/scale вокруг
-// собственного центра.
+// у зоны свой dx/dy/scale вокруг собственного центра
 function zoneObjAbsPoints(obj){
   var src = obj.basePoints;
   var cx=0, cy=0;

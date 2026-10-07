@@ -240,11 +240,10 @@ document.getElementById("btnPause").addEventListener("click", function(){
 });
 
 document.getElementById("btnExportProject").addEventListener("click", function(){
-  // всё состояние, которое живёт только в localStorage этого браузера
+  // всё состояние, которое живёт только в localStorage этого браузера (стены — в базе страницы, их забирает tools/map_pull.py)
   var box = document.getElementById("projectExportBox");
   if(box.style.display === "block"){ box.style.display = "none"; return; }
   var data = {
-    walls: WALL_OBJECTS.map(function(obj){ return { points: objectAbsPoints(obj).map(function(p){ return {x:Math.round(p.x*10)/10, y:Math.round(p.y*10)/10}; }), closed: obj.closed }; }),
     navAnchors: navAnchors,
     userZones: USER_ZONES.map(function(z){ return { name:z.name, kind:z.kind, points: zoneObjAbsPoints(z).map(function(p){ return {x:Math.round(p.x*10)/10, y:Math.round(p.y*10)/10}; }) }; }),
     navTransform: navTransform,

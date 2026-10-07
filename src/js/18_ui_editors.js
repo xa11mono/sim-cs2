@@ -52,7 +52,7 @@ function findZoneMapZoneAt(x, y){
 cv.addEventListener("mousemove", function(e){
   if(!showDanger.checked){ if(hoverZoneId!==null){ hoverZoneId=null; } return; }
   // don't fight the existing drag modes (wall edit/align/nav align/pan) for the cursor
-  if(chkWallEdit.checked || chkWallAlign.checked || chkAlign.checked) return;
+  if(mapEdOn() || chkAlign.checked) return;
   var w = navScreenToWorld(e.clientX, e.clientY);
   hoverZoneId = findZoneMapZoneAt(w.x, w.y);
 });
@@ -100,92 +100,10 @@ function navScreenToWorld(clientX, clientY){
 var navDragging = false, navDragStart = null, navDragOrig = null;
 var camDragging = false, camDragStart = null, camDragOrig = null;
 
-// ---------- manual wall editing, Photoshop-style: click an object to select
-// it (dashed box + a corner handle), drag its body to MOVE it, drag the
-// handle to SCALE it (from its own center). Click empty space to draw a new
-// wall object instead (or to deselect). Takes priority over align-mode/
-// camera-pan dragging whenever it's on. ----------
-var chkWallEdit = document.getElementById("chkWallEdit");
-var wallEditPanel = document.getElementById("wallEditPanel");
-var wallEditCount = document.getElementById("wallEditCount");
-var btnWallUndo = document.getElementById("btnWallUndo");
-var btnWallClear = document.getElementById("btnWallClear");
-var btnWallDelete = document.getElementById("btnWallDelete");
-var btnWallExport = document.getElementById("btnWallExport");
-var wallExportArea = document.getElementById("wallExportArea");
-var btnWallRevert = document.getElementById("btnWallRevert");
-btnWallRevert.addEventListener("click", function(){
-  // discards the autosaved browser copy and rebuilds fresh from the
-  // WALLPOLYS_RAW seed baked into this artifact's source — for when local
-  // edits went sideways and you want to start over from what's actually published
-  try{ localStorage.removeItem(WALLS_STORAGE_KEY); }catch(e){}
-  WALL_OBJECTS.length = 0;
-  WALLPOLYS_RAW.forEach(function(poly){
-    WALL_OBJECTS.push({ basePoints: poly.map(function(p){ return {x:p[0], y:p[1]}; }), closed:true, dx:0, dy:0, scale:1, fromRaw:false, traced:true });
-  });
-  selectedObjId = null;
-  rebuildManualWalls();
-  updateWallEditCount();
-  logEvent("Стены сброшены к версии из кода", "round");
-});
-btnWallExport.addEventListener("click", function(){
-  // absolute points for every object, baked (ignores fromRaw/wallTransform/
-  // obj dx-dy-scale entirely — this is "what's actually on screen right now",
-  // exactly what needs to go back into the source to make it permanent)
-  var out = WALL_OBJECTS.map(function(obj){
-    var pts = objectAbsPoints(obj);
-    return { points: pts.map(function(p){ return {x:Math.round(p.x*10)/10, y:Math.round(p.y*10)/10}; }), closed: obj.closed };
-  });
-  wallExportArea.style.display = "block";
-  wallExportArea.value = JSON.stringify(out);
-  wallExportArea.select();
-  try{ document.execCommand("copy"); }catch(e){}
-});
-var wallDrawing = false, wallDrawStart = null, wallDrawCur = null;
+// допуски попадания мышью (редактор зон)
 var HIT_TOL_PX = 8;   // screen px, converted to world units by /view.scale below
 var HANDLE_TOL_PX = 10;
-var selectedObjId = null; // index into WALL_OBJECTS, or null
-var objMoving = false, objMoveStart = null, objMoveOrig = null;
-var objScaling = false, objScaleCenter = null, objScaleBaseDist = 1;
-
-var chkVertexEdit = document.getElementById("chkVertexEdit");
-var wallEditHint = document.getElementById("wallEditHint");
-var vertexDragging = false, vertexDragObjId = null, vertexDragIdx = -1;
 var VERTEX_TOL_PX = 10;
-var HINT_OBJECT_MODE = "клик — выделить · тащи тело — двигать · тащи уголок (квадратик) — масштаб · колесо — тоже масштаб · тащи пустое место — новая стена";
-var HINT_VERTEX_MODE = "клик по точке — выделить объект · тащи точку — сдвинуть её · клик на ребре между точками — вставить новую точку туда (перо) · Shift+клик по точке — удалить её";
-function updateWallEditHint(){ wallEditHint.textContent = chkVertexEdit.checked ? HINT_VERTEX_MODE : HINT_OBJECT_MODE; }
-chkVertexEdit.addEventListener("change", function(){
-  // switching modes mid-drag would leave a half-finished move/scale/drag dangling
-  objMoving = false; objScaling = false; vertexDragging = false;
-  updateWallEditHint();
-});
-
-// как только правишь точки объекта индивидуально, он отсоединяется от любых
-// групповых трансформаций — тот же приём, что уже применяется к hand-drawn
-// объектам (см. WALL_OBJECTS выше): иначе "куда сместилась эта точка"
-// зависело бы ещё и от dx/dy/scale объекта и от общего выравнивания стен
-function bakeObjectTransform(obj){
-  if(obj.fromRaw || obj.dx!==0 || obj.dy!==0 || obj.scale!==1){
-    obj.basePoints = objectAbsPoints(obj);
-    obj.dx = 0; obj.dy = 0; obj.scale = 1; obj.fromRaw = false;
-  }
-}
-function findVertexNear(obj, wx, wy){
-  var tol = VERTEX_TOL_PX / view.scale;
-  var pts = objectAbsPoints(obj);
-  var best = -1, bestD = tol;
-  pts.forEach(function(p, i){
-    var d = Math.hypot(p.x-wx, p.y-wy);
-    if(d < bestD){ bestD = d; best = i; }
-  });
-  return best;
-}
-
-function updateWallEditCount(){ wallEditCount.textContent = WALL_OBJECTS.length; btnWallDelete.disabled = selectedObjId===null; }
-updateWallEditCount();
-updateWallEditHint();
-
 function distToSeg(px,py, s){
   var x1=s[0],y1=s[1],x2=s[2],y2=s[3];
   var dx=x2-x1, dy=y2-y1;
@@ -194,84 +112,7 @@ function distToSeg(px,py, s){
   var cx = x1+t*dx, cy = y1+t*dy;
   return Math.hypot(px-cx, py-cy);
 }
-// nearest OBJECT (not raw segment) to a world point, for select/move-drag
-function findObjectNear(wx, wy){
-  var tol = HIT_TOL_PX / view.scale;
-  var best = -1, bestD = tol;
-  WALL_OBJECTS.forEach(function(obj, i){
-    var pts = objectAbsPoints(obj);
-    var n = obj.closed ? pts.length : pts.length-1;
-    for(var k=0;k<n;k++){
-      var a = pts[k], b = pts[(k+1)%pts.length];
-      var d = distToSeg(wx, wy, [a.x,a.y,b.x,b.y]);
-      if(d < bestD){ bestD = d; best = i; }
-    }
-  });
-  return best;
-}
 
-chkWallEdit.addEventListener("change", function(){
-  if(chkWallEdit.checked) setMode("wallEdit"); else { setMode(null); selectedObjId = null; updateWallEditCount(); }
-});
-btnWallUndo.addEventListener("click", function(){
-  // only undoes hand-drawn additions, never one of the 25 traced originals
-  for(var i=WALL_OBJECTS.length-1;i>=0;i--){
-    if(!WALL_OBJECTS[i].traced){ WALL_OBJECTS.splice(i,1); break; }
-  }
-  if(selectedObjId!==null && selectedObjId>=WALL_OBJECTS.length) selectedObjId=null;
-  rebuildManualWalls();
-  updateWallEditCount();
-});
-btnWallClear.addEventListener("click", function(){
-  if(WALL_OBJECTS.length && !confirm("Удалить все "+WALL_OBJECTS.length+" объект(ов) стен?")) return;
-  WALL_OBJECTS.length = 0;
-  selectedObjId = null;
-  rebuildManualWalls();
-  updateWallEditCount();
-});
-btnWallDelete.addEventListener("click", function(){
-  if(selectedObjId===null) return;
-  WALL_OBJECTS.splice(selectedObjId, 1);
-  selectedObjId = null;
-  rebuildManualWalls();
-  updateWallEditCount();
-});
-window.addEventListener("keydown", function(e){
-  if(!chkWallEdit.checked || selectedObjId===null) return;
-  if(e.key==="Delete" || e.key==="Backspace"){
-    WALL_OBJECTS.splice(selectedObjId, 1);
-    selectedObjId = null;
-    rebuildManualWalls();
-    updateWallEditCount();
-    e.preventDefault();
-  }
-});
-
-// ---------- global wall alignment: one coarse move+scale over the whole
-// traced set (see objectAbsPoints — only fromRaw:true objects are affected,
-// and none currently are, since the traced set was baked point-by-point via
-// the pen tool — see WALLPOLYS_RAW above). Left in place, inert, in case a
-// future fromRaw:true batch is added and needs this coarse pass again.
-// Same drag/wheel mechanism as navmesh alignment. ----------
-var chkWallAlign = document.getElementById("chkWallAlign");
-var wallAlignPanel = document.getElementById("wallAlignPanel");
-var inWallDx = document.getElementById("wallDx");
-var inWallDy = document.getElementById("wallDy");
-var inWallScale = document.getElementById("wallScale");
-var btnWallAlignReset = document.getElementById("btnWallAlignReset");
-var wallAlignDragging = false, wallAlignDragStart = null, wallAlignDragOrig = null;
-
-function updateWallAlignInputs(){
-  inWallDx.value = wallTransform.dx.toFixed(1);
-  inWallDy.value = wallTransform.dy.toFixed(1);
-  inWallScale.value = wallTransform.scale.toFixed(3);
-}
-updateWallAlignInputs();
-
-// ---------- navmesh multi-anchor calibration UI: click a navmesh vertex,
-// then click where it should actually be — repeat 3+ times in different
-// corners of the map to fix the non-uniform drift a single affine
-// transform can't (see navMapPoint/rebuildNavWarp above). ----------
 var chkNavWarp = document.getElementById("chkNavWarp");
 var navWarpPanel = document.getElementById("navWarpPanel");
 var navWarpHint = document.getElementById("navWarpHint");
@@ -421,18 +262,15 @@ function setMode(which){
   // exactly one of these (or none) is active at a time
   if(which !== "align" && chkAlign.checked){ chkAlign.checked = false; }
   if(which !== "navWarp" && chkNavWarp.checked){ chkNavWarp.checked = false; }
-  if(which !== "wallEdit" && chkWallEdit.checked){ chkWallEdit.checked = false; }
-  if(which !== "wallAlign" && chkWallAlign.checked){ chkWallAlign.checked = false; }
+  if(which !== "mapEdit" && mapEdOn()) mapEdSetOn(false);
   if(which !== "zoneEdit" && chkZoneEdit.checked){ chkZoneEdit.checked = false; }
   if(which !== "zoneAlign" && chkZoneAlign.checked){ chkZoneAlign.checked = false; }
   zoneAlignPanel.style.display = chkZoneAlign.checked ? "block" : "none";
   alignPanel.style.display = chkAlign.checked ? "block" : "none";
   navWarpPanel.style.display = chkNavWarp.checked ? "block" : "none";
-  wallEditPanel.style.display = chkWallEdit.checked ? "block" : "none";
-  wallAlignPanel.style.display = chkWallAlign.checked ? "block" : "none";
   zoneEditPanel.style.display = chkZoneEdit.checked ? "block" : "none";
   if(!chkZoneEdit.checked){ zoneDrawing=false; zoneDrawPts=[]; btnZoneFinish.disabled=true; selectedZoneId=null; updateZoneEditCount(); }
-  cv.style.cursor = chkAlign.checked ? "move" : chkNavWarp.checked ? "crosshair" : chkWallEdit.checked ? "default" : chkWallAlign.checked ? "move" : chkZoneEdit.checked ? "default" : chkZoneAlign.checked ? "move" : "";
+  cv.style.cursor = chkAlign.checked ? "move" : chkNavWarp.checked ? "crosshair" : mapEdOn() ? "crosshair" : chkZoneEdit.checked ? "default" : chkZoneAlign.checked ? "move" : "";
 }
 chkZoneEdit.addEventListener("change", function(){ if(chkZoneEdit.checked) setMode("zoneEdit"); else setMode(null); });
 chkZoneAlign.addEventListener("change", function(){ if(chkZoneAlign.checked) setMode("zoneAlign"); else setMode(null); });
@@ -442,26 +280,6 @@ chkNavWarp.addEventListener("change", function(){
   navWarpPending = null;
   updateNavWarpHint();
 });
-chkWallAlign.addEventListener("change", function(){
-  if(chkWallAlign.checked) setMode("wallAlign"); else setMode(null);
-});
-var WALL_ALIGN_BASELINE = { dx: 0, dy: 0, scale: 1 }; // identity — the old confirmed-good coarse pass (-15.7/36.7/0.83) is now baked directly into WALLPOLYS_RAW's points, not applied here
-btnWallAlignReset.addEventListener("click", function(){
-  wallTransform.dx = WALL_ALIGN_BASELINE.dx; wallTransform.dy = WALL_ALIGN_BASELINE.dy; wallTransform.scale = WALL_ALIGN_BASELINE.scale;
-  rebuildManualWalls();
-  updateWallAlignInputs();
-  updateWallEditCount();
-});
-[inWallDx,inWallDy,inWallScale].forEach(function(el){
-  el.addEventListener("change", function(){
-    wallTransform.dx = parseFloat(inWallDx.value)||0;
-    wallTransform.dy = parseFloat(inWallDy.value)||0;
-    wallTransform.scale = parseFloat(inWallScale.value)||1;
-    rebuildManualWalls();
-    updateWallEditCount();
-  });
-});
-
 cv.addEventListener("contextmenu", function(e){ e.preventDefault(); });
 // ---- редактор лайнапов ----
 var chkLineups = document.getElementById("chkLineups"), lineupPanel = document.getElementById("lineupPanel");
@@ -634,8 +452,8 @@ zoneNameInput2.addEventListener("keydown", function(e){ if(e.key === "Enter"){ s
 cv.addEventListener("mousedown", function(e){
   if(e.button === 0 && chkLineups.checked){ lineupClick(e); e.preventDefault(); return; }
   // слой «зоны» без других режимов редактирования: клик по зоне — её название
-  if(e.button === 0 && showZones.checked && !chkNavWarp.checked && !chkZoneEdit.checked && !chkWallEdit.checked &&
-     !chkAlign.checked && !chkWallAlign.checked && !chkZoneAlign.checked){
+  if(e.button === 0 && showZones.checked && !chkNavWarp.checked && !chkZoneEdit.checked && !mapEdOn() &&
+     !chkAlign.checked && !chkZoneAlign.checked){
     if(zoneShapeOn() && zoneShapeMouseDown(e)){ e.preventDefault(); return; }
     var zw = navScreenToWorld(e.clientX, e.clientY), zid = zoneIdAt(zw.x, zw.y);
     if(zid){ openZoneName(zid); e.preventDefault(); return; }
@@ -741,87 +559,10 @@ cv.addEventListener("mousedown", function(e){
     e.preventDefault();
     return;
   }
-  if(chkWallEdit.checked && chkVertexEdit.checked){
-    // pen/vertex mode — never moves or scales the whole object, and never
-    // starts a fresh wall; only selects objects and edits their points
-    var wv = navScreenToWorld(e.clientX, e.clientY);
-    if(selectedObjId !== null){
-      var vobj = WALL_OBJECTS[selectedObjId];
-      var vi = findVertexNear(vobj, wv.x, wv.y);
-      if(vi >= 0){
-        var minPts = vobj.closed ? 3 : 2;
-        var curPts = objectAbsPoints(vobj);
-        if(e.shiftKey){
-          if(curPts.length > minPts){
-            bakeObjectTransform(vobj);
-            vobj.basePoints.splice(vi, 1);
-            rebuildManualWalls();
-          }
-        } else {
-          bakeObjectTransform(vobj);
-          vertexDragging = true; vertexDragObjId = selectedObjId; vertexDragIdx = vi;
-        }
-        e.preventDefault();
-        return;
-      }
-      // not on a point — on an edge of the SAME selected object? insert a new point there
-      var ePts = objectAbsPoints(vobj);
-      var eN = vobj.closed ? ePts.length : ePts.length-1;
-      var insTol = HIT_TOL_PX/view.scale;
-      for(var ek=0; ek<eN; ek++){
-        var ea = ePts[ek], eb = ePts[(ek+1)%ePts.length];
-        if(distToSeg(wv.x, wv.y, [ea.x,ea.y,eb.x,eb.y]) < insTol){
-          bakeObjectTransform(vobj);
-          vobj.basePoints.splice(ek+1, 0, {x:wv.x, y:wv.y});
-          rebuildManualWalls();
-          vertexDragging = true; vertexDragObjId = selectedObjId; vertexDragIdx = ek+1;
-          e.preventDefault();
-          return;
-        }
-      }
-    }
-    // clicked elsewhere — (re)select whichever object is under the cursor, if any
-    var hitv = findObjectNear(wv.x, wv.y);
-    selectedObjId = hitv >= 0 ? hitv : null;
-    updateWallEditCount();
-    e.preventDefault();
-    return;
-  }
-  if(chkWallEdit.checked){
-    var w = navScreenToWorld(e.clientX, e.clientY);
-    // the selected object's own scale handle takes priority over everything
-    if(selectedObjId !== null){
-      var h = objectHandlePos(WALL_OBJECTS[selectedObjId]);
-      if(Math.hypot(w.x-h.x, w.y-h.y) < HANDLE_TOL_PX/view.scale){
-        objScaling = true;
-        objScaleCenter = objectCentroid(WALL_OBJECTS[selectedObjId]);
-        objScaleBaseDist = Math.max(1, Math.hypot(h.x-objScaleCenter.x, h.y-objScaleCenter.y)) / WALL_OBJECTS[selectedObjId].scale;
-        e.preventDefault();
-        return;
-      }
-    }
-    var hit = findObjectNear(w.x, w.y);
-    if(hit >= 0){
-      selectedObjId = hit;
-      updateWallEditCount();
-      objMoving = true;
-      objMoveStart = w;
-      objMoveOrig = {dx:WALL_OBJECTS[hit].dx, dy:WALL_OBJECTS[hit].dy};
-    } else {
-      selectedObjId = null;
-      updateWallEditCount();
-      wallDrawing = true;
-      wallDrawStart = w;
-      wallDrawCur = w;
-    }
-  } else if(chkZoneAlign.checked){
+  if(chkZoneAlign.checked){
     zlDragging = true;
     zlDragStart = navScreenToWorld(e.clientX, e.clientY);
     zlDragOrig = {dx:zoneLayer.dx, dy:zoneLayer.dy};
-  } else if(chkWallAlign.checked){
-    wallAlignDragging = true;
-    wallAlignDragStart = navScreenToWorld(e.clientX, e.clientY);
-    wallAlignDragOrig = {dx:wallTransform.dx, dy:wallTransform.dy};
   } else if(chkAlign.checked){
     navDragging = true;
     navDragStart = navScreenToWorld(e.clientX, e.clientY);
@@ -851,35 +592,11 @@ window.addEventListener("mousemove", function(e){
     var zwv = navScreenToWorld(e.clientX, e.clientY);
     USER_ZONES[selectedZoneId].basePoints[zoneVertexIdx] = {x:zwv.x, y:zwv.y};
     applyUserZones(); saveUserZonesDebounced();
-  } else if(objScaling){
-    var w = navScreenToWorld(e.clientX, e.clientY);
-    var d = Math.hypot(w.x-objScaleCenter.x, w.y-objScaleCenter.y);
-    WALL_OBJECTS[selectedObjId].scale = Math.max(0.1, Math.min(10, d/objScaleBaseDist));
-    rebuildManualWalls();
-  } else if(objMoving){
-    var w = navScreenToWorld(e.clientX, e.clientY);
-    WALL_OBJECTS[selectedObjId].dx = objMoveOrig.dx + (w.x-objMoveStart.x);
-    WALL_OBJECTS[selectedObjId].dy = objMoveOrig.dy + (w.y-objMoveStart.y);
-    rebuildManualWalls();
-  } else if(vertexDragging){
-    // baked already (fromRaw:false, dx/dy 0, scale 1) at drag start, so the
-    // absolute point IS the basePoint — no transform to invert here
-    var wv2 = navScreenToWorld(e.clientX, e.clientY);
-    WALL_OBJECTS[vertexDragObjId].basePoints[vertexDragIdx] = {x:wv2.x, y:wv2.y};
-    rebuildManualWalls();
-  } else if(wallDrawing){
-    wallDrawCur = navScreenToWorld(e.clientX, e.clientY);
   } else if(zlDragging){
     var zc = navScreenToWorld(e.clientX, e.clientY);
     zoneLayer.dx = zlDragOrig.dx + (zc.x - zlDragStart.x);
     zoneLayer.dy = zlDragOrig.dy + (zc.y - zlDragStart.y);
     applyZoneLayer(false); updateZlInputs();
-  } else if(wallAlignDragging){
-    var cur = navScreenToWorld(e.clientX, e.clientY);
-    wallTransform.dx = wallAlignDragOrig.dx + (cur.x - wallAlignDragStart.x);
-    wallTransform.dy = wallAlignDragOrig.dy + (cur.y - wallAlignDragStart.y);
-    rebuildManualWalls();
-    updateWallAlignInputs();
   } else if(navDragging){
     var cur = navScreenToWorld(e.clientX, e.clientY);
     navTransform.dx = navDragOrig.dx + (cur.x - navDragStart.x);
@@ -893,20 +610,6 @@ window.addEventListener("mousemove", function(e){
   }
 });
 window.addEventListener("mouseup", function(e){
-  if(wallDrawing){
-    wallDrawing = false;
-    var w = navScreenToWorld(e.clientX, e.clientY);
-    var len = Math.hypot(w.x-wallDrawStart.x, w.y-wallDrawStart.y);
-    if(len > 2/view.scale){ // ignore accidental clicks-as-zero-length-drags
-      WALL_OBJECTS.push({ basePoints:[{x:wallDrawStart.x,y:wallDrawStart.y},{x:w.x,y:w.y}], closed:false, dx:0, dy:0, scale:1, fromRaw:false });
-      rebuildManualWalls();
-      updateWallEditCount();
-    }
-    wallDrawStart = null; wallDrawCur = null;
-  }
-  objMoving = false; objScaling = false;
-  vertexDragging = false; vertexDragObjId = null; vertexDragIdx = -1;
-  wallAlignDragging = false;
   if(zlDragging){ zlDragging = false; applyZoneLayer(true); }
   zoneMoving = false; zoneScaling = false;
   zoneVertexDragging = false; zoneVertexIdx = -1;
@@ -919,13 +622,7 @@ window.addEventListener("mouseup", function(e){
 });
 cv.addEventListener("wheel", function(e){
   e.preventDefault();
-  if(chkWallEdit.checked && selectedObjId !== null){
-    // scale the selected object from its own center
-    var wfac = e.deltaY < 0 ? 1.06 : (1/1.06);
-    var obj = WALL_OBJECTS[selectedObjId];
-    obj.scale = Math.max(0.1, Math.min(10, obj.scale*wfac));
-    rebuildManualWalls();
-  } else if(chkZoneEdit.checked && selectedZoneId !== null){
+  if(chkZoneEdit.checked && selectedZoneId !== null){
     var zwfac = e.deltaY < 0 ? 1.06 : (1/1.06);
     var zobj = USER_ZONES[selectedZoneId];
     zobj.scale = Math.max(0.1, Math.min(10, zobj.scale*zwfac));
@@ -934,12 +631,6 @@ cv.addEventListener("wheel", function(e){
     var zf2 = e.deltaY < 0 ? 1.03 : (1/1.03);
     zoneLayer.scale = Math.max(0.3, Math.min(3, zoneLayer.scale*zf2));
     applyZoneLayer(false); updateZlInputs();
-  } else if(chkWallAlign.checked){
-    // wall-align mode: wheel resizes the old wall set relative to the image
-    var wfactor = e.deltaY < 0 ? 1.04 : (1/1.04);
-    wallTransform.scale = Math.max(0.3, Math.min(2.5, wallTransform.scale*wfactor));
-    rebuildManualWalls();
-    updateWallAlignInputs();
   } else if(chkAlign.checked){
     // align mode: wheel resizes the navmesh itself relative to the image
     var factor = e.deltaY < 0 ? 1.04 : (1/1.04);
