@@ -12,6 +12,7 @@ function draw(){
   }
   hgtDraw();          // слой «высоты» (19_map_heights.js), если включён
   covDraw();          // слой «укрытия» (19_map_obstacles.js), если включён
+  wbDraw();           // слой «прострелы» (19_map_wallbang.js), если включён
   visToolDraw();      // проверка «кто кого видит» (19_vis_tool.js), если включена
 
   if(showNavmesh.checked){

@@ -140,6 +140,7 @@
   .med-save.warn{color:#ffd76a;} .med-save.ok{color:var(--accent);}
   .hgt-tip{position:absolute;z-index:7;pointer-events:none;background:rgba(10,14,9,0.94);border:1px solid var(--accent-dim);border-radius:5px;padding:5px 8px;font-size:11.5px;line-height:1.45;color:var(--text);white-space:nowrap;}
   .hgt-tip b{color:var(--accent);font-weight:600;}
+  .wb-tip{white-space:normal;width:400px;} .med-sel{background:var(--panel-2);color:var(--text);border:1px solid var(--line);border-radius:4px;padding:2px 4px;font-size:11px;}
   .med-lv{display:flex;gap:4px;align-items:center;margin-bottom:6px;flex-wrap:wrap;} .med-lv button{font-size:11px;padding:3px 9px;} .med-lv button.on{background:var(--accent);color:#0a0e09;border-color:var(--accent);}
   .med-lv input{width:52px;background:var(--panel-2);color:var(--text);border:1px solid var(--line);border-radius:4px;padding:2px 5px;}
   .ptsel{background:var(--panel-2);color:var(--text);border:1px solid var(--line);border-radius:4px;padding:2px 4px;}
@@ -149,13 +150,14 @@
 <div id="app">
   <div id="topbar">
     <h1>ANCIENT — LIVE RADAR</h1>
-    <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 201 · 07.10</div>
+    <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 202 · 07.10</div>
     <button id="btnPause">Пауза</button>
     <button id="btnRestartRound" title="Немедленно сбросить текущий раунд — на случай если боты застряли">Рестарт раунда</button>
     <span class="chk" title="Матч с одним номером всегда проходит одинаково. Увидел баг — запиши номер матча и тик, введи номер и нажми «Сыграть»: матч повторится с начала">матч № <input id="inpMatchNum" type="number" min="1" value="1" style="width:52px"> <button id="btnFreshMatch">Сыграть</button> <span id="matchTick" style="opacity:.75"></span></span>
     <label class="chk"><input type="checkbox" id="chkWalls"> стены</label>
     <label class="chk" title="Высота пола (цвет, шкала внизу слева), крытые места (штриховка), лестницы и рампы (стрелки вверх), уступы (толстая линия края). Наведи — подсказка"><input type="checkbox" id="chkHeights"> высоты</label>
     <label class="chk" title="Высота укрытий (ящики, колонны, низкие стены): цвет — выше головы / по грудь / низкое, пунктир — не измерено. Наведи — высота в единицах игры"><input type="checkbox" id="chkCover"> укрытия</label>
+    <label class="chk" title="Прострелы: куски стен и ящиков, которые пробивает пуля, цветом по материалу (дерево, фанера, тонкий металл…). Наведи — толщина, урон AK и AWP, из чего пробивает. Остальное — камень, не пробивается"><input type="checkbox" id="chkWallbang"> прострелы</label>
     <label class="chk" title="Клик по радару — точка A: где оттуда виден стоящий человек (зелёный — стоя и присев, жёлтый — только стоя). Shift+клик — точка B: что A видит у B (голова/тело/нет). Esc — убрать"><input type="checkbox" id="chkVis"> кто кого видит</label>
     <label class="chk"><input type="checkbox" id="chkNavmesh"> навмеш</label>
     <label class="chk"><input type="checkbox" id="chkPortals"> порталы</label>
@@ -180,6 +182,7 @@
     <canvas id="cv"></canvas>
     <div id="hgtTip" class="hgt-tip" style="display:none;"></div>
     <div id="covTip" class="hgt-tip" style="display:none;"></div>
+    <div id="wbTip" class="hgt-tip wb-tip" style="display:none;"></div>
     <div id="mapEdPanel" class="med" style="display:none;">
       <div class="med-head"><b>Правка карты</b><span id="mapEdTabs" class="med-tabs"></span></div>
       <div id="mapEdSrc" class="med-src"></div>
@@ -3725,6 +3728,7 @@ function draw(){
   }
   hgtDraw();          // слой «высоты» (19_map_heights.js), если включён
   covDraw();          // слой «укрытия» (19_map_obstacles.js), если включён
+  wbDraw();           // слой «прострелы» (19_map_wallbang.js), если включён
   visToolDraw();      // проверка «кто кого видит» (19_vis_tool.js), если включена
 
   if(showNavmesh.checked){
@@ -5347,6 +5351,369 @@ mapEdAddTab({
     var c = medCSel();
     if(c){ covPath(c.poly); ctx.fillStyle = "rgba(255,215,90,0.35)"; ctx.fill(); ctx.strokeStyle = "rgba(255,215,90,1)"; ctx.lineWidth = 2.5/S; ctx.stroke(); }
     if(MED_C.rect){ var r = MED_C.rect; ctx.setLineDash([6/S, 4/S]); ctx.strokeStyle = "rgba(120,230,140,1)"; ctx.lineWidth = 2/S;
+      ctx.strokeRect(Math.min(r.x0, r.x1), Math.min(r.y0, r.y1), Math.abs(r.x1 - r.x0), Math.abs(r.y1 - r.y0)); ctx.setLineDash([]); }
+  }
+});
+// ======================= v202: прострелы (19_map_wallbang.js) =======================
+// Данные — src/data/wallbang.json (делает tools/wallbang_bake.py): правила урона
+// через стену CS2 (rules), пробитие оружия (weapons), материалы (materials) и
+// простреливаемые куски стен и укрытий Ancient (items: материал, толщина t в ед. игры,
+// источники и что предположение). Форма куска: shape "wall" — стена WALL_POLYS,
+// внутри которой точка pt (ящик целиком), "piece" — своя форма poly.
+// Правки владельца (вкладка «прострелы» редактора карты) — WB_OWN {id: {pt, on?, mat?, t?, poly?}}
+// поверх автоматического; в базе страницы — документ map/wallbang, в коде — поле own
+// в wallbang.json (забирает tools/map_pull.py).
+// Только показ и разметка: на игру (стрельбу, урон) пока не влияет — это часть 2.
+// Состояние слоя и редактора в снимок игры не попадает (src/build.py, список UI).
+var WALLBANG = {
+"_about": [
+ "Прострелы Ancient. Делает tools/wallbang_bake.py; правки владельца — поле own (вкладка «прострелы», документ map/wallbang, вписывает tools/map_pull.py).",
+ "rules — урон через стену (CS:GO HandleBulletPenetration, CS2 так же): mod — модификатор материала (вход и выход из одного дерева/картона — 3, пластика — 2, иначе pen материала);",
+ "  потеря = урон × 0,16 + 3,75 / пробитие оружия × 3 / mod + толщина² / (24 × mod); после стены урон = урон − потеря (меньше 1 — пуля застряла).",
+ "  Решётка: mod 3, доля 0,05. Не больше 4 препятствий; толще 90 ед. — не пробивает; дальше 3000 ед. — не пробивает.",
+ "weapons — пробитие оружия (1 / 2 / 2,5); materials — модификатор пробития pen (surfaceproperties CS:GO), kind — группа для правила «один материал», col — цвет на радаре.",
+ "items — простреливаемые куски: pt — точка внутри стены; shape \"wall\" — укрытие (стена walls.json) целиком по pt, \"piece\" — своя форма poly (ед. карты 0..2048);",
+ "  t — толщина простреливаемого куска, ед. игры; radar_t — толщина стены на радаре в pt (для сведения); refs — источники; sure — что из источников; guess — что предположение и почему.",
+ "Всё, чего нет в items, — камень/бетон толще 90 ед.: не простреливается.",
+ "own: [{id, pt, on? (false — не простреливается), mat?, t?, poly? (кусок, нарисованный владельцем)}]."
+],
+"rules": {"lost_share":0.16,"wep_k":3.75,"thick_div":24,"same_mat":{"wood":3,"cardboard":3,"plastic":2},"grate_mod":3,"grate_share":0.05,"max_walls":4,"max_thick":90,"max_dist":3000},
+"weapons": {"GLOCK":{"name":"Glock-18","pen":1},"USP":{"name":"USP-S","pen":1},"P2000":{"name":"P2000","pen":1},"P250":{"name":"P250","pen":1},"DUALIES":{"name":"Dual Berettas","pen":1},"TEC9":{"name":"Tec-9","pen":1},"FIVE7":{"name":"Five-SeveN","pen":1},"CZ75":{"name":"CZ75-Auto","pen":1},"DEAGLE":{"name":"Desert Eagle","pen":2},"R8":{"name":"R8 Revolver","pen":2},"MAC10":{"name":"MAC-10","pen":1},"MP9":{"name":"MP9","pen":1},"MP7":{"name":"MP7","pen":1},"MP5":{"name":"MP5-SD","pen":1},"UMP":{"name":"UMP-45","pen":1},"P90":{"name":"P90","pen":1},"BIZON":{"name":"PP-Bizon","pen":1},"NOVA":{"name":"Nova","pen":2},"XM1014":{"name":"XM1014","pen":2},"MAG7":{"name":"MAG-7","pen":2},"SAWEDOFF":{"name":"Sawed-Off","pen":2},"GALIL":{"name":"Galil AR","pen":2},"FAMAS":{"name":"FAMAS","pen":2},"AK":{"name":"AK-47","pen":2},"M4":{"name":"M4A4","pen":2},"M4S":{"name":"M4A1-S","pen":2},"SG":{"name":"SG 553","pen":2},"AUG":{"name":"AUG","pen":2},"M249":{"name":"M249","pen":2},"NEGEV":{"name":"Negev","pen":2},"SSG":{"name":"SSG 08","pen":2.5},"AWP":{"name":"AWP","pen":2.5},"G3SG1":{"name":"G3SG1","pen":2.5},"SCAR20":{"name":"SCAR-20","pen":2.5}},
+"materials": {"plywood":{"name":"фанера","pen":0.9,"kind":"wood","col":[236,196,92]},"wood":{"name":"дерево (доски)","pen":0.9,"kind":"wood","col":[214,140,58]},"wood_crate":{"name":"деревянный ящик","pen":0.9,"kind":"wood","col":[176,112,50]},"metal_sheet":{"name":"тонкий металл","pen":0.4,"kind":"metal","col":[92,168,232]},"metal_box":{"name":"металлический ящик","pen":0.5,"kind":"metal","col":[120,120,220]},"plaster":{"name":"штукатурка","pen":0.7,"kind":"plaster","col":[226,226,214]},"tile":{"name":"плитка","pen":0.7,"kind":"tile","col":[150,210,190]},"brick":{"name":"кирпич","pen":0.47,"kind":"brick","col":[200,96,80]},"concrete":{"name":"бетон / камень","pen":0.5,"kind":"concrete","col":[150,150,150]},"glass":{"name":"стекло","pen":0.99,"kind":"glass","col":[180,235,250]},"grate":{"name":"решётка","pen":0.95,"kind":"grate","col":[120,200,120]}},
+"items": [
+{"id":"b1423_846","name":"Cave → B сайт: фанера","callout":"Cave","pt":[1423.0,846.0],"shape":"piece","poly":[[1410,812],[1436,812],[1436,880],[1410,880]],"mat":"plywood","t":4,"radar_t":78,"refs":["https://esportsinsider.com/2025/08/cs2-august-18-update-ancient-changes","https://www.gfinityesports.com/article/ancient-and-shoots-receives-some-modifications-with-the-latest-cs2-patch","https://community.skin.club/en/articles/best-wallbang-spots-ancient-cs2","https://sportskeeda.com/esports/best-wall-bang-spots-ancient-cs2"],"sure":"материал — из обновления CS2 18.08.2025 («вернули прострел фанеры в Cave») и skin.club («деревянная стена в сторону B»)","guess":"где именно на стене и толщина 4 — предположение: на радаре это перегородка между Cave и сайтом B (27 ед. карты), доски на радаре не видны","note":"Из Cave на сайт B (дефуз после планта), обратно — с сайта в Cave; sportskeeda: из «кабинки» Cave и на B Main"},
+{"id":"b1432_901","name":"Сайт B → Cave: синяя металлическая кромка","callout":"Cave","pt":[1432.0,901.0],"shape":"piece","poly":[[1427,884],[1437,884],[1437,918],[1427,918]],"mat":"metal_sheet","t":2,"radar_t":22,"refs":["https://community.skin.club/en/articles/best-wallbang-spots-ancient-cs2"],"sure":"материал — skin.club («синяя металлическая кромка стены в сторону Cave», из AK)","guess":"место — край той же перегородки у выхода из Cave (у серого ящика); толщина 2 — предположение (лист металла)","note":"С плента B в Cave"},
+{"id":"b1405_1115","name":"Lamp Room → Wood / T Lower: деревянная конструкция у лампы","callout":"Banger","pt":[1405.0,1115.0],"shape":"piece","poly":[[1390,1084],[1420,1084],[1420,1146],[1390,1146]],"mat":"wood","t":8,"radar_t":118,"refs":["https://community.skin.club/en/articles/best-wallbang-spots-ancient-cs2"],"sure":"материал — skin.club («деревянная конструкция у лампы», Cat Room → B Ramp, AK или любая винтовка)","guess":"место — предположение: перегородка между Lamp Room и Wood (у нас Cat Room = низ Lamp Room); толщина 8 — предположение (доски)","note":"Из комнаты с лампой — по тем, кто идёт с T Lower на B"},
+{"id":"b1350_1167","name":"Lamp Room / Cat: «белый ящик» → Lower Mid","callout":"Cat Walk","pt":[1350,1167],"shape":"wall","mat":"wood_crate","t":16,"radar_t":45,"refs":["https://community.skin.club/en/articles/best-wallbang-spots-ancient-cs2"],"sure":"skin.club: «между белым ящиком и каменной стеной в сторону Lower Mid», любая винтовка","guess":"какой ящик — предположение (длинный ящик внизу Lamp Room, 77 в высоту); материал (дерево) — предположение: камень любая винтовка не пробьёт; толщина 16 — угол ящика, не поперёк","note":"Стреляют у края ящика, где он тоньше; поперёк (≈50 ед.) пробивает только AWP"},
+{"id":"b1635_1012","name":"B Ramp: деревянные панели / кабинка","callout":"Ramp (B)","pt":[1635.0,1012.0],"shape":"piece","poly":[[1629,984],[1641,984],[1641,1040],[1629,1040]],"mat":"wood","t":8,"radar_t":136,"refs":["https://sportskeeda.com/esports/best-wall-bang-spots-ancient-cs2"],"sure":"материал — sportskeeda («деревянные панели» у входа на B Ramp; «деревянная кабинка» на B Ramp — прострел на B Long)","guess":"место — предположение: восточная стенка здания Rat у подъёма с T Lower к Bonger; толщина 8 — предположение (доски)","note":"С B Ramp — на B Short (Cave) и B Long; простреливают и в обратную сторону"}],
+"own": []
+};
+var WB_MAT = WALLBANG.materials, WB_RULES = WALLBANG.rules;
+var WB_AUTO = {};
+WALLBANG.items.forEach(function(it){ WB_AUTO[it.id] = it; });
+function wbOwnFromList(list){
+  var o = {};
+  (Array.isArray(list) ? list : []).forEach(function(e){
+    var v = {pt: [e.pt[0], e.pt[1]]};
+    if(e.on !== undefined) v.on = !!e.on;
+    if(e.mat !== undefined) v.mat = e.mat;
+    if(e.t !== undefined) v.t = e.t;
+    if(e.poly) v.poly = e.poly.map(function(q){ return [q[0], q[1]]; });
+    o[e.id] = v;
+  });
+  return o;
+}
+function wbOwnToList(o){
+  return Object.keys(o).sort().map(function(id){
+    var v = o[id], e = {id: id, pt: v.pt};
+    ["on", "mat", "t", "poly"].forEach(function(k){ if(v[k] !== undefined) e[k] = v[k]; });
+    return e;
+  });
+}
+var WB_OWN_CODE = wbOwnFromList(WALLBANG.own);
+var WB_OWN = JSON.parse(JSON.stringify(WB_OWN_CODE));
+
+// ---------- урон через стену (правила CS2; одно место — часть 2 возьмёт отсюда) ----------
+// mod — модификатор материала (вход и выход из одного дерева/картона — 3, пластика — 2);
+// потеря = урон × 0,16 + 3,75 / пробитие × 3 / mod + толщина² / (24 × mod)
+function wbAfter(pen, dmg, mat, t){
+  var m = WB_MAT[mat], R = WB_RULES;
+  if(!m || t > R.max_thick) return 0;
+  var mod = m.kind === "grate" ? R.grate_mod : (R.same_mat[m.kind] || m.pen);
+  var share = m.kind === "grate" ? R.grate_share : R.lost_share, pm = 1/mod;
+  var lost = dmg*share + R.wep_k/pen*pm*3 + pm*t*t/R.thick_div;
+  return Math.max(0, dmg - lost);
+}
+// урон оружия игры (WEAPONS) в грудь после стены: [без брони, в броне]
+function wbChest(wkey, mat, t){
+  var w = WEAPONS[wkey], wb = WALLBANG.weapons[wkey];
+  if(!w || !wb) return null;
+  var d = wbAfter(wb.pen, w.dmg, mat, t);
+  return [d, d*w.armorPen];
+}
+
+// ---------- итог: все куски с правками владельца ----------
+var WB_C = { key: null, list: [] };
+function wbList(){
+  var key = WALLS_SIG + "|" + JSON.stringify(WB_OWN);
+  if(WB_C.key === key) return WB_C.list;
+  var out = [], byId = {};
+  WALLBANG.items.forEach(function(it){
+    var poly = it.shape === "piece" ? it.poly : covWallAt(it.pt[0], it.pt[1]);
+    if(!poly) return;                 // стену удалили — куска нет
+    var c = {id: it.id, name: it.name, callout: it.callout, poly: poly, pt: it.pt, shape: it.shape,
+             mat: it.mat, t: it.t, on: true, autoMat: it.mat, autoT: it.t, radarT: it.radar_t,
+             refs: it.refs || [], sure: it.sure || "", guess: it.guess || "", note: it.note || "", own: false, byOwner: false};
+    out.push(c); byId[it.id] = c;
+  });
+  var lost = 0;
+  Object.keys(WB_OWN).sort().forEach(function(id){
+    var o = WB_OWN[id], c = byId[id];
+    if(!c && !WB_AUTO[id]){   // кусок или стена, отмеченные владельцем
+      var poly = o.poly || covWallAt(o.pt[0], o.pt[1]);
+      if(!poly){ lost++; return; }
+      c = {id: id, name: (o.poly ? "кусок" : "стена") + " (отмечено на странице)", callout: calloutName(o.pt[0], o.pt[1]), poly: poly, pt: o.pt,
+           shape: o.poly ? "piece" : "wall", mat: "wood", t: 8, on: true, autoMat: null, autoT: null, radarT: null,
+           refs: [], sure: "", guess: "", note: "", own: false, byOwner: true};
+      out.push(c); byId[id] = c;
+    }
+    if(!c){   // id после пересчёта сменился — ищем кусок по точке
+      c = out.filter(function(k){ return !k.own && !k.byOwner && pointInPoly(o.pt[0], o.pt[1], covPts(k.poly)); })[0];
+      if(!c){ lost++; return; }
+    }
+    c.own = true; c.ownId = id;
+    if(o.on !== undefined) c.on = o.on;
+    if(o.mat !== undefined && WB_MAT[o.mat]) c.mat = o.mat;
+    if(o.t !== undefined) c.t = o.t;
+  });
+  WB_C.key = key; WB_C.list = out; WB_C.lost = lost;
+  return out;
+}
+// кусок под точкой (самый маленький из накрывающих); off — брать и выключенные
+function wbAt(x, y, off){
+  var best = null, ba = Infinity;
+  wbList().forEach(function(c){
+    if(!c.on && !off) return;
+    if(pointInPoly(x, y, covPts(c.poly))){ var a = covPolyArea(c.poly); if(a < ba){ ba = a; best = c; } }
+  });
+  return best;
+}
+
+// ---------- слой «прострелы» ----------
+var chkWallbang = document.getElementById("chkWallbang");
+function wbLayerOn(){ return chkWallbang.checked || (mapEdOn() && MAPED.tab === "wallbang"); }
+function wbColor(mat, a){ var c = (WB_MAT[mat] || WB_MAT.wood).col; return "rgba(" + c[0] + "," + c[1] + "," + c[2] + "," + a + ")"; }
+function wbDraw(){
+  if(!wbLayerOn()) return;
+  var S = view.scale, ed = mapEdOn() && MAPED.tab === "wallbang";
+  wbList().slice().sort(function(a, b){ return covPolyArea(b.poly) - covPolyArea(a.poly); }).forEach(function(c){
+    if(!c.on && !ed) return;
+    covPath(c.poly);
+    if(c.on){ ctx.fillStyle = wbColor(c.mat, 0.8); ctx.fill(); }
+    else { ctx.fillStyle = "rgba(120,120,120,0.35)"; ctx.fill(); }
+    ctx.lineJoin = "round"; ctx.lineWidth = 2/S; ctx.strokeStyle = c.on ? "rgba(255,255,255,0.95)" : "rgba(200,200,200,0.8)";
+    ctx.setLineDash(c.on ? [] : [4/S, 3/S]); ctx.stroke(); ctx.setLineDash([]); ctx.lineJoin = "miter";
+    // пули: три короткие линии поперёк — «сюда стреляют»
+    if(c.on){
+      var r = Math.max(4, 7/S);
+      ctx.strokeStyle = "rgba(20,14,8,0.9)"; ctx.lineWidth = 1.6/S;
+      for(var k = -1; k <= 1; k++){ ctx.beginPath(); ctx.moveTo(c.pt[0] - r, c.pt[1] + k*r*0.6); ctx.lineTo(c.pt[0] + r, c.pt[1] + k*r*0.6); ctx.stroke(); }
+    }
+  });
+  wbLegend();
+}
+function wbLegend(){
+  ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0);
+  var ec = document.getElementById("econ"), by = cv.height - 10;
+  if(ec && ec.offsetHeight) by = Math.min(by, ec.getBoundingClientRect().top - cv.getBoundingClientRect().top - 10);
+  var used = {}; wbList().forEach(function(c){ if(c.on) used[c.mat] = 1; });
+  var mats = Object.keys(WB_MAT).filter(function(k){ return used[k]; });
+  var x0 = 20 + (hgtLayerOn() ? 332 : 0) + (covLayerOn() ? 332 : 0), w = 330, h = 62 + mats.length*19, y0 = by - h + 26;
+  ctx.fillStyle = "rgba(10,14,9,0.9)"; ctx.fillRect(x0 - 8, y0 - 26, w + 16, h);
+  ctx.strokeStyle = "rgba(120,140,100,0.6)"; ctx.lineWidth = 1; ctx.strokeRect(x0 - 8.5, y0 - 26.5, w + 17, h + 1);
+  ctx.font = "11px 'IBM Plex Sans',sans-serif"; ctx.fillStyle = "#e8ecdd"; ctx.textAlign = "left";
+  ctx.fillText("Прострелы: куски стен, которые пробивает пуля", x0, y0 - 9);
+  var y = y0 + 8;
+  mats.forEach(function(k){
+    var m = WB_MAT[k];
+    ctx.fillStyle = wbColor(k, 0.9); ctx.fillRect(x0, y - 9, 18, 12);
+    ctx.strokeStyle = "#fff"; ctx.lineWidth = 1.5; ctx.strokeRect(x0 + .5, y - 8.5, 17, 11);
+    ctx.fillStyle = "#e8ecdd"; ctx.font = "600 11px 'IBM Plex Sans',sans-serif"; ctx.fillText(m.name, x0 + 26, y);
+    var ak = wbAfter(2, 36, k, 8);
+    ctx.font = "11px 'IBM Plex Sans',sans-serif"; ctx.fillStyle = "#c9cfbd";
+    ctx.fillText("AK сквозь 8 ед.: " + (ak >= 1 ? Math.round(ak) + " из 36" : "не пробивает"), x0 + 150, y);
+    y += 19;
+  });
+  ctx.fillStyle = "#c9cfbd";
+  ctx.fillText("Остальное — камень/бетон толще 90 ед.: не пробивается.", x0, y);
+  ctx.fillText("Наведи на кусок — материал, толщина, урон AK и AWP.", x0, y + 14);
+  ctx.restore();
+}
+
+// ---------- подсказка при наведении ----------
+var wbTip = document.getElementById("wbTip");
+function wbR(v){ return Math.round(v); }
+function wbTipText(x, y){
+  var c = wbAt(x, y, mapEdOn() && MAPED.tab === "wallbang"); if(!c) return null;
+  var m = WB_MAT[c.mat], t = [];
+  t.push("<b>" + c.name + "</b>" + (c.own ? " (правка)" : ""));
+  if(!c.on){ t.push("не простреливается (правка владельца)"); return t.join("<br>"); }
+  t.push(m.name + " · толщина " + c.t + " ед." + (c.radarT ? " <span style='opacity:.6'>(стена на радаре ~" + c.radarT + " ед.)</span>" : ""));
+  [["AK", "AK-47"], ["AWP", "AWP"]].forEach(function(r){
+    var d = wbChest(r[0], c.mat, c.t), w = WEAPONS[r[0]];
+    t.push(r[1] + " в грудь: " + (d[0] >= 1 ? "<b>" + wbR(d[0]) + "</b> из " + w.dmg + ", в броне " + wbR(d[1]) : "<b>не пробивает</b>"));
+  });
+  var yes = [], no = [];
+  Object.keys(WEAPONS).forEach(function(k){
+    var d = wbChest(k, c.mat, c.t); if(!d) return;
+    (d[0] >= 1 ? yes : no).push(WEAPONS[k].name + (d[0] >= 1 ? " " + wbR(d[1]) : ""));
+  });
+  t.push("<span style='opacity:.85'>пробивает (в грудь, в броне): " + (yes.join(", ") || "ничего") + "</span>");
+  if(no.length) t.push("<span style='opacity:.85'>не пробивает: " + no.join(", ") + "</span>");
+  if(c.own && !c.byOwner && (c.mat !== c.autoMat || c.t !== c.autoT)) t.push("автоматически: " + WB_MAT[c.autoMat].name + ", " + c.autoT + " ед.");
+  if(c.note) t.push(c.note);
+  if(c.sure) t.push("<span style='color:#9fd89a'>из источников:</span> " + c.sure);
+  if(c.guess) t.push("<span style='color:#f0c060'>предположение:</span> " + c.guess);
+  t.push("<span style='opacity:.6'>урон в упор, без падения с дистанцией · " + c.callout + " · " + c.id + "</span>");
+  return t.join("<br>");
+}
+cv.addEventListener("mousemove", function(e){
+  if(!wbLayerOn()){ wbTip.style.display = "none"; return; }
+  var w = navScreenToWorld(e.clientX, e.clientY), txt = wbTipText(w.x, w.y);
+  if(!txt){ wbTip.style.display = "none"; return; }
+  hgtTip.style.display = "none"; covTip.style.display = "none";   // над простреливаемым куском его подсказка главнее
+  var r = cv.getBoundingClientRect();
+  wbTip.innerHTML = txt; wbTip.style.display = "block";
+  var px = e.clientX - r.left + 16, py = e.clientY - r.top + 14;
+  if(px + wbTip.offsetWidth > r.width - 4) px = e.clientX - r.left - wbTip.offsetWidth - 12;
+  if(py + wbTip.offsetHeight > r.height - 4) py = Math.max(4, e.clientY - r.top - wbTip.offsetHeight - 10);
+  wbTip.style.left = px + "px"; wbTip.style.top = py + "px";
+});
+cv.addEventListener("mouseleave", function(){ wbTip.style.display = "none"; });
+chkWallbang.addEventListener("change", function(){ if(!this.checked) wbTip.style.display = "none"; draw(); });
+
+// =========================== вкладка «прострелы» редактора карты ===========================
+// Выделено: кусок из списка (sel = id) или стена без разметки (wall = точка клика).
+var MED_B = { tool: "select", sel: null, wall: null, rect: null };
+function medBSel(){ return wbList().filter(function(c){ return c.id === MED_B.sel || c.ownId === MED_B.sel; })[0] || null; }
+function medBR(v){ return Math.round(v*10)/10; }
+// правка выделенного: f — {on?, mat?, t?}; совпало с автоматическим — правка убирается
+function medBApply(f){
+  var c = medBSel();
+  if(!c && MED_B.wall){         // стена без разметки → новая отметка «простреливается»
+    if(f.on === false) return;
+    var p = MED_B.wall, id = "w" + Math.round(p[0]) + "_" + Math.round(p[1]);
+    mapEdDo(function(){ WB_OWN[id] = {pt: [medBR(p[0]), medBR(p[1])], on: true, mat: f.mat || "wood", t: f.t || 8}; });
+    MED_B.sel = id; MED_B.wall = null; mapEdRefresh(); return;
+  }
+  if(!c) return;
+  var id = c.ownId || c.id;
+  if(c.byOwner && f.on === false){ medBDelete(); return; }   // своя отметка «нет» — просто убрать её
+  mapEdDo(function(){
+    var o = WB_OWN[id] || {pt: [c.pt[0], c.pt[1]]};
+    Object.keys(f).forEach(function(k){ o[k] = f[k]; });
+    if(!c.byOwner){
+      if(o.on === true) delete o.on;
+      if(o.mat === c.autoMat) delete o.mat;
+      if(o.t === c.autoT) delete o.t;
+      if(o.on === undefined && o.mat === undefined && o.t === undefined){ delete WB_OWN[id]; return; }
+    }
+    WB_OWN[id] = o;
+  });
+  MED_B.sel = WB_OWN[id] ? id : c.id;
+  mapEdRefresh();
+}
+function medBAuto(){
+  var c = medBSel(); if(!c || !c.own || c.byOwner) return;
+  var id = c.ownId;
+  mapEdDo(function(){ delete WB_OWN[id]; });
+  MED_B.sel = c.id; mapEdRefresh();
+}
+function medBDelete(){
+  var c = medBSel(); if(!c || !c.byOwner) return;
+  mapEdDo(function(){ delete WB_OWN[c.id]; });
+  MED_B.sel = null; mapEdRefresh();
+}
+var MED_B_HINTS = {
+  select: "<b>Выбор.</b><ul><li>Клик по стене, ящику или цветному куску — выделить (жёлтое).</li><li>«Простреливается: да / нет», материал из списка, толщина в единицах игры (доска 2–8, ящик поперёк 30–60; толще 90 не пробивает ничто).</li><li>«Да» на стене без разметки — простреливается вся стена; для части большой стены нарисуй кусок.</li><li>Правая кнопка — двигать карту. Esc — снять выделение.</li></ul>",
+  rect: "<b>Новый кусок.</b><ul><li>Протяни прямоугольник по части стены, которую пробивает пуля (доски, фанера, тонкий металл) — появится кусок, ему ставится материал и толщина.</li><li>Удалить такой кусок — кнопка «Удалить кусок».</li></ul>"
+};
+mapEdAddTab({
+  id: "wallbang", label: "прострелы", doc: "wallbang",
+  get: function(){ return WB_OWN; },
+  set: function(d){ WB_OWN = mapEdClone(d); },
+  code: function(){ return mapEdClone(WB_OWN_CODE); },
+  toDoc: function(d){ return {own: wbOwnToList(d)}; },
+  fromDoc: function(b){
+    var L = b && b.own;
+    if(!Array.isArray(L)) return null;
+    var num = function(v){ return typeof v === "number" && isFinite(v); };
+    var ok = L.every(function(e){
+      return e && typeof e.id === "string" && Array.isArray(e.pt) && num(e.pt[0]) && num(e.pt[1]) &&
+        (e.on === undefined || typeof e.on === "boolean") && (e.mat === undefined || WB_MAT[e.mat]) &&
+        (e.t === undefined || (num(e.t) && e.t >= 0 && e.t <= 400)) &&
+        (e.poly === undefined || (Array.isArray(e.poly) && e.poly.length >= 3 && e.poly.every(function(q){ return Array.isArray(q) && num(q[0]) && num(q[1]); })));
+    });
+    return ok ? wbOwnFromList(L) : null;
+  },
+  reset: function(){ MED_B.rect = null; },
+  render: function(body){
+    var opts = Object.keys(WB_MAT).map(function(k){ return '<option value="' + k + '">' + WB_MAT[k].name + '</option>'; }).join("");
+    body.innerHTML = '<div class="med-tools"><button data-t="select">Выбор</button><button data-t="rect">+ Кусок (прямоугольник)</button></div>' +
+      '<div class="med-hint" id="medBHint"></div>' +
+      '<div class="med-info" id="medBInfo"></div>' +
+      '<div class="med-lv"><span>Простреливается:</span><button data-on="1">да</button><button data-on="0">нет</button></div>' +
+      '<div class="med-lv"><span>Материал:</span><select id="medBMat" class="med-sel">' + opts + '</select>' +
+      '<span>толщина</span><input id="medBT" type="number" min="0" max="400" step="1" title="толщина простреливаемого куска, единицы игры (толще 90 не пробивает ничто)"> ед.</div>' +
+      '<div class="med-info" id="medBDmg"></div>' +
+      '<div class="med-row"><button id="medBAuto" title="Убрать правку выделенного куска — вернуть то, что размечено в коде">Как размечено в коде</button><button id="medBDel">Удалить кусок</button></div>';
+    body.querySelectorAll("[data-t]").forEach(function(b){ b.addEventListener("click", function(){ MED_B.tool = b.getAttribute("data-t"); MED_B.rect = null; mapEdRefresh(); }); });
+    body.querySelectorAll("[data-on]").forEach(function(b){ b.addEventListener("click", function(){ medBApply({on: b.getAttribute("data-on") === "1"}); }); });
+    mapEdEl("medBMat").addEventListener("change", function(){ medBApply({on: true, mat: this.value}); });
+    mapEdEl("medBT").addEventListener("change", function(){ var v = Math.round(+this.value); if(this.value !== "" && isFinite(v) && v >= 0 && v <= 400) medBApply({on: true, t: v}); });
+    mapEdEl("medBAuto").addEventListener("click", medBAuto);
+    mapEdEl("medBDel").addEventListener("click", medBDelete);
+  },
+  refresh: function(){
+    var body = mapEdEl("mapEdBody"); if(!body || !mapEdEl("medBHint")) return;
+    body.querySelectorAll("[data-t]").forEach(function(b){ b.className = b.getAttribute("data-t") === MED_B.tool ? "on" : ""; });
+    mapEdEl("medBHint").innerHTML = MED_B_HINTS[MED_B.tool];
+    var c = medBSel(), L = wbList(), on = L.filter(function(k){ return k.on; }).length, txt;
+    if(c) txt = c.name + ": " + (c.on ? WB_MAT[c.mat].name + ", " + c.t + " ед." : "не простреливается") +
+      (c.own && !c.byOwner ? " (правка; в коде: " + WB_MAT[c.autoMat].name + ", " + c.autoT + " ед.)" : "");
+    else if(MED_B.wall) txt = "Стена без разметки (" + calloutName(MED_B.wall[0], MED_B.wall[1]) + "): не простреливается — камень/бетон.";
+    else txt = "Ничего не выделено.";
+    mapEdEl("medBInfo").textContent = txt + " Простреливаемых кусков: " + on + " из " + L.length + ", правок: " + Object.keys(WB_OWN).length +
+      (WB_C.lost ? ", правок без стены (стену удалили): " + WB_C.lost : "") + ".";
+    var has = !!(c || MED_B.wall), isOn = c ? c.on : false;
+    body.querySelectorAll("[data-on]").forEach(function(b){ b.disabled = !has; b.className = has && ((b.getAttribute("data-on") === "1") === isOn) ? "on" : ""; });
+    var sel = mapEdEl("medBMat"), inp = mapEdEl("medBT");
+    sel.disabled = !has; inp.disabled = !has;
+    if(c) sel.value = c.mat;
+    if(document.activeElement !== inp) inp.value = c ? c.t : "";
+    var dm = "";
+    if(c && c.on){
+      var ak = wbChest("AK", c.mat, c.t), awp = wbChest("AWP", c.mat, c.t);
+      dm = "AK в грудь: " + (ak[0] >= 1 ? wbR(ak[0]) + " (в броне " + wbR(ak[1]) + ")" : "не пробивает") + " · AWP: " + (awp[0] >= 1 ? wbR(awp[0]) + " (в броне " + wbR(awp[1]) + ")" : "не пробивает");
+    }
+    mapEdEl("medBDmg").textContent = dm;
+    mapEdEl("medBAuto").disabled = !(c && c.own && !c.byOwner);
+    mapEdEl("medBDel").disabled = !(c && c.byOwner);
+  },
+  down: function(w, e){
+    if(MED_B.tool === "rect"){ MED_B.rect = {x0: w.x, y0: w.y, x1: w.x, y1: w.y}; return true; }
+    var c = wbAt(w.x, w.y, true);
+    MED_B.sel = c ? (c.ownId || c.id) : null;
+    MED_B.wall = !c && covWallAt(w.x, w.y) ? [w.x, w.y] : null;
+    mapEdRefresh();
+    return !!(c || MED_B.wall);
+  },
+  move: function(w){ if(MED_B.rect){ MED_B.rect.x1 = w.x; MED_B.rect.y1 = w.y; } },
+  up: function(){
+    var r = MED_B.rect; if(!r) return; MED_B.rect = null;
+    var x0 = medBR(Math.min(r.x0, r.x1)), x1 = medBR(Math.max(r.x0, r.x1)), y0 = medBR(Math.min(r.y0, r.y1)), y1 = medBR(Math.max(r.y0, r.y1));
+    if(x1 - x0 >= 3 && y1 - y0 >= 3){
+      var id = "p" + Math.round((x0 + x1)/2) + "_" + Math.round((y0 + y1)/2);
+      mapEdDo(function(){ WB_OWN[id] = {pt: [medBR((x0 + x1)/2), medBR((y0 + y1)/2)], on: true, mat: "wood", t: 8, poly: [[x0, y0], [x1, y0], [x1, y1], [x0, y1]]}; });
+      MED_B.sel = id; MED_B.wall = null; MED_B.tool = "select";
+    }
+    mapEdRefresh();
+  },
+  key: function(e){
+    if(e.key === "Escape"){ MED_B.sel = null; MED_B.wall = null; MED_B.rect = null; mapEdRefresh(); return true; }
+    var c = medBSel();
+    if(e.key === "Delete" && c && c.byOwner){ medBDelete(); return true; }
+    return false;
+  },
+  draw: function(){
+    // сам слой рисует wbDraw (он включён, пока открыта вкладка); здесь — правки и выделение
+    var S = view.scale;
+    ctx.setLineDash([3/S, 3/S]); ctx.strokeStyle = "rgba(255,255,255,0.95)"; ctx.lineWidth = 1.4/S;
+    wbList().forEach(function(c){ if(c.own || c.byOwner){ covPath(c.poly); ctx.stroke(); } });
+    ctx.setLineDash([]);
+    var c = medBSel(), p = c ? c.poly : (MED_B.wall ? covWallAt(MED_B.wall[0], MED_B.wall[1]) : null);
+    if(p){ covPath(p); ctx.fillStyle = "rgba(255,215,90,0.3)"; ctx.fill(); ctx.strokeStyle = "rgba(255,215,90,1)"; ctx.lineWidth = 2.5/S; ctx.stroke(); }
+    if(MED_B.rect){ var r = MED_B.rect; ctx.setLineDash([6/S, 4/S]); ctx.strokeStyle = "rgba(120,230,140,1)"; ctx.lineWidth = 2/S;
       ctx.strokeRect(Math.min(r.x0, r.x1), Math.min(r.y0, r.y1), Math.abs(r.x1 - r.x0), Math.abs(r.y1 - r.y0)); ctx.setLineDash([]); }
   }
 });

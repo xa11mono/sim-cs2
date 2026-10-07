@@ -4,7 +4,7 @@
 python3 tools/map_pull.py <файл.json> [--dry]
 
 <файл.json> — документ из коллекции map базы страницы (ArtifactData get,
-collection "map", doc "walls" или "heights"), сохранённый в файл. Подходит и
+collection "map", doc "walls", "heights", "cover" или "wallbang"), сохранённый в файл. Подходит и
 голое тело документа, и ответ с обёрткой ({"data": {...}} и т.п.). Какой это
 документ, скрипт понимает сам:
   * map/walls  = {"walls": [...], "t": ...} — поле walls целиком записывается в
@@ -22,6 +22,12 @@ collection "map", doc "walls" или "heights"), сохранённый в фа�
     не трогается. От map/heights отличается по виду записей (у укрытия id —
     строка и есть точка pt); если список пустой — какой это документ, скрипт
     понимает по имени файла (есть «cover») или по ключу --cover.
+  * map/wallbang = {"own": [{id, pt, on?, mat?, t?, poly?}, ...], "t": ...} — правки
+    прострелов (вкладка «прострелы»: простреливается да/нет, материал, толщина в
+    ед. игры, poly — кусок, нарисованный владельцем). Поле own целиком
+    записывается в поле own файла src/data/wallbang.json; остальное (то, что
+    записал tools/wallbang_bake.py) не трогается. Узнаётся по полям on/mat/t в
+    записях; если список пустой — по имени файла (есть «wallbang») или ключу --wallbang.
 --dry — только показать, ничего не писать.
 """
 import json, os, sys, datetime
@@ -30,6 +36,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUT = os.path.join(ROOT, 'src', 'data', 'walls.json')
 HOUT = os.path.join(ROOT, 'src', 'data', 'heights.json')
 COUT = os.path.join(ROOT, 'src', 'data', 'cover.json')
+BOUT = os.path.join(ROOT, 'src', 'data', 'wallbang.json')
 
 
 def find_doc(o, field):
@@ -108,6 +115,56 @@ def pull_heights(doc, dry):
     print('записано: поле own в', os.path.relpath(HOUT, ROOT))
 
 
+def is_wallbang(doc, fname):
+    L = doc['own']
+    if L:
+        return any(isinstance(e, dict) and any(k in e for k in ('on', 'mat', 't')) for e in L)
+    return '--wallbang' in sys.argv or 'wallbang' in os.path.basename(fname).lower()
+
+
+def pull_wallbang(doc, dry):
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    import wallbang_bake
+    B = json.load(open(BOUT, encoding='utf-8'))
+    num = lambda v: isinstance(v, (int, float)) and not isinstance(v, bool)
+    own = []
+    for e in doc['own']:
+        assert isinstance(e, dict) and isinstance(e.get('id'), str) and e['id'], 'правка прострелов: нет id %r' % (e,)
+        pt = e.get('pt')
+        assert isinstance(pt, list) and len(pt) == 2 and all(num(v) for v in pt), 'кусок %s: плохая точка %r' % (e['id'], pt)
+        r = {'id': e['id'], 'pt': [round(float(pt[0]), 1), round(float(pt[1]), 1)]}
+        if 'on' in e:
+            assert isinstance(e['on'], bool), 'кусок %s: плохое «простреливается» %r' % (e['id'], e['on'])
+            r['on'] = e['on']
+        if 'mat' in e:
+            assert e['mat'] in B['materials'], 'кусок %s: нет такого материала %r' % (e['id'], e['mat'])
+            r['mat'] = e['mat']
+        if 't' in e:
+            assert num(e['t']) and 0 <= e['t'] <= 400, 'кусок %s: плохая толщина %r' % (e['id'], e['t'])
+            r['t'] = e['t']
+        if 'poly' in e:
+            P = e['poly']
+            assert isinstance(P, list) and len(P) >= 3 and all(isinstance(q, list) and len(q) == 2 and all(num(v) for v in q) for q in P), \
+                'кусок %s: плохая форма %r' % (e['id'], P)
+            r['poly'] = [[round(float(q[0]), 1), round(float(q[1]), 1)] for q in P]
+        own.append(r)
+    own.sort(key=lambda r: r['id'])
+    old = B.get('own') or []
+    same = old == own
+    print('прострелы — правка со страницы от %s: правок было %d, стало %d%s' % (when(doc), len(old), len(own), ' (без изменений)' if same else ''))
+    if not same:
+        ids = {it['id'] for it in B['items']}
+        print('  выключено %d, материал у %d, толщина у %d, новых кусков %d, новых стен %d' % (
+            sum(r.get('on') is False for r in own), sum('mat' in r for r in own), sum('t' in r for r in own),
+            sum('poly' in r for r in own), sum(1 for r in own if r['id'] not in ids and 'poly' not in r and r['id'].startswith('w'))))
+    if dry or same:
+        return
+    B['own'] = own
+    wallbang_bake.OUT = BOUT
+    wallbang_bake.write(B)
+    print('записано: поле own в', os.path.relpath(BOUT, ROOT))
+
+
 def is_cover(doc, fname):
     L = doc['own']
     if L:
@@ -164,11 +221,13 @@ def main():
     w = find_doc(data, 'walls')
     h = find_doc(data, 'own')
     if w is None and h is None:
-        sys.exit('в файле нет ни поля walls, ни поля own — это точно документ map/walls, map/heights или map/cover?')
+        sys.exit('в файле нет ни поля walls, ни поля own — это точно документ map/walls, map/heights, map/cover или map/wallbang?')
     if w is not None:
         pull_walls(w, dry)
     if h is not None:
-        if is_cover(h, args[0]):
+        if is_wallbang(h, args[0]):
+            pull_wallbang(h, dry)
+        elif is_cover(h, args[0]):
             pull_cover(h, dry)
         else:
             pull_heights(h, dry)

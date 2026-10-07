@@ -103,6 +103,8 @@ UI |= set("HEIGHTS HGT_AUTO HGT_OWN_CODE HGT_OWN HGT_STOPS HGT_C HGT_LEDGE_TXT c
 # v200: слой «укрытия» и вкладка «укрытия» редактора карты — в снимок не попадают
 # v201: проверка «кто кого видит» — в снимок не попадает
 UI |= set("chkVis VT".split())
+# v202: слой «прострелы» и вкладка «прострелы» редактора карты — в снимок не попадают
+UI |= set("WALLBANG WB_MAT WB_RULES WB_AUTO WB_OWN_CODE WB_OWN WB_C chkWallbang wbTip MED_B MED_B_HINTS".split())
 UI |= set("COVER COV_HIGH COV_CHEST COV_CAT COV_ORDER COV_AUTO COV_OWN_CODE COV_OWN COV_C chkCover covTip MED_C MED_C_HINTS".split())
 V = [v for v in top_vars(s) if v not in STATIC | SETTINGS | UI and not v.startswith('__') and not v.startswith('MK') and not v.startswith('mk')]
 for must in ['tick', 'bots', 'bomb', 'roundNum', 'matchNum', 'smokes', 'score', 'roundState']:
