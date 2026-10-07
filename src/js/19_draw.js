@@ -10,6 +10,7 @@ function draw(){
     ctx.fillText("не удалось загрузить ancient-radar.png (фон)", 12, 20);
     ctx.restore();
   }
+  hgtDraw();          // слой «высоты» (19_map_heights.js), если включён
 
   if(showNavmesh.checked){
     // official navmesh areas (1970) — this is the real pathing geometry

@@ -138,6 +138,10 @@
   .med-row{display:flex;gap:6px;margin-bottom:6px;} .med-row button{flex:1;font-size:11px;padding:4px 6px;}
   .med-save{font-size:11px;color:var(--text-dim);}
   .med-save.warn{color:#ffd76a;} .med-save.ok{color:var(--accent);}
+  .hgt-tip{position:absolute;z-index:7;pointer-events:none;background:rgba(10,14,9,0.94);border:1px solid var(--accent-dim);border-radius:5px;padding:5px 8px;font-size:11.5px;line-height:1.45;color:var(--text);white-space:nowrap;}
+  .hgt-tip b{color:var(--accent);font-weight:600;}
+  .med-lv{display:flex;gap:4px;align-items:center;margin-bottom:6px;flex-wrap:wrap;} .med-lv button{font-size:11px;padding:3px 9px;} .med-lv button.on{background:var(--accent);color:#0a0e09;border-color:var(--accent);}
+  .med-lv input{width:52px;background:var(--panel-2);color:var(--text);border:1px solid var(--line);border-radius:4px;padding:2px 5px;}
   .ptsel{background:var(--panel-2);color:var(--text);border:1px solid var(--line);border-radius:4px;padding:2px 4px;}
 </style>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
@@ -145,11 +149,12 @@
 <div id="app">
   <div id="topbar">
     <h1>ANCIENT — LIVE RADAR</h1>
-    <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 198 · 07.10</div>
+    <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 199 · 07.10</div>
     <button id="btnPause">Пауза</button>
     <button id="btnRestartRound" title="Немедленно сбросить текущий раунд — на случай если боты застряли">Рестарт раунда</button>
     <span class="chk" title="Матч с одним номером всегда проходит одинаково. Увидел баг — запиши номер матча и тик, введи номер и нажми «Сыграть»: матч повторится с начала">матч № <input id="inpMatchNum" type="number" min="1" value="1" style="width:52px"> <button id="btnFreshMatch">Сыграть</button> <span id="matchTick" style="opacity:.75"></span></span>
     <label class="chk"><input type="checkbox" id="chkWalls"> стены</label>
+    <label class="chk" title="Высота пола (цвет, шкала внизу слева), крытые места (штриховка), лестницы и рампы (стрелки вверх), уступы (толстая линия края). Наведи — подсказка"><input type="checkbox" id="chkHeights"> высоты</label>
     <label class="chk"><input type="checkbox" id="chkNavmesh"> навмеш</label>
     <label class="chk"><input type="checkbox" id="chkPortals"> порталы</label>
     <label class="chk" title="Слой зон карты. Клик по зоне — переименовать её (Кейв, Донат, Мейн…)"><input type="checkbox" id="chkZones"> зоны (клик — название)</label>
@@ -162,7 +167,7 @@
     <label class="chk"><input type="checkbox" id="chkTracers" checked> трассеры</label>
     <label class="chk"><input type="checkbox" id="chkSound" checked> звук шагов</label>
     <label class="chk" title="Под каждым игроком: что он делает (стоит/идёт/ставит/дефузит) и куда смотрит. Пока мозга нет — задач нет"><input type="checkbox" id="chkWhy"> почему</label>
-    <label class="chk" style="border-left:1px solid var(--line);padding-left:14px;" title="Редактор карты: стены (дальше — высоты, укрытия, прострелы). Правки сразу в игре и сохраняются на странице"><input type="checkbox" id="chkMapEdit"> <b>правка карты</b></label>
+    <label class="chk" style="border-left:1px solid var(--line);padding-left:14px;" title="Редактор карты: стены, высоты (дальше — укрытия, прострелы). Правки сразу в игре и сохраняются на странице"><input type="checkbox" id="chkMapEdit"> <b>правка карты</b></label>
     <label class="chk"><input type="checkbox" id="chkAlign"> выравнивание navmesh</label>
     <label class="chk"><input type="checkbox" id="chkNavWarp" title="Навмеш смещён от стен по-разному в разных углах карты — обычный общий сдвиг/масштаб это не лечит, нужно несколько опорных точек"> калибровка навмеша (точки)</label>
     <label class="chk" title="Сдвинуть/отмасштабировать весь слой зон и тактических точек целиком"><input type="checkbox" id="chkZoneAlign"> выравнивание зон</label>
@@ -171,6 +176,7 @@
   </div>
   <div id="main">
     <canvas id="cv"></canvas>
+    <div id="hgtTip" class="hgt-tip" style="display:none;"></div>
     <div id="mapEdPanel" class="med" style="display:none;">
       <div class="med-head"><b>Правка карты</b><span id="mapEdTabs" class="med-tabs"></span></div>
       <div id="mapEdSrc" class="med-src"></div>
