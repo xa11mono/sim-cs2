@@ -99,6 +99,8 @@ SETTINGS = set("""BAL MANUAL_WALLS WALL_POLYS wallSegs wallSegsLOS USER_ZONES US
 UI = set("view paused lastFrame accumulator nowTs MAPED MED_W MED_W_HINTS".split())  # редактор карты (MAPED — с базой страницы, MED_W — вкладка «стены») в снимок не попадает
 # v199: слой «высоты» и вкладка «высоты» редактора карты — в снимок не попадают
 UI |= set("HEIGHTS HGT_AUTO HGT_OWN_CODE HGT_OWN HGT_STOPS HGT_C HGT_LEDGE_TXT chkHeights hgtTip MED_H MED_H_HINTS".split())
+# v200: слой «укрытия» и вкладка «укрытия» редактора карты — в снимок не попадают
+UI |= set("COVER COV_HIGH COV_CHEST COV_CAT COV_ORDER COV_AUTO COV_OWN_CODE COV_OWN COV_C chkCover covTip MED_C MED_C_HINTS".split())
 V = [v for v in top_vars(s) if v not in STATIC | SETTINGS | UI and not v.startswith('__') and not v.startswith('MK') and not v.startswith('mk')]
 for must in ['tick', 'bots', 'bomb', 'roundNum', 'matchNum', 'smokes', 'score', 'roundState']:
     assert must in V, must

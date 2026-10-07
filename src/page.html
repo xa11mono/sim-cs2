@@ -149,12 +149,13 @@
 <div id="app">
   <div id="topbar">
     <h1>ANCIENT — LIVE RADAR</h1>
-    <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 199 · 07.10</div>
+    <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 200 · 07.10</div>
     <button id="btnPause">Пауза</button>
     <button id="btnRestartRound" title="Немедленно сбросить текущий раунд — на случай если боты застряли">Рестарт раунда</button>
     <span class="chk" title="Матч с одним номером всегда проходит одинаково. Увидел баг — запиши номер матча и тик, введи номер и нажми «Сыграть»: матч повторится с начала">матч № <input id="inpMatchNum" type="number" min="1" value="1" style="width:52px"> <button id="btnFreshMatch">Сыграть</button> <span id="matchTick" style="opacity:.75"></span></span>
     <label class="chk"><input type="checkbox" id="chkWalls"> стены</label>
     <label class="chk" title="Высота пола (цвет, шкала внизу слева), крытые места (штриховка), лестницы и рампы (стрелки вверх), уступы (толстая линия края). Наведи — подсказка"><input type="checkbox" id="chkHeights"> высоты</label>
+    <label class="chk" title="Высота укрытий (ящики, колонны, низкие стены): цвет — выше головы / по грудь / низкое, пунктир — не измерено. Наведи — высота в единицах игры"><input type="checkbox" id="chkCover"> укрытия</label>
     <label class="chk"><input type="checkbox" id="chkNavmesh"> навмеш</label>
     <label class="chk"><input type="checkbox" id="chkPortals"> порталы</label>
     <label class="chk" title="Слой зон карты. Клик по зоне — переименовать её (Кейв, Донат, Мейн…)"><input type="checkbox" id="chkZones"> зоны (клик — название)</label>
@@ -167,7 +168,7 @@
     <label class="chk"><input type="checkbox" id="chkTracers" checked> трассеры</label>
     <label class="chk"><input type="checkbox" id="chkSound" checked> звук шагов</label>
     <label class="chk" title="Под каждым игроком: что он делает (стоит/идёт/ставит/дефузит) и куда смотрит. Пока мозга нет — задач нет"><input type="checkbox" id="chkWhy"> почему</label>
-    <label class="chk" style="border-left:1px solid var(--line);padding-left:14px;" title="Редактор карты: стены, высоты (дальше — укрытия, прострелы). Правки сразу в игре и сохраняются на странице"><input type="checkbox" id="chkMapEdit"> <b>правка карты</b></label>
+    <label class="chk" style="border-left:1px solid var(--line);padding-left:14px;" title="Редактор карты: стены, высоты, укрытия (дальше — прострелы). Правки сразу в игре и сохраняются на странице"><input type="checkbox" id="chkMapEdit"> <b>правка карты</b></label>
     <label class="chk"><input type="checkbox" id="chkAlign"> выравнивание navmesh</label>
     <label class="chk"><input type="checkbox" id="chkNavWarp" title="Навмеш смещён от стен по-разному в разных углах карты — обычный общий сдвиг/масштаб это не лечит, нужно несколько опорных точек"> калибровка навмеша (точки)</label>
     <label class="chk" title="Сдвинуть/отмасштабировать весь слой зон и тактических точек целиком"><input type="checkbox" id="chkZoneAlign"> выравнивание зон</label>
@@ -177,6 +178,7 @@
   <div id="main">
     <canvas id="cv"></canvas>
     <div id="hgtTip" class="hgt-tip" style="display:none;"></div>
+    <div id="covTip" class="hgt-tip" style="display:none;"></div>
     <div id="mapEdPanel" class="med" style="display:none;">
       <div class="med-head"><b>Правка карты</b><span id="mapEdTabs" class="med-tabs"></span></div>
       <div id="mapEdSrc" class="med-src"></div>

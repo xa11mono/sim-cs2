@@ -15,6 +15,13 @@ collection "map", doc "walls" или "heights"), сохранённый в фа�
     целиком записывается в поле own файла src/data/heights.json; остальное в
     этом файле (то, что посчитал tools/heights_bake.py) не трогается. Печатает,
     сколько участков с правкой было и стало.
+  * map/cover = {"own": [{id, pt, cat? | h?, poly?}, ...], "t": ...} — правки
+    укрытий (вкладка «укрытия»: категория high/chest/low или высота числом, poly —
+    кусок, нарисованный владельцем). Поле own целиком записывается в поле own
+    файла src/data/cover.json; остальное (то, что посчитал tools/cover_bake.py)
+    не трогается. От map/heights отличается по виду записей (у укрытия id —
+    строка и есть точка pt); если список пустой — какой это документ, скрипт
+    понимает по имени файла (есть «cover») или по ключу --cover.
 --dry — только показать, ничего не писать.
 """
 import json, os, sys, datetime
@@ -22,6 +29,7 @@ import json, os, sys, datetime
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUT = os.path.join(ROOT, 'src', 'data', 'walls.json')
 HOUT = os.path.join(ROOT, 'src', 'data', 'heights.json')
+COUT = os.path.join(ROOT, 'src', 'data', 'cover.json')
 
 
 def find_doc(o, field):
@@ -100,6 +108,53 @@ def pull_heights(doc, dry):
     print('записано: поле own в', os.path.relpath(HOUT, ROOT))
 
 
+def is_cover(doc, fname):
+    L = doc['own']
+    if L:
+        return any(isinstance(e, dict) and (isinstance(e.get('id'), str) or 'pt' in e) for e in L)
+    return '--cover' in sys.argv or 'cover' in os.path.basename(fname).lower()
+
+
+def pull_cover(doc, dry):
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    import cover_bake
+    C = json.load(open(COUT, encoding='utf-8'))
+    num = lambda v: isinstance(v, (int, float)) and not isinstance(v, bool)
+    own = []
+    for e in doc['own']:
+        assert isinstance(e, dict) and isinstance(e.get('id'), str) and e['id'], 'правка укрытий: нет id %r' % (e,)
+        pt = e.get('pt')
+        assert isinstance(pt, list) and len(pt) == 2 and all(num(v) for v in pt), 'укрытие %s: плохая точка %r' % (e['id'], pt)
+        r = {'id': e['id'], 'pt': [round(float(pt[0]), 1), round(float(pt[1]), 1)]}
+        if 'cat' in e:
+            assert e['cat'] in ('high', 'chest', 'low'), 'укрытие %s: плохая категория %r' % (e['id'], e['cat'])
+            r['cat'] = e['cat']
+        if 'h' in e:
+            assert num(e['h']) and 0 <= e['h'] <= 400, 'укрытие %s: плохая высота %r' % (e['id'], e['h'])
+            r['h'] = e['h']
+        if 'poly' in e:
+            P = e['poly']
+            assert isinstance(P, list) and len(P) >= 3 and all(isinstance(q, list) and len(q) == 2 and all(num(v) for v in q) for q in P), \
+                'укрытие %s: плохой кусок %r' % (e['id'], P)
+            r['poly'] = [[round(float(q[0]), 1), round(float(q[1]), 1)] for q in P]
+        own.append(r)
+    own.sort(key=lambda r: r['id'])
+    old = C.get('own') or []
+    same = old == own
+    print('укрытия — правка со страницы от %s: правок было %d, стало %d%s' % (when(doc), len(old), len(own), ' (без изменений)' if same else ''))
+    if not same:
+        ids = {it['id'] for it in C['items']}
+        print('  категория у %d, высота числом у %d, новых кусков %d, id нет среди укрытий (найдутся по точке) %d' % (
+            sum('cat' in r for r in own), sum('h' in r for r in own), sum('poly' in r for r in own),
+            sum(1 for r in own if r['id'] not in ids and 'poly' not in r)))
+    if dry or same:
+        return
+    C['own'] = own
+    cover_bake.OUT = COUT
+    cover_bake.write(C)
+    print('записано: поле own в', os.path.relpath(COUT, ROOT))
+
+
 def main():
     args = [a for a in sys.argv[1:] if not a.startswith('--')]
     if len(args) != 1:
@@ -109,11 +164,14 @@ def main():
     w = find_doc(data, 'walls')
     h = find_doc(data, 'own')
     if w is None and h is None:
-        sys.exit('в файле нет ни поля walls, ни поля own — это точно документ map/walls или map/heights?')
+        sys.exit('в файле нет ни поля walls, ни поля own — это точно документ map/walls, map/heights или map/cover?')
     if w is not None:
         pull_walls(w, dry)
     if h is not None:
-        pull_heights(h, dry)
+        if is_cover(h, args[0]):
+            pull_cover(h, dry)
+        else:
+            pull_heights(h, dry)
 
 
 if __name__ == '__main__':
