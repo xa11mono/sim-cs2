@@ -51,7 +51,7 @@ CT Setup'ы (BRAIN 4.1, 5.3): раскладка «сколько CT на A / м
 Гранаты «себе» (data/pro/pro_nades.csv, purpose — см. tools/lineups.py) в шаги
 не идут. Люркер — по всем раундам с плантом варианта.
 """
-import glob, gzip, json, math, os, sys
+import glob, gzip, json, math, os, re, sys
 from collections import Counter, defaultdict
 
 import numpy as np
@@ -107,7 +107,20 @@ LURK_MIN_SHARE = 0.1    # люркер (необязательный шаг) —
 # ---------------- карта: зоны-коллы и стены ----------------
 ZM = json.load(open(os.path.join(DATA, 'zonemap.json'), encoding='utf-8'))
 ZN = json.load(open(os.path.join(DATA, 'zone_names.json'), encoding='utf-8'))
-ZONES = [{'id': q['id'], 'z': q['z'], 'P': [(p['x'], p['y']) for p in q['points']]} for q in ZM['zones']]
+# зоны — так же, как их видит игра (src/js/01_map.js): «сырые» точки zonemap.json
+# (или своя форма из zone_shapes.json) со сдвигом и масштабом слоя ZONE_LAYER_BASELINE.
+# Без этого зоны съезжают на ~16 % (First Lane, Ramp, 90 оказываются за стеной)
+_MAPJS = open(os.path.join(ROOT, 'src', 'js', '01_map.js'), encoding='utf-8').read()
+_ZL = {k: float(v) for k, v in re.findall(r'(dx|dy|scale):\s*(-?[\d.]+)',
+                                          re.search(r'ZONE_LAYER_BASELINE\s*=\s*\{([^}]*)\}', _MAPJS).group(1))}
+_ZSH = json.load(open(os.path.join(DATA, 'zone_shapes.json'), encoding='utf-8'))
+
+
+def _zl(p):
+    return (1024 + (p['x'] - 1024) * _ZL['scale'] + _ZL['dx'], 1024 + (p['y'] - 1024) * _ZL['scale'] + _ZL['dy'])
+
+
+ZONES = [{'id': q['id'], 'z': q['z'], 'P': [_zl(p) for p in _ZSH.get(q['id'], q['points'])]} for q in ZM['zones']]
 for q in ZONES:
     q['c'] = centroid(q['P'])
     q['name'] = ZN.get(q['id'])
@@ -345,7 +358,7 @@ def hold_aim(h):
         else:
             return None
     aq = zone_at(ex - math.cos(math.radians(yaw)) * 6, ey + math.sin(math.radians(yaw)) * 6)
-    return {'ax': ex, 'ay': ey, 'aimZone': aq, 'peek': peek}
+    return {'ax': ex, 'ay': ey, 'yaw': yaw, 'aimZone': aq, 'peek': peek}
 
 
 def greedy(XY, r):
@@ -398,8 +411,13 @@ def make_points(H, side, late=False):
             P = XY[part]
             x, y = (float(v) for v in np.median(P, axis=0))
             z = float(np.median([h['z'] for h in hs]))
-            ex = float(np.median([h['aim']['ax'] for h in hs])); ey = float(np.median([h['aim']['ay'] for h in hs]))
-            yaw = math.degrees(math.atan2(-(ey - y), ex - x)) % 360
+            # куда держит: средний взгляд (с поправкой peek) из типичного места; если оттуда
+            # он сразу упирается в стену — взгляд самой типичной стоянки (ближе всех к месту)
+            yaw = circ_mean(np.array([h['aim']['yaw'] for h in hs]))
+            ex, ey, dist = ray_end(x, y, yaw, z)
+            if dist < AIM_MIN:
+                m = min(hs, key=lambda h: math.hypot(h['x'] - x, h['y'] - y))
+                yaw, ex, ey = m['aim']['yaw'], m['aim']['ax'], m['aim']['ay']
             dev = np.array([((h['yaw'] - yaw + 180) % 360) - 180 for h in hs])
             spots = []
             for sp in greedy(P, SPOT_D / 2)[:3]:
