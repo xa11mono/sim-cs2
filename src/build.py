@@ -27,7 +27,10 @@ def assemble():
         return t[:-1] if t.endswith('\n') else t
     out, nd = re.subn(r'@@DATA:([\w.]+)@@', data, out)
     out, npng = re.subn(r'@@PNG:([\w.]+)@@', lambda m: base64.b64encode(open(os.path.join('data', m.group(1)), 'rb').read()).decode(), out)
-    assert nd == len([f for f in os.listdir('data') if f.endswith('.json')]) and npng == 1, (nd, npng)
+    # данные, которые уже лежат, но код их ещё не подключил (заплатка до нужного шага)
+    PENDING = {'setups.json'}   # шаг 6 (docs/PROMPTS.md): выбор Setup'а
+    used = set(re.findall(r'@@DATA:([\w.]+)@@', page.replace('<!--@@JS@@-->\n', js)))
+    assert used | PENDING == {f for f in os.listdir('data') if f.endswith('.json')} and nd >= len(used) and npng == 1, (sorted(used), nd, npng)
     out, nkf = re.subn(r'@@KFICONS@@', lambda m: kf_icons(), out)
     assert nkf == 1, nkf
     assert '@@DATA:' not in out and '@@PNG:' not in out
