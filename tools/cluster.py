@@ -1,11 +1,17 @@
-import pandas as pd, numpy as np, json
+"""Лайнапы про: data/pro/pro_nades.csv (tools/lineups.py) → data/pro/pro_lineups.json.
+Гранаты «себе» (purpose) не берутся. src/data/lineups_pro.json (его читает игра)
+отсюда не перезаписывается."""
+import pandas as pd, numpy as np, json, os
 from matplotlib.path import Path
-Z=json.load(open('/home/claude/sim/zones.json'))['zones']
+ROOT=os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+PRO=os.path.join(ROOT,'data','pro')
+Z=json.load(open(os.path.join(ROOT,'src','zones.json')))['zones']
 def zn(x,y):
     for z in Z:
         if Path(np.array(z['pts'])).contains_point((x,y)): return (z['name'] or z['id']).split(' / ')[0]
     return None
-G=pd.read_csv('pro_nades.csv'); C=json.load(open('nade_ctx.json'))
+G=pd.read_csv(os.path.join(PRO,'pro_nades.csv')); C=json.load(open(os.path.join(PRO,'nade_ctx.json')))
+G=G[G.purpose.fillna('')=='']
 def ctxN(side,trig,site):
     if site in ('A','B'): return C['planted'][site]
     return C['rounds']
@@ -34,7 +40,7 @@ for (side,typ,trig,site),g in G.groupby(['side','type','trig','site']):
         out.append(L2)
 out.sort(key=lambda l:(-l['prob']))
 for i,l in enumerate(out): l['id']=f"pro{i}"
-json.dump(out,open('pro_lineups.json','w'),ensure_ascii=False,indent=1)
+json.dump(out,open(os.path.join(PRO,'pro_lineups.json'),'w'),ensure_ascii=False,indent=1)
 df=pd.DataFrame(out)
 print(len(out),'лайнапов'); print(df.groupby(['team','trigger','site']).size().unstack(fill_value=0))
 print(df[['team','name','n','matches','prob','at','fromZone']].head(30).to_string())

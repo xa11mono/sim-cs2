@@ -8,17 +8,22 @@ python3 tools/positions_bake.py [--report]
 тот же вход (data/demos/*, src/data/*.json) даёт те же файлы.
 
 Что считает:
+  * раунды — tools/ancient_demos.py (один rid на всех: позиции и гранаты);
   * стоянка — игрок жив, раунд до планта, скорость < 10 ед. карты/с
     (≈ 25 ед. игры/с, то есть стоит или шевелится на месте) не меньше 2 с подряд.
     Из стоянки: точка (среднее), взгляд (средний yaw), время в раунде;
-  * точка (positions.json → points) — кластер стоянок одной стороны рядом
-    (до 22 ед. карты ≈ 55 ед. игры) и с похожим взглядом (до 50°), встреченный
-    хотя бы в MIN_ROUNDS разных раундах. area — зона-колл из zonemap.json;
-    angle — куда смотрит: луч от точки по среднему взгляду до первой стены,
-    зона-колл в конце луча и сама точка конца;
-  * standard / off — standard: точка не реже 35 % от самой частой в своей
-    area и хотя бы в 10 раундах; остальные — off (там тоже стоят, но редко —
-    неожиданная позиция);
+  * точка (positions.json → points) — группа стоянок одной стороны: от самой
+    «густой» стоянки берутся все в пределах CL_DIAM/2 и CL_YAW/2 (диаметр точки
+    ≤ CL_DIAM, разброс взгляда ≤ CL_YAW). Потом похожие соседние точки
+    склеиваются: крупная забирает мелкие, если центры ближе MERGE_D и взгляд
+    отличается меньше MERGE_YAW. Точка остаётся, если встретилась не реже чем в
+    MIN_SHARE раундов. area — зона-колл из zonemap.json; angle — куда смотрит:
+    луч от точки по среднему взгляду до первой стены, зона-колл в конце луча и
+    сама точка конца;
+  * standard / off — standard: точка не реже STD_SHARE от самой частой в своей
+    area и не реже STD_MIN_SHARE раундов; остальные — off (там тоже стоят, но
+    редко — неожиданная позиция). Все пороги — доли раундов, не числа: от
+    количества демок не зависят;
   * peek — стоит вплотную за укрытием (луч взгляда < 40): угол — ближайшее к
     взгляду открытое направление ±10–40° (держит из-за края укрытия);
   * crouch — в выгрузке демок нет флага присяда, поэтому false (не измерено);
@@ -28,11 +33,22 @@ python3 tools/positions_bake.py [--report]
   * кроссфайр-пары (BRAIN 4.2) — две CT-точки одной стороны карты, лучи
     взгляда которых сходятся на одном входе с разных сторон (между взглядами
     ≥ 30°), на дистанции размена (≤ TRADE_DIST). rounds — сколько раундов про
-    так стояли вдвоём (в 14 демках редко, поэтому это подтверждение, не фильтр).
+    так стояли вдвоём (подтверждение, не фильтр).
 CT Setup'ы (BRAIN 4.1, 5.3): раскладка «сколько CT на A / миде / B» по раундам,
 до 4 самых частых; слоты — самые занятые точки раскладки, второй на стороне —
 кроссфайр-напарник первого. T execute (BRAIN 5.1): раунды с плантом по сайту и
-маршруту; шаги — частые гранаты до планта по порядку, вход, плант, люркер.
+маршруту. Шаг сценария — ЦЕЛЬ гранаты (что она выключает у CT), а не точка:
+  * смок — закрыть взгляд: area, где чаще всего стоят CT, чей луч взгляда
+    проходит через облако (ближе SMOKE_R к месту разрыва), + зона облака;
+  * флешка — ослепить: area, где чаще всего стоят CT, которые видят место
+    разрыва (без высоких стен между, ближе FLASH_R);
+  * молотов / HE — выжечь: area, где чаще всего стоят CT ближе BURN_R;
+  * никого из CT не задевает — цель = зона падения.
+«Где стоят CT» — все стоянки CT до планта (не только точки positions.json).
+Цель — зона-колл, а не точка, поэтому разные лайнапы на одну и ту же задачу
+попадают в один шаг; ways — способы (откуда → куда, сколько бросков).
+Гранаты «себе» (data/pro/pro_nades.csv, purpose — см. tools/lineups.py) в шаги
+не идут. Люркер — по всем раундам с плантом варианта.
 """
 import glob, gzip, json, math, os, sys
 from collections import Counter, defaultdict
@@ -40,23 +56,23 @@ from collections import Counter, defaultdict
 import numpy as np
 import pandas as pd
 
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from heights_bake import point_in, centroid, seg_x  # noqa: E402
+from ancient_demos import ROOT, TICK, tr, demo_names, rounds_of, ticks_of, round_index  # noqa: E402
 
-DEMOS = os.path.join(ROOT, 'data', 'demos')
 DATA = os.path.join(ROOT, 'src', 'data')
 OUT_POS = os.path.join(DATA, 'positions.json')
 OUT_SET = os.path.join(DATA, 'setups.json')
 
-TICK = 64
 STILL_SPEED = 10        # ед. карты/с: ниже — «стоит»
 STILL_MIN = 2.0         # с подряд, чтобы считать стоянкой
 CL_DIAM = 40            # ед. карты (≈ 100 ед. игры): все стоянки точки ближе этого
 CL_YAW = 60             # градусов: и взгляд у всех в пределах этого
-MIN_ROUNDS = 6          # точка должна встретиться хотя бы в 6 разных раундах
+MERGE_D = 25            # ед. карты: соседние точки ближе этого и
+MERGE_YAW = 30          # с взглядом в пределах этого — одна точка
+MIN_SHARE = 0.022       # точка — если встретилась хотя бы в 2,2 % раундов (было 6 из 269)
 STD_SHARE = 0.35        # standard, если не реже 35 % самой частой точки в area
-STD_MIN_ROUNDS = 10     # и хотя бы в 10 раундах (≈ 4 %): реже — off, неожиданная позиция
+STD_MIN_SHARE = 0.025   # и хотя бы в 2,5 % раундов: реже — off
 RAY_MAX = 900           # ед. карты: дальше луч взгляда не ведём
 FALLBACK_MAX = 160      # ед. карты: запасная точка не дальше
 TRADE_DIST = 260        # ед. карты ≈ 650 ед. игры: размен успевает
@@ -71,17 +87,17 @@ SETUP_WIN = (5, 45)     # с: окно, в котором точка «заня�
 SETUP_MIN_SHARE = 0.07  # раскладка в Setup — если не реже 7 % раундов
 EXEC_LOOK = 12          # с до планта: где T (маршрут execute)
 EXEC_WIN = 25           # с до планта: гранаты execute
-EXEC_MIN_ROUNDS = 8     # вариант execute — хотя бы 8 раундов
-STEP_MIN_SHARE = 0.15   # граната — шаг сценария, если есть хотя бы в 15 % раундов варианта
-STEP_MAX = 6            # и не больше 6 гранат на сценарий (самые частые)
-LINEUP_R = 60           # ед. карты: граната совпадает с лайнапом про, если упала ближе
+EXEC_MIN_SHARE = 0.05   # вариант execute — хотя бы 5 % раундов с плантом (было 8 из 156)
+STEP_MIN_SHARE = 0.15   # цель — шаг сценария, если её закрывают хотя бы в 15 % раундов варианта
+STEP_MAX = 6            # и не больше 6 целей на сценарий (самые частые)
+SMOKE_R = 58            # ед. карты ≈ 144 ед. игры — радиус облака смока
+FLASH_R = 350           # ед. карты: флешка слепит CT-точку, если видна и ближе этого
+BURN_R = 60             # ед. карты: молотов/HE выжигает CT-точку ближе этого
+TGT_CELL, TGT_YAW = 16, 30  # клетка стоянок CT для целей: ед. карты и градусы взгляда
+WAY_FROM, WAY_TO = 70, 60  # ед. карты: бросок того же способа — откуда/куда ближе этого
+SNAP = 32               # тиков: снимок «где игрок в момент t» — ближайший тик не дальше этого
 ENTRY_R = 100           # ед. карты: T «зашёл на сайт» — ближе этого к центру мест планта
 LURK_MIN_SHARE = 0.1    # люркер (необязательный шаг) — если в 10 %+ раундов варианта кто-то на другой стороне
-
-
-def tr(X, Y):
-    """координаты игры → карта 0..2048 (как tools/pro.py)"""
-    return (X + 2953) / 5 * 2, (2164 - Y) / 5 * 2
 
 
 # ---------------- карта: зоны-коллы и стены ----------------
@@ -113,7 +129,18 @@ def region_of(x, y, name):
     return 'A' if x < 700 else 'B' if x > 1250 else 'mid'
 
 
+_ZC = {}
+
+
 def zone_at(x, y, z=None):
+    """то же, что _zone_at, с кэшем по клетке 2×2 ед. карты"""
+    k = (int(x // 2), int(y // 2), None if z is None else z > 100)
+    if k not in _ZC:
+        _ZC[k] = _zone_at(x, y, z)
+    return _ZC[k]
+
+
+def _zone_at(x, y, z=None):
     """зона-колл точки; верхний уровень (z=1 в zonemap) — если игрок выше 100 ед. игры"""
     hit = [q for q in ZONES if point_in(q['P'], x, y)]
     if hit:
@@ -215,84 +242,127 @@ def ang_diff(a, b):
 
 
 # ---------------- демки → раунды → стоянки ----------------
-def load_rounds():
-    """список раундов: {rid, demo, t0, tplant, tend, site, ticks(DataFrame живых до планта)}"""
-    rounds = []
-    for f in sorted(glob.glob(os.path.join(DEMOS, '*_ticks.csv.gz'))):
-        demo = os.path.basename(f)[:-len('_ticks.csv.gz')]
-        n = f[:-len('_ticks.csv.gz')]
-        t = pd.read_csv(f)
-        t = t[(t.is_alive == True) & (t.is_warmup_period != True)].copy()  # noqa: E712
-        fe = pd.read_csv(n + '_round_freeze_end.csv.gz')
-        re_ = pd.read_csv(n + '_round_end.csv.gz')
-        pl = pd.read_csv(n + '_bomb_planted.csv.gz')
-        x, y = tr(t.X.values, t.Y.values)
-        t['x'], t['y'] = x, y
-        t['side'] = np.where(t.team_num == 3, 'CT', 'T')
-        for _, r in fe.iterrows():
-            t0 = r.tick
-            e = re_[re_.tick > t0].tick
-            t1 = e.min() if len(e) else t.tick.max()
-            pp = pl[(pl.tick > t0) & (pl.tick < t1)]
-            tp = pp.tick.min() if len(pp) else None
-            site = None
-            if len(pp):
-                bx, by = tr(pp.user_X.iloc[0], pp.user_Y.iloc[0])
-                site = 'A' if bx < 1024 else 'B'
-            s = t[(t.tick >= t0) & (t.tick < (tp if tp else t1))]
-            if len(s) == 0:
-                continue
-            rounds.append({'plantXY': (bx, by) if tp else None, 'rid': '%s|%d' % (demo, int(r.total_rounds_played)), 'demo': demo, 't0': t0,
-                           'tplant': tp, 'tend': t1, 'site': site, 'ticks': s})
-    return rounds
+def snap(rows, tk, side):
+    """где игроки стороны в момент tk: [(sid, x, y, z)] — ближайший тик каждого не дальше SNAP"""
+    tick, sid, sd, x, y, z = rows
+    m = (sd == side) & (np.abs(tick - tk) <= SNAP)
+    out = {}
+    for i in np.nonzero(m)[0]:
+        k = int(sid[i])
+        if k not in out or abs(tick[i] - tk) < abs(tick[out[k]] - tk):
+            out[k] = i
+    return [(k, float(x[i]), float(y[i]), float(z[i])) for k, i in sorted(out.items())]
 
 
-def holds_of(rnd):
-    """стоянки раунда: [{rid, sid, side, x, y, z, yaw, s0, s1}] (s — секунды от freeze_end)"""
+def holds_vec(tick, sid, x, y, z, yaw, ri, rounds):
+    """стоянки по всем раундам демки сразу (строки отсортированы по раунду, игроку, тику):
+    [{rid, sid, side, x, y, z, yaw, s0, s1}] (s — секунды от freeze_end)"""
+    n = len(tick)
+    if n < 2:
+        return []
+    new = np.ones(n, bool)
+    new[1:] = (ri[1:] != ri[:-1]) | (sid[1:] != sid[:-1])
+    dt = np.zeros(n); dt[1:] = np.diff(tick) / TICK
+    sp = np.full(n, np.inf)
+    sp[1:] = np.hypot(np.diff(x), np.diff(y)) / np.where(dt[1:] > 0, dt[1:], 1)
+    still = ~new & (sp < STILL_SPEED) & (dt > 0) & (dt < 1)
+    prev = np.r_[False, still[:-1]]; nxt = np.r_[still[1:], False]
+    starts = np.nonzero(still & ~prev)[0]; ends = np.nonzero(still & ~nxt)[0]
+    a = starts - 1
+    ok = (tick[ends] - tick[a]) / TICK >= STILL_MIN
+    yr = np.radians(yaw.astype(float))
+    C = {k: np.r_[0, np.cumsum(v)] for k, v in (('x', x.astype(float)), ('y', y.astype(float)), ('z', z.astype(float)),
+                                                  ('s', np.sin(yr)), ('c', np.cos(yr)))}
     out = []
-    for sid, g in rnd['ticks'].sort_values('tick').groupby('steamid'):
-        tk = g.tick.values
-        x, y = g.x.values, g.y.values
-        dt = np.diff(tk) / TICK
-        sp = np.hypot(np.diff(x), np.diff(y)) / np.where(dt > 0, dt, 1)
-        still = np.concatenate([[False], (sp < STILL_SPEED) & (dt > 0) & (dt < 1)])
-        i = 0
-        while i < len(still):
-            if not still[i]:
-                i += 1
-                continue
-            j = i
-            while j + 1 < len(still) and still[j + 1]:
-                j += 1
-            a = i - 1  # точка, с которой началось стояние
-            if (tk[j] - tk[a]) / TICK >= STILL_MIN:
-                sl = slice(a, j + 1)
-                out.append({'rid': rnd['rid'], 'sid': int(sid), 'side': g.side.iloc[0],
-                            'x': float(x[sl].mean()), 'y': float(y[sl].mean()), 'z': float(g.Z.values[sl].mean()),
-                            'yaw': circ_mean(g.yaw.values[sl]),
-                            's0': (tk[a] - rnd['t0']) / TICK, 's1': (tk[j] - rnd['t0']) / TICK})
-            i = j + 1
+    for i, j in zip(a[ok], ends[ok]):
+        L = j - i + 1
+        mean = {k: (v[j + 1] - v[i]) / L for k, v in C.items()}
+        r = rounds[ri[i]]
+        out.append({'rid': r['rid'], 'sid': int(sid[i]), 'side': None, 'x': mean['x'], 'y': mean['y'], 'z': mean['z'],
+                    'yaw': math.degrees(math.atan2(mean['s'], mean['c'])) % 360,
+                    's0': (tick[i] - r['t0']) / TICK, 's1': (tick[j] - r['t0']) / TICK})
     return out
 
 
+def load_rounds():
+    """раунды всех демок и стоянки. Тики целиком не храним — только то, что нужно
+    дальше: снимки «где CT на 20-й с», «где T за EXEC_LOOK с до планта и в плант»,
+    путь T за 40 с до планта (вход на сайт)"""
+    R, H = [], []
+    for demo in demo_names():
+        rounds = rounds_of(demo)
+        if not rounds:
+            continue
+        t = ticks_of(demo)
+        ri = round_index(rounds, t.tick.values)
+        cut = np.array([r['tplant'] or r['t1'] for r in rounds])
+        keep = (ri >= 0) & (t.tick.values < cut[np.clip(ri, 0, None)])
+        t = t[keep].assign(ri=ri[keep]).sort_values(['ri', 'steamid', 'tick'], kind='stable')
+        tick, sid, sd = t.tick.values, t.steamid.values, t.side.values
+        x, y, z, yaw, rv = t.x.values, t.y.values, t.Z.values, t.yaw.values, t.ri.values
+        side_of = dict(zip(sid, sd))
+        hs = holds_vec(tick, sid, x, y, z, yaw, rv, rounds)
+        for h in hs:
+            h['side'] = side_of[h['sid']]
+        H += hs
+        bounds = np.searchsorted(rv, np.arange(len(rounds) + 1))
+        for k, r in enumerate(rounds):
+            sl = slice(bounds[k], bounds[k + 1])
+            if bounds[k + 1] == bounds[k]:
+                continue
+            rows = (tick[sl], sid[sl], sd[sl], x[sl], y[sl], z[sl])
+            r['ct20'] = snap(rows, r['t0'] + LAYOUT_SEC * TICK, 'CT')
+            if r['tplant']:
+                r['tlook'] = snap(rows, r['tplant'] - EXEC_LOOK * TICK, 'T')
+                r['tplant_at'] = snap(rows, r['tplant'] - 1, 'T')
+                m = (sd[sl] == 'T') & (tick[sl] >= r['tplant'] - 40 * TICK)
+                r['ttrack'] = (tick[sl][m], x[sl][m], y[sl][m])
+            R.append(r)
+    return R, H
+
+
 def cluster_holds(H):
-    """полная связь (complete linkage): в одной точке любые две стоянки ближе
-    CL_DIAM и смотрят в пределах CL_YAW — точка не «расползается» цепочкой"""
-    from scipy.cluster.hierarchy import linkage, fcluster
-    from scipy.spatial.distance import squareform
-    if len(H) < 2:
-        return [[h] for h in H]
-    X = np.array([[h['x'], h['y']] for h in H])
-    Y = np.array([h['yaw'] for h in H])
-    dpos = np.hypot(X[:, None, 0] - X[None, :, 0], X[:, None, 1] - X[None, :, 1]) / CL_DIAM
-    dyaw = np.abs((Y[:, None] - Y[None, :] + 180) % 360 - 180) / CL_YAW
-    D = np.maximum(dpos, dyaw)
-    np.fill_diagonal(D, 0)
-    lab = fcluster(linkage(squareform(D, checks=False), 'complete'), 1.0, 'distance')
-    groups = defaultdict(list)
-    for h, l in zip(H, lab):
-        groups[l].append(h)
-    return list(groups.values())
+    """точки без «расползания»: от самой густой стоянки — все в пределах CL_DIAM/2
+    по месту и CL_YAW/2 по взгляду (диаметр ≤ CL_DIAM, разброс взгляда ≤ CL_YAW),
+    потом следующая густая из оставшихся. Затем склейка похожих соседей: крупная
+    точка забирает более мелкие, центр которых ближе MERGE_D и взгляд — в MERGE_YAW"""
+    from scipy.spatial import cKDTree
+    if not H:
+        return []
+    k = 1 / (2 * math.sin(math.radians(CL_YAW / 4)))   # хорда CL_YAW/2 → 1
+    Y = np.radians([h['yaw'] for h in H])
+    F = np.c_[np.array([h['x'] for h in H]) / (CL_DIAM / 2), np.array([h['y'] for h in H]) / (CL_DIAM / 2),
+              np.cos(Y) * k, np.sin(Y) * k]
+    tree = cKDTree(F)
+    cnt = tree.query_ball_point(F, 1.0, return_length=True)
+    free = np.ones(len(H), bool)
+    groups = []
+    for i in np.argsort(-cnt, kind='stable'):
+        if not free[i]:
+            continue
+        nb = [j for j in tree.query_ball_point(F[i], 1.0) if free[j]]
+        free[nb] = False
+        groups.append(nb)
+    # склейка соседей (без цепочек: забирает только исходный центр крупной)
+    groups.sort(key=lambda g: -len(g))
+    cen = [(np.mean(F[g, 0]) * CL_DIAM / 2, np.mean(F[g, 1]) * CL_DIAM / 2,
+            circ_mean(np.array([H[j]['yaw'] for j in g]))) for g in groups]
+    gone = [False] * len(groups)
+    global MERGED
+    ctree = cKDTree(np.array([(c[0], c[1]) for c in cen]))
+    for a in range(len(groups)):
+        if gone[a]:
+            continue
+        for b in sorted(ctree.query_ball_point(cen[a][:2], MERGE_D)):
+            if b > a and not gone[b] and ang_diff(cen[a][2], cen[b][2]) < MERGE_YAW:
+                groups[a] = groups[a] + groups[b]
+                gone[b] = True
+                MERGED += 1
+    return [[H[j] for j in g] for g, x in zip(groups, gone) if not x]
+
+
+MERGED = 0
+NR = 0   # раундов всего — от него пороги-доли
 
 
 def make_points(H, side):
@@ -300,7 +370,7 @@ def make_points(H, side):
     pts = []
     for g in cluster_holds([h for h in H if h['side'] == side]):
         rids = {h['rid'] for h in g}
-        if len(rids) < MIN_ROUNDS:
+        if len(rids) < MIN_SHARE * NR:
             continue
         x = float(np.mean([h['x'] for h in g])); y = float(np.mean([h['y'] for h in g]))
         z = float(np.median([h['z'] for h in g]))
@@ -347,7 +417,7 @@ def finalize_points(P):
         for k, p in enumerate(ps):
             p['id'] = '%s_%s_%d' % (side.lower(), slug(area), k + 1)
             n = len(p['rounds'])
-            p['type'] = 'standard' if n >= STD_SHARE * top and n >= STD_MIN_ROUNDS else 'off'
+            p['type'] = 'standard' if n >= STD_SHARE * top and n >= STD_MIN_SHARE * NR else 'off'
     for p in P:
         best, bd = None, FALLBACK_MAX
         for q in P:
@@ -423,12 +493,8 @@ def ct_layout(r, holds):
         if h['side'] == 'CT' and LAYOUT_WIN[0] <= h['s0'] <= LAYOUT_WIN[1]:
             reg = region_of(h['x'], h['y'], zone_at(h['x'], h['y'], h['z'])['name'])
             w[h['sid']]['mid' if reg in ('back', 'Tside') else reg] += h['s1'] - h['s0']
-    t = r['ticks']
-    tk = r['t0'] + LAYOUT_SEC * TICK
-    s = t[(t.side == 'CT') & (t.tick >= tk - 8) & (t.tick <= tk + 8)].drop_duplicates('steamid')
     out = {}
-    for sid, x, y, z in zip(s.steamid, s.x, s.y, s.Z):
-        sid = int(sid)
+    for sid, x, y, z in r['ct20']:
         if w[sid]:
             out[sid] = w[sid].most_common(1)[0][0]
         else:
@@ -505,73 +571,173 @@ def make_ct_setups(R, H, P):
     return setups, total
 
 
-# ---------------- T execute: маршрут входа + гранаты ----------------
+# ---------------- T execute: маршрут входа + гранаты по цели ----------------
 def t_route(r):
-    """где T за EXEC_LOOK с до планта: сколько на стороне сайта, сколько на миде, кто на другой стороне"""
-    t = r['ticks']
-    tk = r['tplant'] - EXEC_LOOK * TICK
-    s = t[(t.side == 'T') & (t.tick >= tk - 8) & (t.tick <= tk + 8)].drop_duplicates('steamid')
-    regs = [(region_of(x, y, zone_at(x, y, z)['name']), zone_at(x, y, z)['name']) for x, y, z in zip(s.x, s.y, s.Z)]
+    """где T за EXEC_LOOK с до планта: сколько на стороне сайта, сколько на миде"""
+    regs = [region_of(x, y, zone_at(x, y, z)['name']) for _, x, y, z in r['tlook']]
+    return 'split' if 'mid' in regs and r['site'] in regs else \
+        'mid' if all(g in ('mid', 'Tside') for g in regs) else 'main'
+
+
+def lurk_zones(r):
+    """люркер: кто-то из T на другой стороне карты за EXEC_LOOK с до планта или в
+    момент планта — зоны, где он был (пусто — люркера не было)"""
     other = 'B' if r['site'] == 'A' else 'A'
-    route = 'split' if any(g == 'mid' for g, _ in regs) and any(g == r['site'] for g, _ in regs) else \
-        'mid' if all(g in ('mid', 'Tside') for g, _ in regs) else 'main'
-    lurk = [z for g, z in regs if g == other]
-    return route, lurk
+    out = []
+    for _, x, y, z in r['tlook'] + r['tplant_at']:
+        q = zone_at(x, y, z)
+        if region_of(x, y, q['name']) == other:
+            out.append(q['name'])
+    return out
 
 
 def entry_sec_to_plant(r):
     """за сколько секунд до планта первый T оказался в радиусе ENTRY_R от сайта"""
-    t = r['ticks']
+    tk, x, y = r['ttrack']
     cx, cy = SITE_C[r['site']]
-    s = t[(t.side == 'T')]
-    s = s[np.hypot(s.x - cx, s.y - cy) < ENTRY_R]
-    return (r['tplant'] - s.tick.min()) / TICK if len(s) else None
+    m = np.hypot(x - cx, y - cy) < ENTRY_R
+    return (r['tplant'] - tk[m].min()) / TICK if m.any() else None
 
 
-def make_t_executes(R):
-    nades = pd.read_csv(os.path.join(ROOT, 'data', 'pro', 'pro_nades.csv'))
-    nades = nades[(nades.side == 'T') & nades.secToPlant.between(0, EXEC_WIN)]
-    lineups = [l for l in json.load(open(os.path.join(DATA, 'lineups_pro.json'), encoding='utf-8')) if l['team'] == 'T']
-    groups = defaultdict(list)
-    for r in R:
-        if r['site']:
-            route, lurk = t_route(r)
-            groups[(r['site'], route)].append((r, lurk))
-    plants = sum(len(v) for v in groups.values())
+_WS = None
+
+
+def visible_from(a, B):
+    """для точек B — видно ли их из a (отрезок не режет высокую стену)"""
+    global _WS
+    if _WS is None:
+        _WS = np.array(WSEGS, float)
+    P, Q = _WS[:, 0][None], _WS[:, 1][None]
+    A = np.array(a, float)[None, None]
+    Bv = np.asarray(B, float)[:, None]
+
+    def o(p, q, r):
+        return (q[..., 0] - p[..., 0]) * (r[..., 1] - p[..., 1]) - (q[..., 1] - p[..., 1]) * (r[..., 0] - p[..., 0])
+    hit = ((o(A, Bv, P) > 0) != (o(A, Bv, Q) > 0)) & ((o(P, Q, A) > 0) != (o(P, Q, Bv) > 0))
+    return ~hit.any(axis=1)
+
+
+TYPE_RU = {'smoke': 'смок', 'flash': 'флешка', 'molly': 'молотов', 'he': 'HE'}
+
+
+class Targets:
+    """цель гранаты — что она выключает у CT (см. начало файла). Считается не по
+    точкам positions.json (их мало, редкие места туда не попадают), а по всем
+    стоянкам CT до планта, собранным в клетки TGT_CELL × TGT_CELL и по взгляду
+    (TGT_YAW°): вес клетки — сколько там стояли"""
+
+    def __init__(self, H):
+        cells = defaultdict(list)
+        for h in H:
+            if h['side'] == 'CT':
+                cells[(int(h['x'] // TGT_CELL), int(h['y'] // TGT_CELL), int(h['yaw'] // TGT_YAW))].append(h)
+        self.c = []
+        for g in cells.values():
+            x = float(np.mean([h['x'] for h in g])); y = float(np.mean([h['y'] for h in g]))
+            z = float(np.median([h['z'] for h in g])); yaw = circ_mean(np.array([h['yaw'] for h in g]))
+            ex, ey, _ = ray_end(x, y, yaw, z)
+            aq = zone_at(ex - math.cos(math.radians(yaw)) * 6, ey + math.sin(math.radians(yaw)) * 6)
+            self.c.append({'x': x, 'y': y, 'aim': (ex, ey), 'n': len(g), 'area': zone_at(x, y, z)['name'], 'aimZone': aq['name']})
+        self.xy = np.array([(c['x'], c['y']) for c in self.c])
+        self.aim = np.array([c['aim'] for c in self.c])
+        self.w = np.array([c['n'] for c in self.c], float)
+
+    def of(self, typ, lx, ly):
+        L = np.array([lx, ly])
+        if typ == 'smoke':
+            v = self.aim - self.xy
+            t = np.clip(((L - self.xy) * v).sum(1) / np.maximum((v * v).sum(1), 1e-9), 0, 1)
+            hit = np.hypot(*(self.xy + v * t[:, None] - L).T) < SMOKE_R
+            zn = zone_at(lx, ly)['name']
+            if hit.any():
+                k = Counter()
+                for i in np.nonzero(hit)[0]:
+                    k[self.c[i]['area']] += self.w[i]
+                area = max(k.items(), key=lambda kv: (kv[1], kv[0]))[0]
+                return 'smoke:%s>%s' % (area, zn), ('закрыть взгляд из %s (смок в %s)' % (area, zn) if area != zn
+                                                    else 'закрыть CT в %s' % zn)
+            return 'smoke:zone:%s' % zn, 'смок в %s' % zn
+        if typ == 'flash':
+            near = np.nonzero(np.hypot(*(self.xy - L).T) < FLASH_R)[0]
+            hit = near[visible_from(L, self.xy[near])] if len(near) else near
+        else:
+            hit = np.nonzero(np.hypot(*(self.xy - L).T) < BURN_R)[0]
+        k = Counter()
+        for i in hit:
+            k[self.c[i]['area']] += self.w[i]
+        area = max(k.items(), key=lambda kv: (kv[1], kv[0]))[0] if k else zone_at(lx, ly)['name']
+        verb = {'flash': 'ослепить', 'molly': 'выжечь', 'he': 'HE по'}[typ]
+        return '%s:%s' % (typ, area), '%s %s' % (verb, area)
+
+
+def ways_of(ns):
+    """способы одной цели: броски, у которых и «откуда», и «куда» рядом (как tools/cluster.py)"""
+    F = np.array([(n.fx, n.fy, n.lx, n.ly) for n in ns])
+    left = np.ones(len(F), bool)
     out = []
-    matched = 0
-    for (site, route), rr in sorted(groups.items(), key=lambda kv: -len(kv[1])):
-        if len(out) >= 4 or len(rr) < EXEC_MIN_ROUNDS:
+    while left.any():
+        idx = np.nonzero(left)[0]
+        best = None
+        for i in idx:
+            nb = idx[(np.hypot(F[idx, 0] - F[i, 0], F[idx, 1] - F[i, 1]) < WAY_FROM) &
+                     (np.hypot(F[idx, 2] - F[i, 2], F[idx, 3] - F[i, 3]) < WAY_TO)]
+            if best is None or len(nb) > len(best):
+                best = nb
+        left[best] = False
+        m = np.median(F[best], axis=0)
+        out.append({'from': [round(float(m[0]), 1), round(float(m[1]), 1)],
+                    'to': [round(float(m[2]), 1), round(float(m[3]), 1)], 'n': int(len(best))})
+        if len(out) >= 3:
             break
-        rids = {r['rid'] for r, _ in rr}
-        nn = nades[nades.rid.isin(rids)]
-        matched += nn.rid.nunique()
-        # граната → задача: тип + зона падения (разные игроки кидают одну и ту же задачу
-        # чуть разными лайнапами); id лайнапа про — самый частый внутри задачи
+    return out
+
+
+def make_t_executes(R, H):
+    """сценарии T. Возвращает (сценарии, раундов с плантом, сводка для отчёта)"""
+    nades = pd.read_csv(os.path.join(ROOT, 'data', 'pro', 'pro_nades.csv'))
+    nades['purpose'] = nades.purpose.fillna('')
+    plant_r = {r['rid']: r for r in R if r['site']}
+    nades = nades[(nades.side == 'T') & nades.secToPlant.between(0, EXEC_WIN) & nades.rid.isin(plant_r)].copy()
+    TG = Targets(H)
+    tg = [TG.of(t, x, y) for t, x, y in zip(nades.type, nades.lx, nades.ly)]
+    nades['tkey'] = [k for k, _ in tg]
+    nades['tname'] = [n for _, n in tg]
+    by_rid = defaultdict(list)
+    for n in nades.itertuples():
+        by_rid[n.rid].append(n)
+    groups = defaultdict(list)
+    for r in plant_r.values():
+        groups[(r['site'], t_route(r))].append(r)
+    plants = len(plant_r)
+    out = []
+    in_step = set()   # (rid, tkey) гранат, ставших шагом
+    for (site, route), rr in sorted(groups.items(), key=lambda kv: (-len(kv[1]), kv[0])):
+        if len(out) >= 4 or len(rr) < EXEC_MIN_SHARE * plants:
+            break
+        rids = {r['rid'] for r in rr}
         g = defaultdict(list)
-        for _, n in nn.iterrows():
-            g[(n.type, zone_at(n.lx, n.ly)['name'])].append(n)
+        for rid in rids:
+            for n in by_rid[rid]:
+                if not n.purpose:
+                    g[n.tkey].append(n)
         steps = []
-        for (typ, zname), ns in g.items():
+        for key, ns in g.items():
             share = len({n.rid for n in ns}) / len(rids)
             if share < STEP_MIN_SHARE:
                 continue
-            lx = float(np.median([n.lx for n in ns])); ly = float(np.median([n.ly for n in ns]))
-            lu = Counter()
-            for n in ns:
-                best = min((l for l in lineups if l['type'] == typ),
-                           key=lambda l: math.hypot(l['to']['x'] - n.lx, l['to']['y'] - n.ly), default=None)
-                if best and math.hypot(best['to']['x'] - n.lx, best['to']['y'] - n.ly) < LINEUP_R:
-                    lu[best['id']] += 1
-            steps.append({'type': typ, 'lineup': lu.most_common(1)[0][0] if lu else None,
-                          'target': zname, 'x': round(lx, 1), 'y': round(ly, 1),
-                          'secToPlant': float(np.median([n.secToPlant for n in ns])), 'share': round(share, 2)})
-        steps = sorted(steps, key=lambda s: -s['share'])[:STEP_MAX]
-        steps.sort(key=lambda s: -s['secToPlant'])
-        entry = [e for e in (entry_sec_to_plant(r) for r, _ in rr) if e is not None]
+            typ = Counter(n.type for n in ns).most_common(1)[0][0]
+            steps.append({'type': typ, 'key': key, 'target': ns[0].tname,
+                          'x': round(float(np.median([n.lx for n in ns])), 1), 'y': round(float(np.median([n.ly for n in ns])), 1),
+                          'secToPlant': float(np.median([n.secToPlant for n in ns])), 'share': round(share, 2),
+                          'ways': ways_of(ns), 'n': len(ns)})
+        steps = sorted(steps, key=lambda s: (-s['share'], s['key']))[:STEP_MAX]
+        steps.sort(key=lambda s: (-s['secToPlant'], s['key']))
+        for s_ in steps:
+            in_step |= {(rid, s_['key']) for rid in rids}
+        entry = [e for e in (entry_sec_to_plant(r) for r in rr) if e is not None]
         entry_s = float(np.median(entry)) if entry else 5.0
         start = max([s['secToPlant'] for s in steps] + [entry_s])
-        # шаги сценария: гранаты по порядку, зависимости — от предыдущей гранаты нужного вида
+        # шаги сценария: цели по порядку, зависимости — от предыдущего смока
         res, num = [], Counter()
         last = {}
         for s in steps:
@@ -582,9 +748,9 @@ def make_t_executes(R):
             # смок и всё, что раньше первого смока, — по старту execute
             dep = {'afterSmokeLands': last['smoke']} if s['type'] != 'smoke' and 'smoke' in last \
                 else {'trigger': 'execute_start'}
-            res.append({'actor': actor, 'action': act, 'target': s['target'], 'lineup': s['lineup'],
-                        'at': [s['x'], s['y']], 'sec': round(start - s['secToPlant'], 1), 'share': s['share'],
-                        'dependsOn': dep})
+            res.append({'actor': actor, 'action': act, 'target': s['target'], 'targetKey': s['key'],
+                        'at': [s['x'], s['y']], 'ways': s['ways'], 'sec': round(start - s['secToPlant'], 1),
+                        'share': s['share'], 'dependsOn': dep})
             last[s['type']] = actor
         flash_sec = max([x['sec'] for x in res if x['action'] == 'throw_flash'], default=None)
         entry_dep = {'afterFlashPop': last['flash'],
@@ -594,17 +760,28 @@ def make_t_executes(R):
                     'dependsOn': entry_dep})
         res.append({'actor': 'bomb', 'action': 'plant', 'target': site, 'sec': round(start, 1),
                     'dependsOn': {'afterEntryCommitted': 'entry'}})
-        lurks = [l for _, l in rr if l]
+        lurks = [lurk_zones(r) for r in rr]
+        lurks = [l for l in lurks if l]
         if len(lurks) >= LURK_MIN_SHARE * len(rr):
             zc = Counter(z for l in lurks for z in l).most_common(1)[0][0]
             res.append({'actor': 'lurker', 'action': 'hold_flank', 'target': zc, 'optional': True,
                         'share': round(len(lurks) / len(rr), 2), 'dependsOn': {}})
-        plant_sec = float(np.median([(r['tplant'] - r['t0']) / TICK for r, _ in rr]))
+        plant_sec = float(np.median([(r['tplant'] - r['t0']) / TICK for r in rr]))
         out.append({'id': 't_exec_%s_%s_ancient' % (site, route), 'side': 'T', 'site': site, 'route': route,
                     'rounds': len(rr), 'share': round(len(rr) / plants, 2),
                     'timing': {'startSec': round(plant_sec - start, 1), 'plantSec': round(plant_sec, 1)},
                     'steps': res})
-    return out, plants, matched
+    scen = sum((rid, k) in in_step and not p for rid, k, p in zip(nades.rid, nades.tkey, nades.purpose))
+    srids = {r['rid'] for (site, route), rr in groups.items()
+             if any(e['site'] == site and e['route'] == route for e in out) for r in rr}
+    ns = nades[nades.rid.isin(srids)]
+    selfn = int((nades.purpose != '').sum())
+    stat = {'plants': plants, 'withNades': int(nades.rid.nunique()), 'nades': len(nades),
+            'scenario': int(scen), 'self': selfn, 'outside': len(nades) - int(scen) - selfn,
+            'selfKinds': nades[nades.purpose != ''].purpose.value_counts().to_dict(),
+            'lurkRounds': sum(1 for r in plant_r.values() if lurk_zones(r)),
+            'inScenRounds': {'nades': len(ns), 'scenario': int(scen), 'self': int((ns.purpose != '').sum())}}
+    return out, plants, stat
 
 
 # ---------------- запись ----------------
@@ -621,12 +798,12 @@ PAIRS = []
 
 
 def main():
-    global PAIRS
-    R = load_rounds()
+    global PAIRS, NR
+    R, H = load_rounds()
+    NR = len(R)
     for site in 'AB':
         xs = [(r['plantXY']) for r in R if r['site'] == site]
         SITE_C[site] = (float(np.mean([x for x, _ in xs])), float(np.mean([y for _, y in xs])))
-    H = [h for r in R for h in holds_of(r)]
     P = finalize_points(make_points(H, 'CT') + make_points(H, 'T'))
     PAIRS = make_pairs([p for p in P if p['side'] == 'CT'])
     pair_of = defaultdict(list)
@@ -643,25 +820,24 @@ def main():
                        'rounds': len(p['rounds']), 'share': round(len(p['rounds']) / nr, 3),
                        'sec': round(p['sec']), 'hold': round(p['dur'], 1)})
     ct_setups, nlay = make_ct_setups(R, H, P)
-    t_exec, nplant, matched = make_t_executes(R)
-    # самопроверка: все ссылки ведут на существующие точки и лайнапы
+    t_exec, nplant, stat = make_t_executes(R, H)
+    # самопроверка: все ссылки ведут на существующие точки
     ids = {p['id'] for p in points}
-    lids = {l['id'] for l in json.load(open(os.path.join(DATA, 'lineups_pro.json'), encoding='utf-8'))}
     refs = [p['fallback'] for p in points if p['fallback']] + [q for p in points for q in p['pairs']] + \
         [x for pr in PAIRS for x in (pr['a'], pr['b'])] + \
         [x for st in ct_setups for sl in st['slots'] for x in [sl['point']] + [a['id'] for a in sl['alternatives']]]
-    bad = [x for x in refs if x not in ids] + \
-        [st['lineup'] for e in t_exec for st in e['steps'] if st.get('lineup') and st['lineup'] not in lids]
+    bad = [x for x in refs if x not in ids]
     assert not bad, 'битые ссылки: %s' % bad[:10]
     demos = sorted({r['demo'] for r in R})
     dump(OUT_POS, {'_about': [
         'Позиции Ancient из демок про. Делает tools/positions_bake.py (docs/BRAIN.md, раздел 4).',
-        'Точка — место, где про стояли 2+ с (скорость < 10 ед. карты/с) хотя бы в %d разных раундах; '
-        'координаты — карта 0..2048, z и yaw — как в игре.' % MIN_ROUNDS,
+        'Точка — место, где про стояли 2+ с (скорость < 10 ед. карты/с) хотя бы в %.1f %% раундов; '
+        'соседние похожие (ближе %d ед. карты, взгляд в %d°) склеены; '
+        'координаты — карта 0..2048, z и yaw — как в игре.' % (MIN_SHARE * 100, MERGE_D, MERGE_YAW),
         'area — зона-колл (zonemap.json), region — сторона карты по x (A < 700 < мид < 1250 < B), back — задние проходы CT.',
         'angle — куда смотрит: конец луча взгляда до высокой стены/края навмеша, его зона и длина.',
-        'type: standard — частые точки своей area (не реже %d %% самой частой и хотя бы в %d раундах), off — редкие '
-        '(неожиданная позиция).' % (round(STD_SHARE * 100), STD_MIN_ROUNDS),
+        'type: standard — частые точки своей area (не реже %d %% самой частой и хотя бы в %.1f %% раундов), off — редкие '
+        '(неожиданная позиция).' % (round(STD_SHARE * 100), STD_MIN_SHARE * 100),
         'peek — стоит вплотную за укрытием, угол — ближайшее к взгляду открытое направление (±10–40°, держит из-за края).',
         'crouch — не измерено (в выгрузке демок нет присяда), везде false.',
         'fallback — запасная точка на тот же вход рядом (BRAIN 4.4); pairs — кроссфайр-напарники (список pairs ниже).',
@@ -677,21 +853,29 @@ def main():
         'alternatives — другие точки той же стороны (для выбора по роли), pairWith — роль напарника.'
         % (LAYOUT_WIN[0], LAYOUT_WIN[1], nlay, round(SETUP_MIN_SHARE * 100), SETUP_WIN[0], SETUP_WIN[1]),
         'T: раунды с плантом (%d), вариант = сайт + маршрут за %d с до планта (main — все со своей стороны, '
-        'split — часть через мид, mid — все через мид). Шаги — гранаты T за %d с до планта, которые есть хотя бы в %d %% '
-        'раундов варианта; lineup — id из lineups_pro.json; sec — секунда от начала execute; '
+        'split — часть через мид, mid — все через мид), не реже %d %% плантов, до 4 самых частых. '
+        'Шаг — ЦЕЛЬ гранаты T за %d с до планта (что она выключает у CT: смок — закрыть взгляд CT-точки, '
+        'флешка — ослепить CT-точку, молотов/HE — выжечь CT-точку; иначе — зона падения), которую закрывают '
+        'хотя бы в %d %% раундов варианта; targetKey — id цели; at — типичное место разрыва; '
+        'ways — способы (откуда → куда, сколько бросков); sec — секунда от начала execute; '
         'entry.maxDelayTicks — сколько вход ждёт после последней флешки (медиана про); '
-        'lurker — необязательный шаг: share — в какой доле раундов варианта кто-то из T был на другой стороне.'
-        % (nplant, EXEC_LOOK, EXEC_WIN, round(STEP_MIN_SHARE * 100))],
-        'map': 'ancient'},
+        'lurker — необязательный шаг: share — в какой доле раундов варианта кто-то из T был на другой стороне '
+        'за %d с до планта или в плант.' % (nplant, EXEC_LOOK, round(EXEC_MIN_SHARE * 100), EXEC_WIN,
+                                           round(STEP_MIN_SHARE * 100), EXEC_LOOK),
+        'Гранаты «себе» (флешка под свой выход, смок на себя под плант/дефуз, молотов в угол перед своим '
+        'проходом — purpose в data/pro/pro_nades.csv, tools/lineups.py) в шаги не идут: это решения игрока, '
+        'не сценарий. selfNades — сколько их среди гранат T за %d с до планта.' % EXEC_WIN],
+        'map': 'ancient', 'selfNades': stat['selfKinds']},
         {'ct': ct_setups, 't': t_exec})
     if '--report' in sys.argv:
         print(len(R), 'раундов,', len(H), 'стоянок,', len(points), 'точек (CT %d, T %d),' % (
             sum(p['side'] == 'CT' for p in points), sum(p['side'] == 'T' for p in points)), len(PAIRS), 'пар')
         for s in ct_setups:
             print(s['id'], s['split'], s['rounds'], [(x['role'], x['point'], x['pairWith']) for x in s['slots']])
-        print('T: раундов с плантом', nplant, ', с гранатами из pro_nades', matched)
+        print('склеено соседних точек:', MERGED)
+        print('T:', stat)
         for s in t_exec:
-            print(s['id'], s['rounds'], s['timing'], [(x['actor'], x.get('target'), x.get('sec')) for x in s['steps']])
+            print(s['id'], s['rounds'], s['timing'], [(x['actor'], x.get('target'), x.get('sec'), x.get('share')) for x in s['steps']])
 
 
 if __name__ == '__main__':

@@ -147,6 +147,9 @@ def main():
                 typ = stp['action'][6:]
                 x, y = stp['at']
                 c = NADE.get(typ, (255, 255, 255))
+                for w in stp.get('ways', [])[:2]:   # способы: откуда → куда (тонко)
+                    d.line([tuple(w['from']), tuple(w['to'])], fill=c, width=2)
+                    d.ellipse([w['from'][0] - 5, w['from'][1] - 5, w['from'][0] + 5, w['from'][1] + 5], fill=c)
                 d.ellipse([x - 26, y - 26, x + 26, y + 26], outline=c, width=4)
                 text(d, x - 7, y - 12, str(k), F_M, c)
                 text(d, x + 28, y - 10, '%s %.1fс' % (typ, stp['sec']), F_S, c)
@@ -166,6 +169,7 @@ def main():
                 lines.append('плант: %.1f с от начала execute' % stp['sec'])
             elif stp['actor'] == 'lurker':
                 lines.append('люркер (необязательно, в %d %% раундов): %s' % (round(stp['share'] * 100), stp['target']))
+        lines.append('тонкие линии — 1–2 самых частых способа кинуть (точка — откуда); гранаты «себе» не входят')
         tm = e['timing']
         lines.append('начало execute ≈ %.0f-я с раунда, плант ≈ %.0f-я с; %d раундов (%d %% плантов)'
                      % (tm['startSec'], tm['plantSec'], e['rounds'], round(e['share'] * 100)))
