@@ -71,6 +71,7 @@ T-сценариев, сколько раундов с плантом получ
 ## Шаг 2 — Knowledge и гипотезы (Opus 5.5)
 
 ```
+Репозиторий: https://github.com/xa11mono/sim-cs2
 Шаг 2 из docs/PROMPTS.md. Правила — CLAUDE.md, дизайн — docs/BRAIN.md
 раздел 2 (и раздел 1 — источники). Новый файл 09_knowledge.js.
 
@@ -90,6 +91,7 @@ moved_unknown), веса в сумме 1, меняются только от с�
 ## Шаг 3 — командная картина и войс (Opus 5.5)
 
 ```
+Репозиторий: https://github.com/xa11mono/sim-cs2
 Шаг 3 из docs/PROMPTS.md. Правила — CLAUDE.md, дизайн — docs/BRAIN.md
 раздел 3. Новый файл 12_team.js, опирается на 09_knowledge.js (шаг 2).
 
@@ -105,6 +107,7 @@ teamKnowledge.planState — активный Setup команды (меняет 
 ## Шаг 4 — роли (Sonnet 5.5)
 
 ```
+Репозиторий: https://github.com/xa11mono/sim-cs2
 Шаг 4 из docs/PROMPTS.md. Правила — CLAUDE.md, дизайн — docs/BRAIN.md
 раздел 6 (там готовая таблица RoleProfile).
 
@@ -123,6 +126,7 @@ bash tools/measure/fingerprint.sh до и после — игра бит в би
 ## Шаг 5 — позиционирование (Opus 5.5)
 
 ```
+Репозиторий: https://github.com/xa11mono/sim-cs2
 Шаг 5 из docs/PROMPTS.md. Правила — CLAUDE.md, дизайн — docs/BRAIN.md
 раздел 4. Новый файл 11_position.js. Данные — src/data/positions.json и
 setups.json (шаг 1б), роли — шаг 4.
@@ -141,6 +145,7 @@ setups.json (шаг 1б), роли — шаг 4.
 ## Шаг 6 — тактические режимы T/CT (Opus 5.5)
 
 ```
+Репозиторий: https://github.com/xa11mono/sim-cs2
 Шаг 6 из docs/PROMPTS.md. Правила — CLAUDE.md, дизайн — docs/BRAIN.md
 раздел 5 (5.1, 5.3, 5.4). Новые файлы 07_t_brain.js, 12_ct_brain.js.
 
@@ -156,6 +161,7 @@ setups.json (шаг 1б), роли — шаг 4.
 ## Шаг 7 — исполнитель сценариев (Sonnet 5.5)
 
 ```
+Репозиторий: https://github.com/xa11mono/sim-cs2
 Шаг 7 из docs/PROMPTS.md. Правила — CLAUDE.md, дизайн — docs/BRAIN.md
 раздел 5.1. Новый файл 12_script_runner.js.
 
@@ -175,6 +181,7 @@ setups.json:
 ## Шаг 8 — ретейк (Sonnet 5.5)
 
 ```
+Репозиторий: https://github.com/xa11mono/sim-cs2
 Шаг 8 из docs/PROMPTS.md. Правила — CLAUDE.md, дизайн — docs/BRAIN.md
 раздел 5.2. Новый файл 08_retake.js, исполняет через 12_script_runner.js.
 
@@ -191,6 +198,7 @@ abortIf (живых меньше 2 или по таймеру бомбы не у
 ## Шаг 9 — бой: подготовленность прицела (Opus 5.5)
 
 ```
+Репозиторий: https://github.com/xa11mono/sim-cs2
 Шаг 9 из docs/PROMPTS.md. Правила — CLAUDE.md, дизайн — docs/BRAIN.md
 раздел 7. Расширение 15_combat.js.
 
@@ -207,6 +215,7 @@ engagementPrep: прицел уже на точке появления враг�
 ## Шаг 10 — утилита: кто и когда кидает (Sonnet 5.5)
 
 ```
+Репозиторий: https://github.com/xa11mono/sim-cs2
 Шаг 10 из docs/PROMPTS.md. Правила — CLAUDE.md, дизайн — docs/BRAIN.md
 (таблица чатов, п.10). Расширение 13_nades.js — только кто и когда кидает,
 полёт и разрыв не трогать.
@@ -224,6 +233,7 @@ engagementPrep: прицел уже на точке появления враг�
 ## Шаг 11 — итоговый замер (Sonnet 5.5)
 
 ```
+Репозиторий: https://github.com/xa11mono/sim-cs2
 Шаг 11 из docs/PROMPTS.md. Правила — CLAUDE.md.
 
 Первый полноценный прогон за весь Этап 2:
