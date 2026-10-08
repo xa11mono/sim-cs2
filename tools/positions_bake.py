@@ -67,7 +67,8 @@ OUT_SET = os.path.join(DATA, 'setups.json')
 
 STILL_SPEED = 10        # ед. карты/с: ниже — «стоит»
 STILL_MIN = 2.0         # с подряд, чтобы считать стоянкой
-SPLIT_D = 80            # ед. карты (≈ 200 ед. игры): одна позиция — стоянки ближе этого к её центру·2
+SPLIT_D = 80            # ед. карты: стоянки позиции — ближе SPLIT_D/2 (≈ 100 ед. игры) к её центру
+POS_YAW = 50            # градусов: взгляд стоянок одной позиции — в пределах ±25° от её взгляда
 SPOT_D = 40             # ед. карты (≈ 100 ед. игры): вариант места внутри позиции
 SPREAD_Q = 80           # %: разброс позиции — круг, куда попадают 80 % стоянок
 MIN_SHARE = 0.01        # позиция — если её держали хотя бы в 1 % раундов
@@ -90,10 +91,14 @@ LAYOUT_WIN = (8, 50)    # с: окно, где смотрим, на какой �
 SETUP_WIN = (5, 45)     # с: окно, в котором точка «занята» в сетапе
 SETUP_MIN_SHARE = 0.07  # раскладка в Setup — если не реже 7 % раундов
 EXEC_LOOK = 12          # с до планта: где T (маршрут execute)
-EXEC_WIN = 25           # с до планта: гранаты execute
+EXEC_WIN = 45           # с до планта: гранаты выхода (с первой волной и фейком)
+EXEC_R = 375            # ед. карты: граната «у сайта» — упала ближе этого к центру мест планта
+EXEC_R_ANY = 150        # и на стороне сайта / в задних проходах CT, если дальше этого (иначе — смок мида)
+WAVE_GAP = 6            # с: пауза между шагами не меньше этой — дальше вторая волна
+FAKE_MIN_SHARE = 0.10   # цель на другом сайте — шаг фейка, если её закрывают хотя бы в 10 % раундов варианта
 EXEC_MIN_SHARE = 0.05   # вариант execute — хотя бы 5 % раундов с плантом (было 8 из 156)
-STEP_MIN_SHARE = 0.15   # цель — шаг сценария, если её закрывают хотя бы в 15 % раундов варианта
-STEP_MAX = 6            # и не больше 6 целей на сценарий (самые частые)
+STEP_MIN_SHARE = 0.12   # цель — шаг сценария, если её закрывают хотя бы в 12 % раундов варианта
+STEP_MAX = 8            # и не больше 8 целей на сценарий (самые частые)
 SMOKE_R = 58            # ед. карты ≈ 144 ед. игры — радиус облака смока
 FLASH_R = 350           # ед. карты: флешка слепит CT-точку, если видна и ближе этого
 BURN_R = 60             # ед. карты: молотов/HE выжигает CT-точку ближе этого
@@ -121,6 +126,7 @@ def _zl(p):
 
 
 ZONES = [{'id': q['id'], 'z': q['z'], 'P': [_zl(p) for p in _ZSH.get(q['id'], q['points'])]} for q in ZM['zones']]
+ZONE_BY_ID = {q['id']: q for q in ZONES}
 for q in ZONES:
     q['c'] = centroid(q['P'])
     q['name'] = ZN.get(q['id'])
@@ -130,6 +136,7 @@ WALLS = [[tuple(p) for p in W] for W in json.load(open(os.path.join(DATA, 'walls
 _COV = json.load(open(os.path.join(DATA, 'cover.json'), encoding='utf-8'))['items']
 LOW_WALLS = {i['wall'] for i in _COV if i['shape'] == 'wall' and i['cat'] in ('low', 'chest')}
 WSEGS = [(W[i], W[(i + 1) % len(W)]) for k, W in enumerate(WALLS) if k not in LOW_WALLS for i in range(len(W))]
+WSEG_OF = [k for k, W in enumerate(WALLS) if k not in LOW_WALLS for i in range(len(W))]   # стена каждого отрезка
 
 # сторона карты. Названия зон в zonemap свои (например, «Rat» и «T Lower» —
 # у B), поэтому сторона — по координате точки, а не по названию: левее x=700 —
@@ -214,8 +221,8 @@ def floor_at(x, y):
 
 def ray_end(x, y, yaw_deg, z=None):
     """луч взгляда (yaw игры: 0 = +X, против часовой; на карте y вниз) до того, что
-    закрывает взгляд в игре: высокая стена, клетка без пола (вне навмеша) или пол
-    выше глаз (z игрока + 64)"""
+    закрывает взгляд в игре: высокая стена (walls.json) или пол выше глаз (z игрока + 64).
+    Клетка без навмеша взгляд не закрывает — как в игре (10_vision.js)"""
     a = math.radians(yaw_deg)
     dx, dy = math.cos(a), -math.sin(a)
     best = RAY_MAX
@@ -228,15 +235,19 @@ def ray_end(x, y, yaw_deg, z=None):
         if not (0 <= i < F.shape[1] and 0 <= j < F.shape[0]):
             best = t; break
         f = F[j, i]
-        if f > eye:                # нет пола (inf) или даже нижний пол выше глаз
+        # пол выше глаз — закрывает; клетка без навмеша — нет (как в игре, 10_vision.js: там
+        # пусто — пол -∞, взгляд идёт над обрывом, например с 90 вниз на Ramp; стены — walls.json)
+        if np.isfinite(f) and f > eye:
             miss += 1
             if miss >= 3:          # щели навмеша в 1–2 клетки не считаем стеной
                 best = t - 4; break
         else:
             miss = 0
     x1, y1 = x + dx * best, y + dy * best
-    for p, q in WSEGS:
-        if not seg_x((x, y), (x1, y1), p, q):
+    # игрок «внутри» стены — стена нарисована чуть шире, чем в игре (у 90, у краёв): её не считаем
+    inside = {k for k, W in enumerate(WALLS) if k not in LOW_WALLS and point_in(W, x, y)}
+    for (p, q), k in zip(WSEGS, WSEG_OF):
+        if k in inside or not seg_x((x, y), (x1, y1), p, q):
             continue
         # точка пересечения
         ex, ey = q[0] - p[0], q[1] - p[1]
@@ -350,6 +361,14 @@ def hold_aim(h):
     ex, ey, dist = ray_end(h['x'], h['y'], yaw, h['z'])
     peek = False
     if dist < AIM_MIN:
+        # стоит вплотную к стене и смотрит вдоль неё: старт луча на пару единиц от стены
+        a = math.radians(yaw)
+        for off in (3, -3, 6, -6):
+            ox, oy = h['x'] + math.sin(a) * off, h['y'] + math.cos(a) * off
+            ex2, ey2, d2 = ray_end(ox, oy, yaw, h['z'])
+            if d2 >= PEEK_MIN:
+                return {'ax': ex2, 'ay': ey2, 'yaw': yaw, 'aimZone': zone_at(ex2 - math.cos(a) * 6, ey2 + math.sin(a) * 6),
+                        'peek': False}
         for dy in (10, -10, 20, -20, 30, -30, 40, -40):
             ex2, ey2, d2 = ray_end(h['x'], h['y'], yaw + dy, h['z'])
             if d2 >= PEEK_MIN:
@@ -362,7 +381,7 @@ def hold_aim(h):
 
 
 def greedy(XY, r):
-    """группы точек: от самой густой — все в пределах r, потом следующая из оставшихся"""
+    """группы точек (любой размерности): от самой густой — все в пределах r, потом следующая из оставшихся"""
     from scipy.spatial import cKDTree
     tree = cKDTree(XY)
     cnt = tree.query_ball_point(XY, r, return_length=True)
@@ -381,11 +400,13 @@ SPAWN_PTS = {'CT': [], 'T': []}
 
 
 def make_points(H, side, late=False):
-    """позиция = задача «где стоит → что держит»: стоянки одной стороны с той же
-    зоной стояния и той же зоной взгляда; большая зона делится на части по
-    SPLIT_D. У позиции — типичное место, разброс, диапазон взгляда и 2–3 варианта
-    места (SPOT_D). Раньше точка была кружком 40 ед. карты и дробилась"""
-    groups = defaultdict(list)
+    """позиция = задача «где стоит → что держит»: стоянки одной стороны, которые
+    ближе SPLIT_D/2 к центру позиции и смотрят в пределах POS_YAW° от её взгляда
+    (зоны не делят: одна линия вдоль коридора — одна позиция, даже если игрок
+    стоит то в First Lane, то в 90, а луч кончается то тут, то там). Название —
+    зона типичного места, «что держит» — самая частая зона конца луча. У позиции —
+    типичное место, разброс, диапазон взгляда и 2–3 варианта места (SPOT_D)"""
+    g = []
     for h in H:
         if h['side'] != side or h['late'] != late:
             continue
@@ -398,12 +419,16 @@ def make_points(H, side, late=False):
             h['aim'] = hold_aim(h)
         if h['aim'] is None:
             continue
-        groups[(zq['id'], h['aim']['aimZone']['id'])].append(h)
+        g.append(h)
     pts = []
-    for key in sorted(groups):
-        g = groups[key]
-        XY = np.array([(h['x'], h['y']) for h in g])
-        for part in greedy(XY, SPLIT_D / 2):
+    if not g:
+        return pts
+    XY = np.array([(h['x'], h['y']) for h in g])
+    k = 1 / (2 * math.sin(math.radians(POS_YAW / 2)))   # хорда POS_YAW → 1
+    Y = np.radians([h['aim']['yaw'] for h in g])
+    F = np.c_[XY / (SPLIT_D / 2), np.cos(Y) * k, np.sin(Y) * k]
+    if True:
+        for part in greedy(F, 1.0):
             hs = [g[i] for i in part]
             rids = {h['rid'] for h in hs}
             if len(rids) < MIN_SHARE * NR:
@@ -428,7 +453,8 @@ def make_points(H, side, late=False):
                                   'yaw': round(circ_mean(np.array([h['yaw'] for h in sh]))), 'share': round(n / len(rids), 2)})
             zq = zone_at(x, y, z)
             pts.append({'side': side, 'x': x, 'y': y, 'z': z, 'yaw': yaw, 'peek': np.mean([h['aim']['peek'] for h in hs]) > 0.5,
-                        'zone': zq, 'aim': (ex, ey), 'aimDist': math.hypot(ex - x, ey - y), 'aimZone': hs[0]['aim']['aimZone'],
+                        'zone': zq, 'aim': (ex, ey), 'aimDist': math.hypot(ex - x, ey - y),
+                        'aimZone': ZONE_BY_ID[Counter(h['aim']['aimZone']['id'] for h in hs).most_common(1)[0][0]],
                         'rounds': rids, 'holds': hs, 'region': region_of(x, y, zq['name']),
                         'spread': float(np.percentile(np.hypot(P[:, 0] - x, P[:, 1] - y), SPREAD_Q)),
                         'yawRange': [int(round(np.percentile(dev, 10))), int(round(np.percentile(dev, 90)))],
@@ -700,8 +726,7 @@ class Targets:
                 for i in np.nonzero(hit)[0]:
                     k[self.c[i]['area']] += self.w[i]
                 area = max(k.items(), key=lambda kv: (kv[1], kv[0]))[0]
-                return 'smoke:%s>%s' % (area, zn), ('закрыть взгляд из %s (смок в %s)' % (area, zn) if area != zn
-                                                    else 'закрыть CT в %s' % zn)
+                return 'smoke:%s' % area, 'закрыть CT в %s' % area
             return 'smoke:zone:%s' % zn, 'смок в %s' % zn
         if typ == 'flash':
             near = np.nonzero(np.hypot(*(self.xy - L).T) < FLASH_R)[0]
@@ -738,12 +763,43 @@ def ways_of(ns):
     return out
 
 
+def nade_steps(ns_by_key, rids, min_share, limit):
+    """цели, которые закрывают хотя бы в min_share раундов: [{type,key,target,x,y,secToPlant,share,ways}]"""
+    steps = []
+    for key, ns in ns_by_key.items():
+        share = len({n.rid for n in ns}) / len(rids)
+        if share < min_share:
+            continue
+        steps.append({'type': Counter(n.type for n in ns).most_common(1)[0][0], 'key': key, 'target': ns[0].tname,
+                      'x': round(float(np.median([n.lx for n in ns])), 1), 'y': round(float(np.median([n.ly for n in ns])), 1),
+                      'secToPlant': float(np.median([n.secToPlant for n in ns])), 'share': round(share, 2),
+                      'ways': ways_of(ns)})
+    steps = sorted(steps, key=lambda s: (-s['share'], s['key']))[:limit]
+    return sorted(steps, key=lambda s: (-s['secToPlant'], s['key']))
+
+
+ACT = {'smoke': 'throw_smoke', 'flash': 'throw_flash', 'molly': 'throw_molly', 'he': 'throw_he'}
+
+
 def make_t_executes(R, H):
-    """сценарии T. Возвращает (сценарии, раундов с плантом, сводка для отчёта)"""
+    """сценарии T. Гранаты T за EXEC_WIN с до планта, упавшие у сайта планта, — выход
+    (может идти волнами: пауза ≥ WAVE_GAP — следующая волна); упавшие у другого сайта —
+    фейк. Возвращает (сценарии, раундов с плантом, сводка для отчёта)"""
     nades = pd.read_csv(os.path.join(ROOT, 'data', 'pro', 'pro_nades.csv'))
     nades['purpose'] = nades.purpose.fillna('')
     plant_r = {r['rid']: r for r in R if r['site']}
     nades = nades[(nades.side == 'T') & nades.secToPlant.between(0, EXEC_WIN) & nades.rid.isin(plant_r)].copy()
+    near = []
+    for rid, x, y in zip(nades.rid, nades.lx, nades.ly):
+        st, d = min(((k, math.hypot(x - c[0], y - c[1])) for k, c in SITE_C.items()), key=lambda kv: kv[1])
+        # у сайта — близко к центру мест планта и (если не вплотную) на его стороне карты или в
+        # задних проходах CT (CT Lane, Alley); смок окна/мида (Sniper Nest, Chamber) — не выход
+        if d > EXEC_R or (d > EXEC_R_ANY and region_of(x, y, zone_at(x, y)['name']) not in (st, 'back')):
+            near.append(None)
+        else:
+            near.append('exec' if st == plant_r[rid]['site'] else 'fake')
+    nades['kind'] = near
+    nades = nades[nades.kind.notna()].copy()
     TG = Targets([h for h in H if not h['late']])
     tg = [TG.of(t, x, y) for t, x, y in zip(nades.type, nades.lx, nades.ly)]
     nades['tkey'] = [k for k, _ in tg]
@@ -756,56 +812,62 @@ def make_t_executes(R, H):
         groups[(r['site'], t_route(r))].append(r)
     plants = len(plant_r)
     out = []
-    in_step = set()   # (rid, tkey) гранат, ставших шагом
+    in_step = set()   # (rid, kind, tkey) гранат, ставших шагом
+    waves2 = 0
     for (site, route), rr in sorted(groups.items(), key=lambda kv: (-len(kv[1]), kv[0])):
         if len(out) >= 4 or len(rr) < EXEC_MIN_SHARE * plants:
             break
         rids = {r['rid'] for r in rr}
-        g = defaultdict(list)
+        g = {'exec': defaultdict(list), 'fake': defaultdict(list)}
         for rid in rids:
             for n in by_rid[rid]:
                 if not n.purpose:
-                    g[n.tkey].append(n)
-        steps = []
-        for key, ns in g.items():
-            share = len({n.rid for n in ns}) / len(rids)
-            if share < STEP_MIN_SHARE:
-                continue
-            typ = Counter(n.type for n in ns).most_common(1)[0][0]
-            steps.append({'type': typ, 'key': key, 'target': ns[0].tname,
-                          'x': round(float(np.median([n.lx for n in ns])), 1), 'y': round(float(np.median([n.ly for n in ns])), 1),
-                          'secToPlant': float(np.median([n.secToPlant for n in ns])), 'share': round(share, 2),
-                          'ways': ways_of(ns), 'n': len(ns)})
-        steps = sorted(steps, key=lambda s: (-s['share'], s['key']))[:STEP_MAX]
-        steps.sort(key=lambda s: (-s['secToPlant'], s['key']))
-        for s_ in steps:
-            in_step |= {(rid, s_['key']) for rid in rids}
+                    g[n.kind][n.tkey].append(n)
+        steps = nade_steps(g['exec'], rids, STEP_MIN_SHARE, STEP_MAX)
+        fakes = nade_steps(g['fake'], rids, FAKE_MIN_SHARE, 4)
+        for kind, ss in (('exec', steps), ('fake', fakes)):
+            for s_ in ss:
+                in_step |= {(rid, kind, s_['key']) for rid in rids}
         entry = [e for e in (entry_sec_to_plant(r) for r in rr) if e is not None]
         entry_s = float(np.median(entry)) if entry else 5.0
         start = max([s['secToPlant'] for s in steps] + [entry_s])
-        # шаги сценария: цели по порядку, зависимости — от предыдущего смока
+        # шаги выхода по порядку; пауза ≥ WAVE_GAP — новая волна (ждёт паузу после предыдущего шага);
+        # внутри волны флешка/молотов/HE после смока ждут, пока ляжет последний смок волны
         res, num = [], Counter()
-        last = {}
+        last, wave, prev = {}, 1, None
         for s in steps:
+            sec = round(start - s['secToPlant'], 1)
             num[s['type']] += 1
             actor = '%s_%d' % (s['type'], num[s['type']])
-            act = {'smoke': 'throw_smoke', 'flash': 'throw_flash', 'molly': 'throw_molly', 'he': 'throw_he'}[s['type']]
-            # флешка/молотов/HE после смока — ждут, пока ляжет последний смок до них;
-            # смок и всё, что раньше первого смока, — по старту execute
-            dep = {'afterSmokeLands': last['smoke']} if s['type'] != 'smoke' and 'smoke' in last \
-                else {'trigger': 'execute_start'}
-            res.append({'actor': actor, 'action': act, 'target': s['target'], 'targetKey': s['key'],
-                        'at': [s['x'], s['y']], 'ways': s['ways'], 'sec': round(start - s['secToPlant'], 1),
-                        'share': s['share'], 'dependsOn': dep})
+            if prev is not None and sec - prev['sec'] >= WAVE_GAP:
+                wave += 1
+                last = {}
+                dep = {'afterPrev': prev['actor'], 'pauseSec': round(sec - prev['sec'], 1)}
+            elif s['type'] != 'smoke' and 'smoke' in last:
+                dep = {'afterSmokeLands': last['smoke']}
+            else:
+                dep = {'trigger': 'execute_start'} if wave == 1 else {'afterPrev': prev['actor'], 'pauseSec': 0}
+            st = {'actor': actor, 'action': ACT[s['type']], 'target': s['target'], 'targetKey': s['key'],
+                  'at': [s['x'], s['y']], 'ways': s['ways'], 'sec': sec, 'wave': wave, 'share': s['share'], 'dependsOn': dep}
+            res.append(st)
             last[s['type']] = actor
-        flash_sec = max([x['sec'] for x in res if x['action'] == 'throw_flash'], default=None)
-        entry_dep = {'afterFlashPop': last['flash'],
-                     'maxDelayTicks': int(round(max(0.0, (start - entry_s) - flash_sec) * TICK))} \
-            if 'flash' in last else {'afterSmokeLands': last['smoke']} if 'smoke' in last else {'trigger': 'execute_start'}
+            prev = st
+        waves2 += wave > 1
+        fl = [x for x in res if x['action'] == 'throw_flash']
+        entry_dep = {'afterFlashPop': fl[-1]['actor'],
+                     'maxDelayTicks': int(round(max(0.0, (start - entry_s) - fl[-1]['sec']) * TICK))} if fl else \
+            {'afterSmokeLands': last['smoke']} if 'smoke' in last else {'trigger': 'execute_start'}
         res.append({'actor': 'entry', 'action': 'push', 'target': site, 'sec': round(start - entry_s, 1),
                     'dependsOn': entry_dep})
         res.append({'actor': 'bomb', 'action': 'plant', 'target': site, 'sec': round(start, 1),
                     'dependsOn': {'afterEntryCommitted': 'entry'}})
+        num = Counter()
+        for s in fakes:   # фейк: раскид на другой сайт, туда не идут (sec < 0 — до начала выхода)
+            num[s['type']] += 1
+            res.append({'actor': 'fake_%s_%d' % (s['type'], num[s['type']]), 'action': ACT[s['type']],
+                        'target': s['target'], 'targetKey': s['key'], 'at': [s['x'], s['y']], 'ways': s['ways'],
+                        'sec': round(start - s['secToPlant'], 1), 'share': s['share'], 'optional': True, 'fake': True,
+                        'dependsOn': {}})
         lurks = [lurk_zones(r) for r in rr]
         lurks = [l for l in lurks if l]
         if len(lurks) >= LURK_MIN_SHARE * len(rr):
@@ -817,16 +879,18 @@ def make_t_executes(R, H):
                     'rounds': len(rr), 'share': round(len(rr) / plants, 2),
                     'timing': {'startSec': round(plant_sec - start, 1), 'plantSec': round(plant_sec, 1)},
                     'steps': res})
-    scen = sum((rid, k) in in_step and not p for rid, k, p in zip(nades.rid, nades.tkey, nades.purpose))
     srids = {r['rid'] for (site, route), rr in groups.items()
              if any(e['site'] == site and e['route'] == route for e in out) for r in rr}
     ns = nades[nades.rid.isin(srids)]
-    selfn = int((nades.purpose != '').sum())
-    stat = {'plants': plants, 'withNades': int(nades.rid.nunique()), 'nades': len(nades),
-            'scenario': int(scen), 'self': selfn, 'outside': len(nades) - int(scen) - selfn,
+    ex = ns[ns.kind == 'exec']
+    scen = sum((rid, 'exec', k) in in_step and not p for rid, k, p in zip(ex.rid, ex.tkey, ex.purpose))
+    fk = nades[(nades.kind == 'fake') & (nades.purpose == '')]
+    stat = {'plants': plants, 'withNades': int(nades[nades.kind == 'exec'].rid.nunique()),
             'selfKinds': nades[nades.purpose != ''].purpose.value_counts().to_dict(),
             'lurkRounds': sum(1 for r in plant_r.values() if lurk_zones(r)),
-            'inScenRounds': {'nades': len(ns), 'scenario': int(scen), 'self': int((ns.purpose != '').sum())}}
+            'execNadesInScen': {'all': len(ex), 'scenario': int(scen), 'self': int((ex.purpose != '').sum())},
+            'fakeRounds': int(fk.rid.nunique()), 'fakeNades': len(fk),
+            'wave2': waves2, 'smokesPerScen': [sum(x['action'] == 'throw_smoke' and not x.get('fake') for x in e['steps']) for e in out]}
     return out, plants, stat
 
 
@@ -915,14 +979,16 @@ def main():
         % (LAYOUT_WIN[0], LAYOUT_WIN[1], nlay, round(SETUP_MIN_SHARE * 100), SETUP_WIN[0], SETUP_WIN[1]),
         'T: раунды с плантом (%d), вариант = сайт + маршрут за %d с до планта (main — все со своей стороны, '
         'split — часть через мид, mid — все через мид), не реже %d %% плантов, до 4 самых частых. '
-        'Шаг — ЦЕЛЬ гранаты T за %d с до планта (что она выключает у CT: смок — закрыть взгляд CT-точки, '
-        'флешка — ослепить CT-точку, молотов/HE — выжечь CT-точку; иначе — зона падения), которую закрывают '
-        'хотя бы в %d %% раундов варианта; targetKey — id цели; at — типичное место разрыва; '
+        'Шаг — ЦЕЛЬ гранаты T за %d с до планта, упавшей у сайта планта (ближе %d ед. карты к центру мест планта, не в миде): '
+        'что она выключает у CT (смок — закрыть CT в area, флешка — ослепить, молотов/HE — выжечь; иначе — зона '
+        'падения), которую закрывают хотя бы в %d %% раундов варианта; wave — волна (пауза ≥ %d с между шагами — '
+        'следующая, dependsOn.pauseSec); fake — необязательные шаги: раскид на другой сайт, куда не идут '
+        '(не реже %d %% раундов варианта, sec < 0 — до начала выхода); targetKey — id цели; at — типичное место разрыва; '
         'ways — способы (откуда → куда, сколько бросков); sec — секунда от начала execute; '
         'entry.maxDelayTicks — сколько вход ждёт после последней флешки (медиана про); '
         'lurker — необязательный шаг: share — в какой доле раундов варианта кто-то из T был на другой стороне '
-        'за %d с до планта или в плант.' % (nplant, EXEC_LOOK, round(EXEC_MIN_SHARE * 100), EXEC_WIN,
-                                           round(STEP_MIN_SHARE * 100), EXEC_LOOK),
+        'за %d с до планта или в плант.' % (nplant, EXEC_LOOK, round(EXEC_MIN_SHARE * 100), EXEC_WIN, EXEC_R,
+                                           round(STEP_MIN_SHARE * 100), WAVE_GAP, round(FAKE_MIN_SHARE * 100), EXEC_LOOK),
         'Гранаты «себе» (флешка под свой выход, смок на себя под плант/дефуз, молотов в угол перед своим '
         'проходом — purpose в data/pro/pro_nades.csv, tools/lineups.py) в шаги не идут: это решения игрока, '
         'не сценарий. selfNades — сколько их среди гранат T за %d с до планта.' % EXEC_WIN],
