@@ -12,14 +12,15 @@ python3 tools/positions_bake.py [--report]
   * стоянка — игрок жив, раунд до планта, скорость < 10 ед. карты/с
     (≈ 25 ед. игры/с, то есть стоит или шевелится на месте) не меньше 2 с подряд.
     Из стоянки: точка (среднее), взгляд (средний yaw), время в раунде;
-  * точка (positions.json → points) — группа стоянок одной стороны: от самой
-    «густой» стоянки берутся все в пределах CL_DIAM/2 и CL_YAW/2 (диаметр точки
-    ≤ CL_DIAM, разброс взгляда ≤ CL_YAW). Потом похожие соседние точки
-    склеиваются: крупная забирает мелкие, если центры ближе MERGE_D и взгляд
-    отличается меньше MERGE_YAW. Точка остаётся, если встретилась не реже чем в
-    MIN_SHARE раундов. area — зона-колл из zonemap.json; angle — куда смотрит:
-    луч от точки по среднему взгляду до первой стены, зона-колл в конце луча и
-    сама точка конца;
+  * позиция (positions.json → points) — задача «где стоит → что держит»:
+    стоянки одной стороны с той же зоной стояния и той же зоной взгляда (конец
+    луча взгляда до стены). Игрок не встаёт в одну точку — шире, уже, ближе,
+    дальше, — поэтому у позиции типичное место, разброс (spread), диапазон
+    взгляда и 2–3 варианта места (spots). Большая зона делится на части по
+    SPLIT_D. Позиция — если её держали не реже MIN_SHARE раундов;
+  * late — поздние стоянки (после LATE_SEC или живых в команде < LATE_ALIVE):
+    сейв, охота, меньшинство — отдельный список, в Setup'ы не идут;
+  * push — ранняя CT-позиция на половине карты T (подпуш после колла);
   * standard / off — standard: точка не реже STD_SHARE от самой частой в своей
     area и не реже STD_MIN_SHARE раундов; остальные — off (там тоже стоят, но
     редко — неожиданная позиция). Все пороги — доли раундов, не числа: от
@@ -66,11 +67,14 @@ OUT_SET = os.path.join(DATA, 'setups.json')
 
 STILL_SPEED = 10        # ед. карты/с: ниже — «стоит»
 STILL_MIN = 2.0         # с подряд, чтобы считать стоянкой
-CL_DIAM = 40            # ед. карты (≈ 100 ед. игры): все стоянки точки ближе этого
-CL_YAW = 60             # градусов: и взгляд у всех в пределах этого
-MERGE_D = 25            # ед. карты: соседние точки ближе этого и
-MERGE_YAW = 30          # с взглядом в пределах этого — одна точка
-MIN_SHARE = 0.022       # точка — если встретилась хотя бы в 2,2 % раундов (было 6 из 269)
+SPLIT_D = 80            # ед. карты (≈ 200 ед. игры): одна позиция — стоянки ближе этого к её центру·2
+SPOT_D = 40             # ед. карты (≈ 100 ед. игры): вариант места внутри позиции
+SPREAD_Q = 80           # %: разброс позиции — круг, куда попадают 80 % стоянок
+MIN_SHARE = 0.01        # позиция — если её держали хотя бы в 1 % раундов
+LATE_SEC = 75           # с: стоянка, начатая позже, — «поздняя» (сейв, охота, долгий раунд)
+LATE_ALIVE = 4          # и если в команде живых меньше этого — тоже поздняя (игра в меньшинстве)
+PUSH_SEC = 30           # с: CT-позиция на половине карты T, которую обычно занимают раньше
+                        # этого, — push (подпуш после колла, не обычная раскладка)
 STD_SHARE = 0.35        # standard, если не реже 35 % самой частой точки в area
 STD_MIN_SHARE = 0.025   # и хотя бы в 2,5 % раундов: реже — off
 RAY_MAX = 900           # ед. карты: дальше луч взгляда не ведём
@@ -278,7 +282,7 @@ def holds_vec(tick, sid, x, y, z, yaw, ri, rounds):
         L = j - i + 1
         mean = {k: (v[j + 1] - v[i]) / L for k, v in C.items()}
         r = rounds[ri[i]]
-        out.append({'rid': r['rid'], 'sid': int(sid[i]), 'side': None, 'x': mean['x'], 'y': mean['y'], 'z': mean['z'],
+        out.append({'rid': r['rid'], 'sid': int(sid[i]), 'side': None, 'tick0': int(tick[i]), 'x': mean['x'], 'y': mean['y'], 'z': mean['z'],
                     'yaw': math.degrees(math.atan2(mean['s'], mean['c'])) % 360,
                     's0': (tick[i] - r['t0']) / TICK, 's1': (tick[j] - r['t0']) / TICK})
     return out
@@ -301,9 +305,11 @@ def load_rounds():
         tick, sid, sd = t.tick.values, t.steamid.values, t.side.values
         x, y, z, yaw, rv = t.x.values, t.y.values, t.Z.values, t.yaw.values, t.ri.values
         side_of = dict(zip(sid, sd))
+        alive = t.groupby(['tick', 'side']).size().to_dict()   # живых в команде на тике
         hs = holds_vec(tick, sid, x, y, z, yaw, rv, rounds)
         for h in hs:
             h['side'] = side_of[h['sid']]
+            h['late'] = h['s0'] > LATE_SEC or alive.get((h['tick0'], h['side']), 5) < LATE_ALIVE
         H += hs
         bounds = np.searchsorted(rv, np.arange(len(rounds) + 1))
         for k, r in enumerate(rounds):
@@ -312,6 +318,8 @@ def load_rounds():
                 continue
             rows = (tick[sl], sid[sl], sd[sl], x[sl], y[sl], z[sl])
             r['ct20'] = snap(rows, r['t0'] + LAYOUT_SEC * TICK, 'CT')
+            for side in ('CT', 'T'):   # где стороны на 4-й с — центры спавнов
+                SPAWN_PTS[side] += [(x_, y_) for _, x_, y_, _ in snap(rows, r['t0'] + 4 * TICK, side)]
             if r['tplant']:
                 r['tlook'] = snap(rows, r['tplant'] - EXEC_LOOK * TICK, 'T')
                 r['tplant_at'] = snap(rows, r['tplant'] - 1, 'T')
@@ -321,84 +329,104 @@ def load_rounds():
     return R, H
 
 
-def cluster_holds(H):
-    """точки без «расползания»: от самой густой стоянки — все в пределах CL_DIAM/2
-    по месту и CL_YAW/2 по взгляду (диаметр ≤ CL_DIAM, разброс взгляда ≤ CL_YAW),
-    потом следующая густая из оставшихся. Затем склейка похожих соседей: крупная
-    точка забирает более мелкие, центр которых ближе MERGE_D и взгляд — в MERGE_YAW"""
+def hold_aim(h):
+    """что держит стоянка: конец луча взгляда и его зона. Вплотную за укрытием
+    (луч < AIM_MIN) — ближайшее к взгляду открытое направление ±10–40° (держит
+    из-за края); нет такого — ждёт, а не держит угол (None)"""
+    yaw = h['yaw']
+    ex, ey, dist = ray_end(h['x'], h['y'], yaw, h['z'])
+    peek = False
+    if dist < AIM_MIN:
+        for dy in (10, -10, 20, -20, 30, -30, 40, -40):
+            ex2, ey2, d2 = ray_end(h['x'], h['y'], yaw + dy, h['z'])
+            if d2 >= PEEK_MIN:
+                yaw, ex, ey, dist, peek = (yaw + dy) % 360, ex2, ey2, d2, True
+                break
+        else:
+            return None
+    aq = zone_at(ex - math.cos(math.radians(yaw)) * 6, ey + math.sin(math.radians(yaw)) * 6)
+    return {'ax': ex, 'ay': ey, 'aimZone': aq, 'peek': peek}
+
+
+def greedy(XY, r):
+    """группы точек: от самой густой — все в пределах r, потом следующая из оставшихся"""
     from scipy.spatial import cKDTree
-    if not H:
-        return []
-    k = 1 / (2 * math.sin(math.radians(CL_YAW / 4)))   # хорда CL_YAW/2 → 1
-    Y = np.radians([h['yaw'] for h in H])
-    F = np.c_[np.array([h['x'] for h in H]) / (CL_DIAM / 2), np.array([h['y'] for h in H]) / (CL_DIAM / 2),
-              np.cos(Y) * k, np.sin(Y) * k]
-    tree = cKDTree(F)
-    cnt = tree.query_ball_point(F, 1.0, return_length=True)
-    free = np.ones(len(H), bool)
-    groups = []
+    tree = cKDTree(XY)
+    cnt = tree.query_ball_point(XY, r, return_length=True)
+    free = np.ones(len(XY), bool)
+    out = []
     for i in np.argsort(-cnt, kind='stable'):
-        if not free[i]:
-            continue
-        nb = [j for j in tree.query_ball_point(F[i], 1.0) if free[j]]
-        free[nb] = False
-        groups.append(nb)
-    # склейка соседей (без цепочек: забирает только исходный центр крупной)
-    groups.sort(key=lambda g: -len(g))
-    cen = [(np.mean(F[g, 0]) * CL_DIAM / 2, np.mean(F[g, 1]) * CL_DIAM / 2,
-            circ_mean(np.array([H[j]['yaw'] for j in g]))) for g in groups]
-    gone = [False] * len(groups)
-    global MERGED
-    ctree = cKDTree(np.array([(c[0], c[1]) for c in cen]))
-    for a in range(len(groups)):
-        if gone[a]:
-            continue
-        for b in sorted(ctree.query_ball_point(cen[a][:2], MERGE_D)):
-            if b > a and not gone[b] and ang_diff(cen[a][2], cen[b][2]) < MERGE_YAW:
-                groups[a] = groups[a] + groups[b]
-                gone[b] = True
-                MERGED += 1
-    return [[H[j] for j in g] for g, x in zip(groups, gone) if not x]
+        if free[i]:
+            nb = [j for j in tree.query_ball_point(XY[i], r) if free[j]]
+            free[nb] = False
+            out.append(nb)
+    return out
 
 
-MERGED = 0
 NR = 0   # раундов всего — от него пороги-доли
+SPAWN_PTS = {'CT': [], 'T': []}
 
 
-def make_points(H, side):
-    """кластеры стоянок одной стороны → сырые точки (ещё без id и типа)"""
-    pts = []
-    for g in cluster_holds([h for h in H if h['side'] == side]):
-        rids = {h['rid'] for h in g}
-        if len(rids) < MIN_SHARE * NR:
+def make_points(H, side, late=False):
+    """позиция = задача «где стоит → что держит»: стоянки одной стороны с той же
+    зоной стояния и той же зоной взгляда; большая зона делится на части по
+    SPLIT_D. У позиции — типичное место, разброс, диапазон взгляда и 2–3 варианта
+    места (SPOT_D). Раньше точка была кружком 40 ед. карты и дробилась"""
+    groups = defaultdict(list)
+    for h in H:
+        if h['side'] != side or h['late'] != late:
             continue
-        x = float(np.mean([h['x'] for h in g])); y = float(np.mean([h['y'] for h in g]))
-        z = float(np.median([h['z'] for h in g]))
-        yaw = circ_mean(np.array([h['yaw'] for h in g]))
-        zq = zone_at(x, y, z)
+        zq = zone_at(h['x'], h['y'], h['z'])
         if zq['name'] in ('T Spawn', 'CT Spawn'):
             continue   # на самом спавне — это не позиция
-        ex, ey, dist = ray_end(x, y, yaw, z)
-        peek = False
-        if dist < AIM_MIN:
-            # стоит вплотную за укрытием: держит угол из-за его края — берём ближайшее
-            # к взгляду открытое направление; нет такого — ждёт, а не держит угол
-            for dy in (10, -10, 20, -20, 30, -30, 40, -40):
-                ex2, ey2, d2 = ray_end(x, y, yaw + dy, z)
-                if d2 >= PEEK_MIN:
-                    yaw, ex, ey, dist, peek = (yaw + dy) % 360, ex2, ey2, d2, True
-                    break
-            else:
+        if region_of(h['x'], h['y'], zq['name']) == 'Tside' and h['s0'] < START_WAIT:
+            continue   # T у спавна в первые секунды — ждут команду
+        if 'aim' not in h:
+            h['aim'] = hold_aim(h)
+        if h['aim'] is None:
+            continue
+        groups[(zq['id'], h['aim']['aimZone']['id'])].append(h)
+    pts = []
+    for key in sorted(groups):
+        g = groups[key]
+        XY = np.array([(h['x'], h['y']) for h in g])
+        for part in greedy(XY, SPLIT_D / 2):
+            hs = [g[i] for i in part]
+            rids = {h['rid'] for h in hs}
+            if len(rids) < MIN_SHARE * NR:
                 continue
-        sec = float(np.median([h['s0'] for h in g]))
-        if region_of(x, y, zq['name']) == 'Tside' and sec < START_WAIT:
-            continue   # T у спавна в первые секунды — ждут команду, а не держат позицию
-        aq = zone_at(ex - math.cos(math.radians(yaw)) * 6, ey + math.sin(math.radians(yaw)) * 6)
-        pts.append({'side': side, 'x': x, 'y': y, 'z': z, 'yaw': yaw, 'peek': peek, 'zone': zq, 'aim': (ex, ey), 'aimDist': dist,
-                    'aimZone': aq, 'rounds': rids, 'holds': g, 'region': region_of(x, y, zq['name']),
-                    'sec': sec,
-                    'dur': float(np.median([h['s1'] - h['s0'] for h in g]))})
+            P = XY[part]
+            x, y = (float(v) for v in np.median(P, axis=0))
+            z = float(np.median([h['z'] for h in hs]))
+            ex = float(np.median([h['aim']['ax'] for h in hs])); ey = float(np.median([h['aim']['ay'] for h in hs]))
+            yaw = math.degrees(math.atan2(-(ey - y), ex - x)) % 360
+            dev = np.array([((h['yaw'] - yaw + 180) % 360) - 180 for h in hs])
+            spots = []
+            for sp in greedy(P, SPOT_D / 2)[:3]:
+                sh = [hs[i] for i in sp]
+                n = len({h['rid'] for h in sh})
+                if n >= 0.15 * len(rids):
+                    spots.append({'x': round(float(np.median(P[sp, 0])), 1), 'y': round(float(np.median(P[sp, 1])), 1),
+                                  'yaw': round(circ_mean(np.array([h['yaw'] for h in sh]))), 'share': round(n / len(rids), 2)})
+            zq = zone_at(x, y, z)
+            pts.append({'side': side, 'x': x, 'y': y, 'z': z, 'yaw': yaw, 'peek': np.mean([h['aim']['peek'] for h in hs]) > 0.5,
+                        'zone': zq, 'aim': (ex, ey), 'aimDist': math.hypot(ex - x, ey - y), 'aimZone': hs[0]['aim']['aimZone'],
+                        'rounds': rids, 'holds': hs, 'region': region_of(x, y, zq['name']),
+                        'spread': float(np.percentile(np.hypot(P[:, 0] - x, P[:, 1] - y), SPREAD_Q)),
+                        'yawRange': [int(round(np.percentile(dev, 10))), int(round(np.percentile(dev, 90)))],
+                        'spots': spots, 'sec': float(np.median([h['s0'] for h in hs])),
+                        'dur': float(np.median([h['s1'] - h['s0'] for h in hs]))})
     return pts
+
+
+def mark_push(P):
+    """push: CT-позиция на половине карты T (ближе к спавну T, чем к спавну CT),
+    которую обычно занимают в первые PUSH_SEC с, — подпуш после колла, не обычная раскладка"""
+    c = {k: np.mean(v, axis=0) for k, v in SPAWN_PTS.items()}
+    for p in P:
+        dT = math.hypot(p['x'] - c['T'][0], p['y'] - c['T'][1])
+        dC = math.hypot(p['x'] - c['CT'][0], p['y'] - c['CT'][1])
+        p['push'] = p['side'] == 'CT' and p['sec'] <= PUSH_SEC and dT < dC
 
 
 def slug(name):
@@ -426,7 +454,7 @@ def finalize_points(P):
             d = math.hypot(q['x'] - p['x'], q['y'] - p['y'])
             same = q['aimZone']['id'] == p['aimZone']['id'] or \
                 math.hypot(q['aim'][0] - p['aim'][0], q['aim'][1] - p['aim'][1]) < 100
-            if same and CL_DIAM / 2 < d < bd:
+            if same and SPOT_D / 2 < d < bd:
                 best, bd = q, d
         p['fallback'] = best['id'] if best else None
     return P
@@ -463,7 +491,7 @@ def make_pairs(P):
             if p['side'] != q['side'] or p['region'] != q['region']:
                 continue
             d = math.hypot(p['x'] - q['x'], p['y'] - q['y'])
-            if not (CL_DIAM < d <= TRADE_DIST) or ang_diff(p['yaw'], q['yaw']) < PAIR_MIN_ANGLE:
+            if not (SPOT_D < d <= TRADE_DIST) or ang_diff(p['yaw'], q['yaw']) < PAIR_MIN_ANGLE:
                 continue
             if seg_dist((p['x'], p['y']), p['aim'], (q['x'], q['y']), q['aim']) > PAIR_AIM_GAP:
                 continue
@@ -508,7 +536,7 @@ ROLE_NAMES = {'A': ['anchor_A', 'support_A', 'stack_A'], 'B': ['anchor_B', 'supp
 
 
 def make_ct_setups(R, H, P):
-    ct = [p for p in P if p['side'] == 'CT']
+    ct = [p for p in P if p['side'] == 'CT' and not p['push']]   # подпуш — не обычная раскладка
     pair_of = defaultdict(set)
     for pr in PAIRS:
         pair_of[pr['a']].add(pr['b']); pair_of[pr['b']].add(pr['a'])
@@ -541,7 +569,7 @@ def make_ct_setups(R, H, P):
             for p in cand:
                 if len(chosen) >= k:
                     break
-                if any(math.hypot(p['x'] - c['x'], p['y'] - c['y']) < CL_DIAM for c in chosen):
+                if any(math.hypot(p['x'] - c['x'], p['y'] - c['y']) < SPOT_D for c in chosen):
                     continue
                 chosen.append(p)
                 # второй — напарник по кроссфайру первого, если он здесь стоит не реже 30 %
@@ -698,7 +726,7 @@ def make_t_executes(R, H):
     nades['purpose'] = nades.purpose.fillna('')
     plant_r = {r['rid']: r for r in R if r['site']}
     nades = nades[(nades.side == 'T') & nades.secToPlant.between(0, EXEC_WIN) & nades.rid.isin(plant_r)].copy()
-    TG = Targets(H)
+    TG = Targets([h for h in H if not h['late']])
     tg = [TG.of(t, x, y) for t, x, y in zip(nades.type, nades.lx, nades.ly)]
     nades['tkey'] = [k for k, _ in tg]
     nades['tname'] = [n for _, n in tg]
@@ -805,20 +833,29 @@ def main():
         xs = [(r['plantXY']) for r in R if r['site'] == site]
         SITE_C[site] = (float(np.mean([x for x, _ in xs])), float(np.mean([y for _, y in xs])))
     P = finalize_points(make_points(H, 'CT') + make_points(H, 'T'))
+    mark_push(P)
+    LP = make_points(H, 'CT', late=True) + make_points(H, 'T', late=True)
+    for side in ('CT', 'T'):
+        for k, p in enumerate(sorted([p for p in LP if p['side'] == side], key=lambda p: (-len(p['rounds']), p['x'], p['y']))):
+            p['id'] = '%s_late_%s_%d' % (side.lower(), slug(p['zone']['name']), k + 1)
+            p.update(type='late', fallback=None, push=False)
     PAIRS = make_pairs([p for p in P if p['side'] == 'CT'])
     pair_of = defaultdict(list)
     for pr in PAIRS:
         pair_of[pr['a']].append(pr['b']); pair_of[pr['b']].append(pr['a'])
     nr = len(R)
-    points = []
-    for p in sorted(P, key=lambda p: (p['side'], p['id'])):
-        points.append({'id': p['id'], 'side': p['side'], 'area': p['zone']['name'], 'region': p['region'],
+    def out(p):
+        return {'id': p['id'], 'side': p['side'], 'area': p['zone']['name'], 'region': p['region'],
                        'x': round(p['x'], 1), 'y': round(p['y'], 1), 'z': round(p['z']), 'yaw': round(p['yaw']),
                        'angle': {'zone': p['aimZone']['name'], 'x': round(p['aim'][0], 1), 'y': round(p['aim'][1], 1),
                                  'dist': round(p['aimDist'])},
-                       'type': p['type'], 'peek': p['peek'], 'crouch': False, 'fallback': p['fallback'], 'pairs': pair_of[p['id']],
-                       'rounds': len(p['rounds']), 'share': round(len(p['rounds']) / nr, 3),
-                       'sec': round(p['sec']), 'hold': round(p['dur'], 1)})
+                'type': p['type'], 'push': p['push'], 'peek': bool(p['peek']), 'crouch': False,
+                'spread': round(p['spread']), 'yawRange': p['yawRange'], 'spots': p['spots'],
+                'fallback': p['fallback'], 'pairs': pair_of[p['id']],
+                'rounds': len(p['rounds']), 'share': round(len(p['rounds']) / nr, 3),
+                'sec': round(p['sec']), 'hold': round(p['dur'], 1)}
+    points = [out(p) for p in sorted(P, key=lambda p: (p['side'], p['id']))]
+    late = [out(p) for p in sorted(LP, key=lambda p: (p['side'], p['id']))]
     ct_setups, nlay = make_ct_setups(R, H, P)
     t_exec, nplant, stat = make_t_executes(R, H)
     # самопроверка: все ссылки ведут на существующие точки
@@ -831,19 +868,25 @@ def main():
     demos = sorted({r['demo'] for r in R})
     dump(OUT_POS, {'_about': [
         'Позиции Ancient из демок про. Делает tools/positions_bake.py (docs/BRAIN.md, раздел 4).',
-        'Точка — место, где про стояли 2+ с (скорость < 10 ед. карты/с) хотя бы в %.1f %% раундов; '
-        'соседние похожие (ближе %d ед. карты, взгляд в %d°) склеены; '
-        'координаты — карта 0..2048, z и yaw — как в игре.' % (MIN_SHARE * 100, MERGE_D, MERGE_YAW),
+        'Позиция — задача «где стоит → что держит»: стоянки про (2+ с, скорость < 10 ед. карты/с) с той же зоной '
+        'стояния и той же зоной взгляда (большая зона делится на части по %d ед. карты); позиция — если её держали '
+        'хотя бы в %.0f %% раундов. Координаты — карта 0..2048, z и yaw — как в игре.' % (SPLIT_D, MIN_SHARE * 100),
+        'x/y — типичное место (медиана); spread — радиус, куда попадают %d %% стоянок (игрок стоит шире/уже, '
+        'ближе/дальше); yawRange — разброс взгляда от yaw, °; spots — 2–3 варианта места внутри позиции (доля раундов).'
+        % SPREAD_Q,
         'area — зона-колл (zonemap.json), region — сторона карты по x (A < 700 < мид < 1250 < B), back — задние проходы CT.',
         'angle — куда смотрит: конец луча взгляда до высокой стены/края навмеша, его зона и длина.',
         'type: standard — частые точки своей area (не реже %d %% самой частой и хотя бы в %.1f %% раундов), off — редкие '
-        '(неожиданная позиция).' % (round(STD_SHARE * 100), STD_MIN_SHARE * 100),
+        '(неожиданная позиция). push — CT-позиция ближе к спавну T, чем к спавну CT, которую обычно занимают в первые %d с: '
+        'подпуш после колла, в обычную раскладку не идёт.' % (round(STD_SHARE * 100), STD_MIN_SHARE * 100, PUSH_SEC),
+        'late (отдельный список) — те же позиции из поздних стоянок: начаты после %d-й с или когда в команде живых '
+        'меньше %d (сейв, охота, игра в меньшинстве); в Setup\'ы, пары и запасные не идут.' % (LATE_SEC, LATE_ALIVE),
         'peek — стоит вплотную за укрытием, угол — ближайшее к взгляду открытое направление (±10–40°, держит из-за края).',
         'crouch — не измерено (в выгрузке демок нет присяда), везде false.',
         'fallback — запасная точка на тот же вход рядом (BRAIN 4.4); pairs — кроссфайр-напарники (список pairs ниже).',
         'rounds/share — в скольких раундах из %d стояли; sec — типичная секунда раунда; hold — типичная длительность, с.' % nr],
         'map': 'ancient', 'demos': demos, 'rounds': nr},
-        {'points': points, 'pairs': PAIRS})
+        {'points': points, 'pairs': PAIRS, 'late': late})
     dump(OUT_SET, {'_about': [
         'Setup\'ы Ancient из демок про. Делает tools/positions_bake.py (docs/BRAIN.md, разделы 4.1, 5.1, 5.3).',
         'CT: раскладка «сколько CT на A / миде / B» — по тому, где каждый CT дольше стоял на %d–%d-й секунде, '
@@ -872,7 +915,8 @@ def main():
             sum(p['side'] == 'CT' for p in points), sum(p['side'] == 'T' for p in points)), len(PAIRS), 'пар')
         for s in ct_setups:
             print(s['id'], s['split'], s['rounds'], [(x['role'], x['point'], x['pairWith']) for x in s['slots']])
-        print('склеено соседних точек:', MERGED)
+        print('push:', sum(p['push'] for p in points), 'late:', len(late), Counter(p['side'] for p in late))
+        print(Counter((p['side'], p['type']) for p in points))
         print('T:', stat)
         for s in t_exec:
             print(s['id'], s['rounds'], s['timing'], [(x['actor'], x.get('target'), x.get('sec'), x.get('share')) for x in s['steps']])

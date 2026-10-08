@@ -70,11 +70,16 @@ def point(d, p, col, r=None, label=None, faint=False):
     if faint:
         d.ellipse([x - 4, y - 4, x + 4, y + 4], fill=(130, 130, 130))
         return
+    sp = p.get('spread', 0)
+    if sp:   # разброс: где игрок реально стоит под эту позицию (80 % стоянок)
+        d.ellipse([x - sp, y - sp, x + sp, y + sp], outline=col, width=1)
     d.line([(x, y), (p['angle']['x'], p['angle']['y'])], fill=col, width=3)
     if p['type'] == 'standard':
         d.ellipse([x - r, y - r, x + r, y + r], fill=col, outline=(255, 255, 255), width=2)
     else:
         d.ellipse([x - r, y - r, x + r, y + r], outline=col, width=4)
+    if p.get('push'):   # подпуш после колла — красная обводка
+        d.ellipse([x - r - 4, y - r - 4, x + r + 4, y + r + 4], outline=(255, 60, 60), width=3)
     if p.get('peek'):
         d.rectangle([x - 3, y - 3, x + 3, y + 3], fill=(0, 0, 0))
     if label:
@@ -111,11 +116,21 @@ def main():
         for p in ps:
             point(d, p, COL[side], label=short(p['id']))
         ns, no = sum(p['type'] == 'standard' for p in ps), sum(p['type'] == 'off' for p in ps)
-        lines = ['%d точек: %d standard (залиты), %d off (пустые); чёрный квадрат — держит из-за края укрытия' % (len(ps), ns, no),
+        lines = ['%d позиций: %d standard (залиты), %d off (пустые); чёрный квадрат — держит из-за края укрытия' % (len(ps), ns, no),
+                 'тонкий круг — разброс (куда встают 80 %% раз); красная обводка — push (подпуш после колла, %d)'
+                 % sum(1 for p in ps if p.get('push')),
                  'линия — куда смотрит (до стены/края); размер — сколько раундов стояли (из %d)' % pos['rounds']]
         if side == 'CT':
             lines.append('жёлтый пунктир — кроссфайр-пары (%d)' % len(pos['pairs']))
         made.append(save(im, 'points_%s.png' % side, 'Позиции %s — Ancient, демки про' % side, lines))
+
+    # поздние позиции (сейв, охота, меньшинство) — отдельно
+    im, d = base()
+    for p in pos.get('late', []):
+        point(d, p, COL[p['side']], label=short(p['id']))
+    made.append(save(im, 'points_late.png', 'Поздние позиции (late) — CT синие, T оранжевые',
+                     ['%d позиций: стоянки после %s или когда в команде меньше 4 живых; в Setup\'ы не идут'
+                      % (len(pos.get('late', [])), '75-й с')]))
 
     # CT Setup'ы
     for s in st['ct']:
