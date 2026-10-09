@@ -2675,7 +2675,9 @@ function teamNew(team){
 }
 function teamOf(side){
   var key = matchNum + ":" + roundNum, T = teamKnow[side];
-  if(!T || T.key !== key) T = teamKnow[side] = teamNew(side);
+  // тик пошёл назад — матч начат заново («Сыграть» тот же номер): прошлое сказанное не в счёт
+  if(!T || T.key !== key || T.at > tick) T = teamKnow[side] = teamNew(side);
+  T.at = tick;
   return T;
 }
 function teamRand(b, salt){ return hashRand(tick*977 + (b.id.charCodeAt(b.id.length-1)||0)*131 + (b.id.charCodeAt(0)||0)*29 + salt); }
