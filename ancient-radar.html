@@ -4454,6 +4454,10 @@ var TDEF = {
   hearR:    450,        // px: «рядом» для звука
   arrive:   14,         // px: дошёл до места
   repath:   48,         // тиков: путь сбросился — снова не чаще
+  mateMin:  60,         // px: второй в паре — не ближе к первому (v220)
+  mateMax:  260,        //   … и не дальше: дистанция размена (TRADE_DIST в tools/positions_bake.py); у про медиана 140
+  tradeR:   600,        // px: свой погиб не дальше — идёт разменять (проектное число)
+  tradeSec: 3,          // с: столько идёт на размен (размен — «за 3 с», как в замере)
   gatherR:  260,        // px: fallback — «собрались у выхода»
   gatherMax: 10         // с: fallback — дольше не ждём, заходим
 };
@@ -4488,22 +4492,39 @@ function tDefaultRoundStart(){
   tdefSeat(setup, "раунд");
 }
 function tdefSeat(setup, why){
-  var lanes = setup.default.lanes, used = lanes.map(function(){ return 0; }), seats = [];
-  // 5 мест по долям: вес полосы — сколько в ней в среднем игроков минус уже занятых (но не ноль —
-  // редкие полосы тоже иногда играют); вторым в полосу — только если про там бывают вдвоём
-  for(var k = 0; k < 5; k++){
-    var w = lanes.map(function(L, i){ return used[i] >= Math.ceil(L.players) ? 0 : Math.max(0.03, L.players - used[i]); });
-    var sum = w.reduce(function(a, c){ return a + c; }, 0), r = tdefRand(k + 1) * sum, pick = 0;
-    for(var i = 0; i < w.length; i++){ r -= w[i]; if(r <= 0){ pick = i; break; } }
-    used[pick]++;
-    seats.push({lane: lanes[pick], kind: tdefKind(lanes[pick], setup.site), bot: null});
-  }
+  var lanes = setup.default.lanes, seats = [];
   var T = bots.filter(function(b){ return b.team === "T" && b.alive; });
+  // группы, как у про (v220; демки: на 10–35-й с у 81 % T ближайший свой ≤ 350 px, медиана 140 px; «мид берут
+  // вдвоём» — PRO_PLAY 2.2): лёркер — один, на сторону, куда план не бьёт; остальные — парами, полоса пары тянется
+  // по доле «сколько там в среднем игроков», разные пары — в разные полосы
+  function draw(cands, salt){
+    var sum = cands.reduce(function(a, L){ return a + L.players; }, 0), r = tdefRand(salt) * sum;
+    for(var i = 0; i < cands.length; i++){ r -= cands[i].players; if(r <= 0) return cands[i]; }
+    return cands[cands.length - 1];
+  }
+  var hasLurk = T.some(function(b){ return b.role === "lurker"; }), taken = [];
+  if(hasLurk && T.length >= 3){
+    var oth = lanes.filter(function(L){ return tdefKind(L, setup.site) === "other"; });
+    var lz = draw(oth.length ? oth : lanes, 1); taken.push(lz);
+    seats.push({lane: lz, kind: tdefKind(lz, setup.site), bot: null, solo: true});
+  }
+  for(var g = 0; seats.length < T.length; g++){
+    var rest = lanes.filter(function(L){ return taken.indexOf(L) < 0 && tdefKind(L, setup.site) !== "other"; });
+    if(!rest.length) rest = lanes.filter(function(L){ return taken.indexOf(L) < 0; });
+    if(!rest.length) rest = lanes;
+    var L = draw(rest, 11 + g); taken.push(L);
+    var lead = {lane: L, kind: tdefKind(L, setup.site), bot: null};
+    seats.push(lead);
+    if(seats.length < T.length) seats.push({lane: L, kind: lead.kind, bot: null, lead: lead});
+  }
+
   // кто куда: перебор (5! = 120) — сумма «насколько роль подходит полосе»
   var best = {sc: -1, perm: null};
   (function rec(perm, rest){
     if(!rest.length || perm.length === seats.length){
-      var sc = 0; perm.forEach(function(b, i){ sc += ((TDEF_FIT[b.role] || TDEF_FIT.support)[seats[i].kind] || 0); });
+      var sc = 0; perm.forEach(function(b, i){
+        sc += ((TDEF_FIT[b.role] || TDEF_FIT.support)[seats[i].kind] || 0) + (seats[i].solo ? (b.role === "lurker" ? 5 : -5) : 0);
+      });
       if(sc > best.sc) best = {sc: sc, perm: perm.slice()};
       return;
     }
@@ -4517,7 +4538,7 @@ function tdefSeat(setup, why){
   TDEF_S = {key: matchNum + ":" + roundNum, setupId: setup.id, site: setup.site, seats: seats};
   tdefBomb(seats);
   tdefLog("места", setup.id + " (" + why + "): " + seats.map(function(s){
-    return s.bot.id + " " + s.bot.role + " → " + s.lane.zone + " [" + s.kind + "]"; }).join("; "));
+    return s.bot.id + " " + s.bot.role + " → " + s.lane.zone + " [" + s.kind + (s.solo ? ", один" : s.lead ? ", пара с " + (s.lead.bot ? s.lead.bot.id : "?") : "") + "]"; }).join("; "));
 }
 // бомба — тому, кто играет последним: на стороне плана, не энтри; лучше саппорт
 function tdefBomb(seats){
@@ -4544,12 +4565,14 @@ function tDefaultTick(){
   if(P.type === "post_plant"){ tdefPost(); return; }
   if(P.type !== "default" && P.type !== "execute") return;
   tdefRefill();
+  tdefTrades();
   var R = SCR_S.T, entryIn = R && R.steps.some(function(S){ return S.kind === "push" && S.state !== "wait"; });
   bots.forEach(function(b){
     if(b.team !== "T" || !b.alive || !b.tdef) return;
     if(b._scrT !== undefined && tick - b._scrT <= 1) return;   // ведёт исполнитель
     if(b.planting || b._tdefBusy === tick) return;
     if(tdefReact(b)) return;
+    if(tdefTrade(b)) return;
     if(P.type === "execute" && b.role !== "lurker") tdefJoin(b, entryIn);
     else tdefLane(b);
   });
@@ -4579,7 +4602,13 @@ function tdefStop(b, why){
 }
 // полоса: к месту, постоять, к другому
 function tdefLane(b){
-  var D = b.tdef, L = D.seat.lane;
+  var D = b.tdef, L = D.seat.lane, lead = D.seat.lead && D.seat.lead.bot;
+  // второй в паре — рядом с первым, на соседнем месте полосы, на дистанции размена (scope.gg: «сзади и не на одной
+  // линии огня»): первый сменил место — второй тоже
+  if(lead && lead.alive && lead.tdef && lead.tdef.seat === D.seat.lead){
+    var ls = lead.tdef.spot;
+    if(ls && (!D.leadSpot || D.leadSpot !== ls)){ D.leadSpot = ls; D.spot = tdefMateSpot(b, L, ls); D.until = 0; }
+  }
   if(!D.spot){ D.spot = tdefSpot(b, L, null); D.until = 0; }
   var d = Math.hypot(b.x - D.spot.x, b.y - D.spot.y);
   if(d > TDEF.arrive){
@@ -4589,7 +4618,46 @@ function tdefLane(b){
   }
   if(!D.arrived){ D.arrived = true; tdefLog("в полосе", b.id + " → " + L.zone); }
   if(!D.until) D.until = tick + Math.round((TDEF.dwell[0] + (TDEF.dwell[1] - TDEF.dwell[0])*tdefRand(tick + b.id.charCodeAt(1)))*TICK_HZ);
-  if(tick >= D.until){ D.spot = tdefSpot(b, L, D.spot); D.until = 0; }
+  if(tick >= D.until && !(lead && lead.alive)){ D.spot = tdefSpot(b, L, D.spot); D.until = 0; }   // второй в паре ходит за первым
+}
+// место второго в паре: ближайшее к месту первого место полосы не ближе TDEF.mateMin; нет такого — на mateBack
+// назад от первого, в сторону своего спавна (сзади, а не рядом на одной линии)
+function tdefMateSpot(b, L, ls){
+  var best = null, bd = 1e9;
+  (L.spots || []).forEach(function(s){
+    var d = Math.hypot(s[0] - ls.x, s[1] - ls.y);
+    if(d >= TDEF.mateMin && d <= TDEF.mateMax && d < bd){ bd = d; best = s; }
+  });
+  var p = best ? {x: best[0], y: best[1]} : null;
+  if(!p){
+    var a = Math.atan2(T_SPAWN.y - ls.y, T_SPAWN.x - ls.x), r = (TDEF.mateMin + TDEF.mateMax)/2;
+    p = {x: ls.x + Math.cos(a + 0.5)*r, y: ls.y + Math.sin(a + 0.5)*r};
+  }
+  var w = snapToWalkable(p.x, p.y) || ls;
+  if(crossesWall(ls.x, ls.y, w.x, w.y)) w = ls;
+  return {x: w.x, y: w.y};
+}
+// размен (v220): свой погиб рядом (киллфид + где — по радару) — кто рядом, идёт туда сразу, чтобы разменять
+// (scope.gg: размен — убить врага сразу после того, как он убил твоего); лёркер — нет
+function tdefTrades(){
+  var S = TDEF_S; S.deadSeen = S.deadSeen || {};
+  bots.forEach(function(v){
+    if(v.team !== "T" || v.alive || S.deadSeen[v.id] || !v.tdef) return;
+    S.deadSeen[v.id] = true;
+    // идут двое ближайших (размен — второй в паре и ещё один), остальные держат своё
+    bots.filter(function(b){ return b.team === "T" && b.alive && b.tdef && b.role !== "lurker" && Math.hypot(b.x - v.x, b.y - v.y) <= TDEF.tradeR; })
+      .sort(function(a, c){ return Math.hypot(a.x - v.x, a.y - v.y) - Math.hypot(c.x - v.x, c.y - v.y); }).slice(0, 2)
+      .forEach(function(b){
+        b.tdef.trade = {x: v.x, y: v.y, until: tick + Math.round(TDEF.tradeSec*TICK_HZ)};
+        tdefLog("размен", b.id + " → туда, где погиб " + v.id + " (" + calloutName(v.x, v.y) + ")");
+      });
+  });
+}
+function tdefTrade(b){
+  var Q = b.tdef.trade; if(!Q) return false;
+  if(tick > Q.until || Math.hypot(b.x - Q.x, b.y - Q.y) < 60){ b.tdef.trade = null; return false; }
+  b.walking = false; tdefGo(b, Q.x, Q.y);
+  return true;
 }
 function tdefSpot(b, L, cur){
   var sp = (L.spots && L.spots.length ? L.spots : [[L.x, L.y, 1]]).filter(function(s){ return !cur || Math.hypot(s[0] - cur.x, s[1] - cur.y) > 5; });
