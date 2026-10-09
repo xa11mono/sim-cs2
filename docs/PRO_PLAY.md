@@ -124,6 +124,9 @@
 - CT на слабом закупе — стак сайта всей командой, чтобы разменивать [12]. Агрессивный контроль
   мида у CT особенно хорош в раундах, когда у T слабая экономика (разбор Astralis) [18].
 
+- **Дроп:** богатые покупают оружие бедным; AWP-игроку команда обычно дропает, а не ждёт, что он купит сам
+  (AWP $4750 — самому нужно ~$6000+); у лимита $16 000 — тратить на оружие и утилиту тиммейтам; «покупаем вместе
+  или сейвим вместе» [26].
 - **[демки Ancient, 1933 раунда, тип — по оружию в первые 25 с]** доли закупа: CT фулл 65 %, форс/хаф 14 %, эко 13 %;
   T 63 / 12,5 / 17 %. Победы: фулл ~57–59 %, форс/хаф ~47 %, эко ~20 %. AWP в фулл-бае: CT 73 %, T 47 %.
   Плант T (медиана): эко 45 с, форс/хаф 60 с, фулл 71 с; плант в 37 / 53 / 59 % раундов.
@@ -237,3 +240,4 @@
 23. [Bomb in CS:GO. Complete guide — SCOPE.GG](https://scope.gg/guides/bomb_complete_guide_en/)
 24. [Counter-Strafing in CS2: Why Your Shots Miss and How to Fix It — metabot.gg](https://metabot.gg/en/cs2/guides/cs2-counter-strafing-movement-accuracy)
 25. [What is peeker's advantage in CS2? — GGRecon](https://www.ggrecon.com/guides/cs2-peekers-advantage/)
+26. [Counter-Strike 2 Economy Guide — csdb.gg](https://csdb.gg/economy-guide)
