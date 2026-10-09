@@ -3146,7 +3146,8 @@ var POS = {
   // v215 (аудит п. 4, доделка): игры за инфой и смена позиции
   pushMax:     2,    // подпушей за раунд не больше (вдвоём — пара; данные дают в среднем ~1 на раунд)
   pushLead:    1,    // с: выйти так, чтобы быть на точке подпуша к её типичной секунде (sec), с запасом
-  movedR:      40    // px: после фрага / попадания — на другое место хотя бы так далеко (у про «откатился» > 40 px)
+  movedR:      40,   // px: после фрага / попадания — на другое место хотя бы так далеко (у про «откатился» > 40 px)
+  pushHearR:   600   // px: на подпуше услышал врага / сказали про зону так близко — назад (v221, проектное число)
 };
 // насколько слот нужен команде, когда живых меньше, чем слотов: якорь сайта пустеть не должен —
 // его вес больше, чем «свой слот + подходит по роли» у соседа, поэтому сосед на него переходит
@@ -3500,6 +3501,12 @@ function posPushTick(b){
     return true;
   }
   var contact = b._sawEnemy || tick - (b._lastSawT || -1e9) < TICK_HZ/2;
+  // подпуш — за инфой, не за дуэлью (PRO_PLAY 5: «не пикать одному на миде — драться с поддержкой или отойти»;
+  // у про у push-точек гибнут в 0–14 % раундов): инфа пришла раньше врага — назад (v221)
+  if(!contact && (Q.state === "go" || Q.state === "hold")){
+    var why = posPushInfo(b, P);
+    if(why){ Q.state = "done"; posGo(b, "подпуш: " + why + " — инфа есть, назад"); return true; }
+  }
   if(Q.state === "go"){
     if(contact){ Q.saw = true; return true; }
     if(Q.saw){ Q.state = "done"; posGo(b, "подпуш: был контакт — назад на слот"); return true; }   // встретил по пути — назад
@@ -3515,6 +3522,22 @@ function posPushTick(b){
     return true;
   }
   return false;
+}
+// инфа на подпуше: свои шаги/стрельба рядом (слух) или команде уже сказали, что враги у точки (доска войса)
+function posPushInfo(b, P){
+  var K = b.know;
+  if(K) for(var i = K.heard.length - 1; i >= 0 && tick - K.heard[i].tick <= 2; i--){
+    var h = K.heard[i];
+    if((h.kind === "steps" || h.kind === "shots" || h.kind === "water") && Math.hypot(h.x - b.x, h.y - b.y) <= POS.pushHearR)
+      return "слышу " + (h.kind === "shots" ? "стрельбу" : "шаги") + " " + knowZoneName(h.zone);
+  }
+  var T = teamOf(b.team);
+  for(var z in T.threats){
+    var th = T.threats[z], c = knowGraph().c[z];
+    if(!c || !th.count || tick - th.tick > teamSec(TEAM.board)) continue;
+    if(Math.hypot(c.x - P.x, c.y - P.y) <= POS.pushHearR) return "сказали: " + knowZoneName(z);
+  }
+  return null;
 }
 // ---------- после фрага / попадания — сменить место (v215) ----------
 function posAfterHit(b){
