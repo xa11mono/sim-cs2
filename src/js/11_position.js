@@ -70,7 +70,12 @@ var POS = {
   // 3201 пик, 2,4 на минуту стояния): отход 33 / 42 / 49 px (25 / 75 / 90 %), туда-обратно 0,8 с (медиана), 2,0 с (90 %)
   peekOut:     [33, 42, 49],
   peekSec:     0.8,
-  peekMax:     2.0
+  peekMax:     2.0,
+  // v228 (правка владельца 6 / В17): CT стоя не замирает. Из демок (8 демок, стоящие CT, шаг 0,25 с): одно направление
+  // держат 1,8 / 3,2 / 7,8 / 15,2 с (25 / 50 / 75 / 90 %), потом переводят прицел (> 20°) — на какое, по долям с этой
+  // точки (positions.json → looks, tools/ct_look_bake.py); джиггл — 2,35 на минуту стояния (15 демок, как пики выше)
+  holdQ:       [[0, 1.0], [0.25, 1.8], [0.5, 3.2], [0.75, 7.8], [0.9, 15.2], [1, 30]],
+  jigglePerMin: 2.35
 };
 // насколько слот нужен команде, когда живых меньше, чем слотов: якорь сайта пустеть не должен —
 // его вес больше, чем «свой слот + подходит по роли» у соседа, поэтому сосед на него переходит
@@ -513,14 +518,15 @@ function posPushInfo(b, P){
 // (главное — выжить, PRO_PLAY 3) пикает только вместе с кем-то. Один звук — один пик: снова — на новые шаги.
 function posPeekCheck(b){
   var K = b.know;
-  if(!K || b.pos.peek || posLed(b) || b._sawEnemy || b.pos.push || b.pos.cover || teamOf("CT").planState.type !== "default") return false;
+  if(!K || b.pos.peek || posLed(b) || b._sawEnemy || b.pos.push || b.pos.cover) return false;
+  if(teamOf("CT").planState.type !== "default") return posJiggle(b);
   var h = null;
   for(var i = K.heard.length - 1; i >= 0 && tick - K.heard[i].tick <= TICK_HZ; i--){
     var s = K.heard[i];
     if((s.kind !== "steps" && s.kind !== "water") || s.tick <= (b.pos.peekSrc || -1)) continue;
     if(crossesWall(b.x, b.y, s.x, s.y) || smokeBlocks(b.x, b.y, s.x, s.y)){ h = s; break; }
   }
-  if(!h) return false;
+  if(!h) return posJiggle(b);
   b.pos.peekSrc = h.tick;
   var p = posPeekPoint(b, h); if(!p) return false;
   var go = [{b: b, p: p}];
@@ -539,6 +545,19 @@ function posPeekCheck(b){
   var who = go.map(function(g){ return g.b.id; }).join(", ");
   POS_LOG.push({tick: tick, round: roundNum, who: b.id, slot: b.pos.slot, pid: b.pos.cur, why: "пик по инфе: шаги " + knowZoneName(h.zone) + (go.length > 1 ? " — вместе: " + who : "")});
   logEvent("Позиция: " + who + " — пик на шаги " + knowZoneName(h.zone) + (go.length > 1 ? " (вместе)" : ""), "info");
+  return true;
+}
+// джиггл в своём ритме (v228, В17): без инфы, стоя на точке — с частотой, как у про (POS.jigglePerMin), выглянуть на
+// угол, который держит сейчас (lookTarget), и вернуться — тем же шагом и за то же время, что пик по инфе
+function posJiggle(b){
+  if(Math.hypot(b.pos.tx - b.x, b.pos.ty - b.y) > POS.arrive || !b.lookTarget) return false;
+  if(posSeed(b, tick*17 + 5) >= POS.jigglePerMin/60/TICK_HZ) return false;
+  var t = b.lookTarget, p = posPeekPoint(b, {x: t.x, y: t.y});
+  if(!p) return false;
+  b.pos.peek = {x: p.x, y: p.y, hx: t.x, hy: t.y, start: tick, jiggle: true};
+  b.walking = false;
+  b.path = buildWaypointPath(b.x, b.y, b.z, p.x, p.y, b.pos.tz); b.pathIdx = 0; b._pathBy = "pos";
+  POS_LOG.push({tick: tick, round: roundNum, who: b.id, slot: b.pos.slot, pid: b.pos.cur, why: "джиггл"});
   return true;
 }
 // откуда выглянуть: шаг POS.peekOut от себя, откуда место звука видно (без стены и дыма); ближайший
@@ -600,7 +619,11 @@ function posLook(b){
   if(b._ppLook) return {x: b.x + b._ppLook[0]*400, y: b.y + b._ppLook[1]*400, why: "postplant"};   // T стоит на месте пост-планта (12_t_default.js)
   if(!b.pos) return posStandLook(b);   // T стоит на своём месте (v224)
   var P = POS_PT[b.pos.cur];
-  if(!b.pos.threat) return {x: P.angle.x, y: P.angle.y, why: b.pos.fb ? "fallback" : "angle"};
+  if(!b.pos.threat){
+    var L = posHoldLook(b, P);
+    if(L) return L;
+    return {x: P.angle.x, y: P.angle.y, why: b.pos.fb ? "fallback" : "angle"};
+  }
   // угроза — взгляд на неё, но не шире yawRange точки (в игре yaw против часовой, на радаре y вниз)
   var c = -P.yaw*Math.PI/180, lo = -(P.yawRange[1] + POS.yawPad)*Math.PI/180, hi = -(P.yawRange[0] - POS.yawPad)*Math.PI/180;
   var d = Math.atan2(b.pos.threat.y - b.y, b.pos.threat.x - b.x) - c;
@@ -608,6 +631,23 @@ function posLook(b){
   d = Math.max(lo, Math.min(hi, d));
   var R = Math.max(150, P.angle.dist);
   return {x: b.x + Math.cos(c+d)*R, y: b.y + Math.sin(c+d)*R, why: "threat"};
+}
+
+// CT стоит на точке без угрозы: держит одно из направлений, которые про держат с этой точки, сколько держат про, потом
+// переводит на другое по их долям (v228, В17: «про не статичны — в своём ритме меняют угол»). Идёт / на запасной (дым) —
+// угол точки как раньше
+function posHoldLook(b, P){
+  if(!P.looks || !P.looks.length || b.pos.fb || Math.hypot(b.pos.tx - b.x, b.pos.ty - b.y) > POS.arrive) return null;
+  var H = b.pos.hold;
+  if(!H || H.pid !== P.id || tick >= H.until){
+    var r = posSeed(b, tick*7 + 11), i = 0, acc = 0, sum = P.looks.reduce(function(a, l){ return a + l[2]; }, 0);
+    for(; i < P.looks.length - 1; i++){ acc += P.looks[i][2]/sum; if(r < acc) break; }
+    var u = posSeed(b, tick*13 + 29), Q = POS.holdQ, sec = Q[Q.length - 1][1];
+    for(var k = 1; k < Q.length; k++) if(u <= Q[k][0]){ sec = Q[k-1][1] + (Q[k][1] - Q[k-1][1])*(u - Q[k-1][0])/(Q[k][0] - Q[k-1][0]); break; }
+    H = b.pos.hold = {pid: P.id, i: i, until: tick + Math.round(sec*TICK_HZ)};
+  }
+  var l = P.looks[H.i], R = Math.max(150, P.angle.dist);
+  return {x: b.x + l[0]*R, y: b.y + l[1]*R, why: "angle"};
 }
 
 // ---------- T стоит на месте: куда смотреть (v224, правки владельца 3 и 10) ----------
