@@ -175,6 +175,10 @@
   появления (угол slot'а, префайр по гипотезе) или это неожиданный контакт. Восприятие
   есть всегда, у подготовленного нет только доводки и разворота.
 
+## 6б. Где бомба — как CT её находят (09.10, аудит п. 1)
+- Бомба пищит и мигает, чем ближе взрыв — тем чаще; игроки ищут её и врагов по писку и звуку дефуза [21].
+- Насколько далеко слышно писк, и видна ли заложенная бомба на радаре CT, — в найденных источниках нет.
+
 ## 7. Чего в источниках нет (брать из наших демок)
 
 Тайминги в секундах (кроме общих фаз [3]), точки, кто где стоит у каждой команды, как часто, как
@@ -210,3 +214,4 @@
 23. [What is reaction time and does it make you better at CS2 — Insider Gaming](https://insider-gaming.com/what-is-reaction-time-and-does-it-make-you-better-at-cs2-or-valorant/)
 24. [Crosshair Placement in CS2: The Habit That Wins Duels — Metabot](https://metabot.gg/en/cs2/guides/cs2-crosshair-placement-pre-aiming)
 25. [What is peeker's advantage in CS2 — GGRecon](https://www.ggrecon.com/guides/cs2-peekers-advantage/)
+21. [Counter-Strike C4 Guide: Placement, Defusal, and Tactics — Strafe](https://www.strafe.com/news/read/counter-strike-c4-guide-placement-defusal-and-tactics/)

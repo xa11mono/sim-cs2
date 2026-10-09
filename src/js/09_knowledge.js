@@ -6,7 +6,8 @@
 //   • свой слух — новые записи b.ears (их рождает makeSound, 14_movement.js): «что и
 //     примерно откуда», БЕЗ «кто»;
 //   • киллфид — кто кого убил (feedKill → knowKill), место смерти своего видно по радару;
-//   • плант — объявление «бомба заложена» (сайт CT узнают только по звуку/от своих);
+//   • плант — объявление «бомба заложена» (сайт CT узнают как игрок: плант слышал/видел, писк бомбы,
+//     саму бомбу в поле зрения, от своих в войсе — knowBombSite);
 //   • свои глаза на пустой точке — «посмотрел, а там никого»;
 //   • войс — что тиммейт договорил в тимспике (knowCall; кто и что говорит — 12_team.js).
 //     Чужое b.know отсюда не читается никогда: только произнесённое;
@@ -283,7 +284,12 @@ function knowHearing(b){
   var K = b.know, E = b.ears || [];
   for(var i = 0; i < E.length; i++){
     var s = E[i];
-    if(s.tick !== tick || s.kind === "pop" || s.kind === "defusing" || !(s.kind in KNOW.soundL)) continue;
+    // каждый услышанный звук — один раз (s.known), даже если он прозвучал в прошлом тике ПОСЛЕ knowTick
+    // (плант, бросок гранаты, начало дефуза делают решения, которые идут позже знания; v212)
+    if(s.known) continue;
+    s.known = true;
+    if(s.kind === "beep"){ knowBombSite(b, knowNearestSite(s.x, s.y), "услышал писк бомбы"); continue; }
+    if(s.kind === "pop" || s.kind === "defusing" || !(s.kind in KNOW.soundL)) continue;
     var d = Math.hypot(s.x-b.x, s.y-b.y), err = d*(s.occl ? 0.3 : 0.15) + 40;
     var zone = knowZoneAt(s.x, s.y);
     K.heard.push({x: s.x, y: s.y, zone: zone, kind: s.kind, tick: tick, err: err});
@@ -489,6 +495,24 @@ function knowLastEvent(b, since){
   return t;
 }
 
+// ---------- где бомба (CT): писк, сама бомба в поле зрения (v212) ----------
+// «Бомба заложена» слышат все, а где — CT узнают как игрок: слышал/видел плант, слышит писк
+// бомбы (14_movement.js SOUND.beep, 05_bomb.js), видит саму бомбу на земле, ему сказали в войсе.
+function knowBombSite(b, site, how){
+  var K = b.know; if(!K || !site) return;
+  if(!K.planted){ K.plantHeard = site; return; }
+  if(K.plantSite) return;
+  K.plantSite = site;
+  for(var id in K.enemies) knowTrace(b, id, how + " — бомба на " + site);
+}
+function knowBombSeen(b){
+  var K = b.know;
+  if(b.team !== "CT" || !K.planted || K.plantSite || !bomb || bomb.state !== "planted" || tick < b.blindUntil) return;
+  if(Math.hypot(bomb.x-b.x, bomb.y-b.y) > KNOW.lookRange || !inFov(b, bomb.x, bomb.y)) return;
+  if(!visLine(b.x, b.y, visEyeZ(b), bomb.x, bomb.y, visFloorAt(bomb.x, bomb.y) + 5, true)) return;
+  knowBombSite(b, bomb.site, "увидел бомбу");
+}
+
 // ---------- плант (объявление видят все) ----------
 function knowPlant(b){
   var K = b.know;
@@ -537,6 +561,7 @@ function knowTick(){
     knowVision(b);
     knowHearing(b);
     knowPlant(b);
+    knowBombSeen(b);
     knowTeamSight(b);
     knowWindowsTick(b);
     knowLook(b);

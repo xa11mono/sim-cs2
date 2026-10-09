@@ -108,6 +108,7 @@ var SOUND = {
   pop:     {open:900, wall:650, see:1400, say:"разрыв гранаты"},
   nadefly: {open:0, wall:0, see:1200, say:"гранату — прилетела"},   // видел полёт: откуда кинули — примерно
   plant:   {open:850, wall:520, say:"плант"},
+  beep:    {open:850, wall:520, say:"писк бомбы"},   // радиус — как у планта: проектное число, источника нет (заплатка)
   defuse:  {open:DEFUSE_HEAR, wall:DEFUSE_HEAR, say:"дефуз"},
   defusing:{open:DEFUSE_HEAR, wall:DEFUSE_HEAR, say:"дефуз"},   // тот же звук продолжается (не новый)
   pickup:  {open:250, wall:150, say:"подбор оружия"}

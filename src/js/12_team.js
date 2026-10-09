@@ -154,7 +154,9 @@ function teamNotice(b){
     teamPropose(b, {kind: "hear", zone: s.zone, sound: s.kind});
   }
   // plant: видел, как ставят (CT)
-  if(b.team === "CT" && K.plantSeen && !V.plantSaid){ V.plantSaid = true; teamPropose(b, {kind: "plant", site: K.plantSeen}); }
+  // plant: видел, как ставят, — или узнал, где бомба (писк, увидел бомбу): говорит команде (CT)
+  var pSite = K.plantSeen || (K.planted && K.plantSite);
+  if(b.team === "CT" && pSite && !V.plantSaid){ V.plantSaid = true; teamPropose(b, {kind: "plant", site: pSite}); }
 }
 
 // ---------- смерть (feedKill, 20_hud.js): видел убийцу — успевает сказать, откуда ----------

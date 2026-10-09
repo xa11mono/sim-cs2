@@ -47,7 +47,7 @@ function bombTick(){
     if(c.planting && tick >= c.plantUntil){
       c.planting = false;
       bomb.state = "planted"; bomb.site = c.plantSite; bomb.x = c.baseX; bomb.y = c.baseY;
-      bomb.plantTick = tick; bomb.explodeTick = tick + BOMB_TICKS; bomb.carrier = null;
+      bomb.plantTick = tick; bomb.explodeTick = tick + BOMB_TICKS; bomb.carrier = null; bomb.planter = c;
       c.money = Math.min(MAX_MONEY, c.money + 300);
       logEvent(c.id+" заложил бомбу на "+bomb.site+" (+$300)", "bomb");
       feedEvent("bomb", c.id+" заложил бомбу на "+bomb.site);
@@ -57,6 +57,8 @@ function bombTick(){
     var pick = bots.filter(function(b){ return b.team==="T" && b.alive && Math.hypot(b.baseX-bomb.x, b.baseY-bomb.y) < 36; })[0];
     if(pick){ bomb.state = "carried"; bomb.carrier = pick; logEvent(pick.id+" подобрал бомбу"); }
   } else if(bomb.state === "planted"){
+    // заложенная бомба пищит (CS2: чем ближе взрыв, тем чаще — здесь раз в секунду, для знания этого хватает)
+    if(bomb.planter && (tick - bomb.plantTick) % 64 === 32) makeSound(bomb.planter, bomb.x, bomb.y, "beep");
     var def = bots.filter(function(b){ return b.defusing && b.alive; })[0];
     if(!def) return;
     // звук дефуза продолжается, пока дефузят
