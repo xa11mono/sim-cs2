@@ -18,7 +18,14 @@
 //   • угроза на slot (гипотеза врага с весом ≥ POS.threatW на входе, который держит
 //     точка, BRAIN 4.4) — позиция та же, взгляд в пределах yawRange точки — на вход угрозы;
 //   • смена Setup'а — план команды CT (teamKnowledge.planState.activeSetupId, решает IGL в
-//     12_ct_brain.js): posTick видит новый id — перестраивает живых CT.
+//     12_ct_brain.js): posTick видит новый id — перестраивает живых CT;
+//   • (v214, аудит п. 4, docs/PRO_PLAY.md 3) на точке не стоит истуканом: между местами точки
+//     (spots из демок) / в пределах её spread, шагом, раз в POS.shuffle с, пока нет угрозы и врага;
+//   • ротация по инфе (ротатор, PRO_PLAY 3: «первым уходит со своей зоны, когда на другой сайт давят
+//     или выходят», «ротироваться только по настоящей инфе»): по СВОЕМУ знанию (гипотезы + войс +
+//     разрывы утилиты T у сайта) на сайте X ≥ POS.rotNeed врагов — туда идут ближайшие не-якоря, пока
+//     защитников X меньше min(инфа, rotMax); точка — CT-точка из демок на стороне X. Якорь своего сайта
+//     не уходит. На своей стороне стало ≥ rotNeed, а на X меньше — назад на свою точку.
 // T: расстановки в данных нет (T-Setup'ы — сценарии execute, шаги 6–7) — стоят у спавна,
 //   взгляд вперёд к центру карты (заплатка до шага 7, перенесена из 12_stub.js).
 //
@@ -35,7 +42,15 @@ var POS = {
   yawPad:      10,   // к yawRange точки — запас, ° (держит из-за края шире)
   keepBonus:   2,    // при перераздаче — за то, что остаёшься на своём слоте
   moveCost:    600,  // при перераздаче — −1 балл за столько px до новой точки
-  marginMin:   3     // с: якорь/саппорт — только точки, где свои успевают раньше врага хотя бы на столько
+  marginMin:   3,    // с: якорь/саппорт — только точки, где свои успевают раньше врага хотя бы на столько
+  // v214 (аудит п. 4): CT по ходу раунда
+  shuffle:     [3, 8], // с: на своей точке — постоять, потом на другое место точки (spots) / в пределах её spread
+  rotEvery:    16,   // тиков: как часто CT сверяет «где бьют» по своему знанию
+  rotNeed:     2,    // «настоящая инфа» о выходе на сайт: столько врагов там по своему знанию (или утилита выхода)
+  rotPops:     2,    // разрывов гранат T у сайта за 3 с (слышал/видел) — это выход; врагов там — столько, сколько разрывов
+  rotPopR:     450,  // px: разрыв «у сайта»
+  rotMax:      3,    // защитников на сайте выхода не больше столько (вместе с теми, кто там стоял)
+  rotApart:    150   // px: точка ротации не ближе этого к цели тиммейта
 };
 // насколько слот нужен команде, когда живых меньше, чем слотов: якорь сайта пустеть не должен —
 // его вес больше, чем «свой слот + подходит по роли» у соседа, поэтому сосед на него переходит
@@ -217,6 +232,7 @@ function posGo(b, why){
   var sp = P.spots && P.spots.length ? posPick(P.spots, function(s){ return s.share; }, posSeed(b, 3)) : P;
   b.pos.cur = P.id; b.pos.tx = sp.x; b.pos.ty = sp.y; b.pos.tz = P.z || 0;
   b.pos.threat = null;
+  b.walking = false;   // к точке / на ротацию — бегом; шагом — только перестановка на точке (posShuffle)
   posPath(b);
   POS_LOG.push({tick: tick, round: roundNum, who: b.id, slot: b.pos.slot, pid: P.id, why: why});
   if(why !== "раунд") logEvent("Позиция: "+nick(b.id)+" → "+b.pos.slot+" ("+P.area+(b.pos.fb ? ", запасная" : "")+") — "+why, "info");
@@ -288,7 +304,78 @@ function posTick(){
     if(far && !moving && tick - b.pos.pathT >= POS.repathEvery) posPath(b);   // движок сбросил путь — та же цель
     if((smokes.length || b.pos.fb) && (tick + (b.id.charCodeAt(b.id.length-1)||0)) % POS.smokeEvery === 0) posSmokeCheck(b);
     if(!far && (tick + (b.id.charCodeAt(0)||0)) % POS.threatEvery === 0) posThreatCheck(b);
+    if((tick + (b.id.charCodeAt(1)||0)) % POS.rotEvery === 0) posRotateCheck(b);
+    if(!far && !moving) posShuffle(b);
   });
+}
+// ---------- ротация по инфе (v214) ----------
+// где бьют — по знанию самого бота: враги, которых он уверенно ставит на сторону (planLocatedList,
+// 12_team.js: видел сам + войс), и разрывы гранат T у сайта, которые он слышал/видел (b.ears, «pop»)
+function posPressure(b){
+  var n = {A: 0, B: 0, mid: 0};
+  planLocatedList(b).forEach(function(e){ n[e.region]++; });
+  ["A", "B"].forEach(function(k){
+    var s = SITES[k], pops = (b.ears || []).filter(function(e){
+      return e.kind === "pop" && tick - e.tick <= 3*TICK_HZ && Math.hypot(e.x - s.x, e.y - s.y) <= POS.rotPopR; }).length;
+    // выход с утилитой: сколько гранат легло у сайта, примерно столько людей за ними идёт (допущение, не из демок)
+    if(pops >= POS.rotPops) n[k] = Math.max(n[k], pops);
+  });
+  return n;
+}
+function posRegionOf(b){ var P = POS_PT[b.pos.home || b.pos.pid]; return P ? P.region : null; }
+function posRotateCheck(b){
+  if(posLed(b) || !b.know || teamOf("CT").planState.type !== "default") return;
+  var pr = posPressure(b), home = posRegionOf(b);
+  // уже в ротации: на своей стороне жарко, а там, куда шёл, — нет → назад
+  if(b.pos.rot){
+    if(home && pr[home] >= POS.rotNeed && pr[b.pos.rot] < POS.rotNeed){
+      var to = b.pos.rot; b.pos.pid = b.pos.home; b.pos.rot = null; b.pos.home = null; b.pos.fb = false;
+      posGo(b, "назад со стороны " + to + ": на своей стороне " + pr[home] + " по инфе");
+    }
+    return;
+  }
+  if(/^anchor/.test(b.pos.slot)) return;            // якорь держит свой сайт
+  if(home && pr[home] >= 1) return;                 // у себя есть враг — держит своё
+  var X = pr.A >= pr.B ? "A" : "B";
+  if(pr[X] < POS.rotNeed || home === X) return;
+  var CT = bots.filter(function(o){ return o.team === "CT" && o.alive && o.pos; });
+  var at = CT.filter(function(o){ return o.pos.rot === X || (!o.pos.rot && posRegionOf(o) === X); }).length;
+  var need = Math.min(pr[X], POS.rotMax);
+  if(at >= need) return;
+  // идут ближайшие к сайту не-якоря без врага у себя — я среди первых (need − at)?
+  var s = SITES[X];
+  var cand = CT.filter(function(o){ return !o.pos.rot && !/^anchor/.test(o.pos.slot) && posRegionOf(o) !== X; })
+    .sort(function(a, c){ return Math.hypot(a.x - s.x, a.y - s.y) - Math.hypot(c.x - s.x, c.y - s.y); });
+  if(cand.indexOf(b) < 0 || cand.indexOf(b) >= need - at) return;
+  var taken = CT.filter(function(o){ return o !== b; }).map(function(o){ return {x: o.pos.tx, y: o.pos.ty}; });
+  var best = null, bd = 1e9;
+  KNOW_POSITIONS.points.forEach(function(P){
+    if(P.side !== "CT" || P.push || P.region !== X) return;
+    if(taken.some(function(t){ return Math.hypot(t.x - P.x, t.y - P.y) < POS.rotApart; })) return;
+    var d = Math.hypot(P.x - b.x, P.y - b.y) * (P.type === "standard" ? 1 : 1.3);
+    if(d < bd){ bd = d; best = P; }
+  });
+  if(!best) return;
+  b.pos.home = b.pos.pid; b.pos.rot = X; b.pos.pid = best.id; b.pos.fb = false;
+  posGo(b, "ротация на " + X + " — по инфе: там " + pr[X] + (pr[X] >= POS.rotNeed && planLocatedList(b).filter(function(e){ return e.region === X; }).length < pr[X] ? " (утилита выхода)" : ""));
+}
+// ---------- на точке не истуканом (v214) ----------
+function posShuffle(b){
+  if(posLed(b) || b.pos.threat || b.pos.fb || b._sawEnemy || tick - (b._lastSawT || -1e9) < 2*TICK_HZ) { b.pos.shT = 0; return; }
+  if(!b.pos.shT){ b.pos.shT = tick + Math.round((POS.shuffle[0] + (POS.shuffle[1] - POS.shuffle[0])*posSeed(b, tick % 977))*TICK_HZ); return; }
+  if(tick < b.pos.shT) return;
+  b.pos.shT = 0;
+  var P = POS_PT[b.pos.cur], sp = (P.spots || []).filter(function(s){ return Math.hypot(s.x - b.pos.tx, s.y - b.pos.ty) > 8; });
+  var t;
+  if(sp.length) t = posPick(sp, function(s){ return s.share; }, posSeed(b, tick % 1009));
+  else {
+    var a = posSeed(b, tick % 1013)*Math.PI*2, r = (P.spread || 20)*0.5*posSeed(b, tick % 1019);
+    t = snapToWalkable(P.x + Math.cos(a)*r, P.y + Math.sin(a)*r);
+    if(!t || crossesWall(P.x, P.y, t.x, t.y)) return;
+  }
+  b.pos.tx = t.x; b.pos.ty = t.y;
+  b.walking = true;
+  posPath(b);
 }
 
 // ---------- взгляд (15_combat.js, когда врага не видно) ----------
