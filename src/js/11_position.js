@@ -298,16 +298,21 @@ function posAngleZone(P){
   if(P._az === undefined){ var z = knowZoneAt(P.angle.x, P.angle.y); P._az = z ? teamNear(z) : []; }
   return P._az;
 }
-// угроза на slot: враг (по гипотезам самого бота) на входе, который держит точка
+// угроза на slot: враг (по гипотезам самого бота) на входе, который держит точка. Считается вся вероятность врага на
+// этом входе — сумма его гипотез там (v226: по одной гипотезе вес ≥ 0,5 почти не набирался — знание делит вес между
+// ветками, — и угроза за матч была в 0,2 % замеров); точка — его самая весомая гипотеза там
 function posThreatCheck(b){
-  var P = POS_PT[b.pos.cur], Z = posAngleZone(P), best = null;
+  var P = POS_PT[b.pos.cur], Z = posAngleZone(P), best = null, bw = 0;
   var K = b.know;
   if(K) for(var id in K.enemies){
     var B = K.enemies[id]; if(B.visible) continue;
+    var w = 0, top = null;
     B.hyps.forEach(function(h){
-      if(h.x === undefined || h.weight < POS.threatW || Z.indexOf(h.zone) < 0) return;
-      if(!best || h.weight > best.weight) best = h;
+      if(h.x === undefined || Z.indexOf(h.zone) < 0) return;
+      w += h.weight;
+      if(!top || h.weight > top.weight) top = h;
     });
+    if(top && w >= POS.threatW && w > bw){ bw = w; best = top; }
   }
   b.pos.threat = best ? {x: best.x, y: best.y} : null;
 }
@@ -346,15 +351,9 @@ function posPressure(b){
   ["A", "B", "mid"].forEach(function(r){ n[r] = Math.max(n[r], said[r]); });
   // шаги/стрельба у сайта, которые он слышал сам за 3 с: сколько разных источников (ближе 150 px — один) — столько
   // примерно врагов идёт (v222: ротация по ранней инфе, до утилиты выхода)
-  var K = b.know, src = {A: [], B: []};
-  if(K) K.heard.forEach(function(h){
-    if(tick - h.tick > 3*TICK_HZ || (h.kind !== "steps" && h.kind !== "water" && h.kind !== "shots")) return;
-    ["A", "B"].forEach(function(k){
-      if(Math.hypot(h.x - SITES[k].x, h.y - SITES[k].y) > POS.rotHearR) return;
-      if(!src[k].some(function(q){ return Math.hypot(q.x - h.x, q.y - h.y) < 150; })) src[k].push(h);
-    });
+  ["A", "B"].forEach(function(k){
+    n[k] = Math.max(n[k], knowSources(b.know, function(h){ return Math.hypot(h.x - SITES[k].x, h.y - SITES[k].y) <= POS.rotHearR; }, KNOW.srcSec).length);
   });
-  ["A", "B"].forEach(function(k){ n[k] = Math.max(n[k], src[k].length); });
   ["A", "B"].forEach(function(k){
     var s = SITES[k], pops = (b.ears || []).filter(function(e){
       return e.kind === "pop" && tick - e.tick <= 3*TICK_HZ && Math.hypot(e.x - s.x, e.y - s.y) <= POS.rotPopR; }).length;

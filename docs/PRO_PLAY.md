@@ -113,6 +113,9 @@
   не анкора; на Ancient B Cave теперь часто у IGL (karrigan, Snappi) [13]. Анкор-IGL (karrigan) из
   всех пятерых часто знает меньше всех [13].
 - Позиции меняют от раунда к раунду, чтобы T не читали [12].
+- **Войс:** главное — где и куда идут враги; **сколько** — точно: «слышишь одного — так и скажи, двоих — скажи ровно
+  это», «один, может больше»; утилиту — как увидел («несколько флешек B»); не «они» вместо числа [27].
+- **[демки Ancient]** 13 % HE CT ложатся в активный дым T — 0,38 за раунд; CT кидают 2,9 HE за раунд (T — 1,5) (v226).
 
 ## 4. Экономика — как играют по типу раунда
 
@@ -244,3 +247,4 @@
 24. [Counter-Strafing in CS2: Why Your Shots Miss and How to Fix It — metabot.gg](https://metabot.gg/en/cs2/guides/cs2-counter-strafing-movement-accuracy)
 25. [What is peeker's advantage in CS2? — GGRecon](https://www.ggrecon.com/guides/cs2-peekers-advantage/)
 26. [Counter-Strike 2 Economy Guide — csdb.gg](https://csdb.gg/economy-guide)
+27. [Communication in CS2 – The Ultimate Guide — ProSettings](https://prosettings.net/blog/communication-in-cs2-guide/)

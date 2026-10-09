@@ -52,7 +52,9 @@ var KNOW = {
   unknownCompat: 0.3, // moved_unknown объясняет звук хуже, чем конкретная ветка
   sameSource:  1.5,   // тот же звук из того же места в пределах 1,5 с — тот же источник:
                       //   двигает точку «слышал здесь», но новым доводом не считается
-  memSec:      20     // сколько бот помнит услышанное сам (для окон «было бы слышно»), с
+  memSec:      20,    // сколько бот помнит услышанное сам (для окон «было бы слышно»), с
+  srcApart:    150,   // px: звуки ближе — один источник (knowSources; проектное число, v222)
+  srcSec:      3      // с: за сколько считать источники (проектное число, v222)
 };
 var KNOW_POSITIONS = @@DATA:positions.json@@;
 var KNOW_TRACE = null;   // {id: true} — чьи события пишутся в KNOW_LOG (tools/know_log.js)
@@ -298,6 +300,16 @@ function knowHearing(b){
     if(s.kind === "plant" && !K.planted) K.plantHeard = knowNearestSite(s.x, s.y);
     knowApply(b, s, err, zone, KNOW.soundL[s.kind], {say: "услышал " + (SOUND[s.kind] ? SOUND[s.kind].say : s.kind)});
   }
+}
+// сколько разных врагов бот слышал за sec с (шаги / вода / стрельба), где test(h) — «там»: звуки ближе
+// KNOW.srcApart друг к другу — один источник. На слух человек так и считает: «двое», «несколько» (v222, v226)
+function knowSources(K, test, sec){
+  var src = [];
+  if(K) K.heard.forEach(function(h){
+    if(tick - h.tick > sec*TICK_HZ || (h.kind !== "steps" && h.kind !== "water" && h.kind !== "shots") || !test(h)) return;
+    if(!src.some(function(q){ return Math.hypot(q.x - h.x, q.y - h.y) < KNOW.srcApart; })) src.push(h);
+  });
+  return src;
 }
 // ---------- войс: тиммейт договорил фразу (12_team.js) ----------
 // msg: {zone, count, awp, kind:'see'|'hear'|'death'|'plant'|'defuse', site, enemy, by, text}.

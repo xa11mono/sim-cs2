@@ -7,7 +7,9 @@
 //
 // Что говорят (повод — своё восприятие, без правил под ситуации):
 //   see    — увидел врага (или того же — в новой зоне): «один A Main», «двое Mid, один с AWP»;
-//   hear   — услышал шаги/стрельбу, которые не объясняет то, что команде уже сказано: «шаги Cave»;
+//   hear   — услышал шаги/стрельбу, которые не объясняет то, что команде уже сказано: «шаги Cave»; сколько их
+//            по слуху (knowSources, зона и соседние) — «двое, шаги Cave»; стало больше — говорит снова (v226;
+//            ProSettings: «слышишь одного — так и скажи, двоих — скажи ровно это»);
 //   plant  — CT услышал/увидел плант: «ставят B!» (срочно);
 //   defuse — T услышал дефуз: «дефузят!» (срочно);
 //   death  — убили, а убийцу видел: «убили с Mid, AWP» (срочно; мёртвый успевает сказать ~2 с);
@@ -76,7 +78,7 @@ function teamText(m){
   if(m.kind === "plant") return "ставят " + m.site + "!";
   if(m.kind === "defuse") return "дефузят!";
   if(m.kind === "death") return "убили с " + z + (m.awp ? ", AWP" : "");
-  if(m.kind === "hear") return (m.sound === "shots" ? "стреляют " : m.sound === "water" ? "шаги в воде " : "шаги ") + z;
+  if(m.kind === "hear") return (m.count >= 3 ? "несколько, " : m.count === 2 ? "двое, " : "") + (m.sound === "shots" ? "стреляют " : m.sound === "water" ? "шаги в воде " : "шаги ") + z;
   var n = m.count >= 3 ? "несколько" : m.count === 2 ? "двое" : "один";
   if(m.awp && m.count === 1) return "AWP " + z;
   return n + " " + z + (m.awp ? ", один с AWP" : "");
@@ -87,7 +89,8 @@ function teamCovered(T, m){
   if(m.kind === "plant" || m.kind === "defuse") return !!T.threats[m.kind];
   if(m.kind === "death" || m.kind === "igl" || m.kind === "script") return false;   // про своего убийцу / колл / свою гранату — всегда новость
   // звук — место понятно грубо: сказанное про эту зону или соседнюю — уже не новость
-  if(m.kind === "hear") return teamNear(m.zone).some(function(z){ var t = T.threats[z]; return t && tick - t.tick <= teamSec(TEAM.board); });
+  // («двое» там, где сказано про одного, — новость)
+  if(m.kind === "hear") return teamNear(m.zone).some(function(z){ var t = T.threats[z]; return t && tick - t.tick <= teamSec(TEAM.board) && (t.count || 0) >= (m.count || 1); });
   var t = T.threats[m.zone];
   if(!t || tick - t.tick > teamSec(TEAM.board)) return false;
   return t.count >= m.count && (!m.awp || t.awp);    // «шаги там» (count 0) не покрывает «вижу одного»
@@ -146,12 +149,14 @@ function teamNotice(b){
     var vis = (b._visible || []).some(function(e){ return Math.hypot(e.x-s.x, e.y-s.y) <= s.err + 30; });
     if(vis) continue;
     // тот же шум продолжается (стрельба, бег) — сказал один раз; снова — только после
-    // паузы TEAM.board без звуков в этой и соседних зонах
-    var quietFor = Infinity;
-    teamNear(s.zone).forEach(function(z){ var t = V.heardAt[z]; if(t !== undefined) quietFor = Math.min(quietFor, tick - t); });
-    V.heardAt[s.zone] = tick;
-    if(quietFor < teamSec(TEAM.board)) continue;
-    teamPropose(b, {kind: "hear", zone: s.zone, sound: s.kind});
+    // паузы TEAM.board без звуков в этой и соседних зонах — или когда по слуху их стало больше
+    var near = teamNear(s.zone), quietFor = Infinity, told = 0;
+    near.forEach(function(z){ var t = V.heardAt[z]; if(t !== undefined){ quietFor = Math.min(quietFor, tick - t.tick); told = Math.max(told, t.n); } });
+    var n = knowSources(K, function(h){ return near.indexOf(h.zone) >= 0; }, KNOW.srcSec).length;
+    var again = quietFor < teamSec(TEAM.board);
+    V.heardAt[s.zone] = {tick: tick, n: again ? Math.max(told, n) : n};
+    if(again && n <= told) continue;
+    teamPropose(b, {kind: "hear", zone: s.zone, sound: s.kind, count: n});
   }
   // plant: видел, как ставят (CT)
   // plant: видел, как ставят, — или узнал, где бомба (писк, увидел бомбу): говорит команде (CT)

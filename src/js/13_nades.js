@@ -305,13 +305,14 @@ function nadeThrow(b, type, x, y, lob, why){ return throwNade(b, type, x, y, lob
 //    берётся с вероятностью prob; кидает тот, у кого путь на свою точку/полосу ближе всего проходит мимо точки
 //    броска (крюк ≤ UTIL.detour), когда в окне [at − 1, at + UTIL.late] он рядом с ней (≤ UTIL.near).
 // 2) CT — задержка по инфе («утилитой задерживать, а не выигрывать лишние дуэли»): стоит на точке, по своему
-//    знанию враг весомо идёт на его угол (угроза на slot, 11_position.js) — молотов (нет — HE) туда, раз на угрозу.
+//    знанию враг весомо идёт на его угол (угроза на slot, 11_position.js) — молотов и HE туда, по одному на угрозу.
 // 3) T — пост-плант: слышит дефуз (K.defuseT) — молотов на бомбу («молотов останавливает дефуз»).
 var UTIL = {
   near:   300,   // px: «рядом с точкой броска» — кидает отсюда в ту же цель
   detour: 400,   // px: крюк, на который бросающий готов отойти от своей дороги (проектное число)
   late:   10,    // с: опоздал больше — лайнап пропускается
-  delayR: 750    // px: CT кидает задержку в угрозу не дальше
+  delayR: 750,   // px: CT кидает задержку в угрозу не дальше
+  smokeHeR: 350  // px: враг по знанию не дальше стольких от дыма — «за дымом» (v226, проектное число)
 };
 var UTIL_S = null, UTIL_LOG = [];
 function utilRoundStart(){
@@ -362,12 +363,34 @@ function utilTick(b){
   }
   // 2) CT: задержка в угрозу на свой угол
   if(b.team === "CT" && b.pos && b.pos.threat && teamOf("CT").planState.type === "default"){
-    var t = b.pos.threat, key = "delay:" + knowZoneAt(t.x, t.y), d = Math.hypot(t.x - b.x, t.y - b.y);
-    if(!b._utilDone[key] && d <= UTIL.delayR && d > 150){
-      var type = selfLeft(b, "molly") > 0 ? "molly" : selfLeft(b, "he") > 0 ? "he" : null;
-      if(type && !selfTeamDone(b, type, t.x, t.y)){
+    // молотов и HE — каждый раз на угрозу (v226: «утилитой задерживать» — на выход кидают несколько гранат)
+    var t = b.pos.threat, zk = "delay:" + knowZoneAt(t.x, t.y), d = Math.hypot(t.x - b.x, t.y - b.y);
+    var type = ["molly", "he"].filter(function(k){ return selfLeft(b, k) > 0 && !b._utilDone[zk + ":" + k]; })[0], key = zk + ":" + type;
+    if(type && d <= UTIL.delayR && d > 150){
+      if(!selfTeamDone(b, type, t.x, t.y)){
         b._utilDone[key] = true; b._selfN[type]--;
         return utilThrow(b, type, t.x, t.y, "delay", "задержка: " + NADE[type].name + " в " + calloutName(t.x, t.y) + " — по знанию идут");
+      }
+    }
+  }
+  // 2б) CT: дым T закрыл его угол (дым T — это и есть инфа: за ним T) — HE в дым: разрыв делает в дыму дыру (~1,3 с —
+  //     видно насквозь) и бьёт тех, кто за ним; своя HE туда уже летела — нет (v226, правка владельца 9; у про 13 % HE CT ложатся в активный дым T —
+  //     0,38 за раунд, data/pro/pro_nades.csv)
+  if(b.team === "CT" && b.pos && smokes.length && selfLeft(b, "he") > 0 && teamOf("CT").planState.type === "default"){
+    var P = POS_PT[b.pos.pid];
+    if(P && posSmoked(P)){
+      var sm = null;
+      // какой дым на линии точка → угол: ближе всех к этому отрезку
+      var ax = P.angle.x - P.x, ay = P.angle.y - P.y, L2 = ax*ax + ay*ay || 1, bd = 1e9;
+      smokes.forEach(function(q){
+        if(q.team === b.team) return;
+        var u = Math.max(0, Math.min(1, ((q.x - P.x)*ax + (q.y - P.y)*ay)/L2)), d = Math.hypot(P.x + ax*u - q.x, P.y + ay*u - q.y);
+        if(d <= smokeRadiusNow(q) && d < bd){ bd = d; sm = q; }
+      });
+      var keyS = sm ? "smokeHE:" + sm.born + ":" + Math.round(sm.x) : null;
+      if(sm && !b._utilDone[keyS] && Math.hypot(sm.x - b.x, sm.y - b.y) <= NADE_THROW_RANGE && !selfTeamDone(b, "he", sm.x, sm.y)){
+        b._utilDone[keyS] = true; b._selfN.he--;
+        return utilThrow(b, "he", sm.x, sm.y, "smoke_he", "HE в дым " + calloutName(sm.x, sm.y) + " — дым T на моём углу, за ним T");
       }
     }
   }
