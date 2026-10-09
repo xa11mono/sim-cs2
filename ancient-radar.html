@@ -1351,6 +1351,41 @@ function makeTeam(team, spawnPt, count, weapon){
 }
 makeTeam("CT", CT_SPAWN, 5, WEAPONS.M4);
 makeTeam("T", T_SPAWN, 5, WEAPONS.AK);
+
+// ---------- роли (шаг 4; профили — RoleProfile в 03_settings.js) ----------
+// Роль закреплена за ником (реальный игрок), на каждой стороне своя.
+// igl — совмещается с основной ролью (флаг b.igl). Роль бота на матч —
+// по нику и стороне, на которой он играет. Пока поведение роль не меняет.
+var ROLES_BY_NICK = {
+  // Falcons
+  karrigan: { T:"entry",   CT:"support", igl:true },
+  m0NESY:   { T:"awp",     CT:"awp" },
+  NiKo:     { T:"lurker",  CT:"anchor" },
+  kyousuke: { T:"entry",   CT:"entry" },
+  TeSeS:    { T:"support", CT:"anchor" },
+  // Spirit
+  magixx:   { T:"entry",   CT:"support", igl:true },
+  donk:     { T:"entry",   CT:"entry" },
+  sh1ro:    { T:"awp",     CT:"awp" },
+  TN1R:     { T:"lurker",  CT:"support" },
+  zont1x:   { T:"support", CT:"anchor" }
+};
+// вызывается один раз при загрузке (из 16_economy.js, когда ники уже есть);
+// freshMatch возвращает b.role/b.igl к этим значениям (BOT_INIT)
+function assignRoles(){
+  bots.forEach(function(b){
+    var r = ROLES_BY_NICK[nick(b.id)] || {};
+    b.role = r[b.team] || null;
+    b.igl = !!r.igl;
+  });
+}
+function logRoles(){
+  ["T", "CT"].forEach(function(team){
+    var s = bots.filter(function(b){ return b.team === team; })
+      .map(function(b){ return nick(b.id)+" — "+(b.role || "?")+(b.igl ? "+igl" : ""); }).join(", ");
+    logEvent("Роли "+team+": "+s, "round");
+  });
+}
 // ---------- параметры движка (правила CS2 и модель стрельбы; решений ботов тут нет) ----------
 // v197: мозг ботов удалён — вместе с ним удалены все переключатели BAL мозга.
 // Остались только числа движка; переключателей вкл/выкл нет.
@@ -1371,6 +1406,16 @@ var BAL = {
   smokeLife: 18,      // сек
   mollyLife: 7,       // сек
   freeze: 15          // freeze-тайм в начале раунда, сек (как в CS2)
+};
+// Профили ролей (docs/BRAIN.md, раздел 6) — модификаторы систем мозга.
+// Шаг 4: только данные, нигде не читаются; подключают шаги 5–9.
+var RoleProfile = {
+  entry:   { aggression:0.85, tradeReliance:'high_but_commits_anyway', infoIndependence:0.2, preferredAngle:'standard_or_deepest' },
+  support: { aggression:0.45, tradeReliance:'high', infoIndependence:0.3, preferredAngle:'standard', clearsOffAngles:true },
+  awp:     { aggression:0.3,  tradeReliance:'medium', infoIndependence:0.4, preferredAngle:'long_sightline', repositionAfterShot:true },
+  lurker:  { aggression:0.5,  tradeReliance:'none', infoIndependence:0.9, actsOnOwnKnowledgeOnly:true },
+  anchor:  { aggression:0.2,  tradeReliance:'needs_partner', infoIndependence:0.3, delaysRatherThanWins:true },
+  igl:     { aggression:0.35, tradeReliance:'high', callsSetupSwitches:true, sacrificesForInfo:true }
 };
 try{ if(window.BAL_OVERRIDE) for(var bk in window.BAL_OVERRIDE) BAL[bk] = window.BAL_OVERRIDE[bk]; }catch(e){}
 // Скорость бега как в CS2: M4 225 ю/с = 90 px/с (1 px ≈ 2,5 юнита); шифт ~0,5 от неё
@@ -3568,6 +3613,7 @@ function regRounds(){ return HALF_ROUNDS*2; }
 function otIndex(r){ r = r || roundNum; return r > regRounds() ? Math.floor((r - regRounds() - 1)/(OT_HALF*2)) : -1; }
 function matchWinTarget(){ var oi = otIndex(); return oi < 0 ? MATCH_WIN : MATCH_WIN + OT_HALF*(oi+1); }
 var matchNum = 1;
+assignRoles(); logRoles(); // роли на матч (02_bots.js) — матч 1 при загрузке страницы
 
 // ---------- экономика (правила CS2) ----------
 // Что купить — решение (сейчас заглушка stubBuy в 12_stub.js). Правила CS2:
@@ -3667,6 +3713,7 @@ function newMatch(){
   bots.forEach(function(b){ b.kills = 0; b.deaths = 0; });
   startHalf(true);
   logEvent("Новый матч #"+matchNum, "round");
+  logRoles();
   resetRound(); // roundNum → 1, закуп пистолетного
 }
 
@@ -6999,6 +7046,8 @@ var __SNAP = [
 ["bots", function(){ return bots; }, function(v){ try{ bots = v; }catch(e){} }],
 ["START_MONEY", function(){ return START_MONEY; }, function(v){ try{ START_MONEY = v; }catch(e){} }],
 ["MAX_MONEY", function(){ return MAX_MONEY; }, function(v){ try{ MAX_MONEY = v; }catch(e){} }],
+["ROLES_BY_NICK", function(){ return ROLES_BY_NICK; }, function(v){ try{ ROLES_BY_NICK = v; }catch(e){} }],
+["RoleProfile", function(){ return RoleProfile; }, function(v){ try{ RoleProfile = v; }catch(e){} }],
 ["SPD_K", function(){ return SPD_K; }, function(v){ try{ SPD_K = v; }catch(e){} }],
 ["NICKS", function(){ return NICKS; }, function(v){ try{ NICKS = v; }catch(e){} }],
 ["SITES", function(){ return SITES; }, function(v){ try{ SITES = v; }catch(e){} }],

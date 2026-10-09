@@ -17,6 +17,7 @@ function regRounds(){ return HALF_ROUNDS*2; }
 function otIndex(r){ r = r || roundNum; return r > regRounds() ? Math.floor((r - regRounds() - 1)/(OT_HALF*2)) : -1; }
 function matchWinTarget(){ var oi = otIndex(); return oi < 0 ? MATCH_WIN : MATCH_WIN + OT_HALF*(oi+1); }
 var matchNum = 1;
+assignRoles(); logRoles(); // роли на матч (02_bots.js) — матч 1 при загрузке страницы
 
 // ---------- экономика (правила CS2) ----------
 // Что купить — решение (сейчас заглушка stubBuy в 12_stub.js). Правила CS2:
@@ -116,6 +117,7 @@ function newMatch(){
   bots.forEach(function(b){ b.kills = 0; b.deaths = 0; });
   startHalf(true);
   logEvent("Новый матч #"+matchNum, "round");
+  logRoles();
   resetRound(); // roundNum → 1, закуп пистолетного
 }
 

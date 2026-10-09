@@ -19,4 +19,14 @@ var BAL = {
   mollyLife: 7,       // сек
   freeze: 15          // freeze-тайм в начале раунда, сек (как в CS2)
 };
+// Профили ролей (docs/BRAIN.md, раздел 6) — модификаторы систем мозга.
+// Шаг 4: только данные, нигде не читаются; подключают шаги 5–9.
+var RoleProfile = {
+  entry:   { aggression:0.85, tradeReliance:'high_but_commits_anyway', infoIndependence:0.2, preferredAngle:'standard_or_deepest' },
+  support: { aggression:0.45, tradeReliance:'high', infoIndependence:0.3, preferredAngle:'standard', clearsOffAngles:true },
+  awp:     { aggression:0.3,  tradeReliance:'medium', infoIndependence:0.4, preferredAngle:'long_sightline', repositionAfterShot:true },
+  lurker:  { aggression:0.5,  tradeReliance:'none', infoIndependence:0.9, actsOnOwnKnowledgeOnly:true },
+  anchor:  { aggression:0.2,  tradeReliance:'needs_partner', infoIndependence:0.3, delaysRatherThanWins:true },
+  igl:     { aggression:0.35, tradeReliance:'high', callsSetupSwitches:true, sacrificesForInfo:true }
+};
 try{ if(window.BAL_OVERRIDE) for(var bk in window.BAL_OVERRIDE) BAL[bk] = window.BAL_OVERRIDE[bk]; }catch(e){}

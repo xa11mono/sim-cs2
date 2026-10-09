@@ -86,3 +86,38 @@ function makeTeam(team, spawnPt, count, weapon){
 }
 makeTeam("CT", CT_SPAWN, 5, WEAPONS.M4);
 makeTeam("T", T_SPAWN, 5, WEAPONS.AK);
+
+// ---------- роли (шаг 4; профили — RoleProfile в 03_settings.js) ----------
+// Роль закреплена за ником (реальный игрок), на каждой стороне своя.
+// igl — совмещается с основной ролью (флаг b.igl). Роль бота на матч —
+// по нику и стороне, на которой он играет. Пока поведение роль не меняет.
+var ROLES_BY_NICK = {
+  // Falcons
+  karrigan: { T:"entry",   CT:"support", igl:true },
+  m0NESY:   { T:"awp",     CT:"awp" },
+  NiKo:     { T:"lurker",  CT:"anchor" },
+  kyousuke: { T:"entry",   CT:"entry" },
+  TeSeS:    { T:"support", CT:"anchor" },
+  // Spirit
+  magixx:   { T:"entry",   CT:"support", igl:true },
+  donk:     { T:"entry",   CT:"entry" },
+  sh1ro:    { T:"awp",     CT:"awp" },
+  TN1R:     { T:"lurker",  CT:"support" },
+  zont1x:   { T:"support", CT:"anchor" }
+};
+// вызывается один раз при загрузке (из 16_economy.js, когда ники уже есть);
+// freshMatch возвращает b.role/b.igl к этим значениям (BOT_INIT)
+function assignRoles(){
+  bots.forEach(function(b){
+    var r = ROLES_BY_NICK[nick(b.id)] || {};
+    b.role = r[b.team] || null;
+    b.igl = !!r.igl;
+  });
+}
+function logRoles(){
+  ["T", "CT"].forEach(function(team){
+    var s = bots.filter(function(b){ return b.team === team; })
+      .map(function(b){ return nick(b.id)+" — "+(b.role || "?")+(b.igl ? "+igl" : ""); }).join(", ");
+    logEvent("Роли "+team+": "+s, "round");
+  });
+}
