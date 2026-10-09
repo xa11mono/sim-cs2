@@ -57,7 +57,8 @@ var POS = {
   rotNeed:     2,    // «настоящая инфа» о выходе на сайт: столько врагов там по своему знанию (или утилита выхода)
   rotPops:     2,    // разрывов гранат T у сайта за 3 с (слышал/видел) — это выход; врагов там — столько, сколько разрывов
   rotPopR:     450,  // px: разрыв «у сайта»
-  rotMax:      3,    // защитников на сайте выхода не больше столько (вместе с теми, кто там стоял)
+  rotMax:      4,    // защитников на сайте выхода не больше столько (вместе с теми, кто там стоял; v222: было 3)
+  rotHearR:    700,  // px: шаги/стрельба ближе к сайту — это «идут на сайт» (v222, проектное число)
   rotApart:    150,  // px: точка ротации не ближе этого к цели тиммейта
   // v215 (аудит п. 4, доделка): игры за инфой и смена позиции
   pushMax:     2,    // подпушей за раунд не больше (вдвоём — пара; данные дают в среднем ~1 на раунд)
@@ -338,6 +339,17 @@ function posPressure(b){
     said[r] += th.count;
   }
   ["A", "B", "mid"].forEach(function(r){ n[r] = Math.max(n[r], said[r]); });
+  // шаги/стрельба у сайта, которые он слышал сам за 3 с: сколько разных источников (ближе 150 px — один) — столько
+  // примерно врагов идёт (v222: ротация по ранней инфе, до утилиты выхода)
+  var K = b.know, src = {A: [], B: []};
+  if(K) K.heard.forEach(function(h){
+    if(tick - h.tick > 3*TICK_HZ || (h.kind !== "steps" && h.kind !== "water" && h.kind !== "shots")) return;
+    ["A", "B"].forEach(function(k){
+      if(Math.hypot(h.x - SITES[k].x, h.y - SITES[k].y) > POS.rotHearR) return;
+      if(!src[k].some(function(q){ return Math.hypot(q.x - h.x, q.y - h.y) < 150; })) src[k].push(h);
+    });
+  });
+  ["A", "B"].forEach(function(k){ n[k] = Math.max(n[k], src[k].length); });
   ["A", "B"].forEach(function(k){
     var s = SITES[k], pops = (b.ears || []).filter(function(e){
       return e.kind === "pop" && tick - e.tick <= 3*TICK_HZ && Math.hypot(e.x - s.x, e.y - s.y) <= POS.rotPopR; }).length;
