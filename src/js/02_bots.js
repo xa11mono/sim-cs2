@@ -95,7 +95,7 @@ var ROLES_BY_NICK = {
   // Falcons
   karrigan: { T:"entry",   CT:"support", igl:true },
   m0NESY:   { T:"awp",     CT:"awp" },
-  NiKo:     { T:"lurker",  CT:"anchor" },
+  NiKo:     { T:"lurker",  CT:"entry" },    // CT: «настоящий инициатор» агрессии на миде (caubycs, docs/PRO_PLAY.md 5)
   kyousuke: { T:"entry",   CT:"entry" },
   TeSeS:    { T:"support", CT:"anchor" },
   // Spirit
