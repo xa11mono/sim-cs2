@@ -83,8 +83,11 @@ function tBrainTick(){
   if(P.type !== "default" || !planCanSwitch("T")) return;
   // контрольный тайминг варианта
   var sec = (tick - roundStartTick)/TICK_HZ;
-  if(sec >= s.timing.startSec){
-    teamSetPlan("T", {type: "execute", site: s.site, activeSetupId: s.id}, "тайминг " + Math.round(s.timing.startSec) + " с", tbLabel("execute", s));
+  // тип закупа меняет темп (PRO_PLAY 1, 4: эко и форс — быстро): у про плант на эко на 25,6 с раньше, чем на
+  // фулл-бае, на форсе/хаф-бае — на 10,6 с (медианы по демкам Ancient, tools — аудит п. 5)
+  var start = Math.max(10, s.timing.startSec + (PLAN.typeShift[teamEco.T.roundType] || 0));
+  if(sec >= start){
+    teamSetPlan("T", {type: "execute", site: s.site, activeSetupId: s.id}, "тайминг " + Math.round(start) + " с (" + ROUND_TYPE_LABEL[teamEco.T.roundType] + ")", tbLabel("execute", s));
     return;
   }
   // колл IGL по сильной инфе: на сайте плана уже стоят ≥ infoN CT — идём на другой

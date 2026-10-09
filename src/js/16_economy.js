@@ -20,7 +20,7 @@ var matchNum = 1;
 assignRoles(); logRoles(); // роли на матч (02_bots.js) — матч 1 при загрузке страницы
 
 // ---------- экономика (правила CS2) ----------
-// Что купить — решение (сейчас заглушка stubBuy в 12_stub.js). Правила CS2:
+// Что купить — решение команды (buyTeam, 12_buy.js). Правила CS2:
 //  • победа — $3250 каждому (по времени у CT тоже 3250);
 //  • поражение — loss bonus 1400/1900/2400/2900/3400. Счётчик поражений
 //    стартует с 1 (первое поражение сразу даёт 1900, как в CS2), растёт на 1
@@ -36,7 +36,8 @@ var teamEco = {
   CT: {lossLevel: 1, roundType: "pistol", lastIncome: 0},
   T:  {lossLevel: 1, roundType: "pistol", lastIncome: 0}
 };
-var ROUND_TYPE_LABEL = {pistol:"пистолетный", eco:"эко", force:"форс-бай", half:"хаф-бай", full:"фулл-бай"};
+var ROUND_TYPE_LABEL = {pistol:"пистолетный", eco:"эко", force:"форс-бай", half:"хаф-бай", full:"фулл-бай", hero:"хиро-бай"};
+var KIT_PRICE = 400;   // кит сапёра (CT): дефуз 5 с вместо 10
 
 function payRoundEconomy(winner, reason){
   ["CT","T"].forEach(function(team){
@@ -54,6 +55,7 @@ function payRoundEconomy(winner, reason){
     te.lastIncome = income;
     if(roundNum === 1 || roundNum === HALF_ROUNDS+1) te.wonPistol = won;
     te.lossLevel = won ? Math.max(0, te.lossLevel-1) : Math.min(4, te.lossLevel+1);
+    te.lastWin = won;
   });
 }
 
@@ -71,7 +73,8 @@ var NADE_LIMIT = {smoke: 1, molly: 1, he: 1, flash: 2}, NADE_LIMIT_ALL = 4;
 function nadeCount(b){ var n = 0; for(var k in b.nades) n += b.nades[k]; return n; }
 function nadePrice(b, type){ return b.team === "CT" && NADE[type].priceCT ? NADE[type].priceCT : NADE[type].price; }
 function nadeCanBuy(b, type){
-  return b.alive && b.nades[type] < NADE_LIMIT[type] && nadeCount(b) < NADE_LIMIT_ALL && b.money >= nadePrice(b, type);
+  // _buyFloor — не тратить ниже (эко/хаф-бай: деньги на фулл в следующем раунде, 12_buy.js)
+  return b.alive && b.nades[type] < NADE_LIMIT[type] && nadeCount(b) < NADE_LIMIT_ALL && b.money - nadePrice(b, type) >= (b._buyFloor || 0);
 }
 function buyNade(b, type){
   if(!nadeCanBuy(b, type)) return false;
@@ -82,19 +85,14 @@ function buyArmor(b, withHelmet){
   if(!b.armor && b.money >= ARMOR_PRICE){ b.money -= ARMOR_PRICE; b.armor = true; }
   if(withHelmet && b.armor && !b.helmet && b.money >= HELMET_UPGRADE){ b.money -= HELMET_UPGRADE; b.helmet = true; }
 }
-// закуп во freeze-тайм: что брать — заглушка stubBuy (12_stub.js)
+// закуп во freeze-тайм: что брать — решение команды (buyTeam, 12_buy.js)
 function buyPhase(){
   ["CT","T"].forEach(function(team){
-    var spent = 0;
-    bots.filter(function(b){ return b.team === team; }).forEach(function(b){
-      var before = b.money;
-      if(!b.nades) b.nades = emptyNades();
-      stubBuy(b);
-      b.weapon = WEAPONS[b.primary || b.secondary];
-      spent += before - b.money;
-    });
-    teamEco[team].roundType = (roundNum === 1 || roundNum === HALF_ROUNDS+1) ? "pistol" : (bots.some(function(b){ return b.team === team && b.primary; }) ? "full" : "eco");
-    logEvent(team+": "+ROUND_TYPE_LABEL[teamEco[team].roundType]+" (потрачено $"+spent+")");
+    var T = bots.filter(function(b){ return b.team === team; }), before = 0, after = 0;
+    T.forEach(function(b){ before += b.money; if(!b.nades) b.nades = emptyNades(); });
+    teamEco[team].roundType = buyTeam(team);
+    T.forEach(function(b){ b.weapon = WEAPONS[b.primary || b.secondary]; after += b.money; });
+    logEvent(team+": "+ROUND_TYPE_LABEL[teamEco[team].roundType]+" (потрачено $"+(before-after)+")");
   });
 }
 
