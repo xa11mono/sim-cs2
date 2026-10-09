@@ -303,6 +303,7 @@ function posLook(b){
     return posAhead(b, b._goDir) || {x: w[0], y: w[1], why: "move"};
   }
   if(b._rtLook && posLed(b)) return {x: b._rtLook[0], y: b._rtLook[1], why: "retake"};   // стоит в ретейке/сейве
+  if(b._ppLook) return {x: b.x + b._ppLook[0]*400, y: b.y + b._ppLook[1]*400, why: "postplant"};   // T стоит на месте пост-планта (12_t_default.js)
   if(!b.pos){   // T на месте: держит то, куда шёл; гипотеза / типичное место врага перед ним — туда
     var dir = b._goDir;
     if(dir === undefined){ var sp = b.spawnPt || (b.team === "CT" ? CT_SPAWN : T_SPAWN); dir = Math.atan2(1024 - sp.y, 1024 - sp.x); }

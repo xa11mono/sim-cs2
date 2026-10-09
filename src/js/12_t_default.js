@@ -19,7 +19,8 @@
 //     кого в полосе есть напарник (не оставлять дыру, «потерянный игрок открывает место»).
 // После execute (план execute): кто не занят шагом сценария — подтягивается к выходу на сайт плана
 // (полоса на его стороне, ближайшая к сайту), после входа энтри — на сайт («входят вместе»).
-// Лёркер остаётся в своей полосе. Fallback (потеря состава) — все вместе к выходу, потом на сайт.
+// Лёркер остаётся в своей полосе. Пост-плант — места из демок вокруг бомбы, на дефуз — проверить бомбу
+// (tdefPost). Fallback (потеря состава) — все вместе к выходу, потом на сайт.
 // Кого ведёт исполнитель (b._scrT == этот тик) — не трогаем.
 // Лог: TDEF_LOG + консоль.
 
@@ -56,6 +57,7 @@ function tdefRand(salt){ return hashRand(matchNum*7349 + roundNum*15013 + salt*1
 // ---------- начало раунда (resetRound, после плана IGL): места, кто куда, у кого бомба ----------
 function tDefaultRoundStart(){
   TDEF_S = null;
+  bots.forEach(function(b){ b._ppLook = null; });
   if(roundNum === 1) TDEF_LOG.length = 0;
   bots.forEach(function(b){ delete b.tdef; });
   var P = teamOf("T").planState, setup = tbSetup(P.activeSetupId);
@@ -116,7 +118,8 @@ function tDefaultTick(){
   }
   if(P.type === "fallback" || P.type === "default" || P.type === "execute") tdefBombPick();
   if(P.type === "fallback"){ tdefFallback(); return; }
-  if(P.type !== "default" && P.type !== "execute") return;   // пост-плант — не дефолт
+  if(P.type === "post_plant"){ tdefPost(); return; }
+  if(P.type !== "default" && P.type !== "execute") return;
   tdefRefill();
   var R = SCR_S.T, entryIn = R && R.steps.some(function(S){ return S.kind === "push" && S.state !== "wait"; });
   bots.forEach(function(b){
@@ -244,6 +247,77 @@ function tdefExit(){
   if(!best) return null;
   return snapToWalkable(best[0], best[1]) || {x: best[0], y: best[1]};
 }
+// ---------- пост-плант (v213; docs/PRO_PLAY.md 6в) ----------
+// Как у про: не стоять на бомбе, а сразу разойтись на сильные места с видом на бомбу и входы ретейка
+// (кроссфайр — CT приходится драться с двумя), играть на время; услышал дефуз — проверить бомбу.
+// Места — из демок (src/data/postplant.json, tools/postplant_bake.py): где T стоят после планта на этом
+// сайте, как часто, куда смотрят. Кто куда: каждому — место, где выше «часто у про» и ближе идти
+// (TPOST.walk), не ближе TPOST.apart к месту тиммейта. Дошёл — стоит, смотрит, как смотрят про там.
+// Дефуз (свой слух — K.defuseT, 09_knowledge.js; или войс «дефузят!»): ближайший к бомбе, кто её не
+// видит, идёт к ней, пока не увидит (стрельба — движок); остальные держат свои места.
+var TPOST = {
+  walk:  600,   // px: столько пути «стоят» как вдвое более частое место (проектное число)
+  apart: 130,   // px: два T не встают ближе этого — кроссфайр, а не толпа
+  defuse: 96    // тиков: звук дефуза свежий — столько после последнего услышанного
+};
+var POSTPLANT = @@DATA:postplant.json@@;
+function tdefPost(){
+  var site = bomb && bomb.state === "planted" ? bomb.site : null;
+  var T = bots.filter(function(b){ return b.team === "T" && b.alive; });
+  if(!site || !T.length) return;
+  if(!TDEF_S.post){ TDEF_S.post = {site: site}; tdefPostSeat(T, site); }
+  var P = TDEF_S.post;
+  // дефуз: кто-то из живых T знает (слышал сам / сказали), что дефузят прямо сейчас
+  var heard = T.some(function(b){ return b.know && b.know.defuseT !== undefined && tick - b.know.defuseT <= TPOST.defuse; });
+  if(heard && (!P.checker || !P.checker.alive)){
+    var bd = 1e9, ch = null;
+    T.forEach(function(b){ var d = Math.hypot(b.x - bomb.x, b.y - bomb.y); if(d < bd){ bd = d; ch = b; } });
+    if(ch){ P.checker = ch; tdefLog("пост-плант", ch.id + " слышит дефуз — идёт проверить бомбу"); }
+  }
+  if(!heard && P.checker){ P.checker = null; }
+  T.forEach(function(b){
+    if(b.planting || b._tdefBusy === tick) return;
+    if(!b.tdef) b.tdef = {seat: null, spot: null, until: 0, holdUntil: 0, pathT: -1e9, arrived: false};
+    if(P.checker === b){
+      b._ppLook = null; b.walking = false;
+      var sees = visLine(b.x, b.y, visEyeZ(b), bomb.x, bomb.y, visFloorAt(bomb.x, bomb.y) + 20, true) && Math.hypot(b.x - bomb.x, b.y - bomb.y) < 900;
+      if(sees){ if(b._pathBy === "tdef" && b.path.length){ b.path = []; b.pathIdx = 0; } b.facing = Math.atan2(bomb.y - b.y, bomb.x - b.x); }
+      else tdefGo(b, bomb.x, bomb.y);
+      return;
+    }
+    if(tdefReact(b)) return;
+    var s = P.spot[b.id];
+    if(!s){ tdefPostSeat([b], site); s = P.spot[b.id]; if(!s) return; }
+    if(Math.hypot(b.x - s.x, b.y - s.y) > TDEF.arrive){ b.walking = false; b._ppLook = null; tdefGo(b, s.x, s.y); return; }
+    if(!b.tdef.postAt){ b.tdef.postAt = tick; tdefLog("пост-плант", b.id + " на месте: " + s.zone); }
+    b._ppLook = s.look;
+  });
+}
+function tdefPostSeat(T, site){
+  var P = TDEF_S.post, L = (POSTPLANT[site] || []).map(function(s){
+    var w = snapToWalkable(s.x, s.y) || {x: s.x, y: s.y};
+    return {x: w.x, y: w.y, share: s.share, look: s.look, zone: s.zone};
+  });
+  P.spot = P.spot || {};
+  var taken = Object.keys(P.spot).map(function(id){ return P.spot[id]; });
+  var free = T.filter(function(b){ return !P.spot[b.id]; });
+  // по одному: каждый раз лучшая пара «бот — место» по всем свободным (не ближе TPOST.apart к занятым)
+  while(free.length){
+    var best = null;
+    free.forEach(function(b){
+      L.forEach(function(s){
+        if(taken.some(function(t){ return Math.hypot(t.x - s.x, t.y - s.y) < TPOST.apart; })) return;
+        var sc = Math.log(s.share) - Math.LN2 * Math.hypot(b.x - s.x, b.y - s.y) / TPOST.walk;
+        if(!best || sc > best.sc) best = {sc: sc, b: b, s: s};
+      });
+    });
+    if(!best) break;
+    P.spot[best.b.id] = best.s; taken.push(best.s);
+    free = free.filter(function(b){ return b !== best.b; });
+  }
+  tdefLog("пост-плант", "бомба " + site + ": " + T.map(function(b){ return b.id + " → " + (P.spot[b.id] ? P.spot[b.id].zone : "—"); }).join("; "));
+}
+
 // полоса на стороне плана или мид осталась без живых — её занимает тот, у кого в полосе есть напарник
 function tdefRefill(){
   var moves = [];

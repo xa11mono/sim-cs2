@@ -179,6 +179,13 @@
 - Бомба пищит и мигает, чем ближе взрыв — тем чаще; игроки ищут её и врагов по писку и звуку дефуза [21].
 - Насколько далеко слышно писк, и видна ли заложенная бомба на радаре CT, — в найденных источниках нет.
 
+## 6в. Пост-плант T (09.10, аудит п. 3)
+- Занять сильные места рано; кроссфайр — CT вынуждены драться сразу с двумя [22].
+- Плант там, где его прикрывают с нескольких углов; не-носители смотрят/слушают, куда поставили, и встают под это [22][23].
+- Больше живых, чем у CT, — пассивнее, утилита рано, тянуть время; меньше — искать размен (флешка в проход, фланг ретейка, драка) [22]. «Не прятаться в углу»; один может зайти во фланг через мид [23].
+- Дым цепочкой на проход, молотов останавливает подход и дефуз [22].
+- Услышал дефуз — проверить бомбу; дефуз может быть приманкой (фейк); молотов глушит звук дефуза — проверить бомбу [23].
+
 ## 7. Чего в источниках нет (брать из наших демок)
 
 Тайминги в секундах (кроме общих фаз [3]), точки, кто где стоит у каждой команды, как часто, как
@@ -215,3 +222,5 @@
 24. [Crosshair Placement in CS2: The Habit That Wins Duels — Metabot](https://metabot.gg/en/cs2/guides/cs2-crosshair-placement-pre-aiming)
 25. [What is peeker's advantage in CS2 — GGRecon](https://www.ggrecon.com/guides/cs2-peekers-advantage/)
 21. [Counter-Strike C4 Guide: Placement, Defusal, and Tactics — Strafe](https://www.strafe.com/news/read/counter-strike-c4-guide-placement-defusal-and-tactics/)
+22. [Hold the line: 5 tips to improve your afterplant play in CS2 — Refrag](https://refrag.gg/blog/hold-the-line-5-tips-to-improve-your-afterplant-play-in-cs2)
+23. [Bomb in CS:GO. Complete guide — SCOPE.GG](https://scope.gg/guides/bomb_complete_guide_en/)

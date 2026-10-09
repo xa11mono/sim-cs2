@@ -289,6 +289,7 @@ function knowHearing(b){
     if(s.known) continue;
     s.known = true;
     if(s.kind === "beep"){ knowBombSite(b, knowNearestSite(s.x, s.y), "услышал писк бомбы"); continue; }
+    if(s.kind === "defuse" || s.kind === "defusing") K.defuseT = tick;   // дефузят прямо сейчас (T: пост-плант)
     if(s.kind === "pop" || s.kind === "defusing" || !(s.kind in KNOW.soundL)) continue;
     var d = Math.hypot(s.x-b.x, s.y-b.y), err = d*(s.occl ? 0.3 : 0.15) + 40;
     var zone = knowZoneAt(s.x, s.y);
@@ -312,7 +313,8 @@ function knowCall(b, msg){
     else if(!K.plantSite){ K.plantSite = msg.site; for(var id in K.enemies) knowTrace(b, id, say); }
     return;
   }
-  if(msg.kind === "defuse" || !msg.zone) return;
+  if(msg.kind === "defuse"){ K.defuseT = tick; return; }
+  if(!msg.zone) return;
   var g = knowGraph(), c = g.c[msg.zone];
   knowApply(b, {x: c.x, y: c.y, kind: "voice"}, g.r[msg.zone] + 60, msg.zone, KNOW.voiceL[msg.kind],
             {say: say, voice: true, mult: msg.count || 1, only: msg.enemy});
