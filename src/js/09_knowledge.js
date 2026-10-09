@@ -23,8 +23,9 @@
 // не выводит никогда; знает только когда увидел врага в другом месте или тот умер.
 //
 // Числа ниже — проектные константы (не из демок): что во что переходит и насколько.
-// Знание о врагах пока ни на что в игре не влияет (только лог). Исключение — K.nev (свои гранаты
-// и вход тиммейта): по нему идут шаги сценария (12_script_runner.js).
+// Кто читает: взгляд и префайр (11_position.js posAhead), гранаты «себе» (13_nades.js), угроза на slot;
+// K.nev (свои гранаты и вход тиммейта) — шаги сценария (12_script_runner.js). Плюс знание карты —
+// типичные места врага K.spots (шаг 10б, ниже).
 
 var KNOW = {
   heldStill:   0.50,  // стартовый вес held, если враг стоял/крался, когда пропал из вида
@@ -200,9 +201,43 @@ function knowNewBelief(K, b, e, last){
   K.enemies[e.id] = B; return B;
 }
 
+// ---------- типичные места врага — знание карты (шаг 10б) ----------
+// Любой игрок знает стандартные точки карты, где обычно стоит соперник (positions.json, type
+// standard, без подпушей) — без «кто», без весов и долей: только «тут может стоять». Место
+// открыто, пока бот сам не увидел его пустым (knowLook); снова открывается, когда он услышал или
+// ему сказали о враге в той зоне (knowApply). Свежая инфа о конкретном враге — гипотезы выше.
+var KNOW_SPOTS = {};
+function knowSpotBase(side){
+  if(!KNOW_SPOTS[side]) KNOW_SPOTS[side] = KNOW_POSITIONS.points.filter(function(p){ return p.side === side && p.type === "standard" && !p.push; })
+    .map(function(p){
+      // сколько бежать до места с их спавна (по навмешу) — раньше там никого быть не может
+      var sp = side === "CT" ? CT_SPAWN : T_SPAWN, P = buildWaypointPath(sp.x, sp.y, 0, p.x, p.y, p.z || 0), L = 0, px = sp.x, py = sp.y;
+      (P || []).forEach(function(q){ L += Math.hypot(q[0]-px, q[1]-py); px = q[0]; py = q[1]; });
+      L += Math.hypot(p.x-px, p.y-py);
+      return {id: p.id, x: p.x, y: p.y, zone: knowZoneAt(p.x, p.y), run: L};
+    });
+  return KNOW_SPOTS[side];
+}
+// мог ли враг уже дойти до места (раунд идёт столько-то, бег с ножом — самый быстрый)
+function knowSpotReach(p){ return (tick - roundStartTick)/TICK_HZ*SPEED >= p.run; }
+// открытое место врага впереди: в конусе cone° от dir, не дальше far px — ближайшее
+function knowSpotAhead(b, dir, cone, far){
+  var K = b.know; if(!K || !K.spots || !K.alive) return null;
+  var best = null, bd = Infinity, c = cone*Math.PI/180;
+  K.spots.forEach(function(p){
+    if(!p.open || !knowSpotReach(p)) return;
+    var d = Math.hypot(p.x-b.x, p.y-b.y); if(d < 40 || d > far || d >= bd) return;
+    var a = Math.atan2(p.y-b.y, p.x-b.x) - dir;
+    if(Math.abs(Math.atan2(Math.sin(a), Math.cos(a))) > c) return;
+    best = p; bd = d;
+  });
+  return best;
+}
+
 // ---------- начало раунда: враги на своём спавне (это знают все) ----------
 function knowRoundStart(b){
-  var K = b.know = {key: matchNum + ":" + roundNum, enemies: {}, heard: [], planted: false, plantSite: null, alive: 0, nev: []};
+  var K = b.know = {key: matchNum + ":" + roundNum, enemies: {}, heard: [], planted: false, plantSite: null, alive: 0, nev: [],
+                    spots: knowSpotBase(b.team === "CT" ? "T" : "CT").map(function(p){ return {id: p.id, x: p.x, y: p.y, zone: p.zone, run: p.run, open: true}; })};
   var sp = b.team === "CT" ? T_SPAWN : CT_SPAWN, zone = knowZoneAt(sp.x, sp.y);
   bots.forEach(function(e){
     if(e.team === b.team || !e.alive) return;
@@ -282,6 +317,7 @@ function knowCall(b, msg){
 //      only — довод про конкретного врага (киллфид назвал его)
 function knowApply(b, s, err, zone, L, opt){
   var K = b.know, g = knowGraph();
+  if(zone && K.spots) K.spots.forEach(function(p){ if(p.zone === zone) p.open = true; });   // враг в этой зоне — её места снова под вопросом
   // кого из видимых сейчас врагов это объясняет — тот и шумит, гипотезы не трогаем
   var vis = 0;
   (b._visible || []).forEach(function(e){ if(Math.hypot(e.x-s.x, e.y-s.y) <= err + 30) vis++; });
@@ -382,6 +418,11 @@ function knowLook(b){
   var K = b.know;
   if(tick < b.blindUntil || (tick + (b.id.charCodeAt(b.id.length-1)||0)) % KNOW.lookEvery) return;
   var ez = visEyeZ(b);
+  (K.spots || []).forEach(function(p){   // типичное место врага: увидел своими глазами — там никого
+    if(!p.open || Math.hypot(p.x-b.x, p.y-b.y) > KNOW.lookRange || !inFov(b, p.x, p.y)) return;
+    if(!visLine(b.x, b.y, ez, p.x, p.y, visFloorAt(p.x, p.y) + VIS_EYE.crouch, true)) return;
+    if(!(b._visible || []).some(function(e){ return Math.hypot(e.x-p.x, e.y-p.y) < 120; })) p.open = false;
+  });
   for(var id in K.enemies){
     var B = K.enemies[id]; if(B.visible) continue;
     B.hyps.forEach(function(h){

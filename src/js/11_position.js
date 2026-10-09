@@ -30,8 +30,8 @@ var POS = {
   threatW:     0.5,  // гипотеза врага с таким весом и больше на входе угла — угроза на slot
   threatEvery: 8,    // как часто бот на месте сверяет угрозу, тиков
   smokeEvery:  16,   // как часто, пока есть дым, сверяется «угол закрыт дымом», тиков
-  pfCone:      75,   // префайр: гипотеза не шире стольких ° от направления хода / удержания
-  pfFar:       900,  // префайр: и не дальше, px
+  pfCone:      75,   // префайр / проверка места: не шире стольких ° от направления хода / удержания
+  pfFar:       900,  // префайр / проверка места: и не дальше, px
   yawPad:      10,   // к yawRange точки — запас, ° (держит из-за края шире)
   keepBonus:   2,    // при перераздаче — за то, что остаёшься на своём слоте
   moveCost:    600,  // при перераздаче — −1 балл за столько px до новой точки
@@ -300,16 +300,13 @@ function posLook(b){
   if(w && Math.hypot(w[0]-b.x, w[1]-b.y) <= 4) w = null;
   if(w){
     b._goDir = Math.atan2(w[1]-b.y, w[0]-b.x);
-    var pf = posPrefire(b, b._goDir);
-    return pf ? {x: pf.x, y: pf.y, why: "prefire"} : {x: w[0], y: w[1], why: "move"};
+    return posAhead(b, b._goDir) || {x: w[0], y: w[1], why: "move"};
   }
   if(b._rtLook && posLed(b)) return {x: b._rtLook[0], y: b._rtLook[1], why: "retake"};   // стоит в ретейке/сейве
-  if(!b.pos){   // T на месте: держит то, куда шёл; весомая гипотеза перед ним — префайр
+  if(!b.pos){   // T на месте: держит то, куда шёл; гипотеза / типичное место врага перед ним — туда
     var dir = b._goDir;
     if(dir === undefined){ var sp = b.spawnPt || (b.team === "CT" ? CT_SPAWN : T_SPAWN); dir = Math.atan2(1024 - sp.y, 1024 - sp.x); }
-    var pt = posPrefire(b, dir);
-    if(pt) return {x: pt.x, y: pt.y, why: "prefire"};
-    return {x: b.x + Math.cos(dir)*400, y: b.y + Math.sin(dir)*400, why: b.tdef ? "lane" : "stub"};
+    return posAhead(b, dir) || {x: b.x + Math.cos(dir)*400, y: b.y + Math.sin(dir)*400, why: b.tdef ? "lane" : "stub"};
   }
   var P = POS_PT[b.pos.cur];
   if(!b.pos.threat) return {x: P.angle.x, y: P.angle.y, why: b.pos.fb ? "fallback" : "angle"};
@@ -322,10 +319,12 @@ function posLook(b){
   return {x: b.x + Math.cos(c+d)*R, y: b.y + Math.sin(c+d)*R, why: "threat"};
 }
 
-// префайр: самая весомая гипотеза врага (вес ≥ POS.threatW, по знанию самого бота)
-// перед ним — не дальше POS.pfFar и не шире POS.pfCone° от направления dir. Пересчёт раз в
-// POS.threatEvery тиков (гипотезы меняются событиями, не каждый тик)
-function posPrefire(b, dir){
+// куда смотреть впереди (по направлению dir, не шире POS.pfCone°, не дальше POS.pfFar):
+//  • префайр — самая весомая гипотеза врага (вес ≥ POS.threatW, по знанию самого бота);
+//  • иначе проверка — ближайшее типичное место врага, которое бот ещё не видел пустым
+//    (knowSpotAhead, 09_knowledge.js): так игрок на ходу проверяет углы.
+// Пересчёт раз в POS.threatEvery тиков (знание меняется событиями, не каждый тик)
+function posAhead(b, dir){
   if(b._pf && tick - b._pf.t < POS.threatEvery) return b._pf.p;
   var K = b.know, best = null, cone = POS.pfCone*Math.PI/180;
   if(K) for(var id in K.enemies){
@@ -338,8 +337,10 @@ function posPrefire(b, dir){
       if(!best || h.weight > best.weight) best = h;
     });
   }
-  b._pf = {t: tick, p: best ? {x: best.x, y: best.y} : null};
-  return b._pf.p;
+  var p = best ? {x: best.x, y: best.y, why: "prefire"} : null;
+  if(!p){ var sp = knowSpotAhead(b, dir, POS.pfCone, POS.pfFar); if(sp) p = {x: sp.x, y: sp.y, why: "check"}; }
+  b._pf = {t: tick, p: p};
+  return p;
 }
 
 // ---------- слой радара «позиции» ----------

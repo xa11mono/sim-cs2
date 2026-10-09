@@ -214,6 +214,7 @@ var SELF = {
   far:     700,  // и не дальше стольких px до врага по гипотезе
   cone:    75,   // и не шире стольких ° от направления хода
   cornerR: 160,  // молотов: «держит» не дальше стольких px от точки выхода
+  spotNear: 350, // по типичному месту (без инфы) — только близкий выход: место не дальше стольких px от точки выхода
   sightR:  900,  // смок под плант/дефуз: гипотеза врага с линией на точку не дальше стольких px
   defuseR: 220,  // смок под дефуз — когда до бомбы не больше стольких px
   teamSec: 3     // своя граната того же типа там же (≤ 150 px) за столько с — уже закрыто
@@ -234,7 +235,8 @@ function selfTeamDone(b, type, x, y){
 }
 function selfThrow(b, type, x, y, kind, why, waitT){
   if(selfTeamDone(b, type, x, y)) return false;
-  if(!throwNade(b, type, x, y, type !== "smoke", "себе: " + why)) return false;   // смок — под ноги, не навесом
+  if(selfLeft(b, type) <= 0 || !throwNade(b, type, x, y, type !== "smoke", "себе: " + why)) return false;
+  b._selfN[type]--;   // смок — под ноги, не навесом
   var n = nadesInAir[nadesInAir.length-1];
   b._nadeWait = tick + (n && n.flight ? n.flight : 30) + waitT;   // стоит, пока своя граната не сработала (стрелять может)
   SELF_LOG.push({tick: tick, round: roundNum, who: b.id, kind: kind, x: Math.round(x), y: Math.round(y), why: why});
@@ -242,7 +244,7 @@ function selfThrow(b, type, x, y, kind, why, waitT){
 }
 // смок под плант / дефуз: точка p, кто-то по знанию бота её видит
 function selfCoverSmoke(b, p, kind){
-  if(!b.nades || b.nades.smoke <= 0 || smokes.some(function(s){ return Math.hypot(s.x-p.x, s.y-p.y) < smokeRadiusNow(s); })) return false;
+  if(selfLeft(b, "smoke") <= 0 || smokes.some(function(s){ return Math.hypot(s.x-p.x, s.y-p.y) < smokeRadiusNow(s); })) return false;
   var seen = null;
   selfHyps(b, function(h){
     var d = Math.hypot(h.x-p.x, h.y-p.y);
@@ -251,38 +253,51 @@ function selfCoverSmoke(b, p, kind){
   if(!seen) return false;
   return selfThrow(b, "smoke", p.x, p.y, kind, (kind === "smoke_plant" ? "смок под плант" : "смок под дефуз") + " — точку видно с " + calloutName(seen.x, seen.y), 40);
 }
-// флешка / молотов под выход
+// флешка / молотов под выход. Повод — весомая гипотеза врага (свежая инфа) или, если её нет,
+// типичное место врага, которое бот ещё не видел пустым (knowSpotAhead — знание карты)
 function selfExit(b){
   if(!(b.path.length && b.pathIdx < b.path.length) || b._goDir === undefined) return false;
-  if(b.nades.flash <= 0 && b.nades.molly <= 0) return false;
+  if(selfLeft(b, "flash") <= 0 && selfLeft(b, "molly") <= 0) return false;
   b._selfDone = b._selfDone || {};
-  var best = null, cone = SELF.cone*Math.PI/180;
-  selfHyps(b, function(h, id){
-    var key = id + ":" + h.zone; if(b._selfDone[key]) return;
-    var d = Math.hypot(h.x-b.x, h.y-b.y); if(d > SELF.far || d < 60) return;
-    var a = Math.atan2(h.y-b.y, h.x-b.x) - b._goDir; if(Math.abs(Math.atan2(Math.sin(a), Math.cos(a))) > cone) return;
-    if(!crossesWall(b.x, b.y, h.x, h.y)) return;   // уже на линии — не выход, это бой/префайр
-    // точка выхода: первая точка пути (в пределах SELF.ahead), откуда врага будет видно
+  var cone = SELF.cone*Math.PI/180, cands = [];
+  function ahead(x, y){
+    var d = Math.hypot(x-b.x, y-b.y); if(d > SELF.far || d < 60) return false;
+    var a = Math.atan2(y-b.y, x-b.x) - b._goDir; return Math.abs(Math.atan2(Math.sin(a), Math.cos(a))) <= cone;
+  }
+  selfHyps(b, function(h, id){ if(ahead(h.x, h.y)) cands.push({x: h.x, y: h.y, w: h.weight, held: h.type === "held", key: id + ":" + h.zone, info: true}); });
+  if(!cands.length && b.know && b.know.alive) (b.know.spots || []).forEach(function(p){
+    if(p.open && knowSpotReach(p) && ahead(p.x, p.y)) cands.push({x: p.x, y: p.y, w: 0, held: false, key: "spot:" + p.id, info: false});
+  });
+  var best = null;
+  cands.forEach(function(c){
+    if(b._selfDone[c.key] || !crossesWall(b.x, b.y, c.x, c.y)) return;   // уже на линии — не выход, это бой/префайр
+    // точка выхода: первая точка пути (в пределах SELF.ahead), откуда это место будет видно
     var px = b.x, py = b.y, run = 0, ex = null;
     for(var i = b.pathIdx; i < b.path.length && run <= SELF.ahead; i++){
       var q = b.path[i]; run += Math.hypot(q[0]-px, q[1]-py); px = q[0]; py = q[1];
-      if(run <= SELF.ahead && !crossesWall(px, py, h.x, h.y)){ ex = {x: px, y: py}; break; }
+      if(run <= SELF.ahead && !crossesWall(px, py, c.x, c.y)){ ex = {x: px, y: py}; break; }
     }
     if(!ex) return;
-    if(!best || h.weight > best.h.weight) best = {h: h, key: key, ex: ex};
+    // свой уже вышел туда первым — место смотрят его глаза, флешка ослепила бы его
+    if(bots.some(function(m){ return m !== b && m.alive && m.team === b.team && Math.hypot(m.x-ex.x, m.y-ex.y) < 150; })) return;
+    if(!c.info && Math.hypot(c.x-ex.x, c.y-ex.y) > SELF.spotNear) return;   // дальний угол без инфы — проверяют прицелом, не флешкой
+    var d = Math.hypot(c.x-b.x, c.y-b.y);
+    if(!best || c.w > best.c.w || (c.w === best.c.w && d < best.d)) best = {c: c, ex: ex, d: d};
   });
   if(!best) return false;
-  var h = best.h, ex = best.ex, dE = Math.hypot(h.x-ex.x, h.y-ex.y);
-  b._selfDone[best.key] = true;   // на одну ситуацию — одна граната
-  var where = calloutName(h.x, h.y);
-  if(h.type === "held" && dE <= SELF.cornerR && b.nades.molly > 0)
-    return selfThrow(b, "molly", h.x, h.y, "molly_clear", "молотов в угол — держат " + where, 16);
-  if(b.nades.flash > 0){
+  var c = best.c, ex = best.ex, dE = Math.hypot(c.x-ex.x, c.y-ex.y);
+  b._selfDone[c.key] = true;   // на одну ситуацию — одна граната
+  var where = calloutName(c.x, c.y), src = c.info ? "по знанию " : "типичное место ";
+  if(c.held && dE <= SELF.cornerR && selfLeft(b, "molly") > 0)
+    return selfThrow(b, "molly", c.x, c.y, "molly_clear", "молотов в угол — держат " + where, 16);
+  if(selfLeft(b, "flash") > 0){
     var k = Math.min(1, 140/Math.max(1, dE));   // хлопок за углом, со стороны врага от точки выхода
-    return selfThrow(b, "flash", ex.x + (h.x-ex.x)*k, ex.y + (h.y-ex.y)*k, "flash_exit", "флешка под выход — по знанию " + where, 2);
+    return selfThrow(b, "flash", ex.x + (c.x-ex.x)*k, ex.y + (c.y-ex.y)*k, "flash_exit", "флешка под выход — " + src + where, 2);
   }
   return false;
 }
+// сколько гранат этого типа бот купил себе и ещё не кинул (сценарные — не его, их ждут шаги)
+function selfLeft(b, type){ return Math.min(b.nades[type], (b._selfN && b._selfN[type]) || 0); }
 function selfNadeTick(){
   if(roundState !== "live") return;
   if(tick === roundStartTick + 1 && roundNum === 1) SELF_LOG.length = 0;

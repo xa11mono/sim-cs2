@@ -61,13 +61,13 @@ function reactTicks(b, surprise){
   return Math.round(b._reactMs * (surprise ? BAL.reactSurprise : 1) * TICK_HZ / 1000);
 }
 // Прицел уже стоял на точке появления врага? Куда и зачем он стоял — posLook
-// (11_position.js, одно место): угол slot'а / ретейка / своей полосы — "setup_default",
+// (11_position.js, одно место): угол slot'а / ретейка / своей полосы / типичное место врага — "setup_default",
 // широкое удержание; взгляд на весомую гипотезу — "prefire_from_info", узкое. Враг вышел
 // вне ширины удержания или бот просто шёл/смотрел без цели — "reactive_turn".
 function engagementPrep(b, e){
   var why = b._holdWhy || "";
   var src = (why === "threat" || why === "prefire") ? "prefire_from_info"
-          : (why === "angle" || why === "fallback" || why === "retake" || why === "lane") ? "setup_default" : null;
+          : (why === "angle" || why === "fallback" || why === "retake" || why === "lane" || why === "check") ? "setup_default" : null;
   var w = src === "prefire_from_info" ? BAL.prepNarrow : BAL.prepWide;
   var off = Math.PI;
   if(b.facing !== undefined){

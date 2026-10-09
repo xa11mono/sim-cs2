@@ -1961,8 +1961,9 @@ function rtSafeSpot(b, danger){
 // не выводит никогда; знает только когда увидел врага в другом месте или тот умер.
 //
 // Числа ниже — проектные константы (не из демок): что во что переходит и насколько.
-// Знание о врагах пока ни на что в игре не влияет (только лог). Исключение — K.nev (свои гранаты
-// и вход тиммейта): по нему идут шаги сценария (12_script_runner.js).
+// Кто читает: взгляд и префайр (11_position.js posAhead), гранаты «себе» (13_nades.js), угроза на slot;
+// K.nev (свои гранаты и вход тиммейта) — шаги сценария (12_script_runner.js). Плюс знание карты —
+// типичные места врага K.spots (шаг 10б, ниже).
 
 var KNOW = {
   heldStill:   0.50,  // стартовый вес held, если враг стоял/крался, когда пропал из вида
@@ -2394,9 +2395,43 @@ function knowNewBelief(K, b, e, last){
   K.enemies[e.id] = B; return B;
 }
 
+// ---------- типичные места врага — знание карты (шаг 10б) ----------
+// Любой игрок знает стандартные точки карты, где обычно стоит соперник (positions.json, type
+// standard, без подпушей) — без «кто», без весов и долей: только «тут может стоять». Место
+// открыто, пока бот сам не увидел его пустым (knowLook); снова открывается, когда он услышал или
+// ему сказали о враге в той зоне (knowApply). Свежая инфа о конкретном враге — гипотезы выше.
+var KNOW_SPOTS = {};
+function knowSpotBase(side){
+  if(!KNOW_SPOTS[side]) KNOW_SPOTS[side] = KNOW_POSITIONS.points.filter(function(p){ return p.side === side && p.type === "standard" && !p.push; })
+    .map(function(p){
+      // сколько бежать до места с их спавна (по навмешу) — раньше там никого быть не может
+      var sp = side === "CT" ? CT_SPAWN : T_SPAWN, P = buildWaypointPath(sp.x, sp.y, 0, p.x, p.y, p.z || 0), L = 0, px = sp.x, py = sp.y;
+      (P || []).forEach(function(q){ L += Math.hypot(q[0]-px, q[1]-py); px = q[0]; py = q[1]; });
+      L += Math.hypot(p.x-px, p.y-py);
+      return {id: p.id, x: p.x, y: p.y, zone: knowZoneAt(p.x, p.y), run: L};
+    });
+  return KNOW_SPOTS[side];
+}
+// мог ли враг уже дойти до места (раунд идёт столько-то, бег с ножом — самый быстрый)
+function knowSpotReach(p){ return (tick - roundStartTick)/TICK_HZ*SPEED >= p.run; }
+// открытое место врага впереди: в конусе cone° от dir, не дальше far px — ближайшее
+function knowSpotAhead(b, dir, cone, far){
+  var K = b.know; if(!K || !K.spots || !K.alive) return null;
+  var best = null, bd = Infinity, c = cone*Math.PI/180;
+  K.spots.forEach(function(p){
+    if(!p.open || !knowSpotReach(p)) return;
+    var d = Math.hypot(p.x-b.x, p.y-b.y); if(d < 40 || d > far || d >= bd) return;
+    var a = Math.atan2(p.y-b.y, p.x-b.x) - dir;
+    if(Math.abs(Math.atan2(Math.sin(a), Math.cos(a))) > c) return;
+    best = p; bd = d;
+  });
+  return best;
+}
+
 // ---------- начало раунда: враги на своём спавне (это знают все) ----------
 function knowRoundStart(b){
-  var K = b.know = {key: matchNum + ":" + roundNum, enemies: {}, heard: [], planted: false, plantSite: null, alive: 0, nev: []};
+  var K = b.know = {key: matchNum + ":" + roundNum, enemies: {}, heard: [], planted: false, plantSite: null, alive: 0, nev: [],
+                    spots: knowSpotBase(b.team === "CT" ? "T" : "CT").map(function(p){ return {id: p.id, x: p.x, y: p.y, zone: p.zone, run: p.run, open: true}; })};
   var sp = b.team === "CT" ? T_SPAWN : CT_SPAWN, zone = knowZoneAt(sp.x, sp.y);
   bots.forEach(function(e){
     if(e.team === b.team || !e.alive) return;
@@ -2476,6 +2511,7 @@ function knowCall(b, msg){
 //      only — довод про конкретного врага (киллфид назвал его)
 function knowApply(b, s, err, zone, L, opt){
   var K = b.know, g = knowGraph();
+  if(zone && K.spots) K.spots.forEach(function(p){ if(p.zone === zone) p.open = true; });   // враг в этой зоне — её места снова под вопросом
   // кого из видимых сейчас врагов это объясняет — тот и шумит, гипотезы не трогаем
   var vis = 0;
   (b._visible || []).forEach(function(e){ if(Math.hypot(e.x-s.x, e.y-s.y) <= err + 30) vis++; });
@@ -2576,6 +2612,11 @@ function knowLook(b){
   var K = b.know;
   if(tick < b.blindUntil || (tick + (b.id.charCodeAt(b.id.length-1)||0)) % KNOW.lookEvery) return;
   var ez = visEyeZ(b);
+  (K.spots || []).forEach(function(p){   // типичное место врага: увидел своими глазами — там никого
+    if(!p.open || Math.hypot(p.x-b.x, p.y-b.y) > KNOW.lookRange || !inFov(b, p.x, p.y)) return;
+    if(!visLine(b.x, b.y, ez, p.x, p.y, visFloorAt(p.x, p.y) + VIS_EYE.crouch, true)) return;
+    if(!(b._visible || []).some(function(e){ return Math.hypot(e.x-p.x, e.y-p.y) < 120; })) p.open = false;
+  });
   for(var id in K.enemies){
     var B = K.enemies[id]; if(B.visible) continue;
     B.hyps.forEach(function(h){
@@ -3041,8 +3082,8 @@ var POS = {
   threatW:     0.5,  // гипотеза врага с таким весом и больше на входе угла — угроза на slot
   threatEvery: 8,    // как часто бот на месте сверяет угрозу, тиков
   smokeEvery:  16,   // как часто, пока есть дым, сверяется «угол закрыт дымом», тиков
-  pfCone:      75,   // префайр: гипотеза не шире стольких ° от направления хода / удержания
-  pfFar:       900,  // префайр: и не дальше, px
+  pfCone:      75,   // префайр / проверка места: не шире стольких ° от направления хода / удержания
+  pfFar:       900,  // префайр / проверка места: и не дальше, px
   yawPad:      10,   // к yawRange точки — запас, ° (держит из-за края шире)
   keepBonus:   2,    // при перераздаче — за то, что остаёшься на своём слоте
   moveCost:    600,  // при перераздаче — −1 балл за столько px до новой точки
@@ -3311,16 +3352,13 @@ function posLook(b){
   if(w && Math.hypot(w[0]-b.x, w[1]-b.y) <= 4) w = null;
   if(w){
     b._goDir = Math.atan2(w[1]-b.y, w[0]-b.x);
-    var pf = posPrefire(b, b._goDir);
-    return pf ? {x: pf.x, y: pf.y, why: "prefire"} : {x: w[0], y: w[1], why: "move"};
+    return posAhead(b, b._goDir) || {x: w[0], y: w[1], why: "move"};
   }
   if(b._rtLook && posLed(b)) return {x: b._rtLook[0], y: b._rtLook[1], why: "retake"};   // стоит в ретейке/сейве
-  if(!b.pos){   // T на месте: держит то, куда шёл; весомая гипотеза перед ним — префайр
+  if(!b.pos){   // T на месте: держит то, куда шёл; гипотеза / типичное место врага перед ним — туда
     var dir = b._goDir;
     if(dir === undefined){ var sp = b.spawnPt || (b.team === "CT" ? CT_SPAWN : T_SPAWN); dir = Math.atan2(1024 - sp.y, 1024 - sp.x); }
-    var pt = posPrefire(b, dir);
-    if(pt) return {x: pt.x, y: pt.y, why: "prefire"};
-    return {x: b.x + Math.cos(dir)*400, y: b.y + Math.sin(dir)*400, why: b.tdef ? "lane" : "stub"};
+    return posAhead(b, dir) || {x: b.x + Math.cos(dir)*400, y: b.y + Math.sin(dir)*400, why: b.tdef ? "lane" : "stub"};
   }
   var P = POS_PT[b.pos.cur];
   if(!b.pos.threat) return {x: P.angle.x, y: P.angle.y, why: b.pos.fb ? "fallback" : "angle"};
@@ -3333,10 +3371,12 @@ function posLook(b){
   return {x: b.x + Math.cos(c+d)*R, y: b.y + Math.sin(c+d)*R, why: "threat"};
 }
 
-// префайр: самая весомая гипотеза врага (вес ≥ POS.threatW, по знанию самого бота)
-// перед ним — не дальше POS.pfFar и не шире POS.pfCone° от направления dir. Пересчёт раз в
-// POS.threatEvery тиков (гипотезы меняются событиями, не каждый тик)
-function posPrefire(b, dir){
+// куда смотреть впереди (по направлению dir, не шире POS.pfCone°, не дальше POS.pfFar):
+//  • префайр — самая весомая гипотеза врага (вес ≥ POS.threatW, по знанию самого бота);
+//  • иначе проверка — ближайшее типичное место врага, которое бот ещё не видел пустым
+//    (knowSpotAhead, 09_knowledge.js): так игрок на ходу проверяет углы.
+// Пересчёт раз в POS.threatEvery тиков (знание меняется событиями, не каждый тик)
+function posAhead(b, dir){
   if(b._pf && tick - b._pf.t < POS.threatEvery) return b._pf.p;
   var K = b.know, best = null, cone = POS.pfCone*Math.PI/180;
   if(K) for(var id in K.enemies){
@@ -3349,8 +3389,10 @@ function posPrefire(b, dir){
       if(!best || h.weight > best.weight) best = h;
     });
   }
-  b._pf = {t: tick, p: best ? {x: best.x, y: best.y} : null};
-  return b._pf.p;
+  var p = best ? {x: best.x, y: best.y, why: "prefire"} : null;
+  if(!p){ var sp = knowSpotAhead(b, dir, POS.pfCone, POS.pfFar); if(sp) p = {x: sp.x, y: sp.y, why: "check"}; }
+  b._pf = {t: tick, p: p};
+  return p;
 }
 
 // ---------- слой радара «позиции» ----------
@@ -4027,11 +4069,10 @@ function stubCrouch(b){
 function stubSelfNades(){
   bots.forEach(function(b){
     if(!b.alive || !b.nades) return;
-    var got = [];
-    if(buyNade(b, "flash")) got.push("флешка");
-    if(buyNade(b, "molly")) got.push("молотов");
-    if((b.team === "CT" || (bomb && bomb.carrier === b)) && b.nades.smoke === 0 && buyNade(b, "smoke")) got.push("смок");
-    if(got.length) b._selfBuy = got;
+    var N = b._selfN = {flash: 0, molly: 0, smoke: 0};   // купленные себе (не под сценарий) — 13_nades.js selfLeft
+    if(buyNade(b, "flash")) N.flash++;
+    if(buyNade(b, "molly")) N.molly++;
+    if((b.team === "CT" || (bomb && bomb.carrier === b)) && b.nades.smoke === 0 && buyNade(b, "smoke")) N.smoke++;
   });
 }
 // ======================= ДЕФОЛТ T: ЧТО ДЕЛАЕТ КАЖДЫЙ T ДО ВЫХОДА (шаг 7б) =======================
@@ -4881,6 +4922,7 @@ var SELF = {
   far:     700,  // и не дальше стольких px до врага по гипотезе
   cone:    75,   // и не шире стольких ° от направления хода
   cornerR: 160,  // молотов: «держит» не дальше стольких px от точки выхода
+  spotNear: 350, // по типичному месту (без инфы) — только близкий выход: место не дальше стольких px от точки выхода
   sightR:  900,  // смок под плант/дефуз: гипотеза врага с линией на точку не дальше стольких px
   defuseR: 220,  // смок под дефуз — когда до бомбы не больше стольких px
   teamSec: 3     // своя граната того же типа там же (≤ 150 px) за столько с — уже закрыто
@@ -4901,7 +4943,8 @@ function selfTeamDone(b, type, x, y){
 }
 function selfThrow(b, type, x, y, kind, why, waitT){
   if(selfTeamDone(b, type, x, y)) return false;
-  if(!throwNade(b, type, x, y, type !== "smoke", "себе: " + why)) return false;   // смок — под ноги, не навесом
+  if(selfLeft(b, type) <= 0 || !throwNade(b, type, x, y, type !== "smoke", "себе: " + why)) return false;
+  b._selfN[type]--;   // смок — под ноги, не навесом
   var n = nadesInAir[nadesInAir.length-1];
   b._nadeWait = tick + (n && n.flight ? n.flight : 30) + waitT;   // стоит, пока своя граната не сработала (стрелять может)
   SELF_LOG.push({tick: tick, round: roundNum, who: b.id, kind: kind, x: Math.round(x), y: Math.round(y), why: why});
@@ -4909,7 +4952,7 @@ function selfThrow(b, type, x, y, kind, why, waitT){
 }
 // смок под плант / дефуз: точка p, кто-то по знанию бота её видит
 function selfCoverSmoke(b, p, kind){
-  if(!b.nades || b.nades.smoke <= 0 || smokes.some(function(s){ return Math.hypot(s.x-p.x, s.y-p.y) < smokeRadiusNow(s); })) return false;
+  if(selfLeft(b, "smoke") <= 0 || smokes.some(function(s){ return Math.hypot(s.x-p.x, s.y-p.y) < smokeRadiusNow(s); })) return false;
   var seen = null;
   selfHyps(b, function(h){
     var d = Math.hypot(h.x-p.x, h.y-p.y);
@@ -4918,38 +4961,51 @@ function selfCoverSmoke(b, p, kind){
   if(!seen) return false;
   return selfThrow(b, "smoke", p.x, p.y, kind, (kind === "smoke_plant" ? "смок под плант" : "смок под дефуз") + " — точку видно с " + calloutName(seen.x, seen.y), 40);
 }
-// флешка / молотов под выход
+// флешка / молотов под выход. Повод — весомая гипотеза врага (свежая инфа) или, если её нет,
+// типичное место врага, которое бот ещё не видел пустым (knowSpotAhead — знание карты)
 function selfExit(b){
   if(!(b.path.length && b.pathIdx < b.path.length) || b._goDir === undefined) return false;
-  if(b.nades.flash <= 0 && b.nades.molly <= 0) return false;
+  if(selfLeft(b, "flash") <= 0 && selfLeft(b, "molly") <= 0) return false;
   b._selfDone = b._selfDone || {};
-  var best = null, cone = SELF.cone*Math.PI/180;
-  selfHyps(b, function(h, id){
-    var key = id + ":" + h.zone; if(b._selfDone[key]) return;
-    var d = Math.hypot(h.x-b.x, h.y-b.y); if(d > SELF.far || d < 60) return;
-    var a = Math.atan2(h.y-b.y, h.x-b.x) - b._goDir; if(Math.abs(Math.atan2(Math.sin(a), Math.cos(a))) > cone) return;
-    if(!crossesWall(b.x, b.y, h.x, h.y)) return;   // уже на линии — не выход, это бой/префайр
-    // точка выхода: первая точка пути (в пределах SELF.ahead), откуда врага будет видно
+  var cone = SELF.cone*Math.PI/180, cands = [];
+  function ahead(x, y){
+    var d = Math.hypot(x-b.x, y-b.y); if(d > SELF.far || d < 60) return false;
+    var a = Math.atan2(y-b.y, x-b.x) - b._goDir; return Math.abs(Math.atan2(Math.sin(a), Math.cos(a))) <= cone;
+  }
+  selfHyps(b, function(h, id){ if(ahead(h.x, h.y)) cands.push({x: h.x, y: h.y, w: h.weight, held: h.type === "held", key: id + ":" + h.zone, info: true}); });
+  if(!cands.length && b.know && b.know.alive) (b.know.spots || []).forEach(function(p){
+    if(p.open && knowSpotReach(p) && ahead(p.x, p.y)) cands.push({x: p.x, y: p.y, w: 0, held: false, key: "spot:" + p.id, info: false});
+  });
+  var best = null;
+  cands.forEach(function(c){
+    if(b._selfDone[c.key] || !crossesWall(b.x, b.y, c.x, c.y)) return;   // уже на линии — не выход, это бой/префайр
+    // точка выхода: первая точка пути (в пределах SELF.ahead), откуда это место будет видно
     var px = b.x, py = b.y, run = 0, ex = null;
     for(var i = b.pathIdx; i < b.path.length && run <= SELF.ahead; i++){
       var q = b.path[i]; run += Math.hypot(q[0]-px, q[1]-py); px = q[0]; py = q[1];
-      if(run <= SELF.ahead && !crossesWall(px, py, h.x, h.y)){ ex = {x: px, y: py}; break; }
+      if(run <= SELF.ahead && !crossesWall(px, py, c.x, c.y)){ ex = {x: px, y: py}; break; }
     }
     if(!ex) return;
-    if(!best || h.weight > best.h.weight) best = {h: h, key: key, ex: ex};
+    // свой уже вышел туда первым — место смотрят его глаза, флешка ослепила бы его
+    if(bots.some(function(m){ return m !== b && m.alive && m.team === b.team && Math.hypot(m.x-ex.x, m.y-ex.y) < 150; })) return;
+    if(!c.info && Math.hypot(c.x-ex.x, c.y-ex.y) > SELF.spotNear) return;   // дальний угол без инфы — проверяют прицелом, не флешкой
+    var d = Math.hypot(c.x-b.x, c.y-b.y);
+    if(!best || c.w > best.c.w || (c.w === best.c.w && d < best.d)) best = {c: c, ex: ex, d: d};
   });
   if(!best) return false;
-  var h = best.h, ex = best.ex, dE = Math.hypot(h.x-ex.x, h.y-ex.y);
-  b._selfDone[best.key] = true;   // на одну ситуацию — одна граната
-  var where = calloutName(h.x, h.y);
-  if(h.type === "held" && dE <= SELF.cornerR && b.nades.molly > 0)
-    return selfThrow(b, "molly", h.x, h.y, "molly_clear", "молотов в угол — держат " + where, 16);
-  if(b.nades.flash > 0){
+  var c = best.c, ex = best.ex, dE = Math.hypot(c.x-ex.x, c.y-ex.y);
+  b._selfDone[c.key] = true;   // на одну ситуацию — одна граната
+  var where = calloutName(c.x, c.y), src = c.info ? "по знанию " : "типичное место ";
+  if(c.held && dE <= SELF.cornerR && selfLeft(b, "molly") > 0)
+    return selfThrow(b, "molly", c.x, c.y, "molly_clear", "молотов в угол — держат " + where, 16);
+  if(selfLeft(b, "flash") > 0){
     var k = Math.min(1, 140/Math.max(1, dE));   // хлопок за углом, со стороны врага от точки выхода
-    return selfThrow(b, "flash", ex.x + (h.x-ex.x)*k, ex.y + (h.y-ex.y)*k, "flash_exit", "флешка под выход — по знанию " + where, 2);
+    return selfThrow(b, "flash", ex.x + (c.x-ex.x)*k, ex.y + (c.y-ex.y)*k, "flash_exit", "флешка под выход — " + src + where, 2);
   }
   return false;
 }
+// сколько гранат этого типа бот купил себе и ещё не кинул (сценарные — не его, их ждут шаги)
+function selfLeft(b, type){ return Math.min(b.nades[type], (b._selfN && b._selfN[type]) || 0); }
 function selfNadeTick(){
   if(roundState !== "live") return;
   if(tick === roundStartTick + 1 && roundNum === 1) SELF_LOG.length = 0;
@@ -5203,13 +5259,13 @@ function reactTicks(b, surprise){
   return Math.round(b._reactMs * (surprise ? BAL.reactSurprise : 1) * TICK_HZ / 1000);
 }
 // Прицел уже стоял на точке появления врага? Куда и зачем он стоял — posLook
-// (11_position.js, одно место): угол slot'а / ретейка / своей полосы — "setup_default",
+// (11_position.js, одно место): угол slot'а / ретейка / своей полосы / типичное место врага — "setup_default",
 // широкое удержание; взгляд на весомую гипотезу — "prefire_from_info", узкое. Враг вышел
 // вне ширины удержания или бот просто шёл/смотрел без цели — "reactive_turn".
 function engagementPrep(b, e){
   var why = b._holdWhy || "";
   var src = (why === "threat" || why === "prefire") ? "prefire_from_info"
-          : (why === "angle" || why === "fallback" || why === "retake" || why === "lane") ? "setup_default" : null;
+          : (why === "angle" || why === "fallback" || why === "retake" || why === "lane" || why === "check") ? "setup_default" : null;
   var w = src === "prefire_from_info" ? BAL.prepNarrow : BAL.prepWide;
   var off = Math.PI;
   if(b.facing !== undefined){
@@ -8974,6 +9030,7 @@ var __SNAP = [
 ["KNOW_TRACE", function(){ return KNOW_TRACE; }, function(v){ try{ KNOW_TRACE = v; }catch(e){} }],
 ["KNOW_LOG", function(){ return KNOW_LOG; }, function(v){ try{ KNOW_LOG = v; }catch(e){} }],
 ["KG", function(){ return KG; }, function(v){ try{ KG = v; }catch(e){} }],
+["KNOW_SPOTS", function(){ return KNOW_SPOTS; }, function(v){ try{ KNOW_SPOTS = v; }catch(e){} }],
 ["ZONE_NAMES_BAKED", function(){ return ZONE_NAMES_BAKED; }, function(v){ try{ ZONE_NAMES_BAKED = v; }catch(e){} }],
 ["ZONE_NAMES_KEY", function(){ return ZONE_NAMES_KEY; }, function(v){ try{ ZONE_NAMES_KEY = v; }catch(e){} }],
 ["ZONE_DEFAULT_LABEL", function(){ return ZONE_DEFAULT_LABEL; }, function(v){ try{ ZONE_DEFAULT_LABEL = v; }catch(e){} }],

@@ -36,10 +36,9 @@ function stubCrouch(b){
 function stubSelfNades(){
   bots.forEach(function(b){
     if(!b.alive || !b.nades) return;
-    var got = [];
-    if(buyNade(b, "flash")) got.push("флешка");
-    if(buyNade(b, "molly")) got.push("молотов");
-    if((b.team === "CT" || (bomb && bomb.carrier === b)) && b.nades.smoke === 0 && buyNade(b, "smoke")) got.push("смок");
-    if(got.length) b._selfBuy = got;
+    var N = b._selfN = {flash: 0, molly: 0, smoke: 0};   // купленные себе (не под сценарий) — 13_nades.js selfLeft
+    if(buyNade(b, "flash")) N.flash++;
+    if(buyNade(b, "molly")) N.molly++;
+    if((b.team === "CT" || (bomb && bomb.carrier === b)) && b.nades.smoke === 0 && buyNade(b, "smoke")) N.smoke++;
   });
 }
