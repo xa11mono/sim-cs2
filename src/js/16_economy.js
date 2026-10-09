@@ -65,6 +65,19 @@ function buyItem(b, key){
   if(w.slot === "primary") b.primary = key; else b.secondary = key;
   return true;
 }
+// гранаты (правила CS2): не больше 1 дыма, 1 молотова, 1 HE, 2 флешек и 4 штук всего.
+// Что брать — решает 12_script_runner.js (scrBuyUtility): гранаты под шаги выбранного сценария.
+var NADE_LIMIT = {smoke: 1, molly: 1, he: 1, flash: 2}, NADE_LIMIT_ALL = 4;
+function nadeCount(b){ var n = 0; for(var k in b.nades) n += b.nades[k]; return n; }
+function nadePrice(b, type){ return b.team === "CT" && NADE[type].priceCT ? NADE[type].priceCT : NADE[type].price; }
+function nadeCanBuy(b, type){
+  return b.alive && b.nades[type] < NADE_LIMIT[type] && nadeCount(b) < NADE_LIMIT_ALL && b.money >= nadePrice(b, type);
+}
+function buyNade(b, type){
+  if(!nadeCanBuy(b, type)) return false;
+  b.money -= nadePrice(b, type); b.nades[type]++;
+  return true;
+}
 function buyArmor(b, withHelmet){
   if(!b.armor && b.money >= ARMOR_PRICE){ b.money -= ARMOR_PRICE; b.armor = true; }
   if(withHelmet && b.armor && !b.helmet && b.money >= HELMET_UPGRADE){ b.money -= HELMET_UPGRADE; b.helmet = true; }
@@ -210,6 +223,7 @@ function resetRound(){
   resetBomb();
   logEvent("Раунд "+roundNum+" начался", "round");
   planRoundStart();  // IGL обеих сторон выбирают план на раунд (12_team.js → 07_t_brain.js, 12_ct_brain.js)
+  scriptRoundStart();// гранаты под шаги выбранного сценария на оставшиеся деньги (12_script_runner.js)
   posRoundStart();   // CT — по слотам активного Setup'а (11_position.js)
 }
 

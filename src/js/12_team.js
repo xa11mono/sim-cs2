@@ -12,6 +12,8 @@
 //   defuse — T услышал дефуз: «дефузят!» (срочно);
 //   death  — убили, а убийцу видел: «убили с Mid, AWP» (срочно; мёртвый успевает сказать ~2 с);
 //   igl    — колл IGL: смена плана (07_t_brain.js / 12_ct_brain.js), срочно.
+//   script — своя граната сценария упала / свой вошёл на сайт: «дым Second Lane», «заходим B Site»
+//            (шаг 7; тиммейты узнают из этого, что шаг сценария случился; на доске угроз не числится).
 // Неточность как у человека: место — зона колл-аута (не точка), «один/двое/несколько»,
 // из оружия — только AWP; содержимое фиксируется при решении сказать и к моменту, когда
 // договорено, уже немного устарело. Задержка: реакция + время произнесения.
@@ -36,7 +38,7 @@ var TEAM = {
   reTell:   2.0,         // того же видимого врага в новой зоне — не чаще, с (перестрелка на границе зон)
   deadTalk: 2.0          // мёртвый ещё договаривает, с
 };
-var TEAM_PRIO = {death: 2, plant: 2, defuse: 2, igl: 2, see: 1, hear: 0};
+var TEAM_PRIO = {death: 2, plant: 2, defuse: 2, igl: 2, see: 1, script: 1, hear: 0};
 var teamKnow = {};       // T / CT → teamKnowledge
 
 function teamNew(team){
@@ -70,6 +72,7 @@ function teamNear(z){ var g = knowGraph(); return [z].concat(g.adj[z] || []); } 
 function teamText(m){
   var z = m.zone ? knowZoneName(m.zone) : "";
   if(m.kind === "igl") return m.say;
+  if(m.kind === "script") return m.ev === "commit" ? "заходим " + z : NADE[m.ev].name + " " + z;
   if(m.kind === "plant") return "ставят " + m.site + "!";
   if(m.kind === "defuse") return "дефузят!";
   if(m.kind === "death") return "убили с " + z + (m.awp ? ", AWP" : "");
@@ -82,7 +85,7 @@ function teamText(m){
 // ---------- доска: покрывает ли уже сказанное эту фразу ----------
 function teamCovered(T, m){
   if(m.kind === "plant" || m.kind === "defuse") return !!T.threats[m.kind];
-  if(m.kind === "death" || m.kind === "igl") return false;   // про своего убийцу / колл — всегда новость
+  if(m.kind === "death" || m.kind === "igl" || m.kind === "script") return false;   // про своего убийцу / колл / свою гранату — всегда новость
   // звук — место понятно грубо: сказанное про эту зону или соседнюю — уже не новость
   if(m.kind === "hear") return teamNear(m.zone).some(function(z){ var t = T.threats[z]; return t && tick - t.tick <= teamSec(TEAM.board); });
   var t = T.threats[m.zone];
@@ -98,7 +101,7 @@ function teamPropose(b, m){
   var V = b.voice;
   for(var i = 0; i < V.pending.length; i++){
     var p = V.pending[i];
-    if(p.kind === m.kind && p.zone === m.zone && p.kind !== "hear" && p.kind !== "igl"){
+    if(p.kind === m.kind && p.zone === m.zone && p.kind !== "hear" && p.kind !== "igl" && p.kind !== "script"){
       p.count = Math.max(p.count || 0, m.count || 0); p.awp = p.awp || m.awp; p.text = teamText(p);
       (m.ids || []).forEach(function(id){ if(p.ids.indexOf(id) < 0) p.ids.push(id); });
       return;
@@ -182,7 +185,7 @@ function teamChannel(T){
     T.speaking = null;
     var m = S.msg;
     if(m.kind === "plant" || m.kind === "defuse") T.threats[m.kind] = {tick: tick, by: m.by};
-    else if(m.zone && m.kind !== "death"){
+    else if(m.zone && m.kind !== "death" && m.kind !== "script"){   // «дым там» — не угроза на доске
       var t = T.threats[m.zone], fresh = t && tick - t.tick <= teamSec(TEAM.board);
       T.threats[m.zone] = {count: Math.max(m.count || 0, fresh ? t.count || 0 : 0), awp: !!m.awp || (fresh && t.awp),
                            tick: tick, by: m.by, kind: m.kind};

@@ -20,10 +20,12 @@ var BAL = {
   freeze: 15          // freeze-тайм в начале раунда, сек (как в CS2)
 };
 // Профили ролей (docs/BRAIN.md, раздел 6) — модификаторы систем мозга.
-// Шаг 4: только данные, нигде не читаются; подключают шаги 5–9.
+// Шаг 4: данные; читают шаги 5–9 (preferredAngle — 11_position.js, waitK — 12_script_runner.js).
+// waitK (шаг 7) — во сколько раз роль терпеливее/нетерпеливее ждёт сигнала сценария (maxDelayTicks):
+// entry ждёт меньше, support больше, остальные ×1. Проектная константа, не из демок — заплатка.
 var RoleProfile = {
-  entry:   { aggression:0.85, tradeReliance:'high_but_commits_anyway', infoIndependence:0.2, preferredAngle:'standard_or_deepest' },
-  support: { aggression:0.45, tradeReliance:'high', infoIndependence:0.3, preferredAngle:'standard', clearsOffAngles:true },
+  entry:   { aggression:0.85, tradeReliance:'high_but_commits_anyway', infoIndependence:0.2, preferredAngle:'standard_or_deepest', waitK:0.6 },
+  support: { aggression:0.45, tradeReliance:'high', infoIndependence:0.3, preferredAngle:'standard', clearsOffAngles:true, waitK:1.4 },
   awp:     { aggression:0.3,  tradeReliance:'medium', infoIndependence:0.4, preferredAngle:'long_sightline', repositionAfterShot:true },
   lurker:  { aggression:0.5,  tradeReliance:'none', infoIndependence:0.9, actsOnOwnKnowledgeOnly:true },
   anchor:  { aggression:0.2,  tradeReliance:'needs_partner', infoIndependence:0.3, delaysRatherThanWins:true },

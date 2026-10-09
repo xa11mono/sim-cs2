@@ -9,7 +9,8 @@
 //   • плант — объявление «бомба заложена» (сайт CT узнают только по звуку/от своих);
 //   • свои глаза на пустой точке — «посмотрел, а там никого»;
 //   • войс — что тиммейт договорил в тимспике (knowCall; кто и что говорит — 12_team.js).
-//     Чужое b.know отсюда не читается никогда: только произнесённое.
+//     Чужое b.know отсюда не читается никогда: только произнесённое;
+//   • свои гранаты и вход тиммейта (K.nev, шаг 7) — бросил сам / увидел разрыв / услышал в войсе.
 //
 // Вера в позицию врага — набор гипотез, не число (BRAIN 2):
 //   held          — стоит, где его видели в последний раз (точка);
@@ -22,7 +23,8 @@
 // не выводит никогда; знает только когда увидел врага в другом месте или тот умер.
 //
 // Числа ниже — проектные константы (не из демок): что во что переходит и насколько.
-// Пока мозга нет, это знание ни на что в игре не влияет (только лог).
+// Знание о врагах пока ни на что в игре не влияет (только лог). Исключение — K.nev (свои гранаты
+// и вход тиммейта): по нему идут шаги сценария (12_script_runner.js).
 
 var KNOW = {
   heldStill:   0.50,  // стартовый вес held, если враг стоял/крался, когда пропал из вида
@@ -200,7 +202,7 @@ function knowNewBelief(K, b, e, last){
 
 // ---------- начало раунда: враги на своём спавне (это знают все) ----------
 function knowRoundStart(b){
-  var K = b.know = {key: matchNum + ":" + roundNum, enemies: {}, heard: [], planted: false, plantSite: null, alive: 0};
+  var K = b.know = {key: matchNum + ":" + roundNum, enemies: {}, heard: [], planted: false, plantSite: null, alive: 0, nev: []};
   var sp = b.team === "CT" ? T_SPAWN : CT_SPAWN, zone = knowZoneAt(sp.x, sp.y);
   bots.forEach(function(e){
     if(e.team === b.team || !e.alive) return;
@@ -262,6 +264,8 @@ function knowHearing(b){
 function knowCall(b, msg){
   var K = b.know; if(!K) return;
   var say = "войс " + msg.by + ": «" + msg.text + "»";
+  // свои гранаты и вход тиммейта (шаг 7): место — только зона колл-аута, точки в фразе нет
+  if(msg.kind === "script"){ K.nev.push({type: msg.ev, x: null, y: null, zone: msg.zone, tick: tick, src: "voice", by: msg.by}); return; }
   if(msg.kind === "plant"){
     if(!K.planted) K.plantHeard = msg.site;
     else if(!K.plantSite){ K.plantSite = msg.site; for(var id in K.enemies) knowTrace(b, id, say); }
@@ -393,6 +397,57 @@ function knowLook(b){
   }
 }
 
+// ---------- события сценария: свои гранаты и вход тиммейта (шаг 7, 12_script_runner.js) ----------
+// K.nev — что бот сам узнал о событиях СВОЕЙ команды, которые двигают сценарий:
+//   {type: smoke|flash|molly|he|commit, x, y, zone, tick, src: own|saw|voice, by}
+//   own   — бросил сам;
+//   saw   — увидел разрыв гранаты тиммейта (глаза → точка разрыва, дым закрывает, до SOUND.pop.see)
+//           либо увидел, как тиммейт пошёл на сайт (commit);
+//   voice — тиммейт договорил в войсе «дым Second Lane» / «заходим» (kind "script", 12_team.js):
+//           только зона колл-аута (x, y = null).
+// Разрыв своей гранаты врагу слышно (makeSound "pop"), своим — нет: свои узнают так, как игрок.
+// Какое событие какому шагу сценария соответствует — решает исполнитель (он знает план), а не
+// знание: здесь только «что произошло и откуда я это узнал».
+function knowNadePop(n){
+  if(roundState !== "live" || !n.thrower) return;
+  var zone = knowZoneAt(n.x, n.y), key = matchNum + ":" + roundNum;
+  bots.forEach(function(b){
+    if(!b.alive || b.team !== n.team || !b.know || b.know.key !== key) return;
+    var src = null;
+    if(b === n.thrower) src = "own";
+    else if(Math.hypot(b.x-n.x, b.y-n.y) <= SOUND.pop.see &&
+            visLine(b.x, b.y, visEyeZ(b), n.x, n.y, visFloorAt(n.x, n.y) + 40, true)) src = "saw";
+    if(!src) return;
+    b.know.nev.push({type: n.type, x: n.x, y: n.y, zone: zone, tick: tick, src: src, by: n.thrower.id});
+    if(src === "own" && b.voice) teamPropose(b, {kind: "script", ev: n.type, zone: zone});
+  });
+}
+// вход тиммейта на сайт: сам знает; остальные — если видят его (b.pushTick ставит исполнитель)
+function knowTeamSight(b){
+  var K = b.know;
+  bots.forEach(function(m){
+    if(m.team !== b.team || !m.alive || m.pushTick === undefined) return;
+    if(K.nev.some(function(e){ return e.type === "commit" && e.by === m.id; })) return;
+    var own = m === b;
+    if(!own && !(Math.hypot(b.x-m.x, b.y-m.y) <= SOUND.pop.see && visLine(b.x, b.y, visEyeZ(b), m.x, m.y, visEyeZ(m), true))) return;
+    var zone = m.pushSite && SITES[m.pushSite] ? knowZoneAt(SITES[m.pushSite].x, SITES[m.pushSite].y) : knowZoneAt(m.x, m.y);   // «заходим B» — куда идёт
+    K.nev.push({type: "commit", x: m.x, y: m.y, zone: zone, tick: tick, src: own ? "own" : "saw", by: m.id});
+    if(own && b.voice) teamPropose(b, {kind: "script", ev: "commit", zone: zone});
+  });
+}
+// события типа type (не раньше since): исполнитель сам выбирает, какое из них «то самое»
+function knowEvents(b, type, since){
+  var K = b.know, out = [];
+  if(!K) return out;
+  K.nev.forEach(function(e){ if(e.type === type && e.tick >= (since || 0)) out.push(e); });
+  return out;
+}
+function knowLastEvent(b, since){
+  var K = b.know, t = since || 0;
+  if(K) K.nev.forEach(function(e){ if(e.tick > t) t = e.tick; });
+  return t;
+}
+
 // ---------- плант (объявление видят все) ----------
 function knowPlant(b){
   var K = b.know;
@@ -441,6 +496,7 @@ function knowTick(){
     knowVision(b);
     knowHearing(b);
     knowPlant(b);
+    knowTeamSight(b);
     knowWindowsTick(b);
     knowLook(b);
   });

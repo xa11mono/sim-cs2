@@ -77,7 +77,10 @@ function nadeWallHit(x1,y1,x2,y2){
 function detonate(n){
   var T = n.type;
   // разрыв гранаты слышно/видно (makeSound "pop")
-  if(roundState === "live" && T !== "decoy" && n.thrower) makeSound(n.thrower, n.x, n.y, "pop", {info:{ntype:T}});
+  if(roundState === "live" && T !== "decoy" && n.thrower){
+    makeSound(n.thrower, n.x, n.y, "pop", {info:{ntype:T}});
+    knowNadePop(n);   // свои узнают о разрыве так, как игрок: сам бросил / увидел (09_knowledge.js)
+  }
   if(T === "smoke"){ smokes.push({x:n.x, y:n.y, born:tick, until:tick+NADE.smoke.life, team:n.team}); }
   else if(T === "molly"){
     // молотов, упавший в дым, гаснет (как в CS2 — наоборот тоже: дым тушит огонь)

@@ -189,6 +189,14 @@ setups.json:
 шаги идут по зависимостям, ни один не раньше своего события.
 ```
 
+После шага 7 (09.10, v205): исполнитель — `12_script_runner.js`. Состояние — `SCR_S.T` (шаги: `state`
+wait/go/done/drop/skip, `bot`, `rel`), лог — `SCR_LOG`. Ретейк CT: подключить свой Setup в `scrStart`
+(сейчас `side === "T" ? tbSetup(...) : null`) и вызвать `scrSide("CT")` из `scriptTick`; шаги ретейка
+те же (`throw_*`, `push`, `hold_angle`; `hold_angle` пока исполнитель не умеет — `kind: skip`).
+Знание о гранатах и входе — `b.know.nev` (`knowEvents`), фраза канала — `kind: "script"`. Числа ожидания —
+`SCR` и `RoleProfile.waitK` (заплатка).
+
+
 ## Шаг 8 — ретейк (Sonnet 5.5)
 
 ```
