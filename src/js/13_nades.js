@@ -235,7 +235,7 @@ function selfTeamDone(b, type, x, y){
 }
 function selfThrow(b, type, x, y, kind, why, waitT){
   if(selfTeamDone(b, type, x, y)) return false;
-  if(selfLeft(b, type) <= 0 || !throwNade(b, type, x, y, type !== "smoke", "себе: " + why)) return false;
+  if(selfLeft(b, type) <= 0 || !nadeThrow(b, type, x, y, type !== "smoke", "себе: " + why)) return false;
   b._selfN[type]--;   // смок — под ноги, не навесом
   var n = nadesInAir[nadesInAir.length-1];
   b._nadeWait = tick + (n && n.flight ? n.flight : 30) + waitT;   // стоит, пока своя граната не сработала (стрелять может)
@@ -296,6 +296,90 @@ function selfExit(b){
   }
   return false;
 }
+// ---------- утилита команды вне сценария (v219, аудит п. 6; docs/PRO_PLAY.md 2.2, 3, 6в) ----------
+// одна точка броска для всех решений этого раздела (сценарные шаги кидает 12_script_runner.js)
+function nadeThrow(b, type, x, y, lob, why){ return throwNade(b, type, x, y, lob, why); }
+// 1) утилита по времени — как у про в начале раунда: CT — «инста»/«по времени» (HE в Lower Mid, молотов на
+//    Mid, T Lower, Ramp…), T — «сетап» сайта плана (флешка/молотов/HE на контроль). Лайнапы из демок
+//    (lineups_pro.json): prob — в какой доле раундов про её кидают, at — типичная секунда. В начале раунда каждая
+//    берётся с вероятностью prob; кидает тот, у кого путь на свою точку/полосу ближе всего проходит мимо точки
+//    броска (крюк ≤ UTIL.detour), когда в окне [at − 1, at + UTIL.late] он рядом с ней (≤ UTIL.near).
+// 2) CT — задержка по инфе («утилитой задерживать, а не выигрывать лишние дуэли»): стоит на точке, по своему
+//    знанию враг весомо идёт на его угол (угроза на slot, 11_position.js) — молотов (нет — HE) туда, раз на угрозу.
+// 3) T — пост-плант: слышит дефуз (K.defuseT) — молотов на бомбу («молотов останавливает дефуз»).
+var UTIL = {
+  near:   300,   // px: «рядом с точкой броска» — кидает отсюда в ту же цель
+  detour: 400,   // px: крюк, на который бросающий готов отойти от своей дороги (проектное число)
+  late:   10,    // с: опоздал больше — лайнап пропускается
+  delayR: 750    // px: CT кидает задержку в угрозу не дальше
+};
+var UTIL_S = null, UTIL_LOG = [];
+function utilRoundStart(){
+  UTIL_S = {key: matchNum + ":" + roundNum, items: []};
+  if(roundNum === 1) UTIL_LOG.length = 0;
+  bots.forEach(function(b){ b._utilN = {smoke: 0, flash: 0, molly: 0, he: 0}; b._utilDone = {}; });
+  var Tsite = teamOf("T").planState.site;
+  proLineups().forEach(function(L, i){
+    var ok = L.team === "CT" ? (L.trigger === "insta" || L.trigger === "timed")
+                             : (L.trigger === "setup" || L.trigger === "insta") && (L.site === "any" || !L.site || L.site === Tsite);
+    if(!ok || hashRand(matchNum*7717 + roundNum*3301 + i*97) >= L.prob) return;
+    // кто кинет: у кого крюк к точке броска меньше (от места сейчас до своей цели через from)
+    var best = null, bc = 1e9;
+    bots.forEach(function(b){
+      if(b.team !== L.team || !b.alive) return;
+      var goal = utilGoal(b); if(!goal) return;
+      var c = Math.hypot(L.from.x - b.x, L.from.y - b.y) + Math.hypot(goal.x - L.from.x, goal.y - L.from.y) - Math.hypot(goal.x - b.x, goal.y - b.y);
+      if(c < bc && c <= UTIL.detour && nadeCanBuy(b, L.type)){ bc = c; best = b; }   // гранату под это покупает себе
+    });
+    if(!best || !buyNade(best, L.type)) return;
+    best._utilN[L.type]++;
+    UTIL_S.items.push({L: L, b: best, done: false});
+  });
+  if(UTIL_S.items.length) logEvent("Утилита по времени: " + UTIL_S.items.map(function(it){ return it.b.id + " " + NADE[it.L.type].name + " " + calloutName(it.L.to.x, it.L.to.y) + " " + it.L.at + " с"; }).join("; "), "info");
+}
+// куда бот идёт в начале раунда: CT — точка слота, T — место полосы дефолта
+function utilGoal(b){
+  if(b.pos) return {x: b.pos.tx, y: b.pos.ty};
+  if(b.tdef && b.tdef.seat && b.tdef.seat.lane) return {x: b.tdef.seat.lane.x, y: b.tdef.seat.lane.y};
+  return null;
+}
+function utilThrow(b, type, x, y, kind, why){
+  if(!nadeThrow(b, type, x, y, type !== "smoke" || kind === "timed", why)) return false;
+  UTIL_LOG.push({tick: tick, round: roundNum, who: b.id, team: b.team, kind: kind, type: type, why: why});
+  return true;
+}
+function utilTick(b){
+  if(!UTIL_S || UTIL_S.key !== matchNum + ":" + roundNum) return false;
+  var sec = (tick - roundStartTick)/TICK_HZ;
+  // 1) по времени
+  for(var i = 0; i < UTIL_S.items.length; i++){
+    var it = UTIL_S.items[i];
+    if(it.done || it.b !== b || sec < it.L.at - 1) continue;
+    if(sec > it.L.at + UTIL.late){ it.done = true; continue; }
+    if(Math.hypot(b.x - it.L.from.x, b.y - it.L.from.y) > UTIL.near || b.nades[it.L.type] <= 0) continue;
+    it.done = true; b._utilN[it.L.type]--;
+    return utilThrow(b, it.L.type, it.L.to.x, it.L.to.y, "timed", "по времени: " + NADE[it.L.type].name + " " + calloutName(it.L.to.x, it.L.to.y) + " (" + it.L.id + ")");
+  }
+  // 2) CT: задержка в угрозу на свой угол
+  if(b.team === "CT" && b.pos && b.pos.threat && teamOf("CT").planState.type === "default"){
+    var t = b.pos.threat, key = "delay:" + knowZoneAt(t.x, t.y), d = Math.hypot(t.x - b.x, t.y - b.y);
+    if(!b._utilDone[key] && d <= UTIL.delayR && d > 150){
+      var type = selfLeft(b, "molly") > 0 ? "molly" : selfLeft(b, "he") > 0 ? "he" : null;
+      if(type && !selfTeamDone(b, type, t.x, t.y)){
+        b._utilDone[key] = true; b._selfN[type]--;
+        return utilThrow(b, type, t.x, t.y, "delay", "задержка: " + NADE[type].name + " в " + calloutName(t.x, t.y) + " — по знанию идут");
+      }
+    }
+  }
+  // 3) T: дефуз — молотов на бомбу
+  if(b.team === "T" && bomb && bomb.state === "planted" && b.know && b.know.defuseT !== undefined && tick - b.know.defuseT <= 64 &&
+     !b._utilDone.bomb && selfLeft(b, "molly") > 0 && Math.hypot(bomb.x - b.x, bomb.y - b.y) <= NADE_THROW_RANGE &&
+     !fires.some(function(f){ return Math.hypot(f.x - bomb.x, f.y - bomb.y) < NADE.molly.radius; })){
+    b._utilDone.bomb = true; b._selfN.molly--;
+    return utilThrow(b, "molly", bomb.x, bomb.y, "postplant", "пост-плант: молотов на бомбу — дефузят");
+  }
+  return false;
+}
 // сколько гранат этого типа бот купил себе и ещё не кинул (сценарные — не его, их ждут шаги)
 function selfLeft(b, type){ return Math.min(b.nades[type], (b._selfN && b._selfN[type]) || 0); }
 function selfNadeTick(){
@@ -304,6 +388,7 @@ function selfNadeTick(){
   bots.forEach(function(b){
     if(!b.alive || !b.nades || b.planting || b.defusing || b._sawEnemy) return;
     if(tick < (b.throwUntil||0) || tick < (b._nadeWait||0)) return;
+    if(utilTick(b)) return;   // утилита команды: по времени / задержка CT / молотов на бомбу (v219)
     if((tick + b.id.charCodeAt(b.id.length-1)) % SELF.every) return;
     if(b.team === "T" && bomb && bomb.state === "carried" && bomb.carrier === b && bombSiteAt(b.baseX, b.baseY)){
       if(selfCoverSmoke(b, {x: b.x, y: b.y}, "smoke_plant")) return;

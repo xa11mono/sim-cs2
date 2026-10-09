@@ -222,8 +222,9 @@ function resetRound(){
   logEvent("Раунд "+roundNum+" начался", "round");
   planRoundStart();  // IGL обеих сторон выбирают план на раунд (12_team.js → 07_t_brain.js, 12_ct_brain.js)
   scriptRoundStart();// гранаты под шаги выбранного сценария на оставшиеся деньги (12_script_runner.js)
-  stubSelfNades();   // гранаты «себе» на остаток — заплатка-закуп (12_stub.js)
   tDefaultRoundStart();// дефолт T: места по полосам из демок, кто куда, у кого бомба (12_t_default.js)
   posRoundStart();   // CT — по слотам активного Setup'а (11_position.js)
+  utilRoundStart();  // утилита по времени из демок: кто кидает (по дороге на свою точку/полосу), докупить (13_nades.js, v219)
+  stubSelfNades();   // гранаты «себе» на остаток — заплатка-закуп (12_stub.js)
 }
 
