@@ -7,7 +7,9 @@
 //     примерно откуда», БЕЗ «кто»;
 //   • киллфид — кто кого убил (feedKill → knowKill), место смерти своего видно по радару;
 //   • плант — объявление «бомба заложена» (сайт CT узнают только по звуку/от своих);
-//   • свои глаза на пустой точке — «посмотрел, а там никого».
+//   • свои глаза на пустой точке — «посмотрел, а там никого»;
+//   • войс — что тиммейт договорил в тимспике (knowCall; кто и что говорит — 12_team.js).
+//     Чужое b.know отсюда не читается никогда: только произнесённое.
 //
 // Вера в позицию врага — набор гипотез, не число (BRAIN 2):
 //   held          — стоит, где его видели в последний раз (точка);
@@ -40,6 +42,9 @@ var KNOW = {
   // (из четырёх одинаково возможных врагов каждому достаётся четверть). Шаги — почти
   // наверняка враг в этом месте; по броску гранаты место понятно хуже
   soundL: {steps:0.85, water:0.85, shots:0.9, hit:0.9, reload:0.8, zoom:0.8, pickup:0.8, nade:0.5, nadefly:0.5, plant:0.9, defuse:0.9},
+  // то же для войса (12_team.js): тиммейт видел — почти наверняка; слышал — как свой звук, но
+  // со слов и только зона; «меня убил оттуда» — про названного в киллфиде врага
+  voiceL: {see:0.9, hear:0.7, death:0.9},
   unknownCompat: 0.3, // moved_unknown объясняет звук хуже, чем конкретная ветка
   sameSource:  1.5,   // тот же звук из того же места в пределах 1,5 с — тот же источник:
                       //   двигает точку «слышал здесь», но новым доводом не считается
@@ -238,7 +243,7 @@ function knowVision(b){
 // ---------- слух: новые записи b.ears этого тика ----------
 // звук не говорит «кто»: каждый враг получает долю по тому, насколько его гипотезы его объясняют
 function knowHearing(b){
-  var K = b.know, E = b.ears || [], g = knowGraph();
+  var K = b.know, E = b.ears || [];
   for(var i = 0; i < E.length; i++){
     var s = E[i];
     if(s.tick !== tick || s.kind === "pop" || s.kind === "defusing" || !(s.kind in KNOW.soundL)) continue;
@@ -247,49 +252,73 @@ function knowHearing(b){
     K.heard.push({x: s.x, y: s.y, zone: zone, kind: s.kind, tick: tick, err: err});
     while(K.heard.length && tick - K.heard[0].tick > KNOW.memSec*TICK_HZ) K.heard.shift();
     if(s.kind === "plant" && !K.planted) K.plantHeard = knowNearestSite(s.x, s.y);
-    // кого из видимых сейчас врагов это объясняет — тот и шумит, гипотезы не трогаем
-    var vis = false;
-    (b._visible || []).forEach(function(e){ if(Math.hypot(e.x-s.x, e.y-s.y) <= err + 30) vis = true; });
-    if(vis) continue;
-    var expl = {}, tot = 0;
-    for(var id in K.enemies){
-      var B = K.enemies[id]; if(B.visible) continue;
-      var reach = (tick - B.last.tick)/TICK_HZ*SPEED + err + 60, ex = 0;
-      if(Math.hypot(s.x-B.last.x, s.y-B.last.y) > reach) { expl[id] = 0; continue; }
-      B.hyps.forEach(function(h){ h._c = knowCompat(h, s, err, g); ex += h.weight*h._c; });
-      expl[id] = ex; tot += ex;
+    knowApply(b, s, err, zone, KNOW.soundL[s.kind], {say: "услышал " + (SOUND[s.kind] ? SOUND[s.kind].say : s.kind)});
+  }
+}
+// ---------- войс: тиммейт договорил фразу (12_team.js) ----------
+// msg: {zone, count, awp, kind:'see'|'hear'|'death'|'plant'|'defuse', site, enemy, by, text}.
+// Фраза говорит только «где (зона колл-аута) и сколько» — точки и «кто» в ней нет;
+// исключение — «меня убил …»: кто убил, видно в киллфиде, и фраза — про него.
+function knowCall(b, msg){
+  var K = b.know; if(!K) return;
+  var say = "войс " + msg.by + ": «" + msg.text + "»";
+  if(msg.kind === "plant"){
+    if(!K.planted) K.plantHeard = msg.site;
+    else if(!K.plantSite){ K.plantSite = msg.site; for(var id in K.enemies) knowTrace(b, id, say); }
+    return;
+  }
+  if(msg.kind === "defuse" || !msg.zone) return;
+  var g = knowGraph(), c = g.c[msg.zone];
+  knowApply(b, {x: c.x, y: c.y, kind: "voice"}, g.r[msg.zone] + 60, msg.zone, KNOW.voiceL[msg.kind],
+            {say: say, voice: true, mult: msg.count || 1, only: msg.enemy});
+}
+// довод «враг (кто-то из врагов) вот здесь» — общий для звука и войса.
+// s: {x, y, kind}; err — насколько точно понятно место; L — насколько довод уверенный;
+// opt: say — запись в лог, voice — со слов тиммейта (не свой звук), mult — сказали «двое»,
+//      only — довод про конкретного врага (киллфид назвал его)
+function knowApply(b, s, err, zone, L, opt){
+  var K = b.know, g = knowGraph();
+  // кого из видимых сейчас врагов это объясняет — тот и шумит, гипотезы не трогаем
+  var vis = 0;
+  (b._visible || []).forEach(function(e){ if(Math.hypot(e.x-s.x, e.y-s.y) <= err + 30) vis++; });
+  if(vis >= (opt.mult || 1)) return;
+  var expl = {}, tot = 0;
+  for(var id in K.enemies){
+    var B = K.enemies[id]; if(B.visible || (opt.only && id !== opt.only)) continue;
+    var reach = (tick - B.last.tick)/TICK_HZ*SPEED + err + 60, ex = 0;
+    if(Math.hypot(s.x-B.last.x, s.y-B.last.y) > reach) { expl[id] = 0; continue; }
+    B.hyps.forEach(function(h){ h._c = knowCompat(h, s, err, g); ex += h.weight*h._c; });
+    expl[id] = ex; tot += ex;
+  }
+  if(tot <= 0) return;   // никто из известных не мог
+  for(var id2 in expl){
+    var r = Math.min(1, expl[id2]/tot*(opt.mult || 1)); if(r < 0.02) continue;
+    var B2 = K.enemies[id2], un = knowHyp(B2, "moved_unknown"), specific = false;
+    // продолжение того же звука (тот же источник) — только сдвиг точки, не новый довод
+    var ls = B2.lastSound, same = !opt.voice && ls && tick - ls.tick <= KNOW.sameSource*TICK_HZ &&
+             Math.hypot(ls.x-s.x, ls.y-s.y) <= err + 100 && KNOW.soundL[s.kind] <= KNOW.soundL[ls.kind];
+    if(!opt.voice) B2.lastSound = {x: s.x, y: s.y, tick: tick, kind: same ? ls.kind : s.kind};
+    var mOk = 0, mNo = 0;
+    B2.hyps.forEach(function(h){ if(h._c > 0) mOk += h.weight*h._c; else mNo += h.weight; });
+    var move = same ? 0 : r*L;   // доля веса необъясняющих, которая уходит к объясняющим
+    B2.hyps.forEach(function(h){
+      if(h._c > 0){
+        if(mOk > 0) h.weight += move*mNo*(h.weight*h._c/mOk);
+        if(h.type !== "moved_unknown") specific = true;
+        if(h.heard && zone){ h.x = s.x; h.y = s.y; h.zone = h.route[0] = zone; h.inView = false; }   // «слышал здесь» идёт за звуком
+      } else h.weight *= 1 - move;
+    });
+    if(same && specific){ knowNorm(B2.hyps); continue; }
+    // объяснил только «ушёл неизвестно куда» — появляется новая ветка «слышал здесь»:
+    // её вес — доля этого врага в доводе × уверенность довода, из всех остальных гипотез
+    if(!specific && un && zone){
+      var take = r*L*(same ? 0.5 : 1);
+      B2.hyps.forEach(function(h){ h.weight *= 1 - take; });
+      B2.hyps.splice(B2.hyps.length-1, 0, {type: "moved", zone: zone, x: s.x, y: s.y, route: [zone], windows: [], weight: take, heard: true});
+      knowTrim(B2);
     }
-    if(tot <= 0) continue;   // никто из известных не мог — запомнено в K.heard
-    var L = KNOW.soundL[s.kind];
-    for(var id2 in expl){
-      var r = expl[id2]/tot; if(r < 0.02) continue;
-      var B2 = K.enemies[id2], un = knowHyp(B2, "moved_unknown"), specific = false;
-      // продолжение того же звука (тот же источник) — только сдвиг точки, не новый довод
-      var ls = B2.lastSound, same = ls && tick - ls.tick <= KNOW.sameSource*TICK_HZ &&
-               Math.hypot(ls.x-s.x, ls.y-s.y) <= err + 100 && KNOW.soundL[s.kind] <= KNOW.soundL[ls.kind];
-      B2.lastSound = {x: s.x, y: s.y, tick: tick, kind: same ? ls.kind : s.kind};
-      var mOk = 0, mNo = 0;
-      B2.hyps.forEach(function(h){ if(h._c > 0) mOk += h.weight*h._c; else mNo += h.weight; });
-      var move = same ? 0 : r*L;   // доля веса необъясняющих, которая уходит к объясняющим
-      B2.hyps.forEach(function(h){
-        if(h._c > 0){
-          if(mOk > 0) h.weight += move*mNo*(h.weight*h._c/mOk);
-          if(h.type !== "moved_unknown") specific = true;
-          if(h.heard && zone){ h.x = s.x; h.y = s.y; h.zone = h.route[0] = zone; h.inView = false; }   // «слышал здесь» идёт за звуком
-        } else h.weight *= 1 - move;
-      });
-      if(same && specific){ knowNorm(B2.hyps); continue; }
-      // объяснил только «ушёл неизвестно куда» — появляется новая ветка «слышал здесь»:
-      // её вес — доля этого врага в звуке × уверенность звука, из всех остальных гипотез
-      if(!specific && un && zone){
-        var take = r*L*(same ? 0.5 : 1);
-        B2.hyps.forEach(function(h){ h.weight *= 1 - take; });
-        B2.hyps.splice(B2.hyps.length-1, 0, {type: "moved", zone: zone, x: s.x, y: s.y, route: [zone], windows: [], weight: take, heard: true});
-        knowTrim(B2);
-      }
-      knowNorm(B2.hyps);
-      if(!same) knowTrace(b, id2, "услышал " + (SOUND[s.kind] ? SOUND[s.kind].say : s.kind) + " (" + knowZoneName(zone) + "), доля " + r.toFixed(2));
-    }
+    knowNorm(B2.hyps);
+    if(!same) knowTrace(b, id2, opt.say + " (" + knowZoneName(zone) + "), доля " + r.toFixed(2));
   }
 }
 // объясняет ли гипотеза звук в точке s (0…1)

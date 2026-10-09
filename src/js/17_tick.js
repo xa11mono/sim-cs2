@@ -257,6 +257,7 @@ function stepTick(){
   });
   resolveEngagements();
   knowTick();   // что каждый бот теперь знает о врагах (09_knowledge.js) — пока только знание, на игру не влияет
+  teamTick();   // войс: кто что сказал команде, тиммейты узнают из договорённого (12_team.js)
   bots.forEach(function(b){ if(b.alive) b.crouching = stubCrouch(b); });   // стойка — заглушка (12_stub.js)
   checkRoundEnd();
 }
