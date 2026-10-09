@@ -375,12 +375,14 @@ function tdefExit(){
 // Как у про: не стоять на бомбе, а сразу разойтись на сильные места с видом на бомбу и входы ретейка
 // (кроссфайр — CT приходится драться с двумя), играть на время; услышал дефуз — проверить бомбу.
 // Места — из демок (src/data/postplant.json, tools/postplant_bake.py): где T стоят после планта на этом
-// сайте, как часто, куда смотрят. Кто куда: каждому — место, где выше «часто у про» и ближе идти
-// (TPOST.walk), не ближе TPOST.apart к месту тиммейта. Дошёл — стоит, смотрит, как смотрят про там.
+// сайте при этой бомбе (v230), как часто, куда смотрят. Места — жребием по долям про, не ближе TPOST.apart друг к
+// другу; кто куда — чтобы всем вместе идти меньше. Дошёл — стоит, смотрит, как смотрят про там.
 // Дефуз (свой слух — K.defuseT, 09_knowledge.js; или войс «дефузят!»): ближайший к бомбе, кто её не
 // видит, идёт к ней, пока не увидит (стрельба — движок); остальные держат свои места.
 var TPOST = {
-  walk:  600,   // px: столько пути «стоят» как вдвое более частое место (проектное число)
+  huntSec: 17,  // с после планта: охота на сейвящих — не раньше (у про четверть киллов «охоты» — раньше 17 с; v230)
+  huntR: 600,   // px: «далеко от бомбы» — CT там не на ретейке (та же граница, что в замере охоты у про)
+  bombR: 90,    // px: бомба в кучке плантов из демок — ближе этого к её середине (как BOMB_R в tools/postplant_bake.py)
   apart: 130,   // px: два T не встают ближе этого — кроссфайр, а не толпа
   defuse: 96    // тиков: звук дефуза свежий — столько после последнего услышанного
 };
@@ -399,6 +401,7 @@ function tdefPost(){
     if(ch){ P.checker = ch; tdefLog("пост-плант", ch.id + " слышит дефуз — идёт проверить бомбу"); }
   }
   if(!heard && P.checker){ P.checker = null; }
+  tdefHuntCheck(T, P);
   T.forEach(function(b){
     if(b.planting || b._tdefBusy === tick) return;
     if(!b.tdef) b.tdef = {seat: null, spot: null, until: 0, holdUntil: 0, pathT: -1e9, arrived: false};
@@ -410,6 +413,7 @@ function tdefPost(){
       return;
     }
     if(tdefReact(b)) return;
+    if(P.hunt && P.hunt.ids.indexOf(b.id) >= 0 && tdefHunt(b)) return;
     var s = P.spot[b.id];
     if(!s){ tdefPostSeat([b], site); s = P.spot[b.id]; if(!s) return; }
     if(Math.hypot(b.x - s.x, b.y - s.y) > TDEF.arrive){ b.walking = false; b._ppLook = null; tdefGo(b, s.x, s.y); return; }
@@ -417,29 +421,75 @@ function tdefPost(){
     b._ppLook = s.look;
   });
 }
+// охота на сейвящих (v230, правка владельца 8: «выбивать ганы»). У про: в 13 % раундов с плантом T убивают CT дальше
+// 600 px от бомбы, первый такой килл — в среднем на 23-й с после планта, в 91 % — когда T больше (88 демок). По знанию
+// команды: прошло TPOST.huntSec после планта, нас больше (киллфид), и никто из T не знает CT у бомбы (ближе TPOST.huntR —
+// видел / слышал / войс) — CT не идут на ретейк, сейвят. Тогда все, кроме ближайшего к бомбе (он её держит), идут туда,
+// где по их знанию вероятнее всего CT (самая весомая гипотеза), — парой; узнали про CT у бомбы — назад на места.
+function tdefHuntCheck(T, P){
+  var sec = (tick - bomb.plantTick)/TICK_HZ, ct = bots.filter(function(b){ return b.team === "CT" && b.alive; }).length;
+  var near = T.some(function(b){
+    var K = b.know; if(!K) return false;
+    for(var id in K.enemies){
+      var B = K.enemies[id]; if(!planFact(B)) continue;
+      if(B.hyps.some(function(h){ return h.x !== undefined && h.weight >= PLAN.infoW && Math.hypot(h.x - bomb.x, h.y - bomb.y) <= TPOST.huntR; })) return true;
+    }
+    return false;
+  });
+  if(P.hunt){
+    if(near || T.length <= ct){ tdefLog("пост-плант", "охота отменена — " + (near ? "CT у бомбы" : "нас уже не больше")); P.hunt = null; }
+    return;
+  }
+  if(sec < TPOST.huntSec || !ct || T.length <= ct || near || T.length < 2) return;
+  var keep = T.slice().sort(function(a, c){ return Math.hypot(a.x - bomb.x, a.y - bomb.y) - Math.hypot(c.x - bomb.x, c.y - bomb.y); })[0];
+  P.hunt = {ids: T.filter(function(b){ return b !== keep; }).map(function(b){ return b.id; }), t: tick};
+  tdefLog("пост-плант", "охота: нас " + T.length + " против " + ct + ", у бомбы CT не видно " + Math.round(sec) + " с — " + P.hunt.ids.join(", ") + " ищут сейвящих, " + keep.id + " держит бомбу");
+}
+function tdefHunt(b){
+  var K = b.know, best = null;
+  if(K) for(var id in K.enemies){
+    var B = K.enemies[id];
+    B.hyps.forEach(function(h){ if(h.x !== undefined && (!best || h.weight > best.weight)) best = h; });
+  }
+  if(!best) return false;
+  b._ppLook = null; b.walking = false;
+  tdefGo(b, best.x, best.y);
+  return true;
+}
 function tdefPostSeat(T, site){
+  // доли мест — для этой бомбы (v230, правка владельца 5): где про стоят, когда бомба лежит в той же кучке плантов
+  // (postplant.json → <сайт>_bombs, spot.byBomb); бомба не в кучке — по всему сайту
+  var B = (POSTPLANT[site + "_bombs"] || []), ci = -1, cd = 1e9;
+  B.forEach(function(c, i){ var d = Math.hypot(c.x - bomb.x, c.y - bomb.y); if(d < cd){ cd = d; ci = i; } });
+  if(cd > TPOST.bombR) ci = -1;
   var P = TDEF_S.post, L = (POSTPLANT[site] || []).map(function(s){
     var w = snapToWalkable(s.x, s.y) || {x: s.x, y: s.y};
-    return {x: w.x, y: w.y, share: s.share, look: s.look, zone: s.zone};
-  });
+    return {x: w.x, y: w.y, share: ci >= 0 && s.byBomb ? s.byBomb[ci] : s.share, look: s.look, zone: s.zone};
+  }).filter(function(s){ return s.share > 0; });
   P.spot = P.spot || {};
   var taken = Object.keys(P.spot).map(function(id){ return P.spot[id]; });
   var free = T.filter(function(b){ return !P.spot[b.id]; });
-  // по одному: каждый раз лучшая пара «бот — место» по всем свободным (не ближе TPOST.apart к занятым)
-  while(free.length){
-    var best = null;
-    free.forEach(function(b){
-      L.forEach(function(s){
-        if(taken.some(function(t){ return Math.hypot(t.x - s.x, t.y - s.y) < TPOST.apart; })) return;
-        var sc = Math.log(s.share) - Math.LN2 * Math.hypot(b.x - s.x, b.y - s.y) / TPOST.walk;
-        if(!best || sc > best.sc) best = {sc: sc, b: b, s: s};
-      });
-    });
-    if(!best) break;
-    P.spot[best.b.id] = best.s; taken.push(best.s);
-    free = free.filter(function(b){ return b !== best.b; });
+  // места — как часто там стоят про (жребий по долям, не ближе TPOST.apart друг к другу); кто куда — чтобы всем вместе
+  // идти меньше всего (раньше: «чаще у про и ближе идти» с придуманным весом пути — всех тянуло к ближайшим местам у бомбы)
+  var pick = [];
+  for(var n = 0; n < free.length; n++){
+    var ok = L.filter(function(s){ return pick.indexOf(s) < 0 && !taken.concat(pick).some(function(t){ return Math.hypot(t.x - s.x, t.y - s.y) < TPOST.apart; }); });
+    if(!ok.length) break;
+    var sum = ok.reduce(function(a, s){ return a + s.share; }, 0), r = tdefRand(tick + n*31 + 7) * sum, c = ok[ok.length - 1];
+    for(var i = 0; i < ok.length; i++){ r -= ok[i].share; if(r <= 0){ c = ok[i]; break; } }
+    pick.push(c);
   }
-  tdefLog("пост-плант", "бомба " + site + ": " + T.map(function(b){ return b.id + " → " + (P.spot[b.id] ? P.spot[b.id].zone : "—"); }).join("; "));
+  var best = {d: 1e18, perm: null};
+  (function rec(perm, rest){
+    if(perm.length === Math.min(free.length, pick.length)){
+      var d = 0; perm.forEach(function(s, k){ d += Math.hypot(free[k].x - s.x, free[k].y - s.y); });
+      if(d < best.d) best = {d: d, perm: perm.slice()};
+      return;
+    }
+    rest.forEach(function(s, k){ rec(perm.concat([s]), rest.slice(0, k).concat(rest.slice(k + 1))); });
+  })([], pick);
+  (best.perm || []).forEach(function(s, k){ P.spot[free[k].id] = s; });
+  tdefLog("пост-плант", "бомба " + site + (ci >= 0 ? " (кучка " + ci + ")" : "") + ": " + T.map(function(b){ return b.id + " → " + (P.spot[b.id] ? P.spot[b.id].zone + " " + Math.round(Math.hypot(P.spot[b.id].x - bomb.x, P.spot[b.id].y - bomb.y)) + " px от бомбы" : "—"); }).join("; "));
 }
 
 // полоса на стороне плана или мид осталась без живых — её занимает тот, у кого в полосе есть напарник

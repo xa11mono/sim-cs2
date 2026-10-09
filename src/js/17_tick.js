@@ -62,7 +62,9 @@ function stepTick(){
     if(hasPath){
       var finalWp = bot.path[bot.path.length-1];
       var dFinal = Math.hypot(finalWp[0]-bot.baseX, finalWp[1]-bot.baseY);
-      if(dFinal < BRAKE_RADIUS) targetSpeed = runSpeed * Math.max(0.35, dFinal/BRAKE_RADIUS);
+      // пик / джиггл (b._strafe, 11_position.js) — короткий выход на полной скорости и стоп контрстрейфом, без
+      // торможения к точке (v229: иначе 33–49 px шли ~1 с вместо 0,4 с у про)
+      if(dFinal < BRAKE_RADIUS && !(tick - (bot._strafe || -9) <= 1)) targetSpeed = runSpeed * Math.max(0.35, dFinal/BRAKE_RADIUS);
     }
     if(bot.curSpeed < targetSpeed) bot.curSpeed = Math.min(targetSpeed, bot.curSpeed+maxDelta);
     else if(bot.curSpeed > targetSpeed) bot.curSpeed = Math.max(targetSpeed, bot.curSpeed-maxDelta);
@@ -81,6 +83,10 @@ function stepTick(){
       }
     }
 
+    // v229: стоял — счёт «топчется на месте» начинается заново, когда пошёл (раньше точка отсчёта оставалась с
+    // момента, когда он встал, и любой короткий шаг после долгого стояния — пик, джиггл, подход на 30 px — через тик
+    // считался «застрял 1,5 с»: путь сбрасывался, бота «притягивало» обратно)
+    if(bot.curSpeed <= 0.5) bot._np = null;
     if(bot.curSpeed > 0.5){
       if(bot.path.length === 0 || bot.pathIdx >= bot.path.length){
         bot.path = []; bot.pathIdx = 0;   // путь кончился — стоит (новый путь задаёт мозг)

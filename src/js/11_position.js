@@ -335,6 +335,7 @@ function posTick(){
   bots.forEach(function(b){
     if(!b.alive || !b.pos) return;
     if(posPeekTick(b)) return;   // пикает (v227) — цель пути не своя точка
+    if(b.pos.back && tick - b.pos.back < TICK_HZ) b._strafe = tick;   // и назад с пика — так же, контрстрейфом (v229)
     var far = Math.hypot(b.pos.tx-b.x, b.pos.ty-b.y) > POS.arrive;
     var moving = b.path.length > 0 && b.pathIdx < b.path.length;
     if(far && !moving && tick - b.pos.pathT >= POS.repathEvery) posPath(b);   // движок сбросил путь — та же цель
@@ -514,8 +515,8 @@ function posPushInfo(b, P){
 // Стоит на месте, врага не видит, а только что (≤ 1 с) слышал бегущего врага за стеной — выглядывает: шаг на
 // 33–49 px (как у про) туда, откуда это место видно, смотрит туда и через 0,8 с возвращается (бой — движок; пока
 // видит врага — стоит). Тиммейты рядом (≤ POS.mateLookR), которым тоже есть откуда выглянуть на это место, пикают
-// вместе — «пикаем вместе» (двое-трое выходят разом, враг не разменяет одного за другим; так и из дыма). Якорь
-// (главное — выжить, PRO_PLAY 3) пикает только вместе с кем-то. Один звук — один пик: снова — на новые шаги.
+// вместе — «пикаем вместе» (двое-трое выходят разом, враг не разменяет одного за другим; так и из дыма). Один —
+// только если свой рядом может разменять; якорь (главное — выжить, PRO_PLAY 3) — только вместе с кем-то. Один звук — один пик: снова — на новые шаги.
 function posPeekCheck(b){
   var K = b.know;
   if(!K || b.pos.peek || posLed(b) || b._sawEnemy || b.pos.push || b.pos.cover) return false;
@@ -535,7 +536,10 @@ function posPeekCheck(b){
     if(Math.hypot(o.x - b.x, o.y - b.y) > POS.mateLookR || Math.hypot(o.pos.tx - o.x, o.pos.ty - o.y) > POS.arrive) return;
     var q = posPeekPoint(o, h); if(q) go.push({b: o, p: q});
   });
-  if(/^anchor/.test(b.pos.slot) && go.length < 2) return false;
+  // пик в одиночку — только если свой рядом может разменять (PRO_PLAY 5: «не пикать одному — драться с поддержкой или
+  // отойти»; v230: одиночные пики стоили CT больше, чем давали — 17 смертей на 12 фрагов за 2 матча); якорь — только вместе
+  var mate = bots.some(function(o){ return o !== b && o.team === b.team && o.alive && Math.hypot(o.x - b.x, o.y - b.y) <= POS.mateLookR; });
+  if(go.length < 2 && (/^anchor/.test(b.pos.slot) || !mate)) return false;
   go.forEach(function(g){
     g.b.pos.peek = {x: g.p.x, y: g.p.y, hx: h.x, hy: h.y, start: tick, back: null};
     g.b.pos.peekSrc = h.tick;
@@ -577,10 +581,14 @@ function posPeekTick(b){
   var Q = b.pos.peek; if(!Q) return false;
   if(posLed(b)){ b.pos.peek = null; return false; }
   if(b._sawEnemy || tick - (b._lastSawT || -1e9) < TICK_HZ/4){ Q.saw = true; return true; }   // перестрелка — движок, стоит
+  b._strafe = tick;   // выход на полной скорости (17_tick.js)
+  if(!Q.at && Math.hypot(b.x - Q.x, b.y - Q.y) <= 4) Q.at = tick;   // вышел — место видно
   var out = tick - Q.start;
-  if((!Q.saw && out >= POS.peekSec*TICK_HZ) || out >= POS.peekMax*TICK_HZ){
+  // назад: вышел и прошло время пика у про (0,8 с от начала — туда-обратно), или дольше POS.peekMax
+  if((!Q.saw && Q.at && out >= POS.peekSec*TICK_HZ) || out >= POS.peekMax*TICK_HZ){
     b.pos.peek = null;
     b.walking = false; posPath(b);   // назад на свою точку (цель — прежняя b.pos.tx/ty)
+    b.pos.back = tick;
     POS_LOG.push({tick: tick, round: roundNum, who: b.id, slot: b.pos.slot, pid: b.pos.cur, why: "пик: " + (Q.saw ? "был контакт" : "никого") + " — назад"});
     return true;
   }
