@@ -3091,6 +3091,14 @@ function visPair(a, b){
 //     разрывы утилиты T у сайта) на сайте X ≥ POS.rotNeed врагов — туда идут ближайшие не-якоря, пока
 //     защитников X меньше min(инфа, rotMax); точка — CT-точка из демок на стороне X. Якорь своего сайта
 //     не уходит. На своей стороне стало ≥ rotNeed, а на X меньше — назад на свою точку.
+//   • (v215) инфа для ротации — ещё и то, что команде уже сказали в войсе (доска teamKnow.threats:
+//     «несколько B», «шаги Cave» — до утилиты выхода);
+//   • подпуш за инфой (PRO_PLAY 3, 5: ранний пик, агрессия на миде, «ramp aggro»): точки push из демок —
+//     каждая в раунде с вероятностью её доли у про (share), её берёт CT со слотом на той же стороне
+//     (сначала entry/awp — инициаторы, якорь — последним), не больше POS.pushMax; приходит к типичной
+//     секунде точки (sec), стоит её типичное время (hold), потом назад на слот; был контакт — назад сразу;
+//   • после своего фрага или попадания по нему, когда врага уже не видно, — на другое место точки (запасная
+//     или другой spot дальше POS.movedR): враг знает, где он.
 // T: расстановки в данных нет (T-Setup'ы — сценарии execute, шаги 6–7) — стоят у спавна,
 //   взгляд вперёд к центру карты (заплатка до шага 7, перенесена из 12_stub.js).
 //
@@ -3131,7 +3139,11 @@ var POS = {
   rotPops:     2,    // разрывов гранат T у сайта за 3 с (слышал/видел) — это выход; врагов там — столько, сколько разрывов
   rotPopR:     450,  // px: разрыв «у сайта»
   rotMax:      3,    // защитников на сайте выхода не больше столько (вместе с теми, кто там стоял)
-  rotApart:    150   // px: точка ротации не ближе этого к цели тиммейта
+  rotApart:    150,  // px: точка ротации не ближе этого к цели тиммейта
+  // v215 (аудит п. 4, доделка): игры за инфой и смена позиции
+  pushMax:     2,    // подпушей за раунд не больше (вдвоём — пара; данные дают в среднем ~1 на раунд)
+  pushLead:    1,    // с: выйти так, чтобы быть на точке подпуша к её типичной секунде (sec), с запасом
+  movedR:      40    // px: после фрага / попадания — на другое место хотя бы так далеко (у про «откатился» > 40 px)
 };
 // насколько слот нужен команде, когда живых меньше, чем слотов: якорь сайта пустеть не должен —
 // его вес больше, чем «свой слот + подходит по роли» у соседа, поэтому сосед на него переходит
@@ -3333,6 +3345,7 @@ function posRoundStart(){
   POS_STATE.aliveCT = alive.length;
   POS_STATE.applied = posSetup().id;
   posChoosePoints(posAssign(alive, false), "раунд");
+  posPlanPushes(alive);
   logEvent("Setup CT: "+posSetup().name+" — "+alive.map(function(b){ return nick(b.id)+" "+b.pos.slot+" ("+POS_PT[b.pos.pid].area+")"; }).join(", "), "round");
 }
 // план CT сменил Setup — перестроить живых CT (вызывает posTick)
@@ -3385,6 +3398,8 @@ function posTick(){
     if(far && !moving && tick - b.pos.pathT >= POS.repathEvery) posPath(b);   // движок сбросил путь — та же цель
     if((smokes.length || b.pos.fb) && (tick + (b.id.charCodeAt(b.id.length-1)||0)) % POS.smokeEvery === 0) posSmokeCheck(b);
     if(!far && (tick + (b.id.charCodeAt(0)||0)) % POS.threatEvery === 0) posThreatCheck(b);
+    if(posPushTick(b)) return;
+    if(posAfterHit(b)) return;
     if((tick + (b.id.charCodeAt(1)||0)) % POS.rotEvery === 0) posRotateCheck(b);
     if(!far && !moving) posShuffle(b);
   });
@@ -3395,6 +3410,14 @@ function posTick(){
 function posPressure(b){
   var n = {A: 0, B: 0, mid: 0};
   planLocatedList(b).forEach(function(e){ n[e.region]++; });
+  // сказанное команде (доска войса): «несколько B» — это инфа, даже если гипотезы бота ещё не дотянули
+  var T = teamOf(b.team), said = {A: 0, B: 0, mid: 0};
+  for(var z in T.threats){
+    var th = T.threats[z], r = planRegion(z);
+    if(!r || th.count === undefined || tick - th.tick > teamSec(TEAM.board)) continue;
+    said[r] += th.count;
+  }
+  ["A", "B", "mid"].forEach(function(r){ n[r] = Math.max(n[r], said[r]); });
   ["A", "B"].forEach(function(k){
     var s = SITES[k], pops = (b.ears || []).filter(function(e){
       return e.kind === "pop" && tick - e.tick <= 3*TICK_HZ && Math.hypot(e.x - s.x, e.y - s.y) <= POS.rotPopR; }).length;
@@ -3439,6 +3462,73 @@ function posRotateCheck(b){
   if(!best) return;
   b.pos.home = b.pos.pid; b.pos.rot = X; b.pos.pid = best.id; b.pos.fb = false;
   posGo(b, "ротация на " + X + " — по инфе: там " + pr[X] + (pr[X] >= POS.rotNeed && planLocatedList(b).filter(function(e){ return e.region === X; }).length < pr[X] ? " (утилита выхода)" : ""));
+}
+// ---------- подпуш за инфой (v215) ----------
+function posPlanPushes(alive){
+  var used = {}, n = 0, fit = {entry: 0, awp: 1, support: 2, lurker: 2, anchor: 3};
+  KNOW_POSITIONS.points.filter(function(P){ return P.side === "CT" && P.push; })
+    .sort(function(a, c){ return c.share - a.share; })
+    .forEach(function(P, i){
+      if(n >= POS.pushMax || posSeed(null, 401 + i*17) >= P.share) return;   // в этом раунде её не берут
+      var reg = P.region === "Tside" || P.region === "back" ? "mid" : P.region, best = null, bs = 1e9;
+      alive.forEach(function(b){
+        if(used[b.id] || !b.pos) return;
+        var home = POS_PT[b.pos.pid];
+        if(!home || home.region !== reg) return;
+        var sc = (fit[b.role] === undefined ? 2 : fit[b.role])*1000 + Math.hypot(home.x - P.x, home.y - P.y);
+        if(sc < bs){ bs = sc; best = b; }
+      });
+      if(!best) return;
+      used[best.id] = true; n++;
+      best.pos.push = {pid: P.id, state: "wait", at: roundStartTick + Math.round(P.sec*TICK_HZ), hold: Math.round(P.hold*TICK_HZ)};
+      POS_LOG.push({tick: tick, round: roundNum, who: best.id, slot: best.pos.slot, pid: P.id, why: "план подпуша на " + P.sec + "-й с"});
+    });
+}
+function posPushTick(b){
+  var Q = b.pos.push; if(!Q || Q.state === "done" || posLed(b)) return false;
+  var P = POS_PT[Q.pid], home = POS_PT[b.pos.pid];
+  if(teamOf("CT").planState.type !== "default" || b.pos.rot){ Q.state = "done"; posGo(b, "подпуш отменён"); return false; }
+  if(Q.state === "wait"){
+    var travel = Math.hypot(P.x - b.x, P.y - b.y)*1.35/SPEED*TICK_HZ + POS.pushLead*TICK_HZ;
+    if(tick < Q.at - travel) return false;
+    Q.state = "go";
+    b.pos.tx = P.x; b.pos.ty = P.y; b.pos.tz = P.z || 0; b.pos.cur = P.id; b.walking = false; posPath(b);
+    logEvent("Позиция: " + nick(b.id) + " — подпуш за инфой: " + P.area, "info");
+    return true;
+  }
+  var contact = b._sawEnemy || tick - (b._lastSawT || -1e9) < TICK_HZ/2;
+  if(Q.state === "go"){
+    if(contact){ Q.saw = true; return true; }
+    if(Q.saw){ Q.state = "done"; posGo(b, "подпуш: был контакт — назад на слот"); return true; }   // встретил по пути — назад
+    if(Math.hypot(P.x - b.x, P.y - b.y) <= POS.arrive*2){ Q.state = "hold"; Q.until = tick + Q.hold; }
+    return true;
+  }
+  if(Q.state === "hold"){
+    if(contact){ Q.saw = true; return true; }   // перестрелка — движок
+    if(Q.saw || tick >= Q.until){
+      Q.state = "done";
+      posGo(b, Q.saw ? "подпуш: был контакт — назад на слот" : "подпуш: никого — назад на слот");
+    }
+    return true;
+  }
+  return false;
+}
+// ---------- после фрага / попадания — сменить место (v215) ----------
+function posAfterHit(b){
+  var k = b.kills || 0, hp = b.hp;
+  if(b.pos.k0 === undefined){ b.pos.k0 = k; b.pos.hp0 = hp; return false; }
+  // свой фраг или пуля по нему (огонь молотова — не повод: из огня и так выходят); не чаще раза в 5 с
+  if((k > b.pos.k0 || (hp < b.pos.hp0 && !b._fireIn)) && tick - (b.pos.movedT || -1e9) > 5*TICK_HZ) b.pos.moveAfter = true;
+  b.pos.k0 = k; b.pos.hp0 = hp;
+  if(!b.pos.moveAfter || b._sawEnemy || tick - (b._lastSawT || -1e9) < TICK_HZ || posLed(b)) return false;
+  b.pos.moveAfter = false; b.pos.movedT = tick;
+  var P = POS_PT[b.pos.cur], F = P && P.fallback && POS_PT[P.fallback];
+  var cand = (P && P.spots || []).filter(function(s){ return Math.hypot(s.x - b.x, s.y - b.y) > POS.movedR; });
+  var t = F && Math.hypot(F.x - b.x, F.y - b.y) > POS.movedR ? {x: F.x, y: F.y} : (cand.length ? cand[0] : null);
+  if(!t) return false;
+  b.pos.tx = t.x; b.pos.ty = t.y; b.walking = false; posPath(b);
+  POS_LOG.push({tick: tick, round: roundNum, who: b.id, slot: b.pos.slot, pid: b.pos.cur, why: "после фрага/попадания — сменил место"});
+  return true;
 }
 // ---------- на точке не истуканом (v214) ----------
 function posShuffle(b){
