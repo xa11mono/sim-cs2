@@ -10,8 +10,7 @@
 // энтри — к выходу на сайт плана; AWP — мид (Falcons: m0NESY с AWP на миде); саппорт — куда угодно.
 // Бомба — у того, кто играет последним: на стороне плана, не энтри (он входит первым), лучше саппорт.
 //
-// Внутри полосы — по местам spots: дошёл → стоит TDEF.dwell с → другое место. До первой точки бежит
-// (присутствие, шум — давят на CT), дальше — шагом; лёркер — всегда шагом (тихо).
+// В полосе — одно место из spots (по доле у про); дошёл — держит его. До места бежит, лёркер — шагом (тихо).
 // Своё знание (b.know, 09_knowledge.js):
 //   • вижу врага — стоп, держу (стрельба — движок); не вижу TDEF.holdSee с — дальше;
 //   • слышу шаги/стрельбу ближе TDEF.hearR — стоп, смотрю туда TDEF.holdHear с;
@@ -25,7 +24,6 @@
 // Лог: TDEF_LOG + консоль.
 
 var TDEF = {
-  dwell:    [2.5, 6],   // с: постоять на месте полосы, потом — к другому (проектные числа, не из демок)
   holdSee:  1.5,        // с: врага не видно столько — можно двигаться дальше
   holdHear: 3,          // с: услышал рядом — стоит и смотрит туда
   hearR:    450,        // px: «рядом» для звука
@@ -194,8 +192,8 @@ function tdefLane(b){
     return;
   }
   if(!D.arrived){ D.arrived = true; tdefLog("в полосе", b.id + " → " + L.zone); }
-  if(!D.until) D.until = tick + Math.round((TDEF.dwell[0] + (TDEF.dwell[1] - TDEF.dwell[0])*tdefRand(tick + b.id.charCodeAt(1)))*TICK_HZ);
-  if(tick >= D.until && !(lead && lead.alive)){ D.spot = tdefSpot(b, L, D.spot); D.until = 0; }   // второй в паре ходит за первым
+  // v224: занял место — держит его (правка владельца: «заняли зону — не возвращаться проверять старое»); перестановка
+  // между местами полосы раз в 2,5–6 с была придумана (не из демок) — убрана. Движение на месте — пункт 6, по демкам
 }
 // место второго в паре: ближайшее к месту первого место полосы не ближе TDEF.mateMin; нет такого — на mateBack
 // назад от первого, в сторону своего спавна (сзади, а не рядом на одной линии)
@@ -205,14 +203,14 @@ function tdefMateSpot(b, L, ls){
     var d = Math.hypot(s[0] - ls.x, s[1] - ls.y);
     if(d >= TDEF.mateMin && d <= TDEF.mateMax && d < bd){ bd = d; best = s; }
   });
-  var p = best ? {x: best[0], y: best[1]} : null;
+  var p = best ? {x: best[0], y: best[1], look: best.length >= 5 ? [best[3], best[4]] : null} : null;
   if(!p){
     var a = Math.atan2(T_SPAWN.y - ls.y, T_SPAWN.x - ls.x), r = (TDEF.mateMin + TDEF.mateMax)/2;
     p = {x: ls.x + Math.cos(a + 0.5)*r, y: ls.y + Math.sin(a + 0.5)*r};
   }
   var w = snapToWalkable(p.x, p.y) || ls;
   if(crossesWall(ls.x, ls.y, w.x, w.y)) w = ls;
-  return {x: w.x, y: w.y};
+  return {x: w.x, y: w.y, look: p.look || ls.look || null};
 }
 // размен (v220): свой погиб рядом (киллфид + где — по радару) — кто рядом, идёт туда сразу, чтобы разменять
 // (scope.gg: размен — убить врага сразу после того, как он убил твоего); лёркер — нет
@@ -242,7 +240,7 @@ function tdefSpot(b, L, cur){
   var sum = sp.reduce(function(a, s){ return a + s[2]; }, 0), r = tdefRand(tick + b.id.charCodeAt(1)*7) * sum, pick = sp[0];
   for(var i = 0; i < sp.length; i++){ r -= sp[i][2]; if(r <= 0){ pick = sp[i]; break; } }
   var w = snapToWalkable(pick[0], pick[1]) || {x: pick[0], y: pick[1]};
-  return {x: w.x, y: w.y};
+  return {x: w.x, y: w.y, look: pick.length >= 5 ? [pick[3], pick[4]] : null};   // взгляд про на этом месте (tools/lane_look_bake.py)
 }
 function tdefGo(b, x, y){
   var D = b.tdef, moving = b.path.length > 0 && b.pathIdx < b.path.length;
@@ -250,6 +248,11 @@ function tdefGo(b, x, y){
   if(b._pathBy === "tdef" && !moving && tick - D.pathT < TDEF.repath && D.goX === x && D.goY === y) return;
   D.pathT = tick; D.goX = x; D.goY = y; b._pathBy = "tdef";
   b.path = buildWaypointPath(b.x, b.y, b.z || 0, x, y, 0); b.pathIdx = 0;
+  // конец пути — это и есть место (навмеш может не доходить до точки из демок): иначе «не дошёл» и путь заново (v224)
+  var e = b.path.length ? b.path[b.path.length - 1] : null;
+  if(e && Math.hypot(e[0] - x, e[1] - y) <= POS.endSnap){
+    if(D.spot && D.spot.x === x && D.spot.y === y){ D.spot = {x: e[0], y: e[1], look: D.spot.look}; D.goX = e[0]; D.goY = e[1]; }
+  }
 }
 // execute: подтянуться к выходу, после входа энтри — на сайт
 function tdefJoin(b, entryIn){

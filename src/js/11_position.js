@@ -19,8 +19,6 @@
 //     точка, BRAIN 4.4) — позиция та же, взгляд в пределах yawRange точки — на вход угрозы;
 //   • смена Setup'а — план команды CT (teamKnowledge.planState.activeSetupId, решает IGL в
 //     12_ct_brain.js): posTick видит новый id — перестраивает живых CT;
-//   • (v214, аудит п. 4, docs/PRO_PLAY.md 3) на точке не стоит истуканом: между местами точки
-//     (spots из демок) / в пределах её spread, шагом, раз в POS.shuffle с, пока нет угрозы и врага;
 //   • ротация по инфе (ротатор, PRO_PLAY 3: «первым уходит со своей зоны, когда на другой сайт давят
 //     или выходят», «ротироваться только по настоящей инфе»): по СВОЕМУ знанию (гипотезы + войс +
 //     разрывы утилиты T у сайта) на сайте X ≥ POS.rotNeed врагов — туда идут ближайшие не-якоря, пока
@@ -52,7 +50,6 @@ var POS = {
   moveCost:    600,  // при перераздаче — −1 балл за столько px до новой точки
   marginMin:   3,    // с: якорь/саппорт — только точки, где свои успевают раньше врага хотя бы на столько
   // v214 (аудит п. 4): CT по ходу раунда
-  shuffle:     [3, 8], // с: на своей точке — постоять, потом на другое место точки (spots) / в пределах её spread
   rotEvery:    16,   // тиков: как часто CT сверяет «где бьют» по своему знанию
   rotNeed:     2,    // «настоящая инфа» о выходе на сайт: столько врагов там по своему знанию (или утилита выхода)
   rotPops:     2,    // разрывов гранат T у сайта за 3 с (слышал/видел) — это выход; врагов там — столько, сколько разрывов
@@ -65,6 +62,9 @@ var POS = {
   pushLead:    1,    // с: выйти так, чтобы быть на точке подпуша к её типичной секунде (sec), с запасом
   movedR:      40,   // px: после фрага / попадания — на другое место хотя бы так далеко (у про «откатился» > 40 px)
   pushHearR:   600,  // px: на подпуше услышал врага / сказали про зону так близко — назад (v221, проектное число)
+  mateLookR:   500,  // px: тиммейт рядом — его направление взгляда уже держится (v224, проектное число)
+  mateLookDeg: 25,   // °: направление «то же», если в пределах стольких градусов (v224, проектное число)
+  endSnap:     80,   // px: конец пути ближе к цели — цель там (v224, проектное число: навмеш не всегда доходит до точки из демок)
   coverK:      0.6   // напарник подпуша — на 60 % пути от своей точки к точке подпуша (v223, проектное число)
 };
 // насколько слот нужен команде, когда живых меньше, чем слотов: якорь сайта пустеть не должен —
@@ -247,7 +247,7 @@ function posGo(b, why){
   var sp = P.spots && P.spots.length ? posPick(P.spots, function(s){ return s.share; }, posSeed(b, 3)) : P;
   b.pos.cur = P.id; b.pos.tx = sp.x; b.pos.ty = sp.y; b.pos.tz = P.z || 0;
   b.pos.threat = null;
-  b.walking = false;   // к точке / на ротацию — бегом; шагом — только перестановка на точке (posShuffle)
+  b.walking = false;   // к точке / на ротацию — бегом
   posPath(b);
   POS_LOG.push({tick: tick, round: roundNum, who: b.id, slot: b.pos.slot, pid: P.id, why: why});
   if(why !== "раунд") logEvent("Позиция: "+nick(b.id)+" → "+b.pos.slot+" ("+P.area+(b.pos.fb ? ", запасная" : "")+") — "+why, "info");
@@ -256,6 +256,10 @@ function posPath(b){
   b.pos.pathT = tick;
   if(posLed(b)) return;   // ведёт сценарий (ретейк/сейв, 08_retake.js) — путь его
   b.path = buildWaypointPath(b.x, b.y, b.z, b.pos.tx, b.pos.ty, b.pos.tz); b.pathIdx = 0; b._pathBy = "pos";
+  // путь кончается в ближайшей проходимой точке, а не ровно в цели: цель — там, куда бот реально дойдёт
+  // (иначе «не дошёл» → новый путь каждые repathEvery тиков: бота «выталкивает», он снова идёт вставать; v224)
+  var e = b.path.length ? b.path[b.path.length - 1] : null;
+  if(e && Math.hypot(e[0] - b.pos.tx, e[1] - b.pos.ty) <= POS.endSnap){ b.pos.tx = e[0]; b.pos.ty = e[1]; }
 }
 function posLed(b){ return b._scrT !== undefined && tick - b._scrT <= 1; }
 
@@ -324,7 +328,6 @@ function posTick(){
     if(posCoverTick(b)) return;
     if(posAfterHit(b)) return;
     if((tick + (b.id.charCodeAt(1)||0)) % POS.rotEvery === 0) posRotateCheck(b);
-    if(!far && !moving) posShuffle(b);
   });
 }
 // ---------- ротация по инфе (v214) ----------
@@ -513,25 +516,6 @@ function posAfterHit(b){
   POS_LOG.push({tick: tick, round: roundNum, who: b.id, slot: b.pos.slot, pid: b.pos.cur, why: "после фрага/попадания — сменил место"});
   return true;
 }
-// ---------- на точке не истуканом (v214) ----------
-function posShuffle(b){
-  if(posLed(b) || b.pos.threat || b.pos.fb || b._sawEnemy || tick - (b._lastSawT || -1e9) < 2*TICK_HZ) { b.pos.shT = 0; return; }
-  if(!b.pos.shT){ b.pos.shT = tick + Math.round((POS.shuffle[0] + (POS.shuffle[1] - POS.shuffle[0])*posSeed(b, tick % 977))*TICK_HZ); return; }
-  if(tick < b.pos.shT) return;
-  b.pos.shT = 0;
-  var P = POS_PT[b.pos.cur], sp = (P.spots || []).filter(function(s){ return Math.hypot(s.x - b.pos.tx, s.y - b.pos.ty) > 8; });
-  var t;
-  if(sp.length) t = posPick(sp, function(s){ return s.share; }, posSeed(b, tick % 1009));
-  else {
-    var a = posSeed(b, tick % 1013)*Math.PI*2, r = (P.spread || 20)*0.5*posSeed(b, tick % 1019);
-    t = snapToWalkable(P.x + Math.cos(a)*r, P.y + Math.sin(a)*r);
-    if(!t || crossesWall(P.x, P.y, t.x, t.y)) return;
-  }
-  b.pos.tx = t.x; b.pos.ty = t.y;
-  b.walking = true;
-  posPath(b);
-}
-
 // ---------- взгляд (15_combat.js, когда врага не видно) ----------
 // Куда смотрит прицел (шаг 9): идёт — по ходу, а если по его гипотезам впереди весомый
 // враг — префайр туда (узкое удержание, engagementPrep в 15_combat.js); CT на месте — угол
@@ -545,11 +529,7 @@ function posLook(b){
   }
   if(b._rtLook && posLed(b)) return {x: b._rtLook[0], y: b._rtLook[1], why: "retake"};   // стоит в ретейке/сейве
   if(b._ppLook) return {x: b.x + b._ppLook[0]*400, y: b.y + b._ppLook[1]*400, why: "postplant"};   // T стоит на месте пост-планта (12_t_default.js)
-  if(!b.pos){   // T на месте: держит то, куда шёл; гипотеза / типичное место врага перед ним — туда
-    var dir = b._goDir;
-    if(dir === undefined){ var sp = b.spawnPt || (b.team === "CT" ? CT_SPAWN : T_SPAWN); dir = Math.atan2(1024 - sp.y, 1024 - sp.x); }
-    return posAhead(b, dir) || {x: b.x + Math.cos(dir)*400, y: b.y + Math.sin(dir)*400, why: b.tdef ? "lane" : "stub"};
-  }
+  if(!b.pos) return posStandLook(b);   // T стоит на своём месте (v224)
   var P = POS_PT[b.pos.cur];
   if(!b.pos.threat) return {x: P.angle.x, y: P.angle.y, why: b.pos.fb ? "fallback" : "angle"};
   // угроза — взгляд на неё, но не шире yawRange точки (в игре yaw против часовой, на радаре y вниз)
@@ -561,6 +541,70 @@ function posLook(b){
   return {x: b.x + Math.cos(c+d)*R, y: b.y + Math.sin(c+d)*R, why: "threat"};
 }
 
+// ---------- T стоит на месте: куда смотреть (v224, правки владельца 3 и 10) ----------
+// Туда, откуда может выйти враг — по своему знанию, а не «куда шёл» (раньше: спиной к врагу, в стену, на свой спавн):
+//  1) префайр — весомая гипотеза врага (POS.threatW) не дальше POS.pfFar, в любую сторону;
+//  2) проверка — ближайшее открытое типичное место врага, до которого он уже мог дойти и которое видно отсюда
+//     (knowLook закроет его, когда бот увидит его пустым, — так места расчекиваются по очереди);
+//  3) удержание — угол, который держат про с ближайшей своей точки (positions.json: angle — из демок).
+// Направление, которое уже держит тиммейт рядом (≤ POS.mateLookR, взгляд в пределах POS.mateLookDeg°), — не берёт.
+function posStandLook(b){
+  if(b._sl && tick - b._sl.t < POS.threatEvery) return b._sl.p;
+  var K = b.know, cands = [];
+  if(K) for(var id in K.enemies){
+    var B = K.enemies[id]; if(B.visible) continue;
+    B.hyps.forEach(function(h){
+      if(h.x === undefined || h.weight < POS.threatW) return;
+      var d = Math.hypot(h.x - b.x, h.y - b.y); if(d < 40 || d > POS.pfFar) return;
+      cands.push({x: h.x, y: h.y, why: "prefire", sc: 3 + h.weight});
+    });
+  }
+  if(K && K.spots && K.alive){
+    var ez = visEyeZ(b);
+    K.spots.forEach(function(p){
+      if(!p.open || !knowSpotReach(p)) return;
+      var d = Math.hypot(p.x - b.x, p.y - b.y); if(d < 40 || d > POS.pfFar) return;
+      if(!visLine(b.x, b.y, ez, p.x, p.y, visFloorAt(p.x, p.y) + VIS_EYE.crouch, true)) return;
+      cands.push({x: p.x, y: p.y, why: "check", sc: 2 - d/POS.pfFar});
+    });
+  }
+  // T на своём месте полосы — куда смотрят про, стоя на этом месте (pro_samples; tools/lane_look_bake.py)
+  var sp = b.tdef && b.tdef.spot;
+  if(sp && sp.look && Math.hypot(sp.x - b.x, sp.y - b.y) <= 40)
+    cands.push({x: b.x + sp.look[0]*400, y: b.y + sp.look[1]*400, why: "lane", sc: 1.1, src: "spot"});
+  var best = null, bd = 1e9;
+  KNOW_POSITIONS.points.forEach(function(P){
+    if(P.side !== b.team) return;
+    var d = Math.hypot(P.x - b.x, P.y - b.y); if(d < bd && d <= Math.max(P.spread, 20)){ bd = d; best = P; }   // стоит на точке про (spread — 80 % их стоянок)
+  });
+  if(best) cands.push({x: best.angle.x, y: best.angle.y, why: "lane", sc: 1, src: "angle"});
+  var mates = bots.filter(function(o){ return o !== b && o.alive && o.team === b.team && o.lookTarget && Math.hypot(o.x - b.x, o.y - b.y) <= POS.mateLookR; });
+  function covered(c){
+    // свой стоит на линии взгляда (±15°, ближе цели) — смотреть «ему в спину» = та же линия огня (scope.gg: второй —
+    // «не на одной линии огня»): не берёт
+    var ac = Math.atan2(c.y - b.y, c.x - b.x), dc = Math.hypot(c.x - b.x, c.y - b.y);
+    if(bots.some(function(o){
+      if(o === b || !o.alive || o.team !== b.team) return false;
+      var d = Math.hypot(o.x - b.x, o.y - b.y); if(d < 30 || d > Math.min(dc, POS.mateLookR)) return false;
+      var a = Math.atan2(o.y - b.y, o.x - b.x) - ac; return Math.abs(Math.atan2(Math.sin(a), Math.cos(a))) <= 15*Math.PI/180;
+    })) return true;
+    return mates.some(function(o){
+      var a1 = Math.atan2(o.lookTarget.y - o.y, o.lookTarget.x - o.x), a2 = Math.atan2(c.y - o.y, c.x - o.x);
+      return Math.abs(Math.atan2(Math.sin(a1 - a2), Math.cos(a1 - a2))) <= POS.mateLookDeg*Math.PI/180;
+    });
+  }
+  cands.sort(function(a, c){ return c.sc - a.sc; });
+  var p = null;
+  for(var i = 0; i < cands.length && !p; i++) if(!covered(cands[i])) p = cands[i];
+  if(!p) p = cands[0] || null;
+  if(!p){   // ни знания, ни точки рядом — к сайту плана (T) / к центру карты
+    var site = b.team === "T" && TDEF_S && TDEF_S.site ? SITES[TDEF_S.site] : {x: 1024, y: 1024};
+    p = {x: site.x, y: site.y, why: "lane", src: "site"};
+  }
+  p = {x: p.x, y: p.y, why: p.why, src: p.src || p.why};
+  b._sl = {t: tick, p: p};
+  return p;
+}
 // куда смотреть впереди (по направлению dir, не шире POS.pfCone°, не дальше POS.pfFar):
 //  • префайр — самая весомая гипотеза врага (вес ≥ POS.threatW, по знанию самого бота);
 //  • иначе проверка — ближайшее типичное место врага, которое бот ещё не видел пустым
