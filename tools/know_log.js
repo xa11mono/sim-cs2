@@ -11,7 +11,7 @@
 //   T2  ШАГОМ (тихо) в Lamp Room     ↔ CT2 в Site B, смотрит       — тихий проход: окна без шагов
 //   T3  бегом в Dark (за стеной)       на Cave                    — шаги, которые CT2 слышит
 //   носитель бомбы — на 30-й секунде бегом на B Site и ставит  — плант (звук + объявление)
-// Взгляд CT1/CT2 в тесте задаётся вместо заглушки stubLook. Следим за CT1 и CT2.
+// Взгляд CT1/CT2 в тесте задаётся вместо заглушки взгляда (posLook). Следим за CT1 и CT2.
 freshMatch(3);
 KNOW_TRACE = {CT1: true, CT2: true}; KNOW_LOG = [];
 while(roundState !== "live") stepTick();
@@ -21,8 +21,10 @@ function go(id, zone, walk){ var b = botById(id), p = zc(zone);
   b.path = buildWaypointPath(b.x, b.y, b.z || 0, p.x, p.y, 0); b.pathIdx = 0; b.walking = !!walk; }
 go("T0", "Mid"); go("CT0", "Mid"); go("T1", "A Main"); go("CT1", "Back Site");
 go("T2", "Lamp Room", true); go("CT2", "Site B"); go("T3", "Dark");
-var LOOK = {CT1: zc("A Main"), CT2: zc("Cave")}, osl = stubLook;
-stubLook = function(b){ return LOOK[b.id] || osl(b); };
+// сценарный тест: позиции шага 5 выключены (боты ходят по маршрутам теста), взгляд — из LOOK
+posTick = function(){}; bots.forEach(function(b){ delete b.pos; });
+var LOOK = {CT1: zc("A Main"), CT2: zc("Cave")}, osl = posLook;
+posLook = function(b){ var l = LOOK[b.id]; return l ? {x: l.x, y: l.y, why: "stub"} : osl(b); };
 var T1back = false, lost = 0;
 bomb.carrier = botById("T4");   // тест: бомба у T4 (стоит на спавне), чтобы дожила до планта
 botById("T1").hp = botById("CT1").hp = botById("CT2").hp = 1e6;   // тест: T1, CT1, CT2 не умирают — нужна цепочка «увидел → потерял → проверил»

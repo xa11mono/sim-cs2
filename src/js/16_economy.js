@@ -208,5 +208,6 @@ function resetRound(){
   buyPhase();
   resetBomb();
   logEvent("Раунд "+roundNum+" начался", "round");
+  posRoundStart();   // CT — по слотам активного Setup'а (11_position.js)
 }
 

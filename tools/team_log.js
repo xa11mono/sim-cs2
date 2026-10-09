@@ -19,8 +19,10 @@ function go(id, zone, walk){ var b = botById(id), p = zc(zone);
   b.path = buildWaypointPath(b.x, b.y, b.z || 0, p.x, p.y, 0); b.pathIdx = 0; b.walking = !!walk; }
 go("T0", "Mid"); go("CT0", "Mid"); go("T1", "A Main"); go("CT1", "Back Site");
 go("T2", "Lamp Room", true); go("CT2", "Site B"); go("T3", "Dark");
-var LOOK = {CT1: zc("A Main"), CT2: zc("Cave")}, osl = stubLook;
-stubLook = function(b){ return LOOK[b.id] || osl(b); };
+// сценарный тест: позиции шага 5 выключены (боты ходят по маршрутам теста), взгляд — из LOOK
+posTick = function(){}; bots.forEach(function(b){ delete b.pos; });
+var LOOK = {CT1: zc("A Main"), CT2: zc("Cave")}, osl = posLook;
+posLook = function(b){ var l = LOOK[b.id]; return l ? {x: l.x, y: l.y, why: "stub"} : osl(b); };
 var T1back = false;
 bomb.carrier = botById("T4");
 botById("T1").hp = botById("CT1").hp = botById("CT2").hp = 1e6;

@@ -1,3 +1,5 @@
+## 09.10.2026 — Этап 2, шаг 2: знание бота о врагах — `09_knowledge.js`, гипотезы held/moved/moved_unknown с весами, меняются только событиями (игра не менялась)
+
 ## 07.10.2026 — Этап 2, шаг 1: позиции и Setup'ы Ancient — данные (игра не менялась)
 - **Сделано:** `tools/positions_bake.py` (повторяемо) из 14 демок Ancient (`data/demos`,
   269 раундов) делает `src/data/positions.json` и `src/data/setups.json` — данные для нового

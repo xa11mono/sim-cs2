@@ -32,11 +32,12 @@ var showDanger = document.getElementById("chkDanger");   // hover-проверк
 var showLos = document.getElementById("chkLos");
 var showTracers = document.getElementById("chkTracers");
 var showWhy = document.getElementById("chkWhy");
-// подпись "что делает": без мозга задач нет — только действие движка и взгляд
+// подпись "что делает": слот (CT), действие движка и взгляд
 function whyText(b){
   var pt = b.planting ? "ставит бомбу" : b.defusing ? "дефузит" : (b.path && b.pathIdx < b.path.length) ? "идёт" : "стоит";
-  var lt = b.lookReason === "enemy" ? "видит врага" : b.lookReason === "stub" ? "смотрит вперёд (заглушка)" : "по ходу движения";
-  return pt + " · " + lt;
+  var LT = {enemy: "видит врага", stub: "смотрит вперёд (заплатка T)", angle: "держит угол", fallback: "держит угол с запасной",
+            threat: "угроза на угол — смотрит туда", move: "по ходу движения"};
+  return (b.pos ? b.pos.slot + " · " : "") + pt + " · " + (LT[b.lookReason] || "по ходу движения");
 }
 var showSound = document.getElementById("chkSound");
 

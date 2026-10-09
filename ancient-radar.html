@@ -150,10 +150,11 @@
 <div id="app">
   <div id="topbar">
     <h1>ANCIENT — LIVE RADAR</h1>
-    <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 202 · 07.10</div>
+    <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 203 · 09.10</div>
     <button id="btnPause">Пауза</button>
     <button id="btnRestartRound" title="Немедленно сбросить текущий раунд — на случай если боты застряли">Рестарт раунда</button>
     <span class="chk" title="Матч с одним номером всегда проходит одинаково. Увидел баг — запиши номер матча и тик, введи номер и нажми «Сыграть»: матч повторится с начала">матч № <input id="inpMatchNum" type="number" min="1" value="1" style="width:52px"> <button id="btnFreshMatch">Сыграть</button> <span id="matchTick" style="opacity:.75"></span></span>
+    <span class="chk" title="Расстановка CT (из демок про). Смена — сразу, боты перестраиваются. Потом это будет решать IGL (шаг 6)">Setup CT <select id="selSetupCT" style="background:var(--panel-2);color:var(--text);border:1px solid var(--line);border-radius:4px;padding:2px 4px;"></select></span>
     <label class="chk"><input type="checkbox" id="chkWalls"> стены</label>
     <label class="chk" title="Высота пола (цвет, шкала внизу слева), крытые места (штриховка), лестницы и рампы (стрелки вверх), уступы (толстая линия края). Наведи — подсказка"><input type="checkbox" id="chkHeights"> высоты</label>
     <label class="chk" title="Высота укрытий (ящики, колонны, низкие стены): цвет — выше головы / по грудь / низкое, пунктир — не измерено. Наведи — высота в единицах игры"><input type="checkbox" id="chkCover"> укрытия</label>
@@ -170,7 +171,8 @@
     <label class="chk"><input type="checkbox" id="chkOutline" checked> контуры укрытий</label>
     <label class="chk"><input type="checkbox" id="chkTracers" checked> трассеры</label>
     <label class="chk"><input type="checkbox" id="chkSound" checked> звук шагов</label>
-    <label class="chk" title="Под каждым игроком: что он делает (стоит/идёт/ставит/дефузит) и куда смотрит. Пока мозга нет — задач нет"><input type="checkbox" id="chkWhy"> почему</label>
+    <label class="chk" title="Под каждым игроком: слот (CT), что он делает (стоит/идёт/ставит/дефузит) и куда смотрит"><input type="checkbox" id="chkWhy"> почему</label>
+    <label class="chk" title="CT: точка слота (кружок), угол, который держит (синяя линия), запасная точка (пунктир), кроссфайр-напарники (жёлтый пунктир)"><input type="checkbox" id="chkPositions" checked> позиции</label>
     <label class="chk" style="border-left:1px solid var(--line);padding-left:14px;" title="Редактор карты: стены, высоты, укрытия (дальше — прострелы). Правки сразу в игре и сохраняются на странице"><input type="checkbox" id="chkMapEdit"> <b>правка карты</b></label>
     <label class="chk"><input type="checkbox" id="chkAlign"> выравнивание navmesh</label>
     <label class="chk"><input type="checkbox" id="chkNavWarp" title="Навмеш смещён от стен по-разному в разных углах карты — обычный общий сдвиг/масштаб это не лечит, нужно несколько опорных точек"> калибровка навмеша (точки)</label>
@@ -2626,15 +2628,311 @@ function visPair(a, b){
   if(bCan){ var q = visParts(b.x, b.y, b.crouching, a.x, a.y, a.crouching, false); if(q.head || q.body) ba = q; }
   return (ab || ba) ? {ab: ab, ba: ba} : null;
 }
+// ======================= ПОЗИЦИЯ И ВЗГЛЯД (шаг 5) =======================
+// Одно место на «где бот стоит и куда смотрит, пока не видит врага»
+// (docs/BRAIN.md, раздел 4; шаг 5 docs/PROMPTS.md). Бой (поворот на видимого
+// врага, выстрел) — 15_combat.js; он берёт отсюда только posLook(b).
+//
+// CT: активный Setup из setups.json (раскладка «сколько на A / миде / B» из демок)
+//   • раздача слотов — раз в раунд, в начале: роль бота (шаг 4) → слот по POS_FIT;
+//   • точка слота — из его point + alternatives (positions.json), один раз:
+//     фильтр по роли (RoleProfile.preferredAngle: standard / длинная линия / любая),
+//     кроссфайр-напарники (pairWith) берут точки, которые вместе стоят в списке pairs;
+//   • на месте — смотрит в angle точки; пересчёта каждый тик нет.
+// Меняется только по событию:
+//   • погиб свой — перераздача слотов среди живых (важные слоты не пустеют:
+//     снайпер может уйти на опорник, саппорт — стать якорем); кто остался на своём
+//     слоте — точку не меняет;
+//   • дым встал между точкой и её углом — запасная точка (fallback) слота; дым ушёл — назад;
+//   • угроза на slot (гипотеза врага с весом ≥ POS.threatW на входе, который держит
+//     точка, BRAIN 4.4) — позиция та же, взгляд в пределах yawRange точки — на вход угрозы;
+//   • смена Setup'а (пока — вручную, список «Setup CT» сверху страницы; потом — IGL, шаг 6).
+// T: расстановки в данных нет (T-Setup'ы — сценарии execute, шаги 6–7) — стоят у спавна,
+//   взгляд вперёд к центру карты (заплатка до шага 7, перенесена из 12_stub.js).
+//
+// Числа ниже — проектные константы, не из демок.
+var POS_SETUPS = {
+"_about": ["Setup'ы Ancient из демок про. Делает tools/positions_bake.py (docs/BRAIN.md, разделы 4.1, 5.1, 5.3).", "CT: раскладка «сколько CT на A / миде / B» — по тому, где каждый CT дольше стоял на 8–50-й секунде, в раундах с 5 живыми CT (1442 раундов); берутся до 4 самых частых (не реже 7 %). Слоты — самые занятые точки этой раскладки в окне 5–45 с; второй слот на стороне — кроссфайр-напарник первого, если он есть; anchor — ближе к сайту. alternatives — другие точки той же стороны (для выбора по роли), pairWith — роль напарника.", "T: раунды с плантом (1058), вариант = сайт + маршрут за 12 с до планта (main — все со своей стороны, split — часть через мид, mid — все через мид), не реже 5 % плантов, до 4 самых частых. Шаг — ЦЕЛЬ гранаты T за 45 с до планта, упавшей у сайта планта (ближе 375 ед. карты к центру мест планта, не в миде): что она выключает у CT (смок — закрыть CT в area, флешка — ослепить, молотов/HE — выжечь; иначе — зона падения), которую закрывают хотя бы в 12 % раундов варианта; wave — волна (пауза ≥ 6 с между шагами — следующая, dependsOn.pauseSec); fake — необязательные шаги: раскид на другой сайт, куда не идут (не реже 10 % раундов варианта, sec < 0 — до начала выхода); targetKey — id цели; at — типичное место разрыва; ways — способы (откуда → куда, сколько бросков); sec — секунда от начала execute; entry.maxDelayTicks — сколько вход ждёт после последней флешки (медиана про); lurker — необязательный шаг: share — в какой доле раундов варианта кто-то из T был на другой стороне за 12 с до планта или в плант.", "Гранаты «себе» (флешка под свой выход, смок на себя под плант/дефуз, молотов в угол перед своим проходом — purpose в data/pro/pro_nades.csv, tools/lineups.py) в шаги не идут: это решения игрока, не сценарий. selfNades — сколько их среди гранат T за 45 с до планта."],
+"map": "ancient",
+"selfNades": {"flash_exit": 359, "molly_clear": 67, "smoke_plant": 12},
+"ct": [
+  {"id":"ct_mid_heavy_122_ancient","name":"mid_heavy","side":"CT","split":{"A":1,"mid":2,"B":2},"rounds":273,"share":0.19,"slots":[{"role":"anchor_A","region":"A","point":"ct_short_1","area":"Short","angle":"Donut","prefer":"standard","n":15,"alternatives":[{"id":"ct_a_main_1","type":"standard","n":13},{"id":"ct_temple_1","type":"standard","n":11},{"id":"ct_back_site_1","type":"standard","n":10},{"id":"ct_main_hall_1","type":"off","n":8}],"pairWith":null},{"role":"mid_control","region":"mid","point":"ct_sniper_nest_1","area":"Sniper Nest","angle":"Mid","prefer":"standard","n":22,"alternatives":[{"id":"ct_connector_1","type":"standard","n":15},{"id":"ct_connector_3","type":"off","n":10},{"id":"ct_chamber_lane_1","type":"off","n":8},{"id":"ct_triple_1","type":"off","n":7}],"pairWith":"mid_support"},{"role":"mid_support","region":"mid","point":"ct_sniper_nest_2","area":"Sniper Nest","angle":"Xbox","prefer":"off","n":7,"alternatives":[{"id":"ct_connector_1","type":"standard","n":15},{"id":"ct_connector_3","type":"off","n":10},{"id":"ct_chamber_lane_1","type":"off","n":8},{"id":"ct_triple_1","type":"off","n":7}],"pairWith":"mid_control"},{"role":"anchor_B","region":"B","point":"ct_dark_1","area":"Dark","angle":"Lamp Room / Excavation","prefer":"standard","n":9,"alternatives":[{"id":"ct_90_1","type":"standard","n":7},{"id":"ct_first_lane_1","type":"standard","n":7},{"id":"ct_t_upper_1","type":"standard","n":7},{"id":"ct_second_lane_2","type":"standard","n":7}],"pairWith":"support_B"},{"role":"support_B","region":"B","point":"ct_lamp_room_1","area":"Lamp Room / Excavation","angle":"Lamp Room / Excavation","prefer":"standard","n":6,"alternatives":[{"id":"ct_90_1","type":"standard","n":7},{"id":"ct_first_lane_1","type":"standard","n":7},{"id":"ct_t_upper_1","type":"standard","n":7},{"id":"ct_second_lane_2","type":"standard","n":7}],"pairWith":"anchor_B"}]},
+  {"id":"ct_default_212_ancient","name":"default","side":"CT","split":{"A":2,"mid":1,"B":2},"rounds":193,"share":0.13,"slots":[{"role":"anchor_A","region":"A","point":"ct_short_1","area":"Short","angle":"Donut","prefer":"standard","n":18,"alternatives":[{"id":"ct_temple_1","type":"standard","n":12},{"id":"ct_back_site_1","type":"standard","n":12},{"id":"ct_back_site_2","type":"standard","n":10},{"id":"ct_box_1","type":"off","n":7}],"pairWith":null},{"role":"support_A","region":"A","point":"ct_a_main_1","area":"A Main","angle":"Long","prefer":"standard","n":13,"alternatives":[{"id":"ct_temple_1","type":"standard","n":12},{"id":"ct_back_site_1","type":"standard","n":12},{"id":"ct_back_site_2","type":"standard","n":10},{"id":"ct_box_1","type":"off","n":7}],"pairWith":null},{"role":"mid_control","region":"mid","point":"ct_sniper_nest_1","area":"Sniper Nest","angle":"Mid","prefer":"standard","n":13,"alternatives":[{"id":"ct_lamp_room_2","type":"standard","n":8},{"id":"ct_connector_1","type":"standard","n":6},{"id":"ct_donut_1","type":"off","n":6},{"id":"ct_mid_2","type":"off","n":6}],"pairWith":null},{"role":"anchor_B","region":"B","point":"ct_dark_1","area":"Dark","angle":"Lamp Room / Excavation","prefer":"standard","n":9,"alternatives":[{"id":"ct_cave_1","type":"standard","n":8},{"id":"ct_90_1","type":"standard","n":5},{"id":"ct_second_lane_1","type":"standard","n":5},{"id":"ct_ramp_1","type":"off","n":5}],"pairWith":null},{"role":"support_B","region":"B","point":"ct_t_upper_1","area":"T Upper / Heaven","angle":"Lamp Room / Excavation","prefer":"standard","n":12,"alternatives":[{"id":"ct_cave_1","type":"standard","n":8},{"id":"ct_90_1","type":"standard","n":5},{"id":"ct_second_lane_1","type":"standard","n":5},{"id":"ct_ramp_1","type":"off","n":5}],"pairWith":null}]},
+  {"id":"ct_stack_B_113_ancient","name":"stack_B","side":"CT","split":{"A":1,"mid":1,"B":3},"rounds":160,"share":0.11,"slots":[{"role":"anchor_A","region":"A","point":"ct_short_1","area":"Short","angle":"Donut","prefer":"standard","n":16,"alternatives":[{"id":"ct_temple_1","type":"standard","n":7},{"id":"ct_back_site_1","type":"standard","n":7},{"id":"ct_box_1","type":"off","n":4},{"id":"ct_boost_1","type":"off","n":3}],"pairWith":null},{"role":"mid_control","region":"mid","point":"ct_sniper_nest_1","area":"Sniper Nest","angle":"Mid","prefer":"standard","n":11,"alternatives":[{"id":"ct_connector_1","type":"standard","n":10},{"id":"ct_jungle_1","type":"standard","n":4},{"id":"ct_donut_1","type":"off","n":3},{"id":"ct_sniper_nest_3","type":"off","n":3}],"pairWith":null},{"role":"anchor_B","region":"B","point":"ct_second_lane_2","area":"Second Lane","angle":"Ramp","prefer":"standard","n":9,"alternatives":[{"id":"ct_b_site_1","type":"off","n":8},{"id":"ct_cave_1","type":"standard","n":7},{"id":"ct_dark_1","type":"standard","n":7},{"id":"ct_dark_2","type":"off","n":7}],"pairWith":"support_B"},{"role":"support_B","region":"B","point":"ct_second_lane_1","area":"Second Lane","angle":"Site B","prefer":"standard","n":10,"alternatives":[{"id":"ct_b_site_1","type":"off","n":8},{"id":"ct_cave_1","type":"standard","n":7},{"id":"ct_dark_1","type":"standard","n":7},{"id":"ct_dark_2","type":"off","n":7}],"pairWith":"stack_B"},{"role":"stack_B","region":"B","point":"ct_90_1","area":"90","angle":"Site B","prefer":"standard","n":11,"alternatives":[{"id":"ct_b_site_1","type":"off","n":8},{"id":"ct_cave_1","type":"standard","n":7},{"id":"ct_dark_1","type":"standard","n":7},{"id":"ct_dark_2","type":"off","n":7}],"pairWith":"support_B"}]},
+  {"id":"ct_mid_heavy_032_ancient","name":"mid_heavy","side":"CT","split":{"A":0,"mid":3,"B":2},"rounds":151,"share":0.1,"slots":[{"role":"mid_control","region":"mid","point":"ct_sniper_nest_1","area":"Sniper Nest","angle":"Mid","prefer":"standard","n":11,"alternatives":[{"id":"ct_jungle_1","type":"standard","n":8},{"id":"ct_sniper_nest_3","type":"off","n":8},{"id":"ct_triple_box_1","type":"off","n":8},{"id":"ct_chamber_lane_1","type":"off","n":7}],"pairWith":"mid_support"},{"role":"mid_support","region":"mid","point":"ct_sniper_nest_2","area":"Sniper Nest","angle":"Xbox","prefer":"off","n":11,"alternatives":[{"id":"ct_jungle_1","type":"standard","n":8},{"id":"ct_sniper_nest_3","type":"off","n":8},{"id":"ct_triple_box_1","type":"off","n":8},{"id":"ct_chamber_lane_1","type":"off","n":7}],"pairWith":"mid_extra"},{"role":"mid_extra","region":"mid","point":"ct_connector_1","area":"Connector / Red Room / Red","angle":"Mid","prefer":"standard","n":9,"alternatives":[{"id":"ct_jungle_1","type":"standard","n":8},{"id":"ct_sniper_nest_3","type":"off","n":8},{"id":"ct_triple_box_1","type":"off","n":8},{"id":"ct_chamber_lane_1","type":"off","n":7}],"pairWith":"mid_support"},{"role":"anchor_B","region":"B","point":"ct_b_site_1","area":"B Site","angle":"Ramp","prefer":"off","n":6,"alternatives":[{"id":"ct_90_1","type":"standard","n":5},{"id":"ct_dark_1","type":"standard","n":5},{"id":"ct_cave_2","type":"standard","n":5},{"id":"ct_rat_1","type":"off","n":5}],"pairWith":"support_B"},{"role":"support_B","region":"B","point":"ct_ramp_1","area":"Ramp","angle":"Ramp","prefer":"off","n":4,"alternatives":[{"id":"ct_90_1","type":"standard","n":5},{"id":"ct_dark_1","type":"standard","n":5},{"id":"ct_cave_2","type":"standard","n":5},{"id":"ct_rat_1","type":"off","n":5}],"pairWith":"anchor_B"}]}
+],
+"t": [
+  {"id":"t_exec_B_main_ancient","side":"T","site":"B","route":"main","rounds":431,"share":0.41,"timing":{"startSec":46.6,"plantSec":65.3},"steps":[{"actor":"molly_1","action":"throw_molly","target":"выжечь Cave / House","targetKey":"molly:Cave / House","at":[1449.5,830.0],"ways":[{"from":[1604.5,1240.5],"to":[1450.2,828.8],"n":88},{"from":[1683.5,1459.0],"to":[1451.6,931.7],"n":18},{"from":[1530.2,948.4],"to":[1347.3,873.6],"n":15}],"sec":0.0,"wave":1,"share":0.32,"dependsOn":{"trigger":"execute_start"}},{"actor":"smoke_1","action":"throw_smoke","target":"закрыть CT в Second Lane","targetKey":"smoke:Second Lane","at":[1449.8,685.2],"ways":[{"from":[1604.5,1240.3],"to":[1447.1,695.8],"n":115},{"from":[1683.6,1459.2],"to":[1454.7,666.0],"n":46},{"from":[1344.8,897.1],"to":[1468.9,655.0],"n":34}],"sec":0.5,"wave":1,"share":0.53,"dependsOn":{"trigger":"execute_start"}},{"actor":"smoke_2","action":"throw_smoke","target":"закрыть CT в 90","targetKey":"smoke:90","at":[1691.3,721.5],"ways":[{"from":[1683.6,1459.2],"to":[1692.3,718.0],"n":58},{"from":[1322.1,829.0],"to":[1673.6,729.8],"n":36},{"from":[1424.4,1136.0],"to":[1692.1,724.5],"n":16}],"sec":0.6,"wave":1,"share":0.29,"dependsOn":{"trigger":"execute_start"}},{"actor":"flash_1","action":"throw_flash","target":"ослепить B Site","targetKey":"flash:B Site","at":[1602.3,906.3],"ways":[{"from":[1638.7,1417.8],"to":[1606.4,958.3],"n":39},{"from":[1609.9,1237.0],"to":[1616.5,910.3],"n":12},{"from":[1658.9,1157.4],"to":[1662.8,707.9],"n":11}],"sec":3.6,"wave":1,"share":0.25,"dependsOn":{"afterSmokeLands":"smoke_2"}},{"actor":"flash_2","action":"throw_flash","target":"ослепить Ramp","targetKey":"flash:Ramp","at":[1758.0,962.9],"ways":[{"from":[1683.6,1455.9],"to":[1757.1,975.7],"n":26},{"from":[1522.9,1453.0],"to":[1791.2,977.0],"n":12},{"from":[1424.4,1152.0],"to":[1757.6,960.9],"n":12}],"sec":4.3,"wave":1,"share":0.17,"dependsOn":{"afterSmokeLands":"smoke_2"}},{"actor":"flash_3","action":"throw_flash","target":"ослепить 90","targetKey":"flash:90","at":[1668.5,687.5],"ways":[{"from":[1645.2,1232.2],"to":[1688.0,763.0],"n":14},{"from":[1541.5,1209.6],"to":[1440.5,780.9],"n":13},{"from":[1661.6,1076.5],"to":[1665.8,634.6],"n":11}],"sec":8.1,"wave":1,"share":0.15,"dependsOn":{"afterSmokeLands":"smoke_2"}},{"actor":"molly_2","action":"throw_molly","target":"выжечь Alley","targetKey":"molly:Alley","at":[1436.3,518.9],"ways":[{"from":[1699.5,1064.4],"to":[1445.2,524.9],"n":41},{"from":[1376.2,857.9],"to":[1418.2,517.3],"n":11},{"from":[1576.9,904.1],"to":[1370.5,518.9],"n":7}],"sec":10.6,"wave":1,"share":0.16,"dependsOn":{"afterSmokeLands":"smoke_2"}},{"actor":"entry","action":"push","target":"B","sec":10.6,"dependsOn":{"afterFlashPop":"flash_3","maxDelayTicks":159}},{"actor":"bomb","action":"plant","target":"B","sec":18.7,"dependsOn":{"afterEntryCommitted":"entry"}}]},
+  {"id":"t_exec_A_main_ancient","side":"T","site":"A","route":"main","rounds":247,"share":0.23,"timing":{"startSec":44.4,"plantSec":60.3},"steps":[{"actor":"molly_1","action":"throw_molly","target":"выжечь Back Site","targetKey":"molly:Back Site","at":[475.1,407.0],"ways":[{"from":[386.4,798.0],"to":[467.8,402.6],"n":34},{"from":[380.3,806.3],"to":[421.1,422.8],"n":3},{"from":[676.3,880.3],"to":[518.9,402.7],"n":3}],"sec":0.0,"wave":1,"share":0.2,"dependsOn":{"trigger":"execute_start"}},{"actor":"flash_1","action":"throw_flash","target":"ослепить Back Site","targetKey":"flash:Back Site","at":[489.0,448.7],"ways":[{"from":[357.4,808.8],"to":[501.2,436.2],"n":45},{"from":[369.8,1019.6],"to":[322.8,608.4],"n":21},{"from":[452.9,877.8],"to":[318.9,648.1],"n":4}],"sec":1.3,"wave":1,"share":0.23,"dependsOn":{"trigger":"execute_start"}},{"actor":"smoke_1","action":"throw_smoke","target":"закрыть CT в CT Lane","targetKey":"smoke:CT Lane","at":[735.8,426.4],"ways":[{"from":[367.5,735.0],"to":[731.8,426.0],"n":42},{"from":[625.5,756.8],"to":[746.0,430.4],"n":10},{"from":[710.1,585.3],"to":[762.3,413.9],"n":9}],"sec":1.9,"wave":1,"share":0.37,"dependsOn":{"trigger":"execute_start"}},{"actor":"molly_2","action":"throw_molly","target":"выжечь Temple","targetKey":"molly:Temple","at":[586.3,407.6],"ways":[{"from":[357.1,768.9],"to":[583.2,409.9],"n":36},{"from":[399.6,504.7],"to":[689.2,318.1],"n":6},{"from":[448.6,622.2],"to":[604.7,412.3],"n":2}],"sec":4.1,"wave":1,"share":0.21,"dependsOn":{"afterSmokeLands":"smoke_1"}},{"actor":"molly_3","action":"throw_molly","target":"выжечь CT Lane","targetKey":"molly:CT Lane","at":[867.5,431.9],"ways":[{"from":[362.6,739.3],"to":[874.4,430.3],"n":45},{"from":[621.8,771.9],"to":[803.8,437.5],"n":7},{"from":[514.5,634.4],"to":[880.8,425.2],"n":7}],"sec":6.2,"wave":1,"share":0.26,"dependsOn":{"afterSmokeLands":"smoke_1"}},{"actor":"smoke_2","action":"throw_smoke","target":"закрыть CT в Short","targetKey":"smoke:Short","at":[634.6,770.7],"ways":[{"from":[431.2,532.3],"to":[610.3,747.3],"n":7},{"from":[629.7,608.4],"to":[634.5,840.2],"n":6},{"from":[482.4,417.7],"to":[659.8,800.4],"n":5}],"sec":7.4,"wave":1,"share":0.15,"dependsOn":{"trigger":"execute_start"}},{"actor":"molly_4","action":"throw_molly","target":"выжечь Short","targetKey":"molly:Short","at":[618.3,808.1],"ways":[{"from":[529.7,594.0],"to":[612.3,808.9],"n":16},{"from":[421.7,495.1],"to":[621.1,776.8],"n":7},{"from":[613.9,589.5],"to":[652.1,857.8],"n":6}],"sec":9.0,"wave":1,"share":0.14,"dependsOn":{"afterSmokeLands":"smoke_2"}},{"actor":"entry","action":"push","target":"A","sec":8.4,"dependsOn":{"afterFlashPop":"flash_1","maxDelayTicks":452}},{"actor":"bomb","action":"plant","target":"A","sec":15.9,"dependsOn":{"afterEntryCommitted":"entry"}},{"actor":"lurker","action":"hold_flank","target":"Ruins","optional":true,"share":0.25,"dependsOn":{}}]},
+  {"id":"t_exec_A_split_ancient","side":"T","site":"A","route":"split","rounds":217,"share":0.21,"timing":{"startSec":45.6,"plantSec":60.2},"steps":[{"actor":"flash_1","action":"throw_flash","target":"ослепить Back Site","targetKey":"flash:Back Site","at":[496.9,445.7],"ways":[{"from":[357.0,803.3],"to":[504.8,434.7],"n":16},{"from":[370.6,1015.8],"to":[326.1,600.8],"n":9},{"from":[332.3,914.7],"to":[472.1,386.8],"n":2}],"sec":0.0,"wave":1,"share":0.13,"dependsOn":{"trigger":"execute_start"}},{"actor":"flash_2","action":"throw_flash","target":"ослепить Short","targetKey":"flash:Short","at":[629.8,600.0],"ways":[{"from":[972.1,1040.2],"to":[625.8,575.1],"n":7},{"from":[353.6,761.7],"to":[629.8,494.0],"n":7},{"from":[826.3,952.8],"to":[681.6,576.1],"n":3}],"sec":1.0,"wave":1,"share":0.13,"dependsOn":{"trigger":"execute_start"}},{"actor":"molly_1","action":"throw_molly","target":"выжечь Back Site","targetKey":"molly:Back Site","at":[465.8,404.1],"ways":[{"from":[386.9,807.5],"to":[460.3,403.5],"n":33},{"from":[643.6,746.0],"to":[510.6,401.6],"n":6},{"from":[675.8,881.5],"to":[528.5,417.5],"n":4}],"sec":1.5,"wave":1,"share":0.23,"dependsOn":{"trigger":"execute_start"}},{"actor":"smoke_1","action":"throw_smoke","target":"закрыть CT в CT Lane","targetKey":"smoke:CT Lane","at":[740.5,431.7],"ways":[{"from":[383.2,735.2],"to":[727.4,440.6],"n":29},{"from":[622.0,768.5],"to":[753.5,433.1],"n":20},{"from":[323.6,1267.2],"to":[732.7,411.1],"n":11}],"sec":2.1,"wave":1,"share":0.49,"dependsOn":{"trigger":"execute_start"}},{"actor":"molly_2","action":"throw_molly","target":"выжечь Temple","targetKey":"molly:Temple","at":[588.9,416.1],"ways":[{"from":[350.8,775.6],"to":[590.4,417.0],"n":26},{"from":[670.4,873.4],"to":[528.6,416.3],"n":9},{"from":[359.7,630.2],"to":[608.8,418.4],"n":3}],"sec":4.3,"wave":1,"share":0.18,"dependsOn":{"afterSmokeLands":"smoke_1"}},{"actor":"molly_3","action":"throw_molly","target":"выжечь CT Lane","targetKey":"molly:CT Lane","at":[822.3,429.6],"ways":[{"from":[365.1,728.2],"to":[870.5,429.6],"n":18},{"from":[621.5,769.2],"to":[787.8,420.7],"n":15},{"from":[522.4,629.3],"to":[875.5,414.6],"n":6}],"sec":7.0,"wave":1,"share":0.24,"dependsOn":{"afterSmokeLands":"smoke_1"}},{"actor":"entry","action":"push","target":"A","sec":7.1,"dependsOn":{"afterFlashPop":"flash_2","maxDelayTicks":388}},{"actor":"bomb","action":"plant","target":"A","sec":14.6,"dependsOn":{"afterEntryCommitted":"entry"}},{"actor":"lurker","action":"hold_flank","target":"T Lower","optional":true,"share":0.15,"dependsOn":{}}]},
+  {"id":"t_exec_B_split_ancient","side":"T","site":"B","route":"split","rounds":136,"share":0.13,"timing":{"startSec":29.6,"plantSec":58.8},"steps":[{"actor":"smoke_1","action":"throw_smoke","target":"закрыть CT в T Lower","targetKey":"smoke:T Lower","at":[1445.3,1197.8],"ways":[{"from":[1611.4,1217.2],"to":[1440.8,1204.3],"n":14},{"from":[1591.2,1123.2],"to":[1429.5,1202.4],"n":2},{"from":[1636.6,1283.7],"to":[1689.7,1095.1],"n":1}],"sec":0.0,"wave":1,"share":0.15,"dependsOn":{"trigger":"execute_start"}},{"actor":"flash_1","action":"throw_flash","target":"ослепить B Site","targetKey":"flash:B Site","at":[1606.3,944.8],"ways":[{"from":[1626.5,1416.3],"to":[1613.5,959.7],"n":10},{"from":[1605.0,1242.2],"to":[1481.3,916.1],"n":3},{"from":[1609.2,1205.1],"to":[1606.3,944.8],"n":3}],"sec":9.0,"wave":2,"share":0.18,"dependsOn":{"afterPrev":"smoke_1","pauseSec":9.0}},{"actor":"molly_1","action":"throw_molly","target":"выжечь Cave / House","targetKey":"molly:Cave / House","at":[1449.2,829.8],"ways":[{"from":[1604.5,1240.8],"to":[1450.3,829.8],"n":18},{"from":[1513.5,935.1],"to":[1361.9,831.7],"n":5},{"from":[1703.7,1089.3],"to":[1472.8,787.8],"n":3}],"sec":11.5,"wave":2,"share":0.23,"dependsOn":{"afterPrev":"flash_1","pauseSec":0}},{"actor":"smoke_2","action":"throw_smoke","target":"закрыть CT в 90","targetKey":"smoke:90","at":[1690.4,725.8],"ways":[{"from":[1683.6,1459.2],"to":[1692.8,718.0],"n":18},{"from":[1332.6,845.1],"to":[1662.0,735.0],"n":7},{"from":[1424.4,1136.0],"to":[1688.1,729.5],"n":5}],"sec":11.6,"wave":2,"share":0.28,"dependsOn":{"afterPrev":"molly_1","pauseSec":0}},{"actor":"smoke_3","action":"throw_smoke","target":"закрыть CT в Second Lane","targetKey":"smoke:Second Lane","at":[1450.1,692.2],"ways":[{"from":[1604.5,1240.3],"to":[1449.2,696.0],"n":32},{"from":[1683.6,1459.2],"to":[1450.1,666.6],"n":10},{"from":[1358.9,880.8],"to":[1470.2,658.2],"n":10}],"sec":13.3,"wave":2,"share":0.49,"dependsOn":{"afterPrev":"smoke_2","pauseSec":0}},{"actor":"smoke_4","action":"throw_smoke","target":"закрыть CT в Cave / House","targetKey":"smoke:Cave / House","at":[1397.4,777.2],"ways":[{"from":[1485.2,1520.0],"to":[1397.3,772.1],"n":6},{"from":[1604.6,1242.2],"to":[1428.0,792.0],"n":4},{"from":[1542.5,950.2],"to":[1367.2,830.5],"n":2}],"sec":15.0,"wave":2,"share":0.12,"dependsOn":{"afterPrev":"smoke_3","pauseSec":0}},{"actor":"molly_2","action":"throw_molly","target":"выжечь Alley","targetKey":"molly:Alley","at":[1433.6,521.5],"ways":[{"from":[1694.4,1056.1],"to":[1445.4,526.7],"n":19},{"from":[1360.3,878.0],"to":[1417.7,509.5],"n":4},{"from":[1456.2,831.5],"to":[1424.1,510.4],"n":4}],"sec":20.2,"wave":2,"share":0.21,"dependsOn":{"afterSmokeLands":"smoke_4"}},{"actor":"entry","action":"push","target":"B","sec":21.6,"dependsOn":{"afterFlashPop":"flash_1","maxDelayTicks":805}},{"actor":"bomb","action":"plant","target":"B","sec":29.2,"dependsOn":{"afterEntryCommitted":"entry"}},{"actor":"lurker","action":"hold_flank","target":"Split","optional":true,"share":0.12,"dependsOn":{}}]}
+]
+};
+var POS = {
+  arrive:      10,   // ближе — «на месте», px
+  repathEvery: 32,   // движок сбросил путь (застрял) — снова к той же точке не чаще, тиков
+  threatW:     0.5,  // гипотеза врага с таким весом и больше на входе угла — угроза на slot
+  threatEvery: 8,    // как часто бот на месте сверяет угрозу, тиков
+  smokeEvery:  16,   // как часто, пока есть дым, сверяется «угол закрыт дымом», тиков
+  yawPad:      10,   // к yawRange точки — запас, ° (держит из-за края шире)
+  keepBonus:   2,    // при перераздаче — за то, что остаёшься на своём слоте
+  moveCost:    600   // при перераздаче — −1 балл за столько px до новой точки
+};
+// насколько слот нужен команде, когда живых меньше, чем слотов: якорь сайта пустеть не должен —
+// его вес больше, чем «свой слот + подходит по роли» у соседа, поэтому сосед на него переходит
+var POS_IMPORTANCE = {anchor:8, mid_control:5, support:3, stack:2, mid_support:2, mid_extra:1};
+// роль бота (шаг 4) → насколько ему подходит слот
+var POS_FIT = {
+  anchor:  {anchor:3, support:2, stack:2, mid_support:1, mid_extra:1, mid_control:0},
+  support: {support:3, mid_support:3, stack:2, anchor:2, mid_extra:2, mid_control:1},
+  awp:     {mid_control:3, anchor:2, support:1, mid_support:1, stack:1, mid_extra:0},
+  entry:   {mid_extra:3, stack:3, mid_support:2, support:2, mid_control:1, anchor:0},
+  lurker:  {mid_extra:2, stack:2, mid_support:2, support:1, mid_control:1, anchor:1}
+};
+var POS_PT = {};   // id → точка positions.json
+KNOW_POSITIONS.points.forEach(function(p){ POS_PT[p.id] = p; });
+var POS_STATE = {setupCT: POS_SETUPS.ct[0].id, aliveCT: -1};
+var POS_LOG = [];  // {tick, round, who, slot, pid, why} — каждая смена цели (проверка «не дёргается»)
+
+function posSetup(){
+  for(var i = 0; i < POS_SETUPS.ct.length; i++) if(POS_SETUPS.ct[i].id === POS_STATE.setupCT) return POS_SETUPS.ct[i];
+  return POS_SETUPS.ct[0];
+}
+function posKind(slotRole){ return slotRole.replace(/_[AB]$/, ""); }
+function posSeed(b, salt){ return hashRand(matchNum*7919 + roundNum*613 + (b ? (b.id.charCodeAt(b.id.length-1)||0)*131 : 0) + salt); }
+function posPick(list, wf, r){
+  var s = 0; list.forEach(function(x){ s += wf(x); });
+  var t = r * s;
+  for(var i = 0; i < list.length; i++){ t -= wf(list[i]); if(t <= 0) return list[i]; }
+  return list[list.length-1];
+}
+// какой тип точки роль берёт: standard / самая длинная линия / любой (BRAIN 4.3, RoleProfile)
+function posAngleKind(role){
+  var R = RoleProfile[role] || {};
+  if(R.preferredAngle === "standard") return "standard";
+  if(R.preferredAngle === "long_sightline") return "long";
+  if(R.tradeReliance === "needs_partner") return "standard";   // якорь без напарника off не занимает
+  return "any";
+}
+// кандидаты слота под роль: [{p, n}]
+function posCands(slot, role, used){
+  var L = [{id: slot.point, n: slot.n}].concat(slot.alternatives || []), seen = {}, out = [];
+  L.forEach(function(a){
+    var p = POS_PT[a.id];
+    if(!p || seen[a.id] || used[a.id] || p.push) return;
+    seen[a.id] = 1; out.push({p: p, n: Math.max(1, a.n || 1)});
+  });
+  var k = posAngleKind(role);
+  if(k === "standard"){ var st = out.filter(function(c){ return c.p.type === "standard"; }); if(st.length) out = st; }
+  if(k === "long" && out.length){ var best = out.reduce(function(a, c){ return c.p.angle.dist > a.p.angle.dist ? c : a; }); out = [best]; }
+  return out;
+}
+function posPairW(a, b){
+  var P = KNOW_POSITIONS.pairs;
+  for(var i = 0; i < P.length; i++) if((P[i].a === a && P[i].b === b) || (P[i].a === b && P[i].b === a)) return P[i].weight;
+  return 0;
+}
+
+// ---------- раздача слотов ----------
+// alive — живые CT; keep — учитывать текущие слоты (перераздача) или нет (начало раунда / новый Setup)
+function posAssign(alive, keep){
+  var S = posSetup().slots, n = Math.min(alive.length, S.length), best = null, bestS = -Infinity;
+  function score(b, s){
+    var k = posKind(s.role), sc = POS_IMPORTANCE[k] || 1, fit = POS_FIT[b.role] || POS_FIT.lurker;
+    sc += fit[k] || 0;
+    if(keep && b.pos && b.pos.slot === s.role) sc += POS.keepBonus;
+    else if(keep){ var p = POS_PT[s.point]; if(p) sc -= Math.hypot(p.x-b.x, p.y-b.y) / POS.moveCost; }
+    return sc;
+  }
+  // перебор: каждому живому — свой слот (до 5! = 120 вариантов)
+  (function rec(i, used, acc, cur){
+    if(i === alive.length || cur.length === n){ if(acc > bestS + 1e-9){ bestS = acc; best = cur.slice(); } return; }
+    for(var j = 0; j < S.length; j++){
+      if(used[j]) continue;
+      used[j] = 1; cur.push(j); rec(i+1, used, acc + score(alive[i], S[j]), cur); cur.pop(); used[j] = 0;
+    }
+  })(0, {}, 0, []);
+  var res = [];
+  alive.forEach(function(b, i){ if(best && best[i] !== undefined) res.push({b: b, slot: S[best[i]]}); });
+  return res;
+}
+// точки для тех, кому слот новый; напарники по кроссфайру — вместе
+function posChoosePoints(asg, why){
+  var used = {}, bySlot = {};
+  asg.forEach(function(a){ bySlot[a.slot.role] = a; if(a.keep) used[a.b.pos.pid] = 1; });
+  asg.sort(function(x, y){ return (POS_IMPORTANCE[posKind(y.slot.role)]||1) - (POS_IMPORTANCE[posKind(x.slot.role)]||1); });
+  asg.forEach(function(a, ai){
+    if(a.keep || a.pid) return;
+    var mate = a.slot.pairWith ? bySlot[a.slot.pairWith] : null;
+    var cA = posCands(a.slot, a.b.role, used), r = posSeed(a.b, 17 + ai);
+    if(!cA.length) cA = [{p: POS_PT[a.slot.point], n: 1}];
+    if(mate && (mate.keep || mate.pid)){                      // напарник уже стоит — к его точке
+      var mp = mate.keep ? mate.b.pos.pid : mate.pid;
+      var withM = cA.filter(function(c){ return posPairW(c.p.id, mp) > 0; });
+      a.pid = posPick(withM.length ? withM : cA, function(c){ return withM.length ? posPairW(c.p.id, mp) : c.n; }, r).p.id;
+    } else if(mate){                                          // оба новые — пара из списка pairs
+      var cB = posCands(mate.slot, mate.b.role, used), J = [];
+      cA.forEach(function(x){ cB.forEach(function(y){ var w = x.p.id !== y.p.id ? posPairW(x.p.id, y.p.id) : 0; if(w > 0) J.push({a: x.p.id, b: y.p.id, w: w}); }); });
+      if(J.length){ var j = posPick(J, function(q){ return q.w; }, r); a.pid = j.a; mate.pid = j.b; used[j.b] = 1; }
+      else a.pid = posPick(cA, function(c){ return c.n; }, r).p.id;
+    } else a.pid = posPick(cA, function(c){ return c.n; }, r).p.id;
+    used[a.pid] = 1;
+  });
+  asg.forEach(function(a){
+    if(a.keep) return;
+    if(!a.pid){ var c = posCands(a.slot, a.b.role, used); a.pid = (c.length ? c[0].p : POS_PT[a.slot.point]).id; used[a.pid] = 1; }
+    a.b.pos = {slot: a.slot.role, pairWith: a.slot.pairWith, pid: a.pid, fb: false, threat: null, pathT: -1e9};
+    posGo(a.b, why);
+  });
+}
+// цель: точка слота или её запасная; путь — от того места, где бот сейчас
+function posGo(b, why){
+  var P = POS_PT[b.pos.fb ? POS_PT[b.pos.pid].fallback : b.pos.pid];
+  var sp = P.spots && P.spots.length ? posPick(P.spots, function(s){ return s.share; }, posSeed(b, 3)) : P;
+  b.pos.cur = P.id; b.pos.tx = sp.x; b.pos.ty = sp.y; b.pos.tz = P.z || 0;
+  b.pos.threat = null;
+  posPath(b);
+  POS_LOG.push({tick: tick, round: roundNum, who: b.id, slot: b.pos.slot, pid: P.id, why: why});
+  if(why !== "раунд") logEvent("Позиция: "+nick(b.id)+" → "+b.pos.slot+" ("+P.area+(b.pos.fb ? ", запасная" : "")+") — "+why, "info");
+}
+function posPath(b){
+  b.pos.pathT = tick;
+  b.path = buildWaypointPath(b.x, b.y, b.z, b.pos.tx, b.pos.ty, b.pos.tz); b.pathIdx = 0;
+}
+
+// ---------- события ----------
+function posRoundStart(){
+  if(roundNum === 1) POS_LOG.length = 0;
+  bots.forEach(function(b){ delete b.pos; });
+  var alive = bots.filter(function(b){ return b.team === "CT" && b.alive; });
+  POS_STATE.aliveCT = alive.length;
+  posChoosePoints(posAssign(alive, false), "раунд");
+  logEvent("Setup CT: "+posSetup().name+" — "+alive.map(function(b){ return nick(b.id)+" "+b.pos.slot+" ("+POS_PT[b.pos.pid].area+")"; }).join(", "), "round");
+}
+function posSetSetup(id){
+  POS_STATE.setupCT = id;
+  if(roundState !== "live" && roundState !== "freeze") return;
+  var alive = bots.filter(function(b){ return b.team === "CT" && b.alive; });
+  alive.forEach(function(b){ delete b.pos; });
+  posChoosePoints(posAssign(alive, true), "смена Setup'а: "+posSetup().name);
+}
+function posReslot(){
+  var alive = bots.filter(function(b){ return b.team === "CT" && b.alive; });
+  var asg = posAssign(alive, true);
+  asg.forEach(function(a){ a.keep = !!(a.b.pos && a.b.pos.slot === a.slot.role); });
+  posChoosePoints(asg, "погиб свой, слоты перераспределены");
+}
+// дым между точкой и её углом (сама точка в дыму — тоже)
+function posSmoked(P){ return smokeBlocks(P.x, P.y, P.angle.x, P.angle.y); }
+function posSmokeCheck(b){
+  var P = POS_PT[b.pos.pid], F = P.fallback && POS_PT[P.fallback];
+  if(!b.pos.fb && F && posSmoked(P) && !posSmoked(F)){ b.pos.fb = true; posGo(b, "дым закрыл угол"); }
+  else if(b.pos.fb && !posSmoked(P)){ b.pos.fb = false; posGo(b, "дым ушёл"); }
+}
+function posAngleZone(P){
+  if(P._az === undefined){ var z = knowZoneAt(P.angle.x, P.angle.y); P._az = z ? teamNear(z) : []; }
+  return P._az;
+}
+// угроза на slot: враг (по гипотезам самого бота) на входе, который держит точка
+function posThreatCheck(b){
+  var P = POS_PT[b.pos.cur], Z = posAngleZone(P), best = null;
+  var K = b.know;
+  if(K) for(var id in K.enemies){
+    var B = K.enemies[id]; if(B.visible) continue;
+    B.hyps.forEach(function(h){
+      if(h.x === undefined || h.weight < POS.threatW || Z.indexOf(h.zone) < 0) return;
+      if(!best || h.weight > best.weight) best = h;
+    });
+  }
+  b.pos.threat = best ? {x: best.x, y: best.y} : null;
+}
+function posTick(){
+  if(roundState !== "live") return;
+  var aliveCT = bots.filter(function(b){ return b.team === "CT" && b.alive; }).length;
+  if(aliveCT < POS_STATE.aliveCT && aliveCT > 0) posReslot();
+  POS_STATE.aliveCT = aliveCT;
+  bots.forEach(function(b){
+    if(!b.alive || !b.pos) return;
+    var far = Math.hypot(b.pos.tx-b.x, b.pos.ty-b.y) > POS.arrive;
+    var moving = b.path.length > 0 && b.pathIdx < b.path.length;
+    if(far && !moving && tick - b.pos.pathT >= POS.repathEvery) posPath(b);   // движок сбросил путь — та же цель
+    if((smokes.length || b.pos.fb) && (tick + (b.id.charCodeAt(b.id.length-1)||0)) % POS.smokeEvery === 0) posSmokeCheck(b);
+    if(!far && (tick + (b.id.charCodeAt(0)||0)) % POS.threatEvery === 0) posThreatCheck(b);
+  });
+}
+
+// ---------- взгляд (15_combat.js, когда врага не видно) ----------
+function posLook(b){
+  if(!b.pos){   // T — заплатка до шага 7: вперёд, от своего спавна к центру карты
+    var sp = b.spawnPt || (b.team === "CT" ? CT_SPAWN : T_SPAWN);
+    var a0 = Math.atan2(1024 - sp.y, 1024 - sp.x);
+    return {x: b.x + Math.cos(a0)*400, y: b.y + Math.sin(a0)*400, why: "stub"};
+  }
+  if(b.path.length && b.pathIdx < b.path.length){
+    var w = b.path[Math.min(b.pathIdx + 1, b.path.length - 1)];
+    if(Math.hypot(w[0]-b.x, w[1]-b.y) > 4) return {x: w[0], y: w[1], why: "move"};
+  }
+  var P = POS_PT[b.pos.cur];
+  if(!b.pos.threat) return {x: P.angle.x, y: P.angle.y, why: b.pos.fb ? "fallback" : "angle"};
+  // угроза — взгляд на неё, но не шире yawRange точки (в игре yaw против часовой, на радаре y вниз)
+  var c = -P.yaw*Math.PI/180, lo = -(P.yawRange[1] + POS.yawPad)*Math.PI/180, hi = -(P.yawRange[0] - POS.yawPad)*Math.PI/180;
+  var d = Math.atan2(b.pos.threat.y - b.y, b.pos.threat.x - b.x) - c;
+  d = ((d + Math.PI) % (2*Math.PI) + 2*Math.PI) % (2*Math.PI) - Math.PI;
+  d = Math.max(lo, Math.min(hi, d));
+  var R = Math.max(150, P.angle.dist);
+  return {x: b.x + Math.cos(c+d)*R, y: b.y + Math.sin(c+d)*R, why: "threat"};
+}
+
+// ---------- выбор Setup'а вручную (сверху страницы; потом — IGL, шаг 6) ----------
+(function(){
+  var sel = document.getElementById("selSetupCT"); if(!sel) return;
+  POS_SETUPS.ct.forEach(function(s){
+    var o = document.createElement("option"); o.value = s.id;
+    o.textContent = s.name+" "+s.split.A+"-"+s.split.mid+"-"+s.split.B+" ("+Math.round(s.share*100)+" %)";
+    sel.appendChild(o);
+  });
+  sel.value = POS_STATE.setupCT;
+  sel.addEventListener("change", function(){ posSetSetup(sel.value); });
+})();
+
+// ---------- слой радара «позиции» ----------
+function drawPositions(){
+  var ch = document.getElementById("chkPositions"); if(!ch || !ch.checked) return;
+  var px = 1/view.scale;
+  ctx.save();
+  bots.forEach(function(b){
+    if(!b.alive || !b.pos) return;
+    var P = POS_PT[b.pos.cur], M = POS_PT[b.pos.pid];
+    ctx.setLineDash([]); ctx.lineWidth = 1.5*px; ctx.strokeStyle = "rgba(120,180,255,0.75)";
+    ctx.beginPath(); ctx.moveTo(b.pos.tx, b.pos.ty); ctx.lineTo(P.angle.x, P.angle.y); ctx.stroke();   // угол
+    ctx.beginPath(); ctx.arc(b.pos.tx, b.pos.ty, 7*px, 0, 2*Math.PI); ctx.stroke();
+    if(M.fallback && POS_PT[M.fallback] && !b.pos.fb){
+      var F = POS_PT[M.fallback];
+      ctx.setLineDash([3*px, 3*px]); ctx.strokeStyle = "rgba(120,180,255,0.45)";
+      ctx.beginPath(); ctx.arc(F.x, F.y, 5*px, 0, 2*Math.PI); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(b.pos.tx, b.pos.ty); ctx.lineTo(F.x, F.y); ctx.stroke();
+    }
+    ctx.setLineDash([]);
+    ctx.fillStyle = "rgba(170,210,255,0.95)"; ctx.font = (8*px)+"px 'IBM Plex Mono',monospace"; ctx.textAlign = "center";
+    ctx.fillText(b.pos.slot + (b.pos.fb ? " (зап.)" : ""), b.pos.tx, b.pos.ty + 15*px);
+  });
+  // кроссфайр-пары — жёлтая линия между точками напарников
+  bots.forEach(function(b){
+    if(!b.alive || !b.pos || !b.pos.pairWith) return;
+    bots.forEach(function(m){
+      if(m === b || !m.alive || !m.pos || m.pos.slot !== b.pos.pairWith || b.id > m.id) return;
+      ctx.strokeStyle = "rgba(255,210,80,0.85)"; ctx.lineWidth = 2*px; ctx.setLineDash([6*px, 4*px]);
+      ctx.beginPath(); ctx.moveTo(b.pos.tx, b.pos.ty); ctx.lineTo(m.pos.tx, m.pos.ty); ctx.stroke();
+    });
+  });
+  ctx.restore();
+}
 // ======================= ЗАГЛУШКА ВМЕСТО МОЗГА (v197) =======================
 // Мозг ботов удалён (07.10.2026, docs/tasks/restart.md). Здесь — минимум, чтобы
 // игра шла; это не решения, а умолчания. Новый мозг заменит этот файл целиком.
 //  • закуп — stubBuy: пистолетный раунд — кевлар (не хватает — P250); дальше —
 //    винтовка + кевлар со шлемом, если хватает на всё, иначе ничего;
-//  • позиция — нет: боты стоят на своём спавне (пути не задаются);
-//  • взгляд — stubLook: вперёд, по направлению от своего спавна к центру карты.
-//    Видимый враг в поле зрения — поворот и выстрел (это реакция движка,
-//    15_combat.js), бомба остаётся у носителя, раунд кончается по времени;
+//  • позиция и взгляд — с шага 5 в 11_position.js (одно место);
 //  • присесть — stubCrouch (v201): стоит, видит врага, и присев всё ещё его видит,
 //    а враг тело присевшего — нет (укрытие по грудь/низкое): приседает. Врага нет
 //    2 с — встаёт. Идёт — стоя (присев — 34 % скорости, решать это будет мозг).
@@ -2651,11 +2949,6 @@ function stubBuy(b){
   if(b.money < WEAPONS[rifle].price + armorCost) return;
   buyItem(b, rifle);
   buyArmor(b, true);
-}
-function stubLook(b){
-  var sp = b.spawnPt || (b.team === "CT" ? CT_SPAWN : T_SPAWN);
-  var a = Math.atan2(1024 - sp.y, 1024 - sp.x);
-  return {x: b.x + Math.cos(a)*400, y: b.y + Math.sin(a)*400};
 }
 function stubCrouch(b){
   var moving = b.path.length > 0 && b.pathIdx < b.path.length;
@@ -3517,7 +3810,7 @@ function tryShoot(shooter, target, dist, parts){
 // ослеплён — visPair (10_vision.js); там же — что видно у врага: голова/тело. Видимый враг — цель:
 // прицел поворачивается к ней с конечной скоростью (AIM_TURN_RATE), а стреляет
 // бот только наведённым (tryShoot). Без врага взгляд — куда велит заглушка
-// (stubLook в 12_stub.js), поворот тот же.
+// (posLook в 11_position.js), поворот тот же.
 function resolveEngagements(){
   var pairs = [];
   bots.forEach(function(b){ b._sawEnemy = false; b._nearestEnemyDist = Infinity; b._nearestEnemyBot = null; b._visible = []; });
@@ -3564,8 +3857,8 @@ function resolveEngagements(){
   var aimStep = AIM_TURN_RATE / TICK_HZ;
   bots.forEach(function(b){
     if(!b.alive) return;
-    var seesFoe = b._sawEnemy && b._nearestEnemyBot, look = seesFoe ? b._nearestEnemyBot : stubLook(b);
-    b.lookReason = seesFoe ? "enemy" : "stub";
+    var seesFoe = b._sawEnemy && b._nearestEnemyBot, look = seesFoe ? b._nearestEnemyBot : posLook(b);
+    b.lookReason = seesFoe ? "enemy" : look.why;
     b.lookTarget = look ? {x:look.x, y:look.y} : null;
     if(!look) return;
     var want = Math.atan2(look.y-b.y, look.x-b.x);
@@ -3804,6 +4097,7 @@ function resetRound(){
   buyPhase();
   resetBomb();
   logEvent("Раунд "+roundNum+" начался", "round");
+  posRoundStart();   // CT — по слотам активного Setup'а (11_position.js)
 }
 
 // ---------- fixed-tick sim ----------
@@ -4066,6 +4360,7 @@ function stepTick(){
   resolveEngagements();
   knowTick();   // что каждый бот теперь знает о врагах (09_knowledge.js) — пока только знание, на игру не влияет
   teamTick();   // войс: кто что сказал команде, тиммейты узнают из договорённого (12_team.js)
+  posTick();    // позиция: только по событиям — погиб свой, дым на угол, угроза на slot (11_position.js)
   bots.forEach(function(b){ if(b.alive) b.crouching = stubCrouch(b); });   // стойка — заглушка (12_stub.js)
   checkRoundEnd();
 }
@@ -4103,11 +4398,12 @@ var showDanger = document.getElementById("chkDanger");   // hover-проверк
 var showLos = document.getElementById("chkLos");
 var showTracers = document.getElementById("chkTracers");
 var showWhy = document.getElementById("chkWhy");
-// подпись "что делает": без мозга задач нет — только действие движка и взгляд
+// подпись "что делает": слот (CT), действие движка и взгляд
 function whyText(b){
   var pt = b.planting ? "ставит бомбу" : b.defusing ? "дефузит" : (b.path && b.pathIdx < b.path.length) ? "идёт" : "стоит";
-  var lt = b.lookReason === "enemy" ? "видит врага" : b.lookReason === "stub" ? "смотрит вперёд (заглушка)" : "по ходу движения";
-  return pt + " · " + lt;
+  var LT = {enemy: "видит врага", stub: "смотрит вперёд (заплатка T)", angle: "держит угол", fallback: "держит угол с запасной",
+            threat: "угроза на угол — смотрит туда", move: "по ходу движения"};
+  return (b.pos ? b.pos.slot + " · " : "") + pt + " · " + (LT[b.lookReason] || "по ходу движения");
 }
 var showSound = document.getElementById("chkSound");
 
@@ -5227,6 +5523,7 @@ function draw(){
     ctx.font = (7/view.scale)+"px 'IBM Plex Mono',monospace"; ctx.textAlign = "center"; ctx.fillText(WEAPONS[G.key].name.split(" ")[0], G.x, G.y - 6/view.scale);
     ctx.restore();
   });
+  drawPositions();   // слой «позиции» (11_position.js)
   // где погиб игрок — крестик цвета его стороны (до конца раунда)
   bots.forEach(function(bot){
     if(bot.alive) return;
@@ -7069,6 +7366,13 @@ var __SNAP = [
 ["FOV_DEG", function(){ return FOV_DEG; }, function(v){ try{ FOV_DEG = v; }catch(e){} }],
 ["FOV_NEAR", function(){ return FOV_NEAR; }, function(v){ try{ FOV_NEAR = v; }catch(e){} }],
 ["CONE_R", function(){ return CONE_R; }, function(v){ try{ CONE_R = v; }catch(e){} }],
+["POS_SETUPS", function(){ return POS_SETUPS; }, function(v){ try{ POS_SETUPS = v; }catch(e){} }],
+["POS", function(){ return POS; }, function(v){ try{ POS = v; }catch(e){} }],
+["POS_IMPORTANCE", function(){ return POS_IMPORTANCE; }, function(v){ try{ POS_IMPORTANCE = v; }catch(e){} }],
+["POS_FIT", function(){ return POS_FIT; }, function(v){ try{ POS_FIT = v; }catch(e){} }],
+["POS_PT", function(){ return POS_PT; }, function(v){ try{ POS_PT = v; }catch(e){} }],
+["POS_STATE", function(){ return POS_STATE; }, function(v){ try{ POS_STATE = v; }catch(e){} }],
+["POS_LOG", function(){ return POS_LOG; }, function(v){ try{ POS_LOG = v; }catch(e){} }],
 ["TEAM", function(){ return TEAM; }, function(v){ try{ TEAM = v; }catch(e){} }],
 ["TEAM_PRIO", function(){ return TEAM_PRIO; }, function(v){ try{ TEAM_PRIO = v; }catch(e){} }],
 ["teamKnow", function(){ return teamKnow; }, function(v){ try{ teamKnow = v; }catch(e){} }],

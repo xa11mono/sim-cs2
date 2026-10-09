@@ -239,7 +239,7 @@ function tryShoot(shooter, target, dist, parts){
 // ослеплён — visPair (10_vision.js); там же — что видно у врага: голова/тело. Видимый враг — цель:
 // прицел поворачивается к ней с конечной скоростью (AIM_TURN_RATE), а стреляет
 // бот только наведённым (tryShoot). Без врага взгляд — куда велит заглушка
-// (stubLook в 12_stub.js), поворот тот же.
+// (posLook в 11_position.js), поворот тот же.
 function resolveEngagements(){
   var pairs = [];
   bots.forEach(function(b){ b._sawEnemy = false; b._nearestEnemyDist = Infinity; b._nearestEnemyBot = null; b._visible = []; });
@@ -286,8 +286,8 @@ function resolveEngagements(){
   var aimStep = AIM_TURN_RATE / TICK_HZ;
   bots.forEach(function(b){
     if(!b.alive) return;
-    var seesFoe = b._sawEnemy && b._nearestEnemyBot, look = seesFoe ? b._nearestEnemyBot : stubLook(b);
-    b.lookReason = seesFoe ? "enemy" : "stub";
+    var seesFoe = b._sawEnemy && b._nearestEnemyBot, look = seesFoe ? b._nearestEnemyBot : posLook(b);
+    b.lookReason = seesFoe ? "enemy" : look.why;
     b.lookTarget = look ? {x:look.x, y:look.y} : null;
     if(!look) return;
     var want = Math.atan2(look.y-b.y, look.x-b.x);

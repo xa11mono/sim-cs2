@@ -460,6 +460,7 @@ function draw(){
     ctx.font = (7/view.scale)+"px 'IBM Plex Mono',monospace"; ctx.textAlign = "center"; ctx.fillText(WEAPONS[G.key].name.split(" ")[0], G.x, G.y - 6/view.scale);
     ctx.restore();
   });
+  drawPositions();   // слой «позиции» (11_position.js)
   // где погиб игрок — крестик цвета его стороны (до конца раунда)
   bots.forEach(function(bot){
     if(bot.alive) return;

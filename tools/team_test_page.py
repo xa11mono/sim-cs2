@@ -29,8 +29,10 @@ JS = '''
     b.path = buildWaypointPath(b.x, b.y, b.z || 0, p.x, p.y, 0); b.pathIdx = 0; b.walking = !!walk; }
   var origCall = knowCall;
   knowCall = function(b, m){ if(document.getElementById("vtOn").checked) return origCall(b, m); };
-  var origLook = stubLook;
-  stubLook = function(b){ return (VT && VT.look[b.id]) || origLook(b); };
+  var origLook = posLook;   // сценарный тест: позиции шага 5 не нужны — взгляд и маршруты задаёт тест
+  posLook = function(b){ var l = VT && VT.look[b.id]; return l ? {x: l.x, y: l.y, why: "stub"} : origLook(b); };
+  var origPosTick = posTick;
+  posTick = function(){ if(VT){ bots.forEach(function(b){ delete b.pos; }); return; } origPosTick(); };
   var origStep = stepTick;
   stepTick = function(){
     origStep();
