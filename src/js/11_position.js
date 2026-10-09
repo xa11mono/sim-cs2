@@ -57,7 +57,6 @@ var POS = {
   rotMax:      4,    // защитников на сайте выхода не больше столько (вместе с теми, кто там стоял; v222: было 3)
   rotHearR:    700,  // px: шаги/стрельба ближе к сайту — это «идут на сайт» (v222, проектное число)
   rotApart:    150,  // px: точка ротации не ближе этого к цели тиммейта
-  reactMin:    100,  // px: сайт берут — новое место не ближе (у про «сдвинулся» — больше 100 px за 5 с; v232)
   siteR:       450,  // px: «на сайте» — ближе этого к нему (как в замере реакции на стак, tools/measure/stack.py)
   // v215 (аудит п. 4, доделка): игры за инфой и смена позиции
   pushMax:     2,    // подпушей за раунд не больше (вдвоём — пара; данные дают в среднем ~1 на раунд)
@@ -263,7 +262,7 @@ function posChoosePoints(asg, why){
 // цель: точка слота или её запасная; путь — от того места, где бот сейчас
 function posGo(b, why){
   var P = POS_PT[b.pos.fb ? POS_PT[b.pos.pid].fallback : b.pos.pid];
-  var sp = P.spots && P.spots.length ? posPick(P.spots, function(s){ return s.share; }, posSeed(b, 3)) : P;
+  var sp = posFreeSpot(b, P);   // v233: точка — зона, место в ней бот выбирает сам
   b.pos.cur = P.id; b.pos.tx = sp.x; b.pos.ty = sp.y; b.pos.tz = P.z || 0;
   b.pos.threat = null;
   b.walking = false;   // к точке / на ротацию — бегом
@@ -349,7 +348,7 @@ function posTick(){
     var moving = b.path.length > 0 && b.pathIdx < b.path.length;
     if(far && !moving && tick - b.pos.pathT >= POS.repathEvery) posPath(b);   // движок сбросил путь — та же цель
     if((smokes.length || b.pos.fb) && (tick + (b.id.charCodeAt(b.id.length-1)||0)) % POS.smokeEvery === 0) posSmokeCheck(b);
-    if(!far && (tick + (b.id.charCodeAt(0)||0)) % POS.threatEvery === 0) posThreatCheck(b);
+    if(!far && (tick + (b.id.charCodeAt(0)||0)) % POS.threatEvery === 0){ posThreatCheck(b); if(!moving && posZoneTick(b)) return; }
     if(posPushTick(b)) return;
     if(posCoverTick(b)) return;
     if(posAfterHit(b)) return;
@@ -357,6 +356,59 @@ function posTick(){
     if(!far && posMicro(b)) return;
     if((tick + (b.id.charCodeAt(1)||0)) % POS.rotEvery === 0){ if(!posSiteReact(b)) posRotateCheck(b); posEmptySite(b); }
   });
+}
+// ---------- позиция — зона, а не точка (v233, замечание владельца 10.10: «точки — рекомендованная зона, не стоять всегда
+// на них; движение свободное, как в v166») ----------
+// Зона — точка из демок и её разброс у про (P.spread — круг, куда попадают 80 % стоянок про). Где в ней встать, бот
+// решает сам по тому, что знает (как pickSpots в v166): видно угол, который держит точка (если с самой точки его видно);
+// не видно врагам, которых он знает (гипотезы с фактом); ближе к местам, где стоят про (P.spots); ближе к себе (меньше
+// идти); не на месте тиммейта. Веса — проектные числа (v166 брал похожие). Знание поменялось (угроза на вход, свой
+// погиб) — выбирает заново и, если новое место в стороне, переходит туда шагом (posZoneTick)
+var POS_ZONE = {ring: 10, hide: 2, pro: 1, walk: 0.5, mate: 60, step: 12};
+function posFreeSpot(b, P){
+  var R = Math.max(P.spread || 0, 15), C = [];
+  (P.spots || []).forEach(function(q){ C.push({x: q.x, y: q.y}); });
+  C.push({x: P.x, y: P.y});
+  [0.5, 1].forEach(function(k){
+    for(var i = 0; i < POS_ZONE.ring; i++){
+      var a = i*2*Math.PI/POS_ZONE.ring + k, w = snapToWalkable(P.x + Math.cos(a)*R*k, P.y + Math.sin(a)*R*k);
+      if(w && Math.hypot(w.x - P.x, w.y - P.y) <= R + 2 && !crossesWall(P.x, P.y, w.x, w.y)) C.push(w);
+    }
+  });
+  var foes = [];
+  if(b.know) for(var id in b.know.enemies){
+    var B = b.know.enemies[id]; if(!planFact(B)) continue;
+    B.hyps.forEach(function(h){ if(h.x !== undefined && h.weight >= POS.threatW) foes.push(h); });
+  }
+  var mates = bots.filter(function(o){ return o !== b && o.alive && o.team === b.team && o.pos; }).map(function(o){ return {x: o.pos.tx, y: o.pos.ty}; });
+  var seesAngle = !crossesWall(P.x, P.y, P.angle.x, P.angle.y), best = null, bs = -1e9;
+  C.forEach(function(c){
+    if(seesAngle && crossesWall(c.x, c.y, P.angle.x, P.angle.y)) return;   // угол точки отсюда не видно
+    var sc = 0;
+    foes.forEach(function(h){ if(crossesWall(c.x, c.y, h.x, h.y)) sc += POS_ZONE.hide; });
+    var pro = 0; (P.spots || []).forEach(function(q){ if(Math.hypot(q.x - c.x, q.y - c.y) <= 15) pro = Math.max(pro, q.share || 0); });
+    if(!P.spots || !P.spots.length) pro = Math.hypot(c.x - P.x, c.y - P.y) <= 15 ? 1 : 0;
+    sc += POS_ZONE.pro*pro;
+    sc -= POS_ZONE.walk*Math.hypot(c.x - b.x, c.y - b.y)/Math.max(R, 1)/4;
+    if(mates.some(function(m){ return Math.hypot(m.x - c.x, m.y - c.y) < POS_ZONE.mate; })) sc -= 1;
+    sc += posSeed(b, Math.round(c.x)*7 + Math.round(c.y)*13)*0.3;   // свой выбор: не все одинаково
+    if(sc > bs){ bs = sc; best = c; }
+  });
+  return best || {x: P.x, y: P.y};
+}
+// стоит на месте: знание поменялось — может, в зоне есть место лучше (шагом, коротко)
+function posZoneTick(b){
+  if(b.pos.fb || b.pos.peek || b._micro || b._sawEnemy || posLed(b)) return false;
+  var key = b.pos.threat ? Math.round(b.pos.threat.x/40) + ":" + Math.round(b.pos.threat.y/40) : "-";
+  key += "|" + bots.filter(function(o){ return o.team === b.team && !o.alive; }).length;
+  if(b.pos.zKey === key) return false;
+  b.pos.zKey = key;
+  var P = POS_PT[b.pos.cur]; if(!P) return false;
+  var sp = posFreeSpot(b, P);
+  if(Math.hypot(sp.x - b.pos.tx, sp.y - b.pos.ty) < POS_ZONE.step) return false;
+  b.pos.tx = sp.x; b.pos.ty = sp.y; b.walking = true; posPath(b);
+  POS_LOG.push({tick: tick, round: roundNum, who: b.id, slot: b.pos.slot, pid: P.id, why: "в зоне — место лучше по знанию"});
+  return true;
 }
 // ---------- ротация по инфе (v214) ----------
 // где бьют — по знанию самого бота: враги, которых он уверенно ставит на сторону (planLocatedList,
@@ -438,36 +490,23 @@ function posRotateCheck(b){
   b.pos.home = b.pos.pid; b.pos.rot = X; b.pos.pid = best.id; b.pos.fb = false;
   posGo(b, "ротация на " + X + " — по инфе: там " + pr[X] + (pr[X] >= POS.rotNeed && planLocatedList(b).filter(function(e){ return e.region === X; }).length < pr[X] ? " (утилита выхода)" : ""));
 }
-// ---------- сайт берут: стоящий на нём меняет место (v232, замечание владельца: «один пикнул и погиб, второй ничего не
-// делает до планта») ----------
-// У про после первой смерти CT на сайте до планта CT на этом же сайте за 5 с сдвигаются больше чем на 100 px в 60 %
-// случаев (боты — 8 %): враг знает, где он стоял. Бот на сайте, где только что погиб свой (posSiteLost), не видя врага,
-// уходит на другую точку CT этого сайта (из демок) — не ближе POS.reactMin, откуда видно место смерти (играть по врагу с
-// нового угла; v232: проверено и «спрятаться, откуда не видно» — CT убивали меньше, а гибли так же); нет такой —
-// на запасную своей точки. Раз на одну смерть
+// ---------- сайт берут: стоящий на нём разворачивается к месту смерти своего (v232–v233) ----------
+// Замечание владельца: «один пикнул и погиб, второй ничего не делает до планта». У про после первой смерти CT на сайте
+// CT на этом же сайте за 5 с сдвигаются больше чем на 100 px в 60 % случаев. Проверено (v232–v233): переход на другую
+// точку сайта — и с видом на место смерти, и скрытую от него — стоил CT больше, чем давал (36–40 смертей на 20–24
+// фрага за 3 матча; без перехода — 145 на 124 по всему раунду). Поэтому: бот поворачивается туда, где погиб свой (там
+// враг), и выбирает место в своей зоне заново (posZoneTick: смерть своего меняет знание — скрыться от известных врагов)
 function posSiteReact(b){
-  if(posLed(b) || b._sawEnemy || b.pos.rot || b.pos.peek || !posPrePlant()) return false;
+  if(posLed(b) || b._sawEnemy || b.pos.peek || !posPrePlant()) return false;
   var X = ["A", "B"].filter(function(k){ return posOnSite(b, k) && posSiteLost(b, k); })[0];
   if(!X) return false;
   var dead = bots.filter(function(o){ return o.team === b.team && !o.alive && o._diedT !== undefined && tick - o._diedT <= teamSec(TEAM.board) &&
     Math.hypot(o.x - SITES[X].x, o.y - SITES[X].y) <= POS.siteR; }).sort(function(a, c){ return c._diedT - a._diedT; })[0];
   if(!dead || b.pos.reactTo === dead.id + ":" + dead._diedT) return false;
   b.pos.reactTo = dead.id + ":" + dead._diedT;
-  var taken = bots.filter(function(o){ return o !== b && o.team === b.team && o.alive && o.pos; }).map(function(o){ return {x: o.pos.tx, y: o.pos.ty}; });
-  var best = null, bd = 1e9;
-  KNOW_POSITIONS.points.forEach(function(P){
-    if(P.side !== "CT" || P.push || Math.hypot(P.x - SITES[X].x, P.y - SITES[X].y) > POS.siteR) return;
-    var d = Math.hypot(P.x - b.x, P.y - b.y);
-    if(d < POS.reactMin || crossesWall(P.x, P.y, dead.x, dead.y) || taken.some(function(t){ return Math.hypot(t.x - P.x, t.y - P.y) < POS.rotApart; })) return;
-    if(d < bd){ bd = d; best = P; }
-  });
-  var cur = POS_PT[b.pos.pid];
-  if(!best && cur && cur.fallback) best = POS_PT[cur.fallback];
-  if(!best) return false;
-  if(!b.pos.home) b.pos.home = b.pos.pid;
-  b.pos.pid = best.id; b.pos.fb = false;
-  posGo(b, "сайт берут: погиб " + dead.id + " — меняю место (" + best.area + ")");
-  return true;
+  b.pos.reactLook = {x: dead.x, y: dead.y, until: tick + 5*TICK_HZ};
+  POS_LOG.push({tick: tick, round: roundNum, who: b.id, slot: b.pos.slot, pid: b.pos.cur, why: "сайт берут: погиб " + dead.id + " — смотрю туда"});
+  return false;
 }
 // ---------- нас мало: пустой сайт (v232, замечание владельца: «стак 0-3-2, мид убили — последний на B стоит, хотя
 // понятно, что пойдут на A») ----------
@@ -754,6 +793,7 @@ function posLookBase(b){
   var w = (b.path.length && b.pathIdx < b.path.length && b._pathBy !== "micro") ? b.path[Math.min(b.pathIdx + 1, b.path.length - 1)] : null;
   if(w && Math.hypot(w[0]-b.x, w[1]-b.y) <= 4) w = null;
   if(b.pos && b.pos.peek) return {x: b.pos.peek.hx, y: b.pos.peek.hy, why: "threat"};   // пик — туда, где слышал (v227)
+  if(b.pos && b.pos.reactLook && tick < b.pos.reactLook.until) return {x: b.pos.reactLook.x, y: b.pos.reactLook.y, why: "threat"};   // сайт берут (v233)
   if(w){
     b._goDir = Math.atan2(w[1]-b.y, w[0]-b.x);
     return posAhead(b, b._goDir) || {x: w[0], y: w[1], why: "move"};

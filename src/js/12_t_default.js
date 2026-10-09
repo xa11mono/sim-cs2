@@ -152,8 +152,10 @@ function tDefaultTick(){
     if(b.team !== "T" || !b.alive || !b.tdef) return;
     if(b._scrT !== undefined && tick - b._scrT <= 1) return;   // ведёт исполнитель
     if(b.planting || b._tdefBusy === tick) return;
-    if(tdefReact(b)) return;
+    // размен — раньше «стою, слышу»: шум перестрелки и есть повод идти менять (v233: T рядом с убитым стоял 3 с «слышу
+    // стрельбу» и не менял); видит врага — движок и так стоит и стреляет (контрстрейф)
     if(tdefTrade(b)) return;
+    if(tdefReact(b)) return;
     if(P.type === "execute" && b.role !== "lurker") tdefJoin(b, entryIn);
     else tdefLane(b);
   });

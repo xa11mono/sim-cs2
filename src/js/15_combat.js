@@ -306,6 +306,11 @@ function resolveEngagements(){
     if(!b.alive) return;
     var seesFoe = b._sawEnemy && b._nearestEnemyBot, look = seesFoe ? b._nearestEnemyBot : posLook(b);
     b.lookReason = seesFoe ? "enemy" : look.why;
+    var urg = aimUrgent(b);
+    // угроза по знанию (инфа, префайр, ретейк) — не «спокойно»: туда поворачивает сразу и быстро (v233: с плавным
+    // поворотом на угрозу CT встречали выходящих T, глядя ещё в старую сторону, — смертей до 45 с 1,36 → 1,87)
+    if(!urg && look && (look.why === "threat" || look.why === "prefire" || look.why === "retake")) urg = 1;
+    if(look && !seesFoe) look = aimSmoothTarget(b, look, urg);
     if(!seesFoe) b._holdWhy = look.why;   // зачем прицел стоял там, где стоял, — для engagementPrep
     b.lookTarget = look ? {x:look.x, y:look.y} : null;
     if(!look) return;
@@ -313,7 +318,12 @@ function resolveEngagements(){
     if(b.facing === undefined) b.facing = want;
     var dd = want - b.facing;
     dd = ((dd + Math.PI) % (2*Math.PI) + 2*Math.PI) % (2*Math.PI) - Math.PI;
-    b.facing += Math.max(-aimStep, Math.min(aimStep, dd));
+    if(urg) b.facing += Math.max(-aimStep, Math.min(aimStep, dd));
+    else if(Math.abs(dd) >= AIM_SL.dead){
+      // вне боя — плавно, с торможением к цели, не быстрее AIM_SL.calmRate (v166, v233)
+      var st = Math.min(AIM_SL.calmRate/TICK_HZ, Math.max(AIM_SL.minStep, Math.abs(dd)*AIM_SL.ease));
+      b.facing += Math.max(-st, Math.min(st, dd));
+    }
   });
   pairs.forEach(function(p){
     if(p.ctSees && p.ct._nearestEnemyBot === p.t) tryShoot(p.ct, p.t, p.dist, p.ctParts);
@@ -321,6 +331,32 @@ function resolveEngagements(){
   });
 }
 
+// ---------- прицел вне боя: без метаний и рывков (v233, перенесено из v166 — там так и было, замечание владельца
+// 10.10: «стоит рядом, дёргается — назад, вперёд, назад, вперёд, не разменял») ----------
+// Срочно (видит врага, ослеплён, свежий звук/инфа рядом) — поворот на полной скорости. Спокойно: новое направление
+// принимается, только если старое продержалось AIM_SL.hold (стоя) / holdMove (на ходу), и к только что брошенному
+// направлению бот не возвращается AIM_SL.back; поворот — с торможением к цели (ease), не быстрее calmRate.
+// Числа — из v166 (там они подобраны под замер «взгляд туда-обратно > 45°» — у про 0,8 в минуту)
+var AIM_SL = {hold: 51, holdMove: 32, back: 96, holdAlert: 16, backAlert: 40, same: 0.35, calmRate: 4.5, ease: 0.2, minStep: 0.012, dead: 0.009};
+function aimUrgent(b){
+  if(b._sawEnemy || tick < (b.blindUntil || 0) + 32 || b.planting || b.defusing) return 2;
+  var K = b.know;
+  if(K && K.heard.length){ var h = K.heard[K.heard.length - 1]; if(tick - h.tick < 24 && Math.hypot(h.x - b.x, h.y - b.y) < 700) return 1; }
+  if(b.pos && b.pos.peek) return 1;
+  return 0;
+}
+function aimSmoothTarget(b, look, urg){
+  var moving = b.curSpeed > 60*SPD_K;
+  var S = b._aimS, aN = Math.atan2(look.y - b.y, look.x - b.x);
+  if(urg === 2 || !S){ b._aimS = {pt: {x: look.x, y: look.y, why: look.why}, since: tick, prev: S ? S.pt : null, left: tick}; return look; }
+  function da(p){ var a = Math.atan2(p.y - b.y, p.x - b.x); return Math.abs(((aN - a + Math.PI) % (2*Math.PI) + 2*Math.PI) % (2*Math.PI) - Math.PI); }
+  if(da(S.pt) < AIM_SL.same){ S.pt = {x: look.x, y: look.y, why: look.why}; return look; }   // то же направление — уточняет точку
+  var hold = urg ? AIM_SL.holdAlert : (moving ? AIM_SL.holdMove : AIM_SL.hold);
+  if(tick - S.since < hold) return S.pt;                                                     // старое ещё не досмотрел
+  if(S.prev && tick - S.left < (urg ? AIM_SL.backAlert : AIM_SL.back) && da(S.prev) < AIM_SL.same) return S.pt;   // не назад сразу
+  b._aimS = {pt: {x: look.x, y: look.y, why: look.why}, since: tick, prev: S.pt, left: tick};
+  return look;
+}
 function escapeWallLine(bot){
   for(var rr=3; rr<=18; rr+=3){
     for(var a=0; a<16; a++){

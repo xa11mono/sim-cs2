@@ -200,7 +200,7 @@ function resetRound(){
     b.x = spp.x; b.y = spp.y; b.z = sp.z||0;
     b.baseX = b.x; b.baseY = b.y;
     b.px = b.x; b.py = b.y;
-    b.path = []; b.pathIdx = 0; b.alive = true; b.hp = 100; b._diedT = undefined; b._micro = null; b._aimOff = 0;
+    b.path = []; b.pathIdx = 0; b.alive = true; b.hp = 100; b._diedT = undefined; b._micro = null; b._aimOff = 0; b._aimS = null;
     b.pickTick = -999; b.contactStreak = 0; b.nextShotTick = 0;
     b.facing = undefined; b.heading = undefined; b.curSpeed = 0; b.crouching = false; b.onStairs = false;
     b.walking = false; b.lastStepTick = -999; b.heardSound = null; b.ears = [];
