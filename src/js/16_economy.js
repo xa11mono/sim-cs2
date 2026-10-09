@@ -151,6 +151,7 @@ function checkRoundEnd(){
 }
 function endRound(winner, reason){
   if(winner){ score[winner]++; }
+  planRoundEnd(winner);   // память IGL: что играли и чем кончилось (12_team.js)
   showRoundCard(winner, reason);
   payRoundEconomy(winner, reason);
   roundState = "ending";
@@ -208,6 +209,7 @@ function resetRound(){
   buyPhase();
   resetBomb();
   logEvent("Раунд "+roundNum+" начался", "round");
+  planRoundStart();  // IGL обеих сторон выбирают план на раунд (12_team.js → 07_t_brain.js, 12_ct_brain.js)
   posRoundStart();   // CT — по слотам активного Setup'а (11_position.js)
 }
 

@@ -10,7 +10,8 @@
 //   hear   — услышал шаги/стрельбу, которые не объясняет то, что команде уже сказано: «шаги Cave»;
 //   plant  — CT услышал/увидел плант: «ставят B!» (срочно);
 //   defuse — T услышал дефуз: «дефузят!» (срочно);
-//   death  — убили, а убийцу видел: «убили с Mid, AWP» (срочно; мёртвый успевает сказать ~2 с).
+//   death  — убили, а убийцу видел: «убили с Mid, AWP» (срочно; мёртвый успевает сказать ~2 с);
+//   igl    — колл IGL: смена плана (07_t_brain.js / 12_ct_brain.js), срочно.
 // Неточность как у человека: место — зона колл-аута (не точка), «один/двое/несколько»,
 // из оружия — только AWP; содержимое фиксируется при решении сказать и к моменту, когда
 // договорено, уже немного устарело. Задержка: реакция + время произнесения.
@@ -19,7 +20,8 @@
 // Канал один на команду: говорят по очереди, срочное — вне очереди; устаревшее выкидывается;
 // при толпе в очереди неважное может не прозвучать (это разброс, не баг).
 //
-// teamKnowledge.planState — активный Setup команды; менять — только teamSetPlan (IGL, шаг 6).
+// teamKnowledge.planState — активный план команды; менять — только teamSetPlan (раздел «план
+// команды» ниже; решают 07_t_brain.js и 12_ct_brain.js).
 // Случайность — своя (hashRand от тика и ника), игровой генератор не трогается: войс на
 // бой и движение пока не влияет, отпечаток матча тот же.
 
@@ -34,7 +36,7 @@ var TEAM = {
   reTell:   2.0,         // того же видимого врага в новой зоне — не чаще, с (перестрелка на границе зон)
   deadTalk: 2.0          // мёртвый ещё договаривает, с
 };
-var TEAM_PRIO = {death: 2, plant: 2, defuse: 2, see: 1, hear: 0};
+var TEAM_PRIO = {death: 2, plant: 2, defuse: 2, igl: 2, see: 1, hear: 0};
 var teamKnow = {};       // T / CT → teamKnowledge
 
 function teamNew(team){
@@ -43,7 +45,9 @@ function teamNew(team){
     threats: {},            // зона → {count, awp, tick, by, kind} — что команде уже сказано
     claimedPositions: {},   // botId → {corner, since} — заполнит позиционирование (шаг 5)
     openRequests: {},       // requestId → {askerId, target, responders: {botId: 'yes'|'no'|null}}
-    planState: {type: "default", site: null, declaredAt: tick, activeSetupId: null},
+    planState: {type: "default", site: null, declaredAt: null, activeSetupId: null, label: null},
+    planLog: [],            // смены плана за раунд: {tick, from, to, why}
+    roundPick: null, roundSite: null, callMade: false,   // выбор на раунд (для памяти IGL), колл уже был
     queue: [],              // ждут своей очереди в канале
     speaking: null,         // кто говорит сейчас: {msg, end}
     seq: 0
@@ -65,6 +69,7 @@ function teamNear(z){ var g = knowGraph(); return [z].concat(g.adj[z] || []); } 
 // ---------- текст фразы ----------
 function teamText(m){
   var z = m.zone ? knowZoneName(m.zone) : "";
+  if(m.kind === "igl") return m.say;
   if(m.kind === "plant") return "ставят " + m.site + "!";
   if(m.kind === "defuse") return "дефузят!";
   if(m.kind === "death") return "убили с " + z + (m.awp ? ", AWP" : "");
@@ -77,7 +82,7 @@ function teamText(m){
 // ---------- доска: покрывает ли уже сказанное эту фразу ----------
 function teamCovered(T, m){
   if(m.kind === "plant" || m.kind === "defuse") return !!T.threats[m.kind];
-  if(m.kind === "death") return false;            // про своего убийцу — всегда новость
+  if(m.kind === "death" || m.kind === "igl") return false;   // про своего убийцу / колл — всегда новость
   // звук — место понятно грубо: сказанное про эту зону или соседнюю — уже не новость
   if(m.kind === "hear") return teamNear(m.zone).some(function(z){ var t = T.threats[z]; return t && tick - t.tick <= teamSec(TEAM.board); });
   var t = T.threats[m.zone];
@@ -93,7 +98,7 @@ function teamPropose(b, m){
   var V = b.voice;
   for(var i = 0; i < V.pending.length; i++){
     var p = V.pending[i];
-    if(p.kind === m.kind && p.zone === m.zone && p.kind !== "hear"){
+    if(p.kind === m.kind && p.zone === m.zone && p.kind !== "hear" && p.kind !== "igl"){
       p.count = Math.max(p.count || 0, m.count || 0); p.awp = p.awp || m.awp; p.text = teamText(p);
       (m.ids || []).forEach(function(id){ if(p.ids.indexOf(id) < 0) p.ids.push(id); });
       return;
@@ -182,7 +187,8 @@ function teamChannel(T){
       T.threats[m.zone] = {count: Math.max(m.count || 0, fresh ? t.count || 0 : 0), awp: !!m.awp || (fresh && t.awp),
                            tick: tick, by: m.by, kind: m.kind};
     }
-    mates.forEach(function(o){ if(o.alive && o.id !== m.by) knowCall(o, m); });
+    if(m.kind === "igl") teamSetPlan(T.team, m.plan, m.why + " (колл " + m.by + ")", m.label);
+    else mates.forEach(function(o){ if(o.alive && o.id !== m.by) knowCall(o, m); });
     logEvent(m.by + ": " + m.text, "voice");
   }
   if(T.speaking || !T.queue.length) return;
@@ -205,11 +211,114 @@ function teamChannel(T){
   }
 }
 
-// ---------- план команды: менять — только IGL (шаг 6) ----------
-function teamSetPlan(side, plan){
-  var T = teamOf(side);
-  T.planState = {type: plan.type, site: plan.site || null, declaredAt: tick, activeSetupId: plan.activeSetupId || null};
-  return T.planState;
+// ---------- план команды (BRAIN 5.4): одно значение planState, меняется только здесь ----------
+// Решают 07_t_brain.js (T) и 12_ct_brain.js (CT): выбор Setup'а на раунд во freeze и смена
+// по четырём поводам — плант, колл IGL по сильной инфе, контрольный тайминг, потеря состава.
+// Колл IGL — фраза в канале (kind "igl"): тиммейты узнают новый план, когда он договорён.
+// Числа ниже — проектные константы, не из демок.
+var PLAN = {
+  minGap:   8,     // с: между сменами плана не меньше (плант — без ожидания)
+  repeat1:  0.5,   // Setup был в прошлом раунде — его вес ×
+  repeat2:  0.25,  //   … два прошлых раунда подряд — ×
+  lost:     0.6,   // последний раунд с этим Setup'ом проигран — ×
+  lostSite: 0.8,   // T: последний execute на этот сайт проигран — другие варианты на тот же сайт ×
+  read:     0.3,   // CT: за каждый плант T на сайте за последние readN раундов — вес × (1 + read·n·(людей на сайте − 1))
+  readN:    3,
+  ecoStack: 2,     // CT на эко — стак ×
+  ecoFast:  2,     // T на эко — вариант с самым ранним выходом ×
+  infoW:    0.6,   // враг «стоит на стороне», если его гипотезы там весят столько и больше …
+  infoN:    3,     //   … и таких врагов на одной стороне (A или B) столько — сильная инфа
+  lossAlive:2,     // живых столько и меньше — fallback …
+  lossDiff: 2      //   … или нас меньше, чем врагов, на столько
+};
+var PLAN_HIST = [];   // {match, half, round, side, setupId, site, won, plantSite} — что команды играли
+function planHalf(r){
+  if(r <= HALF_ROUNDS) return 0;
+  if(r <= regRounds()) return 1;
+  return 2 + Math.floor((r - regRounds() - 1)/OT_HALF);
+}
+// последние n раундов этой половины за сторону side, свежие — первыми
+function planHist(side, n){
+  var h = planHalf(roundNum), out = [];
+  for(var i = PLAN_HIST.length-1; i >= 0 && out.length < n; i--){
+    var e = PLAN_HIST[i];
+    if(e.match !== matchNum || e.half !== h) break;
+    if(e.side === side) out.push(e);
+  }
+  return out;
+}
+// конец раунда (endRound, 16_economy.js): что играли и чем кончилось — память IGL на половину
+function planRoundEnd(winner){
+  ["T","CT"].forEach(function(side){
+    var T = teamOf(side);
+    if(!T.roundPick) return;
+    PLAN_HIST.push({match: matchNum, half: planHalf(roundNum), round: roundNum, side: side, setupId: T.roundPick,
+                    site: T.roundSite || null, won: winner === side, plantSite: bomb && bomb.plantTick >= 0 ? bomb.site : null});
+  });
+}
+// выбор по весам: [{s, w, why}] → один; случайность своя (раунд + сторона), игровой генератор не трогается
+function planPick(side, list){
+  var sum = 0; list.forEach(function(c){ sum += c.w; });
+  var r = hashRand(matchNum*7919 + roundNum*104729 + (side === "T" ? 17 : 31)) * sum;
+  for(var i = 0; i < list.length; i++){ r -= list[i].w; if(r <= 0) return list[i]; }
+  return list[list.length-1];
+}
+function planIgl(side){ return bots.filter(function(b){ return b.team === side && b.igl; })[0] || null; }
+function planCanSwitch(side){ return tick - teamOf(side).planState.declaredAt >= teamSec(PLAN.minGap); }
+// сменить план. Тот же — ничего. why — повод (пишется в консоль). Начало раунда — roundStart.
+function teamSetPlan(side, plan, why, label){
+  var T = teamOf(side), P = T.planState;
+  var same = P.type === plan.type && P.site === (plan.site || null) && P.activeSetupId === (plan.activeSetupId || null);
+  if(same && P.label) return false;
+  var was = P.label;
+  T.planState = {type: plan.type, site: plan.site || null, declaredAt: tick, activeSetupId: plan.activeSetupId || null, label: label};
+  T.planLog.push({tick: tick, from: was || null, to: label, why: why});
+  logEvent("План " + side + ": " + (was ? was + " → " : "") + label + " — " + why, "plan");
+  return true;
+}
+// начало раунда (resetRound, 16_economy.js; до posRoundStart): IGL обеих сторон выбирают план
+function planRoundStart(){
+  if(roundNum === 1) PLAN_HIST.length = 0;   // новый матч (или тот же номер заново)
+  tBrainRoundStart();    // 07_t_brain.js
+  ctBrainRoundStart();   // 12_ct_brain.js
+}
+// сторона карты зоны — как в tools/positions_bake.py (region_of): по x центра зоны; спавны и
+// задние проходы — ничья сторона
+var PLAN_NOSIDE = {"T Spawn":1, "T Ramp":1, "CT Spawn":1, "CT Lane":1, "Alley":1, "Back Halls":1, "Back Halls / Back Alley":1};
+function planRegion(zid){
+  if(!zid || PLAN_NOSIDE[zoneUserName(zid)]) return null;
+  var c = knowGraph().c[zid]; if(!c) return null;
+  return c.x < 700 ? "A" : c.x > 1250 ? "B" : "mid";
+}
+// сколько врагов бот b (обычно IGL) уверенно ставит на каждую сторону — по СВОЕМУ b.know
+// (видел сам + договорённое в войсе). Считается враг, про которого есть факт (не только
+// «вышел со спавна»), и его гипотезы на этой стороне весят ≥ PLAN.infoW
+function planLocatedList(b){
+  var out = [], K = b.know; if(!K) return out;
+  for(var id in K.enemies){
+    var B = K.enemies[id];
+    var fact = B.visible || (B.last && B.last.source !== "spawn") || B.hyps.some(function(h){ return h.heard; });
+    if(!fact) continue;
+    var w = {A: 0, B: 0, mid: 0};
+    B.hyps.forEach(function(h){ var r = planRegion(h.zone); if(r) w[r] += h.weight; });
+    ["A","B","mid"].forEach(function(r){ if(w[r] >= PLAN.infoW) out.push({id: id, region: r, w: w[r], seen: B.visible}); });
+  }
+  return out;
+}
+function planLocated(b){
+  var n = {A: 0, B: 0, mid: 0};
+  planLocatedList(b).forEach(function(e){ n[e.region]++; });
+  return n;
+}
+function planLocatedWhy(b, region){
+  return planLocatedList(b).filter(function(e){ return e.region === region; })
+    .map(function(e){ return e.id + (e.seen ? " вижу" : " " + e.w.toFixed(2)); }).join(", ");
+}
+// колл IGL: новый план — фразой в канал; применится, когда договорён (teamChannel)
+function teamCallPlan(igl, say, plan, why, label){
+  var T = teamOf(igl.team);
+  T.callMade = true;
+  teamPropose(igl, {kind: "igl", say: say, plan: plan, why: why, label: label});
 }
 
 // ---------- просьбы: один ответ на запрос; кто сказал «нет» — того не переспрашивают ----------

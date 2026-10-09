@@ -103,7 +103,7 @@
   #logBox .hd label{text-transform:none;letter-spacing:0;cursor:pointer;display:flex;gap:4px;align-items:center;}
   #log{max-height:200px;overflow-y:auto;} #logDbgPan{display:none;max-height:300px;} #logDbg{max-height:270px;overflow-y:auto;}
   #logBox .ev{color:var(--text);} #logBox .ev.kill{color:var(--danger);} #logBox .ev.bomb{color:#ff9a8f;} #logBox .ev.voice{color:#cfe3a8;}
-  #logBox .ev.team{color:#e9e2c6;} #logBox .ev.round{color:var(--text-dim);} #logBox .ev.dbg{color:var(--text-dim);opacity:.85;}
+  #logBox .ev.team{color:#e9e2c6;} #logBox .ev.plan{color:#9fd4ff;} #logBox .ev.round{color:var(--text-dim);} #logBox .ev.dbg{color:var(--text-dim);opacity:.85;}
   #warn{position:absolute;top:336px;left:12px;background:rgba(217,131,47,0.15);border:1px solid var(--site);color:var(--site);padding:6px 12px;border-radius:6px;font-size:10.5px;max-width:340px;display:none;}
   .mk-panel{position:absolute;top:10px;right:12px;width:min(640px,calc(100% - 24px));max-height:calc(100% - 20px);overflow-y:auto;z-index:50;background:#0a0e09;border:1px solid var(--accent-dim);border-radius:8px;padding:12px 14px;font-size:13px;line-height:1.5;}
   .mk-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;color:var(--accent);font-size:14px;}
@@ -150,11 +150,10 @@
 <div id="app">
   <div id="topbar">
     <h1>ANCIENT — LIVE RADAR</h1>
-    <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 203 · 09.10</div>
+    <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 204 · 09.10</div>
     <button id="btnPause">Пауза</button>
     <button id="btnRestartRound" title="Немедленно сбросить текущий раунд — на случай если боты застряли">Рестарт раунда</button>
     <span class="chk" title="Матч с одним номером всегда проходит одинаково. Увидел баг — запиши номер матча и тик, введи номер и нажми «Сыграть»: матч повторится с начала">матч № <input id="inpMatchNum" type="number" min="1" value="1" style="width:52px"> <button id="btnFreshMatch">Сыграть</button> <span id="matchTick" style="opacity:.75"></span></span>
-    <span class="chk" title="Расстановка CT (из демок про). Смена — сразу, боты перестраиваются. Потом это будет решать IGL (шаг 6)">Setup CT <select id="selSetupCT" style="background:var(--panel-2);color:var(--text);border:1px solid var(--line);border-radius:4px;padding:2px 4px;"></select></span>
     <label class="chk"><input type="checkbox" id="chkWalls"> стены</label>
     <label class="chk" title="Высота пола (цвет, шкала внизу слева), крытые места (штриховка), лестницы и рампы (стрелки вверх), уступы (толстая линия края). Наведи — подсказка"><input type="checkbox" id="chkHeights"> высоты</label>
     <label class="chk" title="Высота укрытий (ящики, колонны, низкие стены): цвет — выше головы / по грудь / низкое, пунктир — не измерено. Наведи — высота в единицах игры"><input type="checkbox" id="chkCover"> укрытия</label>
@@ -1570,6 +1569,107 @@ function bombTick(){
     }
   }
 }
+// ======================= IGL T: ПЛАН НА РАУНД И ЕГО СМЕНА (шаг 6) =======================
+// Одно место на «какой execute играет T» (docs/BRAIN.md 5.1, 5.4; шаг 6 PROMPTS.md).
+// Варианты — T-сценарии из setups.json (сайт + маршрут, у каждого контрольный тайминг
+// timing.startSec — медиана выхода у про). Сценарий здесь только выбирается, исполняет
+// его шаг 7 (12_script_runner.js). План пишется только через teamSetPlan (12_team.js).
+//
+// Во freeze IGL выбирает вариант по весам (PLAN в 12_team.js):
+//   частота у про × повтор (прошлый раунд / два подряд) × проигрыш с этим вариантом
+//   (и на этот сайт) × экономика (эко — самый ранний выход).
+// План раунда: default (контроль карты, цель уже известна команде) → execute.
+// Смена посреди раунда — только по поводам BRAIN 5.4:
+//   плант           — пост-плант на сайте бомбы (сразу);
+//   потеря состава  — fallback: вместе на сайт плана (по киллфиду, его видят все);
+//   тайминг         — истёк startSec варианта: default → execute;
+//   колл IGL        — пока default: IGL сам знает (своё b.know: видел + войс), что на сайте
+//                     плана стоят ≥ PLAN.infoN CT — колл «меняем на другой сайт», один за раунд.
+
+function tbSetup(id){
+  for(var i = 0; i < POS_SETUPS.t.length; i++) if(POS_SETUPS.t[i].id === id) return POS_SETUPS.t[i];
+  return null;
+}
+function tbName(s){ return s.site + " " + s.route; }
+function tbLabel(type, s){
+  if(type === "default") return "default (дальше " + tbName(s) + ", выход на " + Math.round(s.timing.startSec) + " с)";
+  if(type === "execute") return "execute " + tbName(s);
+  return type + " " + tbName(s);
+}
+
+// веса вариантов execute на этот раунд; only — только варианты на этот сайт
+function tbWeights(only){
+  var hist = planHist("T", 2), last = hist[0], prev = hist[1];
+  var eco = teamEco.T.roundType === "eco";
+  var fast = null;
+  POS_SETUPS.t.forEach(function(s){ if(!fast || s.timing.startSec < fast.timing.startSec) fast = s; });
+  return POS_SETUPS.t.filter(function(s){ return !only || s.site === only; }).map(function(s){
+    var w = s.share, why = [];
+    if(last && last.setupId === s.id){
+      if(prev && prev.setupId === s.id){ w *= PLAN.repeat2; why.push("два раунда подряд"); }
+      else { w *= PLAN.repeat1; why.push("был в прошлом"); }
+    }
+    var lastSame = hist.filter(function(e){ return e.setupId === s.id; })[0];
+    if(lastSame && !lastSame.won){ w *= PLAN.lost; why.push("с ним проиграли"); }
+    else if(last && !last.won && last.site === s.site && last.setupId !== s.id){ w *= PLAN.lostSite; why.push("на " + s.site + " проиграли"); }
+    if(eco && s === fast){ w *= PLAN.ecoFast; why.push("эко — ранний выход"); }
+    return {s: s, w: w, why: why};
+  });
+}
+function tbWhy(list, pick){
+  return list.map(function(c){
+    return (c === pick ? "[" : "") + tbName(c.s) + " " + c.w.toFixed(2) + (c.why.length ? " (" + c.why.join(", ") + ")" : "") + (c === pick ? "]" : "");
+  }).join("; ");
+}
+
+// ---------- freeze: выбор на раунд (16_economy.js, resetRound → planRoundStart) ----------
+function tBrainRoundStart(){
+  var list = tbWeights(null), c = planPick("T", list), T = teamOf("T"), igl = planIgl("T");
+  T.roundPick = c.s.id; T.roundSite = c.s.site;
+  teamSetPlan("T", {type: "default", site: c.s.site, activeSetupId: c.s.id},
+              "раунд " + roundNum + ", " + ROUND_TYPE_LABEL[teamEco.T.roundType] + ", IGL " + (igl ? igl.id : "—") + ": " + tbWhy(list, c),
+              tbLabel("default", c.s));
+}
+
+// ---------- раз в тик (17_tick.js): смена только по поводам 5.4 ----------
+function tBrainTick(){
+  if(roundState !== "live") return;
+  var T = teamOf("T"), P = T.planState, s = tbSetup(P.activeSetupId);
+  if(!s) return;
+  // плант: бомба у своих — сайт знают все
+  if(bomb && bomb.state === "planted"){
+    if(P.type !== "post_plant")
+      teamSetPlan("T", {type: "post_plant", site: bomb.site, activeSetupId: s.id}, "бомба заложена на " + bomb.site, "пост-плант " + bomb.site);
+    return;
+  }
+  if(P.type === "post_plant") return;
+  // потеря состава: сколько живых у кого — из киллфида
+  var us = bots.filter(function(b){ return b.team === "T" && b.alive; }).length;
+  var them = bots.filter(function(b){ return b.team === "CT" && b.alive; }).length;
+  if(P.type !== "fallback" && (us <= them - PLAN.lossDiff || (us <= PLAN.lossAlive && us < them))){
+    teamSetPlan("T", {type: "fallback", site: s.site, activeSetupId: s.id}, "живых " + us + " против " + them, "fallback: вместе на " + s.site);
+    return;
+  }
+  if(P.type !== "default" || !planCanSwitch("T")) return;
+  // контрольный тайминг варианта
+  var sec = (tick - roundStartTick)/TICK_HZ;
+  if(sec >= s.timing.startSec){
+    teamSetPlan("T", {type: "execute", site: s.site, activeSetupId: s.id}, "тайминг " + Math.round(s.timing.startSec) + " с", tbLabel("execute", s));
+    return;
+  }
+  // колл IGL по сильной инфе: на сайте плана уже стоят ≥ infoN CT — идём на другой
+  var igl = planIgl("T");
+  if(T.callMade || !igl || !igl.alive) return;
+  var loc = planLocated(igl);
+  if(loc[s.site] < PLAN.infoN) return;
+  var other = s.site === "A" ? "B" : "A", list = tbWeights(other);
+  if(!list.length) return;
+  var best = list[0]; list.forEach(function(c){ if(c.w > best.w) best = c; });
+  teamCallPlan(igl, "их " + loc[s.site] + " на " + s.site + ", меняем на " + other,
+               {type: "default", site: other, activeSetupId: best.s.id},
+               "сильная инфа: " + loc[s.site] + " CT на " + s.site + " (" + planLocatedWhy(igl, s.site) + ")",
+               tbLabel("default", best.s));
+}
 // ======================= ЗНАНИЕ БОТА О ВРАГАХ (Knowledge) =======================
 // Одно место на «что бот знает о врагах» (docs/BRAIN.md, разделы 1–2; шаг 2 PROMPTS.md).
 // У каждого бота — своё b.know; истинное состояние мира сюда попадает только
@@ -2590,7 +2690,8 @@ function visPair(a, b){
 //   • дым встал между точкой и её углом — запасная точка (fallback) слота; дым ушёл — назад;
 //   • угроза на slot (гипотеза врага с весом ≥ POS.threatW на входе, который держит
 //     точка, BRAIN 4.4) — позиция та же, взгляд в пределах yawRange точки — на вход угрозы;
-//   • смена Setup'а (пока — вручную, список «Setup CT» сверху страницы; потом — IGL, шаг 6).
+//   • смена Setup'а — план команды CT (teamKnowledge.planState.activeSetupId, решает IGL в
+//     12_ct_brain.js): posTick видит новый id — перестраивает живых CT.
 // T: расстановки в данных нет (T-Setup'ы — сценарии execute, шаги 6–7) — стоят у спавна,
 //   взгляд вперёд к центру карты (заплатка до шага 7, перенесена из 12_stub.js).
 //
@@ -2636,11 +2737,13 @@ var POS_FIT = {
 };
 var POS_PT = {};   // id → точка positions.json
 KNOW_POSITIONS.points.forEach(function(p){ POS_PT[p.id] = p; });
-var POS_STATE = {setupCT: POS_SETUPS.ct[0].id, aliveCT: -1};
+var POS_STATE = {applied: null, aliveCT: -1};   // applied — id Setup'а, по которому сейчас стоят CT
 var POS_LOG = [];  // {tick, round, who, slot, pid, why} — каждая смена цели (проверка «не дёргается»)
 
+// активный Setup CT — из плана команды (12_team.js; выбирает IGL, 12_ct_brain.js)
 function posSetup(){
-  for(var i = 0; i < POS_SETUPS.ct.length; i++) if(POS_SETUPS.ct[i].id === POS_STATE.setupCT) return POS_SETUPS.ct[i];
+  var id = teamOf("CT").planState.activeSetupId;
+  for(var i = 0; i < POS_SETUPS.ct.length; i++) if(POS_SETUPS.ct[i].id === id) return POS_SETUPS.ct[i];
   return POS_SETUPS.ct[0];
 }
 function posKind(slotRole){ return slotRole.replace(/_[AB]$/, ""); }
@@ -2816,12 +2919,13 @@ function posRoundStart(){
   bots.forEach(function(b){ delete b.pos; });
   var alive = bots.filter(function(b){ return b.team === "CT" && b.alive; });
   POS_STATE.aliveCT = alive.length;
+  POS_STATE.applied = posSetup().id;
   posChoosePoints(posAssign(alive, false), "раунд");
   logEvent("Setup CT: "+posSetup().name+" — "+alive.map(function(b){ return nick(b.id)+" "+b.pos.slot+" ("+POS_PT[b.pos.pid].area+")"; }).join(", "), "round");
 }
-function posSetSetup(id){
-  POS_STATE.setupCT = id;
-  if(roundState !== "live" && roundState !== "freeze") return;
+// план CT сменил Setup — перестроить живых CT (вызывает posTick)
+function posApplySetup(){
+  POS_STATE.applied = posSetup().id;
   var alive = bots.filter(function(b){ return b.team === "CT" && b.alive; });
   alive.forEach(function(b){ delete b.pos; });
   posChoosePoints(posAssign(alive, true), "смена Setup'а: "+posSetup().name);
@@ -2858,6 +2962,7 @@ function posThreatCheck(b){
 }
 function posTick(){
   if(roundState !== "live") return;
+  if(posSetup().id !== POS_STATE.applied) posApplySetup();
   var aliveCT = bots.filter(function(b){ return b.team === "CT" && b.alive; }).length;
   if(aliveCT < POS_STATE.aliveCT && aliveCT > 0) posReslot();
   POS_STATE.aliveCT = aliveCT;
@@ -2893,18 +2998,6 @@ function posLook(b){
   return {x: b.x + Math.cos(c+d)*R, y: b.y + Math.sin(c+d)*R, why: "threat"};
 }
 
-// ---------- выбор Setup'а вручную (сверху страницы; потом — IGL, шаг 6) ----------
-(function(){
-  var sel = document.getElementById("selSetupCT"); if(!sel) return;
-  POS_SETUPS.ct.forEach(function(s){
-    var o = document.createElement("option"); o.value = s.id;
-    o.textContent = s.name+" "+s.split.A+"-"+s.split.mid+"-"+s.split.B+" ("+Math.round(s.share*100)+" %)";
-    sel.appendChild(o);
-  });
-  sel.value = POS_STATE.setupCT;
-  sel.addEventListener("change", function(){ posSetSetup(sel.value); });
-})();
-
 // ---------- слой радара «позиции» ----------
 function drawPositions(){
   var ch = document.getElementById("chkPositions"); if(!ch || !ch.checked) return;
@@ -2937,6 +3030,109 @@ function drawPositions(){
     });
   });
   ctx.restore();
+}
+// ======================= IGL CT: РАСКЛАДКА НА РАУНД И ЕЁ СМЕНА (шаг 6) =======================
+// Одно место на «какой Setup стоит CT» (docs/BRAIN.md 5.3, 5.4; шаг 6 PROMPTS.md).
+// Варианты — CT-Setup'ы из setups.json (раскладка «сколько на A / миде / B»; стак — тоже
+// раскладка, BRAIN 5.3). Где кто встаёт — 11_position.js: он берёт activeSetupId из плана
+// и перестраивает живых CT, когда тот меняется. План пишется только через teamSetPlan.
+//
+// Во freeze IGL выбирает раскладку по весам (PLAN в 12_team.js):
+//   частота у про × повтор × проигрыш с этой раскладкой × где T ставили бомбу за последние
+//   раунды (больше людей на том сайте — вес выше) × экономика (эко — стак).
+// Смена посреди раунда — только по поводам BRAIN 5.4:
+//   плант           — ретейк (сайт — что знает IGL: видел/слышал/сказали; не знает — уточнит);
+//                     RetakeSetup'ов пока нет (шаг 8) — раскладка та же, CT стоят где стояли;
+//   потеря состава  — fallback (раскладка та же, слоты делит 11_position.js);
+//   колл IGL        — до планта: IGL сам знает (своё b.know), что на одной стороне ≥ PLAN.infoN
+//                     T — колл на раскладку, где там больше CT; один за раунд.
+// Контрольного тайминга у CT нет: защита стоит, пока ничего не узнала.
+
+function cbSetup(id){
+  for(var i = 0; i < POS_SETUPS.ct.length; i++) if(POS_SETUPS.ct[i].id === id) return POS_SETUPS.ct[i];
+  return null;
+}
+function cbName(s){ return s.name + " " + s.split.A + "-" + s.split.mid + "-" + s.split.B; }
+
+function cbWeights(){
+  var hist = planHist("CT", Math.max(2, PLAN.readN)), last = hist[0], prev = hist[1];
+  var eco = teamEco.CT.roundType === "eco";
+  var planted = {A: 0, B: 0};
+  hist.slice(0, PLAN.readN).forEach(function(e){ if(e.plantSite) planted[e.plantSite]++; });
+  return POS_SETUPS.ct.map(function(s){
+    var w = s.share, why = [];
+    if(last && last.setupId === s.id){
+      if(prev && prev.setupId === s.id){ w *= PLAN.repeat2; why.push("два раунда подряд"); }
+      else { w *= PLAN.repeat1; why.push("был в прошлом"); }
+    }
+    var lastSame = hist.filter(function(e){ return e.setupId === s.id; })[0];
+    if(lastSame && !lastSame.won){ w *= PLAN.lost; why.push("с ним проиграли"); }
+    ["A","B"].forEach(function(k){
+      if(!planted[k]) return;
+      var m = Math.max(0.2, 1 + PLAN.read*planted[k]*(s.split[k] - 1));
+      if(m !== 1){ w *= m; why.push("планты на " + k + ": " + planted[k]); }
+    });
+    if(eco && s.name.indexOf("stack") === 0){ w *= PLAN.ecoStack; why.push("эко — стак"); }
+    return {s: s, w: w, why: why};
+  });
+}
+function cbWhy(list, pick){
+  return list.map(function(c){
+    return (c === pick ? "[" : "") + cbName(c.s) + " " + c.w.toFixed(2) + (c.why.length ? " (" + c.why.join(", ") + ")" : "") + (c === pick ? "]" : "");
+  }).join("; ");
+}
+
+// ---------- freeze: выбор на раунд (resetRound → planRoundStart, до posRoundStart) ----------
+function ctBrainRoundStart(){
+  var list = cbWeights(), c = planPick("CT", list), T = teamOf("CT"), igl = planIgl("CT");
+  T.roundPick = c.s.id; T.roundSite = null;
+  teamSetPlan("CT", {type: "default", activeSetupId: c.s.id},
+              "раунд " + roundNum + ", " + ROUND_TYPE_LABEL[teamEco.CT.roundType] + ", IGL " + (igl ? igl.id : "—") + ": " + cbWhy(list, c),
+              cbName(c.s));
+}
+
+// ---------- раз в тик (17_tick.js): смена только по поводам 5.4 ----------
+function ctBrainTick(){
+  if(roundState !== "live") return;
+  var T = teamOf("CT"), P = T.planState, s = cbSetup(P.activeSetupId);
+  if(!s) return;
+  var igl = planIgl("CT");
+  // плант: что бомба заложена — объявление слышат все; где — знает тот, кто видел/слышал/кому сказали.
+  // Сайт — по знанию IGL; IGL мёртв — того из живых, кто знает (он и скажет)
+  if(bomb && bomb.state === "planted"){
+    var who = igl && igl.alive ? igl : null;
+    if(!who) bots.forEach(function(b){ if(!who && b.team === "CT" && b.alive && b.know && b.know.plantSite) who = b; });
+    var site = who && who.know ? who.know.plantSite || null : null;
+    if(P.type !== "retake")
+      teamSetPlan("CT", {type: "retake", site: site, activeSetupId: s.id},
+                  "бомба заложена" + (site ? " на " + site + " (знает " + who.id + ")" : ", где — пока не знаем"),
+                  "ретейк " + (site || "?") + " (" + cbName(s) + ")");
+    else if(!P.site && site)
+      teamSetPlan("CT", {type: "retake", site: site, activeSetupId: s.id}, "узнали сайт: " + site + " (" + who.id + ")",
+                  "ретейк " + site + " (" + cbName(s) + ")");
+    return;
+  }
+  // потеря состава
+  var us = bots.filter(function(b){ return b.team === "CT" && b.alive; }).length;
+  var them = bots.filter(function(b){ return b.team === "T" && b.alive; }).length;
+  if(P.type === "default" && (us <= them - PLAN.lossDiff || (us <= PLAN.lossAlive && us < them))){
+    teamSetPlan("CT", {type: "fallback", activeSetupId: s.id}, "живых " + us + " против " + them, "fallback (" + cbName(s) + ")");
+    return;
+  }
+  // колл IGL по сильной инфе: на стороне ≥ infoN T — раскладка, где там больше CT
+  if(P.type !== "default" || T.callMade || !igl || !igl.alive || !planCanSwitch("CT")) return;
+  var loc = planLocated(igl), R = null;
+  ["A","B"].forEach(function(k){ if(loc[k] >= PLAN.infoN && (!R || loc[k] > loc[R])) R = k; });
+  if(!R) return;
+  var best = null;
+  POS_SETUPS.ct.forEach(function(c){
+    if(!best || c.split[R] > best.split[R] || (c.split[R] === best.split[R] && c.share > best.share)) best = c;
+  });
+  if(best.split[R] <= s.split[R]) return;   // и так столько, сколько можем
+  teamCallPlan(igl, "их " + loc[R] + " на " + R + ", встаём " + best.split[R] + " на " + R,
+               {type: "default", activeSetupId: best.id},
+               "сильная инфа: " + loc[R] + " T на " + R + " (" + planLocatedWhy(igl, R) + ")",
+               cbName(best));
 }
 // ======================= ЗАГЛУШКА ВМЕСТО МОЗГА (v197) =======================
 // Мозг ботов удалён (07.10.2026, docs/tasks/restart.md). Здесь — минимум, чтобы
@@ -2983,7 +3179,8 @@ function stubCrouch(b){
 //   hear   — услышал шаги/стрельбу, которые не объясняет то, что команде уже сказано: «шаги Cave»;
 //   plant  — CT услышал/увидел плант: «ставят B!» (срочно);
 //   defuse — T услышал дефуз: «дефузят!» (срочно);
-//   death  — убили, а убийцу видел: «убили с Mid, AWP» (срочно; мёртвый успевает сказать ~2 с).
+//   death  — убили, а убийцу видел: «убили с Mid, AWP» (срочно; мёртвый успевает сказать ~2 с);
+//   igl    — колл IGL: смена плана (07_t_brain.js / 12_ct_brain.js), срочно.
 // Неточность как у человека: место — зона колл-аута (не точка), «один/двое/несколько»,
 // из оружия — только AWP; содержимое фиксируется при решении сказать и к моменту, когда
 // договорено, уже немного устарело. Задержка: реакция + время произнесения.
@@ -2992,7 +3189,8 @@ function stubCrouch(b){
 // Канал один на команду: говорят по очереди, срочное — вне очереди; устаревшее выкидывается;
 // при толпе в очереди неважное может не прозвучать (это разброс, не баг).
 //
-// teamKnowledge.planState — активный Setup команды; менять — только teamSetPlan (IGL, шаг 6).
+// teamKnowledge.planState — активный план команды; менять — только teamSetPlan (раздел «план
+// команды» ниже; решают 07_t_brain.js и 12_ct_brain.js).
 // Случайность — своя (hashRand от тика и ника), игровой генератор не трогается: войс на
 // бой и движение пока не влияет, отпечаток матча тот же.
 
@@ -3007,7 +3205,7 @@ var TEAM = {
   reTell:   2.0,         // того же видимого врага в новой зоне — не чаще, с (перестрелка на границе зон)
   deadTalk: 2.0          // мёртвый ещё договаривает, с
 };
-var TEAM_PRIO = {death: 2, plant: 2, defuse: 2, see: 1, hear: 0};
+var TEAM_PRIO = {death: 2, plant: 2, defuse: 2, igl: 2, see: 1, hear: 0};
 var teamKnow = {};       // T / CT → teamKnowledge
 
 function teamNew(team){
@@ -3016,7 +3214,9 @@ function teamNew(team){
     threats: {},            // зона → {count, awp, tick, by, kind} — что команде уже сказано
     claimedPositions: {},   // botId → {corner, since} — заполнит позиционирование (шаг 5)
     openRequests: {},       // requestId → {askerId, target, responders: {botId: 'yes'|'no'|null}}
-    planState: {type: "default", site: null, declaredAt: tick, activeSetupId: null},
+    planState: {type: "default", site: null, declaredAt: null, activeSetupId: null, label: null},
+    planLog: [],            // смены плана за раунд: {tick, from, to, why}
+    roundPick: null, roundSite: null, callMade: false,   // выбор на раунд (для памяти IGL), колл уже был
     queue: [],              // ждут своей очереди в канале
     speaking: null,         // кто говорит сейчас: {msg, end}
     seq: 0
@@ -3038,6 +3238,7 @@ function teamNear(z){ var g = knowGraph(); return [z].concat(g.adj[z] || []); } 
 // ---------- текст фразы ----------
 function teamText(m){
   var z = m.zone ? knowZoneName(m.zone) : "";
+  if(m.kind === "igl") return m.say;
   if(m.kind === "plant") return "ставят " + m.site + "!";
   if(m.kind === "defuse") return "дефузят!";
   if(m.kind === "death") return "убили с " + z + (m.awp ? ", AWP" : "");
@@ -3050,7 +3251,7 @@ function teamText(m){
 // ---------- доска: покрывает ли уже сказанное эту фразу ----------
 function teamCovered(T, m){
   if(m.kind === "plant" || m.kind === "defuse") return !!T.threats[m.kind];
-  if(m.kind === "death") return false;            // про своего убийцу — всегда новость
+  if(m.kind === "death" || m.kind === "igl") return false;   // про своего убийцу / колл — всегда новость
   // звук — место понятно грубо: сказанное про эту зону или соседнюю — уже не новость
   if(m.kind === "hear") return teamNear(m.zone).some(function(z){ var t = T.threats[z]; return t && tick - t.tick <= teamSec(TEAM.board); });
   var t = T.threats[m.zone];
@@ -3066,7 +3267,7 @@ function teamPropose(b, m){
   var V = b.voice;
   for(var i = 0; i < V.pending.length; i++){
     var p = V.pending[i];
-    if(p.kind === m.kind && p.zone === m.zone && p.kind !== "hear"){
+    if(p.kind === m.kind && p.zone === m.zone && p.kind !== "hear" && p.kind !== "igl"){
       p.count = Math.max(p.count || 0, m.count || 0); p.awp = p.awp || m.awp; p.text = teamText(p);
       (m.ids || []).forEach(function(id){ if(p.ids.indexOf(id) < 0) p.ids.push(id); });
       return;
@@ -3155,7 +3356,8 @@ function teamChannel(T){
       T.threats[m.zone] = {count: Math.max(m.count || 0, fresh ? t.count || 0 : 0), awp: !!m.awp || (fresh && t.awp),
                            tick: tick, by: m.by, kind: m.kind};
     }
-    mates.forEach(function(o){ if(o.alive && o.id !== m.by) knowCall(o, m); });
+    if(m.kind === "igl") teamSetPlan(T.team, m.plan, m.why + " (колл " + m.by + ")", m.label);
+    else mates.forEach(function(o){ if(o.alive && o.id !== m.by) knowCall(o, m); });
     logEvent(m.by + ": " + m.text, "voice");
   }
   if(T.speaking || !T.queue.length) return;
@@ -3178,11 +3380,114 @@ function teamChannel(T){
   }
 }
 
-// ---------- план команды: менять — только IGL (шаг 6) ----------
-function teamSetPlan(side, plan){
-  var T = teamOf(side);
-  T.planState = {type: plan.type, site: plan.site || null, declaredAt: tick, activeSetupId: plan.activeSetupId || null};
-  return T.planState;
+// ---------- план команды (BRAIN 5.4): одно значение planState, меняется только здесь ----------
+// Решают 07_t_brain.js (T) и 12_ct_brain.js (CT): выбор Setup'а на раунд во freeze и смена
+// по четырём поводам — плант, колл IGL по сильной инфе, контрольный тайминг, потеря состава.
+// Колл IGL — фраза в канале (kind "igl"): тиммейты узнают новый план, когда он договорён.
+// Числа ниже — проектные константы, не из демок.
+var PLAN = {
+  minGap:   8,     // с: между сменами плана не меньше (плант — без ожидания)
+  repeat1:  0.5,   // Setup был в прошлом раунде — его вес ×
+  repeat2:  0.25,  //   … два прошлых раунда подряд — ×
+  lost:     0.6,   // последний раунд с этим Setup'ом проигран — ×
+  lostSite: 0.8,   // T: последний execute на этот сайт проигран — другие варианты на тот же сайт ×
+  read:     0.3,   // CT: за каждый плант T на сайте за последние readN раундов — вес × (1 + read·n·(людей на сайте − 1))
+  readN:    3,
+  ecoStack: 2,     // CT на эко — стак ×
+  ecoFast:  2,     // T на эко — вариант с самым ранним выходом ×
+  infoW:    0.6,   // враг «стоит на стороне», если его гипотезы там весят столько и больше …
+  infoN:    3,     //   … и таких врагов на одной стороне (A или B) столько — сильная инфа
+  lossAlive:2,     // живых столько и меньше — fallback …
+  lossDiff: 2      //   … или нас меньше, чем врагов, на столько
+};
+var PLAN_HIST = [];   // {match, half, round, side, setupId, site, won, plantSite} — что команды играли
+function planHalf(r){
+  if(r <= HALF_ROUNDS) return 0;
+  if(r <= regRounds()) return 1;
+  return 2 + Math.floor((r - regRounds() - 1)/OT_HALF);
+}
+// последние n раундов этой половины за сторону side, свежие — первыми
+function planHist(side, n){
+  var h = planHalf(roundNum), out = [];
+  for(var i = PLAN_HIST.length-1; i >= 0 && out.length < n; i--){
+    var e = PLAN_HIST[i];
+    if(e.match !== matchNum || e.half !== h) break;
+    if(e.side === side) out.push(e);
+  }
+  return out;
+}
+// конец раунда (endRound, 16_economy.js): что играли и чем кончилось — память IGL на половину
+function planRoundEnd(winner){
+  ["T","CT"].forEach(function(side){
+    var T = teamOf(side);
+    if(!T.roundPick) return;
+    PLAN_HIST.push({match: matchNum, half: planHalf(roundNum), round: roundNum, side: side, setupId: T.roundPick,
+                    site: T.roundSite || null, won: winner === side, plantSite: bomb && bomb.plantTick >= 0 ? bomb.site : null});
+  });
+}
+// выбор по весам: [{s, w, why}] → один; случайность своя (раунд + сторона), игровой генератор не трогается
+function planPick(side, list){
+  var sum = 0; list.forEach(function(c){ sum += c.w; });
+  var r = hashRand(matchNum*7919 + roundNum*104729 + (side === "T" ? 17 : 31)) * sum;
+  for(var i = 0; i < list.length; i++){ r -= list[i].w; if(r <= 0) return list[i]; }
+  return list[list.length-1];
+}
+function planIgl(side){ return bots.filter(function(b){ return b.team === side && b.igl; })[0] || null; }
+function planCanSwitch(side){ return tick - teamOf(side).planState.declaredAt >= teamSec(PLAN.minGap); }
+// сменить план. Тот же — ничего. why — повод (пишется в консоль). Начало раунда — roundStart.
+function teamSetPlan(side, plan, why, label){
+  var T = teamOf(side), P = T.planState;
+  var same = P.type === plan.type && P.site === (plan.site || null) && P.activeSetupId === (plan.activeSetupId || null);
+  if(same && P.label) return false;
+  var was = P.label;
+  T.planState = {type: plan.type, site: plan.site || null, declaredAt: tick, activeSetupId: plan.activeSetupId || null, label: label};
+  T.planLog.push({tick: tick, from: was || null, to: label, why: why});
+  logEvent("План " + side + ": " + (was ? was + " → " : "") + label + " — " + why, "plan");
+  return true;
+}
+// начало раунда (resetRound, 16_economy.js; до posRoundStart): IGL обеих сторон выбирают план
+function planRoundStart(){
+  if(roundNum === 1) PLAN_HIST.length = 0;   // новый матч (или тот же номер заново)
+  tBrainRoundStart();    // 07_t_brain.js
+  ctBrainRoundStart();   // 12_ct_brain.js
+}
+// сторона карты зоны — как в tools/positions_bake.py (region_of): по x центра зоны; спавны и
+// задние проходы — ничья сторона
+var PLAN_NOSIDE = {"T Spawn":1, "T Ramp":1, "CT Spawn":1, "CT Lane":1, "Alley":1, "Back Halls":1, "Back Halls / Back Alley":1};
+function planRegion(zid){
+  if(!zid || PLAN_NOSIDE[zoneUserName(zid)]) return null;
+  var c = knowGraph().c[zid]; if(!c) return null;
+  return c.x < 700 ? "A" : c.x > 1250 ? "B" : "mid";
+}
+// сколько врагов бот b (обычно IGL) уверенно ставит на каждую сторону — по СВОЕМУ b.know
+// (видел сам + договорённое в войсе). Считается враг, про которого есть факт (не только
+// «вышел со спавна»), и его гипотезы на этой стороне весят ≥ PLAN.infoW
+function planLocatedList(b){
+  var out = [], K = b.know; if(!K) return out;
+  for(var id in K.enemies){
+    var B = K.enemies[id];
+    var fact = B.visible || (B.last && B.last.source !== "spawn") || B.hyps.some(function(h){ return h.heard; });
+    if(!fact) continue;
+    var w = {A: 0, B: 0, mid: 0};
+    B.hyps.forEach(function(h){ var r = planRegion(h.zone); if(r) w[r] += h.weight; });
+    ["A","B","mid"].forEach(function(r){ if(w[r] >= PLAN.infoW) out.push({id: id, region: r, w: w[r], seen: B.visible}); });
+  }
+  return out;
+}
+function planLocated(b){
+  var n = {A: 0, B: 0, mid: 0};
+  planLocatedList(b).forEach(function(e){ n[e.region]++; });
+  return n;
+}
+function planLocatedWhy(b, region){
+  return planLocatedList(b).filter(function(e){ return e.region === region; })
+    .map(function(e){ return e.id + (e.seen ? " вижу" : " " + e.w.toFixed(2)); }).join(", ");
+}
+// колл IGL: новый план — фразой в канал; применится, когда договорён (teamChannel)
+function teamCallPlan(igl, say, plan, why, label){
+  var T = teamOf(igl.team);
+  T.callMade = true;
+  teamPropose(igl, {kind: "igl", say: say, plan: plan, why: why, label: label});
 }
 
 // ---------- просьбы: один ответ на запрос; кто сказал «нет» — того не переспрашивают ----------
@@ -4051,6 +4356,7 @@ function checkRoundEnd(){
 }
 function endRound(winner, reason){
   if(winner){ score[winner]++; }
+  planRoundEnd(winner);   // память IGL: что играли и чем кончилось (12_team.js)
   showRoundCard(winner, reason);
   payRoundEconomy(winner, reason);
   roundState = "ending";
@@ -4108,6 +4414,7 @@ function resetRound(){
   buyPhase();
   resetBomb();
   logEvent("Раунд "+roundNum+" начался", "round");
+  planRoundStart();  // IGL обеих сторон выбирают план на раунд (12_team.js → 07_t_brain.js, 12_ct_brain.js)
   posRoundStart();   // CT — по слотам активного Setup'а (11_position.js)
 }
 
@@ -4371,6 +4678,7 @@ function stepTick(){
   resolveEngagements();
   knowTick();   // что каждый бот теперь знает о врагах (09_knowledge.js) — пока только знание, на игру не влияет
   teamTick();   // войс: кто что сказал команде, тиммейты узнают из договорённого (12_team.js)
+  tBrainTick(); ctBrainTick();   // план команды: смена только по поводам BRAIN 5.4 (07_t_brain.js, 12_ct_brain.js)
   posTick();    // позиция: только по событиям — погиб свой, дым на угол, угроза на slot (11_position.js)
   bots.forEach(function(b){ if(b.alive) b.crouching = stubCrouch(b); });   // стойка — заглушка (12_stub.js)
   checkRoundEnd();
@@ -7391,6 +7699,9 @@ var __SNAP = [
 ["TEAM", function(){ return TEAM; }, function(v){ try{ TEAM = v; }catch(e){} }],
 ["TEAM_PRIO", function(){ return TEAM_PRIO; }, function(v){ try{ TEAM_PRIO = v; }catch(e){} }],
 ["teamKnow", function(){ return teamKnow; }, function(v){ try{ teamKnow = v; }catch(e){} }],
+["PLAN", function(){ return PLAN; }, function(v){ try{ PLAN = v; }catch(e){} }],
+["PLAN_HIST", function(){ return PLAN_HIST; }, function(v){ try{ PLAN_HIST = v; }catch(e){} }],
+["PLAN_NOSIDE", function(){ return PLAN_NOSIDE; }, function(v){ try{ PLAN_NOSIDE = v; }catch(e){} }],
 ["NADE", function(){ return NADE; }, function(v){ try{ NADE = v; }catch(e){} }],
 ["NADE_THROW_RANGE", function(){ return NADE_THROW_RANGE; }, function(v){ try{ NADE_THROW_RANGE = v; }catch(e){} }],
 ["NADE_HEAR_R", function(){ return NADE_HEAR_R; }, function(v){ try{ NADE_HEAR_R = v; }catch(e){} }],
@@ -7533,7 +7844,7 @@ var __SNAP = [
 ["PL_ICON", function(){ return PL_ICON; }, function(v){ try{ PL_ICON = v; }catch(e){} }],
 ["plSelected", function(){ return plSelected; }, function(v){ try{ plSelected = v; }catch(e){} }]
 ];
-var MK_PRINCIPLES = [{"id": "В11", "sec": "Взгляд", "text": "НОВОЕ 06.10. Префайр: слышит, что за углом сейчас выйдут, — заранее ставит прицел туда, где появится голова (широко / узко — по углу). Выходящий тоже идёт с прицелом на обычных позициях, где его принимают. (чат 06.10)", "done": false}, {"id": "В12", "sec": "Взгляд", "text": "НОВОЕ 06.10. Уход от флешки: услышал или увидел бросок флешки в свою сторону — отворачивается (смотрит в стену), потом возвращает прицел на угол. (чат 06.10)", "done": false}, {"id": "В13", "sec": "Взгляд", "text": "НОВОЕ 06.10. Без инфы взгляд — на проход, откуда враг может прийти раньше всего, а не на угол с почти нулевой угрозой (матч 1, р1, ~22 с: CT 5 Back Site, 7 Second Lane, 8 Temple — веса 0,01–0,10). (чат 06.10, скриншот)", "done": false}, {"id": "В14", "sec": "Взгляд", "text": "НОВОЕ 06.10. Взгляд по таймингу: откуда и как скоро враг может появиться; не чекать места, куда враг ещё не мог дойти, и не смотреть туда, где впереди свои или куда врагу не добежать (близко к В9). (чат 06.10)", "done": false}, {"id": "В15", "sec": "Взгляд", "text": "НОВОЕ 07.10. Бот видит карту углами, а не зонами: что видит со своей точки, где эту область обрезает край стены (там может выйти враг), насколько каждый край опасен (тайминг, инфа, держит ли тиммейт). Взгляд — на самый о", "done": false}, {"id": "П9", "sec": "Позиция", "text": "НОВОЕ 07.10. Места, где держать угол, — из наших демок, а не по стенам: где про стоят и держат угол (не бегут, не в бою), для какой стороны, у какого района, в какой фазе (до выхода / после планта / ретейк), и куда оттуд", "done": false}, {"id": "К10", "sec": "Команда", "text": "НОВОЕ 06.10. Тимспик как в реальной игре: инфа, просьбы («подпушу донат, пошли со мной»), план IGL на старте и перестройка по ходу («30 с никого на Б — один чекает мид»). Сказать — 0,5–2 с, услышать — сразу. Каждый реаги", "done": false}, {"id": "К11", "sec": "Команда", "text": "НОВОЕ 06.10. Своё восприятие как у игрока: сколько шагов и откуда, гранаты (откуда кинули, где упали), киллфид (кто, из чего — роль по нику, закуп по оружию), время раунда; выводы из этого — в общую картину. (чат 06.10)", "done": false}, {"id": "К12", "sec": "Команда", "text": "НОВОЕ 06.10. Активная игра: CT либо держат по расстановке, либо играют за инфой (ранний пик, подпуш парой, джиггл) и подстраиваются; T — контроль областей, пробы, лёрк, выход с энтри первым. Один подпушил — остальные пер", "done": false}, {"id": "К13", "sec": "Команда", "text": "НОВОЕ 06.10. Просьбы без повторов: одна просьба — один ответ; кто ответил «не могу», его больше не спрашивают; кто взял угол — держит, пока ситуация не изменилась; в консоли нет «подержите» / «не могу» по кругу (после v1", "done": false}, {"id": "Н3", "sec": "Войс, консоль, киллфид", "text": "НОВОЕ 06.10. Консоль справа снизу — без лишних сообщений: только то, что важно смотрящему (фраги, коллы тимспика, решения команды). (чат 06.10)", "done": false}, {"id": "Н4", "sec": "Войс, консоль, киллфид", "text": "НОВОЕ 06.10. Киллфид как в CS2, компактно: `Убийца + Ассистент [иконка оружия] [значки: через смок, прострел, хедшот, ноускоп, ослеплён] Жертва`; ники цветом команды, иконки — белые силуэты оружия, значки — только те, чт", "done": false}, {"id": "Н5", "sec": "Войс, консоль, киллфид", "text": "НОВОЕ 06.10. Иконки киллфида — готовые SVG владельца из его другого проекта (оружие, гранаты, нож, значки), а не самодельные силуэты. (чат 06.10, архив иконок)", "done": false}, {"id": "Н6", "sec": "Войс, консоль, киллфид", "text": "НОВОЕ 06.10. Табло как на трансляции (образец — скриншот ESL Pro League): сверху по центру счёт команд, раунд, таймер, «живые: 3 vs 5» цветами команд; без стиля «рваной бумаги»; логотипы команд владелец пришлёт позже. (ч", "done": false}, {"id": "Н7", "sec": "Войс, консоль, киллфид", "text": "НОВОЕ 06.10. Панели игроков как на трансляции (образец — скриншот PARIVISION/FURIA): T слева, CT справа, сверху плашка с настоящим названием команды; у каждого — номер, ник, фраги/смерти, деньги, фото (пока серый силуэт)", "done": false}, {"id": "С1", "sec": "Стрельба", "text": "НОВОЕ 06.10. Стреляют как настоящий игрок: тап далеко, короткие очереди на средней, спрей вблизи, контрстрейф; ритм ровный по темпу оружия; трассеры уходят по рисунку отдачи, а не случайным веером. (чат 06.10)", "done": false}, {"id": "Д1", "sec": "Данные из демок (этап 2, шаг 1б)", "text": "НОВОЕ 09.10. Позиция — не точка, а задача «где стоит → что держит»: игрок встаёт шире/уже, ближе/дальше, у стены или открыто. (чат 09.10) — сделано в шаге 1б (spread, spots, группировка по месту и взгляду), подтверждено ", "done": true}, {"id": "Д2", "sec": "Данные из демок (этап 2, шаг 1б)", "text": "НОВОЕ 09.10. Ранние CT-позиции на половине T (подпуш Ramp, проверка T Lower/Upper после колла) — нормальная игра, не мусор; сейвы и игра в меньшинстве — отдельно. (чат 09.10) — сделано в шаге 1б (push, late), подтвержден", "done": true}, {"id": "Д3", "sec": "Данные из демок (этап 2, шаг 1б)", "text": "НОВОЕ 09.10. Гранаты выхода идут волнами и бывают фейки (раскид на один сайт, выход на другой); смоков в выходе несколько. (чат 09.10) — сделано в шаге 1б (wave, fake, 2–4 смока), подтверждено владельцем 09.10", "done": true}, {"id": "Д4", "sec": "Данные из демок (этап 2, шаг 1б)", "text": "НОВОЕ 09.10. Позиция First Lane / 90 → Ramp (взгляд вниз через 90) должна быть. (чат 09.10) — не сделано: шов стены №13 под 90 (y≈774) режет взгляд; править во вкладке «стены», потом перепечь `positions_bake.py`. Закрыто", "done": true}, {"id": "Д5", "sec": "Данные из демок (этап 2, шаг 1б)", "text": "НОВОЕ 09.10. Кроссфайр-пара держит вход вместе с двух сторон, а не смотрит друг на друга (Dark и Cave/Lamp Room смотрели друг на друга). (чат 09.10, шаг 5)", "done": false}, {"id": "П1", "sec": "Данные из демок (этап 2, шаг 1б)", "text": "НОВОЕ 09.10. У точки должна быть опасность: якорь не встаёт в странные глубокие точки (A Main — слишком глубоко, обычно так не стоят). (чат 09.10, шаг 5) — в positions.json добавлены danger и margin; в выбор точки не под", "done": false}];
+var MK_PRINCIPLES = [{"id": "В11", "sec": "Взгляд", "text": "НОВОЕ 06.10. Префайр: слышит, что за углом сейчас выйдут, — заранее ставит прицел туда, где появится голова (широко / узко — по углу). Выходящий тоже идёт с прицелом на обычных позициях, где его принимают. (чат 06.10)", "done": false}, {"id": "В12", "sec": "Взгляд", "text": "НОВОЕ 06.10. Уход от флешки: услышал или увидел бросок флешки в свою сторону — отворачивается (смотрит в стену), потом возвращает прицел на угол. (чат 06.10)", "done": false}, {"id": "В13", "sec": "Взгляд", "text": "НОВОЕ 06.10. Без инфы взгляд — на проход, откуда враг может прийти раньше всего, а не на угол с почти нулевой угрозой (матч 1, р1, ~22 с: CT 5 Back Site, 7 Second Lane, 8 Temple — веса 0,01–0,10). (чат 06.10, скриншот)", "done": false}, {"id": "В14", "sec": "Взгляд", "text": "НОВОЕ 06.10. Взгляд по таймингу: откуда и как скоро враг может появиться; не чекать места, куда враг ещё не мог дойти, и не смотреть туда, где впереди свои или куда врагу не добежать (близко к В9). (чат 06.10)", "done": false}, {"id": "В15", "sec": "Взгляд", "text": "НОВОЕ 07.10. Бот видит карту углами, а не зонами: что видит со своей точки, где эту область обрезает край стены (там может выйти враг), насколько каждый край опасен (тайминг, инфа, держит ли тиммейт). Взгляд — на самый о", "done": false}, {"id": "В16", "sec": "Взгляд", "text": "НОВОЕ 09.10. Взгляд с точки — по картине команды, а не один угол точки на все случаи. У точки может быть несколько углов; какой смотреть сейчас, решает то, что держат свои. Пример: CT в Lamp Room — точка и её угол в цело", "done": false}, {"id": "В17", "sec": "Взгляд", "text": "НОВОЕ 09.10. Про никогда не стоят на месте, даже когда холдят. Они делают микродвижения влево-вправо и вперёд-назад и чуть шире или уже ведут прицел: точно знать, как выпикнет враг, нельзя. Если на точке несколько углов,", "done": false}, {"id": "П9", "sec": "Позиция", "text": "НОВОЕ 07.10. Места, где держать угол, — из наших демок, а не по стенам: где про стоят и держат угол (не бегут, не в бою), для какой стороны, у какого района, в какой фазе (до выхода / после планта / ретейк), и куда оттуд", "done": false}, {"id": "П10", "sec": "Позиция", "text": "НОВОЕ 09.10. Ранний проход CT должен учитывать, что T могут быть на миде на старте. На радаре CT в начале раунда прошли через мид и залезли на Xbox. Сейчас T стоят у спавна, поэтому это проходит. Но если бы T двигались, ", "done": false}, {"id": "К10", "sec": "Команда", "text": "НОВОЕ 06.10. Тимспик как в реальной игре: инфа, просьбы («подпушу донат, пошли со мной»), план IGL на старте и перестройка по ходу («30 с никого на Б — один чекает мид»). Сказать — 0,5–2 с, услышать — сразу. Каждый реаги", "done": false}, {"id": "К11", "sec": "Команда", "text": "НОВОЕ 06.10. Своё восприятие как у игрока: сколько шагов и откуда, гранаты (откуда кинули, где упали), киллфид (кто, из чего — роль по нику, закуп по оружию), время раунда; выводы из этого — в общую картину. (чат 06.10)", "done": false}, {"id": "К12", "sec": "Команда", "text": "НОВОЕ 06.10. Активная игра: CT либо держат по расстановке, либо играют за инфой (ранний пик, подпуш парой, джиггл) и подстраиваются; T — контроль областей, пробы, лёрк, выход с энтри первым. Один подпушил — остальные пер", "done": false}, {"id": "К13", "sec": "Команда", "text": "НОВОЕ 06.10. Просьбы без повторов: одна просьба — один ответ; кто ответил «не могу», его больше не спрашивают; кто взял угол — держит, пока ситуация не изменилась; в консоли нет «подержите» / «не могу» по кругу (после v1", "done": false}, {"id": "Н3", "sec": "Войс, консоль, киллфид", "text": "НОВОЕ 06.10. Консоль справа снизу — без лишних сообщений: только то, что важно смотрящему (фраги, коллы тимспика, решения команды). (чат 06.10)", "done": false}, {"id": "Н4", "sec": "Войс, консоль, киллфид", "text": "НОВОЕ 06.10. Киллфид как в CS2, компактно: `Убийца + Ассистент [иконка оружия] [значки: через смок, прострел, хедшот, ноускоп, ослеплён] Жертва`; ники цветом команды, иконки — белые силуэты оружия, значки — только те, чт", "done": false}, {"id": "Н5", "sec": "Войс, консоль, киллфид", "text": "НОВОЕ 06.10. Иконки киллфида — готовые SVG владельца из его другого проекта (оружие, гранаты, нож, значки), а не самодельные силуэты. (чат 06.10, архив иконок)", "done": false}, {"id": "Н6", "sec": "Войс, консоль, киллфид", "text": "НОВОЕ 06.10. Табло как на трансляции (образец — скриншот ESL Pro League): сверху по центру счёт команд, раунд, таймер, «живые: 3 vs 5» цветами команд; без стиля «рваной бумаги»; логотипы команд владелец пришлёт позже. (ч", "done": false}, {"id": "Н7", "sec": "Войс, консоль, киллфид", "text": "НОВОЕ 06.10. Панели игроков как на трансляции (образец — скриншот PARIVISION/FURIA): T слева, CT справа, сверху плашка с настоящим названием команды; у каждого — номер, ник, фраги/смерти, деньги, фото (пока серый силуэт)", "done": false}, {"id": "С1", "sec": "Стрельба", "text": "НОВОЕ 06.10. Стреляют как настоящий игрок: тап далеко, короткие очереди на средней, спрей вблизи, контрстрейф; ритм ровный по темпу оружия; трассеры уходят по рисунку отдачи, а не случайным веером. (чат 06.10)", "done": false}, {"id": "Д1", "sec": "Данные из демок (этап 2, шаг 1б)", "text": "НОВОЕ 09.10. Позиция — не точка, а задача «где стоит → что держит»: игрок встаёт шире/уже, ближе/дальше, у стены или открыто. (чат 09.10) — сделано в шаге 1б (spread, spots, группировка по месту и взгляду), подтверждено ", "done": true}, {"id": "Д2", "sec": "Данные из демок (этап 2, шаг 1б)", "text": "НОВОЕ 09.10. Ранние CT-позиции на половине T (подпуш Ramp, проверка T Lower/Upper после колла) — нормальная игра, не мусор; сейвы и игра в меньшинстве — отдельно. (чат 09.10) — сделано в шаге 1б (push, late), подтвержден", "done": true}, {"id": "Д3", "sec": "Данные из демок (этап 2, шаг 1б)", "text": "НОВОЕ 09.10. Гранаты выхода идут волнами и бывают фейки (раскид на один сайт, выход на другой); смоков в выходе несколько. (чат 09.10) — сделано в шаге 1б (wave, fake, 2–4 смока), подтверждено владельцем 09.10", "done": true}, {"id": "Д4", "sec": "Данные из демок (этап 2, шаг 1б)", "text": "НОВОЕ 09.10. Позиция First Lane / 90 → Ramp (взгляд вниз через 90) должна быть. (чат 09.10) — не сделано: шов стены №13 под 90 (y≈774) режет взгляд; править во вкладке «стены», потом перепечь `positions_bake.py`. Закрыто", "done": true}, {"id": "Д5", "sec": "Данные из демок (этап 2, шаг 1б)", "text": "НОВОЕ 09.10. Кроссфайр-пара держит вход вместе с двух сторон, а не смотрит друг на друга (Dark и Cave/Lamp Room смотрели друг на друга). (чат 09.10, шаг 5)", "done": false}, {"id": "П1", "sec": "Данные из демок (этап 2, шаг 1б)", "text": "НОВОЕ 09.10. У точки должна быть опасность: якорь не встаёт в странные глубокие точки (A Main — слишком глубоко, обычно так не стоят). (чат 09.10, шаг 5)", "done": false}];
 // ======================= v167: «Отметить момент», карточка «Я понял так», перемотка =======================
 // Инструмент для владельца и Claude, мозг ботов не трогает. Описание — docs/tasks/02-mark-moment.md.
 // Снимки состояния: __SNAP (список переменных симулятора, генерирует patch170.py при сборке).

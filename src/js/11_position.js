@@ -17,7 +17,8 @@
 //   • дым встал между точкой и её углом — запасная точка (fallback) слота; дым ушёл — назад;
 //   • угроза на slot (гипотеза врага с весом ≥ POS.threatW на входе, который держит
 //     точка, BRAIN 4.4) — позиция та же, взгляд в пределах yawRange точки — на вход угрозы;
-//   • смена Setup'а (пока — вручную, список «Setup CT» сверху страницы; потом — IGL, шаг 6).
+//   • смена Setup'а — план команды CT (teamKnowledge.planState.activeSetupId, решает IGL в
+//     12_ct_brain.js): posTick видит новый id — перестраивает живых CT.
 // T: расстановки в данных нет (T-Setup'ы — сценарии execute, шаги 6–7) — стоят у спавна,
 //   взгляд вперёд к центру карты (заплатка до шага 7, перенесена из 12_stub.js).
 //
@@ -47,11 +48,13 @@ var POS_FIT = {
 };
 var POS_PT = {};   // id → точка positions.json
 KNOW_POSITIONS.points.forEach(function(p){ POS_PT[p.id] = p; });
-var POS_STATE = {setupCT: POS_SETUPS.ct[0].id, aliveCT: -1};
+var POS_STATE = {applied: null, aliveCT: -1};   // applied — id Setup'а, по которому сейчас стоят CT
 var POS_LOG = [];  // {tick, round, who, slot, pid, why} — каждая смена цели (проверка «не дёргается»)
 
+// активный Setup CT — из плана команды (12_team.js; выбирает IGL, 12_ct_brain.js)
 function posSetup(){
-  for(var i = 0; i < POS_SETUPS.ct.length; i++) if(POS_SETUPS.ct[i].id === POS_STATE.setupCT) return POS_SETUPS.ct[i];
+  var id = teamOf("CT").planState.activeSetupId;
+  for(var i = 0; i < POS_SETUPS.ct.length; i++) if(POS_SETUPS.ct[i].id === id) return POS_SETUPS.ct[i];
   return POS_SETUPS.ct[0];
 }
 function posKind(slotRole){ return slotRole.replace(/_[AB]$/, ""); }
@@ -227,12 +230,13 @@ function posRoundStart(){
   bots.forEach(function(b){ delete b.pos; });
   var alive = bots.filter(function(b){ return b.team === "CT" && b.alive; });
   POS_STATE.aliveCT = alive.length;
+  POS_STATE.applied = posSetup().id;
   posChoosePoints(posAssign(alive, false), "раунд");
   logEvent("Setup CT: "+posSetup().name+" — "+alive.map(function(b){ return nick(b.id)+" "+b.pos.slot+" ("+POS_PT[b.pos.pid].area+")"; }).join(", "), "round");
 }
-function posSetSetup(id){
-  POS_STATE.setupCT = id;
-  if(roundState !== "live" && roundState !== "freeze") return;
+// план CT сменил Setup — перестроить живых CT (вызывает posTick)
+function posApplySetup(){
+  POS_STATE.applied = posSetup().id;
   var alive = bots.filter(function(b){ return b.team === "CT" && b.alive; });
   alive.forEach(function(b){ delete b.pos; });
   posChoosePoints(posAssign(alive, true), "смена Setup'а: "+posSetup().name);
@@ -269,6 +273,7 @@ function posThreatCheck(b){
 }
 function posTick(){
   if(roundState !== "live") return;
+  if(posSetup().id !== POS_STATE.applied) posApplySetup();
   var aliveCT = bots.filter(function(b){ return b.team === "CT" && b.alive; }).length;
   if(aliveCT < POS_STATE.aliveCT && aliveCT > 0) posReslot();
   POS_STATE.aliveCT = aliveCT;
@@ -303,18 +308,6 @@ function posLook(b){
   var R = Math.max(150, P.angle.dist);
   return {x: b.x + Math.cos(c+d)*R, y: b.y + Math.sin(c+d)*R, why: "threat"};
 }
-
-// ---------- выбор Setup'а вручную (сверху страницы; потом — IGL, шаг 6) ----------
-(function(){
-  var sel = document.getElementById("selSetupCT"); if(!sel) return;
-  POS_SETUPS.ct.forEach(function(s){
-    var o = document.createElement("option"); o.value = s.id;
-    o.textContent = s.name+" "+s.split.A+"-"+s.split.mid+"-"+s.split.B+" ("+Math.round(s.share*100)+" %)";
-    sel.appendChild(o);
-  });
-  sel.value = POS_STATE.setupCT;
-  sel.addEventListener("change", function(){ posSetSetup(sel.value); });
-})();
 
 // ---------- слой радара «позиции» ----------
 function drawPositions(){

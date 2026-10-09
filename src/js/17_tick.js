@@ -258,6 +258,7 @@ function stepTick(){
   resolveEngagements();
   knowTick();   // что каждый бот теперь знает о врагах (09_knowledge.js) — пока только знание, на игру не влияет
   teamTick();   // войс: кто что сказал команде, тиммейты узнают из договорённого (12_team.js)
+  tBrainTick(); ctBrainTick();   // план команды: смена только по поводам BRAIN 5.4 (07_t_brain.js, 12_ct_brain.js)
   posTick();    // позиция: только по событиям — погиб свой, дым на угол, угроза на slot (11_position.js)
   bots.forEach(function(b){ if(b.alive) b.crouching = stubCrouch(b); });   // стойка — заглушка (12_stub.js)
   checkRoundEnd();

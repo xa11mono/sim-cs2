@@ -163,6 +163,11 @@ setups.json (шаг 1б), роли — шаг 4.
 `posSetSetup(id)` (перестраивает живых CT сразу). Шаг 6 заменяет ручной выбор
 на решение IGL через `planState.activeSetupId` (12_team.js) и удаляет список.
 
+После шага 6 (09.10, v204): план команды — `teamOf(side).planState` = {type: default / execute /
+post_plant / retake / fallback, site, activeSetupId}. Для T `activeSetupId` — id T-сценария из
+setups.json, `type` становится `execute` по контрольному таймингу — это и есть старт исполнителя
+шага 7 (`dependsOn.trigger: execute_start`). Менять план — только `teamSetPlan`.
+
 
 ## Шаг 7 — исполнитель сценариев (Sonnet 5.5)
 
