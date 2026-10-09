@@ -237,7 +237,7 @@ function knowSpotAhead(b, dir, cone, far){
 
 // ---------- начало раунда: враги на своём спавне (это знают все) ----------
 function knowRoundStart(b){
-  var K = b.know = {key: matchNum + ":" + roundNum, enemies: {}, heard: [], planted: false, plantSite: null, alive: 0, nev: [],
+  var K = b.know = {key: matchNum + ":" + roundNum, enemies: {}, heard: [], planted: false, plantSite: null, alive: 0, nev: [], dead: [],
                     spots: knowSpotBase(b.team === "CT" ? "T" : "CT").map(function(p){ return {id: p.id, x: p.x, y: p.y, zone: p.zone, run: p.run, open: true}; })};
   var sp = b.team === "CT" ? T_SPAWN : CT_SPAWN, zone = knowZoneAt(sp.x, sp.y);
   bots.forEach(function(e){
@@ -539,6 +539,8 @@ function knowKill(att, vic){
     var K = b.know;
     if(vic.team !== b.team){
       if(K.enemies[vic.id]){ delete K.enemies[vic.id]; K.alive--; knowTrace(b, vic.id, "киллфид: враг убит"); }
+      // где убит (v225): убил свой — место он видел и говорит в войс («одного на A»); убил кто-то ещё — киллфид
+      if(att && att.team === b.team) K.dead.push({id: vic.id, zone: knowZoneAt(vic.x, vic.y), tick: tick});
       return;
     }
     // своего убил att: att где-то в прострел от места смерти своего (место видно по радару)

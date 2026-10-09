@@ -13,8 +13,9 @@
 //   потеря состава  — fallback: вместе на сайт плана (по киллфиду, его видят все);
 //   тайминг         — истёк startSec варианта: default → execute;
 //   пики            — пока default: нас больше на PLAN.pickLead (киллфид) — колл «выходим» сейчас;
-//   колл IGL        — пока default: IGL сам знает (своё b.know: видел + войс), что на сайте
-//                     плана стоят ≥ PLAN.infoN CT — колл «меняем на другой сайт», один за раунд.
+//   колл IGL        — пока default: IGL оценивает, сколько CT на каждом сайте, по тому, что знает
+//                     (tbDefenders): на другом сайте на одного меньше, чем на сайте плана, — колл
+//                     «меняем на другой сайт», один за раунд (v225, правка владельца 7).
 
 function tbSetup(id){
   for(var i = 0; i < POS_SETUPS.t.length; i++) if(POS_SETUPS.t[i].id === id) return POS_SETUPS.t[i];
@@ -90,7 +91,6 @@ function tBrainTick(){
     teamSetPlan("T", {type: "execute", site: s.site, activeSetupId: s.id}, "тайминг " + Math.round(start) + " с (" + ROUND_TYPE_LABEL[teamEco.T.roundType] + ")", tbLabel("execute", s));
     return;
   }
-  // колл IGL по сильной инфе: на сайте плана уже стоят ≥ infoN CT — идём на другой
   var igl = planIgl("T");
   if(T.callMade || !igl || !igl.alive) return;
   // пики: в дефолте убили столько, что нас больше на PLAN.pickLead (киллфид видят все) — выходим сейчас,
@@ -101,13 +101,30 @@ function tBrainTick(){
                  "пики: живых " + us + " против " + them, tbLabel("execute", s));
     return;
   }
-  var loc = planLocated(igl);
-  if(loc[s.site] < PLAN.infoN) return;
-  var other = s.site === "A" ? "B" : "A", list = tbWeights(other);
+  // колл IGL: execute — в самый слабый сайт, который показал дефолт (PRO_PLAY 2.4). У про: первый погибший до
+  // планта CT на стороне A/B — бомбу ставят туда же в 82 % раундов (без этого A 46 / B 54 %); в 22 % раундов
+  // большинство T на 20-й с стоят не на той стороне, где потом плант (88 демок, tools — v225)
+  var other = s.site === "A" ? "B" : "A", est = tbDefenders(igl);
+  if(est[other] > est[s.site] - PLAN.weakBy) return;
+  var list = tbWeights(other);
   if(!list.length) return;
   var best = list[0]; list.forEach(function(c){ if(c.w > best.w) best = c; });
-  teamCallPlan(igl, "их " + loc[s.site] + " на " + s.site + ", меняем на " + other,
+  teamCallPlan(igl, "на " + other + " слабее, меняем на " + other,
                {type: "default", site: other, activeSetupId: best.s.id},
-               "сильная инфа: " + loc[s.site] + " CT на " + s.site + " (" + planLocatedWhy(igl, s.site) + ")",
+               "CT на сайтах по знанию IGL: " + s.site + " ~" + est[s.site].toFixed(1) + ", " + other + " ~" + est[other].toFixed(1) + " (" + est.why + ")",
                tbLabel("default", best.s));
+}
+// сколько CT IGL ждёт на каждом сайте: пока ничего не знает — сколько CT стоят там у про на 20-й с
+// (TZONES.ctBase, tools/tzone_bake.py); минус убитые там (K.dead); не меньше, чем он уверенно знает там живых
+// (planLocated: видел / слышал / войс)
+function tbDefenders(igl){
+  var loc = planLocated(igl), dead = {A: 0, B: 0, mid: 0}, why = [];
+  (igl.know ? igl.know.dead : []).forEach(function(d){ var r = planRegion(d.zone); if(r) dead[r]++; });
+  var est = {};
+  ["A", "B"].forEach(function(r){
+    est[r] = Math.max(loc[r], Math.max(0, TZONES.ctBase[r] - dead[r]));
+    if(dead[r] || loc[r]) why.push(r + ": " + (dead[r] ? "убито " + dead[r] : "") + (dead[r] && loc[r] ? ", " : "") + (loc[r] ? "знаю " + loc[r] + " (" + planLocatedWhy(igl, r) + ")" : ""));
+  });
+  est.why = why.join("; ") || "ничего";
+  return est;
 }

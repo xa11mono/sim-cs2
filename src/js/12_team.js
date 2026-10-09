@@ -237,7 +237,8 @@ var PLAN = {
   lossDiff: 2,     //   … или нас меньше, чем врагов, на столько
   typeShift: {eco: -25.6, hero: -25.6, force: -10.6, half: -10.6},   // T: сдвиг контрольного тайминга по закупу, с (демки)
   pickLead: 2,     // T: в дефолте нас больше на столько — колл «есть пики, выходим» (не раньше pickMinSec)
-  pickMinSec: 12
+  pickMinSec: 12,
+  weakBy:   1      // T: другой сайт слабее на столько CT (по знанию IGL) — колл «меняем» (v225, проектное число: «на одного меньше»)
 };
 var PLAN_HIST = [];   // {match, half, round, side, setupId, site, won, plantSite} — что команды играли
 function planHalf(r){
@@ -305,14 +306,15 @@ function planLocatedList(b){
   var out = [], K = b.know; if(!K) return out;
   for(var id in K.enemies){
     var B = K.enemies[id];
-    var fact = B.visible || (B.last && B.last.source !== "spawn") || B.hyps.some(function(h){ return h.heard; });
-    if(!fact) continue;
+    if(!planFact(B)) continue;
     var w = {A: 0, B: 0, mid: 0};
     B.hyps.forEach(function(h){ var r = planRegion(h.zone); if(r) w[r] += h.weight; });
     ["A","B","mid"].forEach(function(r){ if(w[r] >= PLAN.infoW) out.push({id: id, region: r, w: w[r], seen: B.visible}); });
   }
   return out;
 }
+// про врага есть факт: видно сейчас, видели/слышали/сказали в войс — не только «вышел со спавна»
+function planFact(B){ return B.visible || (B.last && B.last.source !== "spawn") || B.hyps.some(function(h){ return h.heard; }); }
 function planLocated(b){
   var n = {A: 0, B: 0, mid: 0};
   planLocatedList(b).forEach(function(e){ n[e.region]++; });

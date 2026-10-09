@@ -1591,8 +1591,9 @@ function bombTick(){
 //   потеря состава  — fallback: вместе на сайт плана (по киллфиду, его видят все);
 //   тайминг         — истёк startSec варианта: default → execute;
 //   пики            — пока default: нас больше на PLAN.pickLead (киллфид) — колл «выходим» сейчас;
-//   колл IGL        — пока default: IGL сам знает (своё b.know: видел + войс), что на сайте
-//                     плана стоят ≥ PLAN.infoN CT — колл «меняем на другой сайт», один за раунд.
+//   колл IGL        — пока default: IGL оценивает, сколько CT на каждом сайте, по тому, что знает
+//                     (tbDefenders): на другом сайте на одного меньше, чем на сайте плана, — колл
+//                     «меняем на другой сайт», один за раунд (v225, правка владельца 7).
 
 function tbSetup(id){
   for(var i = 0; i < POS_SETUPS.t.length; i++) if(POS_SETUPS.t[i].id === id) return POS_SETUPS.t[i];
@@ -1668,7 +1669,6 @@ function tBrainTick(){
     teamSetPlan("T", {type: "execute", site: s.site, activeSetupId: s.id}, "тайминг " + Math.round(start) + " с (" + ROUND_TYPE_LABEL[teamEco.T.roundType] + ")", tbLabel("execute", s));
     return;
   }
-  // колл IGL по сильной инфе: на сайте плана уже стоят ≥ infoN CT — идём на другой
   var igl = planIgl("T");
   if(T.callMade || !igl || !igl.alive) return;
   // пики: в дефолте убили столько, что нас больше на PLAN.pickLead (киллфид видят все) — выходим сейчас,
@@ -1679,15 +1679,32 @@ function tBrainTick(){
                  "пики: живых " + us + " против " + them, tbLabel("execute", s));
     return;
   }
-  var loc = planLocated(igl);
-  if(loc[s.site] < PLAN.infoN) return;
-  var other = s.site === "A" ? "B" : "A", list = tbWeights(other);
+  // колл IGL: execute — в самый слабый сайт, который показал дефолт (PRO_PLAY 2.4). У про: первый погибший до
+  // планта CT на стороне A/B — бомбу ставят туда же в 82 % раундов (без этого A 46 / B 54 %); в 22 % раундов
+  // большинство T на 20-й с стоят не на той стороне, где потом плант (88 демок, tools — v225)
+  var other = s.site === "A" ? "B" : "A", est = tbDefenders(igl);
+  if(est[other] > est[s.site] - PLAN.weakBy) return;
+  var list = tbWeights(other);
   if(!list.length) return;
   var best = list[0]; list.forEach(function(c){ if(c.w > best.w) best = c; });
-  teamCallPlan(igl, "их " + loc[s.site] + " на " + s.site + ", меняем на " + other,
+  teamCallPlan(igl, "на " + other + " слабее, меняем на " + other,
                {type: "default", site: other, activeSetupId: best.s.id},
-               "сильная инфа: " + loc[s.site] + " CT на " + s.site + " (" + planLocatedWhy(igl, s.site) + ")",
+               "CT на сайтах по знанию IGL: " + s.site + " ~" + est[s.site].toFixed(1) + ", " + other + " ~" + est[other].toFixed(1) + " (" + est.why + ")",
                tbLabel("default", best.s));
+}
+// сколько CT IGL ждёт на каждом сайте: пока ничего не знает — сколько CT стоят там у про на 20-й с
+// (TZONES.ctBase, tools/tzone_bake.py); минус убитые там (K.dead); не меньше, чем он уверенно знает там живых
+// (planLocated: видел / слышал / войс)
+function tbDefenders(igl){
+  var loc = planLocated(igl), dead = {A: 0, B: 0, mid: 0}, why = [];
+  (igl.know ? igl.know.dead : []).forEach(function(d){ var r = planRegion(d.zone); if(r) dead[r]++; });
+  var est = {};
+  ["A", "B"].forEach(function(r){
+    est[r] = Math.max(loc[r], Math.max(0, TZONES.ctBase[r] - dead[r]));
+    if(dead[r] || loc[r]) why.push(r + ": " + (dead[r] ? "убито " + dead[r] : "") + (dead[r] && loc[r] ? ", " : "") + (loc[r] ? "знаю " + loc[r] + " (" + planLocatedWhy(igl, r) + ")" : ""));
+  });
+  est.why = why.join("; ") || "ничего";
+  return est;
 }
 // ======================= РЕТЕЙК CT: СБОР, ОТКАЗ, ВХОД, СЕЙВ (шаг 8) =======================
 // Одно место на «как CT отбивают заложенную бомбу» (docs/BRAIN.md 5.2; шаг 8 PROMPTS.md).
@@ -2436,7 +2453,7 @@ function knowSpotAhead(b, dir, cone, far){
 
 // ---------- начало раунда: враги на своём спавне (это знают все) ----------
 function knowRoundStart(b){
-  var K = b.know = {key: matchNum + ":" + roundNum, enemies: {}, heard: [], planted: false, plantSite: null, alive: 0, nev: [],
+  var K = b.know = {key: matchNum + ":" + roundNum, enemies: {}, heard: [], planted: false, plantSite: null, alive: 0, nev: [], dead: [],
                     spots: knowSpotBase(b.team === "CT" ? "T" : "CT").map(function(p){ return {id: p.id, x: p.x, y: p.y, zone: p.zone, run: p.run, open: true}; })};
   var sp = b.team === "CT" ? T_SPAWN : CT_SPAWN, zone = knowZoneAt(sp.x, sp.y);
   bots.forEach(function(e){
@@ -2738,6 +2755,8 @@ function knowKill(att, vic){
     var K = b.know;
     if(vic.team !== b.team){
       if(K.enemies[vic.id]){ delete K.enemies[vic.id]; K.alive--; knowTrace(b, vic.id, "киллфид: враг убит"); }
+      // где убит (v225): убил свой — место он видел и говорит в войс («одного на A»); убил кто-то ещё — киллфид
+      if(att && att.team === b.team) K.dead.push({id: vic.id, zone: knowZoneAt(vic.x, vic.y), tick: tick});
       return;
     }
     // своего убил att: att где-то в прострел от места смерти своего (место видно по радару)
@@ -4542,6 +4561,11 @@ function stubSelfNades(){
 // Бомба — у того, кто играет последним: на стороне плана, не энтри (он входит первым), лучше саппорт.
 //
 // В полосе — одно место из spots (по доле у про); дошёл — держит его. До места бежит, лёркер — шагом (тихо).
+// Контроль карты (v225, правка владельца 2; PRO_PLAY 1, 2.2: «T берут пространство и держат»): занявший полосу
+// раз в TZONES.step с решает, идти ли в следующую зону — куда и как часто T переходят из этой зоны у про
+// (src/data/tzones.json, tools/tzone_bake.py; «остаться» — тоже вариант). В зону, где по его знанию стоит CT
+// (видел / слышал / войс — tdefDanger), не идёт — держит свою и смотрит туда (posStandLook). Решает первый
+// в паре и лёркер, второй идёт за первым.
 // Своё знание (b.know, 09_knowledge.js):
 //   • вижу врага — стоп, держу (стрельба — движок); не вижу TDEF.holdSee с — дальше;
 //   • слышу шаги/стрельбу ближе TDEF.hearR — стоп, смотрю туда TDEF.holdHear с;
@@ -4576,6 +4600,7 @@ var TDEF_FIT = {
   lurker:  {site: 0, mid: 1, home: 1, other: 3},
   anchor:  {site: 2, mid: 2, home: 2, other: 1}
 };
+var TZONES = {"step":5,"trans":{"A":{"Split":{"Mid":108,"Lower Mid / Start Mid":591,"Split":842,"A Stairs":461,"Sticks":25,"A Hall":101,"Main Hall / Candle":8,"T Spawn":2,"T Ramp":73,"A Main":2,"Tunnel":3,"Xbox":1,"Chamber Lane":1},"T Ramp":{"Lower Mid / Start Mid":175,"A Stairs":364,"Split":591,"T Ramp":729,"Tunnel":59,"T Spawn":36,"Water":36,"A Hall":4,"Ruins":17,"Sticks":7,"Mid":12},"Mid":{"Donut":54,"Chamber Lane":169,"Short":36,"Mid":479,"Top Mid":98,"Lower Mid / Start Mid":76,"Triple / Window / Cat":35,"Jungle / Pit":10,"Split":7,"Alley":1,"Connector / Red Room / Red":8,"Xbox":18,"Sniper Nest":32,"A Stairs":1,"T Upper / Heaven":4},"Lower Mid / Start Mid":{"Mid":449,"Lower Mid / Start Mid":648,"A Stairs":31,"Split":159,"A Hall":2,"Chamber Lane":31,"T Ramp":7,"Xbox":7,"Top Mid":2,"Sniper Nest":1,"Triple / Window / Cat":1},"A Stairs":{"A Main":106,"A Stairs":372,"A Hall":538,"Main Hall / Candle":58,"Sticks":47,"Long":58,"Split":56,"T Ramp":3,"Lower Mid / Start Mid":7,"Back Site":4},"Donut":{"A Site":18,"Triple Box":2,"Donut":47,"Short":40,"Chamber Lane":8,"Def":1},"Chamber Lane":{"A Site":16,"Mid":12,"Short":70,"Donut":67,"Chamber Lane":59,"Lower Mid / Start Mid":1,"Top Mid":1},"A Main":{"A Main":260,"Long":192,"Boost":47,"A Site":46,"Back Site":75,"Short":11,"Def":3,"Box":3,"Main Hall / Candle":6,"A Hall":16,"A Stairs":2},"Water":{"T Lower":153,"Ruins":95,"Tunnel":24,"Water":52,"T Ramp":28},"T Lower":{"T Upper / Heaven":253,"T Lower":519,"Ramp":51,"Lamp Room / Excavation":28,"Ruins":131,"Rat":35,"Wood":24,"Site B":1,"B Site":8,"Triple / Window / Cat":15,"Mid":2,"Water":2},"T Upper / Heaven":{"Lamp Room / Excavation":83,"T Upper / Heaven":196,"Triple / Window / Cat":151,"T Lower":36,"Ruins":3,"Wood":14,"Rat":5,"Mid":17,"Chamber Lane":1,"Xbox":3,"Dark":2},"Lamp Room / Excavation":{"Triple / Window / Cat":32,"T Upper / Heaven":31,"T Lower":2,"Lamp Room / Excavation":173,"Xbox":2,"Cave / House":9,"Dark":10,"Site B":1,"Mid":4},"Triple / Window / Cat":{"Mid":74,"Triple / Window / Cat":221,"T Upper / Heaven":25,"Xbox":14,"Lamp Room / Excavation":33,"Chamber Lane":8,"Sniper Nest":2,"Lower Mid / Start Mid":2,"Cave / House":2,"Top Mid":1},"Top Mid":{"Top Mid":67,"Sniper Nest":40,"Mid":5,"Connector / Red Room / Red":15,"Alley":3,"Chamber Lane":6,"Donut":1},"A Hall":{"A Hall":279,"Long":98,"A Main":321,"Main Hall / Candle":107,"Back Site":28,"Boost":26,"A Site":2,"A Stairs":21,"Lower Mid / Start Mid":2,"Sticks":2,"Short":8,"Split":2},"Tunnel":{"Ruins":323,"T Lower":125,"T Ramp":51,"Water":23,"Tunnel":7,"Split":2},"Ruins":{"T Lower":285,"Ruins":720,"Tunnel":34,"Ramp":23,"T Upper / Heaven":42,"Water":59,"Lamp Room / Excavation":1,"T Ramp":2,"Rat":7,"Triple / Window / Cat":2},"Short":{"A Site":56,"Donut":13,"Short":58,"A Main":9,"Triple Box":5,"Boost":2,"Def":5},"A Site":{"Back Site":9,"Long":2,"Triple Box":21,"Short":20,"A Site":112,"Boost":14,"Donut":3,"Def":5,"CT Lane":2,"Temple":1},"Main Hall / Candle":{"A Site":2,"A Main":66,"Back Site":13,"Long":49,"A Hall":12,"Main Hall / Candle":53,"A Stairs":6,"Boost":4},"Long":{"A Site":120,"Boost":38,"Back Site":72,"Def":5,"Long":73,"A Main":12,"Box":6,"Temple":3,"Short":8,"Single":1,"A Hall":2,"A Stairs":1,"Plat":2,"Triple Box":2},"T Spawn":{"T Ramp":138,"Tunnel":17,"T Spawn":16,"Split":41,"Water":15},"Sniper Nest":{"Sniper Nest":37,"Top Mid":2,"Connector / Red Room / Red":19,"CT Spawn":7,"Alley":5},"Ramp":{"Ramp":33,"B Site":13,"T Lower":20,"First Lane":3,"Bonger / Wood / Ninja":2,"Site B":1,"Second Lane":1},"B Site":{"Site B":1,"Second Lane":4,"B Site":4,"Alley":2,"T Lower":1,"First Lane":5,"90":1},"Site B":{"Site B":2,"90":1,"Ramp":1},"Boost":{"Short":10,"A Site":50,"Boost":30,"Long":1,"Triple Box":9,"Box":2,"Back Site":3,"Def":3,"Temple":1},"Triple Box":{"Triple Box":19,"Back Site":1,"A Site":6,"CT Lane":1,"Short":1},"Xbox":{"Mid":23,"Triple / Window / Cat":9,"Xbox":2,"T Upper / Heaven":3,"Lower Mid / Start Mid":2,"Chamber Lane":2},"Sticks":{"Sticks":101,"A Hall":22,"A Main":1,"A Stairs":39,"Split":2,"T Ramp":1,"Main Hall / Candle":1},"Back Site":{"A Site":46,"Back Site":58,"Temple":21,"Single":10,"Long":4,"Boost":3,"Def":4,"Triple Box":3,"Plat":3,"Short":4,"Box":1},"Rat":{"Rat":60,"T Lower":23,"T Upper / Heaven":10,"Wood":1,"Ruins":1},"Wood":{"T Lower":12,"Wood":16,"T Upper / Heaven":18,"Mid":1,"Triple / Window / Cat":2,"Lamp Room / Excavation":3},"Def":{"A Site":3,"Back Site":1,"Def":2,"Temple":2,"CT Lane":1},"Box":{"A Site":2,"Back Site":5,"Temple":1,"Box":1,"Short":1},"Temple":{"CT Spawn":2,"Back Site":2,"Temple":19,"Def":1,"Box":1},"CT Spawn":{"Triple Box":2,"Alley":2,"CT Lane":10,"Temple":3,"A Site":1,"CT Spawn":2},"Connector / Red Room / Red":{"CT Spawn":17,"Alley":8,"Connector / Red Room / Red":11,"CT Lane":2},"Dark":{"B Site":1,"Lamp Room / Excavation":2,"Dark Box":2,"Cave / House":5,"T Upper / Heaven":2},"Alley":{"CT Lane":5,"Alley":4,"CT Spawn":6,"Triple Box":2,"Temple":2},"Cave / House":{"Cave / House":5,"Dark Box":1,"Lamp Room / Excavation":1,"Dark":1,"B Site":1,"Second Lane":1},"Second Lane":{"Back Halls / Back Alley":1,"Alley":3,"B Site":1,"First Lane":1},"Back Halls / Back Alley":{"Alley":4,"CT Spawn":1},"90":{"Second Lane":1,"B Site":1},"First Lane":{"Back Halls / Back Alley":5},"CT Lane":{"A Site":4,"CT Lane":1,"Triple Box":1,"Short":1},"Jungle / Pit":{"Jungle / Pit":2,"Mid":1,"Top Mid":1},"Dark Box":{"Dark Box":3,"Dark":1},"Bonger / Wood / Ninja":{"Bonger / Wood / Ninja":2,"B Site":1},"Plat":{"Plat":1,"Single":1,"A Site":1},"Single":{"Single":1,"Back Site":1}},"B":{"T Ramp":{"T Ramp":632,"Water":151,"Tunnel":254,"Split":333,"Ruins":61,"A Stairs":77,"Lower Mid / Start Mid":116,"T Spawn":32,"Mid":10,"A Hall":2,"Sticks":1},"Split":{"Lower Mid / Start Mid":562,"Split":771,"T Ramp":215,"A Stairs":112,"A Hall":25,"Mid":114,"Tunnel":12,"T Spawn":2,"Sticks":5,"Xbox":2},"Water":{"T Lower":349,"Ruins":294,"Ramp":3,"Water":117,"Tunnel":8,"T Ramp":2},"Tunnel":{"T Ramp":14,"Ruins":1020,"Tunnel":19,"Water":94,"T Lower":220,"T Spawn":2},"Lower Mid / Start Mid":{"Xbox":18,"Mid":363,"Lower Mid / Start Mid":610,"Split":169,"T Ramp":35,"Triple / Window / Cat":3,"Sniper Nest":1,"Chamber Lane":1,"A Stairs":2},"T Lower":{"Rat":51,"T Lower":1406,"T Upper / Heaven":367,"Ramp":460,"Wood":46,"Ruins":165,"Lamp Room / Excavation":94,"B Site":162,"Site B":24,"Second Lane":1,"Triple / Window / Cat":14,"Water":1,"Bonger / Wood / Ninja":4,"Mid":2,"First Lane":1},"Xbox":{"T Upper / Heaven":18,"Triple / Window / Cat":31,"Mid":6,"Lamp Room / Excavation":7,"Dark":2},"Rat":{"Rat":62,"T Lower":50,"T Upper / Heaven":4,"Wood":1},"T Upper / Heaven":{"T Upper / Heaven":371,"Lamp Room / Excavation":261,"Cave / House":3,"Triple / Window / Cat":63,"T Lower":103,"Mid":10,"Rat":11,"Wood":18,"Dark":8,"Ruins":3,"Ramp":2},"Mid":{"Triple / Window / Cat":132,"Chamber Lane":26,"Mid":424,"Lamp Room / Excavation":8,"Lower Mid / Start Mid":51,"Xbox":47,"Top Mid":77,"Sniper Nest":26,"Jungle / Pit":4,"Donut":6,"Short":1,"Connector / Red Room / Red":2,"Split":5,"T Upper / Heaven":17,"Dark":2},"Ruins":{"Ruins":1800,"T Lower":929,"Ramp":184,"Lamp Room / Excavation":12,"B Site":32,"Water":31,"T Upper / Heaven":69,"Tunnel":11,"Wood":4,"Rat":6,"T Ramp":1,"Triple / Window / Cat":1},"Triple / Window / Cat":{"Lamp Room / Excavation":74,"Triple / Window / Cat":210,"T Upper / Heaven":80,"Xbox":3,"T Lower":3,"Wood":1,"Dark":2,"Mid":18,"Top Mid":3,"Cave / House":3,"Chamber Lane":2},"Lamp Room / Excavation":{"Lamp Room / Excavation":520,"Dark":77,"Cave / House":114,"T Upper / Heaven":42,"Dark Box":6,"T Lower":11,"Second Lane":1,"B Site":3,"Triple / Window / Cat":15,"Site B":1,"Mid":1},"Ramp":{"Second Lane":10,"First Lane":18,"Site B":87,"B Site":286,"Ruins":5,"Ramp":249,"T Upper / Heaven":3,"T Lower":44,"90":4,"Bonger / Wood / Ninja":5,"Cave / House":1},"Second Lane":{"Second Lane":14,"First Lane":1,"Back Halls / Back Alley":1,"B Site":4,"Site B":1,"Alley":3,"90":1},"A Stairs":{"A Main":16,"Split":61,"Long":7,"Main Hall / Candle":10,"A Stairs":137,"A Hall":105,"Sticks":18,"T Ramp":7,"Mid":2,"Back Site":1,"Lower Mid / Start Mid":6},"A Main":{"Long":21,"A Main":51,"A Hall":20,"Main Hall / Candle":3,"Back Site":11,"Short":5,"A Stairs":6,"Boost":3,"A Site":1},"Long":{"A Hall":2,"A Main":11,"Back Site":11,"A Site":8,"Long":12,"Single":1,"Main Hall / Candle":1,"Boost":4,"A Stairs":1},"A Hall":{"A Stairs":42,"Long":21,"A Hall":67,"A Main":57,"Back Site":3,"Short":1,"Main Hall / Candle":12,"Split":3,"Boost":2},"Cave / House":{"B Site":26,"Cave / House":76,"Dark":5,"Lamp Room / Excavation":14,"Dark Box":5,"Site B":24,"Ramp":1,"90":5,"Second Lane":3},"B Site":{"First Lane":56,"B Site":139,"90":16,"Ramp":15,"Site B":90,"Bonger / Wood / Ninja":13,"Second Lane":41,"Back Halls / Back Alley":9,"Cave / House":13,"T Lower":1,"Alley":2,"Ruins":1},"First Lane":{"First Lane":19,"Site B":3,"Back Halls / Back Alley":2,"90":1,"B Site":2},"Wood":{"Wood":35,"T Upper / Heaven":35,"Lamp Room / Excavation":9,"Ramp":1,"T Lower":15,"Triple / Window / Cat":3,"Rat":1},"Dark":{"Cave / House":49,"Lamp Room / Excavation":7,"Dark Box":3,"B Site":6,"Site B":4,"Second Lane":2,"Triple / Window / Cat":1,"Dark":1},"Main Hall / Candle":{"A Main":10,"A Stairs":2,"Split":1,"Main Hall / Candle":4,"A Hall":6,"Boost":1,"Long":3},"Chamber Lane":{"Donut":9,"Top Mid":2,"Chamber Lane":11,"Mid":7,"Triple / Window / Cat":2,"A Site":1,"Xbox":1,"Short":2},"Donut":{"Donut":8,"Chamber Lane":4,"Short":4,"Mid":1,"A Site":1},"T Spawn":{"Tunnel":52,"Water":40,"T Ramp":133,"Split":17,"T Spawn":16},"Bonger / Wood / Ninja":{"Bonger / Wood / Ninja":7,"Ramp":1,"B Site":7,"Site B":3},"Back Site":{"Back Site":5,"Temple":6,"Box":1,"A Site":5,"A Hall":1,"Single":1,"Long":1},"Site B":{"90":2,"B Site":12,"Site B":20,"Cave / House":11,"Second Lane":6,"First Lane":4,"Back Halls / Back Alley":1,"Dark":1},"Dark Box":{"Cave / House":7,"Dark Box":4,"B Site":2},"Temple":{"Temple":7,"Def":1,"CT Spawn":4,"Alley":1,"Back Site":2},"Def":{"Short":1},"Short":{"Chamber Lane":2,"Back Site":1,"Mid":1,"A Site":1,"Triple Box":2,"Short":4,"A Main":3},"Top Mid":{"Connector / Red Room / Red":12,"Triple / Window / Cat":1,"Top Mid":41,"Sniper Nest":32,"Mid":12,"Chamber Lane":1,"Alley":1,"Xbox":1,"Jungle / Pit":1},"Connector / Red Room / Red":{"Top Mid":5,"Connector / Red Room / Red":13,"Alley":11,"Sniper Nest":1,"CT Spawn":2},"Sticks":{"Sticks":23,"A Stairs":16,"Split":2,"A Hall":4},"Sniper Nest":{"Connector / Red Room / Red":26,"Sniper Nest":37,"CT Spawn":1,"Alley":4,"Top Mid":4},"Back Halls / Back Alley":{"Second Lane":1,"Back Halls / Back Alley":4},"Jungle / Pit":{"Jungle / Pit":3,"Mid":1,"Top Mid":2},"90":{"First Lane":7,"Second Lane":3,"B Site":1},"CT Spawn":{"CT Spawn":4,"Connector / Red Room / Red":1,"Alley":2},"Alley":{"CT Spawn":1,"Second Lane":2,"Alley":9,"B Site":2,"Back Halls / Back Alley":1,"Connector / Red Room / Red":2},"Box":{"Box":3},"A Site":{"A Site":7,"Chamber Lane":1,"Temple":3,"Back Site":1,"Short":1,"CT Lane":1},"Triple Box":{"Triple Box":2,"A Site":2,"CT Lane":1},"Boost":{"Temple":1,"Long":2,"Triple Box":1,"Boost":2,"Short":1},"Single":{"Back Site":1},"CT Lane":{"CT Spawn":1}}},"ctBase":{"A":0.97,"B":1.76,"mid":1.28,"back":0.64}};
 var TDEF_S = null;   // {key, setupId, site, seats: [{lane, kind, bot}]}
 var TDEF_LOG = [];
 
@@ -4722,9 +4747,56 @@ function tdefLane(b){
     tdefGo(b, D.spot.x, D.spot.y);
     return;
   }
-  if(!D.arrived){ D.arrived = true; tdefLog("в полосе", b.id + " → " + L.zone); }
+  if(!D.arrived){ D.arrived = true; D.stepT = tick + TZONES.step*TICK_HZ; tdefLog("в полосе", b.id + " → " + L.zone); }
+  if(!(lead && lead.alive) && tick >= D.stepT){ D.stepT = tick + TZONES.step*TICK_HZ; tdefAdvance(b); }
   // v224: занял место — держит его (правка владельца: «заняли зону — не возвращаться проверять старое»); перестановка
   // между местами полосы раз в 2,5–6 с была придумана (не из демок) — убрана. Движение на месте — пункт 6, по демкам
+}
+// следующая зона: из переходов T у про из этой зоны (при этом сайте плана) — только в зоны, где есть места
+// полос (tdefZoneLane) и где по знанию бота нет CT; «опасный» переход становится «остаться»
+function tdefAdvance(b){
+  var D = b.tdef, L = D.seat.lane, tr = (TZONES.trans[TDEF_S.site] || {})[L.zone];
+  if(!tr) return;
+  var cand = [], stay = 0, held = [];
+  for(var z in tr){
+    if(z === L.zone){ stay += tr[z]; continue; }
+    var lane = tdefZoneLane(z);
+    if(!lane) continue;
+    if(tdefDanger(b, z)){ stay += tr[z]; held.push(z); continue; }
+    cand.push({lane: lane, w: tr[z]});
+  }
+  var sum = stay + cand.reduce(function(a, c){ return a + c.w; }, 0), r = tdefRand(tick + b.id.charCodeAt(1)*13) * sum - stay;
+  if(r <= 0 || !cand.length) return;
+  var pick = cand[cand.length - 1];
+  for(var i = 0; i < cand.length; i++){ r -= cand[i].w; if(r <= 0){ pick = cand[i]; break; } }
+  var kind = tdefKind(pick.lane, TDEF_S.site);
+  TDEF_S.seats.forEach(function(s){
+    if(s === D.seat || s.lead === D.seat){ s.lane = pick.lane; s.kind = kind; }
+  });
+  D.spot = null; D.arrived = false;
+  tdefLog("дальше", b.id + ": " + L.zone + " → " + pick.lane.zone + (held.length ? " (не иду: " + held.join(", ") + " — там CT)" : ""));
+}
+// полоса по названию зоны: своего варианта, иначе — любого варианта T (места и взгляд — те же демки)
+function tdefZoneLane(zone){
+  var own = tbSetup(TDEF_S.setupId), L = null;
+  [own].concat(POS_SETUPS.t).forEach(function(s){
+    if(L || !s || !s.default) return;
+    s.default.lanes.forEach(function(x){ if(!L && x.zone === zone) L = x; });
+  });
+  return L;
+}
+// по знанию бота в зоне стоит CT: видит его там или есть факт (не «вышел со спавна»), и гипотезы в этой зоне
+// весят ≥ PLAN.infoW (то же, что «враг стоит на стороне» у IGL — planLocatedList)
+function tdefDanger(b, zone){
+  var K = b.know; if(!K) return false;
+  for(var id in K.enemies){
+    var B = K.enemies[id];
+    if(!planFact(B)) continue;
+    var w = 0;
+    B.hyps.forEach(function(h){ if(zoneUserName(h.zone) === zoneMainName(zone)) w += h.weight; });   // у зон данных — полное «A / B»
+    if(w >= PLAN.infoW) return true;
+  }
+  return false;
 }
 // место второго в паре: ближайшее к месту первого место полосы не ближе TDEF.mateMin; нет такого — на mateBack
 // назад от первого, в сторону своего спавна (сзади, а не рядом на одной линии)
@@ -5438,7 +5510,8 @@ var PLAN = {
   lossDiff: 2,     //   … или нас меньше, чем врагов, на столько
   typeShift: {eco: -25.6, hero: -25.6, force: -10.6, half: -10.6},   // T: сдвиг контрольного тайминга по закупу, с (демки)
   pickLead: 2,     // T: в дефолте нас больше на столько — колл «есть пики, выходим» (не раньше pickMinSec)
-  pickMinSec: 12
+  pickMinSec: 12,
+  weakBy:   1      // T: другой сайт слабее на столько CT (по знанию IGL) — колл «меняем» (v225, проектное число: «на одного меньше»)
 };
 var PLAN_HIST = [];   // {match, half, round, side, setupId, site, won, plantSite} — что команды играли
 function planHalf(r){
@@ -5506,14 +5579,15 @@ function planLocatedList(b){
   var out = [], K = b.know; if(!K) return out;
   for(var id in K.enemies){
     var B = K.enemies[id];
-    var fact = B.visible || (B.last && B.last.source !== "spawn") || B.hyps.some(function(h){ return h.heard; });
-    if(!fact) continue;
+    if(!planFact(B)) continue;
     var w = {A: 0, B: 0, mid: 0};
     B.hyps.forEach(function(h){ var r = planRegion(h.zone); if(r) w[r] += h.weight; });
     ["A","B","mid"].forEach(function(r){ if(w[r] >= PLAN.infoW) out.push({id: id, region: r, w: w[r], seen: B.visible}); });
   }
   return out;
 }
+// про врага есть факт: видно сейчас, видели/слышали/сказали в войс — не только «вышел со спавна»
+function planFact(B){ return B.visible || (B.last && B.last.source !== "spawn") || B.hyps.some(function(h){ return h.heard; }); }
 function planLocated(b){
   var n = {A: 0, B: 0, mid: 0};
   planLocatedList(b).forEach(function(e){ n[e.region]++; });
@@ -9999,6 +10073,7 @@ var __SNAP = [
 ["SCR_LOG", function(){ return SCR_LOG; }, function(v){ try{ SCR_LOG = v; }catch(e){} }],
 ["TDEF", function(){ return TDEF; }, function(v){ try{ TDEF = v; }catch(e){} }],
 ["TDEF_FIT", function(){ return TDEF_FIT; }, function(v){ try{ TDEF_FIT = v; }catch(e){} }],
+["TZONES", function(){ return TZONES; }, function(v){ try{ TZONES = v; }catch(e){} }],
 ["TDEF_S", function(){ return TDEF_S; }, function(v){ try{ TDEF_S = v; }catch(e){} }],
 ["TDEF_LOG", function(){ return TDEF_LOG; }, function(v){ try{ TDEF_LOG = v; }catch(e){} }],
 ["TPOST", function(){ return TPOST; }, function(v){ try{ TPOST = v; }catch(e){} }],

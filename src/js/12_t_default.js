@@ -11,6 +11,11 @@
 // Бомба — у того, кто играет последним: на стороне плана, не энтри (он входит первым), лучше саппорт.
 //
 // В полосе — одно место из spots (по доле у про); дошёл — держит его. До места бежит, лёркер — шагом (тихо).
+// Контроль карты (v225, правка владельца 2; PRO_PLAY 1, 2.2: «T берут пространство и держат»): занявший полосу
+// раз в TZONES.step с решает, идти ли в следующую зону — куда и как часто T переходят из этой зоны у про
+// (src/data/tzones.json, tools/tzone_bake.py; «остаться» — тоже вариант). В зону, где по его знанию стоит CT
+// (видел / слышал / войс — tdefDanger), не идёт — держит свою и смотрит туда (posStandLook). Решает первый
+// в паре и лёркер, второй идёт за первым.
 // Своё знание (b.know, 09_knowledge.js):
 //   • вижу врага — стоп, держу (стрельба — движок); не вижу TDEF.holdSee с — дальше;
 //   • слышу шаги/стрельбу ближе TDEF.hearR — стоп, смотрю туда TDEF.holdHear с;
@@ -45,6 +50,7 @@ var TDEF_FIT = {
   lurker:  {site: 0, mid: 1, home: 1, other: 3},
   anchor:  {site: 2, mid: 2, home: 2, other: 1}
 };
+var TZONES = @@DATA:tzones.json@@;
 var TDEF_S = null;   // {key, setupId, site, seats: [{lane, kind, bot}]}
 var TDEF_LOG = [];
 
@@ -191,9 +197,56 @@ function tdefLane(b){
     tdefGo(b, D.spot.x, D.spot.y);
     return;
   }
-  if(!D.arrived){ D.arrived = true; tdefLog("в полосе", b.id + " → " + L.zone); }
+  if(!D.arrived){ D.arrived = true; D.stepT = tick + TZONES.step*TICK_HZ; tdefLog("в полосе", b.id + " → " + L.zone); }
+  if(!(lead && lead.alive) && tick >= D.stepT){ D.stepT = tick + TZONES.step*TICK_HZ; tdefAdvance(b); }
   // v224: занял место — держит его (правка владельца: «заняли зону — не возвращаться проверять старое»); перестановка
   // между местами полосы раз в 2,5–6 с была придумана (не из демок) — убрана. Движение на месте — пункт 6, по демкам
+}
+// следующая зона: из переходов T у про из этой зоны (при этом сайте плана) — только в зоны, где есть места
+// полос (tdefZoneLane) и где по знанию бота нет CT; «опасный» переход становится «остаться»
+function tdefAdvance(b){
+  var D = b.tdef, L = D.seat.lane, tr = (TZONES.trans[TDEF_S.site] || {})[L.zone];
+  if(!tr) return;
+  var cand = [], stay = 0, held = [];
+  for(var z in tr){
+    if(z === L.zone){ stay += tr[z]; continue; }
+    var lane = tdefZoneLane(z);
+    if(!lane) continue;
+    if(tdefDanger(b, z)){ stay += tr[z]; held.push(z); continue; }
+    cand.push({lane: lane, w: tr[z]});
+  }
+  var sum = stay + cand.reduce(function(a, c){ return a + c.w; }, 0), r = tdefRand(tick + b.id.charCodeAt(1)*13) * sum - stay;
+  if(r <= 0 || !cand.length) return;
+  var pick = cand[cand.length - 1];
+  for(var i = 0; i < cand.length; i++){ r -= cand[i].w; if(r <= 0){ pick = cand[i]; break; } }
+  var kind = tdefKind(pick.lane, TDEF_S.site);
+  TDEF_S.seats.forEach(function(s){
+    if(s === D.seat || s.lead === D.seat){ s.lane = pick.lane; s.kind = kind; }
+  });
+  D.spot = null; D.arrived = false;
+  tdefLog("дальше", b.id + ": " + L.zone + " → " + pick.lane.zone + (held.length ? " (не иду: " + held.join(", ") + " — там CT)" : ""));
+}
+// полоса по названию зоны: своего варианта, иначе — любого варианта T (места и взгляд — те же демки)
+function tdefZoneLane(zone){
+  var own = tbSetup(TDEF_S.setupId), L = null;
+  [own].concat(POS_SETUPS.t).forEach(function(s){
+    if(L || !s || !s.default) return;
+    s.default.lanes.forEach(function(x){ if(!L && x.zone === zone) L = x; });
+  });
+  return L;
+}
+// по знанию бота в зоне стоит CT: видит его там или есть факт (не «вышел со спавна»), и гипотезы в этой зоне
+// весят ≥ PLAN.infoW (то же, что «враг стоит на стороне» у IGL — planLocatedList)
+function tdefDanger(b, zone){
+  var K = b.know; if(!K) return false;
+  for(var id in K.enemies){
+    var B = K.enemies[id];
+    if(!planFact(B)) continue;
+    var w = 0;
+    B.hyps.forEach(function(h){ if(zoneUserName(h.zone) === zoneMainName(zone)) w += h.weight; });   // у зон данных — полное «A / B»
+    if(w >= PLAN.infoW) return true;
+  }
+  return false;
 }
 // место второго в паре: ближайшее к месту первого место полосы не ближе TDEF.mateMin; нет такого — на mateBack
 // назад от первого, в сторону своего спавна (сзади, а не рядом на одной линии)
