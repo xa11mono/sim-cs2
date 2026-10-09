@@ -57,6 +57,7 @@ var POS = {
   rotMax:      4,    // защитников на сайте выхода не больше столько (вместе с теми, кто там стоял; v222: было 3)
   rotHearR:    700,  // px: шаги/стрельба ближе к сайту — это «идут на сайт» (v222, проектное число)
   rotApart:    150,  // px: точка ротации не ближе этого к цели тиммейта
+  reactMin:    100,  // px: сайт берут — новое место не ближе (у про «сдвинулся» — больше 100 px за 5 с; v232)
   siteR:       450,  // px: «на сайте» — ближе этого к нему (как в замере реакции на стак, tools/measure/stack.py)
   // v215 (аудит п. 4, доделка): игры за инфой и смена позиции
   pushMax:     2,    // подпушей за раунд не больше (вдвоём — пара; данные дают в среднем ~1 на раунд)
@@ -354,7 +355,7 @@ function posTick(){
     if(posAfterHit(b)) return;
     if(!far && !moving && posPeekCheck(b)) return;
     if(!far && posMicro(b)) return;
-    if((tick + (b.id.charCodeAt(1)||0)) % POS.rotEvery === 0) posRotateCheck(b);
+    if((tick + (b.id.charCodeAt(1)||0)) % POS.rotEvery === 0){ if(!posSiteReact(b)) posRotateCheck(b); posEmptySite(b); }
   });
 }
 // ---------- ротация по инфе (v214) ----------
@@ -392,10 +393,13 @@ function posSiteLost(b, X){
   return bots.some(function(o){ return o.team === b.team && !o.alive && o._diedT !== undefined && tick - o._diedT <= teamSec(TEAM.board) &&
     Math.hypot(o.x - SITES[X].x, o.y - SITES[X].y) <= POS.siteR; });
 }
+// до планта: раскладка (default) или потеря состава (fallback — раскладка та же, слоты поделены). v232: раньше ротация
+// и реакция работали только в default — после первых смертей (fallback) CT переставали реагировать вовсе
+function posPrePlant(){ var t = teamOf("CT").planState.type; return t === "default" || t === "fallback"; }
 function posOnSite(b, X){ return Math.hypot(b.x - SITES[X].x, b.y - SITES[X].y) <= POS.siteR; }
 function posRegionOf(b){ var P = POS_PT[b.pos.home || b.pos.pid]; return P ? P.region : null; }
 function posRotateCheck(b){
-  if(posLed(b) || !b.know || teamOf("CT").planState.type !== "default") return;
+  if(posLed(b) || !b.know || !posPrePlant()) return;
   var pr = posPressure(b), home = posRegionOf(b);
   // уже в ротации: на своей стороне жарко, а там, куда шёл, — нет → назад
   if(b.pos.rot){
@@ -433,6 +437,63 @@ function posRotateCheck(b){
   if(!best) return;
   b.pos.home = b.pos.pid; b.pos.rot = X; b.pos.pid = best.id; b.pos.fb = false;
   posGo(b, "ротация на " + X + " — по инфе: там " + pr[X] + (pr[X] >= POS.rotNeed && planLocatedList(b).filter(function(e){ return e.region === X; }).length < pr[X] ? " (утилита выхода)" : ""));
+}
+// ---------- сайт берут: стоящий на нём меняет место (v232, замечание владельца: «один пикнул и погиб, второй ничего не
+// делает до планта») ----------
+// У про после первой смерти CT на сайте до планта CT на этом же сайте за 5 с сдвигаются больше чем на 100 px в 60 %
+// случаев (боты — 8 %): враг знает, где он стоял. Бот на сайте, где только что погиб свой (posSiteLost), не видя врага,
+// уходит на другую точку CT этого сайта (из демок) — не ближе POS.reactMin, откуда видно место смерти (играть по врагу с
+// нового угла; v232: проверено и «спрятаться, откуда не видно» — CT убивали меньше, а гибли так же); нет такой —
+// на запасную своей точки. Раз на одну смерть
+function posSiteReact(b){
+  if(posLed(b) || b._sawEnemy || b.pos.rot || b.pos.peek || !posPrePlant()) return false;
+  var X = ["A", "B"].filter(function(k){ return posOnSite(b, k) && posSiteLost(b, k); })[0];
+  if(!X) return false;
+  var dead = bots.filter(function(o){ return o.team === b.team && !o.alive && o._diedT !== undefined && tick - o._diedT <= teamSec(TEAM.board) &&
+    Math.hypot(o.x - SITES[X].x, o.y - SITES[X].y) <= POS.siteR; }).sort(function(a, c){ return c._diedT - a._diedT; })[0];
+  if(!dead || b.pos.reactTo === dead.id + ":" + dead._diedT) return false;
+  b.pos.reactTo = dead.id + ":" + dead._diedT;
+  var taken = bots.filter(function(o){ return o !== b && o.team === b.team && o.alive && o.pos; }).map(function(o){ return {x: o.pos.tx, y: o.pos.ty}; });
+  var best = null, bd = 1e9;
+  KNOW_POSITIONS.points.forEach(function(P){
+    if(P.side !== "CT" || P.push || Math.hypot(P.x - SITES[X].x, P.y - SITES[X].y) > POS.siteR) return;
+    var d = Math.hypot(P.x - b.x, P.y - b.y);
+    if(d < POS.reactMin || crossesWall(P.x, P.y, dead.x, dead.y) || taken.some(function(t){ return Math.hypot(t.x - P.x, t.y - P.y) < POS.rotApart; })) return;
+    if(d < bd){ bd = d; best = P; }
+  });
+  var cur = POS_PT[b.pos.pid];
+  if(!best && cur && cur.fallback) best = POS_PT[cur.fallback];
+  if(!best) return false;
+  if(!b.pos.home) b.pos.home = b.pos.pid;
+  b.pos.pid = best.id; b.pos.fb = false;
+  posGo(b, "сайт берут: погиб " + dead.id + " — меняю место (" + best.area + ")");
+  return true;
+}
+// ---------- нас мало: пустой сайт (v232, замечание владельца: «стак 0-3-2, мид убили — последний на B стоит, хотя
+// понятно, что пойдут на A») ----------
+// Как думает IGL T (07_t_brain.js, tbDefenders: выход — в сайт, где защитников меньше; у про так в 82 % плантов), так CT
+// и ждут: живых CT ≤ 2, на одном сайте никого, а у себя врагов по знанию нет — ближайший к пустому сайту идёт туда
+// (якорь — тоже: держать нечего, если сайт, куда пойдут, пуст). Один на сайт; где стоять — точка CT того сайта (демки)
+function posEmptySite(b){
+  if(posLed(b) || b._sawEnemy || b.pos.rot || b.pos.peek || !posPrePlant()) return false;
+  var CT = bots.filter(function(o){ return o.team === b.team && o.alive && o.pos; });
+  if(CT.length > 2) return false;
+  var pr = posPressure(b), home = posRegionOf(b);
+  if(home && pr[home] >= 1) return false;
+  var X = ["A", "B"].filter(function(k){ return !CT.some(function(o){ return o.pos.rot === k || (!o.pos.rot && posOnSite(o, k)); }); })[0];
+  if(!X) return false;
+  var s = SITES[X], near = CT.slice().sort(function(a, c){ return Math.hypot(a.x - s.x, a.y - s.y) - Math.hypot(c.x - s.x, c.y - s.y); })[0];
+  if(near !== b) return false;
+  var best = null, bd = 1e9;
+  KNOW_POSITIONS.points.forEach(function(P){
+    if(P.side !== "CT" || P.push || Math.hypot(P.x - s.x, P.y - s.y) > POS.siteR) return;
+    var d = Math.hypot(P.x - b.x, P.y - b.y)*(P.type === "standard" ? 1 : 1.3);
+    if(d < bd){ bd = d; best = P; }
+  });
+  if(!best) return false;
+  b.pos.home = b.pos.pid; b.pos.rot = X; b.pos.pid = best.id; b.pos.fb = false;
+  posGo(b, "нас " + CT.length + ", на " + X + " никого — туда (пойдут в пустой сайт)");
+  return true;
 }
 // ---------- подпуш за инфой (v215) ----------
 function posPlanPushes(alive){
@@ -636,7 +697,9 @@ function posMicro(b){
   var a = (b.facing || 0) + (posSeed(b, tick*29 + 1) < 0.5 ? 1 : -1)*Math.PI/2;
   var d = POS.microPx[0] + (POS.microPx[1] - POS.microPx[0])*posSeed(b, tick*31 + 2);
   var x = b.x + Math.cos(a)*d, y = b.y + Math.sin(a)*d;
-  if(crossesWall(b.x, b.y, x, y) || !snapToWalkable(x, y)) return false;
+  // с запасом (v232: у стены микросдвиг упирался — бот дёргался): за точкой ещё POS.microPx[1] свободно, точка — на навмеше
+  var cx = b.x + Math.cos(a)*(d + POS.microPx[1]), cy = b.y + Math.sin(a)*(d + POS.microPx[1]), w = snapToWalkable(x, y);
+  if(crossesWall(b.x, b.y, cx, cy) || !w || Math.hypot(w.x - x, w.y - y) > 1) return false;
   b._micro = {x0: b.x, y0: b.y, phase: "out", until: tick + Math.round(0.25*TICK_HZ)};
   b.walking = true; b.path = [[x, y, b.z || 0]]; b.pathIdx = 0; b._pathBy = "micro";
   return true;
@@ -646,7 +709,9 @@ function posAfterHit(b){
   var k = b.kills || 0, hp = b.hp;
   if(b.pos.k0 === undefined){ b.pos.k0 = k; b.pos.hp0 = hp; return false; }
   // свой фраг или пуля по нему (огонь молотова — не повод: из огня и так выходят); не чаще раза в 5 с
-  if((k > b.pos.k0 || (hp < b.pos.hp0 && !b._fireIn)) && tick - (b.pos.movedT || -1e9) > 5*TICK_HZ) b.pos.moveAfter = true;
+  // v232: только после своего фрага (у про «после фрага откатился» — 12,6 %). «После попадания» было придумано (v215), и
+  // когда шаги стали выполняться (v229), CT уходил под огнём и погибал на ходу: 38 смертей на 14 фрагов за 3 матча
+  if(k > b.pos.k0 && tick - (b.pos.movedT || -1e9) > 5*TICK_HZ) b.pos.moveAfter = true;
   b.pos.k0 = k; b.pos.hp0 = hp;
   if(!b.pos.moveAfter || b._sawEnemy || tick - (b._lastSawT || -1e9) < TICK_HZ || posLed(b)) return false;
   b.pos.moveAfter = false; b.pos.movedT = tick;

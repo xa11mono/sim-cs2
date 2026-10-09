@@ -163,7 +163,10 @@ function tDefaultTick(){
 function tdefReact(b){
   var D = b.tdef, K = b.know;
   var vis = (b._visible || []).filter(function(e){ return e.alive; });
-  if(vis.length){ D.holdUntil = tick + Math.round(TDEF.holdSee*TICK_HZ); tdefStop(b, "вижу " + vis[0].id); return true; }
+  if(vis.length){ D.holdUntil = tick + Math.round(TDEF.holdSee*TICK_HZ); D.holdOn = vis.map(function(e){ return e.id; }); tdefStop(b, "вижу " + vis[0].id); return true; }
+  // v232: держал, потому что видел врага, — а их убили (киллфид): не стоять, дальше по своему делу. У про убивший T
+  // стоит первую секунду после фрага в 9 % случаев (медиана — 35 px за секунду), у ботов было 77 %
+  if(D.holdOn && tick < D.holdUntil && D.holdOn.every(function(id){ var e = botById(id); return !e || !e.alive; })){ D.holdUntil = 0; D.holdOn = null; }
   if(K) for(var i = K.heard.length - 1; i >= 0 && K.heard[i].tick === tick; i--){
     var h = K.heard[i];
     if((h.kind === "steps" || h.kind === "shots" || h.kind === "water") && Math.hypot(h.x - b.x, h.y - b.y) <= TDEF.hearR){
