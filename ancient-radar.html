@@ -3180,7 +3180,12 @@ var POS = {
   mateLookR:   500,  // px: тиммейт рядом — его направление взгляда уже держится (v224, проектное число)
   mateLookDeg: 25,   // °: направление «то же», если в пределах стольких градусов (v224, проектное число)
   endSnap:     80,   // px: конец пути ближе к цели — цель там (v224, проектное число: навмеш не всегда доходит до точки из демок)
-  coverK:      0.6   // напарник подпуша — на 60 % пути от своей точки к точке подпуша (v223, проектное число)
+  coverK:      0.6,  // напарник подпуша — на 60 % пути от своей точки к точке подпуша (v223, проектное число)
+  // v227 (правка владельца 9): пик по инфе. Пики CT у про (15 демок: стоял ≥ 2 с → вышел на 30–250 px и вернулся;
+  // 3201 пик, 2,4 на минуту стояния): отход 33 / 42 / 49 px (25 / 75 / 90 %), туда-обратно 0,8 с (медиана), 2,0 с (90 %)
+  peekOut:     [33, 42, 49],
+  peekSec:     0.8,
+  peekMax:     2.0
 };
 // насколько слот нужен команде, когда живых меньше, чем слотов: якорь сайта пустеть не должен —
 // его вес больше, чем «свой слот + подходит по роли» у соседа, поэтому сосед на него переходит
@@ -3439,6 +3444,7 @@ function posTick(){
   POS_STATE.aliveCT = aliveCT;
   bots.forEach(function(b){
     if(!b.alive || !b.pos) return;
+    if(posPeekTick(b)) return;   // пикает (v227) — цель пути не своя точка
     var far = Math.hypot(b.pos.tx-b.x, b.pos.ty-b.y) > POS.arrive;
     var moving = b.path.length > 0 && b.pathIdx < b.path.length;
     if(far && !moving && tick - b.pos.pathT >= POS.repathEvery) posPath(b);   // движок сбросил путь — та же цель
@@ -3447,6 +3453,7 @@ function posTick(){
     if(posPushTick(b)) return;
     if(posCoverTick(b)) return;
     if(posAfterHit(b)) return;
+    if(!far && !moving && posPeekCheck(b)) return;
     if((tick + (b.id.charCodeAt(1)||0)) % POS.rotEvery === 0) posRotateCheck(b);
   });
 }
@@ -3613,6 +3620,68 @@ function posPushInfo(b, P){
   }
   return null;
 }
+// ---------- пик по инфе (v227, правка владельца 9; PRO_PLAY 3: «игры за инфой — один джигглит») ----------
+// Стоит на месте, врага не видит, а только что (≤ 1 с) слышал бегущего врага за стеной — выглядывает: шаг на
+// 33–49 px (как у про) туда, откуда это место видно, смотрит туда и через 0,8 с возвращается (бой — движок; пока
+// видит врага — стоит). Тиммейты рядом (≤ POS.mateLookR), которым тоже есть откуда выглянуть на это место, пикают
+// вместе — «пикаем вместе» (двое-трое выходят разом, враг не разменяет одного за другим; так и из дыма). Якорь
+// (главное — выжить, PRO_PLAY 3) пикает только вместе с кем-то. Один звук — один пик: снова — на новые шаги.
+function posPeekCheck(b){
+  var K = b.know;
+  if(!K || b.pos.peek || posLed(b) || b._sawEnemy || b.pos.push || b.pos.cover || teamOf("CT").planState.type !== "default") return false;
+  var h = null;
+  for(var i = K.heard.length - 1; i >= 0 && tick - K.heard[i].tick <= TICK_HZ; i--){
+    var s = K.heard[i];
+    if((s.kind !== "steps" && s.kind !== "water") || s.tick <= (b.pos.peekSrc || -1)) continue;
+    if(crossesWall(b.x, b.y, s.x, s.y) || smokeBlocks(b.x, b.y, s.x, s.y)){ h = s; break; }
+  }
+  if(!h) return false;
+  b.pos.peekSrc = h.tick;
+  var p = posPeekPoint(b, h); if(!p) return false;
+  var go = [{b: b, p: p}];
+  bots.forEach(function(o){
+    if(o === b || o.team !== b.team || !o.alive || !o.pos || o.pos.peek || posLed(o) || o._sawEnemy || o.pos.push || o.pos.cover) return;
+    if(Math.hypot(o.x - b.x, o.y - b.y) > POS.mateLookR || Math.hypot(o.pos.tx - o.x, o.pos.ty - o.y) > POS.arrive) return;
+    var q = posPeekPoint(o, h); if(q) go.push({b: o, p: q});
+  });
+  if(/^anchor/.test(b.pos.slot) && go.length < 2) return false;
+  go.forEach(function(g){
+    g.b.pos.peek = {x: g.p.x, y: g.p.y, hx: h.x, hy: h.y, start: tick, back: null};
+    g.b.pos.peekSrc = h.tick;
+    g.b.walking = false;
+    g.b.path = buildWaypointPath(g.b.x, g.b.y, g.b.z, g.p.x, g.p.y, g.b.pos.tz); g.b.pathIdx = 0; g.b._pathBy = "pos";
+  });
+  var who = go.map(function(g){ return g.b.id; }).join(", ");
+  POS_LOG.push({tick: tick, round: roundNum, who: b.id, slot: b.pos.slot, pid: b.pos.cur, why: "пик по инфе: шаги " + knowZoneName(h.zone) + (go.length > 1 ? " — вместе: " + who : "")});
+  logEvent("Позиция: " + who + " — пик на шаги " + knowZoneName(h.zone) + (go.length > 1 ? " (вместе)" : ""), "info");
+  return true;
+}
+// откуда выглянуть: шаг POS.peekOut от себя, откуда место звука видно (без стены и дыма); ближайший
+function posPeekPoint(b, h){
+  var a0 = Math.atan2(h.y - b.y, h.x - b.x);
+  for(var i = 0; i < POS.peekOut.length; i++){
+    for(var k = 0; k <= 6; k++){
+      var a = a0 + (k % 2 ? 1 : -1)*Math.ceil(k/2)*Math.PI/6;   // к звуку, потом ±30°, ±60°, ±90°
+      var w = snapToWalkable(b.x + Math.cos(a)*POS.peekOut[i], b.y + Math.sin(a)*POS.peekOut[i]);
+      if(!w || crossesWall(b.x, b.y, w.x, w.y)) continue;
+      if(!crossesWall(w.x, w.y, h.x, h.y) && !smokeBlocks(w.x, w.y, h.x, h.y)) return w;
+    }
+  }
+  return null;
+}
+function posPeekTick(b){
+  var Q = b.pos.peek; if(!Q) return false;
+  if(posLed(b)){ b.pos.peek = null; return false; }
+  if(b._sawEnemy || tick - (b._lastSawT || -1e9) < TICK_HZ/4){ Q.saw = true; return true; }   // перестрелка — движок, стоит
+  var out = tick - Q.start;
+  if((!Q.saw && out >= POS.peekSec*TICK_HZ) || out >= POS.peekMax*TICK_HZ){
+    b.pos.peek = null;
+    b.walking = false; posPath(b);   // назад на свою точку (цель — прежняя b.pos.tx/ty)
+    POS_LOG.push({tick: tick, round: roundNum, who: b.id, slot: b.pos.slot, pid: b.pos.cur, why: "пик: " + (Q.saw ? "был контакт" : "никого") + " — назад"});
+    return true;
+  }
+  return true;
+}
 // ---------- после фрага / попадания — сменить место (v215) ----------
 function posAfterHit(b){
   var k = b.kills || 0, hp = b.hp;
@@ -3637,6 +3706,7 @@ function posAfterHit(b){
 function posLook(b){
   var w = (b.path.length && b.pathIdx < b.path.length) ? b.path[Math.min(b.pathIdx + 1, b.path.length - 1)] : null;
   if(w && Math.hypot(w[0]-b.x, w[1]-b.y) <= 4) w = null;
+  if(b.pos && b.pos.peek) return {x: b.pos.peek.hx, y: b.pos.peek.hy, why: "threat"};   // пик — туда, где слышал (v227)
   if(w){
     b._goDir = Math.atan2(w[1]-b.y, w[0]-b.x);
     return posAhead(b, b._goDir) || {x: w[0], y: w[1], why: "move"};
