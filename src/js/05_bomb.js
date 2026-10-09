@@ -8,7 +8,7 @@ var BOMB_KILL_RADIUS = 330;
 var DEFUSE_HEAR = 700; // px — звук дефуза
 var bomb = null;
 function resetBomb(){
-  // заглушка: бомба у первого T (кому её дать — решение команды, его пока нет)
+  // на время закупа — у первого T; кому её отдать, решает команда в начале раунда (tdefBomb, 12_t_default.js)
   var carrier = bots.filter(function(b){ return b.team==="T"; })[0];
   bomb = {state:"carried", carrier:carrier, x:carrier.x, y:carrier.y, site:null, plantTick:-1, explodeTick:-1};
   bots.forEach(function(b){ b.planting = false; b.defusing = false; });

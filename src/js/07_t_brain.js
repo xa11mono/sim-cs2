@@ -12,6 +12,7 @@
 //   плант           — пост-плант на сайте бомбы (сразу);
 //   потеря состава  — fallback: вместе на сайт плана (по киллфиду, его видят все);
 //   тайминг         — истёк startSec варианта: default → execute;
+//   пики            — пока default: нас больше на PLAN.pickLead (киллфид) — колл «выходим» сейчас;
 //   колл IGL        — пока default: IGL сам знает (своё b.know: видел + войс), что на сайте
 //                     плана стоят ≥ PLAN.infoN CT — колл «меняем на другой сайт», один за раунд.
 
@@ -89,6 +90,14 @@ function tBrainTick(){
   // колл IGL по сильной инфе: на сайте плана уже стоят ≥ infoN CT — идём на другой
   var igl = planIgl("T");
   if(T.callMade || !igl || !igl.alive) return;
+  // пики: в дефолте убили столько, что нас больше на PLAN.pickLead (киллфид видят все) — выходим сейчас,
+  // пока CT не перестроились (docs/PRO_PLAY.md 2.4: «после пиков — execute»)
+  if(sec >= PLAN.pickMinSec && us - them >= PLAN.pickLead){
+    teamCallPlan(igl, "есть пики, выходим " + s.site,
+                 {type: "execute", site: s.site, activeSetupId: s.id},
+                 "пики: живых " + us + " против " + them, tbLabel("execute", s));
+    return;
+  }
   var loc = planLocated(igl);
   if(loc[s.site] < PLAN.infoN) return;
   var other = s.site === "A" ? "B" : "A", list = tbWeights(other);

@@ -260,6 +260,7 @@ function stepTick(){
   teamTick();   // войс: кто что сказал команде, тиммейты узнают из договорённого (12_team.js)
   tBrainTick(); ctBrainTick();   // план команды: смена только по поводам BRAIN 5.4 (07_t_brain.js, 12_ct_brain.js)
   scriptTick(); // сценарий плана: шаги по dependsOn, каждый — когда его актёр сам узнал о событии (12_script_runner.js)
+  tDefaultTick(); // дефолт T: полосы, реакция на контакт, после execute — к выходу/на сайт (12_t_default.js)
   posTick();   // позиция: только по событиям — погиб свой, дым на угол, угроза на slot (11_position.js)
   bots.forEach(function(b){ if(b.alive) b.crouching = stubCrouch(b); });   // стойка — заглушка (12_stub.js)
   checkRoundEnd();

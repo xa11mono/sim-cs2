@@ -110,6 +110,8 @@ TGT_CELL, TGT_YAW = 16, 30  # клетка стоянок CT для целей: 
 WAY_FROM, WAY_TO = 70, 60  # ед. карты: бросок того же способа — откуда/куда ближе этого
 SNAP = 32               # тиков: снимок «где игрок в момент t» — ближайший тик не дальше этого
 ENTRY_R = 100           # ед. карты: T «зашёл на сайт» — ближе этого к центру мест планта
+DEF_SECS = tuple(range(5, 50, 5))   # с: снимки «где T» для дефолта
+DEF_WIN = (10, 35)      # с: окно дефолта — «главная зона» игрока — где он чаще всего на снимках этого окна
 LURK_MIN_SHARE = 0.1    # люркер (необязательный шаг) — если в 10 %+ раундов варианта кто-то на другой стороне
 
 
@@ -357,6 +359,8 @@ def load_rounds():
             r['ct20'] = snap(rows, r['t0'] + LAYOUT_SEC * TICK, 'CT')
             for side in ('CT', 'T'):   # где стороны на 4-й с — центры спавнов
                 SPAWN_PTS[side] += [(x_, y_) for _, x_, y_, _ in snap(rows, r['t0'] + 4 * TICK, side)]
+            # где T на 5, 10, … 45-й с (дефолт T: где команда до выхода; живые — мёртвых в выгрузке нет)
+            r['tsnap'] = {s_: snap(rows, r['t0'] + s_ * TICK, 'T') for s_ in DEF_SECS}
             if r['tplant']:
                 r['tlook'] = snap(rows, r['tplant'] - EXEC_LOOK * TICK, 'T')
                 r['tplant_at'] = snap(rows, r['tplant'] - 1, 'T')
@@ -929,6 +933,78 @@ def make_t_executes(R, H):
     return out, plants, stat
 
 
+# ---------------- T дефолт: где команда до выхода (шаг 7б, docs/PRO_PLAY.md 2.2) ----------------
+DEF_LANE_MIN = 0.07     # зона — «полоса» дефолта, если в ней в среднем хотя бы столько игроков на раунд
+DEF_SPOT_CELL = 40      # ед. карты: места внутри полосы — самые частые клетки снимков
+
+
+def make_t_defaults(R, groups_keys):
+    """для каждого варианта execute (сайт + маршрут): где T на снимках DEF_WIN — «главная зона»
+    каждого игрока (где чаще всего); полоса = зона: сколько игроков там в среднем (players), в какой
+    доле раундов там хоть кто-то (share), когда приходят (arrive — медиана первого снимка в ней),
+    где стоят/ходят (spots — до 3 частых мест), сторона карты (region). Состав в раунде разный —
+    игра тянет полосы по этим долям, а не одну расстановку"""
+    grp = defaultdict(list)
+    for r in R:
+        if r['site'] and r.get('tlook') and 'tsnap' in r:
+            grp[(r['site'], t_route(r))].append(r)
+    zc = {}
+
+    def zn(x, y, z):
+        k = (round(x), round(y), round(z))
+        if k not in zc:
+            zc[k] = zone_at(x, y, z)['name']
+        return zc[k]
+    out = {}
+    for key in groups_keys:
+        rr = grp.get(key, [])
+        n = len(rr)
+        if not n:
+            continue
+        exp, share, arr, pos = Counter(), Counter(), defaultdict(list), defaultdict(list)
+        for r in rr:
+            main, first, at = {}, {}, defaultdict(list)
+            for s_ in DEF_SECS:
+                for sid, x, y, z in r['tsnap'][s_]:
+                    name = zn(x, y, z)
+                    first.setdefault((sid, name), s_)
+                    if DEF_WIN[0] <= s_ <= DEF_WIN[1]:
+                        main.setdefault(sid, Counter())[name] += 1
+                        at[(sid, name)].append((x, y))
+            c = Counter()
+            for sid, v in main.items():
+                nm = v.most_common(1)[0][0]
+                c[nm] += 1
+                arr[nm].append(first[(sid, nm)])
+                pos[nm] += at[(sid, nm)]
+            for nm, k in c.items():
+                exp[nm] += k
+                share[nm] += 1
+        lanes = []
+        for nm, e in exp.most_common():
+            if e / n < DEF_LANE_MIN:
+                break
+            P = pos[nm]
+            mx, my = float(np.median([p[0] for p in P])), float(np.median([p[1] for p in P]))
+            cells = Counter((round(x / DEF_SPOT_CELL), round(y / DEF_SPOT_CELL)) for x, y in P)
+            spots = []
+            for (cx, cy), k in cells.most_common():
+                if len(spots) >= 3:
+                    break
+                inc = [p for p in P if (round(p[0] / DEF_SPOT_CELL), round(p[1] / DEF_SPOT_CELL)) == (cx, cy)]
+                sx, sy = float(np.median([p[0] for p in inc])), float(np.median([p[1] for p in inc]))
+                if any(math.hypot(sx - a, sy - b) < DEF_SPOT_CELL for a, b, _ in spots):
+                    continue
+                spots.append((sx, sy, k))
+            tot = sum(k for _, _, k in spots) or 1
+            lanes.append({'zone': nm, 'region': region_of(mx, my, nm), 'x': round(mx, 1), 'y': round(my, 1),
+                          'players': round(e / n, 2), 'share': round(share[nm] / n, 2),
+                          'arrive': float(np.median(arr[nm])),
+                          'spots': [[round(x, 1), round(y, 1), round(k / tot, 2)] for x, y, k in spots]})
+        out[key] = {'rounds': n, 'window': list(DEF_WIN), 'lanes': lanes}
+    return out
+
+
 # ---------------- запись ----------------
 def dump(path, head, lists):
     """каждый элемент списка — одной строкой (файл читается глазами и сравнивается в git)"""
@@ -977,6 +1053,9 @@ def main():
     late = [out(p) for p in sorted(LP, key=lambda p: (p['side'], p['id']))]
     ct_setups, nlay = make_ct_setups(R, H, P)
     t_exec, nplant, stat = make_t_executes(R, H)
+    tdef = make_t_defaults(R, [(e['site'], e['route']) for e in t_exec])
+    for e in t_exec:
+        e['default'] = tdef.get((e['site'], e['route']))
     # самопроверка: все ссылки ведут на существующие точки
     ids = {p['id'] for p in points}
     refs = [p['fallback'] for p in points if p['fallback']] + [q for p in points for q in p['pairs']] + \
@@ -1031,7 +1110,12 @@ def main():
                                            round(STEP_MIN_SHARE * 100), WAVE_GAP, round(FAKE_MIN_SHARE * 100), EXEC_LOOK),
         'Гранаты «себе» (флешка под свой выход, смок на себя под плант/дефуз, молотов в угол перед своим '
         'проходом — purpose в data/pro/pro_nades.csv, tools/lineups.py) в шаги не идут: это решения игрока, '
-        'не сценарий. selfNades — сколько их среди гранат T за %d с до планта.' % EXEC_WIN],
+        'не сценарий. selfNades — сколько их среди гранат T за %d с до планта.' % EXEC_WIN,
+        'T default (шаг 7б) — где команда до выхода в раундах этого варианта: снимки живых T каждые 5 с; '
+        '«главная зона» игрока — где он чаще всего на %d–%d-й с; полоса (lanes) — такая зона, если в ней в среднем '
+        'хотя бы %.2f игрока: players — сколько в среднем, share — в какой доле раундов там хоть кто-то, arrive — '
+        'типичная секунда, когда приходят, region — сторона карты, spots — до 3 частых мест [x, y, доля]. Состав '
+        'от раунда к раунду разный — это доли, а не одна расстановка.' % (DEF_WIN[0], DEF_WIN[1], DEF_LANE_MIN)],
         'map': 'ancient', 'selfNades': stat['selfKinds']},
         {'ct': ct_setups, 't': t_exec})
     if '--report' in sys.argv:

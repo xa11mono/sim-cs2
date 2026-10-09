@@ -3,9 +3,9 @@
 // Сценарий — Setup из setups.json: сейчас T-execute; ретейк CT (шаг 8, 08_retake.js) подключит
 // свой Setup в scrStart тем же исполнителем. Исполнитель от стороны не зависит.
 //
-// До execute (план default — контроль карты, П11) актёры сценария выходят на свои точки: бросающие — на
-// точку лайнапа и ждут, энтри и носитель стоят, где стоят (точки сбора в данных нет). Сценарий выбран
-// во freeze; сменил IGL — актёры расставляются заново.
+// До execute (план default) команда играет дефолт (12_t_default.js); бросающие уходят к своему лайнапу
+// заранее, чтобы успеть к контрольному таймингу (scrTimeToGo), и ждут там. Пока бота ведёт исполнитель
+// (b._scrT = тик), дефолт его не трогает. Сценарий выбран во freeze; сменил IGL — заново.
 // Старт: план команды стал execute (teamSetPlan, 07_t_brain.js) — это dependsOn.trigger =
 // execute_start; его знают все (план команды — общее знание). Дальше у каждого шага свой актёр:
 //   throw_smoke / throw_flash / throw_molly — бот с такой гранатой занимает точку броска ЗАРАНЕЕ
@@ -40,6 +40,7 @@ var SCR = {
   lineupR:  120,   // px: лайнап из lineups_pro подходит шагу, если его to не дальше от цели шага
   arriveR:  30,    // на точке броска (двое на одном лайнапе стоят рядом; разброс броска всё равно 90)
   repath:   32,    // тиков: движок сбросил путь — снова к той же точке не чаще
+  lead:     3,     // с: бросающий приходит к лайнапу за столько до контрольного тайминга
   stuckT:   192,   // тиков (3 с): если за это время до цели не стало ближе хотя бы на stuckPx — застрял, шаг снимается
   stuckPx:  8
 };
@@ -326,15 +327,26 @@ function scrStuck(S, d){
 }
 function scrGo(S, tx, ty){
   var b = S.bot;
-  if(b.path.length > 0 && b.pathIdx < b.path.length) return;
-  if(S.pathT !== undefined && tick - S.pathT < SCR.repath) return;
-  S.pathT = tick;
+  b._scrT = tick; b.walking = false;   // ведёт исполнитель (дефолт T этого бота не трогает), бегом
+  if(b._pathBy === "scr" && b.path.length > 0 && b.pathIdx < b.path.length) return;
+  if(b._pathBy === "scr" && S.pathT !== undefined && tick - S.pathT < SCR.repath) return;
+  S.pathT = tick; b._pathBy = "scr";
   b.path = buildWaypointPath(b.x, b.y, b.z || 0, tx, ty, 0); b.pathIdx = 0;
+}
+// бросающий выходит к лайнапу заранее — так, чтобы успеть к контрольному таймингу (дорога ×1,35 к
+// прямой + SCR.lead); IGL позвал выход раньше — идёт сразу. До этого он в дефолте (12_t_default.js)
+function scrTimeToGo(R, S){
+  if(R.started) return true;
+  var b = S.bot, f = S.pick.from;
+  var due = roundStartTick + Math.round(R.setup.timing.startSec*TICK_HZ);
+  var travel = Math.hypot(b.x - f.x, b.y - f.y)*1.35/SPEED*TICK_HZ + SCR.lead*TICK_HZ;
+  return tick >= due - travel;
 }
 
 function scrThrow(R, S){
   var b = S.bot;
   if(!scrActive(R, S)) return;
+  if(!scrTimeToGo(R, S)) return;                   // ещё рано — играет дефолт
   var released = R.started && scrRelease(R, S);   // до execute — только занять точку броска
   if(scrTerminal(S)) return;
   var f = S.pick.from;
@@ -344,6 +356,7 @@ function scrThrow(R, S){
     scrGo(S, f.x, f.y);
     return;
   }
+  b._scrT = tick;   // стоит на лайнапе — это исполнитель
   if(S.arrived === undefined){ S.arrived = tick; scrLog(R, S, "на точке", S.pick.src + (released ? "" : ", ждёт сигнала")); }
   if(!released) return;
   if(tick < (b.throwUntil || 0) || tick < (b.blindUntil || 0)) return;
