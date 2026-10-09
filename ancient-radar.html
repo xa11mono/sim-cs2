@@ -6353,7 +6353,12 @@ function stepTick(){
     // присев — 34 % скорости бега (CS2), шаг — 50 %
     var runSpeed = (bot.crouching ? SPEED*CROUCH_SPEED_FRAC : (bot.walking ? SPEED*WALK_SPEED_FRAC : SPEED)) * weaponSpeedMul(bot);
     var hasPath = bot.path.length > 0 && bot.pathIdx < bot.path.length;
-    var targetSpeed = (!hasPath || bot.planting || bot.defusing || tick < (bot.throwUntil||0) || tick < (bot._nadeWait||0)) ? 0 : runSpeed;   // _nadeWait — ждёт свою гранату «себе» (13_nades.js)
+    // контрстрейф (v216, аудит п. 8; docs/PRO_PLAY.md 6а): с винтовкой/AWP на ходу не попасть — видит врага,
+    // в которого будет стрелять, — гасит скорость и стреляет; путь не сбрасывается, враг пропал — идёт дальше.
+    // ПП, пистолеты, дробовики (move < 60) стреляют на ходу
+    var foeInSight = bot._sawEnemy && bot.weapon && bot.weapon.move >= 60;
+    var targetSpeed = (!hasPath || bot.planting || bot.defusing || tick < (bot.throwUntil||0) || tick < (bot._nadeWait||0) || foeInSight) ? 0 : runSpeed;   // _nadeWait — ждёт свою гранату «себе» (13_nades.js)
+    if(foeInSight){ bot._progTick = tick; bot.stuckTicks = 0; }   // стоит в перестрелке — это не «застрял»   // _nadeWait — ждёт свою гранату «себе» (13_nades.js)
     if(hasPath){
       var finalWp = bot.path[bot.path.length-1];
       var dFinal = Math.hypot(finalWp[0]-bot.baseX, finalWp[1]-bot.baseY);

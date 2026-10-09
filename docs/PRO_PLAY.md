@@ -175,6 +175,13 @@
   появления (угол slot'а, префайр по гипотезе) или это неожиданный контакт. Восприятие
   есть всегда, у подготовленного нет только доводки и разворота.
 
+## 6а-2. Контрстрейф и преимущество выглянувшего (09.10, аудит п. 8)
+- Выше небольшой скорости у каждого выстрела — случайный разброс; отпустил клавишу — ещё скользишь, и выстрелы
+  в это время тоже неточные. Контрстрейф гасит инерцию «за долю секунды»; лучшие выходят широко на скорости и
+  сразу гасят её, чтобы стрелять, как только враг на экране [24]. Чисел (мс, порог скорости) в источнике нет.
+- Выглянувший видит держащего раньше, чем тот его (сервер отдаёт приоритет выходящему, пинг) — «меньше секунды»,
+  точного числа нет. Держащему помогает off-angle и стоять дальше от угла [25].
+
 ## 6б. Где бомба — как CT её находят (09.10, аудит п. 1)
 - Бомба пищит и мигает, чем ближе взрыв — тем чаще; игроки ищут её и врагов по писку и звуку дефуза [21].
 - Насколько далеко слышно писк, и видна ли заложенная бомба на радаре CT, — в найденных источниках нет.
@@ -224,3 +231,5 @@
 21. [Counter-Strike C4 Guide: Placement, Defusal, and Tactics — Strafe](https://www.strafe.com/news/read/counter-strike-c4-guide-placement-defusal-and-tactics/)
 22. [Hold the line: 5 tips to improve your afterplant play in CS2 — Refrag](https://refrag.gg/blog/hold-the-line-5-tips-to-improve-your-afterplant-play-in-cs2)
 23. [Bomb in CS:GO. Complete guide — SCOPE.GG](https://scope.gg/guides/bomb_complete_guide_en/)
+24. [Counter-Strafing in CS2: Why Your Shots Miss and How to Fix It — metabot.gg](https://metabot.gg/en/cs2/guides/cs2-counter-strafing-movement-accuracy)
+25. [What is peeker's advantage in CS2? — GGRecon](https://www.ggrecon.com/guides/cs2-peekers-advantage/)
