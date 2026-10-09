@@ -1,7 +1,9 @@
 // ======================= ИСПОЛНИТЕЛЬ СЦЕНАРИЕВ: steps / dependsOn (шаг 7) =======================
 // Одно место на «как команда исполняет сценарий» (docs/BRAIN.md 5.1; шаг 7 PROMPTS.md).
-// Сценарий — Setup из setups.json: сейчас T-execute; ретейк CT (шаг 8, 08_retake.js) подключит
-// свой Setup в scrStart тем же исполнителем. Исполнитель от стороны не зависит.
+// Сценарий — T-execute из setups.json или ретейк CT (RetakeSetup, 08_retake.js; шаг 8): scrSetupFor.
+// Исполнитель от стороны не зависит. У ретейка свои условие шага (teamGatheredAt — команда собралась,
+// считает 08_retake.js) и действие (defuse — дефузер идёт к бомбе и дефузит); сбор, «следом за
+// энтри» и отказ от ретейка — 08_retake.js.
 //
 // До execute (план default) команда играет дефолт (12_t_default.js); бросающие уходят к своему лайнапу
 // заранее, чтобы успеть к контрольному таймингу (scrTimeToGo), и ждут там. Пока бота ведёт исполнитель
@@ -51,14 +53,15 @@ var SCR_LOG = [];
 function scriptRoundStart(){
   SCR_S = {};
   if(roundNum === 1) SCR_LOG.length = 0;
-  bots.forEach(function(b){ b.pushTick = undefined; b.pushSite = undefined; });
+  bots.forEach(function(b){ b.pushTick = undefined; b.pushSite = undefined; b._rtSafe = undefined; b._rtLook = undefined; b._rtHold = undefined; b._rtVia = undefined; });
   scrBuyUtility("T");
+  scrBuyUtility("CT");   // под ретейк: сайт ещё неизвестен — гранаты на любой
 }
 // Заплатка: что брать — по шагам выбранного сценария, на деньги после винтовки и брони; гранату
 // получает тот, у кого их меньше, при равенстве — у кого больше денег; будущий энтри и lurker — в
 // последнюю очередь / никогда (энтри ждёт на входе, lurker не в сценарии).
 function scrBuyUtility(side){
-  var P = teamOf(side).planState, setup = side === "T" ? tbSetup(P.activeSetupId) : null;
+  var P = teamOf(side).planState, setup = side === "T" ? tbSetup(P.activeSetupId) : rtUtilityPlan();
   if(!setup) return;
   var pool = bots.filter(function(b){ return b.team === side && b.alive && b.role !== "lurker"; }), got = {};
   var entry = scrPickEntry(side, null);   // ему входить — гранаты ему в последнюю очередь
@@ -79,22 +82,29 @@ function scrBuyUtility(side){
 // ---------- раз в тик (17_tick.js, после tBrainTick) ----------
 function scriptTick(){
   if(roundState !== "live") return;
-  scrSide("T");   // CT: ретейк — шаг 8
+  scrSide("T");
+  scrSide("CT");
+  rtTick();       // ретейк: сбор, остальные — следом за энтри, сейв (08_retake.js)
+}
+// сценарий плана: T — execute-вариант (на default — подготовка к нему), CT — ретейк сайта бомбы
+function scrSetupFor(side, P){
+  if(side === "T") return (P.type === "default" || P.type === "execute") && P.activeSetupId ? tbSetup(P.activeSetupId) : null;
+  return P.type === "retake" && P.site ? rtSetup(P.site) : null;
 }
 function scrSide(side){
   var P = teamOf(side).planState, R = SCR_S[side];
   if(R && R.start !== null && R.start > tick) R = SCR_S[side] = null;   // тик пошёл назад — матч заново
-  var staging = P.type === "default" || P.type === "execute";
-  if(R && !R.over && !R.started && R.setup.id !== P.activeSetupId){   // IGL сменил сценарий до выхода — заново
+  var want = scrSetupFor(side, P);
+  if(R && !R.over && !R.started && want && R.setup !== want){   // IGL сменил сценарий до выхода — заново
     scrEnd(R, "IGL сменил сценарий"); R = SCR_S[side] = null;
   }
   if(!R){
-    if(!staging || !P.activeSetupId) return;
-    R = SCR_S[side] = scrStart(side, P);
+    if(!want) return;
+    R = SCR_S[side] = scrStart(side, P, want);
     if(!R) return;
   }
   if(R.over) return;
-  if(!staging){ scrEnd(R, "план сменился: " + P.type); return; }
+  if(!want){ scrEnd(R, "план сменился: " + P.type); return; }
   // default (контроль карты): актёры занимают позиции под свой сценарий; execute — сценарий пошёл
   if(!R.started && P.type === "execute"){ R.started = true; R.start = P.declaredAt; scrLog(R, null, "execute", "сценарий пошёл (план execute)"); }
   R.steps.forEach(function(S){ scrStep(R, S); });
@@ -103,13 +113,13 @@ function scrSide(side){
 function scrTerminal(S){ return S.state === "done" || S.state === "drop" || S.state === "skip"; }
 
 // ---------- старт: шаги, зависимости, актёры ----------
-function scrStart(side, P){
-  var setup = side === "T" ? tbSetup(P.activeSetupId) : null;
+function scrStart(side, P, setup){
   if(!setup) return null;
-  var R = {side: side, setup: setup, started: P.type === "execute", start: P.type === "execute" ? P.declaredAt : null, steps: [], entry: null, over: false};
+  var go = P.type === "execute" || P.type === "retake";   // ретейк начинается сразу (сбор — его первый этап)
+  var R = {side: side, setup: setup, started: go, start: go ? P.declaredAt : null, steps: [], entry: null, over: false};
   setup.steps.forEach(function(st, i){
     var m = /^throw_(smoke|flash|molly|he)$/.exec(st.action);
-    var S = {i: i, st: st, actor: st.actor, kind: m ? "throw" : st.action === "push" ? "push" : st.action === "plant" ? "plant" : "skip",
+    var S = {i: i, st: st, actor: st.actor, kind: m ? "throw" : /^(push|plant|defuse)$/.test(st.action) ? st.action : "skip",
              ntype: m ? m[1] : null, at: st.at || null, zone: st.at ? knowZoneAt(st.at[0], st.at[1]) : null,
              state: "wait", bot: null, dep: null, rel: null, opts: [], pick: null};
     R.steps.push(S);
@@ -119,6 +129,7 @@ function scrStart(side, P){
     var dd = S.st.dependsOn || {};
     var on = dd.afterSmokeLands || dd.afterFlashPop || dd.afterPrev || dd.afterEntryCommitted;
     if(dd.trigger === "execute_start") S.dep = {kind: "start"};
+    else if(dd.teamGatheredAt) S.dep = {kind: "gather"};
     else if(on) S.dep = {kind: "event", on: on, step: byActor(on), pauseTicks: Math.round((dd.pauseSec || 0)*TICK_HZ), maxDelay: dd.maxDelayTicks || SCR.baseWait};
   });
   R.steps.forEach(function(S){
@@ -131,6 +142,11 @@ function scrStart(side, P){
       if(bomb && bomb.state === "carried" && bomb.carrier && bomb.carrier.alive) S.bot = bomb.carrier;
       else { S.state = "drop"; S.why = "бомбы нет у живого"; }
     }
+  });
+  R.steps.forEach(function(S){   // дефузер — когда энтри уже выбран (08_retake.js)
+    if(S.kind !== "defuse" || S.state !== "wait") return;
+    S.bot = bomb && bomb.state === "planted" ? rtPickDefuser(R, null) : null;
+    if(!S.bot){ S.state = "drop"; S.why = "дефузить некому"; }
   });
   scrAssignThrowers(R);
   var lines = R.steps.map(function(S){
@@ -155,6 +171,7 @@ function scrAssignThrowers(R){
     pool.forEach(function(b){
       if(inv[b.id][S.ntype] <= 0) return;
       var o = scrNearestFrom(S.opts, last[b.id]); if(!o) return;
+      if(R.setup.gather && rtViaSite(b, o.from.x, o.from.y, R.setup.site)) return;   // ретейк: к точке броска не через сайт
       any = true;
       var c0 = cum[b.id], l0 = last[b.id];
       cum[b.id] = c0 + Math.hypot(l0.x - o.from.x, l0.y - o.from.y); last[b.id] = o.from; inv[b.id][S.ntype]--;
@@ -180,15 +197,16 @@ function scrWaitK(b){ return (RoleProfile[b.role] || {}).waitK || 1; }
 
 // способы бросить «закрыть цель»: лайнапы про (to рядом с целью), иначе точки самого шага
 function scrOptions(R, S){
-  var out = [];
+  var out = [], G = R.setup.gather;   // ретейк: бросают от точки сбора, вперёд по одному не уходят
   proLineups().forEach(function(L){
     if(L.team !== R.side || L.type !== S.ntype) return;
     if(L.site && L.site !== "any" && L.site !== R.setup.site) return;
     if(Math.hypot(L.to.x - S.at[0], L.to.y - S.at[1]) > SCR.lineupR) return;
+    if(G && Math.hypot(L.from.x - G.at[0], L.from.y - G.at[1]) > RETAKE.fromR) return;
     out.push({from: {x: L.from.x, y: L.from.y}, to: {x: L.to.x, y: L.to.y}, src: "lineups_pro " + L.id});
   });
   if(!out.length) (S.st.ways || []).forEach(function(w){
-    out.push({from: {x: w.from[0], y: w.from[1]}, to: {x: w.to[0], y: w.to[1]}, src: "setups.json ways n=" + w.n});
+    out.push({from: {x: w.from[0], y: w.from[1]}, to: {x: w.to[0], y: w.to[1]}, src: (G ? "08_retake.js" : "setups.json") + " ways n=" + w.n});
   });
   return out;
 }
@@ -210,6 +228,7 @@ function scrChooseThrower(R, S, exclude){
     if(b.team !== R.side || !b.alive || b === exclude || b.role === "lurker") return;
     if(scrFree(R, b, S.ntype, S) <= 0) return;
     var pick = scrNearest(S.opts, b); if(!pick) return;
+    if(R.setup.gather && rtViaSite(b, pick.from.x, pick.from.y, R.setup.site)) return;
     var load = 0; R.steps.forEach(function(o){ if(o !== S && o.bot === b && o.state === "wait" && (o.kind === "throw" || o.kind === "plant")) load++; });
     // ближе точка — лучше; каждый уже закреплённый за ботом шаг — как ещё 700 px пути (шаги бота идут по очереди);
     // энтри — только если больше некому
@@ -256,6 +275,10 @@ function scrHow(e, D){
 function scrCue(R, S){
   var b = S.bot, d = S.dep;
   if(d.kind === "start") return {ok: true, how: "старт сценария (план execute)"};
+  // ретейк: до сбора не начинается ни один шаг, даже чей источник уже снят (поодиночке не лезут);
+  // сбор видят сами — стоят вместе у точки (08_retake.js, rtGather)
+  if(R.setup.gather && R.gatheredT === undefined) return {};
+  if(d.kind === "gather") return {ok: true, how: "собрались: " + R.gatherN + " у " + R.setup.gather.area};
   var D = d.step;
   if(!D) return {drop: "нет шага «" + d.on + "»"};
   if(D.state === "drop"){   // источник не состоялся: гранаты/вход идут без него, а ставить без входа энтри нельзя
@@ -269,10 +292,16 @@ function scrCue(R, S){
   }
   var arm = S.kind === "throw" ? S.arrived : S.activeT;   // занял позицию / освободился от своих прежних шагов
   if(arm === undefined) return {};
+  if(R.setup.gather){   // ретейк: бросающий ещё идёт на точку — ждут его (он говорит), пока позволяет таймер бомбы
+    if(rtHurry(R)) return {ok: true, timeout: true, how: "ТАЙМАУТ: до взрыва мало — идём без «" + D.actor + "»"};
+    if(D.state === "wait" && (D.kind !== "throw" || D.arrived === undefined)) return {};   // источник ещё не начал
+    arm = Math.max(arm, D.arrived || 0);
+  }
   // вход и плант ждут, пока сценарий хоть где-то пошёл (актёр узнал хоть одно событие): стоят они где
   // стоят, и «тишина» до первого разрыва — это дорога остальных до их точек, а не сбой
-  if(S.kind !== "throw" && knowEvents(b, "smoke", R.start).concat(knowEvents(b, "flash", R.start), knowEvents(b, "molly", R.start), knowEvents(b, "he", R.start)).length === 0) return {};
-  var cap = Math.round(d.maxDelay * scrWaitK(b)), anchor = Math.max(knowLastEvent(b, R.start), arm);
+  // (у ретейка «сценарий пошёл» — момент сбора: от него и отсчёт)
+  if(S.kind !== "throw" && !R.setup.gather && knowEvents(b, "smoke", R.start).concat(knowEvents(b, "flash", R.start), knowEvents(b, "molly", R.start), knowEvents(b, "he", R.start)).length === 0) return {};
+  var cap = Math.round(d.maxDelay * scrWaitK(b)), anchor = Math.max(knowLastEvent(b, R.start), arm, R.gatheredT || 0);
   if(tick >= anchor + d.pauseTicks + cap)
     return {ok: true, timeout: true, how: "ТАЙМАУТ: сигнала «" + D.actor + "» нет " + (tick - anchor) + " тиков (предел " + cap + ")"};
   return {};
@@ -300,9 +329,17 @@ function scrStep(R, S){
   if(S.kind === "throw") scrThrow(R, S);
   else if(S.kind === "push") scrPush(R, S);
   else if(S.kind === "plant") scrPlant(R, S);
+  else if(S.kind === "defuse") scrDefuse(R, S);
 }
 function scrReplace(R, S){
   var was = S.bot.id;
+  if(S.kind === "defuse"){   // дефуз доделает любой живой: сигнал уже был — идёт сразу
+    var nd = bomb && bomb.state === "planted" ? rtPickDefuser(R, S.bot) : null;
+    if(!nd){ scrDrop(R, S, "дефузер " + was + " погиб, дефузить некому"); return; }
+    S.bot = nd; S.bestD = undefined; S.pathT = undefined; S.activeT = undefined;
+    scrLog(R, S, "замена", was + " погиб → " + nd.id);
+    return;
+  }
   if(S.state === "go"){   // уже вошёл / пошёл ставить — погиб на деле, заменять нечем
     if(S.kind === "push"){ S.state = "done"; scrLog(R, S, "погиб на входе", ""); }
     else scrDrop(R, S, "носитель погиб");
@@ -320,9 +357,11 @@ function scrReplace(R, S){
   S.rel = null; S.bestD = undefined; S.pathT = undefined; S.arrived = undefined; S.activeT = undefined;
   scrLog(R, S, "замена", was + " погиб → " + S.bot.id);
 }
-// застрял? — ближе к цели не становится (путь не строится / бот упёрся)
+// застрял? — ближе к цели не становится и сам не двигается (путь не строится / бот упёрся);
+// обход стены, когда по прямой сначала дальше, — не застрял: он идёт
 function scrStuck(S, d){
-  if(S.bestD === undefined || d < S.bestD - SCR.stuckPx){ S.bestD = d; S.bestT = tick; return false; }
+  var b = S.bot, moved = S.bestX !== undefined && Math.hypot(b.x - S.bestX, b.y - S.bestY) > SCR.stuckPx;
+  if(S.bestD === undefined || d < S.bestD - SCR.stuckPx || moved){ S.bestD = Math.min(d, S.bestD === undefined ? d : S.bestD); S.bestT = tick; S.bestX = b.x; S.bestY = b.y; return false; }
   return tick - S.bestT > SCR.stuckT;
 }
 function scrGo(S, tx, ty){
@@ -403,6 +442,33 @@ function scrPlant(R, S){
   }
   if(scrStuck(S, Math.hypot(b.x - site.x, b.y - site.y))){ scrDrop(R, S, "застрял на пути к сайту"); return; }
   scrGo(S, site.x, site.y);
+}
+
+// дефуз (ретейк): дефузер ждёт входа энтри (свой сигнал), идёт к бомбе и дефузит; пока дефузит —
+// его ведёт исполнитель (стоит). Обезвредил — раунд кончается сам (05_bomb.js)
+function scrDefuse(R, S){
+  var b = S.bot;
+  if(!bomb || bomb.state !== "planted"){
+    if(bomb && bomb.state === "defused") S.state = "done"; else scrDrop(R, S, "бомбы нет");
+    return;
+  }
+  if(S.state === "wait"){
+    if(!scrActive(R, S)) return;
+    if(S.activeT === undefined) S.activeT = tick;
+    if(!scrRelease(R, S)) return;
+    if(scrTerminal(S)) return;
+    S.state = "go";
+    scrLog(R, S, "идёт дефузить", S.rel.how);
+  }
+  b._scrT = tick; b._rtLook = [bomb.x, bomb.y];
+  if(b.defusing) return;
+  var d = Math.hypot(b.baseX - bomb.x, b.baseY - bomb.y);
+  if(d <= 40){
+    if(bombStartDefuse(b)) scrLog(R, S, "дефузит", b.kit ? "с китом" : "без кита");
+    return;
+  }
+  if(scrStuck(S, d)){ scrDrop(R, S, "застрял на пути к бомбе"); return; }
+  scrGo(S, bomb.x, bomb.y);
 }
 
 function scrDrop(R, S, why){

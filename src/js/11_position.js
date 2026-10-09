@@ -221,8 +221,10 @@ function posGo(b, why){
 }
 function posPath(b){
   b.pos.pathT = tick;
-  b.path = buildWaypointPath(b.x, b.y, b.z, b.pos.tx, b.pos.ty, b.pos.tz); b.pathIdx = 0;
+  if(posLed(b)) return;   // ведёт сценарий (ретейк/сейв, 08_retake.js) — путь его
+  b.path = buildWaypointPath(b.x, b.y, b.z, b.pos.tx, b.pos.ty, b.pos.tz); b.pathIdx = 0; b._pathBy = "pos";
 }
+function posLed(b){ return b._scrT !== undefined && tick - b._scrT <= 1; }
 
 // ---------- события ----------
 function posRoundStart(){
@@ -298,6 +300,7 @@ function posLook(b){
     var w = b.path[Math.min(b.pathIdx + 1, b.path.length - 1)];
     if(Math.hypot(w[0]-b.x, w[1]-b.y) > 4) return {x: w[0], y: w[1], why: "move"};
   }
+  if(b._rtLook && posLed(b)) return {x: b._rtLook[0], y: b._rtLook[1], why: "retake"};   // стоит в ретейке/сейве
   var P = POS_PT[b.pos.cur];
   if(!b.pos.threat) return {x: P.angle.x, y: P.angle.y, why: b.pos.fb ? "fallback" : "angle"};
   // угроза — взгляд на неё, но не шире yawRange точки (в игре yaw против часовой, на радаре y вниз)

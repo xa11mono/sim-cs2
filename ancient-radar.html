@@ -1681,6 +1681,258 @@ function tBrainTick(){
                "сильная инфа: " + loc[s.site] + " CT на " + s.site + " (" + planLocatedWhy(igl, s.site) + ")",
                tbLabel("default", best.s));
 }
+// ======================= РЕТЕЙК CT: СБОР, ОТКАЗ, ВХОД, СЕЙВ (шаг 8) =======================
+// Одно место на «как CT отбивают заложенную бомбу» (docs/BRAIN.md 5.2; шаг 8 PROMPTS.md).
+// Сценарий — RetakeSetup ниже; его шаги (утилита, вход, дефуз) исполняет общий исполнитель
+// 12_script_runner.js: scrStart берёт rtSetup(site), когда план CT — retake и сайт известен.
+// Здесь — то, чего у T-execute нет:
+//   gather  — точка сбора у сайта. Шаги с dependsOn.teamGatheredAt ждут, пока у точки соберутся
+//             ≥ minPlayers живых (и ещё до waitForTicks тиков — тех, кто подбегает; собрались все — сразу).
+//             Поодиночке не лезут: всех CT, кого сейчас не ведёт шаг сценария, rtTick ведёт к точке
+//             сбора, а когда энтри пошёл на сайт — следом за ним (размен).
+//   abortIf — rtAbortWhy, до того как энтри пошёл (ретейк не начинают, начатый не бросают):
+//             живых меньше teamAliveBelow; по таймеру бомбы (знают все) не успеть дойти + утилита +
+//             дефуз; или ретейк невыгоден: нас меньше, кита нет, утилиты мало, а у живых оружие,
+//             которое жалко отдать (docs/PRO_PLAY.md, «Ретейк / сейв»). Считать — здесь;
+//             решает IGL — 12_ct_brain.js (план save через teamSetPlan).
+//   save    — rtSave: живые CT уходят подальше от бомбы (дальше RETAKE.safeR от сайта) и от врагов,
+//             о которых знают, — сохранить оружие на следующий раунд.
+// Кого ведёт ретейк — b._scrT = тик (как у исполнителя): позиции CT (11_position.js) его не трогают.
+// Заплатка: точки сбора и цели гранат — руками по зонам карты и CT-лайнапам про (их from — у точки
+// сбора); в демках ретейк пока не размечен (это работа tools/positions_bake.py).
+
+var RETAKE = {
+  gatherR:   170,   // px: «у точки сбора»
+  fromR:     170,   // px: лайнап годится ретейку, если бросают от точки сбора, а не уходят одни вперёд
+  arriveR:   30,    // px: дошёл до своей точки
+  utilSec:   2,     // с: утилита перед входом (бросок + разрыв флешки)
+  marginSec: 2,     // с: запас на бой на входе
+  hurrySec:  3,     // с: запаса меньше — энтри больше не ждёт утилиту, идёт
+  checkEvery: 16,   // тиков: как часто IGL пересчитывает «успеваем ли / выгодно ли»
+  utilMin:   2,     // гранат у живых меньше — «утилиты мало»
+  saveWorth: 2700,  // $: оружие живых, которое жалко отдать (от цены винтовки)
+  safeR:     500,   // px: сейв — не ближе к сайту с бомбой (радиус взрыва BOMB_KILL_RADIUS 330 + запас)
+  enemyR:    350,   // px: сейв — не ближе к врагу, о котором знает сам бот
+  enemyW:    0.4    // вес гипотезы врага, с которого её обходят
+};
+
+var RETAKE_SETUPS = [
+  {id: "retake_A_ancient", side: "CT", site: "A",
+   gather: {area: "CT Lane", at: [830, 420], minPlayers: 2, waitForTicks: 40},
+   steps: [
+     {actor: "util_1", action: "throw_smoke", target: "Long — закрыть вид на бомбу", at: [350, 715],
+      condition: "cutOffPlantSightline", dependsOn: {teamGatheredAt: "gather"}, ways: [{from: [826, 418], to: [349, 715], n: 0}]},
+     {actor: "util_2", action: "throw_flash", target: "над сайтом A", at: [650, 510],
+      dependsOn: {teamGatheredAt: "gather"}, ways: [{from: [830, 420], to: [650, 510], n: 0}]},
+     {actor: "entry", action: "push", target: "A", dependsOn: {afterFlashPop: "util_2"}},
+     {actor: "defuser", action: "defuse", target: "A", dependsOn: {afterEntryCommitted: "entry"}},
+     {actor: "defuser_cover", action: "hold_angle", target: "rotationPathFromMid"}
+   ],
+   abortIf: {teamAliveBelow: 2}},
+  {id: "retake_B_ancient", side: "CT", site: "B",
+   gather: {area: "Second Lane", at: [1450, 690], minPlayers: 2, waitForTicks: 40},
+   steps: [
+     {actor: "util_1", action: "throw_smoke", target: "Ramp — закрыть вид на бомбу", at: [1680, 995],
+      condition: "cutOffPlantSightline", dependsOn: {teamGatheredAt: "gather"}, ways: [{from: [1453, 680], to: [1680, 995], n: 0}]},
+     {actor: "util_2", action: "throw_flash", target: "над сайтом B", at: [1530, 800],
+      dependsOn: {teamGatheredAt: "gather"}, ways: [{from: [1450, 690], to: [1530, 800], n: 0}]},
+     {actor: "entry", action: "push", target: "B", dependsOn: {afterFlashPop: "util_2"}},
+     {actor: "defuser", action: "defuse", target: "B", dependsOn: {afterEntryCommitted: "entry"}},
+     {actor: "defuser_cover", action: "hold_angle", target: "rotationPathFromMid"}
+   ],
+   abortIf: {teamAliveBelow: 2}}
+];
+
+function rtSetup(site){
+  for(var i = 0; i < RETAKE_SETUPS.length; i++) if(RETAKE_SETUPS[i].site === site) return RETAKE_SETUPS[i];
+  return null;
+}
+// гранаты под ретейк, пока сайт неизвестен (закуп во freeze, scrBuyUtility): по каждому типу —
+// сколько нужно самому «жадному» сценарию
+function rtUtilityPlan(){
+  var need = {};
+  RETAKE_SETUPS.forEach(function(s){
+    var n = {};
+    s.steps.forEach(function(st){ var m = /^throw_(\w+)$/.exec(st.action); if(m) n[m[1]] = (n[m[1]] || 0) + 1; });
+    for(var t in n) need[t] = Math.max(need[t] || 0, n[t]);
+  });
+  var steps = [];
+  for(var t in need) for(var i = 0; i < need[t]; i++) steps.push({action: "throw_" + t});
+  return {id: "ретейк (сайт пока неизвестен)", steps: steps};
+}
+function rtAlive(side){ return bots.filter(function(b){ return b.team === side && b.alive; }); }
+function rtPathLen(ax, ay, bx, by){
+  var p = buildWaypointPath(ax, ay, 0, bx, by, 0);
+  if(!p || !p.length) return Math.hypot(bx - ax, by - ay)*1.35;
+  var L = 0, x = ax, y = ay;
+  p.forEach(function(w){ L += Math.hypot(w[0] - x, w[1] - y); x = w[0]; y = w[1]; });
+  return L;
+}
+function rtSec(t){ return (t/TICK_HZ).toFixed(1); }
+// энтри уже пошёл на сайт — ретейк начат, отказа нет
+function rtCommitted(R){
+  return !!R && R.steps.some(function(S){ return S.kind === "push" && (S.state === "go" || S.state === "done"); });
+}
+
+// ---------- abortIf: почему ретейк не начинать (null — начинать) ----------
+// Знание IGL: сколько живых с каждой стороны (видно всем), таймер бомбы (считают все), что у своих
+// в руках (свои говорят), где бомба — сайт (знает IGL / сказали).
+function rtAbortWhy(site){
+  var us = rtAlive("CT"), them = rtAlive("T").length, S = rtSetup(site);
+  var below = S ? S.abortIf.teamAliveBelow : 2;
+  if(us.length < below) return "живых " + us.length + " (нужно ≥ " + below + ")";
+  if(!S || !bomb || bomb.state !== "planted") return null;
+  var R = SCR_S.CT && !SCR_S.CT.over && SCR_S.CT.setup === S ? SCR_S.CT : null;
+  if(rtCommitted(R)) return null;
+  var left = bomb.explodeTick - tick, need = rtNeedTicks(S, us, R && R.gatheredT !== undefined);
+  if(need > left) return "не успеть: нужно " + rtSec(need) + " с (дойти, утилита, дефуз " + (us.some(function(b){ return b.kit; }) ? "с китом" : "без кита") + "), до взрыва " + rtSec(left) + " с";
+  var kit = us.some(function(b){ return b.kit; });
+  // гранаты, уже брошенные в этом ретейке, — тоже его утилита (иначе свой дым сам «делает» ретейк невыгодным)
+  var util = R ? R.steps.filter(function(S){ return S.kind === "throw" && S.state === "done"; }).length : 0, worth = 0;
+  us.forEach(function(b){
+    util += b.nades.smoke + b.nades.flash + b.nades.molly + b.nades.he;
+    if(b.primary && WEAPONS[b.primary]) worth += WEAPONS[b.primary].price;
+  });
+  if(us.length < them && !kit && util < RETAKE.utilMin && worth >= RETAKE.saveWorth)
+    return "невыгодно: " + us.length + " против " + them + ", кита нет, гранат " + util + ", оружие на $" + worth;
+  return null;
+}
+// сколько тиков нужно: второй по близости (сбор — minPlayers) дошёл до точки сбора, оттуда до бомбы,
+// плюс утилита, дефуз и запас. Собрались — путь второго по близости прямо до бомбы
+function rtNeedTicks(S, us, gathered){
+  var g = S.gather.at, k = Math.min(S.gather.minPlayers, us.length) - 1, walk;
+  if(gathered){
+    walk = us.map(function(b){ return rtPathLen(b.x, b.y, bomb.x, bomb.y); }).sort(function(a, b){ return a - b; })[k];
+  } else {
+    var toG = us.map(function(b){ return rtPathLen(b.x, b.y, g[0], g[1]); }).sort(function(a, b){ return a - b; })[k];
+    walk = toG + rtPathLen(g[0], g[1], bomb.x, bomb.y);
+  }
+  var kit = us.some(function(b){ return b.kit; });
+  return Math.round(walk/SPEED*TICK_HZ + (RETAKE.utilSec + RETAKE.marginSec)*TICK_HZ) + (kit ? DEFUSE_KIT_TICKS : DEFUSE_TICKS);
+}
+
+// ---------- дефузер: с китом; иначе не энтри (ему входить первым) и ближе к бомбе ----------
+function rtPickDefuser(R, except){
+  var best = null, bd = 1e9;
+  bots.forEach(function(b){
+    if(b.team !== R.side || !b.alive || b === except) return;
+    var d = Math.hypot(b.x - bomb.x, b.y - bomb.y) + (b.kit ? 0 : 1e4) + (b === R.entry ? 1e5 : 0);
+    if(d < bd){ bd = d; best = b; }
+  });
+  return best;
+}
+
+// ---------- раз в тик (scriptTick, после исполнителя): сбор, следом за энтри, сейв ----------
+function rtTick(){
+  if(roundState !== "live") return;
+  var P = teamOf("CT").planState;
+  if(P.type === "save"){ rtSave(P); return; }
+  var R = SCR_S.CT;
+  if(P.type !== "retake" || !R || R.over || !R.setup.gather) return;
+  rtGather(R);
+  var go = rtCommitted(R), site = SITES[R.setup.site], g = R.setup.gather.at;
+  bots.forEach(function(b){
+    if(b.team !== "CT" || !b.alive || b._scrT === tick) return;   // этого ведёт шаг сценария
+    b._rtLook = [site.x, site.y];
+    if(!go && rtViaSite(b, g[0], g[1], R.setup.site)){   // к сбору — только через сайт: ждёт рядом, зайдёт с командой
+      if(!b._rtHold){ b._rtHold = true; scrLog(R, null, "ждёт у сайта", b.id + ": к точке сбора — только через сайт, зайдёт с командой"); }
+      b._scrT = tick; if(b.path.length){ b.path = []; b.pathIdx = 0; }
+      return;
+    }
+    var tx = go ? site.x : g[0], ty = go ? site.y : g[1];
+    var near = go ? bombSiteAt(b.baseX, b.baseY) === R.setup.site : Math.hypot(b.x - tx, b.y - ty) <= RETAKE.gatherR*0.6;
+    if(near){ b._scrT = tick; if(b._pathBy === "rt" && b.path.length){ b.path = []; b.pathIdx = 0; } return; }
+    rtGo(b, tx, ty);
+  });
+}
+// сбор: ≥ minPlayers у точки — ждём ещё до waitForTicks тех, кто подбегает; все здесь — сразу
+function rtGather(R){
+  if(R.gatheredT !== undefined) return;
+  var G = R.setup.gather, us = rtAlive("CT");
+  var at = us.filter(function(b){ return Math.hypot(b.x - G.at[0], b.y - G.at[1]) <= RETAKE.gatherR; });
+  if(at.length < G.minPlayers){ R.gMinT = undefined; return; }
+  if(R.gMinT === undefined){ R.gMinT = tick; scrLog(R, null, "сбор", at.length + " из " + us.length + " у " + G.area + (at.length < us.length ? ", ждём остальных до " + rtSec(G.waitForTicks) + " с" : "")); }
+  if(at.length < us.length && tick - R.gMinT < G.waitForTicks) return;
+  R.gatheredT = tick; R.gatherN = at.length;
+  scrLog(R, null, "собрались", at.length + " из " + us.length + " у " + G.area + ": " + at.map(function(b){ return b.id; }).join(", "));
+  rtRecast(R, at);
+}
+// входят те, кто собрался: энтри и дефузер не у точки — их шаг берёт собравшийся (энтри — роль entry,
+// иначе свободный от гранат; дефузер — с китом, иначе ближе к бомбе, не энтри)
+function rtRecast(R, at){
+  var busy = function(b){ return R.steps.some(function(o){ return o.kind === "throw" && o.state === "wait" && o.bot === b; }); };
+  R.steps.forEach(function(S){
+    if(S.state !== "wait" || !S.bot || at.indexOf(S.bot) >= 0) return;
+    var pool = at.filter(function(b){ return b !== R.entry && !R.steps.some(function(o){ return o !== S && (o.kind === "push" || o.kind === "defuse") && o.bot === b; }); });
+    var nb = null;
+    if(S.kind === "push") nb = pool.filter(function(b){ return b.role === "entry" && !busy(b); })[0] || pool.filter(function(b){ return !busy(b); })[0] || pool[0];
+    else if(S.kind === "defuse") nb = pool.slice().sort(function(a, b){ return ((a.kit ? 0 : 1e4) + Math.hypot(a.x - bomb.x, a.y - bomb.y)) - ((b.kit ? 0 : 1e4) + Math.hypot(b.x - bomb.x, b.y - bomb.y)); })[0];
+    else return;
+    if(!nb) return;
+    scrLog(R, S, "замена", S.bot.id + " не у точки сбора → " + nb.id);
+    S.bot = nb; if(S.kind === "push") R.entry = nb;
+    S.bestD = undefined; S.pathT = undefined; S.activeT = undefined;
+  });
+}
+// путь бота к точке идёт через сайт с бомбой (сам он не на сайте) — кэш на раунд по точке
+function rtViaSite(b, x, y, site){
+  var key = matchNum + ":" + roundNum + ":" + Math.round(x) + "," + Math.round(y);
+  b._rtVia = b._rtVia || {};
+  if(b._rtVia[key] !== undefined) return b._rtVia[key];
+  var v = false;
+  if(bombSiteAt(b.baseX, b.baseY) !== site){
+    var p = buildWaypointPath(b.x, b.y, b.z || 0, x, y, 0) || [];
+    v = p.some(function(w){ return bombSiteAt(w[0], w[1]) === site; });
+  }
+  return (b._rtVia[key] = v);
+}
+// время поджимает: ждать утилиту больше нельзя (пересчёт раз в RETAKE.checkEvery тиков)
+function rtHurry(R){
+  if(!bomb || bomb.state !== "planted") return false;
+  if(R._hurryT !== undefined && tick - R._hurryT < RETAKE.checkEvery) return R._hurry;
+  var us = rtAlive("CT");
+  R._hurryT = tick;
+  R._hurry = us.length > 0 && bomb.explodeTick - tick <= rtNeedTicks(R.setup, us, true) + RETAKE.hurrySec*TICK_HZ;
+  return R._hurry;
+}
+function rtGo(b, tx, ty){
+  b._scrT = tick; b.walking = false;
+  var same = b._pathBy === "rt" && b._rtTo && b._rtTo[0] === tx && b._rtTo[1] === ty;
+  if(same && b.path.length > 0 && b.pathIdx < b.path.length) return;
+  if(same && tick - b._rtPathT < SCR.repath) return;
+  b._rtTo = [tx, ty]; b._rtPathT = tick; b._pathBy = "rt";
+  b.path = buildWaypointPath(b.x, b.y, b.z || 0, tx, ty, 0); b.pathIdx = 0;
+}
+
+// ---------- сейв: подальше от бомбы и от врагов, о которых знает сам ----------
+function rtSave(P){
+  if(!bomb || bomb.state !== "planted") return;
+  var danger = P.site && SITES[P.site] ? [SITES[P.site]] : [SITES.A, SITES.B];   // где бомба — не знают: от обоих
+  bots.forEach(function(b){
+    if(b.team !== "CT" || !b.alive) return;
+    if(!b._rtSafe){
+      b._rtSafe = rtSafeSpot(b, danger);
+      logEvent("Сейв: " + nick(b.id) + " → " + b._rtSafe.area, "info");
+    }
+    var s = b._rtSafe, d0 = danger[0];
+    b._rtLook = [d0.x, d0.y];   // смотрит туда, откуда могут прийти
+    if(Math.hypot(b.x - s.x, b.y - s.y) <= RETAKE.arriveR){ b._scrT = tick; return; }
+    rtGo(b, s.x, s.y);
+  });
+}
+function rtSafeSpot(b, danger){
+  var foes = [], K = b.know;
+  if(K) for(var id in K.enemies) K.enemies[id].hyps.forEach(function(h){ if(h.x !== undefined && h.weight >= RETAKE.enemyW) foes.push(h); });
+  var cand = Object.keys(POS_PT).map(function(k){ return POS_PT[k]; }).concat([{x: CT_SPAWN.x, y: CT_SPAWN.y, area: "CT Spawn"}]);
+  var best = null, bd = 1e9;
+  cand.forEach(function(p){
+    if(danger.some(function(s){ return Math.hypot(p.x - s.x, p.y - s.y) < RETAKE.safeR; })) return;
+    if(foes.some(function(h){ return Math.hypot(p.x - h.x, p.y - h.y) < RETAKE.enemyR; })) return;
+    var d = Math.hypot(p.x - b.x, p.y - b.y);
+    if(d < bd){ bd = d; best = p; }
+  });
+  return best ? {x: best.x, y: best.y, area: best.area || "?"} : {x: CT_SPAWN.x, y: CT_SPAWN.y, area: "CT Spawn"};
+}
 // ======================= ЗНАНИЕ БОТА О ВРАГАХ (Knowledge) =======================
 // Одно место на «что бот знает о врагах» (docs/BRAIN.md, разделы 1–2; шаг 2 PROMPTS.md).
 // У каждого бота — своё b.know; истинное состояние мира сюда попадает только
@@ -2977,8 +3229,10 @@ function posGo(b, why){
 }
 function posPath(b){
   b.pos.pathT = tick;
-  b.path = buildWaypointPath(b.x, b.y, b.z, b.pos.tx, b.pos.ty, b.pos.tz); b.pathIdx = 0;
+  if(posLed(b)) return;   // ведёт сценарий (ретейк/сейв, 08_retake.js) — путь его
+  b.path = buildWaypointPath(b.x, b.y, b.z, b.pos.tx, b.pos.ty, b.pos.tz); b.pathIdx = 0; b._pathBy = "pos";
 }
+function posLed(b){ return b._scrT !== undefined && tick - b._scrT <= 1; }
 
 // ---------- события ----------
 function posRoundStart(){
@@ -3054,6 +3308,7 @@ function posLook(b){
     var w = b.path[Math.min(b.pathIdx + 1, b.path.length - 1)];
     if(Math.hypot(w[0]-b.x, w[1]-b.y) > 4) return {x: w[0], y: w[1], why: "move"};
   }
+  if(b._rtLook && posLed(b)) return {x: b._rtLook[0], y: b._rtLook[1], why: "retake"};   // стоит в ретейке/сейве
   var P = POS_PT[b.pos.cur];
   if(!b.pos.threat) return {x: P.angle.x, y: P.angle.y, why: b.pos.fb ? "fallback" : "angle"};
   // угроза — взгляд на неё, но не шире yawRange точки (в игре yaw против часовой, на радаре y вниз)
@@ -3109,7 +3364,9 @@ function drawPositions(){
 //   раунды (больше людей на том сайте — вес выше) × экономика (эко — стак).
 // Смена посреди раунда — только по поводам BRAIN 5.4:
 //   плант           — ретейк (сайт — что знает IGL: видел/слышал/сказали; не знает — уточнит);
-//                     RetakeSetup'ов пока нет (шаг 8) — раскладка та же, CT стоят где стояли;
+//                     сценарий ретейка сайта — 08_retake.js (раскладка в плане та же). Не начат —
+//                     IGL пересчитывает abortIf (rtAbortWhy): мало живых / не успеть / невыгодно —
+//                     сейв (план save, до конца раунда: CT уходят от бомбы, 08_retake.js);
 //   потеря состава  — fallback (раскладка та же, слоты делит 11_position.js);
 //   колл IGL        — до планта: IGL сам знает (своё b.know), что на одной стороне ≥ PLAN.infoN
 //                     T — колл на раскладку, где там больше CT; один за раунд.
@@ -3167,9 +3424,17 @@ function ctBrainTick(){
   // плант: что бомба заложена — объявление слышат все; где — знает тот, кто видел/слышал/кому сказали.
   // Сайт — по знанию IGL; IGL мёртв — того из живых, кто знает (он и скажет)
   if(bomb && bomb.state === "planted"){
+    if(P.type === "save") return;   // решили сейвить — до конца раунда
     var who = igl && igl.alive ? igl : null;
     if(!who) bots.forEach(function(b){ if(!who && b.team === "CT" && b.alive && b.know && b.know.plantSite) who = b; });
     var site = who && who.know ? who.know.plantSite || null : null;
+    var no = (P.type !== "retake" || tick % RETAKE.checkEvery === 0) ? rtAbortWhy(site) : null;
+    if(no){
+      teamSetPlan("CT", {type: "save", site: site, activeSetupId: s.id},
+                  (P.type === "retake" ? "ретейк не начинаем" : "бомба заложена" + (site ? " на " + site : "") + ", ретейка не будет") + " — " + no,
+                  "сейв" + (site ? " (бомба " + site + ")" : ""));
+      return;
+    }
     if(P.type !== "retake")
       teamSetPlan("CT", {type: "retake", site: site, activeSetupId: s.id},
                   "бомба заложена" + (site ? " на " + site + " (знает " + who.id + ")" : ", где — пока не знаем"),
@@ -3203,8 +3468,10 @@ function ctBrainTick(){
 }
 // ======================= ИСПОЛНИТЕЛЬ СЦЕНАРИЕВ: steps / dependsOn (шаг 7) =======================
 // Одно место на «как команда исполняет сценарий» (docs/BRAIN.md 5.1; шаг 7 PROMPTS.md).
-// Сценарий — Setup из setups.json: сейчас T-execute; ретейк CT (шаг 8, 08_retake.js) подключит
-// свой Setup в scrStart тем же исполнителем. Исполнитель от стороны не зависит.
+// Сценарий — T-execute из setups.json или ретейк CT (RetakeSetup, 08_retake.js; шаг 8): scrSetupFor.
+// Исполнитель от стороны не зависит. У ретейка свои условие шага (teamGatheredAt — команда собралась,
+// считает 08_retake.js) и действие (defuse — дефузер идёт к бомбе и дефузит); сбор, «следом за
+// энтри» и отказ от ретейка — 08_retake.js.
 //
 // До execute (план default) команда играет дефолт (12_t_default.js); бросающие уходят к своему лайнапу
 // заранее, чтобы успеть к контрольному таймингу (scrTimeToGo), и ждут там. Пока бота ведёт исполнитель
@@ -3254,14 +3521,15 @@ var SCR_LOG = [];
 function scriptRoundStart(){
   SCR_S = {};
   if(roundNum === 1) SCR_LOG.length = 0;
-  bots.forEach(function(b){ b.pushTick = undefined; b.pushSite = undefined; });
+  bots.forEach(function(b){ b.pushTick = undefined; b.pushSite = undefined; b._rtSafe = undefined; b._rtLook = undefined; b._rtHold = undefined; b._rtVia = undefined; });
   scrBuyUtility("T");
+  scrBuyUtility("CT");   // под ретейк: сайт ещё неизвестен — гранаты на любой
 }
 // Заплатка: что брать — по шагам выбранного сценария, на деньги после винтовки и брони; гранату
 // получает тот, у кого их меньше, при равенстве — у кого больше денег; будущий энтри и lurker — в
 // последнюю очередь / никогда (энтри ждёт на входе, lurker не в сценарии).
 function scrBuyUtility(side){
-  var P = teamOf(side).planState, setup = side === "T" ? tbSetup(P.activeSetupId) : null;
+  var P = teamOf(side).planState, setup = side === "T" ? tbSetup(P.activeSetupId) : rtUtilityPlan();
   if(!setup) return;
   var pool = bots.filter(function(b){ return b.team === side && b.alive && b.role !== "lurker"; }), got = {};
   var entry = scrPickEntry(side, null);   // ему входить — гранаты ему в последнюю очередь
@@ -3282,22 +3550,29 @@ function scrBuyUtility(side){
 // ---------- раз в тик (17_tick.js, после tBrainTick) ----------
 function scriptTick(){
   if(roundState !== "live") return;
-  scrSide("T");   // CT: ретейк — шаг 8
+  scrSide("T");
+  scrSide("CT");
+  rtTick();       // ретейк: сбор, остальные — следом за энтри, сейв (08_retake.js)
+}
+// сценарий плана: T — execute-вариант (на default — подготовка к нему), CT — ретейк сайта бомбы
+function scrSetupFor(side, P){
+  if(side === "T") return (P.type === "default" || P.type === "execute") && P.activeSetupId ? tbSetup(P.activeSetupId) : null;
+  return P.type === "retake" && P.site ? rtSetup(P.site) : null;
 }
 function scrSide(side){
   var P = teamOf(side).planState, R = SCR_S[side];
   if(R && R.start !== null && R.start > tick) R = SCR_S[side] = null;   // тик пошёл назад — матч заново
-  var staging = P.type === "default" || P.type === "execute";
-  if(R && !R.over && !R.started && R.setup.id !== P.activeSetupId){   // IGL сменил сценарий до выхода — заново
+  var want = scrSetupFor(side, P);
+  if(R && !R.over && !R.started && want && R.setup !== want){   // IGL сменил сценарий до выхода — заново
     scrEnd(R, "IGL сменил сценарий"); R = SCR_S[side] = null;
   }
   if(!R){
-    if(!staging || !P.activeSetupId) return;
-    R = SCR_S[side] = scrStart(side, P);
+    if(!want) return;
+    R = SCR_S[side] = scrStart(side, P, want);
     if(!R) return;
   }
   if(R.over) return;
-  if(!staging){ scrEnd(R, "план сменился: " + P.type); return; }
+  if(!want){ scrEnd(R, "план сменился: " + P.type); return; }
   // default (контроль карты): актёры занимают позиции под свой сценарий; execute — сценарий пошёл
   if(!R.started && P.type === "execute"){ R.started = true; R.start = P.declaredAt; scrLog(R, null, "execute", "сценарий пошёл (план execute)"); }
   R.steps.forEach(function(S){ scrStep(R, S); });
@@ -3306,13 +3581,13 @@ function scrSide(side){
 function scrTerminal(S){ return S.state === "done" || S.state === "drop" || S.state === "skip"; }
 
 // ---------- старт: шаги, зависимости, актёры ----------
-function scrStart(side, P){
-  var setup = side === "T" ? tbSetup(P.activeSetupId) : null;
+function scrStart(side, P, setup){
   if(!setup) return null;
-  var R = {side: side, setup: setup, started: P.type === "execute", start: P.type === "execute" ? P.declaredAt : null, steps: [], entry: null, over: false};
+  var go = P.type === "execute" || P.type === "retake";   // ретейк начинается сразу (сбор — его первый этап)
+  var R = {side: side, setup: setup, started: go, start: go ? P.declaredAt : null, steps: [], entry: null, over: false};
   setup.steps.forEach(function(st, i){
     var m = /^throw_(smoke|flash|molly|he)$/.exec(st.action);
-    var S = {i: i, st: st, actor: st.actor, kind: m ? "throw" : st.action === "push" ? "push" : st.action === "plant" ? "plant" : "skip",
+    var S = {i: i, st: st, actor: st.actor, kind: m ? "throw" : /^(push|plant|defuse)$/.test(st.action) ? st.action : "skip",
              ntype: m ? m[1] : null, at: st.at || null, zone: st.at ? knowZoneAt(st.at[0], st.at[1]) : null,
              state: "wait", bot: null, dep: null, rel: null, opts: [], pick: null};
     R.steps.push(S);
@@ -3322,6 +3597,7 @@ function scrStart(side, P){
     var dd = S.st.dependsOn || {};
     var on = dd.afterSmokeLands || dd.afterFlashPop || dd.afterPrev || dd.afterEntryCommitted;
     if(dd.trigger === "execute_start") S.dep = {kind: "start"};
+    else if(dd.teamGatheredAt) S.dep = {kind: "gather"};
     else if(on) S.dep = {kind: "event", on: on, step: byActor(on), pauseTicks: Math.round((dd.pauseSec || 0)*TICK_HZ), maxDelay: dd.maxDelayTicks || SCR.baseWait};
   });
   R.steps.forEach(function(S){
@@ -3334,6 +3610,11 @@ function scrStart(side, P){
       if(bomb && bomb.state === "carried" && bomb.carrier && bomb.carrier.alive) S.bot = bomb.carrier;
       else { S.state = "drop"; S.why = "бомбы нет у живого"; }
     }
+  });
+  R.steps.forEach(function(S){   // дефузер — когда энтри уже выбран (08_retake.js)
+    if(S.kind !== "defuse" || S.state !== "wait") return;
+    S.bot = bomb && bomb.state === "planted" ? rtPickDefuser(R, null) : null;
+    if(!S.bot){ S.state = "drop"; S.why = "дефузить некому"; }
   });
   scrAssignThrowers(R);
   var lines = R.steps.map(function(S){
@@ -3358,6 +3639,7 @@ function scrAssignThrowers(R){
     pool.forEach(function(b){
       if(inv[b.id][S.ntype] <= 0) return;
       var o = scrNearestFrom(S.opts, last[b.id]); if(!o) return;
+      if(R.setup.gather && rtViaSite(b, o.from.x, o.from.y, R.setup.site)) return;   // ретейк: к точке броска не через сайт
       any = true;
       var c0 = cum[b.id], l0 = last[b.id];
       cum[b.id] = c0 + Math.hypot(l0.x - o.from.x, l0.y - o.from.y); last[b.id] = o.from; inv[b.id][S.ntype]--;
@@ -3383,15 +3665,16 @@ function scrWaitK(b){ return (RoleProfile[b.role] || {}).waitK || 1; }
 
 // способы бросить «закрыть цель»: лайнапы про (to рядом с целью), иначе точки самого шага
 function scrOptions(R, S){
-  var out = [];
+  var out = [], G = R.setup.gather;   // ретейк: бросают от точки сбора, вперёд по одному не уходят
   proLineups().forEach(function(L){
     if(L.team !== R.side || L.type !== S.ntype) return;
     if(L.site && L.site !== "any" && L.site !== R.setup.site) return;
     if(Math.hypot(L.to.x - S.at[0], L.to.y - S.at[1]) > SCR.lineupR) return;
+    if(G && Math.hypot(L.from.x - G.at[0], L.from.y - G.at[1]) > RETAKE.fromR) return;
     out.push({from: {x: L.from.x, y: L.from.y}, to: {x: L.to.x, y: L.to.y}, src: "lineups_pro " + L.id});
   });
   if(!out.length) (S.st.ways || []).forEach(function(w){
-    out.push({from: {x: w.from[0], y: w.from[1]}, to: {x: w.to[0], y: w.to[1]}, src: "setups.json ways n=" + w.n});
+    out.push({from: {x: w.from[0], y: w.from[1]}, to: {x: w.to[0], y: w.to[1]}, src: (G ? "08_retake.js" : "setups.json") + " ways n=" + w.n});
   });
   return out;
 }
@@ -3413,6 +3696,7 @@ function scrChooseThrower(R, S, exclude){
     if(b.team !== R.side || !b.alive || b === exclude || b.role === "lurker") return;
     if(scrFree(R, b, S.ntype, S) <= 0) return;
     var pick = scrNearest(S.opts, b); if(!pick) return;
+    if(R.setup.gather && rtViaSite(b, pick.from.x, pick.from.y, R.setup.site)) return;
     var load = 0; R.steps.forEach(function(o){ if(o !== S && o.bot === b && o.state === "wait" && (o.kind === "throw" || o.kind === "plant")) load++; });
     // ближе точка — лучше; каждый уже закреплённый за ботом шаг — как ещё 700 px пути (шаги бота идут по очереди);
     // энтри — только если больше некому
@@ -3459,6 +3743,10 @@ function scrHow(e, D){
 function scrCue(R, S){
   var b = S.bot, d = S.dep;
   if(d.kind === "start") return {ok: true, how: "старт сценария (план execute)"};
+  // ретейк: до сбора не начинается ни один шаг, даже чей источник уже снят (поодиночке не лезут);
+  // сбор видят сами — стоят вместе у точки (08_retake.js, rtGather)
+  if(R.setup.gather && R.gatheredT === undefined) return {};
+  if(d.kind === "gather") return {ok: true, how: "собрались: " + R.gatherN + " у " + R.setup.gather.area};
   var D = d.step;
   if(!D) return {drop: "нет шага «" + d.on + "»"};
   if(D.state === "drop"){   // источник не состоялся: гранаты/вход идут без него, а ставить без входа энтри нельзя
@@ -3472,10 +3760,16 @@ function scrCue(R, S){
   }
   var arm = S.kind === "throw" ? S.arrived : S.activeT;   // занял позицию / освободился от своих прежних шагов
   if(arm === undefined) return {};
+  if(R.setup.gather){   // ретейк: бросающий ещё идёт на точку — ждут его (он говорит), пока позволяет таймер бомбы
+    if(rtHurry(R)) return {ok: true, timeout: true, how: "ТАЙМАУТ: до взрыва мало — идём без «" + D.actor + "»"};
+    if(D.state === "wait" && (D.kind !== "throw" || D.arrived === undefined)) return {};   // источник ещё не начал
+    arm = Math.max(arm, D.arrived || 0);
+  }
   // вход и плант ждут, пока сценарий хоть где-то пошёл (актёр узнал хоть одно событие): стоят они где
   // стоят, и «тишина» до первого разрыва — это дорога остальных до их точек, а не сбой
-  if(S.kind !== "throw" && knowEvents(b, "smoke", R.start).concat(knowEvents(b, "flash", R.start), knowEvents(b, "molly", R.start), knowEvents(b, "he", R.start)).length === 0) return {};
-  var cap = Math.round(d.maxDelay * scrWaitK(b)), anchor = Math.max(knowLastEvent(b, R.start), arm);
+  // (у ретейка «сценарий пошёл» — момент сбора: от него и отсчёт)
+  if(S.kind !== "throw" && !R.setup.gather && knowEvents(b, "smoke", R.start).concat(knowEvents(b, "flash", R.start), knowEvents(b, "molly", R.start), knowEvents(b, "he", R.start)).length === 0) return {};
+  var cap = Math.round(d.maxDelay * scrWaitK(b)), anchor = Math.max(knowLastEvent(b, R.start), arm, R.gatheredT || 0);
   if(tick >= anchor + d.pauseTicks + cap)
     return {ok: true, timeout: true, how: "ТАЙМАУТ: сигнала «" + D.actor + "» нет " + (tick - anchor) + " тиков (предел " + cap + ")"};
   return {};
@@ -3503,9 +3797,17 @@ function scrStep(R, S){
   if(S.kind === "throw") scrThrow(R, S);
   else if(S.kind === "push") scrPush(R, S);
   else if(S.kind === "plant") scrPlant(R, S);
+  else if(S.kind === "defuse") scrDefuse(R, S);
 }
 function scrReplace(R, S){
   var was = S.bot.id;
+  if(S.kind === "defuse"){   // дефуз доделает любой живой: сигнал уже был — идёт сразу
+    var nd = bomb && bomb.state === "planted" ? rtPickDefuser(R, S.bot) : null;
+    if(!nd){ scrDrop(R, S, "дефузер " + was + " погиб, дефузить некому"); return; }
+    S.bot = nd; S.bestD = undefined; S.pathT = undefined; S.activeT = undefined;
+    scrLog(R, S, "замена", was + " погиб → " + nd.id);
+    return;
+  }
   if(S.state === "go"){   // уже вошёл / пошёл ставить — погиб на деле, заменять нечем
     if(S.kind === "push"){ S.state = "done"; scrLog(R, S, "погиб на входе", ""); }
     else scrDrop(R, S, "носитель погиб");
@@ -3523,9 +3825,11 @@ function scrReplace(R, S){
   S.rel = null; S.bestD = undefined; S.pathT = undefined; S.arrived = undefined; S.activeT = undefined;
   scrLog(R, S, "замена", was + " погиб → " + S.bot.id);
 }
-// застрял? — ближе к цели не становится (путь не строится / бот упёрся)
+// застрял? — ближе к цели не становится и сам не двигается (путь не строится / бот упёрся);
+// обход стены, когда по прямой сначала дальше, — не застрял: он идёт
 function scrStuck(S, d){
-  if(S.bestD === undefined || d < S.bestD - SCR.stuckPx){ S.bestD = d; S.bestT = tick; return false; }
+  var b = S.bot, moved = S.bestX !== undefined && Math.hypot(b.x - S.bestX, b.y - S.bestY) > SCR.stuckPx;
+  if(S.bestD === undefined || d < S.bestD - SCR.stuckPx || moved){ S.bestD = Math.min(d, S.bestD === undefined ? d : S.bestD); S.bestT = tick; S.bestX = b.x; S.bestY = b.y; return false; }
   return tick - S.bestT > SCR.stuckT;
 }
 function scrGo(S, tx, ty){
@@ -3606,6 +3910,33 @@ function scrPlant(R, S){
   }
   if(scrStuck(S, Math.hypot(b.x - site.x, b.y - site.y))){ scrDrop(R, S, "застрял на пути к сайту"); return; }
   scrGo(S, site.x, site.y);
+}
+
+// дефуз (ретейк): дефузер ждёт входа энтри (свой сигнал), идёт к бомбе и дефузит; пока дефузит —
+// его ведёт исполнитель (стоит). Обезвредил — раунд кончается сам (05_bomb.js)
+function scrDefuse(R, S){
+  var b = S.bot;
+  if(!bomb || bomb.state !== "planted"){
+    if(bomb && bomb.state === "defused") S.state = "done"; else scrDrop(R, S, "бомбы нет");
+    return;
+  }
+  if(S.state === "wait"){
+    if(!scrActive(R, S)) return;
+    if(S.activeT === undefined) S.activeT = tick;
+    if(!scrRelease(R, S)) return;
+    if(scrTerminal(S)) return;
+    S.state = "go";
+    scrLog(R, S, "идёт дефузить", S.rel.how);
+  }
+  b._scrT = tick; b._rtLook = [bomb.x, bomb.y];
+  if(b.defusing) return;
+  var d = Math.hypot(b.baseX - bomb.x, b.baseY - bomb.y);
+  if(d <= 40){
+    if(bombStartDefuse(b)) scrLog(R, S, "дефузит", b.kit ? "с китом" : "без кита");
+    return;
+  }
+  if(scrStuck(S, d)){ scrDrop(R, S, "застрял на пути к бомбе"); return; }
+  scrGo(S, bomb.x, bomb.y);
 }
 
 function scrDrop(R, S, why){
@@ -8465,6 +8796,8 @@ var __SNAP = [
 ["BOMB_KILL_RADIUS", function(){ return BOMB_KILL_RADIUS; }, function(v){ try{ BOMB_KILL_RADIUS = v; }catch(e){} }],
 ["DEFUSE_HEAR", function(){ return DEFUSE_HEAR; }, function(v){ try{ DEFUSE_HEAR = v; }catch(e){} }],
 ["bomb", function(){ return bomb; }, function(v){ try{ bomb = v; }catch(e){} }],
+["RETAKE", function(){ return RETAKE; }, function(v){ try{ RETAKE = v; }catch(e){} }],
+["RETAKE_SETUPS", function(){ return RETAKE_SETUPS; }, function(v){ try{ RETAKE_SETUPS = v; }catch(e){} }],
 ["KNOW", function(){ return KNOW; }, function(v){ try{ KNOW = v; }catch(e){} }],
 ["KNOW_POSITIONS", function(){ return KNOW_POSITIONS; }, function(v){ try{ KNOW_POSITIONS = v; }catch(e){} }],
 ["KNOW_TRACE", function(){ return KNOW_TRACE; }, function(v){ try{ KNOW_TRACE = v; }catch(e){} }],
@@ -8644,7 +8977,7 @@ var __SNAP = [
 ["PL_ICON", function(){ return PL_ICON; }, function(v){ try{ PL_ICON = v; }catch(e){} }],
 ["plSelected", function(){ return plSelected; }, function(v){ try{ plSelected = v; }catch(e){} }]
 ];
-var MK_PRINCIPLES = [{"id": "В11", "sec": "Взгляд", "text": "НОВОЕ 06.10. Префайр: слышит, что за углом сейчас выйдут, — заранее ставит прицел туда, где появится голова (широко / узко — по углу). Выходящий тоже идёт с прицелом на обычных позициях, где его принимают. (чат 06.10)", "done": false}, {"id": "В12", "sec": "Взгляд", "text": "НОВОЕ 06.10. Уход от флешки: услышал или увидел бросок флешки в свою сторону — отворачивается (смотрит в стену), потом возвращает прицел на угол. (чат 06.10)", "done": false}, {"id": "В13", "sec": "Взгляд", "text": "НОВОЕ 06.10. Без инфы взгляд — на проход, откуда враг может прийти раньше всего, а не на угол с почти нулевой угрозой (матч 1, р1, ~22 с: CT 5 Back Site, 7 Second Lane, 8 Temple — веса 0,01–0,10). (чат 06.10, скриншот)", "done": false}, {"id": "В14", "sec": "Взгляд", "text": "НОВОЕ 06.10. Взгляд по таймингу: откуда и как скоро враг может появиться; не чекать места, куда враг ещё не мог дойти, и не смотреть туда, где впереди свои или куда врагу не добежать (близко к В9). (чат 06.10)", "done": false}, {"id": "В15", "sec": "Взгляд", "text": "НОВОЕ 07.10. Бот видит карту углами, а не зонами: что видит со своей точки, где эту область обрезает край стены (там может выйти враг), насколько каждый край опасен (тайминг, инфа, держит ли тиммейт). Взгляд — на самый о", "done": false}, {"id": "В16", "sec": "Взгляд", "text": "НОВОЕ 09.10. Взгляд с точки — по картине команды, а не один угол точки на все случаи. У точки может быть несколько углов; какой смотреть сейчас, решает то, что держат свои. Пример: CT в Lamp Room — точка и её угол в цело", "done": false}, {"id": "В17", "sec": "Взгляд", "text": "НОВОЕ 09.10. Про никогда не стоят на месте, даже когда холдят. Они делают микродвижения влево-вправо и вперёд-назад и чуть шире или уже ведут прицел: точно знать, как выпикнет враг, нельзя. Если на точке несколько углов,", "done": false}, {"id": "П9", "sec": "Позиция", "text": "НОВОЕ 07.10. Места, где держать угол, — из наших демок, а не по стенам: где про стоят и держат угол (не бегут, не в бою), для какой стороны, у какого района, в какой фазе (до выхода / после планта / ретейк), и куда оттуд", "done": false}, {"id": "П10", "sec": "Позиция", "text": "НОВОЕ 09.10. Безопасные пути: когда и как бот идёт к точке, решается по тому, где враги могут быть к этому моменту. Источник — гипотезы `b.know` и тайминги: куда враг уже мог дойти и что видно с его возможных мест. Путь ", "done": false}, {"id": "П11", "sec": "Позиция", "text": "НОВОЕ 09.10. T до execute стоят на спавне и не двигаются. Источник — замечание владельца в чате после шага 7", "done": false}, {"id": "К10", "sec": "Команда", "text": "НОВОЕ 06.10. Тимспик как в реальной игре: инфа, просьбы («подпушу донат, пошли со мной»), план IGL на старте и перестройка по ходу («30 с никого на Б — один чекает мид»). Сказать — 0,5–2 с, услышать — сразу. Каждый реаги", "done": false}, {"id": "К11", "sec": "Команда", "text": "НОВОЕ 06.10. Своё восприятие как у игрока: сколько шагов и откуда, гранаты (откуда кинули, где упали), киллфид (кто, из чего — роль по нику, закуп по оружию), время раунда; выводы из этого — в общую картину. (чат 06.10)", "done": false}, {"id": "К12", "sec": "Команда", "text": "НОВОЕ 06.10. Активная игра: CT либо держат по расстановке, либо играют за инфой (ранний пик, подпуш парой, джиггл) и подстраиваются; T — контроль областей, пробы, лёрк, выход с энтри первым. Один подпушил — остальные пер", "done": false}, {"id": "К13", "sec": "Команда", "text": "НОВОЕ 06.10. Просьбы без повторов: одна просьба — один ответ; кто ответил «не могу», его больше не спрашивают; кто взял угол — держит, пока ситуация не изменилась; в консоли нет «подержите» / «не могу» по кругу (после v1", "done": false}, {"id": "К14", "sec": "Команда", "text": "НОВОЕ 09.10. Как играет T-сторона. (1) Тактика на раунд — по типу закупа: пистолетка, эко, форс, халф-бай, «хиро» (один сохранённый ствол — АК/AWP), фулл-бай; бывают агрессивные раунды и спокойные. (2) T знают соперника ", "done": false}, {"id": "Н3", "sec": "Войс, консоль, киллфид", "text": "НОВОЕ 06.10. Консоль справа снизу — без лишних сообщений: только то, что важно смотрящему (фраги, коллы тимспика, решения команды). (чат 06.10)", "done": false}, {"id": "Н4", "sec": "Войс, консоль, киллфид", "text": "НОВОЕ 06.10. Киллфид как в CS2, компактно: `Убийца + Ассистент [иконка оружия] [значки: через смок, прострел, хедшот, ноускоп, ослеплён] Жертва`; ники цветом команды, иконки — белые силуэты оружия, значки — только те, чт", "done": false}, {"id": "Н5", "sec": "Войс, консоль, киллфид", "text": "НОВОЕ 06.10. Иконки киллфида — готовые SVG владельца из его другого проекта (оружие, гранаты, нож, значки), а не самодельные силуэты. (чат 06.10, архив иконок)", "done": false}, {"id": "Н6", "sec": "Войс, консоль, киллфид", "text": "НОВОЕ 06.10. Табло как на трансляции (образец — скриншот ESL Pro League): сверху по центру счёт команд, раунд, таймер, «живые: 3 vs 5» цветами команд; без стиля «рваной бумаги»; логотипы команд владелец пришлёт позже. (ч", "done": false}, {"id": "Н7", "sec": "Войс, консоль, киллфид", "text": "НОВОЕ 06.10. Панели игроков как на трансляции (образец — скриншот PARIVISION/FURIA): T слева, CT справа, сверху плашка с настоящим названием команды; у каждого — номер, ник, фраги/смерти, деньги, фото (пока серый силуэт)", "done": false}, {"id": "С1", "sec": "Стрельба", "text": "НОВОЕ 06.10. Стреляют как настоящий игрок: тап далеко, короткие очереди на средней, спрей вблизи, контрстрейф; ритм ровный по темпу оружия; трассеры уходят по рисунку отдачи, а не случайным веером. (чат 06.10)", "done": false}, {"id": "Д1", "sec": "Данные из демок (этап 2, шаг 1б)", "text": "НОВОЕ 09.10. Позиция — не точка, а задача «где стоит → что держит»: игрок встаёт шире/уже, ближе/дальше, у стены или открыто. (чат 09.10) — сделано в шаге 1б (spread, spots, группировка по месту и взгляду), подтверждено ", "done": true}, {"id": "Д2", "sec": "Данные из демок (этап 2, шаг 1б)", "text": "НОВОЕ 09.10. Ранние CT-позиции на половине T (подпуш Ramp, проверка T Lower/Upper после колла) — нормальная игра, не мусор; сейвы и игра в меньшинстве — отдельно. (чат 09.10) — сделано в шаге 1б (push, late), подтвержден", "done": true}, {"id": "Д3", "sec": "Данные из демок (этап 2, шаг 1б)", "text": "НОВОЕ 09.10. Гранаты выхода идут волнами и бывают фейки (раскид на один сайт, выход на другой); смоков в выходе несколько. (чат 09.10) — сделано в шаге 1б (wave, fake, 2–4 смока), подтверждено владельцем 09.10", "done": true}, {"id": "Д4", "sec": "Данные из демок (этап 2, шаг 1б)", "text": "НОВОЕ 09.10. Позиция First Lane / 90 → Ramp (взгляд вниз через 90) должна быть. (чат 09.10) — не сделано: шов стены №13 под 90 (y≈774) режет взгляд; править во вкладке «стены», потом перепечь `positions_bake.py`. Закрыто", "done": true}, {"id": "Д5", "sec": "Данные из демок (этап 2, шаг 1б)", "text": "НОВОЕ 09.10. Кроссфайр-пара держит вход вместе с двух сторон, а не смотрит друг на друга (Dark и Cave/Lamp Room смотрели друг на друга). (чат 09.10, шаг 5)", "done": false}, {"id": "П1", "sec": "Данные из демок (этап 2, шаг 1б)", "text": "НОВОЕ 09.10. У точки должна быть опасность: якорь не встаёт в странные глубокие точки (A Main — слишком глубоко, обычно так не стоят). (чат 09.10, шаг 5)", "done": false}];
+var MK_PRINCIPLES = [{"id": "В11", "sec": "Взгляд", "text": "НОВОЕ 06.10. Префайр: слышит, что за углом сейчас выйдут, — заранее ставит прицел туда, где появится голова (широко / узко — по углу). Выходящий тоже идёт с прицелом на обычных позициях, где его принимают. (чат 06.10)", "done": false}, {"id": "В12", "sec": "Взгляд", "text": "НОВОЕ 06.10. Уход от флешки: услышал или увидел бросок флешки в свою сторону — отворачивается (смотрит в стену), потом возвращает прицел на угол. (чат 06.10)", "done": false}, {"id": "В13", "sec": "Взгляд", "text": "НОВОЕ 06.10. Без инфы взгляд — на проход, откуда враг может прийти раньше всего, а не на угол с почти нулевой угрозой (матч 1, р1, ~22 с: CT 5 Back Site, 7 Second Lane, 8 Temple — веса 0,01–0,10). (чат 06.10, скриншот)", "done": false}, {"id": "В14", "sec": "Взгляд", "text": "НОВОЕ 06.10. Взгляд по таймингу: откуда и как скоро враг может появиться; не чекать места, куда враг ещё не мог дойти, и не смотреть туда, где впереди свои или куда врагу не добежать (близко к В9). (чат 06.10)", "done": false}, {"id": "В15", "sec": "Взгляд", "text": "НОВОЕ 07.10. Бот видит карту углами, а не зонами: что видит со своей точки, где эту область обрезает край стены (там может выйти враг), насколько каждый край опасен (тайминг, инфа, держит ли тиммейт). Взгляд — на самый о", "done": false}, {"id": "В16", "sec": "Взгляд", "text": "НОВОЕ 09.10. Взгляд с точки — по картине команды, а не один угол точки на все случаи. У точки может быть несколько углов; какой смотреть сейчас, решает то, что держат свои. Пример: CT в Lamp Room — точка и её угол в цело", "done": false}, {"id": "В17", "sec": "Взгляд", "text": "НОВОЕ 09.10. Про никогда не стоят на месте, даже когда холдят. Они делают микродвижения влево-вправо и вперёд-назад и чуть шире или уже ведут прицел: точно знать, как выпикнет враг, нельзя. Если на точке несколько углов,", "done": false}, {"id": "П9", "sec": "Позиция", "text": "НОВОЕ 07.10. Места, где держать угол, — из наших демок, а не по стенам: где про стоят и держат угол (не бегут, не в бою), для какой стороны, у какого района, в какой фазе (до выхода / после планта / ретейк), и куда оттуд", "done": false}, {"id": "П10", "sec": "Позиция", "text": "НОВОЕ 09.10. Безопасные пути: когда и как бот идёт к точке, решается по тому, где враги могут быть к этому моменту. Источник — гипотезы `b.know` и тайминги: куда враг уже мог дойти и что видно с его возможных мест. Путь ", "done": false}, {"id": "П11", "sec": "Позиция", "text": "НОВОЕ 09.10. T до execute стоят на спавне и не двигаются. Источник — замечание владельца в чате после шага 7", "done": true}, {"id": "К10", "sec": "Команда", "text": "НОВОЕ 06.10. Тимспик как в реальной игре: инфа, просьбы («подпушу донат, пошли со мной»), план IGL на старте и перестройка по ходу («30 с никого на Б — один чекает мид»). Сказать — 0,5–2 с, услышать — сразу. Каждый реаги", "done": false}, {"id": "К11", "sec": "Команда", "text": "НОВОЕ 06.10. Своё восприятие как у игрока: сколько шагов и откуда, гранаты (откуда кинули, где упали), киллфид (кто, из чего — роль по нику, закуп по оружию), время раунда; выводы из этого — в общую картину. (чат 06.10)", "done": false}, {"id": "К12", "sec": "Команда", "text": "НОВОЕ 06.10. Активная игра: CT либо держат по расстановке, либо играют за инфой (ранний пик, подпуш парой, джиггл) и подстраиваются; T — контроль областей, пробы, лёрк, выход с энтри первым. Один подпушил — остальные пер", "done": false}, {"id": "К13", "sec": "Команда", "text": "НОВОЕ 06.10. Просьбы без повторов: одна просьба — один ответ; кто ответил «не могу», его больше не спрашивают; кто взял угол — держит, пока ситуация не изменилась; в консоли нет «подержите» / «не могу» по кругу (после v1", "done": false}, {"id": "К14", "sec": "Команда", "text": "НОВОЕ 09.10. Как играет T-сторона. (1) Тактика на раунд — по типу закупа: пистолетка, эко, форс, халф-бай, «хиро» (один сохранённый ствол — АК/AWP), фулл-бай; бывают агрессивные раунды и спокойные. (2) T знают соперника ", "done": false}, {"id": "К15", "sec": "Команда", "text": "НОВОЕ 09.10. Ретейк CT: собраться минимум вдвоём, поодиночке не лезть; не успевают по таймеру бомбы или живых меньше двух — ретейк не начинать. Если по экономике ретейк невыгоден или не хотят терять оружие — идут сейвить", "done": false}, {"id": "Н3", "sec": "Войс, консоль, киллфид", "text": "НОВОЕ 06.10. Консоль справа снизу — без лишних сообщений: только то, что важно смотрящему (фраги, коллы тимспика, решения команды). (чат 06.10)", "done": false}, {"id": "Н4", "sec": "Войс, консоль, киллфид", "text": "НОВОЕ 06.10. Киллфид как в CS2, компактно: `Убийца + Ассистент [иконка оружия] [значки: через смок, прострел, хедшот, ноускоп, ослеплён] Жертва`; ники цветом команды, иконки — белые силуэты оружия, значки — только те, чт", "done": false}, {"id": "Н5", "sec": "Войс, консоль, киллфид", "text": "НОВОЕ 06.10. Иконки киллфида — готовые SVG владельца из его другого проекта (оружие, гранаты, нож, значки), а не самодельные силуэты. (чат 06.10, архив иконок)", "done": false}, {"id": "Н6", "sec": "Войс, консоль, киллфид", "text": "НОВОЕ 06.10. Табло как на трансляции (образец — скриншот ESL Pro League): сверху по центру счёт команд, раунд, таймер, «живые: 3 vs 5» цветами команд; без стиля «рваной бумаги»; логотипы команд владелец пришлёт позже. (ч", "done": false}, {"id": "Н7", "sec": "Войс, консоль, киллфид", "text": "НОВОЕ 06.10. Панели игроков как на трансляции (образец — скриншот PARIVISION/FURIA): T слева, CT справа, сверху плашка с настоящим названием команды; у каждого — номер, ник, фраги/смерти, деньги, фото (пока серый силуэт)", "done": false}, {"id": "С1", "sec": "Стрельба", "text": "НОВОЕ 06.10. Стреляют как настоящий игрок: тап далеко, короткие очереди на средней, спрей вблизи, контрстрейф; ритм ровный по темпу оружия; трассеры уходят по рисунку отдачи, а не случайным веером. (чат 06.10)", "done": false}, {"id": "Д1", "sec": "Данные из демок (этап 2, шаг 1б)", "text": "НОВОЕ 09.10. Позиция — не точка, а задача «где стоит → что держит»: игрок встаёт шире/уже, ближе/дальше, у стены или открыто. (чат 09.10) — сделано в шаге 1б (spread, spots, группировка по месту и взгляду), подтверждено ", "done": true}, {"id": "Д2", "sec": "Данные из демок (этап 2, шаг 1б)", "text": "НОВОЕ 09.10. Ранние CT-позиции на половине T (подпуш Ramp, проверка T Lower/Upper после колла) — нормальная игра, не мусор; сейвы и игра в меньшинстве — отдельно. (чат 09.10) — сделано в шаге 1б (push, late), подтвержден", "done": true}, {"id": "Д3", "sec": "Данные из демок (этап 2, шаг 1б)", "text": "НОВОЕ 09.10. Гранаты выхода идут волнами и бывают фейки (раскид на один сайт, выход на другой); смоков в выходе несколько. (чат 09.10) — сделано в шаге 1б (wave, fake, 2–4 смока), подтверждено владельцем 09.10", "done": true}, {"id": "Д4", "sec": "Данные из демок (этап 2, шаг 1б)", "text": "НОВОЕ 09.10. Позиция First Lane / 90 → Ramp (взгляд вниз через 90) должна быть. (чат 09.10) — не сделано: шов стены №13 под 90 (y≈774) режет взгляд; править во вкладке «стены», потом перепечь `positions_bake.py`. Закрыто", "done": true}, {"id": "Д5", "sec": "Данные из демок (этап 2, шаг 1б)", "text": "НОВОЕ 09.10. Кроссфайр-пара держит вход вместе с двух сторон, а не смотрит друг на друга (Dark и Cave/Lamp Room смотрели друг на друга). (чат 09.10, шаг 5)", "done": false}, {"id": "П1", "sec": "Данные из демок (этап 2, шаг 1б)", "text": "НОВОЕ 09.10. У точки должна быть опасность: якорь не встаёт в странные глубокие точки (A Main — слишком глубоко, обычно так не стоят). (чат 09.10, шаг 5)", "done": false}];
 // ======================= v167: «Отметить момент», карточка «Я понял так», перемотка =======================
 // Инструмент для владельца и Claude, мозг ботов не трогает. Описание — docs/tasks/02-mark-moment.md.
 // Снимки состояния: __SNAP (список переменных симулятора, генерирует patch170.py при сборке).

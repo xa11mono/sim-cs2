@@ -9,7 +9,9 @@
 //   раунды (больше людей на том сайте — вес выше) × экономика (эко — стак).
 // Смена посреди раунда — только по поводам BRAIN 5.4:
 //   плант           — ретейк (сайт — что знает IGL: видел/слышал/сказали; не знает — уточнит);
-//                     RetakeSetup'ов пока нет (шаг 8) — раскладка та же, CT стоят где стояли;
+//                     сценарий ретейка сайта — 08_retake.js (раскладка в плане та же). Не начат —
+//                     IGL пересчитывает abortIf (rtAbortWhy): мало живых / не успеть / невыгодно —
+//                     сейв (план save, до конца раунда: CT уходят от бомбы, 08_retake.js);
 //   потеря состава  — fallback (раскладка та же, слоты делит 11_position.js);
 //   колл IGL        — до планта: IGL сам знает (своё b.know), что на одной стороне ≥ PLAN.infoN
 //                     T — колл на раскладку, где там больше CT; один за раунд.
@@ -67,9 +69,17 @@ function ctBrainTick(){
   // плант: что бомба заложена — объявление слышат все; где — знает тот, кто видел/слышал/кому сказали.
   // Сайт — по знанию IGL; IGL мёртв — того из живых, кто знает (он и скажет)
   if(bomb && bomb.state === "planted"){
+    if(P.type === "save") return;   // решили сейвить — до конца раунда
     var who = igl && igl.alive ? igl : null;
     if(!who) bots.forEach(function(b){ if(!who && b.team === "CT" && b.alive && b.know && b.know.plantSite) who = b; });
     var site = who && who.know ? who.know.plantSite || null : null;
+    var no = (P.type !== "retake" || tick % RETAKE.checkEvery === 0) ? rtAbortWhy(site) : null;
+    if(no){
+      teamSetPlan("CT", {type: "save", site: site, activeSetupId: s.id},
+                  (P.type === "retake" ? "ретейк не начинаем" : "бомба заложена" + (site ? " на " + site : "") + ", ретейка не будет") + " — " + no,
+                  "сейв" + (site ? " (бомба " + site + ")" : ""));
+      return;
+    }
     if(P.type !== "retake")
       teamSetPlan("CT", {type: "retake", site: site, activeSetupId: s.id},
                   "бомба заложена" + (site ? " на " + site + " (знает " + who.id + ")" : ", где — пока не знаем"),

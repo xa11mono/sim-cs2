@@ -101,7 +101,10 @@
 - **Анкор** держит сайт, играет от утилиты, главное — **выжить** и заставить T его искать; готов
   ретейкнуть другой сайт или сейвиться [7]. Не отдавать сайт и численность ради «героя» [11].
 - **Ретейк / сейв:** не ретейкать одному героем — собраться, сказать утилиту, проверить кит, идти
-  вместе; если в ретейке рано потеряли несколько — сейв, а не форс [11].
+  вместе; если в ретейке рано потеряли несколько — сейв, а не форс [11]. Ретейк 2 на 4 без кита и почти
+  без утилиты стоит меньше, чем две винтовки на следующий раунд; 2 на 3 с китами и гранатами — ещё можно
+  пробовать; решать рано — кто долго ждёт, теряет и ретейк, и оружие [21]. CT-закуп дороже T, поэтому
+  сохранённое оружие CT особенно ценно [21].
 - **AWP:** ранние пики можно, но не попадаться на размен, потом менять позицию [11].
 - **IGL на CT** чаще всего играет **ротатора-саппорта** (собирает инфу, задерживает, помогает), а
   не анкора; на Ancient B Cave теперь часто у IGL (karrigan, Snappi) [13]. Анкор-IGL (karrigan) из
@@ -189,3 +192,4 @@
 18. [Astralis tactics Ancient — caubycs (24.07.2026)](https://caubycs.substack.com/p/astralis-tactics-ancient)
 19. [The Art of Demo Review: How CS2 Teams Study Their Opponents — EGW](https://egw.news/gaming/news/26282/the-art-of-demo-review-how-cs2-teams-study-their-o-LgEbAX8dv)
 20. [The Art of Anti-Stratting — Dignitas](https://dignitas.gg/articles/blogs/Unknown/9570/the-art-of-anti-stratting)
+21. [CS2 Economy Guide: When to Buy, Save, Eco, or Force — Winio](https://winio.ai/blog/articles/cs2-economy-guide-when-to-buy-save-eco-or-force)
