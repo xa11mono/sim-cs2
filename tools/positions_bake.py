@@ -59,7 +59,7 @@ import pandas as pd
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from heights_bake import point_in, centroid, seg_x  # noqa: E402
-from ancient_demos import ROOT, TICK, tr, demo_names, rounds_of, ticks_of, round_index  # noqa: E402
+from ancient_demos import ROOT, TICK, tr, demo_names, rounds_of, ticks_of, round_index, event  # noqa: E402
 
 DATA = os.path.join(ROOT, 'src', 'data')
 OUT_POS = os.path.join(DATA, 'positions.json')
@@ -83,6 +83,12 @@ FALLBACK_MAX = 160      # ед. карты: запасная точка не д�
 TRADE_DIST = 260        # ед. карты ≈ 650 ед. игры: размен успевает
 PAIR_MIN_ANGLE = 30     # градусов между взглядами пары
 PAIR_AIM_GAP = 60       # ед. карты: лучи взгляда пары сходятся (пересекаются или ближе этого)
+PAIR_OFF_MATE = 20      # градусов: напарник не на линии взгляда (не смотрят друг на друга и не стреляют
+                        # через своего) — каждый из пары смотрит мимо напарника хотя бы на столько (09.10, владелец)
+DANGER_R = 60           # ед. карты (≈ 150 ед. игры): погиб рядом с точкой, на которой стоял (danger)
+DANGER_SEC = 60         # с: … в пределах стольких секунд после начала стоянки
+FOV_HALF = 60           # градусов: что точка держит — в пределах стольких от её взгляда (margin)
+FOE_Q = 25              # %: «когда враг может быть там» — четверть самых быстрых раундов (ранний выход)
 START_WAIT = 12         # с: T у своего спавна раньше этого — ждут на старте, не позиция
 AIM_MIN = 40            # ед. карты: луч взгляда короче — смотрит в укрытие вплотную
 PEEK_MIN = 80           # ед. карты: открытое направление у края укрытия — хотя бы такое
@@ -306,7 +312,8 @@ def holds_vec(tick, sid, x, y, z, yaw, ri, rounds):
         L = j - i + 1
         mean = {k: (v[j + 1] - v[i]) / L for k, v in C.items()}
         r = rounds[ri[i]]
-        out.append({'rid': r['rid'], 'sid': int(sid[i]), 'side': None, 'tick0': int(tick[i]), 'x': mean['x'], 'y': mean['y'], 'z': mean['z'],
+        out.append({'rid': r['rid'], 'sid': int(sid[i]), 'side': None, 'tick0': int(tick[i]), 'tick1': int(tick[j]),
+                    'x': mean['x'], 'y': mean['y'], 'z': mean['z'],
                     'yaw': math.degrees(math.atan2(mean['s'], mean['c'])) % 360,
                     's0': (tick[i] - r['t0']) / TICK, 's1': (tick[j] - r['t0']) / TICK})
     return out
@@ -331,9 +338,25 @@ def load_rounds():
         side_of = dict(zip(sid, sd))
         alive = t.groupby(['tick', 'side']).size().to_dict()   # живых в команде на тике
         hs = holds_vec(tick, sid, x, y, z, yaw, rv, rounds)
+        dth = event(demo, 'player_death')
+        deaths = defaultdict(list)   # steamid → [(тик, x, y)] смерти, координаты карты
+        if len(dth):
+            for tk, us, ux, uy in zip(dth.tick.values, dth.user_steamid.values, dth.user_X.values, dth.user_Y.values):
+                if us == us and ux == ux:
+                    deaths[int(us)].append((int(tk),) + tr(ux, uy))
         for h in hs:
             h['side'] = side_of[h['sid']]
+            h['died'] = any(h['tick0'] <= tk <= h['tick0'] + DANGER_SEC * TICK and math.hypot(dx - h['x'], dy - h['y']) <= DANGER_R
+                            for tk, dx, dy in deaths.get(h['sid'], ()))
             h['late'] = h['s0'] > LATE_SEC or alive.get((h['tick0'], h['side']), 5) < LATE_ALIVE
+        # когда каждая сторона впервые в зоне (тайминги карты): зона по клетке 8×8 ед. карты
+        kx, ky, ku = (x // 8).astype(np.int32), (y // 8).astype(np.int32), (z > 100)
+        key = kx.astype(np.int64) * 1000000 + ky * 10 + ku
+        uk, inv = np.unique(key, return_inverse=True)
+        zid = np.array([zone_at((k // 1000000) * 8 + 4, ((k // 10) % 100000) * 8 + 4, 101 if k % 10 else 0)['id'] for k in uk])
+        fr = pd.DataFrame({'ri': rv, 'side': sd, 'zone': zid[inv], 'tick': tick}).groupby(['ri', 'side', 'zone']).tick.min()
+        for (ri_, sd_, zn_), tk in fr.items():
+            FIRST[(sd_, zn_)].append((tk - rounds[ri_]['t0']) / TICK)
         H += hs
         bounds = np.searchsorted(rv, np.arange(len(rounds) + 1))
         for k, r in enumerate(rounds):
@@ -397,6 +420,7 @@ def greedy(XY, r):
 
 NR = 0   # раундов всего — от него пороги-доли
 SPAWN_PTS = {'CT': [], 'T': []}
+FIRST = defaultdict(list)   # (сторона, зона) → секунда, когда сторона впервые там, по раундам
 
 
 def make_points(H, side, late=False):
@@ -463,6 +487,41 @@ def make_points(H, side, late=False):
     return pts
 
 
+def mark_danger(P):
+    """опасность точки (09.10, владелец):
+    danger — в какой доле раундов игрок, стоявший на точке, погиб рядом с ней (ближе
+    DANGER_R, в пределах DANGER_SEC после начала стоянки);
+    margin — запас времени, с: когда враг может быть там, откуда видно точку (самое раннее
+    по зонам, которые точка держит — видно и в поле зрения: FOE_Q-й процентиль «впервые в зоне» по раундам), минус когда
+    свои обычно приходят в зону точки (медиана). Тайминги карты из демок — то, что знает
+    любой игрок. Маленький или < 0 — глубокая точка: враг успевает раньше или вместе"""
+    C = {q['id']: centroid(q['P']) for q in ZONES}
+    S = []   # места, откуда враг может увидеть точку: центр зоны и её углы, подтянутые к центру
+    for q in ZONES:
+        cx, cy = C[q['id']]
+        S.append((q['id'], cx, cy))
+        for (x, y) in q['P']:
+            S.append((q['id'], x + (cx - x) * 0.2, y + (cy - y) * 0.2))
+    SZ = np.array([z for z, _, _ in S])
+    SXY = np.array([(x, y) for _, x, y in S])
+    foe_t = {k: float(np.percentile(v, FOE_Q)) for k, v in FIRST.items() if len(v) >= 10}
+    own_t = {k: float(np.median(v)) for k, v in FIRST.items() if len(v) >= 10}
+    for p in P:
+        rd = {h['rid'] for h in p['holds'] if h.get('died')}
+        p['danger'] = len(rd) / max(1, len(p['rounds']))
+        own, foe = p['side'], ('T' if p['side'] == 'CT' else 'CT')
+        zp = zone_at(p['x'], p['y'], p['z'])['id']
+        # только то, что точка держит: в поле зрения (±FOV_HALF° от её взгляда) и не дальше RAY_MAX
+        dirs = np.degrees(np.arctan2(-(SXY[:, 1] - p['y']), SXY[:, 0] - p['x'])) % 360
+        dd = np.abs((dirs - p['yaw'] + 180) % 360 - 180)
+        near = (np.hypot(SXY[:, 0] - p['x'], SXY[:, 1] - p['y']) <= RAY_MAX) & (dd <= FOV_HALF)
+        vis = np.zeros(len(S), bool)
+        vis[near] = visible_from((p['x'], p['y']), SXY[near])
+        tf = [foe_t[(foe, z)] for z in set(SZ[vis]) if (foe, z) in foe_t]
+        to = own_t.get((own, zp))
+        p['margin'] = (min(tf) - to) if tf and to is not None else None
+
+
 def mark_push(P):
     """push: CT-позиция на половине карты T (ближе к спавну T, чем к спавну CT),
     которую обычно занимают в первые PUSH_SEC с, — подпуш после колла, не обычная раскладка"""
@@ -523,6 +582,11 @@ def overlap(h, k):
     return h['sid'] != k['sid'] and all(SETUP_WIN[0] < x['s0'] < SETUP_WIN[1] + 15 for x in (h, k))
 
 
+def dir_yaw(p, q):
+    """направление p → q в градусах yaw игры (против часовой; на карте y вниз)"""
+    return math.degrees(math.atan2(-(q['y'] - p['y']), q['x'] - p['x'])) % 360
+
+
 def make_pairs(P):
     """кроссфайр (BRAIN 4.2): две точки одной стороны карты, лучи взгляда которых
     сходятся на одном входе с разных сторон (между взглядами ≥ PAIR_MIN_ANGLE),
@@ -539,12 +603,19 @@ def make_pairs(P):
                 continue
             if seg_dist((p['x'], p['y']), p['aim'], (q['x'], q['y']), q['aim']) > PAIR_AIM_GAP:
                 continue
+            # смотрят друг на друга — не кроссфайр: каждый должен смотреть мимо напарника
+            # (взгляд и направление на напарника расходятся ≥ PAIR_OFF_MATE), а место, где
+            # лучи сходятся, — не вплотную ни к одному из них (вход, а не сам напарник)
+            if min(ang_diff(p['yaw'], dir_yaw(p, q)), ang_diff(q['yaw'], dir_yaw(q, p))) < PAIR_OFF_MATE:
+                continue
+            mx, my = (p['aim'][0] + q['aim'][0]) / 2, (p['aim'][1] + q['aim'][1]) / 2
+            if min(math.hypot(mx - p['x'], my - p['y']), math.hypot(mx - q['x'], my - q['y'])) < SPOT_D:
+                continue
             hq = defaultdict(list)
             for k in q['holds']:
                 hq[k['rid']].append(k)
             together = {h['rid'] for h in p['holds'] if any(overlap(h, k) for k in hq.get(h['rid'], []))}
-            # вход, который держат вдвоём: зона ближе к концам обоих лучей
-            mx, my = (p['aim'][0] + q['aim'][0]) / 2, (p['aim'][1] + q['aim'][1]) / 2
+            # вход, который держат вдвоём: зона ближе к концам обоих лучей (mx, my — выше)
             pairs.append({'a': p['id'], 'b': q['id'], 'entrance': zone_at(mx, my)['name'],
                           'dist': round(d), 'rounds': len(together),
                           'weight': min(len(p['rounds']), len(q['rounds']))})
@@ -916,6 +987,7 @@ def main():
         SITE_C[site] = (float(np.mean([x for x, _ in xs])), float(np.mean([y for _, y in xs])))
     P = finalize_points(make_points(H, 'CT') + make_points(H, 'T'))
     mark_push(P)
+    mark_danger(P)
     LP = make_points(H, 'CT', late=True) + make_points(H, 'T', late=True)
     for side in ('CT', 'T'):
         for k, p in enumerate(sorted([p for p in LP if p['side'] == side], key=lambda p: (-len(p['rounds']), p['x'], p['y']))):
@@ -935,7 +1007,9 @@ def main():
                 'spread': round(p['spread']), 'yawRange': p['yawRange'], 'spots': p['spots'],
                 'fallback': p['fallback'], 'pairs': pair_of[p['id']],
                 'rounds': len(p['rounds']), 'share': round(len(p['rounds']) / nr, 3),
-                'sec': round(p['sec']), 'hold': round(p['dur'], 1)}
+                'sec': round(p['sec']), 'hold': round(p['dur'], 1),
+                'danger': round(p.get('danger', 0), 2),
+                'margin': None if p.get('margin') is None else round(p['margin'], 1)}
     points = [out(p) for p in sorted(P, key=lambda p: (p['side'], p['id']))]
     late = [out(p) for p in sorted(LP, key=lambda p: (p['side'], p['id']))]
     ct_setups, nlay = make_ct_setups(R, H, P)
@@ -966,7 +1040,11 @@ def main():
         'peek — стоит вплотную за укрытием, угол — ближайшее к взгляду открытое направление (±10–40°, держит из-за края).',
         'crouch — не измерено (в выгрузке демок нет присяда), везде false.',
         'fallback — запасная точка на тот же вход рядом (BRAIN 4.4); pairs — кроссфайр-напарники (список pairs ниже).',
-        'rounds/share — в скольких раундах из %d стояли; sec — типичная секунда раунда; hold — типичная длительность, с.' % nr],
+        'rounds/share — в скольких раундах из %d стояли; sec — типичная секунда раунда; hold — типичная длительность, с.' % nr,
+        'danger — опасность: в какой доле этих раундов игрок на точке и погиб (стоянка кончилась смертью). margin — запас '
+        'времени, с: сколько врагу бежать от своего спавна до места, откуда видно точку, минус сколько своим до неё '
+        '(тайминги из демок: враг — %d-й процентиль «впервые в зоне», свои — медиана); маленький или < 0 — глубокая точка. Пары — только если каждый смотрит мимо '
+        'напарника (≥ %d°), а не друг на друга. danger — погиб ближе %d ед. карты к точке за %d с после начала стоянки.' % (FOE_Q, PAIR_OFF_MATE, DANGER_R, DANGER_SEC)],
         'map': 'ancient', 'demos': demos, 'rounds': nr},
         {'points': points, 'pairs': PAIRS, 'late': late})
     dump(OUT_SET, {'_about': [
