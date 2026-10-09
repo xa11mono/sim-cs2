@@ -6,7 +6,8 @@
 // CT: активный Setup из setups.json (раскладка «сколько на A / миде / B» из демок)
 //   • раздача слотов — раз в раунд, в начале: роль бота (шаг 4) → слот по POS_FIT;
 //   • точка слота — из его point + alternatives (positions.json), один раз:
-//     фильтр по роли (RoleProfile.preferredAngle: standard / длинная линия / любая),
+//     фильтр по роли (RoleProfile.preferredAngle: standard / длинная линия / любая; якорь и
+//     саппорт — ещё и не глубже POS.marginMin: запас времени до врага по навмешу, posMargin),
 //     кроссфайр-напарники (pairWith) берут точки, которые вместе стоят в списке pairs;
 //   • на месте — смотрит в angle точки; пересчёта каждый тик нет.
 // Меняется только по событию:
@@ -30,7 +31,8 @@ var POS = {
   smokeEvery:  16,   // как часто, пока есть дым, сверяется «угол закрыт дымом», тиков
   yawPad:      10,   // к yawRange точки — запас, ° (держит из-за края шире)
   keepBonus:   2,    // при перераздаче — за то, что остаёшься на своём слоте
-  moveCost:    600   // при перераздаче — −1 балл за столько px до новой точки
+  moveCost:    600,  // при перераздаче — −1 балл за столько px до новой точки
+  marginMin:   3     // с: якорь/саппорт — только точки, где свои успевают раньше врага хотя бы на столько
 };
 // насколько слот нужен команде, когда живых меньше, чем слотов: якорь сайта пустеть не должен —
 // его вес больше, чем «свой слот + подходит по роли» у соседа, поэтому сосед на него переходит
@@ -77,7 +79,13 @@ function posCands(slot, role, used){
     seen[a.id] = 1; out.push({p: p, n: Math.max(1, a.n || 1)});
   });
   var k = posAngleKind(role);
-  if(k === "standard"){ var st = out.filter(function(c){ return c.p.type === "standard"; }); if(st.length) out = st; }
+  if(k === "standard"){
+    var st = out.filter(function(c){ return c.p.type === "standard"; }); if(st.length) out = st;
+    // якорь/саппорт не встают в глубокие точки: свои должны успеть встать раньше, чем враг может её
+    // увидеть, с запасом POS.marginMin (09.10, владелец: A Main — слишком глубоко); не посчитан — не берут
+    var deep = out.filter(function(c){ var m = posMargin(c.p); return m !== null && m >= POS.marginMin; });
+    if(deep.length) out = deep;
+  }
   if(k === "long" && out.length){ var best = out.reduce(function(a, c){ return c.p.angle.dist > a.p.angle.dist ? c : a; }); out = [best]; }
   return out;
 }
@@ -85,6 +93,65 @@ function posPairW(a, b){
   var P = KNOW_POSITIONS.pairs;
   for(var i = 0; i < P.length; i++) if((P[i].a === a && P[i].b === b) || (P[i].a === b && P[i].b === a)) return P[i].weight;
   return 0;
+}
+
+// ---------- запас времени точки (margin) — знание карты, как у любого игрока ----------
+// Сколько секунд у своих в запасе: когда враг, выбежав со своего спавна, может оказаться там,
+// откуда видно точку (в поле зрения точки — то, что она держит), минус когда свои добегают до
+// неё. Бег — по навмешу игры (те же переходы, что у путей ботов), с ножом 250 ед. игры/с;
+// «видно» — visLine игры (стены, высоты, укрытия), глаза стоя, до центра или углов области
+// навмеша. Нет ни одного такого места — null (точка смотрит в стену вплотную). Один раз на точку.
+var POS_RUN = 100;     // px/с — бег с ножом (250 ед. игры/с), самое быстрое, как враг может успеть
+var POS_FOV = 60;      // ° от взгляда точки — что она держит
+var POS_SEE = 1100;    // px — дальше не разглядеть (как KNOW.lookRange)
+var POS_NAVD = {};     // сторона → {id области: путь от спавна этой стороны, px}
+function posNavDist(side){
+  if(POS_NAVD[side]) return POS_NAVD[side];
+  var sp = side === "CT" ? CT_SPAWN : T_SPAWN, a0 = zoneOf(sp.x, sp.y, sp.z || 0), D = {};
+  if(!a0) return (POS_NAVD[side] = D);
+  var C = {}; function c(id){ return C[id] || (C[id] = zoneCentroid(zonesById[id])); }
+  D[a0.id] = Math.hypot(c(a0.id).x - sp.x, c(a0.id).y - sp.y);
+  var heap = makeHeap(), done = {}; heap.push(a0.id, D[a0.id]);
+  while(heap.size()){
+    var u = heap.pop().id; if(done[u]) continue; done[u] = true;
+    (zoneGraph[u] || []).forEach(function(e){
+      if(done[e.to] || NAV_BLOCKED[e.to]) return;
+      var w = D[u] + Math.hypot(c(u).x - e.mid.x, c(u).y - e.mid.y) + Math.hypot(e.mid.x - c(e.to).x, e.mid.y - c(e.to).y);
+      if(D[e.to] === undefined || w < D[e.to]){ D[e.to] = w; heap.push(e.to, w); }
+    });
+  }
+  return (POS_NAVD[side] = D);
+}
+function posMargin(P){
+  if(P._margin !== undefined) return P._margin;
+  var own = posNavDist(P.side), foe = posNavDist(P.side === "CT" ? "T" : "CT");
+  // область навмеша точки: из содержащих точку и достижимых — ближайшая по высоте (уровни друг над
+  // другом); точка в щели — ближайшая достижимая по центру
+  var ap = null, best = Infinity;
+  NAVAREAS.forEach(function(A){
+    if(own[A.id] === undefined) return;
+    var inside = pointInPoly(P.x, P.y, A.points), c = zoneCentroid(A);
+    var k = inside ? Math.abs((A.z || 0) - (P.z || 0)) : 1e6 + Math.hypot(c.x - P.x, c.y - P.y);
+    if(k < best){ best = k; ap = A; }
+  });
+  if(!ap) return (P._margin = null);
+  var cp = zoneCentroid(ap), tOwn = (own[ap.id] + Math.hypot(cp.x - P.x, cp.y - P.y)) / POS_RUN;
+  var eye = visFloorAt(P.x, P.y) + VIS_EYE.stand, c0 = -P.yaw*Math.PI/180, tFoe = Infinity;
+  // где враг может стоять в области: её центр и углы, подтянутые к центру на 20 %
+  NAVAREAS.forEach(function(A){
+    if(foe[A.id] === undefined) return;
+    var c = zoneCentroid(A);
+    var S = [c].concat(A.points.map(function(q){ return {x: q.x + (c.x - q.x)*0.2, y: q.y + (c.y - q.y)*0.2}; }));
+    for(var i = 0; i < S.length; i++){
+      var q = S[i], t = (foe[A.id] + Math.hypot(q.x - c.x, q.y - c.y)) / POS_RUN;
+      if(t >= tFoe || Math.hypot(q.x - P.x, q.y - P.y) > POS_SEE) continue;
+      var da = Math.atan2(q.y - P.y, q.x - P.x) - c0;
+      da = Math.abs(((da + Math.PI) % (2*Math.PI) + 2*Math.PI) % (2*Math.PI) - Math.PI);
+      if(da > POS_FOV*Math.PI/180) continue;
+      if(visLine(P.x, P.y, eye, q.x, q.y, visFloorAt(q.x, q.y) + VIS_EYE.stand, false)) tFoe = t;
+    }
+  });
+  return (P._margin = tFoe === Infinity ? null : tFoe - tOwn);
 }
 
 // ---------- раздача слотов ----------
@@ -270,11 +337,12 @@ function drawPositions(){
     ctx.fillStyle = "rgba(170,210,255,0.95)"; ctx.font = (8*px)+"px 'IBM Plex Mono',monospace"; ctx.textAlign = "center";
     ctx.fillText(b.pos.slot + (b.pos.fb ? " (зап.)" : ""), b.pos.tx, b.pos.ty + 15*px);
   });
-  // кроссфайр-пары — жёлтая линия между точками напарников
+  // кроссфайр-пары — жёлтая линия между точками напарников, только если их точки — пара из pairs
   bots.forEach(function(b){
     if(!b.alive || !b.pos || !b.pos.pairWith) return;
     bots.forEach(function(m){
       if(m === b || !m.alive || !m.pos || m.pos.slot !== b.pos.pairWith || b.id > m.id) return;
+      if(!posPairW(b.pos.cur, m.pos.cur)) return;   // слоты-напарники, но точки не кроссфайр (пары не нашлось)
       ctx.strokeStyle = "rgba(255,210,80,0.85)"; ctx.lineWidth = 2*px; ctx.setLineDash([6*px, 4*px]);
       ctx.beginPath(); ctx.moveTo(b.pos.tx, b.pos.ty); ctx.lineTo(m.pos.tx, m.pos.ty); ctx.stroke();
     });
