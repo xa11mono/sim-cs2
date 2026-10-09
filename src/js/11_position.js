@@ -64,7 +64,8 @@ var POS = {
   pushMax:     2,    // подпушей за раунд не больше (вдвоём — пара; данные дают в среднем ~1 на раунд)
   pushLead:    1,    // с: выйти так, чтобы быть на точке подпуша к её типичной секунде (sec), с запасом
   movedR:      40,   // px: после фрага / попадания — на другое место хотя бы так далеко (у про «откатился» > 40 px)
-  pushHearR:   600   // px: на подпуше услышал врага / сказали про зону так близко — назад (v221, проектное число)
+  pushHearR:   600,  // px: на подпуше услышал врага / сказали про зону так близко — назад (v221, проектное число)
+  coverK:      0.6   // напарник подпуша — на 60 % пути от своей точки к точке подпуша (v223, проектное число)
 };
 // насколько слот нужен команде, когда живых меньше, чем слотов: якорь сайта пустеть не должен —
 // его вес больше, чем «свой слот + подходит по роли» у соседа, поэтому сосед на него переходит
@@ -320,6 +321,7 @@ function posTick(){
     if((smokes.length || b.pos.fb) && (tick + (b.id.charCodeAt(b.id.length-1)||0)) % POS.smokeEvery === 0) posSmokeCheck(b);
     if(!far && (tick + (b.id.charCodeAt(0)||0)) % POS.threatEvery === 0) posThreatCheck(b);
     if(posPushTick(b)) return;
+    if(posCoverTick(b)) return;
     if(posAfterHit(b)) return;
     if((tick + (b.id.charCodeAt(1)||0)) % POS.rotEvery === 0) posRotateCheck(b);
     if(!far && !moving) posShuffle(b);
@@ -411,9 +413,21 @@ function posPlanPushes(alive){
         if(sc < bs){ bs = sc; best = b; }
       });
       if(!best) return;
+      // v223: подпуш не в одиночку (PRO_PLAY 3, 5: «подпуш парой», «не пикать одному»): напарник — ближайший CT той же
+      // стороны, не якорь; он держит отход подпушившего. Нет напарника — подпуш только с флешкой под выход, иначе не идёт
+      var mate = null, md = 1e9;
+      alive.forEach(function(o){
+        if(o === best || used[o.id] || !o.pos || /^anchor/.test(o.pos.slot)) return;
+        var h = POS_PT[o.pos.pid]; if(!h || h.region !== reg) return;
+        var d = Math.hypot(h.x - P.x, h.y - P.y); if(d < md){ md = d; mate = o; }
+      });
+      if(!mate && !(best.nades && best.nades.flash > 0)) return;
       used[best.id] = true; n++;
-      best.pos.push = {pid: P.id, state: "wait", at: roundStartTick + Math.round(P.sec*TICK_HZ), hold: Math.round(P.hold*TICK_HZ)};
-      POS_LOG.push({tick: tick, round: roundNum, who: best.id, slot: best.pos.slot, pid: P.id, why: "план подпуша на " + P.sec + "-й с"});
+      best.pos.push = {pid: P.id, state: "wait", at: roundStartTick + Math.round(P.sec*TICK_HZ), hold: Math.round(P.hold*TICK_HZ),
+                       mate: mate, flash: !mate};
+      if(mate){ used[mate.id] = true; mate.pos.cover = {who: best, pid: P.id}; }
+      POS_LOG.push({tick: tick, round: roundNum, who: best.id, slot: best.pos.slot, pid: P.id,
+                    why: "план подпуша на " + P.sec + "-й с" + (mate ? ", напарник " + mate.id : ", один — с флешкой")});
     });
 }
 function posPushTick(b){
@@ -425,6 +439,7 @@ function posPushTick(b){
     if(tick < Q.at - travel) return false;
     Q.state = "go";
     b.pos.tx = P.x; b.pos.ty = P.y; b.pos.tz = P.z || 0; b.pos.cur = P.id; b.walking = false; posPath(b);
+    if(Q.flash && b.nades.flash > 0) nadeThrow(b, "flash", P.angle.x, P.angle.y, true, "флешка под подпуш — " + P.area);   // выходит за своей флешкой
     logEvent("Позиция: " + nick(b.id) + " — подпуш за инфой: " + P.area, "info");
     return true;
   }
@@ -450,6 +465,20 @@ function posPushTick(b){
     return true;
   }
   return false;
+}
+// напарник подпуша: стоит между своей точкой и точкой подпуша (ближе к подпушу) — на размен и прикрыть отход;
+// подпушивший вернулся/погиб — назад на свою точку
+function posCoverTick(b){
+  var C = b.pos.cover; if(!C || posLed(b)) return false;
+  var w = C.who, Q = w && w.pos && w.pos.push;
+  if(!w || !w.alive || !Q || Q.state === "done" || teamOf("CT").planState.type !== "default"){
+    b.pos.cover = null; posGo(b, "прикрытие подпуша закончено"); return true;
+  }
+  if(Q.state === "wait") return false;
+  var P = POS_PT[Q.pid], H = POS_PT[b.pos.pid];
+  var tx = H.x + (P.x - H.x)*POS.coverK, ty = H.y + (P.y - H.y)*POS.coverK, t = snapToWalkable(tx, ty) || {x: H.x, y: H.y};
+  if(Math.hypot(t.x - b.pos.tx, t.y - b.pos.ty) > 30){ b.pos.tx = t.x; b.pos.ty = t.y; b.walking = false; posPath(b); }
+  return true;
 }
 // инфа на подпуше: свои шаги/стрельба рядом (слух) или команде уже сказали, что враги у точки (доска войса)
 function posPushInfo(b, P){
