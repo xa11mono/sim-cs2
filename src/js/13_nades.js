@@ -193,5 +193,110 @@ function nadesTick(){
 
 function resetNades(){
   nadesInAir.length = 0; smokes.length = 0; fires.length = 0; nadeFx.length = 0; groundWeapons.length = 0;
-  bots.forEach(function(b){ b.blindUntil = 0; b.throwUntil = 0; b._fireAcc = 0; b._fireIn = null; if(!b.nades) b.nades = emptyNades(); });
+  bots.forEach(function(b){ b.blindUntil = 0; b.throwUntil = 0; b._nadeWait = 0; b._selfDone = null; b._fireAcc = 0; b._fireIn = null; if(!b.nades) b.nades = emptyNades(); });
+}
+
+// ======================= ГРАНАТЫ «СЕБЕ» (шаг 10) =======================
+// Одно место решения «кинуть себе» — не шаг сценария (их кидает 12_script_runner.js), а
+// решение игрока под свою ситуацию, только по тому, что он сам знает (b.know: гипотезы
+// о врагах, в том числе из войса). Варианты — разметка демок про (tools/lineups.py, purpose):
+//  • флешка под выход — идёт, впереди по пути угол, за которым по его знанию весомо стоит
+//    враг (сейчас его не видно, а шагах через 250 px он окажется на линии): флешка между
+//    точкой выхода и врагом, ждёт хлопка — выходит;
+//  • молотов в угол — то же, но враг по гипотезе «держит» близкий к пути угол: молотов туда,
+//    проходит мимо горения;
+//  • смок под плант / под дефуз — носитель на сайте (дефузер у бомбы), а по его знанию
+//    кто-то видит точку: смок на себя (на бомбу), ставит/дефузит в дыму.
+// Без повода — ничего; уже закрыто своими (дым на линии, своя флешка/огонь там же) — тоже.
+var SELF = {
+  every:   8,    // как часто бот сверяется, тиков
+  ahead:   250,  // флешка/молотов: через сколько px пути он выйдет на линию врага
+  far:     700,  // и не дальше стольких px до врага по гипотезе
+  cone:    75,   // и не шире стольких ° от направления хода
+  cornerR: 160,  // молотов: «держит» не дальше стольких px от точки выхода
+  sightR:  900,  // смок под плант/дефуз: гипотеза врага с линией на точку не дальше стольких px
+  defuseR: 220,  // смок под дефуз — когда до бомбы не больше стольких px
+  teamSec: 3     // своя граната того же типа там же (≤ 150 px) за столько с — уже закрыто
+};
+var SELF_LOG = [];
+function selfHyps(b, fn){   // весомые гипотезы бота о невидимых врагах
+  var K = b.know; if(!K) return;
+  for(var id in K.enemies){
+    var B = K.enemies[id]; if(B.visible) continue;
+    B.hyps.forEach(function(h){ if(h.x !== undefined && h.weight >= POS.threatW) fn(h, id); });
+  }
+}
+function selfTeamDone(b, type, x, y){
+  if(type === "smoke") return false;
+  if(type === "molly" && fires.some(function(f){ return f.team === b.team && Math.hypot(f.x-x, f.y-y) < 150; })) return true;
+  return nadeFx.concat(nadesInAir).some(function(n){ return n.type === type && (n.team === b.team || n.thrower && n.thrower.team === b.team) &&
+    Math.hypot(n.x-x, n.y-y) < 150 && tick - n.born < SELF.teamSec*TICK_HZ; });
+}
+function selfThrow(b, type, x, y, kind, why, waitT){
+  if(selfTeamDone(b, type, x, y)) return false;
+  if(!throwNade(b, type, x, y, type !== "smoke", "себе: " + why)) return false;   // смок — под ноги, не навесом
+  var n = nadesInAir[nadesInAir.length-1];
+  b._nadeWait = tick + (n && n.flight ? n.flight : 30) + waitT;   // стоит, пока своя граната не сработала (стрелять может)
+  SELF_LOG.push({tick: tick, round: roundNum, who: b.id, kind: kind, x: Math.round(x), y: Math.round(y), why: why});
+  return true;
+}
+// смок под плант / дефуз: точка p, кто-то по знанию бота её видит
+function selfCoverSmoke(b, p, kind){
+  if(!b.nades || b.nades.smoke <= 0 || smokes.some(function(s){ return Math.hypot(s.x-p.x, s.y-p.y) < smokeRadiusNow(s); })) return false;
+  var seen = null;
+  selfHyps(b, function(h){
+    var d = Math.hypot(h.x-p.x, h.y-p.y);
+    if(d <= SELF.sightR && !seen && visLine(h.x, h.y, visFloorAt(h.x, h.y) + 64, p.x, p.y, visFloorAt(p.x, p.y) + 40, true)) seen = h;
+  });
+  if(!seen) return false;
+  return selfThrow(b, "smoke", p.x, p.y, kind, (kind === "smoke_plant" ? "смок под плант" : "смок под дефуз") + " — точку видно с " + calloutName(seen.x, seen.y), 40);
+}
+// флешка / молотов под выход
+function selfExit(b){
+  if(!(b.path.length && b.pathIdx < b.path.length) || b._goDir === undefined) return false;
+  if(b.nades.flash <= 0 && b.nades.molly <= 0) return false;
+  b._selfDone = b._selfDone || {};
+  var best = null, cone = SELF.cone*Math.PI/180;
+  selfHyps(b, function(h, id){
+    var key = id + ":" + h.zone; if(b._selfDone[key]) return;
+    var d = Math.hypot(h.x-b.x, h.y-b.y); if(d > SELF.far || d < 60) return;
+    var a = Math.atan2(h.y-b.y, h.x-b.x) - b._goDir; if(Math.abs(Math.atan2(Math.sin(a), Math.cos(a))) > cone) return;
+    if(!crossesWall(b.x, b.y, h.x, h.y)) return;   // уже на линии — не выход, это бой/префайр
+    // точка выхода: первая точка пути (в пределах SELF.ahead), откуда врага будет видно
+    var px = b.x, py = b.y, run = 0, ex = null;
+    for(var i = b.pathIdx; i < b.path.length && run <= SELF.ahead; i++){
+      var q = b.path[i]; run += Math.hypot(q[0]-px, q[1]-py); px = q[0]; py = q[1];
+      if(run <= SELF.ahead && !crossesWall(px, py, h.x, h.y)){ ex = {x: px, y: py}; break; }
+    }
+    if(!ex) return;
+    if(!best || h.weight > best.h.weight) best = {h: h, key: key, ex: ex};
+  });
+  if(!best) return false;
+  var h = best.h, ex = best.ex, dE = Math.hypot(h.x-ex.x, h.y-ex.y);
+  b._selfDone[best.key] = true;   // на одну ситуацию — одна граната
+  var where = calloutName(h.x, h.y);
+  if(h.type === "held" && dE <= SELF.cornerR && b.nades.molly > 0)
+    return selfThrow(b, "molly", h.x, h.y, "molly_clear", "молотов в угол — держат " + where, 16);
+  if(b.nades.flash > 0){
+    var k = Math.min(1, 140/Math.max(1, dE));   // хлопок за углом, со стороны врага от точки выхода
+    return selfThrow(b, "flash", ex.x + (h.x-ex.x)*k, ex.y + (h.y-ex.y)*k, "flash_exit", "флешка под выход — по знанию " + where, 2);
+  }
+  return false;
+}
+function selfNadeTick(){
+  if(roundState !== "live") return;
+  if(tick === roundStartTick + 1 && roundNum === 1) SELF_LOG.length = 0;
+  bots.forEach(function(b){
+    if(!b.alive || !b.nades || b.planting || b.defusing || b._sawEnemy) return;
+    if(tick < (b.throwUntil||0) || tick < (b._nadeWait||0)) return;
+    if((tick + b.id.charCodeAt(b.id.length-1)) % SELF.every) return;
+    if(b.team === "T" && bomb && bomb.state === "carried" && bomb.carrier === b && bombSiteAt(b.baseX, b.baseY)){
+      if(selfCoverSmoke(b, {x: b.x, y: b.y}, "smoke_plant")) return;
+    }
+    if(b.team === "CT" && bomb && bomb.state === "planted" && b._rtLook && b._rtLook[0] === bomb.x && b._rtLook[1] === bomb.y &&
+       Math.hypot(b.x-bomb.x, b.y-bomb.y) <= SELF.defuseR){
+      if(selfCoverSmoke(b, {x: bomb.x, y: bomb.y}, "smoke_defuse")) return;
+    }
+    selfExit(b);
+  });
 }

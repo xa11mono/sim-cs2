@@ -3,6 +3,8 @@
 // игра шла; это не решения, а умолчания. Новый мозг заменит этот файл целиком.
 //  • закуп — stubBuy: пистолетный раунд — кевлар (не хватает — P250); дальше —
 //    винтовка + кевлар со шлемом, если хватает на всё, иначе ничего;
+//  • гранаты «себе» — stubSelfNades (шаг 10, заплатка): после сценарных гранат на остаток денег —
+//    флешка, молотов; смок — носителю бомбы и CT (под дефуз). Что и когда кидать — 13_nades.js;
 //  • позиция и взгляд — с шага 5 в 11_position.js (одно место);
 //  • присесть — stubCrouch (v201): стоит, видит врага, и присев всё ещё его видит,
 //    а враг тело присевшего — нет (укрытие по грудь/низкое): приседает. Врага нет
@@ -30,4 +32,14 @@ function stubCrouch(b){
   var me = visParts(b.x, b.y, true, E.x, E.y, E.crouching);
   if(!me.head && !me.body) return false;           // присев врага не видно — стоять
   return !visParts(E.x, E.y, E.crouching, b.x, b.y, true).body;
+}
+function stubSelfNades(){
+  bots.forEach(function(b){
+    if(!b.alive || !b.nades) return;
+    var got = [];
+    if(buyNade(b, "flash")) got.push("флешка");
+    if(buyNade(b, "molly")) got.push("молотов");
+    if((b.team === "CT" || (bomb && bomb.carrier === b)) && b.nades.smoke === 0 && buyNade(b, "smoke")) got.push("смок");
+    if(got.length) b._selfBuy = got;
+  });
 }

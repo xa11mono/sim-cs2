@@ -53,7 +53,7 @@ function stepTick(){
     // присев — 34 % скорости бега (CS2), шаг — 50 %
     var runSpeed = (bot.crouching ? SPEED*CROUCH_SPEED_FRAC : (bot.walking ? SPEED*WALK_SPEED_FRAC : SPEED)) * weaponSpeedMul(bot);
     var hasPath = bot.path.length > 0 && bot.pathIdx < bot.path.length;
-    var targetSpeed = (!hasPath || bot.planting || bot.defusing || tick < (bot.throwUntil||0)) ? 0 : runSpeed;
+    var targetSpeed = (!hasPath || bot.planting || bot.defusing || tick < (bot.throwUntil||0) || tick < (bot._nadeWait||0)) ? 0 : runSpeed;   // _nadeWait — ждёт свою гранату «себе» (13_nades.js)
     if(hasPath){
       var finalWp = bot.path[bot.path.length-1];
       var dFinal = Math.hypot(finalWp[0]-bot.baseX, finalWp[1]-bot.baseY);
@@ -258,6 +258,7 @@ function stepTick(){
   resolveEngagements();
   knowTick();   // что каждый бот теперь знает о врагах (09_knowledge.js) — пока только знание, на игру не влияет
   teamTick();   // войс: кто что сказал команде, тиммейты узнают из договорённого (12_team.js)
+  selfNadeTick(); // гранаты «себе»: флешка под выход, молотов в угол, смок под плант/дефуз — по своему знанию (13_nades.js)
   tBrainTick(); ctBrainTick();   // план команды: смена только по поводам BRAIN 5.4 (07_t_brain.js, 12_ct_brain.js)
   scriptTick(); // сценарий плана: шаги по dependsOn, каждый — когда его актёр сам узнал о событии (12_script_runner.js)
   tDefaultTick(); // дефолт T: полосы, реакция на контакт, после execute — к выходу/на сайт (12_t_default.js)

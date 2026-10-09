@@ -22,7 +22,7 @@ function dropBomb(b){
 function bombSiteAt(x, y){ return ["A","B"].filter(function(k){ return SITES[k] && onSite(SITES[k], x, y); })[0] || null; }
 // действие «ставить бомбу»: носитель, внутри зоны сайта
 function bombStartPlant(b){
-  if(!bomb || bomb.state !== "carried" || bomb.carrier !== b || b.planting || roundState !== "live") return false;
+  if(!bomb || bomb.state !== "carried" || bomb.carrier !== b || b.planting || roundState !== "live" || tick < (b._nadeWait||0)) return false;   // ждёт свой смок
   var site = bombSiteAt(b.baseX, b.baseY); if(!site) return false;
   b.planting = true; b.plantUntil = tick + PLANT_TICKS; b.plantSite = site; b.path = []; b.pathIdx = 0;
   logEvent(b.id+" закладывает бомбу на "+site+"…", "bomb");
@@ -31,7 +31,7 @@ function bombStartPlant(b){
 }
 // действие «дефузить»: живой CT рядом с заложенной бомбой
 function bombStartDefuse(b){
-  if(!bomb || bomb.state !== "planted" || b.team !== "CT" || !b.alive || b.defusing) return false;
+  if(!bomb || bomb.state !== "planted" || b.team !== "CT" || !b.alive || b.defusing || tick < (b._nadeWait||0)) return false;   // ждёт свой смок
   if(Math.hypot(b.baseX-bomb.x, b.baseY-bomb.y) > 42) return false;
   b.defusing = true; b.defuseUntil = tick + (b.kit ? DEFUSE_KIT_TICKS : DEFUSE_TICKS); b.path = []; b.pathIdx = 0;
   makeSound(b, bomb.x, bomb.y, "defuse");
