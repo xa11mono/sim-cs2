@@ -21,6 +21,7 @@ function killAssist(att, vic){
 // mods: smoke — через смок, wall — прострел, noscope — без прицела, blind — убийца ослеплён
 function feedKill(att, vic, wkey, hs, mods){
   mods = mods || {};
+  vic._diedT = tick;    // когда погиб (место — vic.x/y, видно на радаре своим; 11_position.js posPressure, v231)
   knowKill(att, vic);   // киллфид видят все — знание ботов (09_knowledge.js)
   teamDeath(att, vic);  // убитый успевает сказать, откуда убили (12_team.js)
   var as = killAssist(att, vic);

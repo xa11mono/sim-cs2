@@ -199,6 +199,7 @@ function tdefLane(b){
   }
   if(!D.arrived){ D.arrived = true; D.stepT = tick + TZONES.step*TICK_HZ; tdefLog("в полосе", b.id + " → " + L.zone); }
   if(!(lead && lead.alive) && tick >= D.stepT){ D.stepT = tick + TZONES.step*TICK_HZ; tdefAdvance(b); }
+  posMicro(b);   // стоит — не замирает (v231, 11_position.js)
   // v224: занял место — держит его (правка владельца: «заняли зону — не возвращаться проверять старое»); перестановка
   // между местами полосы раз в 2,5–6 с была придумана (не из демок) — убрана. Движение на месте — пункт 6, по демкам
 }
