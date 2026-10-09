@@ -3,6 +3,9 @@
 // Сценарий — Setup из setups.json: сейчас T-execute; ретейк CT (шаг 8, 08_retake.js) подключит
 // свой Setup в scrStart тем же исполнителем. Исполнитель от стороны не зависит.
 //
+// До execute (план default — контроль карты, П11) актёры сценария выходят на свои точки: бросающие — на
+// точку лайнапа и ждут, энтри и носитель стоят, где стоят (точки сбора в данных нет). Сценарий выбран
+// во freeze; сменил IGL — актёры расставляются заново.
 // Старт: план команды стал execute (teamSetPlan, 07_t_brain.js) — это dependsOn.trigger =
 // execute_start; его знают все (план команды — общее знание). Дальше у каждого шага свой актёр:
 //   throw_smoke / throw_flash / throw_molly — бот с такой гранатой занимает точку броска ЗАРАНЕЕ
@@ -35,7 +38,7 @@ var SCR = {
   baseWait: 120,   // тиков: ждать сигнала, если в шаге нет maxDelayTicks — проектная константа, заплатка
   matchR:   220,   // px: упавшая граната — «та самая» шага, если ближе всех к его точке и не дальше (лайнап 120 + разброс 90)
   lineupR:  120,   // px: лайнап из lineups_pro подходит шагу, если его to не дальше от цели шага
-  arriveR:  12,    // на точке броска
+  arriveR:  30,    // на точке броска (двое на одном лайнапе стоят рядом; разброс броска всё равно 90)
   repath:   32,    // тиков: движок сбросил путь — снова к той же точке не чаще
   stuckT:   192,   // тиков (3 с): если за это время до цели не стало ближе хотя бы на stuckPx — застрял, шаг снимается
   stuckPx:  8
@@ -79,16 +82,22 @@ function scriptTick(){
 }
 function scrSide(side){
   var P = teamOf(side).planState, R = SCR_S[side];
-  if(R && R.start > tick) R = SCR_S[side] = null;   // тик пошёл назад — матч заново
+  if(R && R.start !== null && R.start > tick) R = SCR_S[side] = null;   // тик пошёл назад — матч заново
+  var staging = P.type === "default" || P.type === "execute";
+  if(R && !R.over && !R.started && R.setup.id !== P.activeSetupId){   // IGL сменил сценарий до выхода — заново
+    scrEnd(R, "IGL сменил сценарий"); R = SCR_S[side] = null;
+  }
   if(!R){
-    if(P.type !== "execute" || !P.activeSetupId) return;
+    if(!staging || !P.activeSetupId) return;
     R = SCR_S[side] = scrStart(side, P);
     if(!R) return;
   }
   if(R.over) return;
-  if(P.type !== "execute"){ scrEnd(R, "план сменился: " + P.type); return; }
+  if(!staging){ scrEnd(R, "план сменился: " + P.type); return; }
+  // default (контроль карты): актёры занимают позиции под свой сценарий; execute — сценарий пошёл
+  if(!R.started && P.type === "execute"){ R.started = true; R.start = P.declaredAt; scrLog(R, null, "execute", "сценарий пошёл (план execute)"); }
   R.steps.forEach(function(S){ scrStep(R, S); });
-  if(R.steps.every(scrTerminal)) scrEnd(R, "все шаги отработаны");
+  if(R.started && R.steps.every(scrTerminal)) scrEnd(R, "все шаги отработаны");
 }
 function scrTerminal(S){ return S.state === "done" || S.state === "drop" || S.state === "skip"; }
 
@@ -96,7 +105,7 @@ function scrTerminal(S){ return S.state === "done" || S.state === "drop" || S.st
 function scrStart(side, P){
   var setup = side === "T" ? tbSetup(P.activeSetupId) : null;
   if(!setup) return null;
-  var R = {side: side, setup: setup, start: P.declaredAt, steps: [], entry: null, over: false};
+  var R = {side: side, setup: setup, started: P.type === "execute", start: P.type === "execute" ? P.declaredAt : null, steps: [], entry: null, over: false};
   setup.steps.forEach(function(st, i){
     var m = /^throw_(smoke|flash|molly|he)$/.exec(st.action);
     var S = {i: i, st: st, actor: st.actor, kind: m ? "throw" : st.action === "push" ? "push" : st.action === "plant" ? "plant" : "skip",
@@ -111,30 +120,60 @@ function scrStart(side, P){
     if(dd.trigger === "execute_start") S.dep = {kind: "start"};
     else if(on) S.dep = {kind: "event", on: on, step: byActor(on), pauseTicks: Math.round((dd.pauseSec || 0)*TICK_HZ), maxDelay: dd.maxDelayTicks || SCR.baseWait};
   });
-  var lines = [];
   R.steps.forEach(function(S){
-    if(S.kind === "skip" || !S.dep){
-      S.state = "skip";
-      lines.push(S.actor + " — вне сценария");
-      return;
-    }
-    if(S.kind === "throw"){
-      S.opts = scrOptions(R, S);
-      var c = scrChooseThrower(R, S, null);
-      if(c){ S.bot = c.bot; S.pick = c.pick; }
-      else { S.state = "drop"; S.why = "гранаты (" + NADE[S.ntype].name + ") нет ни у кого"; }
-    } else if(S.kind === "push"){
+    if(S.kind === "skip" || !S.dep){ S.state = "skip"; return; }
+    if(S.kind === "throw") S.opts = scrOptions(R, S);
+    else if(S.kind === "push"){
       R.entry = scrPickEntry(R.side, null); S.bot = R.entry;
       if(!S.bot){ S.state = "drop"; S.why = "энтри нет"; }
     } else if(S.kind === "plant"){
       if(bomb && bomb.state === "carried" && bomb.carrier && bomb.carrier.alive) S.bot = bomb.carrier;
       else { S.state = "drop"; S.why = "бомбы нет у живого"; }
     }
-    lines.push(S.actor + " → " + (S.bot ? S.bot.id : "—") + (S.state === "drop" ? " (снят: " + S.why + ")" : "") +
-               (S.pick ? " [" + S.pick.src + "]" : ""));
   });
-  scrLog(R, null, "старт", setup.id + ": " + lines.join("; "));
+  scrAssignThrowers(R);
+  var lines = R.steps.map(function(S){
+    return S.state === "skip" ? S.actor + " — вне сценария" :
+      S.actor + " → " + (S.bot ? S.bot.id : "—") + (S.state === "drop" ? " (снят: " + S.why + ")" : "") + (S.pick ? " [" + S.pick.src + "]" : "");
+  });
+  scrLog(R, null, R.started ? "старт" : "позиции", setup.id + ": " + lines.join("; "));
   return R;
+}
+// кто какую гранату бросает: перебор по всем способам раздать шаги ботам с нужной гранатой; лучший —
+// с наименьшей суммой «когда каждый шаг встанет на точку» (путь бота по его шагам по очереди), так что
+// старт-шаги расходятся по разным ботам; энтри — только если больше некому. Шаг без гранаты ни у кого — снят.
+function scrAssignThrowers(R){
+  var steps = R.steps.filter(function(S){ return S.kind === "throw" && S.state === "wait"; });
+  var pool = bots.filter(function(b){ return b.team === R.side && b.alive && b.role !== "lurker"; });
+  var cum = {}, last = {}, inv = {}, cur = [], best = {cost: Infinity, pick: null};
+  pool.forEach(function(b){ cum[b.id] = 0; last[b.id] = {x: b.x, y: b.y}; inv[b.id] = {smoke: b.nades.smoke, flash: b.nades.flash, molly: b.nades.molly, he: b.nades.he}; });
+  function rec(i, cost){
+    if(cost >= best.cost) return;
+    if(i === steps.length){ best = {cost: cost, pick: cur.slice()}; return; }
+    var S = steps[i], any = false;
+    pool.forEach(function(b){
+      if(inv[b.id][S.ntype] <= 0) return;
+      var o = scrNearestFrom(S.opts, last[b.id]); if(!o) return;
+      any = true;
+      var c0 = cum[b.id], l0 = last[b.id];
+      cum[b.id] = c0 + Math.hypot(l0.x - o.from.x, l0.y - o.from.y); last[b.id] = o.from; inv[b.id][S.ntype]--;
+      cur[i] = {bot: b, pick: o};
+      rec(i + 1, cost + cum[b.id] + (b === R.entry ? 1e5 : 0));
+      inv[b.id][S.ntype]++; cum[b.id] = c0; last[b.id] = l0;
+    });
+    if(!any){ cur[i] = null; rec(i + 1, cost + 1e6); }
+  }
+  rec(0, 0);
+  steps.forEach(function(S, i){
+    var c = best.pick && best.pick[i];
+    if(c){ S.bot = c.bot; S.pick = c.pick; }
+    else { S.state = "drop"; S.why = "гранаты (" + NADE[S.ntype].name + ") нет ни у кого"; }
+  });
+}
+function scrNearestFrom(opts, p){
+  var best = null, bd = 1e9;
+  opts.forEach(function(o){ var d = Math.hypot(p.x - o.from.x, p.y - o.from.y); if(d < bd){ bd = d; best = o; } });
+  return best;
 }
 function scrWaitK(b){ return (RoleProfile[b.role] || {}).waitK || 1; }
 
@@ -296,7 +335,7 @@ function scrGo(S, tx, ty){
 function scrThrow(R, S){
   var b = S.bot;
   if(!scrActive(R, S)) return;
-  var released = scrRelease(R, S);
+  var released = R.started && scrRelease(R, S);   // до execute — только занять точку броска
   if(scrTerminal(S)) return;
   var f = S.pick.from;
   var dist = Math.hypot(b.x - f.x, b.y - f.y);
@@ -317,7 +356,7 @@ function scrThrow(R, S){
 function scrPush(R, S){
   var b = S.bot, site = SITES[S.st.target];
   if(S.state === "wait"){
-    if(!scrActive(R, S)) return;
+    if(!R.started || !scrActive(R, S)) return;   // энтри до execute стоит, где стоит
     if(S.activeT === undefined) S.activeT = tick;
     if(!scrRelease(R, S)) return;
     if(scrTerminal(S)) return;
@@ -335,7 +374,7 @@ function scrPlant(R, S){
   if(S.state === "wait"){
     if(!carried){ scrDrop(R, S, "бомбы нет у живого"); return; }
     if(S.bot !== bomb.carrier){ S.bot = bomb.carrier; S.rel = null; }   // бомбу подобрал другой — решает уже он
-    if(!scrActive(R, S)) return;
+    if(!R.started || !scrActive(R, S)) return;
     if(S.activeT === undefined) S.activeT = tick;
     if(!scrRelease(R, S)) return;
     if(scrTerminal(S)) return;
