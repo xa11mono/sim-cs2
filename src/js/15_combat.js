@@ -48,6 +48,36 @@ function fireReady(sh, w, dist){
   sh.burstCount = 0; F.left = burstLen(sh, w, dist, 0);
   return true;
 }
+// ---------- готовность к контакту (BRAIN 7, шаг 9) ----------
+function skillN(b){ return Math.max(0, Math.min(1, ((b.skill||1)-0.8)/0.4)); }
+// время реакции, тиков: восприятие есть всегда (150–250 мс по уровню, свой постоянный
+// разброс у каждого бота — как у живых людей); неожиданный контакт — заметно медленнее.
+// Разворот прицела сюда не входит — его даёт поворот с конечной скоростью (AIM_TURN_RATE)
+function reactTicks(b, surprise){
+  if(b._reactMs === undefined){
+    var h = 0; for(var i = 0; i < b.id.length; i++) h = h*31 + b.id.charCodeAt(i);
+    b._reactMs = BAL.reactSlowMs - (BAL.reactSlowMs - BAL.reactFastMs)*skillN(b) + (hashRand(h % 100003) - 0.5)*BAL.reactJitMs;
+  }
+  return Math.round(b._reactMs * (surprise ? BAL.reactSurprise : 1) * TICK_HZ / 1000);
+}
+// Прицел уже стоял на точке появления врага? Куда и зачем он стоял — posLook
+// (11_position.js, одно место): угол slot'а / ретейка / своей полосы — "setup_default",
+// широкое удержание; взгляд на весомую гипотезу — "prefire_from_info", узкое. Враг вышел
+// вне ширины удержания или бот просто шёл/смотрел без цели — "reactive_turn".
+function engagementPrep(b, e){
+  var why = b._holdWhy || "";
+  var src = (why === "threat" || why === "prefire") ? "prefire_from_info"
+          : (why === "angle" || why === "fallback" || why === "retake" || why === "lane") ? "setup_default" : null;
+  var w = src === "prefire_from_info" ? BAL.prepNarrow : BAL.prepWide;
+  var off = Math.PI;
+  if(b.facing !== undefined){
+    var a = Math.atan2(e.y-b.y, e.x-b.x);
+    off = Math.abs(((a - b.facing + Math.PI) % (2*Math.PI) + 2*Math.PI) % (2*Math.PI) - Math.PI);
+  }
+  var on = !!src && off < w;
+  if(!on) src = "reactive_turn";
+  return {on: on, src: src, w: w, off: off, stanceReady: on && b.curSpeed < 45*SPD_K, react: reactTicks(b, !on)};
+}
 function fireShot(sh, w){ var F = sh._fire; if(F && --F.left <= 0){ F.left = 0; F.pause = tick + w.reset; } }
 // parts — что у цели видно стрелку ({head, body}, visPair): видна только голова —
 // целится только в голову, пули ниже головы попадают в укрытие
@@ -56,31 +86,19 @@ function tryShoot(shooter, target, dist, parts){
   if(!parts || (!parts.head && !parts.body)) return;   // ничего не видно — не стреляет
   if(shooter.planting || shooter.defusing) return; // руки заняты
   if(tick < shooter.blindUntil || tick < (shooter.throwUntil||0)) return; // ослеплён / бросает гранату
-  // Преимущество того, кто стоит на месте и уже смотрит туда,
-  // откуда вышел враг — реагирует заметно быстрее того, кто выбегает/бежит
-  // и должен сначала развернуть прицел (в реальном CS тот же эффект).
-  var effReaction = shooter.reactionTicks;
+  // готовность к контакту (BRAIN 7) — фиксируется в момент появления врага и
+  // держится весь контакт; из неё стрельба берёт реакцию, доводку и первую пулю
   if(shooter.contactStreak <= 1){
-    var hAim = Math.atan2(target.y-shooter.y, target.x-shooter.x);
-    var hD = shooter.facing === undefined ? Math.PI : Math.abs(((hAim - shooter.facing + Math.PI) % (2*Math.PI) + 2*Math.PI) % (2*Math.PI) - Math.PI);
-    // раздел 14: реакция. Кто уже целился в эту точку (держит угол ИЛИ заходит
-    // с прицелом на типичный угол) — реагирует быстрее; кто смотрел в сторону —
-    // медленнее (плюс разворот прицела). И "преимущество пикающего": у того, кто
-    // стоит, выглянувший появляется на экране чуть позже (в CS — из-за сети).
-    var pre = hD < 0.25 ? (shooter.curSpeed < 45*SPD_K ? BAL.holdReact : BAL.preaimReact) : (hD < 0.6 ? 0.9 : 1.1);
-    shooter._reactMul = pre * (shooter.curSpeed > SPEED*0.8 ? BAL.moveReact : 1.0);
-    shooter._peekLag = (shooter.curSpeed < 45*SPD_K && target.curSpeed > 60*SPD_K) ? BAL.peekAdv : 0; // преимущество пикающего — только у быстрого выхода; кто режет угол шагом, его не имеет
-    // раздел 14: "префайр угла" — кто заходил, уже целясь в типичную точку
-    // (прицел почти на цели в момент появления), доводит прицел почти сразу,
-    // как и тот, кто держит; разворачиваться на 90° — долго и неточно
-    shooter._preAim = hD < 0.25 ? 0.35 : (hD < 0.6 ? 0.65 : 1.0);
-    // раздел 14 / про-уровень: "прицел на уровне головы". Насколько точно прицел
-    // стоял там, где появился враг: 1 — ровно на угле (враг вышел прямо под
-    // прицел), 0 — смотрел в сторону. Плюс по высоте: сильные игроки держат
-    // прицел на уровне головы почти всегда, слабые — чаще на уровне тела
-    var skN = Math.max(0, Math.min(1, ((shooter.skill||1)-0.8)/0.4));
-    shooter._place = Math.max(0, Math.min(1, 1 - hD/0.35));
-    shooter._headLvl = 0.55 + 0.4*skN;
+    var P = shooter._prep = engagementPrep(shooter, target);
+    // "преимущество пикающего": у того, кто стоит, выглянувший появляется на экране
+    // чуть позже (сеть) — только у быстрого выхода; кто режет угол шагом, его не имеет
+    shooter._peekLag = (shooter.curSpeed < 45*SPD_K && target.curSpeed > 60*SPD_K) ? BAL.peekAdv : 0;
+    // прицел стоял на точке появления — доводить почти нечего; насколько точно
+    // стоял (_place) — по доле ширины удержания: узкий префайр — ровно на входе
+    shooter._preAim = P.on ? (P.src === "prefire_from_info" ? 0.25 : 0.35) : 1.0;
+    shooter._place = P.on ? Math.max(0, 1 - P.off/(2*P.w)) : 0;
+    // прицел на уровне головы: сильные — почти всегда, слабые — чаще на уровне тела
+    shooter._headLvl = 0.55 + 0.4*skillN(shooter);
   }
   // частичная видимость: неподвижного (особенно сидящего) врага вдали
   // замечают позже — виден кусок модели на фоне угла; бегущего — сразу
@@ -91,7 +109,7 @@ function tryShoot(shooter, target, dist, parts){
     else if(tsp > 100*SPD_K) visLag = -2;
     shooter._visLag = visLag;
   } else visLag = shooter._visLag || 0;
-  effReaction = Math.max(4, Math.round(shooter.reactionTicks * (shooter._reactMul || 1)) + (shooter._peekLag || 0) + (shooter.weapon.scopeTicks || 0) + visLag);
+  var effReaction = Math.max(4, (shooter._prep ? shooter._prep.react : reactTicks(shooter, false)) + (shooter._peekLag || 0) + (shooter.weapon.scopeTicks || 0) + visLag);
   if(shooter.contactStreak < effReaction) return;
   var w = shooter.weapon;
   if(dist > w.range) return;
@@ -132,7 +150,7 @@ function tryShoot(shooter, target, dist, parts){
   var spamErr = (w.spam||0)/1000 * burstIdx;   // разброс от частой стрельбы внутри очереди (пауза его сбрасывает)
   var aimErr = aimSkillErr(shooter);
   var settle = Math.max(0, 1 - (shooter.contactStreak - effReaction)/24);
-  var flick = 0.018 * settle * Math.min(shooter._preAim||1, (shooter._reactMul||1) < 1 ? 0.35 : 1); // держал угол / заходил с прицелом — уже "на цели"
+  var flick = 0.018 * settle * (shooter._preAim||1); // прицел стоял на точке появления — уже "на цели" (engagementPrep)
   // движущуюся цель сложнее вести: ошибка растёт с её угловой скоростью поперёк
   // линии огня. Стоящего убить легко, широкий выход — трудно, джиггл — почти
   // невозможно (за это его и делают: взять инфу, не отдав фраг)
@@ -288,6 +306,7 @@ function resolveEngagements(){
     if(!b.alive) return;
     var seesFoe = b._sawEnemy && b._nearestEnemyBot, look = seesFoe ? b._nearestEnemyBot : posLook(b);
     b.lookReason = seesFoe ? "enemy" : look.why;
+    if(!seesFoe) b._holdWhy = look.why;   // зачем прицел стоял там, где стоял, — для engagementPrep
     b.lookTarget = look ? {x:look.x, y:look.y} : null;
     if(!look) return;
     var want = Math.atan2(look.y-b.y, look.x-b.x);

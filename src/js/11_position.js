@@ -30,6 +30,8 @@ var POS = {
   threatW:     0.5,  // гипотеза врага с таким весом и больше на входе угла — угроза на slot
   threatEvery: 8,    // как часто бот на месте сверяет угрозу, тиков
   smokeEvery:  16,   // как часто, пока есть дым, сверяется «угол закрыт дымом», тиков
+  pfCone:      75,   // префайр: гипотеза не шире стольких ° от направления хода / удержания
+  pfFar:       900,  // префайр: и не дальше, px
   yawPad:      10,   // к yawRange точки — запас, ° (держит из-за края шире)
   keepBonus:   2,    // при перераздаче — за то, что остаёшься на своём слоте
   moveCost:    600,  // при перераздаче — −1 балл за столько px до новой точки
@@ -229,7 +231,7 @@ function posLed(b){ return b._scrT !== undefined && tick - b._scrT <= 1; }
 // ---------- события ----------
 function posRoundStart(){
   if(roundNum === 1) POS_LOG.length = 0;
-  bots.forEach(function(b){ delete b.pos; });
+  bots.forEach(function(b){ delete b.pos; delete b._goDir; delete b._pf; });
   var alive = bots.filter(function(b){ return b.team === "CT" && b.alive; });
   POS_STATE.aliveCT = alive.length;
   POS_STATE.applied = posSetup().id;
@@ -290,17 +292,25 @@ function posTick(){
 }
 
 // ---------- взгляд (15_combat.js, когда врага не видно) ----------
+// Куда смотрит прицел (шаг 9): идёт — по ходу, а если по его гипотезам впереди весомый
+// враг — префайр туда (узкое удержание, engagementPrep в 15_combat.js); CT на месте — угол
+// slot'а или угроза на него; T на своей полосе — туда, куда шёл (держит проход по ходу).
 function posLook(b){
-  if(!b.pos){   // T — заплатка до шага 7: вперёд, от своего спавна к центру карты
-    var sp = b.spawnPt || (b.team === "CT" ? CT_SPAWN : T_SPAWN);
-    var a0 = Math.atan2(1024 - sp.y, 1024 - sp.x);
-    return {x: b.x + Math.cos(a0)*400, y: b.y + Math.sin(a0)*400, why: "stub"};
-  }
-  if(b.path.length && b.pathIdx < b.path.length){
-    var w = b.path[Math.min(b.pathIdx + 1, b.path.length - 1)];
-    if(Math.hypot(w[0]-b.x, w[1]-b.y) > 4) return {x: w[0], y: w[1], why: "move"};
+  var w = (b.path.length && b.pathIdx < b.path.length) ? b.path[Math.min(b.pathIdx + 1, b.path.length - 1)] : null;
+  if(w && Math.hypot(w[0]-b.x, w[1]-b.y) <= 4) w = null;
+  if(w){
+    b._goDir = Math.atan2(w[1]-b.y, w[0]-b.x);
+    var pf = posPrefire(b, b._goDir);
+    return pf ? {x: pf.x, y: pf.y, why: "prefire"} : {x: w[0], y: w[1], why: "move"};
   }
   if(b._rtLook && posLed(b)) return {x: b._rtLook[0], y: b._rtLook[1], why: "retake"};   // стоит в ретейке/сейве
+  if(!b.pos){   // T на месте: держит то, куда шёл; весомая гипотеза перед ним — префайр
+    var dir = b._goDir;
+    if(dir === undefined){ var sp = b.spawnPt || (b.team === "CT" ? CT_SPAWN : T_SPAWN); dir = Math.atan2(1024 - sp.y, 1024 - sp.x); }
+    var pt = posPrefire(b, dir);
+    if(pt) return {x: pt.x, y: pt.y, why: "prefire"};
+    return {x: b.x + Math.cos(dir)*400, y: b.y + Math.sin(dir)*400, why: b.tdef ? "lane" : "stub"};
+  }
   var P = POS_PT[b.pos.cur];
   if(!b.pos.threat) return {x: P.angle.x, y: P.angle.y, why: b.pos.fb ? "fallback" : "angle"};
   // угроза — взгляд на неё, но не шире yawRange точки (в игре yaw против часовой, на радаре y вниз)
@@ -310,6 +320,26 @@ function posLook(b){
   d = Math.max(lo, Math.min(hi, d));
   var R = Math.max(150, P.angle.dist);
   return {x: b.x + Math.cos(c+d)*R, y: b.y + Math.sin(c+d)*R, why: "threat"};
+}
+
+// префайр: самая весомая гипотеза врага (вес ≥ POS.threatW, по знанию самого бота)
+// перед ним — не дальше POS.pfFar и не шире POS.pfCone° от направления dir. Пересчёт раз в
+// POS.threatEvery тиков (гипотезы меняются событиями, не каждый тик)
+function posPrefire(b, dir){
+  if(b._pf && tick - b._pf.t < POS.threatEvery) return b._pf.p;
+  var K = b.know, best = null, cone = POS.pfCone*Math.PI/180;
+  if(K) for(var id in K.enemies){
+    var B = K.enemies[id]; if(B.visible) continue;
+    B.hyps.forEach(function(h){
+      if(h.x === undefined || h.weight < POS.threatW) return;
+      var d = Math.hypot(h.x - b.x, h.y - b.y); if(d < 40 || d > POS.pfFar) return;
+      var a = Math.atan2(h.y - b.y, h.x - b.x) - dir;
+      if(Math.abs(Math.atan2(Math.sin(a), Math.cos(a))) > cone) return;
+      if(!best || h.weight > best.weight) best = h;
+    });
+  }
+  b._pf = {t: tick, p: best ? {x: best.x, y: best.y} : null};
+  return b._pf.p;
 }
 
 // ---------- слой радара «позиции» ----------

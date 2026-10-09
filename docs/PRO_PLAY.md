@@ -162,6 +162,19 @@
   матча — только то, что команда **видела и слышала** в сыгранных раундах (уже частично есть:
   `PLAN_HIST`, но только «где ставили бомбу» и победы).
 
+## 6а. Дуэль: прицел, реакция, кто выглянул (шаг 9, 09.10)
+
+- **Кроссхейр-плейсмент = префайр** — прицел заранее там, где враг появится; тогда в дуэли
+  остаётся только среагировать и выстрелить, доводить прицел не надо [22][24]. Цена: угол,
+  на который не целился, — это уже разворот.
+- **Реакция**: средний человек ~270–280 мс на простой клик, про-уровень — около 140 мс
+  на том же тесте [23]. Чисел реакции именно про CS в дуэли в источниках нет.
+- **Преимущество пикающего**: выглянувший видит держащего чуть раньше (сервер и пинг);
+  держащий вплотную к углу проигрывает чаще, отодвинутый / off-angle — заставляет искать себя [25].
+- **[вывод]** Готовность бота — не формула по углу, а факт: стоял ли прицел на точке
+  появления (угол slot'а, префайр по гипотезе) или это неожиданный контакт. Восприятие
+  есть всегда, у подготовленного нет только доводки и разворота.
+
 ## 7. Чего в источниках нет (брать из наших демок)
 
 Тайминги в секундах (кроме общих фаз [3]), точки, кто где стоит у каждой команды, как часто, как
@@ -193,3 +206,7 @@
 19. [The Art of Demo Review: How CS2 Teams Study Their Opponents — EGW](https://egw.news/gaming/news/26282/the-art-of-demo-review-how-cs2-teams-study-their-o-LgEbAX8dv)
 20. [The Art of Anti-Stratting — Dignitas](https://dignitas.gg/articles/blogs/Unknown/9570/the-art-of-anti-stratting)
 21. [CS2 Economy Guide: When to Buy, Save, Eco, or Force — Winio](https://winio.ai/blog/articles/cs2-economy-guide-when-to-buy-save-eco-or-force)
+22. [What is crosshair placement in CS2 — Refrag (11.12.2024)](https://refrag.gg/blog/what-is-crosshair-placement-cs2/)
+23. [What is reaction time and does it make you better at CS2 — Insider Gaming](https://insider-gaming.com/what-is-reaction-time-and-does-it-make-you-better-at-cs2-or-valorant/)
+24. [Crosshair Placement in CS2: The Habit That Wins Duels — Metabot](https://metabot.gg/en/cs2/guides/cs2-crosshair-placement-pre-aiming)
+25. [What is peeker's advantage in CS2 — GGRecon](https://www.ggrecon.com/guides/cs2-peekers-advantage/)
