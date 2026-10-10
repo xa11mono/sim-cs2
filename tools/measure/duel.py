@@ -1,4 +1,5 @@
 """Детектор (v251): как быстро убивают боты — как tools/duel_bake.py у про (до планта, фраги из оружия).
+Выстрелы прорежены как в демках: один на игрока за 0,5 с (иначе сравнение нечестное).
 Запуск: python3 tools/measure/duel.py <run> [<run> …]"""
 import json, os, sys, collections
 import numpy as np
@@ -11,7 +12,10 @@ for run in sys.argv[1:]:
         plants = [p[0] for p in d['plants']] if d['plants'] and isinstance(d['plants'][0], list) else []
         R = [(int(r['t0']), int(r['t1'])) for r in d['rounds'] if 't1' in r]
         F = collections.defaultdict(list)
-        for s in d['shots']: F[s[1]].append(s[0])
+        seen = set()   # как в демках (tools/parse_demos.py): один выстрел на игрока за 32 тика (0,5 с)
+        for s in sorted(d['shots'], key=lambda q: q[0]):
+            if (s[1], s[0] // 32) in seen: continue
+            seen.add((s[1], s[0] // 32)); F[s[1]].append(s[0])
         for k in d['kills']:
             tk, a, at, u, ut, w, h = k[0], k[1], k[2], k[5], k[6], str(k[9]), k[10]
             if not a or at == ut or w in ('HE', 'MOLOTOV', 'молотов', 'KNIFE'): continue

@@ -64,6 +64,7 @@ v166 — `docs/V166_CHANGES.md` (список владельца). Главны�
 | гранаты: закуп `buyNades`, решения `nadeBrains`, лайнапы `lineupTick` | ~8648; ~9248; ~8873 |
 | нож: `knifeTick` | ~9577 |
 | стрельба: `tryShoot` (целится в видимое), `resolveEngagements` (visParts), после фрага `afterKillMove` | ~10123; ~10788; ~10645 |
+| **движение в перестрелке** (одно место, v250): `fightCycleTick` — на линии → за укрытие `fightCover` → снова; числа `PEEK_PRO` | ~10080 |
 | экономика: `decideRoundType0`, `buyForPlayer` | ~11348; ~11408 |
 | раунд и цикл: `endRound`, `resetRound`, `stepTick` | ~11584; ~11617; ~11677 |
 | редактор карты `MAPED` (вкладки стены/высоты/укрытия/прострелы, Ctrl+Z, база); проверка «кто кого видит» `visToolDraw` | ~12954; ~14060 |

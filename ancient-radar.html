@@ -59,7 +59,7 @@
 <div id="app">
   <div id="topbar">
     <h1>ANCIENT — LIVE RADAR</h1>
-    <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 249 (позиции парами — с кем стоят про) · 10.10</div>
+    <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 250 (перестрелка по данным про: пострелял — за укрытие) · 11.10</div>
     <button id="btnPause">Пауза</button>
     <button id="btnRestartRound" title="Немедленно сбросить текущий раунд — на случай если боты застряли">Рестарт раунда</button>
     <span class="chk" title="Матч с одним номером всегда проходит одинаково. Увидел баг — запиши номер матча и тик, введи номер и нажми «Сыграть»: матч повторится с начала">матч № <input id="inpMatchNum" type="number" min="1" value="1" style="width:52px"> <button id="btnFreshMatch">Сыграть</button> <span id="matchTick" style="opacity:.75"></span></span>
@@ -1987,7 +1987,7 @@ function makeTeam(team, spawnPt, count, weapon){
       curSpeed: 0,
       crouching: false, holdSinceTick: -999, onStairs: false,
       burstCount: 0, lastShotTick: -999,
-      peekType: null, peekSinceTick: 0,
+      _fc: null,
       lastIntel: null, walking: false, lastStepTick: -999, heardSound: null,
       // экономика (шаг 3)
       money: START_MONEY, primary: null, secondary: team==="CT" ? "USP" : "GLOCK",
@@ -2113,7 +2113,6 @@ var BAL = {
   fireExit: true,
   callFix: true,
   tracerStyle: true,  // v151: трассер и вспышка зависят от оружия (пистолет, ПП, винтовка, AWP)
-  smoothPeek: true,
   proRoles: true,     // v151: роли игроков как у про (энтри, второй, саппорт/IGL, лёркер, снайпер), гранаты по роли
   utilRoleK: 260,     // насколько роль влияет на выбор, кто кинет лайнап (px "стоимости" на 1 гранату/раунд)
   infoFallback: true,
@@ -2160,7 +2159,6 @@ var BAL = {
   reloadCover: true,// перезарядка не на виду у известного врага: сначала шаг за укрытие
   lowHpBack: true,  // ≤30 HP один на угле рядом с врагом — отходит к своим
   ppTime: true,
-  duelStrafe: true, // дальняя дуэль с пистолета (и винтовки издалека) — стрейф между выстрелами (ADAD), а не стоять столбом
   blindPlay: true,  // ослеплённый: стоп/шаг назад за укрытие, а не идти дальше вслепую
   flashAware: true, // увернуться от флешки можно, только если видел/слышал бросок (поп-флешку из-за стены — почти нет)
   pistolSwap: true, // кончились патроны в бою, враг рядом — пистолет вместо долгой перезарядки
@@ -2181,7 +2179,6 @@ var BAL = {
   awpSave: true,    // AWP сейвит отдельно, когда раунд почти проигран (2v3+ ретейк, 2v4 T)
   ctAntiEco: true,  // CT против эко: без ранних пиков и доборов, держат вместе
   heFinish: true,   // HE по раненому за укрытием
-  midStrafe: true,
   lookCommit: true,
   prefireStrict: true, // префаер только по своему свежему (≤1.4с) визуальному контакту, и менее точный
   lookTiming: true,
@@ -6271,7 +6268,7 @@ function prePeekDecide(b, C, zB){
       else if(b.nades && b.nades.flash > 1 && !b.nadeTask && assignNade(b, "flash", second.pt, "закрыть второй угол", {now:true, range:700})) {}
     }
   }
-  if(!info && !heardMe && !repeek){ b._plannedPeek = {type: C.danger > 0.3 ? "shoulder" : null, t:tick}; return; }
+  if(!info && !heardMe && !repeek) return;
   // (2) угол держат — прямо не выходим
   // (флешка себе) раньше рвалась в точке за углом — там, куда держащий не
   // смотрит (или вообще не видит): из 13 флешек слепила одна. Поп-флешка
@@ -6283,20 +6280,19 @@ function prePeekDecide(b, C, zB){
     for(var fi=0; fi<fr.length; fi++){ var P = {x: C.pt.x + (hPos.x-C.pt.x)*fr[fi], y: C.pt.y + (hPos.y-C.pt.y)*fr[fi]};
       if(!insideSolidWall(P.x, P.y) && hasLOS(hPos.x, hPos.y, P.x, P.y) && Math.hypot(P.x-hPos.x, P.y-hPos.y) > 90){ popPt = P; break; } } }
   if(b.nades && b.nades.flash > 0 && !b.nadeTask && b._ppFlashR !== roundNum && (!BAL.popAim || holder) && assignNade(b, "flash", popPt, "флешу себе под пик", {now:true, range:700})){
-    b._ppFlashR = roundNum; b._ppWaitUntil = tick + 40; b._ppMate = null; b._plannedPeek = {type:"wide", t:tick};
-    if(!b._ppV || tick - b._ppV > 6*TICK_HZ){ b._ppV = tick; logEvent(b.id+": угол держат — флешу себе и выхожу широко"); }
+    b._ppFlashR = roundNum; b._ppWaitUntil = tick + 40; b._ppMate = null;
+    if(!b._ppV || tick - b._ppV > 6*TICK_HZ){ b._ppV = tick; logEvent(b.id+": угол держат — флешу себе и выхожу"); }
     return;
   }
   if(!execEntry && mates.length && secLeft > 25){
-    b._ppWaitUntil = tick + Math.round(2.5*TICK_HZ); b._ppMate = mates[0]; b._plannedPeek = {type:"wide", t:tick + 2*TICK_HZ};
+    b._ppWaitUntil = tick + Math.round(2.5*TICK_HZ); b._ppMate = mates[0];
     if(!b._ppV || tick - b._ppV > 6*TICK_HZ){ b._ppV = tick; logEvent(b.id+": угол держат — жду "+mates[0].id+", выходим вдвоём"); }
     return;
   }
-  // один и без флешки: джиггл за инфой; если меня слышали/уже пикал сюда — сначала пауза
-  b._plannedPeek = {type:"jiggle", t:tick};
+  // один и без флешки: если меня слышали/уже пикал сюда — сначала пауза
   if((heardMe || repeek) && !execEntry && secLeft > 25){
     b._ppWaitUntil = tick + Math.round(2*TICK_HZ); b._ppMate = null;
-    if(!b._ppV || tick - b._ppV > 6*TICK_HZ){ b._ppV = tick; logEvent(b.id+": "+(repeek ? "сюда уже пикал" : "меня, похоже, слышали")+" — не выхожу сразу, джиггл после паузы"); }
+    if(!b._ppV || tick - b._ppV > 6*TICK_HZ){ b._ppV = tick; logEvent(b.id+": "+(repeek ? "сюда уже пикал" : "меня, похоже, слышали")+" — не выхожу сразу, выгляну после паузы"); }
   }
 }
 // (5) засветился/ранен без фрага: контакт закончился, враги рядом живы —
@@ -10013,15 +10009,69 @@ function pistolBack(b){
 // Пистолетом (и винтовкой на большой дистанции) про не стоят столбом: шаг в
 // сторону → контр-страф → выстрел → шаг в другую сторону. Двигаясь, в него
 // труднее попасть (см. трекинг), а стреляет он только остановившись.
-function duelStrafeOk(b){
-  var e = b._nearestEnemyBot, w = b.weapon; if(!e || !w || w.key === "AWP") return false;
-  var d = Math.hypot(e.x-b.x, e.y-b.y);
-  if(w.slot === "secondary") return d > 220;
-  if(b.state !== "engage" || b.atPost) return false;
-  if(d > 600) return true;
-  // средняя дистанция: ADAD только в затяжной перестрелке (уже постреляли друг
-  // в друга ~0.5с), а не на первом выходе — иначе у пикающего двойное преимущество
-  return BAL.midStrafe && d > 300 && (b.contactStreak || 0) > 32;
+// ---- перестрелка по данным (v250, вместо пиков «широкий/плечо/джиггл» и стрейфа v166) ----
+// Как у про в 92 демках Ancient (tools/peek_bake.py → src/data/trades.json, поле peek): игрок стоит на линии,
+// пока стреляет (длительность перестрелки), потом уходит с линии за укрытие (сдвиг), пережидает (пауза) и
+// с долей repeek выглядывает снова на то же место; иначе перестрелка для него закончена — дальше обычная логика.
+// Квантили 10/25/50/75/90 %; длительность — от первого до последнего «окна стрельбы» (окно = 0,5 с).
+var PEEK_PRO = {CT:{dur:[0.0, 0.0, 0.55, 1.72, 3.14], pause:[1.08, 1.25, 1.62, 2.17, 2.61], shift:[13.93, 23.6, 40.79, 66.58, 96.11], repeek:0.26},
+                T:{dur:[0.0, 0.0, 0.41, 1.3, 2.84], pause:[1.09, 1.27, 1.67, 2.23, 2.7], shift:[14.29, 25.12, 47.4, 80.62, 119.72], repeek:0.24}};
+var PEEK_Q = [0.1, 0.25, 0.5, 0.75, 0.9];
+function peekQ(q, u){   // значение распределения по квантилям (между ними — линейно, хвосты — крайние)
+  if(u <= PEEK_Q[0]) return q[0];
+  for(var i=1;i<PEEK_Q.length;i++) if(u <= PEEK_Q[i]) return q[i-1] + (q[i]-q[i-1])*(u-PEEK_Q[i-1])/(PEEK_Q[i]-PEEK_Q[i-1]);
+  return q[q.length-1];
+}
+// ближайшее место не дальше R, откуда врага e не видно и куда можно дойти по прямой; из равных — дальше от врага
+function fightCover(b, e, R){
+  for(var k=1;k<=3;k++){
+    var r = R*k/3, best = null, bd = -1;
+    for(var i=0;i<16;i++){
+      var a = i*Math.PI/8, x = b.baseX + Math.cos(a)*r, y = b.baseY + Math.sin(a)*r;
+      if(insideSolidWall(x, y) || stepBlocked(b.baseX, b.baseY, x, y, b) || hasLOS(x, y, e.x, e.y)) continue;
+      var de = Math.hypot(x-e.x, y-e.y); if(de > bd){ bd = de; best = {x:x, y:y}; }
+    }
+    if(best) return best;
+  }
+  return null;
+}
+function fightRand(b, salt){ return hashRand(tick*31 + b.id.charCodeAt(0)*17 + b.id.charCodeAt(b.id.length-1)*7 + salt); }
+// каждый тик движения: фазы line (на линии) → off (за укрытием) → back (выглядывает снова) → line …
+function fightCycleTick(b, dtSec, busy){
+  var F = b._fc, D = PEEK_PRO[b.team];
+  if(busy || !b.alive){ b._fc = null; return; }
+  if(!F){
+    if(!b._sawEnemy || (b.state !== "engage" && b.state !== "hold")) return;
+    F = b._fc = {ph:"line", ax:b.baseX, ay:b.baseY, t:tick, until:0, seen:tick};
+  }
+  if(b._sawEnemy){ F.seen = tick; F.e = b._nearestEnemyBot; }
+  F.moving = false;
+  if(F.ph === "line"){
+    if(!b._sawEnemy && tick - F.seen > D.pause[4]*TICK_HZ){ b._fc = null; return; }   // враг пропал — перестрелка кончилась
+    if(!F.until && b.lastShotTick >= F.t) F.until = b.lastShotTick + Math.round((peekQ(D.dur, fightRand(b, 1)) + 0.5)*TICK_HZ);
+    if(F.until && tick >= F.until){
+      var e = F.e;
+      if(!e || !e.alive){ b._fc = null; return; }
+      var c = fightCover(b, e, peekQ(D.shift, fightRand(b, 2)));
+      if(!c) c = fightCover(b, e, D.shift[4]);
+      if(!c){ F.until = 0; F.t = tick; return; }   // укрыться негде — остаётся на линии
+      F.ph = "off"; F.cx = c.x; F.cy = c.y; F.ax = b.baseX; F.ay = b.baseY;
+      F.until = tick + Math.round(peekQ(D.pause, fightRand(b, 3))*TICK_HZ);
+      if(!b._fcV || tick - b._fcV > 4*TICK_HZ){ b._fcV = tick; logEvent(b.id+": постреляли — ушёл с линии за укрытие"); }
+    }
+    return;
+  }
+  if(b._sawEnemy){ F.ph = "line"; F.ax = b.baseX; F.ay = b.baseY; F.t = tick; F.until = 0; return; }   // снова вижу врага — на линии
+  if(F.ph === "off" && tick >= F.until){
+    if(fightRand(b, 4) >= D.repeek){ b._fc = null; return; }   // не выглядывает снова — перестрелка закончена
+    F.ph = "back";
+  }
+  var tx = F.ph === "off" ? F.cx : F.ax, ty = F.ph === "off" ? F.cy : F.ay;
+  var d = Math.hypot(tx-b.baseX, ty-b.baseY);
+  if(d < 2){ if(F.ph === "back"){ F.ph = "line"; F.t = tick; F.until = 0; } return; }
+  var stp = Math.min(d, SPEED*weaponSpeedMul(b)*dtSec), nx = b.baseX + (tx-b.baseX)/d*stp, ny = b.baseY + (ty-b.baseY)/d*stp;
+  if(stepBlocked(b.baseX, b.baseY, nx, ny, b)){ b._fc = null; return; }
+  b.baseX = nx; b.baseY = ny; F.moving = true; b.crouching = false; b.walking = false;
 }
 // ---- (3) безопасная ротация: путь мимо известных T ----
 // опасность пути: рядом (≤380px) со свежей (≤10с) позицией живого T или через
@@ -10318,7 +10368,7 @@ function tryShoot(shooter, target, dist){
   var w = shooter.weapon;
   if(dist > w.range) return;
   if(tick < shooter.nextShotTick) return;
-  if(shooter._ds && shooter._ds.moving) return; // в фазе шага — не стреляет (выстрел только после контр-страфа)
+  if(shooter._fc && shooter._fc.moving) return; // уходит с линии / выглядывает — на бегу не стреляет
   var thruSmoke = !!shooter._smokeShot;
   // раздел 14: магазин и перезарядка — во время перезарядки не стреляет
   updateReload(shooter);
@@ -10384,7 +10434,7 @@ function tryShoot(shooter, target, dist){
   // догоняет после каждой смены направления. Раньше стрейфер стрелял вдвое
   // реже стоящего и при этом попадать в него было так же легко — стоящий
   // выигрывал 8 из 10. Теперь в стрейфера заметно труднее попасть
-  if(BAL.strafeFix && target._ds && target._ds.moving) trackErr = Math.max(trackErr, 0.010) * 2.2;
+  if(BAL.strafeFix && target._fc && target._fc.moving) trackErr = Math.max(trackErr, 0.010) * 2.2;
   if(BAL.hitbox) recoilErr *= 0.3; // (6) отдача теперь — паттерн (ниже), тут только её "шум"
   var sigma = Math.sqrt(wSpread*wSpread + recoilErr*recoilErr + spamErr*spamErr + aimErr*aimErr + flick*flick + 0.5*aimD*aimD + trackErr*trackErr);
   if(shooter.onStairs) sigma *= 2.2;
@@ -10723,7 +10773,7 @@ function decideAction(bot, nearestDist, alliesNear, enemiesSeen){
 // сход с позиции после фрага: цель мертва — "смотрю на угол, где только что
 // видел врага" (hold по lastIntel) держал бота на месте ещё ~3с, и новый пост
 // не срабатывал. Снимаем бой-удержание, чтобы он реально ушёл.
-function leaveHold(b){ b.state = "patrol"; b.holding = false; b.crouching = false; b.decisionTick = tick; b.peekType = null; }
+function leaveHold(b){ b.state = "patrol"; b.holding = false; b.crouching = false; b.decisionTick = tick; }
 // (v156) решение после фрага — только по тому, что команда знает (ЛИП ≤5с),
 // а не по настоящим позициям врагов
 function postKillDecide(sh, tg, vp, here){
@@ -10995,48 +11045,7 @@ function resolveEngagements(){
     if(next !== b.state) b.stateSince = tick;
     if(next !== b.state){
       logEvent(b.id+": "+STATE_LABEL[next]+" (HP "+Math.max(0,b.hp)+"%, союзников рядом "+alliesNear+", врагов видит "+enemiesSeen+")");
-      if(next === "engage"){
-        aggrNote(b.id);
-        var outnum = Math.max(0, enemiesSeen - alliesNear);
-        b.peekType = outnum > 0 ? "jiggle" : (alliesNear >= enemiesSeen && b.hp > 60 ? "wide" : "shoulder");
-        // против AWP не выходят широко в одиночку: джиггл/плечо — вызвать выстрел
-        // и не отдать фраг (байт). Широкий — только если рядом напарник на размен
-        var nbA = b._nearestEnemyBot;
-        if(BAL.duelPlace && nbA && nbA.weapon && nbA.weapon.key === "AWP" && b.weapon && b.weapon.key !== "AWP"){
-          var mate250 = bots.some(function(o){ return o !== b && o.alive && o.team === b.team && Math.hypot(o.x-b.x, o.y-b.y) < 250; });
-          b.peekType = mate250 && b.hp > 60 ? "wide" : (outnum > 0 ? "jiggle" : "shoulder");
-        }
-        if(BAL.profiles && b.prof){
-          var pa2 = prof(b, "aggr");
-          if(b.peekType === "wide" && pa2 < 0.35) b.peekType = "shoulder";        // терпеливый — без широких выходов
-          if(b.peekType === "shoulder" && pa2 > 0.8 && b.hp > 50) b.peekType = "wide";
-          // ошибка исполнения: агрессивный "переиграл" — широкий пик даже на двоих
-          if(outnum > 0 && hashRand(tick*19 + b.id.charCodeAt(1)*7) < pa2*0.3*(1.2-prof(b,"disc"))){
-            b.peekType = "wide"; noteMistake(b, "переиграл — широкий пик на "+(outnum+1));
-          }
-        }
-        // (2) тип пика решён ещё до контакта (флешка себе / вдвоём — широкий, один — джиггл)
-        if(BAL.pieSlice && b._plannedPeek && b._plannedPeek.type && tick - b._plannedPeek.t < 3*TICK_HZ && tick >= b._plannedPeek.t - 2*TICK_HZ) b.peekType = b._plannedPeek.type;
-        b.peekSinceTick = tick;
-        // направление и сторона пика фиксируются в момент решения: в ту сторону,
-        // где после выхода враг остаётся виден и нет стены (раньше сторона
-        // бралась по номеру бота, а направление — каждый тик заново: бот
-        // "дёргался" то влево, то вправо, иногда выпрыгивая в открытую)
-        var nb0 = b._nearestEnemyBot;
-        b._peekDir = nb0 ? Math.atan2(nb0.y-b.baseY, nb0.x-b.baseX) : (b.facing||0);
-        var pa0 = b._peekDir + Math.PI/2, amp0 = b.peekType === "wide" ? (BAL.smoothPeek ? 42 : 60) : (BAL.smoothPeek ? 16 : 30), sideBest = 0;
-        [1, -1].forEach(function(sd){
-          if(sideBest) return;
-          var px0 = b.baseX + Math.cos(pa0)*sd*amp0, py0 = b.baseY + Math.sin(pa0)*sd*amp0;
-          if(crossesWall(b.baseX, b.baseY, px0, py0)) return;
-          if(nb0 && !hasLOS(px0, py0, nb0.x, nb0.y)) return;
-          sideBest = sd;
-        });
-        if(!sideBest && b.peekType !== "jiggle") b.peekType = null; // пикнуть некуда — стреляет с места
-        b._peekSide = sideBest || 1;
-      } else {
-        b.peekType = null;
-      }
+      if(next === "engage") aggrNote(b.id);   // как выглядывать — fightCycleTick (перестрелка по данным, v250)
     }
     b.state = next;
     if(next !== "patrol") b.roamChecking = false;
@@ -11764,7 +11773,7 @@ function resetRound(){
     b.state = "patrol"; b.decisionTick = -999; b.holding = false; b.forcedRetreat = false;
     b.facing = undefined; b.heading = undefined; b.curSpeed = 0; b.crouching = false; b.holdSinceTick = -999; b.onStairs = false;
     b.lastIntel = null; b.walking = false; b.lastStepTick = -999; b.heardSound = null;
-    b.burstCount = 0; b.lastShotTick = -999; b._ammoFor = null; b._reloading = false; b._onPistol = null; b._secAmmo = null; b._blind = null; b._ds = null; b._trail = []; b._tagUntil = 0; b._knife = false; b._drawUntil = 0; b.peekType = null; b.peekSinceTick = 0; b.stuckTicks = 0;
+    b.burstCount = 0; b.lastShotTick = -999; b._ammoFor = null; b._reloading = false; b._onPistol = null; b._secAmmo = null; b._blind = null; b._fc = null; b._trail = []; b._tagUntil = 0; b._knife = false; b._drawUntil = 0; b.stuckTicks = 0;
     b._prevOffX = 0; b._prevOffY = 0; b.lookTarget = null; b.lookReason = null;
     initRoam(b);
   });
@@ -11893,8 +11902,8 @@ function stepTick(){
     var runSpeed = (bot.walking ? SPEED*WALK_SPEED_FRAC : SPEED) * weaponSpeedMul(bot);
     // атакующий, который прямо сейчас видит врага, останавливается и
     // стреляет (контр-страф), а не продолжает бежать по патрульному пути —
-    // иначе он сам уходил из линии огня посреди перестрелки. Боковое
-    // движение при этом даёт пик (см. peekType ниже).
+    // иначе он сам уходил из линии огня посреди перестрелки. Уйти с линии
+    // за укрытие и выглянуть снова — fightCycleTick (по данным про).
     // ждёт хлопка флешки тиммейта (поп на убийцу / ретейк) — не выбегает раньше неё
     var waitPop = (bot._waitPopUntil > tick && nadeFlags[bot._waitPopKey] === undefined && !bot._sawEnemy) || (BAL.pieSlice && bot._ppWaitUntil > tick && !bot._sawEnemy);
     if(BAL.pieSlice && bot._pie && bot._pie.slice && tick - bot._pie.t < 16 && !bot._sawEnemy) runSpeed *= 0.75; // режет угол
@@ -11944,31 +11953,9 @@ function stepTick(){
     else if(bot.curSpeed > targetSpeed) bot.curSpeed = Math.max(targetSpeed, bot.curSpeed-maxDelta);
     if(BAL.tagging && tick < (bot._tagUntil||0)) bot.curSpeed = Math.min(bot.curSpeed, SPEED*0.4);
     if(tick % 16 === 0){ var TR = bot._trail || (bot._trail = []); TR.push({x:bot.baseX, y:bot.baseY}); if(TR.length > 8) TR.shift(); }
-    // стрейф между выстрелами в дальней дуэли
-    var dsOn = BAL.duelStrafe && bot._sawEnemy && (bot.state === "engage" || bot.state === "hold") && !bot.peekType && !bot.planting && !bot.defusing &&
-               !burn && tick >= (bot.blindUntil||0) && duelStrafeOk(bot);
-    if(dsOn){
-      var DS = bot._ds;
-      if(!DS){ DS = bot._ds = {dir: (hashRand(tick*13 + bot.id.charCodeAt(1)) < 0.5 ? 1 : -1), moving:false, until: tick + 10}; } // сначала выстрел
-      if(tick >= DS.until){
-        if(DS.moving){ DS.moving = false; DS.until = tick + (BAL.strafeFix ? 13 : 9); }   // контр-страф и выстрел (v131: окно на 2 выстрела, а не на 1)
-        else { DS.moving = true; DS.dir = -DS.dir;
-          // на средней дистанции с винтовкой — короткий шаг (под бёрст), вдали и с пистолетом — шире
-          var enD = bot._nearestEnemyBot ? Math.hypot(bot._nearestEnemyBot.x-bot.x, bot._nearestEnemyBot.y-bot.y) : 600;
-          var shortS = bot.weapon && bot.weapon.slot !== "secondary" && enD < 600;
-          DS.until = tick + (BAL.strafeFix ? (shortS ? 5 : 8) : (shortS ? 6 : 10)) + Math.floor(hashRand(tick*7 + bot.id.charCodeAt(1)*3)*(BAL.strafeFix ? (shortS ? 3 : 5) : (shortS ? 4 : 8))); }
-      }
-      if(DS.moving){
-        var en = bot._nearestEnemyBot, pA = Math.atan2(en.y-bot.baseY, en.x-bot.baseX) + Math.PI/2;
-        var stp = 105*SPD_K*dtSec, nx2 = bot.baseX + Math.cos(pA)*DS.dir*stp, ny2 = bot.baseY + Math.sin(pA)*DS.dir*stp;
-        // не выходить из линии на врага и не лезть в стену: иначе разворот
-        if(stepBlocked(bot.baseX, bot.baseY, nx2, ny2, bot) || !hasLOS(nx2, ny2, en.x, en.y) || Math.hypot(nx2-(DS.ax||bot.baseX), ny2-(DS.ay||bot.baseY)) > 70){
-          DS.dir = -DS.dir; nx2 = bot.baseX; ny2 = bot.baseY;
-        }
-        if(DS.ax == null){ DS.ax = bot.baseX; DS.ay = bot.baseY; }
-        bot.baseX = nx2; bot.baseY = ny2; bot.curSpeed = 105*SPD_K; bot.crouching = false;
-      } else bot.curSpeed = 0;
-    } else if(bot._ds){ bot._ds = null; }
+    // перестрелка по данным: уйти с линии за укрытие и выглянуть снова
+    fightCycleTick(bot, dtSec, bot.planting || bot.defusing || burn || tick < (bot.blindUntil||0));
+    if(bot._fc && bot._fc.ph !== "line") bot.curSpeed = bot._fc.moving ? SPEED*weaponSpeedMul(bot) : 0;
 
     // ---------- держит угол "живьём" ----------
     // Стоящий на посту / держащий угол без контакта не стоит статуей: медленно
@@ -12038,7 +12025,7 @@ function stepTick(){
       }
     }
 
-    if(!((bot.holding && !bot._burning) || bot.curSpeed <= 0.5)){
+    if(!((bot.holding && !bot._burning) || bot.curSpeed <= 0.5 || (bot._fc && bot._fc.ph !== "line"))){
       if(bot.path.length === 0 || bot.pathIdx >= bot.path.length){
         if(bot.forcedRetreat) bot.forcedRetreat = false;
         assignNewDestination(bot, tick);
@@ -12218,46 +12205,6 @@ function stepTick(){
     }
 
     var offX = 0, offY = 0;
-    if(bot.state === "engage" && bot.peekType){
-      var nb = bot._nearestEnemyBot;
-      var dirAng = bot._peekDir != null ? bot._peekDir : (nb ? Math.atan2(nb.y-bot.baseY, nb.x-bot.baseX) : (bot.facing||0));
-      var perp = dirAng + Math.PI/2;
-      var side = bot._peekSide || ((bot.id.charCodeAt(bot.id.length-1) % 2 === 0) ? 1 : -1);
-      var dt2 = tick - bot.peekSinceTick, amp = 0, stillActive = true;
-      // пока из пика реально видно врага — не уходим обратно за угол
-      // посреди перестрелки: фаза "стою выглянув" продлевается, пока есть контакт
-      if(bot._sawEnemy){
-        var pkS0 = SPEED*weaponSpeedMul(bot)/TICK_HZ;
-        var holdEnd = BAL.smoothPeek ? (bot.peekType === "wide" ? Math.round(42/pkS0*1.3)+24-1 : (bot.peekType === "shoulder" ? Math.round(16/pkS0*1.2)+6-1 : -1))
-                                     : (bot.peekType === "wide" ? 8+24-1 : (bot.peekType === "shoulder" ? 4+10-1 : -1));
-        if(holdEnd > 0 && dt2 > holdEnd){ bot.peekSinceTick = tick - holdEnd; dt2 = holdEnd; }
-      }
-      // (v151) раньше широкий пик сдвигал на 60px за 0.12с — в ~5 раз быстрее бега.
-      // Теперь пик идёт со скоростью бега этим оружием, плавно (разгон/торможение)
-      var pkS = BAL.smoothPeek ? SPEED*weaponSpeedMul(bot)/TICK_HZ : 0;
-      var ease = function(u){ u = Math.max(0, Math.min(1, u)); return u*u*(3-2*u); };
-      if(bot.peekType === "wide"){
-        var A1 = BAL.smoothPeek ? 42 : 60, r1 = BAL.smoothPeek ? Math.round(A1/pkS*1.3) : 8, h1 = 24;
-        if(dt2<r1) amp = A1*(BAL.smoothPeek ? ease(dt2/r1) : dt2/r1);
-        else if(dt2<r1+h1) amp = A1;
-        else if(dt2<r1*2+h1) amp = A1*(BAL.smoothPeek ? 1-ease((dt2-r1-h1)/r1) : 1-(dt2-r1-h1)/r1);
-        else stillActive = false;
-      } else if(bot.peekType === "shoulder"){
-        var A2 = BAL.smoothPeek ? 16 : 32, r2 = BAL.smoothPeek ? Math.round(A2/pkS*1.2) : 4, h2 = BAL.smoothPeek ? 6 : 10;
-        if(dt2<r2) amp = A2*(BAL.smoothPeek ? ease(dt2/r2) : dt2/r2);
-        else if(dt2<r2+h2) amp = A2;
-        else if(dt2<r2*2+h2) amp = A2*(BAL.smoothPeek ? 1-ease((dt2-r2-h2)/r2) : 1-(dt2-r2-h2)/r2);
-        else stillActive = false;
-      } else if(bot.peekType === "jiggle"){
-        amp = BAL.smoothPeek ? 12*Math.sin(dt2*0.2) : 22*Math.sin(dt2*0.35);
-      }
-      if(!stillActive){ bot.peekType = null; }
-      offX = Math.cos(perp)*side*amp;
-      offY = Math.sin(perp)*side*amp;
-      // don't let a peek lean shove the bot's rendered/combat position through
-      // a wall — clamp to the path position if the lean would clip one
-      if(crossesWall(bot.baseX,bot.baseY,bot.baseX+offX,bot.baseY+offY)){ offX = 0; offY = 0; }
-    }
     if(bot.roamChecking && bot.state === "patrol" && bot.roamLookPt){
       // на чеке роумер не стоит столбом, а джиглит угол — короткие выглядывания
       var rla = Math.atan2(bot.roamLookPt.y-bot.baseY, bot.roamLookPt.x-bot.baseX) + Math.PI/2;
@@ -12342,7 +12289,8 @@ function whyText(b){
   if(t && pt === "без задачи") pt = t;
   if(b.planting) pt = "ставит бомбу"; if(b.defusing) pt = "дефузит";
   var lr = b.lookReason, lt = lr ? (WHY_LOOK[lr] || lr) : "по ходу движения";
-  if(b.state === "engage" && b.peekType) pt = "бой · пик " + ({wide:"широкий", shoulder:"плечом", jiggle:"джиггл"})[b.peekType];
+  if(b._fc && b._fc.ph !== "line") pt = b._fc.ph === "off" ? "бой · ушёл с линии за укрытие" : "бой · выглядывает снова";
+  else if(b.state === "engage") pt = "бой · на линии";
   else if(b.state === "hold") pt = "бой · держит угол";
   else if(b.state === "retreat") pt = "бой · отходит";
   if(lr === "look" && b._lkTop && b._lkTop.length){
