@@ -52,7 +52,7 @@ v166 — `docs/V166_CHANGES.md` (список владельца). Главны�
 | **карта**: стены `WALL_POLYS` / `applyWalls`; высоты `HEIGHTS` / `hgtInfo`; укрытия `COVER` / `covList`; прострелы `WALLBANG` / `wbList`, `wbAfter` | ~829; ~864; ~916; ~1063 |
 | **кто кого видит** (одно место, 3D): `VIS_*`, `visLine`, `visParts`, `visFloorAt`; через неё `hasLOS` и таблица «откуда простреливается» `computeZoneDanger` (пересчёт сам в `visInvalidate`) | ~1198; ~1706 |
 | переключатели и числа движка `BAL` | `var BAL = {` |
-| позиция: `setPost` / `updatePost`; «держать район» `holdSpot` / `holdGroup`, варианты `holdCands` (+ места про) | ~2726; ~7158 |
+| позиция: `setPost` / `updatePost`; «держать район» `holdSpot` / `holdGroup`, варианты `holdCands` (+ места про); **где встать по почерку, оружию и прошлому раунду** (одно место): `posPref`, `posPickName`, `posTick` | ~2726; ~7158 |
 | план и мозг T: `tBrain`, лёркер `lurkerBrain`, IGL `tIglReplan` | `grep -n` |
 | мозг CT: `ctBrain`, ретейк `updateRetake` | ~8014; ~4633 |
 | память команды v166 (только радар + войс, v242): `intelPush`, `teamInfoTick`, `commSend` = радар, `teamHeardToIntel` | ~4862; ~4913; ~4840 |
