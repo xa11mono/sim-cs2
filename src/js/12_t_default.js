@@ -297,10 +297,12 @@ function tdefSpot(b, L, cur){
   var w = H ? H.pt : (snapToWalkable(pick[0], pick[1]) || {x: pick[0], y: pick[1]});
   return {x: w.x, y: w.y, look: pick.length >= 5 ? [pick[3], pick[4]] : null, task: task};
 }
-// стоит / идёт к месту: раз в HOLD.reeval «держать район» пересчитывает место по знанию; дальше 40 px — туда (v237)
+// стоит на месте: знание поменялось — «держать район» пересматривает место (новое — только если заметно лучше, v238)
 function tdefHoldTick(b){
   var D = b.tdef; if(!D.spot || !D.spot.task || b._sawEnemy) return;
-  var T = D.spot.task, H = holdTask(b, {key: T.key, center: T.center, rMin: T.rMin, rMax: T.rMax, mates: holdMates(b)});
+  var key = posHoldKey(b); if(D.hKey === key) return;   // пересмотр — только по поводу (знание о врагах рядом, смерть своего; v238)
+  D.hKey = key;
+  var T = D.spot.task, H = holdTask(b, {key: T.key, center: T.center, rMin: T.rMin, rMax: T.rMax, mates: holdMates(b)}, true);
   if(!H || Math.hypot(H.pt.x - D.spot.x, H.pt.y - D.spot.y) <= 40) return;
   D.spot = {x: H.pt.x, y: H.pt.y, look: D.spot.look, task: T};
 }

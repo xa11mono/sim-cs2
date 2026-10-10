@@ -350,7 +350,7 @@ function posTick(){
     if(far && !moving && tick - b.pos.pathT >= POS.repathEvery) posPath(b);   // движок сбросил путь — та же цель
     if((smokes.length || b.pos.fb) && (tick + (b.id.charCodeAt(b.id.length-1)||0)) % POS.smokeEvery === 0) posSmokeCheck(b);
     if(!far && (tick + (b.id.charCodeAt(0)||0)) % POS.threatEvery === 0) posThreatCheck(b);
-    if((tick + (b.id.charCodeAt(0)||0)) % POS.threatEvery === 0 && posHoldTick(b)) return;
+    if((tick + (b.id.charCodeAt(0)||0)) % POS.threatEvery === 0 && posHoldTick(b)) return;   // повод пересмотреть место (posHoldKey)
     if(posPushTick(b)) return;
     if(posCoverTick(b)) return;
     if(posAfterHit(b)) return;
@@ -366,11 +366,13 @@ function posTick(){
 //  − каждый лишний открытый вход («встать под один вход»); − засвеченное место (сам стрелял тут, тут убили своего);
 //  − стоять кучей с тиммейтом; + кроссфайр (тот же вход под другим углом); + где обычно стоят про (сетка progrid);
 //  − долго идти; − далеко от центра; + своё нынешнее место (не бегать между равными).
-// Пересчёт раз в HOLD.reeval тиков (2 с): знание поменялось — место меняется само, без «точка → точка».
+// Пересчёт — только по поводу (v238): бот на месте и знание о врагах рядом / смерть своего поменялись (posHoldKey); новое
+// место — только если заметно лучше нынешнего (HOLD.better). Пока идёт — место не меняется (так было в v166).
+// Смотрит — по линии позиции (куда смотрят про с этой точки); с линии — только по угрозе из знания (posThreatCheck).
 // Числа — из v166 (там они подобраны глазами и по замерам того времени: проектные числа)
 var HOLD = {seeMain: 3.0, extraOpen: 1.6, burned: 1.5, burnR: 160, burnSec: 8, stackR: 110, stack: 1.2, cross: 0.8,
-            travel: 0.6, objDist: 0.3, pro: 1.2, keep: 0.35, reeval: 128, minW: 0.02, nbrW: 0.6, rArea: 280, rMax: 340,
-            strafeR: 200};   // strafeR — к новому месту ближе этого идёт, не отводя прицел с угла (боком/задом)
+            travel: 0.6, objDist: 0.3, pro: 1.2, keep: 0.35, minW: 0.02, nbrW: 0.6, rArea: 280, rMax: 340,
+            strafeR: 200, better: 1.0};   // better — на столько новое место лучше нынешнего, чтобы уйти (v238, проектное число)   // strafeR — к новому месту ближе этого идёт, не отводя прицел с угла (боком/задом)
 var PROGRID = @@DATA:progrid.json@@;
 function holdProAt(team, x, y){
   var C = PROGRID.cell, n = PROGRID.n, cx = Math.floor(x/C), cy = Math.floor(y/C);
@@ -447,19 +449,24 @@ function holdSpot(b, T){
     if(H && H.key === T.key && Math.hypot(c.x - H.pt.x, c.y - H.pt.y) < 40) sc += HOLD.keep;
     return {pt: {x: c.x, y: c.y}, s: sc, main: mainE};
   }
-  var best = null;
+  var best = null, cur = null;
   [true, false].some(function(useMust){
     cands.forEach(function(c){ var r = eval1(c, useMust); if(r && (!best || r.s > best.s)) best = r; });
+    if(H && H.key === T.key) cur = eval1({x: H.pt.x, y: H.pt.y, d: Math.hypot(H.pt.x - T.center.x, H.pt.y - T.center.y)}, useMust);
     return !!best;
   });
   if(!best) return null;
+  // v238: своё нынешнее место меняется, только если новое заметно лучше (HOLD.better) — иначе бот остаётся
+  if(cur && best.s - cur.s < HOLD.better) best = cur;
   best.look = best.main ? best.main.pt : (E[0] ? E[0].pt : (must[0] || T.center));
   return best;
 }
-// задача «держать район» для бота: пересчёт раз в HOLD.reeval; возвращает {pt, look, see}; mates — уже выбранные места своих
-function holdTask(b, T){
+// задача «держать район» для бота; возвращает {pt, look, see}; mates — уже выбранные места своих
+// пересчёт — только когда вызывающий говорит «есть повод» (force) или задача новая (v238: раньше раз в 2 с и на ходу —
+// место перескакивало, бот не доходил; в v166 на ходу место не пересчитывалось)
+function holdTask(b, T, force){
   var H = b._hold, same = H && H.key === T.key && H.round === roundNum;
-  if(same && tick - H.t < HOLD.reeval) return H;
+  if(same && !force) return H;
   var r = holdSpot(b, T);
   if(!r) return same ? H : null;
   b._hold = {key: T.key, round: roundNum, t: tick, pt: r.pt, look: r.look, see: r.main};
@@ -470,14 +477,27 @@ function holdMates(b){
     .map(function(o){ return {pt: o._hold.pt, see: o._hold.see}; });
 }
 // CT: задача по точке слота (центр — точка, обязательно видеть — её угол)
-function posHoldTask(b, P){
-  return holdTask(b, {key: "ct:" + P.id, center: {x: P.x, y: P.y}, must: [P.angle], mates: holdMates(b)});
+function posHoldTask(b, P, force){
+  return holdTask(b, {key: "ct:" + P.id, center: {x: P.x, y: P.y}, must: [P.angle], mates: holdMates(b)}, force);
+}
+// повод пересмотреть место: что бот уверенно знает о врагах рядом (видел / слышал / войс, ближе 1200 px — грубо, клетки
+// по 150 px), сколько своих погибло. Таймера нет: знание не поменялось — место то же
+function posHoldKey(b){
+  var k = bots.filter(function(o){ return o.team === b.team && !o.alive; }).length + "|", K = b.know;
+  if(K) Object.keys(K.enemies).sort().forEach(function(id){
+    var B = K.enemies[id]; if(!planFact(B) || !B.last || Math.hypot(B.last.x - b.x, B.last.y - b.y) > 1200) return;
+    k += id + Math.round(B.last.x/150) + ":" + Math.round(B.last.y/150) + ",";
+  });
+  return k;
 }
 // стоит / идёт к месту: пересчёт; новое место дальше 40 px — туда (близко — шагом и с прицелом на угол)
 function posHoldTick(b){
   if(b.pos.fb || b.pos.peek || b._sawEnemy || posLed(b) || b.pos.push || b.pos.cover) return false;
+  if(Math.hypot(b.pos.tx - b.x, b.pos.ty - b.y) > POS.arrive || (b.path.length && b.pathIdx < b.path.length)) return false;   // идёт — место не меняет
   var P = POS_PT[b.pos.cur]; if(!P) return false;
-  var H = posHoldTask(b, P); if(!H) return false;
+  var key = posHoldKey(b); if(b.pos.hKey === key) return false;
+  b.pos.hKey = key;
+  var H = posHoldTask(b, P, true); if(!H) return false;
   if(Math.hypot(H.pt.x - b.pos.tx, H.pt.y - b.pos.ty) <= 40) return false;
   b.pos.tx = H.pt.x; b.pos.ty = H.pt.y;
   b.walking = Math.hypot(H.pt.x - b.x, H.pt.y - b.y) < HOLD.strafeR;
@@ -819,10 +839,12 @@ function posLook(b){
   if(b.pos && b.pos.peek) return {x: b.pos.peek.hx, y: b.pos.peek.hy, why: "threat"};   // пик — туда, где слышал (v227)
   if(b.pos && b.pos.reactLook && tick < b.pos.reactLook.until) return {x: b.pos.reactLook.x, y: b.pos.reactLook.y, why: "threat"};   // сайт берут (v233)
   // к новому месту в своём районе — боком/задом, прицел на угол (v237: раньше разворачивался спиной к углу и обратно)
-  if(w && b._hold && b._hold.look && Math.hypot(b._hold.pt.x - b.x, b._hold.pt.y - b.y) < HOLD.strafeR &&
-     Math.hypot((b.pos ? b.pos.tx : b._hold.pt.x) - b._hold.pt.x, (b.pos ? b.pos.ty : b._hold.pt.y) - b._hold.pt.y) < 5){
-    b._goDir = Math.atan2(w[1]-b.y, w[0]-b.x);
-    return {x: b._hold.look.x, y: b._hold.look.y, why: "angle"};
+  // к новому месту в своём районе (ближе HOLD.strafeR) — боком/задом, прицел по линии позиции (v238: куда смотрят про с
+  // этой точки; T — взгляд про на месте полосы); раньше разворачивался спиной к углу
+  if(w && b._hold && Math.hypot(b._hold.pt.x - b.x, b._hold.pt.y - b.y) < HOLD.strafeR){
+    var Lp = b.pos ? POS_PT[b.pos.cur] : null, sp0 = b.tdef && b.tdef.spot;
+    var lk = Lp && Lp.angle ? {x: Lp.angle.x, y: Lp.angle.y} : (sp0 && sp0.look ? {x: b.x + sp0.look[0]*400, y: b.y + sp0.look[1]*400} : null);
+    if(lk && !(b.pos && b.pos.threat)){ b._goDir = Math.atan2(w[1]-b.y, w[0]-b.x); return {x: lk.x, y: lk.y, why: "angle"}; }
   }
   if(w){
     b._goDir = Math.atan2(w[1]-b.y, w[0]-b.x);
@@ -833,7 +855,6 @@ function posLook(b){
   if(!b.pos) return posStandLook(b);   // T стоит на своём месте (v224)
   var P = POS_PT[b.pos.cur];
   if(!b.pos.threat){
-    if(!b.pos.fb && b._hold && b._hold.look && b._hold.key === "ct:" + P.id) return {x: b._hold.look.x, y: b._hold.look.y, why: "angle"};   // главный вход (v237)
     return {x: P.angle.x, y: P.angle.y, why: b.pos.fb ? "fallback" : "angle"};
   }
   // угроза — взгляд на неё, но не шире yawRange точки (в игре yaw против часовой, на радаре y вниз)
@@ -876,9 +897,6 @@ function posStandLook(b){
   var sp = b.tdef && b.tdef.spot;
   if(sp && sp.look && Math.hypot(sp.x - b.x, sp.y - b.y) <= 40)
     cands.push({x: b.x + sp.look[0]*400, y: b.y + sp.look[1]*400, why: "lane", sc: 1.1, src: "spot"});
-  // главный вход района, который он держит (v237, «держать район»: откуда вероятнее всего придут) — выше взгляда про
-  if(b._hold && b._hold.look && b._hold.round === roundNum && Math.hypot(b._hold.pt.x - b.x, b._hold.pt.y - b.y) <= 40)
-    cands.push({x: b._hold.look.x, y: b._hold.look.y, why: "lane", sc: 1.2, src: "hold"});
   var best = null, bd = 1e9;
   KNOW_POSITIONS.points.forEach(function(P){
     if(P.side !== b.team) return;
@@ -944,9 +962,13 @@ function drawPositions(){
   bots.forEach(function(b){
     if(!b.alive || !b.pos) return;
     var P = POS_PT[b.pos.cur], M = POS_PT[b.pos.pid];
-    ctx.setLineDash([]); ctx.lineWidth = 1.5*px; ctx.strokeStyle = "rgba(120,180,255,0.75)";
-    ctx.beginPath(); ctx.moveTo(b.pos.tx, b.pos.ty); ctx.lineTo(P.angle.x, P.angle.y); ctx.stroke();   // угол
+    // v238: место, куда бот идёт / где стоит (кружок); линия позиции — пунктир (куда смотрят про с этой точки);
+    // куда бот смотрит сейчас — сплошная линия от бота
+    ctx.lineWidth = 1.5*px; ctx.strokeStyle = "rgba(120,180,255,0.55)"; ctx.setLineDash([4*px, 3*px]);
+    ctx.beginPath(); ctx.moveTo(b.pos.tx, b.pos.ty); ctx.lineTo(P.angle.x, P.angle.y); ctx.stroke();
+    ctx.setLineDash([]); ctx.strokeStyle = "rgba(120,180,255,0.85)";
     ctx.beginPath(); ctx.arc(b.pos.tx, b.pos.ty, 7*px, 0, 2*Math.PI); ctx.stroke();
+    if(b.facing !== undefined){ ctx.strokeStyle = "rgba(255,255,255,0.85)"; ctx.beginPath(); ctx.moveTo(b.x, b.y); ctx.lineTo(b.x + Math.cos(b.facing)*60*px, b.y + Math.sin(b.facing)*60*px); ctx.stroke(); }
     if(M.fallback && POS_PT[M.fallback] && !b.pos.fb){
       var F = POS_PT[M.fallback];
       ctx.setLineDash([3*px, 3*px]); ctx.strokeStyle = "rgba(120,180,255,0.45)";
