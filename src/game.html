@@ -126,7 +126,7 @@
 <div id="app">
   <div id="topbar">
     <h1>ANCIENT — LIVE RADAR</h1>
-    <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 243 (опасность зон — через 3D-видимость) · 10.10</div>
+    <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 244 (гранаты по знанию) · 10.10</div>
     <button id="btnPause">Пауза</button>
     <button id="btnRestartRound" title="Немедленно сбросить текущий раунд — на случай если боты застряли">Рестарт раунда</button>
     <span class="chk" title="Матч с одним номером всегда проходит одинаково. Увидел баг — запиши номер матча и тик, введи номер и нажми «Сыграть»: матч повторится с начала">матч № <input id="inpMatchNum" type="number" min="1" value="1" style="width:52px"> <button id="btnFreshMatch">Сыграть</button> <span id="matchTick" style="opacity:.75"></span></span>
@@ -2162,7 +2162,6 @@ var BAL = {
   roamSmooth: true,   // v153: роумер на чеке не дёргается ±14px 3 раза в секунду, а плавно выглядывает раз в ~2с
   newLook: true,
   holdTask: true,
-  noLeaks: true,      // v146: команды решают только по тому, что реально знают
   egFix: true,
   proPrior: true,     // v147: позиции с учётом того, где реально стоят про (12 матчей)
   proW: 1.5,          // вес про-плотности при выборе точки (pickSpots)
@@ -3532,7 +3531,7 @@ function lurkerBrain(b, tt, other){
   }
   if(tt.phase === "postplant"){
     var R = bomb && bomb.retake;
-    if(BAL.noLeaks && GEO[tt.site] && GEO[tt.site].ctEntry){ R = {approaches:[GEO[tt.site].ctEntry]}; }
+    if(GEO[tt.site] && GEO[tt.site].ctEntry){ R = {approaches:[GEO[tt.site].ctEntry]}; }
     if(R && R.approaches && R.approaches.length){
       var a = R.approaches[0];
       // за точкой сбора CT, со стороны их спавна — в спину ретейку
@@ -3905,7 +3904,7 @@ function tBrain(){
       goNow = false; if(!tt._smWaitLog){ tt._smWaitLog = true; logEvent("T: ждём, пока встанут смоки"); }
     }
     if(goNow){
-      tt.phase = "execute"; tt.execStart = tick; if(BAL.noLeaks) siteHeatPending[tt.site] = 1; else siteHeat[tt.site] = (siteHeat[tt.site]||0) + 1;
+      tt.phase = "execute"; tt.execStart = tick; siteHeatPending[tt.site] = 1;
       logEvent("T: выход на "+tt.site+"!"+(tt._waitLog ? " (все собрались)" : ""));
     }
   }
@@ -3918,7 +3917,7 @@ function tBrain(){
     var pickSig = teamIntel.T.sig.filter(function(s){ return s.type === "kill" && tick - s.tick < 3*64 &&
       (s.role === ancR ? Math.hypot(s.x-site.x, s.y-site.y) < 600 : Math.hypot(s.x-site.x, s.y-site.y) < 350); })[0];
     if(pickSig && aliveCount("T") >= 4 && (!BAL.proTempo || tick - roundStartTick > 22*TICK_HZ)){
-      tt.phase = "execute"; tt.execStart = tick; if(BAL.noLeaks) siteHeatPending[tt.site] = 1; else siteHeat[tt.site] = (siteHeat[tt.site]||0) + 1;
+      tt.phase = "execute"; tt.execStart = tick; siteHeatPending[tt.site] = 1;
       voiceLog("T", "pick"+tt.site, pickSig.by, "минус на "+tt.site+", заходим сразу!");
       logEvent("T: выход на "+tt.site+"! (сняли CT на сайте)");
     }
@@ -4008,7 +4007,7 @@ function tBrain(){
     var eS = intelEstimate("T", site.x, site.y, 420, 5*TICK_HZ);
     var aliveT2 = aliveCount("T");
     if(eS.seen === 1 && beliefCount("T", BZ.siteNear[tt.site]||[]) < 1.4 && aliveT2 >= 4 && iglReads(tt, "so")){
-      tt.soloGo = true; tt.phase = "execute"; tt.execStart = tick; if(BAL.noLeaks) siteHeatPending[tt.site] = 1; else siteHeat[tt.site] = (siteHeat[tt.site]||0) + 1;
+      tt.soloGo = true; tt.phase = "execute"; tt.execStart = tick; siteHeatPending[tt.site] = 1;
       voiceLog("T", "solo"+tt.site, "IGL", "на "+tt.site+" один — заходим сейчас!");
       logEvent("T: выход на "+tt.site+"! (по инфе там соло)");
     }
@@ -4364,13 +4363,10 @@ function tBrain(){
     // лёркер, оставшийся последним (уже не лёркер), — тоже на пост-плант, а не стоит где поставил
     if(!lurker) group = group.concat(ts.filter(function(b){ return b.tRole === "lurker" && antiDef.indexOf(b) < 0 && group.indexOf(b) < 0 && !b.planting; }));
     // CT ушли в сейв и времени много — пара T идёт выбивать оружие
-    var ctSaving = teamTac.CT && teamTac.CT.saving;
-    if(BAL.noLeaks){
-      // CT не идут на ретейк: после планта прошло 15с+, у бомбы и на подходах их
-      // не видели и не слышали 10с, и их меньше нас — похоже на сейв
-      var ctNearB = intelEstimate("T", bomb.x, bomb.y, 1200, 10*TICK_HZ);
-      ctSaving = tick - bomb.plantTick > 15*TICK_HZ && (ctNearB.seen + ctNearB.heard) === 0 && aliveCount("CT") < ts.length;
-    }
+    // CT не идут на ретейк: после планта прошло 15с+, у бомбы и на подходах их
+    // не видели и не слышали 10с, и их меньше нас — похоже на сейв
+    var ctNearB = intelEstimate("T", bomb.x, bomb.y, 1200, 10*TICK_HZ);
+    var ctSaving = tick - bomb.plantTick > 15*TICK_HZ && (ctNearB.seen + ctNearB.heard) === 0 && aliveCount("CT") < ts.length;
     if(ctSaving && bombTimeLeftTicks() > 12*TICK_HZ){
       var hunters = group.filter(function(b){ return b.tRole==="entry" || b.tRole==="support"; });
       // где CT вероятнее всего прячутся: раньше было всего 2-3 фиксированные
@@ -6360,7 +6356,7 @@ function exposedShiftTick(b){
   if(!hurt && !shot) return;
   if(b._esT && tick - b._esT < 6*TICK_HZ) return; b._esT = tick;
   var foe = b.team === "CT" ? "T" : "CT";
-  if(BAL.noLeaks ? aliveCount(foe) === 0 : !bots.some(function(o){ return o.alive && o.team === foe && Math.hypot(o.x-b.x, o.y-b.y) < 1400; })) return;
+  if(aliveCount(foe) === 0) return;
   shiftHold(b, {x:li.x, y:li.y}, null, hurt ? "ранили, позиция известна" : "по мне стреляли, позиция известна");
 }
 // (v163) где враг из точки q выйдет на линию бота: идём по его пути к боту,
@@ -9131,6 +9127,72 @@ function nadeCombos(){
     });
   });
 }
+// ---- (v244, из переделки) гранаты «себе» по своему знанию ----
+//  • смок под плант: носитель на сайте, по его знанию кто-то видит точку планта — смок на себя;
+//  • флешка под выход: путь через ~250 px выведет на место, где по знанию может стоять враг (весомая
+//    гипотеза; без инфы — типичное место врага, которое бот ещё не видел пустым, и только близкое к выходу).
+// Бросок — через assignNade (одно место броска). Числа SELF — проектные числа переделки.
+var SELF = {
+  every:   8,    // как часто бот сверяется, тиков
+  threatW: 0.5,  // проектное число: весомая гипотеза врага (как угроза на угол в переделке)
+  ahead:   250,  // проектное число: через сколько px пути он выйдет на линию врага
+  far:     700,  // проектное число: и не дальше стольких px до врага
+  cone:    75,   // проектное число: и не шире стольких ° от направления хода
+  spotNear: 350, // проектное число: типичное место без инфы — не дальше стольких px от точки выхода
+  sightR:  900   // проектное число: смок под плант — гипотеза врага с линией на точку не дальше стольких px
+};
+function selfHyps(b, fn){
+  var K = b.know; if(!K) return;
+  for(var id in K.enemies){ var B = K.enemies[id]; if(B.visible) continue;
+    B.hyps.forEach(function(h){ if(h.x !== undefined && h.weight >= SELF.threatW) fn(h, id); }); }
+}
+function selfPlantSmoke(b){
+  if(b.team !== "T" || !bomb || bomb.state !== "carried" || bomb.carrier !== b || b.nades.smoke <= 0 || b._plantSmokeR === roundNum) return false;
+  var site = null; for(var k in SITES) if(onSite(SITES[k], b.x, b.y)) site = k;
+  if(!site || smokes.some(function(q){ return Math.hypot(q.x-b.x, q.y-b.y) < smokeRadiusNow(q); })) return false;
+  var seen = null;
+  selfHyps(b, function(h){ if(!seen && Math.hypot(h.x-b.x, h.y-b.y) <= SELF.sightR && hasVision(h.x, h.y, b.x, b.y)) seen = h; });
+  if(!seen) return false;
+  b._plantSmokeR = roundNum;
+  return assignNade(b, "smoke", {x:b.x, y:b.y}, "смок под плант — точку видно с " + calloutName(seen.x, seen.y), {now:true, range:300});
+}
+function selfExitFlash(b){
+  if(b.nades.flash <= 0 || !(b.path && b.pathIdx < b.path.length) || b.heading === undefined || b.curSpeed < 30) return false;
+  var cone = SELF.cone*Math.PI/180, cands = [];
+  b._selfDone = (b._selfDone && b._selfDone.r === roundNum) ? b._selfDone : {r: roundNum};
+  function ahead(x, y){ var d = Math.hypot(x-b.x, y-b.y); if(d > SELF.far || d < 60) return false;
+    var a = Math.atan2(y-b.y, x-b.x) - b.heading; return Math.abs(Math.atan2(Math.sin(a), Math.cos(a))) <= cone; }
+  selfHyps(b, function(h, id){ if(ahead(h.x, h.y)) cands.push({x:h.x, y:h.y, w:h.weight, key:id+":"+h.zone, info:true}); });
+  if(!cands.length && b.know && b.know.alive) (b.know.spots || []).forEach(function(p){
+    if(p.open && knowSpotReach(p) && ahead(p.x, p.y)) cands.push({x:p.x, y:p.y, w:0, key:"spot:"+p.id, info:false}); });
+  var best = null;
+  cands.forEach(function(c){
+    if(b._selfDone[c.key] || hasLOS(b.x, b.y, c.x, c.y)) return;   // уже на линии — это бой, не выход
+    var px = b.x, py = b.y, run = 0, ex = null;
+    for(var i = b.pathIdx; i < b.path.length && run <= SELF.ahead; i++){
+      var q = b.path[i]; run += Math.hypot(q[0]-px, q[1]-py); px = q[0]; py = q[1];
+      if(run <= SELF.ahead && hasLOS(px, py, c.x, c.y)){ ex = {x:px, y:py}; break; }
+    }
+    if(!ex) return;
+    if(bots.some(function(m){ return m !== b && m.alive && m.team === b.team && Math.hypot(m.x-ex.x, m.y-ex.y) < 150; })) return;   // свой уже там
+    if(!c.info && Math.hypot(c.x-ex.x, c.y-ex.y) > SELF.spotNear) return;   // дальний угол без инфы — прицелом
+    var d = Math.hypot(c.x-b.x, c.y-b.y);
+    if(!best || c.w > best.c.w || (c.w === best.c.w && d < best.d)) best = {c:c, ex:ex, d:d};
+  });
+  if(!best) return false;
+  var c = best.c, ex = best.ex, dE = Math.hypot(c.x-ex.x, c.y-ex.y), kf = Math.min(1, 140/Math.max(1, dE));
+  b._selfDone[c.key] = true;
+  return assignNade(b, "flash", {x: ex.x + (c.x-ex.x)*kf, y: ex.y + (c.y-ex.y)*kf}, "флешка под выход — " + (c.info ? "по знанию " : "типичное место ") + calloutName(c.x, c.y), {now:true, range:700});
+}
+function selfNadeTick(){
+  if(roundState !== "live") return;
+  bots.forEach(function(b){
+    if(!b.alive || !b.nades || b.nadeTask || b.planting || b.defusing || b._sawEnemy || tick < (b.blindUntil||0)) return;
+    if((tick + (b.id.charCodeAt(b.id.length-1)||0)) % SELF.every) return;
+    if(selfPlantSmoke(b)) return;
+    selfExitFlash(b);
+  });
+}
 // ---- гранаты по ситуации (не по сценарию) ----
 //  • молотов на раш: CT слышит 2+ бегущих T у входа на свой сайт — молотов во
 //    вход, пока они не зашли (раз за раунд на сайт);
@@ -9177,8 +9239,8 @@ function nadeReact(){
     var early = tick - roundStartTick < 25*TICK_HZ;
     teamIntel.CT.sig.forEach(function(sg){ if((sg.type === "sound" || sg.type === "spotted") && tick - sg.tick < 2.5*TICK_HZ && Math.hypot(sg.x-ent.x, sg.y-ent.y) < 700 && sg.id && sg.id !== "?") srcs[sg.id] = 1; });
     if(Object.keys(srcs).length < (early ? 1 : 2)) return;
-    if(BAL.noLeaks){ var onS = {}; teamIntel.CT.sig.forEach(function(sg){ if(sg.type === "spotted" && sg.id && tick - sg.tick < 1.5*TICK_HZ && Math.hypot(sg.x-SITES[k].x, sg.y-SITES[k].y) < 220) onS[sg.id] = 1; }); if(Object.keys(onS).length > 1) return; }
-    else if(bots.filter(function(o){ return o.alive && o.team === "T" && Math.hypot(o.x-SITES[k].x, o.y-SITES[k].y) < 220; }).length > 1) return; // уже зашли — поздно
+    var onS = {}; teamIntel.CT.sig.forEach(function(sg){ if(sg.type === "spotted" && sg.id && tick - sg.tick < 1.5*TICK_HZ && Math.hypot(sg.x-SITES[k].x, sg.y-SITES[k].y) < 220) onS[sg.id] = 1; });
+    if(Object.keys(onS).length > 1) return; // уже зашли — поздно
     var c = bots.filter(function(b){ return b.alive && b.team === "CT" && b.nades && b.nades.molly > 0 && !b.nadeTask && !b._sawEnemy &&
       Math.hypot(b.x-ent.x, b.y-ent.y) < NADE_THROW_RANGE*1.1 && Math.hypot(b.x-ent.x, b.y-ent.y) > 150; })
       .sort(function(a, b2){ return Math.hypot(a.x-ent.x, a.y-ent.y) - Math.hypot(b2.x-ent.x, b2.y-ent.y); })[0];
@@ -9186,13 +9248,12 @@ function nadeReact(){
     if(assignNade(c, "molly", ent, "молотов на раш "+k, {now:true})){ nadeFlags["rushMolly"+k] = tick;
       voiceLog("CT", "rushm"+k, c.id, "слышу раш на "+k+" — молотов во вход!"); }
   });
-  // CT ранняя граната на задержку: опорник в первые 7–18с иногда (≈35%) кидает
-  // молотов/HE во вход T на своём сайте — сбить ранний раш и время T
+  // CT ранняя граната на задержку: опорник в первые 7–18с кидает молотов/HE во вход T на своём сайте,
+  // если там была инфа (видели/слышали за 4с) или в прошлых раундах сюда рашили (v244: без монетки 35 %)
   if(BAL.ctEarlyUtil && bomb.state !== "planted"){
     var sinceR = (tick - roundStartTick)/TICK_HZ;
     if(sinceR > 7 && sinceR < 18) ["A","B"].forEach(function(k){
       var key = "ctEarly"+k; if(nadeFlags[key]) return;
-      if(hashRand(roundNum*811 + matchNum*37 + (k === "A" ? 3 : 5)) > 0.35){ nadeFlags[key] = true; return; } // в этом раунде не кидаем
       var ent = GEO[k].tEntry, role = k === "A" ? "anchorA" : "anchorB";
       var an = bots.filter(function(b){ return b.alive && b.team === "CT" && b.tRole === role && b.nades && (b.nades.molly > 0 || b.nades.he > 0) && !b.nadeTask &&
         Math.hypot(b.x-ent.x, b.y-ent.y) < NADE_THROW_RANGE*1.1; })[0];
@@ -9337,10 +9398,11 @@ function nadeBrains(){
   }
   // T пост-плант: CT дефузит — молотов на бомбу
   if(bomb && bomb.state === "planted"){
-    var def = bots.filter(function(b){ return b.defusing; })[0];
-    if(def && !nadeFlags.antiDef){
-      var mt = ts.filter(function(b){ return b.nades.molly > 0 && Math.hypot(b.x-bomb.x, b.y-bomb.y) < NADE_THROW_RANGE; })[0];
-      if(mt){ nadeFlags.antiDef = true; if(assignNade(mt, "molly", {x:bomb.x, y:bomb.y}, "на дефуз", {bkey:"T.pp.molly."+bomb.site})) mt.nadeTask.until = tick + 4*64; }
+    // (v244) дефуз знают, только если услышали сами или им сказали «дефузят!» (K.defuseT — знание бота)
+    var mt = nadeFlags.antiDef ? null : ts.filter(function(b){ return b.know && b.know.defuseT !== undefined && tick - b.know.defuseT <= TICK_HZ &&
+      b.nades.molly > 0 && Math.hypot(b.x-bomb.x, b.y-bomb.y) < NADE_THROW_RANGE; })[0];
+    if(mt){
+      nadeFlags.antiDef = true; if(assignNade(mt, "molly", {x:bomb.x, y:bomb.y}, "на дефуз — слышим дефуз", {bkey:"T.pp.molly."+bomb.site})) mt.nadeTask.until = tick + 4*64;
     }
   }
   // CT: T закрыли сайт смоком на выходе — не дать спокойно занять позиции за
@@ -9396,6 +9458,7 @@ function nadeBrains(){
     assignNade(b, type, {x:L.x, y:L.y}, "по инфе — выкурить", {now:true});
   });
   if(BAL.nadeReact) nadeReact();
+  selfNadeTick();
   // план §7: граната на отходе — проигрывает дуэль и уходит: смок между собой
   // и врагом (или флешка в него), чтобы выйти живым. Реакция, а не план.
   bots.forEach(function(b){
