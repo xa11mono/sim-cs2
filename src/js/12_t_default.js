@@ -194,7 +194,9 @@ function tdefLane(b){
   // линии огня»): первый сменил место — второй тоже
   if(lead && lead.alive && lead.tdef && lead.tdef.seat === D.seat.lead){
     var ls = lead.tdef.spot;
-    if(ls && (!D.leadSpot || D.leadSpot !== ls)){ D.leadSpot = ls; D.spot = tdefMateSpot(b, L, ls); D.until = 0; }
+    // первый ушёл на другое место (дальше POS_ZONE.step) — второй тоже; уточнение точки первого (конец пути, место в зоне)
+    // второго не дёргает (v235: сравнение по объекту гоняло второго туда-обратно при каждом уточнении)
+    if(ls && (!D.leadSpot || Math.hypot(D.leadSpot.x - ls.x, D.leadSpot.y - ls.y) > POS_ZONE.step)){ D.leadSpot = {x: ls.x, y: ls.y}; D.spot = tdefMateSpot(b, L, ls); D.until = 0; }
   }
   if(!D.spot){ D.spot = tdefSpot(b, L, null); D.until = 0; }
   var d = Math.hypot(b.x - D.spot.x, b.y - D.spot.y);
