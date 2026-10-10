@@ -1,12 +1,14 @@
 #!/usr/bin/env python3
 """Взгляд про на местах полос дефолта T (v224): для каждого места spots в setups.json → t[].default.lanes
 средний взгляд стоящих T из data/pro/pro_samples.csv.gz (phase early/setup/late — до планта), ближе R ед. карты.
-Пишет взгляд 4-м и 5-м числом места: [x, y, доля, dx, dy] (единичный вектор; нет снимков — место без взгляда).
+Пишет взгляд 4-м и 5-м числом места и разброс 6-м: [x, y, доля, dx, dy, spread] (единичный вектор; spread — радиус 80 %
+стоявших там T, v234; нет снимков — место без взгляда).
 python3 tools/lane_look_bake.py  — меняет только spots в src/data/setups.json, остальное не трогает."""
 import os, json, math
 import numpy as np, pandas as pd
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-R, MIN_N = 50, 20
+R, MIN_N, SPREAD_Q = 50, 20, 80
+R_SPREAD = 35   # px: разброс считается по снимкам ближе этого (иначе в круг попадают соседние места; проектное число)
 p = pd.read_csv(os.path.join(ROOT, 'data', 'pro', 'pro_samples.csv.gz'))
 p = p[(p.side == 'T') & (p.phase != 'post') & p.still]
 X, Y, DX, DY = p.x.values, p.y.values, p.dx.values, p.dy.values
@@ -26,7 +28,10 @@ for k, l in enumerate(lines):
                 del sp[3:]
                 continue
             dx, dy = float(DX[m].mean()), float(DY[m].mean()); L = math.hypot(dx, dy) or 1
-            sp[3:] = [round(dx / L, 3), round(dy / L, 3)]
+            # v234: и разброс — радиус, куда попадают SPREAD_Q % стоящих там T (как spread точек в positions.json)
+            d = np.hypot(X[m] - sp[0], Y[m] - sp[1]); d = d[d <= R_SPREAD]
+            spread = float(np.percentile(d, SPREAD_Q)) if len(d) else 0.0
+            sp[3:] = [round(dx / L, 3), round(dy / L, 3), round(spread)]
             n_ok += 1
     lines[k] = '  ' + json.dumps(o, ensure_ascii=False, separators=(',', ':')) + (',' if trail else '')
 open(path, 'w', encoding='utf-8').write('\n'.join(lines))

@@ -18,7 +18,7 @@
 // в паре и лёркер, второй идёт за первым.
 // Своё знание (b.know, 09_knowledge.js):
 //   • вижу врага — стоп, держу (стрельба — движок); не вижу TDEF.holdSee с — дальше;
-//   • слышу шаги/стрельбу ближе TDEF.hearR — стоп, смотрю туда TDEF.holdHear с;
+//   • слышу шаги/стрельбу ближе TDEF.hearR — дальше шагом (тихо) TDEF.holdHear с, взгляд — туда (v234; раньше — стоп);
 //   • свой в полосе погиб (киллфид + радар), а полоса на стороне плана или мид — её занимает тот, у
 //     кого в полосе есть напарник (не оставлять дыру, «потерянный игрок открывает место»).
 // После execute (план execute): кто не занят шагом сценария — подтягивается к выходу на сайт плана
@@ -30,7 +30,7 @@
 
 var TDEF = {
   holdSee:  1.5,        // с: врага не видно столько — можно двигаться дальше
-  holdHear: 3,          // с: услышал рядом — стоит и смотрит туда
+  holdHear: 3,          // с: услышал рядом — столько идёт шагом (тихо; проектное число)
   hearR:    450,        // px: «рядом» для звука
   arrive:   14,         // px: дошёл до места
   repath:   48,         // тиков: путь сбросился — снова не чаще
@@ -172,10 +172,11 @@ function tdefReact(b){
   if(K) for(var i = K.heard.length - 1; i >= 0 && K.heard[i].tick === tick; i--){
     var h = K.heard[i];
     if((h.kind === "steps" || h.kind === "shots" || h.kind === "water") && Math.hypot(h.x - b.x, h.y - b.y) <= TDEF.hearR){
-      D.holdUntil = tick + Math.round(TDEF.holdHear*TICK_HZ);
-      b.facing = Math.atan2(h.y - b.y, h.x - b.x);
-      tdefStop(b, "слышу " + (h.kind === "shots" ? "стрельбу" : "шаги") + " " + knowZoneName(h.zone));
-      return true;
+      // v234: услышал рядом — не встаёт столбом на 3 с (рывки «стоп — пошёл»: у T 5,2 «выглядывания» в минуту против 2,7
+      // у про) и не щёлкает взглядом: дальше идёт шагом, тихо; смотрит туда — взгляд сам (гипотеза из звука, posStandLook)
+      if(!(tick < (D.quietUntil || 0))) tdefLog("тихо", b.id + ": слышу " + (h.kind === "shots" ? "стрельбу" : "шаги") + " " + knowZoneName(h.zone) + " — дальше шагом");
+      D.quietUntil = tick + Math.round(TDEF.holdHear*TICK_HZ);
+      return false;
     }
   }
   return tick < D.holdUntil;
@@ -198,12 +199,13 @@ function tdefLane(b){
   if(!D.spot){ D.spot = tdefSpot(b, L, null); D.until = 0; }
   var d = Math.hypot(b.x - D.spot.x, b.y - D.spot.y);
   if(d > TDEF.arrive){
-    b.walking = b.role === "lurker" || D.arrived;   // до полосы — бегом; в полосе и лёркер — шагом
+    b.walking = b.role === "lurker" || D.arrived || tick < (D.quietUntil || 0);   // до полосы — бегом; в полосе, лёркер и услышав врага — шагом
     tdefGo(b, D.spot.x, D.spot.y);
     return;
   }
   if(!D.arrived){ D.arrived = true; D.stepT = tick + TZONES.step*TICK_HZ; tdefLog("в полосе", b.id + " → " + L.zone); }
   if(!(lead && lead.alive) && tick >= D.stepT){ D.stepT = tick + TZONES.step*TICK_HZ; tdefAdvance(b); }
+  tdefZoneTick(b);
   posMicro(b);   // стоит — не замирает (v231, 11_position.js)
   // v224: занял место — держит его (правка владельца: «заняли зону — не возвращаться проверять старое»); перестановка
   // между местами полосы раз в 2,5–6 с была придумана (не из демок) — убрана. Движение на месте — пункт 6, по демкам
@@ -267,6 +269,10 @@ function tdefMateSpot(b, L, ls){
     var a = Math.atan2(T_SPAWN.y - ls.y, T_SPAWN.x - ls.x), r = (TDEF.mateMin + TDEF.mateMax)/2;
     p = {x: ls.x + Math.cos(a + 0.5)*r, y: ls.y + Math.sin(a + 0.5)*r};
   }
+  if(best){   // место полосы — тоже зона (v234), но не дальше mateMax от первого
+    var Z = tdefZone(best), f = posFreeSpot(b, Z);
+    if(Math.hypot(f.x - ls.x, f.y - ls.y) <= TDEF.mateMax) return {x: f.x, y: f.y, look: p.look || ls.look || null, zone: Z};
+  }
   var w = snapToWalkable(p.x, p.y) || ls;
   if(crossesWall(ls.x, ls.y, w.x, w.y)) w = ls;
   return {x: w.x, y: w.y, look: p.look || ls.look || null};
@@ -298,8 +304,29 @@ function tdefSpot(b, L, cur){
   if(!sp.length) sp = [[L.x, L.y, 1]];
   var sum = sp.reduce(function(a, s){ return a + s[2]; }, 0), r = tdefRand(tick + b.id.charCodeAt(1)*7) * sum, pick = sp[0];
   for(var i = 0; i < sp.length; i++){ r -= sp[i][2]; if(r <= 0){ pick = sp[i]; break; } }
-  var w = snapToWalkable(pick[0], pick[1]) || {x: pick[0], y: pick[1]};
-  return {x: w.x, y: w.y, look: pick.length >= 5 ? [pick[3], pick[4]] : null};   // взгляд про на этом месте (tools/lane_look_bake.py)
+  // v234: место — зона (как у CT, posFreeSpot): круг разброса T у про вокруг этого места, где встать — решает сам
+  var Z = tdefZone(pick), w = posFreeSpot(b, Z);
+  return {x: w.x, y: w.y, look: pick.length >= 5 ? [pick[3], pick[4]] : null, zone: Z};   // взгляд про на этом месте (tools/lane_look_bake.py)
+}
+// место полосы [x, y, доля, dx, dy, spread] → зона для posFreeSpot (11_position.js): центр, разброс про, угол — куда там
+// смотрят про (нет взгляда — к сайту плана)
+function tdefZone(p){
+  var dx = p.length >= 5 ? p[3] : 0, dy = p.length >= 5 ? p[4] : 0;
+  if(!dx && !dy){ var st = SITES[TDEF_S.site], L = Math.hypot(st.x - p[0], st.y - p[1]) || 1; dx = (st.x - p[0])/L; dy = (st.y - p[1])/L; }
+  return {x: p[0], y: p[1], spread: p.length >= 6 ? p[5] : 15, spots: [{x: p[0], y: p[1], share: 1}], angle: {x: p[0] + dx*300, y: p[1] + dy*300}};
+}
+// стоит на месте: знание поменялось (сколько и где врагов он уверенно знает, сколько своих погибло) — место в зоне заново,
+// шагом (v234; то же, что posZoneTick у CT)
+function tdefZoneTick(b){
+  var D = b.tdef; if(!D.spot || !D.spot.zone || b._micro || b._sawEnemy) return;
+  var key = bots.filter(function(o){ return o.team === b.team && !o.alive; }).length + "|";
+  if(b.know) for(var id in b.know.enemies){ var B = b.know.enemies[id]; if(planFact(B) && B.last) key += Math.round(B.last.x/80) + ":" + Math.round(B.last.y/80) + ","; }
+  if(D.zKey === key) return;
+  D.zKey = key;
+  var w = posFreeSpot(b, D.spot.zone);
+  if(Math.hypot(w.x - D.spot.x, w.y - D.spot.y) < POS_ZONE.step) return;
+  D.spot = {x: w.x, y: w.y, look: D.spot.look, zone: D.spot.zone};
+  tdefLog("в зоне", b.id + ": место лучше по знанию (" + calloutName(w.x, w.y) + ")");
 }
 function tdefGo(b, x, y){
   var D = b.tdef, moving = b.path.length > 0 && b.pathIdx < b.path.length;
@@ -310,7 +337,7 @@ function tdefGo(b, x, y){
   // конец пути — это и есть место (навмеш может не доходить до точки из демок): иначе «не дошёл» и путь заново (v224)
   var e = b.path.length ? b.path[b.path.length - 1] : null;
   if(e && Math.hypot(e[0] - x, e[1] - y) <= POS.endSnap){
-    if(D.spot && D.spot.x === x && D.spot.y === y){ D.spot = {x: e[0], y: e[1], look: D.spot.look}; D.goX = e[0]; D.goY = e[1]; }
+    if(D.spot && D.spot.x === x && D.spot.y === y){ D.spot = {x: e[0], y: e[1], look: D.spot.look, zone: D.spot.zone}; D.goX = e[0]; D.goY = e[1]; }
   }
 }
 // execute: подтянуться к выходу, после входа энтри — на сайт
@@ -414,7 +441,7 @@ function tdefPost(){
     if(P.checker === b){
       b._ppLook = null; b.walking = false;
       var sees = visLine(b.x, b.y, visEyeZ(b), bomb.x, bomb.y, visFloorAt(bomb.x, bomb.y) + 20, true) && Math.hypot(b.x - bomb.x, b.y - bomb.y) < 900;
-      if(sees){ if(b._pathBy === "tdef" && b.path.length){ b.path = []; b.pathIdx = 0; } b.facing = Math.atan2(bomb.y - b.y, bomb.x - b.x); }
+      if(sees){ if(b._pathBy === "tdef" && b.path.length){ b.path = []; b.pathIdx = 0; } var bl = Math.hypot(bomb.x - b.x, bomb.y - b.y) || 1; b._ppLook = [(bomb.x - b.x)/bl, (bomb.y - b.y)/bl]; }   // взгляд на бомбу — через posLook, плавно (v234: был рывок)
       else tdefGo(b, bomb.x, bomb.y);
       return;
     }
