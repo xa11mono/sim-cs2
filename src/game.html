@@ -126,7 +126,7 @@
 <div id="app">
   <div id="topbar">
     <h1>ANCIENT — LIVE RADAR</h1>
-    <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 244 (гранаты по знанию) · 10.10</div>
+    <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 245 (смок под плант на подходе) · 10.10</div>
     <button id="btnPause">Пауза</button>
     <button id="btnRestartRound" title="Немедленно сбросить текущий раунд — на случай если боты застряли">Рестарт раунда</button>
     <span class="chk" title="Матч с одним номером всегда проходит одинаково. Увидел баг — запиши номер матча и тик, введи номер и нажми «Сыграть»: матч повторится с начала">матч № <input id="inpMatchNum" type="number" min="1" value="1" style="width:52px"> <button id="btnFreshMatch">Сыграть</button> <span id="matchTick" style="opacity:.75"></span></span>
@@ -9146,15 +9146,24 @@ function selfHyps(b, fn){
   for(var id in K.enemies){ var B = K.enemies[id]; if(B.visible) continue;
     B.hyps.forEach(function(h){ if(h.x !== undefined && h.weight >= SELF.threatW) fn(h, id); }); }
 }
+// смок под плант: бомба у своего, выход на сайт плана идёт (execute) и носитель уже на дистанции броска от сайта —
+// кто из T может (сам носитель или свой рядом), кидает смок на точку планта, если по его знанию её кто-то видит.
+// (v245) раньше — только когда носитель уже стоит на сайте: он сразу ставил бомбу, смок не успевал ни разу
 function selfPlantSmoke(b){
-  if(b.team !== "T" || !bomb || bomb.state !== "carried" || bomb.carrier !== b || b.nades.smoke <= 0 || b._plantSmokeR === roundNum) return false;
-  var site = null; for(var k in SITES) if(onSite(SITES[k], b.x, b.y)) site = k;
-  if(!site || smokes.some(function(q){ return Math.hypot(q.x-b.x, q.y-b.y) < smokeRadiusNow(q); })) return false;
+  if(b.team !== "T" || b.nades.smoke <= 0 || !bomb || bomb.state !== "carried" || !bomb.carrier || !bomb.carrier.alive) return false;
+  var tt = teamTac.T, k = tt && tt.site; if(!k || !SITES[k] || tt.phase !== "execute" || nadeFlags["plantSmoke"+k]) return false;
+  var p = {x:SITES[k].x, y:SITES[k].y}, c = bomb.carrier;
+  if(Math.hypot(c.x-p.x, c.y-p.y) > NADE_THROW_RANGE || Math.hypot(b.x-p.x, b.y-p.y) > NADE_THROW_RANGE) return false;
+  if(smokes.some(function(q){ return Math.hypot(q.x-p.x, q.y-p.y) < smokeRadiusNow(q); })) return false;
   var seen = null;
-  selfHyps(b, function(h){ if(!seen && Math.hypot(h.x-b.x, h.y-b.y) <= SELF.sightR && hasVision(h.x, h.y, b.x, b.y)) seen = h; });
+  selfHyps(b, function(h){ if(!seen && Math.hypot(h.x-p.x, h.y-p.y) <= SELF.sightR && hasVision(h.x, h.y, p.x, p.y)) seen = h; });
+  // инфы нет — типичные места CT, которые бот ещё не видел пустыми (знание карты), откуда видно точку
+  if(!seen && b.know) (b.know.spots || []).forEach(function(q){ if(!seen && q.open && knowSpotReach(q) && Math.hypot(q.x-p.x, q.y-p.y) <= SELF.sightR && hasVision(q.x, q.y, p.x, p.y)) seen = q; });
   if(!seen) return false;
-  b._plantSmokeR = roundNum;
-  return assignNade(b, "smoke", {x:b.x, y:b.y}, "смок под плант — точку видно с " + calloutName(seen.x, seen.y), {now:true, range:300});
+  if(!assignNade(b, "smoke", p, "смок под плант — точку видно с " + calloutName(seen.x, seen.y), {now:true})) return false;
+  nadeFlags["plantSmoke"+k] = true;
+  if(b !== c) voiceLog("T", "psm"+k, b.id, "даю смок под плант " + k);
+  return true;
 }
 function selfExitFlash(b){
   if(b.nades.flash <= 0 || !(b.path && b.pathIdx < b.path.length) || b.heading === undefined || b.curSpeed < 30) return false;
