@@ -68,8 +68,35 @@ function dropWeaponOnDeath(b){ if(b.primary && WEAPONS[b.primary]) groundWeapons
 // чтобы средняя скорость команды почти не изменилась
 var WSPEED = {UMP:230, MP7:220, P90:230, SSG:230, M4S:225, AUG:220, SG:210, GLOCK:240, USP:240, P250:240, TEC9:240, FIVE7:240, DEAGLE:230, MAC10:240, MP9:240, GALIL:215, FAMAS:220, AK:215, M4:225, AWP:200};
 function weaponSpeedMul(b){
+  if(b._knife) return KNIFE.speed/225;
   if(!b.weapon) return 1;
   return (WSPEED[b.weapon.key] || 225)/225;
+}
+// ---- нож на бегу (v236; так было в v166 — knifeTick; у про до планта нож в руках в 50 % снимков на бегу, 10 демок,
+// tools/measure/movement.py) ----
+// Бежит (не шагом), до цели дальше, чем успеть достать оружие, и по своему знанию врага рядом быть не может: нет весомой гипотезы
+// врага ближе KNIFE.safeR, не слышал шагов/стрельбы за KNIFE.quiet с, рядом нет открытого типичного места врага, куда
+// тот уже мог дойти (K.spots). Иначе — оружие в руках; достать из ножа — KNIFE.draw с без выстрела (15_combat.js)
+var KNIFE = {speed: 250, safeR: 1200, spotR: 700, quiet: 3, draw: 0.4};   // скорость ножа — CS2; остальное — из v166 (проектные числа)
+function knifeTick(b){
+  var moving = b.path.length > 0 && b.pathIdx < b.path.length, want = false;
+  if(b.alive && moving && !b.walking && !b.crouching && !b._sawEnemy && !b.planting && !b.defusing && roundState === "live" &&
+     !(tick < (b.throwUntil || 0)) && b._pathBy !== "micro"){
+    var e = b.path[b.path.length - 1], K = b.know;
+    // до цели дальше, чем успеть достать оружие (2 × KNIFE.draw на бегу с ножом); в v166 было «дальше 450 px» — так
+    // нож почти не доставали (у ботов 17 % бега против 50 % у про)
+    if(Math.hypot(e[0] - b.x, e[1] - b.y) > 2*KNIFE.draw*SPEED*KNIFE.speed/225 && K){
+      want = true;
+      for(var id in K.enemies){
+        if(!want) break;
+        K.enemies[id].hyps.forEach(function(h){ if(h.x !== undefined && h.weight >= POS.threatW && Math.hypot(h.x - b.x, h.y - b.y) < KNIFE.safeR) want = false; });
+      }
+      if(want && K.heard.some(function(h){ return tick - h.tick < KNIFE.quiet*TICK_HZ && (h.kind === "steps" || h.kind === "shots" || h.kind === "water") && Math.hypot(h.x - b.x, h.y - b.y) < KNIFE.safeR; })) want = false;
+      if(want && K.alive && (K.spots || []).some(function(p){ return p.open && knowSpotReach(p) && Math.hypot(p.x - b.x, p.y - b.y) < KNIFE.spotR; })) want = false;
+    }
+  }
+  if(want && !b._knife) b._knife = true;
+  else if(!want && b._knife){ b._knife = false; b._drawUntil = tick + Math.round(KNIFE.draw*TICK_HZ); }
 }
 // подбор (правило CS2): оружие поднимается само, если пройти по нему и слот
 // основного оружия пуст. Сходить за оружием или поменять своё — решение мозга

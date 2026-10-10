@@ -51,6 +51,7 @@ function stepTick(){
     if(tick % 16 === 0){ var za = zoneOf(bot.baseX, bot.baseY); bot._zArea = za ? za.z : 0; }
     bot.onStairs = false; // движение ниже выставит заново, если бот на лестнице
     // присев — 34 % скорости бега (CS2), шаг — 50 %
+    knifeTick(bot);   // нож на бегу, где по знанию безопасно (14_movement.js, v236)
     var runSpeed = (bot.crouching ? SPEED*CROUCH_SPEED_FRAC : (bot.walking ? SPEED*WALK_SPEED_FRAC : SPEED)) * weaponSpeedMul(bot);
     var hasPath = bot.path.length > 0 && bot.pathIdx < bot.path.length;
     // контрстрейф (v216, аудит п. 8; docs/PRO_PLAY.md 6а): с винтовкой/AWP на ходу не попасть — видит врага,

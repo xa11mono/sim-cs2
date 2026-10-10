@@ -520,6 +520,7 @@ function draw(){
     ctx.fillRect(rx-bw/2, ry-r-8/view.scale, bw*Math.max(0,bot.hp)/100, bh);
     ctx.fillStyle = "#fff"; ctx.font = "700 "+(8.5/view.scale)+"px 'IBM Plex Mono',monospace";
     ctx.textAlign = "center"; ctx.fillText(String(pnum(bot.id)), rx, ry+3/view.scale);
+    if(bot._knife){ ctx.fillStyle = "#e8ecdd"; ctx.font = (7/view.scale)+"px 'IBM Plex Mono',monospace"; ctx.fillText("нож", rx, ry-r-11/view.scale); }   // v236, как в v166
     if(showWhy && showWhy.checked){
       var wt = whyText(bot);
       ctx.font = (7.5/view.scale)+"px 'IBM Plex Mono',monospace"; ctx.textAlign = "center";

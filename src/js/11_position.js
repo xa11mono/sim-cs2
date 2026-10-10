@@ -84,6 +84,13 @@ var POS = {
   // 0,5–2° в 6,2 %, 2–5° в 2,8 %, 5–20° в 3,4 % четвертей секунды (CT; T — почти так же)
   microPerSec: {CT: 0.27, T: 0.18},   // начал сдвиг (туда — 0,25 с, обратно — 0,25 с): доля выше / 2 × 4
   microPx:     [3, 9],                 // px: на сколько (не дальше POS.arrive — это всё ещё «на месте»)
+  // v236: CT держит позицию в движении. У про CT на 10–45-й с до планта: стоит 25–33 %, шагом/медленно 42–50 %, бегом
+  // 18–33 % (у ботов стояли 83 %). Отрезки (10 демок, 15–45-я с): стоит 0,25 / 0,25 / 0,75 / 1,75 с (25/50/75/90 %),
+  // шагом — смещение 5,5 / 12 / 27 / 77 px. Бот так и делает: постоял — прошёл шагом в другое место рядом (откуда виден
+  // его угол), постоял — снова. Далеко от середины зоны не уходит: не дальше POS.shuffleR (проектное число)
+  standQ:      [[0, 0.25], [0.5, 0.25], [0.75, 0.75], [0.9, 1.75], [1, 4]],
+  shiftQ:      [[0, 3], [0.25, 5.5], [0.5, 12], [0.75, 27], [0.9, 77], [1, 120]],
+  shuffleR:    80,
   aimQ:        [[0.062, 0.5, 2], [0.028, 2, 5], [0.034, 5, 20]],   // за 0,25 с: доля, от °, до °
   aimMax:      20                      // °: дальше от того, куда держит, прицел так не уходит
 };
@@ -400,7 +407,7 @@ function posFreeSpot(b, P){
 }
 // стоит на месте: знание поменялось — может, в зоне есть место лучше (шагом, коротко)
 function posZoneTick(b){
-  if(b.pos.fb || b.pos.peek || b._micro || b._sawEnemy || posLed(b)) return false;
+  if(b.pos.fb || b.pos.peek || (b._micro && b._micro.phase === "walk") || b._sawEnemy || posLed(b)) return false;
   var key = b.pos.threat ? Math.round(b.pos.threat.x/40) + ":" + Math.round(b.pos.threat.y/40) : "-";
   key += "|" + bots.filter(function(o){ return o.team === b.team && !o.alive; }).length;
   if(b.pos.zKey === key) return false;
@@ -721,7 +728,38 @@ function posPeekTick(b){
 // ---------- стоит — не замирает (v231): шаг на 3–9 px в сторону и назад, с частотой про ----------
 // Одно место для CT (posTick) и T (12_t_default.js, стоит в полосе). Шагом (тихо), в сторону от взгляда — как
 // «поправиться за укрытием»; в стену — нет. Видит врага / идёт куда-то — нет.
+function posQuant(Q, u){
+  for(var k = 1; k < Q.length; k++) if(u <= Q[k][0]) return Q[k-1][1] + (Q[k][1] - Q[k-1][1])*(u - Q[k-1][0])/(Q[k][0] - Q[k-1][0]);
+  return Q[Q.length - 1][1];
+}
+// CT держит позицию в движении (v236): «постоял — прошёл шагом рядом — постоял», отрезки — как у про (POS.standQ, shiftQ).
+// Новое место — его новая цель (b.pos.tx/ty), чтобы позиция не тянула назад
+function posShift(b){
+  var M = b._micro;
+  if(b._sawEnemy || b.planting || b.defusing || b.pos.fb){ b._micro = null; return false; }
+  if(M && M.phase === "walk"){
+    if(b.path.length && b.pathIdx < b.path.length && tick < M.until) return true;
+    M = b._micro = null;
+  }
+  if(!M){ b._micro = {phase: "stand", until: tick + Math.round(posQuant(POS.standQ, posSeed(b, tick*23 + 3))*TICK_HZ)}; return false; }
+  if(tick < M.until) return false;
+  var P = POS_PT[b.pos.cur]; if(!P){ b._micro = null; return false; }
+  var d = posQuant(POS.shiftQ, posSeed(b, tick*31 + 2)), a0 = posSeed(b, tick*29 + 1)*2*Math.PI;
+  var sees = !crossesWall(P.x, P.y, P.angle.x, P.angle.y);
+  for(var k = 0; k < 8; k++){
+    var a = a0 + k*Math.PI/4, x = b.x + Math.cos(a)*d, y = b.y + Math.sin(a)*d, w = snapToWalkable(x, y);
+    if(!w || Math.hypot(w.x - x, w.y - y) > 2 || crossesWall(b.x, b.y, w.x, w.y)) continue;
+    if(Math.hypot(w.x - P.x, w.y - P.y) > Math.max(POS.shuffleR, P.spread || 0)) continue;
+    if(sees && crossesWall(w.x, w.y, P.angle.x, P.angle.y)) continue;
+    b.pos.tx = w.x; b.pos.ty = w.y;
+    b.walking = true; b.path = [[w.x, w.y, b.z || 0]]; b.pathIdx = 0; b._pathBy = "micro";
+    b._micro = {phase: "walk", until: tick + Math.round((d/(SPEED*WALK_SPEED_FRAC) + 1)*TICK_HZ)};
+    return true;
+  }
+  b._micro = null; return false;
+}
 function posMicro(b){
+  if(b.team === "CT" && b.pos) return posShift(b);
   var M = b._micro;
   if(M){
     if(b._sawEnemy){ b._micro = null; return false; }

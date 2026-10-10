@@ -86,6 +86,8 @@ function tryShoot(shooter, target, dist, parts){
   if(!parts || (!parts.head && !parts.body)) return;   // ничего не видно — не стреляет
   if(shooter.planting || shooter.defusing) return; // руки заняты
   if(tick < shooter.blindUntil || tick < (shooter.throwUntil||0)) return; // ослеплён / бросает гранату
+  if(shooter._knife){ shooter._knife = false; shooter._drawUntil = tick + Math.round(KNIFE.draw*TICK_HZ); return; }   // нож в руках — достаёт оружие (v236)
+  if(tick < (shooter._drawUntil || 0)) return;
   // готовность к контакту (BRAIN 7) — фиксируется в момент появления врага и
   // держится весь контакт; из неё стрельба берёт реакцию, доводку и первую пулю
   if(shooter.contactStreak <= 1){

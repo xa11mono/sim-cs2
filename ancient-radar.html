@@ -3199,6 +3199,13 @@ var POS = {
   // 0,5–2° в 6,2 %, 2–5° в 2,8 %, 5–20° в 3,4 % четвертей секунды (CT; T — почти так же)
   microPerSec: {CT: 0.27, T: 0.18},   // начал сдвиг (туда — 0,25 с, обратно — 0,25 с): доля выше / 2 × 4
   microPx:     [3, 9],                 // px: на сколько (не дальше POS.arrive — это всё ещё «на месте»)
+  // v236: CT держит позицию в движении. У про CT на 10–45-й с до планта: стоит 25–33 %, шагом/медленно 42–50 %, бегом
+  // 18–33 % (у ботов стояли 83 %). Отрезки (10 демок, 15–45-я с): стоит 0,25 / 0,25 / 0,75 / 1,75 с (25/50/75/90 %),
+  // шагом — смещение 5,5 / 12 / 27 / 77 px. Бот так и делает: постоял — прошёл шагом в другое место рядом (откуда виден
+  // его угол), постоял — снова. Далеко от середины зоны не уходит: не дальше POS.shuffleR (проектное число)
+  standQ:      [[0, 0.25], [0.5, 0.25], [0.75, 0.75], [0.9, 1.75], [1, 4]],
+  shiftQ:      [[0, 3], [0.25, 5.5], [0.5, 12], [0.75, 27], [0.9, 77], [1, 120]],
+  shuffleR:    80,
   aimQ:        [[0.062, 0.5, 2], [0.028, 2, 5], [0.034, 5, 20]],   // за 0,25 с: доля, от °, до °
   aimMax:      20                      // °: дальше от того, куда держит, прицел так не уходит
 };
@@ -3515,7 +3522,7 @@ function posFreeSpot(b, P){
 }
 // стоит на месте: знание поменялось — может, в зоне есть место лучше (шагом, коротко)
 function posZoneTick(b){
-  if(b.pos.fb || b.pos.peek || b._micro || b._sawEnemy || posLed(b)) return false;
+  if(b.pos.fb || b.pos.peek || (b._micro && b._micro.phase === "walk") || b._sawEnemy || posLed(b)) return false;
   var key = b.pos.threat ? Math.round(b.pos.threat.x/40) + ":" + Math.round(b.pos.threat.y/40) : "-";
   key += "|" + bots.filter(function(o){ return o.team === b.team && !o.alive; }).length;
   if(b.pos.zKey === key) return false;
@@ -3836,7 +3843,38 @@ function posPeekTick(b){
 // ---------- стоит — не замирает (v231): шаг на 3–9 px в сторону и назад, с частотой про ----------
 // Одно место для CT (posTick) и T (12_t_default.js, стоит в полосе). Шагом (тихо), в сторону от взгляда — как
 // «поправиться за укрытием»; в стену — нет. Видит врага / идёт куда-то — нет.
+function posQuant(Q, u){
+  for(var k = 1; k < Q.length; k++) if(u <= Q[k][0]) return Q[k-1][1] + (Q[k][1] - Q[k-1][1])*(u - Q[k-1][0])/(Q[k][0] - Q[k-1][0]);
+  return Q[Q.length - 1][1];
+}
+// CT держит позицию в движении (v236): «постоял — прошёл шагом рядом — постоял», отрезки — как у про (POS.standQ, shiftQ).
+// Новое место — его новая цель (b.pos.tx/ty), чтобы позиция не тянула назад
+function posShift(b){
+  var M = b._micro;
+  if(b._sawEnemy || b.planting || b.defusing || b.pos.fb){ b._micro = null; return false; }
+  if(M && M.phase === "walk"){
+    if(b.path.length && b.pathIdx < b.path.length && tick < M.until) return true;
+    M = b._micro = null;
+  }
+  if(!M){ b._micro = {phase: "stand", until: tick + Math.round(posQuant(POS.standQ, posSeed(b, tick*23 + 3))*TICK_HZ)}; return false; }
+  if(tick < M.until) return false;
+  var P = POS_PT[b.pos.cur]; if(!P){ b._micro = null; return false; }
+  var d = posQuant(POS.shiftQ, posSeed(b, tick*31 + 2)), a0 = posSeed(b, tick*29 + 1)*2*Math.PI;
+  var sees = !crossesWall(P.x, P.y, P.angle.x, P.angle.y);
+  for(var k = 0; k < 8; k++){
+    var a = a0 + k*Math.PI/4, x = b.x + Math.cos(a)*d, y = b.y + Math.sin(a)*d, w = snapToWalkable(x, y);
+    if(!w || Math.hypot(w.x - x, w.y - y) > 2 || crossesWall(b.x, b.y, w.x, w.y)) continue;
+    if(Math.hypot(w.x - P.x, w.y - P.y) > Math.max(POS.shuffleR, P.spread || 0)) continue;
+    if(sees && crossesWall(w.x, w.y, P.angle.x, P.angle.y)) continue;
+    b.pos.tx = w.x; b.pos.ty = w.y;
+    b.walking = true; b.path = [[w.x, w.y, b.z || 0]]; b.pathIdx = 0; b._pathBy = "micro";
+    b._micro = {phase: "walk", until: tick + Math.round((d/(SPEED*WALK_SPEED_FRAC) + 1)*TICK_HZ)};
+    return true;
+  }
+  b._micro = null; return false;
+}
 function posMicro(b){
+  if(b.team === "CT" && b.pos) return posShift(b);
   var M = b._micro;
   if(M){
     if(b._sawEnemy){ b._micro = null; return false; }
@@ -7150,8 +7188,35 @@ function dropWeaponOnDeath(b){ if(b.primary && WEAPONS[b.primary]) groundWeapons
 // чтобы средняя скорость команды почти не изменилась
 var WSPEED = {UMP:230, MP7:220, P90:230, SSG:230, M4S:225, AUG:220, SG:210, GLOCK:240, USP:240, P250:240, TEC9:240, FIVE7:240, DEAGLE:230, MAC10:240, MP9:240, GALIL:215, FAMAS:220, AK:215, M4:225, AWP:200};
 function weaponSpeedMul(b){
+  if(b._knife) return KNIFE.speed/225;
   if(!b.weapon) return 1;
   return (WSPEED[b.weapon.key] || 225)/225;
+}
+// ---- нож на бегу (v236; так было в v166 — knifeTick; у про до планта нож в руках в 50 % снимков на бегу, 10 демок,
+// tools/measure/movement.py) ----
+// Бежит (не шагом), до цели дальше, чем успеть достать оружие, и по своему знанию врага рядом быть не может: нет весомой гипотезы
+// врага ближе KNIFE.safeR, не слышал шагов/стрельбы за KNIFE.quiet с, рядом нет открытого типичного места врага, куда
+// тот уже мог дойти (K.spots). Иначе — оружие в руках; достать из ножа — KNIFE.draw с без выстрела (15_combat.js)
+var KNIFE = {speed: 250, safeR: 1200, spotR: 700, quiet: 3, draw: 0.4};   // скорость ножа — CS2; остальное — из v166 (проектные числа)
+function knifeTick(b){
+  var moving = b.path.length > 0 && b.pathIdx < b.path.length, want = false;
+  if(b.alive && moving && !b.walking && !b.crouching && !b._sawEnemy && !b.planting && !b.defusing && roundState === "live" &&
+     !(tick < (b.throwUntil || 0)) && b._pathBy !== "micro"){
+    var e = b.path[b.path.length - 1], K = b.know;
+    // до цели дальше, чем успеть достать оружие (2 × KNIFE.draw на бегу с ножом); в v166 было «дальше 450 px» — так
+    // нож почти не доставали (у ботов 17 % бега против 50 % у про)
+    if(Math.hypot(e[0] - b.x, e[1] - b.y) > 2*KNIFE.draw*SPEED*KNIFE.speed/225 && K){
+      want = true;
+      for(var id in K.enemies){
+        if(!want) break;
+        K.enemies[id].hyps.forEach(function(h){ if(h.x !== undefined && h.weight >= POS.threatW && Math.hypot(h.x - b.x, h.y - b.y) < KNIFE.safeR) want = false; });
+      }
+      if(want && K.heard.some(function(h){ return tick - h.tick < KNIFE.quiet*TICK_HZ && (h.kind === "steps" || h.kind === "shots" || h.kind === "water") && Math.hypot(h.x - b.x, h.y - b.y) < KNIFE.safeR; })) want = false;
+      if(want && K.alive && (K.spots || []).some(function(p){ return p.open && knowSpotReach(p) && Math.hypot(p.x - b.x, p.y - b.y) < KNIFE.spotR; })) want = false;
+    }
+  }
+  if(want && !b._knife) b._knife = true;
+  else if(!want && b._knife){ b._knife = false; b._drawUntil = tick + Math.round(KNIFE.draw*TICK_HZ); }
 }
 // подбор (правило CS2): оружие поднимается само, если пройти по нему и слот
 // основного оружия пуст. Сходить за оружием или поменять своё — решение мозга
@@ -7342,6 +7407,8 @@ function tryShoot(shooter, target, dist, parts){
   if(!parts || (!parts.head && !parts.body)) return;   // ничего не видно — не стреляет
   if(shooter.planting || shooter.defusing) return; // руки заняты
   if(tick < shooter.blindUntil || tick < (shooter.throwUntil||0)) return; // ослеплён / бросает гранату
+  if(shooter._knife){ shooter._knife = false; shooter._drawUntil = tick + Math.round(KNIFE.draw*TICK_HZ); return; }   // нож в руках — достаёт оружие (v236)
+  if(tick < (shooter._drawUntil || 0)) return;
   // готовность к контакту (BRAIN 7) — фиксируется в момент появления врага и
   // держится весь контакт; из неё стрельба берёт реакцию, доводку и первую пулю
   if(shooter.contactStreak <= 1){
@@ -7829,7 +7896,7 @@ function resetRound(){
     b.x = spp.x; b.y = spp.y; b.z = sp.z||0;
     b.baseX = b.x; b.baseY = b.y;
     b.px = b.x; b.py = b.y;
-    b.path = []; b.pathIdx = 0; b.alive = true; b.hp = 100; b._diedT = undefined; b._micro = null; b._aimOff = 0; b._aimS = null;
+    b.path = []; b.pathIdx = 0; b.alive = true; b.hp = 100; b._diedT = undefined; b._micro = null; b._aimOff = 0; b._aimS = null; b._knife = false; b._drawUntil = 0;
     b.pickTick = -999; b.contactStreak = 0; b.nextShotTick = 0;
     b.facing = undefined; b.heading = undefined; b.curSpeed = 0; b.crouching = false; b.onStairs = false;
     b.walking = false; b.lastStepTick = -999; b.heardSound = null; b.ears = [];
@@ -7910,6 +7977,7 @@ function stepTick(){
     if(tick % 16 === 0){ var za = zoneOf(bot.baseX, bot.baseY); bot._zArea = za ? za.z : 0; }
     bot.onStairs = false; // движение ниже выставит заново, если бот на лестнице
     // присев — 34 % скорости бега (CS2), шаг — 50 %
+    knifeTick(bot);   // нож на бегу, где по знанию безопасно (14_movement.js, v236)
     var runSpeed = (bot.crouching ? SPEED*CROUCH_SPEED_FRAC : (bot.walking ? SPEED*WALK_SPEED_FRAC : SPEED)) * weaponSpeedMul(bot);
     var hasPath = bot.path.length > 0 && bot.pathIdx < bot.path.length;
     // контрстрейф (v216, аудит п. 8; docs/PRO_PLAY.md 6а): с винтовкой/AWP на ходу не попасть — видит врага,
@@ -9355,6 +9423,7 @@ function draw(){
     ctx.fillRect(rx-bw/2, ry-r-8/view.scale, bw*Math.max(0,bot.hp)/100, bh);
     ctx.fillStyle = "#fff"; ctx.font = "700 "+(8.5/view.scale)+"px 'IBM Plex Mono',monospace";
     ctx.textAlign = "center"; ctx.fillText(String(pnum(bot.id)), rx, ry+3/view.scale);
+    if(bot._knife){ ctx.fillStyle = "#e8ecdd"; ctx.font = (7/view.scale)+"px 'IBM Plex Mono',monospace"; ctx.fillText("нож", rx, ry-r-11/view.scale); }   // v236, как в v166
     if(showWhy && showWhy.checked){
       var wt = whyText(bot);
       ctx.font = (7.5/view.scale)+"px 'IBM Plex Mono',monospace"; ctx.textAlign = "center";
@@ -11200,6 +11269,7 @@ var __SNAP = [
 ["HEAD_HALF", function(){ return HEAD_HALF; }, function(v){ try{ HEAD_HALF = v; }catch(e){} }],
 ["groundWeapons", function(){ return groundWeapons; }, function(v){ try{ groundWeapons = v; }catch(e){} }],
 ["WSPEED", function(){ return WSPEED; }, function(v){ try{ WSPEED = v; }catch(e){} }],
+["KNIFE", function(){ return KNIFE; }, function(v){ try{ KNIFE = v; }catch(e){} }],
 ["SOUND", function(){ return SOUND; }, function(v){ try{ SOUND = v; }catch(e){} }],
 ["EARS_KEEP", function(){ return EARS_KEEP; }, function(v){ try{ EARS_KEEP = v; }catch(e){} }],
 ["WATER_Z", function(){ return WATER_Z; }, function(v){ try{ WATER_Z = v; }catch(e){} }],
