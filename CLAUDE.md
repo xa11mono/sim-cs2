@@ -9,9 +9,9 @@
 картина команды). Никаких правил под отдельную ситуацию и никакого «как у про»
 внутри мозга: демки — только для сверки. Подробно — начало docs/PRINCIPLES.md.
 
-**Сейчас (с v197) мозга ботов нет** — вместо решений заглушка `src/js/12_stub.js`
-(план — docs/tasks/restart.md, старый мозг — ветка `old-brain-v196`). Этап 1 —
-карта (стены, высоты, укрытия, прострелы) + редактор карты для владельца.
+**Сейчас (с v239, 10.10) игра — снова v166** (решение владельца: v166 по движению, гранатам и экономике ближе к про;
+переделка v197–v238 — в ветке `rebuild-v238`). Игра — один файл `src/game.html` (v166, бит в бит). Что будем менять в
+v166 — `docs/V166_CHANGES.md` (список владельца). Главный принцип и правила ниже — в силе.
 
 ## Экономия лимита — обязательно (07.10)
 Каждый шаг пересылает весь разговор заново, поэтому лишнее чтение дорого вдвойне.
@@ -38,43 +38,28 @@
 - MCP codebase-memory в облачных сессиях не использовать: он индексирует папку на
   компьютере владельца, а не облачную копию репо.
 
-## Карта файлов (подробно — таблица в начале docs/ARCHITECTURE.md)
-Сборка: `python3 src/build.py` склеивает `src/page.html` + `src/js/` по порядку
-номеров + `src/data/` → `sim.html`. Публикуемая: `python3 src/mkpub.py` →
-`ancient-radar.html` (страница https://claude.ai/artifact/8bpgTJoSqsGTYwjRc8ikDj,
-там же база отметок и правок карты).
+## Карта файлов (v239)
+Сборка: `python3 src/build.py` → `sim.html` (копия `src/game.html` с тестовым входом для замеров). Публикуемая:
+`python3 src/mkpub.py` → `ancient-radar.html` (страница https://claude.ai/artifact/VcutdCmiqN164CLNYowQvP).
+`src/game.html` — ~13 000 строк, **читать только кусками** (`grep -n` → `Read` с offset/limit). Где что (строка начала):
 
-| файл | за что |
+| что | где в `src/game.html` |
 |---|---|
-| `src/page.html` | страница: кнопки, слои, панели, стили |
-| `01_map.js` | карта: зоны, навмеш, стены `WALL_POLYS`, пути `buildWaypointPath`, `crossesWall`, `ZONE_DANGER`, спавны |
-| `02_bots.js` | оружие, скорость, создание ботов |
-| `03_settings.js` | `BAL` — числа движка |
-| `04_sites.js` | сайты A/B, ники, скорость бега |
-| `05_bomb.js` | бомба: плант, дефуз, взрыв |
-| `07_t_brain.js` | **план T** (IGL): какой execute на раунд, смена по поводам BRAIN 5.4 |
-| `08_retake.js` | **ретейк CT**: сбор, `abortIf` (не успеть / мало живых / невыгодно → сейв), вход с утилитой и дефуз через исполнитель |
-| `09_zone_names.js` | названия зон, `calloutName` |
-| `09_knowledge.js` | **знание бота о врагах** (одно место): гипотезы `held`/`moved`/`moved_unknown`, обновление событиями; лог — `tools/know_log.js` |
-| `10_vision.js` | **кто кого видит** (одно место): `visLine`, `visParts`, `visPair`, `inFov` |
-| `11_position.js` | **позиция и взгляд** CT по слотам активного Setup'а |
-| `12_team.js` | **войс и план команды** (`teamSetPlan` — одно место смены плана) |
-| `12_ct_brain.js` | **план CT** (IGL): какая раскладка на раунд, смена по поводам BRAIN 5.4 |
-| `12_script_runner.js` | **исполнитель сценариев** (execute T, ретейк CT): шаги по `dependsOn` |
-| `12_stub.js` | заглушка вместо мозга: закуп, стойка |
-| `13_nades.js` | гранаты: `throwNade`, полёт, разрыв, лайнапы |
-| `14_movement.js` | консоль, трассеры, подбор, **звук** `makeSound` |
-| `15_combat.js` | стрельба, урон, броня, `resolveEngagements` |
-| `16_economy.js` | раунды, таймер, деньги, покупка |
-| `17_tick.js` | главный цикл `stepTick` |
-| `18_ui_editors.js` | редакторы навмеша, зон, лайнапов |
-| `19_map_editor.js` | редактор карты владельца (вкладки, Ctrl+Z, сохранение в базу) |
-| `19_map_heights.js` / `_obstacles.js` / `_wallbang.js` | высоты (`hgtInfo`) / укрытия (`covList`) / прострелы (`wbList`, `wbAfter`) |
-| `19_vis_tool.js` | проверка «кто кого видит» |
-| `19_draw.js` | рисование радара |
-| `20_hud.js` | табло, киллфид, панели |
-| `src/marks.js` | отметки, снимки, перемотка |
-| `src/data/*.json` | данные карты; `*_bake.py` в `tools/` их генерируют, `tools/map_pull.py` забирает правки владельца |
+| переключатели и числа движка `BAL` | `var BAL = {` (~1648) |
+| позиция: `setPost` / `updatePost`; «держать район» `holdSpot` / `holdGroup` | ~2238; ~6009 |
+| план и мозг T: `tBrain`, лёркер `lurkerBrain`, IGL `tIglReplan` | ~3391; ~3013; ~3265 |
+| мозг CT: `ctBrain`, ретейк `updateRetake` | ~6865; ~4145 |
+| инфа команды / войс: `intelPush`, `teamInfoTick`, `commSend` | ~4374; ~4430; ~4352 |
+| где может быть враг: `belief*`, `reach*` (растекание по зонам) | ~4722–5000 |
+| взгляд: `lookCands`, `lookPlan`, `smoothLookFilter`, `newLookFor`, `threatEntrances` | ~5719–5995 |
+| гранаты: закуп `buyNades`, решения `nadeBrains`, лайнапы `lineupTick` | ~7499; ~8099; ~7724 |
+| нож, оружие: `knifeTick`, `weaponSpeedMul` | ~8428 |
+| стрельба: `tryShoot`, `resolveEngagements`, после фрага `afterKillMove` | ~8974; ~9637; ~9494 |
+| экономика: `decideRoundType0`, `buyForPlayer`, `teamDrops`, `teamAwp` | ~10194; ~10254 |
+| раунд и цикл: `endRound`, `resetRound`, `stepTick` | ~10430; ~10463; ~10523 |
+
+Замеры: `tools/measure/measure.py <метка> --matches=3,7,11,13,17,19` работают и с v166. `docs/` — как раньше
+(`PRO_PLAY.md` — источники, `PRO_DECISIONS.md` — цепочка решений про).
 
 ## Правила владельца
 - **Прогон 6 матчей — один раз, в самом конце** (`tools/measure/measure.py <метка>

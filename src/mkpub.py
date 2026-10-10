@@ -1,16 +1,11 @@
-# Публикуемая версия: python3 mkpub.py  → ../ancient-radar.html
-# Собирает игру из src/page.html + src/js/ + src/data/, убирает обёртку <head> (её добавляет публикация)
-# и тестовый вход window.__ev (нужен только для замеров).
-import subprocess, os, sys
+# Публикуемая версия: python3 src/mkpub.py → ancient-radar.html
+# Берёт игру (src/game.html, v239 = v166), убирает обёртку <head>…<body> (её добавляет публикация) и тестовый вход window.__ev.
+import os
 HERE = os.path.dirname(os.path.abspath(__file__))
-tmp = os.path.join(HERE, '..', 'sim.html')
-subprocess.run([sys.executable, os.path.join(HERE, 'build.py'), tmp], check=True)
-s = open(tmp, encoding='utf-8').read()
-i = s.index('<body>\n') + len('<body>\n'); s = s[i:]
+s = open(os.path.join(HERE, 'game.html'), encoding='utf-8').read()
+s = s[s.index('<body>') + len('<body>'):]
 s = s.replace('</body></html>', '')
-# имя страницы в галерее не меняем (ссылка и название привычны владельцу)
-s = s.replace('<title>Ancient Live Radar</title>', '<title>Ancient Live Radar v141</title>', 1)
-s = s.replace('window.__ev=function(src){return eval(src);};\n', '')
+s = s.replace('window.__ev=function(src){return eval(src);};', '')
 assert '__ev' not in s
 open(os.path.join(HERE, '..', 'ancient-radar.html'), 'w', encoding='utf-8').write('\n' + s)
 print(len(s))
