@@ -46,6 +46,7 @@ def main():
     PX = {s: [p for p in P if p['side'] == s] for s in ('CT', 'T')}
     res = {p['id']: {'rounds': set(), 'byPlayer': defaultdict(set), 'byWeapon': defaultdict(set)} for p in P}
     seq = []   # (demo, name, side, round num, point id, died, won)
+    WITH = defaultdict(Counter)   # позиция → позиция → в скольких раундах на обеих стояли (разные игроки одной стороны)
     for demo in demo_names():
         rounds = rounds_of(demo)
         if not rounds:
@@ -89,6 +90,7 @@ def main():
             e = rend[(rend.tick > r['t0']) & (rend.tick <= r['t1'] + 1)]
             if len(e) and 'winner' in e: win[r['num']] = str(e.winner.iloc[0])
         held = defaultdict(dict)   # (name, side, num) → {point: died}
+        team_held = defaultdict(lambda: defaultdict(set))   # (side, num) → point → игроки (кто где стоял в раунде)
         for i, j in zip(a[ok], ends[ok]):
             hx, hy, sd = float(x[i:j + 1].mean()), float(y[i:j + 1].mean()), side[i]
             nm = PL_LOW.get(str(names[i]).lower(), names[i])
@@ -108,6 +110,7 @@ def main():
                        for tk, dx, dy in deaths.get(int(sid[i]), ()))
             k = (nm, sd, r['num'])
             held[k][best['id']] = held[k].get(best['id'], False) or died
+            team_held[(sd, r['num'])][best['id']].add(int(sid[i]))
         for (nm, sd, num), pts in held.items():
             for pid, died in pts.items():
                 nxt_ = held.get((nm, sd, num + 1))
@@ -115,6 +118,13 @@ def main():
                     continue   # следующего раунда той же стороной нет (смена сторон, конец)
                 won = win.get(num) == sd
                 seq.append((nm, sd, pid, died, won, pid in nxt_))
+        for (sd, num), pts in team_held.items():
+            ids = sorted(pts)
+            for x_ in range(len(ids)):
+                for y_ in range(x_ + 1, len(ids)):
+                    a_, b_ = ids[x_], ids[y_]
+                    if pts[a_] - pts[b_] and pts[b_] - pts[a_]:   # стояли разные игроки
+                        WITH[a_][b_] += 1; WITH[b_][a_] += 1
         print(demo, len(seq), file=sys.stderr)
     # «не сработало — меняю место»
     def rate(f):
@@ -124,10 +134,13 @@ def main():
     fail_r, fail_n = rate(lambda q: q[3] or not q[4])
     died_r, died_n = rate(lambda q: q[3])
     lost_r, lost_n = rate(lambda q: not q[3] and not q[4])
+    NR = sum(1 for _ in demo_names())
+    out_with = {a_: {b_: c for b_, c in W.items() if c >= 2} for a_, W in WITH.items()}
     out = {'_about': 'tools/player_positions_bake.py: позиции positions.json — кто из наших 10 игроков и с каким оружием там стоял (раундов); '
                      'repeat — как часто игрок встаёт на ту же позицию в следующем раунде той же стороной: после «выжил и выиграл» (ok), '
                      'после «погиб на ней» (died), после «выжил, но раунд проигран» (lost).',
            'repeat': {'ok': [ok_r, ok_n], 'died': [died_r, died_n], 'lost': [lost_r, lost_n], 'fail': [fail_r, fail_n]},
+           'with': out_with,
            'points': {pid: {'rounds': len(v['rounds']), 'byPlayer': {k: len(s) for k, s in v['byPlayer'].items()},
                             'byWeapon': {k: len(s) for k, s in v['byWeapon'].items()}} for pid, v in res.items() if v['rounds']}}
     json.dump(out, open(OUT, 'w', encoding='utf-8'), ensure_ascii=False, separators=(',', ':'))
