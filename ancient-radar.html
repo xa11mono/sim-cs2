@@ -59,7 +59,7 @@
 <div id="app">
   <div id="topbar">
     <h1>ANCIENT — LIVE RADAR</h1>
-    <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 246 (позиции: почерк игрока, оружие, прошлый раунд) · 10.10</div>
+    <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 247 (одно решение IGL на событие, сейв — командой) · 10.10</div>
     <button id="btnPause">Пауза</button>
     <button id="btnRestartRound" title="Немедленно сбросить текущий раунд — на случай если боты застряли">Рестарт раунда</button>
     <span class="chk" title="Матч с одним номером всегда проходит одинаково. Увидел баг — запиши номер матча и тик, введи номер и нажми «Сыграть»: матч повторится с начала">матч № <input id="inpMatchNum" type="number" min="1" value="1" style="width:52px"> <button id="btnFreshMatch">Сыграть</button> <span id="matchTick" style="opacity:.75"></span></span>
@@ -3677,6 +3677,11 @@ function soloMayWalk(b){
 //     переходим туда, иначе перегруппировка и повторный заход вместе.
 // (6) бомба уже на сайте (носитель в ~4м от точки) — никаких переколов:
 // раньше колл уводил носителя, и он пробегал сайт, не поставив
+// (v247) ОДНО РЕШЕНИЕ IGL НА ОДНО СОБЫТИЕ. Раньше один и тот же фраг запускал сразу несколько решений
+// («перекол на B», «не спешим», «заходим сразу») в соседних тиках — команда слышала противоречивые коллы.
+// Теперь событие (фраг / смерть / инфа) двигает план не больше одного раза: первое сработавшее решение
+// забирает событие; решения по более старым событиям не принимаются. Решает и говорит IGL.
+function iglTake(tt, evTick){ if(evTick <= (tt._evDone||-1)) return false; tt._evDone = evTick; return true; }
 function carrierAtSite(tt){
   if(!BAL.carrierStay || bomb.state !== "carried" || !bomb.carrier || !bomb.carrier.alive) return false;
   var S = SITES[tt.site]; return Math.hypot(bomb.carrier.x-S.x, bomb.carrier.y-S.y) < 330 || onSite(S, bomb.carrier.x, bomb.carrier.y);
@@ -3692,7 +3697,7 @@ function tIglReplan(tt, site, other, secLeft){
     if(last && !tt._rpFast && tick - last.tick > 1.5*TICK_HZ && tick - last.tick < 4*TICK_HZ && last.kx !== null &&
        aliveT >= 3 && tt.execTick - tick > 6*TICK_HZ && !last.traded){
       var dS = Math.hypot(last.kx-site.x, last.ky-site.y);
-      if(dS > 1100){
+      if(dS > 1100 && iglTake(tt, last.tick)){
         tt._rpFast = true;
         tt.execTick = Math.max(tick + 4*TICK_HZ, Math.min(tt.execTick, tick + 6*TICK_HZ));
         voiceLog("T", "rpfast", "IGL", "их игрок "+calloutName(last.kx, last.ky)+" — на "+tt.site+" без него, заходим раньше!");
@@ -3704,7 +3709,7 @@ function tIglReplan(tt, site, other, secLeft){
     if(BAL.numbersPlay && !tt._upSlow && aliveT >= aliveCT + 1 && secLeft > 50){
       var cdS = DL.filter(function(e){ return e.t === "CT" && e.phase === "setup"; });
       var lastC = cdS[cdS.length-1];
-      if(lastC && tick - lastC.tick < 2*TICK_HZ){
+      if(lastC && tick - lastC.tick < 2*TICK_HZ && iglTake(tt, lastC.tick)){
         tt._upSlow = tick; tt._rpFast = true; // и не ускоряемся на следующий минус
         if(tt.execTick - tick < 8*TICK_HZ) tt.execTick = tick + 8*TICK_HZ;
         voiceLog("T", "upslow", "IGL", aliveT+" на "+aliveCT+" — не спешим, берём карту и заходим все вместе");
@@ -3713,7 +3718,7 @@ function tIglReplan(tt, site, other, secLeft){
     }
     // (2) двое без размена — лёркер к нам
     var untraded = sd.filter(function(e){ return !e.traded; }).length;
-    if(!tt.regroup && untraded >= 2 && aliveT <= 3 && aliveCT >= aliveT){
+    if(!tt.regroup && untraded >= 2 && aliveT <= 3 && aliveCT >= aliveT && iglTake(tt, sd[sd.length-1].tick)){
       var lk = bots.filter(function(b){ return b.team === "T" && b.alive && b.tRole === "lurker"; })[0];
       tt.regroup = tick;
       if(lk){ lk._route = null; lk._routeDone = null; }
@@ -3733,7 +3738,7 @@ function tIglReplan(tt, site, other, secLeft){
         var dS0 = Math.hypot(a0.x-site.x, a0.y-site.y), dS1 = Math.hypot(a1.x-site.x, a1.y-site.y);
         var dO0 = Math.hypot(a0.x-SITES[other].x, a0.y-SITES[other].y), dO1 = Math.hypot(a1.x-SITES[other].x, a1.y-SITES[other].y);
         if(dS0 - dS1 > 120 && dO1 - dO0 > 80 && dS1 < 1400) toward.push(rid); }
-      if(toward.length >= (aliveCT <= 3 ? 1 : 2)){
+      if(toward.length >= (aliveCT <= 3 ? 1 : 2) && iglTake(tt, tick)){
         tt._rotDone = tick;
         if(hashRand(roundNum*389 + matchNum*23 + 7) < 0.6){
           tt.rebound = true;
@@ -3755,7 +3760,8 @@ function tIglReplan(tt, site, other, secLeft){
   if(tt.phase === "execute" && !tt.aborted && tt.execStart && tick - tt.execStart < 10*TICK_HZ && secLeft > 40){
     var tD = DL.filter(function(e){ return e.t === "T" && e.tick >= tt.execStart; }).length;
     var cD = DL.filter(function(e){ return e.t === "CT" && e.tick >= tt.execStart; }).length;
-    if(tD - cD >= 2 && aliveT <= 3 && aliveCT >= aliveT){
+    var lastD = DL.length ? DL[DL.length-1].tick : tick;
+    if(tD - cD >= 2 && aliveT <= 3 && aliveCT >= aliveT && iglTake(tt, lastD)){
       tt.aborted = tick;
       var otherB = beliefCount("T", BZ.siteNear[other]||[]);
       var ctr = {x:0, y:0}, tsA = bots.filter(function(b){ return b.team === "T" && b.alive; });
@@ -3851,9 +3857,9 @@ function tBrain(){
     var ancR = tt.site === "A" ? "anchorA" : "anchorB";
     var pickSig = teamIntel.T.sig.filter(function(s){ return s.type === "kill" && tick - s.tick < 3*64 &&
       (s.role === ancR ? Math.hypot(s.x-site.x, s.y-site.y) < 600 : Math.hypot(s.x-site.x, s.y-site.y) < 350); })[0];
-    if(pickSig && aliveCount("T") >= 4 && (!BAL.proTempo || tick - roundStartTick > 22*TICK_HZ)){
+    if(pickSig && aliveCount("T") >= 4 && (!BAL.proTempo || tick - roundStartTick > 22*TICK_HZ) && iglTake(tt, pickSig.tick)){
       tt.phase = "execute"; tt.execStart = tick; siteHeatPending[tt.site] = 1;
-      voiceLog("T", "pick"+tt.site, pickSig.by, "минус на "+tt.site+", заходим сразу!");
+      voiceLog("T", "pick"+tt.site, "IGL", "минус на "+tt.site+", заходим сразу!");
       logEvent("T: выход на "+tt.site+"! (сняли CT на сайте)");
     }
   }
@@ -3895,7 +3901,8 @@ function tBrain(){
     var ancO = other === "A" ? "anchorA" : "anchorB";
     var pickOther = tt.phase === "setup" && teamIntel.T.sig.some(function(sg){ return sg.type === "kill" && tick - sg.tick < 3*TICK_HZ &&
       (sg.role === ancO ? Math.hypot(sg.x-SITES[other].x, sg.y-SITES[other].y) < 600 : Math.hypot(sg.x-SITES[other].x, sg.y-SITES[other].y) < 350); });
-    if(pickOther && aliveT >= 3 && beliefCount("T", BZ.siteNear[other]||[]) < 0.9 && there < 1.5 && iglReads(tt, "po")){
+    var poSig = pickOther ? teamIntel.T.sig.filter(function(sg){ return sg.type === "kill" && tick - sg.tick < 3*TICK_HZ; }).pop() : null;
+    if(pickOther && aliveT >= 3 && beliefCount("T", BZ.siteNear[other]||[]) < 0.9 && there < 1.5 && iglReads(tt, "po") && iglTake(tt, poSig ? poSig.tick : tick)){
       tt.rebound = true;
       voiceLog("T", "reb"+other, "IGL", "минус на "+other+", там пусто — все на "+other+"!");
       logEvent("IGL: перекол → "+other+" (сняли CT, сайт пустой)");
@@ -3908,7 +3915,7 @@ function tBrain(){
                                          : (here - there >= 2 && (here >= 3.5 || deathsHere >= 2));
     // стак = минимум двое реально замечены/услышаны у сайта сейчас (или минус там)
     if(BAL.recallStrict && stackRead && (freshC[tt.site]||0) < 2 && deathsHere < 1) stackRead = false;
-    if(aliveT >= needAlive && stackRead && iglReads(tt, "st")){
+    if(aliveT >= needAlive && stackRead && iglReads(tt, "st") && iglTake(tt, tick)){
       tt.rebound = true;
       logEvent("IGL: на "+tt.site+" стак (~"+Math.round(here)+"), перепривязка → "+other);
       // перекол не значит "сразу выход": группа переходит и выходит примерно по
@@ -3964,7 +3971,7 @@ function tBrain(){
     var hopeless = (aT === 1 && aC >= 3 && secLeft < 30) || (aT === 1 && aC >= 4 && secLeft < 55) || (aT === 2 && aC >= 4 && secLeft < 30);
     if(BAL.groupPlay && BAL.loneSave) hopeless = hopeless || (aT === 1 && aC >= 3) || (aT === 1 && aC === 2 && secLeft < 40) || (aT === 2 && aC >= 4 && secLeft < 50);
     if(hopeless && gunVal >= 1500 && !carOn){
-      tt.saving = tick;
+      tt.saving = tick; saveCancelTrades("T");
       logEvent("T: сейв — "+aT+"v"+aC+", "+Math.round(secLeft)+"с — сохраняем оружие");
       voiceLog("T", "tsave", ts[0].id, aT === 1 ? "я один против "+aC+" — сейвлю" : "двое на "+aC+", мало времени — сейв");
     }
@@ -4975,7 +4982,8 @@ function intelDeath(victim, killer){
   if(mine === 1 && theirs >= 2){
     var last = bots.filter(function(o){ return o.team === victim.team && o.alive; })[0];
     if(last) voiceLog(victim.team, "clutch", last.id, "я один против "+theirs+" — "+
-      (victim.team === "CT" && bomb && bomb.state !== "planted" ? "тяну время, беру по одному" :
+      (teamSaving(victim.team) ? "сейвлюсь" :
+       victim.team === "CT" && bomb && bomb.state !== "planted" ? "тяну время, беру по одному" :
        victim.team === "T" && bomb && bomb.state === "planted" ? "сижу у бомбы, жду дефуз" : "беру по одному"));
   }
   // команда убийцы тоже "знает", где и кого сняли (свой же игрок сказал "минус ...")
@@ -5015,6 +5023,7 @@ function intelDeath(victim, killer){
     if(cands[1] && cands[1].L <= (BAL.groupPlay ? 450 : 350) && aliveCount(victim.team) >= 3) traders.push(cands[1]);
     traders.forEach(function(T, k){
       var o = T.b;
+      if(teamSaving(o.team)) return;   // (v247) команда сейвит — не меняем
       if(BAL.execErr && o.prof && hashRand(tick*29 + o.id.charCodeAt(1)*11) < (1-prof(o, "disc"))*0.12){ noteMistake(o, "не разменял "+victim.id); return; }
       // выходит НЕ в ту же точку, где умер тиммейт (туда у убийцы уже стоит
       // прицел), а под другим углом — чтобы тому пришлось доводить прицел
@@ -8245,7 +8254,7 @@ function ctBrain(){
     if(BAL.groupRetake) hopeless = hopeless || (cts.length >= 2 && cts.length <= tsAlive - 2) || (cts.length === 1 && tsAlive >= 3) ||
       (cts.length === 1 && tsAlive === 2 && !(cts[0].kit && needSecs + 8 < secs)); // 2v4 — ещё пробуем, 1v3/1v4/2v5 — сейв
     if(cts.length && hopeless && (equip >= 1800 || needSecs > secs)){
-      ct.saving = true;
+      ct.saving = true; saveCancelTrades("CT");
       logEvent("CT: сейв — ретейк "+cts.length+"v"+tsAlive+(needSecs > secs ? ", не успеть" : "")+", сохраняем оружие");
     }
   }
@@ -8272,7 +8281,7 @@ function ctBrain(){
     var tsA2 = aliveCount("T"), eq2 = cts.reduce(function(a,b){ return a + (b.primary ? WEAPONS[b.primary].price : 0); }, 0)/cts.length;
     var secL2 = ROUND_TIME_SEC - (simTime - roundStartTime);
     if(((cts.length === 1 && tsA2 >= 3) || (cts.length === 2 && tsA2 >= 5)) && eq2 >= 2700 && secL2 > 25){
-      ct.saving = true; ct.preSave = true;
+      ct.saving = true; ct.preSave = true; saveCancelTrades("CT");
       logEvent("CT: сейв до планта — "+cts.length+"v"+tsA2+", выход на "+ct.call.site+" — сохраняем оружие");
       voiceLog("CT", "presave", cts[0].id, cts.length+" против "+tsA2+", они уже на "+ct.call.site+" — сейв");
     }
@@ -9323,6 +9332,7 @@ function nadeReact(){
       tgt = lo; break; }
     if(!tgt) return;
     if(nadesInAir.some(function(n){ return n.team === b.team && n.type === "flash" && Math.hypot((n.tx||n.x)-tgt.x, (n.ty||n.y)-tgt.y) < 150; })) return; // туда уже летит флешка
+    if(teamSaving(b.team)) return;   // (v247) сейв — не выходим
     b._selfFlashCd = tick + 12*TICK_HZ;
     var why = "себе под пик "+b.id;
     throwNade(b, "flash", tgt.x, tgt.y, true, why);
@@ -14913,6 +14923,13 @@ function draw(){
   }
 }
 
+// (v247) сейв — решение команды: личные размены и пики отменяются, в дуэли никто не выходит
+function saveCancelTrades(team){
+  bots.forEach(function(b){ if(b.team !== team || !b.alive) return;
+    b._tradeLock = null; b._tradeUntil = 0; b._waitPopUntil = 0;
+    if(b.post && b.post.tag === "tradeR") clearPost(b); });
+}
+function teamSaving(team){ var t = team === "CT" ? teamTac.CT : teamTac.T; return !!(t && t.saving); }
 function cl0save(){ return teamTac.CT && teamTac.CT.saving; }
 // ======================= РАЗДЕЛ 9: подача матча =======================
 
