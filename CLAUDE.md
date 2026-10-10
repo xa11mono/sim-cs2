@@ -12,6 +12,8 @@
 **Сейчас (с v239, 10.10) игра — снова v166** (решение владельца: v166 по движению, гранатам и экономике ближе к про;
 переделка v197–v238 — в ветке `rebuild-v238`). Игра — один файл `src/game.html` (v166, бит в бит). Что будем менять в
 v166 — `docs/V166_CHANGES.md` (список владельца). Главный принцип и правила ниже — в силе.
+С v240 в v166 — знание о врагах из переделки (`KNOW`, `know*`: гипотезы held/moved/moved_unknown); карту
+`belief`, которую читают решения v166, собирает из них `beliefTick` (старое растекание весов — в ветке `v166-weights`).
 
 ## Экономия лимита — обязательно (07.10)
 Каждый шаг пересылает весь разговор заново, поэтому лишнее чтение дорого вдвойне.
@@ -41,22 +43,24 @@ v166 — `docs/V166_CHANGES.md` (список владельца). Главны�
 ## Карта файлов (v239)
 Сборка: `python3 src/build.py` → `sim.html` (копия `src/game.html` с тестовым входом для замеров). Публикуемая:
 `python3 src/mkpub.py` → `ancient-radar.html` (страница https://claude.ai/artifact/VcutdCmiqN164CLNYowQvP).
-`src/game.html` — ~13 000 строк, **читать только кусками** (`grep -n` → `Read` с offset/limit). Где что (строка начала):
+`src/game.html` — ~13 400 строк, **читать только кусками** (`grep -n` → `Read` с offset/limit). Где что (строка начала):
 
 | что | где в `src/game.html` |
 |---|---|
 | переключатели и числа движка `BAL` | `var BAL = {` (~1648) |
-| позиция: `setPost` / `updatePost`; «держать район» `holdSpot` / `holdGroup` | ~2238; ~6009 |
+| позиция: `setPost` / `updatePost`; «держать район» `holdSpot` / `holdGroup`, варианты места `holdCands` (+ места про из демок) | ~2238; ~6419 |
 | план и мозг T: `tBrain`, лёркер `lurkerBrain`, IGL `tIglReplan` | ~3391; ~3013; ~3265 |
-| мозг CT: `ctBrain`, ретейк `updateRetake` | ~6865; ~4145 |
+| мозг CT: `ctBrain`, ретейк `updateRetake` | ~7275; ~4145 |
 | инфа команды / войс: `intelPush`, `teamInfoTick`, `commSend` | ~4374; ~4430; ~4352 |
-| где может быть враг: `belief*`, `reach*` (растекание по зонам) | ~4722–5000 |
-| взгляд: `lookCands`, `lookPlan`, `smoothLookFilter`, `newLookFor`, `threatEntrances` | ~5719–5995 |
-| гранаты: закуп `buyNades`, решения `nadeBrains`, лайнапы `lineupTick` | ~7499; ~8099; ~7724 |
-| нож, оружие: `knifeTick`, `weaponSpeedMul` | ~8428 |
-| стрельба: `tryShoot`, `resolveEngagements`, после фрага `afterKillMove` | ~8974; ~9637; ~9494 |
-| экономика: `decideRoundType0`, `buyForPlayer`, `teamDrops`, `teamAwp` | ~10194; ~10254 |
-| раунд и цикл: `endRound`, `resetRound`, `stepTick` | ~10430; ~10463; ~10523 |
+| где может быть враг: `beliefBuild`, `reach*` (тайминги) | ~4722–4860 |
+| **знание бота о врагах** (одно место): `KNOW`, `hearReal` (услышал), `knowTick`, `knowVoice`, `knowKill`, `knowClearZone`; позиции про `KNOW_POSITIONS` | ~4865–5310 |
+| карта команды `belief` из гипотез: `beliefTick`; чтение `beliefZoneKnown`, `intelEstimate`, `lkpNear` | ~5327; ~5814; ~4415 |
+| взгляд: `lookCands`, `lookPlan`, `smoothLookFilter`, `threatEntrances` | ~6118–6351 |
+| гранаты: закуп `buyNades`, решения `nadeBrains`, лайнапы `lineupTick` | ~7909; ~8509; ~8134 |
+| нож, оружие: `knifeTick`, `weaponSpeedMul` | ~8838 |
+| стрельба: `tryShoot`, `resolveEngagements`, после фрага `afterKillMove` | ~9384; ~10047; ~9904 |
+| экономика: `decideRoundType0`, `buyForPlayer`, `teamDrops`, `teamAwp` | ~10604; ~10664 |
+| раунд и цикл: `endRound`, `resetRound`, `stepTick` | ~10840; ~10873; ~10933 |
 
 Замеры: `tools/measure/measure.py <метка> --matches=3,7,11,13,17,19` работают и с v166. `docs/` — как раньше
 (`PRO_PLAY.md` — источники, `PRO_DECISIONS.md` — цепочка решений про).
