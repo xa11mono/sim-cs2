@@ -55,7 +55,7 @@ v166 — `docs/V166_CHANGES.md` (список владельца). Главны�
 | позиция: `setPost` / `updatePost`; «держать район» `holdSpot` / `holdGroup`, варианты `holdCands` (+ места про) | ~2726; ~7158 |
 | план и мозг T: `tBrain`, лёркер `lurkerBrain`, IGL `tIglReplan` | `grep -n` |
 | мозг CT: `ctBrain`, ретейк `updateRetake` | ~8014; ~4633 |
-| память команды v166: `intelPush`, `teamInfoTick`, `commSend` | ~4862; ~4913; ~4840 |
+| память команды v166 (только радар + войс, v242): `intelPush`, `teamInfoTick`, `commSend` = радар, `teamHeardToIntel` | ~4862; ~4913; ~4840 |
 | тайминги «может ли там уже кто-то быть»: `beliefBuild`, `reach*` | ~5205 |
 | **знание бота о врагах** (одно место): `KNOW`, `hearReal`, `knowTick`, `knowKill`, `knowClearZone`; позиции про `KNOW_POSITIONS` | ~5348; ~5784 |
 | **войс** (одно место «что сказали»): `TEAM`, `teamNotice`, `teamChannel`, `teamDeath`, `teamTick` → `knowCall` | ~5852; ~6043 |

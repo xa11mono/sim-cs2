@@ -59,7 +59,7 @@
 <div id="app">
   <div id="topbar">
     <h1>ANCIENT — LIVE RADAR</h1>
-    <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 241 (v166 + знание, карта, войс, киллфид) · 10.10</div>
+    <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 242 (одно знание: глаза, радар, войс) · 10.10</div>
     <button id="btnPause">Пауза</button>
     <button id="btnRestartRound" title="Немедленно сбросить текущий раунд — на случай если боты застряли">Рестарт раунда</button>
     <span class="chk" title="Матч с одним номером всегда проходит одинаково. Увидел баг — запиши номер матча и тик, введи номер и нажми «Сыграть»: матч повторится с начала">матч № <input id="inpMatchNum" type="number" min="1" value="1" style="width:52px"> <button id="btnFreshMatch">Сыграть</button> <span id="matchTick" style="opacity:.75"></span></span>
@@ -2883,20 +2883,13 @@ function bombTick(){
       logEvent(c.id+" закладывает бомбу на "+tac.site+"…");
       // звук планта (писк C4): CT рядом (≤520px, или ≤850 по прямой видимости) слышат
       // и сразу говорят в войс — это самый сильный повод для колла/ротации
-      var heard = null;
+      // (v242) команда узнаёт из войса услышавшего («ставят B!» — teamChannel), а не сразу
       bots.forEach(function(o){
         if(o.team !== "CT" || !o.alive) return;
         var dH = Math.hypot(o.x-c.x, o.y-c.y);
-        if(dH < 520 || (dH < 850 && hasLOS(o.x, o.y, c.x, c.y))){
+        if(dH < 520 || (dH < 850 && hasLOS(o.x, o.y, c.x, c.y)))
           o.heardSound = hearReal(o, {x:c.x, y:c.y, tick:tick, team:"T", src:c.id, kind:"plant", occl:!hasLOS(o.x, o.y, c.x, c.y)});
-          if(!heard) heard = o;
-        }
       });
-      if(heard){
-        intelPush("CT", {type:"sound", x:c.x, y:c.y, id:c.id, by:heard.id, kind:"plant", conf:0.9});
-        teamIntel.CT.plantHeard = {site:tac.site, tick:tick, x:c.x, y:c.y};
-        voiceLog("CT", "plant"+tac.site, heard.id, "плантят на "+tac.site+"! "+calloutName(c.x, c.y));
-      }
     }
   } else if(bomb.state === "dropped"){
     // подбирает любой живой T, пробежавший рядом
@@ -4769,28 +4762,9 @@ var INTEL_KEEP = 12*64;
 // Увидел/услышал один — тиммейты узнают не в тот же тик, а когда он это
 // скажет: через 0.3–0.9с, с погрешностью в позиции. В замесе (много коллов
 // за секунду) эфир забит: задержка больше, часть звуковой инфы теряется.
-var commQueue = [];
-function commSend(team, sig, by){
-  // увиденный враг в CS2 сразу появляется на радаре у всей команды — точка
-  // без задержки. Задерживается только то, что надо СКАЗАТЬ голосом: звук
-  if(!BAL.commDelay || sig.type === "spotted"){ intelPush(team, sig); return; }
-  // "замес" — за последнюю секунду в эфире инфа про 3+ разных врагов
-  var ids = {}; commQueue.forEach(function(q){ if(q.team === team && tick - q.sent < TICK_HZ) ids[q.sig.id] = 1; });
-  var busy = Object.keys(ids).length >= 3;
-  var hs = tick*41 + (by ? by.charCodeAt(by.length-1)*13 : 7) + (sig.id ? String(sig.id).charCodeAt(String(sig.id).length-1)*3 : 0);
-  if(busy && sig.type === "sound" && hashRand(hs+5) < 0.35) return; // не успел сказать — потерялось
-  var delay = 20 + Math.round(hashRand(hs)*38) + (busy ? 20 : 0);
-  var nx = (hashRand(hs+11)-0.5)*(sig.type === "spotted" ? 50 : 30), ny = (hashRand(hs+17)-0.5)*(sig.type === "spotted" ? 50 : 30);
-  var s2 = {}; for(var k in sig) s2[k] = sig[k]; s2.x += nx; s2.y += ny;
-  commQueue.push({team:team, sig:s2, sent:tick, at:tick + delay});
-}
-function commFlush(){
-  if(!commQueue.length) return;
-  var keep = [];
-  commQueue.forEach(function(q){ if(q.at <= tick){ if(roundState === "live") intelPush(q.team, q.sig); } else keep.push(q); });
-  commQueue = keep;
-}
-function resetTeamIntel(){ commQueue = []; if(typeof lkpReset === "function") lkpReset(); teamIntel = { CT:{sig:[], carrier:null, lastCall:{}}, T:{sig:[], carrier:null, lastCall:{}} }; }
+// (v242) радар: увиденный врага сразу точкой у всей команды (CS2). Всё, что надо СКАЗАТЬ, — войс (teamChannel)
+function commSend(team, sig, by){ intelPush(team, sig); }
+function resetTeamIntel(){ if(typeof lkpReset === "function") lkpReset(); teamIntel = { CT:{sig:[], carrier:null, lastCall:{}}, T:{sig:[], carrier:null, lastCall:{}} }; }
 resetTeamIntel();
 function intelPush(team, sig){ sig.tick = tick; teamIntel[team].sig.push(sig); if(typeof beliefObserve === "function") beliefObserve(team, sig);
   if(BAL.buyRead && sig.type === "spotted" && sig.id && sig.id !== "?") buyReadSee(team, sig.id);
@@ -4845,7 +4819,6 @@ function lkpLook(b, maxAgeT){
 }
 function teamInfoTick(){
   if(roundState !== "live") return;
-  commFlush();
   bots.forEach(function(b){
     if(!b.alive) return;
     // вижу
@@ -4863,12 +4836,7 @@ function teamInfoTick(){
         teamIntel[b.team].carrier = {x:e.x, y:e.y, tick:tick, by:b.id};
       }
     });
-    // слышу (только свежие события этого тика)
-    if(b.heardSound && b.heardSound.tick === tick && b.heardSound.team !== b.team &&
-       !(LS["snd"+b.heardSound.src] && tick - LS["snd"+b.heardSound.src] < 8)){
-      LS["snd"+b.heardSound.src] = tick;
-      commSend(b.team, {type:"sound", x:b.heardSound.x, y:b.heardSound.y, id:b.heardSound.src||"?", kind:b.heardSound.kind||"", by:b.id, conf:0.4}, b.id);
-    }
+    // слышу — своё; команде — только то, что сказано в войсе (teamChannel → teamHeardToIntel)
   });
   ["CT","T"].forEach(function(t){
     var TI = teamIntel[t];
@@ -5582,14 +5550,14 @@ function knowApply(b, s, err, zone, L, opt){
       if(h._c > 0){
         if(mOk > 0) h.weight += move*mNo*(h.weight*h._c/mOk);
         if(h.type !== "moved_unknown") specific = true;
-        if(h.heard && zone){ h.x = s.x; h.y = s.y; h.zone = h.route[0] = zone; h.inView = false; }
+        if(h.heard && zone){ h.x = s.x; h.y = s.y; h.zone = h.route[0] = zone; h.inView = false; h.htick = tick; }
       } else h.weight *= 1 - move;
     });
     if(same && specific){ knowNorm(B2.hyps); continue; }
     if(!specific && un && zone){
       var take = r*L*(same ? 0.5 : 1);
       B2.hyps.forEach(function(h){ h.weight *= 1 - take; });
-      B2.hyps.splice(B2.hyps.length-1, 0, {type: "moved", zone: zone, x: s.x, y: s.y, route: [zone], windows: [], weight: take, heard: true});
+      B2.hyps.splice(B2.hyps.length-1, 0, {type: "moved", zone: zone, x: s.x, y: s.y, route: [zone], windows: [], weight: take, heard: true, htick: tick});
       knowTrim(B2);
     }
     knowNorm(B2.hyps);
@@ -5950,6 +5918,7 @@ function teamChannel(T){
                            tick: tick, by: m.by, kind: m.kind};
     }
     mates.forEach(function(o){ if(o.alive && o.id !== m.by) knowCall(o, m); });
+    teamHeardToIntel(T.team, m);
     logEvent("[войс " + T.team + "] " + m.by + ": " + m.text);
   }
   if(T.speaking || !T.queue.length) return;
@@ -5972,6 +5941,18 @@ function teamChannel(T){
   }
 }
 
+// договорённое в войсе — в память команды v166 (teamIntel): «где и что», без «кто» (id "?")
+function teamHeardToIntel(team, m){
+  var g = knowGraph();
+  if(m.kind === "plant" && SITES[m.site]){
+    var st = SITES[m.site];
+    intelPush(team, {type:"sound", x:st.x, y:st.y, id:"?", by:m.by, kind:"plant", conf:0.9});
+    teamIntel[team].plantHeard = {site:m.site, tick:tick, x:st.x, y:st.y};
+    return;
+  }
+  if(m.kind !== "hear" || !g.c[m.zone]) return;
+  intelPush(team, {type:"sound", x:g.c[m.zone].x, y:g.c[m.zone].y, id:"?", by:m.by, kind:m.sound, conf:0.4, count:m.count});
+}
 // ---------- раз в тик, после knowTick ----------
 function teamTick(){
   if(roundState !== "live") return;
@@ -6025,6 +6006,16 @@ function beliefTick(){
       });
       if(k > 1) for(var i=0;i<n;i++) Q[i] /= k;
       B[eid] = Q;
+      // «слышали здесь» по знанию тиммейтов (своё ухо или войс): вес гипотезы ≥ 0,35 (порог v166 beliefMassNear) —
+      // последняя реальная инфа по этому врагу; «кто» — вывод знания (какой враг это объясняет), не подсказка игры
+      var hb = null;
+      mates.forEach(function(m){ var H = m.know.enemies[eid]; if(!H || H.visible) return;
+        H.hyps.forEach(function(h){ if(h.heard && h.htick && h.weight >= 0.35 && (!hb || h.htick > hb.htick)) hb = h; }); });
+      var bl = beliefLast[team][eid];
+      if(hb && (!bl || hb.htick > bl.tick) && !(bl && bl.src === "spotted" && hb.htick - bl.tick < 2*TICK_HZ)){
+        beliefLast[team][eid] = {x:hb.x, y:hb.y, tick:hb.htick, src:"sound"}; beliefSeen[team][eid] = hb.htick;
+        reachOpen(team, hb.x, hb.y); lkpSet(team, eid, hb.x, hb.y, "sound");
+      }
     });
     // что видят живые тиммейты — тайминги REACH (может ли там уже кто-то быть)
     var clearAll = [];
@@ -8708,11 +8699,11 @@ function throwNade(b, type, tx, ty, lob, why){
     bots.forEach(function(o){
       if(!o.alive || o.team !== enemyTeam) return;
       var dd = Math.hypot(o.x-b.x, o.y-b.y);
-      if(hasVision(o.x, o.y, b.x, b.y)){
+      // (v242) видит бросок — только если смотрит туда (поле зрения); услышал — знает сам, команде скажет войс
+      if(hasVision(o.x, o.y, b.x, b.y) && inFov(o, b.x, b.y) && tick >= (o.blindUntil||0)){
         intelPush(enemyTeam, {type:"spotted", x:b.x, y:b.y, id:b.id, by:o.id, conf:1});
         o.lastIntel = {x:b.x, y:b.y, tick:tick};
       } else if(dd <= NADE_HEAR_R){
-        intelPush(enemyTeam, {type:"sound", x:b.x, y:b.y, id:b.id, by:o.id, conf:0.5, kind:"nade"});
         o.heardSound = hearReal(o, {x:b.x, y:b.y, tick:tick, team:b.team, src:b.id, kind:"nade"});
       }
     });
@@ -11458,7 +11449,7 @@ function freshMatch(n, keepProfile){
   var clr = function(o){ for(var k in o) delete o[k]; };
   [spotCache, OUTWARD_CACHE, _ED, EWL, APPEAR, HOLD_CANDS, nadeFlags, comboCd, siteHeatPending].forEach(function(o){ if(o) clr(o); });
   nadeLandHistory = {A:[], B:[]};
-  commQueue = []; tracers.length = 0; soundPings.length = 0; nadesInAir.length = 0; smokes.length = 0; fires.length = 0; nadeFx.length = 0;
+  tracers.length = 0; soundPings.length = 0; nadesInAir.length = 0; smokes.length = 0; fires.length = 0; nadeFx.length = 0;
   groundWeapons.length = 0; events.length = 0; killfeed.length = 0;
   CLEARZ = {CT:{}, T:{}}; LAST_CLEAR = {CT:{}, T:{}};
   if(typeof beliefReset === "function") beliefReset();
