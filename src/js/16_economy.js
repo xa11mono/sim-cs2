@@ -200,7 +200,7 @@ function resetRound(){
     b.x = spp.x; b.y = spp.y; b.z = sp.z||0;
     b.baseX = b.x; b.baseY = b.y;
     b.px = b.x; b.py = b.y;
-    b.path = []; b.pathIdx = 0; b.alive = true; b.hp = 100; b._diedT = undefined; b._micro = null; b._aimOff = 0; b._aimS = null; b._knife = false; b._drawUntil = 0;
+    b.path = []; b.pathIdx = 0; b.alive = true; b.hp = 100; b._diedT = undefined; b._micro = null; b._aimOff = 0; b._aimS = null; b._knife = false; b._drawUntil = 0; b._hold = null;
     b.pickTick = -999; b.contactStreak = 0; b.nextShotTick = 0;
     b.facing = undefined; b.heading = undefined; b.curSpeed = 0; b.crouching = false; b.onStairs = false;
     b.walking = false; b.lastStepTick = -999; b.heardSound = null; b.ears = [];
@@ -225,6 +225,6 @@ function resetRound(){
   tDefaultRoundStart();// дефолт T: места по полосам из демок, кто куда, у кого бомба (12_t_default.js)
   posRoundStart();   // CT — по слотам активного Setup'а (11_position.js)
   utilRoundStart();  // утилита по времени из демок: кто кидает (по дороге на свою точку/полосу), докупить (13_nades.js, v219)
-  stubSelfNades();   // гранаты «себе» на остаток — заплатка-закуп (12_stub.js)
+  buySelfNades();    // гранаты «себе» на остаток — по роли, как в v166 (12_buy.js, v237)
 }
 

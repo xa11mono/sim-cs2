@@ -77,22 +77,14 @@ var POS = {
   // держат 1,8 / 3,2 / 7,8 / 15,2 с (25 / 50 / 75 / 90 %), потом переводят прицел (> 20°) — на какое, по долям с этой
   // точки (positions.json → looks, tools/ct_look_bake.py); джиггл — 0,12 на минуту стояния (тот же исправленный замер
   // пиков, v235; было 2,35 — ошибка замера: так часто про просто уходили с места, а не выглядывали и возвращались)
-  holdQ:       [[0, 1.0], [0.25, 1.8], [0.5, 3.2], [0.75, 7.8], [0.9, 15.2], [1, 30]],
   jigglePerMin: 0.12,
   // v231 (замечание владельца: «стоят, никак не двигаются — точка держит»). Про, держащие место (за ±5 с не дальше 60 px;
   // 6 демок, шаг 0,25 с): сдвиг 0,5–10 px — CT 13,3 %, T 9,2 % четвертей секунды (боты — 2 %); прицел стоя меняется на
   // 0,5–2° в 6,2 %, 2–5° в 2,8 %, 5–20° в 3,4 % четвертей секунды (CT; T — почти так же)
-  microPerSec: {CT: 0.27, T: 0.18},   // начал сдвиг (туда — 0,25 с, обратно — 0,25 с): доля выше / 2 × 4
-  microPx:     [3, 9],                 // px: на сколько (не дальше POS.arrive — это всё ещё «на месте»)
   // v236: CT держит позицию в движении. У про CT на 10–45-й с до планта: стоит 25–33 %, шагом/медленно 42–50 %, бегом
   // 18–33 % (у ботов стояли 83 %). Отрезки (10 демок, 15–45-я с): стоит 0,25 / 0,25 / 0,75 / 1,75 с (25/50/75/90 %),
   // шагом — смещение 5,5 / 12 / 27 / 77 px. Бот так и делает: постоял — прошёл шагом в другое место рядом (откуда виден
   // его угол), постоял — снова. Далеко от середины зоны не уходит: не дальше POS.shuffleR (проектное число)
-  standQ:      [[0, 0.25], [0.5, 0.25], [0.75, 0.75], [0.9, 1.75], [1, 4]],
-  shiftQ:      [[0, 3], [0.25, 5.5], [0.5, 12], [0.75, 27], [0.9, 77], [1, 120]],
-  shuffleR:    80,
-  aimQ:        [[0.062, 0.5, 2], [0.028, 2, 5], [0.034, 5, 20]],   // за 0,25 с: доля, от °, до °
-  aimMax:      20                      // °: дальше от того, куда держит, прицел так не уходит
 };
 // насколько слот нужен команде, когда живых меньше, чем слотов: якорь сайта пустеть не должен —
 // его вес больше, чем «свой слот + подходит по роли» у соседа, поэтому сосед на него переходит
@@ -271,7 +263,7 @@ function posChoosePoints(asg, why){
 // цель: точка слота или её запасная; путь — от того места, где бот сейчас
 function posGo(b, why){
   var P = POS_PT[b.pos.fb ? POS_PT[b.pos.pid].fallback : b.pos.pid];
-  var sp = posFreeSpot(b, P);   // v233: точка — зона, место в ней бот выбирает сам
+  var H = b.pos.fb ? null : posHoldTask(b, P), sp = H ? H.pt : {x: P.x, y: P.y};   // v237: где встать в районе точки — решает сам
   b.pos.cur = P.id; b.pos.tx = sp.x; b.pos.ty = sp.y; b.pos.tz = P.z || 0;
   b.pos.threat = null;
   b.walking = false;   // к точке / на ротацию — бегом
@@ -357,66 +349,139 @@ function posTick(){
     var moving = b.path.length > 0 && b.pathIdx < b.path.length;
     if(far && !moving && tick - b.pos.pathT >= POS.repathEvery) posPath(b);   // движок сбросил путь — та же цель
     if((smokes.length || b.pos.fb) && (tick + (b.id.charCodeAt(b.id.length-1)||0)) % POS.smokeEvery === 0) posSmokeCheck(b);
-    if(!far && (tick + (b.id.charCodeAt(0)||0)) % POS.threatEvery === 0){ posThreatCheck(b); if(!moving && posZoneTick(b)) return; }
+    if(!far && (tick + (b.id.charCodeAt(0)||0)) % POS.threatEvery === 0) posThreatCheck(b);
+    if((tick + (b.id.charCodeAt(0)||0)) % POS.threatEvery === 0 && posHoldTick(b)) return;
     if(posPushTick(b)) return;
     if(posCoverTick(b)) return;
     if(posAfterHit(b)) return;
     if(!far && !moving && posPeekCheck(b)) return;
-    if(!far && posMicro(b)) return;
     if((tick + (b.id.charCodeAt(1)||0)) % POS.rotEvery === 0){ if(!posSiteReact(b)) posRotateCheck(b); posEmptySite(b); }
   });
 }
-// ---------- позиция — зона, а не точка (v233, замечание владельца 10.10: «точки — рекомендованная зона, не стоять всегда
-// на них; движение свободное, как в v166») ----------
-// Зона — точка из демок и её разброс у про (P.spread — круг, куда попадают 80 % стоянок про). Где в ней встать, бот
-// решает сам по тому, что знает (как pickSpots в v166): видно угол, который держит точка (если с самой точки его видно);
-// не видно врагам, которых он знает (гипотезы с фактом); ближе к местам, где стоят про (P.spots); ближе к себе (меньше
-// идти); не на месте тиммейта. Веса — проектные числа (v166 брал похожие). Знание поменялось (угроза на вход, свой
-// погиб) — выбирает заново и, если новое место в стороне, переходит туда шагом (posZoneTick)
-var POS_ZONE = {ring: 10, hide: 2, pro: 1, walk: 0.5, mate: 60, step: 12};
-function posFreeSpot(b, P){
-  var R = Math.max(P.spread || 0, 15), C = [];
-  (P.spots || []).forEach(function(q){ C.push({x: q.x, y: q.y}); });
-  C.push({x: P.x, y: P.y});
-  [0.5, 1].forEach(function(k){
-    for(var i = 0; i < POS_ZONE.ring; i++){
-      var a = i*2*Math.PI/POS_ZONE.ring + k, w = snapToWalkable(P.x + Math.cos(a)*R*k, P.y + Math.sin(a)*R*k);
-      if(w && Math.hypot(w.x - P.x, w.y - P.y) <= R + 2 && !crossesWall(P.x, P.y, w.x, w.y)) C.push(w);
-    }
-  });
-  var foes = [];
-  if(b.know) for(var id in b.know.enemies){
-    var B = b.know.enemies[id]; if(!planFact(B)) continue;
-    B.hyps.forEach(function(h){ if(h.x !== undefined && h.weight >= POS.threatW) foes.push(h); });
-  }
-  var mates = bots.filter(function(o){ return o !== b && o.alive && o.team === b.team && o.pos; }).map(function(o){ return {x: o.pos.tx, y: o.pos.ty}; });
-  var seesAngle = !crossesWall(P.x, P.y, P.angle.x, P.angle.y), best = null, bs = -1e9;
-  C.forEach(function(c){
-    if(seesAngle && crossesWall(c.x, c.y, P.angle.x, P.angle.y)) return;   // угол точки отсюда не видно
-    var sc = 0;
-    foes.forEach(function(h){ if(crossesWall(c.x, c.y, h.x, h.y)) sc += POS_ZONE.hide; });
-    var pro = 0; (P.spots || []).forEach(function(q){ if(Math.hypot(q.x - c.x, q.y - c.y) <= 15) pro = Math.max(pro, q.share || 0); });
-    if(!P.spots || !P.spots.length) pro = Math.hypot(c.x - P.x, c.y - P.y) <= 15 ? 1 : 0;
-    sc += POS_ZONE.pro*pro;
-    sc -= POS_ZONE.walk*Math.hypot(c.x - b.x, c.y - b.y)/Math.max(R, 1)/4;
-    if(mates.some(function(m){ return Math.hypot(m.x - c.x, m.y - c.y) < POS_ZONE.mate; })) sc -= 1;
-    sc += posSeed(b, Math.round(c.x)*7 + Math.round(c.y)*13)*0.3;   // свой выбор: не все одинаково
-    if(sc > bs){ bs = sc; best = c; }
-  });
-  return best || {x: P.x, y: P.y};
+// ---------- «держать район» (v237, перенос из v166: holdSpot / holdGroup; замечание владельца 10.10: «точки — только
+// рекомендация, движение свободное, как в v166») ----------
+// Задача говорит только ЧТО держать: центр (рекомендованная точка из демок / место полосы T), радиус, что обязательно
+// видеть (угол точки). Где встать, выбирает одна оценка по тому, что бот знает (как в v166):
+//  + видно главный вход, откуда вероятнее всего придут (по его гипотезам о врагах — масса в зоне за входом и за ней);
+//  − каждый лишний открытый вход («встать под один вход»); − засвеченное место (сам стрелял тут, тут убили своего);
+//  − стоять кучей с тиммейтом; + кроссфайр (тот же вход под другим углом); + где обычно стоят про (сетка progrid);
+//  − долго идти; − далеко от центра; + своё нынешнее место (не бегать между равными).
+// Пересчёт раз в HOLD.reeval тиков (2 с): знание поменялось — место меняется само, без «точка → точка».
+// Числа — из v166 (там они подобраны глазами и по замерам того времени: проектные числа)
+var HOLD = {seeMain: 3.0, extraOpen: 1.6, burned: 1.5, burnR: 160, burnSec: 8, stackR: 110, stack: 1.2, cross: 0.8,
+            travel: 0.6, objDist: 0.3, pro: 1.2, keep: 0.35, reeval: 128, minW: 0.02, nbrW: 0.6, rArea: 280, rMax: 340,
+            strafeR: 200};   // strafeR — к новому месту ближе этого идёт, не отводя прицел с угла (боком/задом)
+var PROGRID = @@DATA:progrid.json@@;
+function holdProAt(team, x, y){
+  var C = PROGRID.cell, n = PROGRID.n, cx = Math.floor(x/C), cy = Math.floor(y/C);
+  return cx < 0 || cy < 0 || cx >= n || cy >= n ? 0 : PROGRID[team][cy*n + cx];
 }
-// стоит на месте: знание поменялось — может, в зоне есть место лучше (шагом, коротко)
-function posZoneTick(b){
-  if(b.pos.fb || b.pos.peek || (b._micro && b._micro.phase === "walk") || b._sawEnemy || posLed(b)) return false;
-  var key = b.pos.threat ? Math.round(b.pos.threat.x/40) + ":" + Math.round(b.pos.threat.y/40) : "-";
-  key += "|" + bots.filter(function(o){ return o.team === b.team && !o.alive; }).length;
-  if(b.pos.zKey === key) return false;
-  b.pos.zKey = key;
+var HOLD_CANDS = {}, HOLD_ZNAV = null, HOLD_PORT = {};
+function holdCands(center, rMin, rMax){
+  var k = Math.round(center.x/20) + "," + Math.round(center.y/20) + "|" + rMin + "|" + rMax;
+  if(HOLD_CANDS[k]) return HOLD_CANDS[k];
+  var out = [];
+  NAVAREAS.forEach(function(z){
+    if(NAV_BLOCKED[z.id] || !(zoneGraph[z.id] || []).length) return;
+    var c = zoneCentroid(z), d = Math.hypot(c.x - center.x, c.y - center.y);
+    if(d < rMin || d > rMax || insideSolidWall(c.x, c.y)) return;
+    if(out.some(function(q){ return Math.hypot(q.x - c.x, q.y - c.y) < 24; })) return;
+    out.push({x: c.x, y: c.y, d: d});
+  });
+  return (HOLD_CANDS[k] = out);
+}
+// вход из зоны колл-аута i в соседнюю nn: место навмеша в nn, ближайшее к центру i
+function holdPortal(i, nn){
+  var key = i + ">" + nn; if(HOLD_PORT[key] !== undefined) return HOLD_PORT[key];
+  if(!HOLD_ZNAV){ HOLD_ZNAV = {}; NAVAREAS.forEach(function(z){ if(NAV_BLOCKED[z.id]) return; var c = zoneCentroid(z), zid = zoneIdAt(c.x, c.y); if(zid) (HOLD_ZNAV[zid] = HOLD_ZNAV[zid] || []).push(c); }); }
+  var ci = knowGraph().c[i], best = null, bd = 1e9;
+  (HOLD_ZNAV[nn] || []).forEach(function(c){ var d = Math.hypot(c.x - ci.x, c.y - ci.y); if(d < bd){ bd = d; best = c; } });
+  return (HOLD_PORT[key] = best);
+}
+function holdMass(b, z){
+  var K = b.know, m = 0; if(!K) return 0;
+  for(var id in K.enemies) K.enemies[id].hyps.forEach(function(h){ if(h.zone === z) m += h.weight; });
+  return m;
+}
+function holdEntrances(b, center, rArea){
+  var g = knowGraph(), inside = {}, E = [];
+  for(var z in g.c) if(Math.hypot(g.c[z].x - center.x, g.c[z].y - center.y) <= rArea) inside[z] = 1;
+  var zc = knowZoneAt(center.x, center.y); if(zc) inside[zc] = 1;
+  Object.keys(inside).forEach(function(i){
+    (g.adj[i] || []).forEach(function(nn){
+      if(inside[nn]) return;
+      var p = holdPortal(i, nn); if(!p) return;
+      var w = holdMass(b, nn) + 0.02;
+      (g.adj[nn] || []).forEach(function(n2){ if(!inside[n2]) w += HOLD.nbrW*holdMass(b, n2); });
+      var m = E.filter(function(e){ return Math.hypot(e.pt.x - p.x, e.pt.y - p.y) < 120; })[0];
+      if(m) m.w += w; else E.push({pt: p, w: w, z: nn});
+    });
+  });
+  E.sort(function(a, c){ return c.w - a.w; });
+  return E;
+}
+// T: {key, center, rArea, rMin, rMax, must: [pt], mates: [{pt, see}]}
+function holdSpot(b, T){
+  var E = holdEntrances(b, T.center, T.rArea || HOLD.rArea).filter(function(e){ return e.w > HOLD.minW; });
+  var wmax = E.length ? E[0].w : 1; E.forEach(function(e){ e.wn = e.w/wmax; });
+  var cands = holdCands(T.center, T.rMin || 0, T.rMax || HOLD.rMax), must = T.must || [], H = b._hold;
+  function eval1(c, useMust){
+    if(useMust && !must.every(function(m){ return !crossesWall(c.x, c.y, m.x, m.y); })) return null;
+    var main = 0, mainE = null, open = 0;
+    E.forEach(function(e){ if(crossesWall(c.x, c.y, e.pt.x, e.pt.y)) return; open += e.wn; if(e.wn > main){ main = e.wn; mainE = e; } });
+    var sc = HOLD.seeMain*main - HOLD.extraOpen*(open - main);
+    if(tick - (b.lastShotTick || -1e9) < HOLD.burnSec*TICK_HZ && Math.hypot(c.x - b.x, c.y - b.y) < HOLD.burnR) sc -= HOLD.burned;
+    if(bots.some(function(o){ return o.team === b.team && !o.alive && o._diedT !== undefined && tick - o._diedT < 10*TICK_HZ && Math.hypot(o.x - c.x, o.y - c.y) < HOLD.burnR; })) sc -= HOLD.burned;
+    (T.mates || []).forEach(function(m){
+      var dm = Math.hypot(m.pt.x - c.x, m.pt.y - c.y);
+      if(dm < HOLD.stackR) sc -= HOLD.stack;
+      else if(mainE && m.see && Math.hypot(m.see.pt.x - mainE.pt.x, m.see.pt.y - mainE.pt.y) < 60 && dm > 90){
+        var a1 = Math.atan2(c.y - mainE.pt.y, c.x - mainE.pt.x), a2 = Math.atan2(m.pt.y - mainE.pt.y, m.pt.x - mainE.pt.x);
+        var da = Math.abs(((a1 - a2 + Math.PI) % (2*Math.PI) + 2*Math.PI) % (2*Math.PI) - Math.PI);
+        sc += da > 0.87 && da < 2.1 ? HOLD.cross : da > 0.5 ? HOLD.cross*0.4 : 0;
+      }
+    });
+    sc += HOLD.pro*holdProAt(b.team, c.x, c.y);
+    sc -= HOLD.travel*Math.hypot(c.x - b.x, c.y - b.y)*1.2/1000;
+    sc -= HOLD.objDist*c.d/(T.rMax || HOLD.rMax);
+    if(H && H.key === T.key && Math.hypot(c.x - H.pt.x, c.y - H.pt.y) < 40) sc += HOLD.keep;
+    return {pt: {x: c.x, y: c.y}, s: sc, main: mainE};
+  }
+  var best = null;
+  [true, false].some(function(useMust){
+    cands.forEach(function(c){ var r = eval1(c, useMust); if(r && (!best || r.s > best.s)) best = r; });
+    return !!best;
+  });
+  if(!best) return null;
+  best.look = best.main ? best.main.pt : (E[0] ? E[0].pt : (must[0] || T.center));
+  return best;
+}
+// задача «держать район» для бота: пересчёт раз в HOLD.reeval; возвращает {pt, look, see}; mates — уже выбранные места своих
+function holdTask(b, T){
+  var H = b._hold, same = H && H.key === T.key && H.round === roundNum;
+  if(same && tick - H.t < HOLD.reeval) return H;
+  var r = holdSpot(b, T);
+  if(!r) return same ? H : null;
+  b._hold = {key: T.key, round: roundNum, t: tick, pt: r.pt, look: r.look, see: r.main};
+  return b._hold;
+}
+function holdMates(b){
+  return bots.filter(function(o){ return o !== b && o.alive && o.team === b.team && o._hold && o._hold.round === roundNum; })
+    .map(function(o){ return {pt: o._hold.pt, see: o._hold.see}; });
+}
+// CT: задача по точке слота (центр — точка, обязательно видеть — её угол)
+function posHoldTask(b, P){
+  return holdTask(b, {key: "ct:" + P.id, center: {x: P.x, y: P.y}, must: [P.angle], mates: holdMates(b)});
+}
+// стоит / идёт к месту: пересчёт; новое место дальше 40 px — туда (близко — шагом и с прицелом на угол)
+function posHoldTick(b){
+  if(b.pos.fb || b.pos.peek || b._sawEnemy || posLed(b) || b.pos.push || b.pos.cover) return false;
   var P = POS_PT[b.pos.cur]; if(!P) return false;
-  var sp = posFreeSpot(b, P);
-  if(Math.hypot(sp.x - b.pos.tx, sp.y - b.pos.ty) < POS_ZONE.step) return false;
-  b.pos.tx = sp.x; b.pos.ty = sp.y; b.walking = true; posPath(b);
-  POS_LOG.push({tick: tick, round: roundNum, who: b.id, slot: b.pos.slot, pid: P.id, why: "в зоне — место лучше по знанию"});
+  var H = posHoldTask(b, P); if(!H) return false;
+  if(Math.hypot(H.pt.x - b.pos.tx, H.pt.y - b.pos.ty) <= 40) return false;
+  b.pos.tx = H.pt.x; b.pos.ty = H.pt.y;
+  b.walking = Math.hypot(H.pt.x - b.x, H.pt.y - b.y) < HOLD.strafeR;
+  posPath(b);
   return true;
 }
 // ---------- ротация по инфе (v214) ----------
@@ -725,64 +790,6 @@ function posPeekTick(b){
   }
   return true;
 }
-// ---------- стоит — не замирает (v231): шаг на 3–9 px в сторону и назад, с частотой про ----------
-// Одно место для CT (posTick) и T (12_t_default.js, стоит в полосе). Шагом (тихо), в сторону от взгляда — как
-// «поправиться за укрытием»; в стену — нет. Видит врага / идёт куда-то — нет.
-function posQuant(Q, u){
-  for(var k = 1; k < Q.length; k++) if(u <= Q[k][0]) return Q[k-1][1] + (Q[k][1] - Q[k-1][1])*(u - Q[k-1][0])/(Q[k][0] - Q[k-1][0]);
-  return Q[Q.length - 1][1];
-}
-// CT держит позицию в движении (v236): «постоял — прошёл шагом рядом — постоял», отрезки — как у про (POS.standQ, shiftQ).
-// Новое место — его новая цель (b.pos.tx/ty), чтобы позиция не тянула назад
-function posShift(b){
-  var M = b._micro;
-  if(b._sawEnemy || b.planting || b.defusing || b.pos.fb){ b._micro = null; return false; }
-  if(M && M.phase === "walk"){
-    if(b.path.length && b.pathIdx < b.path.length && tick < M.until) return true;
-    M = b._micro = null;
-  }
-  if(!M){ b._micro = {phase: "stand", until: tick + Math.round(posQuant(POS.standQ, posSeed(b, tick*23 + 3))*TICK_HZ)}; return false; }
-  if(tick < M.until) return false;
-  var P = POS_PT[b.pos.cur]; if(!P){ b._micro = null; return false; }
-  var d = posQuant(POS.shiftQ, posSeed(b, tick*31 + 2)), a0 = posSeed(b, tick*29 + 1)*2*Math.PI;
-  var sees = !crossesWall(P.x, P.y, P.angle.x, P.angle.y);
-  for(var k = 0; k < 8; k++){
-    var a = a0 + k*Math.PI/4, x = b.x + Math.cos(a)*d, y = b.y + Math.sin(a)*d, w = snapToWalkable(x, y);
-    if(!w || Math.hypot(w.x - x, w.y - y) > 2 || crossesWall(b.x, b.y, w.x, w.y)) continue;
-    if(Math.hypot(w.x - P.x, w.y - P.y) > Math.max(POS.shuffleR, P.spread || 0)) continue;
-    if(sees && crossesWall(w.x, w.y, P.angle.x, P.angle.y)) continue;
-    b.pos.tx = w.x; b.pos.ty = w.y;
-    b.walking = true; b.path = [[w.x, w.y, b.z || 0]]; b.pathIdx = 0; b._pathBy = "micro";
-    b._micro = {phase: "walk", until: tick + Math.round((d/(SPEED*WALK_SPEED_FRAC) + 1)*TICK_HZ)};
-    return true;
-  }
-  b._micro = null; return false;
-}
-function posMicro(b){
-  if(b.team === "CT" && b.pos) return posShift(b);
-  var M = b._micro;
-  if(M){
-    if(b._sawEnemy){ b._micro = null; return false; }
-    if(tick < M.until) return true;
-    if(M.phase === "out"){
-      M.phase = "back"; M.until = tick + Math.round(0.25*TICK_HZ);
-      b.walking = true; b.path = [[M.x0, M.y0, b.z || 0]]; b.pathIdx = 0; b._pathBy = "micro";
-      return true;
-    }
-    b._micro = null; return false;
-  }
-  if(b._sawEnemy || (b.path.length && b.pathIdx < b.path.length) || b.planting || b.defusing) return false;
-  if(posSeed(b, tick*23 + 3) >= POS.microPerSec[b.team]/TICK_HZ) return false;
-  var a = (b.facing || 0) + (posSeed(b, tick*29 + 1) < 0.5 ? 1 : -1)*Math.PI/2;
-  var d = POS.microPx[0] + (POS.microPx[1] - POS.microPx[0])*posSeed(b, tick*31 + 2);
-  var x = b.x + Math.cos(a)*d, y = b.y + Math.sin(a)*d;
-  // с запасом (v232: у стены микросдвиг упирался — бот дёргался): за точкой ещё POS.microPx[1] свободно, точка — на навмеше
-  var cx = b.x + Math.cos(a)*(d + POS.microPx[1]), cy = b.y + Math.sin(a)*(d + POS.microPx[1]), w = snapToWalkable(x, y);
-  if(crossesWall(b.x, b.y, cx, cy) || !w || Math.hypot(w.x - x, w.y - y) > 1) return false;
-  b._micro = {x0: b.x, y0: b.y, phase: "out", until: tick + Math.round(0.25*TICK_HZ)};
-  b.walking = true; b.path = [[x, y, b.z || 0]]; b.pathIdx = 0; b._pathBy = "micro";
-  return true;
-}
 // ---------- после фрага / попадания — сменить место (v215) ----------
 function posAfterHit(b){
   var k = b.kills || 0, hp = b.hp;
@@ -807,33 +814,16 @@ function posAfterHit(b){
 // враг — префайр туда (узкое удержание, engagementPrep в 15_combat.js); CT на месте — угол
 // slot'а или угроза на него; T на своей полосе — туда, куда шёл (держит проход по ходу).
 function posLook(b){
-  var L = posLookBase(b);
-  if(!L || L.why === "move" || b._sawEnemy || (b.path.length && b.pathIdx < b.path.length && b._pathBy !== "micro")) return L;
-  // стоит: прицел поправляется, как у про (POS.aimQ) — от того, куда держит, не дальше POS.aimMax (v231)
-  if(tick % 16 === 0 && b._aimT !== tick){
-    b._aimT = tick;
-    var u = posSeed(b, tick*37 + 9), acc = 0, off = b._aimOff || 0;
-    for(var i = 0; i < POS.aimQ.length; i++){
-      acc += POS.aimQ[i][0];
-      if(u < acc){
-        var d = POS.aimQ[i][1] + (POS.aimQ[i][2] - POS.aimQ[i][1])*posSeed(b, tick*41 + 4);
-        var toward = posSeed(b, tick*43 + 6) < 0.5 + Math.abs(off)/(2*POS.aimMax);   // дальше ушёл — чаще назад
-        off += (toward ? -Math.sign(off || 1) : Math.sign(off || 1))*d;
-        off = Math.max(-POS.aimMax, Math.min(POS.aimMax, off));
-        break;
-      }
-    }
-    b._aimOff = off;
-  }
-  if(!b._aimOff) return L;
-  var a = Math.atan2(L.y - b.y, L.x - b.x) + b._aimOff*Math.PI/180, R = Math.max(150, Math.hypot(L.x - b.x, L.y - b.y));
-  return {x: b.x + Math.cos(a)*R, y: b.y + Math.sin(a)*R, why: L.why};
-}
-function posLookBase(b){
   var w = (b.path.length && b.pathIdx < b.path.length && b._pathBy !== "micro") ? b.path[Math.min(b.pathIdx + 1, b.path.length - 1)] : null;
   if(w && Math.hypot(w[0]-b.x, w[1]-b.y) <= 4) w = null;
   if(b.pos && b.pos.peek) return {x: b.pos.peek.hx, y: b.pos.peek.hy, why: "threat"};   // пик — туда, где слышал (v227)
   if(b.pos && b.pos.reactLook && tick < b.pos.reactLook.until) return {x: b.pos.reactLook.x, y: b.pos.reactLook.y, why: "threat"};   // сайт берут (v233)
+  // к новому месту в своём районе — боком/задом, прицел на угол (v237: раньше разворачивался спиной к углу и обратно)
+  if(w && b._hold && b._hold.look && Math.hypot(b._hold.pt.x - b.x, b._hold.pt.y - b.y) < HOLD.strafeR &&
+     Math.hypot((b.pos ? b.pos.tx : b._hold.pt.x) - b._hold.pt.x, (b.pos ? b.pos.ty : b._hold.pt.y) - b._hold.pt.y) < 5){
+    b._goDir = Math.atan2(w[1]-b.y, w[0]-b.x);
+    return {x: b._hold.look.x, y: b._hold.look.y, why: "angle"};
+  }
   if(w){
     b._goDir = Math.atan2(w[1]-b.y, w[0]-b.x);
     return posAhead(b, b._goDir) || {x: w[0], y: w[1], why: "move"};
@@ -843,8 +833,7 @@ function posLookBase(b){
   if(!b.pos) return posStandLook(b);   // T стоит на своём месте (v224)
   var P = POS_PT[b.pos.cur];
   if(!b.pos.threat){
-    var L = posHoldLook(b, P);
-    if(L) return L;
+    if(!b.pos.fb && b._hold && b._hold.look && b._hold.key === "ct:" + P.id) return {x: b._hold.look.x, y: b._hold.look.y, why: "angle"};   // главный вход (v237)
     return {x: P.angle.x, y: P.angle.y, why: b.pos.fb ? "fallback" : "angle"};
   }
   // угроза — взгляд на неё, но не шире yawRange точки (в игре yaw против часовой, на радаре y вниз)
@@ -854,23 +843,6 @@ function posLookBase(b){
   d = Math.max(lo, Math.min(hi, d));
   var R = Math.max(150, P.angle.dist);
   return {x: b.x + Math.cos(c+d)*R, y: b.y + Math.sin(c+d)*R, why: "threat"};
-}
-
-// CT стоит на точке без угрозы: держит одно из направлений, которые про держат с этой точки, сколько держат про, потом
-// переводит на другое по их долям (v228, В17: «про не статичны — в своём ритме меняют угол»). Идёт / на запасной (дым) —
-// угол точки как раньше
-function posHoldLook(b, P){
-  if(!P.looks || !P.looks.length || b.pos.fb || Math.hypot(b.pos.tx - b.x, b.pos.ty - b.y) > POS.arrive) return null;
-  var H = b.pos.hold;
-  if(!H || H.pid !== P.id || tick >= H.until){
-    var r = posSeed(b, tick*7 + 11), i = 0, acc = 0, sum = P.looks.reduce(function(a, l){ return a + l[2]; }, 0);
-    for(; i < P.looks.length - 1; i++){ acc += P.looks[i][2]/sum; if(r < acc) break; }
-    var u = posSeed(b, tick*13 + 29), Q = POS.holdQ, sec = Q[Q.length - 1][1];
-    for(var k = 1; k < Q.length; k++) if(u <= Q[k][0]){ sec = Q[k-1][1] + (Q[k][1] - Q[k-1][1])*(u - Q[k-1][0])/(Q[k][0] - Q[k-1][0]); break; }
-    H = b.pos.hold = {pid: P.id, i: i, until: tick + Math.round(sec*TICK_HZ)};
-  }
-  var l = P.looks[H.i], R = Math.max(150, P.angle.dist);
-  return {x: b.x + l[0]*R, y: b.y + l[1]*R, why: "angle"};
 }
 
 // ---------- T стоит на месте: куда смотреть (v224, правки владельца 3 и 10) ----------
@@ -904,6 +876,9 @@ function posStandLook(b){
   var sp = b.tdef && b.tdef.spot;
   if(sp && sp.look && Math.hypot(sp.x - b.x, sp.y - b.y) <= 40)
     cands.push({x: b.x + sp.look[0]*400, y: b.y + sp.look[1]*400, why: "lane", sc: 1.1, src: "spot"});
+  // главный вход района, который он держит (v237, «держать район»: откуда вероятнее всего придут) — выше взгляда про
+  if(b._hold && b._hold.look && b._hold.round === roundNum && Math.hypot(b._hold.pt.x - b.x, b._hold.pt.y - b.y) <= 40)
+    cands.push({x: b._hold.look.x, y: b._hold.look.y, why: "lane", sc: 1.2, src: "hold"});
   var best = null, bd = 1e9;
   KNOW_POSITIONS.points.forEach(function(P){
     if(P.side !== b.team) return;

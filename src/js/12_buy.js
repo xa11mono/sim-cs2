@@ -1,17 +1,10 @@
 // ======================= ЗАКУП КОМАНДЫ: тип раунда и что берёт каждый (аудит п. 5, v217) =======================
 // Одно место на «что команда покупает» (docs/PRO_PLAY.md 4; заменило заглушку stubBuy из 12_stub.js).
-// Как у про: команда покупает ВМЕСТЕ — решение одно на всех, по деньгам каждого и бонусу за проигрыш:
-//   фулл-бай  — 4+ могут взять винтовку, броню со шлемом и утилиту (CT — ещё кит) — с дропом: богатые
-//               покупают оружие бедным, AWP-игроку — первым (v218, csdb economy guide);
-//   эко       — не могут, но если сейчас не тратиться, в следующем раунде (с бонусом за проигрыш) 4+ смогут;
-//               оружие с прошлого раунда остаётся; AWP-роль, у которой хватает и на AWP сейчас, и на фулл
-//               потом, — хиро-бай (ProSettings: редкий, один берёт сильное оружие, остальные сейвят);
-//   хаф-бай   — второй раунд после выигранного пистолетного: SMG/дешёвая винтовка + броня (анти-эко);
-//   форс      — сейв не поможет (и в следующем раунде на фулл не хватит) или раунд надо выиграть
-//               (соперник в шаге от победы в матче / последний раунд половины): лучшее, что по карману.
-// AWP — AWP-роль в фулл-бае, если хватает на AWP + броню + утилиту (у про AWP в фулл-бае: CT 73 %, T 47 %).
+// Как у про: команда покупает ВМЕСТЕ — решение одно на всех (buyDecide, v237 — правила v166: фулл / хаф / форс / эко,
+// бонус после пистолетки, оценка денег соперника), с дропом винтовок бедным и AWP снайперу (buyAwp).
+// AWP — снайпер в фулл-бае, сам или дропом (у про AWP в фулл-бае: CT 73 %, T 47 %).
 // Числа сравнения — tools/measure (доли типов у про: фулл CT 65 % / T 63 %, форс/хаф 14 / 13 %, эко 13 / 17 %).
-// Гранаты под сценарий и «себе» покупаются потом (scrBuyUtility, stubSelfNades) — не ниже b._buyFloor
+// Гранаты под сценарий покупаются потом (scrBuyUtility), «себе» — buySelfNades (v237, из v166) — не ниже b._buyFloor
 // (на эко — чтобы хватило на фулл в следующем раунде).
 
 var BUY = {
@@ -40,20 +33,11 @@ function buyTeam(team){
   T.forEach(function(b){ b._buyFloor = 0; });
   if(roundNum === 1 || roundNum === HALF_ROUNDS + 1){ T.forEach(buyPistol); return "pistol"; }
   var loss = buyLossIncome(team);
-  // дроп (v218): богатые покупают оружие бедным, AWP-игроку — в первую очередь (csdb: «rich players buy for
-  // poor players», «teams usually drop for their AWPer»). План — с AWP, если команда тянет, иначе без
-  var plan = buyDropPlan(T, true);
-  if(plan.equipped < 4) plan = buyDropPlan(T, false);
-  var canFull = plan.equipped;
-  var nextFull = T.filter(function(b){ return b.money + loss >= buyFullCost(b); }).length;
-  var wonLast = teamEco[team].lossLevel === 0 || teamEco[team].lastWin;
-  var type, why;
-  if(canFull >= 4){ type = "full"; why = canFull + " из 5 в фулле" + (plan.drops.length ? " (с дропом: " + plan.drops.map(function(d){ return d.from.id + "→" + d.to.id + " " + d.key; }).join(", ") + ")" : ""); }
-  else if((roundNum === 2 || roundNum === HALF_ROUNDS + 2) && wonLast){ type = "half"; why = "выиграли пистолетный — анти-эко"; }
-  else if(nextFull >= 4 && !buyMustWin(team)){ type = "eco"; why = "сейчас фулл у " + canFull + ", после сейва — у " + nextFull; }
-  else { type = "force"; why = buyMustWin(team) ? "раунд надо выиграть" : "сейв не поможет: после сейва фулл только у " + nextFull; }
+  // дроп (v218): богатые покупают винтовки бедным (csdb: «rich players buy for poor players»); AWP — buyAwp (v237, как в v166)
+  var plan = buyDropPlan(T, false);
+  var d = buyDecide(team, T, plan, loss), type = d.type, why = d.why;
   var hero = null;
-  if(type === "full") buyDrops(plan);   // сначала оружие тем, кому дропают, — потом каждый докупает своё
+  if(type === "full"){ buyAwp(T); buyDrops(plan); }   // AWP снайперу (сам или дроп), оружие тем, кому дропают, — потом каждый докупает своё
   T.forEach(function(b){
     if(type === "full") buyFull(b, plan);
     else if(type === "force") buyForce(b);
@@ -70,6 +54,81 @@ function buyTeam(team){
   BUY_LOG.push({round: roundNum, team: team, type: type, why: why});
   logEvent("Закуп " + team + ": " + ROUND_TYPE_LABEL[type] + " — " + why, "info");
   return type;
+}
+// ---------- тип раунда (v237, перенос из v166: decideRoundType + оценка денег соперника) ----------
+// Как в v166 (там экономика по замерам ближе к про: фулл CT 62 %, гранат CT 9,5 за раунд):
+//  • второй раунд после выигранного пистолетного — хаф (бонус); после проигранного — иногда форс (ПП + броня);
+//  • фулл — 4+ тянут винтовку, броню и гранаты, или 3+ и денег команды хватает на всех (с дропом);
+//  • последний раунд половины / соперник в шаге от победы — форс (копить незачем);
+//  • после сейва 4+ смогут фулл с гранатами — хаф (если 2+ тянут сейчас) или эко; 4+ тянут без гранат — всё равно фулл;
+//  • иначе: в среднем ≥ $2000 — форс, меньше — эко.
+// Деньги соперника — как считают про: по лосс-бонусу и сохранённому оружию; у нас — реальная средняя ±$500 (v166):
+// у них эко, а мы на эко/хафе — SMG (форс против эко); у них фулл, а мы собирались форсить и после эко хватит — эко.
+// Вероятности и суммы — из v166 (проектные числа)
+var BUY_ECO = {lostPistolForce: 0.45, lostPistolAvg: 1700, forceAvg: 2000, guessErr: 1000, eFullAvg: 4200, eEcoAvg: 2300};
+function buyBare(b){ return (buyHasRifle(b) ? 0 : WEAPONS[BUY_RIFLE[b.team]].price) + buyArmorCost(b, true); }
+function buyEnemyGuess(team){
+  var en = team === "CT" ? "T" : "CT", ms = bots.filter(function(b){ return b.team === en; });
+  var avg = ms.reduce(function(a, b){ return a + b.money; }, 0)/Math.max(1, ms.length);
+  var guns = ms.filter(function(b){ return b.primary && WEAPONS[b.primary].tier >= 5; }).length;
+  avg += (hashRand(roundNum*557 + matchNum*19 + (team === "CT" ? 1 : 2)) - 0.5)*BUY_ECO.guessErr;
+  var full = guns >= 3 || avg >= BUY_ECO.eFullAvg;
+  return {full: full, eco: !full && guns <= 1 && avg < BUY_ECO.eEcoAvg};
+}
+function buyDecide(team, T, plan, loss){
+  var n = T.length || 1, money = T.reduce(function(a, b){ return a + b.money; }, 0), avg = money/n;
+  var canFull = plan.equipped, need = T.reduce(function(a, b){ return a + buyFullCost(b); }, 0);
+  var canBare = T.filter(function(b){ return b.money >= buyBare(b); }).length;
+  var nextFull = T.filter(function(b){ return b.money + loss >= buyFullCost(b); }).length;
+  var second = roundNum === 2 || roundNum === HALF_ROUNDS + 2, E = buyEnemyGuess(team), base, why;
+  if(second && teamEco[team].wonPistol){ base = "half"; why = "выиграли пистолетный — хаф (бонус)"; }
+  else if(second && avg >= BUY_ECO.lostPistolAvg && hashRand(roundNum*97 + matchNum*13 + (team === "CT" ? 1 : 2)) < BUY_ECO.lostPistolForce){ base = "force"; why = "проиграли пистолетный — форс"; }
+  else if(canFull >= 4 || (canFull >= 3 && money >= need)){ base = "full"; why = canFull + " из " + n + " в фулле" + (plan.drops.length ? " (с дропом)" : ""); }
+  else if(buyMustWin(team)){ base = "force"; why = "раунд надо выиграть"; }
+  else if(nextFull >= 4){ base = canFull >= 2 ? "half" : "eco"; why = "после сейва фулл у " + nextFull; }
+  else if(canBare >= 4){ base = "full"; why = "винтовки и броня у " + canBare + " (без гранат)"; }
+  else { base = avg >= BUY_ECO.forceAvg ? "force" : "eco"; why = "после сейва фулл только у " + nextFull + ", в среднем $" + Math.round(avg); }
+  if(E.eco && (base === "eco" || base === "half") && avg >= 1500){ base = "force"; why += "; у них эко — SMG"; }
+  else if(E.full && base === "force" && !buyMustWin(team) && nextFull >= 4){ base = "eco"; why += "; у них фулл — копим"; }
+  else if(E.full && base === "half" && !teamEco[team].wonPistol && !buyMustWin(team)){ base = "eco"; why += "; у них фулл — не хаф, эко"; }
+  return {type: base, why: why};
+}
+// AWP (v237, перенос из v166 teamAwp): снайпер покупает сам, если хватает на AWP + кевлар; нет — богатый тиммейт, у
+// которого после этого останется на свой фулл, покупает и скидывает (как в CS)
+function buyAwp(T){
+  var a = T.filter(function(b){ return b.role === "awp"; })[0], P = WEAPONS.AWP.price;
+  if(!a || a.primary === "AWP") return;
+  if(a.money >= P + ARMOR_PRICE){ a.money -= P; a.primary = "AWP"; return; }
+  var rich = T.filter(function(m){ return m !== a && m.money - P >= buyFullCost(m); }).sort(function(x, y){ return y.money - x.money; })[0];
+  if(rich){ rich.money -= P; a.primary = "AWP"; logEvent("Дроп: " + nick(rich.id) + " → " + nick(a.id) + " (AWP)", "info"); }
+}
+// ---------- гранаты «себе» (v237, перенос из v166 buyNades; было — заплатка stubSelfNades) ----------
+// У про на фулле почти каждый берёт 3–4 гранаты (CT кидают ~10 за раунд, T ~9,4); набор — по роли (v166, по демкам того
+// времени). Фулл — до 4 штук, форс/хаф — до 2, эко/пистолетка — 1 (без молотова; на эко — не ниже денег на следующий фулл).
+// Покупается после гранат сценария и утилиты по времени — на то, что осталось
+var BUY_NADES = {
+  entry: ["flash", "flash", "smoke", "molly"], support: ["flash", "smoke", "molly", "he"], igl: ["smoke", "molly", "flash", "flash"],
+  lurker: ["smoke", "flash", "molly", "he"], awp: ["smoke", "flash", "molly", "he"],
+  anchor: ["molly", "smoke", "flash", "he"], rotator: ["smoke", "flash", "he", "molly"], mid: ["flash", "smoke", "he", "molly"], roamer: ["flash", "smoke", "he", "molly"]
+};
+var BUY_CT_WISH = {anchor: "anchor", support: "rotator", entry: "roamer", awp: "mid"};
+function buySelfNades(){
+  bots.forEach(function(b){
+    if(!b.alive || !b.nades) return;
+    var N = b._selfN = {flash: 0, molly: 0, smoke: 0, he: 0};   // купленные себе (не под сценарий) — 13_nades.js selfLeft
+    var type = teamEco[b.team].roundType;
+    var key = b.team === "CT" ? (BUY_CT_WISH[b.role] || "rotator") : (b.igl ? "igl" : b.role || "support");
+    var wish = BUY_NADES[key] || BUY_NADES.support;
+    var budget = type === "full" || type === "hero" ? 99 : type === "force" || type === "half" ? 2 : 1;
+    var bought = 0;
+    for(var i = 0; i < wish.length && bought < budget; i++){
+      var t = wish[i];
+      if((type === "eco" || type === "pistol") && t === "molly") continue;
+      if(type !== "full" && type !== "hero" && type !== "pistol" && b.money - nadePrice(b, t) < 200) continue;
+      if(buyNade(b, t)){ N[t]++; bought++; }
+    }
+    if((b.team === "CT" || (bomb && bomb.carrier === b)) && b.nades.smoke === 0 && buyNade(b, "smoke")) N.smoke++;   // смок под дефуз / плант
+  });
 }
 // пистолетный: кевлар (не хватает — P250) — как было в заглушке
 function buyPistol(b){
