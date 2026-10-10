@@ -59,7 +59,7 @@
 <div id="app">
   <div id="topbar">
     <h1>ANCIENT — LIVE RADAR</h1>
-    <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 242 (одно знание: глаза, радар, войс) · 10.10</div>
+    <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 243 (опасность зон — через 3D-видимость) · 10.10</div>
     <button id="btnPause">Пауза</button>
     <button id="btnRestartRound" title="Немедленно сбросить текущий раунд — на случай если боты застряли">Рестарт раунда</button>
     <span class="chk" title="Матч с одним номером всегда проходит одинаково. Увидел баг — запиши номер матча и тик, введи номер и нажми «Сыграть»: матч повторится с начала">матч № <input id="inpMatchNum" type="number" min="1" value="1" style="width:52px"> <button id="btnFreshMatch">Сыграть</button> <span id="matchTick" style="opacity:.75"></span></span>
@@ -74,7 +74,7 @@
     <label class="chk"><input type="checkbox" id="chkPoints"> точки</label>
     <label class="chk" title="Наведи курсор на зону (при включённом слое «зоны») — подсветятся все зоны, откуда её простреливают"><input type="checkbox" id="chkDanger"> опасность (наведи)</label>
     <button id="btnExportProject" title="Всё, что сохранено только в этом браузере (стены, точки калибровки, зоны) — одним JSON, чтобы зашить в код">Экспорт проекта</button>
-    <button id="btnRecomputeDanger" title="Пересчитать LOS-таблицу опасности после правки стен">Пересчитать опасность</button>
+    
     <label class="chk"><input type="checkbox" id="chkLos"> конусы обзора</label>
     <label class="chk"><input type="checkbox" id="chkOutline" checked> контуры укрытий</label>
     <label class="chk"><input type="checkbox" id="chkTracers" checked> трассеры</label>
@@ -780,8 +780,7 @@ function applyWalls(full){
   rebuildNav();
   if(typeof resnapSpawns === "function") resnapSpawns();
   if(typeof HOLD_CANDS !== "undefined") HOLD_CANDS = {};
-  if(typeof visInvalidate === "function") visInvalidate();
-  if(typeof computeZoneDanger === "function") computeZoneDanger();
+  if(typeof visInvalidate === "function") visInvalidate();   // и таблица «откуда простреливается»
 }
 applyWalls();
 
@@ -1138,7 +1137,14 @@ var VIS_FLOOR_EPS = 6; // допуск пола, ед. игры (неровно�
 var VIS = {walls: null, nav: null, gen: -1, W: 0, floor: null, solid: null, ceil: null,
            segs: [], grid: null, G: 64, GN: 0, stamp: null, sn: 0};
 var VIS_GEN = 0;
-function visInvalidate(){ VIS_GEN++; if(typeof ZONE_DANGER_DIRTY !== "undefined") ZONE_DANGER_DIRTY = true; }
+var VIS_DANGER_TIMER = null;
+// карта поменялась (стены, высоты, укрытия): сетка видимости — заново, таблица «откуда простреливается» — следом
+function visInvalidate(){
+  VIS_GEN++;
+  if(typeof zonesById === "undefined" || !zonesById) return;
+  if(VIS_DANGER_TIMER) clearTimeout(VIS_DANGER_TIMER);
+  VIS_DANGER_TIMER = setTimeout(function(){ VIS_DANGER_TIMER = null; computeZoneDanger(); if(typeof HOLD_CANDS !== "undefined") HOLD_CANDS = {}; }, 300);
+}
 
 // ---------- верх укрытия (абсолютная z) ----------
 // автоматическое: z верха по навмешу (не измерено — бесконечность, «выше головы»);
@@ -1689,21 +1695,19 @@ function sampleZone(z){
   return out;
 }
 function computeZoneDanger(){
+  visReady();
   var zs = ZONEMAP.zones, ids = zs.map(function(z){ return z.id; });
   ids.forEach(function(id){ ZONE_DANGER[id] = []; ZONE_DANGER_W[id] = {}; ZONE_DANGER_LINE[id] = {}; });
   zs.forEach(function(z){ ZONE_SAMPLES[z.id] = sampleZone(z); });
   for(var i=0;i<ids.length;i++){
     for(var j=i+1;j<ids.length;j++){
       var A = ZONE_SAMPLES[ids[i]], B = ZONE_SAMPLES[ids[j]];
-      // стены только в общей рамке двух зон — быстрее, чем все ~800 на каждую линию
-      var bx0=Infinity,by0=Infinity,bx1=-Infinity,by1=-Infinity;
-      A.concat(B).forEach(function(p){ if(p.x<bx0)bx0=p.x; if(p.y<by0)by0=p.y; if(p.x>bx1)bx1=p.x; if(p.y>by1)by1=p.y; });
-      var walls = MANUAL_WALLS.filter(function(w){ return !(Math.max(w[0],w[2])<bx0 || Math.min(w[0],w[2])>bx1 || Math.max(w[1],w[3])<by0 || Math.min(w[1],w[3])>by1); });
+      // (v243) видно ли — та же 3D-видимость, что в бою (visLine: стены, укрытия, пол/уступы, крыши),
+      // глаза стоящего человека с обеих сторон; раньше — только плоские стены
       var seen = 0, first = null;
       for(var a=0;a<A.length;a++) for(var b=0;b<B.length;b++){
-        var pa = A[a], pb = B[b], ok = true;
-        for(var k=0;k<walls.length;k++){ var w = walls[k]; if(segIntersect(pa.x,pa.y,pb.x,pb.y,w[0],w[1],w[2],w[3])){ ok = false; break; } }
-        if(ok){ seen++; if(!first) first = [pa, pb]; }
+        var pa = A[a], pb = B[b];
+        if(visLine(pa.x, pa.y, visFloorAt(pa.x, pa.y) + VIS_EYE.stand, pb.x, pb.y, visFloorAt(pb.x, pb.y) + VIS_EYE.stand, false)){ seen++; if(!first) first = [pa, pb]; }
       }
       if(seen > 0){
         var wgt = seen/(A.length*B.length);
@@ -12161,10 +12165,6 @@ cv.addEventListener("mousemove", function(e){
   if(chkAlign.checked || mapEdOn()) return;
   var w = navScreenToWorld(e.clientX, e.clientY);
   hoverZoneId = findZoneMapZoneAt(w.x, w.y);
-});
-document.getElementById("btnRecomputeDanger").addEventListener("click", function(){
-  computeZoneDanger();
-  logEvent("Таблица опасности пересчитана ("+ZONEMAP.zones.length+" зон)");
 });
 
 // ---------- navmesh align mode: drag to move, wheel to scale ----------

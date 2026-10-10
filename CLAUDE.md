@@ -50,7 +50,7 @@ v166 — `docs/V166_CHANGES.md` (список владельца). Главны�
 | что | где в `src/game.html` |
 |---|---|
 | **карта**: стены `WALL_POLYS` / `applyWalls`; высоты `HEIGHTS` / `hgtInfo`; укрытия `COVER` / `covList`; прострелы `WALLBANG` / `wbList`, `wbAfter` | ~829; ~864; ~916; ~1063 |
-| **кто кого видит** (одно место, 3D): `VIS_*`, `visLine`, `visParts`, `visFloorAt`; `hasLOS` — через неё | ~1198; ~1706 |
+| **кто кого видит** (одно место, 3D): `VIS_*`, `visLine`, `visParts`, `visFloorAt`; через неё `hasLOS` и таблица «откуда простреливается» `computeZoneDanger` (пересчёт сам в `visInvalidate`) | ~1198; ~1706 |
 | переключатели и числа движка `BAL` | `var BAL = {` |
 | позиция: `setPost` / `updatePost`; «держать район» `holdSpot` / `holdGroup`, варианты `holdCands` (+ места про) | ~2726; ~7158 |
 | план и мозг T: `tBrain`, лёркер `lurkerBrain`, IGL `tIglReplan` | `grep -n` |
