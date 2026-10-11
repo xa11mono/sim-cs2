@@ -12,8 +12,10 @@ function why(b){
   if(b._reloading) return "перезарядка";
   var F = b._fc;
   if(F && F.ph !== "line") return F.moving ? "fc: идёт" : "fc: не идёт (" + F.ph + ")";
-  if(b._sawEnemy && b.state === "engage") return "engage: стоп и стрельба";
-  if(b.holding) return b._sawEnemy ? "hold: видит" : "hold: держит угол после контакта";
+  var fcs = !F ? "fc нет" : (F.until ? "fc line: ждёт окно" : "fc line: не стрелял с начала (" + (tick - F.t > 64 ? ">1с" : "<1с") + ")");
+  var shot = tick - (b.lastShotTick||-1e9) < 32 ? "стрелял ≤0,5с" : "не стрелял 0,5с";
+  if(b._sawEnemy && b.state === "engage") return "engage | " + fcs + " | " + shot;
+  if(b.holding) return b._sawEnemy ? "hold видит | " + fcs + " | " + shot : "hold: держит угол после контакта";
   if(b.atPost) return "на посту";
   if(!b.path || !b.path.length || b.pathIdx >= b.path.length) return "нет пути";
   return "прочее";
@@ -32,7 +34,7 @@ fightCycleTick = function(b, dtSec, busy){
   }
   return r;
 };
-var E = {};   // открытая встреча пары «b видит e»
+var AFT = [], E = {};   // открытая встреча пары «b видит e»
 var rs = null;
 for(var t = 0; t < TT; t++){
   stepTick();
@@ -53,6 +55,16 @@ for(var t = 0; t < TT; t++){
       R.last = tick; R.n++; if(still) R.still++;
     });
   });
+  // после последнего выстрела (0,5 с без выстрелов): почему остаётся / уходит; сдвиг за следующую 1 с
+  bots.forEach(function(b){
+    if(!b.alive) return; var ls = b.lastShotTick; if(ls == null || ls < 0) return;
+    if(tick - ls === 32){ var e = b._tgt || b._nearestEnemyBot, F = b._fc;
+      AFT.push({t: tick, b: b.id, x: b.x, y: b.y, tgt: !e ? "нет цели" : !e.alive ? "цель убита" : (b._visible||[]).indexOf(e) >= 0 ? "цель видна" : "цель скрылась",
+        fc: F ? F.ph + (F.until ? "/окно" : "") : "нет fc", st: b.state, hp: b.hp, tag: b.post ? String(b.post.tag).split(":")[0] : "-"}); }
+  });
+  AFT.forEach(function(x){ if(x.d != null || tick - x.t < 64) return; var bb = bots.filter(function(o){ return o.id === x.b; })[0];
+    x.d = bb && bb.alive ? Math.round(Math.hypot(bb.x-x.x, bb.y-x.y)) : -1; A.ex.push([x.tgt, x.fc, x.st, x.tag, x.d, x.hp]); });
+  AFT = AFT.filter(function(x){ return x.d == null; });
   // исход встреч: кто погиб в течение встречи
   A.enc.forEach(function(R){ if(R.res) return; if(tick - R.last > 32){ R.res = "разошлись"; return; }
     var bb = bots.filter(function(o){ return o.id === R.b; })[0], ee = bots.filter(function(o){ return o.id === R.e; })[0];

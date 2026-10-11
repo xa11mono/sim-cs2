@@ -57,5 +57,40 @@
     R.target_lost_just_before = {ok: t4 !== null && t4 < react3, ticksToShot: t4, reactTicks: react3};
   } catch(e){ R.target_lost_just_before = {ok: false, err: String(e).slice(0, 200)}; }
 
+  // ---------- P1-2: карта команды (belief) — только из того, что команда знает вся ----------
+  function mid(){ setup(); for(var w = 0; w < 25*TICK_HZ && roundState === "live"; w++) stepTick(); if(roundState !== "live") throw new Error("раунд кончился"); }
+  function hiddenT(){ return bots.filter(function(e){ return e.team === "T" && e.alive && !bots.some(function(m){ return m.team === "CT" && m.alive && (m._visible||[]).indexOf(e) >= 0; }); })[0]; }
+  function massAt(eid, x, y){ var zi = bzOf(x, y), Q = belief.CT[eid]; return zi >= 0 && Q ? Q[zi] : 0; }
+  function upd(n){ for(var i = 0; i < n; i++){ tick++; knowTick(); beliefTick(); } }
+  function voiceSay(h, zone){ var T = teamOf("CT"); teamPropose(h, {kind: "hear", zone: zone, sound: "steps", count: 1});
+    for(var i = 0; i < 400; i++){ tick++; teamChannel(T); if(T.threats[zone] && T.threats[zone].by === h.id) return true; } return false; }
+  try {
+    var run = function(mode){   // mode: "ctl" — ничего, "ear" — слышал и молчит, "voice" — сказал
+      mid(); var h = bots.filter(function(b){ return b.team === "CT" && b.alive; })[0], e = hiddenT(); if(!e) throw new Error("все T на радаре");
+      var pt = {x: e.x, y: e.y}, z = knowZoneAt(pt.x, pt.y);
+      if(mode === "ear") hearReal(h, {x: pt.x, y: pt.y, tick: tick, team: "T", src: e.id, kind: "steps", occl: true});
+      if(mode === "voice"){ hearReal(h, {x: pt.x, y: pt.y, tick: tick, team: "T", src: e.id, kind: "steps", occl: true}); knowTick(); voiceSay(h, z); }
+      else for(var i = 0; i < 60; i++){ tick++; }
+      upd(32); return {m: massAt(e.id, pt.x, pt.y), eid: e.id, Q: Array.prototype.slice.call(belief.CT[e.id] || [])};
+    };
+    var c = run("ctl"), ear = run("ear"), vo = run("voice");
+    var tv = 0; c.Q.forEach(function(v, i){ tv += Math.abs(v - (ear.Q[i] || 0)); });   // насколько изменилась вся карта по этому врагу
+    R.belief_heard_not_said = {ok: tv < 1e-6, mapChange: +tv.toFixed(4)};
+    R.belief_said_in_voice = {ok: vo.m > c.m + 0.02, control: +c.m.toFixed(3), voiced: +vo.m.toFixed(3)};
+  } catch(e){ R.belief_heard_not_said = {ok: false, err: String(e).slice(0, 200)}; }
+  try {   // свой видит врага — по радару команда знает точно
+    setup(); var ct = bot("CT2"), tt2 = bot("T2"), G5 = triple(); park([ct, tt2]); put(ct, G5.s); put(tt2, G5.a); ct.facing = G5.an; ct.blindUntil = 0;
+    while(tick % 16 !== 15) tick++;
+    resolveEngagements(); upd(1);
+    R.belief_radar_seen = {ok: massAt(tt2.id, tt2.x, tt2.y) > 0.8, mass: +massAt(tt2.id, tt2.x, tt2.y).toFixed(3)};
+  } catch(e){ R.belief_radar_seen = {ok: false, err: String(e).slice(0, 200)}; }
+  try {   // сказанное со временем «растекается»: вес в названной зоне падает без новой инфы
+    mid(); var h6 = bots.filter(function(b){ return b.team === "CT" && b.alive; })[0], e6 = hiddenT(), p6 = {x: e6.x, y: e6.y};
+    hearReal(h6, {x: p6.x, y: p6.y, tick: tick, team: "T", src: e6.id, kind: "steps", occl: true}); knowTick(); voiceSay(h6, knowZoneAt(p6.x, p6.y));
+    upd(32); var m1 = massAt(e6.id, p6.x, p6.y); upd(20*TICK_HZ); var m2 = massAt(e6.id, p6.x, p6.y);
+    // данных о том, как быстро сказанное должно «устаревать», нет — сценарий фиксирует поведение (P1-3), а не требование
+    R.belief_stale_decays = {ok: true, info: "только запись", after2s: +m1.toFixed(3), after22s: +m2.toFixed(3)};
+  } catch(e){ R.belief_stale_decays = {ok: false, err: String(e).slice(0, 200)}; }
+
   return JSON.stringify(R);
 })()

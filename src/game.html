@@ -5794,7 +5794,7 @@ function knowCall(b, msg){
 // «проверил — пусто» тиммейта (войс) или свой взгляд: гипотезы в этой зоне слабеют
 function knowClearZone(team, x, y, eidOnly){
   var zid = knowZoneAt(x, y), key = matchNum + ":" + roundNum; if(!zid) return;
-  bots.forEach(function(m){
+  bots.concat(teamAgents()).forEach(function(m){
     if(!m.alive || m.team !== team || !m.know || m.know.key !== key) return;
     for(var id in m.know.enemies){
       if(eidOnly && id !== eidOnly) continue;
@@ -5946,7 +5946,7 @@ function knowBombSeen(b){
 // ---------- киллфид (feedKill) ----------
 function knowKill(att, vic){
   if(roundState !== "live") return;
-  bots.forEach(function(b){
+  bots.concat(teamAgents()).forEach(function(b){
     if(!b.alive || !b.know || b === vic) return;
     var K = b.know;
     if(vic.team !== b.team){
@@ -5978,6 +5978,40 @@ function knowTick(){
     knowWindowsTick(b);
     knowLook(b);
   });
+  ["CT", "T"].forEach(function(team){ var A = teamAgent(team); knowVision(A); knowPlant(A); knowTeamLook(A); });
+}
+// ---------- (этап 2, P1-2) знание КОМАНДЫ — отдельный «слушатель» на команду ----------
+// Что команда знает вся: радар (враг в поле зрения любого живого своего — knowVision), «смотрел — пусто» по радару
+// (свой смотрел туда и никого не засветил — knowTeamLook), войс (knowCall из teamChannel), киллфид (knowKill), плант (HUD).
+// Своих ушей и «было бы слышно» у него нет: что слышал один, команда узнаёт только из войса. Карту belief, которую читают
+// взгляд, позиция и коллы, собирает beliefTick только отсюда. Раньше — среднее гипотез живых тиммейтов, включая несказанное
+var TEAMK = {};
+function teamAgent(team){
+  var key = matchNum + ":" + roundNum, A = TEAMK[team];
+  if(!A || !A.know || A.know.key !== key || A._t > tick){ A = TEAMK[team] = {id: "team" + team, team: team, alive: true, x: 0, y: 0, ears: [], _visible: [], _team: true}; knowRoundStart(A); }
+  A._t = tick; return A;
+}
+function teamAgents(){ return roundState === "live" ? [teamAgent("CT"), teamAgent("T")] : []; }
+function knowTeamLook(A){
+  var K = A.know, mates = bots.filter(function(m){ return m.alive && m.team === A.team && tick >= (m.blindUntil||0); });
+  if(tick % KNOW.lookEvery) return;
+  var sees = function(hx, hy){ return mates.some(function(m){ return Math.hypot(hx-m.x, hy-m.y) <= KNOW.lookRange && inFov(m, hx, hy) && hasVision(m.x, m.y, hx, hy); }); };
+  var anyVis = []; mates.forEach(function(m){ (m._visible || []).forEach(function(e){ anyVis.push(e); }); });
+  (K.spots || []).forEach(function(p){
+    if(!p.open || !sees(p.x, p.y)) return;
+    if(!anyVis.some(function(e){ return Math.hypot(e.x-p.x, e.y-p.y) < 120; })) p.open = false;
+  });
+  for(var id in K.enemies){
+    var B = K.enemies[id]; if(B.visible) continue;
+    B.hyps.forEach(function(h){
+      var hx = h.x, hy = h.y, vz = null;
+      if(h.type === "moved" && !h.heard){ vz = knowHypZoneId(h, B); var gc = knowGraph().c[vz]; if(!gc) return; hx = gc.x; hy = gc.y; if(h.vz !== vz){ h.vz = vz; h.inView = false; } }
+      if(hx === undefined) return;
+      var inView = sees(hx, hy);
+      if(inView && !h.inView){ h.weight *= KNOW.emptyLook; knowNorm(B.hyps); }
+      h.inView = inView;
+    });
+  }
 }
 // где сейчас враг по гипотезе h (индекс зоны BZ): held — точка; moved — по таймингу бега вдоль маршрута;
 // moved_unknown — нигде конкретно (раздаётся по открытым типичным местам в beliefTick)
@@ -6201,6 +6235,7 @@ function teamChannel(T){
                            tick: tick, by: m.by, kind: m.kind};
     }
     mates.forEach(function(o){ if(o.alive && o.id !== m.by) knowCall(o, m); });
+    knowCall(teamAgent(T.team), m);   // (этап 2, P1-2) договорённое — в знание команды
     teamHeardToIntel(T.team, m);
     voiceFeed(T.team, m.by, m.text, VOICE_KIND[m.kind] || "plan");
   }
@@ -6262,14 +6297,15 @@ function beliefObserve(team, sg){
 var BELIEF_STEP = 16; // тиков (0.25с)
 function beliefTick(){
   if(roundState !== "live" || tick % BELIEF_STEP !== 0 || !BZ.ids.length) return;
-  // (v240) карта команды = среднее по живым тиммейтам их гипотез (knowTick): held — точка,
+  // (этап 2) карта команды = гипотезы знания команды (teamAgent; раньше, с v240, — среднее по живым тиммейтам): held — точка,
   // moved — где бегущий враг был бы сейчас на своём маршруте, moved_unknown — поровну по
   // типичным местам врага, куда он уже мог дойти (проверенные — ноль). Сама по себе (без события) карта не растекается
   var n = BZ.ids.length, key = matchNum + ":" + roundNum;
   ["CT","T"].forEach(function(team){
     var B = belief[team];
     if(BAL.newLook) PORTAL_W[team] = portalWatched(team);
-    var mates = bots.filter(function(o){ return o.alive && o.team === team && o.know && o.know.key === key; });
+    // (этап 2, P1-2) карта команды — из знания команды (teamAgent: радар, войс, киллфид), не из личных гипотез тиммейтов
+    var mates = [teamAgent(team)];
     Object.keys(B).forEach(function(eid){
       var e = bots.filter(function(o){ return o.id === eid; })[0];
       if(!e || !e.alive){ delete B[eid]; return; } // смерть врага видна в киллфиде

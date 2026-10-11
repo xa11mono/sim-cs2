@@ -70,6 +70,8 @@
                 {type: "moved", zone: knowZoneAt(pt.x, pt.y), x: pt.x, y: pt.y, route: [knowZoneAt(pt.x, pt.y)], windows: [], weight: 0.6, heard: true, htick: tick, voice: viaVoice},
                 {type: "moved_unknown", zone: null, weight: 0.1}];
       bots.forEach(function(o){ if(o !== h && o.team === "CT" && o.know && o.know.enemies[e.id]) o.know.enemies[e.id].hyps.forEach(function(q){ q.heard = false; }); });
+      // сборка этапа 2: сказанное в войс попадает и в знание команды (teamAgent) — кладём туда же, как это делает knowCall
+      if(viaVoice && typeof teamAgent === "function"){ var TA = teamAgent("CT"); knowTick(); TA.know.enemies[e.id].hyps = B.hyps.map(function(q){ var c = {}; for(var k in q) c[k] = q[k]; return c; }); }
       LKP.CT = {}; beliefTick();
       var L = LKP.CT[e.id]; return !!(L && Math.hypot(L.x-pt.x, L.y-pt.y) < 5);
     };

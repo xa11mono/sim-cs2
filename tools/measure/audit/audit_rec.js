@@ -114,7 +114,12 @@ applyDamage = function(att, b, dmg, src, o){
   var hp0 = b.hp, al = b.alive;
   var r = o_ad.apply(this, arguments);
   if(live() && al){
-    if(att && att.team === b.team && att !== b) A.ff.push([tick, att.id, b.id, src, Math.round(hp0 - (b.alive ? b.hp : 0))]);
+    if(att && att.team === b.team && att !== b){
+      var how = null;
+      if(src === "молотов"){ var f0 = inFire(b.x, b.y); how = !f0 ? "?" : (!f0._ign || f0._ign[b.id]) ? "стоял при поджоге" :
+        ("зашёл: " + (fireCommit(b) ? "по делу (fireCommit)" : b.holding ? "держит угол" : "иное") + " | " + (b.post ? String(b.post.tag).split(":")[0] : "-") + " | " + (b._fc && b._fc.ph !== "line" ? "fc" : "") + (b._burning ? " выходит" : "")); }
+      A.ff.push([tick, att.id, b.id, src, Math.round(hp0 - (b.alive ? b.hp : 0)), how]);
+    }
     if(att && att.team !== b.team && b.alive && src === "bullet") EXPO.push({t: tick, id: b.id, x: b.x, y: b.y, hp: b.hp});
     if(att && att.team !== b.team) infoMark(b);
   }
@@ -161,7 +166,8 @@ var lastSite = null, lastIGL = "", PLW = [];
 var o_le = logEvent;
 logEvent = function(text){ if(/IGL/.test(String(text))) lastIGL = String(text).slice(0, 120); return o_le.apply(this, arguments); };
 function tSnap(b, site, old){
-  return {id: b.id, alive: b.alive, tag: b.post ? String(b.post.tag).slice(0,28) : null, route: b._route ? b._route.names.join(">").slice(0,60) : null,
+  return {id: b.id, alive: b.alive, role: b.tRole || null, tag: b.post ? String(b.post.tag).slice(0,28) : null,
+    pEnd: b.post ? [Math.round(Math.hypot(b.post.x-SITES[site].x, b.post.y-SITES[site].y)), old ? Math.round(Math.hypot(b.post.x-SITES[old].x, b.post.y-SITES[old].y)) : null] : null, route: b._route ? b._route.names.join(">").slice(0,60) : null,
     nade: b.nadeTask ? b.nadeTask.type + ":" + String(b.nadeTask.why||"").slice(0,24) : null,
     nEnd: b.nadeTask ? [Math.round(Math.hypot(b.nadeTask.x-SITES[site].x, b.nadeTask.y-SITES[site].y)), old ? Math.round(Math.hypot(b.nadeTask.x-SITES[old].x, b.nadeTask.y-SITES[old].y)) : null] : null,
     rEnd: b._route ? (function(){ var p = b._route.pts[b._route.pts.length-1]; return [Math.round(Math.hypot(p.x-SITES[site].x, p.y-SITES[site].y)), old ? Math.round(Math.hypot(p.x-SITES[old].x, p.y-SITES[old].y)) : null]; })() : null,
@@ -175,6 +181,8 @@ for(var t = 0; t < TT; t++){
   if(matchNum !== M0) break;
   if(roundState !== rs){ if(roundState === "live"){ A.rounds++; lastSite = teamTac && teamTac.T ? teamTac.T.site : null; HIST = {}; CONT = {}; VISH = {}; TSEEN = {CT: {}, T: {}}; faceH = {}; PLW = []; EXPO = []; PENDLEAK = []; } rs = roundState; }
   if(!live()) continue;
+  // --- новый огонь: кто из своих бросившего стоял в радиусе в момент поджога
+  fires.forEach(function(f){ if(f._ign) return; f._ign = {}; bots.forEach(function(o){ if(o.alive && o.team === f.team && Math.hypot(o.x-f.x, o.y-f.y) < NADE.molly.radius) f._ign[o.id] = 1; }); });
   // --- история позиций и видимость командой
   var teamVis = {CT: {}, T: {}};
   bots.forEach(function(b){ if(!b.alive) return; (b._visible||[]).forEach(function(e){ teamVis[b.team][e.id] = 1; }); });
