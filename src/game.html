@@ -4300,6 +4300,15 @@ function tBrain(){
       stagePost(pick(["entry"]), other);
       groupPost(pick(["support"]), tt.tMidPt || GEO.tMid, GEO.tMidLook, "tmid", midOpt);
       stagePost(pick(["igl","awp"]), tt.site);
+    } else if(tac.groups && tt.site !== tac.site){
+      // (этап 2, P1-1) сайт плана сменили: точки подготовки и маршруты групп тактики — под старый сайт (Donut, A Hall…).
+      // Раньше группа ставилась на них и с новым сайтом (тег stageB:Donut у A): ждала на старой точке. Теперь — стандартная
+      // подготовка нового сайта; мид (TMID) — как был
+      var memAll = [];
+      tac.groups.forEach(function(G){ var mem = pick(G.roles); if(!mem.length) return;
+        if(G.stage === "TMID"){ mem.forEach(function(b){ b._stageInfo = null; }); groupPost(mem, tt.tMidPt || GEO.tMid, GEO.tMidLook, "tmid", midOpt); return; }
+        mem.forEach(function(b){ if(memAll.indexOf(b) < 0) memAll.push(b); }); });
+      stagePost(memAll, tt.site);
     } else if(tac.groups){
       tac.groups.forEach(function(G, gi){
         var mem = pick(G.roles);

@@ -60,10 +60,17 @@ for(var t = 0; t < TT; t++){
     if(!b.alive) return; var ls = b.lastShotTick; if(ls == null || ls < 0) return;
     if(tick - ls === 32){ var e = b._tgt || b._nearestEnemyBot, F = b._fc;
       AFT.push({t: tick, b: b.id, x: b.x, y: b.y, tgt: !e ? "нет цели" : !e.alive ? "цель убита" : (b._visible||[]).indexOf(e) >= 0 ? "цель видна" : "цель скрылась",
-        fc: F ? F.ph + (F.until ? "/окно" : "") : "нет fc", st: b.state, hp: b.hp, tag: b.post ? String(b.post.tag).split(":")[0] : "-"}); }
+        fc: F ? F.ph + (F.until ? "/окно" : "") : "нет fc", st: b.state, hp: b.hp, tag: b.post ? String(b.post.tag).split(":")[0] : "-",
+        why: (e && e.alive && (b._visible||[]).indexOf(e) >= 0) ? [b._reloading ? "перезарядка" : "", b.ammo <= 0 ? "пусто" : "", (b._nearestEnemyBot !== e) ? "цель не ближайшая" : "",
+          bulletVictim(b, e.x, e.y, e) ? "свой на линии" : "", Math.hypot(e.x-b.x, e.y-b.y) > b.weapon.range ? "далеко" : "",
+          (function(){ var dd = Math.hypot(e.x-b.x, e.y-b.y), bA = Math.atan(BODY_HALF/Math.max(8, dd)), aD = Math.abs(((Math.atan2(e.y-b.y, e.x-b.x) - b.facing + Math.PI) % (2*Math.PI) + 2*Math.PI) % (2*Math.PI) - Math.PI);
+            return aD > Math.min(AIM_FIRE_CONE, Math.max(0.05, 2.5*bA)) ? "прицел не на цели" : ""; })(),
+          tick < b.nextShotTick ? "темп/пауза очереди" : "", (b.curSpeed > SPEED*0.4 && b.weapon.move >= 60) ? "бежит (контрстрейф)" : "", (b._fc && b._fc.moving) ? "fc идёт" : "",
+          (b._ts && (b._ts[e.id]||0) < Math.round(b.reactionTicks*(b._reactMul||1))) || (b.contactStreak < Math.round(b.reactionTicks*(b._reactMul||1))) ? "реакция" : "",
+          b.planting || b.defusing ? "плант/дефуз" : "", tick < (b.blindUntil||0) ? "ослеплён" : "", tick < (b.throwUntil||0) ? "бросок" : "", b._knife ? "нож" : ""].filter(Boolean).join("+") || "?" : null}); }
   });
   AFT.forEach(function(x){ if(x.d != null || tick - x.t < 64) return; var bb = bots.filter(function(o){ return o.id === x.b; })[0];
-    x.d = bb && bb.alive ? Math.round(Math.hypot(bb.x-x.x, bb.y-x.y)) : -1; A.ex.push([x.tgt, x.fc, x.st, x.tag, x.d, x.hp]); });
+    x.d = bb && bb.alive ? Math.round(Math.hypot(bb.x-x.x, bb.y-x.y)) : -1; A.ex.push([x.tgt, x.fc, x.st, x.tag, x.d, x.hp, x.why]); });
   AFT = AFT.filter(function(x){ return x.d == null; });
   // исход встреч: кто погиб в течение встречи
   A.enc.forEach(function(R){ if(R.res) return; if(tick - R.last > 32){ R.res = "разошлись"; return; }

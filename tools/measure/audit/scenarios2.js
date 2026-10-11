@@ -92,5 +92,35 @@
     R.belief_stale_decays = {ok: true, info: "только запись", after2s: +m1.toFixed(3), after22s: +m2.toFixed(3)};
   } catch(e){ R.belief_stale_decays = {ok: false, err: String(e).slice(0, 200)}; }
 
+  // ---------- P2-2: своя флешка (только запись: данных про об ослеплении своих нет) ----------
+  try {
+    setup(); var th = bot("T2"), mt = bot("T3"), en = bot("CT2"), G7 = triple(); park([th, mt, en]);
+    put(th, G7.s); var pt = G7.a; put(mt, G7.b); put(en, {x: G7.b.x + 30, y: G7.b.y + 30});
+    var face = function(o){ o.facing = Math.atan2(pt.y-o.y, pt.x-o.x); o.blindUntil = 0; };
+    face(mt); face(en); face(th);
+    detonate({type: "flash", x: pt.x, y: pt.y, team: "T", thrower: th, why: "тест", aware: {}});
+    var bl = function(o){ return +Math.max(0, ((o.blindUntil||0) - tick)/TICK_HZ).toFixed(2); };
+    R.flash_teammate_record = {ok: true, info: "только запись", mateBlindSec: bl(mt), enemyBlindSec: bl(en), throwerBlindSec: bl(th),
+      note: "свой слепнет ×0,18 всегда — колла «флешу» в войсе нет"};
+  } catch(e){ R.flash_teammate_record = {ok: false, err: String(e).slice(0, 200)}; }
+
+  // ---------- P1-1: после смены сайта группа не ждёт на точке подготовки старого сайта ----------
+  try {
+    var found = null; freshMatch(3);
+    for(var i9 = 0; i9 < 200000 && !found; i9++){
+      stepTick();
+      var tt9 = teamTac.T;
+      if(roundState === "live" && tick - roundStartTick === 6*TICK_HZ && tt9 && tt9.tac && tt9.tac.groups && tt9.phase === "setup" &&
+         tt9.tac.groups.some(function(G){ return G.stage && G.stage !== "TMID"; }) && !tt9.defUntil) found = roundNum;
+    }
+    if(!found) throw new Error("нет раунда с тактикой групп");
+    var T9 = teamTac.T, old9 = T9.site, nw9 = old9 === "A" ? "B" : "A";
+    if(typeof tSetSite === "function") tSetSite(T9, nw9); else T9.site = nw9;
+    for(var k9 = 0; k9 < 3*TICK_HZ; k9++) stepTick();
+    var bad = bots.filter(function(b){ return b.team === "T" && b.alive && b.tRole !== "lurker" && b.post && /^stage/.test(b.post.tag) &&
+      Math.hypot(b.post.x-SITES[old9].x, b.post.y-SITES[old9].y) < Math.hypot(b.post.x-SITES[nw9].x, b.post.y-SITES[nw9].y); });
+    R.switch_no_old_staging = {ok: bad.length === 0, round: found, oldSite: old9, waitingAtOld: bad.map(function(b){ return b.id + ":" + b.post.tag; })};
+  } catch(e){ R.switch_no_old_staging = {ok: false, err: String(e).slice(0, 200)}; }
+
   return JSON.stringify(R);
 })()
