@@ -175,7 +175,7 @@
   <div id="topbar">
     <div class="tb-id">
       <h1>Ancient</h1>
-      <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 260, 11.10</div>
+      <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 261, 11.10</div>
     </div>
     <div class="tb-group" id="tbMatch">
       <button id="btnPause">Пауза</button>
@@ -6877,6 +6877,7 @@ var LOOK = {
   maxDist: 1100,     // дальше этой дистанции зону как угрозу не рассматриваем
   nbrW: 0.6,         // вклад врага за входом в зону (он оттуда выйдет)
   checkK: 0.5, checkAng: 1.6, checkEvery: 4, checkDur: 1.2,   // (v260) проверка второго угла стоя: ≥ половины главного, ≥ 90° в сторону, раз в 4–8 с на 1,2 с — проектные числа
+  sndOpen: 1.05,     // (v261, В5) шум без видимого угла — открытое направление в пределах ±60° от него — проектное число
   nearPx: 360,       // (v260) враг дальше за входом: вес exp(-путь/nearPx), ~0,5 на 250 px — проектное число
   watchedNbr: 0.25,  // …если этот вход видит тиммейт — враг сначала выйдет на него
   habitW: 0.25,      // любимое место соперника (память прошлых раундов)
@@ -7043,6 +7044,18 @@ function nbrThreat(team, j, nn, zb){
     var bk = beliefZoneKnown(team, k); if(bk > 0) t += bk * Math.exp(-dn / LOOK.nearPx); }
   return t;
 }
+// (v261, В5) шум слышен, а видимого угла, откуда выйдет враг, нет (стоит в углу за ящиком) — игрок всё равно
+// поворачивается на шум: самое открытое видимое направление в пределах ±span от шума (ближе к шуму — лучше)
+function openToward(b, a, span){
+  var best = null, bs = 0;
+  for(var k = -6; k <= 6; k++){
+    var aa = a + span*k/6, off = Math.abs(k)/6, dep = 0;
+    [400, 300, 200, 120].some(function(R){ if(hasLOS(b.x, b.y, b.x+Math.cos(aa)*R, b.y+Math.sin(aa)*R)){ dep = R; return true; } return false; });
+    var s = dep * (1 - 0.5*off);
+    if(dep >= 120 && s > bs){ bs = s; best = {x:b.x+Math.cos(aa)*dep, y:b.y+Math.sin(aa)*dep}; }
+  }
+  return best;
+}
 function lookCands(b, W){
   var zb = (b.atPost && b.post) ? bzOf(b.post.x, b.post.y) : bzOf(b.x, b.y);
   if(zb < 0) zb = bzOf(b.x, b.y); if(zb < 0) return [];
@@ -7090,7 +7103,8 @@ function lookCands(b, W){
     if(apZ && bzOf(apZ.x, apZ.y) === j || apZ && (nBest >= 0 && bzOf(apZ.x, apZ.y) === nBest)) c = apZ;
     if(!c) return;
     var d = Math.hypot(c.x-b.x, c.y-b.y);
-    if(d < 200){ var ext = {x:b.x+(c.x-b.x)/d*200, y:b.y+(c.y-b.y)/d*200}; if(hasLOS(b.x, b.y, ext.x, ext.y)) c = ext; d = 200; }
+    // (v261, В4) точка ближе 200 px, за которой сразу стена, — смотреть некуда (взгляд в стену у носа): не кандидат
+    if(d < 200){ var ext = {x:b.x+(c.x-b.x)/d*200, y:b.y+(c.y-b.y)/d*200}; if(!hasLOS(b.x, b.y, ext.x, ext.y)) return; c = ext; d = 200; }
     var za = Math.atan2(c.y-b.y, c.x-b.x);
     var fresh = freshThreatNear(team, c);
     // 3) оценка
@@ -7147,7 +7161,7 @@ function lookCands(b, W){
     var za = Math.atan2(q.y-b.y, q.x-b.x);
     // на бегу за спину — только на самый свежий и близкий
     if(moving && _angOff(za, b.heading) > 1.9 && (q.age > 20 || d > 250)) return;
-    var pt = cornerLook(b, q) || (BAL.noWallLook ? appearFrom(b, q) : q);
+    var pt = cornerLook(b, q) || (BAL.noWallLook ? appearFrom(b, q) : q) || openToward(b, za, LOOK.sndOpen);
     if(!pt) return;
     out.push({j:"snd"+Math.round(q.x/80)+","+Math.round(q.y/80), pt:pt, sc:LOOK.contactW * (d < 300 ? 2 : 1) / (1 + d/700) * (1 - q.age/192), fresh:true, a:za, snd:true});
   });
@@ -7239,6 +7253,10 @@ function lookUrgent(b){
   if(b.lastIntel && tick - b.lastIntel.tick < 48) return 1;
   var hs = b.heardSound;
   if(hs && hs.team && hs.team !== b.team && tick - hs.tick < 24 && Math.hypot(hs.x-b.x, hs.y-b.y) < 700) return 1;
+  // (v261, В6) рядом убили тиммейта (окно размена) или враг шумел совсем близко (≤300 px, ≤1,5 с — те же числа,
+  // что у кандидата «звук/контакт») — игрок настороже: поворачивается быстро, не досматривая старый угол
+  if(b._tradeLock && tick < b._tradeLock.until) return 1;
+  if(hs && hs.team && hs.team !== b.team && tick - hs.tick <= 96 && Math.hypot(hs.x-b.x, hs.y-b.y) < 300) return 1;
   return 0;
 }
 function smoothLookFilter(b, look, urgent){
