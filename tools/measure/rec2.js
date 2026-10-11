@@ -11,12 +11,32 @@ REC.shots=[]; var ots=tryShoot; tryShoot=function(sh,tg,dist){ var a0=sh.ammo, l
 // гранатные детекторы: где разорвалась и стрелял ли рядом враг бросавшего за последнюю секунду
 REC.det=[]; var odt=detonate; detonate=function(n){ if(roundState==='live'){ var sh=0; bots.forEach(function(o){ if(o.alive && o.team!==n.team && Math.hypot(o.x-n.x,o.y-n.y)<400 && tick-(o.lastShotTick||-999)<=64) sh++; }); REC.det.push([tick, n.team, n.type, Math.round(n.x), Math.round(n.y), sh, n.thrower?n.thrower.id:'', String(n.why||'')]); } return odt.apply(this,arguments); };
 var H={};
+// (v262) К4: ротация CT — кто на какой сайт идёт по колу (ct.rot); разворот = сайт сменился (A→B) или сняли и снова
+// послали на тот же в одном раунде; «бросили» = сняли с ротации без планта/смерти/конца раунда. К5: бомбу выбили
+// (носитель погиб) — кто через 5 с её держит взглядом, сколько CT ближе 900 px, куда колл.
+REC.rotx={n:0, rev:0, back:0, drop:0, ev:[]}; REC.bd=[]; var RX={}, BD=null, BS0=null;
 for(var t=0;t<__T__;t++){ stepTick();
  if(matchNum!==M0) break;
  if(roundState!==rs){ if(roundState==='live'){ cur={r:roundNum, t0:tick, ctType:teamEco.CT.roundType, tType:teamEco.T.roundType, tac:(typeof teamTac!=='undefined'&&teamTac.T&&teamTac.T.tac)?teamTac.T.tac.id:null, tsite:(typeof teamTac!=='undefined'&&teamTac.T)?teamTac.T.site:null, ctSetup:(typeof teamTac!=='undefined'&&teamTac.CT&&teamTac.CT.setup)?teamTac.CT.setup.id:null}; REC.rounds.push(cur);
    bots.forEach(function(b){ REC.buys.push([roundNum, b.id, b.team, b.primary||'', b.secondary||'', b.armor?1:0, b.helmet?1:0, b.kit?1:0, b.nades?(b.nades.smoke+b.nades.flash+b.nades.he+b.nades.molly):0, b.money]); }); H={}; }
    rs=roundState; }
- if(roundState!=='live') continue;
+ if(roundState!=='live'){ RX={}; BD=null; BS0=null; continue; }
+ (function(){ var ct=teamTac.CT, pl=bomb.state==='planted';
+  bots.forEach(function(b){ if(b.team!=='CT') return; var r=RX[b.id]||(RX[b.id]={cur:null, seen:{}});
+   if(!b.alive||pl){ r.cur=null; return; }
+   var c=(ct.rot&&ct.rot[b.id]&&ct.call)?ct.call.site:null; if(c===r.cur) return;
+   if(c){ REC.rotx.n++; if(r.cur&&r.cur!==c){ REC.rotx.rev++; if(REC.rotx.ev.length<60) REC.rotx.ev.push([tick,b.id,r.cur,c]); } else if(!r.cur&&r.seen[c]){ REC.rotx.back++; if(REC.rotx.ev.length<60) REC.rotx.ev.push([tick,b.id,'-',c]); } r.seen[c]=1; }
+   else REC.rotx.drop++;
+   r.cur=c; });
+  var dd=bomb.state==='dropped'&&bots.some(function(o){ return o.team==='T'&&!o.alive&&Math.hypot(o.x-bomb.x,o.y-bomb.y)<20; });
+  if(dd&&!BD){ BD={t0:tick, r:roundNum, x:Math.round(bomb.x), y:Math.round(bomb.y), place:String(calloutName(bomb.x,bomb.y)||''), call0:ct.call?ct.call.site:null}; REC.bd.push(BD); }
+  if(BD&&BD.t5==null&&tick-BD.t0>=320){ var cts=bots.filter(function(o){ return o.team==='CT'&&o.alive; });
+   BD.t5=tick; BD.state5=bomb.state; BD.call5=ct.call?ct.call.site:null; BD.watch=(ct.bombWatch&&ct.bombWatch.id)?ct.bombWatch.id:null;
+   BD.eyes=cts.filter(function(o){ return Math.hypot(o.x-BD.x,o.y-BD.y)<1000&&hasVision(o.x,o.y,BD.x,BD.y); }).length;
+   BD.near=cts.filter(function(o){ return Math.hypot(o.x-BD.x,o.y-BD.y)<900; }).length; BD.cts=cts.length;
+   BD.dist=cts.map(function(o){ return Math.round(Math.hypot(o.x-BD.x,o.y-BD.y)); }).sort(function(a,c){ return a-c; }); }
+  if(BD&&BD.pick==null&&bomb.state==='carried') BD.pick=tick-BD.t0;
+ })();
  if(bomb.state==='planted' && cur && cur.plant==null){ cur.plant=tick; cur.site=bomb.site; REC.plants.push([tick, bomb.site, Math.round(bomb.x), Math.round(bomb.y)]); }
 
  if(tick%16===0) bots.forEach(function(b){ REC.pos.push([tick, b.id, b.team==='CT'?1:0, Math.round(b.x), Math.round(b.y), b.alive?1:0, Math.round((b.facing||0)*100)/100, b.weapon?b.weapon.key:'', b._knife?1:0]); });

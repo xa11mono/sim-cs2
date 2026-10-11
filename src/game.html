@@ -175,7 +175,7 @@
   <div id="topbar">
     <div class="tb-id">
       <h1>Ancient</h1>
-      <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 261, 11.10</div>
+      <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 262, 11.10</div>
     </div>
     <div class="tb-group" id="tbMatch">
       <button id="btnPause">Пауза</button>
@@ -8372,10 +8372,37 @@ function ctBrain(){
   // по карте вероятностей: CT на сайте, которые смотрят и никого не видят, сами
   // её "чистят" — и колл снимается, когда там вероятно уже пусто (раньше колл
   // висел 20с после последней инфы, и ротаторы стояли на пустом сайте).
-  var best = null, planted0 = bomb.state === "planted";
+  var best = null, planted0 = bomb.state === "planted", res = {};
+  // (v262, К5) бомбу выбили (носитель погиб, C4 лежит у тела) и кто-то из CT её видел — это знание всей
+  // команды (сказали в войс): T придут её поднимать. Один держит бомбу взглядом с укрытия, а для колла
+  // она — как замеченный носитель: колл и ротация идут на её сторону (раньше держали только без колла,
+  // а колл при убитом носителе есть почти всегда — и никто не держал). Передача бомбы тиммейту — не выбитая.
+  ct.bombDown = null;
+  if(BAL.bombWatch){
+    var deathDrop = bomb.state === "dropped" && bots.some(function(o){ return o.team === "T" && !o.alive && Math.hypot(o.x-bomb.x, o.y-bomb.y) < 20; });
+    if(!deathDrop) ct.bombWatch = null;
+    else {
+      if(ct.bombWatch && ct.bombWatch.id && !cts.some(function(o){ return o.id === ct.bombWatch.id; })) ct.bombWatch.id = null; // держащий погиб — знание остаётся
+      if(!ct.bombWatch){
+        var seer = cts.filter(function(o){ return Math.hypot(o.x-bomb.x, o.y-bomb.y) < 1000 && hasVision(o.x, o.y, bomb.x, bomb.y); })
+          .sort(function(a, c){ return Math.hypot(a.x-bomb.x, a.y-bomb.y) - Math.hypot(c.x-bomb.x, c.y-bomb.y); })[0];
+        if(seer){ ct.bombWatch = {id:null, pt:null};
+          voiceLog("CT", "bombw", seer.id, "бомба лежит "+calloutName(bomb.x, bomb.y)+" — держим её"); }
+      }
+      if(ct.bombWatch && !ct.bombWatch.id && cts.length >= 2){
+        // держит ближайший к бомбе — с укрытия рядом с собой, откуда её видно (если он далеко — у бомбы)
+        var bw = cts.slice().sort(function(a, c){ return Math.hypot(a.x-bomb.x, a.y-bomb.y) - Math.hypot(c.x-bomb.x, c.y-bomb.y); })[0];
+        var bwNear = Math.hypot(bw.x-bomb.x, bw.y-bomb.y) < 450;
+        var bwp = pickSpots("bombwatch"+Math.round(bomb.x/30)+","+Math.round(bomb.y/30)+(bwNear ? "" : "f"), bwNear ? {x:bw.x, y:bw.y} : {x:bomb.x, y:bomb.y}, 2,
+          {rMin:bwNear ? 0 : 150, rMax:bwNear ? 200 : 450, minGap:40, must:[{x:bomb.x, y:bomb.y}], hideFrom:[GEO.A.tStage, GEO.B.tStage]})[0] || {x:bw.x, y:bw.y};
+        ct.bombWatch.id = bw.id; ct.bombWatch.pt = bwp;
+      }
+      if(ct.bombWatch) ct.bombDown = {x:bomb.x, y:bomb.y};
+    }
+  }
   ["A","B"].forEach(function(k){
     var est = intelEstimate("CT", SITES[k].x, SITES[k].y, 400, 5*64);
-    var car = teamIntel.CT.carrier;
+    var car = ct.bombDown ? {x:ct.bombDown.x, y:ct.bombDown.y, tick:tick} : teamIntel.CT.carrier;
     var carrierHere = car && tick - car.tick < 5*64 && Math.hypot(car.x-SITES[k].x, car.y-SITES[k].y) < 400;
     // войс: бомбу видели на подходе к этому сайту (заметно ближе к нему, чем к другому)
     var ko2 = k === "A" ? "B" : "A";
@@ -8424,14 +8451,25 @@ function ctBrain(){
     // бомбу видели у сайта — это выход, а не один игрок: минимум двое
     var cnt = Math.max(est.seen, est.heard ? 1 : 0, (carrierHere||carrierTo) ? 2 : 0, plantHere ? 2 : 0, undefended ? 1 : 0, Math.min(3, deathsHere), Math.min(5, mass), nadeHere >= 2 ? 2.6 : 0);
     var score = ev + mass;
-    if(!best || score > best.score) best = {site:k, score:score, count:cnt, est:est, carrier:carrierHere||carrierTo, undefended:undefended, deaths:deathsHere, plant:plantHere, nades:nadeHere};
+    res[k] = {site:k, score:score, ev:ev, count:cnt, est:est, carrier:carrierHere||carrierTo, undefended:undefended, deaths:deathsHere, plant:plantHere, nades:nadeHere};
+    if(!best || score > best.score) best = res[k];
   });
+  // (v262, К4) одна ротация — одно решение. Ротаторы уже бегут на сайт колла — другой сайт перебивает колл
+  // только новой инфой о T: там свежо видели/слышали/убили нашего и T там БОЛЬШЕ, чем на нашем, или там
+  // бомба / плант (проектное правило). «Сайт пустой» — не инфа о T: опорник мог сам уйти на ротацию.
+  // Раньше колл скакал между A и B по разнице «счёта» в доли (A1 ↔ B1,1 за 16 тиков), и ротаторы
+  // разворачивались туда-обратно.
+  var goOn = !!(ct.go && ct.call && ct.go.site === ct.call.site && cts.some(function(o){ return ct.go.ids[o.id]; }));
+  if(goOn && best && best.site !== ct.go.site){
+    var fresh = best.est.seen + best.est.heard > 0 || best.carrier || best.plant || best.deaths > 0 || best.nades >= 2;
+    if(!(fresh && (best.carrier || best.plant || Math.round(best.count) > Math.round(ct.call.count)))) best = res[ct.go.site] || null;
+  }
   if(best){
     var isNew = !ct.call || ct.call.site !== best.site;
     if(isNew || best.count > ct.call.count + 0.4 || tick - ct.call.tick > 64){
       var prevCnt = isNew ? 0 : ct.call.count, prevLogged = isNew ? 0 : (ct.call.logged || 0);
       ct.call = {logged: prevLogged, site:best.site, count:best.count, tick:tick, evTick:tick, since:(!isNew && ct.call.since) || tick, sinceSite:best.site, undefended:best.undefended, bombSeen: best.carrier || best.plant, seen: best.est ? best.est.seen : 0, nades: best.nades || 0};
-      var how = best.plant ? "слышно плант" : (best.nades >= 2 && !best.est.seen) ? "гранаты на "+best.site+" — выход" : best.undefended ? "сайт пустой, опорник погиб" : best.carrier ? "бомба замечена" : best.deaths ? "минус на сайте" : (best.est.seen ? "вижу "+best.est.seen : best.est.heard ? "слышу" : "по инфе");
+      var how = best.plant ? "слышно плант" : (best.nades >= 2 && !best.est.seen) ? "гранаты на "+best.site+" — выход" : best.undefended ? "сайт пустой, опорник погиб" : best.carrier ? (ct.bombDown ? "бомба выбита, лежит там" : "бомба замечена") : best.deaths ? "минус на сайте" : (best.est.seen ? "вижу "+best.est.seen : best.est.heard ? "слышу" : "по инфе");
       var n1 = Math.max(1, Math.round(best.count));
       // в войс — только новый колл или когда их стало БОЛЬШЕ, чем уже говорили
       // (повтор колла) колл снялся и через пару секунд поднялся снова по той же
@@ -8450,7 +8488,9 @@ function ctBrain(){
     var quiet = tick - (ct.call.evTick||ct.call.tick);
     var massNow = beliefCount("CT", BZ.siteNear[ct.call.site]||[]);
     var lkpHere = BAL.lkp ? lkpNear("CT", SITES[ct.call.site].x, SITES[ct.call.site].y, 500) : 0;
-    if(lkpHere === 0 && ((quiet > 6*64 && massNow < 0.6) || quiet > 18*64)){
+    // (v262, К4) тишина — не новая инфа: колл, под который уже ушла ротация, тишиной не снимается
+    // (раньше «давно тихо — по местам» разворачивал ротаторов на полпути и оставлял их на промежуточной точке)
+    if(!goOn && lkpHere === 0 && ((quiet > 6*64 && massNow < 0.6) || quiet > 18*64)){
       logEvent("CT: по "+ct.call.site+" давно тихо"+(massNow < 0.6 ? " и там вероятно пусто" : "")+" — по местам");
       ct.call = null;
     }
@@ -8544,12 +8584,16 @@ function ctBrain(){
       if(r === (ko === "A" ? "anchorA" : "anchorB")) return (ct.call.undefended || (need >= 3 && confirmed && otherMass < 0.35)) ? 3 : 99;
       return 99;
     };
-    cts.filter(function(b){ return pri(b) < 99 && Math.hypot(b.x-sc0.x, b.y-sc0.y) >= 450; })
+    // (v262, К4) кого послали — тот идёт до конца: ротация не снимается, когда «счёт» на сайте подтаял, при
+    // «разошлись по одному» или терпении — только новый колл на другой сайт (новая инфа) или конец колла.
+    // Новых посылаем столько, сколько ещё не хватает с учётом уже идущих. Держащий выбитую бомбу — не ротирует.
+    if(!ct.go || ct.go.site !== ks) ct.go = {site:ks, ids:{}, tick:tick};
+    var goingFar = 0;
+    cts.forEach(function(b){ if(ct.go.ids[b.id]){ ct.rot[b.id] = true; if(Math.hypot(b.x-sc0.x, b.y-sc0.y) >= 450) goingFar++; } });
+    cts.filter(function(b){ return pri(b) < 99 && !ct.rot[b.id] && !(ct.bombWatch && ct.bombWatch.id === b.id) && Math.hypot(b.x-sc0.x, b.y-sc0.y) >= 450; })
        .sort(function(a,b){ return pri(a) - pri(b) || (Math.hypot(a.x-sc0.x,a.y-sc0.y) - Math.hypot(b.x-sc0.x,b.y-sc0.y)); })
-       .slice(0, send).forEach(function(b){ ct.rot[b.id] = true; });
-    // уже стоящий на ротации не сбрасывается туда-сюда каждую секунду
-    cts.forEach(function(b){ if(b.post && /^rotate/.test(b.post.tag) && Math.hypot(b.x-sc0.x, b.y-sc0.y) < 450 && pri(b) < 99) ct.rot[b.id] = true; });
-  }
+       .slice(0, Math.max(0, send - goingFar)).forEach(function(b){ ct.rot[b.id] = true; ct.go.ids[b.id] = true; });
+  } else if(!ct.call) ct.go = null;
   // ---- фланг: "поджать в спину" ----
   // На подтверждённый выход (2+ T на сайте) один свободный CT — мидер или
   // роумер, которого не отправили на ротацию, — не бежит на сам сайт, а
@@ -8620,19 +8664,6 @@ function ctBrain(){
       voiceLog("CT", "presave", cts[0].id, cts.length+" против "+tsA2+", они уже на "+ct.call.site+" — сейв");
     }
   }
-  // (S4) бомба лежит на виду у CT — один держит её из укрытия: T придут за ней
-  if(BAL.bombWatch){
-    if(bomb.state !== "dropped") ct.bombWatch = null;
-    else if(!ct.bombWatch){
-      var seer = cts.filter(function(o){ return Math.hypot(o.x-bomb.x, o.y-bomb.y) < 1000 && hasVision(o.x, o.y, bomb.x, bomb.y); })
-        .sort(function(a, c){ return Math.hypot(a.x-bomb.x, a.y-bomb.y) - Math.hypot(c.x-bomb.x, c.y-bomb.y); })[0];
-      if(seer && cts.length >= 2){
-        var bwp = pickSpots("bombwatch"+Math.round(bomb.x/30)+","+Math.round(bomb.y/30), {x:seer.x, y:seer.y}, 2, {rMax:200, minGap:40, must:[{x:bomb.x, y:bomb.y}], hideFrom:[GEO.A.tStage, GEO.B.tStage]})[0] || {x:seer.x, y:seer.y};
-        ct.bombWatch = {id:seer.id, pt:bwp};
-        voiceLog("CT", "bombw", seer.id, "бомба лежит "+calloutName(bomb.x, bomb.y)+" — держу её");
-      }
-    } else if(!cts.some(function(o){ return o.id === ct.bombWatch.id; })) ct.bombWatch = null;
-  }
   if(planted && !ct.saving) updateRetake(cts);
   cts.forEach(function(b){
     if(b.defusing) return;
@@ -8644,7 +8675,7 @@ function ctBrain(){
       setPost(b, b._saveSpot, {x:bomb.x, y:bomb.y}, true, "save"); // взгляд — на угол, из-за которого придут от бомбы
       return;
     }
-    if(BAL.bombWatch && ct.bombWatch && ct.bombWatch.id === b.id && bomb.state === "dropped" && !ct.call){
+    if(ct.bombDown && ct.bombWatch.id === b.id){ // (v262, К5) держит выбитую бомбу и при колле
       setPost(b, ct.bombWatch.pt, {x:bomb.x, y:bomb.y}, true, "bombwatch"); return; }
     if(ct.flank && !ct.flank.dead && ct.flank.id === b.id && !ct.saving && flankPost(b, ct.flank, planted)) return;
     // (35) ретейк 2 на 3+ — AWP не несут в почти проигранный ретейк: снайпер сейвит
