@@ -3050,7 +3050,35 @@ var T_TACTICS = [
             {roles:["support","igl"], via:["Split","Lower Mid","Mid","Chamber Lane"], stage:"Donut", look:"Short"}]},
   {id:"ctB",    name:"Мид → CT, B с двух сторон", site:"B", pools:["full","half"],   setupEnd:60, style:"split",
     groups:[{roles:["entry","igl"], via:["T Ramp","Tunnel","Water","Ruins"]},
-            {roles:["awp","support"], via:["Split","Lower Mid","Mid","Top Mid","Sniper Nest","Red Room","Alley"], stage:"Back Halls", look:"Second Lane"}]}
+            {roles:["awp","support"], via:["Split","Lower Mid","Mid","Top Mid","Sniper Nest","Red Room","Alley"], stage:"Back Halls", look:"Second Lane"}]},
+  // ---- v254: ещё 10 — сочетания входов, которые чаще всего играют про (tools/tactics_bake.py, 92 демки Ancient,
+  // раунды с плантом; в скобках — сколько раундов). Маршруты — модальные пути про по зонам. ----
+  {id:"execA4", name:"A: четверо через мейн", site:"A", pools:["full","half","force"], setupEnd:38, style:"exec",       // мейн 4 + лёркер (35)
+    groups:[{roles:["entry","awp","igl","support"], via:["T Ramp","Split","A Stairs","A Hall"]}]},
+  {id:"fastA",  name:"Быстрый A мейном, мид держат", site:"A", pools:["full","half","force"], setupEnd:24, style:"fast", // мейн 3, плант < 40 с (9)
+    groups:[{roles:["entry","awp","igl"], via:["T Ramp","Split","A Stairs","A Hall"]}, {roles:["support"], stage:"TMID"}]},
+  {id:"main3shortA", name:"A: трое мейн + один Short", site:"A", pools:["full","half"], setupEnd:48, style:"split",     // мейн 3 + шорт 1 (9)
+    groups:[{roles:["entry","awp","igl"], via:["T Ramp","Split","A Stairs","A Hall"]},
+            {roles:["support"], via:["Split","Lower Mid","Mid","Chamber Lane"], stage:"Donut", look:"Short"}]},
+  {id:"shortMidA", name:"A через Short, мид держат", site:"A", pools:["full","half","force"], setupEnd:44, style:"exec", // шорт 3 + двое в стороне (22)
+    groups:[{roles:["entry","awp","igl"], via:["Split","Lower Mid","Mid","Chamber Lane"], stage:"Donut", look:"Short"}, {roles:["support"], stage:"TMID"}]},
+  {id:"slowA",  name:"Медленный A: двое мейн + Short", site:"A", pools:["full","half"], setupEnd:66, style:"default",   // мейн 2 + шорт 1, поздно (23)
+    groups:[{roles:["entry","igl"], via:["T Ramp","Split","A Stairs","A Hall"]},
+            {roles:["awp"], via:["Split","Lower Mid","Mid","Chamber Lane"], stage:"Donut", look:"Short"}, {roles:["support"], stage:"TMID"}]},
+  {id:"execB4", name:"B: четверо по рампе", site:"B", pools:["full","half","force"], setupEnd:38, style:"exec",          // рампа 4 + лёркер (34)
+    groups:[{roles:["entry","awp","igl","support"], via:["T Ramp","Tunnel","Water","Ruins"]}]},
+  {id:"ramp3caveB", name:"B: трое рампа + один кейв", site:"B", pools:["full","half","force"], setupEnd:50, style:"split", // рампа 3 + кейв 1 (38)
+    groups:[{roles:["entry","awp","igl"], via:["T Ramp","Tunnel","Water","Ruins"]},
+            {roles:["support"], via:["T Ramp","Tunnel","Water","Ruins","T Lower","T Upper","Lamp Room"], stage:"Dark", look:"Cave"}]},
+  {id:"slowCaveB", name:"Медленный B: двое кейв + рампа", site:"B", pools:["full","half"], setupEnd:68, style:"default", // кейв 2 + рампа 1, поздно (27)
+    groups:[{roles:["entry","igl"], via:["T Ramp","Tunnel","Water","Ruins","T Lower","T Upper","Lamp Room"], stage:"Dark", look:"Cave"},
+            {roles:["awp"], via:["T Ramp","Tunnel","Water"], stage:"T Lower", look:"Ramp"}, {roles:["support"], stage:"TMID"}]},
+  {id:"slowRampB", name:"Медленный B: двое рампа + кейв", site:"B", pools:["full","half"], setupEnd:66, style:"default", // рампа 2 + кейв 1 (28)
+    groups:[{roles:["entry","igl"], via:["T Ramp","Tunnel","Water","Ruins"]},
+            {roles:["awp"], via:["T Ramp","Tunnel","Water","Ruins","T Lower","T Upper","Lamp Room"], stage:"Dark", look:"Cave"}, {roles:["support"], stage:"TMID"}]},
+  {id:"lateCaveB", name:"Поздний кейв: трое кейв + рампа", site:"B", pools:["full","half"], setupEnd:70, style:"default", // кейв 3 + рампа 1, поздно (16)
+    groups:[{roles:["entry","awp","igl"], via:["T Ramp","Tunnel","Water","Ruins","T Lower","T Upper","Lamp Room"], stage:"Dark", look:"Cave"},
+            {roles:["support"], via:["T Ramp","Tunnel","Water"], stage:"T Lower", look:"Ramp"}]}
 ];
 var tSiteHist = []; // раздел 12: куда T реально выходили по раундам (для стака CT)
 var teamTac = { T: null, CT: {call:null} };
@@ -3196,7 +3224,7 @@ function chooseTactic(){
     // выход ~12с до планта (у ботов от выхода до планта 10–15с); стиль тактики сдвигает: выходы раньше, дефолт/фейк позже
     var u = hashRand(roundNum*6271 + matchNum*353 + 29);
     if(tempoRead === "slow") u = 0.5 + 0.5*u; else if(tempoRead === "fast") u = 0.5*u;
-    var bias = {exec:[0, 0.8], split:[0.05, 0.9], fake:[0.25, 0.75], "default":[0.3, 0.7]}[tac.style] || [0, 1];
+    var bias = {exec:[0, 0.8], split:[0.05, 0.9], fake:[0.25, 0.75], "default":[0.3, 0.7], fast:[0, 0.3]}[tac.style] || [0, 1];
     u = bias[0] + bias[1]*u;
     var QX = [0, 0.10, 0.25, 0.50, 0.75, 0.90, 1], QY = [22, 34, 44, 66, 88, 100, 106], pT = QY[QY.length-1];
     for(var qi = 1; qi < QX.length; qi++){ if(u <= QX[qi]){ pT = QY[qi-1] + (QY[qi]-QY[qi-1])*(u-QX[qi-1])/(QX[qi]-QX[qi-1]); break; } }
@@ -3347,7 +3375,38 @@ var CT_SETUPS = [
     roles:{roamer:{early:{pos:["Dark","Lamp Room"], look:"T Upper", sec:20}, pos:["Dark","Lamp Room"], look:"T Upper", hideFrom:false},
            anchorB:{pos:["Cave","B Site"], look:"Dark", hideFrom:false}}},
   {id:"redRoom", name:"Контроль Red Room + Short", rot:"212",
-    roles:{mid:{pos:["Red Room","Sniper Nest"], look:"Top Mid"}, roamer:{pos:["Short"], look:"Donut"}}}
+    roles:{mid:{pos:["Red Room","Sniper Nest"], look:"Top Mid"}, roamer:{pos:["Short"], look:"Donut"}}},
+  // ---- v254: ещё 14 — как стоят CT про (tools/tactics_bake.py, 1418 раундов): кто впереди на 12-й с и сколько
+  // на A / в миде / на B на 20-й с. w — частота у про (раундов / 250 — масштаб проектный, чтобы новые вместе
+  // не вытеснили прежние: их сумма ≈ 40 % выбора). ----
+  {id:"caveEarly", name:"Ранний кейв за инфой", rot:"212", w:0.58,                                       // впереди только Cave (145)
+    roles:{anchorB:{early:{pos:["Cave"], look:"Dark", sec:14}, pos:["B Site","Site B"], look:"Ramp"}}},
+  {id:"chamberCave", name:"Чембер + кейв за инфой", rot:"212", w:0.56,                                   // Cave + Chamber Lane (140)
+    roles:{mid:{early:{pos:["Chamber Lane"], look:"Lower Mid", sec:14}}, anchorB:{early:{pos:["Cave"], look:"Dark", sec:14}}}},
+  {id:"donutCave", name:"Донат + кейв", rot:"212", w:0.34,                                               // Cave + Donut (86)
+    roles:{mid:{pos:["Donut"], look:"Lower Mid"}, roamer:{pos:["Cave"], look:"Dark", hideFrom:false}}},
+  {id:"chamberPeek", name:"Пик Чембера за инфой", rot:"212", w:0.34,                                    // Chamber Lane (85)
+    roles:{mid:{early:{pos:["Chamber Lane"], look:"Lower Mid", sec:14}}}},
+  {id:"donutHold", name:"Донат держит мид", rot:"212", w:0.29,                                           // Donut (72)
+    roles:{mid:{pos:["Donut"], look:"Lower Mid"}}},
+  {id:"midCave", name:"Мид + кейв за инфой", rot:"212", w:0.23,                                         // Cave + Mid (58)
+    roles:{mid:{early:{pos:["Mid"], look:"Lower Mid", sec:14}}, roamer:{early:{pos:["Cave"], look:"Dark", sec:14}}}},
+  {id:"darkPush", name:"Пуш Dark за инфой", rot:"212", w:0.22,                                          // Dark (56)
+    roles:{roamer:{early:{pos:["Dark"], look:"Lamp Room", sec:16}, pos:["Cave"], look:"Dark", hideFrom:false}}},
+  {id:"chamberDark", name:"Чембер + Dark за инфой", rot:"212", w:0.22,                                  // Chamber Lane + Dark (54)
+    roles:{mid:{early:{pos:["Chamber Lane"], look:"Lower Mid", sec:14}}, roamer:{early:{pos:["Dark"], look:"Lamp Room", sec:16}, pos:["Cave"], look:"Dark", hideFrom:false}}},
+  {id:"doubleMid", name:"Двое в мид за инфой", rot:"212", w:0.13,                                       // Mid + Mid (33)
+    roles:{mid:{early:{pos:["Mid"], look:"Lower Mid", sec:14}}, rotator:{early:{pos:["Mid","Top Mid"], look:"Lower Mid", sec:14}}}},
+  {id:"aMainPush", name:"Пуш мейна A за инфой", rot:"212", w:0.15,                                      // A Main (16) + A Main и Cave (22)
+    roles:{anchorA:{early:{pos:["A Main"], look:"A Hall", sec:12}}}},
+  {id:"shortA", name:"A с Short (0-3-2)", rot:"212", w:0.98,                                            // A никто, мид 3, B 2 (246)
+    roles:{anchorA:{pos:["Short"], look:"A Site"}, mid:{pos:["Donut"], look:"Lower Mid"}}},
+  {id:"heavyB", name:"Трое на B (1-1-3)", rot:"212", w:0.84,                                            // A 1, мид 1, B 3 (210)
+    roles:{rotator:{pos:["Second Lane","90"], look:"B Site"}, roamer:{pos:["Cave"], look:"Dark", hideFrom:false}}},
+  {id:"midStack", name:"Четверо в миде (0-4-1)", rot:"212", w:0.26,                                     // A никто, мид 4, B 1 (65)
+    roles:{anchorA:{pos:["Short"], look:"A Site"}, mid:{pos:["Donut"], look:"Lower Mid"}, rotator:{pos:["Top Mid","Sniper Nest"], look:"Mid"}, roamer:{pos:["Red Room"], look:"Top Mid"}}},
+  {id:"threeMid", name:"Трое в миде (1-3-1)", rot:"111", w:0.30,                                        // A 1, мид 3, B 1 (75)
+    roles:{mid:{pos:["Donut"], look:"Lower Mid"}, rotator:{pos:["Top Mid","Sniper Nest"], look:"Mid"}, roamer:{pos:["Red Room"], look:"Top Mid"}}}
 ];
 function chooseCtSetup(){
   var last = roundHist.slice(-4), heat = {A:0, B:0}, lost = {A:0, B:0};
@@ -3357,7 +3416,7 @@ function chooseCtSetup(){
   var why = {};
   var weights = CT_SETUPS.map(function(S){
     var w = (BAL.proCtSetup ? {std212:4, std111:1.5, midAggro:0.5, pickA:0.4, pickB:0.4, redRoom:0.6, cavePush:0.5, stackA:0.2, stackB:0.2, retakeA:0.2, retakeB:0.2}
-                            : {std212:3, std111:1.5, midAggro:1, pickA:0.8, pickB:0.8, redRoom:1, cavePush:1, stackA:0.2, stackB:0.2, retakeA:0.2, retakeB:0.2})[S.id] || 1;
+                            : {std212:3, std111:1.5, midAggro:1, pickA:0.8, pickB:0.8, redRoom:1, cavePush:1, stackA:0.2, stackB:0.2, retakeA:0.2, retakeB:0.2})[S.id] || S.w || 1;
     if(S.stack){ var h = heat[S.stack]; if(last.length >= 3 && h >= 3){ w = BAL.proCtSetup ? 1.2 : 4; why[S.id] = "T ходили на "+S.stack+" "+h+" из "+last.length; } else if(h >= 2) w = BAL.proCtSetup ? 0.4 : 1; }
     if(/^retake/.test(S.id)){ var k = S.id.slice(-1); if(lost[k] >= 2){ w = 1.2; why[S.id] = "на "+k+" проигрываем "+lost[k]+" раунда — играем от ретейка"; } }
     if(S.roles && Object.keys(S.roles).some(function(r){ return S.roles[r].early; })){
