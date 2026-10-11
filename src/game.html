@@ -2139,7 +2139,6 @@ ROAM_READY = true;
 
 // ---------- ручки баланса (всё, что крутится при балансировке, — в одном месте) ----------
 var BAL = {
-  ecoUtil: true,      // v166: решение о фулле учитывает гранаты (+$600 T, +$800 CT), иначе — хаф/эко с запасом
   midCover2: true,    // v165: мид за погибшего мидера берёт ближайший свободный CT; пересмотр каждые 3с; в пути — "идёт на мид"
   siteRebal: true,    // v165: двое на одном входе / тиммейт подпушил — второй берёт свободный вход или встаёт под размен
   nadeMore: true,     // v164: + ~150 редких про-лайнапов из демок (≥3 матчей)
@@ -11507,7 +11506,7 @@ function scopedFor(b){
   return b.money >= w.price + ARMOR_PRICE + HELMET_UPGRADE + 600 ? w : null;
 }
 // сколько не хватает до полного закупа (винтовка + кевлар/шлем) с учётом того, что уже есть
-function fullNeedU(b){ return fullNeed(b) + (BAL.ecoUtil ? (b.team === "CT" ? 500 : 300) : 0); }
+function fullNeedU(b){ return fullNeed(b) + (b.team === "CT" ? 500 : 300); } // + гранаты
 function fullNeed(b){
   var need = 0;
   var cur = b.primary ? WEAPONS[b.primary] : null;
@@ -11566,19 +11565,20 @@ function decideRoundType0(team){
   var teamMoney = mates.reduce(function(a,b){ return a+b.money; }, 0);
   var teamNeed = mates.reduce(function(a,b){ return a+fullNeedU(b); }, 0);
   if(canFull >= 4 || (canFull >= 3 && teamMoney >= teamNeed)) return "full";
-  // (v166) на винтовки и броню хватает всем, но без гранат: про всё равно
-  // заходят в фулл, если следующий раунд при поражении будет опять бедным
-  var canBare = mates.filter(function(b){ return b.money >= fullNeed(b); }).length;
-  // если сэкономить сейчас — хватит ли на полный закуп в следующем раунде (даже при поражении)?
+  // сэкономим — хватит ли на полный закуп с гранатами в следующем раунде (даже при поражении)?
   var nextInc = nextLossIncome(team);
-  var canFullNext = mates.filter(function(b){ return b.money + nextInc >= fullNeed(b); }).length;
+  var canFullNext = mates.filter(function(b){ return b.money + nextInc >= fullNeedU(b); }).length;
   var lastOfHalf = lastOfHalfNow();
   var enemy = team === "CT" ? "T" : "CT";
   var matchPoint = score[enemy] === matchWinTarget()-1;
   if(lastOfHalf || matchPoint) return "force";          // копить уже незачем
-  if(BAL.ecoUtil){ var canFullNextU = mates.filter(function(b){ return b.money + nextInc >= fullNeedU(b); }).length;
-    if(canFullNextU >= 4) return canFull >= 2 ? "half" : "eco";
-    if(canBare >= 4) return "full"; }
+  // (v251) на винтовки и броню хватает четверым, не хватает только на гранаты —
+  // про заходят в фулл, гранаты на остаток (CT после проигранного фулла снова
+  // в фулле 55 %, в эко 21 %, tools/ct_cmp.py). Раньше эта проверка стояла после
+  // «копим на следующий раунд» и не срабатывала никогда: кому хватает сейчас,
+  // тому хватит и после эко.
+  var canBare = mates.filter(function(b){ return b.money >= fullNeed(b); }).length;
+  if(canBare >= 4) return "full";
   if(canFullNext >= 4) return canFull >= 2 ? "half" : "eco";
   // даже после эко на полный не хватит — копить бессмысленно, покупаем что можем
   var avg = teamMoney / mates.length;
