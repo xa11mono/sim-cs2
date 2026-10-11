@@ -108,7 +108,7 @@
   <div id="topbar">
     <div class="tb-id">
       <h1>Ancient</h1>
-      <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 257, 11.10</div>
+      <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 258, 11.10</div>
     </div>
     <div class="tb-group" id="tbMatch">
       <button id="btnPause">Пауза</button>
@@ -14642,57 +14642,107 @@ function draw(){
     });
   }
 
-  // ---------- гранаты ----------
+  // ---------- гранаты (v258: только вид эффектов — данные, радиусы и игра прежние) ----------
+  var S0 = view.scale;
+  var fxR = function(n){ var v = Math.sin(n)*43758.5453; return v - Math.floor(v); };   // своя раскладка клубов на эффект, без Math.random
+  var teamRGB = function(t){ return t === "CT" ? "120,182,238" : "238,184,92"; };
+  // сколько эффекту осталось — дуга цветом команды сверху по часовой (чей и надолго ли)
+  var timeArc = function(x, y, r, frac, team, al){
+    if(!(frac > 0)) return;
+    ctx.strokeStyle = "rgba("+teamRGB(team)+","+(0.9*al)+")"; ctx.lineWidth = 2.2/S0; ctx.lineCap = "round";
+    ctx.beginPath(); ctx.arc(x, y, r, -Math.PI/2, -Math.PI/2 + Math.PI*2*Math.min(1, frac)); ctx.stroke(); ctx.lineCap = "butt";
+  };
   smokes.forEach(function(sm){
     var rr = smokeRadiusNow(sm); if(rr < 2) return;
-    for(var q=0;q<5;q++){
-      var qa = q*1.256 + tick*0.004, qr = rr*0.35;
-      var cx = sm.x + Math.cos(qa)*qr*0.6, cy = sm.y + Math.sin(qa)*qr*0.6;
-      var sg = ctx.createRadialGradient(cx, cy, 0, cx, cy, rr*0.85);
-      sg.addColorStop(0, "rgba(200,204,196,0.55)"); sg.addColorStop(1, "rgba(160,166,158,0)");
-      ctx.fillStyle = sg; ctx.beginPath(); ctx.arc(cx, cy, rr*0.85, 0, Math.PI*2); ctx.fill();
+    var left = sm.until - sm.born > 0 ? (sm.until - tick)/(sm.until - sm.born) : 0, fade = Math.min(1, (sm.until - tick)/64), age = tick - sm.born;
+    var seed = sm.born*0.37 + sm.x*0.013 + sm.y*0.029;
+    // основа — ровно радиус дыма, плотнее к центру
+    var g = ctx.createRadialGradient(sm.x, sm.y, rr*0.12, sm.x, sm.y, rr);
+    g.addColorStop(0, "rgba(212,215,207,"+(0.88*fade)+")");
+    g.addColorStop(0.7, "rgba(194,198,189,"+(0.76*fade)+")");
+    g.addColorStop(1, "rgba(172,177,167,"+(0.46*fade)+")");
+    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(sm.x, sm.y, rr, 0, Math.PI*2); ctx.fill();
+    // клубы внутри радиуса — медленный дрейф, без пульса
+    for(var q=0;q<6;q++){
+      var qa = fxR(seed+q*1.7)*Math.PI*2 + age*0.0016*(q%2 ? 1 : -1), qd = rr*(0.2+0.4*fxR(seed+q*3.1)), qr = rr*(0.3+0.16*fxR(seed+q*5.3));
+      var cx = sm.x + Math.cos(qa)*qd, cy = sm.y + Math.sin(qa)*qd;
+      var pg = ctx.createRadialGradient(cx, cy, 0, cx, cy, qr);
+      pg.addColorStop(0, "rgba(238,240,234,"+(0.34*fade)+")"); pg.addColorStop(1, "rgba(238,240,234,0)");
+      ctx.fillStyle = pg; ctx.beginPath(); ctx.arc(cx, cy, qr, 0, Math.PI*2); ctx.fill();
     }
-    ctx.fillStyle = "rgba(188,192,184,0.5)"; ctx.beginPath(); ctx.arc(sm.x, sm.y, rr*0.8, 0, Math.PI*2); ctx.fill();
+    // край — где дым кончается
+    ctx.strokeStyle = "rgba(242,244,238,"+(0.5*fade)+")"; ctx.lineWidth = 1.1/S0;
+    ctx.beginPath(); ctx.arc(sm.x, sm.y, rr, 0, Math.PI*2); ctx.stroke();
+    timeArc(sm.x, sm.y, rr + 3.5/S0, left, sm.team, fade);
   });
   fires.forEach(function(fr){
-    var left = fr.until - tick, fade = Math.min(1, left/40);
-    var fl = 0.85 + 0.15*Math.sin(tick*0.9 + fr.x);
-    var fg = ctx.createRadialGradient(fr.x, fr.y, 0, fr.x, fr.y, NADE.molly.radius);
-    fg.addColorStop(0, "rgba(255,196,80,"+(0.75*fade*fl)+")");
-    fg.addColorStop(0.6, "rgba(232,96,40,"+(0.55*fade*fl)+")");
-    fg.addColorStop(1, "rgba(180,40,20,0)");
-    ctx.fillStyle = fg; ctx.beginPath(); ctx.arc(fr.x, fr.y, NADE.molly.radius, 0, Math.PI*2); ctx.fill();
-    for(var e=0;e<7;e++){ // языки пламени
-      var ea = e*0.9 + tick*0.07, er = NADE.molly.radius*(0.3 + 0.5*((e*37+tick) % 20)/20);
-      ctx.fillStyle = "rgba(255,220,120,"+(0.5*fade)+")";
-      ctx.beginPath(); ctx.arc(fr.x + Math.cos(ea)*er, fr.y + Math.sin(ea)*er, 3.5/view.scale, 0, Math.PI*2); ctx.fill();
+    var R = NADE.molly.radius, life = fr.until - tick, fade = Math.min(1, life/40), age = tick - fr.born, r0 = R*Math.min(1, 0.35 + age/14);
+    var seed = fr.born*0.53 + fr.x*0.011 + fr.y*0.017;
+    var fg = ctx.createRadialGradient(fr.x, fr.y, 0, fr.x, fr.y, r0);
+    fg.addColorStop(0, "rgba(255,196,92,"+(0.72*fade)+")");
+    fg.addColorStop(0.55, "rgba(240,116,44,"+(0.5*fade)+")");
+    fg.addColorStop(1, "rgba(214,70,30,"+(0.24*fade)+")");
+    ctx.fillStyle = fg; ctx.beginPath(); ctx.arc(fr.x, fr.y, r0, 0, Math.PI*2); ctx.fill();
+    // языки пламени: место своё у каждого огня, мерцает яркость, а не размер
+    for(var e=0;e<9;e++){
+      var ea = fxR(seed+e*2.3)*Math.PI*2, ed = r0*(0.15+0.72*fxR(seed+e*4.1)), fl = 0.55 + 0.45*Math.sin(tick*0.35 + e*1.9);
+      ctx.fillStyle = "rgba(255,228,146,"+(0.6*fade*fl)+")";
+      ctx.beginPath(); ctx.arc(fr.x + Math.cos(ea)*ed, fr.y + Math.sin(ea)*ed, (2.6+2.4*fxR(seed+e*7.7))/S0, 0, Math.PI*2); ctx.fill();
     }
+    // край — где жжёт
+    ctx.strokeStyle = "rgba(255,124,62,"+(0.75*fade)+")"; ctx.lineWidth = 1.2/S0;
+    ctx.beginPath(); ctx.arc(fr.x, fr.y, r0, 0, Math.PI*2); ctx.stroke();
+    timeArc(fr.x, fr.y, r0 + 3.5/S0, life/NADE.molly.life, fr.team, fade);
   });
+  // граната в полёте: форма по типу (не только цвет) — дым кружок, флешка ромб, HE кружок с точкой, молотов треугольник
+  var nadeIcon = function(type, x, y, px){
+    var r = px/S0;
+    ctx.lineWidth = 1.3/S0; ctx.strokeStyle = "rgba(12,14,10,0.85)";
+    ctx.beginPath();
+    if(type === "flash"){ ctx.moveTo(x, y-r*1.3); ctx.lineTo(x+r*1.1, y); ctx.lineTo(x, y+r*1.3); ctx.lineTo(x-r*1.1, y); ctx.closePath(); ctx.fillStyle = "#ffffff"; }
+    else if(type === "molly"){ ctx.moveTo(x, y-r*1.3); ctx.lineTo(x+r*1.15, y+r*0.85); ctx.lineTo(x-r*1.15, y+r*0.85); ctx.closePath(); ctx.fillStyle = "#ff9a3c"; }
+    else { ctx.arc(x, y, r, 0, Math.PI*2); ctx.fillStyle = type === "he" ? "#e8584c" : "#d6d9d1"; }
+    ctx.fill(); ctx.stroke();
+    if(type === "he"){ ctx.fillStyle = "rgba(40,10,8,0.9)"; ctx.beginPath(); ctx.arc(x, y, r*0.38, 0, Math.PI*2); ctx.fill(); }
+  };
+  var nadeRGB = function(t){ return t === "smoke" ? "214,217,209" : t === "flash" ? "255,255,255" : t === "he" ? "232,88,76" : "255,154,60"; };
   nadesInAir.forEach(function(n){
-    var col = n.type==="smoke" ? "#c8ccc4" : (n.type==="flash" ? "#ffffff" : (n.type==="he" ? "#e05c52" : "#ff9a3c"));
+    var rgb = nadeRGB(n.type);
     if(n.lob){
-      // навес: тень на земле + граната "выше" (крупнее) в середине дуги
-      var fk2 = Math.min(1, (tick - n.born)/n.flight), hgt = Math.sin(Math.PI*fk2);
-      ctx.fillStyle = "rgba(0,0,0,0.35)"; ctx.beginPath(); ctx.arc(n.x, n.y, 2.5/view.scale, 0, Math.PI*2); ctx.fill();
-      ctx.strokeStyle = col; ctx.globalAlpha = 0.35; ctx.lineWidth = 1/view.scale; ctx.setLineDash([3/view.scale,3/view.scale]);
-      ctx.beginPath(); ctx.moveTo(n.x, n.y); ctx.lineTo(n.tx, n.ty); ctx.stroke(); ctx.setLineDash([]); ctx.globalAlpha = 1;
-      ctx.fillStyle = col; ctx.beginPath(); ctx.arc(n.x, n.y - hgt*22/view.scale, (3 + 2.5*hgt)/view.scale, 0, Math.PI*2); ctx.fill();
+      // навес: дуга полёта до места падения, тень на земле, граната выше в середине дуги
+      var fk2 = Math.min(1, (tick - n.born)/n.flight), hgt = Math.sin(Math.PI*fk2), lift = 26/S0;
+      var mx = (n.x + n.tx)/2, my = (n.y + n.ty)/2 - lift*(1 - fk2);
+      ctx.strokeStyle = "rgba("+rgb+",0.45)"; ctx.lineWidth = 1/S0; ctx.setLineDash([2/S0, 4/S0]);
+      ctx.beginPath(); ctx.moveTo(n.x, n.y - hgt*22/S0); ctx.quadraticCurveTo(mx, my, n.tx, n.ty); ctx.stroke(); ctx.setLineDash([]);
+      // где упадёт
+      ctx.strokeStyle = "rgba("+rgb+",0.6)"; ctx.lineWidth = 1.1/S0;
+      ctx.beginPath(); ctx.arc(n.tx, n.ty, 5/S0, 0, Math.PI*2); ctx.moveTo(n.tx-8/S0, n.ty); ctx.lineTo(n.tx-3/S0, n.ty); ctx.moveTo(n.tx+3/S0, n.ty); ctx.lineTo(n.tx+8/S0, n.ty); ctx.stroke();
+      ctx.fillStyle = "rgba(0,0,0,0.38)"; ctx.beginPath(); ctx.ellipse(n.x, n.y, 3.2/S0, 2/S0, 0, 0, Math.PI*2); ctx.fill();
+      nadeIcon(n.type, n.x, n.y - hgt*22/S0, 4.2 + 2.6*hgt);
       return;
     }
-    ctx.strokeStyle = col; ctx.globalAlpha = 0.45; ctx.lineWidth = 1.2/view.scale;
-    ctx.beginPath(); n.trail.forEach(function(p,i){ if(i===0) ctx.moveTo(p[0],p[1]); else ctx.lineTo(p[0],p[1]); }); ctx.lineTo(n.x,n.y); ctx.stroke();
-    ctx.globalAlpha = 1;
-    ctx.fillStyle = col; ctx.beginPath(); ctx.arc(n.x, n.y, 3/view.scale, 0, Math.PI*2); ctx.fill();
+    // брошена прямо: след гаснет к началу
+    if(n.trail.length){
+      var p0 = n.trail[0], tg = ctx.createLinearGradient(p0[0], p0[1], n.x, n.y);
+      tg.addColorStop(0, "rgba("+rgb+",0)"); tg.addColorStop(1, "rgba("+rgb+",0.6)");
+      ctx.strokeStyle = tg; ctx.lineWidth = 1.4/S0;
+      ctx.beginPath(); n.trail.forEach(function(p,i){ if(i===0) ctx.moveTo(p[0],p[1]); else ctx.lineTo(p[0],p[1]); }); ctx.lineTo(n.x,n.y); ctx.stroke();
+    }
+    nadeIcon(n.type, n.x, n.y, 4.4);
   });
   nadeFx.forEach(function(fx){
-    var age = tick - fx.born, k = age/40;
+    var age = tick - fx.born;
     if(fx.type === "flash"){
-      ctx.fillStyle = "rgba(255,255,255,"+(0.8*(1-k))+")";
-      ctx.beginPath(); ctx.arc(fx.x, fx.y, 20 + 160*k, 0, Math.PI*2); ctx.fill();
+      // хлопок: короткая вспышка в точке и тонкое кольцо — видно где, и не слепит смотрящего
+      if(age < 10){ var c = 1 - age/10; ctx.fillStyle = "rgba(255,255,250,"+(0.85*c)+")"; ctx.beginPath(); ctx.arc(fx.x, fx.y, (6 + 10*(1-c))/S0 + 6, 0, Math.PI*2); ctx.fill(); }
+      if(age < 26){ var k = age/26, e2 = 1 - (1-k)*(1-k);
+        ctx.strokeStyle = "rgba(255,255,245,"+(0.7*(1-k))+")"; ctx.lineWidth = 1.6/S0; ctx.beginPath(); ctx.arc(fx.x, fx.y, 14 + 96*e2, 0, Math.PI*2); ctx.stroke(); }
     } else if(fx.type === "he"){
-      ctx.strokeStyle = "rgba(255,150,70,"+(1-k)+")"; ctx.lineWidth = 3/view.scale;
-      ctx.beginPath(); ctx.arc(fx.x, fx.y, NADE.he.radius*Math.min(1, k*2), 0, Math.PI*2); ctx.stroke();
-      ctx.fillStyle = "rgba(255,190,90,"+(0.5*(1-k))+")"; ctx.beginPath(); ctx.arc(fx.x, fx.y, 30*(1-k)+8, 0, Math.PI*2); ctx.fill();
+      // ударная волна до настоящего радиуса HE + жар в центре
+      var k2 = Math.min(1, age/20), e3 = 1 - (1-k2)*(1-k2)*(1-k2), a2 = 1 - age/40;
+      ctx.strokeStyle = "rgba(255,150,72,"+(0.9*a2)+")"; ctx.lineWidth = 2.4/S0;
+      ctx.beginPath(); ctx.arc(fx.x, fx.y, NADE.he.radius*e3, 0, Math.PI*2); ctx.stroke();
+      if(age < 14){ var c2 = 1 - age/14; ctx.fillStyle = "rgba(255,214,140,"+(0.8*c2)+")"; ctx.beginPath(); ctx.arc(fx.x, fx.y, (5 + 14*c2)/S0 + 4, 0, Math.PI*2); ctx.fill(); }
     }
   });
 
@@ -14724,14 +14774,17 @@ function draw(){
       if(age > life){ tracers.splice(ti,1); continue; }
       if(!showTracers.checked) continue;
       var a = 1 - age/life, S = view.scale;
-      var col = tr.team==="CT" ? "180,210,255" : "255,214,140";
+      var col = tr.team==="CT" ? "126,186,242" : "246,190,96";   // (v258) цвета команд насыщеннее
       if(TS0 && TSt.glow){ ctx.strokeStyle = "rgba(200,235,255,"+(a*0.18)+")"; ctx.lineWidth = TSt.glow/S; ctx.beginPath(); ctx.moveTo(tr.x1,tr.y1); ctx.lineTo(tr.x2,tr.y2); ctx.stroke(); }
-      ctx.strokeStyle = "rgba("+col+","+(a*(TS0 ? TSt.trailA : 0.32))+")";
+      // (v258) след светлеет от стрелка к цели — видно, откуда стреляли
+      var tGr = ctx.createLinearGradient(tr.x1, tr.y1, tr.x2, tr.y2);
+      tGr.addColorStop(0, "rgba("+col+","+(a*(TS0 ? TSt.trailA : 0.32)*0.25)+")"); tGr.addColorStop(1, "rgba("+col+","+(a*(TS0 ? TSt.trailA : 0.32)*1.35)+")");
+      ctx.strokeStyle = tGr;
       ctx.lineWidth = (TS0 ? TSt.trailW : 1)/S;
       ctx.beginPath(); ctx.moveTo(tr.x1,tr.y1); ctx.lineTo(tr.x2,tr.y2); ctx.stroke();
       var prog = Math.min(1, age/TRAVEL), tail = Math.max(0, prog-(TS0 ? TSt.tail : 0.3));
       if(prog < 1 || age < TRAVEL+30){
-        ctx.strokeStyle = "rgba(255,246,210,"+(0.95*a)+")";
+        ctx.strokeStyle = tr.team==="CT" ? "rgba(228,242,255,"+(0.95*a)+")" : "rgba(255,240,206,"+(0.95*a)+")";
         ctx.lineWidth = (TS0 ? TSt.core : 1.9)/S;
         ctx.beginPath();
         ctx.moveTo(tr.x1+(tr.x2-tr.x1)*tail, tr.y1+(tr.y2-tr.y1)*tail);
