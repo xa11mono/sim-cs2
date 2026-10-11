@@ -1994,7 +1994,7 @@ var WEAPONS = {
   MAC10:  {name:"MAC-10",      slot:"primary",   side:"T",    price:1050, tier:4, range: 650, dmg:29,  armorPen:0.575, rm:0.80, rpm:800, mag:30, reload:2.6, stand:12,  move:22,  recoil:4,  spam:4, recov:8, killReward:600},
   MP9:    {name:"MP9",         slot:"primary",   side:"CT",   price:1250, tier:4, range: 700, dmg:26,  armorPen:0.60,  rm:0.87, rpm:857, mag:30, reload:2.1, stand:10,  move:20,  recoil:4,  spam:4, recov:8, killReward:600},
   GALIL:  {name:"Galil AR",    slot:"primary",   side:"T",    price:1800, tier:5, range:1000, dmg:30,  armorPen:0.775, rm:0.98, rpm:666, mag:35, reload:3.0, stand:6.5, move:140, recoil:7,  spam:3, recov:8, killReward:300},
-  FAMAS:  {name:"FAMAS",       slot:"primary",   side:"CT",   price:2050, tier:5, range:1000, dmg:30,  armorPen:0.70,  rm:0.96, rpm:666, mag:25, reload:3.3, stand:5.5, move:120, recoil:6,  spam:3, recov:8, killReward:300},
+  FAMAS:  {name:"FAMAS",       slot:"primary",   side:"CT",   price:1950, tier:5, range:1000, dmg:30,  armorPen:0.70,  rm:0.96, rpm:666, mag:25, reload:3.3, stand:5.5, move:120, recoil:6,  spam:3, recov:8, killReward:300},
   AK:     {name:"AK-47",       slot:"primary",   side:"T",    price:2700, tier:6, range:1100, dmg:36,  armorPen:0.775, rm:0.98, rpm:600, mag:30, reload:2.5, stand:4.8, move:147, recoil:9,  spam:3, recov:8, killReward:300},
   M4:     {name:"M4A4",        slot:"primary",   side:"CT",   price:2900, tier:6, range:1100, dmg:33,  armorPen:0.70,  rm:0.97, rpm:666, mag:30, reload:3.1, stand:3.7, move:110, recoil:7,  spam:2.5, recov:8, killReward:300},
   // AWP: 115 в грудь = фраг даже в броне, в ноги — нет (86); ~1.5с между
@@ -11471,8 +11471,8 @@ function payRoundEconomy(winner, reason){
     var te = teamEco[team];
     var won = team === winner;
     var income = won ? ((reason === "bomb" || reason === "defuse") ? 3500 : WIN_REWARD) : LOSS_BONUS[Math.min(4, te.lossLevel)];
-    // T проиграли, но успели заложить бомбу — каждому +$800 к loss bonus
-    if(!won && team === "T" && bomb && (bomb.state === "planted" || bomb.state === "defused")) income += 800;
+    // T проиграли, но успели заложить бомбу — каждому +$600 к loss bonus (CS2, с 23.05.2024; было $800)
+    if(!won && team === "T" && bomb && (bomb.state === "planted" || bomb.state === "defused")) income += 600;
     bots.forEach(function(b){
       if(b.team !== team) return;
       var inc = income;
