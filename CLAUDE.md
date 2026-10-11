@@ -72,7 +72,9 @@ v166 — `docs/V166_CHANGES.md` (список владельца). Главны�
 | киллфид `feedKill` (иконки `KF_ICON`), табло `scoreboardUpdate`, панели игроков `playersUpdate` | ~14845; ~14967 |
 | **панель войса** (v264, одно место показа): `voiceFeed` / `renderVoice`, цвета `VOICE_KIND` / `VOICE_KEYS`; консоль `logEvent` (#log) — по Ё, `toggleConsole` | `grep -n` |
 
-Замеры: `tools/measure/measure.py <метка> --matches=3,7,11,13,17,19` работают и с v166. `docs/` — как раньше
+Замеры: `tools/measure/measure.py <метка> --matches=3,7,11,13,17,19` работают и с v166. Аудит поведения по механикам
+(цепочки «сигнал → знание → задача → взгляд → действие») — `tools/measure/audit/` (README там же), отчёт —
+`docs/reports/BOT_BEHAVIOR_AUDIT_REPORT.md`. `docs/` — как раньше
 (`PRO_PLAY.md` — источники, `PRO_DECISIONS.md` — цепочка решений про).
 
 ## Правила владельца

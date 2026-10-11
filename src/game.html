@@ -2835,14 +2835,26 @@ function setPost(b, pt, look, hold, tag, spreadIdx){
   // топтался на месте с кругами шагов, не вставая на угол
   if(b._egLock && b._egLock >= tick-1 && tag !== "endhunt" && !/^(defuse|flee|save|lineup|plantspot|stopplant|smokeWait|antidefuse)/.test(tag)) return;
   // идёт подобрать оружие — пост роли не перебивает (до ~1 тика после решения)
-  if(b._pickLock && b._pickLock >= tick-1 && tag !== "pickup" && !/^(defuse|flee|save|plantspot|stopplant|antidefuse|retake)/.test(tag)) return;
+  // (аудит 11.10) срочная задача, которой замок уступает, снимает и саму затею: иначе «за оружием» / «ждёт у смока» / «лайнап»
+  // на следующем тике ставили свой пост обратно, и пост менялся каждый тик (путь сбрасывался — бот стоял до 5–6 с)
+  if(b._pickLock && b._pickLock >= tick-1 && tag !== "pickup"){
+    if(!/^(defuse|flee|save|plantspot|stopplant|antidefuse|retake)/.test(tag)) return;
+    if(b.post && b.post.tag === "pickup") b._pickIgnore = {x:b.post.x, y:b.post.y, round:roundNum};
+    b._pickLock = 0;
+  }
   // ждёт у края смока — пост роли не перебивает (решение ждать/пушить — в smokeEdgeTick)
-  if(b._smokeWaitLock && b._smokeWaitLock >= tick-1 && tag !== "smokeWait" && !/^(defuse|flee|save|lineup|plantspot|stopplant|antidefuse)/.test(tag)){
-    if(b._smokeWait) b._smokeWait.want = [pt, look, hold, tag];
-    return;
+  if(b._smokeWaitLock && b._smokeWaitLock >= tick-1 && tag !== "smokeWait"){
+    if(!/^(defuse|flee|save|lineup|plantspot|stopplant|antidefuse)/.test(tag)){
+      if(b._smokeWait) b._smokeWait.want = [pt, look, hold, tag];
+      return;
+    }
+    b._smokeWait = null; b._smokeWaitLock = 0; b._smokePush = {until: tick + 4*TICK_HZ, reason:"срочно"};
   }
   // идёт на свой лайнап — пост роли не перебивает (кроме дефуза/отхода от взрыва/сейва)
-  if(b._lineupLock && b._lineupLock >= tick-1 && tag !== "lineup" && !/^(defuse|flee|save|stopplant|antidefuse|fetch|plantspot)/.test(tag)) return;
+  if(b._lineupLock && b._lineupLock >= tick-1 && tag !== "lineup"){
+    if(!/^(defuse|flee|save|stopplant|antidefuse|fetch|plantspot)/.test(tag)) return;
+    b.nadeTask = null; b._lineupLock = 0;   // задача важнее броска — бросок отменён (как живой игрок бросает лайнап ради сейва/дефуза)
+  }
   if(tag === "lineup") b._route = null;
   if(b._route && !/^route/.test(tag)){
     var R = b._route;
@@ -3798,6 +3810,9 @@ function tProbes(tt, ts){
     // напарник — ~150px позади пробы по той же линии, смотрит туда же
     if(BAL.pairs && P.buddy){
       var bu = ts.filter(function(o){ return o.id === P.buddy; })[0];
+      // (аудит 11.10) напарник сам вышел пробой своей группы — он занят: раньше обе пробы ставили ему пост каждый тик
+      // (probeB ↔ probePairA, сотни смен поста подряд — стоял на месте)
+      if(bu && bu._probe && bu._probe !== P && bu._probe.round === roundNum && bu._probe.ph === 1){ P.buddy = null; bu = null; }
       if(bu && !bu._sawEnemy && !(bu._tradeLock && bu._tradeLock.until > tick)){
         var ln = Math.hypot(P.pt.x-from.x, P.pt.y-from.y) || 1, back = Math.min(150, ln*0.6);
         var bp = walk({x: P.pt.x + (from.x-P.pt.x)/ln*back, y: P.pt.y + (from.y-P.pt.y)/ln*back});
@@ -3967,10 +3982,8 @@ function tIglReplan(tt, site, other, secLeft){
           var trvR = Math.hypot(ctrR.x-SITES[other].x, ctrR.y-SITES[other].y)*1.4/SPEED;
           voiceLog("T", "rotread", "IGL", toward.length+" CT ротируют на "+tt.site+" — идём на "+other+", но углы чекаем, там может кто-то остаться");
           logEvent("IGL: слышим ротацию CT на "+tt.site+" → перекол на "+other+" (не значит, что там пусто)");
-          tt.site = other; tt.phase = "setup"; tt.execStart = null; tt.plantPick = null; tt.takeAssign = null;
+          tSetSite(tt, other); tt.phase = "setup"; tt.takeAssign = null;
           tt.execTick = tick + Math.round(Math.min(Math.max(4, trvR*0.7), 12)*TICK_HZ);
-          nadeFlags.tExec = false; nadeFlags.tExecSm = false; nadeFlags.peekFlashPlanned = false;
-          bots.forEach(function(b){ if(b.team === "T"){ b._route = null; b._routeDone = null; b._stageInfo = null; } });
           return true;
         } else logEvent("IGL: слышим ротацию CT на "+tt.site+", но это может быть фейк — играем по плану");
       }
@@ -3992,7 +4005,7 @@ function tIglReplan(tt, site, other, secLeft){
       tt.takeAssign = null; tt.plantPick = null; tt.wave2 = null; tt.w1Contact = null; tt._popDone = false; tt._waitLog = false;
       nadeFlags.tExec = false; nadeFlags.tExecSm = false; nadeFlags.peekFlashPlanned = false;
       if(goOther){
-        tt.site = other; tt.phase = "setup"; tt.execStart = null; tt.execTick = tick + Math.round(Math.min(travel*0.8, 14)*TICK_HZ);
+        tSetSite(tt, other); tt.phase = "setup"; tt.execTick = tick + Math.round(Math.min(travel*0.8, 14)*TICK_HZ);
         voiceLog("T", "abort", "IGL", "выход не прошёл — отходим, все на "+other+"!");
         logEvent("IGL: выход провалился ("+tD+" наших против "+cD+") — отход, перекол на "+other);
       } else {
@@ -4032,6 +4045,25 @@ function stagePost(mem, k){
     return;
   }
   groupPost(mem, g.tStage, g.tEntry, "stage"+k, opt);
+}
+// (аудит 11.10) смена сайта плана T — одно место. Раньше из пяти мест смены только два снимали маршруты к старому сайту,
+// и ни одно — гранаты-задания туда: через 5 с после смены у кого-то из T в 37 % смен ещё был маршрут, а в части смен —
+// граната в сторону старого сайта. Снимается то, что T делали под старый сайт; фаза и тайминг выхода — у вызывающего
+function tSetSite(tt, site){
+  var old = tt.site;
+  tt.site = site; tt.execStart = null; tt.plantPick = null;
+  nadeFlags.tExec = false; nadeFlags.tExecSm = false; nadeFlags.peekFlashPlanned = false;
+  bots.forEach(function(b){
+    if(b.team !== "T") return;
+    // маршрут тактики задан под старый сайт — снят и помечен пройденным, чтобы тактика не запустила его заново
+    // (раньше два пути смены обнуляли и «пройден», и группа снова шла по маршруту к старому сайту)
+    if(b._route) b._routeDone = b._route.key + "|" + roundNum;
+    b._route = null; b._stageInfo = null;
+    var t = b.nadeTask;
+    if(old && old !== site && t && SITES[old] && Math.hypot(t.x-SITES[old].x, t.y-SITES[old].y) < Math.hypot(t.x-SITES[site].x, t.y-SITES[site].y)){
+      b.nadeTask = null; b._lineupLock = 0; if(b.post && b.post.tag === "lineup") clearPost(b);
+    }
+  });
 }
 function tBrain(){
   var tt = teamTac.T; if(!tt) return;
@@ -4126,8 +4158,7 @@ function tBrain(){
       tt.rebound = true;
       voiceLog("T", "reb"+other, "IGL", "минус на "+other+", там пусто — все на "+other+"!");
       logEvent("IGL: перекол → "+other+" (сняли CT, сайт пустой)");
-      tt.site = other; tt.phase = "setup"; tt.execTick = tick + 3*TICK_HZ; tt.execStart = null; tt.plantPick = null;
-      nadeFlags.tExec = false; nadeFlags.tExecSm = false; nadeFlags.peekFlashPlanned = false;
+      tSetSite(tt, other); tt.phase = "setup"; tt.execTick = tick + 3*TICK_HZ;
       return;
     }
     // смерть своего у сайта в сетапе уже повод передумать, если там же видели 2+
@@ -4140,8 +4171,7 @@ function tBrain(){
       logEvent("IGL: на "+tt.site+" стак (~"+Math.round(here)+"), перепривязка → "+other);
       // перекол не значит "сразу выход": группа переходит и выходит примерно по
       // исходному таймингу (минимум через 8с, чтобы успеть дойти)
-      tt.site = other; tt.phase = "setup"; tt.execTick = Math.max(tick + 8*TICK_HZ, tt.execTick - 8*TICK_HZ); tt.execStart = null; tt.plantPick = null;
-      nadeFlags.tExec = false; nadeFlags.tExecSm = false; nadeFlags.peekFlashPlanned = false;
+      var exT = tt.execTick; tSetSite(tt, other); tt.phase = "setup"; tt.execTick = Math.max(tick + 8*TICK_HZ, exT - 8*TICK_HZ);
       return; // со следующего тика мозг работает уже по новому сайту
     }
   }
@@ -4244,7 +4274,7 @@ function tBrain(){
       var sc = function(k){ return beliefCount("T", BZ.siteNear[k]||[]) * 400 + Math.hypot(solo.x-SITES[k].x, solo.y-SITES[k].y); };
       var ks2 = sc("A") <= sc("B") ? "A" : "B";
       tt.soloPlan = ks2;
-      if(ks2 !== tt.site){ tt.site = ks2; tt.plantPick = null; site = SITES[ks2]; g = GEO[ks2]; other = ks2 === "A" ? "B" : "A"; plantPt = site.plant || site; }
+      if(ks2 !== tt.site){ var exS = tt.execStart; tSetSite(tt, ks2); tt.execStart = exS; site = SITES[ks2]; g = GEO[ks2]; other = ks2 === "A" ? "B" : "A"; plantPt = site.plant || site; }
       if(tt.phase === "setup"){ tt.phase = "execute"; tt.execStart = tick; }
       tt.wave2 = tt.wave2 || tick;
       voiceLog("T", "solo", solo.id, "я один — иду ставить на "+ks2+", в дуэли не лезу");
@@ -5803,14 +5833,14 @@ function knowApply(b, s, err, zone, L, opt){
       if(h._c > 0){
         if(mOk > 0) h.weight += move*mNo*(h.weight*h._c/mOk);
         if(h.type !== "moved_unknown") specific = true;
-        if(h.heard && zone){ h.x = s.x; h.y = s.y; h.zone = h.route[0] = zone; h.inView = false; h.htick = tick; }
+        if(h.heard && zone){ h.x = s.x; h.y = s.y; h.zone = h.route[0] = zone; h.inView = false; h.htick = tick; h.voice = !!opt.voice; }
       } else h.weight *= 1 - move;
     });
     if(same && specific){ knowNorm(B2.hyps); continue; }
     if(!specific && un && zone){
       var take = r*L*(same ? 0.5 : 1);
       B2.hyps.forEach(function(h){ h.weight *= 1 - take; });
-      B2.hyps.splice(B2.hyps.length-1, 0, {type: "moved", zone: zone, x: s.x, y: s.y, route: [zone], windows: [], weight: take, heard: true, htick: tick});
+      B2.hyps.splice(B2.hyps.length-1, 0, {type: "moved", zone: zone, x: s.x, y: s.y, route: [zone], windows: [], weight: take, heard: true, htick: tick, voice: !!opt.voice});
       knowTrim(B2);
     }
     knowNorm(B2.hyps);
@@ -6259,11 +6289,13 @@ function beliefTick(){
       });
       if(k > 1) for(var i=0;i<n;i++) Q[i] /= k;
       B[eid] = Q;
-      // «слышали здесь» по знанию тиммейтов (своё ухо или войс): вес гипотезы ≥ 0,35 (порог v166 beliefMassNear) —
-      // последняя реальная инфа по этому врагу; «кто» — вывод знания (какой враг это объясняет), не подсказка игры
+      // «слышали здесь» — только сказанное в войс (h.voice): вес гипотезы ≥ 0,35 (порог v166 beliefMassNear) —
+      // последняя реальная инфа по этому врагу; «кто» — вывод знания (какой враг это объясняет), не подсказка игры.
+      // (аудит 11.10) раньше бралось и то, что тиммейт слышал сам и не сказал: общая точка команды (LKP) получала
+      // услышанное одним ботом без войса ~8 раз за раунд, и в 42 % случаев другой тиммейт сразу смотрел туда
       var hb = null;
       mates.forEach(function(m){ var H = m.know.enemies[eid]; if(!H || H.visible) return;
-        H.hyps.forEach(function(h){ if(h.heard && h.htick && h.weight >= 0.35 && (!hb || h.htick > hb.htick)) hb = h; }); });
+        H.hyps.forEach(function(h){ if(h.heard && h.voice && h.htick && h.weight >= 0.35 && (!hb || h.htick > hb.htick)) hb = h; }); });
       var bl = beliefLast[team][eid];
       if(hb && (!bl || hb.htick > bl.tick) && !(bl && bl.src === "spotted" && hb.htick - bl.tick < 2*TICK_HZ)){
         beliefLast[team][eid] = {x:hb.x, y:hb.y, tick:hb.htick, src:"sound"}; beliefSeen[team][eid] = hb.htick;
@@ -7454,15 +7486,22 @@ function posRoundEnd(winner){
   });
 }
 // выбор позиции CT по названию зоны: вес названия — лучшая позиция демок в зонах с этим названием для этого бота
+// (аудит 11.10) выбор места по названиям — один раз на раунд (как и задумано: «каждый раунд — одна из них»). Вес места
+// зависит от того, где стоят тиммейты (posPairLift), а их места — от этого выбора: пересчёт каждый тик давал качели —
+// опорник и ротатор менялись точками каждый тик (матч 3, тик 78346: CT0 и CT3, по 106 смен поста за 1,7 с, оба стояли)
+var PPN = {key: null, v: {}};
 function posPickName(b, names, seed){
   if(!b || (bomb && bomb.state === "planted")) return proPick("CT", names, seed);
+  var rk = matchNum + ":" + roundNum; if(PPN.key !== rk || tick < PPN.t){ PPN.key = rk; PPN.v = {}; } PPN.t = tick;   // тик назад — матч начат заново
+  var ck = b.id + "|" + seed + "|" + names.join(",");
+  if(PPN.v[ck] !== undefined) return PPN.v[ck];
   var w = names.map(function(nm){ var ids = zonesByName(nm), best = 0;
     KNOW_POSITIONS.points.forEach(function(q){ if(q.side !== b.team) return; if(q.zid === undefined) q.zid = zoneIdAt(q.x, q.y) || null;
       if(q.zid && ids.indexOf(q.zid) >= 0) best = Math.max(best, posPref(b, q)); });
     return BAL.proFloor + best; });
-  var tot = w.reduce(function(a, v){ return a+v; }, 0), r = hashRand(seed)*tot;
-  for(var i=0;i<w.length;i++){ r -= w[i]; if(r <= 0) return i; }
-  return w.length-1;
+  var tot = w.reduce(function(a, v){ return a+v; }, 0), r = hashRand(seed)*tot, pick = w.length-1;
+  for(var i=0;i<w.length;i++){ r -= w[i]; if(r <= 0){ pick = i; break; } }
+  return (PPN.v[ck] = pick);
 }
 
 // =====================================================================
@@ -8332,10 +8371,7 @@ function smokeEdgeTick(){
     if(W){
       var still = smokes.indexOf(W.S) >= 0 && smokeRadiusNow(W.S) > 30;
       var why = still ? smokePushReason(b, W.S) : null;
-      // срочная задача (сорвать дефуз, сейв, бегство) важнее ожидания у смока —
-      // раньше обе механики перезаписывали пост каждый тик
-      var urgent = b.post && b.post.tag !== "smokeWait" && /^(defuse|flee|save|antidefuse|stopplant)/.test(b.post.tag||"");
-      if(urgent){ b._smokeWait = null; b._smokeWaitLock = 0; b._smokePush = {until: tick + 4*TICK_HZ, reason:"срочно"}; return; }
+      // срочная задача важнее ожидания у смока — ожидание снимает setPost (одно место, аудит 11.10)
       if(!still || why || tick - W.start > 9*TICK_HZ || b.state !== "patrol" || b.planting || b.defusing){
         b._smokeWait = null; b._smokeWaitLock = 0;
         if(still && (why || tick - W.start > 9*TICK_HZ)){ b._smokePush = {until: tick + 4*TICK_HZ, reason: why || "долго ждать нельзя"}; logEvent(b.id+": пушит в смок — "+b._smokePush.reason); }
@@ -9147,6 +9183,10 @@ function inFire(x, y){
 // ---------- бросок ----------
 function throwNade(b, type, tx, ty, lob, why){
   if(!b.nades || b.nades[type] <= 0) return false;
+  // (аудит 11.10) проверка прямо перед броском: HE / молотов не летит туда, где стоит свой (в радиусе поражения) —
+  // бросок отменяется, граната остаётся. Раньше не проверялось: 37 % HE падали в 300 px от своего, урон по своим от
+  // гранат — 88 случаев на 12 матчей (у про из 33 тимкиллов 30 — пули, docs/PRO_PLAY.md 6г)
+  if((type === "he" || type === "molly") && bots.some(function(o){ return o !== b && o.alive && o.team === b.team && Math.hypot(o.x-tx, o.y-ty) < NADE[type].radius; })) return false;
   b.nades[type]--;
   var d = Math.max(60, Math.hypot(tx-b.x, ty-b.y)); if(!lob) d = Math.min(NADE_THROW_RANGE, d);
   var a = Math.atan2(ty-b.y, tx-b.x);
@@ -10206,6 +10246,7 @@ function weaponPickupTick(){
       groundWeapons.forEach(function(G){
         if(weaponValue(G.key) < cur + 2) return;
         if(G.key === "AWP" && !awpAllowed(b) && cur >= 5) return;
+        if(b._pickIgnore && b._pickIgnore.round === roundNum && Math.hypot(G.x-b._pickIgnore.x, G.y-b._pickIgnore.y) < 40) return;
         var dG = Math.hypot(G.x-b.x, G.y-b.y); if(dG < gd && hasLOS(b.x, b.y, G.x, G.y)){ gd = dG; gBest = G; } });
       if(gBest && (b.state !== "patrol" || intelEstimate(b.team, gBest.x, gBest.y, 450, 3*TICK_HZ).n > 0)){
         b._fpT = tick;
@@ -10793,14 +10834,14 @@ function tryShoot(shooter, target, dist){
   else if(shooter.contactStreak < effReaction){
     // префаер — только по тому, что сам только что видел (≤1.4с), а не по коллу/
     // догадке: раньше ~30% выстрелов были префаерами, и ТТК выглядел мгновенным
-    var pfWin = BAL.prefireStrict ? 90 : CAUTION_TICKS;
-    if(shooter.holding && shooter.lastIntel && (!BAL.prefireStrict || shooter.lastIntel.src !== "call") && (tick - shooter.lastIntel.tick) < pfWin &&
-       Math.hypot(target.x-shooter.lastIntel.x, target.y-shooter.lastIntel.y) < PREFIRE_RADIUS &&
+    var pfWin = BAL.prefireStrict ? 90 : CAUTION_TICKS, LI = shooter._intelPre;   // что знал до этого контакта
+    if(shooter.holding && LI && (!BAL.prefireStrict || LI.src !== "call") && (tick - LI.tick) < pfWin &&
+       Math.hypot(target.x-LI.x, target.y-LI.y) < PREFIRE_RADIUS &&
        // перевыход после потери: мгновенно — только если видел <0.5с назад,
        // иначе нужна хотя бы половина реакции (прицел "примерно там", а не на голове)
-       (!BAL.prefireStrict || (tick - shooter.lastIntel.tick) < 32 || shooter.contactStreak >= Math.round(effReaction*0.5))){
+       (!BAL.prefireStrict || (tick - LI.tick) < 32 || shooter.contactStreak >= Math.round(effReaction*0.5))){
       prefire = true;
-      prefireConfidence = 1 - (tick - shooter.lastIntel.tick)/pfWin; // 1 = только что видел, 0 = на грани "забыл"
+      prefireConfidence = 1 - (tick - LI.tick)/pfWin; // 1 = только что видел, 0 = на грани "забыл"
     } else {
       return;
     }
@@ -10865,7 +10906,10 @@ function tryShoot(shooter, target, dist){
   shooter._heat = heat + 1;
   var aimErr = 0.0045 + 0.020*Math.max(0, 1.2 - sk);
   var settle = Math.max(0, 1 - (shooter.contactStreak - effReaction)/24);
-  var flick = 0.018 * settle * Math.min(shooter._preAim||1, (shooter._reactMul||1) < 1 ? 0.35 : 1); // держал угол / заходил с прицелом — уже "на цели"
+  // (аудит 11.10) 0,018 → 0,054: подобрано по демкам (tools/measure/duel.py: у про 2 выстрела на фраг и 0,31 с от первого
+  // выстрела до фрага). Старое число держалось на ошибке: 72 % первых выстрелов шли «префайром» без реакции, с разбросом ×1,6–3,4.
+  // Когда реакция стала честной, первые пули стали слишком точными (1 выстрел на фраг, 0,16 с); при 0,054 — 2 и 0,33 с
+  var flick = 0.054 * settle * Math.min(shooter._preAim||1, (shooter._reactMul||1) < 1 ? 0.35 : 1); // держал угол / заходил с прицелом — уже "на цели"
   // движущуюся цель сложнее вести: ошибка растёт с её угловой скоростью поперёк
   // линии огня. Стоящего убить легко, широкий выход — трудно, джиггл — почти
   // невозможно (за это его и делают: взять инфу, не отдав фраг)
@@ -11406,6 +11450,7 @@ function smokeShots(){
     if(b.ammo !== a0){ b._smokeBurst--; if(b._smokeBurst <= 0){ b._smokeBurst = 0; b._smokeNext = tick + 1.5*TICK_HZ; } }
   });
 }
+function seenRecently(b, e){ var s = b._seenAt && b._seenAt[e.id]; return s != null && tick - s >= 0 && tick - s <= 8; }
 function resolveEngagements(){
   var pairs = [];
   bots.forEach(function(b){ b._sawEnemy = false; b._nearestEnemyDist = Infinity; b._nearestEnemyBot = null; b._visible = []; });
@@ -11425,9 +11470,13 @@ function resolveEngagements(){
       // ван-вей: стоящий в самом краю дыма видит наружу, а его снаружи — нет
       var smk = smokeBlocks(ct.x,ct.y,t.x,t.y), ctOW = false, tOW = false;
       if(smk){ if(!BAL.oneWay) return; ctOW = oneWaySees(ct, t); tOW = oneWaySees(t, ct); if(!ctOW && !tOW) return; }
-      var ctSees = (ctP.head || ctP.body) && (!smk || ctOW) && tick >= ct.blindUntil && (inFov(ct, t.x, t.y) || ct.contactStreak > 0);
-      var tSees  = (tP.head || tP.body) && (!smk || tOW) && tick >= t.blindUntil  && (inFov(t, ct.x, ct.y) || t.contactStreak > 0);
+      // вне поля зрения видно только того, с кем контакт уже идёт (видел его ≤ 0,125 с назад). (аудит 11.10) Раньше хватало
+      // контакта с ЛЮБЫМ врагом (contactStreak > 0): в перестрелке бот видел всех врагов на линии на 360°, и второго за спиной тоже
+      var ctSees = (ctP.head || ctP.body) && (!smk || ctOW) && tick >= ct.blindUntil && (inFov(ct, t.x, t.y) || seenRecently(ct, t));
+      var tSees  = (tP.head || tP.body) && (!smk || tOW) && tick >= t.blindUntil  && (inFov(t, ct.x, ct.y) || seenRecently(t, ct));
       if(!ctSees && !tSees) return;
+      if(ctSees) (ct._seenAt || (ct._seenAt = {}))[t.id] = tick;
+      if(tSees) (t._seenAt || (t._seenAt = {}))[ct.id] = tick;
       if(ctSees){ ct._sawEnemy = true; ct._lastSawT = tick; ct._visible.push(t); if(dist < ct._nearestEnemyDist){ ct._nearestEnemyDist = dist; ct._nearestEnemyBot = t; } }
       if(tSees){ t._sawEnemy = true; t._lastSawT = tick; t._visible.push(ct); if(dist < t._nearestEnemyDist){ t._nearestEnemyDist = dist; t._nearestEnemyBot = ct; } }
       pairs.push({ct:ct, t:t, dist:dist, ctSees:ctSees, tSees:tSees});
@@ -11457,6 +11506,10 @@ function resolveEngagements(){
     if(!b.alive) return;
     if(b._sawEnemy){
       b.contactStreak++;
+      // (аудит 11.10) что бот знал ДО этого контакта — префайр в tryShoot только по нему. Раньше lastIntel перезаписывался
+      // текущей позицией цели до выстрела, и «держащий» стрелял в только что появившегося без реакции (74 % первых выстрелов,
+      // медиана 5 тиков ≈ 80 мс). Контакт непрерывный (lastIntel с прошлого тика) — прежнее «до» сохраняется
+      if(!b.lastIntel || b.lastIntel.tick < tick - 1) b._intelPre = b.lastIntel;
       // память для префайра (план §3/§6): "видел врага тут только что" —
       // обновляется каждый тик реального контакта, не только на входе в бой
       b.lastIntel = {x:b._nearestEnemyBot.x, y:b._nearestEnemyBot.y, tick:tick};

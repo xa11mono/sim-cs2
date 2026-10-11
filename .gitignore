@@ -5,3 +5,5 @@ tools/measure/__pycache__/
 tools/positions_shots/
 voice-test.html
 __pycache__/
+tools/measure/audit/runs/*/aud_*.json
+tools/measure/audit/runs/*/sim_audit.html
