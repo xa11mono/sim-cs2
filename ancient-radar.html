@@ -53,13 +53,33 @@
   #log .ev{color:var(--text);}
   #log .ev.kill{color:var(--danger);}
   #warn{position:absolute;top:336px;left:12px;background:rgba(217,131,47,0.15);border:1px solid var(--site);color:var(--site);padding:6px 12px;border-radius:6px;font-size:10.5px;max-width:340px;display:none;}
+  /* v255: «Отметить момент» (src/marks.js, перенос из rebuild-v238) */
+  .mk-panel{position:absolute;top:10px;right:12px;width:min(640px,calc(100% - 24px));max-height:calc(100% - 20px);overflow-y:auto;z-index:50;background:#0a0e09;border:1px solid var(--accent-dim);border-radius:8px;padding:12px 14px;font-size:13px;line-height:1.5;}
+  .mk-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;color:var(--accent);font-size:14px;}
+  .mk-panel textarea{width:100%;background:var(--panel-2);color:var(--text);border:1px solid var(--line);border-radius:5px;padding:8px;font:inherit;resize:vertical;}
+  .mk-panel select{background:var(--panel-2);color:var(--text);border:1px solid var(--line);border-radius:5px;padding:6px;font:inherit;}
+  .mk-row2{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:8px 0;}
+  .mk-row2 label{display:flex;gap:4px;align-items:center;color:var(--text-dim);}
+  .mk-q{color:var(--text-dim);font-size:12px;margin:4px 0;} .mk-err{color:var(--danger);font-size:12px;min-height:16px;}
+  #mkImg{width:100%;border-radius:6px;border:1px solid var(--line);display:block;margin-bottom:4px;}
+  .mk-lbl{color:var(--text-dim);font-size:12px;margin-top:8px;} .mk-big{font-size:15px;margin:2px 0 8px;}
+  .mk-chip{display:inline-block;font-size:12px;padding:3px 9px;border-radius:5px;margin:0 6px 6px 0;background:#4a3a14;color:#f4d27a;}
+  .mk-chip-a{background:#163450;color:#9cc8f2;} .mk-chip-n{background:#1f3a1a;color:#b7e08a;}
+  .mk-pt{font-size:12px;color:var(--text);border-left:2px solid var(--line);padding-left:8px;margin:0 0 6px;}
+  .mk-think{color:var(--accent);padding:14px 0;}
+  .mk-item{border:1px solid var(--line);border-radius:6px;padding:8px 10px;margin-bottom:6px;cursor:pointer;} .mk-item:hover{background:var(--panel-2);}
+  .mk-item .mk-row{display:flex;justify-content:space-between;gap:8px;} .mk-t{margin:2px 0;}
+  .mk-done .mk-t{text-decoration:line-through;color:var(--text-dim);}
+  .mk-urg{color:var(--danger);} .mk-st{font-size:11px;color:var(--text-dim);} .mk-st-fixed{color:#ffd76a;} .mk-st-unparsed{color:var(--site);}
+  .mk-toast{position:absolute;left:50%;bottom:24px;transform:translateX(-50%);z-index:60;background:rgba(10,14,9,0.96);border:1px solid var(--accent);color:var(--text);padding:8px 14px;border-radius:6px;max-width:80%;}
+  .mk-prog{position:absolute;left:50%;top:45%;transform:translate(-50%,-50%);z-index:60;background:rgba(10,14,9,0.96);border:1px solid var(--accent);color:var(--accent);padding:14px 22px;border-radius:8px;font-size:15px;}
 </style>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 
 <div id="app">
   <div id="topbar">
     <h1>ANCIENT — LIVE RADAR</h1>
-    <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 254 (25 тактик T и 25 расстановок CT; экономика по правилам CS2) · 11.10</div>
+    <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 255 (кнопка «Отметить момент» — M) · 11.10</div>
     <button id="btnPause">Пауза</button>
     <button id="btnRestartRound" title="Немедленно сбросить текущий раунд — на случай если боты застряли">Рестарт раунда</button>
     <span class="chk" title="Матч с одним номером всегда проходит одинаково. Увидел баг — запиши номер матча и тик, введи номер и нажми «Сыграть»: матч повторится с начала">матч № <input id="inpMatchNum" type="number" min="1" value="1" style="width:52px"> <button id="btnFreshMatch">Сыграть</button> <span id="matchTick" style="opacity:.75"></span></span>
@@ -15186,6 +15206,729 @@ function playersUpdate(){
   });
 })();
 
+var __SNAP = [
+["ZONE_LAYER_KEY", function(){ return ZONE_LAYER_KEY; }, function(v){ try{ ZONE_LAYER_KEY = v; }catch(e){} }],
+["ZONE_LAYER_BASELINE", function(){ return ZONE_LAYER_BASELINE; }, function(v){ try{ ZONE_LAYER_BASELINE = v; }catch(e){} }],
+["ZONE_SHAPES_BAKED", function(){ return ZONE_SHAPES_BAKED; }, function(v){ try{ ZONE_SHAPES_BAKED = v; }catch(e){} }],
+["ZONE_SHAPES_KEY", function(){ return ZONE_SHAPES_KEY; }, function(v){ try{ ZONE_SHAPES_KEY = v; }catch(e){} }],
+["NAV_ANCHORS_KEY", function(){ return NAV_ANCHORS_KEY; }, function(v){ try{ NAV_ANCHORS_KEY = v; }catch(e){} }],
+["navWarp", function(){ return navWarp; }, function(v){ try{ navWarp = v; }catch(e){} }],
+["portalCount", function(){ return portalCount; }, function(v){ try{ portalCount = v; }catch(e){} }],
+["portalMissing", function(){ return portalMissing; }, function(v){ try{ portalMissing = v; }catch(e){} }],
+["PORTAL_TOL", function(){ return PORTAL_TOL; }, function(v){ try{ PORTAL_TOL = v; }catch(e){} }],
+["PORTAL_MIN_OVERLAP", function(){ return PORTAL_MIN_OVERLAP; }, function(v){ try{ PORTAL_MIN_OVERLAP = v; }catch(e){} }],
+["VIS_DANGER_TIMER", function(){ return VIS_DANGER_TIMER; }, function(v){ try{ VIS_DANGER_TIMER = v; }catch(e){} }],
+["ZONE_CENTROIDS", function(){ return ZONE_CENTROIDS; }, function(v){ try{ ZONE_CENTROIDS = v; }catch(e){} }],
+["DANGER_SAMPLES", function(){ return DANGER_SAMPLES; }, function(v){ try{ DANGER_SAMPLES = v; }catch(e){} }],
+["zoneLayerRebuildTimer", function(){ return zoneLayerRebuildTimer; }, function(v){ try{ zoneLayerRebuildTimer = v; }catch(e){} }],
+["pointsByName", function(){ return pointsByName; }, function(v){ try{ pointsByName = v; }catch(e){} }],
+["CT_SPAWN", function(){ return CT_SPAWN; }, function(v){ try{ CT_SPAWN = v; }catch(e){} }],
+["T_SPAWN", function(){ return T_SPAWN; }, function(v){ try{ T_SPAWN = v; }catch(e){} }],
+["T_SPAWN_FIX_RAW", function(){ return T_SPAWN_FIX_RAW; }, function(v){ try{ T_SPAWN_FIX_RAW = v; }catch(e){} }],
+["POINT_POOL", function(){ return POINT_POOL; }, function(v){ try{ POINT_POOL = v; }catch(e){} }],
+["USER_ZONES_KEY", function(){ return USER_ZONES_KEY; }, function(v){ try{ USER_ZONES_KEY = v; }catch(e){} }],
+["userZonesSaveTimer", function(){ return userZonesSaveTimer; }, function(v){ try{ userZonesSaveTimer = v; }catch(e){} }],
+["ZONE_KIND_LABELS", function(){ return ZONE_KIND_LABELS; }, function(v){ try{ ZONE_KIND_LABELS = v; }catch(e){} }],
+["ZONE_KIND_COLORS", function(){ return ZONE_KIND_COLORS; }, function(v){ try{ ZONE_KIND_COLORS = v; }catch(e){} }],
+["POINT_POOL_ZONEMAP_LEN", function(){ return POINT_POOL_ZONEMAP_LEN; }, function(v){ try{ POINT_POOL_ZONEMAP_LEN = v; }catch(e){} }],
+["ROAM_READY", function(){ return ROAM_READY; }, function(v){ try{ ROAM_READY = v; }catch(e){} }],
+["WEAPONS", function(){ return WEAPONS; }, function(v){ try{ WEAPONS = v; }catch(e){} }],
+["SPEED", function(){ return SPEED; }, function(v){ try{ SPEED = v; }catch(e){} }],
+["ACCEL", function(){ return ACCEL; }, function(v){ try{ ACCEL = v; }catch(e){} }],
+["WALK_SPEED_FRAC", function(){ return WALK_SPEED_FRAC; }, function(v){ try{ WALK_SPEED_FRAC = v; }catch(e){} }],
+["CAUTION_TICKS", function(){ return CAUTION_TICKS; }, function(v){ try{ CAUTION_TICKS = v; }catch(e){} }],
+["SOUND_CAUTION_TICKS", function(){ return SOUND_CAUTION_TICKS; }, function(v){ try{ SOUND_CAUTION_TICKS = v; }catch(e){} }],
+["GUN_HEAR_OPEN", function(){ return GUN_HEAR_OPEN; }, function(v){ try{ GUN_HEAR_OPEN = v; }catch(e){} }],
+["GUN_HEAR_WALL", function(){ return GUN_HEAR_WALL; }, function(v){ try{ GUN_HEAR_WALL = v; }catch(e){} }],
+["AIM_TURN_RATE", function(){ return AIM_TURN_RATE; }, function(v){ try{ AIM_TURN_RATE = v; }catch(e){} }],
+["AIM_FIRE_CONE", function(){ return AIM_FIRE_CONE; }, function(v){ try{ AIM_FIRE_CONE = v; }catch(e){} }],
+["PREFIRE_RADIUS", function(){ return PREFIRE_RADIUS; }, function(v){ try{ PREFIRE_RADIUS = v; }catch(e){} }],
+["SOUND_RADIUS_RUN", function(){ return SOUND_RADIUS_RUN; }, function(v){ try{ SOUND_RADIUS_RUN = v; }catch(e){} }],
+["SOUND_RADIUS_WALK", function(){ return SOUND_RADIUS_WALK; }, function(v){ try{ SOUND_RADIUS_WALK = v; }catch(e){} }],
+["FOOTSTEP_INTERVAL_RUN", function(){ return FOOTSTEP_INTERVAL_RUN; }, function(v){ try{ FOOTSTEP_INTERVAL_RUN = v; }catch(e){} }],
+["FOOTSTEP_INTERVAL_WALK", function(){ return FOOTSTEP_INTERVAL_WALK; }, function(v){ try{ FOOTSTEP_INTERVAL_WALK = v; }catch(e){} }],
+["bots", function(){ return bots; }, function(v){ try{ bots = v; }catch(e){} }],
+["START_MONEY", function(){ return START_MONEY; }, function(v){ try{ START_MONEY = v; }catch(e){} }],
+["MAX_MONEY", function(){ return MAX_MONEY; }, function(v){ try{ MAX_MONEY = v; }catch(e){} }],
+["ROAM_CHECK_TICKS", function(){ return ROAM_CHECK_TICKS; }, function(v){ try{ ROAM_CHECK_TICKS = v; }catch(e){} }],
+["ROAM_RECHECK_TICKS", function(){ return ROAM_RECHECK_TICKS; }, function(v){ try{ ROAM_RECHECK_TICKS = v; }catch(e){} }],
+["ROAM_QUIET_RADIUS", function(){ return ROAM_QUIET_RADIUS; }, function(v){ try{ ROAM_QUIET_RADIUS = v; }catch(e){} }],
+["ROAM_ROUTES", function(){ return ROAM_ROUTES; }, function(v){ try{ ROAM_ROUTES = v; }catch(e){} }],
+["SPD_K", function(){ return SPD_K; }, function(v){ try{ SPD_K = v; }catch(e){} }],
+["ROLE_LABEL", function(){ return ROLE_LABEL; }, function(v){ try{ ROLE_LABEL = v; }catch(e){} }],
+["NICKS", function(){ return NICKS; }, function(v){ try{ NICKS = v; }catch(e){} }],
+["ROLE_SHORT", function(){ return ROLE_SHORT; }, function(v){ try{ ROLE_SHORT = v; }catch(e){} }],
+["TEAM_ROLES", function(){ return TEAM_ROLES; }, function(v){ try{ TEAM_ROLES = v; }catch(e){} }],
+["PROFILES", function(){ return PROFILES; }, function(v){ try{ PROFILES = v; }catch(e){} }],
+["SITES", function(){ return SITES; }, function(v){ try{ SITES = v; }catch(e){} }],
+["GEO", function(){ return GEO; }, function(v){ try{ GEO = v; }catch(e){} }],
+["spotCache", function(){ return spotCache; }, function(v){ try{ spotCache = v; }catch(e){} }],
+["SPOT_TEAM", function(){ return SPOT_TEAM; }, function(v){ try{ SPOT_TEAM = v; }catch(e){} }],
+["ED_CACHE", function(){ return ED_CACHE; }, function(v){ try{ ED_CACHE = v; }catch(e){} }],
+["EXP_CACHE", function(){ return EXP_CACHE; }, function(v){ try{ EXP_CACHE = v; }catch(e){} }],
+["PSN", function(){ return PSN; }, function(v){ try{ PSN = v; }catch(e){} }],
+["PSN_TAGS", function(){ return PSN_TAGS; }, function(v){ try{ PSN_TAGS = v; }catch(e){} }],
+["PLANT_TICKS", function(){ return PLANT_TICKS; }, function(v){ try{ PLANT_TICKS = v; }catch(e){} }],
+["BOMB_TICKS", function(){ return BOMB_TICKS; }, function(v){ try{ BOMB_TICKS = v; }catch(e){} }],
+["DEFUSE_TICKS", function(){ return DEFUSE_TICKS; }, function(v){ try{ DEFUSE_TICKS = v; }catch(e){} }],
+["DEFUSE_KIT_TICKS", function(){ return DEFUSE_KIT_TICKS; }, function(v){ try{ DEFUSE_KIT_TICKS = v; }catch(e){} }],
+["BOMB_KILL_RADIUS", function(){ return BOMB_KILL_RADIUS; }, function(v){ try{ BOMB_KILL_RADIUS = v; }catch(e){} }],
+["bomb", function(){ return bomb; }, function(v){ try{ bomb = v; }catch(e){} }],
+["DEFUSE_HEAR", function(){ return DEFUSE_HEAR; }, function(v){ try{ DEFUSE_HEAR = v; }catch(e){} }],
+["T_TACTICS", function(){ return T_TACTICS; }, function(v){ try{ T_TACTICS = v; }catch(e){} }],
+["tSiteHist", function(){ return tSiteHist; }, function(v){ try{ tSiteHist = v; }catch(e){} }],
+["teamTac", function(){ return teamTac; }, function(v){ try{ teamTac = v; }catch(e){} }],
+["siteHeatPending", function(){ return siteHeatPending; }, function(v){ try{ siteHeatPending = v; }catch(e){} }],
+["siteHeat", function(){ return siteHeat; }, function(v){ try{ siteHeat = v; }catch(e){} }],
+["lastTacticId", function(){ return lastTacticId; }, function(v){ try{ lastTacticId = v; }catch(e){} }],
+["tacMem", function(){ return tacMem; }, function(v){ try{ tacMem = v; }catch(e){} }],
+["ctRead", function(){ return ctRead; }, function(v){ try{ ctRead = v; }catch(e){} }],
+["roundHist", function(){ return roundHist; }, function(v){ try{ roundHist = v; }catch(e){} }],
+["ctHabit", function(){ return ctHabit; }, function(v){ try{ ctHabit = v; }catch(e){} }],
+["tacHist", function(){ return tacHist; }, function(v){ try{ tacHist = v; }catch(e){} }],
+["ctSetupHist", function(){ return ctSetupHist; }, function(v){ try{ ctSetupHist = v; }catch(e){} }],
+["ctSetupMem", function(){ return ctSetupMem; }, function(v){ try{ ctSetupMem = v; }catch(e){} }],
+["OPP_KEY", function(){ return OPP_KEY; }, function(v){ try{ OPP_KEY = v; }catch(e){} }],
+["OPP", function(){ return OPP; }, function(v){ try{ OPP = v; }catch(e){} }],
+["TOUT", function(){ return TOUT; }, function(v){ try{ TOUT = v; }catch(e){} }],
+["HALF_ADJ", function(){ return HALF_ADJ; }, function(v){ try{ HALF_ADJ = v; }catch(e){} }],
+["POS", function(){ return POS; }, function(v){ try{ POS = v; }catch(e){} }],
+["OUTWARD_CACHE", function(){ return OUTWARD_CACHE; }, function(v){ try{ OUTWARD_CACHE = v; }catch(e){} }],
+["CT_SETUPS", function(){ return CT_SETUPS; }, function(v){ try{ CT_SETUPS = v; }catch(e){} }],
+["events", function(){ return events; }, function(v){ try{ events = v; }catch(e){} }],
+["simTime", function(){ return simTime; }, function(v){ try{ simTime = v; }catch(e){} }],
+["aggrObs", function(){ return aggrObs; }, function(v){ try{ aggrObs = v; }catch(e){} }],
+["roundStartTick", function(){ return roundStartTick; }, function(v){ try{ roundStartTick = v; }catch(e){} }],
+["LURK_PLANS", function(){ return LURK_PLANS; }, function(v){ try{ LURK_PLANS = v; }catch(e){} }],
+["SHIFT_TO", function(){ return SHIFT_TO; }, function(v){ try{ SHIFT_TO = v; }catch(e){} }],
+["TDEATHS", function(){ return TDEATHS; }, function(v){ try{ TDEATHS = v; }catch(e){} }],
+["CLEARZ", function(){ return CLEARZ; }, function(v){ try{ CLEARZ = v; }catch(e){} }],
+["teamIntel", function(){ return teamIntel; }, function(v){ try{ teamIntel = v; }catch(e){} }],
+["INTEL_KEEP", function(){ return INTEL_KEEP; }, function(v){ try{ INTEL_KEEP = v; }catch(e){} }],
+["LKP", function(){ return LKP; }, function(v){ try{ LKP = v; }catch(e){} }],
+["ZONE_NAMES_BAKED", function(){ return ZONE_NAMES_BAKED; }, function(v){ try{ ZONE_NAMES_BAKED = v; }catch(e){} }],
+["ZONE_NAMES_KEY", function(){ return ZONE_NAMES_KEY; }, function(v){ try{ ZONE_NAMES_KEY = v; }catch(e){} }],
+["ZONE_DEFAULT_LABEL", function(){ return ZONE_DEFAULT_LABEL; }, function(v){ try{ ZONE_DEFAULT_LABEL = v; }catch(e){} }],
+["ZONE_SYNONYMS", function(){ return ZONE_SYNONYMS; }, function(v){ try{ ZONE_SYNONYMS = v; }catch(e){} }],
+["_zbnCache", function(){ return _zbnCache; }, function(v){ try{ _zbnCache = v; }catch(e){} }],
+["RMEM", function(){ return RMEM; }, function(v){ try{ RMEM = v; }catch(e){} }],
+["BZ", function(){ return BZ; }, function(v){ try{ BZ = v; }catch(e){} }],
+["belief", function(){ return belief; }, function(v){ try{ belief = v; }catch(e){} }],
+["beliefSeen", function(){ return beliefSeen; }, function(v){ try{ beliefSeen = v; }catch(e){} }],
+["beliefLast", function(){ return beliefLast; }, function(v){ try{ beliefLast = v; }catch(e){} }],
+["REACH", function(){ return REACH; }, function(v){ try{ REACH = v; }catch(e){} }],
+["KNOW", function(){ return KNOW; }, function(v){ try{ KNOW = v; }catch(e){} }],
+["KNOW_SAY", function(){ return KNOW_SAY; }, function(v){ try{ KNOW_SAY = v; }catch(e){} }],
+["KNOW_POSITIONS", function(){ return KNOW_POSITIONS; }, function(v){ try{ KNOW_POSITIONS = v; }catch(e){} }],
+["KNOW_TRACE", function(){ return KNOW_TRACE; }, function(v){ try{ KNOW_TRACE = v; }catch(e){} }],
+["KNOW_LOG", function(){ return KNOW_LOG; }, function(v){ try{ KNOW_LOG = v; }catch(e){} }],
+["KG", function(){ return KG; }, function(v){ try{ KG = v; }catch(e){} }],
+["KNOW_SPOTS", function(){ return KNOW_SPOTS; }, function(v){ try{ KNOW_SPOTS = v; }catch(e){} }],
+["TEAM", function(){ return TEAM; }, function(v){ try{ TEAM = v; }catch(e){} }],
+["TEAM_PRIO", function(){ return TEAM_PRIO; }, function(v){ try{ TEAM_PRIO = v; }catch(e){} }],
+["teamKnow", function(){ return teamKnow; }, function(v){ try{ teamKnow = v; }catch(e){} }],
+["BELIEF_STEP", function(){ return BELIEF_STEP; }, function(v){ try{ BELIEF_STEP = v; }catch(e){} }],
+["LOOK", function(){ return LOOK; }, function(v){ try{ LOOK = v; }catch(e){} }],
+["LAST_CLEAR", function(){ return LAST_CLEAR; }, function(v){ try{ LAST_CLEAR = v; }catch(e){} }],
+["_ED", function(){ return _ED; }, function(v){ try{ _ED = v; }catch(e){} }],
+["EWL", function(){ return EWL; }, function(v){ try{ EWL = v; }catch(e){} }],
+["APPEAR", function(){ return APPEAR; }, function(v){ try{ APPEAR = v; }catch(e){} }],
+["PL_GRID", function(){ return PL_GRID; }, function(v){ try{ PL_GRID = v; }catch(e){} }],
+["PORTAL_W", function(){ return PORTAL_W; }, function(v){ try{ PORTAL_W = v; }catch(e){} }],
+["SL", function(){ return SL; }, function(v){ try{ SL = v; }catch(e){} }],
+["POSPREF", function(){ return POSPREF; }, function(v){ try{ POSPREF = v; }catch(e){} }],
+["HOLD", function(){ return HOLD; }, function(v){ try{ HOLD = v; }catch(e){} }],
+["HOLD_CANDS", function(){ return HOLD_CANDS; }, function(v){ try{ HOLD_CANDS = v; }catch(e){} }],
+["SMK", function(){ return SMK; }, function(v){ try{ SMK = v; }catch(e){} }],
+["PRO_PROLE", function(){ return PRO_PROLE; }, function(v){ try{ PRO_PROLE = v; }catch(e){} }],
+["PROLE_NADES", function(){ return PROLE_NADES; }, function(v){ try{ PROLE_NADES = v; }catch(e){} }],
+["PROLE_LABEL", function(){ return PROLE_LABEL; }, function(v){ try{ PROLE_LABEL = v; }catch(e){} }],
+["FB", function(){ return FB; }, function(v){ try{ FB = v; }catch(e){} }],
+["REBAL", function(){ return REBAL; }, function(v){ try{ REBAL = v; }catch(e){} }],
+["PP", function(){ return PP; }, function(v){ try{ PP = v; }catch(e){} }],
+["PRO_ROLE", function(){ return PRO_ROLE; }, function(v){ try{ PRO_ROLE = v; }catch(e){} }],
+["PRO_LINEUPS", function(){ return PRO_LINEUPS; }, function(v){ try{ PRO_LINEUPS = v; }catch(e){} }],
+["PRO_COVER", function(){ return PRO_COVER; }, function(v){ try{ PRO_COVER = v; }catch(e){} }],
+["NADE", function(){ return NADE; }, function(v){ try{ NADE = v; }catch(e){} }],
+["NADE_THROW_RANGE", function(){ return NADE_THROW_RANGE; }, function(v){ try{ NADE_THROW_RANGE = v; }catch(e){} }],
+["NADE_HEAR_R", function(){ return NADE_HEAR_R; }, function(v){ try{ NADE_HEAR_R = v; }catch(e){} }],
+["nadesInAir", function(){ return nadesInAir; }, function(v){ try{ nadesInAir = v; }catch(e){} }],
+["nadeLandHistory", function(){ return nadeLandHistory; }, function(v){ try{ nadeLandHistory = v; }catch(e){} }],
+["smokes", function(){ return smokes; }, function(v){ try{ smokes = v; }catch(e){} }],
+["fires", function(){ return fires; }, function(v){ try{ fires = v; }catch(e){} }],
+["nadeFx", function(){ return nadeFx; }, function(v){ try{ nadeFx = v; }catch(e){} }],
+["NADE_WISH", function(){ return NADE_WISH; }, function(v){ try{ NADE_WISH = v; }catch(e){} }],
+["NADE_WISH_PRO", function(){ return NADE_WISH_PRO; }, function(v){ try{ NADE_WISH_PRO = v; }catch(e){} }],
+["LINEUPS_BAKED", function(){ return LINEUPS_BAKED; }, function(v){ try{ LINEUPS_BAKED = v; }catch(e){} }],
+["LINEUPS_KEY", function(){ return LINEUPS_KEY; }, function(v){ try{ LINEUPS_KEY = v; }catch(e){} }],
+["BUILTIN_OFF_BAKED", function(){ return BUILTIN_OFF_BAKED; }, function(v){ try{ BUILTIN_OFF_BAKED = v; }catch(e){} }],
+["BUILTIN_OFF_KEY", function(){ return BUILTIN_OFF_KEY; }, function(v){ try{ BUILTIN_OFF_KEY = v; }catch(e){} }],
+["BUILTIN_OFF", function(){ return BUILTIN_OFF; }, function(v){ try{ BUILTIN_OFF = v; }catch(e){} }],
+["LU_TRIG", function(){ return LU_TRIG; }, function(v){ try{ LU_TRIG = v; }catch(e){} }],
+["LU_TYPE", function(){ return LU_TYPE; }, function(v){ try{ LU_TYPE = v; }catch(e){} }],
+["nadeFlags", function(){ return nadeFlags; }, function(v){ try{ nadeFlags = v; }catch(e){} }],
+["comboCd", function(){ return comboCd; }, function(v){ try{ comboCd = v; }catch(e){} }],
+["SELF", function(){ return SELF; }, function(v){ try{ SELF = v; }catch(e){} }],
+["nadeReactCd", function(){ return nadeReactCd; }, function(v){ try{ nadeReactCd = v; }catch(e){} }],
+["FOV_DEG", function(){ return FOV_DEG; }, function(v){ try{ FOV_DEG = v; }catch(e){} }],
+["FOV_NEAR", function(){ return FOV_NEAR; }, function(v){ try{ FOV_NEAR = v; }catch(e){} }],
+["CONE_R", function(){ return CONE_R; }, function(v){ try{ CONE_R = v; }catch(e){} }],
+["DECISION_INTERVAL_TICKS", function(){ return DECISION_INTERVAL_TICKS; }, function(v){ try{ DECISION_INTERVAL_TICKS = v; }catch(e){} }],
+["tracers", function(){ return tracers; }, function(v){ try{ tracers = v; }catch(e){} }],
+["TRACER_STYLE", function(){ return TRACER_STYLE; }, function(v){ try{ TRACER_STYLE = v; }catch(e){} }],
+["soundPings", function(){ return soundPings; }, function(v){ try{ soundPings = v; }catch(e){} }],
+["SPRAY_RESET_TICKS", function(){ return SPRAY_RESET_TICKS; }, function(v){ try{ SPRAY_RESET_TICKS = v; }catch(e){} }],
+["PX_UNITS", function(){ return PX_UNITS; }, function(v){ try{ PX_UNITS = v; }catch(e){} }],
+["BODY_HALF", function(){ return BODY_HALF; }, function(v){ try{ BODY_HALF = v; }catch(e){} }],
+["HEAD_HALF", function(){ return HEAD_HALF; }, function(v){ try{ HEAD_HALF = v; }catch(e){} }],
+["groundWeapons", function(){ return groundWeapons; }, function(v){ try{ groundWeapons = v; }catch(e){} }],
+["WSPEED", function(){ return WSPEED; }, function(v){ try{ WSPEED = v; }catch(e){} }],
+["WATER_Z", function(){ return WATER_Z; }, function(v){ try{ WATER_Z = v; }catch(e){} }],
+["awpSmokeCd", function(){ return awpSmokeCd; }, function(v){ try{ awpSmokeCd = v; }catch(e){} }],
+["PEEK_PRO", function(){ return PEEK_PRO; }, function(v){ try{ PEEK_PRO = v; }catch(e){} }],
+["PEEK_Q", function(){ return PEEK_Q; }, function(v){ try{ PEEK_Q = v; }catch(e){} }],
+["SPRAY_PATTERN", function(){ return SPRAY_PATTERN; }, function(v){ try{ SPRAY_PATTERN = v; }catch(e){} }],
+["STATE_LABEL", function(){ return STATE_LABEL; }, function(v){ try{ STATE_LABEL = v; }catch(e){} }],
+["TRADE_R", function(){ return TRADE_R; }, function(v){ try{ TRADE_R = v; }catch(e){} }],
+["roundNum", function(){ return roundNum; }, function(v){ try{ roundNum = v; }catch(e){} }],
+["score", function(){ return score; }, function(v){ try{ score = v; }catch(e){} }],
+["roundState", function(){ return roundState; }, function(v){ try{ roundState = v; }catch(e){} }],
+["roundEndTime", function(){ return roundEndTime; }, function(v){ try{ roundEndTime = v; }catch(e){} }],
+["ROUND_RESTART_DELAY_SEC", function(){ return ROUND_RESTART_DELAY_SEC; }, function(v){ try{ ROUND_RESTART_DELAY_SEC = v; }catch(e){} }],
+["ROUND_TIME_SEC", function(){ return ROUND_TIME_SEC; }, function(v){ try{ ROUND_TIME_SEC = v; }catch(e){} }],
+["roundStartTime", function(){ return roundStartTime; }, function(v){ try{ roundStartTime = v; }catch(e){} }],
+["MATCH_WIN", function(){ return MATCH_WIN; }, function(v){ try{ MATCH_WIN = v; }catch(e){} }],
+["HALF_ROUNDS", function(){ return HALF_ROUNDS; }, function(v){ try{ HALF_ROUNDS = v; }catch(e){} }],
+["OT_MONEY", function(){ return OT_MONEY; }, function(v){ try{ OT_MONEY = v; }catch(e){} }],
+["OT_HALF", function(){ return OT_HALF; }, function(v){ try{ OT_HALF = v; }catch(e){} }],
+["OT_MAX", function(){ return OT_MAX; }, function(v){ try{ OT_MAX = v; }catch(e){} }],
+["matchNum", function(){ return matchNum; }, function(v){ try{ matchNum = v; }catch(e){} }],
+["LOSS_BONUS", function(){ return LOSS_BONUS; }, function(v){ try{ LOSS_BONUS = v; }catch(e){} }],
+["WIN_REWARD", function(){ return WIN_REWARD; }, function(v){ try{ WIN_REWARD = v; }catch(e){} }],
+["ARMOR_PRICE", function(){ return ARMOR_PRICE; }, function(v){ try{ ARMOR_PRICE = v; }catch(e){} }],
+["HELMET_UPGRADE", function(){ return HELMET_UPGRADE; }, function(v){ try{ HELMET_UPGRADE = v; }catch(e){} }],
+["teamEco", function(){ return teamEco; }, function(v){ try{ teamEco = v; }catch(e){} }],
+["ROUND_TYPE_LABEL", function(){ return ROUND_TYPE_LABEL; }, function(v){ try{ ROUND_TYPE_LABEL = v; }catch(e){} }],
+["TICK_HZ", function(){ return TICK_HZ; }, function(v){ try{ TICK_HZ = v; }catch(e){} }],
+["TICK_MS", function(){ return TICK_MS; }, function(v){ try{ TICK_MS = v; }catch(e){} }],
+["tick", function(){ return tick; }, function(v){ try{ tick = v; }catch(e){} }],
+["cv", function(){ return cv; }, function(v){ try{ cv = v; }catch(e){} }],
+["ctx", function(){ return ctx; }, function(v){ try{ ctx = v; }catch(e){} }],
+["wrap", function(){ return wrap; }, function(v){ try{ wrap = v; }catch(e){} }],
+["img", function(){ return img; }, function(v){ try{ img = v; }catch(e){} }],
+["showNavmesh", function(){ return showNavmesh; }, function(v){ try{ showNavmesh = v; }catch(e){} }],
+["showPortals", function(){ return showPortals; }, function(v){ try{ showPortals = v; }catch(e){} }],
+["showWalls", function(){ return showWalls; }, function(v){ try{ showWalls = v; }catch(e){} }],
+["showZones", function(){ return showZones; }, function(v){ try{ showZones = v; }catch(e){} }],
+["showPoints", function(){ return showPoints; }, function(v){ try{ showPoints = v; }catch(e){} }],
+["showDanger", function(){ return showDanger; }, function(v){ try{ showDanger = v; }catch(e){} }],
+["showLos", function(){ return showLos; }, function(v){ try{ showLos = v; }catch(e){} }],
+["showTracers", function(){ return showTracers; }, function(v){ try{ showTracers = v; }catch(e){} }],
+["showCalls", function(){ return showCalls; }, function(v){ try{ showCalls = v; }catch(e){} }],
+["showWhy", function(){ return showWhy; }, function(v){ try{ showWhy = v; }catch(e){} }],
+["WHY_POST", function(){ return WHY_POST; }, function(v){ try{ WHY_POST = v; }catch(e){} }],
+["WHY_LOOK", function(){ return WHY_LOOK; }, function(v){ try{ WHY_LOOK = v; }catch(e){} }],
+["showSound", function(){ return showSound; }, function(v){ try{ showSound = v; }catch(e){} }],
+["hoverZoneId", function(){ return hoverZoneId; }, function(v){ try{ hoverZoneId = v; }catch(e){} }],
+["chkAlign", function(){ return chkAlign; }, function(v){ try{ chkAlign = v; }catch(e){} }],
+["alignPanel", function(){ return alignPanel; }, function(v){ try{ alignPanel = v; }catch(e){} }],
+["inNavDx", function(){ return inNavDx; }, function(v){ try{ inNavDx = v; }catch(e){} }],
+["inNavDy", function(){ return inNavDy; }, function(v){ try{ inNavDy = v; }catch(e){} }],
+["inNavScale", function(){ return inNavScale; }, function(v){ try{ inNavScale = v; }catch(e){} }],
+["btnNavReset", function(){ return btnNavReset; }, function(v){ try{ btnNavReset = v; }catch(e){} }],
+["navRebuildTimer", function(){ return navRebuildTimer; }, function(v){ try{ navRebuildTimer = v; }catch(e){} }],
+["navDragging", function(){ return navDragging; }, function(v){ try{ navDragging = v; }catch(e){} }],
+["navDragStart", function(){ return navDragStart; }, function(v){ try{ navDragStart = v; }catch(e){} }],
+["navDragOrig", function(){ return navDragOrig; }, function(v){ try{ navDragOrig = v; }catch(e){} }],
+["camDragging", function(){ return camDragging; }, function(v){ try{ camDragging = v; }catch(e){} }],
+["camDragStart", function(){ return camDragStart; }, function(v){ try{ camDragStart = v; }catch(e){} }],
+["camDragOrig", function(){ return camDragOrig; }, function(v){ try{ camDragOrig = v; }catch(e){} }],
+["HIT_TOL_PX", function(){ return HIT_TOL_PX; }, function(v){ try{ HIT_TOL_PX = v; }catch(e){} }],
+["HANDLE_TOL_PX", function(){ return HANDLE_TOL_PX; }, function(v){ try{ HANDLE_TOL_PX = v; }catch(e){} }],
+["chkNavWarp", function(){ return chkNavWarp; }, function(v){ try{ chkNavWarp = v; }catch(e){} }],
+["navWarpPanel", function(){ return navWarpPanel; }, function(v){ try{ navWarpPanel = v; }catch(e){} }],
+["navWarpHint", function(){ return navWarpHint; }, function(v){ try{ navWarpHint = v; }catch(e){} }],
+["navWarpCountEl", function(){ return navWarpCountEl; }, function(v){ try{ navWarpCountEl = v; }catch(e){} }],
+["btnNavWarpUndo", function(){ return btnNavWarpUndo; }, function(v){ try{ btnNavWarpUndo = v; }catch(e){} }],
+["btnNavWarpClear", function(){ return btnNavWarpClear; }, function(v){ try{ btnNavWarpClear = v; }catch(e){} }],
+["navWarpPending", function(){ return navWarpPending; }, function(v){ try{ navWarpPending = v; }catch(e){} }],
+["NAV_VERTEX_PICK_TOL", function(){ return NAV_VERTEX_PICK_TOL; }, function(v){ try{ NAV_VERTEX_PICK_TOL = v; }catch(e){} }],
+["chkZoneEdit", function(){ return chkZoneEdit; }, function(v){ try{ chkZoneEdit = v; }catch(e){} }],
+["zoneEditPanel", function(){ return zoneEditPanel; }, function(v){ try{ zoneEditPanel = v; }catch(e){} }],
+["zoneEditHint", function(){ return zoneEditHint; }, function(v){ try{ zoneEditHint = v; }catch(e){} }],
+["zoneKindSelect", function(){ return zoneKindSelect; }, function(v){ try{ zoneKindSelect = v; }catch(e){} }],
+["zoneNameInput", function(){ return zoneNameInput; }, function(v){ try{ zoneNameInput = v; }catch(e){} }],
+["btnZoneFinish", function(){ return btnZoneFinish; }, function(v){ try{ btnZoneFinish = v; }catch(e){} }],
+["chkZoneVertexEdit", function(){ return chkZoneVertexEdit; }, function(v){ try{ chkZoneVertexEdit = v; }catch(e){} }],
+["zoneEditCountEl", function(){ return zoneEditCountEl; }, function(v){ try{ zoneEditCountEl = v; }catch(e){} }],
+["btnZoneDelete", function(){ return btnZoneDelete; }, function(v){ try{ btnZoneDelete = v; }catch(e){} }],
+["selectedZoneId", function(){ return selectedZoneId; }, function(v){ try{ selectedZoneId = v; }catch(e){} }],
+["zoneDrawing", function(){ return zoneDrawing; }, function(v){ try{ zoneDrawing = v; }catch(e){} }],
+["zoneDrawPts", function(){ return zoneDrawPts; }, function(v){ try{ zoneDrawPts = v; }catch(e){} }],
+["zoneDrawCur", function(){ return zoneDrawCur; }, function(v){ try{ zoneDrawCur = v; }catch(e){} }],
+["zoneMoving", function(){ return zoneMoving; }, function(v){ try{ zoneMoving = v; }catch(e){} }],
+["zoneMoveStart", function(){ return zoneMoveStart; }, function(v){ try{ zoneMoveStart = v; }catch(e){} }],
+["zoneMoveOrig", function(){ return zoneMoveOrig; }, function(v){ try{ zoneMoveOrig = v; }catch(e){} }],
+["zoneScaling", function(){ return zoneScaling; }, function(v){ try{ zoneScaling = v; }catch(e){} }],
+["zoneScaleCenter", function(){ return zoneScaleCenter; }, function(v){ try{ zoneScaleCenter = v; }catch(e){} }],
+["zoneScaleBaseDist", function(){ return zoneScaleBaseDist; }, function(v){ try{ zoneScaleBaseDist = v; }catch(e){} }],
+["zoneVertexDragging", function(){ return zoneVertexDragging; }, function(v){ try{ zoneVertexDragging = v; }catch(e){} }],
+["zoneVertexIdx", function(){ return zoneVertexIdx; }, function(v){ try{ zoneVertexIdx = v; }catch(e){} }],
+["chkZoneAlign", function(){ return chkZoneAlign; }, function(v){ try{ chkZoneAlign = v; }catch(e){} }],
+["zoneAlignPanel", function(){ return zoneAlignPanel; }, function(v){ try{ zoneAlignPanel = v; }catch(e){} }],
+["inZlDx", function(){ return inZlDx; }, function(v){ try{ inZlDx = v; }catch(e){} }],
+["inZlDy", function(){ return inZlDy; }, function(v){ try{ inZlDy = v; }catch(e){} }],
+["inZlScale", function(){ return inZlScale; }, function(v){ try{ inZlScale = v; }catch(e){} }],
+["zlDragging", function(){ return zlDragging; }, function(v){ try{ zlDragging = v; }catch(e){} }],
+["zlDragStart", function(){ return zlDragStart; }, function(v){ try{ zlDragStart = v; }catch(e){} }],
+["zlDragOrig", function(){ return zlDragOrig; }, function(v){ try{ zlDragOrig = v; }catch(e){} }],
+["chkLineups", function(){ return chkLineups; }, function(v){ try{ chkLineups = v; }catch(e){} }],
+["lineupPanel", function(){ return lineupPanel; }, function(v){ try{ lineupPanel = v; }catch(e){} }],
+["luPending", function(){ return luPending; }, function(v){ try{ luPending = v; }catch(e){} }],
+["luHover", function(){ return luHover; }, function(v){ try{ luHover = v; }catch(e){} }],
+["LU_COL", function(){ return LU_COL; }, function(v){ try{ LU_COL = v; }catch(e){} }],
+["luSel", function(){ return luSel; }, function(v){ try{ luSel = v; }catch(e){} }],
+["luDrag", function(){ return luDrag; }, function(v){ try{ luDrag = v; }catch(e){} }],
+["luBuiltinOpen", function(){ return luBuiltinOpen; }, function(v){ try{ luBuiltinOpen = v; }catch(e){} }],
+["zoneNameSel", function(){ return zoneNameSel; }, function(v){ try{ zoneNameSel = v; }catch(e){} }],
+["zsDrag", function(){ return zsDrag; }, function(v){ try{ zsDrag = v; }catch(e){} }],
+["zsRebuildTimer", function(){ return zsRebuildTimer; }, function(v){ try{ zsRebuildTimer = v; }catch(e){} }],
+["zoneNamePanel", function(){ return zoneNamePanel; }, function(v){ try{ zoneNamePanel = v; }catch(e){} }],
+["zoneNameInput2", function(){ return zoneNameInput2; }, function(v){ try{ zoneNameInput2 = v; }catch(e){} }],
+["clutchShown", function(){ return clutchShown; }, function(v){ try{ clutchShown = v; }catch(e){} }],
+["clutchInfo", function(){ return clutchInfo; }, function(v){ try{ clutchInfo = v; }catch(e){} }],
+["KF_MOD_T", function(){ return KF_MOD_T; }, function(v){ try{ KF_MOD_T = v; }catch(e){} }],
+["bannerTimer", function(){ return bannerTimer; }, function(v){ try{ bannerTimer = v; }catch(e){} }],
+["cardTimer", function(){ return cardTimer; }, function(v){ try{ cardTimer = v; }catch(e){} }],
+["TEAM_LOGO", function(){ return TEAM_LOGO; }, function(v){ try{ TEAM_LOGO = v; }catch(e){} }],
+["TEAM_NAME", function(){ return TEAM_NAME; }, function(v){ try{ TEAM_NAME = v; }catch(e){} }],
+["PLAYER_PHOTO", function(){ return PLAYER_PHOTO; }, function(v){ try{ PLAYER_PHOTO = v; }catch(e){} }],
+["PL_SIL", function(){ return PL_SIL; }, function(v){ try{ PL_SIL = v; }catch(e){} }],
+["PL_ICON", function(){ return PL_ICON; }, function(v){ try{ PL_ICON = v; }catch(e){} }],
+["plSelected", function(){ return plSelected; }, function(v){ try{ plSelected = v; }catch(e){} }]
+];
+var MK_PRINCIPLES = [{"id": "К1", "sec": "Команда", "text": "НОВОЕ 11.10. Убили опорника, бомбу видели на сайте, а T остался один — идут все CT (и опорник другого", "done": false}, {"id": "К2", "sec": "Команда", "text": "НОВОЕ 11.10. Назначили на ротацию — бот сразу бросает прежнюю задачу (пуш, добивание) и идёт. Сейчас", "done": false}, {"id": "К3", "sec": "Команда", "text": "НОВОЕ 11.10. CT убили всех T до ретейка — режим «сбор на ретейк» снимается, бегут к бомбе и дефузят. Сейчас", "done": false}, {"id": "В1", "sec": "Взгляд", "text": "НОВОЕ 11.10. На ходу (ротация, сбор на ретейк) взгляд держится на одной цели, а не крутится туда-сюда", "done": false}, {"id": "В2", "sec": "Взгляд", "text": "НОВОЕ 11.10. T при перемещении (после планта и вообще) смотрит туда, откуда по его знанию придут CT, а не", "done": false}];
+// ======================= v167: «Отметить момент», карточка «Я понял так», перемотка =======================
+// Инструмент для владельца и Claude, мозг ботов не трогает. Описание — docs/tasks/02-mark-moment.md.
+// Снимки состояния: __SNAP (список переменных симулятора) генерирует src/marks_build.py при сборке (build.py, mkpub.py).
+  var MK = { cps: [], snap: null, cur: null, list: [], db: null, assets: null, sample: null, busy: false,
+             lastCpTick: -1, cpMatch: -1, pick: false, CP_EVERY: 640, CP_KEEP: 40 };
+  var MK_CATS = ["Взгляд", "Позиция", "Команда", "Гранаты", "Закуп", "Темп", "Войс", "Визуал"];
+  var MK_SEC = {"Взгляд":"В", "Позиция":"П", "Команда":"К", "Гранаты":"Г", "Закуп":"Э", "Темп":"Т", "Войс":"Н", "Визуал":"И"};
+
+// ---------- снимки и перемотка ----------
+function mkSnapList(){
+  if(MK.snap) return MK.snap;
+  MK.snap = __SNAP.filter(function(e){
+    try{ var v = e[1]();
+      if(typeof v === "function") return false;
+      if(v && typeof v === "object" && (v.nodeType || v instanceof CanvasRenderingContext2D || v instanceof HTMLImageElement)) return false;
+      return true;
+    }catch(err){ return false; } });
+  return MK.snap;
+}
+function mkSnapshot(){ var o = {}; mkSnapList().forEach(function(e){ o[e[0]] = e[1](); }); return structuredClone(o); }
+function mkRestore(data){ var c = structuredClone(data); mkSnapList().forEach(function(e){ if(e[0] in c) e[2](c[e[0]]); }); }
+// (v175) снимок → текст и обратно, чтобы хранить его в отметке файлом. В снимке
+// объекты ссылаются друг на друга (бот → цель → бот), поэтому каждый объект
+// записывается один раз, а ссылки — номером. Сохраняются Map/Set, массивы чисел,
+// регулярные выражения, NaN/Infinity/-0/undefined — ровно то, что умеет structuredClone.
+function mkPack(root){
+  var ids = new Map(), objs = [];
+  function num(v){ return v !== v ? {n:"NaN"} : v === Infinity ? {n:"I"} : v === -Infinity ? {n:"-I"} : (v === 0 && 1/v < 0) ? {n:"-0"} : v; }
+  function enc(v){
+    if(v === undefined) return {u:1};
+    if(typeof v === "number") return num(v);
+    if(v === null || typeof v !== "object") return v;
+    if(ids.has(v)) return {r:ids.get(v)};
+    var id = objs.length, o, i; ids.set(v, id); objs.push(null);
+    if(Array.isArray(v)){ o = {a:[]}; for(i = 0; i < v.length; i++) o.a.push(enc(v[i])); }
+    else if(v instanceof Map){ o = {m:[]}; v.forEach(function(x, k){ o.m.push([enc(k), enc(x)]); }); }
+    else if(v instanceof Set){ o = {s:[]}; v.forEach(function(x){ o.s.push(enc(x)); }); }
+    else if(ArrayBuffer.isView(v)){ o = {t:v.constructor.name, d:[]}; for(i = 0; i < v.length; i++) o.d.push(num(v[i])); }
+    else if(v instanceof Date){ o = {dt:+v}; }
+    else if(v instanceof RegExp){ o = {re:[v.source, v.flags]}; }
+    else { o = {o:{}}; for(var k in v) if(Object.prototype.hasOwnProperty.call(v, k)) o.o[k] = enc(v[k]); }
+    objs[id] = o; return {r:id};
+  }
+  var root2 = enc(root);
+  return JSON.stringify({v:1, root:root2, objs:objs});
+}
+function mkUnpack(text){
+  var P = JSON.parse(text), objs = P.objs;
+  var made = objs.map(function(o){
+    return o.a ? new Array(o.a.length) : o.m ? new Map() : o.s ? new Set() : o.t ? new self[o.t](o.d.length) : o.dt != null ? new Date(o.dt) : o.re ? new RegExp(o.re[0], o.re[1]) : {};
+  });
+  function dec(v){
+    if(v === null || typeof v !== "object") return v;
+    if(v.r != null) return made[v.r];
+    if(v.u) return undefined;
+    return v.n === "NaN" ? NaN : v.n === "I" ? Infinity : v.n === "-I" ? -Infinity : -0;
+  }
+  objs.forEach(function(o, i){ var t = made[i], j;
+    if(o.a) for(j = 0; j < o.a.length; j++) t[j] = dec(o.a[j]);
+    else if(o.m) o.m.forEach(function(e){ t.set(dec(e[0]), dec(e[1])); });
+    else if(o.s) o.s.forEach(function(e){ t.add(dec(e)); });
+    else if(o.t) for(j = 0; j < o.d.length; j++) t[j] = dec(o.d[j]);
+    else if(o.o) for(var k in o.o) t[k] = dec(o.o[k]);
+  });
+  return dec(P.root);
+}
+// открыть момент из снимка отметки: вся игра ровно как в момент нажатия
+function mkOpenSnap(text){
+  mkRestore(mkUnpack(text));
+  paused = true; MK.cps = []; MK.cpMatch = matchNum; MK.lastCpTick = -1;
+}
+// «отпечаток» настроек: если стены/зоны/лайнапы/переключатели поменялись — матч пойдёт иначе
+function mkFp(){
+  var s = JSON.stringify(BAL) + "|" + WALLS_SIG + "|" + (USER_LINEUPS||[]).length + "|" + (USER_ZONES||[]).length + "|" + JSON.stringify(navTransform||null) + "|" + JSON.stringify(zoneLayer||null);
+  var h = 2166136261; for(var i=0;i<s.length;i++){ h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); }
+  return (h >>> 0).toString(36);
+}
+function mkCheckpoint(){
+  if(roundState === "matchover") return;
+  if(MK.cpMatch !== matchNum){ MK.cps = []; MK.cpMatch = matchNum; }
+  var fp = mkFp();
+  MK.cps = MK.cps.filter(function(c){ return c.fp === fp && c.tick !== tick; });
+  var first = !MK.cps.some(function(c){ return c.round === roundNum; });
+  MK.cps.push({tick: tick, match: matchNum, round: roundNum, fp: fp, first: first, data: mkSnapshot()});
+  MK.cps.sort(function(a, b){ return a.tick - b.tick; });
+  // храним последние CP_KEEP (~7 мин игры) + первый снимок каждого раунда матча
+  while(MK.cps.length > MK.CP_KEEP + 32){
+    var keepFrom = MK.cps.length - MK.CP_KEEP, idx = -1;
+    for(var i=0;i<keepFrom;i++) if(!MK.cps[i].first){ idx = i; break; }
+    MK.cps.splice(idx < 0 ? 0 : idx, 1);
+  }
+  MK.lastCpTick = tick;
+}
+// вызывается из frame() после шагов симуляции
+function mkAfterTicks(){
+  if(MK.busy || paused) return;
+  if(MK.cpMatch !== matchNum || tick - MK.lastCpTick >= MK.CP_EVERY || tick < MK.lastCpTick) mkCheckpoint();
+}
+// перемотка: ближайший снимок не позже цели (или начало матча) → быстрый пересчёт до тика
+function mkGoTo(match, target, done){
+  if(MK.busy) return;
+  MK.busy = true; paused = true; mkPauseLabel();
+  var fp = mkFp(), cp = null;
+  if(match === matchNum) MK.cps.forEach(function(c){ if(c.fp === fp && c.match === match && c.tick <= target && (!cp || c.tick > cp.tick)) cp = c; });
+  if(match === matchNum && tick <= target && (!cp || tick >= cp.tick)){ /* идём вперёд от текущего */ }
+  else if(cp) mkRestore(cp.data);
+  else { freshMatch(match); MK.cps = []; MK.cpMatch = matchNum; }
+  var from = tick, total = Math.max(1, target - from);
+  var prog = document.getElementById("mkProg");
+  function step(){
+    var t0 = performance.now();
+    while(tick < target && matchNum === match && performance.now() - t0 < 60){
+      stepTick();
+      if(tick % MK.CP_EVERY === 0 && tick !== MK.lastCpTick) mkCheckpoint();
+    }
+    if(tick < target && matchNum === match){
+      prog.style.display = "block";
+      prog.textContent = "Пересчитываю матч " + match + "… " + Math.round(100*(tick-from)/total) + "%";
+      setTimeout(step, 0); return;
+    }
+    prog.style.display = "none"; MK.busy = false; paused = true; mkPauseLabel();
+    if(done) done(tick === target && matchNum === match);
+  }
+  step();
+}
+function mkPauseLabel(){ var b = document.getElementById("btnPause"); if(b){ b.textContent = paused ? "Продолжить" : "Пауза"; b.classList.toggle("active", paused); } }
+function mkBack10(){
+  if(MK.busy) return;
+  var to = Math.max(0, tick - 10*TICK_HZ);
+  mkGoTo(matchNum, to, function(ok){ mkToast(ok ? "Назад на 10 с: матч " + matchNum + ", тик " + tick : "Не удалось перемотать"); });
+}
+
+// ---------- состояние момента ----------
+function mkDeg(a){ return Math.round(((a*180/Math.PI)%360+360)%360); }
+function mkPlace(x, y){ return String(calloutName(x, y) || "").replace(/^на «/, "").replace(/»$/, ""); }
+function mkState(){
+  return {
+    match: matchNum, tick: tick, round: roundNum, roundTime: Math.round((simTime - roundStartTime)*10)/10,
+    roundState: roundState, score: {CT: score.CT, T: score.T}, bomb: {state: bomb.state, site: bomb.site || null,
+      x: bomb.x != null ? Math.round(bomb.x) : null, y: bomb.y != null ? Math.round(bomb.y) : null},
+    bots: bots.map(function(b){
+      var f = b.facing || 0, ray = rayClipWalls(b.x, b.y, b.x + Math.cos(f)*700, b.y + Math.sin(f)*700);
+      return { id: b.id, num: pnum(b.id), nick: nick(b.id), team: b.team,
+        alive: !!b.alive, hp: b.hp, weapon: b.weapon ? b.weapon.key : "",
+        x: Math.round(b.x*10)/10, y: Math.round(b.y*10)/10, place: mkPlace(b.x, b.y),
+        facingDeg: mkDeg(f), look: b.lookTarget ? {x: Math.round(b.lookTarget.x), y: Math.round(b.lookTarget.y), place: mkPlace(b.lookTarget.x, b.lookTarget.y)} : null,
+        wallAhead: ray.wall ? Math.round(Math.hypot(ray.x-b.x, ray.y-b.y)) : null,
+        lookReason: b.lookReason || "", why: whyText(b),
+        sees: (b._visible || []).map(function(e){ return e.id; }), moving: b.curSpeed > 15*SPD_K };
+    }),
+    smokes: smokes.map(function(s){ return {x: Math.round(s.x), y: Math.round(s.y), place: mkPlace(s.x, s.y)}; }),
+    fires: fires.map(function(s){ return {x: Math.round(s.x), y: Math.round(s.y), place: mkPlace(s.x, s.y)}; })
+  };
+}
+function mkBotIdAt(wx, wy){
+  var best = null, bd = 40;
+  bots.forEach(function(b){ var d = Math.hypot(b.x-wx, b.y-wy); if(d < bd){ bd = d; best = b.id; } });
+  return best;
+}
+
+// ---------- кадр настоящего радара вокруг бота (~600×400 карты) ----------
+function mkFrame(botId){
+  var b = bots.filter(function(o){ return o.id === botId; })[0], cx, cy;
+  if(b){ cx = b.x; cy = b.y; }
+  else { var al = bots.filter(function(o){ return o.alive; }); cx = al.reduce(function(s, o){ return s + o.x; }, 0)/Math.max(1, al.length); cy = al.reduce(function(s, o){ return s + o.y; }, 0)/Math.max(1, al.length); }
+  var W = 900, H = 600, K = 1.5, sv = {s: view.scale, x: view.panX, y: view.panY, w: cv.width, h: cv.height}, url = null;
+  try{
+    cv.width = W; cv.height = H; view.scale = K; view.panX = W/2 - cx*K; view.panY = H/2 - cy*K;
+    draw();
+    ctx.save(); ctx.font = "600 14px 'IBM Plex Sans', system-ui, sans-serif"; ctx.textAlign = "center";
+    var seen = {};
+    ZONEMAP.zones.forEach(function(z){ var p = ZONE_CENTROIDS[z.id]; if(!p) return;
+      var sx = p.x*K + view.panX, sy = p.y*K + view.panY; if(sx < 40 || sx > W-40 || sy < 18 || sy > H-12) return;
+      var nm = mkPlace(p.x, p.y); if(!nm || nm === "?" || seen[nm]) return; seen[nm] = 1;
+      ctx.lineWidth = 4; ctx.strokeStyle = "rgba(0,0,0,0.75)"; ctx.strokeText(nm, sx, sy); ctx.fillStyle = "#f3efe4"; ctx.fillText(nm, sx, sy); });
+    if(b){ ctx.setLineDash([7, 5]); ctx.lineWidth = 3; ctx.strokeStyle = "#ff5a4f"; ctx.beginPath(); ctx.arc(W/2, H/2, 26, 0, Math.PI*2); ctx.stroke(); }
+    ctx.restore();
+    url = cv.toDataURL("image/jpeg", 0.86);
+  } finally {
+    cv.width = sv.w; cv.height = sv.h; view.scale = sv.s; view.panX = sv.x; view.panY = sv.y; draw();
+  }
+  return url;
+}
+function mkUrlToBlob(url){ var p = url.split(","), bin = atob(p[1]), u = new Uint8Array(bin.length); for(var i=0;i<bin.length;i++) u[i] = bin.charCodeAt(i); return new Blob([u], {type: "image/jpeg"}); }
+
+// ---------- запрос к Claude («Я понял так») ----------
+function mkPrompt(m){
+  var P = MK_PRINCIPLES.filter(function(p){ return !p.done; }).map(function(p){ return p.id + " (" + p.sec + "): " + p.text; }).join("\n");
+  var st = m.state;
+  var data = { матч: st.match, раунд: st.round, время_раунда_с: st.roundTime, счёт: st.score, бомба: st.bomb,
+    о_ком_по_клику_владельца: m.bot || null, смоки: st.smokes, молотовы: st.fires,
+    боты: st.bots.map(function(b){ return { id: b.id, номер_на_радаре: b.num, ник: b.nick, команда: b.team, жив: b.alive, hp: b.hp, оружие: b.weapon,
+      где: b.place, x: b.x, y: b.y, взгляд_градусы: b.facingDeg, смотрит_на: b.look ? b.look.place : null, стена_по_взгляду_px: b.wallAhead,
+      задача_и_взгляд: b.why, видит_врагов: b.sees, идёт: b.moving }; }) };
+  return "Ты помогаешь владельцу симулятора CS2 (карта Ancient, вид сверху, 5 CT против 5 T) разобрать замечание к моменту матча.\n" +
+    "Владелец не программист. Пиши по-русски, простыми словами, без кода.\n\n" +
+    "Замечание владельца: «" + m.text + "»\nКатегория: " + m.category + ". Приоритет: " + (m.priority === "urgent" ? "срочно" : "обычно") + ".\n" +
+    (m.bot ? "Владелец кликнул по боту " + m.bot + ".\n" : "Владелец не выбрал бота — определи по тексту и данным.\n") +
+    "Если владелец пишет «бот N» — это номер_на_радаре. Масштаб: 1 м ≈ 100 px.\n" +
+    (m.hasImage ? "Приложен кадр радара в этот момент (увеличен вокруг бота; если бот выбран — он обведён красным).\n" : "") +
+    "\nДанные момента (JSON):\n" + JSON.stringify(data) + "\n\n" +
+    "Список пунктов «как должны играть боты» (номер (раздел): текст):\n" + P + "\n\n" +
+    "Ответь ТОЛЬКО JSON-объектом, без пояснений вокруг:\n" +
+    "{\"understood\": \"1–2 предложения: кто (id и где), что делает сейчас и что, по словам владельца, не так\"," +
+    " \"bot\": \"id бота, которого обвести, или null\"," +
+    " \"principle\": \"номер существующего пункта, если замечание про него (например \\\"В1\\\"), иначе null\"," +
+    " \"newItem\": null или {\"section\": \"один из разделов: " + MK_CATS.join(", ") + "\", \"text\": \"формулировка нового пункта как проверяемое утверждение\"}," +
+    " \"unsure\": \"если не уверен — что уточнить у владельца, иначе null\"}\n" +
+    "Не выдумывай того, чего нет в данных. Если сомневаешься между пунктом и новым — выбери пункт и напиши сомнение в unsure.";
+}
+async function mkAsk(m, correction){
+  var sample = MK.sample;
+  if(!sample) throw {code: "no_sample"};
+  var input = mkPrompt(m), opts = {modelTier: "default"};
+  if(correction && m.lastRaw) input = [{role: "user", content: input}, {role: "assistant", content: m.lastRaw},
+    {role: "user", content: "Владелец говорит, что понято неверно. Его поправка: «" + correction + "». Ответь заново тем же JSON."}];
+  try{ var lim = await sample.limits(); if(lim && lim.images && m.frameUrl){ opts.images = [mkUrlToBlob(m.frameUrl)]; } }catch(e){}
+  var res = await sample(input, opts);
+  var txt = res.text || "", j = txt.indexOf("{"), k = txt.lastIndexOf("}");
+  var out = JSON.parse(txt.slice(j, k+1));
+  m.lastRaw = txt.slice(j, k+1);
+  return out;
+}
+
+// ---------- интерфейс отметки ----------
+function mkEl(id){ return document.getElementById(id); }
+function mkEsc(t){ return String(t == null ? "" : t).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c]; }); }
+function mkToast(t){ var el = mkEl("mkToast"); el.textContent = t; el.style.display = "block"; clearTimeout(MK._tt); MK._tt = setTimeout(function(){ el.style.display = "none"; }, 4000); }
+function mkStart(){
+  if(MK.busy) return;
+  if(MK.cur){ mkEl("mkText").focus(); return; }
+  paused = true; mkPauseLabel();
+  MK.cur = { snap: mkSnapshot(), state: mkState(), match: matchNum, tick: tick, round: roundNum, roundTime: Math.round((simTime - roundStartTime)*10)/10,
+             fp: mkFp(), bot: null, text: "", category: "Взгляд", priority: "normal" };
+  MK.pick = true;
+  mkEl("mkMoment").textContent = "Матч " + MK.cur.match + " · раунд " + MK.cur.round + " · " + mkClock(MK.cur.roundTime) + " раунда · тик " + MK.cur.tick;
+  mkEl("mkText").value = ""; mkEl("mkBot").textContent = "не выбран — кликни по боту на радаре (необязательно)";
+  mkEl("mkCat").value = "Взгляд"; mkEl("mkPrioN").checked = true;
+  mkEl("mkForm").style.display = "block"; mkEl("mkCard").style.display = "none"; mkEl("mkErr").textContent = "";
+  mkEl("mkPanel").style.display = "block"; mkEl("mkText").focus();
+}
+function mkClock(s){ s = Math.max(0, Math.round(s)); return Math.floor(s/60) + ":" + ("0" + (s%60)).slice(-2); }
+function mkClose(){ MK.cur = null; MK.pick = false; mkEl("mkPanel").style.display = "none"; }
+async function mkSubmit(){
+  var m = MK.cur; if(!m) return;
+  m.text = mkEl("mkText").value.trim(); m.category = mkEl("mkCat").value; m.priority = mkEl("mkPrioU").checked ? "urgent" : "normal";
+  if(!m.text){ mkEl("mkErr").textContent = "Напиши, что не так"; return; }
+  mkEl("mkErr").textContent = "";
+  MK.pick = false;
+  m.frameUrl = mkFrame(m.bot); m.frameBot = m.bot;
+  mkEl("mkForm").style.display = "none"; mkEl("mkCard").style.display = "block";
+  mkShowCard(null, "Думаю…");
+  await mkRunAsk(null);
+}
+async function mkRunAsk(correction){
+  var m = MK.cur; if(!m) return;
+  mkShowCard(m.answer || null, "Думаю…");
+  try{
+    m.hasImage = true;
+    var a = await mkAsk(m, correction);
+    if(MK.cur !== m) return;
+    m.answer = a;
+    var bid = a && a.bot && bots.some(function(o){ return o.id === a.bot; }) ? a.bot : m.bot;
+    if(bid && bid !== m.frameBot && tick === m.tick && matchNum === m.match){ m.frameUrl = mkFrame(bid); m.frameBot = bid; }
+    mkShowCard(a, null);
+  }catch(e){
+    if(MK.cur !== m) return;
+    var why = e && e.code === "no_sample" ? "нет доступа к Claude из этой страницы" : (e && e.code === "not_granted") ? "доступ к Claude не разрешён" : "Claude не ответил (" + (e && (e.code || e.message) || "ошибка") + ")";
+    await mkSave(m, "unparsed");
+    mkClose(); mkToast("Отметка сохранена как «не разобрано»: " + why);
+  }
+}
+function mkShowCard(a, wait){
+  var m = MK.cur; if(!m) return;
+  mkEl("mkImg").src = m.frameUrl || "";
+  mkEl("mkCap").textContent = "Матч " + m.match + " · раунд " + m.round + " · " + mkClock(m.roundTime) + " раунда · тик " + m.tick + (m.frameBot ? " · обведён " + m.frameBot : "");
+  var body = mkEl("mkUnd");
+  if(wait){ body.innerHTML = '<div class="mk-think">' + mkEsc(wait) + '</div>'; mkEl("mkBtns").style.display = "none"; mkEl("mkFix").style.display = "none"; return; }
+  var chips = '<span class="mk-chip">' + mkEsc(m.category + " · " + (m.priority === "urgent" ? "срочно" : "обычно")) + '</span>';
+  if(a.principle){ var p = MK_PRINCIPLES.filter(function(x){ return x.id === a.principle; })[0];
+    chips += '<span class="mk-chip mk-chip-a">Похоже на пункт ' + mkEsc(a.principle) + '</span>' + (p ? '<div class="mk-pt">' + mkEsc(p.text) + '</div>' : ""); }
+  else if(a.newItem) chips += '<span class="mk-chip mk-chip-n">Новый пункт · ' + mkEsc(a.newItem.section) + '</span><div class="mk-pt">' + mkEsc(a.newItem.text) + '</div>';
+  body.innerHTML = '<div class="mk-lbl">Я понял так</div><div class="mk-big">' + mkEsc(a.understood) + '</div>' + chips +
+    (a.unsure ? '<div class="mk-q">Не уверен: ' + mkEsc(a.unsure) + '</div>' : "") +
+    '<div class="mk-q">Ваш текст: «' + mkEsc(m.text) + '»</div>';
+  mkEl("mkBtns").style.display = "flex"; mkEl("mkFix").style.display = "none";
+}
+async function mkSave(m, status){
+  var a = m.answer || {};
+  var doc = { match: m.match, tick: m.tick, round: m.round, roundTime: m.roundTime, category: m.category, priority: m.priority,
+    text: m.text, bot: m.frameBot || m.bot || null, understood: a.understood || null, principle: a.principle || null,
+    newItem: a.newItem || null, unsure: a.unsure || null, status: status, version: null,
+    fp: m.fp, state: m.state, frameAsset: null, created: Date.now(), updated: Date.now() };
+  if(MK.assets && m.frameUrl){ try{ var up = await MK.assets.upload(mkUrlToBlob(m.frameUrl)); doc.frameAsset = up.id; }catch(e){} }
+  // полный снимок игры в момент нажатия — по нему отметка открывается у владельца и у Claude
+  doc.snapAsset = null;
+  if(MK.assets && m.snap){ try{ var us = await MK.assets.upload(new Blob([mkPack(m.snap)], {type: "application/json"})); doc.snapAsset = us.id; }catch(e){ mkToast("Снимок игры не сохранился: " + (e && (e.code || e.message))); } }
+  if(!MK.db){ MK.local = MK.local || []; doc.id = "local" + doc.created; MK.local.push(doc); mkRenderList(); mkToast("Базы страницы нет (открыто не в Claude) — отметка только до перезагрузки"); return; }
+  try{ await MK.db.collection("marks").doc("m" + doc.created).set(doc); }
+  catch(e){ mkToast("Не удалось сохранить отметку: " + (e && (e.code || e.message))); }
+}
+
+// ---------- список отметок ----------
+var MK_ST = {new: "новое", unparsed: "не разобрано", added: "добавлено", fixed: "исправлено", confirmed: "подтверждено"};
+function mkStatusText(d){
+  if(d.status === "added") return "добавлено как " + (d.principle || "?");
+  if(d.status === "fixed") return "исправлено в v" + (d.version || "?") + ", проверь";
+  return MK_ST[d.status] || d.status;
+}
+function mkSorted(){
+  var L = (MK.list || []).concat(MK.local || []);
+  var rank = function(d){ return d.status === "confirmed" ? 3 : (d.priority === "urgent" ? 0 : 1) + (d.status === "new" || d.status === "unparsed" ? 0 : 0.5); };
+  return L.slice().sort(function(a, b){ return rank(a) - rank(b) || (b.created||0) - (a.created||0); });
+}
+function mkRenderList(){
+  var L = mkSorted(), box = mkEl("mkItems");
+  mkEl("btnMarks").textContent = "Отметки (" + L.length + ")";
+  if(!L.length){ box.innerHTML = '<div class="mk-q">Пока нет отметок. Нажми «Отметить момент» или клавишу M.</div>'; return; }
+  box.innerHTML = L.map(function(d, i){
+    return '<div class="mk-item' + (d.status === "confirmed" ? " mk-done" : "") + '" data-i="' + i + '">' +
+      '<div class="mk-row"><b>' + (d.priority === "urgent" ? '<span class="mk-urg">срочно</span> ' : "") + mkEsc(d.category) + '</b>' +
+      '<span class="mk-st mk-st-' + mkEsc(d.status) + '">' + mkEsc(mkStatusText(d)) + '</span></div>' +
+      '<div class="mk-t">' + mkEsc(d.text) + '</div>' +
+      (d.understood ? '<div class="mk-q">Понял: ' + mkEsc(d.understood) + '</div>' : "") +
+      '<div class="mk-q">матч ' + d.match + ', тик ' + d.tick + ' · раунд ' + d.round + ', ' + mkClock(d.roundTime) + (d.bot ? ' · ' + mkEsc(d.bot) : "") + '</div>' +
+      (d.status === "fixed" ? '<button data-ok="' + i + '">Подтверждаю</button>' : "") + '</div>';
+  }).join("");
+}
+function mkJump(d){
+  mkEl("mkList").style.display = "none";
+  if(!d.snapAsset){ mkToast("У этой отметки нет снимка игры (сделана до v175) — открыть точно нельзя"); return; }
+  if(MK.busy) return;
+  MK.busy = true; paused = true; mkPauseLabel();
+  fetch("/_blob/" + d.snapAsset).then(function(r){ if(!r.ok) throw new Error("HTTP " + r.status); return r.text(); })
+    .then(function(t){ mkOpenSnap(t); MK.busy = false; mkPauseLabel();
+      mkToast("Отметка: матч " + d.match + ", раунд " + d.round + ", " + mkClock(d.roundTime) + " — открыта из снимка"); })
+    .catch(function(e){ MK.busy = false; mkToast("Не удалось открыть снимок отметки: " + (e && e.message)); });
+}
+function mkCopyAll(){
+  var t = mkSorted().map(function(d){
+    return "- " + (d.priority === "urgent" ? "[срочно] " : "") + d.category + " · матч " + d.match + ", тик " + d.tick + " (раунд " + d.round + ", " + mkClock(d.roundTime) + ")" +
+      (d.bot ? " · " + d.bot : "") + " — «" + d.text + "»" + (d.understood ? " — понял: " + d.understood : "") +
+      (d.principle ? " — пункт " + d.principle : (d.newItem ? " — новый пункт (" + d.newItem.section + "): " + d.newItem.text : "")) + " — " + mkStatusText(d);
+  }).join("\n");
+  var done = function(){ mkToast("Скопировано: " + mkSorted().length + " отметок"); };
+  if(navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(t).then(done, function(){ mkShowCopy(t); });
+  else mkShowCopy(t);
+}
+function mkShowCopy(t){ var a = mkEl("mkCopyBox"); a.value = t; a.style.display = "block"; a.select(); mkToast("Выдели и скопируй текст из поля"); }
+
+// ---------- подключение ----------
+(function(){
+  var bar = mkEl("btnPause");
+  bar.insertAdjacentHTML("afterend", '<button id="btnMark" title="Пауза и отметка момента: что не так, кто, категория (клавиша M)">Отметить момент (M)</button>' +
+    '<button id="btnBack10" title="Перемотать на 10 секунд игры назад">◀ 10 с</button><button id="btnMarks">Отметки (0)</button>');
+  mkEl("main").insertAdjacentHTML("beforeend",
+    '<div id="mkPanel" class="mk-panel" style="display:none">' +
+      '<div class="mk-head"><b>Отметка момента</b><button id="mkX">✕</button></div>' +
+      '<div class="mk-q" id="mkMoment"></div>' +
+      '<div id="mkForm">' +
+        '<textarea id="mkText" rows="3" placeholder="Что не так — своими словами"></textarea>' +
+        '<div class="mk-row2"><select id="mkCat">' + MK_CATS.map(function(c){ return '<option>' + c + '</option>'; }).join("") + '</select>' +
+        '<label><input type="radio" name="mkPrio" id="mkPrioN" checked> обычно</label><label><input type="radio" name="mkPrio" id="mkPrioU"> срочно</label></div>' +
+        '<div class="mk-q">О ком: <span id="mkBot"></span></div>' +
+        '<div class="mk-err" id="mkErr"></div>' +
+        '<div class="mk-row2"><button id="mkGo" class="active">Разобрать</button><button id="mkCancel">Отмена</button></div>' +
+      '</div>' +
+      '<div id="mkCard" style="display:none"><img id="mkImg" alt="кадр радара"><div class="mk-q" id="mkCap"></div><div id="mkUnd"></div>' +
+        '<div class="mk-row2" id="mkBtns"><button id="mkYes" class="active">Да, верно</button><button id="mkNo">Нет, не то</button><button id="mkSkip">Не добавлять</button></div>' +
+        '<div id="mkFix" style="display:none"><textarea id="mkFixText" rows="2" placeholder="Что на самом деле не так"></textarea><div class="mk-row2"><button id="mkReask" class="active">Переспросить</button></div></div>' +
+      '</div>' +
+    '</div>' +
+    '<div id="mkList" class="mk-panel" style="display:none"><div class="mk-head"><b>Отметки</b><span><button id="mkCopy">Скопировать все</button> <button id="mkLX">✕</button></span></div>' +
+      '<textarea id="mkCopyBox" rows="5" style="display:none"></textarea><div id="mkItems"></div></div>' +
+    '<div id="mkToast" class="mk-toast" style="display:none"></div><div id="mkProg" class="mk-prog" style="display:none"></div>');
+  ["mkPanel", "mkList"].forEach(function(id){ var el = mkEl(id);
+    ["keydown", "mousedown", "wheel"].forEach(function(ev){ el.addEventListener(ev, function(e){ e.stopPropagation(); }); }); });
+  mkEl("btnMark").addEventListener("click", mkStart);
+  mkEl("btnBack10").addEventListener("click", mkBack10);
+  mkEl("btnMarks").addEventListener("click", function(){ var L = mkEl("mkList"); L.style.display = L.style.display === "block" ? "none" : "block"; mkRenderList(); });
+  mkEl("mkLX").addEventListener("click", function(){ mkEl("mkList").style.display = "none"; });
+  mkEl("mkX").addEventListener("click", mkClose); mkEl("mkCancel").addEventListener("click", mkClose);
+  mkEl("mkGo").addEventListener("click", mkSubmit);
+  mkEl("mkText").addEventListener("input", function(){ mkEl("mkErr").textContent = ""; });
+  mkEl("mkYes").addEventListener("click", async function(){ var m = MK.cur; if(!m) return; mkClose(); await mkSave(m, "new"); mkToast("Сохранено в отметки"); });
+  mkEl("mkSkip").addEventListener("click", function(){ mkClose(); mkToast("Не добавлено"); });
+  mkEl("mkNo").addEventListener("click", function(){ mkEl("mkFix").style.display = "block"; mkEl("mkBtns").style.display = "none"; mkEl("mkFixText").focus(); });
+  mkEl("mkReask").addEventListener("click", function(){ var t = mkEl("mkFixText").value.trim(); if(!t){ mkEl("mkFixText").focus(); return; } mkRunAsk(t); });
+  mkEl("mkCopy").addEventListener("click", mkCopyAll);
+  mkEl("mkItems").addEventListener("click", function(e){
+    var L = mkSorted(), ok = e.target.getAttribute && e.target.getAttribute("data-ok");
+    if(ok != null){ var d = L[+ok]; e.stopPropagation();
+      if(MK.db && d && !/^local/.test(d.id||"")) MK.db.collection("marks").doc(d.id).update({status: "confirmed", confirmedAt: Date.now(), updated: Date.now()}).catch(function(){ mkToast("Не удалось сохранить подтверждение"); });
+      return; }
+    var it = e.target.closest && e.target.closest(".mk-item"); if(it) mkJump(L[+it.getAttribute("data-i")]);
+  });
+  // клик по боту, пока открыта отметка
+  cv.addEventListener("mousedown", function(e){
+    if(!MK.pick || !MK.cur || e.button !== 0) return;
+    var w = navScreenToWorld(e.clientX, e.clientY), id = mkBotIdAt(w.x, w.y);
+    if(!id) return;
+    MK.cur.bot = id; var s = MK.cur.state.bots.filter(function(o){ return o.id === id; })[0];
+    mkEl("mkBot").textContent = id + " (номер " + (s ? s.num : "?") + (s && s.place ? ", " + s.place : "") + ")";
+    e.stopImmediatePropagation(); e.preventDefault();
+  }, true);
+  window.addEventListener("keydown", function(e){
+    var tg = e.target && e.target.tagName; if(tg === "INPUT" || tg === "TEXTAREA" || tg === "SELECT") return;
+    if((e.key === "m" || e.key === "M" || e.key === "ь" || e.key === "Ь") && !e.ctrlKey && !e.metaKey && !e.altKey){ mkStart(); e.preventDefault(); }
+  });
+  mkEl("btnRestartRound").addEventListener("click", function(){ MK.cps = []; });
+  mkEl("btnFreshMatch").addEventListener("click", function(){ MK.cps = []; });
+  // возможности страницы в Claude: база отметок, картинки кадров, вопрос Claude
+  if(window.claude && claude.use){
+    claude.use("db").then(function(db){ if(!db) return; MK.db = db;
+      db.collection("marks").onSnapshot(function(snap){ MK.list = snap.docs.map(function(d){ var o = Object.assign({}, d.data()); o.id = d.id; return o; }); mkRenderList(); },
+        function(){ mkToast("База отметок недоступна"); }); });
+    claude.use("assets").then(function(a){ MK.assets = a || null; });
+    claude.use("sample").then(function(s){ MK.sample = s || null; });
+  }
+  mkRenderList();
+})();
 function frame(ts){
   nowTs = ts;
   if(lastFrame===null) lastFrame = ts;
@@ -15193,6 +15936,7 @@ function frame(ts){
   if(!paused){
     accumulator += dt;
     while(accumulator >= TICK_MS){ stepTick(); accumulator -= TICK_MS; }
+    mkAfterTicks();
   }
   draw();
   requestAnimationFrame(frame);

@@ -120,13 +120,33 @@
   #log .ev{color:var(--text);}
   #log .ev.kill{color:var(--danger);}
   #warn{position:absolute;top:336px;left:12px;background:rgba(217,131,47,0.15);border:1px solid var(--site);color:var(--site);padding:6px 12px;border-radius:6px;font-size:10.5px;max-width:340px;display:none;}
+  /* v255: «Отметить момент» (src/marks.js, перенос из rebuild-v238) */
+  .mk-panel{position:absolute;top:10px;right:12px;width:min(640px,calc(100% - 24px));max-height:calc(100% - 20px);overflow-y:auto;z-index:50;background:#0a0e09;border:1px solid var(--accent-dim);border-radius:8px;padding:12px 14px;font-size:13px;line-height:1.5;}
+  .mk-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;color:var(--accent);font-size:14px;}
+  .mk-panel textarea{width:100%;background:var(--panel-2);color:var(--text);border:1px solid var(--line);border-radius:5px;padding:8px;font:inherit;resize:vertical;}
+  .mk-panel select{background:var(--panel-2);color:var(--text);border:1px solid var(--line);border-radius:5px;padding:6px;font:inherit;}
+  .mk-row2{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:8px 0;}
+  .mk-row2 label{display:flex;gap:4px;align-items:center;color:var(--text-dim);}
+  .mk-q{color:var(--text-dim);font-size:12px;margin:4px 0;} .mk-err{color:var(--danger);font-size:12px;min-height:16px;}
+  #mkImg{width:100%;border-radius:6px;border:1px solid var(--line);display:block;margin-bottom:4px;}
+  .mk-lbl{color:var(--text-dim);font-size:12px;margin-top:8px;} .mk-big{font-size:15px;margin:2px 0 8px;}
+  .mk-chip{display:inline-block;font-size:12px;padding:3px 9px;border-radius:5px;margin:0 6px 6px 0;background:#4a3a14;color:#f4d27a;}
+  .mk-chip-a{background:#163450;color:#9cc8f2;} .mk-chip-n{background:#1f3a1a;color:#b7e08a;}
+  .mk-pt{font-size:12px;color:var(--text);border-left:2px solid var(--line);padding-left:8px;margin:0 0 6px;}
+  .mk-think{color:var(--accent);padding:14px 0;}
+  .mk-item{border:1px solid var(--line);border-radius:6px;padding:8px 10px;margin-bottom:6px;cursor:pointer;} .mk-item:hover{background:var(--panel-2);}
+  .mk-item .mk-row{display:flex;justify-content:space-between;gap:8px;} .mk-t{margin:2px 0;}
+  .mk-done .mk-t{text-decoration:line-through;color:var(--text-dim);}
+  .mk-urg{color:var(--danger);} .mk-st{font-size:11px;color:var(--text-dim);} .mk-st-fixed{color:#ffd76a;} .mk-st-unparsed{color:var(--site);}
+  .mk-toast{position:absolute;left:50%;bottom:24px;transform:translateX(-50%);z-index:60;background:rgba(10,14,9,0.96);border:1px solid var(--accent);color:var(--text);padding:8px 14px;border-radius:6px;max-width:80%;}
+  .mk-prog{position:absolute;left:50%;top:45%;transform:translate(-50%,-50%);z-index:60;background:rgba(10,14,9,0.96);border:1px solid var(--accent);color:var(--accent);padding:14px 22px;border-radius:8px;font-size:15px;}
 </style>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 
 <div id="app">
   <div id="topbar">
     <h1>ANCIENT — LIVE RADAR</h1>
-    <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 254 (25 тактик T и 25 расстановок CT; экономика по правилам CS2) · 11.10</div>
+    <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 255 (кнопка «Отметить момент» — M) · 11.10</div>
     <button id="btnPause">Пауза</button>
     <button id="btnRestartRound" title="Немедленно сбросить текущий раунд — на случай если боты застряли">Рестарт раунда</button>
     <span class="chk" title="Матч с одним номером всегда проходит одинаково. Увидел баг — запиши номер матча и тик, введи номер и нажми «Сыграть»: матч повторится с начала">матч № <input id="inpMatchNum" type="number" min="1" value="1" style="width:52px"> <button id="btnFreshMatch">Сыграть</button> <span id="matchTick" style="opacity:.75"></span></span>
@@ -15253,6 +15273,7 @@ function playersUpdate(){
   });
 })();
 
+/*@@BUILD: здесь build.py вставляет __SNAP, MK_PRINCIPLES и marks.js@@*/
 function frame(ts){
   nowTs = ts;
   if(lastFrame===null) lastFrame = ts;
@@ -15260,6 +15281,7 @@ function frame(ts){
   if(!paused){
     accumulator += dt;
     while(accumulator >= TICK_MS){ stepTick(); accumulator -= TICK_MS; }
+    mkAfterTicks();
   }
   draw();
   requestAnimationFrame(frame);
