@@ -23,6 +23,13 @@ def build(tracks, shots, deaths, kills, t0, t1, cut, out_pairs, meta):
         i = bisect.bisect_right(L[0], tk) - 1
         if i < 0 or tk - L[0][i] > 32: return None
         return L[1][i], L[2][i]
+    def mov(b, tk):   # скорость px/с и взгляд (рад, координаты карты)
+        L = tracks[b]; i = bisect.bisect_right(L[0], tk) - 1
+        sp = math.hypot(L[1][i]-L[1][i-1], L[2][i]-L[2][i-1]) / max(1, L[0][i]-L[0][i-1]) * 64 if i > 0 else 0
+        return sp, (L[4][i] if len(L) > 4 else None)
+    def looks(f, p, q):
+        if f is None: return None
+        a = math.atan2(q[1]-p[1], q[0]-p[0]); return abs((a - f + math.pi) % (2*math.pi) - math.pi) < math.pi/4
     side = {b: v[3] for b, v in tracks.items()}
     iv = collections.defaultdict(list)
     for b, sh in shots.items():
@@ -51,7 +58,8 @@ def build(tracks, shots, deaths, kills, t0, t1, cut, out_pairs, meta):
             for t in ticks:
                 pa, pb = at(a, t), at(b, t)
                 if not pa or not pb: continue
-                smp.append((t, len(out_pairs), math.hypot(pa[0]-pb[0], pa[1]-pb[1])))
+                (va, fa), (vb, fb) = mov(a, t), mov(b, t)
+                smp.append((t, len(out_pairs), math.hypot(pa[0]-pb[0], pa[1]-pb[1]), va, vb, looks(fa, pa, pb), looks(fb, pb, pa)))
                 out_pairs.append([round(pa[0], 1), round(pa[1], 1), round(pb[0], 1), round(pb[1], 1)])
             if len(smp) >= 2:
                 meta.append({'a': a, 'b': b, 'side': side[a], 's': s, 'e': e, 'smp': smp,
@@ -71,7 +79,7 @@ def evaluate(pairs, sim):
 def stats(meta, bits):
     S = collections.Counter(); L = collections.defaultdict(list)
     for m in meta:
-        smp = m['smp']; v = [bits[i] == '1' for (_, i, _) in smp]
+        smp = m['smp']; v = [bits[q[1]] == '1' for q in smp]
         # один пропуск склеиваем
         for k in range(1, len(v) - 1):
             if not v[k] and v[k-1] and v[k+1]: v[k] = True
@@ -94,12 +102,17 @@ def stats(meta, bits):
             if dead:
                 S['кончилась смертью'] += 1; S['смертью ' + bk] += 1
                 L['до смерти'].append(max(0, min(dead) - ts) / 64); L['до смерти ' + bk].append(max(0, min(dead) - ts) / 64)
+                L['увидел→выстрел ' + bk].append(max(0, first - ts) / 64); L['выстрел→смерть ' + bk].append(max(0, min(dead) - first) / 64)
                 fa = min(sh_a) if sh_a else 1e18; fb = min(sh_b) if sh_b else 1e18
                 first_is_a = fa <= fb
                 died_a = m['da'] is not None and m['da'] in dead and (m['db'] not in dead or m['da'] <= m['db'])
                 S['первый выстреливший выжил'] += (first_is_a != died_a)
             else:
                 S['ушли из вида'] += 1
+                for q in smp[k:j+1]:
+                    for v_, l_ in ((q[3], q[5]), (q[4], q[6])):
+                        S['бв отсчётов'] += 1; S['бв идёт'] += v_ > 65; S['бв шагом'] += 15 <= v_ <= 65; S['бв стоит'] += v_ < 15
+                        if l_ is not None: S['бв со взглядом'] += 1; S['бв смотрит на врага'] += l_
                 L['видели друг друга без смерти'].append((te - ts) / 64 + 0.25); L['без смерти ' + bk].append((te - ts) / 64 + 0.25)
             k = j + 1
     n = max(1, S['со стрельбой']); md = lambda k: round(float(np.median(L[k])), 3) if L[k] else None
@@ -114,6 +127,10 @@ def stats(meta, bits):
             'видели без смерти по дистанции, медиана с': [md('без смерти ' + b) for b in ('<250', '250-450', '450+')],
             'видели без смерти, квантили 10/25/50/75/90 с': [round(float(q), 3) for q in np.quantile(L['видели друг друга без смерти'], [0.1, 0.25, 0.5, 0.75, 0.9])] if L['видели друг друга без смерти'] else None,
             'доля встреч по дистанции <250 / 250-450 / 450+': [round(S['со стрельбой ' + b] / n, 3) for b in ('<250', '250-450', '450+')],
+            'смертельные: увидел→первый выстрел, среднее с': [round(float(np.mean(L['увидел→выстрел ' + b])), 3) if L['увидел→выстрел ' + b] else None for b in ('<250', '250-450', '450+')],
+            'смертельные: первый выстрел→смерть, медиана с': [md('выстрел→смерть ' + b) for b in ('<250', '250-450', '450+')],
+            'без смерти: бегом / шагом / стоит, доля времени': [round(S['бв ' + x] / max(1, S['бв отсчётов']), 3) for x in ('идёт', 'шагом', 'стоит')],
+            'без смерти: смотрит на врага (±45°), доля времени': S['бв смотрит на врага'] / max(1, S['бв со взглядом']),
             'первый выстреливший выжил': S['первый выстреливший выжил'] / max(1, S['кончилась смертью'])}
 
 
@@ -126,20 +143,20 @@ def pro(sim):
     for demo in demo_names():
         rounds = rounds_of(demo)
         if not rounds: continue
-        t = pd.read_csv(os.path.join(DEMOS, demo + '_ticks.csv.gz'), usecols=['tick', 'steamid', 'team_num', 'X', 'Y', 'is_alive'])
+        t = pd.read_csv(os.path.join(DEMOS, demo + '_ticks.csv.gz'), usecols=['tick', 'steamid', 'team_num', 'X', 'Y', 'yaw', 'is_alive'])
         t = t[t.is_alive == True]  # noqa: E712
         x, y = tr(t.X.values, t.Y.values)
-        df = pd.DataFrame({'tick': t.tick.values, 'sid': t.steamid.values, 'team': t.team_num.values, 'x': x, 'y': y}).sort_values('tick')
-        G = {int(s): (g.tick.values, g.x.values, g.y.values, g.team.values) for s, g in df.groupby('sid')}
+        df = pd.DataFrame({'tick': t.tick.values, 'sid': t.steamid.values, 'team': t.team_num.values, 'x': x, 'y': y, 'yaw': t.yaw.values}).sort_values('tick')
+        G = {int(s): (g.tick.values, g.x.values, g.y.values, g.team.values, g.yaw.values) for s, g in df.groupby('sid')}
         d = pd.read_csv(os.path.join(DEMOS, demo + '_player_death.csv.gz'))
         wf = pd.read_csv(os.path.join(DEMOS, demo + '_weapon_fire.csv.gz'))
         wf = wf[~wf.weapon.astype(str).str.contains(NADE, case=False) & wf.user_steamid.notna()]
         shots = {int(s): sorted(g.tick.values.tolist()) for s, g in wf.groupby('user_steamid')}
         for r in rounds:
             tracks = {}
-            for sid, (tt, xx, yy, tm) in G.items():
+            for sid, (tt, xx, yy, tm, yw) in G.items():
                 i0, i1 = np.searchsorted(tt, r['t0']), np.searchsorted(tt, r['t1'], side='right')
-                if i1 > i0: tracks[sid] = (tt[i0:i1].tolist(), xx[i0:i1].tolist(), yy[i0:i1].tolist(), 'CT' if tm[i0] == 3 else 'T')
+                if i1 > i0: tracks[sid] = (tt[i0:i1].tolist(), xx[i0:i1].tolist(), yy[i0:i1].tolist(), 'CT' if tm[i0] == 3 else 'T', (-yw[i0:i1] * math.pi / 180).tolist())
             dr = d[(d.tick >= r['t0']) & (d.tick <= r['t1'])]
             deaths = {int(u): int(tk) for tk, u in zip(dr.tick.values, dr.user_steamid.values) if u == u}
             kills = [(int(tk), int(a), int(u)) for tk, a, u in zip(dr.tick.values, dr.attacker_steamid.values, dr.user_steamid.values) if a == a and u == u]
@@ -159,7 +176,7 @@ def bots(runs, sim):
             T = {}
             for p in sorted(d['pos'], key=lambda q: q[0]):
                 if not p[5]: continue
-                Lp = T.setdefault((p[1], p[2]), ([], [], [])); Lp[0].append(p[0]); Lp[1].append(p[3]); Lp[2].append(p[4])
+                Lp = T.setdefault((p[1], p[2]), ([], [], [], [])); Lp[0].append(p[0]); Lp[1].append(p[3]); Lp[2].append(p[4]); Lp[3].append(p[6])
             shots, seen = collections.defaultdict(list), set()
             for s in sorted(d['shots'], key=lambda q: q[0]):
                 if (s[1], s[0] // 32) in seen: continue
@@ -168,9 +185,9 @@ def bots(runs, sim):
                 if 't1' not in r: continue
                 t0, t1 = int(r['t0']), int(r['t1'])
                 tracks = {}
-                for (b, ct), (tt, xx, yy) in T.items():
+                for (b, ct), (tt, xx, yy, ff) in T.items():
                     i0, i1 = bisect.bisect_left(tt, t0), bisect.bisect_right(tt, t1)
-                    if i1 > i0: tracks[b] = (tt[i0:i1], xx[i0:i1], yy[i0:i1], 'CT' if ct == 1 else 'T')
+                    if i1 > i0: tracks[b] = (tt[i0:i1], xx[i0:i1], yy[i0:i1], 'CT' if ct == 1 else 'T', ff[i0:i1])
                 ks = [k for k in d['kills'] if t0 <= k[0] <= t1]
                 deaths = {k[5]: k[0] for k in ks}
                 kills = [(k[0], k[1], k[5]) for k in ks if k[1]]
