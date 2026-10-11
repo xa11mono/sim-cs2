@@ -108,7 +108,7 @@
   <div id="topbar">
     <div class="tb-id">
       <h1>Ancient</h1>
-      <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 258, 11.10</div>
+      <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 259, 11.10</div>
     </div>
     <div class="tb-group" id="tbMatch">
       <button id="btnPause">Пауза</button>
@@ -1573,8 +1573,25 @@ function makeHeap(){
     size: function(){ return h.length; }
   };
 }
-function zoneDijkstra(fromId, toId){
+// (v259, В1) сторона карты у каждого куска навмеша: доля пути от спавна T к спавну CT (0 — у T, 1 — у CT).
+// CT, когда идут (ротация, сбор, ретейк), обходят сторону T: кусок со стороной < ROUTE_SIDE_LINE (0,55 — спорные места у кейва, Lamp Room, T Upper тоже) дороже в ROUTE_ENEMY_SIDE раз
+// (проектное число) — через сторону T пойдут, только если иначе заметно дальше.
+var ROUTE_ENEMY_SIDE = 1.6, ROUTE_SIDE_LINE = 0.55, _zoneSide = null;
+function zoneSideMap(){
+  if(_zoneSide) return _zoneSide;
+  var sssp = function(from){ var dist = {}, vis = {}; dist[from] = 0; var h = makeHeap(); h.push(from, 0);
+    while(h.size()){ var u = h.pop().id; if(vis[u]) continue; vis[u] = true; var c = zoneCentroid(zonesById[u]);
+      (zoneGraph[u]||[]).forEach(function(e){ if(vis[e.to]) return; var a = dist[u] + dist2(c, e.mid) + 40; if(dist[e.to] === undefined || a < dist[e.to]){ dist[e.to] = a; h.push(e.to, a); } }); }
+    return dist; };
+  var zt = zoneOf(T_SPAWN.x, T_SPAWN.y, 0), zc = zoneOf(CT_SPAWN.x, CT_SPAWN.y, 0);
+  if(!zt || !zc) return (_zoneSide = {});
+  var DT = sssp(zt.id), DC = sssp(zc.id), out = {};
+  Object.keys(zonesById).forEach(function(id){ if(DT[id] !== undefined && DC[id] !== undefined) out[id] = DT[id]/(DT[id] + DC[id] + 1e-9); });
+  return (_zoneSide = out);
+}
+function zoneDijkstra(fromId, toId, team){
   if(fromId===toId) return [fromId];
+  var side = team === "CT" ? zoneSideMap() : null;
   var dist = {}, prev = {}, visited = {};
   dist[fromId] = 0;
   var heap = makeHeap();
@@ -1589,6 +1606,7 @@ function zoneDijkstra(fromId, toId){
     (zoneGraph[u]||[]).forEach(function(edge){
       if(visited[edge.to]) return;
       var w = dist2(fromCentroid, edge.mid) + 40; // small fixed cost per portal crossing
+      if(side && side[edge.to] !== undefined && side[edge.to] < ROUTE_SIDE_LINE) w *= ROUTE_ENEMY_SIDE;   // (v259) CT — по своей стороне
       var alt = dist[u] + w;
       if(dist[edge.to]===undefined || alt<dist[edge.to]){
         dist[edge.to] = alt; prev[edge.to] = u; heap.push(edge.to, alt);
@@ -1669,11 +1687,11 @@ function funnel(corridor, start, end){
 // through every portal's exact midpoint" zigzag (that's what made movement
 // look like it was snapping between fixed lines) with a proper corridor
 // pull that only turns where the walls actually force a turn.
-function buildWaypointPath(fromX, fromY, fromZ, toX, toY, toZ){
+function buildWaypointPath(fromX, fromY, fromZ, toX, toY, toZ, team){
   var fz = zoneOf(fromX, fromY, fromZ||0), tz = zoneOf(toX, toY, toZ||0);
   if(!fz || !tz) return [[toX,toY,toZ||0]];
   if(fz.id === tz.id) return [[toX,toY,toZ||0]];
-  var route = zoneDijkstra(fz.id, tz.id);
+  var route = zoneDijkstra(fz.id, tz.id, team);
   if(!route) return [[toX,toY,toZ||0]]; // disconnected zones — direct line fallback rather than a stuck bot
   var corridor = [];
   for(var i=0;i<route.length-1;i++){
@@ -7124,9 +7142,27 @@ function smoothLookFilter(b, look, urgent){
       if(best){ b._gl = {pt:{x:best.x, y:best.y}, until: tick + SL.glDur}; look = b._gl.pt; b.lookReason = "glance"; }
     }
   } else if(!moving) b._gl = null;
-  if(!look){ if(moving) b._sl = null; return look; }
-  var S = b._sl, aN = Math.atan2(look.y-b.y, look.x-b.x);
+  // (v259, В1) «нет цели — смотрю по ходу» — такое же направление, как любое: держится не меньше holdMove и к
+  // только что брошенному углу сразу не возвращаемся. Раньше пропажа цели на ходу сбрасывала память фильтра, и взгляд
+  // метался «на угол ↔ по ходу» (матч 1 владельца: 255 раз за матч «туда-сюда» за 1 с)
+  var S = b._sl;
+  if(!look){
+    if(!moving){ return look; }
+    if(urgent === 2){ b._sl = null; return look; }
+    if(S && S.pt && tick - S.since < SL.holdMove) return S.pt;                    // угол ещё не «досмотрели»
+    if(!S || S.pt) b._sl = {pt:null, since:tick, prev: S ? S.pt : null, left:tick}; // переходим на «по ходу»
+    return look;
+  }
+  var aN = Math.atan2(look.y-b.y, look.x-b.x);
   if(urgent === 2 || !S){ b._sl = {pt:{x:look.x, y:look.y}, since:tick, prev: S ? S.pt : null, left: tick}; return look; }
+  if(!S.pt){                                                                     // сейчас смотрит по ходу
+    if(moving && tick - S.since < (urgent ? SL.holdAlert : SL.holdMove)) return null;
+    if(moving && S.prev && tick - S.since < (urgent ? SL.backAlert : SL.backBlock)){
+      var aQ = Math.atan2(S.prev.y-b.y, S.prev.x-b.x), dQ = Math.abs(((aN-aQ+Math.PI)%(2*Math.PI)+2*Math.PI)%(2*Math.PI)-Math.PI);
+      if(dQ < SL.same) return null;                                              // не возвращаемся сразу к брошенному углу
+    }
+    b._sl = {pt:{x:look.x, y:look.y}, since:tick, prev:null, left:tick}; return look;
+  }
   var aS = Math.atan2(S.pt.y-b.y, S.pt.x-b.x);
   var dA = Math.abs(((aN-aS+Math.PI)%(2*Math.PI)+2*Math.PI)%(2*Math.PI)-Math.PI);
   if(dA < SL.same){ S.pt = {x:look.x, y:look.y}; return look; }            // то же направление — просто уточняем точку
@@ -7147,8 +7183,20 @@ function newLookFor(b){
   if(b.roamChecking && b.roamLookPt){ b.lookReason = "roam"; return b.roamLookPt; }
   if(b.fakeHoldUntil && tick < b.fakeHoldUntil && bomb && bomb.site){ b.lookReason = "fake"; return GEO[bomb.site].tEntry; }
   if(BAL.proSpots && b.atPost && b.post && b.post.pro && !(b.curSpeed > 60*SPD_K)){ var plk = proSpotLook(b); if(plk){ b.lookReason = "pro"; return plk; } }
-  if(b._lkPt){ b.lookReason = "look"; return cornerLook(b, b._lkPt) || b._lkPt; }
   var moving = b.curSpeed > 60*SPD_K && b.heading !== undefined;
+  if(b._lkPt){
+    // (v259, В2) на бегу не идёт спиной вперёд ради угла из делёжки (догадка, не свежая угроза): смотрит туда, куда
+    // идёт — там следующий контакт. Как в старой ветке взгляда (порог 1,9 рад ≈ 110°). Отход (repos, flee, save) —
+    // исключение: там смотреть назад, на угрозу, правильно. После планта у ботов спиной было T 20 % / CT 15 %, у про 10 / 6,5 %
+    var behind = false;
+    // только после планта: до планта боты и так смотрят назад на ходу как про (CT 9 / 7 %, T 7 / 5 %), а правило на всё
+    // время уводило их в «только вперёд» (вдоль движения 78 % против 53 % у про)
+    if(moving && bomb && bomb.state === "planted" && !(b.post && /^(repos|flee|save)/.test(b.post.tag||"")) && !(b.lastIntel && tick - b.lastIntel.tick < CAUTION_TICKS)){
+      var aL = Math.atan2(b._lkPt.y-b.y, b._lkPt.x-b.x), dL = Math.abs(((aL-b.heading+Math.PI)%(2*Math.PI)+2*Math.PI)%(2*Math.PI)-Math.PI);
+      behind = dL > 1.9;
+    }
+    if(!behind){ b.lookReason = "look"; return cornerLook(b, b._lkPt) || b._lkPt; }
+  }
   if(!moving && b.atPost && b.post && b.post.look){ b.lookReason = "post"; return cornerLook(b, b.post.look) || b.post.look; }
   b.lookReason = null; return null;
 }
@@ -11192,7 +11240,7 @@ function resolveEngagements(){
       if(b.tRole === "anchorA") rt = GEO.A.ctEntry;
       else if(b.tRole === "anchorB") rt = GEO.B.ctEntry;
       else if(b.team === "T" && teamTac.T && GEO[teamTac.T.site]) rt = GEO[teamTac.T.site].tStage;
-      var wp = buildWaypointPath(b.baseX, b.baseY, b.z, rt.x, rt.y, rt.z||0);
+      var wp = buildWaypointPath(b.baseX, b.baseY, b.z, rt.x, rt.y, rt.z||0, b.team);
       // Отход не должен вести на врага: раньше "дальняя" точка отхода (спавн,
       // вход на сайт, точка сбора) часто лежала ЗА противником, и бот, решив
       // отступать, бежал прямо на него. Теперь, если первый отрезок пути ведёт
@@ -15332,6 +15380,9 @@ var __SNAP = [
 ["PORTAL_TOL", function(){ return PORTAL_TOL; }, function(v){ try{ PORTAL_TOL = v; }catch(e){} }],
 ["PORTAL_MIN_OVERLAP", function(){ return PORTAL_MIN_OVERLAP; }, function(v){ try{ PORTAL_MIN_OVERLAP = v; }catch(e){} }],
 ["VIS_DANGER_TIMER", function(){ return VIS_DANGER_TIMER; }, function(v){ try{ VIS_DANGER_TIMER = v; }catch(e){} }],
+["ROUTE_ENEMY_SIDE", function(){ return ROUTE_ENEMY_SIDE; }, function(v){ try{ ROUTE_ENEMY_SIDE = v; }catch(e){} }],
+["ROUTE_SIDE_LINE", function(){ return ROUTE_SIDE_LINE; }, function(v){ try{ ROUTE_SIDE_LINE = v; }catch(e){} }],
+["_zoneSide", function(){ return _zoneSide; }, function(v){ try{ _zoneSide = v; }catch(e){} }],
 ["ZONE_CENTROIDS", function(){ return ZONE_CENTROIDS; }, function(v){ try{ ZONE_CENTROIDS = v; }catch(e){} }],
 ["DANGER_SAMPLES", function(){ return DANGER_SAMPLES; }, function(v){ try{ DANGER_SAMPLES = v; }catch(e){} }],
 ["zoneLayerRebuildTimer", function(){ return zoneLayerRebuildTimer; }, function(v){ try{ zoneLayerRebuildTimer = v; }catch(e){} }],
