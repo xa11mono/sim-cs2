@@ -8757,6 +8757,7 @@ function buyNades(b, type){
   var budget = type === "full" ? 99 : (type === "force" || type === "half" ? (BAL.nadeBuy ? 2 : 1) : 0);
   if(type === "pistol" || type === "eco") budget = BAL.nadeBuy ? 1 : 0;
   var keepEco = (BAL.nadeBuy && type === "eco") ? fullNeed(b) - nextLossIncome(b.team) : -1e9;
+  var keepFull = type === "full" ? buyReserve(b) : -1e9;   // v253: гранаты в фулле — сверх резерва
   var bought = 0;
   for(var i=0;i<wish.length && bought<budget;i++){
     var t = wish[i], pr = nadePrice(t, b.team);
@@ -8767,6 +8768,7 @@ function buyNades(b, type){
     if(type !== "full" && b.money - pr < 200 && !(BAL.nadeBuy && type === "pistol" && b.money >= pr)) continue;
     if(BAL.nadeBuy && (type === "eco" || type === "pistol") && t === "molly") continue;
     if(BAL.nadeBuy && type === "eco" && b.money - pr < keepEco) continue;
+    if(b.money - pr < keepFull) continue;
     if(b.money < pr) continue;
     b.money -= pr; b.nades[t]++; bought++;
   }
@@ -11610,6 +11612,14 @@ function bestPrimary(b, maxPrice, keep){
   return best;
 }
 
+// (v253) правило двух раундов (docs/ECONOMY.md §2, [2]): в фулле не тратить на шлем, кит и гранаты деньги,
+// без которых при поражении не хватит на винтовку и кевлар. Резерв = винтовка + кевлар − лосс-бонус этого
+// раунда. В последнем раунде половины и при матч-поинте соперника копить незачем — резерва нет.
+function buyReserve(b){
+  var enemy = b.team === "CT" ? "T" : "CT";
+  if(lastOfHalfNow() || score[enemy] === matchWinTarget()-1) return 0;
+  return Math.max(0, rifleFor(b.team, b).price + ARMOR_PRICE - nextLossIncome(b.team));
+}
 function buyForPlayer(b, type, idx){
   var before = b.money;
   if(type === "pistol"){
@@ -11622,9 +11632,12 @@ function buyForPlayer(b, type, idx){
     var cur = b.primary ? WEAPONS[b.primary].tier : -1;
     var rifle = scopedFor(b) || rifleFor(b.team, b);
     if(cur < 6 && b.money >= rifle.price) buyItem(b, rifle.key);
-    buyArmor(b, true);
+    buyArmor(b, false);
     if(!b.primary || WEAPONS[b.primary].tier < 6){ var bp = bestPrimary(b, 99999, 0); if(bp) buyItem(b, bp.key); }
-    if(b.team === "CT" && !b.kit && b.money >= 400 && (!BAL.nadeBuy || idx % 2 === 0 || b.money >= 400 + 750)){ b.money -= 400; b.kit = true; } // кит — дефуз 5с вместо 10с
+    // (v253) шлем, кит и гранаты — только сверх резерва на следующий раунд (buyReserve)
+    var resF = buyReserve(b);
+    if(b.money - HELMET_UPGRADE >= resF) buyArmor(b, true);
+    if(b.team === "CT" && !b.kit && b.money - 400 >= resF && (!BAL.nadeBuy || idx % 2 === 0 || b.money >= 400 + 750)){ b.money -= 400; b.kit = true; } // кит — дефуз 5с вместо 10с
   } else if(type === "force" && teamEco[b.team].antiEcoSmg){
     // против эко: броня + SMG ($600 за килл), винтовку — только если и так богат
     buyArmor(b, false);
