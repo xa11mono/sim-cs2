@@ -175,7 +175,7 @@
   <div id="topbar">
     <div class="tb-id">
       <h1>Ancient</h1>
-      <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 259, 11.10</div>
+      <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 260, 11.10</div>
     </div>
     <div class="tb-group" id="tbMatch">
       <button id="btnPause">Пауза</button>
@@ -4915,10 +4915,17 @@ function retakePost(b, cts){
   if(R.phase === "gather" || R.phase === "util"){
     // стоим в укрытии и смотрим туда, откуда будет заход
     // один из собирающихся смотрит не на бомбу, а в спину — туда, откуда может
-    // прийти лёркер (проход между сайтами), пока T ещё хватает на люрк
+    // прийти лёркер (проход между сайтами), пока T ещё хватает на люрк.
+    // (v260, В3) Спину держит замыкающий — кто дальше всех от бомбы; передний держит
+    // вход со стороны сайта. Пересмотр — только если «смотрящий» оказался впереди всех
+    // (проектное правило: прямого источника нет, docs/DECISIONS.md v260)
     if(BAL.lurkCheck && aliveCount("T") >= 2){
-      if(!R.backWatch){ var bwb = null, bwd = Infinity; cts.forEach(function(c){ var d = Math.hypot(c.x-GEO.rotator.x, c.y-GEO.rotator.y); if(d < bwd){ bwd = d; bwb = c; } }); R.backWatch = bwb ? bwb.id : "-";
-        if(bwb) voiceLog("CT", "back", bwb.id, "смотрю спину — может прийти люрк"); }
+      var dBp = function(o){ return Math.hypot(o.x-bp.x, o.y-bp.y); };
+      var bwc = cts.filter(function(o){ return o.id === R.backWatch && o.alive; })[0];
+      if(!bwc || (cts.length > 1 && cts.every(function(o){ return o === bwc || !o.alive || dBp(o) > dBp(bwc); }))){
+        var bwb = null; cts.forEach(function(o){ if(o.alive && (!bwb || dBp(o) > dBp(bwb))) bwb = o; });
+        var nbw = bwb ? bwb.id : "-";
+        if(nbw !== R.backWatch){ R.backWatch = nbw; if(bwb) voiceLog("CT", "back", bwb.id, "смотрю спину — может прийти люрк"); } }
       if(R.backWatch === b.id){ setPost(b, a, GEO.rotator, true, "gather"+(R.assign[b.id]||0), 0); return; }
     }
     setPost(b, a, bp, true, "gather"+(R.assign[b.id]||0), 0);
@@ -6868,6 +6875,7 @@ function threatLook(b){
 var LOOK = {
   maxDist: 1100,     // дальше этой дистанции зону как угрозу не рассматриваем
   nbrW: 0.6,         // вклад врага за входом в зону (он оттуда выйдет)
+  nbr2K: 0.5,        // (v260) доля врага в двух шагах за входом — проектное число
   watchedNbr: 0.25,  // …если этот вход видит тиммейт — враг сначала выйдет на него
   habitW: 0.25,      // любимое место соперника (память прошлых раундов)
   distHold: 700,     // затухание веса с расстоянием, стоя
@@ -7027,7 +7035,10 @@ function lookCands(b, W){
     var th = beliefZoneKnown(team, j), nBest = -1, nVal = 0;
     BZ.nbr[j].forEach(function(nn){ if(nn === zb) return;
       if(BAL.timing && !reachPossible(team, nn)) return;
-      var v = LOOK.nbrW * beliefZoneKnown(team, nn);
+      // (v260, В3) враг и в двух шагах за входом выйдет через него (Site B → 90 → First Lane)
+      var b2 = 0; BZ.nbr[nn].forEach(function(n2){ if(n2 === j || n2 === zb || BZ.nbr[j].indexOf(n2) >= 0) return;
+        if(BAL.timing && !reachPossible(team, n2)) return; b2 += beliefZoneKnown(team, n2); });
+      var v = LOOK.nbrW * (beliefZoneKnown(team, nn) + LOOK.nbr2K * b2);
       if(PW[j+","+nn]) v *= LOOK.watchedNbr;          // вход видит свой — враг выйдет на него первым
       th += v; if(v > nVal){ nVal = v; nBest = nn; } });
     if(habZ[j] && (!BAL.timing || reachPossible(team, j))) th += LOOK.habitW;
