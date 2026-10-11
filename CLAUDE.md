@@ -70,6 +70,7 @@ v166 — `docs/V166_CHANGES.md` (список владельца). Главны�
 | раунд и цикл: `endRound`, `resetRound`, `stepTick` | ~11584; ~11617; ~11677 |
 | редактор карты `MAPED` (вкладки стены/высоты/укрытия/прострелы, Ctrl+Z, база); проверка «кто кого видит» `visToolDraw` | ~12954; ~14060 |
 | киллфид `feedKill` (иконки `KF_ICON`), табло `scoreboardUpdate`, панели игроков `playersUpdate` | ~14845; ~14967 |
+| **панель войса** (v264, одно место показа): `voiceFeed` / `renderVoice`, цвета `VOICE_KIND` / `VOICE_KEYS`; консоль `logEvent` (#log) — по Ё, `toggleConsole` | `grep -n` |
 
 Замеры: `tools/measure/measure.py <метка> --matches=3,7,11,13,17,19` работают и с v166. `docs/` — как раньше
 (`PRO_PLAY.md` — источники, `PRO_DECISIONS.md` — цепочка решений про).
