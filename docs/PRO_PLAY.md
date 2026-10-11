@@ -214,6 +214,15 @@
 - Дым цепочкой на проход, молотов останавливает подход и дефуз [22].
 - Услышал дефуз — проверить бомбу; дефуз может быть приманкой (фейк); молотов глушит звук дефуза — проверить бомбу [23].
 
+## 6г. Урон по своим и молотов (11.10, пункты Б1–Б2)
+- Про-матчи — с mp_friendlyfire 1: свои пули, HE и огонь ранят тиммейтов. Множители по своим (значения по умолчанию
+  CS2): пуля ×0,33 [29], HE ×0,85 [30], «прочее, не пули и не гранаты» ×0,4 [31], своя граната по себе ×1 [32]; убил
+  своего — −$300 [33]. Что свой огонь ранит, видно и по настройке «сколько секунд показывать, что ты поджёг своего» [34];
+  к какой группе — «гранаты» или «прочее» — относится огонь молотова, источник не говорит (в игре ×0,4 — проектное число).
+- Наши демки (88 Ancient, data/demos/*player_death): 33 убийства своих на ~2000 раундов — ~0,37 за матч, 0,25 % всех
+  смертей; 30 пулями (17 из AK), 2 HE, 1 молотовом. Поэтому стрелок не стреляет, когда свой на линии, — тимкиллы
+  случаются от шальных пуль и гранат, редко.
+
 ## 7. Чего в источниках нет (брать из наших демок)
 
 Тайминги в секундах (кроме общих фаз [3]), точки, кто где стоит у каждой команды, как часто, как
@@ -257,3 +266,9 @@
 26. [Counter-Strike 2 Economy Guide — csdb.gg](https://csdb.gg/economy-guide)
 27. [Communication in CS2 – The Ultimate Guide — ProSettings](https://prosettings.net/blog/communication-in-cs2-guide/)
 28. [Bomb Defusal — Counter-Strike Wiki (Fandom), раздел о тактике CT](https://counterstrike.fandom.com/wiki/Bomb_Defusal)
+29. [ff_damage_reduction_bullets — TotalCS](https://totalcsgo.com/commands/ffdamagereductionbullets)
+30. [ff_damage_reduction_grenade — TotalCS](https://totalcsgo.com/commands/ffdamagereductiongrenade)
+31. [ff_damage_reduction_other — TotalCS](https://totalcsgo.com/commands/ffdamagereductionother)
+32. [ff_damage_reduction_grenade_self — TotalCS](https://totalcsgo.com/commands/ffdamagereductiongrenadeself)
+33. [cash_player_killed_teammate — TotalCS](https://totalcsgo.com/commands/cashplayerkilledteammate)
+34. [inferno_friendly_fire_duration — TotalCS](https://totalcsgo.com/commands/infernofriendlyfireduration)

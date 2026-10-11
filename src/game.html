@@ -128,7 +128,7 @@
   #killfeed .kf .ct{color:#8fc3f2;font-weight:600;} #killfeed .kf .t{color:#f0b84a;font-weight:600;}
   #killfeed .kf .pl{color:#e8e8e2;margin:0 -1px;} #killfeed .kf svg{flex:none;} #killfeed .kf svg.wp{margin:0 2px;}
   #killfeed .kf .w{color:#f4f4ee;font-size:10.5px;font-weight:600;}
-  #killfeed .kf.ev{font-weight:600;border:1px solid var(--line);} #killfeed .kf.bomb{border-color:#e05c52;color:#ff9a8f;} #killfeed .kf.defuse{border-color:#5a9bd9;color:#9ec6ef;}
+  #killfeed .kf.ev{font-weight:600;border:1px solid var(--line);} #killfeed .kf.tk{border:1px solid #e05c52;} #killfeed .kf.bomb{border-color:#e05c52;color:#ff9a8f;} #killfeed .kf.defuse{border-color:#5a9bd9;color:#9ec6ef;}
   #killfeed .kf.clutch{border-color:#ffd76a;color:#ffe49a;}
   #killfeed .kf.boom{border-color:#e05c52;background:rgba(80,20,15,0.85);color:#ffb3aa;} #killfeed .kf.round{opacity:.6;font-weight:400;}
   #banner{position:absolute;top:70px;left:50%;transform:translateX(-50%) scale(.9);opacity:0;transition:all .25s;pointer-events:none;font-family:'IBM Plex Sans',sans-serif;font-weight:700;font-size:22px;letter-spacing:.04em;padding:8px 22px;border-radius:6px;background:rgba(10,14,9,0.88);border:1px solid var(--accent-dim);color:#fff;}
@@ -3021,7 +3021,7 @@ function bombTick(){
     // (раньше любой видимый CT через полкарты — и носитель стоял на точке
     // планта до конца раунда: это и были почти все проигрыши T по времени)
     var nearFoe = c._sawEnemy && c._nearestEnemyDist < 500;
-    if(site && tac.phase !== "setup" && c.state === "patrol" && !nearFoe && onSite(site, c.baseX, c.baseY) && !(c._noPlantUntil > tick)){
+    if(site && tac.phase !== "setup" && c.state === "patrol" && !nearFoe && onSite(site, c.baseX, c.baseY) && !(c._noPlantUntil > tick) && !inFire(c.baseX, c.baseY)){   // (v263, Б2) в огне плант не начинают — не доживут
       c.planting = true; c.plantUntil = tick + PLANT_TICKS; c.path = []; c.pathIdx = 0;
       // фейк-плант (раз за раунд): свои рядом держат углы, CT по инфе рядом —
       // начать и через ~1с бросить: CT на звук выйдут под прицел
@@ -3059,8 +3059,7 @@ function bombTick(){
       // если впритык — дефузит "на удачу"
       var need = def.defuseUntil - tick;
       if((def.defuseUntil - tick) % 64 === 0) defuseSound(def);
-      // дефуз в огне (как в CS) продолжается, если HP хватает дожить до конца
-      if(inFire(def.x, def.y) && def.hp < (def.defuseUntil - tick)/TICK_HZ*40 + 10){ def.defusing = false; def.defuseCooldownUntil = tick + 32; logEvent(def.id+" прервал дефуз — молотов, не доживёт"); return; }
+      // дефуз в огне продолжается, если HP хватает дожить до конца, — fireCommit, прерывает выход из огня (v263)
       if(def._sawEnemy && def.contactStreak > 6 && bombTimeLeftTicks() > need + 192){
         def.defusing = false; def.defuseCooldownUntil = tick + 96; logEvent(def.id+" прервал дефуз — враг рядом");
       } else if(tick >= def.defuseUntil){
@@ -9096,15 +9095,19 @@ function oneWaySees(v, t){
 }
 // Молотов — не стена: через горящий огонь МОЖНО пройти, но это стоит HP
 // (зашёл в уже горящий — сразу максимальный урон). Поэтому заходят в огонь
-// только когда есть ради чего (дефуз/плант/ретейк/сбить дефуз) и HP хватает
-// с запасом на проход; иначе ждут у края или обходят.
+// (и остаются в нём) только когда есть ради чего и это переживут — как настоящий игрок:
+// (v263, Б2) плант/дефуз уже идёт — доделает, если HP больше урона огня до конца + 10 (так было для дефуза);
+// идёт к бомбе / на плант / на ретейк / сбить дефуз — пройдёт насквозь, если HP больше урона за пересечение огня
+// (поперёк, 2 радиуса бегом) + 10, — если идёт, а не стоит с углом; цель сама в огне — стоять в нём весь плант/дефуз не переживёт, ждёт у края.
+// Раньше пост «ретейк/дефуз/плант» держал в огне при любом HP ≥ 55, сколько бы он ни горел.
 function fireCommit(b){
-  if(!b || b.hp < 55) return false;
-  if(b.defusing || b.planting) return true;
-  if(b.team === "T" && tick - (b._defuseHeard||-9999) < 110) return true;
-  if(b.post && /^(defuse|plantspot|retake)$/.test(b.post.tag)) return true;
-  if(bomb && bomb.retake && bomb.retake.phase === "go" && b.team === "CT") return true;
-  return false;
+  if(!b) return false;
+  var dps = NADE.molly.dps;
+  if(b.planting || b.defusing) return b.hp > ((b.planting ? b.plantUntil : b.defuseUntil) - tick)/TICK_HZ*dps + 10;
+  var goal = (b.team === "T" && tick - (b._defuseHeard||-9999) < 110) || (b.post && /^(defuse|plantspot|retake)$/.test(b.post.tag)) ||
+             (bomb && bomb.retake && bomb.retake.phase === "go" && b.team === "CT");
+  if(!goal || b.holding || (b.post && inFire(b.post.x, b.post.y))) return false;   // держит угол — не идёт насквозь, а стоит в огне
+  return b.hp > 2*NADE.molly.radius/(SPEED*weaponSpeedMul(b))*dps + 10;
 }
 function stepBlocked(x1,y1,x2,y2,b){
   if(crossesWall(x1,y1,x2,y2)) return true;
@@ -9365,7 +9368,7 @@ function detonate(n){
         logEvent("HE разогнал смок "+calloutName(sm.x, sm.y)); }
     });
     bots.forEach(function(b){
-      if(!b.alive || b.team === n.team) return;
+      if(!b.alive) return;   // (v263, Б1) HE ранит и своих, и бросившего — множитель в applyDamage
       var d = Math.hypot(b.x-n.x, b.y-n.y);
       if(d > NADE.he.radius || !hasLOS(n.x, n.y, b.x, b.y)) return;
       var dmg = Math.round(NADE.he.dmg * (1 - d/NADE.he.radius) * (b.armor ? 0.5 : 1));
@@ -9375,21 +9378,34 @@ function detonate(n){
   nadeFx.push({type:T, x:n.x, y:n.y, born:tick});
   recordNadeLand(n);
 }
-function applyDamage(att, b, dmg, src){
-  if(!b.alive || dmg <= 0) return;
-  if(att && att.team !== b.team){ var dl0 = Math.min(dmg, Math.max(0,b.hp)); att.roundDmg = (att.roundDmg||0) + dl0; var D0 = b._dmgBy || (b._dmgBy = {}); D0[att.id] = (D0[att.id]||0) + dl0; }
+// (v263, Б1) Урон по своим — правила CS2 на про (mp_friendlyfire 1, docs/PRO_PLAY.md «Урон по своим»):
+// пуля по своему ×0,33 (ff_damage_reduction_bullets), HE ×0,85 (ff_damage_reduction_grenade), своя граната по себе ×1
+// (…_grenade_self); молотов ×0,4 — как «прочее» (ff_damage_reduction_other): к какой группе огонь относится, источника
+// нет — проектное число. Убил своего — −$300 (cash_player_killed_teammate), фраг не засчитан.
+var FF_MUL = {bullet: 0.33, HE: 0.85, "молотов": 0.4};
+var FF_TK_CASH = -300;
+// Урон и смерть — одно место для пуль, HE и молотова. o: {wkey, hs, reward, mods, note}. Вернёт true, если убил.
+function applyDamage(att, b, dmg, src, o){
+  o = o || {};
+  if(!b.alive || dmg <= 0) return false;
+  var foe = att && att.team !== b.team ? att : null, mate = att && att !== b && att.team === b.team;
+  if(mate){ var fx = dmg*FF_MUL[src] + (b._ffFrac||0); dmg = Math.floor(fx); b._ffFrac = fx - dmg; if(dmg <= 0) return false; }
+  if(foe){ var dl0 = Math.min(dmg, Math.max(0,b.hp)); foe.roundDmg = (foe.roundDmg||0) + dl0; var D0 = b._dmgBy || (b._dmgBy = {}); D0[foe.id] = (D0[foe.id]||0) + dl0; }
   b.hp -= dmg;
-  if(b.hp <= 0){
-    b.alive = false; b.deaths++;
-    dropWeaponOnDeath(b);
-    b.primary = null; b.secondary = b.team==="CT" ? "USP" : "GLOCK"; b.armor = false; b.helmet = false; b.kit = false;
-    b.planting = false; b.defusing = false; b.nades = emptyNades(); b.nadeTask = null;
-    dropBomb(b);
-    intelDeath(b, att);
-    if(att && att.team !== b.team){ att.kills++; att.roundKills++; att.money = Math.min(MAX_MONEY, att.money + 300); }
-    logEvent((att?att.id:"?")+" ["+src+"] устранил "+b.id, true);
-    feedKill(att, b, src === "HE" ? "HE" : "MOLOTOV", false);
-  }
+  if(b.hp > 0) return false;
+  b.alive = false; b.deaths++;
+  dropWeaponOnDeath(b);
+  b.primary = null; b.secondary = b.team==="CT" ? "USP" : "GLOCK"; b.armor = false; b.helmet = false; b.kit = false;
+  b.planting = false; b.defusing = false; b.nades = emptyNades(); b.nadeTask = null;
+  dropBomb(b);
+  intelDeath(b, foe);   // своего убил свой — в войсе «минус», без «убил X»: враг тут ни при чём
+  if(foe){ foe.kills++; foe.roundKills++; foe.money = Math.min(MAX_MONEY, foe.money + (o.reward || 300)); }
+  else if(mate) att.money = Math.max(0, att.money + FF_TK_CASH);
+  var wkey = o.wkey || (src === "HE" ? "HE" : "MOLOTOV");
+  logEvent((att?att.id:"?")+" ["+(o.wkey ? (WEAPONS[o.wkey] ? WEAPONS[o.wkey].name : o.wkey) : src)+"] "+(mate ? "убил своего " : att === b ? "убил себя " : "устранил ")+b.id+(o.note||""), true);
+  var mods = o.mods || {}; if(mate || att === b) mods.tk = true;
+  feedKill(att, b, wkey, !!o.hs, mods);
+  return true;
 }
 function nadesTick(){
   var dt = 1/TICK_HZ;
@@ -9427,7 +9443,7 @@ function nadesTick(){
     // дым, раскрывшийся на огне, тушит его
     if(smokes.some(function(sm){ return Math.hypot(sm.x-fr.x, sm.y-fr.y) < smokeRadiusNow(sm)*0.8; })){ fires.splice(f,1); continue; }
     bots.forEach(function(b){
-      if(!b.alive || b.team === fr.team) return;
+      if(!b.alive) return;   // (v263, Б1) огонь жжёт и своих — множитель в applyDamage
       if(Math.hypot(b.x-fr.x, b.y-fr.y) < NADE.molly.radius){
         // Урон по времени (правка по фидбеку): если молотов упал ПОД тебя —
         // огонь только разгорается, урон растёт чем дольше стоишь (8 → 40/с
@@ -10011,6 +10027,21 @@ var SPRAY_RESET_TICKS = 32; // ~0.5с без выстрела — отдача "
 var PX_UNITS = 2.5;   // 1px радара ≈ 2.5 юнита CS2 (Ancient: scale 5.0 на 1024px, у нас 2048px)
 var BODY_HALF = 6.4;  // полуширина модели, px (32 юнита)
 var HEAD_HALF = 2.2;  // полуразмер головы, px (~11 юнитов)
+// (v263, Б1) первый живой игрок на пути пули от стрелка до (ex, ey), кроме skip: тело ближе полуширины модели
+// (BODY_HALF, 32 юнита CS2) к линии и стрелку его видно (не за стеной/укрытием)
+function bulletVictim(sh, ex, ey, skip){
+  var dx = ex-sh.x, dy = ey-sh.y, L = Math.hypot(dx, dy); if(L < 1) return null;
+  var ux = dx/L, uy = dy/L, best = null, bt = L;
+  for(var i=0;i<bots.length;i++){
+    var m = bots[i]; if(m === sh || m === skip || !m.alive) continue;
+    var px = m.x-sh.x, py = m.y-sh.y, t = px*ux + py*uy;
+    if(t <= 0 || t >= bt) continue;
+    if(Math.abs(px*uy - py*ux) > BODY_HALF) continue;
+    if(!hasLOS(sh.x, sh.y, m.x, m.y)) continue;
+    best = m; bt = t;
+  }
+  return best;
+}
 function rayClipWalls(x1, y1, x2, y2){
   var best = 1, hit = false;
   for(var i=0;i<MANUAL_WALLS.length;i++){
@@ -10730,6 +10761,9 @@ function tryShoot(shooter, target, dist){
     aimD = Math.abs(((aimA - shooter.facing + Math.PI) % (2*Math.PI) + 2*Math.PI) % (2*Math.PI) - Math.PI);
     if(aimD > Math.min(AIM_FIRE_CONE, Math.max(0.05, 2.5*bA))) return;
   }
+  // (v263, Б1) свой на линии огня — не стреляет, как настоящий игрок: пуля попала бы в него
+  var onLine = bulletVictim(shooter, target.x, target.y, target);
+  if(onLine && onLine.team === shooter.team) return;
 
   // раздел 14 (пересмотр): разброс от частой стрельбы — "нагрев", который
   // остывает со временем. Не на близкой дистанции — бот не спамит, а тапает:
@@ -10846,29 +10880,19 @@ function tryShoot(shooter, target, dist){
     else { mult = 1.0; armored = target.armor; hitZone = "chest"; }
     var dmg = base * mult; if(armored) dmg *= w.armorPen;
     dmg = Math.max(1, Math.round(dmg));
-    var dl1 = Math.min(dmg, Math.max(0, target.hp)); shooter.roundDmg = (shooter.roundDmg||0) + dl1; var D1 = target._dmgBy || (target._dmgBy = {}); D1[shooter.id] = (D1[shooter.id]||0) + dl1;
-    target.hp -= dmg; target._hurtT = tick;
+    target._hurtT = tick;
     if(BAL.tagging) target._tagUntil = tick + 16; // попали — на ~0.25с замедлен
-    if(BAL.hurtCall && target.hp > 0){
+    target._hitFx = {t:nowTs, head:headshot};
+    if(BAL.duelPlace && headshot && burstIdx === 0 && (shooter._place||0) > 0.8 && target.hp <= dmg && hashRand(seedS+29) < 0.5) logEvent(shooter.id+": прицел стоял на угле — хэдшот с первой пули по "+target.id);
+    var killed = applyDamage(shooter, target, dmg, "bullet", {wkey:w.key, hs:headshot, reward:w.killReward||300, mods:{blind: shooter.blindUntil > tick},
+      note:(headshot?" (в голову)":"")+" (дист. "+Math.round(dist)+", +$"+(w.killReward||300)+")"});
+    if(BAL.hurtCall && !killed){
       var HT = teamIntel[shooter.team].hurt || (teamIntel[shooter.team].hurt = {});
       var prevH = HT[target.id];
       HT[target.id] = {hp:target.hp, tick:tick, by:shooter.id};
       if(target.hp <= 40 && (!prevH || prevH.hp > 40)) voiceLog(shooter.team, "hurt"+target.id, shooter.id, target.id+" на "+target.hp+"!");
     }
-    target._hitFx = {t:nowTs, head:headshot};
-    if(target.hp <= 0 && target.alive){
-      target.alive = false;
-      shooter.kills++; shooter.roundKills++; target.deaths++;
-      if(BAL.duelPlace && headshot && burstIdx === 0 && (shooter._place||0) > 0.8 && hashRand(seedS+29) < 0.5) logEvent(shooter.id+": прицел стоял на угле — хэдшот с первой пули по "+target.id);
-      shooter.money = Math.min(MAX_MONEY, shooter.money + (w.killReward||300));
-      // погибший теряет всё, кроме денег
-      dropWeaponOnDeath(target);
-      target.primary = null; target.secondary = target.team==="CT" ? "USP" : "GLOCK";
-      target.armor = false; target.helmet = false; target.kit = false;
-      target.planting = false; target.defusing = false;
-      target.nades = emptyNades(); target.nadeTask = null;
-      dropBomb(target);
-      intelDeath(target, shooter);
+    if(killed){
       // раздел 12: "засвет" — после килла позиция стрелка известна врагу; если
       // он держал точку, а рядом ещё живые враги, — на несколько секунд уходит
       // на соседнюю позицию, а не ждёт трейда на том же месте
@@ -10887,8 +10911,6 @@ function tryShoot(shooter, target, dist){
           logEvent(shooter.id+": после килла меняет позицию");
         }
       }
-      logEvent(shooter.id+" ["+w.name+"] устранил "+target.id+(headshot?" (в голову)":"")+" (дист. "+Math.round(dist)+", +$"+(w.killReward||300)+")", true);
-      feedKill(shooter, target, w.key, headshot, {blind: shooter.blindUntil > tick});
     }
   } else {
     // AWP промахнулся, враг близко — не ждёт перезатвора, а достаёт пистолет
@@ -10903,6 +10925,17 @@ function tryShoot(shooter, target, dist){
     var ex = shooter.x + Math.cos(ang+dev)*far, ey = shooter.y + Math.sin(ang+dev)*far;
     var cl = rayClipWalls(shooter.x, shooter.y, ex, ey);
     endX = cl.x; endY = cl.y;
+    // (v263, Б1) промах летит дальше и попадает в того, кто на его пути, — в своего тоже (урон по своим — в applyDamage).
+    // Куда попала — по той же доле зон, что и без хитбоксов; урон — оружия на дистанции до него
+    var sv = bulletVictim(shooter, endX, endY, target);
+    if(sv){
+      var sd = Math.hypot(sv.x-shooter.x, sv.y-shooter.y), sz = hashRand(seedS+13);
+      var sm = sz < 0.22 ? 0.75 : (sz < 0.42 ? 1.25 : 1.0), sArm = sz >= 0.22 && sv.armor;
+      var sdmg = Math.max(1, Math.round(w.dmg * Math.pow(w.rm, sd*PX_UNITS/500) * sm * (sArm ? w.armorPen : 1)));
+      sv._hurtT = tick; sv._hitFx = {t:nowTs, head:false}; if(BAL.tagging) sv._tagUntil = tick + 16;
+      applyDamage(shooter, sv, sdmg, "bullet", {wkey:w.key, reward:w.killReward||300, note:" (шальная пуля, дист. "+Math.round(sd)+")"});
+      endX = sv.x; endY = sv.y;
+    }
   }
   tracers.push({wc:tracerClass(shooter.weapon), x1:shooter.x, y1:shooter.y, x2:endX, y2:endY, team:shooter.team, born:nowTs, hit:hit, head:headshot, prefire:prefire, miss:!hit, zone:hitZone});
   // выстрел слышно далеко (шаг 5: с конусом обзора боты не видят спиной —
@@ -12262,10 +12295,12 @@ function stepTick(){
     var targetSpeed = (waitPop || bot.holding || bot.roamChecking || bot.atPost || bot.planting || bot.defusing || tick < (bot.throwUntil||0) || (bot.state === "engage" && bot._sawEnemy)) ? 0 : runSpeed;
     // стоит в огне — выбегает из него прямо сейчас, что бы ни делал
     var burn = inFire(bot.baseX, bot.baseY);
-    if(burn && !bot.planting && !fireCommit(bot)){
+    if(burn && !fireCommit(bot)){
       // Из огня бот ВЫХОДИТ обычным бегом по пути к ближайшему краю (раньше его
       // каждый тик сдвигало наружу напрямую — выглядело как отбрасывание).
-      bot.atPost = false; bot.defusing = false;
+      if(bot.defusing){ bot.defuseCooldownUntil = tick + 32; logEvent(bot.id+" прервал дефуз — молотов, не доживёт"); }
+      if(bot.planting){ bot._noPlantUntil = tick + 32; logEvent(bot.id+" прервал плант — молотов, не доживёт"); }
+      bot.atPost = false; bot.defusing = false; bot.planting = false;
       bot._burning = true;
       if(!bot._fireExit || inFire(bot._fireExit.x, bot._fireExit.y) || bot._fireExitFire !== burn){
         var best = null, bd = Infinity;
@@ -12290,8 +12325,13 @@ function stepTick(){
         bot.walking = false; bot.crouching = false;   // из огня — бегом, не шифтом
       }
       targetSpeed = BAL.fireExit ? SPEED * weaponSpeedMul(bot) : runSpeed;
-    } else { bot._burning = false; if(bot._fireExit){ bot._fireExit = null; bot._fireExitFire = null; } }
-    if(!bot.holding && bot.path.length){
+    } else {
+      bot._burning = false; if(bot._fireExit){ bot._fireExit = null; bot._fireExitFire = null; }
+      if(burn && targetSpeed > 0) targetSpeed = SPEED * weaponSpeedMul(bot);   // (v263, Б2) идёт по делу через огонь — бегом, не шифтом
+    }
+    // (v263, Б2) в огне — без торможения у конца пути: точка выхода всего в 28 px за краем, и бот, тормозя к ней, полз по
+    // огню в 3–5 раз медленнее бега (на 3 матчах v262 почти все случаи «в огне > 1 с» — это он)
+    if(!bot.holding && bot.path.length && !burn){
       var finalWp = bot.path[bot.path.length-1];
       var dFinal = Math.hypot(finalWp[0]-bot.baseX, finalWp[1]-bot.baseY);
       if(dFinal < BRAKE_RADIUS) targetSpeed = runSpeed * Math.max(0.35, dFinal/BRAKE_RADIUS);
@@ -15335,7 +15375,7 @@ function feedKill(att, vic, wkey, hs, mods){
   knowKill(att, vic);
   var as = killAssist(att, vic);
   killfeed.unshift({kind:"kill", att:att?nick(att.id):"?", attTeam:att?att.team:"", as:as?nick(as.id):null, asFlash:as&&as.flash,
-    vic:nick(vic.id), vicTeam:vic.team, w:wkey, hs:hs, smoke:!!mods.smoke, wall:!!mods.wall, noscope:!!mods.noscope, blind:!!mods.blind, t:nowTs});
+    vic:nick(vic.id), vicTeam:vic.team, w:wkey, hs:hs, smoke:!!mods.smoke, wall:!!mods.wall, noscope:!!mods.noscope, blind:!!mods.blind, tk:!!mods.tk, t:nowTs});
   if(killfeed.length > 8) killfeed.length = 8;
   renderFeed();
   // мультикилл-баннер
@@ -15368,7 +15408,7 @@ function renderFeed(){
       if(k.as) h += (k.asFlash ? kfSvg("flash", "md fl", KF_MOD_T.flash) : '<span class="pl">+</span>')+'<span class="'+k.attTeam.toLowerCase()+' as">'+esc(k.as)+'</span>';
       h += kfSvg(wkey, "wp", wn) || '<span class="w">'+esc(wn)+'</span>';
       ["smoke","wall","hs","noscope","blind"].forEach(function(m){ if(k[m]) h += kfSvg(m, "md", KF_MOD_T[m]); });
-      return '<div class="kf">'+h+'<span class="'+k.vicTeam.toLowerCase()+'">'+esc(k.vic)+'</span></div>';
+      return '<div class="kf'+(k.tk ? ' tk" title="убил своего' : '')+'">'+h+'<span class="'+k.vicTeam.toLowerCase()+'">'+esc(k.vic)+'</span></div>';
     }
     return '<div class="kf ev '+k.kind+'">'+esc(k.text)+'</div>';
   }).join("");

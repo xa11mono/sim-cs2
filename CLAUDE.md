@@ -63,7 +63,7 @@ v166 — `docs/V166_CHANGES.md` (список владельца). Главны�
 | взгляд: `lookCands`, `lookPlan`, `smoothLookFilter`, `threatEntrances` | ~6857–7090 |
 | гранаты: закуп `buyNades`, решения `nadeBrains`, лайнапы `lineupTick` | ~8648; ~9248; ~8873 |
 | нож: `knifeTick` | ~9577 |
-| стрельба: `tryShoot` (целится в видимое), `resolveEngagements` (visParts), после фрага `afterKillMove` | ~10123; ~10788; ~10645 |
+| стрельба: `tryShoot` (целится в видимое; свой на линии — `bulletVictim`), `resolveEngagements` (visParts), после фрага `afterKillMove`; **урон и смерть — одно место** `applyDamage` (пули, HE, молотов; по своим `FF_MUL`) | `grep -n` |
 | **движение в перестрелке** (одно место, v250): `fightCycleTick` — на линии → за укрытие `fightCover` → снова; числа `PEEK_PRO` | ~10080 |
 | **отметки владельца** (v255): `src/marks.js` (кнопка M, снимок, перемотка), сборка — `src/marks_build.py`; открыть снимок — `tools/mark_open.js`; повтор с хранилищем браузера владельца — `tools/replay_owner.js` | отдельные файлы |
 | экономика: `decideRoundType0`, `buyForPlayer` | ~11348; ~11408 |
