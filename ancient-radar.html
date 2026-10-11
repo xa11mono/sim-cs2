@@ -3,33 +3,60 @@
 <title>Ancient Live Radar</title>
 <style>
   :root{
-    --bg:#0b0f0b; --panel:#12170f; --panel-2:#171d13; --line:#28321f;
-    --accent:#94b449; --accent-dim:#5c7530; --site:#d9832f;
-    --text:#e8ecdd; --text-dim:#8b9a80; --ct:#5a9bd9; --t:#d9a24a; --danger:#e05c52;
+    /* v256: палитра от самой карты — мшистый камень Ancient; цвета команд прежние */
+    --bg:#10140f; --panel:#161b14; --panel-2:#1d2319; --line:#2c3427; --line-2:#3a4433;
+    --accent:#a9c45e; --accent-dim:#5f7a32; --site:#d9832f; --mark:#e9c46a;
+    --text:#e7eadf; --text-dim:#9aa491; --ct:#5a9bd9; --t:#d9a24a; --danger:#e05c52;
+    --ui:'Golos Text',system-ui,sans-serif; --num:'IBM Plex Mono',ui-monospace,monospace;
   }
   *{box-sizing:border-box;}
-  body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',system-ui,sans-serif;font-size:13px;height:100%;overflow:hidden;}
+  body{background:var(--bg);color:var(--text);font-family:var(--ui);font-size:13px;height:100%;overflow:hidden;font-feature-settings:'tnum';}
   html{height:100%;}
   .mono{font-family:'IBM Plex Mono',ui-monospace,monospace;}
   #app{display:flex;flex-direction:column;height:100%;}
-  #topbar{display:flex;align-items:center;gap:14px;padding:10px 16px;background:var(--panel);border-bottom:1px solid var(--line);flex-wrap:wrap;flex-shrink:0;}
-  #topbar h1{font-size:15px;font-weight:600;letter-spacing:.02em;margin:0;color:var(--accent);white-space:nowrap;}
-  #topbar .sub{color:var(--text-dim);font-size:11px;white-space:nowrap;}
-  button{font-family:inherit;font-size:12px;color:var(--text);background:var(--panel-2);border:1px solid var(--line);border-radius:5px;padding:7px 12px;cursor:pointer;}
-  button:hover{background:var(--line);}
+  /* v256: верхняя панель — одна строка: кто мы и версия | управление матчем | слои, инструменты, отметки */
+  #topbar{display:flex;align-items:center;gap:10px 18px;padding:8px 14px;background:var(--panel);border-bottom:1px solid var(--line);flex-wrap:wrap;flex-shrink:0;position:relative;z-index:20;}
+  .tb-id{display:flex;align-items:baseline;gap:10px;margin-right:4px;}
+  #topbar h1{font-size:17px;font-weight:700;letter-spacing:-.01em;margin:0;color:var(--text);white-space:nowrap;}
+  #topbar .sub{color:var(--text-dim);font-size:11.5px;white-space:nowrap;}
+  .tb-group{display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+  .tb-right{margin-left:auto;}
+  .tb-match{display:flex;align-items:center;gap:6px;padding:0 4px;color:var(--text-dim);font-size:12px;}
+  .tb-match input{width:52px;background:var(--panel-2);color:var(--text);border:1px solid var(--line);border-radius:6px;padding:5px 6px;font:inherit;}
+  #matchTick{font-size:11.5px;color:var(--text-dim);}
+  button{font-family:inherit;font-size:12.5px;color:var(--text);background:var(--panel-2);border:1px solid var(--line);border-radius:6px;padding:6px 11px;cursor:pointer;line-height:1.3;}
+  button:hover{background:var(--line);border-color:var(--line-2);}
   button.active{background:var(--accent-dim);color:#fff;border-color:var(--accent);}
-  label.chk{display:flex;align-items:center;gap:5px;color:var(--text-dim);font-size:11px;white-space:nowrap;}
+  button.primary{background:var(--mark);color:#1c1708;border-color:var(--mark);font-weight:600;}
+  button.primary:hover{background:#f2d37f;border-color:#f2d37f;}
+  button kbd{font:600 10.5px var(--num);margin-left:6px;padding:1px 5px;border-radius:3px;background:rgba(0,0,0,.18);}
+  button:focus-visible,summary:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
+  label.chk{display:flex;align-items:center;gap:7px;color:var(--text-dim);font-size:12px;white-space:nowrap;cursor:pointer;}
+  label.chk:hover{color:var(--text);}
+  label.chk input{accent-color:var(--accent);}
+  /* выпадающие меню «Слои» и «Инструменты» */
+  .dd{position:relative;}
+  .dd > summary{list-style:none;font-size:12.5px;color:var(--text);background:var(--panel-2);border:1px solid var(--line);border-radius:6px;padding:6px 26px 6px 11px;cursor:pointer;user-select:none;position:relative;}
+  .dd > summary::-webkit-details-marker{display:none;}
+  .dd > summary::after{content:"";position:absolute;right:10px;top:50%;width:6px;height:6px;border-right:1.5px solid var(--text-dim);border-bottom:1.5px solid var(--text-dim);transform:translateY(-70%) rotate(45deg);}
+  .dd[open] > summary{background:var(--line);border-color:var(--line-2);}
+  .dd[open] > summary::after{transform:translateY(-25%) rotate(-135deg);}
+  .dd-menu{position:absolute;top:calc(100% + 6px);left:0;min-width:240px;max-height:calc(100vh - 80px);overflow-y:auto;background:var(--panel);border:1px solid var(--line-2);border-radius:8px;padding:8px 12px 10px;display:flex;flex-direction:column;gap:7px;box-shadow:0 14px 34px rgba(0,0,0,.45);z-index:30;}
+  .dd-menu.dd-r{left:auto;right:0;}
+  .dd-h{font-size:11.5px;color:var(--accent);margin-top:6px;font-weight:600;}
+  .dd-h:first-child{margin-top:0;}
+  .dd-menu button{align-self:flex-start;margin-top:4px;}
   #main{flex:1;position:relative;overflow:hidden;background:#060806;}
   canvas{position:absolute;top:0;left:0;cursor:grab;}
   canvas:active{cursor:grabbing;}
-  #hud{position:absolute;top:10px;left:12px;background:rgba(10,14,9,0.88);border:1px solid var(--line);padding:10px 12px;border-radius:6px;font-size:11px;line-height:1.7;min-width:190px;}
+  #hud{display:none!important;position:absolute;top:10px;left:12px;background:rgba(10,14,9,0.88);border:1px solid var(--line);padding:10px 12px;border-radius:6px;font-size:11px;line-height:1.7;min-width:190px;}
   #hud .row{display:flex;justify-content:space-between;gap:14px;}
   #hud .lab{color:var(--text-dim);}
   #contact{position:absolute;top:10px;right:12px;background:rgba(224,92,82,0.15);border:1px solid var(--danger);color:var(--danger);padding:8px 14px;border-radius:6px;font-size:12px;font-weight:600;letter-spacing:.02em;display:none;}
-  #legend{position:absolute;bottom:10px;left:12px;background:rgba(10,14,9,0.88);border:1px solid var(--line);padding:8px 12px;border-radius:6px;font-size:11px;display:flex;gap:16px;}
+  #legend{position:absolute;bottom:10px;left:12px;background:rgba(22,27,20,0.92);border:1px solid var(--line);padding:7px 12px;border-radius:8px;font-size:11.5px;display:flex;gap:14px;flex-wrap:wrap;max-width:calc(100% - 330px);}
   #legend span{display:flex;align-items:center;gap:6px;color:var(--text-dim);}
   #legend i{width:9px;height:9px;border-radius:50%;display:inline-block;}
-  #killfeed{position:absolute;top:56px;right:250px;width:320px;display:flex;flex-direction:column;gap:3px;pointer-events:none;font-family:'IBM Plex Sans','Segoe UI',Arial,sans-serif;font-size:11.5px;}
+  #killfeed{position:absolute;top:10px;right:250px;width:320px;display:flex;flex-direction:column;gap:3px;pointer-events:none;font-family:var(--ui);font-size:11.5px;}
   #killfeed .kf{align-self:flex-end;display:flex;align-items:center;gap:5px;background:rgba(8,10,8,0.62);border-radius:3px;padding:2px 8px;height:19px;color:var(--text);white-space:nowrap;}
   #killfeed .kf .ct{color:#8fc3f2;font-weight:600;} #killfeed .kf .t{color:#f0b84a;font-weight:600;}
   #killfeed .kf .pl{color:#e8e8e2;margin:0 -1px;} #killfeed .kf svg{flex:none;} #killfeed .kf svg.wp{margin:0 2px;}
@@ -44,15 +71,16 @@
   #roundCard .rc-t{font-size:26px;font-weight:700;letter-spacing:.05em;} #roundCard .rc-t.ct{color:var(--ct);} #roundCard .rc-t.t{color:var(--t);}
   #roundCard .rc-r{color:var(--text-dim);font-size:13px;margin-top:4px;} #roundCard .rc-c{color:#ffd76a;font-weight:600;margin-top:6px;}
   #roundCard .rc-m{margin-top:8px;font-size:13px;} #roundCard .rc-s{margin-top:10px;font-family:'IBM Plex Mono',monospace;font-size:15px;}
-  #econ{position:absolute;left:12px;bottom:48px;width:420px;background:rgba(10,14,9,0.9);border:1px solid var(--line);border-radius:6px;padding:8px 10px;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:10.5px;line-height:1.55;color:var(--text-dim);}
+  #econ{position:absolute;left:12px;bottom:50px;width:420px;max-height:calc(100% - 370px);overflow-y:auto;background:rgba(22,27,20,0.94);border:1px solid var(--line);border-radius:8px;padding:9px 11px;font-family:var(--num);font-size:10.5px;line-height:1.55;color:var(--text-dim);}
   #econ .tm{display:flex;justify-content:space-between;font-weight:600;margin-top:4px;}
   #econ .tm.ct{color:var(--ct);} #econ .tm.t{color:var(--t);}
   #econ table{width:100%;border-collapse:collapse;} #econ td{padding:0 3px;white-space:nowrap;}
   #econ td.m{color:#94b449;text-align:right;} #econ tr.dead td{opacity:.4;}
-  #log{position:absolute;bottom:10px;right:12px;width:290px;max-height:200px;overflow-y:auto;background:rgba(10,14,9,0.88);border:1px solid var(--line);border-radius:6px;padding:8px 10px;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:10.5px;line-height:1.6;color:var(--text-dim);}
+  #log{position:absolute;bottom:10px;right:12px;width:310px;max-height:210px;overflow-y:auto;background:rgba(22,27,20,0.94);border:1px solid var(--line);border-radius:8px;padding:9px 11px;font-family:var(--ui);font-size:11.5px;line-height:1.5;color:var(--text-dim);}
   #log .ev{color:var(--text);}
   #log .ev.kill{color:var(--danger);}
   #warn{position:absolute;top:336px;left:12px;background:rgba(217,131,47,0.15);border:1px solid var(--site);color:var(--site);padding:6px 12px;border-radius:6px;font-size:10.5px;max-width:340px;display:none;}
+  @media (prefers-reduced-motion: reduce){ #banner,#roundCard{transition:none!important;} }
   /* v255: «Отметить момент» (src/marks.js, перенос из rebuild-v238) */
   .mk-panel{position:absolute;top:10px;right:12px;width:min(640px,calc(100% - 24px));max-height:calc(100% - 20px);overflow-y:auto;z-index:50;background:#0a0e09;border:1px solid var(--accent-dim);border-radius:8px;padding:12px 14px;font-size:13px;line-height:1.5;}
   .mk-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;color:var(--accent);font-size:14px;}
@@ -74,43 +102,60 @@
   .mk-toast{position:absolute;left:50%;bottom:24px;transform:translateX(-50%);z-index:60;background:rgba(10,14,9,0.96);border:1px solid var(--accent);color:var(--text);padding:8px 14px;border-radius:6px;max-width:80%;}
   .mk-prog{position:absolute;left:50%;top:45%;transform:translate(-50%,-50%);z-index:60;background:rgba(10,14,9,0.96);border:1px solid var(--accent);color:var(--accent);padding:14px 22px;border-radius:8px;font-size:15px;}
 </style>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
 
 <div id="app">
   <div id="topbar">
-    <h1>ANCIENT — LIVE RADAR</h1>
-    <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 255 (кнопка «Отметить момент» — M) · 11.10</div>
-    <button id="btnPause">Пауза</button>
-    <button id="btnRestartRound" title="Немедленно сбросить текущий раунд — на случай если боты застряли">Рестарт раунда</button>
-    <span class="chk" title="Матч с одним номером всегда проходит одинаково. Увидел баг — запиши номер матча и тик, введи номер и нажми «Сыграть»: матч повторится с начала">матч № <input id="inpMatchNum" type="number" min="1" value="1" style="width:52px"> <button id="btnFreshMatch">Сыграть</button> <span id="matchTick" style="opacity:.75"></span></span>
-    <label class="chk"><input type="checkbox" id="chkWalls"> стены</label>
-    <label class="chk" title="Высота пола (цвет, шкала внизу слева), крытые места (штриховка), лестницы и рампы (стрелки вверх), уступы (толстая линия края). Наведи — подсказка"><input type="checkbox" id="chkHeights"> высоты</label>
-    <label class="chk" title="Высота укрытий (ящики, колонны, низкие стены): цвет — выше головы / по грудь / низкое, пунктир — не измерено. Наведи — высота в единицах игры"><input type="checkbox" id="chkCover"> укрытия</label>
-    <label class="chk" title="Прострелы: куски стен и ящиков, которые пробивает пуля, цветом по материалу (дерево, фанера, тонкий металл…). Наведи — толщина, урон AK и AWP, из чего пробивает. Остальное — камень, не пробивается"><input type="checkbox" id="chkWallbang"> прострелы</label>
-    <label class="chk" title="Клик по радару — точка A: где оттуда виден стоящий человек (зелёный — стоя и присев, жёлтый — только стоя). Shift+клик — точка B: что A видит у B (голова/тело/нет). Esc — убрать"><input type="checkbox" id="chkVis"> кто кого видит</label>
-    <label class="chk"><input type="checkbox" id="chkNavmesh"> навмеш</label>
-    <label class="chk"><input type="checkbox" id="chkPortals"> порталы</label>
-    <label class="chk" title="Слой зон карты. Клик по зоне — переименовать её (Кейв, Донат, Мейн…)"><input type="checkbox" id="chkZones"> зоны (клик — название)</label>
-    <label class="chk"><input type="checkbox" id="chkPoints"> точки</label>
-    <label class="chk" title="Наведи курсор на зону (при включённом слое «зоны») — подсветятся все зоны, откуда её простреливают"><input type="checkbox" id="chkDanger"> опасность (наведи)</label>
-    <button id="btnExportProject" title="Всё, что сохранено только в этом браузере (стены, точки калибровки, зоны) — одним JSON, чтобы зашить в код">Экспорт проекта</button>
-    
-    <label class="chk"><input type="checkbox" id="chkLos"> конусы обзора</label>
-    <label class="chk"><input type="checkbox" id="chkOutline" checked> контуры укрытий</label>
-    <label class="chk"><input type="checkbox" id="chkTracers" checked> трассеры</label>
-    <label class="chk"><input type="checkbox" id="chkSound" checked> звук шагов</label>
-    <label class="chk" title="Маршруты роумеров и отметки «чисто»"><input type="checkbox" id="chkRoam"> роумеры</label>
-    <label class="chk" title="Командная информация: ◆ — «вижу» (цвет команды, которая сообщила), кольцо — «слышу», ✕ — погиб тиммейт"><input type="checkbox" id="chkCalls"> коллы</label>
-    <label class="chk" title="Новый взгляд (v141–142): одна оценка угроз с дележом углов в команде. Выключи — вернётся старая логика v140"><input type="checkbox" id="chkNewLook" checked> новый взгляд</label>
-    <label class="chk" title="Под каждым игроком: какая у него сейчас задача и почему он смотрит именно туда"><input type="checkbox" id="chkWhy"> почему</label>
-    <label class="chk" style="border-left:1px solid var(--line);padding-left:14px;" title="Редактор карты: стены, высоты, укрытия, прострелы. Правки сразу в игре и сохраняются на странице"><input type="checkbox" id="chkMapEdit"> <b>правка карты</b></label>
-    <label class="chk" style="border-left:1px solid var(--line);padding-left:14px;"><input type="checkbox" id="chkAlign"> выравнивание navmesh</label>
-    <label class="chk"><input type="checkbox" id="chkNavWarp" title="Навмеш смещён от стен по-разному в разных углах карты — обычный общий сдвиг/масштаб это не лечит, нужно несколько опорных точек"> калибровка навмеша (точки)</label>
-    
-    <label class="chk" title="Сдвинуть/отмасштабировать весь слой зон и тактических точек целиком"><input type="checkbox" id="chkZoneAlign"> выравнивание зон</label>
-    
-    <label class="chk"><input type="checkbox" id="chkZoneEdit"> зоны спавнов/сайтов (перо)</label>
-    <label class="chk" title="Свои лайнапы: откуда кидают и куда летит смок/флешка/молотов/HE, и когда"><input type="checkbox" id="chkLineups"> лайнапы (гранаты)</label>
+    <div class="tb-id">
+      <h1>Ancient</h1>
+      <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 256, 11.10</div>
+    </div>
+    <div class="tb-group" id="tbMatch">
+      <button id="btnPause">Пауза</button>
+      <span class="chk tb-match" title="Матч с одним номером всегда проходит одинаково. Увидел баг — запиши номер матча и тик, введи номер и нажми «Сыграть»: матч повторится с начала">матч № <input id="inpMatchNum" type="number" min="1" value="1" style="width:52px"> <button id="btnFreshMatch">Сыграть</button> <span id="matchTick" style="opacity:.75"></span></span>
+      <button id="btnRestartRound" title="Немедленно сбросить текущий раунд — на случай если боты застряли">Рестарт раунда</button>
+    </div>
+    <div class="tb-group tb-right">
+      <details class="dd">
+        <summary>Слои</summary>
+        <div class="dd-menu">
+          <div class="dd-h">Что видно у игроков</div>
+          <label class="chk"><input type="checkbox" id="chkLos"> конусы обзора</label>
+          <label class="chk"><input type="checkbox" id="chkTracers" checked> трассеры</label>
+          <label class="chk"><input type="checkbox" id="chkSound" checked> звук шагов</label>
+          <label class="chk" title="Командная информация: ◆ — «вижу» (цвет команды, которая сообщила), кольцо — «слышу», ✕ — погиб тиммейт"><input type="checkbox" id="chkCalls"> коллы</label>
+          <label class="chk" title="Маршруты роумеров и отметки «чисто»"><input type="checkbox" id="chkRoam"> роумеры</label>
+          <label class="chk" title="Под каждым игроком: какая у него сейчас задача и почему он смотрит именно туда"><input type="checkbox" id="chkWhy"> почему</label>
+          <label class="chk"><input type="checkbox" id="chkOutline" checked> контуры укрытий</label>
+          <div class="dd-h">Карта</div>
+          <label class="chk"><input type="checkbox" id="chkWalls"> стены</label>
+          <label class="chk" title="Высота пола (цвет, шкала внизу слева), крытые места (штриховка), лестницы и рампы (стрелки вверх), уступы (толстая линия края). Наведи — подсказка"><input type="checkbox" id="chkHeights"> высоты</label>
+          <label class="chk" title="Высота укрытий (ящики, колонны, низкие стены): цвет — выше головы / по грудь / низкое, пунктир — не измерено. Наведи — высота в единицах игры"><input type="checkbox" id="chkCover"> укрытия</label>
+          <label class="chk" title="Прострелы: куски стен и ящиков, которые пробивает пуля, цветом по материалу (дерево, фанера, тонкий металл…). Наведи — толщина, урон AK и AWP, из чего пробивает. Остальное — камень, не пробивается"><input type="checkbox" id="chkWallbang"> прострелы</label>
+          <label class="chk" title="Клик по радару — точка A: где оттуда виден стоящий человек (зелёный — стоя и присев, жёлтый — только стоя). Shift+клик — точка B: что A видит у B (голова/тело/нет). Esc — убрать"><input type="checkbox" id="chkVis"> кто кого видит</label>
+          <label class="chk" title="Слой зон карты. Клик по зоне — переименовать её (Кейв, Донат, Мейн…)"><input type="checkbox" id="chkZones"> зоны (клик — название)</label>
+          <label class="chk"><input type="checkbox" id="chkPoints"> точки</label>
+          <label class="chk" title="Наведи курсор на зону (при включённом слое «зоны») — подсветятся все зоны, откуда её простреливают"><input type="checkbox" id="chkDanger"> опасность (наведи)</label>
+          <label class="chk"><input type="checkbox" id="chkNavmesh"> навмеш</label>
+          <label class="chk"><input type="checkbox" id="chkPortals"> порталы</label>
+          <div class="dd-h">Логика</div>
+          <label class="chk" title="Новый взгляд (v141–142): одна оценка угроз с дележом углов в команде. Выключи — вернётся старая логика v140"><input type="checkbox" id="chkNewLook" checked> новый взгляд</label>
+        </div>
+      </details>
+      <details class="dd">
+        <summary>Инструменты</summary>
+        <div class="dd-menu dd-r">
+          <label class="chk" title="Редактор карты: стены, высоты, укрытия, прострелы. Правки сразу в игре и сохраняются на странице"><input type="checkbox" id="chkMapEdit"> <b>правка карты</b></label>
+          <label class="chk" title="Свои лайнапы: откуда кидают и куда летит смок/флешка/молотов/HE, и когда"><input type="checkbox" id="chkLineups"> лайнапы (гранаты)</label>
+          <label class="chk"><input type="checkbox" id="chkZoneEdit"> зоны спавнов/сайтов (перо)</label>
+          <label class="chk" title="Сдвинуть/отмасштабировать весь слой зон и тактических точек целиком"><input type="checkbox" id="chkZoneAlign"> выравнивание зон</label>
+          <label class="chk"><input type="checkbox" id="chkAlign"> выравнивание navmesh</label>
+          <label class="chk"><input type="checkbox" id="chkNavWarp" title="Навмеш смещён от стен по-разному в разных углах карты — обычный общий сдвиг/масштаб это не лечит, нужно несколько опорных точек"> калибровка навмеша (точки)</label>
+          <button id="btnExportProject" title="Всё, что сохранено только в этом браузере (стены, точки калибровки, зоны) — одним JSON, чтобы зашить в код">Экспорт проекта</button>
+        </div>
+      </details>
+      <span id="mkSlot"></span>
+    </div>
   </div>
   <div id="main">
     <canvas id="cv"></canvas>
@@ -15860,9 +15905,11 @@ function mkShowCopy(t){ var a = mkEl("mkCopyBox"); a.value = t; a.style.display 
 
 // ---------- подключение ----------
 (function(){
-  var bar = mkEl("btnPause");
-  bar.insertAdjacentHTML("afterend", '<button id="btnMark" title="Пауза и отметка момента: что не так, кто, категория (клавиша M)">Отметить момент (M)</button>' +
-    '<button id="btnBack10" title="Перемотать на 10 секунд игры назад">◀ 10 с</button><button id="btnMarks">Отметки (0)</button>');
+  // (v256) кнопки: «◀ 10 с» — рядом с паузой, «Отметки» и «Отметить момент» — в правой части панели (#mkSlot)
+  var bar = mkEl("btnPause"), slot = mkEl("mkSlot");
+  bar.insertAdjacentHTML("afterend", '<button id="btnBack10" title="Перемотать на 10 секунд игры назад">◀ 10 с</button>');
+  (slot || bar).insertAdjacentHTML(slot ? "beforeend" : "afterend", '<button id="btnMarks">Отметки (0)</button>' +
+    '<button id="btnMark" class="primary" title="Пауза и отметка момента: что не так, кто, категория (клавиша M)">Отметить момент <kbd>M</kbd></button>');
   mkEl("main").insertAdjacentHTML("beforeend",
     '<div id="mkPanel" class="mk-panel" style="display:none">' +
       '<div class="mk-head"><b>Отметка момента</b><button id="mkX">✕</button></div>' +
@@ -15943,11 +15990,18 @@ function frame(ts){
 }
 document.getElementById("chkNewLook").addEventListener("change", function(){ BAL.newLook = this.checked; bots.forEach(function(o){ o._lkZ = null; o._lkPt = null; o._tLookZ = null; o._tLook = null; }); logEvent(this.checked ? "Взгляд: новая единая оценка" : "Взгляд: старая логика v140"); });
 document.getElementById("btnFreshMatch").addEventListener("click", function(){ var n = Math.max(1, parseInt(document.getElementById("inpMatchNum").value, 10) || 1); freshMatch(n); paused = false; var bp = document.getElementById("btnPause"); if(bp){ bp.textContent = "Пауза"; bp.classList.remove("active"); } logEvent("Матч №"+n+" с чистого листа (воспроизводимый)", true); });
-setInterval(function(){ var el = document.getElementById("matchTick"); if(el) el.textContent = "· сейчас матч "+matchNum+", тик "+tick; }, 250);
+setInterval(function(){ var el = document.getElementById("matchTick"); if(el) el.textContent = "сейчас "+matchNum+"-й, тик "+tick; }, 250);
 var BOT_INIT = bots.map(function(b){ var o = {keys:{}, vals:{}}; for(var k in b){ o.keys[k] = 1; var v = b[k]; if(v === null || (typeof v !== "object" && typeof v !== "function")) o.vals[k] = v; } return o; });
 
 requestAnimationFrame(frame);
 
+// (v256) меню «Слои» и «Инструменты»: открыто одно, закрываются кликом мимо и Esc
+(function(){
+  var dds = Array.prototype.slice.call(document.querySelectorAll("#topbar details.dd"));
+  dds.forEach(function(d){ d.addEventListener("toggle", function(){ if(d.open) dds.forEach(function(o){ if(o !== d) o.open = false; }); }); });
+  document.addEventListener("mousedown", function(e){ dds.forEach(function(d){ if(d.open && !d.contains(e.target)) d.open = false; }); });
+  document.addEventListener("keydown", function(e){ if(e.key === "Escape") dds.forEach(function(d){ d.open = false; }); });
+})();
 document.getElementById("btnPause").addEventListener("click", function(){
   paused = !paused;
   this.textContent = paused ? "Продолжить" : "Пауза";

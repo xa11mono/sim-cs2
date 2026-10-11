@@ -350,9 +350,11 @@ function mkShowCopy(t){ var a = mkEl("mkCopyBox"); a.value = t; a.style.display 
 
 // ---------- подключение ----------
 (function(){
-  var bar = mkEl("btnPause");
-  bar.insertAdjacentHTML("afterend", '<button id="btnMark" title="Пауза и отметка момента: что не так, кто, категория (клавиша M)">Отметить момент (M)</button>' +
-    '<button id="btnBack10" title="Перемотать на 10 секунд игры назад">◀ 10 с</button><button id="btnMarks">Отметки (0)</button>');
+  // (v256) кнопки: «◀ 10 с» — рядом с паузой, «Отметки» и «Отметить момент» — в правой части панели (#mkSlot)
+  var bar = mkEl("btnPause"), slot = mkEl("mkSlot");
+  bar.insertAdjacentHTML("afterend", '<button id="btnBack10" title="Перемотать на 10 секунд игры назад">◀ 10 с</button>');
+  (slot || bar).insertAdjacentHTML(slot ? "beforeend" : "afterend", '<button id="btnMarks">Отметки (0)</button>' +
+    '<button id="btnMark" class="primary" title="Пауза и отметка момента: что не так, кто, категория (клавиша M)">Отметить момент <kbd>M</kbd></button>');
   mkEl("main").insertAdjacentHTML("beforeend",
     '<div id="mkPanel" class="mk-panel" style="display:none">' +
       '<div class="mk-head"><b>Отметка момента</b><button id="mkX">✕</button></div>' +
