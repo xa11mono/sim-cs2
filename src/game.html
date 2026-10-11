@@ -126,7 +126,7 @@
 <div id="app">
   <div id="topbar">
     <h1>ANCIENT — LIVE RADAR</h1>
-    <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 252 (на виду не стоит: остановка только на стрельбу) · 11.10</div>
+    <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 250 (перестрелка по данным про: пострелял — за укрытие) · 11.10</div>
     <button id="btnPause">Пауза</button>
     <button id="btnRestartRound" title="Немедленно сбросить текущий раунд — на случай если боты застряли">Рестарт раунда</button>
     <span class="chk" title="Матч с одним номером всегда проходит одинаково. Увидел баг — запиши номер матча и тик, введи номер и нажми «Сыграть»: матч повторится с начала">матч № <input id="inpMatchNum" type="number" min="1" value="1" style="width:52px"> <button id="btnFreshMatch">Сыграть</button> <span id="matchTick" style="opacity:.75"></span></span>
@@ -10077,13 +10077,12 @@ function pistolBack(b){
 // сторону → контр-страф → выстрел → шаг в другую сторону. Двигаясь, в него
 // труднее попасть (см. трекинг), а стреляет он только остановившись.
 // ---- перестрелка по данным (v250, вместо пиков «широкий/плечо/джиггл» и стрейфа v166) ----
-// Как у про в 92 демках Ancient (tools/peek_bake.py → src/data/trades.json, поле peek): игрок останавливается,
-// только пока стреляет (длительность перестрелки), потом пауза — и в паузе он не замирает, даже если снова видит
-// врага (у про на виду без смерти: бегом 30 %, шагом 48 %, стоит 22 % — tools/vis_bake.py, v252): идёт дальше своим
-// путём, а держащий позицию уходит с линии за укрытие (сдвиг) и после паузы возвращается на свою позицию.
+// Как у про в 92 демках Ancient (tools/peek_bake.py → src/data/trades.json, поле peek): игрок стоит на линии,
+// пока стреляет (длительность перестрелки), потом уходит с линии за укрытие (сдвиг), пережидает (пауза) и
+// с долей repeek выглядывает снова на то же место; иначе перестрелка для него закончена — дальше обычная логика.
 // Квантили 10/25/50/75/90 %; длительность — от первого до последнего «окна стрельбы» (окно = 0,5 с).
-var PEEK_PRO = {CT:{dur:[0.0, 0.0, 0.55, 1.72, 3.14], pause:[1.08, 1.25, 1.62, 2.17, 2.61], shift:[13.93, 23.6, 40.79, 66.58, 96.11]},
-                T:{dur:[0.0, 0.0, 0.41, 1.3, 2.84], pause:[1.09, 1.27, 1.67, 2.23, 2.7], shift:[14.29, 25.12, 47.4, 80.62, 119.72]}};
+var PEEK_PRO = {CT:{dur:[0.0, 0.0, 0.55, 1.72, 3.14], pause:[1.08, 1.25, 1.62, 2.17, 2.61], shift:[13.93, 23.6, 40.79, 66.58, 96.11], repeek:0.26},
+                T:{dur:[0.0, 0.0, 0.41, 1.3, 2.84], pause:[1.09, 1.27, 1.67, 2.23, 2.7], shift:[14.29, 25.12, 47.4, 80.62, 119.72], repeek:0.24}};
 var PEEK_Q = [0.1, 0.25, 0.5, 0.75, 0.9];
 function peekQ(q, u){   // значение распределения по квантилям (между ними — линейно, хвосты — крайние)
   if(u <= PEEK_Q[0]) return q[0];
@@ -10104,7 +10103,7 @@ function fightCover(b, e, R){
   return null;
 }
 function fightRand(b, salt){ return hashRand(tick*31 + b.id.charCodeAt(0)*17 + b.id.charCodeAt(b.id.length-1)*7 + salt); }
-// каждый тик движения: фазы line (стоит и стреляет) → go (идёт своим путём) или off (за укрытие) → back (на свою позицию) → line …
+// каждый тик движения: фазы line (на линии) → off (за укрытием) → back (выглядывает снова) → line …
 function fightCycleTick(b, dtSec, busy){
   var F = b._fc, D = PEEK_PRO[b.team];
   if(busy || !b.alive){ b._fc = null; return; }
@@ -10120,23 +10119,20 @@ function fightCycleTick(b, dtSec, busy){
     if(F.until && tick >= F.until){
       var e = F.e;
       if(!e || !e.alive){ b._fc = null; return; }
-      var pause = tick + Math.round(peekQ(D.pause, fightRand(b, 3))*TICK_HZ);
-      if(!b.holding && !b.atPost && b.path.length && b.pathIdx < b.path.length){   // есть куда идти — идёт дальше
-        F.ph = "go"; F.until = pause;
-        if(!b._fcV || tick - b._fcV > 4*TICK_HZ){ b._fcV = tick; logEvent(b.id+": постреляли — иду дальше, не стою"); }
-        return;
-      }
       var c = fightCover(b, e, peekQ(D.shift, fightRand(b, 2)));
       if(!c) c = fightCover(b, e, D.shift[4]);
       if(!c){ F.until = 0; F.t = tick; return; }   // укрыться негде — остаётся на линии
-      F.ph = "off"; F.cx = c.x; F.cy = c.y; F.ax = b.baseX; F.ay = b.baseY; F.until = pause;
+      F.ph = "off"; F.cx = c.x; F.cy = c.y; F.ax = b.baseX; F.ay = b.baseY;
+      F.until = tick + Math.round(peekQ(D.pause, fightRand(b, 3))*TICK_HZ);
       if(!b._fcV || tick - b._fcV > 4*TICK_HZ){ b._fcV = tick; logEvent(b.id+": постреляли — ушёл с линии за укрытие"); }
     }
     return;
   }
-  if(F.ph === "go"){ if(tick >= F.until){ F.ph = "line"; F.t = tick; F.until = 0; } return; }   // идёт обычным движением по пути
-  if(F.ph === "back" && b._sawEnemy){ F.ph = "line"; F.ax = b.baseX; F.ay = b.baseY; F.t = tick; F.until = 0; return; }   // вышел — снова на линии
-  if(F.ph === "off" && tick >= F.until) F.ph = "back";   // пауза кончилась — на свою позицию
+  if(b._sawEnemy){ F.ph = "line"; F.ax = b.baseX; F.ay = b.baseY; F.t = tick; F.until = 0; return; }   // снова вижу врага — на линии
+  if(F.ph === "off" && tick >= F.until){
+    if(fightRand(b, 4) >= D.repeek){ b._fc = null; return; }   // не выглядывает снова — перестрелка закончена
+    F.ph = "back";
+  }
   var tx = F.ph === "off" ? F.cx : F.ax, ty = F.ph === "off" ? F.cy : F.ay;
   var d = Math.hypot(tx-b.baseX, ty-b.baseY);
   if(d < 2){ if(F.ph === "back"){ F.ph = "line"; F.t = tick; F.until = 0; } return; }
@@ -11978,7 +11974,7 @@ function stepTick(){
     // ждёт хлопка флешки тиммейта (поп на убийцу / ретейк) — не выбегает раньше неё
     var waitPop = (bot._waitPopUntil > tick && nadeFlags[bot._waitPopKey] === undefined && !bot._sawEnemy) || (BAL.pieSlice && bot._ppWaitUntil > tick && !bot._sawEnemy);
     if(BAL.pieSlice && bot._pie && bot._pie.slice && tick - bot._pie.t < 16 && !bot._sawEnemy) runSpeed *= 0.75; // режет угол
-    var targetSpeed = (waitPop || bot.holding || bot.roamChecking || bot.atPost || bot.planting || bot.defusing || tick < (bot.throwUntil||0) || (bot.state === "engage" && bot._sawEnemy && !(bot._fc && bot._fc.ph === "go"))) ? 0 : runSpeed;
+    var targetSpeed = (waitPop || bot.holding || bot.roamChecking || bot.atPost || bot.planting || bot.defusing || tick < (bot.throwUntil||0) || (bot.state === "engage" && bot._sawEnemy)) ? 0 : runSpeed;
     // стоит в огне — выбегает из него прямо сейчас, что бы ни делал
     var burn = inFire(bot.baseX, bot.baseY);
     if(burn && !bot.planting && !fireCommit(bot)){
@@ -12026,7 +12022,7 @@ function stepTick(){
     if(tick % 16 === 0){ var TR = bot._trail || (bot._trail = []); TR.push({x:bot.baseX, y:bot.baseY}); if(TR.length > 8) TR.shift(); }
     // перестрелка по данным: уйти с линии за укрытие и выглянуть снова
     fightCycleTick(bot, dtSec, bot.planting || bot.defusing || burn || tick < (bot.blindUntil||0));
-    if(bot._fc && (bot._fc.ph === "off" || bot._fc.ph === "back")) bot.curSpeed = bot._fc.moving ? SPEED*weaponSpeedMul(bot) : 0;
+    if(bot._fc && bot._fc.ph !== "line") bot.curSpeed = bot._fc.moving ? SPEED*weaponSpeedMul(bot) : 0;
 
     // ---------- держит угол "живьём" ----------
     // Стоящий на посту / держащий угол без контакта не стоит статуей: медленно
@@ -12096,7 +12092,7 @@ function stepTick(){
       }
     }
 
-    if(!((bot.holding && !bot._burning) || bot.curSpeed <= 0.5 || (bot._fc && (bot._fc.ph === "off" || bot._fc.ph === "back")))){
+    if(!((bot.holding && !bot._burning) || bot.curSpeed <= 0.5 || (bot._fc && bot._fc.ph !== "line"))){
       if(bot.path.length === 0 || bot.pathIdx >= bot.path.length){
         if(bot.forcedRetreat) bot.forcedRetreat = false;
         assignNewDestination(bot, tick);
@@ -12360,7 +12356,7 @@ function whyText(b){
   if(t && pt === "без задачи") pt = t;
   if(b.planting) pt = "ставит бомбу"; if(b.defusing) pt = "дефузит";
   var lr = b.lookReason, lt = lr ? (WHY_LOOK[lr] || lr) : "по ходу движения";
-  if(b._fc && b._fc.ph !== "line") pt = ({off:"бой · ушёл с линии за укрытие", back:"бой · возвращается на позицию", go:"бой · постреливал — идёт дальше"})[b._fc.ph];
+  if(b._fc && b._fc.ph !== "line") pt = b._fc.ph === "off" ? "бой · ушёл с линии за укрытие" : "бой · выглядывает снова";
   else if(b.state === "engage") pt = "бой · на линии";
   else if(b.state === "hold") pt = "бой · держит угол";
   else if(b.state === "retreat") pt = "бой · отходит";
