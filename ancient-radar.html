@@ -108,7 +108,7 @@
   <div id="topbar">
     <div class="tb-id">
       <h1>Ancient</h1>
-      <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 259, 11.10</div>
+      <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 260, 11.10</div>
     </div>
     <div class="tb-group" id="tbMatch">
       <button id="btnPause">Пауза</button>
@@ -2782,7 +2782,8 @@ function setPost(b, pt, look, hold, tag, spreadIdx){
   var psn = (BAL.proSpots && hold && pt) ? proSnap(b, pt, look, tag) : null;
   if(psn){ pt = psn.pt; spreadIdx = 0; }
   var id = tag + "|" + Math.round(pt.x) + "," + Math.round(pt.y);
-  if(b.post && b.post.id === id) return;
+  // (v260, В3) та же точка и задача — путь не сбрасываем, но новое направление взгляда принимаем
+  if(b.post && b.post.id === id){ b.post.look = look || null; return; }
   var x = pt.x, y = pt.y;
   if(spreadIdx){ // несколько ботов на одну точку — раздвигаем поперёк взгляда
     var la = look ? Math.atan2(look.y-y, look.x-x) : 0;
@@ -4848,10 +4849,17 @@ function retakePost(b, cts){
   if(R.phase === "gather" || R.phase === "util"){
     // стоим в укрытии и смотрим туда, откуда будет заход
     // один из собирающихся смотрит не на бомбу, а в спину — туда, откуда может
-    // прийти лёркер (проход между сайтами), пока T ещё хватает на люрк
+    // прийти лёркер (проход между сайтами), пока T ещё хватает на люрк.
+    // (v260, В3) Спину держит замыкающий — кто дальше всех от бомбы; передний держит
+    // вход со стороны сайта. Пересмотр — только если «смотрящий» оказался впереди всех
+    // (проектное правило: прямого источника нет, docs/DECISIONS.md v260)
     if(BAL.lurkCheck && aliveCount("T") >= 2){
-      if(!R.backWatch){ var bwb = null, bwd = Infinity; cts.forEach(function(c){ var d = Math.hypot(c.x-GEO.rotator.x, c.y-GEO.rotator.y); if(d < bwd){ bwd = d; bwb = c; } }); R.backWatch = bwb ? bwb.id : "-";
-        if(bwb) voiceLog("CT", "back", bwb.id, "смотрю спину — может прийти люрк"); }
+      var dBp = function(o){ return Math.hypot(o.x-bp.x, o.y-bp.y); };
+      var bwc = cts.filter(function(o){ return o.id === R.backWatch && o.alive; })[0];
+      if(!bwc || (cts.length > 1 && cts.every(function(o){ return o === bwc || !o.alive || dBp(o) > dBp(bwc); }))){
+        var bwb = null; cts.forEach(function(o){ if(o.alive && (!bwb || dBp(o) > dBp(bwb))) bwb = o; });
+        var nbw = bwb ? bwb.id : "-";
+        if(nbw !== R.backWatch){ R.backWatch = nbw; if(bwb) voiceLog("CT", "back", bwb.id, "смотрю спину — может прийти люрк"); } }
       if(R.backWatch === b.id){ setPost(b, a, GEO.rotator, true, "gather"+(R.assign[b.id]||0), 0); return; }
     }
     setPost(b, a, bp, true, "gather"+(R.assign[b.id]||0), 0);
@@ -6801,6 +6809,8 @@ function threatLook(b){
 var LOOK = {
   maxDist: 1100,     // дальше этой дистанции зону как угрозу не рассматриваем
   nbrW: 0.6,         // вклад врага за входом в зону (он оттуда выйдет)
+  checkK: 0.5, checkAng: 1.6, checkEvery: 4, checkDur: 1.2,   // (v260) проверка второго угла стоя: ≥ половины главного, ≥ 90° в сторону, раз в 4–8 с на 1,2 с — проектные числа
+  nearPx: 360,       // (v260) враг дальше за входом: вес exp(-путь/nearPx), ~0,5 на 250 px — проектное число
   watchedNbr: 0.25,  // …если этот вход видит тиммейт — враг сначала выйдет на него
   habitW: 0.25,      // любимое место соперника (память прошлых раундов)
   distHold: 700,     // затухание веса с расстоянием, стоя
@@ -6941,6 +6951,31 @@ function portalWatched(team){
 }
 var PORTAL_W = {CT:{}, T:{}};
 // кандидаты взгляда для одного бота: [{j, pt, sc, fresh}]
+// (v260, В3) сколько врагов выйдет из зоны j через соседа nn: кто в nn — целиком, кто дальше за nn
+// (дойдёт до nn раньше, чем до j) — с весом exp(-путь до nn / LOOK.nearPx). Считаем по длине пути, а не по
+// числу зон: Site B → B Site → 90 → First Lane — три зоны, но ~250 px. Свою зону zb и саму j не считаем
+var BZ_WALK = null;
+function bzWalk(){
+  if(BZ_WALK) return BZ_WALK;
+  if(!BZ.portal) bzPortals();
+  var n = BZ.ids.length;
+  BZ_WALK = BZ.ids.map(function(_, s){ var D = new Float32Array(n).fill(Infinity), done = new Uint8Array(n); D[s] = 0;
+    for(;;){ var u = -1; for(var i=0;i<n;i++) if(!done[i] && D[i] < Infinity && (u < 0 || D[i] < D[u])) u = i;
+      if(u < 0) break; done[u] = 1;
+      BZ.nbr[u].forEach(function(v){ var p = BZ.portal[u][v] || BZ.cent[v];
+        var w = Math.hypot(p.x-BZ.cent[u].x, p.y-BZ.cent[u].y) + Math.hypot(BZ.cent[v].x-p.x, BZ.cent[v].y-p.y);
+        if(D[u] + w < D[v]) D[v] = D[u] + w; }); }
+    return D; });
+  return BZ_WALK;
+}
+function nbrThreat(team, j, nn, zb){
+  var W = bzWalk(), t = 0;
+  for(var k=0;k<W.length;k++){ if(k === j || k === zb) continue;
+    var dn = W[k][nn]; if(!(dn < W[k][j])) continue;
+    if(k !== nn && BAL.timing && !reachPossible(team, k)) continue;
+    var bk = beliefZoneKnown(team, k); if(bk > 0) t += bk * Math.exp(-dn / LOOK.nearPx); }
+  return t;
+}
 function lookCands(b, W){
   var zb = (b.atPost && b.post) ? bzOf(b.post.x, b.post.y) : bzOf(b.x, b.y);
   if(zb < 0) zb = bzOf(b.x, b.y); if(zb < 0) return [];
@@ -6960,7 +6995,7 @@ function lookCands(b, W){
     var th = beliefZoneKnown(team, j), nBest = -1, nVal = 0;
     BZ.nbr[j].forEach(function(nn){ if(nn === zb) return;
       if(BAL.timing && !reachPossible(team, nn)) return;
-      var v = LOOK.nbrW * beliefZoneKnown(team, nn);
+      var v = LOOK.nbrW * nbrThreat(team, j, nn, zb);
       if(PW[j+","+nn]) v *= LOOK.watchedNbr;          // вход видит свой — враг выйдет на него первым
       th += v; if(v > nVal){ nVal = v; nBest = nn; } });
     if(habZ[j] && (!BAL.timing || reachPossible(team, j))) th += LOOK.habitW;
@@ -7014,7 +7049,7 @@ function lookCands(b, W){
     var d = Math.hypot(p.x-b.x, p.y-b.y); if(d < 40 || d > LOOK.maxDist || !hasLOS(b.x, b.y, p.x, p.y)) return;
     var th = beliefZoneKnown(team, nn);
     BZ.nbr[nn].forEach(function(n2){ if(n2 === zb) return; if(BAL.timing && !reachPossible(team, n2)) return;
-      var v = LOOK.nbrW * beliefZoneKnown(team, n2); if(PW[nn+","+n2]) v *= LOOK.watchedNbr; th += v; });
+      var v = LOOK.nbrW * nbrThreat(team, nn, n2, zb); if(PW[nn+","+n2]) v *= LOOK.watchedNbr; th += v; });
     if(habZ[nn]) th += LOOK.habitW;
     if(moving) th += LOOK.uncheckW * uncheckedW(team, nn);
     if(th <= 0) return;
@@ -7100,6 +7135,19 @@ function lookPlan(team){
       var cur = b._lkC.filter(function(c){ return c.j === b._lkZ; })[0];
       if(cur && p.sc < LOOK.switchK * cur.sc) p = cur;
     }
+    // (v260, В3) стоя без свежей инфы — изредка проверяет второй сильный угол, если он сбоку/за спиной
+    // (игрок на месте не держит спиной вход, откуда тоже могут прийти). Угол, который держит тиммейт, уже
+    // ослаблен дележом выше и сюда не проходит. Числа LOOK.check* — проектные
+    if(p && !p.fresh && !(b.curSpeed > 60*SPD_K)){
+      var cc = (b._chk && tick < b._chk.until) ? b._lkC.filter(function(c){ return c.j === b._chk.j; })[0] : null;
+      if(cc && cc.sc >= LOOK.minScore) p = cc;
+      else if(tick >= (b._chkNext||0)){
+        var alt = null;
+        b._lkC.forEach(function(c){ if(c.fresh || c.j === p.j || c.sc < LOOK.checkK*p.sc/(p.j === b._lkZ ? LOOK.stick : 1) || _angOff(c.a, p.a) < LOOK.checkAng) return; if(!alt || c.sc > alt.sc) alt = c; });
+        if(alt){ b._chk = {j:alt.j, until: tick + Math.round(LOOK.checkDur*TICK_HZ)}; p = alt;
+          b._chkNext = tick + Math.round((1 + hashRand(tick*7 + b.id.charCodeAt(b.id.length-1)*13)) * LOOK.checkEvery*TICK_HZ); }
+      }
+    } else b._chk = null;
     if((p ? p.j : null) !== b._lkZ){ b._lkSince = tick; b._lkZ = p ? p.j : null; }
     b._lkPt = p ? p.pt : null;
     b._lkTop = b._lkC.slice().sort(function(x, y){ return y.sc - x.sc; }).slice(0, 3).map(function(c){ return [c.pro ? "как у про" : c.snd ? "звук/контакт" : typeof c.j === "string" ? "свой угол" : c.j >= 1000 ? "выход из " + (ZONE_NAMES[BZ.ids[c.j-1000]] || BZ.ids[c.j-1000]) : (ZONE_NAMES[BZ.ids[c.j]] || BZ.ids[c.j]), c.sc]; });
@@ -15493,14 +15541,12 @@ var __SNAP = [
 ["TEAM_PRIO", function(){ return TEAM_PRIO; }, function(v){ try{ TEAM_PRIO = v; }catch(e){} }],
 ["teamKnow", function(){ return teamKnow; }, function(v){ try{ teamKnow = v; }catch(e){} }],
 ["BELIEF_STEP", function(){ return BELIEF_STEP; }, function(v){ try{ BELIEF_STEP = v; }catch(e){} }],
-["LOOK", function(){ return LOOK; }, function(v){ try{ LOOK = v; }catch(e){} }],
 ["LAST_CLEAR", function(){ return LAST_CLEAR; }, function(v){ try{ LAST_CLEAR = v; }catch(e){} }],
 ["_ED", function(){ return _ED; }, function(v){ try{ _ED = v; }catch(e){} }],
 ["EWL", function(){ return EWL; }, function(v){ try{ EWL = v; }catch(e){} }],
 ["APPEAR", function(){ return APPEAR; }, function(v){ try{ APPEAR = v; }catch(e){} }],
 ["PL_GRID", function(){ return PL_GRID; }, function(v){ try{ PL_GRID = v; }catch(e){} }],
 ["PORTAL_W", function(){ return PORTAL_W; }, function(v){ try{ PORTAL_W = v; }catch(e){} }],
-["SL", function(){ return SL; }, function(v){ try{ SL = v; }catch(e){} }],
 ["POSPREF", function(){ return POSPREF; }, function(v){ try{ POSPREF = v; }catch(e){} }],
 ["HOLD", function(){ return HOLD; }, function(v){ try{ HOLD = v; }catch(e){} }],
 ["HOLD_CANDS", function(){ return HOLD_CANDS; }, function(v){ try{ HOLD_CANDS = v; }catch(e){} }],
@@ -15672,7 +15718,7 @@ var __SNAP = [
 ["PL_ICON", function(){ return PL_ICON; }, function(v){ try{ PL_ICON = v; }catch(e){} }],
 ["plSelected", function(){ return plSelected; }, function(v){ try{ plSelected = v; }catch(e){} }]
 ];
-var MK_PRINCIPLES = [{"id": "К1", "sec": "Команда", "text": "НОВОЕ 11.10. Убили опорника, бомбу видели на сайте, а T остался один — идут все CT (и опорник другого", "done": false}, {"id": "К2", "sec": "Команда", "text": "НОВОЕ 11.10. Назначили на ротацию — бот сразу бросает прежнюю задачу (пуш, добивание) и идёт. Сейчас", "done": false}, {"id": "К3", "sec": "Команда", "text": "НОВОЕ 11.10. CT убили всех T до ретейка — режим «сбор на ретейк» снимается, бегут к бомбе и дефузят. Сейчас", "done": false}, {"id": "В1", "sec": "Взгляд", "text": "НОВОЕ 11.10. На ходу (ротация, сбор на ретейк) взгляд держится на одной цели, а не крутится туда-сюда", "done": false}, {"id": "В2", "sec": "Взгляд", "text": "НОВОЕ 11.10. T при перемещении (после планта и вообще) смотрит туда, откуда по его знанию придут CT, а не", "done": false}];
+var MK_PRINCIPLES = [{"id": "К1", "sec": "Команда", "text": "НОВОЕ 11.10. Убили опорника, бомбу видели на сайте, а T остался один — идут все CT (и опорник другого", "done": false}, {"id": "К2", "sec": "Команда", "text": "НОВОЕ 11.10. Назначили на ротацию — бот сразу бросает прежнюю задачу (пуш, добивание) и идёт. Сейчас", "done": false}, {"id": "К3", "sec": "Команда", "text": "НОВОЕ 11.10. CT убили всех T до ретейка — режим «сбор на ретейк» снимается, бегут к бомбе и дефузят. Сейчас", "done": false}, {"id": "В1", "sec": "Взгляд", "text": "НОВОЕ 11.10. На ходу (ротация, сбор на ретейк) взгляд держится на одной цели, а не крутится туда-сюда", "done": false}, {"id": "В2", "sec": "Взгляд", "text": "НОВОЕ 11.10. T при перемещении (после планта и вообще) смотрит туда, откуда по его знанию придут CT, а не", "done": false}, {"id": "В3", "sec": "Взгляд", "text": "НОВОЕ 11.10. CT на сборе ретейка не стоит спиной к ближнему входу со стороны T: CT 3 (8 HP) в Back Halls", "done": false}];
 // ======================= v167: «Отметить момент», карточка «Я понял так», перемотка =======================
 // Инструмент для владельца и Claude, мозг ботов не трогает. Описание — docs/tasks/02-mark-moment.md.
 // Снимки состояния: __SNAP (список переменных симулятора) генерирует src/marks_build.py при сборке (build.py, mkpub.py).
