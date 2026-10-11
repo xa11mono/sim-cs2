@@ -175,7 +175,7 @@
   <div id="topbar">
     <div class="tb-id">
       <h1>Ancient</h1>
-      <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 256, 11.10</div>
+      <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 257, 11.10</div>
     </div>
     <div class="tb-group" id="tbMatch">
       <button id="btnPause">Пауза</button>
@@ -2826,7 +2826,8 @@ function setPost(b, pt, look, hold, tag, spreadIdx){
   if(b._probeLock && b._probeLock >= tick-1 && !/^probe/.test(tag)) return;
   // сменил позицию после килла — пост роли не тянет его обратно на засвеченную
   // точку ещё ~5с (задачи по бомбе и ретейк — важнее)
-  if(b._reposUntil && tick < b._reposUntil && tag !== "repos" && !/^(retake|defuse|plantspot|flee|save|fetch|postplant)/.test(tag) && !(bomb && bomb.state === "planted")) return;
+  // (v257, К2) ротация на колл — решение команды: старая перепозиция (пуш, отход) её не держит
+  if(b._reposUntil && tick < b._reposUntil && tag !== "repos" && !/^(retake|defuse|plantspot|flee|save|fetch|postplant|rotate)/.test(tag) && !(bomb && bomb.state === "planted")) return;
   var psn = (BAL.proSpots && hold && pt) ? proSnap(b, pt, look, tag) : null;
   if(psn){ pt = psn.pt; spreadIdx = 0; }
   var id = tag + "|" + Math.round(pt.x) + "," + Math.round(pt.y);
@@ -4797,6 +4798,12 @@ function updateRetake(cts){
       logEvent("CT: ниндзя-дефуз — все T известны далеко от бомбы");
     }
   }
+  // (v257, К3) живых T нет (по табло знает любой) — собираться не от кого: все сразу к бомбе, дефузер дефузит
+  if(aliveCount("T") === 0 && R.phase !== "go"){
+    R.phase = "go"; R.goTick = tick; R.entryId = "-"; R.allDead = true;
+    if(def) voiceLog("CT", "alldead", def.id, "их больше нет — бегу дефузить, остальные к бомбе");
+    logEvent("CT: ретейк — живых T нет, сразу на бомбу");
+  }
   if(R.phase === "gather"){
     var ready = alive.filter(function(b){ var a = R.approaches[R.assign[b.id]]; return Math.hypot(a.x-b.baseX, a.y-b.baseY) < 70; }).length;
     var need = Math.min(alive.length, alive.length >= 3 ? 3 : alive.length);
@@ -4903,14 +4910,14 @@ function retakePost(b, cts){
     // дефузер не тапает бомбу сразу на заходе (под пост-плант позиции T):
     // сначала первый входящий чистит, дефузер — за ним. Сразу — если время
     // поджимает, он один или первый уже на сайте/погиб
-    if(BAL.retakeRoles && !retakeDefGo(b, R, cts)){
+    if(BAL.retakeRoles && !R.allDead && !retakeDefGo(b, R, cts)){
       var dsp = pickSpots("retakeD"+bomb.site+"_"+(R.assign[b.id]||0), bp, 1, {rMin:120, rMax:320, minGap:60, must:[bp], see:[a]})[0];
       setPost(b, dsp || a, bp, true, "retakeCover"); return;
     }
     setPost(b, bp, null, true, "defuse"); return;
   }
   // остальные заходят за первым с задержкой ~0.5с (не толпой в один проход)
-  if(BAL.groupRetake && R.goTick >= 0){
+  if(BAL.groupRetake && R.goTick >= 0 && !R.allDead){
     if(!R.delay){
       R.delay = {}; var dm = 0;
       R.approaches.forEach(function(ap){ dm = Math.max(dm, Math.hypot(ap.x-bomb.x, ap.y-bomb.y)); });
@@ -8378,8 +8385,10 @@ function ctBrain(){
       var unacc = Math.max(0, tAliveN - here - elseAny);
       ct.call.unacc = unacc;
       keepOther = elseO > 0 || unacc >= 2; keepMid = elseM > 0;
-      allIn = here >= 2 && tAliveN >= 2 && unacc === 0 && elseAny === 0 && confirmed;
-      if(allIn){ need = Math.max(need, here + 1); send = Math.max(0, Math.min(4, need - defenders)); }
+      // (v257, К1) все живые T учтены здесь — снимаются все, и когда T остался один (раньше — только при 2+)
+      allIn = tAliveN >= 1 && here >= tAliveN && unacc === 0 && elseAny === 0 && confirmed;
+      // (v257, К1) все T здесь, другой сайт пуст — идут все (как и говорят в войс), а не «врагов + 1»
+      if(allIn){ need = Math.max(need, cts.length); send = Math.max(0, Math.min(4, need - defenders)); }
       if(allIn && ct._allInLog !== ks+roundNum){ ct._allInLog = ks+roundNum;
         voiceLog("CT", "allin"+ks, "CT", "все "+tAliveN+" на "+ks+" — "+ko+" пустой, все на "+ks+"!"); }
       // нас меньше, а на сайт идёт стак — не в одиночку на сайт, а ретейк
@@ -12089,6 +12098,13 @@ function stepTick(){
         bombTimeLeftTicks()/TICK_HZ > Math.hypot(bot.post.x-bot.baseX, bot.post.y-bot.baseY)/(SPEED*WALK_SPEED_FRAC) + (bot.kit ? 5 : 10) + 1.5) ||
        // добивание последнего — не бегом в открытую: последние метры тихим шагом
        (bot.post && bot.state === "patrol" && bot.post.tag === "endhunt" && Math.hypot(bot.post.x-bot.baseX, bot.post.y-bot.baseY) < 350));
+    // (v257, К3) врагов живых нет (видно по табло) — шагом идти не от кого
+    if(bot.walking && aliveCount(bot.team === "CT" ? "T" : "CT") === 0) bot.walking = false;
+    // (v257, К3) ретейк: шагом — только если шагом успевает дойти до бомбы и дефузнуть (та же мерка, что у ниндзя-дефуза)
+    if(bot.walking && bot.team === "CT" && bomb && bomb.state === "planted" && bot.post && /^(gather|retake|defuse|rotate)/.test(bot.post.tag)){
+      var dB = Math.hypot(bomb.x-bot.baseX, bomb.y-bot.baseY);
+      if(bombTimeLeftTicks()/TICK_HZ <= dB/(SPEED*WALK_SPEED_FRAC) + (bot.kit ? 5 : 10) + 1.5) bot.walking = false;
+    }
     knifeTick(bot); prePeekTick(bot); exposedShiftTick(bot);
     var runSpeed = (bot.walking ? SPEED*WALK_SPEED_FRAC : SPEED) * weaponSpeedMul(bot);
     // атакующий, который прямо сейчас видит врага, останавливается и
