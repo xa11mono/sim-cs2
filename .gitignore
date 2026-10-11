@@ -4,3 +4,4 @@ tools/measure/runs/
 tools/measure/__pycache__/
 tools/positions_shots/
 voice-test.html
+__pycache__/
