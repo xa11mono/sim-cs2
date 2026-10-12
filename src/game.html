@@ -210,7 +210,7 @@
   <div id="topbar">
     <div class="tb-id">
       <h1>Ancient</h1>
-      <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 270, 12.10</div>
+      <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 271, 13.10</div>
     </div>
     <div class="tb-group" id="tbMatch">
       <button id="btnPause">Пауза</button>
@@ -2107,6 +2107,9 @@ var WEAPONS = {
   GLOCK:  {name:"Glock-18",    slot:"secondary", side:"T",    price:200,  tier:0, range: 700, dmg:30,  armorPen:0.47,  rm:0.85, rpm:400, mag:20, reload:2.2, stand:6.0, move:13,  recoil:4,  spam:11, recov:22, killReward:300},
   USP:    {name:"USP-S",       slot:"secondary", side:"CT",   price:200,  tier:0, range: 750, dmg:35,  armorPen:0.505, rm:0.99, rpm:352, mag:12, reload:2.2, stand:3.7, move:11,  recoil:5,  spam:12, recov:22, killReward:300},
   P250:   {name:"P250",        slot:"secondary", side:"both", price:300,  tier:1, range: 750, dmg:38,  armorPen:0.64,  rm:0.85, rpm:400, mag:13, reload:2.2, stand:6.2, move:13,  recoil:6,  spam:14, recov:24, killReward:300},
+  // (v271) Dual Berettas — у про CT на пистолетке 24% (tools/buy_pro.py); цена/урон/пробитие/темп/магазин/перезарядка/
+  // дальность — csdb.gg; точность (stand/move/recoil/spam/recov) — как у P250, проектное число
+  ELITE:  {name:"Dual Berettas",slot:"secondary",side:"both", price:300,  tier:1, range: 700, dmg:38,  armorPen:0.52,  rm:0.79, rpm:500, mag:30, reload:3.8, stand:6.2, move:13,  recoil:6,  spam:14, recov:24, killReward:300},
   TEC9:   {name:"Tec-9",       slot:"secondary", side:"T",    price:500,  tier:2, range: 700, dmg:33,  armorPen:0.906, rm:0.83, rpm:500, mag:18, reload:2.5, stand:7.0, move:14,  recoil:6,  spam:12, recov:20, killReward:300},
   FIVE7:  {name:"Five-SeveN",  slot:"secondary", side:"CT",   price:500,  tier:2, range: 750, dmg:32,  armorPen:0.911, rm:0.81, rpm:400, mag:20, reload:2.2, stand:5.8, move:13,  recoil:5,  spam:12, recov:22, killReward:300},
   DEAGLE: {name:"Desert Eagle",slot:"secondary", side:"both", price:700,  tier:3, range: 900, dmg:53,  armorPen:0.932, rm:0.81, rpm:267, mag:7,  reload:2.2, stand:5.5, move:64,  recoil:22, spam:45, recov:40, killReward:300},
@@ -2291,7 +2294,6 @@ var BAL = {
   claimStrong: true,
   enemyward: true,
   proLineups: true,
-  smokeSpam: true,    // v150: прострел смоков по тому, что бот знает (частоты — по демкам)
   smokeReact: true,
   coverFix: true,
   cornerAim: true,
@@ -2443,7 +2445,7 @@ var BAL = {
   namedPos: true, midTake: true, stopPlant: true, reangle: true, silentWalk: true, cornerLook: true,
   antiDefuse: true, lurkCheck: true, iglErr: 0.25,
   profiles: true, execErr: true, oppProfile: true, // раздел 13 п.6–7: профили игроков, ошибки исполнения, профиль соперника // iglErr — доля раундов, когда IGL "не дочитал" инфу     // позиции по названиям зон (удержание, заход, пост-плант, ретейк)
-  plantChoice: true, smokeShoot: true, repos: true, antiEco: true, keepMol: true, offAngle: true, // раздел 12 (хвосты)
+  plantChoice: true, repos: true, antiEco: true, keepMol: true, offAngle: true, // раздел 12 (хвосты)
   ctSetup: "2-1-2",   // расстановка CT: "1-1-1" (ротатор между сайтами) или "2-1-2" (ротатор вторым на сайт)
   retakeGather: 2,    // сколько CT собираются у входа перед ретейком
   retakeSpread: true, // на ретейке не толпой в одну точку, а на разные позиции с видом на бомбу
@@ -2948,7 +2950,25 @@ function updatePost(b){
 
 // ---------- бомба ----------
 var PLANT_TICKS = Math.round(3.2*64), BOMB_TICKS = 40*64, DEFUSE_TICKS = 10*64, DEFUSE_KIT_TICKS = 5*64;
-var BOMB_KILL_RADIUS = 330;
+// (v271) Урон взрыва — как в CS2 после июля 2025: волна расходится по карте от бомбы, углы и
+// стены её гасят (Valve «запекает» урон в карту, формулы не публикует). Числа — из наших демок
+// (tools/bomb_dmg.py: 1727 игроков в 347 взрывах на Ancient): урон по HP хорошо ложится на длину
+// пути по навмешу от бомбы, а не на прямую — 182·exp(−путь²/(2·1091²)) в юнитах; медианы у про:
+// путь 1500–1750 → 60, 1750–2000 → 37, 2000–2250 → 31, 2250–2500 → 17, 2500–3000 → 5; до ~500 — гибнут.
+// Броня не учитывается отдельно: в демках урон по HP у игроков почти всегда в броне.
+var BOMB_DMG = {max:182, sigma:1091/2.5, reach:2900/2.5};   // px (1 px = 2.5 юнита, PX_UNITS)
+function bombPathLen(x, y){
+  if(!bomb) return Infinity;
+  var C = bomb._pathC || (bomb._pathC = {}), k = Math.round(x/8)+","+Math.round(y/8);
+  if(C[k] != null) return C[k];
+  var L = Infinity;
+  if(Math.hypot(x-bomb.x, y-bomb.y) < BOMB_DMG.reach){ var pts = pathPts(bomb.x, bomb.y, x, y); if(pts.length) L = polyLen(pts); }
+  return (C[k] = L);
+}
+function bombDamageAt(x, y){
+  var L = bombPathLen(x, y); if(!isFinite(L)) return 0;
+  return Math.round(BOMB_DMG.max * Math.exp(-L*L/(2*BOMB_DMG.sigma*BOMB_DMG.sigma)));
+}
 // куда бежать от бомбы: раньше все T бежали в свою точку сбора (tStage), даже
 // если стояли по другую сторону сайта — и бежали ЧЕРЕЗ бомбу. Теперь — ближайшая
 // по пути зона за радиусом взрыва; путь не должен проходить через сам взрыв,
@@ -2956,13 +2976,15 @@ var BOMB_KILL_RADIUS = 330;
 function bombFleePoint(b){
   if(!bomb || bomb.state !== "planted") return null;
   if(b._flee && b._flee.round === roundNum && b._flee.m === matchNum) return b._flee.pt;
-  var R = BOMB_KILL_RADIUS, best = null, bs = Infinity;
+  var R = BOMB_DMG.sigma, best = null, bs = Infinity;   // R — «внутри волны»: путь не должен туда заходить
   if(!BZ.ids.length) beliefBuild();
   BZ.cent.forEach(function(c, i){
     if(!c) return;
     var dB = Math.hypot(c.x-bomb.x, c.y-bomb.y);
-    if(dB < R + 70 || dB > R + 500) return;
-    var q = walk(c), pts = pathPts(b.x, b.y, q.x, q.y);
+    if(dB > 900) return;
+    var q = walk(c);
+    if(bombDamageAt(q.x, q.y) >= b.hp - 10) return;   // там взрыв добьёт
+    var pts = pathPts(b.x, b.y, q.x, q.y);
     if(pts.length < 1) return;
     var L = polyLen(pts), minD = Infinity;
     for(var k=1;k<pts.length;k++){ var dd = distToSeg(bomb.x, bomb.y, [pts[k-1][0], pts[k-1][1], pts[k][0], pts[k][1]]); if(dd < minD) minD = dd; }
@@ -4722,7 +4744,7 @@ function pickSaveSpot(b){
     var c = zoneCentroid(z);
     if(insideSolidWall(c.x, c.y)) return;
     var dB = Math.hypot(c.x-bomb.x, c.y-bomb.y);
-    if(dB < BOMB_KILL_RADIUS + 150) return;
+    if(dB < 900 && bombDamageAt(c.x, c.y) > 0) return;   // сейв — там, куда взрыв не достаёт
     var dT = Infinity, seen = false;
     ts.forEach(function(t){ dT = Math.min(dT, Math.hypot(c.x-t.x, c.y-t.y)); if(hasLOS(c.x,c.y,t.x,t.y)) seen = true; });
     if(seen || dT < 500) return;
@@ -7652,7 +7674,24 @@ var SMK = {
 };
 function smkKey(s){ return s.born+"_"+Math.round(s.x); }
 function smkActive(s){ return tick - s.born > 40 && s.until - tick > 64; }
+// (v271) может ли за дымом быть враг — по тому, что знает команда: по таймингу туда ещё никто не успел
+// (REACH), или все живые враги (их число видно на табло) недавно замечены далеко от дыма — стрелять незачем.
+// Память о враге за дымом (видел/слышал ≤3 с) тайминг не проверяет — он там был.
+function smokeEnemyPossible(b, s, pt, seen){
+  var zi = bzOf(pt.x, pt.y);
+  if(!seen && zi >= 0 && !reachPossible(b.team, zi) && (BZ.nbr[zi]||[]).every(function(j){ return !reachPossible(b.team, j); })) return false;
+  var foe = b.team === "CT" ? "T" : "CT", BL = beliefLast[b.team] || {}, R = smokeRadiusNow(s), alive = 0, away = 0;
+  bots.forEach(function(e){
+    if(e.team !== foe || !e.alive) return; alive++;
+    var L = BL[e.id]; if(L && tick - L.tick < 4*TICK_HZ && Math.hypot(L.x-s.x, L.y-s.y) > R + 400) away++;
+  });
+  return alive > away;
+}
 function smkEvidence(b, s){
+  var ev = smkEvidence0(b, s);
+  return ev && smokeEnemyPossible(b, s, ev.pt, ev.kind === "mem") ? ev : null;
+}
+function smkEvidence0(b, s){
   var R = smokeRadiusNow(s), mem = null;
   var cand = [];
   if(b.lastIntel && tick - b.lastIntel.tick < 3*TICK_HZ) cand.push(b.lastIntel);
@@ -7671,6 +7710,7 @@ function blindBullet(b, pt){
   b.ammo--; b.lastShotTick = tick; b.nextShotTick = tick + (w.fireIntervalTicks||6);
   var a = Math.atan2(pt.y-b.y, pt.x-b.x) + (hashRand(tick*31 + b.id.charCodeAt(1))-0.5)*0.08;
   var cl = rayClipWalls(b.x, b.y, b.x + Math.cos(a)*(w.range||900), b.y + Math.sin(a)*(w.range||900));
+  smokeBulletHole(b.x, b.y, cl.x, cl.y);
   tracers.push({wc:tracerClass(b.weapon), x1:b.x, y1:b.y, x2:cl.x, y2:cl.y, team:b.team, born:nowTs, hit:false, miss:true}); if(tracers.length > 60) tracers.shift();
   bots.forEach(function(o){ if(!o.alive || o.team === b.team) return;
     var hr = (hasLOS(o.x, o.y, b.x, b.y) ? GUN_HEAR_OPEN : GUN_HEAR_WALL) * (w.silenced ? 0.55 : 1);
@@ -7682,7 +7722,8 @@ function smokeSpamTick(){
   bots.forEach(function(b){
     if(!b.alive) return;
     var P = b._spam;
-    if(P && (tick > P.until || b._sawEnemy || b.planting || b.defusing || b._reloading || b.ammo <= 0 || tick < b.blindUntil)){ b._spam = null; P = null; }
+    if(P && (tick > P.until || b._sawEnemy || b.planting || b.defusing || b._reloading || b.ammo <= 0 || tick < b.blindUntil ||
+             smokes.indexOf(P.s) < 0 || (tick % 16 === 0 && !smokeEnemyPossible(b, P.s, P.pt, P.seen)))){ b._spam = null; P = null; }
     if(P){
       if(tick < P.nextBurst) return;
       // стреляем: если на линии за дымом реально кто-то есть — настоящий выстрел
@@ -7693,7 +7734,7 @@ function smokeSpamTick(){
       bots.forEach(function(e){ if(foe || !e.alive || e.team === b.team) return; var d = Math.hypot(e.x-b.x, e.y-b.y); if(d > 900) return;
         if(_angOff(Math.atan2(e.y-b.y, e.x-b.x), aim) > 0.12 || !hasLOS(b.x, b.y, e.x, e.y) || !smokeBlocks(b.x, b.y, e.x, e.y)) return; foe = e; });
       var fired = false;
-      if(foe){ var a0 = b.ammo; b._smokeShot = true; tryShoot(b, foe, Math.hypot(foe.x-b.x, foe.y-b.y)); b._smokeShot = false; fired = b.ammo !== a0; }
+      if(foe){ var a0 = b.ammo; b._smokeShot = true; tryShoot(b, foe, Math.hypot(foe.x-b.x, foe.y-b.y)); b._smokeShot = false; fired = b.ammo !== a0; if(fired) smokeBulletHole(b.x, b.y, foe.x, foe.y); }
       else fired = blindBullet(b, P.pt);
       if(fired && ++P.shot >= SMK.bullets){ P.shot = 0; P.bursts--; P.nextBurst = tick + SMK.burstGap; if(P.bursts <= 0) b._spam = null; }
       return;
@@ -7711,7 +7752,7 @@ function smokeSpamTick(){
       D[k] = go;
       if(!go) return;
       var nb = SMK.burstsMin + Math.floor(hashRand(s.born*29 + b.id.charCodeAt(1))*(SMK.burstsMax - SMK.burstsMin + 1));
-      b._spam = {pt:ev.pt, bursts:nb, shot:0, nextBurst:tick + 10, until:tick + 8*TICK_HZ};
+      b._spam = {pt:ev.pt, s:s, seen:ev.kind === "mem", bursts:nb, shot:0, nextBurst:tick + 10, until:tick + 8*TICK_HZ};
       logEvent(b.id+": простреливает смок "+calloutName(s.x, s.y)+" ("+({mem:"только что был враг", belief:"там вероятно враг", entry:"смок на входе"})[ev.kind]+")");
     });
   });
@@ -9030,7 +9071,7 @@ function teamBrains(){
   bombTick();
   if(roundState !== "live") return; // дефуз мог только что закончить раунд
   routeTick();
-  SPOT_TEAM = "T"; tBrain(); SPOT_TEAM = "CT"; ctBrain(); SPOT_TEAM = null; endgameBrain(); lineupTick(); smokeEdgeTick(); weaponPickupTick(); lkpTick();
+  SPOT_TEAM = "T"; tBrain(); SPOT_TEAM = "CT"; ctBrain(); SPOT_TEAM = null; endgameBrain(); lineupTick(); smokeEdgeTick(); weaponPickupTick(); itemPickupTick(); lkpTick();
   if(BAL.soundMore) bots.forEach(function(b){ if(b.alive && b._heardReload) reloadPeek(b); });
   if(BAL.assistPeek && tick % 4 === 0) bots.forEach(function(b){ if(b.alive) assistPeek(b); });
   if(BAL.lowHpBack && tick % 8 === 2) bots.forEach(function(b){ if(b.alive) lowHpBack(b); });
@@ -9121,9 +9162,35 @@ function segHitsCircle(x1,y1,x2,y2,cx,cy,r){
 function smokeBlocks(x1,y1,x2,y2){
   for(var i=0;i<smokes.length;i++){
     var s = smokes[i], r = smokeRadiusNow(s);
-    if(r > 8 && segHitsCircle(x1,y1,x2,y2,s.x,s.y,r)) return true;
+    if(r > 8 && segHitsCircle(x1,y1,x2,y2,s.x,s.y,r) && !smokeHoleClear(s, r, x1,y1,x2,y2)) return true;
   }
   return false;
+}
+// (v271) CS2: пули пробивают в дыме временную дыру. Ширина и время жизни Valve не публикует —
+// проектные числа: SMOKE_HOLE.w (≈25 юнитов) и SMOKE_HOLE.life (1 с). Линия взгляда проходит
+// сквозь дым, если и вход, и выход её через облако лежат в живой дыре (рядом с линией пуль).
+var SMOKE_HOLE = {w:10, life:64};   // проектное число: px, тики
+function smokeBulletHole(x1, y1, x2, y2){
+  smokes.forEach(function(s){
+    var r = smokeRadiusNow(s); if(r <= 8 || !segHitsCircle(x1,y1,x2,y2,s.x,s.y,r)) return;
+    var H = s.bholes || (s.bholes = []);
+    for(var i = H.length-1; i >= 0; i--) if(H[i].until <= tick) H.splice(i, 1);
+    H.push({x1:x1, y1:y1, x2:x2, y2:y2, until:tick + SMOKE_HOLE.life});
+    if(H.length > 12) H.shift();
+  });
+}
+function smokeHoleClear(s, r, x1, y1, x2, y2){
+  var H = s.bholes; if(!H || !H.length) return false;
+  var dx = x2-x1, dy = y2-y1, a = dx*dx + dy*dy; if(a < 1) return false;
+  var fx = x1-s.x, fy = y1-s.y, bq = 2*(fx*dx + fy*dy), cq = fx*fx + fy*fy - r*r, D = bq*bq - 4*a*cq;
+  if(D < 0) return false;
+  var sq = Math.sqrt(D), t1 = Math.max(0, (-bq - sq)/(2*a)), t2 = Math.min(1, (-bq + sq)/(2*a));
+  var p = [[x1+dx*t1, y1+dy*t1], [x1+dx*t2, y1+dy*t2]];
+  return H.some(function(h){
+    if(h.until <= tick) return false;
+    var hx = h.x2-h.x1, hy = h.y2-h.y1, hl = Math.hypot(hx, hy); if(hl < 1) return false;
+    return p.every(function(q){ return Math.abs((q[0]-h.x1)*hy - (q[1]-h.y1)*hx)/hl < SMOKE_HOLE.w; });
+  });
 }
 function smokeRadiusNow(s){
   var age = tick - s.born, left = s.until - tick;
@@ -9464,9 +9531,9 @@ function applyDamage(att, b, dmg, src, o){
   if(foe){ foe.kills++; foe.roundKills++; foe.money = Math.min(MAX_MONEY, foe.money + (o.reward || 300)); }
   else if(mate) att.money = Math.max(0, att.money + FF_TK_CASH);
   var wkey = o.wkey || (src === "HE" ? "HE" : "MOLOTOV");
-  logEvent((att?att.id:"?")+" ["+(o.wkey ? (WEAPONS[o.wkey] ? WEAPONS[o.wkey].name : o.wkey) : src)+"] "+(mate ? "убил своего " : att === b ? "убил себя " : "устранил ")+b.id+(o.note||""), true);
+  logEvent((att?att.id:(src === "C4" ? "бомба" : "?"))+" ["+(o.wkey ? (WEAPONS[o.wkey] ? WEAPONS[o.wkey].name : o.wkey) : src)+"] "+(mate ? "убил своего " : att === b ? "убил себя " : "устранил ")+b.id+(o.note||""), true);
   var mods = o.mods || {}; if(mate || att === b) mods.tk = true;
-  feedKill(att, b, wkey, !!o.hs, mods);
+  if(!o.noFeed) feedKill(att, b, wkey, !!o.hs, mods);
   return true;
 }
 function nadesTick(){
@@ -9970,7 +10037,7 @@ function retakeCutUseful(){
   return outside > 0;
 }
 function resetNades(){
-  nadesInAir.length = 0; smokes.length = 0; fires.length = 0; nadeFx.length = 0; nadeFlags = {}; groundWeapons.length = 0;
+  nadesInAir.length = 0; smokes.length = 0; fires.length = 0; nadeFx.length = 0; nadeFlags = {}; groundWeapons.length = 0; groundItems.length = 0;
   comboCd = {};
   bots.forEach(function(b){ b._route = null; b.nadeTask = null; b.blindUntil = 0; b.throwUntil = 0; b._fireAcc = 0; b._fireIn = null; b._nadeCd = 0; if(!b.nades) b.nades = emptyNades(); });
 }
@@ -10170,11 +10237,51 @@ function rayClipWalls(x1, y1, x2, y2){
 // ---- оружие на земле: убитый роняет основное оружие, его может подобрать любой
 // (в CS так поднимают AWP/AK у убитого и уносят в следующий раунд) ----
 var groundWeapons = [];
-function dropWeaponOnDeath(b){ if(b.primary && WEAPONS[b.primary]) groundWeapons.push({key:b.primary, x:b.x, y:b.y, t:tick, from:b.id}); }
+// (v271) что выпадает при смерти — как на серверах CS2 по умолчанию (mp_death_drop_gun 1,
+// mp_death_drop_grenade, mp_death_drop_defuser 1): самое ценное оружие (основное, а без него —
+// пистолет), самая ценная граната (молотов > дым > HE > флешка) и кит. Основное — groundWeapons
+// (подбор — ниже, как был); пистолет, граната, кит — groundItems: поднимает тот, кто прошёл по ним.
+var groundItems = [];
+var NADE_DROP_ORDER = ["molly","smoke","he","flash"];
+function dropWeaponOnDeath(b){
+  var j = function(){ return {x:b.x + (hashRand(tick*7 + groundItems.length)*16 - 8), y:b.y + (hashRand(tick*13 + groundItems.length)*16 - 8)}; };
+  if(b.primary && WEAPONS[b.primary]) groundWeapons.push({key:b.primary, x:b.x, y:b.y, t:tick, from:b.id});
+  else if(b.secondary && WEAPONS[b.secondary]){ var p0 = j(); groundItems.push({kind:"pistol", key:b.secondary, x:p0.x, y:p0.y, t:tick, from:b.id}); }
+  var N = b.nades || {}, nt = NADE_DROP_ORDER.filter(function(k){ return (N[k]||0) > 0; })[0];
+  if(nt){ var p1 = j(); groundItems.push({kind:"nade", key:nt, x:p1.x, y:p1.y, t:tick, from:b.id}); }
+  if(b.team === "CT" && b.kit){ var p2 = j(); groundItems.push({kind:"kit", key:"kit", x:p2.x, y:p2.y, t:tick, from:b.id}); }
+}
+// пройти по предмету — подобрать, если нужен (как в CS: пистолет — только лучше своего, гранаты — в пределах
+// лимита 4, флешек 2, кит — CT без кита)
+function itemPickupTick(){
+  if(!groundItems.length || roundState !== "live") return;
+  bots.forEach(function(b){
+    if(!b.alive) return;
+    for(var i = groundItems.length-1; i >= 0; i--){
+      var G = groundItems[i];
+      if(Math.hypot(G.x-b.x, G.y-b.y) > 38) continue;
+      var N = b.nades;
+      if(G.kind === "kit"){ if(b.team !== "CT" || b.kit) continue; b.kit = true; }
+      else if(G.kind === "nade"){
+        var tot = N.smoke + N.flash + N.he + N.molly;
+        if(tot >= 4 || (G.key === "flash" ? N.flash >= 2 : N[G.key] >= 1)) continue;
+        N[G.key]++;
+      }
+      else if(G.kind === "pistol"){
+        if(!b.secondary || WEAPONS[G.key].tier <= WEAPONS[b.secondary].tier) continue;
+        var held = b.weapon === WEAPONS[b.secondary];
+        groundItems.push({kind:"pistol", key:b.secondary, x:b.x, y:b.y, t:tick, from:b.id});
+        b.secondary = G.key; b._secAmmo = null; if(held){ b.weapon = WEAPONS[G.key]; b._ammoFor = null; }
+      } else continue;
+      groundItems.splice(i, 1);
+      logEvent(b.id+" подобрал "+(G.kind === "kit" ? "кит" : G.kind === "nade" ? NADE[G.key].name : WEAPONS[G.key].name)+(G.from ? " ("+G.from+")" : ""));
+    }
+  });
+}
 // скорость бега по оружию, CS2 (юниты/с): пистолеты 240 (Deagle 230), MAC-10/MP9 240,
 // Galil 215, FAMAS 220, AK 215, M4A4 225, AWP 200 (в прицеле 100). Считаем от M4 (=SPEED),
 // чтобы средняя скорость команды почти не изменилась
-var WSPEED = {UMP:230, MP7:220, P90:230, SSG:230, M4S:225, AUG:220, SG:210, GLOCK:240, USP:240, P250:240, TEC9:240, FIVE7:240, DEAGLE:230, MAC10:240, MP9:240, GALIL:215, FAMAS:220, AK:215, M4:225, AWP:200};
+var WSPEED = {UMP:230, MP7:220, P90:230, SSG:230, M4S:225, AUG:220, SG:210, GLOCK:240, USP:240, P250:240, ELITE:240, TEC9:240, FIVE7:240, DEAGLE:230, MAC10:240, MP9:240, GALIL:215, FAMAS:220, AK:215, M4:225, AWP:200};
 // (10) бег с ножом: длинная пробежка там, где врага быть не может (по
 // таймингу/инфе ни в своей зоне, ни в соседних он ещё не успел оказаться,
 // свежей инфы о врагах рядом нет) — нож (250 ю/с). Увидел/услышал врага или
@@ -10623,6 +10730,7 @@ function coverForReload(b, from){
   return true;
 }
 // ---- (8) мало HP — к своим ----
+var LOWHP_MATE_PATH = 600;   // проектное число: px пути (~1500 юнитов, ~6 с бега) — дальше свой «далеко»
 function lowHpBack(b){
   if(!BAL.lowHpBack || b.hp > 30 || b._sawEnemy || b.planting || b.defusing || tick < (b._lowHpNext||0)) return;
   if(bomb && bomb.state === "planted") return; // ретейк/пост-плант — бомба важнее
@@ -10639,14 +10747,25 @@ function lowHpBack(b){
   // опорник на своём сайте с малым HP сайт не бросает — отходит, только если
   // совсем мало (≤20) и на него идут двое+
   if(defending){ var nNear = 0; for(var eid2 in BL){ var lo2 = BL[eid2]; if(tick - lo2.tick < 6*TICK_HZ && Math.hypot(lo2.x-b.x, lo2.y-b.y) < 700) nNear++; } if(b.hp > 20 || nNear < 2) return; }
-  var m = mates.sort(function(a, c){ return Math.hypot(a.x-b.x, a.y-b.y) - Math.hypot(c.x-b.x, c.y-b.y); })[0];
-  var sp = pickSpots("lowhp"+tick+b.id, {x:m.x, y:m.y}, 2, {rMin:40, rMax:180, minGap:40, hideFrom:threat.slice(0, 3)})[0] || {x:m.x, y:m.y};
+  // (v271) к своим — только если свой недалеко по пути (LOWHP_MATE_PATH) и путь не идёт мимо известных
+  // врагов; иначе бежать через полкарты к далёкому тиммейту — подставиться. Тогда — укрытие рядом,
+  // скрытое от врагов: играть от него и ждать своих (раньше шёл к ближайшему тиммейту на любом расстоянии).
+  var m = null, mL = Infinity;
+  mates.sort(function(a, c){ return Math.hypot(a.x-b.x, a.y-b.y) - Math.hypot(c.x-b.x, c.y-b.y); }).slice(0, 2).forEach(function(o){
+    var pts = pathPts(b.x, b.y, o.x, o.y); if(!pts.length) return;
+    var L = polyLen(pts); if(L > LOWHP_MATE_PATH || L >= mL) return;
+    var bad = pts.some(function(q, k){ return k > 0 && threat.some(function(t){ return Math.hypot(q[0]-t.x, q[1]-t.y) < 250; }); });
+    if(!bad){ m = o; mL = L; }
+  });
+  var sp = m ? (pickSpots("lowhp"+tick+b.id, {x:m.x, y:m.y}, 2, {rMin:40, rMax:180, minGap:40, hideFrom:threat.slice(0, 3)})[0] || {x:m.x, y:m.y})
+             : pickSpots("lowhpc"+tick+b.id, {x:b.x, y:b.y}, 1, {rMin:30, rMax:200, minGap:30, hideFrom:threat.slice(0, 3)})[0];
+  if(!sp) return;
   b._reposUntil = 0; b._probeLock = 0;
   setPost(b, sp, threat[0], true, "repos:lowhp");
   if(!b.post || b.post.tag !== "repos:lowhp") return;
   if(b.state === "hold") leaveHold(b);
   b._reposUntil = tick + 6*TICK_HZ; b._lowHpNext = tick + 10*TICK_HZ;
-  voiceLog(b.team, "lowhp"+b.id, b.id, "у меня "+b.hp+" — отхожу к "+m.id);
+  voiceLog(b.team, "lowhp"+b.id, b.id, m ? "у меня "+b.hp+" — отхожу к "+m.id : "у меня "+b.hp+" — свои далеко, играю от укрытия");
 }
 // ---- шифт по угрозе ----
 // Раньше боты бегали всегда, кроме нескольких частных случаев (слышал/видел
@@ -11414,45 +11533,6 @@ function findCover(b, foe){
   });
   return best;
 }
-// раздел 12: стрельба сквозь смок — редко и осознанно: держит угол, только что
-// (≤1.2с) видел/слышал врага, и тот сейчас за дымом (стен между нет) — даёт
-// короткую очередь в дым по памяти с сильно пониженной точностью
-function smokeShots(){
-  if(!BAL.smokeShoot || !smokes.length) return;
-  bots.forEach(function(b){
-    if(!b.alive || b._sawEnemy || b.planting || b.defusing || tick < b.blindUntil || b._reloading) return;
-    if(!(b.holding || b.atPost) || b.curSpeed > 40*SPD_K) return;
-    var mem = (b.lastIntel && tick - b.lastIntel.tick < 1.5*TICK_HZ) ? b.lastIntel :
-              (b.heardSound && tick - b.heardSound.tick < 1.2*TICK_HZ && b.heardSound.team !== b.team) ? b.heardSound : null;
-    if(!mem) return;
-    if(tick < (b._smokeNext||0)) return;
-    var foe = null;
-    bots.forEach(function(e){
-      if(foe || !e.alive || e.team === b.team) return;
-      var d = Math.hypot(e.x-b.x, e.y-b.y);
-      if(d > 450 || Math.hypot(e.x-mem.x, e.y-mem.y) > 130) return;
-      if(!hasLOS(b.x, b.y, e.x, e.y) || !smokeBlocks(b.x, b.y, e.x, e.y)) return;
-      foe = e;
-    });
-    if(!foe) return;
-    // решает не каждый: ~35% шансов на "окно", потом пауза
-    if(!b._smokeBurst){
-      // смок на входе/выходе сайта — туда стреляют намного чаще: за ним почти
-      // наверняка кто-то проходит (T — заходят, CT — держат выход)
-      var entrySmoke = BAL.smokeEntry && ["A","B"].some(function(k){ var g = GEO[k];
-        return smokes.some(function(sm){ return Math.hypot(sm.x-g.tEntry.x, sm.y-g.tEntry.y) < 220 || Math.hypot(sm.x-g.ctEntry.x, sm.y-g.ctEntry.y) < 220; }); });
-      var chance = entrySmoke ? (b.team === "T" ? 0.8 : 0.65) : 0.35;
-      if(hashRand(tick*13 + b.id.charCodeAt(0)*7 + b.id.length) > chance){ b._smokeNext = tick + TICK_HZ; return; }
-      b._smokeBurst = 3;
-      logEvent(b.id+": простреливает смок по "+foe.id);
-    }
-    b._smokeShot = true;
-    var a0 = b.ammo;
-    tryShoot(b, foe, Math.hypot(foe.x-b.x, foe.y-b.y));
-    b._smokeShot = false;
-    if(b.ammo !== a0){ b._smokeBurst--; if(b._smokeBurst <= 0){ b._smokeBurst = 0; b._smokeNext = tick + 1.5*TICK_HZ; } }
-  });
-}
 function resolveEngagements(){
   var pairs = [];
   bots.forEach(function(b){ b._sawEnemy = false; b._nearestEnemyDist = Infinity; b._nearestEnemyBot = null; b._visible = []; });
@@ -11915,19 +11995,25 @@ function rifleFor(team, b){
   if(BAL.moreWeapons && b && hashRand(pHash(b.id)*7 + 3) < 0.5) return WEAPONS.M4S;
   return WEAPONS.M4;
 }
+// (v271) какое ПП берут — доли у про на форсах (tools/buy_pro.py, data/pro/buys.json): CT — MP9 90%, MP7 7%;
+// T — MAC-10 87%, MP7 10%, UMP 2% (было: UMP 25%, MP7 20% у всех — у про UMP почти не берут)
 function smgFor(team, b){
   if(BAL.moreWeapons && b){ var h = hashRand(pHash(b.id)*11 + roundNum*3 + 5);
-    if(h < 0.25) return WEAPONS.UMP; if(h < 0.45) return WEAPONS.MP7; }
+    if(team === "CT"){ if(h < 0.07) return WEAPONS.MP7; }
+    else { if(h < 0.10) return WEAPONS.MP7; if(h < 0.12) return WEAPONS.UMP; } }
   return team === "CT" ? WEAPONS.MP9 : WEAPONS.MAC10;
 }
-function pHash(id){ var h = 0; for(var i=0;i<id.length;i++) h = (h*31 + id.charCodeAt(i)) % 100003; return h; }
-// (7) любитель прицела: на фулле с запасом денег берёт AUG/SG вместо M4/AK
-function scopedFor(b){
-  if(!BAL.moreWeapons || b.tRole === "awp" || (b.team === "CT" && b.tRole === "mid")) return null;
-  if(hashRand(pHash(b.id)*13 + 1) >= 0.2) return null;              // ~каждый пятый игрок
-  var w = b.team === "CT" ? WEAPONS.AUG : WEAPONS.SG;
-  return b.money >= w.price + ARMOR_PRICE + HELMET_UPGRADE + 600 ? w : null;
+// (v271) пистолет на эко / форсе без основного — доли у про (tools/buy_pro.py); null — остаётся стартовый
+var PRO_PISTOL = {
+  eco:   {CT:[["FIVE7",0.32],["DEAGLE",0.21],["P250",0.06]], T:[["TEC9",0.34],["DEAGLE",0.255],["P250",0.08]]},
+  force: {CT:[["FIVE7",0.44],["DEAGLE",0.21],["P250",0.03]], T:[["TEC9",0.42],["DEAGLE",0.24],["P250",0.06]]}
+};
+function proPistol(b, kind, salt){
+  var L = PRO_PISTOL[kind][b.team], h = hashRand(pHash(b.id)*17 + roundNum*7 + matchNum*3 + salt), acc = 0;
+  for(var i = 0; i < L.length; i++){ acc += L[i][1]; if(h < acc) return L[i][0]; }
+  return null;
 }
+function pHash(id){ var h = 0; for(var i=0;i<id.length;i++) h = (h*31 + id.charCodeAt(i)) % 100003; return h; }
 // сколько не хватает до полного закупа (винтовка + кевлар/шлем) с учётом того, что уже есть
 function fullNeedU(b){ return fullNeed(b) + (b.team === "CT" ? 500 : 300); } // + гранаты
 function fullNeed(b){
@@ -12036,14 +12122,18 @@ function bestPrimary(b, maxPrice, keep){
 function buyForPlayer(b, type, idx){
   var before = b.money;
   if(type === "pistol"){
-    // половина берёт броню, половина — пистолет получше
-    if(idx % 2 === 0) buyArmor(b, false);
-    else buyItem(b, b.team === "T" ? "TEC9" : "P250");
+    // (v271) у про: CT — USP 75%, Dual Berettas 24%; T — Glock 92%, P250 7%, Tec-9 почти никогда
+    // (tools/buy_pro.py). Кто не взял пистолет — кевлар; остальное — гранаты
+    var hP = hashRand(pHash(b.id)*19 + matchNum*5 + roundNum);
+    if(b.team === "CT" && hP < 0.24) buyItem(b, "ELITE");
+    else if(b.team === "T" && hP < 0.07) buyItem(b, "P250");
+    else buyArmor(b, false);
   } else if(type === "full"){
     // один AWP на команду, если позволяет (снайпер — второй бот)
-    if(idx === 1 && b.primary !== "AWP" && b.money >= WEAPONS.AWP.price + ARMOR_PRICE + HELMET_UPGRADE) buyItem(b, "AWP");
+    if(idx === 1 && b.primary !== "AWP" && b.money >= WEAPONS.AWP.price + ARMOR_PRICE + HELMET_UPGRADE &&
+       !bots.some(function(m){ return m.team === b.team && m.primary === "AWP"; })) buyItem(b, "AWP");
     var cur = b.primary ? WEAPONS[b.primary].tier : -1;
-    var rifle = scopedFor(b) || rifleFor(b.team, b);
+    var rifle = rifleFor(b.team, b);
     if(cur < 6 && b.money >= rifle.price) buyItem(b, rifle.key);
     buyArmor(b, true);
     if(!b.primary || WEAPONS[b.primary].tier < 6){ var bp = bestPrimary(b, 99999, 0); if(bp) buyItem(b, bp.key); }
@@ -12063,12 +12153,14 @@ function buyForPlayer(b, type, idx){
     var sniperRole = b.tRole === "awp" || (b.team === "CT" && b.tRole === "mid");
     if(BAL.moreWeapons && cur0 < 5 && sniperRole && b.money < rf.price + 300 && b.money >= WEAPONS.SSG.price + ARMOR_PRICE) buyItem(b, "SSG");
     if(cur0 < 4 && !(b.primary === "SSG")){
-      var wantRifle = b.money >= rf.price + 300 || (b.money >= WEAPONS[b.team === "CT" ? "FAMAS" : "GALIL"].price + 200 && hashRand(roundNum*53 + idx*7 + matchNum) < 0.35);
+      // (v271) дешёвая винтовка вместо ПП — доли у про на форсе (tools/buy_pro.py): T Galil 22% против ПП 20%,
+      // CT FAMAS 5% против ПП 35% (было 0.35 для обеих сторон)
+      var wantRifle = b.money >= rf.price + 300 || (b.money >= WEAPONS[b.team === "CT" ? "FAMAS" : "GALIL"].price + 200 && hashRand(roundNum*53 + idx*7 + matchNum) < (b.team === "CT" ? 0.13 : 0.52));
       if(b.money >= rf.price + 300) buyItem(b, rf.key);
       else if(wantRifle) buyItem(b, b.team === "CT" ? "FAMAS" : "GALIL");
       else if(b.money >= smg.price) buyItem(b, smg.key);
     }
-    if(!b.primary && b.money >= 700 && (!b.secondary || WEAPONS[b.secondary].tier < 3)) buyItem(b, "DEAGLE");
+    if(!b.primary && (!b.secondary || WEAPONS[b.secondary].tier < 2)){ var fp = proPistol(b, "force", 1); if(fp && b.money >= WEAPONS[fp].price) buyItem(b, fp); }
     buyArmor(b, true);
     if(b.team === "CT" && !b.kit && b.money >= 400 && idx % 2 === 0){ b.money -= 400; b.kit = true; }
   } else if(type === "half"){
@@ -12082,7 +12174,9 @@ function buyForPlayer(b, type, idx){
   } else if(type === "eco"){
     // эко: копим; максимум дешёвый пистолет, если он не ломает следующий закуп
     var keepE = fullNeed(b) - nextLossIncome(b.team);
-    if(b.money - 300 >= keepE && WEAPONS[b.secondary].tier < 1) buyItem(b, "P250");
+    var ep = WEAPONS[b.secondary].tier < 1 ? proPistol(b, "eco", 2) : null;   // (v271) что берут про на эко
+    if(ep && b.money - WEAPONS[ep].price >= keepE) buyItem(b, ep);
+    else if(ep && ep !== "P250" && b.money - 300 >= keepE) buyItem(b, "P250");
   }
   if(!b.nades) b.nades = emptyNades();
   buyNades(b, type);
@@ -12115,6 +12209,7 @@ function teamAwp(team){
   var mates = bots.filter(function(b){ return b.team === team; });
   var awper = team === "T" ? mates.filter(function(b){ return b.tRole === "awp"; })[0] : mates[1];
   if(!awper || awper.primary === "AWP") return;
+  if(mates.some(function(m){ return m.primary === "AWP"; })) return;   // (v271) AWP у команды уже есть (подобрал) — вторую не берут: у про две AWP в 1% закупов
   var P = WEAPONS.AWP.price;
   if(awper.money >= P + ARMOR_PRICE){ awper.money -= P; awper.primary = "AWP"; return; }
   var rich = mates.filter(function(m){ return m !== awper && m.money - P >= fullNeed(m); })
@@ -12181,7 +12276,7 @@ function freshMatch(n, keepProfile){
   [spotCache, OUTWARD_CACHE, _ED, EWL, APPEAR, HOLD_CANDS, nadeFlags, comboCd, siteHeatPending].forEach(function(o){ if(o) clr(o); });
   nadeLandHistory = {A:[], B:[]};
   tracers.length = 0; soundPings.length = 0; nadesInAir.length = 0; smokes.length = 0; fires.length = 0; nadeFx.length = 0;
-  groundWeapons.length = 0; events.length = 0; killfeed.length = 0;
+  groundWeapons.length = 0; groundItems.length = 0; events.length = 0; killfeed.length = 0;
   CLEARZ = {CT:{}, T:{}}; LAST_CLEAR = {CT:{}, T:{}};
   if(typeof beliefReset === "function") beliefReset();
   if(typeof lkpReset === "function") lkpReset();
@@ -12219,11 +12314,7 @@ function checkRoundEnd(){
     if(tick >= bomb.explodeTick){
       bomb.state = "exploded";
       bots.forEach(function(b){
-        if(b.alive && Math.hypot(b.x-bomb.x, b.y-bomb.y) < BOMB_KILL_RADIUS){
-          b.alive = false; b.hp = 0; b.deaths++;
-          b.primary = null; b.secondary = b.team==="CT" ? "USP" : "GLOCK"; b.armor = false; b.helmet = false; b.kit = false;
-          b.nades = emptyNades();
-        }
+        if(b.alive) applyDamage(null, b, bombDamageAt(b.x, b.y), "C4", {wkey:"C4", noFeed:true});
       });
       logEvent("БОМБА ВЗОРВАЛАСЬ на "+bomb.site, true);
       feedEvent("boom", "Бомба взорвалась на "+bomb.site);
@@ -12768,7 +12859,7 @@ function stepTick(){
     bot.y = bot.baseY + offY;
   });
   resolveEngagements();
-  if(BAL.smokeSpam) smokeSpamTick(); else smokeShots();
+  smokeSpamTick();
   infoFallbackTick();
   if(BAL.smokeReact) smokeHeTick();
   teamInfoTick(); // раздел 11: коллы из восприятия этого тика → командная память
@@ -15069,6 +15160,13 @@ function draw(){
     // край — где дым кончается
     ctx.strokeStyle = "rgba(242,244,238,"+(0.5*fade)+")"; ctx.lineWidth = 1.1/S0;
     ctx.beginPath(); ctx.arc(sm.x, sm.y, rr, 0, Math.PI*2); ctx.stroke();
+    // (v271) дыры от пуль — тёмный коридор внутри облака, затягивается за SMOKE_HOLE.life
+    (sm.bholes || []).forEach(function(h){
+      if(h.until <= tick) return;
+      ctx.save(); ctx.beginPath(); ctx.arc(sm.x, sm.y, rr, 0, Math.PI*2); ctx.clip();
+      ctx.strokeStyle = "rgba(20,24,18,"+(0.55*(h.until - tick)/SMOKE_HOLE.life)+")"; ctx.lineWidth = SMOKE_HOLE.w*2; ctx.lineCap = "round";
+      ctx.beginPath(); ctx.moveTo(h.x1, h.y1); ctx.lineTo(h.x2, h.y2); ctx.stroke(); ctx.restore();
+    });
     timeArc(sm.x, sm.y, rr + 3.5/S0, left, sm.team, fade);
   });
   fires.forEach(function(fr){
@@ -15314,6 +15412,17 @@ function draw(){
     ctx.save(); ctx.fillStyle = "rgba(210,210,200,0.85)"; ctx.strokeStyle = "rgba(20,20,20,0.8)"; ctx.lineWidth = 1/view.scale;
     var w2 = 9/view.scale, h2 = 3.5/view.scale; ctx.fillRect(G.x-w2, G.y-h2, w2*2, h2*2); ctx.strokeRect(G.x-w2, G.y-h2, w2*2, h2*2);
     ctx.font = (7/view.scale)+"px 'IBM Plex Mono',monospace"; ctx.textAlign = "center"; ctx.fillText(WEAPONS[G.key].name.split(" ")[0], G.x, G.y - 6/view.scale);
+    ctx.restore();
+  });
+  // пистолеты, гранаты, киты на земле (v271)
+  groundItems.forEach(function(G){
+    ctx.save(); ctx.fillStyle = "rgba(210,210,200,0.85)"; ctx.strokeStyle = "rgba(20,20,20,0.8)"; ctx.lineWidth = 1/view.scale;
+    var r = 3/view.scale;
+    if(G.kind === "nade"){ ctx.beginPath(); ctx.arc(G.x, G.y, r, 0, Math.PI*2); ctx.fill(); ctx.stroke(); }
+    else if(G.kind === "kit"){ ctx.fillStyle = "rgba(90,160,230,0.9)"; ctx.fillRect(G.x-r, G.y-r, r*2, r*2); ctx.strokeRect(G.x-r, G.y-r, r*2, r*2); }
+    else { ctx.fillRect(G.x-5/view.scale, G.y-r*0.8, 10/view.scale, r*1.6); ctx.strokeRect(G.x-5/view.scale, G.y-r*0.8, 10/view.scale, r*1.6); }
+    ctx.font = (6.5/view.scale)+"px 'IBM Plex Mono',monospace"; ctx.textAlign = "center"; ctx.fillStyle = "rgba(210,210,200,0.85)";
+    ctx.fillText(G.kind === "kit" ? "кит" : G.kind === "nade" ? NADE[G.key].name : WEAPONS[G.key].name.split(" ")[0], G.x, G.y - 5.5/view.scale);
     ctx.restore();
   });
   // где погиб игрок — крестик цвета его стороны (до конца раунда)

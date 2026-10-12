@@ -26,6 +26,14 @@
 > (`score` по сторонам меняется местами), название/логотип (`TEAM_NAME`/`TEAM_LOGO`), тайм-ауты. Память матча (раздел 13
 > и `siteHeat`, `tSiteHist`, `RMEM`, `nadeLandHistory`) — по раскладу «кто за T»: `memSnapshot`/`memRestore`/`memStart`,
 > отложенная — в `MEM_BOX`; профиль соперника — `OPP.by[кто за T]`. Убран `halfReview`/`HALF_ADJ`.
+>
+> **v271:** взрыв бомбы — `bombDamageAt` (урон по длине пути по навмешу от бомбы, `BOMB_DMG` из демок, `tools/bomb_dmg.py`)
+> через `applyDamage(…, "C4")`; от него же — куда бежать (`bombFleePoint`) и где сейвиться CT. Выпадение при смерти —
+> `dropWeaponOnDeath`: основное → `groundWeapons` (подбор `weaponPickupTick`, как был), пистолет/граната/кит →
+> `groundItems` (подбор проходом — `itemPickupTick`). Дым: дыры от пуль `smokeBulletHole`/`smokeHoleClear` (в
+> `smokeBlocks`); прострел смока — одно место `smokeSpamTick`, повод — `smkEvidence` + `smokeEnemyPossible` (тайминг,
+> все враги известны далеко); убран старый `smokeShots`. Мало HP — `lowHpBack` (к своим ближе `LOWHP_MATE_PATH`, иначе
+> укрытие рядом). Закуп — доли у про (`smgFor`, `PRO_PISTOL`/`proPistol`, пистолетка; `tools/buy_pro.py`); убран `scopedFor`.
 
 # Как устроена игра — состояние на версию 204 (09.10.2026)
 
