@@ -6087,7 +6087,7 @@ var TEAM = {   // проектные числа переделки (BRAIN 1: ф�
   reTell:   2.0,         // того же видимого врага в новой зоне — не чаще, с (перестрелка на границе зон)
   deadTalk: 2.0          // мёртвый ещё договаривает, с
 };
-var TEAM_PRIO = {death: 2, plant: 2, defuse: 2, igl: 2, see: 1, script: 1, hear: 0};
+var TEAM_PRIO = {death: 2, plant: 2, defuse: 2, igl: 2, flash: 2, see: 1, script: 1, hear: 0};
 var teamKnow = {};       // T / CT → teamKnowledge
 
 function teamNew(team){
@@ -6124,6 +6124,7 @@ function teamText(m){
   if(m.kind === "plant") return "ставят " + m.site + "!";
   if(m.kind === "defuse") return "дефузят!";
   if(m.kind === "death") return "убили с " + z + (m.awp ? ", AWP" : "");
+  if(m.kind === "flash") return "флешу!";
   if(m.kind === "hear") return (m.count >= 3 ? "несколько, " : m.count === 2 ? "двое, " : "") + (m.sound === "shots" ? "стреляют " : m.sound === "water" ? "шаги в воде " : "шаги ") + z;
   var n = m.count >= 3 ? "несколько" : m.count === 2 ? "двое" : "один";
   if(m.awp && m.count === 1) return "AWP " + z;
@@ -6133,7 +6134,7 @@ function teamText(m){
 // ---------- доска: покрывает ли уже сказанное эту фразу ----------
 function teamCovered(T, m){
   if(m.kind === "plant" || m.kind === "defuse") return !!T.threats[m.kind];
-  if(m.kind === "death" || m.kind === "igl" || m.kind === "script") return false;   // про своего убийцу / колл / свою гранату — всегда новость
+  if(m.kind === "death" || m.kind === "igl" || m.kind === "script" || m.kind === "flash") return false;   // про своего убийцу / колл / свою гранату — всегда новость
   // звук — место понятно грубо: сказанное про эту зону или соседнюю — уже не новость
   // («двое» там, где сказано про одного, — новость)
   if(m.kind === "hear") return teamNear(m.zone).some(function(z){ var t = T.threats[z]; return t && tick - t.tick <= teamSec(TEAM.board) && (t.count || 0) >= (m.count || 1); });
@@ -6150,7 +6151,7 @@ function teamPropose(b, m){
   var V = b.voice;
   for(var i = 0; i < V.pending.length; i++){
     var p = V.pending[i];
-    if(p.kind === m.kind && p.zone === m.zone && p.kind !== "hear" && p.kind !== "igl" && p.kind !== "script"){
+    if(p.kind === m.kind && p.zone === m.zone && p.kind !== "hear" && p.kind !== "igl" && p.kind !== "script" && p.kind !== "flash"){
       p.count = Math.max(p.count || 0, m.count || 0); p.awp = p.awp || m.awp; p.text = teamText(p);
       (m.ids || []).forEach(function(id){ if(p.ids.indexOf(id) < 0) p.ids.push(id); });
       return;
@@ -6158,7 +6159,7 @@ function teamPropose(b, m){
   }
   m.by = b.id; m.made = tick; m.id = ++T.seq;
   var r = TEAM.react[0] + (TEAM.react[1]-TEAM.react[0])*teamRand(b, m.id);
-  m.ready = tick + Math.round(teamSec(r));
+  m.ready = m.kind === "flash" ? tick : tick + Math.round(teamSec(r));   // «флешу!» — своё действие, замечать нечего: говорит сразу
   m.text = teamText(m);
   V.pending.push(m);
 }
@@ -6243,6 +6244,8 @@ function teamChannel(T){
       T.threats[m.zone] = {count: Math.max(m.count || 0, fresh ? t.count || 0 : 0), awp: !!m.awp || (fresh && t.awp),
                            tick: tick, by: m.by, kind: m.kind};
     }
+    // (этап 3, P2-2) «флешу!» — кто дослушал до хлопка, знает и отворачивается (detonate)
+    if(m.kind === "flash" && m.nade){ m.nade.warned = m.nade.warned || {}; mates.forEach(function(o){ if(o.alive && o.id !== m.by) m.nade.warned[o.id] = tick; }); }
     mates.forEach(function(o){ if(o.alive && o.id !== m.by) knowCall(o, m); });
     knowCall(teamAgent(T.team), m);   // (этап 2, P1-2) договорённое — в знание команды
     teamHeardToIntel(T.team, m);
@@ -9247,9 +9250,11 @@ function throwNade(b, type, tx, ty, lob, why){
   // кто может увернуться от этой флешки: видел бросающего или был рядом (слышит чеку)
   if(type === "flash" && BAL.flashAware){
     nd.aware = {};
-    bots.forEach(function(o){ if(o.alive && o.team !== b.team && (Math.hypot(o.x-b.x, o.y-b.y) < 450 || hasVision(o.x, o.y, b.x, b.y))) nd.aware[o.id] = true; });
+    // (этап 3, P2-2) и свои: кто рядом или видел бросок, знает о нём так же, как враг; остальным — колл «флешу!» в войсе
+    bots.forEach(function(o){ if(o.alive && o !== b && (Math.hypot(o.x-b.x, o.y-b.y) < 450 || hasVision(o.x, o.y, b.x, b.y))) nd.aware[o.id] = true; });
   }
   nadesInAir.push(nd);
+  if(type === "flash" && b.voice) teamPropose(b, {kind: "flash", nade: nd});
   b.throwUntil = tick + 18; // ~0.3с стоит на броске
   b.facing = a;
   logEvent(b.id+" кинул "+NADE[type].name+(why ? " — "+why : "")+(lob ? " (лайнап)" : ""));
@@ -9443,7 +9448,10 @@ function detonate(n){
       var dirK = off < 0.55 ? 1 : (off < 1.6 ? 0.5 : 0.12);  // смотрел прямо / краем глаза / спиной
       // враг, который видел/слышал летящую флешку, может успеть отвернуться —
       // тем вероятнее, чем выше навык (раньше флешка слепила "по учебнику" всегда)
-      if(b.team !== n.team){
+      // (этап 3, P2-2) свой отворачивается наверняка (×0,18 ниже), только если дослушал колл «флешу!» до хлопка;
+      // не предупреждённый — как враг: увернуться может, если видел/слышал бросок, иначе застаёт врасплох
+      var warned = b.team === n.team && (b === n.thrower || (n.warned && n.warned[b.id] !== undefined));
+      if(!warned){
         // увернуться можно, только если знал о флешке (видел/слышал бросок);
         // поп-флешка из-за стены почти всегда застаёт врасплох
         var pD = BAL.flashAware ? ((n.aware && n.aware[b.id]) ? 0.5 + 0.3*prof(b, "disc") + 0.1*(b.skill-0.8)/0.4 : 0.3) : 0.25 + 0.3*(b.skill-0.8)/0.4;
@@ -9451,8 +9459,8 @@ function detonate(n){
         if(dodge){ dirK *= 0.3; if(BAL.flashAware && dirK > 0.1) logEvent(b.id+" отвернулся от флешки"); }
       }
       var secs = BAL.flashMax * dirK * Math.max(0, 1 - d/1100);
-      // свои знают про флешку (колл "флешу!") и отворачиваются — слепит их редко и слабо
-      if(b.team === n.team) secs *= (b === n.thrower ? 0.05 : 0.18);
+      // свои, кто знает про флешку (бросил сам / колл «флешу!»), отворачиваются — слепит их редко и слабо
+      if(warned) secs *= (b === n.thrower ? 0.05 : 0.18);
       if(secs > 0.35){
         var lkBefore = b.lastIntel || (b._nearestEnemyBot ? {x:b._nearestEnemyBot.x, y:b._nearestEnemyBot.y, tick:tick} : null);
         b.blindUntil = Math.max(b.blindUntil, tick + Math.round(secs*TICK_HZ)); if(n.thrower && n.thrower.team !== b.team) b._blindBy = n.thrower.id;
@@ -10093,7 +10101,7 @@ var DECISION_INTERVAL_TICKS = 12;
 // (v264) Панель «войс раунда»: что сказали за раунд, обе команды, цвет — по смыслу фразы. Только вид, на игру не влияет.
 // Консоль (все события, #log) — по кнопке Ё / ` (как в CS), на месте панели войса.
 var voiceLines = [];
-var VOICE_KIND = {death:"death", plant:"bomb", defuse:"bomb", igl:"plan", see:"see", hear:"hear", script:"nade"};
+var VOICE_KIND = {death:"death", plant:"bomb", defuse:"bomb", igl:"plan", see:"see", hear:"hear", script:"nade", flash:"nade"};
 // старые коллы v166 (voiceLog) — тип по ключу колла
 var VOICE_KEYS = {
   bomb: "bomb bombseen bombw bombrot antidef stop pass ninja deflate dffake dfreal covplant fakeplant alldead",
