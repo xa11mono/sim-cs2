@@ -19,70 +19,70 @@
   .med-lv input{width:52px;background:var(--panel-2);color:var(--text);border:1px solid var(--line);border-radius:4px;padding:2px 5px;}
   /* табло как на трансляции (Н6): плоское, без «рваной бумаги» */
   /* (v262) HUD как на трансляции ESL: плоско, без бумаги и фото-рамок; номера = номера в кружках радара */
-  :root{--hud-f:'Barlow Condensed','Golos Text',sans-serif; --hud-ink:#0c0e0b; --hud-sand:#7d7249; --hud-sand-2:#6a6040; --hud-dead:#3b3d36;}
+  :root{--hud-f:'Roboto Condensed','Golos Text',sans-serif; --hud-ink:#0c0e0b; --hud-sand:rgba(98,91,62,.92); --hud-sand-2:rgba(0,0,0,.16); --hud-dead:rgba(44,46,41,.9);}
   #scoreboard{position:absolute;top:8px;left:50%;transform:translateX(-50%);pointer-events:none;z-index:4;font-family:var(--hud-f);display:flex;flex-direction:column;align-items:center;}
   #scoreboard .sb-head{display:flex;justify-content:space-between;width:100%;gap:40px;}
-  #scoreboard .sb-head span{background:var(--accent);color:var(--hud-ink);font-size:13px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;padding:2px 14px 1px;line-height:1.15;}
+  #scoreboard .sb-head span{background:var(--accent);color:var(--hud-ink);font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;padding:2px 14px 1px;line-height:1.2;}
   #scoreboard .sb-head span:first-child{clip-path:polygon(0 0,100% 0,calc(100% - 8px) 100%,0 100%);}
   #scoreboard .sb-head span:last-child{clip-path:polygon(0 0,100% 0,100% 100%,8px 100%);}
   #scoreboard .sb-main{display:flex;align-items:stretch;background:var(--hud-ink);box-shadow:0 0 0 1px rgba(255,255,255,.08);}
   #scoreboard .sb-team{display:flex;align-items:center;gap:10px;padding:5px 12px;position:relative;}
-  #scoreboard .sb-team::after{content:"";position:absolute;left:0;right:0;top:0;height:3px;}
+  #scoreboard .sb-team::after{content:"";position:absolute;left:0;right:0;top:0;height:2px;}
   #scoreboard .sb-team.t::after{background:var(--t);} #scoreboard .sb-team.ct::after{background:var(--ct);} #scoreboard .sb-team.ct{flex-direction:row-reverse;}
-  #scoreboard .sb-logo{width:40px;height:40px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px;color:var(--hud-ink);overflow:hidden;background:#1d211b;}
+  #scoreboard .sb-logo{width:36px;height:36px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:14px;color:var(--hud-ink);overflow:hidden;background:#1d211b;}
   #scoreboard .sb-logo img{width:86%;height:86%;object-fit:contain;}
-  #scoreboard .t .sb-logo{box-shadow:inset 0 0 0 2px var(--t);color:var(--t);} #scoreboard .ct .sb-logo{box-shadow:inset 0 0 0 2px var(--ct);color:var(--ct);}
-  #scoreboard .sb-score{font-size:42px;font-weight:800;color:#fff;min-width:34px;text-align:center;line-height:1;font-variant-numeric:tabular-nums;}
+  #scoreboard .t .sb-logo{box-shadow:inset 0 0 0 1px var(--t);color:var(--t);} #scoreboard .ct .sb-logo{box-shadow:inset 0 0 0 1px var(--ct);color:var(--ct);}
+  #scoreboard .sb-score{font-size:36px;font-weight:600;color:#fff;min-width:34px;text-align:center;line-height:1;font-variant-numeric:tabular-nums;}
   #scoreboard .sb-mid{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2px 14px;min-width:84px;border-left:1px solid #262a23;border-right:1px solid #262a23;}
-  #scoreboard .sb-round{font-size:14px;font-weight:700;letter-spacing:.03em;color:#fff;text-transform:uppercase;line-height:1.05;}
-  #scoreboard .sb-time{font-size:22px;font-weight:700;color:#fff;line-height:1.05;font-variant-numeric:tabular-nums;}
+  #scoreboard .sb-round{font-size:12px;font-weight:500;letter-spacing:.06em;color:#c9cdc2;text-transform:uppercase;line-height:1.05;}
+  #scoreboard .sb-time{font-size:21px;font-weight:600;color:#fff;line-height:1.05;font-variant-numeric:tabular-nums;}
   #scoreboard .sb-time.low{color:#ff8a7e;} #scoreboard .sb-time.bomb{color:#ff5a4c;}
   #scoreboard .sb-alive{display:flex;align-items:center;gap:8px;margin-top:5px;font-size:13px;font-weight:600;color:var(--text-dim);}
-  #scoreboard .sb-alive b{display:inline-block;min-width:26px;padding:1px 7px;text-align:center;font-size:17px;font-weight:800;color:#fff;}
+  #scoreboard .sb-alive b{display:inline-block;min-width:24px;padding:0 6px;text-align:center;font-size:15px;font-weight:600;color:#fff;}
   #scoreboard .sb-alive b.t{background:var(--t);color:var(--hud-ink);} #scoreboard .sb-alive b.ct{background:var(--ct);color:var(--hud-ink);}
   /* панели игроков */
-  .pl-col{position:absolute;top:10px;width:276px;display:flex;flex-direction:column;gap:3px;pointer-events:none;z-index:3;font-family:var(--hud-f);color:#fff;}
+  .pl-col{position:absolute;top:10px;width:264px;display:flex;flex-direction:column;gap:2px;pointer-events:none;z-index:3;font-family:var(--hud-f);color:#fff;}
   #plT{left:12px;} #plCT{right:12px;align-items:flex-end;}
-  .pl-tag{align-self:flex-start;min-width:62%;padding:2px 22px 1px 12px;font-size:19px;font-weight:800;letter-spacing:.02em;text-transform:uppercase;color:#fff;line-height:1.2;clip-path:polygon(0 0,100% 0,calc(100% - 12px) 100%,0 100%);}
+  .pl-tag{align-self:flex-start;min-width:58%;margin-bottom:2px;padding:2px 22px 1px 10px;font-size:15px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#fff;line-height:1.2;clip-path:polygon(0 0,100% 0,calc(100% - 12px) 100%,0 100%);}
   #plT .pl-tag{background:var(--t);color:var(--hud-ink);} #plCT .pl-tag{align-self:flex-end;background:var(--ct);color:var(--hud-ink);padding:2px 12px 1px 22px;text-align:right;clip-path:polygon(0 0,100% 0,100% 100%,12px 100%);}
-  .pl-card{position:relative;display:flex;align-items:stretch;width:100%;height:58px;background:var(--hud-sand);box-sizing:border-box;pointer-events:auto;cursor:pointer;}
+  .pl-card{position:relative;display:flex;align-items:stretch;width:100%;height:50px;background:var(--hud-sand);box-sizing:border-box;pointer-events:auto;cursor:pointer;}
   #plCT .pl-card{flex-direction:row-reverse;}
-  .pl-num{flex:none;width:24px;display:flex;align-items:flex-start;justify-content:center;padding-top:3px;font-size:21px;font-weight:800;line-height:1;color:var(--hud-ink);}
+  .pl-num{flex:none;width:20px;display:flex;align-items:flex-start;justify-content:center;padding-top:4px;font-size:15px;font-weight:600;line-height:1;color:var(--hud-ink);}
   #plT .pl-num{background:var(--t);} #plCT .pl-num{background:var(--ct);}
-  .pl-body{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center;gap:1px;padding:0 8px;}
+  .pl-body{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center;gap:2px;padding:0 9px;}
   #plCT .pl-body{align-items:flex-end;}
-  .pl-nick{font-size:19px;font-weight:800;text-transform:uppercase;letter-spacing:.01em;line-height:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;text-shadow:0 1px 0 rgba(0,0,0,.45);}
-  .pl-stat{display:flex;align-items:center;gap:7px;font-size:14px;font-weight:700;line-height:1;font-variant-numeric:tabular-nums;}
-  .pl-stat svg{width:11px;height:11px;fill:#fff;margin-right:2px;vertical-align:-1px;}
-  .pl-money{font-size:14px;font-weight:700;color:#9be15d;line-height:1;text-shadow:0 1px 0 rgba(0,0,0,.45);}
-  .pl-ava{flex:none;width:52px;align-self:flex-end;height:54px;background:var(--hud-sand-2);display:flex;align-items:flex-end;justify-content:center;overflow:hidden;}
-  .pl-ava svg{width:46px;height:46px;fill:#a89e78;} .pl-ava img{width:100%;height:100%;object-fit:cover;}
-  .pl-side{flex:none;width:74px;display:flex;flex-direction:column;align-items:flex-end;justify-content:center;gap:2px;padding:0 8px 0 4px;}
+  .pl-nick{font-size:17px;font-weight:600;text-transform:uppercase;letter-spacing:.03em;line-height:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;}
+  .pl-stat{display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:500;color:#e6e2d0;line-height:1;font-variant-numeric:tabular-nums;}
+  .pl-stat svg{width:10px;height:10px;fill:#d8d3bd;margin-right:3px;vertical-align:-1px;}
+  .pl-money{font-size:12.5px;font-weight:500;color:#a8de78;line-height:1;}
+  .pl-ava{flex:none;width:44px;align-self:flex-end;height:46px;background:var(--hud-sand-2);display:flex;align-items:flex-end;justify-content:center;overflow:hidden;}
+  .pl-ava svg{width:38px;height:38px;fill:rgba(255,255,255,.22);} .pl-ava img{width:100%;height:100%;object-fit:cover;}
+  .pl-side{flex:none;width:72px;display:flex;flex-direction:column;align-items:flex-end;justify-content:center;gap:2px;padding:0 8px 0 4px;}
   #plCT .pl-side{align-items:flex-start;padding:0 4px 0 8px;}
   .pl-top{display:flex;align-items:center;gap:6px;} #plCT .pl-top{flex-direction:row-reverse;}
-  .pl-top svg.wp{height:15px;width:auto;max-width:44px;fill:#fff;opacity:.85;} #plCT .pl-top svg.wp{transform:scaleX(-1);}
-  .pl-hp{font-size:28px;font-weight:800;line-height:1;font-variant-numeric:tabular-nums;}
+  .pl-top svg.wp{height:13px;width:auto;max-width:40px;fill:#fff;opacity:.7;} #plCT .pl-top svg.wp{transform:scaleX(-1);}
+  .pl-hp{font-size:22px;font-weight:600;line-height:1;font-variant-numeric:tabular-nums;}
   .pl-hp.low{color:#ffb3a8;}
   .pl-gear{display:flex;align-items:center;gap:3px;height:11px;}
-  .pl-gear svg{height:10px;width:auto;fill:#efe9d2;flex:none;}
-  .pl-bar{position:absolute;left:24px;right:0;bottom:0;height:3px;background:rgba(0,0,0,.25);}
-  #plCT .pl-bar{left:0;right:24px;}
-  .pl-bar b{display:block;height:100%;background:#fff;} #plCT .pl-bar b{margin-left:auto;}
+  .pl-gear svg{height:9px;width:auto;fill:rgba(255,255,255,.6);flex:none;}
+  .pl-bar{position:absolute;left:20px;right:0;bottom:0;height:2px;background:rgba(0,0,0,.25);}
+  #plCT .pl-bar{left:0;right:20px;}
+  .pl-bar b{display:block;height:100%;background:rgba(255,255,255,.8);} #plCT .pl-bar b{margin-left:auto;}
   .pl-bar b.low{background:var(--danger);}
   .pl-card.dead{background:var(--hud-dead);} .pl-card.dead .pl-num{background:#5a5c55;} .pl-card.dead .pl-ava{filter:grayscale(1);opacity:.5;background:#30322c;} .pl-card.dead .pl-nick{color:#b9bbb2;}
-  .pl-card.sel{box-shadow:inset 0 0 0 2px #fff;}
+  .pl-card.sel{box-shadow:inset 0 0 0 1px rgba(255,255,255,.85);}
   .pl-card:focus-visible{outline:2px solid #fff;outline-offset:1px;}
   /* выбранный игрок — карточка как на трансляции: портрет, K / D, имя и HP */
-  #plFocus{position:absolute;left:50%;bottom:14px;transform:translateX(-50%);display:none;flex-direction:column;width:250px;pointer-events:none;z-index:4;font-family:var(--hud-f);}
+  #plFocus{position:absolute;left:50%;bottom:14px;transform:translateX(-50%);display:none;flex-direction:column;width:220px;pointer-events:none;z-index:4;font-family:var(--hud-f);}
   #plFocus.show{display:flex;}
-  #plFocus .pf-photo{position:relative;height:150px;background:#2a2e27;display:flex;align-items:flex-end;justify-content:center;overflow:hidden;}
-  #plFocus .pf-photo svg{width:130px;height:130px;fill:#5d6458;} #plFocus .pf-photo img{width:100%;height:100%;object-fit:cover;}
-  #plFocus .pf-kd{position:absolute;right:8px;bottom:8px;display:flex;align-items:center;gap:6px;padding:1px 8px;background:rgba(12,14,11,.82);font-size:18px;font-weight:800;color:#fff;font-variant-numeric:tabular-nums;}
+  #plFocus .pf-photo{position:relative;height:128px;background:#2a2e27;display:flex;align-items:flex-end;justify-content:center;overflow:hidden;}
+  #plFocus .pf-photo svg{width:112px;height:112px;fill:#4d5449;} #plFocus .pf-photo img{width:100%;height:100%;object-fit:cover;}
+  #plFocus .pf-kd{position:absolute;right:8px;bottom:8px;display:flex;align-items:center;gap:6px;padding:1px 8px;background:rgba(12,14,11,.82);font-size:15px;font-weight:600;color:#fff;font-variant-numeric:tabular-nums;}
   #plFocus .pf-kd i{width:1px;height:14px;background:#fff;opacity:.5;}
-  #plFocus .pf-bar{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:4px 12px;background:#141d33;border-bottom:3px solid var(--ct);}
+  #plFocus .pf-bar{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:4px 12px;background:#141d33;border-bottom:2px solid var(--ct);}
   #plFocus.t .pf-bar{background:#2a1f10;border-bottom-color:var(--t);}
-  #plFocus #pfNick{font-size:24px;font-weight:800;text-transform:uppercase;color:#fff;line-height:1.05;}
-  #plFocus #pfHp{font-size:26px;font-weight:800;color:#fff;line-height:1.05;font-variant-numeric:tabular-nums;}
+  #plFocus #pfNick{font-size:19px;font-weight:600;letter-spacing:.03em;text-transform:uppercase;color:#fff;line-height:1.05;}
+  #plFocus #pfHp{font-size:20px;font-weight:600;color:#fff;line-height:1.05;font-variant-numeric:tabular-nums;}
 </style></head><body>
 <title>Ancient Live Radar</title>
 <style>
@@ -199,7 +199,7 @@
   .mk-toast{position:absolute;left:50%;bottom:24px;transform:translateX(-50%);z-index:60;background:rgba(10,14,9,0.96);border:1px solid var(--accent);color:var(--text);padding:8px 14px;border-radius:6px;max-width:80%;}
   .mk-prog{position:absolute;left:50%;top:45%;transform:translate(-50%,-50%);z-index:60;background:rgba(10,14,9,0.96);border:1px solid var(--accent);color:var(--accent);padding:14px 22px;border-radius:8px;font-size:15px;}
 </style>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700&family=Barlow+Condensed:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700&family=Roboto+Condensed:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
 
 <div id="app">
   <div id="topbar">
