@@ -2,6 +2,7 @@
 // Игру не меняет: обёртки зовут исходные функции и ничего не пишут в состояние ботов; генератор игры не трогается.
 // Запуск: node src/q.js <сборка_аудита.html> "<этот файл с __M__/__T__>"  (tools/measure/audit/run_audit.py)
 freshMatch(__M__);
+var POSCH = {}, CORNER = {};   // (этап 4) последняя смена поста / угла cornerLook по боту
 var M0 = matchNum, TT = __T__, FUT = [], TSEEN = {CT: {}, T: {}}, CHG = {}, POS0 = {}, MTHROW = {}, MENT = {}, FIREN = 0;
 function ang(a){ return Math.abs(((a + Math.PI) % (2*Math.PI) + 2*Math.PI) % (2*Math.PI) - Math.PI); }
 function dirTo(b, x, y){ return Math.atan2(y-b.y, x-b.x); }
@@ -31,6 +32,7 @@ teamHeardToIntel = function(team, m){
     if(m.ids && m.zone){ var g = knowGraph(), c = g.c[m.zone];
       if(c) row.moved = m.ids.map(function(id){ var e = byId(id); return e && e.alive ? Math.round(Math.hypot(e.x-c.x, e.y-c.y) - g.r[m.zone]) : null; }); }
     A.voice.push(row);
+    if(m.kind === "flash" && m.nade) m.nade._callAt = tick;
     bots.forEach(function(o){ if(o.alive && o.team === team) infoMark(o); });
   }
   return o_thi.apply(this, arguments);
@@ -43,6 +45,8 @@ function voicedNear(team, zone, t0, t1){
 // ---------- утечка: команда (LKP/beliefLast) узнаёт то, что слышал один бот, без войса ----------
 var PENDLEAK = [];
 window.__AUD = {
+  // (этап 4) фраза не прозвучала: почему (устарело / уже сказано / враг убит / толпа / говорящий погиб)
+  vdrop: function(n, why, T){ if(live()) (A.vdrop || (A.vdrop = [])).push([tick, T.team, n.kind, why, tick - (n.ready||tick)]); },
   leak: function(team, eid, hb){
     if(!live()) return;
     var src = hb.src || "?", own = src.indexOf("ear:") === 0 ? src.slice(4) : null;
@@ -69,6 +73,7 @@ setPost = function(b, pt, look, hold, tag, spreadIdx){
   if(!live() || !b.alive) return r;
   var after = b.post ? b.post.id : null;
   if(after !== before){
+    POSCH[b.id] = tick;
     var caller = "?"; try { var st = (new Error()).stack.split("\n"); for(var i=2;i<st.length;i++){ var mm = st[i].match(/at (?:Object\.)?([A-Za-z0-9_$]+) /); if(mm && mm[1] !== "setPost" && mm[1] !== "groupPost"){ caller = mm[1]; break; } } } catch(e){}
     A.posCh.push([tick, b.id, btag, b.post ? b.post.tag : null, caller, b.post ? Math.round(b.post.x) : null, b.post ? Math.round(b.post.y) : null]);
   } else if(b.post && tag && b.post.tag !== tag && !/^route/.test(b.post.tag||"")){
@@ -107,8 +112,16 @@ detonate = function(n){
   var r = o_det.apply(this, arguments);
   if(live() && n.type === "flash") bots.forEach(function(o){
     if(!o.alive || !n.thrower) return; var add = (o.blindUntil||0) - Math.max(pre[o.id], tick);
-    if(add > 0.35*TICK_HZ) A.blinds.push([tick, n.team, o.team === n.team ? (o === n.thrower ? "self" : "mate") : "enemy", +(add/TICK_HZ).toFixed(2), n.thrower.id, String(n.why||"").slice(0,30)]);
+    if(add > 0.35*TICK_HZ) A.blinds.push([tick, n.team, o.team === n.team ? (o === n.thrower ? "self" : "mate") : "enemy", +(add/TICK_HZ).toFixed(2), n.thrower.id, String(n.why||"").slice(0,30),
+      // (этап 4) знал ли о флешке: предупреждён коллом / видел-слышал бросок; дистанция до хлопка; роль бросившего и получившего
+      n.warned && n.warned[o.id] !== undefined ? 1 : 0, n.aware && n.aware[o.id] ? 1 : 0, Math.round(Math.hypot(o.x-n.x, o.y-n.y)), n.thrower.tRole || n.thrower.role || null, o.tRole || o.role || null]);
   });
+  // (этап 4) колл «флешу!»: когда сказан и когда хлопнула; сколько своих было в зоне ослепления (≤1000 px и видят точку)
+  if(live() && n.type === "flash" && n.thrower){
+    var mates = bots.filter(function(o){ return o.alive && o.team === n.team && o !== n.thrower && Math.hypot(o.x-n.x, o.y-n.y) <= 1000 && hasVision(o.x, o.y, n.x, n.y); });
+    (A.flashPop || (A.flashPop = [])).push([tick, n.thrower.id, tick - n.born, n._callAt || null, n.warned ? Object.keys(n.warned).length : 0, mates.length,
+      mates.filter(function(o){ return n.warned && n.warned[o.id] !== undefined; }).length]);
+  }
   return r;
 };
 var o_ad = applyDamage;
@@ -228,6 +241,8 @@ for(var t = 0; t < TT; t++){
       var cc = CONT[key]; if(cc && cc.aim == null && ang(dirTo(b, e.x, e.y) - b.facing) < AIM_FIRE_CONE) cc.aim = tick - cc.t0;
     });
     prevVis[b.id] = nv;
+    var cpt = b._cornerPt, cp0 = CORNER[b.id];
+    if(cpt && (!cp0 || cp0.x !== cpt.x || cp0.y !== cpt.y)) CORNER[b.id] = {x: cpt.x, y: cpt.y, t: tick};
     // --- поворот взгляда без повода (стоит / идёт), не в бою
     var fh = faceH[b.id] || (faceH[b.id] = []); fh.push(b.facing||0); if(fh.length > 17) fh.shift();
     if(fh.length === 17 && !b._sawEnemy && !(b.throwUntil && tick < b.throwUntil + 16) && tick % 4 === 0){
@@ -235,6 +250,12 @@ for(var t = 0; t < TT; t++){
       if(dA > Math.PI/4){
         var noInfo = INFO[b.id] == null || tick - INFO[b.id] > TICK_HZ;
         if(moving){ A.turns.move++; if(noInfo) A.turns.moveNoInfo++; } else { A.turns.stand++; if(noInfo) A.turns.standNoInfo++; }
+        if(noInfo && !moving){   // (этап 4) причина поворота стоя без новой информации
+          var tg = b.post ? String(b.post.tag) : "", cc2 = CORNER[b.id];
+          var cause = POSCH[b.id] != null && tick - POSCH[b.id] <= TICK_HZ ? "смена задачи (пост ≤1 с)" : /^repos/.test(tg) ? "repos" :
+                      (cc2 && tick - cc2.t <= 16) ? "смена угла cornerLook" : (b._hold && b._hold.post === b.post && b.atPost) ? "держит пост (idle strafe)" : "прочее: " + (b.lookReason || "?");
+          var TC = A.turnCause || (A.turnCause = {}); TC[cause] = (TC[cause] || 0) + 1;
+        }
         if(noInfo && A.turns.ev.length < 300) A.turns.ev.push([tick, b.id, moving ? 1 : 0, Math.round(dA*57.3), b.lookReason || null, b.post ? String(b.post.tag).slice(0,20) : null, (b._lkTop||[]).map(function(c){ return c[0] + ":" + (+c[1]).toFixed(2); }).join(" | ").slice(0,120)]);
         faceH[b.id] = [];
       }

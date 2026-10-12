@@ -29,6 +29,8 @@ HOOKS = [
       'heard: true, htick: tick, voice: !!opt.voice, src: opt.voice ? "voice" : "ear:" + b.id});')],
     ('    var isNew = !ct.call || ct.call.site !== best.site;\n',
      '    var isNew = !ct.call || ct.call.site !== best.site;\n    if(window.__AUD) __AUD.call(best, isNew);\n'),
+    ('    if(why) continue;   // не прозвучало',
+     '    if(why){ if(window.__AUD && __AUD.vdrop) __AUD.vdrop(n, why, T); continue; }   // не прозвучало'),
 ]
 src = open(sim, encoding='utf-8').read()
 for h in HOOKS:

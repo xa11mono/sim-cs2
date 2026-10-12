@@ -181,7 +181,7 @@
             var q = cornerLook(b, L); if(!q) return;
             var ang = Math.atan2(q.y-ny, q.x-nx);
             if(prev !== null){ pairs++; var d = Math.abs(((ang-prev+Math.PI)%(2*Math.PI)+2*Math.PI)%(2*Math.PI)-Math.PI)*180/Math.PI;
-              if(d >= 20){ var c = vis !== prevVis ? "цель стала видна/перестала" : (oldPt && !oldOk) ? "старый угол потерял видимость" : "пересчёт";
+              if(d >= 20){ var c = Math.hypot(q.x-nx, q.y-ny) < 30 ? "угол под ногами (<30 px)" : vis !== prevVis ? "цель стала видна/перестала" : (oldPt && !oldOk) ? "старый угол потерял видимость" : "пересчёт";
                 causes[c] = (causes[c] || 0) + 1; if(J.length < 12) J.push(mn + ":" + roundNum + " " + b.id + " " + b.post.tag + " сдвиг " + o + " px: " + Math.round(d) + "° — " + c); } }
             prev = ang; prevVis = vis;
           });

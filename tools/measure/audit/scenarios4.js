@@ -41,5 +41,86 @@
     R.molly_mate_at_real_landing = {ok: r3 === false && hit === 0, valid: dT > NADE.molly.radius && dL < NADE.molly.radius, thrown: r3 !== false, mateTicksInFire: hit, mateToTarget: dT, mateToLanding: dL};
   } catch(e){ R.molly_mate_at_real_landing = {ok: false, err: String(e).slice(0, 200)}; }
 
+  // P1 (взгляд): запомненный угол cornerLook оказался точкой под ногами (бот потом встал туда, куда «смотрел» по пути:
+  // repos:assist, матч 3, раунд 6, T1 — угол = место поста, повороты 78–152° при сдвиге на 6 px). Такой угол не должен
+  // браться из памяти: как и новый, он должен быть дальше 30 px. Проверка на всех держащих пост, чья точка взгляда не видна
+  try {
+    var nH = 0, stale = 0, ex = [];
+    [3, 7].forEach(function(mn){
+      freshMatch(mn); var seen = {};
+      for(var i = 0; i < 300000 && matchNum === mn && Object.keys(seen).length < 6; i++){
+        stepTick();
+        if(roundState !== "live" || tick - roundStartTick !== 25*TICK_HZ || seen[roundNum]) continue;
+        seen[roundNum] = true;
+        bots.forEach(function(b){
+          if(!b.alive || !b.atPost || !b.post || !b.post.look || hasLOS(b.x, b.y, b.post.look.x, b.post.look.y)) return;
+          var L = b.post.look, cpk = b._cornerPK, cpt = b._cornerPt;
+          b._cornerPK = Math.round(L.x/80) + "," + Math.round(L.y/80); b._cornerPt = {x: b.x + 4, y: b.y};   // «угол» под ногами
+          var q = cornerLook(b, L); nH++;
+          if(q && Math.hypot(q.x-b.x, q.y-b.y) <= 30){ stale++; if(ex.length < 5) ex.push(mn + ":" + roundNum + " " + b.id + " " + b.post.tag); }
+          b._cornerPK = cpk; b._cornerPt = cpt;
+        });
+      }
+    });
+    R.cornerlook_stale_point_at_feet = {ok: nH > 0 && stale === 0, valid: nH > 0, holders: nH, keptPointAtFeet: stale, examples: ex};
+  } catch(e){ R.cornerlook_stale_point_at_feet = {ok: false, err: String(e).slice(0, 200)}; }
+
+  // P2 (смена сайта): то же, что switch_residual_classified этапа 3, но направление B→A и случай «бомба лежит у старого
+  // сайта» (бомбу роняют на полпути от носителя к старому сайту в момент смены). Классы: лёркер / бомба у старого сайта /
+  // мид-нейтрально (<100 px разницы или тег mid) / место броска гранаты / граната до смены / граната после смены / НЕ объяснено
+  function switchCases(matches, dir, bombOld, need){
+    var rows = [], cnt = {}, bad = [], cases = 0, fetched = 0;
+    var dS = function(p, s2){ return Math.hypot(p.x-SITES[s2].x, p.y-SITES[s2].y); };
+    for(var mi = 0; mi < matches.length && cases < need; mi++){
+      freshMatch(matches[mi]); var done = {};
+      for(var i = 0; i < 400000 && matchNum === matches[mi] && cases < need; i++){
+        stepTick(); var tt = teamTac.T;
+        if(roundState !== "live" || done[roundNum] || tick - roundStartTick !== 6*TICK_HZ || !tt || !tt.tac || !tt.tac.groups || tt.phase !== "setup" || tt.defUntil) continue;
+        done[roundNum] = true;
+        var old = tt.site; if(dir && old !== dir[0]) continue;
+        var nw = old === "A" ? "B" : "A", t0 = tick;
+        if(bombOld){
+          var c = bomb && bomb.state === "carried" ? bomb.carrier : null; if(!c) continue;
+          var bp = null; for(var f = 0.6; f >= 0.2 && !bp; f -= 0.1){ var q = {x: c.x + (SITES[old].x-c.x)*f, y: c.y + (SITES[old].y-c.y)*f}; if(!insideSolidWall(q.x, q.y) && bzOf(q.x, q.y) >= 0) bp = q; }
+          if(!bp) continue;
+          bomb.state = "dropped"; bomb.carrier = null; bomb.x = bp.x; bomb.y = bp.y;
+        }
+        cases++; tSetSite(tt, nw);
+        var handled = false;   // за 5 с бомбу подняли или за ней назначен кто-то (tt.fetchId; назначенный мог погибнуть по пути)
+        for(var k = 0; k < 5*TICK_HZ && roundState === "live"; k++){ stepTick(); if(bombOld && bomb && (bomb.state === "carried" || tt.fetchId)) handled = true; }
+        if(roundState !== "live") continue;
+        if(handled) fetched++;
+        bots.forEach(function(b){
+          if(b.team !== "T" || !b.alive) return;
+          var tg = [];
+          if(b.post) tg.push(["пост", b.post]);
+          if(b._route && b._route.pts.length) tg.push(["маршрут", b._route.pts[b._route.pts.length-1]]);
+          if(b.nadeTask) tg.push(["граната", b.nadeTask]);
+          tg.forEach(function(T2){
+            var p = T2[1], dO = dS(p, old), dN = dS(p, nw); if(dO >= dN) return;
+            var tag = b.post ? String(b.post.tag) : "";
+            var cls = b.tRole === "lurker" ? "лёркер" :
+                      (bomb && (bomb.carrier === b || /^fetch/.test(tag)) && dS(bomb, old) < dS(bomb, nw)) ? "бомба у старого сайта" :
+                      (dN - dO < 100 || /mid/i.test(tag)) ? "мид / нейтрально" :
+                      (T2[0] === "пост" && /^lineup/.test(tag) && b.nadeTask) ? "место броска гранаты" :
+                      T2[0] === "граната" ? ((b.nadeTask.start || 0) < t0 ? "граната до смены" : "граната после смены") : "НЕ объяснено";
+            cnt[cls] = (cnt[cls] || 0) + 1;
+            var row = matches[mi] + ":" + roundNum + " " + old + "→" + nw + " " + b.id + "(" + b.tRole + ") " + T2[0] + " " + tag.slice(0, 20) + (T2[0] === "граната" ? " " + b.nadeTask.type + ":" + String(b.nadeTask.why || "").slice(0, 24) : "") + " → " + cls;
+            rows.push(row); if(cls === "НЕ объяснено" || cls === "граната до смены") bad.push(row);
+          });
+        });
+      }
+    }
+    return {cases: cases, classes: cnt, unexplained: bad, rows: rows.slice(0, 30), bombHandled: fetched};
+  }
+  try {
+    var S1 = switchCases([3, 7, 11, 13, 17, 19, 23], "B", false, 4);
+    R.switch_B_to_A = {ok: S1.cases >= 1 && S1.unexplained.length === 0, valid: S1.cases >= 1, cases: S1.cases, classes: S1.classes, unexplained: S1.unexplained, rows: S1.rows};
+  } catch(e){ R.switch_B_to_A = {ok: false, err: String(e).slice(0, 200)}; }
+  try {
+    var S2 = switchCases([3, 7, 11], null, true, 4);
+    R.switch_bomb_at_old_site = {ok: S2.cases >= 1 && S2.unexplained.length === 0 && S2.bombHandled === S2.cases, valid: S2.cases >= 1, cases: S2.cases, bombHandled: S2.bombHandled, classes: S2.classes, unexplained: S2.unexplained, rows: S2.rows};
+  } catch(e){ R.switch_bomb_at_old_site = {ok: false, err: String(e).slice(0, 200)}; }
+
   return JSON.stringify(R);
 })()
