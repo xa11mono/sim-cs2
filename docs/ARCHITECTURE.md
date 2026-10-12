@@ -27,6 +27,11 @@
 > только сказанное в войс (`h.voice`). `throwNade` не бросает HE/молотов, если свой в радиусе поражения. Запись и сценарии
 > аудита — `tools/measure/audit/` (`run_audit.py`, `audit_rec.js`, `analyze.py`, `scenarios.js`).
 >
+> **v268 (этап 4 аудита):** `throwNade` проверяет «свой в радиусе» и в точке реальной вспышки прямого молотова (на
+> 70/64/(1−0,96) ≈ 27 px ближе цели), и для самого бросающего. `cornerLook` берёт запомненный угол только дальше 30 px.
+> Аудит: `fight_tick_rec.js` / `fight_bake.py` (перестрелки по тикам, про — из `weapon_fire_full` / `ticks_fight`),
+> `voice_flash.py`, `hit_react16.py`, `scenarios4.js`; выгрузка демок — `parse_demos.py --events`, проверка — `check_demo_events.py`.
+
 > **v267 (этап 3 аудита):** колл «флешу!» — новый вид фразы канала команды (`kind:"flash"`, `teamPropose` при `throwNade`,
 > срочный); доставка ставит `nade.warned[id]`, `detonate` смягчает ослепление своих только предупреждённым. `cornerLook` у
 > держащего пост берёт точку `_hold` (место, где встал) вместо текущей. Рывки от застревания (`_netStuck`, `escapeWallLine`)
