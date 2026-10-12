@@ -56,7 +56,7 @@
   #legend{position:absolute;bottom:10px;left:12px;background:rgba(22,27,20,0.92);border:1px solid var(--line);padding:7px 12px;border-radius:8px;font-size:11.5px;display:flex;gap:14px;flex-wrap:wrap;max-width:calc(100% - 330px);}
   #legend span{display:flex;align-items:center;gap:6px;color:var(--text-dim);}
   #legend i{width:9px;height:9px;border-radius:50%;display:inline-block;}
-  #killfeed{position:absolute;top:10px;right:250px;width:320px;display:flex;flex-direction:column;gap:3px;pointer-events:none;font-family:var(--ui);font-size:11.5px;}
+  #killfeed{position:absolute;top:10px;right:300px;width:300px;display:flex;flex-direction:column;gap:3px;pointer-events:none;font-family:var(--ui);font-size:11.5px;}
   #killfeed .kf{align-self:flex-end;display:flex;align-items:center;gap:5px;background:rgba(8,10,8,0.62);border-radius:3px;padding:2px 8px;height:19px;color:var(--text);white-space:nowrap;}
   #killfeed .kf .ct{color:#8fc3f2;font-weight:600;} #killfeed .kf .t{color:#f0b84a;font-weight:600;}
   #killfeed .kf .pl{color:#e8e8e2;margin:0 -1px;} #killfeed .kf svg{flex:none;} #killfeed .kf svg.wp{margin:0 2px;}
@@ -64,7 +64,7 @@
   #killfeed .kf.ev{font-weight:600;border:1px solid var(--line);} #killfeed .kf.tk{border:1px solid #e05c52;} #killfeed .kf.bomb{border-color:#e05c52;color:#ff9a8f;} #killfeed .kf.defuse{border-color:#5a9bd9;color:#9ec6ef;}
   #killfeed .kf.clutch{border-color:#ffd76a;color:#ffe49a;}
   #killfeed .kf.boom{border-color:#e05c52;background:rgba(80,20,15,0.85);color:#ffb3aa;} #killfeed .kf.round{opacity:.6;font-weight:400;}
-  #banner{position:absolute;top:70px;left:50%;transform:translateX(-50%) scale(.9);opacity:0;transition:all .25s;pointer-events:none;font-family:'IBM Plex Sans',sans-serif;font-weight:700;font-size:22px;letter-spacing:.04em;padding:8px 22px;border-radius:6px;background:rgba(10,14,9,0.88);border:1px solid var(--accent-dim);color:#fff;}
+  #banner{position:absolute;top:150px;left:50%;transform:translateX(-50%) scale(.9);opacity:0;transition:all .25s;pointer-events:none;font-family:'IBM Plex Sans',sans-serif;font-weight:700;font-size:22px;letter-spacing:.04em;padding:8px 22px;border-radius:6px;background:rgba(10,14,9,0.88);border:1px solid var(--accent-dim);color:#fff;}
   #banner.show{opacity:1;transform:translateX(-50%) scale(1);} #banner.ct{border-color:var(--ct);color:#cfe4f8;} #banner.t{border-color:var(--t);color:#f6ddb3;}
   #roundCard{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) scale(.94);opacity:0;transition:all .3s;pointer-events:none;min-width:340px;text-align:center;background:rgba(10,14,9,0.93);border:1px solid var(--accent-dim);border-radius:10px;padding:16px 22px;font-family:'IBM Plex Sans',sans-serif;color:var(--text);}
   #roundCard.show{opacity:1;transform:translate(-50%,-50%) scale(1);}
@@ -115,13 +115,13 @@
   .mk-toast{position:absolute;left:50%;bottom:24px;transform:translateX(-50%);z-index:60;background:rgba(10,14,9,0.96);border:1px solid var(--accent);color:var(--text);padding:8px 14px;border-radius:6px;max-width:80%;}
   .mk-prog{position:absolute;left:50%;top:45%;transform:translate(-50%,-50%);z-index:60;background:rgba(10,14,9,0.96);border:1px solid var(--accent);color:var(--accent);padding:14px 22px;border-radius:8px;font-size:15px;}
 </style>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700&family=Barlow+Condensed:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
 
 <div id="app">
   <div id="topbar">
     <div class="tb-id">
       <h1>Ancient</h1>
-      <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 262, 11.10</div>
+      <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 269, 12.10</div>
     </div>
     <div class="tb-group" id="tbMatch">
       <button id="btnPause">Пауза</button>
@@ -296,7 +296,7 @@
     </div>
     <div class="pl-col" id="plT"></div>
     <div class="pl-col" id="plCT"></div>
-    <div id="plFocus"><div class="pf-photo" id="pfPhoto"></div><div class="pf-bar"><span id="pfNick"></span><span id="pfHp"></span></div></div>
+    <div id="plFocus"><div class="pf-photo"><div id="pfPhoto"></div><div class="pf-kd" id="pfKd"></div></div><div class="pf-bar"><span id="pfNick"></span><span id="pfHp"></span></div></div>
     <div id="contact">ОБНАРУЖЕН КОНТАКТ</div>
     <div id="warn"></div>
     <div id="log"></div>
@@ -15525,38 +15525,54 @@ var PL_ICON = {
   molly:'<svg viewBox="0 0 8 14"><path d="M2.5 0h3v4l2 2v8h-7V6l2-2z"/></svg>'
 };
 var plSelected = null;
-// номер как на трансляции: T — 1…5, CT — 6…9, 0
-function plNum(b){ var i = +b.id.replace(/\D/g, ""); return b.team === "T" ? i + 1 : (i + 6) % 10; }
+// (v262) номер — тот же, что в кружке игрока на радаре (pnum)
+function plNum(b){ return pnum(b.id); }
 function plPhoto(b){ var p = PLAYER_PHOTO[nick(b.id)]; return p ? '<img alt="" src="'+p+'">' : PL_SIL; }
+var PL_KILL = '<svg viewBox="0 0 12 12"><path d="M5.3 0h1.4v2.1A4 4 0 0 1 9.9 5.3H12v1.4H9.9a4 4 0 0 1-3.2 3.2V12H5.3V9.9a4 4 0 0 1-3.2-3.2H0V5.3h2.1a4 4 0 0 1 3.2-3.2zM6 3.4a2.6 2.6 0 1 0 0 5.2 2.6 2.6 0 0 0 0-5.2z"/></svg>';
+var PL_SKULL = '<svg viewBox="0 0 12 12"><path d="M6 0C2.7 0 .5 2.2.5 5c0 1.7.8 3 2 3.7V11h1.6V9.6h1.1V11h1.6V9.6h1.1V11h1.6V8.7c1.2-.7 2-2 2-3.7C11.5 2.2 9.3 0 6 0zM3.9 4.3a1.3 1.3 0 1 1 0 2.6 1.3 1.3 0 0 1 0-2.6zm4.2 0a1.3 1.3 0 1 1 0 2.6 1.3 1.3 0 0 1 0-2.6z"/></svg>';
 function plCard(b){
   var sel = plSelected === b.id ? " sel" : "", n = nick(b.id), hp = b.alive ? Math.max(0, Math.round(b.hp)) : 0, low = hp > 0 && hp <= 25 ? " low" : "";
-  var gear = "";
+  var wp = "", gear = "";
   if(b.alive){
     var wkey = (b.weapon && b.weapon.key) || "KNIFE", ic = KF_ICON[wkey];
-    if(ic) gear += '<svg class="wp" viewBox="'+ic.vb+'">'+ic.svg+'</svg>';
+    if(ic) wp = '<svg class="wp" viewBox="'+ic.vb+'">'+ic.svg+'</svg>';
     if(b.helmet) gear += PL_ICON.helmet; else if(b.armor) gear += PL_ICON.armor;
     if(b.team === "CT" && b.kit) gear += PL_ICON.kit;
     if(b.team === "T" && bomb && bomb.state === "carried" && bomb.carrier === b) gear += PL_ICON.c4;
     var N = b.nades || {}; ["smoke","flash","he","molly"].forEach(function(k){ for(var i=0;i<(N[k]||0);i++) gear += PL_ICON[k]; });
   }
-  return '<div class="pl-card'+(b.alive ? "" : " dead")+sel+'"><div class="pl-ava">'+plPhoto(b)+'</div><div class="pl-body">'+
-    '<div class="pl-line"><span class="pl-nick">'+(b.team === "CT" ? esc(n)+'<i>'+plNum(b)+'</i>' : '<i>'+plNum(b)+'</i>'+esc(n))+'</span><span class="pl-hp'+low+'">'+(b.alive ? hp : "☠")+'</span></div>'+
-    '<div class="pl-gear">'+gear+'</div>'+
-    '<div class="pl-line"><span class="pl-stat">'+(b.kills||0)+' / '+(b.deaths||0)+'</span><span class="pl-money">$'+(b.money||0).toLocaleString("en-US")+'</span></div>'+
-    '</div><div class="pl-bar"><b class="'+low.trim()+'" style="width:'+hp+'%"></b></div></div>';
+  return '<div class="pl-card'+(b.alive ? "" : " dead")+sel+'" data-id="'+b.id+'" tabindex="0" title="Показать игрока">'+
+    '<div class="pl-num">'+plNum(b)+'</div>'+
+    '<div class="pl-body"><div class="pl-nick">'+esc(n)+'</div>'+
+      '<div class="pl-stat"><span>'+PL_KILL+(b.kills||0)+'</span><span>'+PL_SKULL+(b.deaths||0)+'</span></div>'+
+      '<div class="pl-money">$'+(b.money||0).toLocaleString("en-US")+'</div></div>'+
+    '<div class="pl-ava">'+plPhoto(b)+'</div>'+
+    '<div class="pl-side"><div class="pl-top">'+wp+'<span class="pl-hp'+low+'">'+(b.alive ? hp : "☠")+'</span></div><div class="pl-gear">'+gear+'</div></div>'+
+    '<div class="pl-bar"><b class="'+low.trim()+'" style="width:'+hp+'%"></b></div></div>';
 }
 function playersUpdate(){
   ["T","CT"].forEach(function(t){
     var el = document.getElementById("pl"+t); if(!el) return;
-    el.innerHTML = '<div class="pl-tag"><span>'+esc(TEAM_NAME[t])+'</span></div>'+bots.filter(function(b){ return b.team === t; }).map(plCard).join("");
+    var foc = document.activeElement && el.contains(document.activeElement) ? document.activeElement.dataset.id : null;
+    el.innerHTML = '<div class="pl-tag">'+esc(TEAM_NAME[t])+'</div>'+bots.filter(function(b){ return b.team === t; }).map(plCard).join("");
+    if(foc){ var fe = el.querySelector('[data-id="'+foc+'"]'); if(fe) fe.focus(); }
   });
   var f = document.getElementById("plFocus"), b = plSelected && teamBot(plSelected);
   if(!b || !b.alive){ plSelected = null; f.className = ""; return; }
   f.className = "show "+b.team.toLowerCase();
   var ph = document.getElementById("pfPhoto"); if(ph.dataset.id !== b.id){ ph.dataset.id = b.id; ph.innerHTML = plPhoto(b); }
   document.getElementById("pfNick").textContent = nick(b.id);
-  document.getElementById("pfHp").textContent = Math.max(0, Math.round(b.hp))+" HP · "+((b.weapon && b.weapon.name) || "");
+  document.getElementById("pfHp").textContent = Math.max(0, Math.round(b.hp));
+  document.getElementById("pfKd").innerHTML = (b.kills||0)+'<i></i>'+(b.deaths||0);
 }
+// клик по строке игрока в панели — его карточка; повторный клик — убрать
+["plT","plCT"].forEach(function(id){
+  var el = document.getElementById(id); if(!el) return;
+  var pick = function(e){ var c = e.target.closest && e.target.closest(".pl-card"); if(!c) return;
+    var bb = teamBot(c.dataset.id); plSelected = (plSelected === c.dataset.id || !bb || !bb.alive) ? null : c.dataset.id; playersUpdate(); };
+  el.addEventListener("pointerdown", function(e){ if(e.button === 0) pick(e); });   // не click: строки перерисовываются ~10 раз в секунду
+  el.addEventListener("keydown", function(e){ if(e.key === "Enter" || e.key === " "){ e.preventDefault(); pick(e); } });
+});
 // клик по игроку на радаре (не перетаскивание камеры) — он в центре; мимо — убрать
 (function(){
   var down = null;
@@ -15878,7 +15894,9 @@ var __SNAP = [
 ["PLAYER_PHOTO", function(){ return PLAYER_PHOTO; }, function(v){ try{ PLAYER_PHOTO = v; }catch(e){} }],
 ["PL_SIL", function(){ return PL_SIL; }, function(v){ try{ PL_SIL = v; }catch(e){} }],
 ["PL_ICON", function(){ return PL_ICON; }, function(v){ try{ PL_ICON = v; }catch(e){} }],
-["plSelected", function(){ return plSelected; }, function(v){ try{ plSelected = v; }catch(e){} }]
+["plSelected", function(){ return plSelected; }, function(v){ try{ plSelected = v; }catch(e){} }],
+["PL_KILL", function(){ return PL_KILL; }, function(v){ try{ PL_KILL = v; }catch(e){} }],
+["PL_SKULL", function(){ return PL_SKULL; }, function(v){ try{ PL_SKULL = v; }catch(e){} }]
 ];
 var MK_PRINCIPLES = [{"id": "К1", "sec": "Команда", "text": "НОВОЕ 11.10. Убили опорника, бомбу видели на сайте, а T остался один — идут все CT (и опорник другого", "done": false}, {"id": "К2", "sec": "Команда", "text": "НОВОЕ 11.10. Назначили на ротацию — бот сразу бросает прежнюю задачу (пуш, добивание) и идёт. Сейчас", "done": false}, {"id": "К3", "sec": "Команда", "text": "НОВОЕ 11.10. CT убили всех T до ретейка — режим «сбор на ретейк» снимается, бегут к бомбе и дефузят. Сейчас", "done": false}, {"id": "К4", "sec": "Команда", "text": "НОВОЕ 11.10. Ротация на колл не мечется: CT 8 и 9 побежали на B, по пути развернулись на A, потом снова на B;", "done": false}, {"id": "К5", "sec": "Команда", "text": "НОВОЕ 11.10. Бомбу выбили (носитель убит, бомба на земле) — CT держат её (кто-то смотрит на бомбу) и", "done": false}, {"id": "В1", "sec": "Взгляд", "text": "НОВОЕ 11.10. На ходу (ротация, сбор на ретейк) взгляд держится на одной цели, а не крутится туда-сюда", "done": false}, {"id": "В2", "sec": "Взгляд", "text": "НОВОЕ 11.10. T при перемещении (после планта и вообще) смотрит туда, откуда по его знанию придут CT, а не", "done": false}, {"id": "В3", "sec": "Взгляд", "text": "НОВОЕ 11.10. CT на сборе ретейка не стоит спиной к ближнему входу со стороны T: CT 3 (8 HP) в Back Halls", "done": false}, {"id": "В4", "sec": "Взгляд", "text": "НОВОЕ 11.10. Взгляд не упирается в стену рядом: T 0 на зачистке A (Back Site) смотрит в стену в 94 px.", "done": false}, {"id": "В5", "sec": "Взгляд", "text": "НОВОЕ 11.10. Стоящий бот поворачивается на шум врагов рядом: CT 4 на сейве в Connector, 4 T в CT Spawn в", "done": false}, {"id": "В6", "sec": "Взгляд", "text": "НОВОЕ 11.10. Рядом убили тиммейта (видел и слышал) — смотрит туда, где убийца: T 2 в Back Site, T 0 убит", "done": false}, {"id": "Б1", "sec": "Бой", "text": "НОВОЕ 11.10. Есть урон по своим (как в CS2 на про-матчах): пули, HE, молотов ранят тиммейтов. (чат 11.10)", "done": false}, {"id": "Б2", "sec": "Бой", "text": "НОВОЕ 11.10. Боты выходят из вражеского молотова, а не стоят в нём. (чат 11.10)", "done": false}];
 // ======================= v167: «Отметить момент», карточка «Я понял так», перемотка =======================
