@@ -6668,7 +6668,10 @@ function openDirNear(b, a){
 }
 function cornerLook(b, p, from){
   if(!p) return p;
-  var o = from || b;
+  // (этап 3, P2-1) держит позицию и переминается (idle strafe: ±24 px вбок, ±7 вперёд — idleHold в stepTick): угол выбирается
+  // от точки, где встал, а не от текущего пикселя. Раньше сдвиг на 6 px переключал «цель видна / не видна» и взгляд прыгал на 30–175°
+  var H = b && b._hold;
+  var o = from || ((H && H.post === b.post && b.atPost && Math.hypot(b.x-H.ax, b.y-H.ay) <= 26) ? {x: H.ax, y: H.ay} : b);
   if(smokes.length){ var se = smokeEdge(o, p); if(se) return se; }
   if(hasLOS(o.x, o.y, p.x, p.y)) return p;
   var pk = Math.round(p.x/80)+","+Math.round(p.y/80);
