@@ -7,3 +7,4 @@ voice-test.html
 __pycache__/
 tools/measure/audit/runs/*/aud_*.json
 tools/measure/audit/runs/*/sim_audit.html
+tools/measure/audit/runs/*/*_rec_*.json
