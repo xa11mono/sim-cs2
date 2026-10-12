@@ -1,5 +1,92 @@
 
-
+<style>  .med{position:absolute;top:10px;right:12px;width:300px;background:rgba(10,14,9,0.94);border:1px solid var(--accent-dim);padding:10px 12px;border-radius:6px;font-size:12px;line-height:1.5;z-index:6;}
+  .med-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px;color:var(--accent);}
+  .med-tabs button{font-size:11px;padding:2px 8px;margin-left:4px;}
+  .med-tabs button.on{background:var(--accent);color:#0a0e09;border-color:var(--accent);}
+  .med-src{font-size:11px;color:var(--text-dim);margin-bottom:8px;}
+  .med-tools{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:8px;}
+  .med-tools button{flex:1 1 auto;font-size:11px;padding:3px 6px;}
+  .med-tools button.on{background:var(--accent);color:#0a0e09;border-color:var(--accent);}
+  .med-hint{color:var(--text);background:var(--panel-2);border-radius:4px;padding:6px 8px;margin-bottom:8px;font-size:11.5px;}
+  .med-hint ul{margin:4px 0 0;padding-left:16px;} .med-hint li{margin:1px 0;}
+  .med-info{font-size:11px;color:var(--text-dim);margin-bottom:8px;}
+  .med-row{display:flex;gap:6px;margin-bottom:6px;} .med-row button{flex:1;font-size:11px;padding:4px 6px;}
+  .med-save{font-size:11px;color:var(--text-dim);}
+  .med-save.warn{color:#ffd76a;} .med-save.ok{color:var(--accent);}
+  .hgt-tip{position:absolute;z-index:7;pointer-events:none;background:rgba(10,14,9,0.94);border:1px solid var(--accent-dim);border-radius:5px;padding:5px 8px;font-size:11.5px;line-height:1.45;color:var(--text);white-space:nowrap;}
+  .hgt-tip b{color:var(--accent);font-weight:600;}
+  .wb-tip{white-space:normal;width:400px;} .med-sel{background:var(--panel-2);color:var(--text);border:1px solid var(--line);border-radius:4px;padding:2px 4px;font-size:11px;}
+  .med-lv{display:flex;gap:4px;align-items:center;margin-bottom:6px;flex-wrap:wrap;} .med-lv button{font-size:11px;padding:3px 9px;} .med-lv button.on{background:var(--accent);color:#0a0e09;border-color:var(--accent);}
+  .med-lv input{width:52px;background:var(--panel-2);color:var(--text);border:1px solid var(--line);border-radius:4px;padding:2px 5px;}
+  /* табло как на трансляции (Н6): плоское, без «рваной бумаги» */
+  /* (v269) HUD по образцу трансляции ESL, по правилам docs/DESIGN_SOURCES.md: плотность «кокпит», острые углы, числа моно,
+     иерархия весом и цветом; цвета команд — данные; номера = номера в кружках радара */
+  :root{--hud-f:'Roboto Condensed','Golos Text',sans-serif; --hud-n:'IBM Plex Mono',ui-monospace,monospace; --hud-ink:#121510;
+        --hud-row:rgba(18,22,16,.9); --hud-row-sel:rgba(40,46,36,.95); --hud-dim:#8d9786; --hud-line:rgba(255,255,255,.07); --hud-money:#9fbf6a;}
+  #scoreboard{position:absolute;top:8px;left:50%;transform:translateX(-50%);pointer-events:none;z-index:4;font-family:var(--hud-f);display:flex;flex-direction:column;align-items:stretch;}
+  #scoreboard .sb-head{display:flex;justify-content:space-between;}
+  #scoreboard .sb-head span{background:var(--accent);color:var(--hud-ink);font-size:11px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;padding:2px 10px 1px;line-height:1.3;}
+  #scoreboard .sb-main{display:flex;align-items:stretch;background:var(--hud-row);border-bottom:1px solid var(--hud-line);}
+  #scoreboard .sb-team{display:flex;align-items:center;gap:10px;padding:6px 12px;border-top:2px solid transparent;}
+  #scoreboard .sb-team.t{border-top-color:var(--t);} #scoreboard .sb-team.ct{border-top-color:var(--ct);flex-direction:row-reverse;}
+  #scoreboard .sb-logo{width:30px;height:30px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:500;overflow:hidden;border:1px solid var(--hud-line);}
+  #scoreboard .sb-logo img{width:90%;height:90%;object-fit:contain;}
+  #scoreboard .t .sb-logo{color:var(--t);} #scoreboard .ct .sb-logo{color:var(--ct);}
+  #scoreboard .sb-score{font-family:var(--hud-n);font-size:28px;font-weight:500;color:#fff;min-width:26px;text-align:center;line-height:1;}
+  #scoreboard .sb-mid{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;padding:3px 14px;min-width:80px;border-left:1px solid var(--hud-line);border-right:1px solid var(--hud-line);}
+  #scoreboard .sb-round{font-size:11px;font-weight:500;letter-spacing:.08em;color:var(--hud-dim);text-transform:uppercase;line-height:1.1;}
+  #scoreboard .sb-time{font-family:var(--hud-n);font-size:17px;font-weight:500;color:#fff;line-height:1.1;}
+  #scoreboard .sb-time.low{color:#ff8a7e;} #scoreboard .sb-time.bomb{color:#ff5a4c;}
+  #scoreboard .sb-alive{display:flex;align-items:center;justify-content:center;gap:6px;margin-top:4px;font-size:11px;color:var(--hud-dim);}
+  #scoreboard .sb-alive b{font-family:var(--hud-n);min-width:20px;padding:0 5px;text-align:center;font-size:13px;font-weight:500;color:var(--hud-ink);}
+  #scoreboard .sb-alive b.t{background:var(--t);} #scoreboard .sb-alive b.ct{background:var(--ct);}
+  /* панели игроков: строки без зазоров, разделены линией 1 px */
+  .pl-col{position:absolute;top:10px;width:250px;display:flex;flex-direction:column;pointer-events:none;z-index:3;font-family:var(--hud-f);color:#fff;}
+  #plT{left:12px;} #plCT{right:12px;}
+  .pl-tag{display:flex;align-items:center;height:22px;padding:0 10px;font-size:12px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;background:var(--hud-row);border-top:2px solid;}
+  #plT .pl-tag{border-color:var(--t);color:var(--t);} #plCT .pl-tag{border-color:var(--ct);color:var(--ct);justify-content:flex-end;}
+  .pl-card{position:relative;display:flex;align-items:stretch;height:44px;background:var(--hud-row);border-top:1px solid var(--hud-line);pointer-events:auto;cursor:pointer;}
+  .pl-card:hover{background:var(--hud-row-sel);}
+  #plCT .pl-card{flex-direction:row-reverse;}
+  .pl-num{flex:none;width:18px;display:flex;align-items:center;justify-content:center;font-family:var(--hud-n);font-size:12px;font-weight:500;color:var(--hud-ink);}
+  #plT .pl-num{background:var(--t);} #plCT .pl-num{background:var(--ct);}
+  .pl-body{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center;gap:3px;padding:0 9px;}
+  #plCT .pl-body{align-items:flex-end;}
+  .pl-nick{font-size:14px;font-weight:500;letter-spacing:.04em;text-transform:uppercase;line-height:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;}
+  .pl-stat{display:flex;align-items:center;gap:8px;font-family:var(--hud-n);font-size:11px;color:var(--hud-dim);line-height:1;}
+  .pl-stat svg{width:9px;height:9px;fill:var(--hud-dim);margin-right:3px;vertical-align:-1px;}
+  .pl-money{color:var(--hud-money);}
+  .pl-ava{flex:none;width:34px;align-self:flex-end;height:40px;display:flex;align-items:flex-end;justify-content:center;overflow:hidden;}
+  .pl-ava svg{width:30px;height:30px;fill:rgba(255,255,255,.16);} .pl-ava img{width:100%;height:100%;object-fit:cover;}
+  .pl-side{flex:none;width:66px;display:flex;flex-direction:column;align-items:flex-end;justify-content:center;gap:3px;padding:0 9px 0 4px;}
+  #plCT .pl-side{align-items:flex-start;padding:0 4px 0 9px;}
+  .pl-top{display:flex;align-items:center;gap:6px;} #plCT .pl-top{flex-direction:row-reverse;}
+  .pl-top svg.wp{height:10px;width:auto;max-width:34px;fill:#fff;opacity:.55;} #plCT .pl-top svg.wp{transform:scaleX(-1);}
+  .pl-hp{font-family:var(--hud-n);font-size:17px;font-weight:500;line-height:1;}
+  .pl-hp.low{color:#ff8a7e;}
+  .pl-gear{display:flex;align-items:center;gap:3px;height:9px;}
+  .pl-gear svg{height:8px;width:auto;fill:rgba(255,255,255,.45);flex:none;}
+  .pl-bar{position:absolute;left:18px;right:0;bottom:0;height:2px;}
+  #plCT .pl-bar{left:0;right:18px;}
+  .pl-bar b{display:block;height:100%;opacity:.75;} #plT .pl-bar b{background:var(--t);} #plCT .pl-bar b{background:var(--ct);margin-left:auto;}
+  .pl-bar b.low{background:var(--danger)!important;opacity:1;}
+  #plT .pl-card.dead .pl-num,#plCT .pl-card.dead .pl-num{background:#3a3e36;color:#8d9786;} .pl-card.dead .pl-nick{color:#6f776a;} .pl-card.dead .pl-ava{opacity:.4;} .pl-card.dead .pl-hp{color:#6f776a;font-size:14px;}
+  .pl-card.sel{background:var(--hud-row-sel);box-shadow:inset 0 0 0 1px rgba(255,255,255,.55);}
+  .pl-card:focus-visible{outline:1px solid #fff;outline-offset:-1px;}
+  /* выбранный игрок: портрет, фраги | смерти, ник и HP; появление — 180 мс */
+  #plFocus{position:absolute;left:50%;bottom:14px;transform:translateX(-50%);display:none;flex-direction:column;width:200px;pointer-events:none;z-index:4;font-family:var(--hud-f);}
+  #plFocus.show{display:flex;animation:pfIn .18s cubic-bezier(.2,.8,.2,1);}
+  @keyframes pfIn{from{opacity:0;transform:translate(-50%,6px);}to{opacity:1;transform:translate(-50%,0);}}
+  @media (prefers-reduced-motion: reduce){ #plFocus.show{animation:none;} }
+  #plFocus .pf-photo{position:relative;height:116px;background:#1b2018;display:flex;align-items:flex-end;justify-content:center;overflow:hidden;border-top:2px solid var(--ct);}
+  #plFocus.t .pf-photo{border-top-color:var(--t);}
+  #plFocus .pf-photo svg{width:100px;height:100px;fill:rgba(255,255,255,.14);} #plFocus .pf-photo img{width:100%;height:100%;object-fit:cover;}
+  #plFocus .pf-kd{position:absolute;right:0;bottom:0;display:flex;align-items:center;gap:6px;padding:2px 8px;background:var(--hud-ink);font-family:var(--hud-n);font-size:12px;color:#fff;}
+  #plFocus .pf-kd i{width:1px;height:10px;background:var(--hud-dim);}
+  #plFocus .pf-bar{display:flex;align-items:center;justify-content:space-between;gap:10px;height:30px;padding:0 10px;background:var(--hud-ink);border-top:1px solid var(--hud-line);}
+  #plFocus #pfNick{font-size:15px;font-weight:500;letter-spacing:.04em;text-transform:uppercase;color:#fff;}
+  #plFocus #pfHp{font-family:var(--hud-n);font-size:16px;font-weight:500;color:#fff;}
+</style>
 <title>Ancient Live Radar</title>
 <style>
   :root{
@@ -56,7 +143,7 @@
   #legend{position:absolute;bottom:10px;left:12px;background:rgba(22,27,20,0.92);border:1px solid var(--line);padding:7px 12px;border-radius:8px;font-size:11.5px;display:flex;gap:14px;flex-wrap:wrap;max-width:calc(100% - 330px);}
   #legend span{display:flex;align-items:center;gap:6px;color:var(--text-dim);}
   #legend i{width:9px;height:9px;border-radius:50%;display:inline-block;}
-  #killfeed{position:absolute;top:10px;right:250px;width:320px;display:flex;flex-direction:column;gap:3px;pointer-events:none;font-family:var(--ui);font-size:11.5px;}
+  #killfeed{position:absolute;top:10px;right:300px;width:300px;display:flex;flex-direction:column;gap:3px;pointer-events:none;font-family:var(--ui);font-size:11.5px;}
   #killfeed .kf{align-self:flex-end;display:flex;align-items:center;gap:5px;background:rgba(8,10,8,0.62);border-radius:3px;padding:2px 8px;height:19px;color:var(--text);white-space:nowrap;}
   #killfeed .kf .ct{color:#8fc3f2;font-weight:600;} #killfeed .kf .t{color:#f0b84a;font-weight:600;}
   #killfeed .kf .pl{color:#e8e8e2;margin:0 -1px;} #killfeed .kf svg{flex:none;} #killfeed .kf svg.wp{margin:0 2px;}
@@ -64,8 +151,8 @@
   #killfeed .kf.ev{font-weight:600;border:1px solid var(--line);} #killfeed .kf.tk{border:1px solid #e05c52;} #killfeed .kf.bomb{border-color:#e05c52;color:#ff9a8f;} #killfeed .kf.defuse{border-color:#5a9bd9;color:#9ec6ef;}
   #killfeed .kf.clutch{border-color:#ffd76a;color:#ffe49a;}
   #killfeed .kf.boom{border-color:#e05c52;background:rgba(80,20,15,0.85);color:#ffb3aa;} #killfeed .kf.round{opacity:.6;font-weight:400;}
-  #banner{position:absolute;top:70px;left:50%;transform:translateX(-50%) scale(.9);opacity:0;transition:all .25s;pointer-events:none;font-family:'IBM Plex Sans',sans-serif;font-weight:700;font-size:22px;letter-spacing:.04em;padding:8px 22px;border-radius:6px;background:rgba(10,14,9,0.88);border:1px solid var(--accent-dim);color:#fff;}
-  #banner.show{opacity:1;transform:translateX(-50%) scale(1);} #banner.ct{border-color:var(--ct);color:#cfe4f8;} #banner.t{border-color:var(--t);color:#f6ddb3;}
+  #banner{position:absolute;top:150px;left:50%;transform:translateX(-50%) translateY(4px);opacity:0;transition:opacity .18s ease-out,transform .18s ease-out;pointer-events:none;font-family:'Roboto Condensed','Golos Text',sans-serif;font-weight:500;font-size:17px;letter-spacing:.06em;text-transform:uppercase;padding:6px 16px;border-radius:0;background:rgba(18,22,16,.92);border:1px solid var(--accent-dim);color:#fff;}
+  #banner.show{opacity:1;transform:translateX(-50%);} #banner.ct{border-color:var(--ct);color:#cfe4f8;} #banner.t{border-color:var(--t);color:#f6ddb3;}
   #roundCard{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) scale(.94);opacity:0;transition:all .3s;pointer-events:none;min-width:340px;text-align:center;background:rgba(10,14,9,0.93);border:1px solid var(--accent-dim);border-radius:10px;padding:16px 22px;font-family:'IBM Plex Sans',sans-serif;color:var(--text);}
   #roundCard.show{opacity:1;transform:translate(-50%,-50%) scale(1);}
   #roundCard .rc-t{font-size:26px;font-weight:700;letter-spacing:.05em;} #roundCard .rc-t.ct{color:var(--ct);} #roundCard .rc-t.t{color:var(--t);}
@@ -115,13 +202,13 @@
   .mk-toast{position:absolute;left:50%;bottom:24px;transform:translateX(-50%);z-index:60;background:rgba(10,14,9,0.96);border:1px solid var(--accent);color:var(--text);padding:8px 14px;border-radius:6px;max-width:80%;}
   .mk-prog{position:absolute;left:50%;top:45%;transform:translate(-50%,-50%);z-index:60;background:rgba(10,14,9,0.96);border:1px solid var(--accent);color:var(--accent);padding:14px 22px;border-radius:8px;font-size:15px;}
 </style>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700&family=Roboto+Condensed:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
 
 <div id="app">
   <div id="topbar">
     <div class="tb-id">
       <h1>Ancient</h1>
-      <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 269, 12.10</div>
+      <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 270, 12.10</div>
     </div>
     <div class="tb-group" id="tbMatch">
       <button id="btnPause">Пауза</button>
@@ -296,7 +383,7 @@
     </div>
     <div class="pl-col" id="plT"></div>
     <div class="pl-col" id="plCT"></div>
-    <div id="plFocus"><div class="pf-photo" id="pfPhoto"></div><div class="pf-bar"><span id="pfNick"></span><span id="pfHp"></span></div></div>
+    <div id="plFocus"><div class="pf-photo"><div id="pfPhoto"></div><div class="pf-kd" id="pfKd"></div></div><div class="pf-bar"><span id="pfNick"></span><span id="pfHp"></span></div></div>
     <div id="contact">ОБНАРУЖЕН КОНТАКТ</div>
     <div id="warn"></div>
     <div id="log"></div>
@@ -15720,38 +15807,53 @@ var PL_ICON = {
   molly:'<svg viewBox="0 0 8 14"><path d="M2.5 0h3v4l2 2v8h-7V6l2-2z"/></svg>'
 };
 var plSelected = null;
-// номер как на трансляции: T — 1…5, CT — 6…9, 0
-function plNum(b){ var i = +b.id.replace(/\D/g, ""); return b.team === "T" ? i + 1 : (i + 6) % 10; }
+// (v262) номер — тот же, что в кружке игрока на радаре (pnum)
+function plNum(b){ return pnum(b.id); }
 function plPhoto(b){ var p = PLAYER_PHOTO[nick(b.id)]; return p ? '<img alt="" src="'+p+'">' : PL_SIL; }
+var PL_KILL = '<svg viewBox="0 0 12 12"><path d="M5.3 0h1.4v2.1A4 4 0 0 1 9.9 5.3H12v1.4H9.9a4 4 0 0 1-3.2 3.2V12H5.3V9.9a4 4 0 0 1-3.2-3.2H0V5.3h2.1a4 4 0 0 1 3.2-3.2zM6 3.4a2.6 2.6 0 1 0 0 5.2 2.6 2.6 0 0 0 0-5.2z"/></svg>';
+var PL_SKULL = '<svg viewBox="0 0 12 12"><path d="M6 0C2.7 0 .5 2.2.5 5c0 1.7.8 3 2 3.7V11h1.6V9.6h1.1V11h1.6V9.6h1.1V11h1.6V8.7c1.2-.7 2-2 2-3.7C11.5 2.2 9.3 0 6 0zM3.9 4.3a1.3 1.3 0 1 1 0 2.6 1.3 1.3 0 0 1 0-2.6zm4.2 0a1.3 1.3 0 1 1 0 2.6 1.3 1.3 0 0 1 0-2.6z"/></svg>';
 function plCard(b){
   var sel = plSelected === b.id ? " sel" : "", n = nick(b.id), hp = b.alive ? Math.max(0, Math.round(b.hp)) : 0, low = hp > 0 && hp <= 25 ? " low" : "";
-  var gear = "";
+  var wp = "", gear = "";
   if(b.alive){
     var wkey = (b.weapon && b.weapon.key) || "KNIFE", ic = KF_ICON[wkey];
-    if(ic) gear += '<svg class="wp" viewBox="'+ic.vb+'">'+ic.svg+'</svg>';
+    if(ic) wp = '<svg class="wp" viewBox="'+ic.vb+'">'+ic.svg+'</svg>';
     if(b.helmet) gear += PL_ICON.helmet; else if(b.armor) gear += PL_ICON.armor;
     if(b.team === "CT" && b.kit) gear += PL_ICON.kit;
     if(b.team === "T" && bomb && bomb.state === "carried" && bomb.carrier === b) gear += PL_ICON.c4;
     var N = b.nades || {}; ["smoke","flash","he","molly"].forEach(function(k){ for(var i=0;i<(N[k]||0);i++) gear += PL_ICON[k]; });
   }
-  return '<div class="pl-card'+(b.alive ? "" : " dead")+sel+'"><div class="pl-ava">'+plPhoto(b)+'</div><div class="pl-body">'+
-    '<div class="pl-line"><span class="pl-nick">'+(b.team === "CT" ? esc(n)+'<i>'+plNum(b)+'</i>' : '<i>'+plNum(b)+'</i>'+esc(n))+'</span><span class="pl-hp'+low+'">'+(b.alive ? hp : "☠")+'</span></div>'+
-    '<div class="pl-gear">'+gear+'</div>'+
-    '<div class="pl-line"><span class="pl-stat">'+(b.kills||0)+' / '+(b.deaths||0)+'</span><span class="pl-money">$'+(b.money||0).toLocaleString("en-US")+'</span></div>'+
-    '</div><div class="pl-bar"><b class="'+low.trim()+'" style="width:'+hp+'%"></b></div></div>';
+  return '<div class="pl-card'+(b.alive ? "" : " dead")+sel+'" data-id="'+b.id+'" tabindex="0" title="Показать игрока">'+
+    '<div class="pl-num">'+plNum(b)+'</div>'+
+    '<div class="pl-body"><div class="pl-nick">'+esc(n)+'</div>'+
+      '<div class="pl-stat"><span>'+PL_KILL+(b.kills||0)+'</span><span>'+PL_SKULL+(b.deaths||0)+'</span><span class="pl-money">$'+(b.money||0).toLocaleString("en-US")+'</span></div></div>'+
+    '<div class="pl-ava">'+plPhoto(b)+'</div>'+
+    '<div class="pl-side"><div class="pl-top">'+wp+'<span class="pl-hp'+low+'">'+(b.alive ? hp : "☠")+'</span></div><div class="pl-gear">'+gear+'</div></div>'+
+    '<div class="pl-bar"><b class="'+low.trim()+'" style="width:'+hp+'%"></b></div></div>';
 }
 function playersUpdate(){
   ["T","CT"].forEach(function(t){
     var el = document.getElementById("pl"+t); if(!el) return;
-    el.innerHTML = '<div class="pl-tag"><span>'+esc(TEAM_NAME[t])+'</span></div>'+bots.filter(function(b){ return b.team === t; }).map(plCard).join("");
+    var foc = document.activeElement && el.contains(document.activeElement) ? document.activeElement.dataset.id : null;
+    el.innerHTML = '<div class="pl-tag">'+esc(TEAM_NAME[t])+'</div>'+bots.filter(function(b){ return b.team === t; }).map(plCard).join("");
+    if(foc){ var fe = el.querySelector('[data-id="'+foc+'"]'); if(fe) fe.focus(); }
   });
   var f = document.getElementById("plFocus"), b = plSelected && teamBot(plSelected);
   if(!b || !b.alive){ plSelected = null; f.className = ""; return; }
   f.className = "show "+b.team.toLowerCase();
   var ph = document.getElementById("pfPhoto"); if(ph.dataset.id !== b.id){ ph.dataset.id = b.id; ph.innerHTML = plPhoto(b); }
   document.getElementById("pfNick").textContent = nick(b.id);
-  document.getElementById("pfHp").textContent = Math.max(0, Math.round(b.hp))+" HP · "+((b.weapon && b.weapon.name) || "");
+  document.getElementById("pfHp").textContent = Math.max(0, Math.round(b.hp));
+  document.getElementById("pfKd").innerHTML = (b.kills||0)+'<i></i>'+(b.deaths||0);
 }
+// клик по строке игрока в панели — его карточка; повторный клик — убрать
+["plT","plCT"].forEach(function(id){
+  var el = document.getElementById(id); if(!el) return;
+  var pick = function(e){ var c = e.target.closest && e.target.closest(".pl-card"); if(!c) return;
+    var bb = teamBot(c.dataset.id); plSelected = (plSelected === c.dataset.id || !bb || !bb.alive) ? null : c.dataset.id; playersUpdate(); };
+  el.addEventListener("pointerdown", function(e){ if(e.button === 0) pick(e); });   // не click: строки перерисовываются ~10 раз в секунду
+  el.addEventListener("keydown", function(e){ if(e.key === "Enter" || e.key === " "){ e.preventDefault(); pick(e); } });
+});
 // клик по игроку на радаре (не перетаскивание камеры) — он в центре; мимо — убрать
 (function(){
   var down = null;
@@ -16078,7 +16180,9 @@ var __SNAP = [
 ["PLAYER_PHOTO", function(){ return PLAYER_PHOTO; }, function(v){ try{ PLAYER_PHOTO = v; }catch(e){} }],
 ["PL_SIL", function(){ return PL_SIL; }, function(v){ try{ PL_SIL = v; }catch(e){} }],
 ["PL_ICON", function(){ return PL_ICON; }, function(v){ try{ PL_ICON = v; }catch(e){} }],
-["plSelected", function(){ return plSelected; }, function(v){ try{ plSelected = v; }catch(e){} }]
+["plSelected", function(){ return plSelected; }, function(v){ try{ plSelected = v; }catch(e){} }],
+["PL_KILL", function(){ return PL_KILL; }, function(v){ try{ PL_KILL = v; }catch(e){} }],
+["PL_SKULL", function(){ return PL_SKULL; }, function(v){ try{ PL_SKULL = v; }catch(e){} }]
 ];
 var MK_PRINCIPLES = [{"id": "К1", "sec": "Команда", "text": "НОВОЕ 11.10. Убили опорника, бомбу видели на сайте, а T остался один — идут все CT (и опорник другого", "done": false}, {"id": "К2", "sec": "Команда", "text": "НОВОЕ 11.10. Назначили на ротацию — бот сразу бросает прежнюю задачу (пуш, добивание) и идёт. Сейчас", "done": false}, {"id": "К3", "sec": "Команда", "text": "НОВОЕ 11.10. CT убили всех T до ретейка — режим «сбор на ретейк» снимается, бегут к бомбе и дефузят. Сейчас", "done": false}, {"id": "К4", "sec": "Команда", "text": "НОВОЕ 11.10. Ротация на колл не мечется: CT 8 и 9 побежали на B, по пути развернулись на A, потом снова на B;", "done": false}, {"id": "К5", "sec": "Команда", "text": "НОВОЕ 11.10. Бомбу выбили (носитель убит, бомба на земле) — CT держат её (кто-то смотрит на бомбу) и", "done": false}, {"id": "В1", "sec": "Взгляд", "text": "НОВОЕ 11.10. На ходу (ротация, сбор на ретейк) взгляд держится на одной цели, а не крутится туда-сюда", "done": false}, {"id": "В2", "sec": "Взгляд", "text": "НОВОЕ 11.10. T при перемещении (после планта и вообще) смотрит туда, откуда по его знанию придут CT, а не", "done": false}, {"id": "В3", "sec": "Взгляд", "text": "НОВОЕ 11.10. CT на сборе ретейка не стоит спиной к ближнему входу со стороны T: CT 3 (8 HP) в Back Halls", "done": false}, {"id": "В4", "sec": "Взгляд", "text": "НОВОЕ 11.10. Взгляд не упирается в стену рядом: T 0 на зачистке A (Back Site) смотрит в стену в 94 px.", "done": false}, {"id": "В5", "sec": "Взгляд", "text": "НОВОЕ 11.10. Стоящий бот поворачивается на шум врагов рядом: CT 4 на сейве в Connector, 4 T в CT Spawn в", "done": false}, {"id": "В6", "sec": "Взгляд", "text": "НОВОЕ 11.10. Рядом убили тиммейта (видел и слышал) — смотрит туда, где убийца: T 2 в Back Site, T 0 убит", "done": false}, {"id": "Б1", "sec": "Бой", "text": "НОВОЕ 11.10. Есть урон по своим (как в CS2 на про-матчах): пули, HE, молотов ранят тиммейтов. (чат 11.10)", "done": false}, {"id": "Б2", "sec": "Бой", "text": "НОВОЕ 11.10. Боты выходят из вражеского молотова, а не стоят в нём. (чат 11.10)", "done": false}, {"id": "А1", "sec": "Аудит поведения (12.10, документ владельца «Гипотезы, приоритеты и план проверки»)", "text": "НОВОЕ 12.10. Важная задача (сейв, дефуз, сорвать плант, ретейк) сразу снимает лайнап / подбор оружия / ожидание у смока — бот не стоит, пока подсистемы спорят. (аудит, отчёт 3.1)", "done": false}, {"id": "А2", "sec": "Аудит поведения (12.10, документ владельца «Гипотезы, приоритеты и план проверки»)", "text": "НОВОЕ 12.10. Между появлением врага и выстрелом — реакция; мгновенно — только по тому, что знал до появления. (аудит, 3.2)", "done": false}, {"id": "А3", "sec": "Аудит поведения (12.10, документ владельца «Гипотезы, приоритеты и план проверки»)", "text": "НОВОЕ 12.10. В перестрелке бот не видит врагов вне поля зрения. (аудит, 3.3)", "done": false}, {"id": "А4", "sec": "Аудит поведения (12.10, документ владельца «Гипотезы, приоритеты и план проверки»)", "text": "НОВОЕ 12.10. Что слышал один, команда узнаёт только из войса. (аудит, 3.4)", "done": false}, {"id": "А5", "sec": "Аудит поведения (12.10, документ владельца «Гипотезы, приоритеты и план проверки»)", "text": "НОВОЕ 12.10. После смены сайта T не идут по маршруту и не кидают гранаты к старому сайту. (аудит, 3.5)", "done": false}, {"id": "А6", "sec": "Аудит поведения (12.10, документ владельца «Гипотезы, приоритеты и план проверки»)", "text": "НОВОЕ 12.10. HE и молотов не кидают под своих. (аудит, 3.6)", "done": false}, {"id": "Э1", "sec": "Аудит поведения (12.10, документ владельца «Гипотезы, приоритеты и план проверки»)", "text": "НОВОЕ 12.10. Вторая цель посреди перестрелки — со своей реакцией, первая не «разогревает» бота на всех. (ТЗ этап 2, P0-2)", "done": false}, {"id": "Э2", "sec": "Аудит поведения (12.10, документ владельца «Гипотезы, приоритеты и план проверки»)", "text": "НОВОЕ 12.10. Карта команды — только из того, что знает вся команда (радар, войс, киллфид); несказанный слух одного её не меняет. (ТЗ этап 2, P1-2)", "done": false}, {"id": "Э3", "sec": "Аудит поведения (12.10, документ владельца «Гипотезы, приоритеты и план проверки»)", "text": "НОВОЕ 12.10. После смены сайта T группа встаёт на подготовку нового сайта, а не ждёт на точке старого. (ТЗ этап 2, P1-1)", "done": false}, {"id": "Э4", "sec": "Аудит поведения (12.10, документ владельца «Гипотезы, приоритеты и план проверки»)", "text": "НОВОЕ 12.10. Свои не заходят в огонь своего молотова ради обхода — только по fireCommit (цель + хватает HP). (ТЗ этап 3, P1-4)", "done": false}, {"id": "Э5", "sec": "Аудит поведения (12.10, документ владельца «Гипотезы, приоритеты и план проверки»)", "text": "НОВОЕ 12.10. Свой отворачивается от своей флешки, только если знал о ней: колл «флешу!» в войсе дослушал до хлопка, или был рядом / видел бросок. (ТЗ этап 3, P2-2)", "done": false}, {"id": "Э6", "sec": "Аудит поведения (12.10, документ владельца «Гипотезы, приоритеты и план проверки»)", "text": "НОВОЕ 12.10. Держа угол и переминаясь, бот не перекидывает взгляд от сдвига на пиксели — угол выбран от места, где встал. (ТЗ этап 3, P2-1)", "done": false}, {"id": "Э7", "sec": "Аудит поведения (12.10, документ владельца «Гипотезы, приоритеты и план проверки»)", "text": "НОВОЕ 12.10. В перестрелке про стреляют с движением между выстрелами, боты стоят (52 % против 28 % времени на виду). (ТЗ этап 3, P0-1) — открыто: нужна модель «тап/очередь + стрейф» и данные `player_hurt`", "done": false}, {"id": "Э8", "sec": "Аудит поведения (12.10, документ владельца «Гипотезы, приоритеты и план проверки»)", "text": "НОВОЕ 12.10. Молотов не кидают туда, где он загорится под своим или под самим бросающим (проверка — в точке, где он реально вспыхнет). (ТЗ этап 4, P1)", "done": false}, {"id": "Э9", "sec": "Аудит поведения (12.10, документ владельца «Гипотезы, приоритеты и план проверки»)", "text": "НОВОЕ 12.10. Держащий позицию не «смотрит себе под ноги»: угол взгляда, выбранный по пути, не годится, если бот встал в него. (ТЗ этап 4, P1)", "done": false}, {"id": "В1", "sec": "Просьбы владельца 12.10 (после аудита)", "text": "НОВОЕ 12.10. Нож в руках — как у про: чаще на бегу и когда врага рядом быть не может (по знанию бота). (чат 12.10)", "done": false}, {"id": "В2", "sec": "Просьбы владельца 12.10 (после аудита)", "text": "НОВОЕ 12.10. Память о враге стареет со временем, как у про. (чат 12.10, решение по held)", "done": false}, {"id": "В3", "sec": "Просьбы владельца 12.10 (после аудита)", "text": "НОВОЕ 12.10. Темп атаки как у про (плант ~66 с). (чат 12.10)", "done": false}, {"id": "В4", "sec": "Просьбы владельца 12.10 (после аудита)", "text": "НОВОЕ 12.10. T не гибнут в одиночку чаще про (у про 20 % смертей до планта, у ботов 43–49 %). (чат 12.10, пункт 2)", "done": false}];
 // ======================= v167: «Отметить момент», карточка «Я понял так», перемотка =======================
