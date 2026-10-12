@@ -122,6 +122,8 @@ applyDamage = function(att, b, dmg, src, o){
         ("зашёл: " + (fireCommit(b) ? "по делу (fireCommit)" : b.holding ? "держит угол" : "иное") + " | " + (b.post ? String(b.post.tag).split(":")[0] : "-") + " | " + (b._fc && b._fc.ph !== "line" ? "fc" : "") + (b._burning ? " выходит" : "")); }
       A.ff.push([tick, att.id, b.id, src, Math.round(hp0 - (b.alive ? b.hp : 0)), how]);
     }
+    // (этап 4) урон себе своей гранатой (бросивший в своём огне / своё HE)
+    if(att && att === b && src !== "bullet"){ (A.ffSelf || (A.ffSelf = [])).push([tick, b.id, src, Math.round(hp0 - (b.alive ? b.hp : 0)), b.post ? String(b.post.tag).split(":")[0] : "-"]); }
     if(att && att.team !== b.team && b.alive && src === "bullet") EXPO.push({t: tick, id: b.id, x: b.x, y: b.y, hp: b.hp});
     if(att && att.team !== b.team) infoMark(b);
   }

@@ -9237,7 +9237,14 @@ function throwNade(b, type, tx, ty, lob, why){
   // (аудит 11.10) проверка прямо перед броском: HE / молотов не летит туда, где стоит свой (в радиусе поражения) —
   // бросок отменяется, граната остаётся. Раньше не проверялось: 37 % HE падали в 300 px от своего, урон по своим от
   // гранат — 88 случаев на 12 матчей (у про из 33 тимкиллов 30 — пули, docs/PRO_PLAY.md 6г)
-  if((type === "he" || type === "molly") && bots.some(function(o){ return o !== b && o.alive && o.team === b.team && Math.hypot(o.x-tx, o.y-ty) < NADE[type].radius; })) return false;
+  // (этап 4, P1) проверяется и точка, где молотов реально загорится: прямой бросок вспыхивает, когда скорость падает ниже 70
+  // (полёт ниже), т. е. на 70/64/(1−0,96) ≈ 27 px ближе цели. И сам бросающий — тоже «свой». Раньше: опорник CT кидал
+  // «задержать выход» в точку в 79 px (радиус 72), огонь вспыхивал в 52 px — горел сам (5–10 раз на 12 матчей)
+  var dL = Math.max(60, Math.hypot(tx-b.x, ty-b.y)); if(!lob) dL = Math.min(NADE_THROW_RANGE, dL);
+  var aL = Math.atan2(ty-b.y, tx-b.x), shortL = (type === "molly" && !lob) ? 70/TICK_HZ/(1-0.96) : 0;
+  var lx = b.x + Math.cos(aL)*Math.max(0, dL - shortL), ly = b.y + Math.sin(aL)*Math.max(0, dL - shortL);
+  if((type === "he" || type === "molly") && bots.some(function(o){ return o.alive && o.team === b.team &&
+      (Math.hypot(o.x-tx, o.y-ty) < NADE[type].radius || Math.hypot(o.x-lx, o.y-ly) < NADE[type].radius); })) return false;
   b.nades[type]--;
   var d = Math.max(60, Math.hypot(tx-b.x, ty-b.y)); if(!lob) d = Math.min(NADE_THROW_RANGE, d);
   var a = Math.atan2(ty-b.y, tx-b.x);

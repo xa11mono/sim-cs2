@@ -16,6 +16,8 @@ def load(lab):
     for d in D:
         for f in d.get('ff', []):
             if len(f) > 5 and 'молотов' in str(f): ff[str(f[5]).split(':')[0]] += 1
+    SELF = [e for d in D for e in d.get('ffSelf', [])]
+    C['_урон себе своей гранатой: случаев / HP'] = len(SELF); C['_HP себе'] = sum(e[3] for e in SELF)
     BL = [b for d in D for b in d.get('blinds', [])]
     bl = {k: [sum(1 for b in BL if b[2] == k), round(sum(b[3] for b in BL if b[2] == k), 1)] for k in ('mate', 'self', 'enemy')}
     return rounds, C, bl, len(D)
