@@ -18,71 +18,73 @@
   .med-lv{display:flex;gap:4px;align-items:center;margin-bottom:6px;flex-wrap:wrap;} .med-lv button{font-size:11px;padding:3px 9px;} .med-lv button.on{background:var(--accent);color:#0a0e09;border-color:var(--accent);}
   .med-lv input{width:52px;background:var(--panel-2);color:var(--text);border:1px solid var(--line);border-radius:4px;padding:2px 5px;}
   /* табло как на трансляции (Н6): плоское, без «рваной бумаги» */
-  /* (v262) HUD как на трансляции ESL: плоско, без бумаги и фото-рамок; номера = номера в кружках радара */
-  :root{--hud-f:'Roboto Condensed','Golos Text',sans-serif; --hud-ink:#0c0e0b; --hud-sand:rgba(98,91,62,.92); --hud-sand-2:rgba(0,0,0,.16); --hud-dead:rgba(44,46,41,.9);}
-  #scoreboard{position:absolute;top:8px;left:50%;transform:translateX(-50%);pointer-events:none;z-index:4;font-family:var(--hud-f);display:flex;flex-direction:column;align-items:center;}
-  #scoreboard .sb-head{display:flex;justify-content:space-between;width:100%;gap:40px;}
-  #scoreboard .sb-head span{background:var(--accent);color:var(--hud-ink);font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;padding:2px 14px 1px;line-height:1.2;}
-  #scoreboard .sb-head span:first-child{clip-path:polygon(0 0,100% 0,calc(100% - 8px) 100%,0 100%);}
-  #scoreboard .sb-head span:last-child{clip-path:polygon(0 0,100% 0,100% 100%,8px 100%);}
-  #scoreboard .sb-main{display:flex;align-items:stretch;background:var(--hud-ink);box-shadow:0 0 0 1px rgba(255,255,255,.08);}
-  #scoreboard .sb-team{display:flex;align-items:center;gap:10px;padding:5px 12px;position:relative;}
-  #scoreboard .sb-team::after{content:"";position:absolute;left:0;right:0;top:0;height:2px;}
-  #scoreboard .sb-team.t::after{background:var(--t);} #scoreboard .sb-team.ct::after{background:var(--ct);} #scoreboard .sb-team.ct{flex-direction:row-reverse;}
-  #scoreboard .sb-logo{width:36px;height:36px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:14px;color:var(--hud-ink);overflow:hidden;background:#1d211b;}
-  #scoreboard .sb-logo img{width:86%;height:86%;object-fit:contain;}
-  #scoreboard .t .sb-logo{box-shadow:inset 0 0 0 1px var(--t);color:var(--t);} #scoreboard .ct .sb-logo{box-shadow:inset 0 0 0 1px var(--ct);color:var(--ct);}
-  #scoreboard .sb-score{font-size:36px;font-weight:600;color:#fff;min-width:34px;text-align:center;line-height:1;font-variant-numeric:tabular-nums;}
-  #scoreboard .sb-mid{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2px 14px;min-width:84px;border-left:1px solid #262a23;border-right:1px solid #262a23;}
-  #scoreboard .sb-round{font-size:12px;font-weight:500;letter-spacing:.06em;color:#c9cdc2;text-transform:uppercase;line-height:1.05;}
-  #scoreboard .sb-time{font-size:21px;font-weight:600;color:#fff;line-height:1.05;font-variant-numeric:tabular-nums;}
+  /* (v269) HUD по образцу трансляции ESL, по правилам docs/DESIGN_SOURCES.md: плотность «кокпит», острые углы, числа моно,
+     иерархия весом и цветом; цвета команд — данные; номера = номера в кружках радара */
+  :root{--hud-f:'Roboto Condensed','Golos Text',sans-serif; --hud-n:'IBM Plex Mono',ui-monospace,monospace; --hud-ink:#121510;
+        --hud-row:rgba(18,22,16,.9); --hud-row-sel:rgba(40,46,36,.95); --hud-dim:#8d9786; --hud-line:rgba(255,255,255,.07); --hud-money:#9fbf6a;}
+  #scoreboard{position:absolute;top:8px;left:50%;transform:translateX(-50%);pointer-events:none;z-index:4;font-family:var(--hud-f);display:flex;flex-direction:column;align-items:stretch;}
+  #scoreboard .sb-head{display:flex;justify-content:space-between;}
+  #scoreboard .sb-head span{background:var(--accent);color:var(--hud-ink);font-size:11px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;padding:2px 10px 1px;line-height:1.3;}
+  #scoreboard .sb-main{display:flex;align-items:stretch;background:var(--hud-row);border-bottom:1px solid var(--hud-line);}
+  #scoreboard .sb-team{display:flex;align-items:center;gap:10px;padding:6px 12px;border-top:2px solid transparent;}
+  #scoreboard .sb-team.t{border-top-color:var(--t);} #scoreboard .sb-team.ct{border-top-color:var(--ct);flex-direction:row-reverse;}
+  #scoreboard .sb-logo{width:30px;height:30px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:500;overflow:hidden;border:1px solid var(--hud-line);}
+  #scoreboard .sb-logo img{width:90%;height:90%;object-fit:contain;}
+  #scoreboard .t .sb-logo{color:var(--t);} #scoreboard .ct .sb-logo{color:var(--ct);}
+  #scoreboard .sb-score{font-family:var(--hud-n);font-size:28px;font-weight:500;color:#fff;min-width:26px;text-align:center;line-height:1;}
+  #scoreboard .sb-mid{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;padding:3px 14px;min-width:80px;border-left:1px solid var(--hud-line);border-right:1px solid var(--hud-line);}
+  #scoreboard .sb-round{font-size:11px;font-weight:500;letter-spacing:.08em;color:var(--hud-dim);text-transform:uppercase;line-height:1.1;}
+  #scoreboard .sb-time{font-family:var(--hud-n);font-size:17px;font-weight:500;color:#fff;line-height:1.1;}
   #scoreboard .sb-time.low{color:#ff8a7e;} #scoreboard .sb-time.bomb{color:#ff5a4c;}
-  #scoreboard .sb-alive{display:flex;align-items:center;gap:8px;margin-top:5px;font-size:13px;font-weight:600;color:var(--text-dim);}
-  #scoreboard .sb-alive b{display:inline-block;min-width:24px;padding:0 6px;text-align:center;font-size:15px;font-weight:600;color:#fff;}
-  #scoreboard .sb-alive b.t{background:var(--t);color:var(--hud-ink);} #scoreboard .sb-alive b.ct{background:var(--ct);color:var(--hud-ink);}
-  /* панели игроков */
-  .pl-col{position:absolute;top:10px;width:264px;display:flex;flex-direction:column;gap:2px;pointer-events:none;z-index:3;font-family:var(--hud-f);color:#fff;}
-  #plT{left:12px;} #plCT{right:12px;align-items:flex-end;}
-  .pl-tag{align-self:flex-start;min-width:58%;margin-bottom:2px;padding:2px 22px 1px 10px;font-size:15px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#fff;line-height:1.2;clip-path:polygon(0 0,100% 0,calc(100% - 12px) 100%,0 100%);}
-  #plT .pl-tag{background:var(--t);color:var(--hud-ink);} #plCT .pl-tag{align-self:flex-end;background:var(--ct);color:var(--hud-ink);padding:2px 12px 1px 22px;text-align:right;clip-path:polygon(0 0,100% 0,100% 100%,12px 100%);}
-  .pl-card{position:relative;display:flex;align-items:stretch;width:100%;height:50px;background:var(--hud-sand);box-sizing:border-box;pointer-events:auto;cursor:pointer;}
+  #scoreboard .sb-alive{display:flex;align-items:center;justify-content:center;gap:6px;margin-top:4px;font-size:11px;color:var(--hud-dim);}
+  #scoreboard .sb-alive b{font-family:var(--hud-n);min-width:20px;padding:0 5px;text-align:center;font-size:13px;font-weight:500;color:var(--hud-ink);}
+  #scoreboard .sb-alive b.t{background:var(--t);} #scoreboard .sb-alive b.ct{background:var(--ct);}
+  /* панели игроков: строки без зазоров, разделены линией 1 px */
+  .pl-col{position:absolute;top:10px;width:250px;display:flex;flex-direction:column;pointer-events:none;z-index:3;font-family:var(--hud-f);color:#fff;}
+  #plT{left:12px;} #plCT{right:12px;}
+  .pl-tag{display:flex;align-items:center;height:22px;padding:0 10px;font-size:12px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;background:var(--hud-row);border-top:2px solid;}
+  #plT .pl-tag{border-color:var(--t);color:var(--t);} #plCT .pl-tag{border-color:var(--ct);color:var(--ct);justify-content:flex-end;}
+  .pl-card{position:relative;display:flex;align-items:stretch;height:44px;background:var(--hud-row);border-top:1px solid var(--hud-line);pointer-events:auto;cursor:pointer;}
+  .pl-card:hover{background:var(--hud-row-sel);}
   #plCT .pl-card{flex-direction:row-reverse;}
-  .pl-num{flex:none;width:20px;display:flex;align-items:flex-start;justify-content:center;padding-top:4px;font-size:15px;font-weight:600;line-height:1;color:var(--hud-ink);}
+  .pl-num{flex:none;width:18px;display:flex;align-items:center;justify-content:center;font-family:var(--hud-n);font-size:12px;font-weight:500;color:var(--hud-ink);}
   #plT .pl-num{background:var(--t);} #plCT .pl-num{background:var(--ct);}
-  .pl-body{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center;gap:2px;padding:0 9px;}
+  .pl-body{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center;gap:3px;padding:0 9px;}
   #plCT .pl-body{align-items:flex-end;}
-  .pl-nick{font-size:17px;font-weight:600;text-transform:uppercase;letter-spacing:.03em;line-height:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;}
-  .pl-stat{display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:500;color:#e6e2d0;line-height:1;font-variant-numeric:tabular-nums;}
-  .pl-stat svg{width:10px;height:10px;fill:#d8d3bd;margin-right:3px;vertical-align:-1px;}
-  .pl-money{font-size:12.5px;font-weight:500;color:#a8de78;line-height:1;}
-  .pl-ava{flex:none;width:44px;align-self:flex-end;height:46px;background:var(--hud-sand-2);display:flex;align-items:flex-end;justify-content:center;overflow:hidden;}
-  .pl-ava svg{width:38px;height:38px;fill:rgba(255,255,255,.22);} .pl-ava img{width:100%;height:100%;object-fit:cover;}
-  .pl-side{flex:none;width:72px;display:flex;flex-direction:column;align-items:flex-end;justify-content:center;gap:2px;padding:0 8px 0 4px;}
-  #plCT .pl-side{align-items:flex-start;padding:0 4px 0 8px;}
+  .pl-nick{font-size:14px;font-weight:500;letter-spacing:.04em;text-transform:uppercase;line-height:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;}
+  .pl-stat{display:flex;align-items:center;gap:8px;font-family:var(--hud-n);font-size:11px;color:var(--hud-dim);line-height:1;}
+  .pl-stat svg{width:9px;height:9px;fill:var(--hud-dim);margin-right:3px;vertical-align:-1px;}
+  .pl-money{color:var(--hud-money);}
+  .pl-ava{flex:none;width:34px;align-self:flex-end;height:40px;display:flex;align-items:flex-end;justify-content:center;overflow:hidden;}
+  .pl-ava svg{width:30px;height:30px;fill:rgba(255,255,255,.16);} .pl-ava img{width:100%;height:100%;object-fit:cover;}
+  .pl-side{flex:none;width:66px;display:flex;flex-direction:column;align-items:flex-end;justify-content:center;gap:3px;padding:0 9px 0 4px;}
+  #plCT .pl-side{align-items:flex-start;padding:0 4px 0 9px;}
   .pl-top{display:flex;align-items:center;gap:6px;} #plCT .pl-top{flex-direction:row-reverse;}
-  .pl-top svg.wp{height:13px;width:auto;max-width:40px;fill:#fff;opacity:.7;} #plCT .pl-top svg.wp{transform:scaleX(-1);}
-  .pl-hp{font-size:22px;font-weight:600;line-height:1;font-variant-numeric:tabular-nums;}
-  .pl-hp.low{color:#ffb3a8;}
-  .pl-gear{display:flex;align-items:center;gap:3px;height:11px;}
-  .pl-gear svg{height:9px;width:auto;fill:rgba(255,255,255,.6);flex:none;}
-  .pl-bar{position:absolute;left:20px;right:0;bottom:0;height:2px;background:rgba(0,0,0,.25);}
-  #plCT .pl-bar{left:0;right:20px;}
-  .pl-bar b{display:block;height:100%;background:rgba(255,255,255,.8);} #plCT .pl-bar b{margin-left:auto;}
-  .pl-bar b.low{background:var(--danger);}
-  .pl-card.dead{background:var(--hud-dead);} .pl-card.dead .pl-num{background:#5a5c55;} .pl-card.dead .pl-ava{filter:grayscale(1);opacity:.5;background:#30322c;} .pl-card.dead .pl-nick{color:#b9bbb2;}
-  .pl-card.sel{box-shadow:inset 0 0 0 1px rgba(255,255,255,.85);}
-  .pl-card:focus-visible{outline:2px solid #fff;outline-offset:1px;}
-  /* выбранный игрок — карточка как на трансляции: портрет, K / D, имя и HP */
-  #plFocus{position:absolute;left:50%;bottom:14px;transform:translateX(-50%);display:none;flex-direction:column;width:220px;pointer-events:none;z-index:4;font-family:var(--hud-f);}
-  #plFocus.show{display:flex;}
-  #plFocus .pf-photo{position:relative;height:128px;background:#2a2e27;display:flex;align-items:flex-end;justify-content:center;overflow:hidden;}
-  #plFocus .pf-photo svg{width:112px;height:112px;fill:#4d5449;} #plFocus .pf-photo img{width:100%;height:100%;object-fit:cover;}
-  #plFocus .pf-kd{position:absolute;right:8px;bottom:8px;display:flex;align-items:center;gap:6px;padding:1px 8px;background:rgba(12,14,11,.82);font-size:15px;font-weight:600;color:#fff;font-variant-numeric:tabular-nums;}
-  #plFocus .pf-kd i{width:1px;height:14px;background:#fff;opacity:.5;}
-  #plFocus .pf-bar{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:4px 12px;background:#141d33;border-bottom:2px solid var(--ct);}
-  #plFocus.t .pf-bar{background:#2a1f10;border-bottom-color:var(--t);}
-  #plFocus #pfNick{font-size:19px;font-weight:600;letter-spacing:.03em;text-transform:uppercase;color:#fff;line-height:1.05;}
-  #plFocus #pfHp{font-size:20px;font-weight:600;color:#fff;line-height:1.05;font-variant-numeric:tabular-nums;}
+  .pl-top svg.wp{height:10px;width:auto;max-width:34px;fill:#fff;opacity:.55;} #plCT .pl-top svg.wp{transform:scaleX(-1);}
+  .pl-hp{font-family:var(--hud-n);font-size:17px;font-weight:500;line-height:1;}
+  .pl-hp.low{color:#ff8a7e;}
+  .pl-gear{display:flex;align-items:center;gap:3px;height:9px;}
+  .pl-gear svg{height:8px;width:auto;fill:rgba(255,255,255,.45);flex:none;}
+  .pl-bar{position:absolute;left:18px;right:0;bottom:0;height:2px;}
+  #plCT .pl-bar{left:0;right:18px;}
+  .pl-bar b{display:block;height:100%;opacity:.75;} #plT .pl-bar b{background:var(--t);} #plCT .pl-bar b{background:var(--ct);margin-left:auto;}
+  .pl-bar b.low{background:var(--danger)!important;opacity:1;}
+  #plT .pl-card.dead .pl-num,#plCT .pl-card.dead .pl-num{background:#3a3e36;color:#8d9786;} .pl-card.dead .pl-nick{color:#6f776a;} .pl-card.dead .pl-ava{opacity:.4;} .pl-card.dead .pl-hp{color:#6f776a;font-size:14px;}
+  .pl-card.sel{background:var(--hud-row-sel);box-shadow:inset 0 0 0 1px rgba(255,255,255,.55);}
+  .pl-card:focus-visible{outline:1px solid #fff;outline-offset:-1px;}
+  /* выбранный игрок: портрет, фраги | смерти, ник и HP; появление — 180 мс */
+  #plFocus{position:absolute;left:50%;bottom:14px;transform:translateX(-50%);display:none;flex-direction:column;width:200px;pointer-events:none;z-index:4;font-family:var(--hud-f);}
+  #plFocus.show{display:flex;animation:pfIn .18s cubic-bezier(.2,.8,.2,1);}
+  @keyframes pfIn{from{opacity:0;transform:translate(-50%,6px);}to{opacity:1;transform:translate(-50%,0);}}
+  @media (prefers-reduced-motion: reduce){ #plFocus.show{animation:none;} }
+  #plFocus .pf-photo{position:relative;height:116px;background:#1b2018;display:flex;align-items:flex-end;justify-content:center;overflow:hidden;border-top:2px solid var(--ct);}
+  #plFocus.t .pf-photo{border-top-color:var(--t);}
+  #plFocus .pf-photo svg{width:100px;height:100px;fill:rgba(255,255,255,.14);} #plFocus .pf-photo img{width:100%;height:100%;object-fit:cover;}
+  #plFocus .pf-kd{position:absolute;right:0;bottom:0;display:flex;align-items:center;gap:6px;padding:2px 8px;background:var(--hud-ink);font-family:var(--hud-n);font-size:12px;color:#fff;}
+  #plFocus .pf-kd i{width:1px;height:10px;background:var(--hud-dim);}
+  #plFocus .pf-bar{display:flex;align-items:center;justify-content:space-between;gap:10px;height:30px;padding:0 10px;background:var(--hud-ink);border-top:1px solid var(--hud-line);}
+  #plFocus #pfNick{font-size:15px;font-weight:500;letter-spacing:.04em;text-transform:uppercase;color:#fff;}
+  #plFocus #pfHp{font-family:var(--hud-n);font-size:16px;font-weight:500;color:#fff;}
 </style></head><body>
 <title>Ancient Live Radar</title>
 <style>
@@ -148,8 +150,8 @@
   #killfeed .kf.ev{font-weight:600;border:1px solid var(--line);} #killfeed .kf.tk{border:1px solid #e05c52;} #killfeed .kf.bomb{border-color:#e05c52;color:#ff9a8f;} #killfeed .kf.defuse{border-color:#5a9bd9;color:#9ec6ef;}
   #killfeed .kf.clutch{border-color:#ffd76a;color:#ffe49a;}
   #killfeed .kf.boom{border-color:#e05c52;background:rgba(80,20,15,0.85);color:#ffb3aa;} #killfeed .kf.round{opacity:.6;font-weight:400;}
-  #banner{position:absolute;top:150px;left:50%;transform:translateX(-50%) scale(.9);opacity:0;transition:all .25s;pointer-events:none;font-family:'IBM Plex Sans',sans-serif;font-weight:700;font-size:22px;letter-spacing:.04em;padding:8px 22px;border-radius:6px;background:rgba(10,14,9,0.88);border:1px solid var(--accent-dim);color:#fff;}
-  #banner.show{opacity:1;transform:translateX(-50%) scale(1);} #banner.ct{border-color:var(--ct);color:#cfe4f8;} #banner.t{border-color:var(--t);color:#f6ddb3;}
+  #banner{position:absolute;top:150px;left:50%;transform:translateX(-50%) translateY(4px);opacity:0;transition:opacity .18s ease-out,transform .18s ease-out;pointer-events:none;font-family:'Roboto Condensed','Golos Text',sans-serif;font-weight:500;font-size:17px;letter-spacing:.06em;text-transform:uppercase;padding:6px 16px;border-radius:0;background:rgba(18,22,16,.92);border:1px solid var(--accent-dim);color:#fff;}
+  #banner.show{opacity:1;transform:translateX(-50%);} #banner.ct{border-color:var(--ct);color:#cfe4f8;} #banner.t{border-color:var(--t);color:#f6ddb3;}
   #roundCard{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) scale(.94);opacity:0;transition:all .3s;pointer-events:none;min-width:340px;text-align:center;background:rgba(10,14,9,0.93);border:1px solid var(--accent-dim);border-radius:10px;padding:16px 22px;font-family:'IBM Plex Sans',sans-serif;color:var(--text);}
   #roundCard.show{opacity:1;transform:translate(-50%,-50%) scale(1);}
   #roundCard .rc-t{font-size:26px;font-weight:700;letter-spacing:.05em;} #roundCard .rc-t.ct{color:var(--ct);} #roundCard .rc-t.t{color:var(--t);}
@@ -199,7 +201,7 @@
   .mk-toast{position:absolute;left:50%;bottom:24px;transform:translateX(-50%);z-index:60;background:rgba(10,14,9,0.96);border:1px solid var(--accent);color:var(--text);padding:8px 14px;border-radius:6px;max-width:80%;}
   .mk-prog{position:absolute;left:50%;top:45%;transform:translate(-50%,-50%);z-index:60;background:rgba(10,14,9,0.96);border:1px solid var(--accent);color:var(--accent);padding:14px 22px;border-radius:8px;font-size:15px;}
 </style>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700&family=Roboto+Condensed:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700&family=Roboto+Condensed:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
 
 <div id="app">
   <div id="topbar">
@@ -15628,8 +15630,7 @@ function plCard(b){
   return '<div class="pl-card'+(b.alive ? "" : " dead")+sel+'" data-id="'+b.id+'" tabindex="0" title="Показать игрока">'+
     '<div class="pl-num">'+plNum(b)+'</div>'+
     '<div class="pl-body"><div class="pl-nick">'+esc(n)+'</div>'+
-      '<div class="pl-stat"><span>'+PL_KILL+(b.kills||0)+'</span><span>'+PL_SKULL+(b.deaths||0)+'</span></div>'+
-      '<div class="pl-money">$'+(b.money||0).toLocaleString("en-US")+'</div></div>'+
+      '<div class="pl-stat"><span>'+PL_KILL+(b.kills||0)+'</span><span>'+PL_SKULL+(b.deaths||0)+'</span><span class="pl-money">$'+(b.money||0).toLocaleString("en-US")+'</span></div></div>'+
     '<div class="pl-ava">'+plPhoto(b)+'</div>'+
     '<div class="pl-side"><div class="pl-top">'+wp+'<span class="pl-hp'+low+'">'+(b.alive ? hp : "☠")+'</span></div><div class="pl-gear">'+gear+'</div></div>'+
     '<div class="pl-bar"><b class="'+low.trim()+'" style="width:'+hp+'%"></b></div></div>';
