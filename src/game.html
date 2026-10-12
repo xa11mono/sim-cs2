@@ -188,7 +188,7 @@
   <div id="topbar">
     <div class="tb-id">
       <h1>Ancient</h1>
-      <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 268, 12.10</div>
+      <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 269, 12.10</div>
     </div>
     <div class="tb-group" id="tbMatch">
       <button id="btnPause">Пауза</button>
@@ -2867,7 +2867,7 @@ function setPost(b, pt, look, hold, tag, spreadIdx){
   }
   if(BAL.siteRebal && b._rebal && b._rebal.round === roundNum && !/^(rebal|retake|defuse|flee|save|fetch|stopplant|antidefuse|tradeR|repos|clutch|rotate|endhunt|gather|midcover|lineup|smokeWait|pickup)/.test(tag)) return;
   // игрок на пробе (вышел вперёд за инфой) — пост группы его не перебивает
-  if(b._probeLock && b._probeLock >= tick-1 && !/^probe/.test(tag)) return;
+  if(b._probeLock && b._probeLock >= tick-1 && !/^(probe|fetchCover)/.test(tag)) return;   // и прикрывающий сборщика бомбы (v269)
   // сменил позицию после килла — пост роли не тянет его обратно на засвеченную
   // точку ещё ~5с (задачи по бомбе и ретейк — важнее)
   // (v257, К2) ротация на колл — решение команды: старая перепозиция (пуш, отход) её не держит
@@ -3330,13 +3330,17 @@ function chooseTactic(){
   }
   var defUntil = null;
   if(BAL.proTempo && tac.setupEnd > 0){
-    // время планта — из распределения про (квантили 10/25/50/75/90% = 34/44/66/88/103с),
+    // время планта — из распределения про (QY ниже),
     // выход ~12с до планта (у ботов от выхода до планта 10–15с); стиль тактики сдвигает: выходы раньше, дефолт/фейк позже
     var u = hashRand(roundNum*6271 + matchNum*353 + 29);
     if(tempoRead === "slow") u = 0.5 + 0.5*u; else if(tempoRead === "fast") u = 0.5*u;
     var bias = {exec:[0, 0.8], split:[0.05, 0.9], fake:[0.25, 0.75], "default":[0.3, 0.7], fast:[0, 0.3]}[tac.style] || [0, 1];
     u = bias[0] + bias[1]*u;
-    var QX = [0, 0.10, 0.25, 0.50, 0.75, 0.90, 1], QY = [22, 34, 44, 66, 88, 100, 106], pT = QY[QY.length-1];
+    // (v269) план — по раундам про, где до 30-й секунды никого не убили (450 плантов, tools/measure/plan_bake.py): это темп
+    // «без помех»; ускоряют его уже события раунда (минус на сайте, соло, ротация — ниже). Раньше бралось распределение
+    // всех плантов (34/44/66/88/100 с), где ранние фраги уже ускорили выход, — ускорение считалось дважды: у ботов в тихих
+    // раундах плант на 64,6-й с против 75,8-й у про, после 75-й с — 28 % против 51 %
+    var QX = [0, 0.10, 0.25, 0.50, 0.75, 0.90, 1], QY = [21, 43, 54, 76, 95, 106, 115], pT = QY[QY.length-1];
     for(var qi = 1; qi < QX.length; qi++){ if(u <= QX[qi]){ pT = QY[qi-1] + (QY[qi]-QY[qi-1])*(u-QX[qi-1])/(QX[qi]-QX[qi-1]); break; } }
     setupSec = Math.round(Math.max(tac.setupEnd*0.6, Math.min(ROUND_TIME_SEC - 26, pT - 12)));
     tmode = setupSec < tac.setupEnd - 6 ? ", быстрый" : (setupSec > tac.setupEnd + 8 ? ", поздний" : "");
@@ -4240,7 +4244,7 @@ function tBrain(){
   var fetcher = null;
   // бомбу уже подобрали — старый пост "за бомбой" снять (иначе носитель
   // стоял на месте, где она лежала, до конца раунда)
-  if(bomb.state !== "dropped"){ tt.fetchId = null; ts.forEach(function(b){ if(b.post && b.post.tag === "fetch") clearPost(b); }); }
+  if(bomb.state !== "dropped"){ tt.fetchId = null; tt.fetchCover = null; ts.forEach(function(b){ if(b.post && (b.post.tag === "fetch" || b.post.tag === "fetchCover")) clearPost(b); }); }
   if(bomb.state === "dropped"){
     var bd = Infinity;
     // кто пошёл за бомбой — тот и идёт, пока жив (раньше каждый тик выбирался
@@ -4256,7 +4260,25 @@ function tBrain(){
     });
     if(fetcher){ tt.fetchId = fetcher.id;
       if(fetcher.nadeTask && fetcher.nadeTask.lineup){ fetcher.nadeTask = null; fetcher._lineupLock = 0; } // бомба важнее лайнапа
-      setPost(fetcher, {x:bomb.x, y:bomb.y}, null, false, "fetch"); }
+      // (v269, пункт 2) за бомбой — не в одиночку: бомба лежит там, где убили носителя, — под тем же стрелком. У ботов 27 из
+      // 159 смертей T «один» (нет своего в 350 px) были по дороге за бомбой; у про в одиночку гибнут 20 % T (у ботов 49 %),
+      // а смерть рядом со своим разменивают в 27 % (у ботов 33 %). Ближайший к сборщику T (не лёркер, ≤ 500 px — как напарник
+      // пробы) прикрывает: встаёт на линии сборщик→бомба в 150 px от бомбы (как напарник пробы) и смотрит туда же
+      var FC = tt.fetchCover;
+      if(!FC || FC.round !== roundNum || FC.fid !== fetcher.id || FC.bx !== bomb.x || FC.by !== bomb.y){
+        var cands = ts.filter(function(o){ return o !== fetcher && o.alive && o.tRole !== "lurker" && !o.planting && Math.hypot(o.x-fetcher.x, o.y-fetcher.y) < 500; })
+          .sort(function(a, c){ return Math.hypot(a.x-fetcher.x, a.y-fetcher.y) - Math.hypot(c.x-fetcher.x, c.y-fetcher.y); });
+        var lnF = Math.hypot(fetcher.x-bomb.x, fetcher.y-bomb.y) || 1, backF = Math.min(150, lnF*0.6);
+        FC = tt.fetchCover = {round: roundNum, fid: fetcher.id, bx: bomb.x, by: bomb.y, id: cands[0] ? cands[0].id : null,
+          pt: walk({x: bomb.x + (fetcher.x-bomb.x)/lnF*backF, y: bomb.y + (fetcher.y-bomb.y)/lnF*backF})};
+      }
+      var cov = FC.id ? ts.filter(function(o){ return o.id === FC.id && o.alive; })[0] : null;
+      if(cov && !cov._sawEnemy && !(cov._tradeLock && cov._tradeLock.until > tick)){ setPost(cov, FC.pt, {x:bomb.x, y:bomb.y}, true, "fetchCover"); cov._probeLock = tick; }
+      // к бомбе — когда прикрывающий рядом (350 px — «рядом свой» в замерах); до того сборщик идёт к точке прикрытия.
+      // Нет прикрывающего (рядом никого) — идёт один, как раньше
+      var withCov = !cov || Math.hypot(cov.x-fetcher.x, cov.y-fetcher.y) <= 350;
+      setPost(fetcher, withCov ? {x:bomb.x, y:bomb.y} : FC.pt, withCov ? null : {x:bomb.x, y:bomb.y}, false, "fetch");
+    }
   }
   var isMF = function(b){ return (b._midFlank && b._midFlank.round === roundNum) || (tt.phase === "setup" && b._shift && b._shift.round === roundNum); };
   if(tt.phase === "setup") ts.forEach(function(b){ if(b._shift && b._shift.round === roundNum && !b.planting && !(tt.fetchId === b.id)) setPost(b, b._shift.pt, b._shift.look, true, "shift"); });
@@ -5986,8 +6008,32 @@ function knowTick(){
     knowBombSeen(b);
     knowWindowsTick(b);
     knowLook(b);
+    knowAge(b);
   });
-  ["CT", "T"].forEach(function(team){ var A = teamAgent(team); knowVision(A); knowPlant(A); knowTeamLook(A); });
+  ["CT", "T"].forEach(function(team){ var A = teamAgent(team); knowVision(A); knowPlant(A); knowTeamLook(A); knowAge(A); });
+}
+// (v269, решение владельца 12.10) гипотеза «остался, где видели» (held) стареет со временем. У про доля тех, кто через Δt
+// после потери из вида всё ещё в 150 px от того места: 2 с — 0,95, 5 — 0,65, 10 — 0,43, 20 — 0,27, 40 — 0,13 (88 демок,
+// tools/measure/audit/memory_bake.py → runs/memory_pro.json; от того, стоял или бежал, почти не зависит). Вес held умножается
+// на P(Δt)/P(Δt − шаг): шансы held против остальных гипотез к моменту Δt — стартовые × P(Δt); освободившийся вес уходит
+// остальным (knowNorm), не ниже KNOW.heldFloor.
+// События (тишина в окне, «посмотрел — пусто») по-прежнему меняют вес сверх этого. Стартовые веса held (KNOW.heldStill /
+// heldMoving) не менялись. Слух/войс (heard) — не трогаем: для них кривой у про нет
+var KNOW_AGE = [[0, 1], [2, 0.95], [5, 0.651], [10, 0.425], [20, 0.268], [40, 0.129]];
+function knowAgeP(t){
+  if(t <= 0) return 1;
+  for(var i = 1; i < KNOW_AGE.length; i++) if(t <= KNOW_AGE[i][0]){ var a = KNOW_AGE[i-1], c = KNOW_AGE[i]; return Math.exp(Math.log(a[1]) + (Math.log(c[1])-Math.log(a[1]))*(t-a[0])/(c[0]-a[0])); }
+  var L = KNOW_AGE[KNOW_AGE.length-1], P = KNOW_AGE[KNOW_AGE.length-2];   // дальше 40 с — тот же наклон
+  return Math.exp(Math.log(L[1]) + (Math.log(L[1])-Math.log(P[1]))*(t-L[0])/(L[0]-P[0]));
+}
+function knowAge(b){
+  var K = b.know; if(!K || tick % BELIEF_STEP) return;
+  for(var id in K.enemies){
+    var B = K.enemies[id]; if(B.visible || !B.hyps || !B.last || B.last.tick == null) continue;
+    var t1 = (tick - B.last.tick)/TICK_HZ, t0 = Math.max(0, t1 - BELIEF_STEP/TICK_HZ), f = knowAgeP(t1)/knowAgeP(t0), hit = false;
+    B.hyps.forEach(function(h){ if(h.type === "held" && !h.heard && h.weight > KNOW.heldFloor){ h.weight *= f; hit = true; } });
+    if(hit) knowNorm(B.hyps);
+  }
 }
 // ---------- (этап 2, P1-2) знание КОМАНДЫ — отдельный «слушатель» на команду ----------
 // Что команда знает вся: радар (враг в поле зрения любого живого своего — knowVision), «смотрел — пусто» по радару
@@ -10234,20 +10280,38 @@ function dropWeaponOnDeath(b){ if(b.primary && WEAPONS[b.primary]) groundWeapons
 // Galil 215, FAMAS 220, AK 215, M4A4 225, AWP 200 (в прицеле 100). Считаем от M4 (=SPEED),
 // чтобы средняя скорость команды почти не изменилась
 var WSPEED = {UMP:230, MP7:220, P90:230, SSG:230, M4S:225, AUG:220, SG:210, GLOCK:240, USP:240, P250:240, TEC9:240, FIVE7:240, DEAGLE:230, MAC10:240, MP9:240, GALIL:215, FAMAS:220, AK:215, M4:225, AWP:200};
-// (10) бег с ножом: длинная пробежка там, где врага быть не может (по
-// таймингу/инфе ни в своей зоне, ни в соседних он ещё не успел оказаться,
-// свежей инфы о врагах рядом нет) — нож (250 ю/с). Увидел/услышал врага или
-// зашёл туда, где он уже может быть — достаёт оружие (~0.4с без выстрела)
+// (10) нож в руках. (v269) Как у про (88 демок Ancient, tools/measure/plan_bake.py): нож держат тем чаще, чем дальше
+// ближайший враг и чем быстрее идут. Доля с ножом при дистанции < 400 / 400–600 / 600–900 / 900–1200 / дальше, px:
+// стоит 2 / 4 / 5 / 6 / 23 %, шагом 5 / 9 / 12 / 12 / 44 %, бежит (> 65 px/с) 12,5 / 31 / 49 / 73 / 83 %; в целом 19 % времени
+// (у ботов до v269 — 5 %: только длинная пробежка > 450 px, где врага по таймингу быть не может). Бот не знает, где враг на
+// самом деле: берёт свою оценку — ближайшее место, где враг может быть по гипотезам знания (не среднее: среднее
+// было слишком оптимистичным — с ножом при враге ближе 600 px 18 % против 8 % у про); про кого не знает ничего —
+// ближайшая зона, куда тот уже мог дойти (REACH). Жребий один на отрезок «без контакта» (не мерцает). Увидел врага / в бою —
+// достаёт оружие (~0,4 с без выстрела)
+var KNIFE_D = [400, 600, 900, 1200, Infinity];
+var KNIFE_P = {stand: [0.020, 0.038, 0.046, 0.061, 0.227], walk: [0.050, 0.094, 0.116, 0.119, 0.439], run: [0.125, 0.312, 0.489, 0.729, 0.829]};
+function knifeEnemyDist(b){
+  var K = b.know, g = knowGraph(), best = Infinity, unknown = false;
+  bots.forEach(function(e){
+    if(e.team === b.team || !e.alive) return;
+    var B = K && K.enemies ? K.enemies[e.id] : null, sw = 0, sd = 0;
+    if(B && B.hyps) B.hyps.forEach(function(h){ var p = h.type === "held" ? h : (h.zone && g.c[h.zone]); if(!p || !(h.weight > 0)) return; sw += h.weight; sd = Math.min(sd || Infinity, Math.hypot(p.x-b.x, p.y-b.y)); });
+    if(sw > 0) best = Math.min(best, sd); else unknown = true;
+  });
+  if(unknown) for(var j = 0; j < BZ.cent.length; j++) if(reachPossible(b.team, j)){ var d = Math.hypot(BZ.cent[j].x-b.x, BZ.cent[j].y-b.y); if(d < best) best = d; }
+  return best;
+}
 function knifeTick(b){
   if(!BAL.knifeRun) return;
+  var ok = b.alive && roundState === "live" && (b.state === "patrol" || b.state === "hold") && !b._sawEnemy && !b.planting && !b.defusing &&
+           !b.nadeTask && !(bomb && bomb.state === "carried" && bomb.carrier === b) && !(b._fc);
+  if(!ok){ b._knU = null; }
+  else if(b._knU == null) b._knU = hashRand(roundNum*7919 + tick*13 + b.id.charCodeAt(0)*31 + b.id.length*101);   // жребий на отрезок
   var want = false;
-  if(b.alive && b.state === "patrol" && !b.walking && !b._sawEnemy && b.post && !b.atPost && !b.planting && !b.defusing && !b.nadeTask &&
-     !(bomb && bomb.state === "carried" && bomb.carrier === b) && Math.hypot(b.post.x-b.x, b.post.y-b.y) > 450 && roundState === "live"){
-    var zb = bzOf(b.x, b.y), foe = b.team === "CT" ? "T" : "CT";
-    var safe = zb >= 0 && !reachPossible(b.team, zb) && (BZ.nbr[zb]||[]).every(function(j){ return !reachPossible(b.team, j); });
-    if(safe){ var BL = beliefLast[b.team] || {}; for(var e in BL){ if(tick - BL[e].tick < 8*TICK_HZ && Math.hypot(BL[e].x-b.x, BL[e].y-b.y) < 1200){ safe = false; break; } } }
-    if(safe && b.heardSound && tick - b.heardSound.tick < 3*TICK_HZ) safe = false;
-    want = safe;
+  if(ok){
+    var sp = b.curSpeed || 0, row = sp > 65*SPD_K ? KNIFE_P.run : sp >= 15*SPD_K ? KNIFE_P.walk : KNIFE_P.stand;
+    var d = knifeEnemyDist(b), pk = 0; for(var i = 0; i < KNIFE_D.length; i++){ if(d < KNIFE_D[i]){ pk = row[i]; break; } }
+    want = b._knU < pk;
   }
   if(want && !b._knife){ b._knife = true; }
   else if(!want && b._knife){ b._knife = false; b._drawUntil = tick + Math.round(0.4*TICK_HZ); }

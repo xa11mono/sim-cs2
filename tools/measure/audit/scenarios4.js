@@ -65,6 +65,29 @@
     R.cornerlook_stale_point_at_feet = {ok: nH > 0 && stale === 0, valid: nH > 0, holders: nH, keptPointAtFeet: stale, examples: ex};
   } catch(e){ R.cornerlook_stale_point_at_feet = {ok: false, err: String(e).slice(0, 200)}; }
 
+  // (6) память о враге стареет (v269): враг пропал из вида стоя / шагом / бегом; через Δt = 2/5/10/20/40 с шансы held против
+  // остальных гипотез должны быть стартовые × P(Δt) (кривая про, KNOW_AGE), не ниже пола; видимый враг не стареет
+  try {
+    live(3); var ob = bots.filter(function(o){ return o.team === "CT" && o.alive; })[0], en = bots.filter(function(o){ return o.team === "T" && o.alive; })[0];
+    if(typeof knowAge !== "function") throw new Error("нет knowAge (сборка до v269)");
+    var rows = {}, worst = 0;
+    [["стоял", 0], ["шёл", SPEED*0.25], ["бежал", SPEED]].forEach(function(st){
+      var t00 = tick, K = ob.know;
+      var last = {x: en.x, y: en.y, zone: knowZoneAt(en.x, en.y), tick: t00, stance: "stand", vx: st[1], vy: 0};
+      var B = K.enemies[en.id] = {id: en.id, side: en.team, visible: false, last: last}; B.hyps = knowBuild(K, B.side, last);
+      var odds = function(){ var h = B.hyps.filter(function(q){ return q.type === "held"; })[0]; return h.weight / Math.max(1e-9, 1 - h.weight); };
+      var o0 = odds(), r = {}, T0 = tick;
+      [2, 5, 10, 20, 40].forEach(function(dt){
+        while(tick < T0 + dt*TICK_HZ){ tick += BELIEF_STEP - (tick % BELIEF_STEP || 0) || BELIEF_STEP; knowAge(ob); }
+        var h = B.hyps.filter(function(q){ return q.type === "held"; })[0], exp = Math.max(o0*knowAgeP(dt), 0), got = odds();
+        var floorHit = h.weight <= KNOW.heldFloor + 1e-6, err = floorHit ? 0 : Math.abs(got/exp - 1);
+        worst = Math.max(worst, err); r[dt + " с"] = [+h.weight.toFixed(3), floorHit ? "пол" : +(err*100).toFixed(1) + " %"];
+      });
+      tick = T0; rows[st[0]] = r;
+    });
+    R.memory_held_ages = {ok: worst < 0.05, valid: true, worstOddsError: +(worst*100).toFixed(1) + " %", heldWeight: rows};
+  } catch(e){ R.memory_held_ages = {ok: false, err: String(e).slice(0, 200)}; }
+
   // P2 (смена сайта): то же, что switch_residual_classified этапа 3, но направление B→A и случай «бомба лежит у старого
   // сайта» (бомбу роняют на полпути от носителя к старому сайту в момент смены). Классы: лёркер / бомба у старого сайта /
   // мид-нейтрально (<100 px разницы или тег mid) / место броска гранаты / граната до смены / граната после смены / НЕ объяснено
