@@ -20,6 +20,8 @@
 Готовые демки пропускаются при повторном запуске (видит файлы в demo_export) —
 можно докидывать новые .dem в ту же папку и перезапускать, старые не трогаются.
 Пересобрать всё заново: python parse_demos.py --force
+Дописать к готовым демкам урон, ослепления, все выстрелы и снимки боя (этап 4 аудита):
+    python parse_demos.py "C:\\путь\\к\\папке" --events
 Что получилось и что не получилось — demo_export/_log.txt.
 """
 import os
@@ -57,6 +59,14 @@ EVENTS = {
     "player_hurt": {"player": ["X", "Y", "team_num"]},
     "player_blind": {"player": ["X", "Y", "team_num"]},
 }
+# (этап 4 аудита) для разбора перестрелок по тикам: все выстрелы (без прореживания «один в 0,5 с») с точным тиком,
+# скоростью и взглядом стрелка; и позиции/здоровье/скорость всех игроков каждые FIGHT_EVERY тиков вокруг стрельбы и урона
+FULL_EVENTS = {
+    "weapon_fire_full": ("weapon_fire", ["X", "Y", "yaw", "pitch", "team_num", "velocity_X", "velocity_Y", "health"]),
+}
+FIGHT_EVERY = 2                 # тиков: 32 снимка в секунду в окнах боя
+FIGHT_BEFORE, FIGHT_AFTER = 3*64, 1*64   # окно вокруг каждого выстрела/урона, тиков
+FIGHT_PROPS = ["X", "Y", "Z", "yaw", "health", "team_num", "is_alive", "velocity_X", "velocity_Y", "active_weapon_name", "is_scoped", "ducking"]
 
 
 def already_done(name, out_dir):
@@ -124,6 +134,7 @@ def parse_one(path, out_dir, log):
     print(f"   позиции: {len(df)} строк")
 
     parse_events(p, name, out_dir, warmup_end)
+    parse_full(p, name, out_dir, warmup_end)
 
     dt = time.time() - t_start
     print(f"   готово за {dt:.0f} с")
@@ -156,14 +167,81 @@ def parse_events(p, name, out_dir, warmup_end, only_missing=False):
         print(f"   {ev}: {len(e)}")
 
 
+def parse_full(p, name, out_dir, warmup_end, only_missing=False):
+    """(этап 4) все выстрелы и снимки боя каждые FIGHT_EVERY тиков. Поля, которых нет в этой версии demoparser2,
+    отбрасываются по одному (в _log пишется, какие остались)"""
+    fires = None
+    for key, (ev, props) in FULL_EVENTS.items():
+        f = os.path.join(out_dir, f"{name}_{key}.csv.gz")
+        if only_missing and os.path.exists(f):
+            fires = pd.read_csv(f, usecols=["tick"]); continue
+        e, use = None, list(props)
+        try:
+            e = p.parse_event(ev, player=use, other=["total_rounds_played"])
+        except Exception:
+            use = []   # какое-то поле не поддержано — пробуем поля по одному
+            for c in props:
+                try:
+                    p.parse_event(ev, player=[c]); use.append(c)
+                except Exception:
+                    print(f"   {key}: поле {c} не поддержано — без него")
+            try:
+                e = p.parse_event(ev, player=use, other=["total_rounds_played"])
+            except Exception as ex:
+                print(f"   {key}: нет ({ex})")
+        if e is None or len(e) == 0:
+            continue
+        if "tick" in e.columns and warmup_end:
+            e = e[e["tick"] > warmup_end]
+        e.to_csv(f, index=False, compression="gzip")
+        print(f"   {key}: {len(e)} (поля игрока: {', '.join(use)})")
+        fires = e
+    fpath = os.path.join(out_dir, f"{name}_ticks_fight.csv.gz")
+    if only_missing and os.path.exists(fpath):
+        return
+    marks = []
+    if fires is not None and len(fires):
+        marks += fires["tick"].astype(int).tolist()
+    hp = os.path.join(out_dir, f"{name}_player_hurt.csv.gz")
+    if os.path.exists(hp):
+        marks += pd.read_csv(hp, usecols=["tick"])["tick"].astype(int).tolist()
+    if not marks:
+        print("   снимки боя: нет выстрелов"); return
+    want = set()
+    for t in marks:
+        a = (t - FIGHT_BEFORE) // FIGHT_EVERY * FIGHT_EVERY
+        want.update(range(max(0, a), t + FIGHT_AFTER + 1, FIGHT_EVERY))
+    want = sorted(x for x in want if x > warmup_end)
+    props = []
+    for c in FIGHT_PROPS:   # каждое поле пробуем на одном тике: что не поддержано этой версией demoparser2 — без него
+        try:
+            p.parse_ticks([c], ticks=want[:1]); props.append(c)
+        except Exception:
+            print(f"   снимки боя: поле {c} не поддержано — без него")
+    try:
+        df = p.parse_ticks(props, ticks=want)
+    except Exception as ex:
+        print(f"   снимки боя: не вышло ({ex})"); return
+    if df is None or not len(df):
+        return
+    for c in ("X", "Y", "Z", "yaw", "velocity_X", "velocity_Y"):
+        if c in df.columns:
+            df[c] = df[c].round(1)
+    df.to_csv(fpath, index=False, compression="gzip")
+    print(f"   снимки боя: {len(df)} строк, {len(want)} тиков (каждые {FIGHT_EVERY})")
+
+
 def events_only(dem, out_dir):
-    """--events: у уже разобранных демок дописать только недостающие события (player_hurt, player_blind), без тиков"""
+    """--events: у уже разобранных демок дописать только недостающие: player_hurt, player_blind, все выстрелы
+    (weapon_fire_full) и снимки боя (ticks_fight). Обычные тики не трогаются"""
     import pandas as pd
     from demoparser2 import DemoParser
     name = os.path.splitext(os.path.basename(dem))[0]
     t = pd.read_csv(os.path.join(out_dir, f"{name}_ticks.csv.gz"), usecols=["tick"])
     print(f"== {name}: события")
-    parse_events(DemoParser(dem), name, out_dir, int(t.tick.min()) - 1, only_missing=True)
+    p = DemoParser(dem)
+    parse_events(p, name, out_dir, int(t.tick.min()) - 1, only_missing=True)
+    parse_full(p, name, out_dir, int(t.tick.min()) - 1, only_missing=True)
 
 
 def main():
