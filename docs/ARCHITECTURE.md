@@ -27,6 +27,12 @@
 > только сказанное в войс (`h.voice`). `throwNade` не бросает HE/молотов, если свой в радиусе поражения. Запись и сценарии
 > аудита — `tools/measure/audit/` (`run_audit.py`, `audit_rec.js`, `analyze.py`, `scenarios.js`).
 >
+> **v267 (этап 3 аудита):** колл «флешу!» — новый вид фразы канала команды (`kind:"flash"`, `teamPropose` при `throwNade`,
+> срочный); доставка ставит `nade.warned[id]`, `detonate` смягчает ослепление своих только предупреждённым. `cornerLook` у
+> держащего пост берёт точку `_hold` (место, где встал) вместо текущей. Рывки от застревания (`_netStuck`, `escapeWallLine`)
+> не ведут в огонь без `fireCommit`. Новых мест решений нет. Аудит: `belief_rec.js`, `hit_rec.js`, `hit_bake.py`,
+> `belief_iso.py`, `fire_flash.py`, `scenarios3.js`.
+
 > **v266 (этап 2 аудита):** знание команды — «слушатель» `teamAgent(team)` (одно место: радар `knowVision`, «смотрел — пусто»
 > по радару `knowTeamLook`, войс `knowCall` из `teamChannel`, киллфид, плант); карту `belief` и общую точку LKP `beliefTick` строит
 > только из него (личное `b.know` каждого — для его собственных решений). Реакция и доводка в `tryShoot` — по цели (`b._ts[id]`).

@@ -28,6 +28,30 @@
       ticksInFire: inF, movedAt: moved, fireUntil: f.until, hpLost: hp0 - b.hp};
   } catch(e){ R.molly_path_through_own_fire = {ok: false, valid: false, err: String(e).slice(0, 200)}; }
 
+  // P1-4 (а): огонь загорелся прямо под своим (стоял в зоне при поджоге). Должен выйти обычным бегом к краю, не стоять в огне.
+  // Порог — время пробежать радиус огня + 28 px (точка выхода в коде) на скорости его оружия, ×1,5 на разгон и обход
+  try {
+    freshMatch(3); for(var i = 0; i < 5000 && roundState !== "live"; i++) stepTick(); for(var j = 0; j < 64; j++) stepTick();
+    var mt = bots.filter(function(o){ return o.team === "T" && o.alive && !inFire(o.x, o.y) && !smokes.some(function(q){ return Math.hypot(q.x-o.x, q.y-o.y) < 200; }); })[1], th = bots.filter(function(o){ return o.team === "T" && o.alive && o !== mt; })[0];
+    detonate({type: "molly", x: mt.x, y: mt.y, team: "T", thrower: th, why: "тест"});
+    var f = fires.filter(function(q){ return q.thrower === th && q.born === tick; })[0], inF = 0, hp0 = mt.hp, out = null;
+    for(var k = 0; k < 6*TICK_HZ && mt.alive; k++){ stepTick(); if(inFire(mt.x, mt.y)) inF++; else if(out === null) out = k; }
+    var lim = 1.5*(NADE.molly.radius + 28)/(SPEED*weaponSpeedMul(mt))*TICK_HZ;
+    R.molly_ignited_on_mate = {ok: f && out !== null && out <= lim, valid: !!f, ticksToExit: out, limit: Math.round(lim), ticksInFire: inF, hpLost: hp0 - mt.hp, fireCommit: fireCommit(mt)};
+  } catch(e){ R.molly_ignited_on_mate = {ok: false, err: String(e).slice(0, 200)}; }
+
+  // P1-4 (в): fireCommit — идти сквозь огонь можно только ради цели (дефуз / плант / ретейк) и если хватит HP пройти диаметр.
+  // Проверка самого решения: та же цель, полное HP — можно; HP меньше урона за проход + 10 — нельзя; держит угол — нельзя
+  try {
+    freshMatch(3); for(var i = 0; i < 5000 && roundState !== "live"; i++) stepTick(); for(var j = 0; j < 64; j++) stepTick();
+    var c = bots.filter(function(o){ return o.team === "CT" && o.alive; })[0], hp0 = c.hp, hold0 = c.holding, post0 = c.post;
+    c.post = {x: c.x + 500, y: c.y, tag: "retake"}; c.holding = false;
+    var need = 2*NADE.molly.radius/(SPEED*weaponSpeedMul(c))*NADE.molly.dps + 10;
+    c.hp = 100; var full = fireCommit(c); c.hp = Math.floor(need) - 1; var low = fireCommit(c); c.hp = 100; c.holding = true; var held = fireCommit(c);
+    c.hp = hp0; c.holding = hold0; c.post = post0;
+    R.molly_firecommit_rule = {ok: full === true && low === false && held === false, valid: true, fullHp: full, lowHp: low, holding: held, hpNeeded: Math.round(need)};
+  } catch(e){ R.molly_firecommit_rule = {ok: false, err: String(e).slice(0, 200)}; }
+
   // P2-2: своя флешка. Настоящий бросок (throwNade) T2 → хлопок; T3 (свой) и CT2 (враг) смотрят на точку хлопка (худший случай).
   // Засчитывается, только если хлопок случился и враг действительно ослеп (флешка «рабочая»). Ищем место, где свой далеко от
   // бросающего (>450 px) и не видит его — тогда знать о флешке он может только из колла «флешу!».
@@ -116,7 +140,8 @@
             var tag = b.post ? String(b.post.tag) : "";
             var cls = b.tRole === "lurker" ? "лёркер" :
                       (/^fetch/.test(tag) && bomb && bomb.state === "dropped" && dS(bomb, old) < dS(bomb, nw)) ? "бомба у старого сайта" :
-                      (dN - dO < 100) ? "мид / нейтрально" :
+                      (dN - dO < 100 || /mid/i.test(tag)) ? "мид / нейтрально" :
+                      (T2[0] === "пост" && /^lineup/.test(tag) && b.nadeTask) ? "место броска гранаты" :
                       T2[0] === "граната" ? ((b.nadeTask.start || 0) < t0 ? "граната до смены" : "граната после смены") : "НЕ объяснено";
             cnt[cls] = (cnt[cls] || 0) + 1;
             var row = mn + ":" + roundNum + " " + old + "→" + nw + " " + b.id + "(" + b.tRole + ") " + T2[0] + " " + tag.slice(0, 20) + (T2[0] === "граната" ? " " + b.nadeTask.type + ":" + String(b.nadeTask.why || "").slice(0, 24) : "") + " → " + cls;
