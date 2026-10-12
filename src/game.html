@@ -31,6 +31,7 @@
   #scoreboard .sb-logo{width:30px;height:30px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:500;overflow:hidden;border:1px solid var(--hud-line);}
   #scoreboard .sb-logo img{width:90%;height:90%;object-fit:contain;}
   #scoreboard .t .sb-logo{color:var(--t);} #scoreboard .ct .sb-logo{color:var(--ct);}
+  #scoreboard .sb-name{font-family:'Roboto Condensed','Golos Text',sans-serif;font-size:12px;font-weight:400;letter-spacing:.06em;text-transform:uppercase;color:var(--hud-dim);max-width:124px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
   #scoreboard .sb-score{font-family:var(--hud-n);font-size:28px;font-weight:500;color:#fff;min-width:26px;text-align:center;line-height:1;}
   #scoreboard .sb-mid{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;padding:3px 14px;min-width:80px;border-left:1px solid var(--hud-line);border-right:1px solid var(--hud-line);}
   #scoreboard .sb-round{font-size:11px;font-weight:500;letter-spacing:.08em;color:var(--hud-dim);text-transform:uppercase;line-height:1.1;}
@@ -157,6 +158,8 @@
   #roundCard .rc-t{font-size:26px;font-weight:700;letter-spacing:.05em;} #roundCard .rc-t.ct{color:var(--ct);} #roundCard .rc-t.t{color:var(--t);}
   #roundCard .rc-r{color:var(--text-dim);font-size:13px;margin-top:4px;} #roundCard .rc-c{color:#ffd76a;font-weight:600;margin-top:6px;}
   #roundCard .rc-m{margin-top:8px;font-size:13px;} #roundCard .rc-s{margin-top:10px;font-family:'IBM Plex Mono',monospace;font-size:15px;}
+  #roundCard .rc-s span{font-family:'Roboto Condensed','Golos Text',sans-serif;font-size:13px;} #roundCard .rc-s .ct{color:var(--ct);} #roundCard .rc-s .t{color:var(--t);}
+  #roundCard .rc-h:empty{display:none;} #roundCard .rc-h{margin-top:10px;padding-top:8px;border-top:1px solid var(--accent-dim);font-family:'Roboto Condensed','Golos Text',sans-serif;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--accent);}
   #econ{position:absolute;left:12px;bottom:50px;width:420px;max-height:calc(100% - 370px);overflow-y:auto;background:rgba(22,27,20,0.94);border:1px solid var(--line);border-radius:8px;padding:9px 11px;font-family:var(--num);font-size:10.5px;line-height:1.55;color:var(--text-dim);}
   #econ .tm{display:flex;justify-content:space-between;font-weight:600;margin-top:4px;}
   #econ .tm.ct{color:var(--ct);} #econ .tm.t{color:var(--t);}
@@ -207,7 +210,7 @@
   <div id="topbar">
     <div class="tb-id">
       <h1>Ancient</h1>
-      <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 269, 12.10</div>
+      <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 270, 12.10</div>
     </div>
     <div class="tb-group" id="tbMatch">
       <button id="btnPause">Пауза</button>
@@ -374,9 +377,9 @@
     <div id="scoreboard">
       <div class="sb-head"><span>Ancient</span><span id="sbMatch">матч № 1</span></div>
       <div class="sb-main">
-        <div class="sb-team t"><div class="sb-logo" id="sbLogoT">T</div><div class="sb-score" id="sbScoreT">0</div></div>
+        <div class="sb-team t"><div class="sb-logo" id="sbLogoT">T</div><div class="sb-name" id="sbNameT"></div><div class="sb-score" id="sbScoreT">0</div></div>
         <div class="sb-mid"><div class="sb-round" id="sbRound">РАУНД 1</div><div class="sb-time" id="sbTime">1:55</div></div>
-        <div class="sb-team ct"><div class="sb-logo" id="sbLogoCT">CT</div><div class="sb-score" id="sbScoreCT">0</div></div>
+        <div class="sb-team ct"><div class="sb-logo" id="sbLogoCT">CT</div><div class="sb-name" id="sbNameCT"></div><div class="sb-score" id="sbScoreCT">0</div></div>
       </div>
       <div class="sb-alive"><b class="t" id="sbAliveT">5</b><span>vs</span><b class="ct" id="sbAliveCT">5</b></div>
     </div>
@@ -2416,7 +2419,6 @@ var BAL = {
   ecoRead: true,    // закуп с оглядкой на деньги соперника (оценка ±$500): SMG против эко, не форсить в их фулл-бай
   ctPreSave: true,  // CT сейвят и до планта, если 1v3+/2v5 и выход на сайт уже идёт
   overtime: true,   // 12:12 — овертайм MR3 ($10000 на половину, до 16/19/…)
-  halfReview: true, // перерыв: IGL T убирает тактики без побед, CT смещают расстановку к сайту, куда чаще ходили
   awpClose: true,   // AWP вблизи: ноускоп или пистолет после промаха
   pickupMore: true, // подбор лучшего оружия активнее (дальше, чаще), AK в приоритете; AWP — если своей AWP у команды нет
   oneWay: true,
@@ -2473,7 +2475,8 @@ var ROLE_LABEL = {anchorA:"опорник A", anchorB:"опорник B", mid:"�
                   entry:"энтри", awp:"снайпер", support:"второй (размен)", igl:"саппорт · IGL", lurker:"лёркер"};
 // ники игроков и номера 0–9 (T — 0…4, CT — 5…9); внутри кода id остаются T0…CT4
 var NICKS = {T0:"donk", T1:"sh1ro", T2:"TN1R", T3:"magixx", T4:"zont1x", CT0:"kyousuke", CT1:"m0NESY", CT2:"TeSeS", CT3:"karrigan", CT4:"NiKo"};
-function pnum(id){ var m = /^(CT|T)(\d)$/.exec(id||""); return m ? (m[1] === "T" ? +m[2] : 5 + (+m[2])) : ""; }
+// номер игрока (кружок на радаре, панель): у Spirit 0–4, у Falcons 5–9 — переезжает с игроком при смене сторон
+function pnum(id){ var m = /^(CT|T)(\d)$/.exec(id||""); if(!m) return ""; var k = typeof SIDE_TEAM !== "undefined" ? SIDE_TEAM[m[1]] : (m[1] === "T" ? "sp" : "fa"); return k === "sp" ? +m[2] : 5 + (+m[2]); }
 function nick(id){ return NICKS[id] || id; }
 function nickify(t){ return String(t).replace(/\b(CT|T)([0-4])\b/g, function(m){ return NICKS[m] || m; }); }
 var ROLE_SHORT = {anchorA:"A", anchorB:"B", mid:"M", rotator:"Rt", roamer:"R", entry:"E", awp:"W", support:"S", igl:"I", lurker:"L"};
@@ -2503,10 +2506,27 @@ var PROFILES = {
   CT3: {aim:0.82, react:27, aggr:0.40, disc:0.85, risk:0.50, util:0.95, clutch:0.55, style:"IGL, гранаты и коллы"},
   CT4: {aim:1.06, react:19, aggr:0.70, disc:0.60, risk:0.65, util:0.60, clutch:0.75, style:"роумер, ищет фраг и инфу"}
 };
-bots.forEach(function(b){
-  var P = PROFILES[b.id]; if(!P) return;
-  b.prof = P; b.skill = P.aim; b.reactionTicks = P.react;
-});
+// ---- (v270) команды и смена сторон ----
+// Места ботов (CT0…T4) привязаны к стороне: на них держится весь мозг (роли по
+// номеру места, спавны, тактики). Команда — это пять игроков (ник + профиль), которые
+// сидят на местах своей стороны. Смена сторон (перерыв, перерыв овертайма) пересаживает
+// игрока на место с тем же номером на другой стороне: роль №1 и у T, и у CT — AWP,
+// поэтому снайпер остаётся снайпером. С игроком переезжают ник, профиль, K/D;
+// с командой — название, логотип, счёт и тайм-ауты (swapSides).
+var LINEUP = {
+  sp: {name:"Team Spirit",  logo:null, players:[0,1,2,3,4].map(function(i){ return {nick:NICKS["T"+i],  prof:PROFILES["T"+i]};  })},
+  fa: {name:"Team Falcons", logo:null, players:[0,1,2,3,4].map(function(i){ return {nick:NICKS["CT"+i], prof:PROFILES["CT"+i]}; })}
+};
+var SIDE_TEAM = {T:"sp", CT:"fa"};   // кто сейчас на какой стороне; в начале матча Spirit — T
+var TEAM_NAME = {T:"", CT:""}, TEAM_LOGO = {T:null, CT:null};
+function seatPlayers(){
+  bots.forEach(function(b){
+    var P = LINEUP[SIDE_TEAM[b.team]].players[+b.id.replace(/\D/g, "")];
+    NICKS[b.id] = P.nick; b.prof = P.prof; b.skill = P.prof.aim; b.reactionTicks = P.prof.react;
+  });
+  ["T","CT"].forEach(function(s){ TEAM_NAME[s] = LINEUP[SIDE_TEAM[s]].name; TEAM_LOGO[s] = LINEUP[SIDE_TEAM[s]].logo; });
+}
+seatPlayers();
 function prof(b, k, def){ return b && b.prof && b.prof[k] != null ? b.prof[k] : (def == null ? 0.5 : def); }
 
 function centroidOf(pts){ var cx=0, cy=0; pts.forEach(function(p){ cx+=p.x; cy+=p.y; }); return {x:cx/pts.length, y:cy/pts.length}; }
@@ -3207,37 +3227,59 @@ var lastTacticId = null;
 //   tacMem   — IGL T: сколько раз сыграна тактика, победы, планты
 //   ctRead   — что T видели в начале раунда: сколько CT было на A и на B
 //   roundHist— итоги раундов для CT: куда шли T, был ли плант, кто выиграл, когда выход
-//   ctHabit  — любимые углы конкретных CT (по нику): где их видели стоящими / где убили
+//   ctHabit  — любимые углы конкретных CT (по месту): где их видели стоящими / где убили
+// (v270) Это знание о том, как играет ЭТА команда за T против ЭТОЙ за CT. После смены
+// сторон расклад другой — память откладывается в MEM_BOX под ключом «кто был за T» и
+// достаётся, когда расклад вернётся (овертайм). Во второй половине основного времени
+// новый расклад начинается с нуля (+ профиль соперника по этому раскладу) — как у живых
+// команд: за эту сторону против этого соперника в матче ещё не играли. Заменяет halfReview.
 var tacMem = {}, ctRead = [], roundHist = [], ctHabit = {}, tacHist = [], ctSetupHist = [], ctSetupMem = {};
-function resetMatchMemory(){ tacMem = {}; ctRead = []; roundHist = []; ctHabit = {}; tacHist = []; ctSetupHist = []; ctSetupMem = {}; aggrObs = {}; bots.forEach(function(b){ b._mistakes = 0; }); loadOppProfile(); }
+var MEM_BOX = {};
+function memSnapshot(){ return {tacMem:tacMem, ctRead:ctRead, roundHist:roundHist, ctHabit:ctHabit, tacHist:tacHist, ctSetupHist:ctSetupHist, ctSetupMem:ctSetupMem,
+  aggrObs:aggrObs, siteHeat:siteHeat, tSiteHist:tSiteHist, RMEM:RMEM, nadeLandHistory:nadeLandHistory, lastTacticId:lastTacticId}; }
+function memRestore(M){ tacMem = M.tacMem; ctRead = M.ctRead; roundHist = M.roundHist; ctHabit = M.ctHabit; tacHist = M.tacHist; ctSetupHist = M.ctSetupHist; ctSetupMem = M.ctSetupMem;
+  aggrObs = M.aggrObs; siteHeat = M.siteHeat; tSiteHist = M.tSiteHist; RMEM = M.RMEM; nadeLandHistory = M.nadeLandHistory; lastTacticId = M.lastTacticId; }
+// новый расклад: пустая память + профиль соперника по этому раскладу
+function memStart(){
+  siteHeat = {A:1, B:1}; tSiteHist = []; RMEM = {awp:[], aggro:[], rush:[], midDeath:[]}; nadeLandHistory = {A:[], B:[]}; lastTacticId = null;
+  tacMem = {}; ctRead = []; roundHist = []; ctHabit = {}; tacHist = []; ctSetupHist = []; ctSetupMem = {}; aggrObs = {}; loadOppProfile();
+}
+function resetMatchMemory(){ MEM_BOX = {}; bots.forEach(function(b){ b._mistakes = 0; }); memStart(); }
 // Профиль соперника: что команды выучили друг о друге за матч (тактики, что
 // сработало у CT, любимые углы каждого игрока, кто как агрессивен) — сохраняется
 // в конце матча; следующий матч стартует с этим знанием (вес половинный, дальше
 // уточняется уже по новому матчу). Хранится в браузере и в «Экспорт проекта».
+// (v270) По раскладам: OPP.by[кто был за T]. Старый профиль (без by) — расклад «Spirit за T».
 var OPP_KEY = "ancient-live-radar-opp-v1", OPP = null;
 try{ OPP = JSON.parse(localStorage.getItem(OPP_KEY)||"null"); }catch(e){}
+function oppNorm(){ if(OPP && !OPP.by) OPP = OPP.matches ? {by:{sp:OPP}} : null; return OPP; }
+function oppFor(key){ oppNorm(); return OPP && OPP.by[key] && OPP.by[key].matches ? OPP.by[key] : null; }
 function saveOppProfile(){
   if(!BAL.oppProfile) return;
-  var P = OPP || {matches:0, tacMem:{}, ctSetupMem:{}, habit:{}, aggr:{}};
-  var half = function(o, keys){ var r = {}; for(var k in o){ r[k] = {}; keys.forEach(function(f){ r[k][f] = (o[k][f]||0); }); } return r; };
+  oppNorm(); if(!OPP) OPP = {by:{}};
   var mergeCnt = function(dst, src, keys){ for(var k in src){ var d = dst[k] || (dst[k] = {}); keys.forEach(function(f){ d[f] = (d[f]||0)*0.5 + (src[k][f]||0); }); } };
-  mergeCnt(P.tacMem, tacMem, ["n","w","plants"]);
-  mergeCnt(P.ctSetupMem, ctSetupMem, ["n","w"]);
-  mergeCnt(P.aggr, aggrObs, ["e","r"]);
-  for(var id in ctHabit){ var H = P.habit[id] || (P.habit[id] = {}); for(var c in ctHabit[id]){ var h = ctHabit[id][c], o = H[c];
-    if(o){ o.x = (o.x*o.n*0.5 + h.x*h.n)/(o.n*0.5 + h.n); o.y = (o.y*o.n*0.5 + h.y*h.n)/(o.n*0.5 + h.n); o.n = o.n*0.5 + h.n; } else H[c] = {x:h.x, y:h.y, n:h.n}; } }
-  P.matches++;
-  OPP = P; try{ localStorage.setItem(OPP_KEY, JSON.stringify(P)); }catch(e){}
-  logEvent("Профиль соперника обновлён (матчей: "+P.matches+")");
+  var saved = [];
+  ["sp","fa"].forEach(function(key){
+    var M = key === SIDE_TEAM.T ? memSnapshot() : MEM_BOX[key]; if(!M) return;
+    var P = OPP.by[key] || (OPP.by[key] = {matches:0, tacMem:{}, ctSetupMem:{}, habit:{}, aggr:{}});
+    mergeCnt(P.tacMem, M.tacMem, ["n","w","plants"]);
+    mergeCnt(P.ctSetupMem, M.ctSetupMem, ["n","w"]);
+    mergeCnt(P.aggr, M.aggrObs, ["e","r"]);
+    for(var id in M.ctHabit){ var H = P.habit[id] || (P.habit[id] = {}); for(var c in M.ctHabit[id]){ var h = M.ctHabit[id][c], o = H[c];
+      if(o){ o.x = (o.x*o.n*0.5 + h.x*h.n)/(o.n*0.5 + h.n); o.y = (o.y*o.n*0.5 + h.y*h.n)/(o.n*0.5 + h.n); o.n = o.n*0.5 + h.n; } else H[c] = {x:h.x, y:h.y, n:h.n}; } }
+    P.matches++; saved.push(LINEUP[key].name+" за T — матчей "+P.matches);
+  });
+  try{ localStorage.setItem(OPP_KEY, JSON.stringify(OPP)); }catch(e){}
+  logEvent("Профиль соперника обновлён ("+saved.join("; ")+")");
 }
 function loadOppProfile(){
-  if(!BAL.oppProfile || !OPP || !OPP.matches) return;
+  var P = BAL.oppProfile ? oppFor(SIDE_TEAM.T) : null; if(!P) return;
   var cp = function(src, keys, k0){ var r = {}; for(var k in src){ r[k] = {}; keys.forEach(function(f){ r[k][f] = (src[k][f]||0)*k0; }); } return r; };
-  tacMem = cp(OPP.tacMem, ["n","w","plants"], 0.5);
-  ctSetupMem = cp(OPP.ctSetupMem, ["n","w"], 0.5);
-  aggrObs = cp(OPP.aggr, ["e","r"], 0.5);
-  ctHabit = {}; for(var id in OPP.habit){ ctHabit[id] = {}; for(var c in OPP.habit[id]){ var h = OPP.habit[id][c]; ctHabit[id][c] = {x:h.x, y:h.y, n:h.n*0.5}; } }
-  logEvent("Профиль соперника загружен (матчей: "+OPP.matches+") — IGL и CT стартуют с поправкой на привычки");
+  tacMem = cp(P.tacMem, ["n","w","plants"], 0.5);
+  ctSetupMem = cp(P.ctSetupMem, ["n","w"], 0.5);
+  aggrObs = cp(P.aggr, ["e","r"], 0.5);
+  ctHabit = {}; for(var id in P.habit){ ctHabit[id] = {}; for(var c in P.habit[id]){ var h = P.habit[id][c]; ctHabit[id][c] = {x:h.x, y:h.y, n:h.n*0.5}; } }
+  logEvent("Профиль соперника загружен ("+LINEUP[SIDE_TEAM.T].name+" за T, матчей: "+P.matches+") — IGL и CT стартуют с поправкой на привычки");
 }
 function weightedChoice(items, weights, seed){
   var tot = weights.reduce(function(a, w){ return a + Math.max(0, w); }, 0), r = hashRand(seed)*tot, acc = 0;
@@ -3272,18 +3314,6 @@ function timeoutCheck(winner){
     }
   });
 }
-// ---- перерыв: выводы по первой половине ----
-var HALF_ADJ = {tac:{}, ctSite:null};
-function halfReview(){
-  HALF_ADJ = {tac:{}, ctSite:null};
-  var bad = [], good = [];
-  T_TACTICS.forEach(function(t){ var M = tacMem[t.id]; if(!M || M.n < 2) return; var r = M.w/M.n;
-    if(r < 0.2){ HALF_ADJ.tac[t.id] = 0.25; bad.push(t.name); } else if(r >= 0.6){ HALF_ADJ.tac[t.id] = 1.4; good.push(t.name); } });
-  var hA = 0, hB = 0; roundHist.forEach(function(r){ if(r.site === "A") hA++; else if(r.site === "B") hB++; });
-  if(hA + hB >= 6 && Math.max(hA, hB) >= Math.min(hA, hB)*1.6) HALF_ADJ.ctSite = hA > hB ? "A" : "B";
-  logEvent("ПЕРЕРЫВ — IGL T: "+(bad.length ? "убираем «"+bad.join("», «")+"»" : "тактики без изменений")+(good.length ? "; чаще «"+good.join("», «")+"»" : "")+
-    ". CT: "+(HALF_ADJ.ctSite ? "T ходили на "+HALF_ADJ.ctSite+" "+Math.max(hA, hB)+" раз из "+(hA+hB)+" — усиливаем "+HALF_ADJ.ctSite : "расстановка без изменений"), true);
-}
 function chooseTactic(){
   var type = teamEco.T.roundType;
   var pool = T_TACTICS.filter(function(t){ return t.pools.indexOf(type) >= 0; });
@@ -3301,7 +3331,6 @@ function chooseTactic(){
     var l1 = tacHist[tacHist.length-1], l2 = tacHist[tacHist.length-2];
     if(l1 === t.id) w *= 0.35;                          // только что играли
     if(l1 === t.id && l2 === t.id) w *= 0.1;            // третий раз подряд — прочитана
-    if(BAL.halfReview && roundNum > HALF_ROUNDS && HALF_ADJ.tac[t.id]) w *= HALF_ADJ.tac[t.id]; // выводы перерыва
     if(BAL.timeouts && roundNum <= TOUT.T.until){ if(TOUT.T.avoid.indexOf(t.id) >= 0) w *= 0.15; else w *= 1.3; } // после тайм-аута
     // (8) темп по счёту: два проигрыша подряд быстрыми выходами — медленнее
     // (дефолт), два проигрыша медленными — быстрее (раш/ранний выход)
@@ -3546,7 +3575,6 @@ function chooseCtSetup(){
     // CT тоже помнят, какие расстановки в этом матче сработали, а какие нет
     var CM = ctSetupMem[S.id] || {n:0, w:0};
     w *= 0.3 + 1.7*((CM.w + 1)/(CM.n + 2));
-    if(BAL.halfReview && roundNum > HALF_ROUNDS && HALF_ADJ.ctSite && S.stack === HALF_ADJ.ctSite) w *= 2.5; // выводы перерыва
     if(BAL.timeouts && roundNum <= TOUT.CT.until && TOUT.CT.avoid.indexOf(S.id) >= 0) w *= 0.15; // после тайм-аута
     return w;
   });
@@ -3598,7 +3626,7 @@ function ctSetupRole(b, role, ct){
 function ROLE_LABEL_CT(r){ return {anchorA:"опорник A", anchorB:"опорник B", mid:"мидер", rotator:"ротатор", roamer:"роумер"}[r] || r; }
 var events = []; var killfeed = []; // объявлены здесь, до loadOppProfile(), которая пишет в лог сразу при старте
 var simTime = 0; // тоже нужен logEvent-у при старте
-if(typeof OPP !== "undefined" && OPP && OPP.matches) loadOppProfile();
+if(typeof OPP !== "undefined" && OPP) loadOppProfile();
 // итог раунда — в память обеих сторон
 function rememberRound(winner){
   bots.forEach(function(b){ var A = aggrObs[b.id] || (aggrObs[b.id] = {e:0, r:0}); A.r++; });
@@ -12115,6 +12143,33 @@ function startHalf(silent){
   teamEco.CT.lossLevel = 1; teamEco.T.lossLevel = 1;
   if(!silent) logEvent("ВТОРАЯ ПОЛОВИНА — деньги сброшены до $"+START_MONEY, true);
 }
+// (v270) Смена сторон — как в регламенте (ESL, раздел 2.4–2.4.1): после 12-го раунда;
+// в начале каждого овертайма команды остаются на стороне прошлой половины и меняются
+// на перерыве внутри овертайма (раунды 28, 34, …).
+function sideSwapNow(r){
+  if(r === HALF_ROUNDS+1) return true;
+  if(!BAL.overtime || r <= regRounds()) return false;
+  var k = r - regRounds() - 1; return k % OT_HALF === 0 && (k/OT_HALF) % 2 === 1;
+}
+function swapSides(){
+  var oldT = SIDE_TEAM.T;
+  // игроки пересаживаются на место с тем же номером на другой стороне — с собой K/D и счётчик ошибок
+  for(var i = 0; i < 5; i++){
+    var a = teamBot("CT"+i), b = teamBot("T"+i); if(!a || !b) continue;
+    ["kills","deaths","_mistakes"].forEach(function(k){ var v = a[k]; a[k] = b[k]; b[k] = v; });
+  }
+  SIDE_TEAM = {T: SIDE_TEAM.CT, CT: SIDE_TEAM.T};
+  seatPlayers();
+  var sc = score.CT; score.CT = score.T; score.T = sc;
+  // тайм-ауты — у команды; серия поражений и «чего избегать» — про прошлую сторону, обнуляются
+  var to = TOUT.CT; TOUT.CT = TOUT.T; TOUT.T = to;
+  ["CT","T"].forEach(function(s){ TOUT[s].streak = 0; TOUT[s].until = 0; TOUT[s].avoid = []; });
+  // память матча — по раскладу: эту откладываем, другую достаём (или начинаем с нуля)
+  MEM_BOX[oldT] = memSnapshot();
+  if(MEM_BOX[SIDE_TEAM.T]) memRestore(MEM_BOX[SIDE_TEAM.T]); else memStart();
+  logEvent("СМЕНА СТОРОН — "+TEAM_NAME.CT+" за CT, "+TEAM_NAME.T+" за T. Счёт "+TEAM_NAME.CT+" "+score.CT+" : "+score.T+" "+TEAM_NAME.T, true);
+  if(typeof document !== "undefined"){ plSelected = null; showBanner("Смена сторон · "+TEAM_NAME.CT+" — CT", null, 3000); }
+}
 // (v152) воспроизводимый старт: всё, что влияет на решения ботов, — с нуля.
 // Кэши чистим целиком: часть ключей содержит tick, и после сброса tick старые
 // записи прошлого матча подставлялись бы в новый.
@@ -12144,7 +12199,8 @@ function freshMatch(n, keepProfile){
 }
 function newMatch(){
   matchNum++;
-  siteHeat = {A:1, B:1}; tSiteHist = []; resetMatchMemory(); RMEM = {awp:[], aggro:[], rush:[], midDeath:[]}; HALF_ADJ = {tac:{}, ctSite:null}; timeoutsReset();
+  SIDE_TEAM = {T:"sp", CT:"fa"}; seatPlayers();   // (v270) в начале матча Spirit — T
+  resetMatchMemory(); timeoutsReset();
   score.CT = 0; score.T = 0;
   roundNum = 0;
   bots.forEach(function(b){ b.kills = 0; b.deaths = 0; });
@@ -12193,7 +12249,7 @@ function endRound(winner, reason){
   roundState = "ending";
   roundEndTime = simTime;
   var why = reason === "time" ? " (время вышло)" : (reason === "bomb" ? " (взрыв)" : (reason === "defuse" ? " (дефуз)" : ""));
-  logEvent("Раунд "+roundNum+" завершён"+(winner? " — победа "+winner+why : " — обе команды уничтожены")+". Счёт CT:"+score.CT+" T:"+score.T, true);
+  logEvent("Раунд "+roundNum+" завершён"+(winner? " — победа "+winner+" ("+TEAM_NAME[winner]+")"+why : " — обе команды уничтожены")+". Счёт "+TEAM_NAME.CT+" (CT) "+score.CT+" : "+score.T+" "+TEAM_NAME.T+" (T)", true);
   var over;
   if(!BAL.overtime) over = score.CT >= MATCH_WIN || score.T >= MATCH_WIN || roundNum >= regRounds();
   else {
@@ -12207,10 +12263,13 @@ function endRound(winner, reason){
     if(!over && roundNum >= regRounds() && (roundNum - regRounds()) % (OT_HALF*2) === 0)
       logEvent((roundNum === regRounds() ? "" : "ещё ")+"ОВЕРТАЙМ при "+score.CT+":"+score.T+" — MR3, по $"+OT_MONEY+", до "+(MATCH_WIN + OT_HALF*(otIndex(roundNum+1)+1))+" побед", true);
   }
+  if(!over && sideSwapNow(roundNum+1) && typeof document !== "undefined"){
+    var rh = document.getElementById("rcHalf"); if(rh) rh.textContent = "Смена сторон: "+TEAM_NAME.T+" — CT, "+TEAM_NAME.CT+" — T";
+  }
   if(over){
     roundState = "matchover";
     var mw = score.CT > score.T ? "CT" : (score.T > score.CT ? "T" : null);
-    logEvent("МАТЧ ОКОНЧЕН — "+(mw ? "победа "+mw : "ничья")+" "+score.CT+":"+score.T, true);
+    logEvent("МАТЧ ОКОНЧЕН — "+(mw ? "победа "+TEAM_NAME[mw] : "ничья")+" "+score.CT+":"+score.T, true);
     saveOppProfile();
   }
 }
@@ -12218,13 +12277,13 @@ function endRound(winner, reason){
 function resetRound(){
   voiceLines = []; if(typeof document !== "undefined") renderVoice();   // (v264) войс — только этого раунда
   roundNum++;
+  if(sideSwapNow(roundNum)) swapSides();
   if(roundNum === HALF_ROUNDS+1) startHalf(); // вторая половина: деньги и оружие с нуля
   if(BAL.overtime && roundNum > regRounds() && (roundNum - regRounds() - 1) % OT_HALF === 0){
     startHalf(true);
     bots.forEach(function(b){ b.money = OT_MONEY; });
     logEvent("Овертайм: половина — по $"+OT_MONEY, true);
   }
-  if(BAL.halfReview && roundNum === HALF_ROUNDS+1) halfReview();
   bots.forEach(function(b){
     var sp = b.spawnPt;
     var spp = spawnPosFor(sp, b.spawnOx, b.spawnOy);
@@ -15415,8 +15474,8 @@ function draw(){
     ctx.setTransform(1,0,0,1,0,0);
     ctx.fillStyle = "rgba(6,8,6,0.65)"; ctx.fillRect(0,0,cv.width,cv.height);
     ctx.fillStyle = "#e8ecdd"; ctx.textAlign = "center"; ctx.font = "600 26px 'IBM Plex Sans',sans-serif";
-    var mwn = score.CT > score.T ? "ПОБЕДА CT" : (score.T > score.CT ? "ПОБЕДА T" : "НИЧЬЯ");
-    ctx.fillText("МАТЧ ОКОНЧЕН — "+mwn+"  "+score.CT+":"+score.T, cv.width/2, cv.height/2 - 10);
+    var mwn = score.CT > score.T ? "ПОБЕДА "+TEAM_NAME.CT : (score.T > score.CT ? "ПОБЕДА "+TEAM_NAME.T : "НИЧЬЯ");
+    ctx.fillText("МАТЧ ОКОНЧЕН — "+mwn+"  "+Math.max(score.CT, score.T)+":"+Math.min(score.CT, score.T), cv.width/2, cv.height/2 - 10);
     ctx.font = "13px 'IBM Plex Mono',monospace"; ctx.fillStyle = "#8b9a80";
     ctx.fillText("новый матч через "+Math.max(0, 7-(simTime-roundEndTime)).toFixed(1)+"с", cv.width/2, cv.height/2 + 18);
     ctx.restore();
@@ -15538,11 +15597,11 @@ function showRoundCard(winner, reason){
     logEvent("Клатч выигран: "+clutchInfo.id+" (1v"+clutchInfo.n+")", true);
     feedEvent("clutch", "Клатч 1v"+clutchInfo.n+" — "+clutchInfo.id);
   }
-  el.innerHTML = '<div class="rc-t '+(winner||"").toLowerCase()+'">'+(winner ? "ПОБЕДА "+winner : "НИЧЬЯ")+'</div>'+
-    '<div class="rc-r">Раунд '+roundNum+' · '+why+'</div>'+
+  el.innerHTML = '<div class="rc-t '+(winner||"").toLowerCase()+'">'+(winner ? "ПОБЕДА "+esc(TEAM_NAME[winner]) : "НИЧЬЯ")+'</div>'+
+    '<div class="rc-r">Раунд '+roundNum+' · '+(winner ? 'за '+winner+' · ' : '')+why+'</div>'+
     (clutch ? '<div class="rc-c">клатч 1v'+clutchInfo.n+' выигран — '+esc(nick(clutchInfo.id))+'</div>' : '')+
     (mvp && mvp.b ? '<div class="rc-m">MVP: <b>'+esc(nick(mvp.b.id))+'</b> ('+(ROLE_LABEL[mvp.b.tRole]||"")+') · '+(mvp.b.roundKills||0)+' фраг(а), '+Math.round(mvp.b.roundDmg||0)+' урона</div>' : '')+
-    '<div class="rc-s">CT '+score.CT+' : '+score.T+' T</div>';
+    '<div class="rc-s"><span class="ct">'+esc(TEAM_NAME.CT)+'</span> '+score.CT+' : '+score.T+' <span class="t">'+esc(TEAM_NAME.T)+'</span></div><div class="rc-h" id="rcHalf"></div>';
   el.className = "show";
   if(cardTimer) clearTimeout(cardTimer);
   cardTimer = setTimeout(function(){ el.className = ""; }, Math.max(2500, ROUND_RESTART_DELAY_SEC*1000 - 200));
@@ -15574,13 +15633,14 @@ function renderEcon(){
 }
 
 // ---------- (v241, из переделки) табло (Н6): счёт, раунд, таймер, живые — как на трансляции ----------
-// Логотипы команд — TEAM_LOGO (картинка data:/svg); пока нет — буква стороны.
-var TEAM_LOGO = {T:null, CT:null};
+// Логотипы команд — LINEUP[команда].logo (картинка data:/svg), по сторонам — TEAM_LOGO; пока нет — буква стороны.
 function scoreboardUpdate(rtLeft){
   var $ = function(id){ return document.getElementById(id); };
   ["T","CT"].forEach(function(t){
     var lg = $("sbLogo"+t);
-    if(TEAM_LOGO[t] && lg.dataset.src !== TEAM_LOGO[t]){ lg.dataset.src = TEAM_LOGO[t]; lg.innerHTML = '<img alt="" src="'+TEAM_LOGO[t]+'">'; }
+    var src = TEAM_LOGO[t] || "";   // (v270) после смены сторон логотип переезжает вместе с командой
+    if(lg.dataset.src !== src){ lg.dataset.src = src; if(src) lg.innerHTML = '<img alt="" src="'+src+'">'; else lg.textContent = t; }
+    var nm = $("sbName"+t); if(nm.textContent !== TEAM_NAME[t]){ nm.textContent = TEAM_NAME[t]; nm.title = TEAM_NAME[t]; }
     $("sbScore"+t).textContent = score[t];
     $("sbAlive"+t).textContent = bots.filter(function(b){ return b.team === t && b.alive; }).length;
   });
@@ -15595,9 +15655,8 @@ function scoreboardUpdate(rtLeft){
 }
 
 // ---------- панели игроков (Н7): как на трансляции; по центру — выбранный кликом ----------
-// Названия — настоящие команды по составу (ники NICKS). Фото — PLAYER_PHOTO[ник]
-// (картинка data:/svg); пока нет — серый силуэт.
-var TEAM_NAME = {T:"Team Spirit", CT:"Team Falcons"};
+// Названия — настоящие команды по составу (LINEUP; по сторонам — TEAM_NAME, меняется
+// при смене сторон). Фото — PLAYER_PHOTO[ник] (картинка data:/svg); пока нет — серый силуэт.
 var PLAYER_PHOTO = {};
 var PL_SIL = '<svg viewBox="0 0 40 40"><circle cx="20" cy="14" r="8"/><path d="M4 40c0-9 7-15 16-15s16 6 16 15z"/></svg>';
 var PL_ICON = {
