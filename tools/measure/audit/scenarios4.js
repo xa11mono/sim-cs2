@@ -102,6 +102,8 @@
             var cls = b.tRole === "lurker" ? "лёркер" :
                       (bomb && (bomb.carrier === b || /^fetch/.test(tag)) && dS(bomb, old) < dS(bomb, nw)) ? "бомба у старого сайта" :
                       (dN - dO < 100 || /mid/i.test(tag)) ? "мид / нейтрально" :
+                      /^repos:assist/.test(tag) ? "бой рядом: помогает тиммейту (assistPeek)" :
+                      (/^smokeWait/.test(tag) && b._smokeWait && b._smokeWait.want && dS(b._smokeWait.want[0], nw) < dS(b._smokeWait.want[0], old)) ? "по пути к новому сайту: ждёт у смока" :
                       (T2[0] === "пост" && /^lineup/.test(tag) && b.nadeTask) ? "место броска гранаты" :
                       T2[0] === "граната" ? ((b.nadeTask.start || 0) < t0 ? "граната до смены" : "граната после смены") : "НЕ объяснено";
             cnt[cls] = (cnt[cls] || 0) + 1;
