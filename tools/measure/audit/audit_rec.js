@@ -2,7 +2,7 @@
 // Игру не меняет: обёртки зовут исходные функции и ничего не пишут в состояние ботов; генератор игры не трогается.
 // Запуск: node src/q.js <сборка_аудита.html> "<этот файл с __M__/__T__>"  (tools/measure/audit/run_audit.py)
 freshMatch(__M__);
-var M0 = matchNum, TT = __T__, FUT = [], TSEEN = {CT: {}, T: {}}, CHG = {}, POS0 = {};
+var M0 = matchNum, TT = __T__, FUT = [], TSEEN = {CT: {}, T: {}}, CHG = {}, POS0 = {}, MTHROW = {}, MENT = {}, FIREN = 0;
 function ang(a){ return Math.abs(((a + Math.PI) % (2*Math.PI) + 2*Math.PI) % (2*Math.PI) - Math.PI); }
 function dirTo(b, x, y){ return Math.atan2(y-b.y, x-b.x); }
 function live(){ return roundState === "live"; }
@@ -10,7 +10,7 @@ function byId(id){ for(var i=0;i<bots.length;i++) if(bots[i].id === id) return b
 var A = {match: M0, rounds: 0, botTicks: {stand: 0, move: 0},
   leak: [], hid: {n: 0, hitTrue: 0, hitPast: 0, hitFut: 0, hitLast: 0}, turns: {stand: 0, standNoInfo: 0, move: 0, moveNoInfo: 0, ev: []},
   first: [], posCh: [], posBlock: {}, plan: [], calls: [], nades: [], blinds: [], ff: [], voice: [], stale: {}, exposed: [], stack: 0,
-  deaths: [], blockedShots: 0, chatter: {ticks: 0, frozen: 0}};
+  deaths: [], blockedShots: 0, chatter: {ticks: 0, frozen: 0}, molEnt: []};
 
 // ---------- история позиций врагов (для проверки «следит сквозь стены») ----------
 var HIST = {};   // id → [[tick,x,y]] раз в 8 тиков, 6 с
@@ -96,7 +96,9 @@ throwNade = function(b, type, tx, ty, lob, why){
       post: b.post ? String(b.post.tag).slice(0,24) : null};
   }
   var r = o_tn.apply(this, arguments);
-  if(row){ if(b.nades && b.nades[type] < n0) A.nades.push(row); else A.nadeCancel = (A.nadeCancel||0) + 1; }
+  if(row){ if(b.nades && b.nades[type] < n0){ A.nades.push(row);
+      if(type === "molly"){ var al = {}; bots.forEach(function(o){ if(o.alive && o.team === b.team && o !== b) al[o.id] = [o.x, o.y]; }); MTHROW[b.id] = {t: tick, al: al}; } }
+    else A.nadeCancel = (A.nadeCancel||0) + 1; }
   return r;
 };
 var o_det = detonate;
@@ -116,7 +118,7 @@ applyDamage = function(att, b, dmg, src, o){
   if(live() && al){
     if(att && att.team === b.team && att !== b){
       var how = null;
-      if(src === "молотов"){ var f0 = inFire(b.x, b.y); how = !f0 ? "?" : (!f0._ign || f0._ign[b.id]) ? "стоял при поджоге" :
+      if(src === "молотов"){ var f0 = inFire(b.x, b.y); how = f0 && f0._id && MENT[b.id + "@" + f0._id] ? MENT[b.id + "@" + f0._id] : !f0 ? "?" : (!f0._ign || f0._ign[b.id]) ? "стоял при поджоге" :
         ("зашёл: " + (fireCommit(b) ? "по делу (fireCommit)" : b.holding ? "держит угол" : "иное") + " | " + (b.post ? String(b.post.tag).split(":")[0] : "-") + " | " + (b._fc && b._fc.ph !== "line" ? "fc" : "") + (b._burning ? " выходит" : "")); }
       A.ff.push([tick, att.id, b.id, src, Math.round(hp0 - (b.alive ? b.hp : 0)), how]);
     }
@@ -182,7 +184,18 @@ for(var t = 0; t < TT; t++){
   if(roundState !== rs){ if(roundState === "live"){ A.rounds++; lastSite = teamTac && teamTac.T ? teamTac.T.site : null; HIST = {}; CONT = {}; VISH = {}; TSEEN = {CT: {}, T: {}}; faceH = {}; PLW = []; EXPO = []; PENDLEAK = []; } rs = roundState; }
   if(!live()) continue;
   // --- новый огонь: кто из своих бросившего стоял в радиусе в момент поджога
-  fires.forEach(function(f){ if(f._ign) return; f._ign = {}; bots.forEach(function(o){ if(o.alive && o.team === f.team && Math.hypot(o.x-f.x, o.y-f.y) < NADE.molly.radius) f._ign[o.id] = 1; }); });
+  fires.forEach(function(f){ if(f._ign) return; f._ign = {}; f._id = ++FIREN; var th = f.thrower ? MTHROW[f.thrower.id] : null;
+    bots.forEach(function(o){ if(o.alive && o.team === f.team && Math.hypot(o.x-f.x, o.y-f.y) < NADE.molly.radius){
+      var p0 = th && th.al[o.id], inAtThrow = p0 && Math.hypot(p0[0]-f.x, p0[1]-f.y) < NADE.molly.radius;
+      f._ign[o.id] = 1; MENT[o.id + "@" + f._id] = o === f.thrower ? "бросивший в своём огне" : inAtThrow ? "стоял в зоне уже при броске" : "зашёл в зону во время полёта";
+      A.molEnt.push([tick, o.id, f._id, MENT[o.id + "@" + f._id], o.post ? String(o.post.tag).split(":")[0] : "-", +((f.until - tick)/TICK_HZ).toFixed(1)]); } }); });
+  bots.forEach(function(o){ if(!o.alive) return; var f = inFire(o.x, o.y), k = f ? o.id + "@" + f._id : null;
+    if(f && f.team === o.team && f._id && !MENT[k]){
+      var fc = fireCommit(o), goal = (o.post && /^(defuse|plantspot|retake)/.test(o.post.tag||"")) ? String(o.post.tag).split(":")[0] : (o.team === "T" && tick - (o._defuseHeard||-9999) < 110) ? "дефуз слышен" : (bomb && bomb.retake && bomb.retake.phase === "go" && o.team === "CT") ? "ретейк" : null;
+      var why = fc ? "fireCommit (" + (goal || "?") + ")" : (o._fc && o._fc.ph !== "line") ? "перестрелка: уход за укрытие" : (tick < (o.throwUntil||0)) ? "бросок" : "путь без fireCommit";
+      MENT[k] = "зашёл после поджога: " + why;
+      var rl = ROUND_TIME_SEC - (simTime - roundStartTime), bl = (bomb && bomb.state === "planted") ? bombTimeLeftTicks()/TICK_HZ : null;
+      A.molEnt.push([tick, o.id, f._id, MENT[k], o.post ? String(o.post.tag).split(":")[0] : "-", +((f.until - tick)/TICK_HZ).toFixed(1), Math.round(rl), bl == null ? null : Math.round(bl), o.hp]); } });
   // --- история позиций и видимость командой
   var teamVis = {CT: {}, T: {}};
   bots.forEach(function(b){ if(!b.alive) return; (b._visible||[]).forEach(function(e){ teamVis[b.team][e.id] = 1; }); });

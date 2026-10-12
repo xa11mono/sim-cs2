@@ -11846,6 +11846,7 @@ function escapeWallLine(bot){
       var ang = a*Math.PI/8;
       var nx = bot.baseX + Math.cos(ang)*rr, ny = bot.baseY + Math.sin(ang)*rr;
       if(insideSolidWall(nx, ny)) continue;
+      if(inFire(nx, ny) && !inFire(bot.baseX, bot.baseY) && !fireCommit(bot)) continue;   // (этап 3, P1-4) не в огонь
       // из новой точки должно быть можно куда-то идти
       var free = 0;
       for(var q=0;q<8;q++){ var qa=q*Math.PI/4; if(!crossesWall(nx,ny,nx+Math.cos(qa)*4,ny+Math.sin(qa)*4)) free++; }
@@ -12710,6 +12711,10 @@ function stepTick(){
           if(bot._netStuck >= 3 && wpN){
             // упорно не проходит — шаг прямо к следующей точке пути по навмешу
             var toward = snapToWalkable(bot.baseX + (wpN[0]-bot.baseX)*0.35, bot.baseY + (wpN[1]-bot.baseY)*0.35);
+            // (этап 3, P1-4) не через огонь: путь шёл сквозь свой/чужой молотов, обычный шаг его не пускал (stepBlocked), бот
+            // 1,5 с стоял у края — и этот рывок переносил его на 30+ px прямо в огонь (матч 3, тик 23335, T1 в молотов T2).
+            // Теперь у огня — ждёт у края, как при обычном шаге (зайти можно только по делу — fireCommit)
+            if(toward && inFire(toward.x, toward.y) && !inFire(bot.baseX, bot.baseY) && !fireCommit(bot)) toward = null;
             if(toward && Math.hypot(toward.x-bot.baseX, toward.y-bot.baseY) > 4){ bot.baseX = toward.x; bot.baseY = toward.y; bot.x = toward.x; bot.y = toward.y; }
             if(bot.pathIdx < bot.path.length-1) bot.pathIdx++;
             bot._netStuck = 0;
