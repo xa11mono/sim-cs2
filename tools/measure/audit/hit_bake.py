@@ -19,7 +19,16 @@ def dbin(d): return '<250' if d < 250 else '250-450' if d < 450 else '450+'
 def mbin(v): return 'стоит' if v < 15 else 'шагом' if v <= 65 else 'бежит'
 
 class Acc:
-    def __init__(s): s.C = collections.defaultdict(lambda: collections.Counter())
+    def __init__(s): s.C = collections.defaultdict(lambda: collections.Counter()); s.rec = []; s.killwin = set(); s.check = collections.Counter()
+    def finish(s, sim):
+        # видел ли P цель в начале окна (та же видимость игры, что в vis_bake): стрельба по видимой цели — отдельно
+        import vis_bake as V
+        bits = V.evaluate([r[6] for r in s.rec], sim).strip()
+        for k, (d, v, dmg, kill, hurt, first, _) in enumerate(s.rec):
+            los = 'видит' if bits[k] == '1' else 'не видит'
+            for key in ((dbin(d), mbin(v)), (dbin(d), 'все'), ('все', mbin(v)), ('все', 'все')):
+                s.add((los,) + key, dmg, kill, hurt)
+                if first: s.add((los, 'первое окно') + key, dmg, kill, hurt)
     def add(s, key, dmg, kill, hurt):
         c = s.C[key]; c['n'] += 1; c['урон>0'] += dmg > 0; c['урон'] += dmg; c['убил'] += kill; c['ранили P'] += hurt
     def out(s):
@@ -71,9 +80,9 @@ def process(players, shots, A, t0, cut):
         dmg = max(0, hp0 - hp1)
         php0 = players[p][3][i]; php1 = hp_after(p, ts + W + 16); hurt = php1 < php0
         first = not any(ww in win[p] for ww in range(w - 6, w))
-        for key in ((dbin(d), mbin(v)), (dbin(d), 'все'), ('все', mbin(v)), ('все', 'все')):
-            A.add(key, dmg, kill, hurt)
-            if first: A.add(('первое окно',) + key, dmg, kill, hurt)
+        L = players[p]; M = players[o]
+        A.rec.append((d, v, dmg, kill, hurt, first, [round(L[1][i], 1), round(L[2][i], 1), round(M[1][j], 1), round(M[2][j], 1)]))
+        if kill: A.killwin.add((p, o, ts))
 
 def run_pro():
     import numpy as np, pandas as pd
@@ -91,14 +100,27 @@ def run_pro():
         wf = pd.read_csv(os.path.join(DEMOS, demo + '_weapon_fire.csv.gz'))
         wf = wf[~wf.weapon.astype(str).str.contains(NADE, case=False) & wf.user_steamid.notna()]
         SH = {int(s): sorted(g.tick.values.tolist()) for s, g in wf.groupby('user_steamid')}
+        d = pd.read_csv(os.path.join(DEMOS, demo + '_player_death.csv.gz'))
         for r in rounds:
             players = {}
             for sid, (tt, xx, yy, hh, tm) in G.items():
                 i0, i1 = np.searchsorted(tt, r['t0']), np.searchsorted(tt, r['t1'], side='right')
                 if i1 > i0: players[sid] = (tt[i0:i1].tolist(), xx[i0:i1].tolist(), yy[i0:i1].tolist(), hh[i0:i1].tolist(), int(tm[i0]))
             process(players, SH, A, r['t0'], r['tplant'] or r['t1'])
+            # проверка метода на известных эпизодах: каждое убийство пулей до планта (player_death) должно лечь в окно
+            # убийцы, где цель = жертва и «убил» (окно может отпасть: цель не ближайшая, общий огонь, нет отсчёта скорости)
+            cut = r['tplant'] or r['t1']
+            dr = d[(d.tick >= r['t0']) & (d.tick < cut) & d.attacker_steamid.notna() & ~d.weapon.astype(str).str.contains(NADE + '|inferno|world', case=False)]
+            for tk, a, u in zip(dr.tick.values, dr.attacker_steamid.values, dr.user_steamid.values):
+                a, u, tk = int(a), int(u), int(tk)
+                if a not in players or u not in players or players[a][4] == players[u][4]: continue
+                A.check['убийств'] += 1
+                if any((a, u, w*W) in A.killwin for w in range(tk//W - 2, tk//W + 1)): A.check['в окне убийцы с этой целью'] += 1
+                elif any((a, o, w*W) in A.killwin for o in players for w in range(tk//W - 2, tk//W + 1)): A.check['окно убийцы, другая цель'] += 1
         print(demo, file=sys.stderr)
-    return A.out()
+    print('проверка на убийствах:', dict(A.check), file=sys.stderr)
+    if '--nolos' in sys.argv: return {'проверка': dict(A.check)}
+    A.finish(os.path.join(ROOT, 'sim.html')); R = A.out(); R['проверка на убийствах'] = dict(A.check); return R
 
 def run_bots(labels):
     A = Acc()
@@ -117,11 +139,12 @@ def run_bots(labels):
                     S = [q for q in L if t0 <= q[0] <= t1]
                     if S: players[b] = ([q[0] for q in S], [q[3] for q in S], [q[4] for q in S], [q[5] for q in S], S[0][2])
                 process(players, SH, A, t0, r.get('plant') or t1)
-    return A.out()
+    A.finish(os.path.join(ROOT, 'sim.html')); return A.out()
 
 if __name__ == '__main__':
     if sys.argv[1] == 'pro':
-        R = run_pro(); json.dump(R, open(os.path.join(HERE, 'runs', 'hits_pro.json'), 'w'), ensure_ascii=False, indent=1)
+        R = run_pro()
+        if '--nolos' not in sys.argv: json.dump(R, open(os.path.join(HERE, 'runs', 'hits_pro.json'), 'w'), ensure_ascii=False, indent=1)
     else:
         R = run_bots(sys.argv[2:])
     print(json.dumps({k: v for k, v in R.items()}, ensure_ascii=False, indent=0))

@@ -32,13 +32,21 @@ def collect(meta, bits, tracks_by_meta):
                     i = bisect.bisect_right(L[0], te) - 1
                     if i < 0: continue
                     x0, y0 = L[1][i], L[2][i]
+                    vel = math.hypot(L[1][i]-L[1][i-1], L[2][i]-L[2][i-1]) / max(1, (L[0][i]-L[0][i-1]))*64 if i > 0 else 0
+                    st = 'стоял' if vel < 15 else 'шёл' if vel <= 65 else 'бежал'   # в момент, когда пропал из вида
                     for d in DT:
                         t2 = te + d*64; i2 = bisect.bisect_right(L[0], t2) - 1
                         if i2 < 0 or t2 - L[0][i2] > 32 or L[0][-1] < t2: continue   # погиб / раунд кончился
                         dd = math.hypot(L[1][i2]-x0, L[2][i2]-y0)
                         out[d]['n'] += 1; out[d]['остался <150'] += dd < 150; out[d]['рядом 150–300'] += 150 <= dd <= 300; out[d]['ушёл >300'] += dd > 300
+                        out[d]['n ' + st] += 1; out[d]['<150 ' + st] += dd < 150; out[d]['<300 ' + st] += dd <= 300
             k = j + 1
-    return {d: {kk: (round(vv/max(1, out[d]['n']), 3) if kk != 'n' else vv) for kk, vv in out[d].items()} for d in DT}
+    R = {}
+    for d in DT:
+        o = out[d]; R[d] = {'n': o['n'], 'остался <150': round(o['остался <150']/max(1, o['n']), 3), '<300': round((o['остался <150']+o['рядом 150–300'])/max(1, o['n']), 3)}
+        for st in ('стоял', 'шёл', 'бежал'):
+            R[d][st] = [o['n ' + st], round(o['<150 ' + st]/max(1, o['n ' + st]), 3), round(o['<300 ' + st]/max(1, o['n ' + st]), 3)]
+    return R
 
 def run_pro(sim):
     import numpy as np, pandas as pd

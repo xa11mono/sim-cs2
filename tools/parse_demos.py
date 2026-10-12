@@ -53,6 +53,9 @@ EVENTS = {
     "flashbang_detonate": {},
     "hegrenade_detonate": {},
     "weapon_fire": {"player": ["X", "Y", "yaw", "team_num"]},
+    # (этап 3 аудита, P0-1/P2-2) урон и ослепления — для сверки попаданий ботов и флешек; раньше брали урон по health
+    "player_hurt": {"player": ["X", "Y", "team_num"]},
+    "player_blind": {"player": ["X", "Y", "team_num"]},
 }
 
 
@@ -120,7 +123,17 @@ def parse_one(path, out_dir, log):
     df.to_csv(os.path.join(out_dir, f"{name}_ticks.csv.gz"), index=False, compression="gzip")
     print(f"   позиции: {len(df)} строк")
 
+    parse_events(p, name, out_dir, warmup_end)
+
+    dt = time.time() - t_start
+    print(f"   готово за {dt:.0f} с")
+    log.append(f"{name}: готово, {len(df)} тиков, {dt:.0f} с")
+
+
+def parse_events(p, name, out_dir, warmup_end, only_missing=False):
     for ev, extra in EVENTS.items():
+        if only_missing and os.path.exists(os.path.join(out_dir, f"{name}_{ev}.csv.gz")):
+            continue
         try:
             e = p.parse_event(ev, player=extra.get("player", []), other=["total_rounds_played"])
         except Exception:
@@ -142,9 +155,15 @@ def parse_one(path, out_dir, log):
         e.to_csv(os.path.join(out_dir, f"{name}_{ev}.csv.gz"), index=False, compression="gzip")
         print(f"   {ev}: {len(e)}")
 
-    dt = time.time() - t_start
-    print(f"   готово за {dt:.0f} с")
-    log.append(f"{name}: готово, {len(df)} тиков, {dt:.0f} с")
+
+def events_only(dem, out_dir):
+    """--events: у уже разобранных демок дописать только недостающие события (player_hurt, player_blind), без тиков"""
+    import pandas as pd
+    from demoparser2 import DemoParser
+    name = os.path.splitext(os.path.basename(dem))[0]
+    t = pd.read_csv(os.path.join(out_dir, f"{name}_ticks.csv.gz"), usecols=["tick"])
+    print(f"== {name}: события")
+    parse_events(DemoParser(dem), name, out_dir, int(t.tick.min()) - 1, only_missing=True)
 
 
 def main():
@@ -161,6 +180,9 @@ def main():
     skipped = 0
     for d in demos:
         name = os.path.splitext(os.path.basename(d))[0]
+        if "--events" in sys.argv and already_done(name, out_dir):
+            events_only(d, out_dir)
+            continue
         if not force and already_done(name, out_dir):
             print(f"== {name}: уже разобрана, пропускаю (--force — переразобрать всё)")
             skipped += 1

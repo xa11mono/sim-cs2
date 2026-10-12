@@ -98,6 +98,21 @@ def stats(meta, bits):
             if not sh_a and not sh_b:
                 S['без стрельбы'] += 1; k = j + 1; continue
             S['со стрельбой'] += 1; S['со стрельбой ' + bk] += 1
+            # (этап 3, P0-1) на виду и под стрельбой: стоит / шагом / бежит × стреляет сейчас (свой выстрел в [−0,5; +0,25] с) или пауза;
+            # и в каком состоянии был погибший в последнем отсчёте перед смертью. Выстрелы и у про, и у ботов — первый в каждые 0,5 с
+            for q in smp[k:j+1]:
+                for who, v_, sh in ((m['a'], q[3], m['sa']), (m['b'], q[4], m['sb'])):
+                    if (m['da'] is not None and who == m['a'] and q[0] > m['da']) or (m['db'] is not None and who == m['b'] and q[0] > m['db']): continue
+                    st = 'бежит' if v_ > 65 else 'шагом' if v_ >= 15 else 'стоит'
+                    fire = any(q[0] - 32 <= t <= q[0] + 16 for t in sh)
+                    S['вс отсчётов'] += 1; S['вс ' + st + (' стреляет' if fire else ' пауза')] += 1
+            for who, dt_, col, sh in ((m['a'], m['da'], 3, m['sa']), (m['b'], m['db'], 4, m['sb'])):
+                if dt_ is None or not (ts - 16 <= dt_ <= te + 32): continue
+                prev = [q for q in smp[k:j+1] if q[0] <= dt_]
+                if not prev: continue
+                q = prev[-1]; v_ = q[col]; st = 'бежит' if v_ > 65 else 'шагом' if v_ >= 15 else 'стоит'
+                fire = any(q[0] - 32 <= t <= q[0] + 16 for t in sh)
+                S['гибель отсчётов'] += 1; S['гибель ' + st + (' стреляет' if fire else ' пауза')] += 1
             first = min(sh_a + sh_b); L['до первого выстрела'].append(max(0, first - ts) / 64)
             if dead:
                 S['кончилась смертью'] += 1; S['смертью ' + bk] += 1
@@ -131,7 +146,9 @@ def stats(meta, bits):
             'смертельные: первый выстрел→смерть, медиана с': [md('выстрел→смерть ' + b) for b in ('<250', '250-450', '450+')],
             'без смерти: бегом / шагом / стоит, доля времени': [round(S['бв ' + x] / max(1, S['бв отсчётов']), 3) for x in ('идёт', 'шагом', 'стоит')],
             'без смерти: смотрит на врага (±45°), доля времени': S['бв смотрит на врага'] / max(1, S['бв со взглядом']),
-            'первый выстреливший выжил': S['первый выстреливший выжил'] / max(1, S['кончилась смертью'])}
+            'первый выстреливший выжил': S['первый выстреливший выжил'] / max(1, S['кончилась смертью']),
+            'на виду под стрельбой: доля времени стоит/шагом/бежит × стреляет/пауза': {st + ' ' + f: round(S['вс ' + st + ' ' + f] / max(1, S['вс отсчётов']), 3) for st in ('стоит', 'шагом', 'бежит') for f in ('стреляет', 'пауза')},
+            'погибший в последнем отсчёте: стоит/шагом/бежит × стреляет/пауза': {st + ' ' + f: round(S['гибель ' + st + ' ' + f] / max(1, S['гибель отсчётов']), 3) for st in ('стоит', 'шагом', 'бежит') for f in ('стреляет', 'пауза')}}
 
 
 def pro(sim):
@@ -206,5 +223,6 @@ if __name__ == '__main__':
     else:
         out = pro(sim)
         F = os.path.join(ROOT, 'src', 'data', 'trades.json')
-        J = json.load(open(F)); J['vis'] = out; json.dump(J, open(F, 'w'), ensure_ascii=False, indent=1)
+        if '--print' not in sys.argv:   # --print: только показать (не трогать trades.json — его встраивает сборка)
+            J = json.load(open(F)); J['vis'] = out; json.dump(J, open(F, 'w'), ensure_ascii=False, indent=1)
         print(json.dumps(out, ensure_ascii=False, indent=1))
