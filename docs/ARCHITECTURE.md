@@ -27,6 +27,10 @@
 > только сказанное в войс (`h.voice`). `throwNade` не бросает HE/молотов, если свой в радиусе поражения. Запись и сценарии
 > аудита — `tools/measure/audit/` (`run_audit.py`, `audit_rec.js`, `analyze.py`, `scenarios.js`).
 >
+> **v269:** нож — `knifeTick` (таблица про `KNIFE_P` по скорости × оценке дистанции `knifeEnemyDist`, жребий на отрезок);
+> память — `knowAge` (в `knowTick`, кривая `KNOW_AGE`); план выхода T — `QY` в выборе тактики; бомба — `fetchCover`
+> (прикрывающий сборщика, замок как у напарника пробы). Замеры: `tools/measure/plan_bake.py`, `front_bake.py`, `audit/iso_rec.js`.
+
 > **v268 (этап 4 аудита):** `throwNade` проверяет «свой в радиусе» и в точке реальной вспышки прямого молотова (на
 > 70/64/(1−0,96) ≈ 27 px ближе цели), и для самого бросающего. `cornerLook` берёт запомненный угол только дальше 30 px.
 > Аудит: `fight_tick_rec.js` / `fight_bake.py` (перестрелки по тикам, про — из `weapon_fire_full` / `ticks_fight`),
