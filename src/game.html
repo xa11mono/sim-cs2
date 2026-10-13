@@ -8206,7 +8206,7 @@ function ctEarlyPeek(b, ct){
   }
   if(!E.go || E.st === 2) return false;
   if(ct.call || since > 24){ if(E.st === 1){ E.st = 2; } return false; }
-  if(since < 6) return false;
+  // (v271) выходит сразу — у про CT впервые в мейне A на 10,8-й с (медиана, 88 демок); раньше бот ждал 6 с и приходил на 14,5-й
   var k = Math.hypot(b.x-SITES.A.x, b.y-SITES.A.y) < Math.hypot(b.x-SITES.B.x, b.y-SITES.B.y) ? "A" : "B";
   if(!/^(anchor|roamer|mid)/.test(b.tRole)) return false;
   // (v248) за инфой — не в одиночку: один выглядывает, тиммейт рядом на размене [11]
@@ -8229,7 +8229,26 @@ function ctEarlyPeek(b, ct){
   }
   if(b.atPost && b.post && b.post.tag === "earlyPeek"){
     if(!E.arr) E.arr = tick;
-    if(tick - E.arr > 2.5*TICK_HZ){ E.st = 2; logEvent(b.id+": ранний пик — никого, назад на точку"); return false; }
+    // (v271, просьба владельца 13.10) никого — подпуш идёт дальше, пока по таймингу T туда ещё не могли дойти (REACH —
+    // знание команды, не подглядывание): до конца прохода к их стороне. У про CT в 8 % раундов доходят до Candle, в 5 % —
+    // до A Hall, в 4 % — до Stairs (88 демок, первые 35 с); у ботов до v271 — 0 (стояли у входа 2,5 с и назад).
+    // Дальше идти некуда — «пусто» в войс (markClear: знание команды и колл «чекнул … — пусто») и назад на точку
+    if(tick - E.arr > 0.8*TICK_HZ && !E.deepDone){
+      var wp = buildWaypointPath(b.x, b.y, 0, stg.x, stg.y, 0), nxt = null;
+      for(var wi = 0; wi < wp.length; wi++){
+        var q = {x: wp[wi][0], y: wp[wi][1]}, zq = bzOf(q.x, q.y);
+        if(zq < 0 || reachPossible("CT", zq)) break;   // туда T уже могли дойти — дальше не лезем
+        nxt = q;
+      }
+      if(nxt && Math.hypot(nxt.x-b.x, nxt.y-b.y) > 60){ E.pt = walk(nxt); E.arr = 0; E.deep = (E.deep||0) + 1; setPost(b, E.pt, stg, true, "earlyPeek"); return true; }
+      E.deepDone = true;
+    }
+    if(E.deepDone && tick - E.arr > 0.8*TICK_HZ){
+      E.st = 2;
+      markClear("CT", b.x, b.y, b.id);
+      logEvent(b.id+": ранний пик — никого"+(E.deep ? " (прошёл до конца)" : "")+", назад на точку");
+      return false;
+    }
   }
   setPost(b, E.pt, stg, true, "earlyPeek");
   return true;
