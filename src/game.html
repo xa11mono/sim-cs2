@@ -2871,10 +2871,10 @@ function setPost(b, pt, look, hold, tag, spreadIdx){
     if(tick >= b._tradeLock.until){ b._avoidPeekUntil = tick + 6*TICK_HZ; b._avoidPeekAt = b._tradeLock.at; b._tradeLock = null; }
     else if(!/^(tradeR|defuse|flee|plantspot|stopplant|antidefuse)/.test(tag)) return;
   }
-  // подмена погибшего (v272): держит его место, пока план не сдвинулся (T — выход, CT — колл), бомба, не больше 15 с
+  // подмена погибшего (v272): держит его место, пока план не сдвинулся (T — смена фазы, CT — «играем ретейк»), бомба, ≤ 15 с
   if(b._fillLock){
     var FL = b._fillLock;
-    if(tick >= FL.until || (bomb && bomb.state === "planted") || (FL.team === "T" ? !(teamTac.T && teamTac.T.phase === "setup") : !!(teamTac.CT && teamTac.CT.call))) b._fillLock = null;
+    if(tick >= FL.until || (bomb && bomb.state === "planted") || (FL.team === "T" ? !(teamTac.T && teamTac.T.phase === FL.ph) : !!(teamTac.CT && teamTac.CT.playRetake))) b._fillLock = null;
     else if(!/^(fill|tradeR|defuse|flee|plantspot|stopplant|antidefuse)/.test(tag)) return;
   }
   // эндгейм (все на последнего) — пост роли не перебивает. Раньше роль и эндгейм
@@ -5442,8 +5442,9 @@ function intelDeath(victim, killer){
   // рядом никого (менять некому) — его место занимает ближайший из тех, у кого рядом есть напарник (пара не разваливается
   // в одиночку). Знание — войс «минус <место>». У про после смерти до планта к месту смерти (≤400 px) за 15 с никто не
   // приходит в 10 % (T) / 14 % (CT) случаев, у ботов v269 — в 23–24 % / 19–20 % (88 демок; tools/measure/audit/refill.py).
-  // Держит место, пока план не сдвинулся: у T — до выхода (execute), у CT — до колла/ротации; не дольше 15 с.
-  var fillPh = victim.team === "T" ? (teamTac.T && teamTac.T.phase === "setup") : !(teamTac.CT && teamTac.CT.call);
+  // Держит место, пока план не сдвинулся: у T — до смены фазы (подготовка → выход), у CT — пока не «играем ретейк»; ≤ 15 с.
+  // (13.10, владелец: «подмена — как у про, везде») T — и в подготовке, и на выходе; CT — всегда, кроме «их больше — играем ретейк»
+  var fillPh = victim.team === "T" ? !!(teamTac.T && /^(setup|execute)$/.test(teamTac.T.phase)) : !(teamTac.CT && teamTac.CT.playRetake);
   if(!traders.length && fillPh && !(bomb && bomb.state === "planted") && aliveCount(victim.team) >= 3 && !teamSaving(victim.team)){
     var fc = victim.post && Math.hypot(victim.post.x-victim.x, victim.post.y-victim.y) < 600 ? {x:victim.post.x, y:victim.post.y} : {x:victim.x, y:victim.y};
     var fl = killer ? {x:killer.x + (saw ? 0 : (hashRand(tick*37+7)-0.5)*160), y:killer.y + (saw ? 0 : (hashRand(tick*41+3)-0.5)*160)} : (victim.post && victim.post.look) || null;
@@ -5457,7 +5458,7 @@ function intelDeath(victim, killer){
     if(fBest){
       var fp = (fl && pickSpots("fill"+tick+fBest.id, fc, 1, {rMax:170, minGap:30, see:[fl]})[0]) || fc;
       fBest._fillLock = null; setPost(fBest, fp, fl, true, "fill");
-      fBest._fillLock = {until: tick + 15*TICK_HZ, team: victim.team, pt: fp};
+      fBest._fillLock = {until: tick + 15*TICK_HZ, team: victim.team, pt: fp, ph: victim.team === "T" ? teamTac.T.phase : null};
       voiceLog(victim.team, "fill"+victim.id, fBest.id, "займу "+calloutName(fc.x, fc.y)+" вместо "+victim.id);
     }
   }
