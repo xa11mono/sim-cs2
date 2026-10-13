@@ -2892,7 +2892,7 @@ function setPost(b, pt, look, hold, tag, spreadIdx){
   }
   if(BAL.siteRebal && b._rebal && b._rebal.round === roundNum && !/^(rebal|retake|defuse|flee|save|fetch|stopplant|antidefuse|tradeR|repos|clutch|rotate|endhunt|gather|midcover|lineup|smokeWait|pickup)/.test(tag)) return;
   // игрок на пробе (вышел вперёд за инфой) — пост группы его не перебивает
-  if(b._probeLock && b._probeLock >= tick-1 && !/^(probe|fetchCover)/.test(tag)) return;   // и прикрывающий сборщика бомбы (v269)
+  if(b._probeLock && b._probeLock >= tick-1 && !/^(probe|fetchCover|bombEscort)/.test(tag)) return;   // и прикрывающий сборщика бомбы (v269)
   // сменил позицию после килла — пост роли не тянет его обратно на засвеченную
   // точку ещё ~5с (задачи по бомбе и ретейк — важнее)
   // (v257, К2) ротация на колл — решение команды: старая перепозиция (пуш, отход) её не держит
@@ -4470,7 +4470,29 @@ function tBrain(){
     if(carrier && carrier.alive && !carrier.planting && ready(carrier)){
       // выбор точки — когда носитель уже на подходе к сайту (по ситуации в этот момент)
       if(BAL.plantChoice && !tt.plantPick && Math.hypot(carrier.x-site.x, carrier.y-site.y) < 500) choosePlant(tt);
-      setPost(carrier, tt.plantPick ? tt.plantPick.pt : plantPt, g.ctEntry, true, "plantspot");
+      // (v272, пункт 3, просьба владельца 13.10) с бомбой на плант — не в одиночку (как за бомбой — fetchCover): рядом нет
+      // своего, который тоже заходит (≤ TRADE_R), — ближайший свой не на сайте и не в бою идёт к носителю и заходит с ним
+      // (войс), носитель ждёт его. Идёт один, только если своих нет, все уже на сайте (идёт к ним) или время поджимает
+      // (дойти + поставить + 5 с запаса — проектное число). У про носитель за 10 с до планта один (нет своего ≤350 px)
+      // 5 % времени, у ботов v269 — 13–16 % (88 демок; tools/measure/audit/carrier_plant.py)
+      var ppt = tt.plantPick ? tt.plantPick.pt : plantPt;
+      var cm = ts.filter(function(o){ return o !== carrier && o.alive && o.tRole !== "lurker"; });
+      var cLeft = ROUND_TIME_SEC - (tick - roundStartTick)/TICK_HZ, cWalk = polyLen(pathPts(carrier.x, carrier.y, ppt.x, ppt.y))/SPEED + PLANT_TICKS/TICK_HZ + 5;
+      var BE = tt.bombEsc && tt.bombEsc.round === roundNum && tt.bombEsc.cid === carrier.id ? tt.bombEsc : null;
+      var esc = BE ? cm.filter(function(o){ return o.id === BE.id && !o._sawEnemy && !o.planting; })[0] : null;
+      if(!esc && !cm.some(function(o){ return ready(o) && Math.hypot(o.x-carrier.x, o.y-carrier.y) <= TRADE_R; }) && cLeft >= cWalk){
+        esc = cm.filter(function(o){ return !o._sawEnemy && !o.planting && !(o._tradeLock && o._tradeLock.until > tick) && !(o._reposUntil && tick < o._reposUntil) && Math.hypot(o.x-ppt.x, o.y-ppt.y) > 350; })
+          .sort(function(a, c){ return Math.hypot(a.x-carrier.x, a.y-carrier.y) - Math.hypot(c.x-carrier.x, c.y-carrier.y); })[0] || null;
+        if(esc){ BE = tt.bombEsc = {round: roundNum, cid: carrier.id, id: esc.id}; voiceLog("T", "besc"+carrier.id, esc.id, "иду к бомбе — "+carrier.id+", заходим вместе"); }
+      }
+      if(esc && cLeft >= cWalk){
+        var dE = Math.hypot(esc.x-carrier.x, esc.y-carrier.y);
+        var lnE = Math.hypot(ppt.x-carrier.x, ppt.y-carrier.y) || 1, ePt = walk({x: carrier.x + (ppt.x-carrier.x)/lnE*Math.min(90, lnE), y: carrier.y + (ppt.y-carrier.y)/lnE*Math.min(90, lnE)});
+        if(!(esc.post && esc.post.tag === "bombEscort" && Math.hypot(esc.post.x-ePt.x, esc.post.y-ePt.y) < 80)) setPost(esc, ePt, g.ctEntry, true, "bombEscort");
+        esc._probeLock = tick;
+        if(dE <= TRADE_R) setPost(carrier, ppt, g.ctEntry, true, "plantspot");
+        else if(!(carrier.post && carrier.post.tag === "bombWait")) setPost(carrier, {x:carrier.x, y:carrier.y}, esc, true, "bombWait");
+      } else setPost(carrier, ppt, g.ctEntry, true, "plantspot");
     }
     var rest = pick(["entry","awp","support","igl"]).filter(function(b){ return b !== carrier && ready(b); });
     // (S5) ставят — двое ближних прикрывают подходы к ставящему под разными углами

@@ -74,14 +74,34 @@
         voice.forEach(function(q){ var mm = /^займу (.*) вместо (\S+)$/.exec(q.text); if(mm){ var b = bot(q.who); open.push({who: q.who, t: q.t, pt: b && b._fillLock ? b._fillLock.pt : null, text: q.text, res: null}); } });
         voice = [];
         open.forEach(function(f){ if(f.res || !f.pt) return; var b = bot(f.who);
-          if(!b.alive || b._sawEnemy) f.res = "контакт"; else if(Math.hypot(b.x-f.pt.x, b.y-f.pt.y) <= 400) f.res = "дошёл"; else if(tick - f.t > 15*TICK_HZ) f.res = "не дошёл"; });
+          if(!b.alive || b._sawEnemy) f.res = "контакт"; else if(Math.hypot(b.x-f.pt.x, b.y-f.pt.y) <= 400) f.res = "дошёл"; else if(!b._fillLock) f.res = "план сменился"; else if(tick - f.t > 15*TICK_HZ) f.res = "не дошёл"; });
       }
       fills = fills.concat(open);
     });
-    var ok2 = fills.filter(function(f){ return f.res === "дошёл" || f.res === "контакт"; }).length;
+    var ok2 = fills.filter(function(f){ return f.res === "дошёл" || f.res === "контакт" || f.res === "план сменился"; }).length;
     R.fill_reaches_spot = {ok: fills.length > 0 && ok2 / fills.length >= 0.8, valid: fills.length > 0, fills: fills.length, reached: ok2,
       sample: fills.slice(0, 6).map(function(f){ return f.who + ": " + f.text + " → " + f.res; })};
   } catch(e){ R.fill_reaches_spot = {ok: false, err: String(e).slice(0, 200)}; }
+
+  // П3. Носитель на плант не один: за 10 с до планта (раз в 0,25 с) — есть ли свой ≤350 px у того, кто поставил (когда свои живы).
+  // У про — один 5 % времени (carrier_plant.py). Засчитывается при ≥5 плантах; ok — один ≤ 8 % времени.
+  try {
+    var pl = [], tot3 = 0, al3 = 0, bj = 0;
+    [3, 7, 11].forEach(function(m){
+      freshMatch(m); voice = []; var hist = [];
+      for(var i = 0; i < 8*120*TICK_HZ && matchNum === m; i++){
+        var c = bomb && bomb.state === "carried" ? bomb.carrier : null; stepTick();
+        bj += voice.filter(function(q){ return /^бомба у меня — иду к/.test(q.text); }).length; voice = [];
+        if(c && i % 16 === 0){ var mates = bots.filter(function(o){ return o !== c && o.alive && o.team === "T"; });
+          if(mates.length) hist.push({t: tick, id: c.id, al: !mates.some(function(o){ return Math.hypot(o.x-c.x, o.y-c.y) <= 350; })}); }
+        if(c && c.planting && !c._sc5pl){ c._sc5pl = roundNum; var w = hist.filter(function(h){ return h.id === c.id && tick - h.t <= 10*TICK_HZ; });
+          if(w.length){ pl.push(w.filter(function(h){ return h.al; }).length / w.length); } }
+        if(roundState !== "live") bots.forEach(function(o){ o._sc5pl = 0; });
+      }
+    });
+    var avg = pl.length ? pl.reduce(function(a, b){ return a + b; }, 0) / pl.length : null;
+    R.carrier_not_alone_to_plant = {ok: avg !== null && avg <= 0.08, valid: pl.length >= 5, plants: pl.length, aloneShare: avg === null ? null : Math.round(avg*1000)/10, bombjoinCalls: bj};
+  } catch(e){ R.carrier_not_alone_to_plant = {ok: false, err: String(e).slice(0, 200)}; }
 
   // П4. По боту попали сквозь смок — он отвечает огнём в ту сторону за ~2 с (не видит стрелка: дым).
   try {
