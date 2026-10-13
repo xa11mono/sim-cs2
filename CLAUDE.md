@@ -66,7 +66,9 @@ v166 — `docs/V166_CHANGES.md` (список владельца). Главны�
 | стрельба: `tryShoot` (целится в видимое; свой на линии — `bulletVictim`), `resolveEngagements` (visParts), после фрага `afterKillMove`; **урон и смерть — одно место** `applyDamage` (пули, HE, молотов; по своим `FF_MUL`) | `grep -n` |
 | **движение в перестрелке** (одно место, v250): `fightCycleTick` — на линии → за укрытие `fightCover` → снова; числа `PEEK_PRO` | ~10080 |
 | **отметки владельца** (v255): `src/marks.js` (кнопка M, снимок, перемотка), сборка — `src/marks_build.py`; открыть снимок — `tools/mark_open.js`; повтор с хранилищем браузера владельца — `tools/replay_owner.js` | отдельные файлы |
-| экономика: `decideRoundType0`, `buyForPlayer` | ~11348; ~11408 |
+| экономика: `decideRoundType0`, `buyForPlayer`; что берут — доли про `smgFor`, `PRO_PISTOL` (`tools/buy_pro.py`) | ~11348; ~11408 |
+| бомба: урон взрыва `bombDamageAt` (`BOMB_DMG`), куда бежать `bombFleePoint`; выпадение при смерти `dropWeaponOnDeath` → `groundWeapons` / `groundItems` (`itemPickupTick`); дым: дыры от пуль `smokeBulletHole`, прострел `smokeSpamTick` + `smokeEnemyPossible` | `grep -n` |
+| **команды и смена сторон** (v270, одно место): `LINEUP`, `SIDE_TEAM`, `seatPlayers`; `sideSwapNow`, `swapSides`; память матча по раскладу `memSnapshot`/`memRestore`/`memStart`, `MEM_BOX`; профиль соперника `OPP.by` | `grep -n` |
 | раунд и цикл: `endRound`, `resetRound`, `stepTick` | ~11584; ~11617; ~11677 |
 | редактор карты `MAPED` (вкладки стены/высоты/укрытия/прострелы, Ctrl+Z, база); проверка «кто кого видит» `visToolDraw` | ~12954; ~14060 |
 | киллфид `feedKill` (иконки `KF_ICON`), табло `scoreboardUpdate`, панели игроков `playersUpdate` | ~14845; ~14967 |
