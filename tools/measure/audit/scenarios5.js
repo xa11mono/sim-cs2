@@ -112,7 +112,9 @@
     for(var i = 0; i < 6*TICK_HZ; i++){
       if(hitT === null && i % 4 === 0){ S._smokeShot = true; S.nextShotTick = 0; S.facing = Math.atan2(V.y-S.y, V.x-S.x); tryShoot(S, V, Math.hypot(V.x-S.x, V.y-S.y)); S._smokeShot = false;
         if(V.heardSound && V.heardSound.kind === "hit" && V.heardSound.tick === tick){ hitT = tick; a0 = V.ammo; } }
+      smokes.forEach(function(q){ q.bholes = []; });   // (слияние с v271: дыры от пуль) — проверяем ответ на попадание, а не бой через дыру
       stepTick(); put(V, pv); put(S, ps); if(!V.alive) break;
+      smokes.forEach(function(q){ q.bholes = []; });
       if(V._sawEnemy) sawS = true;
       if(hitT !== null && back === null && V.ammo < a0) back = tick - hitT;
       if(hitT !== null && tick - hitT > 2*TICK_HZ) break;

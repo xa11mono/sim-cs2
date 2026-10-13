@@ -58,25 +58,30 @@
   } catch(e){ R.target_lost_just_before = {ok: false, err: String(e).slice(0, 200)}; }
 
   // ---------- P1-2: карта команды (belief) — только из того, что команда знает вся ----------
-  function mid(){ setup(); for(var w = 0; w < 25*TICK_HZ && roundState === "live"; w++) stepTick(); if(roundState !== "live") throw new Error("раунд кончился"); }
+  function mid(sec){ setup(); for(var w = 0; w < (sec || 25)*TICK_HZ && roundState === "live"; w++) stepTick(); if(roundState !== "live") throw new Error("раунд кончился"); }
   function hiddenT(){ return bots.filter(function(e){ return e.team === "T" && e.alive && !bots.some(function(m){ return m.team === "CT" && m.alive && (m._visible||[]).indexOf(e) >= 0; }); })[0]; }
   function massAt(eid, x, y){ var zi = bzOf(x, y), Q = belief.CT[eid]; return zi >= 0 && Q ? Q[zi] : 0; }
   function upd(n){ for(var i = 0; i < n; i++){ tick++; knowTick(); beliefTick(); } }
   function voiceSay(h, zone){ var T = teamOf("CT"); teamPropose(h, {kind: "hear", zone: zone, sound: "steps", count: 1});
     for(var i = 0; i < 400; i++){ tick++; teamChannel(T); if(T.threats[zone] && T.threats[zone].by === h.id) return true; } return false; }
   try {
-    var run = function(mode){   // mode: "ctl" — ничего, "ear" — слышал и молчит, "voice" — сказал
-      mid(); var h = bots.filter(function(b){ return b.team === "CT" && b.alive; })[0], e = hiddenT(); if(!e) throw new Error("все T на радаре");
+    var run = function(mode, sec){   // mode: "ctl" — ничего, "ear" — слышал и молчит, "voice" — сказал
+      mid(sec); var h = bots.filter(function(b){ return b.team === "CT" && b.alive; })[0], e = hiddenT(); if(!e) throw new Error("все T на радаре");
       var pt = {x: e.x, y: e.y}, z = knowZoneAt(pt.x, pt.y);
       if(mode === "ear") hearReal(h, {x: pt.x, y: pt.y, tick: tick, team: "T", src: e.id, kind: "steps", occl: true});
       if(mode === "voice"){ hearReal(h, {x: pt.x, y: pt.y, tick: tick, team: "T", src: e.id, kind: "steps", occl: true}); knowTick(); voiceSay(h, z); }
       else for(var i = 0; i < 60; i++){ tick++; }
-      upd(32); return {m: massAt(e.id, pt.x, pt.y), eid: e.id, Q: Array.prototype.slice.call(belief.CT[e.id] || [])};
+      upd(32); var zi = bzOf(pt.x, pt.y), all = 0; for(var id in belief.CT) all += zi >= 0 && belief.CT[id] ? belief.CT[id][zi] : 0;
+      // (v272) в войсе «слышу шаги в X» — не кто именно: команда знает, что там кто-то; меряем всех врагов в этой зоне
+      return {m: massAt(e.id, pt.x, pt.y), all: Math.min(1, all), eid: e.id, Q: Array.prototype.slice.call(belief.CT[e.id] || [])};
     };
-    var c = run("ctl"), ear = run("ear"), vo = run("voice");
+    // (v272) момент, где команда ещё НЕ знает, что враг там (иначе колл ничего не добавляет — проверять нечего)
+    var sec = 25, c = run("ctl", sec);
+    [20, 30, 35, 15].forEach(function(s2){ if(c.all >= 0.2){ try { var c2 = run("ctl", s2); if(c2.all < c.all){ c = c2; sec = s2; } } catch(e2){} } });
+    var ear = run("ear", sec), vo = run("voice", sec);
     var tv = 0; c.Q.forEach(function(v, i){ tv += Math.abs(v - (ear.Q[i] || 0)); });   // насколько изменилась вся карта по этому врагу
     R.belief_heard_not_said = {ok: tv < 1e-6, mapChange: +tv.toFixed(4)};
-    R.belief_said_in_voice = {ok: vo.m > c.m + 0.02, control: +c.m.toFixed(3), voiced: +vo.m.toFixed(3)};
+    R.belief_said_in_voice = {ok: vo.all > c.all + 0.02, valid: c.all < 0.2, sec: sec, control: +c.all.toFixed(3), voiced: +vo.all.toFixed(3), thisEnemy: [+c.m.toFixed(3), +vo.m.toFixed(3)]};
   } catch(e){ R.belief_heard_not_said = {ok: false, err: String(e).slice(0, 200)}; }
   try {   // свой видит врага — по радару команда знает точно
     setup(); var ct = bot("CT2"), tt2 = bot("T2"), G5 = triple(); park([ct, tt2]); put(ct, G5.s); put(tt2, G5.a); ct.facing = G5.an; ct.blindUntil = 0;

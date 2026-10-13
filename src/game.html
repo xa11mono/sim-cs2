@@ -8332,7 +8332,9 @@ function ctEarlyPeek(b, ct){
   var since = (tick - roundStartTick)/TICK_HZ;
   var E = b._early;
   if(!E || E.round !== roundNum){
-    E = b._early = {round:roundNum, go: hashRand(roundNum*733 + matchNum*41 + b.id.charCodeAt(2)*9) < (pa-0.5)*1.3, st:0};
+    // (v272) чаще не выходят: с выходом сразу CT были в мейне A в первые 35 с в 39 % раундов против 13,5 % у про (88 демок;
+    // tools/measure/audit/ct_early.py) — шанс ×0,35 (= 13,5 / 39)
+    E = b._early = {round:roundNum, go: hashRand(roundNum*733 + matchNum*41 + b.id.charCodeAt(2)*9) < (pa-0.5)*1.3*0.35, st:0};
   }
   if(!E.go || E.st === 2) return false;
   if(ct.call || since > 24){ if(E.st === 1){ E.st = 2; } return false; }
