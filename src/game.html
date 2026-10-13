@@ -2849,6 +2849,12 @@ function setPost(b, pt, look, hold, tag, spreadIdx){
     if(tick >= b._tradeLock.until){ b._avoidPeekUntil = tick + 6*TICK_HZ; b._avoidPeekAt = b._tradeLock.at; b._tradeLock = null; }
     else if(!/^(tradeR|defuse|flee|plantspot|stopplant|antidefuse)/.test(tag)) return;
   }
+  // подмена погибшего (v272): держит его место, пока план не сдвинулся (T — выход, CT — колл), бомба, не больше 15 с
+  if(b._fillLock){
+    var FL = b._fillLock;
+    if(tick >= FL.until || (bomb && bomb.state === "planted") || (FL.team === "T" ? !(teamTac.T && teamTac.T.phase === "setup") : !!(teamTac.CT && teamTac.CT.call))) b._fillLock = null;
+    else if(!/^(fill|tradeR|defuse|flee|plantspot|stopplant|antidefuse)/.test(tag)) return;
+  }
   // эндгейм (все на последнего) — пост роли не перебивает. Раньше роль и эндгейм
   // каждый тик ставили РАЗНЫЕ посты: путь сбрасывался, бот "не доходил" и
   // топтался на месте с кругами шагов, не вставая на угол
@@ -2976,7 +2982,7 @@ function resetBomb(){
   order.forEach(function(r){ if(!carrier) carrier = bots.filter(function(b){ return b.team==="T" && b.tRole===r; })[0]; });
   carrier = carrier || bots.filter(function(b){ return b.team==="T"; })[0];
   bomb = {state:"carried", carrier:carrier, x:carrier.x, y:carrier.y, site:null, plantTick:-1, explodeTick:-1};
-  bots.forEach(function(b){ b.planting = false; b.defusing = false; b.fakeUntil = 0; b.fakeHoldUntil = 0; b.retakeRole = null; b._defuseHeard = -9999; b._tradeLock = null; });
+  bots.forEach(function(b){ b.planting = false; b.defusing = false; b.fakeUntil = 0; b.fakeHoldUntil = 0; b.retakeRole = null; b._defuseHeard = -9999; b._tradeLock = null; b._fillLock = null; });
 }
 function dropBomb(b){
   if(bomb && bomb.state === "carried" && bomb.carrier === b){
@@ -5359,6 +5365,29 @@ function intelDeath(victim, killer){
       o.heardSound = {x:kp.x, y:kp.y, tick:tick, team:killer.team, src:killer.id, kind:"call"};
       if(k === 0) voiceLog(o.team, "trade"+victim.id, o.id, "меняю "+victim.id+"!");
     });
+  }
+  // ---- подмена (v272, просьба владельца 13.10; из «мозга 2» — tdefRefill, rebuild-v238 12_t_default.js): свой погиб, а
+  // рядом никого (менять некому) — его место занимает ближайший из тех, у кого рядом есть напарник (пара не разваливается
+  // в одиночку). Знание — войс «минус <место>». У про после смерти до планта к месту смерти (≤400 px) за 15 с никто не
+  // приходит в 10 % (T) / 14 % (CT) случаев, у ботов v269 — в 23–24 % / 19–20 % (88 демок; tools/measure/audit/refill.py).
+  // Держит место, пока план не сдвинулся: у T — до выхода (execute), у CT — до колла/ротации; не дольше 15 с.
+  var fillPh = victim.team === "T" ? (teamTac.T && teamTac.T.phase === "setup") : !(teamTac.CT && teamTac.CT.call);
+  if(!traders.length && fillPh && !(bomb && bomb.state === "planted") && aliveCount(victim.team) >= 3 && !teamSaving(victim.team)){
+    var fc = victim.post && Math.hypot(victim.post.x-victim.x, victim.post.y-victim.y) < 600 ? {x:victim.post.x, y:victim.post.y} : {x:victim.x, y:victim.y};
+    var fl = killer ? {x:killer.x + (saw ? 0 : (hashRand(tick*37+7)-0.5)*160), y:killer.y + (saw ? 0 : (hashRand(tick*41+3)-0.5)*160)} : (victim.post && victim.post.look) || null;
+    var fBest = null, fL = Infinity;
+    bots.forEach(function(o){
+      if(!o.alive || o.team !== victim.team || o === victim || o.planting || o.defusing || o._sawEnemy || o._tradeLock || o._fillLock) return;
+      if(o.team === "T" && (o.tRole === "lurker" || (bomb && bomb.carrier === o))) return;
+      if(!bots.some(function(m){ return m !== o && m.alive && m.team === o.team && Math.hypot(m.x-o.x, m.y-o.y) <= TRADE_R; })) return;
+      var L = polyLen(pathPts(o.x, o.y, fc.x, fc.y)); if(L < fL){ fL = L; fBest = o; }
+    });
+    if(fBest){
+      var fp = (fl && pickSpots("fill"+tick+fBest.id, fc, 1, {rMax:170, minGap:30, see:[fl]})[0]) || fc;
+      fBest._fillLock = null; setPost(fBest, fp, fl, true, "fill");
+      fBest._fillLock = {until: tick + 15*TICK_HZ, team: victim.team, pt: fp};
+      voiceLog(victim.team, "fill"+victim.id, fBest.id, "займу "+calloutName(fc.x, fc.y)+" вместо "+victim.id);
+    }
   }
   // IGL: энтри сняли на выходе — вторая волна не пикает тот же угол "в лоб":
   // ближайший с флешкой кидает поп-флешку на убийцу, размен идёт под неё
@@ -15659,7 +15688,7 @@ function draw(){
 // (v247) сейв — решение команды: личные размены и пики отменяются, в дуэли никто не выходит
 function saveCancelTrades(team){
   bots.forEach(function(b){ if(b.team !== team || !b.alive) return;
-    b._tradeLock = null; b._tradeUntil = 0; b._waitPopUntil = 0;
+    b._tradeLock = null; b._fillLock = null; b._tradeUntil = 0; b._waitPopUntil = 0;
     if(b.post && b.post.tag === "tradeR") clearPost(b); });
 }
 function teamSaving(team){ var t = team === "CT" ? teamTac.CT : teamTac.T; return !!(t && t.saving); }
