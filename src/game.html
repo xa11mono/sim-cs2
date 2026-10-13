@@ -5449,10 +5449,15 @@ function intelDeath(victim, killer){
     var fc = victim.post && Math.hypot(victim.post.x-victim.x, victim.post.y-victim.y) < 600 ? {x:victim.post.x, y:victim.post.y} : {x:victim.x, y:victim.y};
     var fl = killer ? {x:killer.x + (saw ? 0 : (hashRand(tick*37+7)-0.5)*160), y:killer.y + (saw ? 0 : (hashRand(tick*41+3)-0.5)*160)} : (victim.post && victim.post.look) || null;
     var fBest = null, fL = Infinity;
-    bots.forEach(function(o){
+    // решает по тому, что знает команда (владелец 13.10: «умно, а то будут дырки в защите»): место ещё кто-то держит (свой
+    // ≤400 px) — подменять незачем; уходит только тот, чьё место остаётся под присмотром (рядом напарник ≤ TRADE_R) и у кого
+    // самого не горячо (команда не знает врагов в 600 px за последние 4 с — иначе ушёл бы из-под контакта и открыл свой вход)
+    var covered = bots.some(function(m){ return m !== victim && m.alive && m.team === victim.team && Math.hypot(m.x-fc.x, m.y-fc.y) <= 400; });
+    if(!covered) bots.forEach(function(o){
       if(!o.alive || o.team !== victim.team || o === victim || o.planting || o.defusing || o._sawEnemy || o._tradeLock || o._fillLock) return;
       if(o.team === "T" && (o.tRole === "lurker" || (bomb && bomb.carrier === o))) return;
       if(!bots.some(function(m){ return m !== o && m.alive && m.team === o.team && Math.hypot(m.x-o.x, m.y-o.y) <= TRADE_R; })) return;
+      if(intelEstimate(o.team, o.x, o.y, 600, 4*TICK_HZ).n > 0) return;
       var L = polyLen(pathPts(o.x, o.y, fc.x, fc.y)); if(L < fL){ fL = L; fBest = o; }
     });
     if(fBest){
