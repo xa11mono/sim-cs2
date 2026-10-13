@@ -7810,6 +7810,15 @@ function smokeSpamTick(){
       return;
     }
     if(b._sawEnemy || b.planting || b.defusing || b._reloading || tick < b.blindUntil || b.ammo <= 0 || !b.weapon) return;
+    // (v272, просьба владельца 13.10) попали сквозь дым — откуда, бот знает (урон + звук выстрела, как живой игрок):
+    // отвечает очередью в ту точку после своей реакции, даже на ходу. У про 8,9 % фрагов — сквозь смок (88 демок)
+    var hs = b.heardSound;
+    if(hs && hs.kind === "hit" && hs.team !== b.team && tick - hs.tick < TICK_HZ && Math.hypot(hs.x-b.x, hs.y-b.y) < 900 &&
+       hasLOS(b.x, b.y, hs.x, hs.y) && smokeBlocks(b.x, b.y, hs.x, hs.y)){
+      b._spam = {pt:{x:hs.x, y:hs.y}, bursts:SMK.burstsMin, shot:0, nextBurst:hs.tick + b.reactionTicks, until:tick + 4*TICK_HZ};
+      logEvent(b.id+": по нему стреляют сквозь смок — отвечает");
+      return;
+    }
     if(b.curSpeed > 40*SPD_K) return;   // стоит (на посту или просто остановился)
     var D = b._spamDone || (b._spamDone = {});
     smokes.forEach(function(s){
