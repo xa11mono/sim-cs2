@@ -220,7 +220,7 @@
   <div id="topbar">
     <div class="tb-id">
       <h1>Ancient</h1>
-      <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 273, 14.10</div>
+      <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 274, 14.10</div>
     </div>
     <div class="tb-group" id="tbMatch">
       <button id="btnPause">Пауза</button>
@@ -6119,6 +6119,10 @@ function knowKill(att, vic){
     var K = b.know;
     if(vic.team !== b.team){
       if(K.enemies[vic.id]){ delete K.enemies[vic.id]; K.alive--; }
+      // (v273, владелец 14.10) киллфид + колл убившего «убил … на <место>»: свой звук и инфа рядом с местом фрага (≤300 px),
+      // полученные до него, — это был он; забываем (иначе бот смотрел на трупы). В других местах помнит, как было. 300 px — проектное число
+      if(b.heardSound && b.heardSound.team === vic.team && b.heardSound.tick <= tick && Math.hypot(b.heardSound.x-vic.x, b.heardSound.y-vic.y) <= 300) b.heardSound = null;
+      if(b.lastIntel && b.lastIntel.tick <= tick && Math.hypot(b.lastIntel.x-vic.x, b.lastIntel.y-vic.y) <= 300) b.lastIntel = null;
       return;
     }
     if(!att || att.team === b.team) return;
@@ -7214,14 +7218,25 @@ function uncheckedW(team, j){
 }
 // тыл: зона дальше от вражеского спавна, чем моя, и по инфе там никого — враг
 // туда может попасть только через нас или тиммейтов (Alley, 90, First Lane у CT)
-function isRearZone(team, zb, j){
+// (v273, разбор взгляда владельца 14.10) тыл — не «всё, что дальше от вражеского спавна, чем я» (вышедшему вперёд CT
+// так тылом становились Triple, T Upper, Sniper Nest — откуда шли T), а то, куда враг ещё не мог дойти по таймингу
+// (REACH — знание команды) или что держит свой (свой в зоне / ≤ 400 px от её центра). Остальное позади — обычный вариант
+// взгляда с ослаблением «за спиной» (LOOK.behindHold / behindMove)
+function isRearZone(team, zb, j, b){
   if(!BAL.rearCut) return false;
+  // сам слышал/видел врага в этой зоне за последние 3 с — не тыл, даже если команда ещё не знает
+  var c0 = BZ.cent[j];
+  if(b && c0 && [b.heardSound, b.lastIntel].some(function(q){ return q && (!q.team || q.team !== team) && tick - q.tick <= 3*TICK_HZ && (bzOf(q.x, q.y) === j || Math.hypot(q.x-c0.x, q.y-c0.y) <= 400); })) return false;
   var ED = enemySpawnDist(team);
   if(!(ED[j] > ED[zb] + LOOK.rearMargin)) return false;
   if(beliefZoneKnown(team, j) >= LOOK.rearInfo) return false;
   if(BZ.cent[j] && freshThreatNear(team, BZ.cent[j])) return false;
-  return true;
+  if(!BAL.timing || !reachPossible(team, j)){ REAR_WHY = "тыл: по таймингу врага там быть не может"; return true; }
+  var c = BZ.cent[j], m = c ? bots.filter(function(o){ return o.alive && o.team === team && (bzOf(o.x, o.y) === j || Math.hypot(o.x-c.x, o.y-c.y) <= 400); })[0] : null;
+  if(m){ REAR_WHY = "тыл: держит " + m.id; return true; }
+  return false;
 }
+var REAR_WHY = "тыл";   // (только для разбора взгляда) почему зона — тыл
 // (v149) "куда смотреть отсюда без инфы": видимый проход, за которым зона
 // ближе всего к вражескому спавну — откуда враг придёт раньше всего. Тыл
 // (дальше от врага, чем я) не берётся. Кэш по клетке 24px.
@@ -7354,7 +7369,7 @@ function lookCands(b, W){
   (ZONE_DANGER[BZ.ids[zb]]||[]).forEach(function(zid){
     var j = BZ.idx[zid]; if(j === undefined || j === zb) return;
     var cz = BZ.cent[j]; if(!cz || Math.hypot(cz.x-b.x, cz.y-b.y) > LOOK.maxDist){ if(D && cz) D[j] = {skip: "далеко"}; return; }
-    if(isRearZone(team, zb, j)){ if(D) D[j] = {skip: "тыл"}; return; }   // (v148) свой тыл — не угроза
+    if(isRearZone(team, zb, j, b)){ if(D) D[j] = {skip: REAR_WHY}; return; }   // (v148) свой тыл — не угроза
     // 1) сколько врагов оттуда вероятно выйдет
     var th = beliefZoneKnown(team, j), nBest = -1, nVal = 0, dz = D ? (D[j] = {bel: th, nbr: 0, hab: 0, unc: 0, tim: 0, wd: Wd[zid]||0}) : null;
     BZ.nbr[j].forEach(function(nn){ if(nn === zb) return;
@@ -7412,7 +7427,7 @@ function lookCands(b, W){
   // выходы из Alley/Temple, хотя там был враг). Смотрим на сам проход.
   if(BZ.portal) BZ.nbr[zb].forEach(function(nn){
     var p = BZ.portal[zb][nn]; if(!p) return;
-    if(isRearZone(team, zb, nn)) return;   // (v148) проход в свой тыл — не угроза
+    if(isRearZone(team, zb, nn, b)) return;   // (v148) проход в свой тыл — не угроза
     var d = Math.hypot(p.x-b.x, p.y-b.y); if(d < 40 || d > LOOK.maxDist || !hasLOS(b.x, b.y, p.x, p.y)) return;
     var th = beliefZoneKnown(team, nn);
     BZ.nbr[nn].forEach(function(n2){ if(n2 === zb) return; if(BAL.timing && !reachPossible(team, n2)) return;
@@ -7458,6 +7473,9 @@ function lookCands(b, W){
   // Вес маленький: реальная угроза его перебивает, а "почти нули" — нет
   if(BAL.proLook){ var PL = proLookAt(team, b.x, b.y);
     if(PL){ var ae = Math.atan2(PL.dy, PL.dx), cl = rayClipWalls(b.x, b.y, b.x+PL.dx*420, b.y+PL.dy*420), dl = Math.hypot(cl.x-b.x, cl.y-b.y);
+      // (v273, владелец 14.10) направление про упирается в стену (у нас геометрия чуть другая) — не точка на стене, а самое открытое
+      // направление в пределах ±30° от него (±30° — проектное число), если там видно дальше
+      if(dl < 400){ var opn = openToward(b, ae, 0.52), dop = opn ? Math.hypot(opn.x-b.x, opn.y-b.y) : 0; if(opn && dop > dl + 40){ cl = opn; dl = dop; ae = Math.atan2(opn.y-b.y, opn.x-b.x); } }
       if(dl > 90){ var scp = LOOK.proLook * PL.R;
         if(moving){ var hdp = _angOff(ae, b.heading); if(hdp < 0.9) scp *= LOOK.headK; else if(BAL.cornerAim) scp = 0; else if(hdp > 1.9) scp *= rearCov ? LOOK.behindMoveCov : LOOK.behindMove; }
         if(scp > 0) out.push({j:"pl", pt:{x:cl.x, y:cl.y}, sc:scp, fresh:false, a:ae, pro:true, f: D ? [["как у про с этой точки", LOOK.proLook], ["доля про", PL.R]] : null}); } } }
@@ -7470,7 +7488,7 @@ function lookCands(b, W){
     // (v149) угол поста смотрит в тыл (заданная точка оказалась в своём коридоре) —
     // берём видимый проход, откуда враг придёт раньше всего
     if(BAL.enemyward){ var zpl = bzOf(pl.x, pl.y), zbb = bzOf(b.x, b.y);
-      if(zpl >= 0 && zbb >= 0 && zpl !== zbb && isRearZone(team, zbb, zpl) || Math.hypot(pl.x-b.x, pl.y-b.y) < 60){ var ew = enemywardLook(team, b); if(ew) pl = cornerLook(b, ew) || ew; } }
+      if(zpl >= 0 && zbb >= 0 && zpl !== zbb && isRearZone(team, zbb, zpl, b) || Math.hypot(pl.x-b.x, pl.y-b.y) < 60){ var ew = enemywardLook(team, b); if(ew) pl = cornerLook(b, ew) || ew; } }
     out.push({j:"post"+b.id, pt:pl, sc:LOOK.postBase, fresh:false, a:Math.atan2(pl.y-b.y, pl.x-b.x), f: D ? [["угол поста по сетапу", LOOK.postBase]] : null}); }
   return out;
 }
@@ -15196,7 +15214,7 @@ function lookDbgDraw(){
       px.strokeStyle = "rgba(190,150,255,.45)"; px.lineWidth = 1.5; px.beginPath(); px.moveTo(0, 10); px.lineTo(10, 0); px.stroke(); lookDbgDraw._pat = ctx.createPattern(pc, "repeat"); }
     BZ.ids.forEach(function(id, j){ var z = zoneById(id), c = BZ.cent[j]; if(!z || !c || !isFinite(RT[j])) return;
       if(RT[j] <= tick && !(m[j] >= 0.03)){ ctx.beginPath(); z.points.forEach(function(p, i){ if(i) ctx.lineTo(p.x, p.y); else ctx.moveTo(p.x, p.y); }); ctx.closePath(); ctx.fillStyle = lookDbgDraw._pat; ctx.fill(); }
-      else if(RT[j] - tick >= TICK_HZ && RT[j] - tick < 10*TICK_HZ){ ctx.font = (8*s1) + "px 'IBM Plex Mono',monospace"; ctx.textAlign = "center"; ctx.fillStyle = "rgba(200,170,255,.95)"; ctx.fillText("враг через " + Math.ceil((RT[j]-tick)/TICK_HZ) + " с", c.x, c.y + 10*s1); } }); }
+      else if((b._ldZones || {})[j] && RT[j] - tick >= TICK_HZ && RT[j] - tick < 10*TICK_HZ){ ctx.font = (8*s1) + "px 'IBM Plex Mono',monospace"; ctx.textAlign = "center"; ctx.fillStyle = "rgba(200,170,255,.95)"; ctx.fillText("враг через " + Math.ceil((RT[j]-tick)/TICK_HZ) + " с", c.x, c.y + 10*s1); } }); }
   var Z = b._ldZones || {}, tm = 0.001; for(var j in Z) tm = Math.max(tm, Z[j].th || 0);
   for(var j3 in Z){ var dk = Z[j3]; if(!dk.skip || dk.skip === "угрозы нет") continue; var z3 = zoneById(BZ.ids[j3]), c3 = BZ.cent[+j3]; if(!z3 || !c3) continue;
     ctx.beginPath(); z3.points.forEach(function(p, i){ if(i) ctx.lineTo(p.x, p.y); else ctx.moveTo(p.x, p.y); }); ctx.closePath();
