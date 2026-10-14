@@ -224,7 +224,7 @@
   <div id="topbar">
     <div class="tb-id">
       <h1>Ancient</h1>
-      <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 295, 14.10</div>
+      <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 296, 14.10</div>
     </div>
     <div class="tb-group" id="tbMatch">
       <button id="btnPause">Пауза</button>
@@ -4721,6 +4721,16 @@ function tBrain(){
     }
     var antiDef = [];
     defuseContTick();
+    // (v296, владелец 14.10: «фейк-дефуз и обычный — его туда-сюда перенаправляет», отметка: раунд 1, тик 5848 — T2 за 10 тиков
+    // «на время» → «на бомбу» → «на время» → «сейв») одно решение на одну попытку дефуза: кто пошёл на бомбу — идёт, пока дефуз
+    // идёт, и ещё 2 с после того, как он стих (выглядывает на бомбу, а не разворачивается); «не успеваем — сейв» держит блок выше
+    var dfNow = bots.filter(function(o){ return o.defusing && o.alive; })[0], AC = tt._adCommit;
+    if(AC && (AC.round !== roundNum || (!dfNow && tick - AC.last > 2*TICK_HZ))) AC = tt._adCommit = null;
+    if(AC){ if(dfNow) AC.last = tick;
+      antiDef = ts.filter(function(b){ return AC.ids.indexOf(b.id) >= 0 && !b.planting; });
+      var bpC = {x:bomb.x, y:bomb.y};
+      antiDef.forEach(function(b){ setPost(b, (b._adSpot && b._adSpot.round === roundNum) ? b._adSpot.pt : bpC, bpC, true, "antidefuse"); b._stopPlantUntil = tick + 30; });
+    } else
     if(BAL.antiDefuse && tDefuseGo(tt, ts)){
       var bpA = {x:bomb.x, y:bomb.y};
       antiDef = ts.filter(function(b){ return !b.planting && Math.hypot(b.x-bpA.x, b.y-bpA.y) < 1100; });
@@ -4747,6 +4757,7 @@ function tBrain(){
         setPost(b, b._adSpot.pt, bpA, true, "antidefuse"); b._stopPlantUntil = tick + 30; // бегом, не шагом
       });
       if(antiDef.length && tt._adVoice !== roundNum){ tt._adVoice = roundNum; voiceLog("T", "antidef", antiDef[0].id, "дефузят! все на бомбу!"); }
+      if(antiDef.length) tt._adCommit = {round:roundNum, ids:antiDef.map(function(b){ return b.id; }), last:tick};
     }
     if(lurker && antiDef.indexOf(lurker) < 0) lurkerBrain(lurker, tt, other);
     var group = pick(["entry","awp","support","igl"]).filter(function(b){ return antiDef.indexOf(b) < 0; });
@@ -7569,7 +7580,7 @@ function lookCands(b, W){
   var hs = b.heardSound; if(hs && tick - hs.tick <= 96) cts.push({x:hs.x, y:hs.y, age:tick-hs.tick});
   var BLc = beliefLast[team] || {};
   for(var eid in BLc){ var lo = BLc[eid]; if(tick - lo.tick > 96) continue;
-    var eb = bots.filter(function(o){ return o.id === eid; })[0]; if(!eb || !eb.alive) continue; cts.push({x:lo.x, y:lo.y, age:tick-lo.tick}); }
+    var eb = bots.filter(function(o){ return o.id === eid; })[0]; if(!eb || !eb.alive) continue; cts.push({x:lo.x, y:lo.y, age:tick-lo.tick, seen: lo.src === "spotted"}); }
   cts.forEach(function(q){
     var d = Math.hypot(q.x-b.x, q.y-b.y); if(d > 700 || d < 20) return;
     // (v279, владелец 14.10: матч 1, ~11,8 с, якорь B развернулся спиной к Ramp на бой на миде в 650 px) держит пост — дальняя
@@ -7577,7 +7588,9 @@ function lookCands(b, W){
     if(!holdRelevant(b, q)) return;
     var za = Math.atan2(q.y-b.y, q.x-b.x);
     // на бегу за спину — только на самый свежий и близкий
-    if(moving && _angOff(za, b.heading) > 1.9 && (q.age > 20 || d > 250)) return;
+    // (v296, И37, владелец 14.10: T4 выглянул на игрока 7 в 60 px, отошёл — и отвернулся по ходу отхода) отходя от врага, с которым
+    // только что стрелялся, держит его: за спиной выкидываем контакт, только если он и не свежий (> 0,3 с), и не близкий (> 250 px)
+    if(moving && _angOff(za, b.heading) > 1.9 && q.age > 20 && d > 250) return;
     // (v280) туда, где враг от шума появится (первая видимая точка его пути ко мне), а не угол на своём пути к шуму —
     // тот мог уводить в зону, откуда враг не придёт (игрок 8 на Top Mid)
     var apf = BAL.noWallLook ? appearFrom(b, q) : null; if(apf) apf = {x: apf.x, y: apf.y, vis: true}; // (v287) видна с места бота — угол не пересчитывать
@@ -7586,6 +7599,9 @@ function lookCands(b, W){
     // зайдёт в мою зону (первая точка его пути в ней), а не выкидываем контакт
     if(!pt){ var wq0 = buildWaypointPath(q.x, q.y, 0, b.x, b.y, 0) || [];
       for(var wi0 = 0; wi0 < wq0.length; wi0++){ if(bzOf(wq0[wi0][0], wq0[wi0][1]) === zb){ var ep = {x: wq0[wi0][0], y: wq0[wi0][1]}; if(Math.hypot(ep.x-b.x, ep.y-b.y) > 40) pt = ep; break; } } }
+    // (v296, И37) враг рядом (≤ 250 px — «близкий» контакт), а ни угла, ни точки появления не нашлось (за стенкой в упор) — смотрим прямо
+    // на место, где он был: раньше такой контакт выкидывали, и бот после пика отворачивался от врага в 60 px
+    if(!pt && d <= 250) pt = {x:q.x, y:q.y};
     if(!pt) return;
     // (v277, владелец 14.10: матч 1, ~14 с, игрок 9 смотрел в Cave на шум с мида, а путь оттуда к нему идёт через Dark, где стоит
     // свой) враг от шума к боту сначала выйдет на тиммейта, стоящего на его пути, — угол закрыт им (тот же множитель «там свой»)
@@ -7593,9 +7609,12 @@ function lookCands(b, W){
     if(d >= 300){ var wq = buildWaypointPath(q.x, q.y, 0, b.x, b.y, 0) || [];
       cov = mates.filter(function(o){ return wq.some(function(w){ return Math.hypot(w[0]-b.x, w[1]-b.y) > 150 && Math.hypot(w[0]-o.x, w[1]-o.y) <= 120; }); })[0] || null; }
     var scS = LOOK.contactW * (d < 300 ? 2 : 1) / (1 + d/700) * (1 - q.age/192) * (cov ? LOOK.mateThere : 1);
+    // (v296, И37) только что видел врага в упор (≤ 250 px) — это самая свежая угроза: тот же множитель, что у «свежей угрозы» зоны
+    // (раньше услышанный в 330 px перебивал врага, с которым бот стрелялся в 64 px)
+    var seenClose = q.seen && d <= 250 && !cov; if(seenClose) scS *= LOOK.freshK;
     // (v278) путь закрывает свой — не «свежая» угроза для меня: не перебивает точку про и угол поста (игрок 9 дёргался на Cave)
     out.push({j:"snd"+Math.round(q.x/80)+","+Math.round(q.y/80), pt:pt, src:{x:q.x, y:q.y}, sc:scS, fresh:!cov, a:za, snd:true,
-      f: D ? [["контакт/звук", LOOK.contactW], [d < 300 ? "ближе 300" : "дальше 300", d < 300 ? 2 : 1], ["дистанция " + Math.round(d), 1/(1 + d/700)], ["свежесть " + (q.age/TICK_HZ).toFixed(1) + " с", 1 - q.age/192]].concat(cov ? [["путь закрывает " + cov.id, LOOK.mateThere]] : []) : null});
+      f: D ? [["контакт/звук", LOOK.contactW], [d < 300 ? "ближе 300" : "дальше 300", d < 300 ? 2 : 1], ["дистанция " + Math.round(d), 1/(1 + d/700)], ["свежесть " + (q.age/TICK_HZ).toFixed(1) + " с", 1 - q.age/192]].concat(cov ? [["путь закрывает " + cov.id, LOOK.mateThere]] : []).concat(seenClose ? [["видел в упор", LOOK.freshK]] : []) : null});
   });
   // (v148) без инфы — туда, куда смотрят про с этой точки (по 12 демкам).
   // Вес маленький: реальная угроза его перебивает, а "почти нули" — нет
@@ -7613,7 +7632,10 @@ function lookCands(b, W){
     // (v281 → v287) угол «по пути», ушедший от цели > 1,3 рад, правит сам cornerLook
     // (v149) точку взгляда поста отсюда не видно (стоит на краю поста, за углом) —
     // cornerLook вёл "по пути к ней", часто назад; берём видимый проход к врагу
-    if(BAL.enemyward && !hasLOS(b.x, b.y, b.post.look.x, b.post.look.y)){ var ew0 = enemywardLook(team, b); if(ew0) pl = ew0; }
+    // (v296, И38, владелец 14.10: T4 шёл в Dark спиной — проход «к врагу» из Lamp Room оказался сзади, в сторону мида) замена не
+    // уводит дальше 1,3 рад (75°) от самого угла поста — то же правило, что у «угла по пути» (cornerLook, v287)
+    if(BAL.enemyward && !hasLOS(b.x, b.y, b.post.look.x, b.post.look.y)){ var ew0 = enemywardLook(team, b);
+      if(ew0 && _angOff(Math.atan2(ew0.y-b.y, ew0.x-b.x), Math.atan2(b.post.look.y-b.y, b.post.look.x-b.x)) <= 1.3) pl = ew0; }
     // (v149) угол поста смотрит в тыл (заданная точка оказалась в своём коридоре) —
     // берём видимый проход, откуда враг придёт раньше всего
     if(BAL.enemyward){ var zpl = bzOf(pl.x, pl.y), zbb = bzOf(b.x, b.y);
@@ -11192,13 +11214,13 @@ function ninjaOk(){
   return ts.every(function(t){ var lo = BL[t.id]; return lo && tick - lo.tick < 8*TICK_HZ && Math.hypot(lo.x-bomb.x, lo.y-bomb.y) > 700; });
 }
 // ---- (7) перезарядка за укрытием ----
-function exposedTo(b, maxD, maxAge){
+function exposedTo(b, maxD, maxAge, anyLos){
   // только реальная угроза выглянуть сейчас: свежая (≤4с) инфа и близко (≤600) —
   // иначе бот уходил с угла на каждую перезарядку и сайт оставался пустым
   maxD = maxD || 600; maxAge = maxAge || 4*TICK_HZ;
   var BL = beliefLast[b.team] || {}, out = [];
   for(var eid in BL){ var lo = BL[eid]; if(tick - lo.tick > maxAge) continue; var e = bots.filter(function(o){ return o.id === eid; })[0]; if(!e || !e.alive) continue;
-    if(Math.hypot(lo.x-b.x, lo.y-b.y) < maxD && hasLOS(b.x, b.y, lo.x, lo.y)) out.push({x:lo.x, y:lo.y}); }
+    if(Math.hypot(lo.x-b.x, lo.y-b.y) < maxD && (anyLos || hasLOS(b.x, b.y, lo.x, lo.y))) out.push({x:lo.x, y:lo.y}); }
   return out;
 }
 function coverForReload(b, from){
@@ -11460,10 +11482,21 @@ function updateReload(b){
   // тактическая перезарядка на виду у известного врага — сначала за укрытие
   // (если патронов ещё не критично мало)
   if(tacRl && BAL.reloadCover && b.ammo > w.mag*0.2 && !b.planting && !b.defusing){
-    var ex = exposedTo(b);
+    // (v296) и враг за углом (≤ 900 px, ≤ 4 с — без линии сейчас): выглянет — застанет на перезарядке; укрытие — скрытое от его места
+    var ex = exposedTo(b, 900, 4*TICK_HZ, true);
     if(ex.length){ coverForReload(b, ex); tacRl = false; }
   }
   if(!b._reloading && (b.ammo <= 0 || tacRl)){
+    // (v296, владелец 14.10: «во время перезарядки не стояли столбом») пустой магазин на виду у известного врага — перезаряжается на ходу:
+    // за укрытие рядом (то же, что у тактической перезарядки), а нет укрытия — шаг вбок от линии врага (стрейф, ~50 px — проектное число)
+    if(b.ammo <= 0 && BAL.reloadCover && !b.planting && !b.defusing){
+      var exE = exposedTo(b, 900, 4*TICK_HZ, true);
+      if(exE.length && !coverForReload(b, exE) && !(b._rlCoverT && tick - b._rlCoverT < 3*TICK_HZ && b.post && b.post.tag === "repos:rlcover")){
+        var ea = Math.atan2(exE[0].y-b.y, exE[0].x-b.x), sgn = hashRand(tick + b.id.charCodeAt(1)) < 0.5 ? 1 : -1;
+        var sq = walk({x: b.x + Math.cos(ea + sgn*Math.PI/2)*50, y: b.y + Math.sin(ea + sgn*Math.PI/2)*50});
+        if(sq && !stepBlocked(b.x, b.y, sq.x, sq.y, b)){ b._reposUntil = 0; setPost(b, sq, exE[0], true, "repos:rlcover"); if(b.post && b.post.tag === "repos:rlcover") b._reposUntil = tick + Math.round(w.reload*TICK_HZ); }
+      }
+    }
     b._reloading = true; b.reloadUntil = tick + Math.round(w.reload*TICK_HZ);
     if(b.ammo <= 0) logEvent(b.id+": перезарядка ("+w.name+", "+w.reload+"с)");
     if(BAL.soundMore) reloadHeard(b, w);
