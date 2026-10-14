@@ -224,7 +224,7 @@
   <div id="topbar">
     <div class="tb-id">
       <h1>Ancient</h1>
-      <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 282, 14.10</div>
+      <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 283, 14.10</div>
     </div>
     <div class="tb-group" id="tbMatch">
       <button id="btnPause">Пауза</button>
@@ -5993,7 +5993,7 @@ function knowCall(b, msg){
   var say = "войс " + msg.by + ": «" + msg.text + "»";
   if(msg.kind === "plant"){
     if(!K.planted) K.plantHeard = msg.site;
-    else if(!K.plantSite) K.plantSite = msg.site;
+    else if(!K.plantSite){ K.plantSite = msg.site; knowPlantShift(K, msg.site); }
     return;
   }
   if(msg.kind === "defuse"){ K.defuseT = tick; return; }
@@ -6141,18 +6141,38 @@ function knowPlant(b){
   if(!bomb || bomb.state !== "planted" || K.planted) return;
   K.planted = true;
   K.plantSite = b.team === "T" ? bomb.site : (K.plantSeen || K.plantHeard || null);
+  // (v283, владелец 14.10) CT вычисляет сайт, как игрок: «плант» в HUD, а свой (по радару) стоял у сайта X там, где писк
+  // планта слышно (те же 520 px / 850 px по прямой, что у звука планта), и не услышал — значит плант на другом сайте
+  if(b.team === "CT" && !K.plantSite){
+    var left = ["A", "B"].filter(function(X){ var S = SITES[X];
+      return !bots.some(function(o){ if(o.team !== "CT" || !o.alive) return false; var dH = Math.hypot(o.x-S.x, o.y-S.y);
+        return dH < 520 || (dH < 850 && hasLOS(o.x, o.y, S.x, S.y)); }); });
+    if(left.length === 1) K.plantSite = left[0];
+  }
+  if(b.team === "CT" && K.plantSite) knowPlantShift(K, K.plantSite);
   for(var id in K.enemies){
     var B = K.enemies[id]; if(B.visible) continue;
     B.hyps.forEach(function(h){ if(h.type === "moved") h.weight *= knowValue(h.zone, B.side, K); });
     knowNorm(B.hyps);
   }
 }
+// (v283, владелец 14.10: «вряд ли оставят одного на сайте — все туда пойдут») сайт планта известен — враги, которых не видно,
+// скорее у бомбы: у про после планта T в 600 px от бомбы 85 % времени (88 демок, «пост-плант: T дальше 600 px» 15,2 %).
+// Старые точки («видели на T Upper») не стираются, а уходят в остаток 15 % — обход остаётся возможным
+function knowPlantShift(K, site){
+  if(!site || K.plantShift === site || !SITES[site]) return; K.plantShift = site;
+  var S = SITES[site], z = knowZoneAt(S.x, S.y);
+  for(var id in K.enemies){ var B = K.enemies[id]; if(B.visible) continue;
+    B.hyps.forEach(function(h){ h.weight *= 0.152; });
+    B.hyps.push({type: "held", zone: z, x: S.x, y: S.y, weight: 0.848, plant: true});
+    knowNorm(B.hyps); knowTrim(B); }
+}
 // CT видит саму бомбу на земле — знает сайт
 function knowBombSeen(b){
   var K = b.know;
   if(b.team !== "CT" || !K.planted || K.plantSite || !bomb || bomb.state !== "planted" || tick < (b.blindUntil||0)) return;
   if(Math.hypot(bomb.x-b.x, bomb.y-b.y) > KNOW.lookRange || !inFov(b, bomb.x, bomb.y) || !hasVision(b.x, b.y, bomb.x, bomb.y)) return;
-  K.plantSite = bomb.site;
+  K.plantSite = bomb.site; knowPlantShift(K, bomb.site);
 }
 // ---------- киллфид (feedKill) ----------
 function knowKill(att, vic){
@@ -7671,6 +7691,10 @@ function smoothLookFilter(b, look, urgent){
   // (v259, В1) «нет цели — смотрю по ходу» — такое же направление, как любое: держится не меньше holdMove и к
   // только что брошенному углу сразу не возвращаемся. Раньше пропажа цели на ходу сбрасывала память фильтра, и взгляд
   // метался «на угол ↔ по ходу» (матч 1 владельца: 255 раз за матч «туда-сюда» за 1 с)
+  // (v283, владелец 14.10: игрок 9 дошёл до поста и ещё 0,7 с смотрел назад на точку, взятую по пути) встал на свой пост —
+  // смотрит на свой угол сразу, не «досматривая» дорожную точку
+  if(b.atPost && !b._slAtPrev) b._sl = null;
+  b._slAtPrev = !!b.atPost;
   var S = b._sl;
   // (v276, владелец 14.10: матч 1, тики 1790–1830, игрок 8 смотрел в стену) держали точку угла у самого носа (55 px —
   // угол по пути, взятый cornerLook), бот прошёл мимо — направление на неё стало «в стену» и держалось ещё 1,5 с
