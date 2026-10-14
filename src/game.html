@@ -224,7 +224,7 @@
   <div id="topbar">
     <div class="tb-id">
       <h1>Ancient</h1>
-      <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 279, 14.10</div>
+      <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 280, 14.10</div>
     </div>
     <div class="tb-group" id="tbMatch">
       <button id="btnPause">Пауза</button>
@@ -7235,8 +7235,10 @@ function isRearZone(team, zb, j, b){
   if(!(ED[j] > ED[zb] + LOOK.rearMargin)) return false;
   if(beliefZoneKnown(team, j) >= LOOK.rearInfo) return false;
   if(BZ.cent[j] && freshThreatNear(team, BZ.cent[j])) return false;
-  if(!BAL.timing || !reachPossible(team, j)){ REAR_WHY = "тыл: по таймингу врага там быть не может"; return true; }
-  var c = BZ.cent[j], m = c ? bots.filter(function(o){ return o.alive && o.team === team && (bzOf(o.x, o.y) === j || Math.hypot(o.x-c.x, o.y-c.y) <= 400); })[0] : null;
+  // (v280) по таймингу — тыл, только если враг не успеет туда дольше LOOK.timingSec (раньше — «не успел прямо сейчас»:
+  // выкидывался угол, куда враг выйдет через 0,1 с); держит — другой тиммейт, не сам бот (игрок 8 «держал» Donut сам)
+  if(!BAL.timing || !REACH[team] || REACH[team][j] - tick > LOOK.timingSec*TICK_HZ){ REAR_WHY = "тыл: по таймингу враг не успеет туда " + LOOK.timingSec + "+ с"; return true; }
+  var c = BZ.cent[j], m = c ? bots.filter(function(o){ return o !== b && o.alive && o.team === team && (bzOf(o.x, o.y) === j || Math.hypot(o.x-c.x, o.y-c.y) <= 400); })[0] : null;
   if(m){ REAR_WHY = "тыл: держит " + m.id; return true; }
   return false;
 }
@@ -7471,7 +7473,9 @@ function lookCands(b, W){
     var za = Math.atan2(q.y-b.y, q.x-b.x);
     // на бегу за спину — только на самый свежий и близкий
     if(moving && _angOff(za, b.heading) > 1.9 && (q.age > 20 || d > 250)) return;
-    var pt = cornerLook(b, q) || (BAL.noWallLook ? appearFrom(b, q) : q) || openToward(b, za, LOOK.sndOpen);
+    // (v280) туда, где враг от шума появится (первая видимая точка его пути ко мне), а не угол на своём пути к шуму —
+    // тот мог уводить в зону, откуда враг не придёт (игрок 8 на Top Mid)
+    var pt = (BAL.noWallLook ? appearFrom(b, q) : null) || cornerLook(b, q) || (BAL.noWallLook ? null : q) || openToward(b, za, LOOK.sndOpen);
     if(!pt) return;
     // (v277, владелец 14.10: матч 1, ~14 с, игрок 9 смотрел в Cave на шум с мида, а путь оттуда к нему идёт через Dark, где стоит
     // свой) враг от шума к боту сначала выйдет на тиммейта, стоящего на его пути, — угол закрыт им (тот же множитель «там свой»)
@@ -9223,6 +9227,9 @@ function ctBrain(){
         setPost(b, b._afPt.pt, SITES[kA], true, "anchor:fall");
         return;
       }
+      // (v280, владелец 14.10: игрок 7 в Dark шёл петлёй ради 54 px) место сменилось на соседнее (< 100 px — проектное число) —
+      // остаётся, где стоит: это то же место
+      if(b.post && b.post.tag === "anchor" && holdPt && Math.hypot(holdPt.x-b.post.x, holdPt.y-b.post.y) < 100) holdPt = {x:b.post.x, y:b.post.y};
       setPost(b, holdPt, lookFrom(holdPt, ents, GEO[kA].tEntry, b), true, "anchor");
     }
     else if(role === "mid"){
