@@ -35,6 +35,12 @@
   #lookDbg td{padding:1px 4px 1px 0;vertical-align:top;border-top:1px solid var(--hud-line);}
   #lookDbg tr.pick td{color:#fff;} #lookDbg tr.pick td:first-child{box-shadow:inset 2px 0 0 #e8dc5a;padding-left:4px;}
   #lookDbg .ld-f{color:var(--hud-dim);font-size:10px;}
+  #btnObs.on{background:var(--accent);color:#0a0e09;border-color:var(--accent);}
+  /* (v304) серия BO3/BO5: квадраты карт под табло, закрашивает победитель карты */
+  #scoreboard .sb-series{display:flex;justify-content:space-between;padding:3px 6px 0;}
+  #scoreboard .sb-series span{display:flex;gap:4px;} #scoreboard #sbSerCT{flex-direction:row-reverse;}
+  #scoreboard .sb-series i{display:block;width:12px;height:12px;border:1px solid var(--hud-line);background:var(--hud-row);}
+  #scoreboard #sbSerT i.w{background:var(--t);border-color:var(--t);} #scoreboard #sbSerCT i.w{background:var(--ct);border-color:var(--ct);}
   #scoreboard .sb-main{display:flex;align-items:stretch;background:var(--hud-row);border-bottom:1px solid var(--hud-line);}
   #scoreboard .sb-team{display:flex;align-items:center;gap:10px;padding:6px 12px;border-top:2px solid transparent;}
   #scoreboard .sb-team.t{border-top-color:var(--t);} #scoreboard .sb-team.ct{border-top-color:var(--ct);flex-direction:row-reverse;}
@@ -232,11 +238,11 @@
   <div id="topbar">
     <div class="tb-id">
       <h1>Ancient</h1>
-      <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 303, 14.10</div>
+      <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 304, 14.10</div>
     </div>
     <div class="tb-group" id="tbMatch">
       <button id="btnPause">Пауза</button>
-      <span class="chk tb-match" title="Матч с одним номером всегда проходит одинаково. Увидел баг — запиши номер матча и тик, введи номер и нажми «Сыграть»: матч повторится с начала">матч № <input id="inpMatchNum" type="number" min="1" value="1" style="width:52px"> <button id="btnFreshMatch">Сыграть</button> <span id="matchTick" style="opacity:.75"></span></span>
+      <span class="chk tb-match" title="Матч с одним номером всегда проходит одинаково. Увидел баг — запиши номер матча и тик, введи номер и нажми «Сыграть»: матч повторится с начала">матч № <input id="inpMatchNum" type="number" min="1" value="1" style="width:52px"> <select id="selSeries" title="Серия: сколько карт до победы (квадраты под табло)"><option value="1">BO1</option><option value="3" selected>BO3</option><option value="5">BO5</option></select> <button id="btnFreshMatch">Сыграть</button> <span id="matchTick" style="opacity:.75"></span></span>
       <button id="btnRestartRound" title="Немедленно сбросить текущий раунд — на случай если боты застряли">Рестарт раунда</button>
     </div>
     <div class="tb-group tb-right">
@@ -279,6 +285,7 @@
           <button id="btnExportProject" title="Всё, что сохранено только в этом браузере (стены, точки калибровки, зоны) — одним JSON, чтобы зашить в код">Экспорт проекта</button>
         </div>
       </details>
+      <button id="btnObs" class="on" title="Автообсервер: сам выбирает, за кем следить, и ведёт камеру (клавиша O). Двинул камеру или выбрал игрока сам — обсервер ждёт 6 с">Обсервер <kbd>O</kbd></button>
       <span id="mkSlot"></span>
     </div>
   </div>
@@ -404,6 +411,7 @@
         <div class="sb-mid"><div class="sb-round" id="sbRound">РАУНД 1</div><div class="sb-time" id="sbTime">1:55</div></div>
         <div class="sb-team ct"><div class="sb-logo" id="sbLogoCT">CT</div><div class="sb-name" id="sbNameCT"></div><div class="sb-score" id="sbScoreCT">0</div></div>
       </div>
+      <div class="sb-series" id="sbSeries"><span id="sbSerT"></span><span id="sbSerCT"></span></div>
       <div class="sb-alive"><b class="t" id="sbAliveT">5</b><span>vs</span><b class="ct" id="sbAliveCT">5</b></div>
     </div>
     <div class="pl-col" id="plT"></div>
@@ -10041,7 +10049,7 @@ function applyDamage(att, b, dmg, src, o){
   b.planting = false; b.defusing = false; b.nades = emptyNades(); b.nadeTask = null;
   dropBomb(b);
   intelDeath(b, foe);   // своего убил свой — в войсе «минус», без «убил X»: враг тут ни при чём
-  if(foe) LOOK_REPLAN[foe.team] = true;
+  if(foe){ LOOK_REPLAN[foe.team] = true; foe._killHowT = tick; }   // _killHowT — для обсервера (показ)
   if(foe){ foe.kills++; foe.roundKills++; foe.money = Math.min(MAX_MONEY, foe.money + (o.reward || 300)); }
   else if(mate) att.money = Math.max(0, att.money + FF_TK_CASH);
   var wkey = o.wkey || (src === "HE" ? "HE" : "MOLOTOV");
@@ -13057,6 +13065,7 @@ function endRound(winner, reason){
   if(over){
     roundState = "matchover";
     var mw = score.CT > score.T ? "CT" : (score.T > score.CT ? "T" : null);
+    if(mw) SERIES.maps[matchNum] = SIDE_TEAM[mw];   // (v304) карта серии — команде-победителю
     logEvent("МАТЧ ОКОНЧЕН — "+(mw ? "победа "+TEAM_NAME[mw] : "ничья")+" "+score.CT+":"+score.T, true);
     saveOppProfile();
   }
@@ -16617,7 +16626,21 @@ function renderEcon(){
 
 // ---------- (v241, из переделки) табло (Н6): счёт, раунд, таймер, живые — как на трансляции ----------
 // Логотипы команд — LINEUP[команда].logo (картинка data:/svg), по сторонам — TEAM_LOGO; пока нет — буква стороны.
+// (v304) серия: карта = матч; победитель карты закрашивает свой квадрат. Счёт — по командам (не по сторонам), по номеру матча
+// (перемотка того же матча не считает карту дважды). Серия решена — следующий «Сыграть» начинает новую
+var SERIES = {bo:3, maps:{}};
+function seriesWins(k){ var n = 0; for(var m in SERIES.maps) if(SERIES.maps[m] === k) n++; return n; }
+function seriesDone(){ var need = Math.ceil(SERIES.bo/2); return seriesWins("sp") >= need || seriesWins("fa") >= need; }
+function seriesUpdate(){
+  var need = Math.ceil(SERIES.bo/2);
+  ["T","CT"].forEach(function(t){ var el = document.getElementById("sbSer"+t); if(!el) return;
+    var k = SIDE_TEAM[t], w = seriesWins(k), h = "";
+    for(var i=0;i<need;i++) h += '<i class="'+(i < w ? "w" : "")+'"></i>';
+    if(el.dataset.h !== h){ el.dataset.h = h; el.innerHTML = h; } });
+  var box = document.getElementById("sbSeries"); if(box) box.style.display = SERIES.bo > 1 ? "" : "none";
+}
 function scoreboardUpdate(rtLeft){
+  seriesUpdate();
   var $ = function(id){ return document.getElementById(id); };
   ["T","CT"].forEach(function(t){
     var lg = $("sbLogo"+t);
@@ -16716,6 +16739,65 @@ function playersUpdate(){
 })();
 
 /*@@BUILD: здесь build.py вставляет __SNAP, MK_PRINCIPLES и marks.js@@*/
+// ======================= (v304) АВТООБСЕРВЕР — только показ, на игру не влияет =======================
+// Сам выбирает, за кем следить (как режиссёр трансляции): бой, плант/дефуз, клатч, только что фраг, по нему стреляют, рядом враг.
+// Держит выбранного не меньше 2,5 с, переключается, если новый момент заметно интереснее (×1,4) или выбранный погиб (через 1 с —
+// видно смерть). Камера плавно едет и приближает: бой — ближе, спокойно — дальше, между раундами — вся карта.
+// Ручное движение камеры, колесо или выбор игрока — обсервер ждёт 6 с. Числа — проектные (это показ, не поведение)
+var OBS = {on:true, id:null, since:0, deadAt:0, manualUntil:0, last:0, cx:1024, cy:1024, sc:0};
+function obsScore(b){
+  if(!b.alive) return 0;
+  var foe = b.team === "CT" ? "T" : "CT", sc = 1;
+  if(b.planting || b.defusing) sc += 9;
+  if(b._sawEnemy) sc += 6 + Math.min(4, (b.contactStreak||0)/16);
+  if(tick - (b._shotAtT||-1e9) < 64) sc += 5;
+  if(tick - (b.lastShotTick||-1e9) < 64) sc += 3;
+  if(b._killHowT && tick - b._killHowT < 128) sc += 2;
+  var mates = bots.filter(function(o){ return o.alive && o.team === b.team; }).length, foes = aliveCount(foe);
+  if(mates === 1 && foes >= 1) sc += 4;                                  // клатч
+  if(bomb && bomb.state === "carried" && bomb.carrier === b) sc += 1.5;
+  var dmin = Infinity; bots.forEach(function(o){ if(o.alive && o.team === foe) dmin = Math.min(dmin, Math.hypot(o.x-b.x, o.y-b.y)); });
+  sc += 3 / (1 + dmin/400);                                               // рядом враг — скоро бой
+  if(b.id === OBS.id) sc *= 1.15;                                         // инерция
+  return sc;
+}
+function obsFrame(ts){
+  var btn = document.getElementById("btnObs"); if(btn) btn.className = OBS.on ? "on" : "";
+  if(!OBS.on) return;
+  var dt = OBS.last ? Math.min(0.1, (ts - OBS.last)/1000) : 0.016; OBS.last = ts;
+  var r = wrap.getBoundingClientRect(), fitSc = Math.min(r.width/2048, r.height/2048) * 1.08;
+  var manual = ts < OBS.manualUntil;
+  var tx = 1024, ty = 1024, tsc = fitSc;
+  if(roundState === "live" && !manual){
+    var cur = OBS.id && bots.filter(function(o){ return o.id === OBS.id; })[0];
+    if(cur && !cur.alive && !OBS.deadAt) OBS.deadAt = ts;
+    var best = null, bs = 0; bots.forEach(function(o){ var v = obsScore(o); if(v > bs){ bs = v; best = o; } });
+    var curS = cur && cur.alive ? obsScore(cur) : 0;
+    var canSwitch = !cur || (!cur.alive && ts - OBS.deadAt > 1000) || (ts - OBS.since > 2500 && bs > curS*1.4);
+    if(best && best !== cur && canSwitch){ OBS.id = best.id; OBS.since = ts; OBS.deadAt = 0; plSelected = best.id; playersUpdate(); cur = best; }
+    if(cur){
+      tx = cur.x; ty = cur.y;
+      var e = cur._nearestEnemyBot, fight = cur._sawEnemy && e && e.alive;
+      if(fight){ tx = (cur.x + e.x)/2; ty = (cur.y + e.y)/2; }
+      var span = fight ? Math.max(520, Math.hypot(e.x-cur.x, e.y-cur.y)*1.8) : 900;   // сколько карты видно
+      tsc = Math.max(fitSc, Math.min(r.width, r.height) / span);
+    }
+  } else if(manual) return;
+  // плавно: камера доезжает за ~0,5 с
+  var k = 1 - Math.exp(-dt*4.5);
+  if(!OBS.sc){ OBS.sc = view.scale; OBS.cx = (r.width/2 - view.panX)/view.scale; OBS.cy = (r.height/2 - view.panY)/view.scale; }
+  OBS.cx += (tx - OBS.cx)*k; OBS.cy += (ty - OBS.cy)*k; OBS.sc += (tsc - OBS.sc)*k;
+  view.scale = OBS.sc; view.panX = r.width/2 - OBS.cx*OBS.sc; view.panY = r.height/2 - OBS.cy*OBS.sc;
+}
+function obsManual(){ OBS.manualUntil = performance.now() + 6000; OBS.sc = 0; }
+(function(){
+  var ss = document.getElementById("selSeries"); if(ss) ss.addEventListener("change", function(){ SERIES = {bo:+ss.value, maps:{}}; seriesUpdate(); });
+  var b = document.getElementById("btnObs");
+  if(b) b.addEventListener("click", function(){ OBS.on = !OBS.on; OBS.sc = 0; OBS.manualUntil = 0; if(!OBS.on) fit(); });
+  cv.addEventListener("mousedown", obsManual); cv.addEventListener("wheel", obsManual, {passive:true});
+  ["plT","plCT"].forEach(function(id){ var el = document.getElementById(id); if(el) el.addEventListener("pointerdown", function(){ obsManual(); OBS.id = null; }); });
+  window.addEventListener("keydown", function(e){ if((e.key === "o" || e.key === "O" || e.key === "щ" || e.key === "Щ") && !/INPUT|TEXTAREA|SELECT/.test((e.target && e.target.tagName) || "")){ OBS.on = !OBS.on; OBS.sc = 0; OBS.manualUntil = 0; if(!OBS.on) fit(); } });
+})();
 function frame(ts){
   nowTs = ts;
   if(lastFrame===null) lastFrame = ts;
@@ -16725,11 +16807,12 @@ function frame(ts){
     while(accumulator >= TICK_MS){ stepTick(); accumulator -= TICK_MS; }
     mkAfterTicks();
   }
+  obsFrame(ts);
   draw();
   requestAnimationFrame(frame);
 }
 document.getElementById("chkNewLook").addEventListener("change", function(){ BAL.newLook = this.checked; bots.forEach(function(o){ o._lkZ = null; o._lkPt = null; o._tLookZ = null; o._tLook = null; }); logEvent(this.checked ? "Взгляд: новая единая оценка" : "Взгляд: старая логика v140"); });
-document.getElementById("btnFreshMatch").addEventListener("click", function(){ var n = Math.max(1, parseInt(document.getElementById("inpMatchNum").value, 10) || 1); freshMatch(n); paused = false; var bp = document.getElementById("btnPause"); if(bp){ bp.textContent = "Пауза"; bp.classList.remove("active"); } logEvent("Матч №"+n+" с чистого листа (воспроизводимый)", true); });
+document.getElementById("btnFreshMatch").addEventListener("click", function(){ var n = Math.max(1, parseInt(document.getElementById("inpMatchNum").value, 10) || 1); var sel = document.getElementById("selSeries"), bo = sel ? +sel.value : 3; if(bo !== SERIES.bo || seriesDone()) SERIES = {bo:bo, maps:{}}; freshMatch(n); paused = false; var bp = document.getElementById("btnPause"); if(bp){ bp.textContent = "Пауза"; bp.classList.remove("active"); } logEvent("Матч №"+n+" с чистого листа (воспроизводимый)", true); });
 setInterval(function(){ var el = document.getElementById("matchTick"); if(el) el.textContent = "сейчас "+matchNum+"-й, тик "+tick; }, 250);
 var BOT_INIT = bots.map(function(b){ var o = {keys:{}, vals:{}}; for(var k in b){ o.keys[k] = 1; var v = b[k]; if(v === null || (typeof v !== "object" && typeof v !== "function")) o.vals[k] = v; } return o; });
 window.__ev=function(src){return eval(src);};

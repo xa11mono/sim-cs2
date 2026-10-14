@@ -58,7 +58,7 @@ SETTINGS = set("""BAL MANUAL_WALLS WALL_POLYS wallSegs USER_ZONES USER_LINEUPS Z
 UI = set("""view paused lastFrame accumulator nowTs MAPED MED_W MED_W_HINTS HEIGHTS HGT_AUTO HGT_OWN_CODE HGT_OWN HGT_STOPS HGT_C
 HGT_LEDGE_TXT chkHeights hgtTip MED_H MED_H_HINTS chkVis VT WALLBANG WB_MAT WB_RULES WB_AUTO WB_OWN_CODE WB_OWN WB_C chkWallbang
 wbTip MED_B MED_B_HINTS COVER COV_HIGH COV_CHEST COV_CAT COV_ORDER COV_AUTO COV_OWN_CODE COV_OWN COV_C chkCover covTip MED_C
-MED_C_HINTS KF_IMG""".split())   # v295: KF_IMG — картинки иконок радара (Image не клонируется — снимок падал, игра вставала)
+MED_C_HINTS KF_IMG OBS""".split())   # v295: KF_IMG — картинки иконок радара (Image не клонируется — снимок падал, игра вставала)
 EXTRA_STATIC = set("PRO_PRIOR PRO_LOOK PRO_SPOTS".split())   # v255: по замеру — за 2 матча не меняются, ~400 КБ снимка
 
 
