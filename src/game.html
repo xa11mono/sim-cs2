@@ -238,7 +238,7 @@
   <div id="topbar">
     <div class="tb-id">
       <h1>Ancient</h1>
-      <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 304, 14.10</div>
+      <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 305, 14.10</div>
     </div>
     <div class="tb-group" id="tbMatch">
       <button id="btnPause">Пауза</button>
@@ -16741,7 +16741,7 @@ function playersUpdate(){
 /*@@BUILD: здесь build.py вставляет __SNAP, MK_PRINCIPLES и marks.js@@*/
 // ======================= (v304) АВТООБСЕРВЕР — только показ, на игру не влияет =======================
 // Сам выбирает, за кем следить (как режиссёр трансляции): бой, плант/дефуз, клатч, только что фраг, по нему стреляют, рядом враг.
-// Держит выбранного не меньше 2,5 с, переключается, если новый момент заметно интереснее (×1,4) или выбранный погиб (через 1 с —
+// Держит выбранного не меньше 1,2 с (v305), переключается, если новый момент интереснее (×1,15) или выбранный погиб (через 1 с —
 // видно смерть). Камера плавно едет и приближает: бой — ближе, спокойно — дальше, между раундами — вся карта.
 // Ручное движение камеры, колесо или выбор игрока — обсервер ждёт 6 с. Числа — проектные (это показ, не поведение)
 var OBS = {on:true, id:null, since:0, deadAt:0, manualUntil:0, last:0, cx:1024, cy:1024, sc:0};
@@ -16758,7 +16758,8 @@ function obsScore(b){
   if(bomb && bomb.state === "carried" && bomb.carrier === b) sc += 1.5;
   var dmin = Infinity; bots.forEach(function(o){ if(o.alive && o.team === foe) dmin = Math.min(dmin, Math.hypot(o.x-b.x, o.y-b.y)); });
   sc += 3 / (1 + dmin/400);                                               // рядом враг — скоро бой
-  if(b.id === OBS.id) sc *= 1.15;                                         // инерция
+  if(b.id === OBS.id) sc *= 1.05;                                         // инерция (v305: меньше — динамичнее)
+  if(b.id === OBS.prev && performance.now() < OBS.prevUntil && !b._sawEnemy) sc *= 0.5;   // (v305) только что показывали — не сразу обратно
   return sc;
 }
 function obsFrame(ts){
@@ -16773,8 +16774,14 @@ function obsFrame(ts){
     if(cur && !cur.alive && !OBS.deadAt) OBS.deadAt = ts;
     var best = null, bs = 0; bots.forEach(function(o){ var v = obsScore(o); if(v > bs){ bs = v; best = o; } });
     var curS = cur && cur.alive ? obsScore(cur) : 0;
-    var canSwitch = !cur || (!cur.alive && ts - OBS.deadAt > 1000) || (ts - OBS.since > 2500 && bs > curS*1.4);
-    if(best && best !== cur && canSwitch){ OBS.id = best.id; OBS.since = ts; OBS.deadAt = 0; plSelected = best.id; playersUpdate(); cur = best; }
+    // (v305, владелец 14.10: «менять игрока чаще») держит ≥ 1,2 с, переключается, если новый момент интереснее на 15 %; спокойный
+    // (не в бою) дольше 5 с — смена на другого, чтобы картинка не стояла
+    var calm = cur && cur.alive && !cur._sawEnemy && tick - (cur._shotAtT||-1e9) > 64 && tick - (cur.lastShotTick||-1e9) > 64;
+    if(calm && ts - OBS.since > 5000 && best === cur){ var b2 = null, s2 = 0; bots.forEach(function(o){ if(o === cur) return; var v = obsScore(o); if(v > s2){ s2 = v; b2 = o; } }); if(b2){ best = b2; bs = s2*2; } }
+    var canSwitch = !cur || (!cur.alive && ts - OBS.deadAt > 1000) || (ts - OBS.since > 1200 && bs > curS*1.15);
+    if(best && best !== cur && canSwitch){ if(cur){ OBS.prev = cur.id; OBS.prevUntil = ts + 5000; } OBS.id = best.id; OBS.since = ts; OBS.deadAt = 0; cur = best; }
+    // (v305) карточка по центру — всегда игрок обсервера (после ручного выбора обсервер возвращает её себе)
+    if(cur && cur.alive && plSelected !== cur.id){ plSelected = cur.id; playersUpdate(); }
     if(cur){
       tx = cur.x; ty = cur.y;
       var e = cur._nearestEnemyBot, fight = cur._sawEnemy && e && e.alive;
