@@ -224,7 +224,7 @@
   <div id="topbar">
     <div class="tb-id">
       <h1>Ancient</h1>
-      <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 296, 14.10</div>
+      <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 297, 14.10</div>
     </div>
     <div class="tb-group" id="tbMatch">
       <button id="btnPause">Пауза</button>
@@ -8799,10 +8799,22 @@ function endgameBrain(){
       if(BAL.egFix){
         var klo = (beliefLast[team] || {})[K.id], kAge = klo ? tick - klo.tick : 1e9;
         if(klo && Math.hypot(klo.x-kp.x, klo.y-kp.y) > 300) kAge = Math.min(kAge, K.tick != null ? tick - K.tick : kAge);
-        if(kAge > 3*TICK_HZ || d > 700){
-          if(b.post && b.post.tag === "endhunt"){ b._egLock = 0; b._egC = null; clearPost(b); }
+        // (v297, И41, владелец 14.10: T4 шёл на пик в Cave, на 3,1 с инфы охоту отпустило — за тик развернуло на точку лёрка)
+        // начать охоту — враг свежий (≤ 3 с, демки); продолжить начатую — пока инфе ≤ 6 с (окно сигнала выше). Отпустило, а до точки
+        // пика < 100 px (проектное число) — доходит и смотрит туда же (≤ 1,5 с), а не разворачивается за тик
+        var hunting = b.post && b.post.tag === "endhunt";
+        if(kAge > (hunting ? 6 : 3)*TICK_HZ || d > 700){
+          if(hunting){
+            var sp0 = b.post, nearSp = Math.hypot(sp0.x-b.x, sp0.y-b.y) < 100;
+            if(nearSp && !b.atPost && (!b._egEnd || b._egEnd.round !== roundNum || tick - b._egEnd.t < 1.5*TICK_HZ)){
+              if(!b._egEnd || b._egEnd.round !== roundNum) b._egEnd = {round:roundNum, t:tick};
+              b._egLock = tick; return;
+            }
+            b._egLock = 0; b._egC = null; b._egEnd = null; clearPost(b);
+          }
           return;
         }
+        b._egEnd = null;
       }
       // точка выбирается один раз на "клетку" цели (80px), а не каждый тик
       // заново от текущей позиции бота — иначе пост менялся на ходу
