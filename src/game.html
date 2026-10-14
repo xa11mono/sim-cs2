@@ -240,7 +240,7 @@
   <div id="topbar">
     <div class="tb-id">
       <h1>Ancient</h1>
-      <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 312, 14.10</div>
+      <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 313, 14.10</div>
     </div>
     <div class="tb-group" id="tbMatch">
       <button id="btnPause">Пауза</button>
@@ -16760,7 +16760,8 @@ function warmSpawn(b){
   var sp = b.team === "T" ? T_SPAWN : CT_SPAWN, a0 = Math.random()*Math.PI*2, r0 = 20 + Math.random()*60;
   var q = walk({x: sp.x + Math.cos(a0)*r0, y: sp.y + Math.sin(a0)*r0}) || sp;
   b.baseX = b.x = b.px = q.x; b.baseY = b.y = b.py = q.y; b.alive = true; b.hp = 100; b._wPath = null; b._sawEnemy = false; b._wRespawn = 0;
-  b.weapon = WEAPONS[b.team === "T" ? "AK" : "M4"] || b.weapon;
+  b.primary = b.team === "T" ? "AK" : "M4"; b.weapon = WEAPONS[b.primary] || b.weapon; b.ammo = b.weapon.mag; b._reloading = false; b._ammoFor = b.weapon.key;
+  b.armor = true; b.helmet = true; b._ts = {}; b.contactStreak = 0; b.blindUntil = 0; b.nextShotTick = 0; b.planting = b.defusing = false;
 }
 function warmTurn(b, a, maxA){
   if(b.facing === undefined){ b.facing = b._visFacing = a; return; }
@@ -16771,7 +16772,10 @@ function warmStart(n){
   var hr = function(k){ return hashRand(n*7919 + k*131); };
   var mh = 12 + Math.floor(hr(1)*10), mm = hr(2) < 0.5 ? 0 : 30, len = 180 + Math.floor(hr(3)*300);   // матч в 12:00–21:30, разминка 3–8 мин
   freshMatch(n);
-  WARM = {on:true, n:n, left:len, total:len, match:(mh<10?"0":"")+mh+":"+(mm?"30":"00")};
+  // (v313) снимок матча до разминки: в разминке работает настоящая стрельба (знание, войс, память матча) — после неё матч
+  // восстанавливается из снимка ровно таким, каким был бы без разминки
+  var snap = (typeof mkSnapshot === "function") ? mkSnapshot() : null;
+  WARM = {on:true, n:n, left:len, total:len, snap:snap, match:(mh<10?"0":"")+mh+":"+(mm?"30":"00")};
   roundState = "warmup"; killfeed = []; if(typeof renderFeed === "function") renderFeed();
   bots.forEach(warmSpawn);
   var sk = document.getElementById("btnWarmSkip"); if(sk) sk.style.display = "";
@@ -16779,9 +16783,10 @@ function warmStart(n){
 }
 function warmEnd(){
   if(!WARM.on) return;
-  var n = WARM.n; WARM = {on:false};
+  var n = WARM.n, snap = WARM.snap; WARM = {on:false};
   var sk = document.getElementById("btnWarmSkip"); if(sk) sk.style.display = "none";
-  freshMatch(n); killfeed = []; renderFeed(); paused = false;
+  freshMatch(n); if(snap && typeof mkRestore === "function") mkRestore(snap);
+  killfeed = []; renderFeed(); voiceLines = []; if(typeof renderVoice === "function") renderVoice(); paused = false;
 }
 function warmTick(dt){
   if(!WARM.on) return;
@@ -16795,23 +16800,13 @@ function warmTick(dt){
     bots.forEach(function(o){ if(o.alive && o.team !== b.team){ var d = Math.hypot(o.x-b.x, o.y-b.y); if(d < fd && hasLOS(b.x, b.y, o.x, o.y)){ fd = d; foe = o; } } });
     if(foe){
       var a = Math.atan2(foe.y-b.y, foe.x-b.x);
-      warmTurn(b, a, AIM_TURN_RATE*dt); b._nearestEnemyBot = foe; b._wv = Math.max(0, (b._wv||0) - ACCEL*dt);   // (v312) доворот и торможение, а не щелчок
-      if(!b._sawEnemy){ b._sawEnemy = true; b.contactStreak = 0; b._wFire = tick + Math.round((0.22 + Math.random()*0.15)*TICK_HZ); b._wBurst = 0; }
+      warmTurn(b, a, AIM_TURN_RATE*dt); b._nearestEnemyBot = foe; b._wv = Math.max(0, (b._wv||0) - ACCEL*dt); b.curSpeed = b._wv;   // (v312) доворот и торможение, а не щелчок
+      // (v313, владелец 14.10: «в разминку такую же стрельбу») стрельба — та же, что в матче (tryShoot: реакция, разброс, отдача,
+      // хитбоксы, урон, киллфид); разминка после себя всё сбрасывает (freshMatch), так что матч не меняется
+      if(!b._sawEnemy){ b._sawEnemy = true; b.contactStreak = 0; }
       b.contactStreak = (b.contactStreak||0) + 1;
-      if(tick >= b._wFire && _angOff(b.facing, a) < 0.15){
-        // (v311, владелец 14.10: «трассеры как с минигана») очередями по 2–4 пули с темпом винтовки (~10/с), между очередями 0,35–0,6 с;
-        // попадание — от дистанции (вблизи чаще); в голову — 20 % попаданий (с одной). Числа — проектные (показ)
-        if(!b._wBurst){ b._wBurst = 2 + Math.floor(Math.random()*3); }
-        b._wBurst--; b._wFire = tick + (b._wBurst > 0 ? 6 : Math.round((0.35 + Math.random()*0.25)*TICK_HZ));
-        b.lastShotTick = tick; foe._shotAtT = tick;
-        var hit = Math.random() < Math.max(0.15, 0.55 - fd/1400);
-        tracers.push({wc:tracerClass(b.weapon), x1:b.x, y1:b.y, x2:foe.x + (hit ? 0 : (Math.random()-0.5)*30), y2:foe.y + (hit ? 0 : (Math.random()-0.5)*30), team:b.team, born:nowTs, hit:hit, miss:!hit});
-        if(tracers.length > 60) tracers.shift();
-        if(hit){ var hsW = Math.random() < 0.2; foe.hp -= hsW ? 100 : 27 + Math.floor(Math.random()*8);
-          if(foe.hp <= 0){ foe.alive = false; foe._wRespawn = tick + 2*TICK_HZ; b._killHowT = tick;
-            killfeed.unshift({kind:"kill", att:nick(b.id), attTeam:b.team, as:null, vic:nick(foe.id), vicTeam:foe.team, w:b.weapon ? b.weapon.key : "AK", hs:hsW, t:nowTs});
-            if(killfeed.length > 8) killfeed.length = 8; renderFeed(); } }
-      }
+      var TS = b._ts || (b._ts = {}); TS[foe.id] = (TS[foe.id]||0) + 1;
+      tryShoot(b, foe, fd);
       return;
     }
     b._sawEnemy = false;
