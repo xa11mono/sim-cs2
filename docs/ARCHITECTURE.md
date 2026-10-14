@@ -72,6 +72,64 @@
 > `smokeBlocks`); прострел смока — одно место `smokeSpamTick`, повод — `smkEvidence` + `smokeEnemyPossible` (тайминг,
 > все враги известны далеко); убран старый `smokeShots`. Мало HP — `lowHpBack` (к своим ближе `LOWHP_MATE_PATH`, иначе
 > укрытие рядом). Закуп — доли у про (`smgFor`, `PRO_PISTOL`/`proPistol`, пистолетка; `tools/buy_pro.py`); убран `scopedFor`.
+>
+> **v317:** набор карты — игра не знает ни одной карты, всё про карту читает из объекта `MAP` (раздел ниже).
+
+## Набор карты (v317, этап 1 из 3 подготовки к 7 картам)
+
+Всё, что относится к одной карте, лежит в `data/maps/<карта>/`. Код `src/game.html` карт не знает: в нём нет ни названий
+мест, ни координат, ни тактик, ни радара — только объект `MAP`. Сборка вшивает набор выбранной карты:
+`python3 src/build.py [--map ancient]` → `sim.html`, `python3 src/mkpub.py [--map ancient]` → `<карта>-radar.html`
+(по умолчанию `ancient`). Склеивает `src/mapset.py`: в начале скрипта игры `var MAP = @@MAP@@;`, в разметке — надписи
+`@@MAP_NAME@@`, `@@MAP_ZONE_HINT@@`, `@@MAP_ZONE_LAYER_HINT@@`. JSON вставляется текстом, без перекодирования: числа
+остаются ровно как записаны (в высотах и местах про есть `-0`, `JSON.stringify` превратил бы его в `0`).
+
+| файл | в `MAP` | что | откуда в коде читается |
+|---|---|---|---|
+| `map.json` | верхний уровень | `id`, `name`; `store` — начало ключей хранилища браузера (для Ancient прежнее `ancient-live-radar`, правки владельца в браузере не теряются); `db` — коллекция базы страницы для правок редактора (`map`); `pxUnits` — юнитов CS2 в 1 px радара; `zoneLayer` — выравнивание слоя зон по радару; `spawns` — имена точек спавнов в `zones.zonemap.points`; `spawnFix` — поправка точки спавна; `siteAFix` — разовая починка данных браузера (сайт A, нарисованный как B); `ui` — подсказки | `PX_UNITS`, `ZONE_LAYER_BASELINE`, `CT_SPAWN`/`T_SPAWN`, `T_SPAWN_FIX_RAW`, ключи `*_KEY`, `MAPED.db.collection(MAP.db)` |
+| `radar.png` | `radar` (data URI) | фон радара | `img.src` |
+| `zones.json` | `zones` | `zonemap` (зоны, точки, переходы; `name` у зоны — роль: `Asite`, `Bsite`, `CTspawn`, `Tspawn`), `shapes` (свои формы зон), `names` (названия для людей и тактик, «Red Room / Red» — основное и варианты), `synonyms`, `props` — **свойства зон** (`water` — вода, громкие шаги) | `ZONEMAP`, `ZONE_SHAPES_BAKED`, `ZONE_NAMES_BAKED`, `ZONE_SYNONYMS`, `inWater` |
+| `navmesh.json` | `navmesh.areas` | навмеш в пространстве радара (2048×2048) | `NAVAREAS` |
+| `walls.json` | `walls.polys` | стены | `WALL_POLYS_CODE` |
+| `heights.json`, `cover.json`, `wallbang.json` | `heights`, `cover`, `wallbang` | высоты, укрытия, прострелы (поле `own` — правки владельца, `tools/map_pull.py`) | `HEIGHTS`, `COVER`, `WALLBANG` |
+| `tactics.json` | `tactics` | `tTactics` (у тактики `weight` — своя частота), `ctSetups` (у сетапа `midAggressive` — агрессивный мид), `pos`, `lurkPlans`, `shiftTo`, `proRole`, `plays` — розыгрыши (ниже) | `T_TACTICS`, `CT_SETUPS`, `POS`, `LURK_PLANS`, `SHIFT_TO`, `PRO_ROLE` |
+| `lineups.json` | `lineups` | `baked` (лайнапы из редактора), `pro` и `proExtra` (из демок; `proExtra` — только при `BAL.nadeMore`), `builtinOff` | `LINEUPS_BAKED`, `PRO_LINEUPS_RAW`, `BUILTIN_OFF_BAKED` |
+| `pro.json` | `pro` | места и взгляды про из демок: `spots`, `prior`, `look`, `positions` | `PRO_SPOTS`, `PRO_PRIOR`, `PRO_LOOK`, `KNOW_POSITIONS` |
+
+Старые имена (`ZONEMAP`, `HEIGHTS`, `T_TACTICS`, …) остались короткими ссылками на `MAP.…` на тех же местах кода — порядок
+выполнения и правки на месте (выравнивание зон, навмеша, правки редактора) прежние.
+
+**Розыгрыши карты** (`tactics.plays`) — места, где решение опирается на конкретные места карты. Нет поля — розыгрыша нет,
+код его пропускает:
+
+| поле | что | где в коде |
+|---|---|---|
+| `stageSplit.<сайт>` | сбор T перед выходом в две точки: `low`, `up` (вторая пара), `upLook` | `bStageFix`, `stagePost` |
+| `midTake` | «мид взят»: `mid`, маршрут `route` на сторону CT, `via` (для войса), `ctSide.<сайт>` — где выйти и куда смотреть | `tBrain` |
+| `ctFlank` | фланг CT через мид: `route.<сайт>`, `stage.<сайт>` | `flankPost` |
+| `awpSite` | AWP-мидер встаёт на сайт: `none` — доля раундов на миде, `sets` — места по долям | `ctBrain` (роль `mid`) |
+| `midHold` | мидер CT: `back` — куда отходит, `safe` / `care` — места при `BAL.midSafe` / после ранних смертей | `ctBrain` (роль `mid`) |
+| `rotatorHot.<сайт>` | место ротатора у «горячего» сайта | `ctBrain` (ротатор) |
+
+Названия мест в наборе — те же, что в `zones.names` (через `zonePoint` / `namedSpot` / `startRoute`). Безопасная ротация
+CT идёт через зону с ролью `CTspawn`.
+
+**Что код всё ещё считает общим для всех карт** (проверить на этапах 2–3):
+- два сайта `A` и `B`, роли зон `Asite`/`Bsite`/`CTspawn`/`Tspawn`;
+- пространство радара 2048×2048, центр 1024 (выравнивания вокруг него);
+- радиусы и расстояния в пикселях по всему коду (260, 460, …) подобраны на Ancient — для карты с другим `pxUnits` их
+  нужно переводить через `PX_UNITS`;
+- мид как путь между спавнами (`GEO.tMid`/`ctMid`) и роль `mid`;
+- палитра страницы («мшистый камень», v256) — от Ancient;
+- bake-инструменты (`tools/heights_bake.py`, `cover_bake.py`, `wallbang_bake.py`, `positions_bake.py`, `tactics_bake.py`, …)
+  пишут в `src/data/` ветки `rebuild-v238`; в набор карты пишет пока только `tools/map_pull.py --map <карта>`.
+
+**Новая карта** = папка `data/maps/<карта>/` с теми же файлами. Обязательно: `map.json`, `radar.png`, `zones.json` (зоны
+с ролями сайтов и спавнов, точки спавнов, названия), `navmesh.json`, `walls.json`, плюс остальные файлы.
+`tactics.plays` нужен (можно пустой `{}`): без поля в нём код этот розыгрыш пропускает; как игра ведёт себя с пустыми тактиками, лайнапами и местами про — пока не
+проверялось (этап 2).
+Исходники карты (`.nav`, `.txt` с pos_x/pos_y/scale, радар, демки) лежат в той же папке — так уже
+сделано для Mirage (`data/maps/mirage/`, README там); файлы набора кладутся рядом с ними.
 
 # Как устроена игра — состояние на версию 204 (09.10.2026)
 

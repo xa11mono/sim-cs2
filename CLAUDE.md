@@ -27,7 +27,8 @@ v166 — `docs/V166_CHANGES.md` (список владельца). Главны�
   меньше ~150 строк или правка правда затрагивает весь файл.
 - **Никогда не читать целиком** (только grep / кусок по строкам):
   `ancient-radar.html` и `sim.html` (сборки, ~1 МБ — собираются скриптами из `src/`,
-  их содержимое и так известно), `src/data/navmesh.json`, `heights.json`,
+  их содержимое и так известно), набор карты `data/maps/*/*.json` и `radar.png` (кроме `map.json` и
+  нужного куска `tactics.json`), `src/data/navmesh.json`, `heights.json`,
   `zonemap.json`, `data/pro/*`, `data/demos/*`, `tools/measure/results/*`,
   `*.diff`, картинки.
 - **Не запускать субагентов** (Agent/Explore) и не сканировать весь проект без
@@ -42,14 +43,18 @@ v166 — `docs/V166_CHANGES.md` (список владельца). Главны�
   компьютере владельца, а не облачную копию репо.
 
 ## Карта файлов (v241)
-Сборка: `python3 src/build.py` → `sim.html` (копия `src/game.html` с тестовым входом для замеров). Публикуемая:
-`python3 src/mkpub.py` → `ancient-radar.html` (страница https://claude.ai/artifact/VcutdCmiqN164CLNYowQvP; там же база
+**Набор карты (v317):** игра не знает ни одной карты — всё про карту (зоны, навмеш, стены, высоты, тактики, лайнапы,
+места про, радар) лежит в `data/maps/<карта>/` и приходит в код одним объектом `MAP` (устройство — `docs/ARCHITECTURE.md`,
+раздел «Набор карты»). В коде — никаких названий мест и координат: место карты — поле набора (свойство зоны или
+розыгрыш `tactics.plays`).
+Сборка: `python3 src/build.py [--map ancient]` → `sim.html` (копия `src/game.html` с набором карты и тестовым входом для
+замеров). Публикуемая: `python3 src/mkpub.py [--map ancient]` → `ancient-radar.html` (страница https://claude.ai/artifact/VcutdCmiqN164CLNYowQvP; там же база
 правок карты — коллекция `map`). `src/game.html` — ~15 100 строк, **читать только кусками** (`grep -n` → `Read` с offset/limit).
 Где что (строка начала):
 
 | что | где в `src/game.html` |
 |---|---|
-| **карта**: стены `WALL_POLYS` / `applyWalls`; высоты `HEIGHTS` / `hgtInfo`; укрытия `COVER` / `covList`; прострелы `WALLBANG` / `wbList`, `wbAfter` | ~829; ~864; ~916; ~1063 |
+| **карта** (данные — `MAP`, набор `data/maps/<карта>/`): стены `WALL_POLYS` / `applyWalls`; высоты `HEIGHTS` / `hgtInfo`; укрытия `COVER` / `covList`; прострелы `WALLBANG` / `wbList`, `wbAfter` | ~829; ~864; ~916; ~1063 |
 | **кто кого видит** (одно место, 3D): `VIS_*`, `visLine`, `visParts`, `visFloorAt`; через неё `hasLOS` и таблица «откуда простреливается» `computeZoneDanger` (пересчёт сам в `visInvalidate`) | ~1198; ~1706 |
 | переключатели и числа движка `BAL` | `var BAL = {` |
 | позиция: `setPost` / `updatePost`; «держать район» `holdSpot` / `holdGroup`, варианты `holdCands` (+ места про); **где встать по почерку, оружию и прошлому раунду** (одно место): `posPref`, `posPickName`, `posTick` | ~2726; ~7158 |

@@ -1,0 +1,35 @@
+{
+ "_about": [
+  "Набор карты Ancient. Сборка (src/build.py, src/mkpub.py --map ancient) склеивает этот файл и остальные JSON",
+  "папки в один объект MAP: поля этого файла — верхний уровень MAP, каждый <имя>.json — MAP.<имя>; radar — имя картинки, в MAP — data URI.",
+  "Устройство и поля — docs/ARCHITECTURE.md, раздел «Набор карты»."
+ ],
+ "id": "ancient",
+ "name": "Ancient",
+ "store": "ancient-live-radar",
+ "db": "map",
+ "radar": "radar.png",
+ "pxUnits": 2.5,
+ "zoneLayer": {
+  "dx": -17.0,
+  "dy": 38.8,
+  "scale": 0.837
+ },
+ "spawns": {
+  "CT": "CTspawn_6",
+  "T": "Tspawn_7"
+ },
+ "spawnFix": {
+  "T": {
+   "x": 1001.95,
+   "y": 1860
+  }
+ },
+ "siteAFix": {
+  "maxX": 1000
+ },
+ "ui": {
+  "zoneNameHint": "например: Кейв, Донат, Мейн B",
+  "zoneLayerHint": "Кейв, Донат, Мейн"
+ }
+}
