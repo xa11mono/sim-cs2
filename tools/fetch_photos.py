@@ -27,6 +27,24 @@ def image_url(page):
     r.raise_for_status()
     for p in r.json().get("query", {}).get("pages", {}).values():
         if "original" in p: return p["original"]["source"]
+    # запасной путь (вариант владельца): первая картинка страницы, не флаг и не логотип → её прямая ссылка
+    time.sleep(2)
+    r = requests.get(API, params={"action": "query", "titles": page, "prop": "images", "imlimit": 50,
+                                  "format": "json", "redirects": 1}, headers=UA, timeout=20)
+    r.raise_for_status()
+    name = None
+    for p in r.json().get("query", {}).get("pages", {}).values():
+        for im in p.get("images", []):
+            t = im.get("title", ""); tl = t.lower()
+            if tl.endswith((".png", ".jpg", ".jpeg")) and not any(w in tl for w in ("flag", "logo", "icon", "lightmode", "darkmode")):
+                name = t; break
+    if not name: return None
+    time.sleep(2)
+    r = requests.get(API, params={"action": "query", "titles": name, "prop": "imageinfo", "iiprop": "url", "format": "json"},
+                     headers=UA, timeout=20)
+    for p in r.json().get("query", {}).get("pages", {}).values():
+        ii = p.get("imageinfo") or []
+        if ii: return ii[0]["url"]
     return None
 
 
