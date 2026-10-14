@@ -224,7 +224,7 @@
   <div id="topbar">
     <div class="tb-id">
       <h1>Ancient</h1>
-      <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 276, 14.10</div>
+      <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 277, 14.10</div>
     </div>
     <div class="tb-group" id="tbMatch">
       <button id="btnPause">Пауза</button>
@@ -7470,8 +7470,14 @@ function lookCands(b, W){
     if(moving && _angOff(za, b.heading) > 1.9 && (q.age > 20 || d > 250)) return;
     var pt = cornerLook(b, q) || (BAL.noWallLook ? appearFrom(b, q) : q) || openToward(b, za, LOOK.sndOpen);
     if(!pt) return;
-    out.push({j:"snd"+Math.round(q.x/80)+","+Math.round(q.y/80), pt:pt, src:{x:q.x, y:q.y}, sc:LOOK.contactW * (d < 300 ? 2 : 1) / (1 + d/700) * (1 - q.age/192), fresh:true, a:za, snd:true,
-      f: D ? [["контакт/звук", LOOK.contactW], [d < 300 ? "ближе 300" : "дальше 300", d < 300 ? 2 : 1], ["дистанция " + Math.round(d), 1/(1 + d/700)], ["свежесть " + (q.age/TICK_HZ).toFixed(1) + " с", 1 - q.age/192]] : null});
+    // (v277, владелец 14.10: матч 1, ~14 с, игрок 9 смотрел в Cave на шум с мида, а путь оттуда к нему идёт через Dark, где стоит
+    // свой) враг от шума к боту сначала выйдет на тиммейта, стоящего на его пути, — угол закрыт им (тот же множитель «там свой»)
+    var cov = null;
+    if(d >= 300){ var wq = buildWaypointPath(q.x, q.y, 0, b.x, b.y, 0) || [];
+      cov = mates.filter(function(o){ return wq.some(function(w){ return Math.hypot(w[0]-b.x, w[1]-b.y) > 150 && Math.hypot(w[0]-o.x, w[1]-o.y) <= 120; }); })[0] || null; }
+    var scS = LOOK.contactW * (d < 300 ? 2 : 1) / (1 + d/700) * (1 - q.age/192) * (cov ? LOOK.mateThere : 1);
+    out.push({j:"snd"+Math.round(q.x/80)+","+Math.round(q.y/80), pt:pt, src:{x:q.x, y:q.y}, sc:scS, fresh:true, a:za, snd:true,
+      f: D ? [["контакт/звук", LOOK.contactW], [d < 300 ? "ближе 300" : "дальше 300", d < 300 ? 2 : 1], ["дистанция " + Math.round(d), 1/(1 + d/700)], ["свежесть " + (q.age/TICK_HZ).toFixed(1) + " с", 1 - q.age/192]].concat(cov ? [["путь закрывает " + cov.id, LOOK.mateThere]] : []) : null});
   });
   // (v148) без инфы — туда, куда смотрят про с этой точки (по 12 демкам).
   // Вес маленький: реальная угроза его перебивает, а "почти нули" — нет
