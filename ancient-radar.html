@@ -26,7 +26,7 @@
   #scoreboard{position:absolute;top:8px;left:50%;transform:translateX(-50%);pointer-events:none;z-index:4;font-family:var(--hud-f);display:flex;flex-direction:column;align-items:stretch;}
   #scoreboard .sb-head{display:flex;justify-content:space-between;}
   #scoreboard .sb-head span{background:var(--accent);color:var(--hud-ink);font-size:11px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;padding:2px 10px 1px;line-height:1.3;}
-  #lookDbg{position:fixed;left:12px;top:310px;z-index:60;width:380px;max-height:calc(100vh - 322px);overflow:auto;background:#121610;border:1px solid var(--hud-line);
+  #lookDbg{position:fixed;left:12px;top:390px;z-index:60;width:380px;max-height:calc(100vh - 402px);overflow:auto;background:#121610;border:1px solid var(--hud-line);
     color:#d9dfd3;font:400 11px/1.35 var(--hud-f);padding:0;display:none;}
   #lookDbg .ld-h{padding:6px 8px;border-bottom:1px solid var(--hud-line);font-weight:500;letter-spacing:.04em;text-transform:uppercase;font-size:11px;}
   #lookDbg .ld-s{padding:5px 8px;border-bottom:1px solid var(--hud-line);}
@@ -52,36 +52,36 @@
   #scoreboard .sb-alive b{font-family:var(--hud-n);min-width:20px;padding:0 5px;text-align:center;font-size:13px;font-weight:500;color:var(--hud-ink);}
   #scoreboard .sb-alive b.t{background:var(--t);} #scoreboard .sb-alive b.ct{background:var(--ct);}
   /* панели игроков: строки без зазоров, разделены линией 1 px */
-  .pl-col{position:absolute;top:10px;width:250px;display:flex;flex-direction:column;pointer-events:none;z-index:3;font-family:var(--hud-f);color:#fff;}
+  .pl-col{position:absolute;top:10px;width:330px;display:flex;flex-direction:column;pointer-events:none;z-index:3;font-family:var(--hud-f);color:#fff;}
   #plT{left:12px;} #plCT{right:12px;}
-  .pl-tag{display:flex;align-items:center;height:22px;padding:0 10px;font-size:12px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;background:var(--hud-row);border-top:2px solid;}
+  .pl-tag{display:flex;align-items:center;height:28px;padding:0 12px;font-size:14px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;background:var(--hud-row);border-top:2px solid;}
   #plT .pl-tag{border-color:var(--t);color:var(--t);} #plCT .pl-tag{border-color:var(--ct);color:var(--ct);justify-content:flex-end;}
-  .pl-card{position:relative;display:flex;align-items:stretch;height:44px;background:var(--hud-row);border-top:1px solid var(--hud-line);pointer-events:auto;cursor:pointer;}
+  .pl-card{position:relative;display:flex;align-items:stretch;height:58px;background:var(--hud-row);border-top:1px solid var(--hud-line);pointer-events:auto;cursor:pointer;}
   .pl-card:hover{background:var(--hud-row-sel);}
   #plCT .pl-card{flex-direction:row-reverse;}
-  .pl-num{flex:none;width:18px;display:flex;align-items:center;justify-content:center;font-family:var(--hud-n);font-size:12px;font-weight:500;color:var(--hud-ink);}
+  .pl-num{flex:none;width:22px;display:flex;align-items:center;justify-content:center;font-family:var(--hud-n);font-size:14px;font-weight:500;color:var(--hud-ink);}
   #plT .pl-num{background:var(--t);} #plCT .pl-num{background:var(--ct);}
-  .pl-body{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center;gap:3px;padding:0 9px;}
+  .pl-body{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center;gap:5px;padding:0 11px;}
   #plCT .pl-body{align-items:flex-end;}
-  .pl-nick{font-size:14px;font-weight:500;letter-spacing:.04em;text-transform:uppercase;line-height:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;}
-  .pl-stat{display:flex;align-items:center;gap:8px;font-family:var(--hud-n);font-size:11px;color:var(--hud-dim);line-height:1;}
-  .pl-stat svg{width:9px;height:9px;fill:var(--hud-dim);margin-right:3px;vertical-align:-1px;}
+  .pl-nick{font-size:17px;font-weight:500;letter-spacing:.04em;text-transform:uppercase;line-height:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;}
+  .pl-stat{display:flex;align-items:center;gap:10px;font-family:var(--hud-n);font-size:13px;color:var(--hud-dim);line-height:1;}
+  .pl-stat svg{width:11px;height:11px;fill:var(--hud-dim);margin-right:3px;vertical-align:-1px;}
   .pl-money{color:var(--hud-money);}
-  .pl-ava{flex:none;width:34px;align-self:flex-end;height:40px;display:flex;align-items:flex-end;justify-content:center;overflow:hidden;}
-  .pl-ava svg{width:30px;height:30px;fill:rgba(255,255,255,.16);} .pl-ava img{width:100%;height:100%;object-fit:cover;}
-  .pl-side{flex:none;width:66px;display:flex;flex-direction:column;align-items:flex-end;justify-content:center;gap:3px;padding:0 9px 0 4px;}
-  #plCT .pl-side{align-items:flex-start;padding:0 4px 0 9px;}
+  .pl-ava{flex:none;width:54px;align-self:flex-end;height:56px;display:flex;align-items:flex-end;justify-content:center;overflow:hidden;}
+  .pl-ava svg{width:40px;height:40px;fill:rgba(255,255,255,.16);} .pl-ava img{width:100%;height:100%;object-fit:cover;}
+  .pl-side{flex:none;width:86px;display:flex;flex-direction:column;align-items:flex-end;justify-content:center;gap:5px;padding:0 11px 0 4px;}
+  #plCT .pl-side{align-items:flex-start;padding:0 4px 0 11px;}
   .pl-top{display:flex;align-items:center;gap:6px;} #plCT .pl-top{flex-direction:row-reverse;}
-  .pl-top svg.wp{height:10px;width:auto;max-width:34px;fill:#fff;opacity:.55;} #plCT .pl-top svg.wp{transform:scaleX(-1);}
-  .pl-hp{font-family:var(--hud-n);font-size:17px;font-weight:500;line-height:1;}
+  .pl-top svg.wp{height:13px;width:auto;max-width:44px;fill:#fff;opacity:.55;} #plCT .pl-top svg.wp{transform:scaleX(-1);}
+  .pl-hp{font-family:var(--hud-n);font-size:22px;font-weight:500;line-height:1;}
   .pl-hp.low{color:#ff8a7e;}
-  .pl-gear{display:flex;align-items:center;gap:3px;height:9px;}
-  .pl-gear svg{height:8px;width:auto;fill:rgba(255,255,255,.45);flex:none;} .pl-gear svg.kf{height:10px;opacity:.6;}
-  .pl-bar{position:absolute;left:18px;right:0;bottom:0;height:2px;}
-  #plCT .pl-bar{left:0;right:18px;}
+  .pl-gear{display:flex;align-items:center;gap:4px;height:12px;}
+  .pl-gear svg{height:11px;width:auto;fill:rgba(255,255,255,.45);flex:none;} .pl-gear svg.kf{height:13px;opacity:.6;}
+  .pl-bar{position:absolute;left:22px;right:0;bottom:0;height:3px;}
+  #plCT .pl-bar{left:0;right:22px;}
   .pl-bar b{display:block;height:100%;opacity:.75;} #plT .pl-bar b{background:var(--t);} #plCT .pl-bar b{background:var(--ct);margin-left:auto;}
   .pl-bar b.low{background:var(--danger)!important;opacity:1;}
-  #plT .pl-card.dead .pl-num,#plCT .pl-card.dead .pl-num{background:#3a3e36;color:#8d9786;} .pl-card.dead .pl-nick{color:#6f776a;} .pl-card.dead .pl-ava{opacity:.4;} .pl-card.dead .pl-hp{color:#6f776a;font-size:14px;}
+  #plT .pl-card.dead .pl-num,#plCT .pl-card.dead .pl-num{background:#3a3e36;color:#8d9786;} .pl-card.dead .pl-nick{color:#6f776a;} .pl-card.dead .pl-ava{opacity:.4;} .pl-card.dead .pl-hp{color:#6f776a;font-size:17px;}
   .pl-card.sel{background:var(--hud-row-sel);box-shadow:inset 0 0 0 1px rgba(255,255,255,.55);}
   .pl-card:focus-visible{outline:1px solid #fff;outline-offset:-1px;}
   /* выбранный игрок: портрет, фраги | смерти, ник и HP; появление — 180 мс */
@@ -225,7 +225,7 @@
   <div id="topbar">
     <div class="tb-id">
       <h1>Ancient</h1>
-      <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 301, 14.10</div>
+      <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 302, 14.10</div>
     </div>
     <div class="tb-group" id="tbMatch">
       <button id="btnPause">Пауза</button>
