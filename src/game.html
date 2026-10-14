@@ -224,7 +224,7 @@
   <div id="topbar">
     <div class="tb-id">
       <h1>Ancient</h1>
-      <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 286, 14.10</div>
+      <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 287, 14.10</div>
     </div>
     <div class="tb-group" id="tbMatch">
       <button id="btnPause">Пауза</button>
@@ -6932,7 +6932,18 @@ function openDirNear(b, a){
   }
   return null;
 }
+// (v287, И27, владелец 14.10: раунд 9, игрок 9 в Dark смотрел в Cave, а magixx — в Lamp Room в 123 px) «угол по пути» к цели
+// не разворачивает от неё: угол дальше 1,3 рад (75°) от прямого направления на цель — смотрим в сторону цели (≤ 220 px).
+// Раньше это правило было только у угла поста (v281) — теперь одно место для всех
 function cornerLook(b, p, from){
+  var r = cornerLook0(b, p, from);
+  if(!r || !p || !b) return r;
+  var aDir = Math.atan2(p.y-b.y, p.x-b.x);
+  if(Math.hypot(r.x-b.x, r.y-b.y) > 1 && _angOff(Math.atan2(r.y-b.y, r.x-b.x), aDir) > 1.3){
+    var dl = Math.min(220, Math.hypot(p.x-b.x, p.y-b.y)); return {x: b.x + Math.cos(aDir)*dl, y: b.y + Math.sin(aDir)*dl}; }
+  return r;
+}
+function cornerLook0(b, p, from){
   if(!p) return p;
   // (этап 3, P2-1) держит позицию и переминается (idle strafe: ±24 px вбок, ±7 вперёд — idleHold в stepTick): угол выбирается
   // от точки, где встал, а не от текущего пикселя. Раньше сдвиг на 6 px переключал «цель видна / не видна» и взгляд прыгал на 30–175°
@@ -7569,7 +7580,8 @@ function lookCands(b, W){
     if(moving && _angOff(za, b.heading) > 1.9 && (q.age > 20 || d > 250)) return;
     // (v280) туда, где враг от шума появится (первая видимая точка его пути ко мне), а не угол на своём пути к шуму —
     // тот мог уводить в зону, откуда враг не придёт (игрок 8 на Top Mid)
-    var pt = (BAL.noWallLook ? appearFrom(b, q) : null) || cornerLook(b, q) || (BAL.noWallLook ? null : q) || openToward(b, za, LOOK.sndOpen);
+    var apf = BAL.noWallLook ? appearFrom(b, q) : null; if(apf) apf = {x: apf.x, y: apf.y, vis: true}; // (v287) видна с места бота — угол не пересчитывать
+    var pt = apf || cornerLook(b, q) || (BAL.noWallLook ? null : q) || openToward(b, za, LOOK.sndOpen);
     // (v281, владелец 14.10: игрок 7 в T Upper терял двоих в T Lower) видимой точки нет — держим место, где враг на своём пути
     // зайдёт в мою зону (первая точка его пути в ней), а не выкидываем контакт
     if(!pt){ var wq0 = buildWaypointPath(q.x, q.y, 0, b.x, b.y, 0) || [];
@@ -7598,10 +7610,7 @@ function lookCands(b, W){
   // угол поста по сетапу — тоже кандидат (слабый), чтобы и он шёл через делёж:
   // двое на соседних постах не смотрят в одну точку, когда угроз нет
   if(atHold){ var pl = cornerLook(b, b.post.look) || b.post.look;
-    // (v281, владелец 14.10: игрок 9 у стенки смотрел назад) угол «по пути» к точке взгляда поста ушёл в другую сторону
-    // (> 1,3 рад от прямого направления) — смотрим просто в сторону своей цели (то же правило, что в старой ветке взгляда)
-    var aDir = Math.atan2(b.post.look.y-b.y, b.post.look.x-b.x);
-    if(_angOff(Math.atan2(pl.y-b.y, pl.x-b.x), aDir) > 1.3){ var dlp = Math.min(220, Math.hypot(b.post.look.x-b.x, b.post.look.y-b.y)); pl = {x: b.x + Math.cos(aDir)*dlp, y: b.y + Math.sin(aDir)*dlp}; }
+    // (v281 → v287) угол «по пути», ушедший от цели > 1,3 рад, правит сам cornerLook
     // (v149) точку взгляда поста отсюда не видно (стоит на краю поста, за углом) —
     // cornerLook вёл "по пути к ней", часто назад; берём видимый проход к врагу
     if(BAL.enemyward && !hasLOS(b.x, b.y, b.post.look.x, b.post.look.y)){ var ew0 = enemywardLook(team, b); if(ew0) pl = ew0; }
@@ -7773,7 +7782,7 @@ function newLookFor(b){
       var aL = Math.atan2(b._lkPt.y-b.y, b._lkPt.x-b.x), dL = Math.abs(((aL-b.heading+Math.PI)%(2*Math.PI)+2*Math.PI)%(2*Math.PI)-Math.PI);
       behind = dL > 1.9;
     }
-    if(!behind){ b.lookReason = "look"; return cornerLook(b, b._lkPt) || b._lkPt; }
+    if(!behind){ b.lookReason = "look"; return (b._lkPt.vis ? b._lkPt : cornerLook(b, b._lkPt)) || b._lkPt; }
   }
   if(!moving && b.atPost && b.post && b.post.look){ b.lookReason = "post"; return cornerLook(b, b.post.look) || b.post.look; }
   b.lookReason = null; return null;
