@@ -224,7 +224,7 @@
   <div id="topbar">
     <div class="tb-id">
       <h1>Ancient</h1>
-      <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 288, 14.10</div>
+      <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 289, 14.10</div>
     </div>
     <div class="tb-group" id="tbMatch">
       <button id="btnPause">Пауза</button>
@@ -11617,6 +11617,7 @@ function tryShoot(shooter, target, dist){
     var sgm = sigma * (BAL.hbK || 1);
     var ex = gr*Math.cos(2*Math.PI*gu2)*sgm + sp.x*(1-cmp), ey = gr*Math.sin(2*Math.PI*gu2)*sgm + sp.y*(1-cmp);
     var ux = ex/u1, uy = aimY + ey/u1;
+    var hDev = ex;   // (v289) настоящая ошибка вбок, рад — по ней летит трассер промаха
     if(Math.hypot(ux, uy-hH) < 5.5) hbZone = "head";
     else if(uy >= hH-20*kC && uy < hH-6*kC && Math.abs(ux) < 15) hbZone = "chest";
     else if(uy >= hH-30*kC && uy < hH-20*kC && Math.abs(ux) < 13) hbZone = "stomach";
@@ -11683,8 +11684,12 @@ function tryShoot(shooter, target, dist){
     // цели до первой стены (раньше трассер обрывался в воздухе у цели)
     var dx = target.x-shooter.x, dy = target.y-shooter.y;
     var ang = Math.atan2(dy,dx);
-    var sgn = hashRand(seedS+3) < 0.5 ? -1 : 1;
-    var dev = sgn * (bA*1.15 + Math.abs(hashRand(seedS+7)-0.5)*2*sigma);
+    // (v289, И29, владелец 14.10: «вблизи стреляют прям вообще мимо») промах летит по настоящей ошибке выстрела (хитбоксы):
+    // над головой / между зонами / в край укрытия — почти через силуэт, вбок — на сколько ушла пуля. Раньше любой промах
+    // рисовался вбок не меньше ширины тела +15 % (на 30 px — от 12°), и по этой же линии считалась шальная пуля
+    var dev;
+    if(hDev !== undefined) dev = hDev;
+    else { var sgn = hashRand(seedS+3) < 0.5 ? -1 : 1; dev = sgn * (bA*1.15 + Math.abs(hashRand(seedS+7)-0.5)*2*sigma); }
     var far = Math.min(w.range, Math.hypot(dx,dy)*1.6 + 60);
     var ex = shooter.x + Math.cos(ang+dev)*far, ey = shooter.y + Math.sin(ang+dev)*far;
     var cl = rayClipWalls(shooter.x, shooter.y, ex, ey);
