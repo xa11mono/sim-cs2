@@ -172,6 +172,10 @@
   #roundCard .rc-s span{font-family:'Roboto Condensed','Golos Text',sans-serif;font-size:13px;} #roundCard .rc-s .ct{color:var(--ct);} #roundCard .rc-s .t{color:var(--t);}
   #roundCard .rc-h:empty{display:none;} #roundCard .rc-h{margin-top:10px;padding-top:8px;border-top:1px solid var(--accent-dim);font-family:'Roboto Condensed','Golos Text',sans-serif;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--accent);}
   #econ{position:absolute;left:12px;bottom:50px;width:420px;max-height:calc(100% - 370px);overflow-y:auto;background:rgba(22,27,20,0.94);border:1px solid var(--line);border-radius:8px;padding:9px 11px;font-family:var(--num);font-size:10.5px;line-height:1.55;color:var(--text-dim);}
+  #econ .ec-tg{all:unset;cursor:pointer;display:block;width:100%;color:var(--accent);font-weight:600;}
+  #econ .ec-tg:focus-visible{outline:1px solid var(--accent);outline-offset:2px;}
+  #econ .ec-ar{display:inline-block;width:10px;color:var(--text-dim);}
+  #econ.closed{width:auto;padding:5px 11px;}
   #econ .tm{display:flex;justify-content:space-between;font-weight:600;margin-top:4px;}
   #econ .tm.ct{color:var(--ct);} #econ .tm.t{color:var(--t);}
   #econ table{width:100%;border-collapse:collapse;} #econ td{padding:0 3px;white-space:nowrap;}
@@ -221,7 +225,7 @@
   <div id="topbar">
     <div class="tb-id">
       <h1>Ancient</h1>
-      <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 274, 14.10</div>
+      <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 275, 14.10</div>
     </div>
     <div class="tb-group" id="tbMatch">
       <button id="btnPause">Пауза</button>
@@ -16164,9 +16168,19 @@ function showRoundCard(winner, reason){
   cardTimer = setTimeout(function(){ el.className = ""; }, Math.max(2500, ROUND_RESTART_DELAY_SEC*1000 - 200));
 }
 
+// (v275) панель экономики сворачивается: клик по заголовку; выбор помнится в этом браузере
+var econClosed = false; try { econClosed = localStorage.getItem("econClosed") === "1"; } catch(e){}
+(function(){ var el = document.getElementById("econ"); if(!el) return;
+  el.addEventListener("pointerdown", function(e){ if(e.button !== 0 || !(e.target.closest && e.target.closest(".ec-tg"))) return;
+    econClosed = !econClosed; try { localStorage.setItem("econClosed", econClosed ? "1" : "0"); } catch(e2){} renderEcon(); });
+  el.addEventListener("keydown", function(e){ if((e.key === "Enter" || e.key === " ") && e.target.closest && e.target.closest(".ec-tg")){ e.preventDefault();
+    econClosed = !econClosed; try { localStorage.setItem("econClosed", econClosed ? "1" : "0"); } catch(e2){} renderEcon(); el.querySelector(".ec-tg").focus(); } });
+})();
 function renderEcon(){
   var el = document.getElementById("econ"); if(!el) return;
-  var h = '<div style="color:var(--accent);font-weight:600;">Экономика · раунд '+roundNum+(roundNum>HALF_ROUNDS?' (2-я половина)':'')+'</div>';
+  var h = '<button type="button" class="ec-tg" aria-expanded="'+(!econClosed)+'" title="'+(econClosed ? 'Показать экономику' : 'Скрыть экономику')+'"><span class="ec-ar">'+(econClosed ? '▸' : '▾')+'</span> Экономика · раунд '+roundNum+(roundNum>HALF_ROUNDS?' (2-я половина)':'')+'</button>';
+  el.classList.toggle("closed", econClosed);
+  if(econClosed){ el.innerHTML = h; return; }
   ["CT","T"].forEach(function(team){
     var te = teamEco[team];
     var mates = bots.filter(function(b){ return b.team===team; });
@@ -16610,6 +16624,7 @@ var __SNAP = [
 ["KF_MOD_T", function(){ return KF_MOD_T; }, function(v){ try{ KF_MOD_T = v; }catch(e){} }],
 ["bannerTimer", function(){ return bannerTimer; }, function(v){ try{ bannerTimer = v; }catch(e){} }],
 ["cardTimer", function(){ return cardTimer; }, function(v){ try{ cardTimer = v; }catch(e){} }],
+["econClosed", function(){ return econClosed; }, function(v){ try{ econClosed = v; }catch(e){} }],
 ["PLAYER_PHOTO", function(){ return PLAYER_PHOTO; }, function(v){ try{ PLAYER_PHOTO = v; }catch(e){} }],
 ["PL_SIL", function(){ return PL_SIL; }, function(v){ try{ PL_SIL = v; }catch(e){} }],
 ["PL_ICON", function(){ return PL_ICON; }, function(v){ try{ PL_ICON = v; }catch(e){} }],
