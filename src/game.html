@@ -240,7 +240,7 @@
   <div id="topbar">
     <div class="tb-id">
       <h1>Ancient</h1>
-      <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 309, 14.10</div>
+      <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 310, 14.10</div>
     </div>
     <div class="tb-group" id="tbMatch">
       <button id="btnPause">Пауза</button>
@@ -16859,19 +16859,27 @@ function obsFrame(ts){
     // (v305, владелец 14.10: «менять игрока чаще») держит ≥ 1,2 с, переключается, если новый момент интереснее на 15 %; спокойный
     // (не в бою) дольше 5 с — смена на другого, чтобы картинка не стояла
     var calm = cur && cur.alive && !cur._sawEnemy && tick - (cur._shotAtT||-1e9) > 64 && tick - (cur.lastShotTick||-1e9) > 64;
-    if(calm && ts - OBS.since > 5000 && best === cur){ var b2 = null, s2 = 0; bots.forEach(function(o){ if(o === cur) return; var v = obsScore(o); if(v > s2){ s2 = v; b2 = o; } }); if(b2){ best = b2; bs = s2*2; } }
+    if(calm && ts - OBS.since > 8000 && best === cur){ var b2 = null, s2 = 0; bots.forEach(function(o){ if(o === cur) return; var v = obsScore(o); if(v > s2){ s2 = v; b2 = o; } }); if(b2){ best = b2; bs = s2*2; } }
     var inFight = function(o){ return o && o.alive && (o._sawEnemy || tick - (o._shotAtT||-1e9) < 32); };
     // бой начался у другого, а у выбранного боя нет — сразу, без выдержки 1,2 с
     var urgent = best && best !== cur && inFight(best) && !inFight(cur);
-    var canSwitch = !cur || urgent || (!cur.alive && ts - OBS.deadAt > 1000) || (ts - OBS.since > 1200 && bs > curS*1.15);
+    // (v310, владелец 14.10: «очень быстро стало меняться») держит ≥ 2,5 с, переключается при перевесе ×1,3; срочно (бой у другого) —
+    // не чаще раза в 1 с и только если у выбранного боя не было 1,5 с
+    if(urgent && (ts - OBS.since < 1000 || tick - Math.max(cur ? (cur._shotAtT||-1e9) : -1e9, cur ? (cur.lastShotTick||-1e9) : -1e9) < 96)) urgent = false;
+    var canSwitch = !cur || urgent || (!cur.alive && ts - OBS.deadAt > 1000) || (ts - OBS.since > 2500 && bs > curS*1.3);
     if(best && best !== cur && canSwitch){ if(cur){ OBS.prev = cur.id; OBS.prevUntil = ts + 5000; } OBS.id = best.id; OBS.since = ts; OBS.deadAt = 0; cur = best; }
     // (v305) карточка по центру — всегда игрок обсервера (после ручного выбора обсервер возвращает её себе)
     if(cur && cur.alive && plSelected !== cur.id){ plSelected = cur.id; playersUpdate(); }
     if(cur){
       tx = cur.x; ty = cur.y;
-      var e = cur._nearestEnemyBot, fight = cur._sawEnemy && e && e.alive;
-      if(fight){ tx = (cur.x + e.x)/2; ty = (cur.y + e.y)/2; }
-      var span = fight ? Math.max(520, Math.hypot(e.x-cur.x, e.y-cur.y)*1.8) : 900;   // сколько карты видно
+      // (v310, владелец 14.10: «плохо видно, с кем он стреляется») соперник — тот, кого он видит, или кто видит его / стрелял по нему;
+      // в кадре оба (центр между ними, запас ×2,4), без боя — ближайший враг в 700 px тоже в кадре
+      var e = (cur._sawEnemy && cur._nearestEnemyBot && cur._nearestEnemyBot.alive) ? cur._nearestEnemyBot : null;
+      if(!e) bots.forEach(function(o){ if(!e && o.alive && o.team !== cur.team && o._sawEnemy && o._nearestEnemyBot === cur) e = o; });
+      var near = null, nd = 700; if(!e) bots.forEach(function(o){ if(o.alive && o.team !== cur.team){ var d = Math.hypot(o.x-cur.x, o.y-cur.y); if(d < nd){ nd = d; near = o; } } });
+      var fight = !!e, other = e || near; OBS.foeId = e ? e.id : null;
+      if(other){ tx = (cur.x + other.x)/2; ty = (cur.y + other.y)/2; }
+      var span = other ? Math.max(fight ? 650 : 900, Math.hypot(other.x-cur.x, other.y-cur.y)*2.4) : 1100;   // сколько карты видно
       tsc = Math.max(fitSc, Math.min(r.width, r.height) / span);
     }
   } else if(manual) return;
@@ -16913,6 +16921,17 @@ function miniDraw(){
     x.fillRect(bx-6/k, by-4/k, 12/k, 8/k); x.strokeStyle = "#0b0f0b"; x.lineWidth = 1.5/k; x.strokeRect(bx-6/k, by-4/k, 12/k, 8/k);
   }
 }
+// (v310) с кем бой у игрока обсервера — пунктир от него к сопернику и кольцо вокруг соперника
+function obsOverlay(){
+  if(!OBS.on || !OBS.id || !OBS.foeId) return;
+  var a = bots.filter(function(o){ return o.id === OBS.id; })[0], e = bots.filter(function(o){ return o.id === OBS.foeId; })[0];
+  if(!a || !e || !a.alive || !e.alive) return;
+  ctx.save(); ctx.setTransform(view.scale,0,0,view.scale,view.panX,view.panY);
+  ctx.strokeStyle = "rgba(255,90,74,.85)"; ctx.lineWidth = 2/view.scale; ctx.setLineDash([6/view.scale, 5/view.scale]);
+  ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(e.x, e.y); ctx.stroke(); ctx.setLineDash([]);
+  var pr = (11 + 2*Math.sin(performance.now()/160))/view.scale; ctx.lineWidth = 2.5/view.scale; ctx.beginPath(); ctx.arc(e.x, e.y, pr, 0, Math.PI*2); ctx.stroke();
+  ctx.restore();
+}
 function obsManual(){ OBS.manualUntil = performance.now() + 6000; OBS.sc = 0; }
 (function(){
   var wsk = document.getElementById("btnWarmSkip"); if(wsk) wsk.addEventListener("click", warmEnd);
@@ -16939,6 +16958,7 @@ function frame(ts){
   }
   obsFrame(ts);
   draw();
+  obsOverlay();
   miniDraw();
   requestAnimationFrame(frame);
 }
