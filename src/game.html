@@ -224,7 +224,7 @@
   <div id="topbar">
     <div class="tb-id">
       <h1>Ancient</h1>
-      <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 281, 14.10</div>
+      <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 282, 14.10</div>
     </div>
     <div class="tb-group" id="tbMatch">
       <button id="btnPause">Пауза</button>
@@ -4291,6 +4291,21 @@ function tBrain(){
       // исходному таймингу (минимум через 8с, чтобы успеть дойти)
       var exT = tt.execTick; tSetSite(tt, other); tt.phase = "setup"; tt.execTick = Math.max(tick + 8*TICK_HZ, exT - 8*TICK_HZ);
       return; // со следующего тика мозг работает уже по новому сайту
+    }
+  }
+  // (v282, владелец 14.10: матч 1, раунд 1, 3 на 1 — группа с бомбой у пустого A несла её через CT Spawn на B, где сидел
+  // последний CT) на выходе с перевесом: до другого сайта носителю ближе и по знанию там пусто — ставим там, где стоим (PRO_PLAY: больше живых — пассивнее, тянуть время). Пороги — те же, что у перекола
+  // (враг у сайта < 0,9 по карте, < 1,5 по свежей инфе); раз за раунд
+  if(tt.phase === "execute" && !tt._exReb && bomb.state === "carried" && bomb.carrier && bomb.carrier.alive && !carrierAtSite(tt) &&
+     aliveCount("T") > aliveCount("CT")){
+    var crE = bomb.carrier, dHe = polyLen(pathPts(crE.x, crE.y, SITES[tt.site].x, SITES[tt.site].y)), dOe = polyLen(pathPts(crE.x, crE.y, SITES[other].x, SITES[other].y));
+    var eOe = intelEstimate("T", SITES[other].x, SITES[other].y, 400, 6*TICK_HZ);
+    if(dOe < dHe && beliefCount("T", BZ.siteNear[other]||[]) < 0.9 && eOe.n < 1.5 && iglTake(tt, tick)){
+      tt._exReb = true;
+      voiceLog("T", "exreb"+other, "IGL", other+" пустой, бомба рядом — ставим "+other+"!");
+      logEvent("IGL: на выходе перекол → "+other+" (носителю ближе, там пусто)");
+      tSetSite(tt, other); tt.execStart = tick;
+      return;
     }
   }
   if(BAL.iglReplan && tIglReplan(tt, site, other, secLeft)) return;
