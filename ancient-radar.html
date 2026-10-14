@@ -225,7 +225,7 @@
   <div id="topbar">
     <div class="tb-id">
       <h1>Ancient</h1>
-      <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 294, 14.10</div>
+      <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 295, 14.10</div>
     </div>
     <div class="tb-group" id="tbMatch">
       <button id="btnPause">Пауза</button>
@@ -8788,8 +8788,10 @@ function endgameBrain(){
       // (v292, И33, владелец 14.10: раунд 1, тик 3865 — игрок 6 стоял в Connector и ждал пика, пока игрок 9 стрелялся с T2 в
       // 200 px от него) тиммейт уже в перестрелке с целью — не ждать пика, а заходить с другой стороны (та же точка, что у flankAssist)
       var mC = d < 650 && b.hp > LOW_HP ? mine.filter(function(m){ return m !== b && m._sawEnemy && m._nearestEnemyBot && m._nearestEnemyBot.id === K.id && (m.contactStreak||0) >= 20; })[0] : null;
+      if(mC && !(b._egC && b._egC.round === roundNum && b._egC.fl === K.id) && !flankClaim(b, K.id)) mC = null;
       if(mC && !(b._egC && b._egC.round === roundNum && b._egC.fl === K.id)){
         var fsp = flankSpot(b, mC, kp);
+        if(fsp) flankClaim(b, K.id, true);
         if(fsp){ b._egC = {gk:gk, round:roundNum, spot:fsp, look:{x:kp.x, y:kp.y}, fl:K.id};
           voiceLog(team, "flank"+b.id, b.id, "захожу на "+K.id+" с другой стороны — помогаю "+mC.id); }
       }
@@ -11382,6 +11384,15 @@ function flankSpot(b, mate, ep){
     sp = q; return true; });
   return sp;
 }
+// (v295, владелец 14.10: раунд 3 — оба игрока B пошли на T4 «с другой стороны», B опустел) на одного врага заходит один:
+// команда помнит, кто уже заходит (6 с — как пост захода), остальные держат свои места
+var FLANK_CLAIM = {CT:{}, T:{}};
+function flankClaim(b, eid, take){
+  var C = FLANK_CLAIM[b.team], c = C[eid];
+  var busy = c && c.id !== b.id && c.until > tick && bots.some(function(o){ return o.id === c.id && o.alive; });
+  if(take && !busy) C[eid] = {id:b.id, until:tick + 6*TICK_HZ};
+  return !busy;
+}
 function flankAssist(b){
   if(b.hp <= LOW_HP || b._fcFlank && tick < b._fcFlank) return false;
   if(b.team === "CT" && b.post && /^(anchor|stack|set:|cts:|clutch|retake)/.test(b.post.tag)) return false;   // держит сайт — не бросает
@@ -11392,6 +11403,7 @@ function flankAssist(b){
     var d = Math.hypot(m.x-b.x, m.y-b.y); if(d <= (BAL.groupPlay ? 300 : 160) || d > 900) return;
     var e = m._nearestEnemyBot; if(!e || !e.alive) return; mate = m; E = e; });
   if(!mate) return false;
+  if(!flankClaim(b, E.id)) return false;
   b._fcFlank = tick + 3*TICK_HZ;
   var ep = {x:E.x, y:E.y};
   var sp = flankSpot(b, mate, ep);
@@ -11402,6 +11414,7 @@ function flankAssist(b){
   if(b.state === "hold") leaveHold(b);
   b._reposUntil = tick + 6*TICK_HZ;
   b.lastIntel = {x:ep.x, y:ep.y, tick:tick, src:"call"};
+  flankClaim(b, E.id, true);
   voiceLog(b.team, "flank"+b.id, b.id, "захожу на "+E.id+" с другой стороны — помогаю "+mate.id);
   return true;
 }
@@ -16839,6 +16852,7 @@ var __SNAP = [
 ["PEEK_Q", function(){ return PEEK_Q; }, function(v){ try{ PEEK_Q = v; }catch(e){} }],
 ["LOW_HP", function(){ return LOW_HP; }, function(v){ try{ LOW_HP = v; }catch(e){} }],
 ["LOWHP_MATE_PATH", function(){ return LOWHP_MATE_PATH; }, function(v){ try{ LOWHP_MATE_PATH = v; }catch(e){} }],
+["FLANK_CLAIM", function(){ return FLANK_CLAIM; }, function(v){ try{ FLANK_CLAIM = v; }catch(e){} }],
 ["SPRAY_PATTERN", function(){ return SPRAY_PATTERN; }, function(v){ try{ SPRAY_PATTERN = v; }catch(e){} }],
 ["STATE_LABEL", function(){ return STATE_LABEL; }, function(v){ try{ STATE_LABEL = v; }catch(e){} }],
 ["TRADE_R", function(){ return TRADE_R; }, function(v){ try{ TRADE_R = v; }catch(e){} }],
@@ -16955,7 +16969,6 @@ var __SNAP = [
 ["clutchShown", function(){ return clutchShown; }, function(v){ try{ clutchShown = v; }catch(e){} }],
 ["clutchInfo", function(){ return clutchInfo; }, function(v){ try{ clutchInfo = v; }catch(e){} }],
 ["KF_MOD_T", function(){ return KF_MOD_T; }, function(v){ try{ KF_MOD_T = v; }catch(e){} }],
-["KF_IMG", function(){ return KF_IMG; }, function(v){ try{ KF_IMG = v; }catch(e){} }],
 ["bannerTimer", function(){ return bannerTimer; }, function(v){ try{ bannerTimer = v; }catch(e){} }],
 ["cardTimer", function(){ return cardTimer; }, function(v){ try{ cardTimer = v; }catch(e){} }],
 ["econClosed", function(){ return econClosed; }, function(v){ try{ econClosed = v; }catch(e){} }],
