@@ -240,7 +240,7 @@
   <div id="topbar">
     <div class="tb-id">
       <h1>Ancient</h1>
-      <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 313, 14.10</div>
+      <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 314, 14.10</div>
     </div>
     <div class="tb-group" id="tbMatch">
       <button id="btnPause">Пауза</button>
@@ -16903,7 +16903,10 @@ function obsFrame(ts){
   // плавно: камера доезжает за ~0,5 с
   var k = 1 - Math.exp(-dt*(ts - OBS.since < 600 ? 7 : 4.5));   // (v307) сразу после переключения — быстрее
   if(!OBS.sc){ OBS.sc = view.scale; OBS.cx = (r.width/2 - view.panX)/view.scale; OBS.cy = (r.height/2 - view.panY)/view.scale; }
-  OBS.cx += (tx - OBS.cx)*k; OBS.cy += (ty - OBS.cy)*k; OBS.sc += (tsc - OBS.sc)*k;
+  OBS.cx += (tx - OBS.cx)*k; OBS.cy += (ty - OBS.cy)*k;
+  // (v314, владелец 14.10: «масштаб резко меняется») масштаб — медленнее позиции (~1,5 с) и не быстрее ±45 % в секунду
+  var ks = 1 - Math.exp(-dt*1.6), nsc = OBS.sc + (tsc - OBS.sc)*ks, lim = Math.exp(0.45*dt);
+  OBS.sc = Math.max(OBS.sc/lim, Math.min(OBS.sc*lim, nsc));
   view.scale = OBS.sc; view.panX = r.width/2 - OBS.cx*OBS.sc; view.panY = r.height/2 - OBS.cy*OBS.sc;
 }
 // (v307) мини-радар — вся карта в углу: живые — кружок цвета стороны с номером и чёрточкой взгляда, погибшие — крестик, бомба
