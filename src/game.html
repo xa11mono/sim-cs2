@@ -224,7 +224,7 @@
   <div id="topbar">
     <div class="tb-id">
       <h1>Ancient</h1>
-      <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 293, 14.10</div>
+      <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 294, 14.10</div>
     </div>
     <div class="tb-group" id="tbMatch">
       <button id="btnPause">Пауза</button>
@@ -9806,7 +9806,7 @@ function updateNadeTasks(){
 }
 
 // ======================= СВОИ ЛАЙНАПЫ =======================
-var LINEUPS_BAKED = [{"id": "lumueflqsj49", "team": "T", "type": "smoke", "trigger": "exec", "site": "B", "name": "кросс", "from": {"x": 1567.5, "y": 1326.4}, "to": {"x": 1567, "y": 794.5}, "replaces": "T.exec.cross.B"}, {"id": "lumuefmmyc850", "team": "T", "type": "smoke", "trigger": "setup", "site": "A", "name": "фейк-смок (фейк на A)", "from": {"x": 430.7, "y": 843.4}, "to": {"x": 731.2, "y": 487.9}, "replaces": "T.fake.smoke.A"}, {"id": "lumuefmrwc656", "team": "T", "type": "smoke", "trigger": "insta", "site": "any", "name": "инстасмок мид", "from": {"x": 979.2, "y": 1751}, "to": {"x": 871.3, "y": 1155.5}, "replaces": "T.insta.mid"}, {"id": "lumuefmvfq467", "team": "T", "type": "smoke", "trigger": "exec", "site": "A", "name": "вход CT", "from": {"x": 430.7, "y": 843.4}, "to": {"x": 724.4, "y": 500.9}, "replaces": "T.exec.ctEntry.A"}, {"id": "lumuefmyjv112", "team": "T", "type": "smoke", "trigger": "exec", "site": "A", "name": "кросс", "from": {"x": 430.7, "y": 843.4}, "to": {"x": 706, "y": 590.1}, "replaces": "T.exec.cross.A"}]; // из «Экспорт проекта» (зашиты в код)
+var LINEUPS_BAKED = [{"id": "lumueflqsj49", "team": "T", "type": "smoke", "trigger": "exec", "site": "B", "name": "кросс", "from": {"x": 1567.5, "y": 1326.4}, "to": {"x": 1567, "y": 794.5}, "replaces": "T.exec.cross.B"}, {"id": "lumuefmmyc850", "team": "T", "type": "smoke", "trigger": "setup", "site": "A", "name": "фейк-смок (фейк на A)", "from": {"x": 430.7, "y": 843.4}, "to": {"x": 731.2, "y": 487.9}, "replaces": "T.fake.smoke.A"}, {"id": "lumuefmvfq467", "team": "T", "type": "smoke", "trigger": "exec", "site": "A", "name": "вход CT", "from": {"x": 430.7, "y": 843.4}, "to": {"x": 724.4, "y": 500.9}, "replaces": "T.exec.ctEntry.A"}, {"id": "lumuefmyjv112", "team": "T", "type": "smoke", "trigger": "exec", "site": "A", "name": "кросс", "from": {"x": 430.7, "y": 843.4}, "to": {"x": 706, "y": 590.1}, "replaces": "T.exec.cross.A"}]; // из «Экспорт проекта» (зашиты в код); (v294) «инстасмок мид» убран — см. nadeBrains
 var LINEUPS_KEY = "ancient-live-radar-lineups-v1";
 var USER_LINEUPS = [];
 try{ var _lu = JSON.parse(localStorage.getItem(LINEUPS_KEY)||"null"); if(Array.isArray(_lu)) USER_LINEUPS = _lu; }catch(e){}
@@ -9865,6 +9865,9 @@ function lineupTick(){
     else if(L.team === "T" && L.trigger === "postplant") go = bomb.state === "planted" && siteOk(bomb.site);
     else if(L.team === "CT" && L.trigger === "call") go = ct && ct.call && ct.call.count >= 2 && siteOk(ct.call.site);
     else if(L.team === "CT" && L.trigger === "retake") go = bomb.state === "planted" && siteOk(bomb.site);
+    // (v294) флешки T на сетапе из лайнапов про — только если команда ждёт врага у точки: про кидают их под пик, а боты — по часам
+    // (рвались рядом с врагом в 50 % против 88 % у про)
+    if(go && L.pro && L.team === "T" && L.trigger === "setup" && L.type === "flash" && !nadeWorth("T", L.to)) go = false;
     if(!go) return;
     // кто кидает: ближайший к точке броска, но не энтри (он заходит первым) и не
     // носитель бомбы; в горячих фазах (выход, колл, ретейк, пост-плант) — только
@@ -10150,6 +10153,17 @@ var SELF = {
   spotNear: 350, // проектное число: типичное место без инфы — не дальше стольких px от точки выхода
   sightR:  900   // проектное число: смок под плант — гипотеза врага с линией на точку не дальше стольких px
 };
+// (v294) стоит ли кидать гранату «на всякий случай» (без увиденного врага): команда ждёт там врага — масса знания (belief) в зоне
+// точки и соседних зонах в 300 px ≥ 0,3 врага, или свежая инфа (видели/слышали за 4 с) в 500 px. Числа — проектные
+var NADE_WORTH = {r:300, mass:0.3, infoR:500, infoT:4};
+function nadeWorth(team, pt){
+  var zl = [];
+  BZ.cent.forEach(function(c, i){ if(c && Math.hypot(c.x-pt.x, c.y-pt.y) <= NADE_WORTH.r) zl.push(i); });
+  var z0 = bzOf(pt.x, pt.y); if(z0 >= 0 && zl.indexOf(z0) < 0) zl.push(z0);
+  if(zl.length && beliefCount(team, zl) >= NADE_WORTH.mass) return true;
+  var e = intelEstimate(team, pt.x, pt.y, NADE_WORTH.infoR, NADE_WORTH.infoT*TICK_HZ);
+  return e.seen + e.heard > 0;
+}
 function selfHyps(b, fn){
   var K = b.know; if(!K) return;
   for(var id in K.enemies){ var B = K.enemies[id]; if(B.visible) continue;
@@ -10194,6 +10208,8 @@ function selfExitFlash(b){
     if(!ex) return;
     if(bots.some(function(m){ return m !== b && m.alive && m.team === b.team && Math.hypot(m.x-ex.x, m.y-ex.y) < 150; })) return;   // свой уже там
     if(!c.info && Math.hypot(c.x-ex.x, c.y-ex.y) > SELF.spotNear) return;   // дальний угол без инфы — прицелом
+    // (v294) типичное место без инфы — только если команда там врага ждёт (у CT «типичное место Connector» рвалось у врага в 38 %)
+    if(!c.info && !nadeWorth(b.team, c)) return;
     var d = Math.hypot(c.x-b.x, c.y-b.y);
     if(!best || c.w > best.c.w || (c.w === best.c.w && d < best.d)) best = {c:c, ex:ex, d:d};
   });
@@ -10266,24 +10282,8 @@ function nadeReact(){
     if(assignNade(c, "molly", ent, "молотов на раш "+k, {now:true})){ nadeFlags["rushMolly"+k] = tick;
       voiceLog("CT", "rushm"+k, c.id, "слышу раш на "+k+" — молотов во вход!"); }
   });
-  // CT ранняя граната на задержку: опорник в первые 7–18с кидает молотов/HE во вход T на своём сайте,
-  // если там была инфа (видели/слышали за 4с) или в прошлых раундах сюда рашили (v244: без монетки 35 %)
-  if(BAL.ctEarlyUtil && bomb.state !== "planted"){
-    var sinceR = (tick - roundStartTick)/TICK_HZ;
-    if(sinceR > 7 && sinceR < 18) ["A","B"].forEach(function(k){
-      var key = "ctEarly"+k; if(nadeFlags[key]) return;
-      var ent = GEO[k].tEntry, role = k === "A" ? "anchorA" : "anchorB";
-      var an = bots.filter(function(b){ return b.alive && b.team === "CT" && b.tRole === role && b.nades && (b.nades.molly > 0 || b.nades.he > 0) && !b.nadeTask &&
-        Math.hypot(b.x-ent.x, b.y-ent.y) < NADE_THROW_RANGE*1.1; })[0];
-      if(!an || antiEco("CT")) return;
-      // (гранаты CT впустую) раньше кидал вслепую в ~35% раундов. Теперь — только
-      // если во входе/на подходе к нему есть инфа (видели/слышали за 4с)
-      var rushMem = BAL.roundMem && rmemRecent(RMEM.rush, 2).some(function(e){ return e.site === k; });
-      if(BAL.ctUtilSmart && !rushMem){ var eI = intelEstimate("CT", ent.x, ent.y, 700, 4*TICK_HZ); if(eI.seen + eI.heard === 0) return; }
-      var tp = an.nades.molly > 0 ? "molly" : "he";
-      if(assignNade(an, tp, ent, "ранняя граната на задержку "+k, {now:true})){ nadeFlags[key] = true; voiceLog("CT", "early"+k, an.id, (tp === "molly" ? "молотов" : "HE")+" во вход "+k+" — задержу, если идут"); }
-    });
-  }
+  // (v294) «ранняя граната на задержку» (молотов/HE опорника во вход своего сайта на 7–18 с) убрана: у ботов рвалась рядом с врагом
+  // в 3 % случаев; у про такого броска нет (CT молотовы по времени — Mid, T Lower, Ramp — есть в лайнапах про)
   ["CT","T"].forEach(function(team){
     if(tick < nadeReactCd[team]) return;
     var L = beliefLast[team] || {}, pts = [];
@@ -10326,14 +10326,8 @@ function nadeBrains(){
   var ts = bots.filter(function(b){ return b.team==="T" && b.alive; });
   var cts = bots.filter(function(b){ return b.team==="CT" && b.alive; });
   function byRole(list, r){ return list.filter(function(b){ return b.tRole===r; })[0]; }
-  // план §7: инстасмок — в первые секунды раунда, без всякой инфы ("враг
-  // точно там, где всегда"): T закрывают мид от CT (обзор мидера/AWP)
-  if(!nadeFlags.insta && tick - roundStartTick > 60 && BAL.tUtil){
-    nadeFlags.insta = true;
-    var ist = ts.filter(function(b){ return b.nades.smoke > 0 && (b.tRole === "awp" || b.tRole === "lurker"); })[0];
-    var midChoke = {x:(GEO.tMid.x+GEO.ctMid.x)/2, y:(GEO.tMid.y+GEO.ctMid.y)/2};
-    if(ist) assignNade(ist, "smoke", midChoke, "инстасмок мид", {range:1500, now:true, bkey:"T.insta.mid"});
-  }
+  // (v294, Г-пункт, владелец 14.10: «кидают гранаты на рандом») «инстасмок мид» (план §7) убран: у про его нет (в 1654 лайнапах про
+  // инста-смок T — Sniper Nest, Chamber Lane, Lamp Room), а у ботов он был 32 % смоков T и рвался рядом с врагом в 9 % случаев
   // (10) AWP CT в прошлых раундах стрелял с одной точки — смок на его линию,
   // когда кто-то из T проходит рядом (один раз за раунд, запас смоков на выход не трогаем)
   if(BAL.roundMem && tt.phase === "setup" && !nadeFlags.antiAwp && tick - roundStartTick > 6*TICK_HZ && BAL.tUtil){
@@ -13814,7 +13808,6 @@ var LU_COL = {smoke:"rgba(200,205,210,0.95)", flash:"rgba(255,240,150,0.95)", mo
 function builtinLineups(){
   if(!GEO.A || !GEO.B) return [];
   var out = [], mid = function(a, b2, f){ f = f == null ? 0.5 : f; return {x:a.x+(b2.x-a.x)*f, y:a.y+(b2.y-a.y)*f}; };
-  out.push({key:"T.insta.mid", team:"T", type:"smoke", trigger:"insta", site:"any", name:"инстасмок мид", from:T_SPAWN, to:mid(GEO.tMid, GEO.ctMid)});
   ["A","B"].forEach(function(k){
     var g = GEO[k], st = SITES[k];
     out.push({key:"T.exec.ctEntry."+k, team:"T", type:"smoke", trigger:"exec", site:k, name:"вход CT", from:g.tStage, to:g.ctEntry});
