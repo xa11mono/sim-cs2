@@ -240,7 +240,7 @@
   <div id="topbar">
     <div class="tb-id">
       <h1>Ancient</h1>
-      <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 310, 14.10</div>
+      <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 311, 14.10</div>
     </div>
     <div class="tb-group" id="tbMatch">
       <button id="btnPause">Пауза</button>
@@ -16756,8 +16756,9 @@ function playersUpdate(){
 var WARM = {on:false};
 function warmPick(b){ var P = KNOW_POSITIONS.points; return P[Math.floor(Math.random()*P.length)]; }
 function warmSpawn(b){
-  var own = KNOW_POSITIONS.points.filter(function(q){ return q.side === b.team; });
-  var q = own[Math.floor(Math.random()*own.length)] || (b.team === "T" ? T_SPAWN : CT_SPAWN);
+  // (v311, владелец 14.10: «как в CS2 — возрождаются на спавне») на спавне своей стороны, с разбросом точек спавна
+  var sp = b.team === "T" ? T_SPAWN : CT_SPAWN, a0 = Math.random()*Math.PI*2, r0 = 20 + Math.random()*60;
+  var q = walk({x: sp.x + Math.cos(a0)*r0, y: sp.y + Math.sin(a0)*r0}) || sp;
   b.baseX = b.x = b.px = q.x; b.baseY = b.y = b.py = q.y; b.alive = true; b.hp = 100; b._wPath = null; b._sawEnemy = false; b._wRespawn = 0;
   b.weapon = WEAPONS[b.team === "T" ? "AK" : "M4"] || b.weapon;
 }
@@ -16790,16 +16791,20 @@ function warmTick(dt){
     if(foe){
       var a = Math.atan2(foe.y-b.y, foe.x-b.x);
       b.facing = b._visFacing = a; b._nearestEnemyBot = foe;
-      if(!b._sawEnemy){ b._sawEnemy = true; b.contactStreak = 0; b._wFire = tick + Math.round((0.18 + Math.random()*0.15)*TICK_HZ); }
+      if(!b._sawEnemy){ b._sawEnemy = true; b.contactStreak = 0; b._wFire = tick + Math.round((0.22 + Math.random()*0.15)*TICK_HZ); b._wBurst = 0; }
       b.contactStreak = (b.contactStreak||0) + 1;
       if(tick >= b._wFire){
-        b._wFire = tick + 7; b.lastShotTick = tick; foe._shotAtT = tick;
-        var hit = Math.random() < 0.3;
+        // (v311, владелец 14.10: «трассеры как с минигана») очередями по 2–4 пули с темпом винтовки (~10/с), между очередями 0,35–0,6 с;
+        // попадание — от дистанции (вблизи чаще); в голову — 20 % попаданий (с одной). Числа — проектные (показ)
+        if(!b._wBurst){ b._wBurst = 2 + Math.floor(Math.random()*3); }
+        b._wBurst--; b._wFire = tick + (b._wBurst > 0 ? 6 : Math.round((0.35 + Math.random()*0.25)*TICK_HZ));
+        b.lastShotTick = tick; foe._shotAtT = tick;
+        var hit = Math.random() < Math.max(0.15, 0.55 - fd/1400);
         tracers.push({wc:tracerClass(b.weapon), x1:b.x, y1:b.y, x2:foe.x + (hit ? 0 : (Math.random()-0.5)*30), y2:foe.y + (hit ? 0 : (Math.random()-0.5)*30), team:b.team, born:nowTs, hit:hit, miss:!hit});
         if(tracers.length > 60) tracers.shift();
-        if(hit){ foe.hp -= 27 + Math.floor(Math.random()*12);
+        if(hit){ var hsW = Math.random() < 0.2; foe.hp -= hsW ? 100 : 27 + Math.floor(Math.random()*8);
           if(foe.hp <= 0){ foe.alive = false; foe._wRespawn = tick + 2*TICK_HZ; b._killHowT = tick;
-            killfeed.unshift({kind:"kill", att:nick(b.id), attTeam:b.team, as:null, vic:nick(foe.id), vicTeam:foe.team, w:b.weapon ? b.weapon.key : "AK", hs:Math.random() < 0.45, t:nowTs});
+            killfeed.unshift({kind:"kill", att:nick(b.id), attTeam:b.team, as:null, vic:nick(foe.id), vicTeam:foe.team, w:b.weapon ? b.weapon.key : "AK", hs:hsW, t:nowTs});
             if(killfeed.length > 8) killfeed.length = 8; renderFeed(); } }
       }
       return;
