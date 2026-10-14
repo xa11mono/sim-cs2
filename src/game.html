@@ -238,7 +238,7 @@
   <div id="topbar">
     <div class="tb-id">
       <h1>Ancient</h1>
-      <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 305, 14.10</div>
+      <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 306, 14.10</div>
     </div>
     <div class="tb-group" id="tbMatch">
       <button id="btnPause">Пауза</button>
@@ -285,6 +285,7 @@
           <button id="btnExportProject" title="Всё, что сохранено только в этом браузере (стены, точки калибровки, зоны) — одним JSON, чтобы зашить в код">Экспорт проекта</button>
         </div>
       </details>
+      <button id="btnWarmSkip" class="primary" style="display:none" title="Закончить разминку и начать матч сейчас">Начать матч</button>
       <button id="btnObs" class="on" title="Автообсервер: сам выбирает, за кем следить, и ведёт камеру (клавиша O). Двинул камеру или выбрал игрока сам — обсервер ждёт 6 с">Обсервер <kbd>O</kbd></button>
       <span id="mkSlot"></span>
     </div>
@@ -12974,6 +12975,7 @@ function swapSides(){
 // Кэши чистим целиком: часть ключей содержит tick, и после сброса tick старые
 // записи прошлого матча подставлялись бы в новый.
 function freshMatch(n, keepProfile){
+  if(typeof WARM !== "undefined" && WARM.on){ WARM = {on:false}; var wsk0 = typeof document !== "undefined" && document.getElementById("btnWarmSkip"); if(wsk0) wsk0.style.display = "none"; }   // (v306) новый матч / перемотка — разминка кончилась
   paused = true;
   tick = 0; simTime = 0; roundStartTick = 0;
   if(!keepProfile) OPP = null;
@@ -16641,6 +16643,7 @@ function seriesUpdate(){
 }
 function scoreboardUpdate(rtLeft){
   seriesUpdate();
+
   var $ = function(id){ return document.getElementById(id); };
   ["T","CT"].forEach(function(t){
     var lg = $("sbLogo"+t);
@@ -16658,6 +16661,9 @@ function scoreboardUpdate(rtLeft){
   var sec = roundState === "freeze" ? Math.max(0, roundStartTime - simTime) : rtLeft;
   tm.textContent = Math.floor(sec/60)+":"+("0"+Math.floor(sec%60)).slice(-2);
   tm.className = "sb-time" + (roundState === "live" && sec <= 10 ? " low" : "");
+  // (v306) разминка: вместо раунда — «РАЗМИНКА · матч в …» и обратный отсчёт до матча
+  if(WARM.on){ var wl = Math.max(0, Math.ceil(WARM.left)); $("sbRound").textContent = "РАЗМИНКА · матч в "+WARM.match;
+    $("sbTime").textContent = Math.floor(wl/60)+":"+("0"+(wl%60)).slice(-2); }
 }
 
 // ---------- панели игроков (Н7): как на трансляции; по центру — выбранный кликом ----------
@@ -16739,6 +16745,74 @@ function playersUpdate(){
 })();
 
 /*@@BUILD: здесь build.py вставляет __SNAP, MK_PRINCIPLES и marks.js@@*/
+// ======================= (v306) РАЗМИНКА перед матчем — только показ, на матч не влияет =======================
+// Как в CS2: сервер запущен заранее, матч — по расписанию (например, 11:30, сервер с 11:25 → 5 мин разминки игрового времени;
+// сколько — случайно, 3–8 мин, по номеру матча). Все бегают по карте между позициями про (KNOW_POSITIONS), стреляются, убитый
+// возрождается через 2 с на своей половине; бомбы, раундов, экономики и войса нет. Конец (или «Начать матч») — freshMatch(n):
+// матч идёт точно так же, как без разминки (номер матча по-прежнему повторяет игру). Числа — проектные (это показ)
+var WARM = {on:false};
+function warmPick(b){ var P = KNOW_POSITIONS.points; return P[Math.floor(Math.random()*P.length)]; }
+function warmSpawn(b){
+  var own = KNOW_POSITIONS.points.filter(function(q){ return q.side === b.team; });
+  var q = own[Math.floor(Math.random()*own.length)] || (b.team === "T" ? T_SPAWN : CT_SPAWN);
+  b.baseX = b.x = b.px = q.x; b.baseY = b.y = b.py = q.y; b.alive = true; b.hp = 100; b._wPath = null; b._sawEnemy = false; b._wRespawn = 0;
+  b.weapon = WEAPONS[b.team === "T" ? "AK" : "M4"] || b.weapon;
+}
+function warmStart(n){
+  var hr = function(k){ return hashRand(n*7919 + k*131); };
+  var mh = 12 + Math.floor(hr(1)*10), mm = hr(2) < 0.5 ? 0 : 30, len = 180 + Math.floor(hr(3)*300);   // матч в 12:00–21:30, разминка 3–8 мин
+  freshMatch(n);
+  WARM = {on:true, n:n, left:len, total:len, match:(mh<10?"0":"")+mh+":"+(mm?"30":"00")};
+  roundState = "warmup"; killfeed = []; if(typeof renderFeed === "function") renderFeed();
+  bots.forEach(warmSpawn);
+  var sk = document.getElementById("btnWarmSkip"); if(sk) sk.style.display = "";
+  logEvent("Разминка: матч в "+WARM.match+", до начала "+Math.round(len/60)+" мин", true);
+}
+function warmEnd(){
+  if(!WARM.on) return;
+  var n = WARM.n; WARM = {on:false};
+  var sk = document.getElementById("btnWarmSkip"); if(sk) sk.style.display = "none";
+  freshMatch(n); killfeed = []; renderFeed(); paused = false;
+}
+function warmTick(dt){
+  if(!WARM.on) return;
+  WARM.left -= dt; if(WARM.left <= 0){ warmEnd(); return; }
+  tick++;
+  bots.forEach(function(b){
+    b.px = b.x; b.py = b.y;
+    if(!b.alive){ if(!b._wRespawn) b._wRespawn = tick + 2*TICK_HZ; if(tick >= b._wRespawn) warmSpawn(b); return; }
+    // враг в поле зрения — стоп и стрельба
+    var foe = null, fd = 700;
+    bots.forEach(function(o){ if(o.alive && o.team !== b.team){ var d = Math.hypot(o.x-b.x, o.y-b.y); if(d < fd && hasLOS(b.x, b.y, o.x, o.y)){ fd = d; foe = o; } } });
+    if(foe){
+      var a = Math.atan2(foe.y-b.y, foe.x-b.x);
+      b.facing = b._visFacing = a; b._nearestEnemyBot = foe;
+      if(!b._sawEnemy){ b._sawEnemy = true; b.contactStreak = 0; b._wFire = tick + Math.round((0.18 + Math.random()*0.15)*TICK_HZ); }
+      b.contactStreak = (b.contactStreak||0) + 1;
+      if(tick >= b._wFire){
+        b._wFire = tick + 7; b.lastShotTick = tick; foe._shotAtT = tick;
+        var hit = Math.random() < 0.3;
+        tracers.push({wc:tracerClass(b.weapon), x1:b.x, y1:b.y, x2:foe.x + (hit ? 0 : (Math.random()-0.5)*30), y2:foe.y + (hit ? 0 : (Math.random()-0.5)*30), team:b.team, born:nowTs, hit:hit, miss:!hit});
+        if(tracers.length > 60) tracers.shift();
+        if(hit){ foe.hp -= 27 + Math.floor(Math.random()*12);
+          if(foe.hp <= 0){ foe.alive = false; foe._wRespawn = tick + 2*TICK_HZ; b._killHowT = tick;
+            killfeed.unshift({kind:"kill", att:nick(b.id), attTeam:b.team, as:null, vic:nick(foe.id), vicTeam:foe.team, w:b.weapon ? b.weapon.key : "AK", hs:Math.random() < 0.45, t:nowTs});
+            if(killfeed.length > 8) killfeed.length = 8; renderFeed(); } }
+      }
+      return;
+    }
+    b._sawEnemy = false;
+    // бег к случайной позиции про
+    if(!b._wPath || b._wIdx >= b._wPath.length){
+      var q = warmPick(b), wp = buildWaypointPath(b.x, b.y, 0, q.x, q.y, 0);
+      b._wPath = (wp && wp.length) ? wp : [[q.x, q.y, 0]]; b._wIdx = 0;
+    }
+    var t = b._wPath[b._wIdx], dx = t[0]-b.x, dy = t[1]-b.y, d = Math.hypot(dx, dy), st = SPEED*dt;
+    if(d <= st){ b.x = b.baseX = t[0]; b.y = b.baseY = t[1]; b._wIdx++; }
+    else { b.x = b.baseX = b.x + dx/d*st; b.y = b.baseY = b.y + dy/d*st; var ha = Math.atan2(dy, dx); b.heading = ha; b.facing = b._visFacing = ha; }
+    b.curSpeed = SPEED;
+  });
+}
 // ======================= (v304) АВТООБСЕРВЕР — только показ, на игру не влияет =======================
 // Сам выбирает, за кем следить (как режиссёр трансляции): бой, плант/дефуз, клатч, только что фраг, по нему стреляют, рядом враг.
 // Держит выбранного не меньше 1,2 с (v305), переключается, если новый момент интереснее (×1,15) или выбранный погиб (через 1 с —
@@ -16769,7 +16843,7 @@ function obsFrame(ts){
   var r = wrap.getBoundingClientRect(), fitSc = Math.min(r.width/2048, r.height/2048) * 1.08;
   var manual = ts < OBS.manualUntil;
   var tx = 1024, ty = 1024, tsc = fitSc;
-  if(roundState === "live" && !manual){
+  if((roundState === "live" || WARM.on) && !manual){
     var cur = OBS.id && bots.filter(function(o){ return o.id === OBS.id; })[0];
     if(cur && !cur.alive && !OBS.deadAt) OBS.deadAt = ts;
     var best = null, bs = 0; bots.forEach(function(o){ var v = obsScore(o); if(v > bs){ bs = v; best = o; } });
@@ -16798,6 +16872,7 @@ function obsFrame(ts){
 }
 function obsManual(){ OBS.manualUntil = performance.now() + 6000; OBS.sc = 0; }
 (function(){
+  var wsk = document.getElementById("btnWarmSkip"); if(wsk) wsk.addEventListener("click", warmEnd);
   var ss = document.getElementById("selSeries"); if(ss) ss.addEventListener("change", function(){ SERIES = {bo:+ss.value, maps:{}}; seriesUpdate(); });
   var b = document.getElementById("btnObs");
   if(b) b.addEventListener("click", function(){ OBS.on = !OBS.on; OBS.sc = 0; OBS.manualUntil = 0; if(!OBS.on) fit(); });
@@ -16809,7 +16884,8 @@ function frame(ts){
   nowTs = ts;
   if(lastFrame===null) lastFrame = ts;
   var dt = ts - lastFrame; lastFrame = ts;
-  if(!paused){
+  if(!paused && WARM.on){ var wdt = Math.min(0.1, dt/1000); warmTick(wdt); accumulator = 0; }
+  else if(!paused){
     accumulator += dt;
     while(accumulator >= TICK_MS){ stepTick(); accumulator -= TICK_MS; }
     mkAfterTicks();
@@ -16819,10 +16895,11 @@ function frame(ts){
   requestAnimationFrame(frame);
 }
 document.getElementById("chkNewLook").addEventListener("change", function(){ BAL.newLook = this.checked; bots.forEach(function(o){ o._lkZ = null; o._lkPt = null; o._tLookZ = null; o._tLook = null; }); logEvent(this.checked ? "Взгляд: новая единая оценка" : "Взгляд: старая логика v140"); });
-document.getElementById("btnFreshMatch").addEventListener("click", function(){ var n = Math.max(1, parseInt(document.getElementById("inpMatchNum").value, 10) || 1); var sel = document.getElementById("selSeries"), bo = sel ? +sel.value : 3; if(bo !== SERIES.bo || seriesDone()) SERIES = {bo:bo, maps:{}}; freshMatch(n); paused = false; var bp = document.getElementById("btnPause"); if(bp){ bp.textContent = "Пауза"; bp.classList.remove("active"); } logEvent("Матч №"+n+" с чистого листа (воспроизводимый)", true); });
+document.getElementById("btnFreshMatch").addEventListener("click", function(){ var n = Math.max(1, parseInt(document.getElementById("inpMatchNum").value, 10) || 1); var sel = document.getElementById("selSeries"), bo = sel ? +sel.value : 3; if(bo !== SERIES.bo || seriesDone()) SERIES = {bo:bo, maps:{}}; warmStart(n); paused = false; var bp = document.getElementById("btnPause"); if(bp){ bp.textContent = "Пауза"; bp.classList.remove("active"); } logEvent("Матч №"+n+" с чистого листа (воспроизводимый)", true); });
 setInterval(function(){ var el = document.getElementById("matchTick"); if(el) el.textContent = "сейчас "+matchNum+"-й, тик "+tick; }, 250);
 var BOT_INIT = bots.map(function(b){ var o = {keys:{}, vals:{}}; for(var k in b){ o.keys[k] = 1; var v = b[k]; if(v === null || (typeof v !== "object" && typeof v !== "function")) o.vals[k] = v; } return o; });
 window.__ev=function(src){return eval(src);};
+/*@@WARM_AUTO@@*/
 requestAnimationFrame(frame);
 
 // (v256) меню «Слои» и «Инструменты»: открыто одно, закрываются кликом мимо и Esc

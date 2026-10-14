@@ -15,6 +15,7 @@ s = s[s.index('<body>') + len('<body>'):]
 s = '<style>' + game_css + '</style>' + s
 s = s.replace('</body></html>', '')
 s = s.replace('window.__ev=function(src){return eval(src);};', '')
+s = s.replace('/*@@WARM_AUTO@@*/', 'warmStart(1);')   # (v306) опубликованная страница начинается с разминки; sim.html — нет (замеры, снимки)
 assert '__ev' not in s
 open(os.path.join(HERE, '..', 'ancient-radar.html'), 'w', encoding='utf-8').write('\n' + s)
 print(len(s))
