@@ -61,6 +61,7 @@ v166 — `docs/V166_CHANGES.md` (список владельца). Главны�
 | **войс** (одно место «что сказали»): `TEAM`, `teamNotice`, `teamChannel`, `teamDeath`, `teamTick` → `knowCall` | ~5852; ~6043 |
 | карта команды `belief` из гипотез: `beliefTick`; чтение `beliefZoneKnown`, `intelEstimate`, `lkpNear` | ~6066; ~6553; ~4898 |
 | взгляд: `lookCands`, `lookPlan`, `smoothLookFilter`, `threatEntrances` | ~6857–7090 |
+| **разбор взгляда** (v272, только показ, клавиша L): `LOOKDBG`, запись — `lookScoreMods`/`c.f`/`lookDbgNote`, рисует `lookDbgDraw` | `grep -n` |
 | гранаты: закуп `buyNades`, решения `nadeBrains`, лайнапы `lineupTick` | ~8648; ~9248; ~8873 |
 | нож: `knifeTick` | ~9577 |
 | стрельба: `tryShoot` (целится в видимое; свой на линии — `bulletVictim`), `resolveEngagements` (visParts), после фрага `afterKillMove`; **урон и смерть — одно место** `applyDamage` (пули, HE, молотов; по своим `FF_MUL`) | `grep -n` |

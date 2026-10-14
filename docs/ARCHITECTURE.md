@@ -34,6 +34,11 @@
 > `smokeBlocks`); прострел смока — одно место `smokeSpamTick`, повод — `smkEvidence` + `smokeEnemyPossible` (тайминг,
 > все враги известны далеко); убран старый `smokeShots`. Мало HP — `lowHpBack` (к своим ближе `LOWHP_MATE_PATH`, иначе
 > укрытие рядом). Закуп — доли у про (`smgFor`, `PRO_PISTOL`/`proPistol`, пистолетка; `tools/buy_pro.py`); убран `scopedFor`.
+>
+> **v272:** слой «разбор взгляда» (`LOOKDBG`, клавиша L) — только показ. При включённом слое `lookCands`/`lookPlan` и
+> выбор взгляда в `resolveEngagements` записывают слагаемые и множители (`c.f`), отброшенные варианты (`b._lkRej`),
+> решение команды (`b._lkWhy`), этапы и поправки тика (`b._lkDbg`, `lookDbgNote`), ленту смен (`b._lkLog`); рисует
+> `lookDbgDraw` (из `draw`). Множители оценки угла — одна функция `lookScoreMods` (зона и вход в свою зону).
 
 # Как устроена игра — состояние на версию 204 (09.10.2026)
 
