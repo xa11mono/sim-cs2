@@ -224,7 +224,7 @@
   <div id="topbar">
     <div class="tb-id">
       <h1>Ancient</h1>
-      <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 278, 14.10</div>
+      <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 279, 14.10</div>
     </div>
     <div class="tb-group" id="tbMatch">
       <button id="btnPause">Пауза</button>
@@ -7465,6 +7465,9 @@ function lookCands(b, W){
     var eb = bots.filter(function(o){ return o.id === eid; })[0]; if(!eb || !eb.alive) continue; cts.push({x:lo.x, y:lo.y, age:tick-lo.tick}); }
   cts.forEach(function(q){
     var d = Math.hypot(q.x-b.x, q.y-b.y); if(d > 700 || d < 20) return;
+    // (v279, владелец 14.10: матч 1, ~11,8 с, якорь B развернулся спиной к Ramp на бой на миде в 650 px) держит пост — дальняя
+    // инфа вне его угла не отвлекает: то же правило, что в старой ветке взгляда (holdRelevant: > 550 px и вне ±66° от угла поста)
+    if(!holdRelevant(b, q)) return;
     var za = Math.atan2(q.y-b.y, q.x-b.x);
     // на бегу за спину — только на самый свежий и близкий
     if(moving && _angOff(za, b.heading) > 1.9 && (q.age > 20 || d > 250)) return;
