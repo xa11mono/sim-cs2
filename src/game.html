@@ -75,7 +75,7 @@
   .pl-hp{font-family:var(--hud-n);font-size:17px;font-weight:500;line-height:1;}
   .pl-hp.low{color:#ff8a7e;}
   .pl-gear{display:flex;align-items:center;gap:3px;height:9px;}
-  .pl-gear svg{height:8px;width:auto;fill:rgba(255,255,255,.45);flex:none;}
+  .pl-gear svg{height:8px;width:auto;fill:rgba(255,255,255,.45);flex:none;} .pl-gear svg.kf{height:10px;opacity:.6;}
   .pl-bar{position:absolute;left:18px;right:0;bottom:0;height:2px;}
   #plCT .pl-bar{left:0;right:18px;}
   .pl-bar b{display:block;height:100%;opacity:.75;} #plT .pl-bar b{background:var(--t);} #plCT .pl-bar b{background:var(--ct);margin-left:auto;}
@@ -224,7 +224,7 @@
   <div id="topbar">
     <div class="tb-id">
       <h1>Ancient</h1>
-      <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 289, 14.10</div>
+      <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 290, 14.10</div>
     </div>
     <div class="tb-group" id="tbMatch">
       <button id="btnPause">Пауза</button>
@@ -16489,12 +16489,12 @@ var PL_ICON = {
   armor:'<svg viewBox="0 0 12 14"><path d="M6 0L12 2.2V7c0 3.6-2.6 6-6 7-3.4-1-6-3.4-6-7V2.2z"/></svg>',
   helmet:'<svg viewBox="0 0 12 14"><path d="M6 0L12 2.2V7c0 3.6-2.6 6-6 7-3.4-1-6-3.4-6-7V2.2z"/><path d="M3.5 4h1.6v2.2h1.8V4h1.6v6H6.9V7.7H5.1V10H3.5z" fill="#222"/></svg>',
   kit:'<svg viewBox="0 0 14 12"><path d="M1 3h3V1h6v2h3v8H1zm4.5-1v1h3V2z"/></svg>',
-  c4:'<svg viewBox="0 0 16 10"><rect x="0" y="1" width="16" height="8" rx="1"/><rect x="2" y="3" width="5" height="4" fill="#c33"/></svg>',
   smoke:'<svg viewBox="0 0 8 13"><rect x="1" y="2" width="6" height="11" rx="1.5"/><rect x="2.5" y="0" width="3" height="2"/></svg>',
-  flash:'<svg viewBox="0 0 8 13"><rect x="1.5" y="3" width="5" height="10" rx="1"/><rect x="2.5" y="0" width="3" height="3"/></svg>',
-  he:'<svg viewBox="0 0 10 13"><circle cx="5" cy="8" r="4.6"/><rect x="3.5" y="0" width="3" height="3.5"/></svg>',
-  molly:'<svg viewBox="0 0 8 14"><path d="M2.5 0h3v4l2 2v8h-7V6l2-2z"/></svg>'
 };
+// (v290) бомба и гранаты в панелях игроков — иконки CS из набора киллфида (HE, молотов, флешка — владельца; бомба — KF_ICON.C4).
+// Остальные (смок, броня, шлем, кит) — пока свои, владелец пришлёт иконки CS
+function plKf(key){ var ic = KF_ICON[key]; return ic ? '<svg class="kf" viewBox="'+ic.vb+'">'+ic.svg+'</svg>' : ""; }
+PL_ICON.c4 = plKf("C4"); PL_ICON.flash = plKf("flash"); PL_ICON.he = plKf("HE"); PL_ICON.molly = plKf("MOLOTOV");
 var plSelected = null;
 // (v262) номер — тот же, что в кружке игрока на радаре (pnum)
 function plNum(b){ return pnum(b.id); }
