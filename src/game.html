@@ -224,7 +224,7 @@
   <div id="topbar">
     <div class="tb-id">
       <h1>Ancient</h1>
-      <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 283, 14.10</div>
+      <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 284, 14.10</div>
     </div>
     <div class="tb-group" id="tbMatch">
       <button id="btnPause">Пауза</button>
@@ -11151,8 +11151,16 @@ function coverForReload(b, from){
 }
 // ---- (8) мало HP — к своим ----
 var LOWHP_MATE_PATH = 600;   // проектное число: px пути (~1500 юнитов, ~6 с бега) — дальше свой «далеко»
+// (v284, владелец 14.10 — без демок, правила общие для любой карты, числа «проектные») одно место «отойти/переставиться»:
+//  • мало HP (≤30): не бежать к своим через полкарты, а держать проход к своим/к цели, который никто не держит, — из укрытия,
+//    не первым контактом (игрок 3 с 22 HP бежал через Xbox к donk, хотя мог встать в Red Room на проход Alley);
+//  • остался один (своих ≤350 px нет), а рядом (≤900 px) за 8 с погиб свой и враг рядом известен — уходит к своим
+//    (A main после смертей на миду так и стоял один)
 function lowHpBack(b){
-  if(!BAL.lowHpBack || b.hp > 30 || b._sawEnemy || b.planting || b.defusing || tick < (b._lowHpNext||0)) return;
+  if(!BAL.lowHpBack || b._sawEnemy || b.planting || b.defusing || tick < (b._lowHpNext||0)) return;
+  var low = b.hp <= 30;
+  var lostNear = !low && ((teamIntel[b.team] && teamIntel[b.team].sig) || []).some(function(sg){ return sg.type === "died" && sg.id !== b.id && tick - sg.tick < 8*TICK_HZ && Math.hypot(sg.x-b.x, sg.y-b.y) < 900; });
+  if(!low && !lostNear) return;
   if(bomb && bomb.state === "planted") return; // ретейк/пост-плант — бомба важнее
   var defending = b.team === "CT" && b.post && /^(anchor|stack|set:|cts:|clutch|midcover)/.test(b.post.tag);
   if(bomb && bomb.state === "carried" && bomb.carrier === b) return;
@@ -11167,6 +11175,30 @@ function lowHpBack(b){
   // опорник на своём сайте с малым HP сайт не бросает — отходит, только если
   // совсем мало (≤20) и на него идут двое+
   if(defending){ var nNear = 0; for(var eid2 in BL){ var lo2 = BL[eid2]; if(tick - lo2.tick < 6*TICK_HZ && Math.hypot(lo2.x-b.x, lo2.y-b.y) < 700) nNear++; } if(b.hp > 20 || nNear < 2) return; }
+  // мало HP — роль: держать проход к своим/к цели, который никто не держит (угроза по знанию — threatEntrances), не первым
+  // контактом (точка прохода не ближе 250 px к известным врагам) и не дальше по пути, чем пошёл бы к своим
+  if(low && !defending){
+    var tt0 = teamTac[b.team], cen = null;
+    if(b.team === "T" && tt0 && tt0.site && SITES[tt0.site]) cen = SITES[tt0.site];
+    else { var cx = 0, cy = 0; mates.forEach(function(o){ cx += o.x; cy += o.y; }); cen = {x: cx/mates.length, y: cy/mates.length}; }
+    var ents = threatEntrances(b.team, cen, 700).filter(function(E){
+      if(threat.some(function(t){ return Math.hypot(E.pt.x-t.x, E.pt.y-t.y) < 250; })) return false;
+      if(mates.some(function(o){ return o.lookTarget && Math.hypot(o.lookTarget.x-E.pt.x, o.lookTarget.y-E.pt.y) < 220; })) return false;
+      var pe = pathPts(b.x, b.y, E.pt.x, E.pt.y); return pe.length && polyLen(pe) <= 1000; });   // 1000 px — проектное число (как у фланга)
+    var E0 = ents[0];
+    var spE = E0 ? pickSpots("lowhpE"+tick+b.id, E0.pt, 2, {rMin:120, rMax:280, minGap:40, must:[E0.pt], hideFrom:threat.slice(0, 3)})[0] : null;
+    if(spE){
+      b._reposUntil = 0; b._probeLock = 0;
+      setPost(b, spE, E0.pt, true, "repos:lowhp");
+      if(b.post && b.post.tag === "repos:lowhp"){
+        if(b.state === "hold") leaveHold(b);
+        b._reposUntil = tick + 10*TICK_HZ; b._lowHpNext = tick + 10*TICK_HZ;
+        voiceLog(b.team, "lowhp"+b.id, b.id, "у меня "+b.hp+" — держу проход "+calloutName(E0.pt.x, E0.pt.y));
+        return;
+      }
+    }
+  }
+  if(!low && defending) return;   // остался один на своём сайте — сайт не бросает (решение ретейка/ротации — выше)
   // (v271) к своим — только если свой недалеко по пути (LOWHP_MATE_PATH) и путь не идёт мимо известных
   // врагов; иначе бежать через полкарты к далёкому тиммейту — подставиться. Тогда — укрытие рядом,
   // скрытое от врагов: играть от него и ждать своих (раньше шёл к ближайшему тиммейту на любом расстоянии).
@@ -11185,7 +11217,8 @@ function lowHpBack(b){
   if(!b.post || b.post.tag !== "repos:lowhp") return;
   if(b.state === "hold") leaveHold(b);
   b._reposUntil = tick + 6*TICK_HZ; b._lowHpNext = tick + 10*TICK_HZ;
-  voiceLog(b.team, "lowhp"+b.id, b.id, m ? "у меня "+b.hp+" — отхожу к "+m.id : "у меня "+b.hp+" — свои далеко, играю от укрытия");
+  if(!low && !m) return;   // один, но к своим безопасно не дойти — остаётся играть, как играл
+  voiceLog(b.team, "lowhp"+b.id, b.id, low ? (m ? "у меня "+b.hp+" — отхожу к "+m.id : "у меня "+b.hp+" — свои далеко, играю от укрытия") : "остался один — иду к "+m.id);
 }
 // ---- шифт по угрозе ----
 // Раньше боты бегали всегда, кроме нескольких частных случаев (слышал/видел
@@ -11254,6 +11287,39 @@ function dangerWalk(b){
 // бой" не было — только размен ПОСЛЕ смерти. Теперь: тиммейт ≤160px уже ~0.3с
 // видит врага и стреляет, мне его не видно — выхожу на соседнюю точку с линией
 // на того врага (рядом с тиммейтом, но не в его же клетку), двое на одного.
+// (v284, владелец 14.10: «мид не идёт в спину A main» — общее для любой карты) тиммейт дальше (≤900 px) уже ~0,3 с в перестрелке,
+// я не в бою и мой пост не держит сайт: захожу на его врага с другой стороны — точка с линией на врага под углом 50–120° к
+// линии тиммейта (кроссфаер, pickSpots.cross), путь не дальше 1000 px и не идёт в лоб (≥200 px от врага). Числа — проектные
+function flankAssist(b){
+  if(b.hp <= 35 || b._fcFlank && tick < b._fcFlank) return false;
+  if(b.team === "CT" && b.post && /^(anchor|stack|set:|cts:|clutch|retake)/.test(b.post.tag)) return false;   // держит сайт — не бросает
+  if(b.team === "T" && b.tRole === "lurker") return false;
+  var mate = null, E = null;
+  bots.forEach(function(m){
+    if(mate || m === b || !m.alive || m.team !== b.team || !m._sawEnemy || (m.contactStreak||0) < 20) return;
+    var d = Math.hypot(m.x-b.x, m.y-b.y); if(d <= (BAL.groupPlay ? 300 : 160) || d > 900) return;
+    var e = m._nearestEnemyBot; if(!e || !e.alive) return; mate = m; E = e; });
+  if(!mate) return false;
+  b._fcFlank = tick + 3*TICK_HZ;
+  var ep = {x:E.x, y:E.y};
+  var cand = pickSpots("flank"+tick+b.id, ep, 4, {rMin:150, rMax:420, minGap:40, must:[ep], cross:{from:{x:mate.x, y:mate.y}, pt:ep}});
+  var sp = null;
+  cand.some(function(q){
+    var a1 = Math.atan2(q.y-ep.y, q.x-ep.x), a2 = Math.atan2(mate.y-ep.y, mate.x-ep.x), da = _angOff(a1, a2);
+    if(da < 0.87 || da > 2.1) return false;
+    var pts = pathPts(b.x, b.y, q.x, q.y); if(!pts.length || polyLen(pts) > 1000) return false;
+    if(pts.some(function(w){ return Math.hypot(w[0]-ep.x, w[1]-ep.y) < 200; })) return false;
+    sp = q; return true; });
+  if(!sp) return false;
+  b._reposUntil = 0; b._probeLock = 0;
+  setPost(b, sp, ep, true, "repos:flank");
+  if(!b.post || b.post.tag !== "repos:flank") return false;
+  if(b.state === "hold") leaveHold(b);
+  b._reposUntil = tick + 6*TICK_HZ;
+  b.lastIntel = {x:ep.x, y:ep.y, tick:tick, src:"call"};
+  voiceLog(b.team, "flank"+b.id, b.id, "захожу на "+E.id+" с другой стороны — помогаю "+mate.id);
+  return true;
+}
 function assistPeek(b){
   if(!BAL.assistPeek || b._sawEnemy || b.planting || b.defusing || b.hp <= 35) return false;
   if(tick < (b._assistNext||0)) return false;
@@ -11266,7 +11332,7 @@ function assistPeek(b){
     var e = m._nearestEnemyBot; if(!e || !e.alive || Math.hypot(e.x-b.x, e.y-b.y) > 900) return;
     mate = m; E = e;
   });
-  if(!mate) return false;
+  if(!mate) return flankAssist(b);
   b._assistNext = tick + 24;
   // линия есть, но смотрит в другую сторону — разворот на врага по коллу тиммейта
   if(hasVision(b.x, b.y, E.x, E.y)){ b.heardSound = {x:E.x, y:E.y, tick:tick, team:E.team, src:E.id, kind:"call"}; b.lastIntel = {x:E.x, y:E.y, tick:tick, src:"call"}; return false; }
