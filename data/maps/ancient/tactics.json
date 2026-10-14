@@ -1,0 +1,1660 @@
+{
+ "tTactics": [
+  {
+   "id": "execA",
+   "name": "Выход A через мейн",
+   "site": "A",
+   "pools": [
+    "full",
+    "half",
+    "force"
+   ],
+   "setupEnd": 38,
+   "style": "exec",
+   "groups": [
+    {
+     "roles": [
+      "entry",
+      "awp",
+      "igl"
+     ],
+     "via": [
+      "T Ramp",
+      "Split",
+      "A Stairs",
+      "A Hall"
+     ]
+    },
+    {
+     "roles": [
+      "support"
+     ],
+     "stage": "TMID"
+    }
+   ]
+  },
+  {
+   "id": "execB",
+   "name": "Выход B через рампу",
+   "site": "B",
+   "pools": [
+    "full",
+    "half",
+    "force"
+   ],
+   "setupEnd": 38,
+   "style": "exec",
+   "groups": [
+    {
+     "roles": [
+      "entry",
+      "awp",
+      "igl"
+     ],
+     "via": [
+      "T Ramp",
+      "Tunnel",
+      "Water",
+      "Ruins"
+     ]
+    },
+    {
+     "roles": [
+      "support"
+     ],
+     "stage": "TMID"
+    }
+   ]
+  },
+  {
+   "id": "defB",
+   "name": "Дефолт → B",
+   "site": "B",
+   "pools": [
+    "full",
+    "half"
+   ],
+   "setupEnd": 66,
+   "style": "default"
+  },
+  {
+   "id": "defA",
+   "name": "Дефолт → A",
+   "site": "A",
+   "pools": [
+    "full",
+    "half",
+    "pistol"
+   ],
+   "setupEnd": 64,
+   "style": "default"
+  },
+  {
+   "id": "splitA",
+   "name": "Сплит A (мейн + донат)",
+   "site": "A",
+   "pools": [
+    "full",
+    "half"
+   ],
+   "setupEnd": 54,
+   "style": "split",
+   "groups": [
+    {
+     "roles": [
+      "entry",
+      "igl"
+     ],
+     "via": [
+      "Split",
+      "A Stairs",
+      "A Hall"
+     ]
+    },
+    {
+     "roles": [
+      "awp",
+      "support"
+     ],
+     "via": [
+      "Split",
+      "Lower Mid",
+      "Mid",
+      "Chamber Lane"
+     ],
+     "stage": "Donut",
+     "look": "Short"
+    }
+   ]
+  },
+  {
+   "id": "rushB",
+   "name": "Раш B через рампу",
+   "site": "B",
+   "pools": [
+    "eco",
+    "pistol",
+    "force"
+   ],
+   "setupEnd": 0,
+   "style": "rush",
+   "rushVia": [
+    "T Ramp",
+    "Tunnel",
+    "Water",
+    "Ruins",
+    "T Lower"
+   ]
+  },
+  {
+   "id": "rushA",
+   "name": "Раш A через мейн",
+   "site": "A",
+   "pools": [
+    "eco",
+    "pistol",
+    "force"
+   ],
+   "setupEnd": 0,
+   "style": "rush",
+   "rushVia": [
+    "T Ramp",
+    "Split",
+    "A Stairs",
+    "A Hall",
+    "A Main"
+   ]
+  },
+  {
+   "id": "splitB",
+   "name": "Сплит B (рампа + кейв)",
+   "site": "B",
+   "pools": [
+    "full",
+    "half"
+   ],
+   "setupEnd": 54,
+   "style": "split",
+   "groups": [
+    {
+     "roles": [
+      "entry",
+      "igl"
+     ],
+     "via": [
+      "T Ramp",
+      "Tunnel",
+      "Water",
+      "Ruins"
+     ]
+    },
+    {
+     "roles": [
+      "awp",
+      "support"
+     ],
+     "via": [
+      "T Ramp",
+      "Tunnel",
+      "Water",
+      "Ruins",
+      "T Lower",
+      "T Upper",
+      "Lamp Room"
+     ],
+     "stage": "Dark",
+     "look": "Cave"
+    }
+   ]
+  },
+  {
+   "id": "fakeAB",
+   "name": "Фейк A → выход B",
+   "site": "B",
+   "fake": "A",
+   "pools": [
+    "full",
+    "half"
+   ],
+   "setupEnd": 62,
+   "style": "fake"
+  },
+  {
+   "id": "fakeBA",
+   "name": "Фейк B → выход A",
+   "site": "A",
+   "fake": "B",
+   "pools": [
+    "full",
+    "half",
+    "force"
+   ],
+   "setupEnd": 62,
+   "style": "fake"
+  },
+  {
+   "id": "caveB",
+   "name": "Выход B через кейв",
+   "site": "B",
+   "pools": [
+    "full",
+    "half",
+    "force"
+   ],
+   "setupEnd": 44,
+   "style": "exec",
+   "groups": [
+    {
+     "roles": [
+      "entry",
+      "awp",
+      "igl"
+     ],
+     "via": [
+      "T Ramp",
+      "Tunnel",
+      "Water",
+      "Ruins",
+      "T Lower",
+      "T Upper",
+      "Lamp Room"
+     ],
+     "stage": "Dark",
+     "look": "Cave"
+    },
+    {
+     "roles": [
+      "support"
+     ],
+     "via": [
+      "T Ramp",
+      "Tunnel",
+      "Water"
+     ],
+     "stage": "T Lower",
+     "look": "Ramp"
+    }
+   ],
+   "weight": 1.5
+  },
+  {
+   "id": "donutA",
+   "name": "Выход A через донат",
+   "site": "A",
+   "pools": [
+    "full",
+    "half",
+    "force"
+   ],
+   "setupEnd": 44,
+   "style": "exec",
+   "groups": [
+    {
+     "roles": [
+      "entry",
+      "awp",
+      "igl"
+     ],
+     "via": [
+      "Split",
+      "Lower Mid",
+      "Mid",
+      "Chamber Lane"
+     ],
+     "stage": "Donut",
+     "look": "Short"
+    },
+    {
+     "roles": [
+      "support"
+     ],
+     "via": [
+      "Split",
+      "A Stairs"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "ctA",
+   "name": "Мид → CT, A с двух сторон",
+   "site": "A",
+   "pools": [
+    "full",
+    "half"
+   ],
+   "setupEnd": 60,
+   "style": "split",
+   "groups": [
+    {
+     "roles": [
+      "entry",
+      "igl"
+     ],
+     "via": [
+      "T Ramp",
+      "Split",
+      "A Stairs",
+      "A Hall"
+     ]
+    },
+    {
+     "roles": [
+      "awp",
+      "support"
+     ],
+     "via": [
+      "Split",
+      "Lower Mid",
+      "Mid",
+      "Top Mid",
+      "Sniper Nest",
+      "Red Room",
+      "Alley",
+      "CT Spawn"
+     ],
+     "stage": "CT Lane",
+     "look": "Triple Box"
+    }
+   ]
+  },
+  {
+   "id": "shortA",
+   "name": "A: мейн + Short через донат",
+   "site": "A",
+   "pools": [
+    "full",
+    "half",
+    "force"
+   ],
+   "setupEnd": 50,
+   "style": "split",
+   "groups": [
+    {
+     "roles": [
+      "entry",
+      "awp"
+     ],
+     "via": [
+      "T Ramp",
+      "Split",
+      "A Stairs",
+      "A Hall",
+      "A Main"
+     ],
+     "stage": "Long",
+     "look": "Back Site"
+    },
+    {
+     "roles": [
+      "support",
+      "igl"
+     ],
+     "via": [
+      "Split",
+      "Lower Mid",
+      "Mid",
+      "Chamber Lane"
+     ],
+     "stage": "Donut",
+     "look": "Short"
+    }
+   ]
+  },
+  {
+   "id": "ctB",
+   "name": "Мид → CT, B с двух сторон",
+   "site": "B",
+   "pools": [
+    "full",
+    "half"
+   ],
+   "setupEnd": 60,
+   "style": "split",
+   "groups": [
+    {
+     "roles": [
+      "entry",
+      "igl"
+     ],
+     "via": [
+      "T Ramp",
+      "Tunnel",
+      "Water",
+      "Ruins"
+     ]
+    },
+    {
+     "roles": [
+      "awp",
+      "support"
+     ],
+     "via": [
+      "Split",
+      "Lower Mid",
+      "Mid",
+      "Top Mid",
+      "Sniper Nest",
+      "Red Room",
+      "Alley"
+     ],
+     "stage": "Back Halls",
+     "look": "Second Lane"
+    }
+   ]
+  },
+  {
+   "id": "execA4",
+   "name": "A: четверо через мейн",
+   "site": "A",
+   "pools": [
+    "full",
+    "half",
+    "force"
+   ],
+   "setupEnd": 38,
+   "style": "exec",
+   "groups": [
+    {
+     "roles": [
+      "entry",
+      "awp",
+      "igl",
+      "support"
+     ],
+     "via": [
+      "T Ramp",
+      "Split",
+      "A Stairs",
+      "A Hall"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "fastA",
+   "name": "Быстрый A мейном, мид держат",
+   "site": "A",
+   "pools": [
+    "full",
+    "half",
+    "force"
+   ],
+   "setupEnd": 24,
+   "style": "fast",
+   "groups": [
+    {
+     "roles": [
+      "entry",
+      "awp",
+      "igl"
+     ],
+     "via": [
+      "T Ramp",
+      "Split",
+      "A Stairs",
+      "A Hall"
+     ]
+    },
+    {
+     "roles": [
+      "support"
+     ],
+     "stage": "TMID"
+    }
+   ]
+  },
+  {
+   "id": "main3shortA",
+   "name": "A: трое мейн + один Short",
+   "site": "A",
+   "pools": [
+    "full",
+    "half"
+   ],
+   "setupEnd": 48,
+   "style": "split",
+   "groups": [
+    {
+     "roles": [
+      "entry",
+      "awp",
+      "igl"
+     ],
+     "via": [
+      "T Ramp",
+      "Split",
+      "A Stairs",
+      "A Hall"
+     ]
+    },
+    {
+     "roles": [
+      "support"
+     ],
+     "via": [
+      "Split",
+      "Lower Mid",
+      "Mid",
+      "Chamber Lane"
+     ],
+     "stage": "Donut",
+     "look": "Short"
+    }
+   ]
+  },
+  {
+   "id": "shortMidA",
+   "name": "A через Short, мид держат",
+   "site": "A",
+   "pools": [
+    "full",
+    "half",
+    "force"
+   ],
+   "setupEnd": 44,
+   "style": "exec",
+   "groups": [
+    {
+     "roles": [
+      "entry",
+      "awp",
+      "igl"
+     ],
+     "via": [
+      "Split",
+      "Lower Mid",
+      "Mid",
+      "Chamber Lane"
+     ],
+     "stage": "Donut",
+     "look": "Short"
+    },
+    {
+     "roles": [
+      "support"
+     ],
+     "stage": "TMID"
+    }
+   ]
+  },
+  {
+   "id": "slowA",
+   "name": "Медленный A: двое мейн + Short",
+   "site": "A",
+   "pools": [
+    "full",
+    "half"
+   ],
+   "setupEnd": 66,
+   "style": "default",
+   "groups": [
+    {
+     "roles": [
+      "entry",
+      "igl"
+     ],
+     "via": [
+      "T Ramp",
+      "Split",
+      "A Stairs",
+      "A Hall"
+     ]
+    },
+    {
+     "roles": [
+      "awp"
+     ],
+     "via": [
+      "Split",
+      "Lower Mid",
+      "Mid",
+      "Chamber Lane"
+     ],
+     "stage": "Donut",
+     "look": "Short"
+    },
+    {
+     "roles": [
+      "support"
+     ],
+     "stage": "TMID"
+    }
+   ]
+  },
+  {
+   "id": "execB4",
+   "name": "B: четверо по рампе",
+   "site": "B",
+   "pools": [
+    "full",
+    "half",
+    "force"
+   ],
+   "setupEnd": 38,
+   "style": "exec",
+   "groups": [
+    {
+     "roles": [
+      "entry",
+      "awp",
+      "igl",
+      "support"
+     ],
+     "via": [
+      "T Ramp",
+      "Tunnel",
+      "Water",
+      "Ruins"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "ramp3caveB",
+   "name": "B: трое рампа + один кейв",
+   "site": "B",
+   "pools": [
+    "full",
+    "half",
+    "force"
+   ],
+   "setupEnd": 50,
+   "style": "split",
+   "groups": [
+    {
+     "roles": [
+      "entry",
+      "awp",
+      "igl"
+     ],
+     "via": [
+      "T Ramp",
+      "Tunnel",
+      "Water",
+      "Ruins"
+     ]
+    },
+    {
+     "roles": [
+      "support"
+     ],
+     "via": [
+      "T Ramp",
+      "Tunnel",
+      "Water",
+      "Ruins",
+      "T Lower",
+      "T Upper",
+      "Lamp Room"
+     ],
+     "stage": "Dark",
+     "look": "Cave"
+    }
+   ]
+  },
+  {
+   "id": "slowCaveB",
+   "name": "Медленный B: двое кейв + рампа",
+   "site": "B",
+   "pools": [
+    "full",
+    "half"
+   ],
+   "setupEnd": 68,
+   "style": "default",
+   "groups": [
+    {
+     "roles": [
+      "entry",
+      "igl"
+     ],
+     "via": [
+      "T Ramp",
+      "Tunnel",
+      "Water",
+      "Ruins",
+      "T Lower",
+      "T Upper",
+      "Lamp Room"
+     ],
+     "stage": "Dark",
+     "look": "Cave"
+    },
+    {
+     "roles": [
+      "awp"
+     ],
+     "via": [
+      "T Ramp",
+      "Tunnel",
+      "Water"
+     ],
+     "stage": "T Lower",
+     "look": "Ramp"
+    },
+    {
+     "roles": [
+      "support"
+     ],
+     "stage": "TMID"
+    }
+   ]
+  },
+  {
+   "id": "slowRampB",
+   "name": "Медленный B: двое рампа + кейв",
+   "site": "B",
+   "pools": [
+    "full",
+    "half"
+   ],
+   "setupEnd": 66,
+   "style": "default",
+   "groups": [
+    {
+     "roles": [
+      "entry",
+      "igl"
+     ],
+     "via": [
+      "T Ramp",
+      "Tunnel",
+      "Water",
+      "Ruins"
+     ]
+    },
+    {
+     "roles": [
+      "awp"
+     ],
+     "via": [
+      "T Ramp",
+      "Tunnel",
+      "Water",
+      "Ruins",
+      "T Lower",
+      "T Upper",
+      "Lamp Room"
+     ],
+     "stage": "Dark",
+     "look": "Cave"
+    },
+    {
+     "roles": [
+      "support"
+     ],
+     "stage": "TMID"
+    }
+   ]
+  },
+  {
+   "id": "lateCaveB",
+   "name": "Поздний кейв: трое кейв + рампа",
+   "site": "B",
+   "pools": [
+    "full",
+    "half"
+   ],
+   "setupEnd": 70,
+   "style": "default",
+   "groups": [
+    {
+     "roles": [
+      "entry",
+      "awp",
+      "igl"
+     ],
+     "via": [
+      "T Ramp",
+      "Tunnel",
+      "Water",
+      "Ruins",
+      "T Lower",
+      "T Upper",
+      "Lamp Room"
+     ],
+     "stage": "Dark",
+     "look": "Cave"
+    },
+    {
+     "roles": [
+      "support"
+     ],
+     "via": [
+      "T Ramp",
+      "Tunnel",
+      "Water"
+     ],
+     "stage": "T Lower",
+     "look": "Ramp"
+    }
+   ]
+  }
+ ],
+ "pos": {
+  "A": {
+   "ctHold": [
+    "A Site",
+    "Triple Box",
+    "Back Site",
+    "Temple",
+    "Plat",
+    "Single",
+    "Box",
+    "Boost",
+    "Def"
+   ],
+   "ctSecond": [
+    "Temple",
+    "Back Site",
+    "Triple Box",
+    "Plat",
+    "Single"
+   ],
+   "ctRetake": [
+    "Temple",
+    "CT Lane",
+    "Triple Box"
+   ],
+   "tClear": [
+    "Back Site",
+    "Triple Box",
+    "Box",
+    "Def",
+    "Boost",
+    "Temple"
+   ],
+   "tPost": [
+    "Long",
+    "Short",
+    "Boost",
+    "Back Site",
+    "Box"
+   ],
+   "entries": [
+    "Long",
+    "Short"
+   ]
+  },
+  "B": {
+   "ctHold": [
+    "B Site",
+    "Site B",
+    "90",
+    "First Lane",
+    "Second Lane",
+    "Dark Box",
+    "Bonger"
+   ],
+   "ctSecond": [
+    "90",
+    "First Lane",
+    "Second Lane",
+    "Site B",
+    "Dark Box"
+   ],
+   "ctRetake": [
+    "Back Halls",
+    "Second Lane",
+    "First Lane",
+    "90"
+   ],
+   "tClear": [
+    "90",
+    "Second Lane",
+    "Site B",
+    "Dark Box",
+    "First Lane"
+   ],
+   "tPost": [
+    "Ramp",
+    "T Lower",
+    "Cave",
+    "Dark",
+    "Rat"
+   ],
+   "entries": [
+    "Ramp",
+    "Cave"
+   ]
+  },
+  "M": {
+   "ctHold": [
+    "Top Mid",
+    "Sniper Nest",
+    "Jungle",
+    "Red Room"
+   ],
+   "tHold": [
+    "TMID",
+    "Xbox",
+    "Jungle",
+    "Lower Mid"
+   ]
+  }
+ },
+ "ctSetups": [
+  {
+   "id": "std212",
+   "name": "Стандарт 2-1-2",
+   "rot": "212"
+  },
+  {
+   "id": "std111",
+   "name": "1-1-1 с ротатором",
+   "rot": "111"
+  },
+  {
+   "id": "stackA",
+   "name": "Стак A",
+   "rot": "stack",
+   "stack": "A",
+   "roles": {
+    "rotator": {
+     "pos": [
+      "Triple Box",
+      "Temple"
+     ],
+     "look": "A Site"
+    },
+    "roamer": {
+     "pos": [
+      "Back Site",
+      "Plat"
+     ],
+     "look": "Long"
+    }
+   }
+  },
+  {
+   "id": "stackB",
+   "name": "Стак B",
+   "rot": "stack",
+   "stack": "B",
+   "roles": {
+    "rotator": {
+     "pos": [
+      "Site B",
+      "90"
+     ],
+     "look": "Ramp"
+    },
+    "roamer": {
+     "pos": [
+      "Second Lane",
+      "B Site"
+     ],
+     "look": "Cave"
+    }
+   }
+  },
+  {
+   "id": "midAggro",
+   "name": "Агрессия мидом за инфой",
+   "rot": "212",
+   "roles": {
+    "mid": {
+     "early": {
+      "pos": [
+       "Mid",
+       "Chamber Lane"
+      ],
+      "look": "Lower Mid",
+      "sec": 22
+     }
+    },
+    "roamer": {
+     "early": {
+      "pos": [
+       "Top Mid"
+      ],
+      "look": "Mid",
+      "sec": 22
+     }
+    }
+   },
+   "midAggressive": true
+  },
+  {
+   "id": "retakeA",
+   "name": "Ретейк-сетап A (A отдают, играют ретейк)",
+   "rot": "111",
+   "roles": {
+    "anchorA": {
+     "pos": [
+      "Temple"
+     ],
+     "look": "A Site"
+    },
+    "rotator": {
+     "pos": [
+      "CT Lane"
+     ],
+     "look": "Triple Box"
+    }
+   }
+  },
+  {
+   "id": "retakeB",
+   "name": "Ретейк-сетап B",
+   "rot": "111",
+   "roles": {
+    "anchorB": {
+     "pos": [
+      "Second Lane"
+     ],
+     "look": "B Site"
+    },
+    "rotator": {
+     "pos": [
+      "Back Halls"
+     ],
+     "look": "Second Lane"
+    }
+   }
+  },
+  {
+   "id": "pickA",
+   "name": "Пик мейна A за инфой",
+   "rot": "212",
+   "roles": {
+    "anchorA": {
+     "early": {
+      "pos": [
+       "Long"
+      ],
+      "look": "A Main",
+      "sec": 12
+     }
+    }
+   }
+  },
+  {
+   "id": "pickB",
+   "name": "Пик рампы B за инфой",
+   "rot": "212",
+   "roles": {
+    "anchorB": {
+     "early": {
+      "pos": [
+       "Ramp"
+      ],
+      "look": "T Lower",
+      "sec": 12
+     }
+    }
+   }
+  },
+  {
+   "id": "cavePush",
+   "name": "Пуш кейва за инфой (до Lamp Room)",
+   "rot": "212",
+   "roles": {
+    "roamer": {
+     "early": {
+      "pos": [
+       "Dark",
+       "Lamp Room"
+      ],
+      "look": "T Upper",
+      "sec": 20
+     },
+     "pos": [
+      "Dark",
+      "Lamp Room"
+     ],
+     "look": "T Upper",
+     "hideFrom": false
+    },
+    "anchorB": {
+     "pos": [
+      "Cave",
+      "B Site"
+     ],
+     "look": "Dark",
+     "hideFrom": false
+    }
+   }
+  },
+  {
+   "id": "redRoom",
+   "name": "Контроль Red Room + Short",
+   "rot": "212",
+   "roles": {
+    "mid": {
+     "pos": [
+      "Red Room",
+      "Sniper Nest"
+     ],
+     "look": "Top Mid"
+    },
+    "roamer": {
+     "pos": [
+      "Short"
+     ],
+     "look": "Donut"
+    }
+   }
+  },
+  {
+   "id": "caveEarly",
+   "name": "Ранний кейв за инфой",
+   "rot": "212",
+   "w": 0.58,
+   "roles": {
+    "anchorB": {
+     "early": {
+      "pos": [
+       "Cave"
+      ],
+      "look": "Dark",
+      "sec": 14
+     },
+     "pos": [
+      "B Site",
+      "Site B"
+     ],
+     "look": "Ramp"
+    }
+   }
+  },
+  {
+   "id": "chamberCave",
+   "name": "Чембер + кейв за инфой",
+   "rot": "212",
+   "w": 0.56,
+   "roles": {
+    "mid": {
+     "early": {
+      "pos": [
+       "Chamber Lane"
+      ],
+      "look": "Lower Mid",
+      "sec": 14
+     }
+    },
+    "anchorB": {
+     "early": {
+      "pos": [
+       "Cave"
+      ],
+      "look": "Dark",
+      "sec": 14
+     }
+    }
+   }
+  },
+  {
+   "id": "donutCave",
+   "name": "Донат + кейв",
+   "rot": "212",
+   "w": 0.34,
+   "roles": {
+    "mid": {
+     "pos": [
+      "Donut"
+     ],
+     "look": "Lower Mid"
+    },
+    "roamer": {
+     "pos": [
+      "Cave"
+     ],
+     "look": "Dark",
+     "hideFrom": false
+    }
+   }
+  },
+  {
+   "id": "chamberPeek",
+   "name": "Пик Чембера за инфой",
+   "rot": "212",
+   "w": 0.34,
+   "roles": {
+    "mid": {
+     "early": {
+      "pos": [
+       "Chamber Lane"
+      ],
+      "look": "Lower Mid",
+      "sec": 14
+     }
+    }
+   }
+  },
+  {
+   "id": "donutHold",
+   "name": "Донат держит мид",
+   "rot": "212",
+   "w": 0.29,
+   "roles": {
+    "mid": {
+     "pos": [
+      "Donut"
+     ],
+     "look": "Lower Mid"
+    }
+   }
+  },
+  {
+   "id": "midCave",
+   "name": "Мид + кейв за инфой",
+   "rot": "212",
+   "w": 0.23,
+   "roles": {
+    "mid": {
+     "early": {
+      "pos": [
+       "Mid"
+      ],
+      "look": "Lower Mid",
+      "sec": 14
+     }
+    },
+    "roamer": {
+     "early": {
+      "pos": [
+       "Cave"
+      ],
+      "look": "Dark",
+      "sec": 14
+     }
+    }
+   }
+  },
+  {
+   "id": "darkPush",
+   "name": "Пуш Dark за инфой",
+   "rot": "212",
+   "w": 0.22,
+   "roles": {
+    "roamer": {
+     "early": {
+      "pos": [
+       "Dark"
+      ],
+      "look": "Lamp Room",
+      "sec": 16
+     },
+     "pos": [
+      "Cave"
+     ],
+     "look": "Dark",
+     "hideFrom": false
+    }
+   }
+  },
+  {
+   "id": "chamberDark",
+   "name": "Чембер + Dark за инфой",
+   "rot": "212",
+   "w": 0.22,
+   "roles": {
+    "mid": {
+     "early": {
+      "pos": [
+       "Chamber Lane"
+      ],
+      "look": "Lower Mid",
+      "sec": 14
+     }
+    },
+    "roamer": {
+     "early": {
+      "pos": [
+       "Dark"
+      ],
+      "look": "Lamp Room",
+      "sec": 16
+     },
+     "pos": [
+      "Cave"
+     ],
+     "look": "Dark",
+     "hideFrom": false
+    }
+   }
+  },
+  {
+   "id": "doubleMid",
+   "name": "Двое в мид за инфой",
+   "rot": "212",
+   "w": 0.13,
+   "roles": {
+    "mid": {
+     "early": {
+      "pos": [
+       "Mid"
+      ],
+      "look": "Lower Mid",
+      "sec": 14
+     }
+    },
+    "rotator": {
+     "early": {
+      "pos": [
+       "Mid",
+       "Top Mid"
+      ],
+      "look": "Lower Mid",
+      "sec": 14
+     }
+    }
+   }
+  },
+  {
+   "id": "aMainPush",
+   "name": "Пуш мейна A за инфой",
+   "rot": "212",
+   "w": 0.15,
+   "roles": {
+    "anchorA": {
+     "early": {
+      "pos": [
+       "A Main"
+      ],
+      "look": "A Hall",
+      "sec": 12
+     }
+    }
+   }
+  },
+  {
+   "id": "shortA",
+   "name": "A с Short (0-3-2)",
+   "rot": "212",
+   "w": 0.98,
+   "roles": {
+    "anchorA": {
+     "pos": [
+      "Short"
+     ],
+     "look": "A Site"
+    },
+    "mid": {
+     "pos": [
+      "Donut"
+     ],
+     "look": "Lower Mid"
+    }
+   }
+  },
+  {
+   "id": "heavyB",
+   "name": "Трое на B (1-1-3)",
+   "rot": "212",
+   "w": 0.84,
+   "roles": {
+    "rotator": {
+     "pos": [
+      "Second Lane",
+      "90"
+     ],
+     "look": "B Site"
+    },
+    "roamer": {
+     "pos": [
+      "Cave"
+     ],
+     "look": "Dark",
+     "hideFrom": false
+    }
+   }
+  },
+  {
+   "id": "midStack",
+   "name": "Четверо в миде (0-4-1)",
+   "rot": "212",
+   "w": 0.26,
+   "roles": {
+    "anchorA": {
+     "pos": [
+      "Short"
+     ],
+     "look": "A Site"
+    },
+    "mid": {
+     "pos": [
+      "Donut"
+     ],
+     "look": "Lower Mid"
+    },
+    "rotator": {
+     "pos": [
+      "Top Mid",
+      "Sniper Nest"
+     ],
+     "look": "Mid"
+    },
+    "roamer": {
+     "pos": [
+      "Red Room"
+     ],
+     "look": "Top Mid"
+    }
+   }
+  },
+  {
+   "id": "threeMid",
+   "name": "Трое в миде (1-3-1)",
+   "rot": "111",
+   "w": 0.3,
+   "roles": {
+    "mid": {
+     "pos": [
+      "Donut"
+     ],
+     "look": "Lower Mid"
+    },
+    "rotator": {
+     "pos": [
+      "Top Mid",
+      "Sniper Nest"
+     ],
+     "look": "Mid"
+    },
+    "roamer": {
+     "pos": [
+      "Red Room"
+     ],
+     "look": "Top Mid"
+    }
+   }
+  }
+ ],
+ "lurkPlans": {
+  "B": [
+   {
+    "via": [
+     "T Ramp",
+     "Tunnel",
+     "Water"
+    ]
+   },
+   {
+    "via": [
+     "Split",
+     "Lower Mid",
+     "Mid",
+     "Triple",
+     "T Upper",
+     "Lamp Room"
+    ],
+    "stage": "Dark",
+    "entry": "Cave"
+   }
+  ],
+  "A": [
+   {
+    "via": [
+     "Split",
+     "A Stairs"
+    ]
+   },
+   {
+    "via": [
+     "Split",
+     "Lower Mid",
+     "Mid",
+     "Chamber Lane"
+    ],
+    "stage": "Donut",
+    "entry": "Short"
+   }
+  ]
+ },
+ "shiftTo": {
+  "A": [
+   {
+    "pos": "Donut",
+    "look": "Short"
+   },
+   {
+    "pos": "Chamber Lane",
+    "look": "Top Mid"
+   }
+  ],
+  "B": [
+   {
+    "pos": "Lamp Room",
+    "look": "Cave"
+   },
+   {
+    "pos": "T Upper",
+    "look": "Lamp Room"
+   }
+  ]
+ },
+ "proRole": {
+  "anchorA": [
+   "Back Site",
+   "A Site",
+   "Temple",
+   "Short",
+   "Donut",
+   "Triple Box",
+   "Boost",
+   "Box",
+   "Plat"
+  ],
+  "anchorB": [
+   "B Site",
+   "Site B",
+   "First Lane",
+   "Second Lane",
+   "90",
+   "Bonger"
+  ],
+  "rot212": [
+   "Alley",
+   "Red Room"
+  ],
+  "roam212": [
+   "Cave",
+   "Lamp Room",
+   "Dark"
+  ]
+ },
+ "plays": {
+  "stageSplit": {
+   "B": {
+    "low": "T Lower",
+    "up": "T Upper",
+    "upLook": "Rat"
+   }
+  },
+  "midTake": {
+   "mid": "Mid",
+   "route": [
+    "Mid",
+    "Top Mid",
+    "Sniper Nest",
+    "Red Room",
+    "Alley"
+   ],
+   "via": "Red Room",
+   "ctSide": {
+    "A": {
+     "stage": "CT Lane",
+     "look": "Triple Box"
+    },
+    "B": {
+     "stage": "Back Halls",
+     "look": "Second Lane"
+    }
+   }
+  },
+  "ctFlank": {
+   "route": {
+    "A": [
+     "Top Mid",
+     "Mid",
+     "Lower Mid",
+     "Split"
+    ],
+    "B": [
+     "Top Mid",
+     "Mid",
+     "Triple",
+     "T Upper"
+    ]
+   },
+   "stage": {
+    "B": "T Lower"
+   }
+  },
+  "awpSite": {
+   "none": 0.42,
+   "sets": [
+    {
+     "upTo": 0.71,
+     "spots": [
+      {
+       "n": "Back Site",
+       "l": "Long",
+       "k": "A"
+      },
+      {
+       "n": "Temple",
+       "l": "Short",
+       "k": "A"
+      }
+     ]
+    },
+    {
+     "upTo": 1,
+     "spots": [
+      {
+       "n": "Site B",
+       "l": "Ramp",
+       "k": "B"
+      },
+      {
+       "n": "Second Lane",
+       "l": "Cave",
+       "k": "B"
+      }
+     ]
+    }
+   ]
+  },
+  "midHold": {
+   "back": "Red Room",
+   "safe": [
+    "Jungle",
+    "Red Room",
+    "Sniper Nest",
+    "Top Mid"
+   ],
+   "care": [
+    "Red Room",
+    "Jungle"
+   ]
+  },
+  "rotatorHot": {
+   "A": "CT Lane",
+   "B": "Back Halls"
+  }
+ }
+}

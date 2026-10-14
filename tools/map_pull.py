@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 """Забрать правку карты владельца из базы страницы в код.
 
-python3 tools/map_pull.py <файл.json> [--dry]
+python3 tools/map_pull.py <файл.json> [--map ancient] [--dry]
+
+v273: правка пишется в набор карты data/maps/<карта>/ (walls.json — поле polys; heights/cover/wallbang.json — поле own).
 
 <файл.json> — документ из коллекции map базы страницы (ArtifactData get,
 collection "map", doc "walls", "heights", "cover" или "wallbang"), сохранённый в файл. Подходит и
@@ -33,10 +35,15 @@ collection "map", doc "walls", "heights", "cover" или "wallbang"), сохра
 import json, os, sys, datetime
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-OUT = os.path.join(ROOT, 'src', 'data', 'walls.json')
-HOUT = os.path.join(ROOT, 'src', 'data', 'heights.json')
-COUT = os.path.join(ROOT, 'src', 'data', 'cover.json')
-BOUT = os.path.join(ROOT, 'src', 'data', 'wallbang.json')
+# --map <карта> (по умолчанию ancient) — в какой набор карты писать; убираем из аргументов до разбора остального
+sys.path.insert(0, os.path.join(ROOT, 'src'))
+from mapset import map_arg
+MAPNAME, _rest = map_arg(sys.argv[1:]); sys.argv[1:] = _rest
+MAPDIR = os.path.join(ROOT, 'data', 'maps', MAPNAME)
+OUT = os.path.join(MAPDIR, 'walls.json')
+HOUT = os.path.join(MAPDIR, 'heights.json')
+COUT = os.path.join(MAPDIR, 'cover.json')
+BOUT = os.path.join(MAPDIR, 'wallbang.json')
 
 
 def find_doc(o, field):
@@ -73,7 +80,7 @@ def when(doc):
 def pull_walls(doc, dry):
     walls = [[[round(float(q[0]), 1), round(float(q[1]), 1)] for q in p] for p in doc['walls']]
     check(walls)
-    old = json.load(open(OUT, encoding='utf-8'))
+    old = json.load(open(OUT, encoding='utf-8'))['polys']
     same = old == walls
     print('стены — правка со страницы от %s: стен было %d, стало %d%s' % (when(doc), len(old), len(walls), ' (без изменений)' if same else ''))
     if not same:
@@ -81,7 +88,7 @@ def pull_walls(doc, dry):
         print('уголков было %d, стало %d' % (po, pn))
     if dry or same:
         return
-    open(OUT, 'w', encoding='utf-8').write(json.dumps(walls, separators=(',', ':')) + '\n')
+    open(OUT, 'w', encoding='utf-8').write('{\n"polys": ' + json.dumps(walls, separators=(',', ':')) + '\n}\n')
     print('записано:', os.path.relpath(OUT, ROOT))
 
 
@@ -111,6 +118,7 @@ def pull_heights(doc, dry):
     if dry or same:
         return
     H['own'] = own
+    heights_bake.OUT = HOUT
     heights_bake.write(H)
     print('записано: поле own в', os.path.relpath(HOUT, ROOT))
 
