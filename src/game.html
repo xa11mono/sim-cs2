@@ -36,7 +36,7 @@
   #lookDbg tr.pick td{color:#fff;} #lookDbg tr.pick td:first-child{box-shadow:inset 2px 0 0 #e8dc5a;padding-left:4px;}
   #lookDbg .ld-f{color:var(--hud-dim);font-size:10px;}
   /* (v307) мини-радар: вся карта, игроки точками с номером, бомба */
-  #miniMap{position:absolute;left:auto;right:12px;top:340px;cursor:default;width:232px;height:232px;z-index:5;background:transparent;border:none;pointer-events:none;}
+  #miniMap{position:absolute;left:auto;right:12px;top:340px;cursor:default;width:232px;height:232px;z-index:5;background:rgba(10,13,9,.45);border:none;border-radius:4px;pointer-events:none;}
   #btnObs.on{background:var(--accent);color:#0a0e09;border-color:var(--accent);}
   /* (v304) серия BO3/BO5: квадраты карт под табло, закрашивает победитель карты */
   #scoreboard .sb-series{display:flex;justify-content:space-between;padding:3px 6px 0;}
@@ -240,7 +240,7 @@
   <div id="topbar">
     <div class="tb-id">
       <h1>Ancient</h1>
-      <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 308, 14.10</div>
+      <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 309, 14.10</div>
     </div>
     <div class="tb-group" id="tbMatch">
       <button id="btnPause">Пауза</button>
@@ -16892,6 +16892,10 @@ function miniDraw(){
   // видимая область большого радара — рамкой
   var r = wrap.getBoundingClientRect(), vx0 = -view.panX/view.scale, vy0 = -view.panY/view.scale;
   x.strokeStyle = "rgba(255,255,255,.35)"; x.lineWidth = 2/k; x.strokeRect(vx0, vy0, r.width/view.scale, r.height/view.scale);
+  // (v309) гранаты: смоки — серые круги, огонь — оранжевые, летящие — точки цвета стороны
+  smokes.forEach(function(sm){ var rr = smokeRadiusNow(sm); if(rr <= 2) return; x.fillStyle = "rgba(210,214,206,.75)"; x.beginPath(); x.arc(sm.x, sm.y, rr, 0, Math.PI*2); x.fill(); });
+  fires.forEach(function(f){ x.fillStyle = "rgba(255,120,40,.65)"; x.beginPath(); x.arc(f.x, f.y, NADE.molly.radius, 0, Math.PI*2); x.fill(); });
+  nadesInAir.forEach(function(n){ x.fillStyle = n.team === "CT" ? "#a9cdf0" : "#f0cf93"; x.beginPath(); x.arc(n.x, n.y, 4/k, 0, Math.PI*2); x.fill(); });
   bots.forEach(function(b){
     var col = b.team === "CT" ? "#5a9bd9" : "#d9a24a";
     if(!b.alive){ x.strokeStyle = col; x.lineWidth = 3/k; var q = 5/k; x.beginPath(); x.moveTo(b.x-q,b.y-q); x.lineTo(b.x+q,b.y+q); x.moveTo(b.x+q,b.y-q); x.lineTo(b.x-q,b.y+q); x.stroke(); return; }
@@ -16901,7 +16905,13 @@ function miniDraw(){
     if(plSelected === b.id){ x.strokeStyle = "#fff"; x.lineWidth = 2/k; x.stroke(); }
     x.fillStyle = "#0b0f0b"; x.font = "600 "+(9/k)+"px 'IBM Plex Mono',monospace"; x.textAlign = "center"; x.textBaseline = "middle"; x.fillText(String(pnum(b.id)), b.x, b.y+0.5/k);
   });
-  if(bomb && bomb.state !== "carried"){ x.fillStyle = bomb.state === "planted" ? "#ff5a4a" : "#ffd25a"; x.fillRect(bomb.x-5/k, bomb.y-4/k, 10/k, 8/k); }
+  // (v309) бомба: у носителя — маленькая иконка рядом, на земле — жёлтая, поставлена — красная мигающая
+  if(bomb){
+    var bx = bomb.state === "carried" && bomb.carrier ? bomb.carrier.x + 9/k : bomb.x, by = bomb.state === "carried" && bomb.carrier ? bomb.carrier.y - 9/k : bomb.y;
+    var on = bomb.state !== "planted" || Math.floor(performance.now()/400) % 2 === 0;
+    x.fillStyle = bomb.state === "planted" ? (on ? "#ff5a4a" : "#7a2620") : (bomb.state === "dropped" ? "#ffd25a" : "#ffb347");
+    x.fillRect(bx-6/k, by-4/k, 12/k, 8/k); x.strokeStyle = "#0b0f0b"; x.lineWidth = 1.5/k; x.strokeRect(bx-6/k, by-4/k, 12/k, 8/k);
+  }
 }
 function obsManual(){ OBS.manualUntil = performance.now() + 6000; OBS.sc = 0; }
 (function(){
