@@ -224,7 +224,7 @@
   <div id="topbar">
     <div class="tb-id">
       <h1>Ancient</h1>
-      <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 285, 14.10</div>
+      <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 286, 14.10</div>
     </div>
     <div class="tb-group" id="tbMatch">
       <button id="btnPause">Пауза</button>
@@ -3831,6 +3831,7 @@ function tProbes(tt, ts){
   ts.forEach(function(b){
     if(!b.post || b.planting || (bomb.state === "carried" && bomb.carrier === b)) return;
     if(/^probePair/.test(b.post.tag)) return; // напарник пробы — не сам проба
+    if(bomb.state === "dropped" && (tt.fetchId === b.id || (tt.fetchCover && tt.fetchCover.id === b.id))) return; // (v286, И26) за бомбой / прикрывает — не проба
     if(b._midFlank && b._midFlank.round === roundNum) return; // заходит через Red Room — не проба
     var m = /^stage(A|B)(:.*)?$/.exec(b.post.tag) || /^probe(.+)$/.exec(b.post.tag);
     var key = b.post.tag === "tmid" ? "M" : m ? (b.post.tag.indexOf("stage") === 0 ? b.post.tag.slice(5) : m[1]) : null;
@@ -3911,6 +3912,7 @@ function tProbes(tt, ts){
       // (аудит 11.10) напарник сам вышел пробой своей группы — он занят: раньше обе пробы ставили ему пост каждый тик
       // (probeB ↔ probePairA, сотни смен поста подряд — стоял на месте)
       if(bu && bu._probe && bu._probe !== P && bu._probe.round === roundNum && bu._probe.ph === 1){ P.buddy = null; bu = null; }
+      if(bu && bomb.state === "dropped" && (tt.fetchId === bu.id || (tt.fetchCover && tt.fetchCover.id === bu.id))){ P.buddy = null; bu = null; } // (v286) занят бомбой
       if(bu && !bu._sawEnemy && !(bu._tradeLock && bu._tradeLock.until > tick)){
         var ln = Math.hypot(P.pt.x-from.x, P.pt.y-from.y) || 1, back = Math.min(150, ln*0.6);
         var bp = walk({x: P.pt.x + (from.x-P.pt.x)/ln*back, y: P.pt.y + (from.y-P.pt.y)/ln*back});
@@ -4383,7 +4385,14 @@ function tBrain(){
     // кто пошёл за бомбой — тот и идёт, пока жив (раньше каждый тик выбирался
     // ближайший, и двое попеременно получали то "за бомбой", то свою точку)
     var prevF = tt.fetchId && ts.filter(function(b){ return b.id === tt.fetchId; })[0];
-    if(prevF){ bd = -1; fetcher = prevF; }
+    if(prevF){ bd = -1; fetcher = prevF;
+      // (v286, И26) прикрывающий уже стоит у бомбы, а сборщик ещё далеко (> 350 px — «рядом свой») — меняются: поднимает тот,
+      // кто рядом (раньше прикрывающий стоял в 120 px от бомбы десятки секунд и ждал сборщика)
+      var FC0 = tt.fetchCover, cv0 = FC0 && FC0.id && FC0.round === roundNum ? ts.filter(function(o){ return o.id === FC0.id; })[0] : null;
+      if(cv0 && cv0.tRole !== "lurker" && Math.hypot(cv0.x-FC0.pt.x, cv0.y-FC0.pt.y) < 60 && Math.hypot(prevF.x-bomb.x, prevF.y-bomb.y) > 350 &&
+         Math.hypot(cv0.x-bomb.x, cv0.y-bomb.y) < Math.hypot(prevF.x-bomb.x, prevF.y-bomb.y)){
+        fetcher = cv0; if(prevF.post && prevF.post.tag === "fetch") clearPost(prevF); }
+    }
     ts.forEach(function(b){
       if(bd < 0) return;
       if(b.tRole==="lurker" && ts.length > 2) return; // лёркер за бомбой — только когда нас мало
@@ -4392,6 +4401,8 @@ function tBrain(){
       if(d < bd){ bd = d; fetcher = b; }
     });
     if(fetcher){ tt.fetchId = fetcher.id;
+      // (v286, И26) сборщик бомбы — не проба: старая проба снимается (раньше проба на B каждые 6–9 с выдёргивала его от бомбы)
+      if(fetcher._probe && fetcher._probe.round === roundNum){ fetcher._probe = null; fetcher._probeLock = 0; }
       if(fetcher.nadeTask && fetcher.nadeTask.lineup){ fetcher.nadeTask = null; fetcher._lineupLock = 0; } // бомба важнее лайнапа
       // (v269, пункт 2) за бомбой — не в одиночку: бомба лежит там, где убили носителя, — под тем же стрелком. У ботов 27 из
       // 159 смертей T «один» (нет своего в 350 px) были по дороге за бомбой; у про в одиночку гибнут 20 % T (у ботов 49 %),
@@ -4406,6 +4417,7 @@ function tBrain(){
           pt: walk({x: bomb.x + (fetcher.x-bomb.x)/lnF*backF, y: bomb.y + (fetcher.y-bomb.y)/lnF*backF})};
       }
       var cov = FC.id ? ts.filter(function(o){ return o.id === FC.id && o.alive; })[0] : null;
+      if(cov && cov._probe && cov._probe.round === roundNum){ cov._probe = null; cov._probeLock = 0; } // прикрывающий — тоже не проба
       if(cov && !cov._sawEnemy && !(cov._tradeLock && cov._tradeLock.until > tick)){ setPost(cov, FC.pt, {x:bomb.x, y:bomb.y}, true, "fetchCover"); cov._probeLock = tick; }
       // к бомбе — когда прикрывающий рядом (350 px — «рядом свой» в замерах); до того сборщик идёт к точке прикрытия.
       // Нет прикрывающего (рядом никого) — идёт один, как раньше
