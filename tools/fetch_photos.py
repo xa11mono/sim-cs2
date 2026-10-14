@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Фото игроков с Liquipedia (запускать у себя на компьютере: из облачной среды Claude сайт недоступен).
 
-python3 tools/fetch_photos.py            → папка photos/ с файлами <ник>.png (квадрат 256×256, голова и плечи)
+python fetch_photos.py            → папка photos/ рядом со скриптом, с файлами <ник>.png (квадрат 256×256, голова и плечи)
 
 Как работает: MediaWiki API Liquipedia (action=query, prop=pageimages, piprop=original) отдаёт главную картинку
 страницы игрока — это и есть портрет в джерси на прозрачном/студийном фоне. Правила Liquipedia API: свой
@@ -17,8 +17,8 @@ from PIL import Image
 PLAYERS = {"donk": "Donk", "sh1ro": "Sh1ro", "TN1R": "TN1R", "magixx": "Magixx", "zont1x": "Zont1x",
            "kyousuke": "Kyousuke", "m0NESY": "M0NESY", "TeSeS": "TeSeS", "karrigan": "Karrigan", "NiKo": "NiKo"}
 API = "https://liquipedia.net/counterstrike/api.php"
-UA = {"User-Agent": "sim-cs2-photos/1.0 (личный проект; напишите свой e-mail)", "Accept-Encoding": "gzip"}
-OUT = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "photos")
+UA = {"User-Agent": "sim-cs2-photos/1.0 (personal project; contact: your_email@example.com)", "Accept-Encoding": "gzip"}   # только латиница
+OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "photos")   # рядом со скриптом
 
 
 def image_url(page):
