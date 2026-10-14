@@ -224,7 +224,7 @@
   <div id="topbar">
     <div class="tb-id">
       <h1>Ancient</h1>
-      <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 290, 14.10</div>
+      <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 291, 14.10</div>
     </div>
     <div class="tb-group" id="tbMatch">
       <button id="btnPause">Пауза</button>
@@ -7684,7 +7684,11 @@ var SL = {holdStand: 51, holdMove: 32, backBlock: 96, holdAlert: 16, backAlert: 
 // 2 — бой (враг виден, прикрытие ослеплённого, спам, бросок): без фильтра;
 // 1 — тревога (свежий звук/контакт рядом): поворот быстрый, но тоже без
 //     метаний — держит новое направление хотя бы 0,25с; 0 — спокойно
+var LOOK_REPLAN = {CT:false, T:false};   // (v291) фраг — пересчитать оценку взгляда команды стрелка на следующем тике
 function lookUrgent(b){
+  // (v291, И32) лучший вариант оценки — свежая угроза: «плавность» не держит прежний спокойный угол (раньше держала 0,7 с —
+  // игрок 6 после фрага смотрел на Mid, пока второй T выходил из T Lower)
+  if(b.lookReason === "look" && b._lkPick && b._lkPick.fresh) return 2;
   if(b._sawEnemy || b.lookReason === "enemy" || b.lookReason === "cover" || b.lookReason === "spam") return 2;
   if(b.planting || b.defusing) return 2;
   if(tick < (b.blindUntil||0) + 32) return 2;
@@ -8320,7 +8324,10 @@ function infoFallbackTick(){
     var L = beliefLast.CT || {}, ids = 0, cx = 0, cy = 0;
     for(var eid in L){ var lo = L[eid]; if(tick - lo.tick > FB.window*TICK_HZ) continue; var eb = bots.filter(function(o){ return o.id === eid; })[0]; if(!eb || !eb.alive) continue;
       if(Math.hypot(lo.x-b.x, lo.y-b.y) > 900) continue; ids++; cx += lo.x; cy += lo.y; }
-    var died = intelDeathsNear("CT", b.x, b.y, FB.deathR, FB.window*TICK_HZ) > 0;
+    // (v291, И31, владелец 14.10: раунд 1, тик 2858 — игрок 6 на Mid «минус рядом» от смерти на Back Site: 926 px по прямой,
+    // 1150 пешком, другой конец карты) смерть рядом — по длине пути, а не по прямой
+    var died = teamIntel.CT.sig.some(function(sg){ return sg.type === "died" && tick - sg.tick <= FB.window*TICK_HZ && Math.hypot(sg.x-b.x, sg.y-b.y) < FB.deathR &&
+      polyLen(pathPts(b.x, b.y, sg.x, sg.y)) < FB.deathR; });
     var hurt = b._hurtT && tick - b._hurtT < 2*TICK_HZ && b.hp < FB.hurtHp;
     var why = ids >= FB.enemies ? "их "+ids+" — откатываюсь" : died ? "минус рядом — откатываюсь" : hurt ? "ранен — откатываюсь" : null;
     if(!why) return;
@@ -8330,8 +8337,16 @@ function infoFallbackTick(){
     var center = dl > 1 ? walk({x:b.x+dx/dl*FB.back, y:b.y+dy/dl*FB.back}) : null;
     var cand = [];
     if(center) cand = pickSpots("fb"+tick+b.id, center, 4, {rMax:FB.rMax, minGap:40, hideFrom: th ? [th] : []});
-    var sp = cand.filter(function(q){ var zq = bzOf(q.x, q.y); return zq >= 0 && ED[zq] >= ED[zb] + FB.gainED && (!th || !hasLOS(q.x, q.y, th.x, th.y)); })[0];
-    if(!sp){ var k = Math.hypot(b.x-SITES.A.x, b.y-SITES.A.y) < Math.hypot(b.x-SITES.B.x, b.y-SITES.B.y) ? "A" : "B"; sp = GEO[k].anchor; }
+    // (v291, И31) откат — к своим: точка ближе к живому тиммейту, чем я сейчас, и не в зоне, где команда ждёт врага (раньше «назад
+    // от одного известного врага» увело игрока 6 в T Upper — к двум живым T, подальше от своих). Нет такой — к ближайшему своему
+    var mates = bots.filter(function(o){ return o !== b && o.alive && o.team === "CT"; });
+    var mateD = function(q){ var m = Infinity; mates.forEach(function(o){ m = Math.min(m, Math.hypot(o.x-q.x, o.y-q.y)); }); return m; };
+    var myMate = mateD(b);
+    var sp = cand.filter(function(q){ var zq = bzOf(q.x, q.y); return zq >= 0 && ED[zq] >= ED[zb] + FB.gainED && (!th || !hasLOS(q.x, q.y, th.x, th.y)) &&
+      mateD(q) < myMate && beliefCount("CT", [zq]) < 0.5; })[0];
+    if(!sp && mates.length){ var nm = mates.slice().sort(function(a, c){ return Math.hypot(a.x-b.x, a.y-b.y) - Math.hypot(c.x-b.x, c.y-b.y); })[0];
+      var nz = bzOf(nm.x, nm.y); if(!(nz >= 0 && beliefCount("CT", [nz]) >= 0.5)) sp = walk({x: nm.x, y: nm.y}); }
+    if(!sp) return;
     b._fbRound = roundNum;
     b._reposUntil = 0; b._egLock = 0; b._probeLock = 0;
     setPost(b, sp, th || null, true, "repos:fallback");
@@ -9967,6 +9982,7 @@ function applyDamage(att, b, dmg, src, o){
   b.planting = false; b.defusing = false; b.nades = emptyNades(); b.nadeTask = null;
   dropBomb(b);
   intelDeath(b, foe);   // своего убил свой — в войсе «минус», без «убил X»: враг тут ни при чём
+  if(foe) LOOK_REPLAN[foe.team] = true;
   if(foe){ foe.kills++; foe.roundKills++; foe.money = Math.min(MAX_MONEY, foe.money + (o.reward || 300)); }
   else if(mate) att.money = Math.max(0, att.money + FF_TK_CASH);
   var wkey = o.wkey || (src === "HE" ? "HE" : "MOLOTOV");
@@ -12225,7 +12241,12 @@ function resolveEngagements(){
   // когда прицел уже почти на цели (AIM_FIRE_CONE) — отсюда естественная
   // задержка "развернулся → выстрелил", когда враг появился сбоку/сзади.
   var aimStep = AIM_TURN_RATE / TICK_HZ;
-  if(BAL.newLook && tick % 8 === 0 && BZ.ids.length){ lookPlan("CT"); lookPlan("T"); }
+  // (v291, И32, владелец 14.10: раунд 1, тик 3087 — игрок 6 убил в T Lower и отвернулся на Mid «как у про», пока второй T стоял
+  // в 35 px от убитого) после фрага оценка взгляда стрелка пересчитывается сразу, а не через до 8 тиков
+  if(BAL.newLook && BZ.ids.length){
+    if(tick % 8 === 0){ lookPlan("CT"); lookPlan("T"); LOOK_REPLAN.CT = LOOK_REPLAN.T = false; }
+    else ["CT","T"].forEach(function(t){ if(LOOK_REPLAN[t]){ LOOK_REPLAN[t] = false; lookPlan(t); } });
+  }
   bots.forEach(function(b){
     if(!b.alive) return;
     var look = null;
