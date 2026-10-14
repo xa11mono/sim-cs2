@@ -35,6 +35,8 @@
   #lookDbg td{padding:1px 4px 1px 0;vertical-align:top;border-top:1px solid var(--hud-line);}
   #lookDbg tr.pick td{color:#fff;} #lookDbg tr.pick td:first-child{box-shadow:inset 2px 0 0 #e8dc5a;padding-left:4px;}
   #lookDbg .ld-f{color:var(--hud-dim);font-size:10px;}
+  /* (v307) мини-радар: вся карта, игроки точками с номером, бомба */
+  #miniMap{position:absolute;left:auto;right:12px;top:340px;cursor:default;width:232px;height:232px;z-index:5;background:rgba(10,13,9,.85);border:1px solid var(--hud-line);pointer-events:none;}
   #btnObs.on{background:var(--accent);color:#0a0e09;border-color:var(--accent);}
   /* (v304) серия BO3/BO5: квадраты карт под табло, закрашивает победитель карты */
   #scoreboard .sb-series{display:flex;justify-content:space-between;padding:3px 6px 0;}
@@ -238,11 +240,11 @@
   <div id="topbar">
     <div class="tb-id">
       <h1>Ancient</h1>
-      <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 306, 14.10</div>
+      <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 307, 14.10</div>
     </div>
     <div class="tb-group" id="tbMatch">
       <button id="btnPause">Пауза</button>
-      <span class="chk tb-match" title="Матч с одним номером всегда проходит одинаково. Увидел баг — запиши номер матча и тик, введи номер и нажми «Сыграть»: матч повторится с начала">матч № <input id="inpMatchNum" type="number" min="1" value="1" style="width:52px"> <select id="selSeries" title="Серия: сколько карт до победы (квадраты под табло)"><option value="1">BO1</option><option value="3" selected>BO3</option><option value="5">BO5</option></select> <button id="btnFreshMatch">Сыграть</button> <span id="matchTick" style="opacity:.75"></span></span>
+      <span class="chk tb-match" title="Матч с одним номером всегда проходит одинаково. Увидел баг — запиши номер матча и тик, введи номер и нажми «Сыграть»: матч повторится с начала">матч № <input id="inpMatchNum" type="number" min="1" value="1" style="width:52px"> <select id="selSeries" title="Серия: сколько карт до победы (квадраты под табло)"><option value="1">BO1</option><option value="3" selected>BO3</option><option value="5">BO5</option></select> <label class="chk" title="Разминка перед матчем (как в CS2). Сняв галочку — матч начинается сразу"><input type="checkbox" id="chkWarm" checked> разминка</label> <button id="btnFreshMatch">Сыграть</button> <span id="matchTick" style="opacity:.75"></span></span>
       <button id="btnRestartRound" title="Немедленно сбросить текущий раунд — на случай если боты застряли">Рестарт раунда</button>
     </div>
     <div class="tb-group tb-right">
@@ -292,6 +294,7 @@
   </div>
   <div id="main">
     <canvas id="cv"></canvas>
+    <canvas id="miniMap" width="232" height="232" title="Мини-радар: где игроки (как радар в CS2)"></canvas>
     <div id="hgtTip" class="hgt-tip" style="display:none;"></div>
     <div id="covTip" class="hgt-tip" style="display:none;"></div>
     <div id="wbTip" class="hgt-tip wb-tip" style="display:none;"></div>
@@ -16832,6 +16835,11 @@ function obsScore(b){
   if(bomb && bomb.state === "carried" && bomb.carrier === b) sc += 1.5;
   var dmin = Infinity; bots.forEach(function(o){ if(o.alive && o.team === foe) dmin = Math.min(dmin, Math.hypot(o.x-b.x, o.y-b.y)); });
   sc += 3 / (1 + dmin/400);                                               // рядом враг — скоро бой
+  // (v307, владелец 14.10: «не успевает переключить — бота убивают») враг уже видит его или вот-вот выйдет: враг ≤ 450 px и видит
+  // его / смотрит в его сторону — переключаемся заранее, до выстрелов
+  bots.forEach(function(o){ if(!o.alive || o.team !== foe) return; var d = Math.hypot(o.x-b.x, o.y-b.y); if(d > 450) return;
+    if(o._sawEnemy && o._nearestEnemyBot === b) sc += 6;
+    else if(o.facing !== undefined && _angOff(Math.atan2(b.y-o.y, b.x-o.x), o.facing) < 0.5) sc += 2.5; });
   if(b.id === OBS.id) sc *= 1.05;                                         // инерция (v305: меньше — динамичнее)
   if(b.id === OBS.prev && performance.now() < OBS.prevUntil && !b._sawEnemy) sc *= 0.5;   // (v305) только что показывали — не сразу обратно
   return sc;
@@ -16852,7 +16860,10 @@ function obsFrame(ts){
     // (не в бою) дольше 5 с — смена на другого, чтобы картинка не стояла
     var calm = cur && cur.alive && !cur._sawEnemy && tick - (cur._shotAtT||-1e9) > 64 && tick - (cur.lastShotTick||-1e9) > 64;
     if(calm && ts - OBS.since > 5000 && best === cur){ var b2 = null, s2 = 0; bots.forEach(function(o){ if(o === cur) return; var v = obsScore(o); if(v > s2){ s2 = v; b2 = o; } }); if(b2){ best = b2; bs = s2*2; } }
-    var canSwitch = !cur || (!cur.alive && ts - OBS.deadAt > 1000) || (ts - OBS.since > 1200 && bs > curS*1.15);
+    var inFight = function(o){ return o && o.alive && (o._sawEnemy || tick - (o._shotAtT||-1e9) < 32); };
+    // бой начался у другого, а у выбранного боя нет — сразу, без выдержки 1,2 с
+    var urgent = best && best !== cur && inFight(best) && !inFight(cur);
+    var canSwitch = !cur || urgent || (!cur.alive && ts - OBS.deadAt > 1000) || (ts - OBS.since > 1200 && bs > curS*1.15);
     if(best && best !== cur && canSwitch){ if(cur){ OBS.prev = cur.id; OBS.prevUntil = ts + 5000; } OBS.id = best.id; OBS.since = ts; OBS.deadAt = 0; cur = best; }
     // (v305) карточка по центру — всегда игрок обсервера (после ручного выбора обсервер возвращает её себе)
     if(cur && cur.alive && plSelected !== cur.id){ plSelected = cur.id; playersUpdate(); }
@@ -16865,14 +16876,40 @@ function obsFrame(ts){
     }
   } else if(manual) return;
   // плавно: камера доезжает за ~0,5 с
-  var k = 1 - Math.exp(-dt*4.5);
+  var k = 1 - Math.exp(-dt*(ts - OBS.since < 600 ? 7 : 4.5));   // (v307) сразу после переключения — быстрее
   if(!OBS.sc){ OBS.sc = view.scale; OBS.cx = (r.width/2 - view.panX)/view.scale; OBS.cy = (r.height/2 - view.panY)/view.scale; }
   OBS.cx += (tx - OBS.cx)*k; OBS.cy += (ty - OBS.cy)*k; OBS.sc += (tsc - OBS.sc)*k;
   view.scale = OBS.sc; view.panX = r.width/2 - OBS.cx*OBS.sc; view.panY = r.height/2 - OBS.cy*OBS.sc;
 }
+// (v307) мини-радар — вся карта в углу: живые — кружок цвета стороны с номером и чёрточкой взгляда, погибшие — крестик, бомба
+var MINI = {cv:null, ctx:null};
+function miniDraw(){
+  var c = MINI.cv || (MINI.cv = document.getElementById("miniMap")); if(!c) return;
+  var x = MINI.ctx || (MINI.ctx = c.getContext("2d")), W = c.width, k = W/2048;
+  x.setTransform(1,0,0,1,0,0); x.clearRect(0,0,W,W);
+  x.setTransform(k,0,0,k,0,0);
+  if(imgReady){ x.globalAlpha = 0.9; x.drawImage(img,0,0,2048,2048); x.globalAlpha = 1; }
+  // видимая область большого радара — рамкой
+  var r = wrap.getBoundingClientRect(), vx0 = -view.panX/view.scale, vy0 = -view.panY/view.scale;
+  x.strokeStyle = "rgba(255,255,255,.35)"; x.lineWidth = 2/k; x.strokeRect(vx0, vy0, r.width/view.scale, r.height/view.scale);
+  bots.forEach(function(b){
+    var col = b.team === "CT" ? "#5a9bd9" : "#d9a24a";
+    if(!b.alive){ x.strokeStyle = col; x.lineWidth = 3/k; var q = 5/k; x.beginPath(); x.moveTo(b.x-q,b.y-q); x.lineTo(b.x+q,b.y+q); x.moveTo(b.x+q,b.y-q); x.lineTo(b.x-q,b.y+q); x.stroke(); return; }
+    var R = 7/k;
+    if(b.facing !== undefined){ x.strokeStyle = col; x.lineWidth = 2/k; x.beginPath(); x.moveTo(b.x, b.y); x.lineTo(b.x+Math.cos(b.facing)*R*1.9, b.y+Math.sin(b.facing)*R*1.9); x.stroke(); }
+    x.fillStyle = col; x.beginPath(); x.arc(b.x, b.y, R, 0, Math.PI*2); x.fill();
+    if(plSelected === b.id){ x.strokeStyle = "#fff"; x.lineWidth = 2/k; x.stroke(); }
+    x.fillStyle = "#0b0f0b"; x.font = "600 "+(9/k)+"px 'IBM Plex Mono',monospace"; x.textAlign = "center"; x.textBaseline = "middle"; x.fillText(String(pnum(b.id)), b.x, b.y+0.5/k);
+  });
+  if(bomb && bomb.state !== "carried"){ x.fillStyle = bomb.state === "planted" ? "#ff5a4a" : "#ffd25a"; x.fillRect(bomb.x-5/k, bomb.y-4/k, 10/k, 8/k); }
+}
 function obsManual(){ OBS.manualUntil = performance.now() + 6000; OBS.sc = 0; }
 (function(){
   var wsk = document.getElementById("btnWarmSkip"); if(wsk) wsk.addEventListener("click", warmEnd);
+  // (v307) галочка «разминка» запоминается в этом браузере; снял её во время разминки — разминка сразу заканчивается
+  var cw = document.getElementById("chkWarm");
+  if(cw){ try{ if(localStorage.getItem("sim-warmup") === "0") cw.checked = false; }catch(e){}
+    cw.addEventListener("change", function(){ try{ localStorage.setItem("sim-warmup", cw.checked ? "1" : "0"); }catch(e){} if(!cw.checked) warmEnd(); }); }
   var ss = document.getElementById("selSeries"); if(ss) ss.addEventListener("change", function(){ SERIES = {bo:+ss.value, maps:{}}; seriesUpdate(); });
   var b = document.getElementById("btnObs");
   if(b) b.addEventListener("click", function(){ OBS.on = !OBS.on; OBS.sc = 0; OBS.manualUntil = 0; if(!OBS.on) fit(); });
@@ -16892,10 +16929,11 @@ function frame(ts){
   }
   obsFrame(ts);
   draw();
+  miniDraw();
   requestAnimationFrame(frame);
 }
 document.getElementById("chkNewLook").addEventListener("change", function(){ BAL.newLook = this.checked; bots.forEach(function(o){ o._lkZ = null; o._lkPt = null; o._tLookZ = null; o._tLook = null; }); logEvent(this.checked ? "Взгляд: новая единая оценка" : "Взгляд: старая логика v140"); });
-document.getElementById("btnFreshMatch").addEventListener("click", function(){ var n = Math.max(1, parseInt(document.getElementById("inpMatchNum").value, 10) || 1); var sel = document.getElementById("selSeries"), bo = sel ? +sel.value : 3; if(bo !== SERIES.bo || seriesDone()) SERIES = {bo:bo, maps:{}}; warmStart(n); paused = false; var bp = document.getElementById("btnPause"); if(bp){ bp.textContent = "Пауза"; bp.classList.remove("active"); } logEvent("Матч №"+n+" с чистого листа (воспроизводимый)", true); });
+document.getElementById("btnFreshMatch").addEventListener("click", function(){ var n = Math.max(1, parseInt(document.getElementById("inpMatchNum").value, 10) || 1); var sel = document.getElementById("selSeries"), bo = sel ? +sel.value : 3; if(bo !== SERIES.bo || seriesDone()) SERIES = {bo:bo, maps:{}}; var cw = document.getElementById("chkWarm"); if(cw && !cw.checked) freshMatch(n); else warmStart(n); paused = false; var bp = document.getElementById("btnPause"); if(bp){ bp.textContent = "Пауза"; bp.classList.remove("active"); } logEvent("Матч №"+n+" с чистого листа (воспроизводимый)", true); });
 setInterval(function(){ var el = document.getElementById("matchTick"); if(el) el.textContent = "сейчас "+matchNum+"-й, тик "+tick; }, 250);
 var BOT_INIT = bots.map(function(b){ var o = {keys:{}, vals:{}}; for(var k in b){ o.keys[k] = 1; var v = b[k]; if(v === null || (typeof v !== "object" && typeof v !== "function")) o.vals[k] = v; } return o; });
 window.__ev=function(src){return eval(src);};
