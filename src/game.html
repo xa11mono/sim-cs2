@@ -224,7 +224,7 @@
   <div id="topbar">
     <div class="tb-id">
       <h1>Ancient</h1>
-      <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 284, 14.10</div>
+      <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 285, 14.10</div>
     </div>
     <div class="tb-group" id="tbMatch">
       <button id="btnPause">Пауза</button>
@@ -2914,7 +2914,11 @@ function setPost(b, pt, look, hold, tag, spreadIdx){
   }
   // идёт на свой лайнап — пост роли не перебивает (кроме дефуза/отхода от взрыва/сейва)
   if(b._lineupLock && b._lineupLock >= tick-1 && tag !== "lineup"){
-    if(!/^(defuse|flee|save|stopplant|antidefuse|fetch|plantspot)/.test(tag)) return;
+    // (v285, владелец 14.10: игрок 9 в раунде 2 стоял в Short с гранатой, пока вся игра была на B) колл ротации/ретейка/подмены
+    // снимает гранату, если она летит не на сайт колла (≤700 px — «у сайта»); граната на сам сайт колла — докидывает
+    var csL = b.team === "CT" ? (bomb && bomb.state === "planted" ? bomb.site : (teamTac.CT && teamTac.CT.call ? teamTac.CT.call.site : null)) : null;
+    var farNade = !b.nadeTask || !csL || Math.hypot(b.nadeTask.x-SITES[csL].x, b.nadeTask.y-SITES[csL].y) > 700;
+    if(!/^(defuse|flee|save|stopplant|antidefuse|fetch|plantspot)/.test(tag) && !(/^(rotate|gather|retake|fill)/.test(tag) && farNade)) return;
     b.nadeTask = null; b._lineupLock = 0;   // задача важнее броска — бросок отменён (как живой игрок бросает лайнап ради сейва/дефуза)
   }
   if(tag === "lineup") b._route = null;
@@ -8506,6 +8510,8 @@ function ctEarlyPeek(b, ct){
   if(!/^(anchor|roamer|mid)/.test(b.tRole)) return false;
   // (v248) за инфой — не в одиночку: один выглядывает, тиммейт рядом на размене [11]
   if(E.st === 0 && !bots.some(function(o){ return o !== b && o.alive && o.team === b.team && Math.hypot(o.x-b.x, o.y-b.y) <= TRADE_R; })) return false;
+  // (v285, владелец 14.10) опорник выходит за инфой, только если на его сайте остаётся свой (≤450 px — как защитники в ротациях)
+  if(E.st === 0 && /^anchor/.test(b.tRole) && !bots.some(function(o){ return o !== b && o.alive && o.team === b.team && Math.hypot(o.x-SITES[k].x, o.y-SITES[k].y) < 450; })) return false;
   var g = GEO[k], stg = b.tRole === "mid" ? (GEO.tMid || g.tStage) : g.tStage;
   // уже слышим/видим T рядом с точкой выхода — поздно, не лезем
   if(intelEstimate("CT", g.tEntry.x, g.tEntry.y, 600, 4*TICK_HZ).n > 0){ E.st = 2; return false; }
@@ -9401,10 +9407,12 @@ function ctBrain(){
     }
     else if(role === "rotator"){
       if(ct.setup ? ct.setup.rot === "212" : BAL.ctSetup === "2-1-2"){
-        // второй на сайт: ставим к опорнику того сайта, на который T чаще ходят в этом матче
-        var ks = siteHeat.A >= siteHeat.B ? "A" : "B";
+        // (v285, владелец 14.10: «в 2-1-2 пропадает опорник на A») 2-1-2 — это двое на A, мид, двое на B: роумер — второй на B
+        // (roam212), ротатор — второй на A (раньше — к «горячему» сайту или на точку про-ротатора Alley/Red Room между сайтами,
+        // и на A оставался один)
+        var ks = "A";
         var ap2 = anchorPosOf(ks);
-        if(!(BAL.proSetup ? proRolePost(b, "rot", PRO_ROLE.rot212, GEO.rotator || CT_SPAWN, GEO.ctMid, "rotator") : secondOnSite(b, ks, ap2)))
+        if(!secondOnSite(b, ks, ap2))
         groupPost([b], GEO[ks].anchor, GEO[ks].tEntry, "anchor2"+ks, {rMin:70, rMax:230, minGap:60, see:[GEO[ks].tEntry], hideFrom:[GEO[ks].tStage],
           cross: ap2 ? {from:ap2, pt:GEO[ks].tEntry} : null});
       } else {
@@ -9817,7 +9825,11 @@ function lineupTick(){
     if(L.pro && L.trigger === "setup") maxD = BAL.nadeReach ? 1100 : 700;
     if(L.pro && L.trigger === "timed"){ maxD = BAL.nadeReach ? 850 : 400; hot = true; }
     var cost = function(b){ return Math.hypot(b.x-L.from.x, b.y-L.from.y) + (b.tRole === "entry" ? 300 : 0) + nadeRoleCost(b); };
-    var cand = bots.filter(function(b){ return b.team === L.team && b.alive && b.nades && b.nades[L.type] > 0 && !b.nadeTask &&
+    // (v285, владелец 14.10) опорник не уходит со своей точки ради гранаты (опорник A уходил в Top Mid — A пустой): кидает только
+    // то, что кидается рядом с его постом (≤300 px — проектное число); по коллу и на ретейке — как раньше
+    var leavesSite = function(b){ if(b.team !== "CT" || L.trigger === "retake" || L.trigger === "call") return false; var k = b.tRole === "anchorA" ? "A" : b.tRole === "anchorB" ? "B" : null; if(!k) return false;
+      var P0 = b.post && b.post.tag === "anchor" ? b.post : SITES[k]; return Math.hypot(L.from.x-P0.x, L.from.y-P0.y) > 300; };
+    var cand = bots.filter(function(b){ return b.team === L.team && b.alive && b.nades && b.nades[L.type] > 0 && !b.nadeTask && !leavesSite(b) &&
       !b.planting && !b.defusing && !(bomb.state === "carried" && bomb.carrier === b) && Math.hypot(b.x-L.from.x, b.y-L.from.y) < maxD; })
       .sort(function(a, b2){ return cost(a) - cost(b2); })[0];
     // раньше флаг "готово" ставился ДО проверки кандидата — если в момент
