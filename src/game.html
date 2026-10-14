@@ -224,7 +224,7 @@
   <div id="topbar">
     <div class="tb-id">
       <h1>Ancient</h1>
-      <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 292, 14.10</div>
+      <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 293, 14.10</div>
     </div>
     <div class="tb-group" id="tbMatch">
       <button id="btnPause">Пауза</button>
@@ -9573,7 +9573,8 @@ var NADE_WISH_PRO = {
 function buyNades(b, type){
   var wish = (BAL.proNades ? NADE_WISH_PRO[b.tRole] : null) || NADE_WISH[b.tRole] || [];
   var budget = type === "full" ? 99 : (type === "force" || type === "half" ? (BAL.nadeBuy ? 2 : 1) : 0);
-  if(type === "pistol" || type === "eco") budget = BAL.nadeBuy ? 1 : 0;
+  if(type === "eco") budget = BAL.nadeBuy ? 1 : 0;
+  if(type === "pistol") budget = 0;   // (v293) на пистолетке гранаты — по плану команды (pistolNadePlan)
   var keepEco = (BAL.nadeBuy && type === "eco") ? fullNeed(b) - nextLossIncome(b.team) : -1e9;
   var bought = 0;
   for(var i=0;i<wish.length && bought<budget;i++){
@@ -10077,6 +10078,8 @@ function buyReadSee(team, eid){
   var e = bots.filter(function(o){ return o.id === eid; })[0]; if(!e || !e.alive) return;
   var TI = teamIntel[team], R = TI.buy || (TI.buy = {seen:{}, n:0, pistols:0, rifles:0, smg:0, read:null});
   if(R.seen[eid]) return;
+  // (v293, владелец 14.10) пистолетка — у всех пистолеты, это не эко: оценку закупа по оружию не делаем
+  if(teamEco[team] && teamEco[team].roundType === "pistol") return;
   var k = e.primary || null, W = k && WEAPONS[k];
   R.seen[eid] = k || "pistol"; R.n++;
   if(!W) R.pistols++; else if(W.price >= 2000) R.rifles++; else R.smg++;
@@ -12726,6 +12729,28 @@ function bestPrimary(b, maxPrice, keep){
   return best;
 }
 
+// (v293) гранаты команды на пистолетке — сколько в среднем бросают про (92 демки Ancient, раунды 1 и 13, на команду):
+// смок 1,1, флешка 1,0, молотов 0,36, HE 0,09. Кевлар $650 из $800 + граната не помещаются — кто берёт гранату, тот без кевлара.
+// Кому — по списку гранат роли (NADE_WISH_PRO), не больше $800 на игрока. План один на раунд
+function pistolNadePlan(team){
+  var E = teamEco[team] || (teamEco[team] = {});
+  if(E._pnp && E._pnp.k === matchNum+":"+roundNum) return E._pnp.plan;
+  var hr = function(n){ return hashRand(matchNum*131 + roundNum*17 + (team === "CT" ? 7 : 3) + n*29); };
+  var want = ["smoke", "flash"];
+  if(hr(1) < 0.1) want.push("smoke");
+  if(hr(2) < 0.36) want.push("molly");
+  if(hr(3) < 0.09) want.push("he");
+  var ps = bots.filter(function(o){ return o.team === team; }), plan = {}, cost = {};
+  want.forEach(function(t, wi){
+    var pr = nadePrice(t, team);
+    var cand = ps.filter(function(o){ var w = NADE_WISH_PRO[o.tRole] || NADE_WISH[o.tRole] || []; return w.indexOf(t) >= 0 && (cost[o.id]||0) + pr <= 800 && !(plan[o.id] && plan[o.id].indexOf(t) >= 0); })
+      .sort(function(a, c){ var wa = (NADE_WISH_PRO[a.tRole]||[]).indexOf(t), wc = (NADE_WISH_PRO[c.tRole]||[]).indexOf(t); return (wa - wc) || ((plan[a.id] ? 0 : 1) - (plan[c.id] ? 0 : 1)); });
+    var o = cand[0]; if(!o) return;
+    (plan[o.id] = plan[o.id] || []).push(t); cost[o.id] = (cost[o.id]||0) + pr;
+  });
+  E._pnp = {k: matchNum+":"+roundNum, plan: plan};
+  return plan;
+}
 function buyForPlayer(b, type, idx){
   var before = b.money;
   if(type === "pistol"){
@@ -12734,7 +12759,10 @@ function buyForPlayer(b, type, idx){
     var hP = hashRand(pHash(b.id)*19 + matchNum*5 + roundNum);
     if(b.team === "CT" && hP < 0.24) buyItem(b, "ELITE");
     else if(b.team === "T" && hP < 0.07) buyItem(b, "P250");
-    else buyArmor(b, false);
+    // (v293, Э-пункт, владелец 14.10: «на пистолетке не покупают гранаты») кому команда отдала гранату — берёт её вместо кевлара
+    var PN = pistolNadePlan(b.team)[b.id];
+    if(PN){ if(!b.nades) b.nades = emptyNades(); PN.forEach(function(t){ var pr = nadePrice(t, b.team); if(b.money >= pr){ b.money -= pr; b.nades[t]++; } }); }
+    else if(!b.secondary || b.secondary === (b.team === "CT" ? "USP" : "GLOCK")) buyArmor(b, false);
   } else if(type === "full"){
     // один AWP на команду, если позволяет (снайпер — второй бот)
     if(idx === 1 && b.primary !== "AWP" && b.money >= WEAPONS.AWP.price + ARMOR_PRICE + HELMET_UPGRADE &&
