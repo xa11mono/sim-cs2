@@ -224,7 +224,7 @@
   <div id="topbar">
     <div class="tb-id">
       <h1>Ancient</h1>
-      <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 297, 14.10</div>
+      <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 298, 14.10</div>
     </div>
     <div class="tb-group" id="tbMatch">
       <button id="btnPause">Пауза</button>
@@ -13287,19 +13287,32 @@ function stepTick(){
         H.dir = hr < 0.25 ? 0 : (hr < 0.62 ? 1 : -1);          // иногда просто стоит
         H.until = tick + 55 + Math.floor(hashRand(tick*3 + bot.id.charCodeAt(0))*110);
         H.fwd = (hashRand(tick*11 + bot.id.length) - 0.5) * 14;  // чуть вперёд/назад
+        // (v298) шаг в стену не выбираем: сначала другая сторона, иначе стоим (раньше упирался и каждый тик выбирал заново — дёргался)
+        var la0 = bot.facing !== undefined ? bot.facing : 0, pa0 = la0 + Math.PI/2;
+        var tgt = function(d){ return {x: H.ax + Math.cos(pa0)*d*24 + Math.cos(la0)*H.fwd, y: H.ay + Math.sin(pa0)*d*24 + Math.sin(la0)*H.fwd}; };
+        if(H.dir){ var q0 = tgt(H.dir); if(stepBlocked(H.ax, H.ay, q0.x, q0.y, bot)){ var q1 = tgt(-H.dir); H.dir = stepBlocked(H.ax, H.ay, q1.x, q1.y, bot) ? 0 : -H.dir; } }
       }
-      var lookA = bot.facing !== undefined ? bot.facing : 0;
-      var pa = lookA + Math.PI/2;
-      var tx = H.ax + Math.cos(pa)*H.dir*24 + Math.cos(lookA)*(H.fwd||0);
-      var ty = H.ay + Math.sin(pa)*H.dir*24 + Math.sin(lookA)*(H.fwd||0);
-      var sdx = tx - bot.baseX, sdy = ty - bot.baseY, sd = Math.hypot(sdx, sdy);
+      // (v298, владелец 14.10: «переминание дёрганое») направление шага берётся один раз, когда выбран новый шаг (раньше — каждый тик от
+      // взгляда: повернул голову — точка шага прыгала), и скорость не скачет: разгон и торможение к точке шага за ~0,25 с (проектное
+      // число), разворот — через остановку
       var STRAFE = 38*SPD_K; // px/с — медленнее тихого шага
-      if(sd > 1.5){
-        var st = Math.min(sd, STRAFE*dtSec);
-        var sx = bot.baseX + sdx/sd*st, sy = bot.baseY + sdy/sd*st;
-        if(!stepBlocked(bot.baseX, bot.baseY, sx, sy, bot)){ bot.baseX = sx; bot.baseY = sy; bot.curSpeed = STRAFE; bot.walking = true; }
-        else H.until = tick; // упёрся — сменить направление
-      } else if(bot.curSpeed <= STRAFE) bot.curSpeed = 0;
+      if(H.pa === undefined || H.paT !== H.until){ var lookA = bot.facing !== undefined ? bot.facing : 0; H.pa = lookA + Math.PI/2; H.la = lookA; H.paT = H.until; }
+      var tx = H.ax + Math.cos(H.pa)*H.dir*24 + Math.cos(H.la)*(H.fwd||0);
+      var ty = H.ay + Math.sin(H.pa)*H.dir*24 + Math.sin(H.la)*(H.fwd||0);
+      var sdx = tx - bot.baseX, sdy = ty - bot.baseY, sd = Math.hypot(sdx, sdy);
+      var acc = STRAFE/0.25, v0 = H.v || 0;
+      // текущее движение не туда (новая точка за спиной) — сначала тормозим
+      var same = !H.vx || (sd > 0.01 && (H.vx*sdx + H.vy*sdy)/sd > 0);
+      var vT = !same ? 0 : Math.min(STRAFE, Math.sqrt(2*acc*Math.max(0, sd - 0.5)));
+      var v1 = v0 < vT ? Math.min(vT, v0 + acc*dtSec) : Math.max(vT, v0 - acc*dtSec);
+      if(sd > 0.5 && (v1 > 0.5 || same)){
+        var ux = same ? sdx/sd : (H.vx || 0), uy = same ? sdy/sd : (H.vy || 0);
+        var st = Math.min(same ? sd : 99, v1*dtSec);
+        var sx = bot.baseX + ux*st, sy = bot.baseY + uy*st;
+        if(st > 0 && !stepBlocked(bot.baseX, bot.baseY, sx, sy, bot)){ bot.baseX = sx; bot.baseY = sy; bot.curSpeed = v1; bot.walking = true; H.vx = ux; H.vy = uy; H.v = v1; }
+        else if(st > 0){ H.dir = 0; H.until = tick + 32; H.v = 0; H.vx = H.vy = 0; } // упёрся — постоять 0,5 с, потом новый шаг
+        else { H.v = v1; if(v1 <= 0.5){ H.vx = H.vy = 0; } }
+      } else { H.v = 0; H.vx = H.vy = 0; if(bot.curSpeed <= STRAFE) bot.curSpeed = 0; }
     } else if(bot._hold && !bot.atPost && !bot.holding){ bot._hold = null; }
 
     // ---------- эмиссия звука шагов (план §13, минимальная версия для §3) ----------
