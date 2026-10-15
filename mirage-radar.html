@@ -13313,7 +13313,9 @@ function funnel(corridor, start, end){
 // look like it was snapping between fixed lines) with a proper corridor
 // pull that only turns where the walls actually force a turn.
 function buildWaypointPath(fromX, fromY, fromZ, toX, toY, toZ, team){
-  var fz = zoneOf(fromX, fromY, fromZ||0), tz = zoneOf(toX, toY, toZ||0);
+  // (v341, отметка владельца: karrigan в щели у края нижнего пола — путь начинался с верхней полоски (−140) над ним, туда хода
+  // нет, бот уходил с пола и его переносило по кругу) начало пути — пол рядом на высоте бота, а не ближайший центр участка
+  var fz = (fromZ != null && (navAt(fromX, fromY, fromZ) || navNearestZ(fromX, fromY, NAV_GAP_TOL, fromZ))) || zoneOf(fromX, fromY, fromZ||0), tz = zoneOf(toX, toY, toZ||0);
   if(!fz || !tz) return [[toX,toY,toZ||0]];
   if(fz.id === tz.id) return [[toX,toY,toZ||0]];
   var route = zoneDijkstra(fz.id, tz.id, team);
@@ -21342,11 +21344,34 @@ function navFloorNear(x, y, tol, pred){
 // их на ближайший пол. Теперь с пола уходить нельзя — кроме щели к связанному участку (прыжок на уступ, спрыгнуть:
 // между такими участками в .nav Mirage зазор ~20 ед. игры = 8 ед. карты). NAV_STEP_TOL / NAV_GAP_TOL — проектные числа
 var NAV_STEP_TOL = 3, NAV_GAP_TOL = 10;
+// (v341, отметка владельца: sh1ro и magixx «снова застряли там же») пол «рядом» — только своего уровня (± JUMP_UP от своего
+// участка): верх перил (−140) над спуском (−254) засчитывался как пол, и бот сползал с края в щель
+function navNearLevel(x, y, tol, lvl){ return navFloorNear(x, y, tol, lvl == null ? null : function(a){ return Math.abs(a.z - lvl) <= JUMP_UP; }); }
+// ближайший по высоте участок в tol от точки (для щели между участками: высота и участок не «замерзают»)
+function navNearestZ(x, y, tol, z){
+  if(!NAV_GRID) navGridBuild();
+  var best = null, bd = Infinity;
+  for(var r=0; r<=tol; r += Math.max(1, tol/3)){
+    var D = r ? NAV_NEAR_DIRS : [[0,0]];
+    for(var k=0;k<D.length;k++){ var px = x+D[k][0]*r, py = y+D[k][1]*r, L = NAV_GRID[Math.floor(px/NAV_GRID_C)+","+Math.floor(py/NAV_GRID_C)]; if(!L) continue;
+      for(var i=0;i<L.length;i++){ var a = NAVAREAS[L[i]]; if(NAV_BLOCKED[a.id] || !pointInPoly(px, py, a.points)) continue; var d = z == null ? 0 : Math.abs(a.z - z); if(d < bd){ bd = d; best = a; } } }
+    if(best || !tol) break;
+  }
+  return best;
+}
 function offNavStep(x1, y1, x2, y2, b){
-  if(navFloorNear(x2, y2, NAV_STEP_TOL)) return false;
-  var a1 = navFloorNear(x1, y1, NAV_STEP_TOL); if(!a1) return false;   // уже вне пола — пусть возвращается
+  var lvl0 = navArea(b._area) ? navArea(b._area).z : b.z;
+  if(navNearLevel(x2, y2, NAV_STEP_TOL, lvl0)) return false;
+  var a1 = navNearLevel(x1, y1, NAV_STEP_TOL, lvl0); if(!a1) return false;   // уже вне пола — пусть возвращается
   var cur = navArea(b._area) || a1;
-  return !navFloorNear(x2, y2, NAV_GAP_TOL, function(a){ return a !== cur && (navLinked(cur, a) || navLinked(a, cur)); });
+  if(navFloorNear(x2, y2, NAV_GAP_TOL, function(a){ return a !== cur && (navLinked(cur, a) || navLinked(a, cur)); })) return false;
+  // (v341, отметка владельца: sh1ro и magixx «снова застряли там же» — спуск со спавна T, −166 → −258) щель спрыгивания бывает
+  // шире NAV_GAP_TOL: шаг по пути прямо к следующей точке, под которой пол связанного участка, — это задуманный переход
+  var wp = b.path && b.path[b.pathIdx];
+  if(wp){ var dx = wp[0]-x1, dy = wp[1]-y1, sx = x2-x1, sy = y2-y1, L = Math.hypot(dx, dy)*Math.hypot(sx, sy);
+    if(L > 0 && (dx*sx + dy*sy)/L > 0.9){ var aw = navFloorNear(wp[0], wp[1], NAV_STEP_TOL, function(a){ return a !== cur && navLinked2(cur, a); });
+      if(aw) return false; } }
+  return true;
 }
 function heightBlocked(x1, y1, x2, y2, b){
   if(!b || b.z == null) return false;
@@ -24973,7 +24998,7 @@ function navSnap(bot){
   var nb = null, nbd = 40;
   // (v340, отметка владельца: NiKo «пролезает наверх, где не должен» — после двух переносов) перенос не поднимает выше ступеньки
   // (18 ед.): раньше брался пол в ±JUMP_UP, и бота закидывало на уступ, куда не залезть; вниз — как было
-  NAVAREAS.forEach(function(a){ if(NAV_BLOCKED[a.id] || (bot.z != null && (a.z - bot.z > 18 || bot.z - a.z > JUMP_UP))) return;
+  NAVAREAS.forEach(function(a){ if(NAV_BLOCKED[a.id] || (bot.z != null && a.z - bot.z > 18)) return;   // (v341) вниз — на любую высоту (упасть можно)
     a.points.forEach(function(p, k){ var q = a.points[(k+1)%a.points.length], ex = q.x-p.x, ey = q.y-p.y, L2 = ex*ex+ey*ey || 1;
       var t = Math.max(0, Math.min(1, ((bot.baseX-p.x)*ex + (bot.baseY-p.y)*ey)/L2)), px = p.x+ex*t, py = p.y+ey*t, d = Math.hypot(px-bot.baseX, py-bot.baseY);
       if(d < nbd){ var cx = 0, cy = 0; a.points.forEach(function(r){ cx += r.x; cy += r.y; }); cx /= a.points.length; cy /= a.points.length;
@@ -25267,7 +25292,10 @@ function stepTick(){
         // бот, стоящий ровно в вершине у угла, так бы в ней и остался)
         while(bot.pathIdx < bot.path.length-1){
           var wdCur = Math.hypot(bot.path[bot.pathIdx][0]-bot.baseX, bot.path[bot.pathIdx][1]-bot.baseY);
-          if(wdCur < 6 || (wdCur < ARRIVE_RADIUS && !crossesWall(bot.baseX, bot.baseY, bot.path[bot.pathIdx+1][0], bot.path[bot.pathIdx+1][1]))) bot.pathIdx++;
+          // (v341, отметка владельца: karrigan по кругу у Catwalk) точку подъёма/спуска (> 40 ед. от своей высоты, проектное число) и
+          // следующую за ней досрочно не пропускать: раньше подъём «срезался», и бот шёл к следующей точке понизу, под верхний этаж
+          var wpA = bot.path[bot.pathIdx], wpB = bot.path[bot.pathIdx+1], lvlOk = bot.z == null || ((wpA[2] == null || Math.abs(wpA[2] - bot.z) <= 40) && (wpB[2] == null || Math.abs(wpB[2] - bot.z) <= 40));
+          if(wdCur < 6 || (lvlOk && wdCur < ARRIVE_RADIUS && !crossesWall(bot.baseX, bot.baseY, wpB[0], wpB[1]))) bot.pathIdx++;
           else break;
         }
         var target = bot.path[bot.pathIdx];
@@ -25365,7 +25393,7 @@ function stepTick(){
         // of ever giving up on a bad straight-line path.
         var actuallyMoved = Math.hypot(bot.baseX-startX, bot.baseY-startY);
         // (v321) высота бота — по участку навмеша под ним (ближайший по высоте); прыжок / спрыгнул — для показа
-        if(actuallyMoved > 0){ var naz = navAt(bot.baseX, bot.baseY, bot.z);
+        if(actuallyMoved > 0){ var naz = navAt(bot.baseX, bot.baseY, bot.z) || navNearestZ(bot.baseX, bot.baseY, NAV_STEP_TOL, bot.z);   // (v341) в щели — ближайший пол
           // (v323, М38) в щели своего этажа под точкой бывает только чужой этаж (под Palace — пол Palace): это не подъём —
           // этаж меняется только по связи навмеша (лестница, ступени, спуск), иначе бот остаётся на своём
           var a0z = navArea(bot._area);
@@ -25406,6 +25434,9 @@ function stepTick(){
             // Теперь у огня — ждёт у края, как при обычном шаге (зайти можно только по делу — fireCommit)
             if(toward && inFire(toward.x, toward.y) && !inFire(bot.baseX, bot.baseY) && !fireCommit(bot)) toward = null;
             if(toward && !navFloorNear(toward.x, toward.y, NAV_STEP_TOL)) toward = null;   // (v336) рывок — только на пол навмеша
+            // (v341, отметка владельца: TeSeS «застрял и его тпшнуло» — на 380 ед.) snapToWalkable из стены ставит в центр ближайшего
+            // участка, иногда далеко; рывок — не дальше 12 ед. (проектное число), иначе нет
+            if(toward && Math.hypot(toward.x-bot.baseX, toward.y-bot.baseY) > 12) toward = null;
             if(toward && Math.hypot(toward.x-bot.baseX, toward.y-bot.baseY) > 4){ bot.baseX = toward.x; bot.baseY = toward.y; bot.x = toward.x; bot.y = toward.y; }
             if(bot.pathIdx < bot.path.length-1) bot.pathIdx++;
             bot._netStuck = 0;
@@ -25437,7 +25468,7 @@ function stepTick(){
             // свободную сторону, иначе он так и будет стоять до конца раунда.
             bot._stuckResets = (bot._stuckResets||0) + 1;
             if(bot._stuckResets >= 2) escapeWallLine(bot);
-            if(bot._stuckResets >= 2 || !navFloorNear(bot.baseX, bot.baseY, NAV_STEP_TOL)){ bot._stuckResets = 0;
+            if(bot._stuckResets >= 2 || !navNearLevel(bot.baseX, bot.baseY, NAV_STEP_TOL, bot.z)){ bot._stuckResets = 0;
               navSnap(bot);
             } // was 90 (~1.4s) — with local navmesh/wall mismatches near doorways more likely right now (calibration mid-progress), a bot pinned there should give up and re-path faster (~0.6s) instead of visibly grinding against the corner
             // this straight-line path is bad (cuts through wall geometry a
@@ -25458,7 +25489,7 @@ function stepTick(){
         // (v333) вне навмеша с путём дольше 0,5 с — на ближайший пол (заплатка, navSnap)
         // (v340) «вне пола» — тем же допуском, что и шаг (offNavStep, NAV_STEP_TOL): у края пола (1–3 ед.) бот стоит законно, а
         // перенос его выкидывал (9 раз за 7 с в отметке владельца)
-        if(bot.path.length && bot.pathIdx < bot.path.length && !navFloorNear(bot.baseX, bot.baseY, NAV_STEP_TOL)){ if(++bot._offNav > 32) navSnap(bot); } else bot._offNav = 0;
+        if(bot.path.length && bot.pathIdx < bot.path.length && !navNearLevel(bot.baseX, bot.baseY, NAV_STEP_TOL, bot.z)){ if(++bot._offNav > 32) navSnap(bot); } else bot._offNav = 0;
         if(bot.path.length && bot.pathIdx < bot.path.length){
           var pw = bot.path[bot.pathIdx];
           var pd = Math.hypot(pw[0]-bot.baseX, pw[1]-bot.baseY);
