@@ -29001,15 +29001,15 @@ function obsManual(){ OBS.manualUntil = performance.now() + 6000; OBS.sc = 0; }
 })();
 // ======================= (v323, М40) ЗВУК — только показ, на игру не влияет =======================
 // Синтез Web Audio (звуки Valve копировать нельзя): шум и тоны по типу события. Слышно то, что рядом с серединой экрана
-// (там камера): громкость (1 − d/R)², R — дальность слышимости типа (ед. карты; шаги ~ бег 1100 ед. игры = 440). Бомба пикает
+// (там камера): громкость 0,15 + 0,85·(1 − d/R), R — дальность слышимости типа (ед. карты; шаги ~ бег 1100 ед. игры = 440). Бомба пикает
 // чаще к концу (интервал 1 → 0,1 с — проектное число, как на слух в CS2). При быстрой перемотке — не больше SND_MAX звуков
 // за 50 мс. Выключено, пока не нажать «Звук» (браузер не даёт играть звук без клика)
 var SND = {on:false, ctx:null, noise:null, slot:0, n:0, beepNext:0}, SND_MAX = 6;
-var SND_R = {step:440, shot:1400, awp:2000, nade:1100, bomb:900};
+var SND_R = {step:600, shot:2000, awp:2600, nade:1500, bomb:1200};   // (v326) дальше слышно
 function sndInit(){
   if(SND.ctx) return;
   var C = window.AudioContext || window.webkitAudioContext; if(!C) return;
-  SND.ctx = new C(); SND.master = SND.ctx.createGain(); SND.master.gain.value = 0.85;   // (v324) громче по просьбе владельца SND.master.connect(SND.ctx.destination);
+  SND.ctx = new C(); SND.master = SND.ctx.createGain(); SND.master.gain.value = 0.85; SND.master.connect(SND.ctx.destination);   // (v325) громче по просьбе владельца; (v326) соединение с колонками было закомментировано по ошибке — звука не было вовсе
   var len = SND.ctx.sampleRate, buf = SND.ctx.createBuffer(1, len, SND.ctx.sampleRate), d = buf.getChannelData(0), sd = 12345;
   for(var i=0;i<len;i++){ sd = (sd*1103515245 + 12345) & 0x7fffffff; d[i] = sd/0x3fffffff - 1; }
   SND.noise = buf;
@@ -29018,7 +29018,7 @@ function sndGain(x, y, R){
   if(!SND.on || !SND.ctx || typeof cv === "undefined") return 0;
   var t = performance.now(); if(t - SND.slot > 50){ SND.slot = t; SND.n = 0; } if(++SND.n > SND_MAX) return 0;
   var r = cv.getBoundingClientRect(), c = navScreenToWorld(r.left + r.width/2, r.top + r.height/2);
-  var k = 1 - Math.hypot(x - c.x, y - c.y)/R; return k > 0 ? k*k : 0;
+  var k = 1 - Math.hypot(x - c.x, y - c.y)/R; return k > 0 ? 0.15 + 0.85*k : 0;   // (v326) тише вдали, но не до нуля внутри R
 }
 function sndNoise(g, dur, type, f, q, delay){
   var c = SND.ctx, t0 = c.currentTime + (delay||0), src = c.createBufferSource(); src.buffer = SND.noise;
@@ -29066,7 +29066,15 @@ function sndTick(){   // пиканье бомбы — раз в тик пров
 }
 (function(){
   var b = document.getElementById("btnSnd"); if(!b) return;
-  b.addEventListener("click", function(){ sndInit(); if(!SND.ctx) return; SND.on = !SND.on; if(SND.on && SND.ctx.state === "suspended") SND.ctx.resume(); b.className = SND.on ? "on" : ""; });
+  // (v326) включил — сразу короткий сигнал (слышно, что звук работает); если браузер / страница не дали звук — пишем это на кнопке
+  b.addEventListener("click", function(){
+    sndInit(); if(!SND.ctx){ b.textContent = "Звук: браузер не умеет"; return; }
+    SND.on = !SND.on; b.className = SND.on ? "on" : ""; b.textContent = SND.on ? "Звук: вкл" : "Звук";
+    if(!SND.on) return;
+    var go = function(){ sndTone(0.35, 0.12, 880, "sine"); sndTone(0.35, 0.12, 1320, "sine", 0.13); };
+    if(SND.ctx.state !== "running") SND.ctx.resume().then(go, function(){}); else go();
+    setTimeout(function(){ if(SND.on && SND.ctx.state !== "running") b.textContent = "Звук: заблокирован (" + SND.ctx.state + ")"; }, 600);
+  });
 })();
 function frame(ts){
   nowTs = ts;
