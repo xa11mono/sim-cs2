@@ -911,6 +911,13 @@
       "Default"
      ],
      "look": "Palace"
+    },
+    "mid": {
+     "pos": [
+      "Car",
+      "Bench"
+     ],
+     "look": "B Apps"
     }
    },
    "stack": "A"
@@ -952,6 +959,14 @@
       "Triple Box"
      ],
      "look": "Palace"
+    },
+    "mid": {
+     "pos": [
+      "Ticket",
+      "Triple Box",
+      "Sandwich"
+     ],
+     "look": "T Ramp"
     }
    },
    "stack": "A"

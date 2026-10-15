@@ -387,7 +387,9 @@ def game_tactics(A):
                 roles[role] = R
             else:
                 rest.append(R)
-        for role, R in zip(('rotator', 'roamer'), rest):
+        # (v359, владелец: «3-0-2 встают 4 на A, 1 на B») у раскладки без мид-игрока (3-0-2, 4-0-1) роли mid не было: пятый игрок
+        # вставал по умолчанию. Свободные слоты раскладки — rotator, roamer и mid по очереди (каждый на свою сторону из демок)
+        for role, R in zip([r for r in ('rotator', 'roamer', 'mid') if r not in roles], rest):
             roles[role] = R
         S_ = {'id': 'ct%s_%d%d%d' % ({'stack': 'Stack', '212': 'Std', '111': 'Rot'}[rot], sp['A'], sp['mid'], sp['B']),
               'name': 'Расстановка %d-%d-%d (A-мид-B)' % (sp['A'], sp['mid'], sp['B']), 'rot': rot,
