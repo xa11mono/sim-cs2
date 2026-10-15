@@ -15,7 +15,9 @@ navmesh.json, walls.json, heights.json, cover.json, zones.json, wallbang.json, p
   zones    — нарезка навмеша на зоны + названия по подписям Simple Radar (tools/zones_bake.py)
   wallbang — прострелы: правила CS2 без кусков карты (пусто, этап 3) (tools/wallbang_bake.py --map)
   map      — map.json (масштаб, спавны, подсказки) и radar.png
-  demos    — всё из демок про (tools/demos_bake.py --map: места про, взгляды, сетки, позиции знания, лайнапы, тактики)
+  demos    — всё из демок про (tools/demos_bake.py --map: места про, взгляды, сетки, позиции знания, лайнапы, тактики,
+             границы сайтов)
+  spawns   — точки спавна из демок (tools/spawns_bake.py --map → map.json, spawnSpots)
 Каждый шаг можно запустить отдельно (--only). Один и тот же вход даёт те же файлы.
 """
 import json, math, os, shutil, subprocess, sys
@@ -25,7 +27,7 @@ ROOT = os.path.dirname(HERE)
 sys.path.insert(0, HERE)
 import mapdir  # noqa: E402
 
-STEPS = ['navmesh', 'walls', 'heights', 'cover', 'zones', 'wallbang', 'map', 'demos']
+STEPS = ['navmesh', 'walls', 'heights', 'cover', 'zones', 'wallbang', 'map', 'demos', 'spawns']
 
 
 def say(*a):
@@ -314,6 +316,10 @@ def step_wallbang(name, R):
 
 def step_demos(name, R):
     run('demos_bake.py', name)
+
+
+def step_spawns(name, R):
+    run('spawns_bake.py', name)
 
 
 def step_map(name, R):

@@ -137,19 +137,26 @@ CT идёт через зону с ролью `CTspawn`.
 |---|---|---|
 | `navmesh` | `.nav` → навмеш в координатах радара 0..2048 (`tools/nav36.py` — перенос разбора awpy `crates/awpy/src/nav.rs`, версии 30–36; z — средняя высота углов); v320: лестницы (`ladders`) — связи в обе стороны; связь «только спрыгнуть» остаётся односторонней (игра строит граф с направлением, `rebuildNav`) | `navmesh.json` |
 | `walls` | v320: стены = всё, что не пол, до края карты, с отступом 2 ед. от пола (упрощение 1,5 — на пол не заходит); щели между связанными участками (уступы, ступени, спуски, лестницы) — пол; проверка связности как в игре (участки в стене, связи сквозь стену) с добивкой; режется на четверти карты (мельче — где островок пола) | `walls.json` |
-| `heights` | `tools/heights_bake.py --map` (крыто — по штриховке радара Simple Radar `sources.simpleRadar`) | `heights.json` |
+| `heights` | `tools/heights_bake.py --map` (крыто — по штриховке радара Simple Radar `sources.simpleRadar`; v321: `roofs` — контуры крыш оттуда же: в игре потолок видимости и слой высот) | `heights.json` |
 | `cover` | `tools/cover_bake.py --map` (ящик без стены — не больше 4000 ед.² и плотный: крыши и галереи — не ящики) | `cover.json` |
-| `zones` | `tools/zones_bake.py --map`: каждый участок навмеша — к ближайшей ПО ПОЛУ подписи радара (`callouts`), контур зоны — по картинке участков; переходы — по связям навмеша; роли и точки — `roles`; спорные зоны — `_zones_report.json` | `zones.json` |
-| `wallbang` | `tools/wallbang_bake.py --map`: правила CS2 + куски карты (у новых карт — пусто) | `wallbang.json` |
+| `zones` | `tools/zones_bake.py --map`: каждый участок навмеша — к ближайшей ПО ПОЛУ подписи радара (`callouts`), контур зоны — по картинке участков; переходы — по связям навмеша; роли и точки — `roles`; спорные зоны — `_zones_report.json`; v321: зона длиннее 380 ед. от своей подписи делится, кусок зовётся «<зона> → <соседняя подпись>» | `zones.json` |
+| `wallbang` | `tools/wallbang_bake.py --map`: правила CS2 + куски карты (у Ancient — список с источниками; v321: у карты без списка — из демок: убийства с `penetrated` ≥ 1, где линия выстрела проходит сквозь одну стену, кластер ≥ 3 убийств из ≥ 2 матчей; материал — проектное число) | `wallbang.json` |
 | `map` | `map.json` (масштаб из `.txt`, спавны — точки зон-ролей, `spawnFix.T` = точка спавна T) и `radar.png` | `map.json`, `radar.png` |
-| `demos` | `tools/demos_bake.py --map` — все скрипты по демкам по порядку (ниже), промежуточное — в `data/maps/<карта>/pro/` (у Ancient — `data/pro/`) | `pro.json`, `lineups.json`, `tactics.json` |
+| `demos` | `tools/demos_bake.py --map` — все скрипты по демкам по порядку (ниже), промежуточное — в `data/maps/<карта>/pro/` (у Ancient — `data/pro/`); v321: границы сайтов — красные квадраты Simple Radar (без него — оболочка плантов) → `zones.json` `sites` | `pro.json`, `lineups.json`, `tactics.json`, `zones.json` (`sites`) |
+| `spawns` | v321: `tools/spawns_bake.py --map` — места спавна из демок (позиции в конце фризтайма, ≥ 1 % раундов) | `map.json` (`spawnSpots`) |
 
 Демки → набор (`tools/demos_bake.py`; раунды для всех — `tools/demos.py`, бывший `ancient_demos.py`: карта — `--map`, перевод
 координат — по `.txt` карты, сайт планта — ближайшая точка сайта):
 `pro.py` (сэмплы «где стоят, куда смотрят») → `progrid_bake.py` (`pro.spots`, `pro.prior`, `pro.look` в формате v166) →
 `lineups.py` + `cluster.py` (лайнапы; в набор — частота ≥ 5 % → `pro`, 1,5–5 % и 3+ матча → `proExtra`) →
 `positions_bake.py` (позиции, раскладки CT, выходы T) → `player_positions_bake.py` (кто где стоял и с чем, «меняю место» →
-`pro.positions`) → `tactics_bake.py --game` (тактики T, сетапы CT, `pos`, `lurkPlans`, `shiftTo`, `proRole`; `plays` пустые).
+`pro.positions`) → `tactics_bake.py --game` (тактики T, сетапы CT, `pos`, `lurkPlans`, `shiftTo`, `proRole`; `plays` пустые) →
+`roles_bake.py` (v321: роли наших 10 игроков на этой карте — CT по доле времени на A / мид / B, T — снайпер по AWP, лёркер по
+удалённости → `tactics.playerRoles`, их читает `seatPlayers`).
+
+В игре (v321): `navAt(x, y, z)` — участок навмеша по точке и высоте (сетка `NAV_GRID`), через него `zoneOf` (этаж — по z
+бота); шаг вверх больше `JUMP_UP` (64) — только по связи навмеша (`heightBlocked` в `stepBlocked`); `bot.z` ведётся по
+навмешу; спавн — случайная точка `MAP.spawnSpots` на раунд; обсервер — `obsFocus` (выход, плант).
 Все bake-скрипты берут карту ключом `--map` (по умолчанию `ancient`, как раньше) — общий модуль `tools/mapdir.py`.
 
 **Ancient** тем же скриптом: шаги `heights`, `cover`, `wallbang` воспроизводят прежние файлы (данные совпадают, другая только

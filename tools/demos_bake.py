@@ -10,7 +10,9 @@ python3 tools/demos_bake.py --map <карта> [--only скрипт,скрипт
   positions_bake.py        — позиции «где стоит → что держит», раскладки CT, выходы T (positions.json, setups.json)
   player_positions_bake.py — кто из наших 10 игроков где стоял и с чем; «не сработало — меняю место» (player_positions.json)
   tactics_bake.py --game   — тактики T и расстановки CT для игры (tactics_game.json → tactics.json)
-Потом сборка файлов набора: pro.json, lineups.json, tactics.json (--assemble — только она).
+  roles_bake.py            — роли наших игроков на этой карте (player_roles.json → tactics.json, playerRoles)
+Потом сборка файлов набора: границы сайтов по плантам (zones.json, sites), pro.json, lineups.json, tactics.json
+(--assemble — только она).
 Отбор лайнапов в набор (как у Ancient v166): pro — частота ≥ 5 % раундов ситуации; proExtra (при BAL.nadeMore) — 1,5–5 %
 и хотя бы 3 матча; везде — от 4 бросков; пост-плант и ретейк не берутся (их бросают встроенные решения игры).
 """
@@ -22,7 +24,7 @@ import mapdir  # noqa: E402
 
 MAPNAME = mapdir.current()
 SCRIPTS = [('pro.py',), ('progrid_bake.py',), ('lineups.py',), ('cluster.py',), ('positions_bake.py',),
-           ('player_positions_bake.py',), ('tactics_bake.py', '--game')]
+           ('player_positions_bake.py',), ('tactics_bake.py', '--game'), ('roles_bake.py',)]
 PRO_MIN, EXTRA_MIN, EXTRA_MATCHES, N_MIN = 0.05, 0.015, 3, 4
 
 
@@ -64,10 +66,83 @@ def write_lineups(PRO):
     print('  lineups.json: pro %d, proExtra %d' % (len(pro), len(ext)))
 
 
+SITE_Q, SITE_PAD = 0.97, 10   # граница сайта: места 97 % плантов (дальние — выбросы), отступ 10 ед. карты — проектные числа
+
+
+def red_sites():
+    """(v321) зона планта по Simple Radar: красные квадраты сайтов (там плант возможен, кроме ящиков и укрытий) — контур
+    закрашенного красного (буква и ящики внутри квадрата — тоже сайт), координаты карты 0..2048; {A|B: [[x, y], …]}"""
+    import numpy as np
+    from PIL import Image
+    from scipy import ndimage
+    import contourpy
+    sr = mapdir.recipe(MAPNAME).get('sources', {}).get('simpleRadar')
+    if not sr:
+        return None
+    im = np.asarray(Image.open(mapdir.path(MAPNAME, sr)).convert('RGB')).astype(int)
+    r, g, b = im[..., 0], im[..., 1], im[..., 2]
+    m = (abs(r - 90) < 20) & (abs(g - 32) < 15) & (abs(b - 46) < 15)
+    white = (r > 200) & (g > 200) & (b > 200)
+    lab0, n0 = ndimage.label(ndimage.binary_closing(m, iterations=6))
+    for i, sl in enumerate(ndimage.find_objects(lab0)):   # буква сайта (белая) внутри квадрата — тоже сайт
+        if sl is not None and (lab0[sl] == i + 1).sum() > 200:
+            m[sl] |= white[sl]
+    m = ndimage.binary_fill_holes(ndimage.binary_closing(m, iterations=2))
+    lab, n = ndimage.label(m)
+    pts = mapdir.site_points(MAPNAME)
+    out = {}
+    for k, (px, py) in pts.items():
+        sizes = ndimage.sum(m, lab, range(1, n + 1))
+        best = max(range(1, n + 1), key=lambda i: sizes[i - 1] / (1 + np.hypot(*(np.array(ndimage.center_of_mass(lab == i))[::-1] * 2 - (px, py))) / 100))
+        part = lab == best
+        z = np.pad(part.astype(float), 1)
+        P, O = contourpy.contour_generator(z=z, line_type='SeparateCode', fill_type='OuterOffset').filled(0.5, 2.0)
+        ring = max((p[o[0]:o[1]] for p, o in zip(P, O)), key=len)
+        out[k] = [[round((float(x) - 1) * 2, 1), round((float(y) - 1) * 2, 1)] for x, y in ring[:-1]]
+    return out
+
+
+def write_sites():
+    """(v321) граница сайтов «как в игре»: красные квадраты Simple Radar (red_sites), а без Simple Radar — оболочка мест
+    плантов про из демок с отступом → zones.json, поле sites {A: [[x, y], …], B: …}; точки Asite/Bsite — середина плантов"""
+    import numpy as np
+    from scipy.spatial import ConvexHull
+    sys.argv[1:] = ['--map', MAPNAME]
+    import demos as D
+    P = {'A': [], 'B': []}
+    for dm in D.demo_names():
+        for r in D.rounds_of(dm):
+            if r['site'] in P and r['plantXY']:
+                P[r['site']].append(r['plantXY'])
+    f = mapdir.path(MAPNAME, 'zones.json')
+    Z = json.load(open(f, encoding='utf-8'))
+    sites = red_sites() or {}
+    src = 'красные квадраты Simple Radar' if sites else 'места плантов'
+    for k, pts in P.items():
+        X = np.array(pts)
+        c = np.median(X, axis=0)
+        if k not in sites:
+            d = np.hypot(*(X - c).T)
+            X = X[d <= np.quantile(d, SITE_Q)]
+            H = X[ConvexHull(X).vertices]
+            cc = H.mean(axis=0)
+            H = cc + (H - cc) * (1 + SITE_PAD / np.maximum(1, np.hypot(*(H - cc).T)))[:, None]
+            sites[k] = [[round(float(x), 1), round(float(y), 1)] for x, y in H]
+        for p in Z['zonemap']['points']:
+            if p['name'].startswith(k + 'site'):
+                p['x'], p['y'] = int(round(c[0])), int(round(c[1]))
+    Z['sites'] = sites
+    open(f, 'w', encoding='utf-8').write(json.dumps(Z, ensure_ascii=False, separators=(',', ':')) + '\n')
+    print('  zones.json: границы сайтов — %s (плантов A %d, B %d)' % (src, len(P['A']), len(P['B'])))
+
+
 def write_tactics(PRO):
     T = json.load(open(os.path.join(PRO, 'tactics_game.json'), encoding='utf-8'))
     for t in T['tTactics']:
         t.pop('n', None)
+    rf = os.path.join(PRO, 'player_roles.json')
+    if os.path.exists(rf):   # (v321, М21) роли игроков на этой карте — по демкам (tools/roles_bake.py)
+        T['playerRoles'] = {n: {'CT': v['CT'], 'T': v['T']} for n, v in json.load(open(rf, encoding='utf-8')).items()}
     open(mapdir.path(MAPNAME, 'tactics.json'), 'w', encoding='utf-8').write(json.dumps(T, ensure_ascii=False, indent=1) + '\n')
     print('  tactics.json: T %d, CT %d' % (len(T['tTactics']), len(T['ctSetups'])))
 
@@ -79,6 +154,7 @@ def main():
         for s in SCRIPTS:
             if only is None or s[0] in only:
                 run(s)
+    write_sites()
     write_pro(PRO)
     write_lineups(PRO)
     write_tactics(PRO)

@@ -155,6 +155,7 @@ _RBY = {n: k for k in ('A', 'B', 'mid') for n in _REG.get(k, [])}
 
 
 def region_of(x, y, name):
+    name = (name or '').split(' → ')[0]   # (v321) часть длинной зоны — сторона исходной зоны
     if name in BACK:
         return 'back'
     if name in TSIDE:

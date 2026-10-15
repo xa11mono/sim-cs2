@@ -36,6 +36,7 @@ OUT = mapdir.path(MAPNAME, 'wallbang.json')
 UNIT = mapdir.radar(MAPNAME)['scale'] / 2   # 1 ед. карты (радар 2048) = scale/2 ед. игры (Ancient, Mirage: 2,5)
 
 SRC = {
+    'demos': 'демки про этой карты (data/maps/<карта>/demos, player_death: penetrated)',
     'valve_patch': 'https://esportsinsider.com/2025/08/cs2-august-18-update-ancient-changes',
     'gfinity': 'https://www.gfinityesports.com/article/ancient-and-shoots-receives-some-modifications-with-the-latest-cs2-patch',
     'skinclub': 'https://community.skin.club/en/articles/best-wallbang-spots-ancient-cs2',
@@ -126,7 +127,75 @@ SPOTS_BY_MAP = {'ancient': [
          note='С B Ramp — на B Short (Cave) и B Long; простреливают и в обратную сторону'),
 ]}
 _MJ = mapdir.path(MAPNAME, 'map.json')
-SPOTS = SPOTS_BY_MAP.get(json.load(open(_MJ, encoding='utf-8'))['id'] if os.path.exists(_MJ) else MAPNAME, [])
+SPOTS = SPOTS_BY_MAP.get(json.load(open(_MJ, encoding='utf-8'))['id'] if os.path.exists(_MJ) else MAPNAME)
+
+# (v321, М26) карта без своего списка — прострелы из демок про: убийства с penetrated ≥ 1 (пуля прошла сквозь что-то);
+# где линия «стрелок → жертва» проходит сквозь стену набора — кусок стены, который пробивают. Кластер — места пересечений
+# (сетка DB_CELL), берётся при ≥ DB_MIN убийствах из ≥ 2 матчей; толще DB_THICK ед. карты на радаре — не берётся
+# (это толстая стена: пуля прошла выше/ниже неё — на радаре не видно). Материал и толщина из демок не узнать:
+# дерево 8 ед. — проектное число (как доски у Ancient), первый кандидат на замену разметкой владельца (поле own).
+DB_CELL, DB_MIN, DB_THICK, DB_PAD = 24, 3, 40, 3   # проектные числа
+
+
+def demo_spots(walls):
+    import numpy as np
+    from PIL import Image, ImageDraw
+    import demos as D
+    im = Image.new('1', (2048, 2048), 0)
+    dr = ImageDraw.Draw(im)
+    for W in walls:
+        dr.polygon([tuple(q) for q in W], fill=1)
+    M = np.asarray(im)
+
+    def solid(x, y):
+        xi, yi = int(x), int(y)
+        return 0 <= xi < 2048 and 0 <= yi < 2048 and bool(M[yi, xi])
+    cl = {}
+    for dm in D.demo_names():
+        f = os.path.join(D.DEMOS, dm + '_player_death.csv.gz')
+        if not os.path.exists(f):
+            continue
+        import pandas as pd
+        k = pd.read_csv(f, usecols=['attacker_X', 'attacker_Y', 'user_X', 'user_Y', 'penetrated', 'weapon'], low_memory=False)
+        k = k[pd.to_numeric(k.penetrated, errors='coerce').fillna(0) >= 1].dropna()
+        if not len(k):
+            continue
+        ax, ay = D.tr(k.attacker_X.values.astype(float), k.attacker_Y.values.astype(float))
+        ux, uy = D.tr(k.user_X.values.astype(float), k.user_Y.values.astype(float))
+        for x0, y0, x1, y1 in zip(ax, ay, ux, uy):
+            if solid(x0, y0) or solid(x1, y1):
+                continue
+            L = math.hypot(x1 - x0, y1 - y0)
+            n = int(L / 0.5) + 1
+            runs, cur = [], None
+            for i in range(n + 1):
+                px, py = x0 + (x1 - x0) * i / n, y0 + (y1 - y0) * i / n
+                if solid(px, py):
+                    cur = cur or [(px, py)]
+                    cur = [cur[0], (px, py)]
+                elif cur:
+                    runs.append(cur); cur = None
+            if len(runs) != 1:   # одна стена на линии — однозначно; две и больше — не знаем, какую пробили
+                continue
+            (sx, sy), (ex, ey) = runs[0]
+            if math.hypot(ex - sx, ey - sy) > DB_THICK:
+                continue
+            key = (round((sx + ex) / 2 / DB_CELL), round((sy + ey) / 2 / DB_CELL))
+            c = cl.setdefault(key, {'pts': [], 'demos': set(), 'n': 0})
+            c['pts'] += [(sx, sy), (ex, ey)]; c['demos'].add(dm); c['n'] += 1
+    out = []
+    for key, c in sorted(cl.items(), key=lambda t: -t[1]['n']):
+        if c['n'] < DB_MIN or len(c['demos']) < 2:
+            continue
+        xs = [p[0] for p in c['pts']]; ys = [p[1] for p in c['pts']]
+        x0, x1, y0, y1 = min(xs) - DB_PAD, max(xs) + DB_PAD, min(ys) - DB_PAD, max(ys) + DB_PAD
+        P = [[round(x0, 1), round(y0, 1)], [round(x1, 1), round(y0, 1)], [round(x1, 1), round(y1, 1)], [round(x0, 1), round(y1, 1)]]
+        out.append(dict(key='demo%d_%d' % key, name='прострел из демок (%d убийств, %d матчей)' % (c['n'], len(c['demos'])),
+                        mat='wood', t=8, poly=P, refs=['demos'],
+                        sure='демки про: %d убийств сквозь эту стену (penetrated ≥ 1) в %d матчах' % (c['n'], len(c['demos'])),
+                        guess='материал (дерево) и толщина 8 — проектное число: из демок не узнать',
+                        note='форма — рамка пересечений линий выстрела со стеной'))
+    return out
 
 
 def wall_at(walls, x, y):
@@ -185,7 +254,8 @@ def main():
     name = namer()
     mats = {k: {'name': n, 'pen': p, 'kind': kd, 'col': c} for k, n, p, kd, c in MATERIALS}
     items = []
-    for s in SPOTS:
+    spots = SPOTS if SPOTS is not None else demo_spots(walls)
+    for s in spots:
         if 'poly' in s:
             P = s['poly']
             pt = [round(sum(q[0] for q in P) / len(P), 1), round(sum(q[1] for q in P) / len(P), 1)]

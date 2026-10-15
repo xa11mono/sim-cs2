@@ -693,14 +693,36 @@ function pointInPoly(px,py,points){
   }
   return inside;
 }
+// (v321) участки навмеша под точкой — по сетке; где пол в два этажа (Mirage: Underpass под Short), берётся участок,
+// ближайший по высоте к z (бот знает свою высоту — bot.z); иначе, как раньше, первый по порядку
+var NAV_GRID = null, NAV_GRID_C = 64;
+function navGridBuild(){
+  NAV_GRID = {};
+  NAVAREAS.forEach(function(zn, idx){
+    var x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+    zn.points.forEach(function(p){ if(p.x < x0) x0 = p.x; if(p.y < y0) y0 = p.y; if(p.x > x1) x1 = p.x; if(p.y > y1) y1 = p.y; });
+    for(var gx = Math.floor(x0/NAV_GRID_C); gx <= Math.floor(x1/NAV_GRID_C); gx++)
+      for(var gy = Math.floor(y0/NAV_GRID_C); gy <= Math.floor(y1/NAV_GRID_C); gy++){ var k = gx+","+gy; (NAV_GRID[k] || (NAV_GRID[k] = [])).push(idx); }
+  });
+}
+function navAt(x, y, z){
+  if(!NAV_GRID) navGridBuild();
+  var L = NAV_GRID[Math.floor(x/NAV_GRID_C)+","+Math.floor(y/NAV_GRID_C)]; if(!L) return null;
+  var first = null, best = null, bd = Infinity;
+  for(var i=0;i<L.length;i++){
+    var zn = NAVAREAS[L[i]];
+    if(NAV_BLOCKED[zn.id] || !pointInPoly(x,y,zn.points)) continue;
+    if(!first) first = zn;
+    if(z == null) break;
+    var d = Math.abs(zn.z - z); if(d < bd){ bd = d; best = zn; }
+  }
+  if(!first) return null;
+  return (best && Math.abs(best.z - first.z) > 60) ? best : first;   // разные этажи — по высоте; один этаж — как раньше
+}
 function zoneOf(x,y,z){
   // заблокированные (внутри стены) полигоны пропускаем — иначе бот, стоящий
   // на таком, получил бы стартовую зону без единого перехода
-  for(var i=0;i<NAVAREAS.length;i++){
-    var zn = NAVAREAS[i];
-    if(NAV_BLOCKED[zn.id]) continue;
-    if(pointInPoly(x,y,zn.points)) return zn;
-  }
+  var hit = navAt(x, y, z || z === 0 ? z : null); if(hit) return hit;
   // fallback: point fell in a tiny gap between areas (navmesh doesn't
   // perfectly tile down to the pixel) — snap to nearest area centroid
   var best=null, bd=Infinity;
@@ -1288,7 +1310,13 @@ function visBuild(){
   // пол — навмеш; потолок — над крытыми участками
   NAVAREAS.forEach(function(a){
     var h = typeof hgtInfo === "function" ? hgtInfo(a.id) : null, z = a.z, cv = h && h.cov;
+    // (v321) есть крыши многоугольниками (heights.roofs) — крытость участка берётся только из правки владельца
+    if(cv && HEIGHTS.roofs && !(HGT_OWN[a.id] && HGT_OWN[a.id].cov !== undefined)) cv = false;
     cellsOfPoly(a.points, function(k){ if(z > floor[k]) floor[k] = z; if(cv) ceil[k] = Math.min(ceil[k], z + VIS_CEIL_H); });
+  });
+  // (v321) крыши — многоугольники штриховки радара (точнее, чем «крыт ли участок навмеша целиком»)
+  (HEIGHTS.roofs || []).forEach(function(R){
+    cellsOfPoly(R.map(function(p){ return {x:p[0], y:p[1]}; }), function(k){ if(floor[k] > -Infinity) ceil[k] = Math.min(ceil[k], floor[k] + VIS_CEIL_H); });
   });
   // щели между участками навмеша (навмеш отступает от краёв) — заполнить соседним полом
   // (берётся более высокий: край уступа — у верхнего пола)
@@ -1487,6 +1515,7 @@ function rebuildNav(){
 
   zonesById = {};
   NAVAREAS.forEach(function(z){ zonesById[z.id] = z; });
+  NAV_GRID = null;   // (v321) сетка участков под точкой — пересобрать
 
   // ---------- граф с учётом стен ----------
   // navmesh и стены — два независимых слоя, и после выравнивания/калибровки
@@ -2485,6 +2514,17 @@ function seatPlayers(){
     var P = LINEUP[SIDE_TEAM[b.team]].players[+b.id.replace(/\D/g, "")];
     NICKS[b.id] = P.nick; b.prof = P.prof; b.skill = P.prof.aim; b.reactionTicks = P.prof.react;
   });
+  // (v321, М21) роль игрока — своя на каждой карте (набор карты, tactics.playerRoles: по демкам этой карты); нет данных
+  // или роль занята — по месту в составе (TEAM_ROLES), как раньше
+  var PR = MAP.tactics.playerRoles;
+  ["T","CT"].forEach(function(s){
+    var team = bots.filter(function(b){ return b.team === s; }), used = {};
+    team.forEach(function(b){ b.tRole = TEAM_ROLES[s][+b.id.replace(/\D/g, "")]; });
+    if(!PR) return;
+    team.forEach(function(b){ var r = PR[NICKS[b.id]] && PR[NICKS[b.id]][s]; if(r && TEAM_ROLES[s].indexOf(r) >= 0 && !used[r]){ b.tRole = r; used[r] = b; } });
+    var free = TEAM_ROLES[s].filter(function(r){ return !used[r]; });
+    team.forEach(function(b){ if(used[b.tRole] !== b){ var r = free.indexOf(b.tRole) >= 0 ? b.tRole : free[0]; b.tRole = r; used[r] = b; free.splice(free.indexOf(r), 1); } });
+  });
   ["T","CT"].forEach(function(s){ TEAM_NAME[s] = LINEUP[SIDE_TEAM[s]].name; TEAM_LOGO[s] = LINEUP[SIDE_TEAM[s]].logo; });
 }
 seatPlayers();
@@ -2516,6 +2556,8 @@ function buildSites(){
   ["A","B"].forEach(function(k){
     var uz = USER_ZONES.filter(function(z){ return z.kind === (k==="A" ? "sitea" : "siteb") && z.basePoints.length >= 3; })[0];
     var poly = uz ? zoneObjAbsPoints(uz) : null;
+    // (v321) граница сайта из набора карты (zones.sites — по местам плантов про из демок, как в игре), иначе — зона с ролью сайта
+    if(!poly && MAP.zones.sites && MAP.zones.sites[k]) poly = MAP.zones.sites[k].map(function(p){ return zlPt(p[0], p[1]); });
     if(!poly){ var zz = ZONEMAP.zones.filter(function(z){ return z.name === k+"site"; })[0]; if(zz) poly = zz.points; }
     var c = poly ? centroidOf(poly) : {x:1024, y:1024};
     var sp = walk(c);
@@ -3807,6 +3849,26 @@ function posClearTick(team){
       if(R) for(var k = 0; k < R.length; k++){ if(R[k] > tick || !BZ.cent[k]) continue; var tt = tick + Math.hypot(BZ.cent[k].x-q.x, BZ.cent[k].y-q.y)/SPEED*TICK_HZ; if(tt < until) until = tt; }
       POSCLR[team][q.id] = {tick: tick, until: until, by: b.id}; }); });
 }
+// (v321, М24, отметка владельца) T, проходя мимо сайта, видит его зоны (pos.tClear, входы) — если там никого, говорит
+// «чекнул X — пусто» (как CT на выходе за инфой): команда знает, что там чисто. Одна зона — один колл за раунд;
+// видит — линия до середины зоны ближе 450 ед. карты и сам сейчас не видит врага (проектные числа)
+function tClearCalls(){
+  var names = [];
+  ["A","B"].forEach(function(k){ if(POS[k]) (POS[k].tClear || []).concat(POS[k].entries || []).forEach(function(n){ if(names.indexOf(n) < 0) names.push(n); }); });
+  if(!names.length) return;
+  bots.forEach(function(b){
+    if(b.team !== "T" || !b.alive || tick < (b.blindUntil||0)) return;
+    if(bots.some(function(e){ return e.team === "CT" && e.alive && Math.hypot(e.x-b.x, e.y-b.y) < 900 && hasVision(b.x, b.y, e.x, e.y); })) return;
+    names.forEach(function(n){
+      var p = zonePoint(n, b); if(!p || Math.hypot(p.x-b.x, p.y-b.y) > 450) return;
+      var zid = zoneIdAt(p.x, p.y); if(!zid) return;
+      var C = CLEARZ.T[zid]; if(C && C.round === roundNum) return;
+      if(!hasVision(b.x, b.y, p.x, p.y)) return;
+      if(bots.some(function(e){ return e.team === "CT" && e.alive && zoneIdAt(e.x, e.y) === zid && hasVision(b.x, b.y, e.x, e.y); })) return;
+      markClear("T", p.x, p.y, b.id); CLEARZ.T[zid].round = roundNum;
+    });
+  });
+}
 function markClear(team, x, y, who){
   var zid = zoneIdAt(x, y); if(!zid) return null;
   CLEARZ[team][zid] = {tick:tick, x:x, y:y};
@@ -4146,6 +4208,18 @@ function tBrain(){
       tt.execTick = BAL.proTempo ? Math.max(tick + 18*TICK_HZ, Math.min(tt.execTick, tick + 30*TICK_HZ)) : Math.max(tick + 10*TICK_HZ, Math.min(tt.execTick, tick + 15*TICK_HZ));
       voiceLog("T", "midtake", midKill.by, "мид наш! "+fl2.map(function(b){ return b.id; }).join(" и ")+" — через "+MT.via+", "+tt.site+" с двух сторон");
       logEvent("IGL: мид взят — заход на "+tt.site+" с двух сторон (через "+MT.via+")");
+    }
+  }
+  // (v321, М11, отметка владельца) CT осталось мало (по киллфиду знают все) и нас больше — не ждём тайминга сбора:
+  // заходим сразу, на тот сайт, где по нашей инфе CT нет (было: бомба ждала сбора 2 против 1 на 67-й с)
+  if(tt.phase === "setup" && !tt.fewGo){
+    var aCT = aliveCount("CT"), aT = aliveCount("T");
+    if(aCT <= 2 && aT > aCT){
+      var seenHere = intelEstimate("T", site.x, site.y, 600, 8*TICK_HZ).seen, seenOther = intelEstimate("T", SITES[other].x, SITES[other].y, 600, 8*TICK_HZ).seen;
+      if(seenHere > 0 && seenOther === 0){ tSetSite(tt, other); site = SITES[tt.site]; g = GEO[tt.site]; other = tt.site === "A" ? "B" : "A"; }
+      tt.fewGo = true; tt.phase = "execute"; tt.execStart = tick; siteHeatPending[tt.site] = 1;
+      voiceLog("T", "few"+roundNum, "IGL", "их осталось "+aCT+" — заходим сейчас, бомба на "+tt.site+"!");
+      logEvent("T: выход на "+tt.site+"! (CT осталось "+aCT+")");
     }
   }
   // раздел 12: проба увидела на нашем сайте ровно одного, и по карте там больше
@@ -7919,8 +7993,13 @@ function smkEvidence0(b, s){
   if(mem) return {kind:"mem", pt:{x:mem.x, y:mem.y}};
   var d = Math.hypot(s.x-b.x, s.y-b.y), ux = (s.x-b.x)/d, uy = (s.y-b.y)/d;
   var beyond = {x:s.x + ux*R*1.3, y:s.y + uy*R*1.3};
+  if(insideSolidWall(beyond.x, beyond.y)) return null;   // (v321, М18) за дымом стена — там никого
   if(enemyBeyondSmoke(b, s, R)) return {kind:"belief", pt:beyond};
-  var entry = ["A","B"].some(function(k){ var g = GEO[k]; return Math.hypot(s.x-g.tEntry.x, s.y-g.tEntry.y) < 220 || Math.hypot(s.x-g.ctEntry.x, s.y-g.ctEntry.y) < 220; });
+  // (v321, М18) вход на сайт — по данным карты (pos.entries: где T заходят по демкам), а не точка кратчайшего пути
+  // (на Mirage вход на B по нему — E Box, и простреливали дым там, где врага быть не может)
+  var entry = ["A","B"].some(function(k){ var g = GEO[k];
+    var tE = (POS[k] && POS[k].entries && POS[k].entries.length) ? entryPts(k) : [g.tEntry];
+    return tE.some(function(p){ return Math.hypot(s.x-p.x, s.y-p.y) < 220; }) || Math.hypot(s.x-g.ctEntry.x, s.y-g.ctEntry.y) < 220; });
   if(entry) return {kind:"entry", pt:beyond};
   return null;
 }
@@ -8849,6 +8928,7 @@ function ctBrain(){
   if(best){
     var isNew = !ct.call || ct.call.site !== best.site;
     if(isNew || best.count > ct.call.count + 0.4 || tick - ct.call.tick > 64){
+      var prevSite = ct.call ? ct.call.site : null;   // (v321, М23) колл переходит на другой сайт — «переколл»
       var prevCnt = isNew ? 0 : ct.call.count, prevLogged = isNew ? 0 : (ct.call.logged || 0);
       ct.call = {logged: prevLogged, site:best.site, count:best.count, tick:tick, evTick:tick, since:(!isNew && ct.call.since) || tick, sinceSite:best.site, undefended:best.undefended, bombSeen: best.carrier || best.plant, seen: best.est ? best.est.seen : 0, nades: best.nades || 0};
       var how = best.plant ? "слышно плант" : (best.nades >= 2 && !best.est.seen) ? "гранаты на "+best.site+" — выход" : best.undefended ? "сайт пустой, опорник погиб" : best.carrier ? (ct.bombDown ? "бомба выбита, лежит там" : "бомба замечена") : best.deaths ? "минус на сайте" : (best.est.seen ? "вижу "+best.est.seen : best.est.heard ? "слышу" : "по инфе");
@@ -8859,7 +8939,9 @@ function ctBrain(){
       // стало больше или прошло 15с
       var CM = ct._callMem || (ct._callMem = {}), cm = CM[best.site];
       var dup = BAL.callDedup && cm && n1 <= cm.n && tick - cm.tick < 15*TICK_HZ;
-      if((isNew || n1 > prevLogged) && !dup){ ct.call.logged = n1; CM[best.site] = {n:n1, tick:tick}; intelCallLog("CT", "site"+best.site+n1, "T на "+best.site+" (~"+n1+", "+how+")", null, "plan"); }
+      if((isNew || n1 > prevLogged) && !dup){ ct.call.logged = n1; CM[best.site] = {n:n1, tick:tick};
+        if(isNew && prevSite && prevSite !== best.site) intelCallLog("CT", "recall"+best.site+tick, "ПЕРЕКОЛЛ "+prevSite+" → "+best.site+": "+how+" (~"+n1+")", null, "plan");
+        else intelCallLog("CT", "site"+best.site+n1, "T на "+best.site+" (~"+n1+", "+how+")", null, "plan"); }
       else if(dup) ct.call.logged = Math.max(ct.call.logged||0, cm.n);
     } else { ct.call.evTick = tick; ct.call.undefended = best.undefended; if(best.carrier || best.plant) ct.call.bombSeen = true; }
   } else if(ct.call){
@@ -8874,6 +8956,7 @@ function ctBrain(){
     // (раньше «давно тихо — по местам» разворачивал ротаторов на полпути и оставлял их на промежуточной точке)
     if(!goOn && lkpHere === 0 && ((quiet > 6*64 && massNow < 0.6) || quiet > 18*64)){
       logEvent("CT: по "+ct.call.site+" давно тихо"+(massNow < 0.6 ? " и там вероятно пусто" : "")+" — по местам");
+      intelCallLog("CT", "calloff"+ct.call.site+tick, "отбой колла на "+ct.call.site+": давно тихо"+(massNow < 0.6 ? ", там вероятно пусто" : "")+" — по местам", null, "plan");   // (v321, М23)
       ct.call = null;
     }
   }
@@ -8975,7 +9058,9 @@ function ctBrain(){
     cts.forEach(function(b){ if(ct.go.ids[b.id]){ ct.rot[b.id] = true; if(Math.hypot(b.x-sc0.x, b.y-sc0.y) >= 450) goingFar++; } });
     cts.filter(function(b){ return pri(b) < 99 && !ct.rot[b.id] && !(ct.bombWatch && ct.bombWatch.id === b.id) && Math.hypot(b.x-sc0.x, b.y-sc0.y) >= 450; })
        .sort(function(a,b){ return pri(a) - pri(b) || (Math.hypot(a.x-sc0.x,a.y-sc0.y) - Math.hypot(b.x-sc0.x,b.y-sc0.y)); })
-       .slice(0, Math.max(0, send - goingFar)).forEach(function(b){ ct.rot[b.id] = true; ct.go.ids[b.id] = true; });
+       .slice(0, Math.max(0, send - goingFar)).forEach(function(b){ ct.rot[b.id] = true; ct.go.ids[b.id] = true;
+         voiceLog("CT", "rot"+b.id+ks+roundNum, b.id, "иду на "+ks+" ("+(ROLE_LABEL_CT(b.tRole))+")");   // (v321, М23) кто ротирует
+       });
   } else if(!ct.call) ct.go = null;
   // ---- фланг: "поджать в спину" ----
   // На подтверждённый выход (2+ T на сайте) один свободный CT — мидер или
@@ -9380,7 +9465,9 @@ function teamBrains(){
 var NADE = {
   smoke:  {name:"дым",     price:300, fuse:192, radius:BAL.smokeR, life:BAL.smokeLife*64},
   flash:  {name:"флешка",  price:200, fuse:100},
-  he:     {name:"HE",      price:300, fuse:100, radius:190, dmg:57},
+  // (v321, М22) урон CS2: 98, сквозь броню 57,5 % (csdb.gg/weapon/he-grenade); радиус 350 ед. игры = 140 ед. карты —
+  // число CS:GO (weapons script), для CS2 источник не найден — проектное число. Было: 57 урона, радиус 190, броня ×0,5
+  he:     {name:"HE",      price:300, fuse:100, radius:140, dmg:98, armorK:0.575},
   molly:  {name:"молотов", price:400, priceCT:500, fuse:90, radius:72, life:BAL.mollyLife*64, dps:40}
 };
 var NADE_THROW_RANGE = 820;
@@ -9487,6 +9574,7 @@ function smokeHoleClear(s, r, x1, y1, x2, y2){
     return p.every(function(q){ return Math.abs((q[0]-h.x1)*hy - (q[1]-h.y1)*hx)/hl < SMOKE_HOLE.w; });
   });
 }
+var MOLLY_SMOKE_TOUCH = 0.9;   // (v321) огонь гаснет, когда круг огня касается дыма (0,9 радиуса огня — касание с запасом) — проектное число
 function smokeRadiusNow(s){
   var age = tick - s.born, left = s.until - tick;
   var grow = Math.min(1, age/40), fade = Math.min(1, left/64); // раскрывается ~0.6с, в конце рассеивается
@@ -9533,8 +9621,25 @@ function fireCommit(b){
   if(!goal || b.holding || (b.post && inFire(b.post.x, b.post.y))) return false;   // держит угол — не идёт насквозь, а стоит в огне
   return b.hp > 2*NADE.molly.radius/(SPEED*weaponSpeedMul(b))*dps + 10;
 }
+// (v321) высота шага: без связи в навмеше нельзя подняться выше прыжка (JUMP_UP), и нельзя залезть туда, откуда есть
+// только спуск (связь «только спрыгнуть» — окно B Apps на Mirage). Спрыгнуть — можно
+var JUMP_UP = 64;   // ед. игры: выше без помощи не запрыгнуть (CS2 ~ 66 с приседом; как JUMP_UP в tools/heights_bake.py)
+function navLinked(a, b){ var E = zoneGraph[a.id] || []; for(var i=0;i<E.length;i++) if(E[i].to === b.id) return true; return false; }
+function heightBlocked(x1, y1, x2, y2, b){
+  if(!b || b.z == null) return false;
+  var a1 = navAt(x1, y1, b.z); if(!a1) return false;
+  var a2 = navAt(x2, y2, b.z); if(!a2 || a2 === a1 || a2.z - a1.z <= 18) return false;   // 18 — ступенька, шагом
+  if(navLinked(a1, a2)) return false;
+  return a2.z - a1.z > JUMP_UP || navLinked(a2, a1);
+}
+var HGT_TOP = null, HGT_BOT = null;
+function hgtLevelOf(id){   // 1 — пол над другим полом, -1 — под другим полом (heights.over), 0 — обычный
+  if(!HGT_TOP){ HGT_TOP = {}; HGT_BOT = {}; (HEIGHTS.over || []).forEach(function(o){ HGT_TOP[o.top] = 1; HGT_BOT[o.bottom] = 1; }); }
+  return HGT_BOT[id] ? -1 : HGT_TOP[id] ? 1 : 0;
+}
 function stepBlocked(x1,y1,x2,y2,b){
   if(crossesWall(x1,y1,x2,y2)) return true;
+  if(heightBlocked(x1, y1, x2, y2, b)) return true;
   if(!inFire(x1,y1) && inFire(x2,y2)) return !fireCommit(b);
   return false;
 }
@@ -9571,7 +9676,7 @@ function throwNade(b, type, tx, ty, lob, why){
   var d = Math.max(60, Math.hypot(tx-b.x, ty-b.y)); if(!lob) d = Math.min(NADE_THROW_RANGE, d);
   var a = Math.atan2(ty-b.y, tx-b.x);
   var v0 = d * (1-0.96) * TICK_HZ; // при затухании 0.96/тик пролетит примерно d
-  var nd = {type:type, x:b.x, y:b.y, vx:Math.cos(a)*v0, vy:Math.sin(a)*v0, born:tick, thrower:b, team:b.team, trail:[], why:why||""};
+  var nd = {type:type, x:b.x, y:b.y, vx:Math.cos(a)*v0, vy:Math.sin(a)*v0, born:tick, thrower:b, team:b.team, trail:[], why:why||"", ox:b.x, oy:b.y};
   if(lob){
     // лайнап не идеален: небольшой разброс точки падения
     var leMul = b.prof ? (1.5 - prof(b, "util")) : 1;
@@ -9765,14 +9870,33 @@ function nadeWallHit(x1,y1,x2,y2){
   }
   return null;
 }
+// (v321, М20, отметка владельца) откуда прилетела граната: кто из врагов видел её в полёте (линия до точки следа) или
+// разрыв рядом — понимает примерно, откуда кинули (как в игре: по дуге видно направление и расстояние). Точка броска с
+// разбросом ~120 ед. карты (проектное число) идёт в инфу команды как «слышал там врага» и в войс «граната из X»
+function nadeOrigin(n){
+  if(roundState !== "live" || !n.thrower || n.ox == null) return;
+  var foe = n.team === "T" ? "CT" : "T";
+  var pts = (n.trail || []).slice(-8).concat([[n.x, n.y]]);
+  var saw = bots.filter(function(o){ return o.team === foe && o.alive && tick >= (o.blindUntil||0) &&
+    pts.some(function(p){ return Math.hypot(p[0]-o.x, p[1]-o.y) < 1100 && hasVision(o.x, o.y, p[0], p[1]); }); })[0];
+  if(!saw) return;
+  var j = hashRand(tick*31 + n.ox*7), ja = hashRand(tick*17 + n.oy*3)*Math.PI*2, ex = n.ox + Math.cos(ja)*120*j, ey = n.oy + Math.sin(ja)*120*j;
+  if(insideSolidWall(ex, ey)){ ex = n.ox; ey = n.oy; }
+  intelPush(foe, {type:"sound", x:ex, y:ey, id:n.thrower.id, kind:"nade", by:saw.id});
+  (saw.ears || (saw.ears = [])).push({x:ex, y:ey, tick:tick, team:n.team, kind:"nade", occl:true});
+  var zn = zoneIdAt(ex, ey);
+  voiceLog(foe, "nf"+(zn||"")+roundNum+Math.floor(tick/(4*TICK_HZ)), saw.id, NADE[n.type].name+" прилетела из "+(zn ? zoneUserName(zn) : calloutName(ex, ey)));
+}
 function detonate(n){
   var T = n.type;
+  if(T !== "decoy") nadeOrigin(n);
   // (11) гранаты видно/слышно: где разорвалась граната врага — это инфа о его плане
   if(BAL.tacRead && roundState === "live" && T !== "decoy"){ var foeT = n.team === "T" ? "CT" : "T"; var NS = teamIntel[foeT].nadeSeen || (teamIntel[foeT].nadeSeen = []); NS.push({x:n.x, y:n.y, type:T, tick:tick}); if(NS.length > 30) NS.shift(); }
   if(T === "smoke"){ smokes.push({x:n.x, y:n.y, born:tick, until:tick+NADE.smoke.life, team:n.team}); if(BAL.smokeReact) smokeShiftOnDetonate(smokes[smokes.length-1]); }
   else if(T === "molly"){
-    // молотов, упавший в дым, гаснет (как в CS2 — наоборот тоже: дым тушит огонь)
-    if(!smokes.some(function(s){ return Math.hypot(s.x-n.x, s.y-n.y) < smokeRadiusNow(s); }))
+    // молотов, упавший в дым или рядом так, что огонь касается дыма, гаснет (как в CS2 — наоборот тоже: дым тушит огонь;
+    // v321, М12: «чуть касается смока — тушится»)
+    if(!smokes.some(function(s){ return Math.hypot(s.x-n.x, s.y-n.y) < smokeRadiusNow(s) + NADE.molly.radius*MOLLY_SMOKE_TOUCH; }))
       fires.push({x:n.x, y:n.y, born:tick, until:tick+NADE.molly.life, team:n.team, thrower:n.thrower});
   }
   else if(T === "flash"){
@@ -9781,7 +9905,7 @@ function detonate(n){
     bots.forEach(function(b){
       if(!b.alive) return;
       var d = Math.hypot(b.x-n.x, b.y-n.y);
-      if(d > 1000 || !hasVision(b.x, b.y, n.x, n.y)) return;
+      if(d > 1000 || !flashSeen(b, n)) return;
       var a = Math.atan2(n.y-b.y, n.x-b.x);
       var off = b.facing === undefined ? 0 : Math.abs(((a - b.facing + Math.PI) % (2*Math.PI) + 2*Math.PI) % (2*Math.PI) - Math.PI);
       var dirK = off < 0.55 ? 1 : (off < 1.6 ? 0.5 : 0.12);  // смотрел прямо / краем глаза / спиной
@@ -9818,7 +9942,7 @@ function detonate(n){
       if(!b.alive) return;   // (v263, Б1) HE ранит и своих, и бросившего — множитель в applyDamage
       var d = Math.hypot(b.x-n.x, b.y-n.y);
       if(d > NADE.he.radius || !hasLOS(n.x, n.y, b.x, b.y)) return;
-      var dmg = Math.round(NADE.he.dmg * (1 - d/NADE.he.radius) * (b.armor ? 0.5 : 1));
+      var dmg = Math.round(NADE.he.dmg * (1 - d/NADE.he.radius) * (b.armor ? NADE.he.armorK : 1));
       applyDamage(n.thrower, b, dmg, "HE");
     });
   }
@@ -9858,6 +9982,17 @@ function applyDamage(att, b, dmg, src, o){
   else if(src === "C4") feedBombKill(b);
   return true;
 }
+// (v321, М13) флешку взрывают в воздухе, часто над крышей/стеной (точки разрыва про из демок лежат «в стене» на радаре);
+// стены у нас без высоты, поэтому видно вспышку над крышей — если виден край рядом с ней: точка в 30 или 60 ед. карты от
+// разрыва вне стены, до которой у бота есть линия (проектные числа)
+function flashSeen(b, n){
+  if(!insideSolidWall(n.x, n.y) && hasVision(b.x, b.y, n.x, n.y)) return true;
+  for(var r = 30; r <= 60; r += 30) for(var k = 0; k < 8; k++){
+    var a = k*Math.PI/4, x = n.x + Math.cos(a)*r, y = n.y + Math.sin(a)*r;
+    if(!insideSolidWall(x, y) && hasVision(b.x, b.y, x, y)) return true;
+  }
+  return false;
+}
 function nadesTick(){
   var dt = 1/TICK_HZ;
   for(var i=nadesInAir.length-1;i>=0;i--){
@@ -9892,7 +10027,7 @@ function nadesTick(){
     var fr = fires[f];
     if(tick >= fr.until){ fires.splice(f,1); continue; }
     // дым, раскрывшийся на огне, тушит его
-    if(smokes.some(function(sm){ return Math.hypot(sm.x-fr.x, sm.y-fr.y) < smokeRadiusNow(sm)*0.8; })){ fires.splice(f,1); continue; }
+    if(smokes.some(function(sm){ return Math.hypot(sm.x-fr.x, sm.y-fr.y) < smokeRadiusNow(sm) + NADE.molly.radius*MOLLY_SMOKE_TOUCH; })){ fires.splice(f,1); continue; }
     bots.forEach(function(b){
       if(!b.alive) return;   // (v263, Б1) огонь жжёт и своих — множитель в applyDamage
       if(Math.hypot(b.x-fr.x, b.y-fr.y) < NADE.molly.radius){
@@ -12572,10 +12707,17 @@ function decideRoundType0(team){
   return avg >= 2000 ? "force" : "eco";
 }
 
+// (v321, М14) что видно в закупку: дропы своим, старое оружие на земле, боты смотрят по сторонам
+var FREEZE_FX = [];
 function buyItem(b, key){
   var w = WEAPONS[key];
   if(b.money < w.price) return false;
   b.money -= w.price;
+  // купил основное поверх старого — старое падает под ноги (как в CS2); его может подобрать тиммейт
+  if(w.slot === "primary" && b.primary && b.primary !== key && WEAPONS[b.primary]){
+    groundWeapons.push({key:b.primary, x:b.x + 6, y:b.y + 6, t:tick, from:b.id});
+    FREEZE_FX.push({kind:"throw", from:b.id, key:b.primary, t:tick});
+  }
   if(w.slot === "primary") b.primary = key; else b.secondary = key;
   return true;
 }
@@ -12700,6 +12842,7 @@ function teamDrops(team){
     if(!rich) return;
     rich.money -= rifle.price; poor.primary = rifle.key;
     logEvent(rich.id+" дропнул "+rifle.name+" → "+poor.id);
+    FREEZE_FX.push({kind:"drop", from:rich.id, to:poor.id, key:rifle.key, t:tick});   // (v321, М14) видно на радаре
   });
 }
 
@@ -12717,7 +12860,7 @@ function teamAwp(team){
   if(awper.money >= P + ARMOR_PRICE){ awper.money -= P; awper.primary = "AWP"; return; }
   var rich = mates.filter(function(m){ return m !== awper && m.money - P >= fullNeed(m); })
                   .sort(function(a,b){ return b.money - a.money; })[0];
-  if(rich){ rich.money -= P; awper.primary = "AWP"; logEvent(rich.id+" скинул AWP → "+awper.id); }
+  if(rich){ rich.money -= P; awper.primary = "AWP"; logEvent(rich.id+" скинул AWP → "+awper.id); FREEZE_FX.push({kind:"drop", from:rich.id, to:awper.id, key:"AWP", t:tick}); }
 }
 function buyPhase(){
   ["CT","T"].forEach(function(team){
@@ -12884,6 +13027,17 @@ function resetRound(){
     var sp = b.spawnPt;
     var spp = spawnPosFor(sp, b.spawnOx, b.spawnOy);
     b.x = spp.x; b.y = spp.y; b.z = sp.z||0;
+    // (v321, М19) точки спавна из демок (map.json, spawnSpots): каждый раунд игроки случайно (воспроизводимо: матч и раунд)
+    // попадают на разные точки своей стороны — как в CS2; от точки зависят ранняя агрессия и тайминги
+    var SS = MAP.spawnSpots && MAP.spawnSpots[b.team];
+    if(SS && SS.length){
+      var mates = bots.filter(function(o){ return o.team === b.team; }), mi = mates.indexOf(b);
+      var perm = SS.map(function(_, i){ return i; }).sort(function(p, q){ return hashRand(roundNum*7919 + matchNum*104729 + p*31 + (b.team === "CT" ? 1 : 2)) - hashRand(roundNum*7919 + matchNum*104729 + q*31 + (b.team === "CT" ? 1 : 2)); });
+      var spot = SS[perm[mi % perm.length]];
+      if(spot && !insideSolidWall(spot[0], spot[1])){ b.x = spot[0]; b.y = spot[1]; }
+    }
+    var nsp = navAt(b.x, b.y, null); if(nsp) b.z = nsp.z;   // (v321) высота — по навмешу под точкой спавна
+    b._jump = null;
     b.baseX = b.x; b.baseY = b.y;
     b.px = b.x; b.py = b.y;
     b.path = []; b.pathIdx = 0; b.alive = true; b.hp = 100;
@@ -12943,12 +13097,16 @@ function stepTick(){
     return;
   }
   if(roundState === "freeze"){
-    if(simTime >= roundStartTime){ roundState = "live"; logEvent("Freeze-тайм окончен — раунд пошёл"); }
+    // (v321, М14) в закупку смотрят по сторонам: взгляд плавно ходит ±50° вокруг направления к центру карты
+    bots.forEach(function(b){ if(!b.alive) return; var base = Math.atan2(1024-b.y, 1024-b.x), ph = (b.id.charCodeAt(0)*7 + b.id.length*13) % 10;
+      b.facing = base + 0.87*Math.sin(tick/45 + ph); });
+    if(simTime >= roundStartTime){ roundState = "live"; FREEZE_FX = []; logEvent("Freeze-тайм окончен — раунд пошёл"); }
     return;
   }
   teamBrains(); // шаг 4: тактика T / расстановка и ротации CT / бомба
   if(roundState !== "live") return;
   nadeBrains(); updateNadeTasks(); nadesTick(); // шаг 5: гранаты
+  if(roundState === "live" && tick % 16 === 0) tClearCalls();   // (v321, М24) «B чисто» — T увидел пустую зону у сайта
   if(roundState !== "live") return;
   var dtSec = TICK_MS/1000, maxDelta = ACCEL*dtSec;
   // movement tuning (plan-driven "natural, not robotic" pass):
@@ -12976,7 +13134,7 @@ function stepTick(){
     updateReload(bot);
     if(!bot.post) updateRoamer(bot);
     // этаж под ботом (раздел 9: метка уровня на радаре) — раз в 16 тиков хватает
-    if(tick % 16 === 0){ var za = zoneOf(bot.baseX, bot.baseY); bot._zArea = za ? za.z : 0; }
+    if(tick % 16 === 0){ var za = zoneOf(bot.baseX, bot.baseY, bot.z); bot._zArea = za ? za.z : 0; bot._lvl = za ? hgtLevelOf(za.id) : 0; }
     // "на лестнице" пересчитывается только в ветке движения — если бот
     // остановился (держит угол, стоит на посту), флаг раньше оставался от
     // последнего отрезка пути навсегда: бот, дошедший до поста по лестнице,
@@ -13286,6 +13444,11 @@ function stepTick(){
         // otherwise the bot "moves" by fractions of a pixel forever instead
         // of ever giving up on a bad straight-line path.
         var actuallyMoved = Math.hypot(bot.baseX-startX, bot.baseY-startY);
+        // (v321) высота бота — по участку навмеша под ним (ближайший по высоте); прыжок / спрыгнул — для показа
+        if(actuallyMoved > 0){ var naz = navAt(bot.baseX, bot.baseY, bot.z);
+          if(naz){ var dzz = naz.z - (bot.z == null ? naz.z : bot.z);
+            if(dzz > 18) bot._jump = {t:tick, up:true}; else if(dzz < -40) bot._jump = {t:tick, up:false};
+            bot.z = naz.z; bot._area = naz.id; } }
         // "топчется": каждый тик куда-то сдвигается (веер проб у угла туда-сюда),
         // но за 1.5с никуда не ушёл — раньше это не считалось застреванием
         // (движение в тике было), и бот стоял у угла с кругами шагов
@@ -14607,7 +14770,10 @@ function hgtDraw(){
   var pat = hgtHatch();
   if(pat.setTransform) pat.setTransform(new DOMMatrix().scale(1/S, 1/S));   // полосы одной толщины на экране при любом масштабе
   ctx.fillStyle = pat;
-  C.ids.forEach(function(id){ var h = hgtInfo(id); if(h && h.cov) ctx.fill(C.path[id]); });
+  if(HEIGHTS.roofs){   // (v321) крыши многоугольниками + участки, крытые правкой владельца
+    HEIGHTS.roofs.forEach(function(R){ ctx.beginPath(); R.forEach(function(p, i){ if(i) ctx.lineTo(p[0], p[1]); else ctx.moveTo(p[0], p[1]); }); ctx.closePath(); ctx.fill(); });
+    C.ids.forEach(function(id){ var o = HGT_OWN[id]; if(o && o.cov) ctx.fill(C.path[id]); });
+  } else C.ids.forEach(function(id){ var h = hgtInfo(id); if(h && h.cov) ctx.fill(C.path[id]); });
   ctx.restore();
   // уровень над уровнем: участки с уровнем 1 и выше — пурпурным контуром
   ctx.lineWidth = 2/S; ctx.strokeStyle = "rgba(235,80,235,0.95)"; ctx.fillStyle = "rgba(235,80,235,0.28)";
@@ -16089,6 +16255,18 @@ function draw(){
     }
     ctx.restore();
   });
+  // (v321, М14) закупка: дроп — пунктир от того, кто дропнул, к тому, кому, с названием оружия; выкинутое — подпись у ног
+  if(roundState === "freeze" && FREEZE_FX.length){
+    var byId = {}; bots.forEach(function(o){ byId[o.id] = o; });
+    ctx.font = (11/view.scale)+"px 'IBM Plex Mono',monospace"; ctx.textAlign = "center";
+    FREEZE_FX.forEach(function(F){ var a = byId[F.from]; if(!a) return; var nm = WEAPONS[F.key] ? WEAPONS[F.key].name : F.key;
+      if(F.kind === "drop" && byId[F.to]){ var c = byId[F.to];
+        ctx.strokeStyle = "rgba(255,230,150,0.9)"; ctx.lineWidth = 1.5/view.scale; ctx.setLineDash([4/view.scale, 3/view.scale]);
+        ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(c.x, c.y); ctx.stroke(); ctx.setLineDash([]);
+        ctx.fillStyle = "rgba(255,230,150,0.95)"; ctx.fillText("дроп "+nm, (a.x+c.x)/2, (a.y+c.y)/2 - 6/view.scale);
+      } else if(F.kind === "throw"){ ctx.fillStyle = "rgba(220,220,220,0.85)"; ctx.fillText("выкинул "+nm, a.x, a.y + 18/view.scale); }
+    });
+  }
   bots.forEach(function(bot){
     if(!bot.alive) return;
     var rx = bot.px + (bot.x-bot.px)*alpha;
@@ -16116,6 +16294,14 @@ function draw(){
     // этажи (раздел 9): верхний уровень — светлый внешний ободок и тень снизу,
     // нижний (подвал/проходы под картой) — тёмный пунктирный ободок
     var zb = bot._zArea || 0;
+    // (v321) у карты с «уровнем над уровнем» (heights.over) — по нему: над другим полом / под другим полом (Underpass)
+    if(HEIGHTS.over && HEIGHTS.over.length) zb = bot._lvl > 0 ? 999 : bot._lvl < 0 ? -999 : 0;
+    // прыжок / спрыгнул — стрелка у игрока на 0,6 с
+    if(bot._jump && tick - bot._jump.t < 0.6*TICK_HZ){
+      var jk = 1 - (tick - bot._jump.t)/(0.6*TICK_HZ), jy = bot._jump.up ? -1 : 1, jr = r + 7/view.scale;
+      ctx.strokeStyle = "rgba(255,255,255,"+(0.9*jk).toFixed(2)+")"; ctx.lineWidth = 1.8/view.scale;
+      ctx.beginPath(); ctx.moveTo(rx - 4/view.scale, ry + jy*(jr - 4/view.scale)); ctx.lineTo(rx, ry + jy*jr); ctx.lineTo(rx + 4/view.scale, ry + jy*(jr - 4/view.scale)); ctx.stroke();
+    }
     if(zb > 120){
       ctx.beginPath(); ctx.arc(rx + 2/view.scale, ry + 3/view.scale, r, 0, Math.PI*2); ctx.fillStyle = "rgba(0,0,0,0.45)"; ctx.fill();
       ctx.beginPath(); ctx.arc(rx, ry, r + 2.2/view.scale, 0, Math.PI*2); ctx.strokeStyle = "rgba(255,255,255,0.75)"; ctx.lineWidth = 1.4/view.scale; ctx.stroke();
@@ -16633,8 +16819,20 @@ function warmTick(dt){
 // видно смерть). Камера плавно едет и приближает: бой — ближе, спокойно — дальше, между раундами — вся карта.
 // Ручное движение камеры, колесо или выбор игрока — обсервер ждёт 6 с. Числа — проектные (это показ, не поведение)
 var OBS = {on:true, id:null, since:0, deadAt:0, manualUntil:0, last:0, cx:1024, cy:1024, sc:0};
+// (v321, М10) фокус обсервера: выход T на сайт (15 с от начала выхода), плант и 3 с после — интересный момент; камера
+// держится игроков у этого сайта (ближе 900 ед. карты), переключается между ними и показывает выход целиком; бой в другом
+// месте его не перебивает (проектные числа)
+function obsFocus(){
+  var tt = teamTac && teamTac.T; if(roundState !== "live") return null;
+  if(bomb && bomb.state === "planted" && bomb.plantTick && tick - bomb.plantTick < 3*TICK_HZ) return {x:bomb.x, y:bomb.y, site:bomb.site, plant:true};
+  if(bots.some(function(b){ return b.alive && b.planting; })){ var p = bots.filter(function(b){ return b.alive && b.planting; })[0]; return {x:p.x, y:p.y, site:tt && tt.site, plant:true}; }
+  if(tt && tt.phase === "execute" && tt.execStart && tick - tt.execStart < 15*TICK_HZ && SITES[tt.site]) return {x:SITES[tt.site].x, y:SITES[tt.site].y, site:tt.site};
+  return null;
+}
 function obsScore(b){
   if(!b.alive) return 0;
+  var F = obsFocus();
+  if(F){ var dF = Math.hypot(b.x-F.x, b.y-F.y); if(dF > 900) return 0.2; }
   var foe = b.team === "CT" ? "T" : "CT", sc = 1;
   if(b.planting || b.defusing) sc += 9;
   if(b._sawEnemy) sc += 6 + Math.min(4, (b.contactStreak||0)/16);
@@ -16677,6 +16875,10 @@ function obsFrame(ts){
     // (v310, владелец 14.10: «очень быстро стало меняться») держит ≥ 2,5 с, переключается при перевесе ×1,3; срочно (бой у другого) —
     // не чаще раза в 1 с и только если у выбранного боя не было 1,5 с
     if(urgent && (ts - OBS.since < 1000 || tick - Math.max(cur ? (cur._shotAtT||-1e9) : -1e9, cur ? (cur.lastShotTick||-1e9) : -1e9) < 96)) urgent = false;
+    var FO = obsFocus();
+    if(FO && cur && cur.alive && Math.hypot(cur.x-FO.x, cur.y-FO.y) > 900) urgent = true;   // (v321, М10) начался выход — к нему
+    // на выходе — переключение между его игроками: каждого держит 2,5 с, потом следующий интересный у сайта
+    if(FO && cur && cur.alive && ts - OBS.since > 2500 && best === cur){ var b3 = null, s3 = 0; bots.forEach(function(o){ if(o === cur) return; var v = obsScore(o); if(v > s3){ s3 = v; b3 = o; } }); if(b3 && s3 > 1){ best = b3; bs = curS*2; } }
     var canSwitch = !cur || urgent || (!cur.alive && ts - OBS.deadAt > 1000) || (ts - OBS.since > 2500 && bs > curS*1.3);
     if(best && best !== cur && canSwitch){ if(cur){ OBS.prev = cur.id; OBS.prevUntil = ts + 5000; } OBS.id = best.id; OBS.since = ts; OBS.deadAt = 0; cur = best; }
     // (v305) карточка по центру — всегда игрок обсервера (после ручного выбора обсервер возвращает её себе)
@@ -16691,6 +16893,12 @@ function obsFrame(ts){
       var fight = !!e, other = e || near; OBS.foeId = e ? e.id : null;
       if(other){ tx = (cur.x + other.x)/2; ty = (cur.y + other.y)/2; }
       var span = other ? Math.max(fight ? 650 : 900, Math.hypot(other.x-cur.x, other.y-cur.y)*2.4) : 1100;   // сколько карты видно
+      if(FO){   // (v321, М10) выход/плант — в кадре сайт и все игроки рядом с ним
+        var xs = [FO.x, cur.x], ys = [FO.y, cur.y];
+        bots.forEach(function(o){ if(o.alive && Math.hypot(o.x-FO.x, o.y-FO.y) < 700){ xs.push(o.x); ys.push(o.y); } });
+        var x0 = Math.min.apply(null, xs), x1 = Math.max.apply(null, xs), y0 = Math.min.apply(null, ys), y1 = Math.max.apply(null, ys);
+        tx = (x0+x1)/2; ty = (y0+y1)/2; span = Math.max(700, (x1-x0)*1.3, (y1-y0)*1.3);
+      }
       tsc = Math.max(fitSc, Math.min(r.width, r.height) / span);
     }
   } else if(manual) return;

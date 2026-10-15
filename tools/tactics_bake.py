@@ -74,7 +74,7 @@ def side_of(z, x, y):
         for k in ('A', 'B', 'M'):
             if z in SIDES[k]: return k
         return min(ANCH, key=lambda k: (ANCH[k][0]-x)**2 + (ANCH[k][1]-y)**2)
-    r = _RBY.get(z, 'M')
+    r = _RBY.get((z or '').split(' → ')[0], 'M')   # (v321) часть длинной зоны — сторона исходной
     return 'M' if r == 'mid' else r
 
 

@@ -1,17 +1,17 @@
 {
  "tTactics": [
   {
-   "id": "splitA_tetris",
-   "name": "A: 2 Tetris + 1 Palace",
+   "id": "splitA_palace",
+   "name": "A: 2 Palace + 2 Tetris, поздно",
    "site": "A",
    "pools": [
     "full",
     "half",
     "force"
    ],
-   "setupEnd": 34,
+   "setupEnd": 71,
    "style": "split",
-   "weight": 2.73,
+   "weight": 1.44,
    "groups": [
     {
      "roles": [
@@ -20,18 +20,86 @@
       "igl"
      ],
      "via": [
-      "T Roof",
-      "T Ramp",
-      "Tetris"
+      "T Roof → T Spawn",
+      "T Roof → Pillars",
+      "Pillars → T Roof",
+      "Pillars",
+      "Palace"
      ],
-     "stage": "T Ramp",
-     "look": "Tetris"
+     "stage": "Pillars",
+     "look": "Palace"
     },
     {
      "roles": [
       "support"
      ],
      "via": [
+      "Elevator",
+      "T Spawn → Elevator",
+      "T Roof → T Spawn",
+      "T Roof",
+      "T Ramp",
+      "Tetris"
+     ],
+     "stage": "T Ramp",
+     "look": "Tetris"
+    }
+   ]
+  },
+  {
+   "id": "execB_bapps",
+   "name": "B: 3 B Apps",
+   "site": "B",
+   "pools": [
+    "full",
+    "half",
+    "force"
+   ],
+   "setupEnd": 55,
+   "style": "exec",
+   "weight": 1.41,
+   "groups": [
+    {
+     "roles": [
+      "entry",
+      "awp",
+      "igl"
+     ],
+     "via": [
+      "T Spawn → Elevator",
+      "TV",
+      "B Stairs → TV",
+      "Stove",
+      "B Apps"
+     ],
+     "stage": "Stove",
+     "look": "B Apps"
+    }
+   ]
+  },
+  {
+   "id": "execA_palace",
+   "name": "A: 3 Palace",
+   "site": "A",
+   "pools": [
+    "full",
+    "half",
+    "force"
+   ],
+   "setupEnd": 33,
+   "style": "exec",
+   "weight": 1.16,
+   "groups": [
+    {
+     "roles": [
+      "entry",
+      "awp",
+      "igl"
+     ],
+     "via": [
+      "T Roof → T Spawn",
+      "T Roof → Pillars",
+      "Pillars → T Roof",
       "Pillars",
       "Palace"
      ],
@@ -41,23 +109,34 @@
    ]
   },
   {
-   "id": "rushB_bapps",
-   "name": "B: 4 B Apps, быстро",
-   "site": "B",
+   "id": "defA_tetris",
+   "name": "A: 2 Tetris, поздно",
+   "site": "A",
    "pools": [
-    "eco",
-    "pistol",
-    "force"
+    "full",
+    "half"
    ],
-   "setupEnd": 0,
-   "style": "rush",
-   "weight": 1.37,
-   "rushVia": [
-    "Elevator",
-    "TV",
-    "B Stairs",
-    "Stove",
-    "B Apps"
+   "setupEnd": 78,
+   "style": "default",
+   "weight": 0.52,
+   "groups": [
+    {
+     "roles": [
+      "entry",
+      "awp",
+      "igl"
+     ],
+     "via": [
+      "Elevator",
+      "T Spawn → Elevator",
+      "T Roof → T Spawn",
+      "T Roof",
+      "T Ramp",
+      "Tetris"
+     ],
+     "stage": "T Ramp",
+     "look": "Tetris"
+    }
    ]
   },
   {
@@ -68,9 +147,9 @@
     "full",
     "half"
    ],
-   "setupEnd": 70,
+   "setupEnd": 76,
    "style": "default",
-   "weight": 1.01,
+   "weight": 0.48,
    "groups": [
     {
      "roles": [
@@ -79,185 +158,9 @@
       "igl"
      ],
      "via": [
-      "Top Mid",
-      "Elevator",
+      "T Spawn → Elevator",
       "TV",
-      "B Stairs",
-      "Stove",
-      "B Apps"
-     ],
-     "stage": "Stove",
-     "look": "B Apps"
-    }
-   ]
-  },
-  {
-   "id": "splitA_palace",
-   "name": "A: 1 Palace + 1 Tetris + 1 Stairs",
-   "site": "A",
-   "pools": [
-    "full",
-    "half",
-    "force"
-   ],
-   "setupEnd": 60,
-   "style": "split",
-   "weight": 0.73,
-   "groups": [
-    {
-     "roles": [
-      "entry",
-      "awp",
-      "igl"
-     ],
-     "via": [
-      "Pillars",
-      "Palace"
-     ],
-     "stage": "Pillars",
-     "look": "Palace"
-    },
-    {
-     "roles": [
-      "support"
-     ],
-     "via": [
-      "T Roof",
-      "T Ramp",
-      "Tetris"
-     ],
-     "stage": "T Ramp",
-     "look": "Tetris"
-    }
-   ]
-  },
-  {
-   "id": "splitA_palace2",
-   "name": "A: 1 Palace + 1 Stairs",
-   "site": "A",
-   "pools": [
-    "full",
-    "half",
-    "force"
-   ],
-   "setupEnd": 62,
-   "style": "split",
-   "weight": 0.64,
-   "groups": [
-    {
-     "roles": [
-      "entry",
-      "awp",
-      "igl"
-     ],
-     "via": [
-      "Pillars",
-      "Palace"
-     ],
-     "stage": "Pillars",
-     "look": "Palace"
-    },
-    {
-     "roles": [
-      "support"
-     ],
-     "via": [
-      "Elevator",
-      "Top Mid",
-      "Cart",
-      "Mid",
-      "Connector",
-      "Stairs"
-     ],
-     "stage": "Connector",
-     "look": "Stairs"
-    }
-   ]
-  },
-  {
-   "id": "execB_bapps",
-   "name": "B: 4 B Apps",
-   "site": "B",
-   "pools": [
-    "full",
-    "half",
-    "force"
-   ],
-   "setupEnd": 52,
-   "style": "exec",
-   "weight": 0.57,
-   "groups": [
-    {
-     "roles": [
-      "entry",
-      "awp",
-      "igl",
-      "support"
-     ],
-     "via": [
-      "Elevator",
-      "TV",
-      "B Stairs",
-      "Stove",
-      "B Apps"
-     ],
-     "stage": "Stove",
-     "look": "B Apps"
-    }
-   ]
-  },
-  {
-   "id": "execA_tetris",
-   "name": "A: 2 Tetris",
-   "site": "A",
-   "pools": [
-    "full",
-    "half",
-    "force"
-   ],
-   "setupEnd": 38,
-   "style": "exec",
-   "weight": 0.51,
-   "groups": [
-    {
-     "roles": [
-      "entry",
-      "awp",
-      "igl"
-     ],
-     "via": [
-      "T Roof",
-      "T Ramp",
-      "Tetris"
-     ],
-     "stage": "T Ramp",
-     "look": "Tetris"
-    }
-   ]
-  },
-  {
-   "id": "execB_bapps2",
-   "name": "B: 3 B Apps",
-   "site": "B",
-   "pools": [
-    "full",
-    "half",
-    "force"
-   ],
-   "setupEnd": 56,
-   "style": "exec",
-   "weight": 0.44,
-   "groups": [
-    {
-     "roles": [
-      "entry",
-      "awp",
-      "igl"
-     ],
-     "via": [
-      "Elevator",
-      "TV",
-      "B Stairs",
+      "B Stairs → TV",
       "Stove",
       "B Apps"
      ],
@@ -268,7 +171,7 @@
   },
   {
    "id": "rushA",
-   "name": "A: раш через Tetris",
+   "name": "A: раш через Palace",
    "site": "A",
    "pools": [
     "eco",
@@ -278,9 +181,31 @@
    "setupEnd": 0,
    "style": "rush",
    "rushVia": [
-    "T Roof",
-    "T Ramp",
-    "Tetris"
+    "T Roof → T Spawn",
+    "T Roof → Pillars",
+    "Pillars → T Roof",
+    "Pillars",
+    "Palace"
+   ],
+   "weight": 0.5
+  },
+  {
+   "id": "rushB",
+   "name": "B: раш через B Apps",
+   "site": "B",
+   "pools": [
+    "eco",
+    "pistol",
+    "force"
+   ],
+   "setupEnd": 0,
+   "style": "rush",
+   "rushVia": [
+    "T Spawn → Elevator",
+    "TV",
+    "B Stairs → TV",
+    "Stove",
+    "B Apps"
    ],
    "weight": 0.5
   }
@@ -294,9 +219,9 @@
     "Triple Box",
     "Stairs",
     "Default",
+    "T Ramp",
     "Sandwich",
-    "Trash A",
-    "Firebox"
+    "Trash A"
    ],
    "ctSecond": [
     "Shadow",
@@ -337,8 +262,8 @@
     "Bench",
     "Short",
     "Window B",
-    "B Site",
     "Market",
+    "B Site",
     "Trash B",
     "Corner",
     "E Box"
@@ -347,8 +272,8 @@
     "Bench",
     "Short",
     "Window B",
-    "B Site",
-    "Market"
+    "Market",
+    "B Site"
    ],
    "ctRetake": [
     "Market",
@@ -381,7 +306,7 @@
     "Window",
     "Connector",
     "Short",
-    "Underpass"
+    "Ladder Room"
    ],
    "tHold": [
     "Top Mid",
@@ -396,7 +321,7 @@
    "id": "ctStd_221",
    "name": "Расстановка 2-2-1 (A-мид-B)",
    "rot": "212",
-   "w": 1.34,
+   "w": 1.3,
    "roles": {
     "anchorA": {
      "pos": [
@@ -408,8 +333,8 @@
     },
     "mid": {
      "pos": [
-      "Underpass",
-      "Short",
+      "Window",
+      "Ladder Room",
       "Connector"
      ],
      "look": "Top Mid"
@@ -430,8 +355,8 @@
     },
     "roamer": {
      "pos": [
-      "Window",
       "Short",
+      "Ladder Room",
       "Connector"
      ],
      "look": "Top Mid"
@@ -455,7 +380,8 @@
     "mid": {
      "pos": [
       "Connector",
-      "Underpass"
+      "Ladder Room",
+      "Window"
      ],
      "look": "Top Mid"
     },
@@ -467,8 +393,9 @@
     },
     "rotator": {
      "pos": [
-      "Underpass",
-      "Connector"
+      "Connector",
+      "Ladder Room",
+      "Window"
      ],
      "look": "Top Mid"
     },
@@ -476,7 +403,7 @@
      "pos": [
       "Window",
       "Connector",
-      "Underpass"
+      "Ladder Room"
      ],
      "look": "Top Mid"
     }
@@ -486,13 +413,13 @@
    "id": "ctStack_311",
    "name": "Расстановка 3-1-1 (A-мид-B)",
    "rot": "stack",
-   "w": 0.92,
+   "w": 0.89,
    "roles": {
     "anchorA": {
      "pos": [
       "Triple Box",
       "Default",
-      "Shadow"
+      "Sandwich"
      ],
      "look": "Palace"
     },
@@ -500,7 +427,7 @@
      "pos": [
       "Short",
       "Window",
-      "Underpass"
+      "Ladder Room"
      ],
      "look": "Top Mid"
     },
@@ -522,7 +449,7 @@
      "pos": [
       "Ticket",
       "Default",
-      "Shadow"
+      "Sandwich"
      ],
      "look": "T Ramp"
     }
@@ -533,13 +460,13 @@
    "id": "ctStd_212",
    "name": "Расстановка 2-1-2 (A-мид-B)",
    "rot": "212",
-   "w": 0.74,
+   "w": 0.81,
    "roles": {
     "anchorA": {
      "pos": [
       "Shadow",
       "Triple Box",
-      "Default"
+      "Stairs"
      ],
      "look": "Palace"
     },
@@ -547,7 +474,7 @@
      "pos": [
       "Window",
       "Short",
-      "Underpass"
+      "Connector"
      ],
      "look": "Top Mid"
     },
@@ -568,8 +495,8 @@
     },
     "roamer": {
      "pos": [
-      "Market",
-      "Car"
+      "Car",
+      "Market"
      ],
      "look": "B Apps"
     }
@@ -580,6 +507,9 @@
   "A": [
    {
     "via": [
+     "T Roof → T Spawn",
+     "T Roof → Pillars",
+     "Pillars → T Roof",
      "Pillars",
      "Palace"
     ],
@@ -588,20 +518,22 @@
    },
    {
     "via": [
-     "T Roof",
-     "T Ramp",
-     "Tetris"
+     "T Roof → T Spawn",
+     "T Roof → Pillars",
+     "Pillars → T Roof",
+     "Pillars",
+     "Palace"
     ],
-    "stage": "T Ramp",
+    "stage": "Pillars",
     "entry": "Tetris"
    }
   ],
   "B": [
    {
     "via": [
-     "Elevator",
+     "T Spawn → Elevator",
      "TV",
-     "B Stairs",
+     "B Stairs → TV",
      "Stove",
      "B Apps"
     ],
@@ -610,12 +542,12 @@
    },
    {
     "via": [
-     "Elevator",
+     "T Spawn → Elevator",
      "TV",
-     "B Stairs",
+     "B Stairs → TV",
      "Stove"
     ],
-    "stage": "B Stairs",
+    "stage": "B Stairs → TV",
     "entry": "Stove"
    }
   ]
@@ -637,8 +569,8 @@
     "look": "Connector"
    },
    {
-    "pos": "Underpass",
-    "look": "Boost"
+    "pos": "B Stairs → TV",
+    "look": "Stove"
    }
   ]
  },
@@ -650,17 +582,17 @@
    "Triple Box",
    "Stairs",
    "Default",
+   "T Ramp",
    "Sandwich",
-   "Trash A",
-   "Firebox"
+   "Trash A"
   ],
   "anchorB": [
    "Car",
    "Bench",
    "Short",
    "Window B",
-   "B Site",
    "Market",
+   "B Site",
    "Trash B",
    "Corner",
    "E Box"
@@ -677,20 +609,62 @@
  "plays": {},
  "geoMid": {
   "ct": {
-   "x": 811.0,
-   "y": 977.0
+   "x": 819.3,
+   "y": 978.5
   },
   "ctLook": {
-   "x": 1101.2,
-   "y": 820.5
+   "x": 919.7,
+   "y": 897.6
   },
   "t": {
    "x": 1362.5,
-   "y": 772.9
+   "y": 772.5
   },
   "tLook": {
-   "x": 1142.6,
-   "y": 1013.0
+   "x": 1253.5,
+   "y": 883.7
+  }
+ },
+ "playerRoles": {
+  "donk": {
+   "CT": "roamer",
+   "T": "entry"
+  },
+  "sh1ro": {
+   "CT": "rotator",
+   "T": "awp"
+  },
+  "TN1R": {
+   "CT": "anchorA",
+   "T": "support"
+  },
+  "magixx": {
+   "CT": "anchorB",
+   "T": "igl"
+  },
+  "zont1x": {
+   "CT": "mid",
+   "T": "lurker"
+  },
+  "kyousuke": {
+   "CT": "mid",
+   "T": "entry"
+  },
+  "m0NESY": {
+   "CT": "roamer",
+   "T": "awp"
+  },
+  "TeSeS": {
+   "CT": "rotator",
+   "T": "lurker"
+  },
+  "karrigan": {
+   "CT": "anchorB",
+   "T": "igl"
+  },
+  "NiKo": {
+   "CT": "anchorA",
+   "T": "support"
   }
  }
 }

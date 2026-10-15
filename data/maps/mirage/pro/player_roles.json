@@ -1,0 +1,112 @@
+{
+ "donk": {
+  "CT": "roamer",
+  "T": "entry",
+  "ctShare": {
+   "A": 0.45,
+   "M": 0.48,
+   "B": 0.07
+  },
+  "awpShare": 0.0,
+  "spread": 404.1
+ },
+ "sh1ro": {
+  "CT": "rotator",
+  "T": "awp",
+  "ctShare": {
+   "A": 0.59,
+   "M": 0.32,
+   "B": 0.09
+  },
+  "awpShare": 0.27,
+  "spread": 416.2
+ },
+ "TN1R": {
+  "CT": "anchorA",
+  "T": "support",
+  "ctShare": {
+   "A": 0.72,
+   "M": 0.26,
+   "B": 0.02
+  },
+  "awpShare": 0.0,
+  "spread": 492.1
+ },
+ "magixx": {
+  "CT": "anchorB",
+  "T": "igl",
+  "ctShare": {
+   "A": 0.07,
+   "M": 0.43,
+   "B": 0.5
+  },
+  "awpShare": 0.02,
+  "spread": 454.0
+ },
+ "zont1x": {
+  "CT": "mid",
+  "T": "lurker",
+  "ctShare": {
+   "A": 0.1,
+   "M": 0.78,
+   "B": 0.12
+  },
+  "awpShare": 0.0,
+  "spread": 513.3
+ },
+ "kyousuke": {
+  "CT": "mid",
+  "T": "entry",
+  "ctShare": {
+   "A": 0.16,
+   "M": 0.72,
+   "B": 0.12
+  },
+  "awpShare": 0.0,
+  "spread": 455.6
+ },
+ "m0NESY": {
+  "CT": "roamer",
+  "T": "awp",
+  "ctShare": {
+   "A": 0.41,
+   "M": 0.39,
+   "B": 0.19
+  },
+  "awpShare": 0.37,
+  "spread": 443.7
+ },
+ "TeSeS": {
+  "CT": "rotator",
+  "T": "lurker",
+  "ctShare": {
+   "A": 0.29,
+   "M": 0.34,
+   "B": 0.38
+  },
+  "awpShare": 0.01,
+  "spread": 512.7
+ },
+ "karrigan": {
+  "CT": "anchorB",
+  "T": "igl",
+  "ctShare": {
+   "A": 0.01,
+   "M": 0.32,
+   "B": 0.67
+  },
+  "awpShare": 0.0,
+  "spread": 424.2
+ },
+ "NiKo": {
+  "CT": "anchorA",
+  "T": "support",
+  "ctShare": {
+   "A": 0.54,
+   "M": 0.44,
+   "B": 0.02
+  },
+  "awpShare": 0.0,
+  "spread": 510.9
+ }
+}

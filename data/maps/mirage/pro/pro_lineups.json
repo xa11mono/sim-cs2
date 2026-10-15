@@ -67,7 +67,7 @@
   "lead": 15.6,
   "flight": 1.73,
   "name": "про: флешка ? (выход, B)",
-  "fromZone": "B Stairs",
+  "fromZone": "B Stairs → TV",
   "toZone": null,
   "id": "pro2"
  },
@@ -499,7 +499,7 @@
   "lead": 17.4,
   "flight": 5.15,
   "name": "про: смок ? (выход, B)",
-  "fromZone": "B Stairs",
+  "fromZone": "B Stairs → TV",
   "toZone": null,
   "id": "pro20"
  },
@@ -1291,7 +1291,7 @@
   "lead": null,
   "flight": 1.73,
   "name": "про: флешка ? (сетап)",
-  "fromZone": "B Stairs",
+  "fromZone": "B Stairs → TV",
   "toZone": null,
   "id": "pro53"
  },
@@ -1507,7 +1507,7 @@
   "lead": 18.0,
   "flight": 1.78,
   "name": "про: флешка Default (выход, A)",
-  "fromZone": "T Roof",
+  "fromZone": "T Roof → T Spawn",
   "toZone": "Default",
   "id": "pro62"
  },
@@ -1579,7 +1579,7 @@
   "lead": null,
   "flight": 1.73,
   "name": "про: флешка ? (сетап, B)",
-  "fromZone": "B Stairs",
+  "fromZone": "B Stairs → TV",
   "toZone": null,
   "id": "pro65"
  },
@@ -1938,9 +1938,9 @@
   "at": 45.1,
   "lead": 15.9,
   "flight": 1.41,
-  "name": "про: молотов ? (выход, A)",
+  "name": "про: молотов Shadow (выход, A)",
   "fromZone": null,
-  "toZone": null,
+  "toZone": "Shadow",
   "id": "pro80"
  },
  {
@@ -2035,7 +2035,7 @@
   "lead": null,
   "flight": 1.72,
   "name": "про: флешка B Stairs (сетап, B)",
-  "fromZone": "B Stairs",
+  "fromZone": "B Stairs → TV",
   "toZone": "B Stairs",
   "id": "pro84"
  },
@@ -2371,7 +2371,7 @@
   "lead": 17.9,
   "flight": 1.73,
   "name": "про: флешка Corner (выход, B)",
-  "fromZone": "B Stairs",
+  "fromZone": "B Stairs → TV",
   "toZone": "Corner",
   "id": "pro98"
  },
@@ -2611,7 +2611,7 @@
   "lead": 17.3,
   "flight": 1.72,
   "name": "про: флешка ? (выход, A)",
-  "fromZone": "T Roof",
+  "fromZone": null,
   "toZone": null,
   "id": "pro108"
  },
@@ -2707,7 +2707,7 @@
   "lead": null,
   "flight": 5.3,
   "name": "про: смок ? (сетап, B)",
-  "fromZone": "B Stairs",
+  "fromZone": "B Stairs → TV",
   "toZone": null,
   "id": "pro112"
  },
@@ -2803,7 +2803,7 @@
   "lead": null,
   "flight": 1.73,
   "name": "про: флешка Default (сетап)",
-  "fromZone": "T Roof",
+  "fromZone": "T Roof → T Spawn",
   "toZone": "Default",
   "id": "pro116"
  },
@@ -3211,7 +3211,7 @@
   "lead": null,
   "flight": 1.73,
   "name": "про: флешка B Site (сетап, A)",
-  "fromZone": "B Stairs",
+  "fromZone": "B Stairs → TV",
   "toZone": "B Site",
   "id": "pro133"
  },
@@ -3283,7 +3283,7 @@
   "lead": 15.6,
   "flight": 1.83,
   "name": "про: флешка ? (выход, B)",
-  "fromZone": "Stove",
+  "fromZone": "B Stairs → TV",
   "toZone": null,
   "id": "pro136"
  },
@@ -3307,7 +3307,7 @@
   "lead": null,
   "flight": 1.72,
   "name": "про: флешка B Stairs (сетап, A)",
-  "fromZone": "B Stairs",
+  "fromZone": "B Stairs → TV",
   "toZone": "B Stairs",
   "id": "pro137"
  },
@@ -3331,7 +3331,7 @@
   "lead": null,
   "flight": 1.73,
   "name": "про: HE B Stairs (сетап, B)",
-  "fromZone": "B Stairs",
+  "fromZone": "B Stairs → TV",
   "toZone": "B Stairs",
   "id": "pro138"
  },
@@ -3907,7 +3907,7 @@
   "lead": null,
   "flight": 5.13,
   "name": "про: смок ? (сетап)",
-  "fromZone": "B Stairs",
+  "fromZone": "B Stairs → TV",
   "toZone": null,
   "id": "pro162"
  },
@@ -3931,7 +3931,7 @@
   "lead": null,
   "flight": 1.73,
   "name": "про: флешка Sandwich (сетап, B)",
-  "fromZone": "T Roof",
+  "fromZone": "T Roof → T Spawn",
   "toZone": "Sandwich",
   "id": "pro163"
  },
@@ -4411,7 +4411,7 @@
   "lead": null,
   "flight": 1.73,
   "name": "про: флешка Default (сетап, A)",
-  "fromZone": "T Roof",
+  "fromZone": "T Roof → T Spawn",
   "toZone": "Default",
   "id": "pro183"
  },
@@ -4843,7 +4843,7 @@
   "lead": null,
   "flight": 1.5,
   "name": "про: смок Palace (по времени)",
-  "fromZone": null,
+  "fromZone": "Shadow",
   "toZone": "Palace",
   "id": "pro201"
  },
@@ -4987,7 +4987,7 @@
   "lead": null,
   "flight": 1.72,
   "name": "про: флешка T Ramp (сетап, A)",
-  "fromZone": "T Roof",
+  "fromZone": null,
   "toZone": "T Ramp",
   "id": "pro207"
  },
@@ -5899,7 +5899,7 @@
   "lead": null,
   "flight": 1.73,
   "name": "про: флешка Corner (сетап)",
-  "fromZone": "B Stairs",
+  "fromZone": "B Stairs → TV",
   "toZone": "Corner",
   "id": "pro245"
  },
@@ -6211,7 +6211,7 @@
   "lead": 18.0,
   "flight": 1.73,
   "name": "про: флешка ? (выход, B)",
-  "fromZone": "B Stairs",
+  "fromZone": "B Stairs → TV",
   "toZone": null,
   "id": "pro258"
  },
@@ -6307,7 +6307,7 @@
   "lead": null,
   "flight": 1.72,
   "name": "про: флешка Tetris (сетап, B)",
-  "fromZone": "T Roof",
+  "fromZone": "T Roof → T Spawn",
   "toZone": "Tetris",
   "id": "pro262"
  },
@@ -6379,7 +6379,7 @@
   "lead": null,
   "flight": 1.72,
   "name": "про: HE B Stairs (сетап, A)",
-  "fromZone": "B Stairs",
+  "fromZone": "B Stairs → TV",
   "toZone": "B Stairs",
   "id": "pro265"
  },
@@ -6618,9 +6618,9 @@
   "at": 55.8,
   "lead": null,
   "flight": 1.42,
-  "name": "про: молотов ? (сетап, B)",
+  "name": "про: молотов Shadow (сетап, B)",
   "fromZone": null,
-  "toZone": null,
+  "toZone": "Shadow",
   "id": "pro275"
  },
  {
@@ -7171,7 +7171,7 @@
   "lead": null,
   "flight": 1.73,
   "name": "про: флешка Tetris (сетап)",
-  "fromZone": "T Roof",
+  "fromZone": null,
   "toZone": "Tetris",
   "id": "pro298"
  },
@@ -7435,7 +7435,7 @@
   "lead": null,
   "flight": 1.72,
   "name": "про: HE B Stairs (сетап)",
-  "fromZone": "B Stairs",
+  "fromZone": "B Stairs → TV",
   "toZone": "B Stairs",
   "id": "pro309"
  },
@@ -7939,7 +7939,7 @@
   "lead": null,
   "flight": 1.72,
   "name": "про: флешка T Ramp (сетап, A)",
-  "fromZone": "T Spawn",
+  "fromZone": "T Roof → T Spawn",
   "toZone": "T Ramp",
   "id": "pro330"
  },
@@ -7963,7 +7963,7 @@
   "lead": null,
   "flight": 1.83,
   "name": "про: флешка ? (сетап, A)",
-  "fromZone": "B Stairs",
+  "fromZone": "B Stairs → TV",
   "toZone": null,
   "id": "pro331"
  },
@@ -8203,7 +8203,7 @@
   "lead": null,
   "flight": 2.11,
   "name": "про: молотов Stairs (сетап, A)",
-  "fromZone": "T Roof",
+  "fromZone": "T Roof → T Spawn",
   "toZone": "Stairs",
   "id": "pro341"
  },
@@ -8275,7 +8275,7 @@
   "lead": null,
   "flight": 5.45,
   "name": "про: смок ? (сетап, A)",
-  "fromZone": "T Roof",
+  "fromZone": "T Roof → T Spawn",
   "toZone": null,
   "id": "pro344"
  },
@@ -8347,7 +8347,7 @@
   "lead": null,
   "flight": 5.03,
   "name": "про: смок ? (сетап, A)",
-  "fromZone": "B Stairs",
+  "fromZone": "B Stairs → TV",
   "toZone": null,
   "id": "pro347"
  },
@@ -9139,7 +9139,7 @@
   "lead": null,
   "flight": 1.83,
   "name": "про: флешка Tetris (сетап, A)",
-  "fromZone": "T Roof",
+  "fromZone": "T Roof → T Spawn",
   "toZone": "Tetris",
   "id": "pro380"
  },
@@ -9619,7 +9619,7 @@
   "lead": 22.6,
   "flight": 5.58,
   "name": "про: смок ? (выход, A)",
-  "fromZone": "T Roof",
+  "fromZone": "T Roof → T Spawn",
   "toZone": null,
   "id": "pro400"
  },
@@ -10027,7 +10027,7 @@
   "lead": null,
   "flight": 1.73,
   "name": "про: флешка ? (сетап)",
-  "fromZone": "Stove",
+  "fromZone": "B Stairs → TV",
   "toZone": null,
   "id": "pro417"
  },
@@ -10051,7 +10051,7 @@
   "lead": null,
   "flight": 1.72,
   "name": "про: флешка B Stairs (сетап)",
-  "fromZone": "B Stairs",
+  "fromZone": "B Stairs → TV",
   "toZone": "B Stairs",
   "id": "pro418"
  },
@@ -10891,7 +10891,7 @@
   "lead": 17.7,
   "flight": 1.73,
   "name": "про: флешка B Site (выход, B)",
-  "fromZone": "B Stairs",
+  "fromZone": "B Stairs → TV",
   "toZone": "B Site",
   "id": "pro453"
  },
@@ -12667,7 +12667,7 @@
   "lead": null,
   "flight": 5.56,
   "name": "про: смок ? (сетап)",
-  "fromZone": "T Roof",
+  "fromZone": "T Roof → T Spawn",
   "toZone": null,
   "id": "pro527"
  },
@@ -13747,7 +13747,7 @@
   "lead": 12.2,
   "flight": 1.73,
   "name": "про: флешка B Apps (выход, B)",
-  "fromZone": "Stove",
+  "fromZone": "B Stairs → TV",
   "toZone": "B Apps",
   "id": "pro572"
  },
@@ -13819,7 +13819,7 @@
   "lead": null,
   "flight": 1.72,
   "name": "про: флешка Tetris (сетап, A)",
-  "fromZone": "T Roof",
+  "fromZone": "T Roof → T Spawn",
   "toZone": "Tetris",
   "id": "pro575"
  },
@@ -13915,7 +13915,7 @@
   "lead": null,
   "flight": 1.83,
   "name": "про: флешка Tetris (сетап, B)",
-  "fromZone": "T Roof",
+  "fromZone": "T Roof → T Spawn",
   "toZone": "Tetris",
   "id": "pro579"
  },
@@ -14035,7 +14035,7 @@
   "lead": null,
   "flight": 1.72,
   "name": "про: флешка Pillars (сетап, B)",
-  "fromZone": "Pillars",
+  "fromZone": "Pillars → T Roof",
   "toZone": "Pillars",
   "id": "pro584"
  },
@@ -14059,7 +14059,7 @@
   "lead": null,
   "flight": 1.73,
   "name": "про: флешка Tetris (сетап, B)",
-  "fromZone": "T Roof",
+  "fromZone": "T Roof → T Spawn",
   "toZone": "Tetris",
   "id": "pro585"
  },
@@ -14083,7 +14083,7 @@
   "lead": null,
   "flight": 1.72,
   "name": "про: флешка Corner (сетап, B)",
-  "fromZone": "B Stairs",
+  "fromZone": "B Stairs → TV",
   "toZone": "Corner",
   "id": "pro586"
  },
@@ -14107,7 +14107,7 @@
   "lead": null,
   "flight": 1.73,
   "name": "про: флешка Corner (сетап, B)",
-  "fromZone": "B Stairs",
+  "fromZone": "B Stairs → TV",
   "toZone": "Corner",
   "id": "pro587"
  },
@@ -14131,7 +14131,7 @@
   "lead": null,
   "flight": 1.73,
   "name": "про: флешка ? (сетап, B)",
-  "fromZone": "Stove",
+  "fromZone": "B Stairs → TV",
   "toZone": null,
   "id": "pro588"
  },
@@ -14203,7 +14203,7 @@
   "lead": null,
   "flight": 1.73,
   "name": "про: флешка Pillars (сетап, B)",
-  "fromZone": "Pillars",
+  "fromZone": "Pillars → T Roof",
   "toZone": "Pillars",
   "id": "pro591"
  },
@@ -14275,7 +14275,7 @@
   "lead": null,
   "flight": 1.73,
   "name": "про: флешка Tetris (сетап)",
-  "fromZone": "T Roof",
+  "fromZone": "T Roof → T Spawn",
   "toZone": "Tetris",
   "id": "pro594"
  },
@@ -15859,7 +15859,7 @@
   "lead": null,
   "flight": 5.56,
   "name": "про: смок Connector (сетап, B)",
-  "fromZone": "B Stairs",
+  "fromZone": "B Stairs → TV",
   "toZone": "Connector",
   "id": "pro660"
  },
@@ -15907,7 +15907,7 @@
   "lead": null,
   "flight": 5.39,
   "name": "про: смок ? (сетап, B)",
-  "fromZone": "T Roof",
+  "fromZone": "T Roof → T Spawn",
   "toZone": null,
   "id": "pro662"
  },
@@ -17587,7 +17587,7 @@
   "lead": 20.3,
   "flight": 1.77,
   "name": "про: флешка ? (выход, A)",
-  "fromZone": "T Roof",
+  "fromZone": "T Roof → T Spawn",
   "toZone": null,
   "id": "pro732"
  },
@@ -18811,7 +18811,7 @@
   "lead": null,
   "flight": 1.73,
   "name": "про: флешка ? (сетап)",
-  "fromZone": "B Stairs",
+  "fromZone": "B Stairs → TV",
   "toZone": null,
   "id": "pro783"
  },
@@ -19987,7 +19987,7 @@
   "lead": null,
   "flight": 1.36,
   "name": "про: смок Shadow (задержка выхода, A)",
-  "fromZone": null,
+  "fromZone": "Shadow",
   "toZone": "Shadow",
   "id": "pro832"
  },
@@ -20731,7 +20731,7 @@
   "lead": null,
   "flight": 1.73,
   "name": "про: флешка T Ramp (сетап, A)",
-  "fromZone": "T Roof",
+  "fromZone": "T Roof → T Spawn",
   "toZone": "T Ramp",
   "id": "pro863"
  },
@@ -20851,7 +20851,7 @@
   "lead": null,
   "flight": 1.72,
   "name": "про: флешка Corner (сетап, A)",
-  "fromZone": "B Stairs",
+  "fromZone": "B Stairs → TV",
   "toZone": "Corner",
   "id": "pro868"
  },
@@ -20994,9 +20994,9 @@
   "at": 55.8,
   "lead": null,
   "flight": 1.72,
-  "name": "про: флешка ? (сетап)",
+  "name": "про: флешка Shadow (сетап)",
   "fromZone": null,
-  "toZone": null,
+  "toZone": "Shadow",
   "id": "pro874"
  },
  {
@@ -23299,7 +23299,7 @@
   "lead": null,
   "flight": 1.72,
   "name": "про: флешка T Ramp (сетап)",
-  "fromZone": "T Roof",
+  "fromZone": "T Roof → T Spawn",
   "toZone": "T Ramp",
   "id": "pro970"
  },
@@ -24091,7 +24091,7 @@
   "lead": null,
   "flight": 1.94,
   "name": "про: молотов Chair (по времени)",
-  "fromZone": "Short",
+  "fromZone": "B Stairs",
   "toZone": "Chair",
   "id": "pro1003"
  },
@@ -24355,7 +24355,7 @@
   "lead": null,
   "flight": 1.73,
   "name": "про: флешка T Ramp (сетап)",
-  "fromZone": "T Spawn",
+  "fromZone": "T Roof → T Spawn",
   "toZone": "T Ramp",
   "id": "pro1014"
  },
@@ -24475,7 +24475,7 @@
   "lead": null,
   "flight": 1.83,
   "name": "про: флешка Sandwich (сетап)",
-  "fromZone": "T Roof",
+  "fromZone": "T Roof → T Spawn",
   "toZone": "Sandwich",
   "id": "pro1019"
  },
@@ -24739,7 +24739,7 @@
   "lead": null,
   "flight": 2.11,
   "name": "про: молотов Stairs (сетап)",
-  "fromZone": "T Roof",
+  "fromZone": "T Roof → T Spawn",
   "toZone": "Stairs",
   "id": "pro1030"
  },
@@ -26707,7 +26707,7 @@
   "lead": null,
   "flight": 1.73,
   "name": "про: флешка B Site (сетап)",
-  "fromZone": "TV",
+  "fromZone": "B Stairs → TV",
   "toZone": "B Site",
   "id": "pro1112"
  },
@@ -26779,7 +26779,7 @@
   "lead": null,
   "flight": 1.72,
   "name": "про: флешка Pillars (сетап)",
-  "fromZone": "Pillars",
+  "fromZone": "T Roof → Pillars",
   "toZone": "Pillars",
   "id": "pro1115"
  },
@@ -26851,7 +26851,7 @@
   "lead": null,
   "flight": 1.72,
   "name": "про: флешка Tetris (сетап)",
-  "fromZone": "T Spawn",
+  "fromZone": "T Roof → T Spawn",
   "toZone": "Tetris",
   "id": "pro1118"
  },
@@ -31723,7 +31723,7 @@
   "lead": null,
   "flight": 1.73,
   "name": "про: флешка ? (сетап)",
-  "fromZone": "Pillars",
+  "fromZone": "Pillars → T Roof",
   "toZone": null,
   "id": "pro1321"
  },
@@ -31891,7 +31891,7 @@
   "lead": null,
   "flight": 1.72,
   "name": "про: флешка T Ramp (сетап)",
-  "fromZone": "T Roof",
+  "fromZone": "T Roof → T Spawn",
   "toZone": "T Ramp",
   "id": "pro1328"
  },
@@ -32251,7 +32251,7 @@
   "lead": null,
   "flight": 1.72,
   "name": "про: HE B Apps (сетап)",
-  "fromZone": "B Stairs",
+  "fromZone": "B Stairs → TV",
   "toZone": "B Apps",
   "id": "pro1343"
  },
@@ -33162,9 +33162,9 @@
   "at": 54.9,
   "lead": null,
   "flight": 2.06,
-  "name": "про: молотов ? (сетап)",
+  "name": "про: молотов Shadow (сетап)",
   "fromZone": "Palace",
-  "toZone": null,
+  "toZone": "Shadow",
   "id": "pro1381"
  },
  {
@@ -33619,7 +33619,7 @@
   "lead": null,
   "flight": 5.36,
   "name": "про: смок Stairs (сетап)",
-  "fromZone": "T Spawn",
+  "fromZone": "T Roof → T Spawn",
   "toZone": "Stairs",
   "id": "pro1400"
  },
@@ -33691,7 +33691,7 @@
   "lead": null,
   "flight": 5.77,
   "name": "про: смок Door (сетап)",
-  "fromZone": "B Stairs",
+  "fromZone": "B Stairs → TV",
   "toZone": "Door",
   "id": "pro1403"
  },

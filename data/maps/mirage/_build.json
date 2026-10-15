@@ -285,7 +285,8 @@
   "zones",
   "wallbang",
   "map",
-  "demos"
+  "demos",
+  "spawns"
  ],
  "frozen": {},
  "roles": {

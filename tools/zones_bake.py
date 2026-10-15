@@ -30,6 +30,7 @@ MAPNAME = mapdir.current()
 SIMPLIFY = 4.0     # упрощение контура зоны, ед. карты — проектное число
 DZ_W = 2.0         # перепад высоты в длине шага (ед. игры → ед. карты ×2) — проектное число
 FAR = 260          # «далеко от подписи» для отчёта о спорных зонах, ед. карты (≈ 650 ед. игры) — проектное число
+SPLIT_FAR = 380    # (v321) зона длиннее 300 ед. карты по полу от своего зерна режется на части — проектное число
 SMALL = 1500       # «маленькая зона» для отчёта, ед. карты² — проектное число
 
 
@@ -78,26 +79,57 @@ def main():
         seeds.append((k, s['id']))
 
     # Дейкстра от всех зёрен сразу
-    dist = {}; own = {}
-    pq = [(0.0, k, aid) for k, aid in seeds]
-    heapq.heapify(pq)
-    while pq:
-        d, k, aid = heapq.heappop(pq)
-        if aid in dist:
-            continue
-        dist[aid] = d; own[aid] = k
-        a = A[aid]
-        for b in sorted(nb[aid]):
-            if b in dist:
+    def voronoi(seeds):
+        dist = {}; own = {}
+        pq = [(0.0, k, aid) for k, aid in seeds]
+        heapq.heapify(pq)
+        while pq:
+            d, k, aid = heapq.heappop(pq)
+            if aid in dist:
                 continue
-            B = A[b]
-            step = math.hypot(a['c'][0] - B['c'][0], a['c'][1] - B['c'][1]) + abs(a['z'] - B['z']) / mapdir.radar(MAPNAME)['scale'] * DZ_W
-            heapq.heappush(pq, (d + step, k, b))
-    lost = [aid for aid in A if aid not in own]     # участки без связи с зёрнами (верх ящика без связей) — по ближайшему
-    for aid in lost:
-        a = A[aid]
-        best = min((x for x in own), key=lambda x: math.hypot(A[x]['c'][0] - a['c'][0], A[x]['c'][1] - a['c'][1]))
-        own[aid] = own[best]; dist[aid] = dist[best]
+            dist[aid] = d; own[aid] = k
+            a = A[aid]
+            for b in sorted(nb[aid]):
+                if b in dist:
+                    continue
+                B = A[b]
+                step = math.hypot(a['c'][0] - B['c'][0], a['c'][1] - B['c'][1]) + abs(a['z'] - B['z']) / mapdir.radar(MAPNAME)['scale'] * DZ_W
+                heapq.heappush(pq, (d + step, k, b))
+        lost = [aid for aid in A if aid not in own]     # участки без связи с зёрнами (верх ящика без связей) — по ближайшему
+        for aid in lost:
+            a = A[aid]
+            best = min((x for x in own), key=lambda x: math.hypot(A[x]['c'][0] - a['c'][0], A[x]['c'][1] - a['c'][1]))
+            own[aid] = own[best]; dist[aid] = dist[best]
+        return dist, own
+
+    calls = [list(c) for c in calls]
+    dist, own = voronoi(seeds)
+    # (v321) длинные зоны (коридор без подписи на радаре) режутся: новое зерно — самый дальний участок зоны; имя новой
+    # части — «<зона> → <сосед>» (сосед — зона, к которой часть примыкает); все такие части — в списке спорных
+    split = set()
+    base_of = [c[0] for c in calls]        # исходное название (подпись радара) у каждой части
+    for _ in range(12):
+        far = defaultdict(lambda: (-1, None))
+        for aid, k in own.items():
+            if dist[aid] > far[k][0]:
+                far[k] = (dist[aid], aid)
+        k, (d, aid) = max(far.items(), key=lambda t: t[1][0])
+        if d <= SPLIT_FAR:
+            break
+        calls.append([base_of[k], A[aid]['c'][0], A[aid]['c'][1]])
+        base_of.append(base_of[k])
+        seeds.append((len(calls) - 1, aid))
+        split.add(len(calls) - 1)
+        dist, own = voronoi(seeds)
+    for j in sorted(split):
+        base = base_of[j]
+        mine = [aid for aid, k in own.items() if k == j]
+        cnt = Counter(own[b] for aid in mine for b in nb[aid] if base_of[own[b]] != base)
+        calls[j][0] = '%s → %s' % (base, base_of[cnt.most_common(1)[0][0]]) if cnt else '%s (дальняя часть)' % base
+    names_used = Counter(c[0] for c in calls)
+    for j in sorted(split):          # одинаковые имена частей — с номером
+        if names_used[calls[j][0]] > 1:
+            calls[j][0] += ' %d' % j
 
     # картинка зон: верхний этаж поверх нижнего, 1 px = 1 ед. карты
     def paint(owner):
@@ -215,6 +247,8 @@ def main():
             why.append('тянется на %.0f ед. карты от подписи' % far[k])
         if areas[k] < SMALL:
             why.append('маленькая (%.0f ед.²)' % areas[k])
+        if k in split:
+            why.append('часть длинной зоны, имени на радаре нет')
         if why:
             dispute.append((calls[k][0], zid[k], '; '.join(why)))
     json.dump({'disputed': dispute, 'far': {zid[k]: round(far[k]) for k in zid}},

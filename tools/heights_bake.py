@@ -252,6 +252,58 @@ def covered(areas, dirs):
     return res
 
 
+def roof_polys(areas, dirs):
+    """крыши многоугольниками: штриховка (большинство радаров) на полу навмеша, без кусков меньше 40 ед.²"""
+    import numpy as np
+    from PIL import Image, ImageDraw
+    from scipy import ndimage
+    import contourpy
+    files = []
+    for d in dirs:
+        files.append(d if os.path.isfile(d) else sorted(glob.glob(os.path.join(d, 'de_%s_radar.*' % MAPNAME)))[0])
+    masks = [hatch_mask(f) for f in files]
+    m = (np.sum(masks, axis=0) * 2 > len(masks))
+    m = np.kron(m, np.ones((2, 2), bool))                      # 1024 → 2048
+    fl = Image.new('L', (2048, 2048), 0); d = ImageDraw.Draw(fl)
+    for a in areas:
+        d.polygon(a['P'], fill=1, outline=1)
+    m &= ndimage.binary_dilation(np.asarray(fl).astype(bool), iterations=2)
+    m = ndimage.binary_opening(ndimage.binary_closing(m, iterations=3), iterations=1)
+    out = []
+    lab, n = ndimage.label(m)
+    for i in range(1, n + 1):
+        part = ndimage.binary_fill_holes(lab == i)
+        if part.sum() < 40:
+            continue
+        ys, xs = np.nonzero(part)
+        y0, x0 = ys.min() - 2, xs.min() - 2
+        sub = np.zeros((ys.max() - y0 + 3, xs.max() - x0 + 3)); sub[ys - y0, xs - x0] = 1
+        pts, offs = contourpy.contour_generator(z=sub, line_type='SeparateCode', fill_type='OuterOffset').filled(0.5, 2.0)
+        ring = max((p[o[0]:o[1]] for p, o in zip(pts, offs)), key=len)
+        P = [(float(x) + x0, float(y) + y0) for x, y in ring[:-1]]
+        P = simplify(P, 1.5)
+        if len(P) >= 3:
+            out.append([[round(x, 1), round(y, 1)] for x, y in P])
+    return out
+
+
+def simplify(P, eps):
+    """Дуглас—Пекер для замкнутого контура"""
+    def dp(pts):
+        if len(pts) < 3:
+            return pts
+        (x0, y0), (x1, y1) = pts[0], pts[-1]
+        L = math.hypot(x1 - x0, y1 - y0) or 1e-9
+        best, bi = -1, 0
+        for i in range(1, len(pts) - 1):
+            dd = abs((x1 - x0) * (y0 - pts[i][1]) - (x0 - pts[i][0]) * (y1 - y0)) / L
+            if dd > best:
+                best, bi = dd, i
+        return [pts[0], pts[-1]] if best <= eps else dp(pts[:bi + 1])[:-1] + dp(pts[bi:])
+    far = max(range(len(P)), key=lambda i: (P[i][0] - P[0][0]) ** 2 + (P[i][1] - P[0][1]) ** 2)
+    return dp(P[:far + 1])[:-1] + dp(P[far:] + [P[0]])[:-1]
+
+
 # ---------------- названия мест (для отчёта) ----------------
 # названия мест по подписям Simple Radar (координаты карты 0..2048) — только для отчёта; v318: из рецепта карты
 # (data/maps/<карта>/_build.json, поле callouts)
@@ -415,8 +467,10 @@ def main():
         r['c'] = [round(sum(xs) / len(xs), 1), round(sum(ys) / len(ys), 1)]
 
     # 5) крыто сверху
+    roofs = None
     if sr:
         cov = covered(areas, sr)
+        roofs = roof_polys(areas, sr)
     else:
         cov = {}
         for row in old.get('areas', []):
@@ -446,6 +500,10 @@ def main():
         'over': over,
         'own': old.get('own') if isinstance(old.get('own'), list) else [],
     }
+    if roofs is not None:
+        out['roofs'] = roofs
+        out['_about'].append('roofs (v321): крыши — многоугольники штриховки Simple Radar на полу (0..2048); если есть, игра берёт потолок и '
+                             'штриховку из них, а cov участка — только из правки владельца.')
     write(out)
     print('записано %s: участков %d, крытых %d, рамп %d (стрелок %d), уступов %d краёв, «над уровнем» %d пар' % (
         os.path.relpath(OUT, ROOT), len(rows), sum(r[3] for r in rows), len(ramps), len(arrows), len(ledges), len(over)))
