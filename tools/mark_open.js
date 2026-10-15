@@ -13,7 +13,7 @@ const fs = require('fs'), path = require('path');
   if(!sim || !snapFile){ console.error('node tools/mark_open.js sim.html снимок.json "код"'); process.exit(2); }
   const br = await chromium.launch(); const pg = await br.newPage();
   await pg.route(/^https?:/, r => r.abort());
-  await pg.goto('file://' + path.resolve(sim)); await pg.waitForTimeout(1200);
+  await pg.goto('file://' + path.resolve(sim)); await pg.waitForFunction(() => typeof window.__ev === 'function', null, {timeout: 60000});
   const snap = fs.readFileSync(snapFile, 'utf8');
   await pg.evaluate(t => window.__ev('mkOpenSnap')(t), snap);
   console.log(await pg.evaluate(src => window.__ev(src), code || '"матч " + matchNum + ", раунд " + roundNum + ", тик " + tick'));

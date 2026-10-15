@@ -210,7 +210,7 @@
   #voice .vl.death{border-color:#e05c52;} #voice .vl.death .vx{color:#ff8a80;}
   #voice .vl.see{border-color:#e8913a;} #voice .vl.see .vx{color:#ffb36b;}
   #voice .vl.hear{border-color:#6f7a6b;} #voice .vl.hear .vx{color:#a9b1a5;}
-  #voice .vl.plan{border-color:#d6b43c;} #voice .vl.plan .vx{color:#f2d77a;}
+  #voice .vl.plan{border-color:#d6b43c;} #voice .vl.plan .vx{color:#f2d77a;} #voice .vl.recall{border-color:#9b6bd6;} #voice .vl.recall .vx{color:#c9a8f2;}
   #voice .vl.bomb{border-color:#ff4d4d;background:rgba(255,77,77,0.08);} #voice .vl.bomb .vx{color:#ff6b6b;font-weight:600;}
   #voice .vl.nade{border-color:#7fbf5a;} #voice .vl.nade .vx{color:#a9dc8a;}
   #voice .vl.self{border-color:#cfd3cb;} #voice .vl.self .vx{color:#f4f4ee;}
@@ -293,6 +293,7 @@
         </div>
       </details>
       <button id="btnWarmSkip" class="primary" style="display:none" title="Закончить разминку и начать матч сейчас">Начать матч</button>
+      <button id="btnSnd" title="Звуки игры: шаги, выстрелы, гранаты, бомба, плант, дефуз — синтез в браузере (не файлы CS2); громкость — по расстоянию от середины экрана">Звук</button>
       <button id="btnObs" class="on" title="Автообсервер: сам выбирает, за кем следить, и ведёт камеру (клавиша O). Двинул камеру или выбрал игрока сам — обсервер ждёт 6 с">Обсервер <kbd>O</kbd></button>
       <span id="mkSlot"></span>
     </div>
@@ -14178,7 +14179,7 @@ function bombTick(){
       }
       if(tick >= c.plantUntil){
         c.planting = false;
-        bomb.state = "planted"; bomb.site = tac.site; bomb.x = c.baseX; bomb.y = c.baseY;
+        bomb.state = "planted"; bomb.site = tac.site; bomb.x = c.baseX; bomb.y = c.baseY; if(SND && SND.on) sndBomb("planted", c.baseX, c.baseY);
         bomb.plantTick = tick; bomb.explodeTick = tick + BOMB_TICKS; bomb.carrier = null;
         c.money = Math.min(MAX_MONEY, c.money + 300);
         logEvent(c.id+" заложил бомбу на "+tac.site+" (+$300)", true);
@@ -14191,7 +14192,7 @@ function bombTick(){
     // планта до конца раунда: это и были почти все проигрыши T по времени)
     var nearFoe = c._sawEnemy && c._nearestEnemyDist < 500;
     if(site && tac.phase !== "setup" && c.state === "patrol" && !nearFoe && onSite(site, c.baseX, c.baseY) && !(c._noPlantUntil > tick) && !inFire(c.baseX, c.baseY)){   // (v263, Б2) в огне плант не начинают — не доживут
-      c.planting = true; c.plantUntil = tick + PLANT_TICKS; c.path = []; c.pathIdx = 0;
+      c.planting = true; c.plantUntil = tick + PLANT_TICKS; c.path = []; c.pathIdx = 0; if(SND && SND.on) sndBomb("plant", c.baseX, c.baseY);
       // фейк-плант (раз за раунд): свои рядом держат углы, CT по инфе рядом —
       // начать и через ~1с бросить: CT на звук выйдут под прицел
       if(BAL.fakePlant && c._fakePlanted !== roundNum){
@@ -14232,7 +14233,7 @@ function bombTick(){
       if(def._sawEnemy && def.contactStreak > 6 && bombTimeLeftTicks() > need + 192){
         def.defusing = false; def.defuseCooldownUntil = tick + 96; logEvent(def.id+" прервал дефуз — враг рядом");
       } else if(tick >= def.defuseUntil){
-        def.defusing = false; bomb.state = "defused";
+        def.defusing = false; bomb.state = "defused"; if(SND && SND.on) sndBomb("defused", bomb.x, bomb.y);
         def.money = Math.min(MAX_MONEY, def.money + 300);
         logEvent(def.id+" обезвредил бомбу (+$300)", true);
         feedEvent("defuse", def.id+" обезвредил бомбу"+(bots.some(function(o){ return o.team==="T" && o.alive; }) ? " под носом у T" : ""));
@@ -14256,7 +14257,7 @@ function bombTick(){
           defuseSound(cand);
           logEvent(cand.id+" фейк-дефуз — ловит пик на звук");
         } else {
-          cand.defusing = true; cand.defuseUntil = tick + dTicks;
+          cand.defusing = true; cand.defuseUntil = tick + dTicks; if(SND && SND.on) sndBomb("defuse", cand.baseX, cand.baseY);
           cand.path = []; cand.pathIdx = 0;
           defuseSound(cand);
           logEvent(cand.id+" дефузит"+(cand.kit?" с китом (5с)":" без кита (10с)")+"…");
@@ -15283,9 +15284,11 @@ function tBrain(){
     var aCT = aliveCount("CT"), aT = aliveCount("T");
     if(aCT <= 2 && aT > aCT){
       var seenHere = intelEstimate("T", site.x, site.y, 600, 8*TICK_HZ).seen, seenOther = intelEstimate("T", SITES[other].x, SITES[other].y, 600, 8*TICK_HZ).seen;
+      var was = tt.site;
       if(seenHere > 0 && seenOther === 0){ tSetSite(tt, other); site = SITES[tt.site]; g = GEO[tt.site]; other = tt.site === "A" ? "B" : "A"; }
       tt.fewGo = true; tt.phase = "execute"; tt.execStart = tick; siteHeatPending[tt.site] = 1;
-      voiceLog("T", "few"+roundNum, "IGL", "их осталось "+aCT+" — заходим сейчас, бомба на "+tt.site+"!");
+      voiceLog("T", "few"+roundNum, "IGL", was !== tt.site ? "ПЕРЕКОЛЛ "+was+" → "+tt.site+": их осталось "+aCT+", на "+was+" видели — заходим сейчас!"
+                                                           : "их осталось "+aCT+" — заходим сейчас, бомба на "+tt.site+"!");
       logEvent("T: выход на "+tt.site+"! (CT осталось "+aCT+")");
     }
   }
@@ -19076,7 +19079,7 @@ function blindBullet(b, pt){
   var a = Math.atan2(pt.y-b.y, pt.x-b.x) + (hashRand(tick*31 + b.id.charCodeAt(1))-0.5)*0.08;
   var cl = rayClipWalls(b.x, b.y, b.x + Math.cos(a)*(w.range||900), b.y + Math.sin(a)*(w.range||900));
   smokeBulletHole(b.x, b.y, cl.x, cl.y);
-  tracers.push({wc:tracerClass(b.weapon), x1:b.x, y1:b.y, x2:cl.x, y2:cl.y, team:b.team, born:nowTs, hit:false, miss:true}); if(tracers.length > 60) tracers.shift();
+  tracers.push({wc:tracerClass(b.weapon), x1:b.x, y1:b.y, x2:cl.x, y2:cl.y, team:b.team, born:nowTs, hit:false, miss:true}); if(tracers.length > 60) tracers.shift(); if(SND && SND.on) sndShot(b.weapon, b.x, b.y);
   bots.forEach(function(o){ if(!o.alive || o.team === b.team) return;
     var hr = (hasLOS(o.x, o.y, b.x, b.y) ? GUN_HEAR_OPEN : GUN_HEAR_WALL) * (w.silenced ? 0.55 : 1);
     if(Math.hypot(o.x-b.x, o.y-b.y) < hr) o.heardSound = hearReal(o, {x:b.x, y:b.y, tick:tick, team:b.team, src:b.id, kind:"shots"}); });
@@ -20007,7 +20010,7 @@ function ctBrain(){
       var CM = ct._callMem || (ct._callMem = {}), cm = CM[best.site];
       var dup = BAL.callDedup && cm && n1 <= cm.n && tick - cm.tick < 15*TICK_HZ;
       if((isNew || n1 > prevLogged) && !dup){ ct.call.logged = n1; CM[best.site] = {n:n1, tick:tick};
-        if(isNew && prevSite && prevSite !== best.site) intelCallLog("CT", "recall"+best.site+tick, "ПЕРЕКОЛЛ "+prevSite+" → "+best.site+": "+how+" (~"+n1+")", null, "plan");
+        if(isNew && prevSite && prevSite !== best.site) intelCallLog("CT", "recall"+best.site+tick, "ПЕРЕКОЛЛ "+prevSite+" → "+best.site+": "+how+" (~"+n1+")", null, "recall");
         else intelCallLog("CT", "site"+best.site+n1, "T на "+best.site+" (~"+n1+", "+how+")", null, "plan"); }
       else if(dup) ct.call.logged = Math.max(ct.call.logged||0, cm.n);
     } else { ct.call.evTick = tick; ct.call.undefended = best.undefended; if(best.carrier || best.plant) ct.call.bombSeen = true; }
@@ -20605,13 +20608,52 @@ function segHitsCircle(x1,y1,x2,y2,cx,cy,r){
 }
 // (v288) для показа (киллфид, радар): линия выстрела прошла через облако — с дырами от пуль или без
 function smokeOnLine(x1,y1,x2,y2){
-  for(var i=0;i<smokes.length;i++){ var s = smokes[i], r = smokeRadiusNow(s); if(r > 8 && segHitsCircle(x1,y1,x2,y2,s.x,s.y,r)) return true; }
+  for(var i=0;i<smokes.length;i++){ var s = smokes[i], r = smokeRadiusNow(s); if(r > 8 && areaSegHits(s, r, x1,y1,x2,y2)) return true; }
   return false;
+}
+// (v323, М36) дым и огонь не проходят сквозь стены: от центра — AREA_RAYS лучей до первой стены (доля радиуса 0..1);
+// и действие (видимость сквозь дым, где жжёт), и рисунок — ровно эта область
+var AREA_RAYS = 48;
+function areaRays(x, y){
+  var R = 1, out = new Float32Array(AREA_RAYS).fill(1);
+  if(insideSolidWall(x, y)) return out;
+  var Rmax = Math.max(NADE.smoke.radius, NADE.molly.radius) + 8;
+  for(var k=0;k<AREA_RAYS;k++){
+    var a = 2*Math.PI*k/AREA_RAYS, dx = Math.cos(a)*Rmax, dy = Math.sin(a)*Rmax, best = 1;
+    for(var i=0;i<MANUAL_WALLS.length;i++){
+      var w = MANUAL_WALLS[i], ex = w[2]-w[0], ey = w[3]-w[1], den = dx*ey - dy*ex; if(Math.abs(den) < 1e-9) continue;
+      var t = ((w[0]-x)*ey - (w[1]-y)*ex)/den, u = ((w[0]-x)*dy - (w[1]-y)*dx)/den;
+      if(t > 0 && t < best && u >= 0 && u <= 1) best = t;
+    }
+    out[k] = best*Rmax;   // ед. карты до стены
+  }
+  return out;
+}
+function areaLimit(o, ang){   // расстояние от центра до стены по направлению ang (ед. карты)
+  if(!o.rays) return Infinity;
+  var f = ((ang/(2*Math.PI))*AREA_RAYS % AREA_RAYS + AREA_RAYS) % AREA_RAYS, k = Math.floor(f), t = f - k;
+  return o.rays[k]*(1-t) + o.rays[(k+1)%AREA_RAYS]*t;
+}
+function areaHas(o, r, px, py){
+  var dx = px - o.x, dy = py - o.y, d = Math.hypot(dx, dy);
+  return d < r && d < areaLimit(o, Math.atan2(dy, dx));
+}
+function areaSegHits(o, r, x1, y1, x2, y2){
+  if(!segHitsCircle(x1,y1,x2,y2,o.x,o.y,r)) return false;
+  if(!o.rays) return true;
+  var L = Math.hypot(x2-x1, y2-y1), n = Math.max(1, Math.ceil(L/3));
+  for(var i=0;i<=n;i++){ var t = i/n; if(areaHas(o, r, x1+(x2-x1)*t, y1+(y2-y1)*t)) return true; }
+  return false;
+}
+function areaPath(o, r){   // контур области для рисования
+  ctx.beginPath();
+  for(var k=0;k<AREA_RAYS;k++){ var a = 2*Math.PI*k/AREA_RAYS, d = Math.min(r, o.rays ? o.rays[k] : r); if(k) ctx.lineTo(o.x+Math.cos(a)*d, o.y+Math.sin(a)*d); else ctx.moveTo(o.x+Math.cos(a)*d, o.y+Math.sin(a)*d); }
+  ctx.closePath();
 }
 function smokeBlocks(x1,y1,x2,y2){
   for(var i=0;i<smokes.length;i++){
     var s = smokes[i], r = smokeRadiusNow(s);
-    if(r > 8 && segHitsCircle(x1,y1,x2,y2,s.x,s.y,r) && !smokeHoleClear(s, r, x1,y1,x2,y2)) return true;
+    if(r > 8 && areaSegHits(s, r, x1,y1,x2,y2) && !smokeHoleClear(s, r, x1,y1,x2,y2)) return true;
   }
   return false;
 }
@@ -20672,29 +20714,36 @@ function oneWaySees(v, t){
   }
   return any && ok;
 }
-// Молотов — не стена: через горящий огонь МОЖНО пройти, но это стоит HP
-// (зашёл в уже горящий — сразу максимальный урон). Поэтому заходят в огонь
-// (и остаются в нём) только когда есть ради чего и это переживут — как настоящий игрок:
-// (v263, Б2) плант/дефуз уже идёт — доделает, если HP больше урона огня до конца + 10 (так было для дефуза);
-// идёт к бомбе / на плант / на ретейк / сбить дефуз — пройдёт насквозь, если HP больше урона за пересечение огня
-// (поперёк, 2 радиуса бегом) + 10, — если идёт, а не стоит с углом; цель сама в огне — стоять в нём весь плант/дефуз не переживёт, ждёт у края.
-// Раньше пост «ретейк/дефуз/плант» держал в огне при любом HP ≥ 55, сколько бы он ни горел.
+// Молотов — не стена (v323, М35, владелец): через огонь можно пройти, он только жжёт, и чем дольше в нём, тем сильнее —
+// урон за удар растёт 1, 2 … 8, удар раз в 0,2 с (до 40/с; CS:GO/CS2, counterstrike.fandom.com/wiki/Molotov, inferno_damage 40).
+// Кто идёт по делу (есть путь и не держит угол) — проходит насквозь, если переживёт пересечение (2 радиуса бегом) с запасом
+// FIRE_MARGIN HP; плант/дефуз — доделает, если переживёт до конца. Кто стоит с углом — в огонь не заходит
+var FIRE_HIT_SEC = 0.2, FIRE_HIT_MAX = 8, FIRE_MARGIN = 20;   // запас 20 HP — проектное число
+function fireDamageFor(sec){ var n = Math.floor(sec/FIRE_HIT_SEC), d = 0; for(var k=1;k<=n;k++) d += Math.min(FIRE_HIT_MAX, k); return d; }
 function fireCommit(b){
   if(!b) return false;
-  var dps = NADE.molly.dps;
-  if(b.planting || b.defusing) return b.hp > ((b.planting ? b.plantUntil : b.defuseUntil) - tick)/TICK_HZ*dps + 10;
-  var goal = (b.team === "T" && tick - (b._defuseHeard||-9999) < 110) || (b.post && /^(defuse|plantspot|retake)$/.test(b.post.tag)) ||
-             (bomb && bomb.retake && bomb.retake.phase === "go" && b.team === "CT");
-  if(!goal || b.holding || (b.post && inFire(b.post.x, b.post.y))) return false;   // держит угол — не идёт насквозь, а стоит в огне
-  return b.hp > 2*NADE.molly.radius/(SPEED*weaponSpeedMul(b))*dps + 10;
+  if(b.planting || b.defusing) return b.hp > fireDamageFor(((b.planting ? b.plantUntil : b.defuseUntil) - tick)/TICK_HZ) + 10;
+  var going = b.path && b.pathIdx < b.path.length;
+  if(!going || b.holding || (b.post && inFire(b.post.x, b.post.y))) return false;   // держит угол — не идёт насквозь, а стоит в огне
+  return b.hp > fireDamageFor(2*NADE.molly.radius/(SPEED*weaponSpeedMul(b))) + FIRE_MARGIN;
 }
 // (v321) высота шага: без связи в навмеше нельзя подняться выше прыжка (JUMP_UP), и нельзя залезть туда, откуда есть
 // только спуск (связь «только спрыгнуть» — окно B Apps на Mirage). Спрыгнуть — можно
 var JUMP_UP = 64;   // ед. игры: выше без помощи не запрыгнуть (CS2 ~ 66 с приседом; как JUMP_UP в tools/heights_bake.py)
+var NAV_ID = null;
+function navArea(id){ if(id == null) return null; if(!NAV_ID || NAV_ID.src !== NAVAREAS){ NAV_ID = {src: NAVAREAS, m: {}}; NAVAREAS.forEach(function(a){ NAV_ID.m[a.id] = a; }); } return NAV_ID.m[id] || null; }
+function navLinked2(a, b){   // связь в сторону движения напрямую или через один участок (мелкие ступени за тик)
+  if(navLinked(a, b)) return true;
+  var E = zoneGraph[a.id] || [];
+  for(var i=0;i<E.length;i++){ var m = navArea(E[i].to); if(m && navLinked(m, b)) return true; }
+  return false;
+}
 function navLinked(a, b){ var E = zoneGraph[a.id] || []; for(var i=0;i<E.length;i++) if(E[i].to === b.id) return true; return false; }
 function heightBlocked(x1, y1, x2, y2, b){
   if(!b || b.z == null) return false;
-  var a1 = navAt(x1, y1, b.z); if(!a1) return false;
+  // (v323, М38) стоит в щели между участками навмеша — берётся участок, где был (bot._area); раньше щель пропускала проверку,
+  // и бот «залезал» на этаж выше без лестницы (102 раза за 6 раундов Mirage, отметка владельца: из-под Palace на Palace)
+  var a1 = navAt(x1, y1, b.z) || navArea(b._area); if(!a1) return false;
   var a2 = navAt(x2, y2, b.z); if(!a2 || a2 === a1 || a2.z - a1.z <= 18) return false;   // 18 — ступенька, шагом
   if(navLinked(a1, a2)) return false;
   return a2.z - a1.z > JUMP_UP || navLinked(a2, a1);
@@ -20720,12 +20769,28 @@ function fireSafe(p, b){
   if(insideSolidWall(q.x, q.y) || segCrossesManualWalls(f.x, f.y, q.x, q.y)){ q = {x:f.x - Math.cos(a)*r, y:f.y - Math.sin(a)*r}; }
   return q;
 }
+// (v323, М36) где жжёт — ровно нарисованный огонь: разгорается за 14 тиков от 0,35 радиуса, не проходит сквозь стены; игрок
+// горит, если касается краем (полуширина игрока 16 ед. игры = 6,4 ед. карты)
+var FIRE_BODY = 6.4;
+function fireRadiusNow(f){ return NADE.molly.radius*Math.min(1, 0.35 + (tick - f.born)/14); }
+function fireTouches(f, x, y){ return areaHas(f, fireRadiusNow(f) + FIRE_BODY, x, y); }
 function inFire(x, y){
-  for(var i=0;i<fires.length;i++){ if(Math.hypot(x-fires[i].x, y-fires[i].y) < NADE.molly.radius) return fires[i]; }
+  for(var i=0;i<fires.length;i++){ if(fireTouches(fires[i], x, y)) return fires[i]; }
   return null;
 }
 
 // ---------- бросок ----------
+// (v323, М33) сверху сюда граната не упадёт: над полом крыша (штриховка радара → потолок видимости) или другой этаж навмеша
+// выше больше чем на 100 ед. карты (под Palace, Underpass). Навесом сюда не кинуть — только низом, через вход
+function nadeCovered(x, y){
+  visReady();
+  var i = Math.floor(x / VIS_CELL), j = Math.floor(y / VIS_CELL);
+  if(i >= 0 && j >= 0 && i < VIS.W && j < VIS.W && VIS.ceil[j*VIS.W + i] < Infinity) return true;
+  if(!NAV_GRID) navGridBuild();
+  var L = NAV_GRID[Math.floor(x/NAV_GRID_C)+","+Math.floor(y/NAV_GRID_C)] || [], lo = Infinity, hi = -Infinity;
+  for(var k=0;k<L.length;k++){ var zn = NAVAREAS[L[k]]; if(NAV_BLOCKED[zn.id] || !pointInPoly(x, y, zn.points)) continue; if(zn.z < lo) lo = zn.z; if(zn.z > hi) hi = zn.z; }
+  return hi - lo > 100;
+}
 function throwNade(b, type, tx, ty, lob, why){
   if(!b.nades || b.nades[type] <= 0) return false;
   // (аудит 11.10) проверка прямо перед броском: HE / молотов не летит туда, где стоит свой (в радиусе поражения) —
@@ -20739,6 +20804,9 @@ function throwNade(b, type, tx, ty, lob, why){
   var lx = b.x + Math.cos(aL)*Math.max(0, dL - shortL), ly = b.y + Math.sin(aL)*Math.max(0, dL - shortL);
   if((type === "he" || type === "molly") && bots.some(function(o){ return o.alive && o.team === b.team &&
       (Math.hypot(o.x-tx, o.y-ty) < NADE[type].radius || Math.hypot(o.x-lx, o.y-ly) < NADE[type].radius); })) return false;
+  // (v323, М33) цель под крышей / под другим этажом — навесом не долетит: кидает низом (прямо, с отскоком от стен), если
+  // точка видна; иначе не кидает
+  if(lob && nadeCovered(tx, ty)){ if(!hasLOS(b.x, b.y, tx, ty)) return false; lob = false; }
   b.nades[type]--;
   var d = Math.max(60, Math.hypot(tx-b.x, ty-b.y)); if(!lob) d = Math.min(NADE_THROW_RANGE, d);
   var a = Math.atan2(ty-b.y, tx-b.x);
@@ -20757,7 +20825,7 @@ function throwNade(b, type, tx, ty, lob, why){
     // (этап 3, P2-2) и свои: кто рядом или видел бросок, знает о нём так же, как враг; остальным — колл «флешу!» в войсе
     bots.forEach(function(o){ if(o.alive && o !== b && (Math.hypot(o.x-b.x, o.y-b.y) < 450 || hasVision(o.x, o.y, b.x, b.y))) nd.aware[o.id] = true; });
   }
-  nadesInAir.push(nd);
+  nadesInAir.push(nd); if(SND && SND.on) sndNade("throw", b.x, b.y);
   if(type === "flash" && b.voice) teamPropose(b, {kind: "flash", nade: nd});
   b.throwUntil = tick + 18; // ~0.3с стоит на броске
   b.facing = a;
@@ -20956,15 +21024,16 @@ function nadeOrigin(n){
 }
 function detonate(n){
   var T = n.type;
+  if(SND && SND.on) sndNade(T, n.x, n.y);
   if(T !== "decoy") nadeOrigin(n);
   // (11) гранаты видно/слышно: где разорвалась граната врага — это инфа о его плане
   if(BAL.tacRead && roundState === "live" && T !== "decoy"){ var foeT = n.team === "T" ? "CT" : "T"; var NS = teamIntel[foeT].nadeSeen || (teamIntel[foeT].nadeSeen = []); NS.push({x:n.x, y:n.y, type:T, tick:tick}); if(NS.length > 30) NS.shift(); }
-  if(T === "smoke"){ smokes.push({x:n.x, y:n.y, born:tick, until:tick+NADE.smoke.life, team:n.team}); if(BAL.smokeReact) smokeShiftOnDetonate(smokes[smokes.length-1]); }
+  if(T === "smoke"){ smokes.push({x:n.x, y:n.y, born:tick, until:tick+NADE.smoke.life, team:n.team, rays:areaRays(n.x, n.y)}); if(BAL.smokeReact) smokeShiftOnDetonate(smokes[smokes.length-1]); }
   else if(T === "molly"){
     // молотов, упавший в дым или рядом так, что огонь касается дыма, гаснет (как в CS2 — наоборот тоже: дым тушит огонь;
     // v321, М12: «чуть касается смока — тушится»)
     if(!smokes.some(function(s){ return Math.hypot(s.x-n.x, s.y-n.y) < smokeRadiusNow(s) + NADE.molly.radius*MOLLY_SMOKE_TOUCH; }))
-      fires.push({x:n.x, y:n.y, born:tick, until:tick+NADE.molly.life, team:n.team, thrower:n.thrower});
+      fires.push({x:n.x, y:n.y, born:tick, until:tick+NADE.molly.life, team:n.team, thrower:n.thrower, rays:areaRays(n.x, n.y)});
   }
   else if(T === "flash"){
     if(n.why === "под пик") nadeFlags.peekFlashPop = tick;
@@ -21072,6 +21141,8 @@ function nadesTick(){
         // (v323, М30) упала в стену или разброс унёс её за стену от точки прицела — не взрывается в стене, а отскакивает:
         // встаёт у стены со стороны полёта и дальше катится как обычная (отскок от стен — ниже)
         var hitW = insideSolidWall(n.x, n.y) || nadeWallHit(n.aimX, n.aimY, n.x, n.y);
+        // (v323, М33) разброс унёс под крышу — упала на крышу: разрыв виден и слышен, но на тех, кто под ней, не действует
+        if(!hitW && nadeCovered(n.x, n.y)){ nadesInAir.splice(i,1); n.onRoof = true; nadeOrigin(n); nadeFx.push({x:n.x, y:n.y, type:n.type, born:tick, roof:true}); continue; }
         if(!hitW){ nadesInAir.splice(i,1); detonate(n); continue; }
         var bx = n.aimX, by = n.aimY;
         if(insideSolidWall(bx, by)){ for(var q = 1; q <= 40; q++){ var f2 = 1 - q/40; bx = n.sx + (n.aimX-n.sx)*f2; by = n.sy + (n.aimY-n.sy)*f2; if(!insideSolidWall(bx, by)) break; } }
@@ -21088,7 +21159,7 @@ function nadesTick(){
       var ex = w[2]-w[0], ey = w[3]-w[1], L = Math.hypot(ex,ey)||1; ex/=L; ey/=L;
       var dot = n.vx*ex + n.vy*ey;
       var px = n.vx - dot*ex, py = n.vy - dot*ey; // нормальная составляющая
-      n.vx = (dot*ex - px)*0.5; n.vy = (dot*ey - py)*0.5;
+      n.vx = (dot*ex - px)*0.5; n.vy = (dot*ey - py)*0.5; if(SND && SND.on) sndNade("bounce", n.x, n.y);
     } else { n.x = nx; n.y = ny; }
     n.vx *= 0.96; n.vy *= 0.96;
     if(tick % 2 === 0){ n.trail.push([n.x, n.y]); if(n.trail.length > 14) n.trail.shift(); }
@@ -21111,16 +21182,11 @@ function nadesTick(){
     if(smokes.some(function(sm){ return Math.hypot(sm.x-fr.x, sm.y-fr.y) < smokeRadiusNow(sm) + NADE.molly.radius*MOLLY_SMOKE_TOUCH; })){ fires.splice(f,1); continue; }
     bots.forEach(function(b){
       if(!b.alive) return;   // (v263, Б1) огонь жжёт и своих — множитель в applyDamage
-      if(Math.hypot(b.x-fr.x, b.y-fr.y) < NADE.molly.radius){
-        // Урон по времени (правка по фидбеку): если молотов упал ПОД тебя —
-        // огонь только разгорается, урон растёт чем дольше стоишь (8 → 40/с
-        // за ~2с), успеешь выбежать с малыми потерями. Если сам зашёл в уже
-        // горящий — сразу максимальный урон, но пройти насквозь можно.
-        if(!b._fireIn || b._fireIn.f !== fr){ b._fireIn = {f:fr, t:tick, landedOn: (tick - fr.born) < 16}; }
-        var inside = (tick - b._fireIn.t)/TICK_HZ;
-        var dps = b._fireIn.landedOn ? (8 + 32*Math.min(1, inside/2)) : NADE.molly.dps;
-        b._fireAcc = (b._fireAcc||0) + dps/TICK_HZ;
-        if(b._fireAcc >= 1){ var dd = Math.floor(b._fireAcc); b._fireAcc -= dd; applyDamage(fr.thrower, b, dd, "молотов"); }
+      if(fireTouches(fr, b.x, b.y)){
+        // (v323, М35) урон за удар растёт 1 → 8, удар раз в 0,2 с — чем дольше в огне, тем сильнее (fireDamageFor)
+        if(!b._fireIn || b._fireIn.f !== fr){ b._fireIn = {f:fr, t:tick, hits:0}; }
+        var hitsNow = Math.floor((tick - b._fireIn.t)/TICK_HZ/FIRE_HIT_SEC);
+        while(b._fireIn.hits < hitsNow && b.alive){ b._fireIn.hits++; applyDamage(fr.thrower, b, Math.min(FIRE_HIT_MAX, b._fireIn.hits), "молотов"); }
       } else if(b._fireIn && b._fireIn.f === fr){ b._fireIn = null; }
     });
   }
@@ -21667,12 +21733,14 @@ var VOICE_KEY_KIND = {};
 Object.keys(VOICE_KEYS).forEach(function(k){ VOICE_KEYS[k].split(" ").forEach(function(key){ VOICE_KEY_KIND[key] = k; }); });
 function voiceKind(key, text){
   if(/^минус/.test(text)) return "death";
+  // (v323, М34) переколл — смена сайта (CT и T): свой цвет
+  if(/ПЕРЕКОЛЛ/.test(text) || /^(reb|abort|allin)/.test(String(key))) return "recall";
   // ключ колла = имя + id/зона («hurtCT1», «solo2») — берём самое длинное известное имя в начале
   var k = String(key), best = "";
   for(var name in VOICE_KEY_KIND) if(name.length > best.length && k.lastIndexOf(name, 0) === 0) best = name;
   return VOICE_KEY_KIND[best] || "plan";
 }
-var VOICE_KIND_T = {death:"смерть", see:"вижу врага", hear:"слышу", plan:"план, колл", bomb:"бомба", nade:"граната", self:"о себе"};
+var VOICE_KIND_T = {recall:"переколл", death:"смерть", see:"вижу врага", hear:"слышу", plan:"план, колл", bomb:"бомба", nade:"граната", self:"о себе"};
 function voiceFeed(team, who, text, kind){
   if(typeof document === "undefined") return;
   var sec = roundState === "live" ? Math.max(0, ROUND_TIME_SEC - (simTime - roundStartTime)) : ROUND_TIME_SEC;   // как таймер табло
@@ -22840,6 +22908,7 @@ function tryShoot(shooter, target, dist){
     }
   }
   tracers.push({wc:tracerClass(shooter.weapon), x1:shooter.x, y1:shooter.y, x2:endX, y2:endY, team:shooter.team, born:nowTs, hit:hit, head:headshot, prefire:prefire, miss:!hit, zone:hitZone});
+  if(SND && SND.on) sndShot(shooter.weapon, shooter.x, shooter.y);
   // выстрел слышно далеко (шаг 5: с конусом обзора боты не видят спиной —
   // но разворачиваются на звук стрельбы; в кого попали — точно знает откуда)
   bots.forEach(function(o){
@@ -23943,7 +24012,9 @@ function teamAwp(team){
                   .sort(function(a,b){ return b.money - a.money; })[0];
   if(rich){ rich.money -= P; awper.primary = "AWP"; logEvent(rich.id+" скинул AWP → "+awper.id); FREEZE_FX.push({kind:"drop", from:rich.id, to:awper.id, key:"AWP", t:tick}); }
 }
+var BUY_SHOW = {}, BUY_SHOW_FIRST = [1.05, 2, 4.27, 8.5, 12.92], BUY_SHOW_GAP = 0.35;   // (v323, М28) числа закупа по очереди — описание у buyShowStart
 function buyPhase(){
+  if(typeof buyShowStart === "function") buyShowStart();
   ["CT","T"].forEach(function(team){
     teamEco[team].antiEcoSmg = false;
     var type = decideRoundType(team);
@@ -24040,7 +24111,7 @@ function checkRoundEnd(){
     // после планта смерть всех T раунд НЕ заканчивает — CT ещё должны дефузнуть
     if(!ctAlive){ endRound("T", "elim"); return; }
     if(tick >= bomb.explodeTick){
-      bomb.state = "exploded";
+      bomb.state = "exploded"; if(SND && SND.on) sndBomb("boom", bomb.x, bomb.y);
       bots.forEach(function(b){
         if(b.alive) applyDamage(null, b, bombDamageAt(b.x, b.y), "C4", {wkey:"C4", noFeed:true});
       });
@@ -24117,7 +24188,7 @@ function resetRound(){
       var spot = SS[perm[mi % perm.length]];
       if(spot && !insideSolidWall(spot[0], spot[1])){ b.x = spot[0]; b.y = spot[1]; }
     }
-    var nsp = navAt(b.x, b.y, null); if(nsp) b.z = nsp.z;   // (v321) высота — по навмешу под точкой спавна
+    var nsp = navAt(b.x, b.y, null); b._area = nsp ? nsp.id : null; if(nsp) b.z = nsp.z;   // (v321) высота — по навмешу под точкой спавна; (v323) и участок
     b._jump = null;
     b.baseX = b.x; b.baseY = b.y;
     b.px = b.x; b.py = b.y;
@@ -24206,6 +24277,16 @@ function moveSoundEmit(bot, soundRadius, kind, label){
     if(wasStale) logEvent(listener.id+" услышал "+label+" ("+bot.team+")"+(occS ? " за стеной" : ""));
   });
 }
+// (v323, М39, владелец) подход к дефузу шифтом. Демки Mirage (196 дефузов, скорость за 1,5 с до начала дефуза): был ближе
+// 150 ед. игры (60 ед. карты) — шагом 77 %, 150–300 (60–120) — 34 %, дальше — всегда бегом. Шагом — только если успевает дойти
+// и дефузнуть (запас 1,5 с). Кто идёт шагом в этом раунде — жребий на раунд и бота (решение не дёргается каждый тик)
+function defuseWalk(bot){
+  if(!(bomb && bomb.state === "planted" && bot.team === "CT" && bot.post && bot.post.tag === "defuse")) return false;
+  var d = Math.hypot(bomb.x-bot.baseX, bomb.y-bot.baseY); if(d >= 120) return false;
+  if(bombTimeLeftTicks()/TICK_HZ <= d/(SPEED*WALK_SPEED_FRAC) + (bot.kit ? 5 : 10) + 1.5) return false;
+  var u = hashRand(roundNum*389 + matchNum*71 + bot.id.charCodeAt(bot.id.length-1)*13);
+  return u < (d < 60 ? 0.77 : 0.34);
+}
 function stepTick(){
   tick++;
   simTime = tick * TICK_MS / 1000;
@@ -24225,7 +24306,8 @@ function stepTick(){
   teamBrains(); // шаг 4: тактика T / расстановка и ротации CT / бомба
   if(roundState !== "live") return;
   nadeBrains(); updateNadeTasks(); nadesTick(); // шаг 5: гранаты
-  if(roundState === "live" && tick % 16 === 0) tClearCalls();   // (v321, М24) «B чисто» — T увидел пустую зону у сайта
+  if(roundState === "live" && tick % 16 === 0) tClearCalls();
+  if(SND && SND.on) sndTick();   // (v323, М40) пиканье бомбы   // (v321, М24) «B чисто» — T увидел пустую зону у сайта
   if(roundState !== "live") return;
   var dtSec = TICK_MS/1000, maxDelta = ACCEL*dtSec;
   // movement tuning (plan-driven "natural, not robotic" pass):
@@ -24287,10 +24369,8 @@ function stepTick(){
        // лёркер ходит тихо всегда, кроме самого начала (до своей точки на сетапе)
        (bot.tRole === "lurker" && bot.post && bot.state === "patrol" && /^lurk/.test(bot.post.tag) && bot.post.tag !== "lurkStage"+(teamTac.T && teamTac.T.site==="A"?"B":"A")) ||
        (BAL.dangerWalk && dangerWalk(bot)) ||
-       // ниндзя-дефуз: последние ~3м к бомбе шифтом, если время позволяет
-       (BAL.ninjaDefuse && bomb && bomb.retake && bomb.retake.ninja && bot.post && bot.post.tag === "defuse" &&
-        Math.hypot(bot.post.x-bot.baseX, bot.post.y-bot.baseY) < 300 &&
-        bombTimeLeftTicks()/TICK_HZ > Math.hypot(bot.post.x-bot.baseX, bot.post.y-bot.baseY)/(SPEED*WALK_SPEED_FRAC) + (bot.kit ? 5 : 10) + 1.5) ||
+       // (v323, М39) к дефузу близко — подходит шифтом, чтобы не выдать себя, если время есть (defuseWalk)
+       defuseWalk(bot) ||
        // добивание последнего — не бегом в открытую: последние метры тихим шагом
        (bot.post && bot.state === "patrol" && bot.post.tag === "endhunt" && Math.hypot(bot.post.x-bot.baseX, bot.post.y-bot.baseY) < 350));
     // (v257, К3) врагов живых нет (видно по табло) — шагом идти не от кого
@@ -24425,7 +24505,7 @@ function stepTick(){
       if(tick - bot.lastStepTick >= stepInterval){
         bot.lastStepTick = tick;
         var soundRadius = (wet ? (bot.walking ? 220 : 460) : (bot.walking ? SOUND_RADIUS_WALK : SOUND_RADIUS_RUN)) * (BAL.stepHearMul || 1);
-        soundPings.push({x:bot.baseX, y:bot.baseY, team:bot.team, born:nowTs, radius:soundRadius});
+        soundPings.push({x:bot.baseX, y:bot.baseY, team:bot.team, born:nowTs, radius:soundRadius}); if(SND && SND.on) sndStep(bot.baseX, bot.baseY);
         // (4) сам знает, что шумит: бежал в пределах слышимости места, где враг вероятен
         if(BAL.heardMe && roundState === "live"){ var zN = bzOf(bot.x, bot.y); if(zN >= 0){ var nearZ = [zN].concat(BZ.nbr[zN]||[]);
           if(nearZ.some(function(j){ var cj = BZ.cent[j]; return cj && Math.hypot(cj.x-bot.x, cj.y-bot.y) < soundRadius && reachPossible(bot.team, j) && beliefZoneKnown(bot.team, j) >= 0.2; })) bot._noisyT = tick; } }
@@ -24502,7 +24582,7 @@ function stepTick(){
         // on a hand-drawn map, so check before committing the step.
         if(!stepBlocked(bot.baseX,bot.baseY,nx,ny,bot)){ // стены + в огонь без причины не заходим
           bot.baseX = nx; bot.baseY = ny;
-          if(isLastLeg && dist <= step){ bot.baseX = target[0]; bot.baseY = target[1]; bot.z = target[2]; bot.pathIdx++; }
+          if(isLastLeg && dist <= step){ bot.baseX = target[0]; bot.baseY = target[1]; bot.pathIdx++; }   // (v323) высота — только по навмешу (ниже), не по точке пути
         } else {
           // blocked — first try the basic wall-slide (each axis alone),
           // then, if that ALSO fails (both axes blocked — a corner, or a
@@ -24548,6 +24628,10 @@ function stepTick(){
         var actuallyMoved = Math.hypot(bot.baseX-startX, bot.baseY-startY);
         // (v321) высота бота — по участку навмеша под ним (ближайший по высоте); прыжок / спрыгнул — для показа
         if(actuallyMoved > 0){ var naz = navAt(bot.baseX, bot.baseY, bot.z);
+          // (v323, М38) в щели своего этажа под точкой бывает только чужой этаж (под Palace — пол Palace): это не подъём —
+          // этаж меняется только по связи навмеша (лестница, ступени, спуск), иначе бот остаётся на своём
+          var a0z = navArea(bot._area);
+          if(naz && a0z && naz !== a0z && Math.abs(naz.z - a0z.z) > JUMP_UP && !navLinked2(a0z, naz)) naz = null;
           if(naz){ var dzz = naz.z - (bot.z == null ? naz.z : bot.z);
             if(dzz > 18) bot._jump = {t:tick, up:true}; else if(dzz < -40) bot._jump = {t:tick, up:false};
             // (v322, М29) прыжок / приземление слышно и при тихом шаге, далеко (csdb.gg: «громкий звук приземления, слышно
@@ -27065,6 +27149,7 @@ function draw(){
     g.addColorStop(0, "rgba(212,215,207,"+(0.88*fade)+")");
     g.addColorStop(0.7, "rgba(194,198,189,"+(0.76*fade)+")");
     g.addColorStop(1, "rgba(172,177,167,"+(0.46*fade)+")");
+    ctx.save(); areaPath(sm, rr + 0.5); ctx.clip();   // (v323, М36) дым не за стеной — рисуется ровно там, где закрывает
     ctx.fillStyle = g; ctx.beginPath(); ctx.arc(sm.x, sm.y, rr, 0, Math.PI*2); ctx.fill();
     // клубы внутри радиуса — медленный дрейф, без пульса
     for(var q=0;q<6;q++){
@@ -27075,8 +27160,9 @@ function draw(){
       ctx.fillStyle = pg; ctx.beginPath(); ctx.arc(cx, cy, qr, 0, Math.PI*2); ctx.fill();
     }
     // край — где дым кончается
+    ctx.restore();
     ctx.strokeStyle = "rgba(242,244,238,"+(0.5*fade)+")"; ctx.lineWidth = 1.1/S0;
-    ctx.beginPath(); ctx.arc(sm.x, sm.y, rr, 0, Math.PI*2); ctx.stroke();
+    areaPath(sm, rr); ctx.stroke();
     // (v271) дыры от пуль — тёмный коридор внутри облака, затягивается за SMOKE_HOLE.life
     (sm.bholes || []).forEach(function(h){
       if(h.until <= tick) return;
@@ -27087,7 +27173,8 @@ function draw(){
     timeArc(sm.x, sm.y, rr + 3.5/S0, left, sm.team, fade);
   });
   fires.forEach(function(fr){
-    var R = NADE.molly.radius, life = fr.until - tick, fade = Math.min(1, life/40), age = tick - fr.born, r0 = R*Math.min(1, 0.35 + age/14);
+    var R = NADE.molly.radius, life = fr.until - tick, fade = Math.min(1, life/40), age = tick - fr.born, r0 = fireRadiusNow(fr);
+    ctx.save(); areaPath(fr, r0 + 0.5); ctx.clip();   // (v323) рисуется только там, где жжёт (стены режут)
     var seed = fr.born*0.53 + fr.x*0.011 + fr.y*0.017;
     var fg = ctx.createRadialGradient(fr.x, fr.y, 0, fr.x, fr.y, r0);
     fg.addColorStop(0, "rgba(255,196,92,"+(0.72*fade)+")");
@@ -27101,8 +27188,9 @@ function draw(){
       ctx.beginPath(); ctx.arc(fr.x + Math.cos(ea)*ed, fr.y + Math.sin(ea)*ed, (2.6+2.4*fxR(seed+e*7.7))/S0, 0, Math.PI*2); ctx.fill();
     }
     // край — где жжёт
+    ctx.restore();
     ctx.strokeStyle = "rgba(255,124,62,"+(0.75*fade)+")"; ctx.lineWidth = 1.2/S0;
-    ctx.beginPath(); ctx.arc(fr.x, fr.y, r0, 0, Math.PI*2); ctx.stroke();
+    areaPath(fr, r0); ctx.stroke();
     timeArc(fr.x, fr.y, r0 + 3.5/S0, life/NADE.molly.life, fr.team, fade);
   });
   // граната в полёте: форма по типу (не только цвет) — дым кружок, флешка ромб, HE кружок с точкой, молотов треугольник
@@ -27776,6 +27864,37 @@ function plNum(b){ return pnum(b.id); }
 function plPhoto(b){ var p = PLAYER_PHOTO[nick(b.id)]; return p ? '<img alt="" src="'+p+'">' : PL_SIL; }
 var PL_KILL = '<svg viewBox="0 0 12 12"><path d="M5.3 0h1.4v2.1A4 4 0 0 1 9.9 5.3H12v1.4H9.9a4 4 0 0 1-3.2 3.2V12H5.3V9.9a4 4 0 0 1-3.2-3.2H0V5.3h2.1a4 4 0 0 1 3.2-3.2zM6 3.4a2.6 2.6 0 1 0 0 5.2 2.6 2.6 0 0 0 0-5.2z"/></svg>';
 var PL_SKULL = '<svg viewBox="0 0 12 12"><path d="M6 0C2.7 0 .5 2.2.5 5c0 1.7.8 3 2 3.7V11h1.6V9.6h1.1V11h1.6V9.6h1.1V11h1.6V8.7c1.2-.7 2-2 2-3.7C11.5 2.2 9.3 0 6 0zM3.9 4.3a1.3 1.3 0 1 1 0 2.6 1.3 1.3 0 0 1 0-2.6zm4.2 0a1.3 1.3 0 1 1 0 2.6 1.3 1.3 0 0 1 0-2.6z"/></svg>';
+// (v323, М28) что у игрока на панели — по порядку закупа: оружие, броня, кит, бомба, гранаты
+function plKeys(b){
+  var L = [], wkey = (b.weapon && b.weapon.key) || "KNIFE", ic = typeof KF_ICON !== "undefined" && KF_ICON ? KF_ICON[wkey] : {vb:"", svg:""};   // до загрузки иконок (первый закуп) — только ключи
+  var I = (typeof PL_ICON !== "undefined" && PL_ICON) || {};
+  if(ic) L.push({key:"w:"+wkey, w:true, wk:wkey, html:'<svg class="wp" viewBox="'+ic.vb+'">'+ic.svg+'</svg>'});
+  if(b.helmet) L.push({key:"helmet", html:I.helmet}); else if(b.armor) L.push({key:"armor", html:I.armor});
+  if(b.team === "CT" && b.kit) L.push({key:"kit", html:I.kit});
+  if(b.team === "T" && typeof bomb !== "undefined" && bomb && bomb.state === "carried" && bomb.carrier === b) L.push({key:"c4", html:I.c4});
+  var N = b.nades || {}; ["smoke","flash","he","molly"].forEach(function(k){ for(var i=0;i<(N[k]||0);i++) L.push({key:k+i, html:I[k]}); });
+  return L;
+}
+// (v323, М28) закуп по очереди — только показ: игра покупает в начале фризтайма (решения от этого не меняются), а на панели
+// новые вещи появляются по одной. Первая — когда про берут основное оружие (демки Mirage, 25 матчей: 1,05 / 2 / 4,27 / 8,5 /
+// 12,9 с от начала фризтайма — 10/25/50/75/90 %), следующие — через BUY_SHOW_GAP (проектное число)
+function buyShowStart(){
+  BUY_SHOW = {};
+  bots.forEach(function(b, i){
+    var before = {}; plKeys(b).forEach(function(it){ before[it.key] = it.wk || true; });
+    BUY_SHOW[b.id] = {before: before, t0: tick, first: freezePick(BUY_SHOW_FIRST, hashRand(roundNum*733 + i*97 + matchNum*13)), oldW: (b.weapon && b.weapon.key) || null};
+  });
+}
+function buyShowHidden(b){
+  var S = BUY_SHOW[b.id]; if(!S || roundState !== "freeze") return {};
+  var hide = {}, n = 0, el = (tick - S.t0)/TICK_HZ;
+  plKeys(b).forEach(function(it){
+    if(S.before[it.key] || it.key === "c4") return;   // бомбу не покупают
+    if(el < S.first + n*BUY_SHOW_GAP) hide[it.key] = it.w ? (S.oldW || true) : true;
+    n++;
+  });
+  return hide;
+}
 // (v322, М28) появление купленного на панели игрока: новая вещь (оружие, броня, кит, бомба, граната) — анимация plItIn.
 // Панель перерисовывается ~10 раз в секунду, поэтому анимация продолжается с того места, где была (отрицательная задержка)
 var PL_SEEN = {}, PL_ANIM_MS = 220;
@@ -27795,12 +27914,11 @@ function plCard(b){
   var sel = plSelected === b.id ? " sel" : "", n = nick(b.id), hp = b.alive ? Math.max(0, Math.round(b.hp)) : 0, low = hp > 0 && hp <= 25 ? " low" : "";
   var wp = "", gear = "";
   if(b.alive){
-    var wkey = (b.weapon && b.weapon.key) || "KNIFE", ic = KF_ICON[wkey];
-    if(ic) wp = plItem(b, "w:"+wkey, '<svg class="wp" viewBox="'+ic.vb+'">'+ic.svg+'</svg>');
-    if(b.helmet) gear += plItem(b, "helmet", PL_ICON.helmet); else if(b.armor) gear += plItem(b, "armor", PL_ICON.armor);
-    if(b.team === "CT" && b.kit) gear += plItem(b, "kit", PL_ICON.kit);
-    if(b.team === "T" && bomb && bomb.state === "carried" && bomb.carrier === b) gear += plItem(b, "c4", PL_ICON.c4);
-    var N = b.nades || {}; ["smoke","flash","he","molly"].forEach(function(k){ for(var i=0;i<(N[k]||0);i++) gear += plItem(b, k+i, PL_ICON[k]); });
+    var hide = buyShowHidden(b);
+    plKeys(b).forEach(function(it){
+      if(hide[it.key]){ if(it.w && hide[it.key] !== true){ var ic0 = KF_ICON[hide[it.key]]; if(ic0) wp = '<span class="pl-it"><svg class="wp" viewBox="'+ic0.vb+'">'+ic0.svg+'</svg></span>'; } return; }
+      if(it.w) wp = plItem(b, it.key, it.html); else gear += plItem(b, it.key, it.html);
+    });
   }
   plItemsDone(b);
   return '<div class="pl-card'+(b.alive ? "" : " dead")+sel+'" data-id="'+b.id+'" tabindex="0" title="Показать игрока">'+
@@ -28017,11 +28135,17 @@ var __SNAP = [
 ["nadeFx", function(){ return nadeFx; }, function(v){ try{ nadeFx = v; }catch(e){} }],
 ["NADE_WISH", function(){ return NADE_WISH; }, function(v){ try{ NADE_WISH = v; }catch(e){} }],
 ["NADE_WISH_PRO", function(){ return NADE_WISH_PRO; }, function(v){ try{ NADE_WISH_PRO = v; }catch(e){} }],
+["AREA_RAYS", function(){ return AREA_RAYS; }, function(v){ try{ AREA_RAYS = v; }catch(e){} }],
 ["SMOKE_HOLE", function(){ return SMOKE_HOLE; }, function(v){ try{ SMOKE_HOLE = v; }catch(e){} }],
 ["MOLLY_SMOKE_TOUCH", function(){ return MOLLY_SMOKE_TOUCH; }, function(v){ try{ MOLLY_SMOKE_TOUCH = v; }catch(e){} }],
+["FIRE_HIT_SEC", function(){ return FIRE_HIT_SEC; }, function(v){ try{ FIRE_HIT_SEC = v; }catch(e){} }],
+["FIRE_HIT_MAX", function(){ return FIRE_HIT_MAX; }, function(v){ try{ FIRE_HIT_MAX = v; }catch(e){} }],
+["FIRE_MARGIN", function(){ return FIRE_MARGIN; }, function(v){ try{ FIRE_MARGIN = v; }catch(e){} }],
 ["JUMP_UP", function(){ return JUMP_UP; }, function(v){ try{ JUMP_UP = v; }catch(e){} }],
+["NAV_ID", function(){ return NAV_ID; }, function(v){ try{ NAV_ID = v; }catch(e){} }],
 ["HGT_TOP", function(){ return HGT_TOP; }, function(v){ try{ HGT_TOP = v; }catch(e){} }],
 ["HGT_BOT", function(){ return HGT_BOT; }, function(v){ try{ HGT_BOT = v; }catch(e){} }],
+["FIRE_BODY", function(){ return FIRE_BODY; }, function(v){ try{ FIRE_BODY = v; }catch(e){} }],
 ["LINEUPS_BAKED", function(){ return LINEUPS_BAKED; }, function(v){ try{ LINEUPS_BAKED = v; }catch(e){} }],
 ["LINEUPS_KEY", function(){ return LINEUPS_KEY; }, function(v){ try{ LINEUPS_KEY = v; }catch(e){} }],
 ["BUILTIN_OFF_BAKED", function(){ return BUILTIN_OFF_BAKED; }, function(v){ try{ BUILTIN_OFF_BAKED = v; }catch(e){} }],
@@ -28089,6 +28213,9 @@ var __SNAP = [
 ["ROUND_TYPE_LABEL", function(){ return ROUND_TYPE_LABEL; }, function(v){ try{ ROUND_TYPE_LABEL = v; }catch(e){} }],
 ["PRO_PISTOL", function(){ return PRO_PISTOL; }, function(v){ try{ PRO_PISTOL = v; }catch(e){} }],
 ["FREEZE_FX", function(){ return FREEZE_FX; }, function(v){ try{ FREEZE_FX = v; }catch(e){} }],
+["BUY_SHOW", function(){ return BUY_SHOW; }, function(v){ try{ BUY_SHOW = v; }catch(e){} }],
+["BUY_SHOW_FIRST", function(){ return BUY_SHOW_FIRST; }, function(v){ try{ BUY_SHOW_FIRST = v; }catch(e){} }],
+["BUY_SHOW_GAP", function(){ return BUY_SHOW_GAP; }, function(v){ try{ BUY_SHOW_GAP = v; }catch(e){} }],
 ["TICK_HZ", function(){ return TICK_HZ; }, function(v){ try{ TICK_HZ = v; }catch(e){} }],
 ["TICK_MS", function(){ return TICK_MS; }, function(v){ try{ TICK_MS = v; }catch(e){} }],
 ["tick", function(){ return tick; }, function(v){ try{ tick = v; }catch(e){} }],
@@ -28196,9 +28323,12 @@ var __SNAP = [
 ["PL_KILL", function(){ return PL_KILL; }, function(v){ try{ PL_KILL = v; }catch(e){} }],
 ["PL_SKULL", function(){ return PL_SKULL; }, function(v){ try{ PL_SKULL = v; }catch(e){} }],
 ["PL_SEEN", function(){ return PL_SEEN; }, function(v){ try{ PL_SEEN = v; }catch(e){} }],
-["PL_ANIM_MS", function(){ return PL_ANIM_MS; }, function(v){ try{ PL_ANIM_MS = v; }catch(e){} }]
+["PL_ANIM_MS", function(){ return PL_ANIM_MS; }, function(v){ try{ PL_ANIM_MS = v; }catch(e){} }],
+["SND", function(){ return SND; }, function(v){ try{ SND = v; }catch(e){} }],
+["SND_MAX", function(){ return SND_MAX; }, function(v){ try{ SND_MAX = v; }catch(e){} }],
+["SND_R", function(){ return SND_R; }, function(v){ try{ SND_R = v; }catch(e){} }]
 ];
-var MK_PRINCIPLES = [{"id": "К1", "sec": "Команда", "text": "НОВОЕ 11.10. Убили опорника, бомбу видели на сайте, а T остался один — идут все CT (и опорник другого", "done": false}, {"id": "К2", "sec": "Команда", "text": "НОВОЕ 11.10. Назначили на ротацию — бот сразу бросает прежнюю задачу (пуш, добивание) и идёт. Сейчас", "done": false}, {"id": "К3", "sec": "Команда", "text": "НОВОЕ 11.10. CT убили всех T до ретейка — режим «сбор на ретейк» снимается, бегут к бомбе и дефузят. Сейчас", "done": false}, {"id": "К4", "sec": "Команда", "text": "НОВОЕ 11.10. Ротация на колл не мечется: CT 8 и 9 побежали на B, по пути развернулись на A, потом снова на B;", "done": false}, {"id": "К5", "sec": "Команда", "text": "НОВОЕ 11.10. Бомбу выбили (носитель убит, бомба на земле) — CT держат её (кто-то смотрит на бомбу) и", "done": false}, {"id": "К6", "sec": "Команда", "text": "НОВОЕ 12.10. Полноценная смена сторон: после 12-го раунда (и на перерывах овертайма) Spirit и Falcons", "done": false}, {"id": "В1", "sec": "Взгляд", "text": "НОВОЕ 11.10. На ходу (ротация, сбор на ретейк) взгляд держится на одной цели, а не крутится туда-сюда", "done": false}, {"id": "В2", "sec": "Взгляд", "text": "НОВОЕ 11.10. T при перемещении (после планта и вообще) смотрит туда, откуда по его знанию придут CT, а не", "done": false}, {"id": "В3", "sec": "Взгляд", "text": "НОВОЕ 11.10. CT на сборе ретейка не стоит спиной к ближнему входу со стороны T: CT 3 (8 HP) в Back Halls", "done": false}, {"id": "В4", "sec": "Взгляд", "text": "НОВОЕ 11.10. Взгляд не упирается в стену рядом: T 0 на зачистке A (Back Site) смотрит в стену в 94 px.", "done": false}, {"id": "В5", "sec": "Взгляд", "text": "НОВОЕ 11.10. Стоящий бот поворачивается на шум врагов рядом: CT 4 на сейве в Connector, 4 T в CT Spawn в", "done": false}, {"id": "В6", "sec": "Взгляд", "text": "НОВОЕ 11.10. Рядом убили тиммейта (видел и слышал) — смотрит туда, где убийца: T 2 в Back Site, T 0 убит", "done": false}, {"id": "Б1", "sec": "Бой", "text": "НОВОЕ 11.10. Есть урон по своим (как в CS2 на про-матчах): пули, HE, молотов ранят тиммейтов. (чат 11.10)", "done": false}, {"id": "Б2", "sec": "Бой", "text": "НОВОЕ 11.10. Боты выходят из вражеского молотова, а не стоят в нём. (чат 11.10)", "done": false}, {"id": "А1", "sec": "Аудит поведения (12.10, документ владельца «Гипотезы, приоритеты и план проверки»)", "text": "НОВОЕ 12.10. Важная задача (сейв, дефуз, сорвать плант, ретейк) сразу снимает лайнап / подбор оружия / ожидание у смока — бот не стоит, пока подсистемы спорят. (аудит, отчёт 3.1)", "done": false}, {"id": "А2", "sec": "Аудит поведения (12.10, документ владельца «Гипотезы, приоритеты и план проверки»)", "text": "НОВОЕ 12.10. Между появлением врага и выстрелом — реакция; мгновенно — только по тому, что знал до появления. (аудит, 3.2)", "done": false}, {"id": "А3", "sec": "Аудит поведения (12.10, документ владельца «Гипотезы, приоритеты и план проверки»)", "text": "НОВОЕ 12.10. В перестрелке бот не видит врагов вне поля зрения. (аудит, 3.3)", "done": false}, {"id": "А4", "sec": "Аудит поведения (12.10, документ владельца «Гипотезы, приоритеты и план проверки»)", "text": "НОВОЕ 12.10. Что слышал один, команда узнаёт только из войса. (аудит, 3.4)", "done": false}, {"id": "А5", "sec": "Аудит поведения (12.10, документ владельца «Гипотезы, приоритеты и план проверки»)", "text": "НОВОЕ 12.10. После смены сайта T не идут по маршруту и не кидают гранаты к старому сайту. (аудит, 3.5)", "done": false}, {"id": "А6", "sec": "Аудит поведения (12.10, документ владельца «Гипотезы, приоритеты и план проверки»)", "text": "НОВОЕ 12.10. HE и молотов не кидают под своих. (аудит, 3.6)", "done": false}, {"id": "Э1", "sec": "Аудит поведения (12.10, документ владельца «Гипотезы, приоритеты и план проверки»)", "text": "НОВОЕ 12.10. Вторая цель посреди перестрелки — со своей реакцией, первая не «разогревает» бота на всех. (ТЗ этап 2, P0-2)", "done": false}, {"id": "Э2", "sec": "Аудит поведения (12.10, документ владельца «Гипотезы, приоритеты и план проверки»)", "text": "НОВОЕ 12.10. Карта команды — только из того, что знает вся команда (радар, войс, киллфид); несказанный слух одного её не меняет. (ТЗ этап 2, P1-2)", "done": false}, {"id": "Э3", "sec": "Аудит поведения (12.10, документ владельца «Гипотезы, приоритеты и план проверки»)", "text": "НОВОЕ 12.10. После смены сайта T группа встаёт на подготовку нового сайта, а не ждёт на точке старого. (ТЗ этап 2, P1-1)", "done": false}, {"id": "Э4", "sec": "Аудит поведения (12.10, документ владельца «Гипотезы, приоритеты и план проверки»)", "text": "НОВОЕ 12.10. Свои не заходят в огонь своего молотова ради обхода — только по fireCommit (цель + хватает HP). (ТЗ этап 3, P1-4)", "done": false}, {"id": "Э5", "sec": "Аудит поведения (12.10, документ владельца «Гипотезы, приоритеты и план проверки»)", "text": "НОВОЕ 12.10. Свой отворачивается от своей флешки, только если знал о ней: колл «флешу!» в войсе дослушал до хлопка, или был рядом / видел бросок. (ТЗ этап 3, P2-2)", "done": false}, {"id": "Э6", "sec": "Аудит поведения (12.10, документ владельца «Гипотезы, приоритеты и план проверки»)", "text": "НОВОЕ 12.10. Держа угол и переминаясь, бот не перекидывает взгляд от сдвига на пиксели — угол выбран от места, где встал. (ТЗ этап 3, P2-1)", "done": false}, {"id": "Э7", "sec": "Аудит поведения (12.10, документ владельца «Гипотезы, приоритеты и план проверки»)", "text": "НОВОЕ 12.10. В перестрелке про стреляют с движением между выстрелами, боты стоят (52 % против 28 % времени на виду). (ТЗ этап 3, P0-1) — открыто: нужна модель «тап/очередь + стрейф» и данные `player_hurt`", "done": false}, {"id": "Э8", "sec": "Аудит поведения (12.10, документ владельца «Гипотезы, приоритеты и план проверки»)", "text": "НОВОЕ 12.10. Молотов не кидают туда, где он загорится под своим или под самим бросающим (проверка — в точке, где он реально вспыхнет). (ТЗ этап 4, P1)", "done": false}, {"id": "Э9", "sec": "Аудит поведения (12.10, документ владельца «Гипотезы, приоритеты и план проверки»)", "text": "НОВОЕ 12.10. Держащий позицию не «смотрит себе под ноги»: угол взгляда, выбранный по пути, не годится, если бот встал в него. (ТЗ этап 4, P1)", "done": false}, {"id": "В1", "sec": "Просьбы владельца 12.10 (после аудита)", "text": "НОВОЕ 12.10. Нож в руках — как у про: чаще на бегу и когда врага рядом быть не может (по знанию бота). (чат 12.10)", "done": false}, {"id": "В2", "sec": "Просьбы владельца 12.10 (после аудита)", "text": "НОВОЕ 12.10. Память о враге стареет со временем, как у про. (чат 12.10, решение по held)", "done": false}, {"id": "В3", "sec": "Просьбы владельца 12.10 (после аудита)", "text": "НОВОЕ 12.10. Темп атаки как у про (плант ~66 с). (чат 12.10)", "done": false}, {"id": "В4", "sec": "Просьбы владельца 12.10 (после аудита)", "text": "НОВОЕ 12.10. T не гибнут в одиночку чаще про (у про 20 % смертей до планта, у ботов 43–49 %). (чат 12.10, пункт 2)", "done": false}, {"id": "Б3", "sec": "Просьбы владельца 12.10 (после аудита)", "text": "НОВОЕ 13.10. Урон от взрыва бомбы — по расстоянию и стенам, как в CS2 (раньше: в 330 px — смерть, дальше —", "done": false}, {"id": "Б4", "sec": "Просьбы владельца 12.10 (после аудита)", "text": "НОВОЕ 13.10. При смерти выпадают пистолет (если нет основного), граната и кит — их подбирают. (чат 13.10) —", "done": false}, {"id": "Б5", "sec": "Просьбы владельца 12.10 (после аудита)", "text": "НОВОЕ 13.10. Пули пробивают в дыме дыру (CS2), через неё видно. (чат 13.10)", "done": false}, {"id": "Б6", "sec": "Просьбы владельца 12.10 (после аудита)", "text": "НОВОЕ 13.10. Не простреливать смок, за которым врага быть не может или точно нет (по таймингу не успел,", "done": false}, {"id": "Б7", "sec": "Просьбы владельца 12.10 (после аудита)", "text": "НОВОЕ 13.10. Мало HP — отходит к своим, только если свой недалеко; иначе — укрытие рядом (было: шёл к", "done": false}, {"id": "Э1", "sec": "Экономика", "text": "НОВОЕ 13.10. Закупы как у про: какое оружие берут на пистолетке, эко, форсе и фулле (по нашим демкам).", "done": false}, {"id": "Э10", "sec": "Экономика", "text": "НОВОЕ 14.10. На пистолетке боты говорили «у них пистолеты — эко, не лезем в упор, держим дистанцию». Пистолетка — не эко: оценку закупа врага по оружию в пистолетном раунде не делаем. (чат 14.10)", "done": false}, {"id": "Э11", "sec": "Экономика", "text": "НОВОЕ 14.10. На пистолетке все брали кевлар и ни одной гранаты; у про (92 демки, раунды 1 и 13) команда бросает смок 1,1, флешку 1,0, молотов 0,36, HE 0,09. Теперь команда набирает такие гранаты (кому — по списку гранат ", "done": false}, {"id": "К1", "sec": "Командная игра (13.10, промт владельца)", "text": "НОВОЕ 13.10. Подпуш идёт до конца, если там пусто, и даёт инфу («чекнул … — пусто»); команда по ней перетягивается — для всех подпушей. (чат 13.10, эпизод: матч 1, тик 6640, игроки 5 и 9)", "done": false}, {"id": "К2", "sec": "Командная игра (13.10, промт владельца)", "text": "НОВОЕ 13.10. Подмена, как у про, везде, но с умом — без дыр в защите. (чат 13.10)", "done": false}, {"id": "К3", "sec": "Командная игра (13.10, промт владельца)", "text": "НОВОЕ 13.10. Носитель бомбы не ходит один и не умирает один. (чат 13.10)", "done": false}, {"id": "К4", "sec": "Командная игра (13.10, промт владельца)", "text": "НОВОЕ 13.10. Попали сквозь смок — бот отвечает огнём или уходит с линии. (чат 13.10)", "done": false}, {"id": "К5", "sec": "Командная игра (13.10, промт владельца)", "text": "НОВОЕ 13.10. Взгляд, ротации, позиции — как у про. (чат 13.10) — не исправлено: расхождения подтверждены на A и B (движение после фрага 23 против 66 px; взгляд на бегу вдоль движения 70 против 53 %)", "done": false}, {"id": "И1", "sec": "Командная игра (13.10, промт владельца)", "text": "НОВОЕ 14.10. Режим, где видно всё, что меняет взгляд бота: опасность зон картинкой и числами, варианты взгляда с баллами, источники. (чат 14.10) — сделано в v273, ждёт проверки (галочка «разбор взгляда» + клик по игроку)", "done": false}, {"id": "И2", "sec": "Командная игра (13.10, промт владельца)", "text": "НОВОЕ 14.10. Вышедший вперёд бот не считает тылом зоны, откуда идут враги (Triple, T Upper, Sniper Nest у CT на Lower Mid). (чат 14.10, разбор взгляда, фото игроков 6 и 7)", "done": false}, {"id": "И3", "sec": "Командная игра (13.10, промт владельца)", "text": "НОВОЕ 14.10. Инфа и звук о врагах, которых уже убили, не держат взгляд (игрок 6 смотрел на трупы у Mid). (чат 14.10)", "done": false}, {"id": "И4", "sec": "Командная игра (13.10, промт владельца)", "text": "НОВОЕ 14.10. Взгляд «как у про» не упирается в стену. (чат 14.10, фото 1)", "done": false}, {"id": "И5", "sec": "Командная игра (13.10, промт владельца)", "text": "НОВОЕ 14.10. Бот не держит взгляд на точке угла, которую уже прошёл (матч 1, тики 1790–1830, игрок 8 смотрел в стену после ухода игрока 6). (чат 14.10)", "done": false}, {"id": "И6", "sec": "Командная игра (13.10, промт владельца)", "text": "НОВОЕ 14.10. Звук, путь от которого к боту закрывает тиммейт, не тянет взгляд (матч 1, ~14 с, игрок 9 смотрел в Cave на шум с мида через Dark, где стоял свой). (чат 14.10)", "done": false}, {"id": "И7", "sec": "Командная игра (13.10, промт владельца)", "text": "НОВОЕ 14.10. На бегу бот не крутится, удерживая точку взгляда, оставшуюся за спиной после поворота (матч 1, тики 1452–1508, игрок 7 в Cave). (чат 14.10)", "done": false}, {"id": "И8", "sec": "Командная игра (13.10, промт владельца)", "text": "НОВОЕ 14.10. Держащий пост не разворачивается спиной к своему углу на дальнюю инфу (>550 px вне ±66°; матч 1, ~11,8 с, якорь B на бой на миде). (чат 14.10)", "done": false}, {"id": "И9", "sec": "Командная игра (13.10, промт владельца)", "text": "НОВОЕ 14.10. Бот не считает зону «тылом, который держит свой», если рядом он сам; угол, куда враг дойдёт скоро (< 12 с), — не тыл (игрок 8 бросал Donut при последнем T на A). (чат 14.10)", "done": false}, {"id": "И10", "sec": "Командная игра (13.10, промт владельца)", "text": "НОВОЕ 14.10. На звук смотрит туда, где враг от шума появится, а не на угол по своему пути (игрок 8 на Top Mid). (чат 14.10)", "done": false}, {"id": "И11", "sec": "Командная игра (13.10, промт владельца)", "text": "НОВОЕ 14.10. Якорь не ходит петлёй ради соседнего места (< 100 px) посреди раунда (игрок 7 в Dark, тики 2250–2300). (чат 14.10)", "done": false}, {"id": "И12", "sec": "Командная игра (13.10, промт владельца)", "text": "НОВОЕ 14.10. Угол поста не уводит взгляд назад, когда «угол по пути» ушёл в сторону (игрок 9 у стенки, тики ~1500–1544). (чат 14.10)", "done": false}, {"id": "И13", "sec": "Командная игра (13.10, промт владельца)", "text": "НОВОЕ 14.10. Свежая угроза за спиной на бегу не разворачивает бота, если она дальше 250 px (игрок 7 бежал помогать, тики 3070–3140). (чат 14.10)", "done": false}, {"id": "И14", "sec": "Командная игра (13.10, промт владельца)", "text": "НОВОЕ 14.10. Контакт без видимой точки не выкидывается — бот держит место, где враг зайдёт в его зону (игрок 7 в T Upper). (чат 14.10)", "done": false}, {"id": "И15", "sec": "Командная игра (13.10, промт владельца)", "text": "НОВОЕ 14.10. Колл «все N на сайт» — только если там правда кто-то есть (после зачистки B «все 1 на B» при последнем T на A). (чат 14.10)", "done": false}, {"id": "И16", "sec": "Командная игра (13.10, промт владельца)", "text": "НОВОЕ 14.10. Известные позиции врага из демок (в т. ч. в своей зоне) — варианты взгляда, пока команда не увидела их пустыми (Donut, тики 6190–6250, T в t_donut_3). (чат 14.10) — сделано в v281, ждёт проверки", "done": false}, {"id": "И17", "sec": "Командная игра (13.10, промт владельца)", "text": "НОВОЕ 14.10. На выходе с перевесом T ставят на пустой сайт, у которого бомба, а не несут её через CT Spawn на другой (матч 1, раунд 1, 3 на 1, тики 5400–5600). (чат 14.10)", "done": false}, {"id": "И18", "sec": "Командная игра (13.10, промт владельца)", "text": "НОВОЕ 14.10. После планта CT вычисляют сайт, как игрок (свой стоял у другого сайта и не слышал писк), и знание сдвигается к бомбе: T у бомбы 85 % (как у про), старые точки — остаток (матч 1, раунд 1, плант A, «враг до си", "done": false}, {"id": "И19", "sec": "Командная игра (13.10, промт владельца)", "text": "НОВОЕ 14.10. Встав на пост, бот сразу смотрит на свой угол, не досматривая точку с дороги (игрок 9, тики 1446–1650). (чат 14.10)", "done": false}, {"id": "И20", "sec": "Командная игра (13.10, промт владельца)", "text": "НОВОЕ 14.10. С малым HP бот держит проход к своим/к цели, который никто не держит, а не бежит к своим через полкарты (игрок 3 с 22 HP). (чат 14.10) — сделано в v284, ждёт проверки (числа проектные)", "done": false}, {"id": "И21", "sec": "Командная игра (13.10, промт владельца)", "text": "НОВОЕ 14.10. Оставшийся один после смертей своих рядом уходит к своим, если путь безопасный (A main после смертей на миду). (чат 14.10) — сделано в v284, ждёт проверки", "done": false}, {"id": "И22", "sec": "Командная игра (13.10, промт владельца)", "text": "НОВОЕ 14.10. Тиммейт дальше в перестрелке — свободный игрок заходит на его врага с другой стороны (кроссфаер), на любой карте (мид в спину A main). (чат 14.10) — сделано в v284, ждёт проверки (числа проектные)", "done": false}, {"id": "И23", "sec": "Командная игра (13.10, промт владельца)", "text": "НОВОЕ 14.10. В 2-1-2 ротатор — второй на A (раньше — между сайтами, на A оставался один). (чат 14.10)", "done": false}, {"id": "И24", "sec": "Командная игра (13.10, промт владельца)", "text": "НОВОЕ 14.10. Опорник не уходит с точки ради гранаты и не выходит на ранний пик, если на сайте больше никого. (чат 14.10)", "done": false}, {"id": "И25", "sec": "Командная игра (13.10, промт владельца)", "text": "НОВОЕ 14.10. Колл ротации/ретейка/подмены снимает гранату, если она не на сайт колла (игрок 9 в раунде 2 стоял в Short). (чат 14.10)", "done": false}, {"id": "И26", "sec": "Командная игра (13.10, промт владельца)", "text": "НОВОЕ 14.10. Бомба на земле: сборщик бегал Donut ↔ T Lower — старая проба на B каждые 6–9 с перебивала «за бомбой»; прикрывающий стоял в 120 px от бомбы и не брал её. Сборщику и прикрывающему пробы не назначаются; прикры", "done": false}, {"id": "И27", "sec": "Командная игра (13.10, промт владельца)", "text": "НОВОЕ 14.10. Игрок 9 в Dark смотрел в Cave, хотя magixx с бомбой был в Lamp Room в 123 px: оценка выбрала верную точку (выход из Lamp), а поправка «в угол» (считала видимость от точки поста, а не с места бота) развернула", "done": false}, {"id": "И28", "sec": "Командная игра (13.10, промт владельца)", "text": "НОВОЕ 14.10 (вид). Как убит — иконкой в киллфиде и на радаре у крестика: через смок (раньше отметка не передавалась), слепой, HE, молотов, бомба (смерть от взрыва раньше в киллфид не попадала; иконка C4 — своя, в наборе ", "done": false}, {"id": "И29", "sec": "Командная игра (13.10, промт владельца)", "text": "НОВОЕ 14.10. «Вблизи стреляют разбросом, прям вообще мимо»: попадания вблизи 83–88 % (стоя), но любой промах рисовался вбок не меньше ширины тела +15 % (на 30 px — от 12°), хотя в модели пуля шла над головой/рядом. Тепер", "done": false}, {"id": "И30", "sec": "Командная игра (13.10, промт владельца)", "text": "НОВОЕ 14.10 (вид). Панели игроков — иконки CS, а не свои. Сделано: бомба (как в киллфиде), HE, молотов, флешка (набор владельца). Ждёт файлов владельца: смок-граната, броня, броня+шлем, кит. (чат 14.10)", "done": false}, {"id": "И31", "sec": "Командная игра (13.10, промт владельца)", "text": "НОВОЕ 14.10. Игрок 6 шёл флангом через мид и на 2858 резко развернулся в T Upper («минус рядом — откатываюсь»): «рядом» была смерть на Back Site (926 px по прямой, 1150 пешком), а «назад» считалось от одного врага на Lon", "done": false}, {"id": "И32", "sec": "Командная игра (13.10, промт владельца)", "text": "НОВОЕ 14.10. Игрок 6 убил в T Lower и отвернулся на Mid, хотя второй T стоял в 35 px: после фрага оценка взгляда была старой (пересчёт раз в 8 тиков) — влез взгляд «как у про», а «плавность» держала его 0,7 с против свеж", "done": false}, {"id": "И33", "sec": "Командная игра (13.10, промт владельца)", "text": "НОВОЕ 14.10. Игрок 6 (34 HP) стоял в Connector и ждал пика, пока игрок 9 стрелялся с T2 в 200 px: «добить последних» держало угол «рядом с собой», а заход с другой стороны был запрещён ниже 35 HP и перебивался. Теперь в ", "done": false}, {"id": "И34", "sec": "Командная игра (13.10, промт владельца)", "text": "НОВОЕ 14.10. «Гранаты кидают на рандом»: по замеру v272 смоки T рвались рядом с врагом (500 px) в 64 % против 93 % у про, флешки CT — 77 % против 90 %. Главные источники: «инстасмок мид» (32 % смоков T, у врага 9 %; у пр", "done": false}, {"id": "И35", "sec": "Командная игра (13.10, промт владельца)", "text": "НОВОЕ 14.10. Игра вставала насовсем на 2–3 раунде: снимок для перемотки (каждые 640 тиков) не мог скопировать картинки иконок радара из v288 (KF_IMG) — ошибка останавливала цикл игры. KF_IMG убран из снимка. (чат 14.10)", "done": false}, {"id": "И36", "sec": "Командная игра (13.10, промт владельца)", "text": "НОВОЕ 14.10. Раунд 3: оба игрока B (7 и 9) пошли на T4 «с другой стороны», B опустел (мой баг v292). Теперь на одного врага заходит один — команда помнит, кто уже заходит (6 с). (отметка 14.10, матч 1, раунд 3, тик 8217)", "done": false}, {"id": "И37", "sec": "Командная игра (13.10, промт владельца)", "text": "НОВОЕ 14.10. T4 выглянул на игрока 7 в 60 px, отошёл и отвернулся по ходу отхода, потом пикнул «почти спиной». Теперь: за спиной на ходу контакт выкидывается, только если он и не свежий, и не близкий; близкий контакт без", "done": false}, {"id": "И38", "sec": "Командная игра (13.10, промт владельца)", "text": "НОВОЕ 14.10. T4 шёл в Dark спиной: угол поста (Cave) не виден — замена «в сторону врага» взяла проход назад в Lamp Room (к спавну CT через мид короче). Замена не уводит дальше 75° от самого угла поста. (отметка 14.10, ти", "done": false}, {"id": "И39", "sec": "Командная игра (13.10, промт владельца)", "text": "НОВОЕ 14.10. Фейк-дефуз и дефуз: T за 10 тиков «на время» → «на бомбу» → «на время» → «сейв». Теперь одно решение на попытку дефуза: кто пошёл на бомбу, идёт, пока дефуз идёт, и ещё 2 с после (выглядывает, а не разворачи", "done": false}, {"id": "И40", "sec": "Командная игра (13.10, промт владельца)", "text": "НОВОЕ 14.10. «Во время перезарядки стоят столбом»: перезарядка при враге рядом (≤ 900 px, ≤ 4 с, и без линии сейчас) — за укрытие; пустой магазин — тоже (раньше только тактическая и только при линии на врага); нет укрыти", "done": false}, {"id": "И41", "sec": "Командная игра (13.10, промт владельца)", "text": "НОВОЕ 14.10. «Хотел пикнуть, резко остановился и как будто назад утащило»: охоту на последних отпускало на 3,1 с инфы — за тик пост менялся на точку лёрка (разворот 136°). Теперь начать — инфа ≤ 3 с (демки), продолжить н", "done": false}, {"id": "И42", "sec": "Командная игра (13.10, промт владельца)", "text": "НОВОЕ 14.10 (вид/движение). Переминание на месте было дёрганым: скорость скачком 0 ↔ полная, направление шага пересчитывалось каждый тик от взгляда, упёрся в стену — каждый тик новый шаг. Теперь направление шага берётся ", "done": false}, {"id": "И43", "sec": "Командная игра (13.10, промт владельца)", "text": "НОВОЕ 14.10. T0 стрелялся на A, лёркер T4 шёл к бою на шифте (лёрк и «опасный путь» — шагом). Теперь: тиммейт в перестрелке (видит врага ≥ 0,3 с или стрелял/по нему стреляли за 2 с) в 900 px от меня, а моя точка — не дал", "done": false}, {"id": "М1", "sec": "Карты и механики (15.10, после Mirage v318; сообщения и отметки владельца)", "text": "НОВОЕ 15.10. Тактики T и расстановки CT не соответствуют тому, куда игроки идут. Начато в v319 (данные Mirage: свой сбор у каждой группы, CT без подпушей, мид из демок; баг стороны в positions_bake) — ждёт проверки.", "done": false}, {"id": "М2", "sec": "Карты и механики (15.10, после Mirage v318; сообщения и отметки владельца)", "text": "НОВОЕ 15.10 (снимок). Предупреждение «навмеш не связывает напрямую: Short ↔ Ladder Room». v319: середина зоны на её этаже (`zones.centers`); теперь висит «T Roof ↔ Pillars» — длинные зоны-коридоры.", "done": false}, {"id": "М3", "sec": "Карты и механики (15.10, после Mirage v318; сообщения и отметки владельца)", "text": "НОВОЕ 15.10 (снимок слоя высот). Местами нет «крыши» (штриховки), как будто нет полигона.", "done": false}, {"id": "М4", "sec": "Карты и механики (15.10, после Mirage v318; сообщения и отметки владельца)", "text": "НОВОЕ 15.10. Сделать прыжки и показать их на радаре.", "done": false}, {"id": "М5", "sec": "Карты и механики (15.10, после Mirage v318; сообщения и отметки владельца)", "text": "НОВОЕ 15.10. Показывать, что игрок ниже обычного уровня (например, в Underpass).", "done": false}, {"id": "М6", "sec": "Карты и механики (15.10, после Mirage v318; сообщения и отметки владельца)", "text": "НОВОЕ 15.10. Точки (границы) сайтов — как в игре, а не по зоне.", "done": false}, {"id": "М7", "sec": "Карты и механики (15.10, после Mirage v318; сообщения и отметки владельца)", "text": "НОВОЕ 15.10. Проверить: могут ли пройти через Underpass в мид.", "done": false}, {"id": "М8", "sec": "Карты и механики (15.10, после Mirage v318; сообщения и отметки владельца)", "text": "НОВОЕ 15.10 (отметка + фото). TeSeS через Corner залез в B Apps сквозь укрытие — там высокая стена и окно, туда не залезть. Сквозь укрытия не проходить; где можно — запрыгивать. Исправлено в v320 (связь «только спрыгнуть", "done": false}, {"id": "М9", "sec": "Карты и механики (15.10, после Mirage v318; сообщения и отметки владельца)", "text": "НОВОЕ 15.10. Навмеш соединить везде: в некоторые зоны боты не могут зайти. v320: лестницы из .nav — связи (Underpass → Short); стены не перекрывают связи навмеша (сборка проверяет как игра: участков в стене 0, оставшиеся", "done": false}, {"id": "М10", "sec": "Карты и механики (15.10, после Mirage v318; сообщения и отметки владельца)", "text": "НОВОЕ 15.10. Обсервер: держать интересное — выход на сайт, плант; на выходе переключаться между его игроками, чтобы был виден весь выход; не перескакивать на одновременный контакт в другом месте.", "done": false}, {"id": "М11", "sec": "Карты и механики (15.10, после Mirage v318; сообщения и отметки владельца)", "text": "НОВОЕ 15.10 (отметка). TeSeS убивает на B, а T с бомбой всё ждёт сбора на выход и не выходит.", "done": false}, {"id": "М12", "sec": "Карты и механики (15.10, после Mirage v318; сообщения и отметки владельца)", "text": "НОВОЕ 15.10. Молотов, коснувшийся смока, тушится (в игре так), у нас — нет.", "done": false}, {"id": "М13", "sec": "Карты и механики (15.10, после Mirage v318; сообщения и отметки владельца)", "text": "НОВОЕ 15.10. Флешка иногда не слепит; взрывается в стене; в игре флешки кидают над зданиями и стенами, и они слепят.", "done": false}, {"id": "М14", "sec": "Карты и механики (15.10, после Mirage v318; сообщения и отметки владельца)", "text": "НОВОЕ 15.10. Во время закупа — крутить камерой, дропать оружие, продавать, выкидывать.", "done": false}, {"id": "М15", "sec": "Карты и механики (15.10, после Mirage v318; сообщения и отметки владельца)", "text": "НОВОЕ 15.10 (отметка). Расстановка 2-1-2, а NiKo идёт на A — почему.", "done": false}, {"id": "М16", "sec": "Карты и механики (15.10, после Mirage v318; сообщения и отметки владельца)", "text": "НОВОЕ 15.10 (отметка 4 + снимок). Игрок ушёл за стену (в чёрное за краем карты). v320: всё чёрное до края карты — стена — ждёт проверки.", "done": false}, {"id": "М17", "sec": "Карты и механики (15.10, после Mirage v318; сообщения и отметки владельца)", "text": "НОВОЕ 15.10. Стены дырявые и неровные; на радаре чёрное — это стены. v320: стены по краю пола без расширения, ровнее; «контуры укрытий» по умолчанию выключены (просьба 15.10) — ждёт проверки.", "done": false}, {"id": "М18", "sec": "Карты и механики (15.10, после Mirage v318; сообщения и отметки владельца)", "text": "НОВОЕ 15.10. Иногда стреляют в смоки, где врага быть не может.", "done": false}, {"id": "М19", "sec": "Карты и механики (15.10, после Mirage v318; сообщения и отметки владельца)", "text": "НОВОЕ 15.10. Спавн — каждый раунд случайная точка из спавнов карты (от спавна зависят ранняя агрессия и тайминги).", "done": false}, {"id": "М20", "sec": "Карты и механики (15.10, после Mirage v318; сообщения и отметки владельца)", "text": "НОВОЕ 15.10 (отметка). Не понимают, откуда летит граната; в игре сразу понятно, откуда кинули и примерную позицию → «враг на CT/Ticket — идём на B, там скорее всего пусто».", "done": false}, {"id": "М21", "sec": "Карты и механики (15.10, после Mirage v318; сообщения и отметки владельца)", "text": "НОВОЕ 15.10. Роли игроков — свои на каждой карте (kyousuke на Ancient — опорник A, на Mirage — опорник B): брать из демок по карте.", "done": false}, {"id": "М22", "sec": "Карты и механики (15.10, после Mirage v318; сообщения и отметки владельца)", "text": "НОВОЕ 15.10. HE дамажит очень мало по сравнению с CS2.", "done": false}, {"id": "М23", "sec": "Карты и механики (15.10, после Mirage v318; сообщения и отметки владельца)", "text": "НОВОЕ 15.10. В войсе раунда помечать переколы на сайт и писать причину.", "done": false}, {"id": "М24", "sec": "Карты и механики (15.10, после Mirage v318; сообщения и отметки владельца)", "text": "НОВОЕ 15.10 (отметка 6). NiKo прошёл на B, не прочекал, но мог сделать колл «B чисто» — таких коллов не хватает.", "done": false}, {"id": "М25", "sec": "Карты и механики (15.10, после Mirage v318; сообщения и отметки владельца)", "text": "НОВОЕ 15.10 (отметка 7). Игрок 9 застрял.", "done": false}, {"id": "М26", "sec": "Карты и механики (15.10, после Mirage v318; сообщения и отметки владельца)", "text": "НОВОЕ 15.10. На Mirage вообще нет прострелов — сделать (как у Ancient: куски стен и ящиков по источникам).", "done": false}, {"id": "М27", "sec": "Карты и механики (15.10, после Mirage v318; сообщения и отметки владельца)", "text": "НОВОЕ 15.10 (4 снимка). Пробелы в штриховке крыш (надписи, значки, полосы у стен).", "done": false}, {"id": "М28", "sec": "Карты и механики (15.10, после Mirage v318; сообщения и отметки владельца)", "text": "НОВОЕ 15.10. Анимация закупа на панелях игроков: как появляются оружие и гранаты.", "done": false}, {"id": "М29", "sec": "Карты и механики (15.10, после Mirage v318; сообщения и отметки владельца)", "text": "НОВОЕ 15.10. У прыжков должны быть звуки, и на них должны реагировать.", "done": false}, {"id": "М30", "sec": "Карты и механики (15.10, после Mirage v318; сообщения и отметки владельца)", "text": "НОВОЕ 15.10. Гранаты, брошенные в стену, взрываются внутри стены, а не отскакивают.", "done": false}, {"id": "М31", "sec": "Карты и механики (15.10, после Mirage v318; сообщения и отметки владельца)", "text": "НОВОЕ 15.10. Молотов наносит мало урона.", "done": false}, {"id": "М32", "sec": "Карты и механики (15.10, после Mirage v318; сообщения и отметки владельца)", "text": "НОВОЕ 15.10 (войс 1:17). «zont1x минус на Catwalk, убил karrigan с Palms — нас 0 против 5».", "done": false}];
+var MK_PRINCIPLES = [{"id": "К1", "sec": "Команда", "text": "НОВОЕ 11.10. Убили опорника, бомбу видели на сайте, а T остался один — идут все CT (и опорник другого", "done": false}, {"id": "К2", "sec": "Команда", "text": "НОВОЕ 11.10. Назначили на ротацию — бот сразу бросает прежнюю задачу (пуш, добивание) и идёт. Сейчас", "done": false}, {"id": "К3", "sec": "Команда", "text": "НОВОЕ 11.10. CT убили всех T до ретейка — режим «сбор на ретейк» снимается, бегут к бомбе и дефузят. Сейчас", "done": false}, {"id": "К4", "sec": "Команда", "text": "НОВОЕ 11.10. Ротация на колл не мечется: CT 8 и 9 побежали на B, по пути развернулись на A, потом снова на B;", "done": false}, {"id": "К5", "sec": "Команда", "text": "НОВОЕ 11.10. Бомбу выбили (носитель убит, бомба на земле) — CT держат её (кто-то смотрит на бомбу) и", "done": false}, {"id": "К6", "sec": "Команда", "text": "НОВОЕ 12.10. Полноценная смена сторон: после 12-го раунда (и на перерывах овертайма) Spirit и Falcons", "done": false}, {"id": "В1", "sec": "Взгляд", "text": "НОВОЕ 11.10. На ходу (ротация, сбор на ретейк) взгляд держится на одной цели, а не крутится туда-сюда", "done": false}, {"id": "В2", "sec": "Взгляд", "text": "НОВОЕ 11.10. T при перемещении (после планта и вообще) смотрит туда, откуда по его знанию придут CT, а не", "done": false}, {"id": "В3", "sec": "Взгляд", "text": "НОВОЕ 11.10. CT на сборе ретейка не стоит спиной к ближнему входу со стороны T: CT 3 (8 HP) в Back Halls", "done": false}, {"id": "В4", "sec": "Взгляд", "text": "НОВОЕ 11.10. Взгляд не упирается в стену рядом: T 0 на зачистке A (Back Site) смотрит в стену в 94 px.", "done": false}, {"id": "В5", "sec": "Взгляд", "text": "НОВОЕ 11.10. Стоящий бот поворачивается на шум врагов рядом: CT 4 на сейве в Connector, 4 T в CT Spawn в", "done": false}, {"id": "В6", "sec": "Взгляд", "text": "НОВОЕ 11.10. Рядом убили тиммейта (видел и слышал) — смотрит туда, где убийца: T 2 в Back Site, T 0 убит", "done": false}, {"id": "Б1", "sec": "Бой", "text": "НОВОЕ 11.10. Есть урон по своим (как в CS2 на про-матчах): пули, HE, молотов ранят тиммейтов. (чат 11.10)", "done": false}, {"id": "Б2", "sec": "Бой", "text": "НОВОЕ 11.10. Боты выходят из вражеского молотова, а не стоят в нём. (чат 11.10)", "done": false}, {"id": "А1", "sec": "Аудит поведения (12.10, документ владельца «Гипотезы, приоритеты и план проверки»)", "text": "НОВОЕ 12.10. Важная задача (сейв, дефуз, сорвать плант, ретейк) сразу снимает лайнап / подбор оружия / ожидание у смока — бот не стоит, пока подсистемы спорят. (аудит, отчёт 3.1)", "done": false}, {"id": "А2", "sec": "Аудит поведения (12.10, документ владельца «Гипотезы, приоритеты и план проверки»)", "text": "НОВОЕ 12.10. Между появлением врага и выстрелом — реакция; мгновенно — только по тому, что знал до появления. (аудит, 3.2)", "done": false}, {"id": "А3", "sec": "Аудит поведения (12.10, документ владельца «Гипотезы, приоритеты и план проверки»)", "text": "НОВОЕ 12.10. В перестрелке бот не видит врагов вне поля зрения. (аудит, 3.3)", "done": false}, {"id": "А4", "sec": "Аудит поведения (12.10, документ владельца «Гипотезы, приоритеты и план проверки»)", "text": "НОВОЕ 12.10. Что слышал один, команда узнаёт только из войса. (аудит, 3.4)", "done": false}, {"id": "А5", "sec": "Аудит поведения (12.10, документ владельца «Гипотезы, приоритеты и план проверки»)", "text": "НОВОЕ 12.10. После смены сайта T не идут по маршруту и не кидают гранаты к старому сайту. (аудит, 3.5)", "done": false}, {"id": "А6", "sec": "Аудит поведения (12.10, документ владельца «Гипотезы, приоритеты и план проверки»)", "text": "НОВОЕ 12.10. HE и молотов не кидают под своих. (аудит, 3.6)", "done": false}, {"id": "Э1", "sec": "Аудит поведения (12.10, документ владельца «Гипотезы, приоритеты и план проверки»)", "text": "НОВОЕ 12.10. Вторая цель посреди перестрелки — со своей реакцией, первая не «разогревает» бота на всех. (ТЗ этап 2, P0-2)", "done": false}, {"id": "Э2", "sec": "Аудит поведения (12.10, документ владельца «Гипотезы, приоритеты и план проверки»)", "text": "НОВОЕ 12.10. Карта команды — только из того, что знает вся команда (радар, войс, киллфид); несказанный слух одного её не меняет. (ТЗ этап 2, P1-2)", "done": false}, {"id": "Э3", "sec": "Аудит поведения (12.10, документ владельца «Гипотезы, приоритеты и план проверки»)", "text": "НОВОЕ 12.10. После смены сайта T группа встаёт на подготовку нового сайта, а не ждёт на точке старого. (ТЗ этап 2, P1-1)", "done": false}, {"id": "Э4", "sec": "Аудит поведения (12.10, документ владельца «Гипотезы, приоритеты и план проверки»)", "text": "НОВОЕ 12.10. Свои не заходят в огонь своего молотова ради обхода — только по fireCommit (цель + хватает HP). (ТЗ этап 3, P1-4)", "done": false}, {"id": "Э5", "sec": "Аудит поведения (12.10, документ владельца «Гипотезы, приоритеты и план проверки»)", "text": "НОВОЕ 12.10. Свой отворачивается от своей флешки, только если знал о ней: колл «флешу!» в войсе дослушал до хлопка, или был рядом / видел бросок. (ТЗ этап 3, P2-2)", "done": false}, {"id": "Э6", "sec": "Аудит поведения (12.10, документ владельца «Гипотезы, приоритеты и план проверки»)", "text": "НОВОЕ 12.10. Держа угол и переминаясь, бот не перекидывает взгляд от сдвига на пиксели — угол выбран от места, где встал. (ТЗ этап 3, P2-1)", "done": false}, {"id": "Э7", "sec": "Аудит поведения (12.10, документ владельца «Гипотезы, приоритеты и план проверки»)", "text": "НОВОЕ 12.10. В перестрелке про стреляют с движением между выстрелами, боты стоят (52 % против 28 % времени на виду). (ТЗ этап 3, P0-1) — открыто: нужна модель «тап/очередь + стрейф» и данные `player_hurt`", "done": false}, {"id": "Э8", "sec": "Аудит поведения (12.10, документ владельца «Гипотезы, приоритеты и план проверки»)", "text": "НОВОЕ 12.10. Молотов не кидают туда, где он загорится под своим или под самим бросающим (проверка — в точке, где он реально вспыхнет). (ТЗ этап 4, P1)", "done": false}, {"id": "Э9", "sec": "Аудит поведения (12.10, документ владельца «Гипотезы, приоритеты и план проверки»)", "text": "НОВОЕ 12.10. Держащий позицию не «смотрит себе под ноги»: угол взгляда, выбранный по пути, не годится, если бот встал в него. (ТЗ этап 4, P1)", "done": false}, {"id": "В1", "sec": "Просьбы владельца 12.10 (после аудита)", "text": "НОВОЕ 12.10. Нож в руках — как у про: чаще на бегу и когда врага рядом быть не может (по знанию бота). (чат 12.10)", "done": false}, {"id": "В2", "sec": "Просьбы владельца 12.10 (после аудита)", "text": "НОВОЕ 12.10. Память о враге стареет со временем, как у про. (чат 12.10, решение по held)", "done": false}, {"id": "В3", "sec": "Просьбы владельца 12.10 (после аудита)", "text": "НОВОЕ 12.10. Темп атаки как у про (плант ~66 с). (чат 12.10)", "done": false}, {"id": "В4", "sec": "Просьбы владельца 12.10 (после аудита)", "text": "НОВОЕ 12.10. T не гибнут в одиночку чаще про (у про 20 % смертей до планта, у ботов 43–49 %). (чат 12.10, пункт 2)", "done": false}, {"id": "Б3", "sec": "Просьбы владельца 12.10 (после аудита)", "text": "НОВОЕ 13.10. Урон от взрыва бомбы — по расстоянию и стенам, как в CS2 (раньше: в 330 px — смерть, дальше —", "done": false}, {"id": "Б4", "sec": "Просьбы владельца 12.10 (после аудита)", "text": "НОВОЕ 13.10. При смерти выпадают пистолет (если нет основного), граната и кит — их подбирают. (чат 13.10) —", "done": false}, {"id": "Б5", "sec": "Просьбы владельца 12.10 (после аудита)", "text": "НОВОЕ 13.10. Пули пробивают в дыме дыру (CS2), через неё видно. (чат 13.10)", "done": false}, {"id": "Б6", "sec": "Просьбы владельца 12.10 (после аудита)", "text": "НОВОЕ 13.10. Не простреливать смок, за которым врага быть не может или точно нет (по таймингу не успел,", "done": false}, {"id": "Б7", "sec": "Просьбы владельца 12.10 (после аудита)", "text": "НОВОЕ 13.10. Мало HP — отходит к своим, только если свой недалеко; иначе — укрытие рядом (было: шёл к", "done": false}, {"id": "Э1", "sec": "Экономика", "text": "НОВОЕ 13.10. Закупы как у про: какое оружие берут на пистолетке, эко, форсе и фулле (по нашим демкам).", "done": false}, {"id": "Э10", "sec": "Экономика", "text": "НОВОЕ 14.10. На пистолетке боты говорили «у них пистолеты — эко, не лезем в упор, держим дистанцию». Пистолетка — не эко: оценку закупа врага по оружию в пистолетном раунде не делаем. (чат 14.10)", "done": false}, {"id": "Э11", "sec": "Экономика", "text": "НОВОЕ 14.10. На пистолетке все брали кевлар и ни одной гранаты; у про (92 демки, раунды 1 и 13) команда бросает смок 1,1, флешку 1,0, молотов 0,36, HE 0,09. Теперь команда набирает такие гранаты (кому — по списку гранат ", "done": false}, {"id": "К1", "sec": "Командная игра (13.10, промт владельца)", "text": "НОВОЕ 13.10. Подпуш идёт до конца, если там пусто, и даёт инфу («чекнул … — пусто»); команда по ней перетягивается — для всех подпушей. (чат 13.10, эпизод: матч 1, тик 6640, игроки 5 и 9)", "done": false}, {"id": "К2", "sec": "Командная игра (13.10, промт владельца)", "text": "НОВОЕ 13.10. Подмена, как у про, везде, но с умом — без дыр в защите. (чат 13.10)", "done": false}, {"id": "К3", "sec": "Командная игра (13.10, промт владельца)", "text": "НОВОЕ 13.10. Носитель бомбы не ходит один и не умирает один. (чат 13.10)", "done": false}, {"id": "К4", "sec": "Командная игра (13.10, промт владельца)", "text": "НОВОЕ 13.10. Попали сквозь смок — бот отвечает огнём или уходит с линии. (чат 13.10)", "done": false}, {"id": "К5", "sec": "Командная игра (13.10, промт владельца)", "text": "НОВОЕ 13.10. Взгляд, ротации, позиции — как у про. (чат 13.10) — не исправлено: расхождения подтверждены на A и B (движение после фрага 23 против 66 px; взгляд на бегу вдоль движения 70 против 53 %)", "done": false}, {"id": "И1", "sec": "Командная игра (13.10, промт владельца)", "text": "НОВОЕ 14.10. Режим, где видно всё, что меняет взгляд бота: опасность зон картинкой и числами, варианты взгляда с баллами, источники. (чат 14.10) — сделано в v273, ждёт проверки (галочка «разбор взгляда» + клик по игроку)", "done": false}, {"id": "И2", "sec": "Командная игра (13.10, промт владельца)", "text": "НОВОЕ 14.10. Вышедший вперёд бот не считает тылом зоны, откуда идут враги (Triple, T Upper, Sniper Nest у CT на Lower Mid). (чат 14.10, разбор взгляда, фото игроков 6 и 7)", "done": false}, {"id": "И3", "sec": "Командная игра (13.10, промт владельца)", "text": "НОВОЕ 14.10. Инфа и звук о врагах, которых уже убили, не держат взгляд (игрок 6 смотрел на трупы у Mid). (чат 14.10)", "done": false}, {"id": "И4", "sec": "Командная игра (13.10, промт владельца)", "text": "НОВОЕ 14.10. Взгляд «как у про» не упирается в стену. (чат 14.10, фото 1)", "done": false}, {"id": "И5", "sec": "Командная игра (13.10, промт владельца)", "text": "НОВОЕ 14.10. Бот не держит взгляд на точке угла, которую уже прошёл (матч 1, тики 1790–1830, игрок 8 смотрел в стену после ухода игрока 6). (чат 14.10)", "done": false}, {"id": "И6", "sec": "Командная игра (13.10, промт владельца)", "text": "НОВОЕ 14.10. Звук, путь от которого к боту закрывает тиммейт, не тянет взгляд (матч 1, ~14 с, игрок 9 смотрел в Cave на шум с мида через Dark, где стоял свой). (чат 14.10)", "done": false}, {"id": "И7", "sec": "Командная игра (13.10, промт владельца)", "text": "НОВОЕ 14.10. На бегу бот не крутится, удерживая точку взгляда, оставшуюся за спиной после поворота (матч 1, тики 1452–1508, игрок 7 в Cave). (чат 14.10)", "done": false}, {"id": "И8", "sec": "Командная игра (13.10, промт владельца)", "text": "НОВОЕ 14.10. Держащий пост не разворачивается спиной к своему углу на дальнюю инфу (>550 px вне ±66°; матч 1, ~11,8 с, якорь B на бой на миде). (чат 14.10)", "done": false}, {"id": "И9", "sec": "Командная игра (13.10, промт владельца)", "text": "НОВОЕ 14.10. Бот не считает зону «тылом, который держит свой», если рядом он сам; угол, куда враг дойдёт скоро (< 12 с), — не тыл (игрок 8 бросал Donut при последнем T на A). (чат 14.10)", "done": false}, {"id": "И10", "sec": "Командная игра (13.10, промт владельца)", "text": "НОВОЕ 14.10. На звук смотрит туда, где враг от шума появится, а не на угол по своему пути (игрок 8 на Top Mid). (чат 14.10)", "done": false}, {"id": "И11", "sec": "Командная игра (13.10, промт владельца)", "text": "НОВОЕ 14.10. Якорь не ходит петлёй ради соседнего места (< 100 px) посреди раунда (игрок 7 в Dark, тики 2250–2300). (чат 14.10)", "done": false}, {"id": "И12", "sec": "Командная игра (13.10, промт владельца)", "text": "НОВОЕ 14.10. Угол поста не уводит взгляд назад, когда «угол по пути» ушёл в сторону (игрок 9 у стенки, тики ~1500–1544). (чат 14.10)", "done": false}, {"id": "И13", "sec": "Командная игра (13.10, промт владельца)", "text": "НОВОЕ 14.10. Свежая угроза за спиной на бегу не разворачивает бота, если она дальше 250 px (игрок 7 бежал помогать, тики 3070–3140). (чат 14.10)", "done": false}, {"id": "И14", "sec": "Командная игра (13.10, промт владельца)", "text": "НОВОЕ 14.10. Контакт без видимой точки не выкидывается — бот держит место, где враг зайдёт в его зону (игрок 7 в T Upper). (чат 14.10)", "done": false}, {"id": "И15", "sec": "Командная игра (13.10, промт владельца)", "text": "НОВОЕ 14.10. Колл «все N на сайт» — только если там правда кто-то есть (после зачистки B «все 1 на B» при последнем T на A). (чат 14.10)", "done": false}, {"id": "И16", "sec": "Командная игра (13.10, промт владельца)", "text": "НОВОЕ 14.10. Известные позиции врага из демок (в т. ч. в своей зоне) — варианты взгляда, пока команда не увидела их пустыми (Donut, тики 6190–6250, T в t_donut_3). (чат 14.10) — сделано в v281, ждёт проверки", "done": false}, {"id": "И17", "sec": "Командная игра (13.10, промт владельца)", "text": "НОВОЕ 14.10. На выходе с перевесом T ставят на пустой сайт, у которого бомба, а не несут её через CT Spawn на другой (матч 1, раунд 1, 3 на 1, тики 5400–5600). (чат 14.10)", "done": false}, {"id": "И18", "sec": "Командная игра (13.10, промт владельца)", "text": "НОВОЕ 14.10. После планта CT вычисляют сайт, как игрок (свой стоял у другого сайта и не слышал писк), и знание сдвигается к бомбе: T у бомбы 85 % (как у про), старые точки — остаток (матч 1, раунд 1, плант A, «враг до си", "done": false}, {"id": "И19", "sec": "Командная игра (13.10, промт владельца)", "text": "НОВОЕ 14.10. Встав на пост, бот сразу смотрит на свой угол, не досматривая точку с дороги (игрок 9, тики 1446–1650). (чат 14.10)", "done": false}, {"id": "И20", "sec": "Командная игра (13.10, промт владельца)", "text": "НОВОЕ 14.10. С малым HP бот держит проход к своим/к цели, который никто не держит, а не бежит к своим через полкарты (игрок 3 с 22 HP). (чат 14.10) — сделано в v284, ждёт проверки (числа проектные)", "done": false}, {"id": "И21", "sec": "Командная игра (13.10, промт владельца)", "text": "НОВОЕ 14.10. Оставшийся один после смертей своих рядом уходит к своим, если путь безопасный (A main после смертей на миду). (чат 14.10) — сделано в v284, ждёт проверки", "done": false}, {"id": "И22", "sec": "Командная игра (13.10, промт владельца)", "text": "НОВОЕ 14.10. Тиммейт дальше в перестрелке — свободный игрок заходит на его врага с другой стороны (кроссфаер), на любой карте (мид в спину A main). (чат 14.10) — сделано в v284, ждёт проверки (числа проектные)", "done": false}, {"id": "И23", "sec": "Командная игра (13.10, промт владельца)", "text": "НОВОЕ 14.10. В 2-1-2 ротатор — второй на A (раньше — между сайтами, на A оставался один). (чат 14.10)", "done": false}, {"id": "И24", "sec": "Командная игра (13.10, промт владельца)", "text": "НОВОЕ 14.10. Опорник не уходит с точки ради гранаты и не выходит на ранний пик, если на сайте больше никого. (чат 14.10)", "done": false}, {"id": "И25", "sec": "Командная игра (13.10, промт владельца)", "text": "НОВОЕ 14.10. Колл ротации/ретейка/подмены снимает гранату, если она не на сайт колла (игрок 9 в раунде 2 стоял в Short). (чат 14.10)", "done": false}, {"id": "И26", "sec": "Командная игра (13.10, промт владельца)", "text": "НОВОЕ 14.10. Бомба на земле: сборщик бегал Donut ↔ T Lower — старая проба на B каждые 6–9 с перебивала «за бомбой»; прикрывающий стоял в 120 px от бомбы и не брал её. Сборщику и прикрывающему пробы не назначаются; прикры", "done": false}, {"id": "И27", "sec": "Командная игра (13.10, промт владельца)", "text": "НОВОЕ 14.10. Игрок 9 в Dark смотрел в Cave, хотя magixx с бомбой был в Lamp Room в 123 px: оценка выбрала верную точку (выход из Lamp), а поправка «в угол» (считала видимость от точки поста, а не с места бота) развернула", "done": false}, {"id": "И28", "sec": "Командная игра (13.10, промт владельца)", "text": "НОВОЕ 14.10 (вид). Как убит — иконкой в киллфиде и на радаре у крестика: через смок (раньше отметка не передавалась), слепой, HE, молотов, бомба (смерть от взрыва раньше в киллфид не попадала; иконка C4 — своя, в наборе ", "done": false}, {"id": "И29", "sec": "Командная игра (13.10, промт владельца)", "text": "НОВОЕ 14.10. «Вблизи стреляют разбросом, прям вообще мимо»: попадания вблизи 83–88 % (стоя), но любой промах рисовался вбок не меньше ширины тела +15 % (на 30 px — от 12°), хотя в модели пуля шла над головой/рядом. Тепер", "done": false}, {"id": "И30", "sec": "Командная игра (13.10, промт владельца)", "text": "НОВОЕ 14.10 (вид). Панели игроков — иконки CS, а не свои. Сделано: бомба (как в киллфиде), HE, молотов, флешка (набор владельца). Ждёт файлов владельца: смок-граната, броня, броня+шлем, кит. (чат 14.10)", "done": false}, {"id": "И31", "sec": "Командная игра (13.10, промт владельца)", "text": "НОВОЕ 14.10. Игрок 6 шёл флангом через мид и на 2858 резко развернулся в T Upper («минус рядом — откатываюсь»): «рядом» была смерть на Back Site (926 px по прямой, 1150 пешком), а «назад» считалось от одного врага на Lon", "done": false}, {"id": "И32", "sec": "Командная игра (13.10, промт владельца)", "text": "НОВОЕ 14.10. Игрок 6 убил в T Lower и отвернулся на Mid, хотя второй T стоял в 35 px: после фрага оценка взгляда была старой (пересчёт раз в 8 тиков) — влез взгляд «как у про», а «плавность» держала его 0,7 с против свеж", "done": false}, {"id": "И33", "sec": "Командная игра (13.10, промт владельца)", "text": "НОВОЕ 14.10. Игрок 6 (34 HP) стоял в Connector и ждал пика, пока игрок 9 стрелялся с T2 в 200 px: «добить последних» держало угол «рядом с собой», а заход с другой стороны был запрещён ниже 35 HP и перебивался. Теперь в ", "done": false}, {"id": "И34", "sec": "Командная игра (13.10, промт владельца)", "text": "НОВОЕ 14.10. «Гранаты кидают на рандом»: по замеру v272 смоки T рвались рядом с врагом (500 px) в 64 % против 93 % у про, флешки CT — 77 % против 90 %. Главные источники: «инстасмок мид» (32 % смоков T, у врага 9 %; у пр", "done": false}, {"id": "И35", "sec": "Командная игра (13.10, промт владельца)", "text": "НОВОЕ 14.10. Игра вставала насовсем на 2–3 раунде: снимок для перемотки (каждые 640 тиков) не мог скопировать картинки иконок радара из v288 (KF_IMG) — ошибка останавливала цикл игры. KF_IMG убран из снимка. (чат 14.10)", "done": false}, {"id": "И36", "sec": "Командная игра (13.10, промт владельца)", "text": "НОВОЕ 14.10. Раунд 3: оба игрока B (7 и 9) пошли на T4 «с другой стороны», B опустел (мой баг v292). Теперь на одного врага заходит один — команда помнит, кто уже заходит (6 с). (отметка 14.10, матч 1, раунд 3, тик 8217)", "done": false}, {"id": "И37", "sec": "Командная игра (13.10, промт владельца)", "text": "НОВОЕ 14.10. T4 выглянул на игрока 7 в 60 px, отошёл и отвернулся по ходу отхода, потом пикнул «почти спиной». Теперь: за спиной на ходу контакт выкидывается, только если он и не свежий, и не близкий; близкий контакт без", "done": false}, {"id": "И38", "sec": "Командная игра (13.10, промт владельца)", "text": "НОВОЕ 14.10. T4 шёл в Dark спиной: угол поста (Cave) не виден — замена «в сторону врага» взяла проход назад в Lamp Room (к спавну CT через мид короче). Замена не уводит дальше 75° от самого угла поста. (отметка 14.10, ти", "done": false}, {"id": "И39", "sec": "Командная игра (13.10, промт владельца)", "text": "НОВОЕ 14.10. Фейк-дефуз и дефуз: T за 10 тиков «на время» → «на бомбу» → «на время» → «сейв». Теперь одно решение на попытку дефуза: кто пошёл на бомбу, идёт, пока дефуз идёт, и ещё 2 с после (выглядывает, а не разворачи", "done": false}, {"id": "И40", "sec": "Командная игра (13.10, промт владельца)", "text": "НОВОЕ 14.10. «Во время перезарядки стоят столбом»: перезарядка при враге рядом (≤ 900 px, ≤ 4 с, и без линии сейчас) — за укрытие; пустой магазин — тоже (раньше только тактическая и только при линии на врага); нет укрыти", "done": false}, {"id": "И41", "sec": "Командная игра (13.10, промт владельца)", "text": "НОВОЕ 14.10. «Хотел пикнуть, резко остановился и как будто назад утащило»: охоту на последних отпускало на 3,1 с инфы — за тик пост менялся на точку лёрка (разворот 136°). Теперь начать — инфа ≤ 3 с (демки), продолжить н", "done": false}, {"id": "И42", "sec": "Командная игра (13.10, промт владельца)", "text": "НОВОЕ 14.10 (вид/движение). Переминание на месте было дёрганым: скорость скачком 0 ↔ полная, направление шага пересчитывалось каждый тик от взгляда, упёрся в стену — каждый тик новый шаг. Теперь направление шага берётся ", "done": false}, {"id": "И43", "sec": "Командная игра (13.10, промт владельца)", "text": "НОВОЕ 14.10. T0 стрелялся на A, лёркер T4 шёл к бою на шифте (лёрк и «опасный путь» — шагом). Теперь: тиммейт в перестрелке (видит врага ≥ 0,3 с или стрелял/по нему стреляли за 2 с) в 900 px от меня, а моя точка — не дал", "done": false}, {"id": "М1", "sec": "Карты и механики (15.10, после Mirage v318; сообщения и отметки владельца)", "text": "НОВОЕ 15.10. Тактики T и расстановки CT не соответствуют тому, куда игроки идут. Начато в v319 (данные Mirage: свой сбор у каждой группы, CT без подпушей, мид из демок; баг стороны в positions_bake) — ждёт проверки.", "done": false}, {"id": "М2", "sec": "Карты и механики (15.10, после Mirage v318; сообщения и отметки владельца)", "text": "НОВОЕ 15.10 (снимок). Предупреждение «навмеш не связывает напрямую: Short ↔ Ladder Room». v319: середина зоны на её этаже (`zones.centers`); теперь висит «T Roof ↔ Pillars» — длинные зоны-коридоры.", "done": false}, {"id": "М3", "sec": "Карты и механики (15.10, после Mirage v318; сообщения и отметки владельца)", "text": "НОВОЕ 15.10 (снимок слоя высот). Местами нет «крыши» (штриховки), как будто нет полигона.", "done": false}, {"id": "М4", "sec": "Карты и механики (15.10, после Mirage v318; сообщения и отметки владельца)", "text": "НОВОЕ 15.10. Сделать прыжки и показать их на радаре.", "done": false}, {"id": "М5", "sec": "Карты и механики (15.10, после Mirage v318; сообщения и отметки владельца)", "text": "НОВОЕ 15.10. Показывать, что игрок ниже обычного уровня (например, в Underpass).", "done": false}, {"id": "М6", "sec": "Карты и механики (15.10, после Mirage v318; сообщения и отметки владельца)", "text": "НОВОЕ 15.10. Точки (границы) сайтов — как в игре, а не по зоне.", "done": false}, {"id": "М7", "sec": "Карты и механики (15.10, после Mirage v318; сообщения и отметки владельца)", "text": "НОВОЕ 15.10. Проверить: могут ли пройти через Underpass в мид.", "done": false}, {"id": "М8", "sec": "Карты и механики (15.10, после Mirage v318; сообщения и отметки владельца)", "text": "НОВОЕ 15.10 (отметка + фото). TeSeS через Corner залез в B Apps сквозь укрытие — там высокая стена и окно, туда не залезть. Сквозь укрытия не проходить; где можно — запрыгивать. Исправлено в v320 (связь «только спрыгнуть", "done": false}, {"id": "М9", "sec": "Карты и механики (15.10, после Mirage v318; сообщения и отметки владельца)", "text": "НОВОЕ 15.10. Навмеш соединить везде: в некоторые зоны боты не могут зайти. v320: лестницы из .nav — связи (Underpass → Short); стены не перекрывают связи навмеша (сборка проверяет как игра: участков в стене 0, оставшиеся", "done": false}, {"id": "М10", "sec": "Карты и механики (15.10, после Mirage v318; сообщения и отметки владельца)", "text": "НОВОЕ 15.10. Обсервер: держать интересное — выход на сайт, плант; на выходе переключаться между его игроками, чтобы был виден весь выход; не перескакивать на одновременный контакт в другом месте.", "done": false}, {"id": "М11", "sec": "Карты и механики (15.10, после Mirage v318; сообщения и отметки владельца)", "text": "НОВОЕ 15.10 (отметка). TeSeS убивает на B, а T с бомбой всё ждёт сбора на выход и не выходит.", "done": false}, {"id": "М12", "sec": "Карты и механики (15.10, после Mirage v318; сообщения и отметки владельца)", "text": "НОВОЕ 15.10. Молотов, коснувшийся смока, тушится (в игре так), у нас — нет.", "done": false}, {"id": "М13", "sec": "Карты и механики (15.10, после Mirage v318; сообщения и отметки владельца)", "text": "НОВОЕ 15.10. Флешка иногда не слепит; взрывается в стене; в игре флешки кидают над зданиями и стенами, и они слепят.", "done": false}, {"id": "М14", "sec": "Карты и механики (15.10, после Mirage v318; сообщения и отметки владельца)", "text": "НОВОЕ 15.10. Во время закупа — крутить камерой, дропать оружие, продавать, выкидывать.", "done": false}, {"id": "М15", "sec": "Карты и механики (15.10, после Mirage v318; сообщения и отметки владельца)", "text": "НОВОЕ 15.10 (отметка). Расстановка 2-1-2, а NiKo идёт на A — почему.", "done": false}, {"id": "М16", "sec": "Карты и механики (15.10, после Mirage v318; сообщения и отметки владельца)", "text": "НОВОЕ 15.10 (отметка 4 + снимок). Игрок ушёл за стену (в чёрное за краем карты). v320: всё чёрное до края карты — стена — ждёт проверки.", "done": false}, {"id": "М17", "sec": "Карты и механики (15.10, после Mirage v318; сообщения и отметки владельца)", "text": "НОВОЕ 15.10. Стены дырявые и неровные; на радаре чёрное — это стены. v320: стены по краю пола без расширения, ровнее; «контуры укрытий» по умолчанию выключены (просьба 15.10) — ждёт проверки.", "done": false}, {"id": "М18", "sec": "Карты и механики (15.10, после Mirage v318; сообщения и отметки владельца)", "text": "НОВОЕ 15.10. Иногда стреляют в смоки, где врага быть не может.", "done": false}, {"id": "М19", "sec": "Карты и механики (15.10, после Mirage v318; сообщения и отметки владельца)", "text": "НОВОЕ 15.10. Спавн — каждый раунд случайная точка из спавнов карты (от спавна зависят ранняя агрессия и тайминги).", "done": false}, {"id": "М20", "sec": "Карты и механики (15.10, после Mirage v318; сообщения и отметки владельца)", "text": "НОВОЕ 15.10 (отметка). Не понимают, откуда летит граната; в игре сразу понятно, откуда кинули и примерную позицию → «враг на CT/Ticket — идём на B, там скорее всего пусто».", "done": false}, {"id": "М21", "sec": "Карты и механики (15.10, после Mirage v318; сообщения и отметки владельца)", "text": "НОВОЕ 15.10. Роли игроков — свои на каждой карте (kyousuke на Ancient — опорник A, на Mirage — опорник B): брать из демок по карте.", "done": false}, {"id": "М22", "sec": "Карты и механики (15.10, после Mirage v318; сообщения и отметки владельца)", "text": "НОВОЕ 15.10. HE дамажит очень мало по сравнению с CS2.", "done": false}, {"id": "М23", "sec": "Карты и механики (15.10, после Mirage v318; сообщения и отметки владельца)", "text": "НОВОЕ 15.10. В войсе раунда помечать переколы на сайт и писать причину.", "done": false}, {"id": "М24", "sec": "Карты и механики (15.10, после Mirage v318; сообщения и отметки владельца)", "text": "НОВОЕ 15.10 (отметка 6). NiKo прошёл на B, не прочекал, но мог сделать колл «B чисто» — таких коллов не хватает.", "done": false}, {"id": "М25", "sec": "Карты и механики (15.10, после Mirage v318; сообщения и отметки владельца)", "text": "НОВОЕ 15.10 (отметка 7). Игрок 9 застрял.", "done": false}, {"id": "М26", "sec": "Карты и механики (15.10, после Mirage v318; сообщения и отметки владельца)", "text": "НОВОЕ 15.10. На Mirage вообще нет прострелов — сделать (как у Ancient: куски стен и ящиков по источникам).", "done": false}, {"id": "М27", "sec": "Карты и механики (15.10, после Mirage v318; сообщения и отметки владельца)", "text": "НОВОЕ 15.10 (4 снимка). Пробелы в штриховке крыш (надписи, значки, полосы у стен).", "done": false}, {"id": "М28", "sec": "Карты и механики (15.10, после Mirage v318; сообщения и отметки владельца)", "text": "НОВОЕ 15.10. Анимация закупа на панелях игроков: как появляются оружие и гранаты.", "done": false}, {"id": "М29", "sec": "Карты и механики (15.10, после Mirage v318; сообщения и отметки владельца)", "text": "НОВОЕ 15.10. У прыжков должны быть звуки, и на них должны реагировать.", "done": false}, {"id": "М30", "sec": "Карты и механики (15.10, после Mirage v318; сообщения и отметки владельца)", "text": "НОВОЕ 15.10. Гранаты, брошенные в стену, взрываются внутри стены, а не отскакивают.", "done": false}, {"id": "М31", "sec": "Карты и механики (15.10, после Mirage v318; сообщения и отметки владельца)", "text": "НОВОЕ 15.10. Молотов наносит мало урона.", "done": false}, {"id": "М32", "sec": "Карты и механики (15.10, после Mirage v318; сообщения и отметки владельца)", "text": "НОВОЕ 15.10 (войс 1:17). «zont1x минус на Catwalk, убил karrigan с Palms — нас 0 против 5».", "done": false}, {"id": "М33", "sec": "Карты и механики (15.10, после Mirage v318; сообщения и отметки владельца)", "text": "НОВОЕ 15.10 (отметка, р1 9,3 с). Игрок 9 под Palace — ему летят гранаты навесом, которые туда не залетят.", "done": false}, {"id": "М34", "sec": "Карты и механики (15.10, после Mirage v318; сообщения и отметки владельца)", "text": "НОВОЕ 15.10. Переколлы выделять фиолетовым.", "done": false}, {"id": "М35", "sec": "Карты и механики (15.10, после Mirage v318; сообщения и отметки владельца)", "text": "НОВОЕ 15.10. Молотов полностью блокирует путь; должен только жечь — пройти можно, чем дольше в огне, тем сильнее.", "done": false}, {"id": "М36", "sec": "Карты и механики (15.10, после Mirage v318; сообщения и отметки владельца)", "text": "НОВОЕ 15.10. Стоят на краю молотова и не горят; со смоком так же — сверить вид и зону.", "done": false}, {"id": "М37", "sec": "Карты и механики (15.10, после Mirage v318; сообщения и отметки владельца)", "text": "НОВОЕ 15.10. Пересмотреть роли игроков на Mirage.", "done": false}, {"id": "М38", "sec": "Карты и механики (15.10, после Mirage v318; сообщения и отметки владельца)", "text": "НОВОЕ 15.10 (отметка, р4 18,4 с). Игрок поднимается из-под Palace на Palace не по лестнице.", "done": false}, {"id": "М39", "sec": "Карты и механики (15.10, после Mirage v318; сообщения и отметки владельца)", "text": "НОВОЕ 15.10. На дефуз, если близко, можно подходить шифтом, чтобы не палиться.", "done": false}, {"id": "М40", "sec": "Карты и механики (15.10, после Mirage v318; сообщения и отметки владельца)", "text": "НОВОЕ 15.10. Звуки как в CS: шаги, стрельба, смок, молотов, бомба, дефуз.", "done": false}];
 // ======================= v167: «Отметить момент», карточка «Я понял так», перемотка =======================
 // Инструмент для владельца и Claude, мозг ботов не трогает. Описание — docs/tasks/02-mark-moment.md.
 // Снимки состояния: __SNAP (список переменных симулятора) генерирует src/marks_build.py при сборке (build.py, mkpub.py).
@@ -28865,6 +28995,75 @@ function obsManual(){ OBS.manualUntil = performance.now() + 6000; OBS.sc = 0; }
   cv.addEventListener("mousedown", obsManual); cv.addEventListener("wheel", obsManual, {passive:true});
   ["plT","plCT"].forEach(function(id){ var el = document.getElementById(id); if(el) el.addEventListener("pointerdown", function(){ obsManual(); OBS.id = null; }); });
   window.addEventListener("keydown", function(e){ if((e.key === "o" || e.key === "O" || e.key === "щ" || e.key === "Щ") && !/INPUT|TEXTAREA|SELECT/.test((e.target && e.target.tagName) || "")){ OBS.on = !OBS.on; OBS.sc = 0; OBS.manualUntil = 0; if(!OBS.on) fit(); } });
+})();
+// ======================= (v323, М40) ЗВУК — только показ, на игру не влияет =======================
+// Синтез Web Audio (звуки Valve копировать нельзя): шум и тоны по типу события. Слышно то, что рядом с серединой экрана
+// (там камера): громкость (1 − d/R)², R — дальность слышимости типа (ед. карты; шаги ~ бег 1100 ед. игры = 440). Бомба пикает
+// чаще к концу (интервал 1 → 0,1 с — проектное число, как на слух в CS2). При быстрой перемотке — не больше SND_MAX звуков
+// за 50 мс. Выключено, пока не нажать «Звук» (браузер не даёт играть звук без клика)
+var SND = {on:false, ctx:null, noise:null, slot:0, n:0, beepNext:0}, SND_MAX = 6;
+var SND_R = {step:440, shot:1400, awp:2000, nade:1100, bomb:900};
+function sndInit(){
+  if(SND.ctx) return;
+  var C = window.AudioContext || window.webkitAudioContext; if(!C) return;
+  SND.ctx = new C(); SND.master = SND.ctx.createGain(); SND.master.gain.value = 0.5; SND.master.connect(SND.ctx.destination);
+  var len = SND.ctx.sampleRate, buf = SND.ctx.createBuffer(1, len, SND.ctx.sampleRate), d = buf.getChannelData(0), sd = 12345;
+  for(var i=0;i<len;i++){ sd = (sd*1103515245 + 12345) & 0x7fffffff; d[i] = sd/0x3fffffff - 1; }
+  SND.noise = buf;
+}
+function sndGain(x, y, R){
+  if(!SND.on || !SND.ctx || typeof cv === "undefined") return 0;
+  var t = performance.now(); if(t - SND.slot > 50){ SND.slot = t; SND.n = 0; } if(++SND.n > SND_MAX) return 0;
+  var r = cv.getBoundingClientRect(), c = navScreenToWorld(r.left + r.width/2, r.top + r.height/2);
+  var k = 1 - Math.hypot(x - c.x, y - c.y)/R; return k > 0 ? k*k : 0;
+}
+function sndNoise(g, dur, type, f, q, delay){
+  var c = SND.ctx, t0 = c.currentTime + (delay||0), src = c.createBufferSource(); src.buffer = SND.noise;
+  var fl = c.createBiquadFilter(); fl.type = type; fl.frequency.value = f; fl.Q.value = q || 1;
+  var gn = c.createGain(); gn.gain.setValueAtTime(g, t0); gn.gain.exponentialRampToValueAtTime(0.001, t0 + dur);
+  src.connect(fl); fl.connect(gn); gn.connect(SND.master); src.start(t0, Math.random()*0.5); src.stop(t0 + dur + 0.02);
+}
+function sndTone(g, dur, f, type, delay, f2){
+  var c = SND.ctx, t0 = c.currentTime + (delay||0), o = c.createOscillator(); o.type = type || "sine"; o.frequency.setValueAtTime(f, t0);
+  if(f2) o.frequency.exponentialRampToValueAtTime(f2, t0 + dur);
+  var gn = c.createGain(); gn.gain.setValueAtTime(g, t0); gn.gain.exponentialRampToValueAtTime(0.001, t0 + dur);
+  o.connect(gn); gn.connect(SND.master); o.start(t0); o.stop(t0 + dur + 0.02);
+}
+function sndStep(x, y){ var g = sndGain(x, y, SND_R.step); if(g) sndNoise(0.25*g, 0.05, "lowpass", 500, 1); }
+function sndShot(w, x, y){
+  var awp = w && w.key === "AWP", g = sndGain(x, y, awp ? SND_R.awp : SND_R.shot); if(!g) return;
+  var sil = w && w.silenced, pistol = w && /USP|GLOCK|P2000|P250|DEAGLE|FIVE|TEC|CZ|DUAL|R8/.test(w.key || "");
+  if(sil){ sndNoise(0.35*g, 0.07, "bandpass", 1800, 0.8); return; }
+  if(awp){ sndNoise(0.9*g, 0.45, "lowpass", 700, 0.7); sndTone(0.5*g, 0.25, 90, "sine", 0, 45); return; }
+  sndNoise((pistol ? 0.5 : 0.7)*g, pistol ? 0.09 : 0.14, "bandpass", pistol ? 1600 : 1000, 0.7); sndTone(0.3*g, 0.08, pistol ? 160 : 120, "triangle", 0, 60);
+}
+function sndNade(type, x, y){
+  var g = sndGain(x, y, SND_R.nade); if(!g) return;
+  if(type === "smoke"){ sndTone(0.2*g, 0.05, 900, "square"); sndNoise(0.35*g, 1.6, "highpass", 2500, 0.5, 0.03); }
+  else if(type === "flash"){ sndNoise(0.8*g, 0.12, "highpass", 1500, 0.7); sndTone(0.12*g, 1.2, 3200, "sine", 0.05); }
+  else if(type === "he"){ sndNoise(1.0*g, 0.7, "lowpass", 300, 0.8); sndTone(0.6*g, 0.5, 70, "sine", 0, 35); }
+  else if(type === "molly"){ sndTone(0.25*g, 0.12, 2400, "triangle", 0, 1800); sndNoise(0.5*g, 0.9, "bandpass", 900, 0.5, 0.05); }
+  else if(type === "throw"){ sndNoise(0.15*g, 0.12, "bandpass", 700, 2); }
+  else if(type === "bounce"){ sndTone(0.15*g, 0.04, 1300, "triangle"); }
+}
+function sndBomb(kind, x, y){
+  var g = sndGain(x, y, SND_R.bomb); if(!g) return;
+  if(kind === "beep") sndTone(0.25*g, 0.09, 2800, "sine");
+  else if(kind === "plant"){ for(var i=0;i<7;i++) sndTone(0.18*g, 0.07, 1500 + (i%3)*250, "square", i*0.32); }
+  else if(kind === "planted") sndTone(0.3*g, 0.3, 2000, "sine", 0, 1600);
+  else if(kind === "defuse"){ sndNoise(0.3*g, 0.06, "bandpass", 3000, 2); for(var j=0;j<4;j++) sndTone(0.12*g, 0.04, 2200, "square", 0.15 + j*0.12); }
+  else if(kind === "boom"){ sndNoise(1.0*g, 2.2, "lowpass", 220, 0.6); sndTone(0.8*g, 1.4, 55, "sine", 0, 25); }
+  else if(kind === "defused") sndTone(0.25*g, 0.5, 1200, "sine", 0, 2400);
+}
+function sndTick(){   // пиканье бомбы — раз в тик проверка, когда следующее
+  if(!SND.on || !bomb || bomb.state !== "planted") return;
+  var left = bombTimeLeftTicks()/TICK_HZ; if(tick < SND.beepNext) return;
+  sndBomb("beep", bomb.x, bomb.y);
+  SND.beepNext = tick + Math.round(Math.max(0.1, Math.min(1, 0.1 + 0.9*left/40))*TICK_HZ);
+}
+(function(){
+  var b = document.getElementById("btnSnd"); if(!b) return;
+  b.addEventListener("click", function(){ sndInit(); if(!SND.ctx) return; SND.on = !SND.on; if(SND.on && SND.ctx.state === "suspended") SND.ctx.resume(); b.className = SND.on ? "on" : ""; });
 })();
 function frame(ts){
   nowTs = ts;
