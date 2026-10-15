@@ -13318,6 +13318,10 @@ function buildWaypointPath(fromX, fromY, fromZ, toX, toY, toZ, team){
   var fz = fromZ != null ? navAt(fromX, fromY, fromZ) : null;
   if(fromZ != null && (!fz || Math.abs(fz.z - fromZ) > JUMP_UP)) fz = navNearestZ(fromX, fromY, NAV_GAP_TOL, fromZ);   // под точкой чужой этаж — свой рядом
   if(fz && !(zoneGraph[fz.id]||[]).length) fz = null;   // участок без переходов — маршрута от него нет (была прямая сквозь всё)
+  if(fz && fromZ != null && Math.abs(fz.z - fromZ) > JUMP_UP) fz = null;
+  // (v347) своего пола в щели нет (стоит за краем Short) — свой уровень в 40 ед., а не участок под ним (Underpass): иначе путь
+  // начинался внизу, и падение считалось «спуском по пути»
+  if(!fz && fromZ != null) fz = navFloorNear(fromX, fromY, 40, function(a){ return Math.abs(a.z - fromZ) <= JUMP_UP && (zoneGraph[a.id]||[]).length; });
   fz = fz || zoneOf(fromX, fromY, fromZ||0);
   // (v347, отметка владельца: magixx шёл к посту (z 0) — под целью брался уступ −50 вместо пола Short −168, маршрута не было, путь
   // выродился в прямую через край, и он «провалился») высота цели не задана — пол цели на уровне бота; маршрута нет — другие
