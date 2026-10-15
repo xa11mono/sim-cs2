@@ -2985,7 +2985,7 @@ function setPost(b, pt, look, hold, tag, spreadIdx){
     var csL = b.team === "CT" ? (bomb && bomb.state === "planted" ? bomb.site : (teamTac.CT && teamTac.CT.call ? teamTac.CT.call.site : null)) : null;
     var farNade = !b.nadeTask || !csL || Math.hypot(b.nadeTask.x-SITES[csL].x, b.nadeTask.y-SITES[csL].y) > 700;
     if(!/^(defuse|flee|save|stopplant|antidefuse|fetch|plantspot)/.test(tag) && !(/^(rotate|gather|retake|fill)/.test(tag) && farNade)) return;
-    b.nadeTask = null; b._lineupLock = 0;   // задача важнее броска — бросок отменён (как живой игрок бросает лайнап ради сейва/дефуза)
+    b.nadeTask = null; b.nadeQueue = null; b._lineupLock = 0;   // задача важнее броска — бросок отменён (как живой игрок бросает лайнап ради сейва/дефуза)
   }
   if(tag === "lineup") b._route = null;
   if(b._route && !/^route/.test(tag) && tag !== "utilWait" && tag !== "utilHold"){   // (v349) ожидание гранат — пауза маршрута раша, не отмена
@@ -4171,7 +4171,7 @@ function tSetSite(tt, site){
     b._route = null; b._stageInfo = null;
     var t = b.nadeTask;
     if(old && old !== site && t && SITES[old] && Math.hypot(t.x-SITES[old].x, t.y-SITES[old].y) < Math.hypot(t.x-SITES[site].x, t.y-SITES[site].y)){
-      b.nadeTask = null; b._lineupLock = 0; if(b.post && b.post.tag === "lineup") clearPost(b);
+      b.nadeTask = null; b.nadeQueue = null; b._lineupLock = 0; if(b.post && b.post.tag === "lineup") clearPost(b);
     }
   });
 }
@@ -4308,6 +4308,27 @@ function tBrain(){
       return;
     }
   }
+  // (v355, владелец: «zont1x чекнул Market, Window, Short, B Site, Bench, Car — пусто, но перекола нет», 4 на 1 стояли у A)
+  // свои только что прочекали другой сайт — там пусто (2+ зоны у сайта за CLR_REB_SEC с), а по знанию CT там нет, и носитель
+  // успевает дойти и поставить: идём туда. Повод — либо CT по знанию у нашего сайта, либо носитель ближе к другому. Раз за раунд
+  if(!tt._clrReb && bomb.state === "carried" && bomb.carrier && bomb.carrier.alive && !carrierAtSite(tt) && aliveCount("T") >= 2){
+    var So = SITES[other], nClr = 0;
+    for(var zc in CLEARZ.T){ var Cz = CLEARZ.T[zc]; if(Cz && tick - Cz.tick < CLR_REB_SEC*TICK_HZ && Math.hypot(Cz.x-So.x, Cz.y-So.y) < 750) nClr++; }
+    if(nClr >= 2){
+      var crC = bomb.carrier, dHc = polyLen(pathPts(crC.x, crC.y, site.x, site.y)), dOc = polyLen(pathPts(crC.x, crC.y, So.x, So.y));
+      var bO = beliefCount("T", BZ.siteNear[other]||[]), bH = beliefCount("T", BZ.siteNear[tt.site]||[]);
+      var eOc = intelEstimate("T", So.x, So.y, 500, 6*TICK_HZ);
+      if(bO < 0.9 && eOc.seen + eOc.heard === 0 && (bH >= 0.8 || dOc < dHc) && secLeft > dOc/SPEED + PLANT_TICKS/TICK_HZ + 8 && iglTake(tt, tick)){
+        tt._clrReb = true; tt.rebound = true;
+        voiceLog("T", "clrreb"+other, "IGL", "ПЕРЕКОЛЛ "+tt.site+" → "+other+": "+other+" прочекали — пусто, все на "+other+", ставим там!");
+        logEvent("IGL: "+other+" прочекан и пуст — перекол → "+other);
+        tSetSite(tt, other); site = SITES[tt.site];
+        if(aliveCount("CT") <= 2 || tt.phase === "execute"){ tt.phase = "execute"; tt.execStart = tick; tt.fewGo = true; }
+        else { tt.phase = "setup"; tt.execTick = tick + 4*TICK_HZ; }
+        return;
+      }
+    }
+  }
   if(BAL.iglReplan && tIglReplan(tt, site, other, secLeft)) return;
   // ---- мид наш: сняли мидера CT → двое идут через мид на сторону CT (набор карты: tactics.plays.midTake;
   // на Ancient — через Red Room) и заходят на наш сайт оттуда, пока остальные — с обычной стороны ----
@@ -4412,7 +4433,7 @@ function tBrain(){
     if(fetcher){ tt.fetchId = fetcher.id;
       // (v286, И26) сборщик бомбы — не проба: старая проба снимается (раньше проба на B каждые 6–9 с выдёргивала его от бомбы)
       if(fetcher._probe && fetcher._probe.round === roundNum){ fetcher._probe = null; fetcher._probeLock = 0; }
-      if(fetcher.nadeTask && fetcher.nadeTask.lineup){ fetcher.nadeTask = null; fetcher._lineupLock = 0; } // бомба важнее лайнапа
+      if(fetcher.nadeTask && fetcher.nadeTask.lineup){ fetcher.nadeTask = null; fetcher.nadeQueue = null; fetcher._lineupLock = 0; } // бомба важнее лайнапа
       // (v269, пункт 2) за бомбой — не в одиночку: бомба лежит там, где убили носителя, — под тем же стрелком. У ботов 27 из
       // 159 смертей T «один» (нет своего в 350 px) были по дороге за бомбой; у про в одиночку гибнут 20 % T (у ботов 49 %),
       // а смерть рядом со своим разменивают в 27 % (у ботов 33 %). Ближайший к сборщику T (не лёркер, ≤ 500 px — как напарник
@@ -4602,7 +4623,7 @@ function tBrain(){
       var inAir = nadesInAir.some(function(n){ return n.team === "T" && Math.hypot((n.tx != null ? n.tx : n.x)-S0.x, (n.ty != null ? n.ty : n.y)-S0.y) < 900; });
       // (v349, отметка владельца: «всё равно выходят до взрыва») и пока свой несёт гранату выхода на этот сайт (лайнап «(выход, A)»)
       var reExec = new RegExp("выход, " + tt.site);
-      var pending = ts.some(function(o){ return o !== b && o.alive && o.nadeTask && o.nadeTask.lineup && reExec.test(o.nadeTask.why || ""); });
+      var pending = ts.some(function(o){ return o !== b && o.alive && (o.nadeTask && o.nadeTask.lineup && reExec.test(o.nadeTask.why || "") || (o.nadeQueue || []).some(function(q){ return reExec.test(q.why || ""); })); });   // (v355) и очередь
       // (v351, владелец: «зачем они выходят по одному») и пока рядом нет своего на размен (≤ TRADE_R) — выход вдвоём
       var mate = ts.some(function(o){ return o !== b && o.alive && o.tRole !== "lurker" && Math.hypot(o.x-b.x, o.y-b.y) <= TRADE_R; });
       if(!inAir && !pending && mate){ b._utilW = null; return false; }
@@ -6671,6 +6692,21 @@ function beliefObserve(team, sg){
   }
 }
 var BELIEF_STEP = 16; // тиков (0.25с)
+// (v354) ПАМЯТЬ МАТЧА ПО ИГРОКАМ: где команда первый раз в раунде видела или слышала каждого соперника (до планта) — сторона
+// карты: ближайший сайт в PM_SITE_R ед. (Short — B, Palace — A), иначе мид. Только то, что команда сама знала (beliefLast) — не
+// подсказка игры. Свой счёт на каждый матч и каждую сторону соперника (после смены сторон — заново)
+var PLAYER_MEM = {key: null, by: {}}, PM_SITE_R = 700, PM_MIN = 2, PM_GAIN = 2;   // проектные числа
+function pmRegion(pt){ var best = "M", bd = PM_SITE_R; ["A","B"].forEach(function(k){ var d = Math.hypot(pt.x-SITES[k].x, pt.y-SITES[k].y); if(d < bd){ bd = d; best = k; } }); return best; }
+function pmBook(team, e){ var k = matchNum; if(PLAYER_MEM.key !== k){ PLAYER_MEM = {key: k, by: {}}; } var id = team+">"+e.team+":"+e.id; return PLAYER_MEM.by[id] || (PLAYER_MEM.by[id] = {A:0, B:0, M:0, n:0, last:-1}); }
+function pmNote(team, e, bl){
+  if(!bl || bl.tick < roundStartTick || (bomb && bomb.state === "planted")) return;
+  var R = pmBook(team, e); if(R.last === roundNum) return;
+  R.last = roundNum; R[pmRegion(bl)]++; R.n++;
+}
+function pmWeight(team, e, pt){
+  if(!e || !pt) return 1; var R = pmBook(team, e); if(R.n < PM_MIN) return 1;
+  return 1 + PM_GAIN * R[pmRegion(pt)] / R.n;
+}
 function beliefTick(){
   if(roundState !== "live" || tick % BELIEF_STEP !== 0 || !BZ.ids.length) return;
   // (этап 2) карта команды = гипотезы знания команды (teamAgent; раньше, с v240, — среднее по живым тиммейтам): held — точка,
@@ -6693,7 +6729,10 @@ function beliefTick(){
             // доля на место — от ВСЕХ мест, куда враг уже мог дойти: проверенные (закрытые) свою долю
             // просто теряют, а не перекладывают на непроверенные (иначе вес «где не смотрел» рос бы сам)
             var S = m.know.spots.filter(function(p){ return knowSpotReach(p) && BZ.idx[p.zone] !== undefined; });
-            S.forEach(function(p){ if(p.open) Q[BZ.idx[p.zone]] += h.weight/S.length; });
+            // (v354, владелец: «по никам должны понимать, где примерно игрок — жив kyousuke, а он игрок B, значит скорее всего он там»)
+            // доля места — по памяти матча: где этого игрока видели/слышали в прошлых раундах за эту сторону (pmWeight)
+            var WS = S.map(function(p){ return pmWeight(team, e, BZ.cent[BZ.idx[p.zone]]); }), WT = WS.reduce(function(a, c){ return a + c; }, 0) || 1;
+            S.forEach(function(p, si){ if(p.open) Q[BZ.idx[p.zone]] += h.weight*WS[si]/WT; });
             return;
           }
           knowHypSpread(h, H).forEach(function(q){ Q[q[0]] += q[1]; });
@@ -6709,6 +6748,7 @@ function beliefTick(){
       mates.forEach(function(m){ var H = m.know.enemies[eid]; if(!H || H.visible) return;
         H.hyps.forEach(function(h){ if(h.heard && h.voice && h.htick && h.weight >= 0.35 && (!hb || h.htick > hb.htick)) hb = h; }); });
       var bl = beliefLast[team][eid];
+      pmNote(team, e, bl);   // (v354) память матча: где этого игрока первый раз в раунде видели/слышали
       if(hb && (!bl || hb.htick > bl.tick) && !(bl && bl.src === "spotted" && hb.htick - bl.tick < 2*TICK_HZ)){
         beliefLast[team][eid] = {x:hb.x, y:hb.y, tick:hb.htick, src:"sound"}; beliefSeen[team][eid] = hb.htick;
         reachOpen(team, hb.x, hb.y); lkpSet(team, eid, hb.x, hb.y, "sound");
@@ -9138,7 +9178,9 @@ function ctBrain(){
     var anchorRole = k==="A" ? "anchorA" : "anchorB";
     var anchorAlive = cts.some(function(b){ return b.tRole===anchorRole; });
     var holdingHere = cts.some(function(b){ return Math.hypot(b.x-SITES[k].x, b.y-SITES[k].y) < 420; });
-    var undefended = !anchorAlive && !holdingHere && !planted0;
+    // (v355, владелец: «колл сработал, хотя у него клатч» — 2 на 4, опорника B сняли, колл «B пустой» увёл NiKo с A, где были T) «сайт пустой» —
+    // повод для колла только при 3+ живых CT: вдвоём / в одиночку сайт без опорника — не довод бросать свой
+    var undefended = !anchorAlive && !holdingHere && !planted0 && cts.length >= 3;
     // повод для колла — СВЕЖЕЕ наблюдение (видели/слышали за окно), а не
     // "враг где-то тут по памяти": с единым хранилищем est.n постоянный, и колл
     // повторялся каждые 4с по одной и той же старой инфе
@@ -9302,7 +9344,7 @@ function ctBrain(){
       if(r === "roamer") return 1;
       if(BAL.countRot){
         if(r === "mid") return keepMid ? 99 : (allIn || ct.call.undefended || (ct.call.bombSeen && midMass < 0.9) || (need >= 2 && confirmed && midMass < 0.5)) ? 2 : 99;
-        if(r === (ko === "A" ? "anchorA" : "anchorB")) return keepOther ? (ct.call.undefended && !(ct.call.unacc >= 2) ? 3 : 99) : (allIn || ct.call.undefended || (need >= 3 && confirmed && otherMass < 0.35)) ? 3 : 99;
+        if(r === (ko === "A" ? "anchorA" : "anchorB")) return keepOther ? (ct.call.undefended && !(ct.call.unacc >= 2) && otherMass < 1 ? 3 : 99) : (allIn || ct.call.undefended || (need >= 3 && confirmed && otherMass < 0.35)) ? 3 : 99;
       }
       // "сайт пустой, опорник погиб" — это не догадка по карте вероятностей, а
       // точный факт (в реальной игре об этом сказали бы в голос) — под такой
@@ -9767,7 +9809,7 @@ var fires = [];        // {x,y,born,until,team,thrower}
 var nadeFx = [];       // визуальные вспышки/взрывы {type,x,y,born}
 
 function emptyNades(){ return {smoke:0, flash:0, he:0, molly:0}; }
-bots.forEach(function(b){ b.nades = emptyNades(); b.nadeTask = null; b.blindUntil = 0; });
+bots.forEach(function(b){ b.nades = emptyNades(); b.nadeTask = null; b.nadeQueue = null; b.blindUntil = 0; });
 
 // ---------- закуп гранат (вызывается из buyForPlayer) ----------
 var NADE_WISH = {
@@ -10180,8 +10222,16 @@ function assignNade(b, type, target, why, opts){
   return true;
 }
 // задание на гранату выполняется, как только точка видна и в пределах броска
+function nadeQueueNext(b){
+  // (v355) следующая граната из очереди того же бойца: с той же точки броска, срок 6 с (проектное число)
+  if(!b.alive || !b.nadeQueue || !b.nadeQueue.length || b.nadeTask) return;
+  var q = b.nadeQueue.shift();
+  if(!b.nades || b.nades[q.type] <= 0 || roundState !== "live") return nadeQueueNext(b);
+  b.nadeTask = {type:q.type, x:q.x, y:q.y, from:q.from, until: tick + 6*TICK_HZ, why:q.why, start:tick, lob:true, range:4000, now:true, lineup:true, exec:q.exec && q.type === "smoke"};
+}
 function updateNadeTasks(){
   bots.forEach(function(b){
+    if(!b.nadeTask && b.nadeQueue && b.nadeQueue.length) nadeQueueNext(b);
     var t = b.nadeTask; if(!t) return;
     if(!b.alive || tick > t.until || !b.nades || b.nades[t.type] <= 0){
       b.nadeTask = null;
@@ -10278,6 +10328,10 @@ function lineupTick(){
     // тот, кому до точки броска недалеко, иначе он бросит свою задачу и уйдёт назад
     var hot = L.trigger !== "insta" && L.trigger !== "setup";
     var maxD = hot ? (BAL.nadeReach ? 650 : 480) : 1600;
+    // (v355, владелец: «на выходе закрывают максимум один-два выхода, у про много смоков, флешек, молотов») гранаты выхода T
+    // берёт тот, кому до точки броска до EXEC_REACH (проектное число) — группа на выходе стоит шире 650
+    var execT = L.team === "T" && L.trigger === "exec";
+    if(execT && BAL.nadeReach) maxD = EXEC_REACH;
     // (v150) про-лайнапы кидает тот, кто и так рядом: сетап — в пределах ~7 м,
     // "по времени" — ~4 м (не бросать позицию ради гранаты)
     if(L.pro && L.trigger === "setup") maxD = BAL.nadeReach ? 1100 : 700;
@@ -10287,9 +10341,23 @@ function lineupTick(){
     // то, что кидается рядом с его постом (≤300 px — проектное число); по коллу и на ретейке — как раньше
     var leavesSite = function(b){ if(b.team !== "CT" || L.trigger === "retake" || L.trigger === "call") return false; var k = b.tRole === "anchorA" ? "A" : b.tRole === "anchorB" ? "B" : null; if(!k) return false;
       var P0 = b.post && b.post.tag === "anchor" ? b.post : SITES[k]; return Math.hypot(L.from.x-P0.x, L.from.y-P0.y) > 300; };
-    var cand = bots.filter(function(b){ return b.team === L.team && b.alive && b.nades && b.nades[L.type] > 0 && !b.nadeTask && !leavesSite(b) &&
-      !b.planting && !b.defusing && !(bomb.state === "carried" && bomb.carrier === b) && Math.hypot(b.x-L.from.x, b.y-L.from.y) < maxD; })
-      .sort(function(a, b2){ return cost(a) - cost(b2); })[0];
+    var okBot = function(b){ return b.team === L.team && b.alive && b.nades && b.nades[L.type] > 0 && !leavesSite(b) &&
+      !b.planting && !b.defusing && !(bomb.state === "carried" && bomb.carrier === b) && Math.hypot(b.x-L.from.x, b.y-L.from.y) < maxD; };
+    var cand = bots.filter(function(b){ return okBot(b) && !b.nadeTask; }).sort(function(a, b2){ return cost(a) - cost(b2); })[0];
+    // (v355) свободного нет — граната выхода встаёт в очередь тому, кто уже идёт на лайнап рядом (точки броска ≤ EXEC_QUEUE_R):
+    // кинет вторую следом (через NADE_GAP), как про кидают смок + флешку с одной точки. Раньше: одно задание на бойца — лайнап сгорал
+    if(!cand && execT){
+      var qb = bots.filter(function(b){ var t = b.nadeTask; if(!okBot(b) || !t || !t.lineup || !t.from || (b.nadeQueue||[]).length >= 2) return false;
+        var need = (t.type === L.type ? 1 : 0) + (b.nadeQueue||[]).filter(function(q){ return q.type === L.type; }).length + 1;
+        return b.nades[L.type] >= need && Math.hypot(t.from.x-L.from.x, t.from.y-L.from.y) < EXEC_QUEUE_R; })
+        .sort(function(a, b2){ return cost(a) - cost(b2); })[0];
+      if(qb){
+        nadeFlags[key] = true; nadeFlags["luok"+L.id] = true;
+        (qb.nadeQueue = qb.nadeQueue || []).push({type:L.type, x:L.to.x, y:L.to.y, from:{x:L.from.x, y:L.from.y}, why:"лайнап «"+(L.name||LU_TYPE[L.type])+"»", lineup:true, exec:true});
+        logEvent(qb.id+": следом кинет «"+(L.name||LU_TYPE[L.type])+"»");
+        return;
+      }
+    }
     // раньше флаг "готово" ставился ДО проверки кандидата — если в момент
     // срабатывания триггера рядом с точкой броска никого не было, лайнап
     // считался выполненным навсегда и боец, который должен был его кинуть,
@@ -10297,7 +10365,9 @@ function lineupTick(){
     // найдётся боец в радиусе, или пока не истечёт время триггера (~10с для
     // горячих фаз, иначе до конца раунда для сетапа/инсты)
     if(!cand){
-      if(!hot || since - (nadeFlags["_lu0"+L.id] || since) < 10*TICK_HZ){
+      // (v355) граната выхода ждёт бросающего весь выход (пока бомба не стоит, до EXEC_WAIT_SEC — проектное число), а не 10 с
+      var luWait = (execT && bomb.state !== "planted" ? EXEC_WAIT_SEC : 10)*TICK_HZ;
+      if(!hot || since - (nadeFlags["_lu0"+L.id] || since) < luWait){
         if(nadeFlags["_lu0"+L.id] === undefined) nadeFlags["_lu0"+L.id] = since;
         return;
       }
@@ -10311,11 +10381,12 @@ function lineupTick(){
     luP.forEach(function(q){ luLen += Math.hypot(q[0]-luX, q[1]-luY); luX = q[0]; luY = q[1]; });
     var luSec = Math.max(luBase, Math.ceil(luLen/(SPEED*weaponSpeedMul(cand)) + LU_REACH_PAD));
     cand.nadeTask = {type:L.type, x:L.to.x, y:L.to.y, from:{x:L.from.x, y:L.from.y}, until: tick + luSec*TICK_HZ, why:"лайнап «"+(L.name||LU_TYPE[L.type])+"»",
-                     start:tick, lob:true, range:4000, now:true, lineup:true};
+                     start:tick, lob:true, range:4000, now:true, lineup:true, exec:execT && L.type === "smoke"};
     logEvent(cand.id+": идёт на лайнап «"+(L.name||LU_TYPE[L.type])+"»");
   });
 }
 var LU_REACH_PAD = 3;
+var CLR_REB_SEC = 12, EXEC_REACH = 1000, EXEC_QUEUE_R = 260, EXEC_WAIT_SEC = 20;   // (v355) проектные числа
 // ---------- физика полёта и срабатывание ----------
 function nadeWallHit(x1,y1,x2,y2){
   for(var i=0;i<MANUAL_WALLS.length;i++){
@@ -10422,7 +10493,7 @@ function applyDamage(att, b, dmg, src, o){
   b.alive = false; b.deaths++; b._killer = att && att !== b ? att.id : null;   // (v330) кто убил — для обсервера (показ)
   dropWeaponOnDeath(b);
   b.primary = null; b.secondary = b.team==="CT" ? "USP" : "GLOCK"; b.armor = false; b.helmet = false; b.kit = false;
-  b.planting = false; b.defusing = false; b.nades = emptyNades(); b.nadeTask = null;
+  b.planting = false; b.defusing = false; b.nades = emptyNades(); b.nadeTask = null; b.nadeQueue = null;
   dropBomb(b);
   intelDeath(b, foe);   // своего убил свой — в войсе «минус», без «убил X»: враг тут ни при чём
   if(foe){ LOOK_REPLAN[foe.team] = true; foe._killHowT = tick; }   // _killHowT — для обсервера (показ)
@@ -10955,7 +11026,7 @@ function retakeCutUseful(){
 function resetNades(){
   nadesInAir.length = 0; smokes.length = 0; fires.length = 0; nadeFx.length = 0; nadeFlags = {}; groundWeapons.length = 0; groundItems.length = 0;
   comboCd = {};
-  bots.forEach(function(b){ b._route = null; b.nadeTask = null; b.blindUntil = 0; b.throwUntil = 0; b._fireAcc = 0; b._fireIn = null; b._nadeCd = 0; if(!b.nades) b.nades = emptyNades(); });
+  bots.forEach(function(b){ b._route = null; b.nadeTask = null; b.nadeQueue = null; b.blindUntil = 0; b.throwUntil = 0; b._fireAcc = 0; b._fireIn = null; b._nadeCd = 0; if(!b.nades) b.nades = emptyNades(); });
 }
 
 // ---------- поле зрения ----------
