@@ -17990,6 +17990,8 @@ function obsFullView(r){
   if(pT && pT.right > r.left && pT.right < r.left + r.width/2) L = pT.right - r.left + 8;
   if(pC && pC.left < r.right && pC.left > r.left + r.width/2) R = pC.left - r.left - 8;
   if(sb && sb.bottom > r.top) T = Math.min(r.height/3, sb.bottom - r.top + 4);
+  var pf = rr("plFocus");   // (v364) карточка игрока обсервера внизу по центру — карта над ней, а не под ней
+  if(pf && pf.height > 0 && pf.top > r.top + r.height/2 && pf.top < r.bottom) Bt = pf.top - r.top - 4;
   if(R - L < r.width*0.4){ L = 0; R = r.width; }   // узкий экран — панели поверх карты, берём всю ширину
   var sc = Math.min((R - L)/(B.x1 - B.x0), (Bt - T)/(B.y1 - B.y0));
   var cx = (B.x0 + B.x1)/2, cy = (B.y0 + B.y1)/2;
@@ -18007,8 +18009,7 @@ function obsFrame(ts){
   var tx = 1024, ty = 1024, tsc = fitSc;
   // (v359, владелец: «обсервер мог показывать всю ситуацию, всю карту») режим «Вся карта»: камера на всей карте, игрок не выбирается
   // масштаб — чтобы вся карта (границы навмеша) поместилась в свободной части экрана: между панелями игроков, ниже табло
-  if(OBS.full && !manual){ OBS.tr = null; var FV = obsFullView(r); tx = FV.x; ty = FV.y; tsc = FV.sc; }
-  else if((roundState === "live" || WARM.on) && !manual){
+  if((roundState === "live" || WARM.on) && !manual){
     var cur = OBS.id && bots.filter(function(o){ return o.id === OBS.id; })[0];
     if(cur && !cur.alive && !OBS.deadAt) OBS.deadAt = ts;
     var best = null, bs = 0; bots.forEach(function(o){ var v = obsScore(o); if(v > bs){ bs = v; best = o; } });
@@ -18061,6 +18062,9 @@ function obsFrame(ts){
       tsc = Math.max(fitSc, Math.min(r.width, r.height) / span);
     }
   } else if(manual) return;
+  // (v364, владелец: «обсервер приближает на игрока, а надо, чтобы всегда была видна вся карта») «Вся карта»: обсервер так же
+  // выбирает, за кем следить (карточка игрока), но камера не приближает — вся карта в свободной части экрана
+  if(OBS.full && !manual){ OBS.tr = null; var FV = obsFullView(r); tx = FV.x; ty = FV.y; tsc = FV.sc; }
   // плавно: камера доезжает за ~0,5 с
   // (v316, владелец 14.10: «далеко — слишком быстро») переезд спокойнее: ~0,8 с на близкое, к дальнему — не быстрее 900 px карты/с
   var k = 1 - Math.exp(-dt*3.2);
@@ -18138,7 +18142,7 @@ function obsManual(){ OBS.manualUntil = performance.now() + 6000; OBS.sc = 0; }
   var ss = document.getElementById("selSeries"); if(ss) ss.addEventListener("change", function(){ SERIES = {bo:+ss.value, maps:{}}; seriesUpdate(); });
   var b = document.getElementById("btnObs");
   if(b) b.addEventListener("click", function(){ OBS.on = !OBS.on; OBS.sc = 0; OBS.manualUntil = 0; if(!OBS.on) fit(); });
-  try{ OBS.full = localStorage.getItem("sim-obs-full") === "1"; }catch(e){}
+  OBS.full = true; try{ OBS.full = localStorage.getItem("sim-obs-full") !== "0"; }catch(e){}   // (v364) по умолчанию — вся карта
   var bm = document.getElementById("btnObsMap");
   if(bm) bm.addEventListener("click", function(){ var to = !(OBS.on && OBS.full); OBS.full = to; if(to) OBS.on = true; OBS.manualUntil = 0; OBS.tr = null;
     try{ localStorage.setItem("sim-obs-full", to ? "1" : "0"); }catch(e){} });
