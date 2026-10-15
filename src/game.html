@@ -4586,7 +4586,10 @@ function tBrain(){
       // (v349, отметка владельца: «всё равно выходят до взрыва») и пока свой несёт гранату выхода на этот сайт (лайнап «(выход, A)»)
       var reExec = new RegExp("выход, " + tt.site);
       var pending = ts.some(function(o){ return o !== b && o.alive && o.nadeTask && o.nadeTask.lineup && reExec.test(o.nadeTask.why || ""); });
-      if(!inAir && !pending){ b._utilW = null; return false; }
+      // (v351, владелец: «зачем они выходят по одному») и пока рядом нет своего на размен (≤ TRADE_R) — выход вдвоём
+      var mate = ts.some(function(o){ return o !== b && o.alive && o.tRole !== "lurker" && Math.hypot(o.x-b.x, o.y-b.y) <= TRADE_R; });
+      if(!inAir && !pending && mate){ b._utilW = null; return false; }
+      if(!mate && !inAir && !pending && !(b._utilW && b._utilW.round === roundNum)) voiceLog("T", "tradewait"+b.id+roundNum, b.id, "жду размен — выходим вдвоём");
       // (v349, отметка владельца: donk ждал на выходе с T Ramp на виду у NiKo — бой начинался раньше гранат) ждёт в ближайшем
       // укрытии (≤ 150 ед.: не видно с сайта, опорника и входа CT), а не там, где застала проверка
       if(!b._utilW || b._utilW.round !== roundNum){ var g0 = GEO[tt.site], hf = [S0, g0 && g0.anchor, g0 && g0.ctEntry].filter(Boolean);
