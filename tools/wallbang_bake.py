@@ -29,11 +29,11 @@ import json, math, os, sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from heights_bake import point_in, area, namer   # noqa: E402
+import mapdir  # noqa: E402
+from heights_bake import point_in, area, namer, MAPNAME, MAP_TITLE   # noqa: E402
 
-WALLS = os.path.join(ROOT, 'src', 'data', 'walls.json')
-OUT = os.path.join(ROOT, 'src', 'data', 'wallbang.json')
-UNIT = 2.5          # 1 ед. карты (радар 2048) = 2,5 ед. игры (радар Ancient: 5 ед. на пиксель 1024)
+OUT = mapdir.path(MAPNAME, 'wallbang.json')
+UNIT = mapdir.radar(MAPNAME)['scale'] / 2   # 1 ед. карты (радар 2048) = scale/2 ед. игры (Ancient, Mirage: 2,5)
 
 SRC = {
     'valve_patch': 'https://esportsinsider.com/2025/08/cs2-august-18-update-ancient-changes',
@@ -92,9 +92,9 @@ MATERIALS = [
     ('grate', 'решётка', 0.95, 'grate', [120, 200, 120]),
 ]
 
-# Куски Ancient. poly — прямоугольник/многоугольник в ед. карты (0..2048) внутри
+# Куски по картам (v318: --map; у карты без списка — пусто, прострелов нет). Ancient: poly — прямоугольник/многоугольник в ед. карты (0..2048) внутри
 # стены; без poly — укрытие (стена) целиком по точке pt. t — толщина в ед. игры.
-SPOTS = [
+SPOTS_BY_MAP = {'ancient': [
     dict(key='cave_ply', name='Cave → B сайт: фанера', mat='plywood', t=4,
          poly=[[1410, 812], [1436, 812], [1436, 880], [1410, 880]],
          refs=['valve_patch', 'gfinity', 'skinclub', 'sportskeeda'],
@@ -124,7 +124,9 @@ SPOTS = [
          sure='материал — sportskeeda («деревянные панели» у входа на B Ramp; «деревянная кабинка» на B Ramp — прострел на B Long)',
          guess='место — предположение: восточная стенка здания Rat у подъёма с T Lower к Bonger; толщина 8 — предположение (доски)',
          note='С B Ramp — на B Short (Cave) и B Long; простреливают и в обратную сторону'),
-]
+]}
+_MJ = mapdir.path(MAPNAME, 'map.json')
+SPOTS = SPOTS_BY_MAP.get(json.load(open(_MJ, encoding='utf-8'))['id'] if os.path.exists(_MJ) else MAPNAME, [])
 
 
 def wall_at(walls, x, y):
@@ -178,7 +180,7 @@ def write(out):
 
 
 def main():
-    walls = [[tuple(q) for q in W] for W in json.load(open(WALLS, encoding='utf-8'))]
+    walls = mapdir.load_walls(MAPNAME)
     old = json.load(open(OUT, encoding='utf-8')) if os.path.exists(OUT) else {}
     name = namer()
     mats = {k: {'name': n, 'pen': p, 'kind': kd, 'col': c} for k, n, p, kd, c in MATERIALS}
@@ -201,7 +203,7 @@ def main():
         items.append(it)
     out = {
         '_about': [
-            'Прострелы Ancient. Делает tools/wallbang_bake.py; правки владельца — поле own (вкладка «прострелы», документ map/wallbang, вписывает tools/map_pull.py).',
+            'Прострелы %s. Делает tools/wallbang_bake.py --map %s; правки' % (MAP_TITLE, MAPNAME) + ' владельца — поле own (вкладка «прострелы», документ map/wallbang, вписывает tools/map_pull.py).',
             'rules — урон через стену (CS:GO HandleBulletPenetration, CS2 так же): mod — модификатор материала (вход и выход из одного дерева/картона — 3, пластика — 2, иначе pen материала);',
             '  потеря = урон × 0,16 + 3,75 / пробитие оружия × 3 / mod + толщина² / (24 × mod); после стены урон = урон − потеря (меньше 1 — пуля застряла).',
             '  Решётка: mod 3, доля 0,05. Не больше 4 препятствий; толще 90 ед. — не пробивает; дальше 3000 ед. — не пробивает.',

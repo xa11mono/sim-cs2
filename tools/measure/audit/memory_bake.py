@@ -50,7 +50,7 @@ def collect(meta, bits, tracks_by_meta):
 
 def run_pro(sim):
     import numpy as np, pandas as pd
-    from ancient_demos import DEMOS, tr, demo_names, rounds_of
+    from demos import DEMOS, tr, demo_names, rounds_of
     NADE = 'grenade|molotov|incgrenade|flashbang|decoy|knife|c4|bayonet'
     pairs, meta, TB = [], [], []
     for demo in demo_names():

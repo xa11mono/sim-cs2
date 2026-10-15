@@ -1,7 +1,7 @@
 """Кто из про где стоит и с чем (v246, пункт 4 владельца).
 
-По демкам Ancient (data/demos, 92 демки) для каждой позиции positions.json (ветка rebuild-v238,
-в игре — KNOW_POSITIONS) считает:
+По демкам карты (v318: --map; демки и раунды — tools/demos.py) для каждой позиции <pro_dir>/positions.json
+(tools/positions_bake.py; в игре — KNOW_POSITIONS, MAP.pro.positions) считает:
   • rounds    — в скольких раундах на ней стояли (стоянка: 2+ с, скорость < 10 ед. карты/с, до планта);
   • byPlayer  — то же для каждого из 10 игроков, которые есть у нас ботами (по нику из демок);
   • byWeapon  — то же по оружию в руках (AWP / винтовка / ПП / пистолет; нож и граната в руках —
@@ -9,7 +9,7 @@
 И отдельно — «не сработало — меняю место»: вернулся ли игрок на ту же позицию в следующем раунде
 той же стороной, если в прошлом раунде на ней погиб / раунд проигран, против — если выжил и выиграл.
 
-Пишет src/data/player_positions.json. Запуск: python3 tools/player_positions_bake.py
+Пишет <pro_dir>/player_positions.json. Запуск: python3 tools/player_positions_bake.py [--map ancient] [positions.json]
 """
 import json, math, os, sys
 from collections import Counter, defaultdict
@@ -18,10 +18,11 @@ import numpy as np
 import pandas as pd
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from ancient_demos import ROOT, DEMOS, TICK, tr, demo_names, rounds_of, round_index, event  # noqa: E402
+from demos import ROOT, DEMOS, TICK, tr, demo_names, rounds_of, round_index, event, MAPNAME  # noqa: E402
+import mapdir  # noqa: E402
 
-POS_FILE = sys.argv[1] if len(sys.argv) > 1 else os.path.join(ROOT, 'src', 'data', 'positions.json')
-OUT = os.path.join(ROOT, 'src', 'data', 'player_positions.json')
+POS_FILE = sys.argv[1] if len(sys.argv) > 1 else os.path.join(mapdir.pro_dir(MAPNAME), 'positions.json')
+OUT = os.path.join(mapdir.pro_dir(MAPNAME), 'player_positions.json')
 PLAYERS = ['donk', 'sh1ro', 'TN1R', 'magixx', 'zont1x', 'kyousuke', 'm0NESY', 'TeSeS', 'karrigan', 'NiKo']
 PL_LOW = {n.lower(): n for n in PLAYERS}   # в демках ник бывает в другом регистре (tN1R)
 STILL_SPEED, STILL_MIN = 10, 2.0      # как в positions_bake.py
@@ -51,7 +52,7 @@ def main():
         rounds = rounds_of(demo)
         if not rounds:
             continue
-        t = pd.read_csv(os.path.join(DEMOS, demo + '_ticks.csv.gz'),
+        t = pd.read_csv(os.path.join(DEMOS, demo + '_ticks.csv.gz'), low_memory=False,
                         usecols=['tick', 'steamid', 'team_num', 'X', 'Y', 'is_alive', 'is_warmup_period', 'name', 'active_weapon_name'])
         t = t[(t.is_alive == True) & (t.is_warmup_period != True)]  # noqa: E712
         ri = round_index(rounds, t.tick.values)

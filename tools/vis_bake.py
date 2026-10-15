@@ -154,7 +154,7 @@ def stats(meta, bits):
 def pro(sim):
     import pandas as pd
     sys.path.insert(0, HERE)
-    from ancient_demos import DEMOS, tr, demo_names, rounds_of
+    from demos import DEMOS, tr, demo_names, rounds_of
     NADE = 'grenade|molotov|incgrenade|flashbang|decoy|knife|c4|bayonet'
     pairs, meta = [], []
     for demo in demo_names():

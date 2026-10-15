@@ -47,7 +47,7 @@ for site in ('A', 'B'):
 # раундов); для каждой кучки — доля стоящих снимков T на каждом месте (ближе MERGE): spot['byBomb'] = [доля по кучкам]
 BOMB_R, BOMB_MIN = 90, 25
 sys.path.insert(0, os.path.join(ROOT, 'tools'))
-import ancient_demos as AD
+import demos as AD
 SITE_XY = {'A': (630, 518), 'B': (1533, 845)}
 def tr(X, Y): return ((np.asarray(X) + 2953) / 5 * 2, (2164 - np.asarray(Y)) / 5 * 2)
 rows = {'A': [], 'B': []}   # (bx, by, [(x, y), ...]) по раундам

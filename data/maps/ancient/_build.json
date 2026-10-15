@@ -1,0 +1,382 @@
+{
+ "_about": [
+  "Рецепт сборки набора карты Ancient для tools/map_build.py (v318). В объект MAP не попадает (src/mapset.py пропускает файлы на «_»).",
+  "radar — перевод координат игры в карту 0..2048 (как в de_ancient.txt: x = (X − pos_x)/(scale/2), y = (pos_y − Y)/(scale/2)).",
+  "callouts — названия мест по подписям Simple Radar для отчётов bake-скриптов; siteSplit — сайт планта по x (как было в tools/ancient_demos.py).",
+  "nadeSites — центры сайтов для правил «граната у сайта» (tools/lineups.py, как было).",
+  "regions — сторона карты для tools/positions_bake.py (как было: по x; back — задние проходы CT, Tside — у спавна T).",
+  "tactics — списки зон для разбора тактик tools/tactics_bake.py (как было: входы на сайты, стороны, «вперёд», опорные точки сторон).",
+  "steps — что делает tools/map_build.py ancient (воспроизводит прежние файлы: проверено — данные совпадают, отличается только строка _about); frozen — файлы, которые не пересобираются, и почему."
+ ],
+ "radar": {
+  "pos_x": -2953,
+  "pos_y": 2164,
+  "scale": 5
+ },
+ "siteSplit": {
+  "x": 1024,
+  "low": "A",
+  "high": "B"
+ },
+ "callouts": [
+  [
+   "Plat",
+   370,
+   415
+  ],
+  [
+   "Back Site",
+   500,
+   335
+  ],
+  [
+   "Temple",
+   630,
+   360
+  ],
+  [
+   "Street",
+   800,
+   430
+  ],
+  [
+   "CT Spawn",
+   1040,
+   350
+  ],
+  [
+   "A",
+   610,
+   530
+  ],
+  [
+   "Triple",
+   710,
+   530
+  ],
+  [
+   "Outside",
+   410,
+   610
+  ],
+  [
+   "Tree",
+   430,
+   690
+  ],
+  [
+   "Boost",
+   530,
+   720
+  ],
+  [
+   "Tunnel (A)",
+   630,
+   770
+  ],
+  [
+   "A Main",
+   330,
+   920
+  ],
+  [
+   "Donut",
+   630,
+   930
+  ],
+  [
+   "Sniper Nest",
+   970,
+   550
+  ],
+  [
+   "House",
+   1150,
+   570
+  ],
+  [
+   "Red",
+   970,
+   710
+  ],
+  [
+   "Top Mid",
+   970,
+   840
+  ],
+  [
+   "Pit",
+   1040,
+   950
+  ],
+  [
+   "Mid",
+   980,
+   1040
+  ],
+  [
+   "Lower Mid",
+   820,
+   1160
+  ],
+  [
+   "Xbox",
+   990,
+   1190
+  ],
+  [
+   "Snake",
+   1130,
+   1150
+  ],
+  [
+   "Cat Room",
+   1250,
+   1060
+  ],
+  [
+   "Cat Walk",
+   1290,
+   1260
+  ],
+  [
+   "Choke",
+   1320,
+   510
+  ],
+  [
+   "Alley",
+   1560,
+   520
+  ],
+  [
+   "Short",
+   1450,
+   610
+  ],
+  [
+   "Long",
+   1690,
+   590
+  ],
+  [
+   "Cave",
+   1370,
+   850
+  ],
+  [
+   "B",
+   1560,
+   840
+  ],
+  [
+   "Pillar",
+   1560,
+   920
+  ],
+  [
+   "Ninja",
+   1450,
+   980
+  ],
+  [
+   "Banger",
+   1460,
+   1130
+  ],
+  [
+   "Double Door",
+   1570,
+   1160
+  ],
+  [
+   "Ramp (B)",
+   1700,
+   1110
+  ],
+  [
+   "Ruins",
+   1590,
+   1420
+  ],
+  [
+   "Swamp",
+   1430,
+   1580
+  ],
+  [
+   "T Tunnel",
+   1240,
+   1600
+  ],
+  [
+   "T Spawn",
+   990,
+   1790
+  ],
+  [
+   "Jungle",
+   610,
+   1440
+  ],
+  [
+   "Stairs (A)",
+   430,
+   1220
+  ]
+ ],
+ "sources": {
+  "demos": "../../demos",
+  "pro": "../../pro"
+ },
+ "nadeSites": {
+  "A": [
+   630,
+   518
+  ],
+  "B": [
+   1533,
+   845
+  ]
+ },
+ "regions": {
+  "x": [
+   700,
+   1250
+  ],
+  "back": [
+   "CT Spawn",
+   "CT Lane",
+   "Alley",
+   "Back Halls / Back Alley"
+  ],
+  "Tside": [
+   "T Spawn",
+   "T Ramp"
+  ],
+  "spawns": [
+   "T Spawn",
+   "CT Spawn"
+  ],
+  "midC": [
+   990,
+   900
+  ]
+ },
+ "tactics": {
+  "entry": {
+   "A": {
+    "A Main": "main",
+    "Long": "main",
+    "Short": "short",
+    "Donut": "short",
+    "CT Lane": "ct",
+    "Temple": "ct",
+    "CT Spawn": "ct"
+   },
+   "B": {
+    "Ramp": "ramp",
+    "Cave": "cave",
+    "Dark": "cave",
+    "Second Lane": "ct",
+    "Back Halls": "ct",
+    "First Lane": "ct"
+   }
+  },
+  "sides": {
+   "A": [
+    "A Main",
+    "A Site",
+    "Back Site",
+    "Boost",
+    "Box",
+    "CT Lane",
+    "Def",
+    "Long",
+    "Plat",
+    "Single",
+    "Temple",
+    "Triple Box"
+   ],
+   "B": [
+    "90",
+    "B Site",
+    "Back Halls",
+    "Bonger",
+    "Cave",
+    "Dark",
+    "Dark Box",
+    "First Lane",
+    "Lamp Room",
+    "Ramp",
+    "Rat",
+    "Second Lane",
+    "Site B",
+    "Wood"
+   ],
+   "M": [
+    "Alley",
+    "Chamber Lane",
+    "Connector",
+    "Donut",
+    "Jungle",
+    "Lower Mid",
+    "Mid",
+    "Short",
+    "Sniper Nest",
+    "Top Mid",
+    "Triple",
+    "Xbox"
+   ]
+  },
+  "forward": [
+   "A Main",
+   "Cave",
+   "Chamber Lane",
+   "Dark",
+   "Donut",
+   "Lamp Room",
+   "Long",
+   "Lower Mid",
+   "Mid",
+   "Ramp",
+   "Split",
+   "T Lower"
+  ],
+  "anchors": {
+   "A": [
+    547,
+    374
+   ],
+   "B": [
+    1633,
+    793
+   ],
+   "M": [
+    1000,
+    760
+   ]
+  },
+  "tSpawn": [
+   "T Spawn"
+  ]
+ },
+ "map": {
+  "name": "Ancient"
+ },
+ "steps": [
+  "heights",
+  "cover",
+  "wallbang"
+ ],
+ "frozen": {
+  "map.json": "выравнивание слоя зон (zoneLayer), поправка спавна T и сайта A — подобраны руками в v166 под зоны, нарисованные руками",
+  "radar.png": "картинка радара v166",
+  "navmesh.json": "исходника нет: .nav Ancient в репо не лежит, навмеш перенесён из v166 уже в координатах радара",
+  "walls.json": "стены нарисованы владельцем в редакторе карты (не по краю навмеша)",
+  "zones.json": "зоны и названия нарисованы руками в Zone Editor (v166); из .nav их не получить — исходника нет",
+  "pro.json": "места, сетки и взгляды про — из 12 матчей (v147–v166); позиции знания — из 88 демок (v240); сборка их нынешними скриптами даёт другие числа — игра бы изменилась",
+  "tactics.json": "тактики T, сетапы CT и розыгрыши (plays) составлены руками в v166 по демкам",
+  "lineups.json": "лайнапы про отобраны в v164 (12 матчей) + нарисованные владельцем (baked)"
+ }
+}

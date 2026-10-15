@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""Гранаты про из демок → data/pro/pro_nades.csv (+ data/pro/nade_ctx.json).
+"""Гранаты про из демок → <pro_dir>/pro_nades.csv (+ nade_ctx.json); у Ancient pro_dir — data/pro.
 
-python3 tools/lineups.py
+python3 tools/lineups.py [--map ancient]   (v318: карта — ключом --map, центры сайтов — mapdir.site_points)
 
-Раунды и rid — из tools/ancient_demos.py (те же, что у positions_bake.py).
+Раунды и rid — из tools/demos.py (те же, что у positions_bake.py).
 Бросок (weapon_fire) сопоставляется с ближайшим разрывом той же гранаты того
 же игрока. trig — когда кинута (insta / setup / exec / postplant у T; insta /
 timed / call / retake у CT), как раньше.
@@ -26,11 +26,12 @@ import numpy as np
 import pandas as pd
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-import ancient_demos as AD  # noqa: E402
+import demos as AD  # noqa: E402
+import mapdir  # noqa: E402
 
-OUT = os.path.join(AD.ROOT, 'data', 'pro', 'pro_nades.csv')
-OUT_CTX = os.path.join(AD.ROOT, 'data', 'pro', 'nade_ctx.json')
-SITES = {'A': (630, 518), 'B': (1533, 845)}
+OUT = os.path.join(mapdir.pro_dir(AD.MAPNAME), 'pro_nades.csv')
+OUT_CTX = os.path.join(mapdir.pro_dir(AD.MAPNAME), 'nade_ctx.json')
+SITES = mapdir.site_points(AD.MAPNAME)
 TYPES = {'weapon_smokegrenade': ('smoke', 'smokegrenade_detonate', (0.5, 6.5)),
          'weapon_flashbang': ('flash', 'flashbang_detonate', (0.5, 3.5)),
          'weapon_hegrenade': ('he', 'hegrenade_detonate', (0.5, 4)),
@@ -48,7 +49,7 @@ SELF_MOLLY_SEC = (3, 10)
 
 
 def site_near(x, y):
-    return 'A' if (x - 630) ** 2 + (y - 518) ** 2 < (x - 1533) ** 2 + (y - 845) ** 2 else 'B'
+    return 'A' if (x - SITES['A'][0]) ** 2 + (y - SITES['A'][1]) ** 2 < (x - SITES['B'][0]) ** 2 + (y - SITES['B'][1]) ** 2 else 'B'
 
 
 class Tracks:

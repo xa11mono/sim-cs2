@@ -8,7 +8,7 @@ python3 tools/positions_bake.py [--report]
 тот же вход (data/demos/*, src/data/*.json) даёт те же файлы.
 
 Что считает:
-  * раунды — tools/ancient_demos.py (один rid на всех: позиции и гранаты);
+  * раунды — tools/demos.py (один rid на всех: позиции и гранаты);
   * стоянка — игрок жив, раунд до планта, скорость < 10 ед. карты/с
     (≈ 25 ед. игры/с, то есть стоит или шевелится на месте) не меньше 2 с подряд.
     Из стоянки: точка (среднее), взгляд (средний yaw), время в раунде;
@@ -59,11 +59,13 @@ import pandas as pd
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from heights_bake import point_in, centroid, seg_x  # noqa: E402
-from ancient_demos import ROOT, TICK, tr, demo_names, rounds_of, ticks_of, round_index, event  # noqa: E402
+from demos import ROOT, TICK, tr, demo_names, rounds_of, ticks_of, round_index, event, MAPNAME  # noqa: E402
+import mapdir  # noqa: E402
 
-DATA = os.path.join(ROOT, 'src', 'data')
-OUT_POS = os.path.join(DATA, 'positions.json')
-OUT_SET = os.path.join(DATA, 'setups.json')
+# v318: карта — ключом --map; зоны, стены, укрытия, навмеш — из набора карты data/maps/<карта>/, выход — в <pro_dir>
+OUT_POS = os.path.join(mapdir.pro_dir(MAPNAME), 'positions.json')
+OUT_SET = os.path.join(mapdir.pro_dir(MAPNAME), 'setups.json')
+MAP_TITLE = mapdir.title(MAPNAME)
 
 STILL_SPEED = 10        # ед. карты/с: ниже — «стоит»
 STILL_MIN = 2.0         # с подряд, чтобы считать стоянкой
@@ -116,15 +118,13 @@ LURK_MIN_SHARE = 0.1    # люркер (необязательный шаг) —
 
 
 # ---------------- карта: зоны-коллы и стены ----------------
-ZM = json.load(open(os.path.join(DATA, 'zonemap.json'), encoding='utf-8'))
-ZN = json.load(open(os.path.join(DATA, 'zone_names.json'), encoding='utf-8'))
-# зоны — так же, как их видит игра (src/js/01_map.js): «сырые» точки zonemap.json
-# (или своя форма из zone_shapes.json) со сдвигом и масштабом слоя ZONE_LAYER_BASELINE.
-# Без этого зоны съезжают на ~16 % (First Lane, Ramp, 90 оказываются за стеной)
-_MAPJS = open(os.path.join(ROOT, 'src', 'js', '01_map.js'), encoding='utf-8').read()
-_ZL = {k: float(v) for k, v in re.findall(r'(dx|dy|scale):\s*(-?[\d.]+)',
-                                          re.search(r'ZONE_LAYER_BASELINE\s*=\s*\{([^}]*)\}', _MAPJS).group(1))}
-_ZSH = json.load(open(os.path.join(DATA, 'zone_shapes.json'), encoding='utf-8'))
+_ZJ = json.load(open(mapdir.path(MAPNAME, 'zones.json'), encoding='utf-8'))
+ZM = _ZJ['zonemap']
+ZN = _ZJ['names']
+# зоны — так же, как их видит игра: «сырые» точки zonemap (или своя форма из shapes) со сдвигом и масштабом слоя
+# (map.json набора, zoneLayer). Без этого у Ancient зоны съезжают на ~16 % (First Lane, Ramp, 90 оказываются за стеной)
+_ZL = json.load(open(mapdir.path(MAPNAME, 'map.json'), encoding='utf-8'))['zoneLayer']
+_ZSH = _ZJ['shapes']
 
 
 def _zl(p):
@@ -136,19 +136,22 @@ ZONE_BY_ID = {q['id']: q for q in ZONES}
 for q in ZONES:
     q['c'] = centroid(q['P'])
     q['name'] = ZN.get(q['id'])
-WALLS = [[tuple(p) for p in W] for W in json.load(open(os.path.join(DATA, 'walls.json'), encoding='utf-8'))]
+WALLS = mapdir.load_walls(MAPNAME)
 # луч взгляда режут только стены выше пояса: низкие ящики (cover.json, cat low/chest)
 # стоя простреливаются взглядом
-_COV = json.load(open(os.path.join(DATA, 'cover.json'), encoding='utf-8'))['items']
+_COV = json.load(open(mapdir.path(MAPNAME, 'cover.json'), encoding='utf-8'))['items']
 LOW_WALLS = {i['wall'] for i in _COV if i['shape'] == 'wall' and i['cat'] in ('low', 'chest')}
 WSEGS = [(W[i], W[(i + 1) % len(W)]) for k, W in enumerate(WALLS) if k not in LOW_WALLS for i in range(len(W))]
 WSEG_OF = [k for k, W in enumerate(WALLS) if k not in LOW_WALLS for i in range(len(W))]   # стена каждого отрезка
 
-# сторона карты. Названия зон в zonemap свои (например, «Rat» и «T Lower» —
-# у B), поэтому сторона — по координате точки, а не по названию: левее x=700 —
-# A, правее x=1250 — B, между — мид; спавны и задние проходы CT — отдельно.
-BACK = {'CT Spawn', 'CT Lane', 'Alley', 'Back Halls / Back Alley'}
-TSIDE = {'T Spawn', 'T Ramp'}
+# сторона карты — рецепт карты (_build.json, regions). Ancient: названия зон в zonemap свои (например, «Rat» и
+# «T Lower» — у B), поэтому сторона — по координате точки, а не по названию: левее x=700 — A, правее x=1250 — B, между —
+# мид; спавны и задние проходы CT — отдельно (back, Tside). Другие карты: сторона — по названию зоны (списки A, B, mid).
+_REG = mapdir.recipe(MAPNAME)['regions']
+SPAWN_NAMES = set(_REG['spawns'])   # на самом спавне — это не позиция
+BACK = set(_REG['back'])
+TSIDE = set(_REG['Tside'])
+_RBY = {n: k for k in ('A', 'B', 'mid') for n in _REG.get(k, [])}
 
 
 def region_of(x, y, name):
@@ -156,7 +159,9 @@ def region_of(x, y, name):
         return 'back'
     if name in TSIDE:
         return 'Tside'
-    return 'A' if x < 700 else 'B' if x > 1250 else 'mid'
+    if 'x' in _REG:
+        return 'A' if x < _REG['x'][0] else 'B' if x > _REG['x'][1] else 'mid'
+    return _RBY.get(name, 'mid')
 
 
 _ZC = {}
@@ -197,7 +202,7 @@ def floor_grid():
         n = 2048 // CELL
         F = np.full((n, n), np.inf)
         cx = (np.arange(n) + 0.5) * CELL
-        for a in json.load(open(os.path.join(DATA, 'navmesh.json'), encoding='utf-8')):
+        for a in mapdir.load_nav(MAPNAME):
             P = np.array([(p['x'], p['y']) for p in a['points']])
             i0, i1 = max(0, int(P[:, 0].min() // CELL)), min(n - 1, int(P[:, 0].max() // CELL))
             j0, j1 = max(0, int(P[:, 1].min() // CELL)), min(n - 1, int(P[:, 1].max() // CELL))
@@ -428,7 +433,7 @@ def make_points(H, side, late=False):
         if h['side'] != side or h['late'] != late:
             continue
         zq = zone_at(h['x'], h['y'], h['z'])
-        if zq['name'] in ('T Spawn', 'CT Spawn'):
+        if zq['name'] in SPAWN_NAMES:
             continue   # на самом спавне — это не позиция
         if region_of(h['x'], h['y'], zq['name']) == 'Tside' and h['s0'] < START_WAIT:
             continue   # T у спавна в первые секунды — ждут команду
@@ -661,7 +666,7 @@ def make_ct_setups(R, H, P):
                     if mates:
                         chosen.append(mates[0])
             # якорь — тот, кто ближе к сайту (на миде — к центру мида)
-            ctr = SITE_C.get(reg, (990, 900))
+            ctr = SITE_C.get(reg, tuple(_REG['midC']))
             chosen.sort(key=lambda p: math.hypot(p['x'] - ctr[0], p['y'] - ctr[1]))
             roles = ROLE_NAMES[reg]
             for i, p in enumerate(chosen):
@@ -677,7 +682,7 @@ def make_ct_setups(R, H, P):
                         s['pairWith'] = o['role']
         name = 'default' if (nA, nM, nB) == (2, 1, 2) else \
             'stack_A' if nA >= 3 else 'stack_B' if nB >= 3 else 'mid_heavy' if nM >= 2 else 'other'
-        setups.append({'id': 'ct_%s_%d%d%d_ancient' % (name, nA, nM, nB), 'name': name, 'side': 'CT', 'split': {'A': nA, 'mid': nM, 'B': nB},
+        setups.append({'id': 'ct_%s_%d%d%d_%s' % (name, nA, nM, nB, MAPNAME), 'name': name, 'side': 'CT', 'split': {'A': nA, 'mid': nM, 'B': nB},
                        'rounds': n, 'share': round(n / total, 2), 'slots': slots})
     return setups, total
 
@@ -824,7 +829,7 @@ def make_t_executes(R, H):
     """сценарии T. Гранаты T за EXEC_WIN с до планта, упавшие у сайта планта, — выход
     (может идти волнами: пауза ≥ WAVE_GAP — следующая волна); упавшие у другого сайта —
     фейк. Возвращает (сценарии, раундов с плантом, сводка для отчёта)"""
-    nades = pd.read_csv(os.path.join(ROOT, 'data', 'pro', 'pro_nades.csv'))
+    nades = pd.read_csv(os.path.join(mapdir.pro_dir(MAPNAME), 'pro_nades.csv'))
     nades['purpose'] = nades.purpose.fillna('')
     plant_r = {r['rid']: r for r in R if r['site']}
     nades = nades[(nades.side == 'T') & nades.secToPlant.between(0, EXEC_WIN) & nades.rid.isin(plant_r)].copy()
@@ -914,7 +919,7 @@ def make_t_executes(R, H):
             res.append({'actor': 'lurker', 'action': 'hold_flank', 'target': zc, 'optional': True,
                         'share': round(len(lurks) / len(rr), 2), 'dependsOn': {}})
         plant_sec = float(np.median([(r['tplant'] - r['t0']) / TICK for r in rr]))
-        out.append({'id': 't_exec_%s_%s_ancient' % (site, route), 'side': 'T', 'site': site, 'route': route,
+        out.append({'id': 't_exec_%s_%s_%s' % (site, route, MAPNAME), 'side': 'T', 'site': site, 'route': route,
                     'rounds': len(rr), 'share': round(len(rr) / plants, 2),
                     'timing': {'startSec': round(plant_sec - start, 1), 'plantSec': round(plant_sec, 1)},
                     'steps': res})
@@ -1065,14 +1070,14 @@ def main():
     assert not bad, 'битые ссылки: %s' % bad[:10]
     demos = sorted({r['demo'] for r in R})
     dump(OUT_POS, {'_about': [
-        'Позиции Ancient из демок про. Делает tools/positions_bake.py (docs/BRAIN.md, раздел 4).',
+        'Позиции %s из демок про. Делает tools/positions_bake.py --map %s' % (MAP_TITLE, MAPNAME) + ' (docs/BRAIN.md, раздел 4).',
         'Позиция — задача «где стоит → что держит»: стоянки про (2+ с, скорость < 10 ед. карты/с) с той же зоной '
         'стояния и той же зоной взгляда (большая зона делится на части по %d ед. карты); позиция — если её держали '
         'хотя бы в %.0f %% раундов. Координаты — карта 0..2048, z и yaw — как в игре.' % (SPLIT_D, MIN_SHARE * 100),
         'x/y — типичное место (медиана); spread — радиус, куда попадают %d %% стоянок (игрок стоит шире/уже, '
         'ближе/дальше); yawRange — разброс взгляда от yaw, °; spots — 2–3 варианта места внутри позиции (доля раундов).'
         % SPREAD_Q,
-        'area — зона-колл (zonemap.json), region — сторона карты по x (A < 700 < мид < 1250 < B), back — задние проходы CT.',
+        'area — зона-колл (zones.json набора), region — сторона карты (рецепт карты, regions), back — задние проходы CT.',
         'angle — куда смотрит: конец луча взгляда до высокой стены/края навмеша, его зона и длина.',
         'type: standard — частые точки своей area (не реже %d %% самой частой и хотя бы в %.1f %% раундов), off — редкие '
         '(неожиданная позиция). push — CT-позиция ближе к спавну T, чем к спавну CT, которую обычно занимают в первые %d с: '
@@ -1086,10 +1091,10 @@ def main():
         'danger — в какой доле этих раундов игрок погиб рядом с точкой (ближе %d ед. карты за %d с после начала '
         'стоянки); у точек, откуда про рано уходят, низкий. Запас времени (глубина точки) считает игра по навмешу. '
         'Пары — только если напарник не на линии взгляда (≥ %d°), а не друг на друга.' % (DANGER_R, DANGER_SEC, PAIR_OFF_MATE)],
-        'map': 'ancient', 'demos': demos, 'rounds': nr},
+        'map': MAPNAME, 'demos': demos, 'rounds': nr},
         {'points': points, 'pairs': PAIRS, 'late': late})
     dump(OUT_SET, {'_about': [
-        'Setup\'ы Ancient из демок про. Делает tools/positions_bake.py (docs/BRAIN.md, разделы 4.1, 5.1, 5.3).',
+        'Setup\'ы %s из демок про. Делает tools/positions_bake.py --map %s' % (MAP_TITLE, MAPNAME) + ' (docs/BRAIN.md, разделы 4.1, 5.1, 5.3).',
         'CT: раскладка «сколько CT на A / миде / B» — по тому, где каждый CT дольше стоял на %d–%d-й секунде, '
         'в раундах с 5 живыми CT (%d раундов); '
         'берутся до 4 самых частых (не реже %d %%). Слоты — самые занятые точки этой раскладки в окне %d–%d с; '
@@ -1116,7 +1121,7 @@ def main():
         'хотя бы %.2f игрока: players — сколько в среднем, share — в какой доле раундов там хоть кто-то, arrive — '
         'типичная секунда, когда приходят, region — сторона карты, spots — до 3 частых мест [x, y, доля]. Состав '
         'от раунда к раунду разный — это доли, а не одна расстановка.' % (DEF_WIN[0], DEF_WIN[1], DEF_LANE_MIN)],
-        'map': 'ancient', 'selfNades': stat['selfKinds']},
+        'map': MAPNAME, 'selfNades': stat['selfKinds']},
         {'ct': ct_setups, 't': t_exec})
     if '--report' in sys.argv:
         print(len(R), 'раундов,', len(H), 'стоянок,', len(points), 'точек (CT %d, T %d),' % (

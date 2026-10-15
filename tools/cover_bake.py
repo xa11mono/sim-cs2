@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
-"""Высота укрытий: src/data/walls.json + navmesh.json → src/data/cover.json.
+"""Высота укрытий: walls.json + navmesh.json набора карты → cover.json набора (data/maps/<карта>/).
 
-python3 tools/cover_bake.py [--report]
+python3 tools/cover_bake.py [--map ancient] [--report]
+(v318: карта — ключом --map; ящики «серые на радаре» — по radar.png набора)
 
 Что считает (повторяемо — один и тот же вход даёт тот же файл):
   * укрытие — препятствие внутри игровой зоны: каждая отдельная стена
@@ -35,11 +36,10 @@ import json, math, os, sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from heights_bake import point_in, area, centroid, namer   # noqa: E402
+import mapdir  # noqa: E402
+from heights_bake import point_in, area, centroid, namer, MAPNAME, MAP_TITLE   # noqa: E402
 
-NAV = os.path.join(ROOT, 'src', 'data', 'navmesh.json')
-WALLS = os.path.join(ROOT, 'src', 'data', 'walls.json')
-OUT = os.path.join(ROOT, 'src', 'data', 'cover.json')
+OUT = mapdir.path(MAPNAME, 'cover.json')
 
 # Рост в CS2 (единицы игры): стоя 72 (глаза 64), присев 54 (глаза 46).
 STAND, STAND_EYE, CROUCH, CROUCH_EYE = 72, 64, 54, 46
@@ -47,10 +47,12 @@ HIGH = STAND          # «выше головы»: h ≥ 72 — стоящего
 CHEST = CROUCH_EYE    # «по грудь»: 46 ≤ h < 72 — стоя голову видно, присев — нет
 #                       «низкая»: h < 46 — присевший видит поверх; закрывает только ноги/ничего
 TOP_MIN = 20          # участок навмеша на стене — верх препятствия, если выше пола рядом на 20+
-RADAR = os.path.join(ROOT, 'src', 'data', 'radar.png')
+RADAR = mapdir.radar_png(MAPNAME)
 BIG_WALL = 60000      # стена больше этой площади (ед. карты²) — кусок внешнего контура, не отдельное препятствие
 LEVEL_DZ = 10         # верхи на одной стене с разницей больше 10 — разные ступени
 FLOOR_SHARE = 0.2     # пол «рядом» — не меньше 20 % точек вокруг
+BOX_MAX = 4000        # (v318) ящик без стены — не больше 4000 ед. карты² (≈ 160×160 ед. игры: стопка ящиков) — проектное число
+BOX_FILL = 0.5        # и навмеш сверху занимает хотя бы половину его оболочки (иначе это изогнутая галерея) — проектное число
 
 
 def cat_of(h):
@@ -116,8 +118,8 @@ def inner_point(P):
 
 
 def main():
-    nav = json.load(open(NAV, encoding='utf-8'))
-    walls = [[tuple(q) for q in W] for W in json.load(open(WALLS, encoding='utf-8'))]
+    nav = mapdir.load_nav(MAPNAME)
+    walls = mapdir.load_walls(MAPNAME)
     old = json.load(open(OUT, encoding='utf-8')) if os.path.exists(OUT) else {}
     for a in nav:
         a['P'] = [(p['x'], p['y']) for p in a['points']]
@@ -262,6 +264,9 @@ def main():
         if sum(area(b['P']) for b in g) < 150:
             continue
         H = grow(hull([q for b in g for q in b['P']]), 3)
+        # (v318) ящик — небольшой и плотный: крыша, балкон, длинная галерея (на радаре Mirage тоже серые) — не ящик
+        if area(H) > BOX_MAX or sum(area(b['P']) for b in g) < BOX_FILL * area(H):
+            continue
         cand |= {b['id'] for b in g}
         fz, floors = floor_pick(floor_around(H))
         top = max(b['z'] for b in g)
@@ -274,7 +279,7 @@ def main():
     own = old.get('own') if isinstance(old.get('own'), list) else []
     out = {
         '_about': [
-            'Высота укрытий Ancient. Делает tools/cover_bake.py из src/data/walls.json и navmesh.json; правки владельца — поле own.',
+            'Высота укрытий %s. Делает tools/cover_bake.py --map %s из walls.json и navmesh.json набора карты; правки владельца — поле own.' % (MAP_TITLE, MAPNAME),
             'Рост в CS2 (единицы игры): стоя 72, глаза 64; присев 54, глаза 46.',
             'h — высота препятствия над полом рядом, ед. игры: z верха (навмеш на препятствии) − z пола вокруг; null — навмеша сверху нет, не измерено.',
             'Категории (cat): high «выше головы» — h ≥ 72 или не измерено (стоящего не видно целиком);',

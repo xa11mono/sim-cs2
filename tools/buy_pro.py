@@ -4,7 +4,7 @@
 import sys, os, json, collections
 import numpy as np, pandas as pd
 HERE = os.path.dirname(os.path.abspath(__file__)); sys.path.insert(0, HERE)
-from ancient_demos import DEMOS, demo_names, rounds_of  # noqa: E402
+from demos import DEMOS, demo_names, rounds_of  # noqa: E402
 from ct_cmp import wcls, rtype  # noqa: E402
 from eco_est import ALIAS, PRICE  # noqa: E402
 PIST = {'GLOCK', 'USP', 'P250', 'FIVE7', 'TEC9', 'CZ', 'DEAGLE', 'ELITE', 'R8'}

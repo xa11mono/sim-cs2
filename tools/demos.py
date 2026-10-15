@@ -1,4 +1,5 @@
-"""Демки про Ancient (data/demos) → раунды. Одно место для всех tools/*: номер
+"""Демки про карты → раунды (v318: карта — ключом --map, см. tools/mapdir.py; демки — sources.demos рецепта карты:
+Ancient — data/demos, Mirage — data/maps/mirage/demos). Одно место для всех tools/*: номер
 раунда (rid), его границы и плант считаются только здесь, поэтому rid у позиций
 (positions_bake.py) и у гранат (lineups.py) совпадает по построению.
 
@@ -11,15 +12,22 @@ import glob, os
 import numpy as np
 import pandas as pd
 
+import sys
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import mapdir  # noqa: E402
+
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-DEMOS = os.path.join(ROOT, 'data', 'demos')
+MAPNAME = mapdir.current()
+_R = mapdir.recipe(MAPNAME)
+DEMOS = os.path.normpath(mapdir.path(MAPNAME, _R.get('sources', {}).get('demos', 'demos')))
 TICK = 64
 TICK_COLS = ['tick', 'steamid', 'team_num', 'X', 'Y', 'Z', 'yaw', 'is_alive', 'is_warmup_period']
+_TR = mapdir.game_to_map(MAPNAME)
 
 
 def tr(X, Y):
-    """координаты игры → карта 0..2048"""
-    return (X + 2953) / 5 * 2, (2164 - Y) / 5 * 2
+    """координаты игры → карта 0..2048 (по pos_x, pos_y, scale карты)"""
+    return _TR(X, Y)
 
 
 def demo_names():
@@ -32,8 +40,24 @@ def event(demo, kind):
     return pd.read_csv(f) if os.path.exists(f) else pd.DataFrame(columns=['tick', 'total_rounds_played'])
 
 
-def site_of(bx):
-    return 'A' if bx < 1024 else 'B'
+def _site_rule():
+    """сайт планта по точке: у Ancient — по x (как было), у остальных — ближайшая точка сайта (зона с ролью Asite/Bsite)"""
+    sp = _R.get('siteSplit')
+    if sp:
+        return lambda bx, by: sp['low'] if bx < sp['x'] else sp['high']
+    import json
+    Z = json.load(open(mapdir.path(MAPNAME, 'zones.json'), encoding='utf-8'))['zonemap']['points']
+    P = {p['name'].split('_')[0][0]: (p['x'], p['y']) for p in Z if p['name'].split('_')[0] in ('Asite', 'Bsite')}
+    return lambda bx, by: min(P, key=lambda k: (P[k][0] - bx) ** 2 + (P[k][1] - by) ** 2)
+
+
+_SITE = []
+
+
+def site_of(bx, by=None):
+    if not _SITE:
+        _SITE.append(_site_rule())
+    return _SITE[0](bx, by)
 
 
 def rounds_of(demo):
@@ -56,7 +80,7 @@ def rounds_of(demo):
              'tplant': None, 'site': None, 'plantXY': None, 'planter': None}
         if len(pp):
             bx, by = tr(float(pp.user_X.iloc[0]), float(pp.user_Y.iloc[0]))
-            r.update(tplant=int(pp.tick.iloc[0]), site=site_of(bx), plantXY=(bx, by), planter=int(pp.user_steamid.iloc[0]))
+            r.update(tplant=int(pp.tick.iloc[0]), site=site_of(bx, by), plantXY=(bx, by), planter=int(pp.user_steamid.iloc[0]))
         out.append(r)
     return out
 

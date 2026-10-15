@@ -9,7 +9,7 @@ HERE = os.path.dirname(os.path.abspath(__file__)); ROOT = os.path.dirname(os.pat
 sys.path.insert(0, os.path.join(ROOT, 'tools'))
 
 def frames_pro():
-    from ancient_demos import DEMOS, tr, demo_names, rounds_of
+    from demos import DEMOS, tr, demo_names, rounds_of
     for demo in demo_names():
         R = rounds_of(demo)
         if not R: continue

@@ -7,7 +7,7 @@
 import json, os, sys, math, collections
 import numpy as np, pandas as pd
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from ancient_demos import DEMOS, tr, demo_names, rounds_of
+from demos import DEMOS, tr, demo_names, rounds_of
 R_TRADE, R_CONTACT, MOVE = 272, 700, 40
 S = collections.defaultdict(lambda: collections.Counter())
 for demo in demo_names():

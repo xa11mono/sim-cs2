@@ -10,7 +10,7 @@ import json, os, sys, bisect, math, collections
 import numpy as np, pandas as pd
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
-from ancient_demos import DEMOS, tr, demo_names, rounds_of, event  # noqa: E402
+from demos import DEMOS, tr, demo_names, rounds_of, event  # noqa: E402
 SITE_R = 450
 RIFLE = ('ak47', 'm4a1', 'm4a1_silencer', 'm4a4', 'galilar', 'famas', 'aug', 'sg556', 'awp', 'ssg08', 'AK', 'M4', 'M4A1', 'M4A4', 'GALIL', 'FAMAS', 'AUG', 'SG', 'AWP', 'SSG', 'SCOUT', 'M4S')
 SMG = ('mac10', 'mp9', 'mp7', 'ump45', 'p90', 'bizon', 'mp5sd', 'xm1014', 'nova', 'mag7', 'sawedoff', 'negev', 'm249',

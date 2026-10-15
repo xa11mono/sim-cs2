@@ -1,0 +1,385 @@
+{
+ "_about": [
+  "Рецепт сборки набора карты Mirage для tools/map_build.py (v318). В объект MAP не попадает (src/mapset.py пропускает файлы на «_»).",
+  "sources — исходники в этой папке (README.md); перевод координат — из .txt (pos_x, pos_y, scale).",
+  "callouts — подписи Simple Radar (de_mirage_simpleradar.dds, https://readtldr.gg/simpleradar): название и середина надписи, координаты карты 0..2048 (пиксель радара ×2).",
+  "steps — что делает tools/map_build.py (все файлы набора собираются; заморожённых нет).",
+  "roles — роли зон для игры (спавны, сайты) по названию подписи; callouts[i][3] = \"low\" — зерно зоны на нижнем этаже.",
+  "regions — сторона карты (A / B / mid / back — задние проходы CT / Tside — у спавна T) по названию зоны, для tools/positions_bake.py; разбивка — проектная (по радару).",
+  "tactics.forward — зоны «CT вышел вперёд за инфой» для отчёта tools/tactics_bake.py (проектный список по радару)."
+ ],
+ "map": {
+  "name": "Mirage",
+  "ui": {
+   "zoneNameHint": "например: Палас, Джангл, Маркет",
+   "zoneLayerHint": "Палас, Джангл, Маркет"
+  }
+ },
+ "sources": {
+  "txt": "de_mirage.txt",
+  "nav": "de_mirage.nav",
+  "radar": "de_mirage_radar.png",
+  "simpleRadar": "de_mirage_simpleradar.dds",
+  "demos": "demos",
+  "callouts": "https://readtldr.gg/simpleradar",
+  "pro": "pro"
+ },
+ "callouts": [
+  [
+   "B Apps",
+   606,
+   386
+  ],
+  [
+   "Car",
+   362,
+   402
+  ],
+  [
+   "Corner",
+   754,
+   486
+  ],
+  [
+   "Stove",
+   840,
+   486
+  ],
+  [
+   "B Stairs",
+   988,
+   520
+  ],
+  [
+   "Bench",
+   252,
+   562
+  ],
+  [
+   "Forest",
+   290,
+   562
+  ],
+  [
+   "B Site",
+   474,
+   584
+  ],
+  [
+   "Short",
+   928,
+   606
+  ],
+  [
+   "E Box",
+   698,
+   692
+  ],
+  [
+   "Trash B",
+   294,
+   750
+  ],
+  [
+   "Window B",
+   524,
+   780
+  ],
+  [
+   "Door",
+   356,
+   836
+  ],
+  [
+   "Market",
+   484,
+   922
+  ],
+  [
+   "Ladder Room",
+   830,
+   760
+  ],
+  [
+   "Underpass",
+   894,
+   730,
+   "low"
+  ],
+  [
+   "Catwalk",
+   1130,
+   856
+  ],
+  [
+   "Mid",
+   1130,
+   940
+  ],
+  [
+   "Top Mid",
+   1410,
+   750
+  ],
+  [
+   "Elevator",
+   1420,
+   580
+  ],
+  [
+   "TV",
+   1450,
+   360
+  ],
+  [
+   "Trash Mid",
+   1520,
+   790
+  ],
+  [
+   "Mid Boxes",
+   1444,
+   940
+  ],
+  [
+   "Cart",
+   1414,
+   930
+  ],
+  [
+   "Window",
+   834,
+   944
+  ],
+  [
+   "Boost",
+   902,
+   996
+  ],
+  [
+   "Vent",
+   762,
+   1074
+  ],
+  [
+   "Chair",
+   1176,
+   1054
+  ],
+  [
+   "Water",
+   1390,
+   1050
+  ],
+  [
+   "Connector",
+   1028,
+   1100
+  ],
+  [
+   "Jungle",
+   874,
+   1252
+  ],
+  [
+   "Stairs",
+   1092,
+   1280
+  ],
+  [
+   "Sandwich",
+   1168,
+   1280
+  ],
+  [
+   "Tetris",
+   1244,
+   1280
+  ],
+  [
+   "T Ramp",
+   1434,
+   1310
+  ],
+  [
+   "T Roof",
+   1614,
+   1290
+  ],
+  [
+   "Palms",
+   944,
+   1444
+  ],
+  [
+   "CT Spawn",
+   616,
+   1436
+  ],
+  [
+   "Triple Box",
+   1036,
+   1504
+  ],
+  [
+   "Default",
+   1182,
+   1520
+  ],
+  [
+   "A Site",
+   1112,
+   1564
+  ],
+  [
+   "Shadow",
+   1314,
+   1500
+  ],
+  [
+   "Pillars",
+   1530,
+   1516
+  ],
+  [
+   "Palace",
+   1430,
+   1616
+  ],
+  [
+   "Trash A",
+   830,
+   1580
+  ],
+  [
+   "Ninja",
+   1114,
+   1640
+  ],
+  [
+   "Firebox",
+   1232,
+   1632
+  ],
+  [
+   "CT Stairs",
+   740,
+   1610
+  ],
+  [
+   "Ticket",
+   890,
+   1700
+  ],
+  [
+   "T Spawn",
+   1796,
+   746
+  ]
+ ],
+ "steps": [
+  "navmesh",
+  "walls",
+  "heights",
+  "cover",
+  "zones",
+  "wallbang",
+  "map",
+  "demos"
+ ],
+ "frozen": {},
+ "roles": {
+  "CT Spawn": "CTspawn",
+  "T Spawn": "Tspawn",
+  "A Site": "Asite",
+  "B Site": "Bsite"
+ },
+ "regions": {
+  "A": [
+   "A Site",
+   "Triple Box",
+   "Default",
+   "Firebox",
+   "Ninja",
+   "Palms",
+   "Ticket",
+   "Trash A",
+   "Stairs",
+   "Sandwich",
+   "Tetris",
+   "Shadow",
+   "Palace",
+   "Pillars",
+   "T Ramp",
+   "Jungle"
+  ],
+  "B": [
+   "B Site",
+   "B Apps",
+   "Car",
+   "Corner",
+   "Stove",
+   "Bench",
+   "Forest",
+   "Trash B",
+   "Window B",
+   "E Box",
+   "Door",
+   "Market",
+   "B Stairs"
+  ],
+  "mid": [
+   "Mid",
+   "Top Mid",
+   "Catwalk",
+   "Short",
+   "Underpass",
+   "Ladder Room",
+   "Window",
+   "Boost",
+   "Connector",
+   "Chair",
+   "Water",
+   "Cart",
+   "Mid Boxes",
+   "Trash Mid"
+  ],
+  "back": [
+   "CT Spawn",
+   "CT Stairs",
+   "Vent"
+  ],
+  "Tside": [
+   "T Spawn",
+   "T Roof",
+   "TV",
+   "Elevator"
+  ],
+  "spawns": [
+   "T Spawn",
+   "CT Spawn"
+  ],
+  "midC": [
+   1130,
+   940
+  ]
+ },
+ "tactics": {
+  "forward": [
+   "Top Mid",
+   "Catwalk",
+   "Mid",
+   "Underpass",
+   "Short",
+   "Palace",
+   "T Ramp",
+   "Tetris",
+   "B Apps",
+   "Stove",
+   "Connector"
+  ],
+  "tSpawn": [
+   "T Spawn"
+  ]
+ }
+}

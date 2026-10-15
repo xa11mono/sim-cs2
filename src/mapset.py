@@ -1,7 +1,8 @@
 # Набор карты (v317): всё, что относится к одной карте, лежит в data/maps/<карта>/ — игра (src/game.html) не знает
 # ни одной карты и читает только объект MAP. Здесь набор склеивается в MAP и вшивается в страницу.
 #   map.json      — поля верхнего уровня MAP (имя, ключи хранилища, масштаб, спавны, подсказки UI; radar — имя картинки)
-#   <имя>.json    — MAP.<имя> (zones, navmesh, walls, heights, cover, wallbang, tactics, lineups, pro)
+#   <имя>.json    — MAP.<имя> (zones, navmesh, walls, heights, cover, wallbang, tactics, lineups, pro); _*.json — не в MAP
+#                   (рецепт сборки _build.json и отчёты tools/map_build.py)
 #   radar.png     — фон; в MAP.radar — data URI
 # JSON-файлы вставляются текстом, без перекодирования: числа остаются ровно как записаны (в т.ч. -0).
 # Метки в src/game.html: @@MAP@@ — объект MAP; @@MAP_NAME@@, @@MAP_ZONE_HINT@@, @@MAP_ZONE_LAYER_HINT@@ — надписи в разметке.
@@ -30,7 +31,7 @@ def map_js(name):
     meta['radar'] = 'data:image/png;base64,' + base64.b64encode(png).decode()
     parts = [json.dumps(meta, ensure_ascii=False, separators=(',', ':'))[:-1]]
     for fn in sorted(os.listdir(d)):
-        if not fn.endswith('.json') or fn == 'map.json': continue
+        if not fn.endswith('.json') or fn == 'map.json' or fn.startswith('_'): continue   # _*.json — рецепт и отчёты tools/map_build.py
         txt = open(os.path.join(d, fn), encoding='utf-8').read().strip()
         json.loads(txt)  # битый файл — ошибка сборки, а не страницы
         parts.append(',' + json.dumps(fn[:-5]) + ':' + txt)

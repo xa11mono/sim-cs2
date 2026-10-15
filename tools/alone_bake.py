@@ -4,7 +4,7 @@
 import sys, os, glob, math
 import numpy as np, pandas as pd
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from ancient_demos import DEMOS, tr, demo_names, rounds_of
+from demos import DEMOS, tr, demo_names, rounds_of
 near = tot = 0; ns = {2:[0,0],3:[0,0]}
 for demo in demo_names():
     rounds = rounds_of(demo)

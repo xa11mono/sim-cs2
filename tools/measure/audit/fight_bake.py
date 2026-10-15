@@ -121,7 +121,7 @@ def run_bots(labels):
 
 def run_pro(folder):
     import pandas as pd, numpy as np
-    from ancient_demos import rounds_of
+    from demos import rounds_of
     A = Acc(); used = 0
     for f in sorted(glob.glob(os.path.join(folder, '*_ticks_fight.csv.gz'))):
         demo = os.path.basename(f)[:-len('_ticks_fight.csv.gz')]
@@ -176,7 +176,7 @@ def run_pro(folder):
 
 if __name__ == '__main__':
     if sys.argv[1] == 'pro':
-        from ancient_demos import DEMOS
+        from demos import DEMOS
         R = run_pro(sys.argv[2] if len(sys.argv) > 2 else DEMOS)
         json.dump(R, open(os.path.join(HERE, 'runs', 'fight_pro.json'), 'w'), ensure_ascii=False, indent=1)
     else:

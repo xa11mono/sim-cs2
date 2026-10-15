@@ -8,7 +8,7 @@
 import json, os, sys, math, glob
 import numpy as np, pandas as pd
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from ancient_demos import ROOT, DEMOS, tr
+from demos import ROOT, DEMOS, tr
 dist, n, traded, chain = [], 0, 0, 0
 for f in sorted(glob.glob(os.path.join(DEMOS, '*_player_death.csv.gz'))):
     d = pd.read_csv(f).sort_values('tick')

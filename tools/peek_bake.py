@@ -103,7 +103,7 @@ def summary(S):
 def main():
     import pandas as pd
     sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-    from ancient_demos import DEMOS, tr, demo_names, rounds_of
+    from demos import DEMOS, tr, demo_names, rounds_of
     NADE = 'grenade|molotov|incgrenade|flashbang|decoy|knife|c4|bayonet'
     S = new_stats()
     for demo in demo_names():

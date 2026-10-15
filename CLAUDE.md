@@ -47,6 +47,10 @@ v166 — `docs/V166_CHANGES.md` (список владельца). Главны�
 места про, радар) лежит в `data/maps/<карта>/` и приходит в код одним объектом `MAP` (устройство — `docs/ARCHITECTURE.md`,
 раздел «Набор карты»). В коде — никаких названий мест и координат: место карты — поле набора (свойство зоны или
 розыгрыш `tactics.plays`).
+**Сборка набора из исходников (v318):** `python3 tools/map_build.py <карта>` по рецепту `data/maps/<карта>/_build.json`
+(навмеш из `.nav`, стены, высоты, укрытия, зоны по подписям радара, всё из демок; bake-скрипты — с ключом `--map`, общий
+`tools/mapdir.py`). Карты: Ancient (заморожено всё, кроме высот/укрытий/прострелов), Mirage (`python3 src/mkpub.py --map mirage` → `mirage-radar.html`,
+страница https://claude.ai/artifact/EBaRN7xYH1QXzC1iiTNZ4x, база правок — коллекция `map-mirage`). Проверка глазами — `tools/map_shot.js`.
 Сборка: `python3 src/build.py [--map ancient]` → `sim.html` (копия `src/game.html` с набором карты и тестовым входом для
 замеров). Публикуемая: `python3 src/mkpub.py [--map ancient]` → `ancient-radar.html` (страница https://claude.ai/artifact/VcutdCmiqN164CLNYowQvP; там же база
 правок карты — коллекция `map`). `src/game.html` — ~15 100 строк, **читать только кусками** (`grep -n` → `Read` с offset/limit).

@@ -11,7 +11,7 @@
 import sys, os, json, glob, bisect, collections
 import numpy as np, pandas as pd
 HERE = os.path.dirname(os.path.abspath(__file__)); sys.path.insert(0, HERE)
-from ancient_demos import DEMOS, demo_names, rounds_of, event  # noqa: E402
+from demos import DEMOS, demo_names, rounds_of, event  # noqa: E402
 from ct_cmp import wcls, rtype  # noqa: E402
 
 # имя оружия (демка: «M4A1-S», 'm4a1_silencer'; бот: 'M4S') → ключ

@@ -86,7 +86,7 @@ def process(players, shots, A, t0, cut):
 
 def run_pro():
     import numpy as np, pandas as pd
-    from ancient_demos import DEMOS, tr, demo_names, rounds_of
+    from demos import DEMOS, tr, demo_names, rounds_of
     NADE = 'grenade|molotov|incgrenade|flashbang|decoy|knife|c4|bayonet'
     A = Acc()
     for demo in demo_names():

@@ -1,6 +1,6 @@
 {
 "_about": [
- "Высоты и этажи Ancient. Делает tools/heights_bake.py из src/data/navmesh.json и радаров Simple Radar.",
+ "Высоты и этажи Ancient. Делает tools/heights_bake.py --map ancient из navmesh.json набора карты и радаров Simple Radar.",
  "areas: [id участка навмеша, z — высота пола (единицы игры), lvl — уровень (0 обычный, 1 — над другим полом),",
  "        cov — крыто сверху (1/0), ramp — номер рампы/лестницы в ramps или -1].",
  "ramps: группы участков с плавным подъёмом: ids, z0..z1 (низ..верх), c — середина.",

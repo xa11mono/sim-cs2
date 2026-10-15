@@ -7,7 +7,7 @@ import json, os, sys, bisect, collections
 import numpy as np, pandas as pd
 HERE = os.path.dirname(os.path.abspath(__file__)); ROOT = os.path.dirname(HERE)
 sys.path.insert(0, HERE)
-from ancient_demos import DEMOS, tr, demo_names, rounds_of, event  # noqa: E402
+from demos import DEMOS, tr, demo_names, rounds_of, event  # noqa: E402
 
 Z = json.load(open(os.path.join(ROOT, 'src', 'zones.json')))['zones']
 

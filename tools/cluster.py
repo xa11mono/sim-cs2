@@ -1,14 +1,20 @@
-"""Лайнапы про: data/pro/pro_nades.csv (tools/lineups.py) → data/pro/pro_lineups.json.
-Гранаты «себе» (purpose) не берутся. src/data/lineups_pro.json (его читает игра)
-отсюда не перезаписывается."""
-import pandas as pd, numpy as np, json, os
+"""Лайнапы про: <pro_dir>/pro_nades.csv (tools/lineups.py) → <pro_dir>/pro_lineups.json (у Ancient pro_dir — data/pro).
+python3 tools/cluster.py [--map ancient]   (v318: карта — ключом --map; зоны и названия — zones.json набора карты)
+Гранаты «себе» (purpose) не берутся. В набор карты (lineups.json: pro / proExtra) отбирает tools/demos_bake.py."""
+import pandas as pd, numpy as np, json, os, sys
 from matplotlib.path import Path
-ROOT=os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-PRO=os.path.join(ROOT,'data','pro')
-Z=json.load(open(os.path.join(ROOT,'src','zones.json')))['zones']
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import mapdir  # noqa: E402
+MAPNAME=mapdir.current()
+ROOT=mapdir.ROOT
+PRO=mapdir.pro_dir(MAPNAME)
+_Z=json.load(open(mapdir.path(MAPNAME,'zones.json'),encoding='utf-8'))
+_ZL=json.load(open(mapdir.path(MAPNAME,'map.json'),encoding='utf-8')).get('zoneLayer',{'dx':0,'dy':0,'scale':1})
+def _zl(p): return (1024+(p['x']-1024)*_ZL['scale']+_ZL['dx'], 1024+(p['y']-1024)*_ZL['scale']+_ZL['dy'])
+Z=[(_Z['names'].get(z['id']) or z['id'], Path(np.array([_zl(p) for p in _Z['shapes'].get(z['id'], z['points'])]))) for z in _Z['zonemap']['zones']]
 def zn(x,y):
-    for z in Z:
-        if Path(np.array(z['pts'])).contains_point((x,y)): return (z['name'] or z['id']).split(' / ')[0]
+    for nm,p in Z:
+        if p.contains_point((x,y)): return nm.split(' / ')[0]
     return None
 G=pd.read_csv(os.path.join(PRO,'pro_nades.csv')); C=json.load(open(os.path.join(PRO,'nade_ctx.json')))
 G=G[G.purpose.fillna('')=='']

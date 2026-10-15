@@ -1,0 +1,28 @@
+{
+ "id": "mirage",
+ "name": "Mirage",
+ "store": "mirage-live-radar",
+ "db": "map-mirage",
+ "radar": "radar.png",
+ "pxUnits": 2.5,
+ "zoneLayer": {
+  "dx": 0,
+  "dy": 0,
+  "scale": 1
+ },
+ "spawns": {
+  "CT": "CTspawn_2",
+  "T": "Tspawn_4"
+ },
+ "spawnFix": {
+  "T": {
+   "x": 1796,
+   "y": 746
+  }
+ },
+ "siteAFix": null,
+ "ui": {
+  "zoneNameHint": "например: Палас, Джангл, Маркет",
+  "zoneLayerHint": "Палас, Джангл, Маркет"
+ }
+}

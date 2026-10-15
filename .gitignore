@@ -8,3 +8,6 @@ __pycache__/
 tools/measure/audit/runs/*/aud_*.json
 tools/measure/audit/runs/*/sim_audit.html
 tools/measure/audit/runs/*/*_rec_*.json
+
+# v318: сэмплы про новых карт (tools/pro.py --map, ~60 МБ) — пересобираются из демок за ~1,5 мин
+data/maps/*/pro/pro_samples.csv.gz

@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
-"""Высоты и этажи карты: src/data/navmesh.json (+ радары) → src/data/heights.json.
+"""Высоты и этажи карты: navmesh.json набора (+ радары) → heights.json набора (data/maps/<карта>/).
 
-python3 tools/heights_bake.py [--simple-radar <папка с de_ancient_radar*.png|.dds>] [--report]
+python3 tools/heights_bake.py [--map ancient] [--simple-radar <папка с de_<карта>_radar*.png|.dds или сам файл>] [--report]
+(v318: карта — ключом --map, файлы — в наборе карты; раньше — src/data/ ветки rebuild-v238)
 
 Что считает (всё автоматически, повторяемо — один и тот же вход даёт тот же файл):
   * у каждого участка пола (полигона навмеша) — высота z (как в навмеше,
@@ -29,8 +30,12 @@ python3 tools/heights_bake.py [--simple-radar <папка с de_ancient_radar*.p
 import json, math, os, sys, glob
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-NAV = os.path.join(ROOT, 'src', 'data', 'navmesh.json')
-OUT = os.path.join(ROOT, 'src', 'data', 'heights.json')
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import mapdir  # noqa: E402
+MAPNAME = mapdir.current()
+MAP_TITLE = mapdir.title(MAPNAME)
+NAV = mapdir.path(MAPNAME, 'navmesh.json')
+OUT = mapdir.path(MAPNAME, 'heights.json')
 
 PX_UNITS = 2.5          # 1 единица карты (0..2048) ≈ 2,5 единицы игры
 OVER_DZ = 60            # «уровень над уровнем»: разница высот больше роста человека без малого
@@ -215,9 +220,12 @@ def hatch_mask(path):
 def covered(areas, dirs):
     files = []
     for d in dirs:
-        f = sorted(glob.glob(os.path.join(d, 'de_ancient_radar.png')) + glob.glob(os.path.join(d, 'de_ancient_radar.dds')))
+        if os.path.isfile(d):
+            files.append(d); continue
+        nm = 'de_%s_radar' % MAPNAME
+        f = sorted(glob.glob(os.path.join(d, nm + '.png')) + glob.glob(os.path.join(d, nm + '.dds')))
         if not f:
-            sys.exit('в папке %s нет de_ancient_radar.png/.dds' % d)
+            sys.exit('в папке %s нет %s.png/.dds' % (d, nm))
         files.append(f[0])
     masks = [hatch_mask(f) for f in files]
     res = {}
@@ -245,16 +253,9 @@ def covered(areas, dirs):
 
 
 # ---------------- названия мест (для отчёта) ----------------
-# названия мест по подписям Simple Radar (координаты карты 0..2048) — только для отчёта
-CALLOUTS = [('Plat', 370, 415), ('Back Site', 500, 335), ('Temple', 630, 360), ('Street', 800, 430), ('CT Spawn', 1040, 350),
-            ('A', 610, 530), ('Triple', 710, 530), ('Outside', 410, 610), ('Tree', 430, 690), ('Boost', 530, 720),
-            ('Tunnel (A)', 630, 770), ('A Main', 330, 920), ('Donut', 630, 930), ('Sniper Nest', 970, 550), ('House', 1150, 570),
-            ('Red', 970, 710), ('Top Mid', 970, 840), ('Pit', 1040, 950), ('Mid', 980, 1040), ('Lower Mid', 820, 1160),
-            ('Xbox', 990, 1190), ('Snake', 1130, 1150), ('Cat Room', 1250, 1060), ('Cat Walk', 1290, 1260), ('Choke', 1320, 510),
-            ('Alley', 1560, 520), ('Short', 1450, 610), ('Long', 1690, 590), ('Cave', 1370, 850), ('B', 1560, 840),
-            ('Pillar', 1560, 920), ('Ninja', 1450, 980), ('Banger', 1460, 1130), ('Double Door', 1570, 1160), ('Ramp (B)', 1700, 1110),
-            ('Ruins', 1590, 1420), ('Swamp', 1430, 1580), ('T Tunnel', 1240, 1600), ('T Spawn', 990, 1790), ('Jungle', 610, 1440),
-            ('Stairs (A)', 430, 1220)]
+# названия мест по подписям Simple Radar (координаты карты 0..2048) — только для отчёта; v318: из рецепта карты
+# (data/maps/<карта>/_build.json, поле callouts)
+CALLOUTS = mapdir.callouts(MAPNAME)
 
 
 def namer():
@@ -276,14 +277,14 @@ def main():
     sr = None
     if '--simple-radar' in args:
         sr = args[args.index('--simple-radar') + 1].split(',')
-    nav = json.load(open(NAV, encoding='utf-8'))
+    nav = json.load(open(NAV, encoding='utf-8'))['areas']
     areas = []
     for a in nav:
         P = [(p['x'], p['y']) for p in a['points']]
         areas.append({'id': a['id'], 'z': a['z'], 'P': P, 'c': centroid(P), 'conn': set(a['conn']),
                       'bb': (min(p[0] for p in P), min(p[1] for p in P), max(p[0] for p in P), max(p[1] for p in P))})
     by = {a['id']: a for a in areas}
-    walls = [[tuple(q) for q in W] for W in json.load(open(os.path.join(ROOT, 'src', 'data', 'walls.json'), encoding='utf-8'))]
+    walls = mapdir.load_walls(MAPNAME)
     old = json.load(open(OUT, encoding='utf-8')) if os.path.exists(OUT) else {}
 
     # пары участков, близких в плане (рамки касаются)
@@ -428,7 +429,7 @@ def main():
 
     out = {
         '_about': [
-            'Высоты и этажи Ancient. Делает tools/heights_bake.py из src/data/navmesh.json и радаров Simple Radar.',
+            'Высоты и этажи %s. Делает tools/heights_bake.py --map %s из navmesh.json набора карты и радаров Simple Radar.' % (MAP_TITLE, MAPNAME),
             'areas: [id участка навмеша, z — высота пола (единицы игры), lvl — уровень (0 обычный, 1 — над другим полом),',
             '        cov — крыто сверху (1/0), ramp — номер рампы/лестницы в ramps или -1].',
             'ramps: группы участков с плавным подъёмом: ids, z0..z1 (низ..верх), c — середина.',

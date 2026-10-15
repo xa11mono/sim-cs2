@@ -32,7 +32,7 @@ if __name__ == '__main__':
     C = collections.Counter()
     if sys.argv[1] == 'pro':
         import pandas as pd
-        from ancient_demos import DEMOS, tr, demo_names, rounds_of
+        from demos import DEMOS, tr, demo_names, rounds_of
         for demo in demo_names():
             rounds = rounds_of(demo)
             if not rounds: continue

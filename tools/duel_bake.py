@@ -5,7 +5,7 @@
 import json, os, sys, collections
 import numpy as np, pandas as pd
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from ancient_demos import DEMOS, demo_names, rounds_of
+from demos import DEMOS, demo_names, rounds_of
 NADE = 'grenade|molotov|incgrenade|flashbang|decoy|knife|c4|bayonet|inferno|hegrenade|world'
 shots, ttk, first_k, hs, n = [], [], 0, 0, 0
 for demo in demo_names():
