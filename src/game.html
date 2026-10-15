@@ -13379,6 +13379,15 @@ function navSnap(bot){
         nbd = d; nb = {x: px + (cx-px)*0.15, y: py + (cy-py)*0.15, a: a}; } }); });
   if(nb){ bot.baseX = bot.x = nb.x; bot.baseY = bot.y = nb.y; bot.z = nb.a.z; bot._area = nb.a.id; bot.path = []; bot.pathIdx = 0; bot._offNav = 0; logEvent(bot.id+": вне навмеша — перенесён на ближайший пол (заплатка)"); }
 }
+// (v335) звук приземления — одно место: слышат враги (как шаги, громко), на странице — запись приземления там, где он сейчас.
+// LAND_DELAY — время полёта при запрыгивании (CS2: прыжок ~0,6 с вверх-вниз; вверх на уступ — короче) — проектное число
+var LAND_DELAY = 0.35;
+function landSound(bot, quiet){
+  var R = SOUND_RADIUS_RUN*(quiet ? 0.5 : 1); bot._landAt = 0;
+  soundPings.push({x:bot.baseX, y:bot.baseY, team:bot.team, born:nowTs, radius:R});
+  moveSoundEmit(bot, R, "steps", quiet ? "приземление (чек прыжком)" : "приземление");
+  if(SND && SND.on) sndBody("land", bot.baseX, bot.baseY);
+}
 // (v334, М58, владелец: «в CS2 есть места, где прыгают для чека, — у B Apps, где стоит karrigan») чек прыжком. Места и как часто —
 // из демок (tools/jumps_bake.py → MAP.pro.jumps: прыжок на месте, rate — прыжков за раунд; Mirage у B Apps — 0,49, у Ticket —
 // 0,09). Стоит у такого места своей стороны (≤ 50 ед. карты), без контакта ≥ 2 с — прыгает с вероятностью rate / JUMP_HOLD_SEC
@@ -13387,6 +13396,7 @@ function navSnap(bot){
 // тише»): радиус × 0,5 — проектное число
 var JUMP_HOLD_SEC = 30;
 function jumpCheckTick(b){
+  if(b._landAt && tick >= b._landAt && b.alive && roundState === "live") landSound(b);   // (v335) запрыгнул — приземлился
   var JS = MAP.pro && MAP.pro.jumps; if(!JS || !JS.length || roundState !== "live" || !b.alive) return;
   var J = b._jc;
   if(J){
@@ -13399,9 +13409,7 @@ function jumpCheckTick(b){
         if(o.facing !== undefined && _angOff(Math.atan2(b.y-o.y, b.x-o.x), o.facing) < 1.05) intelPush(o.team, {type:"spotted", x:b.x, y:b.y, id:b.id, by:o.id, conf:1}); });
     }
     if(age === 38){   // приземление, с приседом
-      soundPings.push({x:b.baseX, y:b.baseY, team:b.team, born:nowTs, radius:SOUND_RADIUS_RUN*0.5});
-      moveSoundEmit(b, SOUND_RADIUS_RUN*0.5, "steps", "приземление (чек прыжком)"); if(SND && SND.on) sndBody("land", b.baseX, b.baseY);
-      b._jc = null;
+      landSound(b, true); b._jc = null;
     }
     return;
   }
@@ -13772,8 +13780,10 @@ function stepTick(){
             if(dzz > 18) bot._jump = {t:tick, up:true}; else if(dzz < -40) bot._jump = {t:tick, up:false};
             // (v322, М29) прыжок / приземление слышно и при тихом шаге, далеко (csdb.gg: «громкий звук приземления, слышно
             // издалека», без числа) — радиус как у бега: проектное число
-            if(roundState === "live" && (dzz > 18 || dzz < -40)){ soundPings.push({x:bot.baseX, y:bot.baseY, team:bot.team, born:nowTs, radius:SOUND_RADIUS_RUN});
-              moveSoundEmit(bot, SOUND_RADIUS_RUN, "steps", dzz > 0 ? "прыжок" : "приземление"); if(SND && SND.on) sndBody("land", bot.baseX, bot.baseY); }
+            // (v335, владелец: «звук прыжка в одном месте, а он в другом; приземление должно его перебивать») звучит только
+            // приземление — там, где игрок приземлился: спрыгнул вниз — сразу; запрыгнул вверх — через LAND_DELAY с (полёт)
+            if(roundState === "live" && dzz < -40) landSound(bot);
+            else if(roundState === "live" && dzz > 18) bot._landAt = tick + Math.round(LAND_DELAY*TICK_HZ);
             // (v333) сменил этаж (спуск, лестница) — путь, построенный с прежнего этажа, пересчитывается с нового
             if(Math.abs(dzz) > JUMP_UP && bot.path && bot.pathIdx < bot.path.length){ bot.path = []; bot.pathIdx = 0; }
             bot.z = naz.z; bot._area = naz.id; } }
@@ -17416,7 +17426,7 @@ function sndInit(){
 // (v333, М53, владелец: «каша из звуков в толпе») у каждого вида звука свой лимит за 50 мс: шаги — 3, выстрелы — 4, прочее — 3;
 // шаги — только трёх ближайших к камере бегущих; громкое рядом (выстрел, взрыв ≤ 0,15 с назад) приглушает шаги вдвое.
 // Числа — проектные (на слух)
-var SND_CAP = {step:3, shot:4, other:3, fire:2};
+var SND_CAP = {step:3, shot:4, other:3, fire:2, land:3};
 function sndGain(x, y, R, cat){
   if(!SND.on || !SND.ctx || typeof cv === "undefined") return 0;
   cat = cat || "other";
@@ -17453,9 +17463,9 @@ function sndStep(x, y){   // (v327) шаг как в CS — «тук-тук» п
 }
 // (v333, М55) звуки тела: приземление, попадание (в броню / в тело / в голову — с шлемом и без), горение. Только показ
 function sndBody(kind, x, y, o){
-  var g = sndGain(x, y, SND_R.step*1.3, kind === "land" ? "step" : "other"); if(!g) return;
+  var g = sndGain(x, y, SND_R.step*1.6, kind === "land" ? "land" : "other"); if(!g) return;   // (v335) приземление — свой лимит, не «три ближайших бегущих»
   var base = {land:"b_land", burn:"b_burn", kevlar:"b_kevlar", body:"b_body", hshelm:"b_hshelm", hs:"b_hs"}[kind];
-  var key = base && sndRec(base, 0); if(key) sndPlay(key, (kind === "land" ? 0.8 : 0.7)*g, SND.far);
+  var key = base && sndRec(base, 0); if(key) sndPlay(key, (kind === "land" ? 1.0 : 0.7)*g, SND.far);
 }
 // огонь горит — тихий треск, пока горит (одна петля на огонь)
 // (звуковые узлы держим в SND.fireMap, а не на объекте огня: огонь идёт в снимок отметок, узлы туда копировать нельзя — v325)
