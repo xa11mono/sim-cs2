@@ -1819,13 +1819,24 @@ function buildWaypointPath(fromX, fromY, fromZ, toX, toY, toZ, team){
   if(fz.id === tz.id) return [[toX,toY,toZ||0]];
   var route = zoneDijkstra(fz.id, tz.id, team);
   if(!route) return [[toX,toY,toZ||0]]; // disconnected zones — direct line fallback rather than a stuck bot
-  var corridor = [];
+  var corridor = [], cPair = [];   // cPair — участки по обе стороны перехода (v340)
   for(var i=0;i<route.length-1;i++){
     var edge = (zoneGraph[route[i]]||[]).find(function(e){ return e.to===route[i+1]; });
-    if(edge) corridor.push(edge);
+    if(edge){ corridor.push(edge); cPair.push([route[i], route[i+1]]); }
   }
   if(!corridor.length) return [[toX,toY,toZ||0]];
-  var path = funnel(corridor, {x:fromX,y:fromY,z:fromZ||0}, {x:toX,y:toY,z:toZ||0});
+  // (v340, отметка владельца: sh1ro «пытается запрыгнуть, а его отталкивает») натянутый путь срезал угол мимо ступеньки, по
+  // которой только и можно подняться, — под край верхнего пола (+96, выше прыжка), и бот стоял у стены. Теперь на каждом
+  // подъёме-прыжке (> 18 ед. у края, navStepDz) путь проходит через середину перехода; нить натягивается между ними.
+  // Без высот углов (Ancient) — как раньше
+  var start0 = {x:fromX,y:fromY,z:fromZ||0}, end0 = {x:toX,y:toY,z:toZ||0}, cuts = [];
+  for(var ci=0;ci<corridor.length;ci++){ var cA = zonesById[cPair[ci][0]], cB = zonesById[cPair[ci][1]], ce = corridor[ci];
+    if(cA && cB && ce.mid && !navPlane(cA).flat && !navPlane(cB).flat && navStepDz(cA, cB, ce.mid.x, ce.mid.y) > 18) cuts.push(ci); }
+  var path;
+  if(!cuts.length) path = funnel(corridor, start0, end0);
+  else { path = []; var sP = start0, prevC = 0;
+    cuts.concat([corridor.length]).forEach(function(ci2){ var eP = ci2 < corridor.length ? {x:corridor[ci2].mid.x, y:corridor[ci2].mid.y, z:corridor[ci2].z} : end0;
+      var seg = funnel(corridor.slice(prevC, ci2), sP, eP); path = path.concat(path.length ? seg.slice(1) : seg); sP = eP; prevC = ci2 + 1; }); }
   // Проверка по стенам: funnel натягивает путь по геометрии НАВМЕША, а она
   // местами не совпадает с нарисованными стенами — натянутый отрезок может
   // срезать угол прямо сквозь стену. Если хоть один отрезок пересекает
@@ -8147,6 +8158,17 @@ function smokeSpamTick(){
       logEvent(b.id+": по нему стреляют сквозь смок — отвечает");
       return;
     }
+    // (v340, владелец: «во время планта в смоку они не пытаются прострелить, так же и при дефузе») слышит плант (CT) или дефуз
+    // (T), а между ним и бомбой дым — очереди в точку звука, пока звук идёт, и на ходу. Раньше решение «стрелять в этот дым»
+    // принималось один раз, когда дым встал, и звук планта/дефуза его уже не менял
+    var bp = null;
+    if(hs && (hs.kind === "plant" || hs.kind === "defuse") && hs.team !== b.team && tick - hs.tick < TICK_HZ) bp = {x:hs.x, y:hs.y};
+    else if(b.team === "T" && bomb && bomb.state === "planted" && tick - Math.max(b._defuseHeard||-9999, b._defuseCont||-9999) < TICK_HZ) bp = {x:bomb.x, y:bomb.y};
+    if(bp && Math.hypot(bp.x-b.x, bp.y-b.y) < 900 && hasLOS(b.x, b.y, bp.x, bp.y)){
+      var bS = smokes.filter(function(s){ return smkActive(s) && segHitsCircle(b.x, b.y, bp.x, bp.y, s.x, s.y, smokeRadiusNow(s)); })[0];
+      if(bS){ b._spam = {pt:bp, s:bS, seen:true, bursts:SMK.burstsMax, shot:0, nextBurst:tick + b.reactionTicks, until:tick + 4*TICK_HZ};
+        logEvent(b.id+": слышит "+(b.team === "CT" ? "плант" : "дефуз")+" за смоком — простреливает"); return; }
+    }
     if(b.curSpeed > 40*SPD_K) return;   // стоит (на посту или просто остановился)
     var D = b._spamDone || (b._spamDone = {});
     smokes.forEach(function(s){
@@ -8307,8 +8329,11 @@ function siteRebalanceTick(){
       cts.forEach(function(q){ if(q === o || by) return;
         if(!(q.curSpeed > 40*SPD_K) && Math.hypot(q.x-t.x, q.y-t.y) < REBAL.fwdR && Math.hypot(q.x-site.x, q.y-site.y) > dO + 80 && hasLOS(o.post.x, o.post.y, q.x, q.y)){ by = q; fwd = true; } });
       // другой защитник смотрит в ту же точку, и он к ней ближе
-      if(!by) defs.forEach(function(q, j){ if(q === o || by) return;
-        if(Math.hypot(T[j].x-t.x, T[j].y-t.y) < REBAL.same && Math.hypot(q.post.x-T[j].x, q.post.y-T[j].y) <= Math.hypot(o.post.x-t.x, o.post.y-t.y)) by = q; });
+      // (v340, владелец: «NiKo: m0NESY держит тот же угол — беру угол» и «m0NESY: NiKo держит тот же угол…» одновременно) уступает
+      // один: кто дальше от угла (поровну — второй по порядку); тому, кто сам уже уходит на другой угол (_rebal), не уступают
+      if(!by) defs.forEach(function(q, j){ if(q === o || by || q._rebal) return;
+        var dq = Math.hypot(q.post.x-T[j].x, q.post.y-T[j].y), dMe = Math.hypot(o.post.x-t.x, o.post.y-t.y);
+        if(Math.hypot(T[j].x-t.x, T[j].y-t.y) < REBAL.same && (dq < dMe - 1 || (Math.abs(dq - dMe) <= 1 && j < i))) by = q; });
       if(!by) return;
       var taken = T.filter(function(_, j){ return j !== i; }), avoid = cts.filter(function(q){ return q !== o; }).map(function(q){ return {x:q.x, y:q.y}; });
       var sp = rebalSpot(o, k, taken, fwd ? avoid.concat([t]) : [t]), why;
@@ -9886,8 +9911,13 @@ function nadeCovered(x, y){
   for(var k=0;k<L.length;k++){ var zn = NAVAREAS[L[k]]; if(NAV_BLOCKED[zn.id] || !pointInPoly(x, y, zn.points)) continue; if(zn.z < lo) lo = zn.z; if(zn.z > hi) hi = zn.z; }
   return hi - lo > 100;
 }
+// (v340, отметка владельца: «две гранаты одновременно» — kyousuke кинул HE и через 0,1 с флешку) между двумя гранатами одного
+// игрока — не меньше NADE_GAP с: демки про Mirage, 20 539 пар бросков подряд — минимум 1,1 с (0,5-й процентиль), быстрее 1 с — 0 %
+var NADE_GAP = Math.round(1.1*64);
+function nadeReady(b){ return tick - (b._nadeT == null ? -1e9 : b._nadeT) >= NADE_GAP; }
 function throwNade(b, type, tx, ty, lob, why){
   if(!b.nades || b.nades[type] <= 0) return false;
+  if(!nadeReady(b)) return false;
   // (аудит 11.10) проверка прямо перед броском: HE / молотов не летит туда, где стоит свой (в радиусе поражения) —
   // бросок отменяется, граната остаётся. Раньше не проверялось: 37 % HE падали в 300 px от своего, урон по своим от
   // гранат — 88 случаев на 12 матчей (у про из 33 тимкиллов 30 — пули, docs/PRO_PLAY.md 6г)
@@ -9902,7 +9932,10 @@ function throwNade(b, type, tx, ty, lob, why){
   // (v323, М33) цель под крышей / под другим этажом — навесом не долетит: кидает низом (прямо, с отскоком от стен), если
   // точка видна; иначе не кидает
   if(lob && nadeCovered(tx, ty)){ if(!hasLOS(b.x, b.y, tx, ty)) return false; lob = false; }
-  b.nades[type]--;
+  // (v340, отметка владельца: «кидает через крытую зону» — kyousuke из-под крыши B Apps навесом через стену) сам под крышей /
+  // под другим этажом — навесом нельзя (дуга упрётся в потолок): только низом, если цель видна (окно, проход)
+  if(lob && nadeCovered(b.x, b.y)){ if(!hasLOS(b.x, b.y, tx, ty)) return false; lob = false; }
+  b.nades[type]--; b._nadeT = tick;
   var d = Math.max(60, Math.hypot(tx-b.x, ty-b.y)); if(!lob) d = Math.min(NADE_THROW_RANGE, d);
   var a = Math.atan2(ty-b.y, tx-b.x);
   var v0 = d * (1-0.96) * TICK_HZ; // при затухании 0.96/тик пролетит примерно d
@@ -9979,9 +10012,11 @@ function updateNadeTasks(){
       // раньше кидал только ближе 22px к точке, а "дошёл до поста" считается
       // уже с 34px — бот вставал в 23–34px и стоял до конца задания, не кидая
       if(Math.hypot(t.from.x-b.baseX, t.from.y-b.baseY) > 36 && !(b.atPost && b.post && b.post.tag === "lineup")){ if(b.state === "patrol"){ setPost(b, t.from, {x:t.x, y:t.y}, true, "lineup"); b._lineupLock = tick; } return; }
+      if(!nadeReady(b)) return;   // (v340) только что кинул другую — задание ждёт
       b._lineupLock = 0; throwNade(b, t.type, t.x, t.y, true, t.why); b.nadeTask = null; if(b.post && b.post.tag === "lineup") clearPost(b); return;
     }
     if(d <= t.range && hasLOS(b.x, b.y, t.x, t.y)){
+      if(!nadeReady(b)) return;   // (v340) только что кинул другую — задание ждёт
       throwNade(b, t.type, t.x, t.y, false, t.why); b.nadeTask = null;
     } else if(t.lob && d <= t.range*0.85 && (t.now || tick - t.start > 64)){
       // "лайнап": граната навесом через постройку (поп-флешка, смок, молотов) — точки не видно, но
@@ -10087,11 +10122,17 @@ function lineupTick(){
     }
     nadeFlags[key] = true;
     nadeFlags["luok"+L.id] = true;
-    cand.nadeTask = {type:L.type, x:L.to.x, y:L.to.y, from:{x:L.from.x, y:L.from.y}, until: tick + (hot ? ((BAL.nadeReach && L.trigger === "timed") ? 12 : 7) : 20)*TICK_HZ, why:"лайнап «"+(L.name||LU_TYPE[L.type])+"»",
+    // (v340, отметка владельца: sh1ro шёл на смок Connector, задание сгорело у уступа — развернулся, «отталкивает») срок — не
+    // меньше дороги до точки броска по пути + LU_REACH_PAD с (проектное число); раньше только 7 / 12 / 20 с
+    var luBase = hot ? ((BAL.nadeReach && L.trigger === "timed") ? 12 : 7) : 20, luP = buildWaypointPath(cand.baseX, cand.baseY, cand.z, L.from.x, L.from.y, 0), luLen = 0, luX = cand.baseX, luY = cand.baseY;
+    luP.forEach(function(q){ luLen += Math.hypot(q[0]-luX, q[1]-luY); luX = q[0]; luY = q[1]; });
+    var luSec = Math.max(luBase, Math.ceil(luLen/(SPEED*weaponSpeedMul(cand)) + LU_REACH_PAD));
+    cand.nadeTask = {type:L.type, x:L.to.x, y:L.to.y, from:{x:L.from.x, y:L.from.y}, until: tick + luSec*TICK_HZ, why:"лайнап «"+(L.name||LU_TYPE[L.type])+"»",
                      start:tick, lob:true, range:4000, now:true, lineup:true};
     logEvent(cand.id+": идёт на лайнап «"+(L.name||LU_TYPE[L.type])+"»");
   });
 }
+var LU_REACH_PAD = 3;
 // ---------- физика полёта и срабатывание ----------
 function nadeWallHit(x1,y1,x2,y2){
   for(var i=0;i<MANUAL_WALLS.length;i++){
@@ -13328,7 +13369,7 @@ function resetRound(){
       if(spot && !insideSolidWall(spot[0], spot[1])){ b.x = spot[0]; b.y = spot[1]; }
     }
     var nsp = navAt(b.x, b.y, null); b._area = nsp ? nsp.id : null; if(nsp) b.z = nsp.z;   // (v321) высота — по навмешу под точкой спавна; (v323) и участок
-    b._jump = null;
+    b._jump = null; b._nadeT = null;   // (v340) интервал гранат — с нового раунда заново
     b.baseX = b.x; b.baseY = b.y;
     b.px = b.x; b.py = b.y;
     b.path = []; b.pathIdx = 0; b.alive = true; b.hp = 100;
@@ -13431,7 +13472,9 @@ function defuseWalk(bot){
 // Как он туда попадает — не найдено; это заплатка, пока не найдена причина
 function navSnap(bot){
   var nb = null, nbd = 40;
-  NAVAREAS.forEach(function(a){ if(NAV_BLOCKED[a.id] || (bot.z != null && Math.abs(a.z - bot.z) > JUMP_UP)) return;
+  // (v340, отметка владельца: NiKo «пролезает наверх, где не должен» — после двух переносов) перенос не поднимает выше ступеньки
+  // (18 ед.): раньше брался пол в ±JUMP_UP, и бота закидывало на уступ, куда не залезть; вниз — как было
+  NAVAREAS.forEach(function(a){ if(NAV_BLOCKED[a.id] || (bot.z != null && (a.z - bot.z > 18 || bot.z - a.z > JUMP_UP))) return;
     a.points.forEach(function(p, k){ var q = a.points[(k+1)%a.points.length], ex = q.x-p.x, ey = q.y-p.y, L2 = ex*ex+ey*ey || 1;
       var t = Math.max(0, Math.min(1, ((bot.baseX-p.x)*ex + (bot.baseY-p.y)*ey)/L2)), px = p.x+ex*t, py = p.y+ey*t, d = Math.hypot(px-bot.baseX, py-bot.baseY);
       if(d < nbd){ var cx = 0, cy = 0; a.points.forEach(function(r){ cx += r.x; cy += r.y; }); cx /= a.points.length; cy /= a.points.length;
@@ -13895,7 +13938,7 @@ function stepTick(){
             // свободную сторону, иначе он так и будет стоять до конца раунда.
             bot._stuckResets = (bot._stuckResets||0) + 1;
             if(bot._stuckResets >= 2) escapeWallLine(bot);
-            if(bot._stuckResets >= 2 || !navAt(bot.baseX, bot.baseY, bot.z)){ bot._stuckResets = 0;
+            if(bot._stuckResets >= 2 || !navFloorNear(bot.baseX, bot.baseY, NAV_STEP_TOL)){ bot._stuckResets = 0;
               navSnap(bot);
             } // was 90 (~1.4s) — with local navmesh/wall mismatches near doorways more likely right now (calibration mid-progress), a bot pinned there should give up and re-path faster (~0.6s) instead of visibly grinding against the corner
             // this straight-line path is bad (cuts through wall geometry a
@@ -13914,7 +13957,9 @@ function stepTick(){
           bot._progBest = Infinity; bot._progTick = tick;
         }
         // (v333) вне навмеша с путём дольше 0,5 с — на ближайший пол (заплатка, navSnap)
-        if(bot.path.length && bot.pathIdx < bot.path.length && !navAt(bot.baseX, bot.baseY, bot.z)){ if(++bot._offNav > 32) navSnap(bot); } else bot._offNav = 0;
+        // (v340) «вне пола» — тем же допуском, что и шаг (offNavStep, NAV_STEP_TOL): у края пола (1–3 ед.) бот стоит законно, а
+        // перенос его выкидывал (9 раз за 7 с в отметке владельца)
+        if(bot.path.length && bot.pathIdx < bot.path.length && !navFloorNear(bot.baseX, bot.baseY, NAV_STEP_TOL)){ if(++bot._offNav > 32) navSnap(bot); } else bot._offNav = 0;
         if(bot.path.length && bot.pathIdx < bot.path.length){
           var pw = bot.path[bot.pathIdx];
           var pd = Math.hypot(pw[0]-bot.baseX, pw[1]-bot.baseY);
