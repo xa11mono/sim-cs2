@@ -730,14 +730,18 @@ function zoneOf(x,y,z){
   var hit = navAt(x, y, z || z === 0 ? z : null); if(hit) return hit;
   // fallback: point fell in a tiny gap between areas (navmesh doesn't
   // perfectly tile down to the pixel) — snap to nearest area centroid
-  var best=null, bd=Infinity;
+  // (v333, отметка владельца: magixx застрял на спавне T за перилами) ближайший участок — тот, до которого можно дойти, не
+  // проходя сквозь стену (и на своей высоте, если она известна); раньше брался просто ближайший центр — за перилами, и путь
+  // шёл сквозь них
+  var C = [];
   NAVAREAS.forEach(function(zn){
     if(NAV_BLOCKED[zn.id] || !(zoneGraph[zn.id]||[]).length) return;
     var cx=0,cy=0; zn.points.forEach(function(p){cx+=p.x;cy+=p.y;}); cx/=zn.points.length; cy/=zn.points.length;
-    var d = Math.hypot(cx-x,cy-y);
-    if(d<bd){bd=d;best=zn;}
+    C.push({zn:zn, x:cx, y:cy, d:Math.hypot(cx-x,cy-y) + (z != null ? Math.abs(zn.z - z)*0.5 : 0)});
   });
-  return best;
+  C.sort(function(a,b){ return a.d - b.d; });
+  for(var i=0;i<Math.min(12, C.length);i++) if(!segCrossesManualWalls(x, y, C[i].x, C[i].y)) return C[i].zn;
+  return C.length ? C[0].zn : null;
 }
 
 // ---------- portal segments between adjacent nav areas (same tolerant-overlap
@@ -2143,7 +2147,7 @@ var AIM_TURN_RATE = 11;     // рад/с — разворот прицела (18
 var AIM_FIRE_CONE = 0.30;   // рад (~17°) — насколько прицел должен быть на цели, чтобы стрелять
 var PREFIRE_RADIUS = 140; // px — насколько близко цель должна появиться к последней известной позиции, чтобы засчитать префайр
 var SOUND_RADIUS_RUN = 380, SOUND_RADIUS_WALK = 130; // v118: слышно дальше (было 250/90) — бег ≈950 юнитов CS2; // бег 250px по фидбеку; тихий шаг в той же пропорции (~0.36 от бега) // px — без учёта затухания через стены (упрощение v1, см. план §13)
-var FOOTSTEP_INTERVAL_RUN = 14, FOOTSTEP_INTERVAL_WALK = 20; // тиков между шагами на полной скорости (v332: шаги — по пути, это задаёт длину шага)
+var FOOTSTEP_INTERVAL_RUN = 19, FOOTSTEP_INTERVAL_WALK = 26;   // (v333, М52) шаг раз в 0,3 с бегом и 0,4 с шагом на полной скорости — как в движке Source (CBasePlayer::UpdateStepSound: 300 / 400 мс); было 14 / 20 тиков (0,22 с — «слишком часто»). // тиков между шагами на полной скорости (v332: шаги — по пути, это задаёт длину шага)
 var bots = [];
 var START_MONEY = 800, MAX_MONEY = 16000;
 function makeTeam(team, spawnPt, count, weapon){
@@ -4157,12 +4161,18 @@ function tBrain(){
     // (раньше хватало любого килла в 600px от сайта — и килл мидера на Top Mid
     // считался "минусом на B": перекол на B с пустым мидом вместо захода через мид)
     var ancO = other === "A" ? "anchorA" : "anchorB";
-    var pickOther = tt.phase === "setup" && teamIntel.T.sig.some(function(sg){ return sg.type === "kill" && tick - sg.tick < 3*TICK_HZ &&
+    // (v333, М54, отметка владельца: 2 на 3, опорника B сняли, а носитель ставил на A, где трое) поздний колл — реактивный, по
+    // пикам и ротациям (docs/PRO_PLAY.md, [1]): на выходе тоже можно, и вдвоём, если на нашем сайте видно больше CT, чем нас,
+    // и носитель успевает дойти до пустого сайта (путь бегом + плант + 10 с запаса). 6 с на решение и порог — проектные числа
+    var lateOK = tt.phase === "execute" && aliveT >= 2 && here >= aliveT + 1 && bomb && bomb.state === "carried" && bomb.carrier && bomb.carrier.alive &&
+      secLeft > pathLenTo(bomb.carrier, SITES[other].x, SITES[other].y)/SPEED + PLANT_TICKS/TICK_HZ + 10;
+    var pickWin = lateOK ? 6 : 3;
+    var pickOther = (tt.phase === "setup" || lateOK) && teamIntel.T.sig.some(function(sg){ return sg.type === "kill" && tick - sg.tick < pickWin*TICK_HZ &&
       (sg.role === ancO ? Math.hypot(sg.x-SITES[other].x, sg.y-SITES[other].y) < 600 : Math.hypot(sg.x-SITES[other].x, sg.y-SITES[other].y) < 350); });
-    var poSig = pickOther ? teamIntel.T.sig.filter(function(sg){ return sg.type === "kill" && tick - sg.tick < 3*TICK_HZ; }).pop() : null;
-    if(pickOther && aliveT >= 3 && beliefCount("T", BZ.siteNear[other]||[]) < 0.9 && there < 1.5 && iglReads(tt, "po") && iglTake(tt, poSig ? poSig.tick : tick)){
+    var poSig = pickOther ? teamIntel.T.sig.filter(function(sg){ return sg.type === "kill" && tick - sg.tick < pickWin*TICK_HZ; }).pop() : null;
+    if(pickOther && aliveT >= (lateOK ? 2 : 3) && beliefCount("T", BZ.siteNear[other]||[]) < 0.9 && there < 1.5 && iglReads(tt, "po") && iglTake(tt, poSig ? poSig.tick : tick)){
       tt.rebound = true;
-      voiceLog("T", "reb"+other, "IGL", "минус на "+other+", там пусто — все на "+other+"!");
+      voiceLog("T", "reb"+other, "IGL", lateOK ? "ПЕРЕКОЛЛ "+tt.site+" → "+other+": на "+tt.site+" их больше, на "+other+" сняли опорника — бомба на "+other+"!" : "минус на "+other+", там пусто — все на "+other+"!");
       logEvent("IGL: перекол → "+other+" (сняли CT, сайт пустой)");
       tSetSite(tt, other); tt.phase = "setup"; tt.execTick = tick + 3*TICK_HZ;
       return;
@@ -9694,6 +9704,16 @@ function fireCommit(b){
 var JUMP_UP = 64;   // ед. игры: выше без помощи не запрыгнуть (CS2 ~ 66 с приседом; как JUMP_UP в tools/heights_bake.py)
 var NAV_ID = null;
 function navArea(id){ if(id == null) return null; if(!NAV_ID || NAV_ID.src !== NAVAREAS){ NAV_ID = {src: NAVAREAS, m: {}}; NAVAREAS.forEach(function(a){ NAV_ID.m[a.id] = a; }); } return NAV_ID.m[id] || null; }
+// (v333) участок навмеша под точкой на уровне lvl (±JUMP_UP; в 12 ед. от края — тоже свой пол: щели навмеша, Ladder Room над Underpass)
+function navAtLevel(x, y, lvl){
+  if(!NAV_GRID) navGridBuild();
+  var best = null, bd = Infinity;
+  [[0,0],[6,0],[-6,0],[0,6],[0,-6],[12,0],[-12,0],[0,12],[0,-12]].forEach(function(o){ if(best && (o[0] || o[1])) return;
+    var L = NAV_GRID[Math.floor((x+o[0])/NAV_GRID_C)+","+Math.floor((y+o[1])/NAV_GRID_C)] || [];
+    for(var i=0;i<L.length;i++){ var a = NAVAREAS[L[i]]; if(NAV_BLOCKED[a.id] || Math.abs(a.z - lvl) > JUMP_UP || !pointInPoly(x+o[0], y+o[1], a.points)) continue;
+      var d = Math.abs(a.z - lvl); if(d < bd){ bd = d; best = a; } } });
+  return best;
+}
 function navLinked2(a, b){   // связь в сторону движения напрямую или через один участок (мелкие ступени за тик)
   if(navLinked(a, b)) return true;
   var E = zoneGraph[a.id] || [];
@@ -9706,6 +9726,10 @@ function heightBlocked(x1, y1, x2, y2, b){
   // (v323, М38) стоит в щели между участками навмеша — берётся участок, где был (bot._area); раньше щель пропускала проверку,
   // и бот «залезал» на этаж выше без лестницы (102 раза за 6 раундов Mirage, отметка владельца: из-под Palace на Palace)
   var a1 = navAt(x1, y1, b.z) || navArea(b._area); if(!a1) return false;
+  // (v333, владелец: «через Ladder Room спускаются в Underpass», «застрял в Palace», стрельба сквозь стену нижнего этажа) у
+  // этажа под другим этажом своих стен на радаре нет (стены — по всем этажам сразу): шаг туда, где своего пола нет, а ниже
+  // есть чужой, — со стены вниз; можно только по связи навмеша (спуск, лестница), иначе это стена своего этажа
+  if(!navAtLevel(x2, y2, a1.z)){ var lo = navAt(x2, y2, a1.z - 400); if(lo && lo.z < a1.z - JUMP_UP && !navLinked2(a1, lo)) return true; }
   var a2 = navAt(x2, y2, b.z); if(!a2 || a2 === a1 || a2.z - a1.z <= 18) return false;   // 18 — ступенька, шагом
   if(navLinked(a1, a2)) return false;
   return a2.z - a1.z > JUMP_UP || navLinked(a2, a1);
@@ -10148,7 +10172,7 @@ function nadesTick(){
         // (v323, М35) урон за удар растёт 1 → 8, удар раз в 0,2 с — чем дольше в огне, тем сильнее (fireDamageFor)
         if(!b._fireIn || b._fireIn.f !== fr){ b._fireIn = {f:fr, t:tick, hits:0}; }
         var hitsNow = Math.floor((tick - b._fireIn.t)/TICK_HZ/FIRE_HIT_SEC);
-        while(b._fireIn.hits < hitsNow && b.alive){ b._fireIn.hits++; applyDamage(fr.thrower, b, Math.min(FIRE_HIT_MAX, b._fireIn.hits), "молотов"); }
+        while(b._fireIn.hits < hitsNow && b.alive){ b._fireIn.hits++; if(SND && SND.on && b._fireIn.hits % 3 === 1) sndBody("burn", b.x, b.y); applyDamage(fr.thrower, b, Math.min(FIRE_HIT_MAX, b._fireIn.hits), "молотов"); }
       } else if(b._fireIn && b._fireIn.f === fr){ b._fireIn = null; }
     });
   }
@@ -11812,6 +11836,7 @@ function tryShoot(shooter, target, dist){
     if(BAL.tagging) target._tagUntil = tick + 16; // попали — на ~0.25с замедлен
     target._hitFx = {t:nowTs, head:headshot};
     if(BAL.duelPlace && headshot && burstIdx === 0 && (shooter._place||0) > 0.8 && target.hp <= dmg && hashRand(seedS+29) < 0.5) logEvent(shooter.id+": прицел стоял на угле — хэдшот с первой пули по "+target.id);
+    if(SND && SND.on) sndBody(headshot ? (target.helmet ? "hshelm" : "hs") : (target.armor ? "kevlar" : "body"), target.x, target.y);
     var killed = applyDamage(shooter, target, dmg, "bullet", {wkey:w.key, hs:headshot, reward:w.killReward||300, mods:{blind: shooter.blindUntil > tick, smoke: thruSmoke || smokeOnLine(shooter.x, shooter.y, target.x, target.y)},
       note:(headshot?" (в голову)":"")+" (дист. "+Math.round(dist)+", +$"+(w.killReward||300)+")"});
     if(BAL.hurtCall && !killed){
@@ -13249,6 +13274,18 @@ function defuseWalk(bot){
   var u = hashRand(roundNum*389 + matchNum*71 + bot.id.charCodeAt(bot.id.length-1)*13);
   return u < (d < 60 ? 0.77 : 0.34);
 }
+// (v333, заплатка, отметка владельца: magixx «застрял и дёргается» на спавне T) бот вне навмеша в кармане за тонкой стеной
+// (пол навмеша уже настоящего пола) дольше 0,5 с с путём — переносим на ближайший участок навмеша своего этажа (≤ 40 ед. карты).
+// Как он туда попадает — не найдено; это заплатка, пока не найдена причина
+function navSnap(bot){
+  var nb = null, nbd = 40;
+  NAVAREAS.forEach(function(a){ if(NAV_BLOCKED[a.id] || (bot.z != null && Math.abs(a.z - bot.z) > JUMP_UP)) return;
+    a.points.forEach(function(p, k){ var q = a.points[(k+1)%a.points.length], ex = q.x-p.x, ey = q.y-p.y, L2 = ex*ex+ey*ey || 1;
+      var t = Math.max(0, Math.min(1, ((bot.baseX-p.x)*ex + (bot.baseY-p.y)*ey)/L2)), px = p.x+ex*t, py = p.y+ey*t, d = Math.hypot(px-bot.baseX, py-bot.baseY);
+      if(d < nbd){ var cx = 0, cy = 0; a.points.forEach(function(r){ cx += r.x; cy += r.y; }); cx /= a.points.length; cy /= a.points.length;
+        nbd = d; nb = {x: px + (cx-px)*0.15, y: py + (cy-py)*0.15, a: a}; } }); });
+  if(nb){ bot.baseX = bot.x = nb.x; bot.baseY = bot.y = nb.y; bot.z = nb.a.z; bot._area = nb.a.id; bot.path = []; bot.pathIdx = 0; bot._offNav = 0; logEvent(bot.id+": вне навмеша — перенесён на ближайший пол (заплатка)"); }
+}
 function stepTick(){
   tick++;
   simTime = tick * TICK_MS / 1000;
@@ -13599,13 +13636,21 @@ function stepTick(){
           // (v323, М38) в щели своего этажа под точкой бывает только чужой этаж (под Palace — пол Palace): это не подъём —
           // этаж меняется только по связи навмеша (лестница, ступени, спуск), иначе бот остаётся на своём
           var a0z = navArea(bot._area);
-          if(naz && a0z && naz !== a0z && Math.abs(naz.z - a0z.z) > JUMP_UP && !navLinked2(a0z, naz)) naz = null;
+          // (v333) пол своего этажа под ногами есть — остаётся на нём (щель в верхнем полу больше не «роняет» вниз — donk под
+          // Palace); своего пола нет — падает на нижний (zont1x с B Apps — раньше «висел» на высоте Apps над сайтом, без звука)
+          if(naz && a0z && naz !== a0z && Math.abs(naz.z - a0z.z) > JUMP_UP){
+            var own = navAtLevel(bot.baseX, bot.baseY, a0z.z);
+            if(own) naz = own;
+            else if(!navLinked2(a0z, naz)) naz = null;   // ни вверх, ни вниз без связи навмеша — остаётся на своём этаже
+          }
           if(naz){ var dzz = naz.z - (bot.z == null ? naz.z : bot.z);
             if(dzz > 18) bot._jump = {t:tick, up:true}; else if(dzz < -40) bot._jump = {t:tick, up:false};
             // (v322, М29) прыжок / приземление слышно и при тихом шаге, далеко (csdb.gg: «громкий звук приземления, слышно
             // издалека», без числа) — радиус как у бега: проектное число
             if(roundState === "live" && (dzz > 18 || dzz < -40)){ soundPings.push({x:bot.baseX, y:bot.baseY, team:bot.team, born:nowTs, radius:SOUND_RADIUS_RUN});
-              moveSoundEmit(bot, SOUND_RADIUS_RUN, "steps", dzz > 0 ? "прыжок" : "приземление"); }
+              moveSoundEmit(bot, SOUND_RADIUS_RUN, "steps", dzz > 0 ? "прыжок" : "приземление"); if(SND && SND.on) sndBody("land", bot.baseX, bot.baseY); }
+            // (v333) сменил этаж (спуск, лестница) — путь, построенный с прежнего этажа, пересчитывается с нового
+            if(Math.abs(dzz) > JUMP_UP && bot.path && bot.pathIdx < bot.path.length){ bot.path = []; bot.pathIdx = 0; }
             bot.z = naz.z; bot._area = naz.id; } }
         // "топчется": каждый тик куда-то сдвигается (веер проб у угла туда-сюда),
         // но за 1.5с никуда не ушёл — раньше это не считалось застреванием
@@ -13651,7 +13696,10 @@ function stepTick(){
             // движение формально её пересекает). Сдвигаем на несколько px в
             // свободную сторону, иначе он так и будет стоять до конца раунда.
             bot._stuckResets = (bot._stuckResets||0) + 1;
-            if(bot._stuckResets >= 2){ escapeWallLine(bot); bot._stuckResets = 0; } // was 90 (~1.4s) — with local navmesh/wall mismatches near doorways more likely right now (calibration mid-progress), a bot pinned there should give up and re-path faster (~0.6s) instead of visibly grinding against the corner
+            if(bot._stuckResets >= 2) escapeWallLine(bot);
+            if(bot._stuckResets >= 2 || !navAt(bot.baseX, bot.baseY, bot.z)){ bot._stuckResets = 0;
+              navSnap(bot);
+            } // was 90 (~1.4s) — with local navmesh/wall mismatches near doorways more likely right now (calibration mid-progress), a bot pinned there should give up and re-path faster (~0.6s) instead of visibly grinding against the corner
             // this straight-line path is bad (cuts through wall geometry a
             // hand-drawn zone shouldn't have allowed) — drop it and pick a
             // fresh destination rather than crawl forever
@@ -13667,6 +13715,8 @@ function stepTick(){
           bot._progPath = bot.path; bot._progIdx = bot.pathIdx;
           bot._progBest = Infinity; bot._progTick = tick;
         }
+        // (v333) вне навмеша с путём дольше 0,5 с — на ближайший пол (заплатка, navSnap)
+        if(bot.path.length && bot.pathIdx < bot.path.length && !navAt(bot.baseX, bot.baseY, bot.z)){ if(++bot._offNav > 32) navSnap(bot); } else bot._offNav = 0;
         if(bot.path.length && bot.pathIdx < bot.path.length){
           var pw = bot.path[bot.pathIdx];
           var pd = Math.hypot(pw[0]-bot.baseX, pw[1]-bot.baseY);
@@ -17237,11 +17287,25 @@ function sndInit(){
   SND.noise = buf;
   sndLoad();
 }
-function sndGain(x, y, R){
+// (v333, М53, владелец: «каша из звуков в толпе») у каждого вида звука свой лимит за 50 мс: шаги — 3, выстрелы — 4, прочее — 3;
+// шаги — только трёх ближайших к камере бегущих; громкое рядом (выстрел, взрыв ≤ 0,15 с назад) приглушает шаги вдвое.
+// Числа — проектные (на слух)
+var SND_CAP = {step:3, shot:4, other:3, fire:2};
+function sndGain(x, y, R, cat){
   if(!SND.on || !SND.ctx || typeof cv === "undefined") return 0;
-  var t = performance.now(); if(t - SND.slot > 50){ SND.slot = t; SND.n = 0; } if(++SND.n > SND_MAX) return 0;
-  var r = cv.getBoundingClientRect(), c = navScreenToWorld(r.left + r.width/2, r.top + r.height/2);
-  var k = 1 - Math.hypot(x - c.x, y - c.y)/R; SND.far = 1 - k; return k > 0 ? 0.15 + 0.85*k : 0;   // (v326) тише вдали, но не до нуля внутри R
+  cat = cat || "other";
+  var t = performance.now(); if(t - SND.slot > 50){ SND.slot = t; SND.cnt = {}; }
+  var r = cv.getBoundingClientRect(), c = navScreenToWorld(r.left + r.width/2, r.top + r.height/2), d = Math.hypot(x - c.x, y - c.y);
+  var k = 1 - d/R; if(k <= 0) return 0;
+  if(cat === "step"){
+    var closer = 0; bots.forEach(function(o){ if(o.alive && o.curSpeed > 5 && !o.walking && Math.hypot(o.x - c.x, o.y - c.y) < d - 1) closer++; });
+    if(closer >= 3) return 0;
+  }
+  SND.cnt = SND.cnt || {}; SND.cnt[cat] = (SND.cnt[cat]||0) + 1; if(SND.cnt[cat] > (SND_CAP[cat] || 3)) return 0;
+  var g = 0.15 + 0.85*k; SND.far = 1 - k;
+  if(cat !== "step" && g > 0.6) SND.loudT = t;
+  if(cat === "step" && t - (SND.loudT||0) < 150) g *= 0.5;
+  return g;
 }
 function sndNoise(g, dur, type, f, q, delay){
   var c = SND.ctx, t0 = c.currentTime + (delay||0), src = c.createBufferSource(); src.buffer = SND.noise;
@@ -17256,10 +17320,29 @@ function sndTone(g, dur, f, type, delay, f2){
   o.connect(gn); gn.connect(SND.master); o.start(t0); o.stop(t0 + dur + 0.02);
 }
 function sndStep(x, y){   // (v327) шаг как в CS — «тук-тук» пяткой и носком по камню: два коротких щелчка + глухой стук (было 500 Гц и тихо — не слышно)
-  var g = sndGain(x, y, SND_R.step); if(!g) return;
+  var g = sndGain(x, y, SND_R.step, "step"); if(!g) return;
   var sk = "step_0" + (1 + Math.floor(Math.random()*8)); if(sndPlay(sk, 0.9*g, SND.far)) return;   // (v331) запись шага по бетону
   sndNoise(0.75*g, 0.03, "bandpass", 1600, 1.5); sndTone(0.4*g, 0.05, 160, "triangle", 0, 80);
   sndNoise(0.5*g, 0.025, "bandpass", 2100, 1.5, 0.07);
+}
+// (v333, М55) звуки тела: приземление, попадание (в броню / в тело / в голову — с шлемом и без), горение. Только показ
+function sndBody(kind, x, y, o){
+  var g = sndGain(x, y, SND_R.step*1.3, kind === "land" ? "step" : "other"); if(!g) return;
+  var base = {land:"b_land", burn:"b_burn", kevlar:"b_kevlar", body:"b_body", hshelm:"b_hshelm", hs:"b_hs"}[kind];
+  var key = base && sndRec(base, 0); if(key) sndPlay(key, (kind === "land" ? 0.8 : 0.7)*g, SND.far);
+}
+// огонь горит — тихий треск, пока горит (одна петля на огонь)
+// (звуковые узлы держим в SND.fireMap, а не на объекте огня: огонь идёт в снимок отметок, узлы туда копировать нельзя — v325)
+function sndFireTick(){
+  if(!SND || !SND.ctx) return;
+  var M = SND.fireMap || (SND.fireMap = new Map());
+  M.forEach(function(v, f){ if(!SND.on || fires.indexOf(f) < 0){ try{ v.stop(); }catch(e){} M.delete(f); } });
+  if(!SND.on || !SND.buf.n_fireloop) return;
+  fires.forEach(function(f){
+    if(M.has(f)) return; var g = sndGain(f.x, f.y, SND_R.nade, "fire"); if(!g) return;
+    var c = SND.ctx, src = c.createBufferSource(); src.buffer = SND.buf.n_fireloop; src.loop = true;
+    var gn = c.createGain(); gn.gain.value = 0.35*g; src.connect(gn); gn.connect(SND.master); src.start(); M.set(f, src);
+  });
 }
 // (v327, владелец: «выстрелы громкие, нужно похоже на CS») выстрел — три слоя, как устроен звук выстрела: щелчок (2–3 мс,
 // высокие), «хлопок» (полоса 1,5–3 кГц, 30–60 мс), «тело» (низкий тон с падением частоты) и хвост-эхо (низкий шум 0,2–0,6 с).
@@ -17274,7 +17357,7 @@ var SND_GUN = {
   sil:    {crack:0.10, cf:3200, body:0.12, bf:260, tail:0.03, tl:0.10}
 };
 function sndShot(w, x, y){
-  var k = (w && w.key) || "", awp = k === "AWP", g = sndGain(x, y, awp ? SND_R.awp : SND_R.shot); if(!g) return;
+  var k = (w && w.key) || "", awp = k === "AWP", g = sndGain(x, y, awp ? SND_R.awp : SND_R.shot, "shot"); if(!g) return;
   var P = w && w.silenced ? SND_GUN.sil : awp ? SND_GUN.awp : /AK|GALIL/.test(k) ? SND_GUN.ak : /DEAGLE|R8/.test(k) ? SND_GUN.deagle :
           /USP|GLOCK|P2000|P250|FIVE|TEC|CZ|DUAL/.test(k) ? SND_GUN.pistol : /MP|MAC|UMP|P90|BIZON/.test(k) ? SND_GUN.smg : SND_GUN.rifle;
   g *= 0.6;   // общий уровень выстрелов — ниже шагов не опускается, но не оглушает
@@ -17327,6 +17410,7 @@ function sndTick(){   // пиканье бомбы — раз в тик пров
 })();
 function frame(ts){
   nowTs = ts;
+  if(SND && SND.ctx) sndFireTick();   // (v333) треск огня — и останавливается, когда огонь погас / раунд кончился / звук выключен
   if(lastFrame===null) lastFrame = ts;
   var dt = ts - lastFrame; lastFrame = ts;
   if(!paused && WARM.on){ var wdt = Math.min(0.1, dt/1000); warmTick(wdt); accumulator = 0; }
