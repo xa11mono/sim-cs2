@@ -117,7 +117,10 @@ def lane_of(seq, site, SZ):
     if not cut:
         return 'far', None
     TSIDE = set(REG['Tside'])
-    branch = next((z for z in cut if base(z) not in TSIDE), None)
+    # (v339) ветка — первая зона после ПОСЛЕДНЕГО пребывания на стороне T: кто сходил в Top Mid за контролем и вернулся через
+    # спавн в B Apps, идёт через Apps (раньше — «мид», и сплит на B через мид сливался с выходом через Apps в одну группу)
+    last_t = max([i for i, z in enumerate(cut) if base(z) in TSIDE], default=-1)
+    branch = next((z for z in cut[last_t + 1:] if base(z) not in TSIDE), None)
     if branch is None:
         return 'far', None
     return branch, cut
@@ -213,7 +216,7 @@ def analyse():
 
 
 # ---------------------------------------------------------------- тактики для игры
-SIG_MIN, SIG_MAX = 0.02, 16    # подпись — тактика, если не реже 2 % плантов (v337: было 3 %); не больше 16 — проектные числа
+SIG_MIN, SIG_MAX = 0.01, 16    # подпись — тактика, если не реже 1 % плантов (≥ 8 раундов Mirage; v337: 2 %, было 3 %); не больше 16 — проектные числа
 EXEC_LEAD = 9                  # выход за 9 с до планта (медиана про по positions_bake: plantSec − startSec ≈ 6–9 с)
 ROUTE_MAX = 6                  # маршрут — не больше 6 последних зон до входа — проектное число
 HOLD_R = 420                   # «держит сайт» — CT-точка ближе 420 ед. карты (1050 ед. игры) к центру плантов — проектное число

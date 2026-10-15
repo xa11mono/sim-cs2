@@ -9,9 +9,9 @@
     "half",
     "force"
    ],
-   "setupEnd": 34,
+   "setupEnd": 50,
    "style": "split",
-   "weight": 3.63,
+   "weight": 4.59,
    "groups": [
     {
      "roles": [
@@ -53,9 +53,9 @@
     "half",
     "force"
    ],
-   "setupEnd": 39,
+   "setupEnd": 59,
    "style": "exec",
-   "weight": 2.4,
+   "weight": 3.73,
    "groups": [
     {
      "roles": [
@@ -71,125 +71,6 @@
      ],
      "stage": "Stove",
      "look": "B Apps"
-    }
-   ]
-  },
-  {
-   "id": "defB_bapps",
-   "name": "B: 3 B Apps, поздно",
-   "site": "B",
-   "pools": [
-    "full",
-    "half"
-   ],
-   "setupEnd": 66,
-   "style": "default",
-   "weight": 2.16,
-   "groups": [
-    {
-     "roles": [
-      "entry",
-      "awp",
-      "igl"
-     ],
-     "via": [
-      "TV",
-      "B Stairs → TV",
-      "Stove",
-      "B Apps"
-     ],
-     "stage": "Stove",
-     "look": "B Apps"
-    }
-   ]
-  },
-  {
-   "id": "splitA_palace",
-   "name": "A: 1 Palace + 1 Tetris + 1 Stairs",
-   "site": "A",
-   "pools": [
-    "full",
-    "half",
-    "force"
-   ],
-   "setupEnd": 60,
-   "style": "split",
-   "weight": 0.97,
-   "groups": [
-    {
-     "roles": [
-      "entry",
-      "awp",
-      "igl"
-     ],
-     "via": [
-      "T Roof → T Spawn",
-      "T Roof → Pillars",
-      "Pillars → T Roof",
-      "Pillars",
-      "Palace"
-     ],
-     "stage": "Pillars",
-     "look": "Palace"
-    },
-    {
-     "roles": [
-      "support"
-     ],
-     "via": [
-      "T Roof → T Spawn",
-      "T Roof",
-      "T Ramp",
-      "Tetris"
-     ],
-     "stage": "T Ramp",
-     "look": "Tetris"
-    }
-   ]
-  },
-  {
-   "id": "splitA_palace2",
-   "name": "A: 1 Palace + 1 Stairs",
-   "site": "A",
-   "pools": [
-    "full",
-    "half",
-    "force"
-   ],
-   "setupEnd": 60,
-   "style": "split",
-   "weight": 0.83,
-   "groups": [
-    {
-     "roles": [
-      "entry",
-      "awp",
-      "igl"
-     ],
-     "via": [
-      "T Roof → T Spawn",
-      "T Roof → Pillars",
-      "Pillars → T Roof",
-      "Pillars",
-      "Palace"
-     ],
-     "stage": "Pillars",
-     "look": "Palace"
-    },
-    {
-     "roles": [
-      "support"
-     ],
-     "via": [
-      "Elevator",
-      "Top Mid",
-      "Cart",
-      "Mid",
-      "Connector",
-      "Stairs"
-     ],
-     "stage": "Connector",
-     "look": "Stairs"
     }
    ]
   },
@@ -202,9 +83,9 @@
     "half",
     "force"
    ],
-   "setupEnd": 38,
+   "setupEnd": 60,
    "style": "exec",
-   "weight": 0.69,
+   "weight": 1.11,
    "groups": [
     {
      "roles": [
@@ -224,17 +105,17 @@
    ]
   },
   {
-   "id": "splitA_tramp",
-   "name": "A: 1 T Ramp + 1 Palace + 1 Stairs, поздно",
-   "site": "A",
+   "id": "splitB_bapps",
+   "name": "B: 2 B Apps + 1 Short, поздно",
+   "site": "B",
    "pools": [
     "full",
     "half",
     "force"
    ],
-   "setupEnd": 80,
+   "setupEnd": 75,
    "style": "split",
-   "weight": 0.66,
+   "weight": 0.79,
    "groups": [
     {
      "roles": [
@@ -243,19 +124,47 @@
       "igl"
      ],
      "via": [
-      "B Stairs",
-      "B Stairs → TV",
       "TV",
-      "T Roof → T Spawn",
-      "T Roof",
-      "T Ramp"
+      "B Stairs → TV",
+      "Stove",
+      "B Apps"
      ],
-     "stage": "T Roof",
-     "look": "T Ramp"
+     "stage": "Stove",
+     "look": "B Apps"
     },
     {
      "roles": [
       "support"
+     ],
+     "via": [
+      "Elevator",
+      "Top Mid",
+      "Catwalk",
+      "Short"
+     ],
+     "stage": "Catwalk",
+     "look": "Short"
+    }
+   ]
+  },
+  {
+   "id": "execA_palace",
+   "name": "A: 3 Palace",
+   "site": "A",
+   "pools": [
+    "full",
+    "half",
+    "force"
+   ],
+   "setupEnd": 64,
+   "style": "exec",
+   "weight": 0.64,
+   "groups": [
+    {
+     "roles": [
+      "entry",
+      "awp",
+      "igl"
      ],
      "via": [
       "T Roof → T Spawn",
@@ -277,9 +186,9 @@
     "full",
     "half"
    ],
-   "setupEnd": 77,
+   "setupEnd": 78,
    "style": "default",
-   "weight": 0.55,
+   "weight": 0.32,
    "groups": [
     {
      "roles": [
@@ -301,16 +210,17 @@
    ]
   },
   {
-   "id": "defB_bapps2",
-   "name": "B: 2 B Apps, поздно",
-   "site": "B",
+   "id": "splitA_jungle",
+   "name": "A: 1 Jungle + 1 Stairs, поздно",
+   "site": "A",
    "pools": [
     "full",
-    "half"
+    "half",
+    "force"
    ],
-   "setupEnd": 79,
-   "style": "default",
-   "weight": 0.47,
+   "setupEnd": 73,
+   "style": "split",
+   "weight": 0.32,
    "groups": [
     {
      "roles": [
@@ -319,8 +229,52 @@
       "igl"
      ],
      "via": [
-      "Top Mid",
+      "B Stairs",
+      "Short",
+      "Underpass",
+      "Boost",
+      "Connector",
+      "Jungle"
+     ],
+     "stage": "Connector",
+     "look": "Jungle"
+    },
+    {
+     "roles": [
+      "support"
+     ],
+     "via": [
       "Elevator",
+      "Top Mid",
+      "Cart",
+      "Mid",
+      "Connector",
+      "Stairs"
+     ],
+     "stage": "Connector",
+     "look": "Stairs"
+    }
+   ]
+  },
+  {
+   "id": "defB_bapps",
+   "name": "B: 3 B Apps, поздно",
+   "site": "B",
+   "pools": [
+    "full",
+    "half"
+   ],
+   "setupEnd": 67,
+   "style": "default",
+   "weight": 0.3,
+   "groups": [
+    {
+     "roles": [
+      "entry",
+      "awp",
+      "igl"
+     ],
+     "via": [
       "TV",
       "B Stairs → TV",
       "Stove",
@@ -332,17 +286,16 @@
    ]
   },
   {
-   "id": "splitA_tramp2",
-   "name": "A: 1 T Ramp + 1 Palace + 1 Tetris, поздно",
+   "id": "defA_jungle",
+   "name": "A: 2 Jungle, поздно",
    "site": "A",
    "pools": [
     "full",
-    "half",
-    "force"
+    "half"
    ],
-   "setupEnd": 76,
-   "style": "split",
-   "weight": 0.47,
+   "setupEnd": 89,
+   "style": "default",
+   "weight": 0.28,
    "groups": [
     {
      "roles": [
@@ -352,14 +305,75 @@
      ],
      "via": [
       "B Stairs",
-      "B Stairs → TV",
-      "TV",
-      "T Roof → T Spawn",
-      "T Roof",
-      "T Ramp"
+      "Short",
+      "Underpass",
+      "Boost",
+      "Connector",
+      "Jungle"
      ],
-     "stage": "T Roof",
-     "look": "T Ramp"
+     "stage": "Connector",
+     "look": "Jungle"
+    }
+   ]
+  },
+  {
+   "id": "defB_short",
+   "name": "B: 2 Short, поздно",
+   "site": "B",
+   "pools": [
+    "full",
+    "half"
+   ],
+   "setupEnd": 91,
+   "style": "default",
+   "weight": 0.28,
+   "groups": [
+    {
+     "roles": [
+      "entry",
+      "awp",
+      "igl"
+     ],
+     "via": [
+      "Elevator",
+      "Top Mid",
+      "Catwalk",
+      "Short"
+     ],
+     "stage": "Catwalk",
+     "look": "Short"
+    }
+   ]
+  },
+  {
+   "id": "splitA_stairs",
+   "name": "A: 2 Stairs + 1 Palace",
+   "site": "A",
+   "pools": [
+    "full",
+    "half",
+    "force"
+   ],
+   "setupEnd": 38,
+   "style": "split",
+   "weight": 0.25,
+   "groups": [
+    {
+     "roles": [
+      "entry",
+      "awp",
+      "igl"
+     ],
+     "via": [
+      "Elevator",
+      "Top Mid",
+      "Cart",
+      "Mid",
+      "Connector",
+      "Stairs"
+     ],
+     "stage": "Connector",
+     "look": "Stairs"
     },
     {
      "roles": [
@@ -378,17 +392,17 @@
    ]
   },
   {
-   "id": "splitA_tramp3",
-   "name": "A: 1 T Ramp + 1 Stairs, поздно",
+   "id": "splitA_jungle2",
+   "name": "A: 1 Jungle + 1 Palace + 1 Stairs, поздно",
    "site": "A",
    "pools": [
     "full",
     "half",
     "force"
    ],
-   "setupEnd": 75,
+   "setupEnd": 80,
    "style": "split",
-   "weight": 0.45,
+   "weight": 0.19,
    "groups": [
     {
      "roles": [
@@ -398,50 +412,63 @@
      ],
      "via": [
       "B Stairs",
-      "B Stairs → TV",
-      "TV",
-      "T Roof → T Spawn",
-      "T Roof",
-      "T Ramp"
+      "Short",
+      "Underpass",
+      "Boost",
+      "Connector",
+      "Jungle"
      ],
-     "stage": "T Roof",
-     "look": "T Ramp"
+     "stage": "Connector",
+     "look": "Jungle"
     },
     {
      "roles": [
       "support"
      ],
      "via": [
-      "Elevator",
-      "Top Mid",
-      "Cart",
-      "Mid",
-      "Connector",
-      "Stairs"
+      "T Roof → T Spawn",
+      "T Roof → Pillars",
+      "Pillars → T Roof",
+      "Pillars",
+      "Palace"
      ],
-     "stage": "Connector",
-     "look": "Stairs"
+     "stage": "Pillars",
+     "look": "Palace"
     }
    ]
   },
   {
-   "id": "splitA_tetris2",
-   "name": "A: 1 Tetris + 1 Stairs, поздно",
+   "id": "splitA_palace",
+   "name": "A: 1 Palace + 1 Tetris + 1 Stairs",
    "site": "A",
    "pools": [
     "full",
     "half",
     "force"
    ],
-   "setupEnd": 70,
+   "setupEnd": 64,
    "style": "split",
-   "weight": 0.43,
+   "weight": 0.19,
    "groups": [
     {
      "roles": [
       "entry",
       "awp",
       "igl"
+     ],
+     "via": [
+      "T Roof → T Spawn",
+      "T Roof → Pillars",
+      "Pillars → T Roof",
+      "Pillars",
+      "Palace"
+     ],
+     "stage": "Pillars",
+     "look": "Palace"
+    },
+    {
+     "roles": [
+      "support"
      ],
      "via": [
       "T Roof → T Spawn",
@@ -451,129 +478,6 @@
      ],
      "stage": "T Ramp",
      "look": "Tetris"
-    },
-    {
-     "roles": [
-      "support"
-     ],
-     "via": [
-      "Elevator",
-      "Top Mid",
-      "Cart",
-      "Mid",
-      "Connector",
-      "Stairs"
-     ],
-     "stage": "Connector",
-     "look": "Stairs"
-    }
-   ]
-  },
-  {
-   "id": "splitA_tramp4",
-   "name": "A: 1 T Ramp + 1 Palace, поздно",
-   "site": "A",
-   "pools": [
-    "full",
-    "half",
-    "force"
-   ],
-   "setupEnd": 73,
-   "style": "split",
-   "weight": 0.43,
-   "groups": [
-    {
-     "roles": [
-      "entry",
-      "awp",
-      "igl"
-     ],
-     "via": [
-      "B Stairs",
-      "B Stairs → TV",
-      "TV",
-      "T Roof → T Spawn",
-      "T Roof",
-      "T Ramp"
-     ],
-     "stage": "T Roof",
-     "look": "T Ramp"
-    },
-    {
-     "roles": [
-      "support"
-     ],
-     "via": [
-      "T Roof → T Spawn",
-      "T Roof → Pillars",
-      "Pillars → T Roof",
-      "Pillars",
-      "Palace"
-     ],
-     "stage": "Pillars",
-     "look": "Palace"
-    }
-   ]
-  },
-  {
-   "id": "defA_tramp",
-   "name": "A: 2 T Ramp, поздно",
-   "site": "A",
-   "pools": [
-    "full",
-    "half"
-   ],
-   "setupEnd": 88,
-   "style": "default",
-   "weight": 0.43,
-   "groups": [
-    {
-     "roles": [
-      "entry",
-      "awp",
-      "igl"
-     ],
-     "via": [
-      "B Stairs",
-      "B Stairs → TV",
-      "TV",
-      "T Roof → T Spawn",
-      "T Roof",
-      "T Ramp"
-     ],
-     "stage": "T Roof",
-     "look": "T Ramp"
-    }
-   ]
-  },
-  {
-   "id": "execA_palace",
-   "name": "A: 2 Palace",
-   "site": "A",
-   "pools": [
-    "full",
-    "half",
-    "force"
-   ],
-   "setupEnd": 38,
-   "style": "exec",
-   "weight": 0.43,
-   "groups": [
-    {
-     "roles": [
-      "entry",
-      "awp",
-      "igl"
-     ],
-     "via": [
-      "T Roof → T Spawn",
-      "T Roof → Pillars",
-      "Pillars → T Roof",
-      "Pillars",
-      "Palace"
-     ],
-     "stage": "Pillars",
-     "look": "Palace"
     }
    ]
   },

@@ -209,6 +209,7 @@ function mkPrompt(m){
     " \"unsure\": \"если не уверен — что уточнить у владельца, иначе null\"}\n" +
     "Не выдумывай того, чего нет в данных. Если сомневаешься между пунктом и новым — выбери пункт и напиши сомнение в unsure.";
 }
+var MK_ASK_SEC = 90;   // проектное число
 async function mkAsk(m, correction){
   var sample = MK.sample;
   if(!sample) throw {code: "no_sample"};
@@ -216,7 +217,12 @@ async function mkAsk(m, correction){
   if(correction && m.lastRaw) input = [{role: "user", content: input}, {role: "assistant", content: m.lastRaw},
     {role: "user", content: "Владелец говорит, что понято неверно. Его поправка: «" + correction + "». Ответь заново тем же JSON."}];
   try{ var lim = await sample.limits(); if(lim && lim.images && m.frameUrl){ opts.images = [mkUrlToBlob(m.frameUrl)]; } }catch(e){}
-  var res = await sample(input, opts);
+  // (v339) не ждать вечно: первый вопрос Claude со страницы ждёт разрешения владельца (запрос в рамке Claude) — через MK_ASK_SEC
+  // без ответа отметка сохраняется «не разобрано», а не висит на «Думаю…»
+  var ac = new AbortController(), to = setTimeout(function(){ ac.abort(); }, MK_ASK_SEC*1000); opts.signal = ac.signal;
+  try{ var res = await sample(input, opts); }
+  catch(e){ if(ac.signal.aborted) throw {code: "timeout"}; throw e; }
+  finally{ clearTimeout(to); }
   var txt = res.text || "", j = txt.indexOf("{"), k = txt.lastIndexOf("}");
   var out = JSON.parse(txt.slice(j, k+1));
   m.lastRaw = txt.slice(j, k+1);
@@ -251,6 +257,8 @@ async function mkSubmit(){
   m.frameUrl = mkFrame(m.bot); m.frameBot = m.bot;
   mkEl("mkForm").style.display = "none"; mkEl("mkCard").style.display = "block";
   mkShowCard(null, "Думаю…");
+  // (v339) первый раз страница спрашивает разрешение обратиться к Claude — подсказать, где его дать
+  var mw = m; setTimeout(function(){ if(MK.cur === mw && !mw.answer) mkShowCard(null, "Думаю… Если Claude спросил разрешение для этой страницы — разреши (меню страницы → «Разрешения»)."); }, 6000);
   await mkRunAsk(null);
 }
 async function mkRunAsk(correction){
@@ -266,7 +274,7 @@ async function mkRunAsk(correction){
     mkShowCard(a, null);
   }catch(e){
     if(MK.cur !== m) return;
-    var why = e && e.code === "no_sample" ? "нет доступа к Claude из этой страницы" : (e && e.code === "not_granted") ? "доступ к Claude не разрешён" : "Claude не ответил (" + (e && (e.code || e.message) || "ошибка") + ")";
+    var why = e && e.code === "no_sample" ? "нет доступа к Claude из этой страницы" : (e && e.code === "timeout") ? "Claude не ответил за " + MK_ASK_SEC + " с (разрешение не дано?)" : (e && e.code === "not_granted") ? "доступ к Claude не разрешён" : "Claude не ответил (" + (e && (e.code || e.message) || "ошибка") + ")";
     await mkSave(m, "unparsed");
     mkClose(); mkToast("Отметка сохранена как «не разобрано»: " + why);
   }

@@ -17121,7 +17121,7 @@ function plItem(b, key, html){
   if(!(key in S.have)){ S.have[key] = S.first ? 0 : t;
     // (v338) купил во фризтайм — звук вещи там, где он стоит (оружие / граната; броня и кит — без звука, записей нет)
     var BS = typeof BUY_SHOW !== "undefined" && BUY_SHOW && BUY_SHOW[b.id];
-    if(!S.first && roundState === "freeze" && BS && !BS.before[key]) sndPickup(b, /^w:/.test(key) ? "w" : /^(smoke|flash|he|molly)\d/.test(key) ? "nade" : null); }
+    if(!S.first && roundState === "freeze" && BS && !BS.before[key]) sndPickup(b, /^w:/.test(key) ? "w" : /^(smoke|flash|he|molly)\d/.test(key) ? "nade" : null, true); }
   var age = t - S.have[key];
   return age < PL_ANIM_MS ? '<span class="pl-it new" style="animation-delay:-'+Math.round(age)+'ms">'+html+'</span>' : '<span class="pl-it">'+html+'</span>';
 }
@@ -17531,11 +17531,20 @@ function sndStep(x, y){   // (v327) шаг как в CS — «тук-тук» п
 // с игроком (радиус шагов, проектное число); не больше 3 за 50 мс (закуп всей команды — не каша). Только показ.
 // chat_talk — звук сообщения в чате: ключ в наборе есть, чата пока нет (добавим позже)
 SND_CAP.buy = 3;
-function sndPickup(b, kind){
+// (v339, владелец: «звуков закупок я не слышу») покупка — без расстояния (во фризтайм камера обычно не у спавна, и по радиусу
+// шагов громкость была 0): тихо, как звук интерфейса, BUY_GAIN — проектное число. Подбор с земли — как был, там, где игрок
+function sndPickup(b, kind, buy){
   if(!kind || !b) return;
-  var g = sndGain(b.x, b.y, SND_R.step, "buy"); if(!g) return;
-  var key = sndRec(kind === "nade" ? "pickup_grenade" : "pickup_weapon", 0); if(key) sndPlay(key, 0.6*g, SND.far);
+  var g, far = 0;
+  if(buy){
+    if(!SND.on || !SND.ctx) return;
+    var t = performance.now(); if(t - SND.slot > 50){ SND.slot = t; SND.cnt = {}; }
+    SND.cnt = SND.cnt || {}; SND.cnt.buy = (SND.cnt.buy||0) + 1; if(SND.cnt.buy > SND_CAP.buy) return;
+    g = BUY_GAIN;
+  } else { g = sndGain(b.x, b.y, SND_R.step, "buy"); if(!g) return; g *= 0.6; far = SND.far; }
+  var key = sndRec(kind === "nade" ? "pickup_grenade" : "pickup_weapon", 0); if(key) sndPlay(key, g, far);
 }
+var BUY_GAIN = 0.35;
 // (v333, М55) звуки тела: приземление, попадание (в броню / в тело / в голову — с шлемом и без), горение. Только показ
 function sndBody(kind, x, y, o){
   var g = sndGain(x, y, SND_R.step*1.6, kind === "land" ? "land" : "other"); if(!g) return;   // (v335) приземление — свой лимит, не «три ближайших бегущих»
