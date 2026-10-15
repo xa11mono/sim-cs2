@@ -17178,7 +17178,27 @@ function obsManual(){ OBS.manualUntil = performance.now() + 6000; OBS.sc = 0; }
 // (там камера): громкость 0,15 + 0,85·(1 − d/R), R — дальность слышимости типа (ед. карты; шаги ~ бег 1100 ед. игры = 440). Бомба пикает
 // чаще к концу (интервал 1 → 0,1 с — проектное число, как на слух в CS2). При быстрой перемотке — не больше SND_MAX звуков
 // за 50 мс. Выключено, пока не нажать «Звук» (браузер не даёт играть звук без клика)
-var SND = {on:false, ctx:null, noise:null, slot:0, n:0, beepNext:0}, SND_MAX = 6;
+var SND = {on:false, ctx:null, noise:null, slot:0, n:0, beepNext:0, buf:{}}, SND_MAX = 6;
+// (v329, М46) записи (набор владельца, data/sounds/, вставляет src/mkpub.py) — выстрелы, гранаты, плант; чего нет — синтез ниже
+var SND_DATA = null; /*@@SOUNDS@@*/
+var SND_MAP = {GLOCK:"glock18-1", USP:"usp1", P250:"p228-1", ELITE:"elite_fire", TEC9:"tmp-1", FIVE7:"fiveseven-1", DEAGLE:"deagle-1",
+  MAC10:"mac10-1", MP9:"mp5-1", MP7:"mp5-1", UMP:"ump45-1", P90:"p90-1", GALIL:"galil-1", FAMAS:"famas-1", AK:"ak47-1",
+  M4:"m4a1_unsil-1", M4S:"m4a1-1", AUG:"aug-1", SG:"sg552-1", SSG:"scout_fire-1", AWP:"awp1"};
+function sndLoad(){
+  if(!SND_DATA || !SND.ctx) return;
+  Object.keys(SND_DATA).forEach(function(k){
+    var bin = atob(SND_DATA[k]), u = new Uint8Array(bin.length); for(var i=0;i<bin.length;i++) u[i] = bin.charCodeAt(i);
+    SND.ctx.decodeAudioData(u.buffer, function(b){ SND.buf[k] = b; }, function(){});
+  });
+}
+// запись с громкостью g; вдали глуше (фильтр по расстоянию: far 0..1)
+function sndPlay(key, g, far, delay){
+  var B = SND.buf[key]; if(!B) return false;
+  var c = SND.ctx, t0 = c.currentTime + (delay||0), src = c.createBufferSource(); src.buffer = B;
+  var fl = c.createBiquadFilter(); fl.type = "lowpass"; fl.frequency.value = 18000 - 15000*Math.min(1, far||0);
+  var gn = c.createGain(); gn.gain.value = g;
+  src.connect(fl); fl.connect(gn); gn.connect(SND.master); src.start(t0); return true;
+}
 var SND_R = {step:600, shot:2000, awp:2600, nade:1500, bomb:1200};   // (v326) дальше слышно
 function sndInit(){
   if(SND.ctx) return;
@@ -17187,12 +17207,13 @@ function sndInit(){
   var len = SND.ctx.sampleRate, buf = SND.ctx.createBuffer(1, len, SND.ctx.sampleRate), d = buf.getChannelData(0), sd = 12345;
   for(var i=0;i<len;i++){ sd = (sd*1103515245 + 12345) & 0x7fffffff; d[i] = sd/0x3fffffff - 1; }
   SND.noise = buf;
+  sndLoad();
 }
 function sndGain(x, y, R){
   if(!SND.on || !SND.ctx || typeof cv === "undefined") return 0;
   var t = performance.now(); if(t - SND.slot > 50){ SND.slot = t; SND.n = 0; } if(++SND.n > SND_MAX) return 0;
   var r = cv.getBoundingClientRect(), c = navScreenToWorld(r.left + r.width/2, r.top + r.height/2);
-  var k = 1 - Math.hypot(x - c.x, y - c.y)/R; return k > 0 ? 0.15 + 0.85*k : 0;   // (v326) тише вдали, но не до нуля внутри R
+  var k = 1 - Math.hypot(x - c.x, y - c.y)/R; SND.far = 1 - k; return k > 0 ? 0.15 + 0.85*k : 0;   // (v326) тише вдали, но не до нуля внутри R
 }
 function sndNoise(g, dur, type, f, q, delay){
   var c = SND.ctx, t0 = c.currentTime + (delay||0), src = c.createBufferSource(); src.buffer = SND.noise;
@@ -17228,6 +17249,7 @@ function sndShot(w, x, y){
   var P = w && w.silenced ? SND_GUN.sil : awp ? SND_GUN.awp : /AK|GALIL/.test(k) ? SND_GUN.ak : /DEAGLE|R8/.test(k) ? SND_GUN.deagle :
           /USP|GLOCK|P2000|P250|FIVE|TEC|CZ|DUAL/.test(k) ? SND_GUN.pistol : /MP|MAC|UMP|P90|BIZON/.test(k) ? SND_GUN.smg : SND_GUN.rifle;
   g *= 0.6;   // общий уровень выстрелов — ниже шагов не опускается, но не оглушает
+  if(sndPlay(SND_MAP[k], 0.9*g, SND.far)) return;   // (v329) есть запись — она
   sndNoise(P.crack*1.4*g, 0.004, "highpass", 5000, 0.7);
   sndNoise(P.crack*g, 0.05, "bandpass", P.cf, 0.9);
   sndTone(P.body*g, 0.09, P.bf, "sine", 0, P.bf*0.45);
@@ -17235,6 +17257,8 @@ function sndShot(w, x, y){
 }
 function sndNade(type, x, y){
   var g = sndGain(x, y, SND_R.nade); if(!g) return;
+  var rec = {smoke:"sg_explode", flash:"flashbang-1", he:"hegrenade-1", throw:"grenade_throw", bounce:"he_bounce"}[type];
+  if(rec && sndPlay(rec, (type === "throw" || type === "bounce" ? 0.6 : 1)*g, SND.far)){ if(type === "flash") sndPlay("flash_ring", 0.3*g, SND.far, 0.05); return; }
   if(type === "smoke"){ sndTone(0.2*g, 0.05, 900, "square"); sndNoise(0.35*g, 1.6, "highpass", 2500, 0.5, 0.03); }
   else if(type === "flash"){ sndNoise(0.8*g, 0.12, "highpass", 1500, 0.7); sndTone(0.12*g, 1.2, 3200, "sine", 0.05); }
   else if(type === "he"){ sndNoise(1.0*g, 0.7, "lowpass", 300, 0.8); sndTone(0.6*g, 0.5, 70, "sine", 0, 35); }
@@ -17245,7 +17269,8 @@ function sndNade(type, x, y){
 function sndBomb(kind, x, y){
   var g = sndGain(x, y, SND_R.bomb); if(!g) return;
   if(kind === "beep") sndTone(0.25*g, 0.09, 2800, "sine");
-  else if(kind === "plant"){ for(var i=0;i<7;i++) sndTone(0.18*g, 0.07, 1500 + (i%3)*250, "square", i*0.32); }
+  else if(kind === "plant"){ var rk = !!SND.buf.c4_key1; for(var i=0;i<7;i++){ if(!rk || !sndPlay("c4_key"+(i+1), 0.8*g, SND.far, i*0.32)) sndTone(0.18*g, 0.07, 1500 + (i%3)*250, "square", i*0.32); } }
+  else if(kind === "planted" && sndPlay("c4_initiate", 0.8*g, SND.far)){ }
   else if(kind === "planted") sndTone(0.3*g, 0.3, 2000, "sine", 0, 1600);
   else if(kind === "defuse"){ sndNoise(0.3*g, 0.06, "bandpass", 3000, 2); for(var j=0;j<4;j++) sndTone(0.12*g, 0.04, 2200, "square", 0.15 + j*0.12); }
   else if(kind === "boom"){ sndNoise(1.0*g, 2.2, "lowpass", 220, 0.6); sndTone(0.8*g, 1.4, 55, "sine", 0, 25); }

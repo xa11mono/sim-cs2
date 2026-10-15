@@ -18,7 +18,11 @@ s = s[s.index('<body>') + len('<body>'):]
 s = '<style>' + game_css + '</style>' + s
 s = s.replace('</body></html>', '')
 s = s.replace('window.__ev=function(src){return eval(src);};', '')
-s = s.replace('/*@@WARM_AUTO@@*/', 'warmStart(1);')   # (v306) опубликованная страница начинается с разминки; sim.html — нет (замеры, снимки)
+s = s.replace('/*@@WARM_AUTO@@*/', 'warmStart(1);')
+# (v329, М46) звуки — записи из data/sounds/sounds.json (tools/sounds_bake.py); в sim.html не нужны
+_SF = os.path.join(HERE, '..', 'data', 'sounds', 'sounds.json')
+if os.path.exists(_SF):
+    s = s.replace('/*@@SOUNDS@@*/', 'SND_DATA = ' + open(_SF, encoding='utf-8').read() + ';')   # (v306) опубликованная страница начинается с разминки; sim.html — нет (замеры, снимки)
 assert '__ev' not in s
 open(os.path.join(HERE, '..', MAPNAME + '-radar.html'), 'w', encoding='utf-8').write('\n' + s)
 print(len(s))
