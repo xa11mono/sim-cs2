@@ -5000,13 +5000,19 @@ function ctBombPos(){
 }
 function computeApproaches(){
   var bp = ctBombPos();
+  // (v348, владелец: kyousuke на сборе ретейка «не в сейв позиции — вышел бы кто-то из Apps, его бы убили») точка сбора укрыта не
+  // только от бомбы, но и от входов T на этот сайт (данные карты: pos.entries, GEO.tEntry)
+  var tIn = (bomb && bomb.site && GEO[bomb.site] ? [GEO[bomb.site].tEntry].concat(entryPts(bomb.site) || []) : []).filter(function(q){ return q && q.x != null; });
+  // с запасом: укрыты и точки вокруг (14 ед. карты, проектное) — иначе край укрытия: шаг в сторону, и тебя видно
+  var hidden1 = function(x, y){ return !hasLOS(x, y, bp.x, bp.y) && !tIn.some(function(q){ return hasLOS(x, y, q.x, q.y); }); };
+  var hidden = function(x, y){ return hidden1(x, y) && [[14,0],[-14,0],[0,14],[0,-14]].every(function(o){ return insideSolidWall(x+o[0], y+o[1]) || hidden1(x+o[0], y+o[1]); }); };
   var sectors = {};
   NAVAREAS.forEach(function(z){
     if(NAV_BLOCKED[z.id] || !(zoneGraph[z.id]||[]).length) return;
     var c = zoneCentroid(z);
     var d = Math.hypot(c.x-bp.x, c.y-bp.y);
     if(d < 230 || d > 480 || insideSolidWall(c.x, c.y)) return;
-    if(hasLOS(c.x, c.y, bp.x, bp.y)) return; // укрытие: бомбу отсюда не видно
+    if(!hidden(c.x, c.y)) return; // укрытие: отсюда не видно ни бомбу, ни входы T (v348)
     var ang = Math.atan2(c.y-bp.y, c.x-bp.x);
     var sec = Math.floor(((ang + Math.PI) / (Math.PI*2)) * 6) % 6; // 6 секторов по 60°
     var dCT = Math.hypot(c.x-CT_SPAWN.x, c.y-CT_SPAWN.y);
@@ -5029,8 +5035,8 @@ function computeApproaches(){
     POS[bomb.site].ctRetake.forEach(function(n){
       var zp = zonePoint(n, bp); if(!zp) return;
       var d = Math.hypot(zp.x-bp.x, zp.y-bp.y); if(d < 180 || d > 650) return;
-      var sp = pickSpots("rt:"+n, zp, 1, {rMax:110, minGap:40, hideFrom:[bp]})[0] || zp;
-      if(hasLOS(sp.x, sp.y, bp.x, bp.y)) return;
+      var sp = pickSpots("rt:"+n, zp, 1, {rMax:110, minGap:40, hideFrom:[bp].concat(tIn)})[0] || zp;
+      if(!hidden(sp.x, sp.y)) return;
       var ang = Math.atan2(sp.y-bp.y, sp.x-bp.x), sec = Math.floor(((ang + Math.PI) / (Math.PI*2)) * 6) % 6;
       if(named.some(function(q){ var dd = Math.abs(q.sec - sec); return Math.min(dd, 6-dd) < 2; })) return;
       named.push({x:sp.x, y:sp.y, sec:sec, name:n});
