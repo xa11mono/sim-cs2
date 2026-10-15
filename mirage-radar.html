@@ -245,7 +245,7 @@
   <div id="topbar">
     <div class="tb-id">
       <h1>Mirage</h1>
-      <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 361, 16.10</div>
+      <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 362, 16.10</div>
     </div>
     <div class="tb-group" id="tbMatch">
       <button id="btnPause">Пауза</button>
@@ -22011,6 +22011,28 @@ function tCrossSmoke(L){
   logEvent("T: смок «"+(L.name||"")+"» — свои идут по месту, которое оттуда видно");
   return true;
 }
+// (v362) раскидчик раунда: с вероятностью SOLO_SHARE (демки Mirage — доля выходов, где один бросил ≥ 60 % гранат) — саппорт или
+// IGL (не энтри, не AWP, не носитель бомбы, не лёркер) с наибольшим числом гранат; решение одно на раунд
+var SOLO_SHARE = 0.36;
+function tSoloThrower(){
+  var F = nadeFlags._solo;
+  if(F === undefined){
+    F = null;
+    if(hashRand(roundNum*6007 + matchNum*131 + 17) < SOLO_SHARE){
+      var C = bots.filter(function(b){ return b.team === "T" && b.alive && b.nades && b.tRole !== "entry" && b.tRole !== "awp" && b.tRole !== "lurker" && !(bomb.state === "carried" && bomb.carrier === b); })
+        .map(function(b){ var S = teamTac.T && SITES[teamTac.T.site], dS = S ? Math.hypot(b.x-S.x, b.y-S.y) : 0;
+          var n = b.nades.smoke + b.nades.flash + b.nades.molly + b.nades.he;
+          // кто ближе к сайту выхода (точки броска гранат выхода — там же), тот и раскидчик: дальний не успеет
+          return {b:b, n:n, s:n + (b.tRole === "support" ? 0.5 : b.tRole === "igl" ? 0.25 : 0) - dS/800}; })
+        .filter(function(c){ var S = teamTac.T && SITES[teamTac.T.site]; return c.n >= 3 && !(S && (onSite(S, c.b.x, c.b.y) || Math.hypot(c.b.x-S.x, c.b.y-S.y) < 450)); })   // уже на сайте — назад за гранатами не пойдёт
+        .sort(function(a, c){ return c.s - a.s; })[0];
+      if(C){ F = C.b.id; voiceLog("T", "solonade"+roundNum, C.b.id, "раскид на мне — пикайте под гранаты"); }
+    }
+    nadeFlags._solo = F;
+  }
+  var b = F && teamBot(F);
+  return b && b.alive ? b : null;
+}
 function lineupTick(){
   if(roundState !== "live" || !teamTac.T) return;
   var tt = teamTac.T, ct = teamTac.CT, since = tick - roundStartTick;
@@ -22066,6 +22088,25 @@ function lineupTick(){
     // одни, но бывает и несколько») граната выхода, которую взял бы энтри или AWP, — в очередь саппорту/IGL, если он уже идёт на
     // лайнап (точка броска ≤ EXEC_QUEUE_R): раскид кидает он, энтри и AWP остаются на своих углах; очередь — до EXEC_QUEUE_N
     var utilRole = function(b){ return b.tRole === "support" || b.tRole === "igl"; };
+    // (v362, владелец: «чередовать с типом, где один в соло всё кидает») в части раундов раскид выхода — на одном игроке
+    // (tSoloThrower): все гранаты выхода, которые у него есть, кидает он по очереди, где бы ни была точка броска; чего у него нет —
+    // остальные, как обычно. Демки Mirage (352 выхода, гранаты T за 15 с до планта): один игрок бросил ≥ 60 % — в 36 % раундов
+    var solo = execT ? tSoloThrower() : null;
+    if(solo){
+      var busyN = (solo.nadeTask && solo.nadeTask.type === L.type ? 1 : 0) + (solo.nadeQueue||[]).filter(function(q){ return q.type === L.type; }).length;
+      if(solo.nades && solo.nades[L.type] > busyN && !solo.planting && (solo.nadeQueue||[]).length < 4 && !onTSite(solo)){
+        nadeFlags[key] = true; nadeFlags["luok"+L.id] = true;
+        if(!solo.nadeTask){
+          var sP = Math.max(7, Math.ceil(pathLenTo(solo, L.from.x, L.from.y)/SPEED + LU_REACH_PAD));
+          solo.nadeTask = {type:L.type, x:L.to.x, y:L.to.y, from:{x:L.from.x, y:L.from.y}, until: tick + sP*TICK_HZ, why:"лайнап «"+(L.name||LU_TYPE[L.type])+"»", start:tick, lob:true, range:4000, now:true, lineup:true, exec:L.type === "smoke"};
+          logEvent(solo.id+": раскид — идёт на «"+(L.name||LU_TYPE[L.type])+"»");
+        } else {
+          (solo.nadeQueue = solo.nadeQueue || []).push({type:L.type, x:L.to.x, y:L.to.y, from:{x:L.from.x, y:L.from.y}, why:"лайнап «"+(L.name||LU_TYPE[L.type])+"»", lineup:true, exec:true});
+          logEvent(solo.id+": раскид — следом «"+(L.name||LU_TYPE[L.type])+"»");
+        }
+        return;
+      }
+    }
     if(execT && cand && (cand.tRole === "entry" || cand.tRole === "awp") && bots.some(function(b){ return okBot(b) && utilRole(b) && b.nadeTask && b.nadeTask.lineup; })) cand = null;
     if(!cand && execT){
       var qb = bots.filter(function(b){ var t = b.nadeTask; if(!okBot(b) || !t || !t.lineup || !t.from || (b.nadeQueue||[]).length >= EXEC_QUEUE_N) return false;
@@ -29543,6 +29584,7 @@ var __SNAP = [
 ["CROSS_BELIEF", function(){ return CROSS_BELIEF; }, function(v){ try{ CROSS_BELIEF = v; }catch(e){} }],
 ["CROSS_MAX", function(){ return CROSS_MAX; }, function(v){ try{ CROSS_MAX = v; }catch(e){} }],
 ["CROSS_NEAR", function(){ return CROSS_NEAR; }, function(v){ try{ CROSS_NEAR = v; }catch(e){} }],
+["SOLO_SHARE", function(){ return SOLO_SHARE; }, function(v){ try{ SOLO_SHARE = v; }catch(e){} }],
 ["LU_REACH_PAD", function(){ return LU_REACH_PAD; }, function(v){ try{ LU_REACH_PAD = v; }catch(e){} }],
 ["CLR_REB_SEC", function(){ return CLR_REB_SEC; }, function(v){ try{ CLR_REB_SEC = v; }catch(e){} }],
 ["EXEC_REACH", function(){ return EXEC_REACH; }, function(v){ try{ EXEC_REACH = v; }catch(e){} }],
