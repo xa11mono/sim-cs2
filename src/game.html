@@ -2143,7 +2143,7 @@ var AIM_TURN_RATE = 11;     // рад/с — разворот прицела (18
 var AIM_FIRE_CONE = 0.30;   // рад (~17°) — насколько прицел должен быть на цели, чтобы стрелять
 var PREFIRE_RADIUS = 140; // px — насколько близко цель должна появиться к последней известной позиции, чтобы засчитать префайр
 var SOUND_RADIUS_RUN = 380, SOUND_RADIUS_WALK = 130; // v118: слышно дальше (было 250/90) — бег ≈950 юнитов CS2; // бег 250px по фидбеку; тихий шаг в той же пропорции (~0.36 от бега) // px — без учёта затухания через стены (упрощение v1, см. план §13)
-var FOOTSTEP_INTERVAL_RUN = 14, FOOTSTEP_INTERVAL_WALK = 20; // ticks между "шагами"-событиями
+var FOOTSTEP_INTERVAL_RUN = 14, FOOTSTEP_INTERVAL_WALK = 20; // тиков между шагами на полной скорости (v332: шаги — по пути, это задаёт длину шага)
 var bots = [];
 var START_MONEY = 800, MAX_MONEY = 16000;
 function makeTeam(team, spawnPt, count, weapon){
@@ -13463,8 +13463,14 @@ function stepTick(){
     // вода (зоны со свойством water в наборе карты) — всплески слышно громче, и даже шифтом
     var wet = BAL.soundMore && bot.curSpeed > 5 && inWater(bot.baseX, bot.baseY);
     if(bot.curSpeed > 5 && (!(BAL.silentWalk && bot.walking) || wet)){ // шифт (тихий шаг) не слышно, как в CS
-      var stepInterval = bot.walking ? FOOTSTEP_INTERVAL_WALK : FOOTSTEP_INTERVAL_RUN;
-      if(tick - bot.lastStepTick >= stepInterval){
+      // (v332, М50, владелец: «скорость шагов не соответствует скорости игрока») шаг — по пройденному пути, а не по времени:
+      // длина шага такая, что на полной скорости (225 ед./с, винтовка) — раз в FOOTSTEP_INTERVAL_RUN тиков, как было; с AWP реже,
+      // с ножом чаще, при разгоне и торможении — в такт скорости
+      var stride = SPEED*(bot.walking ? WALK_SPEED_FRAC*FOOTSTEP_INTERVAL_WALK : FOOTSTEP_INTERVAL_RUN)/TICK_HZ;
+      var mv = bot._stepP ? Math.min(Math.hypot(bot.baseX-bot._stepP.x, bot.baseY-bot._stepP.y), 3*SPEED/TICK_HZ) : 0;   // реально пройдено за тик (упёрся в стену — не шагает)
+      bot._stepP = {x:bot.baseX, y:bot.baseY}; bot._stepDist = (bot._stepDist||0) + mv;
+      if(bot._stepDist >= stride){
+        bot._stepDist -= stride; if(bot._stepDist > stride) bot._stepDist = 0;
         bot.lastStepTick = tick;
         var soundRadius = (wet ? (bot.walking ? 220 : 460) : (bot.walking ? SOUND_RADIUS_WALK : SOUND_RADIUS_RUN)) * (BAL.stepHearMul || 1);
         soundPings.push({x:bot.baseX, y:bot.baseY, team:bot.team, born:nowTs, radius:soundRadius}); if(SND && SND.on) sndStep(bot.baseX, bot.baseY);
