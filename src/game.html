@@ -17183,13 +17183,32 @@ function sndTone(g, dur, f, type, delay, f2){
   var gn = c.createGain(); gn.gain.setValueAtTime(g, t0); gn.gain.exponentialRampToValueAtTime(0.001, t0 + dur);
   o.connect(gn); gn.connect(SND.master); o.start(t0); o.stop(t0 + dur + 0.02);
 }
-function sndStep(x, y){ var g = sndGain(x, y, SND_R.step); if(g) sndNoise(0.25*g, 0.05, "lowpass", 500, 1); }
+function sndStep(x, y){   // (v327) шаг как в CS — «тук-тук» пяткой и носком по камню: два коротких щелчка + глухой стук (было 500 Гц и тихо — не слышно)
+  var g = sndGain(x, y, SND_R.step); if(!g) return;
+  sndNoise(0.75*g, 0.03, "bandpass", 1600, 1.5); sndTone(0.4*g, 0.05, 160, "triangle", 0, 80);
+  sndNoise(0.5*g, 0.025, "bandpass", 2100, 1.5, 0.07);
+}
+// (v327, владелец: «выстрелы громкие, нужно похоже на CS») выстрел — три слоя, как устроен звук выстрела: щелчок (2–3 мс,
+// высокие), «хлопок» (полоса 1,5–3 кГц, 30–60 мс), «тело» (низкий тон с падением частоты) и хвост-эхо (низкий шум 0,2–0,6 с).
+// Числа слоёв по оружию — на слух (проектные), сами звуки Valve копировать нельзя
+var SND_GUN = {
+  rifle:  {crack:0.30, cf:2200, body:0.32, bf:150, tail:0.16, tl:0.35},
+  ak:     {crack:0.30, cf:1800, body:0.40, bf:120, tail:0.18, tl:0.40},
+  pistol: {crack:0.26, cf:2800, body:0.18, bf:220, tail:0.08, tl:0.20},
+  deagle: {crack:0.34, cf:2000, body:0.40, bf:110, tail:0.18, tl:0.45},
+  smg:    {crack:0.22, cf:2600, body:0.20, bf:190, tail:0.08, tl:0.22},
+  awp:    {crack:0.40, cf:1600, body:0.55, bf:90,  tail:0.26, tl:0.80},
+  sil:    {crack:0.10, cf:3200, body:0.12, bf:260, tail:0.03, tl:0.10}
+};
 function sndShot(w, x, y){
-  var awp = w && w.key === "AWP", g = sndGain(x, y, awp ? SND_R.awp : SND_R.shot); if(!g) return;
-  var sil = w && w.silenced, pistol = w && /USP|GLOCK|P2000|P250|DEAGLE|FIVE|TEC|CZ|DUAL|R8/.test(w.key || "");
-  if(sil){ sndNoise(0.35*g, 0.07, "bandpass", 1800, 0.8); return; }
-  if(awp){ sndNoise(0.9*g, 0.45, "lowpass", 700, 0.7); sndTone(0.5*g, 0.25, 90, "sine", 0, 45); return; }
-  sndNoise((pistol ? 0.5 : 0.7)*g, pistol ? 0.09 : 0.14, "bandpass", pistol ? 1600 : 1000, 0.7); sndTone(0.3*g, 0.08, pistol ? 160 : 120, "triangle", 0, 60);
+  var k = (w && w.key) || "", awp = k === "AWP", g = sndGain(x, y, awp ? SND_R.awp : SND_R.shot); if(!g) return;
+  var P = w && w.silenced ? SND_GUN.sil : awp ? SND_GUN.awp : /AK|GALIL/.test(k) ? SND_GUN.ak : /DEAGLE|R8/.test(k) ? SND_GUN.deagle :
+          /USP|GLOCK|P2000|P250|FIVE|TEC|CZ|DUAL/.test(k) ? SND_GUN.pistol : /MP|MAC|UMP|P90|BIZON/.test(k) ? SND_GUN.smg : SND_GUN.rifle;
+  g *= 0.6;   // общий уровень выстрелов — ниже шагов не опускается, но не оглушает
+  sndNoise(P.crack*1.4*g, 0.004, "highpass", 5000, 0.7);
+  sndNoise(P.crack*g, 0.05, "bandpass", P.cf, 0.9);
+  sndTone(P.body*g, 0.09, P.bf, "sine", 0, P.bf*0.45);
+  sndNoise(P.tail*g, P.tl, "lowpass", 600, 0.5, 0.02);
 }
 function sndNade(type, x, y){
   var g = sndGain(x, y, SND_R.nade); if(!g) return;
