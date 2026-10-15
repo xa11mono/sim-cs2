@@ -9411,14 +9411,17 @@ function ctBrain(){
     if(BAL.countRot){
       // (v281, владелец 14.10: после зачистки B колл «все 1 на B» при последнем T на A) честное число: хвост 0,3 — это 0, а не 1
       var tAliveN = aliveCount("T"), here = Math.min(tAliveN, Math.round(ct.call.count));
-      var elseO = 0, elseM = 0, elseAny = 0;
-      for(var eidR in LKP.CT){ var eR = LKP.CT[eidR]; if(tick - eR.tick > 8*TICK_HZ) continue; if(Math.hypot(eR.x-sc0.x, eR.y-sc0.y) < 900) continue;
+      var elseO = 0, elseM = 0, elseAny = 0, hereKnown = 0;
+      for(var eidR in LKP.CT){ var eR = LKP.CT[eidR]; if(tick - eR.tick > 8*TICK_HZ) continue; if(Math.hypot(eR.x-sc0.x, eR.y-sc0.y) < 900){ hereKnown++; continue; }
         elseAny++; if(Math.hypot(eR.x-SITES[ko].x, eR.y-SITES[ko].y) < 750) elseO++; else if(Math.hypot(eR.x-GEO.ctMid.x, eR.y-GEO.ctMid.y) < 650) elseM++; }
       var unacc = Math.max(0, tAliveN - here - elseAny);
       ct.call.unacc = unacc;
       keepOther = elseO > 0 || unacc >= 2; keepMid = elseM > 0;
       // (v257, К1) все живые T учтены здесь — снимаются все, и когда T остался один (раньше — только при 2+)
-      allIn = tAliveN >= 1 && here >= 1 && here >= tAliveN && unacc === 0 && elseAny === 0 && confirmed;
+      // (v361, владелец: «колл "все 2 на A — B пустой, все на A!", но на B есть») «все здесь» — только когда каждого живого T
+      // команда реально знает у этого сайта (видели/слышали за 8 с — LKP, по игроку), а не по оценке «их ~2» (карта вероятностей
+      // считала одного на A за двоих, второй T стоял у B незамеченным)
+      allIn = tAliveN >= 1 && hereKnown >= tAliveN && unacc === 0 && elseAny === 0 && confirmed;
       // (v257, К1) все T здесь, другой сайт пуст — идут все (как и говорят в войс), а не «врагов + 1»
       if(allIn){ need = Math.max(need, cts.length); send = Math.max(0, Math.min(4, need - defenders)); }
       if(allIn && ct._allInLog !== ks+roundNum){ ct._allInLog = ks+roundNum;
