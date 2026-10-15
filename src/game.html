@@ -7539,7 +7539,30 @@ function lookCands(b, W){
     if(BAL.enemyward){ var zpl = bzOf(pl.x, pl.y), zbb = bzOf(b.x, b.y);
       if(zpl >= 0 && zbb >= 0 && zpl !== zbb && isRearZone(team, zbb, zpl, b) || Math.hypot(pl.x-b.x, pl.y-b.y) < 60){ var ew = enemywardLook(team, b); if(ew) pl = cornerLook(b, ew) || ew; } }
     out.push({j:"post"+b.id, pt:pl, sc:LOOK.postBase, fresh:false, a:Math.atan2(pl.y-b.y, pl.x-b.x), f: D ? [["угол поста по сетапу", LOOK.postBase]] : null}); }
+  // (v328, М45, отметка владельца: zont1x в коридоре у Short смотрел в стену «как у про», хотя команда 3 с назад видела
+  // последнего CT на A) команда знает, где враг (видели / слышали ≤ KNOWN_SEC), — смотреть туда, откуда он придёт: вдоль
+  // своего пути к нему, на дальнюю видимую точку этого пути (до 400 ед.). Вес KNOWN_W — проектное число
+  var kw = knownWayLook(b);
+  if(kw) out.push({j:"known", pt:kw.pt, sc:kw.sc, fresh:false, a:Math.atan2(kw.pt.y-b.y, kw.pt.x-b.x), f: D ? [["путь к известному врагу ("+kw.id+", "+kw.age.toFixed(1)+" с)", kw.sc]] : null});
   return out;
+}
+var KNOWN_SEC = 10, KNOWN_W = 0.2;
+function knownWayLook(b){
+  var BL = beliefLast[b.team] || {}, best = null;
+  for(var id in BL){ var l = BL[id]; if(!l) continue; var age = (tick - l.tick)/TICK_HZ; if(age > KNOWN_SEC) continue;
+    var e = bots.filter(function(o){ return o.id === id; })[0]; if(!e || !e.alive) continue;   // жив — видно по табло
+    if(!best || age < best.age) best = {id:id, x:l.x, y:l.y, age:age}; }
+  if(!best || Math.hypot(best.x-b.x, best.y-b.y) < 120) return null;
+  var P = buildWaypointPath(b.x, b.y, b.z, best.x, best.y, null, b.team); if(!P || !P.length) return null;
+  var px = b.x, py = b.y, walked = 0, far = null;
+  for(var i=0;i<P.length && walked < 400;i++){
+    var qx = P[i][0], qy = P[i][1], L = Math.hypot(qx-px, qy-py), n = Math.max(1, Math.ceil(L/20));
+    for(var k=1;k<=n && walked < 400;k++){ var x = px+(qx-px)*k/n, y = py+(qy-py)*k/n; walked += L/n;
+      if(!hasLOS(b.x, b.y, x, y)){ i = P.length; break; } far = {x:x, y:y}; }
+    px = qx; py = qy;
+  }
+  if(!far || Math.hypot(far.x-b.x, far.y-b.y) < 60) return null;
+  return {pt:far, sc:KNOWN_W*Math.exp(-best.age/KNOWN_SEC), id:best.id, age:best.age};
 }
 // раз в 8 тиков: кандидаты всем + делёж направлений внутри команды
 function lookPlan(team){
