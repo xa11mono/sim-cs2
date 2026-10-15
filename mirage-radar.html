@@ -245,7 +245,7 @@
   <div id="topbar">
     <div class="tb-id">
       <h1>Mirage</h1>
-      <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 365, 16.10</div>
+      <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 366, 16.10</div>
     </div>
     <div class="tb-group" id="tbMatch">
       <button id="btnPause">Пауза</button>
@@ -15795,16 +15795,26 @@ function ppTimeNamed(group, bp0, site, rMax){
   });
   return true;
 }
+// (v366, владелец: «чтобы он играл, а не просто стоял — пытался убить или что-то вроде того») после планта свежая инфа о враге
+// рядом (≤ 3 с, ≤ 700 ед.: видели, слышали, откуда кинули гранату — в т. ч. только что услышал сам) — не стоит и не уходит на
+// дальнюю точку, а выходит на него: точка в PP_SWING ед. от себя, откуда это место видно, ближе к врагу (но не вплотную, ≥ 120),
+// прицел — туда, где враг; 3 с, потом — снова пост-плант. Не чаще раза в 5 с; с HP ≤ LOW_HP — нет (проектные числа)
+var PP_SWING = 220;
 function ppCheck(b){
   if(b._ppc && tick < b._ppc.until){ setPost(b, b._ppc.pt, b._ppc.look, true, "ppCheck"); return true; }
-  if(b._ppcT && tick - b._ppcT < 5*TICK_HZ) return false;
+  if(b.hp <= LOW_HP || (b._ppcT && tick - b._ppcT < 5*TICK_HZ)) return false;
   var BL = beliefLast.T || {}, best = null, bd = 700;
   for(var id in BL){ var e = BL[id], ob = teamBot(id); if(!ob || !ob.alive || tick - e.tick > 3*TICK_HZ) continue; var d = Math.hypot(e.x-b.x, e.y-b.y); if(d < bd){ bd = d; best = e; } }
+  var hs = b.heardSound; if(hs && hs.team && hs.team !== b.team && tick - hs.tick <= 3*TICK_HZ){ var dh = Math.hypot(hs.x-b.x, hs.y-b.y); if(dh < bd){ bd = dh; best = hs; } }
   if(!best) return false;
   var look = {x:best.x, y:best.y};
-  var sp = hasLOS(b.x, b.y, look.x, look.y) ? {x:b.x, y:b.y} : pickSpots("ppc"+b.id+Math.round(look.x/40)+","+Math.round(look.y/40), {x:b.x, y:b.y}, 1, {rMax:160, minGap:20, see:[look]})[0];
-  if(!sp) return false;
+  var C = pickSpots("ppc"+b.id+Math.round(look.x/40)+","+Math.round(look.y/40), {x:b.x, y:b.y}, 4, {rMax:PP_SWING, minGap:30, see:[look]})
+    .filter(function(q){ return Math.hypot(q.x-look.x, q.y-look.y) >= 120; })
+    .sort(function(a, c){ return Math.hypot(a.x-look.x, a.y-look.y) - Math.hypot(c.x-look.x, c.y-look.y); });
+  var sp = C[0]; if(!sp) return false;
   b._ppc = {until: tick + 3*TICK_HZ, pt: sp, look: look}; b._ppcT = tick; b.lastIntel = {x:look.x, y:look.y, tick:tick, src:"call"};
+  b._reposUntil = 0; b._probeLock = 0;
+  voiceLog("T", "ppc"+b.id+Math.round(tick/64), b.id, "выхожу на него "+calloutName(look.x, look.y));
   setPost(b, sp, look, true, "ppCheck");
   return true;
 }
@@ -26287,7 +26297,7 @@ var WHY_POST = [[/^mid:back/,"мид: отошёл (их больше)"],[/^repo
   [/^flee/,"уходит от бомбы"],[/^save/,"сейв"],[/^retakeEntry/,"ретейк: заходит первым"],[/^retakeCover/,"ретейк: дефузит за первым"],[/^retake/,"ретейк"],[/^defuse/,"дефуз"],[/^postplant/,"пост-плант"],
   [/^endhunt/,"охота на последних"],[/^repos/,"меняет позицию"],[/^fake/,"фейк"],[/^shift/,"смещается"],[/^awpline/,"AWP линия"],
   [/^pickup/,"за оружием"],[/^plantspot/,"плант"],[/^fetch/,"за бомбой"],[/^antidefuse/,"сбить дефуз"],[/^stopplant/,"сбить плант"],
-  [/^retakePick/,"ретейк: играет сам до своих"],[/^ppCheck/,"пост-плант: держит, где враг"],[/^gatherSolo/,"ретейк в одиночку: подход"],[/^gatherSite/,"у бомбы — ждёт своих на ретейк"],[/^utilWait/,"ждёт гранаты / размен у выхода"],[/^utilHold/,"ждёт за энтри"],[/^gather/,"сбор на ретейк"],[/^flank/,"фланг"],[/^lineup/,"идёт кидать гранату"],[/^smokeWait/,"ждёт у смока"],[/^tmid/,"мид T"],[/^cts:/,"сетап CT"]];
+  [/^retakePick/,"ретейк: играет сам до своих"],[/^ppCheck/,"пост-плант: выходит на врага"],[/^gatherSolo/,"ретейк в одиночку: подход"],[/^gatherSite/,"у бомбы — ждёт своих на ретейк"],[/^utilWait/,"ждёт гранаты / размен у выхода"],[/^utilHold/,"ждёт за энтри"],[/^gather/,"сбор на ретейк"],[/^flank/,"фланг"],[/^lineup/,"идёт кидать гранату"],[/^smokeWait/,"ждёт у смока"],[/^tmid/,"мид T"],[/^cts:/,"сетап CT"]];
 var WHY_LOOK = {spam:"простреливает смок", look:"угроза", enemy:"видит врага", corner:"край угла впереди", cover:"держит второй угол за тиммейта", open:"открытый угол (свой угол держит тиммейт)", flank:"фланг за тиммейтом", death:"туда, где убили своего", sweep:"чекает после смока", sound:"на звук", threat:"угроза", post:"свой угол", preaim:"по плану", roam:"проверяет точку",
   hunt:"ищет последнего", save:"сейв: проходы", fake:"фейк-дефуз", intel:"инфа", call:"колл", lkp:"где видели", habit:"привычка врага", belief:"вероятность"};
 function whyText(b){
@@ -29612,6 +29622,7 @@ var __SNAP = [
 ["CLEARZ", function(){ return CLEARZ; }, function(v){ try{ CLEARZ = v; }catch(e){} }],
 ["POSCLR", function(){ return POSCLR; }, function(v){ try{ POSCLR = v; }catch(e){} }],
 ["_POSL", function(){ return _POSL; }, function(v){ try{ _POSL = v; }catch(e){} }],
+["PP_SWING", function(){ return PP_SWING; }, function(v){ try{ PP_SWING = v; }catch(e){} }],
 ["RPICK_ETA", function(){ return RPICK_ETA; }, function(v){ try{ RPICK_ETA = v; }catch(e){} }],
 ["teamIntel", function(){ return teamIntel; }, function(v){ try{ teamIntel = v; }catch(e){} }],
 ["INTEL_KEEP", function(){ return INTEL_KEEP; }, function(v){ try{ INTEL_KEEP = v; }catch(e){} }],
