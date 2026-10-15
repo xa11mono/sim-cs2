@@ -29191,6 +29191,7 @@ var __SNAP = [
 ["PL_SEEN", function(){ return PL_SEEN; }, function(v){ try{ PL_SEEN = v; }catch(e){} }],
 ["PL_ANIM_MS", function(){ return PL_ANIM_MS; }, function(v){ try{ PL_ANIM_MS = v; }catch(e){} }],
 ["OBS_TR", function(){ return OBS_TR; }, function(v){ try{ OBS_TR = v; }catch(e){} }],
+["OBS_OFF", function(){ return OBS_OFF; }, function(v){ try{ OBS_OFF = v; }catch(e){} }],
 ["SND", function(){ return SND; }, function(v){ try{ SND = v; }catch(e){} }],
 ["SND_MAX", function(){ return SND_MAX; }, function(v){ try{ SND_MAX = v; }catch(e){} }],
 ["SND_DATA", function(){ return SND_DATA; }, function(v){ try{ SND_DATA = v; }catch(e){} }],
@@ -29722,7 +29723,7 @@ function warmTick(dt){
 // Держит выбранного не меньше 1,2 с (v305), переключается, если новый момент интереснее (×1,15) или выбранный погиб (через 1 с —
 // видно смерть). Камера плавно едет и приближает: бой — ближе, спокойно — дальше, между раундами — вся карта.
 // Ручное движение камеры, колесо или выбор игрока — обсервер ждёт 6 с. Числа — проектные (это показ, не поведение)
-var OBS = {on:true, id:null, since:0, deadAt:0, manualUntil:0, last:0, cx:1024, cy:1024, sc:0, tr:null}, OBS_TR = 0.6;
+var OBS = {on:true, id:null, since:0, deadAt:0, manualUntil:0, last:0, cx:1024, cy:1024, sc:0, tr:null}, OBS_TR = 0.6, OBS_OFF = 0.3;
 // (v321, М10) фокус обсервера: выход T на сайт (15 с от начала выхода), плант и 3 с после — интересный момент; камера
 // держится игроков у этого сайта (ближе 900 ед. карты), переключается между ними и показывает выход целиком; бой в другом
 // месте его не перебивает (проектные числа)
@@ -29804,12 +29805,16 @@ function obsFrame(ts){
       var fight = !!e, other = e || near; OBS.foeId = e ? e.id : null;
       if(other){ tx = (cur.x + other.x)/2; ty = (cur.y + other.y)/2; }
       var span = other ? Math.max(fight ? 650 : 900, Math.hypot(other.x-cur.x, other.y-cur.y)*2.4) : 1100;   // сколько карты видно
-      if(FO){   // (v321, М10) выход/плант — в кадре сайт и все игроки рядом с ним
-        var xs = [FO.x, cur.x], ys = [FO.y, cur.y];
+      if(FO){   // (v321, М10) выход/плант — в кадре все игроки у сайта; (v345) без центра сайта — он тянул кадр на пустой сайт
+        var xs = [cur.x], ys = [cur.y];
         bots.forEach(function(o){ if(o.alive && Math.hypot(o.x-FO.x, o.y-FO.y) < 700){ xs.push(o.x); ys.push(o.y); } });
         var x0 = Math.min.apply(null, xs), x1 = Math.max.apply(null, xs), y0 = Math.min.apply(null, ys), y1 = Math.max.apply(null, ys);
         tx = (x0+x1)/2; ty = (y0+y1)/2; span = Math.max(700, (x1-x0)*1.3, (y1-y0)*1.3);
       }
+      // (v345, владелец: «масштаб и положение иногда странные» — выбранный у края кадра, в центре пустой сайт) игрок обсервера —
+      // всегда во внутренней части кадра: центр не дальше OBS_OFF от него (доля видимой области, проектное число)
+      var offX = tx - cur.x, offY = ty - cur.y, offL = Math.hypot(offX, offY), offMax = OBS_OFF*span;
+      if(offL > offMax){ tx = cur.x + offX*offMax/offL; ty = cur.y + offY*offMax/offL; }
       tsc = Math.max(fitSc, Math.min(r.width, r.height) / span);
     }
   } else if(manual) return;
