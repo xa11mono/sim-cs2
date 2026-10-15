@@ -1550,7 +1550,7 @@ function rebuildNav(){
 
   zonesById = {};
   NAVAREAS.forEach(function(z){ zonesById[z.id] = z; });
-  NAV_GRID = null;   // (v321) сетка участков под точкой — пересобрать
+  NAV_GRID = null; NAV_ZONE = null;   // (v321) сетка участков под точкой — пересобрать
 
   // ---------- граф с учётом стен ----------
   // navmesh и стены — два независимых слоя, и после выравнивания/калибровки
@@ -5510,8 +5510,8 @@ function zoneIdAt(x, y){ for(var i=0;i<ZONEMAP.zones.length;i++){ if(pointInPoly
 // ---- "войс" (как тимспик): короткие коллы, которые слышит вся команда ----
 // где это на карте — простыми словами, по ближайшей известной точке
 // from=true — "откуда" (с A), иначе "где" (на A)
-function calloutName(x, y, from){
-  var zid = zoneIdAt(x, y), zn = zid && zoneMainName(ZONE_NAMES[zid]);
+function calloutName(x, y, from, z){
+  var zid = zoneIdAt3(x, y, z), zn = zid && zoneMainName(ZONE_NAMES[zid]);
   if(zn) return (from ? "с «" : "на «") + zn + "»";
   var C = [[SITES.A,"на A","с A"],[SITES.B,"на B","с B"],
            [GEO.A&&GEO.A.tEntry,"у входа на A","со входа на A"],[GEO.B&&GEO.B.tEntry,"у входа на B","со входа на B"],
@@ -5906,7 +5906,8 @@ var KNOW_LOG = [];
 
 // звук дошёл до игрока o: v166 кладёт его в o.heardSound, знание — в o.ears (одно место на «услышал»)
 function hearReal(o, s){
-  if(roundState === "live"){ (o.ears || (o.ears = [])).push({x:s.x, y:s.y, tick:tick, team:s.team, kind:s.kind, occl:!!s.occl}); }
+  if(roundState === "live"){ var sb = s.src ? teamBot(s.src) : null;   // (v358) этаж слышно (сверху / снизу) — высота источника
+    (o.ears || (o.ears = [])).push({x:s.x, y:s.y, z: sb ? sb.z : null, tick:tick, team:s.team, kind:s.kind, occl:!!s.occl}); }
   return s;
 }
 
@@ -5939,8 +5940,36 @@ function knowGraph(){
   }
   KG = g; return g;
 }
-function knowZoneAt(x, y){
-  var z = zoneIdAt(x, y); if(z) return z;
+// (v358, владелец: «не распознают шаги T в Underpass, ложная инфа» — T внизу, а колл «шаги Short») зоны-коллауты — плоские
+// (по подписям радара), а там, где этажи друг над другом, у точки две зоны. С высотой: участок навмеша под точкой на этом
+// этаже → его зона. Участки, над/под которыми есть другой этаж (> NAVZ_FLOOR ед.), получают зону соседей по своему этажу
+// (обход по связям навмеша от ближайших участков без второго этажа), а не плоскую
+var NAVZ_FLOOR = 100, NAVZ_NEAR = 120, NAV_ZONE = null;
+function navZoneBuild(){
+  if(!NAV_GRID) navGridBuild();
+  NAV_ZONE = {}; var byId = {}, over = {}, Q = [];
+  NAVAREAS.forEach(function(a){ byId[a.id] = a; });
+  NAVAREAS.forEach(function(a){
+    var cx = 0, cy = 0; a.points.forEach(function(p){ cx += p.x; cy += p.y; }); cx /= a.points.length; cy /= a.points.length;
+    var L = NAV_GRID[Math.floor(cx/NAV_GRID_C)+","+Math.floor(cy/NAV_GRID_C)] || [];
+    over[a.id] = L.some(function(k){ var o = NAVAREAS[k]; return o !== a && Math.abs(o.z - a.z) > NAVZ_FLOOR && pointInPoly(cx, cy, o.points); });
+    if(!over[a.id]){ var zid = zoneIdAt(cx, cy); if(zid){ NAV_ZONE[a.id] = zid; Q.push(a); } }
+  });
+  for(var qi = 0; qi < Q.length; qi++){ var a = Q[qi];
+    (a.conn || []).forEach(function(bid){ var nb = byId[bid]; if(!nb || NAV_ZONE[bid] || !over[bid] || Math.abs(nb.z - a.z) > JUMP_UP) return;
+      NAV_ZONE[bid] = NAV_ZONE[a.id]; Q.push(nb); }); }
+}
+function zoneIdAt3(x, y, z){
+  if(z == null) return zoneIdAt(x, y);
+  if(!NAV_ZONE) navZoneBuild();
+  // под точкой пол другого этажа (звук с разбросом попал «на мост» над Underpass) — ближайший участок своего этажа в
+  // NAVZ_NEAR ед. карты (проектное число)
+  var a = navNearestZ(x, y, 24, z);
+  if(!a || Math.abs(a.z - z) > NAVZ_FLOOR) a = navFloorNear(x, y, NAVZ_NEAR, function(q){ return Math.abs(q.z - z) <= NAVZ_FLOOR; });
+  return (a && NAV_ZONE[a.id]) || zoneIdAt(x, y);
+}
+function knowZoneAt(x, y, zh){
+  var z = zoneIdAt3(x, y, zh); if(z) return z;
   var g = knowGraph(), best = null, bd = Infinity;
   for(var id in g.c){ var d = Math.hypot(g.c[id].x-x, g.c[id].y-y) - g.r[id]; if(d < bd){ bd = d; best = id; } }
   return best;
@@ -6077,7 +6106,7 @@ function knowVision(b){
   bots.forEach(function(m){ if(m.alive && m.team === b.team) (m._visible || []).forEach(function(e){ if(e.alive && !seen[e.id]){ seen[e.id] = true; list.push(e); } }); });
   list.forEach(function(e){
     var B = K.enemies[e.id];
-    var last = {x: e.x, y: e.y, zone: knowZoneAt(e.x, e.y), tick: tick, stance: e.crouching ? "crouch" : "stand",
+    var last = {x: e.x, y: e.y, zone: knowZoneAt(e.x, e.y, e.z), tick: tick, stance: e.crouching ? "crouch" : "stand",
                 source: "vision", vx: (e.x - (e.px === undefined ? e.x : e.px))*TICK_HZ, vy: (e.y - (e.py === undefined ? e.y : e.py))*TICK_HZ,
                 weapon: e.weapon && e.weapon.key};
     var was = B && B.visible;
@@ -6106,7 +6135,7 @@ function knowHearing(b){
     if(s.kind === "defuse") K.defuseT = tick;
     if(!(s.kind in KNOW.soundL)) continue;
     var d = Math.hypot(s.x-b.x, s.y-b.y), err = d*(s.occl ? 0.3 : 0.15) + 40;
-    var zone = knowZoneAt(s.x, s.y);
+    var zone = knowZoneAt(s.x, s.y, s.z);
     K.heard.push({x: s.x, y: s.y, zone: zone, kind: s.kind, tick: tick, err: err});
     if(s.kind === "plant" && !K.planted) K.plantHeard = knowNearestSite(s.x, s.y);
     knowApply(b, s, err, zone, KNOW.soundL[s.kind], {say: "услышал " + (KNOW_SAY[s.kind] || s.kind)});
@@ -6119,7 +6148,12 @@ function knowSources(K, test, sec){
   var src = [];
   if(K) K.heard.forEach(function(h){
     if(tick - h.tick > sec*TICK_HZ || (h.kind !== "steps" && h.kind !== "water" && h.kind !== "shots") || !test(h)) return;
-    if(!src.some(function(q){ return Math.hypot(q.x - h.x, q.y - h.y) < KNOW.srcApart; })) src.push(h);
+    // (v358, владелец: «пишется двое Underpass, а живой только один») один бегущий враг за sec с шумит в разных местах —
+    // раньше каждое место дальше srcApart считалось новым врагом. Теперь источник «идёт» за звуком: тот же, если до его
+    // последнего звука не дальше srcApart + путь бегом за прошедшее время
+    var q = null;
+    for(var qi = 0; qi < src.length && !q; qi++){ var Q = src[qi]; if(Math.hypot(Q.x - h.x, Q.y - h.y) < KNOW.srcApart + SPEED*Math.abs(h.tick - Q.tick)/TICK_HZ) q = Q; }
+    if(q){ q.x = h.x; q.y = h.y; q.tick = h.tick; } else src.push({x: h.x, y: h.y, tick: h.tick, zone: h.zone});
   });
   return src;
 }
@@ -6259,7 +6293,7 @@ function knowLook(b){
       if(h.type === "moved" && !h.heard){
         // ветка «ушёл туда»: смотрим на зону, где бегущий враг был бы сейчас; своя зона — видна всегда
         vz = knowHypZoneId(h, B); var gc = knowGraph().c[vz]; if(!gc) return;
-        if(vz === knowZoneAt(b.x, b.y)){ hx = b.x; hy = b.y; } else { hx = gc.x; hy = gc.y; }
+        if(vz === knowZoneAt(b.x, b.y, b.z)){ hx = b.x; hy = b.y; } else { hx = gc.x; hy = gc.y; }
         if(h.vz !== vz){ h.vz = vz; h.inView = false; }
       }
       if(hx === undefined) return;
@@ -6326,7 +6360,7 @@ function knowKill(att, vic){
       return;
     }
     if(!att || att.team === b.team) return;
-    var last = {x: vic.x, y: vic.y, zone: knowZoneAt(vic.x, vic.y), tick: tick, stance: "stand", source: "killfeed", vx: 0, vy: 0};
+    var last = {x: vic.x, y: vic.y, zone: knowZoneAt(vic.x, vic.y, vic.z), tick: tick, stance: "stand", source: "killfeed", vx: 0, vy: 0};
     var B = K.enemies[att.id];
     if(B && B.visible) return;
     if(!B) B = knowNewBelief(K, b, att, last);
@@ -6586,7 +6620,9 @@ function teamNotice(b){
     // паузы TEAM.board без звуков в этой и соседних зонах — или когда по слуху их стало больше
     var near = teamNear(s.zone), quietFor = Infinity, told = 0;
     near.forEach(function(z){ var t = V.heardAt[z]; if(t !== undefined){ quietFor = Math.min(quietFor, tick - t.tick); told = Math.max(told, t.n); } });
-    var n = knowSources(K, function(h){ return near.indexOf(h.zone) >= 0; }, KNOW.srcSec).length;
+    // больше, чем их живых (киллфид видят все), — не бывает
+    var n = Math.min(aliveCount(b.team === "CT" ? "T" : "CT"), knowSources(K, function(h){ return near.indexOf(h.zone) >= 0; }, KNOW.srcSec).length);
+    if(n <= 0) continue;
     var again = quietFor < teamSec(TEAM.board);
     V.heardAt[s.zone] = {tick: tick, n: again ? Math.max(told, n) : n};
     if(again && n <= told) continue;
