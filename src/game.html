@@ -4212,6 +4212,9 @@ function ppCheck(b){
   if(b._ppcT && tick - b._ppcT < 5*TICK_HZ) return false;
   var BL = beliefLast.T || {}, best = null, bd = 700;
   for(var id in BL){ var e = BL[id], ob = teamBot(id); if(!ob || !ob.alive || tick - e.tick > 3*TICK_HZ) continue; var d = Math.hypot(e.x-b.x, e.y-b.y); if(d < bd){ bd = d; best = e; } }
+  // (v366) и то, что слышал сам (бросок гранаты, шаги): у magixx бросок флешки с Car был только в его слухе — в знание команды
+  // попадает позже
+  var hs = b.heardSound; if(hs && hs.team && hs.team !== b.team && tick - hs.tick <= 3*TICK_HZ){ var dh = Math.hypot(hs.x-b.x, hs.y-b.y); if(dh < bd){ bd = dh; best = hs; } }
   if(!best) return false;
   var look = {x:best.x, y:best.y};
   var sp = hasLOS(b.x, b.y, look.x, look.y) ? {x:b.x, y:b.y} : pickSpots("ppc"+b.id+Math.round(look.x/40)+","+Math.round(look.y/40), {x:b.x, y:b.y}, 1, {rMax:160, minGap:20, see:[look]})[0];
