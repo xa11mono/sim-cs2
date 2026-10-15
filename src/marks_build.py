@@ -40,7 +40,12 @@ def top_vars(src):
             elif c in '"\'`': q = c
             elif c in '([{': depth += 1
             elif c in ')]}': depth -= 1
-            elif depth == 0 and c == ';': break
+            elif depth == 0 and c == ';':
+                # (v343) вторая `var` в той же строке (`var events = []; var killfeed = [];`) — раньше не попадала в снимок, и при
+                # перемотке киллфид оставался «из будущего»: убийства повторялись
+                mv = re.match(r'[ \t]*var[ \t]+', src[i+1:i+40])
+                if mv: i += 1 + mv.end(); start = True; continue
+                break
             elif depth == 0 and c == '\n' and re.match(r'[A-Za-z_$/(]', src[i+1:i+2] or ' '): break
             elif depth == 0 and c == ',': start = True
             i += 1

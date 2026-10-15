@@ -8963,6 +8963,29 @@ function smokeEdgeTick(){
     }
   });
 }
+// (v343, отметка владельца: zont1x спрыгнул с B Apps в 150 ед. от kyousuke, тот слышал, но остался на посту и не выпикнул)
+// CT услышал приземление ОДНОГО врага рядом (≤ LAND_PUNISH_R ед. карты, свежее LAND_PUNISH_FRESH с), не видит его, HP ≥ 50 —
+// выходит на точку приземления (до LAND_PUNISH_SEC с; увидел — дальше обычный бой). Выходит не каждый: вероятность — агрессия
+// из профиля. Источника с числами нет — все числа проектные (приземлившийся в CS2 первые мгновения стреляет неточно)
+var LAND_PUNISH_R = 250, LAND_PUNISH_FRESH = 1.5, LAND_PUNISH_SEC = 4;
+function ctLandPunish(b){
+  var P = b._lp;
+  if(P && (P.round !== roundNum || tick > P.until || b._sawEnemy)){ b._lp = null; P = null; }
+  if(P){ setPost(b, P.pt, P.pt, true, "repos:land"); return true; }
+  var h = b.heardSound;
+  if(!h || !h.land || h.team === b.team || tick - h.tick > LAND_PUNISH_FRESH*TICK_HZ || b._lpDone === h.tick) return false;
+  b._lpDone = h.tick;
+  if(Math.hypot(h.x-b.x, h.y-b.y) > LAND_PUNISH_R || hasLOS(b.x, b.y, h.x, h.y) || b.hp < 50) return false;
+  // один: другого известного врага рядом с точкой команда не знает (свежая инфа за 3 с; безымянный звук — тот же игрок)
+  var others = (teamIntel.CT && teamIntel.CT.sig || []).filter(function(q){ return q && q.x != null && q.id && q.id !== "?" && q.id !== h.src && tick - q.tick < 3*TICK_HZ && Math.hypot(q.x-h.x, q.y-h.y) < 400; }).length;
+  if(others) return false;
+  var go = hashRand(h.tick*13 + b.id.charCodeAt(b.id.length-1)*7 + roundNum) < (b.prof ? prof(b, "aggr") : 0.5);
+  if(!go) return false;
+  b._lp = {round: roundNum, pt: {x:h.x, y:h.y}, until: tick + LAND_PUNISH_SEC*TICK_HZ};
+  voiceLog("CT", "lp"+b.id+h.tick, b.id, "спрыгнул один — "+calloutName(h.x, h.y)+", выхожу на него");
+  setPost(b, b._lp.pt, b._lp.pt, true, "repos:land");
+  return true;
+}
 function ctBrain(){
   var ct = teamTac.CT;
   var cts = bots.filter(function(b){ return b.team==="CT" && b.alive; });
@@ -9289,6 +9312,7 @@ function ctBrain(){
     }
     if(ct.bombDown && ct.bombWatch.id === b.id){ // (v262, К5) держит выбитую бомбу и при колле
       setPost(b, ct.bombWatch.pt, {x:bomb.x, y:bomb.y}, true, "bombwatch"); return; }
+    if(!planted && !ct.saving && ctLandPunish(b)) return;   // (v343) услышал приземление одного рядом — выходит на него
     if(ct.flank && !ct.flank.dead && ct.flank.id === b.id && !ct.saving && flankPost(b, ct.flank, planted)) return;
     // (35) ретейк 2 на 3+ — AWP не несут в почти проигранный ретейк: снайпер сейвит
     if(BAL.awpSave && planted && b.primary === "AWP" && cts.length === 2 && aliveCount("T") >= 3){
@@ -13507,6 +13531,7 @@ function moveSoundEmit(bot, soundRadius, kind, label){
     var hpF = hearPos(listener, bot.x, bot.y, seed, occS);
     listener.heardSound = hearReal(listener, hpF ? {x:hpF.x, y:hpF.y, tick:tick, team:bot.team, src:bot.id, kind:kind, occl:occS}
                               : {x:bot.x+Math.cos(jang)*jitterMag, y:bot.y+Math.sin(jang)*jitterMag, tick:tick, team:bot.team, src:bot.id, kind:"steps", occl:occS});
+    if(listener.heardSound && /^приземление/.test(label || "")) listener.heardSound.land = true;   // (v343) звук приземления — для ctLandPunish
     if(wasStale) logEvent(listener.id+" услышал "+label+" ("+bot.team+")"+(occS ? " за стеной" : ""));
   });
 }
