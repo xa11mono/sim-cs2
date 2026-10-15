@@ -259,7 +259,7 @@
           <label class="chk" title="Маршруты роумеров и отметки «чисто»"><input type="checkbox" id="chkRoam"> роумеры</label>
           <label class="chk" title="Под каждым игроком: какая у него сейчас задача и почему он смотрит именно туда"><input type="checkbox" id="chkWhy"> почему</label>
           <label class="chk" title="Разбор взгляда выбранного игрока (клик по нему на радаре или по карточке): опасность зон и что о врагах знает его команда — цветом и числами, все варианты взгляда с баллами и множителями, источники (звук, инфа, где видели), и почему выбран именно этот угол"><input type="checkbox" id="chkLookDbg"> разбор взгляда</label>
-          <label class="chk"><input type="checkbox" id="chkOutline" checked> контуры укрытий</label>
+          <label class="chk"><input type="checkbox" id="chkOutline"> контуры укрытий</label>
           <div class="dd-h">Карта</div>
           <label class="chk"><input type="checkbox" id="chkWalls"> стены</label>
           <label class="chk" title="Высота пола (цвет, шкала внизу слева), крытые места (штриховка), лестницы и рампы (стрелки вверх), уступы (толстая линия края). Наведи — подсказка"><input type="checkbox" id="chkHeights"> высоты</label>
@@ -1577,8 +1577,10 @@ function rebuildNav(){
           if(!ok){ navCutPortals++; return; }
           mid = ok; seg = [ok, ok]; navNarrowPortals++;
         }
-        zoneGraph[za.id].push({to:zb.id, mid:mid, z:zb.z, left:seg[0], right:seg[1]});
-        zoneGraph[zb.id].push({to:za.id, mid:mid, z:za.z, left:seg[1], right:seg[0]});
+        // (v320) связь в навмеше бывает односторонней — «только спрыгнуть» (в .nav есть za→zb, нет zb→za): по ней не
+        // залезают обратно (Mirage: окно B Apps). Раньше граф был без направления
+        if((za.conn||[]).indexOf(zb.id) >= 0) zoneGraph[za.id].push({to:zb.id, mid:mid, z:zb.z, left:seg[0], right:seg[1]});
+        if((zb.conn||[]).indexOf(za.id) >= 0) zoneGraph[zb.id].push({to:za.id, mid:mid, z:za.z, left:seg[1], right:seg[0]});
         portalCount++;
       });
     });

@@ -80,16 +80,34 @@ def step_navmesh(name, R):
                 conn.append(b)
         z = sum(c[2] for c in a['corners']) / len(a['corners'])
         areas.append({'id': a['id'], 'z': round(z, 1), 'points': pts, 'conn': conn})
-    txt = '{"areas": [\n' + ',\n'.join(json.dumps(a, separators=(',', ':')) for a in areas) + '\n]}\n'
+    # (v320) лестницы (ladder): участки, которых касается низ и верх одной лестницы, — связь в обе стороны
+    lad = {}
+    for a in N['areas']:
+        for l in a['ladders_below']:
+            lad.setdefault(l, [[], []])[0].append(a['id'])
+        for l in a['ladders_above']:
+            lad.setdefault(l, [[], []])[1].append(a['id'])
+    by = {a['id']: a for a in areas}
+    ladders = []
+    for l, (lo, hi) in sorted(lad.items()):
+        for x in lo:
+            for y in hi:
+                if y not in by[x]['conn']: by[x]['conn'].append(y)
+                if x not in by[y]['conn']: by[y]['conn'].append(x)
+        ladders.append({'id': l, 'below': lo, 'above': hi})
+    txt = ('{"ladders": ' + json.dumps(ladders, separators=(',', ':')) + ',\n"areas": [\n' +
+           ',\n'.join(json.dumps(a, separators=(',', ':')) for a in areas) + '\n]}\n')
     open(mapdir.path(name, 'navmesh.json'), 'w', encoding='utf-8').write(txt)
-    say('  navmesh.json: участков %d (версия .nav %d.%d)' % (len(areas), N['version'], N['sub_version']))
+    one = sum(1 for a in areas for b in a['conn'] if a['id'] not in by[b]['conn'])
+    say('  navmesh.json: участков %d, лестниц %d, связей «только спрыгнуть» %d (версия .nav %d.%d)' % (
+        len(areas), len(ladders), one, N['version'], N['sub_version']))
 
 
 # ---------------------------------------------------------------- walls
-WALL_GROW = 3      # пол навмеша расширяется на 3 ед. карты (7,5 ед. игры): щели между участками — не стены
-WALL_SIMPLIFY = 3.0  # упрощение контура стены, ед. карты (7,5 ед. игры); отрезков ~1000 (Ancient — 589): игра перебирает все
+BRIDGE = 8         # щель между связанными участками до 2×8 ед. карты (40 ед. игры) — пол (уступы, ступени, спуски) — проектное число
+WALL_GAP = 2       # стена отступает от пола на 2 ед. карты (5 ед. игры) — проектное число
+WALL_SIMPLIFY = 1.5  # упрощение контура стены, ед. карты: меньше отступа — стена не заходит на пол
 WALL_MIN = 40      # кусок «не пол» меньше 40 ед.² (дырка в навмеше на ровном месте) — не стена
-WALL_PAD = 40      # стены — до 40 ед. карты за краем навмеша, дальше пустота (её никто не видит и не пересекает)
 WALL_TILE = 1024   # сплошное режется на квадраты (четверти карты), квадрат с островком пола внутри — ещё на 4, …
 
 
@@ -118,11 +136,13 @@ def _area(P):
 
 
 def step_walls(name, R):
-    """Стены = всё, что не пол. Пол — участки навмеша (на любой высоте), расширенные на WALL_GROW. Сплошное — полоса
-    шириной WALL_PAD вокруг пола плюс все закрытые «дыры» внутри (колонны, стены между проходами). Сплошное режется на
-    четверти карты (и мельче — только где внутри куска островок пола), чтобы каждый кусок был простым многоугольником
-    без дыр (игра считает стену многоугольником). Куски внешнего контура — большие (> 60000 ед.², как у Ancient):
-    tools/cover_bake.py не считает их укрытиями."""
+    """Стены = всё, что не пол (v320). Пол — участки навмеша на любой высоте плюс «перемычки» там, где навмеш связывает
+    участки через щель (спрыгнуть, запрыгнуть, лестница): стена не должна перекрывать связь. Сплошное — всё остальное до
+    края карты (на радаре это чёрное), отступив от пола на WALL_GAP; упрощение контура меньше отступа, поэтому стена
+    нигде не заходит на пол. Сплошное режется на четверти карты (и мельче — только где внутри куска островок пола),
+    чтобы каждый кусок был простым многоугольником без дыр (игра считает стену многоугольником). Куски внешнего
+    контура — большие (> 60000 ед.², как у Ancient): tools/cover_bake.py не считает их укрытиями.
+    После сборки — проверка связности как в игре (участок в стене, связь сквозь стену): печатает пропавшие связи."""
     import numpy as np
     from PIL import Image, ImageDraw
     from scipy import ndimage
@@ -130,50 +150,148 @@ def step_walls(name, R):
     S = 2048
     im = Image.new('L', (S, S), 0)
     d = ImageDraw.Draw(im)
-    for a in mapdir.load_nav(name):
+    nav = mapdir.load_nav(name)
+    by = {a['id']: a for a in nav}
+    for a in nav:
         d.polygon([(p['x'], p['y']) for p in a['points']], fill=255, outline=255)
-    floor = np.asarray(im) > 0
-    floor = ndimage.binary_dilation(floor, iterations=WALL_GROW)
-    floor = ndimage.binary_closing(floor, iterations=2)
-    near = ndimage.binary_dilation(floor, iterations=WALL_PAD)
-    lab, n = ndimage.label(~floor)
-    outside = lab == lab[0, 0]
-    solid = (~floor) & (near | ~outside)
-    # мелкие «не пол» (дырка в навмеше посреди площадки) — не стены
-    lab, n = ndimage.label(solid)
-    sizes = ndimage.sum(solid, lab, range(1, n + 1))
-    for i, s in enumerate(sizes):
-        if s < WALL_MIN:
-            solid[lab == i + 1] = False
-    polys = []
+    # перемычки: щель между связанными участками (уступ, ступенька, спуск, лестница) — пол: пересечение обоих участков,
+    # расширенных на BRIDGE ед., внутри оболочки пары — ровно полоса между ними, ничего лишнего
+    from scipy.spatial import ConvexHull
+    BR = np.zeros((S, S), bool)
+    def amask(P, x0, y0, w, h):
+        m = Image.new('L', (w, h), 0)
+        ImageDraw.Draw(m).polygon([(x - x0, y - y0) for x, y in P], fill=1, outline=1)
+        return np.asarray(m).astype(bool)
+    for a in nav:
+        for bid in a['conn']:
+            b = by.get(bid)
+            if not b or bid < a['id'] and a['id'] in b['conn']:
+                continue
+            PA = [(p['x'], p['y']) for p in a['points']]; PB = [(p['x'], p['y']) for p in b['points']]
+            xs = [p[0] for p in PA + PB]; ys = [p[1] for p in PA + PB]
+            x0, y0 = max(0, int(min(xs)) - BRIDGE - 2), max(0, int(min(ys)) - BRIDGE - 2)
+            x1, y1 = min(S, int(max(xs)) + BRIDGE + 3), min(S, int(max(ys)) + BRIDGE + 3)
+            w, h = x1 - x0, y1 - y0
+            ma = ndimage.binary_dilation(amask(PA, x0, y0, w, h), iterations=BRIDGE)
+            mb = ndimage.binary_dilation(amask(PB, x0, y0, w, h), iterations=BRIDGE)
+            try:      # и только внутри оболочки пары — линза не вылезает наружу за край пола (зубцы на стене)
+                H = ConvexHull(PA + PB)
+                hm = amask([(PA + PB)[i] for i in H.vertices], x0, y0, w, h)
+            except Exception:
+                hm = np.ones((h, w), bool)
+            BR[y0:y1, x0:x1] |= ma & mb & hm
+    base = np.asarray(im) > 0
+    prev_cut = None
+    for attempt in range(4):
+        floor = base | BR
+        floor = ndimage.binary_closing(floor, iterations=2)     # щели между участками меньше 2 ед. — пол
+        solid = ~ndimage.binary_dilation(floor, iterations=WALL_GAP)
+        # мелкие «не пол» (дырка в навмеше посреди площадки) — не стены
+        lab, n = ndimage.label(solid)
+        sizes = ndimage.sum(solid, lab, range(1, n + 1))
+        for i, s in enumerate(sizes):
+            if s < WALL_MIN:
+                solid[lab == i + 1] = False
+        polys = []
 
-    def tile(tx, ty, T):
-        """квадрат T×T: куски сплошного без дыр — стены; кусок с дырой (островок пола) — квадрат делится на 4"""
-        z = np.zeros((T + 2, T + 2), dtype=float)
-        z[1:-1, 1:-1] = solid[ty:ty + T, tx:tx + T]
-        if not z.any():
-            return
-        pts_offs = list(zip(*contourpy.contour_generator(z=z, line_type='SeparateCode', fill_type='OuterOffset').filled(0.5, 2.0)))
-        if any(len(o) > 2 for _, o in pts_offs) and T > 32:
-            h = T // 2
-            for dy in (0, h):
-                for dx in (0, h):
-                    tile(tx + dx, ty + dy, h)
-            return
-        for pts, offs in pts_offs:
-            if len(offs) > 2:
-                say('  ! островок пола внутри стены у (%.0f, %.0f) — остаётся стеной' % (pts[offs[1]][0] + tx, pts[offs[1]][1] + ty))
-            P = [(min(S, max(0, float(x) - 1 + tx)), min(S, max(0, float(y) - 1 + ty))) for x, y in pts[offs[0]:offs[1]][:-1]]
-            P = _simplify(P, WALL_SIMPLIFY)
-            if len(P) >= 3 and _area(P) >= WALL_MIN:
-                polys.append([[round(x, 1), round(y, 1)] for x, y in P])
+        def tile(tx, ty, T):
+            """квадрат T×T: куски сплошного без дыр — стены; кусок с дырой (островок пола) — квадрат делится на 4"""
+            z = np.zeros((T + 2, T + 2), dtype=float)
+            z[1:-1, 1:-1] = solid[ty:ty + T, tx:tx + T]
+            if not z.any():
+                return
+            pts_offs = list(zip(*contourpy.contour_generator(z=z, line_type='SeparateCode', fill_type='OuterOffset').filled(0.5, 2.0)))
+            if any(len(o) > 2 for _, o in pts_offs) and T > 4:
+                h = T // 2
+                for dy in (0, h):
+                    for dx in (0, h):
+                        tile(tx + dx, ty + dy, h)
+                return
+            for pts, offs in pts_offs:
+                if len(offs) > 2:
+                    say('  ! островок пола внутри стены у (%.0f, %.0f) — остаётся стеной' % (pts[offs[1]][0] + tx, pts[offs[1]][1] + ty))
+                P = [(min(S, max(0, float(x) - 1 + tx)), min(S, max(0, float(y) - 1 + ty))) for x, y in pts[offs[0]:offs[1]][:-1]]
+                P = _simplify(P, WALL_SIMPLIFY)
+                if len(P) >= 3 and _area(P) >= WALL_MIN:
+                    polys.append([[round(x, 1), round(y, 1)] for x, y in P])
 
-    for ty in range(0, S, WALL_TILE):
-        for tx in range(0, S, WALL_TILE):
-            tile(tx, ty, WALL_TILE)
-    txt = '{\n"polys": ' + json.dumps(polys, separators=(',', ':')) + '\n}\n'
-    open(mapdir.path(name, 'walls.json'), 'w', encoding='utf-8').write(txt)
-    say('  walls.json: стен %d, отрезков %d' % (len(polys), sum(len(p) for p in polys)))
+        for ty in range(0, S, WALL_TILE):
+            for tx in range(0, S, WALL_TILE):
+                tile(tx, ty, WALL_TILE)
+        txt = '{\n"polys": ' + json.dumps(polys, separators=(',', ':')) + '\n}\n'
+        open(mapdir.path(name, 'walls.json'), 'w', encoding='utf-8').write(txt)
+        say('  walls.json: стен %d, отрезков %d' % (len(polys), sum(len(p) for p in polys)))
+        blocked, cut = check_links(name, polys)
+        if not cut or set(cut) == prev_cut:
+            if cut:
+                say('    оставшиеся связи идут через препятствие (ящик, тележка, перила, окно) — стена там настоящая')
+            break
+        prev_cut = set(cut)
+        # добивка: пары, чья связь всё ещё упирается в стену, — перемычка без ограничения оболочкой
+        for aid, bid, _, _ in cut:
+            PA = [(p['x'], p['y']) for p in by[aid]['points']]; PB = [(p['x'], p['y']) for p in by[bid]['points']]
+            xs = [p[0] for p in PA + PB]; ys = [p[1] for p in PA + PB]
+            x0, y0 = max(0, int(min(xs)) - BRIDGE - 2), max(0, int(min(ys)) - BRIDGE - 2)
+            x1, y1 = min(S, int(max(xs)) + BRIDGE + 3), min(S, int(max(ys)) + BRIDGE + 3)
+            BR[y0:y1, x0:x1] |= (ndimage.binary_dilation(amask(PA, x0, y0, x1 - x0, y1 - y0), iterations=BRIDGE) &
+                                 ndimage.binary_dilation(amask(PB, x0, y0, x1 - x0, y1 - y0), iterations=BRIDGE))
+        say('    добивка %d: перемычек без оболочки %d' % (attempt + 1, len(cut)))
+
+
+def check_links(name, polys):
+    """связность как в игре (rebuildNav): участок выкидывается, если ≥ 60 % его точек (центр + углы, сдвинутые к центру
+    на 35 %) внутри стены; связь — если отрезок «чуть внутри A → середина стыка → чуть внутри B» задевает стену"""
+    import numpy as np
+    from PIL import Image, ImageDraw
+    m = Image.new('L', (2048, 2048), 0)
+    d = ImageDraw.Draw(m)
+    for P in polys:
+        d.polygon([tuple(p) for p in P], fill=1)
+    W = np.asarray(m).astype(bool)
+    inw = lambda x, y: 0 <= int(x) < 2048 and 0 <= int(y) < 2048 and W[int(y), int(x)]
+    nav = mapdir.load_nav(name)
+    by = {a['id']: a for a in nav}
+    cen = {a['id']: (sum(p['x'] for p in a['points']) / len(a['points']), sum(p['y'] for p in a['points']) / len(a['points'])) for a in nav}
+    blocked = set()
+    for a in nav:
+        c = cen[a['id']]
+        pts = [c] + [(p['x'] + (c[0] - p['x']) * 0.35, p['y'] + (c[1] - p['y']) * 0.35) for p in a['points']]
+        if sum(inw(*q) for q in pts) >= max(1, -(-len(pts) * 6 // 10)):
+            blocked.add(a['id'])
+    cut = []
+    for a in nav:
+        for bid in a['conn']:
+            if bid not in by or bid < a['id'] and a['id'] in by[bid]['conn']:
+                continue
+            b = by[bid]
+            # стык: общие углы (как общий край у игры) — пробуем середину и точки вдоль края; нет общего края — ближайшие углы
+            sh = [(p['x'], p['y']) for p in a['points'] if any((p['x'] - q['x']) ** 2 + (p['y'] - q['y']) ** 2 < 1 for q in b['points'])]
+            if len(sh) >= 2:
+                (x0, y0), (x1, y1) = max(((u, v) for u in sh for v in sh), key=lambda t: (t[0][0] - t[1][0]) ** 2 + (t[0][1] - t[1][1]) ** 2)
+                mids = [(x0 + (x1 - x0) * t, y0 + (y1 - y0) * t) for t in (0.5, 0.12, 0.25, 0.38, 0.62, 0.75, 0.88)]
+            else:
+                pa, pb = min(((p, q) for p in a['points'] for q in b['points']),
+                             key=lambda t: (t[0]['x'] - t[1]['x']) ** 2 + (t[0]['y'] - t[1]['y']) ** 2)
+                mids = [((pa['x'] + pb['x']) / 2, (pa['y'] + pb['y']) / 2)]
+            hit = True
+            for mid in mids:
+                ends = []
+                for c in (cen[a['id']], cen[bid]):
+                    L = max(1e-6, ((c[0] - mid[0]) ** 2 + (c[1] - mid[1]) ** 2) ** 0.5)
+                    e = min(14, L)
+                    ends.append((mid[0] + (c[0] - mid[0]) / L * e, mid[1] + (c[1] - mid[1]) / L * e))
+                if not any(inw(ends[0][0] + (mid[0] - ends[0][0]) * t, ends[0][1] + (mid[1] - ends[0][1]) * t) or
+                           inw(mid[0] + (ends[1][0] - mid[0]) * t, mid[1] + (ends[1][1] - mid[1]) * t) for t in [i / 10 for i in range(11)]):
+                    hit = False
+                    break
+            if hit:
+                cut.append((a['id'], bid, round(mids[0][0]), round(mids[0][1])))
+    say('  проверка связности: участков в стене %d, связей сквозь стену %d' % (len(blocked), len(cut)))
+    for x in sorted(blocked)[:10]:
+        say('    ! участок %d в стене (около %.0f, %.0f)' % (x, cen[x][0], cen[x][1]))
+    for x in cut[:10]:
+        say('    ! связь %d–%d сквозь стену (около %d, %d)' % x)
+    return blocked, cut
 
 
 # ---------------------------------------------------------------- шаги через bake-скрипты
