@@ -245,7 +245,7 @@
   <div id="topbar">
     <div class="tb-id">
       <h1>Mirage</h1>
-      <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 359, 16.10</div>
+      <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 360, 16.10</div>
     </div>
     <div class="tb-group" id="tbMatch">
       <button id="btnPause">Пауза</button>
@@ -30291,6 +30291,24 @@ function obsScore(b){
   if(b.id === OBS.prev && performance.now() < OBS.prevUntil && !b._sawEnemy) sc *= 0.5;   // (v305) только что показывали — не сразу обратно
   return sc;
 }
+var OBS_BOUNDS = null;
+function obsFullView(r){
+  if(!OBS_BOUNDS){ var x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+    NAVAREAS.forEach(function(a){ a.points.forEach(function(p){ if(p.x < x0) x0 = p.x; if(p.x > x1) x1 = p.x; if(p.y < y0) y0 = p.y; if(p.y > y1) y1 = p.y; }); });
+    OBS_BOUNDS = {x0: x0-30, y0: y0-30, x1: x1+30, y1: y1+30}; }
+  var B = OBS_BOUNDS, rr = function(id){ var e = document.getElementById(id); if(!e || !e.offsetParent) return null; return e.getBoundingClientRect(); };
+  // свободный прямоугольник в координатах холста: слева/справа — панели игроков, сверху — табло (если они видны)
+  var L = 0, R = r.width, T = 0, Bt = r.height, pT = rr("plT"), pC = rr("plCT"), sb = rr("scoreboard");
+  if(pT && pT.right > r.left && pT.right < r.left + r.width/2) L = pT.right - r.left + 8;
+  if(pC && pC.left < r.right && pC.left > r.left + r.width/2) R = pC.left - r.left - 8;
+  if(sb && sb.bottom > r.top) T = Math.min(r.height/3, sb.bottom - r.top + 4);
+  if(R - L < r.width*0.4){ L = 0; R = r.width; }   // узкий экран — панели поверх карты, берём всю ширину
+  var sc = Math.min((R - L)/(B.x1 - B.x0), (Bt - T)/(B.y1 - B.y0));
+  var cx = (B.x0 + B.x1)/2, cy = (B.y0 + B.y1)/2;
+  // центр карты — в центре свободного прямоугольника (камера держит центр экрана): сдвиг в координатах карты
+  var offX = ((L + R)/2 - r.width/2)/sc, offY = ((T + Bt)/2 - r.height/2)/sc;
+  return {x: cx - offX, y: cy - offY, sc: sc};
+}
 function obsFrame(ts){
   var btn = document.getElementById("btnObs"); if(btn) btn.className = OBS.on ? "on" : "";
   var btnM = document.getElementById("btnObsMap"); if(btnM) btnM.className = OBS.on && OBS.full ? "on" : "";
@@ -30300,7 +30318,8 @@ function obsFrame(ts){
   var manual = ts < OBS.manualUntil;
   var tx = 1024, ty = 1024, tsc = fitSc;
   // (v359, владелец: «обсервер мог показывать всю ситуацию, всю карту») режим «Вся карта»: камера на всей карте, игрок не выбирается
-  if(OBS.full && !manual){ OBS.tr = null; }
+  // масштаб — чтобы вся карта (границы навмеша) поместилась в свободной части экрана: между панелями игроков, ниже табло
+  if(OBS.full && !manual){ OBS.tr = null; var FV = obsFullView(r); tx = FV.x; ty = FV.y; tsc = FV.sc; }
   else if((roundState === "live" || WARM.on) && !manual){
     var cur = OBS.id && bots.filter(function(o){ return o.id === OBS.id; })[0];
     if(cur && !cur.alive && !OBS.deadAt) OBS.deadAt = ts;
