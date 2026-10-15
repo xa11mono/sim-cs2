@@ -10,6 +10,7 @@
 function mkSnapList(){
   if(MK.snap) return MK.snap;
   MK.snap = __SNAP.filter(function(e){
+    if(/^SND/.test(e[0])) return false;   // (v324) звук — только показ, в нём AudioContext (не копируется) — в снимок не идёт
     try{ var v = e[1]();
       if(typeof v === "function") return false;
       if(v && typeof v === "object" && (v.nodeType || v instanceof CanvasRenderingContext2D || v instanceof HTMLImageElement)) return false;

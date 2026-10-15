@@ -4175,6 +4175,8 @@ function tBrain(){
     if(aliveT >= needAlive && stackRead && iglReads(tt, "st") && iglTake(tt, tick)){
       tt.rebound = true;
       logEvent("IGL: на "+tt.site+" стак (~"+Math.round(here)+"), перепривязка → "+other);
+      // (v324) перекол говорится в войс — раньше был только в консоли, и в войсе потом звучало «бомба на B», хотя все шли на A
+      voiceLog("T", "reb"+other+"st", "IGL", "ПЕРЕКОЛЛ "+tt.site+" → "+other+": на "+tt.site+" стак (~"+Math.round(here)+(deathsHere ? ", минус там" : "")+") — все на "+other+"!");
       // перекол не значит "сразу выход": группа переходит и выходит примерно по
       // исходному таймингу (минимум через 8с, чтобы успеть дойти)
       var exT = tt.execTick; tSetSite(tt, other); tt.phase = "setup"; tt.execTick = Math.max(tick + 8*TICK_HZ, exT - 8*TICK_HZ);
@@ -17158,7 +17160,7 @@ var SND_R = {step:440, shot:1400, awp:2000, nade:1100, bomb:900};
 function sndInit(){
   if(SND.ctx) return;
   var C = window.AudioContext || window.webkitAudioContext; if(!C) return;
-  SND.ctx = new C(); SND.master = SND.ctx.createGain(); SND.master.gain.value = 0.5; SND.master.connect(SND.ctx.destination);
+  SND.ctx = new C(); SND.master = SND.ctx.createGain(); SND.master.gain.value = 0.85;   // (v324) громче по просьбе владельца SND.master.connect(SND.ctx.destination);
   var len = SND.ctx.sampleRate, buf = SND.ctx.createBuffer(1, len, SND.ctx.sampleRate), d = buf.getChannelData(0), sd = 12345;
   for(var i=0;i<len;i++){ sd = (sd*1103515245 + 12345) & 0x7fffffff; d[i] = sd/0x3fffffff - 1; }
   SND.noise = buf;
