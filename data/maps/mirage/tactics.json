@@ -23,7 +23,9 @@
       "T Roof",
       "T Ramp",
       "Tetris"
-     ]
+     ],
+     "stage": "T Ramp",
+     "look": "Tetris"
     },
     {
      "roles": [
@@ -83,7 +85,9 @@
       "B Stairs",
       "Stove",
       "B Apps"
-     ]
+     ],
+     "stage": "Stove",
+     "look": "B Apps"
     }
    ]
   },
@@ -109,7 +113,9 @@
      "via": [
       "Pillars",
       "Palace"
-     ]
+     ],
+     "stage": "Pillars",
+     "look": "Palace"
     },
     {
      "roles": [
@@ -147,7 +153,9 @@
      "via": [
       "Pillars",
       "Palace"
-     ]
+     ],
+     "stage": "Pillars",
+     "look": "Palace"
     },
     {
      "roles": [
@@ -192,7 +200,9 @@
       "B Stairs",
       "Stove",
       "B Apps"
-     ]
+     ],
+     "stage": "Stove",
+     "look": "B Apps"
     }
    ]
   },
@@ -219,7 +229,9 @@
       "T Roof",
       "T Ramp",
       "Tetris"
-     ]
+     ],
+     "stage": "T Ramp",
+     "look": "Tetris"
     }
    ]
   },
@@ -248,7 +260,9 @@
       "B Stairs",
       "Stove",
       "B Apps"
-     ]
+     ],
+     "stage": "Stove",
+     "look": "B Apps"
     }
    ]
   },
@@ -274,22 +288,22 @@
  "pos": {
   "A": {
    "ctHold": [
-    "Palace",
-    "Shadow",
     "Ticket",
+    "Shadow",
+    "Jungle",
     "Triple Box",
-    "Default",
-    "T Ramp",
-    "Firebox",
     "Stairs",
-    "Sandwich"
+    "Default",
+    "Sandwich",
+    "Trash A",
+    "Firebox"
    ],
    "ctSecond": [
     "Shadow",
-    "Ticket",
+    "Jungle",
     "Triple Box",
-    "Default",
-    "T Ramp"
+    "Stairs",
+    "Default"
    ],
    "ctRetake": [
     "Stairs",
@@ -299,11 +313,11 @@
    ],
    "tClear": [
     "Default",
-    "Palace",
-    "Shadow",
+    "A Site",
+    "Palms",
     "Ticket",
-    "Triple Box",
-    "T Ramp"
+    "Shadow",
+    "Jungle"
    ],
    "tPost": [
     "T Ramp",
@@ -319,27 +333,36 @@
   },
   "B": {
    "ctHold": [
-    "B Apps",
     "Car",
+    "Bench",
     "Short",
-    "Stove"
+    "Window B",
+    "B Site",
+    "Market",
+    "Trash B",
+    "Corner",
+    "E Box"
    ],
    "ctSecond": [
-    "Car",
+    "Bench",
     "Short",
-    "Stove"
+    "Window B",
+    "B Site",
+    "Market"
    ],
    "ctRetake": [
     "Market",
-    "Pillars",
-    "CT Stairs",
-    "Door"
+    "Door",
+    "Short",
+    "Vent"
    ],
    "tClear": [
-    "B Apps",
+    "B Site",
     "Car",
+    "Bench",
     "Short",
-    "Stove"
+    "Window B",
+    "Market"
    ],
    "tPost": [
     "Bench",
@@ -355,16 +378,16 @@
   },
   "M": {
    "ctHold": [
-    "Top Mid",
-    "Underpass",
     "Window",
-    "Short"
+    "Connector",
+    "Short",
+    "Underpass"
    ],
    "tHold": [
-    "TMID",
-    "Window",
     "Top Mid",
-    "Connector"
+    "Mid Boxes",
+    "Water",
+    "Ladder Room"
    ]
   }
  },
@@ -373,47 +396,45 @@
    "id": "ctStd_221",
    "name": "Расстановка 2-2-1 (A-мид-B)",
    "rot": "212",
-   "w": 1.38,
+   "w": 1.34,
    "roles": {
     "anchorA": {
      "pos": [
       "Shadow",
-      "Ticket",
-      "T Ramp"
+      "Default",
+      "Triple Box"
      ],
-     "look": "Shadow"
+     "look": "Palace"
     },
     "mid": {
      "pos": [
       "Underpass",
       "Short",
-      "Boost"
+      "Connector"
      ],
-     "look": "Boost"
+     "look": "Top Mid"
     },
     "anchorB": {
      "pos": [
-      "B Apps",
-      "Stove",
       "Car"
      ],
      "look": "B Apps"
     },
     "rotator": {
      "pos": [
-      "Palace",
       "Ticket",
-      "T Ramp"
+      "Default",
+      "Triple Box"
      ],
-     "look": "Palace"
+     "look": "T Ramp"
     },
     "roamer": {
      "pos": [
       "Window",
       "Short",
-      "Boost"
+      "Connector"
      ],
-     "look": "Boost"
+     "look": "Top Mid"
     }
    }
   },
@@ -421,44 +442,41 @@
    "id": "ctRot_131",
    "name": "Расстановка 1-3-1 (A-мид-B)",
    "rot": "111",
-   "w": 1.0,
+   "w": 0.99,
    "roles": {
     "anchorA": {
      "pos": [
       "Ticket",
-      "Palace",
-      "Firebox"
+      "Shadow",
+      "Triple Box"
      ],
      "look": "T Ramp"
     },
     "mid": {
      "pos": [
       "Connector",
-      "Underpass",
-      "Ladder Room"
+      "Underpass"
      ],
-     "look": "Connector"
+     "look": "Top Mid"
     },
     "anchorB": {
      "pos": [
-      "B Apps",
       "Car"
      ],
      "look": "B Apps"
     },
     "rotator": {
      "pos": [
-      "Window",
       "Underpass",
-      "Ladder Room"
+      "Connector"
      ],
-     "look": "Boost"
+     "look": "Top Mid"
     },
     "roamer": {
      "pos": [
-      "Top Mid",
-      "Underpass",
-      "Ladder Room"
+      "Window",
+      "Connector",
+      "Underpass"
      ],
      "look": "Top Mid"
     }
@@ -468,46 +486,45 @@
    "id": "ctStack_311",
    "name": "Расстановка 3-1-1 (A-мид-B)",
    "rot": "stack",
-   "w": 0.99,
+   "w": 0.92,
    "roles": {
     "anchorA": {
      "pos": [
-      "Shadow",
+      "Triple Box",
       "Default",
-      "Sandwich"
+      "Shadow"
      ],
-     "look": "Shadow"
+     "look": "Palace"
     },
     "mid": {
      "pos": [
       "Short",
-      "Underpass",
-      "Mid Boxes"
+      "Window",
+      "Underpass"
      ],
-     "look": "Short"
+     "look": "Top Mid"
     },
     "anchorB": {
      "pos": [
-      "B Apps",
       "Car"
      ],
      "look": "B Apps"
     },
     "rotator": {
      "pos": [
-      "Ticket",
-      "Default",
-      "Sandwich"
-     ],
-     "look": "T Ramp"
-    },
-    "roamer": {
-     "pos": [
-      "Palace",
+      "Shadow",
       "Default",
       "Sandwich"
      ],
      "look": "Palace"
+    },
+    "roamer": {
+     "pos": [
+      "Ticket",
+      "Default",
+      "Shadow"
+     ],
+     "look": "T Ramp"
     }
    },
    "stack": "A"
@@ -516,28 +533,28 @@
    "id": "ctStd_212",
    "name": "Расстановка 2-1-2 (A-мид-B)",
    "rot": "212",
-   "w": 0.64,
+   "w": 0.74,
    "roles": {
     "anchorA": {
      "pos": [
       "Shadow",
       "Triple Box",
-      "T Ramp"
+      "Default"
      ],
-     "look": "Shadow"
+     "look": "Palace"
     },
     "mid": {
      "pos": [
       "Window",
-      "Top Mid",
-      "Short"
+      "Short",
+      "Underpass"
      ],
-     "look": "Boost"
+     "look": "Top Mid"
     },
     "anchorB": {
      "pos": [
       "Car",
-      "B Apps"
+      "Market"
      ],
      "look": "B Apps"
     },
@@ -545,15 +562,16 @@
      "pos": [
       "Ticket",
       "Triple Box",
-      "T Ramp"
+      "Shadow"
      ],
      "look": "T Ramp"
     },
     "roamer": {
      "pos": [
-      "B Apps"
+      "Market",
+      "Car"
      ],
-     "look": "B Site"
+     "look": "B Apps"
     }
    }
   }
@@ -605,51 +623,74 @@
  "shiftTo": {
   "A": [
    {
-    "pos": "Window",
-    "look": "Boost"
-   },
-   {
     "pos": "Top Mid",
     "look": "Connector"
+   },
+   {
+    "pos": "Underpass",
+    "look": "Boost"
    }
   ],
   "B": [
    {
-    "pos": "Window",
-    "look": "Boost"
-   },
-   {
     "pos": "Top Mid",
     "look": "Connector"
+   },
+   {
+    "pos": "Underpass",
+    "look": "Boost"
    }
   ]
  },
  "proRole": {
   "anchorA": [
-   "Palace",
-   "Shadow",
    "Ticket",
+   "Shadow",
+   "Jungle",
    "Triple Box",
-   "Default",
-   "T Ramp",
-   "Firebox",
    "Stairs",
-   "Sandwich"
+   "Default",
+   "Sandwich",
+   "Trash A",
+   "Firebox"
   ],
   "anchorB": [
-   "B Apps",
    "Car",
+   "Bench",
    "Short",
-   "Stove"
+   "Window B",
+   "B Site",
+   "Market",
+   "Trash B",
+   "Corner",
+   "E Box"
   ],
   "rot212": [
    "Vent"
   ],
   "roam212": [
-   "Top Mid",
-   "Underpass",
-   "Window"
+   "Window",
+   "Connector",
+   "Short"
   ]
  },
- "plays": {}
+ "plays": {},
+ "geoMid": {
+  "ct": {
+   "x": 811.0,
+   "y": 977.0
+  },
+  "ctLook": {
+   "x": 1101.2,
+   "y": 820.5
+  },
+  "t": {
+   "x": 1362.5,
+   "y": 772.9
+  },
+  "tLook": {
+   "x": 1142.6,
+   "y": 1013.0
+  }
+ }
 }

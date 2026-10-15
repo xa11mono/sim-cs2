@@ -1794,6 +1794,11 @@ function hasLOS(x1,y1,x2,y2){
 // Для целей взвешивания риска в слое 4/6 этого достаточно; если понадобится
 // точнее — берём несколько сэмпл-точек на зону вместо одной.
 function zoneMapCentroid(z){
+  // (v319) середина зоны из набора карты (zones.centers — точка внутри зоны на её этаже, tools/zones_bake.py): у изогнутой
+  // зоны среднее углов вылетает наружу и на чужой этаж (Mirage: Ladder Room → Underpass). Нет поля или зону перерисовали
+  // так, что точка вне неё, — как раньше, среднее углов (у Ancient поля нет)
+  var C = MAP.zones.centers && MAP.zones.centers[z.id];
+  if(C){ var q = zlPt(C.x, C.y); if(pointInPoly(q.x, q.y, z.points)) return q; }
   var cx=0, cy=0;
   z.points.forEach(function(p){ cx+=p.x; cy+=p.y; });
   return { x: cx/z.points.length, y: cy/z.points.length };
@@ -2531,6 +2536,10 @@ function buildSites(){
   var mp = pathPts(CT_SPAWN.x, CT_SPAWN.y, T_SPAWN.x, T_SPAWN.y);
   GEO.ctMid = walk(pointAtFrac(mp, 0.40));  GEO.ctMidLook = walk(pointAtFrac(mp, 0.62));
   GEO.tMid  = walk(pointAtFrac(mp, 0.66));  GEO.tMidLook  = walk(pointAtFrac(mp, 0.45));
+  // (v319) мид из набора карты (tactics.geoMid — где мидер CT и T в миде стоят чаще всего по демкам и куда смотрят):
+  // на Mirage путь между спавнами идёт через A, и «мид» по нему оказывался на сайте A (Default) и на T Roof. Нет поля — как раньше
+  var GM = MAP.tactics.geoMid;
+  if(GM){ GEO.ctMid = walk(GM.ct); GEO.ctMidLook = walk(GM.ctLook); GEO.tMid = walk(GM.t); GEO.tMidLook = walk(GM.tLook); }
   var ab = pathPts(SITES.A.x, SITES.A.y, SITES.B.x, SITES.B.y);
   GEO.rotator = walk(pointAtFrac(ab, 0.5));
 }

@@ -340,7 +340,9 @@ def load_rounds():
         t = t[keep].assign(ri=ri[keep]).sort_values(['ri', 'steamid', 'tick'], kind='stable')
         tick, sid, sd = t.tick.values, t.steamid.values, t.side.values
         x, y, z, yaw, rv = t.x.values, t.y.values, t.Z.values, t.yaw.values, t.ri.values
-        side_of = dict(zip(sid, sd))
+        # (v319, баг) сторона — по игроку И раунду: после половины матча игроки меняются сторонами; раньше бралась одна
+        # сторона на всю демку (последняя), и стоянки первой половины записывались чужой стороне
+        side_of = dict(zip(zip(sid.tolist(), [rounds[i]['rid'] for i in rv]), sd))
         alive = t.groupby(['tick', 'side']).size().to_dict()   # живых в команде на тике
         hs = holds_vec(tick, sid, x, y, z, yaw, rv, rounds)
         dth = event(demo, 'player_death')
@@ -350,7 +352,7 @@ def load_rounds():
                 if us == us and ux == ux:
                     deaths[int(us)].append((int(tk),) + tr(ux, uy))
         for h in hs:
-            h['side'] = side_of[h['sid']]
+            h['side'] = side_of[(h['sid'], h['rid'])]
             h['died'] = any(h['tick0'] <= tk <= h['tick0'] + DANGER_SEC * TICK and math.hypot(dx - h['x'], dy - h['y']) <= DANGER_R
                             for tk, dx, dy in deaths.get(h['sid'], ()))
             h['late'] = h['s0'] > LATE_SEC or alive.get((h['tick0'], h['side']), 5) < LATE_ALIVE

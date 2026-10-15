@@ -12,6 +12,8 @@ python3 tools/zones_bake.py --map <карта> [--report]
   * зона = все её участки, нарисованные на картинке 2048×2048 (верхний этаж поверх нижнего), внешний контур самого
     большого куска, упрощённый до ~4 ед. карты; оторванные кусочки отдаются соседней зоне, с которой больше связей;
   * переходы (portals) — пары зон, у участков которых есть связь в навмеше; stairs — если перепад высот > 40 ед.;
+  * середина зоны (centers) — самая глубокая точка внутри зоны, где под/над ней нет другого этажа (игра берёт её вместо
+    среднего углов: у изогнутой зоны оно вылетает наружу и на чужой этаж);
   * роли зон (name): CTspawn, Tspawn, Asite, Bsite — у подписей из recipe.roles; точки (points) — середины этих подписей.
   * названия (names) — подписи радара; synonyms пустые (в источнике вариантов нет).
 Спорные места печатает --report (и map_build): зона дальше 260 ед. карты от своей подписи, зоны-соседи с одним
@@ -142,7 +144,21 @@ def main():
             break
 
     img = paint(own)
-    zones, names, roles = [], {}, R.get('roles', {})
+    # где пол в два этажа: пиксели, над/под которыми есть участок с другой высотой (середина зоны туда не ставится)
+    floors = np.zeros((2048, 2048), np.int8)
+    zlow = np.full((2048, 2048), np.inf, np.float32); zhigh = np.full((2048, 2048), -np.inf, np.float32)
+    for a in A.values():
+        xs = [p[0] for p in a['P']]; ys = [p[1] for p in a['P']]
+        x0, y0 = max(0, int(min(xs))), max(0, int(min(ys))); x1, y1 = min(2047, int(max(xs)) + 1), min(2047, int(max(ys)) + 1)
+        if x1 < x0 or y1 < y0:
+            continue
+        sub = Image.new('L', (x1 - x0 + 1, y1 - y0 + 1), 0)
+        ImageDraw.Draw(sub).polygon([(p[0] - x0, p[1] - y0) for p in a['P']], fill=1, outline=1)
+        m = np.asarray(sub).astype(bool)
+        zl = zlow[y0:y1 + 1, x0:x1 + 1]; zh = zhigh[y0:y1 + 1, x0:x1 + 1]
+        zl[m] = np.minimum(zl[m], a['z']); zh[m] = np.maximum(zh[m], a['z'])
+    two = (zhigh - zlow) > 60     # «уровень над уровнем» — разница больше роста (как OVER_DZ в heights_bake)
+    zones, names, roles, centers = [], {}, R.get('roles', {}), {}
     zid = {}
     for k, c in enumerate(calls):
         parts = contours(img == k)
@@ -151,6 +167,13 @@ def main():
             continue
         P = _simplify(parts[0][1], SIMPLIFY)
         zid[k] = 'zone%d' % (k + 1)
+        # середина зоны — самая глубокая точка внутри неё (дальше всего от края), по возможности на одном этаже
+        own_m = (img == k) & parts[0][2]
+        one = own_m & ~two
+        dt = ndimage.distance_transform_edt(one if one.sum() >= 0.2 * own_m.sum() else own_m)
+        cy, cx = np.unravel_index(int(np.argmax(dt)), dt.shape)
+        if point_in([(x, y) for x, y in P], cx + 0.5, cy + 0.5):
+            centers[zid[k]] = {'x': int(cx), 'y': int(cy)}
         z = {'id': zid[k], 'z': 0, 'points': [{'x': round(x), 'y': round(y)} for x, y in P]}
         if c[0] in roles:
             z['name'] = roles[c[0]]
@@ -175,7 +198,7 @@ def main():
     out = {'source': 'tools/zones_bake.py --map %s: нарезка навмеша по подписям радара; названия — %s' % (
                MAPNAME, R.get('sources', {}).get('callouts', 'рецепт карты, callouts')),
            'zonemap': {'map': MAPNAME, 'zones': zones, 'points': points, 'portals': portals, 'walls': []},
-           'shapes': {}, 'names': names, 'synonyms': {}, 'props': {}}
+           'centers': centers, 'shapes': {}, 'names': names, 'synonyms': {}, 'props': {}}
     open(mapdir.path(MAPNAME, 'zones.json'), 'w', encoding='utf-8').write(json.dumps(out, ensure_ascii=False, separators=(',', ':')) + '\n')
     print('записано %s: зон %d, переходов %d, точек %d' % (os.path.relpath(mapdir.path(MAPNAME, 'zones.json'), mapdir.ROOT),
                                                             len(zones), len(portals), len(points)))

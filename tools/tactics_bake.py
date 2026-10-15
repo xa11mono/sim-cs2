@@ -275,7 +275,9 @@ def game_tactics(A):
                     continue
                 via = _route(A, site, l)
                 g = {'roles': roles, 'via': via}
-                if gi and len(via) >= 2:
+                # (v319) сбор — у каждой группы свой, по её маршруту: без него игра ставит T на точку кратчайшего пути до
+                # сайта (GEO), а на Mirage это мид, а не B Apps
+                if len(via) >= 2:
                     g['stage'] = via[-2]; g['look'] = ent(l)
                 groups.append(g)
             t['groups'] = groups
@@ -298,13 +300,17 @@ def game_tactics(A):
             c[p['area'].split(' / ')[0]] += p['rounds']
         return [z for z, _ in c.most_common()]
     std = [p for p in P if p['type'] == 'standard']
-    ct = {k: [p for p in std if p['side'] == 'CT' and p['region'] == k] for k in ('A', 'B', 'mid', 'back', 'Tside')}
+    ct_all = {k: [p for p in std if p['side'] == 'CT' and p['region'] == k] for k in ('A', 'B', 'mid', 'back', 'Tside')}
     tp = {k: [p for p in P if p['side'] == 'T' and p['region'] == k] for k in ('A', 'B', 'mid', 'back', 'Tside')}
     S = pd.read_csv(os.path.join(PRO, 'pro_samples.csv.gz'), usecols=['x', 'y', 'side', 'phase', 'site', 'still'])
     S = S[S.still.astype(bool)].sample(frac=0.2, random_state=1)
 
+    cen0 = A.get('siteCenter') or {}
+
     def post_zones(side, site, k=5):
         d = S[(S.side == side) & (S.phase == 'post') & (S.site == site)]
+        if site in cen0:   # (v319) у сайта (ближе 1,5 × HOLD_R), а не там, где прятались/сейвили
+            d = d[np.hypot(d.x - cen0[site][0], d.y - cen0[site][1]) < 1.5 * HOLD_R]
         c = collections.Counter(zone(x, y) for x, y in zip(d.x.values, d.y.values))
         c.pop(None, None)
         return [z for z, _ in c.most_common(k + len(site_z[site])) if z not in site_z[site]][:k]
@@ -322,6 +328,20 @@ def game_tactics(A):
         entries[site] = [z for z, _ in ez.most_common(2)]                     # две разные зоны входа
         TEs = {l: dict(A.get('entries', {}).get('%s:%s' % (site, l)) or []) for l in ls}
         lanes_of[site] = {z: max(ls, key=lambda l: TEs[l].get(z, 0)) for z in entries[site]}
+    # (v319) CT держат свою сторону: без подпушей (push) и без зон на пути T к сайтам (маршруты двух главных входов
+    # каждого сайта, включая сам вход) и у спавна T
+    tpath = set()
+    for site in 'AB':
+        for z in entries[site]:
+            l = lanes_of[site].get(z)
+            if l:
+                r = _route(A, site, l)
+                tpath |= set(r[:r.index(z) + 1] if z in r else r)
+    ok = lambda p: not p['push'] and p['area'].split(' / ')[0] not in tpath
+    # у сайта CT стоят и на «редких» (off) точках — берём все не-подпуши стороны (у Mirage на B стандартных мало)
+    ct = {k: [p for p in P if p['side'] == 'CT' and p['region'] == k and p['type'] in ('standard', 'off') and ok(p)]
+          for k in ('A', 'B', 'mid', 'back')}
+    ct['Tside'] = []
     posd = {}
     cen = A.get('siteCenter') or {}
     near = lambda pts, site: [p for p in pts if site not in cen or ((p['x'] - cen[site][0]) ** 2 + (p['y'] - cen[site][1]) ** 2) ** 0.5 < HOLD_R]
@@ -331,7 +351,8 @@ def game_tactics(A):
         posd[site] = {'ctHold': hold[:9], 'ctSecond': hold[1:6] or hold[:1], 'ctRetake': post_zones('CT', site, 4),
                       'tClear': (onsite + [z for z in hold if z not in onsite])[:6], 'tPost': post_zones('T', site, 5),
                       'entries': entries[site]}
-    posd['M'] = {'ctHold': by_share(ct['mid'])[:4], 'tHold': ['TMID'] + by_share(tp['mid'])[:3]}
+    # (v319) мид T — зоны, где T стоят в миде по демкам; "TMID" (точка на пути между спавнами) не берём: на Mirage это T Roof
+    posd['M'] = {'ctHold': by_share(ct['mid'])[:4], 'tHold': by_share([p for p in tp['mid'] if p['sec'] <= 35])[:4] if not TAC.get('entry') else ['TMID'] + by_share(tp['mid'])[:3]}
     # ---- CT расстановки ----
     cs = []
     tot = sum(x['rounds'] for x in sets['ct']) or 1
@@ -344,8 +365,15 @@ def game_tactics(A):
             p = byid.get(sl['point'])
             if not p:
                 continue
-            alt = [byid[a['id']]['area'].split(' / ')[0] for a in sl.get('alternatives', [])[:2] if a['id'] in byid]
-            R = {'pos': list(dict.fromkeys([p['area'].split(' / ')[0]] + alt)), 'look': p['angle']['zone'].split(' / ')[0]}
+            # (v319) роль держит свою сторону раскладки: зоны — только из списка этой стороны (без подпушей и пути T)
+            side = 'A' if '_A' in sl['role'] else ('B' if '_B' in sl['role'] else 'M')
+            allow = posd[side]['ctHold']
+            cand = [p['area'].split(' / ')[0]] + [byid[a['id']]['area'].split(' / ')[0] for a in sl.get('alternatives', []) if a['id'] in byid]
+            pz = [z for z in dict.fromkeys(cand) if z in allow][:3] or allow[:2]
+            lk = p['angle']['zone'].split(' / ')[0]
+            if lk == pz[0] or lk not in set(allow) | tpath | set(posd['M']['tHold']):
+                lk = entries[side][0] if side in entries else (posd['M']['tHold'] or [lk])[0]
+            R = {'pos': pz, 'look': lk}
             role = {'anchor_A': 'anchorA', 'anchor_B': 'anchorB', 'mid_control': 'mid'}.get(sl['role'])
             if role and role not in roles:
                 roles[role] = R
@@ -384,7 +412,19 @@ def game_tactics(A):
                        for z, _ in c.most_common() if any(a != z for a in aim[z])][:2]
     role = {'anchorA': posd['A']['ctHold'], 'anchorB': posd['B']['ctHold'], 'rot212': by_share(ct['back'])[:3] or by_share(ct['mid'])[:2],
             'roam212': by_share(ct['mid'])[:3]}
+    # (v319) мид для игры (GEO.ctMid / tMid): самая частая стандартная точка мидера CT и самая частая ранняя (≤ 35 с) точка
+    # T в миде, и куда с них смотрят — вместо точек на пути между спавнами (на Mirage он идёт через A)
+    def top(pts):
+        p = max(pts, key=lambda q: q['rounds'])
+        return {'x': p['x'], 'y': p['y']}, {'x': p['angle']['x'], 'y': p['angle']['y']}
+    gm = {}
+    cm = [p for p in ct['mid'] if p['type'] == 'standard']
+    tm = [p for p in tp['mid'] if p['sec'] <= 35 and p['type'] == 'standard']
+    if cm and tm:
+        (gm['ct'], gm['ctLook']), (gm['t'], gm['tLook']) = top(cm), top(tm)
     out = {'tTactics': tt, 'pos': posd, 'ctSetups': cs, 'lurkPlans': lurk, 'shiftTo': shift, 'proRole': role, 'plays': {}}
+    if gm and not TAC.get('entry'):
+        out['geoMid'] = gm
     json.dump(out, open(os.path.join(PRO, 'tactics_game.json'), 'w'), ensure_ascii=False, indent=1)
     print('тактики для игры: T %d (%s), CT %d, зоны A %s' % (len(tt), collections.Counter(t['style'] for t in tt), len(cs), posd['A']['ctHold'][:4]))
     return out
