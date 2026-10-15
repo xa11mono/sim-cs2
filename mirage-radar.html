@@ -245,7 +245,7 @@
   <div id="topbar">
     <div class="tb-id">
       <h1>Mirage</h1>
-      <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 317, 15.10</div>
+      <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 349, 15.10</div>
     </div>
     <div class="tb-group" id="tbMatch">
       <button id="btnPause">Пауза</button>
@@ -14482,7 +14482,7 @@ function setPost(b, pt, look, hold, tag, spreadIdx){
     b.nadeTask = null; b._lineupLock = 0;   // задача важнее броска — бросок отменён (как живой игрок бросает лайнап ради сейва/дефуза)
   }
   if(tag === "lineup") b._route = null;
-  if(b._route && !/^route/.test(tag)){
+  if(b._route && !/^route/.test(tag) && tag !== "utilWait"){   // (v349) ожидание гранат — пауза маршрута раша, не отмена
     var R = b._route;
     if(/^(retake|defuse|flee|save|fetch|postplant|hunt|repos|stopplant|antidefuse|endhunt)/.test(tag) || (bomb && bomb.state === "planted" && b.team === "CT")){ b._route = null; }
     else if(R.idx < R.pts.length){
@@ -16076,11 +16076,20 @@ function tBrain(){
     // (v346, отметка владельца: «выходят до взрыва флешек и гранат») боец у сайта (≤ 700 ед.) не заходит, пока гранаты своих на этот
     // сайт в воздухе; хлопнула / встала — заходит. Ждёт не дольше UTIL_WAIT с (раш — UTIL_WAIT_RUSH) с момента, как начал ждать:
     // числа проектные — по демкам «ждать после последней флешки» разное (0 / 4 / 8 с по вариантам), не правило
-    var utilWait = function(b){
-      var S0 = SITES[tt.site]; if(!S0 || Math.hypot(b.x-S0.x, b.y-S0.y) > 700){ b._utilW = null; return false; }
+    var utilWait = function(b){ var w = utilWait0(b); if(!w && b.post && b.post.tag === "utilWait"){ b._utilW = null; clearPost(b); } return w; };   // (v349) ждать нечего — пост ожидания снять
+    var utilWait0 = function(b){
+      var S0 = SITES[tt.site]; if(!S0 || Math.hypot(b.x-S0.x, b.y-S0.y) > 700 || b.nadeTask){ b._utilW = null; return false; }   // (v349) кто сам несёт гранату — не ждёт
       var inAir = nadesInAir.some(function(n){ return n.team === "T" && Math.hypot((n.tx != null ? n.tx : n.x)-S0.x, (n.ty != null ? n.ty : n.y)-S0.y) < 900; });
-      if(!inAir){ b._utilW = null; return false; }
-      if(!b._utilW || b._utilW.round !== roundNum) b._utilW = {round: roundNum, t: tick, x: b.x, y: b.y};
+      // (v349, отметка владельца: «всё равно выходят до взрыва») и пока свой несёт гранату выхода на этот сайт (лайнап «(выход, A)»)
+      var reExec = new RegExp("выход, " + tt.site);
+      var pending = ts.some(function(o){ return o !== b && o.alive && o.nadeTask && o.nadeTask.lineup && reExec.test(o.nadeTask.why || ""); });
+      if(!inAir && !pending){ b._utilW = null; return false; }
+      // (v349, отметка владельца: donk ждал на выходе с T Ramp на виду у NiKo — бой начинался раньше гранат) ждёт в ближайшем
+      // укрытии (≤ 150 ед.: не видно с сайта, опорника и входа CT), а не там, где застала проверка
+      if(!b._utilW || b._utilW.round !== roundNum){ var g0 = GEO[tt.site], hf = [S0, g0 && g0.anchor, g0 && g0.ctEntry].filter(Boolean);
+        var cov = pickSpots("utilw"+Math.round(b.x/30)+","+Math.round(b.y/30)+tt.site, {x:b.x, y:b.y}, 1, {rMax:150, minGap:30, hideFrom:hf})[0];
+        if(cov && hf.some(function(q){ return hasLOS(cov.x, cov.y, q.x, q.y); })) cov = null;
+        b._utilW = {round: roundNum, t: tick, x: cov ? cov.x : b.x, y: cov ? cov.y : b.y}; }
       var waitOn = tick - b._utilW.t < (rush ? UTIL_WAIT_RUSH : UTIL_WAIT)*TICK_HZ;
       // ждёт — стоит, где начал ждать (прицел на сайт); раньше выданный пост (зачистка угла) иначе вёл его дальше под гранаты
       if(waitOn && !(b.post && b.post.tag === "utilWait")) setPost(b, {x:b._utilW.x, y:b._utilW.y}, S0, true, "utilWait");
