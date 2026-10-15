@@ -234,6 +234,45 @@ def _route(A, site, lane):
     return r[-ROUTE_MAX:] or [lane]
 
 
+FAKE_R, FAKE_SEC = 450, (8, 30)   # проектные числа: радиус «у сайта» (ед. карты) и окно до планта, с
+
+
+def fake_stats():
+    """раунды с плантом: сколько с фейком (гранаты T у другого сайта за 8–30 с до планта) — by[(сайт планта, сайт фейка)]"""
+    import pandas as pd
+    from demos import DEMOS, tr
+    EV = {'smoke': 'smokegrenade_detonate', 'flash': 'flashbang_detonate', 'molly': 'inferno_startburn'}
+    rows, pl = [], collections.defaultdict(list)
+    for demo in demo_names():
+        ev = []
+        for k, e in EV.items():
+            f = os.path.join(DEMOS, demo + '_' + e + '.csv.gz')
+            if os.path.exists(f):
+                d = pd.read_csv(f, usecols=['tick', 'user_steamid', 'x', 'y']); d['k'] = k; ev.append(d)
+        if not ev:
+            continue
+        ev = pd.concat(ev, ignore_index=True); ev = ev[ev.user_steamid.notna()]
+        mx, my = tr(ev.x.values, ev.y.values); ev['mx'] = mx; ev['my'] = my
+        try:
+            t = ticks_of(demo)
+        except Exception:
+            continue
+        for r in rounds_of(demo):
+            if r['num'] >= 24 or not r['tplant'] or r['site'] not in ('A', 'B'):
+                continue
+            pl[r['site']].append(r['plantXY'])
+            ts = set(t[(t.tick >= r['t0']) & (t.tick < r['t0'] + 64 * 5) & (t.side == 'T')].steamid)
+            e = ev[(ev.tick > r['tplant'] - FAKE_SEC[1] * 64) & (ev.tick < r['tplant'] - FAKE_SEC[0] * 64)]
+            rows.append((r['site'], e[e.user_steamid.astype('int64').isin(list(ts))]))
+    C = {k: np.mean(v, axis=0) for k, v in pl.items()}
+    by = collections.Counter()
+    for site, e in rows:
+        other = 'B' if site == 'A' else 'A'
+        if other in C and int((np.hypot(e.mx - C[other][0], e.my - C[other][1]) < FAKE_R).sum()) >= 2:
+            by[(site, other)] += 1
+    return {'n': len(rows), 'by': dict(by)}
+
+
 def game_tactics(A):
     import pandas as pd
     nplant = A['plants']
@@ -301,6 +340,22 @@ def game_tactics(A):
                 main = ls.most_common(1)[0][0]
                 tt.append({'id': 'rush%s' % site, 'name': '%s: раш через %s' % (site, ent_of(site, main)), 'site': site, 'pools': ['eco', 'pistol', 'force'],
                            'setupEnd': 0, 'style': 'rush', 'rushVia': _route(A, site, main), 'weight': 0.5, 'n': 0})
+    # (v365, владелец: «добавляй фейки») фейк-выходы — по демкам: раунд с плантом, где за 8–30 с до планта T бросили 2+ гранаты
+    # (смок / молотов / флешка) у другого сайта (≤ FAKE_R ед. карты от средней точки плантов того сайта). Вес — доля таких раундов
+    # от всех тактик (общая сумма весов), группы и тайминг — у самой частой тактики настоящего сайта
+    fs = fake_stats()
+    wsum = sum(t['weight'] for t in tt if 'full' in t['pools'])
+    for real, fake in (('B', 'A'), ('A', 'B')):
+        k = fs['by'].get((real, fake), 0)
+        if not k or not fs['n']:
+            continue
+        base = max((t for t in tt if t['site'] == real and t['style'] in ('exec', 'split')), key=lambda t: t['weight'], default=None)
+        if not base:
+            continue
+        share = k / fs['n']
+        tt.append({'id': 'fake%s_%s' % (fake, real), 'name': '%s: фейк %s (%s)' % (real, fake, base['name'].split(': ', 1)[-1]), 'site': real,
+                   'fake': fake, 'pools': ['full', 'half'], 'setupEnd': base['setupEnd'], 'style': 'fake',
+                   'weight': round(wsum * share / (1 - share), 2), 'groups': base.get('groups', []), 'n': k})
     # ---- зоны по сторонам ----
     def by_share(pts):
         c = collections.Counter()

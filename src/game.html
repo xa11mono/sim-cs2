@@ -294,7 +294,7 @@
       <button id="btnWarmSkip" class="primary" style="display:none" title="Закончить разминку и начать матч сейчас">Начать матч</button>
       <button id="btnSnd" title="Звуки игры: шаги, выстрелы, гранаты, бомба, плант, дефуз — синтез в браузере (не файлы CS2); громкость — по расстоянию от середины экрана">Звук</button>
       <button id="btnObs" class="on" title="Автообсервер: сам выбирает, за кем следить, и ведёт камеру (клавиша O). Двинул камеру или выбрал игрока сам — обсервер ждёт 6 с">Обсервер <kbd>O</kbd></button>
-      <button id="btnObsMap" title="Обсервер показывает всю карту целиком (всех игроков сразу), а не одного игрока">Вся карта</button>
+      <button id="btnObsMap" title="Обсервер чередует: когда тихо — вся карта, бой / плант / выход — камера на игроке. Выключить — всегда на игроке">Вся карта</button>
       <span id="mkSlot"></span>
     </div>
   </div>
@@ -4207,6 +4207,19 @@ function ppTimeNamed(group, bp0, site, rMax){
   });
   return true;
 }
+function ppCheck(b){
+  if(b._ppc && tick < b._ppc.until){ setPost(b, b._ppc.pt, b._ppc.look, true, "ppCheck"); return true; }
+  if(b._ppcT && tick - b._ppcT < 5*TICK_HZ) return false;
+  var BL = beliefLast.T || {}, best = null, bd = 700;
+  for(var id in BL){ var e = BL[id], ob = teamBot(id); if(!ob || !ob.alive || tick - e.tick > 3*TICK_HZ) continue; var d = Math.hypot(e.x-b.x, e.y-b.y); if(d < bd){ bd = d; best = e; } }
+  if(!best) return false;
+  var look = {x:best.x, y:best.y};
+  var sp = hasLOS(b.x, b.y, look.x, look.y) ? {x:b.x, y:b.y} : pickSpots("ppc"+b.id+Math.round(look.x/40)+","+Math.round(look.y/40), {x:b.x, y:b.y}, 1, {rMax:160, minGap:20, see:[look]})[0];
+  if(!sp) return false;
+  b._ppc = {until: tick + 3*TICK_HZ, pt: sp, look: look}; b._ppcT = tick; b.lastIntel = {x:look.x, y:look.y, tick:tick, src:"call"};
+  setPost(b, sp, look, true, "ppCheck");
+  return true;
+}
 function tBrain(){
   var tt = teamTac.T; if(!tt) return;
   if(BAL.proTempo && tt.phase === "setup" && tt.minExec && tt.execTick < roundStartTick + tt.minExec*TICK_HZ) tt.execTick = roundStartTick + tt.minExec*TICK_HZ;
@@ -4534,7 +4547,7 @@ function tBrain(){
       stagePost(pick(["entry"]), other);
       groupPost(pick(["support"]), tt.tMidPt || GEO.tMid, GEO.tMidLook, "tmid", midOpt);
       stagePost(pick(["igl","awp"]), tt.site);
-    } else if(tac.groups && tt.site !== tac.site){
+    } else if(tac.groups && tac.style !== "fake" && tt.site !== tac.site){   // (v365) фейк — своя ветка ниже
       // (этап 2, P1-1) сайт плана сменили: точки подготовки и маршруты групп тактики — под старый сайт (Donut, A Hall…).
       // Раньше группа ставилась на них и с новым сайтом (тег stageB:Donut у A): ждала на старой точке. Теперь — стандартная
       // подготовка нового сайта; мид (TMID) — как был
@@ -4543,7 +4556,7 @@ function tBrain(){
         if(G.stage === "TMID"){ mem.forEach(function(b){ b._stageInfo = null; }); groupPost(mem, tt.tMidPt || GEO.tMid, GEO.tMidLook, "tmid", midOpt); return; }
         mem.forEach(function(b){ if(memAll.indexOf(b) < 0) memAll.push(b); }); });
       stagePost(memAll, tt.site);
-    } else if(tac.groups){
+    } else if(tac.groups && tac.style !== "fake"){
       tac.groups.forEach(function(G, gi){
         var mem = pick(G.roles);
         if(!mem.length) return;
@@ -4999,6 +5012,11 @@ function tBrain(){
         return;
       }
     }
+    // (v365, отметка владельца р1: magixx после флешки CT с Car ушёл на Short и «не чекает место, откуда кинули флешку») свежая
+    // инфа о враге рядом (≤ 3 с, ≤ 700 ед.: видели, слышали, откуда прилетела граната) — встать, откуда это место видно (рядом,
+    // ≤ 160 ед.), и держать его 3 с, а не уходить на дальнюю точку пост-планта
+    group = group.filter(function(b){ return !ppCheck(b); });
+    if(!group.length) return;
     if(BAL.holdTask){
       // (v145) пост-плант у бомбы = "держать район вокруг бомбы": бомбу видеть
       // обязательно (снять дефузера), встать под главный вход ретейка, от
@@ -5320,11 +5338,41 @@ function retakeUtil(R, alive){
   voiceLog("CT", "rtflash", fl.id, "даю флешку "+(tgt === bp ? "на бомбу" : "на "+calloutName(tgt.x, tgt.y))+" — заходим на хлопок");
   return fl.id+" кидает флешку"+(smr ? ", "+smr.id+" — смок" : "");
 }
+// (v365, отметка владельца р1: kyousuke у B кинул флешку на сайт и «ждёт сбора на ретейк, хотя может попробовать убить, отжать
+// зону — просто стоит, это бред») кто уже у бомбы, а свои далеко (дольше RPICK_ETA с бега), не стоит на сборе, а играет сам:
+// (1) своя флешка хлопнула — выходит под неё (2 с); (2) знает, где враг (видели/слышали ≤ 4 с, ≤ 700 ед.), и врагов там
+// по знанию не больше одного — выходит на него под другим углом (3 с, раз в 6 с). Проектные числа
+var RPICK_ETA = 6;
+function retakePick(b, R, cts, bp){
+  if(!b.alive || b.hp <= LOW_HP || b.defusing) return false;
+  if(b._rpick && tick < b._rpick.until){ setPost(b, b._rpick.pt, b._rpick.look, true, "retakePick"); return true; }
+  if(Math.hypot(b.x-bp.x, b.y-bp.y) > 900) return false;
+  var far = cts.filter(function(o){ return o !== b && o.alive; }).every(function(o){ return pathLenTo(o, bp.x, bp.y)/SPEED > RPICK_ETA; });
+  if(!far) return false;
+  var look = null, dur = 0, why = "";
+  var N = b._lastNade;
+  if(N && N.type === "flash" && tick - N.t >= NADE.flash.fuse - 8 && tick - N.t < NADE.flash.fuse + 40){ look = {x:N.x, y:N.y}; dur = 2; why = "выхожу под свою флешку"; }
+  if(!look && !(b._rpickT && tick - b._rpickT < 6*TICK_HZ)){
+    var known = [], BLk = beliefLast.CT || {};
+    for(var id in BLk){ var e = BLk[id], ob = teamBot(id); if(ob && ob.alive && tick - e.tick <= 4*TICK_HZ && Math.hypot(e.x-b.x, e.y-b.y) <= 700) known.push(e); }
+    var hs = b.heardSound; if(!known.length && hs && hs.team === "T" && tick - hs.tick <= 4*TICK_HZ && Math.hypot(hs.x-b.x, hs.y-b.y) <= 700) known.push(hs);
+    if(known.length === 1){ look = {x:known[0].x, y:known[0].y}; dur = 3; why = "он один "+calloutName(look.x, look.y)+" — пробую забрать"; }
+  }
+  if(!look) return false;
+  var sp = pickSpots("rpick"+b.id+Math.round(look.x/40)+","+Math.round(look.y/40), {x:b.x, y:b.y}, 1, {rMax:170, minGap:20, see:[look]})[0];
+  if(!sp) return false;
+  b._rpick = {until: tick + dur*TICK_HZ, pt: sp, look: look}; b._rpickT = tick;
+  b.lastIntel = {x:look.x, y:look.y, tick:tick, src:"call"};
+  voiceLog("CT", "rpick"+b.id+Math.round(tick/64), b.id, why);
+  setPost(b, sp, look, true, "retakePick");
+  return true;
+}
 function retakePost(b, cts){
   var R = bomb.retake; if(!R){ return; }
   var bp = ctBombPos();
   var a = R.approaches[R.assign[b.id] || 0];
   if(R.phase === "gather" || R.phase === "util"){
+    if(retakePick(b, R, cts, bp)) return;
     // стоим в укрытии и смотрим туда, откуда будет заход
     // один из собирающихся смотрит не на бомбу, а в спину — туда, откуда может
     // прийти лёркер (проход между сайтами), пока T ещё хватает на люрк.
@@ -9417,7 +9465,8 @@ function ctBrain(){
       // (v281, владелец 14.10: после зачистки B колл «все 1 на B» при последнем T на A) честное число: хвост 0,3 — это 0, а не 1
       var tAliveN = aliveCount("T"), here = Math.min(tAliveN, Math.round(ct.call.count));
       var elseO = 0, elseM = 0, elseAny = 0, hereKnown = 0;
-      for(var eidR in LKP.CT){ var eR = LKP.CT[eidR]; if(tick - eR.tick > 8*TICK_HZ) continue; if(Math.hypot(eR.x-sc0.x, eR.y-sc0.y) < 900){ hereKnown++; continue; }
+      var BLh = beliefLast.CT || {}; for(var eidH in BLh){ var eH = BLh[eidH], obH = teamBot(eidH); if(!obH || !obH.alive || tick - eH.tick > 8*TICK_HZ) continue; if(Math.hypot(eH.x-sc0.x, eH.y-sc0.y) < 900) hereKnown++; }   // (v365) знание команды по игрокам — beliefLast (LKP бывает пуст)
+      for(var eidR in LKP.CT){ var eR = LKP.CT[eidR]; if(tick - eR.tick > 8*TICK_HZ) continue; if(Math.hypot(eR.x-sc0.x, eR.y-sc0.y) < 900) continue;
         elseAny++; if(Math.hypot(eR.x-SITES[ko].x, eR.y-SITES[ko].y) < 750) elseO++; else if(Math.hypot(eR.x-GEO.ctMid.x, eR.y-GEO.ctMid.y) < 650) elseM++; }
       var unacc = Math.max(0, tAliveN - here - elseAny);
       ct.call.unacc = unacc;
@@ -10330,7 +10379,7 @@ function throwNade(b, type, tx, ty, lob, why){
   // (v340, отметка владельца: «кидает через крытую зону» — kyousuke из-под крыши B Apps навесом через стену) сам под крышей /
   // под другим этажом — навесом нельзя (дуга упрётся в потолок): только низом, если цель видна (окно, проход)
   if(lob && nadeCovered(b.x, b.y)){ if(!hasLOS(b.x, b.y, tx, ty)) return false; lob = false; }
-  b.nades[type]--; b._nadeT = tick;
+  b.nades[type]--; b._nadeT = tick; b._lastNade = {type:type, x:tx, y:ty, t:tick};
   var d = Math.max(60, Math.hypot(tx-b.x, ty-b.y)); if(!lob) d = Math.min(NADE_THROW_RANGE, d);
   var a = Math.atan2(ty-b.y, tx-b.x);
   var v0 = d * (1-0.96) * TICK_HZ; // при затухании 0.96/тик пролетит примерно d
@@ -14650,7 +14699,7 @@ var WHY_POST = [[/^mid:back/,"мид: отошёл (их больше)"],[/^repo
   [/^flee/,"уходит от бомбы"],[/^save/,"сейв"],[/^retakeEntry/,"ретейк: заходит первым"],[/^retakeCover/,"ретейк: дефузит за первым"],[/^retake/,"ретейк"],[/^defuse/,"дефуз"],[/^postplant/,"пост-плант"],
   [/^endhunt/,"охота на последних"],[/^repos/,"меняет позицию"],[/^fake/,"фейк"],[/^shift/,"смещается"],[/^awpline/,"AWP линия"],
   [/^pickup/,"за оружием"],[/^plantspot/,"плант"],[/^fetch/,"за бомбой"],[/^antidefuse/,"сбить дефуз"],[/^stopplant/,"сбить плант"],
-  [/^gatherSolo/,"ретейк в одиночку: подход"],[/^gatherSite/,"у бомбы — ждёт своих на ретейк"],[/^utilWait/,"ждёт гранаты / размен у выхода"],[/^utilHold/,"ждёт за энтри"],[/^gather/,"сбор на ретейк"],[/^flank/,"фланг"],[/^lineup/,"идёт кидать гранату"],[/^smokeWait/,"ждёт у смока"],[/^tmid/,"мид T"],[/^cts:/,"сетап CT"]];
+  [/^retakePick/,"ретейк: играет сам до своих"],[/^ppCheck/,"пост-плант: держит, где враг"],[/^gatherSolo/,"ретейк в одиночку: подход"],[/^gatherSite/,"у бомбы — ждёт своих на ретейк"],[/^utilWait/,"ждёт гранаты / размен у выхода"],[/^utilHold/,"ждёт за энтри"],[/^gather/,"сбор на ретейк"],[/^flank/,"фланг"],[/^lineup/,"идёт кидать гранату"],[/^smokeWait/,"ждёт у смока"],[/^tmid/,"мид T"],[/^cts:/,"сетап CT"]];
 var WHY_LOOK = {spam:"простреливает смок", look:"угроза", enemy:"видит врага", corner:"край угла впереди", cover:"держит второй угол за тиммейта", open:"открытый угол (свой угол держит тиммейт)", flank:"фланг за тиммейтом", death:"туда, где убили своего", sweep:"чекает после смока", sound:"на звук", threat:"угроза", post:"свой угол", preaim:"по плану", roam:"проверяет точку",
   hunt:"ищет последнего", save:"сейв: проходы", fake:"фейк-дефуз", intel:"инфа", call:"колл", lkp:"где видели", habit:"привычка врага", belief:"вероятность"};
 function whyText(b){
@@ -17979,7 +18028,7 @@ function obsScore(b){
   if(b.id === OBS.prev && performance.now() < OBS.prevUntil && !b._sawEnemy) sc *= 0.5;   // (v305) только что показывали — не сразу обратно
   return sc;
 }
-var OBS_BOUNDS = null;
+var OBS_BOUNDS = null, OBS_PLAN_MIN = 3, OBS_WIDE_MAX = 10, OBS_NEAR_CALM = 6;
 function obsFullView(r){
   if(!OBS_BOUNDS){ var x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
     NAVAREAS.forEach(function(a){ a.points.forEach(function(p){ if(p.x < x0) x0 = p.x; if(p.x > x1) x1 = p.x; if(p.y < y0) y0 = p.y; if(p.y > y1) y1 = p.y; }); });
@@ -18064,7 +18113,21 @@ function obsFrame(ts){
   } else if(manual) return;
   // (v364, владелец: «обсервер приближает на игрока, а надо, чтобы всегда была видна вся карта») «Вся карта»: обсервер так же
   // выбирает, за кем следить (карточка игрока), но камера не приближает — вся карта в свободной части экрана
-  if(OBS.full && !manual){ OBS.tr = null; var FV = obsFullView(r); tx = FV.x; ty = FV.y; tsc = FV.sc; }
+  // (v365, владелец: «зачем всё время — я просил, чтобы чередовалось») как трансляция: когда тихо (ни у кого нет боя, не ставят
+  // и не дефузят) — общий план, вся карта; начался бой, плант/дефуз, выход на сайт — камера на игроке. Каждый план держится
+  // не меньше OBS_PLAN_MIN с, чтобы не дёргалось; общий план — не дольше OBS_WIDE_MAX с подряд, потом снова игрок (проектные числа)
+  if(OBS.full && !manual){
+    var hot = bots.some(function(o){ return o.alive && (o._sawEnemy || o.planting || o.defusing || tick - (o._shotAtT||-1e9) < 2*TICK_HZ || tick - (o.lastShotTick||-1e9) < 2*TICK_HZ); }) || !!obsFocus();
+    var live = roundState === "live";
+    var wantWide = !live || !hot;
+    if(OBS.wide === undefined){ OBS.wide = true; OBS.planT = ts; }
+    var held = ts - (OBS.planT||0);
+    if(live && OBS.wide && held > OBS_WIDE_MAX*1000 && !hot) wantWide = false;          // долго общий план — к игроку
+    if(live && !OBS.wide && !hot && held > OBS_NEAR_CALM*1000) wantWide = true;          // на игроке тихо — общий план
+    else if(live && !OBS.wide && !hot) wantWide = false;
+    if(wantWide !== OBS.wide && (held > OBS_PLAN_MIN*1000 || (hot && OBS.wide))){ OBS.wide = wantWide; OBS.planT = ts; OBS.tr = null; }
+    if(OBS.wide){ OBS.tr = null; var FV = obsFullView(r); tx = FV.x; ty = FV.y; tsc = FV.sc; }
+  }
   // плавно: камера доезжает за ~0,5 с
   // (v316, владелец 14.10: «далеко — слишком быстро») переезд спокойнее: ~0,8 с на близкое, к дальнему — не быстрее 900 px карты/с
   var k = 1 - Math.exp(-dt*3.2);

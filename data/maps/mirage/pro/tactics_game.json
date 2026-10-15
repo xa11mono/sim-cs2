@@ -533,6 +533,82 @@
    ],
    "weight": 0.5,
    "n": 0
+  },
+  {
+   "id": "fakeA_B",
+   "name": "B: фейк A (3 B Apps)",
+   "site": "B",
+   "fake": "A",
+   "pools": [
+    "full",
+    "half"
+   ],
+   "setupEnd": 59,
+   "style": "fake",
+   "weight": 0.65,
+   "groups": [
+    {
+     "roles": [
+      "entry",
+      "awp",
+      "igl"
+     ],
+     "via": [
+      "TV",
+      "B Stairs → TV",
+      "Stove",
+      "B Apps"
+     ],
+     "stage": "Stove",
+     "look": "B Apps"
+    }
+   ],
+   "n": 37
+  },
+  {
+   "id": "fakeB_A",
+   "name": "A: фейк B (2 Tetris + 1 Palace)",
+   "site": "A",
+   "fake": "B",
+   "pools": [
+    "full",
+    "half"
+   ],
+   "setupEnd": 50,
+   "style": "fake",
+   "weight": 0.33,
+   "groups": [
+    {
+     "roles": [
+      "entry",
+      "awp",
+      "igl"
+     ],
+     "via": [
+      "T Roof → T Spawn",
+      "T Roof",
+      "T Ramp",
+      "Tetris"
+     ],
+     "stage": "T Ramp",
+     "look": "Tetris"
+    },
+    {
+     "roles": [
+      "support"
+     ],
+     "via": [
+      "T Roof → T Spawn",
+      "T Roof → Pillars",
+      "Pillars → T Roof",
+      "Pillars",
+      "Palace"
+     ],
+     "stage": "Pillars",
+     "look": "Palace"
+    }
+   ],
+   "n": 19
   }
  ],
  "pos": {
