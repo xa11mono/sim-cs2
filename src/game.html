@@ -4579,7 +4579,9 @@ function tBrain(){
     // числа проектные — по демкам «ждать после последней флешки» разное (0 / 4 / 8 с по вариантам), не правило
     var utilWait = function(b){ var w = utilWait0(b); if(!w && b.post && b.post.tag === "utilWait"){ b._utilW = null; clearPost(b); } return w; };   // (v349) ждать нечего — пост ожидания снять
     var utilWait0 = function(b){
-      var S0 = SITES[tt.site]; if(!S0 || Math.hypot(b.x-S0.x, b.y-S0.y) > 700 || b.nadeTask){ b._utilW = null; return false; }   // (v349) кто сам несёт гранату — не ждёт
+      // (v350, владелец: «теперь они все останавливаются далеко, а не только пикающий») ждёт только энтри — первый на угол; кто сам
+      // несёт гранату — не ждёт
+      var S0 = SITES[tt.site]; if(!S0 || b.tRole !== "entry" || Math.hypot(b.x-S0.x, b.y-S0.y) > 700 || b.nadeTask){ b._utilW = null; return false; }
       var inAir = nadesInAir.some(function(n){ return n.team === "T" && Math.hypot((n.tx != null ? n.tx : n.x)-S0.x, (n.ty != null ? n.ty : n.y)-S0.y) < 900; });
       // (v349, отметка владельца: «всё равно выходят до взрыва») и пока свой несёт гранату выхода на этот сайт (лайнап «(выход, A)»)
       var reExec = new RegExp("выход, " + tt.site);
@@ -4588,7 +4590,9 @@ function tBrain(){
       // (v349, отметка владельца: donk ждал на выходе с T Ramp на виду у NiKo — бой начинался раньше гранат) ждёт в ближайшем
       // укрытии (≤ 150 ед.: не видно с сайта, опорника и входа CT), а не там, где застала проверка
       if(!b._utilW || b._utilW.round !== roundNum){ var g0 = GEO[tt.site], hf = [S0, g0 && g0.anchor, g0 && g0.ctEntry].filter(Boolean);
-        var cov = pickSpots("utilw"+Math.round(b.x/30)+","+Math.round(b.y/30)+tt.site, {x:b.x, y:b.y}, 1, {rMax:150, minGap:30, hideFrom:hf})[0];
+        // (v350) там, где стоит, его не видно — ждёт на месте; видно — в ближайшее укрытие до 80 ед. (было 150 — отходил далеко)
+        var seen = hf.some(function(q){ return hasLOS(b.x, b.y, q.x, q.y); });
+        var cov = seen ? pickSpots("utilw"+Math.round(b.x/30)+","+Math.round(b.y/30)+tt.site, {x:b.x, y:b.y}, 1, {rMax:80, minGap:20, hideFrom:hf})[0] : null;
         if(cov && hf.some(function(q){ return hasLOS(cov.x, cov.y, q.x, q.y); })) cov = null;
         b._utilW = {round: roundNum, t: tick, x: cov ? cov.x : b.x, y: cov ? cov.y : b.y}; }
       var waitOn = tick - b._utilW.t < (rush ? UTIL_WAIT_RUSH : UTIL_WAIT)*TICK_HZ;
@@ -4643,6 +4647,14 @@ function tBrain(){
       } else setPost(carrier, ppt, g.ctEntry, true, "plantspot");
     }
     var rest = pick(["entry","awp","support","igl"]).filter(function(b){ return b !== carrier && ready(b); });
+    // (v350, владелец: «все останавливаются далеко») раш: кто без задачи (поддержка, IGL; AWP без лайнапа) — идёт за энтри и держится
+    // позади него (60–110 ед., проектные числа), а не стоит на месте сбора; энтри ждёт гранаты — ждут за ним
+    if(rush){ var eB = ts.filter(function(o){ return o.tRole === "entry" && o.alive; })[0];
+      if(eB) ts.forEach(function(o){ if(o === eB || !o.alive || o === carrier || o.tRole === "lurker" || o.nadeTask || o._sawEnemy || (o.post && !/^(rushFollow|utilWait)/.test(o.post.tag))) return;
+        var dx = o.x-eB.x, dy = o.y-eB.y, dl = Math.hypot(dx, dy) || 1, k = Math.min(110, Math.max(60, dl));
+        var fp = walk({x: eB.x + dx/dl*k, y: eB.y + dy/dl*k});
+        if(o.post && o.post.tag === "rushFollow" && Math.hypot(o.post.x-fp.x, o.post.y-fp.y) < 40) return;   // не дёргать путь каждый тик
+        setPost(o, fp, SITES[tt.site], true, "rushFollow"); }); }
     // (S5) ставят — двое ближних прикрывают подходы к ставящему под разными углами
     if(BAL.coverPlant && carrier && carrier.alive && (carrier.planting || (carrier.post && carrier.post.tag === "plantspot" && Math.hypot(carrier.x-carrier.post.x, carrier.y-carrier.post.y) < 90))){
       var cp0 = {x:carrier.x, y:carrier.y};
