@@ -674,7 +674,7 @@ function applyNavTransform(){
   NAVAREAS = NAVAREAS_RAW.map(function(a){
     return {
       id: a.id, z: a.z, conn: a.conn,
-      points: a.points.map(function(p){ return navMapPoint(p.x, p.y); })
+      points: a.points.map(function(p){ var q = navMapPoint(p.x, p.y); if(p.z != null) q.z = p.z; return q; })   // (v336) высота угла
     };
   });
 }
@@ -1703,6 +1703,18 @@ function zoneSideMap(){
   Object.keys(zonesById).forEach(function(id){ if(DT[id] !== undefined && DC[id] !== undefined) out[id] = DT[id]/(DT[id] + DC[id] + 1e-9); });
   return (_zoneSide = out);
 }
+// (v336, владелец: «прыгают на рандом, где не нужно, и палятся») переход с прыжком на уступ или со спрыгиванием громкий
+// (приземление слышно далеко) — путь идёт через него, только если обход заметно длиннее. Раньше цена прыжка была 0, и путь
+// вёл через каждый ящик и бортик напрямик. NAV_JUMP_COST / NAV_DROP_COST — ед. карты (~2,5 ед. игры), проектные числа:
+// прыжок ≈ 1,2 с бега в обход, спрыгнуть ≈ 0,6 с
+var NAV_JUMP_COST = 120, NAV_DROP_COST = 60;
+function navJumpCost(a, edge){
+  if(edge._jcost != null) return edge._jcost;
+  var b = zonesById[edge.to]; if(!a || !b || !edge.mid) return (edge._jcost = 0);
+  if(navPlane(a).flat || navPlane(b).flat) return (edge._jcost = 0);   // нет высот углов (Ancient) — как раньше
+  var dz = navStepDz(a, b, edge.mid.x, edge.mid.y);
+  return (edge._jcost = dz > 18 ? NAV_JUMP_COST : dz < -40 ? NAV_DROP_COST : 0);
+}
 function zoneDijkstra(fromId, toId, team){
   if(fromId===toId) return [fromId];
   var side = team === "CT" ? zoneSideMap() : null;
@@ -1719,7 +1731,7 @@ function zoneDijkstra(fromId, toId, team){
     var fromCentroid = zoneCentroid(zonesById[u]);
     (zoneGraph[u]||[]).forEach(function(edge){
       if(visited[edge.to]) return;
-      var w = dist2(fromCentroid, edge.mid) + 40; // small fixed cost per portal crossing
+      var w = dist2(fromCentroid, edge.mid) + 40 + navJumpCost(zonesById[u], edge); // small fixed cost per portal crossing
       if(side && side[edge.to] !== undefined && side[edge.to] < ROUTE_SIDE_LINE) w *= ROUTE_ENEMY_SIDE;   // (v259) CT — по своей стороне
       var alt = dist[u] + w;
       if(dist[edge.to]===undefined || alt<dist[edge.to]){
@@ -9771,6 +9783,47 @@ function navLinked2(a, b){   // связь в сторону движения н
   return false;
 }
 function navLinked(a, b){ var E = zoneGraph[a.id] || []; for(var i=0;i<E.length;i++) if(E[i].to === b.id) return true; return false; }
+// (v336) пол участка — плоскость по высотам углов из .nav (p.z, ед. игры): у лестницы и пандуса участки наклонные, высота
+// центров у соседей разная (до 60 ед.), а на общем ребре одна. Раньше по центрам каждая ступень Mirage считалась прыжком
+// (звук приземления, враги слышат), а у края наклонного участка уступ мерился неверно. Нет высот углов — пол плоский на a.z
+function navPlane(a){
+  if(a._pl) return a._pl;
+  var P = a.points, n = P.length, sx=0, sy=0, sz=0, ok = true;
+  for(var i=0;i<n;i++){ if(P[i].z == null){ ok = false; break; } sx += P[i].x; sy += P[i].y; sz += P[i].z; }
+  if(!ok || n < 3) return (a._pl = {a:0, b:0, c:a.z, flat:true});
+  var mx = sx/n, my = sy/n, mz = sz/n, xx=0, xy=0, yy=0, xz=0, yz=0;
+  for(var k=0;k<n;k++){ var dx = P[k].x-mx, dy = P[k].y-my, dz = P[k].z-mz; xx += dx*dx; xy += dx*dy; yy += dy*dy; xz += dx*dz; yz += dy*dz; }
+  var det = xx*yy - xy*xy; if(Math.abs(det) < 1e-6) return (a._pl = {a:0, b:0, c:mz});
+  var A = (xz*yy - yz*xy)/det, B = (yz*xx - xz*xy)/det;
+  return (a._pl = {a:A, b:B, c:mz - A*mx - B*my});
+}
+function navFloorZ(a, x, y){ var P = navPlane(a); return P.a*x + P.b*y + P.c; }
+// разница высоты пола между участками в точке (x, y): > 18 — уступ (прыжок), ступени и пандус — около 0
+function navStepDz(a1, a2, x, y){ return navFloorZ(a2, x, y) - navFloorZ(a1, x, y); }
+// (v336) участок навмеша под точкой или в tol ед. карты от неё (любой этаж; заблокированные внутри стен — нет)
+var NAV_NEAR_DIRS = [[1,0],[-1,0],[0,1],[0,-1],[0.7,0.7],[-0.7,0.7],[0.7,-0.7],[-0.7,-0.7]];
+function navFloorNear(x, y, tol, pred){
+  if(!NAV_GRID) navGridBuild();
+  for(var r=0; r<=tol; r += Math.max(1, tol/3)){
+    var D = r ? NAV_NEAR_DIRS : [[0,0]];
+    for(var k=0;k<D.length;k++){ var px = x+D[k][0]*r, py = y+D[k][1]*r;
+      var L = NAV_GRID[Math.floor(px/NAV_GRID_C)+","+Math.floor(py/NAV_GRID_C)]; if(!L) continue;
+      for(var i=0;i<L.length;i++){ var a = NAVAREAS[L[i]]; if(NAV_BLOCKED[a.id] || (pred && !pred(a)) || !pointInPoly(px, py, a.points)) continue; return a; } }
+    if(!tol) break;
+  }
+  return null;
+}
+// (v336) шаг с пола навмеша туда, где пола нет. Навмеш — где может стоять игрок (его считает сама игра), а стены радара
+// местами с дырами: через них боты заходили в ящики и щели у стен, «застревали в стене», а через 0,5 с navSnap выкидывал
+// их на ближайший пол. Теперь с пола уходить нельзя — кроме щели к связанному участку (прыжок на уступ, спрыгнуть:
+// между такими участками в .nav Mirage зазор ~20 ед. игры = 8 ед. карты). NAV_STEP_TOL / NAV_GAP_TOL — проектные числа
+var NAV_STEP_TOL = 3, NAV_GAP_TOL = 10;
+function offNavStep(x1, y1, x2, y2, b){
+  if(navFloorNear(x2, y2, NAV_STEP_TOL)) return false;
+  var a1 = navFloorNear(x1, y1, NAV_STEP_TOL); if(!a1) return false;   // уже вне пола — пусть возвращается
+  var cur = navArea(b._area) || a1;
+  return !navFloorNear(x2, y2, NAV_GAP_TOL, function(a){ return a !== cur && (navLinked(cur, a) || navLinked(a, cur)); });
+}
 function heightBlocked(x1, y1, x2, y2, b){
   if(!b || b.z == null) return false;
   // (v323, М38) стоит в щели между участками навмеша — берётся участок, где был (bot._area); раньше щель пропускала проверку,
@@ -9783,9 +9836,11 @@ function heightBlocked(x1, y1, x2, y2, b){
     // спуск, который задуман путём (следующая точка пути ниже — путь строится по связям навмеша), — можно (Catwalk → Mid)
     var wpz2 = b.path && b.path[b.pathIdx] ? b.path[b.pathIdx][2] : null, planned = wpz2 != null && wpz2 < a1.z - JUMP_UP;
     if(lo && lo.z < a1.z - JUMP_UP && !planned && !navLinked2(a1, lo)) return true; }
-  var a2 = navAt(x2, y2, b.z); if(!a2 || a2 === a1 || a2.z - a1.z <= 18) return false;   // 18 — ступенька, шагом
+  // (v336) высота уступа — по полу у края (navStepDz), а не по центрам участков: у наклонного участка центр ниже края
+  var a2 = navAt(x2, y2, b.z); if(!a2 || a2 === a1) return false;
+  var up = navStepDz(a1, a2, x2, y2); if(up <= 18) return false;   // 18 — ступенька, шагом
   if(navLinked(a1, a2)) return false;
-  return a2.z - a1.z > JUMP_UP || navLinked(a2, a1);
+  return up > JUMP_UP || navLinked(a2, a1);
 }
 var HGT_TOP = null, HGT_BOT = null;
 function hgtLevelOf(id){   // 1 — пол над другим полом, -1 — под другим полом (heights.over), 0 — обычный
@@ -9795,6 +9850,7 @@ function hgtLevelOf(id){   // 1 — пол над другим полом, -1 �
 function stepBlocked(x1,y1,x2,y2,b){
   if(crossesWall(x1,y1,x2,y2)) return true;
   if(heightBlocked(x1, y1, x2, y2, b)) return true;
+  if(b && b.baseX != null && offNavStep(x1, y1, x2, y2, b)) return true;   // (v336) с пола навмеша — в стену/ящик нельзя
   if(!inFire(x1,y1) && inFire(x2,y2)) return !fireCommit(b);
   return false;
 }
@@ -12693,6 +12749,7 @@ function escapeWallLine(bot){
       var ang = a*Math.PI/8;
       var nx = bot.baseX + Math.cos(ang)*rr, ny = bot.baseY + Math.sin(ang)*rr;
       if(insideSolidWall(nx, ny)) continue;
+      if(!navFloorNear(nx, ny, NAV_STEP_TOL) && navFloorNear(bot.baseX, bot.baseY, NAV_STEP_TOL)) continue;   // (v336) не с пола в ящик/щель
       if(inFire(nx, ny) && !inFire(bot.baseX, bot.baseY) && !fireCommit(bot)) continue;   // (этап 3, P1-4) не в огонь
       // из новой точки должно быть можно куда-то идти
       var free = 0;
@@ -13777,13 +13834,16 @@ function stepTick(){
               if(!navLinked2(a0z, naz) && !(naz.z < a0z.z && wpz3 != null && wpz3 < a0z.z - JUMP_UP)) naz = null; }   // без связи навмеша и не по пути вниз — остаётся на своём этаже
           }
           if(naz){ var dzz = naz.z - (bot.z == null ? naz.z : bot.z);
-            if(dzz > 18) bot._jump = {t:tick, up:true}; else if(dzz < -40) bot._jump = {t:tick, up:false};
+            // (v336, владелец: «прыгают на рандом, где не нужно, и палятся») прыжок и приземление — по полу у края (navStepDz),
+            // а не по центрам участков: ступени и пандусы Mirage (Stairs, Palace, рампы) больше не «прыжок» со звуком
+            var djz = (a0z && naz !== a0z) ? navStepDz(a0z, naz, bot.baseX, bot.baseY) : (naz === a0z ? 0 : dzz);
+            if(djz > 18) bot._jump = {t:tick, up:true}; else if(djz < -40) bot._jump = {t:tick, up:false};
             // (v322, М29) прыжок / приземление слышно и при тихом шаге, далеко (csdb.gg: «громкий звук приземления, слышно
             // издалека», без числа) — радиус как у бега: проектное число
             // (v335, владелец: «звук прыжка в одном месте, а он в другом; приземление должно его перебивать») звучит только
             // приземление — там, где игрок приземлился: спрыгнул вниз — сразу; запрыгнул вверх — через LAND_DELAY с (полёт)
-            if(roundState === "live" && dzz < -40) landSound(bot);
-            else if(roundState === "live" && dzz > 18) bot._landAt = tick + Math.round(LAND_DELAY*TICK_HZ);
+            if(roundState === "live" && djz < -40) landSound(bot);
+            else if(roundState === "live" && djz > 18) bot._landAt = tick + Math.round(LAND_DELAY*TICK_HZ);
             // (v333) сменил этаж (спуск, лестница) — путь, построенный с прежнего этажа, пересчитывается с нового
             if(Math.abs(dzz) > JUMP_UP && bot.path && bot.pathIdx < bot.path.length){ bot.path = []; bot.pathIdx = 0; }
             bot.z = naz.z; bot._area = naz.id; } }
@@ -13801,6 +13861,7 @@ function stepTick(){
             // 1,5 с стоял у края — и этот рывок переносил его на 30+ px прямо в огонь (матч 3, тик 23335, T1 в молотов T2).
             // Теперь у огня — ждёт у края, как при обычном шаге (зайти можно только по делу — fireCommit)
             if(toward && inFire(toward.x, toward.y) && !inFire(bot.baseX, bot.baseY) && !fireCommit(bot)) toward = null;
+            if(toward && !navFloorNear(toward.x, toward.y, NAV_STEP_TOL)) toward = null;   // (v336) рывок — только на пол навмеша
             if(toward && Math.hypot(toward.x-bot.baseX, toward.y-bot.baseY) > 4){ bot.baseX = toward.x; bot.baseY = toward.y; bot.x = toward.x; bot.y = toward.y; }
             if(bot.pathIdx < bot.path.length-1) bot.pathIdx++;
             bot._netStuck = 0;

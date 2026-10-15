@@ -75,7 +75,9 @@ def step_navmesh(name, R):
         pts = []
         for c in a['corners']:
             x, y = tr(c[0], c[1])
-            pts.append({'x': round(x, 1), 'y': round(y, 1)})
+            # (v336) высота угла (ед. игры): участок на лестнице/пандусе наклонный, высота центра у соседей разная, а на
+            # общем ребре — одна; по ней игра отличает ступени/пандус от настоящего уступа (прыжок)
+            pts.append({'x': round(x, 1), 'y': round(y, 1), 'z': round(c[2], 1)})
         conn = []
         for b in a['conn']:
             if b != a['id'] and b in ids and b not in conn:
