@@ -9825,12 +9825,17 @@ function nadePrice(type, team){ return (type === "molly" && team === "CT") ? NAD
 // (v151) у про на полном закупе почти каждый берёт 3–4 гранаты (за раунд CT
 // кидают ~10, T ~9.4); набор по роли игрока (демки): саппорт/снайпер — больше утилиты
 var NADE_WISH_PRO = {
-  entry:["flash","flash","smoke","molly"], support:["flash","smoke","molly","he"], igl:["smoke","molly","flash","flash"],
-  lurker:["smoke","flash","molly","he"], awp:["smoke","flash","molly","he"],
-  anchorA:["molly","smoke","flash","he"], anchorB:["molly","smoke","flash","he"], rotator:["smoke","flash","he","molly"],
-  mid:["flash","smoke","he","molly"], roamer:["flash","smoke","he","molly"]
+  // (v357, владелец: «гранаты не закупаются так часто») набор на фулле по роли — из ответа Claude + JSON cs2_buy_rules (сверено с
+  // ответом Гугла) и поправлен по демкам Mirage (tools/nades_pro.py, броски за фулл-раунд на команду: T смок 4,1, флешка 4,0,
+  // молотов 3,0, HE 1,1; CT 3,5 / 3,0 / зажигалка 3,5 / HE 3,0 — у CT HE втрое больше, чем в оценке JSON). Порядок — что держат
+  // дольше всего (первое режут последним). Закуп фулла на команду: T 5 смоков, 7 флешек, 4 молотова, 2 HE; CT 5 / 6 / 4 / 4
+  entry:["smoke","flash","flash","molly"], support:["smoke","flash","molly","flash"], igl:["smoke","flash","molly","he"],
+  lurker:["smoke","flash","molly","he"], awp:["smoke","flash"],
+  anchorA:["molly","smoke","flash","he"], anchorB:["molly","smoke","flash","he"], rotator:["smoke","flash","he","flash"],
+  mid:["smoke","flash","molly","he"], roamer:["smoke","flash","molly","he"]
 };
 function buyNades(b, type){
+  if(type === "full" && b._fullKit === roundNum) return;   // (v357) на фулле гранаты — в наборе роли (buyFullKit)
   var wish = (BAL.proNades ? NADE_WISH_PRO[b.tRole] : null) || NADE_WISH[b.tRole] || [];
   var budget = type === "full" ? 99 : (type === "force" || type === "half" ? (BAL.nadeBuy ? 2 : 1) : 0);
   if(type === "eco") budget = BAL.nadeBuy ? 1 : 0;
@@ -10470,8 +10475,8 @@ function detonate(n){
       if(!b.alive) return;   // (v263, Б1) HE ранит и своих, и бросившего — множитель в applyDamage
       var d = Math.hypot(b.x-n.x, b.y-n.y);
       if(d > NADE.he.radius || !hasLOS(n.x, n.y, b.x, b.y)) return;
-      var dmg = Math.round(NADE.he.dmg * (1 - d/NADE.he.radius) * (b.armor ? NADE.he.armorK : 1));
-      applyDamage(n.thrower, b, dmg, "HE");
+      var dmg = NADE.he.dmg * (1 - d/NADE.he.radius);
+      applyDamage(n.thrower, b, dmg, "HE", {armorRatio: b.armor ? NADE.he.armorK : null});
     });
   }
   nadeFx.push({type:T, x:n.x, y:n.y, born:tick});
@@ -10484,17 +10489,36 @@ function detonate(n){
 var FF_MUL = {bullet: 0.33, HE: 0.85, "молотов": 0.4};
 var FF_TK_CASH = -300;
 // Урон и смерть — одно место для пуль, HE и молотова. o: {wkey, hs, reward, mods, note}. Вернёт true, если убил.
+// (v357, владелец: «рассмотри урон и дамаг») броня — прочность 0–100, как в игре: попадание в закрытое место (корпус в кевларе,
+// голова в каске) идёт в HP × armorRatio (у оружия — armorPen), в прочность — (урон − в HP) × ARMOR_BONUS; прочности не хватило —
+// остаток идёт в HP (урон − прочность / ARMOR_BONUS). Прочность 0 — броня и каска пропадают. Формула CS:GO (CCSPlayer::OnTakeDamage),
+// сверено с демками Mirage (player_death: dmg_armor): AK в голову в каске — 15–16 (по формуле 16), в корпус — 3–4 (4), M4A4 в
+// голову — 19 (20), AWP в корпус — 1 (1). HE: прочность — 0,66 × урона в HP (демки: 84 смерти от HE в броне, 0,65–0,67);
+// молотов броню не трогает (демки: 0 из 25). Бомба — как была (подобрана по демкам на игроках в броне)
+var ARMOR_BONUS = 0.5, HE_ARMOR_K = 0.66;
+function armorSoak(b, raw, ratio, src){
+  if(b.armorHp == null) b.armorHp = b.armor ? 100 : 0;   // снимки до v357
+  if(!(b.armorHp > 0)) return raw;
+  var h = raw*ratio, a = src === "HE" ? h*HE_ARMOR_K : (raw - h)*ARMOR_BONUS;
+  if(a > b.armorHp){ h = src === "HE" ? raw - b.armorHp*(1-ratio)/(ratio*HE_ARMOR_K) : raw - b.armorHp/ARMOR_BONUS; a = b.armorHp; }
+  b.armorHp = Math.max(0, Math.round(b.armorHp - a));
+  if(b.armorHp <= 0){ b.armor = false; b.helmet = false; }
+  return Math.max(0, h);
+}
 function applyDamage(att, b, dmg, src, o){
   o = o || {};
   if(!b.alive || dmg <= 0) return false;
   var foe = att && att.team !== b.team ? att : null, mate = att && att !== b && att.team === b.team;
-  if(mate){ var fx = dmg*FF_MUL[src] + (b._ffFrac||0); dmg = Math.floor(fx); b._ffFrac = fx - dmg; if(dmg <= 0) return false; }
+  if(mate) dmg = dmg*FF_MUL[src];
+  if(o.armorRatio != null) dmg = armorSoak(b, dmg, o.armorRatio, src);
+  if(mate){ var fx = dmg + (b._ffFrac||0); dmg = Math.floor(fx); b._ffFrac = fx - dmg; if(dmg <= 0) return false; }
+  else { dmg = Math.round(dmg); if(dmg <= 0) return false; }
   if(foe){ var dl0 = Math.min(dmg, Math.max(0,b.hp)); foe.roundDmg = (foe.roundDmg||0) + dl0; var D0 = b._dmgBy || (b._dmgBy = {}); D0[foe.id] = (D0[foe.id]||0) + dl0; }
   b.hp -= dmg;
   if(b.hp > 0) return false;
   b.alive = false; b.deaths++; b._killer = att && att !== b ? att.id : null;   // (v330) кто убил — для обсервера (показ)
   dropWeaponOnDeath(b);
-  b.primary = null; b.secondary = b.team==="CT" ? "USP" : "GLOCK"; b.armor = false; b.helmet = false; b.kit = false;
+  b.primary = null; b.secondary = b.team==="CT" ? "USP" : "GLOCK"; b.armor = false; b.helmet = false; b.armorHp = 0; b.kit = false;
   b.planting = false; b.defusing = false; b.nades = emptyNades(); b.nadeTask = null; b.nadeQueue = null;
   dropBomb(b);
   intelDeath(b, foe);   // своего убил свой — в войсе «минус», без «убил X»: враг тут ни при чём
@@ -12261,14 +12285,13 @@ function tryShoot(shooter, target, dist){
     else if(zr < 0.22){ mult = 0.75; armored = false; hitZone = "legs"; }   // ноги броня не закрывает
     else if(zr < 0.42){ mult = 1.25; armored = target.armor; hitZone = "stomach"; }
     else { mult = 1.0; armored = target.armor; hitZone = "chest"; }
-    var dmg = base * mult; if(armored) dmg *= w.armorPen;
-    dmg = Math.max(1, Math.round(dmg));
+    var dmg = Math.max(1, Math.round(base * mult * (armored ? w.armorPen : 1)));   // ожидаемый урон в HP (для логов); сам урон — applyDamage
     target._hurtT = tick;
     if(BAL.tagging) target._tagUntil = tick + 16; // попали — на ~0.25с замедлен
     target._hitFx = {t:nowTs, head:headshot};
     if(BAL.duelPlace && headshot && burstIdx === 0 && (shooter._place||0) > 0.8 && target.hp <= dmg && hashRand(seedS+29) < 0.5) logEvent(shooter.id+": прицел стоял на угле — хэдшот с первой пули по "+target.id);
     if(SND && SND.on) sndBody(headshot ? (target.helmet ? "hshelm" : "hs") : (target.armor ? "kevlar" : "body"), target.x, target.y);
-    var killed = applyDamage(shooter, target, dmg, "bullet", {wkey:w.key, hs:headshot, reward:w.killReward||300, mods:{blind: shooter.blindUntil > tick, smoke: thruSmoke || smokeOnLine(shooter.x, shooter.y, target.x, target.y)},
+    var killed = applyDamage(shooter, target, base * mult, "bullet", {armorRatio: armored ? w.armorPen : null, wkey:w.key, hs:headshot, reward:w.killReward||300, mods:{blind: shooter.blindUntil > tick, smoke: thruSmoke || smokeOnLine(shooter.x, shooter.y, target.x, target.y)},
       note:(headshot?" (в голову)":"")+" (дист. "+Math.round(dist)+", +$"+(w.killReward||300)+")"});
     if(BAL.hurtCall && !killed){
       var HT = teamIntel[shooter.team].hurt || (teamIntel[shooter.team].hurt = {});
@@ -12319,9 +12342,9 @@ function tryShoot(shooter, target, dist){
     if(sv){
       var sd = Math.hypot(sv.x-shooter.x, sv.y-shooter.y), sz = hashRand(seedS+13);
       var sm = sz < 0.22 ? 0.75 : (sz < 0.42 ? 1.25 : 1.0), sArm = sz >= 0.22 && sv.armor;
-      var sdmg = Math.max(1, Math.round(w.dmg * Math.pow(w.rm, sd*PX_UNITS/500) * sm * (sArm ? w.armorPen : 1)));
+      var sdmg = w.dmg * Math.pow(w.rm, sd*PX_UNITS/500) * sm;
       sv._hurtT = tick; sv._hitFx = {t:nowTs, head:false}; if(BAL.tagging) sv._tagUntil = tick + 16;
-      applyDamage(shooter, sv, sdmg, "bullet", {wkey:w.key, reward:w.killReward||300, note:" (шальная пуля, дист. "+Math.round(sd)+")"});
+      applyDamage(shooter, sv, sdmg, "bullet", {armorRatio: sArm ? w.armorPen : null, wkey:w.key, reward:w.killReward||300, note:" (шальная пуля, дист. "+Math.round(sd)+")"});
       endX = sv.x; endY = sv.y;
     }
   }
@@ -13206,8 +13229,9 @@ function fullNeed(b){
   var need = 0;
   var cur = b.primary ? WEAPONS[b.primary] : null;
   if(!cur || cur.tier < 6) need += rifleFor(b.team).price;
-  if(!b.armor) need += ARMOR_PRICE + HELMET_UPGRADE;
-  else if(!b.helmet) need += HELMET_UPGRADE;
+  var ahp = armorHpOf(b);   // (v357) прочность ниже тесного порога — броню докупать
+  if(ahp < ARMOR_REBUY.tight) need += ARMOR_PRICE + (b.helmet ? 0 : HELMET_UPGRADE);
+  else if(!b.helmet) need += HELMET_UPGRADE + (ahp < 100 ? ARMOR_PRICE : 0);
   return need;
 }
 function nextLossIncome(team){ return LOSS_BONUS[Math.min(4, teamEco[team].lossLevel)]; }
@@ -13311,9 +13335,74 @@ function buyItem(b, key){
   (b._bought || (b._bought = {}))[key] = roundNum;
   return true;
 }
-function buyArmor(b, withHelmet){
-  if(!b.armor && b.money >= ARMOR_PRICE){ b.money -= ARMOR_PRICE; b.armor = true; }
-  if(withHelmet && b.armor && !b.helmet && b.money >= HELMET_UPGRADE){ b.money -= HELMET_UPGRADE; b.helmet = true; }
+// (v357) броня с прочностью: выжил — броня и каска остаются с тем, что осталось. Докупка — всегда $650 до 100 (частичной нет),
+// если прочность ниже порога ARMOR_REBUY (оценка аналитики: фулл 90, тесный фулл 60, форс/хаф 40; на эко не докупают).
+// Каска $350 — только к целой (100) броне, иначе сначала докупка (источники расходятся; так в вики CS)
+var ARMOR_REBUY = {full:90, tight:60, force:40, half:40, eco:0, pistol:1};
+function armorHpOf(b){ if(b.armorHp == null) b.armorHp = b.armor ? 100 : 0; return b.armorHp; }
+function buyArmor(b, withHelmet, below){
+  var hp = armorHpOf(b); if(below == null) below = 1;
+  if((hp < below || (withHelmet && !b.helmet && hp < 100)) && b.money >= ARMOR_PRICE){ b.money -= ARMOR_PRICE; b.armor = true; b.armorHp = 100; }
+  if(withHelmet && b.armor && b.armorHp >= 100 && !b.helmet && b.money >= HELMET_UPGRADE){ b.money -= HELMET_UPGRADE; b.helmet = true; }
+}
+// каска по таблице (ответ Claude, JSON helmet_decision_table): T на фулле — всегда (M4 в каску с одного выстрела не убивает);
+// на форсе/хафе против фулла CT — без каски. CT против фулла T (AK в голову убивает и в каске) — на фулле берут, но каску
+// режут раньше гранат и кита, на форсе/хафе — без; против эко/форса T — всегда (пистолеты и ПП без каски убивают в голову)
+function helmetWanted(b, type){
+  var eg = teamEco[b.team].enemyGuess || {};
+  if(type === "eco" || type === "pistol") return false;
+  if(teamEco[b.team].antiEcoSmg) return true;
+  if(type === "force" || type === "half") return !eg.full;
+  return true;
+}
+// (v357) фулл-бай: набор роли целиком (оружие, броня, каска, кит, гранаты); денег не хватает — режем по порядку из JSON
+// cut_priority (сначала то, без чего раунд играется легче всего): T — HE, вторая флешка (у энтри — после молотова), молотов,
+// AK → Galil, каска, первая флешка, смок; кевлар не режется. CT — HE, вторая флешка, каска (против фулла T), кит третьему и
+// дальше, зажигалка (не у опорника), M4 → FAMAS, первая флешка, смок, первые 2 кита, каска (против эко), зажигалка опорника
+function buyFullKit(b, idx){
+  var T = b.team === "T", eg = teamEco[b.team].enemyGuess || {}, mates = bots.filter(function(m){ return m.team === b.team; });
+  var hp = armorHpOf(b), cur = b.primary ? WEAPONS[b.primary] : null;
+  var wantAwp = idx === 1 && b.primary !== "AWP" && b.money >= WEAPONS.AWP.price + ARMOR_PRICE + HELMET_UPGRADE && !mates.some(function(m){ return m.primary === "AWP"; });
+  var rifle = rifleFor(b.team, b), cheap = WEAPONS[T ? "GALIL" : "FAMAS"];
+  var P = {weapon: wantAwp ? WEAPONS.AWP : (cur && cur.tier >= 6 ? null : rifle), refill: hp < ARMOR_REBUY.tight, top: hp >= ARMOR_REBUY.tight && hp < ARMOR_REBUY.full,
+           helmet: !b.helmet, kit: !T && !b.kit && !wantAwp && b.primary !== "AWP", nades: []};
+  var kitN = mates.filter(function(m){ return m !== b && m.kit; }).length;
+  var kitKey = (b.primary === "AWP" || wantAwp) ? "awp" : (b.tRole === "awp" ? "support" : b.tRole);   // снайпер без AWP — набор саппорта
+  var have = {smoke:b.nades.smoke, flash:b.nades.flash, molly:b.nades.molly, he:b.nades.he}, fN = 0;
+  (NADE_WISH_PRO[kitKey] || []).forEach(function(t){
+    var tag = t === "flash" ? (++fN === 1 ? "flash1" : "flash2") : t;
+    if(have[t] > 0){ have[t]--; return; }
+    P.nades.push({t:t, tag:tag});
+  });
+  var cost = function(){ var c = (P.weapon ? P.weapon.price : 0) + (P.refill || P.top ? ARMOR_PRICE : 0);
+    if(P.helmet) c += HELMET_UPGRADE + (!(P.refill || P.top) && hp < 100 ? ARMOR_PRICE : 0);
+    if(P.kit) c += 400; P.nades.forEach(function(n){ c += nadePrice(n.t, b.team); }); return c; };
+  var dropN = function(tag){ for(var i = P.nades.length-1; i >= 0; i--) if(P.nades[i].tag === tag){ P.nades.splice(i, 1); return true; } return false; };
+  var anchor = b.tRole === "anchorA" || b.tRole === "anchorB";
+  var cuts = T ? ["top","he", b.tRole === "entry" ? "molly" : "flash2", b.tRole === "entry" ? "flash2" : "molly","awp","rifle","helmet","flash1","smoke"]
+               : ["top","he","flash2", eg.full ? "helmet" : null, kitN >= 2 ? "kit" : null, anchor ? null : "molly","awp","rifle","flash1","smoke","kit","helmet","molly"];
+  for(var ci = 0; ci < cuts.length && cost() > b.money; ci++){
+    var c = cuts[ci]; if(!c) continue;
+    if(c === "top") P.top = false;
+    else if(c === "helmet") P.helmet = false;
+    else if(c === "kit") P.kit = false;
+    else if(c === "awp"){ if(P.weapon === WEAPONS.AWP) P.weapon = cur && cur.tier >= 6 ? null : rifle; }
+    else if(c === "rifle"){ if(P.weapon === rifle && !(cur && cur.tier >= 5)) P.weapon = cheap; }
+    else dropN(c);
+  }
+  // покупка: оружие, броня, каска, кит, гранаты — что по деньгам (если и после всех срезов не хватает — по порядку)
+  if(P.weapon && b.money >= P.weapon.price) buyItem(b, P.weapon.key);
+  if(!b.primary || WEAPONS[b.primary].tier < 5){ var bp = bestPrimary(b, 99999, ARMOR_PRICE); if(bp) buyItem(b, bp.key); }
+  buyArmor(b, P.helmet, P.refill || P.top ? 101 : 1);
+  if(P.kit && b.money >= 400){ b.money -= 400; b.kit = true; }
+  P.nades.forEach(function(n){ var pr = nadePrice(n.t, b.team), tot = b.nades.smoke + b.nades.flash + b.nades.he + b.nades.molly;
+    if(tot < 4 && b.money >= pr && (n.t === "flash" ? b.nades.flash < 2 : b.nades[n.t] < 1)){ b.money -= pr; b.nades[n.t]++; } });
+  // срезанное, на что после замены оружия (AK → Galil) хватает остатка, — докупает по тому же порядку набора
+  kitKey = b.primary === "AWP" ? "awp" : (b.tRole === "awp" ? "support" : b.tRole);
+  (NADE_WISH_PRO[kitKey] || []).forEach(function(t){ var pr = nadePrice(t, b.team), tot = b.nades.smoke + b.nades.flash + b.nades.he + b.nades.molly;
+    var need = (NADE_WISH_PRO[kitKey] || []).filter(function(x){ return x === t; }).length;
+    if(tot < 4 && b.money >= pr && b.nades[t] < need){ b.money -= pr; b.nades[t]++; } });
+  b._fullKit = roundNum;
 }
 // лучшая основная, которую можно купить, оставив `keep` денег; не ниже того, что уже есть
 function bestPrimary(b, maxPrice, keep){
@@ -13362,27 +13451,20 @@ function buyForPlayer(b, type, idx){
     // (v293, Э-пункт, владелец 14.10: «на пистолетке не покупают гранаты») кому команда отдала гранату — берёт её вместо кевлара
     var PN = pistolNadePlan(b.team)[b.id];
     if(PN){ if(!b.nades) b.nades = emptyNades(); PN.forEach(function(t){ var pr = nadePrice(t, b.team); if(b.money >= pr){ b.money -= pr; b.nades[t]++; } }); }
-    else if(!b.secondary || b.secondary === (b.team === "CT" ? "USP" : "GLOCK")) buyArmor(b, false);
+    else if(!b.secondary || b.secondary === (b.team === "CT" ? "USP" : "GLOCK")) buyArmor(b, false, ARMOR_REBUY.pistol);
   } else if(type === "full"){
-    // один AWP на команду, если позволяет (снайпер — второй бот)
-    if(idx === 1 && b.primary !== "AWP" && b.money >= WEAPONS.AWP.price + ARMOR_PRICE + HELMET_UPGRADE &&
-       !bots.some(function(m){ return m.team === b.team && m.primary === "AWP"; })) buyItem(b, "AWP");
-    var cur = b.primary ? WEAPONS[b.primary].tier : -1;
-    var rifle = rifleFor(b.team, b);
-    if(cur < 6 && b.money >= rifle.price) buyItem(b, rifle.key);
-    buyArmor(b, true);
-    if(!b.primary || WEAPONS[b.primary].tier < 6){ var bp = bestPrimary(b, 99999, 0); if(bp) buyItem(b, bp.key); }
-    if(b.team === "CT" && !b.kit && b.money >= 400 && (!BAL.nadeBuy || idx % 2 === 0 || b.money >= 400 + 750)){ b.money -= 400; b.kit = true; } // кит — дефуз 5с вместо 10с
+    if(!b.nades) b.nades = emptyNades();
+    buyFullKit(b, idx);
   } else if(type === "force" && teamEco[b.team].antiEcoSmg){
     // против эко: броня + SMG ($600 за килл), винтовку — только если и так богат
-    buyArmor(b, false);
+    buyArmor(b, false, ARMOR_REBUY.force);
     var sm = smgFor(b.team, b), cA = b.primary ? WEAPONS[b.primary].tier : -1;
     if(cA < 4){ if(b.money >= rifleFor(b.team, b).price + 1500) buyItem(b, rifleFor(b.team, b).key); else if(b.money >= sm.price) buyItem(b, sm.key); }
-    buyArmor(b, true);
+    buyArmor(b, true, ARMOR_REBUY.force);
   } else if(type === "force"){
     // форс: кевлар + что тянет — винтовка, если хватает; нет — ПП (MAC-10 / MP9:
     // дёшево, $600 за килл, сильны вблизи); совсем мало — дигл
-    buyArmor(b, false);
+    buyArmor(b, false, ARMOR_REBUY.force);
     var cur0 = b.primary ? WEAPONS[b.primary].tier : -1, rf = rifleFor(b.team, b), smg = smgFor(b.team, b);
     // (7) снайпер на форсе — скаут (дёшево, ваншот в голову, точен на ходу)
     var sniperRole = b.tRole === "awp" || (b.team === "CT" && b.tRole === "mid");
@@ -13396,12 +13478,12 @@ function buyForPlayer(b, type, idx){
       else if(b.money >= smg.price) buyItem(b, smg.key);
     }
     if(!b.primary && (!b.secondary || WEAPONS[b.secondary].tier < 2)){ var fp = proPistol(b, "force", 1); if(fp && b.money >= WEAPONS[fp].price) buyItem(b, fp); }
-    buyArmor(b, true);
+    buyArmor(b, helmetWanted(b, "force"), ARMOR_REBUY.force);
     if(b.team === "CT" && !b.kit && b.money >= 400 && idx % 2 === 0){ b.money -= 400; b.kit = true; }
   } else if(type === "half"){
     // хаф-бай: броня + SMG/дешёвая винтовка, но оставляем деньги на следующий раунд
     var keep = teamEco[b.team].bonus ? 0 : Math.max(0, fullNeed(b) - nextLossIncome(b.team));
-    if(b.money - ARMOR_PRICE >= keep) buyArmor(b, false);
+    if(b.money - ARMOR_PRICE >= keep) buyArmor(b, false, ARMOR_REBUY.half);
     // хаф-бай — чаще ПП (как в CS: MP9/MAC-10 + броня), иногда дешёвая винтовка
     var smgH = smgFor(b.team, b);
     var hp = (hashRand(roundNum*41 + idx*13 + matchNum*7) < 0.4 && b.money - smgH.price >= keep && (!b.primary || WEAPONS[b.primary].tier < 4)) ? smgH : bestPrimary(b, 2100, keep);
@@ -13471,7 +13553,7 @@ function buyPhase(){
 function startHalf(silent){
   bots.forEach(function(b){
     b.money = START_MONEY; b.primary = null; b.secondary = b.team==="CT" ? "USP" : "GLOCK";
-    b.armor = false; b.helmet = false; b.kit = false; b.weapon = WEAPONS[b.secondary]; b.nades = emptyNades();
+    b.armor = false; b.helmet = false; b.armorHp = 0; b.kit = false; b.weapon = WEAPONS[b.secondary]; b.nades = emptyNades();
   });
   teamEco.CT.lossLevel = 1; teamEco.T.lossLevel = 1;
   if(!silent) logEvent("ВТОРАЯ ПОЛОВИНА — деньги сброшены до $"+START_MONEY, true);
@@ -17331,7 +17413,7 @@ function renderEcon(){
     h += '<table>';
     mates.forEach(function(b){
       var wpn = WEAPONS[b.primary || b.secondary].name;
-      var arm = (b.helmet ? "КШ" : (b.armor ? "К" : "—")) + (b.kit ? "+кит" : "");
+      var arm = (b.helmet ? "КШ" : (b.armor ? "К" : "—")) + (b.armor && b.armorHp != null && b.armorHp < 100 ? " "+b.armorHp : "") + (b.kit ? "+кит" : "");
       var c4 = bomb && bomb.carrier === b ? " 💣" : "";
       var nd = b.nades ? ("●".repeat(b.nades.smoke) + "✦".repeat(b.nades.flash) + "▲".repeat(b.nades.he) + "♨".repeat(b.nades.molly)) : "";
       h += '<tr class="'+(b.alive?'':'dead')+'"><td title="'+esc(b.prof ? b.prof.style+" · aim "+b.prof.aim+", агрессия "+b.prof.aggr+", дисциплина "+b.prof.disc+(b._mistakes ? " · ошибок: "+b._mistakes : "") : "")+'">'+pnum(b.id)+' '+esc(nick(b.id))+c4+'</td><td>'+(ROLE_LABEL[b.tRole]||"")+(b.retakeRole && bomb && bomb.state==="planted" && !cl0save() ? ' · '+({defuser:"дефузер",cover:"прикрытие",flank:"фланг"}[b.retakeRole]) : "")+'</td><td>'+wpn+'</td><td>'+arm+'</td><td title="● дым · ✦ флешка · ▲ HE · ♨ молотов">'+nd+'</td><td>'+b.kills+'/'+b.deaths+'</td><td class="m">$'+b.money+'</td></tr>';
@@ -17522,7 +17604,7 @@ function warmSpawn(b){
   var q = walk({x: sp.x + Math.cos(a0)*r0, y: sp.y + Math.sin(a0)*r0}) || sp;
   b.baseX = b.x = b.px = q.x; b.baseY = b.y = b.py = q.y; b.alive = true; b.hp = 100; b._wPath = null; b._sawEnemy = false; b._wRespawn = 0;
   b.primary = b.team === "T" ? "AK" : "M4"; b.weapon = WEAPONS[b.primary] || b.weapon; b.ammo = b.weapon.mag; b._reloading = false; b._ammoFor = b.weapon.key;
-  b.armor = true; b.helmet = true; b._ts = {}; b.contactStreak = 0; b.blindUntil = 0; b.nextShotTick = 0; b.planting = b.defusing = false;
+  b.armor = true; b.helmet = true; b.armorHp = 100; b._ts = {}; b.contactStreak = 0; b.blindUntil = 0; b.nextShotTick = 0; b.planting = b.defusing = false;
 }
 function warmTurn(b, a, maxA){
   if(b.facing === undefined){ b.facing = b._visFacing = a; return; }
