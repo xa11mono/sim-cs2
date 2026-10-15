@@ -1476,7 +1476,12 @@ function visParts(vx, vy, vC, tx, ty, tC, walls, vz, tz){
   if(levelBlocked(vx, vy, vz, tx, ty, tz)) return {head: false, body: false};
   visReady();
   if(walls !== false && visWallHit(vx, vy, tx, ty)) return {head: false, body: false};
-  var ez = visFloorAt(vx, vy) + (vC ? VIS_EYE.crouch : VIS_EYE.stand), tf = visFloorAt(tx, ty);
+  // (v353, отметка владельца: NiKo «видит врага сквозь укрытие и убивает» — стоял на −164 под балконом Palace, а глаза брались с
+  // карты высот радара −34: она знает только верхний пол) высота бота сильно расходится с картой — глаза и цель от его высоты
+  var fv = visFloorAt(vx, vy), ft = visFloorAt(tx, ty);
+  if(vz != null && Math.abs(fv - vz) > JUMP_UP) fv = vz;
+  if(tz != null && Math.abs(ft - tz) > JUMP_UP) ft = tz;
+  var ez = fv + (vC ? VIS_EYE.crouch : VIS_EYE.stand), tf = ft;
   var head = visMarch(vx, vy, ez, tx, ty, tf + (tC ? VIS_HEAD.crouch : VIS_HEAD.stand));
   var B = tC ? VIS_BODY.crouch : VIS_BODY.stand, body = false;
   for(var i = 0; i < B.length && !body; i++) body = visMarch(vx, vy, ez, tx, ty, tf + B[i]);
@@ -2983,7 +2988,7 @@ function setPost(b, pt, look, hold, tag, spreadIdx){
     b.nadeTask = null; b._lineupLock = 0;   // задача важнее броска — бросок отменён (как живой игрок бросает лайнап ради сейва/дефуза)
   }
   if(tag === "lineup") b._route = null;
-  if(b._route && !/^route/.test(tag) && tag !== "utilWait"){   // (v349) ожидание гранат — пауза маршрута раша, не отмена
+  if(b._route && !/^route/.test(tag) && tag !== "utilWait" && tag !== "utilHold"){   // (v349) ожидание гранат — пауза маршрута раша, не отмена
     var R = b._route;
     if(/^(retake|defuse|flee|save|fetch|postplant|hunt|repos|stopplant|antidefuse|endhunt)/.test(tag) || (bomb && bomb.state === "planted" && b.team === "CT")){ b._route = null; }
     else if(R.idx < R.pts.length){
@@ -3115,6 +3120,12 @@ function dropBomb(b){
 // звук дефуза слышат T в радиусе 700px — именно звук, а не "всезнание":
 // T, которые не рядом, про дефуз не знают
 var DEFUSE_HEAR = 700;
+var DEFUSE_R = 30;
+function defuseSees(b){
+  var fv = visFloorAt(b.baseX, b.baseY); if(b.z != null && Math.abs(fv - b.z) > JUMP_UP) fv = b.z;
+  var fb = visFloorAt(bomb.x, bomb.y), az = b._area && navArea(b._area); if(bomb.z != null && Math.abs(fb - bomb.z) > JUMP_UP) fb = bomb.z;
+  return !visWallHit(b.baseX, b.baseY, bomb.x, bomb.y) && visMarch(b.baseX, b.baseY, fv + VIS_EYE.crouch, bomb.x, bomb.y, fb + 8);
+}
 var ESC_MAX_SEC = 8, ESC_WAIT_SEC = 8;
 var UTIL_WAIT = 4, UTIL_WAIT_RUSH = 2.5, UTIL_AT_ENTRY = 140;   // (v346) ждать свои гранаты на выходе — проектные числа   // (v342) сопровождение носителя — проектные числа
 function defuseSound(ct){
@@ -3184,7 +3195,7 @@ function bombTick(){
       }
       if(tick >= c.plantUntil){
         c.planting = false;
-        bomb.state = "planted"; bomb.site = tac.site; bomb.x = c.baseX; bomb.y = c.baseY; if(SND && SND.on) sndBomb("planted", c.baseX, c.baseY);
+        bomb.state = "planted"; bomb.site = tac.site; bomb.x = c.baseX; bomb.y = c.baseY; bomb.z = c.z;   // (v353) высота — для «видно ли бомбу» при дефузе if(SND && SND.on) sndBomb("planted", c.baseX, c.baseY);
         bomb.plantTick = tick; bomb.explodeTick = tick + BOMB_TICKS; bomb.carrier = null;
         c.money = Math.min(MAX_MONEY, c.money + 300);
         logEvent(c.id+" заложил бомбу на "+tac.site+" (+$300)", true);
@@ -3245,7 +3256,9 @@ function bombTick(){
         endRound("CT", "defuse");
       }
     } else {
-      var cand = bots.filter(function(b){ return b.team==="CT" && b.alive && b.state==="patrol" && Math.hypot(b.baseX-bomb.x, b.baseY-bomb.y) < 42; })[0];
+      // (v353, отметка владельца: kyousuke дефузил через ящик в 41 ед. от бомбы — T не мог его увидеть) дефуз — ближе DEFUSE_R ед. карты
+      // (~75 ед. игры: «использовать» в Source — до ~72) и только если бомбу видно из глаз присевшего (без стен и ящиков)
+      var cand = bots.filter(function(b){ return b.team==="CT" && b.alive && b.state==="patrol" && Math.hypot(b.baseX-bomb.x, b.baseY-bomb.y) < DEFUSE_R && defuseSees(b); })[0];
       var dTicks = cand ? (cand.kit ? DEFUSE_KIT_TICKS : DEFUSE_TICKS) : 0;
       if(cand && cand.fakeUntil && tick < cand.fakeUntil){ /* идёт фейк — ждём */ }
       else if(cand && cand.fakeHoldUntil && tick < cand.fakeHoldUntil){ /* после фейка держит угол */ }
@@ -4585,7 +4598,7 @@ function tBrain(){
       // (GEO.tEntry + pos.entries), а не в 700 ед. от центра сайта (там он вставал на T Ramp, и остальные уходили вперёд)
       var S0 = SITES[tt.site], gE = GEO[tt.site], ents = gE ? [gE.tEntry].concat(entryPts(tt.site) || []).filter(Boolean) : [];
       var atExit = ents.some(function(q){ return Math.hypot(b.x-q.x, b.y-q.y) <= UTIL_AT_ENTRY; });
-      if(!S0 || b.tRole !== "entry" || !atExit || b.nadeTask){ b._utilW = null; return false; }
+      if(!S0 || b.tRole !== "entry" || !atExit || b.nadeTask || b._utilWDone === roundNum){ b._utilW = null; return false; }   // (v353) за раунд ждёт один раз
       var inAir = nadesInAir.some(function(n){ return n.team === "T" && Math.hypot((n.tx != null ? n.tx : n.x)-S0.x, (n.ty != null ? n.ty : n.y)-S0.y) < 900; });
       // (v349, отметка владельца: «всё равно выходят до взрыва») и пока свой несёт гранату выхода на этот сайт (лайнап «(выход, A)»)
       var reExec = new RegExp("выход, " + tt.site);
@@ -4597,12 +4610,17 @@ function tBrain(){
       // (v349, отметка владельца: donk ждал на выходе с T Ramp на виду у NiKo — бой начинался раньше гранат) ждёт в ближайшем
       // укрытии (≤ 150 ед.: не видно с сайта, опорника и входа CT), а не там, где застала проверка
       if(!b._utilW || b._utilW.round !== roundNum){ var g0 = GEO[tt.site], hf = [S0, g0 && g0.anchor, g0 && g0.ctEntry].filter(Boolean);
+        // (v353, владелец: «донк ждёт там, где его могут убить со Stairs») укрытие — и от мест, где CT держат этот сайт (pos.ctHold/ctSecond)
+        var PC = POS[tt.site] || {}; (PC.ctHold || []).concat(PC.ctSecond || []).forEach(function(n){ var zp = zonePoint(n, S0); if(zp) hf.push(zp); });
         // (v350) там, где стоит, его не видно — ждёт на месте; видно — в ближайшее укрытие до 80 ед. (было 150 — отходил далеко)
         var seen = hf.some(function(q){ return hasLOS(b.x, b.y, q.x, q.y); });
         var cov = seen ? pickSpots("utilw"+Math.round(b.x/30)+","+Math.round(b.y/30)+tt.site, {x:b.x, y:b.y}, 1, {rMax:80, minGap:20, hideFrom:hf})[0] : null;
         if(cov && hf.some(function(q){ return hasLOS(cov.x, cov.y, q.x, q.y); })) cov = null;
         b._utilW = {round: roundNum, t: tick, x: cov ? cov.x : b.x, y: cov ? cov.y : b.y}; }
       var waitOn = tick - b._utilW.t < (rush ? UTIL_WAIT_RUSH : UTIL_WAIT)*TICK_HZ;
+      // (v353, владелец: «в 351 знали про CT, но чего-то ждали и не выходили») ждал до предела — больше в этом раунде не ждёт: раньше
+      // условие то пропадало, то появлялось, таймер начинался заново, и выход откладывался без конца
+      if(!waitOn) b._utilWDone = roundNum;
       // ждёт — стоит, где начал ждать (прицел на сайт); раньше выданный пост (зачистка угла) иначе вёл его дальше под гранаты
       if(waitOn && !(b.post && b.post.tag === "utilWait")) setPost(b, {x:b._utilW.x, y:b._utilW.y}, S0, true, "utilWait");
       return waitOn;
@@ -4657,9 +4675,17 @@ function tBrain(){
     // (v350, владелец: «все останавливаются далеко») раш: кто без задачи (поддержка, IGL; AWP без лайнапа) — идёт за энтри и держится
     // позади него (60–110 ед., проектные числа), а не стоит на месте сбора; энтри ждёт гранаты — ждут за ним
     if(rush){ var eB = ts.filter(function(o){ return o.tRole === "entry" && o.alive; })[0];
-      if(eB) ts.forEach(function(o){ if(o === eB || !o.alive || o === carrier || o.tRole === "lurker" || o.nadeTask || o._sawEnemy || (o.post && !/^(rushFollow|utilWait|route:)/.test(o.post.tag))) return;   // (v352) и пост маршрута — иначе вставал на старой точке маршрута
+      if(eB) ts.forEach(function(o){ if(o === eB || !o.alive || o === carrier || o.tRole === "lurker" || o.nadeTask || o._sawEnemy || (o.post && !/^(rushFollow|utilWait|utilHold|route:)/.test(o.post.tag))) return;   // (v352) и пост маршрута — иначе вставал на старой точке маршрута
         var dx = o.x-eB.x, dy = o.y-eB.y, dl = Math.hypot(dx, dy) || 1, k = Math.min(110, Math.max(60, dl));
         var fp = walk({x: eB.x + dx/dl*k, y: eB.y + dy/dl*k});
+        // (v353, владелец: «тнир бежит и умирает, а донк ждёт») энтри ждёт — остальные стоят за ним (маршрут раша на паузе)
+        if(eB.post && eB.post.tag === "utilWait"){
+          if(o.post && o.post.tag === "utilHold" && Math.hypot(o.post.x-eB.x, o.post.y-eB.y) < 160) return;
+          var hfF = [SITES[tt.site], GEO[tt.site].anchor, GEO[tt.site].ctEntry].filter(Boolean), PCf = POS[tt.site] || {};
+          (PCf.ctHold || []).concat(PCf.ctSecond || []).forEach(function(n){ var zp = zonePoint(n, SITES[tt.site]); if(zp) hfF.push(zp); });
+          var hp = pickSpots("uhold"+o.id+Math.round(fp.x/30)+","+Math.round(fp.y/30), fp, 1, {rMax:90, minGap:24, hideFrom:hfF})[0];
+          if(hp && hfF.some(function(q){ return hasLOS(hp.x, hp.y, q.x, q.y); })) hp = null;
+          setPost(o, hp || fp, SITES[tt.site], true, "utilHold"); return; }   // за энтри — в укрытии от мест CT (v353)
         if(o.post && o.post.tag === "rushFollow" && Math.hypot(o.post.x-fp.x, o.post.y-fp.y) < 40) return;   // не дёргать путь каждый тик
         if(o.post && /^route:/.test(o.post.tag) && o._route && o._route.pts[o._route.idx] && Math.hypot(o.post.x-o._route.pts[o._route.idx].x, o.post.y-o._route.pts[o._route.idx].y) < 40) return;   // идёт по маршруту к текущей точке
         setPost(o, fp, SITES[tt.site], true, "rushFollow"); }); }
@@ -4777,7 +4803,12 @@ function tBrain(){
     if(AC){ if(dfNow) AC.last = tick;
       antiDef = ts.filter(function(b){ return AC.ids.indexOf(b.id) >= 0 && !b.planting; });
       var bpC = {x:bomb.x, y:bomb.y};
-      antiDef.forEach(function(b){ setPost(b, (b._adSpot && b._adSpot.round === roundNum) ? b._adSpot.pt : bpC, bpC, true, "antidefuse"); b._stopPlantUntil = tick + 30; });
+      antiDef.forEach(function(b){
+        // (v353, отметка владельца: TN1R «слышит, что не фейк, но не идёт сбивать» — стоял на точке, откуда бомбу закрывает ящик)
+        // пришёл на точку, дефуз идёт, а дефузера не видно 0,5 с — идёт прямо на бомбу
+        var AS = b._adSpot && b._adSpot.round === roundNum ? b._adSpot : null;
+        if(AS && b.atPost && dfNow && !b._sawEnemy){ if(!AS.arr) AS.arr = tick; else if(tick - AS.arr > 32 && !AS.push){ AS.push = true; AS.pt = bpC; voiceLog("T", "adpush"+b.id+roundNum, b.id, "отсюда бомбу не видно — иду прямо на дефуз"); } }
+        setPost(b, AS ? AS.pt : bpC, bpC, true, "antidefuse"); b._stopPlantUntil = tick + 30; });
     } else
     if(BAL.antiDefuse && tDefuseGo(tt, ts)){
       var bpA = {x:bomb.x, y:bomb.y};
@@ -8250,6 +8281,9 @@ function smokeSpamTick(){
         logEvent(b.id+": слышит "+(b.team === "CT" ? "плант" : "дефуз")+" за смоком — простреливает"); return; }
     }
     if(b.curSpeed > 40*SPD_K) return;   // стоит (на посту или просто остановился)
+    // (v353, владелец: «решение стрелять в смок в другой стороне перебивает существующую перестрелку») в перестрелке (цикл
+    // «на линии → за укрытие» идёт, или враг виден был ≤ 3 с назад) — в посторонний смок не стреляет
+    if(b._fc || tick - (b._lastSawT || -1e9) < 3*TICK_HZ || tick - (b._shotAtT || -1e9) < 3*TICK_HZ) return;
     var D = b._spamDone || (b._spamDone = {});
     smokes.forEach(function(s){
       if(b._spam || s.team === b.team || !s.team || !smkActive(s)) return;
@@ -9923,6 +9957,17 @@ function navLinked2(a, b){   // связь в сторону движения н
   return false;
 }
 function navLinked(a, b){ var E = zoneGraph[a.id] || []; for(var i=0;i<E.length;i++) if(E[i].to === b.id) return true; return false; }
+// (v353) участки по разные концы одной лестницы (.nav, MAP.navmesh.ladders)
+var NAV_LADDER = null;
+function navLadderPair(a, b){
+  if(!a || !b) return false;
+  if(!NAV_LADDER){ NAV_LADDER = {}; ((MAP.navmesh && MAP.navmesh.ladders) || []).forEach(function(l){ (l.below||[]).forEach(function(x){ (l.above||[]).forEach(function(y){ NAV_LADDER[x+","+y] = NAV_LADDER[y+","+x] = true; }); }); }); }
+  if(NAV_LADDER[a.id+","+b.id]) return true;
+  // подошёл к лестнице по соседнему участку (у лестницы в .nav отмечены 1–3 участка на каждом конце) — тоже лестница
+  var E = zoneGraph[a.id] || [];
+  for(var i=0;i<E.length;i++) if(NAV_LADDER[E[i].to+","+b.id]) return true;
+  return false;
+}
 // (v336) пол участка — плоскость по высотам углов из .nav (p.z, ед. игры): у лестницы и пандуса участки наклонные, высота
 // центров у соседей разная (до 60 ед.), а на общем ребре одна. Раньше по центрам каждая ступень Mirage считалась прыжком
 // (звук приземления, враги слышат), а у края наклонного участка уступ мерился неверно. Нет высот углов — пол плоский на a.z
@@ -13512,6 +13557,8 @@ function resetRound(){
     }
     var nsp = navAt(b.x, b.y, null); b._area = nsp ? nsp.id : null; if(nsp) b.z = nsp.z;   // (v321) высота — по навмешу под точкой спавна; (v323) и участок
     b._jump = null; b._nadeT = null;   // (v340) интервал гранат — с нового раунда заново
+    // (v353, владелец: «тусклость кружка сохраняется после окончания раунда») этаж для рисования — сразу по спавну, а не через 16 тиков движения
+    var za0 = navArea(b._area); b._zArea = za0 ? za0.z : 0; b._lvl = za0 ? hgtLevelOf(za0.id) : 0;
     b.baseX = b.x; b.baseY = b.y;
     b.px = b.x; b.py = b.y;
     b.path = []; b.pathIdx = 0; b.alive = true; b.hp = 100;
@@ -14020,7 +14067,13 @@ function stepTick(){
           var a0z = navArea(bot._area);
           // (v333) пол своего этажа под ногами есть — остаётся на нём (щель в верхнем полу больше не «роняет» вниз — donk под
           // Palace); своего пола нет — падает на нижний (zont1x с B Apps — раньше «висел» на высоте Apps над сайтом, без звука)
-          if(naz && a0z && naz !== a0z && Math.abs(naz.z - a0z.z) > JUMP_UP){
+          // (v353, отметка владельца: NiKo «застревает под Palace, выкидывает на Palace, трясётся») лестница: путь ведёт на другой конец
+          // лестницы (участки связаны лестницей в .nav) — этаж меняется, даже если свой пол под ногами тоже есть (у лестницы оба)
+          var wpzL = bot.path && bot.path[bot.pathIdx] ? bot.path[bot.pathIdx][2] : null;
+          if(a0z && wpzL != null && Math.abs(wpzL - a0z.z) > JUMP_UP){
+            var lt = navFloorNear(bot.baseX, bot.baseY, 24, function(a){ return a !== a0z && Math.abs(a.z - wpzL) <= 18 && navLadderPair(a0z, a); });
+            if(lt) naz = lt; }
+          if(naz && a0z && naz !== a0z && Math.abs(naz.z - a0z.z) > JUMP_UP && !navLadderPair(a0z, naz)){
             var own = navAtLevel(bot.baseX, bot.baseY, a0z.z);
             if(own) naz = own;
             else { var wpz3 = bot.path && bot.path[bot.pathIdx] ? bot.path[bot.pathIdx][2] : null;
@@ -14198,7 +14251,7 @@ var WHY_POST = [[/^mid:back/,"мид: отошёл (их больше)"],[/^repo
   [/^flee/,"уходит от бомбы"],[/^save/,"сейв"],[/^retakeEntry/,"ретейк: заходит первым"],[/^retakeCover/,"ретейк: дефузит за первым"],[/^retake/,"ретейк"],[/^defuse/,"дефуз"],[/^postplant/,"пост-плант"],
   [/^endhunt/,"охота на последних"],[/^repos/,"меняет позицию"],[/^fake/,"фейк"],[/^shift/,"смещается"],[/^awpline/,"AWP линия"],
   [/^pickup/,"за оружием"],[/^plantspot/,"плант"],[/^fetch/,"за бомбой"],[/^antidefuse/,"сбить дефуз"],[/^stopplant/,"сбить плант"],
-  [/^gatherSite/,"у бомбы — ждёт своих на ретейк"],[/^gather/,"сбор на ретейк"],[/^flank/,"фланг"],[/^lineup/,"идёт кидать гранату"],[/^smokeWait/,"ждёт у смока"],[/^tmid/,"мид T"],[/^cts:/,"сетап CT"]];
+  [/^gatherSite/,"у бомбы — ждёт своих на ретейк"],[/^utilWait/,"ждёт гранаты / размен у выхода"],[/^utilHold/,"ждёт за энтри"],[/^gather/,"сбор на ретейк"],[/^flank/,"фланг"],[/^lineup/,"идёт кидать гранату"],[/^smokeWait/,"ждёт у смока"],[/^tmid/,"мид T"],[/^cts:/,"сетап CT"]];
 var WHY_LOOK = {spam:"простреливает смок", look:"угроза", enemy:"видит врага", corner:"край угла впереди", cover:"держит второй угол за тиммейта", open:"открытый угол (свой угол держит тиммейт)", flank:"фланг за тиммейтом", death:"туда, где убили своего", sweep:"чекает после смока", sound:"на звук", threat:"угроза", post:"свой угол", preaim:"по плану", roam:"проверяет точку",
   hunt:"ищет последнего", save:"сейв: проходы", fake:"фейк-дефуз", intel:"инфа", call:"колл", lkp:"где видели", habit:"привычка врага", belief:"вероятность"};
 function whyText(b){
