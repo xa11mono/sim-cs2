@@ -1820,10 +1820,18 @@ function buildWaypointPath(fromX, fromY, fromZ, toX, toY, toZ, team){
   if(fromZ != null && (!fz || Math.abs(fz.z - fromZ) > JUMP_UP)) fz = navNearestZ(fromX, fromY, NAV_GAP_TOL, fromZ);   // под точкой чужой этаж — свой рядом
   if(fz && !(zoneGraph[fz.id]||[]).length) fz = null;   // участок без переходов — маршрута от него нет (была прямая сквозь всё)
   fz = fz || zoneOf(fromX, fromY, fromZ||0);
-  var tz = zoneOf(toX, toY, toZ||0);
+  // (v347, отметка владельца: magixx шёл к посту (z 0) — под целью брался уступ −50 вместо пола Short −168, маршрута не было, путь
+  // выродился в прямую через край, и он «провалился») высота цели не задана — пол цели на уровне бота; маршрута нет — другие
+  // этажи под целью, и только потом прямая
+  var tLvl = toZ ? toZ : (fz ? fz.z : 0);
+  var tz = (navAt(toX, toY, tLvl) && Math.abs(navAt(toX, toY, tLvl).z - tLvl) <= JUMP_UP ? navAt(toX, toY, tLvl) : null) || navNearestZ(toX, toY, NAV_GAP_TOL, tLvl) || zoneOf(toX, toY, tLvl);
   if(!fz || !tz) return [[toX,toY,toZ||0]];
   if(fz.id === tz.id) return [[toX,toY,toZ||0]];
   var route = zoneDijkstra(fz.id, tz.id, team);
+  if(!route){ if(!NAV_GRID) navGridBuild();
+    var alts = (NAV_GRID[Math.floor(toX/NAV_GRID_C)+","+Math.floor(toY/NAV_GRID_C)]||[]).map(function(i){ return NAVAREAS[i]; })
+      .filter(function(a){ return a !== tz && !NAV_BLOCKED[a.id] && pointInPoly(toX, toY, a.points); }).sort(function(a, c){ return Math.abs(a.z - tLvl) - Math.abs(c.z - tLvl); });
+    for(var ai=0; ai<alts.length && !route; ai++){ route = zoneDijkstra(fz.id, alts[ai].id, team); if(route) tz = alts[ai]; } }
   if(!route) return [[toX,toY,toZ||0]]; // disconnected zones — direct line fallback rather than a stuck bot
   var corridor = [], cPair = [];   // cPair — участки по обе стороны перехода (v340)
   for(var i=0;i<route.length-1;i++){
@@ -5031,6 +5039,9 @@ function computeApproaches(){
   if(!out.length){ var gs = GEO[bomb.site]; out.push({x:gs.ctEntry.x, y:gs.ctEntry.y, sec:0}); }
   return out;
 }
+// (v347, отметка владельца: kyousuke у бомбы, а пишется «сбор на ретейк») точка сбора ближе 300 ед. к бомбе — «у бомбы»: тот же
+// сбор (ждёт своих), только подпись (тег gatherSite… тоже начинается с gather)
+function gTag(b, R){ var i = R.assign[b.id]||0, a = R.approaches[i]; return (a && bomb && Math.hypot(a.x-bomb.x, a.y-bomb.y) < 300 ? "gatherSite" : "gather")+i; }
 function updateRetake(cts){
   var R = bomb.retake;
   if(!R){
@@ -5186,9 +5197,9 @@ function retakePost(b, cts){
         var bwb = null; cts.forEach(function(o){ if(o.alive && (!bwb || dBp(o) > dBp(bwb))) bwb = o; });
         var nbw = bwb ? bwb.id : "-";
         if(nbw !== R.backWatch){ R.backWatch = nbw; if(bwb) voiceLog("CT", "back", bwb.id, "смотрю спину — может прийти люрк"); } }
-      if(R.backWatch === b.id){ setPost(b, a, GEO.rotator, true, "gather"+(R.assign[b.id]||0), 0); return; }
+      if(R.backWatch === b.id){ setPost(b, a, GEO.rotator, true, gTag(b, R), 0); return; }
     }
-    setPost(b, a, bp, true, "gather"+(R.assign[b.id]||0), 0);
+    setPost(b, a, bp, true, gTag(b, R), 0);
     return;
   }
   if(b.retakeRole === "defuser"){
@@ -5209,10 +5220,10 @@ function retakePost(b, cts){
       R.approaches.forEach(function(ap, i){ R.delay[i] = Math.min(2.5*TICK_HZ, Math.max(0, (dm - Math.hypot(ap.x-bomb.x, ap.y-bomb.y))/SPEED*TICK_HZ)); });
     }
     var dl = R.delay[R.assign[b.id]||0] || 0;
-    if(tick - R.goTick < dl){ setPost(b, a, bp, true, "gather"+(R.assign[b.id]||0), 0); return; }
+    if(tick - R.goTick < dl){ setPost(b, a, bp, true, gTag(b, R), 0); return; }
   }
   if(BAL.retakeRoles && R.entryId && R.entryId !== "-" && b.id !== R.entryId && tick - R.goTick < 0.5*TICK_HZ){
-    setPost(b, a, bp, true, "gather"+(R.assign[b.id]||0), 0); return;
+    setPost(b, a, bp, true, gTag(b, R), 0); return;
   }
   // прикрытие/фланг — места с видом на бомбу, со своей стороны захода
   var others = cts.filter(function(c){ return c.retakeRole !== "defuser" && !c.defusing && R.assign[c.id] === R.assign[b.id]; });
@@ -13567,7 +13578,9 @@ function navSnap(bot){
   var nb = null, nbd = 40;
   // (v340, отметка владельца: NiKo «пролезает наверх, где не должен» — после двух переносов) перенос не поднимает выше ступеньки
   // (18 ед.): раньше брался пол в ±JUMP_UP, и бота закидывало на уступ, куда не залезть; вниз — как было
-  NAVAREAS.forEach(function(a){ if(NAV_BLOCKED[a.id] || (bot.z != null && a.z - bot.z > 18)) return;   // (v341) вниз — на любую высоту (упасть можно)
+  // (v347, отметка владельца: magixx «с Short провалился в Underpass» — перенос с края Short опустил на 196 ед.) вниз — не больше
+  // JUMP_UP (v341 разрешало любую высоту — ошибка), вверх — только ступенька (18 ед.)
+  NAVAREAS.forEach(function(a){ if(NAV_BLOCKED[a.id] || (bot.z != null && (a.z - bot.z > 18 || bot.z - a.z > JUMP_UP))) return;
     a.points.forEach(function(p, k){ var q = a.points[(k+1)%a.points.length], ex = q.x-p.x, ey = q.y-p.y, L2 = ex*ex+ey*ey || 1;
       var t = Math.max(0, Math.min(1, ((bot.baseX-p.x)*ex + (bot.baseY-p.y)*ey)/L2)), px = p.x+ex*t, py = p.y+ey*t, d = Math.hypot(px-bot.baseX, py-bot.baseY);
       if(d < nbd){ var cx = 0, cy = 0; a.points.forEach(function(r){ cx += r.x; cy += r.y; }); cx /= a.points.length; cy /= a.points.length;
@@ -14146,7 +14159,7 @@ var WHY_POST = [[/^mid:back/,"мид: отошёл (их больше)"],[/^repo
   [/^flee/,"уходит от бомбы"],[/^save/,"сейв"],[/^retakeEntry/,"ретейк: заходит первым"],[/^retakeCover/,"ретейк: дефузит за первым"],[/^retake/,"ретейк"],[/^defuse/,"дефуз"],[/^postplant/,"пост-плант"],
   [/^endhunt/,"охота на последних"],[/^repos/,"меняет позицию"],[/^fake/,"фейк"],[/^shift/,"смещается"],[/^awpline/,"AWP линия"],
   [/^pickup/,"за оружием"],[/^plantspot/,"плант"],[/^fetch/,"за бомбой"],[/^antidefuse/,"сбить дефуз"],[/^stopplant/,"сбить плант"],
-  [/^gather/,"сбор на ретейк"],[/^flank/,"фланг"],[/^lineup/,"идёт кидать гранату"],[/^smokeWait/,"ждёт у смока"],[/^tmid/,"мид T"],[/^cts:/,"сетап CT"]];
+  [/^gatherSite/,"у бомбы — ждёт своих на ретейк"],[/^gather/,"сбор на ретейк"],[/^flank/,"фланг"],[/^lineup/,"идёт кидать гранату"],[/^smokeWait/,"ждёт у смока"],[/^tmid/,"мид T"],[/^cts:/,"сетап CT"]];
 var WHY_LOOK = {spam:"простреливает смок", look:"угроза", enemy:"видит врага", corner:"край угла впереди", cover:"держит второй угол за тиммейта", open:"открытый угол (свой угол держит тиммейт)", flank:"фланг за тиммейтом", death:"туда, где убили своего", sweep:"чекает после смока", sound:"на звук", threat:"угроза", post:"свой угол", preaim:"по плану", roam:"проверяет точку",
   hunt:"ищет последнего", save:"сейв: проходы", fake:"фейк-дефуз", intel:"инфа", call:"колл", lkp:"где видели", habit:"привычка врага", belief:"вероятность"};
 function whyText(b){
