@@ -4350,7 +4350,9 @@ function tBrain(){
   }
   // (v321, М11, отметка владельца) CT осталось мало (по киллфиду знают все) и нас больше — не ждём тайминга сбора:
   // заходим сразу, на тот сайт, где по нашей инфе CT нет (было: бомба ждала сбора 2 против 1 на 67-й с)
-  if(tt.phase === "setup" && !tt.fewGo){
+  // (v356, владелец: «4 на 1, бомба в толпе на T Ramp, не выходят на A, чего-то ждут») раньше — раз за раунд: после перекола
+  // (снова сетап) правило уже не срабатывало. Теперь и повторно, если сетап затянулся за назначенное время выхода
+  if(tt.phase === "setup" && (!tt.fewGo || tick > (tt.execTick||0))){
     var aCT = aliveCount("CT"), aT = aliveCount("T");
     if(aCT <= 2 && aT > aCT){
       var seenHere = intelEstimate("T", site.x, site.y, 600, 8*TICK_HZ).seen, seenOther = intelEstimate("T", SITES[other].x, SITES[other].y, 600, 8*TICK_HZ).seen;
