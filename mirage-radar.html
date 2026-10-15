@@ -245,7 +245,7 @@
   <div id="topbar">
     <div class="tb-id">
       <h1>Mirage</h1>
-      <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 351, 15.10</div>
+      <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 352, 15.10</div>
     </div>
     <div class="tb-group" id="tbMatch">
       <button id="btnPause">Пауза</button>
@@ -14615,7 +14615,7 @@ function dropBomb(b){
 // T, которые не рядом, про дефуз не знают
 var DEFUSE_HEAR = 700;
 var ESC_MAX_SEC = 8, ESC_WAIT_SEC = 8;
-var UTIL_WAIT = 4, UTIL_WAIT_RUSH = 2.5;   // (v346) ждать свои гранаты на выходе — проектные числа   // (v342) сопровождение носителя — проектные числа
+var UTIL_WAIT = 4, UTIL_WAIT_RUSH = 2.5, UTIL_AT_ENTRY = 140;   // (v346) ждать свои гранаты на выходе — проектные числа   // (v342) сопровождение носителя — проектные числа
 function defuseSound(ct){
   bots.forEach(function(o){
     if(!o.alive || o.team !== "T") return;
@@ -16080,7 +16080,11 @@ function tBrain(){
     var utilWait0 = function(b){
       // (v350, владелец: «теперь они все останавливаются далеко, а не только пикающий») ждёт только энтри — первый на угол; кто сам
       // несёт гранату — не ждёт
-      var S0 = SITES[tt.site]; if(!S0 || b.tRole !== "entry" || Math.hypot(b.x-S0.x, b.y-S0.y) > 700 || b.nadeTask){ b._utilW = null; return false; }
+      // (v352, владелец: «донк стоит далеко от будущего контакта») ждёт у самого выхода на сайт — ближе UTIL_AT_ENTRY ед. к входу T
+      // (GEO.tEntry + pos.entries), а не в 700 ед. от центра сайта (там он вставал на T Ramp, и остальные уходили вперёд)
+      var S0 = SITES[tt.site], gE = GEO[tt.site], ents = gE ? [gE.tEntry].concat(entryPts(tt.site) || []).filter(Boolean) : [];
+      var atExit = ents.some(function(q){ return Math.hypot(b.x-q.x, b.y-q.y) <= UTIL_AT_ENTRY; });
+      if(!S0 || b.tRole !== "entry" || !atExit || b.nadeTask){ b._utilW = null; return false; }
       var inAir = nadesInAir.some(function(n){ return n.team === "T" && Math.hypot((n.tx != null ? n.tx : n.x)-S0.x, (n.ty != null ? n.ty : n.y)-S0.y) < 900; });
       // (v349, отметка владельца: «всё равно выходят до взрыва») и пока свой несёт гранату выхода на этот сайт (лайнап «(выход, A)»)
       var reExec = new RegExp("выход, " + tt.site);
@@ -16152,10 +16156,11 @@ function tBrain(){
     // (v350, владелец: «все останавливаются далеко») раш: кто без задачи (поддержка, IGL; AWP без лайнапа) — идёт за энтри и держится
     // позади него (60–110 ед., проектные числа), а не стоит на месте сбора; энтри ждёт гранаты — ждут за ним
     if(rush){ var eB = ts.filter(function(o){ return o.tRole === "entry" && o.alive; })[0];
-      if(eB) ts.forEach(function(o){ if(o === eB || !o.alive || o === carrier || o.tRole === "lurker" || o.nadeTask || o._sawEnemy || (o.post && !/^(rushFollow|utilWait)/.test(o.post.tag))) return;
+      if(eB) ts.forEach(function(o){ if(o === eB || !o.alive || o === carrier || o.tRole === "lurker" || o.nadeTask || o._sawEnemy || (o.post && !/^(rushFollow|utilWait|route:)/.test(o.post.tag))) return;   // (v352) и пост маршрута — иначе вставал на старой точке маршрута
         var dx = o.x-eB.x, dy = o.y-eB.y, dl = Math.hypot(dx, dy) || 1, k = Math.min(110, Math.max(60, dl));
         var fp = walk({x: eB.x + dx/dl*k, y: eB.y + dy/dl*k});
         if(o.post && o.post.tag === "rushFollow" && Math.hypot(o.post.x-fp.x, o.post.y-fp.y) < 40) return;   // не дёргать путь каждый тик
+        if(o.post && /^route:/.test(o.post.tag) && o._route && o._route.pts[o._route.idx] && Math.hypot(o.post.x-o._route.pts[o._route.idx].x, o.post.y-o._route.pts[o._route.idx].y) < 40) return;   // идёт по маршруту к текущей точке
         setPost(o, fp, SITES[tt.site], true, "rushFollow"); }); }
     // (S5) ставят — двое ближних прикрывают подходы к ставящему под разными углами
     if(BAL.coverPlant && carrier && carrier.alive && (carrier.planting || (carrier.post && carrier.post.tag === "plantspot" && Math.hypot(carrier.x-carrier.post.x, carrier.y-carrier.post.y) < 90))){
@@ -28961,6 +28966,7 @@ var __SNAP = [
 ["ESC_WAIT_SEC", function(){ return ESC_WAIT_SEC; }, function(v){ try{ ESC_WAIT_SEC = v; }catch(e){} }],
 ["UTIL_WAIT", function(){ return UTIL_WAIT; }, function(v){ try{ UTIL_WAIT = v; }catch(e){} }],
 ["UTIL_WAIT_RUSH", function(){ return UTIL_WAIT_RUSH; }, function(v){ try{ UTIL_WAIT_RUSH = v; }catch(e){} }],
+["UTIL_AT_ENTRY", function(){ return UTIL_AT_ENTRY; }, function(v){ try{ UTIL_AT_ENTRY = v; }catch(e){} }],
 ["T_TACTICS", function(){ return T_TACTICS; }, function(v){ try{ T_TACTICS = v; }catch(e){} }],
 ["tSiteHist", function(){ return tSiteHist; }, function(v){ try{ tSiteHist = v; }catch(e){} }],
 ["teamTac", function(){ return teamTac; }, function(v){ try{ teamTac = v; }catch(e){} }],
