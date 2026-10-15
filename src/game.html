@@ -10062,7 +10062,7 @@ function applyDamage(att, b, dmg, src, o){
   if(foe){ var dl0 = Math.min(dmg, Math.max(0,b.hp)); foe.roundDmg = (foe.roundDmg||0) + dl0; var D0 = b._dmgBy || (b._dmgBy = {}); D0[foe.id] = (D0[foe.id]||0) + dl0; }
   b.hp -= dmg;
   if(b.hp > 0) return false;
-  b.alive = false; b.deaths++;
+  b.alive = false; b.deaths++; b._killer = att && att !== b ? att.id : null;   // (v330) кто убил — для обсервера (показ)
   dropWeaponOnDeath(b);
   b.primary = null; b.secondary = b.team==="CT" ? "USP" : "GLOCK"; b.armor = false; b.helmet = false; b.kit = false;
   b.planting = false; b.defusing = false; b.nades = emptyNades(); b.nadeTask = null;
@@ -17019,7 +17019,7 @@ function warmTick(dt){
 // Держит выбранного не меньше 1,2 с (v305), переключается, если новый момент интереснее (×1,15) или выбранный погиб (через 1 с —
 // видно смерть). Камера плавно едет и приближает: бой — ближе, спокойно — дальше, между раундами — вся карта.
 // Ручное движение камеры, колесо или выбор игрока — обсервер ждёт 6 с. Числа — проектные (это показ, не поведение)
-var OBS = {on:true, id:null, since:0, deadAt:0, manualUntil:0, last:0, cx:1024, cy:1024, sc:0};
+var OBS = {on:true, id:null, since:0, deadAt:0, manualUntil:0, last:0, cx:1024, cy:1024, sc:0, tr:null}, OBS_TR = 0.6;
 // (v321, М10) фокус обсервера: выход T на сайт (15 с от начала выхода), плант и 3 с после — интересный момент; камера
 // держится игроков у этого сайта (ближе 900 ед. карты), переключается между ними и показывает выход целиком; бой в другом
 // месте его не перебивает (проектные числа)
@@ -17071,17 +17071,24 @@ function obsFrame(ts){
     var calm = cur && cur.alive && !cur._sawEnemy && tick - (cur._shotAtT||-1e9) > 64 && tick - (cur.lastShotTick||-1e9) > 64;
     if(calm && ts - OBS.since > 8000 && best === cur){ var b2 = null, s2 = 0; bots.forEach(function(o){ if(o === cur) return; var v = obsScore(o); if(v > s2){ s2 = v; b2 = o; } }); if(b2){ best = b2; bs = s2*2; } }
     var inFight = function(o){ return o && o.alive && (o._sawEnemy || tick - (o._shotAtT||-1e9) < 32); };
+    // (v330, М47, владелец) у выбранного перестрелка (видит врага, стрелял или по нему стреляли ≤ 2 с) — не уходим с него, пока
+    // бой не кончился или он не погиб; ни другой бой, ни выход на сайт не перебивают
+    var curFight = cur && cur.alive && (cur._sawEnemy || tick - (cur._shotAtT||-1e9) < 2*TICK_HZ || tick - (cur.lastShotTick||-1e9) < 2*TICK_HZ);
+    // погиб — 1,5 с видно место смерти, потом к убийце, если жив (как режиссёр трансляции)
+    if(cur && !cur.alive && cur._killer && ts - OBS.deadAt > 1500){ var kb = bots.filter(function(o){ return o.id === cur._killer && o.alive; })[0]; if(kb){ best = kb; bs = Infinity; } }
     // бой начался у другого, а у выбранного боя нет — сразу, без выдержки 1,2 с
     var urgent = best && best !== cur && inFight(best) && !inFight(cur);
     // (v310, владелец 14.10: «очень быстро стало меняться») держит ≥ 2,5 с, переключается при перевесе ×1,3; срочно (бой у другого) —
     // не чаще раза в 1 с и только если у выбранного боя не было 1,5 с
     if(urgent && (ts - OBS.since < 1000 || tick - Math.max(cur ? (cur._shotAtT||-1e9) : -1e9, cur ? (cur.lastShotTick||-1e9) : -1e9) < 96)) urgent = false;
     var FO = obsFocus();
-    if(FO && cur && cur.alive && Math.hypot(cur.x-FO.x, cur.y-FO.y) > 900) urgent = true;   // (v321, М10) начался выход — к нему
+    if(FO && cur && cur.alive && !curFight && Math.hypot(cur.x-FO.x, cur.y-FO.y) > 900) urgent = true;   // (v321, М10) начался выход — к нему (не посреди дуэли — v330)
     // на выходе — переключение между его игроками: каждого держит 2,5 с, потом следующий интересный у сайта
-    if(FO && cur && cur.alive && ts - OBS.since > 2500 && best === cur){ var b3 = null, s3 = 0; bots.forEach(function(o){ if(o === cur) return; var v = obsScore(o); if(v > s3){ s3 = v; b3 = o; } }); if(b3 && s3 > 1){ best = b3; bs = curS*2; } }
-    var canSwitch = !cur || urgent || (!cur.alive && ts - OBS.deadAt > 1000) || (ts - OBS.since > 2500 && bs > curS*1.3);
-    if(best && best !== cur && canSwitch){ if(cur){ OBS.prev = cur.id; OBS.prevUntil = ts + 5000; } OBS.id = best.id; OBS.since = ts; OBS.deadAt = 0; cur = best; }
+    if(FO && cur && cur.alive && !curFight && ts - OBS.since > 2500 && best === cur){ var b3 = null, s3 = 0; bots.forEach(function(o){ if(o === cur) return; var v = obsScore(o); if(v > s3){ s3 = v; b3 = o; } }); if(b3 && s3 > 1){ best = b3; bs = curS*2; } }
+    var canSwitch = !cur || (!cur.alive && ts - OBS.deadAt > 1500) || (!curFight && (urgent || (ts - OBS.since > 2500 && bs > curS*1.3)));
+    if(best && best !== cur && canSwitch){ if(cur){ OBS.prev = cur.id; OBS.prevUntil = ts + 5000; } OBS.id = best.id; OBS.since = ts; OBS.deadAt = 0; cur = best;
+      if(OBS.sc) OBS.tr = {t0: ts, fx: OBS.cx, fy: OBS.cy, fsc: OBS.sc};   // (v330, М48) начало перелёта камеры
+    }
     // (v305) карточка по центру — всегда игрок обсервера (после ручного выбора обсервер возвращает её себе)
     if(cur && cur.alive && plSelected !== cur.id){ plSelected = cur.id; playersUpdate(); }
     if(cur){
@@ -17107,6 +17114,17 @@ function obsFrame(ts){
   // (v316, владелец 14.10: «далеко — слишком быстро») переезд спокойнее: ~0,8 с на близкое, к дальнему — не быстрее 900 px карты/с
   var k = 1 - Math.exp(-dt*3.2);
   if(!OBS.sc){ OBS.sc = view.scale; OBS.cx = (r.width/2 - view.panX)/view.scale; OBS.cy = (r.height/2 - view.panY)/view.scale; }
+  // (v330, М48, владелец: «смена далёких игроков очень резкая») перелёт к новому игроку — OBS_TR с, плавный разгон и торможение;
+  // далеко (больше 500 ед. карты) — на середине пути камера отдаляется (до 35 %), чтобы было видно, куда летит. Проектные числа
+  if(OBS.tr && OBS.tr.t0 && !manual){
+    var T = OBS.tr, p = Math.min(1, (ts - T.t0)/(OBS_TR*1000)), e = p < 0.5 ? 4*p*p*p : 1 - Math.pow(-2*p + 2, 3)/2;
+    var dist = Math.hypot(tx - T.fx, ty - T.fy), dip = Math.min(0.35, Math.max(0, (dist - 500)/2000));
+    OBS.cx = T.fx + (tx - T.fx)*e; OBS.cy = T.fy + (ty - T.fy)*e;
+    OBS.sc = (T.fsc + (tsc - T.fsc)*e) * (1 - dip*Math.sin(Math.PI*p));
+    view.scale = OBS.sc; view.panX = r.width/2 - OBS.cx*OBS.sc; view.panY = r.height/2 - OBS.cy*OBS.sc;
+    if(p >= 1) OBS.tr = null;
+    return;
+  }
   var mvx = (tx - OBS.cx)*k, mvy = (ty - OBS.cy)*k, mv = Math.hypot(mvx, mvy), mvMax = 900*dt;
   if(mv > mvMax){ mvx *= mvMax/mv; mvy *= mvMax/mv; }
   OBS.cx += mvx; OBS.cy += mvy;
