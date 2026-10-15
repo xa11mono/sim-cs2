@@ -3103,7 +3103,8 @@ function dropBomb(b){
 // звук дефуза слышат T в радиусе 700px — именно звук, а не "всезнание":
 // T, которые не рядом, про дефуз не знают
 var DEFUSE_HEAR = 700;
-var ESC_MAX_SEC = 8, ESC_WAIT_SEC = 8;   // (v342) сопровождение носителя — проектные числа
+var ESC_MAX_SEC = 8, ESC_WAIT_SEC = 8;
+var UTIL_WAIT = 4, UTIL_WAIT_RUSH = 2.5;   // (v346) ждать свои гранаты на выходе — проектные числа   // (v342) сопровождение носителя — проектные числа
 function defuseSound(ct){
   bots.forEach(function(o){
     if(!o.alive || o.team !== "T") return;
@@ -4561,7 +4562,21 @@ function tBrain(){
       }
     }
     var carrier = bomb.state === "carried" ? bomb.carrier : null;
+    // (v346, отметка владельца: «выходят до взрыва флешек и гранат») боец у сайта (≤ 700 ед.) не заходит, пока гранаты своих на этот
+    // сайт в воздухе; хлопнула / встала — заходит. Ждёт не дольше UTIL_WAIT с (раш — UTIL_WAIT_RUSH) с момента, как начал ждать:
+    // числа проектные — по демкам «ждать после последней флешки» разное (0 / 4 / 8 с по вариантам), не правило
+    var utilWait = function(b){
+      var S0 = SITES[tt.site]; if(!S0 || Math.hypot(b.x-S0.x, b.y-S0.y) > 700){ b._utilW = null; return false; }
+      var inAir = nadesInAir.some(function(n){ return n.team === "T" && Math.hypot((n.tx != null ? n.tx : n.x)-S0.x, (n.ty != null ? n.ty : n.y)-S0.y) < 900; });
+      if(!inAir){ b._utilW = null; return false; }
+      if(!b._utilW || b._utilW.round !== roundNum) b._utilW = {round: roundNum, t: tick, x: b.x, y: b.y};
+      var waitOn = tick - b._utilW.t < (rush ? UTIL_WAIT_RUSH : UTIL_WAIT)*TICK_HZ;
+      // ждёт — стоит, где начал ждать (прицел на сайт); раньше выданный пост (зачистка угла) иначе вёл его дальше под гранаты
+      if(waitOn && !(b.post && b.post.tag === "utilWait")) setPost(b, {x:b._utilW.x, y:b._utilW.y}, S0, true, "utilWait");
+      return waitOn;
+    };
     var ready = function(b){
+      if(b.tRole !== "lurker" && utilWait(b)) return false;
       // энтри под флешку от тиммейта: входит в угол сразу после хлопка (≤0.5с),
       // а если флешки не будет/не долетела за 3с — идёт без неё
       if(b.tRole === "entry" && nadeFlags.peekFlashPlanned){
@@ -17751,10 +17766,17 @@ function sndTick(){   // пиканье бомбы — раз в тик пров
 }
 (function(){
   var b = document.getElementById("btnSnd"); if(!b) return;
+  // (v346, владелец: «сделай, чтобы звук был включён по умолчанию») звук включён сразу; браузер даёт звук только после действия
+  // на странице — запускается при первом клике / клавише где угодно. Выключил кнопкой — запоминается в этом браузере
+  var pref = null; try{ pref = localStorage.getItem("sndOff"); }catch(e){}
+  SND.on = pref !== "1"; b.className = SND.on ? "on" : ""; b.textContent = SND.on ? "Звук: вкл" : "Звук";
+  var wake = function(){ if(!SND.on) return; sndInit(); if(SND.ctx && SND.ctx.state !== "running") SND.ctx.resume().catch(function(){}); };
+  ["pointerdown", "keydown"].forEach(function(ev){ document.addEventListener(ev, wake, {capture:true}); });
   // (v326) включил — сразу короткий сигнал (слышно, что звук работает); если браузер / страница не дали звук — пишем это на кнопке
   b.addEventListener("click", function(){
     sndInit(); if(!SND.ctx){ b.textContent = "Звук: браузер не умеет"; return; }
     SND.on = !SND.on; b.className = SND.on ? "on" : ""; b.textContent = SND.on ? "Звук: вкл" : "Звук";
+    try{ localStorage.setItem("sndOff", SND.on ? "0" : "1"); }catch(e){}
     if(!SND.on) return;
     var go = function(){ sndTone(0.35, 0.12, 880, "sine"); sndTone(0.35, 0.12, 1320, "sine", 0.13); };
     if(SND.ctx.state !== "running") SND.ctx.resume().then(go, function(){}); else go();
