@@ -1452,7 +1452,28 @@ function visLine(ax, ay, az, bx, by, bz, smoke){
 // что у цели t видно из глаз v: {head, body} (стойка — по умолчанию текущая у ботов;
 // vC/tC — «присел» для проверки «а если присесть»). Только геометрия, без дыма;
 // walls: false — высокие стены уже проверены вызывающим
-function visParts(vx, vy, vC, tx, ty, tC, walls){
+// (v334, М57, отметка владельца: TeSeS под Palace и TN1R стрелялись сквозь стену нижнего этажа) у нижнего этажа (под другим
+// полом) своих стен на радаре нет — стены общие на все этажи. Линия между двумя игроками на высоте az → bz: где она проходит
+// ПОД чужим полом (над ней пол выше на 100+ ед.), там должен быть свой пол на её высоте (navAtLevel), иначе это стена этого
+// этажа. Под открытым небом (балкон → двор) не проверяется. Шаг 4 ед. карты
+function levelBlocked(ax, ay, az, bx, by, bz){
+  if(az == null || bz == null) return false;
+  if(!NAV_GRID) navGridBuild();
+  var L = Math.hypot(bx-ax, by-ay), n = Math.max(1, Math.ceil(L/4));
+  var ST = NAV_GRID.__stack || (NAV_GRID.__stack = (function(){ var m = {};   // клетки сетки, где есть пол над полом (быстрый отсев)
+    for(var key in NAV_GRID){ if(key === "__stack") continue; var lo = Infinity, hi = -Infinity; NAV_GRID[key].forEach(function(ix){ var zz = NAVAREAS[ix].z; if(zz < lo) lo = zz; if(zz > hi) hi = zz; }); if(hi - lo > 100) m[key] = 1; }
+    return m; })());
+  for(var i=1;i<n;i++){
+    var t = i/n, x = ax + (bx-ax)*t, y = ay + (by-ay)*t, z = az + (bz-az)*t, gk = Math.floor(x/NAV_GRID_C)+","+Math.floor(y/NAV_GRID_C);
+    if(!ST[gk]) continue;
+    var G = NAV_GRID[gk] || [], above = false;
+    for(var k=0;k<G.length;k++){ var a = NAVAREAS[G[k]]; if(a.z > z + 100 && pointInPoly(x, y, a.points)){ above = true; break; } }
+    if(above && !navAtLevel(x, y, z)) return true;
+  }
+  return false;
+}
+function visParts(vx, vy, vC, tx, ty, tC, walls, vz, tz){
+  if(levelBlocked(vx, vy, vz, tx, ty, tz)) return {head: false, body: false};
   visReady();
   if(walls !== false && visWallHit(vx, vy, tx, ty)) return {head: false, body: false};
   var ez = visFloorAt(vx, vy) + (vC ? VIS_EYE.crouch : VIS_EYE.stand), tf = visFloorAt(tx, ty);
@@ -3509,9 +3530,32 @@ function chooseCtSetup(){
   var S = BAL.ctSetups ? CT_SETUPS[weightedChoice(CT_SETUPS, weights, roundNum*4217 + matchNum*881 + 5)] : (BAL.ctSetup === "1-1-1" ? CT_SETUPS[1] : CT_SETUPS[0]);
   ctSetupHist.push(S.id);
   teamTac.CT = {call:null, saving:false, stack:S.stack||null, setup:S, setupWhy: why[S.id]||null};
+  ctSeatRoles(S);   // (v334, М61) кто какую роль расстановки играет — по своим позициям из демок
   // против эко: без ранних пиков и доборов — не дарить оружие, держать вместе
   if(BAL.ctAntiEco && BAL.ecoRead){ var Ee = teamEco.CT.enemyGuess || enemyEcoGuess("CT"); if(Ee.eco && (teamEco.CT.roundType === "full" || teamEco.CT.roundType === "force")){ teamTac.CT.antiEco = true; logEvent("CT: у T, похоже, эко — играем аккуратно: без ранних пиков, не отдаём оружие"); } }
   logEvent("CT: расстановка «"+S.name+"»"+(why[S.id] ? " — "+why[S.id] : ""));
+}
+// (v334, М61, владелец: «kyousuke играет Window, а должен Short — рядом с B») роли расстановки CT на раунд — по почерку игроков:
+// для каждой роли — насколько её места (pos) похожи на места этого игрока в демках (posPref: почерк + оружие, как posPickName);
+// перебор 120 рассадок, берётся с наибольшей суммой; своя постоянная роль (playerRoles, роли по демкам карты) — бонус
+// SEAT_KEEP (проектное число), чтобы опорники не скакали между раундами без причины
+var SEAT_KEEP = 0.15;
+function ctSeatRoles(S){
+  if(!S || !S.roles || !BAL.proPrior) return;
+  var team = bots.filter(function(b){ return b.team === "CT"; }), roles = Object.keys(S.roles);
+  if(team.length !== 5 || roles.length !== 5) return;
+  var base = {}; team.forEach(function(b){ if(!b._seatRole || b._seatSide !== matchNum+':'+b.team+':'+(roundNum > HALF_ROUNDS ? 2 : 1)){ b._seatRole = b.tRole; b._seatSide = matchNum+':'+b.team+':'+(roundNum > HALF_ROUNDS ? 2 : 1); } base[b.id] = b._seatRole; });
+  var A = team.map(function(b){ return roles.map(function(r){
+    var names = S.roles[r].pos || [], best = 0;
+    names.forEach(function(nm){ var ids = zonesByName(nm);
+      KNOW_POSITIONS.points.forEach(function(q){ if(q.side !== "CT") return; if(q.zid === undefined) q.zid = zoneIdAt(q.x, q.y) || null;
+        if(q.zid && ids.indexOf(q.zid) >= 0) best = Math.max(best, posPref(b, q, true)); }); });
+    return best + (base[b.id] === r ? SEAT_KEEP : 0); }); });
+  var bestSum = -1, bestP = null;
+  (function perm(arr, k){ if(k === arr.length){ var sm = 0; for(var i=0;i<arr.length;i++) sm += A[i][arr[i]]; if(sm > bestSum){ bestSum = sm; bestP = arr.slice(); } return; }
+    for(var i=k;i<arr.length;i++){ var t = arr[k]; arr[k] = arr[i]; arr[i] = t; perm(arr, k+1); t = arr[k]; arr[k] = arr[i]; arr[i] = t; } })([0,1,2,3,4], 0);
+  if(!bestP) return;
+  team.forEach(function(b, i){ var r = roles[bestP[i]]; if(b.tRole !== r){ logEvent("CT: "+nick(b.id)+" в этой расстановке — "+r+" (по своим позициям)"); b.tRole = r; } });
 }
 // роль CT по расстановке: позиция по названию зоны (из нескольких — по раунду)
 function ctSetupRole(b, role, ct){
@@ -5294,7 +5338,7 @@ function zonesByName(name){
   var key = normZoneName(name);
   if(_zbnCache[key]) return _zbnCache[key];
   var out = ZONEMAP.zones.filter(function(z){ return zoneAliases(z.id).indexOf(key) >= 0 && (BZ.nbr[BZ.idx[z.id]]||[]).length; }).map(function(z){ return z.id; });
-  _zbnCache[key] = out; return out;
+  if(out.length || BZ.ids.length) _zbnCache[key] = out; return out;   // (v334) до графа зон пустой ответ не запоминаем
 }
 // точка зоны с таким названием (из нескольких одноимённых — ближайшая к near)
 function zonePoint(name, near){
@@ -5531,6 +5575,7 @@ function intelCallLog(team, key, text, who, kind){
 // куда смотреть, стоя на посту, и не открыта ли точка под два опасных угла.
 var BZ = {ids:[], idx:{}, nbr:[], cent:[], grid:{}, siteZ:{A:[],B:[]}, midZ:[]};
 function beliefBuild(){
+  _zbnCache = {};   // (v334) кэш «зоны по названию» мог заполниться пустыми ответами до графа зон — на Mirage расстановки CT не находили ни одной зоны
   BZ.ids = ZONEMAP.zones.map(function(z){ return z.id; });
   BZ.idx = {}; BZ.ids.forEach(function(id,i){ BZ.idx[id] = i; });
   BZ.nbr = BZ.ids.map(function(){ return []; });
@@ -9137,6 +9182,10 @@ function ctBrain(){
     // сейвить имеет смысл только то, что стоит денег: с пистолетами и без
     // брони терять нечего — лучше попробовать ретейк
     var equip = cts.reduce(function(a,b){ return a + (b.primary ? WEAPONS[b.primary].price : 0) + (b.armor ? 650 : 0); }, 0) / Math.max(1, cts.length);
+    // (v334, М63, отметка владельца: karrigan 1 на 4 с USP не сейвился, хотя рядом на Top Mid лежал АК) сохранить можно и то, что
+    // подберёт по пути: лучшее оружие ≤ 450 ед. карты от CT, где врага по инфе нет, — в цену сейва
+    cts.forEach(function(b){ var add = 0; groundWeapons.forEach(function(G){ if(Math.hypot(G.x-b.x, G.y-b.y) < 450 && weaponValue(G.key) > weaponValue(b.primary) &&
+      intelEstimate("CT", G.x, G.y, 450, 5*TICK_HZ).n === 0) add = Math.max(add, WEAPONS[G.key].price); }); equip += add/Math.max(1, cts.length); });
     var hopeless = (cts.length === 1 && tsAlive >= BAL.saveGap) || (cts.length <= tsAlive - BAL.saveGap) || needSecs > secs;
     // (v158) у про после взрыва живы 2,1 CT, у ботов было 1,2: сейвят раньше
     if(BAL.groupRetake) hopeless = hopeless || (cts.length >= 2 && cts.length <= tsAlive - 2) || (cts.length === 1 && tsAlive >= 3) ||
@@ -9182,6 +9231,7 @@ function ctBrain(){
       // сейв не на CT-спавне (там T как раз и будут искать), а в месте подальше от
       // бомбы и от живых T, откуда их не видно; каждый — своё ближайшее такое место
       if(!b._saveSpot){ b._saveSpot = pickSaveSpot(b); b._saveLooks = null; }
+      if(b.post && b.post.tag === "pickup" && b._pickLock >= tick - 1) return;   // (v334, М63) по пути на сейв подбирает оружие — не перебивать
       setPost(b, b._saveSpot, {x:bomb.x, y:bomb.y}, true, "save"); // взгляд — на угол, из-за которого придут от бомбы
       return;
     }
@@ -9729,7 +9779,10 @@ function heightBlocked(x1, y1, x2, y2, b){
   // (v333, владелец: «через Ladder Room спускаются в Underpass», «застрял в Palace», стрельба сквозь стену нижнего этажа) у
   // этажа под другим этажом своих стен на радаре нет (стены — по всем этажам сразу): шаг туда, где своего пола нет, а ниже
   // есть чужой, — со стены вниз; можно только по связи навмеша (спуск, лестница), иначе это стена своего этажа
-  if(!navAtLevel(x2, y2, a1.z)){ var lo = navAt(x2, y2, a1.z - 400); if(lo && lo.z < a1.z - JUMP_UP && !navLinked2(a1, lo)) return true; }
+  if(!navAtLevel(x2, y2, a1.z)){ var lo = navAt(x2, y2, a1.z - 400);
+    // спуск, который задуман путём (следующая точка пути ниже — путь строится по связям навмеша), — можно (Catwalk → Mid)
+    var wpz2 = b.path && b.path[b.pathIdx] ? b.path[b.pathIdx][2] : null, planned = wpz2 != null && wpz2 < a1.z - JUMP_UP;
+    if(lo && lo.z < a1.z - JUMP_UP && !planned && !navLinked2(a1, lo)) return true; }
   var a2 = navAt(x2, y2, b.z); if(!a2 || a2 === a1 || a2.z - a1.z <= 18) return false;   // 18 — ступенька, шагом
   if(navLinked(a1, a2)) return false;
   return a2.z - a1.z > JUMP_UP || navLinked(a2, a1);
@@ -10911,6 +10964,20 @@ function weaponSpeedMul(b){
   return m;
 }
 function weaponValue(k){ return k ? (WEAPONS[k].tier + (k === "AWP" ? 1.5 : 0) + (BAL.pickupMore && k === "AK" ? 0.5 : 0)) : -1; }
+// (v334, М60, владелец: «часто подбирают две AWP, хотя лучше АК, если есть деньги на AWP — это для T; для CT почти всегда лучше АК»)
+// ценность подбора для этого игрока: вторая AWP у команды — ниже АК; T с деньгами на AWP — АК лучше (AWP купит сам);
+// CT — АК выше своей M4 и AWP (кроме снайпера команды без AWP)
+function pickValue(b, k){
+  var v = weaponValue(k); if(!k) return v;
+  if(k === "AWP"){
+    var teamAwp = bots.some(function(o){ return o !== b && o.alive && o.team === b.team && o.primary === "AWP"; });
+    if(teamAwp) return weaponValue("AK") - 1;
+    if(b.team === "T" && b.money >= WEAPONS.AWP.price) return weaponValue("AK") - 0.5;
+    if(b.team === "CT" && b.tRole !== "awp") return weaponValue("AK") - 0.5;
+  }
+  if(k === "AK" && b.team === "CT") v += 0.6;
+  return v;
+}
 // AWP с винтовкой в руках берёт только снайпер/мидер — пока у команды есть свой
 // живой снайпер или AWP у кого-то; нет — поднимает любой (AWP не бросают)
 function awpAllowed(b){
@@ -10935,18 +11002,18 @@ function weaponPickupTick(){
       // метался между ними и стоял на месте (путь пересчитывался). Общий лимит
       // на "хожу за оружием" — 7с, потом 8с не отвлекается на ганы
       if(!b._pickSince || tick - b._pickSeen > 4) b._pickSince = tick; b._pickSeen = tick;
-      var pickTooLong = BAL.pickFix && tick - b._pickSince > 7*TICK_HZ;
-      if((b.atPost && tick - b._pickT.t > TICK_HZ) || tick - b._pickT.t > 6*TICK_HZ || pickTooLong){ b._pickIgnore = {x:b.post.x, y:b.post.y, round:roundNum}; if(pickTooLong) b._pickBan = tick + 8*TICK_HZ; clearPost(b); b._pickLock = 0; b._pickSince = 0; }
+      var pickTooLong = BAL.pickFix && tick - b._pickSince > (b._pickSave === roundNum ? 12 : 7)*TICK_HZ;   // (v334) на сейве идёт шагом — дольше
+      if((b.atPost && tick - b._pickT.t > TICK_HZ) || tick - b._pickT.t > (b._pickSave === roundNum ? 12 : 6)*TICK_HZ || pickTooLong){ b._pickIgnore = {x:b.post.x, y:b.post.y, round:roundNum}; if(pickTooLong) b._pickBan = tick + 8*TICK_HZ; clearPost(b); b._pickLock = 0; b._pickSince = 0; }
       else b._pickLock = tick;
     }
-    var cur = weaponValue(b.primary);
+    var cur = pickValue(b, b.primary);
     // подобрать под ногами
     for(var i=0;i<groundWeapons.length;i++){
       var G = groundWeapons[i];
-      if(Math.hypot(G.x-b.baseX, G.y-b.baseY) > 38 || weaponValue(G.key) <= cur) continue; // 38 ≥ радиуса "дошёл" (34), иначе стоял рядом и не поднимал
+      if(Math.hypot(G.x-b.baseX, G.y-b.baseY) > 38 || pickValue(b, G.key) <= cur) continue; // 38 ≥ радиуса "дошёл" (34), иначе стоял рядом и не поднимал
       if(G.key === "AWP" && !awpAllowed(b) && cur >= 5) continue; // снайпу — снайперу
       groundWeapons.splice(i, 1);
-      if(b.primary) groundWeapons.push({key:b.primary, x:b.x, y:b.y, t:tick, from:b.id});
+      if(b.primary && !sellItem(b, b.primary)) groundWeapons.push({key:b.primary, x:b.x, y:b.y, t:tick, from:b.id});   // (v334) купил в этом раунде — продаёт
       b.primary = G.key; b.weapon = WEAPONS[G.key]; b._ammoFor = null; b._pickLock = 0;
       logEvent(b.id+" подобрал "+WEAPONS[G.key].name+(G.from ? " ("+G.from+")" : ""));
       return;
@@ -10961,7 +11028,7 @@ function weaponPickupTick(){
       for(var eF in LKf){ if(tick - LKf[eF].tick < 3*TICK_HZ && Math.hypot(LKf[eF].x-b.x, LKf[eF].y-b.y) < 900){ foeNear = true; break; } }
       var gBest = null, gd = (foeNear || bomb.state === "planted") ? 80 : 170;
       groundWeapons.forEach(function(G){
-        if(weaponValue(G.key) < cur + 2) return;
+        if(pickValue(b, G.key) < cur + 2) return;
         if(G.key === "AWP" && !awpAllowed(b) && cur >= 5) return;
         if(b._pickIgnore && b._pickIgnore.round === roundNum && Math.hypot(G.x-b._pickIgnore.x, G.y-b._pickIgnore.y) < 40) return;
         var dG = Math.hypot(G.x-b.x, G.y-b.y); if(dG < gd && hasLOS(b.x, b.y, G.x, G.y)){ gd = dG; gBest = G; } });
@@ -10975,14 +11042,23 @@ function weaponPickupTick(){
     }
     // сходить за ним: рядом, заметно лучше своего, не в бою, без свежей инфы о враге рядом
     if(b.state !== "patrol" || b._sawEnemy || (bomb.state === "carried" && bomb.carrier === b)) return;
-    if(bomb.state === "planted" || (teamTac.CT && teamTac.CT.saving && b.team === "CT")) return; // ретейк/дефуз/сейв/отход — не до того
+    var savingNow = teamTac.CT && teamTac.CT.saving && b.team === "CT";
+    // ретейк/дефуз/отход — не до того; (v334, М63) на сейве — подобрать лучшее оружие рядом (≤ 450), если там врага по инфе нет
+    if(bomb.state === "planted" && !savingNow) return;
+    if(savingNow){ var gs = null, gsd = 450; if(BAL.pickFix && b._pickBan > tick) return;
+      groundWeapons.forEach(function(G){ if(pickValue(b, G.key) <= cur) return; var dG = Math.hypot(G.x-b.x, G.y-b.y);
+        if(b._pickIgnore && b._pickIgnore.round === roundNum && Math.hypot(G.x-b._pickIgnore.x, G.y-b._pickIgnore.y) < 40) return;
+        if(dG < gsd && intelEstimate("CT", G.x, G.y, 450, 5*TICK_HZ).n === 0){ gsd = dG; gs = G; } });
+      if(gs && !(b.post && b.post.tag === "pickup")){ setPost(b, {x:gs.x, y:gs.y}, null, true, "pickup"); logEvent(b.id+": сейв — по пути подбираю "+WEAPONS[gs.key].name); }
+      if(gs){ b._pickLock = tick; b._pickSave = roundNum; }
+      return; }
     if(b.post && /^(defuse|flee|save|retake|gather|antidefuse|stopplant|plantspot|fetch|lineup)/.test(b.post.tag)) return;
     if(b._pickLock >= tick-1) return;
     if(BAL.pickFix && b._pickBan > tick) return;
     var best = null, bd = BAL.pickupMore ? 420 : 230;
     groundWeapons.forEach(function(G){
       if(b._pickIgnore && b._pickIgnore.round === roundNum && Math.hypot(G.x-b._pickIgnore.x, G.y-b._pickIgnore.y) < 40) return;
-      if(weaponValue(G.key) < cur + (BAL.pickupMore ? 1 : 2) && !(G.key === "AWP" && awpAllowed(b) && weaponValue(G.key) > cur)) return; // своя AWP — за второй не ходит (раньше шёл и стоял над ней)
+      if(pickValue(b, G.key) < cur + (BAL.pickupMore ? 1 : 2) && !(G.key === "AWP" && awpAllowed(b) && pickValue(b, G.key) > cur)) return; // своя AWP — за второй не ходит (раньше шёл и стоял над ней)
       // то же правило, что при подборе: AWP с винтовкой в руках берёт только снайпер/мидер
       // (раньше шёл к AWP, а поднять "не имел права" — и стоял над ней)
       if(G.key === "AWP" && !awpAllowed(b) && cur >= 5) return;
@@ -11788,7 +11864,7 @@ function tryShoot(shooter, target, dist){
   if(w.key === "SSG") pAimHead = Math.max(pAimHead, 0.8); // скаут — в голову (корпус не убивает)
   var aimHead = w.key !== "AWP" && hashRand(seedS+5) < pAimHead;
   // (v241) целится в то, что видно: голова за укрытием не видна — в тело; видна только голова — в голову
-  var vParts = visParts(shooter.x, shooter.y, shooter.crouching, target.x, target.y, target.crouching);
+  var vParts = visParts(shooter.x, shooter.y, shooter.crouching, target.x, target.y, target.crouching, undefined, shooter.z, target.z);
   if(!vParts.head && vParts.body) aimHead = false; else if(vParts.head && !vParts.body) aimHead = true;
   var pHead, pAny, headshot, hit, hbZone = null;
   if(BAL.hitbox){
@@ -12275,7 +12351,7 @@ function resolveEngagements(){
       // взгляда (или вплотную, или контакт уже идёт), и кто не ослеплён
       // (v241) что каждый видит у другого — в 3D: стены, укрытия, пол/уступы, крыши (visParts: голова / тело)
       visReady(); if(visWallHit(ct.x,ct.y,t.x,t.y)) return;
-      var ctP = visParts(ct.x, ct.y, ct.crouching, t.x, t.y, t.crouching, false), tP = visParts(t.x, t.y, t.crouching, ct.x, ct.y, ct.crouching, false);
+      var ctP = visParts(ct.x, ct.y, ct.crouching, t.x, t.y, t.crouching, false, ct.z, t.z), tP = visParts(t.x, t.y, t.crouching, ct.x, ct.y, ct.crouching, false, t.z, ct.z);
       if(!(ctP.head || ctP.body) && !(tP.head || tP.body)) return;
       // ван-вей: стоящий в самом краю дыма видит наружу, а его снаружи — нет
       var smk = smokeBlocks(ct.x,ct.y,t.x,t.y), ctOW = false, tOW = false;
@@ -12846,16 +12922,33 @@ function decideRoundType0(team){
 
 // (v321, М14) что видно в закупку: дропы своим, старое оружие на земле, боты смотрят по сторонам
 var FREEZE_FX = [];
+// (v334, М59, владелец) продать можно только то, что сам купил в этом раунде, в закупку и ещё SELL_SEC с после неё — за полную цену
+// (как в CS2). Купленное в этом раунде — b._bought {ключ: раунд}
+var SELL_SEC = 20;
+function canSell(b, key){
+  if(!key || !b._bought || b._bought[key] !== roundNum) return false;
+  if(roundState === "freeze") return true;
+  var sp = b.team === "T" ? T_SPAWN : CT_SPAWN;   // и только в зоне закупа (у своего спавна, 350 ед. карты — проектное число)
+  return roundState === "live" && simTime - roundStartTime <= SELL_SEC && sp && Math.hypot(b.x-sp.x, b.y-sp.y) < 350;
+}
+function sellItem(b, key){
+  if(!canSell(b, key)) return false;
+  b.money += WEAPONS[key].price; delete b._bought[key];
+  if(roundState === "freeze") FREEZE_FX.push({kind:"sell", from:b.id, key:key, t:tick});
+  logEvent(b.id+" продал "+WEAPONS[key].name+" (+$"+WEAPONS[key].price+")");
+  return true;
+}
 function buyItem(b, key){
   var w = WEAPONS[key];
   if(b.money < w.price) return false;
   b.money -= w.price;
-  // купил основное поверх старого — старое падает под ноги (как в CS2); его может подобрать тиммейт
-  if(w.slot === "primary" && b.primary && b.primary !== key && WEAPONS[b.primary]){
+  // купил основное поверх старого: купленное в этом раунде — продаёт, иначе старое падает под ноги (как в CS2)
+  if(w.slot === "primary" && b.primary && b.primary !== key && WEAPONS[b.primary] && !sellItem(b, b.primary)){
     groundWeapons.push({key:b.primary, x:b.x + 6, y:b.y + 6, t:tick, from:b.id});
     FREEZE_FX.push({kind:"throw", from:b.id, key:b.primary, t:tick});
   }
   if(w.slot === "primary") b.primary = key; else b.secondary = key;
+  (b._bought || (b._bought = {}))[key] = roundNum;
   return true;
 }
 function buyArmor(b, withHelmet){
@@ -13286,6 +13379,37 @@ function navSnap(bot){
         nbd = d; nb = {x: px + (cx-px)*0.15, y: py + (cy-py)*0.15, a: a}; } }); });
   if(nb){ bot.baseX = bot.x = nb.x; bot.baseY = bot.y = nb.y; bot.z = nb.a.z; bot._area = nb.a.id; bot.path = []; bot.pathIdx = 0; bot._offNav = 0; logEvent(bot.id+": вне навмеша — перенесён на ближайший пол (заплатка)"); }
 }
+// (v334, М58, владелец: «в CS2 есть места, где прыгают для чека, — у B Apps, где стоит karrigan») чек прыжком. Места и как часто —
+// из демок (tools/jumps_bake.py → MAP.pro.jumps: прыжок на месте, rate — прыжков за раунд; Mirage у B Apps — 0,49, у Ticket —
+// 0,09). Стоит у такого места своей стороны (≤ 50 ед. карты), без контакта ≥ 2 с — прыгает с вероятностью rate / JUMP_HOLD_SEC
+// в секунду (JUMP_HOLD_SEC — сколько про обычно стоят у места, проектное). В прыжке видно поверх укрытий (только высокие стены
+// и дым закрывают) в конусе ±60° — и его оттуда тоже. Приземление с приседом тише (csdb.gg: «присесть перед приземлением —
+// тише»): радиус × 0,5 — проектное число
+var JUMP_HOLD_SEC = 30;
+function jumpCheckTick(b){
+  var JS = MAP.pro && MAP.pro.jumps; if(!JS || !JS.length || roundState !== "live" || !b.alive) return;
+  var J = b._jc;
+  if(J){
+    var age = tick - J.t;
+    if(age === 20){   // верх прыжка — видно поверх укрытий
+      bots.forEach(function(o){ if(!o.alive || o.team === b.team) return; var d = Math.hypot(o.x-b.x, o.y-b.y); if(d > 1100) return;
+        if(visWallHit(b.x, b.y, o.x, o.y) || smokeBlocks(b.x, b.y, o.x, o.y)) return;
+        if(_angOff(Math.atan2(o.y-b.y, o.x-b.x), b.facing) < 1.05){ intelPush(b.team, {type:"spotted", x:o.x, y:o.y, id:o.id, by:b.id, conf:1});
+          voiceLog(b.team, "jc"+o.id+Math.floor(tick/(4*TICK_HZ)), b.id, "чек прыжком: вижу "+nick(o.id)+" — "+calloutName(o.x, o.y)); }
+        if(o.facing !== undefined && _angOff(Math.atan2(b.y-o.y, b.x-o.x), o.facing) < 1.05) intelPush(o.team, {type:"spotted", x:b.x, y:b.y, id:b.id, by:o.id, conf:1}); });
+    }
+    if(age === 38){   // приземление, с приседом
+      soundPings.push({x:b.baseX, y:b.baseY, team:b.team, born:nowTs, radius:SOUND_RADIUS_RUN*0.5});
+      moveSoundEmit(b, SOUND_RADIUS_RUN*0.5, "steps", "приземление (чек прыжком)"); if(SND && SND.on) sndBody("land", b.baseX, b.baseY);
+      b._jc = null;
+    }
+    return;
+  }
+  if(b.curSpeed > 20 || b._sawEnemy || b.planting || b.defusing || tick - (b._shotAtT||-1e9) < 2*TICK_HZ || tick - (b.lastShotTick||-1e9) < 2*TICK_HZ) return;
+  var sp = null; for(var i=0;i<JS.length;i++){ var q = JS[i]; if(q.side === b.team && Math.hypot(q.x-b.x, q.y-b.y) < 50){ sp = q; break; } }
+  if(!sp) return;
+  if(hashRand(tick*977 + b.id.charCodeAt(b.id.length-1)*31 + roundNum*7) < sp.rate/(JUMP_HOLD_SEC*TICK_HZ)){ b._jc = {t:tick}; b._jump = {t:tick, up:true}; }
+}
 function stepTick(){
   tick++;
   simTime = tick * TICK_MS / 1000;
@@ -13383,7 +13507,7 @@ function stepTick(){
       var dB = Math.hypot(bomb.x-bot.baseX, bomb.y-bot.baseY);
       if(bombTimeLeftTicks()/TICK_HZ <= dB/(SPEED*WALK_SPEED_FRAC) + (bot.kit ? 5 : 10) + 1.5) bot.walking = false;
     }
-    knifeTick(bot); prePeekTick(bot); exposedShiftTick(bot);
+    knifeTick(bot); prePeekTick(bot); exposedShiftTick(bot); jumpCheckTick(bot);
     var runSpeed = (bot.walking ? SPEED*WALK_SPEED_FRAC : SPEED) * weaponSpeedMul(bot);
     // атакующий, который прямо сейчас видит врага, останавливается и
     // стреляет (контр-страф), а не продолжает бежать по патрульному пути —
@@ -13641,7 +13765,8 @@ function stepTick(){
           if(naz && a0z && naz !== a0z && Math.abs(naz.z - a0z.z) > JUMP_UP){
             var own = navAtLevel(bot.baseX, bot.baseY, a0z.z);
             if(own) naz = own;
-            else if(!navLinked2(a0z, naz)) naz = null;   // ни вверх, ни вниз без связи навмеша — остаётся на своём этаже
+            else { var wpz3 = bot.path && bot.path[bot.pathIdx] ? bot.path[bot.pathIdx][2] : null;
+              if(!navLinked2(a0z, naz) && !(naz.z < a0z.z && wpz3 != null && wpz3 < a0z.z - JUMP_UP)) naz = null; }   // без связи навмеша и не по пути вниз — остаётся на своём этаже
           }
           if(naz){ var dzz = naz.z - (bot.z == null ? naz.z : bot.z);
             if(dzz > 18) bot._jump = {t:tick, up:true}; else if(dzz < -40) bot._jump = {t:tick, up:false};
@@ -16477,6 +16602,7 @@ function draw(){
         ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(c.x, c.y); ctx.stroke(); ctx.setLineDash([]);
         ctx.fillStyle = "rgba(255,230,150,0.95)"; ctx.fillText("дроп "+nm, (a.x+c.x)/2, (a.y+c.y)/2 - 6/view.scale);
       } else if(F.kind === "throw"){ ctx.fillStyle = "rgba(220,220,220,0.85)"; ctx.fillText("выкинул "+nm, a.x, a.y + 18/view.scale); }
+      else if(F.kind === "sell"){ ctx.fillStyle = "rgba(150,220,140,0.9)"; ctx.fillText("продал "+nm, a.x, a.y + 18/view.scale); }   // (v334, М59)
     });
   }
   bots.forEach(function(bot){

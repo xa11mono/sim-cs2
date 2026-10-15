@@ -151,7 +151,7 @@ CT идёт через зону с ролью `CTspawn`.
 `lineups.py` + `cluster.py` (лайнапы; в набор — частота ≥ 5 % → `pro`, 1,5–5 % и 3+ матча → `proExtra`) →
 `positions_bake.py` (позиции, раскладки CT, выходы T) → `player_positions_bake.py` (кто где стоял и с чем, «меняю место» →
 `pro.positions`) → `tactics_bake.py --game` (тактики T, сетапы CT, `pos`, `lurkPlans`, `shiftTo`, `proRole`; `plays` пустые) →
-`roles_bake.py` (v321: роли наших 10 игроков на этой карте — CT по доле времени на A / мид / B, T — снайпер по AWP, лёркер по
+`jumps_bake.py` (v334: места прыжка-чека про → `pro.jumps`) и `roles_bake.py` (v321: роли наших 10 игроков на этой карте — CT по доле времени на A / мид / B, T — снайпер по AWP, лёркер по
 удалённости → `tactics.playerRoles`, их читает `seatPlayers`).
 
 В игре (v321): `navAt(x, y, z)` — участок навмеша по точке и высоте (сетка `NAV_GRID`), через него `zoneOf` (этаж — по z
