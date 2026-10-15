@@ -95,7 +95,8 @@ PEEK_MIN = 80           # ед. карты: открытое направлен�
 LAYOUT_SEC = 20         # с: на этой секунде — раскладка CT, если игрок ни разу не стоял
 LAYOUT_WIN = (8, 50)    # с: окно, где смотрим, на какой стороне CT стоял дольше всего
 SETUP_WIN = (5, 45)     # с: окно, в котором точка «занята» в сетапе
-SETUP_MIN_SHARE = 0.07  # раскладка в Setup — если не реже 7 % раундов
+SETUP_MIN_SHARE = 0.03  # раскладка в Setup — если не реже 3 % раундов (v337: было 7 % и до 4 — на Mirage выходило 4 расстановки) — проектное число
+SETUP_MAX = 8           # не больше 8 раскладок — проектное число
 EXEC_LOOK = 12          # с до планта: где T (маршрут execute)
 EXEC_WIN = 45           # с до планта: гранаты выхода (с первой волной и фейком)
 EXEC_R = 375            # ед. карты: граната «у сайта» — упала ближе этого к центру мест планта
@@ -644,7 +645,7 @@ def make_ct_setups(R, H, P):
     total = len(lay)
     setups = []
     for (nA, nM, nB), n in cnt.most_common():
-        if len(setups) >= 4 or n < SETUP_MIN_SHARE * total:
+        if len(setups) >= SETUP_MAX or n < SETUP_MIN_SHARE * total:
             break
         rids = {rid for rid, k in lay.items() if k == (nA, nM, nB)}
         # сколько раундов этой раскладки каждая точка была занята в окне сетапа

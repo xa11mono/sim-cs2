@@ -110,11 +110,16 @@ def lane_of(seq, site, SZ):
         return 'far', None
     # вход — «ветка» маршрута: первая зона после спавна T и его окрестностей (Tside рецепта), чтобы T Ramp и Tetris
     # (один заход) не считались разными; последняя зона перед сайтом — entry (в TE)
-    cut = [z for z in seq if z not in T_SPAWN]
+    # (v337) часть длинной зоны («T Roof → T Spawn», «T Spawn → Elevator») — сторона исходной зоны; раньше такие части не
+    # считались стороной T, и «веткой» у большинства выходов Mirage становилась часть спавна T вместо Palace/Ramp/Apps
+    base = lambda z: z.split(' → ')[0]
+    cut = [z for z in seq if base(z) not in T_SPAWN]
     if not cut:
         return 'far', None
     TSIDE = set(REG['Tside'])
-    branch = next((z for z in cut if z not in TSIDE), cut[-1])
+    branch = next((z for z in cut if base(z) not in TSIDE), None)
+    if branch is None:
+        return 'far', None
     return branch, cut
 
 
@@ -208,7 +213,7 @@ def analyse():
 
 
 # ---------------------------------------------------------------- тактики для игры
-SIG_MIN, SIG_MAX = 0.03, 16    # подпись — тактика, если не реже 3 % плантов; не больше 16 — проектные числа
+SIG_MIN, SIG_MAX = 0.02, 16    # подпись — тактика, если не реже 2 % плантов (v337: было 3 %); не больше 16 — проектные числа
 EXEC_LEAD = 9                  # выход за 9 с до планта (медиана про по positions_bake: plantSec − startSec ≈ 6–9 с)
 ROUTE_MAX = 6                  # маршрут — не больше 6 последних зон до входа — проектное число
 HOLD_R = 420                   # «держит сайт» — CT-точка ближе 420 ед. карты (1050 ед. игры) к центру плантов — проектное число
