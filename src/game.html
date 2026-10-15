@@ -1816,7 +1816,11 @@ function funnel(corridor, start, end){
 function buildWaypointPath(fromX, fromY, fromZ, toX, toY, toZ, team){
   // (v341, отметка владельца: karrigan в щели у края нижнего пола — путь начинался с верхней полоски (−140) над ним, туда хода
   // нет, бот уходил с пола и его переносило по кругу) начало пути — пол рядом на высоте бота, а не ближайший центр участка
-  var fz = (fromZ != null && (navAt(fromX, fromY, fromZ) || navNearestZ(fromX, fromY, NAV_GAP_TOL, fromZ))) || zoneOf(fromX, fromY, fromZ||0), tz = zoneOf(toX, toY, toZ||0);
+  var fz = fromZ != null ? navAt(fromX, fromY, fromZ) : null;
+  if(fromZ != null && (!fz || Math.abs(fz.z - fromZ) > JUMP_UP)) fz = navNearestZ(fromX, fromY, NAV_GAP_TOL, fromZ);   // под точкой чужой этаж — свой рядом
+  if(fz && !(zoneGraph[fz.id]||[]).length) fz = null;   // участок без переходов — маршрута от него нет (была прямая сквозь всё)
+  fz = fz || zoneOf(fromX, fromY, fromZ||0);
+  var tz = zoneOf(toX, toY, toZ||0);
   if(!fz || !tz) return [[toX,toY,toZ||0]];
   if(fz.id === tz.id) return [[toX,toY,toZ||0]];
   var route = zoneDijkstra(fz.id, tz.id, team);
@@ -3099,6 +3103,7 @@ function dropBomb(b){
 // звук дефуза слышат T в радиусе 700px — именно звук, а не "всезнание":
 // T, которые не рядом, про дефуз не знают
 var DEFUSE_HEAR = 700;
+var ESC_MAX_SEC = 8, ESC_WAIT_SEC = 8;   // (v342) сопровождение носителя — проектные числа
 function defuseSound(ct){
   bots.forEach(function(o){
     if(!o.alive || o.team !== "T") return;
@@ -4582,8 +4587,16 @@ function tBrain(){
       if(!esc && !cm.some(function(o){ return ready(o) && Math.hypot(o.x-carrier.x, o.y-carrier.y) <= TRADE_R; }) && cLeft >= cWalk){
         esc = cm.filter(function(o){ return !o._sawEnemy && !o.planting && !(o._tradeLock && o._tradeLock.until > tick) && !(o._reposUntil && tick < o._reposUntil) && Math.hypot(o.x-ppt.x, o.y-ppt.y) > 350; })
           .sort(function(a, c){ return Math.hypot(a.x-carrier.x, a.y-carrier.y) - Math.hypot(c.x-carrier.x, c.y-carrier.y); })[0] || null;
-        if(esc){ BE = tt.bombEsc = {round: roundNum, cid: carrier.id, id: esc.id}; voiceLog("T", "besc"+carrier.id, esc.id, "иду к бомбе — "+carrier.id+", заходим вместе"); }
+        // (v342, отметка владельца: magixx с бомбой ждал у B «сопровождение» с A — через всю карту) сопровождающий — не дальше
+        // ESC_MAX_SEC бега до носителя; иначе носитель идёт ставить сам
+        if(esc && pathLenTo(esc, carrier.x, carrier.y)/SPEED > ESC_MAX_SEC) esc = null;
+        if(esc){ BE = tt.bombEsc = {round: roundNum, cid: carrier.id, id: esc.id, since: tick}; voiceLog("T", "besc"+carrier.id, esc.id, "иду к бомбе — "+carrier.id+", заходим вместе"); }
       }
+      // (v342) ждать сопровождение — не дольше ESC_WAIT_SEC и только если он не дальше ESC_MAX_SEC бега (проверка каждые 0,5 с;
+      // проектные числа: в демках про — только доля «носитель один», 5 %)
+      if(esc && BE){ if(BE.since == null) BE.since = tick;
+        if(tick - (BE.lenT || -1e9) >= 32){ BE.lenT = tick; BE.far = pathLenTo(esc, carrier.x, carrier.y)/SPEED > ESC_MAX_SEC; }
+        if(BE.far || tick - BE.since > ESC_WAIT_SEC*TICK_HZ) esc = null; }
       if(esc && cLeft >= cWalk){
         var dE = Math.hypot(esc.x-carrier.x, esc.y-carrier.y);
         var lnE = Math.hypot(ppt.x-carrier.x, ppt.y-carrier.y) || 1, ePt = walk({x: carrier.x + (ppt.x-carrier.x)/lnE*Math.min(90, lnE), y: carrier.y + (ppt.y-carrier.y)/lnE*Math.min(90, lnE)});
@@ -9395,6 +9408,17 @@ function ctBrain(){
       setPost(b, rSpots[rPick], lookPt, true, "rotate", role==="rotator"?1:-1);
       return;
     }
+    // (v342, отметка владельца: «бомба выбита — колл, а NiKo стоит опорником на Palace») C4 лежит у другого сайта (колл «бомба
+    // лежит — держим её», ct.bombDown), CT ≤ 3 — опорник идёт к бомбе: на его сайте без бомбы ставить нечего. При 4–5 CT остаётся
+    if((role === "anchorA" || role === "anchorB") && ct.bombDown && cts.length <= 3 && !(bomb && bomb.state === "planted")){
+      var kMine = role === "anchorA" ? "A" : "B", kBomb = kMine === "A" ? "B" : "A", bd = ct.bombDown;
+      if(Math.hypot(bd.x-SITES[kBomb].x, bd.y-SITES[kBomb].y) + 250 < Math.hypot(bd.x-SITES[kMine].x, bd.y-SITES[kMine].y)){
+        var bdp = pickSpots("bdrot"+kBomb, GEO[kBomb].anchor, 3, {rMax:260, minGap:60, see:[{x:bd.x, y:bd.y}], hideFrom:[GEO[kBomb].tStage]})[0] || GEO[kBomb].anchor;
+        if(!(b.post && b.post.tag === "rotate:bomb")){ voiceLog("CT", "bdrot"+b.id+roundNum, b.id, "бомба на "+kBomb+" — иду к вам с "+kMine); safeRotate(b, bdp, kBomb); }
+        setPost(b, bdp, {x:bd.x, y:bd.y}, true, "rotate:bomb");
+        return;
+      }
+    }
     if(BAL.ctSetups && ctSetupRole(b, role, ct)) return;
     if(role === "anchorA" || role === "anchorB"){
       // опорник каждый раунд встаёт на одну из нескольких позиций у сайта, а не
@@ -12858,6 +12882,10 @@ function assignNewDestination(bot, tick){
   var r = hashRand(bot.id.charCodeAt(0)*97 + bot.id.length*13 + tick*7919 + bot.pickTick);
   var pool = POINT_POOL.length ? POINT_POOL : [bot.spawnPt];
   var target = pool[Math.floor(r * pool.length)];
+  // (v342, отметка владельца: magixx (IGL) «спрыгивает, разворачивается на спавн, стоит, потом идёт снова») T без задачи до своей
+  // очереди в тактике брал случайную точку всей карты (спавн, потом A, потом спавн). Теперь — место сбора тактики (tStage сайта)
+  var tTac = bot.team === "T" && roundState === "live" && teamTac.T && teamTac.T.site && GEO[teamTac.T.site];
+  if(tTac && tTac.tStage) target = tTac.tStage;
   // small deterministic jitter around the tactical point (plan discussion: a
   // bot occupying a point shouldn't stand dead-center every time) — seeded off
   // the same pickTick so it's reproducible, not Math.random.
