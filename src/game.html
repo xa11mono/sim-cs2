@@ -10969,6 +10969,7 @@ function itemPickupTick(){
       } else continue;
       groundItems.splice(i, 1);
       logEvent(b.id+" подобрал "+(G.kind === "kit" ? "кит" : G.kind === "nade" ? NADE[G.key].name : WEAPONS[G.key].name)+(G.from ? " ("+G.from+")" : ""));
+      if(G.kind !== "kit") sndPickup(b, G.kind === "nade" ? "nade" : "w");   // (v338) звук подбора — только показ
     }
   });
 }
@@ -11072,6 +11073,7 @@ function weaponPickupTick(){
       if(b.primary && !sellItem(b, b.primary)) groundWeapons.push({key:b.primary, x:b.x, y:b.y, t:tick, from:b.id});   // (v334) купил в этом раунде — продаёт
       b.primary = G.key; b.weapon = WEAPONS[G.key]; b._ammoFor = null; b._pickLock = 0;
       logEvent(b.id+" подобрал "+WEAPONS[G.key].name+(G.from ? " ("+G.from+")" : ""));
+      sndPickup(b, "w");   // (v338) звук подбора — только показ
       return;
     }
     // (9) в бою: с пистолетом/ПП, рядом (≤170px) лежит винтовка/AWP убитого, врага
@@ -17116,7 +17118,10 @@ var PL_SEEN = {}, PL_ANIM_MS = 220;
 function plItem(b, key, html){
   var S = PL_SEEN[b.id] || (PL_SEEN[b.id] = {have:{}, now:{}, first:true}), t = performance.now();
   S.now[key] = 1;
-  if(!(key in S.have)) S.have[key] = S.first ? 0 : t;
+  if(!(key in S.have)){ S.have[key] = S.first ? 0 : t;
+    // (v338) купил во фризтайм — звук вещи там, где он стоит (оружие / граната; броня и кит — без звука, записей нет)
+    var BS = typeof BUY_SHOW !== "undefined" && BUY_SHOW && BUY_SHOW[b.id];
+    if(!S.first && roundState === "freeze" && BS && !BS.before[key]) sndPickup(b, /^w:/.test(key) ? "w" : /^(smoke|flash|he|molly)\d/.test(key) ? "nade" : null); }
   var age = t - S.have[key];
   return age < PL_ANIM_MS ? '<span class="pl-it new" style="animation-delay:-'+Math.round(age)+'ms">'+html+'</span>' : '<span class="pl-it">'+html+'</span>';
 }
@@ -17521,6 +17526,15 @@ function sndStep(x, y){   // (v327) шаг как в CS — «тук-тук» п
   var sk = "step_0" + (1 + Math.floor(Math.random()*8)); if(sndPlay(sk, 0.9*g, SND.far)) return;   // (v331) запись шага по бетону
   sndNoise(0.75*g, 0.03, "bandpass", 1600, 1.5); sndTone(0.4*g, 0.05, 160, "triangle", 0, 80);
   sndNoise(0.5*g, 0.025, "bandpass", 2100, 1.5, 0.07);
+}
+// (v338, владелец прислал записи CS2) покупка и подбор: оружие — pickup_weapon_1/_2, граната — pickup_grenade. Слышно рядом
+// с игроком (радиус шагов, проектное число); не больше 3 за 50 мс (закуп всей команды — не каша). Только показ.
+// chat_talk — звук сообщения в чате: ключ в наборе есть, чата пока нет (добавим позже)
+SND_CAP.buy = 3;
+function sndPickup(b, kind){
+  if(!kind || !b) return;
+  var g = sndGain(b.x, b.y, SND_R.step, "buy"); if(!g) return;
+  var key = sndRec(kind === "nade" ? "pickup_grenade" : "pickup_weapon", 0); if(key) sndPlay(key, 0.6*g, SND.far);
 }
 // (v333, М55) звуки тела: приземление, попадание (в броню / в тело / в голову — с шлемом и без), горение. Только показ
 function sndBody(kind, x, y, o){

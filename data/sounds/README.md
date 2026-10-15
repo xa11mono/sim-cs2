@@ -4,3 +4,9 @@
 как в игре, по его просьбе). Отобранные файлы кладутся в `src/` под ключами (`AK_1`, `AK_far`, `n_he`, `c4_beep`, `step_01` …)
 — сами `.wav` в git не хранятся (29 МБ, `.gitignore`), в git — собранный `sounds.json`.
 `python3 tools/sounds_bake.py` → `sounds.json` (MP3 моно 22 кГц 48 кбит/с, до 4 с, base64); в страницу вставляет `src/mkpub.py`.
+
+## Отдельные звуки (v338, `data/sounds/extra/`, в git)
+Присланы владельцем 15.10.2026 (файлы CS2): `pickup_weapon_1`, `pickup_weapon_2` (из `.vsnd_c`: внутри — PCM 16 бит, моно,
+44,1 кГц после заголовка ресурса 800 байт; формат — блок DATA ресурса), `pickup_grenade` — покупка во фризтайм и подбор с
+земли (`sndPickup`); `chat_talk` — сообщение в чате (чата пока нет). `python3 tools/sounds_bake.py --extra` дописывает их в
+готовый `sounds.json`, без пака `src/`.
