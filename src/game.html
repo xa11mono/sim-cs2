@@ -83,6 +83,10 @@
   .pl-hp{font-family:var(--hud-n);font-size:22px;font-weight:500;line-height:1;}
   .pl-hp.low{color:#ff8a7e;}
   .pl-gear{display:flex;align-items:center;gap:4px;height:12px;}
+  /* (v322, М28) купил / подобрал — иконка появляется: 220 мс, ease-out (DESIGN_SOURCES: движение только в ответ на действие, до 300 мс) */
+  .pl-it{display:inline-flex;align-items:center;flex:none;} .pl-it.new{animation:plItIn 220ms cubic-bezier(.2,.8,.2,1) both;}
+  @keyframes plItIn{from{opacity:0;transform:translateY(-5px) scale(.6);}to{opacity:1;transform:none;}}
+  @media (prefers-reduced-motion: reduce){ .pl-it.new{animation:none;} }
   .pl-gear svg{height:11px;width:auto;fill:rgba(255,255,255,.45);flex:none;} .pl-gear svg.kf{height:13px;opacity:.6;}
   .pl-bar{position:absolute;left:22px;right:0;bottom:0;height:3px;}
   #plCT .pl-bar{left:0;right:22px;}
@@ -13085,6 +13089,46 @@ resetBomb();
 chooseTactic();
 beliefBuild(); beliefReset(); // раздел 13: карта вероятностей врага
 
+// (v322, М14) свободный обзор в закупку: каждый смотрит сам по себе — держит взгляд, потом поворачивает мышь.
+// Сколько держат и на сколько поворачивают — из демок про Mirage (25 матчей, фризтайм, взгляд раз в 0,25 с; поворот —
+// больше 8° за 0,25 с): держат 0,25 / 0,25 / 1 / 2,5 / 5,75 с, поворот 11 / 21 / 50 / 98 / 145° (10/25/50/75/90 %).
+var FREEZE_HOLD = [0.25, 0.25, 1, 2.5, 5.75], FREEZE_TURN = [11, 21, 50, 98, 145], FREEZE_TURN_SPEED = 0.25*Math.PI/16;  // скорость — поворот за ~0,25 с (шаг демок)
+function freezePick(q, u){ var k = Math.min(3, Math.floor(u*4)), f = u*4 - k; return q[k] + (q[k+1]-q[k])*f; }   // доля u → число по процентилям (упрощение)
+function freezeLookTick(){
+  bots.forEach(function(b, i){
+    if(!b.alive) return;
+    if(!isFinite(b.facing)) b.facing = Math.atan2(1024-b.y, 1024-b.x);   // ещё не смотрел никуда — к середине карты
+    var F = b._fz;
+    if(!F || F.round !== roundNum){ F = b._fz = {round: roundNum, until: tick, target: b.facing}; }
+    if(tick >= F.until){
+      var seed = roundNum*7919 + i*104729 + tick;
+      var turn = freezePick(FREEZE_TURN, hashRand(seed)) * Math.PI/180 * (hashRand(seed+1) < 0.5 ? -1 : 1);
+      F.target = b.facing + turn;
+      F.until = tick + Math.round(freezePick(FREEZE_HOLD, hashRand(seed+2)) * TICK_HZ) + Math.ceil(Math.abs(turn)/FREEZE_TURN_SPEED);
+    }
+    var d = F.target - b.facing;
+    b.facing += Math.max(-FREEZE_TURN_SPEED, Math.min(FREEZE_TURN_SPEED, d));
+  });
+}
+
+// (v322) звук движения — шаги, вода, прыжок (одно место «кто из врагов услышал»): через стену слышно ближе (~75 % радиуса),
+// место — пятно, а не точка (hearPos), в уши — hearReal
+function moveSoundEmit(bot, soundRadius, kind, label){
+  bots.forEach(function(listener){
+    if(listener===bot || !listener.alive || listener.team===bot.team) return;
+    var dHear = Math.hypot(listener.x-bot.x, listener.y-bot.y);
+    if(dHear > soundRadius) return;
+    var occS = BAL.soundDir && !hasLOS(listener.x, listener.y, bot.x, bot.y);
+    if(occS && dHear > soundRadius*0.75) return;
+    var wasStale = !listener.heardSound || (tick - listener.heardSound.tick) > 90;
+    var seed = tick*331 + bot.id.charCodeAt(0)*17 + listener.id.charCodeAt(0)*11 + bot.lastStepTick;
+    var jitterMag = 20 + dHear*0.12, jang = hashRand(seed) * Math.PI*2;
+    var hpF = hearPos(listener, bot.x, bot.y, seed, occS);
+    listener.heardSound = hearReal(listener, hpF ? {x:hpF.x, y:hpF.y, tick:tick, team:bot.team, src:bot.id, kind:kind, occl:occS}
+                              : {x:bot.x+Math.cos(jang)*jitterMag, y:bot.y+Math.sin(jang)*jitterMag, tick:tick, team:bot.team, src:bot.id, kind:"steps", occl:occS});
+    if(wasStale) logEvent(listener.id+" услышал "+label+" ("+bot.team+")"+(occS ? " за стеной" : ""));
+  });
+}
 function stepTick(){
   tick++;
   simTime = tick * TICK_MS / 1000;
@@ -13097,9 +13141,7 @@ function stepTick(){
     return;
   }
   if(roundState === "freeze"){
-    // (v321, М14) в закупку смотрят по сторонам: взгляд плавно ходит ±50° вокруг направления к центру карты
-    bots.forEach(function(b){ if(!b.alive) return; var base = Math.atan2(1024-b.y, 1024-b.x), ph = (b.id.charCodeAt(0)*7 + b.id.length*13) % 10;
-      b.facing = base + 0.87*Math.sin(tick/45 + ph); });
+    freezeLookTick();
     if(simTime >= roundStartTime){ roundState = "live"; FREEZE_FX = []; logEvent("Freeze-тайм окончен — раунд пошёл"); }
     return;
   }
@@ -13311,24 +13353,7 @@ function stepTick(){
         if(BAL.heardMe && roundState === "live"){ var zN = bzOf(bot.x, bot.y); if(zN >= 0){ var nearZ = [zN].concat(BZ.nbr[zN]||[]);
           if(nearZ.some(function(j){ var cj = BZ.cent[j]; return cj && Math.hypot(cj.x-bot.x, cj.y-bot.y) < soundRadius && reachPossible(bot.team, j) && beliefZoneKnown(bot.team, j) >= 0.2; })) bot._noisyT = tick; } }
         if(soundPings.length > 40) soundPings.shift();
-        bots.forEach(function(listener){
-          if(listener===bot || !listener.alive || listener.team===bot.team) return;
-          var dHear = Math.hypot(listener.x-bot.x, listener.y-bot.y);
-          if(dHear > soundRadius) return;
-          // через стену шаги глуше: слышно только ближе (~75% радиуса)
-          var occS = BAL.soundDir && !hasLOS(listener.x, listener.y, bot.x, bot.y);
-          if(occS && dHear > soundRadius*0.75) return;
-          var wasStale = !listener.heardSound || (tick - listener.heardSound.tick) > 90;
-          // звук как вероятностное пятно, не точная координата (план §13) —
-          // джиттер растёт вместе с дистанцией до источника
-          var jitterMag = 20 + dHear*0.12;
-          var jr = hashRand(tick*331 + bot.id.charCodeAt(0)*17 + listener.id.charCodeAt(0)*11 + bot.lastStepTick);
-          var jang = jr * Math.PI*2;
-          var hpF = hearPos(listener, bot.x, bot.y, tick*331 + bot.id.charCodeAt(0)*17 + listener.id.charCodeAt(0)*11 + bot.lastStepTick, occS);
-          listener.heardSound = hearReal(listener, hpF ? {x:hpF.x, y:hpF.y, tick:tick, team:bot.team, src:bot.id, kind: wet ? "water" : "steps", occl:occS}
-                                    : {x:bot.x+Math.cos(jang)*jitterMag, y:bot.y+Math.sin(jang)*jitterMag, tick:tick, team:bot.team, src:bot.id, kind:"steps", occl:occS});
-          if(wasStale) logEvent(listener.id+" услышал "+(wet ? "всплески в воде" : "шаги")+" ("+bot.team+")"+(bot.walking?" (тихо)":"")+(occS ? " за стеной" : ""));
-        });
+        moveSoundEmit(bot, soundRadius, wet ? "water" : "steps", (wet ? "всплески в воде" : "шаги")+(bot.walking ? " (тихо)" : ""));
       }
     }
 
@@ -13448,6 +13473,10 @@ function stepTick(){
         if(actuallyMoved > 0){ var naz = navAt(bot.baseX, bot.baseY, bot.z);
           if(naz){ var dzz = naz.z - (bot.z == null ? naz.z : bot.z);
             if(dzz > 18) bot._jump = {t:tick, up:true}; else if(dzz < -40) bot._jump = {t:tick, up:false};
+            // (v322, М29) прыжок / приземление слышно и при тихом шаге, далеко (csdb.gg: «громкий звук приземления, слышно
+            // издалека», без числа) — радиус как у бега: проектное число
+            if(roundState === "live" && (dzz > 18 || dzz < -40)){ soundPings.push({x:bot.baseX, y:bot.baseY, team:bot.team, born:nowTs, radius:SOUND_RADIUS_RUN});
+              moveSoundEmit(bot, SOUND_RADIUS_RUN, "steps", dzz > 0 ? "прыжок" : "приземление"); }
             bot.z = naz.z; bot._area = naz.id; } }
         // "топчется": каждый тик куда-то сдвигается (веер проб у угла туда-сюда),
         // но за 1.5с никуда не ушёл — раньше это не считалось застреванием
@@ -16671,17 +16700,33 @@ function plNum(b){ return pnum(b.id); }
 function plPhoto(b){ var p = PLAYER_PHOTO[nick(b.id)]; return p ? '<img alt="" src="'+p+'">' : PL_SIL; }
 var PL_KILL = '<svg viewBox="0 0 12 12"><path d="M5.3 0h1.4v2.1A4 4 0 0 1 9.9 5.3H12v1.4H9.9a4 4 0 0 1-3.2 3.2V12H5.3V9.9a4 4 0 0 1-3.2-3.2H0V5.3h2.1a4 4 0 0 1 3.2-3.2zM6 3.4a2.6 2.6 0 1 0 0 5.2 2.6 2.6 0 0 0 0-5.2z"/></svg>';
 var PL_SKULL = '<svg viewBox="0 0 12 12"><path d="M6 0C2.7 0 .5 2.2.5 5c0 1.7.8 3 2 3.7V11h1.6V9.6h1.1V11h1.6V9.6h1.1V11h1.6V8.7c1.2-.7 2-2 2-3.7C11.5 2.2 9.3 0 6 0zM3.9 4.3a1.3 1.3 0 1 1 0 2.6 1.3 1.3 0 0 1 0-2.6zm4.2 0a1.3 1.3 0 1 1 0 2.6 1.3 1.3 0 0 1 0-2.6z"/></svg>';
+// (v322, М28) появление купленного на панели игрока: новая вещь (оружие, броня, кит, бомба, граната) — анимация plItIn.
+// Панель перерисовывается ~10 раз в секунду, поэтому анимация продолжается с того места, где была (отрицательная задержка)
+var PL_SEEN = {}, PL_ANIM_MS = 220;
+function plItem(b, key, html){
+  var S = PL_SEEN[b.id] || (PL_SEEN[b.id] = {have:{}, now:{}, first:true}), t = performance.now();
+  S.now[key] = 1;
+  if(!(key in S.have)) S.have[key] = S.first ? 0 : t;
+  var age = t - S.have[key];
+  return age < PL_ANIM_MS ? '<span class="pl-it new" style="animation-delay:-'+Math.round(age)+'ms">'+html+'</span>' : '<span class="pl-it">'+html+'</span>';
+}
+function plItemsDone(b){
+  var S = PL_SEEN[b.id]; if(!S){ return; }
+  for(var k in S.have) if(!S.now[k]) delete S.have[k];   // пропало (бросил, умер) — при новом появлении снова анимация
+  S.now = {}; S.first = false;
+}
 function plCard(b){
   var sel = plSelected === b.id ? " sel" : "", n = nick(b.id), hp = b.alive ? Math.max(0, Math.round(b.hp)) : 0, low = hp > 0 && hp <= 25 ? " low" : "";
   var wp = "", gear = "";
   if(b.alive){
     var wkey = (b.weapon && b.weapon.key) || "KNIFE", ic = KF_ICON[wkey];
-    if(ic) wp = '<svg class="wp" viewBox="'+ic.vb+'">'+ic.svg+'</svg>';
-    if(b.helmet) gear += PL_ICON.helmet; else if(b.armor) gear += PL_ICON.armor;
-    if(b.team === "CT" && b.kit) gear += PL_ICON.kit;
-    if(b.team === "T" && bomb && bomb.state === "carried" && bomb.carrier === b) gear += PL_ICON.c4;
-    var N = b.nades || {}; ["smoke","flash","he","molly"].forEach(function(k){ for(var i=0;i<(N[k]||0);i++) gear += PL_ICON[k]; });
+    if(ic) wp = plItem(b, "w:"+wkey, '<svg class="wp" viewBox="'+ic.vb+'">'+ic.svg+'</svg>');
+    if(b.helmet) gear += plItem(b, "helmet", PL_ICON.helmet); else if(b.armor) gear += plItem(b, "armor", PL_ICON.armor);
+    if(b.team === "CT" && b.kit) gear += plItem(b, "kit", PL_ICON.kit);
+    if(b.team === "T" && bomb && bomb.state === "carried" && bomb.carrier === b) gear += plItem(b, "c4", PL_ICON.c4);
+    var N = b.nades || {}; ["smoke","flash","he","molly"].forEach(function(k){ for(var i=0;i<(N[k]||0);i++) gear += plItem(b, k+i, PL_ICON[k]); });
   }
+  plItemsDone(b);
   return '<div class="pl-card'+(b.alive ? "" : " dead")+sel+'" data-id="'+b.id+'" tabindex="0" title="Показать игрока">'+
     '<div class="pl-num">'+plNum(b)+'</div>'+
     '<div class="pl-body"><div class="pl-nick">'+esc(n)+'</div>'+

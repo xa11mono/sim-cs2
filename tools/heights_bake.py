@@ -263,11 +263,19 @@ def roof_polys(areas, dirs):
         files.append(d if os.path.isfile(d) else sorted(glob.glob(os.path.join(d, 'de_%s_radar.*' % MAPNAME)))[0])
     masks = [hatch_mask(f) for f in files]
     m = (np.sum(masks, axis=0) * 2 > len(masks))
+    # (v322, М27) надписи, значки и стрелки внутри штриховки — тоже крыша: не пол и не стена радара рядом со штриховкой
+    # (до 8 px радара 1024) добавляется к ней; обрезка — по стене радара (чёрное), а не по полу навмеша: навмеш у стен
+    # уже штриховки, и обрезка по нему давала синие полосы и дырки
+    im = np.asarray(Image.open(files[0]).convert('RGB')).astype(int)
+    if im.shape[0] != 1024:
+        im = np.asarray(Image.open(files[0]).convert('RGB').resize((1024, 1024))).astype(int)
+    r, g, b = im[..., 0], im[..., 1], im[..., 2]
+    wall = (r < 30) & (g < 30) & (b < 30)
+    floor = (abs(r - 40) < 12) & (abs(g - 50) < 12) & (abs(b - 72) < 14)
+    near = ndimage.binary_closing(m, iterations=8)
+    m = (m | (near & ~floor)) & ~wall
+    m = ndimage.binary_fill_holes(m) & ~wall
     m = np.kron(m, np.ones((2, 2), bool))                      # 1024 → 2048
-    fl = Image.new('L', (2048, 2048), 0); d = ImageDraw.Draw(fl)
-    for a in areas:
-        d.polygon(a['P'], fill=1, outline=1)
-    m &= ndimage.binary_dilation(np.asarray(fl).astype(bool), iterations=2)
     m = ndimage.binary_opening(ndimage.binary_closing(m, iterations=3), iterations=1)
     out = []
     lab, n = ndimage.label(m)
