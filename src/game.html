@@ -3139,7 +3139,7 @@ function defuseSees(b){
   return !visWallHit(b.baseX, b.baseY, bomb.x, bomb.y) && visMarch(b.baseX, b.baseY, fv + VIS_EYE.crouch, bomb.x, bomb.y, fb + 8);
 }
 var ESC_MAX_SEC = 8, ESC_WAIT_SEC = 8;
-var UTIL_WAIT = 4, UTIL_WAIT_RUSH = 2.5, UTIL_AT_ENTRY = 140;   // (v346) ждать свои гранаты на выходе — проектные числа   // (v342) сопровождение носителя — проектные числа
+var UTIL_WAIT = 7, UTIL_WAIT_RUSH = 2.5, UTIL_AT_ENTRY = 140, UTIL_MIN_LEFT = 25;   // (v363) 7 с — между медианой 2,7 и 75 % 6,6 с у про (последняя граната → заход первого), 25 с до конца — уже не ждут   // (v346) ждать свои гранаты на выходе — проектные числа   // (v342) сопровождение носителя — проектные числа
 function defuseSound(ct){
   bots.forEach(function(o){
     if(!o.alive || o.team !== "T") return;
@@ -4656,13 +4656,18 @@ function tBrain(){
       // (GEO.tEntry + pos.entries), а не в 700 ед. от центра сайта (там он вставал на T Ramp, и остальные уходили вперёд)
       var S0 = SITES[tt.site], gE = GEO[tt.site], ents = gE ? [gE.tEntry].concat(entryPts(tt.site) || []).filter(Boolean) : [];
       var atExit = ents.some(function(q){ return Math.hypot(b.x-q.x, b.y-q.y) <= UTIL_AT_ENTRY; });
-      if(!S0 || b.tRole !== "entry" || !atExit || b.nadeTask || b._utilWDone === roundNum){ b._utilW = null; return false; }   // (v353) за раунд ждёт один раз
-      var inAir = nadesInAir.some(function(n){ return n.team === "T" && Math.hypot((n.tx != null ? n.tx : n.x)-S0.x, (n.ty != null ? n.ty : n.y)-S0.y) < 900; });
+      // (v363, владелец: «до гранат на сайт не выходили, а то в чём смысл гранат») гранаты ждёт каждый, кто стоит у выхода на сайт
+      // (не только энтри): у про 75 % смоков выхода встают до того, как первый T зашёл на сайт (демки Mirage, 774 раунда с
+      // плантом; флешки — 52 %: их кидают под заход, их не ждут). Размен вдвоём — по-прежнему только энтри
+      var secW = ROUND_TIME_SEC - (simTime - roundStartTime);
+      if(!S0 || !atExit || b.nadeTask || b._utilWDone === roundNum || secW < UTIL_MIN_LEFT){ b._utilW = null; return false; }   // (v353) за раунд ждёт один раз
+      var inAir = nadesInAir.some(function(n){ return n.team === "T" && n.type !== "flash" && Math.hypot((n.tx != null ? n.tx : n.x)-S0.x, (n.ty != null ? n.ty : n.y)-S0.y) < 900; });
       // (v349, отметка владельца: «всё равно выходят до взрыва») и пока свой несёт гранату выхода на этот сайт (лайнап «(выход, A)»)
       var reExec = new RegExp("выход, " + tt.site);
-      var pending = ts.some(function(o){ return o !== b && o.alive && (o.nadeTask && o.nadeTask.lineup && reExec.test(o.nadeTask.why || "") || (o.nadeQueue || []).some(function(q){ return reExec.test(q.why || ""); })); });   // (v355) и очередь
+      var waitT = function(t){ return t && t.type !== "flash" && reExec.test(t.why || ""); };   // флешки выхода — под заход, их не ждут
+      var pending = ts.some(function(o){ return o !== b && o.alive && (o.nadeTask && o.nadeTask.lineup && waitT(o.nadeTask) || (o.nadeQueue || []).some(waitT)); });
       // (v351, владелец: «зачем они выходят по одному») и пока рядом нет своего на размен (≤ TRADE_R) — выход вдвоём
-      var mate = ts.some(function(o){ return o !== b && o.alive && o.tRole !== "lurker" && Math.hypot(o.x-b.x, o.y-b.y) <= TRADE_R; });
+      var mate = b.tRole !== "entry" || ts.some(function(o){ return o !== b && o.alive && o.tRole !== "lurker" && Math.hypot(o.x-b.x, o.y-b.y) <= TRADE_R; });
       if(!inAir && !pending && mate){ b._utilW = null; return false; }
       if(!mate && !inAir && !pending && !(b._utilW && b._utilW.round === roundNum)) voiceLog("T", "tradewait"+b.id+roundNum, b.id, "жду размен — выходим вдвоём");
       // (v349, отметка владельца: donk ждал на выходе с T Ramp на виду у NiKo — бой начинался раньше гранат) ждёт в ближайшем
