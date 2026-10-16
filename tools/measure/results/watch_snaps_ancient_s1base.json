@@ -1,0 +1,165 @@
+{
+ "n": {
+  "stall": 5,
+  "wait": 0,
+  "waitCould": 0,
+  "tug": 2,
+  "flip": 1,
+  "danger": 0,
+  "empty": 0,
+  "nav": 6
+ },
+ "ev": {
+  "stall": [
+   [
+    "ab0fa3fd",
+    13456,
+    "CT3",
+    "rotate",
+    1647,
+    562,
+    1068,
+    19
+   ],
+   [
+    "ab0fa3fd",
+    13456,
+    "T0",
+    "clearA:Boost",
+    384,
+    731,
+    91,
+    3
+   ],
+   [
+    "ab0fa3fd",
+    13680,
+    "T4",
+    "contact:hold",
+    377,
+    605,
+    61,
+    2
+   ],
+   [
+    "ab0fa3fd",
+    14016,
+    "T2",
+    "siteholdA:Def",
+    361,
+    474,
+    220,
+    6
+   ],
+   [
+    "ab0fa3fd",
+    14208,
+    "CT2",
+    "anchor",
+    1469,
+    705,
+    91,
+    5
+   ]
+  ],
+  "wait": [],
+  "tug": [
+   [
+    "ab0fa3fd",
+    13424,
+    "T0",
+    "utilWait → clearA → utilWait"
+   ],
+   [
+    "ab0fa3fd",
+    13456,
+    "T0",
+    "clearA → utilWait → clearA"
+   ]
+  ],
+  "flip": [
+   [
+    "ab0fa3fd",
+    14349,
+    "T0",
+    "чекнул Box — пусто"
+   ]
+  ],
+  "danger": [],
+  "empty": [],
+  "nav": [
+   [
+    "49638d5d",
+    8212,
+    "CT3: вне навмеша — перенесён на ближайши"
+   ],
+   [
+    "49638d5d",
+    8281,
+    "CT0: вне навмеша — перенесён на ближайши"
+   ],
+   [
+    "49638d5d",
+    8992,
+    "T0: вне навмеша — перенесён на ближайший"
+   ],
+   [
+    "49638d5d",
+    9170,
+    "CT0: вне навмеша — перенесён на ближайши"
+   ],
+   [
+    "ab0fa3fd",
+    13125,
+    "CT0: вне навмеша — перенесён на ближайши"
+   ],
+   [
+    "ab0fa3fd",
+    13593,
+    "CT0: вне навмеша — перенесён на ближайши"
+   ]
+  ]
+ },
+ "emptyBy": {},
+ "dangerBy": {},
+ "nade": {
+  "rounds": 2,
+  "hands": {
+   "CT|half|smoke": 3,
+   "CT|half|flash": 1,
+   "CT|half|he": 0,
+   "CT|half|molly": 1,
+   "T|eco|smoke": 0,
+   "T|eco|flash": 0,
+   "T|eco|he": 0,
+   "T|eco|molly": 0,
+   "CT|eco|smoke": 0,
+   "CT|eco|flash": 0,
+   "CT|eco|he": 0,
+   "CT|eco|molly": 0,
+   "T|full|smoke": 3,
+   "T|full|flash": 6,
+   "T|full|he": 0,
+   "T|full|molly": 3
+  },
+  "intent": {
+   "T|full|molly": 1,
+   "T|full|smoke": 2,
+   "T|full|flash": 1
+  },
+  "reached": {
+   "T|full|smoke": 2,
+   "T|full|flash": 1,
+   "T|full|molly": 1
+  },
+  "thrown": {
+   "T|full|smoke": 2,
+   "T|full|flash": 1,
+   "T|full|molly": 1
+  },
+  "lost": {},
+  "lostWhy": {}
+ },
+ "snaps": 2,
+ "sec": 20
+}

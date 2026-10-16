@@ -27,7 +27,7 @@ if '--no-play' not in sys.argv:
     for i in range(0,len(matches),2):
         ps=[]
         for m in matches[i:i+2]:
-            src=tpl.replace('__M__',str(m)).replace('__T__',str(TICKS))
+            src=tpl.replace('__M__',str(m)).replace('__T__',str(TICKS)).replace('/*@@WATCH@@*/',open(os.path.join(HERE,'audit','watch.js')).read())   # (v373) сторож
             fo=open(os.path.join(OUT,f'rec_{m}.json'),'w')
             ps.append((subprocess.Popen(['timeout','2400','node','src/q.js',SIMFILE,src],cwd=SIM,stdout=fo),fo))
         for p,fo in ps: p.wait(); fo.close()
