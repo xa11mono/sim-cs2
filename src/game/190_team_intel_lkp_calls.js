@@ -334,11 +334,11 @@ function intelDeath(victim, killer){
   if(BAL.iglReplan && victim.team === "T" && killer && killer.alive && teamTac.T && teamTac.T.phase === "execute" &&
      (victim.tRole === "entry" || !teamTac.T._popDone)){
     var kpF = {x:killer.x + (saw ? 0 : (hashRand(tick*23+1)-0.5)*140), y:killer.y + (saw ? 0 : (hashRand(tick*29+2)-0.5)*140)};
-    var flc = bots.filter(function(o){ return o.alive && o.team === "T" && o !== victim && o.nades && o.nades.flash > 0 && !o.planting &&
+    var flc = bots.filter(function(o){ return o.alive && o.team === "T" && o !== victim && o.nades && o.nades.flash > 0 && !o.planting && nadeCanSet(o, NADE_LEVEL.fight) &&
       !(bomb.state === "carried" && bomb.carrier === o) && Math.hypot(o.x-victim.x, o.y-victim.y) < 750; })
       .sort(function(a, c){ var ta = traders.some(function(T){ return T.b === a; }) ? 200 : 0, tc = traders.some(function(T){ return T.b === c; }) ? 200 : 0;
         return (Math.hypot(a.x-victim.x, a.y-victim.y) + ta) - (Math.hypot(c.x-victim.x, c.y-victim.y) + tc); })[0];
-    if(flc && assignNade(flc, "flash", kpF, "поп на убийцу "+victim.id, {now:true, range:900})){
+    if(flc && assignNade(flc, "flash", kpF, "поп на убийцу "+victim.id, {now:true, range:900, lvl:NADE_LEVEL.fight})){
       teamTac.T._popDone = true;
       voiceLog("T", "pop"+victim.id, flc.id, "даю флешку на "+killer.id+" "+calloutName(kpF.x, kpF.y)+" — меняйте под неё!");
       // размен ждёт хлопка (не дольше ~1.2с): не выбегает раньше флешки

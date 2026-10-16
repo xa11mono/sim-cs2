@@ -251,8 +251,8 @@ function updateRetake(cts){
   if(BAL.defuseSmoke && R.phase === "go" && !nadeFlags.defSmoke && def && aliveCount("T") > 0){
     var bpS = ctBombPos(), dDef = Math.hypot(def.x-bpS.x, def.y-bpS.y);
     if(dDef < 420 && !smokeCovered(bpS.x, bpS.y)){
-      var smk = [def].concat(alive.filter(function(b){ return b !== def; })).filter(function(b){ return b.nades && b.nades.smoke > 0 && !b.nadeTask && Math.hypot(b.x-bpS.x, b.y-bpS.y) < NADE_THROW_RANGE; })[0];
-      if(smk && assignNade(smk, "smoke", bpS, "смок на бомбу — дефуз под ним", {now:true})){ nadeFlags.defSmoke = tick;
+      var smk = [def].concat(alive.filter(function(b){ return b !== def; })).filter(function(b){ return b.nades && b.nades.smoke > 0 && nadeCanSet(b, NADE_LEVEL.bomb) && Math.hypot(b.x-bpS.x, b.y-bpS.y) < NADE_THROW_RANGE; })[0];
+      if(smk && assignNade(smk, "smoke", bpS, "смок на бомбу — дефуз под ним", {now:true, lvl:NADE_LEVEL.bomb})){ nadeFlags.defSmoke = tick;
         voiceLog("CT", "defsmk", smk.id, smk === def ? "кидаю смок на бомбу, дефужу под ним" : "смок на бомбу — "+def.id+", дефузь под ним"); }
     }
   }
@@ -269,26 +269,26 @@ function updateRetake(cts){
 function retakeUtil(R, alive){
   if(nadeFlags.retakeFlash) return null;
   var bp = ctBombPos(), def = alive.filter(function(b){ return b.id === R.defId; })[0];
-  var fls = alive.filter(function(b){ return b.nades && b.nades.flash > 0; })
+  var fls = alive.filter(function(b){ return b.nades && b.nades.flash > 0 && nadeCanSet(b, NADE_LEVEL.plan); })
     .sort(function(a, c){ return ((a === def) ? 500 : 0) + Math.hypot(a.x-bp.x, a.y-bp.y) - (((c === def) ? 500 : 0) + Math.hypot(c.x-bp.x, c.y-bp.y)); });
   var fl = fls[0]; if(!fl) return null;
   var tgt = bp, L = beliefLast.CT, bestA = Infinity;
   for(var id in L){ var e = L[id]; if(tick - e.tick > 10*TICK_HZ) continue; if(Math.hypot(e.x-bp.x, e.y-bp.y) > 650) continue;
     var dd = Math.hypot(e.x-fl.x, e.y-fl.y); if(dd < bestA){ bestA = dd; tgt = {x:e.x, y:e.y}; } }
-  if(!assignNade(fl, "flash", tgt, "ретейк", {bkey:"CT.retake.flash."+bomb.site, now:true, range:900})) return null;
+  if(!assignNade(fl, "flash", tgt, "ретейк", {bkey:"CT.retake.flash."+bomb.site, now:true, range:900, lvl:NADE_LEVEL.plan})) return null;
   nadeFlags.retakeFlash = true;
   var gs = GEO[bomb.site];
-  var smr = alive.filter(function(b){ return b !== fl && b.nades && b.nades.smoke > 0; })[0];
-  if(smr && !nadeFlags.retakeSmoke && retakeCutUseful()){ nadeFlags.retakeSmoke = true; assignNade(smr, "smoke", gs.tEntry, "отрезать вход T", {bkey:"CT.retake.smoke."+bomb.site, now:true}); }
+  var smr = alive.filter(function(b){ return b !== fl && b.nades && b.nades.smoke > 0 && nadeCanSet(b, NADE_LEVEL.plan); })[0];
+  if(smr && !nadeFlags.retakeSmoke && retakeCutUseful()){ nadeFlags.retakeSmoke = true; assignNade(smr, "smoke", gs.tEntry, "отрезать вход T", {bkey:"CT.retake.smoke."+bomb.site, now:true, lvl:NADE_LEVEL.plan}); }
   if(BAL.retakeAwpSmoke && !nadeFlags.retakeAwpSmoke){
     var BLr = beliefLast.CT || {}, awpT = null;
     for(var eidR in BLr){ var loR = BLr[eidR]; if(loR.src !== "spotted" || tick - loR.tick > 10*TICK_HZ) continue; var eR = bots.filter(function(o){ return o.id === eidR; })[0];
       if(eR && eR.alive && eR.primary === "AWP" && Math.hypot(loR.x-bp.x, loR.y-bp.y) < 1000){ awpT = loR; break; } }
     if(awpT){
       var ap0 = R.approaches[0] || bp;
-      var smA = alive.filter(function(b){ return b !== fl && b.nades && b.nades.smoke > 0 && !b.nadeTask; })[0];
+      var smA = alive.filter(function(b){ return b !== fl && b.nades && b.nades.smoke > 0 && nadeCanSet(b, NADE_LEVEL.plan); })[0];
       var spA = {x: awpT.x + (ap0.x-awpT.x)*0.4, y: awpT.y + (ap0.y-awpT.y)*0.4};
-      if(smA && assignNade(smA, "smoke", spA, "ретейк: смок на AWP", {now:true})){ nadeFlags.retakeAwpSmoke = true;
+      if(smA && assignNade(smA, "smoke", spA, "ретейк: смок на AWP", {now:true, lvl:NADE_LEVEL.plan})){ nadeFlags.retakeAwpSmoke = true;
         voiceLog("CT", "rtawp", smA.id, "у них AWP "+calloutName(awpT.x, awpT.y)+" — смок на его линию"); }
     }
   }

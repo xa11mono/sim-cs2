@@ -174,8 +174,8 @@ function smokeEdgeTick(){
         return;
       }
       // ждёт у дыма, за ним враг — HE в дым: и урон, и дыра, через которую видно
-      if(BAL.heClearsSmoke && b.nades && b.nades.he > 0 && !b.nadeTask && !W.heDone && tick - W.start > 20){
-        W.heDone = true; assignNade(b, "he", {x:W.S.x, y:W.S.y}, "HE в смок — разогнать", {now:true});
+      if(BAL.heClearsSmoke && b.nades && b.nades.he > 0 && nadeCanSet(b, NADE_LEVEL.react) && !W.heDone && tick - W.start > 20){
+        W.heDone = true; assignNade(b, "he", {x:W.S.x, y:W.S.y}, "HE в смок — разогнать", {now:true, lvl:NADE_LEVEL.react});
         voiceLog(b.team, "hesm"+b.id, b.id, "кидаю HE в смок — разгоню и посмотрю");
       }
       // (v378) задача важнее ожидания (арбитр места) — ожидание снимается: бот идёт по той задаче, а не «пушит срочно»

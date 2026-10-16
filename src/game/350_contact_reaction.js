@@ -51,7 +51,7 @@ function contactTick(b){
   if(contactCritical(b, C)){
     // задача важнее: взгляд — на контакт (не перебивает задачу), а у CT, идущего на бомбу, — смок на врага, если есть
     b._contact = {x:C.x, y:C.y, until: tick + CONTACT_HOLD*TICK_HZ, lock:false}; b._contactT = tick;
-    if(b.team === "CT" && bomb && bomb.state === "planted" && b.nades && b.nades.smoke > 0 && !b.defusing && C.d > 150) assignNade(b, "smoke", look, "смок на врага рядом — иду к бомбе", {now:true, range:900});
+    if(b.team === "CT" && bomb && bomb.state === "planted" && b.nades && b.nades.smoke > 0 && !b.defusing && C.d > 150) assignNade(b, "smoke", look, "смок на врага рядом — иду к бомбе", {now:true, lvl:NADE_LEVEL.bomb, range:900});
     return;
   }
   var foe = b.team === "CT" ? "T" : "CT", BL = beliefLast[b.team] || {}, nE = 0;
@@ -70,7 +70,7 @@ function contactTick(b){
   if(!setPost(b, sp, look, true, tag)){ b._contact = {x:C.x, y:C.y, until: tick + CONTACT_HOLD*TICK_HZ, lock:false}; b._contactT = tick; return; }
   b._contact = {x:C.x, y:C.y, until: tick + CONTACT_HOLD*TICK_HZ, lock:true, pt:sp, tag:tag}; b._contactT = tick;
   b._reposUntil = 0; b._probeLock = 0; b.lastIntel = {x:look.x, y:look.y, tick:tick, src:"call"};
-  if(swing && !C.own && b.nades && b.nades.flash > 0 && C.d > 150 && !hasLOS(b.x, b.y, look.x, look.y)) assignNade(b, "flash", look, "флешка под выход на врага рядом", {now:true, range:900});
+  if(swing && !C.own && b.nades && b.nades.flash > 0 && C.d > 150 && !hasLOS(b.x, b.y, look.x, look.y)) assignNade(b, "flash", look, "флешка под выход на врага рядом", {now:true, range:900, lvl:NADE_LEVEL.fight});
   voiceLog(b.team, "ct"+b.id+Math.round(tick/64), b.id, (swing ? "выхожу на него " : "держу ")+calloutName(look.x, look.y));
 }
 function teamBrains(){

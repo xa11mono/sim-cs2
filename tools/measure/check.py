@@ -13,14 +13,14 @@ RUN = args[0]
 TYP = {'pistol': 'пистолетка', 'full': 'фулл', 'tight': 'фулл', 'force': 'форс', 'half': 'форс', 'eco': 'эко'}
 
 # --- сторож по матчам замера
-W = {'n': collections.Counter(), 'emptyBy': collections.Counter(), 'dangerBy': collections.Counter(), 'lostWhy': collections.Counter(), 'ev': collections.defaultdict(list)}
+W = {'n': collections.Counter(), 'emptyBy': collections.Counter(), 'dangerBy': collections.Counter(), 'lostWhy': collections.Counter(), 'deferred': collections.Counter(), 'ev': collections.defaultdict(list)}
 FUN = collections.defaultdict(collections.Counter)   # (сторона, тип раунда, граната) → hands/intent/reached/thrown/lost
 rounds = 0
 for f in sorted(glob.glob(os.path.join(HERE, 'runs', RUN, 'rec_*.json'))):
     d = json.load(open(f)); w = d.get('watch'); m = os.path.basename(f)[4:-5]
     rounds += len(d['rounds'])
     if not w: continue
-    W['n'].update(w['n']); W['emptyBy'].update(w['emptyBy']); W['dangerBy'].update(w['dangerBy']); W['lostWhy'].update(w['nade']['lostWhy'])
+    W['n'].update(w['n']); W['emptyBy'].update(w['emptyBy']); W['dangerBy'].update(w['dangerBy']); W['lostWhy'].update(w['nade']['lostWhy']); W['deferred'].update(w['nade'].get('deferred', {}))
     for k, v in w['ev'].items(): W['ev'][k].extend([[m] + x for x in v][:8])
     for part in ('hands', 'intent', 'reached', 'thrown', 'lost'):
         for k, v in w['nade'][part].items():
@@ -47,7 +47,7 @@ sit = json.load(open(sit_out))
 rep = {'карта': MAP, 'замер': RUN, 'раундов': rounds,
        'сторож (матчи), на 100 раундов': {k: round(v * 100 / max(1, rounds), 1) for k, v in W['n'].items()},
        'пустое чтение — какие функции': dict(W['emptyBy'].most_common(10)), 'опасность — что': dict(W['dangerBy']),
-       'гранаты: почему задача пропала': dict(W['lostWhy'].most_common(12)), 'гранаты: цепочка': nade,
+       'гранаты: почему задача пропала': dict(W['lostWhy'].most_common(12)), 'гранаты: отложены (перебиты важнее, докинут)': dict(W['deferred']), 'гранаты: цепочка': nade,
        'расклады': sit['итог'], 'взгляд': sit.get('взгляд'), 'расклады: главные расхождения': sit['расхождения'][:30], 'сторож: примеры': {k: v[:12] for k, v in W['ev'].items()}}
 if 'snaps' in opt: rep['сторож (снимки)'] = json.load(open(opt['snaps']))['n']
 out = os.path.join(HERE, 'results', 'check_%s_%s.json' % (MAP, RUN))

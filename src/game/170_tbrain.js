@@ -467,7 +467,7 @@ function tBrain(){
       // (v349, отметка владельца: «всё равно выходят до взрыва») и пока свой несёт гранату выхода на этот сайт (лайнап «(выход, A)»)
       var reExec = new RegExp("выход, " + tt.site);
       var waitT = function(t){ return t && t.type !== "flash" && reExec.test(t.why || ""); };   // флешки выхода — под заход, их не ждут
-      var pending = ts.some(function(o){ return o !== b && o.alive && (o.nadeTask && o.nadeTask.lineup && waitT(o.nadeTask) || (o.nadeQueue || []).some(waitT)); });
+      var pending = ts.some(function(o){ return o !== b && o.alive && (o.nadeTask && o.nadeTask.lineup && waitT(o.nadeTask) || (o.nadeQueue || []).some(function(q){ return waitT(q.task || q); })); });
       // (v351, владелец: «зачем они выходят по одному») и пока рядом нет своего на размен (≤ TRADE_R) — выход вдвоём
       var mate = b.tRole !== "entry" || ts.some(function(o){ return o !== b && o.alive && o.tRole !== "lurker" && Math.hypot(o.x-b.x, o.y-b.y) <= TRADE_R; });
       if(!inAir && !pending && mate){ b._utilW = null; return false; }

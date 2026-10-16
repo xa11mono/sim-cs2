@@ -143,44 +143,92 @@ function smokeCovered(x, y){
   if(smokes.some(function(s){ return Math.hypot(s.x-x, s.y-y) < 60 && s.until - tick > 64; })) return true;
   return nadesInAir.some(function(n){ return n.type === "smoke" && Math.hypot((n.tx||n.x)-x, (n.ty||n.y)-y) < 60; });
 }
+// ---- (v382, М126 шаг «гранаты») АРБИТР ГРАНАТ — одно место решения, какую гранату бот кидает сейчас ----
+// Таблица важности видов гранат (проектный порядок, сверху важнее). Роль и ситуация в таблицу не входят — они только порождают
+// заказы (ARCHITECTURE «Арбитр гранат»). Заказ указывает свой уровень: assignNade(…, {lvl: NADE_LEVEL.plan}).
+//   bomb  6 — спасти себя / бомба: на отходе, смок на бомбу под дефуз, смок на врага по пути к бомбе, смок под плант, молотов/HE на дефуз
+//   fight 5 — бой сейчас: флешка под выход на контакт, поп на убийцу (размен), второй угол, HE добить, «мало HP — кидаю всё»,
+//             «иду в бой» на контакт / размен
+//   plan  4 — план команды: гранаты выхода T (и лайнапы exec, раскид), фейк, пост-плант, ретейк CT, CT по коллу, «в смок — не дать
+//             занять», утилити под пробу / подпуш
+//   role  3 — лайнап роли: лайнапы insta / timed / setup, смок на линию AWP по памяти
+//   react 2 — реакция: HE в смок, молотов на раш, HE в стак, комбо, «выкурить по инфе», «держу — враг известен», смок на AWP по звуку
+//   self  1 — себе: флешка себе под пик (и ранний пик CT), флешка под выход себе
+var NADE_LEVEL = {bomb:6, fight:5, plan:4, role:3, react:2, self:1};   // проектный порядок
+// Правило: новая выше текущей — ставится сразу, текущая (если срок не вышел) возвращается в голову своей очереди и докидывается
+// после; того же уровня и ниже — отказ, пока текущая не брошена, не сгорела или её не сняла сама механика (nadeDrop). Отказ —
+// механика делает своё сама (другой боец, пик без флешки, выход не ждёт эту гранату). Защита от дёрганья — срок задачи (until).
+function nadeCanSet(b, lvl){ return !!b && (!b.nadeTask || lvl > (b.nadeTask.lvl || 0)); }
+// снять свою задачу — только механика, которая её поставила или передумала (смена сайта, уже на сайте, смок стоит…)
+function nadeDrop(b, why, queueToo){
+  if(!b.nadeTask && !queueToo) return;
+  b._nadeLost = {why: why, t: tick};
+  b.nadeTask = null; if(queueToo) b.nadeQueue = null;
+  if(b.post && b.post.tag === "lineup") clearPost(b);   // задание снято, а пост «лайнап» остался — иначе стоит на точке броска
+}
+// мгновенный бросок (на отходе, флешка себе под пик) — не задача: кидается в этот же тик с места, идти никуда не нужно. Тот же
+// арбитр: не ниже текущей задачи; текущую не снимает — она продолжится после паузы между гранатами
+function nadeThrowNow(b, lvl, type, tx, ty, lob, why){
+  if(b.nadeTask && lvl < (b.nadeTask.lvl || 0)){ NADE_FAIL = "арбитр: занят важнее"; return false; }
+  return throwNade(b, type, tx, ty, lob, why);
+}
 function assignNade(b, type, target, why, opts){
+  opts = opts || {};
   if(!b || !b.alive || !b.nades || b.nades[type] <= 0) return false;
-  if(opts && opts.bkey && !builtinAllowed(opts.bkey)) return false; // встроенная выключена или заменена своим лайнапом
-  if(b.nadeTask && (b.nadeTask.type === type || b.nadeTask.lineup)) return false; // свой лайнап не перебиваем
-  if(type === "smoke" && smokeCovered(target.x, target.y)) return false;
-  // одна граната одного типа в одну точку: другие механики (комбо, флешка
-  // себе, дамп…) не дублируют уже летящую/назначенную туда же
-  if(BAL.nadeDedup && type !== "smoke" && (nadesInAir.some(function(n){ return n.team === b.team && n.type === type && Math.hypot((n.tx||n.x)-target.x, (n.ty||n.y)-target.y) < 120; }) ||
-     bots.some(function(o){ return o !== b && o.alive && o.team === b.team && o.nadeTask && o.nadeTask.type === type && Math.hypot(o.nadeTask.x-target.x, o.nadeTask.y-target.y) < 120; }))) return false;
-  b.nadeTask = {type:type, x:target.x, y:target.y, until: tick + 10*64, why:why||"", start:tick, lob:true, range:(opts && opts.range) || NADE_THROW_RANGE, now:!!(opts && opts.now)};
+  var lvl = opts.lvl || 0;
+  if(!nadeCanSet(b, lvl)) return false;   // арбитр: не выше текущей — отказ
+  if(opts.bkey && !builtinAllowed(opts.bkey)) return false; // встроенная выключена или заменена своим лайнапом
+  if(!opts.from){
+    if(type === "smoke" && smokeCovered(target.x, target.y)) return false;
+    // одна граната одного типа в одну точку: другие механики (комбо, флешка
+    // себе, дамп…) не дублируют уже летящую/назначенную туда же
+    if(BAL.nadeDedup && type !== "smoke" && (nadesInAir.some(function(n){ return n.team === b.team && n.type === type && Math.hypot((n.tx||n.x)-target.x, (n.ty||n.y)-target.y) < 120; }) ||
+       bots.some(function(o){ return o !== b && o.alive && o.team === b.team && o.nadeTask && o.nadeTask.type === type && Math.hypot(o.nadeTask.x-target.x, o.nadeTask.y-target.y) < 120; }))) return false;
+  }
+  var cur = b.nadeTask;
+  if(cur){   // перебита важнее: в голову своей очереди, если срок не вышел
+    if(cur.until > tick) (b.nadeQueue = b.nadeQueue || []).unshift({task: cur, left: cur.until - tick});
+    b._nadeLost = {why: "перебита: " + (why || type), t: tick};
+    if(b.post && b.post.tag === "lineup") clearPost(b);
+  }
+  b.nadeTask = {type:type, x:target.x, y:target.y, until: tick + (opts.sec || 10)*TICK_HZ, why:why||"", start:tick, lob:true, lvl:lvl,
+    range: opts.range || NADE_THROW_RANGE, now: !!opts.now};
+  if(opts.from){ b.nadeTask.from = {x:opts.from.x, y:opts.from.y}; b.nadeTask.lineup = true; b.nadeTask.exec = !!opts.exec; }
   return true;
+}
+// заказ в очередь того же бойца (раскид: кинет следом с той же точки) — тот же уровень, что у заказа
+function nadeEnqueue(b, type, target, from, why, lvl, exec){
+  (b.nadeQueue = b.nadeQueue || []).push({type:type, x:target.x, y:target.y, from:{x:from.x, y:from.y}, why:why, lineup:true, exec:!!exec, lvl:lvl});
 }
 // задание на гранату выполняется, как только точка видна и в пределах броска
 function nadeQueueNext(b){
   // (v355) следующая граната из очереди того же бойца: с той же точки броска, срок 6 с (проектное число)
   if(!b.alive || !b.nadeQueue || !b.nadeQueue.length || b.nadeTask) return;
   var q = b.nadeQueue.shift();
+  if(q.task){   // (v382) перебитая важнее — докидывает с остатком срока (не меньше дороги до точки броска)
+    var T = q.task;
+    if(!b.nades || b.nades[T.type] <= 0 || roundState !== "live") return nadeQueueNext(b);
+    var back = T.from ? Math.ceil((pathLenTo(b, T.from.x, T.from.y)/SPEED + LU_REACH_PAD)*TICK_HZ) : 0;
+    T.until = tick + Math.max(q.left, back); T.start = tick;
+    b.nadeTask = T; return;
+  }
   if(!b.nades || b.nades[q.type] <= 0 || roundState !== "live") return nadeQueueNext(b);
   var qSec = Math.max(6, Math.ceil(pathLenTo(b, q.from.x, q.from.y)/SPEED + LU_REACH_PAD));   // (v359) точка следующей — бывает дальше
-  b.nadeTask = {type:q.type, x:q.x, y:q.y, from:q.from, until: tick + qSec*TICK_HZ, why:q.why, start:tick, lob:true, range:4000, now:true, lineup:true, exec:q.exec && q.type === "smoke"};
+  b.nadeTask = {type:q.type, x:q.x, y:q.y, from:q.from, until: tick + qSec*TICK_HZ, why:q.why, start:tick, lob:true, range:4000, now:true, lineup:true, exec:q.exec && q.type === "smoke", lvl:q.lvl || NADE_LEVEL.plan};
 }
 function updateNadeTasks(){
   bots.forEach(function(b){
     if(!b.nadeTask && b.nadeQueue && b.nadeQueue.length) nadeQueueNext(b);
     var t = b.nadeTask; if(!t) return;
-    if(!b.alive || tick > t.until || !b.nades || b.nades[t.type] <= 0){
-      b.nadeTask = null;
-      // задание сгорело, а пост "лайнап" остался — снять, иначе стоит на точке броска весь раунд
-      if(b.post && b.post.tag === "lineup") clearPost(b);
-      return; }
+    if(!b.alive || tick > t.until || !b.nades || b.nades[t.type] <= 0){ nadeDrop(b, "срок"); return; }
     if(b.planting || b.defusing) return;
     // (v359, р7) T уже на сайте выхода, а точка броска позади — задание снимается: с взятого сайта назад за гранатой не уходят
     if(t.lineup && t.from && b.team === "T" && teamTac.T && SITES[teamTac.T.site] && bomb.state !== "planted"){
       var Sx = SITES[teamTac.T.site], dB = Math.hypot(b.x-Sx.x, b.y-Sx.y);
-      if((onSite(Sx, b.x, b.y) || dB < 450) && Math.hypot(t.from.x-Sx.x, t.from.y-Sx.y) > dB + 200){ b.nadeTask = null; b.nadeQueue = null; if(b.post && b.post.tag === "lineup") clearPost(b); return; }
+      if((onSite(Sx, b.x, b.y) || dB < 450) && Math.hypot(t.from.x-Sx.x, t.from.y-Sx.y) > dB + 200){ nadeDrop(b, "уже на сайте — назад не идёт", true); return; }
     }
     var d = Math.hypot(t.x-b.x, t.y-b.y);
-    if(t.type === "smoke" && smokeCovered(t.x, t.y)){ b.nadeTask = null; return; }
+    if(t.type === "smoke" && smokeCovered(t.x, t.y)){ nadeDrop(b, "смок уже стоит"); return; }
     if(t.from){ // свой лайнап: сначала встать ровно в точку броска
       // раньше кидал только ближе 22px к точке, а "дошёл до поста" считается
       // уже с 34px — бот вставал в 23–34px и стоял до конца задания, не кидая
@@ -190,26 +238,26 @@ function updateNadeTasks(){
       if(Math.hypot(t.from.x-b.baseX, t.from.y-b.baseY) > 36 && !(b.atPost && b.post && b.post.tag === "lineup")){
         if(b.state === "hold" && !b._sawEnemy) leaveHold(b);
         // (v378) задача важнее броска (арбитр места) — бросок отменён, как живой игрок бросает лайнап ради боя / бомбы / колла
-        if(b.state === "patrol" && !setPost(b, t.from, {x:t.x, y:t.y}, true, "lineup")){ b.nadeTask = null; b.nadeQueue = null; }
+        if(b.state === "patrol" && !setPost(b, t.from, {x:t.x, y:t.y}, true, "lineup")) nadeDrop(b, "место: задача важнее", true);
         return; }
       postKeep(b);   // стоит на точке броска — затея ещё идёт
       if(!nadeReady(b)) return;   // (v340) только что кинул другую — задание ждёт
       // не вышло на время (пауза между гранатами, свой в зоне огня) — задание остаётся, попробует снова; раньше снималось молча
       if(!throwNade(b, t.type, t.x, t.y, true, t.why, !t.gen) && NADE_FAIL && /пауза|свой/.test(NADE_FAIL)) return;   // своя точка (gen) — дуга проверяется
-      b.nadeTask = null; if(b.post && b.post.tag === "lineup") clearPost(b); return;
+      nadeDrop(b, "лайнап: бросок"); return;
     }
     if(d <= t.range && hasLOS(b.x, b.y, t.x, t.y)){
       if(!nadeReady(b)) return;   // (v340) только что кинул другую — задание ждёт
-      throwNade(b, t.type, t.x, t.y, false, t.why); b.nadeTask = null;
+      throwNade(b, t.type, t.x, t.y, false, t.why); nadeDrop(b, "бросок");
     } else if(t.lob && d <= t.range*0.85 && (t.now || tick - t.start > 64)){
       // навесом — точки не видно. (v370, отметка владельца: magixx кинул смок из T Ramp в Window сквозь здания) раньше «стены
       // по пути не мешают» для любого броска; теперь сквозь стены летят только лайнапы про (из демок, так кидали на самом деле).
       // Свой бросок — над открытым местом (проходы, окна, укрытия); нет пути — идёт на точку рядом, откуда граната долетает
       // (nadeThrowSpot: безопасную от известных врагов); нет и такой — не кидает
-      if(throwNade(b, t.type, t.x, t.y, true, t.why) || !/стена|потолок/.test(NADE_FAIL||"") || t._spotTried){ b.nadeTask = null; return; }   // (v373) и под крышей — на точку, откуда долетит
+      if(throwNade(b, t.type, t.x, t.y, true, t.why) || !/стена|потолок/.test(NADE_FAIL||"") || t._spotTried){ nadeDrop(b, "бросок навесом"); return; }   // (v373) и под крышей — на точку, откуда долетит
       t._spotTried = true;
       var fs = nadeThrowSpot(b, t);
-      if(!fs){ b.nadeTask = null; return; }
+      if(!fs){ nadeDrop(b, "нет точки, откуда долетит"); return; }
       t.from = fs; t.gen = !fs.lane; t.until = Math.max(t.until, tick + Math.ceil(pathLenTo(b, fs.x, fs.y)/SPEED + 2)*TICK_HZ);
     }
   });

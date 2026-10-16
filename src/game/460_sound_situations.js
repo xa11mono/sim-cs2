@@ -142,13 +142,13 @@ function awpSmokeTick(){
     for(var eid in BL){ var lo = BL[eid]; if(lo.src !== "spotted" || tick - lo.tick > 8*TICK_HZ) continue;
       var e = bots.filter(function(o){ return o.id === eid; })[0]; if(!e || !e.alive || e.primary !== "AWP") continue;
       var ap = {x:lo.x, y:lo.y};
-      var th = bots.filter(function(b){ return b.alive && b.team === team && b.nades && b.nades.smoke > 0 && !b.nadeTask && !b._sawEnemy && b.post &&
+      var th = bots.filter(function(b){ return b.alive && b.team === team && b.nades && b.nades.smoke > 0 && nadeCanSet(b, NADE_LEVEL.react) && !b._sawEnemy && b.post &&
         Math.hypot(b.post.x-ap.x, b.post.y-ap.y) > 300 && Math.hypot(b.post.x-ap.x, b.post.y-ap.y) < 1500 && hasLOS(b.post.x, b.post.y, ap.x, ap.y); })
         .sort(function(a, c){ return Math.hypot(a.x-ap.x, a.y-ap.y) - Math.hypot(c.x-ap.x, c.y-ap.y); })[0];
       if(!th) continue;
       var sp = {x: ap.x + (th.post.x-ap.x)*0.35, y: ap.y + (th.post.y-ap.y)*0.35};
       if(Math.hypot(sp.x-th.x, sp.y-th.y) > NADE_THROW_RANGE*1.1 || smokeCovered(sp.x, sp.y)) continue;
-      if(assignNade(th, "smoke", sp, "смок на AWP "+eid, {now:true})){ awpSmokeCd[team] = tick + 15*TICK_HZ;
+      if(assignNade(th, "smoke", sp, "смок на AWP "+eid, {now:true, lvl:NADE_LEVEL.react})){ awpSmokeCd[team] = tick + 15*TICK_HZ;
         voiceLog(team, "awps"+eid, th.id, "AWP "+calloutName(ap.x, ap.y)+" — даю смок на его линию"); return; }
     }
   });

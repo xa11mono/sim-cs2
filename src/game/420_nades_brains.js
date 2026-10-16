@@ -6,14 +6,14 @@ function nadeUsePick(b, pts, R){
   return best;
 }
 function nadeUseTick(b){
-  if(!b.alive || !b.nades || b.nadeTask || b.planting || b.defusing || !nadeReady(b) || roundState !== "live") return;
+  if(!b.alive || !b.nades || b.planting || b.defusing || !nadeReady(b) || roundState !== "live") return;
   if(tick - (b._nadeUseT || -1e9) < NADE_USE_GAP || teamSaving(b.team)) return;
   var have = function(t){ return b.nades[t] > 0; };
   if(!have("smoke") && !have("flash") && !have("he") && !have("molly")) return;
   var foe = b.team === "T" ? "CT" : "T", BL = beliefLast[b.team] || {}, known = [];
   for(var e in BL){ var q = BL[e]; if(q && tick - q.tick <= 4*TICK_HZ && bots.some(function(o){ return o.id === e && o.alive; })) known.push({x:q.x, y:q.y}); }
   var mateNear = function(p){ return bots.some(function(o){ return o !== b && o.alive && o.team === b.team && Math.hypot(o.x-p.x, o.y-p.y) < 160; }); };
-  var tt = teamTac.T, why = null, plan = null;
+  var tt = teamTac.T, why = null, plan = null, lvl = NADE_LEVEL.react;
   var tag = b.post ? String(b.post.tag) : "", toPost = b.post ? Math.hypot(b.post.x-b.x, b.post.y-b.y) : 0;
   // (v375, отметка владельца: «граната врезалась в стену и взорвалась перед своими» — на раше в начале раунда T флешили точки
   // маршрута у своего спавна) в бой — только туда, где враг может быть: выход на контакт/размен/ретейк/зачистка или выход T к
@@ -37,19 +37,20 @@ function nadeUseTick(b){
     for(var oi = 0; oi < opts.length && !plan; oi++){ rr -= opts[oi].w; if(rr <= 0) plan = opts[oi]; }
     if(!plan && opts.length) plan = opts[opts.length-1];
     why = "иду в бой — "+calloutName(b.post.x, b.post.y).replace(/^на /, "");
+    lvl = /^(contact:swing|tradeR)/.test(tag) ? NADE_LEVEL.fight : NADE_LEVEL.plan;
   } else if(bomb.state === "planted" && b.team === "T" && (bots.some(function(o){ return o.defusing; }) || known.some(function(k){ return Math.hypot(k.x-bomb.x, k.y-bomb.y) < 700; }))){
     if(have("molly")) plan = {t:"molly", pts:[{x:bomb.x, y:bomb.y}]}; else if(have("he")) plan = {t:"he", pts:[{x:bomb.x, y:bomb.y}]};
-    why = "на бомбу — их слышно у неё";
+    why = "на бомбу — их слышно у неё"; lvl = NADE_LEVEL.bomb;
   } else if(known.length && (b.atPost || b.state === "hold")){
     var tgt = known.filter(function(k){ var d = Math.hypot(k.x-b.x, k.y-b.y); return d > 150 && d < 900 && !hasLOS(b.x, b.y, k.x, k.y) && !mateNear(k); });
     if(tgt.length){ var tp = have("molly") ? "molly" : (have("he") ? "he" : (have("flash") ? "flash" : null)); if(tp) plan = {t:tp, pts:tgt}; }
     why = "по инфе — туда, где они";
   }
-  if(!plan || !plan.pts.length) return;
+  if(!plan || !plan.pts.length || !nadeCanSet(b, lvl)) return;
   b._nadeUseT = tick;
   var pt = nadeUsePick(b, plan.pts); if(!pt) return;
   if(plan.t === "smoke" && smokeCovered(pt.x, pt.y)) return;
-  if(assignNade(b, plan.t, pt, why, {now:true})) logEvent(b.id+": "+NADE[plan.t].name+" — "+why);
+  if(assignNade(b, plan.t, pt, why, {now:true, lvl:lvl})) logEvent(b.id+": "+NADE[plan.t].name+" — "+why);
 }
 function nadeBrains(){
   bots.forEach(function(b){ if((tick + b.id.charCodeAt(b.id.length-1)*7) % 32 === 0) nadeUseTick(b); });   // (v374) граната — часть действия
@@ -66,11 +67,11 @@ function nadeBrains(){
     var aw = rmemRecent(RMEM.awp, 3);
     if(aw.length){
       var A0 = aw[aw.length-1];
-      var smA = ts.filter(function(b){ return b.tRole !== "lurker" && b.nades.smoke > 0 && !b.nadeTask && Math.hypot(b.x-A0.x, b.y-A0.y) < 1250 && Math.hypot(b.x-A0.x, b.y-A0.y) > 350; })
+      var smA = ts.filter(function(b){ return b.tRole !== "lurker" && b.nades.smoke > 0 && nadeCanSet(b, NADE_LEVEL.role) && Math.hypot(b.x-A0.x, b.y-A0.y) < 1250 && Math.hypot(b.x-A0.x, b.y-A0.y) > 350; })
         .sort(function(a, c){ return Math.hypot(a.x-A0.x, a.y-A0.y) - Math.hypot(c.x-A0.x, c.y-A0.y); })[0];
       if(smA && tSmokeReserveOk()){
         var spAw = {x: A0.x + (smA.x-A0.x)*0.3, y: A0.y + (smA.y-A0.y)*0.3};
-        if(assignNade(smA, "smoke", spAw, "смок на линию AWP", {now:true, range:1300})){ nadeFlags.antiAwp = true;
+        if(assignNade(smA, "smoke", spAw, "смок на линию AWP", {now:true, range:1300, lvl:NADE_LEVEL.role})){ nadeFlags.antiAwp = true;
           voiceLog("T", "antiawp", smA.id, "их AWP в прошлых раундах бил "+calloutName(A0.x, A0.y)+" — смок на его линию"); }
       } else if(tick - roundStartTick > 25*TICK_HZ) nadeFlags.antiAwp = true;
     } else nadeFlags.antiAwp = true;
@@ -82,18 +83,18 @@ function nadeBrains(){
     var gf = GEO[tt.tac.fake], fsite = SITES[tt.tac.fake];
     var fakers = ts.filter(function(b){ return b.tRole === "support" || b.tRole === "lurker"; });
     var fs1 = fakers.filter(function(b){ return b.nades.smoke > 0; })[0];
-    if(fs1) assignNade(fs1, "smoke", gf.ctEntry, "фейк-смок", {bkey:"T.fake.smoke."+tt.tac.fake});
+    if(fs1) assignNade(fs1, "smoke", gf.ctEntry, "фейк-смок", {bkey:"T.fake.smoke."+tt.tac.fake, lvl:NADE_LEVEL.plan});
     var ff1 = fakers.filter(function(b){ return b !== fs1 && b.nades.flash > 0; })[0] || (fs1 && fs1.nades.flash > 0 ? fs1 : null);
-    if(ff1) assignNade(ff1, "flash", {x:gf.tEntry.x + (fsite.x-gf.tEntry.x)*0.4, y:gf.tEntry.y + (fsite.y-gf.tEntry.y)*0.4}, "фейк-флешка", {bkey:"T.fake.flash."+tt.tac.fake});
+    if(ff1) assignNade(ff1, "flash", {x:gf.tEntry.x + (fsite.x-gf.tEntry.x)*0.4, y:gf.tEntry.y + (fsite.y-gf.tEntry.y)*0.4}, "фейк-флешка", {bkey:"T.fake.flash."+tt.tac.fake, lvl:NADE_LEVEL.plan});
   }
   // T: выход — два смока (вход CT, линия опорника), флешка ПОД ПИК энтри от
   // поддержки (синхронизация двух ботов: энтри ждёт хлопка), молотов на опорника
   var preEx = preExecNow(tt);
   if((tt.phase === "execute" || preEx) && !nadeFlags.tExecSm && BAL.tUtil){
     nadeFlags.tExecSm = true;
-    var smokers = ts.filter(function(b){ return b.nades.smoke > 0 && b.tRole !== "lurker"; });
+    var smokers = ts.filter(function(b){ return b.nades.smoke > 0 && b.tRole !== "lurker" && nadeCanSet(b, NADE_LEVEL.plan); });
     var cross = {x:(g.anchor.x+g.ctEntry.x)/2, y:(g.anchor.y+g.ctEntry.y)/2};
-    var eo = BAL.nadeEarly ? {now:true, range:1300} : {};
+    var eo = BAL.nadeEarly ? {now:true, range:1300, lvl:NADE_LEVEL.plan} : {lvl:NADE_LEVEL.plan};
     if(BAL.tSmoke && smokers[0] && assignNade(smokers[0], "smoke", g.ctEntry, "вход CT", Object.assign({bkey:"T.exec.ctEntry."+tt.site}, eo))) smokers[0].nadeTask.exec = true;
     if(BAL.tSmoke && smokers[1] && assignNade(smokers[1], "smoke", cross, "кросс", Object.assign({bkey:"T.exec.cross."+tt.site}, eo))) smokers[1].nadeTask.exec = true;
     if(preEx) logEvent("T: гранаты выхода на "+tt.site+" — заранее, до пика");
@@ -103,14 +104,13 @@ function nadeBrains(){
     nadeFlags.tExec = true;
     var ent = byRole(ts, "entry");
     var fx = g.tEntry.x + (site.x-g.tEntry.x)*0.35, fy = g.tEntry.y + (site.y-g.tEntry.y)*0.35;
-    var flasher = ts.filter(function(b){ return b !== ent && b.nades.flash > 0 && (b.tRole === "support" || b.tRole === "awp"); })[0];
+    var flasher = ts.filter(function(b){ return b !== ent && b.nades.flash > 0 && (b.tRole === "support" || b.tRole === "awp") && nadeCanSet(b, NADE_LEVEL.plan); })[0];
     if(BAL.tFlash && ent && flasher){
-      nadeFlags.peekFlashPlanned = tick;
-      assignNade(flasher, "flash", {x:fx, y:fy}, "под пик", {now:true, bkey:"T.exec.flash."+tt.site});
+      if(assignNade(flasher, "flash", {x:fx, y:fy}, "под пик", {now:true, bkey:"T.exec.flash."+tt.site, lvl:NADE_LEVEL.plan})) nadeFlags.peekFlashPlanned = tick;   // отказ — энтри флешку не ждёт
     } else if(BAL.tFlash && ent && ent.nades.flash > 0){
-      assignNade(ent, "flash", {x:fx, y:fy}, "под заход", {bkey:"T.exec.flash."+tt.site}); // некому — сам себе
+      assignNade(ent, "flash", {x:fx, y:fy}, "под заход", {bkey:"T.exec.flash."+tt.site, lvl:NADE_LEVEL.plan}); // некому — сам себе
     }
-    var mollies = ts.filter(function(b){ return b.nades.molly > 0; });
+    var mollies = ts.filter(function(b){ return b.nades.molly > 0 && nadeCanSet(b, NADE_LEVEL.plan); });
     // раздел 12: последний молотов команды не тратим на выход — он нужен на
     // пост-плант, сбить дефуз (если CT мало — выход дожмут и без него)
     var keepMol = BAL.keepMol && mollies.length === 1 && aliveCount("CT") >= 2;
@@ -125,18 +125,18 @@ function nadeBrains(){
       });
       if(molWhy !== "выжечь опорника") logEvent("T: знают привычку — молотов "+molWhy+" ("+(zoneUserName(zoneIdAt(molT.x, molT.y))||"сайт "+tt.site)+")");
     }
-    if(BAL.tMolly && mol) assignNade(mol, "molly", molT, molWhy, BAL.nadeEarly ? {bkey:"T.exec.molly."+tt.site, now:true, range:1200} : {bkey:"T.exec.molly."+tt.site});
+    if(BAL.tMolly && mol) assignNade(mol, "molly", molT, molWhy, BAL.nadeEarly ? {bkey:"T.exec.molly."+tt.site, now:true, range:1200, lvl:NADE_LEVEL.plan} : {bkey:"T.exec.molly."+tt.site, lvl:NADE_LEVEL.plan});
   }
   // (7) молотов "на всякий" в угол: на выходе, не зная, есть ли там кто, —
   // выжечь ближний угол сайта, куда обычно встают CT (из списка позиций сайта),
   // пока он ещё не виден. По одному на раунд, последний молотов — на пост-плант
   if(BAL.mollyClear && tt.phase === "execute" && !nadeFlags.molClear && tick - (tt.execStart != null ? tt.execStart : tick) < 10*TICK_HZ){
-    var mc = ts.filter(function(b){ return b.nades.molly > 0 && !b.nadeTask && Math.hypot(b.x-site.x, b.y-site.y) < 750 && !(bomb.state === "carried" && bomb.carrier === b); })[0];
+    var mc = ts.filter(function(b){ return b.nades.molly > 0 && nadeCanSet(b, NADE_LEVEL.plan) && Math.hypot(b.x-site.x, b.y-site.y) < 750 && !(bomb.state === "carried" && bomb.carrier === b); })[0];
     var molLeft = ts.reduce(function(a, b){ return a + b.nades.molly; }, 0);
     if(mc && (molLeft >= 2 || aliveCount("CT") <= 1)){
       var cands = POS[tt.site].ctHold.map(function(n){ return zonePoint(n, site); }).filter(function(q){ return q && Math.hypot(q.x-mc.x, q.y-mc.y) < 650 && Math.hypot(q.x-mc.x, q.y-mc.y) > 160 && !hasLOS(mc.x, mc.y, q.x, q.y) && !fires.some(function(f){ return Math.hypot(f.x-q.x, f.y-q.y) < 120; }); })
         .sort(function(a, c){ return Math.hypot(a.x-mc.x, a.y-mc.y) - Math.hypot(c.x-mc.x, c.y-mc.y); });
-      if(cands[0] && assignNade(mc, "molly", cands[0], "выжечь угол «"+(zoneUserName(zoneIdAt(cands[0].x, cands[0].y)) || "угол")+"»", {now:true, range:700})){
+      if(cands[0] && assignNade(mc, "molly", cands[0], "выжечь угол «"+(zoneUserName(zoneIdAt(cands[0].x, cands[0].y)) || "угол")+"»", {now:true, range:700, lvl:NADE_LEVEL.plan})){
         nadeFlags.molClear = true; logEvent(mc.id+": не знаю, есть ли кто в «"+(zoneUserName(zoneIdAt(cands[0].x, cands[0].y)) || "углу")+"», — выжигаю перед заходом"); }
       else if(tick - (tt.execStart != null ? tt.execStart : tick) > 6*TICK_HZ) nadeFlags.molClear = true;
     } else if(!mc) {} else nadeFlags.molClear = true;
@@ -147,7 +147,7 @@ function nadeBrains(){
     var mt = nadeFlags.antiDef ? null : ts.filter(function(b){ return b.know && b.know.defuseT !== undefined && tick - b.know.defuseT <= TICK_HZ &&
       b.nades.molly > 0 && Math.hypot(b.x-bomb.x, b.y-bomb.y) < NADE_THROW_RANGE; })[0];
     if(mt){
-      nadeFlags.antiDef = true; if(assignNade(mt, "molly", {x:bomb.x, y:bomb.y}, "на дефуз — слышим дефуз", {bkey:"T.pp.molly."+bomb.site})) mt.nadeTask.until = tick + 4*64;
+      nadeFlags.antiDef = true; if(assignNade(mt, "molly", {x:bomb.x, y:bomb.y}, "на дефуз — слышим дефуз", {bkey:"T.pp.molly."+bomb.site, lvl:NADE_LEVEL.bomb})) mt.nadeTask.until = tick + 4*64;
     }
   }
   // CT: T закрыли сайт смоком на выходе — не дать спокойно занять позиции за
@@ -157,12 +157,12 @@ function nadeBrains(){
     var smokeOn = smokes.some(function(sm){ return tick - sm.born < 3*TICK_HZ && (Math.hypot(sm.x-gs2.ctEntry.x, sm.y-gs2.ctEntry.y) < 260 || Math.hypot(sm.x-sT.x, sm.y-sT.y) < 300); });
     if(smokeOn){
       nadeFlags["ctTake"+tt.site] = true;
-      var near = cts.filter(function(b){ return !b.nadeTask && Math.hypot(b.x-sT.x, b.y-sT.y) < 700 && (b.nades.he > 0 || b.nades.molly > 0); });
+      var near = cts.filter(function(b){ return nadeCanSet(b, NADE_LEVEL.plan) && Math.hypot(b.x-sT.x, b.y-sT.y) < 700 && (b.nades.he > 0 || b.nades.molly > 0); });
       var takePt = {x: gs2.tEntry.x + (sT.x-gs2.tEntry.x)*0.35, y: gs2.tEntry.y + (sT.y-gs2.tEntry.y)*0.35};
       near.slice(0, 2).forEach(function(b, i){
         var tp = i === 0 ? takePt : gs2.tEntry;
-        if(b.nades.he > 0) assignNade(b, "he", tp, "в смок — не дать занять сайт", {now:true, bkey:"CT.take.he."+tt.site});
-        else assignNade(b, "molly", tp, "в смок — не дать занять сайт", {now:true, bkey:"CT.take.he."+tt.site});
+        if(b.nades.he > 0) assignNade(b, "he", tp, "в смок — не дать занять сайт", {now:true, bkey:"CT.take.he."+tt.site, lvl:NADE_LEVEL.plan});
+        else assignNade(b, "molly", tp, "в смок — не дать занять сайт", {now:true, bkey:"CT.take.he."+tt.site, lvl:NADE_LEVEL.plan});
       });
       if(near.length) logEvent("CT: T закрыли смоком "+tt.site+" — гранаты туда, где они встают");
     }
@@ -174,12 +174,12 @@ function nadeBrains(){
     var anc = byRole(cts, call.site === "A" ? "anchorA" : "anchorB");
     var ge = GEO[call.site];
     if(anc){
-      if(anc.nades.molly > 0) assignNade(anc, "molly", ge.tEntry, "задержать выход", {bkey:"CT.call.molly."+call.site});
-      else if(anc.nades.he > 0) assignNade(anc, "he", ge.tEntry, "по выходу", {bkey:"CT.call.molly."+call.site});
+      if(anc.nades.molly > 0) assignNade(anc, "molly", ge.tEntry, "задержать выход", {bkey:"CT.call.molly."+call.site, lvl:NADE_LEVEL.plan});
+      else if(anc.nades.he > 0) assignNade(anc, "he", ge.tEntry, "по выходу", {bkey:"CT.call.molly."+call.site, lvl:NADE_LEVEL.plan});
     }
     var rot = byRole(cts, "rotator");
-    if(rot && rot.nades.smoke > 0 && (call.count >= 2 || BAL.ctUtilEarly)) assignNade(rot, "smoke", ge.tEntry, "перекрыть вход", {bkey:"CT.call.smoke."+call.site});
-    if(BAL.ctUtilEarly && anc && !anc.nadeTask && anc.nades.smoke > 0) assignNade(anc, "smoke", ge.tEntry, "перекрыть вход", {bkey:"CT.call.smoke."+call.site});
+    if(rot && rot.nades.smoke > 0 && (call.count >= 2 || BAL.ctUtilEarly)) assignNade(rot, "smoke", ge.tEntry, "перекрыть вход", {bkey:"CT.call.smoke."+call.site, lvl:NADE_LEVEL.plan});
+    if(BAL.ctUtilEarly && anc && anc.nades.smoke > 0) assignNade(anc, "smoke", ge.tEntry, "перекрыть вход", {bkey:"CT.call.smoke."+call.site, lvl:NADE_LEVEL.plan});
   }
   // раздел 11.1: гранатный комбо — не одна граната по инфе от одного бота, а
   // несколько РАЗНЫХ типов от РАЗНЫХ тиммейтов синхронно по одному только что
@@ -189,7 +189,7 @@ function nadeBrains(){
   // укрытие → выкурить его оттуда. Не чаще раза в 8с на бота, не туда, где уже
   // горит, и не туда, где рядом свои.
   bots.forEach(function(b){
-    if(!b.alive || b._sawEnemy || b.nadeTask || b.planting || b.defusing) return;
+    if(!b.alive || b._sawEnemy || !nadeCanSet(b, NADE_LEVEL.react) || b.planting || b.defusing) return;
     if(tick < (b._nadeCd||0) || !b.lastIntel) return;
     var age = tick - b.lastIntel.tick;
     if(age < 26 || age > 160) return;
@@ -200,7 +200,7 @@ function nadeBrains(){
     if(fires.some(function(f){ return Math.hypot(f.x-L.x, f.y-L.y) < 100; })) return;
     if(bots.some(function(o){ return o.alive && o.team === b.team && Math.hypot(o.x-L.x, o.y-L.y) < 130; })) return;
     b._nadeCd = tick + 8*TICK_HZ;
-    assignNade(b, type, {x:L.x, y:L.y}, "по инфе — выкурить", {now:true});
+    assignNade(b, type, {x:L.x, y:L.y}, "по инфе — выкурить", {now:true, lvl:NADE_LEVEL.react});
   });
   if(BAL.nadeReact) nadeReact();
   selfNadeTick();
@@ -210,17 +210,17 @@ function nadeBrains(){
     if(!b.alive || b.state !== "retreat" || b._retreatNade === roundNum) return;
     var foe = b._nearestEnemyBot; if(!foe || !b._sawEnemy) return;
     var mid = {x:b.x + (foe.x-b.x)*0.35, y:b.y + (foe.y-b.y)*0.35};
-    if(b.nades.smoke > 0 && !smokeCovered(mid.x, mid.y)){ b._retreatNade = roundNum; throwNade(b, "smoke", mid.x, mid.y, false, "на отходе"); }
-    else if(b.nades.flash > 0){ b._retreatNade = roundNum; throwNade(b, "flash", foe.x, foe.y, false, "на отходе"); }
+    if(b.nades.smoke > 0 && !smokeCovered(mid.x, mid.y)){ b._retreatNade = roundNum; nadeThrowNow(b, NADE_LEVEL.bomb, "smoke", mid.x, mid.y, false, "на отходе"); }
+    else if(b.nades.flash > 0){ b._retreatNade = roundNum; nadeThrowNow(b, NADE_LEVEL.bomb, "flash", foe.x, foe.y, false, "на отходе"); }
   });
   // CT ретейк: перед заходом — флешка на сайт
   if(bomb && bomb.state === "planted" && !(teamTac.CT && teamTac.CT.saving) && !nadeFlags.retakeFlash && bomb.retake && bomb.retake.phase === "go"){
     var gs = GEO[bomb.site];
     // заходим — флешка на бомбу с точки сбора, смок на подход T (отрезать подмогу)
-    var fl = cts.filter(function(b){ return b.nades.flash > 0; })[0];
-    if(fl){ nadeFlags.retakeFlash = true; assignNade(fl, "flash", {x:bomb.x, y:bomb.y}, "ретейк", {bkey:"CT.retake.flash."+bomb.site}); }
-    var smr = cts.filter(function(b){ return b !== fl && b.nades.smoke > 0; })[0];
-    if(smr && !nadeFlags.retakeSmoke){ nadeFlags.retakeSmoke = true; if(retakeCutUseful()) assignNade(smr, "smoke", gs.tEntry, "отрезать вход T", {bkey:"CT.retake.smoke."+bomb.site}); }
+    var fl = cts.filter(function(b){ return b.nades.flash > 0 && nadeCanSet(b, NADE_LEVEL.plan); })[0];
+    if(fl){ nadeFlags.retakeFlash = true; assignNade(fl, "flash", {x:bomb.x, y:bomb.y}, "ретейк", {bkey:"CT.retake.flash."+bomb.site, lvl:NADE_LEVEL.plan}); }
+    var smr = cts.filter(function(b){ return b !== fl && b.nades.smoke > 0 && nadeCanSet(b, NADE_LEVEL.plan); })[0];
+    if(smr && !nadeFlags.retakeSmoke){ nadeFlags.retakeSmoke = true; if(retakeCutUseful()) assignNade(smr, "smoke", gs.tEntry, "отрезать вход T", {bkey:"CT.retake.smoke."+bomb.site, lvl:NADE_LEVEL.plan}); }
   }
 }
 // смок "отрезать вход T" на ретейке нужен, только если кто-то из T может

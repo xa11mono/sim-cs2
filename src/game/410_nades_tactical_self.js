@@ -55,7 +55,7 @@ function nadeCombos(){
       if(fires.some(function(f){ return Math.hypot(f.x-s.x, f.y-s.y) < 100; })) return;
       var cands = mine.filter(function(b){
         var dd = Math.hypot(b.x-s.x, b.y-s.y);
-        return !b.nadeTask && !b.planting && !b.defusing && !b._sawEnemy &&
+        return nadeCanSet(b, NADE_LEVEL.react) && !b.planting && !b.defusing && !b._sawEnemy &&
                dd >= 140 && dd <= NADE_THROW_RANGE && // не кидать себе под ноги в упор
                (b.nades.molly>0 || b.nades.he>0 || b.nades.flash>0);
       });
@@ -67,7 +67,7 @@ function nadeCombos(){
         var b = cands[ci];
         var t = order.filter(function(tp){ return b.nades[tp]>0 && !typesUsed[tp]; })[0];
         if(!t) continue;
-        assignNade(b, t, {x:s.x, y:s.y}, "комбо по "+eid, {now:true});
+        assignNade(b, t, {x:s.x, y:s.y}, "комбо по "+eid, {now:true, lvl:NADE_LEVEL.react});
         typesUsed[t] = true; thrown++;
       }
       if(thrown >= 2){
@@ -121,7 +121,7 @@ function selfPlantSmoke(b){
   // инфы нет — типичные места CT, которые бот ещё не видел пустыми (знание карты), откуда видно точку
   if(!seen && b.know) (b.know.spots || []).forEach(function(q){ if(!seen && q.open && knowSpotReach(q) && Math.hypot(q.x-p.x, q.y-p.y) <= SELF.sightR && hasVision(q.x, q.y, p.x, p.y)) seen = q; });
   if(!seen) return false;
-  if(!assignNade(b, "smoke", p, "смок под плант — точку видно с " + calloutName(seen.x, seen.y), {now:true})) return false;
+  if(!assignNade(b, "smoke", p, "смок под плант — точку видно с " + calloutName(seen.x, seen.y), {now:true, lvl:NADE_LEVEL.bomb})) return false;
   nadeFlags["plantSmoke"+k] = true;
   if(b !== c) voiceLog("T", "psm"+k, b.id, "даю смок под плант " + k);
   return true;
@@ -154,12 +154,12 @@ function selfExitFlash(b){
   if(!best) return false;
   var c = best.c, ex = best.ex, dE = Math.hypot(c.x-ex.x, c.y-ex.y), kf = Math.min(1, 140/Math.max(1, dE));
   b._selfDone[c.key] = true;
-  return assignNade(b, "flash", {x: ex.x + (c.x-ex.x)*kf, y: ex.y + (c.y-ex.y)*kf}, "флешка под выход — " + (c.info ? "по знанию " : "типичное место ") + calloutName(c.x, c.y), {now:true, range:700});
+  return assignNade(b, "flash", {x: ex.x + (c.x-ex.x)*kf, y: ex.y + (c.y-ex.y)*kf}, "флешка под выход — " + (c.info ? "по знанию " : "типичное место ") + calloutName(c.x, c.y), {now:true, range:700, lvl:NADE_LEVEL.self});
 }
 function selfNadeTick(){
   if(roundState !== "live") return;
   bots.forEach(function(b){
-    if(!b.alive || !b.nades || b.nadeTask || b.planting || b.defusing || b._sawEnemy || tick < (b.blindUntil||0)) return;
+    if(!b.alive || !b.nades || b.planting || b.defusing || b._sawEnemy || tick < (b.blindUntil||0)) return;
     if((tick + (b.id.charCodeAt(b.id.length-1)||0)) % SELF.every) return;
     if(selfPlantSmoke(b)) return;
     selfExitFlash(b);
@@ -177,7 +177,7 @@ function nadeReact(){
   if(tick % 8) return;
   // (19) мало HP и враг рядом — выкинуть оставшиеся гранаты во врага, пока жив
   if(BAL.utilDump) bots.forEach(function(b){
-    if(!b.alive || b.hp > 25 || b.nadeTask || b.planting || b.defusing || !b.nades || tick < (b._dumpCd||0)) return;
+    if(!b.alive || b.hp > 25 || !nadeCanSet(b, NADE_LEVEL.fight) || b.planting || b.defusing || !b.nades || tick < (b._dumpCd||0)) return;
     var tp = b.nades.molly > 0 ? "molly" : b.nades.he > 0 ? "he" : b.nades.flash > 0 ? "flash" : null; if(!tp) return;
     var BLd = beliefLast[b.team] || {}, tg = null, bd = Infinity;
     for(var eD in BLd){ var lo = BLd[eD]; if(tick - lo.tick > 3*TICK_HZ) continue; if(!bots.some(function(o){ return o.id === eD && o.alive; })) continue;
@@ -185,7 +185,7 @@ function nadeReact(){
     if(!tg) return;
     if(bots.some(function(o){ return o !== b && o.alive && o.team === b.team && Math.hypot(o.x-tg.x, o.y-tg.y) < 150; })) return;
     b._dumpCd = tick + 3*TICK_HZ;
-    if(assignNade(b, tp, {x:tg.x, y:tg.y}, "у меня "+b.hp+" — кидаю всё", {now:true}) && !b._dumpVoice){ b._dumpVoice = roundNum; voiceLog(b.team, "dump"+b.id, b.id, "у меня "+b.hp+" — выкидываю гранаты"); }
+    if(assignNade(b, tp, {x:tg.x, y:tg.y}, "у меня "+b.hp+" — кидаю всё", {now:true, lvl:NADE_LEVEL.fight}) && !b._dumpVoice){ b._dumpVoice = roundNum; voiceLog(b.team, "dump"+b.id, b.id, "у меня "+b.hp+" — выкидываю гранаты"); }
   });
   // (16) HE по раненому за укрытием (HE до 57 урона, по броне вдвое меньше)
   if(BAL.heFinish) ["CT","T"].forEach(function(team){
@@ -195,9 +195,9 @@ function nadeReact(){
       var lo = BLh[eH]; if(!lo || tick - lo.tick > 3*TICK_HZ) continue;
       if(!bots.some(function(o){ return o.id === eH && o.alive; })) continue;
       if(bots.some(function(o){ return o.alive && o.team === team && Math.hypot(o.x-lo.x, o.y-lo.y) < 170; })) continue;
-      var th = bots.filter(function(b){ return b.alive && b.team === team && b.nades && b.nades.he > 0 && !b.nadeTask && !b._sawEnemy &&
+      var th = bots.filter(function(b){ return b.alive && b.team === team && b.nades && b.nades.he > 0 && nadeCanSet(b, NADE_LEVEL.fight) && !b._sawEnemy &&
         Math.hypot(b.x-lo.x, b.y-lo.y) > 150 && Math.hypot(b.x-lo.x, b.y-lo.y) < NADE_THROW_RANGE && !hasLOS(b.x, b.y, lo.x, lo.y); })[0];
-      if(th && assignNade(th, "he", {x:lo.x, y:lo.y}, "HE добить "+eH, {now:true})){ h._heDone = true;
+      if(th && assignNade(th, "he", {x:lo.x, y:lo.y}, "HE добить "+eH, {now:true, lvl:NADE_LEVEL.fight})){ h._heDone = true;
         voiceLog(team, "hefin"+eH, th.id, eH+" на "+h.hp+" за углом — HE"); }
     }
   });
@@ -213,11 +213,11 @@ function nadeReact(){
     if(Object.keys(srcs).length < (early ? 1 : 2)) return;
     var onS = {}; teamIntel.CT.sig.forEach(function(sg){ if(sg.type === "spotted" && sg.id && tick - sg.tick < 1.5*TICK_HZ && Math.hypot(sg.x-SITES[k].x, sg.y-SITES[k].y) < 220) onS[sg.id] = 1; });
     if(Object.keys(onS).length > 1) return; // уже зашли — поздно
-    var c = bots.filter(function(b){ return b.alive && b.team === "CT" && b.nades && b.nades.molly > 0 && !b.nadeTask && !b._sawEnemy &&
+    var c = bots.filter(function(b){ return b.alive && b.team === "CT" && b.nades && b.nades.molly > 0 && nadeCanSet(b, NADE_LEVEL.react) && !b._sawEnemy &&
       Math.hypot(b.x-ent.x, b.y-ent.y) < NADE_THROW_RANGE*1.1 && Math.hypot(b.x-ent.x, b.y-ent.y) > 150; })
       .sort(function(a, b2){ return Math.hypot(a.x-ent.x, a.y-ent.y) - Math.hypot(b2.x-ent.x, b2.y-ent.y); })[0];
     if(!c) return;
-    if(assignNade(c, "molly", ent, "молотов на раш "+k, {now:true})){ nadeFlags["rushMolly"+k] = tick;
+    if(assignNade(c, "molly", ent, "молотов на раш "+k, {now:true, lvl:NADE_LEVEL.react})){ nadeFlags["rushMolly"+k] = tick;
       voiceLog("CT", "rushm"+k, c.id, "слышу раш на "+k+" — молотов во вход!"); }
   });
   // (v294) «ранняя граната на задержку» (молотов/HE опорника во вход своего сайта на 7–18 с) убрана: у ботов рвалась рядом с врагом
@@ -230,15 +230,15 @@ function nadeReact(){
       if(Math.hypot(pts[i].x-pts[j].x, pts[i].y-pts[j].y) > 160) continue;
       var tg = {x:(pts[i].x+pts[j].x)/2, y:(pts[i].y+pts[j].y)/2};
       if(bots.some(function(o){ return o.alive && o.team === team && Math.hypot(o.x-tg.x, o.y-tg.y) < 170; })) continue;
-      var th = bots.filter(function(b){ return b.alive && b.team === team && b.nades && b.nades.he > 0 && !b.nadeTask && !b._sawEnemy && !b.planting && !b.defusing &&
+      var th = bots.filter(function(b){ return b.alive && b.team === team && b.nades && b.nades.he > 0 && nadeCanSet(b, NADE_LEVEL.react) && !b._sawEnemy && !b.planting && !b.defusing &&
         Math.hypot(b.x-tg.x, b.y-tg.y) > 250 && Math.hypot(b.x-tg.x, b.y-tg.y) < NADE_THROW_RANGE; })
         .sort(function(a, b2){ return Math.hypot(a.x-tg.x, a.y-tg.y) - Math.hypot(b2.x-tg.x, b2.y-tg.y); })[0];
-      if(th && assignNade(th, "he", tg, "HE в стак", {now:true})){ nadeReactCd[team] = tick + 10*TICK_HZ;
+      if(th && assignNade(th, "he", tg, "HE в стак", {now:true, lvl:NADE_LEVEL.react})){ nadeReactCd[team] = tick + 10*TICK_HZ;
         voiceLog(team, "hestack"+tick, th.id, "их двое "+calloutName(tg.x, tg.y)+" — кидаю HE"); return; }
     }
   });
   bots.forEach(function(b){
-    if(!b.alive || b._sawEnemy || b.nadeTask || b.planting || b.defusing || !b.nades || b.nades.flash <= 0) return;
+    if(!b.alive || b._sawEnemy || (b.nadeTask && b.nadeTask.lvl > NADE_LEVEL.self) || b.planting || b.defusing || !b.nades || b.nades.flash <= 0) return;
     if(!b.post || b.atPost || b.state !== "patrol" || tick < (b._selfFlashCd||0)) return;
     if(bomb.state === "carried" && bomb.carrier === b) return;
     if(bots.some(function(o){ return o !== b && o.alive && o.team === b.team && Math.hypot(o.x-b.x, o.y-b.y) < 220; })) return; // не один — пикнут вместе
@@ -253,7 +253,7 @@ function nadeReact(){
     if(teamSaving(b.team)) return;   // (v247) сейв — не выходим
     b._selfFlashCd = tick + 12*TICK_HZ;
     var why = "себе под пик "+b.id;
-    throwNade(b, "flash", tgt.x, tgt.y, true, why);
+    if(!nadeThrowNow(b, NADE_LEVEL.self, "flash", tgt.x, tgt.y, true, why)) return;   // не вышло — пикает без неё
     b._waitPopUntil = tick + Math.round(1.1*TICK_HZ); b._waitPopKey = "pop:"+why;
     voiceLog(b.team, "sflash"+b.id, b.id, "флешу себе и выхожу");
   });

@@ -53,7 +53,7 @@ function tCrossSmoke(L){
   var held = Object.keys(POS).some(function(k){ return (POS[k].ctHold || []).indexOf(zoneUserName(zid)) >= 0; });
   var clr = CLEARZ.T[zid] && tick - CLEARZ.T[zid].tick < 10*TICK_HZ;
   if(beliefCount("T", [zi]) < CROSS_BELIEF && !(held && !clr && aliveCount("CT") >= 2)) return false;
-  var thrower = bots.some(function(b){ return b.team === "T" && b.alive && b.nades && b.nades.smoke > 0 && !b.nadeTask && Math.hypot(b.x-L.from.x, b.y-L.from.y) < CROSS_NEAR; });
+  var thrower = bots.some(function(b){ return b.team === "T" && b.alive && b.nades && b.nades.smoke > 0 && nadeCanSet(b, NADE_LEVEL.role) && Math.hypot(b.x-L.from.x, b.y-L.from.y) < CROSS_NEAR; });
   if(!thrower) return false;
   var crossing = bots.some(function(b){
     if(b.team !== "T" || !b.alive || !b.path || !b.path.length) return false;
@@ -117,6 +117,9 @@ function lineupTick(){
     // носитель бомбы; в горячих фазах (выход, колл, ретейк, пост-плант) — только
     // тот, кому до точки броска недалеко, иначе он бросит свою задачу и уйдёт назад
     var hot = L.trigger !== "insta" && L.trigger !== "setup";
+    // (v382) уровень в арбитре гранат: выход, пост-плант, колл, ретейк — план команды; insta / timed / setup — лайнап роли
+    var lvlL = /^(exec|postplant|call|retake)$/.test(L.trigger) ? NADE_LEVEL.plan : NADE_LEVEL.role;
+    var whyL = "лайнап «"+(L.name||LU_TYPE[L.type])+"»";
     var maxD = hot ? (BAL.nadeReach ? 650 : 480) : 1600;
     // (v355, владелец: «на выходе закрывают максимум один-два выхода, у про много смоков, флешек, молотов») гранаты выхода T
     // берёт тот, кому до точки броска до EXEC_REACH (проектное число) — группа на выходе стоит шире 650
@@ -135,7 +138,7 @@ function lineupTick(){
       !b.planting && !b.defusing && !(bomb.state === "carried" && bomb.carrier === b) && Math.hypot(b.x-L.from.x, b.y-L.from.y) < maxD; };
     // (v359, р7) кто уже стоит на сайте T (взял его) — с сайта за гранатой назад не уходит
     var onTSite = function(b){ var S = L.team === "T" && tt && SITES[tt.site]; return !!S && (onSite(S, b.x, b.y) || Math.hypot(b.x-S.x, b.y-S.y) < 450) && Math.hypot(L.from.x-S.x, L.from.y-S.y) > Math.hypot(b.x-S.x, b.y-S.y) + 200; };
-    var cand = bots.filter(function(b){ return okBot(b) && !b.nadeTask && !onTSite(b); }).sort(function(a, b2){ return cost(a) - cost(b2); })[0];
+    var cand = bots.filter(function(b){ return okBot(b) && nadeCanSet(b, lvlL) && !onTSite(b); }).sort(function(a, b2){ return cost(a) - cost(b2); })[0];
     // (v355) свободного нет — граната выхода встаёт в очередь тому, кто уже идёт на лайнап рядом (точки броска ≤ EXEC_QUEUE_R):
     // кинет вторую следом (через NADE_GAP), как про кидают смок + флешку с одной точки. Раньше: одно задание на бойца — лайнап сгорал
     // (v359, владелец: «один и тот же игрок кидает несколько гранат по очереди; обычно гранаты дают одному — чтобы другие пикали не
@@ -147,15 +150,14 @@ function lineupTick(){
     // остальные, как обычно. Демки Mirage (352 выхода, гранаты T за 15 с до планта): один игрок бросил ≥ 60 % — в 36 % раундов
     var solo = execT ? tSoloThrower() : null;
     if(solo){
-      var busyN = (solo.nadeTask && solo.nadeTask.type === L.type ? 1 : 0) + (solo.nadeQueue||[]).filter(function(q){ return q.type === L.type; }).length;
+      var busyN = (solo.nadeTask && solo.nadeTask.type === L.type ? 1 : 0) + (solo.nadeQueue||[]).filter(function(q){ return (q.task || q).type === L.type; }).length;
       if(solo.nades && solo.nades[L.type] > busyN && !solo.planting && (solo.nadeQueue||[]).length < 4 && !onTSite(solo)){
         nadeFlags[key] = true; nadeFlags["luok"+L.id] = true;
-        if(!solo.nadeTask){
-          var sP = Math.max(7, Math.ceil(pathLenTo(solo, L.from.x, L.from.y)/SPEED + LU_REACH_PAD));
-          solo.nadeTask = {type:L.type, x:L.to.x, y:L.to.y, from:{x:L.from.x, y:L.from.y}, until: tick + sP*TICK_HZ, why:"лайнап «"+(L.name||LU_TYPE[L.type])+"»", start:tick, lob:true, range:4000, now:true, lineup:true, exec:L.type === "smoke"};
+        var sP = Math.max(7, Math.ceil(pathLenTo(solo, L.from.x, L.from.y)/SPEED + LU_REACH_PAD));
+        if(assignNade(solo, L.type, L.to, whyL, {lvl:lvlL, from:L.from, sec:sP, range:4000, now:true, exec:L.type === "smoke"})){
           logEvent(solo.id+": раскид — идёт на «"+(L.name||LU_TYPE[L.type])+"»");
-        } else {
-          (solo.nadeQueue = solo.nadeQueue || []).push({type:L.type, x:L.to.x, y:L.to.y, from:{x:L.from.x, y:L.from.y}, why:"лайнап «"+(L.name||LU_TYPE[L.type])+"»", lineup:true, exec:true});
+        } else {   // занят гранатой той же важности — кинет следом
+          nadeEnqueue(solo, L.type, L.to, L.from, whyL, lvlL, true);
           logEvent(solo.id+": раскид — следом «"+(L.name||LU_TYPE[L.type])+"»");
         }
         return;
@@ -164,12 +166,12 @@ function lineupTick(){
     if(execT && cand && (cand.tRole === "entry" || cand.tRole === "awp") && bots.some(function(b){ return okBot(b) && utilRole(b) && b.nadeTask && b.nadeTask.lineup; })) cand = null;
     if(!cand && execT){
       var qb = bots.filter(function(b){ var t = b.nadeTask; if(!okBot(b) || !t || !t.lineup || !t.from || (b.nadeQueue||[]).length >= EXEC_QUEUE_N) return false;
-        var need = (t.type === L.type ? 1 : 0) + (b.nadeQueue||[]).filter(function(q){ return q.type === L.type; }).length + 1;
+        var need = (t.type === L.type ? 1 : 0) + (b.nadeQueue||[]).filter(function(q){ return (q.task || q).type === L.type; }).length + 1;
         return b.nades[L.type] >= need && Math.hypot(t.from.x-L.from.x, t.from.y-L.from.y) < EXEC_QUEUE_R; })
         .sort(function(a, b2){ return (utilRole(a) ? 0 : 400) + cost(a) - (utilRole(b2) ? 0 : 400) - cost(b2); })[0];
       if(qb){
         nadeFlags[key] = true; nadeFlags["luok"+L.id] = true;
-        (qb.nadeQueue = qb.nadeQueue || []).push({type:L.type, x:L.to.x, y:L.to.y, from:{x:L.from.x, y:L.from.y}, why:"лайнап «"+(L.name||LU_TYPE[L.type])+"»", lineup:true, exec:true});
+        nadeEnqueue(qb, L.type, L.to, L.from, whyL, lvlL, true);
         logEvent(qb.id+": следом кинет «"+(L.name||LU_TYPE[L.type])+"»");
         return;
       }
@@ -196,8 +198,7 @@ function lineupTick(){
     var luBase = hot ? ((BAL.nadeReach && L.trigger === "timed") ? 12 : 7) : 20, luP = buildWaypointPath(cand.baseX, cand.baseY, cand.z, L.from.x, L.from.y, 0), luLen = 0, luX = cand.baseX, luY = cand.baseY;
     luP.forEach(function(q){ luLen += Math.hypot(q[0]-luX, q[1]-luY); luX = q[0]; luY = q[1]; });
     var luSec = Math.max(luBase, Math.ceil(luLen/(SPEED*weaponSpeedMul(cand)) + LU_REACH_PAD));
-    cand.nadeTask = {type:L.type, x:L.to.x, y:L.to.y, from:{x:L.from.x, y:L.from.y}, until: tick + luSec*TICK_HZ, why:"лайнап «"+(L.name||LU_TYPE[L.type])+"»",
-                     start:tick, lob:true, range:4000, now:true, lineup:true, exec:execT && L.type === "smoke"};
+    assignNade(cand, L.type, L.to, whyL, {lvl:lvlL, from:L.from, sec:luSec, range:4000, now:true, exec:execT && L.type === "smoke"});
     logEvent(cand.id+": идёт на лайнап «"+(L.name||LU_TYPE[L.type])+"»");
   });
 }

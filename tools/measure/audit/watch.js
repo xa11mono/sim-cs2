@@ -16,7 +16,7 @@
 //              по причине (погиб / срок / отказ броска: причина / снята)
 (function(){
   var W = {n:{stall:0, wait:0, waitCould:0, tug:0, flip:0, danger:0, empty:0, nav:0}, ev:{stall:[], wait:[], tug:[], flip:[], danger:[], empty:[], nav:[]},
-           emptyBy:{}, dangerBy:{}, nade:{rounds:0, hands:{}, intent:{}, reached:{}, thrown:{}, lost:{}, lostWhy:{}}};
+           emptyBy:{}, dangerBy:{}, nade:{rounds:0, hands:{}, intent:{}, reached:{}, thrown:{}, lost:{}, lostWhy:{}, deferred:{}}};
   var EVMAX = 40, S = {}, VO = [], LR = null, FL = [], lkpWrapped = null, thrownNow = {}, failNow = {};
   var ev = function(k, row){ W.n[k]++; if(W.ev[k].length < EVMAX) W.ev[k].push(row); };
   var base = function(tag){ return String(tag || "-").replace(/[:|].*$/, "").replace(/\d+$/, ""); };
@@ -83,16 +83,18 @@
     bots.forEach(function(b){
       var s = S[b.id] || (S[b.id] = {pos:[], tags:[], waitT:0, fireT:0, task:null});
       var t = b.nadeTask;
+      // (v382) перебита гранатой важнее и ждёт в своей очереди — не пропала: считается, когда докинет или пропадёт
+      if(s.task && s.task.o !== t && (b.nadeQueue || []).some(function(q){ return q.task === s.task.o; })){ inc(W.nade.deferred, s.task.type); s.defer = s.task.o; s.deferReached = s.task.reached; s.task = null; }
       if(s.task && s.task.o !== t){
         var k = rtOf(b)+"|"+s.task.type;
         if(thrownNow[b.id] && tick - thrownNow[b.id].t <= 1) inc(W.nade.thrown, k);
-        else { inc(W.nade.lost, k); var why = !b.alive ? "погиб" : (tick > s.task.until ? "срок" : (failNow[b.id] && tick - failNow[b.id].t <= 1 ? "отказ: "+failNow[b.id].why : "снята: "+(clrBy[b.id] && tick - clrBy[b.id].t <= 1 ? clrBy[b.id].fn : "?")));
+        else { inc(W.nade.lost, k); var why = !b.alive ? "погиб" : (tick > s.task.until ? "срок" : (failNow[b.id] && tick - failNow[b.id].t <= 1 ? "отказ: "+failNow[b.id].why : "снята: "+(b._nadeLost && tick - b._nadeLost.t <= 1 ? b._nadeLost.why : clrBy[b.id] && tick - clrBy[b.id].t <= 1 ? clrBy[b.id].fn : "?")));
           if(why === "срок"){ var tk = s.task.o, dT = Math.hypot(tk.x-b.x, tk.y-b.y);   // почему не успел: далеко / не видно / не дошёл до точки броска / бой
             why += tk.from ? (Math.hypot(tk.from.x-b.x, tk.from.y-b.y) > 40 ? " — не дошёл до точки броска ("+(b.post ? String(b.post.tag).replace(/[:|].*$/, "") : "-")+")" : " — на точке, не кинул") :
               (b._sawEnemy || b.state === "engage" ? " — бой" : (dT > (tk.range || 600)*0.85 ? " — далеко" : (!hasLOS(b.x, b.y, tk.x, tk.y) ? " — не видно цель" : " — видно, не кинул"))); }
           inc(W.nade.lostWhy, s.task.type+"|"+why); }
         s.task = null; }
-      if(t && (!s.task || s.task.o !== t)){ s.task = {o:t, type:t.type, until:t.until, reached:false}; inc(W.nade.intent, rtOf(b)+"|"+t.type); }
+      if(t && (!s.task || s.task.o !== t)){ var resumed = (s.defer === t); s.defer = null; s.task = {o:t, type:t.type, until:t.until, reached:resumed && !!s.deferReached}; if(!resumed) inc(W.nade.intent, rtOf(b)+"|"+t.type); }
       if(s.task && !s.task.reached && t && t.from && Math.hypot(t.from.x-b.x, t.from.y-b.y) < 40){ s.task.reached = true; inc(W.nade.reached, rtOf(b)+"|"+t.type); }
     });
     // опасность: зона взрыва за 2 с до взрыва (раз на бота за раунд)

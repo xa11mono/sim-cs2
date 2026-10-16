@@ -144,10 +144,10 @@ function tProbes(tt, ts){
         // CT, если флешки нет); раньше — только на глубокую пробу, чаще на сухую
         if(BAL.probeUtil && !antiEco("T")){
           var uFp = {x: to.x + (look.x-to.x)*0.3, y: to.y + (look.y-to.y)*0.3};
-          var uFl = ts.filter(function(o){ return o !== pb && !o.nadeTask && o.nades && o.nades.flash > 0 && Math.hypot(o.x-pb.x, o.y-pb.y) < 500; })[0];
-          var uSm = ts.filter(function(o){ return !o.nadeTask && o.nades && o.nades.smoke > 0 && Math.hypot(o.x-pb.x, o.y-pb.y) < 600; })[0];
-          if(uFl && (P.needUtil || P.n === 1 || hashRand(tick + 3) < 0.6)){ assignNade(uFl, "flash", uFp, "под пробу", {now:true}); P.util = "flash"; }
-          else if(uSm && (key === "M" || P.needUtil) && tSmokeReserveOk()){ var smP = {x: to.x + (look.x-to.x)*0.5, y: to.y + (look.y-to.y)*0.5}; if(assignNade(uSm, "smoke", smP, "смок под пробу", {now:true})) P.util = "smoke"; }
+          var uFl = ts.filter(function(o){ return o !== pb && nadeCanSet(o, NADE_LEVEL.plan) && o.nades && o.nades.flash > 0 && Math.hypot(o.x-pb.x, o.y-pb.y) < 500; })[0];
+          var uSm = ts.filter(function(o){ return nadeCanSet(o, NADE_LEVEL.plan) && o.nades && o.nades.smoke > 0 && Math.hypot(o.x-pb.x, o.y-pb.y) < 600; })[0];
+          if(uFl && (P.needUtil || P.n === 1 || hashRand(tick + 3) < 0.6)){ if(assignNade(uFl, "flash", uFp, "под пробу", {now:true, lvl:NADE_LEVEL.plan})) P.util = "flash"; }
+          else if(uSm && (key === "M" || P.needUtil) && tSmokeReserveOk()){ var smP = {x: to.x + (look.x-to.x)*0.5, y: to.y + (look.y-to.y)*0.5}; if(assignNade(uSm, "smoke", smP, "смок под пробу", {now:true, lvl:NADE_LEVEL.plan})) P.util = "smoke"; }
         }
         // со второго раза — глубже, за фрагом, но только парой (есть кому
         // разменять) и если по инфе там не стак
@@ -162,8 +162,8 @@ function tProbes(tt, ts){
         if(P.deep){
           voiceLog("T", "probe"+key+pb.id, pb.id, "подпушу "+(key === "M" ? "мид" : (zoneUserName(zoneIdAt(to.x, to.y)) || key.charAt(0)))+", посмотрю, сколько их там");
           // флешка под подпуш от ближайшего тиммейта (не вся раскидка — одна)
-          var fl = ts.filter(function(o){ return o !== pb && !o.nadeTask && o.nades && o.nades.flash > 0 && Math.hypot(o.x-pb.x, o.y-pb.y) < 500; })[0];
-          if(fl && BAL.tUtil && !antiEco("T")){ var fp = {x: to.x + (look.x-to.x)*0.3, y: to.y + (look.y-to.y)*0.3}; assignNade(fl, "flash", fp, "под подпуш", {now:true}); }
+          var fl = ts.filter(function(o){ return o !== pb && nadeCanSet(o, NADE_LEVEL.plan) && o.nades && o.nades.flash > 0 && Math.hypot(o.x-pb.x, o.y-pb.y) < 500; })[0];
+          if(fl && BAL.tUtil && !antiEco("T")){ var fp = {x: to.x + (look.x-to.x)*0.3, y: to.y + (look.y-to.y)*0.3}; assignNade(fl, "flash", fp, "под подпуш", {now:true, lvl:NADE_LEVEL.plan}); }
         }
       }
       return;

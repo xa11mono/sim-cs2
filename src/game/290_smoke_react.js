@@ -152,7 +152,7 @@ function smokeHeTick(){
       if(!near){ D[k] = false; return; }
       var ev = smkEvidence(b, s); if(!ev || ev.kind === "entry"){ return; }
       D[k] = hashRand(s.born*41 + b.id.charCodeAt(0)*17 + b.id.length) < SMK.heP;
-      if(D[k] && assignNade(b, "he", {x:s.x, y:s.y}, "HE в смок — разогнать", {now:true})) voiceLog(b.team, "hesmk"+k, b.id, "кидаю HE в смок "+calloutName(s.x, s.y));
+      if(D[k] && assignNade(b, "he", {x:s.x, y:s.y}, "HE в смок — разогнать", {now:true, lvl:NADE_LEVEL.react})) voiceLog(b.team, "hesmk"+k, b.id, "кидаю HE в смок "+calloutName(s.x, s.y));
     });
   });
 }

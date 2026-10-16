@@ -114,8 +114,8 @@ function ctEarlyPeek(b, ct){
     // флешка себе под ранний пик (если есть и не эко у соперника)
     if(BAL.ctEarlyUtil && b.nades && b.nades.flash > 0 && !antiEco("CT") && hashRand(roundNum*97 + b.id.charCodeAt(2)*5) < 0.6){
       var whyF = "себе под ранний пик "+b.id;
-      throwNade(b, "flash", stg.x, stg.y, true, whyF);
-      b._waitPopUntil = tick + Math.round(1.1*TICK_HZ); b._waitPopKey = "pop:"+whyF;
+      if(nadeThrowNow(b, NADE_LEVEL.self, "flash", stg.x, stg.y, true, whyF)){   // отказ — пикает без неё
+        b._waitPopUntil = tick + Math.round(1.1*TICK_HZ); b._waitPopKey = "pop:"+whyF; }
     }
   }
   if(b.atPost && b.post && b.post.tag === "earlyPeek"){
