@@ -2967,6 +2967,7 @@ function wallBoxes(){
   });
   return _WB;
 }
+var POST_DWELL = 96, POST_URGENT = /^(flee|defuse|plantspot|stopplant|antidefuse|save|tradeR|contact|retake|fetch|pickup|clutch|bombwatch|repos:killmove|gather)/;
 function setPost(b, pt, look, hold, tag, spreadIdx){
   // сменил позицию после фрага — роль в этом раунде ставит его уже на новую точку
   if(BAL.holdShift && b._hs && b._hs.round === roundNum && b._hs.tag === tag && pt && Math.hypot(pt.x-b._hs.pt.x, pt.y-b._hs.pt.y) < 320) pt = b._hs.pt;
@@ -3033,6 +3034,13 @@ function setPost(b, pt, look, hold, tag, spreadIdx){
   // точку ещё ~5с (задачи по бомбе и ретейк — важнее)
   // (v257, К2) ротация на колл — решение команды: старая перепозиция (пуш, отход) её не держит
   if(b._reposUntil && tick < b._reposUntil && tag !== "repos" && !/^(retake|defuse|plantspot|flee|save|fetch|postplant|rotate)/.test(tag) && !(bomb && bomb.state === "planted")) return;
+  // (v375, этап 5 плана владельца: «решение держится») сторож: «перетягивание» — пост бота за 2 с меняется A → B → A
+  // (лайнап ↔ угол, ожидание гранат ↔ маршрут, смена позиции ↔ опорник; 250–340 на 100 раундов): каждая механика каждый тик
+  // ставит своё, кто последний — тот и прав, путь сбрасывается, бот топчется. Теперь новая задача обычного уровня не сменяет
+  // поставленную раньше POST_DWELL (1,5 с; проектное число); срочные (бой, бомба, огонь, сейв, размен, контакт) — сразу
+  var tagB = String(tag).replace(/[:|].*$/, "");
+  // (снятый пост — clearPost — не сбрасывает: последняя задача помнится в _postLast)
+  if(b._postLast && b._postLast.b !== tagB && tick - b._postLast.t < POST_DWELL && !POST_URGENT.test(tag) && !POST_URGENT.test(b._postLast.tag)) return;
   var psn = (BAL.proSpots && hold && pt) ? proSnap(b, pt, look, tag) : null;
   if(psn){ pt = psn.pt; spreadIdx = 0; }
   var id = tag + "|" + Math.round(pt.x) + "," + Math.round(pt.y);
@@ -3050,6 +3058,7 @@ function setPost(b, pt, look, hold, tag, spreadIdx){
       if(insideSolidWall(nx, ny) || segCrossesManualWalls(x0, y0, nx, ny) || !navAt(nx, ny) || spotTaken(b, {x:nx, y:ny})) return false;
       x = nx; y = ny; return true; });
   }
+  if(!b._postLast || b._postLast.b !== tagB || b._postLast.round !== roundNum) b._postLast = {b:tagB, tag:String(tag), t:tick, round:roundNum};
   b.post = {id:id, x:x, y:y, look:look||null, hold:hold, tag:tag};
   if(psn) b.post.pro = psn.sp;
   b.atPost = false;
@@ -11414,7 +11423,7 @@ function nadeReact(){
 //   T после планта: CT у бомбы известен или дефузят — молотов/HE на бомбу.
 // Куда — откуда сюда кидали про (MAP.nadelanes: бросок с этого места (≤ 60 px) в нужную точку), иначе прямо, если стены нет.
 // Пауза бойца между такими решениями — 3 с (проектное число)
-var NADE_USE_GAP = 3*TICK_HZ;
+var NADE_USE_GAP = 192;   // 3 с (TICK_HZ объявлен ниже — число)
 function nadeUsePick(b, pts, R){
   var I = nadeLaneIdx(), L = I.L, best = null, bd = Infinity;
   pts.forEach(function(p){
