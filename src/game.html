@@ -10115,10 +10115,20 @@ var NADE_WISH_PRO = {
 };
 function buyNades(b, type){
   if(type === "full" && b._fullKit === roundNum) return;   // (v357) на фулле гранаты — в наборе роли (buyFullKit)
+  // (v373) эко и форс — план команды из демок (teamNadePlan), как на пистолетке; что не по карману после оружия и брони — не берёт
+  if(type === "eco" || type === "force" || type === "half"){
+    var TP = teamNadePlan(b.team, type === "eco" ? "eco" : "force")[b.id] || [];
+    if(!b.nades) b.nades = emptyNades();
+    var keepE = (BAL.nadeBuy && type === "eco") ? fullNeed(b) - nextLossIncome(b.team) : -1e9;
+    TP.forEach(function(t){ var pr = nadePrice(t, b.team), tot = b.nades.smoke + b.nades.flash + b.nades.he + b.nades.molly;
+      if(tot >= 4 || (t === "flash" ? b.nades.flash >= 2 : b.nades[t] >= 1) || b.money < pr || b.money - pr < keepE) return;
+      b.money -= pr; b.nades[t]++; });
+    return;
+  }
   var wish = (BAL.proNades ? NADE_WISH_PRO[b.tRole] : null) || NADE_WISH[b.tRole] || [];
   var budget = type === "full" ? 99 : (type === "force" || type === "half" ? (BAL.nadeBuy ? 2 : 1) : 0);
   if(type === "eco") budget = BAL.nadeBuy ? 1 : 0;
-  if(type === "pistol") budget = 0;   // (v293) на пистолетке гранаты — по плану команды (pistolNadePlan)
+  if(type === "pistol") budget = 0;   // (v293) на пистолетке гранаты — по плану команды (teamNadePlan)
   var keepEco = (BAL.nadeBuy && type === "eco") ? fullNeed(b) - nextLossIncome(b.team) : -1e9;
   var bought = 0;
   for(var i=0;i<wish.length && bought<budget;i++){
@@ -13958,23 +13968,28 @@ function bestPrimary(b, maxPrice, keep){
 // (v293) гранаты команды на пистолетке — сколько в среднем бросают про (92 демки Ancient, раунды 1 и 13, на команду):
 // смок 1,1, флешка 1,0, молотов 0,36, HE 0,09. Кевлар $650 из $800 + граната не помещаются — кто берёт гранату, тот без кевлара.
 // Кому — по списку гранат роли (NADE_WISH_PRO), не больше $800 на игрока. План один на раунд
-function pistolNadePlan(team){
+// (v373, сторож: «цепочка гранат» — на форсе HE не покупали вовсе, молотов у T — 0,2 на команду, на эко — один дым; про на форсе
+// бросают 8,9–10,1 гранаты на команду, боты — 4,8–6,0) какие гранаты берёт команда на пистолетке, эко и форсе — одно место для
+// всех типов раунда (было: план — только на пистолетке, на эко/форсе — по 1–2 гранаты из списка роли, HE последней). Сколько —
+// из демок карты по стороне и типу раунда (tools/nades_pro.py → MAP.pro.nadesBy: брошено за раунд на команду); дробная часть —
+// случай. Раздаётся по ролям (NADE_WISH_PRO) и деньгам; фулл — набор роли (buyFullKit)
+function teamNadePlan(team, rt){
   var E = teamEco[team] || (teamEco[team] = {});
-  if(E._pnp && E._pnp.k === matchNum+":"+roundNum) return E._pnp.plan;
+  if(E._tnp && E._tnp.k === matchNum+":"+roundNum+":"+rt) return E._tnp.plan;
   var hr = function(n){ return hashRand(matchNum*131 + roundNum*17 + (team === "CT" ? 7 : 3) + n*29); };
-  // (v370) сколько гранат на пистолетке берёт команда — из демок карты и по стороне (tools/nades_pro.py → MAP.pro.pistolNades:
-  // брошено за раунд; Mirage T — дым 1,51, флешка 1,73, молотов 0,69; CT — 0,39 / 0,6 / 0,07, HE 0,26). Дробная часть — случай
-  var PN = ((MAP.pro.pistolNades || {})[team]) || {smoke:1.1, flash:1.0, molly:0.36, he:0.09}, want = [];
-  ["smoke", "flash", "molly", "he"].forEach(function(t, ti){ var e = PN[t] || 0, k = Math.floor(e) + (hr(ti+1) < e - Math.floor(e) ? 1 : 0); for(var i = 0; i < k; i++) want.push(t); });
-  var ps = bots.filter(function(o){ return o.team === team; }), plan = {}, cost = {};
-  want.forEach(function(t, wi){
+  var NB = ((MAP.pro.nadesBy || {})[team] || {})[rt] || {}, want = [];
+  ["smoke", "flash", "molly", "he"].forEach(function(t, ti){ var e = NB[t] || 0, k = Math.floor(e) + (hr(ti+1) < e - Math.floor(e) ? 1 : 0); for(var i = 0; i < k; i++) want.push(t); });
+  var ps = bots.filter(function(o){ return o.team === team; }), plan = {}, cost = {}, cnt = {};
+  var cap = rt === "pistol" ? function(o){ return 800; } : function(o){ return o.money; };
+  want.forEach(function(t){
     var pr = nadePrice(t, team);
-    var cand = ps.filter(function(o){ var w = NADE_WISH_PRO[o.tRole] || NADE_WISH[o.tRole] || []; return w.indexOf(t) >= 0 && (cost[o.id]||0) + pr <= 800 && !(plan[o.id] && plan[o.id].indexOf(t) >= 0); })
-      .sort(function(a, c){ var wa = (NADE_WISH_PRO[a.tRole]||[]).indexOf(t), wc = (NADE_WISH_PRO[c.tRole]||[]).indexOf(t); return (wa - wc) || ((plan[a.id] ? 0 : 1) - (plan[c.id] ? 0 : 1)); });
+    var cand = ps.filter(function(o){ var have = plan[o.id] || []; return (cost[o.id]||0) + pr <= cap(o) && have.length < 4 && have.filter(function(x){ return x === t; }).length < (t === "flash" ? 2 : 1); })
+      .sort(function(a, c){ var wa = (NADE_WISH_PRO[a.tRole] || NADE_WISH[a.tRole] || []).indexOf(t), wc = (NADE_WISH_PRO[c.tRole] || NADE_WISH[c.tRole] || []).indexOf(t);
+        wa = wa < 0 ? 9 : wa; wc = wc < 0 ? 9 : wc; return (wa - wc) || ((plan[a.id]||[]).length - (plan[c.id]||[]).length) || (c.money - a.money); });
     var o = cand[0]; if(!o) return;
     (plan[o.id] = plan[o.id] || []).push(t); cost[o.id] = (cost[o.id]||0) + pr;
   });
-  E._pnp = {k: matchNum+":"+roundNum, plan: plan};
+  E._tnp = {k: matchNum+":"+roundNum+":"+rt, plan: plan};
   return plan;
 }
 function buyForPlayer(b, type, idx){
@@ -13986,7 +14001,7 @@ function buyForPlayer(b, type, idx){
     if(b.team === "CT" && hP < 0.24) buyItem(b, "ELITE");
     else if(b.team === "T" && hP < 0.07) buyItem(b, "P250");
     // (v293, Э-пункт, владелец 14.10: «на пистолетке не покупают гранаты») кому команда отдала гранату — берёт её вместо кевлара
-    var PN = pistolNadePlan(b.team)[b.id];
+    var PN = teamNadePlan(b.team, "pistol")[b.id];
     if(PN){ if(!b.nades) b.nades = emptyNades(); PN.forEach(function(t){ var pr = nadePrice(t, b.team); if(b.money >= pr){ b.money -= pr; b.nades[t]++; } }); }
     else if(!b.secondary || b.secondary === (b.team === "CT" ? "USP" : "GLOCK")) buyArmor(b, false, ARMOR_REBUY.pistol);
   } else if(type === "full"){

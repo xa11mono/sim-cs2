@@ -1,7 +1,7 @@
 """Сколько гранат про бросают за раунд (v357): по демкам карты, на команду, по стороне и типу закупа.
 Тип закупа — как в buy_pro.py / ct_cmp.py (rtype по оружию в руках за первые 30 с). Броски — события разрыва
 (smokegrenade_detonate, flashbang_detonate, hegrenade_detonate, inferno_startburn) по бросившему.
-Пистолетку (v370) пишет в набор карты: pro.json → pistolNades {T|CT: {smoke, flash, molly, he}} — брошено за раунд на команду.
+Пишет в набор карты (v373): pro.json → nadesBy {T|CT: {pistol|eco|force|full: {smoke, flash, he, molly}}} — брошено за раунд на команду.
 Запуск: python3 tools/nades_pro.py --map mirage [out.json]"""
 import sys, os, re, json, collections
 import pandas as pd
@@ -63,8 +63,10 @@ txt = json.dumps(res, ensure_ascii=False, indent=1)
 args = [a for a in sys.argv[1:] if not a.startswith('--') and a != MAPNAME]
 if args: open(args[0], 'w').write(txt)
 pp = mapdir.path(MAPNAME, 'pro.json'); src = open(pp, encoding='utf-8').read()
-line = '"pistolNades": ' + json.dumps({sd: {k: res[sd + ' / пистолетка'][k] for k in EV} for sd in ('T', 'CT') if sd + ' / пистолетка' in res}) + ','
-src = re.sub(r'"pistolNades": \{[^\n]*?\}\},\n?', '', src)   # своя строка, остальной файл не трогаем
+RT = {'пистолетка': 'pistol', 'эко': 'eco', 'форс': 'force', 'фулл': 'full'}
+line = '"nadesBy": ' + json.dumps({sd: {RT[r]: {k: res[sd + ' / ' + r][k] for k in EV} for r in RT if sd + ' / ' + r in res} for sd in ('T', 'CT')}) + ','
+src = re.sub(r'"pistolNades": \{[^\n]*?\}\},\n?', '', src)   # (v373) заменено на nadesBy — все типы раунда
+src = re.sub(r'"nadesBy": \{[^\n]*?\}\}\},\n?', '', src)   # своя строка, остальной файл не трогаем
 i = src.index('{') + 1; nl = '\n' if src[i:i+1] == '\n' else ''
 open(pp, 'w', encoding='utf-8').write(src[:i] + nl + line + '\n' + src[i+len(nl):])
 print(txt)

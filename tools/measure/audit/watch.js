@@ -9,7 +9,7 @@
 //   flip     — метание: одна и та же фраза в войсе ≥ 3 раз за 5 с
 //   danger   — действие против своего знания: живой в зоне взрыва за 2 с до взрыва; стоит в своём/чужом огне > 0,5 с;
 //              вражеская флешка хлопнула в 600 px на виду — через 1,5 с не повернулся к бросавшему (±60°) и не ушёл (> 60 px)
-//   empty    — пустое чтение: правило перебирает LKP команды, а там пусто, хотя у команды есть свежее (≤ 5 с) знание
+//   empty    — пустое чтение: правило перебирает LKP команды, а там пусто, хотя у команды есть свежее (≤ 2 с, не «проверено — пусто») знание
 //              в beliefLast; пишется, какая функция читала
 //   nav      — «вне навмеша — перенесён» и застревание (stuckTicks)
 //   nade     — цепочка гранат: на руках на старте раунда → задач → дошёл до точки → брошено; задача пропала без броска —
@@ -46,7 +46,9 @@
     if(typeof LKP === "undefined" || LKP === lkpWrapped) return;
     ["CT", "T"].forEach(function(team){ var tgt = LKP[team]; LKP[team] = new Proxy(tgt, {ownKeys:function(t){ var ks = Reflect.ownKeys(t);
       if(!ks.length && roundState === "live"){ var bl = (beliefLast && beliefLast[team]) || {};
-        var fresh = Object.keys(bl).some(function(e){ var q = bl[e]; return q && tick - q.tick <= 5*64 && bots.some(function(x){ return x.id === e && x.alive; }); });
+        // свежее (≤ 2 с) и место не «проверено — пусто» (CLEARZ): иначе LKP пуст законно — враг ушёл, свои проверили
+        var fresh = Object.keys(bl).some(function(e){ var q = bl[e]; if(!q || tick - q.tick > 2*64 || !bots.some(function(x){ return x.id === e && x.alive; })) return false;
+          var zi = typeof zoneIdAt === "function" ? zoneIdAt(q.x, q.y) : null; return !(zi && CLEARZ[team] && CLEARZ[team][zi] && CLEARZ[team][zi].tick >= q.tick); });
         if(fresh){ var st = String(new Error().stack).split("\n"), fn = "?";
           for(var i = 2; i < st.length; i++){ var m = /at ([\w$.]+) /.exec(st[i]); if(m && !/Proxy|Reflect|Object\.keys|Array/.test(m[1])){ fn = m[1]; break; } }
           if(/^lkp/.test(fn)) return ks;   // обслуживание самого LKP (срок, сброс) — не правило
