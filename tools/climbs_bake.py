@@ -15,7 +15,7 @@ JUMP_UP = 64          # ед. игры, как JUMP_UP в игре
 CLIMB_SEC = 2.0       # проектное число: с низа наверх по ящикам — секунда-две
 NEAR = 70             # px радара от места стыка
 DZ = 25               # допуск высоты, ед. игры
-MIN_N, MIN_DEMOS = 5, 3
+MIN_N, MIN_DEMOS = 20, 10   # (v375, владелец: «забираются наверх укрытий, где нельзя», зацикливание на ящиках) — только частые подъёмы; редкие — бусты и случайные прыжки
 STEP = 40             # px радара: подъём почти вертикальный — от последней точки внизу до первой наверху не дальше (проектное)
 DETOUR = 3.0          # подъём нужен, только если навмеш ведёт наверх в обход: путь > DETOUR × напрямую и > +150 px
 
@@ -80,5 +80,8 @@ for ci, H in sorted(hits.items()):
                 'hi': {'area': c['hi']['id'], 'x': round(float(np.median(a[:, 2])), 1), 'y': round(float(np.median(a[:, 3])), 1), 'z': c['hi']['z']},
                 'n': len(H), 'demos': len({h[0] for h in H}), 'sec': round(float(np.median(a[:, 4])), 2)})
     print('  подъём %d → %d (перепад %d): %d раз в %d демках, медиана %.2f с' % (c['lo']['id'], c['hi']['id'], c['hi']['z'] - c['lo']['z'], len(H), out[-1]['demos'], out[-1]['sec']))
+# (v375) цепочки (верх одного подъёма — низ другого: ящик на ящике) — бот на них зацикливался (лез, падал); оставляем одиночные
+los = {c['lo']['area'] for c in out}
+out = [c for c in out if c['hi']['area'] not in los]
 json.dump({'climbs': out}, open(mapdir.path(MAPNAME, 'climbs.json'), 'w', encoding='utf-8'), separators=(',', ':'))
 print('climbs.json: %d подъёмов' % len(out))

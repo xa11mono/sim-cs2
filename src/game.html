@@ -1749,7 +1749,13 @@ function zoneDijkstra(fromId, toId, team){
       }
     });
   }
-  if(dist[toId]===undefined) return null;
+  if(dist[toId]===undefined){
+    if(!zoneDijkstra.nearest) return null;
+    // (v375) цель недостижима — ближайший к ней участок, до которого путь есть (см. buildWaypointPath)
+    var tc = zoneCentroid(zonesById[toId]), bestN = null, bd = Infinity;
+    Object.keys(visited).forEach(function(k){ var c = zoneCentroid(zonesById[k]); if(!c) return; var d = Math.hypot(c.x-tc.x, c.y-tc.y); if(d < bd){ bd = d; bestN = k; } });
+    if(bestN == null) return null; toId = isNaN(+bestN) ? bestN : +bestN;
+  }
   var path=[toId], cur=toId;
   while(cur!==fromId){ cur=prev[cur]; if(cur===undefined) return null; path.push(cur); }
   path.reverse();
@@ -1846,6 +1852,11 @@ function buildWaypointPath(fromX, fromY, fromZ, toX, toY, toZ, team){
     var alts = (NAV_GRID[Math.floor(toX/NAV_GRID_C)+","+Math.floor(toY/NAV_GRID_C)]||[]).map(function(i){ return NAVAREAS[i]; })
       .filter(function(a){ return a !== tz && !NAV_BLOCKED[a.id] && pointInPoly(toX, toY, a.points); }).sort(function(a, c){ return Math.abs(a.z - tLvl) - Math.abs(c.z - tLvl); });
     for(var ai=0; ai<alts.length && !route; ai++){ route = zoneDijkstra(fz.id, alts[ai].id, team); if(route) tz = alts[ai]; } }
+  // (v375, отметка владельца: T0 на Tetris «застревает, его выкидывает, прыгает» — бомба лежала там, куда пути по навмешу нет;
+  // раньше шёл по прямой к цели, в ящик/стену, и бился о него; сторож: «застой» с путём из одной точки) цели не достичь —
+  // путь к ближайшему достижимому месту рядом с ней
+  if(!route){ zoneDijkstra.nearest = true; route = zoneDijkstra(fz.id, tz.id, team); zoneDijkstra.nearest = false;
+    if(route && route[route.length-1] !== tz.id){ var lz = zonesById[route[route.length-1]]; if(lz){ var lc = zoneCentroid(lz); toX = lc.x; toY = lc.y; toZ = lz.z; tz = lz; } } }
   if(!route) return [[toX,toY,toZ||0]]; // disconnected zones — direct line fallback rather than a stuck bot
   var corridor = [], cPair = [];   // cPair — участки по обе стороны перехода (v340)
   for(var i=0;i<route.length-1;i++){
@@ -2973,7 +2984,7 @@ function setPost(b, pt, look, hold, tag, spreadIdx){
   if(BAL.holdShift && b._hs && b._hs.round === roundNum && b._hs.tag === tag && pt && Math.hypot(pt.x-b._hs.pt.x, pt.y-b._hs.pt.y) < 320) pt = b._hs.pt;
   // (v367) реакция на контакт — задача не перебивает её CONTACT_HOLD с (кроме срочного: бег от бомбы, сбить плант/дефуз, размен)
   if(b._contact && b._contact.lock){
-    if(tick >= b._contact.until || !b.alive) b._contact = null;
+    if(tick >= b._contact.until || !b.alive){ b._contact = null; if(b.post && /^contact/.test(b.post.tag) && !/^contact/.test(tag)) b._postLast = null; }   // (v375) кончилась — новая задача без ожидания POST_DWELL
     else if(!/^(contact|flee|stopplant|antidefuse|tradeR)/.test(tag)) { if(b.post && b.post.tag !== b._contact.tag && b._contact.pt) { b._contact.lock = false; } else return; }
   }
   // размен (рефлекс после смерти тиммейта рядом) — тактика не перебивает его
@@ -5140,7 +5151,8 @@ function pickSaveSpot(b){
     if(seen || dT < 500) return;
     if(Math.hypot(c.x-CT_SPAWN.x, c.y-CT_SPAWN.y) < 220) return; // не на самом спавне
     var dSelf = Math.hypot(c.x-b.baseX, c.y-b.baseY);
-    var sc = Math.min(dT, 1200)*0.6 - dSelf; // подальше от T, но не бежать через всю карту
+    var zcC = zoneIdAt(c.x, c.y), openC = zcC ? (ZONE_DANGER[zcC] || []).length : 0;   // (v375) не на виду — как у T
+    var sc = Math.min(dT, 1200)*0.6 - dSelf - openC*40; // подальше от T, но не бежать через всю карту, укрыто
     if(sc > bs){ bs = sc; best = c; }
   });
   return best ? {x:best.x, y:best.y} : {x:CT_SPAWN.x, y:CT_SPAWN.y};
@@ -5164,7 +5176,10 @@ function pickSaveSpotT(b){
     if(seen || dK < 550) return;
     var dSelf = Math.hypot(c.x-b.baseX, c.y-b.baseY);
     var dTS = Math.hypot(c.x-T_SPAWN.x, c.y-T_SPAWN.y);
-    var sc = Math.min(dK, 1200)*0.5 - dSelf - dTS*0.15; // подальше от CT, недалеко бежать, ближе к своей стороне
+    // (v375, отметка владельца: «сейвит в открытом месте») место сейва — укрытое: из скольких зон карты оно простреливается
+    // (ZONE_DANGER, та же 3D-видимость) — штраф за каждую (40 — проектное число); раньше открытость не учитывалась
+    var zc = zoneIdAt(c.x, c.y), open = zc ? (ZONE_DANGER[zc] || []).length : 0;
+    var sc = Math.min(dK, 1200)*0.5 - dSelf - dTS*0.15 - open*40; // подальше от CT, недалеко бежать, ближе к своей стороне, не на виду
     if(sc > bs){ bs = sc; best = c; }
   });
   return best ? {x:best.x, y:best.y} : {x:T_SPAWN.x, y:T_SPAWN.y};
@@ -7902,7 +7917,11 @@ function lookCands(b, W){
   // главнее всего, даже если враг в той же зоне, что и бот
   var cts = [];
   var hs = b.heardSound; if(hs && tick - hs.tick <= 96) cts.push({x:hs.x, y:hs.y, age:tick-hs.tick, kind:hs.kind});
-  if(b._contact && tick < b._contact.until) cts.push({x:b._contact.x, y:b._contact.y, age:0, commit:true});   // (v367) закреплённый контакт
+  // (v367) закреплённый контакт. (v375, отметка владельца: T0 шёл на контакт в смок и всё время смотрел только туда, открыв спину
+  // Jungle и Connector) взгляд держится на контакте, пока его видно или видели ≤ 1 с назад; дальше контакт — обычный кандидат,
+  // и взгляд чередует его с другими открытыми углами (они в списке ниже)
+  if(b._contact && tick < b._contact.until){ var cFresh = tick - Math.max(b._contactT || -1e9, b._lastSawT || -1e9) <= TICK_HZ;
+    cts.push({x:b._contact.x, y:b._contact.y, age: cFresh ? 0 : 32, commit: cFresh}); }
   var BLc = beliefLast[team] || {};
   for(var eid in BLc){ var lo = BLc[eid]; if(tick - lo.tick > 96) continue;
     var eb = bots.filter(function(o){ return o.id === eid; })[0]; if(!eb || !eb.alive) continue; cts.push({x:lo.x, y:lo.y, age:tick-lo.tick, seen: lo.src === "spotted"}); }
@@ -10019,7 +10038,11 @@ function spotTaken(b, q){ return bots.some(function(o){ return o !== b && o.aliv
 function contactTick(b){
   if(!b.alive || roundState !== "live") return;
   var K = b._contact;
-  if(K && tick >= K.until) K = b._contact = null;
+  if(K && tick >= K.until){ K = b._contact = null;
+    // (v375, отметка владельца: игрок 8 после смерти тиммейта стоял на спавне CT, «выходит на врага рядом», а врага нет) реакция
+    // на контакт кончилась — её точка снимается, бот возвращается к своей задаче (раньше пост «контакт» оставался до конца раунда)
+    if(b.post && /^contact/.test(b.post.tag)) clearPost(b); }
+  else if(!K && b.post && /^contact/.test(b.post.tag)) clearPost(b);   // точка контакта без самого контакта — тоже снять
   if(b._sawEnemy) return;   // видит врага — это уже бой
   var C = contactInfo(b); if(!C) return;
   if(K && !(C.seen || C.d < 0.7*Math.hypot(K.x-b.x, K.y-b.y) || Math.hypot(C.x-K.x, C.y-K.y) < 120)) return;   // держит прежний контакт
@@ -10328,7 +10351,13 @@ function laddersBuild(){
   // (v372) подъёмы из демок: точки низа и верха — где лезли про, время — медиана из демок; только вверх (вниз — спрыгнуть)
   ((MAP.climbs && MAP.climbs.climbs) || []).forEach(function(c){
     if(LADDERS.some(function(L){ return L.up && Math.hypot(L.lo.x-c.lo.x, L.lo.y-c.lo.y) < 15 && Math.hypot(L.hi.x-c.hi.x, L.hi.y-c.hi.y) < 15 && Math.abs(L.hi.z-c.hi.z) < 20; })) return;
-    LADDERS.push({lo:{x:c.lo.x, y:c.lo.y, z:c.lo.z, area:c.lo.area}, hi:{x:c.hi.x, y:c.hi.y, z:c.hi.z, area:c.hi.area}, up:true, sec:c.sec});
+    // (v375, отметка владельца: CT0 «застряли, не следуют расстановке» — лез на ящик и падал по кругу) точка верха из демок бывает
+    // на краю участка, не внутри: бот «залезал» и тут же падал на пол под ним. Концы подъёма — внутрь своих участков
+    var inside = function(e){ var a = byId[e.area]; if(!a || pointInPoly(e.x, e.y, a.points)) return {x:e.x, y:e.y, z:e.z, area:e.area};
+      var c = cen(a), d = Math.hypot(c.x-e.x, c.y-e.y), k = d > 1 ? Math.min(1, 12/d) : 0, q = {x:e.x+(c.x-e.x)*k, y:e.y+(c.y-e.y)*k};
+      for(var i = 0; i < 6 && !pointInPoly(q.x, q.y, a.points); i++){ k = Math.min(1, k*2); q = {x:e.x+(c.x-e.x)*k, y:e.y+(c.y-e.y)*k}; }
+      return {x:q.x, y:q.y, z:e.z, area:e.area}; };
+    LADDERS.push({lo:inside(c.lo), hi:inside(c.hi), up:true, sec:c.sec});
   });
 }
 // лестница, по которой бот с этажа z попадает на этаж zTo: конец на своём этаже в пределах r
@@ -10553,6 +10582,9 @@ function nadeTallWall(x1, y1, x2, y2, type){
   if(nadeLaneFroms(x2, y2).some(function(q){ return Math.hypot(q.x-x1, q.y-y1) <= NADE_LANE_FROM; })) return false;
   var P = (MAP.pro && MAP.pro.nadeWallP90) || {}, lim = type && type !== "smoke" ? P[type] : 0;
   if(!lim) return true;
+  // (v375, отметка владельца: «кинул гранату в стену, она залетела внутрь помещения») через стену навесом — только под открытое
+  // небо: в помещение (крыша над целью) — через проход или как кидали про
+  if(nadeCovered(x2, y2)) return true;
   var d = Math.hypot(x2-x1, y2-y1), n = Math.ceil(d/2), run = 0;
   for(var k = 1; k < n; k++){ var t = k/n; if(insideSolidWall(x1 + (x2-x1)*t, y1 + (y2-y1)*t)){ run += d/n; if(run > lim) return true; } else run = 0; }
   return false;
@@ -10591,7 +10623,7 @@ function throwNade(b, type, tx, ty, lob, why, trusted){
   // (v369) лайнап из набора (точка броска и цель — из демок про / свой лайнап): брошен так в игре — дуга не проверяется
   // (v370) остальное — дугой по высоте (nadeArc): навес, что проходит под потолками; нет — низом, если цель видна
   if(lob && !trusted && nadeTallWall(b.x, b.y, tx, ty, type)){ NADE_FAIL = "стена на пути"; return false; }   // (v373) сквозь стену — только как кидают про (MAP.nadelanes)
-  var ARC = lob ? (trusted ? {h: NADE_ARCS[0], under: false} : nadeArc(b, tx, ty)) : null;
+  var ARC = lob ? (trusted ? {h: NADE_ARCS[0], under: nadeCovered(tx, ty)} : nadeArc(b, tx, ty)) : null;   // (v375, отметка: молотов лайнапа про в T Ramp «пропадал» — падал «на крышу») лайнап про попадает под крышу, как у про
   if(lob && !ARC){ if(!hasLOS(b.x, b.y, tx, ty)){ NADE_FAIL = "дуга упирается в потолок, цель не видна"; return false; } lob = false; }
   // (v340, отметка владельца: «кидает через крытую зону» — kyousuke из-под крыши B Apps навесом через стену) сам под крышей /
   // под другим этажом — навесом нельзя (дуга упрётся в потолок): только низом, если цель видна (окно, проход)
@@ -11441,22 +11473,28 @@ function nadeUseTick(b){
   var mateNear = function(p){ return bots.some(function(o){ return o !== b && o.alive && o.team === b.team && Math.hypot(o.x-p.x, o.y-p.y) < 160; }); };
   var tt = teamTac.T, why = null, plan = null;
   var tag = b.post ? String(b.post.tag) : "", toPost = b.post ? Math.hypot(b.post.x-b.x, b.post.y-b.y) : 0;
-  var entering = b.post && toPost > 120 && toPost < 800 && (/^(contact:swing|tradeR|retakeEntry|retake|clear)/.test(tag) || (b.team === "T" && tt && tt.phase === "execute" && b.tRole !== "lurker"));
+  // (v375, отметка владельца: «граната врезалась в стену и взорвалась перед своими» — на раше в начале раунда T флешили точки
+  // маршрута у своего спавна) в бой — только туда, где враг может быть: выход на контакт/размен/ретейк/зачистка или выход T к
+  // самому сайту (≤ 600 от него); точки маршрута — не бой; и рядом с точкой нет своих (mateNear)
+  var siteT = tt && SITES[tt.site];
+  var entering = b.post && toPost > 120 && toPost < 800 && !/^route/.test(tag) && (/^(contact:swing|tradeR|retakeEntry|retake|clear)/.test(tag) ||
+    (b.team === "T" && tt && tt.phase === "execute" && b.tRole !== "lurker" && siteT && Math.hypot(b.post.x-siteT.x, b.post.y-siteT.y) < 600));
   if(entering){
     var area = {x:b.post.x, y:b.post.y}, ents = threatEntrances(b.team, area, 260).slice(0, 3).map(function(E){ return E.pt; });
-    var spots = known.filter(function(k){ return Math.hypot(k.x-area.x, k.y-area.y) < 500; }).concat(ents).filter(function(p){ return !mateNear(p); });
+    if(mateNear(area)) area = null;
+    var spots = known.filter(function(k){ return Math.hypot(k.x-b.post.x, k.y-b.post.y) < 500; }).concat(ents).filter(function(p){ return !mateNear(p); });
     // какую — по долям про у этой стороны и типа раунда (MAP.pro.nadesBy), из тех, что есть и для которых есть цель
     // (было: всегда флешка первой — флешек стало 6,0 на команду в фулле против 4,0 у про, дыма — 2,9 против 4,1)
     var NBu = ((MAP.pro.nadesBy || {})[b.team] || {})[({pistol:"pistol", eco:"eco", force:"force", half:"force"})[(teamEco[b.team]||{}).roundType] || "full"] || {};
     var opts = [];
-    if(have("flash")) opts.push({t:"flash", pts:[area].concat(spots), w:NBu.flash || 1});
+    if(have("flash") && (area || spots.length)) opts.push({t:"flash", pts:(area ? [area] : []).concat(spots), w:NBu.flash || 1});
     if(have("molly") && spots.length) opts.push({t:"molly", pts:spots, w:NBu.molly || 1});
     if(have("he") && spots.length) opts.push({t:"he", pts:spots, w:NBu.he || 0.5});
     if(have("smoke") && ents.length && (b.team !== "T" || tSmokeReserveOk())) opts.push({t:"smoke", pts:ents, w:NBu.smoke || 1});
     var wS = opts.reduce(function(a, o){ return a + o.w; }, 0), rr = hashRand(tick*13 + b.id.charCodeAt(b.id.length-1)*29) * wS;
     for(var oi = 0; oi < opts.length && !plan; oi++){ rr -= opts[oi].w; if(rr <= 0) plan = opts[oi]; }
     if(!plan && opts.length) plan = opts[opts.length-1];
-    why = "иду в бой — "+calloutName(area.x, area.y).replace(/^на /, "");
+    why = "иду в бой — "+calloutName(b.post.x, b.post.y).replace(/^на /, "");
   } else if(bomb.state === "planted" && b.team === "T" && (bots.some(function(o){ return o.defusing; }) || known.some(function(k){ return Math.hypot(k.x-bomb.x, k.y-bomb.y) < 700; }))){
     if(have("molly")) plan = {t:"molly", pts:[{x:bomb.x, y:bomb.y}]}; else if(have("he")) plan = {t:"he", pts:[{x:bomb.x, y:bomb.y}]};
     why = "на бомбу — их слышно у неё";
@@ -12868,8 +12906,13 @@ function tryShoot(shooter, target, dist){
     else if(uy >= hH-30*kC && uy < hH-20*kC && Math.abs(ux) < 13) hbZone = "stomach";
     else if(uy >= 0 && uy < hH-30*kC && Math.abs(ux) < 10) hbZone = "legs";
     // (v241) пуля в точку модели, которую закрывает укрытие / уступ / край пола, — уходит в укрытие (геометрия карты)
-    if(hbZone){ var vz0 = visFloorAt(shooter.x, shooter.y) + (shooter.crouching ? VIS_EYE.crouch : VIS_EYE.stand);
-      if(!visMarch(shooter.x, shooter.y, vz0, target.x, target.y, visFloorAt(target.x, target.y) + Math.max(4, uy))) hbZone = null; }
+    // (v375, отметка владельца: «стреляют в упор и не убивают, выстрелили всю обойму» — T2 на ящике Tetris, z −50, а пол под ним
+    // −164: проверка пули шла от пола под ногами, не от бота — пули «уходили в ящик», хотя видимость (visParts) считалась по z)
+    // высота — та же, что у видимости: бота (z), иначе пол под точкой
+    if(hbZone){ var fz0 = visFloorAt(shooter.x, shooter.y), fz1 = visFloorAt(target.x, target.y);   // то же правило, что в visParts
+      if(shooter.z != null && Math.abs(fz0 - shooter.z) > JUMP_UP) fz0 = shooter.z; if(target.z != null && Math.abs(fz1 - target.z) > JUMP_UP) fz1 = target.z;
+      var vz0 = fz0 + (shooter.crouching ? VIS_EYE.crouch : VIS_EYE.stand);
+      if(!visMarch(shooter.x, shooter.y, vz0, target.x, target.y, fz1 + Math.max(4, uy))) hbZone = null; }
     headshot = hbZone === "head"; hit = !!hbZone;
   } else {
   if(aimHead){ pHead = pIn(hA); pAny = pIn(bA*1.25); }
@@ -14342,6 +14385,9 @@ function resetRound(){
     }
     var nsp = navAt(b.x, b.y, null); b._area = nsp ? nsp.id : null; if(nsp) b.z = nsp.z;   // (v321) высота — по навмешу под точкой спавна; (v323) и участок
     b._jump = null; b._nadeT = null;   // (v340) интервал гранат — с нового раунда заново
+    // (v375, отметки владельца: «заспавнился на Tetris / на сайте A в начале раунда») подъём по лестнице/ящику, начатый в конце
+    // прошлого раунда, продолжался после спавна — бота тянуло обратно туда, где он лез. Всё движение прошлого раунда — сброс
+    b._climb = null; b._fireExit = null; b._fireExitFire = null; b._unstickT = null; b._postLast = null; b._hold = null;
     // (v353, владелец: «тусклость кружка сохраняется после окончания раунда») этаж для рисования — сразу по спавну, а не через 16 тиков движения
     var za0 = navArea(b._area); b._zArea = za0 ? za0.z : 0; b._lvl = za0 ? hgtLevelOf(za0.id) : 0;
     b.baseX = b.x; b.baseY = b.y;
