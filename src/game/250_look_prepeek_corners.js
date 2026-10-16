@@ -43,7 +43,8 @@ function openDirLook(b){
       cands.push({p:q, sc:sc}); }); };
   if(zi >= 0){ addZ(zi); (BZ.nbr[zi]||[]).forEach(function(j){ addZ(j); (BZ.nbr[j]||[]).forEach(addZ); }); }
   cands.sort(function(a, c){ return c.sc - a.sc; });
-  var pick = cands.length ? cands[Math.min(cands.length-1, (Math.floor((tick + b.id.charCodeAt(1)*37)/180) % 2))].p : null; // между двумя лучшими по очереди
+  // (v381) лучшее открытое направление, без чередования двух лучших раз в ~3 с: по замеру v381 чередование добавляло метаний взгляда
+  var pick = cands.length ? cands[0].p : null;
   b._odl = {t:tick, p:pick, post: b.post && b.post.id};
   return pick;
 }
