@@ -124,8 +124,8 @@ var TASK_LEVEL = [   // сверху — важнее; первая подход
   {lv:10, kind:"выжить",             re:/^save/},
   {lv:9,  kind:"бой",                re:/^(contact|tradeR$|repos:killmove)/},
   {lv:8,  kind:"ретейк/сбор/ротация",re:/^(retake|gather|rotate$|rotate:|bombwatch|postplant|fetch$)/},
-  {lv:7,  kind:"перестановка в бою", re:/^repos/},
-  {lv:6,  kind:"эндгейм/клатч",      re:/^(endhunt|hunt$|clutch)/},
+  {lv:7,  kind:"эндгейм/клатч",      re:/^(endhunt|hunt$|clutch)/},   // охота на последних — общий план команды, как и было (замок эндгейма)
+  {lv:6,  kind:"перестановка в бою", re:/^repos/},
   {lv:5,  kind:"команда",            re:/^(fill$|rotateHold|fetchCover|bombEscort|bombWait|coverplant)/},
   {lv:4,  kind:"гранаты/ожидания",   re:/^(lineup|smokeWait|utilWait|utilHold)$/},
   {lv:3,  kind:"личная перестановка",re:/^(pickup$|probe|rebal|shift$|earlyPeek|midcover)/},

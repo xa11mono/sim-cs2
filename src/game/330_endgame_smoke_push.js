@@ -21,7 +21,6 @@ function egWaitPartner(b, mine, kp){
     b._egWait = {round:roundNum, t:tick, pt:wp};
     voiceLog(b.team, "egw"+b.id+roundNum, b.id, "жду "+part.id+", заходим вдвоём");
   }
-  b._probeLock = 0; b._reposUntil = 0;
   setPost(b, b._egWait.pt, {x:kp.x, y:kp.y}, true, "endhunt");
   return true;
 }
@@ -106,13 +105,12 @@ function endgameBrain(){
         if(fsp){ b._egC = {gk:gk, round:roundNum, spot:fsp, look:{x:kp.x, y:kp.y}, fl:K.id};
           voiceLog(team, "flank"+b.id, b.id, "захожу на "+K.id+" с другой стороны — помогаю "+mC.id); }
       }
-      if(b._egC && b._egC.round === roundNum && b._egC.fl === K.id && mC){ b._probeLock = 0; b._reposUntil = 0; setPost(b, b._egC.spot, {x:kp.x, y:kp.y}, true, "endhunt"); return; }
+      if(b._egC && b._egC.round === roundNum && b._egC.fl === K.id && mC){ setPost(b, b._egC.spot, {x:kp.x, y:kp.y}, true, "endhunt"); return; }
       if(!b._egC || b._egC.gk !== gk || b._egC.round !== roundNum || b._egC.fl){
         var center = d < 650 ? {x:b.x, y:b.y} : walk({x: kp.x + (b.x-kp.x)*Math.min(0.9, 420/d), y: kp.y + (b.y-kp.y)*Math.min(0.9, 420/d)});
         var spots = pickSpots("eg:"+b.id+":"+gk, center, 2, {rMax: d < 650 ? 120 : 200, minGap:40, see:[kp]});
         b._egC = {gk:gk, round:roundNum, spot:spots[0], look:{x:kp.x, y:kp.y}};
       }
-      b._probeLock = 0; b._reposUntil = 0;
       if(BAL.groupPlay && BAL.egPair && egWaitPartner(b, mine, kp)) return;
       setPost(b, b._egC.spot, b._egC.look, true, "endhunt");
     });

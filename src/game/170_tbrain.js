@@ -551,8 +551,10 @@ function tBrain(){
     // (S5) ставят — двое ближних прикрывают подходы к ставящему под разными углами
     if(BAL.coverPlant && carrier && carrier.alive && (carrier.planting || (carrier.post && carrier.post.tag === "plantspot" && Math.hypot(carrier.x-carrier.post.x, carrier.y-carrier.post.y) < 90))){
       var cp0 = {x:carrier.x, y:carrier.y};
+      // (v378) кто уже прикрывает — остаётся (+150 ед. форы, проектное число): раньше пара «двое ближних» менялась на ходу каждый тик
+      var covD = function(o){ return Math.hypot(o.x-cp0.x, o.y-cp0.y) - (o.post && o.post.tag === "coverplant" ? 150 : 0); };
       var covs = rest.filter(function(b){ return !b._sawEnemy && Math.hypot(b.x-cp0.x, b.y-cp0.y) < 550 && !(b._tradeLock && b._tradeLock.until > tick); })
-        .sort(function(a, c){ return Math.hypot(a.x-cp0.x, a.y-cp0.y) - Math.hypot(c.x-cp0.x, c.y-cp0.y); }).slice(0, 2);
+        .sort(function(a, c){ return covD(a) - covD(c); }).slice(0, 2);
       var lkP = [g.ctEntry, g.anchor];
       covs.forEach(function(b, ci){
         var sp = pickSpots("covplant"+tt.site+ci, cp0, 2, {rMin:60, rMax:230, minGap:60, see:[lkP[ci]], must:[cp0]})[0];
