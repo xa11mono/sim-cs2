@@ -245,7 +245,7 @@
   <div id="topbar">
     <div class="tb-id">
       <h1>Mirage</h1>
-      <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 367, 16.10</div>
+      <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 368, 16.10</div>
     </div>
     <div class="tb-group" id="tbMatch">
       <button id="btnPause">Пауза</button>
@@ -16334,7 +16334,7 @@ function tBrain(){
     // (v350, владелец: «все останавливаются далеко») раш: кто без задачи (поддержка, IGL; AWP без лайнапа) — идёт за энтри и держится
     // позади него (60–110 ед., проектные числа), а не стоит на месте сбора; энтри ждёт гранаты — ждут за ним
     if(rush){ var eB = ts.filter(function(o){ return o.tRole === "entry" && o.alive; })[0];
-      if(eB) ts.forEach(function(o){ if(o === eB || !o.alive || o === carrier || o.tRole === "lurker" || o.nadeTask || o._sawEnemy || (o.post && !/^(rushFollow|utilWait|utilHold|route:)/.test(o.post.tag))) return;   // (v352) и пост маршрута — иначе вставал на старой точке маршрута
+      if(eB) ts.forEach(function(o){ if(o === eB || !o.alive || (o === carrier && Math.hypot(o.x-site.x, o.y-site.y) < 450) || o.tRole === "lurker" || o.nadeTask || o._sawEnemy || (o.post && !/^(rushFollow|utilWait|utilHold|route:|plantspot|bombWait)/.test(o.post.tag))) return;   // (v368) носитель — тоже за энтри, в группе, пока не у сайта   // (v352) и пост маршрута — иначе вставал на старой точке маршрута
         var dx = o.x-eB.x, dy = o.y-eB.y, dl = Math.hypot(dx, dy) || 1, k = Math.min(110, Math.max(60, dl));
         var fp = walk({x: eB.x + dx/dl*k, y: eB.y + dy/dl*k});
         // (v353, владелец: «тнир бежит и умирает, а донк ждёт») энтри ждёт — остальные стоят за ним (маршрут раша на паузе)
@@ -17236,7 +17236,8 @@ function intelDeath(victim, killer){
     var cands = [];
     bots.forEach(function(o){
       if(!o.alive || o.team !== victim.team || o === victim || o.planting || o.defusing || o._sawEnemy) return;
-      if(BAL.bombCarrier && bomb && bomb.state === "carried" && bomb.carrier === o && aliveCount(o.team) >= 3) return; // носитель не бежит менять — бомба не должна умереть на входе
+      // (v368, владелец: «тот, кто несёт бомбу, может так же стрелять; ранят — отойдёт, как любой, или отдаст бомбу») носитель меняет,
+      // как все; раненый уходит (lowHpBack) или отдаёт бомбу (bombPassTick, HP ≤ 30) — общие правила. Раньше при 3+ живых не менял
       // (v154) снайпер и лёркер T в дефолте на размен не срываются: у про их роль — держать свою линию
       if(BAL.duelValue && !(bomb && bomb.state === "planted") && ((o.weapon && o.weapon.key === "AWP") || (o.team === "T" && o.tRole === "lurker" && teamTac.T && teamTac.T.phase === "setup"))) return;
       if(Math.hypot(o.x-victim.x, o.y-victim.y) > TRADE_R) return;   // (v248) разменивает тот, кто рядом (как у про)
@@ -21498,7 +21499,6 @@ function contactInfo(b){
 function contactCritical(b, C){
   if(b.planting || b.defusing) return true;
   if(b.post && /^(flee|stopplant|antidefuse)/.test(b.post.tag)) return true;
-  if(bomb && bomb.state === "carried" && bomb.carrier === b && C.d > 300) return true;
   if(bomb && bomb.state === "planted"){
     var left = bombTimeLeftTicks()/TICK_HZ;
     if(b.team === "CT" && !(teamTac.CT && teamTac.CT.saving)){ var need = Math.hypot(b.x-bomb.x, b.y-bomb.y)/SPEED*1.2 + (b.kit ? 5 : 10) + 1.5; if(left - need < 3) return true; }
@@ -23907,7 +23907,7 @@ function assistPeek(b){
   if(!BAL.assistPeek || b._sawEnemy || b.planting || b.defusing || b.hp <= LOW_HP) return false;
   if(tick < (b._assistNext||0)) return false;
   if(b.post && /^(defuse|plantspot|lineup|flee|save|repos|tradeR|stopplant|antidefuse|fetch)/.test(b.post.tag)) return false;
-  if(bomb && bomb.state === "carried" && bomb.carrier === b) return false; // носитель в дуэли не лезет
+  // (v368) носитель выходит вдвоём с тиммейтом, как все (раньше «в дуэли не лезет» — на раше magixx шёл в 400 ед. позади боя)
   var mate = null, E = null;
   bots.forEach(function(m){
     if(mate || m === b || !m.alive || m.team !== b.team || !m._sawEnemy || (m.contactStreak||0) < 20) return;
@@ -30479,7 +30479,10 @@ function obsFocus(){
 function obsScore(b){
   if(!b.alive) return 0;
   var F = obsFocus();
-  if(F){ var dF = Math.hypot(b.x-F.x, b.y-F.y); if(dF > 900) return 0.2; }
+  // (v368, владелец: «обсервер не переключается на перестрелку») фокус выхода не гасит бой в другом месте: дерущийся вне
+  // фокуса — с обычным счётом (раньше 0,2 — бой magixx у T Ramp не показывали, пока шёл выход)
+  var fightNow = b._sawEnemy || tick - (b._shotAtT||-1e9) < TICK_HZ || tick - (b.lastShotTick||-1e9) < TICK_HZ;
+  if(F && !fightNow){ var dF = Math.hypot(b.x-F.x, b.y-F.y); if(dF > 900) return 0.2; }
   var foe = b.team === "CT" ? "T" : "CT", sc = 1;
   if(b.planting || b.defusing) sc += 9;
   if(b._sawEnemy) sc += 6 + Math.min(4, (b.contactStreak||0)/16);
@@ -30597,7 +30600,10 @@ function obsFrame(ts){
     if(live && OBS.wide && held > OBS_WIDE_MAX*1000 && !hot) wantWide = false;          // долго общий план — к игроку
     if(live && !OBS.wide && !hot && held > OBS_NEAR_CALM*1000) wantWide = true;          // на игроке тихо — общий план
     else if(live && !OBS.wide && !hot) wantWide = false;
-    if(wantWide !== OBS.wide && (held > OBS_PLAN_MIN*1000 || (hot && OBS.wide))){ OBS.wide = wantWide; OBS.planT = ts; OBS.tr = null; }
+    if(wantWide !== OBS.wide && (held > OBS_PLAN_MIN*1000 || (hot && OBS.wide))){ OBS.wide = wantWide; OBS.planT = ts; OBS.tr = null;
+      // (v368) с общего плана на бой — сразу на того, кто дерётся (а не на последнего выбранного)
+      if(!wantWide){ var fb = null, fs = 0; bots.forEach(function(o){ if(!o.alive || !(o._sawEnemy || o.planting || o.defusing || tick - (o.lastShotTick||-1e9) < 2*TICK_HZ)) return; var v = obsScore(o); if(v > fs){ fs = v; fb = o; } });
+        if(fb && fb.id !== OBS.id){ OBS.prev = OBS.id; OBS.prevUntil = ts + 5000; OBS.id = fb.id; OBS.since = ts; OBS.deadAt = 0; if(plSelected !== fb.id){ plSelected = fb.id; playersUpdate(); } } } }
     if(OBS.wide){ OBS.tr = null; var FV = obsFullView(r); tx = FV.x; ty = FV.y; tsc = FV.sc; }
   }
   // плавно: камера доезжает за ~0,5 с
