@@ -456,8 +456,8 @@ function ctBrain(){
       var kMine = role === "anchorA" ? "A" : "B", kBomb = kMine === "A" ? "B" : "A", bd = ct.bombDown;
       if(Math.hypot(bd.x-SITES[kBomb].x, bd.y-SITES[kBomb].y) + 250 < Math.hypot(bd.x-SITES[kMine].x, bd.y-SITES[kMine].y)){
         var bdp = pickSpots("bdrot"+kBomb, GEO[kBomb].anchor, 3, {rMax:260, minGap:60, see:[{x:bd.x, y:bd.y}], hideFrom:[GEO[kBomb].tStage]})[0] || GEO[kBomb].anchor;
-        if(!(b.post && b.post.tag === "rotate:bomb")){ voiceLog("CT", "bdrot"+b.id+roundNum, b.id, "бомба на "+kBomb+" — иду к вам с "+kMine); safeRotate(b, bdp, kBomb); }
-        setPost(b, bdp, {x:bd.x, y:bd.y}, true, "rotate:bomb");
+        var wasBd = b.post && b.post.tag === "rotate:bomb";
+        if(setPost(b, bdp, {x:bd.x, y:bd.y}, true, "rotate:bomb") && !wasBd){ voiceLog("CT", "bdrot"+b.id+roundNum, b.id, "бомба на "+kBomb+" — иду к вам с "+kMine); safeRotate(b, bdp, kBomb); }
         return;
       }
     }

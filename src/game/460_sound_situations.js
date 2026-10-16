@@ -90,7 +90,7 @@ function bombPassTick(){
 // ---- (S1) добить раненого ----
 function finishPush(b){
   if(!BAL.hurtCall || b._sawEnemy || b.planting || b.defusing || b.hp <= 50 || tick < (b._finNext||0)) return;
-  if(!taskCanSet(b, "repos:finish")) return;   // (v378) идёт по задаче не ниже — арбитр места
+  if(!taskCanSet(b, "repos:finish") || (b.post && b.post.tag === "repos:finish")) return;   // (v378) идёт по задаче не ниже / уже добивает — арбитр места
   if(bomb && bomb.state === "carried" && bomb.carrier === b) return;
   if((b.team === "CT" && teamTac.CT && teamTac.CT.saving) || (b.team === "T" && teamTac.T && teamTac.T.saving)) return;
   var HT = teamIntel[b.team].hurt; if(!HT) return;

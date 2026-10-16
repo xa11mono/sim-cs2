@@ -145,7 +145,9 @@ var TASK_KEEP = {
   repos: function(b){ return b._reposUntil || 0; },
   rebal: function(b){ return BAL.siteRebal && b._rebal && b._rebal.round === roundNum ? Infinity : 0; }
 };
-function taskTagB(tag){ return String(tag).replace(/[:|].*$/, ""); }
+// одна и та же задача = одинаковое начало tag (до «:» / «|»): «clearA:угол1» и «clearA:угол2» — одна зачистка, точка уточняется.
+// Перестановки в бою (repos:back, repos:push…) — разные затеи: друг друга сменяют по общему правилу (того же уровня — через POST_DWELL)
+function taskTagB(tag){ tag = String(tag); var r = /^repos:\w+/.exec(tag); return r ? r[0] : tag.replace(/[:|].*$/, ""); }
 function taskLevel(tag){ tag = String(tag || ""); for(var i=0;i<TASK_LEVEL.length;i++) if(TASK_LEVEL[i].re.test(tag)) return TASK_LEVEL[i].lv; return 1; }
 function taskKeepUntil(b, tag){ var f = /^(contact|tradeR|fill|repos|rebal)/.exec(String(tag)); return f ? TASK_KEEP[f[1]](b) : 0; }
 function taskAlive(b){ var T = b._task; return !!T && T.round === roundNum && (tick - T.t <= TASK_STALE || tick < taskKeepUntil(b, T.tag)); }
