@@ -11436,9 +11436,17 @@ function nadeUseTick(b){
   if(entering){
     var area = {x:b.post.x, y:b.post.y}, ents = threatEntrances(b.team, area, 260).slice(0, 3).map(function(E){ return E.pt; });
     var spots = known.filter(function(k){ return Math.hypot(k.x-area.x, k.y-area.y) < 500; }).concat(ents).filter(function(p){ return !mateNear(p); });
-    if(have("flash")) plan = {t:"flash", pts:[area].concat(spots)};
-    else if(have("molly") && spots.length) plan = {t:"molly", pts:spots};
-    else if(have("smoke") && ents.length && (b.team !== "T" || tSmokeReserveOk())) plan = {t:"smoke", pts:ents};
+    // какую — по долям про у этой стороны и типа раунда (MAP.pro.nadesBy), из тех, что есть и для которых есть цель
+    // (было: всегда флешка первой — флешек стало 6,0 на команду в фулле против 4,0 у про, дыма — 2,9 против 4,1)
+    var NBu = ((MAP.pro.nadesBy || {})[b.team] || {})[({pistol:"pistol", eco:"eco", force:"force", half:"force"})[(teamEco[b.team]||{}).roundType] || "full"] || {};
+    var opts = [];
+    if(have("flash")) opts.push({t:"flash", pts:[area].concat(spots), w:NBu.flash || 1});
+    if(have("molly") && spots.length) opts.push({t:"molly", pts:spots, w:NBu.molly || 1});
+    if(have("he") && spots.length) opts.push({t:"he", pts:spots, w:NBu.he || 0.5});
+    if(have("smoke") && ents.length && (b.team !== "T" || tSmokeReserveOk())) opts.push({t:"smoke", pts:ents, w:NBu.smoke || 1});
+    var wS = opts.reduce(function(a, o){ return a + o.w; }, 0), rr = hashRand(tick*13 + b.id.charCodeAt(b.id.length-1)*29) * wS;
+    for(var oi = 0; oi < opts.length && !plan; oi++){ rr -= opts[oi].w; if(rr <= 0) plan = opts[oi]; }
+    if(!plan && opts.length) plan = opts[opts.length-1];
     why = "иду в бой — "+calloutName(area.x, area.y).replace(/^на /, "");
   } else if(bomb.state === "planted" && b.team === "T" && (bots.some(function(o){ return o.defusing; }) || known.some(function(k){ return Math.hypot(k.x-bomb.x, k.y-bomb.y) < 700; }))){
     if(have("molly")) plan = {t:"molly", pts:[{x:bomb.x, y:bomb.y}]}; else if(have("he")) plan = {t:"he", pts:[{x:bomb.x, y:bomb.y}]};
