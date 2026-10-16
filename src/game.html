@@ -10537,9 +10537,16 @@ function nadeLaneFroms(ex, ey){
     if(Math.hypot(L[i+2]-ex, L[i+3]-ey) <= NADE_LANE_TO) out.push({x:L[i], y:L[i+1]}); });
   return out;
 }
-function nadeTallWall(x1, y1, x2, y2){
+// флешку, HE и молотов в точку, куда про не кидали, — можно через стену не толще, чем у 90 % бросков про этого типа
+// (MAP.pro.nadeWallP90, tools/nade_walls_pro.py: Mirage — флешка 233, HE 96, молотов 142 px); смок — только как про (лайнапы)
+function nadeTallWall(x1, y1, x2, y2, type){
   if(!crossesWall(x1, y1, x2, y2)) return false;
-  return !nadeLaneFroms(x2, y2).some(function(q){ return Math.hypot(q.x-x1, q.y-y1) <= NADE_LANE_FROM; });
+  if(nadeLaneFroms(x2, y2).some(function(q){ return Math.hypot(q.x-x1, q.y-y1) <= NADE_LANE_FROM; })) return false;
+  var P = (MAP.pro && MAP.pro.nadeWallP90) || {}, lim = type && type !== "smoke" ? P[type] : 0;
+  if(!lim) return true;
+  var d = Math.hypot(x2-x1, y2-y1), n = Math.ceil(d/2), run = 0;
+  for(var k = 1; k < n; k++){ var t = k/n; if(insideSolidWall(x1 + (x2-x1)*t, y1 + (y2-y1)*t)){ run += d/n; if(run > lim) return true; } else run = 0; }
+  return false;
 }
 function nadeCovered(x, y){
   visReady();
@@ -10574,7 +10581,7 @@ function throwNade(b, type, tx, ty, lob, why, trusted){
   // точка видна; иначе не кидает
   // (v369) лайнап из набора (точка броска и цель — из демок про / свой лайнап): брошен так в игре — дуга не проверяется
   // (v370) остальное — дугой по высоте (nadeArc): навес, что проходит под потолками; нет — низом, если цель видна
-  if(lob && !trusted && nadeTallWall(b.x, b.y, tx, ty)){ NADE_FAIL = "стена на пути"; return false; }   // (v373) сквозь стену — только как кидают про (MAP.nadelanes)
+  if(lob && !trusted && nadeTallWall(b.x, b.y, tx, ty, type)){ NADE_FAIL = "стена на пути"; return false; }   // (v373) сквозь стену — только как кидают про (MAP.nadelanes)
   var ARC = lob ? (trusted ? {h: NADE_ARCS[0], under: false} : nadeArc(b, tx, ty)) : null;
   if(lob && !ARC){ if(!hasLOS(b.x, b.y, tx, ty)){ NADE_FAIL = "дуга упирается в потолок, цель не видна"; return false; } lob = false; }
   // (v340, отметка владельца: «кидает через крытую зону» — kyousuke из-под крыши B Apps навесом через стену) сам под крышей /

@@ -45,4 +45,12 @@ out = {k: {'n': len(v), 'доля с прострелом стены >0': round(
 allv = np.concatenate([np.array(v) for v in res.values() if v])
 out['все'] = {'n': len(allv), 'p90': round(float(np.percentile(allv, 90)), 1), 'p95': round(float(np.percentile(allv, 95)), 1), 'p98': round(float(np.percentile(allv, 98)), 1)}
 json.dump(out, open(os.path.join(HERE, 'measure', 'results', 'nade_walls_pro_%s.json' % MAPNAME), 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
+# (v373) в набор карты: pro.json → nadeWallP90 {flash, he, molly, smoke} — 90-й процентиль толщины стены на пути броска у про
+import re
+NM = {'flashbang_detonate': 'flash', 'hegrenade_detonate': 'he', 'smokegrenade_detonate': 'smoke', 'inferno_startburn': 'molly'}
+pp = mapdir.path(MAPNAME, 'pro.json'); src = open(pp, encoding='utf-8').read()
+line = '"nadeWallP90": ' + json.dumps({NM[k]: out[k]['p90'] for k in NM if k in out}) + ','
+src = re.sub(r'"nadeWallP90": \{[^\n]*?\},\n?', '', src)
+i = src.index('{') + 1; nl = '\n' if src[i:i+1] == '\n' else ''
+open(pp, 'w', encoding='utf-8').write(src[:i] + nl + line + '\n' + src[i+len(nl):])
 print(json.dumps(out, ensure_ascii=False, indent=1))
