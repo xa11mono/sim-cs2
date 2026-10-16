@@ -52,7 +52,7 @@ v166 — `docs/V166_CHANGES.md` (список владельца). Главны�
 `tools/mapdir.py`). Карты: Ancient (заморожено всё, кроме высот/укрытий/прострелов), Mirage (`python3 src/mkpub.py --map mirage` → `mirage-radar.html`,
 страница https://claude.ai/artifact/QzmQZEd5t9EdnhcXET9Agn (с v336; старая EBaRN7xYH1QXzC1iiTNZ4x — с другого аккаунта), база правок — коллекция `map-mirage`). Проверка глазами — `tools/map_shot.js`.
 Сборка: `python3 src/build.py [--map ancient]` → `sim.html` (копия `src/game.html` с набором карты и тестовым входом для
-замеров). Публикуемая: `python3 src/mkpub.py [--map ancient]` → `ancient-radar.html` (страница https://claude.ai/artifact/VcutdCmiqN164CLNYowQvP; там же база
+замеров). Публикуемая: `python3 src/mkpub.py [--map ancient]` → `ancient-radar.html` (страница https://claude.ai/artifact/6nWEKBXyNAybDYzgPT1sH7 (с v370; старая VcutdCmiqN164CLNYowQvP — с другого аккаунта); там же база
 правок карты — коллекция `map`). `src/game.html` — ~15 100 строк, **читать только кусками** (`grep -n` → `Read` с offset/limit).
 Где что (строка начала):
 
