@@ -33,7 +33,7 @@ function beliefTick(){
   var n = BZ.ids.length, key = matchNum + ":" + roundNum;
   ["CT","T"].forEach(function(team){
     var B = belief[team];
-    if(BAL.newLook) PORTAL_W[team] = portalWatched(team);
+    PORTAL_W[team] = portalWatched(team);
     // (этап 2, P1-2) карта команды — из знания команды (teamAgent: радар, войс, киллфид), не из личных гипотез тиммейтов
     var mates = [teamAgent(team)];
     Object.keys(B).forEach(function(eid){
@@ -88,7 +88,7 @@ function beliefTick(){
       });
     });
     reachStep(team, clearAll);
-    if(BAL.newLook){ var CLT = LAST_CLEAR[team] || (LAST_CLEAR[team] = {}); clearAll.forEach(function(cz){ if(cz[1] >= 0.5) CLT[cz[0]] = tick; }); }
+    var CLT = LAST_CLEAR[team] || (LAST_CLEAR[team] = {}); clearAll.forEach(function(cz){ if(cz[1] >= 0.5) CLT[cz[0]] = tick; });
   });
 }
 // сколько врагов команда ожидает в наборе зон (сумма по всем живым врагам)

@@ -263,23 +263,37 @@ function posClearTick(team){
       POSCLR[team][q.id] = {tick: tick, until: until, by: b.id}; }); });
 }
 // (v321, М24, отметка владельца) T, проходя мимо сайта, видит его зоны (pos.tClear, входы) — если там никого, говорит
-// «чекнул X — пусто» (как CT на выходе за инфой): команда знает, что там чисто. Одна зона — один колл за раунд;
-// видит — линия до середины зоны ближе 450 ед. карты и сам сейчас не видит врага (проектные числа)
+// «чекнул X — пусто» (как CT на выходе за инфой): команда знает, что там чисто. Одна зона — один колл за раунд.
+// (v381, М24, владелец 16.10: «sh1ro чекнул Market — пусто», хотя там не был или видел только часть зоны; «B прочекали — пусто» ещё
+// из B Apps) «пусто» — только когда проверены ВСЕ места зоны, где обычно стоят (позиции из демок, KNOW_POSITIONS): каждое было
+// в поле зрения и на линии видимости у кого-то из своих (posClearTick) за последние CLR_POS_SEC с. Мест у зоны нет — нужно увидеть
+// в поле зрения сам ≥ 2/3 её точек (ZONE_SAMPLES). Говорит тот, кто проверил последнее место
+var CLR_POS_SEC = 6;   // проектное число: насколько свежей должна быть проверка каждого места зоны
 function tClearCalls(){
   var names = [];
   ["A","B"].forEach(function(k){ if(POS[k]) (POS[k].tClear || []).concat(POS[k].entries || []).forEach(function(n){ if(names.indexOf(n) < 0) names.push(n); }); });
   if(!names.length) return;
-  bots.forEach(function(b){
-    if(b.team !== "T" || !b.alive || tick < (b.blindUntil||0)) return;
-    if(bots.some(function(e){ return e.team === "CT" && e.alive && Math.hypot(e.x-b.x, e.y-b.y) < 900 && hasVision(b.x, b.y, e.x, e.y); })) return;
-    names.forEach(function(n){
-      var p = zonePoint(n, b); if(!p || Math.hypot(p.x-b.x, p.y-b.y) > 450) return;
-      var zid = zoneIdAt(p.x, p.y); if(!zid) return;
-      var C = CLEARZ.T[zid]; if(C && C.round === roundNum) return;
-      if(!hasVision(b.x, b.y, p.x, p.y)) return;
-      if(bots.some(function(e){ return e.team === "CT" && e.alive && zoneIdAt(e.x, e.y) === zid && hasVision(b.x, b.y, e.x, e.y); })) return;
-      markClear("T", p.x, p.y, b.id); CLEARZ.T[zid].round = roundNum;
-    });
+  var EP = enemyPositions("T"), ts = bots.filter(function(b){ return b.team === "T" && b.alive; });
+  names.forEach(function(n){
+    var p = zonePoint(n); if(!p) return;
+    var zid = zoneIdAt(p.x, p.y); if(!zid) return;
+    var C = CLEARZ.T[zid]; if(C && C.round === roundNum) return;
+    var j = BZ.idx[zid], ps = EP.filter(function(q){ return q.z === j; }), who = null;
+    if(ps.length){
+      var last = -1;
+      for(var i = 0; i < ps.length; i++){ var c = POSCLR.T[ps[i].id];
+        if(!c || !posClearValid("T", ps[i].id) || tick - c.tick > CLR_POS_SEC*TICK_HZ) return;
+        if(c.tick > last){ last = c.tick; who = c.by; } }
+    } else {
+      var smp = ZONE_SAMPLES[zid] || []; if(smp.length < 3) return;
+      who = (ts.filter(function(b){ return tick >= (b.blindUntil||0) &&
+        smp.filter(function(q){ return Math.hypot(q.x-b.x, q.y-b.y) < 900 && inFov(b, q.x, q.y) && hasVision(b.x, b.y, q.x, q.y); }).length * 3 >= smp.length * 2; })[0] || {}).id;
+    }
+    var wb = who && ts.filter(function(b){ return b.id === who; })[0]; if(!wb) return;
+    // сам сейчас видит врага — ему не до коллов; враг в зоне виден своим — не пусто
+    if(bots.some(function(e){ return e.team === "CT" && e.alive && Math.hypot(e.x-wb.x, e.y-wb.y) < 900 && hasVision(wb.x, wb.y, e.x, e.y); })) return;
+    if(bots.some(function(e){ return e.team === "CT" && e.alive && zoneIdAt(e.x, e.y) === zid && ts.some(function(b){ return hasVision(b.x, b.y, e.x, e.y); }); })) return;
+    markClear("T", p.x, p.y, wb.id); CLEARZ.T[zid].round = roundNum;
   });
 }
 function markClear(team, x, y, who){

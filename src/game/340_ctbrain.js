@@ -115,7 +115,8 @@ function ctBrain(){
       // стало больше или прошло 15с
       var CM = ct._callMem || (ct._callMem = {}), cm = CM[best.site];
       var dup = BAL.callDedup && cm && n1 <= cm.n && tick - cm.tick < 15*TICK_HZ;
-      if((isNew || n1 > prevLogged) && !dup){ ct.call.logged = n1; CM[best.site] = {n:n1, tick:tick};
+      // (v381, М130, владелец 16.10: «при сейве идут коллы ПЕРЕКОЛЛ B → A: минус на сайте (~1)») команда сейвит — коллов сайта нет
+      if((isNew || n1 > prevLogged) && !dup && !ct.saving){ ct.call.logged = n1; CM[best.site] = {n:n1, tick:tick};
         if(isNew && prevSite && prevSite !== best.site) intelCallLog("CT", "recall"+best.site+tick, "ПЕРЕКОЛЛ "+prevSite+" → "+best.site+": "+how+" (~"+n1+")", null, "recall");
         else intelCallLog("CT", "site"+best.site+n1, "T на "+best.site+" (~"+n1+", "+how+")", null, "plan"); }
       else if(dup) ct.call.logged = Math.max(ct.call.logged||0, cm.n);
@@ -127,7 +128,7 @@ function ctBrain(){
   if(ct.call){
     var quiet = tick - (ct.call.evTick||ct.call.tick);
     var massNow = beliefCount("CT", BZ.siteNear[ct.call.site]||[]);
-    var lkpHere = BAL.lkp ? lkpNear("CT", SITES[ct.call.site].x, SITES[ct.call.site].y, 500) : 0;
+    var lkpHere = lkpNear("CT", SITES[ct.call.site].x, SITES[ct.call.site].y, 500);
     // (v262, К4) тишина — не новая инфа: колл, под который уже ушла ротация, тишиной не снимается
     // (раньше «давно тихо — по местам» разворачивал ротаторов на полпути и оставлял их на промежуточной точке)
     if(!goOn && lkpHere === 0 && ((quiet > 6*64 && massNow < 0.6) || quiet > 18*64)){
@@ -323,7 +324,7 @@ function ctBrain(){
     if((planted || ct.preSave) && ct.saving){
       // сейв не на CT-спавне (там T как раз и будут искать), а в месте подальше от
       // бомбы и от живых T, откуда их не видно; каждый — своё ближайшее такое место
-      if(!b._saveSpot){ b._saveSpot = pickSaveSpot(b); b._saveLooks = null; }
+      if(!b._saveSpot){ b._saveSpot = pickSaveSpot(b); }
       if(b.post && b.post.tag === "pickup" && taskAlive(b)) return;   // (v334, М63) по пути на сейв подбирает оружие — не перебивать
       setPost(b, b._saveSpot, {x:bomb.x, y:bomb.y}, true, "save"); // взгляд — на угол, из-за которого придут от бомбы
       return;

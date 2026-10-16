@@ -23,17 +23,24 @@ function bombDamageAt(x, y){
 // если стояли по другую сторону сайта — и бежали ЧЕРЕЗ бомбу. Теперь — ближайшая
 // по пути зона за радиусом взрыва; путь не должен проходить через сам взрыв,
 // и подальше от известного врага (карта угроз)
+// (v381, М134, владелец 16.10: «игроки недостаточно далеко отходят от бомбы и умирают от взрыва») по замеру (2 матча, Mirage и
+// Ancient): все 7 смертей от взрыва — T с задачей «уход» на выбранной точке (11–62 px от неё), урон там 80–89 при HP 3–67. Точка
+// выбиралась раз за раунд при полном HP с запасом всего 10 HP — потом бота ранили, а до самой точки он не доходит ровно. Теперь:
+// запас FLEE_HP_MARGIN, точка пересчитывается, если HP упало и она больше не спасает, дальше 900 px тоже ищем (до досягаемости
+// взрыва), а если не спасает ни одна — берём ту, где урон меньше всего (раньше — точка сбора, путь через сам взрыв)
+var FLEE_HP_MARGIN = 30;   // проектное число: урон в точке ухода не больше HP − 30 (бот встаёт не ровно в точку)
 function bombFleePoint(b){
   if(!bomb || bomb.state !== "planted") return null;
-  if(b._flee && b._flee.round === roundNum && b._flee.m === matchNum) return b._flee.pt;
-  var R = BOMB_DMG.sigma, best = null, bs = Infinity;   // R — «внутри волны»: путь не должен туда заходить
+  var F = b._flee;
+  if(F && F.round === roundNum && F.m === matchNum && (!F.pt || F.hp <= b.hp || bombDamageAt(F.pt.x, F.pt.y) <= Math.max(0, b.hp - FLEE_HP_MARGIN))) return F.pt;
+  var R = BOMB_DMG.sigma, best = null, bs = Infinity, low = null, ls = Infinity;   // R — «внутри волны»: путь не должен туда заходить
   if(!BZ.ids.length) beliefBuild();
   BZ.cent.forEach(function(c, i){
     if(!c) return;
     var dB = Math.hypot(c.x-bomb.x, c.y-bomb.y);
-    if(dB > 900) return;
-    var q = walk(c);
-    if(bombDamageAt(q.x, q.y) >= b.hp - 10) return;   // там взрыв добьёт
+    if(dB > BOMB_DMG.reach + 100) return;
+    var q = walk(c), dq = bombDamageAt(q.x, q.y);
+    var ok = dq <= Math.max(0, b.hp - FLEE_HP_MARGIN);   // там взрыв не добьёт и с запасом
     var pts = pathPts(b.x, b.y, q.x, q.y);
     if(pts.length < 1) return;
     var L = polyLen(pts), minD = Infinity;
@@ -42,9 +49,11 @@ function bombFleePoint(b){
     // только если путь уходит к бомбе ближе, чем бот стоит сейчас
     var dNow = Math.hypot(b.x-bomb.x, b.y-bomb.y);
     var sc = L + (minD < Math.min(R*0.75, dNow - 30) ? 900 : 0) + 600*beliefZoneKnown(b.team, i);
-    if(sc < bs){ bs = sc; best = q; }
+    if(ok && sc < bs){ bs = sc; best = q; }
+    if(!ok && L < 1400 && dq*20 + sc < ls){ ls = dq*20 + sc; low = q; }   // запасной: меньше урона, потом ближе
   });
-  b._flee = {round:roundNum, m:matchNum, pt:best};
+  if(!best) best = low;
+  b._flee = {round:roundNum, m:matchNum, pt:best, hp:b.hp};
   if(best && b._fleeLog !== roundNum){ b._fleeLog = roundNum; logEvent(b.id+": уходит от бомбы — "+calloutName(best.x, best.y)); }
   return best;
 }

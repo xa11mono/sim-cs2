@@ -124,6 +124,9 @@ function lookDbgPanel(force){
   h.push('<div class="ld-s"><div class="ld-k">Смотрит сейчас</div>' + esc(rsT) + (L.final ? ' → ' + esc(calloutName(L.final.x, L.final.y)) : ' → итог: смотрит по ходу движения') +
     '<div class="ld-f">срочность: ' + esc(LD_URG[L.urgent === true ? 2 : (L.urgent||0)] || "") + '</div>' +
     (L.steps && L.steps.length ? '<div class="ld-f">' + L.steps.map(esc).join('<br>') + '</div>' : '') + '</div>');
+  // (v381) арбитр взгляда: кандидаты по уровням LOOK_LEVEL (выше — важнее), выбран верхний
+  if(b._ldArb && b._ldArb.length) h.push('<div class="ld-s"><div class="ld-k">Арбитр взгляда (уровень · вид · вес)</div>' +
+    b._ldArb.slice().sort(function(x, y){ return y.lvl - x.lvl || y.sc - x.sc; }).map(function(c, i){ return (i === 0 ? '<b>' : '') + c.lvl + ' · ' + esc(WHY_LOOK[c.kind] || c.kind) + ' · ' + ldN(c.sc, 2) + (i === 0 ? '</b>' : ''); }).join('<br>') + '</div>');
   if(P && (rs === "look" || !rs)){
     var cs = P.cands.slice().sort(function(x, y){ return y.sc - x.sc; }).slice(0, 8);
     var rows = cs.map(function(c, i){

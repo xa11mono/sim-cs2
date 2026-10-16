@@ -48,7 +48,7 @@ rep = {'карта': MAP, 'замер': RUN, 'раундов': rounds,
        'сторож (матчи), на 100 раундов': {k: round(v * 100 / max(1, rounds), 1) for k, v in W['n'].items()},
        'пустое чтение — какие функции': dict(W['emptyBy'].most_common(10)), 'опасность — что': dict(W['dangerBy']),
        'гранаты: почему задача пропала': dict(W['lostWhy'].most_common(12)), 'гранаты: цепочка': nade,
-       'расклады': sit['итог'], 'расклады: главные расхождения': sit['расхождения'][:30], 'сторож: примеры': {k: v[:12] for k, v in W['ev'].items()}}
+       'расклады': sit['итог'], 'взгляд': sit.get('взгляд'), 'расклады: главные расхождения': sit['расхождения'][:30], 'сторож: примеры': {k: v[:12] for k, v in W['ev'].items()}}
 if 'snaps' in opt: rep['сторож (снимки)'] = json.load(open(opt['snaps']))['n']
 out = os.path.join(HERE, 'results', 'check_%s_%s.json' % (MAP, RUN))
 json.dump(rep, open(out, 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
@@ -60,4 +60,8 @@ if 'base' in opt:
         v0 = b['сторож (матчи), на 100 раундов'].get(k, 0)
         print('  %-10s было %6.1f  стало %6.1f  %s' % (k, v0, v, 'ХУЖЕ' if v > v0 * 1.15 + 1 else ''))
     print('  расхождений с про: было %d, стало %d' % (b['расклады']['расхождений'], sit['итог']['расхождений']))
+if sit.get('взгляд'):
+    b0 = (json.load(open(os.path.join(HERE, 'results', 'check_%s_%s.json' % (MAP, opt['base'])))).get('взгляд') or {}).get('боты', {}) if 'base' in opt else {}
+    for k, v in sit['взгляд']['боты'].items():
+        print('  взгляд: %-50s про %-8s было %-8s стало %s' % (k, sit['взгляд']['про'].get(k, ''), b0.get(k, ''), v))
 print('отчёт:', out)

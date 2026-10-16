@@ -212,6 +212,40 @@ function knowKill(att, vic){
   });
 }
 // ---------- раз в тик, после teamInfoTick ----------
+// (v381, М132, владелец 16.10: «T идёт мид, видит, что на миду двое, и сразу даёт инфу — тиммейты понимают, что может быть 2-2-1 или
+// 1-3-1, это тоже микра») расстановку CT читают по тому, сколько CT уже видели в каждом районе (A / мид / B): из расстановок, которые
+// CT обычно ставят (MAP.tactics.ctSetups, доли w — из демок), остаются те, что не противоречат увиденному; ожидание числа CT на
+// каждом сайте — среднее по ним. Район места — по тому, кем стоят в расстановках (опорник A / мид / опорник B). Только до 40-й с
+// раунда и при всех пяти живых (дальше расстановка уже сломана ротациями) — проектные числа
+var SETUP_REG = null;
+function setupRegions(){
+  if(SETUP_REG) return SETUP_REG;
+  SETUP_REG = {zones: {}, splits: []};
+  ((MAP.tactics && MAP.tactics.ctSetups) || []).forEach(function(S){
+    var m = /(\d)(\d)(\d)$/.exec(S.id || ""); if(!m) return;
+    SETUP_REG.splits.push({id: S.id, A: +m[1], mid: +m[2], B: +m[3], w: S.w || 1});
+    for(var r in (S.roles || {})){ var reg = /^anchorA/.test(r) ? "A" : /^anchorB/.test(r) ? "B" : /^mid/.test(r) ? "mid" : null; if(!reg) continue;
+      (S.roles[r].pos || []).forEach(function(n){ var Z = SETUP_REG.zones[n] || (SETUP_REG.zones[n] = {A:0, mid:0, B:0}); Z[reg]++; }); }
+  });
+  return SETUP_REG;
+}
+function setupRegionAt(x, y){
+  var Z = setupRegions().zones[zoneUserName(zoneIdAt(x, y)) || ""]; if(!Z) return null;
+  return Z.A >= Z.mid && Z.A >= Z.B ? "A" : (Z.B >= Z.mid ? "B" : "mid");
+}
+function knowSetupRead(team){
+  if(team !== "T" || roundState !== "live" || (bomb && bomb.state === "planted") || tick - roundStartTick > 40*TICK_HZ) return null;
+  var foes = bots.filter(function(o){ return o.team !== team && o.alive; }); if(foes.length !== 5) return null;
+  var SR = setupRegions(); if(!SR.splits.length) return null;
+  var seen = {A:0, mid:0, B:0}, n = 0, BL = beliefLast[team] || {};
+  foes.forEach(function(o){ var l = BL[o.id]; if(!l || l.src !== "spotted" || l.tick < roundStartTick) return; var r = setupRegionAt(l.x, l.y); if(r){ seen[r]++; n++; } });
+  if(!n) return null;
+  var C = SR.splits.filter(function(S){ return S.A >= seen.A && S.mid >= seen.mid && S.B >= seen.B; }); if(!C.length) return null;
+  var W = C.reduce(function(a, S){ return a + S.w; }, 0), E = {A:0, mid:0, B:0};
+  C.forEach(function(S){ E.A += S.A*S.w/W; E.mid += S.mid*S.w/W; E.B += S.B*S.w/W; });
+  C.sort(function(a, c){ return c.w - a.w; });
+  return {seen: seen, n: n, E: E, top: C.slice(0, 2).map(function(S){ return S.A + "-" + S.mid + "-" + S.B; })};
+}
 function knowTick(){
   if(roundState !== "live") return;
   var key = matchNum + ":" + roundNum;

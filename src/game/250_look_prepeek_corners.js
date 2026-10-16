@@ -19,7 +19,6 @@ function smokeEdge(o, p){
   }
   return best;
 }
-// сейв: с точки видно несколько проходов — смотрит по очереди на каждый (~2.5с)
 // свой на линии взгляда (ближе точки) или стоит у самой точки взгляда
 function lookOnMate(b, p){
   var dp = Math.hypot(p.x-b.x, p.y-b.y), ap = Math.atan2(p.y-b.y, p.x-b.x);
@@ -29,10 +28,6 @@ function lookOnMate(b, p){
     // свой ближе точки на той же линии (смотрит ему в спину) или стоит у самой
     // точки и смотрит туда же (держит этот угол сам)
     return (off < 0.2 && dm < dp + 40 && dm > 60) || (Math.hypot(o.x-p.x, o.y-p.y) < 90 && dm < dp + 150); });
-}
-function mateAhead(b){
-  return bots.some(function(o){ if(o === b || !o.alive || o.team !== b.team) return false; var dm = Math.hypot(o.x-b.x, o.y-b.y); if(dm < 20 || dm > 380) return false;
-    return Math.abs(((Math.atan2(o.y-b.y, o.x-b.x)-b.heading+Math.PI)%(2*Math.PI)+2*Math.PI)%(2*Math.PI)-Math.PI) < 0.35; });
 }
 // открытое направление: видимые точки своей и соседних зон (как проходы для
 // сейва), не перекрытые своими; лучше — где враг может быть и ближе к углу поста
@@ -52,19 +47,6 @@ function openDirLook(b){
   b._odl = {t:tick, p:pick, post: b.post && b.post.id};
   return pick;
 }
-function saveLook(b){
-  if(!b._saveLooks){
-    var o = b.post, cands = [], zi = bzOf(o.x, o.y);
-    var addZ = function(j){ (ZONE_SAMPLES[BZ.ids[j]] || [BZ.cent[j]]).forEach(function(q){ var d = Math.hypot(q.x-o.x, q.y-o.y); if(d > 70 && d < 700 && hasLOS(o.x, o.y, q.x, q.y)) cands.push({q:q, a:Math.atan2(q.y-o.y, q.x-o.x), d:d}); }); };
-    if(zi >= 0){ addZ(zi); (BZ.nbr[zi]||[]).forEach(function(j){ addZ(j); (BZ.nbr[j]||[]).forEach(addZ); }); }
-    cands.sort(function(a, b2){ return b2.d - a.d; });   // дальние — это и есть проходы
-    var dirs = [];
-    cands.forEach(function(c){ if(dirs.length < 4 && !dirs.some(function(x){ var da = Math.abs(((c.a-x.a+Math.PI)%(2*Math.PI)+2*Math.PI)%(2*Math.PI)-Math.PI); return da < 0.8; })) dirs.push(c); });
-    b._saveLooks = dirs.map(function(x){ return x.q; });
-  }
-  if(!b._saveLooks.length) return null;
-  return b._saveLooks[Math.floor((tick + b.id.charCodeAt(1)*37)/160) % b._saveLooks.length];
-}
 // держит установленный угол (hold-пост с назначенным взглядом) — далёкая и
 // не связанная с этим направлением инфа (звук/колл/ЛИП) его не отвлекает:
 // иначе бросал угол ради того, что всё равно за стеной и никак не влияет
@@ -73,23 +55,6 @@ function holdRelevant(b, pt){
   if(Math.hypot(pt.x-b.x, pt.y-b.y) <= 550) return true;
   var wantA = Math.atan2(b.post.look.y-b.y, b.post.look.x-b.x), srcA = Math.atan2(pt.y-b.y, pt.x-b.x);
   return Math.abs(((srcA-wantA+Math.PI)%(2*Math.PI)+2*Math.PI)%(2*Math.PI)-Math.PI) <= 1.15;
-}
-// (10) рядом убили тиммейта: первые ~3с смотрим туда, откуда его убили
-// (убийцу видел он — точка убийцы; нет — место смерти), а не на "угрозы по
-// карте". Потом — периодические взгляды туда же (rearCheck учитывает смерти)
-function deathLook(b){
-  var sg = teamIntel[b.team] && teamIntel[b.team].sig; if(!sg) return null;
-  for(var i=sg.length-1;i>=0;i--){
-    var s = sg[i]; if(tick - s.tick > 3*TICK_HZ) break;
-    if(s.type !== "died" || s.id === b.id) continue;
-    var tx = s.kx != null ? s.kx : s.x, ty = s.kx != null ? s.ky : s.y, d = Math.hypot(tx-b.x, ty-b.y);
-    if(d > 950 || d < 40) continue;
-    // бежит в другую сторону — на старое место смерти за спиной не оборачивается
-    if(b.curSpeed > 60*SPD_K && b.heading !== undefined){ var aD = Math.abs(((Math.atan2(ty-b.y, tx-b.x)-b.heading+Math.PI)%(2*Math.PI)+2*Math.PI)%(2*Math.PI)-Math.PI); if(aD > 1.9) continue; }
-    if(b._dLkSig !== s.tick){ b._dLkSig = s.tick; if(!b._dLkV || tick - b._dLkV > 10*TICK_HZ){ b._dLkV = tick; logEvent(b.id+": убили "+s.id+" — смотрю туда ("+calloutName(tx, ty)+")"); } }
-    return {x:tx, y:ty};
-  }
-  return null;
 }
 // ================= ПИКИ ДО КОНТАКТА (v135) =================
 // Угол впереди по пути: последняя видимая точка пути, за которой путь уходит
@@ -315,33 +280,6 @@ function cornerLook0(b, p, from){
   b._cornerPt = best || null;   // не нашли видимого угла — не смотреть сквозь стену
   return b._cornerPt;
 }
-// (5) вышел из смока — по очереди чекает места, где вероятно враг (до 3 направлений,
-// ~0.2с на каждое), а не смотрит в одну точку
-function smokeSweepLook(b){
-  var inS = smokes.some(function(sm){ return Math.hypot(b.x-sm.x, b.y-sm.y) < smokeRadiusNow(sm); });
-  if(inS){ b._inSmokeT = tick; b._sweep = null; return null; }
-  if(b._inSmokeT && tick - b._inSmokeT < 4 && (!b._sweep || b._sweep.t0 < b._inSmokeT)){
-    var zb = bzOf(b.x, b.y), cand = [];
-    if(zb >= 0){
-      var seenZ = {};
-      var addZ = function(j){ if(j < 0 || seenZ[j]) return; seenZ[j] = 1; if(BAL.timing && !reachPossible(b.team, j)) return;
-        var smp = ZONE_SAMPLES[BZ.ids[j]] || [BZ.cent[j]], bestQ = null, bd = Infinity;
-        smp.forEach(function(q){ var dq = Math.hypot(q.x-b.x, q.y-b.y); if(dq < 80 || dq > 800 || !hasVision(b.x, b.y, q.x, q.y)) return; if(dq < bd){ bd = dq; bestQ = q; } });
-        if(bestQ) cand.push({q:bestQ, w:beliefZoneKnown(b.team, j) + 0.05, a:Math.atan2(bestQ.y-b.y, bestQ.x-b.x)}); };
-      addZ(zb); (BZ.nbr[zb]||[]).forEach(function(j){ addZ(j); (BZ.nbr[j]||[]).forEach(addZ); });
-    }
-    cand.sort(function(a, c){ return c.w - a.w; });
-    var pts = [];
-    cand.forEach(function(c){ if(pts.length < 3 && !pts.some(function(p){ return Math.abs(((c.a-p.a+Math.PI)%(2*Math.PI)+2*Math.PI)%(2*Math.PI)-Math.PI) < 0.6; })) pts.push(c); });
-    var hd = b.heading !== undefined ? b.heading : (b.facing||0);
-    pts.sort(function(a, c){ return (((a.a-hd+Math.PI)%(2*Math.PI)+2*Math.PI)%(2*Math.PI)) - (((c.a-hd+Math.PI)%(2*Math.PI)+2*Math.PI)%(2*Math.PI)); });
-    b._sweep = pts.length ? {pts:pts.map(function(p){ return p.q; }), t0:tick, step:13} : null;
-  }
-  var S = b._sweep; if(!S) return null;
-  var i = Math.floor((tick - S.t0)/S.step);
-  if(i >= S.pts.length){ b._sweep = null; return null; }
-  return S.pts[i];
-}
 function openLook(b, look){
   var k = Math.round(look.x/24)+","+Math.round(look.y/24)+"|"+Math.round(b.x/12)+","+Math.round(b.y/12);
   if(b._olK === k) return b._olV;
@@ -356,59 +294,6 @@ function openLook(b, look){
       if(free(an, 220) >= 110){ b._olV = {x:b.x+Math.cos(an)*200, y:b.y+Math.sin(an)*200}; return b._olV; }
     }
   }
-  if(BAL.noWallLook){ b._olV = null; return null; }   // открытого направления рядом нет — не поворачиваемся в стену
-  return look;
-}
-function beliefLook(b){
-  if(!BZ.ids.length) return null;
-  if(b._bLookT === tick - (tick % BELIEF_STEP)) return b._bLook;
-  b._bLookT = tick - (tick % BELIEF_STEP);
-  // зона "откуда смотрю" — по посту, если стоит на нём: переминание на месте
-  // через границу зон не должно менять весь список опасных направлений
-  var zb = (b.atPost && b.post) ? bzOf(b.post.x, b.post.y) : bzOf(b.x, b.y);
-  if(zb < 0) zb = bzOf(b.x, b.y);
-  var prevLook = b._bLook; b._bLook = null; if(zb < 0) return null;
-  var W = ZONE_DANGER_W[BZ.ids[zb]] || {}, best = null, bs = (BAL.cornerLook && b.atPost && b.post && b.post.look) ? 0.35 : 0.12, prevSc = -1, bs0 = bs;
-  (ZONE_DANGER[BZ.ids[zb]]||[]).forEach(function(zid){
-    var j = BZ.idx[zid]; if(j === undefined) return;
-    var c = BZ.cent[j], d = Math.hypot(c.x-b.x, c.y-b.y);
-    if(d < 60 || d > 1000) return;
-    // угроза из зоны = враг в ней самой (я её сейчас не вижу) + враг в соседних
-    // с ней зонах за углом: оттуда он в неё выйдет в ближайшую секунду-две.
-    // Зоны, которые я вижу, уже "вычищены" — поэтому важны именно соседи.
-    var th = beliefZoneFresh(b.team, j);
-    BZ.nbr[j].forEach(function(nn){ if(nn !== zb) th += 0.6*beliefZoneFresh(b.team, nn); });
-    var sc = th * (0.4 + (W[zid]||0)) / (1 + d/700);
-    // тактическое направление поста (куда роль велит смотреть) — в приоритете,
-    // карта вероятностей перебивает его только заметно более горячей угрозой
-    if(b.post && b.post.look){
-      var pa = Math.atan2(b.post.look.y-b.y, b.post.look.x-b.x), za = Math.atan2(c.y-b.y, c.x-b.x);
-      var dd = Math.abs(((za-pa+Math.PI)%(2*Math.PI)+2*Math.PI)%(2*Math.PI)-Math.PI);
-      if(dd < 0.9) sc *= 1.7;
-    }
-    if(j === b._bLookZ) prevSc = sc;
-    if(sc > bs){ bs = sc; best = j; }
-  });
-  // гистерезис: не вертеть головой между двумя почти равными направлениями
-  if(best !== null && b._bLookZ != null && b._bLookZ !== best && prevSc >= 0.75*bs) best = b._bLookZ;
-  // держит направление минимум ~1.5с, если новое не намного опаснее (раньше
-  // бот вертел головой между двумя-тремя углами каждые полсекунды)
-  if(best !== null && b._bLookZ != null && b._bLookZ !== best && prevSc > 0 &&
-     tick - (b._bLookSince||0) < 96 && bs < 1.6*prevSc) best = b._bLookZ;
-  // и не бросает угол, как только угроза чуть просела ниже порога входа
-  if(best === null && b._bLookZ != null && prevSc >= 0.6*bs0) best = b._bLookZ;
-  var sameZ = best !== null && best === b._bLookZ;
-  if(best !== b._bLookZ) b._bLookSince = tick;
-  b._bLookZ = best;
-  // та же зона и прежняя точка всё ещё видна — смотрим туда же (при
-  // переминании "ближайшая видимая точка зоны" иначе прыгала)
-  if(sameZ && prevLook && hasLOS(b.x, b.y, prevLook.x, prevLook.y)){ b._bLook = prevLook; return b._bLook; }
-  if(best !== null){
-    // смотрим в ближайшую к нам видимую точку этой зоны, а не в её центр за углом
-    var pts = ZONE_SAMPLES[BZ.ids[best]] || [BZ.cent[best]], bp = null, bd = Infinity;
-    pts.forEach(function(q){ if(!hasLOS(b.x, b.y, q.x, q.y)) return; var d = Math.hypot(q.x-b.x, q.y-b.y); if(d < bd){ bd = d; bp = q; } });
-    b._bLook = bp || (BAL.cornerLook ? cornerLook(b, BZ.cent[best]) : BZ.cent[best]);
-  }
-  return b._bLook;
+  b._olV = null; return null;   // открытого направления рядом нет — не поворачиваемся в стену
 }
 

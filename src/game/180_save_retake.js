@@ -22,6 +22,21 @@ function pickSaveSpot(b){
   return best ? {x:best.x, y:best.y} : {x:CT_SPAWN.x, y:CT_SPAWN.y};
 }
 // укрытие для сейва T: подальше от известных CT и от сайтов, не на виду у живых CT
+// (v381, М137) доля раундов, где T в меньшинстве до планта выжили без планта (сейв), у про: [T][CT] → [> 55 с, 30–55 с, < 30 с до конца
+// раунда]; демки Ancient + Mirage, среднее двух карт (tools/measure: скрипт в DECISIONS v381), 30–316 раундов на клетку
+var T_SAVE_PRO = {1: {2: [0.09, 0.06, 0.18], 3: [0.04, 0.09, 0.18], 4: [0.05, 0.10, 0.27], 5: [0.02, 0.09, 0.21]},
+                  2: {3: [0.10, 0.11, 0.20], 4: [0.08, 0.14, 0.27], 5: [0.08, 0.19, 0.35]}};
+function tSaveRoll(aT, aC, secLeft){
+  var P = T_SAVE_PRO[aT] && T_SAVE_PRO[aT][Math.min(aC, 5)]; if(!P) return false;
+  var k = secLeft > 55 ? 0 : (secLeft > 30 ? 1 : 2);
+  return hashRand(roundNum*911 + matchNum*37 + aT*101 + aC*13 + k*7) < P[k];
+}
+// сейв T: каждый живой — к своему месту сейва (один раз выбранному), бомбу не ставит
+function tSaveHold(){
+  bots.forEach(function(b){ if(b.team !== "T" || !b.alive) return;
+    if(!b._saveSpot) b._saveSpot = pickSaveSpotT(b);
+    if(!b.planting) setPost(b, b._saveSpot, null, true, "save"); });
+}
 function pickSaveSpotT(b){
   var cts = [], BLt = beliefLast.T || {};
   for(var eidT in BLt){ var loT = BLt[eidT]; if(tick - loT.tick > 15*TICK_HZ) continue; if(bots.some(function(o){ return o.id === eidT && o.alive; })) cts.push({x:loT.x, y:loT.y}); }

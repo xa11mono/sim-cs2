@@ -172,16 +172,13 @@ function onBlind(b, threat){
     var cov = mates.filter(function(o){ return o.hp > 50 && !(o.post && /^(defuse|plantspot|lineup|flee|save|tradeR)/.test(o.post.tag)); })
       .sort(function(a, c){ return Math.hypot(a.x-b.x, a.y-b.y) - Math.hypot(c.x-b.x, c.y-b.y); })[0];
     if(cov){
-      var cs = BAL.coverFix
-        // (v151) раньше точка бралась вплотную к ослеплённому — а он в это время
-        // отходит по тому же проходу: оба упирались друг в друга и дёргались.
-        // Теперь: если угол и так видно — стоим и целимся; иначе шаг рядом с собой,
-        // не ближе ~1м к слепому и к точке, куда он отходит
-        ? (hasLOS(cov.x, cov.y, threat.x, threat.y) ? null : pickSpots("covblind"+tick+cov.id, {x:cov.x, y:cov.y}, 3, {rMax:130, minGap:24, see:[threat]})
-            .filter(function(q){ return hasLOS(q.x, q.y, threat.x, threat.y) && Math.hypot(q.x-b.x, q.y-b.y) > 60 && !(back && Math.hypot(q.x-back.x, q.y-back.y) < 60); })[0])
-        : pickSpots("covblind"+tick+cov.id, {x:b.baseX, y:b.baseY}, 2, {rMax:110, minGap:24, see:[threat]})
-        .filter(function(q){ return hasLOS(q.x, q.y, threat.x, threat.y); })[0];
-      if(BAL.coverFix && !cs){ cov._coverDir = {pt:{x:threat.x, y:threat.y}, until:b.blindUntil}; voiceLog(b.team, "cb"+b.id+tick, cov.id, "держу угол за "+b.id); }
+      // (v151) раньше точка бралась вплотную к ослеплённому — а он в это время
+      // отходит по тому же проходу: оба упирались друг в друга и дёргались.
+      // Теперь: если угол и так видно — стоим и целимся; иначе шаг рядом с собой,
+      // не ближе ~1м к слепому и к точке, куда он отходит
+      var cs = hasLOS(cov.x, cov.y, threat.x, threat.y) ? null : pickSpots("covblind"+tick+cov.id, {x:cov.x, y:cov.y}, 3, {rMax:130, minGap:24, see:[threat]})
+            .filter(function(q){ return hasLOS(q.x, q.y, threat.x, threat.y) && Math.hypot(q.x-b.x, q.y-b.y) > 60 && !(back && Math.hypot(q.x-back.x, q.y-back.y) < 60); })[0];
+      if(!cs){ cov._coverDir = {pt:{x:threat.x, y:threat.y}, until:b.blindUntil}; voiceLog(b.team, "cb"+b.id+tick, cov.id, "держу угол за "+b.id); }
       if(cs){ cov._reposUntil = 0; setPost(cov, cs, threat, true, "repos:coverblind"); if(cov.post && cov.post.tag === "repos:coverblind"){ cov._reposUntil = tick + Math.max(2*TICK_HZ, b.blindUntil - tick); voiceLog(b.team, "cb"+b.id, cov.id, b.id+" слепой — держу его угол"); } }
     }
   }

@@ -92,7 +92,7 @@ v166 — `docs/V166_CHANGES.md` (список владельца). Главны�
 | … события знания: `knowCall`, `knowClearZone`, `knowKill`, `knowTick` | `220_know_events_tick` |
 | **войс** (одно место «что сказали»): `TEAM`, `teamNotice`, `teamChannel`, `teamDeath`, `teamTick` → `knowCall` | `230_team_voice` |
 | карта команды `belief` из гипотез: `beliefTick`; чтение `beliefZoneKnown` | `240_belief_tick`; `beliefZoneKnown` — `260_look_threat` |
-| взгляд: пики до контакта `prePeekTick`, углы `cornerLook`; оценка угрозы `threatLook`; `lookCands`, `lookPlan`, `smoothLookFilter`, `threatEntrances` | `250_look_prepeek_corners`, `260_look_threat`, `270_look_plan_smooth` |
+| **взгляд** (одно место, v381): арбитр `lookArbiter` / `LOOK_LEVEL`, общий фильтр `lookFilter`; делёж углов `lookCands`, `lookPlan`, `smoothLookFilter`; пики до контакта `prePeekTick`, углы `cornerLook`; числа `LOOK`, `threatEntrances` | `270_look_plan_smooth`, `250_look_prepeek_corners`, `260_look_threat` |
 | смоки: прострел `smokeSpamTick`, `smokeEnemyPossible`; дыры от пуль `smokeBulletHole` | `290_smoke_react`; `smokeBulletHole` — `360_nades_buy_smoke_vision` |
 | **реакция на контакт** (одно место): `contactTick`; `teamBrains` | `350_contact_reaction` |
 | гранаты: закуп `buyNades`, дым и видимость `smokeBlocks`; бросок `throwNade`, траектория `nadeArc`; лайнапы `lineupTick`; полёт и срабатывание `detonate`, `nadesTick`; гранаты «себе» `selfNadeTick`, `nadeReact`; решения `nadeBrains` / `nadeUseTick` | `360_nades_buy_smoke_vision`, `380_nades_throw`, `390_nades_lineups`, `400_nades_physics_damage`, `410_nades_tactical_self`, `420_nades_brains` |

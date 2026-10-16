@@ -238,7 +238,7 @@ function afterKillReact(sh, tg, w){
     var hereS = {x:sh.x, y:sh.y}, vpS = {x:tg.x, y:tg.y};
     var altS = pickSpots("svmv"+tick+sh.id, hereS, 4, {rMin:170, rMax:480, minGap:60, hideFrom:[vpS, hereS]})
       .filter(function(q){ return Math.hypot(q.x-hereS.x, q.y-hereS.y) > 150 && !hasLOS(q.x, q.y, vpS.x, vpS.y); })[0];
-    if(altS){ sh._saveSpot = altS; sh._saveLooks = null; logEvent(sh.id+": на сейве — меняю позицию после фрага ("+calloutName(altS.x, altS.y)+")"); return true; }
+    if(altS){ sh._saveSpot = altS; logEvent(sh.id+": на сейве — меняю позицию после фрага ("+calloutName(altS.x, altS.y)+")"); return true; }
   }
   // (v248) враги рядом — по тому, что команда знает (ЛИП ≤ 5 с, живые по киллфиду), а не настоящие позиции
   var LKk = beliefLast[sh.team] || {}, foesNear = [];

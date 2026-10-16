@@ -181,7 +181,7 @@ function ctClutch(b, ct){
   }
   // (v142) позиция под реальные входы: откуда вероятно придут — туда смотреть
   // (один вход, максимум два), от остальных входов закрыться стеной
-  if(BAL.newLook && (!C.dynT || tick - C.dynT > 3*TICK_HZ || C.ptSite !== k)){
+  if((!C.dynT || tick - C.dynT > 3*TICK_HZ || C.ptSite !== k)){
     C.dynT = tick;
     var E = threatEntrances("CT", g.anchor, 280).filter(function(e){ return e.w > 0.03; });
     if(E.length){
@@ -202,7 +202,7 @@ function ctClutch(b, ct){
     var sps = pickSpots("clutch"+k, g.anchor, 3, {rMax:260, minGap:60, see:[g.tEntry], hideFrom:[g.tStage]});
     C.pt = sps[weightedPick(sps.length, roundNum*37 + matchNum*11)] || g.anchor; C.ptSite = k;
   }
-  setPost(b, C.pt, (BAL.newLook && C.look) || g.tEntry, true, "clutch:"+k);
+  setPost(b, C.pt, C.look || g.tEntry, true, "clutch:"+k);
   return true;
 }
 // ---- минус мидер: мид держит ротатор (или роумер), но не в открытую ----

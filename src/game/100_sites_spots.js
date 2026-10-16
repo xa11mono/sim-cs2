@@ -77,10 +77,11 @@ function sitePlantOptions(k){
   var site = SITES[k], g = GEO[k];
   if(site._plantOpts) return site._plantOpts;
   var def = site.plant || sitePlantSpot(site), safe = null, open = null, bs = -Infinity, bo = -Infinity;
-  if(site.poly) NAVAREAS.forEach(function(z){
-    if(NAV_BLOCKED[z.id] || !(zoneGraph[z.id]||[]).length) return;
-    var c = zoneCentroid(z);
-    if(!pointInPoly(c.x, c.y, site.poly) || insideSolidWall(c.x, c.y)) return;
+  // (v381, М135, владелец 16.10: «бомба ставится на укрытии») варианты — только места, где ставили про (MAP.pro.plants из демок):
+  // центры участков навмеша на сайте включали верх ящиков и укрытий. Мест про нет — как раньше, участки навмеша
+  var PP = sitePlantPro(k);
+  (PP.length ? PP : (site.poly ? NAVAREAS.filter(function(z){ return !NAV_BLOCKED[z.id] && (zoneGraph[z.id]||[]).length; }).map(zoneCentroid) : [])).forEach(function(c){
+    if(!PP.length && (!pointInPoly(c.x, c.y, site.poly) || insideSolidWall(c.x, c.y))) return;
     var dd = Math.hypot(c.x-def.x, c.y-def.y);
     var sS = (hasLOS(c.x, c.y, g.ctEntry.x, g.ctEntry.y) ? 0 : 2) + (hasLOS(c.x, c.y, g.anchor.x, g.anchor.y) ? 0 : 0.5) - dd/400;
     var sO = (hasLOS(c.x, c.y, g.tEntry.x, g.tEntry.y) ? 2 : 0) + (hasLOS(c.x, c.y, g.tStage.x, g.tStage.y) ? 1 : 0) - dd/400;
@@ -95,8 +96,8 @@ function sitePlantOptions(k){
   if(!molly && site.poly && POS[k]){
     var bm = -Infinity;
     POS[k].tPost.forEach(function(n){ var zp = zonePoint(n, def); if(!zp) return;
-      NAVAREAS.forEach(function(z){ if(NAV_BLOCKED[z.id] || !(zoneGraph[z.id]||[]).length) return; var c = zoneCentroid(z);
-        if(!pointInPoly(c.x, c.y, site.poly)) return; var d = Math.hypot(c.x-zp.x, c.y-zp.y); if(d > NADE_THROW_RANGE*0.8) return;
+      (PP.length ? PP : NAVAREAS.filter(function(z){ return !NAV_BLOCKED[z.id] && (zoneGraph[z.id]||[]).length; }).map(zoneCentroid)).forEach(function(c){
+        if(!PP.length && !pointInPoly(c.x, c.y, site.poly)) return; var d = Math.hypot(c.x-zp.x, c.y-zp.y); if(d > NADE_THROW_RANGE*0.8) return;
         var sc = (hasLOS(zp.x, zp.y, c.x, c.y) ? 2 : 0) + (hasLOS(c.x, c.y, g.ctEntry.x, g.ctEntry.y) ? 0 : 1) - Math.hypot(c.x-def.x, c.y-def.y)/300;
         if(sc > bm){ bm = sc; molly = {x:c.x, y:c.y}; } }); });
   }
@@ -118,7 +119,13 @@ function choosePlant(tt){
   logEvent("T: плант "+({safe:"в безопасную точку (не видно со входа CT)", open:"открытый — держим снаружи", def:"дефолтный", molly:"под молотов — сбить дефуз с пост-планта"})[kind]+" на "+tt.site);
   return tt.plantPick;
 }
+// (v381, М135) места планта про на этом сайте (MAP.pro.plants, tools/plants_bake.py), сначала частые
+function sitePlantPro(k){
+  return ((MAP.pro && MAP.pro.plants) || []).filter(function(p){ return p.site === k; }).sort(function(a, c){ return c.share - a.share; })
+    .map(function(p){ return {x: p.x, y: p.y, share: p.share}; });
+}
 function sitePlantSpot(site){
+  var PP = sitePlantPro(site.key); if(PP.length) return {x: PP[0].x, y: PP[0].y};   // (v381, М135) самое частое место планта про
   if(!site.poly) return {x:site.x, y:site.y};
   var c = centroidOf(site.poly), best = null, bd = Infinity;
   NAVAREAS.forEach(function(z){

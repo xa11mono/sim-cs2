@@ -12,6 +12,7 @@ python3 tools/demos_bake.py --map <карта> [--only скрипт,скрипт
   tactics_bake.py --game   — тактики T и расстановки CT для игры (tactics_game.json → tactics.json)
   roles_bake.py            — роли наших игроков на этой карте (player_roles.json → tactics.json, playerRoles)
   jumps_bake.py            — места прыжка-чека про (jumps.json → pro.json, jumps)
+  plants_bake.py           — места планта про (plants.json → pro.json, plants; v381)
 Потом сборка файлов набора: границы сайтов по плантам (zones.json, sites), pro.json, lineups.json, tactics.json
 (--assemble — только она).
 Отбор лайнапов в набор (как у Ancient v166): pro — частота ≥ 5 % раундов ситуации; proExtra (при BAL.nadeMore) — 1,5–5 %
@@ -25,7 +26,7 @@ import mapdir  # noqa: E402
 
 MAPNAME = mapdir.current()
 SCRIPTS = [('pro.py',), ('progrid_bake.py',), ('lineups.py',), ('cluster.py',), ('positions_bake.py',),
-           ('player_positions_bake.py',), ('tactics_bake.py', '--game'), ('roles_bake.py',), ('jumps_bake.py',)]
+           ('player_positions_bake.py',), ('tactics_bake.py', '--game'), ('roles_bake.py',), ('jumps_bake.py',), ('plants_bake.py',)]
 PRO_MIN, EXTRA_MIN, EXTRA_MATCHES, N_MIN = 0.05, 0.015, 3, 4
 
 
@@ -53,6 +54,9 @@ def write_pro(PRO):
     jf = os.path.join(PRO, 'jumps.json')
     if os.path.exists(jf):   # (v334, М58) места прыжка-чека про
         out['jumps'] = [{k: j[k] for k in ('x', 'y', 'side', 'rate')} for j in json.load(open(jf, encoding='utf-8'))['spots']]
+    pf = os.path.join(PRO, 'plants.json')
+    if os.path.exists(pf):   # (v381, М135) места планта про
+        out['plants'] = [{k: j[k] for k in ('x', 'y', 'site', 'share')} for j in json.load(open(pf, encoding='utf-8'))['spots']]
     open(mapdir.path(MAPNAME, 'pro.json'), 'w', encoding='utf-8').write(json.dumps(out, ensure_ascii=False, separators=(',', ':')) + '\n')
     print('  pro.json: мест %s, позиций %d, слоёв prior %d, look %d' % ({k: len(v) for k, v in g['spots'].items()}, len(pts),
                                                                    len(g['prior']['layers']), len(g['look']['layers'])))

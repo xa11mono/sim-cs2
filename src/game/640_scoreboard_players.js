@@ -74,11 +74,16 @@ function plKeys(b){
 // (v323, М28) закуп по очереди — только показ: игра покупает в начале фризтайма (решения от этого не меняются), а на панели
 // новые вещи появляются по одной. Первая — когда про берут основное оружие (демки Mirage, 25 матчей: 1,05 / 2 / 4,27 / 8,5 /
 // 12,9 с от начала фризтайма — 10/25/50/75/90 %), следующие — через BUY_SHOW_GAP (проектное число)
+// (v381, М131, владелец 16.10: «панели по бокам не обновляют список оружия после конца раунда для нового») погибший в прошлом раунде
+// показывал до своего закупа то оружие, с которым умер (b.weapon после смерти не сбрасывается) — хотя у него уже стартовый пистолет.
+// «Что было до закупа» — то, чем игрок владеет (основное, иначе пистолет), а не что было в руках в момент смерти
 function buyShowStart(){
   BUY_SHOW = {};
   bots.forEach(function(b, i){
-    var before = {}; plKeys(b).forEach(function(it){ before[it.key] = it.wk || true; });
-    BUY_SHOW[b.id] = {before: before, t0: tick, first: freezePick(BUY_SHOW_FIRST, hashRand(roundNum*733 + i*97 + matchNum*13)), oldW: (b.weapon && b.weapon.key) || null};
+    var own = b.primary || b.secondary || (b.weapon && b.weapon.key) || null;
+    var before = {}; plKeys(b).forEach(function(it){ if(!it.w) before[it.key] = true; });
+    if(own) before["w:"+own] = own;
+    BUY_SHOW[b.id] = {before: before, t0: tick, first: freezePick(BUY_SHOW_FIRST, hashRand(roundNum*733 + i*97 + matchNum*13)), oldW: own};
   });
 }
 function buyShowHidden(b){

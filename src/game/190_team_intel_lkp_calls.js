@@ -39,7 +39,7 @@ function lkpSet(team, id, x, y, src){ var e = beliefLast[team][id]; if(e && src 
   beliefLast[team][id] = {x:x, y:y, tick:tick, src:src};
   var zi = zoneIdAt(x, y); if(zi && CLEARZ[team][zi]) delete CLEARZ[team][zi]; }
 function lkpTick(){
-  if(!BAL.lkp || roundState !== "live" || tick % 16) return;
+  if(roundState !== "live" || tick % 16) return;
   ["CT","T"].forEach(function(team){
     var L = beliefLast[team];
     Object.keys(L).forEach(function(id){

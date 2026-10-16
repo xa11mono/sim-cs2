@@ -136,6 +136,16 @@ var NAV_STEP_TOL = 3, NAV_GAP_TOL = 10;
 // (v341, отметка владельца: sh1ro и magixx «снова застряли там же») пол «рядом» — только своего уровня (± JUMP_UP от своего
 // участка): верх перил (−140) над спуском (−254) засчитывался как пол, и бот сползал с края в щель
 function navNearLevel(x, y, tol, lvl){ return navFloorNear(x, y, tol, lvl == null ? null : function(a){ return Math.abs(a.z - lvl) <= JUMP_UP; }); }
+// (v381, М67, отметка владельца: Mirage, раунд 9, тик 55140 — donk у B Stairs «не может запрыгнуть, во что-то упирается») срезать путь
+// к дальней точке можно, только если по прямой под ногами всё время пол своего уровня (± 40 ед., как lvlOk пути): раньше бот, запрыгнув
+// на ступень (106), сразу шёл к точке на верхнем полу (171) по прямой через щель — падал на нижний (150), и так по кругу 5 с
+function navSegOnLevel(x0, y0, z0, x1, y1, z1){
+  if(z0 == null) return true;
+  var L = Math.hypot(x1-x0, y1-y0), n = Math.ceil(L/10);
+  for(var i = 1; i <= n; i++){ var t = i/n, zi = z1 == null ? z0 : z0 + (z1-z0)*t;
+    if(!navFloorNear(x0 + (x1-x0)*t, y0 + (y1-y0)*t, NAV_STEP_TOL, function(a){ return Math.abs(a.z - zi) <= 40; })) return false; }
+  return true;
+}
 // ближайший по высоте участок в tol от точки (для щели между участками: высота и участок не «замерзают»)
 function navNearestZ(x, y, tol, z){
   if(!NAV_GRID) navGridBuild();

@@ -153,177 +153,23 @@ function resolveEngagements(){
   var aimStep = AIM_TURN_RATE / TICK_HZ;
   // (v291, И32, владелец 14.10: раунд 1, тик 3087 — игрок 6 убил в T Lower и отвернулся на Mid «как у про», пока второй T стоял
   // в 35 px от убитого) после фрага оценка взгляда стрелка пересчитывается сразу, а не через до 8 тиков
-  if(BAL.newLook && BZ.ids.length){
+  if(BZ.ids.length){
     if(tick % 8 === 0){ lookPlan("CT"); lookPlan("T"); LOOK_REPLAN.CT = LOOK_REPLAN.T = false; }
     else ["CT","T"].forEach(function(t){ if(LOOK_REPLAN[t]){ LOOK_REPLAN[t] = false; lookPlan(t); } });
   }
   bots.forEach(function(b){
     if(!b.alive) return;
-    var look = null;
-    if(b._sawEnemy && b._nearestEnemyBot){ look = b._nearestEnemyBot; b.lookReason = "enemy"; }
-    else if(BAL.newLook){ look = newLookFor(b); }
-    else if(BAL.threatLook){
-      // Новая схема (одна оценка вместо очереди): после "вижу врага" —
-      // только близкие шаги прямо сейчас (≤1.5с, ≤600px), затем особые режимы
-      // (роум-чек, охота, сейв, фейк-дефуз), затем ОДНА оценка угроз по карте
-      // зон (threatLook): инфа там не забывается, а расползается по соседним
-      // зонам. Пост и план тактики — только вес/запасной вариант.
-      var sc0 = b.heardSound, sndAge = sc0 ? tick - sc0.tick : 1e9;
-      if(sc0 && sndAge < 96 && Math.hypot(sc0.x-b.x, sc0.y-b.y) < 600){
-        look = sc0; b.lookReason = "sound";
-        if(b.curSpeed > 60*SPD_K && b.heading !== undefined){
-          var sA = Math.atan2(sc0.y-b.y, sc0.x-b.x), sdH = Math.abs(((sA-b.heading+Math.PI)%(2*Math.PI)+2*Math.PI)%(2*Math.PI)-Math.PI);
-          // звук за спиной на бегу: оборачивается только на самый свежий (≤0.3с)
-          // и близкий (≤250px); иначе смотрит по ходу, куда бежит
-          if(sdH > 1.9 && (sndAge > 20 || Math.hypot(sc0.x-b.x, sc0.y-b.y) > 250)){ look = null; b.lookReason = null; }
-        }
-      }
-      if(!look && BAL.deathLook){ var dLk = deathLook(b); if(dLk){ look = dLk; b.lookReason = "death"; } }
-      // (3) тиммейт попросил смотреть второй угол
-      if(!look && b._coverDir && tick < b._coverDir.until){ var cvP = hasLOS(b.x, b.y, b._coverDir.pt.x, b._coverDir.pt.y) ? b._coverDir.pt : cornerLook(b, b._coverDir.pt); if(cvP){ look = cvP; b.lookReason = "cover"; } }
-      // (1) подходит к углу, за которым может быть враг, — прицел на край угла
-      if(!look && BAL.pieSlice && b._pie && b._pie.danger > 0 && tick - b._pie.t < 16 && b._pie.dist < 320 && hasLOS(b.x, b.y, b._pie.pt.x, b._pie.pt.y)){ look = b._pie.pt; b.lookReason = "corner"; }
-      if(look && BAL.cornerLook) look = cornerLook(b, look);
-      else if(b.roamChecking && b.roamLookPt){ look = b.roamLookPt; b.lookReason = "roam"; }
-      else if(b.post && b.post.tag === "endhunt" && b.post.look && !(b.curSpeed > 60*SPD_K && b.heading !== undefined &&
-              Math.abs(((Math.atan2(b.post.look.y-b.y, b.post.look.x-b.x)-b.heading+Math.PI)%(2*Math.PI)+2*Math.PI)%(2*Math.PI)-Math.PI) > 1.9)){ look = BAL.cornerLook ? (cornerLook(b, b.post.look) || b.post.look) : b.post.look; b.lookReason = "hunt"; }
-      else if(b.fakeHoldUntil && tick < b.fakeHoldUntil && bomb && bomb.site){ look = GEO[bomb.site].tEntry; b.lookReason = "fake"; }
-      // сейв: сначала туда, где реально может быть враг (карта угроз), и
-      // только без угроз — по очереди дальние проходы (раньше сейв смотрел
-      // одну длинную линию на мид, а Alley/Back Halls, откуда шёл T, — нет)
-      // (9) на сейве: раньше угрозы по карте всегда перебивали — стоял лицом к
-      // бомбе, спиной к проходам. Теперь ~40% времени по очереди чекает проходы
-      else if(BAL.saveMove && b.atPost && b.post && b.post.tag === "save" && ((tick + b.id.charCodeAt(1)*37) % 160) < 64 && (look = saveLook(b))){ b.lookReason = "save"; }
-      else if((look = threatLook(b))){ b.lookReason = "threat"; }
-      else if(b.atPost && b.post && b.post.tag === "save" && (look = saveLook(b))){ b.lookReason = "save"; }
-      else if(b.post && !b.atPost && b.post.look && /^(probe|lurk|shift|stage)/.test(b.post.tag) &&
-              Math.hypot(b.post.x-b.x, b.post.y-b.y) < 420 && (look = (BAL.cornerLook ? cornerLook(b, b.post.look) : b.post.look))){ b.lookReason = "preaim"; }
-      else if(b.atPost && b.post && b.post.look){
-        if(BAL.cornerLook){
-          if(!b._postCorner || b._postCorner.id !== b.post.id){
-            var svT = {k:b._cornerPK, p:b._cornerPt}; b._cornerPK = null;
-            b._postCorner = {id:b.post.id, pt: cornerLook(b, b.post.look, b.post)};
-            b._cornerPK = svT.k; b._cornerPt = svT.p;
-            // "видимый угол по пути к цели" оказался совсем в другой стороне
-            // (путь к Lamp Room сначала уходит назад через сайт) — тогда смотрим
-            // просто В СТОРОНУ своей цели, а не на этот угол за спиной
-            var pc = b._postCorner.pt, pl = b.post.look;
-            var aRaw = Math.atan2(pl.y-b.post.y, pl.x-b.post.x);
-            if(!pc || Math.abs(((Math.atan2(pc.y-b.post.y, pc.x-b.post.x)-aRaw+Math.PI)%(2*Math.PI)+2*Math.PI)%(2*Math.PI)-Math.PI) > 1.3){
-              var dl = Math.min(220, Math.hypot(pl.x-b.post.x, pl.y-b.post.y));
-              b._postCorner.pt = {x: b.post.x + Math.cos(aRaw)*dl, y: b.post.y + Math.sin(aRaw)*dl};
-            }
-          }
-          // (перекрытие 2) угол поста считался от точки поста; бот переминается —
-          // и угол оказывался за стеной, его разворачивала страховка "не в стену".
-          // Не видно угол ~0.3с — пересчитываем от того места, где бот стоит
-          if(BAL.lookFix && b._postCorner.pt && !hasLOS(b.x, b.y, b._postCorner.pt.x, b._postCorner.pt.y)){
-            b._pcHid = (b._pcHid||0) + 1;
-            if(b._pcHid > 20){ b._pcHid = 0; var pcN = cornerLook(b, b.post.look, b); if(pcN) b._postCorner.pt = pcN; }
-          } else b._pcHid = 0;
-          look = b._postCorner.pt;
-          if(smokes.length){ var seT = smokeEdge(b, look); if(seT) look = seT; }
-        } else look = b.post.look;
-        b.lookReason = "post"; }
-      else b.lookReason = null;
-      // (аудит взгляда) угол поста/охоты смотрит на своего (свой стоит на линии
-      // или у точки взгляда) — берём другое открытое направление; на ходу за
-      // спиной впереди идущего — не в спину ему, а по флангам
-      if(BAL.lookFallback && BAL.lookOpen !== false){
-        if(look && /^(post|hunt|preaim)$/.test(b.lookReason || "") && lookOnMate(b, look)){ var altO = openDirLook(b); if(altO){ look = altO; b.lookReason = "open"; } }
-        else if(BAL.lookFlank !== false && !look && b.curSpeed > 60*SPD_K && b.heading !== undefined && mateAhead(b)){
-          var sideF = (Math.floor((tick + b.id.charCodeAt(1)*29)/96) % 2) ? 1 : -1, aF = b.heading + sideF*0.8;
-          var cF = rayClipWalls(b.x, b.y, b.x + Math.cos(aF)*420, b.y + Math.sin(aF)*420);
-          if(Math.hypot(cF.x-b.x, cF.y-b.y) > 110){ look = {x:cF.x, y:cF.y}; b.lookReason = "flank"; }
-        }
-      }
-      // итоговая точка взгляда на бегу оказалась за спиной (например, угол к
-      // звуку спереди, но путь к нему сначала уходит назад) — смотрит по ходу.
-      // Исключение — самый свежий близкий звук сзади (≤0.3с, ≤250px)
-      if(look && b.curSpeed > 60*SPD_K && b.heading !== undefined && /^(sound|preaim|threat|hunt)$/.test(b.lookReason || "")){
-        var fOff = Math.abs(((Math.atan2(look.y-b.y, look.x-b.x)-b.heading+Math.PI)%(2*Math.PI)+2*Math.PI)%(2*Math.PI)-Math.PI);
-        var closeFresh = b.lookReason === "sound" && sc0 && sndAge <= 20 && Math.hypot(sc0.x-b.x, sc0.y-b.y) <= 250;
-        if(fOff > 1.9 && !closeFresh){ look = null; b.lookReason = null; }
-      }
-    }
-    else {
-      var intelFresh =b.lastIntel && (tick - b.lastIntel.tick) < CAUTION_TICKS;
-      var soundFresh = b.heardSound && (tick - b.heardSound.tick) < SOUND_CAUTION_TICKS;
-      if(intelFresh && soundFresh){
-        look = b.heardSound.tick > b.lastIntel.tick ? b.heardSound : b.lastIntel;
-        b.lookReason = look === b.heardSound ? "sound" : "intel";
-      } else if(intelFresh){ look = b.lastIntel; b.lookReason = "intel"; }
-      else if(soundFresh){ look = b.heardSound; b.lookReason = "sound"; }
-      // держит установленный угол (стоит на посту с назначенным взглядом) —
-      // не отвлекается на дальний шум/инфу из другого места карты, если это
-      // не рядом (реальная близкая опасность) и не примерно туда же, куда он
-      // и так смотрит: иначе он бросал свой угол ради стрельбы за стеной,
-      // которую всё равно не видно и на которую он никак не влияет
-      if(look && !holdRelevant(b, look)){ look = null; b.lookReason = null; }
-      // идёт вперёд — на несвежий (>0.3с) звук за спиной не оборачивается:
-      // иначе выходил на врага спиной, глядя назад на старый шум
-      if(look && b.curSpeed > 60*SPD_K && b.heading !== undefined && !(b.lookReason === "sound" && tick - b.heardSound.tick < 20)){
-        var lkA = Math.atan2(look.y-b.y, look.x-b.x), dH = Math.abs(((lkA-b.heading+Math.PI)%(2*Math.PI)+2*Math.PI)%(2*Math.PI)-Math.PI);
-        if(dH > 1.9){ look = null; b.lookReason = null; }
-      }
-      if(look && BAL.cornerLook) look = cornerLook(b, look);
-      // свежая угроза (враг, засвеченный ≤6с назад, в пределах 850px) важнее,
-      // чем преэйм по плану или роум-чек: иначе T шёл мимо Cave, целясь в
-      // Ramp "по тактике", и выходил спиной на тех, кто только что снял троих
-      else if(BAL.lkp && !(b.post && b.post.tag === "endhunt") && (function(){ var c = lkpLook(b, 6*TICK_HZ); return (c && holdRelevant(b, c)) ? (look = c) : false; })()){ b.lookReason = "lkp"; }
-      else if(b.roamChecking && b.roamLookPt){ look = b.roamLookPt; b.lookReason = "roam"; }
-      else if(b.post && !b.atPost && b.post.look && /^(probe|lurk|shift|stage)/.test(b.post.tag) &&
-              Math.hypot(b.post.x-b.x, b.post.y-b.y) < 420 && (look = (BAL.cornerLook ? cornerLook(b, b.post.look) : b.post.look))){ b.lookReason = "preaim"; }
-      else if((function(){ var c = teamCallLook(b); return (c && holdRelevant(b, c)) ? (look = c) : false; })()){ b.lookReason = "call"; }
-      else if((function(){ var c = (BAL.lkp && !(b.post && b.post.tag === "endhunt")) ? lkpLook(b) : null; return (c && holdRelevant(b, c)) ? (look = c) : false; })()){ b.lookReason = "lkp"; }
-      // раздел 13: стоит без свежей инфы — смотрит туда, откуда его вероятнее
-      // всего могут простреливать (карта вероятностей), а не в "пустые" углы
-      // …и на ходу тоже: заходящий "прочищает" углы — смотрит не в спину
-      // впереди идущему, а туда, откуда вероятнее всего выйдет враг
-      else if(b.post && b.post.tag === "endhunt" && b.post.look){ look = BAL.cornerLook ? (cornerLook(b, b.post.look) || b.post.look) : b.post.look; b.lookReason = "hunt"; }
-      else if(b.atPost && b.post && b.post.tag === "save" && (look = saveLook(b))){ b.lookReason = "save"; }
-      else if((function(){ var c = BAL.habits ? habitLook(b) : null; return (c && holdRelevant(b, c)) ? (look = c) : false; })()){ b.lookReason = "habit"; }
-      else if((function(){ var c = BAL.beliefLook ? beliefLook(b) : null; return (c && holdRelevant(b, c)) ? (look = c) : false; })()){ b.lookReason = "belief"; }
-      else if(b.fakeHoldUntil && tick < b.fakeHoldUntil && bomb && bomb.site){ look = GEO[bomb.site].tEntry; b.lookReason = "fake"; }
-      else if(b.atPost && b.post && b.post.look){
-        if(BAL.cornerLook){
-          if(!b._postCorner || b._postCorner.id !== b.post.id){
-            var sv = {k:b._cornerPK, p:b._cornerPt}; b._cornerPK = null;
-            b._postCorner = {id:b.post.id, pt: cornerLook(b, b.post.look, b.post)};
-            b._cornerPK = sv.k; b._cornerPt = sv.p;
-          }
-          look = b._postCorner.pt;
-          if(smokes.length){ var se2 = smokeEdge(b, look); if(se2) look = se2; }
-        } else look = b.post.look;
-        b.lookReason = "post"; }
-      else b.lookReason = null;
-      // на бегу не оборачивается назад на старую инфу/коллы/догадки: спину
-      // прикрывают тиммейты, а сам он смотрит туда, куда идёт (иначе бежал
-      // спиной вперёд и выходил на врага затылком)
-      if(look && b.curSpeed > 60*SPD_K && b.heading !== undefined && /^(call|lkp|habit|belief)$/.test(b.lookReason || "")){
-        var lkA2 = Math.atan2(look.y-b.y, look.x-b.x), dH2 = Math.abs(((lkA2-b.heading+Math.PI)%(2*Math.PI)+2*Math.PI)%(2*Math.PI)-Math.PI);
-        if(dH2 > 1.6){ look = null; b.lookReason = null; }
-      }
-    }
-    // страховка "не смотреть в стену": если прямо по взгляду стена ближе ~1м
-    // (цель — за стеной: инфа/звук/последний враг), берём ближайшее открытое
-    // направление в пределах ±70° — туда, откуда реально можно увидеть выход
-    if(!BAL.newLook && BAL.smokeSweep && !b._sawEnemy && !(BAL.lookFix && /^(sound|death|cover)$/.test(b.lookReason || "") && b.heardSound && tick - b.heardSound.tick < 40)){ var swL = smokeSweepLook(b); if(swL){ look = swL; b.lookReason = "sweep"; } }
+    // (v381, М126 шаг 4) куда смотреть — одно место: арбитр взгляда (270_look_plan_smooth.js, LOOK_LEVEL); враг виден — верхний уровень
+    var look;
+    if(b._sawEnemy && b._nearestEnemyBot){ look = b._nearestEnemyBot; b.lookReason = "enemy"; b._lookLvl = LOOK_LEVEL.enemy; if(LOOKDBG.on) b._ldArb = null; }
+    else look = lookArbiter(b);
     var LD = LOOKDBG.on ? {tick: tick, reason: b.lookReason || null, raw: look ? {x: look.x, y: look.y} : null, steps: []} : null;
-    if(look && BAL.noWallStare && b.lookReason !== "enemy" && b.lookReason !== "pro"){ var lw0 = look; look = openLook(b, look); if(LD && look !== lw0) LD.steps.push("стена по взгляду — взял открытое направление рядом"); }
-    if(BAL.noWallLook && !b._sawEnemy && !/^(enemy|spam|cover)$/.test(b.lookReason || "")){
-      var wla = look ? Math.atan2(look.y-b.y, look.x-b.x) : (!(b.curSpeed > 15*SPD_K) && b.facing !== undefined ? b.facing : null);
-      if(wla !== null && flatWallAhead(b, wla, 80)){ var wal = openDirNear(b, wla); look = wal || (look ? null : null); if(wal) b.lookReason = (b.lookReason||"") + "+open"; if(LD) LD.steps.push(wal ? "стена в 80 px — повернул на открытое" : "стена в 80 px — открытого нет"); }
-    }
-    var slUrg = BAL.smoothLook ? lookUrgent(b) : true;
-    if(BAL.smoothLook){ var lk0 = look; look = smoothLookFilter(b, look, slUrg);
-      if(LD){ LD.urgent = slUrg; if(look !== lk0) LD.steps.push(look ? "плавность: держит прежний угол ещё " + (b._sl ? Math.max(0, ((slUrg ? SL.holdAlert : (b.curSpeed > 60*SPD_K ? SL.holdMove : SL.holdStand)) - (tick - b._sl.since))/TICK_HZ).toFixed(1) : "?") + " с" : "плавность: пока смотрит по ходу");
-        if(b.lookReason === "glance") LD.steps.push("на бегу мельком глянул на опасный угол сбоку"); } }
+    var LF = lookFilter(b, look, LD), slUrg = LF.urgent; look = LF.look;
     if(LD){ LD.final = look ? {x: look.x, y: look.y} : null; LD.reasonFinal = b.lookReason || null; b._ld = LD; }
     b.lookTarget = look ? {x:look.x, y:look.y} : null;
     // (v153) бросает гранату — смотрит туда, куда кинул, пока бросок не закончен
     // (раньше за 0,2с после броска взгляд щёлкал обратно — самый частый "рывок")
-    if(look && BAL.smoothLook && b.throwUntil && tick < b.throwUntil && !b._sawEnemy) look = null;
+    if(look && b.throwUntil && tick < b.throwUntil && !b._sawEnemy) look = null;
     if(look){
       var want = Math.atan2(look.y-b.y, look.x-b.x);
       if(b.facing === undefined) b.facing = want;

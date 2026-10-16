@@ -117,7 +117,7 @@ function nadeBrains(){
     var mol = keepMol ? null : mollies.filter(function(b){ return !(bomb.state === "carried" && bomb.carrier === b); })[0] || mollies[0];
     if(keepMol) logEvent("T: единственный молотов берегут на пост-плант");
     var molT = g.anchor, molWhy = "выжечь опорника";
-    if(BAL.habits){
+    {
       bots.forEach(function(o){
         if(o.team !== "CT" || !o.alive) return;
         var h = habitTop(o.id, 2); if(!h || Math.hypot(h.x-site.x, h.y-site.y) > 380) return;

@@ -10,6 +10,9 @@ function tBrain(){
   var other = tt.site === "A" ? "B" : "A";
   var plantPt = site.plant || site;
   var secLeft = ROUND_TIME_SEC - (simTime - roundStartTime);
+  // (v381, М130, владелец 16.10: «при сейве идут коллы ПЕРЕКОЛЛ B → A: минус на сайте») решили сейвить — план раунда кончился:
+  // ни выхода, ни переколлов, ни коллов IGL. Раньше перепривязка ниже шла раньше проверки сейва
+  if(tt.saving && bomb.state !== "planted"){ tSaveHold(); return; }
   // поздно — выходим, даже если по плану ещё setup
   if(tt.phase === "setup" && (tick >= tt.execTick || secLeft < 35)){
     // раздел: синхронный выход по времени — команда не идёт на сайт вразнобой,
@@ -54,7 +57,7 @@ function tBrain(){
   if(bomb.state === "planted" && tt.phase !== "postplant"){ tt.phase = "postplant";
     // (v144) фланг через мид и охота имели смысл до планта. После планта у них
     // не было исполнителя — стояли, где оставили. Теперь все в пост-плант
-    if(BAL.newLook && BAL.ppFix === true) bots.forEach(function(o){ if(o.team !== "T") return; o._midFlank = null; o._shift = null; o._egC = null;
+    if(BAL.ppFix === true) bots.forEach(function(o){ if(o.team !== "T") return; o._midFlank = null; o._shift = null; o._egC = null;
       if(o.post && /^(endhunt|stage.*CTside)/.test(o.post.tag || "")) clearPost(o); });
   }
   // ---- раздел 11: живая перепривязка тактики ----
@@ -190,12 +193,19 @@ function tBrain(){
       logEvent("T: выход на "+tt.site+"! (CT осталось "+aCT+")");
     }
   }
+  // (v381, М132) читаем расстановку CT по увиденному: новая картина — в войс (кто увидел — тот и говорит, команда понимает остальное)
+  if(tt.phase === "setup" && tick % 16 === 0){ var SRd = knowSetupRead("T");
+    if(SRd && SRd.n > (tt.setupRead ? tt.setupRead.n : 0)){ tt.setupRead = SRd;
+      var sk = ["A","mid","B"].filter(function(r){ return SRd.seen[r]; }).map(function(r){ return (r === "mid" ? "на миду " : "на " + r + " ") + SRd.seen[r]; }).join(", ");
+      voiceLog("T", "setup" + roundNum + "_" + SRd.n, "IGL", sk + " — у них " + SRd.top.join(" или ") + ": на A ~" + SRd.E.A.toFixed(1) + ", на B ~" + SRd.E.B.toFixed(1)); } }
   // раздел 12: проба увидела на нашем сайте ровно одного, и по карте там больше
   // никого — "там соло, заходим" (не ждём тайминга)
   if(tt.phase === "setup" && tick - roundStartTick > (BAL.proTempo ? 28 : 12)*TICK_HZ && !tt.soloGo && !(BAL.proTempo && hashRand(roundNum*577 + matchNum*41 + 3) < 0.5)){
     var eS = intelEstimate("T", site.x, site.y, 420, 5*TICK_HZ);
     var aliveT2 = aliveCount("T");
-    if(eS.seen === 1 && beliefCount("T", BZ.siteNear[tt.site]||[]) < 1.4 && aliveT2 >= 4 && iglReads(tt, "so")){
+    // (v381, М132) или по расстановке: на нашем сайте видели одного, и по увиденному в других районах там больше одного не ждут
+    var srS = tt.setupRead && tick - roundStartTick <= 40*TICK_HZ ? tt.setupRead.E[tt.site] : null;
+    if(eS.seen === 1 && (beliefCount("T", BZ.siteNear[tt.site]||[]) < 1.4 || srS != null && srS <= 1.2) && aliveT2 >= 4 && iglReads(tt, "so")){
       tt.soloGo = true; tt.phase = "execute"; tt.execStart = tick; siteHeatPending[tt.site] = 1;
       voiceLog("T", "solo"+tt.site, "IGL", "на "+tt.site+" один — заходим сейчас!");
       logEvent("T: выход на "+tt.site+"! (по инфе там соло)");
@@ -215,8 +225,10 @@ function tBrain(){
     var aC = aliveCount("CT"), aT = ts.length;
     var gunVal = ts.reduce(function(a, b){ return a + (b.primary ? WEAPONS[b.primary].price : 0); }, 0) / aT;
     var carOn = bomb.state === "carried" && bomb.carrier && bomb.carrier.alive && Math.hypot(bomb.carrier.x-site.x, bomb.carrier.y-site.y) < 380;
-    var hopeless = (aT === 1 && aC >= 3 && secLeft < 30) || (aT === 1 && aC >= 4 && secLeft < 55) || (aT === 2 && aC >= 4 && secLeft < 30);
-    if(BAL.groupPlay && BAL.loneSave) hopeless = hopeless || (aT === 1 && aC >= 3) || (aT === 1 && aC === 2 && secLeft < 40) || (aT === 2 && aC >= 4 && secLeft < 50);
+    // (v381, М137, владелец 16.10: «Т-шники как будто часто сейвят») раньше 1 против 4 за 55 с до конца сейвили всегда, а у про в таком
+    // раскладе выживают без планта (сейв) только 5–10 % раз. Теперь — та же доля, что у про (T_SAVE_PRO, демки Ancient + Mirage),
+    // один бросок на расклад и отрезок времени в раунде
+    var hopeless = tSaveRoll(aT, aC, secLeft);
     if(hopeless && gunVal >= 1500 && !carOn){
       tt.saving = tick; saveCancelTrades("T");
       logEvent("T: сейв — "+aT+"v"+aC+", "+Math.round(secLeft)+"с — сохраняем оружие");
@@ -229,10 +241,7 @@ function tBrain(){
     if(awT){ if(!awT._saveSpot){ awT._saveSpot = pickSaveSpotT(awT); voiceLog("T", "awpsaveT", awT.id, "сейвлю AWP"); }
       setPost(awT, awT._saveSpot, null, true, "save"); ts = ts.filter(function(b){ return b !== awT; }); }
   }
-  if(tt.saving && bomb.state !== "planted"){
-    ts.forEach(function(b){ if(!b._saveSpot){ b._saveSpot = pickSaveSpotT(b); b._saveLooks = null; } if(!b.planting) setPost(b, b._saveSpot, null, true, "save"); });
-    return;
-  }
+  if(tt.saving && bomb.state !== "planted"){ tSaveHold(); return; }
   // бомба на земле — ближайший (не лёркер) идёт за ней
   var fetcher = null;
   // бомбу уже подобрали — старый пост "за бомбой" снять (иначе носитель
