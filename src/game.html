@@ -498,6 +498,10 @@ function autoPortals(){
 autoPortals();
 
 var NAVAREAS = MAP.navmesh.areas;
+// (v372) подъёмы из демок (tools/climbs_bake.py → MAP.climbs): уступ, на который .nav даёт только спрыгнуть, а про забираются
+// (ящики, выступы; Ancient — Mid → Xbox). Связь «вверх» — в граф навмеша, сам подъём — как по лестнице (laddersBuild)
+(function(){ var byId = {}; NAVAREAS.forEach(function(a){ byId[a.id] = a; });
+  ((MAP.climbs && MAP.climbs.climbs) || []).forEach(function(c){ var lo = byId[c.lo.area]; if(lo && byId[c.hi.area] && lo.conn.indexOf(c.hi.area) < 0) lo.conn.push(c.hi.area); }); })();
 
 // Pristine copy of the parsed .nav data, kept untouched — everything below
 // (winding normalization, in particular) mutates NAVAREAS in place, so a
@@ -10278,14 +10282,19 @@ function laddersBuild(){
     lo.forEach(function(a){ hi.forEach(function(b){ var ca = cen(a), cb = cen(b), d = Math.hypot(ca.x-cb.x, ca.y-cb.y); if(d < bd){ bd = d; best = {lo:{x:ca.x, y:ca.y, z:a.z, area:a.id}, hi:{x:cb.x, y:cb.y, z:b.z, area:b.id}}; } }); });
     if(best) LADDERS.push(best);
   });
+  // (v372) подъёмы из демок: точки низа и верха — где лезли про, время — медиана из демок; только вверх (вниз — спрыгнуть)
+  ((MAP.climbs && MAP.climbs.climbs) || []).forEach(function(c){
+    if(LADDERS.some(function(L){ return L.up && Math.hypot(L.lo.x-c.lo.x, L.lo.y-c.lo.y) < 15 && Math.hypot(L.hi.x-c.hi.x, L.hi.y-c.hi.y) < 15 && Math.abs(L.hi.z-c.hi.z) < 20; })) return;
+    LADDERS.push({lo:{x:c.lo.x, y:c.lo.y, z:c.lo.z, area:c.lo.area}, hi:{x:c.hi.x, y:c.hi.y, z:c.hi.z, area:c.hi.area}, up:true, sec:c.sec});
+  });
 }
 // лестница, по которой бот с этажа z попадает на этаж zTo: конец на своём этаже в пределах r
 function ladderFor(x, y, z, zTo, r){
   if(!LADDERS) laddersBuild();
   var best = null, bd = r;
-  LADDERS.forEach(function(L){ [[L.lo, L.hi], [L.hi, L.lo]].forEach(function(e){
+  LADDERS.forEach(function(L){ (L.up ? [[L.lo, L.hi]] : [[L.lo, L.hi], [L.hi, L.lo]]).forEach(function(e){
     if(Math.abs(e[0].z - z) > JUMP_UP || Math.abs(e[1].z - zTo) > JUMP_UP) return;
-    var d = Math.hypot(e[0].x - x, e[0].y - y); if(d < bd){ bd = d; best = {near: e[0], far: e[1]}; } }); });
+    var d = Math.hypot(e[0].x - x, e[0].y - y); if(d < bd){ bd = d; best = {near: e[0], far: e[1], sec: L.sec}; } }); });
   return best;
 }
 // true — бот в этот тик на лестнице (обычный шаг не делается)
@@ -10314,7 +10323,7 @@ function ladderTick(bot){
     return false;
   }
   var dz = Math.abs(L.far.z - L.near.z);
-  bot._climb = {t0: tick, dur: Math.max(8, Math.round(dz/LADDER_SPEED*TICK_HZ)), from: {x: bot.baseX, y: bot.baseY, z: bot.z}, to: L.far};
+  bot._climb = {t0: tick, dur: Math.max(8, Math.round((L.sec || dz/LADDER_SPEED)*TICK_HZ)), from: {x: bot.baseX, y: bot.baseY, z: bot.z}, to: L.far};
   if(bot.path[bot.pathIdx] && Math.hypot(bot.path[bot.pathIdx][0]-L.near.x, bot.path[bot.pathIdx][1]-L.near.y) < 4) bot.pathIdx++;
   return ladderTick(bot);
 }

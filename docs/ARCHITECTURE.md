@@ -94,7 +94,8 @@
 | `heights.json`, `cover.json`, `wallbang.json` | `heights`, `cover`, `wallbang` | высоты, укрытия, прострелы (поле `own` — правки владельца, `tools/map_pull.py`) | `HEIGHTS`, `COVER`, `WALLBANG` |
 | `tactics.json` | `tactics` | `geoMid` (v319, необязательное) — мид CT и T из демок `{ct, ctLook, t, tLook}` вместо точек на пути между спавнами (`buildSites`); `tTactics` (у тактики `weight` — своя частота), `ctSetups` (у сетапа `midAggressive` — агрессивный мид), `pos`, `lurkPlans`, `shiftTo`, `proRole`, `plays` — розыгрыши (ниже) | `T_TACTICS`, `CT_SETUPS`, `POS`, `LURK_PLANS`, `SHIFT_TO`, `PRO_ROLE` |
 | `lineups.json` | `lineups` | `baked` (лайнапы из редактора), `pro` и `proExtra` (из демок; `proExtra` — только при `BAL.nadeMore`), `builtinOff` | `LINEUPS_BAKED`, `PRO_LINEUPS_RAW`, `BUILTIN_OFF_BAKED` |
-| `pro.json` | `pro` | места и взгляды про из демок: `spots`, `prior`, `look`, `positions` | `PRO_SPOTS`, `PRO_PRIOR`, `PRO_LOOK`, `KNOW_POSITIONS` |
+| `pro.json` | `pro` | места и взгляды про из демок: `spots`, `prior`, `look`, `positions`; `pistolNades` (v370, `tools/nades_pro.py`) | `PRO_SPOTS`, `PRO_PRIOR`, `PRO_LOOK`, `KNOW_POSITIONS` |
+| `climbs.json` (v372, необязательный) | `climbs` | подъёмы из демок (`tools/climbs_bake.py`): уступ «только спрыгнуть», куда про залезают — `{lo, hi, n, sec}` | связь «вверх» в `NAVAREAS[].conn`, `LADDERS` (`up:true`) |
 
 Старые имена (`ZONEMAP`, `HEIGHTS`, `T_TACTICS`, …) остались короткими ссылками на `MAP.…` на тех же местах кода — порядок
 выполнения и правки на месте (выравнивание зон, навмеша, правки редактора) прежние.
