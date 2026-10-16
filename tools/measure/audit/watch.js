@@ -34,6 +34,10 @@
   // навмеш
   var LE = logEvent;
   logEvent = function(msg){ if(/вне навмеша/.test(String(msg))){ W.n.nav++; if(W.ev.nav.length < EVMAX) W.ev.nav.push([tick, String(msg).slice(0, 40)]); } return LE.apply(this, arguments); };
+  // (v375, владелец: «как будто видят сквозь смоки») убийство, когда линия стрелок → жертва проходит через дым: у про —
+  // убийств на Mirage — 8,6 % (демки, player_death.thrusmoke)
+  var FK = feedKill;
+  feedKill = function(att, vic){ if(att && vic && roundState === "live"){ W.n.kills = (W.n.kills||0) + 1; if(typeof smokeBlocks === "function" && smokeBlocks(att.x, att.y, vic.x, vic.y)){ W.n.smokeKill = (W.n.smokeKill||0) + 1; if((W.ev.smoke = W.ev.smoke || []).length < EVMAX) W.ev.smoke.push([tick, att.id, vic.id, Math.round(Math.hypot(att.x-vic.x, att.y-vic.y))]); } } return FK.apply(this, arguments); };
   // флешки: кто должен был отреагировать
   var DT = detonate;
   detonate = function(n){

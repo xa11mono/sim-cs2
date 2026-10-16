@@ -2978,6 +2978,7 @@ function wallBoxes(){
   });
   return _WB;
 }
+var ENTRY_WAIT = 128;   // (v375) 2 с: напарник на размен у входа на сайт (медиана про) — число, т.к. TICK_HZ объявлен ниже
 var POST_DWELL = 96, POST_URGENT = /^(flee|defuse|plantspot|stopplant|antidefuse|save|tradeR|contact|retake|fetch|pickup|clutch|bombwatch|repos:killmove|gather)/;
 function setPost(b, pt, look, hold, tag, spreadIdx){
   // сменил позицию после фрага — роль в этом раунде ставит его уже на новую точку
@@ -14650,6 +14651,17 @@ function stepTick(){
     var waitPop = (bot._waitPopUntil > tick && nadeFlags[bot._waitPopKey] === undefined && !bot._sawEnemy) || (BAL.pieSlice && bot._ppWaitUntil > tick && !bot._sawEnemy);
     if(BAL.pieSlice && bot._pie && bot._pie.slice && tick - bot._pie.t < 16 && !bot._sawEnemy) runSpeed *= 0.75; // режет угол
     var targetSpeed = (waitPop || bot.holding || bot.roamChecking || bot.atPost || bot.planting || bot.defusing || tick < (bot.throwUntil||0) || (bot.state === "engage" && bot._sawEnemy)) ? 0 : runSpeed;
+    // (v375, владелец: «в 4 раунде все по одному выходили из T Ramp и умирали») демки Mirage: первый T, входящий на сайт (≤ 250
+    // от него), один (своих ближе 500 нет) в 13 % раундов у про и в 29 % у ботов; второй входит через 2,0 с у про и 3,0 с у ботов.
+    // Перед входом на сайт один — ждёт напарника на размен до ENTRY_WAIT (2 с — медиана про), потом идёт; лёркер и бой — без ожидания
+    var stS = bot.team === "T" && bomb.state !== "planted" && teamTac.T && SITES[teamTac.T.site];
+    if(stS && targetSpeed > 0 && bot.tRole !== "lurker" && !bot._sawEnemy && bot.post && Math.hypot(bot.post.x-stS.x, bot.post.y-stS.y) < 250){
+      var dS0 = Math.hypot(bot.baseX-stS.x, bot.baseY-stS.y), alone = !bots.some(function(o){ return o !== bot && o.alive && o.team === "T" && Math.hypot(o.x-bot.x, o.y-bot.y) < 500; });
+      var anyMate = bots.some(function(o){ return o !== bot && o.alive && o.team === "T" && o.tRole !== "lurker"; });
+      if(dS0 > 250 && dS0 < 340 && alone && anyMate){ if(!bot._entryWait || bot._entryWait.round !== roundNum) bot._entryWait = {t:tick, round:roundNum};
+        if(tick - bot._entryWait.t < ENTRY_WAIT){ targetSpeed = 0; if(!bot._entryWait.log){ bot._entryWait.log = true; logEvent(bot.id+": перед входом на сайт — жду напарника на размен"); } } }
+      else if(!alone) bot._entryWait = null;
+    }
     // стоит в огне — выбегает из него прямо сейчас, что бы ни делал
     var burn = inFire(bot.baseX, bot.baseY);
     if(burn && !fireCommit(bot)){

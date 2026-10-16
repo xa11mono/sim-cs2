@@ -277,6 +277,7 @@
    746
   ]
  ],
+ "wallsFrom": "radar",
  "steps": [
   "navmesh",
   "walls",
