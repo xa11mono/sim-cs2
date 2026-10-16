@@ -1,11 +1,11 @@
-# Набор карты (v317): всё, что относится к одной карте, лежит в data/maps/<карта>/ — игра (src/game.html) не знает
+# Набор карты (v317): всё, что относится к одной карте, лежит в data/maps/<карта>/ — игра (src/game/*) не знает
 # ни одной карты и читает только объект MAP. Здесь набор склеивается в MAP и вшивается в страницу.
 #   map.json      — поля верхнего уровня MAP (имя, ключи хранилища, масштаб, спавны, подсказки UI; radar — имя картинки)
 #   <имя>.json    — MAP.<имя> (zones, navmesh, walls, heights, cover, wallbang, tactics, lineups, pro); _*.json — не в MAP
 #                   (рецепт сборки _build.json и отчёты tools/map_build.py)
 #   radar.png     — фон; в MAP.radar — data URI
 # JSON-файлы вставляются текстом, без перекодирования: числа остаются ровно как записаны (в т.ч. -0).
-# Метки в src/game.html: @@MAP@@ — объект MAP; @@MAP_NAME@@, @@MAP_ZONE_HINT@@, @@MAP_ZONE_LAYER_HINT@@ — надписи в разметке.
+# Метки в исходнике игры (src/game/*): @@MAP@@ — объект MAP; @@MAP_NAME@@, @@MAP_ZONE_HINT@@, @@MAP_ZONE_LAYER_HINT@@ — надписи в разметке.
 import base64, json, os
 
 HERE = os.path.dirname(os.path.abspath(__file__))

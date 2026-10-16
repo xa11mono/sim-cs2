@@ -1,0 +1,206 @@
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700&family=Roboto+Condensed:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+
+<div id="app">
+  <div id="topbar">
+    <div class="tb-id">
+      <h1>@@MAP_NAME@@</h1>
+      <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 317, 15.10</div>
+    </div>
+    <div class="tb-group" id="tbMatch">
+      <button id="btnPause">Пауза</button>
+      <span class="chk tb-match" title="Матч с одним номером всегда проходит одинаково. Увидел баг — запиши номер матча и тик, введи номер и нажми «Сыграть»: матч повторится с начала">матч № <input id="inpMatchNum" type="number" min="1" value="1" style="width:52px"> <select id="selSeries" title="Серия: сколько карт до победы (квадраты под табло)"><option value="1">BO1</option><option value="3" selected>BO3</option><option value="5">BO5</option></select> <label class="chk" title="Разминка перед матчем (как в CS2). Сняв галочку — матч начинается сразу"><input type="checkbox" id="chkWarm" checked> разминка</label> <button id="btnFreshMatch">Сыграть</button> <span id="matchTick" style="opacity:.75"></span></span>
+      <button id="btnRestartRound" title="Немедленно сбросить текущий раунд — на случай если боты застряли">Рестарт раунда</button>
+    </div>
+    <div class="tb-group tb-right">
+      <details class="dd">
+        <summary>Слои</summary>
+        <div class="dd-menu">
+          <div class="dd-h">Что видно у игроков</div>
+          <label class="chk"><input type="checkbox" id="chkLos"> конусы обзора</label>
+          <label class="chk"><input type="checkbox" id="chkTracers" checked> трассеры</label>
+          <label class="chk"><input type="checkbox" id="chkSound" checked> звук шагов</label>
+          <label class="chk" title="Командная информация: ◆ — «вижу» (цвет команды, которая сообщила), кольцо — «слышу», ✕ — погиб тиммейт"><input type="checkbox" id="chkCalls"> коллы</label>
+          <label class="chk" title="Маршруты роумеров и отметки «чисто»"><input type="checkbox" id="chkRoam"> роумеры</label>
+          <label class="chk" title="Под каждым игроком: какая у него сейчас задача и почему он смотрит именно туда"><input type="checkbox" id="chkWhy"> почему</label>
+          <label class="chk" title="Разбор взгляда выбранного игрока (клик по нему на радаре или по карточке): опасность зон и что о врагах знает его команда — цветом и числами, все варианты взгляда с баллами и множителями, источники (звук, инфа, где видели), и почему выбран именно этот угол"><input type="checkbox" id="chkLookDbg"> разбор взгляда</label>
+          <label class="chk"><input type="checkbox" id="chkOutline"> контуры укрытий</label>
+          <div class="dd-h">Карта</div>
+          <label class="chk"><input type="checkbox" id="chkWalls"> стены</label>
+          <label class="chk" title="Высота пола (цвет, шкала внизу слева), крытые места (штриховка), лестницы и рампы (стрелки вверх), уступы (толстая линия края). Наведи — подсказка"><input type="checkbox" id="chkHeights"> высоты</label>
+          <label class="chk" title="Высота укрытий (ящики, колонны, низкие стены): цвет — выше головы / по грудь / низкое, пунктир — не измерено. Наведи — высота в единицах игры"><input type="checkbox" id="chkCover"> укрытия</label>
+          <label class="chk" title="Прострелы: куски стен и ящиков, которые пробивает пуля, цветом по материалу (дерево, фанера, тонкий металл…). Наведи — толщина, урон AK и AWP, из чего пробивает. Остальное — камень, не пробивается"><input type="checkbox" id="chkWallbang"> прострелы</label>
+          <label class="chk" title="Клик по радару — точка A: где оттуда виден стоящий человек (зелёный — стоя и присев, жёлтый — только стоя). Shift+клик — точка B: что A видит у B (голова/тело/нет). Esc — убрать"><input type="checkbox" id="chkVis"> кто кого видит</label>
+          <label class="chk" title="Слой зон карты. Клик по зоне — переименовать её (@@MAP_ZONE_LAYER_HINT@@…)"><input type="checkbox" id="chkZones"> зоны (клик — название)</label>
+          <label class="chk"><input type="checkbox" id="chkPoints"> точки</label>
+          <label class="chk" title="Наведи курсор на зону (при включённом слое «зоны») — подсветятся все зоны, откуда её простреливают"><input type="checkbox" id="chkDanger"> опасность (наведи)</label>
+          <label class="chk"><input type="checkbox" id="chkNavmesh"> навмеш</label>
+          <label class="chk"><input type="checkbox" id="chkPortals"> порталы</label>
+          <div class="dd-h">Логика</div>
+          <label class="chk" title="Новый взгляд (v141–142): одна оценка угроз с дележом углов в команде. Выключи — вернётся старая логика v140"><input type="checkbox" id="chkNewLook" checked> новый взгляд</label>
+        </div>
+      </details>
+      <details class="dd">
+        <summary>Инструменты</summary>
+        <div class="dd-menu dd-r">
+          <label class="chk" title="Редактор карты: стены, высоты, укрытия, прострелы. Правки сразу в игре и сохраняются на странице"><input type="checkbox" id="chkMapEdit"> <b>правка карты</b></label>
+          <label class="chk" title="Свои лайнапы: откуда кидают и куда летит смок/флешка/молотов/HE, и когда"><input type="checkbox" id="chkLineups"> лайнапы (гранаты)</label>
+          <label class="chk"><input type="checkbox" id="chkZoneEdit"> зоны спавнов/сайтов (перо)</label>
+          <label class="chk" title="Сдвинуть/отмасштабировать весь слой зон и тактических точек целиком"><input type="checkbox" id="chkZoneAlign"> выравнивание зон</label>
+          <label class="chk"><input type="checkbox" id="chkAlign"> выравнивание navmesh</label>
+          <label class="chk"><input type="checkbox" id="chkNavWarp" title="Навмеш смещён от стен по-разному в разных углах карты — обычный общий сдвиг/масштаб это не лечит, нужно несколько опорных точек"> калибровка навмеша (точки)</label>
+          <button id="btnExportProject" title="Всё, что сохранено только в этом браузере (стены, точки калибровки, зоны) — одним JSON, чтобы зашить в код">Экспорт проекта</button>
+        </div>
+      </details>
+      <button id="btnWarmSkip" class="primary" style="display:none" title="Закончить разминку и начать матч сейчас">Начать матч</button>
+      <button id="btnSnd" title="Звуки игры: шаги, выстрелы, гранаты, бомба, плант, дефуз — синтез в браузере (не файлы CS2); громкость — по расстоянию от середины экрана">Звук</button>
+      <button id="btnObs" class="on" title="Автообсервер: сам выбирает, за кем следить, и ведёт камеру (клавиша O). Двинул камеру или выбрал игрока сам — обсервер ждёт 6 с">Обсервер <kbd>O</kbd></button>
+      <button id="btnObsMap" title="Обсервер чередует: когда тихо — вся карта, бой / плант / выход — камера на игроке. Выключить — всегда на игроке">Вся карта</button>
+      <span id="mkSlot"></span>
+    </div>
+  </div>
+  <div id="main">
+    <canvas id="cv"></canvas>
+    <canvas id="miniMap" width="232" height="232" title="Мини-радар: где игроки (как радар в CS2)"></canvas>
+    <div id="hgtTip" class="hgt-tip" style="display:none;"></div>
+    <div id="covTip" class="hgt-tip" style="display:none;"></div>
+    <div id="wbTip" class="hgt-tip wb-tip" style="display:none;"></div>
+    <div id="mapEdPanel" class="med" style="display:none;">
+      <div class="med-head"><b>Правка карты</b><span id="mapEdTabs" class="med-tabs"></span></div>
+      <div id="mapEdSrc" class="med-src"></div>
+      <div id="mapEdBody"></div>
+      <div class="med-row">
+        <button id="mapEdUndo" title="Ctrl+Z">Отменить</button>
+        <button id="mapEdReset" title="Убрать все правки этой вкладки и вернуть данные, которые сейчас в коде игры">Вернуть как в коде</button>
+      </div>
+      <div id="mapEdSave" class="med-save"></div>
+    </div>
+    <div id="alignPanel" style="display:none;position:absolute;top:10px;right:12px;background:rgba(10,14,9,0.92);border:1px solid var(--accent-dim);padding:10px 12px;border-radius:6px;font-size:11px;line-height:1.6;min-width:190px;z-index:5;">
+      <div style="color:var(--accent);font-weight:600;margin-bottom:4px;">Выравнивание navmesh</div>
+      <div style="color:var(--text-dim);margin-bottom:8px;">тащи мышью — двигать · колесо — масштаб</div>
+      <div class="row" style="display:flex;justify-content:space-between;gap:8px;align-items:center;margin-bottom:4px;">
+        <span class="lab">dx</span><input type="number" id="navDx" value="0" step="1" style="width:80px;background:var(--panel-2);color:var(--text);border:1px solid var(--line);border-radius:4px;padding:2px 5px;">
+      </div>
+      <div class="row" style="display:flex;justify-content:space-between;gap:8px;align-items:center;margin-bottom:4px;">
+        <span class="lab">dy</span><input type="number" id="navDy" value="0" step="1" style="width:80px;background:var(--panel-2);color:var(--text);border:1px solid var(--line);border-radius:4px;padding:2px 5px;">
+      </div>
+      <div class="row" style="display:flex;justify-content:space-between;gap:8px;align-items:center;margin-bottom:8px;">
+        <span class="lab">scale</span><input type="number" id="navScale" value="1" step="0.01" style="width:80px;background:var(--panel-2);color:var(--text);border:1px solid var(--line);border-radius:4px;padding:2px 5px;">
+      </div>
+      <button id="btnNavReset" style="width:100%;">Сброс</button>
+    </div>
+    <div id="navWarpPanel" style="display:none;position:absolute;top:10px;right:12px;background:rgba(10,14,9,0.92);border:1px solid var(--accent-dim);padding:10px 12px;border-radius:6px;font-size:11px;line-height:1.6;min-width:230px;z-index:5;">
+      <div style="color:var(--accent);font-weight:600;margin-bottom:4px;">Калибровка навмеша (опорные точки)</div>
+      <div style="color:var(--text-dim);margin-bottom:8px;" id="navWarpHint">жёлтая линия — реальная граница навмеша (должна лежать на стене) · клик 1: точка на этой границе · клик 2: где она должна быть на самом деле · минимум 3, в т.ч. у спавнов и дверных проёмов</div>
+      <div class="row" style="display:flex;justify-content:space-between;gap:8px;align-items:center;margin-bottom:8px;">
+        <span class="lab">опорных точек</span><span class="mono" id="navWarpCount">0</span>
+      </div>
+      <button id="btnNavWarpUndo" style="width:100%;margin-bottom:6px;">Отменить последнюю</button>
+      <button id="btnNavWarpClear" style="width:100%;">Сбросить все точки</button>
+    </div>
+    <div id="zoneEditPanel" style="display:none;position:absolute;top:10px;right:12px;background:rgba(10,14,9,0.92);border:1px solid var(--accent-dim);padding:10px 12px;border-radius:6px;font-size:11px;line-height:1.6;min-width:230px;z-index:5;">
+      <div style="color:var(--accent);font-weight:600;margin-bottom:4px;">Зоны спавнов / сайтов</div>
+      <div style="color:var(--text-dim);margin-bottom:8px;" id="zoneEditHint">выбери тип · клик — выделить существующую · тащи тело/уголок — двигать/масштаб · клик по пустому — новая зона (клик за кликом, "Готово" — замкнуть)</div>
+      <div class="row" style="display:flex;justify-content:space-between;gap:8px;align-items:center;margin-bottom:6px;">
+        <span class="lab">тип новой</span>
+        <select id="zoneKindSelect" style="background:var(--panel-2);color:var(--text);border:1px solid var(--line);border-radius:4px;padding:2px 5px;">
+          <option value="ctspawn">CT-спавн</option>
+          <option value="tspawn">T-спавн</option>
+          <option value="sitea">Сайт A</option>
+          <option value="siteb">Сайт B</option>
+          <option value="roam_ct">точка маршрута роумера CT</option>
+          <option value="roam_t">точка маршрута роумера T</option>
+          <option value="custom">своя точка (имя)</option>
+        </select>
+      </div>
+      <input id="zoneNameInput" placeholder="имя (для «своя точка»)" style="display:none;width:100%;box-sizing:border-box;margin-bottom:6px;background:var(--panel-2);color:var(--text);border:1px solid var(--line);border-radius:4px;padding:3px 6px;">
+      <button id="btnZoneFinish" style="width:100%;margin-bottom:6px;" disabled>Готово (замкнуть зону)</button>
+      <label class="chk" style="margin-bottom:8px;"><input type="checkbox" id="chkZoneVertexEdit"> редактировать точки (перо)</label>
+      <div class="row" style="display:flex;justify-content:space-between;gap:8px;align-items:center;margin-bottom:8px;">
+        <span class="lab">зон всего</span><span class="mono" id="zoneEditCount">0</span>
+      </div>
+      <button id="btnZoneDelete" style="width:100%;">Удалить выделенную</button>
+    </div>
+    <div id="zoneAlignPanel" style="display:none;position:absolute;top:10px;right:12px;background:rgba(10,14,9,0.92);border:1px solid var(--accent-dim);padding:10px 12px;border-radius:6px;font-size:11px;line-height:1.6;min-width:210px;z-index:5;">
+      <div style="color:var(--accent);font-weight:600;margin-bottom:4px;">Выравнивание зон (весь слой)</div>
+      <div style="color:var(--text-dim);margin-bottom:8px;">двигает/масштабирует все зоны и точки сразу · тащи мышью — двигать · колесо — масштаб · ПКМ — камера</div>
+      <div class="row" style="display:flex;justify-content:space-between;gap:8px;align-items:center;margin-bottom:4px;">
+        <span class="lab">dx</span><input type="number" id="zlDx" value="0" step="1" style="width:80px;background:var(--panel-2);color:var(--text);border:1px solid var(--line);border-radius:4px;padding:2px 5px;">
+      </div>
+      <div class="row" style="display:flex;justify-content:space-between;gap:8px;align-items:center;margin-bottom:4px;">
+        <span class="lab">dy</span><input type="number" id="zlDy" value="0" step="1" style="width:80px;background:var(--panel-2);color:var(--text);border:1px solid var(--line);border-radius:4px;padding:2px 5px;">
+      </div>
+      <div class="row" style="display:flex;justify-content:space-between;gap:8px;align-items:center;margin-bottom:8px;">
+        <span class="lab">scale</span><input type="number" id="zlScale" value="1" step="0.01" style="width:80px;background:var(--panel-2);color:var(--text);border:1px solid var(--line);border-radius:4px;padding:2px 5px;">
+      </div>
+      <button id="btnZlReset" style="width:100%;">Сброс (к зашитому)</button>
+    </div>
+    <div id="lineupPanel" style="display:none;position:absolute;top:10px;right:12px;background:rgba(10,14,9,0.95);border:1px solid var(--accent-dim);padding:10px 12px;border-radius:6px;font-size:11px;line-height:1.6;width:270px;z-index:7;max-height:80vh;overflow:auto;">
+      <div style="color:var(--accent);font-weight:600;margin-bottom:4px;">Свои лайнапы</div>
+      <div style="color:var(--text-dim);margin-bottom:6px;" id="lineupHint">клик 1 — откуда кидают · клик 2 — куда летит</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-bottom:6px;">
+        <select id="luTeam" style="background:var(--panel-2);color:var(--text);border:1px solid var(--line);border-radius:4px;padding:2px 4px;"><option value="T">T</option><option value="CT">CT</option></select>
+        <select id="luType" style="background:var(--panel-2);color:var(--text);border:1px solid var(--line);border-radius:4px;padding:2px 4px;"><option value="smoke">смок</option><option value="flash">флешка</option><option value="molly">молотов</option><option value="he">HE</option></select>
+        <select id="luTrigger" style="background:var(--panel-2);color:var(--text);border:1px solid var(--line);border-radius:4px;padding:2px 4px;">
+          <option value="insta">инста (старт раунда)</option><option value="setup">сетап (T, до выхода)</option><option value="exec">выход T</option>
+          <option value="postplant">пост-плант (T)</option><option value="call">колл CT на сайт</option><option value="retake">ретейк (CT)</option></select>
+        <select id="luSite" style="background:var(--panel-2);color:var(--text);border:1px solid var(--line);border-radius:4px;padding:2px 4px;"><option value="any">любой сайт</option><option value="A">сайт A</option><option value="B">сайт B</option></select>
+      </div>
+      <input type="text" id="luName" maxlength="40" placeholder="название, напр. «смок CT на A»" style="width:100%;box-sizing:border-box;background:var(--panel-2);color:var(--text);border:1px solid var(--line);border-radius:4px;padding:2px 4px;padding:4px 6px;margin-bottom:6px;">
+      <div id="lineupList" style="margin:6px 0;"></div>
+      <label class="chk" style="margin:4px 0;"><input type="checkbox" id="luShowBuiltin" checked> показывать встроенные на карте</label>
+      <div id="lineupBuiltin" style="margin:4px 0 6px;color:var(--text-dim);"></div>
+      <div style="color:var(--text-dim);font-size:10px;">Сохраняются в этом браузере и в «Экспорт проекта». Бот с такой гранатой в нужный момент идёт в точку броска и кидает навесом.</div>
+    </div>
+    <div id="zoneNamePanel" style="display:none;position:absolute;top:10px;right:12px;background:rgba(10,14,9,0.95);border:1px solid var(--accent-dim);padding:10px 12px;border-radius:6px;font-size:11px;line-height:1.6;width:240px;z-index:7;">
+      <div style="color:var(--accent);font-weight:600;margin-bottom:4px;">Название зоны</div>
+      <div style="color:var(--text-dim);margin-bottom:6px;">id: <span class="mono" id="zoneNameId">—</span> · <span id="zoneNameNamed">0</span>/<span id="zoneNameTotal">0</span> названо</div>
+      <input type="text" id="zoneNameInput2" maxlength="32" placeholder="@@MAP_ZONE_HINT@@" style="width:100%;box-sizing:border-box;background:var(--panel-2);color:var(--text);border:1px solid var(--line);border-radius:4px;padding:4px 6px;margin-bottom:8px;">
+      <div style="display:flex;gap:6px;">
+        <button id="btnZoneNameSave" style="flex:1;">Сохранить</button>
+        <button id="btnZoneNameReset" style="flex:1;">Сбросить</button>
+        <button id="btnZoneNameClose">✕</button>
+      </div>
+      <label class="chk" style="margin-top:6px;"><input type="checkbox" id="chkZoneShape"> форма зоны (перо)</label>
+      <div id="zoneShapeHint" style="display:none;color:var(--text-dim);font-size:10px;">тащи точку — двигать · клик по краю — новая точка · Shift+клик по точке — удалить · <a href="#" id="zoneShapeReset" style="color:var(--accent)">вернуть исходную форму</a></div>
+      <div style="color:var(--text-dim);font-size:10px;margin-top:6px;">Enter — сохранить · клик по другой зоне — следующая. Названия идут в войс-коллы и лог; сохраняются в этом браузере и в «Экспорт проекта».</div>
+    </div>
+    <div id="projectExportBox" style="display:none;position:absolute;left:12px;bottom:60px;z-index:6;background:rgba(10,14,9,0.95);border:1px solid var(--accent-dim);border-radius:6px;padding:8px;width:360px;">
+      <div style="color:var(--accent);font-size:11px;margin-bottom:4px;">Скопируй и пришли в чат — зашью в код</div>
+      <textarea id="projectExportArea" readonly style="width:100%;height:120px;font-family:'IBM Plex Mono',monospace;font-size:10px;background:#060806;color:var(--accent);border:1px solid var(--line);border-radius:5px;padding:6px;box-sizing:border-box;"></textarea>
+    </div>
+    <div id="hud">
+      <div class="row"><span class="lab">Тик</span><span class="mono" id="hTick">0</span></div>
+      <div class="row"><span class="lab">Время</span><span class="mono" id="hTime">0.0s</span></div>
+      <div class="row"><span class="lab">Контактов сейчас</span><span class="mono" id="hContacts">0</span></div>
+      <div class="row"><span class="lab">Бомба</span><span class="mono" id="hBomb">—</span></div>
+    </div>
+    <div id="scoreboard">
+      <div class="sb-head"><span>@@MAP_NAME@@</span><span id="sbMatch">матч № 1</span></div>
+      <div class="sb-main">
+        <div class="sb-team t"><div class="sb-logo" id="sbLogoT">T</div><div class="sb-name" id="sbNameT"></div><div class="sb-score" id="sbScoreT">0</div></div>
+        <div class="sb-mid"><div class="sb-round" id="sbRound">РАУНД 1</div><div class="sb-time" id="sbTime">1:55</div></div>
+        <div class="sb-team ct"><div class="sb-logo" id="sbLogoCT">CT</div><div class="sb-name" id="sbNameCT"></div><div class="sb-score" id="sbScoreCT">0</div></div>
+      </div>
+      <div class="sb-series" id="sbSeries"><span id="sbSerT"></span><span id="sbSerCT"></span></div>
+      <div class="sb-alive"><b class="t" id="sbAliveT">5</b><span>vs</span><b class="ct" id="sbAliveCT">5</b></div>
+    </div>
+    <div class="pl-col" id="plT"></div>
+    <div class="pl-col" id="plCT"></div>
+    <div id="plFocus"><div class="pf-photo"><div id="pfPhoto"></div><div class="pf-kd" id="pfKd"></div></div><div class="pf-bar"><span id="pfNick"></span><span id="pfHp"></span></div></div>
+    <div id="contact">ОБНАРУЖЕН КОНТАКТ</div>
+    <div id="warn"></div>
+    <div id="log"></div>
+    <div id="voice"></div>
+    <div id="econ"></div>
+    <div id="killfeed"></div>
+    <div id="banner"></div>
+    <div id="roundCard"></div>
+    <div id="legend">
+      <span><i style="background:var(--ct)"></i>CT</span>
+      <span><i style="background:var(--t)"></i>T</span>
+      <span><i style="background:#e8dc5a"></i>конус: видит врага</span><span><i style="background:#bcc0b8"></i>дым</span><span><i style="background:#ff9a3c"></i>огонь</span><span><i style="background:transparent;border:1.5px solid #fff"></i>верх</span><span><i style="background:rgba(122,140,158,0.55)"></i>под полом</span>
+    </div>
+  </div>
+</div>
+
+<script>

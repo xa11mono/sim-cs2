@@ -10,7 +10,7 @@
 внутри мозга: демки — только для сверки. Подробно — начало docs/PRINCIPLES.md.
 
 **Сейчас (с v239, 10.10) игра — снова v166** (решение владельца: v166 по движению, гранатам и экономике ближе к про;
-переделка v197–v238 — в ветке `rebuild-v238`). Игра — один файл `src/game.html` (v166, бит в бит). Что будем менять в
+переделка v197–v238 — в ветке `rebuild-v238`). Игра — v166 (бит в бит), с v375 исходник — модули `src/game/NNN_*.js` (раньше один `src/game.html`). Что будем менять в
 v166 — `docs/V166_CHANGES.md` (список владельца). Главный принцип и правила ниже — в силе.
 С v240 в v166 — знание о врагах из переделки (`KNOW`, `know*`: гипотезы held/moved/moved_unknown); карту
 `belief`, которую читают решения v166, собирает из них `beliefTick` (старое растекание весов — в ветке `v166-weights`).
@@ -22,7 +22,7 @@ v166 — `docs/V166_CHANGES.md` (список владельца). Главны�
   хватает. Доки (`ARCHITECTURE.md`, `DECISIONS.md`, `PRINCIPLES.md`, `docs/tasks/`)
   открывать только когда задача их касается, и только нужный раздел:
   `grep -n` по слову → `Read` с offset/limit. `docs/archive/` — не открывать.
-- **Код читать кусками, а не файлами.** Сначала `grep -n 'имяФункции' src/js/*.js`,
+- **Код читать кусками, а не файлами.** Сначала `grep -n 'имяФункции' src/game/*.js`,
   потом `Read` нужных строк (offset/limit). Файл целиком — только если он
   меньше ~150 строк или правка правда затрагивает весь файл.
 - **Никогда не читать целиком** (только grep / кусок по строкам):
@@ -51,37 +51,72 @@ v166 — `docs/V166_CHANGES.md` (список владельца). Главны�
 (навмеш из `.nav`, стены, высоты, укрытия, зоны по подписям радара, всё из демок; bake-скрипты — с ключом `--map`, общий
 `tools/mapdir.py`). Карты: Ancient (заморожено всё, кроме высот/укрытий/прострелов), Mirage (`python3 src/mkpub.py --map mirage` → `mirage-radar.html`,
 страница https://claude.ai/artifact/QzmQZEd5t9EdnhcXET9Agn (с v336; старая EBaRN7xYH1QXzC1iiTNZ4x — с другого аккаунта), база правок — коллекция `map-mirage`). Проверка глазами — `tools/map_shot.js`.
-Сборка: `python3 src/build.py [--map ancient]` → `sim.html` (копия `src/game.html` с набором карты и тестовым входом для
+Сборка: `python3 src/build.py [--map ancient]` → `sim.html` (склейка `src/game/*` с набором карты и тестовым входом для
 замеров). Публикуемая: `python3 src/mkpub.py [--map ancient]` → `ancient-radar.html` (страница https://claude.ai/artifact/6nWEKBXyNAybDYzgPT1sH7 (с v370; старая VcutdCmiqN164CLNYowQvP — с другого аккаунта); там же база
-правок карты — коллекция `map`). `src/game.html` — ~15 100 строк, **читать только кусками** (`grep -n` → `Read` с offset/limit).
-Где что (строка начала):
+правок карты — коллекция `map`).
+**Исходник игры (v375) — модули `src/game/`**: склейка всех `src/game/*` по порядку номеров (`src/gamesrc.py`, одно место
+чтения) == прежний `game.html`; `src/game.html` больше нет. Порядок, видимость `var`/функций, числа при загрузке —
+`docs/ARCHITECTURE.md`, «Исходник по модулям». Искать: `grep -n 'имя' src/game/*.js` → `Read` нужных строк.
+- **Правка механики — в её файле** (таблица ниже). Новую функцию класть в файл своей механики, рядом с соседями.
+- Файл больше ~600 строк — делить по границе функций (новый файл — номером между соседями, напр. `175_…js`). Неделимые пока:
+  `tBrain` (869), `draw` (823), `ctBrain` (639), `stepTick` (~530).
+- Разметка и стили — `000_head.html`, `002_style.html`, `004_markup.html`; конец страницы — `990_tail.html`.
 
-| что | где в `src/game.html` |
+Где что (файл в `src/game/`):
+
+| что | файл |
 |---|---|
-| **карта** (данные — `MAP`, набор `data/maps/<карта>/`): стены `WALL_POLYS` / `applyWalls`; высоты `HEIGHTS` / `hgtInfo`; укрытия `COVER` / `covList`; прострелы `WALLBANG` / `wbList`, `wbAfter` | ~829; ~864; ~916; ~1063 |
-| **кто кого видит** (одно место, 3D): `VIS_*`, `visLine`, `visParts`, `visFloorAt`; через неё `hasLOS` и таблица «откуда простреливается» `computeZoneDanger` (пересчёт сам в `visInvalidate`) | ~1198; ~1706 |
-| переключатели и числа движка `BAL` | `var BAL = {` |
-| позиция: `setPost` / `updatePost`; «держать район» `holdSpot` / `holdGroup`, варианты `holdCands` (+ места про); **где встать по почерку, оружию и прошлому раунду** (одно место): `posPref`, `posPickName`, `posTick` | ~2726; ~7158 |
-| план и мозг T: `tBrain`, лёркер `lurkerBrain`, IGL `tIglReplan` | `grep -n` |
-| мозг CT: `ctBrain`, ретейк `updateRetake` | ~8014; ~4633 |
-| память команды v166 (только радар + войс, v242): `intelPush`, `teamInfoTick`, `commSend` = радар, `teamHeardToIntel` | ~4862; ~4913; ~4840 |
-| тайминги «может ли там уже кто-то быть»: `beliefBuild`, `reach*` | ~5205 |
-| **знание бота о врагах** (одно место): `KNOW`, `hearReal`, `knowTick`, `knowKill`, `knowClearZone`; позиции про `KNOW_POSITIONS` | ~5348; ~5784 |
-| **войс** (одно место «что сказали»): `TEAM`, `teamNotice`, `teamChannel`, `teamDeath`, `teamTick` → `knowCall` | ~5852; ~6043 |
-| карта команды `belief` из гипотез: `beliefTick`; чтение `beliefZoneKnown`, `intelEstimate`, `lkpNear` | ~6066; ~6553; ~4898 |
-| взгляд: `lookCands`, `lookPlan`, `smoothLookFilter`, `threatEntrances` | ~6857–7090 |
-| гранаты: закуп `buyNades`, решения `nadeBrains`, лайнапы `lineupTick` | ~8648; ~9248; ~8873 |
-| нож: `knifeTick` | ~9577 |
-| стрельба: `tryShoot` (целится в видимое; свой на линии — `bulletVictim`), `resolveEngagements` (visParts), после фрага `afterKillMove`; **урон и смерть — одно место** `applyDamage` (пули, HE, молотов; по своим `FF_MUL`) | `grep -n` |
-| **движение в перестрелке** (одно место, v250): `fightCycleTick` — на линии → за укрытие `fightCover` → снова; числа `PEEK_PRO` | ~10080 |
+| загрузка карты `MAP`, зоны, слой зон, калибровка навмеша; навмеш `.nav`, порталы, авто-стены | `010_map_zones_warp`, `020_map_navmesh_autowalls` |
+| **карта** (данные — `MAP`, набор `data/maps/<карта>/`): стены `WALL_POLYS` / `applyWalls`; высоты `HEIGHTS` / `hgtInfo`; укрытия `COVER` / `covList`; прострелы `WALLBANG` / `wbList`, `wbAfter` | `030_map_walls_heights_cover_wallbang` |
+| **кто кого видит** (одно место, 3D): `VIS_*`, `visLine`, `visParts`, `visFloorAt`, `visInvalidate`; через неё `hasLOS` и таблица «откуда простреливается» `computeZoneDanger` | `040_visibility`; `hasLOS` — `050_nav_rebuild_paths`; `computeZoneDanger` — `060_zone_danger_user_zones` |
+| навмеш и пути: `rebuildNav`, `zoneDijkstra`, `funnel`, `buildWaypointPath`; уровни/лестницы/подъёмы `navAtLevel`, `laddersBuild`, `ladderTick`; огонь `inFire` | `050_nav_rebuild_paths`; `370_fire_nav_levels_ladders` |
+| оружие, боты `makeTeam`, роумер | `070_weapons_bots_roam`; `updateRoamer` — `430_fov_roam` |
+| переключатели и числа движка `BAL` | `080_bal` |
+| профили игроков, **команды** `LINEUP`, `SIDE_TEAM`, `seatPlayers` | `090_profiles_teams` |
+| сайты, точки планта, `pickSpots` | `100_sites_spots` |
+| позиция: `setPost` / `updatePost`, маршруты `startRoute` / `routeTick` | `110_post_routes` |
+| **где встать по почерку, оружию и прошлому раунду** (одно место): `posPref`, `posPickName`, `posTick`; «держать район» `holdSpot` / `holdGroup`, варианты `holdCands` | `280_pos_pref_hold` |
+| бомба: `bombTick`, урон взрыва `bombDamageAt` (`BOMB_DMG`), куда бежать `bombFleePoint`, дефуз | `120_bomb` |
+| тактики T `chooseTactic`, память матча `memSnapshot`/`memRestore`/`memStart`, `MEM_BOX`, профиль соперника `OPP.by`, тайм-ауты | `130_tactics_match_adapt` |
+| позиции по названиям зон, расстановки CT `chooseCtSetup`, любимые углы | `140_named_spots_ct_setup` |
+| лёркер `lurkerBrain`, пробы, «проверено — пусто» `markClear` | `150_lurker_probes_clear` |
+| IGL `tIglReplan`, стадии `stagePost` / `tSetSite` | `160_igl_replan` |
+| мозг T `tBrain` | `170_tbrain` |
+| сейв `pickSaveSpot`, ретейк `updateRetake` | `180_save_retake` |
+| мозг CT `ctBrain` | `340_ctbrain` |
+| эндгейм, клатч CT, ранний пик CT, мид | `320_pro_lineups_ct_early`, `330_endgame_smoke_push` |
+| роли `pRole`, `tFallbackTick`, ребаланс сайта; про-позиции `ppLayer`/`proPick` | `300_roles_fallback_rebalance`, `310_pro_positions` |
+| память команды v166 (только радар + войс): `intelPush`, `teamInfoTick`, `commSend` = радар, `intelEstimate`, `lkpNear`, названия зон `calloutName` | `190_team_intel_lkp_calls`; `teamHeardToIntel` — `230_team_voice` |
+| тайминги «может ли там уже кто-то быть»: `beliefBuild`, `reach*` | `200_belief_reach` |
+| **знание бота о врагах** (одно место): `KNOW`, `hearReal`, гипотезы `know*`; позиции про `KNOW_POSITIONS` | `210_know_hyp` |
+| … события знания: `knowCall`, `knowClearZone`, `knowKill`, `knowTick` | `220_know_events_tick` |
+| **войс** (одно место «что сказали»): `TEAM`, `teamNotice`, `teamChannel`, `teamDeath`, `teamTick` → `knowCall` | `230_team_voice` |
+| карта команды `belief` из гипотез: `beliefTick`; чтение `beliefZoneKnown` | `240_belief_tick`; `beliefZoneKnown` — `260_look_threat` |
+| взгляд: пики до контакта `prePeekTick`, углы `cornerLook`; оценка угрозы `threatLook`; `lookCands`, `lookPlan`, `smoothLookFilter`, `threatEntrances` | `250_look_prepeek_corners`, `260_look_threat`, `270_look_plan_smooth` |
+| смоки: прострел `smokeSpamTick`, `smokeEnemyPossible`; дыры от пуль `smokeBulletHole` | `290_smoke_react`; `smokeBulletHole` — `360_nades_buy_smoke_vision` |
+| **реакция на контакт** (одно место): `contactTick`; `teamBrains` | `350_contact_reaction` |
+| гранаты: закуп `buyNades`, дым и видимость `smokeBlocks`; бросок `throwNade`, траектория `nadeArc`; лайнапы `lineupTick`; полёт и срабатывание `detonate`, `nadesTick`; гранаты «себе» `selfNadeTick`, `nadeReact`; решения `nadeBrains` / `nadeUseTick` | `360_nades_buy_smoke_vision`, `380_nades_throw`, `390_nades_lineups`, `400_nades_physics_damage`, `410_nades_tactical_self`, `420_nades_brains` |
+| **урон и смерть — одно место** `applyDamage` (пули, HE, молотов; по своим `FF_MUL`) | `400_nades_physics_damage` |
+| **панель войса** (одно место показа): `voiceFeed` / `renderVoice`, цвета `VOICE_KIND` / `VOICE_KEYS`; консоль `logEvent` (#log) — по Ё, `toggleConsole` | `440_voicepanel_console` |
+| трассеры, свой на линии `bulletVictim`; выпадение при смерти `dropWeaponOnDeath` → `groundWeapons` / `groundItems` (`itemPickupTick`); нож `knifeTick`; подбор оружия | `450_combat_items_knife` |
+| звук `emitSound`, мелкие ситуации (пас бомбы, добить, смок уходит, ослеплён, пистолет) | `460_sound_situations` |
+| **движение в перестрелке** (одно место): `fightCycleTick` — на линии → за укрытие `fightCover` → снова; числа `PEEK_PRO`; безопасная ротация, мало HP | `470_fight_cycle` |
+| дабл-пик, фланг, перезарядка `updateReload` | `480_assist_flank_reload` |
+| стрельба `tryShoot` (целится в видимое) | `490_shoot` |
+| `decideAction`, после фрага `afterKillMove`, `findCover` | `500_decide_afterkill_cover` |
+| перестрелки `resolveEngagements` (visParts), `assignNewDestination` | `510_engagements` |
+| экономика: `decideRoundType0`, `buyForPlayer`; что берут — доли про `smgFor`, `PRO_PISTOL` (`tools/buy_pro.py`) | `520_economy` |
+| **смена сторон и раунд**: `buyPhase`, `sideSwapNow`, `swapSides`, `freshMatch`, `endRound`, `resetRound` | `530_round_sides_match` |
+| цикл `stepTick` (+ замирание, шаги, прыжки) | `540_step_tick` |
+| рисование вспомогательного: навмеш/зоны (режимы редактирования); редактор лайнапов и форм зон | `550_render_nav_zone_tools`, `560_lineup_zone_editor` |
+| редактор карты `MAPED` (вкладки, Ctrl+Z, база; стены); высоты; укрытия; прострелы | `570_maped_core_walls`, `580_maped_heights`, `590_maped_cover`, `600_maped_wallbang` |
+| проверка «кто кого видит» `visToolDraw`; разбор взгляда `lookDbgPanel` | `610_vistool_lookdebug` |
+| рисование кадра `draw` | `620_draw` |
+| киллфид `feedKill` (иконки `KF_ICON`), баннеры, карточка раунда, экономика на экране | `630_killfeed_banners_econ` |
+| табло `scoreboardUpdate`, панели игроков `playersUpdate` | `640_scoreboard_players` |
+| место вставки «Отметить момент» (`@@BUILD@@`) | `650_marks_hook` |
+| разминка `warm*`; автообсервер `obs*`, мини-карта; звук `snd*`, главный цикл `frame`, кнопки | `660_warmup`, `670_observer`, `680_sound_frame_buttons` |
 | **отметки владельца** (v255): `src/marks.js` (кнопка M, снимок, перемотка), сборка — `src/marks_build.py`; открыть снимок — `tools/mark_open.js`; повтор с хранилищем браузера владельца — `tools/replay_owner.js` | отдельные файлы |
-| экономика: `decideRoundType0`, `buyForPlayer`; что берут — доли про `smgFor`, `PRO_PISTOL` (`tools/buy_pro.py`) | ~11348; ~11408 |
-| бомба: урон взрыва `bombDamageAt` (`BOMB_DMG`), куда бежать `bombFleePoint`; выпадение при смерти `dropWeaponOnDeath` → `groundWeapons` / `groundItems` (`itemPickupTick`); дым: дыры от пуль `smokeBulletHole`, прострел `smokeSpamTick` + `smokeEnemyPossible` | `grep -n` |
-| **команды и смена сторон** (v270, одно место): `LINEUP`, `SIDE_TEAM`, `seatPlayers`; `sideSwapNow`, `swapSides`; память матча по раскладу `memSnapshot`/`memRestore`/`memStart`, `MEM_BOX`; профиль соперника `OPP.by` | `grep -n` |
-| раунд и цикл: `endRound`, `resetRound`, `stepTick` | ~11584; ~11617; ~11677 |
-| редактор карты `MAPED` (вкладки стены/высоты/укрытия/прострелы, Ctrl+Z, база); проверка «кто кого видит» `visToolDraw` | ~12954; ~14060 |
-| киллфид `feedKill` (иконки `KF_ICON`), табло `scoreboardUpdate`, панели игроков `playersUpdate` | ~14845; ~14967 |
-| **панель войса** (v264, одно место показа): `voiceFeed` / `renderVoice`, цвета `VOICE_KIND` / `VOICE_KEYS`; консоль `logEvent` (#log) — по Ё, `toggleConsole` | `grep -n` |
 
 Замеры: `tools/measure/measure.py <метка> --matches=3,7,11,13,17,19` работают и с v166. Аудит поведения по механикам
 (цепочки «сигнал → знание → задача → взгляд → действие») — `tools/measure/audit/` (README там же), отчёт —
@@ -107,7 +142,7 @@ v166 — `docs/V166_CHANGES.md` (список владельца). Главны�
 - **Придумывать как можно меньше (09.10).** Каждое правило и каждое число поведения — из демок (наши 88 Ancient),
   из игры или из достоверного источника. Сначала искать там; нет нигде — тогда своё, с пометкой «проектное
   число» в коде и в DECISIONS, и оно — первый кандидат на замену данными. Список таких мест — `grep -rn
-  "проектное число" src/js`.
+  "проектное число" src/game`.
 - Разбор ситуации из отметки — открыть её снимок (`tools/mark_open.js`,
   docs/tasks/02-mark-moment.md, раздел 4), а не перепроигрывать матч.
 
