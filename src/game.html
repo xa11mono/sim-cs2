@@ -3740,6 +3740,8 @@ var roundStartTick = 0;
 // маршруты лёркера по названиям зон: на B — через воду к рампе или через
 // мид/лампу к кейву; на A — через лестницу к мейну или через мид к донату
 var LURK_PLANS = MAP.tactics.lurkPlans;
+var LURK_JOIN_SEC = 10, LURK_CHECK = 0.6;
+function lurkGoNow(tt){ return tt.phase === "setup" && tt.execTick && tick >= tt.execTick - LURK_JOIN_SEC*TICK_HZ; }
 function lurkerBrain(b, tt, other){
   var go = GEO[other];
   if(!b._lurkPlan || b._lurkPlan.round !== roundNum || b._lurkPlan.site !== other){
@@ -3749,7 +3751,7 @@ function lurkerBrain(b, tt, other){
     startRoute(b, P.via, "lurk"+other+pi);
   }
   var LP = b._lurkPlan;
-  if(tt.phase === "setup"){
+  if(tt.phase === "setup" && !lurkGoNow(tt)){
     // не стоит столбом весь сетап: чередует укрытие и короткий выгляд на
     // проход сайта ("есть ли кто?") — ~5с в укрытии, ~2.5с на выгляде
     var hide = pickSpots("lurkStage"+other+LP.name, LP.stage, 1, {rMax:200, minGap:40, hideFrom:[SITES[other], go.anchor], see:[LP.entry]})[0];
@@ -3764,14 +3766,26 @@ function lurkerBrain(b, tt, other){
     b._lurkIdx = 0;
     return;
   }
-  if(tt.phase === "execute"){
-    var route = [LP.entry, go.anchor, GEO.rotator];
-    var i = Math.min(b._lurkIdx||0, route.length-1);
-    var look = i < route.length-1 ? route[i+1] : GEO[tt.site].ctEntry;
-    setPost(b, route[i], look, true, "lurk"+i);
+  if(tt.phase === "execute" || lurkGoNow(tt)){
+    // (v369, владелец: «лёркер не играет, когда тиммейты зашли или пытаются выйти на сайт») у про к выходу лёркер уже рядом: в
+    // 94 % раундов с плантом все T за 9 с до планта (≈ выход) ближе 600 ед. карты к точке планта (демки Mirage, 774 раунда); из
+    // оставшихся лёркеров половина держит проход ротации, 15 % идёт к своим, 11 % лезет на другой сайт. Поэтому лёркер начинает
+    // двигаться за LURK_JOIN_SEC с до выхода: стоит у входа на другой сайт — проходит его (зачистка опорника), режет ротацию через
+    // проход между сайтами и заходит на сайт выхода со стороны CT; далеко от входа — идёт к своим (сбор выхода). На точках — по
+    // LURK_CHECK с (было 2,3 с на каждой — шёл весь выход). Проектные числа
+    var site = SITES[tt.site], gs = GEO[tt.site];
+    if(!b._lurkGo || b._lurkGo.round !== roundNum || b._lurkGo.site !== tt.site){
+      var nearOther = Math.hypot(b.x-LP.entry.x, b.y-LP.entry.y) < 500;
+      b._route = null; b._routeDone = null;   // маршрут лёрка сетапа — закончен
+      b._lurkGo = {round:roundNum, site:tt.site, route: nearOther ? [LP.entry, go.anchor, GEO.rotator, gs.ctEntry] : [gs.tStage || gs.tEntry, gs.tEntry], i:0, t:0};
+      voiceLog("T", "lurkgo"+roundNum, b.id, nearOther ? "захожу с "+other+" — режу ротацию, буду со спины на "+tt.site : "иду к вам на "+tt.site);
+    }
+    var LG = b._lurkGo, i = Math.min(LG.i, LG.route.length-1);
+    var look = i < LG.route.length-1 ? LG.route[i+1] : site;
+    setPost(b, LG.route[i], look, true, "lurk"+i);
     if(b.atPost){
-      if(!b._lurkArr) b._lurkArr = tick;
-      if(tick - b._lurkArr > 150 && i < route.length-1){ b._lurkIdx = i+1; b._lurkArr = 0; }
+      if(!LG.t) LG.t = tick;
+      if(tick - LG.t > LURK_CHECK*TICK_HZ && i < LG.route.length-1){ LG.i = i+1; LG.t = 0; }
     }
     return;
   }
@@ -10386,9 +10400,11 @@ function nadeCovered(x, y){
 // игрока — не меньше NADE_GAP с: демки про Mirage, 20 539 пар бросков подряд — минимум 1,1 с (0,5-й процентиль), быстрее 1 с — 0 %
 var NADE_GAP = Math.round(1.1*64);
 function nadeReady(b){ return tick - (b._nadeT == null ? -1e9 : b._nadeT) >= NADE_GAP; }
-function throwNade(b, type, tx, ty, lob, why){
-  if(!b.nades || b.nades[type] <= 0) return false;
-  if(!nadeReady(b)) return false;
+var NADE_FAIL = null;   // (v369) почему последний бросок не состоялся — для проверки
+function throwNade(b, type, tx, ty, lob, why, trusted){
+  NADE_FAIL = null;
+  if(!b.nades || b.nades[type] <= 0){ NADE_FAIL = "нет гранаты"; return false; }
+  if(!nadeReady(b)){ NADE_FAIL = "пауза между гранатами"; return false; }
   // (аудит 11.10) проверка прямо перед броском: HE / молотов не летит туда, где стоит свой (в радиусе поражения) —
   // бросок отменяется, граната остаётся. Раньше не проверялось: 37 % HE падали в 300 px от своего, урон по своим от
   // гранат — 88 случаев на 12 матчей (у про из 33 тимкиллов 30 — пули, docs/PRO_PLAY.md 6г)
@@ -10399,13 +10415,15 @@ function throwNade(b, type, tx, ty, lob, why){
   var aL = Math.atan2(ty-b.y, tx-b.x), shortL = (type === "molly" && !lob) ? 70/TICK_HZ/(1-0.96) : 0;
   var lx = b.x + Math.cos(aL)*Math.max(0, dL - shortL), ly = b.y + Math.sin(aL)*Math.max(0, dL - shortL);
   if((type === "he" || type === "molly") && bots.some(function(o){ return o.alive && o.team === b.team &&
-      (Math.hypot(o.x-tx, o.y-ty) < NADE[type].radius || Math.hypot(o.x-lx, o.y-ly) < NADE[type].radius); })) return false;
+      (Math.hypot(o.x-tx, o.y-ty) < NADE[type].radius || Math.hypot(o.x-lx, o.y-ly) < NADE[type].radius); })){ NADE_FAIL = "свой в зоне"; return false; }
   // (v323, М33) цель под крышей / под другим этажом — навесом не долетит: кидает низом (прямо, с отскоком от стен), если
   // точка видна; иначе не кидает
-  if(lob && nadeCovered(tx, ty)){ if(!hasLOS(b.x, b.y, tx, ty)) return false; lob = false; }
+  // (v369) лайнап из набора (точка броска и цель — из демок про / свой лайнап): брошен так в игре — крыша не проверяется. Было:
+  // 36 из 45 неудачных бросков на снимках — «под крышей», задание снималось без броска («идёт кидать гранату» и не кидает)
+  if(lob && !trusted && nadeCovered(tx, ty)){ if(!hasLOS(b.x, b.y, tx, ty)){ NADE_FAIL = "цель под крышей, не видно"; return false; } lob = false; }
   // (v340, отметка владельца: «кидает через крытую зону» — kyousuke из-под крыши B Apps навесом через стену) сам под крышей /
   // под другим этажом — навесом нельзя (дуга упрётся в потолок): только низом, если цель видна (окно, проход)
-  if(lob && nadeCovered(b.x, b.y)){ if(!hasLOS(b.x, b.y, tx, ty)) return false; lob = false; }
+  if(lob && !trusted && nadeCovered(b.x, b.y)){ if(!hasLOS(b.x, b.y, tx, ty)){ NADE_FAIL = "сам под крышей, не видно"; return false; } lob = false; }
   b.nades[type]--; b._nadeT = tick; b._lastNade = {type:type, x:tx, y:ty, t:tick};
   var d = Math.max(60, Math.hypot(tx-b.x, ty-b.y)); if(!lob) d = Math.min(NADE_THROW_RANGE, d);
   var a = Math.atan2(ty-b.y, tx-b.x);
@@ -10496,9 +10514,17 @@ function updateNadeTasks(){
     if(t.from){ // свой лайнап: сначала встать ровно в точку броска
       // раньше кидал только ближе 22px к точке, а "дошёл до поста" считается
       // уже с 34px — бот вставал в 23–34px и стоял до конца задания, не кидая
-      if(Math.hypot(t.from.x-b.baseX, t.from.y-b.baseY) > 36 && !(b.atPost && b.post && b.post.tag === "lineup")){ if(b.state === "patrol"){ setPost(b, t.from, {x:t.x, y:t.y}, true, "lineup"); b._lineupLock = tick; } return; }
+      // (v369, владелец: «пишется "идёт кидать гранату", но как будто не успевают кинуть») бот, стоявший на угле (state hold), к
+      // точке броска не шёл вовсе — пост ставился только в patrol, и задание сгорало в 40–60 ед. от точки. Теперь угол он
+      // оставляет (кроме боя: engage / retreat — сначала бой)
+      if(Math.hypot(t.from.x-b.baseX, t.from.y-b.baseY) > 36 && !(b.atPost && b.post && b.post.tag === "lineup")){
+        if(b.state === "hold" && !b._sawEnemy) leaveHold(b);
+        if(b.state === "patrol"){ setPost(b, t.from, {x:t.x, y:t.y}, true, "lineup"); b._lineupLock = tick; } return; }
       if(!nadeReady(b)) return;   // (v340) только что кинул другую — задание ждёт
-      b._lineupLock = 0; throwNade(b, t.type, t.x, t.y, true, t.why); b.nadeTask = null; if(b.post && b.post.tag === "lineup") clearPost(b); return;
+      b._lineupLock = 0;
+      // не вышло на время (пауза между гранатами, свой в зоне огня) — задание остаётся, попробует снова; раньше снималось молча
+      if(!throwNade(b, t.type, t.x, t.y, true, t.why, true) && NADE_FAIL && /пауза|свой/.test(NADE_FAIL)) return;
+      b.nadeTask = null; if(b.post && b.post.tag === "lineup") clearPost(b); return;
     }
     if(d <= t.range && hasLOS(b.x, b.y, t.x, t.y)){
       if(!nadeReady(b)) return;   // (v340) только что кинул другую — задание ждёт
