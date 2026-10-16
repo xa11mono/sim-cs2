@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""(v375, одноразовый) Разрезать монолит src/game.html на модули src/game/NNN_имя.(html|js).
+"""(v377, одноразовый) Разрезать монолит src/game.html на модули src/game/NNN_имя.(html|js).
 
 python3 tools/split_game.py [src/game.html] [--dry]
 

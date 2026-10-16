@@ -6,7 +6,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 from marks_build import inject
 from mapset import map_arg, inject_map
-from gamesrc import game_source   # v375: исходник игры — склейка src/game/*
+from gamesrc import game_source   # v377: исходник игры — склейка src/game/*
 MAPNAME, _ = map_arg(sys.argv[1:])
 s = inject_map(inject(game_source()), MAPNAME)   # v255: «Отметить момент»
 # v269: стили игры, которые лежат в <style> внутри <head> (табло, панели игроков, редактор карты, подсказки), раньше
