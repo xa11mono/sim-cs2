@@ -1,11 +1,13 @@
 """Сколько гранат про бросают за раунд (v357): по демкам карты, на команду, по стороне и типу закупа.
 Тип закупа — как в buy_pro.py / ct_cmp.py (rtype по оружию в руках за первые 30 с). Броски — события разрыва
 (smokegrenade_detonate, flashbang_detonate, hegrenade_detonate, inferno_startburn) по бросившему.
+Пистолетку (v370) пишет в набор карты: pro.json → pistolNades {T|CT: {smoke, flash, molly, he}} — брошено за раунд на команду.
 Запуск: python3 tools/nades_pro.py --map mirage [out.json]"""
-import sys, os, json, collections
+import sys, os, re, json, collections
 import pandas as pd
 HERE = os.path.dirname(os.path.abspath(__file__)); sys.path.insert(0, HERE)
-from demos import DEMOS, demo_names, rounds_of  # noqa: E402
+from demos import DEMOS, MAPNAME, demo_names, rounds_of  # noqa: E402
+import mapdir  # noqa: E402
 from ct_cmp import rtype  # noqa: E402
 from eco_est import ALIAS, PRICE  # noqa: E402
 PIST = {'GLOCK', 'USP', 'P250', 'FIVE7', 'TEC9', 'CZ', 'DEAGLE', 'ELITE', 'R8'}
@@ -46,5 +48,11 @@ for key, n in sorted(nteam.items()):
     c = sumN[key]
     res[' / '.join(key)] = dict({k: round(c[k] / n, 2) for k in EV}, всего=round(sum(c.values()) / n, 2), раундов=n)
 txt = json.dumps(res, ensure_ascii=False, indent=1)
-if len(sys.argv) > 1: open(sys.argv[1], 'w').write(txt)
+args = [a for a in sys.argv[1:] if not a.startswith('--') and a != MAPNAME]
+if args: open(args[0], 'w').write(txt)
+pp = mapdir.path(MAPNAME, 'pro.json'); src = open(pp, encoding='utf-8').read()
+line = '"pistolNades": ' + json.dumps({sd: {k: res[sd + ' / пистолетка'][k] for k in EV} for sd in ('T', 'CT') if sd + ' / пистолетка' in res}) + ','
+src = re.sub(r'"pistolNades": \{[^\n]*?\}\},\n?', '', src)   # своя строка, остальной файл не трогаем
+i = src.index('{') + 1; nl = '\n' if src[i:i+1] == '\n' else ''
+open(pp, 'w', encoding='utf-8').write(src[:i] + nl + line + '\n' + src[i+len(nl):])
 print(txt)
