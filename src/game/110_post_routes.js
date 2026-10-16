@@ -115,7 +115,7 @@ var ENTRY_WAIT = 128;   // (v375) 2 с: напарник на размен у в
 //  · новая задача ставится, если она НЕ НИЖЕ текущей (выше — сразу; того же уровня — не раньше POST_DWELL после прошлой смены,
 //    защита от дёрганья); НИЖЕ — только когда текущая кончилась или устарела;
 //  · текущая жива, пока её механика её подтверждает (вызывает setPost / postKeep не реже TASK_STALE) или пока не истёк её
-//    срок удержания (TASK_KEEP — для задач, которые ставятся один раз: контакт, размен, подмена, перестановка, ребаланс);
+//    срок удержания (taskKeepUntil — для задач, которые ставятся один раз: контакт, размен, подмена, перестановка, ребаланс);
 //  · setPost возвращает true/false: механика, которой отказали, делает своё сама (лайнап — отменяет бросок, ожидание у смока —
 //    снимается, подбор — помнит предмет и вернётся). Роль и ситуация в таблицу не входят — они только порождают задачи.
 // Порядок и числа — ПРОЕКТНЫЕ (проектное число / порядок; проверка — situations.py: момент и доля переключения у про и у ботов).
@@ -137,22 +137,21 @@ var TASK_ROUTE_CANCEL = 8;   // задача этого уровня и выше
 // механика, которая сама колеблется между своими двумя задачами (ротация ↔ держать, ждать гранаты ↔ зачищать), не дёргает
 // бота каждые несколько тиков; задача, которую механика сама сняла (clearPost), кончается сразу
 var TASK_STALE = 96;   // проектное число (= POST_DWELL)
-// срок удержания задач, которые ставятся один раз (числа — те же, что были у замков своих механик)
-var TASK_KEEP = {
-  contact: function(b){ return b._contact && b._contact.lock ? b._contact.until : 0; },   // CONTACT_HOLD
-  tradeR: function(b){ var L = b._tradeLock; if(!L) return 0;   // окно размена 3,5 с; кончилось, а убийцу не сняли — туда же второй раз не лезет
-    if(tick >= L.until){ b._avoidPeekUntil = tick + 6*TICK_HZ; b._avoidPeekAt = L.at; b._tradeLock = null; return 0; } return L.until; },
-  fill: function(b){ var FL = b._fillLock; if(!FL) return 0;   // ≤ 15 с, пока план не сдвинулся (T — смена фазы, CT — «играем ретейк»), бомба
+// срок удержания задач, которые ставятся один раз (числа — те же, что были у замков своих механик). Функция, а не таблица
+// функций: снимок «Отметить момент» копирует все глобальные var (structuredClone функций не умеет)
+function taskKeepUntil(b, tag){
+  var f = /^(contact|tradeR|fill|repos|rebal)/.exec(String(tag)); if(!f) return 0;
+  if(f[1] === "contact") return b._contact && b._contact.lock ? b._contact.until : 0;   // CONTACT_HOLD
+  if(f[1] === "tradeR"){ var L = b._tradeLock; if(!L) return 0;   // окно размена 3,5 с; кончилось, а убийцу не сняли — туда же второй раз не лезет
+    if(tick >= L.until){ b._avoidPeekUntil = tick + 6*TICK_HZ; b._avoidPeekAt = L.at; b._tradeLock = null; return 0; } return L.until; }
+  if(f[1] === "fill"){ var FL = b._fillLock; if(!FL) return 0;   // ≤ 15 с, пока план не сдвинулся (T — смена фазы, CT — «играем ретейк»), бомба
     if(tick >= FL.until || (bomb && bomb.state === "planted") || (FL.team === "T" ? !(teamTac.T && teamTac.T.phase === FL.ph) : !!(teamTac.CT && teamTac.CT.playRetake))){ b._fillLock = null; return 0; }
-    return FL.until; },
-  repos: function(b){ return b._reposUntil || 0; },
-  rebal: function(b){ return BAL.siteRebal && b._rebal && b._rebal.round === roundNum ? Infinity : 0; }
-};
-// одна и та же задача = одинаковое начало tag (до «:» / «|»): «clearA:угол1» и «clearA:угол2» — одна зачистка, точка уточняется.
-// Перестановки в бою (repos:back, repos:push…) — разные затеи: друг друга сменяют по общему правилу (того же уровня — через POST_DWELL)
+    return FL.until; }
+  if(f[1] === "repos") return b._reposUntil || 0;
+  return BAL.siteRebal && b._rebal && b._rebal.round === roundNum ? Infinity : 0;   // ребаланс — до конца раунда
+}
 function taskTagB(tag){ tag = String(tag); var r = /^repos:\w+/.exec(tag); return r ? r[0] : tag.replace(/[:|].*$/, ""); }
 function taskLevel(tag){ tag = String(tag || ""); for(var i=0;i<TASK_LEVEL.length;i++) if(TASK_LEVEL[i].re.test(tag)) return TASK_LEVEL[i].lv; return 1; }
-function taskKeepUntil(b, tag){ var f = /^(contact|tradeR|fill|repos|rebal)/.exec(String(tag)); return f ? TASK_KEEP[f[1]](b) : 0; }
 function taskAlive(b){ var T = b._task; return !!T && T.round === roundNum && (tick - T.t <= TASK_STALE || tick < taskKeepUntil(b, T.tag)); }
 // можно ли сейчас поставить задачу tag (то же решение, что примет setPost) — для механик, которые решают, затевать ли своё
 function taskCanSet(b, tag){
