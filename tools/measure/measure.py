@@ -20,7 +20,8 @@ for a in sys.argv[1:]:
 TICKS=200000
 OUT=os.path.join(HERE,'runs',label); os.makedirs(OUT,exist_ok=True)
 if '--no-build' not in sys.argv:
-    subprocess.run(['python3',os.path.join(SIM,'src','build.py')],cwd=SIM,check=True)
+    MAPA=[a for a in sys.argv[1:] if a.startswith('--map=')]   # (v370) --map=mirage: сборка другой карты (сравнение с про в таблице — по Ancient)
+    subprocess.run(['python3',os.path.join(SIM,'src','build.py')]+(['--map',MAPA[0][6:]] if MAPA else []),cwd=SIM,check=True)
 if '--no-play' not in sys.argv:
     tpl=open(os.path.join(HERE,'rec2.js')).read()
     for i in range(0,len(matches),2):

@@ -14,6 +14,8 @@ PIST = {'GLOCK', 'USP', 'P250', 'FIVE7', 'TEC9', 'CZ', 'DEAGLE', 'ELITE', 'R8'}
 EV = {'smoke': 'smokegrenade_detonate', 'flash': 'flashbang_detonate', 'he': 'hegrenade_detonate', 'molly': 'inferno_startburn'}
 sumN = collections.defaultdict(collections.Counter)
 nteam = collections.Counter()
+EXEC_SEC = 20   # (v370) «выход»: гранаты T, разорвавшиеся за 20 с до планта (проектное окно)
+exN = collections.defaultdict(collections.Counter); nexec = collections.Counter()
 for demo in demo_names():
     t = pd.read_csv(os.path.join(DEMOS, demo + '_ticks.csv.gz'), usecols=['tick', 'steamid', 'team_num', 'active_weapon_name', 'is_alive', 'is_warmup_period'], low_memory=False)
     t = t[(t.is_alive == True) & (t.is_warmup_period != True)]  # noqa: E712
@@ -21,6 +23,8 @@ for demo in demo_names():
     for k, e in EV.items():
         f = os.path.join(DEMOS, demo + '_' + e + '.csv.gz')
         ev[k] = pd.read_csv(f, usecols=['tick', 'user_steamid']) if os.path.exists(f) else pd.DataFrame(columns=['tick', 'user_steamid'])
+    fp = os.path.join(DEMOS, demo + '_bomb_planted.csv.gz')
+    pl = pd.read_csv(fp, usecols=['tick']) if os.path.exists(fp) else pd.DataFrame(columns=['tick'])
     for r in rounds_of(demo):
         if r['num'] >= 24: continue
         w = t[(t.tick >= r['t0']) & (t.tick < r['t0'] + 30 * 64)]
@@ -38,6 +42,12 @@ for demo in demo_names():
             typ = 'пистолетка' if r['num'] in (0, 12) else rtype(best)
             nteam[(sd, typ)] += 1
             side_of[(sd, 'typ')] = typ
+        pt = pl[(pl.tick >= r['t0']) & (pl.tick < r['t1'])].tick
+        if len(pt) and ('T', 'typ') in side_of:
+            p0 = int(pt.iloc[0]); tt = side_of[('T', 'typ')]; nexec[tt] += 1
+            for k, e in ev.items():
+                for sid in e[(e.tick >= p0 - EXEC_SEC * 64) & (e.tick <= p0)].user_steamid:
+                    if pd.notna(sid) and side_of.get(int(sid)) == 'T': exN[tt][k] += 1
         for k, e in ev.items():
             x = e[(e.tick >= r['t0']) & (e.tick < r['t1'])]
             for sid in x.user_steamid:
@@ -47,6 +57,8 @@ res = {}
 for key, n in sorted(nteam.items()):
     c = sumN[key]
     res[' / '.join(key)] = dict({k: round(c[k] / n, 2) for k in EV}, всего=round(sum(c.values()) / n, 2), раундов=n)
+for typ, n in sorted(nexec.items()):
+    c = exN[typ]; res['выход T (за %d с до планта) / %s' % (EXEC_SEC, typ)] = dict({k: round(c[k] / n, 2) for k in EV}, всего=round(sum(c.values()) / n, 2), раундов=n)
 txt = json.dumps(res, ensure_ascii=False, indent=1)
 args = [a for a in sys.argv[1:] if not a.startswith('--') and a != MAPNAME]
 if args: open(args[0], 'w').write(txt)

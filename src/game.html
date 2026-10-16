@@ -5292,7 +5292,13 @@ function updateRetake(cts){
     var a0 = R.approaches[R.assign[def.id]];
     var goNeed = Math.hypot(a0.x-bomb.x, a0.y-bomb.y)/SPEED*1.3 + (def.kit ? 5 : 10) + 1.5;
     var late = secsLeft - goNeed < 3;
-    if(ready >= need || late){
+    // (v370, владелец: «kyousuke после фрага стоит на сборе и ждёт, хотя может играть сам» — снимок р3: 12 с на Bench, T один с 46 HP)
+    // инициатива: ждём своих, только пока нас на точках меньше, чем живых T (киллфид — это знает и живой игрок); на точке —
+    // только здоровые (HP > LOW_HP). Временное правило владельца (16.10) — потом заменить на числа из демок (сколько про ждут на сборе)
+    var readyFit = alive.filter(function(b){ var ap = R.approaches[R.assign[b.id]]; return ap && Math.hypot(ap.x-b.baseX, ap.y-b.baseY) < 70 && b.hp > LOW_HP; }).length;
+    var initiative = readyFit >= 1 && readyFit >= aliveCount("T") && ready < need;
+    if(ready >= need || late || initiative){
+      if(initiative) logEvent("CT: ретейк — нас на точках "+readyFit+", живых T "+aliveCount("T")+" — заходим, не дожидаясь остальных");
       // ретейк как команда: сначала утилита (флешка на сайт/на известного T,
       // смок на подход T), заход — под хлопок; если гранат нет или время
       // поджимает — сразу
@@ -5389,6 +5395,9 @@ function retakePost(b, cts){
     // сначала первый входящий чистит, дефузер — за ним. Сразу — если время
     // поджимает, он один или первый уже на сайте/погиб
     if(BAL.retakeRoles && !R.allDead && !retakeDefGo(b, R, cts)){
+      // (v370) заходить первым некому (один или первый погиб) — сам чистит сайт, как первый, а не стоит у бомбы
+      var entB = R.entryId && R.entryId !== b.id && bots.filter(function(o){ return o.id === R.entryId && o.alive; })[0];
+      if(!entB) return retakeClear(b, R, cts, a, bp);
       var dsp = pickSpots("retakeD"+bomb.site+"_"+(R.assign[b.id]||0), bp, 1, {rMin:120, rMax:320, minGap:60, must:[bp], see:[a]})[0];
       setPost(b, dsp || a, bp, true, "retakeCover"); return;
     }
@@ -5407,6 +5416,9 @@ function retakePost(b, cts){
   if(BAL.retakeRoles && R.entryId && R.entryId !== "-" && b.id !== R.entryId && tick - R.goTick < 0.5*TICK_HZ){
     setPost(b, a, bp, true, gTag(b, R), 0); return;
   }
+  retakeClear(b, R, cts, a, bp);
+}
+function retakeClear(b, R, cts, a, bp){
   // прикрытие/фланг — места с видом на бомбу, со своей стороны захода
   var others = cts.filter(function(c){ return c.retakeRole !== "defuser" && !c.defusing && R.assign[c.id] === R.assign[b.id]; });
   var spots = pickSpots("retake"+bomb.site+"_"+(R.assign[b.id]||0), bp, others.length, {rMin:80, rMax:300, minGap:90, must:[bp], see:[a]});
@@ -5417,10 +5429,17 @@ function retakeDefGo(b, R, cts){
   var secsLeft = bombTimeLeftTicks()/TICK_HZ;
   var late2 = secsLeft - (Math.hypot(b.x-bomb.x, b.y-bomb.y)/SPEED*1.2 + (b.kit ? 5 : 10) + 1) < 2.5;
   if(late2) return true;
-  if(cts.filter(function(o){ return !o._saveSpot; }).length <= 1) return true;
-  // (v359, отметка владельца: m0NESY прошёл к бомбе и стоял «дефузит за первым», первый — karrigan с 2 HP так и стоял на сборе,
-  // а T остался один) один T — некого «чистить»: дефузит сразу, остальные прикрывают; первый с HP ≤ LOW_HP не заходит — не ждём
-  if(aliveCount("T") <= 1) return true;
+  // (v370, снимок р3: kyousuke один против одного T на сайте сразу сел дефузить и умер) один на ретейке или один T — дефузит
+  // сразу, только если сайт уже проверен: сам у бомбы (≤ 320 — точки зачистки) ≥ 1,5 с и никого не видит, или где последний T — знаем (≤ 5 с) и он далеко
+  // от бомбы (> 600). Иначе сначала чистит сайт (retakeClear). Числа 1,5 с и 600 — проектные
+  var solo = cts.filter(function(o){ return !o._saveSpot; }).length <= 1, oneT = aliveCount("T") <= 1;
+  if(solo || oneT){
+    if(Math.hypot(b.x-bomb.x, b.y-bomb.y) < 320 && !b._sawEnemy && tick - (b._lastSawT||-1e9) > 1.5*TICK_HZ){ if((b._nearBombT = b._nearBombT || tick) && tick - b._nearBombT > 1.5*TICK_HZ) return true; }
+    else b._nearBombT = 0;
+    var BLd = beliefLast.CT || {}, farT = Object.keys(BLd).some(function(e){ var q = BLd[e]; return q && tick - q.tick <= 5*TICK_HZ && bots.some(function(o){ return o.id === e && o.alive; }) && Math.hypot(q.x-bomb.x, q.y-bomb.y) > 600; });
+    if(oneT && farT) return true;
+    if(solo) return false;
+  }
   var ent = R.entryId && bots.filter(function(o){ return o.id === R.entryId; })[0];
   if(!ent || !ent.alive || ent.hp <= LOW_HP) return true;
   if(Math.hypot(ent.x-bomb.x, ent.y-bomb.y) < 280) return true;
@@ -10425,17 +10444,28 @@ var NADE_HAND = 60, NADE_ARCS = [380, 220, 120, 60];
 function nadeArc(b, tx, ty){
   visReady();
   var z0 = (b.z != null ? b.z : visFloorAt(b.x, b.y)) + NADE_HAND, z1 = visFloorAt(tx, ty) + 10;
-  var d = Math.hypot(tx-b.x, ty-b.y), n = Math.max(2, Math.ceil(d / VIS_CELL)), W = VIS.W, Cl = VIS.ceil;
+  var d = Math.hypot(tx-b.x, ty-b.y), n = Math.max(2, Math.ceil(d / VIS_CELL)), W = VIS.W, Cl = VIS.ceil, S = VIS.solid;
   var tCov = nadeCovered(tx, ty);
   for(var a = 0; a < NADE_ARCS.length; a++){
     var h = NADE_ARCS[a], ok = true;
     for(var k = 1; k < n && ok; k++){ var t = k/n, x = b.x + (tx-b.x)*t, y = b.y + (ty-b.y)*t;
       var i = Math.floor(x / VIS_CELL), j = Math.floor(y / VIS_CELL); if(i < 0 || j < 0 || i >= W || j >= W) continue;
-      var c = Cl[j*W + i]; if(c === Infinity) continue;
-      var z = z0 + (z1-z0)*t + 4*h*t*(1-t); if(z > c - 12) ok = false; }
+      var z = z0 + (z1-z0)*t + 4*h*t*(1-t), c = Cl[j*W + i];
+      if(c !== Infinity && z > c - 12) ok = false;            // крыша
+      if(S[j*W + i] > z - 6) ok = false; }                     // (v370) стена / укрытие с известным верхом — граната над ним, не сквозь
     if(ok) return {h: h, under: tCov};
   }
   return null;
+}
+// (v370) здание на пути гранаты: над углом или тонкой стеной перекинуть можно (так кидают флешки из-за угла), над зданием —
+// нет. Верха большинства стен в данных нет, поэтому мерка — толщина: самый длинный кусок пути внутри стены. Снимки: свои
+// броски ботов пересекают стену на 0–180 px (углы, перегородки), смок magixx из T Ramp в Window — 288 px. Порог — проектное
+// число (100 px радара ≈ 250 ед. игры); сквозь здание — только лайнапы про из демок (так кидали на самом деле)
+var NADE_WALL_MAX = 100;
+function nadeTallWall(x1, y1, x2, y2){
+  var d = Math.hypot(x2-x1, y2-y1), n = Math.ceil(d/2), run = 0;
+  for(var k = 1; k < n; k++){ var t = k/n; if(insideSolidWall(x1 + (x2-x1)*t, y1 + (y2-y1)*t)){ run += d/n; if(run > NADE_WALL_MAX) return true; } else run = 0; }
+  return false;
 }
 function nadeCovered(x, y){
   visReady();
@@ -10470,6 +10500,7 @@ function throwNade(b, type, tx, ty, lob, why, trusted){
   // точка видна; иначе не кидает
   // (v369) лайнап из набора (точка броска и цель — из демок про / свой лайнап): брошен так в игре — дуга не проверяется
   // (v370) остальное — дугой по высоте (nadeArc): навес, что проходит под потолками; нет — низом, если цель видна
+  if(lob && !trusted && nadeTallWall(b.x, b.y, tx, ty)){ NADE_FAIL = "стена на пути"; return false; }   // (v370) сквозь здания — только лайнапы про
   var ARC = lob ? (trusted ? {h: NADE_ARCS[0], under: false} : nadeArc(b, tx, ty)) : null;
   if(lob && !ARC){ if(!hasLOS(b.x, b.y, tx, ty)){ NADE_FAIL = "дуга упирается в потолок, цель не видна"; return false; } lob = false; }
   // (v340, отметка владельца: «кидает через крытую зону» — kyousuke из-под крыши B Apps навесом через стену) сам под крышей /
@@ -10573,20 +10604,40 @@ function updateNadeTasks(){
       if(!nadeReady(b)) return;   // (v340) только что кинул другую — задание ждёт
       b._lineupLock = 0;
       // не вышло на время (пауза между гранатами, свой в зоне огня) — задание остаётся, попробует снова; раньше снималось молча
-      if(!throwNade(b, t.type, t.x, t.y, true, t.why, true) && NADE_FAIL && /пауза|свой/.test(NADE_FAIL)) return;
+      if(!throwNade(b, t.type, t.x, t.y, true, t.why, !t.gen) && NADE_FAIL && /пауза|свой/.test(NADE_FAIL)) return;   // своя точка (gen) — дуга проверяется
       b.nadeTask = null; if(b.post && b.post.tag === "lineup") clearPost(b); return;
     }
     if(d <= t.range && hasLOS(b.x, b.y, t.x, t.y)){
       if(!nadeReady(b)) return;   // (v340) только что кинул другую — задание ждёт
       throwNade(b, t.type, t.x, t.y, false, t.why); b.nadeTask = null;
     } else if(t.lob && d <= t.range*0.85 && (t.now || tick - t.start > 64)){
-      // "лайнап": граната навесом через постройку (поп-флешка, смок, молотов) — точки не видно, но
-      // бросок заученный; прилетает точно в цель, стены по пути не мешают
-      throwNade(b, t.type, t.x, t.y, true, t.why); b.nadeTask = null;
+      // навесом — точки не видно. (v370, отметка владельца: magixx кинул смок из T Ramp в Window сквозь здания) раньше «стены
+      // по пути не мешают» для любого броска; теперь сквозь стены летят только лайнапы про (из демок, так кидали на самом деле).
+      // Свой бросок — над открытым местом (проходы, окна, укрытия); нет пути — идёт на точку рядом, откуда граната долетает
+      // (nadeThrowSpot: безопасную от известных врагов); нет и такой — не кидает
+      if(throwNade(b, t.type, t.x, t.y, true, t.why) || !/стена/.test(NADE_FAIL||"") || t._spotTried){ b.nadeTask = null; return; }
+      t._spotTried = true;
+      var fs = nadeThrowSpot(b, t);
+      if(!fs){ b.nadeTask = null; return; }
+      t.from = fs; t.gen = true; t.until = Math.max(t.until, tick + Math.ceil(pathLenTo(b, fs.x, fs.y)/SPEED + 2)*TICK_HZ);
     }
   });
 }
 
+// (v370) откуда докинуть свою гранату: точка в NADE_SPOT_R от бойца, с которой путь гранаты не идёт сквозь стены, цель в
+// пределах броска; не на виду у врагов, которых команда знает (≤ 8 с), и ближе по пути. Владелец: «главное, чтобы не дохли, пока
+// шли до точки». Радиус — проектное число
+var NADE_SPOT_R = 450;
+function nadeThrowSpot(b, t){
+  var bl = (typeof beliefLast !== "undefined" && beliefLast[b.team]) || {}, foes = [];
+  for(var e in bl){ var q = bl[e]; if(q && tick - q.tick <= 8*TICK_HZ && bots.some(function(o){ return o.id === e && o.alive; })) foes.push({x:q.x, y:q.y}); }
+  var c = pickSpots("nthr"+b.id+"_"+Math.round(t.x)+","+Math.round(t.y), {x:b.x, y:b.y}, 8, {rMax:NADE_SPOT_R, minGap:40, hideFrom:foes})
+    .filter(function(q){ return Math.hypot(q.x-t.x, q.y-t.y) <= t.range*0.85 && !nadeTallWall(q.x, q.y, t.x, t.y) &&
+      !foes.some(function(f){ return hasLOS(q.x, q.y, f.x, f.y); }); });
+  var best = null, bL = Infinity;
+  c.forEach(function(q){ var L = pathLenTo(b, q.x, q.y); if(L < bL){ bL = L; best = q; } });
+  return best && bL <= NADE_SPOT_R*1.5 ? best : null;
+}
 // ======================= СВОИ ЛАЙНАПЫ =======================
 var LINEUPS_BAKED = MAP.lineups.baked; // из «Экспорт проекта» (зашиты в код); (v294) «инстасмок мид» убран — см. nadeBrains
 var LINEUPS_KEY = MAP.store + "-lineups-v1";
