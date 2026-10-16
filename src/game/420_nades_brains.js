@@ -130,7 +130,7 @@ function nadeBrains(){
   // (7) молотов "на всякий" в угол: на выходе, не зная, есть ли там кто, —
   // выжечь ближний угол сайта, куда обычно встают CT (из списка позиций сайта),
   // пока он ещё не виден. По одному на раунд, последний молотов — на пост-плант
-  if(BAL.mollyClear && tt.phase === "execute" && !nadeFlags.molClear && tick - (tt.execStart||tick) < 10*TICK_HZ){
+  if(BAL.mollyClear && tt.phase === "execute" && !nadeFlags.molClear && tick - (tt.execStart != null ? tt.execStart : tick) < 10*TICK_HZ){
     var mc = ts.filter(function(b){ return b.nades.molly > 0 && !b.nadeTask && Math.hypot(b.x-site.x, b.y-site.y) < 750 && !(bomb.state === "carried" && bomb.carrier === b); })[0];
     var molLeft = ts.reduce(function(a, b){ return a + b.nades.molly; }, 0);
     if(mc && (molLeft >= 2 || aliveCount("CT") <= 1)){
@@ -138,7 +138,7 @@ function nadeBrains(){
         .sort(function(a, c){ return Math.hypot(a.x-mc.x, a.y-mc.y) - Math.hypot(c.x-mc.x, c.y-mc.y); });
       if(cands[0] && assignNade(mc, "molly", cands[0], "выжечь угол «"+(zoneUserName(zoneIdAt(cands[0].x, cands[0].y)) || "угол")+"»", {now:true, range:700})){
         nadeFlags.molClear = true; logEvent(mc.id+": не знаю, есть ли кто в «"+(zoneUserName(zoneIdAt(cands[0].x, cands[0].y)) || "углу")+"», — выжигаю перед заходом"); }
-      else if(tick - (tt.execStart||tick) > 6*TICK_HZ) nadeFlags.molClear = true;
+      else if(tick - (tt.execStart != null ? tt.execStart : tick) > 6*TICK_HZ) nadeFlags.molClear = true;
     } else if(!mc) {} else nadeFlags.molClear = true;
   }
   // T пост-плант: CT дефузит — молотов на бомбу

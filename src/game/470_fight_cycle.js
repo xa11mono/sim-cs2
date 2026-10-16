@@ -214,7 +214,7 @@ function dangerWalk(b){
   var secLeft = ROUND_TIME_SEC - (simTime - roundStartTime), tt = teamTac.T, ct = teamTac.CT;
   if(b.team === "T"){
     if(secLeft < 30 && bomb.state !== "planted") return false;
-    if(tt && tt.phase === "execute" && b.tRole !== "lurker" && tick - (tt.execStart||tick) < 15*TICK_HZ) return false; // выход — быстро
+    if(tt && tt.phase === "execute" && b.tRole !== "lurker" && tick - (tt.execStart != null ? tt.execStart : tick) < 15*TICK_HZ) return false; // выход — быстро
     if(tt && tt.phase === "setup" && b.post){ // шифтом не успеть к выходу — бегом
       var dP = Math.hypot(b.post.x-b.baseX, b.post.y-b.baseY)*1.3;
       if((tt.execTick - tick)/TICK_HZ < dP/(SPEED*WALK_SPEED_FRAC) + 2) return false;

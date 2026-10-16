@@ -11,7 +11,7 @@ function obsFocus(){
   var tt = teamTac && teamTac.T; if(roundState !== "live") return null;
   if(bomb && bomb.state === "planted" && bomb.plantTick && tick - bomb.plantTick < 3*TICK_HZ) return {x:bomb.x, y:bomb.y, site:bomb.site, plant:true};
   if(bots.some(function(b){ return b.alive && b.planting; })){ var p = bots.filter(function(b){ return b.alive && b.planting; })[0]; return {x:p.x, y:p.y, site:tt && tt.site, plant:true}; }
-  if(tt && tt.phase === "execute" && tt.execStart && tick - tt.execStart < 15*TICK_HZ && SITES[tt.site]) return {x:SITES[tt.site].x, y:SITES[tt.site].y, site:tt.site};
+  if(tt && tt.phase === "execute" && tt.execStart != null && tick - tt.execStart < 15*TICK_HZ && SITES[tt.site]) return {x:SITES[tt.site].x, y:SITES[tt.site].y, site:tt.site};
   return null;
 }
 function obsScore(b){

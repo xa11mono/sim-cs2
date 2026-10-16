@@ -196,7 +196,7 @@ function rememberRound(winner){
   var cs = teamTac.CT && teamTac.CT.setup;
   if(cs){ var CM = ctSetupMem[cs.id] || (ctSetupMem[cs.id] = {n:0, w:0}); CM.n++; if(winner === "CT") CM.w++; }
   roundHist.push({site: tt.site, planted: !!(bomb && bomb.plantTick && bomb.plantTick >= roundStartTick), winner: winner,
-                  execSec: tt.execStart ? (tt.execStart - roundStartTick)/TICK_HZ : null});
+                  execSec: tt.execStart != null ? (tt.execStart - roundStartTick)/TICK_HZ : null});
 }
 // ---- любимые углы CT (для T) ----
 // ошибки исполнения — в лог не каждую (чтобы не засорять), но видно, что они есть

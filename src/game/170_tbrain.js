@@ -2,7 +2,7 @@ function tBrain(){
   var tt = teamTac.T; if(!tt) return;
   if(BAL.proTempo && tt.phase === "setup" && tt.minExec && tt.execTick < roundStartTick + tt.minExec*TICK_HZ) tt.execTick = roundStartTick + tt.minExec*TICK_HZ;
   bStageFix();
-  if(tt.seenCT && tick % 16 === 0 && (tt.phase === "setup" || (tt.execStart && tick - tt.execStart < 8*TICK_HZ))){
+  if(tt.seenCT && tick % 16 === 0 && (tt.phase === "setup" || (tt.execStart != null && tick - tt.execStart < 8*TICK_HZ))){
     ["A","B"].forEach(function(k){ var e = intelEstimate("T", SITES[k].x, SITES[k].y, 450, 4*TICK_HZ); if(e.seen > tt.seenCT[k]) tt.seenCT[k] = e.seen; });
   }
   if(tt.phase !== "setup" && !tt.histed){ tt.histed = true; tSiteHist.push(tt.site); }
@@ -62,7 +62,7 @@ function tBrain(){
   // чем на другом) или там уже погибли двое наших, а времени хватает — один раз
   // за раунд меняем сайт. Выход не отменяется совсем: перегруппировка ~5с.
   if(!tt.rebound && bomb.state !== "planted" && secLeft > 40 && !carrierAtSite(tt) &&
-     (tt.phase === "setup" || tick - (tt.execStart||tick) < 6*TICK_HZ)){
+     (tt.phase === "setup" || tick - (tt.execStart != null ? tt.execStart : tick) < 6*TICK_HZ)){
     var thr = function(k){
       var e = intelEstimate("T", SITES[k].x, SITES[k].y, 400, 6*TICK_HZ); // раздел 11.1: тот же радиус 400 — мид не должен читаться как сайт
       // (перекол) раньше e.n — все, кого "карта вероятностей" держит у сайта,
@@ -417,7 +417,7 @@ function tBrain(){
     });
   } else if(tt.phase === "execute"){
     if(lurker) lurkerBrain(lurker, tt, other);
-    var since = tick - (tt.execStart || tick);
+    var since = tick - (tt.execStart != null ? tt.execStart : tick);   // (v380) выход с тика 0 (раш в 1-м раунде матча): 0 — тоже время, не «нет»
     var DELAY = {entry:0, awp:40, support:20, igl:90};
     // раздел 12: две волны. Первая — энтри (+поддержка сразу за ним на трейд,
     // AWP на линии) берёт первый контакт; вторая — IGL и носитель бомбы —
@@ -428,7 +428,7 @@ function tBrain(){
     if(!rush && !tt.wave2){
       var w1 = ts.filter(function(b){ return b.tRole === "entry" || b.tRole === "support" || b.tRole === "awp"; });
       var contact = w1.some(function(b){ return b._sawEnemy; }) ||
-        teamIntel.T.sig.some(function(sg){ return (sg.type === "kill" || sg.type === "died") && sg.tick >= (tt.execStart||0); });
+        teamIntel.T.sig.some(function(sg){ return (sg.type === "kill" || sg.type === "died") && sg.tick >= (tt.execStart != null ? tt.execStart : 0); });
       if(contact && !tt.w1Contact) tt.w1Contact = tick;
       if((tt.w1Contact && tick - tt.w1Contact > 48) || since > 4.5*TICK_HZ || ts.length <= 2){
         tt.wave2 = tick; logEvent("T: вторая волна заходит на "+tt.site+(tt.w1Contact ? " (после первого контакта)" : ""));

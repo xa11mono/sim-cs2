@@ -90,7 +90,7 @@ function tIglReplan(tt, site, other, secLeft){
     }
     return false;
   }
-  if(tt.phase === "execute" && !tt.aborted && tt.execStart && tick - tt.execStart < 10*TICK_HZ && secLeft > 40){
+  if(tt.phase === "execute" && !tt.aborted && tt.execStart != null && tick - tt.execStart < 10*TICK_HZ && secLeft > 40){
     var tD = DL.filter(function(e){ return e.t === "T" && e.tick >= tt.execStart; }).length;
     var cD = DL.filter(function(e){ return e.t === "CT" && e.tick >= tt.execStart; }).length;
     var lastD = DL.length ? DL[DL.length-1].tick : tick;
