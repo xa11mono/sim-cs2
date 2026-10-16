@@ -2956,6 +2956,11 @@ function wallBoxes(){
 function setPost(b, pt, look, hold, tag, spreadIdx){
   // сменил позицию после фрага — роль в этом раунде ставит его уже на новую точку
   if(BAL.holdShift && b._hs && b._hs.round === roundNum && b._hs.tag === tag && pt && Math.hypot(pt.x-b._hs.pt.x, pt.y-b._hs.pt.y) < 320) pt = b._hs.pt;
+  // (v367) реакция на контакт — задача не перебивает её CONTACT_HOLD с (кроме срочного: бег от бомбы, сбить плант/дефуз, размен)
+  if(b._contact && b._contact.lock){
+    if(tick >= b._contact.until || !b.alive) b._contact = null;
+    else if(!/^(contact|flee|stopplant|antidefuse|tradeR)/.test(tag)) { if(b.post && b.post.tag !== b._contact.tag && b._contact.pt) { b._contact.lock = false; } else return; }
+  }
   // размен (рефлекс после смерти тиммейта рядом) — тактика не перебивает его
   // ~3.5с; окно кончилось, а убийцу не сняли — туда же второй раз не лезет
   if(b._tradeLock){
@@ -4207,29 +4212,6 @@ function ppTimeNamed(group, bp0, site, rMax){
   });
   return true;
 }
-// (v366, владелец: «чтобы он играл, а не просто стоял — пытался убить или что-то вроде того») после планта свежая инфа о враге
-// рядом (≤ 3 с, ≤ 700 ед.: видели, слышали, откуда кинули гранату — в т. ч. только что услышал сам) — не стоит и не уходит на
-// дальнюю точку, а выходит на него: точка в PP_SWING ед. от себя, откуда это место видно, ближе к врагу (но не вплотную, ≥ 120),
-// прицел — туда, где враг; 3 с, потом — снова пост-плант. Не чаще раза в 5 с; с HP ≤ LOW_HP — нет (проектные числа)
-var PP_SWING = 220;
-function ppCheck(b){
-  if(b._ppc && tick < b._ppc.until){ setPost(b, b._ppc.pt, b._ppc.look, true, "ppCheck"); return true; }
-  if(b.hp <= LOW_HP || (b._ppcT && tick - b._ppcT < 5*TICK_HZ)) return false;
-  var BL = beliefLast.T || {}, best = null, bd = 700;
-  for(var id in BL){ var e = BL[id], ob = teamBot(id); if(!ob || !ob.alive || tick - e.tick > 3*TICK_HZ) continue; var d = Math.hypot(e.x-b.x, e.y-b.y); if(d < bd){ bd = d; best = e; } }
-  var hs = b.heardSound; if(hs && hs.team && hs.team !== b.team && tick - hs.tick <= 3*TICK_HZ){ var dh = Math.hypot(hs.x-b.x, hs.y-b.y); if(dh < bd){ bd = dh; best = hs; } }
-  if(!best) return false;
-  var look = {x:best.x, y:best.y};
-  var C = pickSpots("ppc"+b.id+Math.round(look.x/40)+","+Math.round(look.y/40), {x:b.x, y:b.y}, 4, {rMax:PP_SWING, minGap:30, see:[look]})
-    .filter(function(q){ return Math.hypot(q.x-look.x, q.y-look.y) >= 120; })
-    .sort(function(a, c){ return Math.hypot(a.x-look.x, a.y-look.y) - Math.hypot(c.x-look.x, c.y-look.y); });
-  var sp = C[0]; if(!sp) return false;
-  b._ppc = {until: tick + 3*TICK_HZ, pt: sp, look: look}; b._ppcT = tick; b.lastIntel = {x:look.x, y:look.y, tick:tick, src:"call"};
-  b._reposUntil = 0; b._probeLock = 0;
-  voiceLog("T", "ppc"+b.id+Math.round(tick/64), b.id, "выхожу на него "+calloutName(look.x, look.y));
-  setPost(b, sp, look, true, "ppCheck");
-  return true;
-}
 function tBrain(){
   var tt = teamTac.T; if(!tt) return;
   if(BAL.proTempo && tt.phase === "setup" && tt.minExec && tt.execTick < roundStartTick + tt.minExec*TICK_HZ) tt.execTick = roundStartTick + tt.minExec*TICK_HZ;
@@ -5022,11 +5004,6 @@ function tBrain(){
         return;
       }
     }
-    // (v365, отметка владельца р1: magixx после флешки CT с Car ушёл на Short и «не чекает место, откуда кинули флешку») свежая
-    // инфа о враге рядом (≤ 3 с, ≤ 700 ед.: видели, слышали, откуда прилетела граната) — встать, откуда это место видно (рядом,
-    // ≤ 160 ед.), и держать его 3 с, а не уходить на дальнюю точку пост-планта
-    group = group.filter(function(b){ return !ppCheck(b); });
-    if(!group.length) return;
     if(BAL.holdTask){
       // (v145) пост-плант у бомбы = "держать район вокруг бомбы": бомбу видеть
       // обязательно (снять дефузера), встать под главный вход ретейка, от
@@ -5348,41 +5325,11 @@ function retakeUtil(R, alive){
   voiceLog("CT", "rtflash", fl.id, "даю флешку "+(tgt === bp ? "на бомбу" : "на "+calloutName(tgt.x, tgt.y))+" — заходим на хлопок");
   return fl.id+" кидает флешку"+(smr ? ", "+smr.id+" — смок" : "");
 }
-// (v365, отметка владельца р1: kyousuke у B кинул флешку на сайт и «ждёт сбора на ретейк, хотя может попробовать убить, отжать
-// зону — просто стоит, это бред») кто уже у бомбы, а свои далеко (дольше RPICK_ETA с бега), не стоит на сборе, а играет сам:
-// (1) своя флешка хлопнула — выходит под неё (2 с); (2) знает, где враг (видели/слышали ≤ 4 с, ≤ 700 ед.), и врагов там
-// по знанию не больше одного — выходит на него под другим углом (3 с, раз в 6 с). Проектные числа
-var RPICK_ETA = 6;
-function retakePick(b, R, cts, bp){
-  if(!b.alive || b.hp <= LOW_HP || b.defusing) return false;
-  if(b._rpick && tick < b._rpick.until){ setPost(b, b._rpick.pt, b._rpick.look, true, "retakePick"); return true; }
-  if(Math.hypot(b.x-bp.x, b.y-bp.y) > 900) return false;
-  var far = cts.filter(function(o){ return o !== b && o.alive; }).every(function(o){ return pathLenTo(o, bp.x, bp.y)/SPEED > RPICK_ETA; });
-  if(!far) return false;
-  var look = null, dur = 0, why = "";
-  var N = b._lastNade;
-  if(N && N.type === "flash" && tick - N.t >= NADE.flash.fuse - 8 && tick - N.t < NADE.flash.fuse + 40){ look = {x:N.x, y:N.y}; dur = 2; why = "выхожу под свою флешку"; }
-  if(!look && !(b._rpickT && tick - b._rpickT < 6*TICK_HZ)){
-    var known = [], BLk = beliefLast.CT || {};
-    for(var id in BLk){ var e = BLk[id], ob = teamBot(id); if(ob && ob.alive && tick - e.tick <= 4*TICK_HZ && Math.hypot(e.x-b.x, e.y-b.y) <= 700) known.push(e); }
-    var hs = b.heardSound; if(!known.length && hs && hs.team === "T" && tick - hs.tick <= 4*TICK_HZ && Math.hypot(hs.x-b.x, hs.y-b.y) <= 700) known.push(hs);
-    if(known.length === 1){ look = {x:known[0].x, y:known[0].y}; dur = 3; why = "он один "+calloutName(look.x, look.y)+" — пробую забрать"; }
-  }
-  if(!look) return false;
-  var sp = pickSpots("rpick"+b.id+Math.round(look.x/40)+","+Math.round(look.y/40), {x:b.x, y:b.y}, 1, {rMax:170, minGap:20, see:[look]})[0];
-  if(!sp) return false;
-  b._rpick = {until: tick + dur*TICK_HZ, pt: sp, look: look}; b._rpickT = tick;
-  b.lastIntel = {x:look.x, y:look.y, tick:tick, src:"call"};
-  voiceLog("CT", "rpick"+b.id+Math.round(tick/64), b.id, why);
-  setPost(b, sp, look, true, "retakePick");
-  return true;
-}
 function retakePost(b, cts){
   var R = bomb.retake; if(!R){ return; }
   var bp = ctBombPos();
   var a = R.approaches[R.assign[b.id] || 0];
   if(R.phase === "gather" || R.phase === "util"){
-    if(retakePick(b, R, cts, bp)) return;
     // стоим в укрытии и смотрим туда, откуда будет заход
     // один из собирающихся смотрит не на бомбу, а в спину — туда, откуда может
     // прийти лёркер (проход между сайтами), пока T ещё хватает на люрк.
@@ -7864,6 +7811,7 @@ function lookCands(b, W){
   // главнее всего, даже если враг в той же зоне, что и бот
   var cts = [];
   var hs = b.heardSound; if(hs && tick - hs.tick <= 96) cts.push({x:hs.x, y:hs.y, age:tick-hs.tick, kind:hs.kind});
+  if(b._contact && tick < b._contact.until) cts.push({x:b._contact.x, y:b._contact.y, age:0, commit:true});   // (v367) закреплённый контакт
   var BLc = beliefLast[team] || {};
   for(var eid in BLc){ var lo = BLc[eid]; if(tick - lo.tick > 96) continue;
     var eb = bots.filter(function(o){ return o.id === eid; })[0]; if(!eb || !eb.alive) continue; cts.push({x:lo.x, y:lo.y, age:tick-lo.tick, seen: lo.src === "spotted"}); }
@@ -7871,12 +7819,12 @@ function lookCands(b, W){
     var d = Math.hypot(q.x-b.x, q.y-b.y); if(d > 700 || d < 20) return;
     // (v279, владелец 14.10: матч 1, ~11,8 с, якорь B развернулся спиной к Ramp на бой на миде в 650 px) держит пост — дальняя
     // инфа вне его угла не отвлекает: то же правило, что в старой ветке взгляда (holdRelevant: > 550 px и вне ±66° от угла поста)
-    if(!holdRelevant(b, q)) return;
+    if(!q.commit && !holdRelevant(b, q)) return;
     var za = Math.atan2(q.y-b.y, q.x-b.x);
     // на бегу за спину — только на самый свежий и близкий
     // (v296, И37, владелец 14.10: T4 выглянул на игрока 7 в 60 px, отошёл — и отвернулся по ходу отхода) отходя от врага, с которым
     // только что стрелялся, держит его: за спиной выкидываем контакт, только если он и не свежий (> 0,3 с), и не близкий (> 250 px)
-    if(moving && _angOff(za, b.heading) > 1.9 && q.age > 20 && d > 250) return;
+    if(!q.commit && moving && _angOff(za, b.heading) > 1.9 && q.age > 20 && d > 250) return;
     // (v280) туда, где враг от шума появится (первая видимая точка его пути ко мне), а не угол на своём пути к шуму —
     // тот мог уводить в зону, откуда враг не придёт (игрок 8 на Top Mid)
     var apf = BAL.noWallLook ? appearFrom(b, q) : null; if(apf) apf = {x: apf.x, y: apf.y, vis: true}; // (v287) видна с места бота — угол не пересчитывать
@@ -7900,6 +7848,7 @@ function lookCands(b, W){
     // (v359, отметка владельца: m0NESY не посмотрел на Connector, откуда в паре метров кинули флешку) бросок гранаты рядом (≤ 300 px) —
     // враг точно там, где кидал: та же «свежая угроза», что увиденный в упор
     var seenClose = (q.seen && d <= 250 || q.kind === "nade" && d < 300) && !cov; if(seenClose) scS *= LOOK.freshK;
+    if(q.commit) scS *= LOOK.freshK * 1.5;   // (v367) закреплённый контакт держит взгляд, другие угрозы не перебивают
     // (v278) путь закрывает свой — не «свежая» угроза для меня: не перебивает точку про и угол поста (игрок 9 дёргался на Cave)
     out.push({j:"snd"+Math.round(q.x/80)+","+Math.round(q.y/80), pt:pt, src:{x:q.x, y:q.y}, sc:scS, fresh:!cov, a:za, snd:true,
       f: D ? [["контакт/звук", LOOK.contactW], [d < 300 ? "ближе 300" : "дальше 300", d < 300 ? 2 : 1], ["дистанция " + Math.round(d), 1/(1 + d/700)], ["свежесть " + (q.age/TICK_HZ).toFixed(1) + " с", 1 - q.age/192]].concat(cov ? [["путь закрывает " + cov.id, LOOK.mateThere]] : []).concat(seenClose ? [["видел в упор", LOOK.freshK]] : []) : null});
@@ -9936,11 +9885,79 @@ function ctBrain(){
   });
 }
 
+// ======================= (v367) РЕАКЦИЯ НА КОНТАКТ — одно место для всех ботов и любых задач =======================
+// Владелец: «зачем перескакивает, если он должен убить… не хочу миллиард правок под каждую ситуацию» (m0NESY в р3 метался
+// взглядом между Connector и выходом из Palms и шёл на дефуз; magixx после флешки уходил по пост-планту). Бот свежо узнал, что
+// враг рядом (≤ CONTACT_R ед., ≤ CONTACT_AGE с: видели, слышал сам — шаги, выстрел, откуда кинули гранату — или своя флешка
+// туда только что хлопнула), а сам его сейчас не видит:
+//  · взгляд закрепляется на нём на CONTACT_HOLD с (lookCands — «контакт»): другие угрозы его не перебивают, новый контакт
+//    перебивает только если заметно ближе (×0,7) или его видели;
+//  · ноги — туда же: задача (пост, дефуз, пост-плант, сбор, ротация) уступает на CONTACT_HOLD с. Знаем врагов рядом не больше,
+//    чем своих рядом + 1, и HP не низкое — выходит на него (точка ≤ CONTACT_SWING ед. от себя, откуда его видно, ближе к нему,
+//    но ≥ 120); иначе держит угол (ближайшая точка, откуда видно). Выходя, кидает флешку туда, если есть;
+//  · задача важнее контакта: ставит / дефузит, бежит от бомбы (сейв в зоне взрыва — бежит), сбивает плант/дефуз, несёт
+//    бомбу (контакт дальше 300), CT до взрыва впритык на дефуз — тогда смок на врага (если есть) и дальше к бомбе.
+// Повтор не чаще раза в CONTACT_GAP с на бота. Числа — проектные. Заменяет частные правки v365–v366 (retakePick, ppCheck).
+var CONTACT_R = 700, CONTACT_AGE = 2.5, CONTACT_HOLD = 2.5, CONTACT_SWING = 220, CONTACT_GAP = 4;
+function contactInfo(b){
+  var best = null, bd = CONTACT_R, BL = beliefLast[b.team] || {};
+  for(var id in BL){ var e = BL[id], ob = teamBot(id); if(!ob || !ob.alive || tick - e.tick > CONTACT_AGE*TICK_HZ) continue;
+    var d = Math.hypot(e.x-b.x, e.y-b.y); if(d < bd){ bd = d; best = {x:e.x, y:e.y, seen: e.src === "spotted"}; } }
+  var hs = b.heardSound; if(hs && hs.team && hs.team !== b.team && tick - hs.tick <= CONTACT_AGE*TICK_HZ){ var dh = Math.hypot(hs.x-b.x, hs.y-b.y); if(dh < bd){ bd = dh; best = {x:hs.x, y:hs.y}; } }
+  var N = b._lastNade; if(!best && N && N.type === "flash" && tick - N.t >= NADE.flash.fuse - 8 && tick - N.t < NADE.flash.fuse + 40 && Math.hypot(N.x-b.x, N.y-b.y) < CONTACT_R) best = {x:N.x, y:N.y, own:true};
+  return best ? {x:best.x, y:best.y, d:bd, seen:!!best.seen, own:!!best.own} : null;
+}
+function contactCritical(b, C){
+  if(b.planting || b.defusing) return true;
+  if(b.post && /^(flee|stopplant|antidefuse)/.test(b.post.tag)) return true;
+  if(bomb && bomb.state === "carried" && bomb.carrier === b && C.d > 300) return true;
+  if(bomb && bomb.state === "planted"){
+    var left = bombTimeLeftTicks()/TICK_HZ;
+    if(b.team === "CT" && !(teamTac.CT && teamTac.CT.saving)){ var need = Math.hypot(b.x-bomb.x, b.y-bomb.y)/SPEED*1.2 + (b.kit ? 5 : 10) + 1.5; if(left - need < 3) return true; }
+    if(bombDamageAt(b.x, b.y) >= b.hp*0.6 && left < 10) return true;   // в зоне взрыва и мало времени — бежит, не воюет
+  }
+  return false;
+}
+function contactTick(b){
+  if(!b.alive || roundState !== "live") return;
+  var K = b._contact;
+  if(K && tick >= K.until) K = b._contact = null;
+  if(b._sawEnemy) return;   // видит врага — это уже бой
+  var C = contactInfo(b); if(!C) return;
+  if(K && !(C.seen || C.d < 0.7*Math.hypot(K.x-b.x, K.y-b.y) || Math.hypot(C.x-K.x, C.y-K.y) < 120)) return;   // держит прежний контакт
+  if(K && Math.hypot(C.x-K.x, C.y-K.y) < 120){ K.x = C.x; K.y = C.y; return; }   // тот же — уточнить место
+  if(b._contactT && tick - b._contactT < CONTACT_GAP*TICK_HZ && !K) return;
+  var look = {x:C.x, y:C.y};
+  if(contactCritical(b, C)){
+    // задача важнее: взгляд — на контакт (не перебивает задачу), а у CT, идущего на бомбу, — смок на врага, если есть
+    b._contact = {x:C.x, y:C.y, until: tick + CONTACT_HOLD*TICK_HZ, lock:false}; b._contactT = tick;
+    if(b.team === "CT" && bomb && bomb.state === "planted" && b.nades && b.nades.smoke > 0 && !b.defusing && C.d > 150) assignNade(b, "smoke", look, "смок на врага рядом — иду к бомбе", {now:true, range:900});
+    return;
+  }
+  var foe = b.team === "CT" ? "T" : "CT", BL = beliefLast[b.team] || {}, nE = 0;
+  for(var id in BL){ var e = BL[id], ob = teamBot(id); if(ob && ob.alive && ob.team === foe && tick - BL[id].tick <= 5*TICK_HZ && Math.hypot(e.x-b.x, e.y-b.y) < 900) nE++; }
+  var nM = bots.filter(function(o){ return o !== b && o.alive && o.team === b.team && Math.hypot(o.x-b.x, o.y-b.y) < 600; }).length;
+  var swing = b.hp > LOW_HP && Math.max(1, nE) <= nM + 1;
+  var cand = pickSpots("ct"+b.id+Math.round(look.x/40)+","+Math.round(look.y/40), {x:b.x, y:b.y}, 4, {rMax: swing ? CONTACT_SWING : 160, minGap:30, see:[look]})
+    .filter(function(q){ return Math.hypot(q.x-look.x, q.y-look.y) >= 120; });
+  if(hasLOS(b.x, b.y, look.x, look.y) && !swing) cand.unshift({x:b.x, y:b.y});
+  cand.sort(swing ? function(a, c){ return Math.hypot(a.x-look.x, a.y-look.y) - Math.hypot(c.x-look.x, c.y-look.y); }
+                  : function(a, c){ return Math.hypot(a.x-b.x, a.y-b.y) - Math.hypot(c.x-b.x, c.y-b.y); });
+  var sp = cand[0]; if(!sp) return;
+  b._contact = null;
+  var tag = swing ? "contact:swing" : "contact:hold";
+  setPost(b, sp, look, true, tag);
+  b._contact = {x:C.x, y:C.y, until: tick + CONTACT_HOLD*TICK_HZ, lock:true, pt:sp, tag:tag}; b._contactT = tick;
+  b._reposUntil = 0; b._probeLock = 0; b.lastIntel = {x:look.x, y:look.y, tick:tick, src:"call"};
+  if(swing && !C.own && b.nades && b.nades.flash > 0 && C.d > 150 && !hasLOS(b.x, b.y, look.x, look.y)) assignNade(b, "flash", look, "флешка под выход на врага рядом", {now:true, range:900});
+  voiceLog(b.team, "ct"+b.id+Math.round(tick/64), b.id, (swing ? "выхожу на него " : "держу ")+calloutName(look.x, look.y));
+}
 function teamBrains(){
   if(roundState !== "live" || !teamTac.T) return;
   bombTick();
   if(roundState !== "live") return; // дефуз мог только что закончить раунд
   routeTick();
+  bots.forEach(function(b){ contactTick(b); });   // (v367) реакция на контакт — до мозгов, их посты её не перебивают
   SPOT_TEAM = "T"; tBrain(); SPOT_TEAM = "CT"; ctBrain(); SPOT_TEAM = null; endgameBrain(); lineupTick(); smokeEdgeTick(); weaponPickupTick(); itemPickupTick(); lkpTick();
   if(BAL.soundMore) bots.forEach(function(b){ if(b.alive && b._heardReload) reloadPeek(b); });
   if(BAL.assistPeek && tick % 4 === 0) bots.forEach(function(b){ if(b.alive) assistPeek(b); });
@@ -14709,7 +14726,7 @@ var WHY_POST = [[/^mid:back/,"мид: отошёл (их больше)"],[/^repo
   [/^flee/,"уходит от бомбы"],[/^save/,"сейв"],[/^retakeEntry/,"ретейк: заходит первым"],[/^retakeCover/,"ретейк: дефузит за первым"],[/^retake/,"ретейк"],[/^defuse/,"дефуз"],[/^postplant/,"пост-плант"],
   [/^endhunt/,"охота на последних"],[/^repos/,"меняет позицию"],[/^fake/,"фейк"],[/^shift/,"смещается"],[/^awpline/,"AWP линия"],
   [/^pickup/,"за оружием"],[/^plantspot/,"плант"],[/^fetch/,"за бомбой"],[/^antidefuse/,"сбить дефуз"],[/^stopplant/,"сбить плант"],
-  [/^retakePick/,"ретейк: играет сам до своих"],[/^ppCheck/,"пост-плант: выходит на врага"],[/^gatherSolo/,"ретейк в одиночку: подход"],[/^gatherSite/,"у бомбы — ждёт своих на ретейк"],[/^utilWait/,"ждёт гранаты / размен у выхода"],[/^utilHold/,"ждёт за энтри"],[/^gather/,"сбор на ретейк"],[/^flank/,"фланг"],[/^lineup/,"идёт кидать гранату"],[/^smokeWait/,"ждёт у смока"],[/^tmid/,"мид T"],[/^cts:/,"сетап CT"]];
+  [/^contact:swing/,"выходит на врага рядом"],[/^contact:hold/,"держит, где враг рядом"],[/^gatherSolo/,"ретейк в одиночку: подход"],[/^gatherSite/,"у бомбы — ждёт своих на ретейк"],[/^utilWait/,"ждёт гранаты / размен у выхода"],[/^utilHold/,"ждёт за энтри"],[/^gather/,"сбор на ретейк"],[/^flank/,"фланг"],[/^lineup/,"идёт кидать гранату"],[/^smokeWait/,"ждёт у смока"],[/^tmid/,"мид T"],[/^cts:/,"сетап CT"]];
 var WHY_LOOK = {spam:"простреливает смок", look:"угроза", enemy:"видит врага", corner:"край угла впереди", cover:"держит второй угол за тиммейта", open:"открытый угол (свой угол держит тиммейт)", flank:"фланг за тиммейтом", death:"туда, где убили своего", sweep:"чекает после смока", sound:"на звук", threat:"угроза", post:"свой угол", preaim:"по плану", roam:"проверяет точку",
   hunt:"ищет последнего", save:"сейв: проходы", fake:"фейк-дефуз", intel:"инфа", call:"колл", lkp:"где видели", habit:"привычка врага", belief:"вероятность"};
 function whyText(b){
