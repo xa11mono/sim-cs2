@@ -11404,7 +11404,58 @@ function nadeReact(){
     voiceLog(b.team, "sflash"+b.id, b.id, "флешу себе и выхожу");
   });
 }
+// (v374, этап 3 плана владельца: «граната — часть действия») сторож: гранаты покупают почти как про, но бросают меньше — из 3,2
+// дымов на руках у T на форсе задача появлялась у 1,9; сравнение раскладов: T у сайта до планта бросают за 5 с в 0,12–0,18 случаев
+// у про и 0,0–0,06 у ботов, CT на сайте в начале раунда 0,32–0,39 / 0,15–0,22, T у бомбы после планта 0,12 / 0,02. Решения
+// «кинуть» были только под отдельные моменты (выход, проба, «выкурить по инфе»). Теперь одно место: каждый боец с гранатой, раз в
+// 0,5 с, сам смотрит, нужна ли граната тому, что он делает по тому, что знает:
+//   идёт в бой (выход T, выход на контакт, размен, заход на ретейк) — флешка/молотов/смок на место, куда идёт, и на входы к нему;
+//   держит, а враг известен (≤ 4 с) рядом и не на виду — молотов/HE/флешка на него (своих рядом с точкой нет);
+//   T после планта: CT у бомбы известен или дефузят — молотов/HE на бомбу.
+// Куда — откуда сюда кидали про (MAP.nadelanes: бросок с этого места (≤ 60 px) в нужную точку), иначе прямо, если стены нет.
+// Пауза бойца между такими решениями — 3 с (проектное число)
+var NADE_USE_GAP = 3*TICK_HZ;
+function nadeUsePick(b, pts, R){
+  var I = nadeLaneIdx(), L = I.L, best = null, bd = Infinity;
+  pts.forEach(function(p){
+    nadeLaneFroms(p.x, p.y).forEach(function(q){ var dF = Math.hypot(q.x-b.x, q.y-b.y); if(dF <= NADE_LANE_FROM && dF < bd){ bd = dF; best = {x:p.x, y:p.y}; } });
+    if(!best && Math.hypot(p.x-b.x, p.y-b.y) <= NADE_THROW_RANGE && !crossesWall(b.x, b.y, p.x, p.y)) best = {x:p.x, y:p.y}; });
+  return best;
+}
+function nadeUseTick(b){
+  if(!b.alive || !b.nades || b.nadeTask || b.planting || b.defusing || !nadeReady(b) || roundState !== "live") return;
+  if(tick - (b._nadeUseT || -1e9) < NADE_USE_GAP || teamSaving(b.team)) return;
+  var have = function(t){ return b.nades[t] > 0; };
+  if(!have("smoke") && !have("flash") && !have("he") && !have("molly")) return;
+  var foe = b.team === "T" ? "CT" : "T", BL = beliefLast[b.team] || {}, known = [];
+  for(var e in BL){ var q = BL[e]; if(q && tick - q.tick <= 4*TICK_HZ && bots.some(function(o){ return o.id === e && o.alive; })) known.push({x:q.x, y:q.y}); }
+  var mateNear = function(p){ return bots.some(function(o){ return o !== b && o.alive && o.team === b.team && Math.hypot(o.x-p.x, o.y-p.y) < 160; }); };
+  var tt = teamTac.T, why = null, plan = null;
+  var tag = b.post ? String(b.post.tag) : "", toPost = b.post ? Math.hypot(b.post.x-b.x, b.post.y-b.y) : 0;
+  var entering = b.post && toPost > 120 && toPost < 800 && (/^(contact:swing|tradeR|retakeEntry|retake|clear)/.test(tag) || (b.team === "T" && tt && tt.phase === "execute" && b.tRole !== "lurker"));
+  if(entering){
+    var area = {x:b.post.x, y:b.post.y}, ents = threatEntrances(b.team, area, 260).slice(0, 3).map(function(E){ return E.pt; });
+    var spots = known.filter(function(k){ return Math.hypot(k.x-area.x, k.y-area.y) < 500; }).concat(ents).filter(function(p){ return !mateNear(p); });
+    if(have("flash")) plan = {t:"flash", pts:[area].concat(spots)};
+    else if(have("molly") && spots.length) plan = {t:"molly", pts:spots};
+    else if(have("smoke") && ents.length && (b.team !== "T" || tSmokeReserveOk())) plan = {t:"smoke", pts:ents};
+    why = "иду в бой — "+calloutName(area.x, area.y).replace(/^на /, "");
+  } else if(bomb.state === "planted" && b.team === "T" && (bots.some(function(o){ return o.defusing; }) || known.some(function(k){ return Math.hypot(k.x-bomb.x, k.y-bomb.y) < 700; }))){
+    if(have("molly")) plan = {t:"molly", pts:[{x:bomb.x, y:bomb.y}]}; else if(have("he")) plan = {t:"he", pts:[{x:bomb.x, y:bomb.y}]};
+    why = "на бомбу — их слышно у неё";
+  } else if(known.length && (b.atPost || b.state === "hold")){
+    var tgt = known.filter(function(k){ var d = Math.hypot(k.x-b.x, k.y-b.y); return d > 150 && d < 900 && !hasLOS(b.x, b.y, k.x, k.y) && !mateNear(k); });
+    if(tgt.length){ var tp = have("molly") ? "molly" : (have("he") ? "he" : (have("flash") ? "flash" : null)); if(tp) plan = {t:tp, pts:tgt}; }
+    why = "по инфе — туда, где они";
+  }
+  if(!plan || !plan.pts.length) return;
+  b._nadeUseT = tick;
+  var pt = nadeUsePick(b, plan.pts); if(!pt) return;
+  if(plan.t === "smoke" && smokeCovered(pt.x, pt.y)) return;
+  if(assignNade(b, plan.t, pt, why, {now:true})) logEvent(b.id+": "+NADE[plan.t].name+" — "+why);
+}
 function nadeBrains(){
+  bots.forEach(function(b){ if((tick + b.id.charCodeAt(b.id.length-1)*7) % 32 === 0) nadeUseTick(b); });   // (v374) граната — часть действия
   var tt = teamTac.T; if(!tt) return;
   var g = GEO[tt.site], site = SITES[tt.site];
   var ts = bots.filter(function(b){ return b.team==="T" && b.alive; });
