@@ -171,13 +171,13 @@ function updateNadeTasks(){
     if(!b.alive || tick > t.until || !b.nades || b.nades[t.type] <= 0){
       b.nadeTask = null;
       // задание сгорело, а пост "лайнап" остался — снять, иначе стоит на точке броска весь раунд
-      if(b.post && b.post.tag === "lineup"){ b._lineupLock = 0; clearPost(b); }
+      if(b.post && b.post.tag === "lineup") clearPost(b);
       return; }
     if(b.planting || b.defusing) return;
     // (v359, р7) T уже на сайте выхода, а точка броска позади — задание снимается: с взятого сайта назад за гранатой не уходят
     if(t.lineup && t.from && b.team === "T" && teamTac.T && SITES[teamTac.T.site] && bomb.state !== "planted"){
       var Sx = SITES[teamTac.T.site], dB = Math.hypot(b.x-Sx.x, b.y-Sx.y);
-      if((onSite(Sx, b.x, b.y) || dB < 450) && Math.hypot(t.from.x-Sx.x, t.from.y-Sx.y) > dB + 200){ b.nadeTask = null; b.nadeQueue = null; b._lineupLock = 0; if(b.post && b.post.tag === "lineup") clearPost(b); return; }
+      if((onSite(Sx, b.x, b.y) || dB < 450) && Math.hypot(t.from.x-Sx.x, t.from.y-Sx.y) > dB + 200){ b.nadeTask = null; b.nadeQueue = null; if(b.post && b.post.tag === "lineup") clearPost(b); return; }
     }
     var d = Math.hypot(t.x-b.x, t.y-b.y);
     if(t.type === "smoke" && smokeCovered(t.x, t.y)){ b.nadeTask = null; return; }
@@ -189,9 +189,11 @@ function updateNadeTasks(){
       // оставляет (кроме боя: engage / retreat — сначала бой)
       if(Math.hypot(t.from.x-b.baseX, t.from.y-b.baseY) > 36 && !(b.atPost && b.post && b.post.tag === "lineup")){
         if(b.state === "hold" && !b._sawEnemy) leaveHold(b);
-        if(b.state === "patrol"){ setPost(b, t.from, {x:t.x, y:t.y}, true, "lineup"); b._lineupLock = tick; } return; }
+        // (v378) задача важнее броска (арбитр места) — бросок отменён, как живой игрок бросает лайнап ради боя / бомбы / колла
+        if(b.state === "patrol" && !setPost(b, t.from, {x:t.x, y:t.y}, true, "lineup")){ b.nadeTask = null; b.nadeQueue = null; }
+        return; }
+      postKeep(b);   // стоит на точке броска — затея ещё идёт
       if(!nadeReady(b)) return;   // (v340) только что кинул другую — задание ждёт
-      b._lineupLock = 0;
       // не вышло на время (пауза между гранатами, свой в зоне огня) — задание остаётся, попробует снова; раньше снималось молча
       if(!throwNade(b, t.type, t.x, t.y, true, t.why, !t.gen) && NADE_FAIL && /пауза|свой/.test(NADE_FAIL)) return;   // своя точка (gen) — дуга проверяется
       b.nadeTask = null; if(b.post && b.post.tag === "lineup") clearPost(b); return;

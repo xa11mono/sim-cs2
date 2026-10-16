@@ -27,6 +27,7 @@ function routeTick(){
     if(cp && Math.hypot(cp.x-b.x, cp.y-b.y) < 70) R.idx++;
     if(R.idx >= R.pts.length){
       var W = R.want; b._routeDone = R.key+"|"+roundNum; b._route = null;
+      if(b._task && b._task.lv === 2) b._task = null;   // маршрут пройден — его задача кончилась, пост роли ставится сразу
       if(W) setPost(b, W[0], W[1], W[2], W[3], W[4]);
     }
   });
@@ -107,85 +108,83 @@ function wallBoxes(){
   return _WB;
 }
 var ENTRY_WAIT = 128;   // (v375) 2 с: напарник на размен у входа на сайт (медиана про) — число, т.к. TICK_HZ объявлен ниже
-var POST_DWELL = 96, POST_URGENT = /^(flee|defuse|plantspot|stopplant|antidefuse|save|tradeR|contact|retake|fetch|pickup|clutch|bombwatch|repos:killmove|gather)/;
+// ======================= (v378, М126 этап 6) АРБИТР МЕСТА — одно место выбора задачи для позиции бота =======================
+// Раньше у каждой затеи (контакт, размен, подмена, эндгейм, подбор, ожидание у смока, лайнап, ребаланс, проба, перестановка,
+// маршрут) был свой «замок» со своим списком «кому можно меня перебить» — списки не сходились, механики перебивали друг друга
+// в обход общего порядка (сторож: «перетягивание», «метания»). Теперь одна таблица важности видов задач и одно правило:
+//  · новая задача ставится, если она НЕ НИЖЕ текущей (выше — сразу; того же уровня — не раньше POST_DWELL после прошлой смены,
+//    защита от дёрганья); НИЖЕ — только когда текущая кончилась или устарела;
+//  · текущая жива, пока её механика её подтверждает (вызывает setPost / postKeep не реже TASK_STALE) или пока не истёк её
+//    срок удержания (TASK_KEEP — для задач, которые ставятся один раз: контакт, размен, подмена, перестановка, ребаланс);
+//  · setPost возвращает true/false: механика, которой отказали, делает своё сама (лайнап — отменяет бросок, ожидание у смока —
+//    снимается, подбор — помнит предмет и вернётся). Роль и ситуация в таблицу не входят — они только порождают задачи.
+// Порядок и числа — ПРОЕКТНЫЕ (проектный порядок; проверка — situations.py: момент и доля переключения у про и у ботов).
+var TASK_LEVEL = [   // сверху — важнее; первая подходящая строка
+  {lv:11, kind:"бомба",              re:/^(flee|defuse|stopplant|antidefuse|plantspot)$/},
+  {lv:10, kind:"выжить",             re:/^save/},
+  {lv:9,  kind:"бой",                re:/^(contact|tradeR$|repos:killmove)/},
+  {lv:8,  kind:"ретейк/сбор/ротация",re:/^(retake|gather|rotate$|rotate:|bombwatch|postplant|fetch$)/},
+  {lv:7,  kind:"перестановка в бою", re:/^repos/},
+  {lv:6,  kind:"эндгейм/клатч",      re:/^(endhunt|hunt$|clutch)/},
+  {lv:5,  kind:"команда",            re:/^(fill$|rotateHold|fetchCover|bombEscort|bombWait|coverplant)/},
+  {lv:4,  kind:"гранаты/ожидания",   re:/^(lineup|smokeWait|utilWait|utilHold)$/},
+  {lv:3,  kind:"личная перестановка",re:/^(pickup$|probe|rebal|shift$|earlyPeek|midcover)/},
+  {lv:2,  kind:"маршрут",            re:/^route:/},
+  {lv:1,  kind:"пост роли",          re:/(?:)/}
+];
+var TASK_ROUTE_CANCEL = 8;   // задача этого уровня и выше снимает маршрут; ниже (3–7) — пауза, маршрут продолжится после неё
+var TASK_STALE = 16;         // 0,25 с: реже всех подтверждают свою задачу мозги с шагом 16 тиков (сейв CT, пробы) — проектное число
+// срок удержания задач, которые ставятся один раз (числа — те же, что были у замков своих механик)
+var TASK_KEEP = {
+  contact: function(b){ return b._contact && b._contact.lock ? b._contact.until : 0; },   // CONTACT_HOLD
+  tradeR: function(b){ var L = b._tradeLock; if(!L) return 0;   // окно размена 3,5 с; кончилось, а убийцу не сняли — туда же второй раз не лезет
+    if(tick >= L.until){ b._avoidPeekUntil = tick + 6*TICK_HZ; b._avoidPeekAt = L.at; b._tradeLock = null; return 0; } return L.until; },
+  fill: function(b){ var FL = b._fillLock; if(!FL) return 0;   // ≤ 15 с, пока план не сдвинулся (T — смена фазы, CT — «играем ретейк»), бомба
+    if(tick >= FL.until || (bomb && bomb.state === "planted") || (FL.team === "T" ? !(teamTac.T && teamTac.T.phase === FL.ph) : !!(teamTac.CT && teamTac.CT.playRetake))){ b._fillLock = null; return 0; }
+    return FL.until; },
+  repos: function(b){ return b._reposUntil || 0; },
+  rebal: function(b){ return BAL.siteRebal && b._rebal && b._rebal.round === roundNum ? Infinity : 0; }
+};
+function taskTagB(tag){ return String(tag).replace(/[:|].*$/, ""); }
+function taskLevel(tag){ tag = String(tag || ""); for(var i=0;i<TASK_LEVEL.length;i++) if(TASK_LEVEL[i].re.test(tag)) return TASK_LEVEL[i].lv; return 1; }
+function taskKeepUntil(b, tag){ var f = /^(contact|tradeR|fill|repos|rebal)/.exec(String(tag)); return f ? TASK_KEEP[f[1]](b) : 0; }
+function taskAlive(b){ var T = b._task; return !!T && T.round === roundNum && (tick - T.t <= TASK_STALE || tick < taskKeepUntil(b, T.tag)); }
+// можно ли сейчас поставить задачу tag (то же решение, что примет setPost) — для механик, которые решают, затевать ли своё
+function taskCanSet(b, tag){
+  var T = b._task; if(!taskAlive(b)) return true;
+  var lv = taskLevel(tag), tb = taskTagB(tag);
+  if(tb === T.tb) return true;                     // та же задача — уточняет точку
+  if(lv > T.lv) return true;                       // важнее — сразу
+  if(lv < T.lv) return false;                      // ниже — ждёт, пока текущая кончится
+  return tick - T.t0 >= POST_DWELL;                // того же уровня — не раньше POST_DWELL (защита от дёрганья)
+}
+// механика держит свою текущую задачу (пост не меняется — подтвердить, что затея ещё идёт)
+function postKeep(b){ if(b.post && b._task && b._task.tag === b.post.tag) b._task.t = tick; }
+var POST_DWELL = 96;   // (v375) 1,5 с — проектное число
 function setPost(b, pt, look, hold, tag, spreadIdx){
   // сменил позицию после фрага — роль в этом раунде ставит его уже на новую точку
   if(BAL.holdShift && b._hs && b._hs.round === roundNum && b._hs.tag === tag && pt && Math.hypot(pt.x-b._hs.pt.x, pt.y-b._hs.pt.y) < 320) pt = b._hs.pt;
-  // (v367) реакция на контакт — задача не перебивает её CONTACT_HOLD с (кроме срочного: бег от бомбы, сбить плант/дефуз, размен)
-  if(b._contact && b._contact.lock){
-    if(tick >= b._contact.until || !b.alive){ b._contact = null; if(b.post && /^contact/.test(b.post.tag) && !/^contact/.test(tag)) b._postLast = null; }   // (v375) кончилась — новая задача без ожидания POST_DWELL
-    else if(!/^(contact|flee|stopplant|antidefuse|tradeR)/.test(tag)) { if(b.post && b.post.tag !== b._contact.tag && b._contact.pt) { b._contact.lock = false; } else return; }
-  }
-  // размен (рефлекс после смерти тиммейта рядом) — тактика не перебивает его
-  // ~3.5с; окно кончилось, а убийцу не сняли — туда же второй раз не лезет
-  if(b._tradeLock){
-    if(tick >= b._tradeLock.until){ b._avoidPeekUntil = tick + 6*TICK_HZ; b._avoidPeekAt = b._tradeLock.at; b._tradeLock = null; }
-    else if(!/^(tradeR|defuse|flee|plantspot|stopplant|antidefuse)/.test(tag)) return;
-  }
-  // подмена погибшего (v272): держит его место, пока план не сдвинулся (T — смена фазы, CT — «играем ретейк»), бомба, ≤ 15 с
-  if(b._fillLock){
-    var FL = b._fillLock;
-    if(tick >= FL.until || (bomb && bomb.state === "planted") || (FL.team === "T" ? !(teamTac.T && teamTac.T.phase === FL.ph) : !!(teamTac.CT && teamTac.CT.playRetake))) b._fillLock = null;
-    else if(!/^(fill|tradeR|defuse|flee|plantspot|stopplant|antidefuse)/.test(tag)) return;
-  }
-  // эндгейм (все на последнего) — пост роли не перебивает. Раньше роль и эндгейм
-  // каждый тик ставили РАЗНЫЕ посты: путь сбрасывался, бот "не доходил" и
-  // топтался на месте с кругами шагов, не вставая на угол
-  if(b._egLock && b._egLock >= tick-1 && tag !== "endhunt" && !/^(defuse|flee|save|lineup|plantspot|stopplant|smokeWait|antidefuse)/.test(tag)) return;
-  // идёт подобрать оружие — пост роли не перебивает (до ~1 тика после решения)
-  // (аудит 11.10) срочная задача, которой замок уступает, снимает и саму затею: иначе «за оружием» / «ждёт у смока» / «лайнап»
-  // на следующем тике ставили свой пост обратно, и пост менялся каждый тик (путь сбрасывался — бот стоял до 5–6 с)
-  if(b._pickLock && b._pickLock >= tick-1 && tag !== "pickup"){
-    if(!/^(defuse|flee|save|plantspot|stopplant|antidefuse|retake)/.test(tag)) return;
-    if(b.post && b.post.tag === "pickup") b._pickIgnore = {x:b.post.x, y:b.post.y, round:roundNum};
-    b._pickLock = 0;
-  }
-  // ждёт у края смока — пост роли не перебивает (решение ждать/пушить — в smokeEdgeTick)
-  if(b._smokeWaitLock && b._smokeWaitLock >= tick-1 && tag !== "smokeWait"){
-    if(!/^(defuse|flee|save|lineup|plantspot|stopplant|antidefuse)/.test(tag)){
-      if(b._smokeWait) b._smokeWait.want = [pt, look, hold, tag];
-      return;
-    }
-    b._smokeWait = null; b._smokeWaitLock = 0; b._smokePush = {until: tick + 4*TICK_HZ, reason:"срочно"};
-  }
-  // идёт на свой лайнап — пост роли не перебивает (кроме дефуза/отхода от взрыва/сейва)
-  if(b._lineupLock && b._lineupLock >= tick-1 && tag !== "lineup"){
-    // (v285, владелец 14.10: игрок 9 в раунде 2 стоял в Short с гранатой, пока вся игра была на B) колл ротации/ретейка/подмены
-    // снимает гранату, если она летит не на сайт колла (≤700 px — «у сайта»); граната на сам сайт колла — докидывает
-    var csL = b.team === "CT" ? (bomb && bomb.state === "planted" ? bomb.site : (teamTac.CT && teamTac.CT.call ? teamTac.CT.call.site : null)) : null;
-    var farNade = !b.nadeTask || !csL || Math.hypot(b.nadeTask.x-SITES[csL].x, b.nadeTask.y-SITES[csL].y) > 700;
-    if(!/^(defuse|flee|save|stopplant|antidefuse|fetch|plantspot)/.test(tag) && !(/^(rotate|gather|retake|fill)/.test(tag) && farNade)) return;
-    b.nadeTask = null; b.nadeQueue = null; b._lineupLock = 0;   // задача важнее броска — бросок отменён (как живой игрок бросает лайнап ради сейва/дефуза)
-  }
-  if(tag === "lineup") b._route = null;
-  if(b._route && !/^route/.test(tag) && tag !== "utilWait" && tag !== "utilHold"){   // (v349) ожидание гранат — пауза маршрута раша, не отмена
+  var lv = taskLevel(tag);
+  // маршрут раша — путь к посту роли: пост роли, пока маршрут не пройден, становится его концом (R.want); задача уровня
+  // TASK_ROUTE_CANCEL и выше (и у CT — поставленная бомба) маршрут снимает; задачи между ними — пауза маршрута (v349)
+  if(b._route && lv !== 2){
     var R = b._route;
-    if(/^(retake|defuse|flee|save|fetch|postplant|hunt|repos|stopplant|antidefuse|endhunt)/.test(tag) || (bomb && bomb.state === "planted" && b.team === "CT")){ b._route = null; }
-    else if(R.idx < R.pts.length){
+    if(lv >= TASK_ROUTE_CANCEL || (bomb && bomb.state === "planted" && b.team === "CT")) b._route = null;
+    else if(lv === 1 && R.idx < R.pts.length){
       R.want = [pt, look, hold, tag, spreadIdx];
       var cp = R.pts[R.idx], nx = R.pts[R.idx+1] || pt;
       return setPost(b, cp, nx, true, "route:"+R.names[Math.min(R.idx, R.names.length-1)]);
     }
   }
-  if(BAL.siteRebal && b._rebal && b._rebal.round === roundNum && !/^(rebal|retake|defuse|flee|save|fetch|stopplant|antidefuse|tradeR|repos|clutch|rotate|endhunt|gather|midcover|lineup|smokeWait|pickup)/.test(tag)) return;
-  // игрок на пробе (вышел вперёд за инфой) — пост группы его не перебивает
-  if(b._probeLock && b._probeLock >= tick-1 && !/^(probe|fetchCover|bombEscort)/.test(tag)) return;   // и прикрывающий сборщика бомбы (v269)
-  // сменил позицию после килла — пост роли не тянет его обратно на засвеченную
-  // точку ещё ~5с (задачи по бомбе и ретейк — важнее)
-  // (v257, К2) ротация на колл — решение команды: старая перепозиция (пуш, отход) её не держит
-  if(b._reposUntil && tick < b._reposUntil && tag !== "repos" && !/^(retake|defuse|plantspot|flee|save|fetch|postplant|rotate)/.test(tag) && !(bomb && bomb.state === "planted")) return;
-  // (v375, этап 5 плана владельца: «решение держится») сторож: «перетягивание» — пост бота за 2 с меняется A → B → A
-  // (лайнап ↔ угол, ожидание гранат ↔ маршрут, смена позиции ↔ опорник; 250–340 на 100 раундов): каждая механика каждый тик
-  // ставит своё, кто последний — тот и прав, путь сбрасывается, бот топчется. Теперь новая задача обычного уровня не сменяет
-  // поставленную раньше POST_DWELL (1,5 с; проектное число); срочные (бой, бомба, огонь, сейв, размен, контакт) — сразу
-  var tagB = String(tag).replace(/[:|].*$/, "");
-  // (снятый пост — clearPost — не сбрасывает: последняя задача помнится в _postLast)
-  if(b._postLast && b._postLast.b !== tagB && tick - b._postLast.t < POST_DWELL && !POST_URGENT.test(tag) && !POST_URGENT.test(b._postLast.tag)) return;
+  if(!taskCanSet(b, tag)) return false;
+  var tagB = taskTagB(tag);
   var psn = (BAL.proSpots && hold && pt) ? proSnap(b, pt, look, tag) : null;
   if(psn){ pt = psn.pt; spreadIdx = 0; }
   var id = tag + "|" + Math.round(pt.x) + "," + Math.round(pt.y);
+  if(!b._task || b._task.tb !== tagB || b._task.round !== roundNum || !taskAlive(b)) b._task = {tag:String(tag), tb:tagB, lv:lv, t0:tick, t:tick, round:roundNum};
+  else { b._task.t = tick; b._task.tag = String(tag); }
   // (v260, В3) та же точка и задача — путь не сбрасываем, но новое направление взгляда принимаем
-  if(b.post && b.post.id === id){ b.post.look = look || null; return; }
+  if(b.post && b.post.id === id){ b.post.look = look || null; return true; }
   var x = pt.x, y = pt.y;
   // (v370, владелец: «не стоят в толпе») точка, где уже стоит / куда идёт свой (≤ SPOT_PERSONAL), — встаём рядом поперёк взгляда,
   // а не в него. Одно место для всех постов (было: раздвиг на 22 ед. только по spreadIdx). Точные места (бомба, лайнап, подбор) — как есть
@@ -198,13 +197,14 @@ function setPost(b, pt, look, hold, tag, spreadIdx){
       if(insideSolidWall(nx, ny) || segCrossesManualWalls(x0, y0, nx, ny) || !navAt(nx, ny) || spotTaken(b, {x:nx, y:ny})) return false;
       x = nx; y = ny; return true; });
   }
-  if(!b._postLast || b._postLast.b !== tagB || b._postLast.round !== roundNum) b._postLast = {b:tagB, tag:String(tag), t:tick, round:roundNum};
   b.post = {id:id, x:x, y:y, look:look||null, hold:hold, tag:tag};
   if(psn) b.post.pro = psn.sp;
   b.atPost = false;
   if(b.state === "patrol"){ b.path = []; b.pathIdx = 0; }
+  return true;
 }
-function clearPost(b){ if(b.post){ b.post = null; b.atPost = false; if(b.state==="patrol"){ b.path = []; b.pathIdx = 0; } } }
+// механика сама сняла свою точку — её задача кончилась (следующая ставится без ожидания)
+function clearPost(b){ b._task = null; if(b.post){ b.post = null; b.atPost = false; if(b.state==="patrol"){ b.path = []; b.pathIdx = 0; } } }
 function updatePost(b){
   if(!b.post || b.state !== "patrol"){ b.atPost = false; return; }
   var ep = fireSafe(b.post, b);

@@ -21,13 +21,13 @@ function egWaitPartner(b, mine, kp){
     b._egWait = {round:roundNum, t:tick, pt:wp};
     voiceLog(b.team, "egw"+b.id+roundNum, b.id, "жду "+part.id+", заходим вдвоём");
   }
-  b._probeLock = 0; b._reposUntil = 0; b._egLock = 0;
-  setPost(b, b._egWait.pt, {x:kp.x, y:kp.y}, true, "endhunt"); b._egLock = tick;
+  b._probeLock = 0; b._reposUntil = 0;
+  setPost(b, b._egWait.pt, {x:kp.x, y:kp.y}, true, "endhunt");
   return true;
 }
 function endgameBrain(){
   // (v146) после планта охоты нет: у T — пост-плант, у CT — ретейк/сейв
-  if(BAL.egFix && bomb && bomb.state === "planted") bots.forEach(function(o){ if(o.alive && o.post && o.post.tag === "endhunt"){ o._egLock = 0; o._egC = null; clearPost(o); } });
+  if(BAL.egFix && bomb && bomb.state === "planted") bots.forEach(function(o){ if(o.alive && o.post && o.post.tag === "endhunt"){ o._egC = null; clearPost(o); } });
   if(!BAL.endgame || roundState !== "live" || (bomb && bomb.state === "planted")) return;
   ["CT","T"].forEach(function(team){
     var foe = team === "CT" ? "T" : "CT";
@@ -83,9 +83,9 @@ function endgameBrain(){
             var sp0 = b.post, nearSp = Math.hypot(sp0.x-b.x, sp0.y-b.y) < 100;
             if(nearSp && !b.atPost && (!b._egEnd || b._egEnd.round !== roundNum || tick - b._egEnd.t < 1.5*TICK_HZ)){
               if(!b._egEnd || b._egEnd.round !== roundNum) b._egEnd = {round:roundNum, t:tick};
-              b._egLock = tick; return;
+              postKeep(b); return;
             }
-            b._egLock = 0; b._egC = null; b._egEnd = null; clearPost(b);
+            b._egC = null; b._egEnd = null; clearPost(b);
           }
           return;
         }
@@ -106,7 +106,7 @@ function endgameBrain(){
         if(fsp){ b._egC = {gk:gk, round:roundNum, spot:fsp, look:{x:kp.x, y:kp.y}, fl:K.id};
           voiceLog(team, "flank"+b.id, b.id, "захожу на "+K.id+" с другой стороны — помогаю "+mC.id); }
       }
-      if(b._egC && b._egC.round === roundNum && b._egC.fl === K.id && mC){ b._probeLock = 0; b._reposUntil = 0; b._egLock = 0; setPost(b, b._egC.spot, {x:kp.x, y:kp.y}, true, "endhunt"); b._egLock = tick; return; }
+      if(b._egC && b._egC.round === roundNum && b._egC.fl === K.id && mC){ b._probeLock = 0; b._reposUntil = 0; setPost(b, b._egC.spot, {x:kp.x, y:kp.y}, true, "endhunt"); return; }
       if(!b._egC || b._egC.gk !== gk || b._egC.round !== roundNum || b._egC.fl){
         var center = d < 650 ? {x:b.x, y:b.y} : walk({x: kp.x + (b.x-kp.x)*Math.min(0.9, 420/d), y: kp.y + (b.y-kp.y)*Math.min(0.9, 420/d)});
         var spots = pickSpots("eg:"+b.id+":"+gk, center, 2, {rMax: d < 650 ? 120 : 200, minGap:40, see:[kp]});
@@ -114,7 +114,7 @@ function endgameBrain(){
       }
       b._probeLock = 0; b._reposUntil = 0;
       if(BAL.groupPlay && BAL.egPair && egWaitPartner(b, mine, kp)) return;
-      b._egLock = 0; setPost(b, b._egC.spot, b._egC.look, true, "endhunt"); b._egLock = tick;
+      setPost(b, b._egC.spot, b._egC.look, true, "endhunt");
     });
   });
 }
@@ -169,11 +169,10 @@ function smokeEdgeTick(){
     if(W){
       var still = smokes.indexOf(W.S) >= 0 && smokeRadiusNow(W.S) > 30;
       var why = still ? smokePushReason(b, W.S) : null;
-      // срочная задача важнее ожидания у смока — ожидание снимает setPost (одно место, аудит 11.10)
       if(!still || why || tick - W.start > 9*TICK_HZ || b.state !== "patrol" || b.planting || b.defusing){
-        b._smokeWait = null; b._smokeWaitLock = 0;
+        b._smokeWait = null;
         if(still && (why || tick - W.start > 9*TICK_HZ)){ b._smokePush = {until: tick + 4*TICK_HZ, reason: why || "долго ждать нельзя"}; logEvent(b.id+": пушит в смок — "+b._smokePush.reason); }
-        if(W.want) setPost(b, W.want[0], W.want[1], W.want[2], W.want[3]);
+        if(b.post && b.post.tag === "smokeWait"){ clearPost(b); if(W.want) setPost(b, W.want[0], W.want[1], W.want[2], W.want[3]); }   // ожидание кончилось — дальше к своей точке
         return;
       }
       // ждёт у дыма, за ним враг — HE в дым: и урон, и дыра, через которую видно
@@ -181,12 +180,13 @@ function smokeEdgeTick(){
         W.heDone = true; assignNade(b, "he", {x:W.S.x, y:W.S.y}, "HE в смок — разогнать", {now:true});
         voiceLog(b.team, "hesm"+b.id, b.id, "кидаю HE в смок — разгоню и посмотрю");
       }
-      b._smokeWaitLock = 0; setPost(b, W.edge, {x:W.S.x, y:W.S.y}, true, "smokeWait"); b._smokeWaitLock = tick;
+      // (v378) задача важнее ожидания (арбитр места) — ожидание снимается: бот идёт по той задаче, а не «пушит срочно»
+      if(!setPost(b, W.edge, {x:W.S.x, y:W.S.y}, true, "smokeWait")){ b._smokeWait = null; logEvent(b.id+": ожидание у смока снято — задача важнее"); }
       return;
     }
     if(b.state !== "patrol" || !b.post || b.atPost || b.planting || b.defusing || b._sawEnemy) return;
     if(b._smokePush && tick < b._smokePush.until) return;
-    if(/^(defuse|flee|save|antidefuse|stopplant)/.test(b.post.tag||"")) return;
+    if(!taskCanSet(b, "smokeWait")) return;   // (v378) идёт по задаче важнее ожидания — арбитр места
     var px = b.post.x, py = b.post.y;
     for(var i=0;i<smokes.length;i++){
       var S = smokes[i], r = smokeRadiusNow(S); if(r < 30) continue;
@@ -206,7 +206,7 @@ function smokeEdgeTick(){
       var edge = walk({x: S.x + ux*(r+45), y: S.y + uy*(r+45)});
       b._smokeWait = {S:S, start:tick, edge:edge, want:[{x:px, y:py}, b.post.look, b.post.hold, b.post.tag]};
       if(b._smokeLog !== -S.born){ b._smokeLog = -S.born; logEvent(b.id+": ждёт у смока — за ним враг, причины лезть нет"); }
-      setPost(b, edge, {x:S.x, y:S.y}, true, "smokeWait"); b._smokeWaitLock = tick;
+      if(!setPost(b, edge, {x:S.x, y:S.y}, true, "smokeWait")) b._smokeWait = null;
       return;
     }
   });

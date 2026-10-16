@@ -324,7 +324,7 @@ function ctBrain(){
       // сейв не на CT-спавне (там T как раз и будут искать), а в месте подальше от
       // бомбы и от живых T, откуда их не видно; каждый — своё ближайшее такое место
       if(!b._saveSpot){ b._saveSpot = pickSaveSpot(b); b._saveLooks = null; }
-      if(b.post && b.post.tag === "pickup" && b._pickLock >= tick - 1) return;   // (v334, М63) по пути на сейв подбирает оружие — не перебивать
+      if(b.post && b.post.tag === "pickup" && taskAlive(b)) return;   // (v334, М63) по пути на сейв подбирает оружие — не перебивать
       setPost(b, b._saveSpot, {x:bomb.x, y:bomb.y}, true, "save"); // взгляд — на угол, из-за которого придут от бомбы
       return;
     }
@@ -631,9 +631,9 @@ function ctBrain(){
       groupPost([b], GEO[ko2].anchor, GEO[ko2].tEntry, "anchor2"+ko2, {rMin:70, rMax:230, minGap:60, see:[GEO[ko2].tEntry], hideFrom:[GEO[ko2].tStage],
         cross: apR ? {from:apR, pt:GEO[ko2].tEntry} : null});
     }
-    // роумер — свой маршрут. (v136) Раньше снимал ЛЮБОЙ пост каждый тик — и пост
-    // "за оружием" (и другие временные) чередовался: поставили/сняли, бот стоял
-    else if(!(BAL.pickFix && b.post && /^(pickup|tradeR|repos|lineup|smokeWait|endhunt)/.test(b.post.tag))) clearPost(b);
+    // роумер — свой маршрут (пост роли). (v136) Раньше снимал ЛЮБОЙ пост каждый тик — временные затеи чередовались с ним.
+    // (v378) снимает только то, что ниже его роли или кончилось — арбитр места
+    else if(!b.post || !taskAlive(b) || b._task.lv <= 1) clearPost(b);
   });
 }
 

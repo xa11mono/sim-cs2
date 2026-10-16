@@ -166,7 +166,7 @@ function tSetSite(tt, site){
     b._route = null; b._stageInfo = null;
     var t = b.nadeTask;
     if(old && old !== site && t && SITES[old] && Math.hypot(t.x-SITES[old].x, t.y-SITES[old].y) < Math.hypot(t.x-SITES[site].x, t.y-SITES[site].y)){
-      b.nadeTask = null; b.nadeQueue = null; b._lineupLock = 0; if(b.post && b.post.tag === "lineup") clearPost(b);
+      b.nadeTask = null; b.nadeQueue = null; if(b.post && b.post.tag === "lineup") clearPost(b);
     }
   });
 }

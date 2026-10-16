@@ -31,7 +31,8 @@ function tFallbackTick(){
   bots.forEach(function(b){
     if(!b.alive || b.team !== "T" || b._sawEnemy || b.planting || b._fbRound === roundNum) return;
     if(bomb && bomb.state === "carried" && bomb.carrier === b && tt.phase !== "setup") return;
-    if(b.post && /^(repos|plantspot|lineup|tradeR|endhunt|fetch|coverplant|exec|stage|gather|save)/.test(b.post.tag||"")) return;
+    if(!taskCanSet(b, "repos:fallback")) return;   // (v378) идёт по задаче не ниже отката — арбитр места
+    if(b.post && /^(exec|stage)/.test(b.post.tag||"")) return;   // на стадии / выходе по плану — не откатывается (решение плана, не важность)
     var zb = bzOf(b.x, b.y); if(zb < 0) return;
     var L = beliefLast.T || {}, ids = 0, cx = 0, cy = 0;
     for(var eid in L){ var lo = L[eid]; if(tick - lo.tick > FB.window*TICK_HZ) continue; var eb = bots.filter(function(o){ return o.id === eid; })[0]; if(!eb || !eb.alive) continue;
@@ -94,6 +95,7 @@ function siteRebalanceTick(){
   var cts = bots.filter(function(o){ return o.alive && o.team === "CT"; });
   cts.forEach(function(o){ var R = o._rebal; if(!R) return;
     if(R.round !== roundNum || o._sawEnemy){ o._rebal = null; return; }
+    if(R.pt) setPost(o, R.pt, R.look, true, R.tag);   // (v378) держит свой новый угол: вернулся к нему, если его уводила задача важнее
     if(tick - R.t < REBAL.minHold*TICK_HZ) return;
     var q = bots.filter(function(x){ return x.id === R.by; })[0];
     var still = q && q.alive && (R.fwd ? Math.hypot(q.x-R.fx, q.y-R.fy) < 220 : true);
@@ -122,8 +124,8 @@ function siteRebalanceTick(){
       if(sp) why = (fwd ? by.id+" вышел вперёд" : by.id+" держит тот же угол")+" — беру угол "+calloutName(sp.t.x, sp.t.y);
       else if(fwd){ sp = rebalSpot(o, k, [], [], {see:{x:by.x, y:by.y}}); if(sp){ sp.look = {x:by.x, y:by.y}; why = by.id+" впереди — встаю под размен"; } }
       if(!sp) return;
-      o._rebal = {round:roundNum, t:tick, by:by.id, fwd:fwd, fx:by.x, fy:by.y};
-      setPost(o, sp.pt, sp.look, true, "rebal"+k);
+      if(!setPost(o, sp.pt, sp.look, true, "rebal"+k)) return;
+      o._rebal = {round:roundNum, t:tick, by:by.id, fwd:fwd, fx:by.x, fy:by.y, pt:sp.pt, look:sp.look, tag:"rebal"+k};
       voiceLog("CT", "rebal"+o.id+tick, o.id, why);
     });
   });
@@ -136,7 +138,7 @@ function infoFallbackTick(){
   bots.forEach(function(b){
     if(!b.alive || b.team !== "CT" || b._sawEnemy || b.planting || b.defusing) return;
     if(b._fbRound === roundNum) return;
-    if(b.post && /^(repos|clutch|retake|gather|save|defuse|lineup|tradeR|endhunt|rotate)/.test(b.post.tag||"")) return;
+    if(!taskCanSet(b, "repos:fallback")) return;   // (v378) идёт по задаче не ниже отката — арбитр места
     var zb = bzOf(b.x, b.y); if(zb < 0) return;
     // выдвинут: ближе к врагу, чем ближайший сайт (на 200+ по пути)
     var zA = bzOf(GEO.A.anchor.x, GEO.A.anchor.y), zB = bzOf(GEO.B.anchor.x, GEO.B.anchor.y);
@@ -170,7 +172,7 @@ function infoFallbackTick(){
       var nz = bzOf(nm.x, nm.y); if(!(nz >= 0 && beliefCount("CT", [nz]) >= 0.5)) sp = walk({x: nm.x, y: nm.y}); }
     if(!sp) return;
     b._fbRound = roundNum;
-    b._reposUntil = 0; b._egLock = 0; b._probeLock = 0;
+    b._reposUntil = 0; b._probeLock = 0;
     setPost(b, sp, th || null, true, "repos:fallback");
     b._reposUntil = tick + FB.lock*TICK_HZ;
     voiceLog("CT", "fb"+b.id+roundNum, b.id, why+" ("+calloutName(sp.x, sp.y).replace(/^на /,"")+")");

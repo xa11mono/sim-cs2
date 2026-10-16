@@ -8,8 +8,8 @@
 //  · ноги — туда же: задача (пост, дефуз, пост-плант, сбор, ротация) уступает на CONTACT_HOLD с. Знаем врагов рядом не больше,
 //    чем своих рядом + 1, и HP не низкое — выходит на него (точка ≤ CONTACT_SWING ед. от себя, откуда его видно, ближе к нему,
 //    но ≥ 120); иначе держит угол (ближайшая точка, откуда видно). Выходя, кидает флешку туда, если есть;
-//  · задача важнее контакта: ставит / дефузит, бежит от бомбы (сейв в зоне взрыва — бежит), сбивает плант/дефуз, несёт
-//    бомбу (контакт дальше 300), CT до взрыва впритык на дефуз — тогда смок на врага (если есть) и дальше к бомбе.
+//  · задача важнее контакта (по таблице арбитра места TASK_LEVEL — бомба, сейв), а также: ставит / дефузит, сейв в зоне
+//    взрыва, CT до взрыва впритык на дефуз — тогда взгляд на контакт, смок на врага (если есть) и дальше к своей задаче.
 // Повтор не чаще раза в CONTACT_GAP с на бота. Числа — проектные. Заменяет частные правки v365–v366 (retakePick, ppCheck).
 var CONTACT_R = 700, CONTACT_AGE = 2.5, CONTACT_HOLD = 2.5, CONTACT_SWING = 220, CONTACT_GAP = 4;
 function contactInfo(b){
@@ -22,7 +22,6 @@ function contactInfo(b){
 }
 function contactCritical(b, C){
   if(b.planting || b.defusing) return true;
-  if(b.post && /^(flee|stopplant|antidefuse)/.test(b.post.tag)) return true;
   if(bomb && bomb.state === "planted"){
     var left = bombTimeLeftTicks()/TICK_HZ;
     if(b.team === "CT" && !(teamTac.CT && teamTac.CT.saving)){ var need = Math.hypot(b.x-bomb.x, b.y-bomb.y)/SPEED*1.2 + (b.kit ? 5 : 10) + 1.5; if(left - need < 3) return true; }
@@ -66,9 +65,9 @@ function contactTick(b){
   cand.sort(swing ? function(a, c){ return Math.hypot(a.x-look.x, a.y-look.y) - Math.hypot(c.x-look.x, c.y-look.y); }
                   : function(a, c){ return Math.hypot(a.x-b.x, a.y-b.y) - Math.hypot(c.x-b.x, c.y-b.y); });
   var sp = cand[0]; if(!sp) return;
-  b._contact = null;
   var tag = swing ? "contact:swing" : "contact:hold";
-  setPost(b, sp, look, true, tag);
+  // (v378) задача важнее контакта (бомба, сейв — арбитр места, setPost) — ноги остаются на ней, взгляд — на контакт
+  if(!setPost(b, sp, look, true, tag)){ b._contact = {x:C.x, y:C.y, until: tick + CONTACT_HOLD*TICK_HZ, lock:false}; b._contactT = tick; return; }
   b._contact = {x:C.x, y:C.y, until: tick + CONTACT_HOLD*TICK_HZ, lock:true, pt:sp, tag:tag}; b._contactT = tick;
   b._reposUntil = 0; b._probeLock = 0; b.lastIntel = {x:look.x, y:look.y, tick:tick, src:"call"};
   if(swing && !C.own && b.nades && b.nades.flash > 0 && C.d > 150 && !hasLOS(b.x, b.y, look.x, look.y)) assignNade(b, "flash", look, "флешка под выход на врага рядом", {now:true, range:900});

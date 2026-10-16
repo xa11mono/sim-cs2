@@ -143,7 +143,7 @@ function lowHpBack(b){
   if(bomb && bomb.state === "planted") return; // ретейк/пост-плант — бомба важнее
   var defending = b.team === "CT" && b.post && /^(anchor|stack|set:|cts:|clutch|midcover)/.test(b.post.tag);
   if(bomb && bomb.state === "carried" && bomb.carrier === b) return;
-  if(b.post && /^(defuse|plantspot|flee|save|repos|tradeR|antidefuse|stopplant|fetch|lineup)/.test(b.post.tag)) return;
+  if(!taskCanSet(b, "repos:lowhp")) return;   // (v378) идёт по задаче не ниже — арбитр места
   b._lowHpNext = tick + TICK_HZ;
   var mates = bots.filter(function(o){ return o !== b && o.alive && o.team === b.team; });
   if(!mates.length) return; // один — отходить не к кому

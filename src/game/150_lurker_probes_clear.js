@@ -211,7 +211,7 @@ function tProbes(tt, ts){
     }
     if((pb.atPost && tick - (P.at || (P.at = tick)) > stay) || tick - P.since > 9*TICK_HZ){
       P.ph = 0; P.cleared = false; P.at = 0; P.saw = 0; P.until = tick + (6 + 3*hashRand(tick + pb.id.charCodeAt(1)))*TICK_HZ;
-      pb._probeLock = 0; pb.post = null; // вернётся на пост группы со следующего тика
+      pb._probeLock = 0; clearPost(pb); // вернётся на пост группы со следующего тика
     }
     if(!pb.atPost) P.at = 0;
   });

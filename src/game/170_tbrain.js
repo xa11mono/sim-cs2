@@ -54,7 +54,7 @@ function tBrain(){
   if(bomb.state === "planted" && tt.phase !== "postplant"){ tt.phase = "postplant";
     // (v144) фланг через мид и охота имели смысл до планта. После планта у них
     // не было исполнителя — стояли, где оставили. Теперь все в пост-плант
-    if(BAL.newLook && BAL.ppFix === true) bots.forEach(function(o){ if(o.team !== "T") return; o._midFlank = null; o._shift = null; o._egLock = 0; o._egC = null;
+    if(BAL.newLook && BAL.ppFix === true) bots.forEach(function(o){ if(o.team !== "T") return; o._midFlank = null; o._shift = null; o._egC = null;
       if(o.post && /^(endhunt|stage.*CTside)/.test(o.post.tag || "")) clearPost(o); });
   }
   // ---- раздел 11: живая перепривязка тактики ----
@@ -261,7 +261,6 @@ function tBrain(){
     if(fetcher){ tt.fetchId = fetcher.id;
       // (v286, И26) сборщик бомбы — не проба: старая проба снимается (раньше проба на B каждые 6–9 с выдёргивала его от бомбы)
       if(fetcher._probe && fetcher._probe.round === roundNum){ fetcher._probe = null; fetcher._probeLock = 0; }
-      if(fetcher.nadeTask && fetcher.nadeTask.lineup){ fetcher.nadeTask = null; fetcher.nadeQueue = null; fetcher._lineupLock = 0; } // бомба важнее лайнапа
       // (v269, пункт 2) за бомбой — не в одиночку: бомба лежит там, где убили носителя, — под тем же стрелком. У ботов 27 из
       // 159 смертей T «один» (нет своего в 350 px) были по дороге за бомбой; у про в одиночку гибнут 20 % T (у ботов 49 %),
       // а смерть рядом со своим разменивают в 27 % (у ботов 33 %). Ближайший к сборщику T (не лёркер, ≤ 500 px — как напарник
@@ -476,7 +475,8 @@ function tBrain(){
       // условие то пропадало, то появлялось, таймер начинался заново, и выход откладывался без конца
       if(!waitOn) b._utilWDone = roundNum;
       // ждёт — стоит, где начал ждать (прицел на сайт); раньше выданный пост (зачистка угла) иначе вёл его дальше под гранаты
-      if(waitOn && !(b.post && b.post.tag === "utilWait")) setPost(b, {x:b._utilW.x, y:b._utilW.y}, S0, true, "utilWait");
+      if(waitOn && b.post && b.post.tag === "utilWait") postKeep(b);
+      else if(waitOn) setPost(b, {x:b._utilW.x, y:b._utilW.y}, S0, true, "utilWait");
       return waitOn;
     };
     var ready = function(b){
@@ -523,9 +523,11 @@ function tBrain(){
         var dE = Math.hypot(esc.x-carrier.x, esc.y-carrier.y);
         var lnE = Math.hypot(ppt.x-carrier.x, ppt.y-carrier.y) || 1, ePt = walk({x: carrier.x + (ppt.x-carrier.x)/lnE*Math.min(90, lnE), y: carrier.y + (ppt.y-carrier.y)/lnE*Math.min(90, lnE)});
         if(!(esc.post && esc.post.tag === "bombEscort" && Math.hypot(esc.post.x-ePt.x, esc.post.y-ePt.y) < 80)) setPost(esc, ePt, g.ctEntry, true, "bombEscort");
+        else postKeep(esc);
         esc._probeLock = tick;
         if(dE <= TRADE_R) setPost(carrier, ppt, g.ctEntry, true, "plantspot");
-        else if(!(carrier.post && carrier.post.tag === "bombWait")) setPost(carrier, {x:carrier.x, y:carrier.y}, esc, true, "bombWait");
+        else if(carrier.post && carrier.post.tag === "bombWait") postKeep(carrier);
+        else setPost(carrier, {x:carrier.x, y:carrier.y}, esc, true, "bombWait");
       } else setPost(carrier, ppt, g.ctEntry, true, "plantspot");
     }
     var rest = pick(["entry","awp","support","igl"]).filter(function(b){ return b !== carrier && ready(b); });

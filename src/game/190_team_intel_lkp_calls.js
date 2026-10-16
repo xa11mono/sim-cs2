@@ -287,9 +287,8 @@ function intelDeath(victim, killer){
       swC.forEach(function(q){ var da = Math.abs(((Math.atan2(q.y-kp.y, q.x-kp.x)-aV+Math.PI)%(2*Math.PI)+2*Math.PI)%(2*Math.PI)-Math.PI);
         var sc = Math.min(da, 0.8) - Math.hypot(q.x-o.x, q.y-o.y)/1500; if(sc > sBest){ sBest = sc; sw = q; } });
       sw = sw || {x:victim.x, y:victim.y};
-      o._egLock = 0; o._pickLock = 0; o._smokeWaitLock = 0; o._lineupLock = 0; o._route = null; o._probeLock = 0; o._reposUntil = 0;
-      o._tradeLock = null;
-      setPost(o, sw, kp, true, "tradeR");
+      if(!setPost(o, sw, kp, true, "tradeR")) return;   // (v378) занят задачей важнее размена (бомба, сейв) — арбитр места
+      o._probeLock = 0; o._reposUntil = 0;
       o._tradeLock = {until: tick + Math.round(3.5*TICK_HZ), at:{x:victim.x, y:victim.y}, kp:kp};
       o._tradeUntil = tick + Math.round(3.5*TICK_HZ);
       o.heardSound = {x:kp.x, y:kp.y, tick:tick, team:killer.team, src:killer.id, kind:"call"};
@@ -326,9 +325,8 @@ function intelDeath(victim, killer){
     });
     if(fBest){
       var fp = (fl && pickSpots("fill"+tick+fBest.id, fc, 1, {rMax:170, minGap:30, see:[fl]})[0]) || fc;
-      fBest._fillLock = null; setPost(fBest, fp, fl, true, "fill");
-      fBest._fillLock = {until: tick + 15*TICK_HZ, team: victim.team, pt: fp, ph: victim.team === "T" ? teamTac.T.phase : null};
-      voiceLog(victim.team, "fill"+victim.id, fBest.id, "займу "+calloutName(fc.x, fc.y)+" вместо "+victim.id);
+      if(setPost(fBest, fp, fl, true, "fill")){ fBest._fillLock = {until: tick + 15*TICK_HZ, team: victim.team, pt: fp, ph: victim.team === "T" ? teamTac.T.phase : null};
+      voiceLog(victim.team, "fill"+victim.id, fBest.id, "займу "+calloutName(fc.x, fc.y)+" вместо "+victim.id); }
     }
   }
   // IGL: энтри сняли на выходе — вторая волна не пикает тот же угол "в лоб":

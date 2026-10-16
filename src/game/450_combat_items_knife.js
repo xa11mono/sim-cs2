@@ -170,11 +170,11 @@ function awpAllowed(b){
 }
 function weaponPickupTick(){
   if(!BAL.weaponDrop || roundState !== "live") return;
-  if(!groundWeapons.length){ bots.forEach(function(b){ if(b.alive && b.post && b.post.tag === "pickup"){ clearPost(b); b._pickLock = 0; } }); return; }
+  if(!groundWeapons.length){ bots.forEach(function(b){ if(b.alive && b.post && b.post.tag === "pickup"){ clearPost(b); } b._pickGo = null; }); return; }
   bots.forEach(function(b){
     if(!b.alive || b.planting || b.defusing) return;
     // оружие уже подобрал кто-то другой — пост "за оружием" снять (иначе стоял на пустом месте)
-    if(b.post && b.post.tag === "pickup" && !groundWeapons.some(function(G){ return Math.hypot(G.x-b.post.x, G.y-b.post.y) < 40; })){ clearPost(b); b._pickLock = 0; }
+    if(b.post && b.post.tag === "pickup" && !groundWeapons.some(function(G){ return Math.hypot(G.x-b.post.x, G.y-b.post.y) < 40; })){ clearPost(b); b._pickGo = null; }
     // идёт за оружием — держим блок каждый тик: раньше блок жил 1 тик, и через
     // тик пост роли и "за оружием" перебивали друг друга (путь пересчитывался)
     else if(b.post && b.post.tag === "pickup" && b.state === "patrol" && !b._sawEnemy){
@@ -186,8 +186,15 @@ function weaponPickupTick(){
       // на "хожу за оружием" — 7с, потом 8с не отвлекается на ганы
       if(!b._pickSince || tick - b._pickSeen > 4) b._pickSince = tick; b._pickSeen = tick;
       var pickTooLong = BAL.pickFix && tick - b._pickSince > (b._pickSave === roundNum ? 12 : 7)*TICK_HZ;   // (v334) на сейве идёт шагом — дольше
-      if((b.atPost && tick - b._pickT.t > TICK_HZ) || tick - b._pickT.t > (b._pickSave === roundNum ? 12 : 6)*TICK_HZ || pickTooLong){ b._pickIgnore = {x:b.post.x, y:b.post.y, round:roundNum}; if(pickTooLong) b._pickBan = tick + 8*TICK_HZ; clearPost(b); b._pickLock = 0; b._pickSince = 0; }
-      else b._pickLock = tick;
+      if((b.atPost && tick - b._pickT.t > TICK_HZ) || tick - b._pickT.t > (b._pickSave === roundNum ? 12 : 6)*TICK_HZ || pickTooLong){ b._pickIgnore = {x:b.post.x, y:b.post.y, round:roundNum}; if(pickTooLong) b._pickBan = tick + 8*TICK_HZ; clearPost(b); b._pickGo = null; b._pickSince = 0; }
+      else postKeep(b);   // идёт за оружием — затея ещё идёт (арбитр места)
+    }
+    // (v378) за оружием шёл, но задача важнее его увела (арбитр места) — помнит, где лежит, и вернётся, когда та кончится
+    else if(b._pickGo && b._pickGo.round === roundNum && !(b.post && b.post.tag === "pickup")){
+      var PG = b._pickGo;
+      if(!groundWeapons.some(function(G){ return Math.hypot(G.x-PG.x, G.y-PG.y) < 40; })) b._pickGo = null;
+      else if(b.state === "patrol" && !b._sawEnemy && !(bomb.state === "carried" && bomb.carrier === b) && taskCanSet(b, "pickup") && setPost(b, {x:PG.x, y:PG.y}, null, true, "pickup")){
+        logEvent(b.id+": возвращаюсь за оружием"); return; }
     }
     var cur = pickValue(b, b.primary);
     // подобрать под ногами
@@ -197,7 +204,7 @@ function weaponPickupTick(){
       if(G.key === "AWP" && !awpAllowed(b) && cur >= 5) continue; // снайпу — снайперу
       groundWeapons.splice(i, 1);
       if(b.primary && !sellItem(b, b.primary)) groundWeapons.push({key:b.primary, x:b.x, y:b.y, t:tick, from:b.id});   // (v334) купил в этом раунде — продаёт
-      b.primary = G.key; b.weapon = WEAPONS[G.key]; b._ammoFor = null; b._pickLock = 0;
+      b.primary = G.key; b.weapon = WEAPONS[G.key]; b._ammoFor = null; b._pickGo = null;
       logEvent(b.id+" подобрал "+WEAPONS[G.key].name+(G.from ? " ("+G.from+")" : ""));
       sndPickup(b, "w");   // (v338) звук подбора — только показ
       return;
@@ -205,7 +212,7 @@ function weaponPickupTick(){
     // (9) в бою: с пистолетом/ПП, рядом (≤170px) лежит винтовка/AWP убитого, врага
     // сейчас не видно ~0.5с — быстро поднять (как в CS: "подобрал АК и дальше")
     if(BAL.fightPickup && !b._sawEnemy && (b.state === "hold" || b.state === "engage" || b.state === "patrol") && tick - (b._lastSawT||0) > 32 &&
-       !(bomb.state === "carried" && bomb.carrier === b) && !(b.post && /^(defuse|plantspot|antidefuse|stopplant)/.test(b.post.tag||"")) && b._fpT !== tick){
+       !(bomb.state === "carried" && bomb.carrier === b) && taskCanSet(b, "pickup") && b._fpT !== tick){
       // не срывается ради гана с важной позиции: после планта (ретейк/пост-плант)
       // и когда рядом свежая инфа о враге — только если ган почти под ногами
       var LKf = beliefLast[b.team] || {}, foeNear = false;
@@ -219,7 +226,7 @@ function weaponPickupTick(){
       if(gBest && (b.state !== "patrol" || intelEstimate(b.team, gBest.x, gBest.y, 450, 3*TICK_HZ).n > 0)){
         b._fpT = tick;
         if(b.state !== "patrol"){ b.state = "patrol"; b.holding = false; b.stateSince = tick; }
-        b._pickLock = 0; setPost(b, {x:gBest.x, y:gBest.y}, null, true, "pickup"); b._pickLock = tick;
+        if(setPost(b, {x:gBest.x, y:gBest.y}, null, true, "pickup")) b._pickGo = {x:gBest.x, y:gBest.y, round:roundNum};
         if(!b._fpV || tick - b._fpV > 5*TICK_HZ){ b._fpV = tick; logEvent(b.id+": в бою — подбираю "+WEAPONS[gBest.key].name); }
         return;
       }
@@ -233,11 +240,11 @@ function weaponPickupTick(){
       groundWeapons.forEach(function(G){ if(pickValue(b, G.key) <= cur) return; var dG = Math.hypot(G.x-b.x, G.y-b.y);
         if(b._pickIgnore && b._pickIgnore.round === roundNum && Math.hypot(G.x-b._pickIgnore.x, G.y-b._pickIgnore.y) < 40) return;
         if(dG < gsd && intelEstimate("CT", G.x, G.y, 450, 5*TICK_HZ).n === 0){ gsd = dG; gs = G; } });
-      if(gs && !(b.post && b.post.tag === "pickup")){ setPost(b, {x:gs.x, y:gs.y}, null, true, "pickup"); logEvent(b.id+": сейв — по пути подбираю "+WEAPONS[gs.key].name); }
-      if(gs){ b._pickLock = tick; b._pickSave = roundNum; }
+      if(gs && !(b.post && b.post.tag === "pickup") && setPost(b, {x:gs.x, y:gs.y}, null, true, "pickup")) logEvent(b.id+": сейв — по пути подбираю "+WEAPONS[gs.key].name);
+      if(gs && b.post && b.post.tag === "pickup"){ b._pickGo = {x:gs.x, y:gs.y, round:roundNum}; b._pickSave = roundNum; }
       return; }
-    if(b.post && /^(defuse|flee|save|retake|gather|antidefuse|stopplant|plantspot|fetch|lineup)/.test(b.post.tag)) return;
-    if(b._pickLock >= tick-1) return;
+    if(!taskCanSet(b, "pickup")) return;   // (v378) идёт по задаче важнее подбора — арбитр места
+    if(b.post && b.post.tag === "pickup") return;
     if(BAL.pickFix && b._pickBan > tick) return;
     var best = null, bd = BAL.pickupMore ? 420 : 230;
     groundWeapons.forEach(function(G){
@@ -251,6 +258,6 @@ function weaponPickupTick(){
     if(!best) return;
     var danger = intelEstimate(b.team, best.x, best.y, 450, 3*TICK_HZ).n > 0;
     if(danger) return;
-    b._pickLock = 0; setPost(b, {x:best.x, y:best.y}, null, true, "pickup"); b._pickLock = tick;
+    if(setPost(b, {x:best.x, y:best.y}, null, true, "pickup")) b._pickGo = {x:best.x, y:best.y, round:roundNum};
   });
 }

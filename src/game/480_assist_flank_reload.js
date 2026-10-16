@@ -69,7 +69,7 @@ function flankAssist(b){
 function assistPeek(b){
   if(!BAL.assistPeek || b._sawEnemy || b.planting || b.defusing || b.hp <= LOW_HP) return false;
   if(tick < (b._assistNext||0)) return false;
-  if(b.post && /^(defuse|plantspot|lineup|flee|save|repos|tradeR|stopplant|antidefuse|fetch)/.test(b.post.tag)) return false;
+  if(!taskCanSet(b, "repos:assist")) return false;   // (v378) идёт по задаче не ниже — арбитр места
   // (v368) носитель выходит вдвоём с тиммейтом, как все (раньше «в дуэли не лезет» — на раше magixx шёл в 400 ед. позади боя)
   var mate = null, E = null;
   bots.forEach(function(m){

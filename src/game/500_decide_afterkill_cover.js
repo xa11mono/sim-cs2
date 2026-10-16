@@ -168,7 +168,7 @@ function leaveHold(b){ b.state = "patrol"; b.holding = false; b.crouching = fals
 // (v156) решение после фрага — только по тому, что команда знает (ЛИП ≤5с),
 // а не по настоящим позициям врагов
 function postKillDecide(sh, tg, vp, here){
-  if(sh.post && /^(lineup|plantspot|defuse|save|fetch|antidefuse|stopplant)/.test(sh.post.tag || "")) return false;
+  if(!taskCanSet(sh, "repos")) return false;   // (v378) идёт по задаче важнее перестановки — арбитр места
   var known = [], LK = beliefLast[sh.team] || {};
   for(var eid in LK){ var q = LK[eid]; if(eid === tg.id || tick - q.tick > 5*TICK_HZ) continue;
     if(!bots.some(function(o){ return o.id === eid && o.alive; })) continue;
@@ -187,7 +187,7 @@ function postKillDecide(sh, tg, vp, here){
     var np = pickSpots("pkb"+tick+sh.id, back, 4, {rMin:0, rMax:200, minGap:50, see: sh.post && sh.post.look ? [sh.post.look] : [], hideFrom:hide})
       .filter(function(p){ return Math.hypot(p.x-here.x, p.y-here.y) > 70 && !hasLOS(p.x, p.y, vp.x, vp.y); })[0];
     if(np){
-      sh._reposUntil = 0; sh._egLock = 0; sh._probeLock = 0;
+      sh._reposUntil = 0; sh._probeLock = 0;
       setPost(sh, np, vp, true, "repos:back");
       if(sh.post && sh.post.tag === "repos:back"){ leaveHold(sh); sh._reposUntil = tick + 4*TICK_HZ;
         logEvent(sh.id+": после фрага откат — "+(sh.hp <= 45 ? "мало HP" : "их ещё "+known.length+" рядом")); return true; }
@@ -200,7 +200,7 @@ function postKillDecide(sh, tg, vp, here){
       var tgt = known[0] ? {x:known[0].x, y:known[0].y} : vp;
       var sw = pickSpots("pkp"+tick+sh.id, vp, 4, {rMax:150, minGap:40, see:[tgt]})
         .filter(function(p){ return Math.hypot(p.x-here.x, p.y-here.y) > 60; })[0] || vp;
-      sh._reposUntil = 0; sh._egLock = 0;
+      sh._reposUntil = 0;
       setPost(sh, sw, tgt, true, "repos:push");
       if(sh.post && sh.post.tag === "repos:push"){ leaveHold(sh); sh._reposUntil = tick + 3*TICK_HZ;
         logEvent(sh.id+": после фрага добирает — "+(known.length ? "второй рядом" : "дальше по месту фрага")); return true; }
@@ -219,13 +219,13 @@ function afterKillMove(sh, tg, w){
 // реакции (сейв, AWP, смена угла при известных врагах) нет — с места убийства в укрытие в KILL_MOVE ед., откуда не видно места,
 // где упал враг (оттуда разменивают), но видно то, что он держал; 2 с, потом обратно к задаче
 function killMoveCover(sh, tg){
-  if(sh.post && /^(defuse|plantspot|flee|save|lineup|fetch|antidefuse|stopplant)/.test(sh.post.tag)) return false;
+  if(!taskCanSet(sh, "repos:killmove")) return false;   // (v378) идёт по задаче важнее — арбитр места
   if(sh._contact) sh._contact = null;   // выход на контакт закончен — враг, на которого выходил, убит (иначе пост контакта держал его на месте)
   var hereK = {x:sh.x, y:sh.y}, vpK = {x:tg.x, y:tg.y}, seeK = sh.post && sh.post.look ? [sh.post.look] : [];
   var spK = pickSpots("kmv"+tick+sh.id, hereK, 3, {rMin:KILL_MOVE[0], rMax:KILL_MOVE[1], minGap:30, hideFrom:[vpK], see:seeK})
     .filter(function(q){ return Math.hypot(q.x-hereK.x, q.y-hereK.y) >= KILL_MOVE[0]; })[0];
   if(!spK) return false;
-  sh._reposUntil = 0; sh._egLock = 0; sh._probeLock = 0; sh._fc = null;   // перестрелка с убитым кончилась — цикл «линия/укрытие» не держит на месте
+  sh._reposUntil = 0; sh._probeLock = 0; sh._fc = null;   // перестрелка с убитым кончилась — цикл «линия/укрытие» не держит на месте
   setPost(sh, spK, sh.post && sh.post.look ? sh.post.look : vpK, true, "repos:killmove");
   if(!sh.post || sh.post.tag !== "repos:killmove") return false;
   leaveHold(sh); sh._reposUntil = tick + 2*TICK_HZ;
@@ -265,7 +265,7 @@ function afterKillReact(sh, tg, w){
     var alt = pickSpots("awpr"+tick+sh.id, here, 4, {rMin:100, rMax:260, minGap:60, see:seeA, hideFrom:others, cross:{from:here, pt:vp}});
     var ap = alt.filter(function(q){ return Math.hypot(q.x-here.x, q.y-here.y) > 90; })[0];
     if(!ap) return false;
-    sh._reposUntil = 0; sh._egLock = 0; sh._probeLock = 0;
+    sh._reposUntil = 0; sh._probeLock = 0;
     setPost(sh, ap, vp, true, "repos");
     if(!sh.post || sh.post.tag !== "repos") return false; // пост перебит (размен/лайнап) — не уходит
     leaveHold(sh);
@@ -311,7 +311,7 @@ function shiftHold(sh, vp, exceptId, why){
   if(!np) return false;
   sh._hs = {round:roundNum, tag:sh.post.tag, pt:np, t:tick};
   var lk0 = sh.post.look, tg0 = sh.post.tag;
-  sh._reposUntil = 0; sh._egLock = 0; sh._probeLock = 0;
+  sh._reposUntil = 0; sh._probeLock = 0;
   setPost(sh, np, lk0, true, tg0);
   leaveHold(sh);
   sh._avoidPeekUntil = tick + 6*TICK_HZ; sh._avoidPeekAt = {x:vp.x, y:vp.y};
