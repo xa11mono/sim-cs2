@@ -60,7 +60,17 @@
     W.nade.rounds++;
     bots.forEach(function(b){ if(!b.nades) return; ["smoke", "flash", "he", "molly"].forEach(function(t){ inc(W.nade.hands, b.team+"|"+(teamEco[b.team]||{}).roundType+"|"+t, b.nades[t]||0); }); });
   }
+  // кто снимает задачу на гранату: свойство nadeTask у бота — с записью вызвавшей функции, когда ставят null
+  var clrBy = {};
+  function hookTask(b){
+    if(b.__wt) return; var v = b.nadeTask; b.__wt = 1;
+    Object.defineProperty(b, "nadeTask", {configurable:true, enumerable:true, get:function(){ return v; }, set:function(x){
+      if(x == null && v != null){ var st = String(new Error().stack).split("\n"), fn = "?";
+        for(var i = 2; i < st.length; i++){ var m = /at ([\w$.]+) /.exec(st[i]); if(m && !/^(set|Object|Array)/.test(m[1])){ fn = m[1]; break; } }
+        clrBy[b.id] = {fn:fn, t:tick}; }
+      v = x; }}); }
   W.tick = function(){
+    bots.forEach(hookTask);
     if(roundState !== LR){ if(roundState === "live") roundStart(); LR = roundState; S = {}; FL = []; }
     if(roundState !== "live") return;
     wrapLKP();
@@ -72,7 +82,10 @@
       if(s.task && s.task.o !== t){
         var k = rtOf(b)+"|"+s.task.type;
         if(thrownNow[b.id] && tick - thrownNow[b.id].t <= 1) inc(W.nade.thrown, k);
-        else { inc(W.nade.lost, k); var why = !b.alive ? "погиб" : (tick > s.task.until ? "срок" : (failNow[b.id] && tick - failNow[b.id].t <= 1 ? "отказ: "+failNow[b.id].why : "снята"));
+        else { inc(W.nade.lost, k); var why = !b.alive ? "погиб" : (tick > s.task.until ? "срок" : (failNow[b.id] && tick - failNow[b.id].t <= 1 ? "отказ: "+failNow[b.id].why : "снята: "+(clrBy[b.id] && tick - clrBy[b.id].t <= 1 ? clrBy[b.id].fn : "?")));
+          if(why === "срок"){ var tk = s.task.o, dT = Math.hypot(tk.x-b.x, tk.y-b.y);   // почему не успел: далеко / не видно / не дошёл до точки броска / бой
+            why += tk.from ? (Math.hypot(tk.from.x-b.x, tk.from.y-b.y) > 40 ? " — не дошёл до точки броска ("+(b.post ? String(b.post.tag).replace(/[:|].*$/, "") : "-")+")" : " — на точке, не кинул") :
+              (b._sawEnemy || b.state === "engage" ? " — бой" : (dT > (tk.range || 600)*0.85 ? " — далеко" : (!hasLOS(b.x, b.y, tk.x, tk.y) ? " — не видно цель" : " — видно, не кинул"))); }
           inc(W.nade.lostWhy, s.task.type+"|"+why); }
         s.task = null; }
       if(t && (!s.task || s.task.o !== t)){ s.task = {o:t, type:t.type, until:t.until, reached:false}; inc(W.nade.intent, rtOf(b)+"|"+t.type); }
