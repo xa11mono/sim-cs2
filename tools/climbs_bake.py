@@ -18,6 +18,15 @@ DZ = 25               # допуск высоты, ед. игры
 MIN_N, MIN_DEMOS = 20, 10   # (v375, владелец: «забираются наверх укрытий, где нельзя», зацикливание на ящиках) — только частые подъёмы; редкие — бусты и случайные прыжки
 STEP = 40             # px радара: подъём почти вертикальный — от последней точки внизу до первой наверху не дальше (проектное)
 DETOUR = 3.0          # подъём нужен, только если навмеш ведёт наверх в обход: путь > DETOUR × напрямую и > +150 px
+# (v379, владелец: «на ящик в миде не запрыгнуть» — 106 из 159 подъёмов Mirage вели на верх ящиков, куда один не залезет) в демках
+# наверх попадают и бустом (стоит на голове у своего) — это не подъём для одного. Не считаются:
+#  · буст — в момент, когда игрок уже наверху, прямо под ним (≤ BOOST_R ед. по горизонтали, ниже ≥ BOOST_DZ) стоит свой;
+#  · шаг выше прыжка — подъём бывает ящик через ящик (промежуточная стоянка ≥ PLATEAU_T тиков), но каждый шаг ≤ JUMP_UP + DZ
+BOOST_R, BOOST_DZ = 40, 40   # ед. игры — проектные числа (игрок ~32 ед. в ширину, ~72 в высоту)
+PLATEAU_T = 8                # тиков стоит на промежуточной высоте — проектное число
+STEP_MAX = JUMP_UP + DZ      # один шаг подъёма — не выше прыжка (с допуском высоты, как при поиске)
+_u0 = mapdir.game_to_map(MAPNAME)(np.array([0.0, BOOST_R]), np.array([0.0, 0.0]))
+BOOST_PX = float(abs(_u0[0][1] - _u0[0][0]) + abs(_u0[1][1] - _u0[1][0]))   # BOOST_R в px радара
 
 nav = json.load(open(mapdir.path(MAPNAME, 'navmesh.json'), encoding='utf-8'))['areas']
 by = {a['id']: a for a in nav}
@@ -52,10 +61,24 @@ for c in cand:
 cand = keep
 print('кандидатов (только спрыгнуть, перепад > %d, наверх — только в обход): %d' % (JUMP_UP, len(cand)))
 
-hits = collections.defaultdict(list)
+hits = collections.defaultdict(list); rej = collections.defaultdict(collections.Counter)
 for demo in demo_names():
     t = ticks_of(demo)
     X, Y, Z, S, T = t.x.values, t.y.values, t.Z.values, t.steamid.values, t.tick.values
+    SD = t.side.values; order = np.argsort(T, kind='stable'); TS = T[order]
+    def boosted(k):   # свой прямо под ним в этот тик
+        a0, a1 = np.searchsorted(TS, T[k]), np.searchsorted(TS, T[k], side='right'); o = order[a0:a1]
+        o = o[(S[o] != S[k]) & (SD[o] == SD[k])]
+        return bool(((np.hypot(X[o] - X[k], Y[o] - Y[k]) <= BOOST_PX) & (Z[o] <= Z[k] - BOOST_DZ)).any())
+    def max_step(j, i0, k, lo_z, hi_z):   # самый высокий шаг подъёма: с промежуточной стоянкой — два шага
+        w = j[(T[j] >= T[i0]) & (T[j] <= T[k])]; zs, ts = Z[w], T[w]; best = hi_z - lo_z
+        r0 = 0
+        for r in range(1, len(w) + 1):
+            if r == len(w) or abs(zs[r] - zs[r0]) > 2:
+                zp = float(np.mean(zs[r0:r]))
+                if ts[r - 1] - ts[r0] >= PLATEAU_T and lo_z + 20 < zp < hi_z - 20: best = min(best, max(zp - lo_z, hi_z - zp))
+                r0 = r
+        return best
     for ci, c in enumerate(cand):
         m = (np.abs(X - c['x']) < NEAR) & (np.abs(Y - c['y']) < NEAR)
         if not m.any(): continue
@@ -68,10 +91,17 @@ for demo in demo_names():
                 if abs(Z[k] - lo_z) < DZ: last_lo = k
                 elif abs(Z[k] - hi_z) < DZ and last_lo is not None and T[k] - T[last_lo] <= CLIMB_SEC * 64 and T[k] > cool and \
                         ((X[k] - X[last_lo]) ** 2 + (Y[k] - Y[last_lo]) ** 2) ** 0.5 <= STEP:
-                    hits[ci].append((demo, float(X[last_lo]), float(Y[last_lo]), float(X[k]), float(Y[k]), (T[k] - T[last_lo]) / 64))
+                    kind = 'boost' if boosted(k) else ('tall' if max_step(j, last_lo, k, lo_z, hi_z) > STEP_MAX else 'ok')
+                    rej[ci][kind] += 1
+                    if kind == 'ok': hits[ci].append((demo, float(X[last_lo]), float(Y[last_lo]), float(X[k]), float(Y[k]), (T[k] - T[last_lo]) / 64))
                     cool = T[k] + 5 * 64; last_lo = None
     del t
 
+# отчёт: что отброшено (буст / шаг выше прыжка) — tools/climbs_report_<карта>.json для сверки владельцем
+rep = []
+for ci, R in sorted(rej.items()):
+    c = cand[ci]; rep.append({'lo': c['lo']['id'], 'hi': c['hi']['id'], 'dz': round(c['hi']['z'] - c['lo']['z']), 'x': round(c['x']), 'y': round(c['y']), 'ok': R['ok'], 'boost': R['boost'], 'tall': R['tall']})
+json.dump(rep, open(os.path.join(HERE, 'measure', 'results', 'climbs_report_%s.json' % MAPNAME), 'w', encoding='utf-8'), ensure_ascii=False, indent=0)
 out = []
 for ci, H in sorted(hits.items()):
     if len(H) < MIN_N or len({h[0] for h in H}) < MIN_DEMOS: continue
