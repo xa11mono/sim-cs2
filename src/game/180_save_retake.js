@@ -8,8 +8,10 @@ function pickSaveSpot(b){
     if(NAV_BLOCKED[z.id] || !(zoneGraph[z.id]||[]).length) return;
     var c = zoneCentroid(z);
     if(insideSolidWall(c.x, c.y)) return;
-    var dB = Math.hypot(c.x-bomb.x, c.y-bomb.y);
-    if(dB < 900 && bombDamageAt(c.x, c.y) > 0) return;   // сейв — там, куда взрыв не достаёт
+    // (v381, М134: по замеру v381 после правки ухода T от бомбы от взрыва гибли только CT на сейве — один в 923 px, где проверки урона
+    // не было, второй не успел дойти) сейв — там, куда взрыв не достаёт (на любом расстоянии) и куда успеть дойти до взрыва
+    if(bomb.state === "planted" && bombDamageAt(c.x, c.y) > 0) return;
+    if(bomb.state === "planted" && Math.hypot(c.x-b.baseX, c.y-b.baseY)*1.3/SPEED > bombTimeLeftTicks()/TICK_HZ - 1) return;   // 1,3 — путь длиннее прямой: проектное число
     var dT = Infinity, seen = false;
     ts.forEach(function(t){ dT = Math.min(dT, Math.hypot(c.x-t.x, c.y-t.y)); if(hasLOS(c.x,c.y,t.x,t.y)) seen = true; });
     if(seen || dT < 500) return;
