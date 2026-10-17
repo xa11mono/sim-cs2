@@ -172,11 +172,24 @@ function nadeThrowNow(b, lvl, type, tx, ty, lob, why){
   if(b.nadeTask && lvl < (b.nadeTask.lvl || 0)){ NADE_FAIL = "арбитр: занят важнее"; return false; }
   return throwNade(b, type, tx, ty, lob, why);
 }
+// (v383) долетит ли граната с места бойца — те же условия, что у броска (throwNade / updateNadeTasks): цель видна (низом) или
+// навес над стенами и под потолками (nadeArc), сквозь стену — только как кидали про / не толще, чем у про (nadeTallWall)
+function nadeFromHere(b, type, tx, ty){
+  if(hasLOS(b.x, b.y, tx, ty)) return true;
+  return !nadeTallWall(b.x, b.y, tx, ty, type) && !!nadeArc(b, tx, ty);
+}
+// (v383) возьмёт ли боец эту гранату: арбитр гранат разрешает, и она долетает отсюда — или до точки броска ему дадут дойти (арбитр
+// места: «lineup» не ниже его задачи). Иначе граната пропала бы: бой / сбор не отпускают на точку броска (v382: половина потерь)
+function nadeCanTake(b, lvl, type, pt){
+  return nadeCanSet(b, lvl) && (nadeFromHere(b, type, pt.x, pt.y) || taskCanSet(b, "lineup"));
+}
 function assignNade(b, type, target, why, opts){
   opts = opts || {};
   if(!b || !b.alive || !b.nades || b.nades[type] <= 0) return false;
   var lvl = opts.lvl || 0;
   if(!nadeCanSet(b, lvl)) return false;   // арбитр: не выше текущей — отказ
+  // (v383) не лайнап: с места не долетит, а на точку броска место не отпустит — отказ сразу (механика делает своё / берёт другого)
+  if(!opts.from && !nadeFromHere(b, type, target.x, target.y) && !taskCanSet(b, "lineup")){ NADE_FAIL = "арбитр: отсюда не долетит, место занято"; return false; }
   if(opts.bkey && !builtinAllowed(opts.bkey)) return false; // встроенная выключена или заменена своим лайнапом
   if(!opts.from){
     if(type === "smoke" && smokeCovered(target.x, target.y)) return false;

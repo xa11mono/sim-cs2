@@ -334,7 +334,7 @@ function intelDeath(victim, killer){
   if(BAL.iglReplan && victim.team === "T" && killer && killer.alive && teamTac.T && teamTac.T.phase === "execute" &&
      (victim.tRole === "entry" || !teamTac.T._popDone)){
     var kpF = {x:killer.x + (saw ? 0 : (hashRand(tick*23+1)-0.5)*140), y:killer.y + (saw ? 0 : (hashRand(tick*29+2)-0.5)*140)};
-    var flc = bots.filter(function(o){ return o.alive && o.team === "T" && o !== victim && o.nades && o.nades.flash > 0 && !o.planting && nadeCanSet(o, NADE_LEVEL.fight) &&
+    var flc = bots.filter(function(o){ return o.alive && o.team === "T" && o !== victim && o.nades && o.nades.flash > 0 && !o.planting && nadeCanTake(o, NADE_LEVEL.fight, "flash", kpF) &&
       !(bomb.state === "carried" && bomb.carrier === o) && Math.hypot(o.x-victim.x, o.y-victim.y) < 750; })
       .sort(function(a, c){ var ta = traders.some(function(T){ return T.b === a; }) ? 200 : 0, tc = traders.some(function(T){ return T.b === c; }) ? 200 : 0;
         return (Math.hypot(a.x-victim.x, a.y-victim.y) + ta) - (Math.hypot(c.x-victim.x, c.y-victim.y) + tc); })[0];

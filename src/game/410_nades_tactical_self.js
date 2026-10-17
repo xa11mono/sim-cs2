@@ -55,7 +55,7 @@ function nadeCombos(){
       if(fires.some(function(f){ return Math.hypot(f.x-s.x, f.y-s.y) < 100; })) return;
       var cands = mine.filter(function(b){
         var dd = Math.hypot(b.x-s.x, b.y-s.y);
-        return nadeCanSet(b, NADE_LEVEL.react) && !b.planting && !b.defusing && !b._sawEnemy &&
+        return nadeCanTake(b, NADE_LEVEL.react, b.nades.molly>0 ? "molly" : b.nades.he>0 ? "he" : "flash", s) && !b.planting && !b.defusing && !b._sawEnemy &&
                dd >= 140 && dd <= NADE_THROW_RANGE && // не кидать себе под ноги в упор
                (b.nades.molly>0 || b.nades.he>0 || b.nades.flash>0);
       });
@@ -195,7 +195,7 @@ function nadeReact(){
       var lo = BLh[eH]; if(!lo || tick - lo.tick > 3*TICK_HZ) continue;
       if(!bots.some(function(o){ return o.id === eH && o.alive; })) continue;
       if(bots.some(function(o){ return o.alive && o.team === team && Math.hypot(o.x-lo.x, o.y-lo.y) < 170; })) continue;
-      var th = bots.filter(function(b){ return b.alive && b.team === team && b.nades && b.nades.he > 0 && nadeCanSet(b, NADE_LEVEL.fight) && !b._sawEnemy &&
+      var th = bots.filter(function(b){ return b.alive && b.team === team && b.nades && b.nades.he > 0 && nadeCanTake(b, NADE_LEVEL.fight, "he", lo) && !b._sawEnemy &&
         Math.hypot(b.x-lo.x, b.y-lo.y) > 150 && Math.hypot(b.x-lo.x, b.y-lo.y) < NADE_THROW_RANGE && !hasLOS(b.x, b.y, lo.x, lo.y); })[0];
       if(th && assignNade(th, "he", {x:lo.x, y:lo.y}, "HE добить "+eH, {now:true, lvl:NADE_LEVEL.fight})){ h._heDone = true;
         voiceLog(team, "hefin"+eH, th.id, eH+" на "+h.hp+" за углом — HE"); }
@@ -213,7 +213,7 @@ function nadeReact(){
     if(Object.keys(srcs).length < (early ? 1 : 2)) return;
     var onS = {}; teamIntel.CT.sig.forEach(function(sg){ if(sg.type === "spotted" && sg.id && tick - sg.tick < 1.5*TICK_HZ && Math.hypot(sg.x-SITES[k].x, sg.y-SITES[k].y) < 220) onS[sg.id] = 1; });
     if(Object.keys(onS).length > 1) return; // уже зашли — поздно
-    var c = bots.filter(function(b){ return b.alive && b.team === "CT" && b.nades && b.nades.molly > 0 && nadeCanSet(b, NADE_LEVEL.react) && !b._sawEnemy &&
+    var c = bots.filter(function(b){ return b.alive && b.team === "CT" && b.nades && b.nades.molly > 0 && nadeCanTake(b, NADE_LEVEL.react, "molly", ent) && !b._sawEnemy &&
       Math.hypot(b.x-ent.x, b.y-ent.y) < NADE_THROW_RANGE*1.1 && Math.hypot(b.x-ent.x, b.y-ent.y) > 150; })
       .sort(function(a, b2){ return Math.hypot(a.x-ent.x, a.y-ent.y) - Math.hypot(b2.x-ent.x, b2.y-ent.y); })[0];
     if(!c) return;
@@ -230,7 +230,7 @@ function nadeReact(){
       if(Math.hypot(pts[i].x-pts[j].x, pts[i].y-pts[j].y) > 160) continue;
       var tg = {x:(pts[i].x+pts[j].x)/2, y:(pts[i].y+pts[j].y)/2};
       if(bots.some(function(o){ return o.alive && o.team === team && Math.hypot(o.x-tg.x, o.y-tg.y) < 170; })) continue;
-      var th = bots.filter(function(b){ return b.alive && b.team === team && b.nades && b.nades.he > 0 && nadeCanSet(b, NADE_LEVEL.react) && !b._sawEnemy && !b.planting && !b.defusing &&
+      var th = bots.filter(function(b){ return b.alive && b.team === team && b.nades && b.nades.he > 0 && nadeCanTake(b, NADE_LEVEL.react, "he", tg) && !b._sawEnemy && !b.planting && !b.defusing &&
         Math.hypot(b.x-tg.x, b.y-tg.y) > 250 && Math.hypot(b.x-tg.x, b.y-tg.y) < NADE_THROW_RANGE; })
         .sort(function(a, b2){ return Math.hypot(a.x-tg.x, a.y-tg.y) - Math.hypot(b2.x-tg.x, b2.y-tg.y); })[0];
       if(th && assignNade(th, "he", tg, "HE в стак", {now:true, lvl:NADE_LEVEL.react})){ nadeReactCd[team] = tick + 10*TICK_HZ;
