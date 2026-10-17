@@ -245,7 +245,7 @@
   <div id="topbar">
     <div class="tb-id">
       <h1>Mirage</h1>
-      <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 381, 17.10</div>
+      <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 384, 17.10</div>
     </div>
     <div class="tb-group" id="tbMatch">
       <button id="btnPause">Пауза</button>
@@ -29660,6 +29660,42 @@ function playersUpdate(){
   });
 })();
 
+// ---- (v384) журнал решений бота для отметок владельца: последние DLOG_SEC с — смена задачи места (и отказ), заказ / бросок гранаты (и
+// почему нет), смена причины взгляда. Только запись — игру не меняет. Кладётся в снимок (b._dlog) и в сводку отметки (mkState → log).
+// Обёртка над setPost / clearPost / assignNade / throwNade / teamBrains — место записи одно, механики не трогаются. Числа — проектные
+var DLOG_SEC = 15, DLOG_MAX = 60;
+function dlog(b, kind, text){
+  if(!b) return;
+  var L = b._dlog || (b._dlog = []), last = L[L.length-1];
+  if(last && last[1] === kind && last[2] === text && tick - last[0] < TICK_HZ) return;   // то же — не чаще раза в секунду
+  L.push([tick, kind, text]);
+  while(L.length && (L.length > DLOG_MAX || tick - L[0][0] > DLOG_SEC*TICK_HZ)) L.shift();
+}
+(function(){
+  var sp = setPost, cp = clearPost, an = assignNade, tn = throwNade, tb = teamBrains;
+  setPost = function(b, pt, look, hold, tag){
+    var was = b && b.post ? b.post.tag : null, r = sp.apply(this, arguments);
+    if(!b) return r;
+    var cur = b._task ? " (уровень " + b._task.lv + ")" : "";
+    if(r && tag !== was) dlog(b, "место", "задача «" + tag + "»" + cur + (was ? " вместо «" + was + "»" : "") + " — " + calloutName(pt.x, pt.y));
+    else if(!r) dlog(b, "место", "отказ «" + tag + "»: занят «" + (b._task ? b._task.tag : (b.post && b.post.tag)) + "»" + cur);
+    return r; };
+  clearPost = function(b){ if(b && b.post) dlog(b, "место", "снята задача «" + b.post.tag + "»"); return cp.apply(this, arguments); };
+  assignNade = function(b, type, target, why){
+    var r = an.apply(this, arguments);
+    if(b) dlog(b, "граната", (r ? "заказ " : "отказ в заказе ") + type + " — " + (why || "") + (r ? "" : (b.nadeTask ? " (занят: " + b.nadeTask.type + " — " + b.nadeTask.why + ")" : "")));
+    return r; };
+  throwNade = function(b, type, tx, ty, lob, why){
+    var r = tn.apply(this, arguments);
+    if(b) dlog(b, "граната", (r ? "кинул " : "не кинул ") + type + " — " + (why || "") + (r ? "" : ": " + (NADE_FAIL || "?")));
+    return r; };
+  teamBrains = function(){
+    var r = tb.apply(this, arguments);
+    for(var i = 0; i < bots.length; i++){ var b = bots[i]; if(!b.alive) continue;
+      var lr = b.lookReason || "";
+      if(lr !== b._dlLook){ b._dlLook = lr; if(lr) dlog(b, "взгляд", lr); } }
+    return r; };
+})();
 var __SNAP = [
 ["ZONE_LAYER_KEY", function(){ return ZONE_LAYER_KEY; }, function(v){ try{ ZONE_LAYER_KEY = v; }catch(e){} }],
 ["ZONE_LAYER_BASELINE", function(){ return ZONE_LAYER_BASELINE; }, function(v){ try{ ZONE_LAYER_BASELINE = v; }catch(e){} }],
@@ -30096,6 +30132,8 @@ var __SNAP = [
 ["PL_SKULL", function(){ return PL_SKULL; }, function(v){ try{ PL_SKULL = v; }catch(e){} }],
 ["PL_SEEN", function(){ return PL_SEEN; }, function(v){ try{ PL_SEEN = v; }catch(e){} }],
 ["PL_ANIM_MS", function(){ return PL_ANIM_MS; }, function(v){ try{ PL_ANIM_MS = v; }catch(e){} }],
+["DLOG_SEC", function(){ return DLOG_SEC; }, function(v){ try{ DLOG_SEC = v; }catch(e){} }],
+["DLOG_MAX", function(){ return DLOG_MAX; }, function(v){ try{ DLOG_MAX = v; }catch(e){} }],
 ["OBS_TR", function(){ return OBS_TR; }, function(v){ try{ OBS_TR = v; }catch(e){} }],
 ["OBS_OFF", function(){ return OBS_OFF; }, function(v){ try{ OBS_OFF = v; }catch(e){} }],
 ["OBS_PLAN_MIN", function(){ return OBS_PLAN_MIN; }, function(v){ try{ OBS_PLAN_MIN = v; }catch(e){} }],
@@ -30259,7 +30297,8 @@ function mkState(){
         facingDeg: mkDeg(f), look: b.lookTarget ? {x: Math.round(b.lookTarget.x), y: Math.round(b.lookTarget.y), place: mkPlace(b.lookTarget.x, b.lookTarget.y)} : null,
         wallAhead: ray.wall ? Math.round(Math.hypot(ray.x-b.x, ray.y-b.y)) : null,
         lookReason: b.lookReason || "", why: whyText(b),
-        sees: (b._visible || []).map(function(e){ return e.id; }), moving: b.curSpeed > 15*SPD_K };
+        sees: (b._visible || []).map(function(e){ return e.id; }), moving: b.curSpeed > 15*SPD_K,
+        log: (b._dlog || []).map(function(e){ return Math.round((e[0]-tick)/TICK_HZ*10)/10 + " с · " + e[1] + ": " + e[2]; }) };   // (v384) журнал решений за 15 с
     }),
     smokes: smokes.map(function(s){ return {x: Math.round(s.x), y: Math.round(s.y), place: mkPlace(s.x, s.y)}; }),
     fires: fires.map(function(s){ return {x: Math.round(s.x), y: Math.round(s.y), place: mkPlace(s.x, s.y)}; })
