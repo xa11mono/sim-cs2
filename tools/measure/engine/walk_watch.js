@@ -15,13 +15,26 @@
   var cur = null;   // бот, которого сейчас двигает stepTick (navSnap/escape получают его аргументом)
   function row(kind, b){ WK.nav.push([tick, kind, b.id, b.team, Math.round(b.baseX), Math.round(b.baseY), b.z == null ? null : Math.round(b.z),
     b.post ? String(b.post.tag) : "-", b.path ? b.path.length - b.pathIdx : -1]); }
-  var NS = navSnap; navSnap = function(b){ var x0 = b.baseX, y0 = b.baseY, z0 = b.z; var r = NS.apply(this, arguments);
+  // (Б1, Х1, 21.10) что не пускает шаг: W — стена (crossesWall), H — уступ (heightBlocked), N — край пола (offNavStep), F — огонь.
+  // У бота — причины отказов за последние 64 тика; в момент заплатки (перенос / отталкивание / спрыгнул) — какая чаще (B.<вид>[причина]),
+  // «-» — отказов не было (бот стоял по другой причине). Примеры — WK.blkEx: [тик, бот, вид, главная, {счёт}, x, y, z, место, пост]
+  WK.blk = {}; WK.blkEx = [];
+  var SB = stepBlocked; stepBlocked = function(x1, y1, x2, y2, b){ var r = SB.apply(this, arguments);
+    if(r && b && b.id && roundState === "live"){ var k = crossesWall(x1, y1, x2, y2) ? "W" : heightBlocked(x1, y1, x2, y2, b) ? "H" :
+      (b.baseX != null && offNavStep(x1, y1, x2, y2, b)) ? "N" : "F"; (b.__blk || (b.__blk = [])).push([tick, k]); }
+    return r; };
+  function blkNote(kind, b){ var L = (b.__blk || []).filter(function(e){ return e[0] >= tick - 64; }), c = {}, top = "-", n = 0;
+    L.forEach(function(e){ c[e[1]] = (c[e[1]]||0) + 1; if(c[e[1]] > n){ n = c[e[1]]; top = e[1]; } }); b.__blk = [];
+    var K = WK.blk[kind] || (WK.blk[kind] = {}); K[top] = (K[top]||0) + 1;
+    if(WK.blkEx.length < 600) WK.blkEx.push([tick, b.id, kind, top, c, Math.round(b.baseX), Math.round(b.baseY), b.z == null ? null : Math.round(b.z),
+      typeof calloutName === "function" ? calloutName(b.baseX, b.baseY) : "", b.post ? String(b.post.tag) : "-"]); }
+  var NS = navSnap; navSnap = function(b){ if(roundState === "live") blkNote("snap", b); var x0 = b.baseX, y0 = b.baseY, z0 = b.z; var r = NS.apply(this, arguments);
     if(b.baseX !== x0 || b.baseY !== y0) WK.nav.push([tick, "snap", b.id, b.team, Math.round(x0), Math.round(y0), z0 == null ? null : Math.round(z0),
       b.post ? String(b.post.tag) : "-", Math.round(Math.hypot(b.baseX-x0, b.baseY-y0)), b.z == null ? null : Math.round(b.z)]); return r; };
   var NU = navUnlinkBlocked; navUnlinkBlocked = function(b){ if(roundState === "live") row("noprog", b); return NU.apply(this, arguments); };
-  var EW = escapeWallLine; escapeWallLine = function(b){ if(roundState === "live") row("wall", b); return EW.apply(this, arguments); };
+  var EW = escapeWallLine; escapeWallLine = function(b){ if(roundState === "live"){ row("wall", b); blkNote("wall", b); } return EW.apply(this, arguments); };
   var LE = logEvent; logEvent = function(msg){ var s = String(msg);
-    if(/спрыгнул на начало пути/.test(s)){ var id = s.split(":")[0]; var b = bots.find(function(o){ return o.id === id; }); if(b) row("ledge", b); }
+    if(/спрыгнул на начало пути/.test(s)){ var id = s.split(":")[0]; var b = bots.find(function(o){ return o.id === id; }); if(b){ row("ledge", b); blkNote("ledge", b); } }
     return LE.apply(this, arguments); };
   WK.who = {}; WK.post = {};
   function caller(skip){ var st = String(new Error().stack).split("\n").slice(2 + skip), out = [];
@@ -74,6 +87,6 @@
             (s.pc||[]).map(function(c){ return c[1] + (c[2] === 2 ? "**" : c[2] ? "*" : "") + (c[3] ? "" : "∅"); }), (s.ps||[]).map(function(c){ return c[1]; }), s.postT == null ? -1 : tick - s.postT]); } }
     });
   };
-  WK.report = function(){ return {nav:WK.nav, stall:WK.stall, who:WK.who, post:WK.post}; };
+  WK.report = function(){ return {nav:WK.nav, stall:WK.stall, who:WK.who, post:WK.post, blk:WK.blk, blkEx:WK.blkEx}; };
   g.WALK = WK;
 })();
