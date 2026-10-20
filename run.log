@@ -1,0 +1,19 @@
+playwright 1.56.0
+> git fetch --quiet origin bf18b3ba63012f1927355d12cf974fc48c6e7870
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Users\Mono\AppData\Local\Temp\simbuild_9mbw4ri2 FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Users\Mono\AppData\Local\Temp\simbuild_9mbw4ri2\src\build.py --map ancient C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\b2_anc.html
+> git fetch --quiet origin bf18b3ba63012f1927355d12cf974fc48c6e7870
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Users\Mono\AppData\Local\Temp\simbuild_46dhuuqy FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Users\Mono\AppData\Local\Temp\simbuild_46dhuuqy\src\build.py --map mirage C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\b2_mir.html
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\engine\walk_run.py --job=b2_anc,C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\b2_anc.html --job=b2_mir,C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\b2_mir.html --matches=3,7,11,13,17,19,23,29 --par=8
+матчей в очереди: 16, одновременно: 8
+Traceback (most recent call last):
+  File "C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\engine\walk_run.py", line 34, in <module>
+    while todo and len(run) < par: run.append(start(*todo.pop(0)))
+  File "C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\engine\walk_run.py", line 30, in start
+    return [subprocess.Popen(['node', 'src/q.js', f, src], cwd=ROOT, stdout=fo), fo, l, m, time.time()]   # без `timeout`: на Windows его нет
+  File "C:\Users\Mono\AppData\Local\Programs\Python\Python310\lib\subprocess.py", line 969, in __init__
+    self._execute_child(args, executable, preexec_fn, close_fds,
+  File "C:\Users\Mono\AppData\Local\Programs\Python\Python310\lib\subprocess.py", line 1438, in _execute_child
+    hp, ht, pid, tid = _winapi.CreateProcess(executable, args,
+FileNotFoundError: [WinError 206] Имя файла или его расширение имеет слишком большую длину
