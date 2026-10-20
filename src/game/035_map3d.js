@@ -101,15 +101,19 @@ function m3Load(J, inflate){
   var fl = cols({n: J.floors.n, lo: J.floors.z, hi: J.floors.z}); M.floors = {st: fl.st, z: fl.lo, kind: arr(J.floors.kind, Uint8Array)};
   M.skyArr = function(){ if(!M.skyZ){ M.sky = cols(J.sky); M.skyZ = arr(J.sky_z, Int16Array); } return M.skyZ; };
   // точная геометрия → ед. игры
-  var P = J.prims, V = arr(P.v, Int16Array), T = arr(P.tri, Uint16Array), tf = arr(P.tri_flag, Uint8Array), tm = arr(P.tri_mat, Uint8Array);
+  var P = J.prims, V = arr(P.v, Int16Array), T = arr(P.tri, P.tri32 ? Uint32Array : Uint16Array), tf = arr(P.tri_flag, Uint8Array), tm = arr(P.tri_mat, Uint8Array);
   var nt = tf.length, tri = new Float32Array(nt * 9);
   for(var k = 0; k < nt; k++) for(var a = 0; a < 3; a++){ var v = T[k*3 + a]; for(var q = 0; q < 3; q++) tri[k*9 + a*3 + q] = V[v*3 + q] / 4; }
   var hn = arr(P.hull_n, Uint8Array), hp = arr(P.hull_p, Float32Array), hb = arr(P.hull_box, Int16Array);
   var hoff = new Uint32Array(hn.length + 1); for(var h = 0; h < hn.length; h++) hoff[h+1] = hoff[h] + hn[h];
+  // (А6) высоты треугольника (низ / верх) — быстрый отсев по высоте луча: у Ancient ~1 млн мелких треугольников рельефа
+  var tz = new Float32Array(nt * 2);
+  for(k = 0; k < nt; k++){ var z0 = tri[k*9+2], z1 = tri[k*9+5], z2 = tri[k*9+8]; tz[k*2] = Math.min(z0, z1, z2); tz[k*2+1] = Math.max(z0, z1, z2); }
+  M.triZ = tz;
   M.tri = tri; M.triFlag = tf; M.triMat = tm; M.hullN = hn; M.hullP = hp; M.hullOff = hoff; M.hullBox = hb;
   M.hullFlag = arr(P.hull_flag, Uint8Array); M.hullMat = arr(P.hull_mat, Uint8Array);
-  // корзины 16×16 клеток: списки треугольников и блоков (по охвату XY)
-  var B = 16, BN = Math.ceil(J.W / B), bt = [], bh = [];
+  // корзины 4×4 клеток (А6: у Ancient треугольники мелкие и частые — меньше корзина, меньше лишних проверок): списки треугольников и блоков (по охвату XY)
+  var B = 4, BN = Math.ceil(J.W / B), bt = [], bh = [];
   for(var g = 0; g < BN*BN; g++){ bt.push([]); bh.push([]); }
   function cellOf(x, y){ return [(x - M.X0) / M.unit, (M.Y0 - y) / M.unit]; }
   function put(list, idx, x0, y0, x1, y1){
@@ -159,7 +163,7 @@ function m3SegHull(M, h, ax, ay, az, dx, dy, dz){   // → [t входа, ном
 // ---------- луч ----------
 // 1) столбики (клетка 5 ед.): идём по клеткам линии, в каждой — z линии от входа до выхода против отрезков клетки; ни одного
 // пересечения — свободно (столбики пишутся с запасом). 2) Есть пересечение — точная проверка: треугольники и выпуклые блоки
-// «корзины» 16×16 клеток против всего отрезка. first: false — только «есть ли преграда», true — первое попадание с нормалью
+// «корзины» 4×4 клеток против всего отрезка. first: false — только «есть ли преграда», true — первое попадание с нормалью
 function m3Cast(M, ax, ay, az, bx, by, bz, kind, first){
   var C = m3Col(M, kind), st = C.st, LO = C.lo, HI = C.hi, W = M.W, flag = kind === "nade" ? 2 : 1;
   var cx = ax / M.cell, cy = ay / M.cell, ex = bx / M.cell, ey = by / M.cell;
@@ -169,7 +173,7 @@ function m3Cast(M, ax, ay, az, bx, by, bz, kind, first){
   var sx = dx > 0 ? 1 : -1, sy = dy > 0 ? 1 : -1;
   var tdx = dx !== 0 ? Math.abs(1/dx) : Infinity, tdy = dy !== 0 ? Math.abs(1/dy) : Infinity;
   var tmx = dx !== 0 ? ((dx > 0 ? i + 1 - cx : cx - i) * tdx) : Infinity, tmy = dy !== 0 ? ((dy > 0 ? j + 1 - cy : cy - j) * tdy) : Infinity;
-  var t0 = 0, stamp = ++M.bStamp, best = null;
+  var t0 = 0, stamp = ++M.bStamp, best = null, rzl = Math.min(az, bz) - 0.5, rzh = Math.max(az, bz) + 0.5;   // (А6) высоты всего отрезка
   if(stamp > 4e9){ M.bSeen.fill(0); M.bStamp = stamp = 1; }
   for(var guard = 0; guard < 4*W; guard++){
     var t1 = Math.min(tmx, tmy, 1);
@@ -183,7 +187,7 @@ function m3Cast(M, ax, ay, az, bx, by, bz, kind, first){
         M.bSeen[b] = stamp;
         var lt = M.bTri[b], lh = M.bHull[b];
         for(var n = 0; n < lt.length; n++){
-          var k = lt[n]; if(!(M.triFlag[k] & flag)) continue;
+          var k = lt[n]; if(!(M.triFlag[k] & flag) || M.triZ[k*2] > rzh || M.triZ[k*2+1] < rzl) continue;
           var t = m3SegTri(M, k, wax, way, az, wdx, wdy, wdz);
           if(t >= 0){ if(!first) return {t: t}; if(!best || t < best.t) best = {t: t, tri: k}; }
         }

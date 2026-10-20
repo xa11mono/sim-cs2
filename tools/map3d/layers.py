@@ -311,7 +311,8 @@ def prims(name):
         P = hp[off[k]:off[k + 1]].copy(); c = hv[voff[k]:voff[k + 1]].mean(0)
         if (P[:, :3] @ c - P[:, 3]).mean() > 0: P = -P     # центр — внутри
         planes.append(P)
-    return {'v': b64(V), 'tri': b64(inv.reshape(-1, 3).astype('<u2')), 'tri_flag': b64(tflag), 'tri_mat': b64(z['mesh_surf'][tk].astype(np.uint8)),
+    big = len(used) > 65535   # (А6) у Ancient вершин ~0,5 млн — номера не влезают в Uint16
+    return {'v': b64(V), 'tri': b64(inv.reshape(-1, 3).astype('<u4' if big else '<u2')), 'tri32': 1 if big else 0, 'tri_flag': b64(tflag), 'tri_mat': b64(z['mesh_surf'][tk].astype(np.uint8)),
             'hull_n': b64(pn[hk].astype(np.uint8)), 'hull_p': b64(np.concatenate(planes).astype('<f4')),
             'hull_box': b64(np.array(box).astype('<i2')),
             'hull_flag': b64((hm['sight'][hk] * 1 + hm['nade'][hk] * 2).astype(np.uint8)), 'hull_mat': b64(z['hull_surf'][hk].astype(np.uint8)),

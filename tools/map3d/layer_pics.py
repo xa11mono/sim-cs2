@@ -10,6 +10,7 @@ from matplotlib.lines import Line2D
 HERE = os.path.dirname(os.path.abspath(__file__)); sys.path.insert(0, HERE); sys.path.insert(0, os.path.join(HERE, '..'))
 import mapdir  # noqa
 MAP = mapdir.current(); ROOT = mapdir.ROOT
+PFX = 'a3_' if MAP == 'mirage' else MAP + '_a3_'   # (А6) картинки других карт — со своим именем
 IMG = os.path.join(ROOT, 'docs', 'reports', 'map3d'); os.makedirs(IMG, exist_ok=True)
 L = np.load(mapdir.path(MAP, 'geom3d', 'layers.npz')); Cz = np.load(mapdir.path(MAP, 'geom3d', 'columns.npz'))
 W = int(L['W']); PX = 2048 / W
@@ -152,13 +153,13 @@ im = draw_floors(axs[0]); axs[0].set_title('Этажи пола: верхний 
 plt.colorbar(im, ax=axs[0], fraction=0.035, pad=0.01); legend(axs[0], FLOOR_LEG)
 im2 = draw_lower(axs[1]); axs[1].set_title('Нижний этаж там, где их два и больше (Underpass под Short, Shadow под балконом)', fontsize=14); labels(axs[1])
 plt.colorbar(im2, ax=axs[1], fraction=0.035, pad=0.01)
-plt.tight_layout(); plt.savefig(os.path.join(IMG, 'a3_floors.png'), dpi=80); plt.close()
+plt.tight_layout(); plt.savefig(os.path.join(IMG, PFX + 'floors.png'), dpi=80); plt.close()
 
 for fn, fun, title, leg in (('a3_walls.png', draw_walls, 'Стены и укрытия (с настоящим верхом) — от каждого этажа', WALL_LEG),
                             ('a3_openings.png', draw_open, 'Окна, проёмы и крыши', OPEN_LEG),
                             ('a3_climbs.png', draw_climbs, 'Подъёмы: ступени, прыжок, прыжок с приседом, подсадка', CLIMB_LEG)):
     f, ax = plt.subplots(figsize=(14, 14.4)); fun(ax); ax.set_title(title, fontsize=15); labels(ax); legend(ax, leg)
-    plt.tight_layout(); plt.savefig(os.path.join(IMG, fn), dpi=80); plt.close()
+    plt.tight_layout(); plt.savefig(os.path.join(IMG, PFX + fn[3:]), dpi=80); plt.close()
 
 # ---------- небо и прострелы ----------
 # потолок неба над игровым местом: самый низкий кусок неба выше верхнего этажа клетки
@@ -189,10 +190,11 @@ labels(axs[1]); legend(axs[1], [('тонкая (≤ 32 ед.) из пробив�
                                 ('тонкая (≤ 32 ед.) из бетона, камня, кирпича, металла', rgba('#3b6cff')),
                                 ('толстая (> 32 ед.) или край карты', rgba('#7d7d7d')), ('прострел про (демки, А2)', rgba('#00e5ff'))])
 axs[1].set_title('Прострелы: материал и толщина стены на высоте глаз + места прострелов про', fontsize=13)
-plt.tight_layout(); plt.savefig(os.path.join(IMG, 'a3_sky_wallbang.png'), dpi=80); plt.close()
+plt.tight_layout(); plt.savefig(os.path.join(IMG, PFX + 'sky_wallbang.png'), dpi=80); plt.close()
 
 # ---------- крупно ----------
-ZOOM = {'b_apps': ('B Apps', 250, (40, 110)), 'underpass': ('Underpass', 260, (0, 0)), 'a_site': ('A Site', 330, (60, -40))}   # место, полуширина, сдвиг центра (px радара)
+ZOOM = {'b_apps': ('B Apps', 250, (40, 110)), 'underpass': ('Underpass', 260, (0, 0)), 'a_site': ('A Site', 330, (60, -40))} if MAP == 'mirage' else \
+       {'long': ('Long', 280, (0, 0)), 'cave': ('Cave', 260, (0, 0)), 'a_site': ('A', 330, (0, 0))}   # (А6) Ancient   # место, полуширина, сдвиг центра (px радара)
 for key, (nm, r, sh) in ZOOM.items():
     x, y = CALL[nm][0] + sh[0], CALL[nm][1] + sh[1]; ext = (x - r, x + r, y - r, y + r)
     f, axs = plt.subplots(2, 2, figsize=(18, 18.6))
@@ -202,5 +204,5 @@ for key, (nm, r, sh) in ZOOM.items():
     draw_open(axs[1, 0], ext); labels(axs[1, 0], ext, 11); legend(axs[1, 0], OPEN_LEG); axs[1, 0].set_title('Окна, проёмы, крыши', fontsize=14)
     draw_climbs(axs[1, 1], ext, big=True); labels(axs[1, 1], ext, 11); legend(axs[1, 1], CLIMB_LEG); axs[1, 1].set_title('Подъёмы', fontsize=14)
     f.suptitle('%s — крупно (квадрат %d ед. игры)' % (nm, int(2 * r * mapdir.radar(MAP)['scale'] / 2)), fontsize=17)
-    plt.tight_layout(); plt.savefig(os.path.join(IMG, 'a3_zoom_%s.png' % key), dpi=70); plt.close()
+    plt.tight_layout(); plt.savefig(os.path.join(IMG, PFX + 'zoom_%s.png' % key), dpi=70); plt.close()
 print('картинки:', IMG)

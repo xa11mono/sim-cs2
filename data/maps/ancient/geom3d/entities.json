@@ -1,0 +1,1551 @@
+{
+ "spawns_t": [
+  {
+   "origin": [
+    -456.0,
+    -2384.0,
+    -156.0
+   ],
+   "angles": [
+    0.0,
+    90.0,
+    0.0
+   ],
+   "radar": [
+    998.8,
+    1819.2
+   ],
+   "targetname": "[PR#]spawnpoints.standard",
+   "priority": 1,
+   "enabled": true
+  },
+  {
+   "origin": [
+    -360.0,
+    -2384.0,
+    -156.0
+   ],
+   "angles": [
+    0.0,
+    90.0,
+    0.0
+   ],
+   "radar": [
+    1037.2,
+    1819.2
+   ],
+   "targetname": "[PR#]spawnpoints.standard",
+   "priority": 1,
+   "enabled": true
+  },
+  {
+   "origin": [
+    -296.0,
+    -2352.0,
+    -156.0
+   ],
+   "angles": [
+    0.0,
+    90.0,
+    0.0
+   ],
+   "radar": [
+    1062.8,
+    1806.4
+   ],
+   "targetname": "[PR#]spawnpoints.standard",
+   "priority": 1,
+   "enabled": true
+  },
+  {
+   "origin": [
+    -552.0,
+    -2384.0,
+    -156.0
+   ],
+   "angles": [
+    0.0,
+    90.0,
+    0.0
+   ],
+   "radar": [
+    960.4,
+    1819.2
+   ],
+   "targetname": "[PR#]spawnpoints.standard",
+   "priority": 1,
+   "enabled": true
+  },
+  {
+   "origin": [
+    -456.0,
+    -2448.0,
+    -156.0
+   ],
+   "angles": [
+    0.0,
+    90.0,
+    0.0
+   ],
+   "radar": [
+    998.8,
+    1844.8
+   ],
+   "targetname": "[PR#]spawnpoints.standard",
+   "priority": 1,
+   "enabled": true
+  },
+  {
+   "origin": [
+    -392.0,
+    -2320.0,
+    -156.0
+   ],
+   "angles": [
+    0.0,
+    90.0,
+    0.0
+   ],
+   "radar": [
+    1024.4,
+    1793.6
+   ],
+   "targetname": "[PR#]spawnpoints.standard",
+   "priority": 1,
+   "enabled": true
+  },
+  {
+   "origin": [
+    -328.0,
+    -2288.0,
+    -156.0
+   ],
+   "angles": [
+    0.0,
+    90.0,
+    0.0
+   ],
+   "radar": [
+    1050.0,
+    1780.8
+   ],
+   "targetname": "[PR#]spawnpoints.standard",
+   "priority": 0,
+   "enabled": true
+  },
+  {
+   "origin": [
+    -456.0,
+    -2288.0,
+    -156.0
+   ],
+   "angles": [
+    0.0,
+    90.0,
+    0.0
+   ],
+   "radar": [
+    998.8,
+    1780.8
+   ],
+   "targetname": "[PR#]spawnpoints.standard",
+   "priority": 0,
+   "enabled": true
+  },
+  {
+   "origin": [
+    -520.0,
+    -2320.0,
+    -156.0
+   ],
+   "angles": [
+    0.0,
+    90.0,
+    0.0
+   ],
+   "radar": [
+    973.2,
+    1793.6
+   ],
+   "targetname": "[PR#]spawnpoints.standard",
+   "priority": 1,
+   "enabled": true
+  },
+  {
+   "origin": [
+    -584.0,
+    -2288.0,
+    -156.0
+   ],
+   "angles": [
+    0.0,
+    90.0,
+    0.0
+   ],
+   "radar": [
+    947.6,
+    1780.8
+   ],
+   "targetname": "[PR#]spawnpoints.standard",
+   "priority": 0,
+   "enabled": true
+  },
+  {
+   "origin": [
+    -392.0,
+    -2224.0,
+    -156.0
+   ],
+   "angles": [
+    0.0,
+    90.0,
+    0.0
+   ],
+   "radar": [
+    1024.4,
+    1755.2
+   ],
+   "targetname": "[PR#]spawnpoints.standard",
+   "priority": 0,
+   "enabled": true
+  },
+  {
+   "origin": [
+    -520.0,
+    -2224.0,
+    -156.0
+   ],
+   "angles": [
+    0.0,
+    90.0,
+    0.0
+   ],
+   "radar": [
+    973.2,
+    1755.2
+   ],
+   "targetname": "[PR#]spawnpoints.standard",
+   "priority": 0,
+   "enabled": true
+  }
+ ],
+ "spawns_ct": [
+  {
+   "origin": [
+    -288.0,
+    1568.0,
+    32.0
+   ],
+   "angles": [
+    0.0,
+    270.0,
+    0.0
+   ],
+   "radar": [
+    1066.0,
+    238.4
+   ],
+   "targetname": "[PR#]spawnpoints.standard",
+   "priority": 2,
+   "enabled": true
+  },
+  {
+   "origin": [
+    -224.0,
+    1632.0,
+    32.0
+   ],
+   "angles": [
+    0.0,
+    270.0,
+    0.0
+   ],
+   "radar": [
+    1091.6,
+    212.8
+   ],
+   "targetname": "[PR#]spawnpoints.standard",
+   "priority": 1,
+   "enabled": true
+  },
+  {
+   "origin": [
+    -192.0,
+    1696.0,
+    32.0
+   ],
+   "angles": [
+    0.0,
+    270.0,
+    0.0
+   ],
+   "radar": [
+    1104.4,
+    187.2
+   ],
+   "targetname": "[PR#]spawnpoints.standard",
+   "priority": 0,
+   "enabled": true
+  },
+  {
+   "origin": [
+    -288.0,
+    1664.0,
+    32.0
+   ],
+   "angles": [
+    0.0,
+    270.0,
+    0.0
+   ],
+   "radar": [
+    1066.0,
+    200.0
+   ],
+   "targetname": "[PR#]spawnpoints.standard",
+   "priority": 1,
+   "enabled": true
+  },
+  {
+   "origin": [
+    -256.0,
+    1728.0,
+    32.0
+   ],
+   "angles": [
+    0.0,
+    270.0,
+    0.0
+   ],
+   "radar": [
+    1078.8,
+    174.4
+   ],
+   "targetname": "[PR#]spawnpoints.standard",
+   "priority": 0,
+   "enabled": true
+  },
+  {
+   "origin": [
+    -352.0,
+    1632.0,
+    32.0
+   ],
+   "angles": [
+    0.0,
+    270.0,
+    0.0
+   ],
+   "radar": [
+    1040.4,
+    212.8
+   ],
+   "targetname": "[PR#]spawnpoints.standard",
+   "priority": 1,
+   "enabled": true
+  },
+  {
+   "origin": [
+    -352.0,
+    1728.0,
+    32.0
+   ],
+   "angles": [
+    0.0,
+    270.0,
+    0.0
+   ],
+   "radar": [
+    1040.4,
+    174.4
+   ],
+   "targetname": "[PR#]spawnpoints.standard",
+   "priority": 0,
+   "enabled": true
+  },
+  {
+   "origin": [
+    -416.0,
+    1664.0,
+    32.0
+   ],
+   "angles": [
+    0.0,
+    270.0,
+    0.0
+   ],
+   "radar": [
+    1014.8,
+    200.0
+   ],
+   "targetname": "[PR#]spawnpoints.standard",
+   "priority": 1,
+   "enabled": true
+  },
+  {
+   "origin": [
+    -448.0,
+    1728.0,
+    32.0
+   ],
+   "angles": [
+    0.0,
+    270.0,
+    0.0
+   ],
+   "radar": [
+    1002.0,
+    174.4
+   ],
+   "targetname": "[PR#]spawnpoints.standard",
+   "priority": 0,
+   "enabled": true
+  },
+  {
+   "origin": [
+    -512.0,
+    1696.0,
+    32.0
+   ],
+   "angles": [
+    0.0,
+    270.0,
+    0.0
+   ],
+   "radar": [
+    976.4,
+    187.2
+   ],
+   "targetname": "[PR#]spawnpoints.standard",
+   "priority": 0,
+   "enabled": true
+  },
+  {
+   "origin": [
+    -480.0,
+    1632.0,
+    32.0
+   ],
+   "angles": [
+    0.0,
+    270.0,
+    0.0
+   ],
+   "radar": [
+    989.2,
+    212.8
+   ],
+   "targetname": "[PR#]spawnpoints.standard",
+   "priority": 1,
+   "enabled": true
+  },
+  {
+   "origin": [
+    -416.0,
+    1568.0,
+    32.0
+   ],
+   "angles": [
+    0.0,
+    270.0,
+    0.0
+   ],
+   "radar": [
+    1014.8,
+    238.4
+   ],
+   "targetname": "[PR#]spawnpoints.standard",
+   "priority": 2,
+   "enabled": true
+  }
+ ],
+ "bombsites": [
+  {
+   "origin": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "angles": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "radar": [
+    1181.2,
+    865.6
+   ],
+   "model": "maps/de_ancient/entities/unnamed_2_33011.vmdl",
+   "min": [
+    -1568.0,
+    712.0,
+    52.0
+   ],
+   "max": [
+    -1216.0,
+    976.0,
+    84.0
+   ],
+   "poly": [
+    [
+     -1568.0,
+     712.0
+    ],
+    [
+     -1216.0,
+     712.0
+    ],
+    [
+     -1216.0,
+     976.0
+    ],
+    [
+     -1568.0,
+     976.0
+    ]
+   ],
+   "poly_radar": [
+    [
+     554.0,
+     580.8
+    ],
+    [
+     694.8,
+     580.8
+    ],
+    [
+     694.8,
+     475.2
+    ],
+    [
+     554.0,
+     475.2
+    ]
+   ],
+   "heistbomb": false
+  },
+  {
+   "origin": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "angles": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "radar": [
+    1181.2,
+    865.6
+   ],
+   "model": "maps/de_ancient/entities/unnamed_2_33013.vmdl",
+   "min": [
+    669.0,
+    -82.0,
+    128.0
+   ],
+   "max": [
+    1104.0,
+    206.0,
+    160.0
+   ],
+   "poly": [
+    [
+     669.0,
+     -82.0
+    ],
+    [
+     1021.0,
+     -82.0
+    ],
+    [
+     1104.0,
+     -2.0
+    ],
+    [
+     1104.0,
+     126.0
+    ],
+    [
+     1021.0,
+     206.0
+    ],
+    [
+     669.0,
+     206.0
+    ]
+   ],
+   "poly_radar": [
+    [
+     1448.8,
+     898.4
+    ],
+    [
+     1589.6,
+     898.4
+    ],
+    [
+     1622.8,
+     866.4
+    ],
+    [
+     1622.8,
+     815.2
+    ],
+    [
+     1589.6,
+     783.2
+    ],
+    [
+     1448.8,
+     783.2
+    ]
+   ],
+   "heistbomb": false
+  }
+ ],
+ "buyzones": [
+  {
+   "origin": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "angles": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "radar": [
+    1181.2,
+    865.6
+   ],
+   "model": "maps/de_ancient/entities/unnamed_2_33005.vmdl",
+   "min": [
+    -712.0,
+    -2552.0,
+    -156.0
+   ],
+   "max": [
+    -200.0,
+    -2040.0,
+    -92.0
+   ],
+   "poly": [
+    [
+     -712.0,
+     -2552.0
+    ],
+    [
+     -200.0,
+     -2552.0
+    ],
+    [
+     -200.0,
+     -2040.0
+    ],
+    [
+     -712.0,
+     -2040.0
+    ]
+   ],
+   "poly_radar": [
+    [
+     896.4,
+     1886.4
+    ],
+    [
+     1101.2,
+     1886.4
+    ],
+    [
+     1101.2,
+     1681.6
+    ],
+    [
+     896.4,
+     1681.6
+    ]
+   ],
+   "teamnum": 2
+  },
+  {
+   "origin": [
+    0.0,
+    256.0,
+    0.0
+   ],
+   "angles": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "radar": [
+    1181.2,
+    763.2
+   ],
+   "model": "maps/de_ancient/entities/unnamed_2_33007.vmdl",
+   "min": [
+    -608.0,
+    1280.0,
+    32.0
+   ],
+   "max": [
+    -96.0,
+    1792.0,
+    128.0
+   ],
+   "poly": [
+    [
+     -608.0,
+     1280.0
+    ],
+    [
+     -96.0,
+     1280.0
+    ],
+    [
+     -96.0,
+     1792.0
+    ],
+    [
+     -608.0,
+     1792.0
+    ]
+   ],
+   "poly_radar": [
+    [
+     938.0,
+     353.6
+    ],
+    [
+     1142.8,
+     353.6
+    ],
+    [
+     1142.8,
+     148.8
+    ],
+    [
+     938.0,
+     148.8
+    ]
+   ],
+   "teamnum": 3
+  }
+ ],
+ "all_classes": {
+  "env_combined_light_probe_volume": 82,
+  "env_soundscape": 58,
+  "light_rect": 53,
+  "prop_dynamic": 24,
+  "light_omni2": 22,
+  "env_cs_place": 18,
+  "info_player_terrorist": 12,
+  "info_player_counterterrorist": 12,
+  "point_camera": 10,
+  "prop_physics_multiplayer": 10,
+  "light_barn": 6,
+  "cs_minimap_boundary": 4,
+  "func_clip_vphysics": 3,
+  "func_water": 3,
+  "info_particle_system": 3,
+  "info_target": 2,
+  "func_buyzone": 2,
+  "func_bomb_target": 2,
+  "logic_auto": 2,
+  "info_map_parameters": 2,
+  "worldspawn": 1,
+  "end_of_match": 1,
+  "counterterrorist_team_intro": 1,
+  "terrorist_team_intro": 1,
+  "counterterrorist_team_intro_variant2": 1,
+  "team_select": 1,
+  "terrorist_team_intro_variant2": 1,
+  "point_viewcontrol": 1,
+  "func_brush": 1,
+  "func_nav_markup": 1,
+  "point_soundevent": 1,
+  "post_processing_volume": 1,
+  "env_player_visibility": 1,
+  "env_cubemap_fog": 1,
+  "light_environment": 1,
+  "env_sky": 1,
+  "skybox_reference": 1,
+  "env_gradient_fog": 1
+ },
+ "solid_entities": [
+  {
+   "origin": [
+    -940.5,
+    -880.0,
+    54.51515579223633
+   ],
+   "angles": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "radar": [
+    805.0,
+    1217.6
+   ],
+   "startdisabled": false,
+   "classname": "func_clip_vphysics",
+   "model": "maps/de_ancient/entities/unnamed_2_32938_12255.vmdl"
+  },
+  {
+   "origin": [
+    -1672.0,
+    145.75,
+    108.0
+   ],
+   "angles": [
+    0.0,
+    262.0,
+    0.0
+   ],
+   "radar": [
+    512.4,
+    807.3
+   ],
+   "classname": "prop_physics_multiplayer",
+   "model": "models/props/de_aztec/hr_aztec/aztec_pottery/aztec_pottery_bowl_02.vmdl",
+   "disableshadows": "0"
+  },
+  {
+   "origin": [
+    -1666.9439697265625,
+    78.125,
+    108.16850280761719
+   ],
+   "angles": [
+    0.0,
+    262.0,
+    0.0
+   ],
+   "radar": [
+    514.4,
+    834.4
+   ],
+   "classname": "prop_physics_multiplayer",
+   "model": "models/props/de_aztec/hr_aztec/aztec_pottery/aztec_pottery_cup_01.vmdl",
+   "disableshadows": "0"
+  },
+  {
+   "origin": [
+    -1947.1258544921875,
+    22.0,
+    120.37100219726562
+   ],
+   "angles": [
+    0.0,
+    262.0,
+    0.0
+   ],
+   "radar": [
+    402.3,
+    856.8
+   ],
+   "classname": "prop_physics_multiplayer",
+   "model": "models/props/de_aztec/hr_aztec/aztec_pottery/aztec_pottery_vase_02.vmdl",
+   "disableshadows": "0"
+  },
+  {
+   "origin": [
+    -2295.0,
+    139.0,
+    109.0
+   ],
+   "angles": [
+    0.0,
+    262.0,
+    0.0
+   ],
+   "radar": [
+    263.2,
+    810.0
+   ],
+   "classname": "prop_physics_multiplayer",
+   "model": "models/props/de_aztec/hr_aztec/aztec_pottery/aztec_pottery_vase_01.vmdl",
+   "disableshadows": "0"
+  },
+  {
+   "origin": [
+    -2307.0,
+    113.0,
+    120.0
+   ],
+   "angles": [
+    0.0,
+    262.0,
+    0.0
+   ],
+   "radar": [
+    258.4,
+    820.4
+   ],
+   "classname": "prop_physics_multiplayer",
+   "model": "models/props/de_aztec/hr_aztec/aztec_pottery/aztec_pottery_vase_03.vmdl",
+   "disableshadows": "0"
+  },
+  {
+   "origin": [
+    -2296.1640625,
+    88.16099548339844,
+    108.99369812011719
+   ],
+   "angles": [
+    0.0,
+    262.0,
+    0.0
+   ],
+   "radar": [
+    262.7,
+    830.3
+   ],
+   "classname": "prop_physics_multiplayer",
+   "model": "models/props/de_aztec/hr_aztec/aztec_pottery/aztec_pottery_vase_04.vmdl",
+   "disableshadows": "0"
+  },
+  {
+   "origin": [
+    -1473.9129638671875,
+    213.375,
+    124.70880126953125
+   ],
+   "angles": [
+    0.0,
+    262.0,
+    0.0
+   ],
+   "radar": [
+    591.6,
+    780.2
+   ],
+   "classname": "prop_physics_multiplayer",
+   "model": "models/props/de_aztec/hr_aztec/aztec_pottery/aztec_pottery_bowl_02.vmdl",
+   "disableshadows": "0"
+  },
+  {
+   "origin": [
+    -1477.364013671875,
+    275.7720031738281,
+    124.54989624023438
+   ],
+   "angles": [
+    0.0,
+    262.0,
+    0.0
+   ],
+   "radar": [
+    590.3,
+    755.3
+   ],
+   "classname": "prop_physics_multiplayer",
+   "model": "models/props/de_aztec/hr_aztec/aztec_pottery/aztec_pottery_vase_03.vmdl",
+   "disableshadows": "0"
+  },
+  {
+   "origin": [
+    -1247.2039794921875,
+    208.1300048828125,
+    124.52360534667969
+   ],
+   "angles": [
+    0.0,
+    262.0,
+    0.0
+   ],
+   "radar": [
+    682.3,
+    782.3
+   ],
+   "classname": "prop_physics_multiplayer",
+   "model": "models/props/de_aztec/hr_aztec/aztec_pottery/aztec_pottery_vase_01.vmdl",
+   "disableshadows": "0"
+  },
+  {
+   "origin": [
+    -1134.64501953125,
+    1281.126953125,
+    133.7252960205078
+   ],
+   "angles": [
+    0.0,
+    180.00001525878906,
+    0.0
+   ],
+   "radar": [
+    727.3,
+    353.1
+   ],
+   "startdisabled": false,
+   "classname": "prop_dynamic",
+   "model": "models/props/de_aztec/hr_aztec/aztec_lighting/aztec_lighting_lantern_01_glass_unlit.vmdl",
+   "solid": "6",
+   "disableshadows": "1"
+  },
+  {
+   "origin": [
+    -1123.6529541015625,
+    1281.1390380859375,
+    133.7252960205078
+   ],
+   "angles": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "radar": [
+    731.7,
+    353.1
+   ],
+   "startdisabled": false,
+   "classname": "prop_dynamic",
+   "model": "models/props/de_aztec/hr_aztec/aztec_lighting/aztec_lighting_lantern_01_glass_unlit.vmdl",
+   "solid": "6",
+   "disableshadows": "1"
+  },
+  {
+   "origin": [
+    -1129.18505859375,
+    1286.592041015625,
+    133.783203125
+   ],
+   "angles": [
+    0.0,
+    90.0,
+    0.0
+   ],
+   "radar": [
+    729.5,
+    351.0
+   ],
+   "startdisabled": false,
+   "classname": "prop_dynamic",
+   "model": "models/props/de_aztec/hr_aztec/aztec_lighting/aztec_lighting_lantern_01_glass_unlit.vmdl",
+   "solid": "6",
+   "disableshadows": "1"
+  },
+  {
+   "origin": [
+    -1121.6490478515625,
+    1500.910888671875,
+    132.76919555664062
+   ],
+   "angles": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "radar": [
+    732.5,
+    265.2
+   ],
+   "startdisabled": false,
+   "classname": "prop_dynamic",
+   "model": "models/props/de_aztec/hr_aztec/aztec_lighting/aztec_lighting_lantern_01_glass_unlit.vmdl",
+   "solid": "6",
+   "disableshadows": "1"
+  },
+  {
+   "origin": [
+    -1132.6409912109375,
+    1500.8988037109375,
+    132.76919555664062
+   ],
+   "angles": [
+    0.0,
+    180.00001525878906,
+    0.0
+   ],
+   "radar": [
+    728.1,
+    265.2
+   ],
+   "startdisabled": false,
+   "classname": "prop_dynamic",
+   "model": "models/props/de_aztec/hr_aztec/aztec_lighting/aztec_lighting_lantern_01_glass_unlit.vmdl",
+   "solid": "6",
+   "disableshadows": "1"
+  },
+  {
+   "origin": [
+    -1127.1090087890625,
+    1495.44580078125,
+    132.82720947265625
+   ],
+   "angles": [
+    0.0,
+    270.0,
+    0.0
+   ],
+   "radar": [
+    730.4,
+    267.4
+   ],
+   "startdisabled": false,
+   "classname": "prop_dynamic",
+   "model": "models/props/de_aztec/hr_aztec/aztec_lighting/aztec_lighting_lantern_01_glass_unlit.vmdl",
+   "solid": "6",
+   "disableshadows": "1"
+  },
+  {
+   "origin": [
+    840.0,
+    110.0,
+    182.0
+   ],
+   "angles": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "radar": [
+    1517.2,
+    821.6
+   ],
+   "startdisabled": false,
+   "classname": "func_brush",
+   "model": "maps/de_ancient/entities/unnamed_2_32938_11523.vmdl",
+   "disableshadows": "0"
+  },
+  {
+   "origin": [
+    -441.1768798828125,
+    672.45849609375,
+    231.09950256347656
+   ],
+   "angles": [
+    0.0,
+    90.0,
+    0.0
+   ],
+   "radar": [
+    1004.7,
+    596.6
+   ],
+   "startdisabled": false,
+   "classname": "prop_dynamic",
+   "model": "models/props/de_aztec/hr_aztec/aztec_lighting/aztec_lighting_lantern_01_glass_unlit.vmdl",
+   "solid": "6",
+   "disableshadows": "1"
+  },
+  {
+   "origin": [
+    -441.16680908203125,
+    661.4664916992188,
+    231.09950256347656
+   ],
+   "angles": [
+    0.0,
+    270.0001220703125,
+    0.0
+   ],
+   "radar": [
+    1004.7,
+    601.0
+   ],
+   "startdisabled": false,
+   "classname": "prop_dynamic",
+   "model": "models/props/de_aztec/hr_aztec/aztec_lighting/aztec_lighting_lantern_01_glass_unlit.vmdl",
+   "solid": "6",
+   "disableshadows": "1"
+  },
+  {
+   "origin": [
+    -446.6298828125,
+    666.9254760742188,
+    231.15750122070312
+   ],
+   "angles": [
+    0.0,
+    180.00003051757812,
+    0.0
+   ],
+   "radar": [
+    1002.5,
+    598.8
+   ],
+   "startdisabled": false,
+   "classname": "prop_dynamic",
+   "model": "models/props/de_aztec/hr_aztec/aztec_lighting/aztec_lighting_lantern_01_glass_unlit.vmdl",
+   "solid": "6",
+   "disableshadows": "1"
+  },
+  {
+   "origin": [
+    -725.5449829101562,
+    818.0,
+    150.20970153808594
+   ],
+   "angles": [
+    0.0,
+    270.0,
+    0.0
+   ],
+   "radar": [
+    891.0,
+    538.4
+   ],
+   "classname": "prop_physics_multiplayer",
+   "model": "models/props/de_aztec/hr_aztec/aztec_pottery/aztec_pottery_vase_02.vmdl",
+   "disableshadows": "0"
+  },
+  {
+   "origin": [
+    16.043685913085938,
+    -437.49310302734375,
+    189.70578002929688
+   ],
+   "angles": [
+    0.0,
+    270.0,
+    0.0
+   ],
+   "radar": [
+    1187.6,
+    1040.6
+   ],
+   "startdisabled": false,
+   "classname": "prop_dynamic",
+   "model": "models/props/de_aztec/hr_aztec/aztec_lighting/aztec_lighting_lantern_01_glass_unlit.vmdl",
+   "solid": "6",
+   "disableshadows": "1"
+  },
+  {
+   "origin": [
+    21.496688842773438,
+    -431.9600830078125,
+    189.76377868652344
+   ],
+   "angles": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "radar": [
+    1189.8,
+    1038.4
+   ],
+   "startdisabled": false,
+   "classname": "prop_dynamic",
+   "model": "models/props/de_aztec/hr_aztec/aztec_lighting/aztec_lighting_lantern_01_glass_unlit.vmdl",
+   "solid": "6",
+   "disableshadows": "1"
+  },
+  {
+   "origin": [
+    16.033615112304688,
+    -426.5010986328125,
+    189.70578002929688
+   ],
+   "angles": [
+    0.0,
+    90.00005340576172,
+    0.0
+   ],
+   "radar": [
+    1187.6,
+    1036.2
+   ],
+   "startdisabled": false,
+   "classname": "prop_dynamic",
+   "model": "models/props/de_aztec/hr_aztec/aztec_lighting/aztec_lighting_lantern_01_glass_unlit.vmdl",
+   "solid": "6",
+   "disableshadows": "1"
+  },
+  {
+   "origin": [
+    1228.0,
+    -1452.0,
+    12.0
+   ],
+   "angles": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "radar": [
+    1672.4,
+    1446.4
+   ],
+   "startdisabled": false,
+   "classname": "func_clip_vphysics",
+   "model": "maps/de_ancient/entities/unnamed_2_32938_41201.vmdl"
+  },
+  {
+   "origin": [
+    -76.41462707519531,
+    1763.0135498046875,
+    20.2560977935791
+   ],
+   "angles": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "radar": [
+    1150.6,
+    160.4
+   ],
+   "startdisabled": false,
+   "classname": "func_clip_vphysics",
+   "model": "maps/de_ancient/entities/unnamed_2_32938_41207.vmdl"
+  },
+  {
+   "origin": [
+    527.0439453125,
+    -512.5491333007812,
+    191.78904724121094
+   ],
+   "angles": [
+    0.0,
+    90.0,
+    0.0
+   ],
+   "radar": [
+    1392.0,
+    1070.6
+   ],
+   "startdisabled": false,
+   "classname": "prop_dynamic",
+   "model": "models/props/de_aztec/hr_aztec/aztec_lighting/aztec_lighting_lantern_01_glass_unlit.vmdl",
+   "solid": "6",
+   "disableshadows": "1"
+  },
+  {
+   "origin": [
+    527.0540161132812,
+    -523.5411376953125,
+    191.78904724121094
+   ],
+   "angles": [
+    0.0,
+    270.0001220703125,
+    0.0
+   ],
+   "radar": [
+    1392.0,
+    1075.0
+   ],
+   "startdisabled": false,
+   "classname": "prop_dynamic",
+   "model": "models/props/de_aztec/hr_aztec/aztec_lighting/aztec_lighting_lantern_01_glass_unlit.vmdl",
+   "solid": "6",
+   "disableshadows": "1"
+  },
+  {
+   "origin": [
+    521.5909423828125,
+    -518.0821533203125,
+    191.8470458984375
+   ],
+   "angles": [
+    0.0,
+    180.00001525878906,
+    0.0
+   ],
+   "radar": [
+    1389.8,
+    1072.8
+   ],
+   "startdisabled": false,
+   "classname": "prop_dynamic",
+   "model": "models/props/de_aztec/hr_aztec/aztec_lighting/aztec_lighting_lantern_01_glass_unlit.vmdl",
+   "solid": "6",
+   "disableshadows": "1"
+  },
+  {
+   "origin": [
+    600.5044555664062,
+    -41.50689697265625,
+    187.97946166992188
+   ],
+   "angles": [
+    0.0,
+    90.0,
+    0.0
+   ],
+   "radar": [
+    1421.4,
+    882.2
+   ],
+   "startdisabled": false,
+   "classname": "prop_dynamic",
+   "model": "models/props/de_aztec/hr_aztec/aztec_lighting/aztec_lighting_lantern_01_glass_unlit.vmdl",
+   "solid": "6",
+   "disableshadows": "1"
+  },
+  {
+   "origin": [
+    600.5145263671875,
+    -52.4989013671875,
+    187.97946166992188
+   ],
+   "angles": [
+    0.0,
+    270.0001220703125,
+    0.0
+   ],
+   "radar": [
+    1421.4,
+    886.6
+   ],
+   "startdisabled": false,
+   "classname": "prop_dynamic",
+   "model": "models/props/de_aztec/hr_aztec/aztec_lighting/aztec_lighting_lantern_01_glass_unlit.vmdl",
+   "solid": "6",
+   "disableshadows": "1"
+  },
+  {
+   "origin": [
+    595.0514526367188,
+    -47.0399169921875,
+    188.03746032714844
+   ],
+   "angles": [
+    0.0,
+    180.00001525878906,
+    0.0
+   ],
+   "radar": [
+    1419.2,
+    884.4
+   ],
+   "startdisabled": false,
+   "classname": "prop_dynamic",
+   "model": "models/props/de_aztec/hr_aztec/aztec_lighting/aztec_lighting_lantern_01_glass_unlit.vmdl",
+   "solid": "6",
+   "disableshadows": "1"
+  },
+  {
+   "origin": [
+    -603.7263793945312,
+    661.4722900390625,
+    231.09950256347656
+   ],
+   "angles": [
+    0.0,
+    270.0,
+    0.0
+   ],
+   "radar": [
+    939.7,
+    601.0
+   ],
+   "startdisabled": false,
+   "classname": "prop_dynamic",
+   "model": "models/props/de_aztec/hr_aztec/aztec_lighting/aztec_lighting_lantern_01_glass_unlit.vmdl",
+   "solid": "6",
+   "disableshadows": "1"
+  },
+  {
+   "origin": [
+    -603.7364501953125,
+    672.4642944335938,
+    231.09950256347656
+   ],
+   "angles": [
+    0.0,
+    90.00009155273438,
+    0.0
+   ],
+   "radar": [
+    939.7,
+    596.6
+   ],
+   "startdisabled": false,
+   "classname": "prop_dynamic",
+   "model": "models/props/de_aztec/hr_aztec/aztec_lighting/aztec_lighting_lantern_01_glass_unlit.vmdl",
+   "solid": "6",
+   "disableshadows": "1"
+  },
+  {
+   "origin": [
+    -598.2733764648438,
+    667.0053100585938,
+    231.15750122070312
+   ],
+   "angles": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "radar": [
+    941.9,
+    598.8
+   ],
+   "startdisabled": false,
+   "classname": "prop_dynamic",
+   "model": "models/props/de_aztec/hr_aztec/aztec_lighting/aztec_lighting_lantern_01_glass_unlit.vmdl",
+   "solid": "6",
+   "disableshadows": "1"
+  },
+  {
+   "origin": [
+    423.7778015136719,
+    297.19293212890625,
+    236.37220764160156
+   ],
+   "angles": [
+    0.0,
+    179.9999237060547,
+    0.0
+   ],
+   "radar": [
+    1350.7,
+    746.7
+   ],
+   "startdisabled": false,
+   "classname": "prop_dynamic",
+   "model": "models/props/de_aztec/hr_aztec/aztec_lighting/aztec_lighting_lantern_01_glass_unlit.vmdl",
+   "solid": "6",
+   "disableshadows": "1"
+  },
+  {
+   "origin": [
+    434.7698059082031,
+    297.2030029296875,
+    236.37220764160156
+   ],
+   "angles": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "radar": [
+    1355.1,
+    746.7
+   ],
+   "startdisabled": false,
+   "classname": "prop_dynamic",
+   "model": "models/props/de_aztec/hr_aztec/aztec_lighting/aztec_lighting_lantern_01_glass_unlit.vmdl",
+   "solid": "6",
+   "disableshadows": "1"
+  },
+  {
+   "origin": [
+    429.3108215332031,
+    291.73992919921875,
+    236.43020629882812
+   ],
+   "angles": [
+    0.0,
+    269.99993896484375,
+    0.0
+   ],
+   "radar": [
+    1352.9,
+    748.9
+   ],
+   "startdisabled": false,
+   "classname": "prop_dynamic",
+   "model": "models/props/de_aztec/hr_aztec/aztec_lighting/aztec_lighting_lantern_01_glass_unlit.vmdl",
+   "solid": "6",
+   "disableshadows": "1"
+  }
+ ]
+}
