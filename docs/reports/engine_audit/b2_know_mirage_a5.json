@@ -1,0 +1,2250 @@
+{
+ "map": "mirage",
+ "matches": 8,
+ "rounds": 178,
+ "anc": {
+  "bot|fresh": {
+   "n": 452211,
+   "ki_ge2_%": 0.2,
+   "ki0_%": 48.8,
+   "k_ge2_%": 21.9,
+   "near_lt300_%": 58.5,
+   "top_lt300_%": 53.5,
+   "top_gt800_%": 17.1,
+   "unk_mean": 0.289
+  },
+  "bot|old": {
+   "n": 106870,
+   "ki_ge2_%": 0.0,
+   "ki0_%": 61.5,
+   "k_ge2_%": 18.3,
+   "near_lt300_%": 59.3,
+   "top_lt300_%": 53.7,
+   "top_gt800_%": 4.7,
+   "unk_mean": 0.286
+  },
+  "bot|spawn": {
+   "n": 761989,
+   "ki_ge2_%": 0.1,
+   "ki0_%": 96.6,
+   "k_ge2_%": 73.0,
+   "near_lt300_%": 68.5,
+   "top_lt300_%": 43.3,
+   "top_gt800_%": 19.5,
+   "unk_mean": 0.175
+  },
+  "bot|vis": {
+   "n": 114348,
+   "ki_ge2_%": 0.0,
+   "ki0_%": 0.0,
+   "k_ge2_%": 0.0,
+   "near_lt300_%": 100.0,
+   "top_lt300_%": 100.0,
+   "top_gt800_%": 0.0,
+   "unk_mean": 0.0
+  },
+  "team|fresh": {
+   "n": 131019,
+   "ki_ge2_%": 0.3,
+   "ki0_%": 47.6,
+   "k_ge2_%": 24.0,
+   "near_lt300_%": 64.7,
+   "top_lt300_%": 59.4,
+   "top_gt800_%": 11.5,
+   "unk_mean": 0.312
+  },
+  "team|old": {
+   "n": 50038,
+   "ki_ge2_%": 0.0,
+   "ki0_%": 64.3,
+   "k_ge2_%": 15.7,
+   "near_lt300_%": 60.0,
+   "top_lt300_%": 55.1,
+   "top_gt800_%": 6.0,
+   "unk_mean": 0.334
+  },
+  "team|spawn": {
+   "n": 174165,
+   "ki_ge2_%": 0.0,
+   "ki0_%": 97.4,
+   "k_ge2_%": 72.5,
+   "near_lt300_%": 67.3,
+   "top_lt300_%": 43.8,
+   "top_gt800_%": 15.3,
+   "unk_mean": 0.219
+  },
+  "team|vis": {
+   "n": 32414,
+   "ki_ge2_%": 0.0,
+   "ki0_%": 0.0,
+   "k_ge2_%": 0.0,
+   "near_lt300_%": 100.0,
+   "top_lt300_%": 100.0,
+   "top_gt800_%": 0.0,
+   "unk_mean": 0.0
+  }
+ },
+ "anc_pairs_team": [
+  [
+   "held + moved:voice",
+   186
+  ],
+  [
+   "moved:voice",
+   166
+  ],
+  [
+   "moved + moved:voice",
+   1
+  ]
+ ],
+ "anc_ex": [
+  [
+   "11",
+   28256,
+   "team",
+   "CT",
+   "T3",
+   803,
+   404,
+   "на «B Apartments»",
+   "vision",
+   5.3,
+   [
+    [
+     802,
+     414,
+     0.44,
+     "held",
+     "на «B Apartments»",
+     1
+    ],
+    [
+     1154,
+     854,
+     0.24,
+     "moved:voice",
+     "на «Catwalk»",
+     1
+    ]
+   ]
+  ],
+  [
+   "11",
+   28272,
+   "team",
+   "CT",
+   "T3",
+   793,
+   406,
+   "на «B Apartments»",
+   "vision",
+   5.5,
+   [
+    [
+     802,
+     414,
+     0.44,
+     "held",
+     "на «B Apartments»",
+     1
+    ],
+    [
+     1154,
+     854,
+     0.24,
+     "moved:voice",
+     "на «Catwalk»",
+     1
+    ]
+   ]
+  ],
+  [
+   "11",
+   28288,
+   "team",
+   "CT",
+   "T3",
+   782,
+   406,
+   "на «B Apartments»",
+   "vision",
+   5.8,
+   [
+    [
+     802,
+     414,
+     0.43,
+     "held",
+     "на «B Apartments»",
+     1
+    ],
+    [
+     1154,
+     854,
+     0.24,
+     "moved:voice",
+     "на «Catwalk»",
+     1
+    ]
+   ]
+  ],
+  [
+   "11",
+   28304,
+   "team",
+   "CT",
+   "T3",
+   771,
+   406,
+   "на «B Apartments»",
+   "vision",
+   6,
+   [
+    [
+     802,
+     414,
+     0.43,
+     "held",
+     "на «B Apartments»",
+     1
+    ],
+    [
+     1154,
+     854,
+     0.24,
+     "moved:voice",
+     "на «Catwalk»",
+     1
+    ]
+   ]
+  ],
+  [
+   "11",
+   28320,
+   "team",
+   "CT",
+   "T3",
+   760,
+   405,
+   "на «B Apartments»",
+   "vision",
+   6.3,
+   [
+    [
+     802,
+     414,
+     0.42,
+     "held",
+     "на «B Apartments»",
+     1
+    ],
+    [
+     1154,
+     854,
+     0.25,
+     "moved:voice",
+     "на «Catwalk»",
+     1
+    ]
+   ]
+  ],
+  [
+   "11",
+   28336,
+   "team",
+   "CT",
+   "T3",
+   750,
+   405,
+   "на «B Apartments»",
+   "vision",
+   6.5,
+   [
+    [
+     802,
+     414,
+     0.42,
+     "held",
+     "на «B Apartments»",
+     1
+    ],
+    [
+     1154,
+     854,
+     0.25,
+     "moved:voice",
+     "на «Catwalk»",
+     1
+    ]
+   ]
+  ],
+  [
+   "11",
+   28352,
+   "team",
+   "CT",
+   "T3",
+   739,
+   404,
+   "на «B Apartments»",
+   "vision",
+   6.8,
+   [
+    [
+     802,
+     414,
+     0.41,
+     "held",
+     "на «B Apartments»",
+     1
+    ],
+    [
+     1154,
+     854,
+     0.25,
+     "moved:voice",
+     "на «Catwalk»",
+     1
+    ]
+   ]
+  ],
+  [
+   "11",
+   28368,
+   "team",
+   "CT",
+   "T3",
+   728,
+   403,
+   "на «B Apartments»",
+   "vision",
+   7,
+   [
+    [
+     802,
+     414,
+     0.41,
+     "held",
+     "на «B Apartments»",
+     1
+    ],
+    [
+     1154,
+     854,
+     0.25,
+     "moved:voice",
+     "на «Catwalk»",
+     1
+    ]
+   ]
+  ],
+  [
+   "11",
+   28384,
+   "team",
+   "CT",
+   "T3",
+   717,
+   403,
+   "на «B Apartments»",
+   "vision",
+   7.3,
+   [
+    [
+     802,
+     414,
+     0.4,
+     "held",
+     "на «B Apartments»",
+     1
+    ],
+    [
+     1154,
+     854,
+     0.25,
+     "moved:voice",
+     "на «Catwalk»",
+     1
+    ]
+   ]
+  ],
+  [
+   "11",
+   28400,
+   "team",
+   "CT",
+   "T3",
+   707,
+   403,
+   "на «B Apartments»",
+   "vision",
+   7.5,
+   [
+    [
+     802,
+     414,
+     0.4,
+     "held",
+     "на «B Apartments»",
+     1
+    ],
+    [
+     1154,
+     854,
+     0.26,
+     "moved:voice",
+     "на «Catwalk»",
+     1
+    ]
+   ]
+  ],
+  [
+   "11",
+   28416,
+   "team",
+   "CT",
+   "T3",
+   696,
+   403,
+   "на «B Apartments»",
+   "vision",
+   7.8,
+   [
+    [
+     802,
+     414,
+     0.39,
+     "held",
+     "на «B Apartments»",
+     1
+    ],
+    [
+     1154,
+     854,
+     0.26,
+     "moved:voice",
+     "на «Catwalk»",
+     1
+    ]
+   ]
+  ],
+  [
+   "11",
+   28432,
+   "team",
+   "CT",
+   "T3",
+   685,
+   404,
+   "на «B Apartments»",
+   "vision",
+   8,
+   [
+    [
+     802,
+     414,
+     0.39,
+     "held",
+     "на «B Apartments»",
+     1
+    ],
+    [
+     1154,
+     854,
+     0.26,
+     "moved:voice",
+     "на «Catwalk»",
+     1
+    ]
+   ]
+  ],
+  [
+   "11",
+   28448,
+   "team",
+   "CT",
+   "T3",
+   675,
+   405,
+   "на «B Apartments»",
+   "vision",
+   8.3,
+   [
+    [
+     802,
+     414,
+     0.38,
+     "held",
+     "на «B Apartments»",
+     1
+    ],
+    [
+     1154,
+     854,
+     0.26,
+     "moved:voice",
+     "на «Catwalk»",
+     1
+    ]
+   ]
+  ],
+  [
+   "11",
+   28464,
+   "team",
+   "CT",
+   "T3",
+   664,
+   406,
+   "на «B Apartments»",
+   "vision",
+   8.5,
+   [
+    [
+     802,
+     414,
+     0.38,
+     "held",
+     "на «B Apartments»",
+     1
+    ],
+    [
+     1154,
+     854,
+     0.26,
+     "moved:voice",
+     "на «Catwalk»",
+     1
+    ]
+   ]
+  ],
+  [
+   "11",
+   28480,
+   "team",
+   "CT",
+   "T3",
+   653,
+   407,
+   "на «B Apartments»",
+   "vision",
+   8.8,
+   [
+    [
+     802,
+     414,
+     0.37,
+     "held",
+     "на «B Apartments»",
+     1
+    ],
+    [
+     1154,
+     854,
+     0.27,
+     "moved:voice",
+     "на «Catwalk»",
+     1
+    ]
+   ]
+  ],
+  [
+   "11",
+   28496,
+   "team",
+   "CT",
+   "T3",
+   642,
+   408,
+   "на «B Apartments»",
+   "vision",
+   9,
+   [
+    [
+     802,
+     414,
+     0.37,
+     "held",
+     "на «B Apartments»",
+     1
+    ],
+    [
+     1154,
+     854,
+     0.27,
+     "moved:voice",
+     "на «Catwalk»",
+     1
+    ]
+   ]
+  ],
+  [
+   "11",
+   28512,
+   "team",
+   "CT",
+   "T3",
+   632,
+   409,
+   "на «B Apartments»",
+   "vision",
+   9.3,
+   [
+    [
+     802,
+     414,
+     0.36,
+     "held",
+     "на «B Apartments»",
+     1
+    ],
+    [
+     1154,
+     854,
+     0.27,
+     "moved:voice",
+     "на «Catwalk»",
+     1
+    ]
+   ]
+  ],
+  [
+   "11",
+   28528,
+   "team",
+   "CT",
+   "T3",
+   621,
+   409,
+   "на «B Apartments»",
+   "vision",
+   9.5,
+   [
+    [
+     802,
+     414,
+     0.36,
+     "held",
+     "на «B Apartments»",
+     1
+    ],
+    [
+     1154,
+     854,
+     0.27,
+     "moved:voice",
+     "на «Catwalk»",
+     1
+    ]
+   ]
+  ],
+  [
+   "11",
+   28544,
+   "team",
+   "CT",
+   "T3",
+   610,
+   410,
+   "на «B Apartments»",
+   "vision",
+   9.8,
+   [
+    [
+     802,
+     414,
+     0.35,
+     "held",
+     "на «B Apartments»",
+     1
+    ],
+    [
+     1154,
+     854,
+     0.28,
+     "moved:voice",
+     "на «Catwalk»",
+     1
+    ]
+   ]
+  ],
+  [
+   "11",
+   28560,
+   "team",
+   "CT",
+   "T3",
+   600,
+   411,
+   "на «B Apartments»",
+   "vision",
+   10,
+   [
+    [
+     802,
+     414,
+     0.35,
+     "held",
+     "на «B Apartments»",
+     1
+    ],
+    [
+     1154,
+     854,
+     0.28,
+     "moved:voice",
+     "на «Catwalk»",
+     1
+    ]
+   ]
+  ],
+  [
+   "11",
+   28576,
+   "team",
+   "CT",
+   "T3",
+   590,
+   415,
+   "на «B Apartments»",
+   "vision",
+   10.3,
+   [
+    [
+     802,
+     414,
+     0.35,
+     "held",
+     "на «B Apartments»",
+     1
+    ],
+    [
+     1154,
+     854,
+     0.28,
+     "moved:voice",
+     "на «Catwalk»",
+     1
+    ]
+   ]
+  ],
+  [
+   "11",
+   28592,
+   "team",
+   "CT",
+   "T3",
+   581,
+   421,
+   "на «Drop»",
+   "vision",
+   10.5,
+   [
+    [
+     802,
+     414,
+     0.34,
+     "held",
+     "на «B Apartments»",
+     1
+    ],
+    [
+     1154,
+     854,
+     0.28,
+     "moved:voice",
+     "на «Catwalk»",
+     1
+    ]
+   ]
+  ],
+  [
+   "11",
+   28608,
+   "team",
+   "CT",
+   "T3",
+   573,
+   428,
+   "на «Drop»",
+   "vision",
+   10.8,
+   [
+    [
+     802,
+     414,
+     0.34,
+     "held",
+     "на «B Apartments»",
+     1
+    ],
+    [
+     1154,
+     854,
+     0.28,
+     "moved:voice",
+     "на «Catwalk»",
+     1
+    ]
+   ]
+  ],
+  [
+   "11",
+   28624,
+   "team",
+   "CT",
+   "T3",
+   565,
+   435,
+   "на «Drop»",
+   "vision",
+   11,
+   [
+    [
+     802,
+     414,
+     0.34,
+     "held",
+     "на «B Apartments»",
+     1
+    ],
+    [
+     1154,
+     854,
+     0.28,
+     "moved:voice",
+     "на «Catwalk»",
+     1
+    ]
+   ]
+  ],
+  [
+   "11",
+   28640,
+   "team",
+   "CT",
+   "T3",
+   558,
+   442,
+   "на «Drop»",
+   "vision",
+   11.3,
+   [
+    [
+     802,
+     414,
+     0.34,
+     "held",
+     "на «B Apartments»",
+     1
+    ],
+    [
+     1154,
+     854,
+     0.28,
+     "moved:voice",
+     "на «Catwalk»",
+     1
+    ]
+   ]
+  ]
+ ],
+ "dbl": {
+  "two_marks_%": 1.7,
+  "n": 1432,
+  "samples": 82756,
+  "lkp_from_sound_%": 25.8
+ },
+ "dbl_ex": [
+  [
+   "11",
+   14464,
+   "T0",
+   "CT1",
+   "spotted",
+   11.5,
+   "на «Window»",
+   "steps",
+   0.1,
+   "на «Ramp»",
+   "на «Mid»",
+   382
+  ],
+  [
+   "11",
+   14464,
+   "T4",
+   "CT1",
+   "spotted",
+   11.5,
+   "на «Window»",
+   "steps",
+   0.1,
+   "на «Ramp»",
+   "на «Mid»",
+   401
+  ],
+  [
+   "11",
+   14480,
+   "T0",
+   "CT1",
+   "spotted",
+   11.8,
+   "на «Window»",
+   "steps",
+   0.3,
+   "на «Ramp»",
+   "на «Ramp»",
+   382
+  ],
+  [
+   "11",
+   14480,
+   "T4",
+   "CT1",
+   "spotted",
+   11.8,
+   "на «Window»",
+   "steps",
+   0.3,
+   "на «Ramp»",
+   "на «Ramp»",
+   401
+  ],
+  [
+   "11",
+   14496,
+   "T0",
+   "CT1",
+   "spotted",
+   12,
+   "на «Window»",
+   "steps",
+   0.2,
+   "на «Ramp»",
+   "на «Ramp»",
+   389
+  ],
+  [
+   "11",
+   14496,
+   "T4",
+   "CT1",
+   "spotted",
+   12,
+   "на «Window»",
+   "steps",
+   0.2,
+   "на «Ramp»",
+   "на «Ramp»",
+   392
+  ],
+  [
+   "11",
+   14512,
+   "T0",
+   "CT1",
+   "spotted",
+   12.3,
+   "на «Window»",
+   "steps",
+   0,
+   "на «Ramp»",
+   "на «Ramp»",
+   399
+  ],
+  [
+   "11",
+   14512,
+   "T4",
+   "CT1",
+   "spotted",
+   12.3,
+   "на «Window»",
+   "steps",
+   0,
+   "на «Catwalk»",
+   "на «Ramp»",
+   366
+  ],
+  [
+   "11",
+   14528,
+   "T0",
+   "CT1",
+   "spotted",
+   12.5,
+   "на «Window»",
+   "steps",
+   0.3,
+   "на «Ramp»",
+   "на «Ramp»",
+   399
+  ],
+  [
+   "11",
+   14528,
+   "T4",
+   "CT1",
+   "spotted",
+   12.5,
+   "на «Window»",
+   "steps",
+   0.3,
+   "на «Catwalk»",
+   "на «Ramp»",
+   366
+  ],
+  [
+   "11",
+   14544,
+   "T0",
+   "CT1",
+   "spotted",
+   12.8,
+   "на «Window»",
+   "steps",
+   0.5,
+   "на «Ramp»",
+   "на «Ramp»",
+   399
+  ],
+  [
+   "11",
+   14544,
+   "T4",
+   "CT1",
+   "spotted",
+   12.8,
+   "на «Window»",
+   "steps",
+   0.5,
+   "на «Catwalk»",
+   "на «Ramp»",
+   366
+  ],
+  [
+   "11",
+   14560,
+   "T0",
+   "CT1",
+   "spotted",
+   13,
+   "на «Window»",
+   "steps",
+   0.8,
+   "на «Ramp»",
+   "на «Ramp»",
+   399
+  ],
+  [
+   "11",
+   14560,
+   "T4",
+   "CT1",
+   "spotted",
+   13,
+   "на «Window»",
+   "steps",
+   0.8,
+   "на «Catwalk»",
+   "на «Ramp»",
+   366
+  ],
+  [
+   "11",
+   14576,
+   "T0",
+   "CT1",
+   "spotted",
+   13.3,
+   "на «Window»",
+   "steps",
+   1,
+   "на «Ramp»",
+   "на «Ramp»",
+   399
+  ],
+  [
+   "11",
+   14576,
+   "T4",
+   "CT1",
+   "spotted",
+   13.3,
+   "на «Window»",
+   "steps",
+   1,
+   "на «Catwalk»",
+   "на «Ramp»",
+   366
+  ],
+  [
+   "11",
+   15184,
+   "CT2",
+   "T0",
+   "spotted",
+   13.1,
+   "на «Top Mid»",
+   "steps",
+   0.1,
+   "на «B Short»",
+   "на «B Short»",
+   593
+  ],
+  [
+   "11",
+   15200,
+   "CT2",
+   "T0",
+   "spotted",
+   13.3,
+   "на «Top Mid»",
+   "steps",
+   0.1,
+   "на «B Short»",
+   "на «B Short»",
+   624
+  ],
+  [
+   "11",
+   15216,
+   "CT2",
+   "T0",
+   "spotted",
+   13.6,
+   "на «Top Mid»",
+   "steps",
+   0,
+   "на «B Short»",
+   "на «B Short»",
+   639
+  ],
+  [
+   "11",
+   15232,
+   "CT2",
+   "T0",
+   "spotted",
+   13.8,
+   "на «Top Mid»",
+   "steps",
+   0.3,
+   "на «B Short»",
+   "на «B Short»",
+   639
+  ],
+  [
+   "11",
+   36560,
+   "CT4",
+   "T4",
+   "sound",
+   12.5,
+   "на «T Spawn»",
+   "steps",
+   0.2,
+   "на «T Ramp»",
+   "на «Tetris»",
+   790
+  ],
+  [
+   "11",
+   36576,
+   "CT0",
+   "T4",
+   "sound",
+   12.7,
+   "на «T Spawn»",
+   "nade",
+   0,
+   "на «Tetris»",
+   "на «Tetris»",
+   829
+  ],
+  [
+   "11",
+   36576,
+   "CT4",
+   "T4",
+   "sound",
+   12.7,
+   "на «T Spawn»",
+   "nade",
+   0,
+   "на «Tetris»",
+   "на «Tetris»",
+   829
+  ],
+  [
+   "11",
+   36592,
+   "CT0",
+   "T4",
+   "sound",
+   13,
+   "на «T Spawn»",
+   "nade",
+   0.3,
+   "на «Tetris»",
+   "на «90»",
+   829
+  ],
+  [
+   "11",
+   36592,
+   "CT4",
+   "T4",
+   "sound",
+   13,
+   "на «T Spawn»",
+   "nade",
+   0.3,
+   "на «Tetris»",
+   "на «90»",
+   829
+  ]
+ ],
+ "seen_by": {
+  "teamInfoTick": {
+   "n": 67090,
+   "eng0": 324,
+   "smoke": 1676,
+   "fov0": 55,
+   "vis0": 0,
+   "anyVis0": 0,
+   "eng0_pct": 0.5,
+   "anyVis0_pct": 0.0,
+   "fov0_pct": 0.1,
+   "smoke_pct": 2.5
+  },
+  "intelDeath": {
+   "n": 917,
+   "eng0": 9,
+   "smoke": 0,
+   "fov0": 48,
+   "vis0": 81,
+   "anyVis0": 787,
+   "eng0_pct": 1.0,
+   "anyVis0_pct": 85.8,
+   "fov0_pct": 5.2,
+   "smoke_pct": 0.0
+  },
+  "throwNade": {
+   "n": 166,
+   "eng0": 23,
+   "smoke": 0,
+   "fov0": 0,
+   "vis0": 24,
+   "anyVis0": 23,
+   "eng0_pct": 13.9,
+   "anyVis0_pct": 13.9,
+   "fov0_pct": 0.0,
+   "smoke_pct": 0.0
+  },
+  "jumpCheckTick": {
+   "n": 109,
+   "eng0": 107,
+   "smoke": 0,
+   "fov0": 2,
+   "vis0": 107,
+   "anyVis0": 106,
+   "eng0_pct": 98.2,
+   "anyVis0_pct": 97.2,
+   "fov0_pct": 1.8,
+   "smoke_pct": 0.0
+  }
+ },
+ "seen_geo": {
+  "teamInfoTick": {
+   "n": 18676,
+   "eng": 18352,
+   "geo": 14797,
+   "eng_not_geo": 3734,
+   "geo_not_eng": 179,
+   "no_line_both": 145,
+   "eng_not_geo_pct": 20.0,
+   "no_line_both_pct": 0.8,
+   "geo_not_eng_pct": 1.0
+  },
+  "intelDeath": {
+   "n": 917,
+   "eng": 908,
+   "geo": 895,
+   "eng_not_geo": 17,
+   "geo_not_eng": 4,
+   "no_line_both": 5,
+   "eng_not_geo_pct": 1.9,
+   "no_line_both_pct": 0.5,
+   "geo_not_eng_pct": 0.4
+  },
+  "throwNade": {
+   "n": 166,
+   "eng": 143,
+   "geo": 150,
+   "eng_not_geo": 6,
+   "geo_not_eng": 13,
+   "no_line_both": 10,
+   "eng_not_geo_pct": 3.6,
+   "no_line_both_pct": 6.0,
+   "geo_not_eng_pct": 7.8
+  },
+  "jumpCheckTick": {
+   "n": 109,
+   "eng": 2,
+   "geo": 1,
+   "eng_not_geo": 1,
+   "geo_not_eng": 0,
+   "no_line_both": 107,
+   "eng_not_geo_pct": 0.9,
+   "no_line_both_pct": 98.2,
+   "geo_not_eng_pct": 0.0
+  }
+ },
+ "seen_geo_ex": [
+  [
+   "11",
+   1510,
+   "CT",
+   "teamInfoTick",
+   "CT0",
+   "T3",
+   460
+  ],
+  [
+   "11",
+   1525,
+   "T",
+   "teamInfoTick",
+   "T3",
+   "CT0",
+   442
+  ],
+  [
+   "11",
+   1538,
+   "CT",
+   "teamInfoTick",
+   "CT0",
+   "T0",
+   479
+  ],
+  [
+   "11",
+   1629,
+   "T",
+   "teamInfoTick",
+   "T3",
+   "CT0",
+   442
+  ],
+  [
+   "11",
+   1661,
+   "T",
+   "teamInfoTick",
+   "T3",
+   "CT0",
+   439
+  ],
+  [
+   "11",
+   1693,
+   "T",
+   "teamInfoTick",
+   "T3",
+   "CT0",
+   439
+  ],
+  [
+   "11",
+   1725,
+   "T",
+   "teamInfoTick",
+   "T3",
+   "CT0",
+   439
+  ],
+  [
+   "11",
+   1757,
+   "T",
+   "teamInfoTick",
+   "T3",
+   "CT0",
+   439
+  ],
+  [
+   "11",
+   1789,
+   "T",
+   "teamInfoTick",
+   "T3",
+   "CT0",
+   439
+  ],
+  [
+   "11",
+   1821,
+   "T",
+   "teamInfoTick",
+   "T3",
+   "CT0",
+   439
+  ],
+  [
+   "11",
+   1853,
+   "T",
+   "teamInfoTick",
+   "T3",
+   "CT0",
+   439
+  ],
+  [
+   "11",
+   1880,
+   "CT",
+   "teamInfoTick",
+   "CT0",
+   "T1",
+   457
+  ],
+  [
+   "11",
+   1885,
+   "T",
+   "teamInfoTick",
+   "T3",
+   "CT0",
+   439
+  ],
+  [
+   "11",
+   2134,
+   "CT",
+   "teamInfoTick",
+   "CT0",
+   "T4",
+   456
+  ],
+  [
+   "11",
+   2325,
+   "CT",
+   "teamInfoTick",
+   "CT1",
+   "T2",
+   354
+  ],
+  [
+   "11",
+   2429,
+   "T",
+   "teamInfoTick",
+   "T3",
+   "CT4",
+   277
+  ],
+  [
+   "11",
+   5828,
+   "CT",
+   "teamInfoTick",
+   "CT1",
+   "T0",
+   163
+  ],
+  [
+   "11",
+   5833,
+   "T",
+   "teamInfoTick",
+   "T0",
+   "CT1",
+   158
+  ],
+  [
+   "11",
+   5960,
+   "CT",
+   "teamInfoTick",
+   "CT4",
+   "T3",
+   309
+  ],
+  [
+   "11",
+   5993,
+   "CT",
+   "teamInfoTick",
+   "CT4",
+   "T1",
+   350
+  ],
+  [
+   "11",
+   6147,
+   "T",
+   "teamInfoTick",
+   "T1",
+   "CT4",
+   363
+  ],
+  [
+   "11",
+   6153,
+   "CT",
+   "teamInfoTick",
+   "CT4",
+   "T1",
+   362
+  ],
+  [
+   "11",
+   6185,
+   "CT",
+   "teamInfoTick",
+   "CT4",
+   "T1",
+   362
+  ],
+  [
+   "11",
+   6536,
+   "T",
+   "teamInfoTick",
+   "T1",
+   "CT4",
+   331
+  ],
+  [
+   "11",
+   6726,
+   "CT",
+   "teamInfoTick",
+   "CT0",
+   "T2",
+   112
+  ],
+  [
+   "11",
+   6729,
+   "T",
+   "teamInfoTick",
+   "T2",
+   "CT0",
+   111
+  ],
+  [
+   "11",
+   6761,
+   "T",
+   "teamInfoTick",
+   "T2",
+   "CT0",
+   111
+  ],
+  [
+   "11",
+   6793,
+   "T",
+   "teamInfoTick",
+   "T2",
+   "CT0",
+   111
+  ],
+  [
+   "11",
+   7198,
+   "CT",
+   "teamInfoTick",
+   "CT4",
+   "T2",
+   385
+  ],
+  [
+   "11",
+   7468,
+   "T",
+   "teamInfoTick",
+   "T1",
+   "CT4",
+   234
+  ]
+ ],
+ "hatch": {
+  "episodes": 100755,
+  "per_round": 566.0,
+  "dur_med_s": 2.0,
+  "dur_q": [
+   0.75,
+   11.75,
+   37.5
+  ],
+  "end": {
+   "info": [
+    15176,
+    15.1,
+    2.25
+   ],
+   "reach": [
+    64497,
+    64.0,
+    1.25
+   ],
+   "round": [
+    21082,
+    20.9,
+    27.64
+   ]
+  },
+  "enemy_inside_%_of_checks": 3.0
+ },
+ "hatch_now": {
+  "CT": {
+   "zones_mean": 37.8,
+   "foes_in_hatch_%": 33.1,
+   "foes_in_belief_%": 61.7,
+   "foes_nowhere_%": 5.2
+  },
+  "T": {
+   "zones_mean": 45.2,
+   "foes_in_hatch_%": 45.1,
+   "foes_in_belief_%": 47.5,
+   "foes_nowhere_%": 7.5
+  }
+ },
+ "phase_look": {
+  "lineup|los": [
+   22,
+   90.9
+  ],
+  "lineup|nolos": [
+   1969,
+   52.0
+  ],
+  "move|los": [
+   3248,
+   92.7
+  ],
+  "move|nolos": [
+   42951,
+   55.8
+  ],
+  "postplant-CT|los": [
+   38,
+   97.4
+  ],
+  "postplant-CT|nolos": [
+   288,
+   61.5
+  ],
+  "postplant-T|los": [
+   210,
+   93.8
+  ],
+  "postplant-T|nolos": [
+   2572,
+   55.6
+  ],
+  "post|los": [
+   1072,
+   89.6
+  ],
+  "post|nolos": [
+   35122,
+   54.7
+  ],
+  "retake|los": [
+   27,
+   92.6
+  ],
+  "retake|nolos": [
+   763,
+   55.2
+  ]
+ },
+ "phase_reason": {
+  "move|look": [
+   19493,
+   52.4
+  ],
+  "move|contact": [
+   10581,
+   73.2
+  ],
+  "post|contact": [
+   9819,
+   61.7
+  ],
+  "post|look": [
+   9581,
+   56.1
+  ],
+  "post|pro": [
+   4825,
+   48.1
+  ],
+  "move|team": [
+   4642,
+   65.5
+  ],
+  "move|sound": [
+   3961,
+   63.5
+  ],
+  "post|team": [
+   3806,
+   64.4
+  ],
+  "move|open": [
+   3519,
+   33.9
+  ],
+  "post|open": [
+   3135,
+   33.9
+  ],
+  "move|death": [
+   2808,
+   61.1
+  ],
+  "post|death": [
+   2351,
+   57.8
+  ],
+  "post|sound": [
+   2093,
+   59.5
+  ],
+  "lineup|look": [
+   1588,
+   54.8
+  ],
+  "postplant-T|look": [
+   979,
+   52.0
+  ],
+  "postplant-T|contact": [
+   688,
+   75.7
+  ],
+  "move|-": [
+   585,
+   28.2
+  ],
+  "postplant-T|team": [
+   361,
+   69.0
+  ],
+  "retake|look": [
+   348,
+   46.8
+  ],
+  "move|spam": [
+   340,
+   75.6
+  ],
+  "postplant-T|open": [
+   332,
+   53.3
+  ],
+  "post|spam": [
+   325,
+   52.0
+  ],
+  "postplant-CT|look": [
+   210,
+   57.6
+  ],
+  "lineup|open": [
+   190,
+   36.8
+  ],
+  "retake|contact": [
+   173,
+   74.0
+  ],
+  "move|cover": [
+   169,
+   65.1
+  ],
+  "postplant-T|-": [
+   145,
+   22.8
+  ],
+  "postplant-T|sound": [
+   122,
+   58.2
+  ],
+  "retake|team": [
+   118,
+   85.6
+  ],
+  "post|cover": [
+   112,
+   67.0
+  ],
+  "postplant-CT|contact": [
+   92,
+   79.3
+  ],
+  "post|pro+open": [
+   86,
+   38.4
+  ],
+  "lineup|team": [
+   85,
+   60.0
+  ],
+  "postplant-T|pro": [
+   78,
+   14.1
+  ],
+  "lineup|sound": [
+   61,
+   44.3
+  ],
+  "postplant-T|death": [
+   59,
+   88.1
+  ],
+  "retake|sound": [
+   54,
+   50.0
+  ],
+  "retake|open": [
+   51,
+   17.6
+  ],
+  "lineup|-": [
+   35,
+   28.6
+  ],
+  "retake|death": [
+   29,
+   55.2
+  ]
+ },
+ "plant": {
+  "rows_team": 91,
+  "fresh_le5s": 10,
+  "fresh_w_before_med": 0.5,
+  "fresh_w_after_med": 0.08,
+  "fresh_enemy_near_old_lt300_%": 80.0,
+  "fresh_enemy_near_site_lt600_%": 80.0,
+  "all_enemy_near_site_lt600_%": 90.1
+ },
+ "plant_ex": [
+  [
+   "11",
+   55550,
+   "team",
+   "B",
+   "T1",
+   0.25,
+   0.04,
+   "moved:heard",
+   40.3,
+   0.7,
+   177,
+   593,
+   "на «Connector»",
+   "на «B Short»"
+  ],
+  [
+   "13",
+   33328,
+   "team",
+   "A",
+   "T3",
+   0.51,
+   0.08,
+   "held",
+   4.2,
+   null,
+   53,
+   3,
+   "на «A Site»",
+   "на «A Site»"
+  ],
+  [
+   "13",
+   33328,
+   "team",
+   "A",
+   "T4",
+   0.19,
+   0.03,
+   "moved:heard",
+   59.8,
+   2,
+   761,
+   738,
+   "на «A Site»",
+   "на «Top Mid»"
+  ],
+  [
+   "13",
+   102505,
+   "team",
+   "A",
+   "T0",
+   0.59,
+   0.09,
+   "held",
+   2.6,
+   null,
+   186,
+   188,
+   "на «Tetris»",
+   "на «Sandwich»"
+  ],
+  [
+   "19",
+   19396,
+   "team",
+   "B",
+   "T4",
+   0.3,
+   0.05,
+   "moved",
+   0.5,
+   null,
+   1150,
+   58,
+   "на «A Site»",
+   "на «A Site»"
+  ],
+  [
+   "29",
+   3320,
+   "team",
+   "A",
+   "T4",
+   0.5,
+   0.08,
+   "held",
+   0,
+   null,
+   225,
+   0,
+   "на «Balcony»",
+   "на «Balcony»"
+  ],
+  [
+   "29",
+   9038,
+   "team",
+   "A",
+   "T1",
+   0.38,
+   0.06,
+   "moved",
+   0.4,
+   null,
+   123,
+   144,
+   "на «A Site»",
+   "на «Ninja»"
+  ],
+  [
+   "3",
+   74418,
+   "team",
+   "A",
+   "T0",
+   0.5,
+   0.08,
+   "held",
+   0.5,
+   null,
+   52,
+   8,
+   "на «A Site»",
+   "на «A Site»"
+  ],
+  [
+   "7",
+   108937,
+   "team",
+   "A",
+   "T1",
+   0.5,
+   0.08,
+   "held",
+   0,
+   null,
+   60,
+   0,
+   "на «A Site»",
+   "на «A Site»"
+  ],
+  [
+   "7",
+   113650,
+   "team",
+   "A",
+   "T4",
+   0.61,
+   0.09,
+   "held",
+   4.7,
+   null,
+   80,
+   136,
+   "на «Cross»",
+   "на «A Site»"
+  ]
+ ],
+ "voice": {
+  "beru": 67,
+  "named_not_own_place_%": 91.0,
+  "ex": [
+   [
+    "11",
+    5136,
+    "CT",
+    "CT4",
+    "rebalCT45136",
+    "CT1 вышел вперёд — беру угол на «Short»",
+    1132,
+    1629,
+    "на «Ninja»",
+    "rebalA"
+   ],
+   [
+    "11",
+    38880,
+    "CT",
+    "CT4",
+    "rebalCT438880",
+    "CT0 держит тот же угол — беру угол на A",
+    1128,
+    1590,
+    "на «A Site»",
+    "rebalA"
+   ],
+   [
+    "11",
+    61188,
+    "CT",
+    "CT4",
+    "covCT419,16",
+    "беру на «Chair», CT1 — смотри на «Top Mid»",
+    1043,
+    1013,
+    "на «Connector»",
+    "flank0"
+   ],
+   [
+    "11",
+    65674,
+    "T",
+    "T2",
+    "covT210,7",
+    "беру на «Drop», T4 — смотри на «B Site»",
+    736,
+    405,
+    "на «B Apartments»",
+    "lurk0"
+   ],
+   [
+    "11",
+    74928,
+    "CT",
+    "CT3",
+    "rebalCT374928",
+    "CT0 держит тот же угол — беру угол на «B Apartments»",
+    439,
+    366,
+    "на «Van»",
+    "rebalB"
+   ],
+   [
+    "11",
+    97632,
+    "CT",
+    "CT2",
+    "rebalCT297632",
+    "CT0 держит тот же угол — беру угол на A",
+    1017,
+    1549,
+    "на «Triple Box»",
+    "rebalA"
+   ],
+   [
+    "11",
+    109507,
+    "T",
+    "T3",
+    "covT310,7",
+    "беру на «Drop», T0 — смотри на «Bench»",
+    701,
+    399,
+    "на «B Apartments»",
+    "contact:swing"
+   ],
+   [
+    "13",
+    2496,
+    "CT",
+    "CT4",
+    "rebalCT42496",
+    "CT1 вышел вперёд — беру угол на подходе к A",
+    1149,
+    1622,
+    "на «Firebox»",
+    "rebalA"
+   ],
+   [
+    "13",
+    10624,
+    "T",
+    "T0",
+    "covT022,22",
+    "беру на «A Site», T1 — смотри на «Triple Box»",
+    1380,
+    1295,
+    "на «T Ramp»",
+    "clearA:A Site"
+   ],
+   [
+    "13",
+    19020,
+    "T",
+    "T4",
+    "covT422,22",
+    "беру на «Balcony», T0 — смотри на «Cross»",
+    1453,
+    1309,
+    "на «T Ramp»",
+    "lurk1"
+   ],
+   [
+    "13",
+    24528,
+    "CT",
+    "CT4",
+    "rebalCT424528",
+    "CT1 вышел вперёд — беру угол на подходе к A",
+    1135,
+    1621,
+    "на «A Site»",
+    "rebalA"
+   ],
+   [
+    "13",
+    27072,
+    "CT",
+    "CT3",
+    "rebalCT327072",
+    "CT2 вышел вперёд — беру угол на «Tetris»",
+    1213,
+    1568,
+    "на «Firebox»",
+    "rebalA"
+   ],
+   [
+    "13",
+    46800,
+    "CT",
+    "CT3",
+    "rebalCT346800",
+    "CT0 держит тот же угол — беру угол у входа на B",
+    398,
+    442,
+    "на «Van»",
+    "rebalB"
+   ],
+   [
+    "17",
+    66339,
+    "T",
+    "T3",
+    "covT322,22",
+    "беру на «A Site», T1 — смотри на «Cross»",
+    1441,
+    1310,
+    "на «T Ramp»",
+    "stageB"
+   ],
+   [
+    "17",
+    131612,
+    "T",
+    "T4",
+    "covT414,14",
+    "беру на «Mid», T1 — смотри на «Hole»",
+    843,
+    773,
+    "на «Vent»",
+    "contact:swing"
+   ],
+   [
+    "17",
+    132188,
+    "T",
+    "T4",
+    "covT418,15",
+    "беру на «Mid», T0 — смотри на «Catwalk»",
+    985,
+    767,
+    "на «Short»",
+    "contact:hold"
+   ],
+   [
+    "17",
+    132520,
+    "T",
+    "T0",
+    "covT015,15",
+    "беру на «Mid», T1 — смотри на «Mid Bench»",
+    887,
+    758,
+    "на «Ladder»",
+    "stageA"
+   ],
+   [
+    "17",
+    140544,
+    "CT",
+    "CT0",
+    "rebalCT0140544",
+    "CT1 держит тот же угол — беру угол на «Top Mid»",
+    960,
+    1270,
+    "на «Cross»",
+    "rebalA"
+   ],
+   [
+    "17",
+    152976,
+    "CT",
+    "CT0",
+    "rebalCT0152976",
+    "CT2 вышел вперёд — беру угол на «T Ramp»",
+    1170,
+    1532,
+    "на «A Default»",
+    "rebalA"
+   ],
+   [
+    "17",
+    152976,
+    "CT",
+    "CT2",
+    "rebalCT2152976",
+    "CT1 держит тот же угол — беру угол на подходе к A",
+    1333,
+    1477,
+    "на «Dark»",
+    "rebalA"
+   ]
+  ]
+ }
+}
