@@ -16,8 +16,17 @@ jobs:
       PYTHONUTF8: '1'
     steps:
       - uses: actions/checkout@v4
+      - name: Check tools
+        shell: powershell
+        run: |
+          foreach($c in 'node','npm','python','git'){ $v = (& $c --version 2>&1 | Out-String).Trim(); Write-Output "::notice::$c $v" }
       - name: Play matches
-        run: python tools/measure/remote_run.py
+        shell: powershell
+        run: |
+          python tools/measure/remote_run.py *> run.log
+          $ok = $? -and ($LASTEXITCODE -eq 0)
+          Get-Content run.log -Tail 20 | ForEach-Object { Write-Output "::notice::$_" }
+          if(-not $ok){ exit 1 }
       - name: Upload results
         if: always()
         uses: actions/upload-artifact@v4
