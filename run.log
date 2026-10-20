@@ -1,0 +1,27 @@
+playwright 1.56.0
+> git fetch --quiet origin bf18b3ba63012f1927355d12cf974fc48c6e7870
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Users\Mono\AppData\Local\Temp\simbuild__gogkxnj FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Users\Mono\AppData\Local\Temp\simbuild__gogkxnj\src\build.py --map ancient C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\b2_anc.html
+> git fetch --quiet origin bf18b3ba63012f1927355d12cf974fc48c6e7870
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Users\Mono\AppData\Local\Temp\simbuild__fzu9wew FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Users\Mono\AppData\Local\Temp\simbuild__fzu9wew\src\build.py --map mirage C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\b2_mir.html
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\engine\walk_run.py --job=b2_anc,C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\b2_anc.html --job=b2_mir,C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\b2_mir.html --matches=3,7,11,13,17,19,23,29 --par=8
+матчей в очереди: 16, одновременно: 8
+b2_anc match 11 rc 0 4152511 — готово 1/16, 2 мин
+b2_anc match 19 rc 0 4937114 — готово 2/16, 3 мин
+b2_anc match 17 rc 0 6264963 — готово 3/16, 3 мин
+b2_anc match 7 rc 0 6212854 — готово 4/16, 3 мин
+b2_anc match 29 rc 0 5855967 — готово 5/16, 3 мин
+b2_anc match 3 rc 0 6485045 — готово 6/16, 4 мин
+b2_anc match 13 rc 0 6870043 — готово 7/16, 4 мин
+b2_anc match 23 rc 0 7649027 — готово 8/16, 4 мин
+b2_mir match 7 rc 0 4018528 — готово 9/16, 6 мин
+b2_mir match 3 rc 0 5529285 — готово 10/16, 7 мин
+b2_mir match 13 rc 0 4604179 — готово 11/16, 7 мин
+b2_mir match 11 rc 0 4615070 — готово 12/16, 7 мин
+b2_mir match 17 rc 0 5606922 — готово 13/16, 8 мин
+b2_mir match 29 rc 0 4962621 — готово 14/16, 8 мин
+b2_mir match 19 rc 0 5408087 — готово 15/16, 8 мин
+b2_mir match 23 rc 0 5723218 — готово 16/16, 8 мин
+done
+all done
