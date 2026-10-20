@@ -1,0 +1,121 @@
+{
+ "House → Underpath → Mid": {
+  "units": 2865,
+  "zones": [
+   {
+    "zone": "House",
+    "z_from": -136,
+    "z_to": -136
+   },
+   {
+    "zone": "T Apps",
+    "z_from": -136,
+    "z_to": -79
+   },
+   {
+    "zone": "Underpath Stairs",
+    "z_from": -79,
+    "z_to": -295
+   },
+   {
+    "zone": "Underpath",
+    "z_from": -298,
+    "z_to": -298
+   },
+   {
+    "zone": "Mid",
+    "z_from": -295,
+    "z_to": -271
+   }
+  ]
+ },
+ "House → Mid (кратчайший, без условия)": {
+  "units": 2865,
+  "zones": [
+   "House",
+   "T Apps",
+   "Underpath Stairs",
+   "Underpath",
+   "Mid"
+  ]
+ },
+ "Short → House": {
+  "units": 3305,
+  "zones": [
+   {
+    "zone": "Short",
+    "z_from": -168,
+    "z_to": -167
+   },
+   {
+    "zone": "Catwalk",
+    "z_from": -167,
+    "z_to": -144,
+    "moves": [
+     "прыжок"
+    ]
+   },
+   {
+    "zone": "Mid",
+    "z_from": -268,
+    "z_to": -295
+   },
+   {
+    "zone": "Underpath",
+    "z_from": -298,
+    "z_to": -298
+   },
+   {
+    "zone": "Underpath Stairs",
+    "z_from": -295,
+    "z_to": -69
+   },
+   {
+    "zone": "T Apps",
+    "z_from": -69,
+    "z_to": -136
+   },
+   {
+    "zone": "House",
+    "z_from": -136,
+    "z_to": -136
+   }
+  ]
+ },
+ "Short → House, не через Underpath": {
+  "units": 3675,
+  "zones": [
+   "Short",
+   "Catwalk",
+   "Top Mid",
+   "Side Alley",
+   "Apps Ramp",
+   "TV",
+   "House"
+  ]
+ },
+ "выходы из Underpath (зона: вид перехода → сколько клеток границы)": {
+  "Mid": {
+   "подсадка": 11,
+   "прыжок с приседом": 4,
+   "прыжок": 9,
+   "шаг": 22
+  },
+  "Underpath Stairs": {
+   "шаг": 30
+  },
+  "Under Window": {
+   "подсадка": 11,
+   "прыжок с приседом": 4,
+   "прыжок": 10
+  }
+ },
+ "прямо из Underpath": {
+  "Short (пешком / прыжком / по лестнице)": "нельзя",
+  "Short (с подсадкой)": "нельзя",
+  "Short (через любые зоны, кроме выходов Mid / Underpath Stairs)": "нельзя",
+  "Ladder (пешком / прыжком / по лестнице)": "нельзя",
+  "Ladder (с подсадкой)": "нельзя",
+  "Ladder (через любые зоны, кроме выходов Mid / Underpath Stairs)": "нельзя"
+ }
+}

@@ -150,6 +150,22 @@ Bench у мида → **Mid Bench**, малый Palace у Balcony → **Palace E
 
 ![](map3d/a4_zones.png)
 
+## Пути: B House → Underpath → Mid, Short → B House (владелец 20.10)
+
+`tools/map3d/route.py` → `geom3d/route_check.json`, картинка `route_bhouse_mid.png`. Ходьба — по этажам геометрии: шаг ≤ 18, спрыгнуть,
+прыжок, лестница (подсадку в путь не берём — нужен второй игрок).
+- **B House → Underpath → Mid** (2865 ед.): House → T Apps → Underpath Stairs (вниз −79 … −295) → Underpath (−298 … −368) → Mid (−271).
+  Это и кратчайший путь House → Mid без всяких условий.
+- **Из Underpath на Short и на Ladder попасть нельзя**: ни шагом, ни прыжком, ни подсадкой, ни лестницей. Выходов из Underpath только
+  два: в Mid и на Underpath Stairs. Ещё есть уступ к Under Window, но туда только прыжком или подсадкой. Лестница (ladder) на Mirage
+  одна: Ladder Room ↔ уровень Short (−56 ↔ −164), в Underpath её нет.
+- **Short → B House** (3305 ед.): Short → Catwalk → Mid → Underpath → Underpath Stairs → T Apps → House. Прямого хода с Short в B House
+  нет. Без Underpath — через Top Mid, Side Alley, Apps Ramp, TV (3675 ед.).
+- **Исправлено в зонах:** раньше тоннель под Short и Ladder (−368) получал имена зон сверху. На этом месте проверка «из Underpath можно
+  на Short» ложно давала «можно». Теперь нижняя зона забирает весь свой этаж и выше него не растёт; зоны растут только шагом.
+
+![](map3d/route_bhouse_mid.png)
+
 ## Как повторить
 
 ```
@@ -165,4 +181,5 @@ python3 tools/map3d/layer_pics.py --map mirage              # А3: картин�
 node tools/map3d/map3d_check.js mirage                      # А3: проверка map3d.json образцом игры по убийствам демок
 python3 tools/map3d/los_columns.py --map mirage             # А3: то же одними столбиками (насколько они «с запасом»)
 python3 tools/map3d/zones_owner.py --map mirage             # А4: зоны → zones_owner.json, a4_zones.png
+python3 tools/map3d/route.py --map mirage                   # пути B House → Underpath → Mid, Short → B House; выходы из Underpath
 ```

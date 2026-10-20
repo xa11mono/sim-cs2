@@ -108,6 +108,19 @@ def build(name):
             A_.append(a[h]); B_.append(b[h])
     A_ = np.concatenate(A_); B_ = np.concatenate(B_)
     cell_area = (C.c) ** 2
+    # нижняя зона (Underpath) забирает весь свой этаж: связное по ходьбе в пределах её высот (тоннель под Short, Ladder, B Short) —
+    # прямоугольники сверху на картинке владельца плоские и про нижний этаж не знают
+    Gw = csr_matrix((np.ones(len(A_)), (A_, B_)), shape=(len(live), len(live)))
+    for nm, r, lvl in rects:
+        if lvl != 'low': continue
+        mine = np.where(lab == zid[nm])[0]
+        if not len(mine): continue
+        zmax = lz[mine].max() + 10
+        okn = lz <= zmax
+        m = okn[A_] & okn[B_]
+        Gl = csr_matrix((np.ones(m.sum()), (A_[m], B_[m])), shape=(len(live), len(live)))
+        d = dijkstra(Gl, directed=False, indices=mine, min_only=True, limit=1e9)
+        lab[np.isfinite(d)] = zid[nm]
     # зёрна пустот — места со второй картинки владельца, которые первая не подписывает
     gaps = []
     for gname, gx, gy in GAP_NAMES:
@@ -115,10 +128,11 @@ def build(name):
         if d2[k] > (8 * PX) ** 2 or lab[k] >= 0: continue          # место уже в прямоугольнике — имя не нужно
         if gname not in zid: zid[gname] = len(zone_names); zone_names.append(gname)
         lab[(d2 <= (3 * PX) ** 2) & (lab < 0)] = zid[gname]
-    grow(lab, rects, zid, GAP_NAMES, lc, is_top, ci, cj, W, PX)
+    grow(lab, rects, zid, GAP_NAMES, lc, lz, is_top, ci, cj, W, PX)
     # всё остальное — ближайшей зоне по ходьбе (несколько источников разом); дальше D_FAR — «подход к …»
     G = csr_matrix((np.ones(len(A_)), (A_, B_)), shape=(len(live), len(live)))
-    seeds = np.where(lab >= 0)[0]
+    low_ids = [zid[nm] for nm, r, lvl in rects if lvl == 'low']
+    seeds = np.where((lab >= 0) & ~np.isin(lab, low_ids))[0]   # нижняя зона уже забрала свой этаж — дальше не растёт
     dist, pred, srcs = dijkstra(G, directed=False, indices=seeds, min_only=True, return_predecessors=True)
     un = (lab < 0) & np.isfinite(dist)
     near = un & (dist * C.c <= D_FAR); far = un & ~near
@@ -136,7 +150,7 @@ def build(name):
     # остаток (верх ящиков и уступов, куда только запрыгнуть, без хода к зонам) — ближайшая зона по клетке
     un = np.where(lab < 0)[0]
     if len(un):
-        grid = np.full((W, W), -1); ok = lab >= 0; grid[lc[ok] // W, lc[ok] % W] = lab[ok]
+        grid = np.full((W, W), -1); ok = (lab >= 0) & ~np.isin(lab, low_ids) & is_top; grid[lc[ok] // W, lc[ok] % W] = lab[ok]
         _, (jj, ii) = ndimage.distance_transform_edt(grid < 0, return_indices=True)
         lab[un] = grid[jj[lc[un] // W, lc[un] % W], ii[lc[un] // W, lc[un] % W]]
     left = int((lab < 0).sum())
@@ -173,13 +187,14 @@ def build(name):
     picture(name, out, gaps, W, PX)
 
 
-def grow(lab, rects, zid, seeds, lc, is_top, ci, cj, W, PX):
+def grow(lab, rects, zid, seeds, lc, lz_, is_top, ci, cj, W, PX):
     """прямоугольники растут по сторонам на клетку за круг (все по очереди — встречаются посередине), забирая клетки верхнего
     этажа без зоны, которые касаются уже своих; сторона встала — в полосе чужая зона или забирать нечего (стена, пусто).
     Так зоны остаются прямоугольниками, а не ломаной «ближайшего»."""
     top = np.where(is_top)[0]
     G = np.full(W * W, -2, np.int64); G[lc[top]] = lab[top]          # -2 — не пол, -1 — пол без зоны
     pos = np.full(W * W, -1, np.int64); pos[lc[top]] = top
+    ZG = np.full(W * W, -99999.0); ZG[lc[top]] = lz_[top]; ZG = ZG.reshape(W, W)
     R = []
     for nm, r, lvl in rects:
         if lvl == 'low': continue
@@ -200,7 +215,7 @@ def grow(lab, rects, zid, seeds, lc, is_top, ci, cj, W, PX):
                 if ni.start < 0 or nj.start < 0 or ni.stop > W or nj.stop > W: act[side] = False; continue
                 strip = G2[nj, ni]; ins = G2[inner[1], inner[0]]
                 if ((strip >= 0) & (strip != z)).any(): act[side] = False; continue
-                take = (strip == -1) & (ins == z)
+                take = (strip == -1) & (ins == z) & (np.abs(ZG[nj, ni] - ZG[inner[1], inner[0]]) <= 18)   # только шагом со своей клетки
                 if not take.any(): act[side] = False; continue
                 strip[take] = z
                 if side == 0: rr[1] -= 1

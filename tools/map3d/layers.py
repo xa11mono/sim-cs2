@@ -254,7 +254,8 @@ def build(name):
     out = dict(node_cell=ncell.astype(np.int32), node_z=nz.astype(np.int16), node_kind=kind,
                roof_cell=cl[roof].astype(np.int32), roof_z=f[roof].astype(np.int16), roof_h=(ceil[roof] - f[roof]).astype(np.int16),
                door_cell=cl[door].astype(np.int32), door_z=f[door].astype(np.int16), door_h=(ceil[door] - f[door]).astype(np.int16),
-               walls=walls, covers=covers, windows=wins, climbs=climbs, steps=stp, W=W)
+               walls=walls, covers=covers, windows=wins, climbs=climbs, steps=stp, W=W,
+               edge_src=src.astype(np.int32), edge_dst=dst.astype(np.int32), edge_type=typ)   # переходы между этажами (для путей)
     np.savez_compressed(mapdir.path(name, 'geom3d', 'layers.npz'), **out)
     nav_check(name, C, ncell, nz, kind)
     write_game(name, C, ncell, nz, kind)
