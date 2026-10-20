@@ -16,3 +16,4 @@ data/sounds/src/
 # А3 (20.10): промежуточное tools/map3d/columns.py и layers.py (≈ 9 МБ, пересобираются за ~2 мин); в репо — map3d.json и картинки
 data/maps/*/geom3d/columns.npz
 data/maps/*/geom3d/layers.npz
+run.log

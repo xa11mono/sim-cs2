@@ -1,0 +1,35 @@
+# Прогоны замера на ПК владельца (self-hosted runner). Задание — tools/measure/request.json в ветке measure/…
+# Игру не меняет: собирает указанную в задании версию и играет матчи; результат — артефакт runs-<номер прогона>.
+name: measure
+on:
+  push:
+    branches: ['measure/**']
+  workflow_dispatch:
+concurrency:
+  group: measure
+  cancel-in-progress: false
+permissions:
+  contents: write
+jobs:
+  run:
+    runs-on: self-hosted
+    timeout-minutes: 600
+    env:
+      PYTHONUTF8: '1'
+    steps:
+      - uses: actions/checkout@v4
+      # cmd, а не PowerShell: на Windows запуск скриптов PowerShell по умолчанию запрещён (шаг падал без вывода)
+      - name: Play matches
+        shell: cmd
+        run: |
+          python tools/measure/remote_run.py
+          set RC=%ERRORLEVEL%
+          python -c "[print('::notice::'+l.rstrip()) for l in open(__import__('os').path.expanduser('~/simcs2_run.log'),encoding='utf-8',errors='replace').readlines()[-8:]]"
+          exit /b %RC%
+      # артефакты GitHub из облака не забрать — результаты выкладываются в ветку pc-results/<номер прогона>
+      - name: Publish results
+        if: always()
+        shell: cmd
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python tools/measure/publish_results.py
