@@ -19,7 +19,11 @@ jobs:
       - name: Check tools
         shell: powershell
         run: |
-          foreach($c in 'node','npm','python','git'){ $v = (& $c --version 2>&1 | Out-String).Trim(); Write-Output "::notice::$c $v" }
+          $ErrorActionPreference = 'Continue'; $miss = 0
+          foreach($c in 'node','npm','python','git'){
+            try { $v = (& $c --version 2>&1 | Out-String).Trim(); Write-Output "::notice::$c $v" }
+            catch { Write-Output "::error::$c НЕ НАЙДЕН"; $miss = 1 } }
+          if($miss){ exit 1 }
       - name: Play matches
         shell: powershell
         run: |
