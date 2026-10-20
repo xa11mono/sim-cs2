@@ -50,7 +50,7 @@ v166 — `docs/V166_CHANGES.md` (список владельца). Главны�
 **Сборка набора из исходников (v318):** `python3 tools/map_build.py <карта>` по рецепту `data/maps/<карта>/_build.json`
 (навмеш из `.nav`, стены, высоты, укрытия, зоны по подписям радара, всё из демок; bake-скрипты — с ключом `--map`, общий
 `tools/mapdir.py`). Карты: Ancient (заморожено всё, кроме высот/укрытий/прострелов), Mirage (`python3 src/mkpub.py --map mirage` → `mirage-radar.html`,
-страница https://claude.ai/artifact/QzmQZEd5t9EdnhcXET9Agn (с v336; старая EBaRN7xYH1QXzC1iiTNZ4x — с другого аккаунта), база правок — коллекция `map-mirage`). Проверка глазами — `tools/map_shot.js`.
+страница на аккаунте владельца — https://claude.ai/artifact/EBaRN7xYH1QXzC1iiTNZ4x (обновлена до v386, 21.10; QzmQZEd5t9EdnhcXET9Agn — на другом аккаунте), база правок — коллекция `map-mirage`). Проверка глазами — `tools/map_shot.js`.
 Сборка: `python3 src/build.py [--map ancient]` → `sim.html` (склейка `src/game/*` с набором карты и тестовым входом для
 замеров). Публикуемая: `python3 src/mkpub.py [--map ancient]` → `ancient-radar.html` (страница https://claude.ai/artifact/6nWEKBXyNAybDYzgPT1sH7 (с v370; старая VcutdCmiqN164CLNYowQvP — с другого аккаунта); там же база
 правок карты — коллекция `map`).
