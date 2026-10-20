@@ -5,7 +5,7 @@
   mesh_attr, mesh_surf      — у каждого треугольника: группа столкновений (номер в attr_json) и материал поверхности (номер в surf_names);
   hull_v / hull_vn, hull_p / hull_pn — выпуклые блоки (вершины и их число на блок; плоскости n·p = d и их число);
   hull_attr, hull_surf      — то же у каждого блока;
-  sky_v, sky_t              — «небо» (skybox, вся карта на высоте ~1000): взгляд и пули его не касаются, гранаты отскакивают (владелец 20.10);
+  sky_v, sky_t              — «небо» (группа с тегом sky): взгляд и пули его не касаются, гранаты отскакивают (владелец 20.10);
   attr_json                 — группы столкновений: [{group, as: [теги «чем является»], with: [с чем сталкивается], exclude: [...]}];
   surf_names                — названия материалов поверхности (хеши m_surfacePropertyHashes → имена по списку известных строк Source 2).
 Рядом — phys_attrs.json: сводка (сколько треугольников / площади / блоков у каждой группы и материала).
@@ -42,7 +42,9 @@ for part in phys['m_parts']:
         mat = (np.frombuffer(bytes(mat), np.uint8).astype(np.int32) if isinstance(mat, (bytes, bytearray)) else np.array(mat, np.int32)) if mat is not None and len(mat) else None
         surf = mat if mat is not None and len(mat) == len(t) else np.full(len(t), m.get('m_nSurfacePropertyIndex', 0), np.int32)
         meshes.append((v, t, m.get('m_nCollisionAttributeIndex', 0), surf))
-sky = [k for k, (v, t, a, s) in enumerate(meshes) if v[:, 2].max() > 900 and np.ptp(v[:, 0]) > 3000]   # «потолок / стены неба» — проверять картинкой
+# «небо» — по группе столкновений (тег sky); прежний признак «выше 900 и шире 3000» ошибочно забирал сюда и playerclip над крышами
+sky = [k for k, m in enumerate(meshes) if 'sky' in [x.lower() for x in attrs[m[2]]['as']]] if attrs else \
+      [k for k, (v, t, a, s) in enumerate(meshes) if v[:, 2].max() > 900 and np.ptp(v[:, 0]) > 3000]
 keep = [m for k, m in enumerate(meshes) if k not in sky]
 os.makedirs(OUT, exist_ok=True); off = np.cumsum([0] + [len(m[0]) for m in keep])
 cat = lambda xs, empty: np.concatenate(xs) if xs else empty

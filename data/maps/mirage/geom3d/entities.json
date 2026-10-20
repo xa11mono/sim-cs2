@@ -1,0 +1,3831 @@
+{
+ "spawns_t": [
+  {
+   "origin": [
+    1376.0,
+    -304.0,
+    -144.0
+   ],
+   "angles": [
+    0.0,
+    227.0,
+    0.0
+   ],
+   "radar": [
+    1842.4,
+    806.8
+   ],
+   "priority": 1,
+   "enabled": true
+  },
+  {
+   "origin": [
+    1376.0,
+    -208.0,
+    -144.0
+   ],
+   "angles": [
+    0.0,
+    227.0,
+    0.0
+   ],
+   "radar": [
+    1842.4,
+    768.4
+   ],
+   "priority": 1,
+   "enabled": true
+  },
+  {
+   "origin": [
+    1376.0,
+    -112.0,
+    -144.0
+   ],
+   "angles": [
+    0.0,
+    141.0,
+    0.0
+   ],
+   "radar": [
+    1842.4,
+    730.0
+   ],
+   "priority": 1,
+   "enabled": true
+  },
+  {
+   "origin": [
+    1376.0,
+    -16.0,
+    -144.0
+   ],
+   "angles": [
+    0.0,
+    141.0,
+    0.0
+   ],
+   "radar": [
+    1842.4,
+    691.6
+   ],
+   "priority": 1,
+   "enabled": true
+  },
+  {
+   "origin": [
+    1296.0,
+    -352.0,
+    -144.0
+   ],
+   "angles": [
+    0.0,
+    227.0,
+    0.0
+   ],
+   "radar": [
+    1810.4,
+    826.0
+   ],
+   "priority": 0,
+   "enabled": true
+  },
+  {
+   "origin": [
+    1296.0,
+    -256.0,
+    -144.0
+   ],
+   "angles": [
+    0.0,
+    227.0,
+    0.0
+   ],
+   "radar": [
+    1810.4,
+    787.6
+   ],
+   "priority": 1,
+   "enabled": true
+  },
+  {
+   "origin": [
+    1296.0,
+    -160.0,
+    -144.0
+   ],
+   "angles": [
+    0.0,
+    227.0,
+    0.0
+   ],
+   "radar": [
+    1810.4,
+    749.2
+   ],
+   "priority": 1,
+   "enabled": true
+  },
+  {
+   "origin": [
+    1296.0,
+    -64.0,
+    -144.0
+   ],
+   "angles": [
+    0.0,
+    141.0,
+    0.0
+   ],
+   "radar": [
+    1810.4,
+    710.8
+   ],
+   "priority": 1,
+   "enabled": true
+  },
+  {
+   "origin": [
+    1296.0,
+    32.0,
+    -144.0
+   ],
+   "angles": [
+    0.0,
+    141.0,
+    0.0
+   ],
+   "radar": [
+    1810.4,
+    672.4
+   ],
+   "priority": 0,
+   "enabled": true
+  },
+  {
+   "origin": [
+    1216.0,
+    -16.0,
+    -144.0
+   ],
+   "angles": [
+    0.0,
+    90.0,
+    0.0
+   ],
+   "radar": [
+    1778.4,
+    691.6
+   ],
+   "priority": 0,
+   "enabled": true
+  },
+  {
+   "origin": [
+    1216.0,
+    -115.0,
+    -144.0
+   ],
+   "angles": [
+    0.0,
+    90.0,
+    0.0
+   ],
+   "radar": [
+    1778.4,
+    731.2
+   ],
+   "priority": 0,
+   "enabled": true
+  },
+  {
+   "origin": [
+    1216.0,
+    -211.0,
+    -144.0
+   ],
+   "angles": [
+    0.0,
+    270.0,
+    0.0
+   ],
+   "radar": [
+    1778.4,
+    769.6
+   ],
+   "priority": 0,
+   "enabled": true
+  },
+  {
+   "origin": [
+    1216.0,
+    -307.0,
+    -144.0
+   ],
+   "angles": [
+    0.0,
+    270.0,
+    0.0
+   ],
+   "radar": [
+    1778.4,
+    808.0
+   ],
+   "priority": 0,
+   "enabled": true
+  },
+  {
+   "origin": [
+    1136.0,
+    -256.0,
+    -144.0
+   ],
+   "angles": [
+    0.0,
+    270.0,
+    0.0
+   ],
+   "radar": [
+    1746.4,
+    787.6
+   ],
+   "priority": 0,
+   "enabled": true
+  },
+  {
+   "origin": [
+    1136.0,
+    -160.0,
+    -144.0
+   ],
+   "angles": [
+    0.0,
+    270.0,
+    0.0
+   ],
+   "radar": [
+    1746.4,
+    749.2
+   ],
+   "priority": 0,
+   "enabled": true
+  },
+  {
+   "origin": [
+    1136.0,
+    -64.0,
+    -144.0
+   ],
+   "angles": [
+    0.0,
+    90.0,
+    0.0
+   ],
+   "radar": [
+    1746.4,
+    710.8
+   ],
+   "priority": 0,
+   "enabled": true
+  },
+  {
+   "origin": [
+    1136.0,
+    32.0,
+    -144.0
+   ],
+   "angles": [
+    0.0,
+    90.0,
+    0.0
+   ],
+   "radar": [
+    1746.4,
+    672.4
+   ],
+   "priority": 0,
+   "enabled": true
+  }
+ ],
+ "spawns_ct": [
+  {
+   "origin": [
+    -1776.0,
+    -1976.0,
+    -240.0
+   ],
+   "angles": [
+    0.0,
+    331.0,
+    0.0
+   ],
+   "radar": [
+    581.6,
+    1475.6
+   ],
+   "priority": 0,
+   "enabled": true
+  },
+  {
+   "origin": [
+    -1976.0,
+    -1812.0,
+    -272.0
+   ],
+   "angles": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "radar": [
+    501.6,
+    1410.0
+   ],
+   "priority": 1,
+   "enabled": true
+  },
+  {
+   "origin": [
+    -1972.0,
+    -1988.0,
+    -264.0
+   ],
+   "angles": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "radar": [
+    503.2,
+    1480.4
+   ],
+   "priority": 1,
+   "enabled": true
+  },
+  {
+   "origin": [
+    -1776.0,
+    -1800.0,
+    -240.0
+   ],
+   "angles": [
+    0.0,
+    36.0,
+    0.0
+   ],
+   "radar": [
+    581.6,
+    1405.2
+   ],
+   "priority": 0,
+   "enabled": true
+  },
+  {
+   "origin": [
+    -1902.0,
+    -1816.0,
+    -240.0
+   ],
+   "angles": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "radar": [
+    531.2,
+    1411.6
+   ],
+   "priority": 1,
+   "enabled": true
+  },
+  {
+   "origin": [
+    -1902.0,
+    -1976.0,
+    -240.0
+   ],
+   "angles": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "radar": [
+    531.2,
+    1475.6
+   ],
+   "priority": 1,
+   "enabled": true
+  },
+  {
+   "origin": [
+    -1957.0,
+    -1898.0,
+    -262.0
+   ],
+   "angles": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "radar": [
+    509.2,
+    1444.4
+   ],
+   "priority": 1,
+   "enabled": true
+  },
+  {
+   "origin": [
+    -1632.0,
+    -2072.0,
+    -240.0
+   ],
+   "angles": [
+    0.0,
+    270.0,
+    0.0
+   ],
+   "radar": [
+    639.2,
+    1514.0
+   ],
+   "priority": 1,
+   "enabled": true
+  },
+  {
+   "origin": [
+    -1598.0,
+    -1732.0,
+    -240.0
+   ],
+   "angles": [
+    0.0,
+    106.0,
+    0.0
+   ],
+   "radar": [
+    652.8,
+    1378.0
+   ],
+   "priority": 1,
+   "enabled": true
+  },
+  {
+   "origin": [
+    -1608.0,
+    -1888.0,
+    -240.0
+   ],
+   "angles": [
+    0.0,
+    306.0,
+    0.0
+   ],
+   "radar": [
+    648.8,
+    1440.4
+   ],
+   "priority": 1,
+   "enabled": true
+  },
+  {
+   "origin": [
+    -1830.0,
+    -1896.0,
+    -240.0
+   ],
+   "angles": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "radar": [
+    560.0,
+    1443.6
+   ],
+   "priority": 1,
+   "enabled": true
+  },
+  {
+   "origin": [
+    -1552.0,
+    -1808.0,
+    -240.0
+   ],
+   "angles": [
+    0.0,
+    116.0,
+    0.0
+   ],
+   "radar": [
+    671.2,
+    1408.4
+   ],
+   "priority": 1,
+   "enabled": true
+  },
+  {
+   "origin": [
+    -1720.0,
+    -1896.0,
+    -240.0
+   ],
+   "angles": [
+    0.0,
+    50.0,
+    0.0
+   ],
+   "radar": [
+    604.0,
+    1443.6
+   ],
+   "priority": 0,
+   "enabled": true
+  },
+  {
+   "origin": [
+    -1656.0,
+    -1800.0,
+    -240.0
+   ],
+   "angles": [
+    0.0,
+    94.0,
+    0.0
+   ],
+   "radar": [
+    629.6,
+    1405.2
+   ],
+   "priority": 0,
+   "enabled": true
+  },
+  {
+   "origin": [
+    -1656.0,
+    -1976.0,
+    -240.0
+   ],
+   "angles": [
+    0.0,
+    299.0,
+    0.0
+   ],
+   "radar": [
+    629.6,
+    1475.6
+   ],
+   "priority": 0,
+   "enabled": true
+  },
+  {
+   "origin": [
+    -1552.0,
+    -1968.0,
+    -240.0
+   ],
+   "angles": [
+    0.0,
+    288.0,
+    0.0
+   ],
+   "radar": [
+    671.2,
+    1472.4
+   ],
+   "priority": 1,
+   "enabled": true
+  }
+ ],
+ "bombsites": [
+  {
+   "origin": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "angles": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "radar": [
+    1292.0,
+    685.2
+   ],
+   "targetname": "[PR#]A site",
+   "model": "maps/de_mirage/entities/a site_2_60263.vmdl",
+   "min": [
+    -616.0,
+    -2328.0,
+    -180.0
+   ],
+   "max": [
+    -264.0,
+    -1972.0,
+    -156.0
+   ],
+   "poly": [
+    [
+     -616.0,
+     -2328.0
+    ],
+    [
+     -268.0,
+     -2324.0
+    ],
+    [
+     -264.0,
+     -2024.0
+    ],
+    [
+     -616.0,
+     -1972.0
+    ]
+   ],
+   "poly_radar": [
+    [
+     1045.6,
+     1616.4
+    ],
+    [
+     1184.8,
+     1614.8
+    ],
+    [
+     1186.4,
+     1494.8
+    ],
+    [
+     1045.6,
+     1474.0
+    ]
+   ],
+   "heistbomb": false
+  },
+  {
+   "origin": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "angles": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "radar": [
+    1292.0,
+    685.2
+   ],
+   "targetname": "[PR#]B site",
+   "model": "maps/de_mirage/entities/b site_2_60265.vmdl",
+   "min": [
+    -2216.0,
+    72.0,
+    -159.0
+   ],
+   "max": [
+    -1880.0,
+    440.0,
+    -143.0
+   ],
+   "poly": [
+    [
+     -2216.0,
+     72.0
+    ],
+    [
+     -1880.0,
+     72.0
+    ],
+    [
+     -1880.0,
+     440.0
+    ],
+    [
+     -2216.0,
+     440.0
+    ]
+   ],
+   "poly_radar": [
+    [
+     405.6,
+     656.4
+    ],
+    [
+     540.0,
+     656.4
+    ],
+    [
+     540.0,
+     509.2
+    ],
+    [
+     405.6,
+     509.2
+    ]
+   ],
+   "heistbomb": false
+  }
+ ],
+ "buyzones": [
+  {
+   "origin": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "angles": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "radar": [
+    1292.0,
+    685.2
+   ],
+   "model": "maps/de_mirage/entities/unnamed_2_60286.vmdl",
+   "min": [
+    -2176.0,
+    -2184.0,
+    -320.0
+   ],
+   "max": [
+    -1472.0,
+    -1544.0,
+    -208.0
+   ],
+   "poly": [
+    [
+     -2176.0,
+     -2056.0
+    ],
+    [
+     -1792.0,
+     -2184.0
+    ],
+    [
+     -1472.0,
+     -2184.0
+    ],
+    [
+     -1472.0,
+     -1544.0
+    ],
+    [
+     -1792.0,
+     -1544.0
+    ],
+    [
+     -2176.0,
+     -1680.0
+    ]
+   ],
+   "poly_radar": [
+    [
+     421.6,
+     1507.6
+    ],
+    [
+     575.2,
+     1558.8
+    ],
+    [
+     703.2,
+     1558.8
+    ],
+    [
+     703.2,
+     1302.8
+    ],
+    [
+     575.2,
+     1302.8
+    ],
+    [
+     421.6,
+     1357.2
+    ]
+   ],
+   "teamnum": 3
+  },
+  {
+   "origin": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "angles": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "radar": [
+    1292.0,
+    685.2
+   ],
+   "model": "maps/de_mirage/entities/unnamed_2_60289.vmdl",
+   "min": [
+    1088.0,
+    -424.0,
+    -160.0
+   ],
+   "max": [
+    1408.0,
+    152.0,
+    -104.0
+   ],
+   "poly": [
+    [
+     1088.0,
+     -424.0
+    ],
+    [
+     1360.0,
+     -424.0
+    ],
+    [
+     1408.0,
+     -360.0
+    ],
+    [
+     1408.0,
+     56.0
+    ],
+    [
+     1376.0,
+     152.0
+    ],
+    [
+     1088.0,
+     152.0
+    ]
+   ],
+   "poly_radar": [
+    [
+     1727.2,
+     854.8
+    ],
+    [
+     1836.0,
+     854.8
+    ],
+    [
+     1855.2,
+     829.2
+    ],
+    [
+     1855.2,
+     662.8
+    ],
+    [
+     1842.4,
+     624.4
+    ],
+    [
+     1727.2,
+     624.4
+    ]
+   ],
+   "teamnum": 2
+  }
+ ],
+ "all_classes": {
+  "env_soundscape": 86,
+  "path_particle_rope_clientside": 84,
+  "prop_physics_multiplayer": 81,
+  "env_combined_light_probe_volume": 58,
+  "light_rect": 45,
+  "func_brush": 43,
+  "env_cs_place": 23,
+  "light_omni2": 20,
+  "info_player_terrorist": 17,
+  "info_player_counterterrorist": 16,
+  "info_target": 14,
+  "func_clip_vphysics": 11,
+  "prop_dynamic": 9,
+  "point_camera": 9,
+  "light_barn": 7,
+  "point_viewcontrol": 4,
+  "cs_minimap_boundary": 4,
+  "func_bomb_target": 2,
+  "func_buyzone": 2,
+  "info_particle_system": 2,
+  "logic_relay": 2,
+  "prop_dynamic_override": 2,
+  "worldspawn": 1,
+  "info_player_start": 1,
+  "func_breakable": 1,
+  "skybox_reference": 1,
+  "light_environment": 1,
+  "post_processing_volume": 1,
+  "env_sky": 1,
+  "env_cubemap_fog": 1,
+  "info_map_parameters": 1,
+  "logic_auto": 1,
+  "ambient_generic": 1,
+  "team_select": 1,
+  "counterterrorist_team_intro": 1,
+  "end_of_match": 1,
+  "terrorist_team_intro": 1,
+  "env_wind": 1,
+  "counterterrorist_team_intro_variant2": 1,
+  "terrorist_team_intro_variant2": 1,
+  "env_player_visibility": 1,
+  "func_nav_markup": 1
+ },
+ "solid_entities": [
+  {
+   "origin": [
+    -337.5,
+    -2135.5,
+    -138.5
+   ],
+   "angles": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "radar": [
+    1157.0,
+    1539.4
+   ],
+   "startdisabled": false,
+   "classname": "func_brush",
+   "model": "maps/de_mirage/entities/unnamed_2_60417_63.vmdl",
+   "disableshadows": "1"
+  },
+  {
+   "origin": [
+    -271.5,
+    -2281.0,
+    -164.5
+   ],
+   "angles": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "radar": [
+    1183.4,
+    1597.6
+   ],
+   "startdisabled": false,
+   "classname": "func_brush",
+   "model": "maps/de_mirage/entities/unnamed_2_60417_81.vmdl",
+   "disableshadows": "1"
+  },
+  {
+   "origin": [
+    -337.0,
+    -2353.0,
+    -164.5
+   ],
+   "angles": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "radar": [
+    1157.2,
+    1626.4
+   ],
+   "startdisabled": false,
+   "classname": "func_brush",
+   "model": "maps/de_mirage/entities/unnamed_2_60417_83.vmdl",
+   "disableshadows": "1"
+  },
+  {
+   "origin": [
+    -956.8300170898438,
+    -2275.68994140625,
+    -107.0999984741211
+   ],
+   "angles": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "radar": [
+    909.3,
+    1595.5
+   ],
+   "startdisabled": false,
+   "classname": "func_brush",
+   "model": "maps/de_mirage/entities/unnamed_2_60417_92.vmdl",
+   "disableshadows": "1"
+  },
+  {
+   "origin": [
+    -588.0,
+    -2086.0,
+    -137.0
+   ],
+   "angles": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "radar": [
+    1056.8,
+    1519.6
+   ],
+   "startdisabled": false,
+   "classname": "func_brush",
+   "model": "maps/de_mirage/entities/unnamed_2_60417_101.vmdl",
+   "disableshadows": "1"
+  },
+  {
+   "origin": [
+    -1401.6878662109375,
+    -1612.098876953125,
+    -238.89608764648438
+   ],
+   "angles": [
+    -1.188925862312317,
+    281.14361572265625,
+    9.343305587768555
+   ],
+   "radar": [
+    731.3,
+    1330.0
+   ],
+   "classname": "prop_physics_multiplayer",
+   "model": "models/props_junk/plasticcrate01a.vmdl",
+   "disableshadows": "0"
+  },
+  {
+   "origin": [
+    -1255.0,
+    737.0,
+    80.0
+   ],
+   "angles": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "radar": [
+    790.0,
+    390.4
+   ],
+   "startdisabled": false,
+   "classname": "prop_dynamic",
+   "model": "models/props/de_inferno/hr_i/inferno_ceiling_fan/inferno_ceiling_fan.vmdl",
+   "solid": "0",
+   "disableshadows": "0"
+  },
+  {
+   "origin": [
+    -1900.0,
+    -528.0,
+    -8.0
+   ],
+   "angles": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "radar": [
+    532.0,
+    896.4
+   ],
+   "startdisabled": false,
+   "classname": "prop_dynamic",
+   "model": "models/props/de_inferno/hr_i/inferno_ceiling_fan/inferno_ceiling_fan.vmdl",
+   "solid": "0",
+   "disableshadows": "0"
+  },
+  {
+   "origin": [
+    -2252.0,
+    -528.0,
+    -8.0
+   ],
+   "angles": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "radar": [
+    391.2,
+    896.4
+   ],
+   "startdisabled": false,
+   "classname": "prop_dynamic",
+   "model": "models/props/de_inferno/hr_i/inferno_ceiling_fan/inferno_ceiling_fan.vmdl",
+   "solid": "0",
+   "disableshadows": "0"
+  },
+  {
+   "origin": [
+    563.9863891601562,
+    -1214.03857421875,
+    -176.71282958984375
+   ],
+   "angles": [
+    -2.4215784072875977,
+    261.0157470703125,
+    -0.6680196523666382
+   ],
+   "radar": [
+    1517.6,
+    1170.8
+   ],
+   "classname": "prop_physics_multiplayer",
+   "model": "models/props/de_inferno/claypot03.vmdl",
+   "disableshadows": "0"
+  },
+  {
+   "origin": [
+    -580.0125732421875,
+    -877.0394287109375,
+    -168.71450805664062
+   ],
+   "angles": [
+    -2.4400227069854736,
+    261.1222229003906,
+    -0.6951295137405396
+   ],
+   "radar": [
+    1060.0,
+    1036.0
+   ],
+   "classname": "prop_physics_multiplayer",
+   "model": "models/props/de_inferno/claypot03.vmdl",
+   "disableshadows": "0"
+  },
+  {
+   "origin": [
+    -1974.01513671875,
+    849.9347534179688,
+    -24.71469497680664
+   ],
+   "angles": [
+    -2.424231767654419,
+    261.0948486328125,
+    -0.6112942695617676
+   ],
+   "radar": [
+    502.4,
+    345.2
+   ],
+   "classname": "prop_physics_multiplayer",
+   "model": "models/props/de_inferno/claypot03.vmdl",
+   "disableshadows": "0"
+  },
+  {
+   "origin": [
+    -1675.0123291015625,
+    -1180.0950927734375,
+    -188.71438598632812
+   ],
+   "angles": [
+    -2.442504405975342,
+    261.004150390625,
+    -0.7159353494644165
+   ],
+   "radar": [
+    622.0,
+    1157.2
+   ],
+   "classname": "prop_physics_multiplayer",
+   "model": "models/props/de_inferno/claypot03.vmdl",
+   "disableshadows": "0"
+  },
+  {
+   "origin": [
+    404.9796447753906,
+    340.88116455078125,
+    63.28546905517578
+   ],
+   "angles": [
+    -2.4375064373016357,
+    261.01995849609375,
+    -0.6243139505386353
+   ],
+   "radar": [
+    1454.0,
+    548.8
+   ],
+   "classname": "prop_physics_multiplayer",
+   "model": "models/props/de_inferno/claypot03.vmdl",
+   "disableshadows": "0"
+  },
+  {
+   "origin": [
+    498.0194396972656,
+    593.9810791015625,
+    -136.74224853515625
+   ],
+   "angles": [
+    -2.3604514598846436,
+    260.914306640625,
+    1.2096261978149414
+   ],
+   "radar": [
+    1491.2,
+    447.6
+   ],
+   "classname": "prop_physics_multiplayer",
+   "model": "models/props/de_inferno/claypot03.vmdl",
+   "disableshadows": "0"
+  },
+  {
+   "origin": [
+    -170.01116943359375,
+    687.9615478515625,
+    -72.71351623535156
+   ],
+   "angles": [
+    -2.439056396484375,
+    261.11895751953125,
+    -0.6863409876823425
+   ],
+   "radar": [
+    1224.0,
+    410.0
+   ],
+   "classname": "prop_physics_multiplayer",
+   "model": "models/props/de_inferno/claypot03.vmdl",
+   "disableshadows": "0"
+  },
+  {
+   "origin": [
+    -1218.0111083984375,
+    1022.9615478515625,
+    -80.71353149414062
+   ],
+   "angles": [
+    -2.43904447555542,
+    261.11895751953125,
+    -0.686397135257721
+   ],
+   "radar": [
+    804.8,
+    276.0
+   ],
+   "classname": "prop_physics_multiplayer",
+   "model": "models/props/de_inferno/claypot03.vmdl",
+   "disableshadows": "0"
+  },
+  {
+   "origin": [
+    1061.9903564453125,
+    295.9645690917969,
+    -244.71348571777344
+   ],
+   "angles": [
+    -2.449770212173462,
+    261.0550537109375,
+    -0.6366199254989624
+   ],
+   "radar": [
+    1716.8,
+    566.8
+   ],
+   "classname": "prop_physics_multiplayer",
+   "model": "models/props/de_inferno/claypot03.vmdl",
+   "disableshadows": "0"
+  },
+  {
+   "origin": [
+    -462.015625,
+    857.8867797851562,
+    -72.7147445678711
+   ],
+   "angles": [
+    -2.4201362133026123,
+    261.006591796875,
+    -0.6315985321998596
+   ],
+   "radar": [
+    1107.2,
+    342.0
+   ],
+   "classname": "prop_physics_multiplayer",
+   "model": "models/props/de_inferno/claypot03.vmdl",
+   "disableshadows": "0"
+  },
+  {
+   "origin": [
+    184.9873809814453,
+    120.960693359375,
+    -166.71450805664062
+   ],
+   "angles": [
+    -2.4399704933166504,
+    261.1221923828125,
+    -0.6950938701629639
+   ],
+   "radar": [
+    1366.0,
+    636.8
+   ],
+   "classname": "prop_physics_multiplayer",
+   "model": "models/props/de_inferno/claypot03.vmdl",
+   "disableshadows": "0"
+  },
+  {
+   "origin": [
+    -2272.0,
+    827.72998046875,
+    -115.0
+   ],
+   "angles": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "radar": [
+    383.2,
+    354.1
+   ],
+   "classname": "prop_physics_multiplayer",
+   "model": "models/props_junk/garbage_spraypaintcan01a.vmdl",
+   "disableshadows": "0"
+  },
+  {
+   "origin": [
+    -2264.0,
+    824.0,
+    -120.0
+   ],
+   "angles": [
+    68.32180786132812,
+    144.49400329589844,
+    52.48460006713867
+   ],
+   "radar": [
+    386.4,
+    355.6
+   ],
+   "classname": "prop_physics_multiplayer",
+   "model": "models/props_junk/garbage_spraypaintcan01a.vmdl",
+   "disableshadows": "0"
+  },
+  {
+   "origin": [
+    -796.0,
+    -441.0,
+    -95.0
+   ],
+   "angles": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "radar": [
+    973.6,
+    861.6
+   ],
+   "startdisabled": false,
+   "classname": "func_brush",
+   "model": "maps/de_mirage/entities/unnamed_2_60417_2281.vmdl",
+   "disableshadows": "0"
+  },
+  {
+   "origin": [
+    -2161.5,
+    382.5,
+    -92.5
+   ],
+   "angles": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "radar": [
+    427.4,
+    532.2
+   ],
+   "startdisabled": false,
+   "classname": "func_brush",
+   "model": "maps/de_mirage/entities/unnamed_2_60417_2294.vmdl",
+   "disableshadows": "1"
+  },
+  {
+   "origin": [
+    -640.0,
+    -2094.0,
+    -114.0
+   ],
+   "angles": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "radar": [
+    1036.0,
+    1522.8
+   ],
+   "startdisabled": false,
+   "classname": "func_brush",
+   "model": "maps/de_mirage/entities/unnamed_2_60417_2316.vmdl",
+   "disableshadows": "1"
+  },
+  {
+   "origin": [
+    -1820.0,
+    645.2498779296875,
+    24.905719757080078
+   ],
+   "angles": [
+    0.0,
+    270.0,
+    0.0
+   ],
+   "radar": [
+    564.0,
+    427.1
+   ],
+   "startdisabled": false,
+   "classname": "prop_dynamic",
+   "model": "models/props/gg_vietnam/cloth03.vmdl",
+   "solid": "0",
+   "disableshadows": "0"
+  },
+  {
+   "origin": [
+    -253.8699951171875,
+    -2066.830078125,
+    -111.0
+   ],
+   "angles": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "radar": [
+    1190.5,
+    1511.9
+   ],
+   "startdisabled": false,
+   "classname": "func_brush",
+   "model": "maps/de_mirage/entities/unnamed_2_60417_2422.vmdl",
+   "disableshadows": "1"
+  },
+  {
+   "origin": [
+    -1191.95947265625,
+    559.9834594726562,
+    -33.22990798950195
+   ],
+   "angles": [
+    0.15597909688949585,
+    39.04511260986328,
+    0.35615214705467224
+   ],
+   "radar": [
+    815.2,
+    461.2
+   ],
+   "classname": "prop_physics_multiplayer",
+   "model": "models/props_junk/garbage_coffeemug001a_fullsheet.vmdl",
+   "disableshadows": "0"
+  },
+  {
+   "origin": [
+    -1234.0001220703125,
+    -528.0,
+    -162.89125061035156
+   ],
+   "angles": [
+    89.99932861328125,
+    277.0,
+    0.0
+   ],
+   "radar": [
+    798.4,
+    896.4
+   ],
+   "classname": "prop_physics_multiplayer",
+   "model": "models/props_junk/cinderblock01a.vmdl",
+   "disableshadows": "0"
+  },
+  {
+   "origin": [
+    -1144.0001220703125,
+    -508.0001220703125,
+    -162.5707550048828
+   ],
+   "angles": [
+    0.0,
+    48.00004959106445,
+    89.99999237060547
+   ],
+   "radar": [
+    834.4,
+    888.4
+   ],
+   "classname": "prop_physics_multiplayer",
+   "model": "models/props_junk/cinderblock01a.vmdl",
+   "disableshadows": "0"
+  },
+  {
+   "origin": [
+    -1174.000244140625,
+    -466.0002746582031,
+    -162.89108276367188
+   ],
+   "angles": [
+    89.9979019165039,
+    348.0,
+    0.0
+   ],
+   "radar": [
+    822.4,
+    871.6
+   ],
+   "classname": "prop_physics_multiplayer",
+   "model": "models/props_junk/cinderblock01a.vmdl",
+   "disableshadows": "0"
+  },
+  {
+   "origin": [
+    -1143.9998779296875,
+    -604.0001220703125,
+    -162.89125061035156
+   ],
+   "angles": [
+    89.99932098388672,
+    219.0,
+    0.0
+   ],
+   "radar": [
+    834.4,
+    926.8
+   ],
+   "classname": "prop_physics_multiplayer",
+   "model": "models/props_junk/cinderblock01a.vmdl",
+   "disableshadows": "0"
+  },
+  {
+   "origin": [
+    -1749.9698486328125,
+    -552.0062866210938,
+    -125.23248291015625
+   ],
+   "angles": [
+    0.10500123351812363,
+    51.035091400146484,
+    0.25633710622787476
+   ],
+   "radar": [
+    592.0,
+    906.0
+   ],
+   "classname": "prop_physics_multiplayer",
+   "model": "models/props_junk/garbage_coffeemug001a_fullsheet.vmdl",
+   "disableshadows": "0"
+  },
+  {
+   "origin": [
+    -731.8190307617188,
+    -190.07972717285156,
+    -162.72174072265625
+   ],
+   "angles": [
+    -2.324118137359619,
+    359.9932861328125,
+    -0.7043949365615845
+   ],
+   "radar": [
+    999.3,
+    761.2
+   ],
+   "classname": "prop_physics_multiplayer",
+   "model": "models/props/de_inferno/claypot03.vmdl",
+   "disableshadows": "0"
+  },
+  {
+   "origin": [
+    -1063.9803466796875,
+    -183.7689208984375,
+    -121.56661224365234
+   ],
+   "angles": [
+    0.2847655713558197,
+    145.42166137695312,
+    179.67007446289062
+   ],
+   "radar": [
+    866.4,
+    758.7
+   ],
+   "classname": "prop_physics_multiplayer",
+   "model": "models/props/de_vostok/hammer01.vmdl",
+   "disableshadows": "0"
+  },
+  {
+   "origin": [
+    -1129.999755859375,
+    -289.99957275390625,
+    -49.364864349365234
+   ],
+   "angles": [
+    0.0,
+    291.99664306640625,
+    0.0
+   ],
+   "radar": [
+    840.0,
+    801.2
+   ],
+   "classname": "prop_physics_multiplayer",
+   "model": "models/props_junk/metal_paintcan001a.vmdl",
+   "disableshadows": "0"
+  },
+  {
+   "origin": [
+    -1015.9999389648438,
+    433.9998779296875,
+    -33.14088439941406
+   ],
+   "angles": [
+    0.013440975919365883,
+    84.99998474121094,
+    0.12922357022762299
+   ],
+   "radar": [
+    885.6,
+    511.6
+   ],
+   "classname": "prop_physics_multiplayer",
+   "model": "models/props_c17/metalpot001a.vmdl",
+   "disableshadows": "0"
+  },
+  {
+   "origin": [
+    -1083.9996337890625,
+    361.9999694824219,
+    -30.910480499267578
+   ],
+   "angles": [
+    89.99943542480469,
+    286.9997863769531,
+    0.0
+   ],
+   "radar": [
+    858.4,
+    540.4
+   ],
+   "classname": "prop_physics_multiplayer",
+   "model": "models/props/cs_office/paper_towels.vmdl",
+   "disableshadows": "0"
+  },
+  {
+   "origin": [
+    -1018.0,
+    390.0,
+    -38.43892288208008
+   ],
+   "angles": [
+    0.0,
+    342.0,
+    0.0
+   ],
+   "radar": [
+    884.8,
+    529.2
+   ],
+   "classname": "prop_physics_multiplayer",
+   "model": "models/props_c17/metalpot002a.vmdl",
+   "disableshadows": "0"
+  },
+  {
+   "origin": [
+    834.0467529296875,
+    -2057.013671875,
+    -56.71454620361328
+   ],
+   "angles": [
+    -2.4737584590911865,
+    0.07132453471422195,
+    -0.7415466904640198
+   ],
+   "radar": [
+    1625.6,
+    1508.0
+   ],
+   "classname": "prop_physics_multiplayer",
+   "model": "models/props/de_inferno/claypot03.vmdl",
+   "disableshadows": "0"
+  },
+  {
+   "origin": [
+    834.0580444335938,
+    -1997.9957275390625,
+    -56.71342468261719
+   ],
+   "angles": [
+    -2.4620320796966553,
+    0.13043881952762604,
+    -0.6459258198738098
+   ],
+   "radar": [
+    1625.6,
+    1484.4
+   ],
+   "classname": "prop_physics_multiplayer",
+   "model": "models/props/de_inferno/claypot03.vmdl",
+   "disableshadows": "0"
+  },
+  {
+   "origin": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "angles": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "radar": [
+    1292.0,
+    685.2
+   ],
+   "startdisabled": false,
+   "classname": "func_clip_vphysics",
+   "model": "maps/de_mirage/entities/unnamed_2_60417_2912.vmdl"
+  },
+  {
+   "origin": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "angles": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "radar": [
+    1292.0,
+    685.2
+   ],
+   "startdisabled": false,
+   "classname": "func_clip_vphysics",
+   "model": "maps/de_mirage/entities/unnamed_2_60417_2914.vmdl"
+  },
+  {
+   "origin": [
+    288.9873962402344,
+    -1662.039794921875,
+    -176.71450805664062
+   ],
+   "angles": [
+    -2.4399428367614746,
+    261.1221923828125,
+    -0.6950843930244446
+   ],
+   "radar": [
+    1407.6,
+    1350.0
+   ],
+   "classname": "prop_physics_multiplayer",
+   "model": "models/props/de_inferno/claypot03.vmdl",
+   "disableshadows": "0"
+  },
+  {
+   "origin": [
+    196.0,
+    -1512.0,
+    -13.539999961853027
+   ],
+   "angles": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "radar": [
+    1370.4,
+    1290.0
+   ],
+   "startdisabled": false,
+   "classname": "func_brush",
+   "model": "maps/de_mirage/entities/unnamed_2_60417_3008.vmdl",
+   "disableshadows": "0"
+  },
+  {
+   "origin": [
+    93.00000762939453,
+    -1978.000244140625,
+    194.916015625
+   ],
+   "angles": [
+    0.0,
+    61.99997329711914,
+    0.0
+   ],
+   "radar": [
+    1329.2,
+    1476.4
+   ],
+   "classname": "prop_physics_multiplayer",
+   "model": "models/props_junk/metal_paintcan001a.vmdl",
+   "disableshadows": "0"
+  },
+  {
+   "origin": [
+    -887.9840087890625,
+    123.98533630371094,
+    -362.0707092285156
+   ],
+   "angles": [
+    -0.1240575760602951,
+    314.9982604980469,
+    -0.044534847140312195
+   ],
+   "radar": [
+    936.8,
+    635.6
+   ],
+   "classname": "prop_physics_multiplayer",
+   "model": "models/props_c17/chair_stool01a.vmdl",
+   "disableshadows": "0"
+  },
+  {
+   "origin": [
+    -1183.984130859375,
+    -75.99952697753906,
+    -134.82199096679688
+   ],
+   "angles": [
+    0.04020782187581062,
+    275.984375,
+    -0.172017440199852
+   ],
+   "radar": [
+    818.4,
+    715.6
+   ],
+   "classname": "prop_physics_multiplayer",
+   "model": "models/props_junk/metal_paintcan001a.vmdl",
+   "disableshadows": "0"
+  },
+  {
+   "origin": [
+    -2072.0,
+    856.0006713867188,
+    -39.853736877441406
+   ],
+   "angles": [
+    -0.0028326953761279583,
+    230.0003662109375,
+    0.0022961311042308807
+   ],
+   "radar": [
+    463.2,
+    342.8
+   ],
+   "classname": "prop_physics_multiplayer",
+   "model": "models/props_junk/metalbucket01a.vmdl",
+   "disableshadows": "0"
+  },
+  {
+   "origin": [
+    -1395.8944091796875,
+    665.9891967773438,
+    -48.715213775634766
+   ],
+   "angles": [
+    -2.496622085571289,
+    359.9949035644531,
+    -0.6748913526535034
+   ],
+   "radar": [
+    733.6,
+    418.8
+   ],
+   "classname": "prop_physics_multiplayer",
+   "model": "models/props/de_inferno/claypot03.vmdl",
+   "disableshadows": "0"
+  },
+  {
+   "origin": [
+    -1174.0,
+    594.0006713867188,
+    -79.99968719482422
+   ],
+   "angles": [
+    0.0,
+    0.0,
+    -0.0016246235463768244
+   ],
+   "radar": [
+    822.4,
+    447.6
+   ],
+   "classname": "prop_physics_multiplayer",
+   "model": "models/props_furniture/cafe_barstool1.vmdl",
+   "disableshadows": "0"
+  },
+  {
+   "origin": [
+    -1179.9996337890625,
+    548.0003662109375,
+    -79.999755859375
+   ],
+   "angles": [
+    0.0,
+    321.499755859375,
+    -0.0013091288274154067
+   ],
+   "radar": [
+    820.0,
+    466.0
+   ],
+   "classname": "prop_physics_multiplayer",
+   "model": "models/props_furniture/cafe_barstool1.vmdl",
+   "disableshadows": "0"
+  },
+  {
+   "origin": [
+    -2066.003173828125,
+    -384.9986572265625,
+    -73.62081146240234
+   ],
+   "angles": [
+    0.006580885499715805,
+    132.99986267089844,
+    0.0
+   ],
+   "radar": [
+    465.6,
+    839.2
+   ],
+   "classname": "prop_physics_multiplayer",
+   "model": "models/props_junk/garbage_plasticbottle002a_fullsheet.vmdl",
+   "disableshadows": "0"
+  },
+  {
+   "origin": [
+    -1939.0699462890625,
+    -695.0,
+    -120.03874206542969
+   ],
+   "angles": [
+    0.0,
+    188.00006103515625,
+    0.0
+   ],
+   "radar": [
+    516.4,
+    963.2
+   ],
+   "classname": "prop_physics_multiplayer",
+   "model": "models/props_junk/garbage_metalcan001a.vmdl",
+   "disableshadows": "0"
+  },
+  {
+   "origin": [
+    -1952.0,
+    -694.0000610351562,
+    -120.03873443603516
+   ],
+   "angles": [
+    0.0,
+    69.00003051757812,
+    0.0
+   ],
+   "radar": [
+    511.2,
+    962.8
+   ],
+   "classname": "prop_physics_multiplayer",
+   "model": "models/props_junk/garbage_metalcan001a.vmdl",
+   "disableshadows": "0"
+  },
+  {
+   "origin": [
+    -1897.042724609375,
+    -678.6680908203125,
+    -165.95361328125
+   ],
+   "angles": [
+    66.44037628173828,
+    277.7864990234375,
+    90.44448852539062
+   ],
+   "radar": [
+    533.2,
+    956.7
+   ],
+   "classname": "prop_physics_multiplayer",
+   "model": "models/props_junk/garbage_metalcan001a.vmdl",
+   "disableshadows": "0"
+  },
+  {
+   "origin": [
+    -1934.3470458984375,
+    -689.9940795898438,
+    -133.19505310058594
+   ],
+   "angles": [
+    -0.02320784144103527,
+    277.0267639160156,
+    -0.04152983799576759
+   ],
+   "radar": [
+    518.3,
+    961.2
+   ],
+   "classname": "prop_physics_multiplayer",
+   "model": "models/props_junk/garbage_metalcan001a.vmdl",
+   "disableshadows": "0"
+  },
+  {
+   "origin": [
+    -2052.9990234375,
+    -384.9993896484375,
+    -73.6209487915039
+   ],
+   "angles": [
+    0.004019070882350206,
+    27.999265670776367,
+    0.0
+   ],
+   "radar": [
+    470.8,
+    839.2
+   ],
+   "classname": "prop_physics_multiplayer",
+   "model": "models/props_junk/garbage_plasticbottle002a_fullsheet.vmdl",
+   "disableshadows": "0"
+  },
+  {
+   "origin": [
+    -2034.0015869140625,
+    -388.0006408691406,
+    -73.62098693847656
+   ],
+   "angles": [
+    0.0029975888319313526,
+    237.9983367919922,
+    0.0
+   ],
+   "radar": [
+    478.4,
+    840.4
+   ],
+   "classname": "prop_physics_multiplayer",
+   "model": "models/props_junk/garbage_plasticbottle002a_fullsheet.vmdl",
+   "disableshadows": "0"
+  },
+  {
+   "origin": [
+    -1933.002685546875,
+    -695.9984741210938,
+    -74.12886810302734
+   ],
+   "angles": [
+    -0.0070260572247207165,
+    310.9997253417969,
+    0.003486135508865118
+   ],
+   "radar": [
+    518.8,
+    963.6
+   ],
+   "classname": "prop_physics_multiplayer",
+   "model": "models/props_junk/garbage_plasticbottle001a_fullsheet.vmdl",
+   "disableshadows": "0"
+  },
+  {
+   "origin": [
+    -1914.0081787109375,
+    -694.9923095703125,
+    -74.12802124023438
+   ],
+   "angles": [
+    0.021515240892767906,
+    145.99681091308594,
+    0.01679474301636219
+   ],
+   "radar": [
+    526.4,
+    963.2
+   ],
+   "classname": "prop_physics_multiplayer",
+   "model": "models/props_junk/garbage_plasticbottle001a_fullsheet.vmdl",
+   "disableshadows": "0"
+  },
+  {
+   "origin": [
+    -2043.0,
+    -384.0000305175781,
+    -147.21609497070312
+   ],
+   "angles": [
+    0.0,
+    277.0,
+    0.0
+   ],
+   "radar": [
+    474.8,
+    838.8
+   ],
+   "classname": "prop_physics_multiplayer",
+   "model": "models/props_junk/garbage_metalcan001a.vmdl",
+   "disableshadows": "0"
+  },
+  {
+   "origin": [
+    -1835.150634765625,
+    -696.7922973632812,
+    -150.8670196533203
+   ],
+   "angles": [
+    0.0,
+    182.50009155273438,
+    0.0
+   ],
+   "radar": [
+    557.9,
+    963.9
+   ],
+   "classname": "prop_physics_multiplayer",
+   "model": "models/props/cs_office/paper_towels.vmdl",
+   "disableshadows": "0"
+  },
+  {
+   "origin": [
+    -1399.9852294921875,
+    -885.01171875,
+    -109.92682647705078
+   ],
+   "angles": [
+    0.3087403178215027,
+    294.0009460449219,
+    179.58566284179688
+   ],
+   "radar": [
+    732.0,
+    1039.2
+   ],
+   "classname": "prop_physics_multiplayer",
+   "model": "models/props/de_vostok/hammer01.vmdl",
+   "disableshadows": "0"
+  },
+  {
+   "origin": [
+    -1575.13037109375,
+    -581.9939575195312,
+    -131.987060546875
+   ],
+   "angles": [
+    -0.0028257034718990326,
+    0.0,
+    -0.11720770597457886
+   ],
+   "radar": [
+    661.9,
+    918.0
+   ],
+   "classname": "prop_physics_multiplayer",
+   "model": "models/props_junk/garbage_glassbottle003a.vmdl",
+   "disableshadows": "0"
+  },
+  {
+   "origin": [
+    -1585.9136962890625,
+    -583.7396850585938,
+    -136.80332946777344
+   ],
+   "angles": [
+    88.48522186279297,
+    332.84027099609375,
+    167.27357482910156
+   ],
+   "radar": [
+    657.6,
+    918.7
+   ],
+   "classname": "prop_physics_multiplayer",
+   "model": "models/props_junk/garbage_glassbottle003a.vmdl",
+   "disableshadows": "0"
+  },
+  {
+   "origin": [
+    1093.0,
+    -816.0,
+    -34.0
+   ],
+   "angles": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "radar": [
+    1729.2,
+    1011.6
+   ],
+   "startdisabled": false,
+   "classname": "func_brush",
+   "model": "maps/de_mirage/entities/unnamed_2_60417_3322.vmdl",
+   "disableshadows": "0"
+  },
+  {
+   "origin": [
+    -1013.0503540039062,
+    -2265.168212890625,
+    -165.55743408203125
+   ],
+   "angles": [
+    -22.180173873901367,
+    72.83273315429688,
+    84.4151840209961
+   ],
+   "radar": [
+    886.8,
+    1591.3
+   ],
+   "classname": "prop_physics_multiplayer",
+   "model": "models/props_junk/garbage_sodacup01a.vmdl",
+   "disableshadows": "0"
+  },
+  {
+   "origin": [
+    -1033.64306640625,
+    -2236.044189453125,
+    -165.60362243652344
+   ],
+   "angles": [
+    67.62203979492188,
+    302.42852783203125,
+    76.91847229003906
+   ],
+   "radar": [
+    878.5,
+    1579.6
+   ],
+   "classname": "prop_physics_multiplayer",
+   "model": "models/props_junk/garbage_sodacup01a.vmdl",
+   "disableshadows": "0"
+  },
+  {
+   "origin": [
+    -2288.000244140625,
+    842.9974975585938,
+    -22.57044219970703
+   ],
+   "angles": [
+    0.0,
+    254.99913024902344,
+    -90.00000762939453
+   ],
+   "radar": [
+    376.8,
+    348.0
+   ],
+   "classname": "prop_physics_multiplayer",
+   "model": "models/props_junk/cinderblock01a.vmdl",
+   "disableshadows": "0"
+  },
+  {
+   "origin": [
+    -2355.0,
+    835.9998779296875,
+    -2.914067506790161
+   ],
+   "angles": [
+    89.9999771118164,
+    348.000244140625,
+    0.0
+   ],
+   "radar": [
+    350.0,
+    350.8
+   ],
+   "classname": "prop_physics_multiplayer",
+   "model": "models/props_junk/cinderblock01a.vmdl",
+   "disableshadows": "0"
+  },
+  {
+   "origin": [
+    -2681.99951171875,
+    257.999755859375,
+    -18.57044792175293
+   ],
+   "angles": [
+    0.0,
+    164.0000457763672,
+    -89.99998474121094
+   ],
+   "radar": [
+    219.2,
+    582.0
+   ],
+   "classname": "prop_physics_multiplayer",
+   "model": "models/props_junk/cinderblock01a.vmdl",
+   "disableshadows": "0"
+  },
+  {
+   "origin": [
+    -1219.0001220703125,
+    -760.9998779296875,
+    -161.36497497558594
+   ],
+   "angles": [
+    0.0,
+    62.00144958496094,
+    0.0
+   ],
+   "radar": [
+    804.4,
+    989.6
+   ],
+   "classname": "prop_physics_multiplayer",
+   "model": "models/props_junk/metal_paintcan001a.vmdl",
+   "disableshadows": "0"
+  },
+  {
+   "origin": [
+    -1250.0006103515625,
+    -698.00048828125,
+    -161.34228515625
+   ],
+   "angles": [
+    0.001808790024369955,
+    270.0006103515625,
+    0.0012884421739727259
+   ],
+   "radar": [
+    792.0,
+    964.4
+   ],
+   "classname": "prop_physics_multiplayer",
+   "model": "models/props_junk/metal_paintcan001a.vmdl",
+   "disableshadows": "0"
+  },
+  {
+   "origin": [
+    -1131.993408203125,
+    -1022.0233764648438,
+    -130.6689453125
+   ],
+   "angles": [
+    0.424002081155777,
+    263.0023498535156,
+    179.55194091796875
+   ],
+   "radar": [
+    839.2,
+    1094.0
+   ],
+   "classname": "prop_physics_multiplayer",
+   "model": "models/props/de_vostok/hammer01.vmdl",
+   "disableshadows": "0"
+  },
+  {
+   "origin": [
+    -1134.1319580078125,
+    -1003.6511840820312,
+    -131.3220977783203
+   ],
+   "angles": [
+    -68.6002197265625,
+    292.83209228515625,
+    -4.684967041015625
+   ],
+   "radar": [
+    838.3,
+    1086.7
+   ],
+   "classname": "prop_physics_multiplayer",
+   "model": "models/props/de_vostok/screwdriver01.vmdl",
+   "disableshadows": "0"
+  },
+  {
+   "origin": [
+    -1148.0,
+    -1062.0001220703125,
+    -159.85333251953125
+   ],
+   "angles": [
+    0.0,
+    230.00001525878906,
+    0.0
+   ],
+   "radar": [
+    832.8,
+    1110.0
+   ],
+   "classname": "prop_physics_multiplayer",
+   "model": "models/props_junk/metalbucket01a.vmdl",
+   "disableshadows": "0"
+  },
+  {
+   "origin": [
+    96.0,
+    -876.0001220703125,
+    -159.87689208984375
+   ],
+   "angles": [
+    0.0,
+    230.00001525878906,
+    0.0
+   ],
+   "radar": [
+    1330.4,
+    1035.6
+   ],
+   "classname": "prop_physics_multiplayer",
+   "model": "models/props_junk/metalbucket01a.vmdl",
+   "disableshadows": "0"
+  },
+  {
+   "origin": [
+    144.30250549316406,
+    -914.9044799804688,
+    -160.66424560546875
+   ],
+   "angles": [
+    23.0567684173584,
+    102.57003021240234,
+    84.8208236694336
+   ],
+   "radar": [
+    1349.7,
+    1051.2
+   ],
+   "classname": "prop_physics_multiplayer",
+   "model": "models/props_junk/metalbucket01a.vmdl",
+   "disableshadows": "0"
+  },
+  {
+   "origin": [
+    55.01426315307617,
+    -890.0032958984375,
+    -167.64060974121094
+   ],
+   "angles": [
+    1.646697998046875,
+    85.11994171142578,
+    -0.06364133954048157
+   ],
+   "radar": [
+    1314.0,
+    1041.2
+   ],
+   "classname": "prop_physics_multiplayer",
+   "model": "models/props_urban/plastic_water_jug001.vmdl",
+   "disableshadows": "0"
+  },
+  {
+   "origin": [
+    115.99989318847656,
+    -867.0001831054688,
+    -158.90643310546875
+   ],
+   "angles": [
+    -89.99989318847656,
+    110.00007629394531,
+    0.0
+   ],
+   "radar": [
+    1338.4,
+    1032.0
+   ],
+   "classname": "prop_physics_multiplayer",
+   "model": "models/props_urban/plastic_water_jug001.vmdl",
+   "disableshadows": "0"
+  },
+  {
+   "origin": [
+    -805.2616577148438,
+    -1872.0,
+    -177.63510131835938
+   ],
+   "angles": [
+    67.13227081298828,
+    270.6801452636719,
+    -76.60187530517578
+   ],
+   "radar": [
+    969.9,
+    1434.0
+   ],
+   "classname": "prop_physics_multiplayer",
+   "model": "models/props_junk/garbage_sodacup01a.vmdl",
+   "disableshadows": "0"
+  },
+  {
+   "origin": [
+    -789.391845703125,
+    -1891.6180419921875,
+    -177.62806701660156
+   ],
+   "angles": [
+    -22.442462921142578,
+    194.1114959716797,
+    -84.46299743652344
+   ],
+   "radar": [
+    976.2,
+    1441.8
+   ],
+   "classname": "prop_physics_multiplayer",
+   "model": "models/props_junk/garbage_sodacup01a.vmdl",
+   "disableshadows": "0"
+  },
+  {
+   "origin": [
+    -799.5576171875,
+    -1918.133544921875,
+    -177.58375549316406
+   ],
+   "angles": [
+    23.04587745666504,
+    72.81747436523438,
+    84.4544448852539
+   ],
+   "radar": [
+    972.2,
+    1452.5
+   ],
+   "classname": "prop_physics_multiplayer",
+   "model": "models/props_junk/garbage_sodacup01a.vmdl",
+   "disableshadows": "0"
+  },
+  {
+   "origin": [
+    -822.9639892578125,
+    -1915.7725830078125,
+    -177.62307739257812
+   ],
+   "angles": [
+    67.19073486328125,
+    214.2219696044922,
+    76.77993774414062
+   ],
+   "radar": [
+    962.8,
+    1451.5
+   ],
+   "classname": "prop_physics_multiplayer",
+   "model": "models/props_junk/garbage_sodacup01a.vmdl",
+   "disableshadows": "0"
+  },
+  {
+   "origin": [
+    -1919.0,
+    -269.84747314453125,
+    -72.0
+   ],
+   "angles": [
+    0.0,
+    348.5000915527344,
+    0.0
+   ],
+   "radar": [
+    524.4,
+    793.1
+   ],
+   "startdisabled": false,
+   "classname": "prop_dynamic",
+   "model": "models/props/de_mirage/shutter_window_l_breakable.vmdl",
+   "solid": "6",
+   "disableshadows": "0"
+  },
+  {
+   "origin": [
+    -1465.6910400390625,
+    -2033.7659912109375,
+    -248.38815307617188
+   ],
+   "angles": [
+    -6.203747272491455,
+    27.223751068115234,
+    -7.866109848022461
+   ],
+   "radar": [
+    705.7,
+    1498.7
+   ],
+   "classname": "prop_physics_multiplayer",
+   "model": "models/props_junk/plasticcrate01a.vmdl",
+   "disableshadows": "0"
+  },
+  {
+   "origin": [
+    -1463.5140380859375,
+    -2072.571533203125,
+    -245.4434051513672
+   ],
+   "angles": [
+    -3.8069117069244385,
+    279.9801940917969,
+    8.729180335998535
+   ],
+   "radar": [
+    706.6,
+    1514.2
+   ],
+   "classname": "prop_physics_multiplayer",
+   "model": "models/props_junk/plasticcrate01a.vmdl",
+   "disableshadows": "0"
+  },
+  {
+   "origin": [
+    -1172.0,
+    -432.0,
+    -24.0
+   ],
+   "angles": [
+    0.0,
+    180.0000762939453,
+    0.0
+   ],
+   "radar": [
+    823.2,
+    858.0
+   ],
+   "targetname": "[PR#]prop.breakable.02",
+   "startdisabled": false,
+   "classname": "prop_dynamic",
+   "model": "models/props/de_mirage/wall_hole_b_cover_sheetmetal.vmdl",
+   "solid": "6",
+   "disableshadows": "2"
+  },
+  {
+   "origin": [
+    168.0206756591797,
+    876.0059204101562,
+    -131.0351104736328
+   ],
+   "angles": [
+    -0.08432724326848984,
+    137.04013061523438,
+    0.01839618757367134
+   ],
+   "radar": [
+    1359.2,
+    334.8
+   ],
+   "classname": "prop_physics_multiplayer",
+   "model": "models/props_junk/shoe001a.vmdl",
+   "disableshadows": "0"
+  },
+  {
+   "origin": [
+    -624.0,
+    629.0,
+    0.0
+   ],
+   "angles": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "radar": [
+    1042.4,
+    433.6
+   ],
+   "startdisabled": false,
+   "classname": "func_brush",
+   "model": "maps/de_mirage/entities/unnamed_2_60417_3880.vmdl",
+   "disableshadows": "0"
+  },
+  {
+   "origin": [
+    -477.0,
+    728.0,
+    0.0
+   ],
+   "angles": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "radar": [
+    1101.2,
+    394.0
+   ],
+   "startdisabled": false,
+   "classname": "func_brush",
+   "model": "maps/de_mirage/entities/unnamed_2_60417_3885.vmdl",
+   "disableshadows": "0"
+  },
+  {
+   "origin": [
+    -1336.0,
+    -974.0,
+    -132.0
+   ],
+   "angles": [
+    0.0,
+    270.0,
+    0.0
+   ],
+   "radar": [
+    757.6,
+    1074.8
+   ],
+   "targetname": "[PR#]prop.breakable.01",
+   "startdisabled": false,
+   "classname": "prop_dynamic",
+   "model": "models/props/de_mirage/wall_hole_cover_sheetmetal.vmdl",
+   "solid": "6",
+   "disableshadows": "2"
+  },
+  {
+   "origin": [
+    -1200.999755859375,
+    -164.0008544921875,
+    -49.364723205566406
+   ],
+   "angles": [
+    0.0,
+    61.998600006103516,
+    0.0028511511627584696
+   ],
+   "radar": [
+    811.6,
+    750.8
+   ],
+   "classname": "prop_physics_multiplayer",
+   "model": "models/props_junk/metal_paintcan001a.vmdl",
+   "disableshadows": "0"
+  },
+  {
+   "origin": [
+    -1888.0,
+    -276.0,
+    -72.0
+   ],
+   "angles": [
+    0.0,
+    258.5001220703125,
+    0.0
+   ],
+   "radar": [
+    536.8,
+    795.6
+   ],
+   "targetname": "[PR#]shutter.l.remainder",
+   "startdisabled": true,
+   "classname": "prop_dynamic",
+   "model": "models/props/de_mirage/shutter_window_l_remainder.vmdl",
+   "solid": "0",
+   "disableshadows": "0"
+  },
+  {
+   "origin": [
+    -1952.0,
+    -276.0,
+    -72.0
+   ],
+   "angles": [
+    0.0,
+    271.5,
+    0.0
+   ],
+   "radar": [
+    511.2,
+    795.6
+   ],
+   "targetname": "[PR#]shutter.r.remainder",
+   "startdisabled": true,
+   "classname": "prop_dynamic",
+   "model": "models/props/de_mirage/shutter_window_r_remainder.vmdl",
+   "solid": "0",
+   "disableshadows": "0"
+  },
+  {
+   "origin": [
+    -865.0857543945312,
+    -2538.439697265625,
+    -162.07040405273438
+   ],
+   "angles": [
+    -0.11823577433824539,
+    189.49880981445312,
+    -0.03946339339017868
+   ],
+   "radar": [
+    946.0,
+    1700.6
+   ],
+   "classname": "prop_physics_multiplayer",
+   "model": "models/props_c17/chair_stool01a.vmdl",
+   "disableshadows": "0"
+  },
+  {
+   "origin": [
+    -853.734619140625,
+    -2515.24267578125,
+    -119.76163482666016
+   ],
+   "angles": [
+    -0.08846648037433624,
+    246.49911499023438,
+    0.14472560584545135
+   ],
+   "radar": [
+    950.5,
+    1691.3
+   ],
+   "classname": "prop_physics_multiplayer",
+   "model": "models/props_junk/garbage_sodacup01a.vmdl",
+   "disableshadows": "0"
+  },
+  {
+   "origin": [
+    -863.0262451171875,
+    -2508.18408203125,
+    -88.5
+   ],
+   "angles": [
+    0.0,
+    189.5,
+    0.0
+   ],
+   "radar": [
+    946.8,
+    1688.5
+   ],
+   "classname": "func_breakable",
+   "model": "maps/de_mirage/entities/unnamed_2_60417_4395.vmdl",
+   "disableshadows": "0"
+  },
+  {
+   "origin": [
+    -338.3999938964844,
+    -2322.080078125,
+    8.239999771118164
+   ],
+   "angles": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "radar": [
+    1156.6,
+    1614.0
+   ],
+   "targetname": "[PR#]retake.asite",
+   "startdisabled": true,
+   "classname": "func_brush",
+   "model": "maps/de_mirage/entities/retake_asite_2_60417_4611.vmdl",
+   "disableshadows": "1"
+  },
+  {
+   "origin": [
+    -330.2300109863281,
+    -2306.2099609375,
+    -111.73999786376953
+   ],
+   "angles": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "radar": [
+    1159.9,
+    1607.7
+   ],
+   "targetname": "[PR#]retake.asite",
+   "startdisabled": true,
+   "classname": "func_brush",
+   "model": "maps/de_mirage/entities/retake_asite_2_60417_4613.vmdl",
+   "disableshadows": "1"
+  },
+  {
+   "origin": [
+    -181.0,
+    -1589.0,
+    134.24000549316406
+   ],
+   "angles": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "radar": [
+    1219.6,
+    1320.8
+   ],
+   "targetname": "[PR#]retake.asite",
+   "startdisabled": true,
+   "classname": "func_brush",
+   "model": "maps/de_mirage/entities/retake_asite_2_60417_4615.vmdl",
+   "disableshadows": "1"
+  },
+  {
+   "origin": [
+    -193.89999389648438,
+    -1594.0,
+    14.260000228881836
+   ],
+   "angles": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "radar": [
+    1214.4,
+    1322.8
+   ],
+   "targetname": "[PR#]retake.asite",
+   "startdisabled": true,
+   "classname": "func_brush",
+   "model": "maps/de_mirage/entities/retake_asite_2_60417_4617.vmdl",
+   "disableshadows": "1"
+  },
+  {
+   "origin": [
+    -391.0,
+    -1808.0,
+    8.050000190734863
+   ],
+   "angles": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "radar": [
+    1135.6,
+    1408.4
+   ],
+   "targetname": "[PR#]retake.asite",
+   "startdisabled": true,
+   "classname": "func_brush",
+   "model": "maps/de_mirage/entities/retake_asite_2_60417_4619.vmdl",
+   "disableshadows": "1"
+  },
+  {
+   "origin": [
+    -386.0,
+    -1834.1500244140625,
+    -111.93000030517578
+   ],
+   "angles": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "radar": [
+    1137.6,
+    1418.9
+   ],
+   "targetname": "[PR#]retake.asite",
+   "startdisabled": true,
+   "classname": "func_brush",
+   "model": "maps/de_mirage/entities/retake_asite_2_60417_4621.vmdl",
+   "disableshadows": "1"
+  },
+  {
+   "origin": [
+    -496.0,
+    -1969.0,
+    8.149999618530273
+   ],
+   "angles": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "radar": [
+    1093.6,
+    1472.8
+   ],
+   "targetname": "[PR#]retake.asite",
+   "startdisabled": true,
+   "classname": "func_brush",
+   "model": "maps/de_mirage/entities/retake_asite_2_60417_4623.vmdl",
+   "disableshadows": "1"
+  },
+  {
+   "origin": [
+    -513.8900146484375,
+    -1974.0,
+    -111.7300033569336
+   ],
+   "angles": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "radar": [
+    1086.4,
+    1474.8
+   ],
+   "targetname": "[PR#]retake.asite",
+   "startdisabled": true,
+   "classname": "func_brush",
+   "model": "maps/de_mirage/entities/retake_asite_2_60417_4625.vmdl",
+   "disableshadows": "1"
+  },
+  {
+   "origin": [
+    -704.0,
+    -2031.0,
+    8.050000190734863
+   ],
+   "angles": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "radar": [
+    1010.4,
+    1497.6
+   ],
+   "targetname": "[PR#]retake.asite",
+   "startdisabled": true,
+   "classname": "func_brush",
+   "model": "maps/de_mirage/entities/retake_asite_2_60417_4627.vmdl",
+   "disableshadows": "1"
+  },
+  {
+   "origin": [
+    -721.8900146484375,
+    -2046.6700439453125,
+    -111.93000030517578
+   ],
+   "angles": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "radar": [
+    1003.2,
+    1503.9
+   ],
+   "targetname": "[PR#]retake.asite",
+   "startdisabled": true,
+   "classname": "func_brush",
+   "model": "maps/de_mirage/entities/retake_asite_2_60417_4629.vmdl",
+   "disableshadows": "1"
+  },
+  {
+   "origin": [
+    -329.9800109863281,
+    -1611.969970703125,
+    -111.93000030517578
+   ],
+   "angles": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "radar": [
+    1160.0,
+    1330.0
+   ],
+   "targetname": "[PR#]retake.asite",
+   "startdisabled": true,
+   "classname": "func_brush",
+   "model": "maps/de_mirage/entities/retake_asite_2_60417_4631.vmdl",
+   "disableshadows": "1"
+  },
+  {
+   "origin": [
+    -317.4700012207031,
+    -1604.3800048828125,
+    8.050000190734863
+   ],
+   "angles": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "radar": [
+    1165.0,
+    1327.0
+   ],
+   "targetname": "[PR#]retake.asite",
+   "startdisabled": true,
+   "classname": "func_brush",
+   "model": "maps/de_mirage/entities/retake_asite_2_60417_4633.vmdl",
+   "disableshadows": "1"
+  },
+  {
+   "origin": [
+    -94.0,
+    -1757.3800048828125,
+    -111.7300033569336
+   ],
+   "angles": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "radar": [
+    1254.4,
+    1388.2
+   ],
+   "targetname": "[PR#]retake.asite",
+   "startdisabled": true,
+   "classname": "func_brush",
+   "model": "maps/de_mirage/entities/retake_asite_2_60417_4635.vmdl",
+   "disableshadows": "1"
+  },
+  {
+   "origin": [
+    -89.0,
+    -1820.0,
+    8.149999618530273
+   ],
+   "angles": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "radar": [
+    1256.4,
+    1413.2
+   ],
+   "targetname": "[PR#]retake.asite",
+   "startdisabled": true,
+   "classname": "func_brush",
+   "model": "maps/de_mirage/entities/retake_asite_2_60417_4637.vmdl",
+   "disableshadows": "1"
+  },
+  {
+   "origin": [
+    -164.74000549316406,
+    -2211.080078125,
+    -111.7300033569336
+   ],
+   "angles": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "radar": [
+    1226.1,
+    1569.6
+   ],
+   "targetname": "[PR#]retake.asite",
+   "startdisabled": true,
+   "classname": "func_brush",
+   "model": "maps/de_mirage/entities/retake_asite_2_60417_4639.vmdl",
+   "disableshadows": "1"
+  },
+  {
+   "origin": [
+    -176.7100067138672,
+    -2219.409912109375,
+    8.149999618530273
+   ],
+   "angles": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "radar": [
+    1221.3,
+    1573.0
+   ],
+   "targetname": "[PR#]retake.asite",
+   "startdisabled": true,
+   "classname": "func_brush",
+   "model": "maps/de_mirage/entities/retake_asite_2_60417_4641.vmdl",
+   "disableshadows": "1"
+  },
+  {
+   "origin": [
+    -619.5900268554688,
+    -2332.679931640625,
+    -111.93000030517578
+   ],
+   "angles": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "radar": [
+    1044.2,
+    1618.3
+   ],
+   "targetname": "[PR#]retake.asite",
+   "startdisabled": true,
+   "classname": "func_brush",
+   "model": "maps/de_mirage/entities/retake_asite_2_60417_4643.vmdl",
+   "disableshadows": "1"
+  },
+  {
+   "origin": [
+    -651.6900024414062,
+    -2328.300048828125,
+    8.039999961853027
+   ],
+   "angles": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "radar": [
+    1031.3,
+    1616.5
+   ],
+   "targetname": "[PR#]retake.asite",
+   "startdisabled": true,
+   "classname": "func_brush",
+   "model": "maps/de_mirage/entities/retake_asite_2_60417_4645.vmdl",
+   "disableshadows": "1"
+  },
+  {
+   "origin": [
+    -1788.0,
+    647.0,
+    29.6299991607666
+   ],
+   "angles": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "radar": [
+    576.8,
+    426.4
+   ],
+   "targetname": "[PR#]retake.bsite",
+   "startdisabled": true,
+   "classname": "func_brush",
+   "model": "maps/de_mirage/entities/retake_bsite_2_60417_4648.vmdl",
+   "disableshadows": "1"
+  },
+  {
+   "origin": [
+    -1792.02001953125,
+    648.5,
+    21.420000076293945
+   ],
+   "angles": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "radar": [
+    575.2,
+    425.8
+   ],
+   "targetname": "[PR#]retake.bsite",
+   "startdisabled": true,
+   "classname": "func_brush",
+   "model": "maps/de_mirage/entities/retake_bsite_2_60417_4650.vmdl",
+   "disableshadows": "1"
+  },
+  {
+   "origin": [
+    -2172.030029296875,
+    -34.0,
+    -104.08000183105469
+   ],
+   "angles": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "radar": [
+    423.2,
+    698.8
+   ],
+   "targetname": "[PR#]retake.bsite",
+   "startdisabled": true,
+   "classname": "func_brush",
+   "model": "maps/de_mirage/entities/retake_bsite_2_60417_4652.vmdl",
+   "disableshadows": "1"
+  },
+  {
+   "origin": [
+    -1958.5,
+    -39.0,
+    -41.939998626708984
+   ],
+   "angles": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "radar": [
+    508.6,
+    700.8
+   ],
+   "targetname": "[PR#]retake.bsite",
+   "startdisabled": true,
+   "classname": "func_brush",
+   "model": "maps/de_mirage/entities/retake_bsite_2_60417_4654.vmdl",
+   "disableshadows": "1"
+  },
+  {
+   "origin": [
+    -1762.800048828125,
+    -34.0,
+    -104.0
+   ],
+   "angles": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "radar": [
+    586.9,
+    698.8
+   ],
+   "targetname": "[PR#]retake.bsite",
+   "startdisabled": true,
+   "classname": "func_brush",
+   "model": "maps/de_mirage/entities/retake_bsite_2_60417_4656.vmdl",
+   "disableshadows": "1"
+  },
+  {
+   "origin": [
+    -2403.0,
+    310.5,
+    -40.2599983215332
+   ],
+   "angles": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "radar": [
+    330.8,
+    561.0
+   ],
+   "targetname": "[PR#]retake.bsite",
+   "startdisabled": true,
+   "classname": "func_brush",
+   "model": "maps/de_mirage/entities/retake_bsite_2_60417_4658.vmdl",
+   "disableshadows": "1"
+  },
+  {
+   "origin": [
+    -2398.0,
+    267.6000061035156,
+    -99.91999816894531
+   ],
+   "angles": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "radar": [
+    332.8,
+    578.2
+   ],
+   "targetname": "[PR#]retake.bsite",
+   "startdisabled": true,
+   "classname": "func_brush",
+   "model": "maps/de_mirage/entities/retake_bsite_2_60417_4660.vmdl",
+   "disableshadows": "1"
+  },
+  {
+   "origin": [
+    -1929.0,
+    742.0,
+    9.010000228881836
+   ],
+   "angles": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "radar": [
+    520.4,
+    388.4
+   ],
+   "targetname": "[PR#]retake.bsite",
+   "startdisabled": true,
+   "classname": "func_brush",
+   "model": "maps/de_mirage/entities/retake_bsite_2_60417_4662.vmdl",
+   "disableshadows": "1"
+  },
+  {
+   "origin": [
+    -1934.0,
+    752.27001953125,
+    -4.0
+   ],
+   "angles": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "radar": [
+    518.4,
+    384.3
+   ],
+   "targetname": "[PR#]retake.bsite",
+   "startdisabled": true,
+   "classname": "func_brush",
+   "model": "maps/de_mirage/entities/retake_bsite_2_60417_4664.vmdl",
+   "disableshadows": "1"
+  },
+  {
+   "origin": [
+    -1508.0,
+    325.5,
+    -41.939998626708984
+   ],
+   "angles": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "radar": [
+    688.8,
+    555.0
+   ],
+   "targetname": "[PR#]retake.bsite",
+   "startdisabled": true,
+   "classname": "func_brush",
+   "model": "maps/de_mirage/entities/retake_bsite_2_60417_4666.vmdl",
+   "disableshadows": "1"
+  },
+  {
+   "origin": [
+    -1513.0,
+    368.3999938964844,
+    -104.0
+   ],
+   "angles": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "radar": [
+    686.8,
+    537.8
+   ],
+   "targetname": "[PR#]retake.bsite",
+   "startdisabled": true,
+   "classname": "func_brush",
+   "model": "maps/de_mirage/entities/retake_bsite_2_60417_4668.vmdl",
+   "disableshadows": "1"
+  },
+  {
+   "origin": [
+    548.0,
+    -1632.0,
+    -94.0
+   ],
+   "angles": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "radar": [
+    1511.2,
+    1338.0
+   ],
+   "startdisabled": false,
+   "classname": "func_brush",
+   "model": "maps/de_mirage/entities/unnamed_2_60417_3260.vmdl",
+   "disableshadows": "0"
+  },
+  {
+   "origin": [
+    -1217.963134765625,
+    876.0011596679688,
+    -80.71244812011719
+   ],
+   "angles": [
+    -2.4464638233184814,
+    6.111729145050049,
+    -0.6642571687698364
+   ],
+   "radar": [
+    804.8,
+    334.8
+   ],
+   "classname": "prop_physics_multiplayer",
+   "model": "models/props/de_inferno/claypot03.vmdl",
+   "disableshadows": "0"
+  },
+  {
+   "origin": [
+    391.2311096191406,
+    -2161.11328125,
+    -88.20660400390625
+   ],
+   "angles": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "radar": [
+    1448.5,
+    1549.6
+   ],
+   "startdisabled": false,
+   "classname": "func_clip_vphysics",
+   "model": "maps/de_mirage/entities/unnamed_2_60417_7117.vmdl"
+  },
+  {
+   "origin": [
+    -234.23770141601562,
+    -2049.236328125,
+    -116.22178649902344
+   ],
+   "angles": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "radar": [
+    1198.3,
+    1504.9
+   ],
+   "startdisabled": false,
+   "classname": "func_clip_vphysics",
+   "model": "maps/de_mirage/entities/unnamed_2_60417_7128.vmdl"
+  },
+  {
+   "origin": [
+    -606.9642333984375,
+    -2074.75,
+    -120.996337890625
+   ],
+   "angles": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "radar": [
+    1049.2,
+    1515.1
+   ],
+   "startdisabled": false,
+   "classname": "func_clip_vphysics",
+   "model": "maps/de_mirage/entities/unnamed_2_60417_7130.vmdl"
+  },
+  {
+   "origin": [
+    -286.0021057128906,
+    -2085.468505859375,
+    -117.0
+   ],
+   "angles": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "radar": [
+    1177.6,
+    1519.4
+   ],
+   "startdisabled": false,
+   "classname": "func_clip_vphysics",
+   "model": "maps/de_mirage/entities/unnamed_2_60417_7155.vmdl"
+  },
+  {
+   "origin": [
+    1120.0,
+    -2300.0,
+    40.0
+   ],
+   "angles": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "radar": [
+    1740.0,
+    1605.2
+   ],
+   "startdisabled": false,
+   "classname": "func_clip_vphysics",
+   "model": "maps/de_mirage/entities/unnamed_2_60417_7187.vmdl"
+  },
+  {
+   "origin": [
+    324.0,
+    -1896.0,
+    40.0
+   ],
+   "angles": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "radar": [
+    1421.6,
+    1443.6
+   ],
+   "startdisabled": false,
+   "classname": "func_clip_vphysics",
+   "model": "maps/de_mirage/entities/unnamed_2_60417_7188.vmdl"
+  },
+  {
+   "origin": [
+    238.0,
+    -2080.0,
+    40.0
+   ],
+   "angles": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "radar": [
+    1387.2,
+    1517.2
+   ],
+   "startdisabled": false,
+   "classname": "func_clip_vphysics",
+   "model": "maps/de_mirage/entities/unnamed_2_60417_7189.vmdl"
+  },
+  {
+   "origin": [
+    -1008.0,
+    -2232.0,
+    -146.0
+   ],
+   "angles": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "radar": [
+    888.8,
+    1578.0
+   ],
+   "startdisabled": false,
+   "classname": "func_clip_vphysics",
+   "model": "maps/de_mirage/entities/unnamed_2_60417_7308.vmdl"
+  },
+  {
+   "origin": [
+    1430.0,
+    74.0,
+    -146.0
+   ],
+   "angles": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "radar": [
+    1864.0,
+    655.6
+   ],
+   "startdisabled": false,
+   "classname": "func_clip_vphysics",
+   "model": "maps/de_mirage/entities/unnamed_2_60417_7306.vmdl"
+  },
+  {
+   "origin": [
+    -1864.5,
+    -361.625,
+    -124.25007629394531
+   ],
+   "angles": [
+    0.0,
+    236.25006103515625,
+    0.0
+   ],
+   "radar": [
+    546.2,
+    829.9
+   ],
+   "classname": "prop_physics_multiplayer",
+   "model": "models/de_mirage/food/magixx_sauce_01a/magixx_sauce_bottle_breakable_01a.vmdl",
+   "disableshadows": "0"
+  },
+  {
+   "origin": [
+    -1859.5,
+    -360.75,
+    -137.672607421875
+   ],
+   "angles": [
+    0.0,
+    247.50009155273438,
+    0.0
+   ],
+   "radar": [
+    548.2,
+    829.5
+   ],
+   "classname": "prop_physics_multiplayer",
+   "model": "models/de_mirage/food/magixx_sauce_01a/magixx_sauce_bottle_breakable_01a.vmdl",
+   "disableshadows": "0"
+  },
+  {
+   "origin": [
+    -1859.10693359375,
+    -347.6248779296875,
+    -168.0
+   ],
+   "angles": [
+    0.0,
+    337.50006103515625,
+    0.0
+   ],
+   "radar": [
+    548.4,
+    824.2
+   ],
+   "classname": "prop_physics_multiplayer",
+   "model": "models/de_mirage/food/magixx_sauce_01a/magixx_sauce_bottle_breakable_01a.vmdl",
+   "disableshadows": "0"
+  },
+  {
+   "origin": [
+    -1876.875,
+    -359.375,
+    -165.80911254882812
+   ],
+   "angles": [
+    67.4999771118164,
+    292.50018310546875,
+    -89.99976348876953
+   ],
+   "radar": [
+    541.2,
+    829.0
+   ],
+   "classname": "prop_physics_multiplayer",
+   "model": "models/de_mirage/food/magixx_sauce_01a/magixx_sauce_bottle_breakable_01a.vmdl",
+   "disableshadows": "0"
+  },
+  {
+   "origin": [
+    -2120.625,
+    -461.625,
+    -168.0
+   ],
+   "angles": [
+    0.0,
+    67.50003051757812,
+    0.0
+   ],
+   "radar": [
+    443.8,
+    869.9
+   ],
+   "classname": "prop_physics_multiplayer",
+   "model": "models/de_mirage/food/magixx_sauce_01a/magixx_sauce_bottle_breakable_01a.vmdl",
+   "disableshadows": "0"
+  },
+  {
+   "origin": [
+    -2021.875,
+    -388.084228515625,
+    -123.97007751464844
+   ],
+   "angles": [
+    0.0,
+    67.50001525878906,
+    0.0
+   ],
+   "radar": [
+    483.2,
+    840.4
+   ],
+   "classname": "prop_physics_multiplayer",
+   "model": "models/de_mirage/food/magixx_sauce_01a/magixx_sauce_bottle_breakable_01a.vmdl",
+   "disableshadows": "0"
+  },
+  {
+   "origin": [
+    -1744.0,
+    -696.0,
+    -51.999969482421875
+   ],
+   "angles": [
+    0.0,
+    135.0,
+    10.0
+   ],
+   "radar": [
+    594.4,
+    963.6
+   ],
+   "targetname": "[PR#]television.1",
+   "classname": "prop_dynamic_override",
+   "model": "models/props_interiors/tv.vmdl",
+   "solid": "6",
+   "disableshadows": "0"
+  },
+  {
+   "origin": [
+    464.0,
+    880.0,
+    -100.0
+   ],
+   "angles": [
+    0.0,
+    58.99998474121094,
+    0.0
+   ],
+   "radar": [
+    1477.6,
+    333.2
+   ],
+   "targetname": "[PR#]television.2",
+   "classname": "prop_dynamic_override",
+   "model": "models/props_interiors/tv.vmdl",
+   "solid": "6",
+   "disableshadows": "0"
+  }
+ ]
+}

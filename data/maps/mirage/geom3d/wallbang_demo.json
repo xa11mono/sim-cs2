@@ -4,21 +4,53 @@
 "геометрия закрывает": 221,
 "линия открыта (пробит, видимо, игрок / мелочь)": 65,
 "толщина, ед. (медиана / 90 %)": [
-6.0,
+5.9,
 24.4
 ],
-"поверхностей на луче (медиана)": 4.0
+"поверхностей на луче (медиана)": 4.0,
+"материал первой поверхности": {
+"wood": 53,
+"wood_plank": 46,
+"concrete": 36,
+"plaster": 29,
+"rock": 18,
+"wood_solid": 15,
+"metalvent": 6,
+"cardboard": 6,
+"solidmetal": 4,
+"default": 3,
+"sheetrock": 2,
+"brick": 2,
+"wood_panel": 1
+},
+"все пробитые материалы (по поверхностям)": {
+"wood_plank": 420,
+"concrete": 223,
+"wood": 158,
+"rock": 134,
+"wood_solid": 118,
+"cardboard": 72,
+"solidmetal": 70,
+"plaster": 65,
+"default": 39,
+"metalvent": 18,
+"wood_panel": 10,
+"brick": 10,
+"metal_barrel": 10,
+"metal": 4,
+"sheetrock": 4
+}
 },
 "spots": [
 {
 "p": [
--11.5,
--1856.9,
--90.6
+-11.2,
+-1858.8,
+-90.4
 ],
 "radar": [
-1287.4,
-1428.0
+1287.5,
+1428.7
 ],
 "место": "Shadow",
 "n": 21,
@@ -31,12 +63,17 @@
 "deagle": 1,
 "glock": 1
 },
-"толщина_медиана": 6.3,
+"толщина_медиана": 6.2,
 "предметы": {
 "h1920": 4,
 "m36985": 2,
 "m36984": 2,
 "m37179": 1
+},
+"материал": {
+"wood_plank": 9,
+"wood": 7,
+"rock": 4
 }
 },
 {
@@ -65,6 +102,11 @@
 "m35965": 3,
 "m35989": 2,
 "h7": 2
+},
+"материал": {
+"wood": 9,
+"wood_plank": 7,
+"metalvent": 1
 }
 },
 {
@@ -93,6 +135,11 @@
 "m36330": 1,
 "m36395": 1,
 "m36324": 1
+},
+"материал": {
+"wood_solid": 7,
+"solidmetal": 3,
+"wood_plank": 3
 }
 },
 {
@@ -123,6 +170,11 @@
 "m5128": 2,
 "m30087": 1,
 "m30176": 1
+},
+"материал": {
+"wood_plank": 6,
+"wood": 4,
+"wood_solid": 3
 }
 },
 {
@@ -147,10 +199,15 @@
 },
 "толщина_медиана": 8.1,
 "предметы": {
-"m87761": 3,
-"m87771": 3,
+"m96245": 3,
+"m96255": 3,
 "m36474": 1,
 "m36491": 1
+},
+"материал": {
+"wood": 7,
+"wood_plank": 4,
+"rock": 1
 }
 },
 {
@@ -177,6 +234,10 @@
 "m35889": 2,
 "h52": 1,
 "m35892": 1
+},
+"материал": {
+"wood_plank": 6,
+"metalvent": 4
 }
 },
 {
@@ -201,6 +262,10 @@
 "m36092": 4,
 "h1757": 2,
 "m33053": 1
+},
+"материал": {
+"wood": 5,
+"wood_plank": 2
 }
 },
 {
@@ -226,6 +291,10 @@
 "m37114": 1,
 "m37108": 1,
 "m37097": 1
+},
+"материал": {
+"wood_plank": 4,
+"wood": 2
 }
 },
 {
@@ -251,6 +320,9 @@
 "m39094": 1,
 "m39210": 1,
 "m39152": 1
+},
+"материал": {
+"concrete": 5
 }
 },
 {
@@ -274,6 +346,10 @@
 "h1731": 2,
 "m65394": 2,
 "m65458": 1
+},
+"материал": {
+"concrete": 4,
+"rock": 1
 }
 },
 {
@@ -300,6 +376,11 @@
 "m26785": 1,
 "m26878": 1,
 "m16281": 1
+},
+"материал": {
+"plaster": 2,
+"default": 2,
+"wood": 1
 }
 },
 {
@@ -325,6 +406,10 @@
 "h1689": 1,
 "m43405": 1,
 "m43454": 1
+},
+"материал": {
+"plaster": 3,
+"concrete": 2
 }
 },
 {
@@ -352,6 +437,10 @@
 "m18815": 1,
 "m18979": 1,
 "m19682": 1
+},
+"материал": {
+"plaster": 4,
+"concrete": 1
 }
 },
 {
@@ -376,6 +465,11 @@
 "m16193": 1,
 "m16192": 1,
 "h884": 1
+},
+"материал": {
+"plaster": 3,
+"default": 1,
+"concrete": 1
 }
 },
 {
@@ -398,6 +492,10 @@
 "предметы": {
 "m42046": 3,
 "h1703": 1
+},
+"материал": {
+"wood_plank": 3,
+"concrete": 1
 }
 },
 {
@@ -422,6 +520,11 @@
 "m12182": 1,
 "h186": 1,
 "m12147": 1
+},
+"материал": {
+"concrete": 2,
+"plaster": 1,
+"cardboard": 1
 }
 },
 {
@@ -447,6 +550,9 @@
 "m39421": 2,
 "m39636": 1,
 "m39426": 1
+},
+"материал": {
+"rock": 4
 }
 },
 {
@@ -468,6 +574,9 @@
 "толщина_медиана": 1.6,
 "предметы": {
 "h328": 4
+},
+"материал": {
+"cardboard": 4
 }
 },
 {
@@ -490,6 +599,10 @@
 "предметы": {
 "m51244": 2,
 "m51086": 1
+},
+"материал": {
+"wood": 2,
+"rock": 1
 }
 },
 {
@@ -512,6 +625,9 @@
 "m14967": 1,
 "m14973": 1,
 "m14956": 1
+},
+"материал": {
+"wood": 3
 }
 },
 {
@@ -534,6 +650,9 @@
 "предметы": {
 "m9660": 2,
 "m9659": 1
+},
+"материал": {
+"plaster": 3
 }
 },
 {
@@ -557,6 +676,11 @@
 "h120": 1,
 "h114": 1,
 "m14553": 1
+},
+"материал": {
+"wood_plank": 1,
+"solidmetal": 1,
+"wood_solid": 1
 }
 },
 {
@@ -580,6 +704,10 @@
 "m28119": 1,
 "m26386": 1,
 "m28262": 1
+},
+"материал": {
+"wood": 2,
+"plaster": 1
 }
 },
 {
@@ -602,6 +730,9 @@
 "предметы": {
 "h1929": 1,
 "h1931": 1
+},
+"материал": {
+"rock": 2
 }
 },
 {
@@ -624,6 +755,10 @@
 "предметы": {
 "h267": 1,
 "m37514": 1
+},
+"материал": {
+"wood_solid": 1,
+"concrete": 1
 }
 },
 {
@@ -646,6 +781,9 @@
 "предметы": {
 "m9061": 1,
 "m9143": 1
+},
+"материал": {
+"plaster": 2
 }
 },
 {
@@ -668,6 +806,10 @@
 "предметы": {
 "h1690": 1,
 "m43348": 1
+},
+"материал": {
+"concrete": 1,
+"plaster": 1
 }
 },
 {
@@ -688,6 +830,9 @@
 "толщина_медиана": 1.6,
 "предметы": {
 "h261": 2
+},
+"материал": {
+"wood_solid": 2
 }
 },
 {
@@ -709,6 +854,9 @@
 "толщина_медиана": 1.7,
 "предметы": {
 "h1750": 2
+},
+"материал": {
+"concrete": 2
 }
 },
 {
@@ -728,8 +876,12 @@
 },
 "толщина_медиана": 6.6,
 "предметы": {
-"m86649": 1,
+"m37004": 1,
 "m36985": 1
+},
+"материал": {
+"wood": 1,
+"wood_plank": 1
 }
 },
 {
@@ -752,6 +904,10 @@
 "предметы": {
 "m11950": 1,
 "m11947": 1
+},
+"материал": {
+"wood": 1,
+"sheetrock": 1
 }
 },
 {
@@ -773,6 +929,9 @@
 "толщина_медиана": 4.5,
 "предметы": {
 "m28209": 2
+},
+"материал": {
+"plaster": 2
 }
 },
 {
@@ -795,6 +954,9 @@
 "предметы": {
 "m20684": 1,
 "m20211": 1
+},
+"материал": {
+"concrete": 2
 }
 },
 {
@@ -816,6 +978,9 @@
 "толщина_медиана": 1.6,
 "предметы": {
 "h1926": 2
+},
+"материал": {
+"rock": 2
 }
 },
 {
@@ -838,6 +1003,9 @@
 "предметы": {
 "m35662": 1,
 "m35665": 1
+},
+"материал": {
+"rock": 2
 }
 },
 {
@@ -859,6 +1027,9 @@
 "толщина_медиана": 1.5,
 "предметы": {
 "h1706": 2
+},
+"материал": {
+"concrete": 2
 }
 },
 {
@@ -879,6 +1050,9 @@
 "толщина_медиана": 8.2,
 "предметы": {
 "m15397": 1
+},
+"материал": {
+"concrete": 1
 }
 },
 {
@@ -899,6 +1073,9 @@
 "толщина_медиана": 3.8,
 "предметы": {
 "m78962": 1
+},
+"материал": {
+"plaster": 1
 }
 },
 {
@@ -919,6 +1096,9 @@
 "толщина_медиана": 12.3,
 "предметы": {
 "m9165": 1
+},
+"материал": {
+"plaster": 1
 }
 },
 {
@@ -939,6 +1119,9 @@
 "толщина_медиана": 1412.2,
 "предметы": {
 "m18049": 1
+},
+"материал": {
+"wood": 1
 }
 },
 {
@@ -959,6 +1142,9 @@
 "толщина_медиана": 5.0,
 "предметы": {
 "m26886": 1
+},
+"материал": {
+"wood": 1
 }
 },
 {
@@ -979,6 +1165,9 @@
 "толщина_медиана": 2.2,
 "предметы": {
 "m46827": 1
+},
+"материал": {
+"metalvent": 1
 }
 },
 {
@@ -999,6 +1188,9 @@
 "толщина_медиана": 0.0,
 "предметы": {
 "m79965": 1
+},
+"материал": {
+"wood": 1
 }
 },
 {
@@ -1019,6 +1211,9 @@
 "толщина_медиана": 13.5,
 "предметы": {
 "m47875": 1
+},
+"материал": {
+"concrete": 1
 }
 },
 {
@@ -1039,6 +1234,9 @@
 "толщина_медиана": 9.8,
 "предметы": {
 "m52296": 1
+},
+"материал": {
+"wood": 1
 }
 },
 {
@@ -1059,6 +1257,9 @@
 "толщина_медиана": 1.6,
 "предметы": {
 "h1553": 1
+},
+"материал": {
+"wood": 1
 }
 },
 {
@@ -1079,6 +1280,9 @@
 "толщина_медиана": 28.1,
 "предметы": {
 "m46243": 1
+},
+"материал": {
+"concrete": 1
 }
 },
 {
@@ -1099,6 +1303,9 @@
 "толщина_медиана": 1.5,
 "предметы": {
 "h216": 1
+},
+"материал": {
+"concrete": 1
 }
 },
 {
@@ -1119,6 +1326,9 @@
 "толщина_медиана": 11.5,
 "предметы": {
 "m52167": 1
+},
+"материал": {
+"wood": 1
 }
 },
 {
@@ -1139,6 +1349,9 @@
 "толщина_медиана": 21.3,
 "предметы": {
 "m47029": 1
+},
+"материал": {
+"plaster": 1
 }
 },
 {
@@ -1159,6 +1372,9 @@
 "толщина_медиана": 17.3,
 "предметы": {
 "m20114": 1
+},
+"материал": {
+"concrete": 1
 }
 },
 {
@@ -1179,6 +1395,9 @@
 "толщина_медиана": 11.5,
 "предметы": {
 "m32883": 1
+},
+"материал": {
+"concrete": 1
 }
 },
 {
@@ -1199,6 +1418,9 @@
 "толщина_медиана": 10.2,
 "предметы": {
 "m71558": 1
+},
+"материал": {
+"concrete": 1
 }
 },
 {
@@ -1219,6 +1441,9 @@
 "толщина_медиана": 18.6,
 "предметы": {
 "m10210": 1
+},
+"материал": {
+"sheetrock": 1
 }
 },
 {
@@ -1239,6 +1464,9 @@
 "толщина_медиана": 40.4,
 "предметы": {
 "m39063": 1
+},
+"материал": {
+"concrete": 1
 }
 },
 {
@@ -1259,6 +1487,9 @@
 "толщина_медиана": 1.1,
 "предметы": {
 "m14807": 1
+},
+"материал": {
+"brick": 1
 }
 },
 {
@@ -1279,6 +1510,9 @@
 "толщина_медиана": 2.0,
 "предметы": {
 "h253": 1
+},
+"материал": {
+"wood_solid": 1
 }
 },
 {
@@ -1299,6 +1533,9 @@
 "толщина_медиана": 22.9,
 "предметы": {
 "m14760": 1
+},
+"материал": {
+"concrete": 1
 }
 },
 {
@@ -1319,6 +1556,9 @@
 "толщина_медиана": 5.7,
 "предметы": {
 "m12803": 1
+},
+"материал": {
+"plaster": 1
 }
 },
 {
@@ -1339,6 +1579,9 @@
 "толщина_медиана": 24.4,
 "предметы": {
 "m15008": 1
+},
+"материал": {
+"brick": 1
 }
 },
 {
@@ -1359,6 +1602,9 @@
 "толщина_медиана": 1.6,
 "предметы": {
 "h1908": 1
+},
+"материал": {
+"rock": 1
 }
 },
 {
@@ -1379,6 +1625,9 @@
 "толщина_медиана": 2.3,
 "предметы": {
 "m37109": 1
+},
+"материал": {
+"wood": 1
 }
 },
 {
@@ -1399,6 +1648,9 @@
 "толщина_медиана": 1.9,
 "предметы": {
 "m15042": 1
+},
+"материал": {
+"wood": 1
 }
 },
 {
@@ -1419,26 +1671,32 @@
 "толщина_медиана": 4.2,
 "предметы": {
 "m14490": 1
+},
+"материал": {
+"concrete": 1
 }
 },
 {
 "p": [
--1224.0,
-411.5,
--8.3
+-1210.5,
+408.0,
+-7.2
 ],
 "radar": [
-802.4,
-520.6
+807.8,
+522.0
 ],
 "место": "Stove",
 "n": 1,
 "оружие": {
 "m4a1_silencer": 1
 },
-"толщина_медиана": 10.9,
+"толщина_медиана": 2.6,
 "предметы": {
-"m87003": 1
+"m24320": 1
+},
+"материал": {
+"plaster": 1
 }
 },
 {
@@ -1459,6 +1717,9 @@
 "толщина_медиана": 5.8,
 "предметы": {
 "m48191": 1
+},
+"материал": {
+"plaster": 1
 }
 },
 {
@@ -1479,6 +1740,9 @@
 "толщина_медиана": 0.0,
 "предметы": {
 "m22563": 1
+},
+"материал": {
+"concrete": 1
 }
 },
 {
@@ -1499,6 +1763,9 @@
 "толщина_медиана": 15.3,
 "предметы": {
 "m59975": 1
+},
+"материал": {
+"plaster": 1
 }
 },
 {
@@ -1519,6 +1786,9 @@
 "толщина_медиана": 1.6,
 "предметы": {
 "h1334": 1
+},
+"материал": {
+"cardboard": 1
 }
 }
 ],
@@ -1536,6 +1806,10 @@
 "what": [
 "m30087",
 "m30089"
+],
+"mat": [
+"wood",
+"wood"
 ],
 "weapon": "glock",
 "pen": 1
@@ -1562,6 +1836,14 @@
 "m36496",
 "m36498"
 ],
+"mat": [
+"wood_plank",
+"wood_plank",
+"rock",
+"default",
+"default",
+"concrete"
+],
 "weapon": "m4a1_silencer",
 "pen": 1
 },
@@ -1573,12 +1855,15 @@
 -1848.0,
 -40.0
 ],
-"surf": 3,
+"surf": 2,
 "thick": 23.6,
 "what": [
 "m37179",
-"m37178",
-"m86653"
+"m37178"
+],
+"mat": [
+"wood",
+"wood"
 ],
 "weapon": "ak47",
 "pen": 2
@@ -1601,6 +1886,10 @@
 "m36985",
 "m36988"
 ],
+"mat": [
+"wood_plank",
+"wood_plank"
+],
 "weapon": "ak47",
 "pen": 1
 },
@@ -1620,6 +1909,12 @@
 "m51220",
 "m51235"
 ],
+"mat": [
+"rock",
+"default",
+"default",
+"wood"
+],
 "weapon": "ak47",
 "pen": 1
 },
@@ -1634,8 +1929,12 @@
 "surf": 2,
 "thick": 2.3,
 "what": [
-"m87761",
-"m87763"
+"m96245",
+"m96247"
+],
+"mat": [
+"wood",
+"wood"
 ],
 "weapon": "ak47",
 "pen": 1
@@ -1672,6 +1971,20 @@
 "h1929",
 "h1929"
 ],
+"mat": [
+"rock",
+"rock",
+"rock",
+"rock",
+"rock",
+"rock",
+"rock",
+"rock",
+"rock",
+"rock",
+"rock",
+"rock"
+],
 "weapon": "m4a1",
 "pen": 1
 },
@@ -1686,8 +1999,12 @@
 "surf": 2,
 "thick": 2.4,
 "what": [
-"m87761",
-"m87763"
+"m96245",
+"m96247"
+],
+"mat": [
+"wood",
+"wood"
 ],
 "weapon": "ak47",
 "pen": 3
@@ -1714,6 +2031,18 @@
 "h235",
 "h235"
 ],
+"mat": [
+"wood_panel",
+"wood_panel",
+"wood_panel",
+"wood_panel",
+"wood_panel",
+"wood_panel",
+"wood_panel",
+"wood_panel",
+"wood_panel",
+"wood_panel"
+],
 "weapon": "ak47",
 "pen": 1
 },
@@ -1731,6 +2060,10 @@
 "m36978",
 "m36981"
 ],
+"mat": [
+"wood_plank",
+"wood_plank"
+],
 "weapon": "ak47",
 "pen": 1
 },
@@ -1747,6 +2080,10 @@
 "what": [
 "m39093",
 "m39097"
+],
+"mat": [
+"concrete",
+"concrete"
 ],
 "weapon": "m4a1_silencer",
 "pen": 1
@@ -1775,6 +2112,20 @@
 "h63",
 "h63"
 ],
+"mat": [
+"wood",
+"wood_solid",
+"wood_solid",
+"wood",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank"
+],
 "weapon": "ak47",
 "pen": 2
 },
@@ -1791,6 +2142,10 @@
 "what": [
 "m15397",
 "m15407"
+],
+"mat": [
+"concrete",
+"concrete"
 ],
 "weapon": "m4a1",
 "pen": 1
@@ -1823,6 +2178,20 @@
 "h60",
 "h60"
 ],
+"mat": [
+"metalvent",
+"metalvent",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank"
+],
 "weapon": "m4a1",
 "pen": 2
 },
@@ -1854,6 +2223,20 @@
 "h80",
 "h80"
 ],
+"mat": [
+"wood_solid",
+"solidmetal",
+"solidmetal",
+"solidmetal",
+"solidmetal",
+"solidmetal",
+"solidmetal",
+"solidmetal",
+"solidmetal",
+"solidmetal",
+"solidmetal",
+"solidmetal"
+],
 "weapon": "ak47",
 "pen": 1
 },
@@ -1881,6 +2264,20 @@
 "h80",
 "h80"
 ],
+"mat": [
+"solidmetal",
+"solidmetal",
+"solidmetal",
+"solidmetal",
+"solidmetal",
+"solidmetal",
+"solidmetal",
+"solidmetal",
+"solidmetal",
+"solidmetal",
+"solidmetal",
+"solidmetal"
+],
 "weapon": "ak47",
 "pen": 1
 },
@@ -1899,6 +2296,12 @@
 "m35992",
 "m35951",
 "m35954"
+],
+"mat": [
+"wood",
+"wood_solid",
+"wood_solid",
+"wood"
 ],
 "weapon": "m4a1",
 "pen": 2
@@ -1920,6 +2323,10 @@
 "what": [
 "m36395",
 "m36380"
+],
+"mat": [
+"wood_solid",
+"wood_solid"
 ],
 "weapon": "ak47",
 "pen": 1
@@ -1948,6 +2355,20 @@
 "h62",
 "h62"
 ],
+"mat": [
+"metalvent",
+"metalvent",
+"metalvent",
+"metalvent",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank"
+],
 "weapon": "ak47",
 "pen": 2
 },
@@ -1974,6 +2395,20 @@
 "h84",
 "h84",
 "h84"
+],
+"mat": [
+"wood_solid",
+"wood_solid",
+"wood_solid",
+"wood_solid",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank"
 ],
 "weapon": "ak47",
 "pen": 1
@@ -2002,6 +2437,20 @@
 "h88",
 "h88"
 ],
+"mat": [
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank"
+],
 "weapon": "galilar",
 "pen": 2
 },
@@ -2018,6 +2467,10 @@
 "what": [
 "m36982",
 "m36980"
+],
+"mat": [
+"wood_plank",
+"wood_plank"
 ],
 "weapon": "galilar",
 "pen": 1
@@ -2046,6 +2499,16 @@
 "m41799",
 "m41798"
 ],
+"mat": [
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"rock",
+"rock",
+"wood_plank",
+"wood_plank"
+],
 "weapon": "ak47",
 "pen": 3
 },
@@ -2072,6 +2535,20 @@
 "h1731",
 "h1731",
 "h1731"
+],
+"mat": [
+"concrete",
+"concrete",
+"concrete",
+"concrete",
+"concrete",
+"concrete",
+"concrete",
+"concrete",
+"concrete",
+"concrete",
+"concrete",
+"concrete"
 ],
 "weapon": "ak47",
 "pen": 1
@@ -2102,6 +2579,10 @@
 "m78962",
 "m79019"
 ],
+"mat": [
+"plaster",
+"plaster"
+],
 "weapon": "ak47",
 "pen": 1
 },
@@ -2118,6 +2599,10 @@
 "what": [
 "m12139",
 "m12143"
+],
+"mat": [
+"concrete",
+"concrete"
 ],
 "weapon": "ak47",
 "pen": 1
@@ -2146,6 +2631,20 @@
 "h267",
 "h267"
 ],
+"mat": [
+"wood_solid",
+"wood_solid",
+"wood_solid",
+"wood_solid",
+"wood_solid",
+"wood_solid",
+"wood_solid",
+"wood_solid",
+"wood_solid",
+"wood_solid",
+"wood_solid",
+"wood_solid"
+],
 "weapon": "galilar",
 "pen": 1
 },
@@ -2165,6 +2664,12 @@
 "m5151",
 "m30181"
 ],
+"mat": [
+"wood_solid",
+"wood_solid",
+"wood_solid",
+"wood_solid"
+],
 "weapon": "galilar",
 "pen": 2
 },
@@ -2181,6 +2686,10 @@
 "what": [
 "m36369",
 "m36370"
+],
+"mat": [
+"wood",
+"wood"
 ],
 "weapon": "m4a1",
 "pen": 1
@@ -2205,6 +2714,12 @@
 "m14953",
 "m14956"
 ],
+"mat": [
+"wood",
+"wood_solid",
+"wood_solid",
+"wood"
+],
 "weapon": "ak47",
 "pen": 2
 },
@@ -2221,6 +2736,10 @@
 "what": [
 "m9165",
 "m9089"
+],
+"mat": [
+"plaster",
+"plaster"
 ],
 "weapon": "m4a1",
 "pen": 1
@@ -2244,6 +2763,11 @@
 "m65260",
 "m65365"
 ],
+"mat": [
+"concrete",
+"default",
+"concrete"
+],
 "weapon": "ak47",
 "pen": 1
 },
@@ -2262,6 +2786,11 @@
 "m36496",
 "m36498"
 ],
+"mat": [
+"rock",
+"default",
+"concrete"
+],
 "weapon": "m4a1",
 "pen": 1
 },
@@ -2278,6 +2807,10 @@
 "what": [
 "m26785",
 "m26788"
+],
+"mat": [
+"plaster",
+"plaster"
 ],
 "weapon": "m4a1",
 "pen": 1
@@ -2306,6 +2839,20 @@
 "h7",
 "h7"
 ],
+"mat": [
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank"
+],
 "weapon": "awp",
 "pen": 3
 },
@@ -2322,6 +2869,10 @@
 "what": [
 "m26878",
 "m26876"
+],
+"mat": [
+"wood",
+"plaster"
 ],
 "weapon": "m4a1",
 "pen": 1
@@ -2344,6 +2895,14 @@
 "m36496",
 "m36498"
 ],
+"mat": [
+"plaster",
+"plaster",
+"rock",
+"default",
+"default",
+"concrete"
+],
 "weapon": "m4a1",
 "pen": 1
 },
@@ -2360,6 +2919,10 @@
 "what": [
 "m39093",
 "m39375"
+],
+"mat": [
+"concrete",
+"concrete"
 ],
 "weapon": "deagle",
 "pen": 1
@@ -2388,6 +2951,20 @@
 "h1680",
 "h1680"
 ],
+"mat": [
+"concrete",
+"concrete",
+"concrete",
+"concrete",
+"concrete",
+"concrete",
+"concrete",
+"concrete",
+"concrete",
+"concrete",
+"concrete",
+"concrete"
+],
 "weapon": "ak47",
 "pen": 3
 },
@@ -2415,6 +2992,20 @@
 "h1920",
 "h1920"
 ],
+"mat": [
+"rock",
+"rock",
+"rock",
+"rock",
+"rock",
+"rock",
+"rock",
+"rock",
+"rock",
+"rock",
+"rock",
+"rock"
+],
 "weapon": "mp9",
 "pen": 1
 },
@@ -2436,6 +3027,10 @@
 "h300",
 "h300"
 ],
+"mat": [
+"default",
+"default"
+],
 "weapon": "deagle",
 "pen": 1
 },
@@ -2455,6 +3050,13 @@
 "m17990",
 "m17988",
 "m17987"
+],
+"mat": [
+"plaster",
+"brick",
+"plaster",
+"metal",
+"metal"
 ],
 "weapon": "ak47",
 "pen": 1
@@ -2483,6 +3085,20 @@
 "h1334",
 "h1334"
 ],
+"mat": [
+"wood",
+"cardboard",
+"cardboard",
+"cardboard",
+"cardboard",
+"cardboard",
+"cardboard",
+"cardboard",
+"cardboard",
+"cardboard",
+"cardboard",
+"cardboard"
+],
 "weapon": "m4a1_silencer",
 "pen": 2
 },
@@ -2507,6 +3123,10 @@
 "what": [
 "m26886",
 "m26889"
+],
+"mat": [
+"wood",
+"wood"
 ],
 "weapon": "mp9",
 "pen": 1
@@ -2547,6 +3167,20 @@
 "h52",
 "h52"
 ],
+"mat": [
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank"
+],
 "weapon": "awp",
 "pen": 2
 },
@@ -2563,6 +3197,10 @@
 "what": [
 "m46827",
 "m46828"
+],
+"mat": [
+"metalvent",
+"metalvent"
 ],
 "weapon": "ak47",
 "pen": 1
@@ -2597,6 +3235,18 @@
 "m16307",
 "m16315"
 ],
+"mat": [
+"default",
+"default",
+"default",
+"default",
+"default",
+"default",
+"default",
+"default",
+"plaster",
+"plaster"
+],
 "weapon": "ak47",
 "pen": 1
 },
@@ -2624,6 +3274,20 @@
 "h62",
 "h62"
 ],
+"mat": [
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank"
+],
 "weapon": "ak47",
 "pen": 1
 },
@@ -2639,6 +3303,9 @@
 "thick": 0.0,
 "what": [
 "m79965"
+],
+"mat": [
+"wood"
 ],
 "weapon": "m4a1_silencer",
 "pen": 1
@@ -2665,6 +3332,18 @@
 "h1690",
 "h1690"
 ],
+"mat": [
+"concrete",
+"concrete",
+"concrete",
+"concrete",
+"concrete",
+"concrete",
+"concrete",
+"concrete",
+"concrete",
+"concrete"
+],
 "weapon": "awp",
 "pen": 1
 },
@@ -2681,6 +3360,10 @@
 "what": [
 "m37096",
 "m37097"
+],
+"mat": [
+"wood_plank",
+"wood_plank"
 ],
 "weapon": "ak47",
 "pen": 2
@@ -2700,6 +3383,12 @@
 "m37017",
 "m37181",
 "m37179"
+],
+"mat": [
+"wood",
+"wood",
+"wood",
+"wood"
 ],
 "weapon": "galilar",
 "pen": 1
@@ -2728,6 +3417,20 @@
 "h64",
 "h64"
 ],
+"mat": [
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank"
+],
 "weapon": "ak47",
 "pen": 2
 },
@@ -2746,6 +3449,11 @@
 "m16205",
 "m16220"
 ],
+"mat": [
+"plaster",
+"concrete",
+"concrete"
+],
 "weapon": "awp",
 "pen": 2
 },
@@ -2762,6 +3470,10 @@
 "what": [
 "m47875",
 "m47870"
+],
+"mat": [
+"concrete",
+"concrete"
 ],
 "weapon": "elite",
 "pen": 1
@@ -2781,6 +3493,12 @@
 "m35951",
 "m35974",
 "m35971"
+],
+"mat": [
+"wood",
+"wood_solid",
+"wood_solid",
+"wood"
 ],
 "weapon": "glock",
 "pen": 1
@@ -2809,6 +3527,20 @@
 "h2",
 "h2"
 ],
+"mat": [
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank"
+],
 "weapon": "awp",
 "pen": 1
 },
@@ -2836,6 +3568,20 @@
 "h1765",
 "h1765"
 ],
+"mat": [
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank"
+],
 "weapon": "usp_silencer",
 "pen": 1
 },
@@ -2857,6 +3603,11 @@
 "m65394",
 "m65399",
 "m65360"
+],
+"mat": [
+"concrete",
+"concrete",
+"concrete"
 ],
 "weapon": "ak47",
 "pen": 1
@@ -2885,6 +3636,20 @@
 "h1690",
 "h1690"
 ],
+"mat": [
+"plaster",
+"concrete",
+"concrete",
+"concrete",
+"concrete",
+"concrete",
+"concrete",
+"concrete",
+"concrete",
+"concrete",
+"concrete",
+"concrete"
+],
 "weapon": "ak47",
 "pen": 1
 },
@@ -2907,6 +3672,12 @@
 "m35951",
 "m35973",
 "m35971"
+],
+"mat": [
+"wood",
+"wood_solid",
+"wood_solid",
+"wood"
 ],
 "weapon": "m4a1",
 "pen": 2
@@ -2935,6 +3706,12 @@
 "m5116",
 "m5118"
 ],
+"mat": [
+"wood",
+"wood_solid",
+"wood_solid",
+"wood"
+],
 "weapon": "ak47",
 "pen": 2
 },
@@ -2951,6 +3728,10 @@
 "what": [
 "m52296",
 "m52294"
+],
+"mat": [
+"wood",
+"wood"
 ],
 "weapon": "ak47",
 "pen": 1
@@ -2974,6 +3755,12 @@
 "m18813",
 "m18842",
 "m9849"
+],
+"mat": [
+"concrete",
+"concrete",
+"plaster",
+"plaster"
 ],
 "weapon": "awp",
 "pen": 1
@@ -3002,6 +3789,20 @@
 "h1553",
 "h1553"
 ],
+"mat": [
+"wood",
+"wood",
+"wood",
+"wood",
+"wood",
+"wood",
+"wood",
+"wood",
+"wood",
+"wood",
+"wood",
+"wood"
+],
 "weapon": "ak47",
 "pen": 1
 },
@@ -3028,6 +3829,20 @@
 "h261",
 "h261",
 "h261"
+],
+"mat": [
+"wood_solid",
+"wood_solid",
+"wood_solid",
+"wood_solid",
+"wood_solid",
+"wood_solid",
+"wood_solid",
+"wood_solid",
+"wood_solid",
+"wood_solid",
+"wood_solid",
+"wood_solid"
 ],
 "weapon": "ak47",
 "pen": 1
@@ -3056,6 +3871,20 @@
 "h1750",
 "h1750"
 ],
+"mat": [
+"concrete",
+"concrete",
+"concrete",
+"concrete",
+"concrete",
+"concrete",
+"concrete",
+"concrete",
+"concrete",
+"concrete",
+"concrete",
+"concrete"
+],
 "weapon": "awp",
 "pen": 1
 },
@@ -3070,13 +3899,22 @@
 "surf": 7,
 "thick": 8.0,
 "what": [
-"m87771",
-"m87761",
-"m87769",
+"m96255",
+"m96245",
+"m96253",
 "m36715",
 "m36716",
 "m37103",
 "m37101"
+],
+"mat": [
+"wood",
+"wood",
+"wood",
+"wood_plank",
+"wood_plank",
+"wood",
+"wood"
 ],
 "weapon": "ak47",
 "pen": 3
@@ -3105,6 +3943,20 @@
 "m5126",
 "m5117"
 ],
+"mat": [
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood",
+"wood_solid",
+"wood_solid"
+],
 "weapon": "ak47",
 "pen": 3
 },
@@ -3119,10 +3971,16 @@
 "surf": 4,
 "thick": 7.1,
 "what": [
-"m86649",
+"m37004",
 "m37007",
 "m36994",
 "m36992"
+],
+"mat": [
+"wood",
+"wood",
+"wood",
+"wood"
 ],
 "weapon": "ak47",
 "pen": 2
@@ -3143,6 +4001,12 @@
 "m14965",
 "m14968"
 ],
+"mat": [
+"wood",
+"wood_solid",
+"wood_solid",
+"wood"
+],
 "weapon": "ak47",
 "pen": 2
 },
@@ -3159,6 +4023,10 @@
 "what": [
 "m39636",
 "m39423"
+],
+"mat": [
+"rock",
+"rock"
 ],
 "weapon": "m4a1",
 "pen": 1
@@ -3187,6 +4055,20 @@
 "h1764",
 "h1764"
 ],
+"mat": [
+"wood_solid",
+"wood_solid",
+"wood_solid",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank"
+],
 "weapon": "ak47",
 "pen": 2
 },
@@ -3213,6 +4095,20 @@
 "h62",
 "h62",
 "h62"
+],
+"mat": [
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank"
 ],
 "weapon": "ak47",
 "pen": 2
@@ -3245,6 +4141,20 @@
 "h80",
 "h80"
 ],
+"mat": [
+"solidmetal",
+"solidmetal",
+"solidmetal",
+"solidmetal",
+"solidmetal",
+"solidmetal",
+"solidmetal",
+"solidmetal",
+"solidmetal",
+"solidmetal",
+"solidmetal",
+"solidmetal"
+],
 "weapon": "m4a1_silencer",
 "pen": 1
 },
@@ -3264,6 +4174,12 @@
 "m38830",
 "m38861"
 ],
+"mat": [
+"plaster",
+"plaster",
+"rock",
+"rock"
+],
 "weapon": "awp",
 "pen": 1
 },
@@ -3281,6 +4197,10 @@
 "m37185",
 "m37180"
 ],
+"mat": [
+"wood",
+"wood"
+],
 "weapon": "m4a1",
 "pen": 1
 },
@@ -3297,6 +4217,10 @@
 "what": [
 "m46243",
 "m46212"
+],
+"mat": [
+"concrete",
+"plaster"
 ],
 "weapon": "ak47",
 "pen": 1
@@ -3317,6 +4241,12 @@
 "m36756",
 "m36754"
 ],
+"mat": [
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank"
+],
 "weapon": "mp9",
 "pen": 1
 },
@@ -3333,6 +4263,10 @@
 "what": [
 "m9660",
 "m9663"
+],
+"mat": [
+"plaster",
+"plaster"
 ],
 "weapon": "m4a1_silencer",
 "pen": 1
@@ -3365,6 +4299,20 @@
 "h62",
 "h62"
 ],
+"mat": [
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank"
+],
 "weapon": "ak47",
 "pen": 1
 },
@@ -3392,6 +4340,20 @@
 "h216",
 "h216"
 ],
+"mat": [
+"concrete",
+"concrete",
+"concrete",
+"concrete",
+"concrete",
+"concrete",
+"concrete",
+"concrete",
+"concrete",
+"concrete",
+"concrete",
+"concrete"
+],
 "weapon": "awp",
 "pen": 1
 },
@@ -3409,6 +4371,10 @@
 "m37114",
 "m37116"
 ],
+"mat": [
+"wood_plank",
+"wood_plank"
+],
 "weapon": "m4a1_silencer",
 "pen": 2
 },
@@ -3425,6 +4391,10 @@
 "what": [
 "m39421",
 "m39422"
+],
+"mat": [
+"rock",
+"rock"
 ],
 "weapon": "ak47",
 "pen": 1
@@ -3444,6 +4414,12 @@
 "m36386",
 "m36392",
 "m36395"
+],
+"mat": [
+"wood_solid",
+"wood_solid",
+"wood_solid",
+"wood_solid"
 ],
 "weapon": "elite",
 "pen": 1
@@ -3468,6 +4444,16 @@
 "h1689",
 "h1689"
 ],
+"mat": [
+"concrete",
+"concrete",
+"concrete",
+"concrete",
+"concrete",
+"concrete",
+"concrete",
+"concrete"
+],
 "weapon": "famas",
 "pen": 1
 },
@@ -3484,6 +4470,10 @@
 "what": [
 "m52167",
 "m52155"
+],
+"mat": [
+"wood",
+"wood"
 ],
 "weapon": "ak47",
 "pen": 1
@@ -3510,6 +4500,14 @@
 "m37098",
 "m37095"
 ],
+"mat": [
+"wood",
+"wood",
+"wood",
+"wood",
+"wood_plank",
+"wood_plank"
+],
 "weapon": "ak47",
 "pen": 2
 },
@@ -3530,6 +4528,14 @@
 "m42048",
 "m41799",
 "m41798"
+],
+"mat": [
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank"
 ],
 "weapon": "galilar",
 "pen": 3
@@ -3558,6 +4564,20 @@
 "h1931",
 "h1931"
 ],
+"mat": [
+"rock",
+"rock",
+"rock",
+"rock",
+"rock",
+"rock",
+"rock",
+"rock",
+"rock",
+"rock",
+"rock",
+"rock"
+],
 "weapon": "m4a1_silencer",
 "pen": 1
 },
@@ -3574,6 +4594,10 @@
 "what": [
 "m37182",
 "m37180"
+],
+"mat": [
+"wood",
+"wood"
 ],
 "weapon": "ak47",
 "pen": 1
@@ -3595,6 +4619,13 @@
 "m36114",
 "m33053"
 ],
+"mat": [
+"wood",
+"wood_solid",
+"wood_solid",
+"wood_solid",
+"wood"
+],
 "weapon": "galilar",
 "pen": 2
 },
@@ -3614,6 +4645,12 @@
 "m36094",
 "m36092"
 ],
+"mat": [
+"wood",
+"wood_solid",
+"wood_solid",
+"wood"
+],
 "weapon": "m4a1_silencer",
 "pen": 2
 },
@@ -3631,6 +4668,11 @@
 "m5147",
 "m5148",
 "m30177"
+],
+"mat": [
+"wood_solid",
+"wood_solid",
+"wood_solid"
 ],
 "weapon": "usp_silencer",
 "pen": 1
@@ -3663,6 +4705,20 @@
 "h328",
 "h328"
 ],
+"mat": [
+"cardboard",
+"cardboard",
+"cardboard",
+"cardboard",
+"cardboard",
+"cardboard",
+"cardboard",
+"cardboard",
+"cardboard",
+"cardboard",
+"cardboard",
+"cardboard"
+],
 "weapon": "m4a1",
 "pen": 1
 },
@@ -3679,6 +4735,10 @@
 "what": [
 "m39421",
 "m39422"
+],
+"mat": [
+"rock",
+"rock"
 ],
 "weapon": "m4a1_silencer",
 "pen": 1
@@ -3697,6 +4757,10 @@
 "m11950",
 "m11956"
 ],
+"mat": [
+"wood",
+"wood"
+],
 "weapon": "ak47",
 "pen": 1
 },
@@ -3713,6 +4777,10 @@
 "what": [
 "m19056",
 "m18281"
+],
+"mat": [
+"plaster",
+"brick"
 ],
 "weapon": "deagle",
 "pen": 1
@@ -3733,6 +4801,12 @@
 "m30152",
 "m30154"
 ],
+"mat": [
+"wood",
+"wood_solid",
+"wood_solid",
+"wood"
+],
 "weapon": "m4a1_silencer",
 "pen": 3
 },
@@ -3747,10 +4821,16 @@
 "surf": 4,
 "thick": 10.9,
 "what": [
-"m87771",
-"m87769",
+"m96255",
+"m96253",
 "m36703",
 "m36705"
+],
+"mat": [
+"wood",
+"wood",
+"wood_plank",
+"wood_plank"
 ],
 "weapon": "ak47",
 "pen": 4
@@ -3779,6 +4859,20 @@
 "h62",
 "h62"
 ],
+"mat": [
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank"
+],
 "weapon": "ak47",
 "pen": 2
 },
@@ -3795,6 +4889,10 @@
 "what": [
 "m43405",
 "m43368"
+],
+"mat": [
+"plaster",
+"plaster"
 ],
 "weapon": "m4a1",
 "pen": 1
@@ -3815,6 +4913,12 @@
 "m33082",
 "m33084"
 ],
+"mat": [
+"wood",
+"wood_solid",
+"wood_solid",
+"wood"
+],
 "weapon": "ak47",
 "pen": 2
 },
@@ -3832,6 +4936,10 @@
 "m47029",
 "m47006"
 ],
+"mat": [
+"plaster",
+"plaster"
+],
 "weapon": "galilar",
 "pen": 1
 },
@@ -3847,6 +4955,9 @@
 "thick": 0.0,
 "what": [
 "h328"
+],
+"mat": [
+"cardboard"
 ],
 "weapon": "m4a1",
 "pen": 1
@@ -3873,6 +4984,10 @@
 "m12182",
 "m12100"
 ],
+"mat": [
+"plaster",
+"sheetrock"
+],
 "weapon": "ak47",
 "pen": 1
 },
@@ -3889,6 +5004,10 @@
 "what": [
 "m28209",
 "m28207"
+],
+"mat": [
+"plaster",
+"plaster"
 ],
 "weapon": "awp",
 "pen": 1
@@ -3907,6 +5026,10 @@
 "m36501",
 "m36498"
 ],
+"mat": [
+"concrete",
+"concrete"
+],
 "weapon": "awp",
 "pen": 1
 },
@@ -3923,6 +5046,10 @@
 "what": [
 "m20114",
 "m20105"
+],
+"mat": [
+"concrete",
+"concrete"
 ],
 "weapon": "m4a1_silencer",
 "pen": 1
@@ -3944,7 +5071,16 @@
 "m37103",
 "m36736",
 "m36733",
-"m87761"
+"m96245"
+],
+"mat": [
+"wood_plank",
+"wood_plank",
+"wood",
+"wood",
+"wood_plank",
+"wood_plank",
+"wood"
 ],
 "weapon": "m4a1",
 "pen": 1
@@ -3963,6 +5099,10 @@
 "m35892",
 "m35890"
 ],
+"mat": [
+"metalvent",
+"metalvent"
+],
 "weapon": "m4a1",
 "pen": 2
 },
@@ -3980,6 +5120,10 @@
 "m32883",
 "m32889"
 ],
+"mat": [
+"concrete",
+"concrete"
+],
 "weapon": "m4a1",
 "pen": 1
 },
@@ -3996,6 +5140,10 @@
 "what": [
 "m16193",
 "m16199"
+],
+"mat": [
+"plaster",
+"plaster"
 ],
 "weapon": "awp",
 "pen": 1
@@ -4024,6 +5172,20 @@
 "h186",
 "h186"
 ],
+"mat": [
+"cardboard",
+"cardboard",
+"cardboard",
+"cardboard",
+"cardboard",
+"cardboard",
+"cardboard",
+"cardboard",
+"cardboard",
+"cardboard",
+"cardboard",
+"cardboard"
+],
 "weapon": "m4a1_silencer",
 "pen": 1
 },
@@ -4041,6 +5203,11 @@
 "m16281",
 "m16290",
 "m16297"
+],
+"mat": [
+"plaster",
+"plaster",
+"plaster"
 ],
 "weapon": "ssg08",
 "pen": 1
@@ -4063,6 +5230,10 @@
 "m35889",
 "m35883"
 ],
+"mat": [
+"metalvent",
+"metalvent"
+],
 "weapon": "awp",
 "pen": 1
 },
@@ -4079,6 +5250,10 @@
 "what": [
 "m71558",
 "m71566"
+],
+"mat": [
+"concrete",
+"concrete"
 ],
 "weapon": "m4a1_silencer",
 "pen": 1
@@ -4107,6 +5282,20 @@
 "h261",
 "h261"
 ],
+"mat": [
+"wood_solid",
+"wood_solid",
+"wood_solid",
+"wood_solid",
+"wood_solid",
+"wood_solid",
+"wood_solid",
+"wood_solid",
+"wood_solid",
+"wood_solid",
+"wood_solid",
+"wood_solid"
+],
 "weapon": "ak47",
 "pen": 2
 },
@@ -4123,6 +5312,10 @@
 "what": [
 "m12147",
 "m12139"
+],
+"mat": [
+"concrete",
+"concrete"
 ],
 "weapon": "ak47",
 "pen": 1
@@ -4151,6 +5344,20 @@
 "h83",
 "h83"
 ],
+"mat": [
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank"
+],
 "weapon": "ak47",
 "pen": 1
 },
@@ -4167,6 +5374,10 @@
 "what": [
 "m10210",
 "m10203"
+],
+"mat": [
+"sheetrock",
+"sheetrock"
 ],
 "weapon": "tec9",
 "pen": 1
@@ -4185,6 +5396,10 @@
 "m11947",
 "m11957"
 ],
+"mat": [
+"sheetrock",
+"plaster"
+],
 "weapon": "ssg08",
 "pen": 1
 },
@@ -4201,6 +5416,10 @@
 "what": [
 "m39063",
 "m39564"
+],
+"mat": [
+"concrete",
+"concrete"
 ],
 "weapon": "ak47",
 "pen": 1
@@ -4224,6 +5443,12 @@
 "m51243",
 "m28206",
 "m27698"
+],
+"mat": [
+"wood",
+"wood",
+"plaster",
+"plaster"
 ],
 "weapon": "ak47",
 "pen": 1
@@ -4255,6 +5480,11 @@
 "m16198",
 "m16259"
 ],
+"mat": [
+"plaster",
+"default",
+"plaster"
+],
 "weapon": "m4a1",
 "pen": 1
 },
@@ -4282,6 +5512,20 @@
 "h1750",
 "h1750"
 ],
+"mat": [
+"concrete",
+"concrete",
+"concrete",
+"concrete",
+"concrete",
+"concrete",
+"concrete",
+"concrete",
+"concrete",
+"concrete",
+"concrete",
+"concrete"
+],
 "weapon": "ak47",
 "pen": 1
 },
@@ -4299,7 +5543,13 @@
 "m37004",
 "m37007",
 "m36995",
-"m86653"
+"m36992"
+],
+"mat": [
+"wood",
+"wood",
+"wood",
+"wood"
 ],
 "weapon": "ak47",
 "pen": 2
@@ -4312,13 +5562,17 @@
 -1900.9,
 -117.0
 ],
-"surf": 4,
-"thick": 10.7,
+"surf": 3,
+"thick": 6.0,
 "what": [
 "m36985",
-"m86649",
 "m36991",
 "m36992"
+],
+"mat": [
+"wood_plank",
+"wood_plank",
+"wood"
 ],
 "weapon": "ak47",
 "pen": 2
@@ -4347,6 +5601,20 @@
 "h80",
 "h80"
 ],
+"mat": [
+"wood_solid",
+"solidmetal",
+"solidmetal",
+"solidmetal",
+"solidmetal",
+"solidmetal",
+"solidmetal",
+"solidmetal",
+"solidmetal",
+"solidmetal",
+"solidmetal",
+"solidmetal"
+],
 "weapon": "awp",
 "pen": 2
 },
@@ -4366,6 +5634,12 @@
 "m35964",
 "m35965"
 ],
+"mat": [
+"wood",
+"wood_solid",
+"wood_solid",
+"wood"
+],
 "weapon": "awp",
 "pen": 4
 },
@@ -4382,6 +5656,10 @@
 "what": [
 "m14807",
 "m14808"
+],
+"mat": [
+"brick",
+"brick"
 ],
 "weapon": "m4a1_silencer",
 "pen": 1
@@ -4410,6 +5688,20 @@
 "h81",
 "h81"
 ],
+"mat": [
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank"
+],
 "weapon": "m4a1_silencer",
 "pen": 1
 },
@@ -4421,12 +5713,15 @@
 -1867.8,
 -40.0
 ],
-"surf": 3,
+"surf": 2,
 "thick": 10.8,
 "what": [
 "m37180",
-"m86656",
-"m86658"
+"m37178"
+],
+"mat": [
+"wood",
+"wood"
 ],
 "weapon": "ak47",
 "pen": 1
@@ -4448,8 +5743,18 @@
 "m36712",
 "m36706",
 "m36702",
-"m87769",
-"m87771"
+"m96253",
+"m96255"
+],
+"mat": [
+"wood",
+"wood",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood",
+"wood"
 ],
 "weapon": "m4a1_silencer",
 "pen": 4
@@ -4462,16 +5767,19 @@
 "i": 4281,
 "open": 0,
 "p": [
-32.4,
--1834.0,
--47.7
+38.0,
+-1874.4,
+-42.0
 ],
-"surf": 3,
-"thick": 41.2,
+"surf": 2,
+"thick": 14.5,
 "what": [
-"m86658",
 "m37181",
 "m37179"
+],
+"mat": [
+"wood",
+"wood"
 ],
 "weapon": "m4a1_silencer",
 "pen": 2
@@ -4504,6 +5812,20 @@
 "h7",
 "h7"
 ],
+"mat": [
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank"
+],
 "weapon": "ak47",
 "pen": 1
 },
@@ -4521,6 +5843,11 @@
 "m35965",
 "m35904",
 "m35990"
+],
+"mat": [
+"wood",
+"wood_solid",
+"wood"
 ],
 "weapon": "m4a1_silencer",
 "pen": 4
@@ -4542,6 +5869,13 @@
 "m20406",
 "m20417"
 ],
+"mat": [
+"concrete",
+"plaster",
+"concrete",
+"default",
+"plaster"
+],
 "weapon": "ak47",
 "pen": 1
 },
@@ -4561,6 +5895,12 @@
 "m38830",
 "m38860"
 ],
+"mat": [
+"plaster",
+"plaster",
+"rock",
+"rock"
+],
 "weapon": "awp",
 "pen": 2
 },
@@ -4579,6 +5919,12 @@
 "m37099",
 "m37100",
 "m37103"
+],
+"mat": [
+"wood_plank",
+"wood_plank",
+"wood",
+"wood"
 ],
 "weapon": "m4a1_silencer",
 "pen": 2
@@ -4607,6 +5953,20 @@
 "h1920",
 "h1920"
 ],
+"mat": [
+"rock",
+"rock",
+"rock",
+"rock",
+"rock",
+"rock",
+"rock",
+"rock",
+"rock",
+"rock",
+"rock",
+"rock"
+],
 "weapon": "ak47",
 "pen": 2
 },
@@ -4625,6 +5985,12 @@
 "m36473",
 "m35892",
 "m35890"
+],
+"mat": [
+"wood_plank",
+"wood_plank",
+"metalvent",
+"metalvent"
 ],
 "weapon": "awp",
 "pen": 2
@@ -4653,6 +6019,20 @@
 "m14745",
 "m14747"
 ],
+"mat": [
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood",
+"wood"
+],
 "weapon": "m4a1_silencer",
 "pen": 1
 },
@@ -4680,6 +6060,20 @@
 "h1926",
 "h1926"
 ],
+"mat": [
+"rock",
+"rock",
+"rock",
+"rock",
+"rock",
+"rock",
+"rock",
+"rock",
+"rock",
+"rock",
+"rock",
+"rock"
+],
 "weapon": "awp",
 "pen": 1
 },
@@ -4704,6 +6098,18 @@
 "m42008",
 "m42016",
 "m42010"
+],
+"mat": [
+"rock",
+"rock",
+"wood_plank",
+"wood_plank",
+"default",
+"wood_plank",
+"wood_plank",
+"default",
+"default",
+"default"
 ],
 "weapon": "ak47",
 "pen": 3
@@ -4736,6 +6142,20 @@
 "h253",
 "h253"
 ],
+"mat": [
+"wood_solid",
+"wood_solid",
+"wood_solid",
+"wood_solid",
+"wood_solid",
+"wood_solid",
+"wood_solid",
+"wood_solid",
+"wood_solid",
+"wood_solid",
+"wood_solid",
+"wood_solid"
+],
 "weapon": "awp",
 "pen": 1
 },
@@ -4767,6 +6187,20 @@
 "h62",
 "h62"
 ],
+"mat": [
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank"
+],
 "weapon": "awp",
 "pen": 4
 },
@@ -4793,6 +6227,20 @@
 "h88",
 "h88",
 "h88"
+],
+"mat": [
+"wood_solid",
+"wood_solid",
+"wood_solid",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank"
 ],
 "weapon": "ak47",
 "pen": 1
@@ -4827,6 +6275,14 @@
 "m14764",
 "m14765"
 ],
+"mat": [
+"concrete",
+"concrete",
+"wood",
+"wood",
+"wood_solid",
+"wood_solid"
+],
 "weapon": "ak47",
 "pen": 1
 },
@@ -4845,6 +6301,12 @@
 "m30102",
 "m29849",
 "m29852"
+],
+"mat": [
+"wood",
+"wood",
+"metal",
+"metal"
 ],
 "weapon": "deagle",
 "pen": 1
@@ -4867,6 +6329,10 @@
 "m35890",
 "m35891"
 ],
+"mat": [
+"metalvent",
+"metalvent"
+],
 "weapon": "m4a1_silencer",
 "pen": 1
 },
@@ -4883,6 +6349,10 @@
 "what": [
 "m28119",
 "m28125"
+],
+"mat": [
+"wood",
+"wood"
 ],
 "weapon": "ak47",
 "pen": 1
@@ -4911,6 +6381,20 @@
 "h328",
 "h328"
 ],
+"mat": [
+"cardboard",
+"cardboard",
+"cardboard",
+"cardboard",
+"cardboard",
+"cardboard",
+"cardboard",
+"cardboard",
+"cardboard",
+"cardboard",
+"cardboard",
+"cardboard"
+],
 "weapon": "m4a1_silencer",
 "pen": 1
 },
@@ -4925,12 +6409,20 @@
 "surf": 6,
 "thick": 8.3,
 "what": [
-"m87771",
-"m87769",
+"m96255",
+"m96253",
 "m36702",
 "m36704",
 "m37103",
 "m37101"
+],
+"mat": [
+"wood",
+"wood",
+"wood_plank",
+"wood_plank",
+"wood",
+"wood"
 ],
 "weapon": "galilar",
 "pen": 3
@@ -4951,6 +6443,13 @@
 "m37103",
 "m37114",
 "m37113"
+],
+"mat": [
+"wood_plank",
+"wood_plank",
+"wood",
+"wood_plank",
+"wood_plank"
 ],
 "weapon": "m4a1",
 "pen": 1
@@ -4979,6 +6478,20 @@
 "h1706",
 "h1706"
 ],
+"mat": [
+"concrete",
+"concrete",
+"concrete",
+"concrete",
+"concrete",
+"concrete",
+"concrete",
+"concrete",
+"concrete",
+"concrete",
+"concrete",
+"concrete"
+],
 "weapon": "m4a1",
 "pen": 1
 },
@@ -4996,6 +6509,10 @@
 "m39094",
 "m39367"
 ],
+"mat": [
+"concrete",
+"concrete"
+],
 "weapon": "ak47",
 "pen": 1
 },
@@ -5012,6 +6529,10 @@
 "what": [
 "m39210",
 "m39289"
+],
+"mat": [
+"concrete",
+"concrete"
 ],
 "weapon": "ak47",
 "pen": 1
@@ -5031,6 +6552,12 @@
 "m36094",
 "m33082",
 "m33084"
+],
+"mat": [
+"wood",
+"wood_solid",
+"wood_solid",
+"wood"
 ],
 "weapon": "ak47",
 "pen": 2
@@ -5052,6 +6579,10 @@
 "what": [
 "m26386",
 "m26392"
+],
+"mat": [
+"wood",
+"wood"
 ],
 "weapon": "awp",
 "pen": 1
@@ -5080,6 +6611,20 @@
 "h1920",
 "h1920"
 ],
+"mat": [
+"rock",
+"rock",
+"rock",
+"rock",
+"rock",
+"rock",
+"rock",
+"rock",
+"rock",
+"rock",
+"rock",
+"rock"
+],
 "weapon": "m4a1_silencer",
 "pen": 1
 },
@@ -5096,6 +6641,10 @@
 "what": [
 "m20211",
 "m20671"
+],
+"mat": [
+"concrete",
+"concrete"
 ],
 "weapon": "m4a1_silencer",
 "pen": 1
@@ -5124,6 +6673,20 @@
 "h1731",
 "h1731"
 ],
+"mat": [
+"concrete",
+"concrete",
+"concrete",
+"concrete",
+"concrete",
+"concrete",
+"concrete",
+"concrete",
+"concrete",
+"concrete",
+"concrete",
+"concrete"
+],
 "weapon": "m4a1_silencer",
 "pen": 1
 },
@@ -5150,6 +6713,20 @@
 "h1687",
 "h1687",
 "h1687"
+],
+"mat": [
+"plaster",
+"default",
+"concrete",
+"concrete",
+"concrete",
+"concrete",
+"concrete",
+"concrete",
+"concrete",
+"concrete",
+"concrete",
+"concrete"
 ],
 "weapon": "ak47",
 "pen": 1
@@ -5178,6 +6755,20 @@
 "h328",
 "h328"
 ],
+"mat": [
+"cardboard",
+"cardboard",
+"cardboard",
+"cardboard",
+"cardboard",
+"cardboard",
+"cardboard",
+"cardboard",
+"cardboard",
+"cardboard",
+"cardboard",
+"cardboard"
+],
 "weapon": "m4a1_silencer",
 "pen": 1
 },
@@ -5204,6 +6795,20 @@
 "h1757",
 "m36092",
 "m36094"
+],
+"mat": [
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood",
+"wood_solid"
 ],
 "weapon": "galilar",
 "pen": 2
@@ -5232,6 +6837,20 @@
 "h114",
 "h114"
 ],
+"mat": [
+"solidmetal",
+"solidmetal",
+"solidmetal",
+"solidmetal",
+"solidmetal",
+"solidmetal",
+"solidmetal",
+"solidmetal",
+"solidmetal",
+"solidmetal",
+"solidmetal",
+"solidmetal"
+],
 "weapon": "m4a1_silencer",
 "pen": 1
 },
@@ -5254,6 +6873,12 @@
 "m51243",
 "m28207",
 "m27698"
+],
+"mat": [
+"wood",
+"wood",
+"plaster",
+"plaster"
 ],
 "weapon": "awp",
 "pen": 1
@@ -5282,6 +6907,20 @@
 "h1763",
 "h1763"
 ],
+"mat": [
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank"
+],
 "weapon": "ssg08",
 "pen": 1
 },
@@ -5300,6 +6939,12 @@
 "m18281",
 "m18149",
 "m18048"
+],
+"mat": [
+"plaster",
+"brick",
+"wood",
+"wood"
 ],
 "weapon": "galilar",
 "pen": 1
@@ -5326,6 +6971,19 @@
 "h1763",
 "m35889",
 "m35892"
+],
+"mat": [
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"metalvent",
+"metalvent"
 ],
 "weapon": "m4a1_silencer",
 "pen": 2
@@ -5358,6 +7016,20 @@
 "h1757",
 "h1757"
 ],
+"mat": [
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank"
+],
 "weapon": "m4a1_silencer",
 "pen": 2
 },
@@ -5374,6 +7046,10 @@
 "what": [
 "m12803",
 "m12806"
+],
+"mat": [
+"plaster",
+"plaster"
 ],
 "weapon": "ak47",
 "pen": 1
@@ -5402,6 +7078,20 @@
 "h2",
 "h2"
 ],
+"mat": [
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank"
+],
 "weapon": "ak47",
 "pen": 1
 },
@@ -5418,6 +7108,10 @@
 "what": [
 "m15008",
 "m15023"
+],
+"mat": [
+"brick",
+"brick"
 ],
 "weapon": "m4a1_silencer",
 "pen": 1
@@ -5436,6 +7130,11 @@
 "m35965",
 "m35903",
 "m35990"
+],
+"mat": [
+"wood",
+"wood_solid",
+"wood"
 ],
 "weapon": "awp",
 "pen": 3
@@ -5456,6 +7155,12 @@
 "m18019",
 "m18020"
 ],
+"mat": [
+"plaster",
+"brick",
+"plaster",
+"plaster"
+],
 "weapon": "m4a1_silencer",
 "pen": 1
 },
@@ -5473,12 +7178,23 @@
 "h1920",
 "h1920",
 "h1920",
-"m86657",
+"m37019",
 "m37016",
 "m37007",
-"m86649",
+"m37004",
 "m36987",
 "m36989"
+],
+"mat": [
+"rock",
+"rock",
+"rock",
+"wood",
+"wood",
+"wood",
+"wood",
+"wood_plank",
+"wood_plank"
 ],
 "weapon": "deagle",
 "pen": 2
@@ -5496,6 +7212,10 @@
 "what": [
 "m36976",
 "m36979"
+],
+"mat": [
+"wood_plank",
+"wood_plank"
 ],
 "weapon": "glock",
 "pen": 1
@@ -5516,6 +7236,12 @@
 "m9479",
 "m9476"
 ],
+"mat": [
+"plaster",
+"default",
+"default",
+"plaster"
+],
 "weapon": "ak47",
 "pen": 1
 },
@@ -5532,6 +7258,10 @@
 "what": [
 "m36984",
 "m36990"
+],
+"mat": [
+"wood_plank",
+"wood_plank"
 ],
 "weapon": "ak47",
 "pen": 1
@@ -5564,6 +7294,20 @@
 "h1908",
 "h1908"
 ],
+"mat": [
+"rock",
+"rock",
+"rock",
+"rock",
+"rock",
+"rock",
+"rock",
+"rock",
+"rock",
+"rock",
+"rock",
+"rock"
+],
 "weapon": "awp",
 "pen": 1
 },
@@ -5580,6 +7324,10 @@
 "what": [
 "m37109",
 "m37107"
+],
+"mat": [
+"wood",
+"wood"
 ],
 "weapon": "m4a1",
 "pen": 1
@@ -5607,6 +7355,20 @@
 "h1706",
 "h1706",
 "h1706"
+],
+"mat": [
+"concrete",
+"concrete",
+"concrete",
+"concrete",
+"concrete",
+"concrete",
+"concrete",
+"concrete",
+"concrete",
+"concrete",
+"concrete",
+"concrete"
 ],
 "weapon": "fiveseven",
 "pen": 1
@@ -5639,6 +7401,20 @@
 "h1920",
 "h1920"
 ],
+"mat": [
+"wood_plank",
+"wood_plank",
+"rock",
+"rock",
+"rock",
+"rock",
+"rock",
+"rock",
+"rock",
+"rock",
+"rock",
+"rock"
+],
 "weapon": "ak47",
 "pen": 1
 },
@@ -5655,6 +7431,10 @@
 "what": [
 "m28209",
 "m28214"
+],
+"mat": [
+"plaster",
+"plaster"
 ],
 "weapon": "m4a1",
 "pen": 1
@@ -5676,6 +7456,10 @@
 "what": [
 "m36985",
 "m36991"
+],
+"mat": [
+"wood_plank",
+"wood_plank"
 ],
 "weapon": "ak47",
 "pen": 1
@@ -5704,6 +7488,20 @@
 "h1397",
 "h1397"
 ],
+"mat": [
+"wood",
+"wood",
+"metal_barrel",
+"metal_barrel",
+"metal_barrel",
+"metal_barrel",
+"metal_barrel",
+"metal_barrel",
+"metal_barrel",
+"metal_barrel",
+"metal_barrel",
+"metal_barrel"
+],
 "weapon": "galilar",
 "pen": 1
 },
@@ -5726,6 +7524,12 @@
 "m28273",
 "m52184",
 "m52186"
+],
+"mat": [
+"plaster",
+"plaster",
+"wood",
+"wood"
 ],
 "weapon": "awp",
 "pen": 4
@@ -5753,6 +7557,20 @@
 "h884",
 "h884",
 "h884"
+],
+"mat": [
+"default",
+"default",
+"default",
+"default",
+"default",
+"default",
+"default",
+"default",
+"default",
+"default",
+"default",
+"default"
 ],
 "weapon": "awp",
 "pen": 2
@@ -5785,6 +7603,20 @@
 "h2",
 "h2"
 ],
+"mat": [
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank"
+],
 "weapon": "galilar",
 "pen": 1
 },
@@ -5805,6 +7637,14 @@
 "m37102",
 "m37106",
 "m37109"
+],
+"mat": [
+"wood_plank",
+"wood_plank",
+"wood",
+"wood",
+"wood",
+"wood"
 ],
 "weapon": "ak47",
 "pen": 1
@@ -5832,6 +7672,20 @@
 "h1765",
 "h1765",
 "h1765"
+],
+"mat": [
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank"
 ],
 "weapon": "hkp2000",
 "pen": 1
@@ -5862,6 +7716,10 @@
 "m14553",
 "m14551"
 ],
+"mat": [
+"wood_solid",
+"wood_solid"
+],
 "weapon": "famas",
 "pen": 1
 },
@@ -5883,6 +7741,10 @@
 "m14490",
 "m14492"
 ],
+"mat": [
+"concrete",
+"concrete"
+],
 "weapon": "ak47",
 "pen": 1
 },
@@ -5902,6 +7764,12 @@
 "m33082",
 "m33084"
 ],
+"mat": [
+"wood",
+"wood_solid",
+"wood_solid",
+"wood"
+],
 "weapon": "ak47",
 "pen": 2
 },
@@ -5916,12 +7784,20 @@
 "surf": 6,
 "thick": 10.7,
 "what": [
-"m87761",
-"m87763",
+"m96245",
+"m96247",
 "m36743",
 "m36745",
 "m37103",
 "m37100"
+],
+"mat": [
+"wood",
+"wood",
+"wood_plank",
+"wood_plank",
+"wood",
+"wood"
 ],
 "weapon": "ak47",
 "pen": 2
@@ -5942,18 +7818,21 @@
 "i": 6220,
 "open": 0,
 "p": [
--1224.0,
-411.5,
--8.3
+-1210.5,
+408.0,
+-7.2
 ],
-"surf": 5,
-"thick": 10.9,
+"surf": 3,
+"thick": 2.6,
 "what": [
-"m87003",
-"m87001",
 "m24320",
 "m24385",
 "m24417"
+],
+"mat": [
+"plaster",
+"wood",
+"wood"
 ],
 "weapon": "m4a1_silencer",
 "pen": 1
@@ -5972,6 +7851,11 @@
 "m14956",
 "m14947",
 "m14967"
+],
+"mat": [
+"wood",
+"wood_solid",
+"wood"
 ],
 "weapon": "ak47",
 "pen": 1
@@ -6000,6 +7884,20 @@
 "h1926",
 "h1926"
 ],
+"mat": [
+"rock",
+"rock",
+"rock",
+"rock",
+"rock",
+"rock",
+"rock",
+"rock",
+"rock",
+"rock",
+"rock",
+"rock"
+],
 "weapon": "m4a1_silencer",
 "pen": 1
 },
@@ -6016,6 +7914,10 @@
 "what": [
 "m37106",
 "m37104"
+],
+"mat": [
+"wood",
+"wood"
 ],
 "weapon": "m4a1",
 "pen": 1
@@ -6034,6 +7936,10 @@
 "m48191",
 "m48189"
 ],
+"mat": [
+"plaster",
+"plaster"
+],
 "weapon": "ak47",
 "pen": 1
 },
@@ -6051,6 +7957,10 @@
 "m39152",
 "m39259"
 ],
+"mat": [
+"concrete",
+"concrete"
+],
 "weapon": "ak47",
 "pen": 1
 },
@@ -6066,6 +7976,9 @@
 "thick": 0.0,
 "what": [
 "m22563"
+],
+"mat": [
+"concrete"
 ],
 "weapon": "m4a1",
 "pen": 1
@@ -6094,6 +8007,20 @@
 "h80",
 "h80"
 ],
+"mat": [
+"solidmetal",
+"solidmetal",
+"solidmetal",
+"solidmetal",
+"solidmetal",
+"solidmetal",
+"solidmetal",
+"solidmetal",
+"solidmetal",
+"solidmetal",
+"solidmetal",
+"solidmetal"
+],
 "weapon": "m4a1",
 "pen": 1
 },
@@ -6112,6 +8039,12 @@
 "m35951",
 "m35974",
 "m35971"
+],
+"mat": [
+"wood",
+"wood_solid",
+"wood_solid",
+"wood"
 ],
 "weapon": "m4a1",
 "pen": 1
@@ -6140,6 +8073,20 @@
 "h1768",
 "h1768"
 ],
+"mat": [
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank"
+],
 "weapon": "galilar",
 "pen": 1
 },
@@ -6156,6 +8103,10 @@
 "what": [
 "m36984",
 "m36990"
+],
+"mat": [
+"wood_plank",
+"wood_plank"
 ],
 "weapon": "ak47",
 "pen": 1
@@ -6179,6 +8130,12 @@
 "m35964",
 "m35991",
 "m35990"
+],
+"mat": [
+"wood",
+"wood_solid",
+"wood_solid",
+"wood"
 ],
 "weapon": "m4a1_silencer",
 "pen": 3
@@ -6207,6 +8164,20 @@
 "h1686",
 "h1686"
 ],
+"mat": [
+"plaster",
+"concrete",
+"concrete",
+"concrete",
+"concrete",
+"concrete",
+"concrete",
+"concrete",
+"concrete",
+"concrete",
+"concrete",
+"concrete"
+],
 "weapon": "ak47",
 "pen": 1
 },
@@ -6224,6 +8195,10 @@
 "m36334",
 "m36315"
 ],
+"mat": [
+"wood_solid",
+"wood_solid"
+],
 "weapon": "awp",
 "pen": 2
 },
@@ -6240,6 +8215,10 @@
 "what": [
 "m35665",
 "m35652"
+],
+"mat": [
+"rock",
+"rock"
 ],
 "weapon": "awp",
 "pen": 1
@@ -6272,6 +8251,20 @@
 "h1703",
 "h1703"
 ],
+"mat": [
+"concrete",
+"concrete",
+"concrete",
+"concrete",
+"concrete",
+"concrete",
+"concrete",
+"concrete",
+"concrete",
+"concrete",
+"concrete",
+"concrete"
+],
 "weapon": "ak47",
 "pen": 2
 },
@@ -6293,6 +8286,10 @@
 "m59975",
 "m59964"
 ],
+"mat": [
+"plaster",
+"plaster"
+],
 "weapon": "ak47",
 "pen": 1
 },
@@ -6309,6 +8306,10 @@
 "what": [
 "m37514",
 "m37511"
+],
+"mat": [
+"concrete",
+"concrete"
 ],
 "weapon": "ak47",
 "pen": 1
@@ -6339,6 +8340,14 @@
 "m42101",
 "m41837"
 ],
+"mat": [
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"rock",
+"rock"
+],
 "weapon": "ak47",
 "pen": 3
 },
@@ -6366,6 +8375,20 @@
 "h62",
 "h62"
 ],
+"mat": [
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank",
+"wood_plank"
+],
 "weapon": "ak47",
 "pen": 1
 },
@@ -6382,6 +8405,10 @@
 "what": [
 "m39426",
 "m39636"
+],
+"mat": [
+"rock",
+"rock"
 ],
 "weapon": "galilar",
 "pen": 1
@@ -6410,6 +8437,20 @@
 "h1731",
 "h1731"
 ],
+"mat": [
+"rock",
+"concrete",
+"concrete",
+"concrete",
+"concrete",
+"concrete",
+"concrete",
+"concrete",
+"concrete",
+"concrete",
+"concrete",
+"concrete"
+],
 "weapon": "ak47",
 "pen": 1
 },
@@ -6428,6 +8469,12 @@
 "m15698",
 "m14493",
 "m14485"
+],
+"mat": [
+"concrete",
+"concrete",
+"brick",
+"brick"
 ],
 "weapon": "awp",
 "pen": 1
@@ -6455,6 +8502,20 @@
 "h1334",
 "h1334",
 "h1334"
+],
+"mat": [
+"cardboard",
+"cardboard",
+"cardboard",
+"cardboard",
+"cardboard",
+"cardboard",
+"cardboard",
+"cardboard",
+"cardboard",
+"cardboard",
+"cardboard",
+"cardboard"
 ],
 "weapon": "m4a1_silencer",
 "pen": 1

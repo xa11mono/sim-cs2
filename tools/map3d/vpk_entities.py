@@ -2,6 +2,7 @@
 """Сущности карты из файла игры (А2, 20.10.2026): python3 tools/map3d/vpk_entities.py <de_карта.vpk> <карта>
 Пишет data/maps/<карта>/geom3d/entities.json (единицы игры + координаты радара 0..2048):
   spawns_t / spawns_ct — точки появления (info_player_terrorist / info_player_counterterrorist): origin, angles, priority, enabled;
+  solid_entities       — предметы со своей физикой (func_brush, prop_physics…, двери): класс, модель, origin, angles — для А3;
   bombsites            — зоны закладки (func_bomb_target): имя, по модели — коробка min/max (единицы игры), многоугольник XY;
   buyzones             — зоны закупки (func_buyzone), так же; all_classes — сколько сущностей каждого класса.
 Как устроено: vpk → maps/<карта>/entities/*.vents_c (или вложенные «лампы» сущностей) → блок DATA = KV3 → m_entityKeyValues[]:
@@ -113,6 +114,16 @@ for cls, key in (('func_bomb_target', 'bombsites'), ('func_buyzone', 'buyzones')
         if 'teamnum' in e: r['teamnum'] = e['teamnum']
         if 'heistbomb' in e: r['heistbomb'] = e['heistbomb']
         OUT[key].append(r)
+# предметы-сущности со своей физикой (в world_physics их нет): двери, бочки, стулья, стёкла… — для А3 (форма — по модели, с поворотом)
+SOLID_CLS = ('func_brush', 'prop_physics_multiplayer', 'prop_physics', 'prop_physics_override', 'prop_dynamic', 'prop_dynamic_override',
+             'func_breakable', 'func_clip_vphysics', 'func_door', 'func_door_rotating', 'prop_door_rotating')
+OUT['solid_entities'] = []
+for e in ents:
+    if e.get('classname') not in SOLID_CLS: continue
+    r = pt(e); r['classname'] = e['classname']; r['model'] = e.get('model')
+    for k in ('solid', 'startdisabled', 'disableshadows', 'targetname'):
+        if k in e: r[k] = e[k]
+    OUT['solid_entities'].append(r)
 from collections import Counter
 OUT['all_classes'] = dict(Counter(str(e.get('classname')) for e in ents).most_common())
 dst = os.path.join(HERE, '..', '..', 'data', 'maps', MAPN, 'geom3d', 'entities.json'); os.makedirs(os.path.dirname(dst), exist_ok=True)

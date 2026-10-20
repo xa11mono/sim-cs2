@@ -2,12 +2,12 @@
 """Лучи по геометрии столкновений карты (А1, 20.10.2026) — без сторонних библиотек, только numpy.
 from raycast import World; W = World('mirage'); hit = W.ray(A, B)   # A, B — точки (x, y, z) в единицах игры
 Геометрия — data/maps/<карта>/geom3d/world_physics.npz: треугольники сеток (mesh_*) и выпуклые блоки (hull_*); небо (sky_*) не
-участвует. Ускорение — плоская сетка XY (клетка CELL ед.): каждый треугольник / блок записан во все клетки своего охвата по XY;
+участвует; что считается стеной — параметр solid (см. ниже). Ускорение — плоская сетка XY (клетка CELL ед.): каждый треугольник / блок записан во все клетки своего охвата по XY;
 луч проходит клетки точно (пересечения с линиями сетки), кандидаты проверяются разом (Мёллер — Трумбор; блок — отсечение
 отрезка плоскостями n·p ≤ d).
 Ответ ray(): None — чисто; иначе (t, kind, idx, point): t — доля пути до первого попадания, kind 'm' — треугольник сетки (idx —
 номер треугольника), 'h' — блок (idx — номер блока)."""
-import os
+import os, json
 import numpy as np
 
 ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..')
@@ -28,12 +28,31 @@ def _csr(lo, hi, x0, y0, nx, ny):
     return start, items
 
 
+# что задерживает луч (группы столкновений и материалы — из файла игры, А2):
+#  'bullet' — стены для пуль: всё, кроме групп «только для игроков / гранат» (playerclip, npcclip, ladder, csgo_grenadeclip, sky)
+#             и «пули проходят» (passbullets: решётки, окна);
+#  'sight'  — для взгляда: как 'bullet', и ещё без прозрачных материалов (glass, chainlink);
+#  'all'    — вся геометрия (как до А2).
+NOT_BULLET = {'playerclip', 'npcclip', 'ladder', 'csgo_grenadeclip', 'sky', 'passbullets', 'window'}
+SEE_THROUGH = {'glass', 'chainlink'}
+
+
+def solid_mask(z, kind, attr, surf):
+    if kind == 'all' or 'attr_json' not in z: return np.ones(len(attr), bool)
+    A = json.loads(str(z['attr_json'])); S = [s.lower() for s in z['surf_names']]
+    bad_g = np.array([bool(NOT_BULLET & {x.lower() for x in a['as']}) for a in A])
+    m = ~bad_g[attr]
+    if kind == 'sight': m &= ~np.isin(np.array(S)[surf], list(SEE_THROUGH))
+    return m
+
+
 class World:
-    def __init__(self, mapname, drop_meshes=(), drop_hulls=None):
+    def __init__(self, mapname, drop_meshes=(), drop_hulls=None, solid='sight'):
         z = np.load(os.path.join(ROOT, 'data', 'maps', mapname, 'geom3d', 'world_physics.npz'))
         self.z = z
         V = z['mesh_v'].astype(np.float64); T = z['mesh_t']; self.mesh_id = z['mesh_id']
         keep = ~np.isin(self.mesh_id, list(drop_meshes))
+        if 'mesh_attr' in z: keep &= solid_mask(z, solid, z['mesh_attr'], z['mesh_surf'])
         self.tri_keep = keep
         P = V[T]                                            # N×3×3
         self.P0 = P[:, 0]; self.E1 = P[:, 1] - P[:, 0]; self.E2 = P[:, 2] - P[:, 0]
@@ -44,6 +63,7 @@ class World:
         hhi = np.array([hv[self.hv_off[k]:self.hv_off[k + 1]].max(0) for k in range(len(hn))])
         self.hlo, self.hhi = hlo, hhi
         self.hull_keep = np.ones(len(hn), bool) if drop_hulls is None else ~np.isin(np.arange(len(hn)), list(drop_hulls))
+        if 'hull_attr' in z: self.hull_keep &= solid_mask(z, solid, z['hull_attr'], z['hull_surf'])
         # знак плоскостей: центр блока должен быть «внутри» (n·c − d < 0)
         c = np.array([hv[self.hv_off[k]:self.hv_off[k + 1]].mean(0) for k in range(len(hn))])
         hid = np.repeat(np.arange(len(pn)), pn)

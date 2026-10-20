@@ -122,3 +122,28 @@ for ci, c in enumerate(cl[:8]):
 json.dump(info, open(os.path.join(ROOT, 'tools', 'measure', 'runs', 'map3d', f'{MAP}_zoom.json'), 'w'), ensure_ascii=False, indent=0)
 print(json.dumps(info, ensure_ascii=False))
 print('кластеров', len(cl), [len(c['m']) for c in cl])
+
+# ---------- слои служебной геометрии (А2): что убрано из видимости ----------
+z = W.z
+if 'mesh_attr' in z:
+    A = json.loads(str(z['attr_json'])); SN = [s.lower() for s in z['surf_names']]
+    def tags(g): return {x.lower() for x in A[g]['as']}
+    LAY = [('playerclip (невидимые стены для игроков; на картинке — только стены до z 150, без «крышек» над картой)', lambda g, s: 'playerclip' in tags(g), '#e0301e'),
+           ('csgo_grenadeclip (только для гранат)', lambda g, s: 'csgo_grenadeclip' in tags(g), '#a855f7'),
+           ('passbullets (пули проходят)', lambda g, s: 'passbullets' in tags(g), '#22c55e'),
+           ('стекло / сетка (видно насквозь)', lambda g, s: not tags(g) and SN[s] in ('glass', 'chainlink'), '#38bdf8')]
+    f, ax = plt.subplots(figsize=(12, 12)); ax.imshow(radar, extent=[0, 2048, 2048, 0]); ax.axis('off')
+    tv = z['mesh_v'][z['mesh_t']]; ma, ms = z['mesh_attr'], z['mesh_surf']; ha, hsf = z['hull_attr'], z['hull_surf']
+    for nm, fn, col in LAY:
+        sel = np.array([fn(g, s) for g, s in zip(ma, ms)]); nall = int(sel.sum())
+        if 'playerclip' in nm:
+            nz = np.abs(np.cross(tv[:, 1] - tv[:, 0], tv[:, 2] - tv[:, 0])[:, 2]) / (np.linalg.norm(np.cross(tv[:, 1] - tv[:, 0], tv[:, 2] - tv[:, 0]), axis=1) + 1e-9)
+            sel &= (nz < 0.3) & (tv[:, :, 2].min(1) < 150)
+        if sel.any():
+            P = tv[sel]; X, Y = g2m(P[:, :, 0], P[:, :, 1])
+            ax.add_collection(PolyCollection(np.stack([X, Y], -1), facecolors=col, edgecolors=col, alpha=0.55, lw=0.5))
+        for k in np.where([fn(g, s) for g, s in zip(ha, hsf)])[0]:
+            pg = hull_poly_xy(k); X, Y = g2m(pg[:, 0], pg[:, 1]); ax.fill(X, Y, facecolor=col, edgecolor='k', lw=0.4, alpha=0.8)
+        ax.plot([], [], color=col, lw=6, label='%s: %d треуг., %d блоков' % (nm, nall, sum(fn(g, s) for g, s in zip(ha, hsf))))
+    ax.legend(loc='lower left', fontsize=9); ax.set_title('Служебная геометрия из файла игры — не закрывает взгляд', fontsize=11)
+    f.tight_layout(); f.savefig(os.path.join(IMG, 'phys_layers.png'), dpi=80); plt.close(f)

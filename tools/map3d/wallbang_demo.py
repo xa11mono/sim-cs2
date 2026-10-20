@@ -15,8 +15,11 @@ m2g = lambda x, y: (x * S2 + R['pos_x'], R['pos_y'] - y * S2); g2m = mapdir.game
 CALL = mapdir.callouts(MAP)
 def place(x, y): return min(CALL, key=lambda c: (c[1] - x) ** 2 + (c[2] - y) ** 2)[0] if CALL else '?'
 K = json.load(open(os.path.join(ROOT, 'tools', 'measure', 'runs', 'e0a_vis', f'{MAP}_kills.json')))
-W = World(MAP)
-z = W.z; HA = z['hull_attr'] if 'hull_attr' in z else None
+W = World(MAP, solid='bullet')   # стены для пуль (без playerclip, гранатных клипов, «пули проходят»)
+z = W.z; SN = list(z['surf_names']) if 'surf_names' in z else None
+def mat(kind, idx):
+    if SN is None: return '?'
+    return str(SN[z['mesh_surf'][idx]] if kind == 'm' else SN[z['hull_surf'][idx]])
 
 def solids(A, B):
     """пересечения отрезка с геометрией: [(t, вид, номер)] по порядку, все (не только первое)"""
@@ -39,7 +42,7 @@ for i, k in enumerate(K):
         if j + 1 < len(s): th += s[j + 1][0] - s[j][0]; j += 2
         else: j += 1
     rows.append({'i': i, 'open': 0, 'p': [round(float(v), 1) for v in s[0][3]], 'surf': len(s), 'thick': round(th, 1),
-                 'what': ['%s%d' % (x[1], x[2]) for x in s], 'weapon': k[9], 'pen': k[12]})
+                 'what': ['%s%d' % (x[1], x[2]) for x in s], 'mat': [mat(x[1], x[2]) for x in s], 'weapon': k[9], 'pen': k[12]})
 hit = [r for r in rows if not r['open']]
 cl = []
 for r in hit:
@@ -54,10 +57,13 @@ for c in cl:
     spots.append({'p': P.round(1).tolist(), 'radar': [round(float(rx), 1), round(float(ry), 1)], 'место': place(rx, ry), 'n': len(c['m']),
                   'оружие': dict(collections.Counter(r['weapon'] for r in c['m']).most_common()),
                   'толщина_медиана': round(float(np.median([r['thick'] for r in c['m']])), 1),
-                  'предметы': dict(collections.Counter(r['what'][0] for r in c['m']).most_common(4))})
+                  'предметы': dict(collections.Counter(r['what'][0] for r in c['m']).most_common(4)),
+                  'материал': dict(collections.Counter(r['mat'][0] for r in c['m']).most_common(3))})
 S = {'прострелов': len(rows), 'геометрия закрывает': len(hit), 'линия открыта (пробит, видимо, игрок / мелочь)': len(rows) - len(hit),
      'толщина, ед. (медиана / 90 %)': [round(float(np.median([r['thick'] for r in hit])), 1), round(float(np.percentile([r['thick'] for r in hit], 90)), 1)],
-     'поверхностей на луче (медиана)': float(np.median([r['surf'] for r in hit]))}
+     'поверхностей на луче (медиана)': float(np.median([r['surf'] for r in hit])),
+     'материал первой поверхности': dict(collections.Counter(r['mat'][0] for r in hit).most_common()),
+     'все пробитые материалы (по поверхностям)': dict(collections.Counter(m for r in hit for m in r['mat']).most_common())}
 dst = mapdir.path(MAP, 'geom3d', 'wallbang_demo.json') if hasattr(mapdir, 'path') else None
 json.dump({'S': S, 'spots': spots, 'kills': rows}, open(dst, 'w'), ensure_ascii=False, indent=0)
 import matplotlib; matplotlib.use('Agg'); import matplotlib.pyplot as plt
@@ -69,4 +75,4 @@ for s in spots:
     if s['n'] >= 3: ax.text(s['radar'][0] + 12, s['radar'][1], '%d · %s ед.' % (s['n'], s['толщина_медиана']), fontsize=8, color='white', zorder=5)
 ax.set_title(f'Прострелы про сквозь геометрию ({len(hit)}): точки входа (размер — сколько), подпись — число · толщина', fontsize=10)
 f.tight_layout(); f.savefig(os.path.join(ROOT, 'docs', 'reports', 'map3d', 'wallbang_demo.png'), dpi=80)
-print(json.dumps(S, ensure_ascii=False)); print([(s['место'], s['n'], s['толщина_медиана']) for s in spots[:12]])
+print(json.dumps(S, ensure_ascii=False)); print([(s['место'], s['n'], s['толщина_медиана'], s['материал']) for s in spots[:12]])

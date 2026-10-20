@@ -7,7 +7,8 @@
             таз Z+30, присевшая голова Z+44, со сдвигом ±12 ед. вбок (плечи) — 2 × 9 лучей.
 Где закрыто — первый предмет на луче «глаза 64 → грудь» и все предметы вдоль него; предметы — куски сеток (связные по общим
 вершинам) и блоки. Обратная проверка — пары neg (2 с не стреляли, face=1 — смотрели друг на друга): «видно» = Z+64 → голова/грудь.
-Пишет tools/measure/runs/map3d/<карта>_los.json и картинки docs/reports/map3d/los_*.png."""
+Что считается стеной — --solid=sight (по умолчанию: без playerclip, гранатных клипов, «пули проходят», стекла и сетки), bullet, all.
+Пишет tools/measure/runs/map3d/<карта>_los[_<solid>].json и картинки docs/reports/map3d/los_*.png."""
 import sys, os, json, math, collections, time
 import numpy as np
 HERE = os.path.dirname(os.path.abspath(__file__)); sys.path.insert(0, HERE); sys.path.insert(0, os.path.join(HERE, '..'))
@@ -25,7 +26,9 @@ CALL = mapdir.callouts(MAP)
 def place(x, y):
     return min(CALL, key=lambda c: (c[1] - x) ** 2 + (c[2] - y) ** 2)[0] if CALL else '?'
 
-W = World(MAP)
+SOLID = next((a.split('=')[1] for a in sys.argv if a.startswith('--solid=')), 'sight')   # sight / bullet / all (raycast.py)
+W = World(MAP, solid=SOLID)
+SUF = '' if SOLID == 'sight' else '_' + SOLID
 # куски сеток: треугольники, связанные общими вершинами
 T = W.z['mesh_t']; nT = len(T)
 rows = np.repeat(np.arange(nT), 3); cols = T.ravel()
@@ -109,6 +112,6 @@ def info(e):
     k = int(e[1:]); return {'вид': 'блок', 'вершин': int(W.z['hull_vn'][k]), 'lo': W.hlo[k].round().tolist(), 'hi': W.hhi[k].round().tolist()}
 S['предметы'] = {e: info(e) for e, _ in (first + only).most_common(40)}
 S['мест закрыто (убийца или жертва)'] = collections.Counter(place(*(K[r['i']][3:5])) for r in closed).most_common(15)
-json.dump({'S': S, 'kills': res, 'neg_n': len(neg)}, open(os.path.join(OUT, f'{MAP}_los.json'), 'w'), ensure_ascii=False)
+json.dump({'S': S, 'kills': res, 'neg_n': len(neg)}, open(os.path.join(OUT, f'{MAP}_los{SUF}.json'), 'w'), ensure_ascii=False)
 print(json.dumps({k: v for k, v in S.items() if k != 'предметы'}, ensure_ascii=False, indent=1)[:4000])
 print('time', round(time.time() - t0), 's')
