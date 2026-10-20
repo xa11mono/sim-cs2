@@ -553,7 +553,9 @@ function stepTick(){
           var mvStep = TURN_RATE * dtSec;
           bot.facing += Math.max(-mvStep, Math.min(mvStep, mvD));
         }
-        if(actuallyMoved > Math.max(0.3, step*0.15)){
+        // (Б1, Х1, сторож 21.10) «не сдвинулся» — меньше 15 % своего шага, без порога 0,3 ед.: при скорости < 19 ед./с (тормозит у
+        // точки, шифт с тяжёлым оружием) целый шаг меньше 0,3, и бот, честно идущий медленно, через 40 тиков «застревал» → перенос
+        if(actuallyMoved > step*0.15){
           bot.stuckTicks = 0;
           if(actuallyMoved > step*0.6) bot._stuckResets = 0;
         } else {
@@ -565,7 +567,7 @@ function stepTick(){
             // свободную сторону, иначе он так и будет стоять до конца раунда.
             bot._stuckResets = (bot._stuckResets||0) + 1;
             if(bot._stuckResets >= 2) escapeWallLine(bot);
-            if(bot._stuckResets >= 2 || !navNearLevel(bot.baseX, bot.baseY, NAV_STEP_TOL, bot.z)){ bot._stuckResets = 0;
+            if(bot._stuckResets >= 2 || !navOnFloor(bot.baseX, bot.baseY, bot)){ bot._stuckResets = 0;
               navSnap(bot);
             } // was 90 (~1.4s) — with local navmesh/wall mismatches near doorways more likely right now (calibration mid-progress), a bot pinned there should give up and re-path faster (~0.6s) instead of visibly grinding against the corner
             // this straight-line path is bad (cuts through wall geometry a
@@ -599,7 +601,9 @@ function stepTick(){
         // (v333) вне навмеша с путём дольше 0,5 с — на ближайший пол (заплатка, navSnap)
         // (v340) «вне пола» — тем же допуском, что и шаг (offNavStep, NAV_STEP_TOL): у края пола (1–3 ед.) бот стоит законно, а
         // перенос его выкидывал (9 раз за 7 с в отметке владельца)
-        if(bot.path.length && bot.pathIdx < bot.path.length && !navNearLevel(bot.baseX, bot.baseY, NAV_STEP_TOL, bot.z)){ if(++bot._offNav > 32) navSnap(bot); } else bot._offNav = 0;
+        // (Б1, Х1) «вне пола» — тем же navOnFloor, что пускает шаг: законная щель между связанными участками — пол (шов, вдоль которого
+        // идёт путь, — 73 % переносов на Mirage)
+        if(bot.path.length && bot.pathIdx < bot.path.length && !navOnFloor(bot.baseX, bot.baseY, bot)){ if(++bot._offNav > 32) navSnap(bot); } else bot._offNav = 0;
         if(bot.path.length && bot.pathIdx < bot.path.length){
           var pw = bot.path[bot.pathIdx];
           var pd = Math.hypot(pw[0]-bot.baseX, pw[1]-bot.baseY);
