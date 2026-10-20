@@ -28,7 +28,11 @@
     var K = WK.blk[kind] || (WK.blk[kind] = {}); K[top] = (K[top]||0) + 1;
     if(WK.blkEx.length < 600) WK.blkEx.push([tick, b.id, kind, top, c, Math.round(b.baseX), Math.round(b.baseY), b.z == null ? null : Math.round(b.z),
       typeof calloutName === "function" ? calloutName(b.baseX, b.baseY) : "", b.post ? String(b.post.tag) : "-"]); }
-  var NS = navSnap; navSnap = function(b){ if(roundState === "live") blkNote("snap", b); var x0 = b.baseX, y0 = b.baseY, z0 = b.z; var r = NS.apply(this, arguments);
+  // (Б1, Х1) перенос: откуда вызван (строка сборки) и как бот шёл 48 тиков до него — [скорость, сдвиг, стоял по делу?] по тикам
+  WK.snapWho = {}; WK.snapHist = [];
+  var NS = navSnap; navSnap = function(b){ if(roundState === "live"){ blkNote("snap", b);
+      var st = String(new Error().stack).split("\n")[2] || "", l = /:(\d+):\d+\)?$/.exec(st), k = l ? l[1] : "?"; WK.snapWho[k] = (WK.snapWho[k]||0) + 1;
+      if(WK.snapHist.length < 300) WK.snapHist.push([tick, b.id, k, (b.__mh || []).slice()]); } var x0 = b.baseX, y0 = b.baseY, z0 = b.z; var r = NS.apply(this, arguments);
     if(b.baseX !== x0 || b.baseY !== y0) WK.nav.push([tick, "snap", b.id, b.team, Math.round(x0), Math.round(y0), z0 == null ? null : Math.round(z0),
       b.post ? String(b.post.tag) : "-", Math.round(Math.hypot(b.baseX-x0, b.baseY-y0)), b.z == null ? null : Math.round(b.z)]); return r; };
   var NU = navUnlinkBlocked; navUnlinkBlocked = function(b){ if(roundState === "live") row("noprog", b); return NU.apply(this, arguments); };
@@ -59,7 +63,8 @@
     return r; };
   WK.tick = function(){
     if(roundState !== "live"){ WK.S = {}; return; }
-    bots.forEach(function(b){ wrapBot(b); if(!b.alive) return;
+    bots.forEach(function(b){ wrapBot(b); if(!b.alive) return; var mh = b.__mh || (b.__mh = []), lp = b.__mp; mh.push([Math.round(b.curSpeed||0), lp ? Math.round(Math.hypot(b.baseX-lp[0], b.baseY-lp[1])*10)/10 : 0,
+      b._idleT === tick ? 1 : 0, b.stuckTicks||0]); if(mh.length > 48) mh.shift(); b.__mp = [b.baseX, b.baseY];
       var s = WK.S[b.id] || (WK.S[b.id] = {pos:[], want:[], why:[]});
       var hasPath = !!(b.path && b.pathIdx < b.path.length), fc = !!(b._fc && b._fc.ph !== "line");
       // хотел идти в этом тике — то же условие, что пускает шаг в stepTick (без лестницы)
@@ -87,6 +92,6 @@
             (s.pc||[]).map(function(c){ return c[1] + (c[2] === 2 ? "**" : c[2] ? "*" : "") + (c[3] ? "" : "∅"); }), (s.ps||[]).map(function(c){ return c[1]; }), s.postT == null ? -1 : tick - s.postT]); } }
     });
   };
-  WK.report = function(){ return {nav:WK.nav, stall:WK.stall, who:WK.who, post:WK.post, blk:WK.blk, blkEx:WK.blkEx}; };
+  WK.report = function(){ return {nav:WK.nav, stall:WK.stall, who:WK.who, post:WK.post, blk:WK.blk, blkEx:WK.blkEx, snapWho:WK.snapWho, snapHist:WK.snapHist}; };
   g.WALK = WK;
 })();
