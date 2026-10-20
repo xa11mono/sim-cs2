@@ -4,6 +4,9 @@
 // stall — как в watch.js (задача «идти», не на посту, не занят, за 5 с < 25 px), плюс почему стоит:
 //         want — доля тиков из этих 5 с, когда бот хотел идти (есть путь, скорость > 0.5, не holding, не fightCycle);
 //         want ≥ 0,5 → «не может идти», иначе «стоит по задаче» (holding / скорость 0 / нет пути).
+// who   — (шаг Б1) кто меняет путь: у каждого бота свойство path обёрнуто (запись вызывающего по стеку), setPost — тоже
+//         (новый пост: тег, кто поставил). В stall — сколько раз и кем сменён путь за те же 5 с, и сколько раз сменилась цель
+//         (конец пути сдвинулся > 60 px), итог по всем — WK.who[кто] = [смен, смен цели].
 // path  — позиции живых раз в 16 тиков (для путей ботов против про) берутся из REC.pos.
 (function(){
   var WK = {nav:[], stall:[], S:{}};
@@ -19,9 +22,30 @@
   var LE = logEvent; logEvent = function(msg){ var s = String(msg);
     if(/спрыгнул на начало пути/.test(s)){ var id = s.split(":")[0]; var b = bots.find(function(o){ return o.id === id; }); if(b) row("ledge", b); }
     return LE.apply(this, arguments); };
+  WK.who = {}; WK.post = {};
+  function caller(skip){ var st = String(new Error().stack).split("\n").slice(2 + skip), out = [];
+    for(var i = 0; i < st.length && out.length < 3; i++){ var m = /at (?:Object\.|globalThis\.)?([\w$]+) \(/.exec(st[i]), nm;
+      if(m) nm = m[1]; else { var l = /:(\d+):\d+\)?$/.exec(st[i]); nm = "@" + (l ? l[1] : "?"); }
+      if(/^(setPost|set|SP|Array|forEach|some|filter|map|eval)$/.test(nm)) continue; out.push(nm); }
+    return out.join("<"); }
+  function wrapBot(b){ if(b.__pw) return; b.__pw = 1; var v = b.path;
+    Object.defineProperty(b, "path", {enumerable:true, configurable:true, get:function(){ return v; }, set:function(nv){
+      if(roundState === "live" && b.alive){ var who = caller(1), s = WK.S[b.id] || (WK.S[b.id] = {pos:[], want:[], why:[]});
+        var e = nv && nv.length ? nv[nv.length-1] : null, moved = 0;
+        if(/^assignNewDestination/.test(who)) who += "[" + (b.state === "retreat" ? "retreat" : (b.post && b.state === "patrol") ? "post" :
+          (b.role === "roamer" && b.state === "patrol") ? "roam" : "pool:" + b.state) + "]";
+        var pid = b.post ? b.post.id : "-";
+        if(e){ if(s.lastEnd && Math.hypot(e[0]-s.lastEnd[0], e[1]-s.lastEnd[1]) > 60) moved = s.lastPid === pid ? 2 : 1; s.lastEnd = [e[0], e[1]]; s.lastPid = pid; }
+        (s.pc || (s.pc = [])).push([tick, who, moved, e ? 1 : 0]);
+        var w = WK.who[who] || (WK.who[who] = [0, 0, 0]); w[0]++; w[1] += moved ? 1 : 0; w[2] = (w[2]||0) + (moved === 2 ? 1 : 0); }
+      v = nv; }}); }
+  var SP = setPost; setPost = function(b, pt, look, hold, tag){ var id0 = b.post ? b.post.id : null; var r = SP.apply(this, arguments);
+    if(roundState === "live" && b.alive && b.post && b.post.id !== id0){ var who = caller(1), k = String(b.post.tag).split(":")[0] + "<" + who.split("<")[0];
+      var s = WK.S[b.id] || (WK.S[b.id] = {pos:[], want:[], why:[]}); (s.ps || (s.ps = [])).push([tick, k]); WK.post[k] = (WK.post[k]||0) + 1; }
+    return r; };
   WK.tick = function(){
     if(roundState !== "live"){ WK.S = {}; return; }
-    bots.forEach(function(b){ if(!b.alive) return;
+    bots.forEach(function(b){ wrapBot(b); if(!b.alive) return;
       var s = WK.S[b.id] || (WK.S[b.id] = {pos:[], want:[], why:[]});
       var hasPath = !!(b.path && b.pathIdx < b.path.length), fc = !!(b._fc && b._fc.ph !== "line");
       // хотел идти в этом тике — то же условие, что пускает шаг в stepTick (без лестницы)
@@ -31,6 +55,8 @@
       var rp = (s.lp !== undefined && s.lp !== b.path) ? 1 : 0; s.lp = b.path;
       (s.tr || (s.tr = [])).push([dl, rp]); if(s.tr.length > 320) s.tr.shift();
       s.want.push(w ? 1 : 0); s.why.push(w ? "" : (b.holding ? "holding" : (!hasPath ? "nopath" : (fc ? "fight" : "speed0")))); if(s.want.length > 320){ s.want.shift(); s.why.shift(); }
+      while(s.pc && s.pc.length && s.pc[0][0] < tick - 320) s.pc.shift();
+      while(s.ps && s.ps.length && s.ps[0][0] < tick - 320) s.ps.shift();
       if(tick % 16) return;
       s.pos.push([b.x, b.y]); if(s.pos.length > 21) s.pos.shift();
       var busy = b.planting || b.defusing || b._climb || b._sawEnemy || b._fc || tick < (b.blindUntil||0) || tick < (b.throwUntil||0);
@@ -43,9 +69,10 @@
           WK.stall.push([tick, b.id, b.team, Math.round(b.x), Math.round(b.y), b.z == null ? null : Math.round(b.z), String(b.post.tag),
             Math.round(Math.hypot(b.post.x-b.x, b.post.y-b.y)), hasPath ? b.path.length - b.pathIdx : -1, Math.round(wn/n*100)/100, top,
             String(b.state||""), b.atPost ? 1 : 0,
-            Math.round(s.tr.reduce(function(a, c){ return a + c[0]; }, 0)), s.tr.reduce(function(a, c){ return a + c[1]; }, 0)]); } }
+            Math.round(s.tr.reduce(function(a, c){ return a + c[0]; }, 0)), s.tr.reduce(function(a, c){ return a + c[1]; }, 0),
+            (s.pc||[]).map(function(c){ return c[1] + (c[2] === 2 ? "**" : c[2] ? "*" : "") + (c[3] ? "" : "∅"); }), (s.ps||[]).map(function(c){ return c[1]; })]); } }
     });
   };
-  WK.report = function(){ return {nav:WK.nav, stall:WK.stall}; };
+  WK.report = function(){ return {nav:WK.nav, stall:WK.stall, who:WK.who, post:WK.post}; };
   g.WALK = WK;
 })();
