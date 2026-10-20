@@ -26,8 +26,10 @@ import time
 todo = [(l, f, m) for l, f in jobs for m in matches]; run = []; total = len(todo); fin = 0
 def start(l, f, m):
     src = tpl.replace('__M__', str(m)).replace('__T__', '200000').replace('/*@@WATCH@@*/', watch)
+    # (Б2) код матча — файлом («@путь»): со сторожем знания он длиннее предела командной строки Windows (32 767 знаков)
+    js = os.path.join(MEAS, 'runs', l, f'_rec_{m}.js'); open(js, 'w', encoding='utf-8').write(src)
     fo = open(os.path.join(MEAS, 'runs', l, f'rec_{m}.json'), 'w', encoding='utf-8')
-    return [subprocess.Popen(['node', 'src/q.js', f, src], cwd=ROOT, stdout=fo), fo, l, m, time.time()]   # без `timeout`: на Windows его нет
+    return [subprocess.Popen(['node', 'src/q.js', f, '@' + js], cwd=ROOT, stdout=fo), fo, l, m, time.time()]   # без `timeout`: на Windows его нет
 T0 = time.time()
 print(f'матчей в очереди: {total}, одновременно: {par}', flush=True)
 while todo or run:
