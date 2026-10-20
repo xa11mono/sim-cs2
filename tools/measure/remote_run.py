@@ -28,7 +28,8 @@ def build(ref, mapname, out):
     tmp = tempfile.mkdtemp(prefix='simbuild_')
     try:
         sh(['git', 'fetch', '--quiet', 'origin', ref], cwd=ROOT)
-        sh(['git', 'worktree', 'add', '--quiet', '--detach', '--force', tmp, 'FETCH_HEAD'], cwd=ROOT)
+        sh(['git', '-c', 'core.autocrlf=false', 'worktree', 'add', '--quiet', '--detach', '--force', tmp, 'FETCH_HEAD'], cwd=ROOT)
+        # без CRLF: Git для Windows по умолчанию меняет концы строк — сборка была бы не та, что в облаке
         sh([PY, os.path.join(tmp, 'src', 'build.py'), '--map', mapname, out], cwd=tmp)
     finally:
         subprocess.run(['git', 'worktree', 'remove', '--force', tmp], cwd=ROOT)

@@ -22,7 +22,7 @@ jobs:
         run: |
           python tools/measure/remote_run.py > run.log 2>&1
           set RC=%ERRORLEVEL%
-          python -c "[print('::notice::'+l.rstrip()) for l in open('run.log',encoding='utf-8',errors='replace').readlines()[-25:]]"
+          python -c "[print('::notice::'+l.rstrip()) for l in open('run.log',encoding='utf-8',errors='replace').readlines()[-8:]]"
           exit /b %RC%
       - name: Upload results
         if: always()
