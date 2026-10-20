@@ -56,15 +56,17 @@ function computeZoneDanger(){
   var zs = ZONEMAP.zones, ids = zs.map(function(z){ return z.id; });
   ids.forEach(function(id){ ZONE_DANGER[id] = []; ZONE_DANGER_W[id] = {}; ZONE_DANGER_LINE[id] = {}; });
   zs.forEach(function(z){ ZONE_SAMPLES[z.id] = sampleZone(z); });
+  // (А5) по геометрии у точки зоны — этаж зоны (её высота z: Underpath под Short), иначе — верхний пол
+  var zz = zs.map(function(z){ return m3() && z.z != null ? z.z : null; });
   for(var i=0;i<ids.length;i++){
     for(var j=i+1;j<ids.length;j++){
-      var A = ZONE_SAMPLES[ids[i]], B = ZONE_SAMPLES[ids[j]];
+      var A = ZONE_SAMPLES[ids[i]], B = ZONE_SAMPLES[ids[j]], zA = zz[i], zB = zz[j];
       // (v243) видно ли — та же 3D-видимость, что в бою (visLine: стены, укрытия, пол/уступы, крыши),
       // глаза стоящего человека с обеих сторон; раньше — только плоские стены
       var seen = 0, first = null;
       for(var a=0;a<A.length;a++) for(var b=0;b<B.length;b++){
         var pa = A[a], pb = B[b];
-        if(visLine(pa.x, pa.y, visFloorAt(pa.x, pa.y) + VIS_EYE.stand, pb.x, pb.y, visFloorAt(pb.x, pb.y) + VIS_EYE.stand, false)){ seen++; if(!first) first = [pa, pb]; }
+        if(visLine(pa.x, pa.y, visFloorAt(pa.x, pa.y, zA) + VIS_EYE.stand, pb.x, pb.y, visFloorAt(pb.x, pb.y, zB) + VIS_EYE.stand, false)){ seen++; if(!first) first = [pa, pb]; }
       }
       if(seen > 0){
         var wgt = seen/(A.length*B.length);
@@ -98,6 +100,7 @@ function applyZoneLayer(heavy){
 // (bullets/visibility); this is the same wall geometry used as a physical
 // obstacle for bot movement (see stepTick's wall-slide below).
 function crossesWall(x1,y1,x2,y2){
+  if(MAP3D) return !!m3SolidHit(x1, y1, x2, y2);   // (А5) по геометрии игры, стены радара — только рисование
   for(var i=0;i<wallSegs.length;i++){
     var s = wallSegs[i];
     if(segIntersect(x1,y1,x2,y2,s[0],s[1],s[2],s[3])) return true;

@@ -7,7 +7,21 @@
 // VIS.ceil, тот же, что для видимости). under — цель под крышей и дуга заходит под неё: граната падает под крышу, а не на неё.
 // Нет такой — низом (если цель видна) или не кидает. Высоты — ед. игры; дуги — проектные числа
 var NADE_HAND = 60, NADE_ARCS = [380, 220, 120, 60];
+// (А5) по геометрии: дуга — ломаная из NADE_ARC_SEG отрезков, каждый — луч гранаты m3Line(…, 'nade'): крыши, стены, ящики,
+// решётки как в игре (полёт по настоящей физике — шаг В2)
+var NADE_ARC_SEG = 12;
 function nadeArc(b, tx, ty){
+  var M = m3();
+  if(M){
+    var za = visFloorAt(b.x, b.y, b.z) + NADE_HAND, zb = visFloorAt(tx, ty) + 10, cov = nadeCovered(tx, ty);
+    for(var a3 = 0; a3 < NADE_ARCS.length; a3++){
+      var h3 = NADE_ARCS[a3], ok3 = true, px3 = b.x, py3 = b.y, pz3 = za;
+      for(var k3 = 1; k3 <= NADE_ARC_SEG && ok3; k3++){ var t3 = k3/NADE_ARC_SEG, x3 = b.x + (tx-b.x)*t3, y3 = b.y + (ty-b.y)*t3, z3 = za + (zb-za)*t3 + 4*h3*t3*(1-t3);
+        if(!m3Line(M, px3, py3, pz3, x3, y3, z3, "nade")) ok3 = false; px3 = x3; py3 = y3; pz3 = z3; }
+      if(ok3) return {h: h3, under: cov};
+    }
+    return null;
+  }
   visReady();
   var z0 = (b.z != null ? b.z : visFloorAt(b.x, b.y)) + NADE_HAND, z1 = visFloorAt(tx, ty) + 10;
   var d = Math.hypot(tx-b.x, ty-b.y), n = Math.max(2, Math.ceil(d / VIS_CELL)), W = VIS.W, Cl = VIS.ceil, S = VIS.solid;
@@ -56,7 +70,13 @@ function nadeTallWall(x1, y1, x2, y2, type){
   for(var k = 1; k < n; k++){ var t = k/n; if(insideSolidWall(x1 + (x2-x1)*t, y1 + (y2-y1)*t)){ run += d/n; if(run > lim) return true; } else run = 0; }
   return false;
 }
+// (А5) по геометрии: над полом точки (верхний этаж, куда дойти пешком) есть преграда для гранат выше роста — крыша, балкон
 function nadeCovered(x, y){
+  var M = m3();
+  if(M){ var c = m3Cell(M, x, y); if(c < 0) return false;
+    var C = m3Col(M, "nade"), fz = visFloorAt(x, y);
+    for(var q = C.st[c]; q < C.st[c+1]; q++) if(C.lo[q] > fz + 80) return true;
+    return false; }
   visReady();
   var i = Math.floor(x / VIS_CELL), j = Math.floor(y / VIS_CELL);
   if(i >= 0 && j >= 0 && i < VIS.W && j < VIS.W && VIS.ceil[j*VIS.W + i] < Infinity) return true;
@@ -91,7 +111,7 @@ function throwNade(b, type, tx, ty, lob, why, trusted){
   // (v370) остальное — дугой по высоте (nadeArc): навес, что проходит под потолками; нет — низом, если цель видна
   if(lob && !trusted && nadeTallWall(b.x, b.y, tx, ty, type)){ NADE_FAIL = "стена на пути"; return false; }   // (v373) сквозь стену — только как кидают про (MAP.nadelanes)
   var ARC = lob ? (trusted ? {h: NADE_ARCS[0], under: nadeCovered(tx, ty)} : nadeArc(b, tx, ty)) : null;   // (v375, отметка: молотов лайнапа про в T Ramp «пропадал» — падал «на крышу») лайнап про попадает под крышу, как у про
-  if(lob && !ARC){ if(!hasLOS(b.x, b.y, tx, ty)){ NADE_FAIL = "дуга упирается в потолок, цель не видна"; return false; } lob = false; }
+  if(lob && !ARC){ if(!hasLOS(b.x, b.y, tx, ty, b.z)){ NADE_FAIL = "дуга упирается в потолок, цель не видна"; return false; } lob = false; }
   // (v340, отметка владельца: «кидает через крытую зону» — kyousuke из-под крыши B Apps навесом через стену) сам под крышей /
   // под другим этажом — навесом нельзя (дуга упрётся в потолок): только низом, если цель видна (окно, проход)
   b.nades[type]--; b._nadeT = tick; b._lastNade = {type:type, x:tx, y:ty, t:tick};
@@ -198,7 +218,7 @@ function updateNadeTasks(){
       if(!throwNade(b, t.type, t.x, t.y, true, t.why, !t.gen) && NADE_FAIL && /пауза|свой/.test(NADE_FAIL)) return;   // своя точка (gen) — дуга проверяется
       b.nadeTask = null; if(b.post && b.post.tag === "lineup") clearPost(b); return;
     }
-    if(d <= t.range && hasLOS(b.x, b.y, t.x, t.y)){
+    if(d <= t.range && hasLOS(b.x, b.y, t.x, t.y, b.z)){
       if(!nadeReady(b)) return;   // (v340) только что кинул другую — задание ждёт
       throwNade(b, t.type, t.x, t.y, false, t.why); b.nadeTask = null;
     } else if(t.lob && d <= t.range*0.85 && (t.now || tick - t.start > 64)){

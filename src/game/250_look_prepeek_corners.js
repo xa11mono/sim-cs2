@@ -37,7 +37,7 @@ function openDirLook(b){
   var postA = b.post && b.post.look ? Math.atan2(b.post.look.y-b.y, b.post.look.x-b.x) : null;
   var addZ = function(j){ if(j < 0 || seen[j]) return; seen[j] = 1;
     (ZONE_SAMPLES[BZ.ids[j]] || (BZ.cent[j] ? [BZ.cent[j]] : [])).forEach(function(q){ var d = Math.hypot(q.x-b.x, q.y-b.y);
-      if(d < 120 || d > 900 || !hasLOS(b.x, b.y, q.x, q.y) || lookOnMate(b, q)) return;
+      if(d < 120 || d > 900 || !hasLOS(b.x, b.y, q.x, q.y, b.z) || lookOnMate(b, q)) return;
       var sc = beliefZoneKnown(b.team, j) + (reachPossible(b.team, j) ? 0.35 : 0) + d/3000;
       if(postA !== null){ var off = Math.abs(((Math.atan2(q.y-b.y, q.x-b.x)-postA+Math.PI)%(2*Math.PI)+2*Math.PI)%(2*Math.PI)-Math.PI); sc += 0.15*Math.cos(off); }
       cands.push({p:q, sc:sc}); }); };
@@ -67,7 +67,7 @@ function aheadCorner(b){
   for(var i=b.pathIdx; i<b.path.length && i < b.pathIdx+8; i++){
     var q = {x:b.path[i][0], y:b.path[i][1]}; acc += Math.hypot(q.x-prev.x, q.y-prev.y); prev = q;
     if(acc > 420) return null;
-    if(!hasLOS(b.x, b.y, q.x, q.y)){
+    if(!hasLOS(b.x, b.y, q.x, q.y, b.z)){
       var vis = i > b.pathIdx ? {x:b.path[i-1][0], y:b.path[i-1][1]} : null;
       if(!vis) return null;
       return {pt:vis, beyond:q, dist:Math.hypot(vis.x-b.x, vis.y-b.y)};
@@ -198,10 +198,10 @@ function appearFrom(b, q){
   var prev = {x:q.x, y:q.y};
   for(var i=0;i<wp.length;i++){
     var p = {x:wp[i][0], y:wp[i][1]};
-    if(hasLOS(b.x, b.y, p.x, p.y)){
+    if(hasLOS(b.x, b.y, p.x, p.y, b.z)){
       // уточняем на отрезке prev→p: первая видимая точка
       var lo = 0, hi = 1;
-      for(var it=0; it<6; it++){ var m = (lo+hi)/2, mp = {x:prev.x+(p.x-prev.x)*m, y:prev.y+(p.y-prev.y)*m}; if(hasLOS(b.x, b.y, mp.x, mp.y)) hi = m; else lo = m; }
+      for(var it=0; it<6; it++){ var m = (lo+hi)/2, mp = {x:prev.x+(p.x-prev.x)*m, y:prev.y+(p.y-prev.y)*m}; if(hasLOS(b.x, b.y, mp.x, mp.y, b.z)) hi = m; else lo = m; }
       var r = {x:prev.x+(p.x-prev.x)*hi, y:prev.y+(p.y-prev.y)*hi};
       if(Math.hypot(r.x-b.x, r.y-b.y) < 50) return null;
       b._apfV = r; return r;
@@ -248,14 +248,14 @@ function cornerLook0(b, p, from){
   var H = b && b._hold;
   var o = from || ((H && H.post === b.post && b.atPost && Math.hypot(b.x-H.ax, b.y-H.ay) <= 26) ? {x: H.ax, y: H.ay} : b);
   if(smokes.length){ var se = smokeEdge(o, p); if(se) return se; }
-  if(hasLOS(o.x, o.y, p.x, p.y)) return p;
+  if(hasLOS(o.x, o.y, p.x, p.y, o.z)) return p;
   var pk = Math.round(p.x/80)+","+Math.round(p.y/80);
   // та же цель и прежний угол всё ещё виден — не пересчитываем (переминание на
   // месте иначе меняло "ближайший угол" и бот вертел головой)
   // (этап 4, P1) угол, выбранный по пути (бот тогда стоял дальше), мог оказаться точкой, куда бот потом встал: «смотреть» в
   // точку под ногами — направление прыгает от сдвига на пиксели (repos:assist: угол = место поста, повороты 78–152°).
   // Старый угол годится, только если он не ближе 30 px — как и при выборе нового (ниже)
-  if(b._cornerPK === pk && b._cornerPt && Math.hypot(b._cornerPt.x-o.x, b._cornerPt.y-o.y) > 30 && hasLOS(o.x, o.y, b._cornerPt.x, b._cornerPt.y)) return b._cornerPt;
+  if(b._cornerPK === pk && b._cornerPt && Math.hypot(b._cornerPt.x-o.x, b._cornerPt.y-o.y) > 30 && hasLOS(o.x, o.y, b._cornerPt.x, b._cornerPt.y, o.z)) return b._cornerPt;
   b._cornerPK = pk;
   // угол — это место, где путь к цели уходит из видимости: последняя видимая
   // точка пути по навмешу (оттуда враг и выйдет). Раньше брались видимые точки
@@ -263,7 +263,7 @@ function cornerLook0(b, p, from){
   var wp = buildWaypointPath(o.x, o.y, 0, p.x, p.y, 0), vis = null;
   for(var wi=0; wi<wp.length; wi++){
     var q0 = {x:wp[wi][0], y:wp[wi][1]};
-    if(hasLOS(o.x, o.y, q0.x, q0.y)){ if(Math.hypot(q0.x-o.x, q0.y-o.y) > 30) vis = q0; }
+    if(hasLOS(o.x, o.y, q0.x, q0.y, o.z)){ if(Math.hypot(q0.x-o.x, q0.y-o.y) > 30) vis = q0; }
     else break;
   }
   if(vis){ b._cornerPt = vis; return vis; }
@@ -274,7 +274,7 @@ function cornerLook0(b, p, from){
   var best = null, bd = Infinity;
   cand.forEach(function(q){
     var dq = Math.hypot(q.x-o.x, q.y-o.y); if(dq < 40) return;
-    if(!hasLOS(o.x, o.y, q.x, q.y)) return;
+    if(!hasLOS(o.x, o.y, q.x, q.y, o.z)) return;
     var sc = Math.hypot(q.x-p.x, q.y-p.y) + 0.15*dq;
     if(sc < bd){ bd = sc; best = q; }
   });

@@ -19,10 +19,12 @@ function vtCompute(){
   var A = VT.a, st = VT.step, n = Math.ceil(2048 / st), t0 = performance.now();
   var cnv = document.createElement("canvas"); cnv.width = n; cnv.height = n;
   var c2 = cnv.getContext("2d"), im = c2.createImageData(n, n), D = im.data;
-  var W = VIS.W, F = VIS.floor, S = VIS.solid;
+  var M = m3(), W = M ? 0 : VIS.W, F = M ? null : VIS.floor, S = M ? null : VIS.solid;
   for(var j = 0; j < n; j++) for(var i = 0; i < n; i++){
-    var x = (i + 0.5)*st, y = (j + 0.5)*st, k = Math.floor(y / VIS_CELL)*W + Math.floor(x / VIS_CELL);
-    if(F[k] === -Infinity || S[k] > F[k] + VIS_FLOOR_EPS + 1) continue;   // не пол (стена, пустота; верх укрытия — пол, если на нём навмеш)
+    var x = (i + 0.5)*st, y = (j + 0.5)*st;
+    if(M){ if(m3FloorKinds(M, x, y).indexOf(1) < 0) continue; }   // (А5) не пол, куда можно дойти пешком (этажи геометрии)
+    else { var k = Math.floor(y / VIS_CELL)*W + Math.floor(x / VIS_CELL);
+      if(F[k] === -Infinity || S[k] > F[k] + VIS_FLOOR_EPS + 1) continue; }   // не пол (стена, пустота; верх укрытия — пол, если на нём навмеш)
     var s = vtSees(A.x, A.y, false, x, y, false), c = vtSees(A.x, A.y, true, x, y, false);
     var vs = s.head || s.body, vc = c.head || c.body; if(!vs && !vc) continue;
     var col = vs && vc ? [70, 220, 90] : (vs ? [250, 205, 40] : [70, 170, 250]), o = (j*n + i)*4;

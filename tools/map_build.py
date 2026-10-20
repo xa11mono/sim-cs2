@@ -13,6 +13,7 @@ navmesh.json, walls.json, heights.json, cover.json, zones.json, wallbang.json, p
   heights  — tools/heights_bake.py --map (высоты, этажи, рампы, уступы, «крыто» по штриховке Simple Radar)
   cover    — tools/cover_bake.py --map (укрытия)
   zones    — нарезка навмеша на зоны + названия по подписям Simple Radar (tools/zones_bake.py)
+  zones3d  — (А5) зоны по подписям владельца из 3D-геометрии игры (tools/map3d/zones_game.py; Mirage — вместо zones)
   wallbang — прострелы: правила CS2 без кусков карты (пусто, этап 3) (tools/wallbang_bake.py --map)
   map      — map.json (масштаб, спавны, подсказки) и radar.png
   demos    — всё из демок про (tools/demos_bake.py --map: места про, взгляды, сетки, позиции знания, лайнапы, тактики,
@@ -27,7 +28,7 @@ ROOT = os.path.dirname(HERE)
 sys.path.insert(0, HERE)
 import mapdir  # noqa: E402
 
-STEPS = ['navmesh', 'walls', 'heights', 'cover', 'zones', 'wallbang', 'map', 'demos', 'spawns']
+STEPS = ['navmesh', 'walls', 'heights', 'cover', 'zones', 'zones3d', 'wallbang', 'map', 'demos', 'spawns']
 
 
 def say(*a):
@@ -319,6 +320,11 @@ def step_cover(name, R):
 
 def step_zones(name, R):
     run('zones_bake.py', name)
+
+
+def step_zones3d(name, R):
+    """(А5) зоны по подписям владельца из 3D-геометрии игры: geom3d/zones_owner.json (tools/map3d/zones_owner.py) → zones.json"""
+    run('map3d/zones_game.py', name)
 
 
 def step_wallbang(name, R):

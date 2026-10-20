@@ -199,7 +199,7 @@ function tryShoot(shooter, target, dist){
     // (v375, отметка владельца: «стреляют в упор и не убивают, выстрелили всю обойму» — T2 на ящике Tetris, z −50, а пол под ним
     // −164: проверка пули шла от пола под ногами, не от бота — пули «уходили в ящик», хотя видимость (visParts) считалась по z)
     // высота — та же, что у видимости: бота (z), иначе пол под точкой
-    if(hbZone){ var fz0 = visFloorAt(shooter.x, shooter.y), fz1 = visFloorAt(target.x, target.y);   // то же правило, что в visParts
+    if(hbZone){ var fz0 = visFloorAt(shooter.x, shooter.y, shooter.z), fz1 = visFloorAt(target.x, target.y, target.z);   // то же правило, что в visParts
       if(shooter.z != null && Math.abs(fz0 - shooter.z) > JUMP_UP) fz0 = shooter.z; if(target.z != null && Math.abs(fz1 - target.z) > JUMP_UP) fz1 = target.z;
       var vz0 = fz0 + (shooter.crouching ? VIS_EYE.crouch : VIS_EYE.stand);
       if(!visMarch(shooter.x, shooter.y, vz0, target.x, target.y, fz1 + Math.max(4, uy))) hbZone = null; }
@@ -294,7 +294,7 @@ function tryShoot(shooter, target, dist){
     if(o === target){ o.heardSound = hearReal(o, {x:shooter.x, y:shooter.y, tick:tick, team:shooter.team, src:shooter.id, kind:"hit"}); return; }
     // слышимость выстрела: на прямой видимости дальше, через стены глуше
     // (раньше было 900px во все стороны — слышали полкарты)
-    var hearR = (hasLOS(o.x, o.y, shooter.x, shooter.y) ? GUN_HEAR_OPEN : GUN_HEAR_WALL) * (w.silenced ? 0.55 : 1); // глушитель — слышно ближе
+    var hearR = (hasLOS(o.x, o.y, shooter.x, shooter.y, o.z, shooter.z) ? GUN_HEAR_OPEN : GUN_HEAR_WALL) * (w.silenced ? 0.55 : 1); // глушитель — слышно ближе
     if(dG < hearR){
       var jg = 15 + dG*0.06, ja = hashRand(tick*17 + o.id.charCodeAt(0)*7 + shooter.nextShotTick)*Math.PI*2;
       var hpS = hearPos(o, shooter.x, shooter.y, tick*17 + o.id.charCodeAt(0)*7 + (shooter.nextShotTick|0), hearR === GUN_HEAR_WALL);

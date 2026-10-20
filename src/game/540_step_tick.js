@@ -42,7 +42,7 @@ function moveSoundEmit(bot, soundRadius, kind, label){
     if(listener===bot || !listener.alive || listener.team===bot.team) return;
     var dHear = Math.hypot(listener.x-bot.x, listener.y-bot.y);
     if(dHear > soundRadius) return;
-    var occS = BAL.soundDir && !hasLOS(listener.x, listener.y, bot.x, bot.y);
+    var occS = BAL.soundDir && !hasLOS(listener.x, listener.y, bot.x, bot.y, listener.z, bot.z);
     if(occS && dHear > soundRadius*0.75) return;
     var wasStale = !listener.heardSound || (tick - listener.heardSound.tick) > 90;
     var seed = tick*331 + bot.id.charCodeAt(0)*17 + listener.id.charCodeAt(0)*11 + bot.lastStepTick;

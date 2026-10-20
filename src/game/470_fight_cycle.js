@@ -109,7 +109,7 @@ function exposedTo(b, maxD, maxAge, anyLos){
   maxD = maxD || 600; maxAge = maxAge || 4*TICK_HZ;
   var BL = beliefLast[b.team] || {}, out = [];
   for(var eid in BL){ var lo = BL[eid]; if(tick - lo.tick > maxAge) continue; var e = bots.filter(function(o){ return o.id === eid; })[0]; if(!e || !e.alive) continue;
-    if(Math.hypot(lo.x-b.x, lo.y-b.y) < maxD && (anyLos || hasLOS(b.x, b.y, lo.x, lo.y))) out.push({x:lo.x, y:lo.y}); }
+    if(Math.hypot(lo.x-b.x, lo.y-b.y) < maxD && (anyLos || hasLOS(b.x, b.y, lo.x, lo.y, b.z))) out.push({x:lo.x, y:lo.y}); }
   return out;
 }
 function coverForReload(b, from){

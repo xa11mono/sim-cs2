@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """А3 (20.10.2026): слои карты из «столбиков» геометрии (columns.py) — этажи, стены, укрытия, крыши, проёмы, подъёмы, небо.
 python3 tools/map3d/layers.py [--map mirage]   → data/maps/<карта>/geom3d/layers.npz (для картинок и отчёта)
-                                                + data/maps/<карта>/geom3d/map3d.json (то, что берёт игра: VIS и гранаты)
+                                                + data/maps/<карта>/map3d.json (корень набора — игра берёт его как MAP.map3d: VIS, гранаты)
 
 Пол (этаж) — верх отрезка walk, у самого верха — поверхность, обращённая вверх (наклон не круче, чем у Source: нормаль z ≥ 0,7),
 над ним свободно ≥ 54 ед. (присевший игрок). В одной клетке этажей может быть несколько (Underpass под мидом, второй этаж B Apps).
@@ -334,7 +334,7 @@ def write_game(name, C, ncell, nz, kind):
          'floors': {'n': b64(fn), 'z': b64(nz[live].astype('<i2')), 'kind': b64(kind[live].astype(np.uint8))},
          'prims': prims(name)}
     txt = json.dumps(J, ensure_ascii=False, separators=(',', ':'))
-    open(mapdir.path(name, 'geom3d', 'map3d.json'), 'w', encoding='utf-8').write(txt)
+    open(mapdir.path(name, 'map3d.json'), 'w', encoding='utf-8').write(txt)
     print('map3d.json: %.2f МБ' % (len(txt) / 1e6))
 
 

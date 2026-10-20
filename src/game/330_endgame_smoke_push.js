@@ -221,7 +221,7 @@ function ctLandPunish(b){
   var h = b.heardSound;
   if(!h || !h.land || h.team === b.team || tick - h.tick > LAND_PUNISH_FRESH*TICK_HZ || b._lpDone === h.tick) return false;
   b._lpDone = h.tick;
-  if(Math.hypot(h.x-b.x, h.y-b.y) > LAND_PUNISH_R || hasLOS(b.x, b.y, h.x, h.y) || b.hp < 50) return false;
+  if(Math.hypot(h.x-b.x, h.y-b.y) > LAND_PUNISH_R || hasLOS(b.x, b.y, h.x, h.y, b.z) || b.hp < 50) return false;
   // один: другого известного врага рядом с точкой команда не знает (свежая инфа за 3 с; безымянный звук — тот же игрок)
   var others = (teamIntel.CT && teamIntel.CT.sig || []).filter(function(q){ return q && q.x != null && q.id && q.id !== "?" && q.id !== h.src && tick - q.tick < 3*TICK_HZ && Math.hypot(q.x-h.x, q.y-h.y) < 400; }).length;
   if(others) return false;

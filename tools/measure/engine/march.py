@@ -2,8 +2,8 @@
 и что будет, если сетка чуть «уже». Только для разбора; совпадение с движком проверяется на тех же убийствах."""
 import json, os, numpy as np
 from scipy import ndimage
-def load(VD, MAP):
-    G = json.load(open(os.path.join(VD, f'{MAP}_grid.json'))); W = G['W']
+def load(VD, MAP, TAG=''):
+    G = json.load(open(os.path.join(VD, f'{MAP}_grid{TAG}.json'))); W = G['W']
     return W, G['cell'], np.array(G['solid'], float).reshape(W, W), np.array(G['ceil'], float).reshape(W, W), np.array(G['floor'], float).reshape(W, W)
 EPS = 6
 def inside(S, Cl, C, ax, ay, az, bx, by, bz):

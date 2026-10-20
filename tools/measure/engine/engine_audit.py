@@ -11,6 +11,9 @@ cmd = sys.argv[1]; del sys.argv[1]
 MAP = mapdir.current()
 opt = {a.split('=')[0][2:]: a.split('=', 1)[1] for a in sys.argv[1:] if a.startswith('--') and '=' in a}
 ROOT = mapdir.ROOT; VD = os.path.join(ROOT, 'tools', 'measure', 'runs', 'e0a_vis'); IMG = os.path.join(ROOT, 'docs', 'reports', 'engine_audit')
+# --tag=_v1: сравнение версий — результаты, сетка и картинки с этим хвостом (картинки — в runs/e0a_vis, не в отчёт); сетку пишет grid_dump.js
+TAG = opt.get('tag', '')
+if TAG: IMG = VD
 os.makedirs(IMG, exist_ok=True)
 CO = mapdir.callouts(MAP)
 def place(x, y):
@@ -33,7 +36,7 @@ def label_places(ax, cnt, k=8):
         if p: ax.annotate(f'{n} ({c})', (p[0][1], p[0][2]), fontsize=8, color='black', ha='center',
                           bbox=dict(boxstyle='round,pad=0.2', fc='white', alpha=0.8, lw=0))
 def save(f, name):
-    p = os.path.join(IMG, f'{MAP}_{name}.png'); f.savefig(p, bbox_inches='tight'); plt.close(f); return os.path.relpath(p, ROOT)
+    p = os.path.join(IMG, f'{MAP}_{name}{TAG}.png'); f.savefig(p, bbox_inches='tight'); plt.close(f); return os.path.relpath(p, ROOT)
 def pct(a, b): return round(100.0*a/b, 1) if b else None
 
 if cmd == 'vis':
@@ -43,9 +46,11 @@ if cmd == 'vis':
     if len(H) > 250000: H = [H[i] for i in sorted(rng.choice(len(H), 250000, replace=False))]
     if len(N) > 150000: N = [N[i] for i in sorted(rng.choice(len(N), 150000, replace=False))]
     dat = os.path.join(VD, f'{MAP}_q.json'); json.dump({'kills': K, 'neg': N, 'hgt': H}, open(dat, 'w'))
-    res = os.path.join(VD, f'{MAP}_engine.json')
+    res = os.path.join(VD, f'{MAP}_engine{TAG}.json'); grd = os.path.join(VD, f'{MAP}_grid{TAG}.json')
     if not os.path.exists(res) or '--again' in sys.argv:
         subprocess.run(['node', os.path.join(HERE, 'qfile.js'), opt['sim'], os.path.join(HERE, 'vis_check.js'), dat, res], check=True, cwd=ROOT)
+    if not os.path.exists(grd) or '--again' in sys.argv:
+        subprocess.run(['node', os.path.join(HERE, 'qfile.js'), opt['sim'], os.path.join(HERE, 'grid_dump.js'), dat, grd], check=True, cwd=ROOT)
     E = json.load(open(res)); S = {'map': MAP}
     # ---------- убийства ----------
     rows = [(k, e) for k, e in zip(K, E['kills'])]
@@ -63,7 +68,7 @@ if cmd == 'vis':
     why = collections.Counter(e[3] for k, e in bad); S['kills']['причина «не видно»'] = dict(why)
     # разбор по первому совпадению: что именно в движке/данных разошлось с демкой
     sys.path.insert(0, HERE); import march  # noqa
-    W_, C_, Sg, Clg, Fg = march.load(VD, MAP)
+    W_, C_, Sg, Clg, Fg = march.load(VD, MAP, TAG)
     def depth(k):
         def fl(x, y, z):
             v = Fg[int(y//C_), int(x//C_)]; v = 0 if v < -9000 else v
@@ -71,6 +76,7 @@ if cmd == 'vis':
         ez = fl(k[3], k[4], k[5]) + 64; ft = fl(k[6], k[7], k[8])
         return min(march.inside(Sg, Clg, C_, k[3], k[4], ez, k[6], k[7], ft + tz)[0] for tz in (68, 52, 32))
     def klass(k, e):
+        if e[3] == 'geom': return 'геометрия игры (А5): ' + (str(e[7][0]) if e[7] else '?')
         if e[3] == 'wall': return 'стена набора (высокая)'
         if e[3] == 'level': return 'чужой этаж (levelBlocked)'
         if e[3] == 'ceil': return 'крыша (потолок 130)'
@@ -92,7 +98,7 @@ if cmd == 'vis':
     S['kills']['доля «не видно» по месту (убийца или жертва)'] = sorted([(p, n, pct(b, n)) for p, (n, b) in byp.items() if n >= 25], key=lambda r: -r[2])[:15]
     # подъём глаз: движок поставил глаза не по высоте демки (> 18 ед.)
     S['kills']['глаза движка ≠ высота демки (> 18 ед.), %'] = pct(sum(1 for k, e in base if abs(e[6]) > 18), len(base))
-    col = {'wall': 'red', 'floor': 'orange', 'cover': 'magenta', 'ceil': 'blue', 'level': 'cyan', '': 'gray'}
+    col = {'geom': 'red', 'wall': 'red', 'floor': 'orange', 'cover': 'magenta', 'ceil': 'blue', 'level': 'cyan', '': 'gray'}
     f, ax = fig(f'{mapdir.title(MAP)}: убийства про, где наш движок «не видит» ({len(bad)} из {len(base)})\n'
                 'линия убийца→жертва; точка — где режет: красная стена, оранж. пол/уступ, малин. укрытие, синяя крыша, голуб. этаж')
     for k, e in bad:
@@ -134,7 +140,7 @@ if cmd == 'vis':
     if len(c): ax.scatter(c[:, 0], c[:, 1], s=1, c='black', alpha=0.4)
     label_places(ax, collections.Counter(place(h[0], h[1]) for h, d in bh))
     S['img_hgt'] = save(f, 'heights')
-    json.dump(S, open(os.path.join(VD, f'{MAP}_vis_stats.json'), 'w'), ensure_ascii=False, indent=1)
+    json.dump(S, open(os.path.join(VD, f'{MAP}_vis_stats{TAG}.json'), 'w'), ensure_ascii=False, indent=1)
     print(json.dumps(S, ensure_ascii=False, indent=1))
 
 if cmd == 'walk':

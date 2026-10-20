@@ -232,7 +232,7 @@ function habitLook(b){
     var h = habitTop(o.id, 2.5); if(!h) return;
     var d = Math.hypot(h.x-b.x, h.y-b.y);
     if(d < 150 || d > 650 || d >= bd) return;
-    if(!hasLOS(b.x, b.y, h.x, h.y)) return;
+    if(!hasLOS(b.x, b.y, h.x, h.y, b.z)) return;
     bd = d; best = h;
   });
   return best;

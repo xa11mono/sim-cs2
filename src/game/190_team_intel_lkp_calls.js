@@ -141,7 +141,7 @@ function intelDeathsNear(team, x, y, r, windowTicks){
 // поверх — правки из этого браузера. Игровая логика опирается на id зон,
 // названия только для людей: войс, лог, подписи на карте.
 var ZONE_NAMES_BAKED = MAP.zones.names; // из «Экспорт проекта» (сентябрь 2026)
-var ZONE_NAMES_KEY = MAP.store + "-zonenames-v1";
+var ZONE_NAMES_KEY = MAP.store + "-zonenames-v1" + ZONES_GEN;
 var ZONE_NAMES = {};
 (function(){ for(var k in ZONE_NAMES_BAKED) ZONE_NAMES[k] = ZONE_NAMES_BAKED[k];
   try{ var raw = JSON.parse(localStorage.getItem(ZONE_NAMES_KEY)||"null"); if(raw && typeof raw === "object") for(var k2 in raw){ if(raw[k2]) ZONE_NAMES[k2] = String(raw[k2]).slice(0,32); else delete ZONE_NAMES[k2]; } }catch(e){}
