@@ -1,0 +1,4 @@
+{"par": 8, "jobs": [
+  {"label": "a6_base_anc2", "ref": "adaeea92fbcf100f57619bffc486d0531d854569", "map": "ancient", "matches": [31, 37, 41, 43, 47, 53, 59, 61]},
+  {"label": "a6_new_anc2", "ref": "311db872ff526e7325a9b05663f2339f2147dec9", "map": "ancient", "matches": [31, 37, 41, 43, 47, 53, 59, 61]}
+]}

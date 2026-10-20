@@ -1,0 +1,27 @@
+playwright 1.56.0
+> git fetch --quiet origin adaeea92fbcf100f57619bffc486d0531d854569
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Users\Mono\AppData\Local\Temp\simbuild_r0_qtoyp FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Users\Mono\AppData\Local\Temp\simbuild_r0_qtoyp\src\build.py --map ancient C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\a6_base_anc2.html
+> git fetch --quiet origin 311db872ff526e7325a9b05663f2339f2147dec9
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Users\Mono\AppData\Local\Temp\simbuild_8rbr8a7b FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Users\Mono\AppData\Local\Temp\simbuild_8rbr8a7b\src\build.py --map ancient C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\a6_new_anc2.html
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\engine\walk_run.py --job=a6_base_anc2,C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\a6_base_anc2.html --job=a6_new_anc2,C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\a6_new_anc2.html --matches=31,37,41,43,47,53,59,61 --par=8
+матчей в очереди: 16, одновременно: 8
+a6_base_anc2 match 31 rc 0 5266726 — готово 1/16, 3 мин
+a6_base_anc2 match 41 rc 0 6314479 — готово 2/16, 3 мин
+a6_base_anc2 match 53 rc 0 5497659 — готово 3/16, 3 мин
+a6_base_anc2 match 47 rc 0 5760452 — готово 4/16, 3 мин
+a6_base_anc2 match 61 rc 0 6169560 — готово 5/16, 3 мин
+a6_base_anc2 match 37 rc 0 6048145 — готово 6/16, 3 мин
+a6_base_anc2 match 59 rc 0 6713844 — готово 7/16, 3 мин
+a6_base_anc2 match 43 rc 0 8701483 — готово 8/16, 4 мин
+a6_new_anc2 match 31 rc 0 5430223 — готово 9/16, 7 мин
+a6_new_anc2 match 43 rc 0 5050474 — готово 10/16, 7 мин
+a6_new_anc2 match 37 rc 0 6535691 — готово 11/16, 8 мин
+a6_new_anc2 match 53 rc 0 6449890 — готово 12/16, 8 мин
+a6_new_anc2 match 61 rc 0 5176060 — готово 13/16, 8 мин
+a6_new_anc2 match 59 rc 0 7066481 — готово 14/16, 8 мин
+a6_new_anc2 match 41 rc 0 8489558 — готово 15/16, 9 мин
+a6_new_anc2 match 47 rc 0 8718950 — готово 16/16, 9 мин
+done
+all done
