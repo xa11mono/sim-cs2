@@ -1,0 +1,27 @@
+playwright 1.56.0
+> git fetch --quiet origin bf18b3ba63012f1927355d12cf974fc48c6e7870
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Users\Mono\AppData\Local\Temp\simbuild_wfx3x_xa FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Users\Mono\AppData\Local\Temp\simbuild_wfx3x_xa\src\build.py --map ancient C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\x1fix2_anc.html
+> git fetch --quiet origin bf18b3ba63012f1927355d12cf974fc48c6e7870
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Users\Mono\AppData\Local\Temp\simbuild_1qslewzt FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Users\Mono\AppData\Local\Temp\simbuild_1qslewzt\src\build.py --map mirage C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\x1fix2_mir.html
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\engine\walk_run.py --job=x1fix2_anc,C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\x1fix2_anc.html --job=x1fix2_mir,C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\x1fix2_mir.html --matches=3,7,11,13,17,19,23,29 --par=8
+матчей в очереди: 16, одновременно: 8
+x1fix2_anc match 11 rc 0 3039138 — готово 1/16, 2 мин
+x1fix2_anc match 19 rc 0 3604139 — готово 2/16, 3 мин
+x1fix2_anc match 17 rc 0 4598607 — готово 3/16, 3 мин
+x1fix2_anc match 7 rc 0 4544023 — готово 4/16, 3 мин
+x1fix2_anc match 29 rc 0 4279087 — готово 5/16, 3 мин
+x1fix2_anc match 3 rc 0 4742693 — готово 6/16, 3 мин
+x1fix2_anc match 13 rc 0 5031226 — готово 7/16, 4 мин
+x1fix2_anc match 23 rc 0 5556940 — готово 8/16, 4 мин
+x1fix2_mir match 7 rc 0 2797638 — готово 9/16, 6 мин
+x1fix2_mir match 3 rc 0 3920612 — готово 10/16, 6 мин
+x1fix2_mir match 13 rc 0 3251500 — готово 11/16, 7 мин
+x1fix2_mir match 11 rc 0 3230670 — готово 12/16, 7 мин
+x1fix2_mir match 17 rc 0 3982691 — готово 13/16, 7 мин
+x1fix2_mir match 29 rc 0 3594694 — готово 14/16, 8 мин
+x1fix2_mir match 19 rc 0 3834961 — готово 15/16, 8 мин
+x1fix2_mir match 23 rc 0 4009876 — готово 16/16, 8 мин
+done
+all done
