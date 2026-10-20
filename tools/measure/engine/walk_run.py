@@ -22,11 +22,13 @@ assert A in tpl and B in tpl
 tpl = tpl.replace(A, A + " WALK.tick();").replace(B, B + " REC.walk=WALK.report();")
 # очередь: новый матч начинается сразу, как освободилось место (раньше — пачками по par, пачка ждала самый долгий матч)
 import time
-todo = [(l, f, m) for l, f in jobs for m in matches]; run = []
+todo = [(l, f, m) for l, f in jobs for m in matches]; run = []; total = len(todo); fin = 0
 def start(l, f, m):
     src = tpl.replace('__M__', str(m)).replace('__T__', '200000').replace('/*@@WATCH@@*/', watch)
     fo = open(os.path.join(MEAS, 'runs', l, f'rec_{m}.json'), 'w', encoding='utf-8')
     return [subprocess.Popen(['node', 'src/q.js', f, src], cwd=ROOT, stdout=fo), fo, l, m, time.time()]   # без `timeout`: на Windows его нет
+T0 = time.time()
+print(f'матчей в очереди: {total}, одновременно: {par}', flush=True)
 while todo or run:
     while todo and len(run) < par: run.append(start(*todo.pop(0)))
     time.sleep(1)
@@ -35,5 +37,7 @@ while todo or run:
         if p.poll() is None and time.time() - t0 < 2400: continue
         if p.poll() is None: p.kill(); p.wait()
         fo.close(); run.remove(r)
-        print(l, 'match', m, 'rc', p.returncode, os.path.getsize(os.path.join(MEAS, 'runs', l, f'rec_{m}.json')), flush=True)
+        fin += 1
+        print(l, 'match', m, 'rc', p.returncode, os.path.getsize(os.path.join(MEAS, 'runs', l, f'rec_{m}.json')),
+              f'— готово {fin}/{total}, {round((time.time() - T0)/60)} мин', flush=True)
 print('done')
