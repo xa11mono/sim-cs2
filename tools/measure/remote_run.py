@@ -38,11 +38,14 @@ def main():
     req = json.load(open(sys.argv[1] if len(sys.argv) > 1 else os.path.join(HERE, 'request.json'), encoding='utf-8'))
     ensure_playwright()
     par = int(req.get('par', 6)); sims = os.path.join(ROOT, 'tools', 'measure', 'runs', '_sims'); os.makedirs(sims, exist_ok=True)
+    # сначала собрать все версии, потом все матчи одной очередью (освободилось место — сразу следующий матч любой версии)
+    jobargs = []; mset = None
     for j in req['jobs']:
         sim = os.path.join(sims, j['label'] + '.html')
-        build(j['ref'], j.get('map', 'ancient'), sim)
+        build(j['ref'], j.get('map', 'ancient'), sim); jobargs.append('--job=%s,%s' % (j['label'], sim))
         m = ','.join(str(x) for x in j.get('matches', [3, 7, 11, 13, 17, 19, 23, 29]))
-        sh([PY, os.path.join(HERE, 'engine', 'walk_run.py'), j['label'], '--sim=' + sim, '--matches=' + m, '--par=%d' % par], cwd=ROOT)
+        assert mset in (None, m), 'у всех заданий — одни и те же матчи'; mset = m
+    sh([PY, os.path.join(HERE, 'engine', 'walk_run.py')] + jobargs + ['--matches=' + mset, '--par=%d' % par], cwd=ROOT)
     print('all done', flush=True)
 
 if __name__ == '__main__':
