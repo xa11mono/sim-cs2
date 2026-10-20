@@ -158,12 +158,21 @@ function navNearestZ(x, y, tol, z){
   }
   return best;
 }
+// (Б1, Х1) «бот на полу» — одно место для шага (offNavStep) и для проверки «вне навмеша» (stepTick → navSnap): пол своего уровня в
+// NAV_STEP_TOL или щель к связанному участку в NAV_GAP_TOL. Раньше шаг пускал в щель, а проверка считала пол по NAV_STEP_TOL и на
+// своей высоте bot.z: бот, идущий по шву между участками, через 0,5 с «вне навмеша — перенесён» со сбросом пути
+function navOnFloor(x, y, b, cur){
+  var lvl0 = navArea(b._area) ? navArea(b._area).z : b.z;
+  if(navNearLevel(x, y, NAV_STEP_TOL, lvl0)) return true;
+  cur = cur || navArea(b._area); if(!cur) return false;
+  return !!navFloorNear(x, y, NAV_GAP_TOL, function(a){ return a !== cur && (navLinked(cur, a) || navLinked(a, cur)); });
+}
 function offNavStep(x1, y1, x2, y2, b){
   var lvl0 = navArea(b._area) ? navArea(b._area).z : b.z;
   if(navNearLevel(x2, y2, NAV_STEP_TOL, lvl0)) return false;
   var a1 = navNearLevel(x1, y1, NAV_STEP_TOL, lvl0); if(!a1) return false;   // уже вне пола — пусть возвращается
   var cur = navArea(b._area) || a1;
-  if(navFloorNear(x2, y2, NAV_GAP_TOL, function(a){ return a !== cur && (navLinked(cur, a) || navLinked(a, cur)); })) return false;
+  if(navOnFloor(x2, y2, b, cur)) return false;
   // (v341, отметка владельца: sh1ro и magixx «снова застряли там же» — спуск со спавна T, −166 → −258) щель спрыгивания бывает
   // шире NAV_GAP_TOL: шаг по пути прямо к следующей точке, под которой пол связанного участка, — это задуманный переход
   var wp = b.path && b.path[b.pathIdx];
