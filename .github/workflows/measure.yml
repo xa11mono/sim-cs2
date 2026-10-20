@@ -8,6 +8,8 @@ on:
 concurrency:
   group: measure
   cancel-in-progress: false
+permissions:
+  contents: write
 jobs:
   run:
     runs-on: self-hosted
@@ -24,12 +26,10 @@ jobs:
           set RC=%ERRORLEVEL%
           python -c "[print('::notice::'+l.rstrip()) for l in open('run.log',encoding='utf-8',errors='replace').readlines()[-8:]]"
           exit /b %RC%
-      - name: Upload results
+      # артефакты GitHub из облака не забрать — результаты выкладываются в ветку pc-results/<номер прогона>
+      - name: Publish results
         if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: runs-${{ github.run_number }}
-          path: |
-            tools/measure/runs/
-            !tools/measure/runs/_sims/
-          retention-days: 14
+        shell: cmd
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python tools/measure/publish_results.py
