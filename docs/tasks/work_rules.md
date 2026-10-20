@@ -28,6 +28,11 @@
 Следующий чат: замер шума + таблица пяти главных цифр (без правок игры), потом М138 шаг 1.
 
 ## Прогоны (замер шума 20.10.2026: v384, Ancient, 8 матчей 3, 7, 11, 13, 17, 19, 23, 29; `tools/measure/noise.py noise384_anc`)
+
+**На ПК владельца (20.10):** задание — `tools/measure/request.json` (`par`, список `{label, ref, map, matches}`) в ветке `measure/<имя>`;
+пуш ветки запускает `.github/workflows/measure.yml` на ПК (self-hosted runner, `C:\actions-runner\run.cmd`), все матчи — одной очередью
+(`walk_run.py --job=…`), Playwright 1.56.0 (как в облаке — бит в бит). Ход — `Get-Content C:\actions-runner\_work\sim-cs2\sim-cs2\run.log -Wait -Encoding UTF8`.
+Результаты — ветка `pc-results/<номер прогона>` (`<метка>/rec_<m>.json.gz`). 8 матчей — ≈ 6 мин.
 | цифра | среднее | разброс между матчами | матчей на версию, чтобы разница 10 % была настоящей |
 |---|---|---|---|
 | гранат за раунд CT / T | 9,9 / 11,0 | 9 % | 6 |
