@@ -1,0 +1,21 @@
+{
+ "kills": 6854,
+ "closed_stand_pct": 5.2,
+ "closed_all_pct": 0.6,
+ "pen_closed_stand_pct": 73,
+ "pen_closed_all_pct": 38.2,
+ "neg_face_pairs": 31281,
+ "neg_face_visible_pct": 0.7,
+ "ray_us": 6,
+ "nade_down_hit": {
+  "t": 0.404,
+  "n": [
+   0,
+   0,
+   1
+  ],
+  "mat": "rock"
+ },
+ "floor_at_killer": 73,
+ "killer_z": 73
+}
