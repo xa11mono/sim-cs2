@@ -587,7 +587,7 @@ function stepTick(){
         // начинается с пола ниже рядом, а шаг туда по прямой не пускает) за 2 с сдвинулся < 4 px — спрыгивает на начало свежего
         // пути, если оно ниже и рядом (≤ 40 px, без стены); раз в 2 с
         var TRl = bot._trail || [];
-        if(TRl.length >= 8 && tick - (bot._unstickT||-1e9) > 2*TICK_HZ && bot.z != null && bot.path.length && bot.pathIdx < bot.path.length &&
+        if(TRl.length >= 8 && tick - (bot._unstickT||-1e9) > 2*TICK_HZ && tick - (bot._idleT||-1e9) > 2*TICK_HZ && bot.z != null && bot.path.length && bot.pathIdx < bot.path.length &&
            TRl.every(function(q){ return Math.hypot(q.x-TRl[0].x, q.y-TRl[0].y) < 4; })){
           bot._unstickT = tick;
           var pe = bot.path[bot.path.length-1], fr = buildWaypointPath(bot.baseX, bot.baseY, bot.z, pe[0], pe[1], pe[2], bot.team), p0 = fr && fr[0];
@@ -610,6 +610,12 @@ function stepTick(){
           }
         }
       }
+    } else {
+      // (Б1, Х1, сторож 21.10) бот не идёт (держит угол, на посту, ждёт, остановился в бою, бросает, лестница) — застревание считается
+      // заново, с момента, когда он снова пошёл. Раньше «топчется» (_np), «нет продвижения» (_progTick), «стоит» (stuckTicks) и «на
+      // уступе» (след _trail) засчитывали и время стоянки по делу: тронулся после 1,5 с на месте — сразу рывок / отталкивание от стены
+      // / перенос со сбросом пути (85–90 % этих заплаток срабатывали без единого отказа шага)
+      bot.stuckTicks = 0; bot._np = null; bot._netStuck = 0; bot._progTick = tick; bot._progBest = Infinity; bot._idleT = tick;
     }
 
     var offX = 0, offY = 0;
