@@ -238,34 +238,10 @@ function assignNewDestination(bot, tick){
       return;
     }
   }
-  var r = hashRand(bot.id.charCodeAt(0)*97 + bot.id.length*13 + tick*7919 + bot.pickTick);
-  var pool = POINT_POOL.length ? POINT_POOL : [bot.spawnPt];
-  var target = pool[Math.floor(r * pool.length)];
-  // (v342, отметка владельца: magixx (IGL) «спрыгивает, разворачивается на спавн, стоит, потом идёт снова») T без задачи до своей
-  // очереди в тактике брал случайную точку всей карты (спавн, потом A, потом спавн). Теперь — место сбора тактики (tStage сайта)
-  var tTac = bot.team === "T" && roundState === "live" && teamTac.T && teamTac.T.site && GEO[teamTac.T.site];
-  if(tTac && tTac.tStage) target = tTac.tStage;
-  // small deterministic jitter around the tactical point (plan discussion: a
-  // bot occupying a point shouldn't stand dead-center every time) — seeded off
-  // the same pickTick so it's reproducible, not Math.random.
-  var jr1 = hashRand(bot.id.charCodeAt(0)*53 + tick*131 + 11);
-  var jr2 = hashRand(bot.id.charCodeAt(0)*53 + tick*131 + 22);
-  var jitterX = (jr1-0.5)*36, jitterY = (jr2-0.5)*36;
-  var tx = target.x+jitterX, ty = target.y+jitterY, tz = target.z||0;
-  // тактическая точка могла оказаться внутри стены (рисовалась под старые
-  // стены) — идём к ближайшему проходимому месту, а не в стену
-  var snapped = snapToWalkable(tx, ty); tx = snapped.x; ty = snapped.y;
-  var wp = buildWaypointPath(bot.baseX, bot.baseY, bot.z, tx, ty, tz);
-  // если маршрута нет (цель в отрезанном куске навмеша) и путь выродился в
-  // прямую линию сквозь стену — берём другую точку, до 6 попыток
-  for(var tries=0; tries<6 && wp.length===1 && segCrossesManualWalls(bot.baseX,bot.baseY,wp[0][0],wp[0][1]); tries++){
-    var rr = hashRand(bot.id.charCodeAt(0)*197 + tick*31 + tries*7717);
-    var t2 = pool[Math.floor(rr*pool.length)];
-    var s2 = snapToWalkable(t2.x, t2.y);
-    wp = buildWaypointPath(bot.baseX, bot.baseY, bot.z, s2.x, s2.y, t2.z||0);
-  }
-  bot.path = wp;
+  // (Б1, ENGINE_AUDIT Х3) нет задачи (поста), не отход и не роумер — бот никуда не идёт, пока задачу не поставит механика (setPost,
+  // арбитр места). Раньше здесь сам выбирал цель: случайную точку карты (в бою — тоже: путь кончился в engage — бежит на случайную
+  // точку) или место сбора тактики T со сдвигом; мозг ставил пост на следующем тике — цель менялась туда-обратно
+  if(bot.path.length) bot.path = [];
   bot.pathIdx = 0;
-  bot.pickTick = tick;
 }
 

@@ -6,7 +6,8 @@
 //         want ≥ 0,5 → «не может идти», иначе «стоит по задаче» (holding / скорость 0 / нет пути).
 // who   — (шаг Б1) кто меняет путь: у каждого бота свойство path обёрнуто (запись вызывающего по стеку), setPost — тоже
 //         (новый пост: тег, кто поставил). В stall — сколько раз и кем сменён путь за те же 5 с, и сколько раз сменилась цель
-//         (конец пути сдвинулся > 60 px), итог по всем — WK.who[кто] = [смен, смен цели].
+//         (конец пути сдвинулся > 60 px), итог по всем — WK.who[кто] = [смен, смен цели]. Последний столбец stall — тиков с последнего
+//         нового поста: < 320 — «стоял» в окне 5 с был ещё на прошлой задаче (не застрял на этой).
 // path  — позиции живых раз в 16 тиков (для путей ботов против про) берутся из REC.pos.
 (function(){
   var WK = {nav:[], stall:[], S:{}};
@@ -41,7 +42,7 @@
       v = nv; }}); }
   var SP = setPost; setPost = function(b, pt, look, hold, tag){ var id0 = b.post ? b.post.id : null; var r = SP.apply(this, arguments);
     if(roundState === "live" && b.alive && b.post && b.post.id !== id0){ var who = caller(1), k = String(b.post.tag).split(":")[0] + "<" + who.split("<")[0];
-      var s = WK.S[b.id] || (WK.S[b.id] = {pos:[], want:[], why:[]}); (s.ps || (s.ps = [])).push([tick, k]); WK.post[k] = (WK.post[k]||0) + 1; }
+      var s = WK.S[b.id] || (WK.S[b.id] = {pos:[], want:[], why:[]}); (s.ps || (s.ps = [])).push([tick, k]); s.postT = tick; WK.post[k] = (WK.post[k]||0) + 1; }
     return r; };
   WK.tick = function(){
     if(roundState !== "live"){ WK.S = {}; return; }
@@ -70,7 +71,7 @@
             Math.round(Math.hypot(b.post.x-b.x, b.post.y-b.y)), hasPath ? b.path.length - b.pathIdx : -1, Math.round(wn/n*100)/100, top,
             String(b.state||""), b.atPost ? 1 : 0,
             Math.round(s.tr.reduce(function(a, c){ return a + c[0]; }, 0)), s.tr.reduce(function(a, c){ return a + c[1]; }, 0),
-            (s.pc||[]).map(function(c){ return c[1] + (c[2] === 2 ? "**" : c[2] ? "*" : "") + (c[3] ? "" : "∅"); }), (s.ps||[]).map(function(c){ return c[1]; })]); } }
+            (s.pc||[]).map(function(c){ return c[1] + (c[2] === 2 ? "**" : c[2] ? "*" : "") + (c[3] ? "" : "∅"); }), (s.ps||[]).map(function(c){ return c[1]; }), s.postT == null ? -1 : tick - s.postT]); } }
     });
   };
   WK.report = function(){ return {nav:WK.nav, stall:WK.stall, who:WK.who, post:WK.post}; };
