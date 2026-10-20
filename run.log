@@ -1,0 +1,49 @@
+playwright 1.56.0
+> git fetch --quiet origin adaeea92fbcf100f57619bffc486d0531d854569
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Users\Mono\AppData\Local\Temp\simbuild_ngj0g1rt FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Users\Mono\AppData\Local\Temp\simbuild_ngj0g1rt\src\build.py --map ancient C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\a6_base_anc.html
+> git fetch --quiet origin 65432fae4ce6c674ea7369bbd8cc48d847ad8b39
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Users\Mono\AppData\Local\Temp\simbuild_99jmk83z FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Users\Mono\AppData\Local\Temp\simbuild_99jmk83z\src\build.py --map ancient C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\a6_new_anc.html
+> git fetch --quiet origin adaeea92fbcf100f57619bffc486d0531d854569
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Users\Mono\AppData\Local\Temp\simbuild_zdjtwuzf FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Users\Mono\AppData\Local\Temp\simbuild_zdjtwuzf\src\build.py --map mirage C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\a6_base_mir.html
+> git fetch --quiet origin 65432fae4ce6c674ea7369bbd8cc48d847ad8b39
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Users\Mono\AppData\Local\Temp\simbuild_ixvprg9m FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Users\Mono\AppData\Local\Temp\simbuild_ixvprg9m\src\build.py --map mirage C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\a6_new_mir.html
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\engine\walk_run.py --job=a6_base_anc,C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\a6_base_anc.html --job=a6_new_anc,C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\a6_new_anc.html --job=a6_base_mir,C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\a6_base_mir.html --job=a6_new_mir,C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\a6_new_mir.html --matches=3,7,11,13,17,19,23,29 --par=8
+матчей в очереди: 32, одновременно: 8
+a6_base_anc match 13 rc 0 4130496 — готово 1/32, 2 мин
+a6_base_anc match 11 rc 0 5253718 — готово 2/32, 3 мин
+a6_base_anc match 19 rc 0 5564483 — готово 3/32, 3 мин
+a6_base_anc match 17 rc 0 5396725 — готово 4/32, 3 мин
+a6_base_anc match 29 rc 0 5606206 — готово 5/32, 3 мин
+a6_base_anc match 3 rc 0 6123844 — готово 6/32, 3 мин
+a6_base_anc match 7 rc 0 6574064 — готово 7/32, 4 мин
+a6_base_anc match 23 rc 0 8483120 — готово 8/32, 5 мин
+a6_new_anc match 3 rc 0 5414644 — готово 9/32, 7 мин
+a6_new_anc match 23 rc 0 4015593 — готово 10/32, 7 мин
+a6_new_anc match 7 rc 0 5474770 — готово 11/32, 7 мин
+a6_new_anc match 17 rc 0 5293605 — готово 12/32, 7 мин
+a6_new_anc match 11 rc 0 6152040 — готово 13/32, 8 мин
+a6_new_anc match 19 rc 0 5926228 — готово 14/32, 8 мин
+a6_new_anc match 13 rc 0 6707125 — готово 15/32, 8 мин
+a6_new_anc match 29 rc 0 5250988 — готово 16/32, 9 мин
+a6_base_mir match 3 rc 0 5281518 — готово 17/32, 12 мин
+a6_base_mir match 13 rc 0 5035687 — готово 18/32, 12 мин
+a6_base_mir match 17 rc 0 6358635 — готово 19/32, 14 мин
+a6_base_mir match 23 rc 0 5909532 — готово 20/32, 14 мин
+a6_base_mir match 19 rc 0 6248515 — готово 21/32, 14 мин
+a6_base_mir match 11 rc 0 7438095 — готово 22/32, 15 мин
+a6_base_mir match 29 rc 0 6557737 — готово 23/32, 15 мин
+a6_base_mir match 7 rc 0 8781696 — готово 24/32, 16 мин
+a6_new_mir match 3 rc 0 5281518 — готово 25/32, 17 мин
+a6_new_mir match 13 rc 0 5035687 — готово 26/32, 18 мин
+a6_new_mir match 17 rc 0 6358635 — готово 27/32, 20 мин
+a6_new_mir match 19 rc 0 6248515 — готово 28/32, 20 мин
+a6_new_mir match 7 rc 0 8781696 — готово 29/32, 20 мин
+a6_new_mir match 11 rc 0 7438095 — готово 30/32, 20 мин
+a6_new_mir match 23 rc 0 5909532 — готово 31/32, 20 мин
+a6_new_mir match 29 rc 0 6557737 — готово 32/32, 21 мин
+done
+all done
