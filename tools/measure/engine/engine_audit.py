@@ -179,11 +179,12 @@ if cmd == 'walk':
     S['«ходит туда-сюда»: смен пути ≥ 3 за 5 с, %'] = pct(sum(1 for s in osc if s[14] >= 3), len(osc)) if osc else None
     S['stall «не может идти»: остаток пути (точек), медиана'] = float(np.median([s[8] for s in cant])) if cant else None
     f, ax = fig(f'{mapdir.title(MAP)}: ходьба ботов, {len(files)} матчей ({rounds} раундов)\n'
-                'вне навмеша — перенесён ■ чёрный, нет прогресса 1,5 с ● красный, топчется → сброс пути ▲ оранж., спрыгнул с уступа ◆ зелёный, stall «не может идти» ✕ малин.')
+                'вне навмеша — перенесён ■ чёрный, нет прогресса 1,5 с ● красный, топчется → сброс пути ▲ оранж., спрыгнул с уступа ◆ зелёный;\n' 'stall: ходит туда-сюда ✕ малин., путь сброшен + фиол., нет пути + синий, не может идти X красный')
     for k, c, m in (('snap', 'black', 's'), ('noprog', 'red', 'o'), ('wall', 'orange', '^'), ('ledge', 'green', 'D')):  # wall = топчется 1,5 с → escapeWallLine
         a = np.array([[n[4], n[5]] for n in nav if n[1] == k]).reshape(-1, 2); ax.scatter(a[:, 0], a[:, 1], s=8, c=c, marker=m, alpha=0.5)
-    a = np.array([[s[3], s[4]] for s in cant]).reshape(-1, 2); ax.scatter(a[:, 0], a[:, 1], s=14, c='magenta', marker='x', alpha=0.7)
-    label_places(ax, collections.Counter(place(n[4], n[5]) for n in nav) + collections.Counter(place(s[3], s[4]) for s in cant))
+    for cls, c, m in (('ходит', 'magenta', 'x'), ('путь сброшен', 'purple', '+'), ('нет пути', 'blue', '+'), ('не может', 'red', 'X')):
+        a = np.array([[s[3], s[4]] for s, cc in SC if cc.startswith(cls)]).reshape(-1, 2); ax.scatter(a[:, 0], a[:, 1], s=14, c=c, marker=m, alpha=0.6)
+    label_places(ax, collections.Counter(place(n[4], n[5]) for n in nav) + collections.Counter(place(s[3], s[4]) for s, cc in SC))
     S['img_nav'] = save(f, 'walk_nav')
     # пути ботов против про: доля времени по клеткам 32 px
     H = json.load(open(os.path.join(VD, f'{MAP}_hgt.json')))
