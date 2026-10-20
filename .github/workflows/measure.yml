@@ -24,7 +24,7 @@ jobs:
         run: |
           python tools/measure/remote_run.py
           set RC=%ERRORLEVEL%
-          python -c "[print('::notice::'+l.rstrip()) for l in open('run.log',encoding='utf-8',errors='replace').readlines()[-8:]]"
+          python -c "[print('::notice::'+l.rstrip()) for l in open(__import__('os').path.expanduser('~/simcs2_run.log'),encoding='utf-8',errors='replace').readlines()[-8:]]"
           exit /b %RC%
       # артефакты GitHub из облака не забрать — результаты выкладываются в ветку pc-results/<номер прогона>
       - name: Publish results
