@@ -9,7 +9,8 @@ import sys, os, json, subprocess, shutil, tempfile
 HERE = os.path.dirname(os.path.abspath(__file__)); ROOT = os.path.dirname(os.path.dirname(HERE))
 PY = sys.executable
 
-LOG = os.path.join(ROOT, 'run.log')   # построчно: смотреть на ПК — Get-Content <папка репо>\run.log -Wait
+# вне папки репо: открытый Get-Content -Wait держит файл, и GitHub не мог почистить папку перед следующим заданием
+LOG = os.path.join(os.path.expanduser('~'), 'simcs2_run.log')   # смотреть на ПК: Get-Content $HOME\simcs2_run.log -Wait -Encoding UTF8
 def log(line):
     print(line, flush=True)
     with open(LOG, 'a', encoding='utf-8') as f: f.write(line + '\n')

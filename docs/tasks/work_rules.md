@@ -31,7 +31,7 @@
 
 **На ПК владельца (20.10):** задание — `tools/measure/request.json` (`par`, список `{label, ref, map, matches}`) в ветке `measure/<имя>`;
 пуш ветки запускает `.github/workflows/measure.yml` на ПК (self-hosted runner, `C:\actions-runner\run.cmd`), все матчи — одной очередью
-(`walk_run.py --job=…`), Playwright 1.56.0 (как в облаке — бит в бит). Ход — `Get-Content C:\actions-runner\_work\sim-cs2\sim-cs2\run.log -Wait -Encoding UTF8`.
+(`walk_run.py --job=…`), Playwright 1.56.0 (как в облаке — бит в бит). Ход — `Get-Content $HOME\simcs2_run.log -Wait -Encoding UTF8` (файл вне папки репо).
 Результаты — ветка `pc-results/<номер прогона>` (`<метка>/rec_<m>.json.gz`). 8 матчей — ≈ 6 мин.
 | цифра | среднее | разброс между матчами | матчей на версию, чтобы разница 10 % была настоящей |
 |---|---|---|---|

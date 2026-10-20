@@ -17,7 +17,8 @@ for j in req['jobs']:
         if f.endswith('.json'):
             with open(os.path.join(src, f), 'rb') as a, gzip.open(os.path.join(tmp, j['label'], f + '.gz'), 'wb') as b: shutil.copyfileobj(a, b); n += 1
 shutil.copy(os.path.join(HERE, 'request.json'), tmp)
-if os.path.exists(os.path.join(ROOT, 'run.log')): shutil.copy(os.path.join(ROOT, 'run.log'), tmp)
+L = os.path.join(os.path.expanduser('~'), 'simcs2_run.log')
+if os.path.exists(L): shutil.copy(L, os.path.join(tmp, 'run.log'))
 g = lambda *a: subprocess.run(['git'] + list(a), cwd=tmp, check=True)
 g('init', '-q'); g('-c', 'core.autocrlf=false', 'add', '-A')
 g('-c', 'user.name=pc-runner', '-c', 'user.email=pc-runner@users.noreply.github.com', 'commit', '-q', '-m', 'результаты прогона %s (%d файлов)' % (run_no, n))
