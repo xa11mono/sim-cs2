@@ -9,7 +9,7 @@ python3 tools/lineups.py [--map ancient]   (v318: карта — ключом --
 timed / call / retake у CT), как раньше.
 
 purpose — граната «себе» (не шаг командного сценария, а решение игрока под свою
-ситуацию; пойдёт в решения бота, шаг 10 docs/PROMPTS.md):
+ситуацию; пойдёт в решения бота, шаг 10 docs/archive/PROMPTS.md):
   * flash_exit   — флешка под свой выход: бросивший был ближе SELF_FLASH_NEAR
     к месту разрыва и за SELF_FLASH_SEC с после разрыва сам сдвинулся к нему
     (прошёл ≥ SELF_MOVE и стал ближе хотя бы на SELF_CLOSER);
