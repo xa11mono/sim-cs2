@@ -25,9 +25,10 @@ for fn in sorted(glob.glob(os.path.join(MEAS, 'runs', label, 'rec_*.json'))):
     for k, v in w.get('who', {}).items(): who[name(k)] += v[0]; whoM[name(k)] += v[1]; whoS[name(k)] += v[2] if len(v) > 2 else 0
     for k, v in w.get('post', {}).items(): post[name(k)] += v
 tug = [s for s in stall if s[9] >= 0.5 and s[13] > 60]
+fresh = [s for s in stall if len(s) > 17 and 0 <= s[17] < 320]   # новый пост < 5 с назад: окно — ещё прошлая задача
 per = lambda n: round(100.0 * n / max(rounds, 1))
 print(f'{label}: раундов {rounds}; stall {per(len(stall))}, nav(перенос) {per(nav)}, туда-сюда {per(len(tug))} на 100 раундов '
-      f'({round(100.0*len(tug)/max(len(stall),1))} % stall)')
+      f'({round(100.0*len(tug)/max(len(stall),1))} % stall); stall без «новый пост < 5 с назад» {per(len(stall)-len(fresh))}')
 if tug and len(tug[0]) > 16:
     import statistics
     print('  в «туда-сюда»: смен пути медиана', statistics.median(len(s[15]) for s in tug),
