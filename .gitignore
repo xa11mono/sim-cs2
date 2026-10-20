@@ -12,3 +12,7 @@ tools/measure/audit/runs/*/*_rec_*.json
 # v318: сэмплы про новых карт (tools/pro.py --map, ~60 МБ) — пересобираются из демок за ~1,5 мин
 data/maps/*/pro/pro_samples.csv.gz
 data/sounds/src/
+
+# А3 (20.10): промежуточное tools/map3d/columns.py и layers.py (≈ 9 МБ, пересобираются за ~2 мин); в репо — map3d.json и картинки
+data/maps/*/geom3d/columns.npz
+data/maps/*/geom3d/layers.npz
