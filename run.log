@@ -1,0 +1,19 @@
+playwright 1.56.0
+> git fetch --quiet origin 54c8d7780d6a83f20d4ceab461318a82a846ad4f
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Users\Mono\AppData\Local\Temp\simbuild_oufbytia FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Users\Mono\AppData\Local\Temp\simbuild_oufbytia\src\build.py --map ancient C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\x1why_anc.html
+> git fetch --quiet origin 54c8d7780d6a83f20d4ceab461318a82a846ad4f
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Users\Mono\AppData\Local\Temp\simbuild_e7_av6tn FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Users\Mono\AppData\Local\Temp\simbuild_e7_av6tn\src\build.py --map mirage C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\x1why_mir.html
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\engine\walk_run.py --job=x1why_anc,C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\x1why_anc.html --job=x1why_mir,C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\x1why_mir.html --matches=3,7,11,13 --par=8
+матчей в очереди: 8, одновременно: 8
+x1why_anc match 13 rc 0 2982706 — готово 1/8, 2 мин
+x1why_anc match 3 rc 0 3440103 — готово 2/8, 2 мин
+x1why_anc match 11 rc 0 4163963 — готово 3/8, 3 мин
+x1why_anc match 7 rc 0 5521359 — готово 4/8, 4 мин
+x1why_mir match 11 rc 0 3862665 — готово 5/8, 4 мин
+x1why_mir match 3 rc 0 4059331 — готово 6/8, 4 мин
+x1why_mir match 13 rc 0 3651498 — готово 7/8, 4 мин
+x1why_mir match 7 rc 0 4837661 — готово 8/8, 5 мин
+done
+all done
