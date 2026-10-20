@@ -7,7 +7,7 @@
   блобов (13 555 у Mirage) ищется в буфере 1 по сумме → блобы: блок «n байт вершин half-edge, 12n байт координат, рёбра, F байт
   граней, 16F байт плоскостей» = выпуклый блок; пара «треугольники u32×3, вершины f32×3» = сетка.
 Что пока не разобрано: материал поверхности (для прострелов) и группа столкновений (стена для пуль / невидимая стена для игроков) —
-нужен разбор структуры KV3 (буфер 0). Сетка «потолок неба» (вся карта, z 360–1024) выкидывается по высоте — проверять на каждой карте."""
+нужен разбор структуры KV3 (буфер 0). Сетка «небо» (skybox, вся карта, z 946–1024) — отдельным слоем sky_v / sky_t (для гранат), в уровень не входит; находится по высоте — проверять на каждой карте."""
 import sys, os, struct, json, ctypes
 import numpy as np
 VPK, MAPN = sys.argv[1], sys.argv[2]
@@ -75,5 +75,9 @@ np.savez_compressed(os.path.join(OUT, 'world_physics.npz'),
     mesh_t=np.concatenate([m[1] + base[k] for k, m in enumerate(keep)]).astype(np.int32),
     mesh_id=np.concatenate([np.full(len(m[1]), k, np.int16) for k, m in enumerate(keep)]),
     hull_v=np.concatenate([h[0] for h in hulls]).astype(np.float32), hull_vn=np.array([len(h[0]) for h in hulls], np.int32),
-    hull_p=np.concatenate([h[1] for h in hulls]).astype(np.float32), hull_pn=np.array([len(h[1]) for h in hulls], np.int32))
+    hull_p=np.concatenate([h[1] for h in hulls]).astype(np.float32), hull_pn=np.array([len(h[1]) for h in hulls], np.int32),
+    # (владелец 20.10) «небо» (skybox / потолок карты) — отдельным слоем: взгляд и пули его не касаются, а гранаты от него отскакивают
+    # (не перекинуть через всю карту)
+    sky_v=np.concatenate([meshes[k][0] for k in sky] or [np.zeros((0, 3))]).astype(np.float32),
+    sky_t=np.concatenate([meshes[k][1] + sum(len(meshes[j][0]) for j in sky[:n]) for n, k in enumerate(sky)] or [np.zeros((0, 3))]).astype(np.int32))
 print('блоков %d, сеток %d (выкинуто «небо»: %s), треугольников %d' % (len(hulls), len(keep), sky, sum(len(m[1]) for m in keep)))

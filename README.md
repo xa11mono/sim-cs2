@@ -7,5 +7,5 @@
   замеров, `src/mkpub.py --map <карта>` — публикуемую страницу; `src/marks.js` — отметки владельца.
 - `data/maps/<карта>/` — всё про карту (навмеш, стены, высоты, зоны, тактики, лайнапы, места про); `data/demos/` — выгрузки демок про.
 - `tools/measure/` — замер матчей и сравнение с про (`measure.py`, `check.py`, `situations.py`); `tools/` — разбор демок и сборка карты.
-- С чего начать: `CLAUDE.md` (правила), `docs/ROADMAP.md` (где остановились и что дальше), `docs/PROBLEMS.md` (основные проблемы),
+- С чего начать: `CLAUDE.md` (правила), **`docs/PLAN.md` (общий план по шагам)**, `docs/ROADMAP.md` (пояснения), `docs/PROBLEMS.md` (основные проблемы),
   `docs/ARCHITECTURE.md` (устройство), `docs/DECISIONS.md` (журнал, старое — `docs/archive/`), `docs/PRINCIPLES.md` (замечания владельца).
