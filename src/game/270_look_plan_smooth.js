@@ -42,13 +42,13 @@ function lookCands(b, W){
     if(lkBest && LOOK.lkRef !== false) ref = lkBest;
     var apZ = !lkBest ? appearPoint(b, (nBest >= 0 && nVal > beliefZoneKnown(team, j)) ? nBest : j) : null;
     var smp = ZONE_SAMPLES[zid] || [cz], c = null, cd = Infinity;
-    smp.forEach(function(q){ var dq = Math.hypot(q.x-b.x, q.y-b.y); if(dq < 50 || !hasLOS(b.x, b.y, q.x, q.y)) return;
+    smp.forEach(function(q){ var dq = Math.hypot(q.x-b.x, q.y-b.y); if(dq < 50 || !hasLOS(b.x, b.y, q.x, q.y, b.z)) return;
       var key = ref ? Math.hypot(q.x-ref.x, q.y-ref.y) : dq; if(key < cd){ cd = key; c = q; } });
     if(apZ && bzOf(apZ.x, apZ.y) === j || apZ && (nBest >= 0 && bzOf(apZ.x, apZ.y) === nBest)) c = apZ;
     if(!c){ if(dz) dz.skip = "не видно"; return; }
     var d = Math.hypot(c.x-b.x, c.y-b.y);
     // (v261, В4) точка ближе 200 px, за которой сразу стена, — смотреть некуда (взгляд в стену у носа): не кандидат
-    if(d < 200){ var ext = {x:b.x+(c.x-b.x)/d*200, y:b.y+(c.y-b.y)/d*200}; if(!hasLOS(b.x, b.y, ext.x, ext.y)){ if(dz) dz.skip = "у носа стена"; return; } c = ext; d = 200; }
+    if(d < 200){ var ext = {x:b.x+(c.x-b.x)/d*200, y:b.y+(c.y-b.y)/d*200}; if(!hasLOS(b.x, b.y, ext.x, ext.y, b.z)){ if(dz) dz.skip = "у носа стена"; return; } c = ext; d = 200; }
     var za = Math.atan2(c.y-b.y, c.x-b.x);
     var fresh = freshThreatNear(team, c);
     // 3) оценка
@@ -72,7 +72,7 @@ function lookCands(b, W){
   if(BZ.portal) BZ.nbr[zb].forEach(function(nn){
     var p = BZ.portal[zb][nn]; if(!p) return;
     if(isRearZone(team, zb, nn, b)) return;   // (v148) проход в свой тыл — не угроза
-    var d = Math.hypot(p.x-b.x, p.y-b.y); if(d < 40 || d > LOOK.maxDist || !hasLOS(b.x, b.y, p.x, p.y)) return;
+    var d = Math.hypot(p.x-b.x, p.y-b.y); if(d < 40 || d > LOOK.maxDist || !hasLOS(b.x, b.y, p.x, p.y, b.z)) return;
     var th = beliefZoneKnown(team, nn);
     BZ.nbr[nn].forEach(function(n2){ if(n2 === zb) return; if(BAL.timing && !reachPossible(team, n2)) return;
       var v = LOOK.nbrW * nbrThreat(team, nn, n2, zb); if(PW[nn+","+n2]) v *= LOOK.watchedNbr; th += v; });
@@ -82,7 +82,7 @@ function lookCands(b, W){
     var c = p;
     // (v151) не середина прохода, а место, где враг из этой зоны реально появится
     var ap = appearPoint(b, nn); if(ap){ c = ap; d = Math.hypot(ap.x-b.x, ap.y-b.y); }
-    if(d < 200){ var ext = {x:b.x+(c.x-b.x)/d*200, y:b.y+(c.y-b.y)/d*200}; if(hasLOS(b.x, b.y, ext.x, ext.y)) c = ext; }
+    if(d < 200){ var ext = {x:b.x+(c.x-b.x)/d*200, y:b.y+(c.y-b.y)/d*200}; if(hasLOS(b.x, b.y, ext.x, ext.y, b.z)) c = ext; }
     var za = Math.atan2(c.y-b.y, c.x-b.x), fresh = freshThreatNear(team, p);
     var sc = th * LOOK.entryExp / (1 + Math.max(d,200)/(moving ? LOOK.distMove : LOOK.distHold));
     var F = D ? [["угроза за входом", th], ["вход в мою зону", LOOK.entryExp], ["дистанция " + Math.round(d), 1/(1 + Math.max(d,200)/(moving ? LOOK.distMove : LOOK.distHold))]] : null;
@@ -102,7 +102,7 @@ function lookCands(b, W){
   enemyPositions(team).forEach(function(q){
     var d = Math.hypot(q.x-b.x, q.y-b.y); if(d < 60 || d > LOOK.maxDist) return;
     if(posClearValid(team, q.id) || (BAL.timing && !reachPossible(team, q.z))) return;
-    if(!hasLOS(b.x, b.y, q.x, q.y)) return;
+    if(!hasLOS(b.x, b.y, q.x, q.y, b.z)) return;
     var th = beliefZoneKnown(team, q.z);
     BZ.nbr[q.z].forEach(function(nn){ if(nn === zb) return; if(BAL.timing && !reachPossible(team, nn)) return; th += LOOK.nbrW * nbrThreat(team, q.z, nn, zb); });
     if(th <= 0) return;
@@ -154,7 +154,7 @@ function lookCands(b, W){
     // cornerLook вёл "по пути к ней", часто назад; берём видимый проход к врагу
     // (v296, И38, владелец 14.10: T4 шёл в Dark спиной — проход «к врагу» из Lamp Room оказался сзади, в сторону мида) замена не
     // уводит дальше 1,3 рад (75°) от самого угла поста — то же правило, что у «угла по пути» (cornerLook, v287)
-    if(BAL.enemyward && !hasLOS(b.x, b.y, b.post.look.x, b.post.look.y)){ var ew0 = enemywardLook(team, b);
+    if(BAL.enemyward && !hasLOS(b.x, b.y, b.post.look.x, b.post.look.y, b.z)){ var ew0 = enemywardLook(team, b);
       if(ew0 && _angOff(Math.atan2(ew0.y-b.y, ew0.x-b.x), Math.atan2(b.post.look.y-b.y, b.post.look.x-b.x)) <= 1.3) pl = ew0; }
     // (v149) угол поста смотрит в тыл (заданная точка оказалась в своём коридоре) —
     // берём видимый проход, откуда враг придёт раньше всего
@@ -180,7 +180,7 @@ function knownWayLook(b){
   for(var i=0;i<P.length && walked < 400;i++){
     var qx = P[i][0], qy = P[i][1], L = Math.hypot(qx-px, qy-py), n = Math.max(1, Math.ceil(L/20));
     for(var k=1;k<=n && walked < 400;k++){ var x = px+(qx-px)*k/n, y = py+(qy-py)*k/n; walked += L/n;
-      if(!hasLOS(b.x, b.y, x, y)){ i = P.length; break; } far = {x:x, y:y}; }
+      if(!hasLOS(b.x, b.y, x, y, b.z)){ i = P.length; break; } far = {x:x, y:y}; }
     px = qx; py = qy;
   }
   if(!far || Math.hypot(far.x-b.x, far.y-b.y) < 60) return null;
@@ -423,7 +423,7 @@ function lookArbiter(b){
   if(ang) C.push(ang);
   else {
     // (v135) угол по пути, за которым может быть враг: прицел на край
-    var P = b._pie; if(P && P.danger > 0 && tick - P.t < 16 && P.dist < 320 && hasLOS(b.x, b.y, P.pt.x, P.pt.y)) C.push({lvl: LOOK_LEVEL.corner, kind: "corner", pt: P.pt, sc: P.danger});
+    var P = b._pie; if(P && P.danger > 0 && tick - P.t < 16 && P.dist < 320 && hasLOS(b.x, b.y, P.pt.x, P.pt.y, b.z)) C.push({lvl: LOOK_LEVEL.corner, kind: "corner", pt: P.pt, sc: P.danger});
     if(!moving && b.atPost && b.post && b.post.look) C.push({lvl: LOOK_LEVEL.post, kind: "post", pt: cornerLook(b, b.post.look) || b.post.look, sc: 1});
   }
   var best = null;

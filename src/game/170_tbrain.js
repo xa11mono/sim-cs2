@@ -478,7 +478,7 @@ function tBrain(){
         // (v353, владелец: «донк ждёт там, где его могут убить со Stairs») укрытие — и от мест, где CT держат этот сайт (pos.ctHold/ctSecond)
         var PC = POS[tt.site] || {}; (PC.ctHold || []).concat(PC.ctSecond || []).forEach(function(n){ var zp = zonePoint(n, S0); if(zp) hf.push(zp); });
         // (v350) там, где стоит, его не видно — ждёт на месте; видно — в ближайшее укрытие до 80 ед. (было 150 — отходил далеко)
-        var seen = hf.some(function(q){ return hasLOS(b.x, b.y, q.x, q.y); });
+        var seen = hf.some(function(q){ return hasLOS(b.x, b.y, q.x, q.y, b.z); });
         var cov = seen ? pickSpots("utilw"+Math.round(b.x/30)+","+Math.round(b.y/30)+tt.site, {x:b.x, y:b.y}, 1, {rMax:80, minGap:20, hideFrom:hf})[0] : null;
         if(cov && hf.some(function(q){ return hasLOS(cov.x, cov.y, q.x, q.y); })) cov = null;
         b._utilW = {round: roundNum, t: tick, x: cov ? cov.x : b.x, y: cov ? cov.y : b.y}; }

@@ -41,7 +41,7 @@ function nadeUseTick(b){
     if(have("molly")) plan = {t:"molly", pts:[{x:bomb.x, y:bomb.y}]}; else if(have("he")) plan = {t:"he", pts:[{x:bomb.x, y:bomb.y}]};
     why = "на бомбу — их слышно у неё";
   } else if(known.length && (b.atPost || b.state === "hold")){
-    var tgt = known.filter(function(k){ var d = Math.hypot(k.x-b.x, k.y-b.y); return d > 150 && d < 900 && !hasLOS(b.x, b.y, k.x, k.y) && !mateNear(k); });
+    var tgt = known.filter(function(k){ var d = Math.hypot(k.x-b.x, k.y-b.y); return d > 150 && d < 900 && !hasLOS(b.x, b.y, k.x, k.y, b.z) && !mateNear(k); });
     if(tgt.length){ var tp = have("molly") ? "molly" : (have("he") ? "he" : (have("flash") ? "flash" : null)); if(tp) plan = {t:tp, pts:tgt}; }
     why = "по инфе — туда, где они";
   }

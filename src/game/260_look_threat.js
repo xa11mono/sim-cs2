@@ -152,7 +152,7 @@ function appearPoint(o, j){
   // идём по пути врага к нам: первая точка, которую видно, — место появления
   for(var i=0; i<wp.length; i++){ var q = {x:wp[i][0], y:wp[i][1]}, d = Math.hypot(q.x-o.x, q.y-o.y);
     if(d < 50) break;
-    if(hasLOS(o.x, o.y, q.x, q.y)){ last = q; break; } }
+    if(hasLOS(o.x, o.y, q.x, q.y, o.z)){ last = q; break; } }
   if(Object.keys(APPEAR).length > 20000) APPEAR = {};
   APPEAR[k] = last; return last;
 }
@@ -232,7 +232,7 @@ function openToward(b, a, span){
   var best = null, bs = 0;
   for(var k = -6; k <= 6; k++){
     var aa = a + span*k/6, off = Math.abs(k)/6, dep = 0;
-    [400, 300, 200, 120].some(function(R){ if(hasLOS(b.x, b.y, b.x+Math.cos(aa)*R, b.y+Math.sin(aa)*R)){ dep = R; return true; } return false; });
+    [400, 300, 200, 120].some(function(R){ if(hasLOS(b.x, b.y, b.x+Math.cos(aa)*R, b.y+Math.sin(aa)*R, b.z)){ dep = R; return true; } return false; });
     var s = dep * (1 - 0.5*off);
     if(dep >= 120 && s > bs){ bs = s; best = {x:b.x+Math.cos(aa)*dep, y:b.y+Math.sin(aa)*dep}; }
   }

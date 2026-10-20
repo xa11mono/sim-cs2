@@ -25,7 +25,11 @@ var VIS_CEIL_H = 130;  // проектное число переделки: по
                        // точной высоты потолков в данных нет — взято разумное число
 var VIS_CELL = 2;      // клетка сетки высот, px радара (= 5 ед. игры)
 var VIS_FLOOR_EPS = 6; // допуск пола, ед. игры (неровность навмеша: участок — одна высота); к верху укрытий не применяется
-var VIS = {walls: null, nav: null, gen: -1, W: 0, floor: null, solid: null, ceil: null,
+// (М140, В6, ENGINE_AUDIT 20.10) два этажа в одной клетке (балкон Shadow, Underpass под мидом): сетка помнит и нижний пол;
+// линия ниже верхнего пола, но над нижним, — по нижнему этажу (стены нижнего этажа — levelBlocked)
+var VIS_STACK = 100;   // ед. игры: этажи — если полы в клетке расходятся больше (как в levelBlocked)
+var VIS_SLAB = 12;     // проектное число: толщина перекрытия под верхним полом, ед. игры (данных о толщине нет)
+var VIS = {walls: null, nav: null, gen: -1, W: 0, floor: null, solid: null, ceil: null, lo: null,
            segs: [], grid: null, G: 64, GN: 0, stamp: null, sn: 0};
 var VIS_GEN = 0;
 var VIS_DANGER_TIMER = null;
@@ -50,7 +54,7 @@ function visCoverTop(c, floorNear){
 // ---------- сборка сетки ----------
 function visBuild(){
   var C = VIS_CELL, W = Math.ceil(2048 / C), N = W*W;
-  var floor = new Float32Array(N).fill(-Infinity), ceil = new Float32Array(N).fill(Infinity);
+  var floor = new Float32Array(N).fill(-Infinity), ceil = new Float32Array(N).fill(Infinity), lo = new Float32Array(N).fill(Infinity);
   function cellsOfPoly(pts, fn){   // pts: [{x,y}] — клетки, центр которых внутри
     var x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
     pts.forEach(function(p){ if(p.x < x0) x0 = p.x; if(p.y < y0) y0 = p.y; if(p.x > x1) x1 = p.x; if(p.y > y1) y1 = p.y; });
@@ -63,8 +67,10 @@ function visBuild(){
     var h = typeof hgtInfo === "function" ? hgtInfo(a.id) : null, z = a.z, cv = h && h.cov;
     // (v321) есть крыши многоугольниками (heights.roofs) — крытость участка берётся только из правки владельца
     if(cv && HEIGHTS.roofs && !(HGT_OWN[a.id] && HGT_OWN[a.id].cov !== undefined)) cv = false;
-    cellsOfPoly(a.points, function(k){ if(z > floor[k]) floor[k] = z; if(cv) ceil[k] = Math.min(ceil[k], z + VIS_CEIL_H); });
+    cellsOfPoly(a.points, function(k){ if(z > floor[k]) floor[k] = z; if(z < lo[k]) lo[k] = z; if(cv) ceil[k] = Math.min(ceil[k], z + VIS_CEIL_H); });
   });
+  // нижний этаж: только где полы в клетке расходятся больше VIS_STACK (иначе — один пол: ступени, неровность)
+  for(var k0 = 0; k0 < N; k0++) if(!(floor[k0] - lo[k0] > VIS_STACK)) lo[k0] = -Infinity;
   // (v321) крыши — многоугольники штриховки радара (точнее, чем «крыт ли участок навмеша целиком»)
   (HEIGHTS.roofs || []).forEach(function(R){
     cellsOfPoly(R.map(function(p){ return {x:p[0], y:p[1]}; }), function(k){ if(floor[k] > -Infinity) ceil[k] = Math.min(ceil[k], floor[k] + VIS_CEIL_H); });
@@ -72,14 +78,17 @@ function visBuild(){
   // щели между участками навмеша (навмеш отступает от краёв) — заполнить соседним полом
   // (берётся более высокий: край уступа — у верхнего пола)
   for(var pass = 0; pass < 3; pass++){
-    var f2 = floor.slice(), c2 = ceil.slice();
+    var f2 = floor.slice(), c2 = ceil.slice(), l2 = lo.slice();
     for(var j = 1; j < W-1; j++) for(var i = 1; i < W-1; i++){
-      var k = j*W + i; if(floor[k] !== -Infinity) continue;
-      var best = -Infinity, bc = Infinity, nb = [k-1, k+1, k-W, k+W];
+      var k = j*W + i, nb = [k-1, k+1, k-W, k+W];
+      // щель нижнего навмеша под верхним полом — тоже нижний этаж (соседний нижний пол, если верхний пол тот же)
+      if(lo[k] === -Infinity && floor[k] !== -Infinity) for(var q2 = 0; q2 < 4; q2++){ var n2 = nb[q2]; if(lo[n2] !== -Infinity && Math.abs(floor[n2] - floor[k]) < VIS_FLOOR_EPS && lo[n2] > l2[k]){ l2[k] = lo[n2]; } }
+      if(floor[k] !== -Infinity) continue;
+      var best = -Infinity, bc = Infinity;
       for(var q = 0; q < 4; q++){ var v = floor[nb[q]]; if(v > best){ best = v; bc = ceil[nb[q]]; } }
       if(best !== -Infinity){ f2[k] = best; c2[k] = bc; }
     }
-    floor = f2; ceil = c2;
+    floor = f2; ceil = c2; lo = l2;
   }
   var solid = floor.slice();
   function floorNear(pts){   // самый низкий пол вокруг укрытия
@@ -129,7 +138,7 @@ function visBuild(){
     var gj0 = Math.max(0, Math.floor(Math.min(s[1], s[3])/G)), gj1 = Math.min(GN-1, Math.floor(Math.max(s[1], s[3])/G));
     for(var gj = gj0; gj <= gj1; gj++) for(var gi = gi0; gi <= gi1; gi++) grid[gj*GN + gi].push(si);
   });
-  VIS.W = W; VIS.floor = floor; VIS.solid = solid; VIS.ceil = ceil;
+  VIS.W = W; VIS.floor = floor; VIS.solid = solid; VIS.ceil = ceil; VIS.lo = lo;
   VIS.segs = segs; VIS.grid = grid; VIS.GN = GN; VIS.stamp = new Uint32Array(segs.length); VIS.sn = 0;
   VIS.walls = WALLS_SIG; VIS.nav = NAVAREAS; VIS.gen = VIS_GEN;
 }
@@ -137,12 +146,15 @@ function visReady(){ if(VIS.walls !== WALLS_SIG || VIS.nav !== NAVAREAS || VIS.g
 function visHighWalls(){ visReady(); return VIS.segs; }
 
 // ---------- пол под точкой ----------
-function visFloorAt(x, y){
+// z — высота того, кто стоит (если известна): под балконом — нижний пол, если он ближе к z (М140, Н2)
+function visFloorAt(x, y, z){
   visReady();
   var i = Math.floor(x / VIS_CELL), j = Math.floor(y / VIS_CELL);
   if(i < 0 || j < 0 || i >= VIS.W || j >= VIS.W) return 0;
-  var z = VIS.floor[j*VIS.W + i];
-  return z === -Infinity ? 0 : z;
+  var k = j*VIS.W + i, f = VIS.floor[k], l = VIS.lo[k];
+  if(f === -Infinity) return 0;
+  if(z != null && l !== -Infinity && Math.abs(z - l) < Math.abs(z - f)) return l;
+  return f;
 }
 
 // ---------- высокие стены на линии (2D, точно) ----------
@@ -173,12 +185,14 @@ function visWallHit(ax, ay, bx, by){
 function visMarch(ax, ay, az, bx, by, bz){
   var dx = bx - ax, dy = by - ay, dz = bz - az, n = Math.ceil(Math.hypot(dx, dy) / VIS_CELL);
   if(n < 2) return true;
-  var W = VIS.W, S = VIS.solid, Cl = VIS.ceil, inv = 1/VIS_CELL, e = VIS_FLOOR_EPS;
+  var W = VIS.W, S = VIS.solid, Cl = VIS.ceil, Lo = VIS.lo, F = VIS.floor, inv = 1/VIS_CELL, e = VIS_FLOOR_EPS;
   for(var i = 1; i < n; i++){
     var t = i/n, x = (ax + dx*t)*inv, y = (ay + dy*t)*inv;
     if(x < 0 || y < 0 || x >= W || y >= W) continue;
     var k = (y|0)*W + (x|0), z = az + dz*t;
-    if(z < S[k] - e || z > Cl[k]) return false;
+    if(z > Cl[k]) return false;
+    // ниже верхнего пола/укрытия: закрыто, если только линия не идёт по нижнему этажу (над его полом, под перекрытием)
+    if(z < S[k] - e && !(Lo[k] !== -Infinity && z >= Lo[k] - e && z <= F[k] - VIS_SLAB)) return false;
   }
   return true;
 }
@@ -214,19 +228,30 @@ function levelBlocked(ax, ay, az, bx, by, bz){
   }
   return false;
 }
+// (М140, В4, ENGINE_AUDIT 20.10) тело цели — не одна ось: как в CS2 (видно, если видна любая часть хитбокса), у груди
+// проверяются и плечи — ±VIS_SHOULDER поперёк линии взгляда. Глаза — в центре смотрящего (так в игре). Раньше — только
+// «центр → центр»: игрок, у которого из-за угла уже видно плечо, был невидим (29 % / 28 % «не видно» в убийствах про)
+var VIS_SHOULDER = 14; // ед. игры: полуширина плеч хитбокса CS2 (корпус игрока 32 ед. = ±16; плечо — 14, как в разборе ENGINE_AUDIT)
 function visParts(vx, vy, vC, tx, ty, tC, walls, vz, tz){
-  if(levelBlocked(vx, vy, vz, tx, ty, tz)) return {head: false, body: false};
+  var no = {head: false, body: false};
   visReady();
-  if(walls !== false && visWallHit(vx, vy, tx, ty)) return {head: false, body: false};
+  // высокие стены (2D, дёшево — первыми): центр цели и плечи; закрыто всё — не видно
+  var L = Math.hypot(tx - vx, ty - vy) || 1, s = VIS_SHOULDER / MAP.pxUnits, px = -(ty - vy) / L * s, py = (tx - vx) / L * s;
+  var chk = walls !== false;
+  var cw = !chk || !visWallHit(vx, vy, tx, ty), lw = !chk || !visWallHit(vx, vy, tx - px, ty - py), rw = !chk || !visWallHit(vx, vy, tx + px, ty + py);
+  if(!cw && !lw && !rw) return no;
+  if(levelBlocked(vx, vy, vz, tx, ty, tz)) return no;
   // (v353, отметка владельца: NiKo «видит врага сквозь укрытие и убивает» — стоял на −164 под балконом Palace, а глаза брались с
-  // карты высот радара −34: она знает только верхний пол) высота бота сильно расходится с картой — глаза и цель от его высоты
-  var fv = visFloorAt(vx, vy), ft = visFloorAt(tx, ty);
+  // карты высот радара −34: она знает только верхний пол) пол — тот этаж, на котором бот (visFloorAt с его высотой)
+  var fv = visFloorAt(vx, vy, vz), ft = visFloorAt(tx, ty, tz);
   if(vz != null && Math.abs(fv - vz) > JUMP_UP) fv = vz;
   if(tz != null && Math.abs(ft - tz) > JUMP_UP) ft = tz;
-  var ez = fv + (vC ? VIS_EYE.crouch : VIS_EYE.stand), tf = ft;
-  var head = visMarch(vx, vy, ez, tx, ty, tf + (tC ? VIS_HEAD.crouch : VIS_HEAD.stand));
-  var B = tC ? VIS_BODY.crouch : VIS_BODY.stand, body = false;
-  for(var i = 0; i < B.length && !body; i++) body = visMarch(vx, vy, ez, tx, ty, tf + B[i]);
+  var ez = fv + (vC ? VIS_EYE.crouch : VIS_EYE.stand), tf = ft, B = tC ? VIS_BODY.crouch : VIS_BODY.stand;
+  var head = cw && visMarch(vx, vy, ez, tx, ty, tf + (tC ? VIS_HEAD.crouch : VIS_HEAD.stand)), body = false;
+  for(var i = 0; i < B.length && !body; i++) body = cw && visMarch(vx, vy, ez, tx, ty, tf + B[i]);
+  // плечи (на высоте груди): край тела может выглядывать из-за угла или ящика, когда центр закрыт
+  if(!body && lw) body = visMarch(vx, vy, ez, tx - px, ty - py, tf + B[0]);
+  if(!body && rw) body = visMarch(vx, vy, ez, tx + px, ty + py, tf + B[0]);
   return {head: head, body: body};
 }
 function visEyeZ(b){ return visFloorAt(b.x, b.y) + (b.crouching ? VIS_EYE.crouch : VIS_EYE.stand); }

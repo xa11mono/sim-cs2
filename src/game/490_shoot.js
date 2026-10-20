@@ -294,7 +294,7 @@ function tryShoot(shooter, target, dist){
     if(o === target){ o.heardSound = hearReal(o, {x:shooter.x, y:shooter.y, tick:tick, team:shooter.team, src:shooter.id, kind:"hit"}); return; }
     // слышимость выстрела: на прямой видимости дальше, через стены глуше
     // (раньше было 900px во все стороны — слышали полкарты)
-    var hearR = (hasLOS(o.x, o.y, shooter.x, shooter.y) ? GUN_HEAR_OPEN : GUN_HEAR_WALL) * (w.silenced ? 0.55 : 1); // глушитель — слышно ближе
+    var hearR = (hasLOS(o.x, o.y, shooter.x, shooter.y, o.z, shooter.z) ? GUN_HEAR_OPEN : GUN_HEAR_WALL) * (w.silenced ? 0.55 : 1); // глушитель — слышно ближе
     if(dG < hearR){
       var jg = 15 + dG*0.06, ja = hashRand(tick*17 + o.id.charCodeAt(0)*7 + shooter.nextShotTick)*Math.PI*2;
       var hpS = hearPos(o, shooter.x, shooter.y, tick*17 + o.id.charCodeAt(0)*7 + (shooter.nextShotTick|0), hearR === GUN_HEAR_WALL);

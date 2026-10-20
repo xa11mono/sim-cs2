@@ -47,7 +47,7 @@ function warmTick(dt){
     if(!b.alive){ if(!b._wRespawn) b._wRespawn = tick + 2*TICK_HZ; if(tick >= b._wRespawn) warmSpawn(b); return; }
     // враг в поле зрения — стоп и стрельба
     var foe = null, fd = 700;
-    bots.forEach(function(o){ if(o.alive && o.team !== b.team){ var d = Math.hypot(o.x-b.x, o.y-b.y); if(d < fd && hasLOS(b.x, b.y, o.x, o.y)){ fd = d; foe = o; } } });
+    bots.forEach(function(o){ if(o.alive && o.team !== b.team){ var d = Math.hypot(o.x-b.x, o.y-b.y); if(d < fd && hasLOS(b.x, b.y, o.x, o.y, b.z, o.z)){ fd = d; foe = o; } } });
     if(foe){
       var a = Math.atan2(foe.y-b.y, foe.x-b.x);
       warmTurn(b, a, AIM_TURN_RATE*dt); b._nearestEnemyBot = foe; b._wv = Math.max(0, (b._wv||0) - ACCEL*dt); b.curSpeed = b._wv;   // (v312) доворот и торможение, а не щелчок

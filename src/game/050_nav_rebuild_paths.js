@@ -410,7 +410,9 @@ function segIntersect(ax,ay,bx,by,cx,cy,dx,dy){
 }
 // (v241) видимость между двумя точками — глаза стоящего человека с обеих сторон, в 3D (стены, укрытия,
 // пол и уступы, крыши — visLine). Раньше — только плоские отрезки стен
-function hasLOS(x1,y1,x2,y2){
-  return visLine(x1, y1, visFloorAt(x1, y1) + VIS_EYE.stand, x2, y2, visFloorAt(x2, y2) + VIS_EYE.stand, false);
+// z1, z2 — высоты концов, если известны (бот): пол — его этаж, а не верхний (М140, Н2: под балконом Shadow, в Underpass
+// взгляд, позиции и «откуда простреливается» считались с глаз на верхнем полу)
+function hasLOS(x1,y1,x2,y2,z1,z2){
+  return visLine(x1, y1, visFloorAt(x1, y1, z1) + VIS_EYE.stand, x2, y2, visFloorAt(x2, y2, z2) + VIS_EYE.stand, false);
 }
 

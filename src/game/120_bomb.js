@@ -182,8 +182,8 @@ function bombTick(){
       bots.forEach(function(o){
         if(o.team !== "CT" || !o.alive) return;
         var dH = Math.hypot(o.x-c.x, o.y-c.y);
-        if(dH < 520 || (dH < 850 && hasLOS(o.x, o.y, c.x, c.y)))
-          o.heardSound = hearReal(o, {x:c.x, y:c.y, tick:tick, team:"T", src:c.id, kind:"plant", occl:!hasLOS(o.x, o.y, c.x, c.y)});
+        if(dH < 520 || (dH < 850 && hasLOS(o.x, o.y, c.x, c.y, o.z)))
+          o.heardSound = hearReal(o, {x:c.x, y:c.y, tick:tick, team:"T", src:c.id, kind:"plant", occl:!hasLOS(o.x, o.y, c.x, c.y, o.z)});
       });
     }
   } else if(bomb.state === "dropped"){

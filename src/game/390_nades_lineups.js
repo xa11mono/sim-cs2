@@ -58,7 +58,7 @@ function tCrossSmoke(L){
   var crossing = bots.some(function(b){
     if(b.team !== "T" || !b.alive || !b.path || !b.path.length) return false;
     for(var i = b.pathIdx||0; i < Math.min(b.path.length, (b.pathIdx||0) + 4); i++){ var q = b.path[i];
-      if(!hasLOS(b.x, b.y, L.to.x, L.to.y) && hasLOS(q[0], q[1], L.to.x, L.to.y) && Math.hypot(q[0]-b.x, q[1]-b.y) < 500) return true; }
+      if(!hasLOS(b.x, b.y, L.to.x, L.to.y, b.z) && hasLOS(q[0], q[1], L.to.x, L.to.y) && Math.hypot(q[0]-b.x, q[1]-b.y) < 500) return true; }
     return false; });
   if(!crossing) return false;
   nadeFlags._xsN = (nadeFlags._xsN||0) + 1;

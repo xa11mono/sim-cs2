@@ -61,7 +61,7 @@ function contactTick(b){
   if(swing && bots.some(function(o){ return o !== b && o.alive && o.team === b.team && o._contact && o._contact.tag === "contact:swing" && tick < o._contact.until && Math.hypot(o._contact.x-C.x, o._contact.y-C.y) < 200; })) swing = false;   // на него уже выходит свой
   var cand = pickSpots("ct"+b.id+Math.round(look.x/40)+","+Math.round(look.y/40), {x:b.x, y:b.y}, 4, {rMax: swing ? CONTACT_SWING : 160, minGap:30, see:[look]})
     .filter(function(q){ return Math.hypot(q.x-look.x, q.y-look.y) >= 120 && !spotTaken(b, q); });
-  if(hasLOS(b.x, b.y, look.x, look.y) && !swing) cand.unshift({x:b.x, y:b.y});
+  if(hasLOS(b.x, b.y, look.x, look.y, b.z) && !swing) cand.unshift({x:b.x, y:b.y});
   cand.sort(swing ? function(a, c){ return Math.hypot(a.x-look.x, a.y-look.y) - Math.hypot(c.x-look.x, c.y-look.y); }
                   : function(a, c){ return Math.hypot(a.x-b.x, a.y-b.y) - Math.hypot(c.x-b.x, c.y-b.y); });
   var sp = cand[0]; if(!sp) return;
@@ -70,7 +70,7 @@ function contactTick(b){
   if(!setPost(b, sp, look, true, tag)){ b._contact = {x:C.x, y:C.y, until: tick + CONTACT_HOLD*TICK_HZ, lock:false}; b._contactT = tick; return; }
   b._contact = {x:C.x, y:C.y, until: tick + CONTACT_HOLD*TICK_HZ, lock:true, pt:sp, tag:tag}; b._contactT = tick;
   b._reposUntil = 0; b._probeLock = 0; b.lastIntel = {x:look.x, y:look.y, tick:tick, src:"call"};
-  if(swing && !C.own && b.nades && b.nades.flash > 0 && C.d > 150 && !hasLOS(b.x, b.y, look.x, look.y)) assignNade(b, "flash", look, "флешка под выход на врага рядом", {now:true, range:900});
+  if(swing && !C.own && b.nades && b.nades.flash > 0 && C.d > 150 && !hasLOS(b.x, b.y, look.x, look.y, b.z)) assignNade(b, "flash", look, "флешка под выход на врага рядом", {now:true, range:900});
   voiceLog(b.team, "ct"+b.id+Math.round(tick/64), b.id, (swing ? "выхожу на него " : "держу ")+calloutName(look.x, look.y));
 }
 function teamBrains(){

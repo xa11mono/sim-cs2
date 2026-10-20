@@ -78,7 +78,7 @@ function detonate(n){
     bots.forEach(function(b){
       if(!b.alive) return;   // (v263, Б1) HE ранит и своих, и бросившего — множитель в applyDamage
       var d = Math.hypot(b.x-n.x, b.y-n.y);
-      if(d > NADE.he.radius || !hasLOS(n.x, n.y, b.x, b.y)) return;
+      if(d > NADE.he.radius || !hasLOS(n.x, n.y, b.x, b.y, null, b.z)) return;
       var dmg = NADE.he.dmg * (1 - d/NADE.he.radius);
       applyDamage(n.thrower, b, dmg, "HE", {armorRatio: b.armor ? NADE.he.armorK : null});
     });

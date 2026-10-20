@@ -158,7 +158,7 @@ function knowPlant(b){
   if(b.team === "CT" && !K.plantSite){
     var left = ["A", "B"].filter(function(X){ var S = SITES[X];
       return !bots.some(function(o){ if(o.team !== "CT" || !o.alive) return false; var dH = Math.hypot(o.x-S.x, o.y-S.y);
-        return dH < 520 || (dH < 850 && hasLOS(o.x, o.y, S.x, S.y)); }); });
+        return dH < 520 || (dH < 850 && hasLOS(o.x, o.y, S.x, S.y, o.z)); }); });
     if(left.length === 1) K.plantSite = left[0];
   }
   if(b.team === "CT" && K.plantSite) knowPlantShift(K, K.plantSite);

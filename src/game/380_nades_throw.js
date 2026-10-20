@@ -91,7 +91,7 @@ function throwNade(b, type, tx, ty, lob, why, trusted){
   // (v370) остальное — дугой по высоте (nadeArc): навес, что проходит под потолками; нет — низом, если цель видна
   if(lob && !trusted && nadeTallWall(b.x, b.y, tx, ty, type)){ NADE_FAIL = "стена на пути"; return false; }   // (v373) сквозь стену — только как кидают про (MAP.nadelanes)
   var ARC = lob ? (trusted ? {h: NADE_ARCS[0], under: nadeCovered(tx, ty)} : nadeArc(b, tx, ty)) : null;   // (v375, отметка: молотов лайнапа про в T Ramp «пропадал» — падал «на крышу») лайнап про попадает под крышу, как у про
-  if(lob && !ARC){ if(!hasLOS(b.x, b.y, tx, ty)){ NADE_FAIL = "дуга упирается в потолок, цель не видна"; return false; } lob = false; }
+  if(lob && !ARC){ if(!hasLOS(b.x, b.y, tx, ty, b.z)){ NADE_FAIL = "дуга упирается в потолок, цель не видна"; return false; } lob = false; }
   // (v340, отметка владельца: «кидает через крытую зону» — kyousuke из-под крыши B Apps навесом через стену) сам под крышей /
   // под другим этажом — навесом нельзя (дуга упрётся в потолок): только низом, если цель видна (окно, проход)
   b.nades[type]--; b._nadeT = tick; b._lastNade = {type:type, x:tx, y:ty, t:tick};
@@ -198,7 +198,7 @@ function updateNadeTasks(){
       if(!throwNade(b, t.type, t.x, t.y, true, t.why, !t.gen) && NADE_FAIL && /пауза|свой/.test(NADE_FAIL)) return;   // своя точка (gen) — дуга проверяется
       b.nadeTask = null; if(b.post && b.post.tag === "lineup") clearPost(b); return;
     }
-    if(d <= t.range && hasLOS(b.x, b.y, t.x, t.y)){
+    if(d <= t.range && hasLOS(b.x, b.y, t.x, t.y, b.z)){
       if(!nadeReady(b)) return;   // (v340) только что кинул другую — задание ждёт
       throwNade(b, t.type, t.x, t.y, false, t.why); b.nadeTask = null;
     } else if(t.lob && d <= t.range*0.85 && (t.now || tick - t.start > 64)){
