@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""(шаг 0а) прогон матчей с обычным сторожем (audit/watch.js) и сторожем ходьбы (engine/walk_watch.js).
+"""(шаг 0а) прогон матчей с обычным сторожем (audit/watch.js), сторожем ходьбы (engine/walk_watch.js) и (Б2) знания/стрельбы (engine/know_watch.js).
 python3 tools/measure/engine/walk_run.py <метка> --sim=<sim.html> [--matches=3,7,...] [--par=2]
 несколько версий одной очередью: --job=<метка>,<sim.html> --job=… (матчи и par — общие)
 Пишет tools/measure/runs/<метка>/rec_<m>.json в том же виде, что measure.py (+ поле walk), так что потом работает
@@ -16,10 +16,11 @@ for a in sys.argv[1:]:
 if args: jobs.insert(0, (args[0], sim))
 for l, f in jobs: os.makedirs(os.path.join(MEAS, 'runs', l), exist_ok=True)
 tpl = open(os.path.join(MEAS, 'rec2.js'), encoding='utf-8').read()
-watch = open(os.path.join(MEAS, 'audit', 'watch.js'), encoding='utf-8').read() + '\n' + open(os.path.join(HERE, 'walk_watch.js'), encoding='utf-8').read()
+watch = open(os.path.join(MEAS, 'audit', 'watch.js'), encoding='utf-8').read() + '\n' + open(os.path.join(HERE, 'walk_watch.js'), encoding='utf-8').read() \
+    + '\n' + open(os.path.join(HERE, 'know_watch.js'), encoding='utf-8').read()   # (Б2) сторож знания и стрельбы
 A = "if(typeof WATCH!=='undefined') WATCH.tick();"; B = "if(typeof WATCH!=='undefined') REC.watch=WATCH.report();"
 assert A in tpl and B in tpl
-tpl = tpl.replace(A, A + " WALK.tick();").replace(B, B + " REC.walk=WALK.report();")
+tpl = tpl.replace(A, A + " WALK.tick(); KNOWW.tick();").replace(B, B + " REC.walk=WALK.report(); REC.know=KNOWW.report();")
 # очередь: новый матч начинается сразу, как освободилось место (раньше — пачками по par, пачка ждала самый долгий матч)
 import time
 todo = [(l, f, m) for l, f in jobs for m in matches]; run = []; total = len(todo); fin = 0
