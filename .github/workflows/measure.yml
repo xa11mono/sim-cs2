@@ -1,0 +1,29 @@
+# Прогоны замера на ПК владельца (self-hosted runner). Задание — tools/measure/request.json в ветке measure/…
+# Игру не меняет: собирает указанную в задании версию и играет матчи; результат — артефакт runs-<номер прогона>.
+name: measure
+on:
+  push:
+    branches: ['measure/**']
+  workflow_dispatch:
+concurrency:
+  group: measure
+  cancel-in-progress: false
+jobs:
+  run:
+    runs-on: self-hosted
+    timeout-minutes: 600
+    env:
+      PYTHONUTF8: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Play matches
+        run: python tools/measure/remote_run.py
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: runs-${{ github.run_number }}
+          path: |
+            tools/measure/runs/
+            !tools/measure/runs/_sims/
+          retention-days: 14
