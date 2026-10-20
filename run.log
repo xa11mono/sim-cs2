@@ -1,0 +1,19 @@
+playwright 1.56.0
+> git fetch --quiet origin 2f3218e62ad0914c65f0da3d85c6a0ffca997b6b
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Users\Mono\AppData\Local\Temp\simbuild_htslozbt FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Users\Mono\AppData\Local\Temp\simbuild_htslozbt\src\build.py --map ancient C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\x1snap_anc.html
+> git fetch --quiet origin 2f3218e62ad0914c65f0da3d85c6a0ffca997b6b
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Users\Mono\AppData\Local\Temp\simbuild_ou_1c1ld FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Users\Mono\AppData\Local\Temp\simbuild_ou_1c1ld\src\build.py --map mirage C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\x1snap_mir.html
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\engine\walk_run.py --job=x1snap_anc,C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\x1snap_anc.html --job=x1snap_mir,C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\x1snap_mir.html --matches=3,7,11,13 --par=8
+матчей в очереди: 8, одновременно: 8
+x1snap_anc match 3 rc 0 3556521 — готово 1/8, 3 мин
+x1snap_anc match 7 rc 0 3996454 — готово 2/8, 3 мин
+x1snap_anc match 13 rc 0 4304594 — готово 3/8, 3 мин
+x1snap_anc match 11 rc 0 5017881 — готово 4/8, 3 мин
+x1snap_mir match 3 rc 0 3882690 — готово 5/8, 4 мин
+x1snap_mir match 7 rc 0 4129732 — готово 6/8, 4 мин
+x1snap_mir match 11 rc 0 4197693 — готово 7/8, 4 мин
+x1snap_mir match 13 rc 0 4086736 — готово 8/8, 4 мин
+done
+all done
