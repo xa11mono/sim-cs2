@@ -312,7 +312,17 @@ def prims(name):
         if (P[:, :3] @ c - P[:, 3]).mean() > 0: P = -P     # центр — внутри
         planes.append(P)
     big = len(used) > 65535   # (А6) у Ancient вершин ~0,5 млн — номера не влезают в Uint16
-    return {'v': b64(V), 'tri': b64(inv.reshape(-1, 3).astype('<u4' if big else '<u2')), 'tri32': 1 if big else 0, 'tri_flag': b64(tflag), 'tri_mat': b64(z['mesh_surf'][tk].astype(np.uint8)),
+    if big:
+        # (А6) большая карта: номера вершин и вершины — разностями с предыдущим (сжимается на 1,4 МБ лучше; страница ≤ 16 МБ)
+        ti = inv.astype(np.int64); dt = np.diff(np.concatenate([[0], ti])).astype('<i4')
+        dv = np.diff(np.vstack([[0, 0, 0], V.astype(np.int64)]), axis=0); assert np.abs(dv).max() < 32767
+        return {'v': b64(dv.astype('<i2')), 'tri': b64(dt), 'tri32': 1, 'delta': 1,
+                'tri_flag': b64(tflag), 'tri_mat': b64(z['mesh_surf'][tk].astype(np.uint8)),
+                'hull_n': b64(pn[hk].astype(np.uint8)), 'hull_p': b64(np.concatenate(planes).astype('<f4')),
+                'hull_box': b64(np.array(box).astype('<i2')),
+                'hull_flag': b64((hm['sight'][hk] * 1 + hm['nade'][hk] * 2).astype(np.uint8)), 'hull_mat': b64(z['hull_surf'][hk].astype(np.uint8)),
+                'counts': {'tri': int(tk.sum()), 'v': int(len(used)), 'hull': int(len(hk))}}
+    return {'v': b64(V), 'tri': b64(inv.reshape(-1, 3).astype('<u2')), 'tri32': 0, 'tri_flag': b64(tflag), 'tri_mat': b64(z['mesh_surf'][tk].astype(np.uint8)),
             'hull_n': b64(pn[hk].astype(np.uint8)), 'hull_p': b64(np.concatenate(planes).astype('<f4')),
             'hull_box': b64(np.array(box).astype('<i2')),
             'hull_flag': b64((hm['sight'][hk] * 1 + hm['nade'][hk] * 2).astype(np.uint8)), 'hull_mat': b64(z['hull_surf'][hk].astype(np.uint8)),

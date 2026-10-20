@@ -101,7 +101,11 @@ function m3Load(J, inflate){
   var fl = cols({n: J.floors.n, lo: J.floors.z, hi: J.floors.z}); M.floors = {st: fl.st, z: fl.lo, kind: arr(J.floors.kind, Uint8Array)};
   M.skyArr = function(){ if(!M.skyZ){ M.sky = cols(J.sky); M.skyZ = arr(J.sky_z, Int16Array); } return M.skyZ; };
   // точная геометрия → ед. игры
-  var P = J.prims, V = arr(P.v, Int16Array), T = arr(P.tri, P.tri32 ? Uint32Array : Uint16Array), tf = arr(P.tri_flag, Uint8Array), tm = arr(P.tri_mat, Uint8Array);
+  var P = J.prims, V = arr(P.v, Int16Array), T = P.delta ? arr(P.tri, Int32Array) : arr(P.tri, P.tri32 ? Uint32Array : Uint16Array), tf = arr(P.tri_flag, Uint8Array), tm = arr(P.tri_mat, Uint8Array);
+  if(P.delta){   // (А6) большая карта: номера вершин и вершины записаны разностями (tools/map3d/layers.py)
+    for(var di = 1; di < T.length; di++) T[di] += T[di-1];
+    for(di = 3; di < V.length; di++) V[di] += V[di-3];
+  }
   var nt = tf.length, tri = new Float32Array(nt * 9);
   for(var k = 0; k < nt; k++) for(var a = 0; a < 3; a++){ var v = T[k*3 + a]; for(var q = 0; q < 3; q++) tri[k*9 + a*3 + q] = V[v*3 + q] / 4; }
   var hn = arr(P.hull_n, Uint8Array), hp = arr(P.hull_p, Float32Array), hb = arr(P.hull_box, Int16Array);
