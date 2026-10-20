@@ -4,11 +4,12 @@
  "ctRounds": 1420,
  "siteZones": {
   "A": [
+   "A Default",
    "A Site",
-   "Default",
-   "Palms"
+   "Triple Box"
   ],
   "B": [
+   "B Boost",
    "B Site"
   ]
  },
@@ -26,359 +27,370 @@
   {
    "site": "A",
    "lanes": {
-    "Pillars → T Roof": 1,
+    "Palace Entry": 1,
     "T Ramp": 2,
     "far": 2
    },
    "tempo": "",
-   "n": 260,
-   "plantSec": 59.1,
-   "fast": 0.24,
+   "n": 214,
+   "plantSec": 57.2,
+   "fast": 0.27,
+   "late": 0.3
+  },
+  {
+   "site": "B",
+   "lanes": {
+    "Stove": 3,
+    "far": 2
+   },
+   "tempo": "",
+   "n": 119,
+   "plantSec": 77.0,
+   "fast": 0.13,
+   "late": 0.55
+  },
+  {
+   "site": "B",
+   "lanes": {
+    "B Apartments": 1,
+    "Stove": 2,
+    "far": 2
+   },
+   "tempo": "",
+   "n": 109,
+   "plantSec": 61.3,
+   "fast": 0.29,
    "late": 0.33
   },
   {
-   "site": "B",
-   "lanes": {
-    "B Stairs → TV": 3,
-    "far": 2
-   },
-   "tempo": "",
-   "n": 211,
-   "plantSec": 67.7,
-   "fast": 0.21,
-   "late": 0.42
-  },
-  {
    "site": "A",
    "lanes": {
-    "T Ramp": 2,
+    "Palace Entry": 2,
     "far": 3
    },
    "tempo": "",
-   "n": 63,
-   "plantSec": 69.1,
-   "fast": 0.21,
-   "late": 0.38
-  },
-  {
-   "site": "B",
-   "lanes": {
-    "B Stairs → TV": 2,
-    "Top Mid": 1,
-    "far": 2
-   },
-   "tempo": "",
-   "n": 45,
-   "plantSec": 83.6,
-   "fast": 0.04,
-   "late": 0.62
-  },
-  {
-   "site": "A",
-   "lanes": {
-    "Pillars → T Roof": 3,
-    "far": 2
-   },
-   "tempo": "",
-   "n": 36,
-   "plantSec": 73.0,
-   "fast": 0.14,
+   "n": 48,
+   "plantSec": 72.7,
+   "fast": 0.17,
    "late": 0.44
   },
   {
    "site": "A",
    "lanes": {
-    "Top Mid": 2,
+    "T Ramp": 2,
     "far": 3
    },
    "tempo": "",
-   "n": 18,
-   "plantSec": 86.7,
-   "fast": 0.0,
-   "late": 0.67
-  },
-  {
-   "site": "A",
-   "lanes": {
-    "B Stairs → TV": 1,
-    "Top Mid": 1,
-    "far": 3
-   },
-   "tempo": "",
-   "n": 18,
-   "plantSec": 82.0,
-   "fast": 0.0,
-   "late": 0.78
+   "n": 47,
+   "plantSec": 70.9,
+   "fast": 0.15,
+   "late": 0.4
   },
   {
    "site": "B",
    "lanes": {
-    "B Stairs → TV": 2,
-    "Stove": 1,
-    "far": 2
+    "Stove": 2,
+    "Top Mid": 2,
+    "far": 1
    },
    "tempo": "",
-   "n": 17,
+   "n": 37,
    "plantSec": 75.8,
-   "fast": 0.18,
-   "late": 0.53
+   "fast": 0.0,
+   "late": 0.51
   },
   {
    "site": "A",
    "lanes": {
-    "B Stairs → TV": 2,
+    "Palace Entry": 1,
+    "T Ramp": 1,
+    "Tetris": 1,
+    "far": 2
+   },
+   "tempo": "",
+   "n": 30,
+   "plantSec": 58.5,
+   "fast": 0.2,
+   "late": 0.27
+  },
+  {
+   "site": "A",
+   "lanes": {
+    "Palace Entry": 1,
+    "Top Mid": 2,
+    "far": 2
+   },
+   "tempo": "",
+   "n": 30,
+   "plantSec": 67.6,
+   "fast": 0.1,
+   "late": 0.43
+  },
+  {
+   "site": "A",
+   "lanes": {
+    "Top Mid": 1,
+    "Underpath Stairs": 1,
     "far": 3
    },
    "tempo": "",
-   "n": 16,
-   "plantSec": 98.0,
+   "n": 27,
+   "plantSec": 85.2,
    "fast": 0.0,
    "late": 0.81
   },
   {
-   "site": "B",
+   "site": "A",
    "lanes": {
     "Top Mid": 2,
     "far": 3
    },
    "tempo": "",
-   "n": 16,
-   "plantSec": 99.8,
-   "fast": 0.06,
-   "late": 0.69
+   "n": 24,
+   "plantSec": 86.6,
+   "fast": 0.0,
+   "late": 0.62
   },
   {
-   "site": "A",
+   "site": "B",
    "lanes": {
-    "Pillars → T Roof": 1,
-    "Top Mid": 2,
-    "far": 2
+    "Top Mid": 1,
+    "far": 4
    },
    "tempo": "",
-   "n": 14,
-   "plantSec": 46.5,
-   "fast": 0.21,
-   "late": 0.21
+   "n": 17,
+   "plantSec": 95.4,
+   "fast": 0.06,
+   "late": 0.71
   },
   {
    "site": "A",
    "lanes": {
-    "B Stairs → TV": 1,
-    "Pillars → T Roof": 1,
+    "Underpath Stairs": 1,
+    "far": 4
+   },
+   "tempo": "",
+   "n": 13,
+   "plantSec": 100.2,
+   "fast": 0.0,
+   "late": 0.77
+  },
+  {
+   "site": "A",
+   "lanes": {
+    "Palace Entry": 1,
     "Top Mid": 1,
+    "Underpath Stairs": 1,
     "far": 2
    },
    "tempo": "",
    "n": 11,
-   "plantSec": 88.7,
+   "plantSec": 87.9,
    "fast": 0.0,
    "late": 0.91
   },
   {
    "site": "A",
    "lanes": {
-    "Pillars → T Roof": 1,
-    "T Ramp": 1,
-    "Top Mid": 1,
-    "far": 2
+    "Palace Entry": 1,
+    "Tetris": 1,
+    "far": 3
    },
    "tempo": "",
-   "n": 11,
-   "plantSec": 73.4,
-   "fast": 0.0,
-   "late": 0.45
-  },
-  {
-   "site": "B",
-   "lanes": {
-    "B Stairs → TV": 1,
-    "Top Mid": 2,
-    "Trash Mid": 1,
-    "far": 1
-   },
-   "tempo": "",
-   "n": 6,
-   "plantSec": 70.9,
-   "fast": 0.0,
-   "late": 0.33
-  },
-  {
-   "site": "A",
-   "lanes": {
-    "B Stairs → TV": 1,
-    "Pillars → T Roof": 2,
-    "far": 2
-   },
-   "tempo": "",
-   "n": 6,
-   "plantSec": 63.6,
-   "fast": 0.0,
-   "late": 0.33
-  },
-  {
-   "site": "B",
-   "lanes": {
-    "B Stairs → TV": 2,
-    "Trash Mid": 1,
-    "far": 2
-   },
-   "tempo": "",
-   "n": 6,
-   "plantSec": 72.9,
-   "fast": 0.0,
-   "late": 0.5
-  },
-  {
-   "site": "A",
-   "lanes": {
-    "B Stairs → TV": 1,
-    "Pillars → T Roof": 1,
-    "T Ramp": 1,
-    "far": 2
-   },
-   "tempo": "",
-   "n": 5,
-   "plantSec": 84.3,
-   "fast": 0.0,
-   "late": 0.6
+   "n": 10,
+   "plantSec": 82.6,
+   "fast": 0.1,
+   "late": 0.7
   },
   {
    "site": "A",
    "lanes": {
     "T Ramp": 2,
+    "Tetris": 1,
+    "far": 2
+   },
+   "tempo": "",
+   "n": 8,
+   "plantSec": 70.9,
+   "fast": 0.38,
+   "late": 0.5
+  },
+  {
+   "site": "B",
+   "lanes": {
+    "B Apartments": 1,
+    "Stove": 2,
+    "Top Mid": 1,
+    "far": 1
+   },
+   "tempo": "",
+   "n": 8,
+   "plantSec": 73.5,
+   "fast": 0.25,
+   "late": 0.5
+  },
+  {
+   "site": "A",
+   "lanes": {
+    "Palace Entry": 1,
+    "Underpath Stairs": 1,
+    "far": 3
+   },
+   "tempo": "",
+   "n": 7,
+   "plantSec": 56.3,
+   "fast": 0.0,
+   "late": 0.29
+  },
+  {
+   "site": "B",
+   "lanes": {
+    "B Apartments": 1,
+    "far": 4
+   },
+   "tempo": "",
+   "n": 6,
+   "plantSec": 69.9,
+   "fast": 0.0,
+   "late": 0.33
+  },
+  {
+   "site": "A",
+   "lanes": {
+    "Palace Entry": 1,
+    "T Ramp": 1,
     "Top Mid": 1,
     "far": 2
    },
    "tempo": "",
-   "n": 5,
-   "plantSec": 86.9,
+   "n": 6,
+   "plantSec": 76.6,
    "fast": 0.0,
-   "late": 0.8
+   "late": 0.5
   },
   {
-   "site": "A",
+   "site": "B",
    "lanes": {
-    "Pillars → T Roof": 1,
-    "Trash Mid": 1,
-    "far": 3
-   },
-   "tempo": "",
-   "n": 5,
-   "plantSec": 86.5,
-   "fast": 0.0,
-   "late": 0.8
-  },
-  {
-   "site": "A",
-   "lanes": {
-    "Top Mid": 1,
-    "Trash Mid": 1,
-    "far": 3
+    "Stove": 2,
+    "Underpath Stairs": 1,
+    "far": 2
    },
    "tempo": "",
    "n": 4,
-   "plantSec": 69.4,
+   "plantSec": 94.2,
    "fast": 0.0,
-   "late": 0.5
+   "late": 0.75
   },
   {
    "site": "A",
    "lanes": {
-    "Pillars → T Roof": 1,
+    "Palace Entry": 1,
     "T Ramp": 1,
-    "Trash Mid": 1,
+    "Underpath Stairs": 1,
     "far": 2
    },
    "tempo": "",
    "n": 3,
-   "plantSec": 80.6,
-   "fast": 0.0,
-   "late": 0.67
-  },
-  {
-   "site": "A",
-   "lanes": {
-    "Pillars → T Roof": 1,
-    "Top Mid": 1,
-    "Trash Mid": 1,
-    "far": 2
-   },
-   "tempo": "",
-   "n": 3,
-   "plantSec": 83.4,
-   "fast": 0.0,
-   "late": 0.67
-  },
-  {
-   "site": "A",
-   "lanes": {
-    "B Stairs → TV": 1,
-    "Top Mid": 1,
-    "Trash Mid": 1,
-    "far": 2
-   },
-   "tempo": "",
-   "n": 3,
-   "plantSec": 89.8,
-   "fast": 0.0,
-   "late": 1.0
-  },
-  {
-   "site": "A",
-   "lanes": {
-    "B Stairs → TV": 1,
-    "T Ramp": 2,
-    "far": 2
-   },
-   "tempo": "",
-   "n": 3,
-   "plantSec": 85.5,
-   "fast": 0.0,
-   "late": 0.67
-  },
-  {
-   "site": "A",
-   "lanes": {
-    "B Stairs → TV": 1,
-    "T Ramp": 1,
-    "Top Mid": 2,
-    "far": 1
-   },
-   "tempo": "",
-   "n": 2,
-   "plantSec": 79.5,
-   "fast": 0.0,
-   "late": 0.5
-  },
-  {
-   "site": "A",
-   "lanes": {
-    "B Stairs → TV": 2,
-    "Trash Mid": 1,
-    "far": 2
-   },
-   "tempo": "",
-   "n": 2,
-   "plantSec": 100.9,
+   "plantSec": 95.0,
    "fast": 0.0,
    "late": 1.0
   },
   {
    "site": "B",
    "lanes": {
-    "T Ramp": 1,
+    "Stove": 1,
+    "Top Mid": 1,
+    "Underpath Stairs": 1,
+    "far": 2
+   },
+   "tempo": "",
+   "n": 3,
+   "plantSec": 64.1,
+   "fast": 0.0,
+   "late": 0.33
+  },
+  {
+   "site": "A",
+   "lanes": {
+    "T Ramp": 2,
+    "Top Mid": 1,
+    "far": 2
+   },
+   "tempo": "",
+   "n": 3,
+   "plantSec": 93.5,
+   "fast": 0.0,
+   "late": 1.0
+  },
+  {
+   "site": "B",
+   "lanes": {
+    "B Apartments": 1,
+    "Top Mid": 2,
+    "far": 2
+   },
+   "tempo": "",
+   "n": 3,
+   "plantSec": 76.3,
+   "fast": 0.0,
+   "late": 0.67
+  },
+  {
+   "site": "A",
+   "lanes": {
+    "Tetris": 1,
     "far": 4
    },
    "tempo": "",
    "n": 2,
-   "plantSec": 106.7,
+   "plantSec": 77.0,
    "fast": 0.0,
-   "late": 1.0
+   "late": 0.5
+  },
+  {
+   "site": "A",
+   "lanes": {
+    "Tetris": 2,
+    "Top Mid": 1,
+    "far": 2
+   },
+   "tempo": "",
+   "n": 2,
+   "plantSec": 74.0,
+   "fast": 0.0,
+   "late": 0.5
+  },
+  {
+   "site": "A",
+   "lanes": {
+    "T Ramp": 2,
+    "Underpath Stairs": 1,
+    "far": 2
+   },
+   "tempo": "",
+   "n": 2,
+   "plantSec": 72.3,
+   "fast": 0.0,
+   "late": 0.5
+  },
+  {
+   "site": "A",
+   "lanes": {
+    "Palace Entry": 1,
+    "Tetris": 1,
+    "Top Mid": 1,
+    "far": 2
+   },
+   "tempo": "",
+   "n": 2,
+   "plantSec": 67.1,
+   "fast": 0.0,
+   "late": 0.5
   },
   {
    "site": "B",
    "lanes": {
-    "Pillars → T Roof": 1,
+    "Palace Entry": 1,
     "Top Mid": 2,
     "far": 2
    },
@@ -389,139 +401,99 @@
    "late": 1.0
   },
   {
-   "site": "B",
+   "site": "A",
    "lanes": {
-    "Stove": 1,
-    "Top Mid": 2,
+    "T Ramp": 1,
+    "Top Mid": 1,
+    "Underpath Stairs": 1,
     "far": 2
    },
    "tempo": "",
    "n": 1,
-   "plantSec": 82.3,
+   "plantSec": 94.2,
    "fast": 0.0,
    "late": 1.0
   },
   {
    "site": "A",
    "lanes": {
-    "Catwalk": 1,
-    "Top Mid": 1,
-    "far": 3
-   },
-   "tempo": "",
-   "n": 1,
-   "plantSec": 87.3,
-   "fast": 0.0,
-   "late": 1.0
-  },
-  {
-   "site": "B",
-   "lanes": {
-    "B Stairs → TV": 3,
-    "Catwalk": 1,
-    "Top Mid": 1,
-    "far": 0
-   },
-   "tempo": "",
-   "n": 1,
-   "plantSec": 37.9,
-   "fast": 1.0,
-   "late": 0.0
-  },
-  {
-   "site": "B",
-   "lanes": {
-    "Trash Mid": 1,
+    "B Apartments": 1,
     "far": 4
    },
    "tempo": "",
    "n": 1,
-   "plantSec": 95.4,
+   "plantSec": 84.5,
    "fast": 0.0,
    "late": 1.0
   },
   {
-   "site": "A",
+   "site": "B",
    "lanes": {
-    "Pillars": 1,
-    "Pillars → T Roof": 2,
-    "T Ramp": 2,
-    "far": 0
+    "Tetris": 1,
+    "far": 4
    },
    "tempo": "",
    "n": 1,
-   "plantSec": 29.3,
-   "fast": 1.0,
-   "late": 0.0
+   "plantSec": 108.2,
+   "fast": 0.0,
+   "late": 1.0
   },
   {
    "site": "A",
    "lanes": {
     "T Ramp": 1,
-    "Trash Mid": 1,
-    "far": 3
+    "Tetris": 1,
+    "Top Mid": 1,
+    "far": 2
    },
    "tempo": "",
    "n": 1,
-   "plantSec": 103.4,
+   "plantSec": 80.0,
    "fast": 0.0,
    "late": 1.0
   },
   {
    "site": "A",
    "lanes": {
-    "Trash Mid": 2,
-    "far": 3
-   },
-   "tempo": "",
-   "n": 1,
-   "plantSec": 67.0,
-   "fast": 0.0,
-   "late": 0.0
-  },
-  {
-   "site": "A",
-   "lanes": {
-    "B Stairs": 1,
-    "Top Mid": 2,
-    "far": 2
-   },
-   "tempo": "",
-   "n": 1,
-   "plantSec": 68.0,
-   "fast": 0.0,
-   "late": 0.0
-  },
-  {
-   "site": "A",
-   "lanes": {
-    "Stove": 1,
+    "Catwalk": 1,
     "Top Mid": 1,
     "far": 3
    },
    "tempo": "",
    "n": 1,
-   "plantSec": 92.8,
-   "fast": 0.0,
-   "late": 1.0
-  },
-  {
-   "site": "A",
-   "lanes": {
-    "Cart": 1,
-    "Pillars → T Roof": 1,
-    "far": 3
-   },
-   "tempo": "",
-   "n": 1,
-   "plantSec": 84.8,
+   "plantSec": 87.5,
    "fast": 0.0,
    "late": 1.0
   },
   {
    "site": "B",
    "lanes": {
-    "Pillars → T Roof": 1,
+    "T Ramp": 1,
+    "far": 4
+   },
+   "tempo": "",
+   "n": 1,
+   "plantSec": 105.3,
+   "fast": 0.0,
+   "late": 1.0
+  },
+  {
+   "site": "A",
+   "lanes": {
+    "Stove": 1,
+    "Underpath Stairs": 1,
+    "far": 3
+   },
+   "tempo": "",
+   "n": 1,
+   "plantSec": 114.4,
+   "fast": 0.0,
+   "late": 1.0
+  },
+  {
+   "site": "B",
+   "lanes": {
+    "Palace Entry": 1,
     "T Ramp": 1,
     "far": 3
    },
@@ -534,235 +506,62 @@
   {
    "site": "A",
    "lanes": {
-    "B Stairs → TV": 2,
-    "Pillars → T Roof": 1,
-    "Trash Mid": 1,
+    "Tetris": 1,
+    "Top Mid": 1,
+    "Underpath Stairs": 1,
+    "far": 2
+   },
+   "tempo": "",
+   "n": 1,
+   "plantSec": 72.1,
+   "fast": 0.0,
+   "late": 0.0
+  },
+  {
+   "site": "B",
+   "lanes": {
+    "Palace Entry": 1,
+    "Stove": 1,
+    "far": 3
+   },
+   "tempo": "",
+   "n": 1,
+   "plantSec": 67.1,
+   "fast": 0.0,
+   "late": 0.0
+  },
+  {
+   "site": "B",
+   "lanes": {
+    "B Apartments": 1,
+    "Catwalk": 1,
+    "Stove": 2,
     "far": 1
    },
    "tempo": "",
    "n": 1,
-   "plantSec": 84.9,
-   "fast": 0.0,
-   "late": 1.0
+   "plantSec": 29.5,
+   "fast": 1.0,
+   "late": 0.0
   }
  ],
  "routes": {
-  "A:B Stairs": [
+  "A:B Apartments": [
    [
     [
+     "Side Alley",
      "TV",
-     "B Stairs",
+     "House",
+     "T Apps",
+     "B Apartments",
+     "Drop",
+     "B Site",
+     "Drop",
+     "B Short",
      "Short",
-     "Underpass",
-     "Boost",
-     "Connector",
-     "Stairs"
-    ],
-    1
-   ],
-   [
-    [
-     "TV",
-     "B Stairs",
-     "Short",
-     "Ladder Room",
-     "Underpass",
-     "Ladder Room",
-     "B Stairs",
-     "B Stairs → TV",
-     "B Stairs",
-     "Short",
-     "Ladder Room",
-     "Boost",
-     "Connector",
-     "Stairs"
-    ],
-    1
-   ]
-  ],
-  "A:B Stairs → TV": [
-   [
-    [
-     "TV",
-     "B Stairs → TV",
-     "B Stairs",
-     "Short",
-     "Underpass",
-     "Boost",
-     "Connector",
-     "Jungle"
-    ],
-    7
-   ],
-   [
-    [
-     "TV",
-     "B Stairs → TV",
-     "Stove",
-     "B Stairs → TV",
-     "B Stairs",
-     "Short",
-     "Ladder Room",
-     "Underpass",
-     "Boost",
-     "Connector",
-     "Jungle"
-    ],
-    2
-   ],
-   [
-    [
-     "TV",
-     "B Stairs → TV",
-     "B Stairs",
-     "Short",
-     "Ladder Room",
-     "Underpass",
-     "Ladder Room",
-     "Underpass",
-     "Boost",
-     "Connector",
-     "Jungle"
-    ],
-    2
-   ],
-   [
-    [
-     "TV",
-     "B Stairs → TV",
-     "B Stairs",
-     "Short",
-     "Underpass",
-     "Boost",
-     "Connector",
-     "Jungle",
-     "Palms"
-    ],
-    2
-   ],
-   [
-    [
-     "TV",
-     "B Stairs → TV",
-     "B Stairs",
-     "B Stairs → TV",
-     "B Stairs",
-     "Short",
-     "Ladder Room",
-     "Underpass",
-     "Boost",
-     "Connector"
-    ],
-    2
-   ],
-   [
-    [
-     "TV",
-     "B Stairs → TV",
-     "B Stairs",
-     "Short",
-     "Underpass",
-     "Boost",
-     "Connector",
-     "Stairs"
-    ],
-    1
-   ],
-   [
-    [
-     "TV",
-     "B Stairs → TV",
-     "B Stairs",
-     "Short",
-     "Ladder Room",
-     "Underpass",
-     "Mid",
-     "Connector",
-     "Stairs"
-    ],
-    1
-   ],
-   [
-    [
-     "TV",
-     "B Stairs → TV",
-     "Stove",
-     "B Stairs → TV",
-     "B Stairs",
-     "Short",
-     "Ladder Room",
-     "Underpass",
-     "Boost",
-     "Mid",
      "Catwalk",
      "Connector",
-     "Stairs"
-    ],
-    1
-   ],
-   [
-    [
-     "TV",
-     "B Stairs → TV",
-     "Stove",
-     "B Stairs → TV",
-     "B Stairs",
-     "Short",
-     "Underpass",
-     "Boost",
-     "Connector",
-     "Stairs"
-    ],
-    1
-   ],
-   [
-    [
-     "TV",
-     "B Stairs → TV",
-     "B Stairs",
-     "Short",
-     "Ladder Room",
-     "Underpass",
-     "Boost",
-     "Connector",
-     "Jungle"
-    ],
-    1
-   ]
-  ],
-  "A:Cart": [
-   [
-    [
-     "Elevator",
-     "Cart",
-     "Mid Boxes",
-     "Water",
-     "Cart",
-     "Mid",
-     "Water",
-     "Mid Boxes",
-     "Cart",
-     "Mid",
-     "Connector"
-    ],
-    1
-   ],
-   [
-    [
-     "Elevator",
-     "Cart",
-     "Water",
-     "Mid Boxes",
-     "Cart",
-     "Mid",
-     "Cart",
-     "Trash Mid",
-     "Mid Boxes",
-     "Trash Mid",
-     "Cart",
-     "Mid",
-     "Connector",
-     "Stairs"
+     "Cross"
     ],
     1
    ]
@@ -770,177 +569,160 @@
   "A:Catwalk": [
    [
     [
-     "Elevator",
+     "Side Alley",
      "Catwalk",
-     "Ladder Room",
-     "Boost",
-     "Connector",
-     "Jungle"
-    ],
-    1
-   ],
-   [
-    [
-     "TV",
-     "B Stairs → TV",
-     "B Stairs",
-     "B Stairs → TV",
-     "TV",
-     "Elevator",
+     "Ramp",
      "Catwalk",
+     "Top Mid",
+     "Mid Boxes",
+     "Ramp",
      "Mid",
-     "Connector"
+     "Ramp",
+     "Mid",
+     "Connector",
+     "Cross"
     ],
     1
    ]
   ],
-  "A:Pillars": [
+  "A:Palace Entry": [
    [
     [
-     "T Roof → T Spawn",
-     "T Roof → Pillars",
+     "Palace Entry",
+     "Palace",
      "Pillars",
-     "Palace"
+     "Palace",
+     "Palace Exit"
     ],
-    1
-   ]
-  ],
-  "A:Pillars → T Roof": [
-   [
-    [
-     "T Roof → T Spawn",
-     "T Roof → Pillars",
-     "Pillars → T Roof",
-     "Pillars",
-     "Palace"
-    ],
-    340
+    177
    ],
    [
     [
-     "T Roof → T Spawn",
-     "T Roof → Pillars",
-     "Pillars → T Roof",
+     "Palace Entry",
+     "Palace",
+     "Palace Exit"
+    ],
+    50
+   ],
+   [
+    [
+     "Palace Entry",
+     "Palace",
+     "Pillars",
+     "Palace"
+    ],
+    34
+   ],
+   [
+    [
+     "Palace Entry",
+     "Palace",
+     "Pillars",
+     "Palace Exit"
+    ],
+    29
+   ],
+   [
+    [
+     "Palace Entry",
+     "Palace",
+     "Pillars",
+     "Palace",
+     "Pillars",
+     "Palace",
+     "Palace Exit"
+    ],
+    25
+   ],
+   [
+    [
+     "Palace Entry",
+     "T Ramp",
+     "Tetris"
+    ],
+    11
+   ],
+   [
+    [
+     "Palace Entry",
+     "Palace"
+    ],
+    10
+   ],
+   [
+    [
+     "Palace Entry",
+     "Palace",
+     "Palace Entry",
+     "Palace",
+     "Pillars",
+     "Palace",
+     "Palace Exit"
+    ],
+    9
+   ],
+   [
+    [
+     "Palace Entry",
+     "Palace",
+     "Pillars",
+     "Palace",
+     "Pillars",
+     "Palace",
+     "Pillars",
+     "Palace",
+     "Palace Exit"
+    ],
+    8
+   ],
+   [
+    [
+     "Palace Entry",
+     "Palace",
      "Pillars",
      "Palace",
      "Pillars",
      "Palace"
     ],
-    33
-   ],
-   [
-    [
-     "T Roof → T Spawn",
-     "T Roof → Pillars",
-     "Pillars → T Roof",
-     "Pillars",
-     "Pillars → T Roof",
-     "Pillars",
-     "Palace"
-    ],
     8
-   ],
-   [
-    [
-     "T Roof → T Spawn",
-     "T Roof → Pillars",
-     "Pillars → T Roof",
-     "Pillars",
-     "Pillars → T Roof",
-     "T Roof → Pillars",
-     "Pillars → T Roof",
-     "Pillars",
-     "Palace"
-    ],
-    8
-   ],
-   [
-    [
-     "Elevator",
-     "Top Mid",
-     "Elevator",
-     "T Roof → T Spawn",
-     "T Roof → Pillars",
-     "Pillars → T Roof",
-     "Pillars",
-     "Palace"
-    ],
-    8
-   ],
-   [
-    [
-     "T Roof → T Spawn",
-     "T Roof → Pillars",
-     "Pillars → T Roof",
-     "T Roof → Pillars",
-     "Pillars → T Roof",
-     "Pillars",
-     "Palace"
-    ],
-    6
-   ],
-   [
-    [
-     "T Roof → Pillars",
-     "Pillars → T Roof",
-     "Pillars",
-     "Palace"
-    ],
-    6
-   ],
-   [
-    [
-     "Elevator",
-     "T Roof → T Spawn",
-     "T Roof → Pillars",
-     "Pillars → T Roof",
-     "Pillars",
-     "Palace"
-    ],
-    6
-   ],
-   [
-    [
-     "TV",
-     "T Roof → T Spawn",
-     "T Roof → Pillars",
-     "Pillars → T Roof",
-     "Pillars",
-     "Palace"
-    ],
-    5
-   ],
-   [
-    [
-     "TV",
-     "B Stairs → TV",
-     "Stove",
-     "B Stairs → TV",
-     "TV",
-     "T Roof → T Spawn",
-     "T Roof → Pillars",
-     "Pillars → T Roof",
-     "Pillars",
-     "Palace"
-    ],
-    5
    ]
   ],
   "A:Stove": [
    [
     [
+     "Side Alley",
+     "Apps Ramp",
      "TV",
+     "House",
+     "T Apps",
      "Stove",
-     "B Apps",
-     "Stove",
-     "B Stairs → TV",
-     "B Stairs",
+     "B Apartments",
+     "Drop",
+     "Arches",
+     "B Short",
      "Short",
-     "Ladder Room",
-     "Underpass",
-     "Boost",
+     "Catwalk",
      "Connector",
-     "Jungle"
+     "Stairs"
+    ],
+    1
+   ],
+   [
+    [
+     "Side Alley",
+     "Apps Ramp",
+     "House",
+     "T Apps",
+     "Stove",
+     "B Apartments",
+     "Stove",
+     "Underpath Stairs",
+     "Underpath",
+     "Ladder",
+     "Mid",
+     "Connector",
+     "Cross",
+     "Stairs"
     ],
     1
    ]
@@ -948,54 +730,39 @@
   "A:T Ramp": [
    [
     [
-     "T Roof → T Spawn",
+     "T Ramp",
+     "Tetris"
+    ],
+    190
+   ],
+   [
+    [
+     "T Ramp"
+    ],
+    31
+   ],
+   [
+    [
+     "подход к T Ramp",
      "T Roof",
      "T Ramp",
      "Tetris"
     ],
-    202
+    29
    ],
    [
     [
-     "T Roof → T Spawn",
      "T Roof",
-     "T Ramp"
-    ],
-    180
-   ],
-   [
-    [
-     "T Roof → T Spawn",
-     "T Ramp"
-    ],
-    22
-   ],
-   [
-    [
-     "T Roof → T Spawn",
      "T Ramp",
      "Tetris"
     ],
-    21
+    26
    ],
    [
     [
-     "Elevator",
+     "Side Alley",
      "Top Mid",
-     "Elevator",
-     "T Roof → T Spawn",
-     "T Roof",
-     "T Ramp"
-    ],
-    18
-   ],
-   [
-    [
-     "Elevator",
-     "Top Mid",
-     "Elevator",
-     "T Roof → T Spawn",
-     "T Roof",
+     "Side Alley",
      "T Ramp",
      "Tetris"
     ],
@@ -1003,9 +770,7 @@
    ],
    [
     [
-     "Elevator",
-     "T Roof → T Spawn",
-     "T Roof",
+     "Side Alley",
      "T Ramp",
      "Tetris"
     ],
@@ -1013,56 +778,171 @@
    ],
    [
     [
-     "T Roof → T Spawn",
-     "T Roof",
-     "T Roof → T Spawn",
-     "T Roof",
+     "подход к T Ramp",
      "T Ramp",
      "Tetris"
     ],
-    13
+    14
    ],
    [
     [
-     "T Roof → T Spawn",
-     "T Roof",
-     "T Roof → T Spawn",
-     "T Roof",
-     "T Ramp"
+     "T Ramp",
+     "Tetris",
+     "Sandwich"
     ],
     11
    ],
    [
     [
-     "T Roof → T Spawn",
+     "подход к T Ramp",
      "T Roof",
+     "T Ramp"
+    ],
+    9
+   ],
+   [
+    [
      "T Ramp",
      "T Roof",
      "T Ramp",
      "Tetris"
     ],
-    10
+    9
+   ]
+  ],
+  "A:Tetris": [
+   [
+    [
+     "T Ramp",
+     "90",
+     "Tetris"
+    ],
+    12
+   ],
+   [
+    [
+     "T Ramp",
+     "Tetris",
+     "90",
+     "Tetris"
+    ],
+    6
+   ],
+   [
+    [
+     "T Roof",
+     "T Ramp",
+     "90",
+     "Tetris"
+    ],
+    4
+   ],
+   [
+    [
+     "T Ramp",
+     "T Roof",
+     "T Ramp",
+     "90",
+     "Tetris"
+    ],
+    3
+   ],
+   [
+    [
+     "T Roof",
+     "T Ramp",
+     "90",
+     "Tetris",
+     "Sandwich"
+    ],
+    2
+   ],
+   [
+    [
+     "Side Alley",
+     "T Ramp",
+     "90",
+     "Tetris"
+    ],
+    2
+   ],
+   [
+    [
+     "Palace Entry",
+     "T Ramp",
+     "90",
+     "Tetris"
+    ],
+    2
+   ],
+   [
+    [
+     "подход к T Ramp",
+     "T Ramp",
+     "Tetris",
+     "90",
+     "Tetris"
+    ],
+    1
+   ],
+   [
+    [
+     "Side Alley",
+     "Top Mid",
+     "Side Alley",
+     "Top Mid",
+     "Ramp",
+     "Top Mid",
+     "Mid Boxes",
+     "Top Mid",
+     "Side Alley",
+     "T Ramp",
+     "90",
+     "Tetris"
+    ],
+    1
+   ],
+   [
+    [
+     "T Ramp",
+     "T Ramp",
+     "Tetris",
+     "90",
+     "Tetris"
+    ],
+    1
    ]
   ],
   "A:Top Mid": [
    [
     [
-     "Elevator",
+     "Side Alley",
      "Top Mid",
-     "Cart",
+     "Ramp",
      "Mid",
      "Connector",
-     "Stairs"
+     "Cross"
     ],
-    10
+    13
    ],
    [
     [
-     "Elevator",
+     "Side Alley",
      "Top Mid",
-     "Cart",
+     "Ramp",
      "Mid",
-     "Boost",
+     "Connector",
+     "Cross",
+     "Stairs"
+    ],
+    6
+   ],
+   [
+    [
+     "Side Alley",
+     "Top Mid",
+     "Ramp",
+     "Mid",
      "Connector",
      "Stairs"
     ],
@@ -1070,69 +950,23 @@
    ],
    [
     [
-     "Elevator",
+     "Side Alley",
      "Top Mid",
-     "Cart",
+     "Mid Boxes",
+     "Ramp",
      "Mid",
      "Connector",
-     "Jungle"
+     "Cross"
     ],
     3
    ],
    [
     [
-     "Elevator",
+     "Side Alley",
      "Top Mid",
-     "Cart",
-     "Water",
-     "Mid",
-     "Connector",
-     "Jungle"
-    ],
-    2
-   ],
-   [
-    [
-     "Elevator",
+     "Side Alley",
      "Top Mid",
-     "Cart",
-     "Mid",
-     "Connector",
-     "Jungle",
-     "Stairs"
-    ],
-    2
-   ],
-   [
-    [
-     "Elevator",
-     "Top Mid",
-     "Cart",
-     "Mid",
-     "Connector",
-     "Jungle",
-     "Palms"
-    ],
-    2
-   ],
-   [
-    [
-     "Elevator",
-     "Top Mid",
-     "Cart",
-     "Mid",
-     "Boost",
-     "Connector"
-    ],
-    2
-   ],
-   [
-    [
-     "Elevator",
-     "Top Mid",
-     "Trash Mid",
-     "Mid Boxes",
-     "Water",
+     "Ramp",
      "Mid",
      "Connector",
      "Stairs"
@@ -1141,7 +975,7 @@
    ],
    [
     [
-     "Elevator",
+     "Side Alley",
      "Top Mid",
      "Catwalk",
      "Mid",
@@ -1152,168 +986,62 @@
    ],
    [
     [
-     "Elevator",
+     "Side Alley",
      "Top Mid",
-     "Cart",
+     "Ramp",
      "Mid",
-     "Connector"
-    ],
-    2
-   ]
-  ],
-  "A:Trash Mid": [
-   [
-    [
-     "Elevator",
-     "Trash Mid",
-     "Cart",
-     "Mid",
+     "Mid Bench",
      "Connector",
-     "Jungle"
+     "Stairs"
     ],
     2
    ],
    [
     [
-     "Elevator",
-     "Trash Mid",
+     "Side Alley",
      "Top Mid",
-     "Cart",
+     "Side Alley",
+     "Top Mid",
+     "Ramp",
      "Mid",
-     "Connector",
-     "Jungle"
-    ],
-    1
-   ],
-   [
-    [
-     "Elevator",
-     "Trash Mid",
-     "Mid Boxes",
-     "Water",
-     "Mid Boxes",
-     "Trash Mid",
-     "Top Mid",
-     "Catwalk",
-     "Short",
-     "Ladder Room",
-     "Catwalk",
-     "Mid",
-     "Connector",
-     "Jungle"
-    ],
-    1
-   ],
-   [
-    [
-     "Elevator",
-     "Top Mid",
-     "Trash Mid",
-     "Top Mid",
-     "Cart",
-     "Trash Mid",
-     "Mid Boxes",
-     "Trash Mid",
-     "Top Mid",
-     "Elevator",
-     "Elevator",
-     "Trash Mid",
-     "Mid Boxes",
-     "Water",
-     "Cart",
-     "Mid",
-     "Connector",
-     "Stairs"
-    ],
-    1
-   ],
-   [
-    [
-     "TV",
-     "Elevator",
-     "Trash Mid",
-     "Cart",
-     "Mid",
-     "Connector",
-     "Jungle",
-     "Connector",
-     "Jungle",
-     "Stairs"
-    ],
-    1
-   ],
-   [
-    [
-     "Elevator",
-     "Trash Mid",
-     "Top Mid",
-     "Trash Mid",
-     "Top Mid",
-     "Catwalk",
-     "Ladder Room",
-     "Short",
-     "Catwalk",
-     "Mid",
-     "Connector",
-     "Stairs"
-    ],
-    1
-   ],
-   [
-    [
-     "TV",
-     "Elevator",
-     "Trash Mid",
-     "Top Mid",
-     "Cart",
-     "Mid",
-     "Connector",
-     "Jungle"
-    ],
-    1
-   ],
-   [
-    [
-     "Elevator",
-     "Trash Mid",
-     "Mid Boxes",
-     "Trash Mid",
-     "Top Mid",
-     "Cart",
-     "Mid",
+     "Ramp",
      "Chair",
      "Mid",
      "Connector",
-     "Palms"
+     "Stairs"
     ],
     1
    ],
    [
     [
-     "Elevator",
-     "Trash Mid",
-     "Mid Boxes",
-     "Water",
+     "Side Alley",
+     "Apps Ramp",
+     "TV",
+     "House",
+     "T Apps",
+     "Underpath Stairs",
+     "T Apps",
+     "House",
+     "TV",
+     "Apps Ramp",
+     "Side Alley",
+     "Top Mid",
+     "Ramp",
+     "Mid",
+     "Connector",
+     "Cross"
+    ],
+    1
+   ],
+   [
+    [
+     "Side Alley",
+     "Top Mid",
      "Mid Boxes",
      "Top Mid",
-     "Catwalk",
-     "Ladder Room",
-     "Short",
-     "Catwalk",
-     "Mid",
-     "Boost",
-     "Connector",
-     "Jungle"
-    ],
-    1
-   ],
-   [
-    [
-     "Elevator",
-     "Trash Mid",
      "Mid Boxes",
-     "Cart",
-     "Catwalk",
+     "Top Mid",
+     "Ramp",
      "Mid",
      "Connector",
      "Stairs"
@@ -1321,229 +1049,457 @@
     1
    ]
   ],
-  "B:B Stairs → TV": [
+  "A:Underpath": [
    [
     [
+     "Side Alley",
+     "Apps Ramp",
      "TV",
-     "B Stairs → TV",
-     "Stove",
-     "B Apps"
+     "House",
+     "T Apps",
+     "Underpath",
+     "B Short",
+     "Ladder",
+     "Underpath",
+     "Ladder",
+     "B Short",
+     "Underpath",
+     "Underpath Stairs",
+     "Underpath",
+     "B Short",
+     "Ladder",
+     "Underpath",
+     "Mid",
+     "Mid Bench",
+     "Connector",
+     "Stairs"
     ],
-    328
+    1
    ],
    [
     [
-     "TV",
-     "B Stairs → TV",
-     "Stove"
+     "Side Alley",
+     "Apps Ramp",
+     "House",
+     "T Apps",
+     "Stove",
+     "T Apps",
+     "B Apartments",
+     "Stove",
+     "T Apps",
+     "Underpath",
+     "Mid Bench",
+     "Connector"
     ],
-    67
+    1
+   ]
+  ],
+  "A:Underpath Stairs": [
+   [
+    [
+     "Side Alley",
+     "Apps Ramp",
+     "House",
+     "T Apps",
+     "Underpath Stairs",
+     "Underpath",
+     "B Short",
+     "Underpath",
+     "Ladder",
+     "Underpath",
+     "Mid",
+     "Mid Bench",
+     "Connector",
+     "Cross"
+    ],
+    2
    ],
    [
     [
-     "Elevator",
-     "Top Mid",
-     "Elevator",
-     "TV",
-     "B Stairs → TV",
-     "Stove",
-     "B Apps"
+     "Side Alley",
+     "Apps Ramp",
+     "House",
+     "T Apps",
+     "Underpath Stairs",
+     "Underpath",
+     "B Short",
+     "Underpath",
+     "Ladder",
+     "Underpath",
+     "Mid",
+     "Connector",
+     "Cross"
     ],
-    23
+    2
    ],
    [
     [
+     "Side Alley",
      "TV",
-     "B Stairs → TV",
-     "B Stairs",
-     "B Stairs → TV",
+     "House",
+     "T Apps",
+     "Underpath Stairs",
+     "Underpath",
+     "B Short",
+     "Ladder",
+     "Underpath",
+     "Mid",
+     "Mid Bench",
+     "Connector",
+     "Cross"
+    ],
+    1
+   ],
+   [
+    [
+     "Side Alley",
+     "Apps Ramp",
+     "House",
+     "T Apps",
+     "Underpath Stairs",
+     "T Apps",
+     "Underpath Stairs",
+     "Underpath",
      "Stove",
-     "B Apps"
+     "B Short",
+     "Ladder",
+     "Underpath",
+     "Mid",
+     "Mid Bench",
+     "Connector",
+     "Stairs"
+    ],
+    1
+   ],
+   [
+    [
+     "Side Alley",
+     "Apps Ramp",
+     "House",
+     "T Apps",
+     "Stove",
+     "T Apps",
+     "Underpath Stairs",
+     "Underpath",
+     "B Short",
+     "Underpath",
+     "Ladder",
+     "Underpath",
+     "Under Window",
+     "Mid",
+     "Under Window",
+     "Mid",
+     "Under Window",
+     "Mid",
+     "Ramp",
+     "Catwalk",
+     "Connector",
+     "Cross"
+    ],
+    1
+   ],
+   [
+    [
+     "Side Alley",
+     "Apps Ramp",
+     "TV",
+     "House",
+     "T Apps",
+     "Stove",
+     "B Apartments",
+     "Stove",
+     "T Apps",
+     "Stove",
+     "B Apartments",
+     "Stove",
+     "T Apps",
+     "Underpath Stairs",
+     "Underpath",
+     "B Short",
+     "Ladder",
+     "Underpath",
+     "Mid",
+     "Connector",
+     "Cross"
+    ],
+    1
+   ],
+   [
+    [
+     "Side Alley",
+     "Apps Ramp",
+     "House",
+     "T Apps",
+     "Stove",
+     "T Apps",
+     "Underpath Stairs",
+     "Underpath",
+     "B Short",
+     "Underpath",
+     "Mid",
+     "Connector",
+     "Stairs"
+    ],
+    1
+   ],
+   [
+    [
+     "Side Alley",
+     "Apps Ramp",
+     "House",
+     "T Apps",
+     "Underpath Stairs",
+     "Underpath",
+     "B Short",
+     "Underpath",
+     "Ladder",
+     "Underpath",
+     "Mid",
+     "Mid Bench",
+     "Connector",
+     "Cross",
+     "Jungle",
+     "Cross"
+    ],
+    1
+   ],
+   [
+    [
+     "Side Alley",
+     "Apps Ramp",
+     "House",
+     "T Apps",
+     "Underpath Stairs",
+     "Underpath",
+     "B Short",
+     "Underpath",
+     "Mid",
+     "Connector",
+     "Cross",
+     "Jungle",
+     "Cross"
+    ],
+    1
+   ],
+   [
+    [
+     "Side Alley",
+     "Apps Ramp",
+     "TV",
+     "House",
+     "T Apps",
+     "B Apartments",
+     "Stove",
+     "T Apps",
+     "Underpath Stairs",
+     "Underpath",
+     "B Short",
+     "Underpath",
+     "Mid",
+     "Mid Bench",
+     "Connector",
+     "Cross"
+    ],
+    1
+   ]
+  ],
+  "B:B Apartments": [
+   [
+    [
+     "Side Alley",
+     "Apps Ramp",
+     "House",
+     "T Apps",
+     "B Apartments"
+    ],
+    40
+   ],
+   [
+    [
+     "Side Alley",
+     "Apps Ramp",
+     "TV",
+     "House",
+     "T Apps",
+     "B Apartments"
     ],
     20
    ],
    [
     [
+     "Side Alley",
      "TV",
-     "B Stairs → TV",
-     "Stove",
-     "B Stairs → TV",
-     "Stove",
-     "B Apps"
+     "House",
+     "T Apps",
+     "B Apartments"
     ],
     15
    ],
    [
     [
-     "T Roof → T Spawn",
-     "TV",
-     "B Stairs → TV",
-     "Stove",
-     "B Apps"
+     "Side Alley",
+     "Apps Ramp",
+     "House",
+     "T Apps",
+     "Underpath Stairs",
+     "T Apps",
+     "B Apartments"
     ],
-    15
+    4
    ],
    [
     [
-     "Elevator",
-     "TV",
-     "B Stairs → TV",
-     "Stove",
-     "B Apps"
+     "Side Alley",
+     "Side Alley",
+     "Apps Ramp",
+     "House",
+     "T Apps",
+     "B Apartments"
     ],
-    10
+    2
    ],
    [
     [
-     "T Roof → T Spawn",
-     "T Roof",
-     "T Roof → T Spawn",
-     "TV",
-     "B Stairs → TV",
-     "Stove",
-     "B Apps"
-    ],
-    9
-   ],
-   [
-    [
-     "T Roof → T Spawn",
-     "T Roof → Pillars",
-     "Pillars → T Roof",
-     "Pillars",
-     "Pillars → T Roof",
-     "T Roof → Pillars",
-     "T Roof → T Spawn",
-     "TV",
-     "B Stairs → TV",
-     "Stove",
-     "B Apps"
-    ],
-    7
-   ],
-   [
-    [
-     "TV",
-     "TV",
-     "B Stairs → TV",
-     "Stove",
-     "B Apps"
-    ],
-    6
-   ]
-  ],
-  "B:Cart": [
-   [
-    [
-     "Elevator",
+     "Side Alley",
+     "Top Mid",
+     "Side Alley",
      "Cart",
-     "Trash Mid",
-     "Mid Boxes",
-     "Trash Mid",
-     "Cart",
-     "Catwalk",
-     "Mid",
-     "Catwalk",
-     "Ladder Room",
-     "Short",
-     "E Box"
+     "TV",
+     "House",
+     "T Apps",
+     "B Apartments"
     ],
-    1
+    2
    ],
    [
     [
-     "Elevator",
-     "Cart",
-     "Mid",
-     "Chair",
-     "Mid",
-     "Cart",
-     "Catwalk",
-     "Short",
-     "Corner"
+     "Side Alley",
+     "Apps Ramp",
+     "TV",
+     "House",
+     "T Apps",
+     "Underpath Stairs",
+     "T Apps",
+     "B Apartments"
     ],
-    1
+    2
    ],
    [
     [
-     "Elevator",
-     "Cart",
-     "Catwalk",
-     "Short",
-     "Corner"
+     "Palace Entry",
+     "Palace",
+     "Palace Entry",
+     "Side Alley",
+     "Apps Ramp",
+     "House",
+     "T Apps",
+     "B Apartments"
     ],
-    1
+    2
+   ],
+   [
+    [
+     "Side Alley",
+     "Apps Ramp",
+     "Side Alley",
+     "Apps Ramp",
+     "TV",
+     "House",
+     "T Apps",
+     "B Apartments"
+    ],
+    2
+   ],
+   [
+    [
+     "T Ramp",
+     "Side Alley",
+     "Apps Ramp",
+     "TV",
+     "House",
+     "T Apps",
+     "B Apartments"
+    ],
+    2
    ]
   ],
   "B:Catwalk": [
    [
     [
-     "Elevator",
+     "Side Alley",
      "Catwalk",
-     "Short"
+     "Short",
+     "Ladder",
+     "Short",
+     "B Short"
     ],
     1
    ]
   ],
-  "B:Pillars → T Roof": [
+  "B:Palace Entry": [
    [
     [
-     "T Roof → T Spawn",
-     "T Roof → Pillars",
-     "Pillars → T Roof",
+     "Palace Entry",
+     "Palace",
      "Pillars",
      "Palace",
-     "Shadow",
-     "Default",
+     "Pillars",
+     "Palace",
+     "Palace Exit",
+     "Balcony",
+     "Palace Exit",
+     "Balcony",
+     "A Default",
      "A Site",
      "Ticket",
-     "CT Stairs",
+     "CT",
      "CT Spawn",
-     "Vent",
-     "Market"
+     "Stair",
+     "Kitchen",
+     "B Window"
     ],
     1
    ],
    [
     [
-     "T Roof → T Spawn",
-     "T Roof → Pillars",
-     "Pillars → T Roof",
+     "Palace Entry",
+     "Palace",
      "Pillars",
      "Palace",
-     "Shadow",
+     "Palace Exit",
+     "Balcony",
+     "Dark",
      "Firebox",
-     "Default",
-     "Firebox",
-     "Default",
-     "Palms",
-     "Jungle",
-     "Vent",
-     "Market"
-    ],
-    1
-   ],
-   [
-    [
-     "T Roof → T Spawn",
-     "T Roof → Pillars",
-     "Pillars → T Roof",
-     "Pillars",
-     "Palace",
-     "Shadow",
-     "Default",
      "A Site",
-     "Default",
+     "Firebox",
+     "A Default",
+     "A Site",
+     "Cross",
+     "Jungle",
+     "Hole",
+     "Kitchen",
+     "B Window"
+    ],
+    1
+   ],
+   [
+    [
+     "Palace Entry",
+     "Palace",
+     "Pillars",
+     "Palace",
+     "Palace Exit",
+     "A Default",
      "A Site",
      "Triple Box",
-     "Ticket",
-     "Trash A",
-     "Ticket",
-     "CT Stairs",
+     "A Trash",
+     "CT",
+     "A Trash",
+     "CT",
      "CT Spawn",
-     "Vent",
-     "Market",
-     "Window B"
+     "Hole",
+     "Kitchen",
+     "B Window"
     ],
     1
    ]
@@ -1551,183 +1507,187 @@
   "B:Stove": [
    [
     [
-     "TV",
+     "Side Alley",
+     "Apps Ramp",
+     "House",
+     "T Apps",
      "Stove",
-     "B Apps"
+     "B Apartments"
     ],
-    10
+    164
    ],
    [
     [
+     "Side Alley",
+     "Apps Ramp",
      "TV",
+     "House",
+     "T Apps",
      "Stove",
-     "B Apps",
-     "Stove",
-     "B Apps"
+     "B Apartments"
     ],
-    1
+    69
    ],
    [
     [
+     "Side Alley",
      "TV",
+     "House",
+     "T Apps",
      "Stove",
-     "B Apps",
-     "Stove",
-     "B Stairs → TV",
-     "Stove",
-     "B Apps"
+     "B Apartments"
     ],
-    1
+    44
    ],
    [
     [
-     "Elevator",
-     "Top Mid",
-     "Elevator",
-     "TV",
-     "B Stairs → TV",
-     "TV",
-     "TV",
-     "B Stairs → TV",
-     "TV",
+     "Side Alley",
+     "Apps Ramp",
+     "House",
+     "T Apps",
+     "Underpath Stairs",
+     "T Apps",
      "Stove",
-     "B Apps"
+     "B Apartments"
     ],
-    1
+    15
    ],
    [
     [
-     "Elevator",
-     "Top Mid",
-     "Cart",
-     "Mid Boxes",
-     "Water",
-     "Mid",
-     "Cart",
-     "Top Mid",
-     "Elevator",
-     "T Roof → T Spawn",
-     "T Roof",
-     "T Ramp",
-     "T Roof",
-     "T Roof → T Spawn",
-     "TV",
-     "Stove",
-     "B Apps"
-    ],
-    1
-   ],
-   [
-    [
-     "TV",
-     "Stove",
-     "B Stairs → TV",
-     "Stove",
-     "B Apps"
-    ],
-    1
-   ],
-   [
-    [
-     "Elevator",
-     "Trash Mid",
-     "Mid Boxes",
-     "Water",
-     "Mid Boxes",
-     "Cart",
-     "Top Mid",
-     "Elevator",
-     "TV",
-     "Stove",
-     "B Apps"
-    ],
-    1
-   ],
-   [
-    [
-     "TV",
-     "Stove",
-     "B Stairs",
-     "Stove",
-     "B Apps"
-    ],
-    1
-   ],
-   [
-    [
-     "Elevator",
-     "Top Mid",
-     "Trash Mid",
-     "Top Mid",
-     "Trash Mid",
-     "Mid Boxes",
-     "Water",
-     "Chair",
-     "Water",
-     "Trash Mid",
-     "Elevator",
-     "TV",
-     "Stove",
-     "B Apps"
-    ],
-    1
-   ],
-   [
-    [
-     "TV",
+     "Side Alley",
+     "Apps Ramp",
+     "House",
+     "T Apps",
      "Stove"
     ],
-    1
+    13
+   ],
+   [
+    [
+     "Side Alley",
+     "Apps Ramp",
+     "TV",
+     "House",
+     "T Apps",
+     "Underpath Stairs",
+     "T Apps",
+     "Stove",
+     "B Apartments"
+    ],
+    12
+   ],
+   [
+    [
+     "Side Alley",
+     "Top Mid",
+     "Side Alley",
+     "Apps Ramp",
+     "House",
+     "T Apps",
+     "Stove",
+     "B Apartments"
+    ],
+    9
+   ],
+   [
+    [
+     "Side Alley",
+     "Apps Ramp",
+     "House",
+     "T Apps",
+     "Underpath Stairs",
+     "Underpath",
+     "Underpath Stairs",
+     "T Apps",
+     "Stove",
+     "B Apartments"
+    ],
+    8
+   ],
+   [
+    [
+     "Side Alley",
+     "Apps Ramp",
+     "House",
+     "T Apps",
+     "Stove",
+     "T Apps",
+     "Stove",
+     "B Apartments"
+    ],
+    7
+   ],
+   [
+    [
+     "Side Alley",
+     "Apps Ramp",
+     "House",
+     "T Apps",
+     "Underpath Stairs",
+     "T Apps",
+     "Underpath Stairs",
+     "T Apps",
+     "Stove",
+     "B Apartments"
+    ],
+    6
    ]
   ],
   "B:T Ramp": [
    [
     [
-     "T Roof → T Spawn",
-     "T Roof",
+     "подход к T Ramp",
      "T Ramp",
      "Tetris",
-     "Default",
+     "T Ramp",
+     "Tetris",
+     "Balcony",
+     "A Default",
      "A Site",
-     "Triple Box",
-     "Ticket",
-     "Trash A",
-     "CT Stairs",
+     "A Trash",
+     "CT",
      "CT Spawn",
-     "Vent",
-     "Market"
+     "Stair",
+     "Kitchen"
     ],
     1
    ],
    [
     [
-     "T Roof → T Spawn",
-     "T Roof",
      "T Ramp",
+     "90",
      "Tetris",
-     "Default",
-     "A Site",
-     "Triple Box",
-     "Trash A",
-     "CT Stairs",
-     "CT Spawn",
-     "Vent",
-     "Market"
-    ],
-    1
-   ],
-   [
-    [
-     "T Roof → T Spawn",
-     "T Roof",
+     "90",
+     "Tetris",
+     "T Ramp",
+     "90",
      "T Ramp",
      "Tetris",
      "Sandwich",
-     "Stairs",
+     "Cross",
      "Jungle",
-     "Vent",
-     "Market",
-     "Window B"
+     "Hole",
+     "Kitchen",
+     "B Window"
+    ],
+    1
+   ]
+  ],
+  "B:Tetris": [
+   [
+    [
+     "подход к T Spawn",
+     "T Roof",
+     "T Ramp",
+     "90",
+     "Tetris",
+     "Balcony",
+     "A Site",
+     "Triple Box",
+     "A Trash",
+     "CT",
+     "CT Spawn",
+     "Kitchen"
     ],
     1
    ]
@@ -1735,268 +1695,305 @@
   "B:Top Mid": [
    [
     [
-     "Elevator",
-     "Top Mid",
-     "Catwalk",
-     "Short"
-    ],
-    7
-   ],
-   [
-    [
-     "Elevator",
+     "Side Alley",
      "Top Mid",
      "Catwalk",
      "Short",
-     "Corner"
+     "B Short"
     ],
-    6
+    17
    ],
    [
     [
-     "Elevator",
+     "Side Alley",
      "Top Mid",
      "Catwalk",
-     "Ladder Room",
      "Short",
-     "Corner"
+     "B Short",
+     "Arches"
+    ],
+    9
+   ],
+   [
+    [
+     "Side Alley",
+     "Top Mid",
+     "Mid Boxes",
+     "Top Mid",
+     "Catwalk",
+     "Short",
+     "B Short"
     ],
     5
    ],
    [
     [
-     "Elevator",
+     "Side Alley",
+     "Top Mid",
+     "Side Alley",
      "Top Mid",
      "Catwalk",
      "Short",
-     "E Box"
+     "B Short"
     ],
-    4
+    5
    ],
    [
     [
-     "Elevator",
+     "Side Alley",
      "Top Mid",
-     "Catwalk",
-     "Ladder Room",
-     "Short"
-    ],
-    4
-   ],
-   [
-    [
-     "Elevator",
-     "Top Mid",
-     "Trash Mid",
      "Mid Boxes",
-     "Cart",
      "Top Mid",
      "Catwalk",
-     "Ladder Room",
-     "Short"
+     "Short",
+     "B Short",
+     "Arches"
     ],
     3
    ],
    [
     [
-     "Elevator",
-     "Top Mid",
-     "Trash Mid",
-     "Cart",
-     "Catwalk",
-     "Short"
-    ],
-    2
-   ],
-   [
-    [
-     "Elevator",
-     "Top Mid",
-     "Elevator",
+     "Side Alley",
      "Top Mid",
      "Catwalk",
-     "Short"
-    ],
-    2
-   ],
-   [
-    [
-     "Elevator",
-     "Top Mid",
-     "Cart",
-     "Catwalk",
-     "Short"
-    ],
-    2
-   ],
-   [
-    [
-     "Elevator",
-     "Top Mid",
-     "Cart",
-     "Mid",
-     "Boost",
-     "Underpass",
-     "Ladder Room",
      "Short",
-     "B Stairs",
-     "B Stairs → TV",
-     "Stove",
-     "B Apps"
+     "B Short",
+     "E-Box"
     ],
     2
+   ],
+   [
+    [
+     "Side Alley",
+     "Top Mid",
+     "Mid Boxes",
+     "Chair",
+     "Ramp",
+     "Catwalk",
+     "Short",
+     "B Short",
+     "Arches"
+    ],
+    2
+   ],
+   [
+    [
+     "Side Alley",
+     "Top Mid",
+     "Side Alley",
+     "Top Mid",
+     "Mid Boxes",
+     "Top Mid",
+     "Catwalk",
+     "Short",
+     "B Short",
+     "Arches"
+    ],
+    2
+   ],
+   [
+    [
+     "Side Alley",
+     "Top Mid",
+     "Catwalk",
+     "Ladder",
+     "Vent",
+     "Ladder",
+     "Short",
+     "Ladder",
+     "Short",
+     "B Short"
+    ],
+    1
+   ],
+   [
+    [
+     "Side Alley",
+     "Top Mid",
+     "Ramp",
+     "Mid",
+     "Ramp",
+     "Catwalk",
+     "Short",
+     "B Short"
+    ],
+    1
    ]
   ],
-  "B:Trash Mid": [
+  "B:Underpath Stairs": [
    [
     [
-     "Elevator",
-     "Trash Mid",
-     "Cart",
+     "Side Alley",
+     "Apps Ramp",
+     "TV",
+     "House",
+     "T Apps",
+     "Underpath Stairs",
+     "Underpath",
+     "B Short",
+     "Underpath",
+     "Ladder",
+     "Underpath",
      "Mid",
-     "Boost",
+     "Under Window",
+     "Window",
+     "Hole",
+     "Kitchen",
+     "Doors",
+     "B Trash"
+    ],
+    1
+   ],
+   [
+    [
+     "Side Alley",
+     "Apps Ramp",
+     "TV",
+     "House",
+     "T Apps",
+     "Underpath Stairs",
+     "Underpath",
+     "B Short",
+     "Ladder",
+     "Underpath",
      "Mid",
-     "Catwalk",
-     "Ladder Room",
-     "Short"
-    ],
-    1
-   ],
-   [
-    [
-     "Elevator",
-     "Top Mid",
-     "Elevator",
-     "Elevator",
-     "Trash Mid",
-     "Mid Boxes",
-     "Trash Mid",
+     "Ramp",
      "Catwalk",
      "Short",
-     "E Box"
+     "B Short",
+     "Arches"
     ],
     1
    ],
    [
     [
-     "Elevator",
-     "Trash Mid",
-     "Mid Boxes",
-     "Water",
-     "Catwalk",
-     "Short"
-    ],
-    1
-   ],
-   [
-    [
-     "Elevator",
-     "Trash Mid",
-     "Cart",
-     "Top Mid",
-     "Catwalk",
+     "Side Alley",
+     "Apps Ramp",
+     "House",
+     "T Apps",
+     "Underpath Stairs",
+     "Underpath",
+     "B Short",
+     "Ladder",
+     "Underpath",
      "Mid",
-     "Boost",
-     "Underpass",
-     "Ladder Room",
-     "Short",
-     "B Stairs",
-     "B Stairs → TV",
-     "Stove"
+     "Connector",
+     "Cross",
+     "Jungle",
+     "Hole",
+     "Kitchen",
+     "B Window"
     ],
     1
    ],
    [
     [
-     "Elevator",
-     "Trash Mid",
-     "Mid Boxes",
-     "Trash Mid",
-     "Top Mid",
-     "Catwalk",
-     "Ladder Room",
-     "Short",
-     "Corner"
+     "Side Alley",
+     "Apps Ramp",
+     "House",
+     "T Apps",
+     "Underpath Stairs",
+     "Underpath",
+     "Ladder",
+     "Underpath",
+     "Mid",
+     "Under Window",
+     "Window",
+     "Hole",
+     "Jungle",
+     "Hole",
+     "Kitchen",
+     "B Trash"
     ],
     1
    ],
    [
     [
-     "Elevator",
-     "Trash Mid",
-     "Elevator",
-     "Top Mid",
-     "Elevator",
-     "Trash Mid",
-     "Mid Boxes",
-     "Cart",
+     "Side Alley",
+     "Apps Ramp",
+     "House",
+     "T Apps",
+     "Underpath Stairs",
+     "Underpath",
+     "Stove",
+     "B Short",
+     "Underpath",
+     "Ladder",
+     "Underpath",
+     "Mid",
+     "Ramp",
      "Catwalk",
-     "Ladder Room",
      "Short",
-     "E Box"
+     "B Short"
     ],
     1
    ],
    [
     [
-     "Elevator",
-     "Trash Mid",
-     "Mid Boxes",
-     "Water",
-     "Mid Boxes",
-     "Cart",
-     "Top Mid",
-     "Trash Mid",
-     "Top Mid",
-     "Catwalk",
-     "Ladder Room",
+     "Side Alley",
+     "TV",
+     "House",
+     "T Apps",
+     "Underpath Stairs",
+     "Underpath",
+     "Stove",
+     "B Short",
+     "Ladder",
+     "Underpath",
+     "Mid",
+     "Mid Bench",
+     "Connector",
+     "Cross",
+     "Jungle",
+     "Hole",
+     "Window",
+     "Ladder",
      "Short",
-     "Corner"
+     "B Short",
+     "Arches"
     ],
     1
    ],
    [
     [
-     "Elevator",
-     "Trash Mid",
-     "Mid Boxes",
-     "Water",
-     "Mid Boxes",
-     "Water",
-     "Chair",
-     "Cart",
+     "Side Alley",
+     "TV",
+     "House",
+     "T Apps",
+     "Underpath Stairs",
+     "Underpath",
+     "Stove",
+     "B Short",
+     "Ladder",
+     "Underpath",
+     "Mid",
+     "Ramp",
      "Catwalk",
      "Short",
-     "Corner"
+     "B Short"
     ],
     1
    ],
    [
     [
-     "Elevator",
-     "Top Mid",
-     "Elevator",
-     "Trash Mid",
-     "Mid Boxes",
-     "Trash Mid",
-     "Top Mid",
-     "Catwalk",
-     "Short",
-     "Corner"
-    ],
-    1
-   ],
-   [
-    [
-     "Elevator",
-     "Top Mid",
-     "Elevator",
-     "Trash Mid",
-     "Mid Boxes",
-     "Top Mid",
-     "Catwalk",
-     "Short",
-     "Corner"
+     "Side Alley",
+     "Apps Ramp",
+     "House",
+     "T Apps",
+     "Underpath Stairs",
+     "House",
+     "T Apps",
+     "Underpath Stairs",
+     "Underpath",
+     "B Short",
+     "Underpath",
+     "Mid",
+     "Mid Bench",
+     "Connector",
+     "Cross",
+     "Jungle",
+     "Hole",
+     "Kitchen"
     ],
     1
    ]
@@ -2004,270 +2001,309 @@
  },
  "CT": [
   {
-   "split": "1-3-1",
-   "n": 287
-  },
-  {
    "split": "2-2-1",
-   "n": 285
-  },
-  {
-   "split": "1-4-0",
-   "n": 155
-  },
-  {
-   "split": "3-1-1",
-   "n": 136
-  },
-  {
-   "split": "2-3-0",
-   "n": 123
-  },
-  {
-   "split": "1-2-2",
-   "n": 83
-  },
-  {
-   "split": "3-2-0",
-   "n": 73
+   "n": 231
   },
   {
    "split": "2-1-2",
-   "n": 67
-  },
-  {
-   "split": "0-4-1",
-   "n": 60
-  },
-  {
-   "split": "0-5-0",
-   "n": 42
+   "n": 221
   },
   {
    "split": "3-0-2",
-   "n": 29
+   "n": 205
   },
   {
-   "split": "0-3-2",
-   "n": 23
+   "split": "3-1-1",
+   "n": 172
   },
   {
-   "split": "4-1-0",
-   "n": 18
+   "split": "1-3-1",
+   "n": 169
+  },
+  {
+   "split": "1-2-2",
+   "n": 131
   },
   {
    "split": "4-0-1",
-   "n": 14
+   "n": 70
+  },
+  {
+   "split": "2-0-3",
+   "n": 47
   },
   {
    "split": "1-1-3",
-   "n": 13
+   "n": 38
+  },
+  {
+   "split": "0-3-2",
+   "n": 28
+  },
+  {
+   "split": "3-2-0",
+   "n": 23
+  },
+  {
+   "split": "0-4-1",
+   "n": 21
+  },
+  {
+   "split": "1-4-0",
+   "n": 15
+  },
+  {
+   "split": "2-3-0",
+   "n": 15
+  },
+  {
+   "split": "0-2-3",
+   "n": 8
   }
  ],
  "CTforward": [
   {
-   "zones": [
-    "Short"
-   ],
-   "n": 400
-  },
-  {
    "zones": [],
-   "n": 334
-  },
-  {
-   "zones": [
-    "Connector",
-    "Short"
-   ],
-   "n": 134
+   "n": 696
   },
   {
    "zones": [
     "Connector"
    ],
-   "n": 85
+   "n": 293
   },
   {
    "zones": [
     "Tetris"
    ],
-   "n": 63
-  },
-  {
-   "zones": [
-    "B Apps"
-   ],
-   "n": 54
-  },
-  {
-   "zones": [
-    "Short",
-    "Tetris"
-   ],
-   "n": 45
+   "n": 94
   },
   {
    "zones": [
     "Mid"
    ],
-   "n": 22
+   "n": 61
   },
   {
    "zones": [
-    "Short",
     "Short"
    ],
-   "n": 21
-  },
-  {
-   "zones": [
-    "Mid",
-    "Short"
-   ],
-   "n": 18
-  },
-  {
-   "zones": [
-    "Catwalk"
-   ],
-   "n": 18
+   "n": 42
   },
   {
    "zones": [
     "Tetris",
     "Tetris"
    ],
-   "n": 15
+   "n": 24
   },
   {
    "zones": [
-    "Underpass"
+    "Connector",
+    "Short"
    ],
-   "n": 12
+   "n": 23
   },
   {
    "zones": [
     "Connector",
     "Mid"
    ],
-   "n": 11
+   "n": 20
+  },
+  {
+   "zones": [
+    "Underpath"
+   ],
+   "n": 19
+  },
+  {
+   "zones": [
+    "Connector",
+    "Connector"
+   ],
+   "n": 17
+  },
+  {
+   "zones": [
+    "Connector",
+    "Tetris"
+   ],
+   "n": 16
+  },
+  {
+   "zones": [
+    "Catwalk"
+   ],
+   "n": 16
   },
   {
    "zones": [
     "Catwalk",
     "Connector"
    ],
-   "n": 11
+   "n": 12
   },
   {
    "zones": [
-    "T Ramp"
+    "Underpath",
+    "Underpath"
    ],
-   "n": 11
+   "n": 9
   },
   {
    "zones": [
-    "Connector",
-    "Short",
-    "Short"
-   ],
-   "n": 10
-  },
-  {
-   "zones": [
-    "T Ramp",
-    "Tetris"
-   ],
-   "n": 10
-  },
-  {
-   "zones": [
-    "B Apps",
+    "Mid",
     "Short"
    ],
    "n": 9
   },
   {
    "zones": [
-    "Connector",
     "Short",
     "Tetris"
    ],
    "n": 9
-  },
-  {
-   "zones": [
-    "Short",
-    "T Ramp"
-   ],
-   "n": 9
-  },
-  {
-   "zones": [
-    "B Apps",
-    "Connector"
-   ],
-   "n": 9
-  },
-  {
-   "zones": [
-    "Short",
-    "Tetris",
-    "Tetris"
-   ],
-   "n": 8
   },
   {
    "zones": [
     "Mid",
     "Mid"
    ],
-   "n": 8
+   "n": 9
+  },
+  {
+   "zones": [
+    "Catwalk",
+    "Mid"
+   ],
+   "n": 6
+  },
+  {
+   "zones": [
+    "T Ramp"
+   ],
+   "n": 4
   },
   {
    "zones": [
     "Connector",
-    "Mid",
-    "Short"
+    "Underpath"
    ],
-   "n": 7
+   "n": 3
+  },
+  {
+   "zones": [
+    "Connector",
+    "Tetris",
+    "Tetris"
+   ],
+   "n": 3
+  },
+  {
+   "zones": [
+    "Tetris",
+    "Underpath",
+    "Underpath"
+   ],
+   "n": 3
+  },
+  {
+   "zones": [
+    "Palace"
+   ],
+   "n": 3
+  },
+  {
+   "zones": [
+    "Mid",
+    "Tetris"
+   ],
+   "n": 2
+  },
+  {
+   "zones": [
+    "Connector",
+    "Connector",
+    "Tetris"
+   ],
+   "n": 2
   }
  ],
  "entries": {
-  "A:B Stairs": [
+  "A:B Apartments": [
    [
-    "Stairs",
-    2
-   ]
-  ],
-  "A:B Stairs → TV": [
-   [
-    "Jungle",
-    32
-   ],
-   [
-    "Stairs",
-    28
-   ],
-   [
-    "Palms",
-    13
-   ]
-  ],
-  "A:Cart": [
-   [
-    "Connector",
-    1
-   ],
-   [
-    "Stairs",
+    "Cross",
     1
    ]
   ],
   "A:Catwalk": [
    [
-    "Jungle",
+    "Cross",
+    1
+   ]
+  ],
+  "A:Palace Entry": [
+   [
+    "Palace Exit",
+    445
+   ],
+   [
+    "Palace",
+    74
+   ],
+   [
+    "Tetris",
+    24
+   ]
+  ],
+  "A:Stove": [
+   [
+    "Stairs",
+    2
+   ]
+  ],
+  "A:T Ramp": [
+   [
+    "Tetris",
+    464
+   ],
+   [
+    "T Ramp",
+    98
+   ],
+   [
+    "Sandwich",
+    18
+   ]
+  ],
+  "A:Tetris": [
+   [
+    "Tetris",
+    58
+   ],
+   [
+    "Sandwich",
+    3
+   ]
+  ],
+  "A:Top Mid": [
+   [
+    "Cross",
+    85
+   ],
+   [
+    "Stairs",
+    56
+   ],
+   [
+    "Connector",
+    7
+   ]
+  ],
+  "A:Underpath": [
+   [
+    "Stairs",
     1
    ],
    [
@@ -2275,160 +2311,90 @@
     1
    ]
   ],
-  "A:Pillars": [
+  "A:Underpath Stairs": [
    [
-    "Palace",
-    1
-   ]
-  ],
-  "A:Pillars → T Roof": [
-   [
-    "Palace",
-    531
+    "Cross",
+    60
    ],
-   [
-    "Shadow",
-    1
-   ],
-   [
-    "Pillars",
-    1
-   ]
-  ],
-  "A:Stove": [
-   [
-    "Jungle",
-    1
-   ]
-  ],
-  "A:T Ramp": [
-   [
-    "Tetris",
-    408
-   ],
-   [
-    "T Ramp",
-    359
-   ],
-   [
-    "Sandwich",
-    15
-   ]
-  ],
-  "A:Top Mid": [
    [
     "Stairs",
-    59
-   ],
-   [
-    "Jungle",
-    36
-   ],
-   [
-    "Palms",
-    14
-   ]
-  ],
-  "A:Trash Mid": [
-   [
-    "Jungle",
     12
    ],
    [
-    "Stairs",
-    10
-   ],
-   [
-    "Palms",
-    3
+    "Connector",
+    6
    ]
   ],
-  "B:B Stairs → TV": [
+  "B:B Apartments": [
    [
-    "B Apps",
-    695
-   ],
-   [
-    "Stove",
-    133
-   ],
-   [
-    "Door",
-    2
-   ]
-  ],
-  "B:Cart": [
-   [
-    "Corner",
-    2
-   ],
-   [
-    "E Box",
-    1
+    "B Apartments",
+    157
    ]
   ],
   "B:Catwalk": [
    [
-    "Short",
+    "B Short",
     1
    ]
   ],
-  "B:Pillars → T Roof": [
+  "B:Palace Entry": [
    [
-    "Market",
-    2
-   ],
-   [
-    "Window B",
-    1
+    "B Window",
+    3
    ]
   ],
   "B:Stove": [
    [
-    "B Apps",
-    18
+    "B Apartments",
+    670
    ],
    [
     "Stove",
-    1
+    37
    ]
   ],
   "B:T Ramp": [
    [
-    "Market",
-    2
+    "Kitchen",
+    1
    ],
    [
-    "Window B",
+    "B Window",
+    1
+   ]
+  ],
+  "B:Tetris": [
+   [
+    "Kitchen",
     1
    ]
   ],
   "B:Top Mid": [
    [
-    "Short",
-    46
+    "B Short",
+    66
    ],
    [
-    "Corner",
-    28
+    "Arches",
+    31
    ],
    [
-    "B Apps",
-    13
+    "E-Box",
+    3
    ]
   ],
-  "B:Trash Mid": [
+  "B:Underpath Stairs": [
    [
-    "Short",
-    5
+    "B Trash",
+    2
    ],
    [
-    "Corner",
-    5
+    "Arches",
+    2
    ],
    [
-    "E Box",
-    3
+    "B Short",
+    2
    ]
   ]
  }
