@@ -1,0 +1,16 @@
+playwright 1.56.0
+> git fetch --quiet origin b1-walk-who
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Users\Mono\AppData\Local\Temp\simbuild_dt6dredg FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Users\Mono\AppData\Local\Temp\simbuild_dt6dredg\src\build.py --map mirage C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\b1fix_mir.html
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\engine\walk_run.py --job=b1fix_mir,C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\b1fix_mir.html --matches=3,7,11,13,17,19,23,29 --par=8
+матчей в очереди: 8, одновременно: 8
+b1fix_mir match 29 rc 0 1813155 — готово 1/8, 2 мин
+b1fix_mir match 13 rc 0 2948430 — готово 2/8, 3 мин
+b1fix_mir match 11 rc 0 2907086 — готово 3/8, 3 мин
+b1fix_mir match 17 rc 0 2959795 — готово 4/8, 3 мин
+b1fix_mir match 19 rc 0 3689491 — готово 5/8, 4 мин
+b1fix_mir match 23 rc 0 3978069 — готово 6/8, 4 мин
+b1fix_mir match 3 rc 0 4994646 — готово 7/8, 5 мин
+b1fix_mir match 7 rc 0 5808527 — готово 8/8, 6 мин
+done
+all done
