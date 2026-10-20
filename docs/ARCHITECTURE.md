@@ -106,13 +106,14 @@
 |---|---|---|---|
 | `map.json` | верхний уровень | `id`, `name`; `store` — начало ключей хранилища браузера (для Ancient прежнее `ancient-live-radar`, правки владельца в браузере не теряются); `db` — коллекция базы страницы для правок редактора (`map`); `pxUnits` — юнитов CS2 в 1 px радара; `zoneLayer` — выравнивание слоя зон по радару; `spawns` — имена точек спавнов в `zones.zonemap.points`; `spawnFix` — поправка точки спавна; `siteAFix` — разовая починка данных браузера (сайт A, нарисованный как B); `ui` — подсказки | `PX_UNITS`, `ZONE_LAYER_BASELINE`, `CT_SPAWN`/`T_SPAWN`, `T_SPAWN_FIX_RAW`, ключи `*_KEY`, `MAPED.db.collection(MAP.db)` |
 | `radar.png` | `radar` (data URI) | фон радара | `img.src` |
-| `zones.json` | `zones` | `centers` (v319, необязательное) — середина зоны на её этаже, игра берёт её вместо среднего углов (`zoneMapCentroid`); `zonemap` (зоны, точки, переходы; `name` у зоны — роль: `Asite`, `Bsite`, `CTspawn`, `Tspawn`), `shapes` (свои формы зон), `names` (названия для людей и тактик, «Red Room / Red» — основное и варианты), `synonyms`, `props` — **свойства зон** (`water` — вода, громкие шаги) | `ZONEMAP`, `ZONE_SHAPES_BAKED`, `ZONE_NAMES_BAKED`, `ZONE_SYNONYMS`, `inWater` |
+| `zones.json` | `zones` | (А5) `navZone` (необязательное) — зона каждого участка навмеша по этажу геометрии (`zoneIdAt3` без растекания), у зоны `level` (`low` — нижний этаж) и `z` — её высота; `centers` (v319, необязательное) — середина зоны на её этаже, игра берёт её вместо среднего углов (`zoneMapCentroid`); `zonemap` (зоны, точки, переходы; `name` у зоны — роль: `Asite`, `Bsite`, `CTspawn`, `Tspawn`), `shapes` (свои формы зон), `names` (названия для людей и тактик, «Red Room / Red» — основное и варианты), `synonyms`, `props` — **свойства зон** (`water` — вода, громкие шаги) | `ZONEMAP`, `ZONE_SHAPES_BAKED`, `ZONE_NAMES_BAKED`, `ZONE_SYNONYMS`, `inWater` |
 | `navmesh.json` | `navmesh.areas` | навмеш в пространстве радара (2048×2048) | `NAVAREAS` |
 | `walls.json` | `walls.polys` | стены | `WALL_POLYS_CODE` |
 | `heights.json`, `cover.json`, `wallbang.json` | `heights`, `cover`, `wallbang` | высоты, укрытия, прострелы (поле `own` — правки владельца, `tools/map_pull.py`) | `HEIGHTS`, `COVER`, `WALLBANG` |
 | `tactics.json` | `tactics` | `geoMid` (v319, необязательное) — мид CT и T из демок `{ct, ctLook, t, tLook}` вместо точек на пути между спавнами (`buildSites`); `tTactics` (у тактики `weight` — своя частота), `ctSetups` (у сетапа `midAggressive` — агрессивный мид), `pos`, `lurkPlans`, `shiftTo`, `proRole`, `plays` — розыгрыши (ниже) | `T_TACTICS`, `CT_SETUPS`, `POS`, `LURK_PLANS`, `SHIFT_TO`, `PRO_ROLE` |
 | `lineups.json` | `lineups` | `baked` (лайнапы из редактора), `pro` и `proExtra` (из демок; `proExtra` — только при `BAL.nadeMore`), `builtinOff` | `LINEUPS_BAKED`, `PRO_LINEUPS_RAW`, `BUILTIN_OFF_BAKED` |
 | `pro.json` | `pro` | места и взгляды про из демок: `spots`, `prior`, `look`, `positions`; `pistolNades` (v370, `tools/nades_pro.py`) | `PRO_SPOTS`, `PRO_PRIOR`, `PRO_LOOK`, `KNOW_POSITIONS` |
+| `map3d.json` (А5, необязательный) | `map3d` | 3D-геометрия игры (раздел «Карта 3D» ниже): есть — видимость, «в стене», гранатные проверки идут по ней, стены радара — только рисование | `MAP3D`, `m3()` (`035_map3d.js`) |
 | `climbs.json` (v372, необязательный) | `climbs` | подъёмы из демок (`tools/climbs_bake.py`): уступ «только спрыгнуть», куда про залезают — `{lo, hi, n, sec}` | связь «вверх» в `NAVAREAS[].conn`, `LADDERS` (`up:true`) |
 
 Старые имена (`ZONEMAP`, `HEIGHTS`, `T_TACTICS`, …) остались короткими ссылками на `MAP.…` на тех же местах кода — порядок
@@ -159,6 +160,7 @@ CT идёт через зону с ролью `CTspawn`.
 | `heights` | `tools/heights_bake.py --map` (крыто — по штриховке радара Simple Radar `sources.simpleRadar`; v321: `roofs` — контуры крыш оттуда же: в игре потолок видимости и слой высот) | `heights.json` |
 | `cover` | `tools/cover_bake.py --map` (ящик без стены — не больше 4000 ед.² и плотный: крыши и галереи — не ящики) | `cover.json` |
 | `zones` | `tools/zones_bake.py --map`: каждый участок навмеша — к ближайшей ПО ПОЛУ подписи радара (`callouts`), контур зоны — по картинке участков; переходы — по связям навмеша; роли и точки — `roles`; спорные зоны — `_zones_report.json`; v321: зона длиннее 380 ед. от своей подписи делится, кусок зовётся «<зона> → <соседняя подпись>» | `zones.json` |
+| `zones3d` | (А5, Mirage — вместо `zones`) `tools/map3d/zones_game.py --map`: зоны владельца `geom3d/zones_owner.json` (А4) → формат игры: контур — клетки зоны (больший кусок), `z` — медиана пола, зоны нижнего этажа — в конце списка, `navZone` — зона участка навмеша по этажу под его серединой, переходы — по связям навмеша; точки ролей и `sites` — прежние. После него — `demos` (`positions_bake`, `player_positions_bake`, `tactics_bake --game`, `roles_bake`: названия зон в тактиках) | `zones.json` |
 | `wallbang` | `tools/wallbang_bake.py --map`: правила CS2 + куски карты (у Ancient — список с источниками; v321: у карты без списка — из демок: убийства с `penetrated` ≥ 1, где линия выстрела проходит сквозь одну стену, кластер ≥ 3 убийств из ≥ 2 матчей; материал — проектное число) | `wallbang.json` |
 | `map` | `map.json` (масштаб из `.txt`, спавны — точки зон-ролей, `spawnFix.T` = точка спавна T) и `radar.png` | `map.json`, `radar.png` |
 | `demos` | `tools/demos_bake.py --map` — все скрипты по демкам по порядку (ниже), промежуточное — в `data/maps/<карта>/pro/` (у Ancient — `data/pro/`); v321: границы сайтов — красные квадраты Simple Radar (без него — оболочка плантов) → `zones.json` `sites` | `pro.json`, `lineups.json`, `tactics.json`, `zones.json` (`sites`) |
@@ -197,11 +199,23 @@ CT идёт через зону с ролью `CTspawn`.
 Устройство на v197–v204 (src/js/*, заглушка вместо мозга, таблица файлов и цифры здоровья того времени) — `docs/archive/ARCHITECTURE-v204.md`.
 Сейчас карта файлов — `CLAUDE.md`, таблица «Где что».
 
-## Карта 3D (map3d.json) — А3–А4 (20.10.2026), в игру ещё не подключена (А5)
+## Карта 3D (map3d.json) — А3–А4 (20.10.2026), в игре с А5
 Источник — геометрия столкновений из файла игры (`data/maps/<карта>/geom3d/world_physics.npz`, А1–А2), без невидимых стен
 и без «стен радара». Сборка: `python3 tools/map3d/columns.py --map <карта>` (≈ 80 с) → `layers.py` (≈ 35 с) → `zones_owner.py`;
-картинки — `layer_pics.py`; проверка образцом игры — `node tools/map3d/map3d_check.js <карта>`. Файлы лежат в `geom3d/` — в объект
-`MAP` не попадают (`src/mapset.py` берёт только `*.json` в корне набора); в А5 — перенести в корень набора.
+картинки — `layer_pics.py`; проверка образцом игры — `node tools/map3d/map3d_check.js <карта>`. `map3d.json` (с А5) — в корне набора
+(игра: `MAP.map3d`); остальное — в `geom3d/` (в `MAP` не попадает: `src/mapset.py` берёт только `*.json` в корне).
+
+**В игре (А5)** — `src/game/035_map3d.js` (один код с node: `tools/map3d/map3d.js` его подключает): распаковка zlib своя
+(`zInflate`, синхронно, ≈ 0,25 с на загрузку), `m3()` — геометрия при первом вопросе; столбики гранат и неба — при первом
+броске. Что берёт геометрию, если она у карты есть (иначе — прежняя сетка VIS по стенам радара, навмешу и укрытиям, Ancient до А6):
+- `visMarch` = луч `m3Line(…, 'sight')`; `visWallHit` и `levelBlocked` — пусто (у геометрии свои стены и перекрытия на каждом этаже);
+  `visFloorAt(x, y, z)` — этаж клетки на высоте бота (самый высокий не выше z + 18), без z — верхний этаж «пешком». `visParts` —
+  голова, грудь, живот, плечи ±14 ед. (М140) — через них; `hasLOS(x1, y1, x2, y2, z1, z2)` — с высотой бота (М140);
+- `insideSolidWall` / `segCrossesManualWalls` / `crossesWall` / `nadeWallHit` — по сетке `m3Solid` (клетка без этажа геометрии и без
+  навмеша; кто уже «в стене», выходит); `rebuildNav` участки не выкидывает и переходы не режет — ходьба по навмешу из того же файла;
+- `nadeArc` — дуга ломаной из 12 лучей `'nade'`, `nadeCovered` — над полом есть преграда для гранат выше 80 ед. (временно, до В2–В3);
+- стены радара (`walls.json`, `MANUAL_WALLS`) — рисование, редактор и лучи «конуса» на экране; укрытия, высоты, крыши набора
+  видимость не читает. Проверка «кто кого видит» (`610`) красит клетки, где есть этаж «пешком».
 
 **Сетка** — та же, что `VIS`: клетка `cell` = 2 px радара 0..2048 (`unit` = 5 ед. игры у Mirage), `W` = 1024 клетки по стороне,
 клетка `(i, j)` = `x ∈ [i·cell, (i+1)·cell)`, `y` — так же; номер `j·W + i`. Все массивы — little-endian, сжаты zlib (deflate) и в base64
