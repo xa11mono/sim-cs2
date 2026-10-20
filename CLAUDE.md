@@ -69,7 +69,7 @@ v166 — `docs/V166_CHANGES.md` (список владельца). Главны�
 | загрузка карты `MAP`, зоны, слой зон, калибровка навмеша; навмеш `.nav`, порталы, авто-стены | `010_map_zones_warp`, `020_map_navmesh_autowalls` |
 | **карта** (данные — `MAP`, набор `data/maps/<карта>/`): стены `WALL_POLYS` / `applyWalls`; высоты `HEIGHTS` / `hgtInfo`; укрытия `COVER` / `covList`; прострелы `WALLBANG` / `wbList`, `wbAfter` | `030_map_walls_heights_cover_wallbang` |
 | **кто кого видит** (одно место, 3D): `VIS_*`, `visLine`, `visParts`, `visFloorAt`, `visInvalidate`; через неё `hasLOS` и таблица «откуда простреливается» `computeZoneDanger` | `040_visibility`; `hasLOS` — `050_nav_rebuild_paths`; `computeZoneDanger` — `060_zone_danger_user_zones` |
-| навмеш и пути: `rebuildNav`, `zoneDijkstra`, `funnel`, `buildWaypointPath`; уровни/лестницы/подъёмы `navAtLevel`, `laddersBuild`, `ladderTick`; огонь `inFire` | `050_nav_rebuild_paths`; `370_fire_nav_levels_ladders` |
+| навмеш и пути: `rebuildNav`, `zoneDijkstra`, `funnel`, `buildWaypointPath`; уровни/лестницы/подъёмы `navAtLevel`, `laddersBuild`, `ladderTick`; «на полу» — одно место `navOnFloor`; огонь `inFire` | `050_nav_rebuild_paths`; `370_fire_nav_levels_ladders` |
 | оружие, боты `makeTeam`, роумер | `070_weapons_bots_roam`; `updateRoamer` — `430_fov_roam` |
 | переключатели и числа движка `BAL` | `080_bal` |
 | профили игроков, **команды** `LINEUP`, `SIDE_TEAM`, `seatPlayers` | `090_profiles_teams` |
