@@ -15,7 +15,8 @@ os.makedirs(IMG, exist_ok=True)
 CO = mapdir.callouts(MAP)
 def place(x, y):
     best, bd = '?', 1e9
-    for n, cx, cy in CO:
+    for c in CO:
+        n, cx, cy = c[:3]
         d = (x-cx)**2 + (y-cy)**2
         if d < bd: bd, best = d, n
     return best
@@ -60,6 +61,27 @@ if cmd == 'vis':
                   'прострел: движок видит, %': pct(sum(1 for k, e in pen if e[0] > 0), len(pen)),
                   'через дым (thrusmoke), шт': sum(1 for k, e in base if k[13])}
     why = collections.Counter(e[3] for k, e in bad); S['kills']['причина «не видно»'] = dict(why)
+    # разбор по первому совпадению: что именно в движке/данных разошлось с демкой
+    sys.path.insert(0, HERE); import march  # noqa
+    W_, C_, Sg, Clg, Fg = march.load(VD, MAP)
+    def depth(k):
+        def fl(x, y, z):
+            v = Fg[int(y//C_), int(x//C_)]; v = 0 if v < -9000 else v
+            return z if abs(v - z) > 64 else v
+        ez = fl(k[3], k[4], k[5]) + 64; ft = fl(k[6], k[7], k[8])
+        return min(march.inside(Sg, Clg, C_, k[3], k[4], ez, k[6], k[7], ft + tz)[0] for tz in (68, 52, 32))
+    def klass(k, e):
+        if e[3] == 'wall': return 'стена набора (высокая)'
+        if e[3] == 'level': return 'чужой этаж (levelBlocked)'
+        if e[3] == 'ceil': return 'крыша (потолок 130)'
+        if e[3] == 'floor' and e[7] and e[7][1] is not None and abs(e[7][1]) < 80 and e[7][3] - k[5] > 60: return 'под верхним полом: сетка знает один пол'
+        if len(e) > 8 and e[8]: return 'край тела цели: видно со сдвигом ±14 ед.'
+        if depth(k) <= 10: return 'тонкий выступ сетки (≤ 10 ед.)'
+        return 'пол/уступ сетки' if e[3] == 'floor' else 'укрытие набора'
+    KL = [(k, e, klass(k, e)) for k, e in bad]
+    S['kills']['почему «не видно» (разбор), шт'] = collections.Counter(c for k, e, c in KL).most_common()
+    S['kills']['почему «не видно»: места по классам'] = {c: collections.Counter(place(e[4], e[5]) for k, e, cc in KL if cc == c).most_common(6) for c in set(c for k, e, c in KL)}
+    S['kills']['видно со сдвигом тела цели ±14 ед., % от «не видно»'] = pct(sum(1 for k, e in bad if len(e) > 8 and e[8]), len(bad))
     cw = collections.Counter(place(e[4], e[5]) for k, e in bad)
     S['kills']['где режет линию (место)'] = cw.most_common(15)
     # доля «не видно» по месту убийцы и жертвы (места с ≥ 25 убийствами)
@@ -116,12 +138,15 @@ if cmd == 'vis':
     print(json.dumps(S, ensure_ascii=False, indent=1))
 
 if cmd == 'walk':
-    RD = os.path.join(ROOT, 'tools', 'measure', 'runs', opt['runs']); files = sorted(glob.glob(os.path.join(RD, 'rec_*.json')))
-    nav, stall, pos, rounds = [], [], [], 0
+    RD = os.path.join(ROOT, 'tools', 'measure', 'runs', opt['runs']); files = [f for f in sorted(glob.glob(os.path.join(RD, 'rec_*.json'))) if os.path.getsize(f) > 1000]
+    nav, stall, pos, rounds = [], [], [], 0; TRK = collections.defaultdict(list); BK = []
     for fn in files:
         d = json.load(open(fn)); rounds += len([r for r in d['rounds'] if 't1' in r])
-        nav += d['walk']['nav']; stall += d['walk']['stall']
+        BK.extend([(k[3], k[4], k[7], k[8]) for k in d['kills'] if k[3] is not None])
+        nav += [n + [fn] for n in d['walk']['nav']]; stall += [x + [fn] for x in d['walk']['stall']]
         pos += [(p[3], p[4]) for p in d['pos'] if p[5] == 1]
+        for p in d['pos']:
+            if p[5] == 1: TRK[(fn, p[1])].append((p[0], p[3], p[4]))
     S = {'map': MAP, 'матчей': len(files), 'раундов': rounds}
     kinds = collections.Counter(n[1] for n in nav)
     S['nav на 100 раундов'] = {k: round(100.0*v/rounds, 1) for k, v in kinds.items()}
@@ -130,17 +155,32 @@ if cmd == 'walk':
     S['перенос со сменой высоты > 30, шт'] = sum(1 for n in snap if n[6] is not None and n[9] is not None and abs(n[9]-n[6]) > 30)
     for k in ('snap', 'noprog', 'wall', 'ledge'):
         S[f'места {k}'] = collections.Counter(place(n[4], n[5]) for n in nav if n[1] == k).most_common(10)
-    cant = [s for s in stall if s[9] >= 0.5]; task = [s for s in stall if s[9] < 0.5]
+    # stall по классам: не может идти (хотел идти ≥ 50 % из 5 с) / путь сброшен застреванием (nav-событие у этого бота в эти 5 с) /
+    # нет пути без застревания / стоит по задаче (holding, скорость 0 по решению, бой)
+    NB = collections.defaultdict(list)
+    for n in nav: NB[(n[-1], n[2])].append(n[0])
+    def scls(s):
+        if s[9] >= 0.5:
+            if len(s) > 15: L = s[13]   # пройдено ногами (baseX/baseY) за 5 с — из сторожа
+            else:
+                tr = [q for q in TRK[(s[-1], s[1])] if s[0] - 320 <= q[0] <= s[0]]
+                L = sum(math.hypot(b[1]-a[1], b[2]-a[2]) for a, b in zip(tr, tr[1:]))
+            return 'ходит туда-сюда (путь есть, прошёл > 60 px, сдвиг < 25)' if L > 60 else 'не может идти (путь есть, шаг не проходит)'
+        if s[10] == 'nopath': return 'путь сброшен застреванием' if any(s[0] - 320 <= t <= s[0] for t in NB[(s[-1], s[1])]) else 'нет пути до поста (без застревания)'
+        return 'стоит по задаче (' + s[10] + ')'
+    SC = [(s, scls(s)) for s in stall]; cant = [s for s, c in SC if c.startswith('не может')]
     S['stall на 100 раундов'] = round(100.0*len(stall)/rounds, 1)
-    S['stall «не может идти» (хотел идти ≥ 50 % из 5 с), %'] = pct(len(cant), len(stall))
-    S['stall «стоит по задаче», почему'] = dict(collections.Counter(s[10] for s in task))
-    S['stall «не может идти»: места'] = collections.Counter(place(s[3], s[4]) for s in cant).most_common(12)
-    S['stall «по задаче»: места'] = collections.Counter(place(s[3], s[4]) for s in task).most_common(8)
-    S['stall «по задаче»: посты'] = collections.Counter(str(s[6]).split(':')[0] for s in task).most_common(8)
-    S['stall «не может идти»: посты'] = collections.Counter(str(s[6]).split(':')[0] for s in cant).most_common(8)
+    S['stall по классам, %'] = {c: pct(n, len(stall)) for c, n in collections.Counter(c for s, c in SC).most_common()}
+    S['stall по классам: места'] = {c: collections.Counter(place(s[3], s[4]) for s, cc in SC if cc == c).most_common(8) for c in set(c for s, c in SC)}
+    S['stall по классам: посты'] = {c: collections.Counter(str(s[6]).split(':')[0] for s, cc in SC if cc == c).most_common(6) for c in set(c for s, c in SC)}
+    osc = [s for s, c in SC if c.startswith('ходит') and len(s) > 15]
+    S['«ходит туда-сюда»: пройдено за 5 с, px, медиана'] = float(np.median([s[13] for s in osc])) if osc else None
+    S['«ходит туда-сюда»: смен пути за 5 с, медиана'] = float(np.median([s[14] for s in osc])) if osc else None
+    S['«ходит туда-сюда»: смен пути ≥ 3 за 5 с, %'] = pct(sum(1 for s in osc if s[14] >= 3), len(osc)) if osc else None
+    S['stall «не может идти»: остаток пути (точек), медиана'] = float(np.median([s[8] for s in cant])) if cant else None
     f, ax = fig(f'{mapdir.title(MAP)}: ходьба ботов, {len(files)} матчей ({rounds} раундов)\n'
-                'перенос вне навмеша ■ чёрный, нет прогресса ● красный, выход из стены ▲ оранж., stall «не может идти» ✕ малин.')
-    for k, c, m in (('snap', 'black', 's'), ('noprog', 'red', 'o'), ('wall', 'orange', '^'), ('ledge', 'green', 'D')):
+                'вне навмеша — перенесён ■ чёрный, нет прогресса 1,5 с ● красный, топчется → сброс пути ▲ оранж., спрыгнул с уступа ◆ зелёный, stall «не может идти» ✕ малин.')
+    for k, c, m in (('snap', 'black', 's'), ('noprog', 'red', 'o'), ('wall', 'orange', '^'), ('ledge', 'green', 'D')):  # wall = топчется 1,5 с → escapeWallLine
         a = np.array([[n[4], n[5]] for n in nav if n[1] == k]).reshape(-1, 2); ax.scatter(a[:, 0], a[:, 1], s=8, c=c, marker=m, alpha=0.5)
     a = np.array([[s[3], s[4]] for s in cant]).reshape(-1, 2); ax.scatter(a[:, 0], a[:, 1], s=14, c='magenta', marker='x', alpha=0.7)
     label_places(ax, collections.Counter(place(n[4], n[5]) for n in nav) + collections.Counter(place(s[3], s[4]) for s in cant))
@@ -169,5 +209,13 @@ if cmd == 'walk':
     rgba[(both & (ratio > 2)) | onlyB] = [1, 0, 0, 0.55]; rgba[(both & (ratio < -2)) | onlyP] = [0, 0.2, 1, 0.55]
     ax.imshow(rgba, extent=(0, 2048, 2048, 0), interpolation='nearest')
     S['img_paths'] = save(f, 'walk_paths')
+    # где дерутся: место убийцы, доля убийств — боты против про (про — убийства пулей без прострела из демок)
+    PK = [(k[3], k[4]) for k in json.load(open(os.path.join(VD, f'{MAP}_kills.json'))) if k[12] == 0]
+    cb = collections.Counter(place(x, y) for x, y, _, _ in BK); cpk = collections.Counter(place(x, y) for x, y in PK)
+    tb, tp = sum(cb.values()) or 1, sum(cpk.values()) or 1
+    D = sorted([(p, round(100*cpk[p]/tp, 1), round(100*cb[p]/tb, 1)) for p in set(cb) | set(cpk)], key=lambda r: r[2]-r[1])
+    S['убийства по месту убийцы (место, % у про, % у ботов): про чаще'] = [r for r in D if r[1] - r[2] >= 1.0][:10]
+    S['убийства по месту убийцы: боты чаще'] = [r for r in D[::-1] if r[2] - r[1] >= 1.0][:10]
+    S['убийств ботов'] = len(BK)
     json.dump(S, open(os.path.join(VD, f'{MAP}_walk_stats.json'), 'w'), ensure_ascii=False, indent=1)
     print(json.dumps(S, ensure_ascii=False, indent=1))

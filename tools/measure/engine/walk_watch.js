@@ -26,6 +26,10 @@
       var hasPath = !!(b.path && b.pathIdx < b.path.length), fc = !!(b._fc && b._fc.ph !== "line");
       // хотел идти в этом тике — то же условие, что пускает шаг в stepTick (без лестницы)
       var w = hasPath && !(b.holding && !b._burning) && (b.curSpeed||0) > 0.5 && !fc;
+      // пройдено ногами (baseX/baseY, без покачиваний показа) и сколько раз сменился путь — за те же 5 с
+      var dl = s.lb ? Math.hypot(b.baseX-s.lb[0], b.baseY-s.lb[1]) : 0; s.lb = [b.baseX, b.baseY];
+      var rp = (s.lp !== undefined && s.lp !== b.path) ? 1 : 0; s.lp = b.path;
+      (s.tr || (s.tr = [])).push([dl, rp]); if(s.tr.length > 320) s.tr.shift();
       s.want.push(w ? 1 : 0); s.why.push(w ? "" : (b.holding ? "holding" : (!hasPath ? "nopath" : (fc ? "fight" : "speed0")))); if(s.want.length > 320){ s.want.shift(); s.why.shift(); }
       if(tick % 16) return;
       s.pos.push([b.x, b.y]); if(s.pos.length > 21) s.pos.shift();
@@ -38,7 +42,8 @@
           var top = Object.keys(why).sort(function(a, c){ return why[c]-why[a]; })[0] || "";
           WK.stall.push([tick, b.id, b.team, Math.round(b.x), Math.round(b.y), b.z == null ? null : Math.round(b.z), String(b.post.tag),
             Math.round(Math.hypot(b.post.x-b.x, b.post.y-b.y)), hasPath ? b.path.length - b.pathIdx : -1, Math.round(wn/n*100)/100, top,
-            String(b.state||""), b.atPost ? 1 : 0]); } }
+            String(b.state||""), b.atPost ? 1 : 0,
+            Math.round(s.tr.reduce(function(a, c){ return a + c[0]; }, 0)), s.tr.reduce(function(a, c){ return a + c[1]; }, 0)]); } }
     });
   };
   WK.report = function(){ return {nav:WK.nav, stall:WK.stall}; };
