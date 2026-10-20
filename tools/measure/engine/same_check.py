@@ -2,7 +2,7 @@
 """(Б2) Сторож не меняет игру: сравнить запись матчей двух прогонов одной версии игры (бит в бит).
 python3 tools/measure/engine/same_check.py <папка A> <папка B> [--matches=3,7]
 Папки — с rec_<m>.json или rec_<m>.json.gz. Сравниваются все поля записи, кроме записей сторожей, которых в одном из прогонов
-нет (know), и подписей «кто вызвал» в сторожe ходьбы (walk.who, walk.post): это имена функций из стека, а обёртка нового сторожа
+нет (know), и подписей «кто вызвал» в сторожe ходьбы (walk.who, walk.post, поле 15 в walk.stall): это имена функций из стека, а обёртка нового сторожа
 добавляет в стек свою строку — игра от этого не меняется. Вывод: по матчу — «совпадает» или первое расхождение."""
 import sys, os, json, gzip
 def load(d, m):
@@ -12,7 +12,10 @@ def load(d, m):
     return None
 def strip(R):
     R = dict(R); R.pop('know', None)
-    if isinstance(R.get('walk'), dict): R['walk'] = {k: v for k, v in R['walk'].items() if k not in ('who', 'post')}
+    if isinstance(R.get('walk'), dict):
+        R['walk'] = {k: v for k, v in R['walk'].items() if k not in ('who', 'post')}
+        # в stall поле 15 — те же подписи «кто сменил путь» (стек): обёртка applyDamage нового сторожа видна там второй строкой
+        R['walk']['stall'] = [r[:15] + r[16:] for r in R['walk'].get('stall', [])]
     return R
 a, b = [x for x in sys.argv[1:] if not x.startswith('--')]
 ms = next((x.split('=')[1].split(',') for x in sys.argv if x.startswith('--matches=')), None)
