@@ -1,0 +1,246 @@
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap">
+<style id="ds-demo">
+/* Пример нового вида (21.10): тёмный «точный прибор» (Linear / shadcn zinc) + стекло у плавающих панелей,
+   тонкие линии 1 px, сегментированные группы, тумблеры, ⌘K-палитра; акцент — песок Mirage. Слой только добавлен поверх,
+   всё прежнее остаётся: снять класс html.ds — страница как была. Цвета команд — без изменений. */
+:root{
+  --z-bg:#09090b; --z-deep:#060607;
+  --z-glass:rgba(17,17,20,.66); --z-glass-hi:rgba(24,24,28,.84);
+  --z-fill:rgba(255,255,255,.04); --z-fill-hi:rgba(255,255,255,.08);
+  --z-line:rgba(255,255,255,.08); --z-line-hi:rgba(255,255,255,.15);
+  --z-text:#f4f4f5; --z-dim:#a1a1aa; --z-mute:#71717a;
+  --z-sand:#e8c38c; --z-sand-ink:#1a1408; --z-sand-soft:rgba(232,195,140,.14);
+  --z-ui:'Geist','Golos Text',system-ui,sans-serif; --z-num:'Geist Mono','IBM Plex Mono',ui-monospace,monospace;
+  --z-r:10px; --z-r-sm:8px; --z-blur:saturate(150%) blur(14px);
+  --z-ease:cubic-bezier(.2,.8,.2,1);
+  color-scheme:dark;
+}
+html.ds{
+  --bg:var(--z-bg); --panel:var(--z-glass); --panel-2:var(--z-fill); --line:var(--z-line); --line-2:var(--z-line-hi);
+  --accent:var(--z-sand); --accent-dim:rgba(232,195,140,.45); --text:var(--z-text); --text-dim:var(--z-dim);
+  --ui:var(--z-ui); --num:var(--z-num);
+  --hud-row:rgba(14,14,17,.74); --hud-row-sel:rgba(34,34,40,.9); --hud-line:var(--z-line); --hud-dim:var(--z-dim); --hud-ink:#0b0b0d;
+  --hud-n:var(--z-num); --hud-money:#b5d38a;
+}
+html.ds body{background:var(--z-bg);font-family:var(--z-ui);letter-spacing:-.005em;}
+html.ds .mono{font-family:var(--z-num);}
+
+/* полотно под радаром: точечная сетка + едва заметный тёплый свет в центре */
+html.ds #main{background:
+  radial-gradient(60% 55% at 50% 45%,rgba(232,195,140,.06),transparent 70%),
+  radial-gradient(rgba(255,255,255,.045) 1px,transparent 1.2px) 0 0/22px 22px,
+  var(--z-deep);}
+
+/* верхняя панель — стекло */
+html.ds #topbar{background:rgba(9,9,11,.72);-webkit-backdrop-filter:var(--z-blur);backdrop-filter:var(--z-blur);border-bottom:1px solid var(--z-line);padding:8px 14px;gap:8px 14px;}
+html.ds #topbar h1{font:600 15px/1 var(--z-ui);letter-spacing:-.02em;display:flex;align-items:center;gap:8px;}
+html.ds #topbar h1::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--z-sand);box-shadow:0 0 0 3px var(--z-sand-soft);}
+html.ds #topbar .sub{font:500 11px var(--z-num);color:var(--z-mute);padding:2px 7px;border:1px solid var(--z-line);border-radius:999px;}
+
+/* кнопки */
+html.ds button,html.ds .dd>summary{font:500 12.5px/1 var(--z-ui);height:30px;padding:0 11px;display:inline-flex;align-items:center;gap:6px;color:var(--z-text);background:var(--z-fill);border:1px solid var(--z-line);border-radius:var(--z-r-sm);box-shadow:inset 0 1px 0 rgba(255,255,255,.05);transition:background .15s var(--z-ease),border-color .15s var(--z-ease),transform .12s var(--z-ease),color .15s;}
+html.ds button:hover,html.ds .dd>summary:hover{background:var(--z-fill-hi);border-color:var(--z-line-hi);}
+html.ds button:active{transform:scale(.97);}
+html.ds button:disabled{opacity:.45;cursor:not-allowed;}
+html.ds button:focus-visible,html.ds summary:focus-visible,html.ds input:focus-visible,html.ds select:focus-visible{outline:2px solid var(--z-sand);outline-offset:2px;}
+html.ds button kbd,html.ds .ds-kbd{font:500 10.5px/1 var(--z-num);margin-left:2px;padding:3px 5px;border-radius:5px;background:rgba(255,255,255,.06);border:1px solid var(--z-line);color:var(--z-dim);}
+/* включено (обсервер, вся карта, кнопки-состояния) */
+html.ds button.active,html.ds #btnObs.on,html.ds #btnObsMap.on{background:var(--z-sand-soft);color:var(--z-sand);border-color:rgba(232,195,140,.38);}
+html.ds #btnObs.on kbd{color:var(--z-sand);border-color:rgba(232,195,140,.3);}
+/* главная кнопка — светлая, с бликом при наведении (21st.dev «shimmer», один раз, без постоянного свечения) */
+html.ds button.primary{position:relative;overflow:hidden;background:linear-gradient(180deg,#f3d6a8,var(--z-sand));color:var(--z-sand-ink);border-color:transparent;font-weight:600;box-shadow:inset 0 1px 0 rgba(255,255,255,.45),0 1px 2px rgba(0,0,0,.4);}
+html.ds button.primary:hover{background:linear-gradient(180deg,#f7dfb7,#ecc995);border-color:transparent;}
+html.ds button.primary::after{content:"";position:absolute;top:0;bottom:0;left:-60%;width:45%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.55),transparent);transform:skewX(-18deg);pointer-events:none;}
+html.ds button.primary:hover::after{animation:dsShine .7s var(--z-ease);}
+@keyframes dsShine{to{left:120%;}}
+html.ds button.primary kbd{background:rgba(26,20,8,.12);border-color:rgba(26,20,8,.18);color:var(--z-sand-ink);}
+
+/* управление матчем — одна сегментированная группа */
+html.ds #tbMatch{gap:2px;padding:3px;background:rgba(255,255,255,.025);border:1px solid var(--z-line);border-radius:calc(var(--z-r) + 1px);}
+html.ds #tbMatch button{height:26px;background:transparent;border-color:transparent;box-shadow:none;border-radius:7px;}
+html.ds #tbMatch button:hover{background:var(--z-fill-hi);}
+html.ds #tbMatch .tb-match{gap:6px;padding:0 6px;border-left:1px solid var(--z-line);border-right:1px solid var(--z-line);margin:0 2px;color:var(--z-mute);font-size:12px;}
+html.ds #tbMatch input[type=number],html.ds #tbMatch select{height:24px;background:var(--z-fill);color:var(--z-text);border:1px solid var(--z-line);border-radius:6px;padding:0 6px;font:500 12px var(--z-num);}
+html.ds #matchTick{font:11px var(--z-num);color:var(--z-mute);}
+
+/* выпадающие меню: стекло, разделы, строки с наведением */
+html.ds .dd>summary{padding-right:26px;}
+html.ds .dd[open]>summary{background:var(--z-fill-hi);border-color:var(--z-line-hi);}
+html.ds .dd-menu{top:calc(100% + 8px);min-width:270px;padding:6px;gap:1px;background:var(--z-glass-hi);-webkit-backdrop-filter:var(--z-blur);backdrop-filter:var(--z-blur);border:1px solid var(--z-line-hi);border-radius:12px;box-shadow:0 24px 60px -12px rgba(0,0,0,.7),0 0 0 1px rgba(0,0,0,.4);animation:dsPop .16s var(--z-ease);transform-origin:top left;}
+html.ds .dd-menu.dd-r{transform-origin:top right;}
+@keyframes dsPop{from{opacity:0;transform:translateY(-4px) scale(.98);}}
+html.ds .dd-h{font:500 10.5px var(--z-num);letter-spacing:.08em;text-transform:uppercase;color:var(--z-mute);padding:10px 8px 4px;margin:0;}
+html.ds .dd-h:first-child{padding-top:4px;}
+html.ds .dd-menu label.chk{justify-content:space-between;flex-direction:row-reverse;gap:12px;padding:7px 8px;border-radius:7px;color:var(--z-text);font-size:12.5px;}
+html.ds .dd-menu label.chk:hover{background:var(--z-fill-hi);}
+html.ds .dd-menu button{margin:6px 8px 4px;}
+/* галочки → тумблеры (uiverse «switch») */
+html.ds label.chk input[type=checkbox]{appearance:none;-webkit-appearance:none;flex:none;width:28px;height:16px;margin:0;border-radius:999px;background:rgba(255,255,255,.12);border:1px solid var(--z-line);position:relative;cursor:pointer;transition:background .16s var(--z-ease),border-color .16s;}
+html.ds label.chk input[type=checkbox]::before{content:"";position:absolute;top:1px;left:1px;width:12px;height:12px;border-radius:50%;background:#d4d4d8;box-shadow:0 1px 2px rgba(0,0,0,.5);transition:transform .18s var(--z-ease),background .16s;}
+html.ds label.chk input[type=checkbox]:checked{background:var(--z-sand);border-color:var(--z-sand);}
+html.ds label.chk input[type=checkbox]:checked::before{transform:translateX(12px);background:var(--z-sand-ink);}
+html.ds #tbMatch label.chk{flex-direction:row;gap:6px;color:var(--z-dim);}
+
+/* плавающие панели: экономика, войс, легенда, консоль, отметки, мини-карта */
+html.ds #econ,html.ds #voice,html.ds #log,html.ds #legend,html.ds .mk-panel{background:var(--z-glass);-webkit-backdrop-filter:var(--z-blur);backdrop-filter:var(--z-blur);border:1px solid var(--z-line);border-radius:12px;box-shadow:0 12px 40px -16px rgba(0,0,0,.6);}
+html.ds #econ{font-family:var(--z-num);padding:10px 12px;}
+html.ds #econ .ec-tg{font:500 11px var(--z-num);letter-spacing:.06em;text-transform:uppercase;color:var(--z-text);}
+html.ds #econ td.m{color:#b5d38a;}
+html.ds #voice{padding:9px 12px 10px;font-family:var(--z-ui);}
+html.ds #voice .vh{font:500 10px var(--z-num);letter-spacing:.08em;color:var(--z-mute);text-transform:uppercase;padding-bottom:6px;margin-bottom:6px;border-bottom:1px solid var(--z-line);}
+html.ds #voice .vl{border-left-width:2px;border-radius:0 4px 4px 0;padding:2px 0 2px 8px;}
+html.ds #legend{padding:7px 12px;border-radius:999px;font:500 11.5px var(--z-ui);}
+html.ds #miniMap{background:var(--z-glass)!important;-webkit-backdrop-filter:var(--z-blur);backdrop-filter:var(--z-blur);border:1px solid var(--z-line)!important;border-radius:12px!important;}
+html.ds .mk-panel{background:var(--z-glass-hi);border-color:var(--z-line-hi);}
+html.ds .mk-toast,html.ds .mk-prog{background:var(--z-glass-hi);-webkit-backdrop-filter:var(--z-blur);backdrop-filter:var(--z-blur);border:1px solid var(--z-line-hi);border-radius:999px;box-shadow:0 16px 40px -12px rgba(0,0,0,.7);}
+html.ds .mk-prog{border-radius:12px;color:var(--z-sand);}
+
+/* панели игроков: колонка-стекло с общим скруглением, строки делит линия 1 px */
+html.ds .pl-col{border-radius:12px;overflow:hidden;border:1px solid var(--z-line);background:var(--hud-row);-webkit-backdrop-filter:var(--z-blur);backdrop-filter:var(--z-blur);box-shadow:0 16px 48px -20px rgba(0,0,0,.8);}
+html.ds .pl-tag{background:rgba(255,255,255,.02);border:0;border-bottom:1px solid var(--z-line);font:600 11.5px var(--z-ui);letter-spacing:.12em;height:30px;gap:8px;}
+html.ds #plT .pl-tag::before,html.ds #plCT .pl-tag::after{content:"";width:6px;height:6px;border-radius:50%;background:currentColor;box-shadow:0 0 0 3px color-mix(in srgb,currentColor 20%,transparent);}
+html.ds .pl-card{background:transparent;border-top:1px solid var(--z-line);transition:background .15s var(--z-ease);}
+html.ds .pl-card:first-of-type{border-top:0;}
+html.ds .pl-card:hover{background:rgba(255,255,255,.035);}
+html.ds .pl-card.sel{background:rgba(255,255,255,.06);box-shadow:inset 0 0 0 1px var(--z-line-hi);}
+html.ds .pl-num{font:600 13px var(--z-num);}
+html.ds #plT .pl-num{background:color-mix(in srgb,var(--t) 85%,#000);}
+html.ds #plCT .pl-num{background:color-mix(in srgb,var(--ct) 85%,#000);}
+html.ds .pl-nick{font:600 15px var(--z-ui);letter-spacing:.02em;}
+html.ds .pl-hp{font:500 21px var(--z-num);letter-spacing:-.03em;}
+html.ds .pl-stat{font-family:var(--z-num);font-size:12px;}
+html.ds .pl-bar{height:2px;}
+html.ds .pl-bar b{opacity:.9;}
+
+/* табло */
+html.ds #scoreboard .sb-head{padding:0 4px;margin-bottom:4px;}
+html.ds #scoreboard .sb-head span{background:var(--z-glass-hi);color:var(--z-dim);border:1px solid var(--z-line);border-radius:999px;font:500 10px var(--z-num);letter-spacing:.1em;padding:3px 9px;}
+html.ds #scoreboard .sb-main{border-radius:12px;overflow:hidden;border:1px solid var(--z-line);background:var(--hud-row);-webkit-backdrop-filter:var(--z-blur);backdrop-filter:var(--z-blur);box-shadow:0 16px 48px -20px rgba(0,0,0,.8);}
+html.ds #scoreboard .sb-team{border-top-width:2px;}
+html.ds #scoreboard .sb-logo{border-radius:8px;border-color:var(--z-line);background:rgba(255,255,255,.03);}
+html.ds #scoreboard .sb-name{font:500 11.5px var(--z-ui);letter-spacing:.1em;}
+html.ds #scoreboard .sb-score{font:500 27px var(--z-num);letter-spacing:-.04em;}
+html.ds #scoreboard .sb-time{font:500 18px var(--z-num);letter-spacing:-.02em;}
+html.ds #scoreboard .sb-round{font:500 10px var(--z-num);letter-spacing:.1em;color:var(--z-mute);}
+html.ds #scoreboard .sb-series i{border-radius:3px;}
+html.ds #scoreboard .sb-alive b{border-radius:5px;font-family:var(--z-num);}
+
+/* карточка игрока под камерой */
+html.ds #plFocus .pf-photo::before{border-radius:12px 12px 0 0;background:linear-gradient(180deg,rgba(40,40,46,.85),rgba(14,14,17,.9));border:1px solid var(--z-line);border-bottom:0;border-top:2px solid var(--ct);}
+html.ds #plFocus.t .pf-photo::before{border-top-color:var(--t);}
+html.ds #plFocus .pf-bar{border-radius:0 0 12px 12px;background:var(--hud-ink);border:1px solid var(--z-line);border-top-color:var(--z-line);}
+html.ds #plFocus .pf-kd{border-radius:6px 0 0 0;font-family:var(--z-num);}
+html.ds #plFocus #pfNick{font:600 14px var(--z-ui);letter-spacing:.03em;}
+html.ds #plFocus #pfHp{font:500 16px var(--z-num);}
+
+/* киллфид, баннер, карточка раунда, предупреждения */
+html.ds #killfeed .kf{background:var(--z-glass);-webkit-backdrop-filter:var(--z-blur);backdrop-filter:var(--z-blur);border-radius:6px;height:22px;padding:0 9px;border:1px solid transparent;font-family:var(--z-ui);}
+html.ds #killfeed .kf.ev{border-color:var(--z-line);}
+html.ds #banner{border-radius:999px;background:var(--z-glass-hi);-webkit-backdrop-filter:var(--z-blur);backdrop-filter:var(--z-blur);font:600 13px var(--z-ui);letter-spacing:.14em;padding:8px 18px;box-shadow:0 16px 40px -12px rgba(0,0,0,.7);}
+html.ds #roundCard{border-radius:16px;background:var(--z-glass-hi);-webkit-backdrop-filter:var(--z-blur);backdrop-filter:var(--z-blur);border:1px solid var(--z-line-hi);box-shadow:0 30px 80px -20px rgba(0,0,0,.8);font-family:var(--z-ui);transition:opacity .2s var(--z-ease),transform .2s var(--z-ease);}
+html.ds #roundCard .rc-t{font:600 24px var(--z-ui);letter-spacing:.04em;}
+html.ds #roundCard .rc-s{font-family:var(--z-num);}
+html.ds #roundCard .rc-h{border-top-color:var(--z-line);color:var(--z-sand);font-family:var(--z-num);}
+html.ds #contact,html.ds #warn{border-radius:999px;-webkit-backdrop-filter:var(--z-blur);backdrop-filter:var(--z-blur);}
+
+/* ⌘K — палитра команд (skiper-ui) */
+#dsCmdBtn{display:none;}
+html.ds #dsCmdBtn{display:inline-flex;color:var(--z-dim);min-width:150px;justify-content:space-between;}
+#dsSwap{font:500 11px var(--z-num)!important;height:26px!important;border-radius:999px!important;color:var(--z-sand)!important;border-color:rgba(232,195,140,.35)!important;background:rgba(232,195,140,.08)!important;}
+html:not(.ds) #dsSwap{font:500 11px monospace;padding:4px 10px;border-radius:999px;}
+#dsCmd{position:fixed;inset:0;z-index:200;display:flex;align-items:flex-start;justify-content:center;padding:14vh 16px 16px;background:rgba(0,0,0,.45);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);}
+#dsCmd[hidden]{display:none!important;}
+#dsCmd .box{width:min(560px,100%);background:rgba(20,20,24,.9);-webkit-backdrop-filter:var(--z-blur);backdrop-filter:var(--z-blur);border:1px solid var(--z-line-hi);border-radius:14px;box-shadow:0 40px 100px -20px rgba(0,0,0,.85);overflow:hidden;animation:dsPop .16s var(--z-ease);font-family:var(--z-ui);color:var(--z-text);}
+#dsCmd input{width:100%;height:48px;padding:0 16px;background:transparent;border:0;border-bottom:1px solid var(--z-line);color:var(--z-text);font:400 15px var(--z-ui);outline:none;}
+#dsCmd input::placeholder{color:var(--z-mute);}
+#dsCmd ul{list-style:none;margin:0;padding:6px;max-height:min(52vh,420px);overflow-y:auto;}
+#dsCmd li.h{font:500 10.5px var(--z-num);letter-spacing:.08em;text-transform:uppercase;color:var(--z-mute);padding:10px 10px 4px;}
+#dsCmd li.it{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 10px;border-radius:8px;font-size:13px;cursor:pointer;}
+#dsCmd li.it.on{background:rgba(255,255,255,.07);}
+#dsCmd li.it .st{font:500 10.5px var(--z-num);color:var(--z-mute);padding:2px 7px;border:1px solid var(--z-line);border-radius:999px;}
+#dsCmd li.it .st.y{color:var(--z-sand);border-color:rgba(232,195,140,.35);background:var(--z-sand-soft);}
+#dsCmd .ft{display:flex;gap:14px;padding:8px 14px;border-top:1px solid var(--z-line);font:11px var(--z-num);color:var(--z-mute);}
+#dsCmd .empty{padding:18px 12px;color:var(--z-mute);font-size:13px;}
+
+@media (prefers-reduced-motion:reduce){
+  html.ds *{transition:none!important;animation:none!important;}
+}
+</style>
+<script>
+(function(){
+  var root=document.documentElement, KEY='ds-demo-look';
+  var on=true; try{ var v=localStorage.getItem(KEY); if(v==='old') on=false; }catch(e){}
+  root.classList.toggle('ds',on);
+  function ready(fn){ if(document.readyState!=='loading') fn(); else document.addEventListener('DOMContentLoaded',fn); }
+  ready(function(){
+    var right=document.querySelector('#topbar .tb-right'); if(!right) return;
+    var isMac=/Mac|iPhone|iPad/.test(navigator.platform||'');
+    // кнопки: палитра команд и переключатель «новый / как было»
+    var cmdBtn=document.createElement('button'); cmdBtn.id='dsCmdBtn'; cmdBtn.type='button';
+    cmdBtn.innerHTML='Найти команду <span class="ds-kbd">'+(isMac?'⌘':'Ctrl')+' K</span>';
+    var swap=document.createElement('button'); swap.id='dsSwap'; swap.type='button';
+    function label(){ swap.textContent=root.classList.contains('ds')?'новый вид · показать старый':'старый вид · показать новый'; }
+    label();
+    swap.onclick=function(){ var n=!root.classList.contains('ds'); root.classList.toggle('ds',n); label(); try{ localStorage.setItem(KEY,n?'new':'old'); }catch(e){} };
+    right.insertBefore(cmdBtn,right.firstChild);
+    var id=document.querySelector('#topbar .tb-id'); if(id) id.appendChild(swap);
+
+    // палитра: все галочки из меню «Слои» / «Инструменты» и все кнопки верхней панели
+    var wrap=document.createElement('div'); wrap.id='dsCmd'; wrap.hidden=true;
+    wrap.innerHTML='<div class="box" role="dialog" aria-label="Палитра команд"><input id="dsCmdQ" placeholder="Слой, инструмент или действие…" autocomplete="off"><ul id="dsCmdL"></ul><div class="ft"><span>↑↓ выбрать</span><span>Enter — включить / нажать</span><span>Esc — закрыть</span></div></div>';
+    document.body.appendChild(wrap);
+    var q=wrap.querySelector('input'), list=wrap.querySelector('ul'), items=[], cur=0;
+    function collect(){
+      var out=[];
+      document.querySelectorAll('#topbar .dd').forEach(function(dd){
+        var grp=(dd.querySelector('summary')||{}).textContent||'', sec=grp;
+        dd.querySelectorAll('.dd-menu > *').forEach(function(el){
+          if(el.classList.contains('dd-h')){ sec=grp+' · '+el.textContent.trim(); return; }
+          var cb=el.matches('label.chk')&&el.querySelector('input[type=checkbox]');
+          if(cb) out.push({g:sec,t:el.textContent.trim(),cb:cb});
+          else if(el.tagName==='BUTTON') out.push({g:grp,t:el.textContent.trim(),btn:el});
+        });
+      });
+      document.querySelectorAll('#topbar button').forEach(function(b){
+        if(b.id==='dsCmdBtn'||b.closest('.dd')||b.offsetParent===null) return;
+        out.push({g:'Действия',t:b.textContent.replace(/\s+/g,' ').trim(),btn:b});
+      });
+      return out;
+    }
+    function render(){
+      var s=q.value.trim().toLowerCase(), last=null, html='';
+      items=collect().filter(function(x){ return !s||(x.t+' '+x.g).toLowerCase().indexOf(s)>=0; });
+      if(cur>=items.length) cur=items.length-1; if(cur<0) cur=0;
+      items.forEach(function(x,i){
+        if(x.g!==last){ html+='<li class="h">'+x.g+'</li>'; last=x.g; }
+        var st=x.cb?'<span class="st'+(x.cb.checked?' y':'')+'">'+(x.cb.checked?'вкл':'выкл')+'</span>':'<span class="st">действие</span>';
+        html+='<li class="it'+(i===cur?' on':'')+'" data-i="'+i+'"><span>'+x.t.replace(/</g,'&lt;')+'</span>'+st+'</li>';
+      });
+      list.innerHTML=html||'<li class="empty">Ничего не нашлось. Попробуйте другое слово: «стены», «звук», «обсервер».</li>';
+      var el=list.querySelector('.on'); if(el) el.scrollIntoView({block:'nearest'});
+    }
+    function run(i){ var x=items[i]; if(!x) return; if(x.cb){ x.cb.click(); render(); } else { close(); x.btn.click(); } }
+    function open(){ wrap.hidden=false; q.value=''; cur=0; render(); q.focus(); }
+    function close(){ wrap.hidden=true; }
+    cmdBtn.onclick=open;
+    list.addEventListener('mousemove',function(e){ var li=e.target.closest('li.it'); if(li&&+li.dataset.i!==cur){ cur=+li.dataset.i; render(); } });
+    list.addEventListener('click',function(e){ var li=e.target.closest('li.it'); if(li) run(+li.dataset.i); });
+    wrap.addEventListener('mousedown',function(e){ if(e.target===wrap) close(); });
+    q.addEventListener('input',function(){ cur=0; render(); });
+    // клавиши: пока палитра открыта, игра их не получает
+    window.addEventListener('keydown',function(e){
+      if((e.metaKey||e.ctrlKey)&&(e.key==='k'||e.key==='K'||e.code==='KeyK')&&root.classList.contains('ds')){ e.preventDefault(); e.stopImmediatePropagation(); wrap.hidden?open():close(); return; }
+      if(wrap.hidden) return;
+      e.stopImmediatePropagation();
+      if(e.key==='Escape'){ e.preventDefault(); close(); }
+      else if(e.key==='ArrowDown'){ e.preventDefault(); cur=Math.min(items.length-1,cur+1); render(); }
+      else if(e.key==='ArrowUp'){ e.preventDefault(); cur=Math.max(0,cur-1); render(); }
+      else if(e.key==='Enter'){ e.preventDefault(); run(cur); }
+    },true);
+    window.addEventListener('keyup',function(e){ if(!wrap.hidden) e.stopImmediatePropagation(); },true);
+    // меню «Слои» / «Инструменты»: закрываются кликом мимо
+    document.addEventListener('click',function(e){ document.querySelectorAll('#topbar details.dd[open]').forEach(function(d){ if(!d.contains(e.target)) d.open=false; }); });
+  });
+})();
+</script>
