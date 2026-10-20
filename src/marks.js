@@ -148,11 +148,32 @@ function mkState(){
         wallAhead: ray.wall ? Math.round(Math.hypot(ray.x-b.x, ray.y-b.y)) : null,
         lookReason: b.lookReason || "", why: whyText(b),
         sees: (b._visible || []).map(function(e){ return e.id; }), moving: b.curSpeed > 15*SPD_K,
-        log: (b._dlog || []).map(function(e){ return Math.round((e[0]-tick)/TICK_HZ*10)/10 + " с · " + e[1] + ": " + e[2]; }) };   // (v384) журнал решений за 15 с
+        log: (b._dlog || []).map(function(e){ return Math.round((e[0]-tick)/TICK_HZ*10)/10 + " с · " + e[1] + ": " + e[2]; }),   // (v384) журнал решений за 15 с
+        // (v385) вспомогательное по игроку: роль, задача места и её уровень, граната в задаче, гранаты, деньги, броня
+        role: b.tRole || "", task: b.post ? String(b.post.tag) : "", taskLv: b._task ? b._task.lv : null,
+        nadeTask: b.nadeTask ? b.nadeTask.type + " — " + (b.nadeTask.why || "") : "", nades: b.nades ? {smoke: b.nades.smoke, flash: b.nades.flash, he: b.nades.he, molly: b.nades.molly} : null,
+        money: b.money, armor: b.armor || 0, helmet: !!b.helmet, kit: !!b.kit };
     }),
     smokes: smokes.map(function(s){ return {x: Math.round(s.x), y: Math.round(s.y), place: mkPlace(s.x, s.y)}; }),
-    fires: fires.map(function(s){ return {x: Math.round(s.x), y: Math.round(s.y), place: mkPlace(s.x, s.y)}; })
+    fires: fires.map(function(s){ return {x: Math.round(s.x), y: Math.round(s.y), place: mkPlace(s.x, s.y)}; }),
+    zones: mkZones()
   };
+}
+// (v385) по каждой зоне, где что-то есть: кто стоит (живые), сколько врагов там ждёт каждая команда по своему знанию (belief),
+// дым / огонь. Пустые зоны не пишутся — запись отметки в базе небольшая
+function mkZones(){
+  var out = [];
+  try{
+    (BZ.ids || []).forEach(function(id, i){
+      var c = BZ.cent[i]; if(!c) return;
+      var inZ = bots.filter(function(o){ return o.alive && zoneIdAt(o.x, o.y) === id; }).map(function(o){ return o.id; });
+      var kT = Math.round(beliefCount("T", [i])*100)/100, kCT = Math.round(beliefCount("CT", [i])*100)/100;
+      var sm = smokes.some(function(q){ return zoneIdAt(q.x, q.y) === id; }), fi = fires.some(function(q){ return zoneIdAt(q.x, q.y) === id; });
+      if(!inZ.length && kT < 0.05 && kCT < 0.05 && !sm && !fi) return;
+      out.push({zone: mkPlace(c.x, c.y) || String(id), bots: inZ, tThinkCT: kT, ctThinkT: kCT, smoke: sm, fire: fi});
+    });
+  }catch(e){}
+  return out;
 }
 function mkBotIdAt(wx, wy){
   var best = null, bd = 40;
@@ -182,6 +203,23 @@ function mkFrame(botId){
     cv.width = sv.w; cv.height = sv.h; view.scale = sv.s; view.panX = sv.x; view.panY = sv.y; draw();
   }
   return url;
+}
+// (v385, владелец 20.10) снимок всего экрана в момент нажатия M — как его видел владелец (радар, табло, панели, войс): html2canvas
+// с cdnjs; не загрузился — текущий вид радара без панелей (данные панелей всё равно есть в сводке отметки)
+var MK_H2C = "https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js";
+function mkLoadH2C(){
+  if(window.html2canvas) return Promise.resolve(window.html2canvas);
+  if(MK._h2c) return MK._h2c;
+  return (MK._h2c = new Promise(function(ok, no){ var s = document.createElement("script"); s.src = MK_H2C;
+    s.onload = function(){ window.html2canvas ? ok(window.html2canvas) : no(new Error("нет html2canvas")); }; s.onerror = function(){ MK._h2c = null; no(new Error("не загрузился")); };
+    document.head.appendChild(s); }));
+}
+function mkScreen(){
+  var plain = null; try{ plain = cv.toDataURL("image/jpeg", 0.82); }catch(e){}
+  return mkLoadH2C().then(function(h2c){
+    return h2c(document.body, {backgroundColor: "#060806", logging: false, useCORS: true, ignoreElements: function(el){ return el.id === "mkPanel" || el.id === "mkToast" || el.id === "mkProg"; }, scale: Math.min(1, 1600/Math.max(1, window.innerWidth))})
+      .then(function(c){ return c.toDataURL("image/jpeg", 0.8); });
+  }).catch(function(){ return plain; });
 }
 function mkUrlToBlob(url){ var p = url.split(","), bin = atob(p[1]), u = new Uint8Array(bin.length); for(var i=0;i<bin.length;i++) u[i] = bin.charCodeAt(i); return new Blob([u], {type: "image/jpeg"}); }
 
@@ -240,6 +278,7 @@ function mkStart(){
   paused = true; mkPauseLabel();
   MK.cur = { snap: mkSnapshot(), state: mkState(), match: matchNum, tick: tick, round: roundNum, roundTime: Math.round((simTime - roundStartTime)*10)/10,
              fp: mkFp(), bot: null, text: "", category: "Взгляд", priority: "normal" };
+  MK.cur.screenP = mkScreen();   // (v385) весь экран — до того, как открылась панель отметки
   MK.pick = true;
   mkEl("mkMoment").textContent = "Матч " + MK.cur.match + " · раунд " + MK.cur.round + " · " + mkClock(MK.cur.roundTime) + " раунда · тик " + MK.cur.tick;
   mkEl("mkText").value = ""; mkEl("mkBot").textContent = "не выбран — кликни по боту на радаре (необязательно)";
@@ -302,6 +341,8 @@ async function mkSave(m, status){
     newItem: a.newItem || null, unsure: a.unsure || null, status: status, version: null,
     fp: m.fp, state: m.state, frameAsset: null, created: Date.now(), updated: Date.now() };
   if(MK.assets && m.frameUrl){ try{ var up = await MK.assets.upload(mkUrlToBlob(m.frameUrl)); doc.frameAsset = up.id; }catch(e){} }
+  doc.screenAsset = null;   // (v385) весь экран
+  if(MK.assets && m.screenP){ try{ var su = await m.screenP; if(su){ var us0 = await MK.assets.upload(mkUrlToBlob(su)); doc.screenAsset = us0.id; } }catch(e){} }
   // полный снимок игры в момент нажатия — по нему отметка открывается у владельца и у Claude
   doc.snapAsset = null;
   if(MK.assets && m.snap){ try{ var us = await MK.assets.upload(new Blob([mkPack(m.snap)], {type: "application/json"})); doc.snapAsset = us.id; }catch(e){ mkToast("Снимок игры не сохранился: " + (e && (e.code || e.message))); } }
