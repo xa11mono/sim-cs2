@@ -275,9 +275,11 @@ function visParts(vx, vy, vC, tx, ty, tC, walls, vz, tz){
   var head = cw && visMarch(vx, vy, ez, tx, ty, tf + (tC ? VIS_HEAD.crouch : VIS_HEAD.stand)), body = false;
   for(var i = 0; i < B.length && !body; i++) body = cw && visMarch(vx, vy, ez, tx, ty, tf + B[i]);
   // плечи (на высоте груди): край тела может выглядывать из-за угла или ящика, когда центр закрыт
-  if(!body && lw) body = visMarch(vx, vy, ez, tx - px, ty - py, tf + B[0]);
-  if(!body && rw) body = visMarch(vx, vy, ez, tx + px, ty + py, tf + B[0]);
-  return {head: head, body: body};
+  // (М149) side — какое плечо видно, когда центр закрыт (−1 / +1; 0 — видно голову или середину): пуля летит в него (tryShoot)
+  var side = 0;
+  if(!body && lw && visMarch(vx, vy, ez, tx - px, ty - py, tf + B[0])){ body = true; side = head ? 0 : -1; }
+  if(!body && rw && visMarch(vx, vy, ez, tx + px, ty + py, tf + B[0])){ body = true; side = head ? 0 : 1; }
+  return {head: head, body: body, side: side};
 }
 function visPartsText(p){ return !p ? "нет" : (p.body ? (p.head ? "голова и тело" : "тело") : (p.head ? "голова" : "нет")); }
 

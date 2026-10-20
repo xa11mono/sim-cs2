@@ -176,6 +176,10 @@ function tryShoot(shooter, target, dist){
   // (v241) целится в то, что видно: голова за укрытием не видна — в тело; видна только голова — в голову
   var vParts = visParts(shooter.x, shooter.y, shooter.crouching, target.x, target.y, target.crouching, undefined, shooter.z, target.z);
   if(!vParts.head && vParts.body) aimHead = false; else if(vParts.head && !vParts.body) aimHead = true;
+  // (М149, владелец 20.10) видно только плечо (цель за углом или ящиком) — целится в него, а цель это замечает: по ней стреляют,
+  // а сама она стрелка целиком не видит — у неё есть время уйти за укрытие или занять место получше (fightCycleTick)
+  var aimSide = vParts.side || 0;
+  if(aimSide){ aimHead = false; target._shoulderShot = {t: tick, by: shooter}; }
   var pHead, pAny, headshot, hit, hbZone = null;
   if(BAL.hitbox){
     // (6) хитбоксы: пуля летит в точку прицела + ошибка по двум осям +
@@ -189,7 +193,7 @@ function tryShoot(shooter, target, dist){
     var gu1 = Math.max(1e-9, hashRand(seedS+21)), gu2 = hashRand(seedS+22), gr = Math.sqrt(-2*Math.log(gu1));
     var sgm = sigma * (BAL.hbK || 1);
     var ex = gr*Math.cos(2*Math.PI*gu2)*sgm + sp.x*(1-cmp), ey = gr*Math.sin(2*Math.PI*gu2)*sgm + sp.y*(1-cmp);
-    var ux = ex/u1, uy = aimY + ey/u1;
+    var ux = aimSide*VIS_SHOULDER + ex/u1, uy = aimY + ey/u1;   // (М149) поперёк — от видимого плеча
     var hDev = ex;   // (v289) настоящая ошибка вбок, рад — по ней летит трассер промаха
     if(Math.hypot(ux, uy-hH) < 5.5) hbZone = "head";
     else if(uy >= hH-20*kC && uy < hH-6*kC && Math.abs(ux) < 15) hbZone = "chest";
@@ -202,7 +206,10 @@ function tryShoot(shooter, target, dist){
     if(hbZone){ var fz0 = visFloorAt(shooter.x, shooter.y, shooter.z), fz1 = visFloorAt(target.x, target.y, target.z);   // то же правило, что в visParts
       if(shooter.z != null && Math.abs(fz0 - shooter.z) > JUMP_UP) fz0 = shooter.z; if(target.z != null && Math.abs(fz1 - target.z) > JUMP_UP) fz1 = target.z;
       var vz0 = fz0 + (shooter.crouching ? VIS_EYE.crouch : VIS_EYE.stand);
-      if(!visMarch(shooter.x, shooter.y, vz0, target.x, target.y, fz1 + Math.max(4, uy))) hbZone = null; }
+      // (М149) пуля летит в свою точку и поперёк линии (ux): в плечо, видное из-за угла, — попадает, в середину за углом — нет
+      var bL = Math.hypot(target.x - shooter.x, target.y - shooter.y) || 1, bk = ux / PX_UNITS / bL;
+      var bx = target.x - (target.y - shooter.y)*bk, by = target.y + (target.x - shooter.x)*bk;
+      if(!visMarch(shooter.x, shooter.y, vz0, bx, by, fz1 + Math.max(4, uy))) hbZone = null; }
     headshot = hbZone === "head"; hit = !!hbZone;
   } else {
   if(aimHead){ pHead = pIn(hA); pAny = pIn(bA*1.25); }

@@ -12,29 +12,56 @@ function peekQ(q, u){   // значение распределения по кв
   return q[q.length-1];
 }
 // ближайшее место не дальше R, откуда врага e не видно и куда можно дойти по прямой; из равных — дальше от врага
+// (М149) «не видно» — враг не видит там ни одной части тела, плечо тоже (visParts), а не только «глаза в глаза» (hasLOS):
+// иначе за укрытием торчит плечо, и перестрелка не кончается
 function fightCover(b, e, R){
   for(var k=1;k<=3;k++){
     var r = R*k/3, best = null, bd = -1;
     for(var i=0;i<16;i++){
       var a = i*Math.PI/8, x = b.baseX + Math.cos(a)*r, y = b.baseY + Math.sin(a)*r;
-      if(insideSolidWall(x, y) || stepBlocked(b.baseX, b.baseY, x, y, b) || hasLOS(x, y, e.x, e.y)) continue;
+      if(insideSolidWall(x, y) || stepBlocked(b.baseX, b.baseY, x, y, b) || fightSeen(e, x, y, b.z)) continue;
       var de = Math.hypot(x-e.x, y-e.y); if(de > bd){ bd = de; best = {x:x, y:y}; }
     }
     if(best) return best;
   }
   return null;
 }
+function fightSeen(e, x, y, z){ var p = visParts(e.x, e.y, e.crouching, x, y, false, true, e.z, z); return p.head || p.body; }
+// (М149) место получше: рядом с укрытием (cx, cy), откуда врага видно целиком — глаза в глаза, а не одно плечо; ближе к укрытию
+function fightBetter(b, e, cx, cy, R){
+  var best = null, bd = Infinity;
+  for(var k=1;k<=3;k++) for(var i=0;i<16;i++){
+    var a = i*Math.PI/8, r = R*k/3, x = cx + Math.cos(a)*r, y = cy + Math.sin(a)*r;
+    if(insideSolidWall(x, y) || stepBlocked(cx, cy, x, y, b) || !hasLOS(x, y, e.x, e.y, b.z, e.z)) continue;
+    var d = Math.hypot(x-cx, y-cy); if(d < bd){ bd = d; best = {x:x, y:y}; }
+  }
+  return best;
+}
 function fightRand(b, salt){ return hashRand(tick*31 + b.id.charCodeAt(0)*17 + b.id.charCodeAt(b.id.length-1)*7 + salt); }
 // каждый тик движения: фазы line (на линии) → off (за укрытием) → back (выглядывает снова) → line …
 function fightCycleTick(b, dtSec, busy){
   var F = b._fc, D = PEEK_PRO[b.team];
   if(busy || !b.alive){ b._fc = null; return; }
+  // (М149, владелец 20.10) по боту стреляют в плечо, торчащее из-за укрытия, а он стрелка целиком не видит: через время реакции
+  // (профиль игрока) — сразу за укрытие, где не видно ничего; выглянет снова (как у про — repeek) — с места, откуда видно врага целиком
+  var SS = b._shoulderShot, ssNew = SS && SS.by.alive && tick - SS.t < TICK_HZ && tick - SS.t >= (b.reactionTicks || 0) && (!F || F.ss !== SS.t);
+  if(ssNew){ var mp = visParts(b.x, b.y, b.crouching, SS.by.x, SS.by.y, SS.by.crouching, true, b.z, SS.by.z); if((mp.head || mp.body) && !mp.side) ssNew = false; }
   if(!F){
-    if(!b._sawEnemy || (b.state !== "engage" && b.state !== "hold")) return;
+    if((!b._sawEnemy && !ssNew) || (b.state !== "engage" && b.state !== "hold")) return;
     F = b._fc = {ph:"line", ax:b.baseX, ay:b.baseY, t:tick, until:0, seen:tick};
   }
   if(b._sawEnemy){ F.seen = tick; F.e = b._nearestEnemyBot; }
   F.moving = false;
+  if(ssNew && F.ph !== "off"){
+    F.ss = SS.t; F.e = SS.by;
+    var cs = fightCover(b, SS.by, peekQ(D.shift, fightRand(b, 5))) || fightCover(b, SS.by, D.shift[4]);
+    if(cs){
+      F.ph = "off"; F.retreat = true; F.cx = cs.x; F.cy = cs.y; F.ax = b.baseX; F.ay = b.baseY; F.seen = tick;
+      F.until = tick + Math.round(peekQ(D.pause, fightRand(b, 6))*TICK_HZ);
+      F.better = fightBetter(b, SS.by, cs.x, cs.y, D.shift[4]);
+      if(!b._fcS || tick - b._fcS > 4*TICK_HZ){ b._fcS = tick; logEvent(b.id+": стреляют в плечо из-за укрытия — ухожу за укрытие"); }
+    }
+  }
   if(F.ph === "line"){
     if(!b._sawEnemy && tick - F.seen > D.pause[4]*TICK_HZ){ b._fc = null; return; }   // враг пропал — перестрелка кончилась
     if(!F.until && b.lastShotTick >= F.t) F.until = b.lastShotTick + Math.round((peekQ(D.dur, fightRand(b, 1)) + 0.5)*TICK_HZ);
@@ -50,10 +77,12 @@ function fightCycleTick(b, dtSec, busy){
     }
     return;
   }
-  if(b._sawEnemy){ F.ph = "line"; F.ax = b.baseX; F.ay = b.baseY; F.t = tick; F.until = 0; return; }   // снова вижу врага — на линии
-  if(F.ph === "off" && tick >= F.until){
+  if(b._sawEnemy && !(F.retreat && F.ph === "off")){ F.ph = "line"; F.ax = b.baseX; F.ay = b.baseY; F.t = tick; F.until = 0; F.retreat = false; F.better = null; return; }   // снова вижу врага — на линии (уходя от выстрелов в плечо — не останавливается)
+  if(F.ph === "off" && tick >= F.until && (!F.retreat || Math.hypot(F.cx-b.baseX, F.cy-b.baseY) < 2)){
+    F.retreat = false;
     if(fightRand(b, 4) >= D.repeek){ b._fc = null; return; }   // не выглядывает снова — перестрелка закончена
     F.ph = "back";
+    if(F.better){ F.ax = F.better.x; F.ay = F.better.y; F.better = null; }   // (М149) выглядывает с места, откуда видно врага целиком
   }
   var tx = F.ph === "off" ? F.cx : F.ax, ty = F.ph === "off" ? F.cy : F.ay;
   var d = Math.hypot(tx-b.baseX, ty-b.baseY);
