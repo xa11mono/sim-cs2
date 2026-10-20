@@ -1,3 +1,3 @@
 {"par": 8, "jobs": [
-  {"label": "b1fix_anc", "ref": "b1-walk-who", "map": "ancient", "matches": [3, 7, 11, 13, 17, 19, 23, 29]}
+  {"label": "pccheck_anc", "ref": "b1-walk-who", "map": "ancient", "matches": [3, 7]}
 ]}

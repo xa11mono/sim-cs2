@@ -19,16 +19,20 @@ def sh(args, **kw):
     for line in p.stdout: log(line.rstrip())
     if p.wait(): raise subprocess.CalledProcessError(p.returncode, args)
 
+PW_VER = '1.56.0'   # та же версия, что в облаке (Chromium 1194): другая версия браузера — другой движок JS, матчи расходятся
 def ensure_playwright():
     # playwright — вне папки репо, чтобы чистка рабочей папки исполнителем его не стирала
     home = os.path.join(os.path.expanduser('~'), '.simcs2_node')
-    if not os.path.isdir(os.path.join(home, 'node_modules', 'playwright')):
+    pj = os.path.join(home, 'node_modules', 'playwright', 'package.json')
+    have = json.load(open(pj, encoding='utf-8')).get('version') if os.path.exists(pj) else None
+    if have != PW_VER:
         os.makedirs(home, exist_ok=True)
         npm = shutil.which('npm') or shutil.which('npm.cmd')
-        sh([npm, 'install', '--prefix', home, 'playwright'])
-        npx = shutil.which('npx') or shutil.which('npx.cmd')
-        sh([npx, 'playwright', 'install', 'chromium'], cwd=home)
+        sh([npm, 'install', '--prefix', home, 'playwright@' + PW_VER])
+        npx = os.path.join(home, 'node_modules', '.bin', 'playwright.cmd' if os.name == 'nt' else 'playwright')
+        sh([npx, 'install', 'chromium'], cwd=home)
     os.environ['NODE_PATH'] = os.path.join(home, 'node_modules')
+    log('playwright ' + PW_VER)
 
 def build(ref, mapname, out):
     tmp = tempfile.mkdtemp(prefix='simbuild_')
