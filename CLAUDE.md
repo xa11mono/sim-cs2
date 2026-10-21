@@ -50,9 +50,9 @@ v166 — `docs/V166_CHANGES.md` (список владельца). Главны�
 **Сборка набора из исходников (v318):** `python3 tools/map_build.py <карта>` по рецепту `data/maps/<карта>/_build.json`
 (навмеш из `.nav`, стены, высоты, укрытия, зоны по подписям радара, всё из демок; bake-скрипты — с ключом `--map`, общий
 `tools/mapdir.py`). Карты: Ancient (заморожено всё, кроме высот/укрытий/прострелов), Mirage (`python3 src/mkpub.py --map mirage` → `mirage-radar.html`,
-страница на аккаунте владельца — https://claude.ai/artifact/EBaRN7xYH1QXzC1iiTNZ4x (обновлена до v386, 21.10; QzmQZEd5t9EdnhcXET9Agn — на другом аккаунте), база правок — коллекция `map-mirage`). Проверка глазами — `tools/map_shot.js`.
+страница на аккаунте владельца — https://claude.ai/artifact/EBaRN7xYH1QXzC1iiTNZ4x (обновлена до v388, 21.10; QzmQZEd5t9EdnhcXET9Agn — на другом аккаунте), база правок — коллекция `map-mirage`). Проверка глазами — `tools/map_shot.js`.
 Сборка: `python3 src/build.py [--map ancient]` → `sim.html` (склейка `src/game/*` с набором карты и тестовым входом для
-замеров). Публикуемая: `python3 src/mkpub.py [--map ancient]` → `ancient-radar.html` (страница https://claude.ai/artifact/6nWEKBXyNAybDYzgPT1sH7 (с v370; старая VcutdCmiqN164CLNYowQvP — с другого аккаунта); там же база
+замеров). Публикуемая: `python3 src/mkpub.py [--map ancient]` → `ancient-radar.html` (страница на аккаунте владельца — https://claude.ai/artifact/VcutdCmiqN164CLNYowQvP (снова с v388, 21.10; 6nWEKBXyNAybDYzgPT1sH7 — на другом аккаунте, v370–v386); там же база
 правок карты — коллекция `map`).
 **Исходник игры (v377) — модули `src/game/`**: склейка всех `src/game/*` по порядку номеров (`src/gamesrc.py`, одно место
 чтения) == прежний `game.html`; `src/game.html` больше нет. Порядок, видимость `var`/функций, числа при загрузке —
@@ -68,7 +68,7 @@ v166 — `docs/V166_CHANGES.md` (список владельца). Главны�
 |---|---|
 | загрузка карты `MAP`, зоны, слой зон, калибровка навмеша; навмеш `.nav`, порталы, авто-стены | `010_map_zones_warp`, `020_map_navmesh_autowalls` |
 | **карта** (данные — `MAP`, набор `data/maps/<карта>/`): стены `WALL_POLYS` / `applyWalls`; высоты `HEIGHTS` / `hgtInfo`; укрытия `COVER` / `covList`; прострелы `WALLBANG` / `wbList`, `wbAfter` | `030_map_walls_heights_cover_wallbang` |
-| **3D-геометрия игры** (А5, `MAP.map3d`; у Ancient нет до А6): `m3()`, луч `m3Line`/`m3Hit`, этажи `m3Floors`, «в стене» `m3Solid`/`m3SolidHit`, распаковка `zInflate` | `035_map3d` |
+| **3D-геометрия игры** (А5 Mirage, А6 Ancient — с v388 у обеих карт, `MAP.map3d`): `m3()`, луч `m3Line`/`m3Hit`, этажи `m3Floors`, «в стене» `m3Solid`/`m3SolidHit`, распаковка `zInflate` | `035_map3d` |
 | **кто кого видит** (одно место, 3D): `VIS_*`, `visLine`, `visParts`, `visFloorAt`, `visInvalidate`; через неё `hasLOS` и таблица «откуда простреливается» `computeZoneDanger` | `040_visibility`; `hasLOS` — `050_nav_rebuild_paths`; `computeZoneDanger` — `060_zone_danger_user_zones` |
 | навмеш и пути: `rebuildNav`, `zoneDijkstra`, `funnel`, `buildWaypointPath`; уровни/лестницы/подъёмы `navAtLevel`, `laddersBuild`, `ladderTick`; «на полу» — одно место `navOnFloor`; огонь `inFire` | `050_nav_rebuild_paths`; `370_fire_nav_levels_ladders` |
 | оружие, боты `makeTeam`, роумер | `070_weapons_bots_roam`; `updateRoamer` — `430_fov_roam` |
