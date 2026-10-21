@@ -155,6 +155,10 @@ def table(S):
     o['acc'] = r3(S.hit.mean()); o['head_of_hits'] = r3(S[S.hit]['head'].mean())
     o['acc_cls_dist'] = {c: {str(d): [int(len(g)), r3(g.hit.mean())] for d, g in S[S.cls == c].groupby('db', observed=True)} for c in ('rifle', 'pistol', 'smg', 'sniper')}
     o['head_cls_dist'] = {c: {str(d): [int(g.hit.sum()), r3(g[g.hit]['head'].mean())] for d, g in S[S.cls == c].groupby('db', observed=True)} for c in ('rifle', 'pistol', 'smg', 'sniper')}
+    V = S[S.vis == True] if 'vis' in S else S.iloc[0:0]
+    o['acc_vis_rifle'] = {str(d): [int(len(g)), r3(g.hit.mean())] for d, g in V[V.cls == 'rifle'].groupby('db', observed=True)}
+    o['head_vis'] = {c: r3(V[(V.cls == c) & V.hit]['head'].mean()) for c in ('rifle', 'pistol', 'smg', 'sniper')}
+    o['acc_vis_vr'] = {str(b): r3(g.hit.mean()) for b, g in V[V.cls == 'rifle'].groupby(pd.cut(V[V.cls == 'rifle'].vr, [-1, 50, 120, 200, 9999]), observed=True)} if 'vr' in V else {}
     o['acc_first_by_dist'] = {str(d): r3(g.hit.mean()) for d, g in S[(S.k == 0) & (S.cls == 'rifle')].groupby('db', observed=True)}
     o['acc_by_k_rifle'] = {k: r3(S[(S.cls == 'rifle') & (S.k == k)].hit.mean()) for k in (0, 1, 2, 3, 5, 9)}
     # скорость в момент выстрела
