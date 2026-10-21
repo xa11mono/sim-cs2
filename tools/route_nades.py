@@ -304,6 +304,28 @@ def show(out, top=12):
     print('\nтушение:', out['extinguish'])
 
 
+def plan_funnel(folder):
+    """(Г1) план гранат у ботов (rec.plans сторожа): по фазам — назначено планом, отдано бойцу (piok), разорвалось в зоне гранаты"""
+    P = json.load(open(mapdir.path(MAPNAME, 'tactics.json'), encoding='utf-8')).get('nadePlans')
+    if not P: return
+    F = collections.defaultdict(collections.Counter)
+    for f in sorted(glob.glob(os.path.join(folder, 'rec_*.json*'))):
+        d = json.load(gzip.open(f) if f.endswith('.gz') else open(f))
+        rs = {r['r']: r for r in d['rounds']}
+        for pl in d.get('plans', []):
+            r = rs.get(pl['r'])
+            if not r or r.get('t1') is None: continue
+            det = [e for e in d['det'] if r['t0'] <= e[0] < r['t1']]
+            resp = [i for e in pl.get('resp', []) for i in P['ctResp'].get(e, [])]
+            for i in pl['T'] + pl['CT'] + resp:
+                it = P['items'][i]; k = '%s %s' % (it['team'], it['phase'])
+                F[k]['план'] += 1; F[k]['отдано'] += i in pl.get('ok', [])
+                F[k]['разорвалась'] += any(e[1] == it['team'] and e[2] == it['type'] and base(zone(e[3], e[4])) == it['zone'] for e in det)
+    print('\n== план гранат у ботов: назначено → отдано бойцу → разорвалась в своей зоне')
+    for k, c in sorted(F.items()):
+        print('  %-9s план %5d  отдано %3.0f %%  разорвалась %3.0f %%' % (k, c['план'], 100 * c['отдано'] / max(1, c['план']), 100 * c['разорвалась'] / max(1, c['план'])))
+
+
 def compare(pro, bot, top=10):
     """таблица «про / боты» по выходам: гранаты эталона (p ≥ 30 % у про) и их доля у ботов; провал — разница больше 10 п. п."""
     print('\n== сравнение с про (%s): гранаты, которые у про ≥ 30 %% раундов выхода' % pro['map'])
@@ -352,3 +374,4 @@ if __name__ == '__main__':
         show(out)
         ref = os.path.join(PRO, 'route_nades.json')
         if os.path.exists(ref): compare(json.load(open(ref)), out)
+        for a in sys.argv[1:]: plan_funnel(a)
