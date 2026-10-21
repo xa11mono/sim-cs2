@@ -1,0 +1,49 @@
+playwright 1.56.0
+> git fetch --quiet origin 07cbdf854aa8a32cda69db7cdbf8e6a3f3e3ecb4
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Users\Mono\AppData\Local\Temp\simbuild__wmiig8k FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Users\Mono\AppData\Local\Temp\simbuild__wmiig8k\src\build.py --map ancient C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v393_anc2.html
+> git fetch --quiet origin 91799428be610995aca079f7b97b83674143d6f5
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Users\Mono\AppData\Local\Temp\simbuild_skp5mkkl FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Users\Mono\AppData\Local\Temp\simbuild_skp5mkkl\src\build.py --map ancient C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\b4b_anc2.html
+> git fetch --quiet origin 07cbdf854aa8a32cda69db7cdbf8e6a3f3e3ecb4
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Users\Mono\AppData\Local\Temp\simbuild_7se68_23 FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Users\Mono\AppData\Local\Temp\simbuild_7se68_23\src\build.py --map mirage C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v393_mir2.html
+> git fetch --quiet origin 91799428be610995aca079f7b97b83674143d6f5
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Users\Mono\AppData\Local\Temp\simbuild_r2ce5pcy FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Users\Mono\AppData\Local\Temp\simbuild_r2ce5pcy\src\build.py --map mirage C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\b4b_mir2.html
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\engine\walk_run.py --job=v393_anc2,C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v393_anc2.html --job=b4b_anc2,C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\b4b_anc2.html --job=v393_mir2,C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v393_mir2.html --job=b4b_mir2,C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\b4b_mir2.html --matches=31,37,41,43,47,53,59,61 --par=8
+матчей в очереди: 32, одновременно: 8
+v393_anc2 match 61 rc 0 4596903 — готово 1/32, 4 мин
+v393_anc2 match 41 rc 0 4789331 — готово 2/32, 4 мин
+v393_anc2 match 47 rc 0 5418404 — готово 3/32, 5 мин
+v393_anc2 match 59 rc 0 5037501 — готово 4/32, 5 мин
+v393_anc2 match 37 rc 0 5925325 — готово 5/32, 5 мин
+v393_anc2 match 31 rc 0 6165137 — готово 6/32, 5 мин
+v393_anc2 match 43 rc 0 6929021 — готово 7/32, 6 мин
+v393_anc2 match 53 rc 0 7977869 — готово 8/32, 7 мин
+b4b_anc2 match 37 rc 0 5393521 — готово 9/32, 9 мин
+b4b_anc2 match 31 rc 0 6297712 — готово 10/32, 9 мин
+b4b_anc2 match 59 rc 0 4777269 — готово 11/32, 10 мин
+b4b_anc2 match 43 rc 0 6544685 — готово 12/32, 10 мин
+b4b_anc2 match 41 rc 0 6757570 — готово 13/32, 11 мин
+b4b_anc2 match 53 rc 0 6500891 — готово 14/32, 11 мин
+b4b_anc2 match 47 rc 0 8294470 — готово 15/32, 12 мин
+b4b_anc2 match 61 rc 0 6009339 — готово 16/32, 13 мин
+v393_mir2 match 37 rc 0 5429432 — готово 17/32, 15 мин
+v393_mir2 match 31 rc 0 6074649 — готово 18/32, 15 мин
+v393_mir2 match 47 rc 0 5013787 — готово 19/32, 16 мин
+v393_mir2 match 41 rc 0 6042162 — готово 20/32, 16 мин
+v393_mir2 match 59 rc 0 4644461 — готово 21/32, 17 мин
+v393_mir2 match 43 rc 0 6613359 — готово 22/32, 17 мин
+v393_mir2 match 53 rc 0 6987438 — готово 23/32, 18 мин
+v393_mir2 match 61 rc 0 6933646 — готово 24/32, 20 мин
+b4b_mir2 match 41 rc 0 4191030 — готово 25/32, 20 мин
+b4b_mir2 match 31 rc 0 6815069 — готово 26/32, 21 мин
+b4b_mir2 match 37 rc 0 6126643 — готово 27/32, 22 мин
+b4b_mir2 match 47 rc 0 4949829 — готово 28/32, 22 мин
+b4b_mir2 match 59 rc 0 5198850 — готово 29/32, 23 мин
+b4b_mir2 match 53 rc 0 6485624 — готово 30/32, 23 мин
+b4b_mir2 match 43 rc 0 8507062 — готово 31/32, 24 мин
+b4b_mir2 match 61 rc 0 6666627 — готово 32/32, 25 мин
+done
+all done
