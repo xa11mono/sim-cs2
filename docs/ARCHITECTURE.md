@@ -269,6 +269,9 @@ CT идёт через зону с ролью `CTspawn`.
   → задача с `rec`; `nadeRecTick` — шаг точно в точку и записанный разбег; бросок — тот же `throwNade(…, rec)` → `nadeRecRelease`
   (бросок записи: `nadeRecLaunch`) → общий выпуск `nadeRelease`. Смок-лайнап — **заплатка** `smokePinStep` (`400`, поле `n.pin`):
   последние `SMOKE_PIN_LEAD` с доводится в точку и время разрыва про. `nadeSolve` — только для своих гранат и записей без лайнапа.
+  (В5, v398) Свой бросок — с хода (`nadeVel` → `nadeSolve(…, vel)` / `nadeLaunch`); `assignNade` для цели в пределах броска сразу
+  проверяет физикой (`nadeLands`), иначе — точка рядом (`nadeThrowSpot`: выученные места `NADE_LEARN`, места про, точки вокруг),
+  если арбитр места пускает (`taskCanSet(b, "lineup")`), иначе отказ; удачный свой бросок — `nadeLearn` (сброс в `freshMatch`).
 
 ## Проверка без экрана
 - Сборка: `python3 src/build.py`; игра шагами — `node src/q.js sim.html "<код>"`
