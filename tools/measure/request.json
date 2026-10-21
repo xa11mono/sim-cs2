@@ -1,8 +1,6 @@
 {"par": 8, "jobs": [
-  {"label": "b4k07_anc", "ref": "c987be37f4c50a75fe30f036f7ea50f96c7ccc2e", "map": "ancient", "matches": [3, 7, 11, 13, 17, 19, 23, 29]},
-  {"label": "b4k07_mir", "ref": "c987be37f4c50a75fe30f036f7ea50f96c7ccc2e", "map": "mirage", "matches": [3, 7, 11, 13, 17, 19, 23, 29]},
-  {"label": "b4k055_anc", "ref": "bd86ec62ddd830a3e8f00aedebc40ad12de0bdb2", "map": "ancient", "matches": [3, 7, 11, 13, 17, 19, 23, 29]},
-  {"label": "b4k055_mir", "ref": "bd86ec62ddd830a3e8f00aedebc40ad12de0bdb2", "map": "mirage", "matches": [3, 7, 11, 13, 17, 19, 23, 29]},
-  {"label": "b4k085_anc", "ref": "2413b12f16be431719a40d8bec20c2fcbd057057", "map": "ancient", "matches": [3, 7, 11, 13, 17, 19, 23, 29]},
-  {"label": "b4k085_mir", "ref": "2413b12f16be431719a40d8bec20c2fcbd057057", "map": "mirage", "matches": [3, 7, 11, 13, 17, 19, 23, 29]}
+  {"label": "b4a14_anc", "ref": "a2abb68dee7e70aa75c252575a012d5c1fe8a146", "map": "ancient", "matches": [3, 7, 11, 13, 17, 19, 23, 29]},
+  {"label": "b4a14_mir", "ref": "a2abb68dee7e70aa75c252575a012d5c1fe8a146", "map": "mirage", "matches": [3, 7, 11, 13, 17, 19, 23, 29]},
+  {"label": "b4a11_anc", "ref": "9fe758108ad31c0e09e9de6f6681cb4b69caae06", "map": "ancient", "matches": [3, 7, 11, 13, 17, 19, 23, 29]},
+  {"label": "b4a11_mir", "ref": "9fe758108ad31c0e09e9de6f6681cb4b69caae06", "map": "mirage", "matches": [3, 7, 11, 13, 17, 19, 23, 29]}
 ]}
