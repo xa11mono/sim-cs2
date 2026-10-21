@@ -1,0 +1,27 @@
+playwright 1.56.0
+> git fetch --quiet origin 87dc312440ef5d39a89cec8ae59663384149e5c9
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Users\Mono\AppData\Local\Temp\simbuild_fmy5zv6g FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Users\Mono\AppData\Local\Temp\simbuild_fmy5zv6g\src\build.py --map ancient C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\g1d_anc.html
+> git fetch --quiet origin 87dc312440ef5d39a89cec8ae59663384149e5c9
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Users\Mono\AppData\Local\Temp\simbuild_mm2thdeu FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Users\Mono\AppData\Local\Temp\simbuild_mm2thdeu\src\build.py --map mirage C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\g1d_mir.html
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\engine\walk_run.py --job=g1d_anc,C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\g1d_anc.html --job=g1d_mir,C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\g1d_mir.html --matches=3,7,11,13,17,19,23,29 --par=8
+матчей в очереди: 16, одновременно: 8
+g1d_anc match 3 rc 0 4534239 — готово 1/16, 4 мин
+g1d_anc match 29 rc 0 4942513 — готово 2/16, 4 мин
+g1d_anc match 13 rc 0 5286552 — готово 3/16, 4 мин
+g1d_anc match 23 rc 0 5044530 — готово 4/16, 4 мин
+g1d_anc match 11 rc 0 5916214 — готово 5/16, 5 мин
+g1d_anc match 7 rc 0 6460910 — готово 6/16, 5 мин
+g1d_anc match 17 rc 0 8296576 — готово 7/16, 6 мин
+g1d_anc match 19 rc 0 9065522 — готово 8/16, 6 мин
+g1d_mir match 13 rc 0 3996830 — готово 9/16, 8 мин
+g1d_mir match 3 rc 0 5652566 — готово 10/16, 9 мин
+g1d_mir match 11 rc 0 6213411 — готово 11/16, 10 мин
+g1d_mir match 7 rc 0 6330897 — готово 12/16, 10 мин
+g1d_mir match 17 rc 0 6445033 — готово 13/16, 10 мин
+g1d_mir match 23 rc 0 5542840 — готово 14/16, 11 мин
+g1d_mir match 19 rc 0 6324484 — готово 15/16, 11 мин
+g1d_mir match 29 rc 0 6516639 — готово 16/16, 12 мин
+done
+all done
