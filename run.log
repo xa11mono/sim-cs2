@@ -1,0 +1,43 @@
+playwright 1.56.0
+> git fetch --quiet origin 87dc312440ef5d39a89cec8ae59663384149e5c9
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Users\Mono\AppData\Local\Temp\simbuild_zedm1s25 FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Users\Mono\AppData\Local\Temp\simbuild_zedm1s25\src\build.py --map ancient C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\g1b_anc.html
+> git fetch --quiet origin 87dc312440ef5d39a89cec8ae59663384149e5c9
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Users\Mono\AppData\Local\Temp\simbuild_qbs30jny FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Users\Mono\AppData\Local\Temp\simbuild_qbs30jny\src\build.py --map mirage C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\g1b_mir.html
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\engine\walk_run.py --job=g1b_anc,C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\g1b_anc.html --job=g1b_mir,C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\g1b_mir.html --matches=3,7,11,13,17,19,23,29,31,37,41,43,47,53,59,61 --par=8
+матчей в очереди: 32, одновременно: 8
+g1b_anc match 3 rc 0 4533232 — готово 1/32, 4 мин
+g1b_anc match 29 rc 0 4941516 — готово 2/32, 4 мин
+g1b_anc match 13 rc 0 5285592 — готово 3/32, 4 мин
+g1b_anc match 23 rc 0 5043573 — готово 4/32, 4 мин
+g1b_anc match 11 rc 0 5915078 — готово 5/32, 5 мин
+g1b_anc match 7 rc 0 6459657 — готово 6/32, 5 мин
+g1b_anc match 17 rc 0 8295503 — готово 7/32, 7 мин
+g1b_anc match 19 rc 0 9064043 — готово 8/32, 7 мин
+g1b_anc match 31 rc 0 4037797 — готово 9/32, 7 мин
+g1b_anc match 37 rc 0 5948190 — готово 10/32, 9 мин
+g1b_anc match 41 rc 0 6149892 — готово 11/32, 9 мин
+g1b_anc match 43 rc 0 6231290 — готово 12/32, 10 мин
+g1b_anc match 53 rc 0 5570666 — готово 13/32, 10 мин
+g1b_anc match 47 rc 0 6956106 — готово 14/32, 10 мин
+g1b_anc match 59 rc 0 6072064 — готово 15/32, 11 мин
+g1b_anc match 61 rc 0 6275005 — готово 16/32, 12 мин
+g1b_mir match 3 rc 0 5651293 — готово 17/32, 12 мин
+g1b_mir match 13 rc 0 3995909 — готово 18/32, 14 мин
+g1b_mir match 7 rc 0 6329845 — готово 19/32, 15 мин
+g1b_mir match 11 rc 0 6211690 — готово 20/32, 15 мин
+g1b_mir match 17 rc 0 6443928 — готово 21/32, 16 мин
+g1b_mir match 23 rc 0 5541636 — готово 22/32, 16 мин
+g1b_mir match 19 rc 0 6323330 — готово 23/32, 17 мин
+g1b_mir match 31 rc 0 5055525 — готово 24/32, 17 мин
+g1b_mir match 37 rc 0 3851723 — готово 25/32, 18 мин
+g1b_mir match 29 rc 0 6515507 — готово 26/32, 18 мин
+g1b_mir match 47 rc 0 4768536 — готово 27/32, 20 мин
+g1b_mir match 43 rc 0 6050771 — готово 28/32, 21 мин
+g1b_mir match 59 rc 0 5434534 — готово 29/32, 21 мин
+g1b_mir match 61 rc 0 4283092 — готово 30/32, 21 мин
+g1b_mir match 41 rc 0 7126413 — готово 31/32, 21 мин
+g1b_mir match 53 rc 0 6156006 — готово 32/32, 22 мин
+done
+all done
