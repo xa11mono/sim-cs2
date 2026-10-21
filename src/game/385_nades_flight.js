@@ -141,7 +141,8 @@
   // from — ноги [X, Y, Z]; aim — точка [X, Y, Z] (смок / молотов — пол у цели; флешка / HE — над целью); o: {duck, vel, noJump}.
   // Перебор: наклон от −75° до +45° шагом AIM_STEP при каждой силе (ЛКМ, обе, ПКМ), каждый — настоящим полётом (nadeThrow:
   // стены, отскоки, запал, качение); лучший — уточняется наклоном. Не вышло ближе AIM_JUMP_IF — то же с прыжком на бинде
-  // (так про кидают дальние смоки), затем с разбега o.runV к цели и прыжком; и всё ещё мимо — поворот в сторону на AIM_YAW
+  // (так про кидают дальние смоки); и всё ещё мимо — поворот в сторону на AIM_YAW (В4: «с разбега» удалено — разбег только у
+  // записанных лайнапов, и бот его делает сам, 380: nadeRecTick)
   // (обход края, отскок от стены). Ответ — лучший бросок {yaw, pitch, strength, jump, det, t, how, err: ед. по горизонтали,
   // dz, bounces}; null — только если цель на месте бросающего.
   var AIM_STEP = 4, AIM_FINE = [2, 1, 0.5], AIM_JUMP_IF = 48, AIM_YAW = [-3, 3, -7, 7, -12, 12];   // градусы, ед. — проектные числа (скорость ≈ 10 мс на бросок)
@@ -154,7 +155,7 @@
     function tryOne(pitch, s, jump) {
       var r = nadeThrow({ type: type, pos: from, yaw: yaw, pitch: pitch, strength: s, duck: o.duck, vel: vel, jump: jump, spawn: 0 }, trace);
       var exy = Math.hypot(r.det[0] - aim[0], r.det[1] - aim[1]), dz = r.det[2] - aim[2], sc = exy + Math.abs(dz) * 0.5;
-      if (!best || sc < best.sc) best = { yaw: yaw, pitch: pitch, strength: s, jump: !!jump, run: vel !== o.vel, det: r.det, t: r.t, how: r.how, err: exy, dz: dz,
+      if (!best || sc < best.sc) best = { yaw: yaw, pitch: pitch, strength: s, jump: !!jump, det: r.det, t: r.t, how: r.how, err: exy, dz: dz,
                                           bounces: r.bounces.length, sc: sc };
     }
     function search(jump) {
@@ -167,11 +168,6 @@
     }
     search(false);
     if (best.err > AIM_JUMP_IF && !o.noJump) search(true);
-    // дальше, чем долетает с места, — с разбега к цели и прыжком (так про кидают дальние флешки и смоки)
-    if (best.err > AIM_JUMP_IF && !o.noJump && o.runV) {
-      vel = [Math.cos(yaw0 * D2R) * o.runV, Math.sin(yaw0 * D2R) * o.runV, 0]; search(true);
-      if (!best.run) vel = o.vel;
-    }
     // всё ещё мимо — поворот чуть в сторону (обойти край стены, отскок от стены), наклон — шагом вдвое крупнее
     if (best.err > AIM_JUMP_IF) AIM_YAW.forEach(function (dy_) {
       yaw = yaw0 + dy_;

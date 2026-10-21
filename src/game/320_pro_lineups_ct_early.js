@@ -12,7 +12,8 @@ function proLineups(){
   if(typeof PRO_LINEUPS_RAW === "undefined") return (PRO_LINEUPS = []);
   PRO_LINEUPS = PRO_LINEUPS_RAW.map(function(L){
     var f = snapToWalkable(L.from.x, L.from.y) || L.from;
-    return {id:L.id, team:L.team, type:L.type, trigger:L.trigger, site:L.site, name:L.name, from:{x:f.x, y:f.y}, to:L.to, prob:L.prob, at:L.at, pro:true};
+    return {id:L.id, team:L.team, type:L.type, trigger:L.trigger, site:L.site, name:L.name, from:{x:f.x, y:f.y}, to:L.to, prob:L.prob, at:L.at, pro:true,
+            throws:L.throws || null};   // (В4) записанные броски про (380: nadeRecPick)
   });
   return PRO_LINEUPS;
 }
