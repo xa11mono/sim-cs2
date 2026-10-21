@@ -7,7 +7,8 @@
 // лайнап) кидается всегда — лучшим найденным броском.
 var NADE_AIM_OK = 100;   // ед. игры (≈ 40 px радара; флешке — вдвое: ей важно хлопнуть на виду, а не точно) — проектное число
 var NADE_AIM_DZ = {smoke: 0, molly: 0, flash: 80, he: 20};   // куда целиться по высоте над полом у цели, ед. (проектные числа)
-var NADE_AIM_CACHE = {}, NADE_AIM_N = 0;
+// кэш решений — внутри функции: снимок «Отметить момент» копирует глобальные var, а кэш ему не нужен (и большой)
+var nadeAimCache = (function(){ var C = {}, n = 0; return function(k, v){ if(v === undefined) return C[k]; if(++n > 4000){ C = {}; n = 0; } return (C[k] = v); }; })();
 var NADE_RUN_V = 215;   // разбег перед броском, ед/с — скорость бега с винтовкой в CS2 (AK 215); бот бросает с места, граната — как с разбега
 function nadePhysType(type){ return type === "molly" ? "molotov" : type; }
 function nadeTraceFn(){ var M = m3(); return function(A, B){ return m3NadeTrace(M, A, B); }; }
@@ -15,12 +16,11 @@ function nadeTraceFn(){ var M = m3(); return function(A, B){ return m3NadeTrace(
 function nadeSolve(type, x, y, z, tx, ty, duck){
   var M = m3(); if(!M) return null;
   var key = type+"|"+Math.round(x/4)+","+Math.round(y/4)+","+Math.round(z/8)+"|"+Math.round(tx/4)+","+Math.round(ty/4)+(duck ? "d" : "");
-  if(NADE_AIM_CACHE[key] !== undefined) return NADE_AIM_CACHE[key];
+  var c0 = nadeAimCache(key); if(c0 !== undefined) return c0;
   var F = m3Game(M, x, y), T = m3Game(M, tx, ty), tz = visFloorAt(tx, ty) + (NADE_AIM_DZ[type] || 0);
   var r = nadeAim(nadePhysType(type), [F[0], F[1], z], [T[0], T[1], tz], nadeTraceFn(), {duck: !!duck, runV: NADE_RUN_V});
   if(r){ var R = m3Radar(M, r.det[0], r.det[1]); r.x = R[0]; r.y = R[1]; r.errPx = r.err * M.cell / M.unit; }
-  if(++NADE_AIM_N > 4000){ NADE_AIM_CACHE = {}; NADE_AIM_N = 0; }
-  return (NADE_AIM_CACHE[key] = r);
+  return nadeAimCache(key, r);
 }
 // Места, откуда про кидали в точку (MAP.nadelanes, tools/nade_lanes_bake.py — все броски из демок карты): с В3 это только
 // кандидаты «откуда кинуть» (nadeThrowSpot) и выбор цели у мозга (420), а не разрешение лететь сквозь стену. Радиусы — проектные числа

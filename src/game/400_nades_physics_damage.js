@@ -157,14 +157,14 @@ function flashSeen(b, n){
   }
   return false;
 }
-var NADE_TRACE = null;   // луч гранаты (m3NadeTrace) — один на страницу
 function nadesTick(){
+  var nTr = nadesInAir.length ? nadeTraceFn() : null;   // луч гранаты (m3NadeTrace); не глобальная var: снимок «Отметить момент» не копирует функции
   for(var i=nadesInAir.length-1;i>=0;i--){
     var n = nadesInAir[i];
     if(!n.st){ nadesInAir.splice(i,1); continue; }   // граната из снимка до В3 (без физики)
     // (В3) полёт — физика гранаты (385_nades_flight: nadeStep — тяжесть, стены, крыши, небо, отскоки, запал, качение) по
     // геометрии игры. Прежние прямой навес, «телепорт» от стены и отскок от стен радара удалены
-    var nb0 = n.st.bounces.length, how = nadeStep(n.st, NADE_TRACE || (NADE_TRACE = nadeTraceFn()));
+    var nb0 = n.st.bounces.length, how = nadeStep(n.st, nTr);
     var R = m3Radar(m3(), n.st.p[0], n.st.p[1]); n.x = R[0]; n.y = R[1]; n.z = n.st.p[2];
     if(n.st.bounces.length > nb0 && SND && SND.on) sndNade("bounce", n.x, n.y);
     if(tick % 2 === 0){ n.trail.push([n.x, n.y, n.z]); if(n.trail.length > 30) n.trail.shift(); }
