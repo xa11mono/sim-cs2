@@ -8,6 +8,7 @@
 var NADE_AIM_OK = 100;   // ед. игры (≈ 40 px радара; флешке — вдвое: ей важно хлопнуть на виду, а не точно) — проектное число
 var NADE_AIM_DZ = {smoke: 0, molly: 0, flash: 80, he: 20};   // куда целиться по высоте над полом у цели, ед. (проектные числа)
 var NADE_AIM_CACHE = {}, NADE_AIM_N = 0;
+var NADE_RUN_V = 215;   // разбег перед броском, ед/с — скорость бега с винтовкой в CS2 (AK 215); бот бросает с места, граната — как с разбега
 function nadePhysType(type){ return type === "molly" ? "molotov" : type; }
 function nadeTraceFn(){ var M = m3(); return function(A, B){ return m3NadeTrace(M, A, B); }; }
 // лучший бросок из (x, y) радара, стоя на полу z (ед. игры), в точку (tx, ty) радара → решение nadeAim + det в радаре, или null
@@ -16,7 +17,7 @@ function nadeSolve(type, x, y, z, tx, ty, duck){
   var key = type+"|"+Math.round(x/4)+","+Math.round(y/4)+","+Math.round(z/8)+"|"+Math.round(tx/4)+","+Math.round(ty/4)+(duck ? "d" : "");
   if(NADE_AIM_CACHE[key] !== undefined) return NADE_AIM_CACHE[key];
   var F = m3Game(M, x, y), T = m3Game(M, tx, ty), tz = visFloorAt(tx, ty) + (NADE_AIM_DZ[type] || 0);
-  var r = nadeAim(nadePhysType(type), [F[0], F[1], z], [T[0], T[1], tz], nadeTraceFn(), {duck: !!duck});
+  var r = nadeAim(nadePhysType(type), [F[0], F[1], z], [T[0], T[1], tz], nadeTraceFn(), {duck: !!duck, runV: NADE_RUN_V});
   if(r){ var R = m3Radar(M, r.det[0], r.det[1]); r.x = R[0]; r.y = R[1]; r.errPx = r.err * M.cell / M.unit; }
   if(++NADE_AIM_N > 4000){ NADE_AIM_CACHE = {}; NADE_AIM_N = 0; }
   return (NADE_AIM_CACHE[key] = r);
@@ -70,7 +71,8 @@ function throwNade(b, type, tx, ty, lob, why, trusted){
       (Math.hypot(o.x-tx, o.y-ty) < NADE[type].radius || Math.hypot(o.x-S.x, o.y-S.y) < NADE[type].radius); })){ NADE_FAIL = "свой в зоне"; return false; }
   b.nades[type]--; b._nadeT = tick; b._lastNade = {type:type, x:tx, y:ty, t:tick};
   var M = m3(), F = m3Game(M, b.x, b.y);
-  var L = nadeLaunch({pos: [F[0], F[1], bz], yaw: S.yaw, pitch: S.pitch, strength: S.strength, duck: !!b.crouching, jump: S.jump}, nadeTraceFn());
+  var runV = S.run ? [Math.cos(S.yaw*Math.PI/180)*NADE_RUN_V, Math.sin(S.yaw*Math.PI/180)*NADE_RUN_V, 0] : null;
+  var L = nadeLaunch({pos: [F[0], F[1], bz], yaw: S.yaw, pitch: S.pitch, strength: S.strength, duck: !!b.crouching, jump: S.jump, vel: runV}, nadeTraceFn());
   var a = Math.atan2(ty-b.y, tx-b.x);
   // в полёте: состояние физики (ед. игры) + где на радаре; tx, ty — где разорвётся по расчёту (другие решения смотрят туда)
   var nd = {type:type, x:b.x, y:b.y, z:L.p[2], st: nadeState(nadePhysType(type), L.p, L.v), tx:S.x, ty:S.y, born:tick, thrower:b,
