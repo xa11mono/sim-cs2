@@ -90,7 +90,9 @@
           if(why === "срок"){ var tk = s.task.o, dT = Math.hypot(tk.x-b.x, tk.y-b.y);   // почему не успел: далеко / не видно / не дошёл до точки броска / бой
             why += tk.from ? (Math.hypot(tk.from.x-b.x, tk.from.y-b.y) > 40 ? " — не дошёл до точки броска ("+(b.post ? String(b.post.tag).replace(/[:|].*$/, "") : "-")+")" : " — на точке, не кинул") :
               (b._sawEnemy || b.state === "engage" ? " — бой" : (dT > (tk.range || 600)*0.85 ? " — далеко" : (!hasLOS(b.x, b.y, tk.x, tk.y) ? " — не видно цель" : " — видно, не кинул"))); }
-          inc(W.nade.lostWhy, s.task.type+"|"+why); }
+          // (Г1) задания плана гранат — отдельно; у снятых — чья задача места была у бойца (кто перебил бросок)
+          if(/план/.test(String(s.task.o.why||""))){ if(/^снята/.test(why)) why += " [место: "+(b._task ? String(b._task.tag).replace(/[:|].*$/, "") : "-")+"]"; inc(W.nade.lostWhy, "план|"+s.task.type+"|"+why); }
+          else inc(W.nade.lostWhy, s.task.type+"|"+why); }
         s.task = null; }
       if(t && (!s.task || s.task.o !== t)){ s.task = {o:t, type:t.type, until:t.until, reached:false}; inc(W.nade.intent, rtOf(b)+"|"+t.type); }
       if(s.task && !s.task.reached && t && t.from && Math.hypot(t.from.x-b.x, t.from.y-b.y) < 40){ s.task.reached = true; inc(W.nade.reached, rtOf(b)+"|"+t.type); }
