@@ -59,11 +59,7 @@ function fightStrafe(b, F, dtSec){
   if(b.lastShotTick >= F.t) F.started = true;
   // контрстрейф начинается так, чтобы к моменту, когда можно стрелять, скорость упала до той, на которой выстрел «стоит того»
   // (fireVAcc — то же правило, что в tryShoot): вблизи — почти с ходу, вдали — до остановки
-  // в очереди (следующий выстрел — в темп оружия) новый шаг не начинает и гасит дальше; между очередями / тапами — шаг вбок
-  // (у про скорость по номеру выстрела в очереди 62 → 37 → 30 → 23 ед./с, а первый выстрел очереди — 52–62)
-  var v = Math.abs(F.sv), vT = fresh ? fireVAcc(b, e, L) : 0;
-  var spray = F.started && tick - b.lastShotTick <= SPRAY_RESET_TICKS && fresh && fr.inT <= b.weapon.fireIntervalTicks;
-  var stop = fresh && (spray || fr.inT <= csTicksTo(v, vT, vmax) + 1) && !b._reloading;
+  var v = Math.abs(F.sv), vT = fresh ? fireVAcc(b, e, L) : 0, stop = fresh && fr.inT <= csTicksTo(v, vT, vmax) + 1 && !b._reloading;
   if(stop || (!F.started && v < 1)){ v = Math.max(0, v - csDecel(v, vmax)*dtSec); F.sv = (F.sv < 0 ? -1 : 1)*v; }
   else {
     var so = (b.baseX - F.ax)*ax + (b.baseY - F.ay)*ay;

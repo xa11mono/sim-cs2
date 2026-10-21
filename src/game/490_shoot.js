@@ -5,14 +5,15 @@ var FIRE_K = 0.7;
 // (Б4) ошибка прицела игрока (рад) — по демкам про (b4_shots.py, Mirage, 66 тыс. выстрелов из винтовки по цели, видной по
 // геометрии игры): попадание почти не зависит от дистанции, а зависит от того, как быстро цель идёт поперёк линии огня относительно
 // стрелка (vr): ≤ 50 ед./с — 45→33 % (вблизи → > 1500 ед.), 50–120 — 35→24 %, 120–200 — 22→18 %, > 200 — ~10 %. Это ошибка в ед.
-// у цели: σ ≈ √(A² + (L·vr)²), A ≈ 14 ед. (+ 2 на 1000 ед. дистанции; у бота A = 11 — к ней добавляются разброс оружия и отдача,
-// которые у про уже внутри; подобрано прогоном ПК 23), L ≈ 0,12 с — запаздывание прицела за целью. Навык — как
-// раньше: aimErr (0,0045 + 0,02·(1,2 − навык)) относительно навыка 1,0
+// у цели: σ ≈ √(A² + (L·vr)²), A ≈ 14 ед. (+ 2 на 1000 ед. дистанции), L ≈ 0,12 с — запаздывание прицела за целью. У бота A = 11:
+// к ней добавляются разброс оружия и отдача, которые у про уже внутри (подобрано прогоном ПК 23: 14 → дуэль 0,34–0,38 с, 11 → 0,33,
+// у про 0,30). vr — скорость сейчас (сглаженная за 0,25 с, как в замере про, удлиняла дуэли — прогон ПК 25). Навык — как раньше:
+// aimErr (0,0045 + 0,02·(1,2 − навык)) относительно навыка 1,0. AIM_FLICK, AIM_HEAD_PISTOL — ниже, где применяются
 var AIM_A = 11, AIM_AD = 0.002, AIM_LAG = 0.12, AIM_FLICK = 0.15, AIM_HEAD_PISTOL = 2.8;
 function aimSigma(sh, tg, dist){
   var du = Math.max(8, dist)*PX_UNITS, sk = sh.skill || 1;
   var lx = (tg.x - sh.x)/Math.max(1, dist), ly = (tg.y - sh.y)/Math.max(1, dist);
-  var rvx = ((tg.x - tg.px) - (sh.x - sh.px))*TICK_HZ, rvy = ((tg.y - tg.py) - (sh.y - sh.py))*TICK_HZ;   // скорость сейчас (сглаженная за 0,25 с, как в замере про, — после контрстрейфа ещё «быстрая», дуэли длиннее: прогон ПК 25)
+  var rvx = ((tg.x - tg.px) - (sh.x - sh.px))*TICK_HZ, rvy = ((tg.y - tg.py) - (sh.y - sh.py))*TICK_HZ;
   var vr = Math.abs(rvx*(-ly) + rvy*lx)*PX_UNITS;
   var A = (AIM_A + AIM_AD*du) * (0.0045 + 0.020*Math.max(0, 1.2 - sk)) / 0.0085;
   return Math.sqrt(A*A + AIM_LAG*AIM_LAG*vr*vr) / du;
@@ -176,13 +177,13 @@ function tryShoot(shooter, target, dist){
   var w0 = shotSpread(shooter, 0), sig0 = Math.sqrt(w0*w0 + rest2) * sM;
   var pBody = function(sg){ return 1 - Math.exp(-(bA*bA)/(2*sg*sg)); };
   if(wSpread > w0 && pBody(sigma) < FIRE_K * pBody(sig0)){ fireReady(shooter, target, 0); return; }
+  shooter._fire = null;
   shooter.burstCount = burstIdx + 1;
   shooter.lastShotTick = tick;
   target._shotAtT = tick; target._shotAtBy = shooter;
   shooter.nextShotTick = tick + w.fireIntervalTicks;
   shooter.ammo--;
   shooter._heat = heat + 1;
-  fireReady(shooter, target, w.fireIntervalTicks);   // (Б4) следующий выстрел очереди — не раньше темпа оружия
   var pIn = function(R){ return 1 - Math.exp(-(R*R)/(2*sigma*sigma)); };
   var seedS = tick*104729 + shooter.id.charCodeAt(0)*31 + shooter.id.length*7 + target.id.charCodeAt(0)*17 + Math.floor(shooter.nextShotTick*8);
   // сильные игроки чаще целятся в голову; AWP — всегда в корпус
