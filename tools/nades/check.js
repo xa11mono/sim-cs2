@@ -1,5 +1,5 @@
-// В2 (21.10.2026): проверка физики гранаты (src/nadephys.js) бросками про из В1 — без матчей.
-// node tools/nades/check.js <карта> --fuse [--fill] [--par '{"GRAV":..}'] [--mask '{"playerclip":true}'] [--out файл] [--every k] [--nojump]
+// В2–В3 (21.10.2026): проверка физики гранаты (src/game/385_nades_flight.js) на геометрии игры (map3d.json) бросками про из В1 — без матчей.
+// node tools/nades/check.js <карта> --fuse [--fill] [--par '{"GRAV":..}'] [--out файл] [--every k] [--nojump]
 // Каждый бросок (data/maps/<карта>/throws.json, связанные с разрывом) — через физику со всеми тремя силами (1 ЛКМ, 0,5 обе,
 // 0 ПКМ); берётся сила с наименьшей ошибкой (место + время × V_T). Совпал — ошибка места ≤ N и времени ≤ M (NADES.md).
 // --fuse: у флешки / HE задержку вылета брать из времени разрыва (запал модуля постоянный), иначе — SPAWN модуля.
@@ -7,11 +7,11 @@
 'use strict';
 const fs = require('fs'), path = require('path');
 const ROOT = path.join(__dirname, '..', '..');
-const NP = require(path.join(ROOT, 'src', 'nadephys.js')), P = NP.NADE_P;
+const NP = require(path.join(ROOT, 'src', 'game', '385_nades_flight.js')), P = NP.NADE_P;
 const args = process.argv.slice(2), map = args[0];
 const arg = (k, d) => { const i = args.indexOf(k); return i >= 0 ? args[i + 1] : d; };
 Object.assign(P, JSON.parse(arg('--par', '{}')));
-const W = require('./world.js').load(map, JSON.parse(arg('--mask', '{}')));
+const W = require('./world.js').load(map);   // геометрия игры (map3d.json), как в игре
 const T = JSON.parse(fs.readFileSync(path.join(ROOT, 'data', 'maps', map, 'throws.json'))).throws;
 const every = +arg('--every', 1), fuseFromDemo = args.includes('--fuse');
 const V_T = 100;                 // ед. места за 1 с ошибки времени при выборе силы (только выбор силы, не порог)
@@ -51,7 +51,7 @@ T.forEach((t, i) => {
   out.push(Object.assign({ i }, best));
 });
 const fo = arg('--out', path.join(ROOT, 'data', 'maps', map, 'throws_check.json'));
-fs.writeFileSync(fo, JSON.stringify({ map, par: P, mask: W.opt, fuseFromDemo, n: out.length, res: out }));
+fs.writeFileSync(fo, JSON.stringify({ map, par: P, fuseFromDemo, n: out.length, res: out }));
 const q = (a, p) => { a = a.slice().sort((x, y) => x - y); return a.length ? a[Math.floor(p * (a.length - 1))] : NaN; };
 for (const ty of ['smoke', 'flash', 'he', 'molotov', 'all']) {
   const r = out.filter(x => ty === 'all' || T[x.i].type === ty);

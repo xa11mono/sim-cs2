@@ -8,12 +8,12 @@
 // выжигает опорника; CT молотовом/HE задерживают выход, флешкой заходят на
 // ретейк; T на пост-планте кидают молотов на бомбу, когда CT дефузят.
 var NADE = {
-  smoke:  {name:"дым",     price:300, fuse:192, radius:BAL.smokeR, life:BAL.smokeLife*64},
-  flash:  {name:"флешка",  price:200, fuse:100},
+  smoke:  {name:"дым",     price:300, radius:BAL.smokeR, life:BAL.smokeLife*64},
+  flash:  {name:"флешка",  price:200, fuse:104},   // (В3) тиков от броска до хлопка — запал физики 1,627 с (385_nades_flight)
   // (v321, М22) урон CS2: 98, сквозь броню 57,5 % (csdb.gg/weapon/he-grenade); радиус 350 ед. игры = 140 ед. карты —
   // число CS:GO (weapons script), для CS2 источник не найден — проектное число. Было: 57 урона, радиус 190, броня ×0,5
-  he:     {name:"HE",      price:300, fuse:100, radius:140, dmg:98, armorK:0.575},
-  molly:  {name:"молотов", price:400, priceCT:500, fuse:90, radius:72, life:BAL.mollyLife*64, dps:40}
+  he:     {name:"HE",      price:300, fuse:104, radius:140, dmg:98, armorK:0.575},
+  molly:  {name:"молотов", price:400, priceCT:500, radius:72, life:BAL.mollyLife*64, dps:40}
 };
 var NADE_THROW_RANGE = 820;
 var NADE_HEAR_R = 550; // раздел 11.1: с какого расстояния слышно чеку/бросок гранаты противника

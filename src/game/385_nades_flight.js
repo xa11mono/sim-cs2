@@ -1,6 +1,7 @@
-// Физика гранаты (В2, 21.10.2026) — ОДИН модуль на полёт гранаты: бросок → дуга → отскоки → разрыв.
-// В игру пока не включён (игру В2 не меняет); в В3 его берёт игра: склейка src/game/* + функция луча по геометрии карты.
-// Здесь нет карты и нет рисования: всё, что модуль знает о мире, — функция trace(A, B) (см. nadeFly).
+// Физика гранаты (В2–В3, 21.10.2026) — ОДИН модуль на полёт гранаты: бросок → дуга → отскоки → разрыв.
+// В игре с В3 (бросок — 380_nades_throw: nadeAim; полёт — 400_nades_physics_damage: nadeStep; луч — m3NadeTrace, 035_map3d).
+// Здесь нет карты и нет рисования: всё, что модуль знает о мире, — функция trace(A, B) (см. nadeStep). Тот же файл
+// берут проверки в node (tools/nades/check.js).
 //
 // Откуда числа (подробно — docs/reports/NADES.md, «Числа физики»):
 //  * устройство броска и полёта — исходники CS:GO (weapon_basecsgrenade.cpp: ThrowGrenade; basecsgrenade_projectile.cpp:
@@ -61,59 +62,63 @@
     return { p: p, v: v };
   }
 
-  // Полёт до разрыва. type: smoke | flash | he | molotov (incgrenade — тоже molotov).
-  // trace(A, B) → null (чисто) или {f: доля пути 0..1, n: [nx,ny,nz] нормаль (в сторону, откуда летели), sky: bool, g: группа}
-  // opt: {path: true — вернуть точки по тикам}
-  // Ответ: {det: [x,y,z], t: с от вылета, how: fuse | floor | air | stop | lost | maxt, bounces: [[x,y,z,'floor'|'wall'|'sky']], path}
-  function nadeFly(type, p, v, trace, opt) {
-    opt = opt || {};
-    var dt = 1 / P.TICK, t = 0, n = 0, fuse = P.FUSE[type];
-    p = p.slice(); v = v.slice();
-    var bounces = [], path = opt.path ? [p.slice()] : null, rest = false;
-    var res = function (how) { return { det: p.slice(), t: t, how: how, bounces: bounces, path: path }; };
-    while (t < P.MAXT) {
-      // запал — до шага: граната рвётся там, где она есть в этот тик
-      if (fuse !== undefined && t >= fuse - 1e-9) return res('fuse');
-      if (type === 'molotov' && t >= P.MOLLY_MAX - 1e-9) {
-        // разрыв в воздухе: огонь падает на пол под гранатой (inferno_startburn — на полу)
-        var hd = trace(p, [p[0], p[1], p[2] - 2000]);
-        if (hd) p = [p[0], p[1], p[2] - 2000 * hd.f];
-        return res('air');
-      }
-      if (type === 'smoke' && rest) return res('stop');
-      if (rest) { t += dt; n++; continue; }
-      // ход с гравитацией: средняя скорость за тик (PhysicsAddGravityMove)
-      var vz1 = v[2] - P.GRAV * dt;
-      var mv = [v[0] * dt, v[1] * dt, (v[2] + vz1) / 2 * dt];
-      v[2] = vz1;
-      var frac = 1, guard = 0;
-      while (frac > 1e-6 && guard++ < 4) {
-        var B = [p[0] + mv[0] * frac, p[1] + mv[1] * frac, p[2] + mv[2] * frac];
-        var h = trace(p, B);
-        if (!h) { p = B; break; }
-        var f = Math.max(0, h.f);
-        p = [p[0] + (B[0] - p[0]) * f + h.n[0] * P.PUSH, p[1] + (B[1] - p[1]) * f + h.n[1] * P.PUSH, p[2] + (B[2] - p[2]) * f + h.n[2] * P.PUSH];
-        var floor = h.n[2] > P.FLOOR_NZ;
-        bounces.push([p[0], p[1], p[2], h.sky ? 'sky' : floor ? 'floor' : 'wall']);
-        if (type === 'molotov' && !h.sky && h.n[2] >= P.MOLLY_NZ) { t += dt * (1 - frac + frac * f); return res('floor'); }
-        // отскок (ResolveFlyCollisionCustom): отражение × упругость
-        // (демки: отдельная упругость вдоль поверхности 0,41–0,43 и по материалу 0,9–1,0 ничего не дают — одна на всё)
-        var dn = v[0] * h.n[0] + v[1] * h.n[1] + v[2] * h.n[2];
-        v = [(v[0] - 2 * dn * h.n[0]) * P.ELAST, (v[1] - 2 * dn * h.n[1]) * P.ELAST, (v[2] - 2 * dn * h.n[2]) * P.ELAST];
-        var sp2 = v[0] * v[0] + v[1] * v[1] + v[2] * v[2];
-        if (sp2 < P.STOP_V * P.STOP_V) {
-          v = [0, 0, 0];
-          if (floor) { rest = true; break; }
-        }
-        if (!floor) break;            // от стены: остаток хода в этот тик не доигрывается (как в исходниках)
-        frac = frac * (1 - f);        // от пола: остаток хода — с новой скоростью
-        mv = [v[0] * dt, v[1] * dt, v[2] * dt];
-      }
-      t += dt; n++;
-      if (path) path.push(p.slice());
-      if (p[2] < -20000) return res('lost');
+  // Состояние гранаты в полёте и один тик полёта (игра зовёт nadeStep каждый тик, nadeFly — весь полёт сразу).
+  // type: smoke | flash | he | molotov (в игре — molly). trace(A, B) → null (чисто) или {f: доля пути 0..1, n: [nx,ny,nz]
+  // нормаль навстречу полёту, sky: bool}. st.how после разрыва: fuse | floor | air | stop | lost | maxt.
+  function nadeState(type, p, v) {
+    return { type: type, molly: type === 'molotov' || type === 'molly', p: p.slice(), v: v.slice(), t: 0, rest: false,
+             bounces: [], how: null };
+  }
+  function nadeStep(st, trace) {
+    var dt = 1 / P.TICK, fuse = P.FUSE[st.type], p = st.p, v = st.v;
+    // запал — до шага: граната рвётся там, где она есть в этот тик
+    if (fuse !== undefined && st.t >= fuse - 1e-9) return (st.how = 'fuse');
+    if (st.molly && st.t >= P.MOLLY_MAX - 1e-9) {
+      // разрыв в воздухе: огонь падает на пол под гранатой (inferno_startburn — на полу)
+      var hd = trace(p, [p[0], p[1], p[2] - 2000]);
+      if (hd) st.p = [p[0], p[1], p[2] - 2000 * hd.f];
+      return (st.how = 'air');
     }
-    return res('maxt');
+    if (st.type === 'smoke' && st.rest) return (st.how = 'stop');
+    if (st.rest) { st.t += dt; return st.t >= P.MAXT ? (st.how = 'maxt') : null; }
+    // ход с гравитацией: средняя скорость за тик (PhysicsAddGravityMove)
+    var vz1 = v[2] - P.GRAV * dt;
+    var mv = [v[0] * dt, v[1] * dt, (v[2] + vz1) / 2 * dt];
+    v[2] = vz1;
+    var frac = 1, guard = 0;
+    while (frac > 1e-6 && guard++ < 4) {
+      var B = [p[0] + mv[0] * frac, p[1] + mv[1] * frac, p[2] + mv[2] * frac];
+      var h = trace(p, B);
+      if (!h) { p = B; break; }
+      var f = Math.max(0, h.f);
+      p = [p[0] + (B[0] - p[0]) * f + h.n[0] * P.PUSH, p[1] + (B[1] - p[1]) * f + h.n[1] * P.PUSH, p[2] + (B[2] - p[2]) * f + h.n[2] * P.PUSH];
+      var floor = h.n[2] > P.FLOOR_NZ;
+      st.bounces.push([p[0], p[1], p[2], h.sky ? 'sky' : floor ? 'floor' : 'wall']);
+      if (st.molly && !h.sky && h.n[2] >= P.MOLLY_NZ) { st.p = p; st.v = v; st.t += dt * (1 - frac + frac * f); return (st.how = 'floor'); }
+      // отскок (ResolveFlyCollisionCustom): отражение × упругость
+      // (демки: отдельная упругость вдоль поверхности 0,41–0,43 и по материалу 0,9–1,0 ничего не дают — одна на всё)
+      var dn = v[0] * h.n[0] + v[1] * h.n[1] + v[2] * h.n[2];
+      v = [(v[0] - 2 * dn * h.n[0]) * P.ELAST, (v[1] - 2 * dn * h.n[1]) * P.ELAST, (v[2] - 2 * dn * h.n[2]) * P.ELAST];
+      var sp2 = v[0] * v[0] + v[1] * v[1] + v[2] * v[2];
+      if (sp2 < P.STOP_V * P.STOP_V) {
+        v = [0, 0, 0];
+        if (floor) { st.rest = true; break; }
+      }
+      if (!floor) break;            // от стены: остаток хода в этот тик не доигрывается (как в исходниках)
+      frac = frac * (1 - f);        // от пола: остаток хода — с новой скоростью
+      mv = [v[0] * dt, v[1] * dt, v[2] * dt];
+    }
+    st.p = p; st.v = v; st.t += dt;
+    if (p[2] < -20000) return (st.how = 'lost');
+    if (st.t >= P.MAXT) return (st.how = 'maxt');
+    return null;
+  }
+  // Полёт до разрыва целиком. opt: {path: true — точки по тикам}.
+  // Ответ: {det: [x,y,z], t: с от вылета, how, bounces: [[x,y,z,'floor'|'wall'|'sky']], path}
+  function nadeFly(type, p, v, trace, opt) {
+    var st = nadeState(type, p, v), path = opt && opt.path ? [st.p.slice()] : null;
+    while (!nadeStep(st, trace)) if (path) path.push(st.p.slice());
+    return { det: st.p.slice(), t: st.t, how: st.how, bounces: st.bounces, path: path };
   }
 
   // Бросок целиком: o — как у nadeLaunch (+ type); ответ nadeFly + t от weapon_fire (с учётом задержки вылета)
@@ -132,7 +137,39 @@
     return r;
   }
 
-  var api = { NADE_P: P, nadeLaunch: nadeLaunch, nadeFly: nadeFly, nadeThrow: nadeThrow };
+  // Как кинуть, чтобы граната разорвалась у цели (бот целится так, как целился бы человек: поворот на цель, наклон и сила).
+  // from — ноги [X, Y, Z]; aim — точка [X, Y, Z] (смок / молотов — пол у цели; флешка / HE — над целью); o: {duck, vel, noJump}.
+  // Перебор: наклон от −75° до +45° шагом AIM_STEP при каждой силе (ЛКМ, обе, ПКМ), каждый — настоящим полётом (nadeThrow:
+  // стены, отскоки, запал, качение); лучший — уточняется наклоном. Не вышло ближе AIM_JUMP_IF — то же с прыжком на бинде
+  // (так про кидают дальние смоки). Ответ — лучший бросок {yaw, pitch, strength, jump, det, t, how, err: ед. по горизонтали,
+  // dz, bounces}; null — только если цель на месте бросающего.
+  var AIM_STEP = 4, AIM_FINE = [2, 1, 0.5], AIM_JUMP_IF = 48;   // градусы, ед. — проектные числа (скорость ≈ 10 мс на бросок)
+  function nadeAim(type, from, aim, trace, o) {
+    o = o || {};
+    var dx = aim[0] - from[0], dy = aim[1] - from[1];
+    if (Math.hypot(dx, dy) < 1) return null;
+    var yaw = Math.atan2(dy, dx) / D2R, best = null;
+    function tryOne(pitch, s, jump) {
+      var r = nadeThrow({ type: type, pos: from, yaw: yaw, pitch: pitch, strength: s, duck: o.duck, vel: o.vel, jump: jump, spawn: 0 }, trace);
+      var exy = Math.hypot(r.det[0] - aim[0], r.det[1] - aim[1]), dz = r.det[2] - aim[2], sc = exy + Math.abs(dz) * 0.5;
+      if (!best || sc < best.sc) best = { yaw: yaw, pitch: pitch, strength: s, jump: !!jump, det: r.det, t: r.t, how: r.how, err: exy, dz: dz,
+                                          bounces: r.bounces.length, sc: sc };
+    }
+    function search(jump) {
+      [1, 0.5, 0].forEach(function (s) { for (var pt = -75; pt <= 45; pt += AIM_STEP) tryOne(pt, s, jump); });
+      AIM_FINE.forEach(function (st) {
+        var b0 = best;
+        if (b0.jump !== !!jump) return;
+        [-st, st].forEach(function (dp) { tryOne(b0.pitch + dp, b0.strength, jump); });
+      });
+    }
+    search(false);
+    if (best.err > AIM_JUMP_IF && !o.noJump) search(true);
+    delete best.sc;
+    return best;
+  }
+
+  var api = { NADE_P: P, nadeLaunch: nadeLaunch, nadeState: nadeState, nadeStep: nadeStep, nadeFly: nadeFly, nadeThrow: nadeThrow, nadeAim: nadeAim };
+  for (var k in api) root[k] = api[k];   // игра — глобальные имена
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
-  else for (var k in api) root[k] = api[k];
-})(this);
+})(typeof globalThis !== "undefined" ? globalThis : this);

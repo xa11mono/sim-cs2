@@ -1,11 +1,13 @@
 // ---------- физика полёта и срабатывание ----------
-function nadeWallHit(x1,y1,x2,y2){
-  if(MAP3D) return m3SolidHit(x1, y1, x2, y2);   // (А5) край твёрдой клетки геометрии (временно — до полёта по физике, шаг В3)
-  for(var i=0;i<MANUAL_WALLS.length;i++){
-    var s = MANUAL_WALLS[i];
-    if(segIntersect(x1,y1,x2,y2,s[0],s[1],s[2],s[3])) return s;
+// (В3) упала на крышу / карниз, куда не дойти (рядом нет этажа геометрии на этой высоте): разрыв виден и слышен, но дым /
+// огонь / HE не действуют на тех, кто под ней (как раньше «упала на крышу»). Флешка рвётся где угодно — действует всегда
+function nadeOnRoof(x, y, z){
+  var M = m3(); if(!M) return false;
+  for(var dj = -1; dj <= 1; dj++) for(var di = -1; di <= 1; di++){
+    var f = m3Floors(M, x + di*M.cell, y + dj*M.cell);
+    for(var q = 0; q < f.length; q++) if(f[q] <= z + 16 && f[q] >= z - 48) return false;
   }
-  return null;
+  return true;
 }
 // (v321, М20, отметка владельца) откуда прилетела граната: кто из врагов видел её в полёте (линия до точки следа) или
 // разрыв рядом — понимает примерно, откуда кинули (как в игре: по дуге видно направление и расстояние). Точка броска с
@@ -151,50 +153,22 @@ function flashSeen(b, n){
   }
   return false;
 }
+var NADE_TRACE = null;   // луч гранаты (m3NadeTrace) — один на страницу
 function nadesTick(){
-  var dt = 1/TICK_HZ;
   for(var i=nadesInAir.length-1;i>=0;i--){
     var n = nadesInAir[i];
-    if(n.lob){
-      var fk = Math.min(1, (tick - n.born)/n.flight);
-      n.x = n.sx + (n.tx-n.sx)*fk; n.y = n.sy + (n.ty-n.sy)*fk;
-      if(tick % 2 === 0){ n.trail.push([n.x, n.y]); if(n.trail.length > 14) n.trail.shift(); }
-      if(fk >= 1){
-        // (v323, М30) упала в стену или разброс унёс её за стену от точки прицела — не взрывается в стене, а отскакивает:
-        // встаёт у стены со стороны полёта и дальше катится как обычная (отскок от стен — ниже)
-        var hitW = insideSolidWall(n.x, n.y) || nadeWallHit(n.aimX, n.aimY, n.x, n.y);
-        // (v323, М33) разброс унёс под крышу — упала на крышу: разрыв виден и слышен, но на тех, кто под ней, не действует
-        if(!hitW && !n.under && nadeCovered(n.x, n.y)){ nadesInAir.splice(i,1); n.onRoof = true; nadeOrigin(n); nadeFx.push({x:n.x, y:n.y, type:n.type, born:tick, roof:true}); continue; }
-        if(!hitW){ nadesInAir.splice(i,1); detonate(n); continue; }
-        var bx = n.aimX, by = n.aimY;
-        if(insideSolidWall(bx, by)){ for(var q = 1; q <= 40; q++){ var f2 = 1 - q/40; bx = n.sx + (n.aimX-n.sx)*f2; by = n.sy + (n.aimY-n.sy)*f2; if(!insideSolidWall(bx, by)) break; } }
-        var ang = Math.atan2(n.y-by, n.x-bx), sp0 = Math.max(60, Math.hypot(n.x-bx, n.y-by)*(1-0.96)*TICK_HZ);
-        n.lob = false; n.x = bx; n.y = by; n.vx = Math.cos(ang)*sp0; n.vy = Math.sin(ang)*sp0;
-        if(n.type === "flash" || n.type === "he") n.born = Math.min(n.born, tick - NADE[n.type].fuse + 8);   // запал уже догорел — рвётся у стены через 8 тиков
-      }
-      continue;
-    }
-    var nx = n.x + n.vx*dt, ny = n.y + n.vy*dt;
-    var w = nadeWallHit(n.x, n.y, nx, ny);
-    if(w){
-      // отскок: отражаем скорость от линии стены, теряем половину энергии
-      var ex = w[2]-w[0], ey = w[3]-w[1], L = Math.hypot(ex,ey)||1; ex/=L; ey/=L;
-      var dot = n.vx*ex + n.vy*ey;
-      var px = n.vx - dot*ex, py = n.vy - dot*ey; // нормальная составляющая
-      n.vx = (dot*ex - px)*0.5; n.vy = (dot*ey - py)*0.5; if(SND && SND.on) sndNade("bounce", n.x, n.y);
-    } else { n.x = nx; n.y = ny; }
-    n.vx *= 0.96; n.vy *= 0.96;
-    if(tick % 2 === 0){ n.trail.push([n.x, n.y]); if(n.trail.length > 14) n.trail.shift(); }
-    var sp = Math.hypot(n.vx, n.vy), age = tick - n.born;
-    var def = NADE[n.type];
-    var boom = (n.type === "smoke" && (sp < 30 || age > def.fuse)) ||
-               (n.type === "molly" && (sp < 70 || age > def.fuse)) ||
-               ((n.type === "flash" || n.type === "he") && age >= def.fuse);
-    if(boom){
-      // (v323, М30) не рвётся внутри стены: последняя точка следа вне стены
-      if(insideSolidWall(n.x, n.y)) for(var q2 = n.trail.length-1; q2 >= 0; q2--){ if(!insideSolidWall(n.trail[q2][0], n.trail[q2][1])){ n.x = n.trail[q2][0]; n.y = n.trail[q2][1]; break; } }
-      nadesInAir.splice(i,1); detonate(n);
-    }
+    if(!n.st){ nadesInAir.splice(i,1); continue; }   // граната из снимка до В3 (без физики)
+    // (В3) полёт — физика гранаты (385_nades_flight: nadeStep — тяжесть, стены, крыши, небо, отскоки, запал, качение) по
+    // геометрии игры. Прежние прямой навес, «телепорт» от стены и отскок от стен радара удалены
+    var nb0 = n.st.bounces.length, how = nadeStep(n.st, NADE_TRACE || (NADE_TRACE = nadeTraceFn()));
+    var R = m3Radar(m3(), n.st.p[0], n.st.p[1]); n.x = R[0]; n.y = R[1]; n.z = n.st.p[2];
+    if(n.st.bounces.length > nb0 && SND && SND.on) sndNade("bounce", n.x, n.y);
+    if(tick % 2 === 0){ n.trail.push([n.x, n.y, n.z]); if(n.trail.length > 30) n.trail.shift(); }
+    if(!how) continue;
+    nadesInAir.splice(i,1);
+    if(how === "lost") continue;
+    if(n.type !== "flash" && nadeOnRoof(n.x, n.y, n.z)){ n.onRoof = true; nadeOrigin(n); nadeFx.push({x:n.x, y:n.y, type:n.type, born:tick, roof:true}); continue; }
+    detonate(n);
   }
   for(var s=smokes.length-1;s>=0;s--) if(tick >= smokes[s].until) smokes.splice(s,1);
   for(var f=fires.length-1;f>=0;f--){

@@ -19,7 +19,5 @@ data/maps/*/geom3d/layers.npz
 run.log
 tools/demo_events_out/
 
-# В2 (21.10): геометрия для физики гранат — пересобирается tools/nades/export_world.py из world_physics.npz
-data/maps/*/geom3d/nade_world.bin
 # В2: итог проверки физики по броскам (tools/nades/check.js, ≈ 1 мин)
 data/maps/*/throws_check.json

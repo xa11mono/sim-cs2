@@ -13,7 +13,7 @@ python3 tools/map3d/columns.py [--map mirage]   →  data/maps/<карта>/geom
   sight — взгляд и пули: всё, кроме playerclip / npcclip / ladder / grenadeclip / sky / passbullets / window и прозрачного
           (glass, chainlink); у каждого отрезка — материал (номер в surf_names) — для прострелов;
   walk  — тело игрока: всё, кроме grenadeclip / sky / ladder и групп «игроки проходят» (exclude player); playerclip — стена;
-  nade  — граната: всё, кроме playerclip / npcclip / ladder / sky; grenadeclip, решётки, стекло — стена. Небо — отдельно: sky_z
+  nade  — граната: всё, кроме playerclip / npcclip / ladder / sky и групп exclude csgo_thrown_grenade (В3); grenadeclip, решётки, стекло — стена. Небо — отдельно: sky_z
           (низ неба над клеткой; граната отскакивает, взгляд и пули его не замечают)."""
 import sys, os, json, time
 import numpy as np
@@ -38,7 +38,10 @@ def masks(z):
         return g if extra is None else g & extra
     sight_g = grp({'playerclip', 'npcclip', 'ladder', 'csgo_grenadeclip', 'sky', 'passbullets', 'window'})
     walk_g = grp({'csgo_grenadeclip', 'sky', 'ladder'}, ~nopl)
-    nade_g = grp({'playerclip', 'npcclip', 'ladder', 'sky'})
+    # (В3) граната пролетает и сквозь группы «кроме брошенной гранаты» (exclude csgo_thrown_grenade — у Ancient детали рельефа,
+    # 239 тыс. треугольников): проверено бросками про (docs/reports/NADES.md — с ними совпадений меньше)
+    nothrown = np.array(['csgo_thrown_grenade' not in [x.lower() for x in a['exclude']] for a in A])
+    nade_g = grp({'playerclip', 'npcclip', 'ladder', 'sky'}, nothrown)
     see = ~np.isin(S, ['glass', 'chainlink'])
     clip = np.array([bool({'playerclip', 'npcclip'} & t) for t in tags])
     def m(attr, surf):
