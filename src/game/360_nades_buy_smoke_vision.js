@@ -101,45 +101,12 @@ function smokeOnLine(x1,y1,x2,y2){
   for(var i=0;i<smokes.length;i++){ var s = smokes[i], r = smokeRadiusNow(s); if(r > 8 && areaSegHits(s, r, x1,y1,x2,y2)) return true; }
   return false;
 }
-// (v323, М36) дым и огонь не проходят сквозь стены: от центра — AREA_RAYS лучей до первой стены (доля радиуса 0..1);
-// и действие (видимость сквозь дым, где жжёт), и рисунок — ровно эта область
-var AREA_RAYS = 48;
-function areaRays(x, y){
-  var R = 1, out = new Float32Array(AREA_RAYS).fill(1);
-  if(insideSolidWall(x, y)) return out;
-  var Rmax = Math.max(NADE.smoke.radius, NADE.molly.radius) + 8;
-  for(var k=0;k<AREA_RAYS;k++){
-    var a = 2*Math.PI*k/AREA_RAYS, dx = Math.cos(a)*Rmax, dy = Math.sin(a)*Rmax, best = 1;
-    for(var i=0;i<MANUAL_WALLS.length;i++){
-      var w = MANUAL_WALLS[i], ex = w[2]-w[0], ey = w[3]-w[1], den = dx*ey - dy*ex; if(Math.abs(den) < 1e-9) continue;
-      var t = ((w[0]-x)*ey - (w[1]-y)*ex)/den, u = ((w[0]-x)*dy - (w[1]-y)*dx)/den;
-      if(t > 0 && t < best && u >= 0 && u <= 1) best = t;
-    }
-    out[k] = best*Rmax;   // ед. карты до стены
-  }
-  return out;
-}
-function areaLimit(o, ang){   // расстояние от центра до стены по направлению ang (ед. карты)
-  if(!o.rays) return Infinity;
-  var f = ((ang/(2*Math.PI))*AREA_RAYS % AREA_RAYS + AREA_RAYS) % AREA_RAYS, k = Math.floor(f), t = f - k;
-  return o.rays[k]*(1-t) + o.rays[(k+1)%AREA_RAYS]*t;
-}
-function areaHas(o, r, px, py){
-  var dx = px - o.x, dy = py - o.y, d = Math.hypot(dx, dy);
-  return d < r && d < areaLimit(o, Math.atan2(dy, dx));
-}
-function areaSegHits(o, r, x1, y1, x2, y2){
-  if(!segHitsCircle(x1,y1,x2,y2,o.x,o.y,r)) return false;
-  if(!o.rays) return true;
-  var L = Math.hypot(x2-x1, y2-y1), n = Math.max(1, Math.ceil(L/3));
-  for(var i=0;i<=n;i++){ var t = i/n; if(areaHas(o, r, x1+(x2-x1)*t, y1+(y2-y1)*t)) return true; }
-  return false;
-}
-function areaPath(o, r){   // контур области для рисования
-  ctx.beginPath();
-  for(var k=0;k<AREA_RAYS;k++){ var a = 2*Math.PI*k/AREA_RAYS, d = Math.min(r, o.rays ? o.rays[k] : r); if(k) ctx.lineTo(o.x+Math.cos(a)*d, o.y+Math.sin(a)*d); else ctx.moveTo(o.x+Math.cos(a)*d, o.y+Math.sin(a)*d); }
-  ctx.closePath();
-}
+// (М150, 21.10, владелец: «смок и молотов обрезаются по стенам — убери») дым и огонь — полный круг своего радиуса. Раньше
+// (v323, М36) круг обрезался стенами радара (areaRays): с А5/А6 они только рисунок, настоящих стен там нет. Сквозь настоящие
+// стены сквозь дым всё равно не видно — видимость идёт по 3D-геометрии игры
+function areaHas(o, r, px, py){ return Math.hypot(px - o.x, py - o.y) < r; }
+function areaSegHits(o, r, x1, y1, x2, y2){ return segHitsCircle(x1,y1,x2,y2,o.x,o.y,r); }
+function areaPath(o, r){ ctx.beginPath(); ctx.arc(o.x, o.y, r, 0, Math.PI*2); ctx.closePath(); }   // контур области для рисования
 function smokeBlocks(x1,y1,x2,y2){
   for(var i=0;i<smokes.length;i++){
     var s = smokes[i], r = smokeRadiusNow(s);
