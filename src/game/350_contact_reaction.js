@@ -20,8 +20,12 @@ function contactInfo(b){
   var N = b._lastNade; if(!best && N && N.type === "flash" && tick - N.t >= NADE.flash.fuse - 8 && tick - N.t < NADE.flash.fuse + 40 && Math.hypot(N.x-b.x, N.y-b.y) < CONTACT_R) best = {x:N.x, y:N.y, own:true};
   return best ? {x:best.x, y:best.y, d:bd, seen:!!best.seen, own:!!best.own} : null;
 }
+var CONTACT_PLAN_R = 300;   // (Г1) ближе — враг уже на бойце: бросок плана отменяется ради боя — проектное число
 function contactCritical(b, C){
   if(b.planting || b.defusing) return true;
+  // (Г1, сторож 21.10: 60 % потерь гранат плана — «снята: контакт») боец идёт кидать гранату плана тактики, а враг известен не
+  // ближе CONTACT_PLAN_R — граната и есть ответ на контакт (про докидывают выход под звук / колл), взгляд — на контакт
+  var T = b.nadeTask; if(T && T.lineup && /план/.test(String(T.why||"")) && C.d > CONTACT_PLAN_R) return true;
   if(bomb && bomb.state === "planted"){
     var left = bombTimeLeftTicks()/TICK_HZ;
     if(b.team === "CT" && !(teamTac.CT && teamTac.CT.saving)){ var need = Math.hypot(b.x-bomb.x, b.y-bomb.y)/SPEED*1.2 + (b.kit ? 5 : 10) + 1.5; if(left - need < 3) return true; }
