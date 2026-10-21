@@ -78,8 +78,8 @@ function dropBomb(b){
 var DEFUSE_HEAR = 700;
 var DEFUSE_R = 30;
 function defuseSees(b){
-  var fv = visFloorAt(b.baseX, b.baseY); if(b.z != null && Math.abs(fv - b.z) > JUMP_UP) fv = b.z;
-  var fb = visFloorAt(bomb.x, bomb.y), az = b._area && navArea(b._area); if(bomb.z != null && Math.abs(fb - bomb.z) > JUMP_UP) fb = bomb.z;
+  var fv = visFloorAt(b.baseX, b.baseY, b.z); if(b.z != null && Math.abs(fv - b.z) > JUMP_UP) fv = b.z;
+  var fb = visFloorAt(bomb.x, bomb.y, bomb.z), az = b._area && navArea(b._area); if(bomb.z != null && Math.abs(fb - bomb.z) > JUMP_UP) fb = bomb.z;
   return !visWallHit(b.baseX, b.baseY, bomb.x, bomb.y) && visMarch(b.baseX, b.baseY, fv + VIS_EYE.crouch, bomb.x, bomb.y, fb + 8);
 }
 var ESC_MAX_SEC = 8, ESC_WAIT_SEC = 8;
@@ -182,8 +182,8 @@ function bombTick(){
       bots.forEach(function(o){
         if(o.team !== "CT" || !o.alive) return;
         var dH = Math.hypot(o.x-c.x, o.y-c.y);
-        if(dH < 520 || (dH < 850 && hasLOS(o.x, o.y, c.x, c.y)))
-          o.heardSound = hearReal(o, {x:c.x, y:c.y, tick:tick, team:"T", src:c.id, kind:"plant", occl:!hasLOS(o.x, o.y, c.x, c.y)});
+        if(dH < 520 || (dH < 850 && hasLOS(o.x, o.y, c.x, c.y, o.z)))
+          o.heardSound = hearReal(o, {x:c.x, y:c.y, tick:tick, team:"T", src:c.id, kind:"plant", occl:!hasLOS(o.x, o.y, c.x, c.y, o.z)});
       });
     }
   } else if(bomb.state === "dropped"){

@@ -6,13 +6,17 @@
 // debounced to run only after the user stops adjusting. ----------
 var NAV_BLOCKED = {}, navBlockedCount = 0, navCutPortals = 0, navNarrowPortals = 0;
 // WALL_SOLID_POLYS — см. applyWalls выше
+// (А5) у карты есть 3D-геометрия игры — «в стене» и «шаг сквозь стену» по ней (035_map3d: клетка без этажа и без навмеша);
+// стены радара тогда — только рисование
 function insideSolidWall(x, y){
+  if(MAP3D) return m3Solid(x, y);
   for(var i=0;i<WALL_SOLID_POLYS.length;i++){
     if(pointInPoly(x, y, WALL_SOLID_POLYS[i])) return true;
   }
   return false;
 }
 function segCrossesManualWalls(x1,y1,x2,y2){
+  if(MAP3D) return !!m3SolidHit(x1, y1, x2, y2);
   for(var i=0;i<MANUAL_WALLS.length;i++){
     var s = MANUAL_WALLS[i];
     if(segIntersect(x1,y1,x2,y2,s[0],s[1],s[2],s[3])) return true;
@@ -54,7 +58,7 @@ function rebuildNav(){
 
   zonesById = {};
   NAVAREAS.forEach(function(z){ zonesById[z.id] = z; });
-  NAV_GRID = null; NAV_ZONE = null; LADDERS = null; PATHQ = {}; PATHQ_N = 0;   // (v321) сетка участков под точкой — пересобрать
+  NAV_GRID = null; NAV_ZONE = null; M3_SOLID = null; LADDERS = null; PATHQ = {}; PATHQ_N = 0;   // (v321) сетка участков под точкой — пересобрать
 
   // ---------- граф с учётом стен ----------
   // navmesh и стены — два независимых слоя, и после выравнивания/калибровки
@@ -73,7 +77,8 @@ function rebuildNav(){
   // маленький полигон в узком проходе Dark сдвигался на 3px, центр оказывался
   // в выступе стены — и весь проход Cave → Dark → Lamp Room исчезал из графа.
   // Боты считали Cave тупиком: не ходили через него и стояли в нём спиной к Dark.
-  NAVAREAS.forEach(function(z){
+  // (А5) по геометрии — навмеш из того же файла игры главный: участки не выкидываются, переходы не режутся (ниже)
+  if(!MAP3D) NAVAREAS.forEach(function(z){
     var c = zoneCentroid(z), n = 0, inn = 0;
     if(insideSolidWall(c.x, c.y)) inn++; n++;
     z.points.forEach(function(p){ var q = {x: p.x + (c.x-p.x)*0.35, y: p.y + (c.y-p.y)*0.35}; n++; if(insideSolidWall(q.x, q.y)) inn++; });
@@ -127,7 +132,7 @@ function rebuildNav(){
         var ea = Math.min(14, la), eb = Math.min(14, lb);
         var pA = {x: mid.x + (ca.x-mid.x)/la*ea, y: mid.y + (ca.y-mid.y)/la*ea};
         var pB = {x: mid.x + (cb.x-mid.x)/lb*eb, y: mid.y + (cb.y-mid.y)/lb*eb};
-        if(segCrossesManualWalls(pA.x,pA.y,pB.x,pB.y)){
+        if(!MAP3D && segCrossesManualWalls(pA.x,pA.y,pB.x,pB.y)){
           // середина общего края упёрлась в стену (проход сужен выступом —
           // так было в Dark → Lamp Room после калибровки навмеша): ищем
           // открытую часть этого же края и идём через неё, а не рвём связь
@@ -410,7 +415,9 @@ function segIntersect(ax,ay,bx,by,cx,cy,dx,dy){
 }
 // (v241) видимость между двумя точками — глаза стоящего человека с обеих сторон, в 3D (стены, укрытия,
 // пол и уступы, крыши — visLine). Раньше — только плоские отрезки стен
-function hasLOS(x1,y1,x2,y2){
-  return visLine(x1, y1, visFloorAt(x1, y1) + VIS_EYE.stand, x2, y2, visFloorAt(x2, y2) + VIS_EYE.stand, false);
+// z1, z2 — высоты концов, если известны (бот): пол — его этаж, а не верхний (М140, Н2: под балконом Shadow, в Underpass
+// взгляд, позиции и «откуда простреливается» считались с глаз на верхнем полу)
+function hasLOS(x1,y1,x2,y2,z1,z2){
+  return visLine(x1, y1, visFloorAt(x1, y1, z1) + VIS_EYE.stand, x2, y2, visFloorAt(x2, y2, z2) + VIS_EYE.stand, false);
 }
 

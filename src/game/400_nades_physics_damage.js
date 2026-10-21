@@ -1,5 +1,6 @@
 // ---------- физика полёта и срабатывание ----------
 function nadeWallHit(x1,y1,x2,y2){
+  if(MAP3D) return m3SolidHit(x1, y1, x2, y2);   // (А5) край твёрдой клетки геометрии (временно — до полёта по физике, шаг В3)
   for(var i=0;i<MANUAL_WALLS.length;i++){
     var s = MANUAL_WALLS[i];
     if(segIntersect(x1,y1,x2,y2,s[0],s[1],s[2],s[3])) return s;
@@ -78,7 +79,7 @@ function detonate(n){
     bots.forEach(function(b){
       if(!b.alive) return;   // (v263, Б1) HE ранит и своих, и бросившего — множитель в applyDamage
       var d = Math.hypot(b.x-n.x, b.y-n.y);
-      if(d > NADE.he.radius || !hasLOS(n.x, n.y, b.x, b.y)) return;
+      if(d > NADE.he.radius || !hasLOS(n.x, n.y, b.x, b.y, null, b.z)) return;
       var dmg = NADE.he.dmg * (1 - d/NADE.he.radius);
       applyDamage(n.thrower, b, dmg, "HE", {armorRatio: b.armor ? NADE.he.armorK : null});
     });

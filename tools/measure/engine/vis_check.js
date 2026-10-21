@@ -4,6 +4,9 @@
 //             причина (floor|cover|ceil|wall|level|''), x, y точки, где линию режет, глаза убийцы над полом движка (ez − z демки)]
 visReady();
 function why(ax, ay, az, bx, by, bz){
+  // (А5) у карты 3D-геометрия игры: где луч упирается в неё и материал ("geom")
+  var M3g = typeof m3 === "function" && m3();
+  if(M3g){ var h = m3Hit(M3g, ax, ay, az, bx, by, bz, "sight"); return h ? ["geom", ax + (bx-ax)*h.t, ay + (by-ay)*h.t, h.mat || ""] : ["", 0, 0]; }
   if(levelBlocked(ax, ay, az, bx, by, bz)) return ["level", (ax+bx)/2, (ay+by)/2];
   // высокие стены — первая пересечённая (по ходу линии)
   var best = null, bt = 2;
@@ -14,7 +17,7 @@ function why(ax, ay, az, bx, by, bz){
   var dx = bx-ax, dy = by-ay, dz = bz-az, n = Math.ceil(Math.hypot(dx, dy)/VIS_CELL), W = VIS.W, inv = 1/VIS_CELL;
   for(var i = 1; i < n; i++){ var t = i/n, x = (ax+dx*t)*inv, y = (ay+dy*t)*inv; if(x < 0 || y < 0 || x >= W || y >= W) continue;
     var k = (y|0)*W + (x|0), z = az + dz*t;
-    if(z < VIS.solid[k] - VIS_FLOOR_EPS){ var px = ax+dx*t, py = ay+dy*t, lo = navAt(px, py, z);
+    if(z < VIS.solid[k] - VIS_FLOOR_EPS && !(VIS.lo && VIS.lo[k] !== -Infinity && z >= VIS.lo[k] - VIS_FLOOR_EPS && z <= VIS.floor[k] - VIS_SLAB)){ var px = ax+dx*t, py = ay+dy*t, lo = navAt(px, py, z);
       // на высоте линии есть свой пол (нижний этаж под верхним) — сетка знает только верхний; sl — перепад углов участка (пандус)
       var sl = 0; if(lo && lo.points[0].z != null){ var zs = lo.points.map(function(q){ return q.z; }); sl = Math.max.apply(null, zs) - Math.min.apply(null, zs); }
       return [VIS.solid[k] > VIS.floor[k] + 1 ? "cover" : "floor", px, py, Math.round(VIS.solid[k] - VIS_FLOOR_EPS - z), lo ? Math.round(z - lo.z) : null, Math.round(sl), Math.round(VIS.floor[k])]; }
@@ -26,9 +29,9 @@ var outK = DATA.kills.map(function(r){
   var ax = r[3], ay = r[4], az = r[5], vx = r[6], vy = r[7], vz = r[8];
   var st = visParts(ax, ay, false, vx, vy, false, true, az, vz), any = code(st) > 0;
   [[true, false], [false, true], [true, true]].forEach(function(c){ if(!any) any = code(visParts(ax, ay, c[0], vx, vy, c[1], true, az, vz)) > 0; });
-  var los = hasLOS(ax, ay, vx, vy) ? 1 : 0, w = ["", 0, 0];
-  var fv = visFloorAt(ax, ay); if(Math.abs(fv - az) > JUMP_UP) fv = az; var ez = fv + VIS_EYE.stand;
-  var ft = visFloorAt(vx, vy); if(Math.abs(ft - vz) > JUMP_UP) ft = vz;
+  var los = hasLOS(ax, ay, vx, vy, az, vz) ? 1 : 0, w = ["", 0, 0];
+  var fv = visFloorAt(ax, ay, az); if(Math.abs(fv - az) > JUMP_UP) fv = az; var ez = fv + VIS_EYE.stand;
+  var ft = visFloorAt(vx, vy, vz); if(Math.abs(ft - vz) > JUMP_UP) ft = vz;
   if(!code(st)) w = why(ax, ay, ez, vx, vy, ft + VIS_BODY.stand[0]);
   // ширина тела: движок проверяет только линию центр–центр; у цели плечи ±14 ед. игры (5,6 px) — выглянувший край тела (глаза — в центре)
   var wide = 0;
@@ -39,7 +42,7 @@ var outK = DATA.kills.map(function(r){
 });
 var outN = DATA.neg.map(function(r){
   var p = visParts(r[2], r[3], false, r[5], r[6], false, true, r[4], r[7]);
-  return [code(p), hasLOS(r[2], r[3], r[5], r[6]) ? 1 : 0];
+  return [code(p), hasLOS(r[2], r[3], r[5], r[6], r[4], r[7]) ? 1 : 0];
 });
 var outH = DATA.hgt.map(function(r){
   var f = visFloorAt(r[0], r[1]), a = navAt(r[0], r[1], r[2]), n = a ? null : navNearestZ(r[0], r[1], 6, r[2]);

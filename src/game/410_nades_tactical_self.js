@@ -137,7 +137,7 @@ function selfExitFlash(b){
     if(p.open && knowSpotReach(p) && ahead(p.x, p.y)) cands.push({x:p.x, y:p.y, w:0, key:"spot:"+p.id, info:false}); });
   var best = null;
   cands.forEach(function(c){
-    if(b._selfDone[c.key] || hasLOS(b.x, b.y, c.x, c.y)) return;   // уже на линии — это бой, не выход
+    if(b._selfDone[c.key] || hasLOS(b.x, b.y, c.x, c.y, b.z)) return;   // уже на линии — это бой, не выход
     var px = b.x, py = b.y, run = 0, ex = null;
     for(var i = b.pathIdx; i < b.path.length && run <= SELF.ahead; i++){
       var q = b.path[i]; run += Math.hypot(q[0]-px, q[1]-py); px = q[0]; py = q[1];
@@ -196,7 +196,7 @@ function nadeReact(){
       if(!bots.some(function(o){ return o.id === eH && o.alive; })) continue;
       if(bots.some(function(o){ return o.alive && o.team === team && Math.hypot(o.x-lo.x, o.y-lo.y) < 170; })) continue;
       var th = bots.filter(function(b){ return b.alive && b.team === team && b.nades && b.nades.he > 0 && !b.nadeTask && !b._sawEnemy &&
-        Math.hypot(b.x-lo.x, b.y-lo.y) > 150 && Math.hypot(b.x-lo.x, b.y-lo.y) < NADE_THROW_RANGE && !hasLOS(b.x, b.y, lo.x, lo.y); })[0];
+        Math.hypot(b.x-lo.x, b.y-lo.y) > 150 && Math.hypot(b.x-lo.x, b.y-lo.y) < NADE_THROW_RANGE && !hasLOS(b.x, b.y, lo.x, lo.y, b.z); })[0];
       if(th && assignNade(th, "he", {x:lo.x, y:lo.y}, "HE добить "+eH, {now:true})){ h._heDone = true;
         voiceLog(team, "hefin"+eH, th.id, eH+" на "+h.hp+" за углом — HE"); }
     }
@@ -246,7 +246,7 @@ function nadeReact(){
     var L = beliefLast[b.team] || {}, tgt = null;
     for(var eid in L){ var lo = L[eid]; if(tick - lo.tick > 5*TICK_HZ) continue;
       var e = bots.filter(function(o){ return o.id === eid; })[0]; if(!e || !e.alive) continue;
-      if(Math.hypot(lo.x-b.post.x, lo.y-b.post.y) > 420 || hasLOS(b.x, b.y, lo.x, lo.y)) continue;
+      if(Math.hypot(lo.x-b.post.x, lo.y-b.post.y) > 420 || hasLOS(b.x, b.y, lo.x, lo.y, b.z)) continue;
       tgt = lo; break; }
     if(!tgt) return;
     if(nadesInAir.some(function(n){ return n.team === b.team && n.type === "flash" && Math.hypot((n.tx||n.x)-tgt.x, (n.ty||n.y)-tgt.y) < 150; })) return; // туда уже летит флешка

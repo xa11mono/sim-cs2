@@ -351,7 +351,7 @@ function ctBrain(){
       var tNearP = Math.max(1, intelEstimate("CT", PHs.x, PHs.y, 450, 5*TICK_HZ).n);
       var ctNearP = cts.filter(function(o){ return Math.hypot(o.x-PHs.x, o.y-PHs.y) < 600; }).length;
       var secLeftP = ROUND_TIME_SEC - (simTime - roundStartTime);
-      spSmart = ctNearP >= tNearP || secLeftP < 12 || hasLOS(b.x, b.y, PHs.x, PHs.y);
+      spSmart = ctNearP >= tNearP || secLeftP < 12 || hasLOS(b.x, b.y, PHs.x, PHs.y, b.z);
       if(!spSmart && b._noStopLog !== PHs.tick){ b._noStopLog = PHs.tick;
         voiceLog("CT", "nostop"+b.id, b.id, "их "+tNearP+", нас "+ctNearP+" — под плант не лезу, держу и играем ретейк"); }
     }
@@ -377,7 +377,7 @@ function ctBrain(){
       for(var q2=sg2.length-1; q2>=0; q2--){
         var g2 = sg2[q2]; if(tick - g2.tick > 5*TICK_HZ) break;
         if(g2.type !== "sound" || srcs[g2.id]) continue;
-        if(Math.hypot(g2.x-b.x, g2.y-b.y) > 650 || hasLOS(b.x, b.y, g2.x, g2.y)) continue;
+        if(Math.hypot(g2.x-b.x, g2.y-b.y) > 650 || hasLOS(b.x, b.y, g2.x, g2.y, b.z)) continue;
         srcs[g2.id] = true; sx += g2.x; sy += g2.y; sn++;
       }
       if(sn >= 2){

@@ -89,7 +89,9 @@ function knowGraph(){
 // этаже → его зона. Участки, над/под которыми есть другой этаж (> NAVZ_FLOOR ед.), получают зону соседей по своему этажу
 // (обход по связям навмеша от ближайших участков без второго этажа), а не плоскую
 var NAVZ_FLOOR = 100, NAVZ_NEAR = 120, NAV_ZONE = null;
+// (А5) у зон из 3D-геометрии (tools/map3d/zones_game.py) зона каждого участка уже посчитана по этажам — MAP.zones.navZone
 function navZoneBuild(){
+  if(MAP.zones.navZone){ NAV_ZONE = {}; NAVAREAS.forEach(function(a){ var z = MAP.zones.navZone[a.id]; if(z) NAV_ZONE[a.id] = z; }); return; }
   if(!NAV_GRID) navGridBuild();
   NAV_ZONE = {}; var byId = {}, over = {}, Q = [];
   NAVAREAS.forEach(function(a){ byId[a.id] = a; });

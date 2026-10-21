@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """А3 (20.10.2026): слои карты из «столбиков» геометрии (columns.py) — этажи, стены, укрытия, крыши, проёмы, подъёмы, небо.
 python3 tools/map3d/layers.py [--map mirage]   → data/maps/<карта>/geom3d/layers.npz (для картинок и отчёта)
-                                                + data/maps/<карта>/geom3d/map3d.json (то, что берёт игра: VIS и гранаты)
+                                                + data/maps/<карта>/map3d.json (корень набора — игра берёт его как MAP.map3d: VIS, гранаты)
 
 Пол (этаж) — верх отрезка walk, у самого верха — поверхность, обращённая вверх (наклон не круче, чем у Source: нормаль z ≥ 0,7),
 над ним свободно ≥ 54 ед. (присевший игрок). В одной клетке этажей может быть несколько (Underpass под мидом, второй этаж B Apps).
@@ -311,7 +311,18 @@ def prims(name):
         P = hp[off[k]:off[k + 1]].copy(); c = hv[voff[k]:voff[k + 1]].mean(0)
         if (P[:, :3] @ c - P[:, 3]).mean() > 0: P = -P     # центр — внутри
         planes.append(P)
-    return {'v': b64(V), 'tri': b64(inv.reshape(-1, 3).astype('<u2')), 'tri_flag': b64(tflag), 'tri_mat': b64(z['mesh_surf'][tk].astype(np.uint8)),
+    big = len(used) > 65535   # (А6) у Ancient вершин ~0,5 млн — номера не влезают в Uint16
+    if big:
+        # (А6) большая карта: номера вершин и вершины — разностями с предыдущим (сжимается на 1,4 МБ лучше; страница ≤ 16 МБ)
+        ti = inv.astype(np.int64); dt = np.diff(np.concatenate([[0], ti])).astype('<i4')
+        dv = np.diff(np.vstack([[0, 0, 0], V.astype(np.int64)]), axis=0); assert np.abs(dv).max() < 32767
+        return {'v': b64(dv.astype('<i2')), 'tri': b64(dt), 'tri32': 1, 'delta': 1,
+                'tri_flag': b64(tflag), 'tri_mat': b64(z['mesh_surf'][tk].astype(np.uint8)),
+                'hull_n': b64(pn[hk].astype(np.uint8)), 'hull_p': b64(np.concatenate(planes).astype('<f4')),
+                'hull_box': b64(np.array(box).astype('<i2')),
+                'hull_flag': b64((hm['sight'][hk] * 1 + hm['nade'][hk] * 2).astype(np.uint8)), 'hull_mat': b64(z['hull_surf'][hk].astype(np.uint8)),
+                'counts': {'tri': int(tk.sum()), 'v': int(len(used)), 'hull': int(len(hk))}}
+    return {'v': b64(V), 'tri': b64(inv.reshape(-1, 3).astype('<u2')), 'tri32': 0, 'tri_flag': b64(tflag), 'tri_mat': b64(z['mesh_surf'][tk].astype(np.uint8)),
             'hull_n': b64(pn[hk].astype(np.uint8)), 'hull_p': b64(np.concatenate(planes).astype('<f4')),
             'hull_box': b64(np.array(box).astype('<i2')),
             'hull_flag': b64((hm['sight'][hk] * 1 + hm['nade'][hk] * 2).astype(np.uint8)), 'hull_mat': b64(z['hull_surf'][hk].astype(np.uint8)),
@@ -334,7 +345,7 @@ def write_game(name, C, ncell, nz, kind):
          'floors': {'n': b64(fn), 'z': b64(nz[live].astype('<i2')), 'kind': b64(kind[live].astype(np.uint8))},
          'prims': prims(name)}
     txt = json.dumps(J, ensure_ascii=False, separators=(',', ':'))
-    open(mapdir.path(name, 'geom3d', 'map3d.json'), 'w', encoding='utf-8').write(txt)
+    open(mapdir.path(name, 'map3d.json'), 'w', encoding='utf-8').write(txt)
     print('map3d.json: %.2f МБ' % (len(txt) / 1e6))
 
 

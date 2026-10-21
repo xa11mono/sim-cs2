@@ -95,12 +95,19 @@ def cell_ranges(T, u0, v0):
         zz = P[g][:, :, 2]; valid = np.arange(8)[None, :] < n[g][:, None]
         out_i.append(ii[g]); out_c.append(cj[g] * W + ci[g])
         out_lo.append(np.where(valid, zz, np.inf).min(1)); out_hi.append(np.where(valid, zz, -np.inf).max(1))
+    if not out_i:   # (А6) ничего не задето — у Ancient в файле физики нет группы «небо»
+        e = np.zeros(0, np.int64); return e, e, np.zeros(0), np.zeros(0)
     return np.concatenate(out_i), np.concatenate(out_c), np.concatenate(out_lo), np.concatenate(out_hi)
 
 
 def merge(cell, lo, hi, mat=None, up_hi=None, up_clip=None):
     """отрезки по клеткам → слитые: start (W²+1), lo, hi (int16), mat (по самому длинному куску), floor (верх — пол: обращённая
     вверх поверхность у самого верха отрезка)"""
+    if len(cell) == 0:   # (А6) пусто (нет неба)
+        res = {'start': np.zeros(W * W + 1, np.uint32), 'lo': np.zeros(0, np.int16), 'hi': np.zeros(0, np.int16)}
+        if mat is not None: res['mat'] = np.zeros(0, np.uint8)
+        if up_hi is not None: res['floor'] = np.zeros(0, np.uint8)
+        return res
     lo = np.floor(lo).astype(np.int64); hi = np.ceil(hi).astype(np.int64)
     o = np.lexsort((lo, cell)); cell, lo, hi = cell[o], lo[o], hi[o]
     BIG = 1 << 20; L = lo + cell * BIG; H = hi + cell * BIG

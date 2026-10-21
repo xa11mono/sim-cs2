@@ -22,7 +22,9 @@ try{ var _zl = JSON.parse(localStorage.getItem(ZONE_LAYER_KEY)||"null"); if(_zl 
 function zlPt(x, y){ return {x: 1024 + (x-1024)*zoneLayer.scale + zoneLayer.dx, y: 1024 + (y-1024)*zoneLayer.scale + zoneLayer.dy}; }
 // своя форма зон (перо в слое «зоны»): точки в "сырых" координатах слоя,
 // чтобы общее выравнивание слоя продолжало к ним применяться
-var ZONE_SHAPES_BAKED = MAP.zones.shapes, ZONE_SHAPES_KEY = MAP.store + "-zoneshapes-v1", ZONE_SHAPES = {};
+// (А5) зоны из 3D-геометрии (MAP.zones.navZone) — другие зоны под теми же номерами: правки форм и названий старых зон в браузере к ним не относятся
+var ZONES_GEN = MAP.zones.navZone ? "-z3d" : "";
+var ZONE_SHAPES_BAKED = MAP.zones.shapes, ZONE_SHAPES_KEY = MAP.store + "-zoneshapes-v1" + ZONES_GEN, ZONE_SHAPES = {};
 (function(){ for(var k in ZONE_SHAPES_BAKED) ZONE_SHAPES[k] = ZONE_SHAPES_BAKED[k];
   try{ var o = JSON.parse(localStorage.getItem(ZONE_SHAPES_KEY)||"null"); if(o) for(var k2 in o){ if(Array.isArray(o[k2]) && o[k2].length >= 3) ZONE_SHAPES[k2] = o[k2]; } }catch(e){} })();
 function zlInv(x, y){ return {x: 1024 + (x - zoneLayer.dx - 1024)/zoneLayer.scale, y: 1024 + (y - zoneLayer.dy - 1024)/zoneLayer.scale}; }

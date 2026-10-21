@@ -4,7 +4,7 @@ const fs = require('fs'), path = require('path'), zlib = require('zlib');
 const {m3Load, m3Line, m3Hit, m3FloorAt} = require('./map3d.js');
 const MAP = process.argv[2] || 'mirage', ROOT = path.join(__dirname, '..', '..');
 let t0 = Date.now();
-const M = m3Load(JSON.parse(fs.readFileSync(path.join(ROOT, 'data/maps', MAP, 'geom3d/map3d.json'))), u => zlib.inflateSync(u));
+const M = m3Load(JSON.parse(fs.readFileSync(path.join(ROOT, 'data/maps', MAP, 'map3d.json'))), u => zlib.inflateSync(u));
 console.log('загрузка', Date.now() - t0, 'мс');
 const K = JSON.parse(fs.readFileSync(path.join(ROOT, 'tools/measure/runs/e0a_vis', MAP + '_kills.json')));
 const N = JSON.parse(fs.readFileSync(path.join(ROOT, 'tools/measure/runs/e0a_vis', MAP + '_neg.json')));

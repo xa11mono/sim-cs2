@@ -24,7 +24,7 @@ function emitSound(src, x, y, rOpen, rWall, kind, seed){
   bots.forEach(function(o){
     if(!o.alive || o.team === src.team) return;
     var d = Math.hypot(o.x-x, o.y-y); if(d > rOpen) return;
-    var occl = !hasLOS(o.x, o.y, x, y); if(occl && d > rWall) return;
+    var occl = !hasLOS(o.x, o.y, x, y, o.z); if(occl && d > rWall) return;
     var p = hearPos(o, x, y, seed + (o.id.charCodeAt(o.id.length-1)||0)*131, occl) || {x:x, y:y};
     o.heardSound = hearReal(o, {x:p.x, y:p.y, tick:tick, team:src.team, src:src.id, kind:kind, occl:occl});
     heard.push(o);
@@ -119,7 +119,7 @@ function smokeFadeTick(){
     bots.forEach(function(b){
       if(!b.alive || b._sawEnemy || sm._fadeReady[b.id]) return;
       var d = Math.hypot(b.x-sm.x, b.y-sm.y); if(d > 550 || d < NADE.smoke.radius) return;
-      if(!hasLOS(b.x, b.y, sm.x, sm.y)) return;
+      if(!hasLOS(b.x, b.y, sm.x, sm.y, b.z)) return;
       // враг вероятно за дымом: свежая инфа за ним (дальше центра от нас)
       var BL = beliefLast[b.team] || {}, far = null;
       for(var eid in BL){ var lo = BL[eid]; if(tick - lo.tick > 10*TICK_HZ) continue; if(Math.hypot(lo.x-sm.x, lo.y-sm.y) < 450 && Math.hypot(lo.x-b.x, lo.y-b.y) > d){ far = lo; break; } }

@@ -257,7 +257,7 @@ function posClearTick(team){
   var L = enemyPositions(team), R = REACH[team];
   bots.forEach(function(b){ if(!b.alive || b.team !== team || tick < (b.blindUntil||0)) return;
     L.forEach(function(q){ var d = Math.hypot(q.x-b.x, q.y-b.y); if(d > 1100 || posClearValid(team, q.id)) return;
-      if(!inFov(b, q.x, q.y) || !hasLOS(b.x, b.y, q.x, q.y) || smokeBlocks(b.x, b.y, q.x, q.y)) return;
+      if(!inFov(b, q.x, q.y) || !hasLOS(b.x, b.y, q.x, q.y, b.z) || smokeBlocks(b.x, b.y, q.x, q.y)) return;
       var until = Infinity;
       if(R) for(var k = 0; k < R.length; k++){ if(R[k] > tick || !BZ.cent[k]) continue; var tt = tick + Math.hypot(BZ.cent[k].x-q.x, BZ.cent[k].y-q.y)/SPEED*TICK_HZ; if(tt < until) until = tt; }
       POSCLR[team][q.id] = {tick: tick, until: until, by: b.id}; }); });
