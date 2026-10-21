@@ -245,7 +245,7 @@
   <div id="topbar">
     <div class="tb-id">
       <h1>Ancient</h1>
-      <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 388, 21.10</div>
+      <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 389, 21.10</div>
     </div>
     <div class="tb-group" id="tbMatch">
       <button id="btnPause">Пауза</button>
@@ -3575,7 +3575,8 @@ function levelBlocked(ax, ay, az, bx, by, bz){
 // проверяются и плечи — ±VIS_SHOULDER поперёк линии взгляда. Глаза — в центре смотрящего (так в игре). Раньше — только
 // «центр → центр»: игрок, у которого из-за угла уже видно плечо, был невидим (29 % / 28 % «не видно» в убийствах про)
 var VIS_SHOULDER = 14; // ед. игры: полуширина плеч хитбокса CS2 (корпус игрока 32 ед. = ±16; плечо — 14, как в разборе ENGINE_AUDIT)
-function visParts(vx, vy, vC, tx, ty, tC, walls, vz, tz){
+// (Б3, З9) vLift / tLift — глаза смотрящего / тело цели выше пола на столько ед. игры (прыжок: JUMP_APEX); без них — 0
+function visParts(vx, vy, vC, tx, ty, tC, walls, vz, tz, vLift, tLift){
   var no = {head: false, body: false};
   visReady();
   // высокие стены (2D, дёшево — первыми): центр цели и плечи; закрыто всё — не видно
@@ -3589,7 +3590,7 @@ function visParts(vx, vy, vC, tx, ty, tC, walls, vz, tz){
   var fv = visFloorAt(vx, vy, vz), ft = visFloorAt(tx, ty, tz);
   if(vz != null && Math.abs(fv - vz) > JUMP_UP) fv = vz;
   if(tz != null && Math.abs(ft - tz) > JUMP_UP) ft = tz;
-  var ez = fv + (vC ? VIS_EYE.crouch : VIS_EYE.stand), tf = ft, B = tC ? VIS_BODY.crouch : VIS_BODY.stand;
+  var ez = fv + (vC ? VIS_EYE.crouch : VIS_EYE.stand) + (vLift || 0), tf = ft + (tLift || 0), B = tC ? VIS_BODY.crouch : VIS_BODY.stand;
   var head = cw && visMarch(vx, vy, ez, tx, ty, tf + (tC ? VIS_HEAD.crouch : VIS_HEAD.stand)), body = false;
   for(var i = 0; i < B.length && !body; i++) body = cw && visMarch(vx, vy, ez, tx, ty, tf + B[i]);
   // плечи (на высоте груди): край тела может выглядывать из-за угла или ящика, когда центр закрыт
@@ -7695,6 +7696,9 @@ function intelPush(team, sig){ sig.tick = tick; teamIntel[team].sig.push(sig); i
 // beliefLast — писались из одних и тех же сигналов, но beliefLast стирал метку, когда свои проверили место и там пусто, а beliefLast
 // держал. Правила читали кто то, кто другое: одни видели пусто, другие — старую метку (сторож: «пустое чтение» в ctBrain,
 // подборе оружия). Теперь хранилище одно — beliefLast; проверка места и «ушёл по карте вероятностей» (lkpTick) стирают в нём
+// (Б3, З6) подпись метки — по тому, откуда она: «видели» — только увиденное (радар, смерть своего, бросок, прыжок), остальное
+// (звук, войс «слышу», выстрел убийцы) — «слышали». Раньше на панели взгляда всё подписывалось «видели»: 31–34 % таких меток — звук
+function lkpWord(q){ return q && q.src === "spotted" ? "видели" : "слышали"; }
 function lkpReset(){ if(typeof CLEARZ !== "undefined") CLEARZ = {CT:{}, T:{}}; }
 function lkpSet(team, id, x, y, src){ var e = beliefLast[team][id]; if(e && src === "sound" && e.src === "spotted" && tick - e.tick < 2*TICK_HZ) return;
   beliefLast[team][id] = {x:x, y:y, tick:tick, src:src};
@@ -8140,21 +8144,52 @@ var beliefLast = {CT:{}, T:{}};
 // "закрыта" и откроется, только когда враг успел бы добежать из соседней
 // открытой зоны; увиденный/услышанный враг открывает свою зону сразу.
 // Это не вероятность "сколько их", а честное "может ли тут кто-то быть".
-var REACH = {CT:null, T:null};
+// (Б3, З10) тайминг — по каждому врагу отдельно (REACH_E[команда][враг]), как считает игрок: «этого видели на A 3 с назад — до B
+// он ещё не добежал». Источник фронта врага — его спавн в начале раунда, потом каждое место, где команда его видела / слышала
+// (reachOpen с id: радар, смерть своего, войс). REACH[команда] = самое раннее по живым врагам (убитые — из киллфида — выпадают).
+// Раньше фронт был один на всех от спавна: открытая зона оставалась открытой до конца раунда, кто бы где ни был, — к середине
+// раунда штриховка «враг мог дойти, команда не ждёт» покрывала полкарты (31–45 зон из 59–71), а враг там был в 3–4 % проверок
+var REACH = {CT:null, T:null}, REACH_E = {CT:{}, T:{}}, REACH_SRC = {CT:{}, T:{}};
+function reachFrom(zi, t0){
+  var n = BZ.ids.length, D = bzDist(zi >= 0 ? [zi] : []), R = new Float64Array(n);
+  for(var i=0;i<n;i++) R[i] = t0 + D[i]/SPEED*TICK_HZ;
+  return R;
+}
+function reachMin(team){
+  var n = BZ.ids.length, R = new Float64Array(n).fill(Infinity), E = REACH_E[team];
+  for(var id in E){ var e = teamBot(id); if(!e || !e.alive){ delete E[id]; continue; } var Re = E[id]; for(var i=0;i<n;i++) if(Re[i] < R[i]) R[i] = Re[i]; }
+  REACH[team] = R;
+}
 function reachReset(){
   if(!BZ.ids.length) return;
-  var n = BZ.ids.length;
   ["CT","T"].forEach(function(team){
-    var sp = team === "CT" ? T_SPAWN : CT_SPAWN, z = bzOf(sp.x, sp.y);
-    var D = bzDist(z >= 0 ? [z] : []), R = new Float64Array(n);
-    for(var i=0;i<n;i++) R[i] = roundStartTick + D[i]/SPEED*TICK_HZ;
-    REACH[team] = R;
+    var sp = team === "CT" ? T_SPAWN : CT_SPAWN, base = reachFrom(bzOf(sp.x, sp.y), roundStartTick);
+    REACH_E[team] = {}; REACH_SRC[team] = {};
+    bots.forEach(function(e){ if(e.team !== team) REACH_E[team][e.id] = Float64Array.from(base); });
+    reachMin(team);
   });
 }
-function reachOpen(team, x, y){ var R = REACH[team]; if(!R) return; var zi = bzOf(x, y); if(zi >= 0) R[zi] = Math.min(R[zi], tick); }
+// команда узнала, где враг id (видели / слышали именно его): его фронт — заново от этой точки (на следующем шаге reachStep),
+// зона открыта сразу
+function reachOpen(team, x, y, id){
+  var R = REACH[team]; if(!R) return; var zi = bzOf(x, y); if(zi < 0) return;
+  var Re = id && REACH_E[team][id]; if(!Re) return;
+  Re[zi] = Math.min(Re[zi], tick); R[zi] = Math.min(R[zi], tick);
+  REACH_SRC[team][id] = {zi: zi, t: tick};
+}
 function reachPossible(team, i){ var R = REACH[team]; return !R || R[i] <= tick; }
 function reachStep(team, clearList){
-  var R = REACH[team]; if(!R) return;
+  var E = REACH_E[team]; if(!REACH[team]) return;
+  for(var id in E){
+    var src = REACH_SRC[team][id], cl = clearList;
+    // зона, где его только что видели / слышали, «пусто» не закрывает (большую зону свой может «видеть» и не видя его)
+    if(src){ E[id] = reachFrom(src.zi, src.t); delete REACH_SRC[team][id]; cl = clearList.filter(function(cz){ return cz[0] !== src.zi; }); }
+    reachStepOne(E[id], cl);
+  }
+  reachMin(team);
+}
+// один фронт: зоны, куда свои смотрят и там пусто, закрываются; закрытые пересчитываются от открытых
+function reachStepOne(R, clearList){
   clearList.forEach(function(cz){ if(cz[1] >= 0.5) R[cz[0]] = Math.max(R[cz[0]], tick + BELIEF_STEP + 1); });
   if(BAL.reachBlock){
     // (фото) раньше "куда враг мог успеть" считалось один раз от спавна по
@@ -8511,8 +8546,13 @@ function knowCall(b, msg){
   if(msg.kind === "defuse"){ K.defuseT = tick; return; }
   if(!msg.zone) return;
   var g = knowGraph(), c = g.c[msg.zone]; if(!c) return;
+  // (Б3, З7–З8) войс — о тех врагах, о ком он: «вижу» называет увиденных (msg.ids), «меня убил» — убийцу. Кого сказавший видел, тот
+  // был и на радаре у всей команды (knowVision) — с той же или более свежей точкой: войс о нём нового не говорит. Раньше «вижу»
+  // раскладывался по всем врагам, кто мог быть в зоне, и ложился новой веткой рядом с увиденным (два места на одного врага)
+  var only = msg.enemy ? [msg.enemy] : (msg.ids || null);
+  if(only && msg.kind === "see") only = only.filter(function(id){ var B = K.enemies[id]; return !(B && B.last && B.last.tick >= msg.made); });
   knowApply(b, {x: c.x, y: c.y, kind: "voice"}, g.r[msg.zone] + 60, msg.zone, KNOW.voiceL[msg.kind],
-            {say: say, voice: true, mult: msg.count || 1, only: msg.enemy});
+            {say: say, voice: true, mult: msg.count || 1, only: only});
 }
 // «проверил — пусто» тиммейта (войс) или свой взгляд: гипотезы в этой зоне слабеют
 function knowClearZone(team, x, y, eidOnly){
@@ -8531,12 +8571,13 @@ function knowClearZone(team, x, y, eidOnly){
 function knowApply(b, s, err, zone, L, opt){
   var K = b.know, g = knowGraph();
   if(zone && K.spots) K.spots.forEach(function(p){ if(p.zone === zone) p.open = true; });
+  if(opt.only && !opt.only.length) return;
   var vis = 0;
   (b._visible || []).forEach(function(e){ if(Math.hypot(e.x-s.x, e.y-s.y) <= err + 30) vis++; });
   if(vis >= (opt.mult || 1)) return;
   var expl = {}, tot = 0;
   for(var id in K.enemies){
-    var B = K.enemies[id]; if(B.visible || (opt.only && id !== opt.only)) continue;
+    var B = K.enemies[id]; if(B.visible || (opt.only && opt.only.indexOf(id) < 0)) continue;
     var reach = (tick - B.last.tick)/TICK_HZ*SPEED + err + 60, ex = 0;
     if(Math.hypot(s.x-B.last.x, s.y-B.last.y) > reach){ expl[id] = 0; continue; }
     B.hyps.forEach(function(h){ h._c = knowCompat(h, s, err, g); ex += h.weight*h._c; });
@@ -8664,19 +8705,26 @@ function knowPlant(b){
   if(b.team === "CT" && K.plantSite) knowPlantShift(K, K.plantSite);
   for(var id in K.enemies){
     var B = K.enemies[id]; if(B.visible) continue;
-    B.hyps.forEach(function(h){ if(h.type === "moved") h.weight *= knowValue(h.zone, B.side, K); });
+    // (Б3) прогноз «ушёл туда» — к сайтам (knowValue); ветка из звука / войса (heard) — инфа, её место фаза не двигает
+    B.hyps.forEach(function(h){ if(h.type === "moved" && !h.heard) h.weight *= knowValue(h.zone, B.side, K); });
     knowNorm(B.hyps);
   }
 }
 // (v283, владелец 14.10: «вряд ли оставят одного на сайте — все туда пойдут») сайт планта известен — враги, которых не видно,
 // скорее у бомбы: у про после планта T в 600 px от бомбы 85 % времени (88 демок, «пост-плант: T дальше 600 px» 15,2 %).
-// Старые точки («видели на T Upper») не стираются, а уходят в остаток 15 % — обход остаётся возможным
+// (Б3, З4–З5) 85 % — средняя по всем T, а не для того, о ком свежая инфа: к бомбе сдвигается только прогноз — ветки «ушёл туда»
+// и «ушёл тихо» (их вес × 0,152, остальное — «у бомбы»). Инфа остаётся, где была: «видели» (held) — уже со старением по кривой
+// про (knowAge, 88 демок), «слышали / войс» (heard) — та доля, что по той же кривой ещё на месте (knowAgeP от времени звука),
+// остальное — как прогноз. Раньше × 0,152 всем: вес места, где видели ≤ 5 с назад, 0,43 → 0,07, а враг там в 84–94 % (v388, прогон ПК 20)
 function knowPlantShift(K, site){
   if(!site || K.plantShift === site || !SITES[site]) return; K.plantShift = site;
   var S = SITES[site], z = knowZoneAt(S.x, S.y);
   for(var id in K.enemies){ var B = K.enemies[id]; if(B.visible) continue;
-    B.hyps.forEach(function(h){ h.weight *= 0.152; });
-    B.hyps.push({type: "held", zone: z, x: S.x, y: S.y, weight: 0.848, plant: true});
+    var toBomb = 0, seen = B.last && B.last.source !== "spawn";   // «стоит на своём спавне» с начала раунда — прогноз, не инфа
+    B.hyps.forEach(function(h){
+      var keep = h.type === "held" && !h.plant ? (seen ? 1 : 0) : (h.heard && h.htick != null ? knowAgeP((tick - h.htick)/TICK_HZ) : 0);
+      var w = h.weight*(1 - keep)*0.848; toBomb += w; h.weight -= w; });
+    if(toBomb > 0) B.hyps.push({type: "held", zone: z, x: S.x, y: S.y, weight: toBomb, plant: true});
     knowNorm(B.hyps); knowTrim(B); }
 }
 // CT видит саму бомбу на земле — знает сайт
@@ -9098,7 +9146,7 @@ function teamTick(){
 function beliefObserve(team, sg){
   if(!BZ.ids.length) return;
   if((sg.type === "spotted" || sg.type === "sound") && sg.id && sg.id !== "?"){
-    reachOpen(team, sg.x, sg.y);
+    reachOpen(team, sg.x, sg.y, sg.id);
     beliefSeen[team][sg.id] = tick;
     var bl = beliefLast[team][sg.id];
     if(!(bl && bl.src === "spotted" && sg.type === "sound" && tick - bl.tick < 2*TICK_HZ)) beliefLast[team][sg.id] = {x:sg.x, y:sg.y, tick:tick, src:sg.type};
@@ -9164,7 +9212,7 @@ function beliefTick(){
       pmNote(team, e, bl);   // (v354) память матча: где этого игрока первый раз в раунде видели/слышали
       if(hb && (!bl || hb.htick > bl.tick) && !(bl && bl.src === "spotted" && hb.htick - bl.tick < 2*TICK_HZ)){
         beliefLast[team][eid] = {x:hb.x, y:hb.y, tick:hb.htick, src:"sound"}; beliefSeen[team][eid] = hb.htick;
-        reachOpen(team, hb.x, hb.y); lkpSet(team, eid, hb.x, hb.y, "sound");
+        reachOpen(team, hb.x, hb.y, eid); lkpSet(team, eid, hb.x, hb.y, "sound");
       }
     });
     // что видят живые тиммейты — тайминги REACH (может ли там уже кто-то быть)
@@ -12726,7 +12774,10 @@ function throwNade(b, type, tx, ty, lob, why, trusted){
       if(!o.alive || o.team !== enemyTeam) return;
       var dd = Math.hypot(o.x-b.x, o.y-b.y);
       // (v242) видит бросок — только если смотрит туда (поле зрения); услышал — знает сам, команде скажет войс
-      if(hasVision(o.x, o.y, b.x, b.y) && inFov(o, b.x, b.y) && tick >= (o.blindUntil||0)){
+      // (Б3, З9) «видит» — как радар: visParts (стены, укрытия, пол, стойка — 3D-геометрия игры) и дым; раньше hasVision
+      // (стены радара + пол, без укрытий и стойки) — 8–19 % «видел бросок» без линии
+      var vpN = visParts(o.x, o.y, o.crouching, b.x, b.y, b.crouching, true, o.z, b.z);
+      if((vpN.head || vpN.body) && !smokeBlocks(o.x, o.y, b.x, b.y) && inFov(o, b.x, b.y) && tick >= (o.blindUntil||0)){
         intelPush(enemyTeam, {type:"spotted", x:b.x, y:b.y, id:b.id, by:o.id, conf:1});
         o.lastIntel = {x:b.x, y:b.y, tick:tick};
       } else if(dd <= NADE_HEAR_R){
@@ -16446,10 +16497,13 @@ function landSound(bot, quiet){
 // (v334, М58, владелец: «в CS2 есть места, где прыгают для чека, — у B Apps, где стоит karrigan») чек прыжком. Места и как часто —
 // из демок (tools/jumps_bake.py → MAP.pro.jumps: прыжок на месте, rate — прыжков за раунд; Mirage у B Apps — 0,49, у Ticket —
 // 0,09). Стоит у такого места своей стороны (≤ 50 ед. карты), без контакта ≥ 2 с — прыгает с вероятностью rate / JUMP_HOLD_SEC
-// в секунду (JUMP_HOLD_SEC — сколько про обычно стоят у места, проектное). В прыжке видно поверх укрытий (только высокие стены
-// и дым закрывают) в конусе ±60° — и его оттуда тоже. Приземление с приседом тише (csdb.gg: «присесть перед приземлением —
+// в секунду (JUMP_HOLD_SEC — сколько про обычно стоят у места, проектное). В прыжке видно поверх укрытий (глаза на JUMP_APEX выше;
+// закрывают стены, укрытия выше этого и дым) в конусе ±60° — и его оттуда тоже. Приземление с приседом тише (csdb.gg: «присесть перед приземлением —
 // тише»): радиус × 0,5 — проектное число
 var JUMP_HOLD_SEC = 30;
+// (Б3, З9) верх прыжка: глаза / тело выше пола на 57 ед. — CS2: sv_jump_impulse 301,993 ед./с, sv_gravity 800 → v²/2g ≈ 57.
+// «Вижу» с прыжка — как радар: visParts с поднятыми глазами (раньше только высокие стены visWallHit — 98–99 % «видели» без линии)
+var JUMP_APEX = 57;
 function jumpCheckTick(b){
   if(b._landAt && tick >= b._landAt && b.alive && roundState === "live") landSound(b);   // (v335) запрыгнул — приземлился
   var JS = MAP.pro && MAP.pro.jumps; if(!JS || !JS.length || roundState !== "live" || !b.alive) return;
@@ -16458,10 +16512,11 @@ function jumpCheckTick(b){
     var age = tick - J.t;
     if(age === 20){   // верх прыжка — видно поверх укрытий
       bots.forEach(function(o){ if(!o.alive || o.team === b.team) return; var d = Math.hypot(o.x-b.x, o.y-b.y); if(d > 1100) return;
-        if(visWallHit(b.x, b.y, o.x, o.y) || smokeBlocks(b.x, b.y, o.x, o.y)) return;
-        if(_angOff(Math.atan2(o.y-b.y, o.x-b.x), b.facing) < 1.05){ intelPush(b.team, {type:"spotted", x:o.x, y:o.y, id:o.id, by:b.id, conf:1});
+        if(smokeBlocks(b.x, b.y, o.x, o.y)) return;
+        var bS = visParts(b.x, b.y, false, o.x, o.y, o.crouching, true, b.z, o.z, JUMP_APEX, 0), oS = visParts(o.x, o.y, o.crouching, b.x, b.y, false, true, o.z, b.z, 0, JUMP_APEX);
+        if((bS.head || bS.body) && tick >= (b.blindUntil||0) && _angOff(Math.atan2(o.y-b.y, o.x-b.x), b.facing) < 1.05){ intelPush(b.team, {type:"spotted", x:o.x, y:o.y, id:o.id, by:b.id, conf:1});
           voiceLog(b.team, "jc"+o.id+Math.floor(tick/(4*TICK_HZ)), b.id, "чек прыжком: вижу "+nick(o.id)+" — "+calloutName(o.x, o.y)); }
-        if(o.facing !== undefined && _angOff(Math.atan2(b.y-o.y, b.x-o.x), o.facing) < 1.05) intelPush(o.team, {type:"spotted", x:b.x, y:b.y, id:b.id, by:o.id, conf:1}); });
+        if((oS.head || oS.body) && tick >= (o.blindUntil||0) && o.facing !== undefined && _angOff(Math.atan2(b.y-o.y, b.x-o.x), o.facing) < 1.05) intelPush(o.team, {type:"spotted", x:b.x, y:b.y, id:b.id, by:o.id, conf:1}); });
     }
     if(age === 38){   // приземление, с приседом
       landSound(b, true); b._jc = null;
@@ -19007,7 +19062,7 @@ function lookDbgPanel(force){
   if(hs && tick - hs.tick < 6*TICK_HZ) src.push((hs.team && hs.team !== b.team ? "слышал врага" : "слышал") + " (" + (hs.kind || "звук") + ") " + esc(calloutName(hs.x, hs.y)) + ' · <span class="ld-n">' + ((tick-hs.tick)/TICK_HZ).toFixed(1) + ' с</span>');
   if(b.lastIntel && tick - b.lastIntel.tick < 10*TICK_HZ) src.push("инфа " + esc(calloutName(b.lastIntel.x, b.lastIntel.y)) + ' · <span class="ld-n">' + ((tick-b.lastIntel.tick)/TICK_HZ).toFixed(1) + ' с</span>');
   var BL = beliefLast[b.team] || {}; for(var e in BL){ var q = BL[e]; if(!q || tick - q.tick > 15*TICK_HZ) continue; var eb = bots.filter(function(o){ return o.id === e; })[0]; if(!eb || !eb.alive) continue;
-    src.push("команда видела " + esc(nick(e)) + " " + esc(calloutName(q.x, q.y)) + ' · <span class="ld-n">' + ((tick-q.tick)/TICK_HZ).toFixed(1) + ' с</span>'); }
+    src.push("команда " + (lkpWord(q) === "видели" ? "видела " : "слышала ") + esc(nick(e)) + " " + esc(calloutName(q.x, q.y)) + ' · <span class="ld-n">' + ((tick-q.tick)/TICK_HZ).toFixed(1) + ' с</span>'); }
   if(b._coverDir && tick < b._coverDir.until) src.push("просьба прикрыть угол " + esc(calloutName(b._coverDir.pt.x, b._coverDir.pt.y)));
   if(b._spam && tick < b._spam.until) src.push("простреливает смок → " + esc(calloutName(b._spam.pt.x, b._spam.pt.y)));
   if(tick < (b.blindUntil||0)) src.push("ослеплён ещё " + ((b.blindUntil-tick)/TICK_HZ).toFixed(1) + " с");
@@ -19076,7 +19131,7 @@ function lookDbgDraw(){
   var hs = b.heardSound; if(hs && tick - hs.tick < 6*TICK_HZ) mark(hs, "#7fd0c0", "звук " + ((tick-hs.tick)/TICK_HZ).toFixed(1) + " с");
   if(b.lastIntel && tick - b.lastIntel.tick < 10*TICK_HZ) mark(b.lastIntel, "#c9a0ff", "инфа " + ((tick-b.lastIntel.tick)/TICK_HZ).toFixed(1) + " с");
   var BL = beliefLast[b.team] || {}; for(var e in BL){ var q = BL[e]; if(!q || tick - q.tick > 15*TICK_HZ) continue; var eb = bots.filter(function(o){ return o.id === e; })[0]; if(!eb || !eb.alive) continue;
-    mark(q, "#f08a7a", "видели №" + pnum(e) + " " + ((tick-q.tick)/TICK_HZ).toFixed(1) + " с"); }
+    mark(q, lkpWord(q) === "видели" ? "#f08a7a" : "#7fd0c0", lkpWord(q) + " №" + pnum(e) + " " + ((tick-q.tick)/TICK_HZ).toFixed(1) + " с"); }
   if(b._coverDir && tick < b._coverDir.until) mark(b._coverDir.pt, "#9fbf6a", "прикрыть");
   // взгляды тиммейтов — тонко (делёж углов)
   bots.forEach(function(o){ if(o === b || !o.alive || o.team !== b.team || !o.lookTarget) return;
@@ -19609,7 +19664,7 @@ function draw(){
         ctx.save(); ctx.strokeStyle = col+"0.8)"; ctx.fillStyle = col+"0.9)"; ctx.lineWidth = 1.4/view.scale;
         ctx.setLineDash([3/view.scale, 3/view.scale]); ctx.beginPath(); ctx.arc(e.x, e.y, 9/view.scale, 0, 7); ctx.stroke(); ctx.setLineDash([]);
         ctx.font = "600 "+(8/view.scale)+"px 'IBM Plex Mono',monospace"; ctx.textAlign = "center";
-        ctx.fillText(pnum(id)+" · "+Math.round((tick-e.tick)/TICK_HZ)+"с", e.x, e.y + 3/view.scale);
+        ctx.fillText(pnum(id)+(lkpWord(e) === "видели" ? "" : " слыш")+" · "+Math.round((tick-e.tick)/TICK_HZ)+"с", e.x, e.y + 3/view.scale);   // (Б3, З6) звук — своей подписью
         ctx.restore();
       }
     });
@@ -20449,6 +20504,8 @@ var __SNAP = [
 ["beliefSeen", function(){ return beliefSeen; }, function(v){ try{ beliefSeen = v; }catch(e){} }],
 ["beliefLast", function(){ return beliefLast; }, function(v){ try{ beliefLast = v; }catch(e){} }],
 ["REACH", function(){ return REACH; }, function(v){ try{ REACH = v; }catch(e){} }],
+["REACH_E", function(){ return REACH_E; }, function(v){ try{ REACH_E = v; }catch(e){} }],
+["REACH_SRC", function(){ return REACH_SRC; }, function(v){ try{ REACH_SRC = v; }catch(e){} }],
 ["KNOW", function(){ return KNOW; }, function(v){ try{ KNOW = v; }catch(e){} }],
 ["KNOW_SAY", function(){ return KNOW_SAY; }, function(v){ try{ KNOW_SAY = v; }catch(e){} }],
 ["KNOW_POSITIONS", function(){ return KNOW_POSITIONS; }, function(v){ try{ KNOW_POSITIONS = v; }catch(e){} }],
@@ -20636,6 +20693,7 @@ var __SNAP = [
 ["FREEZE_TURN_SPEED", function(){ return FREEZE_TURN_SPEED; }, function(v){ try{ FREEZE_TURN_SPEED = v; }catch(e){} }],
 ["LAND_DELAY", function(){ return LAND_DELAY; }, function(v){ try{ LAND_DELAY = v; }catch(e){} }],
 ["JUMP_HOLD_SEC", function(){ return JUMP_HOLD_SEC; }, function(v){ try{ JUMP_HOLD_SEC = v; }catch(e){} }],
+["JUMP_APEX", function(){ return JUMP_APEX; }, function(v){ try{ JUMP_APEX = v; }catch(e){} }],
 ["cv", function(){ return cv; }, function(v){ try{ cv = v; }catch(e){} }],
 ["ctx", function(){ return ctx; }, function(v){ try{ ctx = v; }catch(e){} }],
 ["wrap", function(){ return wrap; }, function(v){ try{ wrap = v; }catch(e){} }],
