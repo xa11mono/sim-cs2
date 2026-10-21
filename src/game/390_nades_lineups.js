@@ -100,7 +100,9 @@ function luGive(L, key, since, tt){
     // (v359, р7) кто уже стоит на сайте T (взял его) — с сайта за гранатой назад не уходит
     var onTSite = function(b){ var S = L.team === "T" && tt && SITES[tt.site]; return !!S && (onSite(S, b.x, b.y) || Math.hypot(b.x-S.x, b.y-S.y) < 450) && Math.hypot(L.from.x-S.x, L.from.y-S.y) > Math.hypot(b.x-S.x, b.y-S.y) + 200; };
     // (Г1) граната плана тактики важнее общего задания бойца (не лайнапа): у про гранаты плана летят всегда, общие — по ходу
-    var plan = key.slice(0, 2) === "pi", free = function(b){ return !b.nadeTask || (plan && !b.nadeTask.lineup); };
+    // (v396д, сторож: задания плана снимались у бойца в перестановке / контакте — арбитр места не пускал его к точке броска) гранату
+    // плана берёт тот, кого арбитр к лайнапу пустит (taskCanSet); остальные — по ходу, как было
+    var plan = key.slice(0, 2) === "pi", free = function(b){ return (!b.nadeTask || (plan && !b.nadeTask.lineup)) && (!plan || taskCanSet(b, "lineup")); };
     var cand = bots.filter(function(b){ return okBot(b) && free(b) && !onTSite(b); }).sort(function(a, b2){ return cost(a) - cost(b2); })[0];
     // (v355) свободного нет — граната выхода встаёт в очередь тому, кто уже идёт на лайнап рядом (точки броска ≤ EXEC_QUEUE_R):
     // кинет вторую следом (через NADE_GAP), как про кидают смок + флешку с одной точки. Раньше: одно задание на бойца — лайнап сгорал
