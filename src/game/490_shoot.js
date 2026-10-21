@@ -2,6 +2,31 @@
 // «стоя». Проектное число, подобрано по демкам (b4_shots.py: первый выстрел очереди у про — 60–65 % на точной скорости ≤ 34 %
 // максимальной, 20–25 % до 60 %, остальное быстрее; медиана скорости 52–62 ед./с)
 var FIRE_K = 0.7;
+// (Б4) ошибка прицела игрока (рад) — по демкам про (b4_shots.py, Mirage, 66 тыс. выстрелов из винтовки по цели, видной по
+// геометрии игры): попадание почти не зависит от дистанции, а зависит от того, как быстро цель идёт поперёк линии огня относительно
+// стрелка (vr): ≤ 50 ед./с — 45→33 % (вблизи → > 1500 ед.), 50–120 — 35→24 %, 120–200 — 22→18 %, > 200 — ~10 %. Это ошибка в ед.
+// у цели: σ ≈ √(A² + (L·vr)²), A ≈ 14 ед. (+ 2 на 1000 ед. дистанции), L ≈ 0,12 с — запаздывание прицела за целью. Навык — как
+// раньше: aimErr (0,0045 + 0,02·(1,2 − навык)) относительно навыка 1,0
+var AIM_A = 14, AIM_AD = 0.002, AIM_LAG = 0.12, AIM_FLICK = 0.15, AIM_HEAD_PISTOL = 1.8;
+function aimSigma(sh, tg, dist){
+  var du = Math.max(8, dist)*PX_UNITS, sk = sh.skill || 1;
+  var lx = (tg.x - sh.x)/Math.max(1, dist), ly = (tg.y - sh.y)/Math.max(1, dist);
+  var rvx = ((tg.x - tg.px) - (sh.x - sh.px))*TICK_HZ, rvy = ((tg.y - tg.py) - (sh.y - sh.py))*TICK_HZ;
+  var vr = Math.abs(rvx*(-ly) + rvy*lx)*PX_UNITS;
+  var A = (AIM_A + AIM_AD*du) * (0.0045 + 0.020*Math.max(0, 1.2 - sk)) / 0.0085;
+  return Math.sqrt(A*A + AIM_LAG*AIM_LAG*vr*vr) / du;
+}
+// (Б4) разброс оружия от скорости (рад): доля от максимальной скорости с этим оружием, до 34 % — как стоя (CS2)
+function shotSpread(sh, v){ var w = sh.weapon, f = Math.min(1, v / (SPEED*weaponSpeedMul(sh))), rk = Math.max(0, (f - 0.34)/0.66);
+  return (w.stand*(sh.crouching ? 0.75 : 1) + w.move*(rk + 0.08*f)) / 1000; }
+// (Б4) до какой скорости гасить, чтобы выстрел был «стоит того» (то же правило FIRE_K, что в tryShoot, без отдачи), px/с
+function fireVAcc(sh, tg, dist){
+  var bA = Math.atan(BODY_HALF/Math.max(8, dist)), a = aimSigma(sh, tg, dist), vmax = SPEED*weaponSpeedMul(sh);
+  var pB = function(v){ var s2 = Math.pow(shotSpread(sh, v), 2) + a*a; return 1 - Math.exp(-(bA*bA)/(2*s2)); };
+  var p0 = pB(0);
+  for(var k = 20; k > 0; k--){ var v = vmax*k/20; if(pB(v) >= FIRE_K*p0) return v; }
+  return 0;
+}
 // (Б4) готовность к выстрелу для движения в дуэли (fightCycleTick): через сколько тиков бот мог бы выстрелить в эту цель
 // (реакция, темп оружия, остывание разброса); 0 — готов, ждёт только, пока погасит скорость
 function fireReady(sh, tg, n){ sh._fire = {t:tick, tg:tg.id, inT:Math.max(0, Math.ceil(n))}; }
@@ -124,45 +149,30 @@ function tryShoot(shooter, target, dist){
   // в упор цель огромная и промахнуться почти невозможно, на длинной дистанции
   // в голову попадают редко — как в CS, а не одинаковые 50% на любой дистанции.
   var sk = shooter.skill;
-  // (Б4) разброс от скорости — доля от максимальной скорости с этим оружием (в CS2 до 34 % — как стоя)
-  var wSpreadAt = function(v){ var f = Math.min(1, v / (SPEED*weaponSpeedMul(shooter))), rk = Math.max(0, (f - 0.34)/0.66);
-    return (w.stand*(shooter.crouching ? 0.75 : 1) + w.move*(rk + 0.08*f)) / 1000; };
-  var wSpread = wSpreadAt(shooter.curSpeed);
+  var wSpread = shotSpread(shooter, shooter.curSpeed);
   var comp = 0.55 + 0.35*Math.max(0, Math.min(1, (sk-0.8)/0.4));
   var recoilErr = w.recoil/1000 * Math.max(0, burstIdx-1) * (1-comp) * 1.6;
   var spamErr = (w.spam||0)/1000 * heat;
-  var aimErr = 0.0045 + 0.020*Math.max(0, 1.2 - sk);
+  // (Б4) ошибка прицела игрока — aimSigma (от того, как быстро цель идёт поперёк линии относительно стрелка; числа — демки);
+  // первая пуля после реакции чуть хуже (довёл прицел не до конца): у про точность 1-го выстрела очереди 0,34 против 0,39 у
+  // следующих (Mirage, видимые цели) → ×(1 + AIM_FLICK); кто держал угол / заходил с прицелом — меньше
   var settle = Math.max(0, 1 - (cs - effReaction)/24);
-  // (аудит 11.10) 0,018 → 0,054: подобрано по демкам (tools/measure/duel.py: у про 2 выстрела на фраг и 0,31 с от первого
-  // выстрела до фрага). Старое число держалось на ошибке: 72 % первых выстрелов шли «префайром» без реакции, с разбросом ×1,6–3,4.
-  // Когда реакция стала честной, первые пули стали слишком точными (1 выстрел на фраг, 0,16 с); при 0,054 — 2 и 0,33 с
-  var flick = 0.054 * settle * Math.min(shooter._preAim||1, (shooter._reactMul||1) < 1 ? 0.35 : 1); // держал угол / заходил с прицелом — уже "на цели"
-  // движущуюся цель сложнее вести: ошибка растёт с её угловой скоростью поперёк
-  // линии огня. Стоящего убить легко, широкий выход — трудно, джиггл — почти
-  // невозможно (за это его и делают: взять инфу, не отдав фраг)
-  var tvx = (target.x - target.px)*TICK_HZ, tvy = (target.y - target.py)*TICK_HZ;
-  var lx = (target.x - shooter.x)/Math.max(1, dist), ly = (target.y - shooter.y)/Math.max(1, dist);
-  var vPerp = Math.abs(tvx*(-ly) + tvy*lx);
-  var trackErr = BAL.duelTrack ? (vPerp/Math.max(40, dist)) * (BAL.trackK||0.035) * (1.25 - 0.4*Math.max(0, Math.min(1, (sk-0.8)/0.4))) : 0;
-  // (6) A-D стрейф: цель дёргается туда-обратно — прицел не "ведёт" её, а
-  // догоняет после каждой смены направления. Раньше стрейфер стрелял вдвое
-  // реже стоящего и при этом попадать в него было так же легко — стоящий
-  // выигрывал 8 из 10. Теперь в стрейфера заметно труднее попасть
-  if(BAL.strafeFix && target._fc && target._fc.moving) trackErr = Math.max(trackErr, 0.010) * 2.2;
+  var aimS = aimSigma(shooter, target, dist) * (1 + AIM_FLICK * settle * Math.min(shooter._preAim||1, (shooter._reactMul||1) < 1 ? 0.35 : 1));
   if(BAL.hitbox) recoilErr *= 0.3; // (6) отдача теперь — паттерн (ниже), тут только её "шум"
-  var sigma = Math.sqrt(wSpread*wSpread + recoilErr*recoilErr + spamErr*spamErr + aimErr*aimErr + flick*flick + 0.5*aimD*aimD + trackErr*trackErr);
-  if(shooter.onStairs) sigma *= 2.2;
+  var rest2 = recoilErr*recoilErr + spamErr*spamErr + aimS*aimS + 0.5*aimD*aimD, sM = 1;
+  if(shooter.onStairs) sM *= 2.2;
   // AWP в упор — ноускоп: без прицела, быстро, но разброс большой
   var noscope = BAL.awpClose && w.key === "AWP" && dist < 230;
-  if(noscope) sigma *= 2.4;
-  if(prefire) sigma *= BAL.prefireStrict ? 1.6 + 1.8*(1-prefireConfidence) : 1.3 + 1.4*(1-prefireConfidence);
-  if(thruSmoke) sigma *= 3.2;   // не видит цель — стреляет по памяти, почти вслепую
-  if(shooter.atPost && shooter.curSpeed < 10) sigma /= BAL.holdAcc;
-  if(w.scoped && shooter.curSpeed < 10 && dist > 300) sigma *= 0.8; // AUG/SG в прицеле на дистанции
+  if(noscope) sM *= 2.4;
+  if(prefire) sM *= BAL.prefireStrict ? 1.6 + 1.8*(1-prefireConfidence) : 1.3 + 1.4*(1-prefireConfidence);
+  if(thruSmoke) sM *= 3.2;   // не видит цель — стреляет по памяти, почти вслепую
+  if(shooter.atPost && shooter.curSpeed < 10) sM /= BAL.holdAcc;
+  if(w.scoped && shooter.curSpeed < 10 && dist > 300) sM *= 0.8; // AUG/SG в прицеле на дистанции
+  var sigma = Math.sqrt(wSpread*wSpread + rest2) * sM;
   // (Б4, контрстрейф) стрелять сейчас или сначала погасить скорость: игрок жмёт, когда попасть в корпус на ходу почти так же
   // вероятно, как стоя (не ниже FIRE_K от этого) — вблизи цель большая, и на ходу попадает (пистолет, ПП стреляют с бега),
-  // вдали — сначала остановка. Иначе ждёт, пока сбросит скорость (контрстрейф — fightCycleTick)
-  var w0 = wSpreadAt(0), sig0 = sigma * Math.sqrt(Math.max(1e-12, sigma*sigma - wSpread*wSpread + w0*w0)) / Math.max(1e-9, sigma);
+  // вдали — сначала остановка. Иначе ждёт, пока сбросит скорость (контрстрейф — fightStrafe)
+  var w0 = shotSpread(shooter, 0), sig0 = Math.sqrt(w0*w0 + rest2) * sM;
   var pBody = function(sg){ return 1 - Math.exp(-(bA*bA)/(2*sg*sg)); };
   if(wSpread > w0 && pBody(sigma) < FIRE_K * pBody(sig0)){ fireReady(shooter, target, 0); return; }
   shooter._fire = null;
@@ -182,6 +192,10 @@ function tryShoot(shooter, target, dist){
     pAimHead = Math.min(0.92, pAimHead * (0.45 + 0.9*shooter._place) * (0.6 + 0.6*(shooter._headLvl||0.7)));
   }
   if(BAL.hitbox) pAimHead *= (BAL.hbHead || 0.75);
+  // (Б4) с пистолетом целятся в голову чаще (тап в голову): у про голова среди попаданий пистолетом 33–38 %, винтовкой 13–24 %
+  // (Mirage, видимые цели, b4_shots.py); у ботов было 15–20 % и 18–20 % → множитель подобран по этому отношению (проектное число
+  // по демкам, первый кандидат на уточнение)
+  if(w.slot === "secondary") pAimHead = Math.min(0.95, pAimHead * AIM_HEAD_PISTOL);
   if(BAL.hitbox && burstIdx >= 3) pAimHead *= 0.35; // спрей — в корпус: отдача сама тянет в голову
   if(w.key === "SSG") pAimHead = Math.max(pAimHead, 0.8); // скаут — в голову (корпус не убивает)
   var aimHead = w.key !== "AWP" && hashRand(seedS+5) < pAimHead;

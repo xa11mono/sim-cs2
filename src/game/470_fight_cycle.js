@@ -45,7 +45,7 @@ var CS_ACCEL = 5.5, CS_FRIC = 5.2, CS_STOP = 80;
 // tools/measure/engine/b4_strafe.py
 var STRAFE_PRO = [3.0, 10.6, 34.9, 73.7, 118.6];
 function csDecel(v, vmax){ return CS_FRIC*Math.max(v, CS_STOP/PX_UNITS) + CS_ACCEL*vmax; }   // px/с²
-function csStopTicks(v, vmax){ var n = 0; while(v > 0.5 && n < 30){ v -= csDecel(v, vmax)/TICK_HZ; n++; } return n; }
+function csTicksTo(v, vT, vmax){ var n = 0; while(v > vT + 0.5 && n < 30){ v -= csDecel(v, vmax)/TICK_HZ; n++; } return n; }
 function fightStrafe(b, F, dtSec){
   var e = F.e, fr = b._fire, fresh = fr && tick - fr.t <= 1;
   F.own = !!(e && e.alive && (b._sawEnemy || (fr && tick - fr.t < 16)));
@@ -57,7 +57,9 @@ function fightStrafe(b, F, dtSec){
     F.sdir = pr >= 0 ? 1 : -1; F.sv = F.sdir*Math.min(vmax, b.curSpeed || 0); F.leg = 0;
   }
   if(b.lastShotTick >= F.t) F.started = true;
-  var v = Math.abs(F.sv), stop = fresh && fr.inT <= csStopTicks(v, vmax) + 1 && !b._reloading;
+  // контрстрейф начинается так, чтобы к моменту, когда можно стрелять, скорость упала до той, на которой выстрел «стоит того»
+  // (fireVAcc — то же правило, что в tryShoot): вблизи — почти с ходу, вдали — до остановки
+  var v = Math.abs(F.sv), vT = fresh ? fireVAcc(b, e, L) : 0, stop = fresh && fr.inT <= csTicksTo(v, vT, vmax) + 1 && !b._reloading;
   if(stop || (!F.started && v < 1)){ v = Math.max(0, v - csDecel(v, vmax)*dtSec); F.sv = (F.sv < 0 ? -1 : 1)*v; }
   else {
     var so = (b.baseX - F.ax)*ax + (b.baseY - F.ay)*ay;
