@@ -14,7 +14,8 @@ parse_demos.py), иначе сравнение нечестное.
 Время до выстрела (Mirage, геометрия игры — tools/map3d/raycast.py): назад от первого выстрела стрелка по пробам раз в 16 тиков,
 пока соперник виден (луч глаза 64/46 → голова 62 / грудь 44 / таз 30 ± 12 ед. вбок) и в поле зрения стрелка (± 55°); появление —
 самая ранняя такая проба подряд (до 5 с назад). Шаг 16 тиков: ошибка до 0,25 с, у про и ботов одна и та же.
-Точности по выстрелам у про нет (в репо выстрелы прорежены, player_hurt нет) — только доля хэдшотов среди убийств."""
+Точность по каждому выстрелу, скорость в момент выстрела и очереди (Б4, выгрузка weapon_fire_full / player_hurt с ПК) —
+  b2_shoot.py shots pro|bots|report … (tools/measure/engine/b4_shots.py)."""
 import sys, os, json, glob, gzip, math, pickle, collections
 import numpy as np, pandas as pd
 HERE = os.path.dirname(os.path.abspath(__file__)); MEAS = os.path.dirname(HERE); ROOT = os.path.dirname(os.path.dirname(MEAS))
@@ -271,6 +272,11 @@ def report():
 
 if __name__ == '__main__':
     a = sys.argv[1:]
-    if a[0] == 'pro': pro(a[1])
+    if a[0] == 'shots':
+        from b4_shots import shots_pro, shots_bots, shots_report
+        if a[1] == 'pro': shots_pro(a[2])
+        elif a[1] == 'bots': shots_bots(a[2], a[3])
+        else: shots_report(a[2:])
+    elif a[0] == 'pro': pro(a[1])
     elif a[0] == 'bots': bots(a[1], a[2])
     else: report()
