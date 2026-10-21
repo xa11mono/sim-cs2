@@ -116,7 +116,7 @@
 | `walls.json` | `walls.polys` | стены | `WALL_POLYS_CODE` |
 | `heights.json`, `cover.json`, `wallbang.json` | `heights`, `cover`, `wallbang` | высоты, укрытия, прострелы (поле `own` — правки владельца, `tools/map_pull.py`) | `HEIGHTS`, `COVER`, `WALLBANG` |
 | `tactics.json` | `tactics` | `geoMid` (v319, необязательное) — мид CT и T из демок `{ct, ctLook, t, tLook}` вместо точек на пути между спавнами (`buildSites`); `tTactics` (у тактики `weight` — своя частота), `ctSetups` (у сетапа `midAggressive` — агрессивный мид), `pos`, `lurkPlans`, `shiftTo`, `proRole`, `plays` — розыгрыши (ниже) | `T_TACTICS`, `CT_SETUPS`, `POS`, `LURK_PLANS`, `SHIFT_TO`, `PRO_ROLE` |
-| `lineups.json` | `lineups` | `baked` (лайнапы из редактора), `pro` и `proExtra` (из демок; `proExtra` — только при `BAL.nadeMore`), `builtinOff` | `LINEUPS_BAKED`, `PRO_LINEUPS_RAW`, `BUILTIN_OFF_BAKED` |
+| `lineups.json` | `lineups` | `baked` (лайнапы из редактора), `pro` и `proExtra` (из демок; `proExtra` — только при `BAL.nadeMore`; с В4 у записи `throws` — записанные броски про: варианты с `rec`, сила `s`, прыжок `j`, `tools/nades/lineups_rec.py` + `lineups_fit.js`), `builtinOff` | `LINEUPS_BAKED`, `PRO_LINEUPS_RAW`, `BUILTIN_OFF_BAKED` |
 | `pro.json` | `pro` | места и взгляды про из демок: `spots`, `prior`, `look`, `positions`; `pistolNades` (v370, `tools/nades_pro.py`) | `PRO_SPOTS`, `PRO_PRIOR`, `PRO_LOOK`, `KNOW_POSITIONS` |
 | `map3d.json` (А5, необязательный) | `map3d` | 3D-геометрия игры (раздел «Карта 3D» ниже): есть — видимость, «в стене», гранатные проверки идут по ней, стены радара — только рисование | `MAP3D`, `m3()` (`035_map3d.js`) |
 | `climbs.json` (v372, необязательный) | `climbs` | подъёмы из демок (`tools/climbs_bake.py`): уступ «только спрыгнуть», куда про залезают — `{lo, hi, n, sec}` | связь «вверх» в `NAVAREAS[].conn`, `LADDERS` (`up:true`) |
@@ -265,6 +265,10 @@ CT идёт через зону с ролью `CTspawn`.
   где граната, `n.tx / n.ty` — где разорвётся по расчёту; смок / молотов на крыше (`nadeOnRoof`) — без действия.
 - Удалены (В3): прямой навес, «телепорт» от стены, отскок от стен радара (`nadeWallHit`), `nadeArc`, `nadeTallWall`, `nadeCovered`;
   `MAP.nadelanes` — только кандидаты «откуда кинуть», не разрешение.
+- (В4) Лайнап с записанными бросками про: `luAssign` (`390`) → `nadeRecPick` (`380`: вариант ближе к бойцу, один из записанных бросков)
+  → задача с `rec`; `nadeRecTick` — шаг точно в точку и записанный разбег; бросок — тот же `throwNade(…, rec)` → `nadeRecRelease`
+  (бросок записи: `nadeRecLaunch`) → общий выпуск `nadeRelease`. Смок-лайнап — **заплатка** `smokePinStep` (`400`, поле `n.pin`):
+  последние `SMOKE_PIN_LEAD` с доводится в точку и время разрыва про. `nadeSolve` — только для своих гранат и записей без лайнапа.
 
 ## Проверка без экрана
 - Сборка: `python3 src/build.py`; игра шагами — `node src/q.js sim.html "<код>"`
