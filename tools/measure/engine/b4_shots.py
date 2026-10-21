@@ -13,6 +13,7 @@
 Очередь — выстрелы одного игрока из одного оружия с промежутками ≤ 32 тиков (0,5 с)."""
 import os, glob, gzip, json, math, pickle, collections
 import numpy as np, pandas as pd
+import b2_shoot
 from b2_shoot import OUT, ROOT, wcls, Track, load_rec, mapdir
 
 # максимальная скорость оружия в CS2, ед./с (числа игры)
@@ -28,6 +29,17 @@ ACC_FRAC = 0.34
 DB = ((0, 500), (500, 1000), (1000, 1500), (1500, 99999))
 def wname(w): w = str(w); return w[7:] if w.startswith('weapon_') else w
 
+def vel(tr, t):
+    """скорость по позициям раз в 16 тиков (у про и у ботов одинаково): (pos(t+8) − pos(t−8)) / 16 тиков, ед./с"""
+    a, b = tr.pos(t - 8), tr.pos(t + 8)
+    if a is None or b is None: return None
+    return (b[0] - a[0]) * 4.0, (b[1] - a[1]) * 4.0
+def vrel(trS, trT, t, sx, sy, tx, ty):
+    """относительная скорость цели поперёк линии огня, ед./с (цель минус стрелок) — то, что надо «вести» прицелом"""
+    a, b = vel(trS, t), vel(trT, t)
+    if a is None or b is None: return None
+    L = math.hypot(tx - sx, ty - sy) or 1.0; nx, ny = -(ty - sy) / L, (tx - sx) / L
+    return abs((b[0] - a[0]) * nx + (b[1] - a[1]) * ny)
 def bursts(rows):
     """rows: список dict одного стрелка по времени → номер в очереди (0…) и номер очереди"""
     last, lw, k, bid = -10**9, None, 0, 0
@@ -35,10 +47,13 @@ def bursts(rows):
         if r['t'] - last > 32 or r['w'] != lw: k = 0; bid += 1
         r['k'] = k; r['bid'] = bid; k += 1; last = r['t']; lw = r['w']
 
-def shots_pro(mp):
+def shots_pro(mp, lim=None):
     D = os.path.join(ROOT, 'data', 'demos') if mp == 'ancient' else os.path.join(ROOT, 'data', 'maps', mp, 'demos')
     out = []
-    files = sorted(glob.glob(os.path.join(D, f'*-{mp}*_weapon_fire_full.csv.gz')))
+    files = sorted(glob.glob(os.path.join(D, f'*-{mp}*_weapon_fire_full.csv.gz')))[:lim]
+    geo = mp == 'mirage'
+    if geo: b2_shoot.world(mp)
+    VC = {}
     for n, ff in enumerate(files):
         base = ff[:-len('_weapon_fire_full.csv.gz')]
         try:
@@ -79,7 +94,17 @@ def shots_pro(mp):
             hit = head = False
             for h in HU.get(s, []):
                 if not h[2] and t <= h[0] <= t + 2: h[2] = True; hit = True; head = h[1]; break
-            rows[s].append(dict(t=t, w=w, cls=wcls(w), v=v, f=v / MAXSPD.get(w, 240), tg=best, dist=dist, hit=hit, head=head,
+            vis = None; vr = None
+            if best is not None:
+                p = TR[best].pos(t); vr = vrel(TR[s], TR[best], t, r.user_X, r.user_Y, p[0], p[1])
+            if geo and best is not None:   # (Mirage) цель видна по геометрии игры из глаз стрелка в момент выстрела
+                k = (s, best, t // 8)
+                if k not in VC:
+                    j = TR[best].le(t); p = TR[best].pos(t)
+                    VC[k] = b2_shoot.geo_clear((r.user_X, r.user_Y, r.user_Z), (p[0], p[1], TR[best].Z[j]),
+                                               eyes=((46.0,) if getattr(r, 'user_ducking', False) else (64.0,)))
+                vis = VC[k]
+            rows[s].append(dict(t=t, w=w, cls=wcls(w), v=v, vis=vis, vr=vr, f=v / MAXSPD.get(w, 240), tg=best, dist=dist, hit=hit, head=head,
                                 ap=getattr(r, 'user_accuracy_penalty', None), duck=bool(getattr(r, 'user_ducking', False)),
                                 scoped=bool(getattr(r, 'user_is_scoped', False)), walk=bool(getattr(r, 'user_is_walking', False))))
         for s, L in rows.items():
@@ -96,6 +121,11 @@ def shots_bots(mp, run, tag='bots'):
         R = load_rec(f); m = int(os.path.basename(f).split('_')[1].split('.')[0]); KW = R.get('know') or {}
         HU = collections.defaultdict(list)
         for h in KW.get('hit', []): HU[(h[0], h[1])].append(h)
+        gx = lambda x: x * s + R0['pos_x']; gy = lambda y: R0['pos_y'] - y * s
+        P = collections.defaultdict(list)
+        for q in R['pos']:
+            if q[5]: P[q[1]].append((q[0], gx(q[3]), gy(q[4])))
+        TR = {i: Track([p[0] for p in L], [p[1] for p in L], [p[2] for p in L], [0]*len(L), [0]*len(L)) for i, L in P.items() if len(L) > 2}
         rows = collections.defaultdict(list)
         for x in R.get('shots', []):
             t, i, wk, dist, tg, cur = x[0], x[1], x[3], x[4], x[5], x[7]
@@ -103,8 +133,11 @@ def shots_bots(mp, run, tag='bots'):
             if wcls(wk) not in ('rifle', 'sniper', 'pistol', 'smg'): continue
             hs = HU.get((t, i), [])
             hit = bool(hs); head = bool(hs and hs[0][4])
-            v = cur * s
-            rows[i].append(dict(t=t, w=w, cls=wcls(wk), v=v, f=v / MAXSPD.get(w, 240), tg=tg, dist=dist * s, hit=hit, head=head,
+            v = cur * s; vr = None
+            if i in TR and tg in TR:
+                a, b = TR[i].pos(t), TR[tg].pos(t)
+                if a is not None and b is not None: vr = vrel(TR[i], TR[tg], t, a[0], a[1], b[0], b[1])
+            rows[i].append(dict(t=t, w=w, cls=wcls(wk), v=v, vr=vr, vis=True, f=v / MAXSPD.get(w, 240), tg=tg, dist=dist * s, hit=hit, head=head,
                                 smoke=bool(x[8]), m=m))
         for i, L in rows.items():
             bursts(L)

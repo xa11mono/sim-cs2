@@ -169,7 +169,7 @@ def pro(mp):
 
 # ---------------- боты ----------------
 def load_rec(f): return json.load(gzip.open(f, 'rt', encoding='utf-8') if f.endswith('.gz') else open(f, encoding='utf-8'))
-def bots(mp, run):
+def bots(mp, run, tag='bots'):
     R0 = mapdir.radar(mp); s = R0['scale'] / 2.0
     gx = lambda x: x * s + R0['pos_x']; gy = lambda y: R0['pos_y'] - y * s
     if mp == 'mirage': world(mp)
@@ -222,17 +222,21 @@ def bots(mp, run):
                     q['geo_early'] = n * 16
             app.append(q)
         print(os.path.basename(f), 'дуэлей', len(rows), 'появлений', len(app), flush=True)
-    pickle.dump({'rows': rows, 'app': app}, open(os.path.join(OUT, f'{mp}_bots_shoot.pkl'), 'wb'))
+    pickle.dump({'rows': rows, 'app': app}, open(os.path.join(OUT, f'{mp}_{tag}_shoot.pkl'), 'wb'))
 
 # ---------------- отчёт ----------------
 def q(a, p): a = [x for x in a if x is not None]; return round(float(np.percentile(a, p)), 2) if a else None
-def report():
+def report(tags=('bots',)):
     out = {}
     for mp in ('ancient', 'mirage'):
-        fp, fb = os.path.join(OUT, f'{mp}_pro_shoot.pkl'), os.path.join(OUT, f'{mp}_bots_shoot.pkl')
-        if not (os.path.exists(fp) and os.path.exists(fb)): continue
-        P = pd.DataFrame(pickle.load(open(fp, 'rb'))); B0 = pickle.load(open(fb, 'rb')); B = pd.DataFrame(B0['rows']); A = pd.DataFrame(B0['app'])
-        O = out[mp] = {}
+      fp = os.path.join(OUT, f'{mp}_pro_shoot.pkl')
+      if not os.path.exists(fp): continue
+      P = pd.DataFrame(pickle.load(open(fp, 'rb')))
+      for tag in tags:
+        fb = os.path.join(OUT, f'{mp}_{tag}_shoot.pkl')
+        if not os.path.exists(fb): continue
+        B0 = pickle.load(open(fb, 'rb')); B = pd.DataFrame(B0['rows']); A = pd.DataFrame(B0['app'])
+        O = out[mp if tag == 'bots' else mp + ':' + tag] = {}
         for nm, D in (('pro', P), ('bot', B)):
             o = O[nm] = {'duels': len(D)}
             o['dur_med_s'] = q(D.dur / 64, 50); o['dur_q'] = [q(D.dur / 64, 25), q(D.dur / 64, 75)]
@@ -274,9 +278,9 @@ if __name__ == '__main__':
     a = sys.argv[1:]
     if a[0] == 'shots':
         from b4_shots import shots_pro, shots_bots, shots_report
-        if a[1] == 'pro': shots_pro(a[2])
-        elif a[1] == 'bots': shots_bots(a[2], a[3])
+        if a[1] == 'pro': shots_pro(a[2], *[int(x) for x in a[3:4]])
+        elif a[1] == 'bots': shots_bots(a[2], a[3], *(a[4:5]))
         else: shots_report(a[2:])
     elif a[0] == 'pro': pro(a[1])
-    elif a[0] == 'bots': bots(a[1], a[2])
-    else: report()
+    elif a[0] == 'bots': bots(a[1], a[2], *(a[3:4]))
+    else: report(['bots'] + a[1:])
