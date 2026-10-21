@@ -141,14 +141,14 @@
   // from — ноги [X, Y, Z]; aim — точка [X, Y, Z] (смок / молотов — пол у цели; флешка / HE — над целью); o: {duck, vel, noJump}.
   // Перебор: наклон от −75° до +45° шагом AIM_STEP при каждой силе (ЛКМ, обе, ПКМ), каждый — настоящим полётом (nadeThrow:
   // стены, отскоки, запал, качение); лучший — уточняется наклоном. Не вышло ближе AIM_JUMP_IF — то же с прыжком на бинде
-  // (так про кидают дальние смоки). Ответ — лучший бросок {yaw, pitch, strength, jump, det, t, how, err: ед. по горизонтали,
+  // (так про кидают дальние смоки); и всё ещё мимо — поворот в сторону на AIM_YAW (обход края, отскок от стены). Ответ — лучший бросок {yaw, pitch, strength, jump, det, t, how, err: ед. по горизонтали,
   // dz, bounces}; null — только если цель на месте бросающего.
-  var AIM_STEP = 4, AIM_FINE = [2, 1, 0.5], AIM_JUMP_IF = 48;   // градусы, ед. — проектные числа (скорость ≈ 10 мс на бросок)
+  var AIM_STEP = 4, AIM_FINE = [2, 1, 0.5], AIM_JUMP_IF = 48, AIM_YAW = [-3, 3, -7, 7, -12, 12];   // градусы, ед. — проектные числа (скорость ≈ 10 мс на бросок)
   function nadeAim(type, from, aim, trace, o) {
     o = o || {};
     var dx = aim[0] - from[0], dy = aim[1] - from[1];
     if (Math.hypot(dx, dy) < 1) return null;
-    var yaw = Math.atan2(dy, dx) / D2R, best = null;
+    var yaw0 = Math.atan2(dy, dx) / D2R, yaw = yaw0, best = null;
     function tryOne(pitch, s, jump) {
       var r = nadeThrow({ type: type, pos: from, yaw: yaw, pitch: pitch, strength: s, duck: o.duck, vel: o.vel, jump: jump, spawn: 0 }, trace);
       var exy = Math.hypot(r.det[0] - aim[0], r.det[1] - aim[1]), dz = r.det[2] - aim[2], sc = exy + Math.abs(dz) * 0.5;
@@ -165,6 +165,13 @@
     }
     search(false);
     if (best.err > AIM_JUMP_IF && !o.noJump) search(true);
+    // всё ещё мимо — поворот чуть в сторону (обойти край стены, отскок от стены), наклон — шагом вдвое крупнее
+    if (best.err > AIM_JUMP_IF) AIM_YAW.forEach(function (dy_) {
+      yaw = yaw0 + dy_;
+      for (var pt = -75; pt <= 45; pt += 2 * AIM_STEP) { tryOne(pt, best.strength, best.jump); }
+    });
+    yaw = best.yaw;
+    if (best.yaw !== yaw0) AIM_FINE.forEach(function (st) { var b0 = best; [-st, st].forEach(function (dp) { tryOne(b0.pitch + dp, b0.strength, b0.jump); }); });
     delete best.sc;
     return best;
   }

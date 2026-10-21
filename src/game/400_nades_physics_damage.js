@@ -1,13 +1,16 @@
 // ---------- физика полёта и срабатывание ----------
-// (В3) упала на крышу / карниз, куда не дойти (рядом нет этажа геометрии на этой высоте): разрыв виден и слышен, но дым /
-// огонь / HE не действуют на тех, кто под ней (как раньше «упала на крышу»). Флешка рвётся где угодно — действует всегда
+// (В3) смок / молотов лёг на крышу — высоко над полом, куда можно дойти (выше NADE_ROOF_DZ над самым высоким таким полом под
+// ним): разрыв виден и слышен, но дым / огонь не действуют на тех, кто под крышей (как раньше «упала на крышу»). На ящике, карнизе
+// пониже — действует. Флешка и HE рвутся где угодно (в воздухе тоже) — действуют всегда
+var NADE_ROOF_DZ = 120;   // ед. игры — проектное число (ящик ≈ 64, этаж ≈ 128 и выше)
 function nadeOnRoof(x, y, z){
   var M = m3(); if(!M) return false;
+  var top = -Infinity;
   for(var dj = -1; dj <= 1; dj++) for(var di = -1; di <= 1; di++){
     var f = m3Floors(M, x + di*M.cell, y + dj*M.cell);
-    for(var q = 0; q < f.length; q++) if(f[q] <= z + 16 && f[q] >= z - 48) return false;
+    for(var q = 0; q < f.length; q++) if(f[q] <= z + 16 && f[q] > top) top = f[q];
   }
-  return true;
+  return top === -Infinity || z - top > NADE_ROOF_DZ;
 }
 // (v321, М20, отметка владельца) откуда прилетела граната: кто из врагов видел её в полёте (линия до точки следа) или
 // разрыв рядом — понимает примерно, откуда кинули (как в игре: по дуге видно направление и расстояние). Точка броска с
@@ -80,7 +83,8 @@ function detonate(n){
     });
     bots.forEach(function(b){
       if(!b.alive) return;   // (v263, Б1) HE ранит и своих, и бросившего — множитель в applyDamage
-      var d = Math.hypot(b.x-n.x, b.y-n.y);
+      // (В3) HE рвётся и в воздухе: расстояние — с высотой (ед. игры → px радара ÷ 2,5; тело — 36 над полом)
+      var d = Math.hypot(b.x-n.x, b.y-n.y, n.z != null && b.z != null ? (n.z - b.z - 36) / 2.5 : 0);
       if(d > NADE.he.radius || !hasLOS(n.x, n.y, b.x, b.y, null, b.z)) return;
       var dmg = NADE.he.dmg * (1 - d/NADE.he.radius);
       applyDamage(n.thrower, b, dmg, "HE", {armorRatio: b.armor ? NADE.he.armorK : null});
@@ -167,7 +171,7 @@ function nadesTick(){
     if(!how) continue;
     nadesInAir.splice(i,1);
     if(how === "lost") continue;
-    if(n.type !== "flash" && nadeOnRoof(n.x, n.y, n.z)){ n.onRoof = true; nadeOrigin(n); nadeFx.push({x:n.x, y:n.y, type:n.type, born:tick, roof:true}); continue; }
+    if((n.type === "smoke" || n.type === "molly") && nadeOnRoof(n.x, n.y, n.z)){ n.onRoof = true; nadeOrigin(n); nadeFx.push({x:n.x, y:n.y, type:n.type, born:tick, roof:true}); continue; }
     detonate(n);
   }
   for(var s=smokes.length-1;s>=0;s--) if(tick >= smokes[s].until) smokes.splice(s,1);
