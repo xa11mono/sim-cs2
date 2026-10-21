@@ -1,0 +1,49 @@
+playwright 1.56.0
+> git fetch --quiet origin a2abb68dee7e70aa75c252575a012d5c1fe8a146
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Users\Mono\AppData\Local\Temp\simbuild_9iq7gn1g FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Users\Mono\AppData\Local\Temp\simbuild_9iq7gn1g\src\build.py --map ancient C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\b4a14_anc.html
+> git fetch --quiet origin a2abb68dee7e70aa75c252575a012d5c1fe8a146
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Users\Mono\AppData\Local\Temp\simbuild_gabzuwsi FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Users\Mono\AppData\Local\Temp\simbuild_gabzuwsi\src\build.py --map mirage C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\b4a14_mir.html
+> git fetch --quiet origin 9fe758108ad31c0e09e9de6f6681cb4b69caae06
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Users\Mono\AppData\Local\Temp\simbuild_905lcmtv FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Users\Mono\AppData\Local\Temp\simbuild_905lcmtv\src\build.py --map ancient C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\b4a11_anc.html
+> git fetch --quiet origin 9fe758108ad31c0e09e9de6f6681cb4b69caae06
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Users\Mono\AppData\Local\Temp\simbuild_70o5p8pt FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Users\Mono\AppData\Local\Temp\simbuild_70o5p8pt\src\build.py --map mirage C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\b4a11_mir.html
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\engine\walk_run.py --job=b4a14_anc,C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\b4a14_anc.html --job=b4a14_mir,C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\b4a14_mir.html --job=b4a11_anc,C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\b4a11_anc.html --job=b4a11_mir,C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\b4a11_mir.html --matches=3,7,11,13,17,19,23,29 --par=8
+матчей в очереди: 32, одновременно: 8
+b4a14_anc match 19 rc 0 4594065 — готово 1/32, 3 мин
+b4a14_anc match 3 rc 0 4487934 — готово 2/32, 4 мин
+b4a14_anc match 11 rc 0 5187009 — готово 3/32, 4 мин
+b4a14_anc match 29 rc 0 5442727 — готово 4/32, 4 мин
+b4a14_anc match 13 rc 0 5826056 — готово 5/32, 5 мин
+b4a14_anc match 7 rc 0 5589675 — готово 6/32, 5 мин
+b4a14_anc match 17 rc 0 6326903 — готово 7/32, 5 мин
+b4a14_anc match 23 rc 0 6663277 — готово 8/32, 5 мин
+b4a14_mir match 3 rc 0 5309576 — готово 9/32, 8 мин
+b4a14_mir match 7 rc 0 5356326 — готово 10/32, 9 мин
+b4a14_mir match 11 rc 0 5790257 — готово 11/32, 10 мин
+b4a14_mir match 19 rc 0 6029641 — готово 12/32, 10 мин
+b4a14_mir match 13 rc 0 6827010 — готово 13/32, 11 мин
+b4a14_mir match 17 rc 0 8363209 — готово 14/32, 12 мин
+b4a11_anc match 3 rc 0 5697016 — готово 15/32, 13 мин
+b4a14_mir match 23 rc 0 8712083 — готово 16/32, 13 мин
+b4a14_mir match 29 rc 0 8317329 — готово 17/32, 13 мин
+b4a11_anc match 11 rc 0 4797633 — готово 18/32, 14 мин
+b4a11_anc match 7 rc 0 5724206 — готово 19/32, 14 мин
+b4a11_anc match 13 rc 0 4203523 — готово 20/32, 14 мин
+b4a11_anc match 17 rc 0 5759598 — готово 21/32, 15 мин
+b4a11_anc match 23 rc 0 5624414 — готово 22/32, 17 мин
+b4a11_anc match 29 rc 0 4939808 — готово 23/32, 17 мин
+b4a11_anc match 19 rc 0 6803652 — готово 24/32, 17 мин
+b4a11_mir match 13 rc 0 4105458 — готово 25/32, 18 мин
+b4a11_mir match 3 rc 0 5185491 — готово 26/32, 18 мин
+b4a11_mir match 11 rc 0 5501321 — готово 27/32, 19 мин
+b4a11_mir match 7 rc 0 6733723 — готово 28/32, 20 мин
+b4a11_mir match 17 rc 0 4871743 — готово 29/32, 20 мин
+b4a11_mir match 23 rc 0 4481714 — готово 30/32, 21 мин
+b4a11_mir match 29 rc 0 5955372 — готово 31/32, 22 мин
+b4a11_mir match 19 rc 0 5655248 — готово 32/32, 22 мин
+done
+all done
