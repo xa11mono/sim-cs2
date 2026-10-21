@@ -157,6 +157,20 @@ function flashSeen(b, n){
   }
   return false;
 }
+// ЗАПЛАТКА (В4, решение владельца 21.10.2026, вариант «а»): смок-лайнап (записанный бросок про, 380: throwNadeRec) летит по физике,
+// а последние SMOKE_PIN_LEAD с «доводится» в точку разрыва про и рвётся во время про. Причина: физика повторяет лайнапы смоков
+// только в 24–25 % (В2б, NADES.md: полёт смока по ступеням и краям неустойчив — 0,1° наклона уводит разрыв дальше 32 ед. у 11–19 %
+// лайнапов), а у про один лайнап рвётся в одной точке. Снять, когда физика смоков будет повторять лайнапы в ≥ 60–70 % (проверка —
+// tools/nades/lineups_fit.js). Свои смоки (не лайнапы) заплатка не трогает: у них нет pin
+function smokePinStep(n, nTr){
+  var P = n.pin, el = (tick - n.born) / TICK_HZ;
+  if(el < P.t - SMOKE_PIN_LEAD && !P.q){ var how = nadeStep(n.st, nTr); return how === "stop" ? null : how; }   // лёг раньше про — лежит, ждёт
+  if(!P.q){ P.q = n.st.p.slice(); P.t0 = el; }
+  var k = Math.min(1, (el - P.t0) / Math.max(1/TICK_HZ, P.t - P.t0));
+  n.st.p = [P.q[0] + (P.p[0]-P.q[0])*k, P.q[1] + (P.p[1]-P.q[1])*k, P.q[2] + (P.p[2]-P.q[2])*k];
+  if(k < 1) return null;
+  n.st.how = "stop"; return "stop";
+}
 function nadesTick(){
   var nTr = nadesInAir.length ? nadeTraceFn() : null;   // луч гранаты (m3NadeTrace); не глобальная var: снимок «Отметить момент» не копирует функции
   for(var i=nadesInAir.length-1;i>=0;i--){
@@ -164,7 +178,7 @@ function nadesTick(){
     if(!n.st){ nadesInAir.splice(i,1); continue; }   // граната из снимка до В3 (без физики)
     // (В3) полёт — физика гранаты (385_nades_flight: nadeStep — тяжесть, стены, крыши, небо, отскоки, запал, качение) по
     // геометрии игры. Прежние прямой навес, «телепорт» от стены и отскок от стен радара удалены
-    var nb0 = n.st.bounces.length, how = nadeStep(n.st, nTr);
+    var nb0 = n.st.bounces.length, how = n.pin ? smokePinStep(n, nTr) : nadeStep(n.st, nTr);
     var R = m3Radar(m3(), n.st.p[0], n.st.p[1]); n.x = R[0]; n.y = R[1]; n.z = n.st.p[2];
     if(n.st.bounces.length > nb0 && SND && SND.on) sndNade("bounce", n.x, n.y);
     if(tick % 2 === 0){ n.trail.push([n.x, n.y, n.z]); if(n.trail.length > 30) n.trail.shift(); }
