@@ -66,6 +66,23 @@
         C.map(function(c){ return [R(c.x), R(c.y), Math.round(c.w*100)/100, c.t, place(c.x, c.y), c.i ? 1 : 0]; })]);
   }
 
+  // копия visParts (040_visibility.js, v388) с подъёмом глаз / тела: vLift, tLift — ед. игры над полом
+  function visPartsL(vx, vy, vC, tx, ty, tC, vz, tz, vLift, tLift){
+    var no = {head: false, body: false}; visReady();
+    var L = Math.hypot(tx - vx, ty - vy) || 1, s = VIS_SHOULDER / MAP.pxUnits, px = -(ty - vy) / L * s, py = (tx - vx) / L * s;
+    var cw = !visWallHit(vx, vy, tx, ty), lw = !visWallHit(vx, vy, tx - px, ty - py), rw = !visWallHit(vx, vy, tx + px, ty + py);
+    if(!cw && !lw && !rw) return no;
+    if(levelBlocked(vx, vy, vz, tx, ty, tz)) return no;
+    var fv = visFloorAt(vx, vy, vz), ft = visFloorAt(tx, ty, tz);
+    if(vz != null && Math.abs(fv - vz) > JUMP_UP) fv = vz;
+    if(tz != null && Math.abs(ft - tz) > JUMP_UP) ft = tz;
+    var ez = fv + (vC ? VIS_EYE.crouch : VIS_EYE.stand) + vLift, tf = ft + tLift, B = tC ? VIS_BODY.crouch : VIS_BODY.stand;
+    var head = cw && visMarch(vx, vy, ez, tx, ty, tf + (tC ? VIS_HEAD.crouch : VIS_HEAD.stand)), body = false;
+    for(var i = 0; i < B.length && !body; i++) body = cw && visMarch(vx, vy, ez, tx, ty, tf + B[i]);
+    if(!body && lw && visMarch(vx, vy, ez, tx - px, ty - py, tf + B[0])) body = true;
+    if(!body && rw && visMarch(vx, vy, ez, tx + px, ty + py, tf + B[0])) body = true;
+    return {head: head, body: body};
+  }
   // ---------- «видели»: сигналы spotted ----------
   var IP = intelPush; intelPush = function(team, sig){
     if(roundState === "live" && sig && sig.type === "spotted" && sig.id && sig.id !== "?"){
@@ -73,7 +90,9 @@
       var S = KW.seen.by[who] || (KW.seen.by[who] = {n:0, eng0:0, smoke:0, fov0:0, vis0:0, anyVis0:0});
       S.n++;
       if(by && e){
-        var vp = visParts(by.x, by.y, by.crouching, e.x, e.y, e.crouching, true, by.z, e.z), eng = (vp.head ? 1 : 0) + (vp.body ? 2 : 0);
+        // (Б3) «чек прыжком»: прыгнувший — на верху прыжка (глаза / тело на JUMP_APEX выше пола), как в игре с Б3; своя копия
+        // visParts с подъёмом (visPartsL) — чтобы база (до Б3) мерилась тем же определением
+        var jl = who === "jumpCheckTick" ? 57 : 0, vp = visPartsL(by.x, by.y, by.crouching, e.x, e.y, e.crouching, by.z, e.z, by._jc ? jl : 0, e._jc ? jl : 0), eng = (vp.head ? 1 : 0) + (vp.body ? 2 : 0);
         var sm = smokeBlocks(by.x, by.y, e.x, e.y) ? 1 : 0, fv = inFov(by, e.x, e.y) ? 1 : 0, iv = (by._visible || []).indexOf(e) >= 0 ? 1 : 0;
         var av = bots.some(function(m){ return m.alive && m.team === team && (m._visible || []).indexOf(e) >= 0; }) ? 1 : 0;
         if(!eng) S.eng0++; if(sm) S.smoke++; if(!fv) S.fov0++; if(!iv) S.vis0++; if(!av) S.anyVis0++;

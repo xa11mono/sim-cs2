@@ -11,8 +11,13 @@ function knowCall(b, msg){
   if(msg.kind === "defuse"){ K.defuseT = tick; return; }
   if(!msg.zone) return;
   var g = knowGraph(), c = g.c[msg.zone]; if(!c) return;
+  // (Б3, З7–З8) войс — о тех врагах, о ком он: «вижу» называет увиденных (msg.ids), «меня убил» — убийцу. Кого сказавший видел, тот
+  // был и на радаре у всей команды (knowVision) — с той же или более свежей точкой: войс о нём нового не говорит. Раньше «вижу»
+  // раскладывался по всем врагам, кто мог быть в зоне, и ложился новой веткой рядом с увиденным (два места на одного врага)
+  var only = msg.enemy ? [msg.enemy] : (msg.ids || null);
+  if(only && msg.kind === "see") only = only.filter(function(id){ var B = K.enemies[id]; return !(B && B.last && B.last.tick >= msg.made); });
   knowApply(b, {x: c.x, y: c.y, kind: "voice"}, g.r[msg.zone] + 60, msg.zone, KNOW.voiceL[msg.kind],
-            {say: say, voice: true, mult: msg.count || 1, only: msg.enemy});
+            {say: say, voice: true, mult: msg.count || 1, only: only});
 }
 // «проверил — пусто» тиммейта (войс) или свой взгляд: гипотезы в этой зоне слабеют
 function knowClearZone(team, x, y, eidOnly){
@@ -31,12 +36,13 @@ function knowClearZone(team, x, y, eidOnly){
 function knowApply(b, s, err, zone, L, opt){
   var K = b.know, g = knowGraph();
   if(zone && K.spots) K.spots.forEach(function(p){ if(p.zone === zone) p.open = true; });
+  if(opt.only && !opt.only.length) return;
   var vis = 0;
   (b._visible || []).forEach(function(e){ if(Math.hypot(e.x-s.x, e.y-s.y) <= err + 30) vis++; });
   if(vis >= (opt.mult || 1)) return;
   var expl = {}, tot = 0;
   for(var id in K.enemies){
-    var B = K.enemies[id]; if(B.visible || (opt.only && id !== opt.only)) continue;
+    var B = K.enemies[id]; if(B.visible || (opt.only && opt.only.indexOf(id) < 0)) continue;
     var reach = (tick - B.last.tick)/TICK_HZ*SPEED + err + 60, ex = 0;
     if(Math.hypot(s.x-B.last.x, s.y-B.last.y) > reach){ expl[id] = 0; continue; }
     B.hyps.forEach(function(h){ h._c = knowCompat(h, s, err, g); ex += h.weight*h._c; });
@@ -164,19 +170,26 @@ function knowPlant(b){
   if(b.team === "CT" && K.plantSite) knowPlantShift(K, K.plantSite);
   for(var id in K.enemies){
     var B = K.enemies[id]; if(B.visible) continue;
-    B.hyps.forEach(function(h){ if(h.type === "moved") h.weight *= knowValue(h.zone, B.side, K); });
+    // (Б3) прогноз «ушёл туда» — к сайтам (knowValue); ветка из звука / войса (heard) — инфа, её место фаза не двигает
+    B.hyps.forEach(function(h){ if(h.type === "moved" && !h.heard) h.weight *= knowValue(h.zone, B.side, K); });
     knowNorm(B.hyps);
   }
 }
 // (v283, владелец 14.10: «вряд ли оставят одного на сайте — все туда пойдут») сайт планта известен — враги, которых не видно,
 // скорее у бомбы: у про после планта T в 600 px от бомбы 85 % времени (88 демок, «пост-плант: T дальше 600 px» 15,2 %).
-// Старые точки («видели на T Upper») не стираются, а уходят в остаток 15 % — обход остаётся возможным
+// (Б3, З4–З5) 85 % — средняя по всем T, а не для того, о ком свежая инфа: к бомбе сдвигается только прогноз — ветки «ушёл туда»
+// и «ушёл тихо» (их вес × 0,152, остальное — «у бомбы»). Инфа остаётся, где была: «видели» (held) — уже со старением по кривой
+// про (knowAge, 88 демок), «слышали / войс» (heard) — та доля, что по той же кривой ещё на месте (knowAgeP от времени звука),
+// остальное — как прогноз. Раньше × 0,152 всем: вес места, где видели ≤ 5 с назад, 0,43 → 0,07, а враг там в 84–94 % (v388, прогон ПК 20)
 function knowPlantShift(K, site){
   if(!site || K.plantShift === site || !SITES[site]) return; K.plantShift = site;
   var S = SITES[site], z = knowZoneAt(S.x, S.y);
   for(var id in K.enemies){ var B = K.enemies[id]; if(B.visible) continue;
-    B.hyps.forEach(function(h){ h.weight *= 0.152; });
-    B.hyps.push({type: "held", zone: z, x: S.x, y: S.y, weight: 0.848, plant: true});
+    var toBomb = 0, seen = B.last && B.last.source !== "spawn";   // «стоит на своём спавне» с начала раунда — прогноз, не инфа
+    B.hyps.forEach(function(h){
+      var keep = h.type === "held" && !h.plant ? (seen ? 1 : 0) : (h.heard && h.htick != null ? knowAgeP((tick - h.htick)/TICK_HZ) : 0);
+      var w = h.weight*(1 - keep)*0.848; toBomb += w; h.weight -= w; });
+    if(toBomb > 0) B.hyps.push({type: "held", zone: z, x: S.x, y: S.y, weight: toBomb, plant: true});
     knowNorm(B.hyps); knowTrim(B); }
 }
 // CT видит саму бомбу на земле — знает сайт

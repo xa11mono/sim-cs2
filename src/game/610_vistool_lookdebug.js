@@ -142,7 +142,7 @@ function lookDbgPanel(force){
   if(hs && tick - hs.tick < 6*TICK_HZ) src.push((hs.team && hs.team !== b.team ? "слышал врага" : "слышал") + " (" + (hs.kind || "звук") + ") " + esc(calloutName(hs.x, hs.y)) + ' · <span class="ld-n">' + ((tick-hs.tick)/TICK_HZ).toFixed(1) + ' с</span>');
   if(b.lastIntel && tick - b.lastIntel.tick < 10*TICK_HZ) src.push("инфа " + esc(calloutName(b.lastIntel.x, b.lastIntel.y)) + ' · <span class="ld-n">' + ((tick-b.lastIntel.tick)/TICK_HZ).toFixed(1) + ' с</span>');
   var BL = beliefLast[b.team] || {}; for(var e in BL){ var q = BL[e]; if(!q || tick - q.tick > 15*TICK_HZ) continue; var eb = bots.filter(function(o){ return o.id === e; })[0]; if(!eb || !eb.alive) continue;
-    src.push("команда видела " + esc(nick(e)) + " " + esc(calloutName(q.x, q.y)) + ' · <span class="ld-n">' + ((tick-q.tick)/TICK_HZ).toFixed(1) + ' с</span>'); }
+    src.push("команда " + (lkpWord(q) === "видели" ? "видела " : "слышала ") + esc(nick(e)) + " " + esc(calloutName(q.x, q.y)) + ' · <span class="ld-n">' + ((tick-q.tick)/TICK_HZ).toFixed(1) + ' с</span>'); }
   if(b._coverDir && tick < b._coverDir.until) src.push("просьба прикрыть угол " + esc(calloutName(b._coverDir.pt.x, b._coverDir.pt.y)));
   if(b._spam && tick < b._spam.until) src.push("простреливает смок → " + esc(calloutName(b._spam.pt.x, b._spam.pt.y)));
   if(tick < (b.blindUntil||0)) src.push("ослеплён ещё " + ((b.blindUntil-tick)/TICK_HZ).toFixed(1) + " с");
@@ -211,7 +211,7 @@ function lookDbgDraw(){
   var hs = b.heardSound; if(hs && tick - hs.tick < 6*TICK_HZ) mark(hs, "#7fd0c0", "звук " + ((tick-hs.tick)/TICK_HZ).toFixed(1) + " с");
   if(b.lastIntel && tick - b.lastIntel.tick < 10*TICK_HZ) mark(b.lastIntel, "#c9a0ff", "инфа " + ((tick-b.lastIntel.tick)/TICK_HZ).toFixed(1) + " с");
   var BL = beliefLast[b.team] || {}; for(var e in BL){ var q = BL[e]; if(!q || tick - q.tick > 15*TICK_HZ) continue; var eb = bots.filter(function(o){ return o.id === e; })[0]; if(!eb || !eb.alive) continue;
-    mark(q, "#f08a7a", "видели №" + pnum(e) + " " + ((tick-q.tick)/TICK_HZ).toFixed(1) + " с"); }
+    mark(q, lkpWord(q) === "видели" ? "#f08a7a" : "#7fd0c0", lkpWord(q) + " №" + pnum(e) + " " + ((tick-q.tick)/TICK_HZ).toFixed(1) + " с"); }
   if(b._coverDir && tick < b._coverDir.until) mark(b._coverDir.pt, "#9fbf6a", "прикрыть");
   // взгляды тиммейтов — тонко (делёж углов)
   bots.forEach(function(o){ if(o === b || !o.alive || o.team !== b.team || !o.lookTarget) return;

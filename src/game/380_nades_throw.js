@@ -148,7 +148,10 @@ function throwNade(b, type, tx, ty, lob, why, trusted){
       if(!o.alive || o.team !== enemyTeam) return;
       var dd = Math.hypot(o.x-b.x, o.y-b.y);
       // (v242) видит бросок — только если смотрит туда (поле зрения); услышал — знает сам, команде скажет войс
-      if(hasVision(o.x, o.y, b.x, b.y) && inFov(o, b.x, b.y) && tick >= (o.blindUntil||0)){
+      // (Б3, З9) «видит» — как радар: visParts (стены, укрытия, пол, стойка — 3D-геометрия игры) и дым; раньше hasVision
+      // (стены радара + пол, без укрытий и стойки) — 8–19 % «видел бросок» без линии
+      var vpN = visParts(o.x, o.y, o.crouching, b.x, b.y, b.crouching, true, o.z, b.z);
+      if((vpN.head || vpN.body) && !smokeBlocks(o.x, o.y, b.x, b.y) && inFov(o, b.x, b.y) && tick >= (o.blindUntil||0)){
         intelPush(enemyTeam, {type:"spotted", x:b.x, y:b.y, id:b.id, by:o.id, conf:1});
         o.lastIntel = {x:b.x, y:b.y, tick:tick};
       } else if(dd <= NADE_HEAR_R){

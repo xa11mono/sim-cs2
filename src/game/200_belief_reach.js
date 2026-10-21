@@ -90,21 +90,52 @@ var beliefLast = {CT:{}, T:{}};
 // "закрыта" и откроется, только когда враг успел бы добежать из соседней
 // открытой зоны; увиденный/услышанный враг открывает свою зону сразу.
 // Это не вероятность "сколько их", а честное "может ли тут кто-то быть".
-var REACH = {CT:null, T:null};
+// (Б3, З10) тайминг — по каждому врагу отдельно (REACH_E[команда][враг]), как считает игрок: «этого видели на A 3 с назад — до B
+// он ещё не добежал». Источник фронта врага — его спавн в начале раунда, потом каждое место, где команда его видела / слышала
+// (reachOpen с id: радар, смерть своего, войс). REACH[команда] = самое раннее по живым врагам (убитые — из киллфида — выпадают).
+// Раньше фронт был один на всех от спавна: открытая зона оставалась открытой до конца раунда, кто бы где ни был, — к середине
+// раунда штриховка «враг мог дойти, команда не ждёт» покрывала полкарты (31–45 зон из 59–71), а враг там был в 3–4 % проверок
+var REACH = {CT:null, T:null}, REACH_E = {CT:{}, T:{}}, REACH_SRC = {CT:{}, T:{}};
+function reachFrom(zi, t0){
+  var n = BZ.ids.length, D = bzDist(zi >= 0 ? [zi] : []), R = new Float64Array(n);
+  for(var i=0;i<n;i++) R[i] = t0 + D[i]/SPEED*TICK_HZ;
+  return R;
+}
+function reachMin(team){
+  var n = BZ.ids.length, R = new Float64Array(n).fill(Infinity), E = REACH_E[team];
+  for(var id in E){ var e = teamBot(id); if(!e || !e.alive){ delete E[id]; continue; } var Re = E[id]; for(var i=0;i<n;i++) if(Re[i] < R[i]) R[i] = Re[i]; }
+  REACH[team] = R;
+}
 function reachReset(){
   if(!BZ.ids.length) return;
-  var n = BZ.ids.length;
   ["CT","T"].forEach(function(team){
-    var sp = team === "CT" ? T_SPAWN : CT_SPAWN, z = bzOf(sp.x, sp.y);
-    var D = bzDist(z >= 0 ? [z] : []), R = new Float64Array(n);
-    for(var i=0;i<n;i++) R[i] = roundStartTick + D[i]/SPEED*TICK_HZ;
-    REACH[team] = R;
+    var sp = team === "CT" ? T_SPAWN : CT_SPAWN, base = reachFrom(bzOf(sp.x, sp.y), roundStartTick);
+    REACH_E[team] = {}; REACH_SRC[team] = {};
+    bots.forEach(function(e){ if(e.team !== team) REACH_E[team][e.id] = Float64Array.from(base); });
+    reachMin(team);
   });
 }
-function reachOpen(team, x, y){ var R = REACH[team]; if(!R) return; var zi = bzOf(x, y); if(zi >= 0) R[zi] = Math.min(R[zi], tick); }
+// команда узнала, где враг id (видели / слышали именно его): его фронт — заново от этой точки (на следующем шаге reachStep),
+// зона открыта сразу
+function reachOpen(team, x, y, id){
+  var R = REACH[team]; if(!R) return; var zi = bzOf(x, y); if(zi < 0) return;
+  var Re = id && REACH_E[team][id]; if(!Re) return;
+  Re[zi] = Math.min(Re[zi], tick); R[zi] = Math.min(R[zi], tick);
+  REACH_SRC[team][id] = {zi: zi, t: tick};
+}
 function reachPossible(team, i){ var R = REACH[team]; return !R || R[i] <= tick; }
 function reachStep(team, clearList){
-  var R = REACH[team]; if(!R) return;
+  var E = REACH_E[team]; if(!REACH[team]) return;
+  for(var id in E){
+    var src = REACH_SRC[team][id], cl = clearList;
+    // зона, где его только что видели / слышали, «пусто» не закрывает (большую зону свой может «видеть» и не видя его)
+    if(src){ E[id] = reachFrom(src.zi, src.t); delete REACH_SRC[team][id]; cl = clearList.filter(function(cz){ return cz[0] !== src.zi; }); }
+    reachStepOne(E[id], cl);
+  }
+  reachMin(team);
+}
+// один фронт: зоны, куда свои смотрят и там пусто, закрываются; закрытые пересчитываются от открытых
+function reachStepOne(R, clearList){
   clearList.forEach(function(cz){ if(cz[1] >= 0.5) R[cz[0]] = Math.max(R[cz[0]], tick + BELIEF_STEP + 1); });
   if(BAL.reachBlock){
     // (фото) раньше "куда враг мог успеть" считалось один раз от спавна по

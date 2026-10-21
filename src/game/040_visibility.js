@@ -257,7 +257,8 @@ function levelBlocked(ax, ay, az, bx, by, bz){
 // проверяются и плечи — ±VIS_SHOULDER поперёк линии взгляда. Глаза — в центре смотрящего (так в игре). Раньше — только
 // «центр → центр»: игрок, у которого из-за угла уже видно плечо, был невидим (29 % / 28 % «не видно» в убийствах про)
 var VIS_SHOULDER = 14; // ед. игры: полуширина плеч хитбокса CS2 (корпус игрока 32 ед. = ±16; плечо — 14, как в разборе ENGINE_AUDIT)
-function visParts(vx, vy, vC, tx, ty, tC, walls, vz, tz){
+// (Б3, З9) vLift / tLift — глаза смотрящего / тело цели выше пола на столько ед. игры (прыжок: JUMP_APEX); без них — 0
+function visParts(vx, vy, vC, tx, ty, tC, walls, vz, tz, vLift, tLift){
   var no = {head: false, body: false};
   visReady();
   // высокие стены (2D, дёшево — первыми): центр цели и плечи; закрыто всё — не видно
@@ -271,7 +272,7 @@ function visParts(vx, vy, vC, tx, ty, tC, walls, vz, tz){
   var fv = visFloorAt(vx, vy, vz), ft = visFloorAt(tx, ty, tz);
   if(vz != null && Math.abs(fv - vz) > JUMP_UP) fv = vz;
   if(tz != null && Math.abs(ft - tz) > JUMP_UP) ft = tz;
-  var ez = fv + (vC ? VIS_EYE.crouch : VIS_EYE.stand), tf = ft, B = tC ? VIS_BODY.crouch : VIS_BODY.stand;
+  var ez = fv + (vC ? VIS_EYE.crouch : VIS_EYE.stand) + (vLift || 0), tf = ft + (tLift || 0), B = tC ? VIS_BODY.crouch : VIS_BODY.stand;
   var head = cw && visMarch(vx, vy, ez, tx, ty, tf + (tC ? VIS_HEAD.crouch : VIS_HEAD.stand)), body = false;
   for(var i = 0; i < B.length && !body; i++) body = cw && visMarch(vx, vy, ez, tx, ty, tf + B[i]);
   // плечи (на высоте груди): край тела может выглядывать из-за угла или ящика, когда центр закрыт

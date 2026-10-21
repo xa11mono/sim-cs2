@@ -92,10 +92,13 @@ function landSound(bot, quiet){
 // (v334, М58, владелец: «в CS2 есть места, где прыгают для чека, — у B Apps, где стоит karrigan») чек прыжком. Места и как часто —
 // из демок (tools/jumps_bake.py → MAP.pro.jumps: прыжок на месте, rate — прыжков за раунд; Mirage у B Apps — 0,49, у Ticket —
 // 0,09). Стоит у такого места своей стороны (≤ 50 ед. карты), без контакта ≥ 2 с — прыгает с вероятностью rate / JUMP_HOLD_SEC
-// в секунду (JUMP_HOLD_SEC — сколько про обычно стоят у места, проектное). В прыжке видно поверх укрытий (только высокие стены
-// и дым закрывают) в конусе ±60° — и его оттуда тоже. Приземление с приседом тише (csdb.gg: «присесть перед приземлением —
+// в секунду (JUMP_HOLD_SEC — сколько про обычно стоят у места, проектное). В прыжке видно поверх укрытий (глаза на JUMP_APEX выше;
+// закрывают стены, укрытия выше этого и дым) в конусе ±60° — и его оттуда тоже. Приземление с приседом тише (csdb.gg: «присесть перед приземлением —
 // тише»): радиус × 0,5 — проектное число
 var JUMP_HOLD_SEC = 30;
+// (Б3, З9) верх прыжка: глаза / тело выше пола на 57 ед. — CS2: sv_jump_impulse 301,993 ед./с, sv_gravity 800 → v²/2g ≈ 57.
+// «Вижу» с прыжка — как радар: visParts с поднятыми глазами (раньше только высокие стены visWallHit — 98–99 % «видели» без линии)
+var JUMP_APEX = 57;
 function jumpCheckTick(b){
   if(b._landAt && tick >= b._landAt && b.alive && roundState === "live") landSound(b);   // (v335) запрыгнул — приземлился
   var JS = MAP.pro && MAP.pro.jumps; if(!JS || !JS.length || roundState !== "live" || !b.alive) return;
@@ -104,10 +107,11 @@ function jumpCheckTick(b){
     var age = tick - J.t;
     if(age === 20){   // верх прыжка — видно поверх укрытий
       bots.forEach(function(o){ if(!o.alive || o.team === b.team) return; var d = Math.hypot(o.x-b.x, o.y-b.y); if(d > 1100) return;
-        if(visWallHit(b.x, b.y, o.x, o.y) || smokeBlocks(b.x, b.y, o.x, o.y)) return;
-        if(_angOff(Math.atan2(o.y-b.y, o.x-b.x), b.facing) < 1.05){ intelPush(b.team, {type:"spotted", x:o.x, y:o.y, id:o.id, by:b.id, conf:1});
+        if(smokeBlocks(b.x, b.y, o.x, o.y)) return;
+        var bS = visParts(b.x, b.y, false, o.x, o.y, o.crouching, true, b.z, o.z, JUMP_APEX, 0), oS = visParts(o.x, o.y, o.crouching, b.x, b.y, false, true, o.z, b.z, 0, JUMP_APEX);
+        if((bS.head || bS.body) && tick >= (b.blindUntil||0) && _angOff(Math.atan2(o.y-b.y, o.x-b.x), b.facing) < 1.05){ intelPush(b.team, {type:"spotted", x:o.x, y:o.y, id:o.id, by:b.id, conf:1});
           voiceLog(b.team, "jc"+o.id+Math.floor(tick/(4*TICK_HZ)), b.id, "чек прыжком: вижу "+nick(o.id)+" — "+calloutName(o.x, o.y)); }
-        if(o.facing !== undefined && _angOff(Math.atan2(b.y-o.y, b.x-o.x), o.facing) < 1.05) intelPush(o.team, {type:"spotted", x:b.x, y:b.y, id:b.id, by:o.id, conf:1}); });
+        if((oS.head || oS.body) && tick >= (o.blindUntil||0) && o.facing !== undefined && _angOff(Math.atan2(b.y-o.y, b.x-o.x), o.facing) < 1.05) intelPush(o.team, {type:"spotted", x:b.x, y:b.y, id:b.id, by:o.id, conf:1}); });
     }
     if(age === 38){   // приземление, с приседом
       landSound(b, true); b._jc = null;

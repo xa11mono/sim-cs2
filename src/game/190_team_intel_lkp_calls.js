@@ -34,6 +34,9 @@ function intelPush(team, sig){ sig.tick = tick; teamIntel[team].sig.push(sig); i
 // beliefLast — писались из одних и тех же сигналов, но beliefLast стирал метку, когда свои проверили место и там пусто, а beliefLast
 // держал. Правила читали кто то, кто другое: одни видели пусто, другие — старую метку (сторож: «пустое чтение» в ctBrain,
 // подборе оружия). Теперь хранилище одно — beliefLast; проверка места и «ушёл по карте вероятностей» (lkpTick) стирают в нём
+// (Б3, З6) подпись метки — по тому, откуда она: «видели» — только увиденное (радар, смерть своего, бросок, прыжок), остальное
+// (звук, войс «слышу», выстрел убийцы) — «слышали». Раньше на панели взгляда всё подписывалось «видели»: 31–34 % таких меток — звук
+function lkpWord(q){ return q && q.src === "spotted" ? "видели" : "слышали"; }
 function lkpReset(){ if(typeof CLEARZ !== "undefined") CLEARZ = {CT:{}, T:{}}; }
 function lkpSet(team, id, x, y, src){ var e = beliefLast[team][id]; if(e && src === "sound" && e.src === "spotted" && tick - e.tick < 2*TICK_HZ) return;
   beliefLast[team][id] = {x:x, y:y, tick:tick, src:src};

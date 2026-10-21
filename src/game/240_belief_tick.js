@@ -3,7 +3,7 @@
 function beliefObserve(team, sg){
   if(!BZ.ids.length) return;
   if((sg.type === "spotted" || sg.type === "sound") && sg.id && sg.id !== "?"){
-    reachOpen(team, sg.x, sg.y);
+    reachOpen(team, sg.x, sg.y, sg.id);
     beliefSeen[team][sg.id] = tick;
     var bl = beliefLast[team][sg.id];
     if(!(bl && bl.src === "spotted" && sg.type === "sound" && tick - bl.tick < 2*TICK_HZ)) beliefLast[team][sg.id] = {x:sg.x, y:sg.y, tick:tick, src:sg.type};
@@ -69,7 +69,7 @@ function beliefTick(){
       pmNote(team, e, bl);   // (v354) память матча: где этого игрока первый раз в раунде видели/слышали
       if(hb && (!bl || hb.htick > bl.tick) && !(bl && bl.src === "spotted" && hb.htick - bl.tick < 2*TICK_HZ)){
         beliefLast[team][eid] = {x:hb.x, y:hb.y, tick:hb.htick, src:"sound"}; beliefSeen[team][eid] = hb.htick;
-        reachOpen(team, hb.x, hb.y); lkpSet(team, eid, hb.x, hb.y, "sound");
+        reachOpen(team, hb.x, hb.y, eid); lkpSet(team, eid, hb.x, hb.y, "sound");
       }
     });
     // что видят живые тиммейты — тайминги REACH (может ли там уже кто-то быть)
