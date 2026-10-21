@@ -4,7 +4,7 @@
 // упадёт — решает только физика: прежние навес по прямой, «дуги под потолками» (nadeArc), «сквозь стену — только как про»
 // (nadeTallWall, MAP.nadelanes как разрешение) удалены; trusted теперь значит «лайнап — кинуть лучшим броском, даже если мимо».
 // Своя граната кидается, если физика доводит её к цели ближе NADE_AIM_OK ед. игры. (В4) Лайнап с записанными бросками про
-// кидается записанным броском (nadeRecPick / throwNadeRec ниже); лайнап без записи (у про — бросок «на глаз») и свой лайнап
+// кидается записанным броском (nadeRecPick / nadeRecRelease ниже); лайнап без записи (у про — бросок «на глаз») и свой лайнап
 // владельца — лучшим найденным броском (trusted), до В5.
 var NADE_AIM_OK = 100;   // ед. игры (≈ 40 px радара; флешке — вдвое: ей важно хлопнуть на виду, а не точно) — проектное число
 var NADE_AIM_DZ = {smoke: 0, molly: 0, flash: 80, he: 20};   // куда целиться по высоте над полом у цели, ед. (проектные числа)
@@ -12,7 +12,7 @@ var NADE_AIM_DZ = {smoke: 0, molly: 0, flash: 80, he: 20};   // куда цел�
 var nadeAimCache = (function(){ var C = {}, n = 0; return function(k, v){ if(v === undefined) return C[k]; if(++n > 4000){ C = {}; n = 0; } return (C[k] = v); }; })();
 function nadePhysType(type){ return type === "molly" ? "molotov" : type; }
 function nadeTraceFn(){ var M = m3(); return function(A, B){ return m3NadeTrace(M, A, B); }; }
-// (В4) для СВОИХ гранат (не лайнапов): лайнап про кидается записанным броском (nadeRecPick / throwNadeRec ниже), без подбора.
+// (В4) для СВОИХ гранат (не лайнапов): лайнап про кидается записанным броском (nadeRecPick / nadeRecRelease ниже), без подбора.
 // Прежняя заплатка «с разбега к цели» (граната получала скорость разбега, а бот стоял) удалена: разбег теперь только записанный,
 // и бот его делает сам (nadeRecTick)
 // лучший бросок из (x, y) радара, стоя на полу z (ед. игры), в точку (tx, ty) радара → решение nadeAim + det в радаре, или null
@@ -46,11 +46,13 @@ function nadeLaneFroms(ex, ey){
 var NADE_GAP = Math.round(1.1*64);
 function nadeReady(b){ return tick - (b._nadeT == null ? -1e9 : b._nadeT) >= NADE_GAP; }
 var NADE_FAIL = null;   // (v369) почему последний бросок не состоялся — для проверки
-function throwNade(b, type, tx, ty, lob, why, trusted){
+// rec — (В4) записанный бросок про (nadeRecPick): кинуть ровно его (nadeRecRelease); иначе — свой бросок, подобранный физикой
+function throwNade(b, type, tx, ty, lob, why, trusted, rec){
   NADE_FAIL = null;
   if(!b.nades || b.nades[type] <= 0){ NADE_FAIL = "нет гранаты"; return false; }
   if(!nadeReady(b)){ NADE_FAIL = "пауза между гранатами"; return false; }
   if(!m3()){ NADE_FAIL = "нет геометрии карты"; return false; }
+  if(rec) return nadeRecRelease(b, type, tx, ty, why, rec);
   // (В3) как кинуть и куда упадёт — физикой из того места, где стоит; долетит ли — по самой цели
   var bz = b.z != null ? b.z : visFloorAt(b.x, b.y), S = nadeSolve(type, b.x, b.y, bz, tx, ty, b.crouching);
   if(!S){ NADE_FAIL = "цель под ногами"; return false; }
@@ -136,21 +138,16 @@ function nadeRecLaunch(R){
   return nadeLaunch({pos: pos, yaw: r.yaw, pitch: r.pitch, strength: R.s, duck: R.duck, jump: R.j, vel: r.vel}, nadeTraceFn());
 }
 var SMOKE_PIN_LEAD = 0.3;   // с: последние доли секунды полёта смока-лайнапа — «доводка» в точку про (заплатка, 400) — проектное число
-function throwNadeRec(b, t){
-  NADE_FAIL = null;
-  var type = t.type, R = t.rec;
-  if(!b.nades || b.nades[type] <= 0){ NADE_FAIL = "нет гранаты"; return false; }
-  if(!nadeReady(b)){ NADE_FAIL = "пауза между гранатами"; return false; }
-  if(!m3()){ NADE_FAIL = "нет геометрии карты"; return false; }
+function nadeRecRelease(b, type, tx, ty, why, R){
   var L = nadeRecLaunch(R), M = m3();
   var f = nadeFly(nadePhysType(type), L.p, L.v, nadeTraceFn()), Pd = m3Radar(M, f.det[0], f.det[1]);
   var px = Pd[0], py = Pd[1], pin = null;
   if(type === "smoke"){   // ЗАПЛАТКА (В4, решение владельца 21.10): смок-лайнап рвётся там и тогда, где у про (smokePinStep, 400)
     pin = {p: R.rec.det.slice(), t: Math.max(SMOKE_PIN_LEAD, R.rec.dt - NADE_P.SPAWN/NADE_P.TICK)}; px = R.det.x; py = R.det.y; }
   if((type === "he" || type === "molly") && bots.some(function(o){ return o.alive && o.team === b.team &&
-      (Math.hypot(o.x-t.x, o.y-t.y) < NADE[type].radius || Math.hypot(o.x-px, o.y-py) < NADE[type].radius); })){ NADE_FAIL = "свой в зоне"; return false; }
+      (Math.hypot(o.x-tx, o.y-ty) < NADE[type].radius || Math.hypot(o.x-px, o.y-py) < NADE[type].radius); })){ NADE_FAIL = "свой в зоне"; return false; }
   b.facing = -R.rec.yaw * Math.PI/180;   // поворот записи (ось y радара — вниз)
-  return nadeRelease(b, type, L, px, py, t.x, t.y, true, t.why + " — бросок " + R.rec.who + ", р" + R.rec.r, pin);
+  return nadeRelease(b, type, L, px, py, tx, ty, true, why + " — бросок " + R.rec.who + ", р" + R.rec.r, pin);
 }
 // бот на месте лайнапа: шаг точно на точку разбега, записанный разбег до места броска, бросок. true — задание закончено
 var NADE_STEP_IN = 2;   // px — точнее этого стоит в месте броска
@@ -170,7 +167,7 @@ function nadeRecTick(b, t){
     put(R.start.x + (R.rel.x-R.start.x)*k, R.start.y + (R.rel.y-R.start.y)*k);
     if(k < 1) return false;
   }
-  if(!throwNadeRec(b, t) && NADE_FAIL && /пауза|свой/.test(NADE_FAIL)){ t._run = 0; return false; }
+  if(!throwNade(b, t.type, t.x, t.y, true, t.why, true, t.rec) && NADE_FAIL && /пауза|свой/.test(NADE_FAIL)){ t._run = 0; return false; }
   return true;
 }
 function smokeCovered(x, y){
