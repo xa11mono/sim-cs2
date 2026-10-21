@@ -1,0 +1,49 @@
+playwright 1.56.0
+> git fetch --quiet origin 41ceed824ce7c6fc6e9822f75c9b3736652f35f3
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Users\Mono\AppData\Local\Temp\simbuild_glmz__n7 FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Users\Mono\AppData\Local\Temp\simbuild_glmz__n7\src\build.py --map ancient C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\b3base_anc.html
+> git fetch --quiet origin 41ceed824ce7c6fc6e9822f75c9b3736652f35f3
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Users\Mono\AppData\Local\Temp\simbuild_b8jm15k6 FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Users\Mono\AppData\Local\Temp\simbuild_b8jm15k6\src\build.py --map mirage C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\b3base_mir.html
+> git fetch --quiet origin d3d992c127d9e598b262a82623a01c3244fe3411
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Users\Mono\AppData\Local\Temp\simbuild_2z2i9u_a FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Users\Mono\AppData\Local\Temp\simbuild_2z2i9u_a\src\build.py --map ancient C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\b3fix_anc.html
+> git fetch --quiet origin d3d992c127d9e598b262a82623a01c3244fe3411
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Users\Mono\AppData\Local\Temp\simbuild_u3l_4om4 FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Users\Mono\AppData\Local\Temp\simbuild_u3l_4om4\src\build.py --map mirage C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\b3fix_mir.html
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\engine\walk_run.py --job=b3base_anc,C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\b3base_anc.html --job=b3base_mir,C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\b3base_mir.html --job=b3fix_anc,C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\b3fix_anc.html --job=b3fix_mir,C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\b3fix_mir.html --matches=3,7,11,13,17,19,23,29 --par=8
+матчей в очереди: 32, одновременно: 8
+b3base_anc match 19 rc 0 4586421 — готово 1/32, 3 мин
+b3base_anc match 23 rc 0 4540039 — готово 2/32, 4 мин
+b3base_anc match 29 rc 0 4875551 — готово 3/32, 4 мин
+b3base_anc match 13 rc 0 5066659 — готово 4/32, 4 мин
+b3base_anc match 11 rc 0 5788644 — готово 5/32, 5 мин
+b3base_anc match 3 rc 0 6152313 — готово 6/32, 5 мин
+b3base_anc match 17 rc 0 5925693 — готово 7/32, 5 мин
+b3base_anc match 7 rc 0 6442841 — готово 8/32, 5 мин
+b3base_mir match 11 rc 0 5138584 — готово 9/32, 9 мин
+b3base_mir match 19 rc 0 4497820 — готово 10/32, 9 мин
+b3base_mir match 7 rc 0 5803346 — готово 11/32, 9 мин
+b3base_mir match 29 rc 0 5274040 — готово 12/32, 10 мин
+b3base_mir match 23 rc 0 5954977 — готово 13/32, 10 мин
+b3base_mir match 17 rc 0 6163317 — готово 14/32, 11 мин
+b3base_mir match 3 rc 0 8540261 — готово 15/32, 11 мин
+b3base_mir match 13 rc 0 7972914 — готово 16/32, 12 мин
+b3fix_anc match 11 rc 0 5933003 — готово 17/32, 14 мин
+b3fix_anc match 7 rc 0 6262676 — готово 18/32, 14 мин
+b3fix_anc match 13 rc 0 5083963 — готово 19/32, 14 мин
+b3fix_anc match 3 rc 0 7531830 — готово 20/32, 14 мин
+b3fix_anc match 17 rc 0 5943212 — готово 21/32, 15 мин
+b3fix_anc match 19 rc 0 6554937 — готово 22/32, 15 мин
+b3fix_anc match 23 rc 0 5287294 — готово 23/32, 15 мин
+b3fix_mir match 7 rc 0 4678628 — готово 24/32, 18 мин
+b3fix_anc match 29 rc 0 8360172 — готово 25/32, 18 мин
+b3fix_mir match 3 rc 0 5888843 — готово 26/32, 19 мин
+b3fix_mir match 11 rc 0 6411869 — готово 27/32, 19 мин
+b3fix_mir match 13 rc 0 6125923 — готово 28/32, 20 мин
+b3fix_mir match 17 rc 0 5857544 — готово 29/32, 20 мин
+b3fix_mir match 19 rc 0 5911388 — готово 30/32, 20 мин
+b3fix_mir match 23 rc 0 6232500 — готово 31/32, 20 мин
+b3fix_mir match 29 rc 0 8475449 — готово 32/32, 24 мин
+done
+all done
