@@ -1,0 +1,27 @@
+playwright 1.56.0
+> git fetch --quiet origin 9d6d0851ad2d203d6a132a2567f9bb4b99b21923
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Users\Mono\AppData\Local\Temp\simbuild_ivuv1kmy FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Users\Mono\AppData\Local\Temp\simbuild_ivuv1kmy\src\build.py --map ancient C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\b4e_anc.html
+> git fetch --quiet origin 9d6d0851ad2d203d6a132a2567f9bb4b99b21923
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Users\Mono\AppData\Local\Temp\simbuild_a0qy32xs FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Users\Mono\AppData\Local\Temp\simbuild_a0qy32xs\src\build.py --map mirage C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\b4e_mir.html
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\engine\walk_run.py --job=b4e_anc,C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\b4e_anc.html --job=b4e_mir,C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\b4e_mir.html --matches=3,7,11,13,17,19,23,29 --par=8
+матчей в очереди: 16, одновременно: 8
+b4e_anc match 29 rc 0 4587315 — готово 1/16, 4 мин
+b4e_anc match 3 rc 0 5464627 — готово 2/16, 4 мин
+b4e_anc match 23 rc 0 5645973 — готово 3/16, 4 мин
+b4e_anc match 7 rc 0 5381532 — готово 4/16, 4 мин
+b4e_anc match 13 rc 0 5949943 — готово 5/16, 5 мин
+b4e_anc match 19 rc 0 7758180 — готово 6/16, 5 мин
+b4e_anc match 17 rc 0 7569706 — готово 7/16, 6 мин
+b4e_anc match 11 rc 0 8112857 — готово 8/16, 6 мин
+b4e_mir match 7 rc 0 3958509 — готово 9/16, 8 мин
+b4e_mir match 3 rc 0 5893029 — готово 10/16, 9 мин
+b4e_mir match 13 rc 0 5003737 — готово 11/16, 9 мин
+b4e_mir match 11 rc 0 6099776 — готово 12/16, 9 мин
+b4e_mir match 17 rc 0 5720070 — готово 13/16, 10 мин
+b4e_mir match 23 rc 0 5712018 — готово 14/16, 10 мин
+b4e_mir match 19 rc 0 6216171 — готово 15/16, 11 мин
+b4e_mir match 29 rc 0 6017138 — готово 16/16, 11 мин
+done
+all done
