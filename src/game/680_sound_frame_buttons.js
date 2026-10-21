@@ -184,14 +184,22 @@ function sndTick(){   // пиканье бомбы — раз в тик пров
     setTimeout(function(){ if(SND.on && SND.ctx.state !== "running") b.textContent = "Звук: заблокирован (" + SND.ctx.state + ")"; }, 600);
   });
 })();
+var FRAME_CATCHUP_MS = 100;   // (v397, М146) проектное число: ≈ 6 тиков за кадр — при 10+ к/с игра ещё идёт в реальном времени
+// (v397, М146) размер области радара — один раз в начале кадра, пока раскладка страницы чистая (до записей draw); обсервер и
+// мини-карта берут его отсюда, а не читают заново после записей (тогда браузер пересчитывает раскладку всей страницы)
+var frameWrapR = null;
+function wrapRect(){ return frameWrapR || (frameWrapR = wrap.getBoundingClientRect()); }
 function frame(ts){
-  nowTs = ts;
+  nowTs = ts; frameWrapR = null; wrapRect();
   if(SND && SND.ctx) sndFireTick();   // (v333) треск огня — и останавливается, когда огонь погас / раунд кончился / звук выключен
   if(lastFrame===null) lastFrame = ts;
   var dt = ts - lastFrame; lastFrame = ts;
   if(!paused && WARM.on){ var wdt = Math.min(0.1, dt/1000); warmTick(wdt); accumulator = 0; }
   else if(!paused){
-    accumulator += dt;
+    // (v397, М146) догонять не больше FRAME_CATCHUP_MS за кадр: после скрытой вкладки или долгого кадра цикл раньше считал все
+    // пропущенные тики разом (минута вкладки в фоне = ~3800 тиков в одном кадре — страница вставала на секунды, а следующий кадр
+    // снова долгий — «снежный ком»). Теперь игра в такой момент идёт медленнее реального времени. Тики те же — игра не меняется
+    accumulator += Math.min(dt, FRAME_CATCHUP_MS);
     while(accumulator >= TICK_MS){ stepTick(); accumulator -= TICK_MS; }
     mkAfterTicks();
   }
@@ -199,6 +207,7 @@ function frame(ts){
   draw();
   obsOverlay();
   miniDraw();
+  frameWrapR = null;   // вне кадра (клики, перемотка) — читать заново
   requestAnimationFrame(frame);
 }
 document.getElementById("btnFreshMatch").addEventListener("click", function(){ var n = Math.max(1, parseInt(document.getElementById("inpMatchNum").value, 10) || 1); var sel = document.getElementById("selSeries"), bo = sel ? +sel.value : 3; if(bo !== SERIES.bo || seriesDone()) SERIES = {bo:bo, maps:{}}; var cw = document.getElementById("chkWarm"); if(cw && !cw.checked) freshMatch(n); else warmStart(n); paused = false; var bp = document.getElementById("btnPause"); if(bp){ bp.textContent = "Пауза"; bp.classList.remove("active"); } logEvent("Матч №"+n+" с чистого листа (воспроизводимый)", true); });

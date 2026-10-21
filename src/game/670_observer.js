@@ -62,11 +62,11 @@ function obsFullView(r){
   return {x: cx - offX, y: cy - offY, sc: sc};
 }
 function obsFrame(ts){
-  var btn = document.getElementById("btnObs"); if(btn) btn.className = OBS.on ? "on" : "";
-  var btnM = document.getElementById("btnObsMap"); if(btnM) btnM.className = OBS.on && OBS.full ? "on" : "";
+  domClass(document.getElementById("btnObs"), OBS.on ? "on" : "");
+  domClass(document.getElementById("btnObsMap"), OBS.on && OBS.full ? "on" : "");
   if(!OBS.on) return;
   var dt = OBS.last ? Math.min(0.1, (ts - OBS.last)/1000) : 0.016; OBS.last = ts;
-  var r = wrap.getBoundingClientRect(), fitSc = Math.min(r.width/2048, r.height/2048) * 1.08;
+  var r = wrapRect(), fitSc = Math.min(r.width/2048, r.height/2048) * 1.08;
   var manual = ts < OBS.manualUntil;
   var tx = 1024, ty = 1024, tsc = fitSc;
   // (v359, владелец: «обсервер мог показывать всю ситуацию, всю карту») режим «Вся карта»: камера на всей карте, игрок не выбирается
@@ -176,7 +176,7 @@ function miniDraw(){
   x.setTransform(k,0,0,k,0,0);
   if(imgReady){ x.globalAlpha = 0.9; x.drawImage(img,0,0,2048,2048); x.globalAlpha = 1; }
   // видимая область большого радара — рамкой
-  var r = wrap.getBoundingClientRect(), vx0 = -view.panX/view.scale, vy0 = -view.panY/view.scale;
+  var r = wrapRect(), vx0 = -view.panX/view.scale, vy0 = -view.panY/view.scale;
   x.strokeStyle = "rgba(255,255,255,.35)"; x.lineWidth = 2/k; x.strokeRect(vx0, vy0, r.width/view.scale, r.height/view.scale);
   // (v309) гранаты: смоки — серые круги, огонь — оранжевые, летящие — точки цвета стороны
   smokes.forEach(function(sm){ var rr = smokeRadiusNow(sm); if(rr <= 2) return; x.fillStyle = "rgba(210,214,206,.75)"; x.beginPath(); x.arc(sm.x, sm.y, rr, 0, Math.PI*2); x.fill(); });

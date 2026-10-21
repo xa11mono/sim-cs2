@@ -1,26 +1,11 @@
 """«Отметить момент» (v255, перенос из ветки rebuild-v238): сборка вставляет в игру на место метки @@BUILD@@
   - __SNAP — список переменных симулятора для снимка/перемотки (все `var` верхнего уровня, кроме статичных данных,
     настроек и интерфейса) — новые переменные игры попадают в снимок сами;
-  - MK_PRINCIPLES — пункты docs/PRINCIPLES.md для карточки «Я понял так»;
   - сам модуль src/marks.js.
 Вызывают src/build.py (sim.html) и src/mkpub.py (публикуемая страница) — обе страницы одинаковые."""
-import os, re, json
+import os, re
 HERE = os.path.dirname(os.path.abspath(__file__))
-MARK = "/*@@BUILD: здесь build.py вставляет __SNAP, MK_PRINCIPLES и marks.js@@*/\n"
-
-
-def principles():
-    P, sec = [], ""
-    for line in open(os.path.join(HERE, '..', 'docs', 'PRINCIPLES.md'), encoding='utf-8'):
-        h = re.match(r'^## (.+)', line)
-        if h: sec = h.group(1).strip(); continue
-        m = re.match(r'^- \[( |x)\] (~~)?\*\*([А-ЯA-Z]\d+)\.\*\* (.*)', line)
-        if not m: continue
-        txt = re.sub(r'~~|\*\*|\*', '', m.group(4))
-        txt = re.split(r' \(\d\d\.\d\d| — (?:частично|исправлено|подтверждено|по цифрам|v\d)', txt)[0].strip()
-        P.append({"id": m.group(3), "sec": sec, "text": txt[:220], "done": m.group(1) == 'x'})
-    return P
-
+MARK = "/*@@BUILD: здесь build.py вставляет __SNAP и marks.js@@*/\n"
 
 
 # ---------- перечень переменных симулятора для снимков ----------
@@ -63,7 +48,7 @@ SETTINGS = set("""BAL MANUAL_WALLS WALL_POLYS wallSegs USER_ZONES USER_LINEUPS Z
 UI = set("""view paused lastFrame accumulator nowTs MAPED MED_W MED_W_HINTS HEIGHTS HGT_AUTO HGT_OWN_CODE HGT_OWN HGT_STOPS HGT_C
 HGT_LEDGE_TXT chkHeights hgtTip MED_H MED_H_HINTS chkVis VT WALLBANG WB_MAT WB_RULES WB_AUTO WB_OWN_CODE WB_OWN WB_C chkWallbang
 wbTip MED_B MED_B_HINTS COVER COV_HIGH COV_CHEST COV_CAT COV_ORDER COV_AUTO COV_OWN_CODE COV_OWN COV_C chkCover covTip MED_C
-MED_C_HINTS KF_IMG OBS MINI WARM img imgReady imgFailed""".split())   # v344: img/imgReady/imgFailed — картинка радара (в снимке с v343 флаг «не загружен» гасил карту)   # v295: KF_IMG — картинки иконок радара (Image не клонируется — снимок падал, игра вставала)
+MED_C_HINTS KF_IMG OBS MINI WARM img imgReady imgFailed FRAME_CATCHUP_MS frameWrapR""".split())   # v344: img/imgReady/imgFailed — картинка радара (в снимке с v343 флаг «не загружен» гасил карту)   # v295: KF_IMG — картинки иконок радара (Image не клонируется — снимок падал, игра вставала)
 EXTRA_STATIC = set("PRO_PRIOR PRO_LOOK PRO_SPOTS".split())   # v255: по замеру — за 2 матча не меняются, ~400 КБ снимка
 
 
@@ -74,4 +59,4 @@ def inject(s):
         assert must in V, must
     snap = "var __SNAP = [\n" + ",\n".join('["%s", function(){ return %s; }, function(v){ try{ %s = v; }catch(e){} }]' % (v, v, v) for v in V) + "\n];\n"
     mod = open(os.path.join(HERE, 'marks.js'), encoding='utf-8').read()
-    return s.replace(MARK, snap + "var MK_PRINCIPLES = " + json.dumps(principles(), ensure_ascii=False) + ";\n" + mod)
+    return s.replace(MARK, snap + mod)

@@ -766,10 +766,10 @@ function draw(){
   });
 
   ctx.restore();
-  document.getElementById("hContacts").textContent = contacts/1;
-  document.getElementById("contact").style.display = contacts>0 ? "block" : "none";
-  document.getElementById("hTick").textContent = tick;
-  document.getElementById("hTime").textContent = simTime.toFixed(1)+"s";
+  domText(document.getElementById("hContacts"), contacts/1);   // (v397, М146) только изменившееся — см. domText
+  var ctEl = document.getElementById("contact"), ctD = contacts>0 ? "block" : "none"; if(ctEl.style.display !== ctD) ctEl.style.display = ctD;
+  domText(document.getElementById("hTick"), tick);
+  domText(document.getElementById("hTime"), simTime.toFixed(1)+"s");
   var rtLeft = roundState === "live" ? Math.max(0, ROUND_TIME_SEC - (simTime - roundStartTime)) : (roundState === "freeze" ? ROUND_TIME_SEC : 0);
   if(bomb && bomb.state === "planted") rtLeft = Math.max(0, (bomb.explodeTick - tick)/TICK_HZ);
   var bst = "—";
@@ -782,7 +782,7 @@ function draw(){
     } else if(bomb.state === "defused") bst = "обезврежена";
     else if(bomb.state === "exploded") bst = "взорвалась";
   }
-  document.getElementById("hBomb").textContent = bst;
+  domText(document.getElementById("hBomb"), bst);
   scoreboardUpdate(rtLeft);
   if(!draw._plN || ++draw._plN > 6){ draw._plN = 1; playersUpdate(); }
   if(!draw._econN || ++draw._econN > 8){ draw._econN = 1; renderEcon(); }

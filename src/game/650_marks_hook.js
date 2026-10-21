@@ -1,1 +1,1 @@
-/*@@BUILD: здесь build.py вставляет __SNAP, MK_PRINCIPLES и marks.js@@*/
+/*@@BUILD: здесь build.py вставляет __SNAP и marks.js@@*/

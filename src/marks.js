@@ -1,7 +1,7 @@
-// ======================= v167: «Отметить момент», карточка «Я понял так», перемотка =======================
+// ======================= v167: «Отметить момент», перемотка (v397: без разбора нейросетью — М147) =======================
 // Инструмент для владельца и Claude, мозг ботов не трогает. Описание — docs/tasks/02-mark-moment.md.
 // Снимки состояния: __SNAP (список переменных симулятора) генерирует src/marks_build.py при сборке (build.py, mkpub.py).
-  var MK = { cps: [], snap: null, cur: null, list: [], db: null, assets: null, sample: null, busy: false,
+  var MK = { cps: [], snap: null, cur: null, list: [], db: null, assets: null, busy: false,
              lastCpTick: -1, cpMatch: -1, pick: false, CP_EVERY: 640, CP_KEEP: 40 };
   var MK_CATS = ["Взгляд", "Позиция", "Команда", "Гранаты", "Закуп", "Темп", "Войс", "Визуал"];
   var MK_SEC = {"Взгляд":"В", "Позиция":"П", "Команда":"К", "Гранаты":"Г", "Закуп":"Э", "Темп":"Т", "Войс":"Н", "Визуал":"И"};
@@ -223,51 +223,6 @@ function mkScreen(){
 }
 function mkUrlToBlob(url){ var p = url.split(","), bin = atob(p[1]), u = new Uint8Array(bin.length); for(var i=0;i<bin.length;i++) u[i] = bin.charCodeAt(i); return new Blob([u], {type: "image/jpeg"}); }
 
-// ---------- запрос к Claude («Я понял так») ----------
-function mkPrompt(m){
-  var P = MK_PRINCIPLES.filter(function(p){ return !p.done; }).map(function(p){ return p.id + " (" + p.sec + "): " + p.text; }).join("\n");
-  var st = m.state;
-  var data = { матч: st.match, раунд: st.round, время_раунда_с: st.roundTime, счёт: st.score, бомба: st.bomb,
-    о_ком_по_клику_владельца: m.bot || null, смоки: st.smokes, молотовы: st.fires,
-    боты: st.bots.map(function(b){ return { id: b.id, номер_на_радаре: b.num, ник: b.nick, команда: b.team, жив: b.alive, hp: b.hp, оружие: b.weapon,
-      где: b.place, x: b.x, y: b.y, взгляд_градусы: b.facingDeg, смотрит_на: b.look ? b.look.place : null, стена_по_взгляду_px: b.wallAhead,
-      задача_и_взгляд: b.why, видит_врагов: b.sees, идёт: b.moving }; }) };
-  return "Ты помогаешь владельцу симулятора CS2 (карта Ancient, вид сверху, 5 CT против 5 T) разобрать замечание к моменту матча.\n" +
-    "Владелец не программист. Пиши по-русски, простыми словами, без кода.\n\n" +
-    "Замечание владельца: «" + m.text + "»\nКатегория: " + m.category + ". Приоритет: " + (m.priority === "urgent" ? "срочно" : "обычно") + ".\n" +
-    (m.bot ? "Владелец кликнул по боту " + m.bot + ".\n" : "Владелец не выбрал бота — определи по тексту и данным.\n") +
-    "Если владелец пишет «бот N» — это номер_на_радаре. Масштаб: 1 м ≈ 100 px.\n" +
-    (m.hasImage ? "Приложен кадр радара в этот момент (увеличен вокруг бота; если бот выбран — он обведён красным).\n" : "") +
-    "\nДанные момента (JSON):\n" + JSON.stringify(data) + "\n\n" +
-    "Список пунктов «как должны играть боты» (номер (раздел): текст):\n" + P + "\n\n" +
-    "Ответь ТОЛЬКО JSON-объектом, без пояснений вокруг:\n" +
-    "{\"understood\": \"1–2 предложения: кто (id и где), что делает сейчас и что, по словам владельца, не так\"," +
-    " \"bot\": \"id бота, которого обвести, или null\"," +
-    " \"principle\": \"номер существующего пункта, если замечание про него (например \\\"В1\\\"), иначе null\"," +
-    " \"newItem\": null или {\"section\": \"один из разделов: " + MK_CATS.join(", ") + "\", \"text\": \"формулировка нового пункта как проверяемое утверждение\"}," +
-    " \"unsure\": \"если не уверен — что уточнить у владельца, иначе null\"}\n" +
-    "Не выдумывай того, чего нет в данных. Если сомневаешься между пунктом и новым — выбери пункт и напиши сомнение в unsure.";
-}
-var MK_ASK_SEC = 90;   // проектное число
-async function mkAsk(m, correction){
-  var sample = MK.sample;
-  if(!sample) throw {code: "no_sample"};
-  var input = mkPrompt(m), opts = {modelTier: "default"};
-  if(correction && m.lastRaw) input = [{role: "user", content: input}, {role: "assistant", content: m.lastRaw},
-    {role: "user", content: "Владелец говорит, что понято неверно. Его поправка: «" + correction + "». Ответь заново тем же JSON."}];
-  try{ var lim = await sample.limits(); if(lim && lim.images && m.frameUrl){ opts.images = [mkUrlToBlob(m.frameUrl)]; } }catch(e){}
-  // (v339) не ждать вечно: первый вопрос Claude со страницы ждёт разрешения владельца (запрос в рамке Claude) — через MK_ASK_SEC
-  // без ответа отметка сохраняется «не разобрано», а не висит на «Думаю…»
-  var ac = new AbortController(), to = setTimeout(function(){ ac.abort(); }, MK_ASK_SEC*1000); opts.signal = ac.signal;
-  try{ var res = await sample(input, opts); }
-  catch(e){ if(ac.signal.aborted) throw {code: "timeout"}; throw e; }
-  finally{ clearTimeout(to); }
-  var txt = res.text || "", j = txt.indexOf("{"), k = txt.lastIndexOf("}");
-  var out = JSON.parse(txt.slice(j, k+1));
-  m.lastRaw = txt.slice(j, k+1);
-  return out;
-}
-
 // ---------- интерфейс отметки ----------
 function mkEl(id){ return document.getElementById(id); }
 function mkEsc(t){ return String(t == null ? "" : t).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c]; }); }
@@ -283,62 +238,25 @@ function mkStart(){
   mkEl("mkMoment").textContent = "Матч " + MK.cur.match + " · раунд " + MK.cur.round + " · " + mkClock(MK.cur.roundTime) + " раунда · тик " + MK.cur.tick;
   mkEl("mkText").value = ""; mkEl("mkBot").textContent = "не выбран — кликни по боту на радаре (необязательно)";
   mkEl("mkCat").value = "Взгляд"; mkEl("mkPrioN").checked = true;
-  mkEl("mkForm").style.display = "block"; mkEl("mkCard").style.display = "none"; mkEl("mkErr").textContent = "";
+  mkEl("mkErr").textContent = "";
   mkEl("mkPanel").style.display = "block"; mkEl("mkText").focus();
 }
 function mkClock(s){ s = Math.max(0, Math.round(s)); return Math.floor(s/60) + ":" + ("0" + (s%60)).slice(-2); }
 function mkClose(){ MK.cur = null; MK.pick = false; mkEl("mkPanel").style.display = "none"; }
+// (v397, М147) отметка сохраняется сразу — без разбора нейросетью на странице; разбор — в чате по снимку (tools/mark_open.js)
 async function mkSubmit(){
   var m = MK.cur; if(!m) return;
   m.text = mkEl("mkText").value.trim(); m.category = mkEl("mkCat").value; m.priority = mkEl("mkPrioU").checked ? "urgent" : "normal";
   if(!m.text){ mkEl("mkErr").textContent = "Напиши, что не так"; return; }
   mkEl("mkErr").textContent = "";
   MK.pick = false;
-  m.frameUrl = mkFrame(m.bot); m.frameBot = m.bot;
-  mkEl("mkForm").style.display = "none"; mkEl("mkCard").style.display = "block";
-  mkShowCard(null, "Думаю…");
-  // (v339) первый раз страница спрашивает разрешение обратиться к Claude — подсказать, где его дать
-  var mw = m; setTimeout(function(){ if(MK.cur === mw && !mw.answer) mkShowCard(null, "Думаю… Если Claude спросил разрешение для этой страницы — разреши (меню страницы → «Разрешения»)."); }, 6000);
-  await mkRunAsk(null);
-}
-async function mkRunAsk(correction){
-  var m = MK.cur; if(!m) return;
-  mkShowCard(m.answer || null, "Думаю…");
-  try{
-    m.hasImage = true;
-    var a = await mkAsk(m, correction);
-    if(MK.cur !== m) return;
-    m.answer = a;
-    var bid = a && a.bot && bots.some(function(o){ return o.id === a.bot; }) ? a.bot : m.bot;
-    if(bid && bid !== m.frameBot && tick === m.tick && matchNum === m.match){ m.frameUrl = mkFrame(bid); m.frameBot = bid; }
-    mkShowCard(a, null);
-  }catch(e){
-    if(MK.cur !== m) return;
-    var why = e && e.code === "no_sample" ? "нет доступа к Claude из этой страницы" : (e && e.code === "timeout") ? "Claude не ответил за " + MK_ASK_SEC + " с (разрешение не дано?)" : (e && e.code === "not_granted") ? "доступ к Claude не разрешён" : "Claude не ответил (" + (e && (e.code || e.message) || "ошибка") + ")";
-    await mkSave(m, "unparsed");
-    mkClose(); mkToast("Отметка сохранена как «не разобрано»: " + why);
-  }
-}
-function mkShowCard(a, wait){
-  var m = MK.cur; if(!m) return;
-  mkEl("mkImg").src = m.frameUrl || "";
-  mkEl("mkCap").textContent = "Матч " + m.match + " · раунд " + m.round + " · " + mkClock(m.roundTime) + " раунда · тик " + m.tick + (m.frameBot ? " · обведён " + m.frameBot : "");
-  var body = mkEl("mkUnd");
-  if(wait){ body.innerHTML = '<div class="mk-think">' + mkEsc(wait) + '</div>'; mkEl("mkBtns").style.display = "none"; mkEl("mkFix").style.display = "none"; return; }
-  var chips = '<span class="mk-chip">' + mkEsc(m.category + " · " + (m.priority === "urgent" ? "срочно" : "обычно")) + '</span>';
-  if(a.principle){ var p = MK_PRINCIPLES.filter(function(x){ return x.id === a.principle; })[0];
-    chips += '<span class="mk-chip mk-chip-a">Похоже на пункт ' + mkEsc(a.principle) + '</span>' + (p ? '<div class="mk-pt">' + mkEsc(p.text) + '</div>' : ""); }
-  else if(a.newItem) chips += '<span class="mk-chip mk-chip-n">Новый пункт · ' + mkEsc(a.newItem.section) + '</span><div class="mk-pt">' + mkEsc(a.newItem.text) + '</div>';
-  body.innerHTML = '<div class="mk-lbl">Я понял так</div><div class="mk-big">' + mkEsc(a.understood) + '</div>' + chips +
-    (a.unsure ? '<div class="mk-q">Не уверен: ' + mkEsc(a.unsure) + '</div>' : "") +
-    '<div class="mk-q">Ваш текст: «' + mkEsc(m.text) + '»</div>';
-  mkEl("mkBtns").style.display = "flex"; mkEl("mkFix").style.display = "none";
+  m.frameUrl = mkFrame(m.bot);
+  mkClose(); mkToast("Сохраняю отметку…");
+  if(await mkSave(m, "new")) mkToast("Отметка сохранена");
 }
 async function mkSave(m, status){
-  var a = m.answer || {};
   var doc = { match: m.match, tick: m.tick, round: m.round, roundTime: m.roundTime, category: m.category, priority: m.priority,
-    text: m.text, bot: m.frameBot || m.bot || null, understood: a.understood || null, principle: a.principle || null,
-    newItem: a.newItem || null, unsure: a.unsure || null, status: status, version: null,
+    text: m.text, bot: m.bot || null, principle: null, status: status, version: null,
     fp: m.fp, state: m.state, frameAsset: null, created: Date.now(), updated: Date.now() };
   if(MK.assets && m.frameUrl){ try{ var up = await MK.assets.upload(mkUrlToBlob(m.frameUrl)); doc.frameAsset = up.id; }catch(e){} }
   doc.screenAsset = null;   // (v385) весь экран
@@ -346,9 +264,9 @@ async function mkSave(m, status){
   // полный снимок игры в момент нажатия — по нему отметка открывается у владельца и у Claude
   doc.snapAsset = null;
   if(MK.assets && m.snap){ try{ var us = await MK.assets.upload(new Blob([mkPack(m.snap)], {type: "application/json"})); doc.snapAsset = us.id; }catch(e){ mkToast("Снимок игры не сохранился: " + (e && (e.code || e.message))); } }
-  if(!MK.db){ MK.local = MK.local || []; doc.id = "local" + doc.created; MK.local.push(doc); mkRenderList(); mkToast("Базы страницы нет (открыто не в Claude) — отметка только до перезагрузки"); return; }
-  try{ await MK.db.collection("marks").doc("m" + doc.created).set(doc); }
-  catch(e){ mkToast("Не удалось сохранить отметку: " + (e && (e.code || e.message))); }
+  if(!MK.db){ MK.local = MK.local || []; doc.id = "local" + doc.created; MK.local.push(doc); mkRenderList(); mkToast("Базы страницы нет (открыто не в Claude) — отметка только до перезагрузки"); return false; }
+  try{ await MK.db.collection("marks").doc("m" + doc.created).set(doc); return true; }
+  catch(e){ mkToast("Не удалось сохранить отметку: " + (e && (e.code || e.message))); return false; }
 }
 
 // ---------- список отметок ----------
@@ -411,16 +329,12 @@ function mkShowCopy(t){ var a = mkEl("mkCopyBox"); a.value = t; a.style.display 
       '<div class="mk-head"><b>Отметка момента</b><button id="mkX">✕</button></div>' +
       '<div class="mk-q" id="mkMoment"></div>' +
       '<div id="mkForm">' +
-        '<textarea id="mkText" rows="3" placeholder="Что не так — своими словами"></textarea>' +
+        '<textarea id="mkText" rows="3" placeholder="Что не так — своими словами (Ctrl+Enter — сохранить)"></textarea>' +
         '<div class="mk-row2"><select id="mkCat">' + MK_CATS.map(function(c){ return '<option>' + c + '</option>'; }).join("") + '</select>' +
         '<label><input type="radio" name="mkPrio" id="mkPrioN" checked> обычно</label><label><input type="radio" name="mkPrio" id="mkPrioU"> срочно</label></div>' +
         '<div class="mk-q">О ком: <span id="mkBot"></span></div>' +
         '<div class="mk-err" id="mkErr"></div>' +
-        '<div class="mk-row2"><button id="mkGo" class="active">Разобрать</button><button id="mkCancel">Отмена</button></div>' +
-      '</div>' +
-      '<div id="mkCard" style="display:none"><img id="mkImg" alt="кадр радара"><div class="mk-q" id="mkCap"></div><div id="mkUnd"></div>' +
-        '<div class="mk-row2" id="mkBtns"><button id="mkYes" class="active">Да, верно</button><button id="mkNo">Нет, не то</button><button id="mkSkip">Не добавлять</button></div>' +
-        '<div id="mkFix" style="display:none"><textarea id="mkFixText" rows="2" placeholder="Что на самом деле не так"></textarea><div class="mk-row2"><button id="mkReask" class="active">Переспросить</button></div></div>' +
+        '<div class="mk-row2"><button id="mkGo" class="active">Сохранить</button><button id="mkCancel">Отмена</button></div>' +
       '</div>' +
     '</div>' +
     '<div id="mkList" class="mk-panel" style="display:none"><div class="mk-head"><b>Отметки</b><span><button id="mkCopy">Скопировать все</button> <button id="mkLX">✕</button></span></div>' +
@@ -435,10 +349,7 @@ function mkShowCopy(t){ var a = mkEl("mkCopyBox"); a.value = t; a.style.display 
   mkEl("mkX").addEventListener("click", mkClose); mkEl("mkCancel").addEventListener("click", mkClose);
   mkEl("mkGo").addEventListener("click", mkSubmit);
   mkEl("mkText").addEventListener("input", function(){ mkEl("mkErr").textContent = ""; });
-  mkEl("mkYes").addEventListener("click", async function(){ var m = MK.cur; if(!m) return; mkClose(); await mkSave(m, "new"); mkToast("Сохранено в отметки"); });
-  mkEl("mkSkip").addEventListener("click", function(){ mkClose(); mkToast("Не добавлено"); });
-  mkEl("mkNo").addEventListener("click", function(){ mkEl("mkFix").style.display = "block"; mkEl("mkBtns").style.display = "none"; mkEl("mkFixText").focus(); });
-  mkEl("mkReask").addEventListener("click", function(){ var t = mkEl("mkFixText").value.trim(); if(!t){ mkEl("mkFixText").focus(); return; } mkRunAsk(t); });
+  mkEl("mkText").addEventListener("keydown", function(e){ if(e.key === "Enter" && (e.ctrlKey || e.metaKey)){ e.preventDefault(); mkSubmit(); } });
   mkEl("mkCopy").addEventListener("click", mkCopyAll);
   mkEl("mkItems").addEventListener("click", function(e){
     var L = mkSorted(), ok = e.target.getAttribute && e.target.getAttribute("data-ok");
@@ -462,13 +373,12 @@ function mkShowCopy(t){ var a = mkEl("mkCopyBox"); a.value = t; a.style.display 
   });
   mkEl("btnRestartRound").addEventListener("click", function(){ MK.cps = []; });
   mkEl("btnFreshMatch").addEventListener("click", function(){ MK.cps = []; });
-  // возможности страницы в Claude: база отметок, картинки кадров, вопрос Claude
+  // возможности страницы в Claude: база отметок, картинки кадров и снимки
   if(window.claude && claude.use){
     claude.use("db").then(function(db){ if(!db) return; MK.db = db;
       db.collection("marks").onSnapshot(function(snap){ MK.list = snap.docs.map(function(d){ var o = Object.assign({}, d.data()); o.id = d.id; return o; }); mkRenderList(); },
         function(){ mkToast("База отметок недоступна"); }); });
     claude.use("assets").then(function(a){ MK.assets = a || null; });
-    claude.use("sample").then(function(s){ MK.sample = s || null; });
   }
   mkRenderList();
 })();

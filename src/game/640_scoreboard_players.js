@@ -13,6 +13,11 @@ function seriesUpdate(){
     if(el.dataset.h !== h){ el.dataset.h = h; el.innerHTML = h; } });
   var box = document.getElementById("sbSeries"); if(box) box.style.display = SERIES.bo > 1 ? "" : "none";
 }
+// (v397, М146) писать в страницу только то, что изменилось: каждая запись (даже того же текста) помечает раскладку страницы
+// грязной, и следующее чтение размеров (мини-карта, обсервер — каждый кадр) заставляет браузер пересчитать её целиком
+function domText(el, v){ v = String(v); if(el && el.textContent !== v) el.textContent = v; }
+function domClass(el, v){ if(el && el.className !== v) el.className = v; }
+function domHtml(el, v){ if(el && el._html !== v){ el._html = v; el.innerHTML = v; } }
 function scoreboardUpdate(rtLeft){
   seriesUpdate();
 
@@ -22,20 +27,20 @@ function scoreboardUpdate(rtLeft){
     var src = TEAM_LOGO[t] || "";   // (v270) после смены сторон логотип переезжает вместе с командой
     if(lg.dataset.src !== src){ lg.dataset.src = src; if(src) lg.innerHTML = '<img alt="" src="'+src+'">'; else lg.textContent = t; }
     var nm = $("sbName"+t); if(nm.textContent !== TEAM_NAME[t]){ nm.textContent = TEAM_NAME[t]; nm.title = TEAM_NAME[t]; }
-    $("sbScore"+t).textContent = score[t];
-    $("sbAlive"+t).textContent = bots.filter(function(b){ return b.team === t && b.alive; }).length;
+    domText($("sbScore"+t), score[t]);
+    domText($("sbAlive"+t), bots.filter(function(b){ return b.team === t && b.alive; }).length);
   });
-  $("sbMatch").textContent = "матч № "+matchNum;
-  $("sbRound").textContent = "РАУНД "+Math.max(1, roundNum);
+  domText($("sbMatch"), "матч № "+matchNum);
+  if(!WARM.on) domText($("sbRound"), "РАУНД "+Math.max(1, roundNum));
   var tm = $("sbTime"), planted = bomb && bomb.state === "planted" && roundState === "live";
   // бомба стоит — как в CS2: вместо времени раунда значок бомбы (время до взрыва зрители не видят)
-  if(planted){ tm.textContent = "💣"; tm.className = "sb-time bomb"; return; }
+  if(planted){ domText(tm, "💣"); domClass(tm, "sb-time bomb"); return; }
   var sec = roundState === "freeze" ? Math.max(0, roundStartTime - simTime) : rtLeft;
-  tm.textContent = Math.floor(sec/60)+":"+("0"+Math.floor(sec%60)).slice(-2);
-  tm.className = "sb-time" + (roundState === "live" && sec <= 10 ? " low" : "");
+  if(!WARM.on) domText(tm, Math.floor(sec/60)+":"+("0"+Math.floor(sec%60)).slice(-2));
+  domClass(tm, "sb-time" + (roundState === "live" && sec <= 10 ? " low" : ""));
   // (v306) разминка: вместо раунда — «РАЗМИНКА · матч в …» и обратный отсчёт до матча
-  if(WARM.on){ var wl = Math.max(0, Math.ceil(WARM.left)); $("sbRound").textContent = "РАЗМИНКА · матч в "+WARM.match;
-    $("sbTime").textContent = Math.floor(wl/60)+":"+("0"+(wl%60)).slice(-2); }
+  if(WARM.on){ var wl = Math.max(0, Math.ceil(WARM.left)); domText($("sbRound"), "РАЗМИНКА · матч в "+WARM.match);
+    domText(tm, Math.floor(wl/60)+":"+("0"+(wl%60)).slice(-2)); }
 }
 
 // ---------- панели игроков (Н7): как на трансляции; по центру — выбранный кликом ----------
@@ -62,7 +67,9 @@ var PL_KILL = '<svg viewBox="0 0 12 12"><path d="M5.3 0h1.4v2.1A4 4 0 0 1 9.9 5.
 var PL_SKULL = '<svg viewBox="0 0 12 12"><path d="M6 0C2.7 0 .5 2.2.5 5c0 1.7.8 3 2 3.7V11h1.6V9.6h1.1V11h1.6V9.6h1.1V11h1.6V8.7c1.2-.7 2-2 2-3.7C11.5 2.2 9.3 0 6 0zM3.9 4.3a1.3 1.3 0 1 1 0 2.6 1.3 1.3 0 0 1 0-2.6zm4.2 0a1.3 1.3 0 1 1 0 2.6 1.3 1.3 0 0 1 0-2.6z"/></svg>';
 // (v323, М28) что у игрока на панели — по порядку закупа: оружие, броня, кит, бомба, гранаты
 function plKeys(b){
-  var L = [], wkey = (b.weapon && b.weapon.key) || "KNIFE", ic = typeof KF_ICON !== "undefined" && KF_ICON ? KF_ICON[wkey] : {vb:"", svg:""};   // до загрузки иконок (первый закуп) — только ключи
+  // (v397, М145) в руках нож (бег с ножом knifeTick или нечем стрелять) — иконка ножа своей стороны, как в киллфиде (KNIFE / KNIFE_T)
+  var knife = b._knife || !b.weapon, wkey = knife ? (b.team === "T" ? "KNIFE_T" : "KNIFE") : b.weapon.key;
+  var L = [], ic = typeof KF_ICON !== "undefined" && KF_ICON ? KF_ICON[wkey] : {vb:"", svg:""};   // до загрузки иконок (первый закуп) — только ключи
   var I = (typeof PL_ICON !== "undefined" && PL_ICON) || {};
   if(ic) L.push({key:"w:"+wkey, w:true, wk:wkey, html:'<svg class="wp" viewBox="'+ic.vb+'">'+ic.svg+'</svg>'});
   if(b.helmet) L.push({key:"helmet", html:I.helmet}); else if(b.armor) L.push({key:"armor", html:I.armor});
@@ -156,16 +163,18 @@ function playersUpdate(){
   ["T","CT"].forEach(function(t){
     var el = document.getElementById("pl"+t); if(!el) return;
     var foc = document.activeElement && el.contains(document.activeElement) ? document.activeElement.dataset.id : null;
-    el.innerHTML = '<div class="pl-tag">'+esc(TEAM_NAME[t])+'</div>'+bots.filter(function(b){ return b.team === t; }).map(plCard).join("");
+    var h = '<div class="pl-tag">'+esc(TEAM_NAME[t])+'</div>'+bots.filter(function(b){ return b.team === t; }).map(plCard).join("");
+    if(el._html === h) return;   // (v397, М146) ничего не поменялось — не перестраивать панель
+    domHtml(el, h);
     if(foc){ var fe = el.querySelector('[data-id="'+foc+'"]'); if(fe) fe.focus(); }
   });
   var f = document.getElementById("plFocus"), b = plSelected && teamBot(plSelected);
-  if(!b || !b.alive){ plSelected = null; f.className = ""; var ph0 = document.getElementById("pfPhoto"); if(ph0) ph0.dataset.id = ""; return; }
+  if(!b || !b.alive){ plSelected = null; domClass(f, ""); var ph0 = document.getElementById("pfPhoto"); if(ph0) ph0.dataset.id = ""; return; }
   var cls = "show "+b.team.toLowerCase()+(f.classList.contains("pop") ? " pop" : ""); if(f.className !== cls) f.className = cls;
   var ph = document.getElementById("pfPhoto"); if(ph.dataset.id !== b.id){ ph.dataset.id = b.id; ph.innerHTML = plPhoto(b); f.classList.remove("pop"); void f.offsetWidth; f.classList.add("pop"); }   // (v303) новая карточка — анимация заново
-  document.getElementById("pfNick").textContent = nick(b.id);
-  document.getElementById("pfHp").textContent = Math.max(0, Math.round(b.hp));
-  document.getElementById("pfKd").innerHTML = (b.kills||0)+'<i></i>'+(b.deaths||0);
+  domText(document.getElementById("pfNick"), nick(b.id));
+  domText(document.getElementById("pfHp"), Math.max(0, Math.round(b.hp)));
+  domHtml(document.getElementById("pfKd"), (b.kills||0)+'<i></i>'+(b.deaths||0));
 }
 // клик по строке игрока в панели — его карточка; повторный клик — убрать
 ["plT","plCT"].forEach(function(id){
