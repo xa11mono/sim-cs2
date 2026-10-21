@@ -45,6 +45,16 @@ var CS_ACCEL = 5.5, CS_FRIC = 5.2, CS_STOP = 80;
 // tools/measure/engine/b4_strafe.py
 var STRAFE_PRO = [3.0, 10.6, 34.9, 73.7, 118.6];
 function csDecel(v, vmax){ return CS_FRIC*Math.max(v, CS_STOP/PX_UNITS) + CS_ACCEL*vmax; }   // px/с²
+// тиков на шаг длиной d (px) со скоростью v на старте: разгон, пока до конца шага больше тормозного пути, потом контрстрейф до vT
+function csTicksStep(v, d, vT, vmax){
+  var n = 0, x = 0;
+  while(n < 90){
+    var s = 0, u = v; while(u > vT + 0.5){ var du = csDecel(u, vmax)/TICK_HZ; s += Math.max(0, u - du/2)/TICK_HZ; u -= du; }
+    if(x + s >= d) break;
+    v = Math.min(vmax, v + Math.max(0, CS_ACCEL*vmax - CS_FRIC*v)/TICK_HZ); x += v/TICK_HZ; n++;
+  }
+  return n + csTicksTo(v, vT, vmax);
+}
 function csTicksTo(v, vT, vmax){ var n = 0; while(v > vT + 0.5 && n < 30){ v -= csDecel(v, vmax)/TICK_HZ; n++; } return n; }
 function fightStrafe(b, F, dtSec){
   var e = F.e, fr = b._fire, fresh = fr && tick - fr.t <= 1;
@@ -59,7 +69,11 @@ function fightStrafe(b, F, dtSec){
   if(b.lastShotTick >= F.t) F.started = true;
   // контрстрейф начинается так, чтобы к моменту, когда можно стрелять, скорость упала до той, на которой выстрел «стоит того»
   // (fireVAcc — то же правило, что в tryShoot): вблизи — почти с ходу, вдали — до остановки
-  var v = Math.abs(F.sv), vT = fresh ? fireVAcc(b, e, L) : 0, stop = fresh && fr.inT <= csTicksTo(v, vT, vmax) + 1 && !b._reloading;
+  // между выстрелами (очередь, тап) новый шаг вбок не начинает, если не успеет пройти его и снова погасить скорость до выстрела
+  var v = Math.abs(F.sv), vT = fresh ? fireVAcc(b, e, L) : 0;
+  if(!F.leg) F.leg = Math.max(1, peekQ(STRAFE_PRO, fightRand(b, 7))/PX_UNITS);
+  var need = (F.started && v < vT + 1) ? csTicksStep(v, F.leg, vT, vmax) : csTicksTo(v, vT, vmax);
+  var stop = fresh && fr.inT <= need + 1 && !b._reloading;
   if(stop || (!F.started && v < 1)){ v = Math.max(0, v - csDecel(v, vmax)*dtSec); F.sv = (F.sv < 0 ? -1 : 1)*v; }
   else {
     var so = (b.baseX - F.ax)*ax + (b.baseY - F.ay)*ay;
