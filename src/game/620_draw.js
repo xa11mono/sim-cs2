@@ -390,12 +390,19 @@ function draw(){
     ctx.fill(); ctx.stroke();
     if(type === "he"){ ctx.fillStyle = "rgba(40,10,8,0.9)"; ctx.beginPath(); ctx.arc(x, y, r*0.38, 0, Math.PI*2); ctx.fill(); }
   };
+  var NADE_LIFT_MAX = 30;   // px радара — выше граната на рисунке не поднимается (проектное число, только вид)
   var nadeRGB = function(t){ return t === "smoke" ? "214,217,209" : t === "flash" ? "255,255,255" : t === "he" ? "232,88,76" : "255,154,60"; };
   nadesInAir.forEach(function(n){
     var rgb = nadeRGB(n.type);
     // (В3) граната летит по физике: тень — на земле под ней, сама — выше на свою высоту над полом (×0,5 к масштабу радара),
     // за ней — след дуги; крестик — где разорвётся по расчёту
-    var lift = function(x, y, z){ return Math.max(0, z - visFloorAt(x, y, z)) * 0.2; };   // ед. игры → px радара (÷2,5, ×0,5)
+    // (21.10, владелец: «что с траекторией» — след скакал зигзагом над стенами и крышами) высота — от плавной линии «пол в месте
+    // броска → пол в месте разрыва», а не от пола под каждой точкой: над крышей / уступом пол под гранатой резко менялся
+    if(n._zf0 == null){ n._zf0 = visFloorAt(n.ox, n.oy); n._zf1 = n.tx != null ? visFloorAt(n.tx, n.ty) : n._zf0; }
+    var dOT = n.tx != null ? Math.hypot(n.tx-n.ox, n.ty-n.oy) : 0;
+    var lift = function(x, y, z){ var k = dOT > 1 ? Math.min(1, Math.hypot(x-n.ox, y-n.oy)/dOT) : 0;
+      var h = Math.max(0, z - (n._zf0 + (n._zf1 - n._zf0)*k)) * 0.2;   // ед. игры → px радара (÷2,5, ×0,5)
+      return NADE_LIFT_MAX * Math.tanh(h / NADE_LIFT_MAX); };   // смоки с T-спавна идут на ~1300 ед. — высота на рисунке плавно до предела
     if(n.trail.length){
       ctx.strokeStyle = "rgba("+rgb+",0.45)"; ctx.lineWidth = 1/S0; ctx.setLineDash([2/S0, 4/S0]); ctx.beginPath();
       n.trail.forEach(function(p, k){ var yy = p[1] - (p[2] != null ? lift(p[0], p[1], p[2]) : 0); if(k === 0) ctx.moveTo(p[0], yy); else ctx.lineTo(p[0], yy); });
