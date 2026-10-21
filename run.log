@@ -1,0 +1,16 @@
+playwright 1.56.0
+> git fetch --quiet origin 867026e941e894b6d21685e42b1f172c1ac7d932
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Users\Mono\AppData\Local\Temp\simbuild_uk4ak4se FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Users\Mono\AppData\Local\Temp\simbuild_uk4ak4se\src\build.py --map mirage C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v393_mir.html
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\engine\walk_run.py --job=v393_mir,C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v393_mir.html --matches=3,7,11,13,17,19,23,29 --par=8
+матчей в очереди: 8, одновременно: 8
+v393_mir match 13 rc 0 3722802 — готово 1/8, 4 мин
+v393_mir match 23 rc 0 4677474 — готово 2/8, 5 мин
+v393_mir match 17 rc 0 5104279 — готово 3/8, 5 мин
+v393_mir match 3 rc 0 6330838 — готово 4/8, 5 мин
+v393_mir match 29 rc 0 5817534 — готово 5/8, 6 мин
+v393_mir match 19 rc 0 6185841 — готово 6/8, 6 мин
+v393_mir match 7 rc 0 6290419 — готово 7/8, 6 мин
+v393_mir match 11 rc 0 6664305 — готово 8/8, 6 мин
+done
+all done
