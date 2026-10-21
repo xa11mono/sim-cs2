@@ -1,0 +1,27 @@
+playwright 1.56.0
+> git fetch --quiet origin 1d80f52b1f5744c42b44c0222e29158f2c4689cc
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Users\Mono\AppData\Local\Temp\simbuild_at0pfuvf FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Users\Mono\AppData\Local\Temp\simbuild_at0pfuvf\src\build.py --map ancient C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v3c_anc.html
+> git fetch --quiet origin 1d80f52b1f5744c42b44c0222e29158f2c4689cc
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Users\Mono\AppData\Local\Temp\simbuild_qh22s18h FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Users\Mono\AppData\Local\Temp\simbuild_qh22s18h\src\build.py --map mirage C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v3c_mir.html
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\engine\walk_run.py --job=v3c_anc,C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v3c_anc.html --job=v3c_mir,C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v3c_mir.html --matches=3,7,11,13,17,19,23,29 --par=8
+матчей в очереди: 16, одновременно: 8
+v3c_anc match 17 rc 0 4649146 — готово 1/16, 4 мин
+v3c_anc match 13 rc 0 4660126 — готово 2/16, 4 мин
+v3c_anc match 29 rc 0 5023626 — готово 3/16, 5 мин
+v3c_anc match 11 rc 0 6202903 — готово 4/16, 5 мин
+v3c_anc match 3 rc 0 6492113 — готово 5/16, 5 мин
+v3c_anc match 19 rc 0 6746880 — готово 6/16, 6 мин
+v3c_anc match 7 rc 0 6442779 — готово 7/16, 6 мин
+v3c_anc match 23 rc 0 8243165 — готово 8/16, 7 мин
+v3c_mir match 7 rc 0 5001944 — готово 9/16, 9 мин
+v3c_mir match 13 rc 0 5323767 — готово 10/16, 10 мин
+v3c_mir match 11 rc 0 6087688 — готово 11/16, 10 мин
+v3c_mir match 3 rc 0 7946892 — готово 12/16, 12 мин
+v3c_mir match 23 rc 0 6471896 — готово 13/16, 12 мин
+v3c_mir match 29 rc 0 6624412 — готово 14/16, 13 мин
+v3c_mir match 17 rc 0 8440266 — готово 15/16, 13 мин
+v3c_mir match 19 rc 0 8644032 — готово 16/16, 13 мин
+done
+all done
