@@ -2,13 +2,14 @@
 
 python3 tools/route_nades.py [--map mirage] pro            → <pro_dir>/route_nades.json + таблица в консоль
 python3 tools/route_nades.py [--map mirage] <папка rec_*>  → та же таблица у ботов (и сравнение с эталоном, если он есть)
+python3 tools/route_nades.py [--map mirage] game           → планы гранат в набор карты: tactics.json → nadePlans, tTactics[].exit
 
 Определения (одни у про и у ботов):
   * Раунд берётся, если у T закуп (≥ 4 T с винтовкой / AWP / SMG в руках в первые 30 с) — гранаты маршрута кидают, когда они есть.
-  * Ветка игрока T — первая зона после ПОСЛЕДНЕГО пребывания на стороне T (regions.Tside рецепта, как tools/tactics_bake.py),
-    по пути до планта / смерти / конца раунда. Не вышел со стороны T — ветки нет.
-  * Выход раунда — ветка, которой шло больше всего T (≥ 2); сайт — сайт планта (без планта — «—»). Ключ таблицы: «сайт: ветка».
-  * Граната — (тип, зона разрыва) по zones.json набора; у молотова — где загорелся. T — до планта; CT — до планта, в любое время.
+  * Ветка игрока T — первая зона фронта (стороны A / B / мида по набору карты: regions рецепта или tactics.sides) после
+    последнего пребывания вне фронта, по пути до планта / смерти / конца раунда.
+  * Выход раунда — ветка, которой шло больше всего T (≥ 2); сайт планта — распределением. Ключ таблицы — ветка.
+  * Граната — (тип, зона разрыва) по zones.json набора (вне зон — ближайшая в NN_R); у молотова — где загорелся. До планта.
   * Доля — % раундов этого выхода, где такую гранату кинули хотя бы раз; t — медиана секунды броска от конца freeze.
   * «ответ CT» — то же у CT; рядом доля по всем раундам с закупом T (без условия на выход), чтобы видеть, что CT кидают
     именно на этот выход.
@@ -20,9 +21,18 @@ HERE = os.path.dirname(os.path.abspath(__file__)); sys.path.insert(0, HERE)
 from demos import demo_names, rounds_of, event, tr, DEMOS, TICK, MAPNAME  # noqa: E402
 import mapdir  # noqa: E402
 import pandas as pd  # noqa: E402
-from tactics_bake import zone, REG, T_SPAWN, SIDES  # noqa: E402
+from tactics_bake import zone as zone0, ZP, REG, SIDES  # noqa: E402
 
 PRO = mapdir.pro_dir(MAPNAME)
+NN_R = 120   # разрыв вне зон (флешка в воздухе) — ближайшая зона по центру, если ближе 120 ед. карты — проектное число
+_ZC = [(nm, P.vertices.mean(axis=0)) for nm, P in ZP]
+
+
+def zone(x, y):
+    z = zone0(x, y)
+    if z: return z
+    nm, c = min(_ZC, key=lambda q: (q[1][0] - x) ** 2 + (q[1][1] - y) ** 2)
+    return nm if (c[0] - x) ** 2 + (c[1] - y) ** 2 < NN_R ** 2 else None
 
 
 def base(z):
@@ -62,18 +72,21 @@ def round_row(paths, nades, plant_site, t_plant):
         return None
     ex = c.most_common(1)[0][0]
     t_exit = float(np.median([first[p] for p in br if br[p] == ex and first[p] is not None]))
+    foot = set()   # зоны, где шли игроки выхода (по ним тактике игры ставится её выход)
+    for p, pts in paths.items():
+        if br.get(p) == ex: foot |= {base(zone0(x, y)) for _, x, y in pts if zone0(x, y)}
     got = {'T': {}, 'CT': {}}
     for t, td, side, ty, x, y in nades:
         if t_plant is not None and t > t_plant: continue
         k = (TYPES.get(ty, ty), base(zone(x, y)) or '?')
-        if k not in got[side] or t < got[side][k][0]: got[side][k] = [round(t, 1), t < t_exit]
+        if k not in got[side] or t < got[side][k][0]: got[side][k] = [round(t, 1), t < t_exit, round(x), round(y)]
     # тушение: смок разорвался на горящем молотове соперника
     mol = [(td, s, x, y) for t, td, s, ty, x, y in nades if ty in ('molotov', 'molly')]
     sm = [(td, s, x, y) for t, td, s, ty, x, y in nades if ty == 'smoke']
     ext = sum(1 for t, s, x, y in sm if any(s2 != s and 0 <= t - t2 <= BURN / TICK and (x - x2) ** 2 + (y - y2) ** 2 < EXT_R ** 2
                                               for t2, s2, x2, y2 in mol))
     return {'exit': ex, 'site': plant_site or '—', 'tExit': round(t_exit, 1), 'lanes': dict(c), 'T': got['T'], 'CT': got['CT'],
-            'ext': [len(sm), ext]}
+            'ext': [len(sm), ext], 'foot': sorted(foot)}
 
 
 # ------------------------------------------------------------------ про
@@ -156,6 +169,95 @@ def bot_rounds(d):
     return out
 
 
+# ------------------------------------------------------------------ планы для игры
+ITEM_MIN = 0.10    # граната входит в план, если про кидают её хотя бы в 10 % раундов своего вида — проектное число
+RESP_LIFT = 1.2    # ответ CT на выход: после выхода T этим путём кидают в 1,2 раза чаще, чем после выхода вообще — проектное число
+TYPE_LU = {'smoke': 'смок', 'flash': 'флешка', 'molly': 'молотов', 'he': 'HE'}
+
+
+def game_plans(rows):
+    """Планы гранат из демок (Г1). Граната плана — (сторона, тип, зона разрыва, фаза) со списком лайнапов про (lineups.json:
+    pro + proExtra), чья цель в этой зоне; нет такого — точка разрыва про (to), бросок подбирает физика. Разрыв вне зон (?) не берётся. Набор раунда берётся как у про целиком (сочетание гранат одного раунда про с его
+    частотой, а не каждая граната своей вероятностью): гранаты сочетания летят все, если есть граната и кидающий рядом.
+      exits[ветка].T — сочетания T в раундах этого выхода; фаза гранаты: start — про кидают её до выхода (в большинстве
+        раундов), exec — после;
+      ctTimed — сочетания CT по всем раундам (CT выход T заранее не знают): фаза timed, t — медиана секунды;
+      ctResp[ветка] — ответ CT: гранаты, которые в раундах этого выхода CT кидают в RESP_LIFT раз чаще, чем вообще, и в
+        большинстве случаев уже после выхода T; летят, когда команда CT узнала (слышала / видела T в зонах выхода), если ещё
+        не летели в этом раунде."""
+    LU = json.load(open(mapdir.path(MAPNAME, 'lineups.json')))
+    lu_by = collections.defaultdict(list)
+    for L in LU['pro'] + LU['proExtra']:
+        lu_by[(L['team'], TYPE_LU.get(L['type'], L['type']), base(zone(L['to']['x'], L['to']['y'])) or '?')].append(L['id'])
+    items, idx, miss = [], {}, collections.defaultdict(dict)
+    TYPE_EN = {v: k for k, v in TYPE_LU.items()}
+
+    def item(side, k, t, phase, xy):
+        """граната плана; без лайнапа про в этой зоне — lineups пустой, to — медианная точка разрыва у про: кидает физика (В5)"""
+        key = (side, k[0], k[1], phase)
+        if key not in idx:
+            ids = lu_by.get((side, k[0], k[1]), [])
+            if not ids: miss['%s %s' % (side, phase)]['%s %s' % k] = 1
+            idx[key] = len(items)
+            items.append({'team': side, 'type': TYPE_EN[k[0]], 'zone': k[1], 'phase': phase, 't': t, 'lineups': ids,
+                          'to': {'x': int(np.median([q[0] for q in xy])), 'y': int(np.median([q[1] for q in xy]))}})
+        return idx[key]
+
+    def stats(R, side):
+        C = collections.Counter(); TM = collections.defaultdict(list); PRE = collections.Counter(); XY = collections.defaultdict(list)
+        for r in R:
+            for k, (t, b, x, y) in r[side].items():
+                C[k] += 1; TM[k].append(t); PRE[k] += b; XY[k].append((x, y))
+        return C, TM, PRE, XY
+
+    def sigs(R, side, num):
+        sig = collections.Counter(tuple(sorted(num[k] for k in r[side] if k in num)) for r in R)
+        return [[v, list(k)] for k, v in sig.most_common()]
+
+    out = {'_about': 'Г1: планы гранат из демок про (tools/route_nades.py game); сочетания — [раундов про, [номера items]]',
+           'items': items, 'ctTimed': None, 'exits': {}, 'ctResp': {}}
+    n = len(rows)
+    C, TM, _, XY = stats(rows, 'CT')
+    num = {k: item('CT', k, round(float(np.median(TM[k])), 1), 'timed', XY[k]) for k, v in C.items() if v / n >= ITEM_MIN and k[1] != '?'}
+    out['ctTimed'] = sigs(rows, 'CT', num)
+    ex = collections.defaultdict(list)
+    for r in rows: ex[r['exit']].append(r)
+    CA = stats(rows, 'CT')[0]
+    for e, R in sorted(ex.items(), key=lambda kv: -len(kv[1])):
+        m = len(R)
+        if m < 15: continue
+        sites = collections.Counter(r['site'] for r in R)
+        foot = collections.Counter(z for r in R for z in r['foot'])
+        E = out['exits'][e] = {'n': m, 'share': round(m / n, 3), 'sites': {k: round(v / m, 2) for k, v in sites.items()},
+                               'tExit': round(float(np.median([r['tExit'] for r in R])), 1),
+                               'foot': {z: round(v / m, 2) for z, v in foot.most_common() if v / m >= 0.15}}
+        C, TM, PRE, XY = stats(R, 'T')
+        num = {k: item('T', k, round(float(np.median(TM[k])), 1), 'start' if PRE[k] / v > 0.5 else 'exec', XY[k])
+               for k, v in C.items() if v / m >= ITEM_MIN and k[1] != '?'}
+        E['T'] = sigs(R, 'T', num)
+        C, TM, PRE, XY = stats(R, 'CT')
+        out['ctResp'][e] = [item('CT', k, round(float(np.median(TM[k])), 1), 'resp', XY[k]) for k, v in C.items()
+                            if v / m >= ITEM_MIN and v / m >= RESP_LIFT * CA[k] / n and PRE[k] / v <= 0.5 and k[1] != '?']
+    out['noLineup'] = {k: sorted(v) for k, v in miss.items()}
+    return out
+
+
+def tactic_exit(tac, ex):
+    """выход тактики игры: тот выход про, по зонам которого идёт её первая группа (via + stage), среди выходов её сайта;
+    без маршрута — самый частый выход сайта"""
+    via = list(tac.get('rushVia') or [])
+    for g in tac.get('groups', [])[:1]: via += (g.get('via') or []) + ([g['stage']] if g.get('stage') else [])
+    for z in via:   # маршрут идёт через зону самого выхода — это он
+        if z in ex: return z
+    site = tac['site']
+    cand = {e: E for e, E in ex.items() if E['sites'].get(site, 0) >= 0.15}
+    if not cand: cand = ex
+    score = {e: sum(E['foot'].get(z, 0) for z in set(via)) for e, E in cand.items()}
+    best = max(score.values()) if score else 0
+    if best > 0: return max(score, key=score.get)
+    return max(cand, key=lambda e: cand[e]['sites'].get(site, 0) * cand[e]['n'])
+
+
 # ------------------------------------------------------------------ сводка
 def table(rows):
     """ключ — ветка выхода (сайт планта — распределением); по каждой гранате: p — доля раундов выхода, pAll — по всем раундам,
@@ -177,7 +279,7 @@ def table(rows):
         for side in ('T', 'CT'):
             C = collections.Counter(); TM = collections.defaultdict(list); PRE = collections.Counter()
             for r in R:
-                for kk, (t, pre) in r[side].items(): C[kk] += 1; TM[kk].append(t); PRE[kk] += pre
+                for kk, (t, pre, *_) in r[side].items(): C[kk] += 1; TM[kk].append(t); PRE[kk] += pre
             for kk, v in C.most_common():
                 if v / n < MIN_SHOW: break
                 e[side].append({'type': kk[0], 'zone': kk[1], 'p': round(v / n, 3), 'pAll': round(allc[side][kk] / len(rows), 3),
@@ -223,7 +325,22 @@ def compare(pro, bot, top=10):
 
 if __name__ == '__main__':
     arg = sys.argv[1] if len(sys.argv) > 1 else 'pro'
-    if arg == 'pro':
+    if arg == 'game':
+        P = game_plans(pro_rows())
+        tp = mapdir.path(MAPNAME, 'tactics.json'); TJ = json.load(open(tp, encoding='utf-8'))
+        for t in TJ['tTactics']: t['exit'] = tactic_exit(t, P['exits'])
+        TJ['nadePlans'] = '@@PLANS@@'
+        txt = json.dumps(TJ, ensure_ascii=False, indent=1)   # планы — компактно, по строке на гранату / выход
+        pl = '{\n' + ',\n'.join('  %s: %s' % (json.dumps(k, ensure_ascii=False), json.dumps(v, ensure_ascii=False, separators=(',', ':')))
+                                for k, v in P.items() if k != 'items') + \
+             ',\n  "items": [\n' + ',\n'.join('   ' + json.dumps(i, ensure_ascii=False, separators=(',', ':')) for i in P['items']) + '\n  ]\n }'
+        open(tp, 'w', encoding='utf-8').write(txt.replace('"@@PLANS@@"', pl) + '\n')
+        assert json.load(open(tp, encoding='utf-8'))['nadePlans']['items'] == P['items']
+        print('гранат в планах:', len(P['items']), ', из них без лайнапа:', sum(1 for i in P['items'] if not i['lineups']))
+        for t in TJ['tTactics']: print(' ', t['id'], t['site'], '→', t['exit'])
+        print('ctTimed сочетаний', len(P['ctTimed']), 'первые', P['ctTimed'][:3])
+        for e, E in P['exits'].items(): print(e, E['n'], 'сочетаний T', len(E['T']), E['T'][:2], '| ответ CT', [P['items'][i]['type'] + ' ' + P['items'][i]['zone'] for i in P['ctResp'][e]])
+    elif arg == 'pro':
         rows = pro_rows()
         out = table(rows)
         json.dump(out, open(os.path.join(PRO, 'route_nades.json'), 'w'), ensure_ascii=False, indent=1)

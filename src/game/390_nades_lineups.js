@@ -16,7 +16,8 @@ function builtinAllowed(key){
   if(!rep.length) return true;
   return rep.every(function(L){ return nadeFlags["lu"+L.id] && !nadeFlags["luok"+L.id]; });
 }
-function allLineups(){ var L = LINEUPS_BAKED.concat(USER_LINEUPS); return BAL.proLineups ? L.concat(proLineups()) : L; }
+// (Г1) лайнапы про больше не разыгрываются здесь по одному — их кидает план гранат тактики (planTick ниже); здесь — свои и зашитые
+function allLineups(){ return LINEUPS_BAKED.concat(USER_LINEUPS); }
 var LU_TRIG = {insta:"инста", setup:"сетап T", exec:"выход T", postplant:"пост-плант", call:"колл CT", retake:"ретейк"};
 var LU_TYPE = {smoke:"смок", flash:"флешка", molly:"молотов", he:"HE"};
 // (14) гранаты выхода раньше: смоки/молотов летят за ~4с до выхода (пока
@@ -36,34 +37,6 @@ function preExecNow(tt){
 function tExecNadesFlying(){
   return nadesInAir.some(function(n){ return n.team === "T" && (n.type === "smoke" || n.type === "molly"); }) ||
     bots.some(function(b){ return b.alive && b.team === "T" && b.nadeTask && (b.nadeTask.type === "smoke") && b.nadeTask.exec; });
-}
-// (v359, отметка владельца р6: «почему не кидают гранаты на Connector, когда идут по Short — ситуация общая») про-смок кидается
-// с вероятностью, как у про, и в этом раунде его могло не выпасть — тогда T шли по открытому месту под Connector / Window без
-// смока. Теперь смок из лайнапов про кидается и вне своей вероятности, если свой T сейчас пойдёт по месту, которое видно из
-// точки смока (путь на ближайших шагах), а там по знанию команды может быть CT (≥ CROSS_BELIEF), и рядом с точкой броска есть
-// кто-то со смоком. Не больше CROSS_MAX (проектные числа) за раунд; смоки на выход (резерв) не трогаются
-var CROSS_BELIEF = 0.3, CROSS_MAX = 2, CROSS_NEAR = 650;
-function tCrossSmoke(L){
-  if(L.team !== "T" || L.type !== "smoke" || roundState !== "live" || bomb.state === "planted") return false;
-  if((nadeFlags._xsN||0) >= CROSS_MAX || !tSmokeReserveOk() || smokeCovered(L.to.x, L.to.y)) return false;
-  if(tick % 16) return false;
-  // CT там могут быть: по знанию команды (≥ CROSS_BELIEF) или это место, где CT держат (pos.ctHold набора карты — по демкам про) и
-  // его не чекали пустым последние 10 с
-  var zid = zoneIdAt(L.to.x, L.to.y), zi = BZ.idx[zid]; if(zi == null) return false;
-  var held = Object.keys(POS).some(function(k){ return (POS[k].ctHold || []).indexOf(zoneUserName(zid)) >= 0; });
-  var clr = CLEARZ.T[zid] && tick - CLEARZ.T[zid].tick < 10*TICK_HZ;
-  if(beliefCount("T", [zi]) < CROSS_BELIEF && !(held && !clr && aliveCount("CT") >= 2)) return false;
-  var thrower = bots.some(function(b){ return b.team === "T" && b.alive && b.nades && b.nades.smoke > 0 && !b.nadeTask && Math.hypot(b.x-L.from.x, b.y-L.from.y) < CROSS_NEAR; });
-  if(!thrower) return false;
-  var crossing = bots.some(function(b){
-    if(b.team !== "T" || !b.alive || !b.path || !b.path.length) return false;
-    for(var i = b.pathIdx||0; i < Math.min(b.path.length, (b.pathIdx||0) + 4); i++){ var q = b.path[i];
-      if(!hasLOS(b.x, b.y, L.to.x, L.to.y, b.z) && hasLOS(q[0], q[1], L.to.x, L.to.y) && Math.hypot(q[0]-b.x, q[1]-b.y) < 500) return true; }
-    return false; });
-  if(!crossing) return false;
-  nadeFlags._xsN = (nadeFlags._xsN||0) + 1;
-  logEvent("T: смок «"+(L.name||"")+"» — свои идут по месту, которое оттуда видно");
-  return true;
 }
 // (v362) раскидчик раунда: с вероятностью SOLO_SHARE (демки Mirage — доля выходов, где один бросил ≥ 60 % гранат) — саппорт или
 // IGL (не энтри, не AWP, не носитель бомбы, не лёркер) с наибольшим числом гранат; решение одно на раунд
@@ -89,30 +62,26 @@ function tSoloThrower(){
 }
 function lineupTick(){
   if(roundState !== "live" || !teamTac.T) return;
+  planTick();
   var tt = teamTac.T, ct = teamTac.CT, since = tick - roundStartTick;
   allLineups().forEach(function(L){
     var key = "lu"+L.id; if(nadeFlags[key]) return;
-    // (v150) про-лайнап: в этом раунде кидается с вероятностью, как у про
-    if(L.pro && nadeFlags["pr"+L.id] === undefined){
-      var hid = 0; for(var hi=0; hi<L.id.length; hi++) hid = hid*31 + L.id.charCodeAt(hi);
-      nadeFlags["pr"+L.id] = hashRand(roundNum*7919 + matchNum*104729 + hid) < L.prob;
-    }
-    if(L.pro && !nadeFlags["pr"+L.id] && tCrossSmoke(L)) nadeFlags["pr"+L.id] = true;
-    if(L.pro && !nadeFlags["pr"+L.id]){ if(!(L.team === "T" && L.type === "smoke")) nadeFlags[key] = true; return; }
     var siteOk = function(k){ return L.site === "any" || L.site === k; };
     var go = false;
     if(L.trigger === "insta") go = since > TICK_HZ;
     else if(L.trigger === "timed") go = bomb.state !== "planted" && since >= (L.at||0)*TICK_HZ && since < ((L.at||0)+12)*TICK_HZ;
-    else if(L.pro && L.team === "T" && L.trigger === "setup") go = tt.phase === "setup" && since >= Math.max(1, (L.at||12)-1)*TICK_HZ && siteOk(tt.site);
     else if(L.team === "T" && L.trigger === "setup") go = tt.phase === "setup" && since > 12*TICK_HZ && siteOk(tt.site);
     else if(L.team === "T" && L.trigger === "exec") go = (tt.phase === "execute" || preExecNow(tt)) && siteOk(tt.site);
     else if(L.team === "T" && L.trigger === "postplant") go = bomb.state === "planted" && siteOk(bomb.site);
     else if(L.team === "CT" && L.trigger === "call") go = ct && ct.call && ct.call.count >= 2 && siteOk(ct.call.site);
     else if(L.team === "CT" && L.trigger === "retake") go = bomb.state === "planted" && siteOk(bomb.site);
-    // (v294) флешки T на сетапе из лайнапов про — только если команда ждёт врага у точки: про кидают их под пик, а боты — по часам
-    // (рвались рядом с врагом в 50 % против 88 % у про)
-    if(go && L.pro && L.team === "T" && L.trigger === "setup" && L.type === "flash" && !nadeWorth("T", L.to)) go = false;
     if(!go) return;
+    luGive(L, key, since, tt);
+  });
+}
+// кому отдать гранату L (лайнап: точка броска L.from): ближайший свободный в радиусе по фазе; key — флаг «готово» в nadeFlags
+// (ok-флаг — key с «ok» после двух букв: luok…, piok…); не нашёлся — ждём до конца окна, потом сдаёмся
+function luGive(L, key, since, tt){
     // кто кидает: ближайший к точке броска, но не энтри (он заходит первым) и не
     // носитель бомбы; в горячих фазах (выход, колл, ретейк, пост-плант) — только
     // тот, кому до точки броска недалеко, иначе он бросит свою задачу и уйдёт назад
@@ -126,6 +95,7 @@ function lineupTick(){
     // "по времени" — ~4 м (не бросать позицию ради гранаты)
     if(L.pro && L.trigger === "setup") maxD = BAL.nadeReach ? 1100 : 700;
     if(L.pro && L.trigger === "timed"){ maxD = BAL.nadeReach ? 850 : 400; hot = true; }
+    var okKey = key.slice(0, 2)+"ok"+key.slice(2), waitKey = "_w"+key;
     var cost = function(b){ return Math.hypot(b.x-L.from.x, b.y-L.from.y) + (b.tRole === "entry" ? 300 : 0) + nadeRoleCost(b); };
     // (v285, владелец 14.10) опорник не уходит со своей точки ради гранаты (опорник A уходил в Top Mid — A пустой): кидает только
     // то, что кидается рядом с его постом (≤300 px — проектное число); по коллу и на ретейке — как раньше
@@ -149,7 +119,7 @@ function lineupTick(){
     if(solo){
       var busyN = (solo.nadeTask && solo.nadeTask.type === L.type ? 1 : 0) + (solo.nadeQueue||[]).filter(function(q){ return q.type === L.type; }).length;
       if(solo.nades && solo.nades[L.type] > busyN && !solo.planting && (solo.nadeQueue||[]).length < 4 && !onTSite(solo)){
-        nadeFlags[key] = true; nadeFlags["luok"+L.id] = true;
+        nadeFlags[key] = true; nadeFlags[okKey] = true;
         if(!solo.nadeTask){
           var sP = Math.max(7, Math.ceil(pathLenTo(solo, L.from.x, L.from.y)/SPEED + LU_REACH_PAD));
           var A1 = luAssign(L, solo); solo.nadeTask = {type:L.type, x:A1.x, y:A1.y, from:A1.from, rec:A1.rec, until: tick + sP*TICK_HZ, why:"лайнап «"+(L.name||LU_TYPE[L.type])+"»", start:tick, lob:true, range:4000, now:true, lineup:true, exec:L.type === "smoke"};
@@ -168,7 +138,7 @@ function lineupTick(){
         return b.nades[L.type] >= need && Math.hypot(t.from.x-L.from.x, t.from.y-L.from.y) < EXEC_QUEUE_R; })
         .sort(function(a, b2){ return (utilRole(a) ? 0 : 400) + cost(a) - (utilRole(b2) ? 0 : 400) - cost(b2); })[0];
       if(qb){
-        nadeFlags[key] = true; nadeFlags["luok"+L.id] = true;
+        nadeFlags[key] = true; nadeFlags[okKey] = true;
         var A3 = luAssign(L, qb); (qb.nadeQueue = qb.nadeQueue || []).push({type:L.type, x:A3.x, y:A3.y, from:A3.from, rec:A3.rec, why:"лайнап «"+(L.name||LU_TYPE[L.type])+"»", lineup:true, exec:true});
         logEvent(qb.id+": следом кинет «"+(L.name||LU_TYPE[L.type])+"»");
         return;
@@ -183,14 +153,14 @@ function lineupTick(){
     if(!cand){
       // (v355) граната выхода ждёт бросающего весь выход (пока бомба не стоит, до EXEC_WAIT_SEC — проектное число), а не 10 с
       var luWait = (execT && bomb.state !== "planted" ? EXEC_WAIT_SEC : 10)*TICK_HZ;
-      if(!hot || since - (nadeFlags["_lu0"+L.id] || since) < luWait){
-        if(nadeFlags["_lu0"+L.id] === undefined) nadeFlags["_lu0"+L.id] = since;
+      if(!hot || since - (nadeFlags[waitKey] || since) < luWait){
+        if(nadeFlags[waitKey] === undefined) nadeFlags[waitKey] = since;
         return;
       }
       nadeFlags[key] = true; return; // так и не нашли, кто бросит — сдаёмся
     }
     nadeFlags[key] = true;
-    nadeFlags["luok"+L.id] = true;
+    nadeFlags[okKey] = true;
     // (v340, отметка владельца: sh1ro шёл на смок Connector, задание сгорело у уступа — развернулся, «отталкивает») срок — не
     // меньше дороги до точки броска по пути + LU_REACH_PAD с (проектное число); раньше только 7 / 12 / 20 с
     var luBase = hot ? ((BAL.nadeReach && L.trigger === "timed") ? 12 : 7) : 20, luP = buildWaypointPath(cand.baseX, cand.baseY, cand.z, L.from.x, L.from.y, 0), luLen = 0, luX = cand.baseX, luY = cand.baseY;
@@ -200,7 +170,86 @@ function lineupTick(){
     cand.nadeTask = {type:L.type, x:A4.x, y:A4.y, from:A4.from, rec:A4.rec, until: tick + luSec*TICK_HZ, why:"лайнап «"+(L.name||LU_TYPE[L.type])+"»",
                      start:tick, lob:true, range:4000, now:true, lineup:true, exec:execT && L.type === "smoke"};
     logEvent(cand.id+": идёт на лайнап «"+(L.name||LU_TYPE[L.type])+"»");
-  });
+}
+// ======================= (Г1) ПЛАН ГРАНАТ ТАКТИКИ =======================
+// Гранаты раунда идут от тактики (владелец 17.10, nades_plan шаг 5), а не каждая своей вероятностью. Набор карты (MAP.tactics.nadePlans,
+// tools/route_nades.py — из демок про): у каждого выхода T (тактика несёт поле exit) — сочетания гранат раундов про этим выходом с их
+// частотой; IGL берёт одно сочетание на раунд (как про — разные раунды, разные планы), и все гранаты сочетания летят, если граната
+// есть и кидающий рядом. Фаза гранаты: start — про кидают её до выхода (с её секунды), exec — на выходе (как раньше «выход T»).
+// CT выход T заранее не знают: их гранаты по времени (ctTimed) — сочетание раунда про, каждая со своей секунды; ответ на выход
+// (ctResp[выход]) — когда команда CT по своему знанию (beliefCount — слышали / видели) держит в зоне этого выхода хотя бы
+// RESP_BELIEF врага: летит то, что про после такого выхода кидают чаще обычного, если в раунде оно ещё не летело.
+var NP = MAP.tactics.nadePlans || null, NADE_PLAN = null, PLAN_LU = null;
+var RESP_BELIEF = 1.0;   // «там T» — сумма вероятностей знания ≥ одного врага — проектное число
+function planPick(list, seed){
+  if(!list || !list.length) return [];
+  var tot = 0; list.forEach(function(s){ tot += s[0]; });
+  var u = hashRand(seed)*tot;
+  for(var i=0;i<list.length;i++){ u -= list[i][0]; if(u < 0) return list[i][1]; }
+  return list[list.length-1][1];
+}
+// на старте раунда (из chooseTactic): сочетание T по выходу тактики, сочетание CT по времени
+function planNades(){
+  NADE_PLAN = {T:[], CT:[], exit:null};
+  if(!NP) return;
+  var tac = teamTac.T && teamTac.T.tac, ex = tac && tac.exit && NP.exits[tac.exit] ? tac.exit : null;
+  if(ex) NADE_PLAN.T = planPick(NP.exits[ex].T, roundNum*4567 + matchNum*7919 + 3);
+  NADE_PLAN.CT = planPick(NP.ctTimed, roundNum*3571 + matchNum*6053 + 11);
+  NADE_PLAN.exit = ex;
+  var nm = function(L){ return L.map(function(i){ var it = NP.items[i]; return LU_TYPE[it.type]+" "+it.zone; }).join(", ") || "—"; };
+  logEvent("план гранат T (выход "+(ex||"—")+"): "+nm(NADE_PLAN.T)+"; CT: "+nm(NADE_PLAN.CT));
+}
+// лайнап про для гранаты плана: копия лайнапа с триггером фазы (от него в luGive — радиус и окно); кешируется
+var PLAN_TRIG = {start:"setup", exec:"exec", timed:"timed", resp:"call"};
+function planLineup(i, L){
+  PLAN_LU = PLAN_LU || {};
+  var k = i+"|"+L.id; if(PLAN_LU[k]) return PLAN_LU[k];
+  var it = NP.items[i], C = {}; for(var f in L) C[f] = L[f];
+  C.trigger = PLAN_TRIG[it.phase]; C.site = "any"; C.name = L.name;
+  return (PLAN_LU[k] = C);
+}
+var PRO_BY_ID = null;
+function planGive(i, since, tt){
+  var it = NP.items[i], key = "pi"+i;
+  if(nadeFlags[key]) return;
+  if(!it.lineups.length){   // у про нет лайнапа в эту зону — бросок «на глаз»: физика подбирает его с места бойца
+    var c = bots.filter(function(b){ return b.team === it.team && b.alive && b.nades && b.nades[it.type] > 0 && !b.nadeTask && !b.planting && !b.defusing &&
+        !(bomb.state === "carried" && bomb.carrier === b) && Math.hypot(b.x-it.to.x, b.y-it.to.y) < NADE_THROW_RANGE; })
+      .sort(function(a, b2){ return Math.hypot(a.x-it.to.x, a.y-it.to.y) - Math.hypot(b2.x-it.to.x, b2.y-it.to.y); })[0];
+    if(c && assignNade(c, it.type, it.to, "план: "+LU_TYPE[it.type]+" "+it.zone, {now:true})){ nadeFlags[key] = true; return; }
+    if(nadeFlags["_w"+key] === undefined) nadeFlags["_w"+key] = since;
+    if(since - nadeFlags["_w"+key] > (it.phase === "timed" ? 10 : EXEC_WAIT_SEC)*TICK_HZ) nadeFlags[key] = true;
+    return;
+  }
+  if(!PRO_BY_ID){ PRO_BY_ID = {}; proLineups().forEach(function(L){ PRO_BY_ID[L.id] = L; }); }
+  // из лайнапов этой гранаты — тот, до точки броска которого ближе всего кому-то из своих с этой гранатой
+  var best = null, bd = Infinity;
+  it.lineups.forEach(function(id){ var L = PRO_BY_ID[id]; if(!L) return;
+    bots.forEach(function(b){ if(b.team !== it.team || !b.alive || !b.nades || b.nades[it.type] <= 0) return;
+      var d = Math.hypot(b.x-L.from.x, b.y-L.from.y); if(d < bd){ bd = d; best = L; } }); });
+  if(!best){ nadeFlags[key] = true; return; }   // гранаты такой ни у кого нет
+  luGive(planLineup(i, best), key, since, tt);
+}
+function planTick(){
+  if(!NADE_PLAN || !NP || bomb.state === "planted") return;
+  var tt = teamTac.T, since = tick - roundStartTick;
+  NADE_PLAN.T.forEach(function(i){ var it = NP.items[i], go;
+    if(it.phase === "start") go = since >= Math.max(1, it.t - 1)*TICK_HZ && !(tt.execStart && tick - tt.execStart > 10*TICK_HZ);
+    else go = tt.phase === "execute" || preExecNow(tt);
+    if(go) planGive(i, since, tt); });
+  NADE_PLAN.CT.forEach(function(i){ var it = NP.items[i];
+    if(since >= Math.max(0.5, it.t - 0.5)*TICK_HZ && since < (it.t + 12)*TICK_HZ) planGive(i, since, tt); });
+  if(tick % 16) return;
+  for(var e in NP.ctResp){ var R = NP.ctResp[e]; if(!R.length || nadeFlags["_resp"+e]) continue;
+    var zi = zonesByName(e).map(function(id){ return BZ.idx[id]; }).filter(function(x){ return x != null; });
+    if(!zi.length || beliefCount("CT", zi) < RESP_BELIEF) continue;
+    nadeFlags["_resp"+e] = since;
+    logEvent("CT: T идут через "+e+" — ответные гранаты");
+  }
+  for(var e2 in NP.ctResp) if(nadeFlags["_resp"+e2] != null)
+    NP.ctResp[e2].forEach(function(i){
+      var it = NP.items[i], dup = NADE_PLAN.CT.some(function(j){ var q = NP.items[j]; return q.type === it.type && q.zone === it.zone && nadeFlags["piok"+j]; });
+      if(!dup) planGive(i, since, tt); });
 }
 var LU_REACH_PAD = 3;
 // (В4) куда и откуда кидает этот боец: лайнап с записанными бросками про — записанный бросок (nadeRecPick, 380): место — начало

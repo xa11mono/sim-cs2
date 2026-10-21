@@ -181,4 +181,5 @@ function chooseTactic(){
   logEvent("IGL "+(igl?igl.id:"T")+": тактика «"+tac.name+"» ("+ROUND_TYPE_LABEL[type]+(tac.setupEnd?", выход на "+setupSec+"с"+tmode:", сразу")+
     (M && M.n ? ", в этом матче "+M.w+"/"+M.n : "")+")");
   chooseCtSetup();
+  planNades();   // (Г1) гранаты раунда — по выходу тактики
 }

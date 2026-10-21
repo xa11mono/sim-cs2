@@ -201,24 +201,23 @@ function nadeReact(){
         voiceLog(team, "hefin"+eH, th.id, eH+" на "+h.hp+" за углом — HE"); }
     }
   });
-  ["A","B"].forEach(function(k){
-    if(nadeFlags["rushMolly"+k] || !(bomb.state !== "planted")) return;
-    var g = GEO[k], ent = g.tEntry, srcs = {};
-    // раньше: только ЗВУК от 2+ T за 1.5с в 550px и ни одного T на сайте —
-    // почти не срабатывало (звук через колл приходит с задержкой, часть теряется).
-    // Теперь: видели или слышали, окно 2.5с, 700px; в начале раунда (≤25с)
-    // хватает одного — это ранний раш; один T уже на сайте — не помеха
-    var early = tick - roundStartTick < 25*TICK_HZ;
-    teamIntel.CT.sig.forEach(function(sg){ if((sg.type === "sound" || sg.type === "spotted") && tick - sg.tick < 2.5*TICK_HZ && Math.hypot(sg.x-ent.x, sg.y-ent.y) < 700 && sg.id && sg.id !== "?") srcs[sg.id] = 1; });
-    if(Object.keys(srcs).length < (early ? 1 : 2)) return;
-    var onS = {}; teamIntel.CT.sig.forEach(function(sg){ if(sg.type === "spotted" && sg.id && tick - sg.tick < 1.5*TICK_HZ && Math.hypot(sg.x-SITES[k].x, sg.y-SITES[k].y) < 220) onS[sg.id] = 1; });
-    if(Object.keys(onS).length > 1) return; // уже зашли — поздно
-    var c = bots.filter(function(b){ return b.alive && b.team === "CT" && b.nades && b.nades.molly > 0 && !b.nadeTask && !b._sawEnemy &&
-      Math.hypot(b.x-ent.x, b.y-ent.y) < NADE_THROW_RANGE*1.1 && Math.hypot(b.x-ent.x, b.y-ent.y) > 150; })
-      .sort(function(a, b2){ return Math.hypot(a.x-ent.x, a.y-ent.y) - Math.hypot(b2.x-ent.x, b2.y-ent.y); })[0];
-    if(!c) return;
-    if(assignNade(c, "molly", ent, "молотов на раш "+k, {now:true})){ nadeFlags["rushMolly"+k] = tick;
-      voiceLog("CT", "rushm"+k, c.id, "слышу раш на "+k+" — молотов во вход!"); }
+  // (Г1) «молотов на раш» (CT по звуку во вход сайта) убран: ответ CT на выход T — из демок, план гранат (390: ctResp)
+  // (Г1, владелец 17.10: «смоком тушат молотовы — частая механика») молотов соперника горит там, куда боец сейчас идёт (точка пути
+  // на ближайших шагах) или где его пост, а у него смок — смок в огонь (дым гасит огонь — 400). У про — 0,4–0,6 таких на раунд
+  bots.forEach(function(b){
+    if(!b.alive || b._sawEnemy || b.nadeTask || b.planting || b.defusing || !b.nades || b.nades.smoke <= 0) return;
+    var f = null;
+    for(var i=0;i<fires.length && !f;i++){ var F = fires[i];
+      if(F.team === b.team || F._ext || F.until - tick < 2*TICK_HZ) continue;
+      var d = Math.hypot(F.x-b.x, F.y-b.y); if(d < 120 || d > NADE_THROW_RANGE) continue;   // стоит в огне / далеко — не тушит
+      var need = b.post && !b.atPost && fireTouches(F, b.post.x, b.post.y);
+      if(!need && b.path) for(var j = b.pathIdx||0; j < Math.min(b.path.length, (b.pathIdx||0) + 5) && !need; j++){
+        var q = b.path[j]; if(Math.hypot(q[0]-b.x, q[1]-b.y) < 600 && fireTouches(F, q[0], q[1])) need = true; }
+      if(need) f = F;
+    }
+    if(!f) return;
+    if(assignNade(b, "smoke", {x:f.x, y:f.y}, "тушу молотов", {now:true})){ f._ext = true;
+      voiceLog(b.team, "ext"+b.id+tick, b.id, "тушу молотов "+calloutName(f.x, f.y)); }
   });
   // (v294) «ранняя граната на задержку» (молотов/HE опорника во вход своего сайта на 7–18 с) убрана: у ботов рвалась рядом с врагом
   // в 3 % случаев; у про такого броска нет (CT молотовы по времени — Mid, T Lower, Ramp — есть в лайнапах про)
