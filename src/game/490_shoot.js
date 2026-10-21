@@ -12,7 +12,7 @@ var AIM_A = 11, AIM_AD = 0.002, AIM_LAG = 0.12, AIM_FLICK = 0.15, AIM_HEAD_PISTO
 function aimSigma(sh, tg, dist){
   var du = Math.max(8, dist)*PX_UNITS, sk = sh.skill || 1;
   var lx = (tg.x - sh.x)/Math.max(1, dist), ly = (tg.y - sh.y)/Math.max(1, dist);
-  var rvx = (tg._vax||0) - (sh._vax||0), rvy = (tg._vay||0) - (sh._vay||0);   // сглажено за ~0,25 с, как у про (stepTick)
+  var rvx = ((tg.x - tg.px) - (sh.x - sh.px))*TICK_HZ, rvy = ((tg.y - tg.py) - (sh.y - sh.py))*TICK_HZ;   // скорость сейчас (сглаженная за 0,25 с, как в замере про, — после контрстрейфа ещё «быстрая», дуэли длиннее: прогон ПК 25)
   var vr = Math.abs(rvx*(-ly) + rvy*lx)*PX_UNITS;
   var A = (AIM_A + AIM_AD*du) * (0.0045 + 0.020*Math.max(0, 1.2 - sk)) / 0.0085;
   return Math.sqrt(A*A + AIM_LAG*AIM_LAG*vr*vr) / du;

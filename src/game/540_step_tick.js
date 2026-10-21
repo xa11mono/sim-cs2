@@ -166,8 +166,6 @@ function stepTick(){
   var STAIRS_SLOPE_THRESHOLD = 0.35;
   bots.forEach(function(bot){
     if(!bot.alive) return;
-    // (Б4) скорость, сглаженная за ~0,25 с (16 тиков) — так её видит прицел соперника (aimSigma; у про — по пробам раз в 16 тиков)
-    if(bot.px != null){ var k16 = 1/16; bot._vax = (bot._vax||0) + ((bot.x - bot.px)*TICK_HZ - (bot._vax||0))*k16; bot._vay = (bot._vay||0) + ((bot.y - bot.py)*TICK_HZ - (bot._vay||0))*k16; }
     bot.px = bot.x; bot.py = bot.y;
     updatePost(bot);
     updateReload(bot);
