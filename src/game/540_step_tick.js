@@ -367,7 +367,7 @@ function stepTick(){
       }
     }
 
-    if(!ladderTick(bot) && !((bot.holding && !bot._burning) || bot.curSpeed <= 0.5 || (bot._fc && bot._fc.ph !== "line"))){
+    if(!ladderTick(bot) && !((bot.holding && !bot._burning) || bot.curSpeed <= 0.5 || (bot._fc && (bot._fc.ph !== "line" || bot._fc.own)))){
       if(bot.path.length === 0 || bot.pathIdx >= bot.path.length){
         if(bot.forcedRetreat) bot.forcedRetreat = false;
         assignNewDestination(bot, tick);

@@ -37,6 +37,42 @@ function fightBetter(b, e, cx, cy, R){
   }
   return best;
 }
+// (Б4) движение на линии (одно место): стрейф поперёк линии огня, перед выстрелом — контрстрейф (встречная клавиша + трение).
+// Числа игры CS2: sv_accelerate 5.5, sv_friction 5.2, sv_stopspeed 80 ед./с. Стоял (держал угол) — до первого выстрела стоит;
+// вошёл в перестрелку на ходу — гасит ту скорость; между очередями — шаг вбок и обратно (люди всегда в движении)
+var CS_ACCEL = 5.5, CS_FRIC = 5.2, CS_STOP = 80;
+// шаг стрейфа, ед. игры: сдвиг вбок от взгляда между очередями у про (пауза 0,5–1,5 с; 79 + 85 демок, квантили 10/25/50/75/90 %) —
+// tools/measure/engine/b4_strafe.py
+var STRAFE_PRO = [3.0, 10.6, 34.9, 73.7, 118.6];
+function csDecel(v, vmax){ return CS_FRIC*Math.max(v, CS_STOP/PX_UNITS) + CS_ACCEL*vmax; }   // px/с²
+function csStopTicks(v, vmax){ var n = 0; while(v > 0.5 && n < 30){ v -= csDecel(v, vmax)/TICK_HZ; n++; } return n; }
+function fightStrafe(b, F, dtSec){
+  var e = F.e, fr = b._fire, fresh = fr && tick - fr.t <= 1;
+  F.own = !!(e && e.alive && (b._sawEnemy || (fr && tick - fr.t < 16)));
+  if(!F.own){ F.sv = undefined; return; }
+  var dx = e.x - b.baseX, dy = e.y - b.baseY, L = Math.hypot(dx, dy) || 1, ax = -dy/L, ay = dx/L, vmax = SPEED*weaponSpeedMul(b);
+  if(F.sv === undefined){   // скорость, с которой вошёл в перестрелку, — дальше она (её гасит или продолжает стрейфом)
+    var TR = b._trail || [], tp = TR.length >= 2 ? TR[TR.length-2] : {x:b.baseX, y:b.baseY};   // куда шёл последние ~0,25–0,5 с
+    var pr = (b.baseX - tp.x)*ax + (b.baseY - tp.y)*ay;
+    F.sdir = pr >= 0 ? 1 : -1; F.sv = F.sdir*Math.min(vmax, b.curSpeed || 0); F.leg = 0;
+  }
+  if(b.lastShotTick >= F.t) F.started = true;
+  var v = Math.abs(F.sv), stop = fresh && fr.inT <= csStopTicks(v, vmax) + 1 && !b._reloading;
+  if(stop || (!F.started && v < 1)){ v = Math.max(0, v - csDecel(v, vmax)*dtSec); F.sv = (F.sv < 0 ? -1 : 1)*v; }
+  else {
+    var so = (b.baseX - F.ax)*ax + (b.baseY - F.ay)*ay;
+    if(!F.leg) F.leg = Math.max(1, peekQ(STRAFE_PRO, fightRand(b, 7))/PX_UNITS);
+    if(F.sdir*so >= F.leg){ F.sdir = -F.sdir; F.leg = Math.max(1, peekQ(STRAFE_PRO, fightRand(b, 8))/PX_UNITS); }
+    if(F.sv*F.sdir < 0){ var d = csDecel(v, vmax)*dtSec; F.sv = v <= d ? 0 : F.sv - (F.sv < 0 ? -1 : 1)*d; }
+    else F.sv = F.sdir*Math.min(vmax, v + Math.max(0, CS_ACCEL*vmax - CS_FRIC*v)*dtSec);
+  }
+  var st = F.sv*dtSec, nx = b.baseX + ax*st, ny = b.baseY + ay*st;
+  if(Math.abs(st) > 1e-6){
+    if(stepBlocked(b.baseX, b.baseY, nx, ny, b)){ F.sv = 0; F.sdir = -F.sdir; F.leg = 0; }
+    else { b.baseX = nx; b.baseY = ny; }
+  }
+  b.curSpeed = Math.abs(F.sv); b.walking = false;
+}
 function fightRand(b, salt){ return hashRand(tick*31 + b.id.charCodeAt(0)*17 + b.id.charCodeAt(b.id.length-1)*7 + salt); }
 // каждый тик движения: фазы line (на линии) → off (за укрытием) → back (выглядывает снова) → line …
 function fightCycleTick(b, dtSec, busy){
@@ -56,13 +92,14 @@ function fightCycleTick(b, dtSec, busy){
     F.ss = SS.t; F.e = SS.by;
     var cs = fightCover(b, SS.by, peekQ(D.shift, fightRand(b, 5))) || fightCover(b, SS.by, D.shift[4]);
     if(cs){
-      F.ph = "off"; F.retreat = true; F.cx = cs.x; F.cy = cs.y; F.ax = b.baseX; F.ay = b.baseY; F.seen = tick;
+      F.ph = "off"; F.retreat = true; F.own = false; F.cx = cs.x; F.cy = cs.y; F.ax = b.baseX; F.ay = b.baseY; F.seen = tick;
       F.until = tick + Math.round(peekQ(D.pause, fightRand(b, 6))*TICK_HZ);
       F.better = fightBetter(b, SS.by, cs.x, cs.y, D.shift[4]);
       if(!b._fcS || tick - b._fcS > 4*TICK_HZ){ b._fcS = tick; logEvent(b.id+": стреляют в плечо из-за укрытия — ухожу за укрытие"); }
     }
   }
   if(F.ph === "line"){
+    fightStrafe(b, F, dtSec);
     if(!b._sawEnemy && tick - F.seen > D.pause[4]*TICK_HZ){ b._fc = null; return; }   // враг пропал — перестрелка кончилась
     if(!F.until && b.lastShotTick >= F.t) F.until = b.lastShotTick + Math.round((peekQ(D.dur, fightRand(b, 1)) + 0.5)*TICK_HZ);
     if(F.until && tick >= F.until){
@@ -71,13 +108,13 @@ function fightCycleTick(b, dtSec, busy){
       var c = fightCover(b, e, peekQ(D.shift, fightRand(b, 2)));
       if(!c) c = fightCover(b, e, D.shift[4]);
       if(!c){ F.until = 0; F.t = tick; return; }   // укрыться негде — остаётся на линии
-      F.ph = "off"; F.cx = c.x; F.cy = c.y; F.ax = b.baseX; F.ay = b.baseY;
+      F.ph = "off"; F.cx = c.x; F.cy = c.y; F.ax = b.baseX; F.ay = b.baseY; F.own = false;
       F.until = tick + Math.round(peekQ(D.pause, fightRand(b, 3))*TICK_HZ);
       if(!b._fcV || tick - b._fcV > 4*TICK_HZ){ b._fcV = tick; logEvent(b.id+": постреляли — ушёл с линии за укрытие"); }
     }
     return;
   }
-  if(b._sawEnemy && !(F.retreat && F.ph === "off")){ F.ph = "line"; F.ax = b.baseX; F.ay = b.baseY; F.t = tick; F.until = 0; F.retreat = false; F.better = null; return; }   // снова вижу врага — на линии (уходя от выстрелов в плечо — не останавливается)
+  if(b._sawEnemy && !(F.retreat && F.ph === "off")){ F.ph = "line"; F.ax = b.baseX; F.ay = b.baseY; F.t = tick; F.until = 0; F.retreat = false; F.better = null; F.sv = undefined; return; }   // снова вижу врага — на линии (уходя от выстрелов в плечо — не останавливается)
   if(F.ph === "off" && tick >= F.until && (!F.retreat || Math.hypot(F.cx-b.baseX, F.cy-b.baseY) < 2)){
     F.retreat = false;
     if(fightRand(b, 4) >= D.repeek){ b._fc = null; return; }   // не выглядывает снова — перестрелка закончена
@@ -86,7 +123,7 @@ function fightCycleTick(b, dtSec, busy){
   }
   var tx = F.ph === "off" ? F.cx : F.ax, ty = F.ph === "off" ? F.cy : F.ay;
   var d = Math.hypot(tx-b.baseX, ty-b.baseY);
-  if(d < 2){ if(F.ph === "back"){ F.ph = "line"; F.t = tick; F.until = 0; } return; }
+  if(d < 2){ if(F.ph === "back"){ F.ph = "line"; F.t = tick; F.until = 0; F.sv = undefined; } return; }
   var stp = Math.min(d, SPEED*weaponSpeedMul(b)*dtSec), nx = b.baseX + (tx-b.baseX)/d*stp, ny = b.baseY + (ty-b.baseY)/d*stp;
   if(stepBlocked(b.baseX, b.baseY, nx, ny, b)){ b._fc = null; return; }
   b.baseX = nx; b.baseY = ny; F.moving = true; b.crouching = false; b.walking = false;

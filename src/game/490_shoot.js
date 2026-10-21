@@ -1,3 +1,10 @@
+// (Б4) стрелять на ходу или сначала остановиться: выстрел, если попасть в корпус на текущей скорости не меньше FIRE_K от
+// «стоя». Проектное число, подобрано по демкам (b4_shots.py: первый выстрел очереди у про — 60–65 % на точной скорости ≤ 34 %
+// максимальной, 20–25 % до 60 %, остальное быстрее; медиана скорости 52–62 ед./с)
+var FIRE_K = 0.7;
+// (Б4) готовность к выстрелу для движения в дуэли (fightCycleTick): через сколько тиков бот мог бы выстрелить в эту цель
+// (реакция, темп оружия, остывание разброса); 0 — готов, ждёт только, пока погасит скорость
+function fireReady(sh, tg, n){ sh._fire = {t:tick, tg:tg.id, inT:Math.max(0, Math.ceil(n))}; }
 function tryShoot(shooter, target, dist){
   // (этап 2, P0-2) реакция и доводка — по ЭТОЙ цели (shooter._ts[id] — сколько тиков подряд её видно, гаснет как contactStreak),
   // а не по контакту бота с кем угодно: раньше вторая цель в живой перестрелке шла без реакции (34 % выстрелов раньше 150 мс)
@@ -71,20 +78,18 @@ function tryShoot(shooter, target, dist){
       prefire = true;
       prefireConfidence = 1 - (tick - LI.tick)/pfWin; // 1 = только что видел, 0 = на грани "забыл"
     } else {
+      fireReady(shooter, target, effReaction - cs);
       return;
     }
   }
   var w = shooter.weapon;
   if(dist > w.range) return;
-  if(tick < shooter.nextShotTick) return;
+  if(tick < shooter.nextShotTick){ fireReady(shooter, target, shooter.nextShotTick - tick); return; }
   if(shooter._fc && shooter._fc.moving) return; // уходит с линии / выглядывает — на бегу не стреляет
   var thruSmoke = !!shooter._smokeShot;
   // раздел 14: магазин и перезарядка — во время перезарядки не стреляет
   updateReload(shooter);
   if(shooter._reloading || shooter.ammo <= 0) return;
-  // контр-страф: с винтовкой/AWP на бегу не стреляют (всё равно мимо) —
-  // сначала останавливаются. Исключения: в упор, отход под огнём, SMG/пистолеты
-  if(w.move >= 60 && shooter.curSpeed > SPEED*0.4 && dist > 110 && shooter.state !== "retreat") return;
   // угловые размеры цели (px радара ≈ 2.5 юнита CS2): тело ~32u шириной, голова ~11u
   var hA = Math.atan(HEAD_HALF/Math.max(8,dist)), bA = Math.atan(BODY_HALF/Math.max(8,dist));
   // стреляет только туда, куда смотрит: прицел должен быть почти на цели —
@@ -93,7 +98,7 @@ function tryShoot(shooter, target, dist){
   if(shooter.facing !== undefined){
     var aimA = Math.atan2(target.y-shooter.y, target.x-shooter.x);
     aimD = Math.abs(((aimA - shooter.facing + Math.PI) % (2*Math.PI) + 2*Math.PI) % (2*Math.PI) - Math.PI);
-    if(aimD > Math.min(AIM_FIRE_CONE, Math.max(0.05, 2.5*bA))) return;
+    if(aimD > Math.min(AIM_FIRE_CONE, Math.max(0.05, 2.5*bA))){ fireReady(shooter, target, 0); return; }
   }
   // (v263, Б1) свой на линии огня — не стреляет, как настоящий игрок: пуля попала бы в него
   var onLine = bulletVictim(shooter, target.x, target.y, target);
@@ -108,14 +113,8 @@ function tryShoot(shooter, target, dist){
   // пистолеты — с ~110px, ПП и винтовки — с ~160px
   var tapFrom = w.key === "USP" ? 45 : (w.spam >= 30 ? 0 : (w.slot === "secondary" ? 110 : 160));
   var tapK = w.key === "USP" ? 0.4 : 0.7;
-  if(w.spam && dist > tapFrom && w.spam/1000*heat > tapK*bA) return;
-  if(tick - shooter.lastShotTick > SPRAY_RESET_TICKS) shooter.burstCount = 0;
-  var burstIdx = shooter.burstCount;
-  shooter.burstCount++;
-  shooter.lastShotTick = tick;
-  target._shotAtT = tick; target._shotAtBy = shooter;
-  shooter.nextShotTick = tick + w.fireIntervalTicks;
-  shooter.ammo--;
+  if(w.spam && dist > tapFrom && w.spam/1000*heat > tapK*bA){ fireReady(shooter, target, (heat - tapK*bA*1000/w.spam)*(w.recov||8)); return; }
+  var burstIdx = tick - shooter.lastShotTick > SPRAY_RESET_TICKS ? 0 : shooter.burstCount;
 
   // ---- раздел 14: попадание — не "шанс N%", а угловая ошибка прицела ----
   // Итоговая ошибка σ (рад) складывается из: разброса оружия (стоя/на бегу,
@@ -125,13 +124,13 @@ function tryShoot(shooter, target, dist){
   // в упор цель огромная и промахнуться почти невозможно, на длинной дистанции
   // в голову попадают редко — как в CS, а не одинаковые 50% на любой дистанции.
   var sk = shooter.skill;
-  var speedFrac = Math.min(1, shooter.curSpeed / SPEED);
-  var runK = Math.max(0, (speedFrac - 0.34)/0.66);         // до ~34% скорости — "шаг", почти без штрафа
-  var wSpread = (w.stand*(shooter.crouching ? 0.75 : 1) + w.move*(runK + 0.08*speedFrac)) / 1000;
+  // (Б4) разброс от скорости — доля от максимальной скорости с этим оружием (в CS2 до 34 % — как стоя)
+  var wSpreadAt = function(v){ var f = Math.min(1, v / (SPEED*weaponSpeedMul(shooter))), rk = Math.max(0, (f - 0.34)/0.66);
+    return (w.stand*(shooter.crouching ? 0.75 : 1) + w.move*(rk + 0.08*f)) / 1000; };
+  var wSpread = wSpreadAt(shooter.curSpeed);
   var comp = 0.55 + 0.35*Math.max(0, Math.min(1, (sk-0.8)/0.4));
   var recoilErr = w.recoil/1000 * Math.max(0, burstIdx-1) * (1-comp) * 1.6;
   var spamErr = (w.spam||0)/1000 * heat;
-  shooter._heat = heat + 1;
   var aimErr = 0.0045 + 0.020*Math.max(0, 1.2 - sk);
   var settle = Math.max(0, 1 - (cs - effReaction)/24);
   // (аудит 11.10) 0,018 → 0,054: подобрано по демкам (tools/measure/duel.py: у про 2 выстрела на фраг и 0,31 с от первого
@@ -160,6 +159,19 @@ function tryShoot(shooter, target, dist){
   if(thruSmoke) sigma *= 3.2;   // не видит цель — стреляет по памяти, почти вслепую
   if(shooter.atPost && shooter.curSpeed < 10) sigma /= BAL.holdAcc;
   if(w.scoped && shooter.curSpeed < 10 && dist > 300) sigma *= 0.8; // AUG/SG в прицеле на дистанции
+  // (Б4, контрстрейф) стрелять сейчас или сначала погасить скорость: игрок жмёт, когда попасть в корпус на ходу почти так же
+  // вероятно, как стоя (не ниже FIRE_K от этого) — вблизи цель большая, и на ходу попадает (пистолет, ПП стреляют с бега),
+  // вдали — сначала остановка. Иначе ждёт, пока сбросит скорость (контрстрейф — fightCycleTick)
+  var w0 = wSpreadAt(0), sig0 = sigma * Math.sqrt(Math.max(1e-12, sigma*sigma - wSpread*wSpread + w0*w0)) / Math.max(1e-9, sigma);
+  var pBody = function(sg){ return 1 - Math.exp(-(bA*bA)/(2*sg*sg)); };
+  if(wSpread > w0 && pBody(sigma) < FIRE_K * pBody(sig0)){ fireReady(shooter, target, 0); return; }
+  shooter._fire = null;
+  shooter.burstCount = burstIdx + 1;
+  shooter.lastShotTick = tick;
+  target._shotAtT = tick; target._shotAtBy = shooter;
+  shooter.nextShotTick = tick + w.fireIntervalTicks;
+  shooter.ammo--;
+  shooter._heat = heat + 1;
   var pIn = function(R){ return 1 - Math.exp(-(R*R)/(2*sigma*sigma)); };
   var seedS = tick*104729 + shooter.id.charCodeAt(0)*31 + shooter.id.length*7 + target.id.charCodeAt(0)*17 + Math.floor(shooter.nextShotTick*8);
   // сильные игроки чаще целятся в голову; AWP — всегда в корпус

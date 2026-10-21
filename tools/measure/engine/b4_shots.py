@@ -119,9 +119,9 @@ def table(S):
     S = S[S.tg.notna()].copy(); o = {'shots': len(S)}
     S['db'] = pd.cut(S.dist, [b[0] for b in DB] + [DB[-1][1]], right=False, labels=['%d-%d' % b for b in DB])
     S['sb'] = S.f.map(band)
-    o['acc'] = r3(S.hit.mean()); o['head_of_hits'] = r3(S[S.hit].head.mean())
+    o['acc'] = r3(S.hit.mean()); o['head_of_hits'] = r3(S[S.hit]['head'].mean())
     o['acc_cls_dist'] = {c: {str(d): [int(len(g)), r3(g.hit.mean())] for d, g in S[S.cls == c].groupby('db', observed=True)} for c in ('rifle', 'pistol', 'smg', 'sniper')}
-    o['head_cls_dist'] = {c: {str(d): [int(g.hit.sum()), r3(g[g.hit].head.mean())] for d, g in S[S.cls == c].groupby('db', observed=True)} for c in ('rifle', 'pistol', 'smg', 'sniper')}
+    o['head_cls_dist'] = {c: {str(d): [int(g.hit.sum()), r3(g[g.hit]['head'].mean())] for d, g in S[S.cls == c].groupby('db', observed=True)} for c in ('rifle', 'pistol', 'smg', 'sniper')}
     o['acc_first_by_dist'] = {str(d): r3(g.hit.mean()) for d, g in S[(S.k == 0) & (S.cls == 'rifle')].groupby('db', observed=True)}
     o['acc_by_k_rifle'] = {k: r3(S[(S.cls == 'rifle') & (S.k == k)].hit.mean()) for k in (0, 1, 2, 3, 5, 9)}
     # скорость в момент выстрела
