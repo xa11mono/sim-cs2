@@ -8,7 +8,7 @@ var FIRE_K = 0.7;
 // у цели: σ ≈ √(A² + (L·vr)²), A ≈ 14 ед. (+ 2 на 1000 ед. дистанции; у бота A = 11 — к ней добавляются разброс оружия и отдача,
 // которые у про уже внутри; подобрано прогоном ПК 23), L ≈ 0,12 с — запаздывание прицела за целью. Навык — как
 // раньше: aimErr (0,0045 + 0,02·(1,2 − навык)) относительно навыка 1,0
-var AIM_A = 11, AIM_AD = 0.002, AIM_LAG = 0.12, AIM_FLICK = 0.15, AIM_HEAD_PISTOL = 2.8;
+var AIM_A = 9, AIM_AD = 0.002, AIM_LAG = 0.12, AIM_FLICK = 0.15, AIM_HEAD_PISTOL = 2.8;
 function aimSigma(sh, tg, dist){
   var du = Math.max(8, dist)*PX_UNITS, sk = sh.skill || 1;
   var lx = (tg.x - sh.x)/Math.max(1, dist), ly = (tg.y - sh.y)/Math.max(1, dist);
