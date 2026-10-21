@@ -50,9 +50,9 @@ v166 — `docs/V166_CHANGES.md` (список владельца). Главны�
 **Сборка набора из исходников (v318):** `python3 tools/map_build.py <карта>` по рецепту `data/maps/<карта>/_build.json`
 (навмеш из `.nav`, стены, высоты, укрытия, зоны по подписям радара, всё из демок; bake-скрипты — с ключом `--map`, общий
 `tools/mapdir.py`). Карты: Ancient (заморожено всё, кроме высот/укрытий/прострелов), Mirage (`python3 src/mkpub.py --map mirage` → `mirage-radar.html`,
-страница на аккаунте владельца — https://claude.ai/artifact/EBaRN7xYH1QXzC1iiTNZ4x (обновлена до v389, 21.10; QzmQZEd5t9EdnhcXET9Agn — на другом аккаунте), база правок — коллекция `map-mirage`). Проверка глазами — `tools/map_shot.js`.
+страница на аккаунте владельца — https://claude.ai/artifact/EBaRN7xYH1QXzC1iiTNZ4x (обновлена до v390, 21.10; QzmQZEd5t9EdnhcXET9Agn — на другом аккаунте), база правок — коллекция `map-mirage`). Проверка глазами — `tools/map_shot.js`.
 Сборка: `python3 src/build.py [--map ancient]` → `sim.html` (склейка `src/game/*` с набором карты и тестовым входом для
-замеров). Публикуемая: `python3 src/mkpub.py [--map ancient]` → `ancient-radar.html` (страница на аккаунте владельца — https://claude.ai/artifact/VcutdCmiqN164CLNYowQvP (снова с v388, сейчас v389, 21.10; 6nWEKBXyNAybDYzgPT1sH7 — на другом аккаунте, v370–v386); там же база
+замеров). Публикуемая: `python3 src/mkpub.py [--map ancient]` → `ancient-radar.html` (страница на аккаунте владельца — https://claude.ai/artifact/VcutdCmiqN164CLNYowQvP (снова с v388, сейчас v390, 21.10; 6nWEKBXyNAybDYzgPT1sH7 — на другом аккаунте, v370–v386); там же база
 правок карты — коллекция `map`).
 **Исходник игры (v377) — модули `src/game/`**: склейка всех `src/game/*` по порядку номеров (`src/gamesrc.py`, одно место
 чтения) == прежний `game.html`; `src/game.html` больше нет. Порядок, видимость `var`/функций, числа при загрузке —
@@ -101,9 +101,9 @@ v166 — `docs/V166_CHANGES.md` (список владельца). Главны�
 | **панель войса** (одно место показа): `voiceFeed` / `renderVoice`, цвета `VOICE_KIND` / `VOICE_KEYS`; консоль `logEvent` (#log) — по Ё, `toggleConsole` | `440_voicepanel_console` |
 | трассеры, свой на линии `bulletVictim`; выпадение при смерти `dropWeaponOnDeath` → `groundWeapons` / `groundItems` (`itemPickupTick`); нож `knifeTick`; подбор оружия | `450_combat_items_knife` |
 | звук `emitSound`, мелкие ситуации (пас бомбы, добить, смок уходит, ослеплён, пистолет) | `460_sound_situations` |
-| **движение в перестрелке** (одно место): `fightCycleTick` — на линии → за укрытие `fightCover` → снова; числа `PEEK_PRO`; безопасная ротация, мало HP | `470_fight_cycle` |
+| **движение в перестрелке** (одно место): `fightCycleTick` — на линии (стрейф и контрстрейф `fightStrafe`, v390) → за укрытие `fightCover` → снова; числа `PEEK_PRO`, `STRAFE_PRO`; безопасная ротация, мало HP | `470_fight_cycle` |
 | дабл-пик, фланг, перезарядка `updateReload` | `480_assist_flank_reload` |
-| стрельба `tryShoot` (целится в видимое) | `490_shoot` |
+| стрельба `tryShoot` (целится в видимое); ошибка прицела `aimSigma`, разброс `shotSpread`, «стрелять с ходу» `FIRE_K`/`fireVAcc` (v390) | `490_shoot` |
 | `decideAction`, после фрага `afterKillMove`, `findCover` | `500_decide_afterkill_cover` |
 | перестрелки `resolveEngagements` (visParts), `assignNewDestination` | `510_engagements` |
 | экономика: `decideRoundType0`, `buyForPlayer`; что берут — доли про `smgFor`, `PRO_PISTOL` (`tools/buy_pro.py`) | `520_economy` |
