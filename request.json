@@ -1,0 +1,4 @@
+{"par": 8, "jobs": [
+  {"label": "v3b_anc", "ref": "280758063988e3fd73936f7e366aa47e9ad9f635", "map": "ancient", "matches": [3, 7, 11, 13, 17, 19, 23, 29]},
+  {"label": "v3b_mir", "ref": "280758063988e3fd73936f7e366aa47e9ad9f635", "map": "mirage", "matches": [3, 7, 11, 13, 17, 19, 23, 29]}
+]}
