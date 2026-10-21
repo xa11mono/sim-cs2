@@ -17,3 +17,4 @@ data/sounds/src/
 data/maps/*/geom3d/columns.npz
 data/maps/*/geom3d/layers.npz
 run.log
+tools/demo_events_out/
