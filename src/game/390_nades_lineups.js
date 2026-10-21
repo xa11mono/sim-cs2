@@ -23,12 +23,6 @@ var LU_TYPE = {smoke:"смок", flash:"флешка", molly:"молотов", h
 // (14) гранаты выхода раньше: смоки/молотов летят за ~4с до выхода (пока
 // группа стоит на точках), а не в момент выхода — раньше энтри уже пикал,
 // а смок ещё летел или его вообще не успевали кинуть
-// смоки на выход — неприкосновенный запас: проба/фейк не тратят последние два
-function tSmokeReserveOk(){
-  if(!BAL.nadeEarly) return true;
-  var n = 0; bots.forEach(function(b){ if(b.alive && b.team === "T" && b.tRole !== "lurker" && b.nades) n += b.nades.smoke; });
-  return n - 1 >= 2;
-}
 function preExecNow(tt){
   if(!BAL.nadeEarly || !tt || tt.phase !== "setup" || !tt.execTick || tt.rebound && tick - (tt._rbT||0) < 2*TICK_HZ) return false;
   var secLeft = ROUND_TIME_SEC - (simTime - roundStartTime);
@@ -105,7 +99,9 @@ function luGive(L, key, since, tt){
       !b.planting && !b.defusing && !(bomb.state === "carried" && bomb.carrier === b) && Math.hypot(b.x-L.from.x, b.y-L.from.y) < maxD; };
     // (v359, р7) кто уже стоит на сайте T (взял его) — с сайта за гранатой назад не уходит
     var onTSite = function(b){ var S = L.team === "T" && tt && SITES[tt.site]; return !!S && (onSite(S, b.x, b.y) || Math.hypot(b.x-S.x, b.y-S.y) < 450) && Math.hypot(L.from.x-S.x, L.from.y-S.y) > Math.hypot(b.x-S.x, b.y-S.y) + 200; };
-    var cand = bots.filter(function(b){ return okBot(b) && !b.nadeTask && !onTSite(b); }).sort(function(a, b2){ return cost(a) - cost(b2); })[0];
+    // (Г1) граната плана тактики важнее общего задания бойца (не лайнапа): у про гранаты плана летят всегда, общие — по ходу
+    var plan = key.slice(0, 2) === "pi", free = function(b){ return !b.nadeTask || (plan && !b.nadeTask.lineup); };
+    var cand = bots.filter(function(b){ return okBot(b) && free(b) && !onTSite(b); }).sort(function(a, b2){ return cost(a) - cost(b2); })[0];
     // (v355) свободного нет — граната выхода встаёт в очередь тому, кто уже идёт на лайнап рядом (точки броска ≤ EXEC_QUEUE_R):
     // кинет вторую следом (через NADE_GAP), как про кидают смок + флешку с одной точки. Раньше: одно задание на бойца — лайнап сгорал
     // (v359, владелец: «один и тот же игрок кидает несколько гранат по очереди; обычно гранаты дают одному — чтобы другие пикали не
@@ -120,7 +116,7 @@ function luGive(L, key, since, tt){
       var busyN = (solo.nadeTask && solo.nadeTask.type === L.type ? 1 : 0) + (solo.nadeQueue||[]).filter(function(q){ return q.type === L.type; }).length;
       if(solo.nades && solo.nades[L.type] > busyN && !solo.planting && (solo.nadeQueue||[]).length < 4 && !onTSite(solo)){
         nadeFlags[key] = true; nadeFlags[okKey] = true;
-        if(!solo.nadeTask){
+        if(!solo.nadeTask || !solo.nadeTask.lineup){
           var sP = Math.max(7, Math.ceil(pathLenTo(solo, L.from.x, L.from.y)/SPEED + LU_REACH_PAD));
           var A1 = luAssign(L, solo); solo.nadeTask = {type:L.type, x:A1.x, y:A1.y, from:A1.from, rec:A1.rec, until: tick + sP*TICK_HZ, why:"лайнап «"+(L.name||LU_TYPE[L.type])+"»", start:tick, lob:true, range:4000, now:true, lineup:true, exec:L.type === "smoke"};
           logEvent(solo.id+": раскид — идёт на «"+(L.name||LU_TYPE[L.type])+"»");
@@ -166,6 +162,7 @@ function luGive(L, key, since, tt){
     var luBase = hot ? ((BAL.nadeReach && L.trigger === "timed") ? 12 : 7) : 20, luP = buildWaypointPath(cand.baseX, cand.baseY, cand.z, L.from.x, L.from.y, 0), luLen = 0, luX = cand.baseX, luY = cand.baseY;
     luP.forEach(function(q){ luLen += Math.hypot(q[0]-luX, q[1]-luY); luX = q[0]; luY = q[1]; });
     var luSec = Math.max(luBase, Math.ceil(luLen/(SPEED*weaponSpeedMul(cand)) + LU_REACH_PAD));
+    if(cand.nadeTask) logEvent(cand.id+": «"+(cand.nadeTask.why||"")+"» снята — граната плана");
     var A4 = luAssign(L, cand);
     cand.nadeTask = {type:L.type, x:A4.x, y:A4.y, from:A4.from, rec:A4.rec, until: tick + luSec*TICK_HZ, why:"лайнап «"+(L.name||LU_TYPE[L.type])+"»",
                      start:tick, lob:true, range:4000, now:true, lineup:true, exec:execT && L.type === "smoke"};
@@ -205,8 +202,17 @@ function planLineup(i, L){
   PLAN_LU = PLAN_LU || {};
   var k = i+"|"+L.id; if(PLAN_LU[k]) return PLAN_LU[k];
   var it = NP.items[i], C = {}; for(var f in L) C[f] = L[f];
-  C.trigger = PLAN_TRIG[it.phase]; C.site = "any"; C.name = L.name;
+  C.trigger = PLAN_TRIG[it.phase]; C.site = "any"; C.name = "план · "+(L.name||"");
   return (PLAN_LU[k] = C);
+}
+// (Г1) запас под план: пока граната плана не кинута, общие решения (assignNade без opts.plan) не берут последнюю такую гранату
+// команды — заменяет tSmokeReserveOk (держать 2 смока на выход)
+function planReserved(b, type){
+  if(!NADE_PLAN || !NP || roundState !== "live" || bomb.state === "planted") return false;
+  var need = 0; (NADE_PLAN[b.team] || []).forEach(function(i){ var it = NP.items[i]; if(it.type === type && !nadeFlags["pi"+i]) need++; });
+  if(!need) return false;
+  var have = 0; bots.forEach(function(o){ if(o.alive && o.team === b.team && o.nades) have += o.nades[type] - (o.nadeTask && o.nadeTask.type === type ? 1 : 0); });
+  return have - 1 < need;
 }
 var PRO_BY_ID = null;
 function planGive(i, since, tt){
@@ -216,7 +222,7 @@ function planGive(i, since, tt){
     var c = bots.filter(function(b){ return b.team === it.team && b.alive && b.nades && b.nades[it.type] > 0 && !b.nadeTask && !b.planting && !b.defusing &&
         !(bomb.state === "carried" && bomb.carrier === b) && Math.hypot(b.x-it.to.x, b.y-it.to.y) < NADE_THROW_RANGE; })
       .sort(function(a, b2){ return Math.hypot(a.x-it.to.x, a.y-it.to.y) - Math.hypot(b2.x-it.to.x, b2.y-it.to.y); })[0];
-    if(c && assignNade(c, it.type, it.to, "план: "+LU_TYPE[it.type]+" "+it.zone, {now:true})){ nadeFlags[key] = true; return; }
+    if(c && assignNade(c, it.type, it.to, "план: "+LU_TYPE[it.type]+" "+it.zone, {now:true, plan:true})){ nadeFlags[key] = true; return; }
     if(nadeFlags["_w"+key] === undefined) nadeFlags["_w"+key] = since;
     if(since - nadeFlags["_w"+key] > (it.phase === "timed" ? 10 : EXEC_WAIT_SEC)*TICK_HZ) nadeFlags[key] = true;
     return;

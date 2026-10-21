@@ -8,7 +8,7 @@ function nadeUsePick(b, pts, R){
 function nadeUseTick(b){
   if(!b.alive || !b.nades || b.nadeTask || b.planting || b.defusing || !nadeReady(b) || roundState !== "live") return;
   if(tick - (b._nadeUseT || -1e9) < NADE_USE_GAP || teamSaving(b.team)) return;
-  var have = function(t){ return b.nades[t] > 0; };
+  var have = function(t){ return b.nades[t] > 0 && !planReserved(b, t); };   // (Г1) запас под план тактики
   if(!have("smoke") && !have("flash") && !have("he") && !have("molly")) return;
   var foe = b.team === "T" ? "CT" : "T", BL = beliefLast[b.team] || {}, known = [];
   for(var e in BL){ var q = BL[e]; if(q && tick - q.tick <= 4*TICK_HZ && bots.some(function(o){ return o.id === e && o.alive; })) known.push({x:q.x, y:q.y}); }
@@ -32,7 +32,7 @@ function nadeUseTick(b){
     if(have("flash") && (area || spots.length)) opts.push({t:"flash", pts:(area ? [area] : []).concat(spots), w:NBu.flash || 1});
     if(have("molly") && spots.length) opts.push({t:"molly", pts:spots, w:NBu.molly || 1});
     if(have("he") && spots.length) opts.push({t:"he", pts:spots, w:NBu.he || 0.5});
-    if(have("smoke") && ents.length && (b.team !== "T" || tSmokeReserveOk())) opts.push({t:"smoke", pts:ents, w:NBu.smoke || 1});
+    if(have("smoke") && ents.length) opts.push({t:"smoke", pts:ents, w:NBu.smoke || 1});
     var wS = opts.reduce(function(a, o){ return a + o.w; }, 0), rr = hashRand(tick*13 + b.id.charCodeAt(b.id.length-1)*29) * wS;
     for(var oi = 0; oi < opts.length && !plan; oi++){ rr -= opts[oi].w; if(rr <= 0) plan = opts[oi]; }
     if(!plan && opts.length) plan = opts[opts.length-1];
@@ -68,7 +68,7 @@ function nadeBrains(){
       var A0 = aw[aw.length-1];
       var smA = ts.filter(function(b){ return b.tRole !== "lurker" && b.nades.smoke > 0 && !b.nadeTask && Math.hypot(b.x-A0.x, b.y-A0.y) < 1250 && Math.hypot(b.x-A0.x, b.y-A0.y) > 350; })
         .sort(function(a, c){ return Math.hypot(a.x-A0.x, a.y-A0.y) - Math.hypot(c.x-A0.x, c.y-A0.y); })[0];
-      if(smA && tSmokeReserveOk()){
+      if(smA){
         var spAw = {x: A0.x + (smA.x-A0.x)*0.3, y: A0.y + (smA.y-A0.y)*0.3};
         if(assignNade(smA, "smoke", spAw, "смок на линию AWP", {now:true, range:1300})){ nadeFlags.antiAwp = true;
           voiceLog("T", "antiawp", smA.id, "их AWP в прошлых раундах бил "+calloutName(A0.x, A0.y)+" — смок на его линию"); }

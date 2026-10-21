@@ -178,6 +178,7 @@ function smokeCovered(x, y){
 function assignNade(b, type, target, why, opts){
   if(!b || !b.alive || !b.nades || b.nades[type] <= 0) return false;
   if(opts && opts.bkey && !builtinAllowed(opts.bkey)) return false; // встроенная выключена или заменена своим лайнапом
+  if(!(opts && opts.plan) && planReserved(b, type)) return false;   // (Г1) последняя такая граната команды — под план тактики
   if(b.nadeTask && (b.nadeTask.type === type || b.nadeTask.lineup)) return false; // свой лайнап не перебиваем
   if(type === "smoke" && smokeCovered(target.x, target.y)) return false;
   // одна граната одного типа в одну точку: другие механики (комбо, флешка

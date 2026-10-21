@@ -216,7 +216,7 @@ function nadeReact(){
       if(need) f = F;
     }
     if(!f) return;
-    if(assignNade(b, "smoke", {x:f.x, y:f.y}, "тушу молотов", {now:true})){ f._ext = true;
+    if(assignNade(b, "smoke", {x:f.x, y:f.y}, "тушу молотов", {now:true, plan:true})){ f._ext = true;
       voiceLog(b.team, "ext"+b.id+tick, b.id, "тушу молотов "+calloutName(f.x, f.y)); }
   });
   // (v294) «ранняя граната на задержку» (молотов/HE опорника во вход своего сайта на 7–18 с) убрана: у ботов рвалась рядом с врагом

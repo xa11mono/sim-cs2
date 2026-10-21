@@ -2,8 +2,11 @@
 freshMatch(__M__);
 var M0=matchNum;
 /*@@WATCH@@*/
-var REC={rounds:[], kills:[], pos:[], plants:[], buys:[], nades:[], jit:{alive:0, look:0, moveEng:0, moveIdle:0, moveOther:0, ev:[]}}, rs=null, cur=null;
+var REC={rounds:[], kills:[], pos:[], plants:[], buys:[], nades:[], plans:[], jit:{alive:0, look:0, moveEng:0, moveIdle:0, moveOther:0, ev:[]}}, rs=null, cur=null;
 var ofk=feedKill; feedKill=function(att,vic,weap,hs){ REC.kills.push([tick, att?att.id:null, att?att.team:null, att?Math.round(att.x):null, att?Math.round(att.y):null, vic.id, vic.team, Math.round(vic.x), Math.round(vic.y), String(weap), hs?1:0, att&&att.weapon?att.weapon.key:null, vic.tRole||'']); return ofk.apply(this,arguments); };
+// (Г1) план гранат раунда и что из него назначено (pi… — решено, piok… — отдано бойцу)
+if(typeof planNades==='function'){ var opn=planNades; planNades=function(){ var r=opn.apply(this,arguments); if(NADE_PLAN) REC.plans.push({r:roundNum, t0:tick, exit:NADE_PLAN.exit, T:NADE_PLAN.T.slice(), CT:NADE_PLAN.CT.slice()}); return r; }; }
+var oerp=endRound; endRound=function(w,reason){ var P=REC.plans[REC.plans.length-1]; if(P && P.r===roundNum && typeof nadeFlags!=='undefined'){ P.ok=[]; P.done=[]; P.resp=[]; for(var k in nadeFlags){ if(/^piok\d+$/.test(k)) P.ok.push(+k.slice(4)); else if(/^pi\d+$/.test(k)) P.done.push(+k.slice(2)); else if(/^_resp/.test(k)) P.resp.push(k.slice(5)); } } return oerp.apply(this,arguments); };
 var oer=endRound; endRound=function(w,reason){ if(cur){ cur.t1=tick; cur.winner=w; cur.reason=reason; cur.bomb=bomb.state; } return oer.apply(this,arguments); };
 var otn=throwNade; throwNade=function(b,type,tx,ty){ var ok0=roundState==='live' && b.nades && b.nades[type]>0, x0=b.x, y0=b.y, ls=tick-(b.lastShotTick||-999); var res=otn.apply(this,arguments); if(ok0 && res!==false) REC.nades.push([tick, b.team, type, b.id, (b.tRole||b.ctRole||''), Math.round(x0), Math.round(y0), Math.round(tx), Math.round(ty), ls]); return res; };   // (v370) только состоявшийся бросок (throwNade может отказать)
 // (v181) стрельба: каждый выстрел пулей — тик, стрелок, команда, оружие, дистанция, цель,
