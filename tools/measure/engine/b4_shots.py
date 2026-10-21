@@ -124,7 +124,7 @@ def shots_bots(mp, run, tag='bots'):
         gx = lambda x: x * s + R0['pos_x']; gy = lambda y: R0['pos_y'] - y * s
         P = collections.defaultdict(list)
         for q in R['pos']:
-            if q[5]: P[q[1]].append((q[0], gx(q[3]), gy(q[4])))
+            P[q[1]].append((q[0], gx(q[3]), gy(q[4])))   # и после смерти (как у про: в тиках демки позиция остаётся)
         TR = {i: Track([p[0] for p in L], [p[1] for p in L], [p[2] for p in L], [0]*len(L), [0]*len(L)) for i, L in P.items() if len(L) > 2}
         rows = collections.defaultdict(list)
         for x in R.get('shots', []):

@@ -7,7 +7,7 @@ var FIRE_K = 0.7;
 // стрелка (vr): ≤ 50 ед./с — 45→33 % (вблизи → > 1500 ед.), 50–120 — 35→24 %, 120–200 — 22→18 %, > 200 — ~10 %. Это ошибка в ед.
 // у цели: σ ≈ √(A² + (L·vr)²), A ≈ 14 ед. (+ 2 на 1000 ед. дистанции), L ≈ 0,12 с — запаздывание прицела за целью. Навык — как
 // раньше: aimErr (0,0045 + 0,02·(1,2 − навык)) относительно навыка 1,0
-var AIM_A = 14, AIM_AD = 0.002, AIM_LAG = 0.12, AIM_FLICK = 0.15, AIM_HEAD_PISTOL = 1.8;
+var AIM_A = 11, AIM_AD = 0.002, AIM_LAG = 0.12, AIM_FLICK = 0.15, AIM_HEAD_PISTOL = 1.8;
 function aimSigma(sh, tg, dist){
   var du = Math.max(8, dist)*PX_UNITS, sk = sh.skill || 1;
   var lx = (tg.x - sh.x)/Math.max(1, dist), ly = (tg.y - sh.y)/Math.max(1, dist);
