@@ -34,6 +34,7 @@ function navLinked(a, b){ var E = zoneGraph[a.id] || []; for(var i=0;i<E.length;
 // время подъёма (LADDER_SPEED ед. игры/с — проектное число, в CS2 по лестнице ~ шагом), без проверок стен и пола, в конце —
 // участок другого конца и путь заново. Раньше этаж у лестницы угадывался по полу под ногами (оба этажа рядом) — бота
 // перекидывало между этажами и он «трясся»
+var CLIMB_FLOOR_TOL = 24;   // ед. игры — проектное число (как допуск пола участка в проверке набора)
 var LADDERS = null, LADDER_SPEED = 150, LADDER_NEAR = 40, LADDER_SEEK = 260, LADDER_FAR = 150;
 function laddersBuild(){
   LADDERS = [];
@@ -56,7 +57,11 @@ function laddersBuild(){
       var c = cen(a), d = Math.hypot(c.x-e.x, c.y-e.y), k = d > 1 ? Math.min(1, 12/d) : 0, q = {x:e.x+(c.x-e.x)*k, y:e.y+(c.y-e.y)*k};
       for(var i = 0; i < 6 && !pointInPoly(q.x, q.y, a.points); i++){ k = Math.min(1, k*2); q = {x:e.x+(c.x-e.x)*k, y:e.y+(c.y-e.y)*k}; }
       return {x:q.x, y:q.y, z:e.z, area:e.area}; };
-    LADDERS.push({lo:inside(c.lo), hi:inside(c.hi), up:true, sec:c.sec});
+    // (v405, отметка владельца 22.10, Mirage у Palace Entry: «там забор так не перепрыгнуть») верх подъёма, где в 3D-геометрии нет пола
+    // на его высоте (± CLIMB_FLOOR_TOL) — узкий верх стены, на котором стоит участок .nav, — не подъём: путь вёл через него на −42
+    var hi = inside(c.hi), M3 = m3();
+    if(M3 && !m3Floors(M3, hi.x, hi.y).some(function(z){ return Math.abs(z - hi.z) <= CLIMB_FLOOR_TOL; })) return;
+    LADDERS.push({lo:inside(c.lo), hi:hi, up:true, sec:c.sec});
   });
 }
 // лестница, по которой бот с этажа z попадает на этаж zTo: конец на своём этаже в пределах r
@@ -225,12 +230,19 @@ function navFollowFloor(bot){
 // (v403) как далеко от пола своего уровня (± JUMP_UP) точка: 0 — на полу, дальше NAV_OFF_R — NAV_OFF_R+1 (шаг 2 ед. карты)
 var NAV_OFF_R = 24;   // проектное число: дальше бот вне пола не бывает (перенос navSnap — через 0,5 с)
 function navFloorDist(x, y, lvl){ for(var r = 0; r <= NAV_OFF_R; r += 2) if(navNearLevel(x, y, r, lvl)) return r; return NAV_OFF_R + 1; }
+// шаг идёт к следующей точке пути (угол меньше ~25°) — задуманный путём переход (спуск, щель к связанному участку)
+function navStepAlongPath(x1, y1, x2, y2, b){
+  var wp = b.path && b.path[b.pathIdx]; if(!wp) return false;
+  var dx = wp[0]-x1, dy = wp[1]-y1, sx = x2-x1, sy = y2-y1, L = Math.hypot(dx, dy)*Math.hypot(sx, sy);
+  return L > 0 && (dx*sx + dy*sy)/L > 0.9;
+}
 function offNavStep(x1, y1, x2, y2, b){
   var lvl0 = navArea(b._area) ? navArea(b._area).z : b.z;
   if(navNearLevel(x2, y2, NAV_STEP_TOL, lvl0)) return false;
   // уже вне пола — пусть возвращается; (v403, отметка владельца 22.10, A Default: бот, ступивший в щель у ящика, дальше уходил внутрь
   // ящика — любой шаг вне пола пропускался) — но не дальше от пола своего уровня, чем был
-  var a1 = navNearLevel(x1, y1, NAV_STEP_TOL, lvl0); if(!a1) return navFloorDist(x2, y2, lvl0) > navFloorDist(x1, y1, lvl0);
+  // (v405) шаг по пути к следующей точке (спрыгнуть с края стенки на рампу — отметка владельца 22.10, T Ramp: T вставали на краю) — можно
+  var a1 = navNearLevel(x1, y1, NAV_STEP_TOL, lvl0); if(!a1) return !navStepAlongPath(x1, y1, x2, y2, b) && navFloorDist(x2, y2, lvl0) > navFloorDist(x1, y1, lvl0);
   var cur = navArea(b._area) || a1;
   if(navOnFloor(x2, y2, b, cur)) return false;
   // (v341, отметка владельца: sh1ro и magixx «снова застряли там же» — спуск со спавна T, −166 → −258) щель спрыгивания бывает

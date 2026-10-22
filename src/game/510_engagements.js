@@ -138,7 +138,7 @@ function resolveEngagements(){
     if(tick - b._rtChk.t >= 16){
       if(dF < b._rtChk.d - 4){
         var cv = findCover(b, foe);
-        if(cv){ b.path = buildWaypointPath(b.baseX, b.baseY, b.z, cv.x, cv.y, 0); b.pathIdx = 0; }
+        if(cv){ b.path = buildWaypointPath(b.baseX, b.baseY, b.z, cv.x, cv.y, 0, b.team, botLane(b)); b.pathIdx = 0; }
       }
       b._rtChk = {t:tick, d:dF};
     }
@@ -217,14 +217,14 @@ function assignNewDestination(bot, tick){
     var foe = bot._nearestEnemyBot || (bot.lastIntel ? {x:bot.lastIntel.x, y:bot.lastIntel.y} : null);
     var cv = foe ? findCover(bot, foe) : null;
     var tgt = cv || bot.spawnPt;
-    bot.path = buildWaypointPath(bot.baseX, bot.baseY, bot.z, tgt.x, tgt.y, 0);
+    bot.path = buildWaypointPath(bot.baseX, bot.baseY, bot.z, tgt.x, tgt.y, 0, bot.team, botLane(bot));
     bot.pathIdx = 0; bot.pickTick = tick;
     return;
   }
   if(bot.post && bot.state === "patrol"){
     if(bot.atPost || bot.planting || bot.defusing) return; // стоит на посту — путь не нужен
     var epp = fireSafe(bot.post, bot);
-    bot.path = buildWaypointPath(bot.baseX, bot.baseY, bot.z, epp.x, epp.y, 0);
+    bot.path = buildWaypointPath(bot.baseX, bot.baseY, bot.z, epp.x, epp.y, 0, bot.team, botLane(bot));
     bot.pathIdx = 0; bot.pickTick = tick;
     return;
   }
@@ -233,7 +233,7 @@ function assignNewDestination(bot, tick){
     var route = ROAM_ROUTES[bot.team];
     if(route && route.length){
       var rp = route[bot.roamIdx % route.length];
-      bot.path = buildWaypointPath(bot.baseX, bot.baseY, bot.z, rp.x, rp.y, 0);
+      bot.path = buildWaypointPath(bot.baseX, bot.baseY, bot.z, rp.x, rp.y, 0, bot.team, botLane(bot));
       bot.pathIdx = 0; bot.pickTick = tick; bot.roamTarget = rp;
       return;
     }

@@ -4,6 +4,7 @@
 // per-point transform (applyNavTransform) runs on every drag/wheel tick for
 // live visual feedback; this heavier rebuild (graph + both wall sets) is
 // debounced to run only after the user stops adjusting. ----------
+var NAV_FLOOR_TOL = 24, NAV_RIDGE_W = 6, NAV_RIDGE_SIDE = 4;   // ед. игры / ед. карты — проектные числа (v405)
 var NAV_BLOCKED = {}, navBlockedCount = 0, navCutPortals = 0, navNarrowPortals = 0;
 // WALL_SOLID_POLYS — см. applyWalls выше
 // (А5) у карты есть 3D-геометрия игры — «в стене» и «шаг сквозь стену» по ней (035_map3d: клетка без этажа и без навмеша);
@@ -84,6 +85,22 @@ function rebuildNav(){
     z.points.forEach(function(p){ var q = {x: p.x + (c.x-p.x)*0.35, y: p.y + (c.y-p.y)*0.35}; n++; if(insideSolidWall(q.x, q.y)) inn++; });
     if(inn >= Math.max(1, Math.ceil(n*0.6))){ NAV_BLOCKED[z.id] = true; navBlockedCount++; }
   });
+  // (v405, отметка владельца 22.10, Mirage у Palace Entry: путь шёл по верху стены на −42 — «там забор так не перепрыгнуть») с 3D-
+  // геометрией: участок .nav, под которым в геометрии нет пола на его высоте (± NAV_FLOOR_TOL) ни в центре, ни в четырёх точках
+  // между центром и краями, — верх стены / перил шириной в несколько единиц (генератор навмеша игры ставит участки и туда), не место,
+  // где ходят: выкидывается из графа. Mirage — 24 участка из 2544
+  if(MAP3D){ var M3b = m3();
+    NAVAREAS.forEach(function(z){ var xs = z.points.map(function(p){ return p.x; }), ys = z.points.map(function(p){ return p.y; });
+      var x0 = Math.min.apply(null, xs), x1 = Math.max.apply(null, xs), y0 = Math.min.apply(null, ys), y1 = Math.max.apply(null, ys), cx = (x0+x1)/2, cy = (y0+y1)/2;
+      var has = [[0,0],[0.3,0],[-0.3,0],[0,0.3],[0,-0.3]].some(function(o){ return m3Floors(M3b, cx + o[0]*(x1-x0), cy + o[1]*(y1-y0)).some(function(fz){ return Math.abs(fz - z.z) <= NAV_FLOOR_TOL; }); });
+      if(!has){ NAV_BLOCKED[z.id] = true; navBlockedCount++; return; }
+      // гребень — тонкий участок (уже NAV_RIDGE_W ед. карты) на верху стенки / перил: по обе стороны поперёк него (± NAV_RIDGE_SIDE) пол
+      // в геометрии ниже его больше чем на ступеньку (18) — человек там не стоит и не идёт (Mirage: стенка между спуском со спавна T
+      // и T Ramp, −144: путь шёл по ней, боты вставали на её краю). Ступени и края пола — с одной стороны свой уровень, не гребень
+      var wX = x1 - x0, wY = y1 - y0; if(Math.min(wX, wY) >= NAV_RIDGE_W) return;
+      var ux = wX < wY ? 1 : 0, uy = 1 - ux, top = function(px, py){ var f = m3Floors(M3b, px, py), b = -1e9; f.forEach(function(fz){ if(fz <= z.z + 18 && fz > b) b = fz; }); return b; };
+      var hw = Math.min(wX, wY)/2 + NAV_RIDGE_SIDE;
+      if(top(cx + ux*hw, cy + uy*hw) < z.z - 18 && top(cx - ux*hw, cy - uy*hw) < z.z - 18){ NAV_BLOCKED[z.id] = true; navBlockedCount++; } }); }
 
   // ---------- nav-area adjacency graph (built straight from each area's own
   // `conn` list — the game's own computed adjacency, not a geometry guess) ----------
@@ -229,6 +246,7 @@ function navJumpCost(a, edge){
   var dz = navStepDz(a, b, edge.mid.x, edge.mid.y);
   return (edge._jcost = dz > 18 ? NAV_JUMP_COST : dz < -40 ? NAV_DROP_COST : 0);
 }
+var ROUTE_NOISE = 0.25, ROUTE_NOISE_C = 40;   // доля и клетка (ед. карты) — проектные числа (v405)
 function zoneDijkstra(fromId, toId, team){
   if(fromId===toId) return [fromId];
   var side = team === "CT" ? zoneSideMap() : null;
@@ -247,6 +265,9 @@ function zoneDijkstra(fromId, toId, team){
       if(visited[edge.to]) return;
       var w = dist2(fromCentroid, edge.mid) + 40 + navJumpCost(zonesById[u], edge); // small fixed cost per portal crossing
       if(side && side[edge.to] !== undefined && side[edge.to] < ROUTE_SIDE_LINE) w *= ROUTE_ENEMY_SIDE;   // (v259) CT — по своей стороне
+      // (v405) у бота своя полоса — и свой выбор среди почти равных путей: цена перехода × (1 ± ROUTE_NOISE) по клетке ROUTE_NOISE_C
+      // вокруг перехода (вся клетка — один множитель: соседние полосы прохода, бордюр и рампа, получают разную цену у разных ботов)
+      var nz = zoneDijkstra.noise; if(nz != null) w *= 1 + ROUTE_NOISE*(hashRand(Math.floor(edge.mid.x/ROUTE_NOISE_C)*7919 + Math.floor(edge.mid.y/ROUTE_NOISE_C)*104729 + nz) - 0.5)*2;
       var alt = dist[u] + w;
       if(dist[edge.to]===undefined || alt<dist[edge.to]){
         dist[edge.to] = alt; prev[edge.to] = u; heap.push(edge.to, alt);
@@ -342,7 +363,26 @@ function navClampInto(a, x, y){
   cx /= n; cy /= n; var dc = Math.hypot(cx-bx, cy-by), k = dc > 0 ? Math.min(1, 2/dc) : 0;
   return {x: bx + (cx-bx)*k, y: by + (cy-by)*k};
 }
-function buildWaypointPath(fromX, fromY, fromZ, toX, toY, toZ, team){
+// (v405, владелец 22.10: «зачем они все идут по одному пути») натянутый путь (funnel) у всех один — по одним и тем же углам. У каждого
+// бота своя полоса (lane 0…1): каждая точка поворота пути сдвигается поперёк движения на (lane − 0,5)·2·LANE_W, если новая точка и
+// отрезки к ней — на полу своего уровня (navSegOnLevel), иначе на половину, иначе остаётся. Числа — проектные (разброс у про — проверить
+// по демкам)
+var LANE_W = 14;   // ед. карты (≈ 35 ед. игры)
+function botLane(b){ var m = /(\d)$/.exec(b && b.id || ""); return m ? 0.1 + 0.2*(+m[1] % 5) : 0.5; }
+function laneShift(path, lane, x0, y0, z0){
+  var d0 = (lane - 0.5)*2*LANE_W; if(!d0 || path.length < 2) return path;
+  var out = path.slice(), px = x0, py = y0, pz = z0;
+  for(var i = 0; i < out.length - 1; i++){ var P = out[i], N = out[i+1];
+    var ax = P[0]-px, ay = P[1]-py, bx = N[0]-P[0], by = N[1]-P[1], la = Math.hypot(ax, ay), lb = Math.hypot(bx, by);
+    if(la < 1 || lb < 1 || (P[2] != null && pz != null && Math.abs(P[2]-pz) > 18)){ px = P[0]; py = P[1]; pz = P[2]; continue; }
+    var nx = -(ay/la + by/lb), ny = (ax/la + bx/lb), ln = Math.hypot(nx, ny); if(ln < 0.2){ px = P[0]; py = P[1]; pz = P[2]; continue; }
+    nx /= ln; ny /= ln;
+    for(var k = 1; k >= 0.5; k -= 0.5){ var qx = P[0] + nx*d0*k, qy = P[1] + ny*d0*k;
+      if(navSegOnLevel(px, py, pz, qx, qy, P[2]) && navSegOnLevel(qx, qy, P[2], N[0], N[1], N[2]) && !crossesWall(px, py, qx, qy) && !crossesWall(qx, qy, N[0], N[1])){ out[i] = [qx, qy, P[2]]; break; } }
+    px = out[i][0]; py = out[i][1]; pz = out[i][2]; }
+  return out;
+}
+function buildWaypointPath(fromX, fromY, fromZ, toX, toY, toZ, team, lane){
   // (v341, отметка владельца: karrigan в щели у края нижнего пола — путь начинался с верхней полоски (−140) над ним, туда хода
   // нет, бот уходил с пола и его переносило по кругу) начало пути — пол рядом на высоте бота, а не ближайший центр участка
   var fz = fromZ != null ? navAt(fromX, fromY, fromZ) : null;
@@ -365,6 +405,7 @@ function buildWaypointPath(fromX, fromY, fromZ, toX, toY, toZ, team){
   if(!pointInPoly(toX, toY, tz.points)){ var cq = navClampInto(tz, toX, toY); toX = cq.x; toY = cq.y; }
   if(!toZ) toZ = navFloorZ(tz, toX, toY);
   if(fz.id === tz.id) return [[toX,toY,toZ||0]];
+  zoneDijkstra.noise = lane != null ? Math.round(lane*1000) + roundNum*13 : null;
   var route = zoneDijkstra(fz.id, tz.id, team);
   if(!route){ if(!NAV_GRID) navGridBuild();
     var alts = (NAV_GRID[Math.floor(toX/NAV_GRID_C)+","+Math.floor(toY/NAV_GRID_C)]||[]).map(function(i){ return NAVAREAS[i]; })
@@ -375,6 +416,7 @@ function buildWaypointPath(fromX, fromY, fromZ, toX, toY, toZ, team){
   // путь к ближайшему достижимому месту рядом с ней
   if(!route){ zoneDijkstra.nearest = true; route = zoneDijkstra(fz.id, tz.id, team); zoneDijkstra.nearest = false;
     if(route && route[route.length-1] !== tz.id){ var lz = zonesById[route[route.length-1]]; if(lz){ var lc = zoneCentroid(lz); toX = lc.x; toY = lc.y; toZ = lz.z; tz = lz; } } }
+  zoneDijkstra.noise = null;
   if(!route) return [[toX,toY,toZ||0]]; // disconnected zones — direct line fallback rather than a stuck bot
   var corridor = [], cPair = [];   // cPair — участки по обе стороны перехода (v340)
   for(var i=0;i<route.length-1;i++){
@@ -420,7 +462,7 @@ function buildWaypointPath(fromX, fromY, fromZ, toX, toY, toZ, team){
     return mids;
   }
   // drop the leading point (== bot's current position, not a real waypoint)
-  return path.slice(1);
+  return lane != null ? laneShift(path.slice(1), lane, fromX, fromY, fromZ) : path.slice(1);
 }
 
 function ccw(ax,ay,bx,by,cx,cy){ return (cy-ay)*(bx-ax) > (cx-ax)*(by-ay); }
