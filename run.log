@@ -1,0 +1,17 @@
+playwright 1.56.0
+> git fetch --quiet origin d888f009ace0744cbeaf499b96b0b3a20e2f12f8
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Users\Mono\AppData\Local\Temp\simbuild_pcedupq5 FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Users\Mono\AppData\Local\Temp\simbuild_pcedupq5\src\build.py --map ancient C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v402_anc.html
+> git fetch --quiet origin d888f009ace0744cbeaf499b96b0b3a20e2f12f8
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Users\Mono\AppData\Local\Temp\simbuild_mocswzrp FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Users\Mono\AppData\Local\Temp\simbuild_mocswzrp\src\build.py --map mirage C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v402_mir.html
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\engine\walk_run.py --job=v402_anc,C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v402_anc.html --job=v402_mir,C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v402_mir.html --matches=3,7,11,13,17,19,23,29 --par=8
+матчей в очереди: 16, одновременно: 8
+v402_anc match 19 rc 0 5367163 — готово 1/16, 4 мин
+v402_anc match 23 rc 0 5387623 — готово 2/16, 4 мин
+v402_anc match 3 rc 0 5805839 — готово 3/16, 4 мин
+v402_anc match 11 rc 0 5902850 — готово 4/16, 5 мин
+v402_anc match 13 rc 0 6306846 — готово 5/16, 5 мин
+v402_anc match 29 rc 0 6044503 — готово 6/16, 5 мин
+v402_anc match 7 rc 0 7120622 — готово 7/16, 6 мин
+v402_anc match 17 rc 0 8291388 — готово 8/16, 7 мин
