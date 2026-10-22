@@ -239,7 +239,7 @@
   <div id="topbar">
     <div class="tb-id">
       <h1>Mirage</h1>
-      <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 409, 22.10</div>
+      <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 410, 22.10</div>
     </div>
     <div class="tb-group" id="tbMatch">
       <button id="btnPause">Пауза</button>
@@ -24505,12 +24505,22 @@ function peekQ(q, u){   // значение распределения по кв
 // ближайшее место не дальше R, откуда врага e не видно и куда можно дойти по прямой; из равных — дальше от врага
 // (М149) «не видно» — враг не видит там ни одной части тела, плечо тоже (visParts), а не только «глаза в глаза» (hasLOS):
 // иначе за укрытием торчит плечо, и перестрелка не кончается
+// (v410, владелец 22.10: «игрок 9 опять дёргается», м1 р1 Mirage 1:40) укрытие проверялось одним длинным отрезком stepBlocked, а идёт
+// бот туда шагами по ≈ 2 ед. — короткий шаг посередине упирался (край пола / уступ), цикл перестрелки сбрасывался (_fc = null), в тот
+// же тик «стреляют в плечо» заводил его снова к тому же укрытию — 1160,1581: «за укрытие / сброс» через тик, стоял и дёргался. Теперь
+// отрезок проверяется теми же короткими шагами, которыми бот пойдёт (FIGHT_STEP)
+var FIGHT_STEP = 4;   // ед. карты — шаг проверки (бег за тик ≈ 2–3 ед.)
+function fightPathFree(b, x0, y0, x1, y1){
+  var d = Math.hypot(x1-x0, y1-y0), n = Math.max(1, Math.ceil(d/FIGHT_STEP)), px = x0, py = y0;
+  for(var i = 1; i <= n; i++){ var x = x0 + (x1-x0)*i/n, y = y0 + (y1-y0)*i/n; if(stepBlocked(px, py, x, y, b)) return false; px = x; py = y; }
+  return true;
+}
 function fightCover(b, e, R){
   for(var k=1;k<=3;k++){
     var r = R*k/3, best = null, bd = -1;
     for(var i=0;i<16;i++){
       var a = i*Math.PI/8, x = b.baseX + Math.cos(a)*r, y = b.baseY + Math.sin(a)*r;
-      if(insideSolidWall(x, y) || stepBlocked(b.baseX, b.baseY, x, y, b) || fightSeen(e, x, y, b.z)) continue;
+      if(insideSolidWall(x, y) || !fightPathFree(b, b.baseX, b.baseY, x, y) || fightSeen(e, x, y, b.z)) continue;
       var de = Math.hypot(x-e.x, y-e.y); if(de > bd){ bd = de; best = {x:x, y:y}; }
     }
     if(best) return best;
@@ -24523,7 +24533,7 @@ function fightBetter(b, e, cx, cy, R){
   var best = null, bd = Infinity;
   for(var k=1;k<=3;k++) for(var i=0;i<16;i++){
     var a = i*Math.PI/8, r = R*k/3, x = cx + Math.cos(a)*r, y = cy + Math.sin(a)*r;
-    if(insideSolidWall(x, y) || stepBlocked(cx, cy, x, y, b) || !hasLOS(x, y, e.x, e.y, b.z, e.z)) continue;
+    if(insideSolidWall(x, y) || !fightPathFree(b, cx, cy, x, y) || !hasLOS(x, y, e.x, e.y, b.z, e.z)) continue;
     var d = Math.hypot(x-cx, y-cy); if(d < bd){ bd = d; best = {x:x, y:y}; }
   }
   return best;
@@ -30917,6 +30927,7 @@ var __SNAP = [
 ["awpSmokeCd", function(){ return awpSmokeCd; }, function(v){ try{ awpSmokeCd = v; }catch(e){} }],
 ["PEEK_PRO", function(){ return PEEK_PRO; }, function(v){ try{ PEEK_PRO = v; }catch(e){} }],
 ["PEEK_Q", function(){ return PEEK_Q; }, function(v){ try{ PEEK_Q = v; }catch(e){} }],
+["FIGHT_STEP", function(){ return FIGHT_STEP; }, function(v){ try{ FIGHT_STEP = v; }catch(e){} }],
 ["CS_ACCEL", function(){ return CS_ACCEL; }, function(v){ try{ CS_ACCEL = v; }catch(e){} }],
 ["CS_FRIC", function(){ return CS_FRIC; }, function(v){ try{ CS_FRIC = v; }catch(e){} }],
 ["CS_STOP", function(){ return CS_STOP; }, function(v){ try{ CS_STOP = v; }catch(e){} }],
