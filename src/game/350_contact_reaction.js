@@ -22,6 +22,10 @@ function contactInfo(b){
 }
 function contactCritical(b, C){
   if(b.planting || b.defusing) return true;
+  // (v399в, Г1, решение владельца 22.10 «сначала бросок»; сторож v399: 70 % потерь гранат плана — «снята: контакт») боец уже идёт
+  // кидать (у задания есть точка броска — лайнап или место «на глаз»): контакт — враг известен, но не виден — забирает взгляд, ноги
+  // доводят бросок; граната и есть ответ на контакт, как у про (сначала граната, потом пик). Увидел врага — бой (_sawEnemy), как было
+  if(b.nadeTask && b.nadeTask.from) return true;
   if(bomb && bomb.state === "planted"){
     var left = bombTimeLeftTicks()/TICK_HZ;
     if(b.team === "CT" && !(teamTac.CT && teamTac.CT.saving)){ var need = Math.hypot(b.x-bomb.x, b.y-bomb.y)/SPEED*1.2 + (b.kit ? 5 : 10) + 1.5; if(left - need < 3) return true; }
