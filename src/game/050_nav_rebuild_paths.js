@@ -333,6 +333,15 @@ function funnel(corridor, start, end){
 // through every portal's exact midpoint" zigzag (that's what made movement
 // look like it was snapping between fixed lines) with a proper corridor
 // pull that only turns where the walls actually force a turn.
+// (v403) ближайшая к (x, y) точка внутри участка a: проекция на ближайшее ребро, на 2 ед. карты внутрь (к центру участка)
+function navClampInto(a, x, y){
+  var P = a.points, n = P.length, bx = P[0].x, by = P[0].y, bd = Infinity, cx = 0, cy = 0;
+  for(var i=0;i<n;i++){ var A = P[i], B = P[(i+1)%n], ex = B.x-A.x, ey = B.y-A.y, L2 = ex*ex + ey*ey; cx += A.x; cy += A.y;
+    var t = L2 ? Math.max(0, Math.min(1, ((x-A.x)*ex + (y-A.y)*ey)/L2)) : 0, px = A.x + ex*t, py = A.y + ey*t, d = Math.hypot(px-x, py-y);
+    if(d < bd){ bd = d; bx = px; by = py; } }
+  cx /= n; cy /= n; var dc = Math.hypot(cx-bx, cy-by), k = dc > 0 ? Math.min(1, 2/dc) : 0;
+  return {x: bx + (cx-bx)*k, y: by + (cy-by)*k};
+}
 function buildWaypointPath(fromX, fromY, fromZ, toX, toY, toZ, team){
   // (v341, отметка владельца: karrigan в щели у края нижнего пола — путь начинался с верхней полоски (−140) над ним, туда хода
   // нет, бот уходил с пола и его переносило по кругу) начало пути — пол рядом на высоте бота, а не ближайший центр участка
@@ -350,6 +359,11 @@ function buildWaypointPath(fromX, fromY, fromZ, toX, toY, toZ, team){
   var tLvl = toZ ? toZ : (fz ? fz.z : 0);
   var tz = (navAt(toX, toY, tLvl) && Math.abs(navAt(toX, toY, tLvl).z - tLvl) <= JUMP_UP ? navAt(toX, toY, tLvl) : null) || navNearestZ(toX, toY, NAV_GAP_TOL, tLvl) || zoneOf(toX, toY, tLvl);
   if(!fz || !tz) return [[toX,toY,toZ||0]];
+  // (v403, отметка владельца 22.10, Mirage Window: CT0 «застрял в стене») точка поста бывает вне навмеша — в щели между этажами;
+  // путь кончался самой точкой с высотой 0 («не знаю»), лестница принимала 0 за высоту (подъём на −46 рядом) и вставляла в путь
+  // подъём за стеной — бот бежал к нему по прямой в стену. Теперь конец пути — ближайшая точка участка цели и его пол
+  if(!pointInPoly(toX, toY, tz.points)){ var cq = navClampInto(tz, toX, toY); toX = cq.x; toY = cq.y; }
+  if(!toZ) toZ = navFloorZ(tz, toX, toY);
   if(fz.id === tz.id) return [[toX,toY,toZ||0]];
   var route = zoneDijkstra(fz.id, tz.id, team);
   if(!route){ if(!NAV_GRID) navGridBuild();

@@ -490,36 +490,8 @@ function stepTick(){
         // otherwise the bot "moves" by fractions of a pixel forever instead
         // of ever giving up on a bad straight-line path.
         var actuallyMoved = Math.hypot(bot.baseX-startX, bot.baseY-startY);
-        // (v321) высота бота — по участку навмеша под ним (ближайший по высоте); прыжок / спрыгнул — для показа
-        if(actuallyMoved > 0){ var naz = navAt(bot.baseX, bot.baseY, bot.z) || navNearestZ(bot.baseX, bot.baseY, NAV_STEP_TOL, bot.z);   // (v341) в щели — ближайший пол
-          // (v323, М38) в щели своего этажа под точкой бывает только чужой этаж (под Palace — пол Palace): это не подъём —
-          // этаж меняется только по связи навмеша (лестница, ступени, спуск), иначе бот остаётся на своём
-          var a0z = navArea(bot._area);
-          // (v333) пол своего этажа под ногами есть — остаётся на нём (щель в верхнем полу больше не «роняет» вниз — donk под
-          // Palace); своего пола нет — падает на нижний (zont1x с B Apps — раньше «висел» на высоте Apps над сайтом, без звука)
-          // (v353, отметка владельца: NiKo «застревает под Palace, выкидывает на Palace, трясётся») лестница: путь ведёт на другой конец
-          // лестницы (участки связаны лестницей в .nav) — этаж меняется, даже если свой пол под ногами тоже есть (у лестницы оба)
-          // (v359) этаж по лестнице меняет только подъём (ladderTick); здесь лестница — как любой пол другого этажа
-          if(naz && a0z && naz !== a0z && Math.abs(naz.z - a0z.z) > JUMP_UP){
-            var own = navAtLevel(bot.baseX, bot.baseY, a0z.z);
-            if(own) naz = own;
-            else { var wpz3 = bot.path && bot.path[bot.pathIdx] ? bot.path[bot.pathIdx][2] : null;
-              if(!navLinked2(a0z, naz) && !(naz.z < a0z.z && wpz3 != null && wpz3 < a0z.z - JUMP_UP)) naz = null; }   // без связи навмеша и не по пути вниз — остаётся на своём этаже
-          }
-          if(naz){ var dzz = naz.z - (bot.z == null ? naz.z : bot.z);
-            // (v336, владелец: «прыгают на рандом, где не нужно, и палятся») прыжок и приземление — по полу у края (navStepDz),
-            // а не по центрам участков: ступени и пандусы Mirage (Stairs, Palace, рампы) больше не «прыжок» со звуком
-            var djz = (a0z && naz !== a0z) ? navStepDz(a0z, naz, bot.baseX, bot.baseY) : (naz === a0z ? 0 : dzz);
-            if(djz > 18) bot._jump = {t:tick, up:true}; else if(djz < -40) bot._jump = {t:tick, up:false};
-            // (v322, М29) прыжок / приземление слышно и при тихом шаге, далеко (csdb.gg: «громкий звук приземления, слышно
-            // издалека», без числа) — радиус как у бега: проектное число
-            // (v335, владелец: «звук прыжка в одном месте, а он в другом; приземление должно его перебивать») звучит только
-            // приземление — там, где игрок приземлился: спрыгнул вниз — сразу; запрыгнул вверх — через LAND_DELAY с (полёт)
-            if(roundState === "live" && djz < -40) landSound(bot);
-            else if(roundState === "live" && djz > 18) bot._landAt = tick + Math.round(LAND_DELAY*TICK_HZ);
-            // (v333) сменил этаж (спуск, лестница) — путь, построенный с прежнего этажа, пересчитывается с нового
-            if(Math.abs(dzz) > JUMP_UP && bot.path && bot.pathIdx < bot.path.length){ bot.path = []; bot.pathIdx = 0; }
-            bot.z = naz.z; bot._area = naz.id; } }
+        // (v403) высота бота — одно место navFollowFloor (370): после шага здесь и после любого другого движения за тик (конец цикла)
+        if(actuallyMoved > 0) navFollowFloor(bot);
         // "топчется": каждый тик куда-то сдвигается (веер проб у угла туда-сюда),
         // но за 1.5с никуда не ушёл — раньше это не считалось застреванием
         // (движение в тике было), и бот стоял у угла с кругами шагов
@@ -650,6 +622,9 @@ function stepTick(){
       if(!crossesWall(bot.baseX, bot.baseY, cX, cY)){ bot.baseX = cX; bot.baseY = cY; }
     }
     bot._prevOffX = offX; bot._prevOffY = offY;
+    // (v403, отметка владельца 22.10, Mirage A Default: CT4 «прошёл сквозь два укрытия») высота пересчитывалась только после шага
+    // пути: в бою (стрейф, уход за укрытие — fightCycleTick), у угла и после пика бот сходил с ящика и шёл дальше на высоте ящика
+    if(!bot._climb) navFollowFloor(bot);
     bot.x = bot.baseX + offX;
     bot.y = bot.baseY + offY;
   });
