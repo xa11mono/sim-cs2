@@ -189,6 +189,7 @@ function smokeCovered(x, y){
 function assignNade(b, type, target, why, opts){
   if(!b || !b.alive || !b.nades || b.nades[type] <= 0) return false;
   if(opts && opts.bkey && !builtinAllowed(opts.bkey)) return false; // встроенная выключена или заменена своим лайнапом
+  if(!(opts && opts.plan) && planReserved(b, type)) return false;   // (Г1) последняя такая граната команды — под план тактики
   if(b.nadeTask && (b.nadeTask.type === type || b.nadeTask.lineup)) return false; // свой лайнап не перебиваем
   if(type === "smoke" && smokeCovered(target.x, target.y)) return false;
   // одна граната одного типа в одну точку: другие механики (комбо, флешка
@@ -260,8 +261,15 @@ function updateNadeTasks(){
       if(t.rec && t._run){ if(nadeRecTick(b, t)){ b.nadeTask = null; if(b.post && b.post.tag === "lineup") clearPost(b); } return; }   // (В4) идёт разбег
       if(Math.hypot(t.from.x-b.baseX, t.from.y-b.baseY) > 36 && !(b.atPost && b.post && b.post.tag === "lineup")){
         if(b.state === "hold" && !b._sawEnemy) leaveHold(b);
-        // (v378) задача важнее броска (арбитр места) — бросок отменён, как живой игрок бросает лайнап ради боя / бомбы / колла
-        if(b.state === "patrol" && !setPost(b, t.from, {x:t.x, y:t.y}, true, "lineup")){ b.nadeTask = null; b.nadeQueue = null; }
+        // (v378) задача важнее броска (арбитр места) — бросок отменён, как живой игрок бросает лайнап ради боя / бомбы / колла.
+        // (v399, Г1, вариант А владельца 22.10; сторож v396д: 40 % потерь гранат плана — «снята: перестановка») задача ниже
+        // TASK_ROUTE_CANCEL (перестановка, команда, эндгейм) — пауза броска, как пауза маршрута: срок стоит, бросок ждёт, пока та
+        // кончится, но не дольше EXEC_WAIT_SEC (то же проектное число — сколько граната выхода ждёт бросающего); бой, ротация,
+        // сейв, бомба — отмена, как было
+        if(b.state === "patrol" && !setPost(b, t.from, {x:t.x, y:t.y}, true, "lineup")){
+          if(taskAlive(b) && b._task.lv < TASK_ROUTE_CANCEL && (t._pause = (t._pause || 0) + 1) <= EXEC_WAIT_SEC*TICK_HZ) t.until++;
+          else { b.nadeTask = null; b.nadeQueue = null; }
+        }
         return; }
       postKeep(b);   // стоит на точке броска — затея ещё идёт
       if(t.rec){ if(nadeRecTick(b, t)){ b.nadeTask = null; if(b.post && b.post.tag === "lineup") clearPost(b); } return; }   // (В4) записанный бросок про

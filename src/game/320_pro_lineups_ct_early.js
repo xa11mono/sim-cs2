@@ -1,18 +1,15 @@
 // =====================================================================
-// (v150) ПРО-ЛАЙНАПЫ ИЗ ДЕМОК: 12 матчей, повторяющиеся броски (одна точка
-// броска → одна точка падения, ≥3 раз, ≥2 матча). У каждого — доля раундов,
-// в которых про его кидают (prob), и среднее время броска (at, с от начала).
-// Каждый раунд лайнап "разыгрывается" с этой вероятностью — так набор гранат
-// меняется от раунда к раунду, как у живых команд.
+// (v150) ПРО-ЛАЙНАПЫ ИЗ ДЕМОК (lineups.json: pro + proExtra): точка броска и записанные броски про.
+// (Г1) Когда и какой кидать — план гранат тактики (390: planNades / planTick), а не своя вероятность лайнапа.
 // =====================================================================
-if(BAL.nadeMore) PRO_LINEUPS_RAW = PRO_LINEUPS_RAW.concat(MAP.lineups.proExtra);
+PRO_LINEUPS_RAW = PRO_LINEUPS_RAW.concat(MAP.lineups.proExtra);
 var PRO_LINEUPS = null;
 function proLineups(){
   if(PRO_LINEUPS) return PRO_LINEUPS;
   if(typeof PRO_LINEUPS_RAW === "undefined") return (PRO_LINEUPS = []);
   PRO_LINEUPS = PRO_LINEUPS_RAW.map(function(L){
     var f = snapToWalkable(L.from.x, L.from.y) || L.from;
-    return {id:L.id, team:L.team, type:L.type, trigger:L.trigger, site:L.site, name:L.name, from:{x:f.x, y:f.y}, to:L.to, prob:L.prob, at:L.at, pro:true,
+    return {id:L.id, team:L.team, type:L.type, trigger:L.trigger, site:L.site, name:L.name, from:{x:f.x, y:f.y}, to:L.to, pro:true,
             throws:L.throws || null};   // (В4) записанные броски про (380: nadeRecPick)
   });
   return PRO_LINEUPS;
@@ -21,7 +18,6 @@ function proLineups(){
 // покрывают эту ситуацию (сторона, триггер, сайт)
 var PRO_COVER = null;
 function proCovers(key){
-  if(!BAL.proLineups) return false;
   if(!PRO_COVER){ PRO_COVER = {}; proLineups().forEach(function(L){ PRO_COVER[L.team+"|"+L.trigger+"|"+L.site+"|"+L.type] = 1; if(L.site === "any"){ PRO_COVER[L.team+"|"+L.trigger+"|A|"+L.type] = 1; PRO_COVER[L.team+"|"+L.trigger+"|B|"+L.type] = 1; } }); }
   var p = key.split("."), trig = {insta:"insta", exec:"exec", pp:"postplant", call:"call", retake:"retake"}[p[1]];
   if(!trig) return false;
