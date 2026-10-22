@@ -239,7 +239,7 @@
   <div id="topbar">
     <div class="tb-id">
       <h1>Mirage</h1>
-      <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 400, 22.10</div>
+      <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 401, 22.10</div>
     </div>
     <div class="tb-group" id="tbMatch">
       <button id="btnPause">Пауза</button>
@@ -30949,22 +30949,28 @@ function mkBotIdAt(wx, wy){
   return best;
 }
 
-// ---------- кадр настоящего радара вокруг бота (~600×400 карты) ----------
+// ---------- кадр: вся карта (v401, владелец 22.10 — «скриншот со всей карты, а не участка») ----------
+// радар 2048×2048 целиком в MK_FRAME px: названия зон, номера всех игроков (рисует draw), дым и огонь; отмеченный — красный круг
+var MK_FRAME = 1400, MK_FRAME_PAD = 140;   // px кадра по длинной стороне; запас от центров крайних зон (ед. радара) — проектные числа
 function mkFrame(botId){
-  var b = bots.filter(function(o){ return o.id === botId; })[0], cx, cy;
-  if(b){ cx = b.x; cy = b.y; }
-  else { var al = bots.filter(function(o){ return o.alive; }); cx = al.reduce(function(s, o){ return s + o.x; }, 0)/Math.max(1, al.length); cy = al.reduce(function(s, o){ return s + o.y; }, 0)/Math.max(1, al.length); }
-  var W = 900, H = 600, K = 1.5, sv = {s: view.scale, x: view.panX, y: view.panY, w: cv.width, h: cv.height}, url = null;
+  var b = bots.filter(function(o){ return o.id === botId; })[0];
+  // рамка — по зонам карты (центры ± MK_FRAME_PAD ед. радара), чтобы пустые края радара не съедали кадр
+  var x0 = 2048, y0 = 2048, x1 = 0, y1 = 0, PAD = MK_FRAME_PAD;
+  for(var zid in ZONE_CENTROIDS){ var c = ZONE_CENTROIDS[zid]; if(!c) continue; x0 = Math.min(x0, c.x); y0 = Math.min(y0, c.y); x1 = Math.max(x1, c.x); y1 = Math.max(y1, c.y); }
+  if(x1 <= x0){ x0 = 0; y0 = 0; x1 = 2048; y1 = 2048; PAD = 0; }
+  x0 = Math.max(0, x0 - PAD); y0 = Math.max(0, y0 - PAD); x1 = Math.min(2048, x1 + PAD); y1 = Math.min(2048, y1 + PAD);
+  var K = MK_FRAME/Math.max(x1 - x0, y1 - y0), W = Math.round((x1 - x0)*K), H = Math.round((y1 - y0)*K);
+  var sv = {s: view.scale, x: view.panX, y: view.panY, w: cv.width, h: cv.height}, url = null;
   try{
-    cv.width = W; cv.height = H; view.scale = K; view.panX = W/2 - cx*K; view.panY = H/2 - cy*K;
+    cv.width = W; cv.height = H; view.scale = K; view.panX = -x0*K; view.panY = -y0*K;
     draw();
-    ctx.save(); ctx.font = "600 14px 'IBM Plex Sans', system-ui, sans-serif"; ctx.textAlign = "center";
+    ctx.save(); ctx.font = "600 13px 'IBM Plex Sans', system-ui, sans-serif"; ctx.textAlign = "center";
     var seen = {};
     ZONEMAP.zones.forEach(function(z){ var p = ZONE_CENTROIDS[z.id]; if(!p) return;
-      var sx = p.x*K + view.panX, sy = p.y*K + view.panY; if(sx < 40 || sx > W-40 || sy < 18 || sy > H-12) return;
+      var sx = p.x*K + view.panX, sy = p.y*K + view.panY;
       var nm = mkPlace(p.x, p.y); if(!nm || nm === "?" || seen[nm]) return; seen[nm] = 1;
-      ctx.lineWidth = 4; ctx.strokeStyle = "rgba(0,0,0,0.75)"; ctx.strokeText(nm, sx, sy); ctx.fillStyle = "#f3efe4"; ctx.fillText(nm, sx, sy); });
-    if(b){ ctx.setLineDash([7, 5]); ctx.lineWidth = 3; ctx.strokeStyle = "#ff5a4f"; ctx.beginPath(); ctx.arc(W/2, H/2, 26, 0, Math.PI*2); ctx.stroke(); }
+      ctx.lineWidth = 3; ctx.strokeStyle = "rgba(0,0,0,0.75)"; ctx.strokeText(nm, sx, sy); ctx.fillStyle = "#f3efe4"; ctx.fillText(nm, sx, sy); });
+    if(b){ ctx.setLineDash([6, 4]); ctx.lineWidth = 3; ctx.strokeStyle = "#ff5a4f"; ctx.beginPath(); ctx.arc(b.x*K + view.panX, b.y*K + view.panY, 20, 0, Math.PI*2); ctx.stroke(); }
     ctx.restore();
     url = cv.toDataURL("image/jpeg", 0.86);
   } finally {
@@ -30995,16 +31001,25 @@ function mkUrlToBlob(url){ var p = url.split(","), bin = atob(p[1]), u = new Uin
 function mkEl(id){ return document.getElementById(id); }
 function mkEsc(t){ return String(t == null ? "" : t).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c]; }); }
 function mkToast(t){ var el = mkEl("mkToast"); el.textContent = t; el.style.display = "block"; clearTimeout(MK._tt); MK._tt = setTimeout(function(){ el.style.display = "none"; }, 4000); }
+// (v401) снимок за 15–25 с до отметки — по нему в чате проигрывается история до момента (tools/mark_story.js): что было до, что
+// перебило, как менялись веса зон. Чекпоинты пишутся каждые 10 с (CP_EVERY); MK_PRE_SEC — проектное число (= журнал решений DLOG_SEC)
+var MK_PRE_SEC = 15;
+function mkPreSnap(){
+  var fp = mkFp(), best = null;
+  MK.cps.forEach(function(c){ if(c.fp === fp && c.match === matchNum && c.tick <= tick - MK_PRE_SEC*TICK_HZ && (!best || c.tick > best.tick)) best = c; });
+  if(!best) MK.cps.forEach(function(c){ if(c.fp === fp && c.match === matchNum && c.tick < tick && (!best || c.tick < best.tick)) best = c; });   // раунд только начался — самый ранний
+  return best ? {tick: best.tick, data: best.data} : null;
+}
 function mkStart(){
   if(MK.busy) return;
   if(MK.cur){ mkEl("mkText").focus(); return; }
   paused = true; mkPauseLabel();
   MK.cur = { snap: mkSnapshot(), state: mkState(), match: matchNum, tick: tick, round: roundNum, roundTime: Math.round((simTime - roundStartTime)*10)/10,
-             fp: mkFp(), bot: null, text: "", category: "Взгляд", priority: "normal" };
+             fp: mkFp(), bot: null, text: "", want: "", category: "Взгляд", priority: "normal", pre: mkPreSnap() };
   MK.cur.screenP = mkScreen();   // (v385) весь экран — до того, как открылась панель отметки
   MK.pick = true;
   mkEl("mkMoment").textContent = "Матч " + MK.cur.match + " · раунд " + MK.cur.round + " · " + mkClock(MK.cur.roundTime) + " раунда · тик " + MK.cur.tick;
-  mkEl("mkText").value = ""; mkEl("mkBot").textContent = "не выбран — кликни по боту на радаре (необязательно)";
+  mkEl("mkText").value = ""; mkEl("mkWant").value = ""; mkEl("mkBot").textContent = "не выбран — кликни по боту на радаре (необязательно)";
   mkEl("mkCat").value = "Взгляд"; mkEl("mkPrioN").checked = true;
   mkEl("mkErr").textContent = "";
   mkEl("mkPanel").style.display = "block"; mkEl("mkText").focus();
@@ -31014,7 +31029,7 @@ function mkClose(){ MK.cur = null; MK.pick = false; mkEl("mkPanel").style.displa
 // (v397, М147) отметка сохраняется сразу — без разбора нейросетью на странице; разбор — в чате по снимку (tools/mark_open.js)
 async function mkSubmit(){
   var m = MK.cur; if(!m) return;
-  m.text = mkEl("mkText").value.trim(); m.category = mkEl("mkCat").value; m.priority = mkEl("mkPrioU").checked ? "urgent" : "normal";
+  m.text = mkEl("mkText").value.trim(); m.want = mkEl("mkWant").value.trim(); m.category = mkEl("mkCat").value; m.priority = mkEl("mkPrioU").checked ? "urgent" : "normal";
   if(!m.text){ mkEl("mkErr").textContent = "Напиши, что не так"; return; }
   mkEl("mkErr").textContent = "";
   MK.pick = false;
@@ -31024,7 +31039,7 @@ async function mkSubmit(){
 }
 async function mkSave(m, status){
   var doc = { match: m.match, tick: m.tick, round: m.round, roundTime: m.roundTime, category: m.category, priority: m.priority,
-    text: m.text, bot: m.bot || null, principle: null, status: status, version: null,
+    text: m.text, want: m.want || "", bot: m.bot || null, principle: null, status: status, version: null,
     fp: m.fp, state: m.state, frameAsset: null, created: Date.now(), updated: Date.now() };
   if(MK.assets && m.frameUrl){ try{ var up = await MK.assets.upload(mkUrlToBlob(m.frameUrl)); doc.frameAsset = up.id; }catch(e){} }
   doc.screenAsset = null;   // (v385) весь экран
@@ -31032,6 +31047,8 @@ async function mkSave(m, status){
   // полный снимок игры в момент нажатия — по нему отметка открывается у владельца и у Claude
   doc.snapAsset = null;
   if(MK.assets && m.snap){ try{ var us = await MK.assets.upload(new Blob([mkPack(m.snap)], {type: "application/json"})); doc.snapAsset = us.id; }catch(e){ mkToast("Снимок игры не сохранился: " + (e && (e.code || e.message))); } }
+  doc.preSnapAsset = null; doc.preTick = m.pre ? m.pre.tick : null;   // (v401) снимок до момента — для истории в чате
+  if(MK.assets && m.pre){ try{ var up2 = await MK.assets.upload(new Blob([mkPack(m.pre.data)], {type: "application/json"})); doc.preSnapAsset = up2.id; }catch(e){} }
   if(!MK.db){ MK.local = MK.local || []; doc.id = "local" + doc.created; MK.local.push(doc); mkRenderList(); mkToast("Базы страницы нет (открыто не в Claude) — отметка только до перезагрузки"); return false; }
   try{ await MK.db.collection("marks").doc("m" + doc.created).set(doc); return true; }
   catch(e){ mkToast("Не удалось сохранить отметку: " + (e && (e.code || e.message))); return false; }
@@ -31057,7 +31074,7 @@ function mkRenderList(){
     return '<div class="mk-item' + (d.status === "confirmed" ? " mk-done" : "") + '" data-i="' + i + '">' +
       '<div class="mk-row"><b>' + (d.priority === "urgent" ? '<span class="mk-urg">срочно</span> ' : "") + mkEsc(d.category) + '</b>' +
       '<span class="mk-st mk-st-' + mkEsc(d.status) + '">' + mkEsc(mkStatusText(d)) + '</span></div>' +
-      '<div class="mk-t">' + mkEsc(d.text) + '</div>' +
+      '<div class="mk-t">' + mkEsc(d.text) + '</div>' + (d.want ? '<div class="mk-q">Как должно быть: ' + mkEsc(d.want) + '</div>' : "") +
       (d.understood ? '<div class="mk-q">Понял: ' + mkEsc(d.understood) + '</div>' : "") +
       '<div class="mk-q">матч ' + d.match + ', тик ' + d.tick + ' · раунд ' + d.round + ', ' + mkClock(d.roundTime) + (d.bot ? ' · ' + mkEsc(d.bot) : "") + '</div>' +
       (d.status === "fixed" ? '<button data-ok="' + i + '">Подтверждаю</button>' : "") + '</div>';
@@ -31076,7 +31093,7 @@ function mkJump(d){
 function mkCopyAll(){
   var t = mkSorted().map(function(d){
     return "- " + (d.priority === "urgent" ? "[срочно] " : "") + d.category + " · матч " + d.match + ", тик " + d.tick + " (раунд " + d.round + ", " + mkClock(d.roundTime) + ")" +
-      (d.bot ? " · " + d.bot : "") + " — «" + d.text + "»" + (d.understood ? " — понял: " + d.understood : "") +
+      (d.bot ? " · " + d.bot : "") + " — «" + d.text + "»" + (d.want ? " — как должно быть: «" + d.want + "»" : "") + (d.understood ? " — понял: " + d.understood : "") +
       (d.principle ? " — пункт " + d.principle : (d.newItem ? " — новый пункт (" + d.newItem.section + "): " + d.newItem.text : "")) + " — " + mkStatusText(d);
   }).join("\n");
   var done = function(){ mkToast("Скопировано: " + mkSorted().length + " отметок"); };
@@ -31097,7 +31114,8 @@ function mkShowCopy(t){ var a = mkEl("mkCopyBox"); a.value = t; a.style.display 
       '<div class="mk-head"><b>Отметка момента</b><button id="mkX">✕</button></div>' +
       '<div class="mk-q" id="mkMoment"></div>' +
       '<div id="mkForm">' +
-        '<textarea id="mkText" rows="3" placeholder="Что не так — своими словами (Ctrl+Enter — сохранить)"></textarea>' +
+        '<div class="mk-lbl">Что не так</div><textarea id="mkText" rows="3" placeholder="Что не так — своими словами (Ctrl+Enter — сохранить)"></textarea>' +
+        '<div class="mk-lbl">Как должно быть (можно пусто)</div><textarea id="mkWant" rows="2" placeholder="Как должен был сыграть — своими словами"></textarea>' +
         '<div class="mk-row2"><select id="mkCat">' + MK_CATS.map(function(c){ return '<option>' + c + '</option>'; }).join("") + '</select>' +
         '<label><input type="radio" name="mkPrio" id="mkPrioN" checked> обычно</label><label><input type="radio" name="mkPrio" id="mkPrioU"> срочно</label></div>' +
         '<div class="mk-q">О ком: <span id="mkBot"></span></div>' +
@@ -31117,7 +31135,7 @@ function mkShowCopy(t){ var a = mkEl("mkCopyBox"); a.value = t; a.style.display 
   mkEl("mkX").addEventListener("click", mkClose); mkEl("mkCancel").addEventListener("click", mkClose);
   mkEl("mkGo").addEventListener("click", mkSubmit);
   mkEl("mkText").addEventListener("input", function(){ mkEl("mkErr").textContent = ""; });
-  mkEl("mkText").addEventListener("keydown", function(e){ if(e.key === "Enter" && (e.ctrlKey || e.metaKey)){ e.preventDefault(); mkSubmit(); } });
+  ["mkText", "mkWant"].forEach(function(id){ mkEl(id).addEventListener("keydown", function(e){ if(e.key === "Enter" && (e.ctrlKey || e.metaKey)){ e.preventDefault(); mkSubmit(); } }); });
   mkEl("mkCopy").addEventListener("click", mkCopyAll);
   mkEl("mkItems").addEventListener("click", function(e){
     var L = mkSorted(), ok = e.target.getAttribute && e.target.getAttribute("data-ok");

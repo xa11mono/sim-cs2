@@ -117,7 +117,7 @@ v166 — `docs/V166_CHANGES.md` (список владельца). Главны�
 | табло `scoreboardUpdate`, панели игроков `playersUpdate` | `640_scoreboard_players` |
 | место вставки «Отметить момент» (`@@BUILD@@`) | `650_marks_hook` |
 | разминка `warm*`; автообсервер `obs*`, мини-карта; звук `snd*`, главный цикл `frame`, кнопки | `660_warmup`, `670_observer`, `680_sound_frame_buttons` |
-| **отметки владельца** (v255): `src/marks.js` (кнопка M, снимок, перемотка), сборка — `src/marks_build.py`; открыть снимок — `tools/mark_open.js`; повтор с хранилищем браузера владельца — `tools/replay_owner.js` | отдельные файлы |
+| **отметки владельца** (v255): `src/marks.js` (кнопка M, снимок, перемотка), сборка — `src/marks_build.py`; открыть снимок — `tools/mark_open.js`; разбор по истории (что было до, что перебило, веса зон) — `tools/mark_story.js` (v401); повтор с хранилищем браузера владельца — `tools/replay_owner.js` | отдельные файлы |
 
 Замеры: `tools/measure/measure.py <метка> --matches=3,7,11,13,17,19` работают и с v166. Аудит поведения по механикам
 (цепочки «сигнал → знание → задача → взгляд → действие») — `tools/measure/audit/` (README там же), отчёт —
