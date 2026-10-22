@@ -239,7 +239,7 @@
   <div id="topbar">
     <div class="tb-id">
       <h1>Mirage</h1>
-      <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 407, 22.10</div>
+      <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 408, 22.10</div>
     </div>
     <div class="tb-group" id="tbMatch">
       <button id="btnPause">Пауза</button>
@@ -13881,12 +13881,16 @@ function navClampInto(a, x, y){
 // по демкам)
 var LANE_W = 14;   // ед. карты (≈ 35 ед. игры)
 function botLane(b){ var m = /(\d)$/.exec(b && b.id || ""); return m ? 0.1 + 0.2*(+m[1] % 5) : 0.5; }
-function laneShift(path, lane, x0, y0, z0){
+// (v408, Б5д, владелец 22.10: «идут в точку на спуске, потом расходятся») точка не сдвигалась, если высота от прошлой точки менялась
+// больше чем на 18 — на спуске со спавна T (−215 → −257) полоса не работала ни у кого, все огибали один угол. Теперь не сдвигаются
+// только точки подъёма-прыжка (fixed — середины переходов, через которые путь обязан пройти, см. cuts в buildWaypointPath); пол и стены
+// проверяет navSegOnLevel / crossesWall, как раньше
+function laneShift(path, lane, x0, y0, z0, fixed){
   var d0 = (lane - 0.5)*2*LANE_W; if(!d0 || path.length < 2) return path;
   var out = path.slice(), px = x0, py = y0, pz = z0;
   for(var i = 0; i < out.length - 1; i++){ var P = out[i], N = out[i+1];
     var ax = P[0]-px, ay = P[1]-py, bx = N[0]-P[0], by = N[1]-P[1], la = Math.hypot(ax, ay), lb = Math.hypot(bx, by);
-    if(la < 1 || lb < 1 || (P[2] != null && pz != null && Math.abs(P[2]-pz) > 18)){ px = P[0]; py = P[1]; pz = P[2]; continue; }
+    if(la < 1 || lb < 1 || (fixed || []).some(function(f){ return Math.abs(f.x-P[0]) < 0.5 && Math.abs(f.y-P[1]) < 0.5; })){ px = P[0]; py = P[1]; pz = P[2]; continue; }
     var nx = -(ay/la + by/lb), ny = (ax/la + bx/lb), ln = Math.hypot(nx, ny); if(ln < 0.2){ px = P[0]; py = P[1]; pz = P[2]; continue; }
     nx /= ln; ny /= ln;
     for(var k = 1; k >= 0.5; k -= 0.5){ var qx = P[0] + nx*d0*k, qy = P[1] + ny*d0*k;
@@ -13974,7 +13978,7 @@ function buildWaypointPath(fromX, fromY, fromZ, toX, toY, toZ, team, lane){
     return mids;
   }
   // drop the leading point (== bot's current position, not a real waypoint)
-  return lane != null ? laneShift(path.slice(1), lane, fromX, fromY, fromZ) : path.slice(1);
+  return lane != null ? laneShift(path.slice(1), lane, fromX, fromY, fromZ, cuts.map(function(ci){ return corridor[ci].mid; })) : path.slice(1);
 }
 
 function ccw(ax,ay,bx,by,cx,cy){ return (cy-ay)*(bx-ax) > (cx-ax)*(by-ay); }
@@ -14934,26 +14938,59 @@ function groupPost(members, center, look, tag, o){
 // зоны по порядку, а уже потом идёт на пост, который ему выставит мозг роли
 // (пост запоминается и применяется в конце маршрута). Бой, ретейк, бомба —
 // важнее: маршрут снимается.
+// (v408, Б5д, владелец 22.10: «зачем все идут в точку, а потом расходятся — у ботов мэш, а не граф») шаг маршрута — «пройти через
+// зону», а не «добежать до её центра»: раньше каждое название было одной точкой (zonePoint — центр зоны), шаг считался пройденным
+// ближе 70 к ней, и все на маршруте сходились у одной точки (сгустки в прогоне v406 — в ≈ 70 от центров House, Side Alley, T Apps,
+// T Ramp, Water). Теперь цель шага — место зоны, ближайшее к отрезку «бот → следующая цель» (у каждого своё, по его положению), а шаг
+// пройден, как только бот вошёл в зону
+function routeZones(name, near){
+  var ids = zonesByName(name); if(!ids.length) return null;
+  var best = null, bd = Infinity;
+  ids.forEach(function(id){ var c = BZ.cent[BZ.idx[id]], d = near ? Math.hypot(c.x-near.x, c.y-near.y) : 0; if(d < bd){ bd = d; best = id; } });
+  var z = zoneById(best); return z ? {id:best, ids:ids, poly:z.points, c:BZ.cent[BZ.idx[best]]} : null;
+}
+function routeIn(Z, b){ return Z.ids.indexOf(zoneIdAt3(b.x, b.y, b.z)) >= 0; }   // зона — с этажом (над Underpass — Mid, не Underpass)
+// место зоны Z, ближайшее к отрезку (x0,y0)→(x1,y1): пересекает зону — точка входа; нет — ближайшая точка края; чуть внутрь, на пол
+function routeAim(Z, x0, y0, x1, y1){
+  var P = Z.poly, n = P.length, best = null, bd = Infinity, bt = Infinity;
+  for(var i = 0; i < n; i++){ var A = P[i], B = P[(i+1)%n];
+    if(segIntersect(x0, y0, x1, y1, A.x, A.y, B.x, B.y)){
+      var den = (x1-x0)*(B.y-A.y) - (y1-y0)*(B.x-A.x), t = den ? ((A.x-x0)*(B.y-A.y) - (A.y-y0)*(B.x-A.x))/den : 0;
+      if(t < bt){ bt = t; best = {x: x0 + (x1-x0)*t, y: y0 + (y1-y0)*t}; bd = -1; } continue; }
+    if(bd < 0) continue;
+    for(var k = 0; k <= 8; k++){ var qx = A.x + (B.x-A.x)*k/8, qy = A.y + (B.y-A.y)*k/8;
+      var ex = x1-x0, ey = y1-y0, L2 = ex*ex + ey*ey, u = L2 ? Math.max(0, Math.min(1, ((qx-x0)*ex + (qy-y0)*ey)/L2)) : 0;
+      var d = Math.hypot(qx - (x0 + ex*u), qy - (y0 + ey*u)); if(d < bd){ bd = d; best = {x:qx, y:qy}; } } }
+  if(!best) return walk(Z.c);
+  var cx = Z.c.x - best.x, cy = Z.c.y - best.y, dc = Math.hypot(cx, cy), k2 = dc > 0 ? Math.min(1, 24/dc) : 0;   // 24 ед. внутрь — чтобы точка была в зоне
+  return walk({x: best.x + cx*k2, y: best.y + cy*k2});
+}
+// цель текущего шага — от места бота к следующей зоне маршрута (её центр — только направление) или к цели после маршрута
+function routeSetAim(b, R){
+  var Z = R.zones[R.idx]; if(!Z) return;
+  var nx = R.zones[R.idx+1] ? R.zones[R.idx+1].c : (R.want ? R.want[0] : Z.c);
+  R.pts[R.idx] = routeAim(Z, b.x, b.y, nx.x, nx.y);
+}
 function startRoute(b, names, key){
   if(!names || !names.length) return;
   if(b._route && b._route.key === key) return;
   if(b._routeDone === key+"|"+roundNum) return;
-  var pts = [], prev = {x:b.x, y:b.y};
-  names.forEach(function(n){ var p = zonePoint(n, prev); if(p){ pts.push(p); prev = p; } });
-  if(!pts.length) return;
-  var bi = 0, bd = Infinity;
-  pts.forEach(function(p, i){ var d = Math.hypot(p.x-b.x, p.y-b.y); if(d < bd){ bd = d; bi = i; } });
-  if(bd < 90) bi++;
-  if(bi >= pts.length) return;
-  b._route = {key:key, pts:pts, idx:bi, t0:tick, names:names};
+  var zones = [], prev = {x:b.x, y:b.y};
+  names.forEach(function(n){ var Z = routeZones(n, prev); if(Z){ zones.push(Z); prev = Z.c; } });
+  if(!zones.length) return;
+  // уже в зоне маршрута — следующий шаг после самой дальней по списку, где стоит
+  var bi = 0; zones.forEach(function(Z, i){ if(routeIn(Z, b)) bi = i + 1; });
+  if(bi >= zones.length) return;
+  b._route = {key:key, zones:zones, pts:zones.map(function(Z){ return Z.c; }), idx:bi, t0:tick, names:names};
+  routeSetAim(b, b._route);
 }
 function routeTick(){
   bots.forEach(function(b){
     var R = b._route; if(!R) return;
     if(!b.alive || roundState !== "live" || tick - R.t0 > 35*TICK_HZ){ b._route = null; return; }
-    var cp = R.pts[R.idx];
-    if(cp && Math.hypot(cp.x-b.x, cp.y-b.y) < 70) R.idx++;
-    if(R.idx >= R.pts.length){
+    var Z = R.zones[R.idx];
+    if(Z && routeIn(Z, b)){ R.idx++; routeSetAim(b, R); }
+    if(R.idx >= R.zones.length){
       var W = R.want; b._routeDone = R.key+"|"+roundNum; b._route = null;
       if(b._task && b._task.lv === 2) b._task = null;   // маршрут пройден — его задача кончилась, пост роли ставится сразу
       if(W) setPost(b, W[0], W[1], W[2], W[3], W[4]);
@@ -22036,11 +22073,18 @@ function ctBrain(){
 //    взрыва, CT до взрыва впритык на дефуз — тогда взгляд на контакт, смок на врага (если есть) и дальше к своей задаче.
 // Повтор не чаще раза в CONTACT_GAP с на бота. Числа — проектные. Заменяет частные правки v365–v366 (retakePick, ppCheck).
 var CONTACT_R = 700, CONTACT_AGE = 2.5, CONTACT_HOLD = 2.5, CONTACT_SWING = 220, CONTACT_GAP = 4;
+// (v408, Б5г, владелец 22.10: «игрок 5 стоит на миду и получает contact:hold, потому что 6-й стреляется в Jungle — он должен чекать
+// мид; убили 6-го — тогда помогать») контакт — только своё: видел сам (lastIntel без src), слышал сам; знание команды (видели свои,
+// коллы) — только если враг на его участке (зона, где он стоит или его пост) или свой рядом только что погиб и он идёт менять
+// (_tradeUntil — реакция на смерть тиммейта, 190). Раньше бралась вся память команды в CONTACT_R
 function contactInfo(b){
-  var best = null, bd = CONTACT_R, BL = beliefLast[b.team] || {};
+  var best = null, bd = CONTACT_R, BL = beliefLast[b.team] || {}, myZ = {}, trade = tick < (b._tradeUntil || 0);
+  myZ[zoneIdAt3(b.x, b.y, b.z)] = 1; if(b.post) myZ[zoneIdAt3(b.post.x, b.post.y, b.post.z != null ? b.post.z : b.z)] = 1;
+  var take = function(x, y, seen){ var d = Math.hypot(x-b.x, y-b.y); if(d < bd){ bd = d; best = {x:x, y:y, seen:seen}; } };
+  var li = b.lastIntel; if(li && !li.src && tick - li.tick <= CONTACT_AGE*TICK_HZ) take(li.x, li.y, true);
   for(var id in BL){ var e = BL[id], ob = teamBot(id); if(!ob || !ob.alive || tick - e.tick > CONTACT_AGE*TICK_HZ) continue;
-    var d = Math.hypot(e.x-b.x, e.y-b.y); if(d < bd){ bd = d; best = {x:e.x, y:e.y, seen: e.src === "spotted"}; } }
-  var hs = b.heardSound; if(hs && hs.team && hs.team !== b.team && tick - hs.tick <= CONTACT_AGE*TICK_HZ){ var dh = Math.hypot(hs.x-b.x, hs.y-b.y); if(dh < bd){ bd = dh; best = {x:hs.x, y:hs.y}; } }
+    if(trade || myZ[zoneIdAt3(e.x, e.y, e.z)]) take(e.x, e.y, e.src === "spotted"); }
+  var hs = b.heardSound; if(hs && hs.team && hs.team !== b.team && tick - hs.tick <= CONTACT_AGE*TICK_HZ && (hs.kind !== "call" || trade || myZ[zoneIdAt3(hs.x, hs.y, hs.z)])) take(hs.x, hs.y, false);
   var N = b._lastNade; if(!best && N && N.type === "flash" && tick - N.t >= NADE.flash.fuse - 8 && tick - N.t < NADE.flash.fuse + 40 && Math.hypot(N.x-b.x, N.y-b.y) < CONTACT_R) best = {x:N.x, y:N.y, own:true};
   return best ? {x:best.x, y:best.y, d:bd, seen:!!best.seen, own:!!best.own} : null;
 }
@@ -25677,7 +25721,10 @@ function resolveEngagements(){
       // видел врага" — это ровно то состояние, из которого возможен префайр;
       // без этого "hold" схлопывался бы в patrol в тот же тик, когда контакт
       // на миг теряется, и префайру было бы неоткуда взяться
-      var stillWatching = b.holding && b.lastIntel && (tick - b.lastIntel.tick) < CAUTION_TICKS;
+      // (v408, Б5в, видео владельца 22.10: игрок 9 стоял 2,5 с с новой задачей «трейд» в 80 ед. и построенным путём — «держу» здесь
+      // значит скорость 0 и путь не идёт) задача в другом месте (пост не достигнут) и перестрелка кончилась (_fc снят) — «держу» снимается
+      var taskAway = !b._fc && b.post && !b.atPost && Math.hypot(b.post.x-b.baseX, b.post.y-b.baseY) > 40;
+      var stillWatching = b.holding && !taskAway && b.lastIntel && (tick - b.lastIntel.tick) < CAUTION_TICKS;
       if(!stillWatching && b.state !== "patrol"){ b.state = "patrol"; b.holding = false; b.forcedRetreat = false; }
       return;
     }
