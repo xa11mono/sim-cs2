@@ -239,7 +239,7 @@
   <div id="topbar">
     <div class="tb-id">
       <h1>Ancient</h1>
-      <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 402, 22.10</div>
+      <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 403, 22.10</div>
     </div>
     <div class="tb-group" id="tbMatch">
       <button id="btnPause">Пауза</button>
@@ -3935,6 +3935,15 @@ function funnel(corridor, start, end){
 // through every portal's exact midpoint" zigzag (that's what made movement
 // look like it was snapping between fixed lines) with a proper corridor
 // pull that only turns where the walls actually force a turn.
+// (v403) ближайшая к (x, y) точка внутри участка a: проекция на ближайшее ребро, на 2 ед. карты внутрь (к центру участка)
+function navClampInto(a, x, y){
+  var P = a.points, n = P.length, bx = P[0].x, by = P[0].y, bd = Infinity, cx = 0, cy = 0;
+  for(var i=0;i<n;i++){ var A = P[i], B = P[(i+1)%n], ex = B.x-A.x, ey = B.y-A.y, L2 = ex*ex + ey*ey; cx += A.x; cy += A.y;
+    var t = L2 ? Math.max(0, Math.min(1, ((x-A.x)*ex + (y-A.y)*ey)/L2)) : 0, px = A.x + ex*t, py = A.y + ey*t, d = Math.hypot(px-x, py-y);
+    if(d < bd){ bd = d; bx = px; by = py; } }
+  cx /= n; cy /= n; var dc = Math.hypot(cx-bx, cy-by), k = dc > 0 ? Math.min(1, 2/dc) : 0;
+  return {x: bx + (cx-bx)*k, y: by + (cy-by)*k};
+}
 function buildWaypointPath(fromX, fromY, fromZ, toX, toY, toZ, team){
   // (v341, отметка владельца: karrigan в щели у края нижнего пола — путь начинался с верхней полоски (−140) над ним, туда хода
   // нет, бот уходил с пола и его переносило по кругу) начало пути — пол рядом на высоте бота, а не ближайший центр участка
@@ -3952,6 +3961,11 @@ function buildWaypointPath(fromX, fromY, fromZ, toX, toY, toZ, team){
   var tLvl = toZ ? toZ : (fz ? fz.z : 0);
   var tz = (navAt(toX, toY, tLvl) && Math.abs(navAt(toX, toY, tLvl).z - tLvl) <= JUMP_UP ? navAt(toX, toY, tLvl) : null) || navNearestZ(toX, toY, NAV_GAP_TOL, tLvl) || zoneOf(toX, toY, tLvl);
   if(!fz || !tz) return [[toX,toY,toZ||0]];
+  // (v403, отметка владельца 22.10, Mirage Window: CT0 «застрял в стене») точка поста бывает вне навмеша — в щели между этажами;
+  // путь кончался самой точкой с высотой 0 («не знаю»), лестница принимала 0 за высоту (подъём на −46 рядом) и вставляла в путь
+  // подъём за стеной — бот бежал к нему по прямой в стену. Теперь конец пути — ближайшая точка участка цели и его пол
+  if(!pointInPoly(toX, toY, tz.points)){ var cq = navClampInto(tz, toX, toY); toX = cq.x; toY = cq.y; }
+  if(!toZ) toZ = navFloorZ(tz, toX, toY);
   if(fz.id === tz.id) return [[toX,toY,toZ||0]];
   var route = zoneDijkstra(fz.id, tz.id, team);
   if(!route){ if(!NAV_GRID) navGridBuild();
@@ -12493,12 +12507,72 @@ function navOnFloor(x, y, b, cur){
   var lvl0 = navArea(b._area) ? navArea(b._area).z : b.z;
   if(navNearLevel(x, y, NAV_STEP_TOL, lvl0)) return true;
   cur = cur || navArea(b._area); if(!cur) return false;
-  return !!navFloorNear(x, y, NAV_GAP_TOL, function(a){ return a !== cur && (navLinked(cur, a) || navLinked(a, cur)); });
+  // (v403, отметка владельца 22.10, A Default: «прошёл сквозь укрытия») щель к участку, связанному только обратной связью (с него
+  // можно спрыгнуть сюда), — не шаг туда, если он выше ступеньки: с пола в ящик высотой 70 бот «входил» по связи «спрыгнуть с ящика»
+  return !!navFloorNear(x, y, NAV_GAP_TOL, function(a){ return a !== cur && (navLinked(cur, a) || (navLinked(a, cur) && a.z <= cur.z + 18)); });
 }
+// (v403) высота бота — одно место: после любого движения за тик (шаг пути, бой — fightCycleTick, у угла, пик; stepTick зовёт в конце
+// цикла бота и после шага пути). Раньше — только после шага пути: в бою бот сходил с ящика и шёл на высоте ящика (отметка владельца
+// 22.10, Mirage A Default — «прошёл сквозь два укрытия»), а потом «залезал» на стопку ящиков в +62.
+// Пол под точкой — участок навмеша своей высоты (navAt); в щели между участками (navAt нет) — сначала пол на своей высоте или ниже
+// (navNearestFall: шагнул с края — падает), выше — только если ниже ничего нет (раньше — ближайший по высоте: стопка +62 «ближе»,
+// чем пол −67). Дальше — как было (v323–v353): чужой этаж без связи навмеша — остаётся на своём, прыжок / приземление — звук.
+function navNearestFall(x, y, tol, z){
+  if(!NAV_GRID) navGridBuild();
+  var best = null, bs = -Infinity;
+  for(var r=0; r<=tol; r += Math.max(1, tol/3)){
+    var D = r ? NAV_NEAR_DIRS : [[0,0]];
+    for(var k=0;k<D.length;k++){ var px = x+D[k][0]*r, py = y+D[k][1]*r, L = NAV_GRID[Math.floor(px/NAV_GRID_C)+","+Math.floor(py/NAV_GRID_C)]; if(!L) continue;
+      for(var i=0;i<L.length;i++){ var a = NAVAREAS[L[i]]; if(NAV_BLOCKED[a.id] || !pointInPoly(px, py, a.points)) continue;
+        // счёт: пол на своей высоте или ниже (до ступеньки 18 выше) — чем выше, тем лучше; выше ступеньки — хуже любого нижнего
+        var s = z == null ? 0 : (a.z <= z + 18 ? a.z : -1e6 - (a.z - z)); if(s > bs){ bs = s; best = a; } } }
+    if(best || !tol) break;
+  }
+  return best;
+}
+function navFollowFloor(bot){
+  if(bot._flx === bot.baseX && bot._fly === bot.baseY) return;
+  bot._flx = bot.baseX; bot._fly = bot.baseY;
+  var naz = navAt(bot.baseX, bot.baseY, bot.z) || navNearestFall(bot.baseX, bot.baseY, NAV_STEP_TOL, bot.z);
+  // (v323, М38) в щели своего этажа под точкой бывает только чужой этаж (под Palace — пол Palace): это не подъём —
+  // этаж меняется только по связи навмеша (лестница, ступени, спуск), иначе бот остаётся на своём
+  var a0z = navArea(bot._area);
+  // (v333) пол своего этажа под ногами есть — остаётся на нём (щель в верхнем полу больше не «роняет» вниз — donk под
+  // Palace); своего пола нет — падает на нижний (zont1x с B Apps — раньше «висел» на высоте Apps над сайтом, без звука)
+  // (v353, отметка владельца: NiKo «застревает под Palace, выкидывает на Palace, трясётся») лестница: путь ведёт на другой конец
+  // лестницы (участки связаны лестницей в .nav) — этаж меняется, даже если свой пол под ногами тоже есть (у лестницы оба)
+  // (v359) этаж по лестнице меняет только подъём (ladderTick); здесь лестница — как любой пол другого этажа
+  if(naz && a0z && naz !== a0z && Math.abs(naz.z - a0z.z) > JUMP_UP){
+    var own = navAtLevel(bot.baseX, bot.baseY, a0z.z);
+    if(own) naz = own;
+    // (v403) своего пола под ногами нет: вверх на чужой этаж — только по связи навмеша; вниз — падает всегда (раньше без связи и
+    // без пути вниз оставался «висеть» на высоте ящика / уступа над полом)
+    else if(naz.z > a0z.z && !navLinked2(a0z, naz)) naz = null;   // без связи навмеша и не по пути вниз — остаётся на своём этаже
+  }
+  if(naz){ var dzz = naz.z - (bot.z == null ? naz.z : bot.z);
+    // (v336, владелец: «прыгают на рандом, где не нужно, и палятся») прыжок и приземление — по полу у края (navStepDz),
+    // а не по центрам участков: ступени и пандусы Mirage (Stairs, Palace, рампы) больше не «прыжок» со звуком
+    var djz = (a0z && naz !== a0z) ? navStepDz(a0z, naz, bot.baseX, bot.baseY) : (naz === a0z ? 0 : dzz);
+    if(djz > 18) bot._jump = {t:tick, up:true}; else if(djz < -40) bot._jump = {t:tick, up:false};
+    // (v322, М29) прыжок / приземление слышно и при тихом шаге, далеко (csdb.gg: «громкий звук приземления, слышно
+    // издалека», без числа) — радиус как у бега: проектное число
+    // (v335, владелец: «звук прыжка в одном месте, а он в другом; приземление должно его перебивать») звучит только
+    // приземление — там, где игрок приземлился: спрыгнул вниз — сразу; запрыгнул вверх — через LAND_DELAY с (полёт)
+    if(roundState === "live" && djz < -40) landSound(bot);
+    else if(roundState === "live" && djz > 18) bot._landAt = tick + Math.round(LAND_DELAY*TICK_HZ);
+    // (v333) сменил этаж (спуск, лестница) — путь, построенный с прежнего этажа, пересчитывается с нового
+    if(Math.abs(dzz) > JUMP_UP && bot.path && bot.pathIdx < bot.path.length){ bot.path = []; bot.pathIdx = 0; }
+    bot.z = naz.z; bot._area = naz.id; }
+}
+// (v403) как далеко от пола своего уровня (± JUMP_UP) точка: 0 — на полу, дальше NAV_OFF_R — NAV_OFF_R+1 (шаг 2 ед. карты)
+var NAV_OFF_R = 24;   // проектное число: дальше бот вне пола не бывает (перенос navSnap — через 0,5 с)
+function navFloorDist(x, y, lvl){ for(var r = 0; r <= NAV_OFF_R; r += 2) if(navNearLevel(x, y, r, lvl)) return r; return NAV_OFF_R + 1; }
 function offNavStep(x1, y1, x2, y2, b){
   var lvl0 = navArea(b._area) ? navArea(b._area).z : b.z;
   if(navNearLevel(x2, y2, NAV_STEP_TOL, lvl0)) return false;
-  var a1 = navNearLevel(x1, y1, NAV_STEP_TOL, lvl0); if(!a1) return false;   // уже вне пола — пусть возвращается
+  // уже вне пола — пусть возвращается; (v403, отметка владельца 22.10, A Default: бот, ступивший в щель у ящика, дальше уходил внутрь
+  // ящика — любой шаг вне пола пропускался) — но не дальше от пола своего уровня, чем был
+  var a1 = navNearLevel(x1, y1, NAV_STEP_TOL, lvl0); if(!a1) return navFloorDist(x2, y2, lvl0) > navFloorDist(x1, y1, lvl0);
   var cur = navArea(b._area) || a1;
   if(navOnFloor(x2, y2, b, cur)) return false;
   // (v341, отметка владельца: sh1ro и magixx «снова застряли там же» — спуск со спавна T, −166 → −258) щель спрыгивания бывает
@@ -16915,36 +16989,8 @@ function stepTick(){
         // otherwise the bot "moves" by fractions of a pixel forever instead
         // of ever giving up on a bad straight-line path.
         var actuallyMoved = Math.hypot(bot.baseX-startX, bot.baseY-startY);
-        // (v321) высота бота — по участку навмеша под ним (ближайший по высоте); прыжок / спрыгнул — для показа
-        if(actuallyMoved > 0){ var naz = navAt(bot.baseX, bot.baseY, bot.z) || navNearestZ(bot.baseX, bot.baseY, NAV_STEP_TOL, bot.z);   // (v341) в щели — ближайший пол
-          // (v323, М38) в щели своего этажа под точкой бывает только чужой этаж (под Palace — пол Palace): это не подъём —
-          // этаж меняется только по связи навмеша (лестница, ступени, спуск), иначе бот остаётся на своём
-          var a0z = navArea(bot._area);
-          // (v333) пол своего этажа под ногами есть — остаётся на нём (щель в верхнем полу больше не «роняет» вниз — donk под
-          // Palace); своего пола нет — падает на нижний (zont1x с B Apps — раньше «висел» на высоте Apps над сайтом, без звука)
-          // (v353, отметка владельца: NiKo «застревает под Palace, выкидывает на Palace, трясётся») лестница: путь ведёт на другой конец
-          // лестницы (участки связаны лестницей в .nav) — этаж меняется, даже если свой пол под ногами тоже есть (у лестницы оба)
-          // (v359) этаж по лестнице меняет только подъём (ladderTick); здесь лестница — как любой пол другого этажа
-          if(naz && a0z && naz !== a0z && Math.abs(naz.z - a0z.z) > JUMP_UP){
-            var own = navAtLevel(bot.baseX, bot.baseY, a0z.z);
-            if(own) naz = own;
-            else { var wpz3 = bot.path && bot.path[bot.pathIdx] ? bot.path[bot.pathIdx][2] : null;
-              if(!navLinked2(a0z, naz) && !(naz.z < a0z.z && wpz3 != null && wpz3 < a0z.z - JUMP_UP)) naz = null; }   // без связи навмеша и не по пути вниз — остаётся на своём этаже
-          }
-          if(naz){ var dzz = naz.z - (bot.z == null ? naz.z : bot.z);
-            // (v336, владелец: «прыгают на рандом, где не нужно, и палятся») прыжок и приземление — по полу у края (navStepDz),
-            // а не по центрам участков: ступени и пандусы Mirage (Stairs, Palace, рампы) больше не «прыжок» со звуком
-            var djz = (a0z && naz !== a0z) ? navStepDz(a0z, naz, bot.baseX, bot.baseY) : (naz === a0z ? 0 : dzz);
-            if(djz > 18) bot._jump = {t:tick, up:true}; else if(djz < -40) bot._jump = {t:tick, up:false};
-            // (v322, М29) прыжок / приземление слышно и при тихом шаге, далеко (csdb.gg: «громкий звук приземления, слышно
-            // издалека», без числа) — радиус как у бега: проектное число
-            // (v335, владелец: «звук прыжка в одном месте, а он в другом; приземление должно его перебивать») звучит только
-            // приземление — там, где игрок приземлился: спрыгнул вниз — сразу; запрыгнул вверх — через LAND_DELAY с (полёт)
-            if(roundState === "live" && djz < -40) landSound(bot);
-            else if(roundState === "live" && djz > 18) bot._landAt = tick + Math.round(LAND_DELAY*TICK_HZ);
-            // (v333) сменил этаж (спуск, лестница) — путь, построенный с прежнего этажа, пересчитывается с нового
-            if(Math.abs(dzz) > JUMP_UP && bot.path && bot.pathIdx < bot.path.length){ bot.path = []; bot.pathIdx = 0; }
-            bot.z = naz.z; bot._area = naz.id; } }
+        // (v403) высота бота — одно место navFollowFloor (370): после шага здесь и после любого другого движения за тик (конец цикла)
+        if(actuallyMoved > 0) navFollowFloor(bot);
         // "топчется": каждый тик куда-то сдвигается (веер проб у угла туда-сюда),
         // но за 1.5с никуда не ушёл — раньше это не считалось застреванием
         // (движение в тике было), и бот стоял у угла с кругами шагов
@@ -17075,6 +17121,9 @@ function stepTick(){
       if(!crossesWall(bot.baseX, bot.baseY, cX, cY)){ bot.baseX = cX; bot.baseY = cY; }
     }
     bot._prevOffX = offX; bot._prevOffY = offY;
+    // (v403, отметка владельца 22.10, Mirage A Default: CT4 «прошёл сквозь два укрытия») высота пересчитывалась только после шага
+    // пути: в бою (стрейф, уход за укрытие — fightCycleTick), у угла и после пика бот сходил с ящика и шёл дальше на высоте ящика
+    if(!bot._climb) navFollowFloor(bot);
     bot.x = bot.baseX + offX;
     bot.y = bot.baseY + offY;
   });
@@ -20622,6 +20671,7 @@ var __SNAP = [
 ["NAV_NEAR_DIRS", function(){ return NAV_NEAR_DIRS; }, function(v){ try{ NAV_NEAR_DIRS = v; }catch(e){} }],
 ["NAV_STEP_TOL", function(){ return NAV_STEP_TOL; }, function(v){ try{ NAV_STEP_TOL = v; }catch(e){} }],
 ["NAV_GAP_TOL", function(){ return NAV_GAP_TOL; }, function(v){ try{ NAV_GAP_TOL = v; }catch(e){} }],
+["NAV_OFF_R", function(){ return NAV_OFF_R; }, function(v){ try{ NAV_OFF_R = v; }catch(e){} }],
 ["HGT_TOP", function(){ return HGT_TOP; }, function(v){ try{ HGT_TOP = v; }catch(e){} }],
 ["HGT_BOT", function(){ return HGT_BOT; }, function(v){ try{ HGT_BOT = v; }catch(e){} }],
 ["NAV_UNLINKED", function(){ return NAV_UNLINKED; }, function(v){ try{ NAV_UNLINKED = v; }catch(e){} }],
