@@ -4,7 +4,7 @@
 // per-point transform (applyNavTransform) runs on every drag/wheel tick for
 // live visual feedback; this heavier rebuild (graph + both wall sets) is
 // debounced to run only after the user stops adjusting. ----------
-var NAV_FLOOR_TOL = 24, NAV_RIDGE_W = 6, NAV_RIDGE_SIDE = 4;   // ед. игры / ед. карты — проектные числа (v405)
+var NAV_FLOOR_TOL = 24, NAV_RIDGE_W = 6, NAV_RIDGE_SIDE = 4, NAV_LINK_MIN = 6, NAV_LINK_KNEE = 16, navAutoLinks = 0;   // ед. игры / ед. карты — проектные числа (v405)
 var NAV_BLOCKED = {}, navBlockedCount = 0, navCutPortals = 0, navNarrowPortals = 0;
 // WALL_SOLID_POLYS — см. applyWalls выше
 // (А5) у карты есть 3D-геометрия игры — «в стене» и «шаг сквозь стену» по ней (035_map3d: клетка без этажа и без навмеша);
@@ -176,6 +176,30 @@ function rebuildNav(){
     });
   })();
 
+  // (v406, владелец 22.10: «зачем все идут в одну точку, а не прямо вниз» — спавн T → T Ramp на Mirage) в .nav игры у соседних участков,
+  // между которыми ровный пол, связи бывает нет (край спавна, y 864: вниз — только через угловой участок, все пути шли в угол). С 3D-
+  // геометрией: соседние участки с общим краем ≥ NAV_LINK_MIN, у которых пол на краю на одной высоте (± 18 — ступенька) и проход на
+  // уровне колен (NAV_LINK_KNEE над полом) свободен по геометрии (visLine), — связываются в обе стороны. Числа — проектные
+  navAutoLinks = 0;
+  if(MAP3D){ if(!NAV_GRID) navGridBuild(); var seenL = {};
+    var linkedAB = function(a, b){ return (zoneGraph[a.id]||[]).some(function(e){ return e.to === b.id; }) || (zoneGraph[b.id]||[]).some(function(e){ return e.to === a.id; }); };
+    NAVAREAS.forEach(function(za){ if(NAV_BLOCKED[za.id]) return;
+      var cand = {}, P = za.points;
+      P.forEach(function(p, i){ var q = P[(i+1)%P.length]; [[p.x, p.y], [(p.x+q.x)/2, (p.y+q.y)/2]].forEach(function(s){
+        (NAV_GRID[Math.floor(s[0]/NAV_GRID_C)+","+Math.floor(s[1]/NAV_GRID_C)] || []).forEach(function(k){ cand[NAVAREAS[k].id] = NAVAREAS[k]; }); }); });
+      for(var kid in cand){ var zb = cand[kid]; if(zb === za || NAV_BLOCKED[zb.id]) continue;
+        var key = za.id < zb.id ? za.id+"|"+zb.id : zb.id+"|"+za.id; if(seenL[key]) continue; seenL[key] = 1;
+        if(linkedAB(za, zb)) continue;
+        var pt = computePortal(za, zb); if(!pt) continue;
+        var sg = pt.seg; if(Math.hypot(sg[1].x-sg[0].x, sg[1].y-sg[0].y) < NAV_LINK_MIN) continue;
+        var m = pt.mid, zA = navFloorZ(za, m.x, m.y), zB = navFloorZ(zb, m.x, m.y); if(Math.abs(zA - zB) > 18) continue;
+        var ca = zoneCentroid(za), cb = zoneCentroid(zb), la = Math.max(1, Math.hypot(ca.x-m.x, ca.y-m.y)), lb = Math.max(1, Math.hypot(cb.x-m.x, cb.y-m.y));
+        var ea = Math.min(6, la), eb = Math.min(6, lb), pA = {x: m.x + (ca.x-m.x)/la*ea, y: m.y + (ca.y-m.y)/la*ea}, pB = {x: m.x + (cb.x-m.x)/lb*eb, y: m.y + (cb.y-m.y)/lb*eb};
+        if(!visLine(pA.x, pA.y, zA + NAV_LINK_KNEE, pB.x, pB.y, zB + NAV_LINK_KNEE)) continue;
+        zoneGraph[za.id].push({to:zb.id, mid:m, z:zb.z, left:sg[0], right:sg[1]});
+        zoneGraph[zb.id].push({to:za.id, mid:m, z:za.z, left:sg[1], right:sg[0]});
+        navAutoLinks++; } }); }
+
   // Walls are no longer auto-derived from the navmesh at all — every attempt
   // at that (inset/MIN_KEEP tuning, then chain-stitching) kept trading one
   // failure mode for another (holes vs. chaotic noise vs. stuck-tick
@@ -246,12 +270,14 @@ function navJumpCost(a, edge){
   var dz = navStepDz(a, b, edge.mid.x, edge.mid.y);
   return (edge._jcost = dz > 18 ? NAV_JUMP_COST : dz < -40 ? NAV_DROP_COST : 0);
 }
+var ROUTE_PORTAL = 0;   // (v406) цена перехода между участками сверх длины (было 40 при длине от центров участков): с длиной от точки входа не нужна — спуск со спавна T по рампе (607) короче бордюра (624), а с ценой 8 выбирался бордюр
 var ROUTE_NOISE = 0.25, ROUTE_NOISE_C = 40;   // доля и клетка (ед. карты) — проектные числа (v405)
 function zoneDijkstra(fromId, toId, team){
   if(fromId===toId) return [fromId];
   var side = team === "CT" ? zoneSideMap() : null;
   var dist = {}, prev = {}, visited = {};
   dist[fromId] = 0;
+  var entry = {}; if(zoneDijkstra.from) entry[fromId] = zoneDijkstra.from;
   var heap = makeHeap();
   heap.push(fromId, 0);
   while(heap.size()){
@@ -260,17 +286,20 @@ function zoneDijkstra(fromId, toId, team){
     if(visited[u]) continue;
     visited[u] = true;
     if(u===toId) break;
-    var fromCentroid = zoneCentroid(zonesById[u]);
+    // (v406, владелец 22.10: «зачем все идут в одну точку, а не прямо вниз» — спавн T → T Ramp) длина — от точки, через которую в участок
+    // вошли (середина перехода; у начала — сама точка старта, zoneDijkstra.from), а не от центра участка: по центрам мелко нарезанная
+    // рампа «стоила» дороже бордюра того же пути. Переход между участками — ROUTE_PORTAL (было 40 — проектное число)
+    var fromCentroid = entry[u] || zoneCentroid(zonesById[u]);
     (zoneGraph[u]||[]).forEach(function(edge){
       if(visited[edge.to]) return;
-      var w = dist2(fromCentroid, edge.mid) + 40 + navJumpCost(zonesById[u], edge); // small fixed cost per portal crossing
+      var w = dist2(fromCentroid, edge.mid) + ROUTE_PORTAL + navJumpCost(zonesById[u], edge); // small fixed cost per portal crossing
       if(side && side[edge.to] !== undefined && side[edge.to] < ROUTE_SIDE_LINE) w *= ROUTE_ENEMY_SIDE;   // (v259) CT — по своей стороне
       // (v405) у бота своя полоса — и свой выбор среди почти равных путей: цена перехода × (1 ± ROUTE_NOISE) по клетке ROUTE_NOISE_C
       // вокруг перехода (вся клетка — один множитель: соседние полосы прохода, бордюр и рампа, получают разную цену у разных ботов)
       var nz = zoneDijkstra.noise; if(nz != null) w *= 1 + ROUTE_NOISE*(hashRand(Math.floor(edge.mid.x/ROUTE_NOISE_C)*7919 + Math.floor(edge.mid.y/ROUTE_NOISE_C)*104729 + nz) - 0.5)*2;
       var alt = dist[u] + w;
       if(dist[edge.to]===undefined || alt<dist[edge.to]){
-        dist[edge.to] = alt; prev[edge.to] = u; heap.push(edge.to, alt);
+        dist[edge.to] = alt; prev[edge.to] = u; entry[edge.to] = edge.mid; heap.push(edge.to, alt);
       }
     });
   }
@@ -405,7 +434,7 @@ function buildWaypointPath(fromX, fromY, fromZ, toX, toY, toZ, team, lane){
   if(!pointInPoly(toX, toY, tz.points)){ var cq = navClampInto(tz, toX, toY); toX = cq.x; toY = cq.y; }
   if(!toZ) toZ = navFloorZ(tz, toX, toY);
   if(fz.id === tz.id) return [[toX,toY,toZ||0]];
-  zoneDijkstra.noise = lane != null ? Math.round(lane*1000) + roundNum*13 : null;
+  zoneDijkstra.noise = lane != null ? Math.round(lane*1000) + roundNum*13 : null; zoneDijkstra.from = {x: fromX, y: fromY};
   var route = zoneDijkstra(fz.id, tz.id, team);
   if(!route){ if(!NAV_GRID) navGridBuild();
     var alts = (NAV_GRID[Math.floor(toX/NAV_GRID_C)+","+Math.floor(toY/NAV_GRID_C)]||[]).map(function(i){ return NAVAREAS[i]; })
@@ -416,7 +445,7 @@ function buildWaypointPath(fromX, fromY, fromZ, toX, toY, toZ, team, lane){
   // путь к ближайшему достижимому месту рядом с ней
   if(!route){ zoneDijkstra.nearest = true; route = zoneDijkstra(fz.id, tz.id, team); zoneDijkstra.nearest = false;
     if(route && route[route.length-1] !== tz.id){ var lz = zonesById[route[route.length-1]]; if(lz){ var lc = zoneCentroid(lz); toX = lc.x; toY = lc.y; toZ = lz.z; tz = lz; } } }
-  zoneDijkstra.noise = null;
+  zoneDijkstra.noise = null; zoneDijkstra.from = null;
   if(!route) return [[toX,toY,toZ||0]]; // disconnected zones — direct line fallback rather than a stuck bot
   var corridor = [], cPair = [];   // cPair — участки по обе стороны перехода (v340)
   for(var i=0;i<route.length-1;i++){
