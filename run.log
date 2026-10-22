@@ -1,0 +1,43 @@
+playwright 1.56.0
+> git fetch --quiet origin 90e9b1be98b2730ade17d8c785ec82cd72e3d4b6
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Users\Mono\AppData\Local\Temp\simbuild_rbp08czm FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Users\Mono\AppData\Local\Temp\simbuild_rbp08czm\src\build.py --map ancient C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\g1v399_anc.html
+> git fetch --quiet origin 90e9b1be98b2730ade17d8c785ec82cd72e3d4b6
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Users\Mono\AppData\Local\Temp\simbuild_holy47do FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Users\Mono\AppData\Local\Temp\simbuild_holy47do\src\build.py --map mirage C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\g1v399_mir.html
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\engine\walk_run.py --job=g1v399_anc,C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\g1v399_anc.html --job=g1v399_mir,C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\g1v399_mir.html --matches=3,7,11,13,17,19,23,29,31,37,41,43,47,53,59,61 --par=8
+матчей в очереди: 32, одновременно: 8
+g1v399_anc match 17 rc 0 4798535 — готово 1/32, 4 мин
+g1v399_anc match 7 rc 0 5137014 — готово 2/32, 4 мин
+g1v399_anc match 11 rc 0 5658153 — готово 3/32, 4 мин
+g1v399_anc match 23 rc 0 5793416 — готово 4/32, 5 мин
+g1v399_anc match 29 rc 0 5864339 — готово 5/32, 5 мин
+g1v399_anc match 13 rc 0 6185078 — готово 6/32, 5 мин
+g1v399_anc match 19 rc 0 6605802 — готово 7/32, 5 мин
+g1v399_anc match 3 rc 0 6538490 — готово 8/32, 5 мин
+g1v399_anc match 31 rc 0 5324550 — готово 9/32, 8 мин
+g1v399_anc match 41 rc 0 4936913 — готово 10/32, 8 мин
+g1v399_anc match 47 rc 0 5273410 — готово 11/32, 9 мин
+g1v399_anc match 37 rc 0 6516697 — готово 12/32, 9 мин
+g1v399_anc match 43 rc 0 6502509 — готово 13/32, 10 мин
+g1v399_anc match 59 rc 0 7016481 — готово 14/32, 10 мин
+g1v399_anc match 61 rc 0 8136615 — готово 15/32, 11 мин
+g1v399_anc match 53 rc 0 8575039 — готово 16/32, 11 мин
+g1v399_mir match 7 rc 0 5886427 — готово 17/32, 13 мин
+g1v399_mir match 3 rc 0 6584069 — готово 18/32, 14 мин
+g1v399_mir match 19 rc 0 4561209 — готово 19/32, 14 мин
+g1v399_mir match 13 rc 0 6041872 — готово 20/32, 15 мин
+g1v399_mir match 17 rc 0 6149924 — готово 21/32, 15 мин
+g1v399_mir match 11 rc 0 7271426 — готово 22/32, 15 мин
+g1v399_mir match 23 rc 0 5922772 — готово 23/32, 17 мин
+g1v399_mir match 29 rc 0 6205717 — готово 24/32, 17 мин
+g1v399_mir match 31 rc 0 5590332 — готово 25/32, 19 мин
+g1v399_mir match 43 rc 0 4292984 — готово 26/32, 19 мин
+g1v399_mir match 41 rc 0 5244938 — готово 27/32, 19 мин
+g1v399_mir match 37 rc 0 6271357 — готово 28/32, 20 мин
+g1v399_mir match 53 rc 0 5769385 — готово 29/32, 20 мин
+g1v399_mir match 47 rc 0 8613774 — готово 30/32, 22 мин
+g1v399_mir match 61 rc 0 7062649 — готово 31/32, 23 мин
+g1v399_mir match 59 rc 0 8689477 — готово 32/32, 23 мин
+done
+all done
