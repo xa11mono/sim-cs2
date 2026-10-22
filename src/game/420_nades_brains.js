@@ -1,8 +1,13 @@
-function nadeUsePick(b, pts, R){
-  var I = nadeLaneIdx(), L = I.L, best = null, bd = Infinity;
+// (v399б, Г1 «кидать ли») цель — та, у которой есть место броска про рядом с бойцом, иначе ближайшая в пределах броска. Долетит ли —
+// решает физика в assignNade (В5: отсюда или с точки рядом, nadeThrowSpot). Удалён прямой фильтр «нет стены по прямой» (crossesWall,
+// правило «сквозь стену» из плана В3 на удаление): ветка «по инфе» берёт врагов, которых не видно, — то есть за стеной, и фильтр
+// отрезал почти все её цели; у ботов в фулл-бай задач на гранату было в 2–3 раза меньше, чем гранат на руках (база v398)
+function nadeUsePick(b, pts){
+  var best = null, bd = Infinity;
   pts.forEach(function(p){
-    nadeLaneFroms(p.x, p.y).forEach(function(q){ var dF = Math.hypot(q.x-b.x, q.y-b.y); if(dF <= NADE_LANE_FROM && dF < bd){ bd = dF; best = {x:p.x, y:p.y}; } });
-    if(!best && Math.hypot(p.x-b.x, p.y-b.y) <= NADE_THROW_RANGE && !crossesWall(b.x, b.y, p.x, p.y)) best = {x:p.x, y:p.y}; });
+    nadeLaneFroms(p.x, p.y).forEach(function(q){ var dF = Math.hypot(q.x-b.x, q.y-b.y); if(dF <= NADE_LANE_FROM && dF < bd){ bd = dF; best = {x:p.x, y:p.y}; } }); });
+  if(best) return best;
+  pts.forEach(function(p){ var d = Math.hypot(p.x-b.x, p.y-b.y); if(d <= NADE_THROW_RANGE && d < bd){ bd = d; best = {x:p.x, y:p.y}; } });
   return best;
 }
 function nadeUseTick(b){
