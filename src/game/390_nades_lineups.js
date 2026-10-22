@@ -152,10 +152,10 @@ function lineupTick(){
         nadeFlags[key] = true; nadeFlags["luok"+L.id] = true;
         if(!solo.nadeTask){
           var sP = Math.max(7, Math.ceil(pathLenTo(solo, L.from.x, L.from.y)/SPEED + LU_REACH_PAD));
-          var A1 = luAssign(L, solo); solo.nadeTask = {type:L.type, x:A1.x, y:A1.y, from:A1.from, rec:A1.rec, until: tick + sP*TICK_HZ, why:"лайнап «"+(L.name||LU_TYPE[L.type])+"»", start:tick, lob:true, range:4000, now:true, lineup:true, exec:L.type === "smoke"};
+          solo.nadeTask = {type:L.type, x:L.to.x, y:L.to.y, from:{x:L.from.x, y:L.from.y}, until: tick + sP*TICK_HZ, why:"лайнап «"+(L.name||LU_TYPE[L.type])+"»", start:tick, lob:true, range:4000, now:true, lineup:true, exec:L.type === "smoke"};
           logEvent(solo.id+": раскид — идёт на «"+(L.name||LU_TYPE[L.type])+"»");
         } else {
-          var A2 = luAssign(L, solo); (solo.nadeQueue = solo.nadeQueue || []).push({type:L.type, x:A2.x, y:A2.y, from:A2.from, rec:A2.rec, why:"лайнап «"+(L.name||LU_TYPE[L.type])+"»", lineup:true, exec:true});
+          (solo.nadeQueue = solo.nadeQueue || []).push({type:L.type, x:L.to.x, y:L.to.y, from:{x:L.from.x, y:L.from.y}, why:"лайнап «"+(L.name||LU_TYPE[L.type])+"»", lineup:true, exec:true});
           logEvent(solo.id+": раскид — следом «"+(L.name||LU_TYPE[L.type])+"»");
         }
         return;
@@ -169,7 +169,7 @@ function lineupTick(){
         .sort(function(a, b2){ return (utilRole(a) ? 0 : 400) + cost(a) - (utilRole(b2) ? 0 : 400) - cost(b2); })[0];
       if(qb){
         nadeFlags[key] = true; nadeFlags["luok"+L.id] = true;
-        var A3 = luAssign(L, qb); (qb.nadeQueue = qb.nadeQueue || []).push({type:L.type, x:A3.x, y:A3.y, from:A3.from, rec:A3.rec, why:"лайнап «"+(L.name||LU_TYPE[L.type])+"»", lineup:true, exec:true});
+        (qb.nadeQueue = qb.nadeQueue || []).push({type:L.type, x:L.to.x, y:L.to.y, from:{x:L.from.x, y:L.from.y}, why:"лайнап «"+(L.name||LU_TYPE[L.type])+"»", lineup:true, exec:true});
         logEvent(qb.id+": следом кинет «"+(L.name||LU_TYPE[L.type])+"»");
         return;
       }
@@ -196,18 +196,10 @@ function lineupTick(){
     var luBase = hot ? ((BAL.nadeReach && L.trigger === "timed") ? 12 : 7) : 20, luP = buildWaypointPath(cand.baseX, cand.baseY, cand.z, L.from.x, L.from.y, 0), luLen = 0, luX = cand.baseX, luY = cand.baseY;
     luP.forEach(function(q){ luLen += Math.hypot(q[0]-luX, q[1]-luY); luX = q[0]; luY = q[1]; });
     var luSec = Math.max(luBase, Math.ceil(luLen/(SPEED*weaponSpeedMul(cand)) + LU_REACH_PAD));
-    var A4 = luAssign(L, cand);
-    cand.nadeTask = {type:L.type, x:A4.x, y:A4.y, from:A4.from, rec:A4.rec, until: tick + luSec*TICK_HZ, why:"лайнап «"+(L.name||LU_TYPE[L.type])+"»",
+    cand.nadeTask = {type:L.type, x:L.to.x, y:L.to.y, from:{x:L.from.x, y:L.from.y}, until: tick + luSec*TICK_HZ, why:"лайнап «"+(L.name||LU_TYPE[L.type])+"»",
                      start:tick, lob:true, range:4000, now:true, lineup:true, exec:execT && L.type === "smoke"};
     logEvent(cand.id+": идёт на лайнап «"+(L.name||LU_TYPE[L.type])+"»");
   });
 }
 var LU_REACH_PAD = 3;
-// (В4) куда и откуда кидает этот боец: лайнап с записанными бросками про — записанный бросок (nadeRecPick, 380): место — начало
-// разбега, цель — разрыв этого броска у про; без записи (у про это бросок «на глаз», не лайнап) — как раньше: точка набора, бросок
-// подбирает физика (своя граната, nadeSolve) — до В5
-function luAssign(L, b){
-  var R = nadeRecPick(L, b, roundNum*7919 + matchNum*104729 + tick*13 + b.id.charCodeAt(b.id.length-1));
-  return R ? {x: R.det.x, y: R.det.y, from: {x: R.start.x, y: R.start.y}, rec: R} : {x: L.to.x, y: L.to.y, from: {x: L.from.x, y: L.from.y}, rec: null};
-}
 var CLR_REB_SEC = 12, EXEC_REACH = 1000, EXEC_QUEUE_R = 600, EXEC_QUEUE_N = 3, EXEC_WAIT_SEC = 20;   // (v355) проектные числа

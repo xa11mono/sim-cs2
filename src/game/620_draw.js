@@ -335,7 +335,7 @@ function draw(){
     g.addColorStop(0, "rgba(212,215,207,"+(0.88*fade)+")");
     g.addColorStop(0.7, "rgba(194,198,189,"+(0.76*fade)+")");
     g.addColorStop(1, "rgba(172,177,167,"+(0.46*fade)+")");
-    ctx.save(); areaPath(sm, rr + 0.5); ctx.clip();   // (М150) дым — полный круг
+    ctx.save(); areaPath(sm, rr + 0.5); ctx.clip();   // (v323, М36) дым не за стеной — рисуется ровно там, где закрывает
     ctx.fillStyle = g; ctx.beginPath(); ctx.arc(sm.x, sm.y, rr, 0, Math.PI*2); ctx.fill();
     // клубы внутри радиуса — медленный дрейф, без пульса
     for(var q=0;q<6;q++){
@@ -360,7 +360,7 @@ function draw(){
   });
   fires.forEach(function(fr){
     var R = NADE.molly.radius, life = fr.until - tick, fade = Math.min(1, life/40), age = tick - fr.born, r0 = fireRadiusNow(fr);
-    ctx.save(); areaPath(fr, r0 + 0.5); ctx.clip();   // (М150) огонь — полный круг
+    ctx.save(); areaPath(fr, r0 + 0.5); ctx.clip();   // (v323) рисуется только там, где жжёт (стены режут)
     var seed = fr.born*0.53 + fr.x*0.011 + fr.y*0.017;
     var fg = ctx.createRadialGradient(fr.x, fr.y, 0, fr.x, fr.y, r0);
     fg.addColorStop(0, "rgba(255,196,92,"+(0.72*fade)+")");
@@ -390,31 +390,30 @@ function draw(){
     ctx.fill(); ctx.stroke();
     if(type === "he"){ ctx.fillStyle = "rgba(40,10,8,0.9)"; ctx.beginPath(); ctx.arc(x, y, r*0.38, 0, Math.PI*2); ctx.fill(); }
   };
-  var NADE_LIFT_MAX = 30;   // px радара — выше граната на рисунке не поднимается (проектное число, только вид)
   var nadeRGB = function(t){ return t === "smoke" ? "214,217,209" : t === "flash" ? "255,255,255" : t === "he" ? "232,88,76" : "255,154,60"; };
   nadesInAir.forEach(function(n){
     var rgb = nadeRGB(n.type);
-    // (В3) граната летит по физике: тень — на земле под ней, сама — выше на свою высоту над полом (×0,5 к масштабу радара),
-    // за ней — след дуги; крестик — где разорвётся по расчёту
-    // (21.10, владелец: «что с траекторией» — след скакал зигзагом над стенами и крышами) высота — от плавной линии «пол в месте
-    // броска → пол в месте разрыва», а не от пола под каждой точкой: над крышей / уступом пол под гранатой резко менялся
-    if(n._zf0 == null){ n._zf0 = visFloorAt(n.ox, n.oy); n._zf1 = n.tx != null ? visFloorAt(n.tx, n.ty) : n._zf0; }
-    var dOT = n.tx != null ? Math.hypot(n.tx-n.ox, n.ty-n.oy) : 0;
-    var lift = function(x, y, z){ var k = dOT > 1 ? Math.min(1, Math.hypot(x-n.ox, y-n.oy)/dOT) : 0;
-      var h = Math.max(0, z - (n._zf0 + (n._zf1 - n._zf0)*k)) * 0.2;   // ед. игры → px радара (÷2,5, ×0,5)
-      return NADE_LIFT_MAX * Math.tanh(h / NADE_LIFT_MAX); };   // смоки с T-спавна идут на ~1300 ед. — высота на рисунке плавно до предела
-    if(n.trail.length){
-      ctx.strokeStyle = "rgba("+rgb+",0.45)"; ctx.lineWidth = 1/S0; ctx.setLineDash([2/S0, 4/S0]); ctx.beginPath();
-      n.trail.forEach(function(p, k){ var yy = p[1] - (p[2] != null ? lift(p[0], p[1], p[2]) : 0); if(k === 0) ctx.moveTo(p[0], yy); else ctx.lineTo(p[0], yy); });
-      ctx.lineTo(n.x, n.y - lift(n.x, n.y, n.z)); ctx.stroke(); ctx.setLineDash([]);
-    }
-    if(n.tx != null){
+    if(n.lob){
+      // навес: дуга полёта до места падения, тень на земле, граната выше в середине дуги
+      var fk2 = Math.min(1, (tick - n.born)/n.flight), hgt = Math.sin(Math.PI*fk2), lift = 26/S0;
+      var mx = (n.x + n.tx)/2, my = (n.y + n.ty)/2 - lift*(1 - fk2);
+      ctx.strokeStyle = "rgba("+rgb+",0.45)"; ctx.lineWidth = 1/S0; ctx.setLineDash([2/S0, 4/S0]);
+      ctx.beginPath(); ctx.moveTo(n.x, n.y - hgt*22/S0); ctx.quadraticCurveTo(mx, my, n.tx, n.ty); ctx.stroke(); ctx.setLineDash([]);
+      // где упадёт
       ctx.strokeStyle = "rgba("+rgb+",0.6)"; ctx.lineWidth = 1.1/S0;
       ctx.beginPath(); ctx.arc(n.tx, n.ty, 5/S0, 0, Math.PI*2); ctx.moveTo(n.tx-8/S0, n.ty); ctx.lineTo(n.tx-3/S0, n.ty); ctx.moveTo(n.tx+3/S0, n.ty); ctx.lineTo(n.tx+8/S0, n.ty); ctx.stroke();
+      ctx.fillStyle = "rgba(0,0,0,0.38)"; ctx.beginPath(); ctx.ellipse(n.x, n.y, 3.2/S0, 2/S0, 0, 0, Math.PI*2); ctx.fill();
+      nadeIcon(n.type, n.x, n.y - hgt*22/S0, 4.2 + 2.6*hgt);
+      return;
     }
-    var up = lift(n.x, n.y, n.z);
-    ctx.fillStyle = "rgba(0,0,0,0.38)"; ctx.beginPath(); ctx.ellipse(n.x, n.y, 3.2/S0, 2/S0, 0, 0, Math.PI*2); ctx.fill();
-    nadeIcon(n.type, n.x, n.y - up, 4.2 + Math.min(2.6, up/20));
+    // брошена прямо: след гаснет к началу
+    if(n.trail.length){
+      var p0 = n.trail[0], tg = ctx.createLinearGradient(p0[0], p0[1], n.x, n.y);
+      tg.addColorStop(0, "rgba("+rgb+",0)"); tg.addColorStop(1, "rgba("+rgb+",0.6)");
+      ctx.strokeStyle = tg; ctx.lineWidth = 1.4/S0;
+      ctx.beginPath(); n.trail.forEach(function(p,i){ if(i===0) ctx.moveTo(p[0],p[1]); else ctx.lineTo(p[0],p[1]); }); ctx.lineTo(n.x,n.y); ctx.stroke();
+    }
+    nadeIcon(n.type, n.x, n.y, 4.4);
   });
   nadeFx.forEach(function(fx){
     var age = tick - fx.born;

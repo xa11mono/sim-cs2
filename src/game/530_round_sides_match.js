@@ -52,7 +52,6 @@ function swapSides(){
 // Кэши чистим целиком: часть ключей содержит tick, и после сброса tick старые
 // записи прошлого матча подставлялись бы в новый.
 function freshMatch(n, keepProfile){
-  NADE_LEARN = {};   // (В5) выученные места бросков — заново в каждом матче (freshMatch(N) воспроизводим)
   if(typeof WARM !== "undefined" && WARM.on){ WARM = {on:false}; var wsk0 = typeof document !== "undefined" && document.getElementById("btnWarmSkip"); if(wsk0) wsk0.style.display = "none"; }   // (v306) новый матч / перемотка — разминка кончилась
   paused = true;
   tick = 0; simTime = 0; roundStartTick = 0;

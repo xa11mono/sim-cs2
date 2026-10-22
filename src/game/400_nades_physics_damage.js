@@ -1,16 +1,11 @@
 // ---------- физика полёта и срабатывание ----------
-// (В3) смок / молотов лёг на крышу — высоко над полом, куда можно дойти (выше NADE_ROOF_DZ над самым высоким таким полом под
-// ним): разрыв виден и слышен, но дым / огонь не действуют на тех, кто под крышей (как раньше «упала на крышу»). На ящике, карнизе
-// пониже — действует. Флешка и HE рвутся где угодно (в воздухе тоже) — действуют всегда
-var NADE_ROOF_DZ = 120;   // ед. игры — проектное число (ящик ≈ 64, этаж ≈ 128 и выше)
-function nadeOnRoof(x, y, z){
-  var M = m3(); if(!M) return false;
-  var top = -Infinity;
-  for(var dj = -1; dj <= 1; dj++) for(var di = -1; di <= 1; di++){
-    var f = m3Floors(M, x + di*M.cell, y + dj*M.cell);
-    for(var q = 0; q < f.length; q++) if(f[q] <= z + 16 && f[q] > top) top = f[q];
+function nadeWallHit(x1,y1,x2,y2){
+  if(MAP3D) return m3SolidHit(x1, y1, x2, y2);   // (А5) край твёрдой клетки геометрии (временно — до полёта по физике, шаг В3)
+  for(var i=0;i<MANUAL_WALLS.length;i++){
+    var s = MANUAL_WALLS[i];
+    if(segIntersect(x1,y1,x2,y2,s[0],s[1],s[2],s[3])) return s;
   }
-  return top === -Infinity || z - top > NADE_ROOF_DZ;
+  return null;
 }
 // (v321, М20, отметка владельца) откуда прилетела граната: кто из врагов видел её в полёте (линия до точки следа) или
 // разрыв рядом — понимает примерно, откуда кинули (как в игре: по дуге видно направление и расстояние). Точка броска с
@@ -35,12 +30,12 @@ function detonate(n){
   if(T !== "decoy") nadeOrigin(n);
   // (11) гранаты видно/слышно: где разорвалась граната врага — это инфа о его плане
   if(BAL.tacRead && roundState === "live" && T !== "decoy"){ var foeT = n.team === "T" ? "CT" : "T"; var NS = teamIntel[foeT].nadeSeen || (teamIntel[foeT].nadeSeen = []); NS.push({x:n.x, y:n.y, type:T, tick:tick}); if(NS.length > 30) NS.shift(); }
-  if(T === "smoke"){ smokes.push({x:n.x, y:n.y, born:tick, until:tick+NADE.smoke.life, team:n.team}); if(BAL.smokeReact) smokeShiftOnDetonate(smokes[smokes.length-1]); }
+  if(T === "smoke"){ smokes.push({x:n.x, y:n.y, born:tick, until:tick+NADE.smoke.life, team:n.team, rays:areaRays(n.x, n.y)}); if(BAL.smokeReact) smokeShiftOnDetonate(smokes[smokes.length-1]); }
   else if(T === "molly"){
     // молотов, упавший в дым или рядом так, что огонь касается дыма, гаснет (как в CS2 — наоборот тоже: дым тушит огонь;
     // v321, М12: «чуть касается смока — тушится»)
     if(!smokes.some(function(s){ return Math.hypot(s.x-n.x, s.y-n.y) < smokeRadiusNow(s) + NADE.molly.radius*MOLLY_SMOKE_TOUCH; }))
-      fires.push({x:n.x, y:n.y, born:tick, until:tick+NADE.molly.life, team:n.team, thrower:n.thrower});
+      fires.push({x:n.x, y:n.y, born:tick, until:tick+NADE.molly.life, team:n.team, thrower:n.thrower, rays:areaRays(n.x, n.y)});
   }
   else if(T === "flash"){
     if(n.why === "под пик") nadeFlags.peekFlashPop = tick;
@@ -83,8 +78,7 @@ function detonate(n){
     });
     bots.forEach(function(b){
       if(!b.alive) return;   // (v263, Б1) HE ранит и своих, и бросившего — множитель в applyDamage
-      // (В3) HE рвётся и в воздухе: расстояние — с высотой (ед. игры → px радара ÷ 2,5; тело — 36 над полом)
-      var d = Math.hypot(b.x-n.x, b.y-n.y, n.z != null && b.z != null ? (n.z - b.z - 36) / 2.5 : 0);
+      var d = Math.hypot(b.x-n.x, b.y-n.y);
       if(d > NADE.he.radius || !hasLOS(n.x, n.y, b.x, b.y, null, b.z)) return;
       var dmg = NADE.he.dmg * (1 - d/NADE.he.radius);
       applyDamage(n.thrower, b, dmg, "HE", {armorRatio: b.armor ? NADE.he.armorK : null});
@@ -157,36 +151,50 @@ function flashSeen(b, n){
   }
   return false;
 }
-// ЗАПЛАТКА (В4, решение владельца 21.10.2026, вариант «а»): смок-лайнап (записанный бросок про, 380: nadeRecRelease) летит по физике,
-// а последние SMOKE_PIN_LEAD с «доводится» в точку разрыва про и рвётся во время про. Причина: физика повторяет лайнапы смоков
-// только в 24–25 % (В2б, NADES.md: полёт смока по ступеням и краям неустойчив — 0,1° наклона уводит разрыв дальше 32 ед. у 11–19 %
-// лайнапов), а у про один лайнап рвётся в одной точке. Снять, когда физика смоков будет повторять лайнапы в ≥ 60–70 % (проверка —
-// tools/nades/lineups_fit.js). Свои смоки (не лайнапы) заплатка не трогает: у них нет pin
-function smokePinStep(n, nTr){
-  var P = n.pin, el = (tick - n.born) / TICK_HZ;
-  if(el < P.t - SMOKE_PIN_LEAD && !P.q){ var how = nadeStep(n.st, nTr); return how === "stop" ? null : how; }   // лёг раньше про — лежит, ждёт
-  if(!P.q){ P.q = n.st.p.slice(); P.t0 = el; }
-  var k = Math.min(1, (el - P.t0) / Math.max(1/TICK_HZ, P.t - P.t0));
-  n.st.p = [P.q[0] + (P.p[0]-P.q[0])*k, P.q[1] + (P.p[1]-P.q[1])*k, P.q[2] + (P.p[2]-P.q[2])*k];
-  if(k < 1) return null;
-  n.st.how = "stop"; return "stop";
-}
 function nadesTick(){
-  var nTr = nadesInAir.length ? nadeTraceFn() : null;   // луч гранаты (m3NadeTrace); не глобальная var: снимок «Отметить момент» не копирует функции
+  var dt = 1/TICK_HZ;
   for(var i=nadesInAir.length-1;i>=0;i--){
     var n = nadesInAir[i];
-    if(!n.st){ nadesInAir.splice(i,1); continue; }   // граната из снимка до В3 (без физики)
-    // (В3) полёт — физика гранаты (385_nades_flight: nadeStep — тяжесть, стены, крыши, небо, отскоки, запал, качение) по
-    // геометрии игры. Прежние прямой навес, «телепорт» от стены и отскок от стен радара удалены
-    var nb0 = n.st.bounces.length, how = n.pin ? smokePinStep(n, nTr) : nadeStep(n.st, nTr);
-    var R = m3Radar(m3(), n.st.p[0], n.st.p[1]); n.x = R[0]; n.y = R[1]; n.z = n.st.p[2];
-    if(n.st.bounces.length > nb0 && SND && SND.on) sndNade("bounce", n.x, n.y);
-    if(tick % 2 === 0){ n.trail.push([n.x, n.y, n.z]); if(n.trail.length > 30) n.trail.shift(); }
-    if(!how) continue;
-    nadesInAir.splice(i,1);
-    if(how === "lost") continue;
-    if((n.type === "smoke" || n.type === "molly") && nadeOnRoof(n.x, n.y, n.z)){ n.onRoof = true; nadeOrigin(n); nadeFx.push({x:n.x, y:n.y, type:n.type, born:tick, roof:true}); continue; }
-    detonate(n);
+    if(n.lob){
+      var fk = Math.min(1, (tick - n.born)/n.flight);
+      n.x = n.sx + (n.tx-n.sx)*fk; n.y = n.sy + (n.ty-n.sy)*fk;
+      if(tick % 2 === 0){ n.trail.push([n.x, n.y]); if(n.trail.length > 14) n.trail.shift(); }
+      if(fk >= 1){
+        // (v323, М30) упала в стену или разброс унёс её за стену от точки прицела — не взрывается в стене, а отскакивает:
+        // встаёт у стены со стороны полёта и дальше катится как обычная (отскок от стен — ниже)
+        var hitW = insideSolidWall(n.x, n.y) || nadeWallHit(n.aimX, n.aimY, n.x, n.y);
+        // (v323, М33) разброс унёс под крышу — упала на крышу: разрыв виден и слышен, но на тех, кто под ней, не действует
+        if(!hitW && !n.under && nadeCovered(n.x, n.y)){ nadesInAir.splice(i,1); n.onRoof = true; nadeOrigin(n); nadeFx.push({x:n.x, y:n.y, type:n.type, born:tick, roof:true}); continue; }
+        if(!hitW){ nadesInAir.splice(i,1); detonate(n); continue; }
+        var bx = n.aimX, by = n.aimY;
+        if(insideSolidWall(bx, by)){ for(var q = 1; q <= 40; q++){ var f2 = 1 - q/40; bx = n.sx + (n.aimX-n.sx)*f2; by = n.sy + (n.aimY-n.sy)*f2; if(!insideSolidWall(bx, by)) break; } }
+        var ang = Math.atan2(n.y-by, n.x-bx), sp0 = Math.max(60, Math.hypot(n.x-bx, n.y-by)*(1-0.96)*TICK_HZ);
+        n.lob = false; n.x = bx; n.y = by; n.vx = Math.cos(ang)*sp0; n.vy = Math.sin(ang)*sp0;
+        if(n.type === "flash" || n.type === "he") n.born = Math.min(n.born, tick - NADE[n.type].fuse + 8);   // запал уже догорел — рвётся у стены через 8 тиков
+      }
+      continue;
+    }
+    var nx = n.x + n.vx*dt, ny = n.y + n.vy*dt;
+    var w = nadeWallHit(n.x, n.y, nx, ny);
+    if(w){
+      // отскок: отражаем скорость от линии стены, теряем половину энергии
+      var ex = w[2]-w[0], ey = w[3]-w[1], L = Math.hypot(ex,ey)||1; ex/=L; ey/=L;
+      var dot = n.vx*ex + n.vy*ey;
+      var px = n.vx - dot*ex, py = n.vy - dot*ey; // нормальная составляющая
+      n.vx = (dot*ex - px)*0.5; n.vy = (dot*ey - py)*0.5; if(SND && SND.on) sndNade("bounce", n.x, n.y);
+    } else { n.x = nx; n.y = ny; }
+    n.vx *= 0.96; n.vy *= 0.96;
+    if(tick % 2 === 0){ n.trail.push([n.x, n.y]); if(n.trail.length > 14) n.trail.shift(); }
+    var sp = Math.hypot(n.vx, n.vy), age = tick - n.born;
+    var def = NADE[n.type];
+    var boom = (n.type === "smoke" && (sp < 30 || age > def.fuse)) ||
+               (n.type === "molly" && (sp < 70 || age > def.fuse)) ||
+               ((n.type === "flash" || n.type === "he") && age >= def.fuse);
+    if(boom){
+      // (v323, М30) не рвётся внутри стены: последняя точка следа вне стены
+      if(insideSolidWall(n.x, n.y)) for(var q2 = n.trail.length-1; q2 >= 0; q2--){ if(!insideSolidWall(n.trail[q2][0], n.trail[q2][1])){ n.x = n.trail[q2][0]; n.y = n.trail[q2][1]; break; } }
+      nadesInAir.splice(i,1); detonate(n);
+    }
   }
   for(var s=smokes.length-1;s>=0;s--) if(tick >= smokes[s].until) smokes.splice(s,1);
   for(var f=fires.length-1;f>=0;f--){

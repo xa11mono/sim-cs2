@@ -6,8 +6,7 @@
 // в node — tools/map3d/map3d.js (берёт этот файл).
 //   m3()                                  → загруженная геометрия (один раз, при первом вопросе) или null
 //   m3Line(M, ax,ay,az, bx,by,bz, kind)   → true, если линия свободна ('sight' — взгляд и пули, 'nade' — гранаты)
-//   m3Hit(M, …, 'nade')                   → первое попадание {t, nx, ny, nz, mat} или null
-//   m3NadeTrace(M, A, B)                  → луч гранаты в ед. игры — для физики гранаты (385_nades_flight, В3)
+//   m3Hit(M, …, 'nade')                   → первое попадание {t, nx, ny, nz, mat} или null (для отскока гранаты — шаг В)
 //   m3Floors(M, x, y) / m3FloorKinds      → этажи клетки (z по возрастанию; вид: 1 — пешком, 2 — прыжком, 3 — подсадкой)
 //   m3Solid(x, y) / m3SolidHit(…)         → «внутри стены»: в клетке нет ни этажа геометрии, ни участка навмеша
 // Координаты: x, y — радар 0..2048, z — ед. игры.
@@ -279,19 +278,5 @@ function m3SolidHit(ax, ay, bx, by){
   }
   return null;
 }
-// ---------- радар ↔ ед. игры (В3: физика гранаты считает в ед. игры) ----------
-function m3Game(M, x, y){ var k = M.unit / M.cell; return [M.X0 + x * k, M.Y0 - y * k]; }
-function m3Radar(M, X, Y){ var k = M.cell / M.unit; return [(X - M.X0) * k, (M.Y0 - Y) * k]; }
-// ---------- луч гранаты (В3) — trace для физики гранаты (385_nades_flight): всё в ед. игры ----------
-// A, B — [X, Y, Z] игры (Y игры противоположен y радара) → null или {f: доля пути, n: нормаль навстречу, sky: небо}.
-// Геометрия — маска 'nade' (без playerclip, с grenadeclip, без деталей «кроме гранаты»); неба нет (В2б).
-function m3NadeTrace(M, A, B){
-  var k = 1 / (M.unit / M.cell);   // ед. игры → px радара
-  var ax = (A[0] - M.X0) * k, ay = (M.Y0 - A[1]) * k, bx = (B[0] - M.X0) * k, by = (M.Y0 - B[1]) * k;
-  // (В2б) неба для гранаты нет: у Mirage низ неба над T-спауном — 704, а смоки про оттуда идут до ≈ 910 и падают точно (с небом
-  // как потолком — мимо на сотни ед.); у Ancient неба в файле нет вовсе
-  var h = m3Cast(M, ax, ay, A[2], bx, by, B[2], "nade", true);
-  return h ? {f: h.t, n: [h.nx, h.ny, h.nz], sky: false} : null;
-}
 if(typeof module !== "undefined" && module.exports) module.exports = {zInflate: zInflate, m3Load: m3Load, m3Line: m3Line, m3Hit: m3Hit,
-  m3Floors: m3Floors, m3FloorKinds: m3FloorKinds, m3FloorAt: m3FloorAt, m3NadeTrace: m3NadeTrace, m3Cell: m3Cell, m3Game: m3Game, m3Radar: m3Radar};
+  m3Floors: m3Floors, m3FloorKinds: m3FloorKinds, m3FloorAt: m3FloorAt};
