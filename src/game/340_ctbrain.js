@@ -560,7 +560,8 @@ function ctBrain(){
       var midPick = weightedPick(midOpts.length, roundNum*191 + matchNum*433);
       // вперёд — реже; чаще глубже (набор карты: tactics.plays.midHold; Ancient — Jungle/Red Room, вперёд Top Mid/Sniper Nest)
       var MH = MAP.tactics.plays.midHold || {};
-      var mNames = BAL.midSafe && MH.safe ? MH.safe : POS.M.ctHold, mi = weightedPick(mNames.length, roundNum*191 + matchNum*433 + 7);
+      // (v411, Б5з) места мида — и свои места игрока по демкам карты, выбор по доле его времени (posPickName)
+      var mNames = posNamesOwn(b, BAL.midSafe && MH.safe ? MH.safe : POS.M.ctHold), mi = BAL.proPrior && posOwnZones(b.team, nick(b.id)).length ? posPickName(b, mNames, roundNum*191 + matchNum*433 + 7) : weightedPick(mNames.length, roundNum*191 + matchNum*433 + 7);
       // (10) мидер рано умирал в 2 из 3 последних раундов — в этом раунде глубже
       if(BAL.roundMem && MH.care && rmemRecent(RMEM.midDeath, 3).length >= 2){ mNames = MH.care; mi = weightedPick(MH.care.length, roundNum*191 + matchNum*433 + 7);
         if(b._midCareV !== roundNum){ b._midCareV = roundNum; voiceLog("CT", "midcare"+roundNum, b.id, "меня на миде рано снимают — сегодня играю глубже"); } }

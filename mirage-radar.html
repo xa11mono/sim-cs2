@@ -239,7 +239,7 @@
   <div id="topbar">
     <div class="tb-id">
       <h1>Mirage</h1>
-      <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 410, 22.10</div>
+      <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 411, 22.10</div>
     </div>
     <div class="tb-group" id="tbMatch">
       <button id="btnPause">Пауза</button>
@@ -15813,7 +15813,12 @@ function ctSetupRole(b, role, ct){
     if(ea && b._earlySaw !== roundNum && lkpNear("CT", ea.x, ea.y, 600) === 0) markClear("CT", ea.x, ea.y, b.id);
   }
   if(!P.pos) return false;
-  var nm = BAL.proPrior ? P.pos[posPickName(b, P.pos, roundNum*97 + role.length*13 + matchNum)] : P.pos[Math.floor(hashRand(roundNum*97 + role.length*13 + matchNum) * P.pos.length)];
+  // (v411, Б5з) к местам роли из расстановки — свои места игрока по демкам этой карты (доля времени выше средней по его местам), кроме
+  // мест других ролей этой расстановки: у роли «мид» на Mirage в списке Window / Connector / Underpath, а kyousuke в демках — Short 16 %,
+  // B Short, B Plat, Window только 8 %. Демок игрока нет — только места роли, как было. Места других ролей не исключаются: NiKo в
+  // демках у Connector 22 %, а Connector — в списке мида; двое в одной точке не встанут — личное место (pickSpots / spotTaken)
+  var names = early ? P.pos : posNamesOwn(b, P.pos);
+  var nm = BAL.proPrior ? names[posPickName(b, names, roundNum*97 + role.length*13 + matchNum)] : names[Math.floor(hashRand(roundNum*97 + role.length*13 + matchNum) * names.length)];
   var ref = role === "anchorA" ? GEO.A.anchor : role === "anchorB" ? GEO.B.anchor : GEO.ctMid;
   var c = zonePoint(nm, ref); if(!c) return false;
   var lk = (P.look && zonePoint(P.look, c)) || ref;
@@ -20382,12 +20387,33 @@ function posRoundEnd(winner){
 // зависит от того, где стоят тиммейты (posPairLift), а их места — от этого выбора: пересчёт каждый тик давал качели —
 // опорник и ротатор менялись точками каждый тик (матч 3, тик 78346: CT0 и CT3, по 106 смен поста за 1,7 с, оба стояли)
 var PPN = {key: null, v: {}};
+// (v411, Б5з, владелец 22.10: «kyousuke на CT играет мид в Short, Catwalk, а не окно; NiKo часто у Connector») места игрока на этой
+// стороне карты по его демкам: зона → доля его времени там (q.byP — время игрока на позиции). Пусто — демок игрока на карте нет
+function posOwnZones(side, who){
+  var C = POSPREF.own || (POSPREF.own = {}), key = side + "|" + who; if(C[key]) return C[key];
+  var N = 0, by = {};
+  KNOW_POSITIONS.points.forEach(function(q){ if(q.side !== side || !q.byP || !q.byP[who]) return; if(q.zid === undefined) q.zid = zoneIdAt(q.x, q.y) || null;
+    var nm = q.zid ? zoneUserName(q.zid) : null; if(!nm) return; N += q.byP[who]; by[nm] = (by[nm] || 0) + q.byP[who]; });
+  return C[key] = Object.keys(by).map(function(nm){ return {name: nm, share: by[nm]/N}; }).sort(function(a, c){ return c.share - a.share; });
+}
+// места роли + свои места игрока по демкам этой карты (доля времени выше средней по его местам); демок нет — места роли как есть
+function posNamesOwn(b, names){
+  var own = posOwnZones(b.team, nick(b.id)), out = names.slice();
+  own.forEach(function(o){ if(o.share >= 1/own.length && out.indexOf(o.name) < 0 && zonesByName(o.name).length) out.push(o.name); });
+  return out;
+}
 function posPickName(b, names, seed){
   if(!b || (bomb && bomb.state === "planted")) return proPick("CT", names, seed);
   var rk = matchNum + ":" + roundNum; if(PPN.key !== rk || tick < PPN.t){ PPN.key = rk; PPN.v = {}; } PPN.t = tick;   // тик назад — матч начат заново
   var ck = b.id + "|" + seed + "|" + names.join(",");
   if(PPN.v[ck] !== undefined) return PPN.v[ck];
-  var w = names.map(function(nm){ var ids = zonesByName(nm), best = 0;
+  // (v411, Б5з; правило владельца 22.10 «места — по демкам этой карты») есть демки игрока на этой стороне карты — вес места = доля его
+  // времени там (posOwnZones); раньше — самая похожая одна позиция по почерку + оружию (posPref), у всех с винтовкой Window ≈ 1, и kyousuke
+  // стоял в Window 8 раундов из 12 (в демках — 8 % времени). Демок нет — как раньше
+  var own = posOwnZones(b.team, nick(b.id)), ownBy = {}; own.forEach(function(o){ ownBy[normZoneName(o.name)] = o.share; });
+  var w = names.map(function(nm){
+    if(own.length) return BAL.proFloor*0.1 + (ownBy[normZoneName(nm)] || 0);
+    var ids = zonesByName(nm), best = 0;
     KNOW_POSITIONS.points.forEach(function(q){ if(q.side !== b.team) return; if(q.zid === undefined) q.zid = zoneIdAt(q.x, q.y) || null;
       if(q.zid && ids.indexOf(q.zid) >= 0) best = Math.max(best, posPref(b, q)); });
     return BAL.proFloor + best; });
@@ -22009,7 +22035,8 @@ function ctBrain(){
       var midPick = weightedPick(midOpts.length, roundNum*191 + matchNum*433);
       // вперёд — реже; чаще глубже (набор карты: tactics.plays.midHold; Ancient — Jungle/Red Room, вперёд Top Mid/Sniper Nest)
       var MH = MAP.tactics.plays.midHold || {};
-      var mNames = BAL.midSafe && MH.safe ? MH.safe : POS.M.ctHold, mi = weightedPick(mNames.length, roundNum*191 + matchNum*433 + 7);
+      // (v411, Б5з) места мида — и свои места игрока по демкам карты, выбор по доле его времени (posPickName)
+      var mNames = posNamesOwn(b, BAL.midSafe && MH.safe ? MH.safe : POS.M.ctHold), mi = BAL.proPrior && posOwnZones(b.team, nick(b.id)).length ? posPickName(b, mNames, roundNum*191 + matchNum*433 + 7) : weightedPick(mNames.length, roundNum*191 + matchNum*433 + 7);
       // (10) мидер рано умирал в 2 из 3 последних раундов — в этом раунде глубже
       if(BAL.roundMem && MH.care && rmemRecent(RMEM.midDeath, 3).length >= 2){ mNames = MH.care; mi = weightedPick(MH.care.length, roundNum*191 + matchNum*433 + 7);
         if(b._midCareV !== roundNum){ b._midCareV = roundNum; voiceLog("CT", "midcare"+roundNum, b.id, "меня на миде рано снимают — сегодня играю глубже"); } }

@@ -88,12 +88,33 @@ function posRoundEnd(winner){
 // зависит от того, где стоят тиммейты (posPairLift), а их места — от этого выбора: пересчёт каждый тик давал качели —
 // опорник и ротатор менялись точками каждый тик (матч 3, тик 78346: CT0 и CT3, по 106 смен поста за 1,7 с, оба стояли)
 var PPN = {key: null, v: {}};
+// (v411, Б5з, владелец 22.10: «kyousuke на CT играет мид в Short, Catwalk, а не окно; NiKo часто у Connector») места игрока на этой
+// стороне карты по его демкам: зона → доля его времени там (q.byP — время игрока на позиции). Пусто — демок игрока на карте нет
+function posOwnZones(side, who){
+  var C = POSPREF.own || (POSPREF.own = {}), key = side + "|" + who; if(C[key]) return C[key];
+  var N = 0, by = {};
+  KNOW_POSITIONS.points.forEach(function(q){ if(q.side !== side || !q.byP || !q.byP[who]) return; if(q.zid === undefined) q.zid = zoneIdAt(q.x, q.y) || null;
+    var nm = q.zid ? zoneUserName(q.zid) : null; if(!nm) return; N += q.byP[who]; by[nm] = (by[nm] || 0) + q.byP[who]; });
+  return C[key] = Object.keys(by).map(function(nm){ return {name: nm, share: by[nm]/N}; }).sort(function(a, c){ return c.share - a.share; });
+}
+// места роли + свои места игрока по демкам этой карты (доля времени выше средней по его местам); демок нет — места роли как есть
+function posNamesOwn(b, names){
+  var own = posOwnZones(b.team, nick(b.id)), out = names.slice();
+  own.forEach(function(o){ if(o.share >= 1/own.length && out.indexOf(o.name) < 0 && zonesByName(o.name).length) out.push(o.name); });
+  return out;
+}
 function posPickName(b, names, seed){
   if(!b || (bomb && bomb.state === "planted")) return proPick("CT", names, seed);
   var rk = matchNum + ":" + roundNum; if(PPN.key !== rk || tick < PPN.t){ PPN.key = rk; PPN.v = {}; } PPN.t = tick;   // тик назад — матч начат заново
   var ck = b.id + "|" + seed + "|" + names.join(",");
   if(PPN.v[ck] !== undefined) return PPN.v[ck];
-  var w = names.map(function(nm){ var ids = zonesByName(nm), best = 0;
+  // (v411, Б5з; правило владельца 22.10 «места — по демкам этой карты») есть демки игрока на этой стороне карты — вес места = доля его
+  // времени там (posOwnZones); раньше — самая похожая одна позиция по почерку + оружию (posPref), у всех с винтовкой Window ≈ 1, и kyousuke
+  // стоял в Window 8 раундов из 12 (в демках — 8 % времени). Демок нет — как раньше
+  var own = posOwnZones(b.team, nick(b.id)), ownBy = {}; own.forEach(function(o){ ownBy[normZoneName(o.name)] = o.share; });
+  var w = names.map(function(nm){
+    if(own.length) return BAL.proFloor*0.1 + (ownBy[normZoneName(nm)] || 0);
+    var ids = zonesByName(nm), best = 0;
     KNOW_POSITIONS.points.forEach(function(q){ if(q.side !== b.team) return; if(q.zid === undefined) q.zid = zoneIdAt(q.x, q.y) || null;
       if(q.zid && ids.indexOf(q.zid) >= 0) best = Math.max(best, posPref(b, q)); });
     return BAL.proFloor + best; });

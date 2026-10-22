@@ -168,7 +168,12 @@ function ctSetupRole(b, role, ct){
     if(ea && b._earlySaw !== roundNum && lkpNear("CT", ea.x, ea.y, 600) === 0) markClear("CT", ea.x, ea.y, b.id);
   }
   if(!P.pos) return false;
-  var nm = BAL.proPrior ? P.pos[posPickName(b, P.pos, roundNum*97 + role.length*13 + matchNum)] : P.pos[Math.floor(hashRand(roundNum*97 + role.length*13 + matchNum) * P.pos.length)];
+  // (v411, Б5з) к местам роли из расстановки — свои места игрока по демкам этой карты (доля времени выше средней по его местам), кроме
+  // мест других ролей этой расстановки: у роли «мид» на Mirage в списке Window / Connector / Underpath, а kyousuke в демках — Short 16 %,
+  // B Short, B Plat, Window только 8 %. Демок игрока нет — только места роли, как было. Места других ролей не исключаются: NiKo в
+  // демках у Connector 22 %, а Connector — в списке мида; двое в одной точке не встанут — личное место (pickSpots / spotTaken)
+  var names = early ? P.pos : posNamesOwn(b, P.pos);
+  var nm = BAL.proPrior ? names[posPickName(b, names, roundNum*97 + role.length*13 + matchNum)] : names[Math.floor(hashRand(roundNum*97 + role.length*13 + matchNum) * names.length)];
   var ref = role === "anchorA" ? GEO.A.anchor : role === "anchorB" ? GEO.B.anchor : GEO.ctMid;
   var c = zonePoint(nm, ref); if(!c) return false;
   var lk = (P.look && zonePoint(P.look, c)) || ref;
