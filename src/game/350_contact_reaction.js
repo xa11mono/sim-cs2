@@ -12,11 +12,18 @@
 //    взрыва, CT до взрыва впритык на дефуз — тогда взгляд на контакт, смок на врага (если есть) и дальше к своей задаче.
 // Повтор не чаще раза в CONTACT_GAP с на бота. Числа — проектные. Заменяет частные правки v365–v366 (retakePick, ppCheck).
 var CONTACT_R = 700, CONTACT_AGE = 2.5, CONTACT_HOLD = 2.5, CONTACT_SWING = 220, CONTACT_GAP = 4;
+// (v408, Б5г, владелец 22.10: «игрок 5 стоит на миду и получает contact:hold, потому что 6-й стреляется в Jungle — он должен чекать
+// мид; убили 6-го — тогда помогать») контакт — только своё: видел сам (lastIntel без src), слышал сам; знание команды (видели свои,
+// коллы) — только если враг на его участке (зона, где он стоит или его пост) или свой рядом только что погиб и он идёт менять
+// (_tradeUntil — реакция на смерть тиммейта, 190). Раньше бралась вся память команды в CONTACT_R
 function contactInfo(b){
-  var best = null, bd = CONTACT_R, BL = beliefLast[b.team] || {};
+  var best = null, bd = CONTACT_R, BL = beliefLast[b.team] || {}, myZ = {}, trade = tick < (b._tradeUntil || 0);
+  myZ[zoneIdAt3(b.x, b.y, b.z)] = 1; if(b.post) myZ[zoneIdAt3(b.post.x, b.post.y, b.post.z != null ? b.post.z : b.z)] = 1;
+  var take = function(x, y, seen){ var d = Math.hypot(x-b.x, y-b.y); if(d < bd){ bd = d; best = {x:x, y:y, seen:seen}; } };
+  var li = b.lastIntel; if(li && !li.src && tick - li.tick <= CONTACT_AGE*TICK_HZ) take(li.x, li.y, true);
   for(var id in BL){ var e = BL[id], ob = teamBot(id); if(!ob || !ob.alive || tick - e.tick > CONTACT_AGE*TICK_HZ) continue;
-    var d = Math.hypot(e.x-b.x, e.y-b.y); if(d < bd){ bd = d; best = {x:e.x, y:e.y, seen: e.src === "spotted"}; } }
-  var hs = b.heardSound; if(hs && hs.team && hs.team !== b.team && tick - hs.tick <= CONTACT_AGE*TICK_HZ){ var dh = Math.hypot(hs.x-b.x, hs.y-b.y); if(dh < bd){ bd = dh; best = {x:hs.x, y:hs.y}; } }
+    if(trade || myZ[zoneIdAt3(e.x, e.y, e.z)]) take(e.x, e.y, e.src === "spotted"); }
+  var hs = b.heardSound; if(hs && hs.team && hs.team !== b.team && tick - hs.tick <= CONTACT_AGE*TICK_HZ && (hs.kind !== "call" || trade || myZ[zoneIdAt3(hs.x, hs.y, hs.z)])) take(hs.x, hs.y, false);
   var N = b._lastNade; if(!best && N && N.type === "flash" && tick - N.t >= NADE.flash.fuse - 8 && tick - N.t < NADE.flash.fuse + 40 && Math.hypot(N.x-b.x, N.y-b.y) < CONTACT_R) best = {x:N.x, y:N.y, own:true};
   return best ? {x:best.x, y:best.y, d:bd, seen:!!best.seen, own:!!best.own} : null;
 }

@@ -398,12 +398,16 @@ function navClampInto(a, x, y){
 // по демкам)
 var LANE_W = 14;   // ед. карты (≈ 35 ед. игры)
 function botLane(b){ var m = /(\d)$/.exec(b && b.id || ""); return m ? 0.1 + 0.2*(+m[1] % 5) : 0.5; }
-function laneShift(path, lane, x0, y0, z0){
+// (v408, Б5д, владелец 22.10: «идут в точку на спуске, потом расходятся») точка не сдвигалась, если высота от прошлой точки менялась
+// больше чем на 18 — на спуске со спавна T (−215 → −257) полоса не работала ни у кого, все огибали один угол. Теперь не сдвигаются
+// только точки подъёма-прыжка (fixed — середины переходов, через которые путь обязан пройти, см. cuts в buildWaypointPath); пол и стены
+// проверяет navSegOnLevel / crossesWall, как раньше
+function laneShift(path, lane, x0, y0, z0, fixed){
   var d0 = (lane - 0.5)*2*LANE_W; if(!d0 || path.length < 2) return path;
   var out = path.slice(), px = x0, py = y0, pz = z0;
   for(var i = 0; i < out.length - 1; i++){ var P = out[i], N = out[i+1];
     var ax = P[0]-px, ay = P[1]-py, bx = N[0]-P[0], by = N[1]-P[1], la = Math.hypot(ax, ay), lb = Math.hypot(bx, by);
-    if(la < 1 || lb < 1 || (P[2] != null && pz != null && Math.abs(P[2]-pz) > 18)){ px = P[0]; py = P[1]; pz = P[2]; continue; }
+    if(la < 1 || lb < 1 || (fixed || []).some(function(f){ return Math.abs(f.x-P[0]) < 0.5 && Math.abs(f.y-P[1]) < 0.5; })){ px = P[0]; py = P[1]; pz = P[2]; continue; }
     var nx = -(ay/la + by/lb), ny = (ax/la + bx/lb), ln = Math.hypot(nx, ny); if(ln < 0.2){ px = P[0]; py = P[1]; pz = P[2]; continue; }
     nx /= ln; ny /= ln;
     for(var k = 1; k >= 0.5; k -= 0.5){ var qx = P[0] + nx*d0*k, qy = P[1] + ny*d0*k;
@@ -491,7 +495,7 @@ function buildWaypointPath(fromX, fromY, fromZ, toX, toY, toZ, team, lane){
     return mids;
   }
   // drop the leading point (== bot's current position, not a real waypoint)
-  return lane != null ? laneShift(path.slice(1), lane, fromX, fromY, fromZ) : path.slice(1);
+  return lane != null ? laneShift(path.slice(1), lane, fromX, fromY, fromZ, cuts.map(function(ci){ return corridor[ci].mid; })) : path.slice(1);
 }
 
 function ccw(ax,ay,bx,by,cx,cy){ return (cy-ay)*(bx-ax) > (cx-ax)*(by-ay); }

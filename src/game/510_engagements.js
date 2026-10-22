@@ -75,7 +75,10 @@ function resolveEngagements(){
       // видел врага" — это ровно то состояние, из которого возможен префайр;
       // без этого "hold" схлопывался бы в patrol в тот же тик, когда контакт
       // на миг теряется, и префайру было бы неоткуда взяться
-      var stillWatching = b.holding && b.lastIntel && (tick - b.lastIntel.tick) < CAUTION_TICKS;
+      // (v408, Б5в, видео владельца 22.10: игрок 9 стоял 2,5 с с новой задачей «трейд» в 80 ед. и построенным путём — «держу» здесь
+      // значит скорость 0 и путь не идёт) задача в другом месте (пост не достигнут) и перестрелка кончилась (_fc снят) — «держу» снимается
+      var taskAway = !b._fc && b.post && !b.atPost && Math.hypot(b.post.x-b.baseX, b.post.y-b.baseY) > 40;
+      var stillWatching = b.holding && !taskAway && b.lastIntel && (tick - b.lastIntel.tick) < CAUTION_TICKS;
       if(!stillWatching && b.state !== "patrol"){ b.state = "patrol"; b.holding = false; b.forcedRetreat = false; }
       return;
     }

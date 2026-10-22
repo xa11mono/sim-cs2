@@ -6,26 +6,59 @@
 // зоны по порядку, а уже потом идёт на пост, который ему выставит мозг роли
 // (пост запоминается и применяется в конце маршрута). Бой, ретейк, бомба —
 // важнее: маршрут снимается.
+// (v408, Б5д, владелец 22.10: «зачем все идут в точку, а потом расходятся — у ботов мэш, а не граф») шаг маршрута — «пройти через
+// зону», а не «добежать до её центра»: раньше каждое название было одной точкой (zonePoint — центр зоны), шаг считался пройденным
+// ближе 70 к ней, и все на маршруте сходились у одной точки (сгустки в прогоне v406 — в ≈ 70 от центров House, Side Alley, T Apps,
+// T Ramp, Water). Теперь цель шага — место зоны, ближайшее к отрезку «бот → следующая цель» (у каждого своё, по его положению), а шаг
+// пройден, как только бот вошёл в зону
+function routeZones(name, near){
+  var ids = zonesByName(name); if(!ids.length) return null;
+  var best = null, bd = Infinity;
+  ids.forEach(function(id){ var c = BZ.cent[BZ.idx[id]], d = near ? Math.hypot(c.x-near.x, c.y-near.y) : 0; if(d < bd){ bd = d; best = id; } });
+  var z = zoneById(best); return z ? {id:best, ids:ids, poly:z.points, c:BZ.cent[BZ.idx[best]]} : null;
+}
+function routeIn(Z, b){ return Z.ids.indexOf(zoneIdAt3(b.x, b.y, b.z)) >= 0; }   // зона — с этажом (над Underpass — Mid, не Underpass)
+// место зоны Z, ближайшее к отрезку (x0,y0)→(x1,y1): пересекает зону — точка входа; нет — ближайшая точка края; чуть внутрь, на пол
+function routeAim(Z, x0, y0, x1, y1){
+  var P = Z.poly, n = P.length, best = null, bd = Infinity, bt = Infinity;
+  for(var i = 0; i < n; i++){ var A = P[i], B = P[(i+1)%n];
+    if(segIntersect(x0, y0, x1, y1, A.x, A.y, B.x, B.y)){
+      var den = (x1-x0)*(B.y-A.y) - (y1-y0)*(B.x-A.x), t = den ? ((A.x-x0)*(B.y-A.y) - (A.y-y0)*(B.x-A.x))/den : 0;
+      if(t < bt){ bt = t; best = {x: x0 + (x1-x0)*t, y: y0 + (y1-y0)*t}; bd = -1; } continue; }
+    if(bd < 0) continue;
+    for(var k = 0; k <= 8; k++){ var qx = A.x + (B.x-A.x)*k/8, qy = A.y + (B.y-A.y)*k/8;
+      var ex = x1-x0, ey = y1-y0, L2 = ex*ex + ey*ey, u = L2 ? Math.max(0, Math.min(1, ((qx-x0)*ex + (qy-y0)*ey)/L2)) : 0;
+      var d = Math.hypot(qx - (x0 + ex*u), qy - (y0 + ey*u)); if(d < bd){ bd = d; best = {x:qx, y:qy}; } } }
+  if(!best) return walk(Z.c);
+  var cx = Z.c.x - best.x, cy = Z.c.y - best.y, dc = Math.hypot(cx, cy), k2 = dc > 0 ? Math.min(1, 24/dc) : 0;   // 24 ед. внутрь — чтобы точка была в зоне
+  return walk({x: best.x + cx*k2, y: best.y + cy*k2});
+}
+// цель текущего шага — от места бота к следующей зоне маршрута (её центр — только направление) или к цели после маршрута
+function routeSetAim(b, R){
+  var Z = R.zones[R.idx]; if(!Z) return;
+  var nx = R.zones[R.idx+1] ? R.zones[R.idx+1].c : (R.want ? R.want[0] : Z.c);
+  R.pts[R.idx] = routeAim(Z, b.x, b.y, nx.x, nx.y);
+}
 function startRoute(b, names, key){
   if(!names || !names.length) return;
   if(b._route && b._route.key === key) return;
   if(b._routeDone === key+"|"+roundNum) return;
-  var pts = [], prev = {x:b.x, y:b.y};
-  names.forEach(function(n){ var p = zonePoint(n, prev); if(p){ pts.push(p); prev = p; } });
-  if(!pts.length) return;
-  var bi = 0, bd = Infinity;
-  pts.forEach(function(p, i){ var d = Math.hypot(p.x-b.x, p.y-b.y); if(d < bd){ bd = d; bi = i; } });
-  if(bd < 90) bi++;
-  if(bi >= pts.length) return;
-  b._route = {key:key, pts:pts, idx:bi, t0:tick, names:names};
+  var zones = [], prev = {x:b.x, y:b.y};
+  names.forEach(function(n){ var Z = routeZones(n, prev); if(Z){ zones.push(Z); prev = Z.c; } });
+  if(!zones.length) return;
+  // уже в зоне маршрута — следующий шаг после самой дальней по списку, где стоит
+  var bi = 0; zones.forEach(function(Z, i){ if(routeIn(Z, b)) bi = i + 1; });
+  if(bi >= zones.length) return;
+  b._route = {key:key, zones:zones, pts:zones.map(function(Z){ return Z.c; }), idx:bi, t0:tick, names:names};
+  routeSetAim(b, b._route);
 }
 function routeTick(){
   bots.forEach(function(b){
     var R = b._route; if(!R) return;
     if(!b.alive || roundState !== "live" || tick - R.t0 > 35*TICK_HZ){ b._route = null; return; }
-    var cp = R.pts[R.idx];
-    if(cp && Math.hypot(cp.x-b.x, cp.y-b.y) < 70) R.idx++;
-    if(R.idx >= R.pts.length){
+    var Z = R.zones[R.idx];
+    if(Z && routeIn(Z, b)){ R.idx++; routeSetAim(b, R); }
+    if(R.idx >= R.zones.length){
       var W = R.want; b._routeDone = R.key+"|"+roundNum; b._route = null;
       if(b._task && b._task.lv === 2) b._task = null;   // маршрут пройден — его задача кончилась, пост роли ставится сразу
       if(W) setPost(b, W[0], W[1], W[2], W[3], W[4]);
