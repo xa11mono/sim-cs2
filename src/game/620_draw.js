@@ -625,6 +625,23 @@ function draw(){
         ctx.fillText(pnum(b.id) + " · " + String(b.post.tag).replace(/[|].*$/, ""), b.post.x + 7*s1, b.post.y + 3*s1); }
     });
   }
+  // (v407, владелец 22.10: «галочку, чтобы я видел, когда счётчик у этих трёх повышается») ошибки движения (PROB, 545): кольцо и
+  // подпись на PROB_SHOW_SEC с там, где случилось; счёт за матч — плашкой в левом верхнем углу радара
+  var chkPr = document.getElementById("chkProb");
+  if(chkPr && chkPr.checked && typeof PROB !== "undefined"){
+    var s2 = 1/view.scale, PCOL = {stall: "255,150,40", nav: "235,70,60", tug: "190,120,255"}, PNAME = {stall: "застрял", nav: "перенос", tug: "перетягивание"};
+    PROB.ev.forEach(function(e){ var age = (tick - e.tick)/TICK_HZ; if(e.round !== roundNum || age < 0 || age > PROB_SHOW_SEC) return;
+      var a = 1 - age/PROB_SHOW_SEC, c = PCOL[e.kind];
+      ctx.strokeStyle = "rgba("+c+","+(0.4+0.6*a)+")"; ctx.lineWidth = 2*s2; ctx.beginPath(); ctx.arc(e.x, e.y, (10 + 8*(1-a))*s2, 0, Math.PI*2); ctx.stroke();
+      ctx.fillStyle = "rgba("+c+","+(0.5+0.5*a)+")"; ctx.font = "600 "+(10*s2)+"px 'IBM Plex Mono',monospace"; ctx.textAlign = "left";
+      ctx.fillText(pnum(e.id) + " · " + PNAME[e.kind] + (e.kind === "stall" ? "" : ": " + e.text), e.x + 13*s2, e.y - 6*s2);
+      if(e.kind === "stall") ctx.fillText(e.text.replace(/^застрял /, ""), e.x + 13*s2, e.y + 6*s2); });
+    ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0);
+    var bx = 352, by = 12, line = function(k, i){ ctx.fillStyle = "rgb("+PCOL[k]+")"; ctx.fillText(PNAME[k] + ": " + PROB.n[k], bx + 10, by + 18 + i*16); };
+    ctx.fillStyle = "rgba(12,15,11,0.88)"; ctx.fillRect(bx, by, 190, 62); ctx.strokeStyle = "rgba(255,255,255,0.12)"; ctx.lineWidth = 1; ctx.strokeRect(bx + 0.5, by + 0.5, 190, 62);
+    ctx.font = "600 12px 'IBM Plex Mono',monospace"; ctx.textAlign = "left"; ["stall", "nav", "tug"].forEach(line);
+    ctx.restore();
+  }
   // оружие на земле
   groundWeapons.forEach(function(G){
     ctx.save(); ctx.fillStyle = "rgba(210,210,200,0.85)"; ctx.strokeStyle = "rgba(20,20,20,0.8)"; ctx.lineWidth = 1/view.scale;

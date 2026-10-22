@@ -2,10 +2,11 @@
 // чего ещё не видели. Подключается в замер матча (rec2.js → REC.watch) и в прогон снимков отметок (watch_snaps.py).
 // Использование: eval(этот файл); WATCH.tick() — после каждого stepTick(); WATCH.report() — итог (JSON-объект).
 // Классы (каждый — общий, не под одну ситуацию):
-//   stall    — застой: у бота задача «идти» (пост, он не на нём), не бой, а он за 5 с сдвинулся < 25 px
+//   stall, tug, nav — (v407) из PROB игры (src/game/545_problem_watch.js): застрял (хочет и пытается идти к одной задаче 5 с,
+//            сдвинулся < 25 px — с причиной), перенос (видимая позиция за тик дальше шага), перетягивание (A → B → A за 2 с, кроме
+//            «кинул гранату и вернулся»); старый счёт (повторы при сдвиге точки, «стоял до задачи») — удалён
 //   wait     — ожидание без выхода: стоит на посту ожидания (сбор, ждёт гранат/смока/бомбы…) > 8 с; с раскладом
 //              «наших здоровых рядом ≥ живых врагов» — помечается «мог играть»
-//   tug      — перетягивание: пост бота за 2 с меняется A → B → A (две механики спорят)
 //   flip     — метание: одна и та же фраза в войсе ≥ 3 раз за 5 с
 //   danger   — действие против своего знания: живой в зоне взрыва за 2 с до взрыва; стоит в своём/чужом огне > 0,5 с;
 //              вражеская флешка хлопнула в 600 px на виду — через 1,5 с не повернулся к бросавшему (±60°) и не ушёл (> 60 px)
@@ -33,7 +34,7 @@
     return VL.apply(this, arguments); };
   // навмеш
   var LE = logEvent;
-  logEvent = function(msg){ if(/вне навмеша/.test(String(msg))){ W.n.nav++; if(W.ev.nav.length < EVMAX) W.ev.nav.push([tick, String(msg).slice(0, 40)]); } return LE.apply(this, arguments); };
+  logEvent = function(msg){ return LE.apply(this, arguments); };   // (v407) «вне навмеша» — теперь в PROB (перенос)
   // (v375, владелец: «как будто видят сквозь смоки») убийство, когда линия стрелок → жертва проходит через дым: у про —
   // убийств на Mirage — 8,6 % (демки, player_death.thrusmoke)
   var FK = feedKill;
@@ -111,18 +112,7 @@
       var inF = !!inFire(b.x, b.y), pp = s.pos.length >= 3 ? s.pos[s.pos.length-3] : null;   // огонь — как в игре (inFire); стоит — за 0,5 с < 10 px
       s.fireT = inF && pp && Math.hypot(b.x-pp[0], b.y-pp[1]) < 10 ? s.fireT + 16 : 0;
       if(s.fireT === 32){ W.n.danger++; inc(W.dangerBy, "стоит в огне"); if(W.ev.danger.length < EVMAX) W.ev.danger.push([tick, b.id, "стоит в огне", b.post ? b.post.tag : "-"]); }
-      // перетягивание поста
-      var bt = b.post ? base(b.post.tag) : "-";
-      if(!s.tags.length || s.tags[s.tags.length-1][0] !== bt){ s.tags.push([bt, tick]); if(s.tags.length > 4) s.tags.shift();
-        var L = s.tags.length;
-        if(L >= 3 && s.tags[L-1][0] === s.tags[L-3][0] && s.tags[L-1][0] !== "-" && s.tags[L-2][0] !== "-" && tick - s.tags[L-3][1] <= 2*64)
-          ev("tug", [tick, b.id, s.tags[L-3][0]+" → "+s.tags[L-2][0]+" → "+s.tags[L-1][0]]); }
-      // застой
-      var busy = b.planting || b.defusing || b._climb || b._sawEnemy || b._fc || tick < (b.blindUntil||0) || tick < (b.throwUntil||0);
-      if(b.post && !b.atPost && !busy && s.pos.length === 21 && Math.hypot(b.post.x-b.x, b.post.y-b.y) > 40){
-        var p0 = s.pos[0], mv = Math.hypot(b.x-p0[0], b.y-p0[1]);
-        if(mv < 25 && s.stallId !== b.post.id){ s.stallId = b.post.id;
-          ev("stall", [tick, b.id, b.post.tag, Math.round(b.x), Math.round(b.y), Math.round(Math.hypot(b.post.x-b.x, b.post.y-b.y)), b.path ? b.path.length - b.pathIdx : -1]); } }
+      // (v407) перетягивание, застой, перенос — одно место в игре: PROB (src/game/545_problem_watch.js); здесь только отчёт
       // ожидание без выхода
       if(b.post && b.atPost && WAIT_RE.test(b.post.tag)){ s.waitT += 16;
         if(s.waitT === 8*64){ var foe = b.team === "T" ? "CT" : "T", nE = aliveCount(foe);
@@ -132,6 +122,10 @@
       else s.waitT = 0;
     });
   };
-  W.report = function(){ return {n:W.n, ev:W.ev, emptyBy:W.emptyBy, dangerBy:W.dangerBy, nade:W.nade}; };
+  W.report = function(){
+    // (v407) застой / перетягивание / перенос — из PROB игры (один счёт со слоем «ошибки движения» на странице)
+    if(typeof PROB !== "undefined"){ ["stall", "tug", "nav"].forEach(function(k){ W.n[k] = PROB.n[k];
+      W.ev[k] = PROB.ev.filter(function(e){ return e.kind === k; }).slice(0, EVMAX).map(function(e){ return [e.tick, e.id, e.text, e.x, e.y, e.round]; }); }); }
+    return {n:W.n, ev:W.ev, emptyBy:W.emptyBy, dangerBy:W.dangerBy, nade:W.nade}; };
   (typeof window !== "undefined" ? window : globalThis).WATCH = W;
 })();

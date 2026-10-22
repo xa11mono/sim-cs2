@@ -239,7 +239,7 @@
   <div id="topbar">
     <div class="tb-id">
       <h1>Mirage</h1>
-      <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 406, 22.10</div>
+      <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 407, 22.10</div>
     </div>
     <div class="tb-group" id="tbMatch">
       <button id="btnPause">Пауза</button>
@@ -257,6 +257,7 @@
           <label class="chk" title="Командная информация: ◆ — «вижу» (цвет команды, которая сообщила), кольцо — «слышу», ✕ — погиб тиммейт"><input type="checkbox" id="chkCalls"> коллы</label>
           <label class="chk" title="Маршруты роумеров и отметки «чисто»"><input type="checkbox" id="chkRoam"> роумеры</label>
           <label class="chk" title="Куда идёт каждый живой игрок: линия — путь по навмешу до его точки (кольцо — точка задачи, подпись — задача), треугольник — подъём / спуск на другой этаж, бледный пунктир — где он прошёл за последние ~2 с"><input type="checkbox" id="chkPaths"> пути игроков</label>
+          <label class="chk" title="Ошибки движения: застрял (хочет идти, а 5 с на месте — с причиной), перенос (за тик сдвинулся дальше шага — «вне навмеша», рывок), перетягивание (задача A → B → A за 2 с). Слева вверху — счёт за матч; на радаре — кольцо и подпись на 4 с, где случилось"><input type="checkbox" id="chkProb"> ошибки движения</label>
           <label class="chk" title="Под каждым игроком: какая у него сейчас задача и почему он смотрит именно туда"><input type="checkbox" id="chkWhy"> почему</label>
           <label class="chk" title="Разбор взгляда выбранного игрока (клик по нему на радаре или по карточке): опасность зон и что о врагах знает его команда — цветом и числами, все варианты взгляда с баллами и множителями, источники (звук, инфа, где видели), и почему выбран именно этот угол"><input type="checkbox" id="chkLookDbg"> разбор взгляда</label>
           <label class="chk"><input type="checkbox" id="chkOutline"> контуры укрытий</label>
@@ -27100,8 +27101,79 @@ function stepTick(){
   teamTick();     // войс: каждый говорит, что узнал; тиммейты узнают, когда фраза договорена
   beliefTick();   // раздел 13: карта вероятностей врага
   checkRoundEnd();
+  probTick();     // (v407) счёт ошибок движения — только наблюдает (545)
 }
 
+// ======================= (v407) СЧЁТ ОШИБОК ДВИЖЕНИЯ — одно место (владелец 22.10: «их вообще не должно быть»; «ты уверен, что
+// считается правильно?») =======================
+// Только наблюдает — игру не меняет (не зовёт ничего, что меняет состояние ботов). Зовётся в конце stepTick. Читают: слой «ошибки
+// движения» на странице (620_draw) и сторож замера (tools/measure/audit/watch.js → PROB).
+//   stall — застрял: бот хочет идти (пост не достигнут, есть путь, шаг пути — patrol, скорость > 0 в ≥ 80 % окна — пытается идти, а не
+//           стоит по плану; не держит угол, не в бою / броске / на
+//           лестнице / ослеплён / ставит / дефузит), а за PROB_STALL_SEC с сдвинулся меньше PROB_STALL_MOVE. Один случай — один раз:
+//           следующий — только после того, как бот ушёл от места больше чем на PROB_STALL_MOVE·2 (раньше сторож считал заново при
+//           каждом сдвиге точки поста — ≈ 20 % повторов). Причина — проверка шага к следующей точке пути: стена / уступ / вне пола /
+//           огонь, «шаг проходит» (путь есть, шаг свободен, а стоит).
+//   nav   — перенос: за один тик сдвинулся дальше, чем может шагом (PROB_JUMP), без лестницы — «вне навмеша — перенесён» и «рывок»
+//           застрявшего к пути (раньше считался только первый).
+//   tug   — перетягивание: задача места за PROB_TUG_SEC меняется A → B → A; не считается, если B — бросок гранаты, а гранату за это
+//           время бросил (законно: кинул и вернулся).
+// Числа — проектные (как в стороже v373: 5 с / 25 px / 2 с).
+var PROB_STALL_SEC = 5, PROB_STALL_MOVE = 25, PROB_TUG_SEC = 2, PROB_SHOW_SEC = 4;
+var PROB = {n: {stall: 0, nav: 0, tug: 0}, ev: [], s: {}, round: -1, match: -1};
+function probReset(){ PROB.n = {stall: 0, nav: 0, tug: 0}; PROB.ev = []; PROB.s = {}; PROB.round = -1; PROB.match = -1; }
+function probEvent(kind, b, text){
+  PROB.n[kind]++;
+  PROB.ev.push({kind: kind, id: b.id, x: Math.round(b.baseX), y: Math.round(b.baseY), tick: tick, round: roundNum, text: text});
+  if(PROB.ev.length > 400) PROB.ev.shift();
+}
+function probStallWhy(b){
+  var wp = b.path && b.path[b.pathIdx]; if(!wp) return "нет пути";
+  var d = Math.hypot(wp[0]-b.baseX, wp[1]-b.baseY); if(d < 0.5) return "на точке пути";
+  var x2 = b.baseX + (wp[0]-b.baseX)/d*2, y2 = b.baseY + (wp[1]-b.baseY)/d*2;
+  if(crossesWall(b.baseX, b.baseY, x2, y2)) return "стена";
+  if(heightBlocked(b.baseX, b.baseY, x2, y2, b)) return "уступ";
+  if(offNavStep(b.baseX, b.baseY, x2, y2, b)) return "край пола";
+  if(!inFire(b.baseX, b.baseY) && inFire(x2, y2)) return "огонь";
+  return "шаг проходит, а стоит";
+}
+function probTick(){
+  if(PROB.match !== matchNum){ probReset(); PROB.match = matchNum; }   // новый матч — счёт заново
+  if(PROB.round !== roundNum || roundState !== "live"){ if(PROB.round !== roundNum){ PROB.s = {}; PROB.round = roundNum; } else bots.forEach(function(b){ var s = PROB.s[b.id]; if(s){ s.x = b.x; s.y = b.y; } }); return; }
+  var maxStep = SPEED/TICK_HZ*2 + 3;   // вдвое больше шага бегом + запас (ед. карты)
+  bots.forEach(function(b){
+    if(!b.alive){ delete PROB.s[b.id]; return; }
+    var s = PROB.s[b.id] || (PROB.s[b.id] = {x: b.x, y: b.y, hist: [], tags: [], stallAt: null});
+    // перенос — по видимой позиции (b.x: внутренняя baseX при выходе из пика сдвигается на смещение пика законно, видимая — нет)
+    var jump = Math.hypot(b.x - s.x, b.y - s.y);
+    if(jump > maxStep && !b._climb && !s.climb) probEvent("nav", b, "перенос на " + Math.round(jump) + " px");
+    s.x = b.x; s.y = b.y; s.climb = !!b._climb;
+    if(tick % 16) return;
+    // перетягивание
+    var tg = b.post ? String(b.post.tag).replace(/[:|].*$/, "") : "-";
+    if(!s.tags.length || s.tags[s.tags.length-1].t !== tg){ s.tags.push({t: tg, at: tick, thr: b.throwUntil || 0}); if(s.tags.length > 4) s.tags.shift();
+      var L = s.tags.length;
+      if(L >= 3 && s.tags[L-1].t === s.tags[L-3].t && s.tags[L-1].t !== "-" && s.tags[L-2].t !== "-" && tick - s.tags[L-3].at <= PROB_TUG_SEC*TICK_HZ){
+        var mid = s.tags[L-2], threw = (b.throwUntil || 0) > mid.at;
+        if(!(mid.t === "lineup" && threw)) probEvent("tug", b, s.tags[L-3].t + " → " + mid.t + " → " + s.tags[L-1].t); } }
+    // застрял
+    if(s.stallAt && Math.hypot(b.baseX - s.stallAt.x, b.baseY - s.stallAt.y) > PROB_STALL_MOVE*2) s.stallAt = null;
+    var wants = b.post && !b.atPost && b.state === "patrol" && !b.holding && Math.hypot(b.post.x-b.baseX, b.post.y-b.baseY) > 40;   // путь не обязателен: застрявшему его сбрасывают
+    var busy = b.planting || b.defusing || b._climb || b._sawEnemy || b._fc || tick < (b.blindUntil||0) || tick < (b.throwUntil||0);
+    // окно — только пока бот хочет идти к одной и той же задаче: сменилась задача / перестал хотеть / занят — заново (раньше в окно
+    // попадало время до задачи: 5 с держал угол на месте, получил новую задачу — сразу «застрял»)
+    // точка задачи может сдвигаться (контакт уточняется каждую секунду) — окно от этого не сбрасывается, только от смены задачи
+    var key = wants && !busy ? tg : null;
+    if(key === null || s.key !== key) s.hist = [];
+    s.key = key;
+    // в окне — позиция и «пытается идти» (скорость > 0.5: с нулевой бот стоит по плану — ждёт; это не застревание)
+    if(key){ s.hist.push([b.baseX, b.baseY, b.curSpeed > 0.5 ? 1 : 0]); if(s.hist.length > PROB_STALL_SEC*TICK_HZ/16 + 1) s.hist.shift(); }
+    if(wants && !busy && !s.stallAt && s.hist.length > PROB_STALL_SEC*TICK_HZ/16){
+      var h0 = s.hist[0], tries = s.hist.reduce(function(n, q){ return n + q[2]; }, 0);
+      if(Math.hypot(b.baseX - h0[0], b.baseY - h0[1]) < PROB_STALL_MOVE && tries >= s.hist.length*0.8){ s.stallAt = {x: b.baseX, y: b.baseY};
+        probEvent("stall", b, "застрял («" + tg + "»): " + probStallWhy(b)); } }
+  });
+}
 // ---------- render ----------
 var cv = document.getElementById("cv"), ctx = cv.getContext("2d");
 var wrap = document.getElementById("main");
@@ -29797,6 +29869,23 @@ function draw(){
         ctx.fillText(pnum(b.id) + " · " + String(b.post.tag).replace(/[|].*$/, ""), b.post.x + 7*s1, b.post.y + 3*s1); }
     });
   }
+  // (v407, владелец 22.10: «галочку, чтобы я видел, когда счётчик у этих трёх повышается») ошибки движения (PROB, 545): кольцо и
+  // подпись на PROB_SHOW_SEC с там, где случилось; счёт за матч — плашкой в левом верхнем углу радара
+  var chkPr = document.getElementById("chkProb");
+  if(chkPr && chkPr.checked && typeof PROB !== "undefined"){
+    var s2 = 1/view.scale, PCOL = {stall: "255,150,40", nav: "235,70,60", tug: "190,120,255"}, PNAME = {stall: "застрял", nav: "перенос", tug: "перетягивание"};
+    PROB.ev.forEach(function(e){ var age = (tick - e.tick)/TICK_HZ; if(e.round !== roundNum || age < 0 || age > PROB_SHOW_SEC) return;
+      var a = 1 - age/PROB_SHOW_SEC, c = PCOL[e.kind];
+      ctx.strokeStyle = "rgba("+c+","+(0.4+0.6*a)+")"; ctx.lineWidth = 2*s2; ctx.beginPath(); ctx.arc(e.x, e.y, (10 + 8*(1-a))*s2, 0, Math.PI*2); ctx.stroke();
+      ctx.fillStyle = "rgba("+c+","+(0.5+0.5*a)+")"; ctx.font = "600 "+(10*s2)+"px 'IBM Plex Mono',monospace"; ctx.textAlign = "left";
+      ctx.fillText(pnum(e.id) + " · " + PNAME[e.kind] + (e.kind === "stall" ? "" : ": " + e.text), e.x + 13*s2, e.y - 6*s2);
+      if(e.kind === "stall") ctx.fillText(e.text.replace(/^застрял /, ""), e.x + 13*s2, e.y + 6*s2); });
+    ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0);
+    var bx = 352, by = 12, line = function(k, i){ ctx.fillStyle = "rgb("+PCOL[k]+")"; ctx.fillText(PNAME[k] + ": " + PROB.n[k], bx + 10, by + 18 + i*16); };
+    ctx.fillStyle = "rgba(12,15,11,0.88)"; ctx.fillRect(bx, by, 190, 62); ctx.strokeStyle = "rgba(255,255,255,0.12)"; ctx.lineWidth = 1; ctx.strokeRect(bx + 0.5, by + 0.5, 190, 62);
+    ctx.font = "600 12px 'IBM Plex Mono',monospace"; ctx.textAlign = "left"; ["stall", "nav", "tug"].forEach(line);
+    ctx.restore();
+  }
   // оружие на земле
   groundWeapons.forEach(function(G){
     ctx.save(); ctx.fillStyle = "rgba(210,210,200,0.85)"; ctx.strokeStyle = "rgba(20,20,20,0.8)"; ctx.lineWidth = 1/view.scale;
@@ -30788,6 +30877,11 @@ var __SNAP = [
 ["LAND_DELAY", function(){ return LAND_DELAY; }, function(v){ try{ LAND_DELAY = v; }catch(e){} }],
 ["JUMP_HOLD_SEC", function(){ return JUMP_HOLD_SEC; }, function(v){ try{ JUMP_HOLD_SEC = v; }catch(e){} }],
 ["JUMP_APEX", function(){ return JUMP_APEX; }, function(v){ try{ JUMP_APEX = v; }catch(e){} }],
+["PROB_STALL_SEC", function(){ return PROB_STALL_SEC; }, function(v){ try{ PROB_STALL_SEC = v; }catch(e){} }],
+["PROB_STALL_MOVE", function(){ return PROB_STALL_MOVE; }, function(v){ try{ PROB_STALL_MOVE = v; }catch(e){} }],
+["PROB_TUG_SEC", function(){ return PROB_TUG_SEC; }, function(v){ try{ PROB_TUG_SEC = v; }catch(e){} }],
+["PROB_SHOW_SEC", function(){ return PROB_SHOW_SEC; }, function(v){ try{ PROB_SHOW_SEC = v; }catch(e){} }],
+["PROB", function(){ return PROB; }, function(v){ try{ PROB = v; }catch(e){} }],
 ["cv", function(){ return cv; }, function(v){ try{ cv = v; }catch(e){} }],
 ["ctx", function(){ return ctx; }, function(v){ try{ ctx = v; }catch(e){} }],
 ["wrap", function(){ return wrap; }, function(v){ try{ wrap = v; }catch(e){} }],
