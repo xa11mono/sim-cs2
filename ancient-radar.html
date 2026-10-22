@@ -17235,12 +17235,14 @@ function stepTick(){
 //           следующий — только после того, как бот ушёл от места больше чем на PROB_STALL_MOVE·2 (раньше сторож считал заново при
 //           каждом сдвиге точки поста — ≈ 20 % повторов). Причина — проверка шага к следующей точке пути: стена / уступ / вне пола /
 //           огонь, «шаг проходит» (путь есть, шаг свободен, а стоит).
+//           Залип (v407б): своя задача PROB_BLOCK_SEC (8) с подряд не пускается другой (журнал решений: «отказ X: занят Y»), бот на
+//           месте — тоже «застрял» (стоит «по плану», но своё не делает).
 //   nav   — перенос: за один тик сдвинулся дальше, чем может шагом (PROB_JUMP), без лестницы — «вне навмеша — перенесён» и «рывок»
 //           застрявшего к пути (раньше считался только первый).
 //   tug   — перетягивание: задача места за PROB_TUG_SEC меняется A → B → A; не считается, если B — бросок гранаты, а гранату за это
 //           время бросил (законно: кинул и вернулся).
 // Числа — проектные (как в стороже v373: 5 с / 25 px / 2 с).
-var PROB_STALL_SEC = 5, PROB_STALL_MOVE = 25, PROB_TUG_SEC = 2, PROB_SHOW_SEC = 4;
+var PROB_STALL_SEC = 5, PROB_STALL_MOVE = 25, PROB_TUG_SEC = 2, PROB_SHOW_SEC = 4, PROB_BLOCK_SEC = 8;
 var PROB = {n: {stall: 0, nav: 0, tug: 0}, ev: [], s: {}, round: -1, match: -1};
 function probReset(){ PROB.n = {stall: 0, nav: 0, tug: 0}; PROB.ev = []; PROB.s = {}; PROB.round = -1; PROB.match = -1; }
 function probEvent(kind, b, text){
@@ -17277,6 +17279,19 @@ function probTick(){
       if(L >= 3 && s.tags[L-1].t === s.tags[L-3].t && s.tags[L-1].t !== "-" && s.tags[L-2].t !== "-" && tick - s.tags[L-3].at <= PROB_TUG_SEC*TICK_HZ){
         var mid = s.tags[L-2], threw = (b.throwUntil || 0) > mid.at;
         if(!(mid.t === "lineup" && threw)) probEvent("tug", b, s.tags[L-3].t + " → " + mid.t + " → " + s.tags[L-1].t); } }
+    // залип (v407б, отметка владельца 22.10, Mirage Jungle: CT1 16 с стоял на «держать угол на контакт», журнал каждую секунду —
+    // «отказ «set:roamer»: занят «contact:hold»») — своя задача PROB_BLOCK_SEC с подряд не пускается другой (журнал решений, 645), а бот
+    // на месте (< PROB_STALL_MOVE·2 за это время): это тоже застревание, хотя бот «стоит по плану»
+    s.lh = s.lh || []; s.lh.push([tick, b.baseX, b.baseY]); while(s.lh.length && tick - s.lh[0][0] > PROB_BLOCK_SEC*TICK_HZ) s.lh.shift();
+    var DL = b._dlog || [], ref = null, first = null, lastT = -1e9;
+    for(var di = DL.length - 1; di >= 0; di--){ var m = /^отказ «([^»]+)»: занят «([^»]+)»/.exec(DL[di][2]); if(DL[di][1] !== "место" || !m) continue;
+      var rk = m[1].replace(/[:|].*$/, "") + "|" + m[2].replace(/[:|].*$/, "");
+      if(!ref){ if(tick - DL[di][0] > 1.5*TICK_HZ) break; ref = rk; lastT = DL[di][0]; first = DL[di][0]; }
+      else if(rk === ref && first - DL[di][0] <= 1.5*TICK_HZ) first = DL[di][0]; else if(rk !== ref) continue; }
+    if(ref && lastT - first >= PROB_BLOCK_SEC*TICK_HZ && s.blockRef !== ref && s.lh.length && Math.hypot(b.baseX - s.lh[0][1], b.baseY - s.lh[0][2]) < PROB_STALL_MOVE*2){
+      s.blockRef = ref; var pr = ref.split("|");
+      probEvent("stall", b, "залип: «" + pr[1] + "» " + Math.round((lastT - first)/TICK_HZ) + " с не пускает «" + pr[0] + "»"); }
+    else if(!ref) s.blockRef = null;
     // застрял
     if(s.stallAt && Math.hypot(b.baseX - s.stallAt.x, b.baseY - s.stallAt.y) > PROB_STALL_MOVE*2) s.stallAt = null;
     var wants = b.post && !b.atPost && b.state === "patrol" && !b.holding && Math.hypot(b.post.x-b.baseX, b.post.y-b.baseY) > 40;   // путь не обязателен: застрявшему его сбрасывают
@@ -21002,6 +21017,7 @@ var __SNAP = [
 ["PROB_STALL_MOVE", function(){ return PROB_STALL_MOVE; }, function(v){ try{ PROB_STALL_MOVE = v; }catch(e){} }],
 ["PROB_TUG_SEC", function(){ return PROB_TUG_SEC; }, function(v){ try{ PROB_TUG_SEC = v; }catch(e){} }],
 ["PROB_SHOW_SEC", function(){ return PROB_SHOW_SEC; }, function(v){ try{ PROB_SHOW_SEC = v; }catch(e){} }],
+["PROB_BLOCK_SEC", function(){ return PROB_BLOCK_SEC; }, function(v){ try{ PROB_BLOCK_SEC = v; }catch(e){} }],
 ["PROB", function(){ return PROB; }, function(v){ try{ PROB = v; }catch(e){} }],
 ["cv", function(){ return cv; }, function(v){ try{ cv = v; }catch(e){} }],
 ["ctx", function(){ return ctx; }, function(v){ try{ ctx = v; }catch(e){} }],
