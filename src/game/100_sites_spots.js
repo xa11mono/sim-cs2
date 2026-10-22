@@ -120,6 +120,17 @@ function choosePlant(tt){
   return tt.plantPick;
 }
 // (v381, М135) места планта про на этом сайте (MAP.pro.plants, tools/plants_bake.py), сначала частые
+// (v409, владелец 22.10: «почему он не ставит первые 10 секунд») место планта выбирается только из мест про (sitePlantPro), а начать
+// плант можно было только внутри границы сайта (onSite). Граница — красный квадрат радара (Mirage) / зона «Asite» (Ancient) — не
+// покрывает места, где ставили про: вне её 13 из 22 мест A Mirage (66 % плантов), 11 из 14 мест A Ancient (96 %). Носитель доходил до
+// точки, стоял и топтался, пока случайно не шагнёт внутрь (м1 р1 Mirage: на точке с 44,5 с, плант — в 60,0). Теперь ставить можно и
+// в клетке места про (PLANT_CELL — сетка кластера в tools/plants_bake.py: там про ставили ≥ 3 раз), а не только внутри границы
+var PLANT_CELL = 24;
+function canPlantAt(k, x, y){
+  var S = SITES[k]; if(!S) return false;
+  if(onSite(S, x, y)) return true;
+  return sitePlantPro(k).some(function(p){ return Math.abs(p.x-x) <= PLANT_CELL/2 && Math.abs(p.y-y) <= PLANT_CELL/2; });
+}
 function sitePlantPro(k){
   return ((MAP.pro && MAP.pro.plants) || []).filter(function(p){ return p.site === k; }).sort(function(a, c){ return c.share - a.share; })
     .map(function(p){ return {x: p.x, y: p.y, share: p.share}; });

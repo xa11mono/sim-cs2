@@ -565,16 +565,22 @@ function tBrain(){
         setPost(o, fp, SITES[tt.site], true, "rushFollow"); }); }
     // (S5) ставят — двое ближних прикрывают подходы к ставящему под разными углами
     if(BAL.coverPlant && carrier && carrier.alive && (carrier.planting || (carrier.post && carrier.post.tag === "plantspot" && Math.hypot(carrier.x-carrier.post.x, carrier.y-carrier.post.y) < 90))){
-      var cp0 = {x:carrier.x, y:carrier.y};
-      // (v378) кто уже прикрывает — остаётся (+150 ед. форы, проектное число): раньше пара «двое ближних» менялась на ходу каждый тик
-      var covD = function(o){ return Math.hypot(o.x-cp0.x, o.y-cp0.y) - (o.post && o.post.tag === "coverplant" ? 150 : 0); };
-      var covs = rest.filter(function(b){ return !b._sawEnemy && Math.hypot(b.x-cp0.x, b.y-cp0.y) < 550 && !(b._tradeLock && b._tradeLock.until > tick); })
-        .sort(function(a, c){ return covD(a) - covD(c); }).slice(0, 2);
+      // (v409, владелец 22.10: «coverplant очень часто меняется, бегают по всему сайту») точки искались каждый тик вокруг того места, где
+      // ставящий сейчас (он шёл — набор точек менялся), а какая кому — по тому, кто сейчас ближе (порядок переворачивался — менялись
+      // местами): м1 р1 Mirage — ≈ 40 смен точки у двоих за 10 с. Теперь центр — точка планта (не сам ставящий), точки выбираются
+      // один раз, кто взял — держит до конца прикрытия; второго добирают, только если прикрывающих меньше двух
+      var cp0 = carrier.planting ? {x:carrier.baseX, y:carrier.baseY} : {x:carrier.post.x, y:carrier.post.y};
+      var CV = tt._cov; if(!CV || CV.round !== roundNum || Math.hypot(CV.x-cp0.x, CV.y-cp0.y) > 90) CV = tt._cov = {round:roundNum, x:cp0.x, y:cp0.y, by:{}};
       var lkP = [g.ctEntry, g.anchor];
-      covs.forEach(function(b, ci){
-        var sp = pickSpots("covplant"+tt.site+ci, cp0, 2, {rMin:60, rMax:230, minGap:60, see:[lkP[ci]], must:[cp0]})[0];
-        if(sp){ setPost(b, sp, lkP[ci], true, "coverplant"); }
-      });
+      var okCov = function(b){ return !b._sawEnemy && Math.hypot(b.x-CV.x, b.y-CV.y) < 550 && !(b._tradeLock && b._tradeLock.until > tick); };
+      var covs = rest.filter(function(b){ return CV.by[b.id] && okCov(b); });
+      Object.keys(CV.by).forEach(function(id){ if(!covs.some(function(b){ return b.id === id; })) delete CV.by[id]; });
+      rest.filter(function(b){ return !CV.by[b.id] && okCov(b); }).sort(function(a, c){ return Math.hypot(a.x-CV.x, a.y-CV.y) - Math.hypot(c.x-CV.x, c.y-CV.y); })
+        .forEach(function(b){ if(covs.length >= 2) return;
+          var used = Object.keys(CV.by).map(function(id){ return CV.by[id].ci; }), ci = used.indexOf(0) < 0 ? 0 : 1;
+          var sp = pickSpots("covplant"+tt.site+ci, CV, 2, {rMin:60, rMax:230, minGap:60, see:[lkP[ci]], must:[CV]})[0];
+          if(sp){ CV.by[b.id] = {ci:ci, sp:sp}; covs.push(b); } });
+      covs.forEach(function(b){ var A = CV.by[b.id]; setPost(b, A.sp, lkP[A.ci], true, "coverplant"); });
       if(covs.length && !tt._covVoice){ tt._covVoice = tick; voiceLog("T", "covplant", covs[0].id, "ставь, прикрываю"+(covs[1] ? " с "+covs[1].id : "")); }
       rest = rest.filter(function(b){ return covs.indexOf(b) < 0; });
     }

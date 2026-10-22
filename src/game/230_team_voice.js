@@ -158,7 +158,7 @@ function teamNotice(b){
   }
   // plant: видел, как ставят (CT)
   // plant: видел, как ставят, — или узнал, где бомба (писк, увидел бомбу): говорит команде (CT)
-  var pSite = K.plantSeen || (K.planted && K.plantSite);
+  var pSite = K.plantSeen || (K.planted && !K.plantGuess && K.plantSite);   // (v409) догадку «там никого не было — значит там» не говорит
   if(b.team === "CT" && pSite && !V.plantSaid){ V.plantSaid = true; teamPropose(b, {kind: "plant", site: pSite}); }
 }
 

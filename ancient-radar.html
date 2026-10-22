@@ -239,7 +239,7 @@
   <div id="topbar">
     <div class="tb-id">
       <h1>Ancient</h1>
-      <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 408, 22.10</div>
+      <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 409, 22.10</div>
     </div>
     <div class="tb-group" id="tbMatch">
       <button id="btnPause">Пауза</button>
@@ -4930,6 +4930,17 @@ function choosePlant(tt){
   return tt.plantPick;
 }
 // (v381, М135) места планта про на этом сайте (MAP.pro.plants, tools/plants_bake.py), сначала частые
+// (v409, владелец 22.10: «почему он не ставит первые 10 секунд») место планта выбирается только из мест про (sitePlantPro), а начать
+// плант можно было только внутри границы сайта (onSite). Граница — красный квадрат радара (Mirage) / зона «Asite» (Ancient) — не
+// покрывает места, где ставили про: вне её 13 из 22 мест A Mirage (66 % плантов), 11 из 14 мест A Ancient (96 %). Носитель доходил до
+// точки, стоял и топтался, пока случайно не шагнёт внутрь (м1 р1 Mirage: на точке с 44,5 с, плант — в 60,0). Теперь ставить можно и
+// в клетке места про (PLANT_CELL — сетка кластера в tools/plants_bake.py: там про ставили ≥ 3 раз), а не только внутри границы
+var PLANT_CELL = 24;
+function canPlantAt(k, x, y){
+  var S = SITES[k]; if(!S) return false;
+  if(onSite(S, x, y)) return true;
+  return sitePlantPro(k).some(function(p){ return Math.abs(p.x-x) <= PLANT_CELL/2 && Math.abs(p.y-y) <= PLANT_CELL/2; });
+}
 function sitePlantPro(k){
   return ((MAP.pro && MAP.pro.plants) || []).filter(function(p){ return p.site === k; }).sort(function(a, c){ return c.share - a.share; })
     .map(function(p){ return {x: p.x, y: p.y, share: p.share}; });
@@ -5491,7 +5502,7 @@ function bombTick(){
     // (раньше любой видимый CT через полкарты — и носитель стоял на точке
     // планта до конца раунда: это и были почти все проигрыши T по времени)
     var nearFoe = c._sawEnemy && c._nearestEnemyDist < 500;
-    if(site && tac.phase !== "setup" && c.state === "patrol" && !nearFoe && onSite(site, c.baseX, c.baseY) && !(c._noPlantUntil > tick) && !inFire(c.baseX, c.baseY)){   // (v263, Б2) в огне плант не начинают — не доживут
+    if(site && tac.phase !== "setup" && c.state === "patrol" && !nearFoe && canPlantAt(tac.site, c.baseX, c.baseY) && !(c._noPlantUntil > tick) && !inFire(c.baseX, c.baseY)){   // (v263, Б2) в огне плант не начинают — не доживут
       c.planting = true; c.plantUntil = tick + PLANT_TICKS; c.path = []; c.pathIdx = 0; if(SND && SND.on) sndBomb("plant", c.baseX, c.baseY);
       // фейк-плант (раз за раунд): свои рядом держат углы, CT по инфе рядом —
       // начать и через ~1с бросить: CT на звук выйдут под прицел
@@ -5877,7 +5888,7 @@ function chooseCtSetup(){
 }
 // (v334, М61, владелец: «kyousuke играет Window, а должен Short — рядом с B») роли расстановки CT на раунд — по почерку игроков:
 // для каждой роли — насколько её места (pos) похожи на места этого игрока в демках (posPref: почерк + оружие, как posPickName);
-// перебор 120 рассадок, берётся с наибольшей суммой; своя постоянная роль (playerRoles, роли по демкам карты) — бонус
+// перебор 120 рассадок, берётся с наибольшей суммой (с v409 — доля времени игрока на позициях роли); своя постоянная роль (playerRoles, роли по демкам карты) — бонус
 // SEAT_KEEP (проектное число), чтобы опорники не скакали между раундами без причины
 var SEAT_KEEP = 0.15;
 function ctSeatRoles(S){
@@ -5885,12 +5896,18 @@ function ctSeatRoles(S){
   var team = bots.filter(function(b){ return b.team === "CT"; }), roles = Object.keys(S.roles);
   if(team.length !== 5 || roles.length !== 5) return;
   var base = {}; team.forEach(function(b){ if(!b._seatRole || b._seatSide !== matchNum+':'+b.team+':'+(roundNum > HALF_ROUNDS ? 2 : 1)){ b._seatRole = b.tRole; b._seatSide = matchNum+':'+b.team+':'+(roundNum > HALF_ROUNDS ? 2 : 1); } base[b.id] = b._seatRole; });
+  // (v409, владелец 22.10: «почему TeSeS опорник?») мера была — САМАЯ похожая одна позиция роли (posPref: 50 % почерк игрока + 50 % его
+  // оружие, нормировано на максимум) — у всех почти 1 где-нибудь, и на Mirage роли выходили наоборот демкам: karrigan (на B 86 % времени
+  // в демках) — ротатор в 5 расстановках из 8, TeSeS (B 57 %, A 31 %) — опорник B в 7 из 8. Теперь — доля времени игрока в демках на
+  // позициях этой роли (сумма, без оружия): кто там чаще стоит, тот и играет
+  var NP = {}, share = function(who, q){ if(NP[who] == null){ NP[who] = 0; KNOW_POSITIONS.points.forEach(function(p){ if(p.side === "CT") NP[who] += (p.byP && p.byP[who]) || 0; }); }
+    return NP[who] ? ((q.byP && q.byP[who]) || 0)/NP[who] : 0; };
   var A = team.map(function(b){ return roles.map(function(r){
-    var names = S.roles[r].pos || [], best = 0;
+    var names = S.roles[r].pos || [], sum = 0, seen = {};
     names.forEach(function(nm){ var ids = zonesByName(nm);
-      KNOW_POSITIONS.points.forEach(function(q){ if(q.side !== "CT") return; if(q.zid === undefined) q.zid = zoneIdAt(q.x, q.y) || null;
-        if(q.zid && ids.indexOf(q.zid) >= 0) best = Math.max(best, posPref(b, q, true)); }); });
-    return best + (base[b.id] === r ? SEAT_KEEP : 0); }); });
+      KNOW_POSITIONS.points.forEach(function(q){ if(q.side !== "CT" || seen[q.id]) return; if(q.zid === undefined) q.zid = zoneIdAt(q.x, q.y) || null;
+        if(q.zid && ids.indexOf(q.zid) >= 0){ seen[q.id] = 1; sum += share(nick(b.id), q); } }); });
+    return sum + (base[b.id] === r ? SEAT_KEEP : 0); }); });
   var bestSum = -1, bestP = null;
   (function perm(arr, k){ if(k === arr.length){ var sm = 0; for(var i=0;i<arr.length;i++) sm += A[i][arr[i]]; if(sm > bestSum){ bestSum = sm; bestP = arr.slice(); } return; }
     for(var i=k;i<arr.length;i++){ var t = arr[k]; arr[k] = arr[i]; arr[i] = t; perm(arr, k+1); t = arr[k]; arr[k] = arr[i]; arr[i] = t; } })([0,1,2,3,4], 0);
@@ -7074,16 +7091,22 @@ function tBrain(){
         setPost(o, fp, SITES[tt.site], true, "rushFollow"); }); }
     // (S5) ставят — двое ближних прикрывают подходы к ставящему под разными углами
     if(BAL.coverPlant && carrier && carrier.alive && (carrier.planting || (carrier.post && carrier.post.tag === "plantspot" && Math.hypot(carrier.x-carrier.post.x, carrier.y-carrier.post.y) < 90))){
-      var cp0 = {x:carrier.x, y:carrier.y};
-      // (v378) кто уже прикрывает — остаётся (+150 ед. форы, проектное число): раньше пара «двое ближних» менялась на ходу каждый тик
-      var covD = function(o){ return Math.hypot(o.x-cp0.x, o.y-cp0.y) - (o.post && o.post.tag === "coverplant" ? 150 : 0); };
-      var covs = rest.filter(function(b){ return !b._sawEnemy && Math.hypot(b.x-cp0.x, b.y-cp0.y) < 550 && !(b._tradeLock && b._tradeLock.until > tick); })
-        .sort(function(a, c){ return covD(a) - covD(c); }).slice(0, 2);
+      // (v409, владелец 22.10: «coverplant очень часто меняется, бегают по всему сайту») точки искались каждый тик вокруг того места, где
+      // ставящий сейчас (он шёл — набор точек менялся), а какая кому — по тому, кто сейчас ближе (порядок переворачивался — менялись
+      // местами): м1 р1 Mirage — ≈ 40 смен точки у двоих за 10 с. Теперь центр — точка планта (не сам ставящий), точки выбираются
+      // один раз, кто взял — держит до конца прикрытия; второго добирают, только если прикрывающих меньше двух
+      var cp0 = carrier.planting ? {x:carrier.baseX, y:carrier.baseY} : {x:carrier.post.x, y:carrier.post.y};
+      var CV = tt._cov; if(!CV || CV.round !== roundNum || Math.hypot(CV.x-cp0.x, CV.y-cp0.y) > 90) CV = tt._cov = {round:roundNum, x:cp0.x, y:cp0.y, by:{}};
       var lkP = [g.ctEntry, g.anchor];
-      covs.forEach(function(b, ci){
-        var sp = pickSpots("covplant"+tt.site+ci, cp0, 2, {rMin:60, rMax:230, minGap:60, see:[lkP[ci]], must:[cp0]})[0];
-        if(sp){ setPost(b, sp, lkP[ci], true, "coverplant"); }
-      });
+      var okCov = function(b){ return !b._sawEnemy && Math.hypot(b.x-CV.x, b.y-CV.y) < 550 && !(b._tradeLock && b._tradeLock.until > tick); };
+      var covs = rest.filter(function(b){ return CV.by[b.id] && okCov(b); });
+      Object.keys(CV.by).forEach(function(id){ if(!covs.some(function(b){ return b.id === id; })) delete CV.by[id]; });
+      rest.filter(function(b){ return !CV.by[b.id] && okCov(b); }).sort(function(a, c){ return Math.hypot(a.x-CV.x, a.y-CV.y) - Math.hypot(c.x-CV.x, c.y-CV.y); })
+        .forEach(function(b){ if(covs.length >= 2) return;
+          var used = Object.keys(CV.by).map(function(id){ return CV.by[id].ci; }), ci = used.indexOf(0) < 0 ? 0 : 1;
+          var sp = pickSpots("covplant"+tt.site+ci, CV, 2, {rMin:60, rMax:230, minGap:60, see:[lkP[ci]], must:[CV]})[0];
+          if(sp){ CV.by[b.id] = {ci:ci, sp:sp}; covs.push(b); } });
+      covs.forEach(function(b){ var A = CV.by[b.id]; setPost(b, A.sp, lkP[A.ci], true, "coverplant"); });
       if(covs.length && !tt._covVoice){ tt._covVoice = tick; voiceLog("T", "covplant", covs[0].id, "ставь, прикрываю"+(covs[1] ? " с "+covs[1].id : "")); }
       rest = rest.filter(function(b){ return covs.indexOf(b) < 0; });
     }
@@ -8650,7 +8673,7 @@ function knowCall(b, msg){
   var say = "войс " + msg.by + ": «" + msg.text + "»";
   if(msg.kind === "plant"){
     if(!K.planted) K.plantHeard = msg.site;
-    else if(!K.plantSite){ K.plantSite = msg.site; knowPlantShift(K, msg.site); }
+    else if(!K.plantSite || K.plantGuess){ K.plantSite = msg.site; K.plantGuess = false; K.plantShift = null; knowPlantShift(K, msg.site); }   // (v409) колл главнее своей догадки
     return;
   }
   if(msg.kind === "defuse"){ K.defuseT = tick; return; }
@@ -8806,11 +8829,16 @@ function knowPlant(b){
   K.plantSite = b.team === "T" ? bomb.site : (K.plantSeen || K.plantHeard || null);
   // (v283, владелец 14.10) CT вычисляет сайт, как игрок: «плант» в HUD, а свой (по радару) стоял у сайта X там, где писк
   // планта слышно (те же 520 px / 850 px по прямой, что у звука планта), и не услышал — значит плант на другом сайте
+  // (v409, владелец 22.10: «TeSeS говорит "ставят B", а бомба на A») «стоял бы рядом — услышал бы» считалось до ЦЕНТРА сайта, а писк
+  // слышно до ставящего (120_bomb): TeSeS стоял у центра A, писк с места планта не услышал — вывод «на B» — и говорил его в войс как
+  // услышанное. Теперь сайт исключается, только если свой слышал бы плант на любом месте про этого сайта (sitePlantPro), а вывод —
+  // догадка (plantGuess): в войс не идёт, увидел бомбу / услышал колл — заменяется
+  K.plantGuess = false;
   if(b.team === "CT" && !K.plantSite){
-    var left = ["A", "B"].filter(function(X){ var S = SITES[X];
-      return !bots.some(function(o){ if(o.team !== "CT" || !o.alive) return false; var dH = Math.hypot(o.x-S.x, o.y-S.y);
-        return dH < 520 || (dH < 850 && hasLOS(o.x, o.y, S.x, S.y, o.z)); }); });
-    if(left.length === 1) K.plantSite = left[0];
+    var hears = function(o, q){ var dH = Math.hypot(o.x-q.x, o.y-q.y); return dH < 520 || (dH < 850 && hasLOS(o.x, o.y, q.x, q.y, o.z)); };
+    var left = ["A", "B"].filter(function(X){ var PP = sitePlantPro(X); if(!PP.length) PP = [SITES[X]];
+      return !bots.some(function(o){ return o.team === "CT" && o.alive && PP.every(function(q){ return hears(o, q); }); }); });
+    if(left.length === 1){ K.plantSite = left[0]; K.plantGuess = true; }
   }
   if(b.team === "CT" && K.plantSite) knowPlantShift(K, K.plantSite);
   for(var id in K.enemies){
@@ -8840,9 +8868,9 @@ function knowPlantShift(K, site){
 // CT видит саму бомбу на земле — знает сайт
 function knowBombSeen(b){
   var K = b.know;
-  if(b.team !== "CT" || !K.planted || K.plantSite || !bomb || bomb.state !== "planted" || tick < (b.blindUntil||0)) return;
+  if(b.team !== "CT" || !K.planted || (K.plantSite && !K.plantGuess) || !bomb || bomb.state !== "planted" || tick < (b.blindUntil||0)) return;
   if(Math.hypot(bomb.x-b.x, bomb.y-b.y) > KNOW.lookRange || !inFov(b, bomb.x, bomb.y) || !hasVision(b.x, b.y, bomb.x, bomb.y)) return;
-  K.plantSite = bomb.site; knowPlantShift(K, bomb.site);
+  K.plantSite = bomb.site; if(K.plantGuess){ K.plantGuess = false; K.plantShift = null; } knowPlantShift(K, bomb.site);
 }
 // ---------- киллфид (feedKill) ----------
 function knowKill(att, vic){
@@ -9163,7 +9191,7 @@ function teamNotice(b){
   }
   // plant: видел, как ставят (CT)
   // plant: видел, как ставят, — или узнал, где бомба (писк, увидел бомбу): говорит команде (CT)
-  var pSite = K.plantSeen || (K.planted && K.plantSite);
+  var pSite = K.plantSeen || (K.planted && !K.plantGuess && K.plantSite);   // (v409) догадку «там никого не было — значит там» не говорит
   if(b.team === "CT" && pSite && !V.plantSaid){ V.plantSaid = true; teamPropose(b, {kind: "plant", site: pSite}); }
 }
 
@@ -20780,6 +20808,7 @@ var __SNAP = [
 ["GEO", function(){ return GEO; }, function(v){ try{ GEO = v; }catch(e){} }],
 ["PATHQ_TTL", function(){ return PATHQ_TTL; }, function(v){ try{ PATHQ_TTL = v; }catch(e){} }],
 ["PATHQ_Q", function(){ return PATHQ_Q; }, function(v){ try{ PATHQ_Q = v; }catch(e){} }],
+["PLANT_CELL", function(){ return PLANT_CELL; }, function(v){ try{ PLANT_CELL = v; }catch(e){} }],
 ["spotCache", function(){ return spotCache; }, function(v){ try{ spotCache = v; }catch(e){} }],
 ["SPOT_TEAM", function(){ return SPOT_TEAM; }, function(v){ try{ SPOT_TEAM = v; }catch(e){} }],
 ["ED_CACHE", function(){ return ED_CACHE; }, function(v){ try{ ED_CACHE = v; }catch(e){} }],

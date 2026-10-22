@@ -122,7 +122,7 @@ function chooseCtSetup(){
 }
 // (v334, М61, владелец: «kyousuke играет Window, а должен Short — рядом с B») роли расстановки CT на раунд — по почерку игроков:
 // для каждой роли — насколько её места (pos) похожи на места этого игрока в демках (posPref: почерк + оружие, как posPickName);
-// перебор 120 рассадок, берётся с наибольшей суммой; своя постоянная роль (playerRoles, роли по демкам карты) — бонус
+// перебор 120 рассадок, берётся с наибольшей суммой (с v409 — доля времени игрока на позициях роли); своя постоянная роль (playerRoles, роли по демкам карты) — бонус
 // SEAT_KEEP (проектное число), чтобы опорники не скакали между раундами без причины
 var SEAT_KEEP = 0.15;
 function ctSeatRoles(S){
@@ -130,12 +130,18 @@ function ctSeatRoles(S){
   var team = bots.filter(function(b){ return b.team === "CT"; }), roles = Object.keys(S.roles);
   if(team.length !== 5 || roles.length !== 5) return;
   var base = {}; team.forEach(function(b){ if(!b._seatRole || b._seatSide !== matchNum+':'+b.team+':'+(roundNum > HALF_ROUNDS ? 2 : 1)){ b._seatRole = b.tRole; b._seatSide = matchNum+':'+b.team+':'+(roundNum > HALF_ROUNDS ? 2 : 1); } base[b.id] = b._seatRole; });
+  // (v409, владелец 22.10: «почему TeSeS опорник?») мера была — САМАЯ похожая одна позиция роли (posPref: 50 % почерк игрока + 50 % его
+  // оружие, нормировано на максимум) — у всех почти 1 где-нибудь, и на Mirage роли выходили наоборот демкам: karrigan (на B 86 % времени
+  // в демках) — ротатор в 5 расстановках из 8, TeSeS (B 57 %, A 31 %) — опорник B в 7 из 8. Теперь — доля времени игрока в демках на
+  // позициях этой роли (сумма, без оружия): кто там чаще стоит, тот и играет
+  var NP = {}, share = function(who, q){ if(NP[who] == null){ NP[who] = 0; KNOW_POSITIONS.points.forEach(function(p){ if(p.side === "CT") NP[who] += (p.byP && p.byP[who]) || 0; }); }
+    return NP[who] ? ((q.byP && q.byP[who]) || 0)/NP[who] : 0; };
   var A = team.map(function(b){ return roles.map(function(r){
-    var names = S.roles[r].pos || [], best = 0;
+    var names = S.roles[r].pos || [], sum = 0, seen = {};
     names.forEach(function(nm){ var ids = zonesByName(nm);
-      KNOW_POSITIONS.points.forEach(function(q){ if(q.side !== "CT") return; if(q.zid === undefined) q.zid = zoneIdAt(q.x, q.y) || null;
-        if(q.zid && ids.indexOf(q.zid) >= 0) best = Math.max(best, posPref(b, q, true)); }); });
-    return best + (base[b.id] === r ? SEAT_KEEP : 0); }); });
+      KNOW_POSITIONS.points.forEach(function(q){ if(q.side !== "CT" || seen[q.id]) return; if(q.zid === undefined) q.zid = zoneIdAt(q.x, q.y) || null;
+        if(q.zid && ids.indexOf(q.zid) >= 0){ seen[q.id] = 1; sum += share(nick(b.id), q); } }); });
+    return sum + (base[b.id] === r ? SEAT_KEEP : 0); }); });
   var bestSum = -1, bestP = null;
   (function perm(arr, k){ if(k === arr.length){ var sm = 0; for(var i=0;i<arr.length;i++) sm += A[i][arr[i]]; if(sm > bestSum){ bestSum = sm; bestP = arr.slice(); } return; }
     for(var i=k;i<arr.length;i++){ var t = arr[k]; arr[k] = arr[i]; arr[i] = t; perm(arr, k+1); t = arr[k]; arr[k] = arr[i]; arr[i] = t; } })([0,1,2,3,4], 0);

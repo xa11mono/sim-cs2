@@ -163,7 +163,7 @@ function bombTick(){
     // (раньше любой видимый CT через полкарты — и носитель стоял на точке
     // планта до конца раунда: это и были почти все проигрыши T по времени)
     var nearFoe = c._sawEnemy && c._nearestEnemyDist < 500;
-    if(site && tac.phase !== "setup" && c.state === "patrol" && !nearFoe && onSite(site, c.baseX, c.baseY) && !(c._noPlantUntil > tick) && !inFire(c.baseX, c.baseY)){   // (v263, Б2) в огне плант не начинают — не доживут
+    if(site && tac.phase !== "setup" && c.state === "patrol" && !nearFoe && canPlantAt(tac.site, c.baseX, c.baseY) && !(c._noPlantUntil > tick) && !inFire(c.baseX, c.baseY)){   // (v263, Б2) в огне плант не начинают — не доживут
       c.planting = true; c.plantUntil = tick + PLANT_TICKS; c.path = []; c.pathIdx = 0; if(SND && SND.on) sndBomb("plant", c.baseX, c.baseY);
       // фейк-плант (раз за раунд): свои рядом держат углы, CT по инфе рядом —
       // начать и через ~1с бросить: CT на звук выйдут под прицел

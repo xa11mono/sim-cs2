@@ -5,7 +5,7 @@ function knowCall(b, msg){
   var say = "войс " + msg.by + ": «" + msg.text + "»";
   if(msg.kind === "plant"){
     if(!K.planted) K.plantHeard = msg.site;
-    else if(!K.plantSite){ K.plantSite = msg.site; knowPlantShift(K, msg.site); }
+    else if(!K.plantSite || K.plantGuess){ K.plantSite = msg.site; K.plantGuess = false; K.plantShift = null; knowPlantShift(K, msg.site); }   // (v409) колл главнее своей догадки
     return;
   }
   if(msg.kind === "defuse"){ K.defuseT = tick; return; }
@@ -161,11 +161,16 @@ function knowPlant(b){
   K.plantSite = b.team === "T" ? bomb.site : (K.plantSeen || K.plantHeard || null);
   // (v283, владелец 14.10) CT вычисляет сайт, как игрок: «плант» в HUD, а свой (по радару) стоял у сайта X там, где писк
   // планта слышно (те же 520 px / 850 px по прямой, что у звука планта), и не услышал — значит плант на другом сайте
+  // (v409, владелец 22.10: «TeSeS говорит "ставят B", а бомба на A») «стоял бы рядом — услышал бы» считалось до ЦЕНТРА сайта, а писк
+  // слышно до ставящего (120_bomb): TeSeS стоял у центра A, писк с места планта не услышал — вывод «на B» — и говорил его в войс как
+  // услышанное. Теперь сайт исключается, только если свой слышал бы плант на любом месте про этого сайта (sitePlantPro), а вывод —
+  // догадка (plantGuess): в войс не идёт, увидел бомбу / услышал колл — заменяется
+  K.plantGuess = false;
   if(b.team === "CT" && !K.plantSite){
-    var left = ["A", "B"].filter(function(X){ var S = SITES[X];
-      return !bots.some(function(o){ if(o.team !== "CT" || !o.alive) return false; var dH = Math.hypot(o.x-S.x, o.y-S.y);
-        return dH < 520 || (dH < 850 && hasLOS(o.x, o.y, S.x, S.y, o.z)); }); });
-    if(left.length === 1) K.plantSite = left[0];
+    var hears = function(o, q){ var dH = Math.hypot(o.x-q.x, o.y-q.y); return dH < 520 || (dH < 850 && hasLOS(o.x, o.y, q.x, q.y, o.z)); };
+    var left = ["A", "B"].filter(function(X){ var PP = sitePlantPro(X); if(!PP.length) PP = [SITES[X]];
+      return !bots.some(function(o){ return o.team === "CT" && o.alive && PP.every(function(q){ return hears(o, q); }); }); });
+    if(left.length === 1){ K.plantSite = left[0]; K.plantGuess = true; }
   }
   if(b.team === "CT" && K.plantSite) knowPlantShift(K, K.plantSite);
   for(var id in K.enemies){
@@ -195,9 +200,9 @@ function knowPlantShift(K, site){
 // CT видит саму бомбу на земле — знает сайт
 function knowBombSeen(b){
   var K = b.know;
-  if(b.team !== "CT" || !K.planted || K.plantSite || !bomb || bomb.state !== "planted" || tick < (b.blindUntil||0)) return;
+  if(b.team !== "CT" || !K.planted || (K.plantSite && !K.plantGuess) || !bomb || bomb.state !== "planted" || tick < (b.blindUntil||0)) return;
   if(Math.hypot(bomb.x-b.x, bomb.y-b.y) > KNOW.lookRange || !inFov(b, bomb.x, bomb.y) || !hasVision(b.x, b.y, bomb.x, bomb.y)) return;
-  K.plantSite = bomb.site; knowPlantShift(K, bomb.site);
+  K.plantSite = bomb.site; if(K.plantGuess){ K.plantGuess = false; K.plantShift = null; } knowPlantShift(K, bomb.site);
 }
 // ---------- киллфид (feedKill) ----------
 function knowKill(att, vic){
