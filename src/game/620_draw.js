@@ -335,7 +335,7 @@ function draw(){
     g.addColorStop(0, "rgba(212,215,207,"+(0.88*fade)+")");
     g.addColorStop(0.7, "rgba(194,198,189,"+(0.76*fade)+")");
     g.addColorStop(1, "rgba(172,177,167,"+(0.46*fade)+")");
-    ctx.save(); areaPath(sm, rr + 0.5); ctx.clip();   // (v323, М36) дым не за стеной — рисуется ровно там, где закрывает
+    ctx.save(); areaPath(sm, rr + 0.5); ctx.clip();   // (М150) дым — полный круг
     ctx.fillStyle = g; ctx.beginPath(); ctx.arc(sm.x, sm.y, rr, 0, Math.PI*2); ctx.fill();
     // клубы внутри радиуса — медленный дрейф, без пульса
     for(var q=0;q<6;q++){
@@ -360,7 +360,7 @@ function draw(){
   });
   fires.forEach(function(fr){
     var R = NADE.molly.radius, life = fr.until - tick, fade = Math.min(1, life/40), age = tick - fr.born, r0 = fireRadiusNow(fr);
-    ctx.save(); areaPath(fr, r0 + 0.5); ctx.clip();   // (v323) рисуется только там, где жжёт (стены режут)
+    ctx.save(); areaPath(fr, r0 + 0.5); ctx.clip();   // (М150) огонь — полный круг
     var seed = fr.born*0.53 + fr.x*0.011 + fr.y*0.017;
     var fg = ctx.createRadialGradient(fr.x, fr.y, 0, fr.x, fr.y, r0);
     fg.addColorStop(0, "rgba(255,196,92,"+(0.72*fade)+")");
