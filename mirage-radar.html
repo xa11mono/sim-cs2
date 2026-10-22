@@ -239,7 +239,7 @@
   <div id="topbar">
     <div class="tb-id">
       <h1>Mirage</h1>
-      <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 403, 22.10</div>
+      <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 404, 22.10</div>
     </div>
     <div class="tb-group" id="tbMatch">
       <button id="btnPause">Пауза</button>
@@ -256,6 +256,7 @@
           <label class="chk"><input type="checkbox" id="chkSound" checked> звук шагов</label>
           <label class="chk" title="Командная информация: ◆ — «вижу» (цвет команды, которая сообщила), кольцо — «слышу», ✕ — погиб тиммейт"><input type="checkbox" id="chkCalls"> коллы</label>
           <label class="chk" title="Маршруты роумеров и отметки «чисто»"><input type="checkbox" id="chkRoam"> роумеры</label>
+          <label class="chk" title="Куда идёт каждый живой игрок: линия — путь по навмешу до его точки (кольцо — точка задачи, подпись — задача), треугольник — подъём / спуск на другой этаж, бледный пунктир — где он прошёл за последние ~2 с"><input type="checkbox" id="chkPaths"> пути игроков</label>
           <label class="chk" title="Под каждым игроком: какая у него сейчас задача и почему он смотрит именно туда"><input type="checkbox" id="chkWhy"> почему</label>
           <label class="chk" title="Разбор взгляда выбранного игрока (клик по нему на радаре или по карточке): опасность зон и что о врагах знает его команда — цветом и числами, все варианты взгляда с баллами и множителями, источники (звук, инфа, где видели), и почему выбран именно этот угол"><input type="checkbox" id="chkLookDbg"> разбор взгляда</label>
           <label class="chk"><input type="checkbox" id="chkOutline"> контуры укрытий</label>
@@ -29684,6 +29685,33 @@ function draw(){
         var lbl = p.name + (p.cleared > 0 ? " · чисто "+((tick-p.cleared)/TICK_HZ).toFixed(0)+"с назад" : "");
         ctx.fillText(lbl, p.x+8/view.scale, p.y+3/view.scale);
       });
+    });
+  }
+  // (v404, владелец 22.10: «видеть пути игроков по кнопке») путь каждого живого игрока: от него по точкам пути (b.path с pathIdx)
+  // до точки задачи; подъём / спуск на другой этаж (разница высоты точек > JUMP_UP) — треугольник; пройденное (b._trail) — пунктир
+  var chkP = document.getElementById("chkPaths");
+  if(chkP && chkP.checked){
+    var s1 = 1/view.scale;
+    bots.forEach(function(b){ if(!b.alive) return;
+      var col = b.team === "CT" ? "90,155,217" : "217,162,74";
+      var TR = b._trail || [];
+      if(TR.length){ ctx.strokeStyle = "rgba("+col+",0.35)"; ctx.lineWidth = 1.2*s1; ctx.setLineDash([2*s1, 3*s1]); ctx.beginPath();
+        TR.forEach(function(q, i){ if(i) ctx.lineTo(q.x, q.y); else ctx.moveTo(q.x, q.y); }); ctx.lineTo(b.baseX, b.baseY); ctx.stroke(); ctx.setLineDash([]); }
+      var P = b.path || [], i0 = b.pathIdx || 0;
+      if(i0 < P.length){
+        ctx.strokeStyle = "rgba("+col+",0.85)"; ctx.lineWidth = 1.6*s1; ctx.beginPath(); ctx.moveTo(b.baseX, b.baseY);
+        for(var i = i0; i < P.length; i++) ctx.lineTo(P[i][0], P[i][1]);
+        ctx.stroke();
+        var pz = b.z;
+        for(var k = i0; k < P.length; k++){ var w = P[k], up = w[2] != null && pz != null && w[2] && Math.abs(w[2]-pz) > JUMP_UP;
+          ctx.fillStyle = "rgba("+col+",0.95)";
+          if(up){ var dn = w[2] < pz, r3 = 4.5*s1; ctx.beginPath(); ctx.moveTo(w[0], w[1] + (dn ? r3 : -r3)); ctx.lineTo(w[0]-r3, w[1] + (dn ? -r3 : r3)); ctx.lineTo(w[0]+r3, w[1] + (dn ? -r3 : r3)); ctx.closePath(); ctx.fill(); }
+          else { ctx.beginPath(); ctx.arc(w[0], w[1], 1.8*s1, 0, Math.PI*2); ctx.fill(); }
+          if(w[2]) pz = w[2]; }
+      }
+      if(b.post){ ctx.strokeStyle = "rgba("+col+",0.95)"; ctx.lineWidth = 1.5*s1; ctx.beginPath(); ctx.arc(b.post.x, b.post.y, 5*s1, 0, Math.PI*2); ctx.stroke();
+        ctx.fillStyle = "rgba("+col+",0.95)"; ctx.font = "600 "+(9.5*s1)+"px 'IBM Plex Mono',monospace"; ctx.textAlign = "left";
+        ctx.fillText(pnum(b.id) + " · " + String(b.post.tag).replace(/[|].*$/, ""), b.post.x + 7*s1, b.post.y + 3*s1); }
     });
   }
   // оружие на земле

@@ -598,6 +598,33 @@ function draw(){
       });
     });
   }
+  // (v404, владелец 22.10: «видеть пути игроков по кнопке») путь каждого живого игрока: от него по точкам пути (b.path с pathIdx)
+  // до точки задачи; подъём / спуск на другой этаж (разница высоты точек > JUMP_UP) — треугольник; пройденное (b._trail) — пунктир
+  var chkP = document.getElementById("chkPaths");
+  if(chkP && chkP.checked){
+    var s1 = 1/view.scale;
+    bots.forEach(function(b){ if(!b.alive) return;
+      var col = b.team === "CT" ? "90,155,217" : "217,162,74";
+      var TR = b._trail || [];
+      if(TR.length){ ctx.strokeStyle = "rgba("+col+",0.35)"; ctx.lineWidth = 1.2*s1; ctx.setLineDash([2*s1, 3*s1]); ctx.beginPath();
+        TR.forEach(function(q, i){ if(i) ctx.lineTo(q.x, q.y); else ctx.moveTo(q.x, q.y); }); ctx.lineTo(b.baseX, b.baseY); ctx.stroke(); ctx.setLineDash([]); }
+      var P = b.path || [], i0 = b.pathIdx || 0;
+      if(i0 < P.length){
+        ctx.strokeStyle = "rgba("+col+",0.85)"; ctx.lineWidth = 1.6*s1; ctx.beginPath(); ctx.moveTo(b.baseX, b.baseY);
+        for(var i = i0; i < P.length; i++) ctx.lineTo(P[i][0], P[i][1]);
+        ctx.stroke();
+        var pz = b.z;
+        for(var k = i0; k < P.length; k++){ var w = P[k], up = w[2] != null && pz != null && w[2] && Math.abs(w[2]-pz) > JUMP_UP;
+          ctx.fillStyle = "rgba("+col+",0.95)";
+          if(up){ var dn = w[2] < pz, r3 = 4.5*s1; ctx.beginPath(); ctx.moveTo(w[0], w[1] + (dn ? r3 : -r3)); ctx.lineTo(w[0]-r3, w[1] + (dn ? -r3 : r3)); ctx.lineTo(w[0]+r3, w[1] + (dn ? -r3 : r3)); ctx.closePath(); ctx.fill(); }
+          else { ctx.beginPath(); ctx.arc(w[0], w[1], 1.8*s1, 0, Math.PI*2); ctx.fill(); }
+          if(w[2]) pz = w[2]; }
+      }
+      if(b.post){ ctx.strokeStyle = "rgba("+col+",0.95)"; ctx.lineWidth = 1.5*s1; ctx.beginPath(); ctx.arc(b.post.x, b.post.y, 5*s1, 0, Math.PI*2); ctx.stroke();
+        ctx.fillStyle = "rgba("+col+",0.95)"; ctx.font = "600 "+(9.5*s1)+"px 'IBM Plex Mono',monospace"; ctx.textAlign = "left";
+        ctx.fillText(pnum(b.id) + " · " + String(b.post.tag).replace(/[|].*$/, ""), b.post.x + 7*s1, b.post.y + 3*s1); }
+    });
+  }
   // оружие на земле
   groundWeapons.forEach(function(G){
     ctx.save(); ctx.fillStyle = "rgba(210,210,200,0.85)"; ctx.strokeStyle = "rgba(20,20,20,0.8)"; ctx.lineWidth = 1/view.scale;
