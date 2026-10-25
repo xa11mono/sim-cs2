@@ -153,7 +153,7 @@ function tProbes(tt, ts){
           var uFl = ts.filter(function(o){ return o !== pb && !o.nadeTask && o.nades && o.nades.flash > 0 && Math.hypot(o.x-pb.x, o.y-pb.y) < 500; })[0];
           var uSm = ts.filter(function(o){ return !o.nadeTask && o.nades && o.nades.smoke > 0 && Math.hypot(o.x-pb.x, o.y-pb.y) < 600; })[0];
           if(uFl && (P.needUtil || P.n === 1 || hashRand(tick + 3) < 0.6)){ assignNade(uFl, "flash", uFp, "под пробу", {now:true}); P.util = "flash"; }
-          else if(uSm && (key === "M" || P.needUtil) && tSmokeReserveOk()){ var smP = {x: to.x + (look.x-to.x)*0.5, y: to.y + (look.y-to.y)*0.5}; if(assignNade(uSm, "smoke", smP, "смок под пробу", {now:true})) P.util = "smoke"; }
+          else if(uSm && (key === "M" || P.needUtil)){ var smP = {x: to.x + (look.x-to.x)*0.5, y: to.y + (look.y-to.y)*0.5}; if(assignNade(uSm, "smoke", smP, "смок под пробу", {now:true})) P.util = "smoke"; }
         }
         // со второго раза — глубже, за фрагом, но только парой (есть кому
         // разменять) и если по инфе там не стак

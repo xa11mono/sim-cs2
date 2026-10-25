@@ -115,6 +115,7 @@ function throwNade(b, type, tx, ty, lob, why, trusted){
   // (v340, отметка владельца: «кидает через крытую зону» — kyousuke из-под крыши B Apps навесом через стену) сам под крышей /
   // под другим этажом — навесом нельзя (дуга упрётся в потолок): только низом, если цель видна (окно, проход)
   b.nades[type]--; b._nadeT = tick; b._lastNade = {type:type, x:tx, y:ty, t:tick};
+  npUse(b, type, (b.nadeTask && b.nadeTask.type === type && b.nadeTask.npm) || npMomentNow(b));   // (v428) запись плана гранат снята
   var d = Math.max(60, Math.hypot(tx-b.x, ty-b.y)); if(!lob) d = Math.min(NADE_THROW_RANGE, d);
   var a = Math.atan2(ty-b.y, tx-b.x);
   var v0 = d * (1-0.96) * TICK_HZ; // при затухании 0.96/тик пролетит примерно d
@@ -169,6 +170,10 @@ function smokeCovered(x, y){
 function assignNade(b, type, target, why, opts){
   if(!b || !b.alive || !b.nades || b.nades[type] <= 0) return false;
   if(opts && opts.bkey && !builtinAllowed(opts.bkey)) return false; // встроенная выключена или заменена своим лайнапом
+  // (v428) план гранат команды (365): граната, отложенная на более поздний момент (выход, после планта, ретейк), сейчас не тратится;
+  // гранаты выхода T — момент «выход» и тогда, когда их кидают заранее, до пика (preExec)
+  var npm = (opts && opts.bkey && /^T\.exec\./.test(opts.bkey)) ? "exec" : npMomentNow(b);
+  if(!npCanUse(b, type, npm, null)){ NADE_FAIL = npWhyNot(b, type); return false; }
   if(b.nadeTask && (b.nadeTask.type === type || b.nadeTask.lineup)) return false; // свой лайнап не перебиваем
   if(type === "smoke" && smokeCovered(target.x, target.y)) return false;
   // одна граната одного типа в одну точку: другие механики (комбо, флешка
@@ -177,7 +182,7 @@ function assignNade(b, type, target, why, opts){
      bots.some(function(o){ return o !== b && o.alive && o.team === b.team && o.nadeTask && o.nadeTask.type === type && Math.hypot(o.nadeTask.x-target.x, o.nadeTask.y-target.y) < 120; }))) return false;
   // (v419) here — бросок только с места (задержать гранатой, 350): срок 2 с, на точку броска не идёт
   var here = !!(opts && opts.here);
-  b.nadeTask = {type:type, x:target.x, y:target.y, until: tick + (here ? 2 : 10)*64, why:why||"", start:tick, lob:true, range:(opts && opts.range) || NADE_THROW_RANGE, now:!!(opts && opts.now), here:here};
+  b.nadeTask = {type:type, x:target.x, y:target.y, until: tick + (here ? 2 : 10)*64, why:why||"", start:tick, lob:true, range:(opts && opts.range) || NADE_THROW_RANGE, now:!!(opts && opts.now), here:here, npm:npm};
   return true;
 }
 // задание на гранату выполняется, как только точка видна и в пределах броска
@@ -187,7 +192,7 @@ function nadeQueueNext(b){
   var q = b.nadeQueue.shift();
   if(!b.nades || b.nades[q.type] <= 0 || roundState !== "live") return nadeQueueNext(b);
   var qSec = Math.max(6, Math.ceil(pathLenTo(b, q.from.x, q.from.y)/SPEED + LU_REACH_PAD));   // (v359) точка следующей — бывает дальше
-  b.nadeTask = {type:q.type, x:q.x, y:q.y, from:q.from, until: tick + qSec*TICK_HZ, why:q.why, start:tick, lob:true, range:4000, now:true, lineup:true, exec:q.exec && q.type === "smoke"};
+  b.nadeTask = {type:q.type, x:q.x, y:q.y, from:q.from, until: tick + qSec*TICK_HZ, why:q.why, start:tick, lob:true, range:4000, now:true, lineup:true, exec:q.exec && q.type === "smoke", npm:q.npm};
 }
 function updateNadeTasks(){
   bots.forEach(function(b){

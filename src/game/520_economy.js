@@ -225,9 +225,10 @@ function buyFullKit(b, idx){
   var P = {weapon: wantAwp ? WEAPONS.AWP : (cur && cur.tier >= 6 ? null : rifle), refill: hp < ARMOR_REBUY.tight, top: hp >= ARMOR_REBUY.tight && hp < ARMOR_REBUY.full,
            helmet: !b.helmet, kit: !T && !b.kit && !wantAwp && b.primary !== "AWP", nades: []};
   var kitN = mates.filter(function(m){ return m !== b && m.kit; }).length;
-  var kitKey = (b.primary === "AWP" || wantAwp) ? "awp" : (b.tRole === "awp" ? "support" : b.tRole);   // снайпер без AWP — набор саппорта
   var have = {smoke:b.nades.smoke, flash:b.nades.flash, molly:b.nades.molly, he:b.nades.he}, fN = 0;
-  (NADE_WISH_PRO[kitKey] || []).forEach(function(t){
+  // (v428) гранаты фулла — из плана команды (365_nade_plan: гранаты своей зоны на нужный момент), а не набор роли (NADE_WISH_PRO)
+  var NPL = teamNadePlan(b.team, "full")[b.id] || [];
+  NPL.forEach(function(t){
     var tag = t === "flash" ? (++fN === 1 ? "flash1" : "flash2") : t;
     if(have[t] > 0){ have[t]--; return; }
     P.nades.push({t:t, tag:tag});
@@ -254,12 +255,11 @@ function buyFullKit(b, idx){
   buyArmor(b, P.helmet, P.refill || P.top ? 101 : 1);
   if(P.kit && b.money >= 400){ b.money -= 400; b.kit = true; }
   P.nades.forEach(function(n){ var pr = nadePrice(n.t, b.team), tot = b.nades.smoke + b.nades.flash + b.nades.he + b.nades.molly;
-    if(tot < 4 && b.money >= pr && (n.t === "flash" ? b.nades.flash < 2 : b.nades[n.t] < 1)){ b.money -= pr; b.nades[n.t]++; } });
-  // срезанное, на что после замены оружия (AK → Galil) хватает остатка, — докупает по тому же порядку набора
-  kitKey = b.primary === "AWP" ? "awp" : (b.tRole === "awp" ? "support" : b.tRole);
-  (NADE_WISH_PRO[kitKey] || []).forEach(function(t){ var pr = nadePrice(t, b.team), tot = b.nades.smoke + b.nades.flash + b.nades.he + b.nades.molly;
-    var need = (NADE_WISH_PRO[kitKey] || []).filter(function(x){ return x === t; }).length;
-    if(tot < 4 && b.money >= pr && b.nades[t] < need){ b.money -= pr; b.nades[t]++; } });
+    if(tot < 4 && b.money >= pr && (n.t === "flash" ? b.nades.flash < 2 : b.nades[n.t] < 1)){ b.money -= pr; b.nades[n.t]++; npBought(b, n.t); } });
+  // срезанное, на что после замены оружия (AK → Galil) хватает остатка, — докупает по тому же плану
+  NPL.forEach(function(t){ var pr = nadePrice(t, b.team), tot = b.nades.smoke + b.nades.flash + b.nades.he + b.nades.molly;
+    var need = NPL.filter(function(x){ return x === t; }).length;
+    if(tot < 4 && b.money >= pr && b.nades[t] < need){ b.money -= pr; b.nades[t]++; npBought(b, t); } });
   b._fullKit = roundNum;
 }
 // лучшая основная, которую можно купить, оставив `keep` денег; не ниже того, что уже есть
@@ -276,33 +276,7 @@ function bestPrimary(b, maxPrice, keep){
   return best;
 }
 
-// (v293) гранаты команды на пистолетке — сколько в среднем бросают про (92 демки Ancient, раунды 1 и 13, на команду):
-// смок 1,1, флешка 1,0, молотов 0,36, HE 0,09. Кевлар $650 из $800 + граната не помещаются — кто берёт гранату, тот без кевлара.
-// Кому — по списку гранат роли (NADE_WISH_PRO), не больше $800 на игрока. План один на раунд
-// (v373, сторож: «цепочка гранат» — на форсе HE не покупали вовсе, молотов у T — 0,2 на команду, на эко — один дым; про на форсе
-// бросают 8,9–10,1 гранаты на команду, боты — 4,8–6,0) какие гранаты берёт команда на пистолетке, эко и форсе — одно место для
-// всех типов раунда (было: план — только на пистолетке, на эко/форсе — по 1–2 гранаты из списка роли, HE последней). Сколько —
-// из демок карты по стороне и типу раунда (tools/nades_pro.py → MAP.pro.nadesBy: брошено за раунд на команду); дробная часть —
-// случай. Раздаётся по ролям (NADE_WISH_PRO) и деньгам; фулл — набор роли (buyFullKit)
-function teamNadePlan(team, rt){
-  var E = teamEco[team] || (teamEco[team] = {});
-  if(E._tnp && E._tnp.k === matchNum+":"+roundNum+":"+rt) return E._tnp.plan;
-  var hr = function(n){ return hashRand(matchNum*131 + roundNum*17 + (team === "CT" ? 7 : 3) + n*29); };
-  var NB = ((MAP.pro.nadesBy || {})[team] || {})[rt] || {}, want = [];
-  ["smoke", "flash", "molly", "he"].forEach(function(t, ti){ var e = NB[t] || 0, k = Math.floor(e) + (hr(ti+1) < e - Math.floor(e) ? 1 : 0); for(var i = 0; i < k; i++) want.push(t); });
-  var ps = bots.filter(function(o){ return o.team === team; }), plan = {}, cost = {}, cnt = {};
-  var cap = rt === "pistol" ? function(o){ return 800; } : function(o){ return o.money; };
-  want.forEach(function(t){
-    var pr = nadePrice(t, team);
-    var cand = ps.filter(function(o){ var have = plan[o.id] || []; return (cost[o.id]||0) + pr <= cap(o) && have.length < 4 && have.filter(function(x){ return x === t; }).length < (t === "flash" ? 2 : 1); })
-      .sort(function(a, c){ var wa = (NADE_WISH_PRO[a.tRole] || NADE_WISH[a.tRole] || []).indexOf(t), wc = (NADE_WISH_PRO[c.tRole] || NADE_WISH[c.tRole] || []).indexOf(t);
-        wa = wa < 0 ? 9 : wa; wc = wc < 0 ? 9 : wc; return (wa - wc) || ((plan[a.id]||[]).length - (plan[c.id]||[]).length) || (c.money - a.money); });
-    var o = cand[0]; if(!o) return;
-    (plan[o.id] = plan[o.id] || []).push(t); cost[o.id] = (cost[o.id]||0) + pr;
-  });
-  E._tnp = {k: matchNum+":"+roundNum+":"+rt, plan: plan};
-  return plan;
-}
+// (v428) план гранат команды (teamNadePlan) — в 365_nade_plan.js: какие гранаты, у кого, на какой момент и для какой зоны
 function buyForPlayer(b, type, idx){
   var before = b.money;
   if(type === "pistol"){
@@ -313,7 +287,7 @@ function buyForPlayer(b, type, idx){
     else if(b.team === "T" && hP < 0.07) buyItem(b, "P250");
     // (v293, Э-пункт, владелец 14.10: «на пистолетке не покупают гранаты») кому команда отдала гранату — берёт её вместо кевлара
     var PN = teamNadePlan(b.team, "pistol")[b.id];
-    if(PN){ if(!b.nades) b.nades = emptyNades(); PN.forEach(function(t){ var pr = nadePrice(t, b.team); if(b.money >= pr){ b.money -= pr; b.nades[t]++; } }); }
+    if(PN){ if(!b.nades) b.nades = emptyNades(); PN.forEach(function(t){ var pr = nadePrice(t, b.team); if(b.money >= pr){ b.money -= pr; b.nades[t]++; npBought(b, t); } }); }
     else if(!b.secondary || b.secondary === (b.team === "CT" ? "USP" : "GLOCK")) buyArmor(b, false, ARMOR_REBUY.pistol);
   } else if(type === "full"){
     if(!b.nades) b.nades = emptyNades();

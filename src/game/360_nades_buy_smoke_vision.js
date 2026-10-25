@@ -66,7 +66,7 @@ function buyNades(b, type){
     var keepE = (BAL.nadeBuy && type === "eco") ? fullNeed(b) - nextLossIncome(b.team) : -1e9;
     TP.forEach(function(t){ var pr = nadePrice(t, b.team), tot = b.nades.smoke + b.nades.flash + b.nades.he + b.nades.molly;
       if(tot >= 4 || (t === "flash" ? b.nades.flash >= 2 : b.nades[t] >= 1) || b.money < pr || b.money - pr < keepE) return;
-      b.money -= pr; b.nades[t]++; });
+      b.money -= pr; b.nades[t]++; npBought(b, t); });
     return;
   }
   var wish = (BAL.proNades ? NADE_WISH_PRO[b.tRole] : null) || NADE_WISH[b.tRole] || [];
@@ -85,7 +85,7 @@ function buyNades(b, type){
     if(BAL.nadeBuy && (type === "eco" || type === "pistol") && t === "molly") continue;
     if(BAL.nadeBuy && type === "eco" && b.money - pr < keepEco) continue;
     if(b.money < pr) continue;
-    b.money -= pr; b.nades[t]++; bought++;
+    b.money -= pr; b.nades[t]++; npBought(b, t); bought++;
   }
 }
 

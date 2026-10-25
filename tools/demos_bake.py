@@ -26,7 +26,8 @@ import mapdir  # noqa: E402
 
 MAPNAME = mapdir.current()
 SCRIPTS = [('pro.py',), ('progrid_bake.py',), ('lineups.py',), ('cluster.py',), ('positions_bake.py',),
-           ('player_positions_bake.py',), ('tactics_bake.py', '--game'), ('roles_bake.py',), ('jumps_bake.py',), ('plants_bake.py',)]
+           ('player_positions_bake.py',), ('tactics_bake.py', '--game'), ('roles_bake.py',), ('jumps_bake.py',), ('plants_bake.py',),
+           ('nadeplan_bake.py',)]   # (v428) доли гранат про по моменту и зоне → nadeplan.json (план гранат команды)
 PRO_MIN, EXTRA_MIN, EXTRA_MATCHES, N_MIN = 0.05, 0.015, 3, 4
 
 

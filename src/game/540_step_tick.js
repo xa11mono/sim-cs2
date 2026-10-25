@@ -8,9 +8,8 @@ var accumulator = 0;
 var lastFrame = null;
 roundState = BAL.freeze > 0 ? "freeze" : "live";
 roundStartTime = BAL.freeze; roundStartTick = Math.round(BAL.freeze*TICK_HZ);
-buyPhase(); // закуп первого (пистолетного) раунда — после объявления simTime (logEvent его использует)
+buyPhase(); // закуп первого (пистолетного) раунда — после объявления simTime (logEvent его использует); (v428) тактика выбирается в нём
 resetBomb();
-chooseTactic();
 beliefBuild(); beliefReset(); // раздел 13: карта вероятностей врага
 
 // (v322, М14) свободный обзор в закупку: каждый смотрит сам по себе — держит взгляд, потом поворачивает мышь.

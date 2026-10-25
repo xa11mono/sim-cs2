@@ -1,0 +1,95 @@
+{
+ "_about": "tools/nadeplan_bake.py: доли бросков про по «момент|зона» для каждого типа гранаты (сумма по типу = 1)",
+ "CT": {
+  "molly": {
+   "now|A": 0.3899,
+   "now|B": 0.3015,
+   "now|mid": 0.2518,
+   "call|A": 0.0148,
+   "call|mid": 0.0114,
+   "retake|A": 0.0099,
+   "call|B": 0.0086,
+   "retake|mid": 0.0071,
+   "retake|B": 0.0049
+  },
+  "flash": {
+   "now|A": 0.558,
+   "now|B": 0.1898,
+   "now|mid": 0.1273,
+   "call|A": 0.0352,
+   "call|B": 0.0306,
+   "retake|A": 0.0199,
+   "call|mid": 0.0148,
+   "retake|mid": 0.0148,
+   "retake|B": 0.0095
+  },
+  "smoke": {
+   "now|A": 0.5564,
+   "now|B": 0.2751,
+   "now|mid": 0.0849,
+   "call|A": 0.0308,
+   "call|B": 0.0189,
+   "retake|A": 0.0183,
+   "call|mid": 0.0056,
+   "retake|B": 0.0054,
+   "retake|mid": 0.0044
+  },
+  "he": {
+   "now|A": 0.3752,
+   "now|mid": 0.2702,
+   "now|B": 0.24,
+   "call|A": 0.0414,
+   "call|mid": 0.0207,
+   "call|B": 0.0171,
+   "retake|A": 0.0156,
+   "retake|B": 0.0107,
+   "retake|mid": 0.0093
+  }
+ },
+ "T": {
+  "smoke": {
+   "now|mid": 0.6084,
+   "now|A": 0.1744,
+   "exec|A": 0.0792,
+   "exec|mid": 0.0369,
+   "exec|B": 0.0369,
+   "now|B": 0.0337,
+   "postplant|B": 0.0132,
+   "postplant|A": 0.01,
+   "postplant|mid": 0.0073
+  },
+  "flash": {
+   "now|mid": 0.3892,
+   "now|A": 0.2183,
+   "exec|A": 0.133,
+   "now|B": 0.1221,
+   "exec|B": 0.0738,
+   "postplant|A": 0.0268,
+   "exec|mid": 0.0147,
+   "postplant|B": 0.0133,
+   "postplant|mid": 0.0089
+  },
+  "molly": {
+   "now|mid": 0.3319,
+   "now|A": 0.2365,
+   "exec|A": 0.1587,
+   "now|B": 0.1373,
+   "exec|B": 0.0901,
+   "exec|mid": 0.0161,
+   "postplant|A": 0.0143,
+   "postplant|B": 0.0115,
+   "postplant|mid": 0.0035
+  },
+  "he": {
+   "now|mid": 0.3936,
+   "now|A": 0.2115,
+   "now|B": 0.1241,
+   "exec|A": 0.1146,
+   "exec|B": 0.0505,
+   "postplant|A": 0.0389,
+   "postplant|B": 0.0266,
+   "exec|mid": 0.0239,
+   "postplant|mid": 0.0164
+  }
+ }
+}

@@ -5,9 +5,16 @@ function buyPhase(){
     var type = decideRoundType(team);
     teamEco[team].roundType = type;
     if(teamEco[team].ecoWhy) logEvent(team+": "+teamEco[team].ecoWhy);
+  });
+  // (v428, PRINCIPLES М160) план раунда — до закупа, как у живой команды (IGL называет план, потом закуп): тактика T и расстановка CT
+  // зависят только от типа раунда; закуп гранат — под план (365_nade_plan: гранаты своей зоны на нужный момент). Раньше — после закупа
+  chooseTactic();
+  ["CT","T"].forEach(function(team){
+    var type = teamEco[team].roundType;
     if(type === "full") teamAwp(team);
     if(type === "full") teamDrops(team);
     var spent = 0;
+    bots.filter(function(b){ return b.team === team; }).forEach(function(b){ npRoundStart(b); });
     bots.filter(function(b){ return b.team === team; }).forEach(function(b, i){ spent += buyForPlayer(b, type, i); });
     logEvent(team+": "+ROUND_TYPE_LABEL[type]+" (потрачено $"+spent+")");
   });
@@ -206,9 +213,8 @@ function resetRound(){
   bots.forEach(function(b){ b.roundKills = 0; b.roundDmg = 0; b._dmgBy = null; b._blindBy = null; b.post = null; b.atPost = false; b.planting = false; b.defusing = false; b._saveSpot = null; b._huntIdx = undefined; b._huntArrive = 0; b._lurkIdx = 0; b._lurkArr = 0; b._lurkPh = undefined; });
   spotCache = {};
   resetNades();
-  buyPhase();
+  buyPhase();   // (v428) выбор тактики — внутри, до закупа
   resetBomb();
-  chooseTactic();
   logEvent("Раунд "+roundNum+" начался");
 }
 

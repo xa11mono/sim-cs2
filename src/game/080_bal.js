@@ -168,7 +168,7 @@ var BAL = {
   namedPos: true, midTake: true, stopPlant: true, reangle: true, silentWalk: true,
   antiDefuse: true, lurkCheck: true, iglErr: 0.25,
   profiles: true, execErr: true, oppProfile: true, // раздел 13 п.6–7: профили игроков, ошибки исполнения, профиль соперника // iglErr — доля раундов, когда IGL "не дочитал" инфу     // позиции по названиям зон (удержание, заход, пост-плант, ретейк)
-  plantChoice: true, repos: true, antiEco: true, keepMol: true, offAngle: true, // раздел 12 (хвосты)
+  plantChoice: true, repos: true, antiEco: true, offAngle: true, // раздел 12 (хвосты)
   ctSetup: "2-1-2",   // расстановка CT: "1-1-1" (ротатор между сайтами) или "2-1-2" (ротатор вторым на сайт)
   fov: 110,           // угол обзора, градусов
   smokeR: 70,         // радиус дыма, px

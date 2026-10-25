@@ -22,12 +22,8 @@ var LU_TYPE = {smoke:"смок", flash:"флешка", molly:"молотов", h
 // (14) гранаты выхода раньше: смоки/молотов летят за ~4с до выхода (пока
 // группа стоит на точках), а не в момент выхода — раньше энтри уже пикал,
 // а смок ещё летел или его вообще не успевали кинуть
-// смоки на выход — неприкосновенный запас: проба/фейк не тратят последние два
-function tSmokeReserveOk(){
-  if(!BAL.nadeEarly) return true;
-  var n = 0; bots.forEach(function(b){ if(b.alive && b.team === "T" && b.tRole !== "lurker" && b.nades) n += b.nades.smoke; });
-  return n - 1 >= 2;
-}
+// (v428) запас гранат на выход / после планта / ретейк — в плане гранат команды (365_nade_plan, npCanUse в assignNade и лайнапах);
+// было отдельное правило «смоки на выход — последние два не тратить» (tSmokeReserveOk)
 function preExecNow(tt){
   if(!BAL.nadeEarly || !tt || tt.phase !== "setup" || !tt.execTick || tt.rebound && tick - (tt._rbT||0) < 2*TICK_HZ) return false;
   var secLeft = ROUND_TIME_SEC - (simTime - roundStartTime);
@@ -45,7 +41,7 @@ function tExecNadesFlying(){
 var CROSS_BELIEF = 0.3, CROSS_MAX = 2, CROSS_NEAR = 650;
 function tCrossSmoke(L){
   if(L.team !== "T" || L.type !== "smoke" || roundState !== "live" || bomb.state === "planted") return false;
-  if((nadeFlags._xsN||0) >= CROSS_MAX || !tSmokeReserveOk() || smokeCovered(L.to.x, L.to.y)) return false;
+  if((nadeFlags._xsN||0) >= CROSS_MAX || smokeCovered(L.to.x, L.to.y)) return false;
   if(tick % 16) return false;
   // CT там могут быть: по знанию команды (≥ CROSS_BELIEF) или это место, где CT держат (pos.ctHold набора карты — по демкам про) и
   // его не чекали пустым последние 10 с
@@ -125,18 +121,14 @@ function lineupTick(){
     if(L.pro && L.trigger === "setup") maxD = BAL.nadeReach ? 1100 : 700;
     if(L.pro && L.trigger === "timed"){ maxD = BAL.nadeReach ? 850 : 400; hot = true; }
     var cost = function(b){ return Math.hypot(b.x-L.from.x, b.y-L.from.y) + (b.tRole === "entry" ? 300 : 0) + nadeRoleCost(b); };
-    // (v285, владелец 14.10) опорник не уходит со своей точки ради гранаты (опорник A уходил в Top Mid — A пустой): кидает только
-    // то, что кидается рядом с его постом (≤300 px — проектное число); по коллу и на ретейке — как раньше
-    var leavesSite = function(b){ if(b.team !== "CT" || L.trigger === "retake" || L.trigger === "call") return false; var k = b.tRole === "anchorA" ? "A" : b.tRole === "anchorB" ? "B" : null; if(!k) return false;
-      var P0 = b.post && b.post.tag === "anchor" ? b.post : SITES[k]; return Math.hypot(L.from.x-P0.x, L.from.y-P0.y) > 300; };
-    // (v423, владелец 25.10, Mirage м1 р2: лёркер с B бежал за лайнапом в Underpath и на Top Mid, саппорт — назад на спавн, донк — с
-    // B Apartments на Top Mid) лайнап сетапа T кидает тот, кому точка броска по пути к посту роли (конец маршрута, если идёт по маршруту):
-    // крюк через неё — не больше SETUP_DETOUR. (v424) в v423 было «пост ≤ 500 от точки броска, не лёркер» — запретило броски по дороге
-    // со спавна: на м1 р3 смок в Window со спавна кинуть стало некому. Лёркеру — тоже можно, если по пути
-    var setupFar = function(b){ if(b.team !== "T" || L.trigger !== "setup") return false;
-      var P0 = (b._route && b._route.want && b._route.want[0]) || b.post; if(!P0) return false;
-      return Math.hypot(L.from.x-b.x, L.from.y-b.y) + Math.hypot(P0.x-L.from.x, P0.y-L.from.y) - Math.hypot(P0.x-b.x, P0.y-b.y) > SETUP_DETOUR; };
-    var okBot = function(b){ return b.team === L.team && b.alive && b.nades && b.nades[L.type] > 0 && !leavesSite(b) && !setupFar(b) &&
+    // (v428, PRINCIPLES М160; заменяет «опорник — не дальше 300 от поста» v285 и «лайнап сетапа по пути, крюк 300» v424) кидает хозяин
+    // гранаты по плану команды (365): граната этого типа отложена на этот момент или раньше и — до контакта / на сетапе / на выходе —
+    // для зоны лайнапа (CT — где стоит бросающий, T — куда падает граната; как в tools/nadeplan_bake.py). Колл, ретейк, после
+    // планта — помощь: зона не важна, кидает ближайший, у кого есть
+    var luM = L.team === "CT" ? ({timed:"now", call:"call", retake:"retake"}[L.trigger] || "now")
+                              : ({insta:"now", setup:"now", exec:"exec", postplant:"postplant"}[L.trigger] || "now");
+    var luZ = (luM === "now" || luM === "exec") ? (L._npz || (L._npz = L.team === "CT" ? npZoneAt(L.from.x, L.from.y) : npZoneAt(L.to.x, L.to.y))) : null;
+    var okBot = function(b){ return b.team === L.team && b.alive && b.nades && b.nades[L.type] > 0 && npCanUse(b, L.type, luM, luZ) &&
       !b.planting && !b.defusing && !(bomb.state === "carried" && bomb.carrier === b) && Math.hypot(b.x-L.from.x, b.y-L.from.y) < maxD; };
     // (v359, р7) кто уже стоит на сайте T (взял его) — с сайта за гранатой назад не уходит
     var onTSite = function(b){ var S = L.team === "T" && tt && SITES[tt.site]; return !!S && (onSite(S, b.x, b.y) || Math.hypot(b.x-S.x, b.y-S.y) < 450) && Math.hypot(L.from.x-S.x, L.from.y-S.y) > Math.hypot(b.x-S.x, b.y-S.y) + 200; };
@@ -157,10 +149,10 @@ function lineupTick(){
         nadeFlags[key] = true; nadeFlags["luok"+L.id] = true; proGroupDone(L);
         if(!solo.nadeTask){
           var sP = Math.max(7, Math.ceil(pathLenTo(solo, L.from.x, L.from.y)/SPEED + LU_REACH_PAD));
-          solo.nadeTask = {type:L.type, x:L.to.x, y:L.to.y, from:{x:L.from.x, y:L.from.y}, until: tick + sP*TICK_HZ, why:"лайнап «"+(L.name||LU_TYPE[L.type])+"»", start:tick, lob:true, range:4000, now:true, lineup:true, exec:L.type === "smoke"};
+          solo.nadeTask = {type:L.type, x:L.to.x, y:L.to.y, from:{x:L.from.x, y:L.from.y}, until: tick + sP*TICK_HZ, why:"лайнап «"+(L.name||LU_TYPE[L.type])+"»", start:tick, lob:true, range:4000, now:true, lineup:true, exec:L.type === "smoke", npm:luM};
           logEvent(solo.id+": раскид — идёт на «"+(L.name||LU_TYPE[L.type])+"»");
         } else {
-          (solo.nadeQueue = solo.nadeQueue || []).push({type:L.type, x:L.to.x, y:L.to.y, from:{x:L.from.x, y:L.from.y}, why:"лайнап «"+(L.name||LU_TYPE[L.type])+"»", lineup:true, exec:true});
+          (solo.nadeQueue = solo.nadeQueue || []).push({type:L.type, x:L.to.x, y:L.to.y, from:{x:L.from.x, y:L.from.y}, why:"лайнап «"+(L.name||LU_TYPE[L.type])+"»", lineup:true, exec:true, npm:luM});
           logEvent(solo.id+": раскид — следом «"+(L.name||LU_TYPE[L.type])+"»");
         }
         return;
@@ -174,7 +166,7 @@ function lineupTick(){
         .sort(function(a, b2){ return (utilRole(a) ? 0 : 400) + cost(a) - (utilRole(b2) ? 0 : 400) - cost(b2); })[0];
       if(qb){
         nadeFlags[key] = true; nadeFlags["luok"+L.id] = true; proGroupDone(L);
-        (qb.nadeQueue = qb.nadeQueue || []).push({type:L.type, x:L.to.x, y:L.to.y, from:{x:L.from.x, y:L.from.y}, why:"лайнап «"+(L.name||LU_TYPE[L.type])+"»", lineup:true, exec:true});
+        (qb.nadeQueue = qb.nadeQueue || []).push({type:L.type, x:L.to.x, y:L.to.y, from:{x:L.from.x, y:L.from.y}, why:"лайнап «"+(L.name||LU_TYPE[L.type])+"»", lineup:true, exec:true, npm:luM});
         logEvent(qb.id+": следом кинет «"+(L.name||LU_TYPE[L.type])+"»");
         return;
       }
@@ -202,10 +194,9 @@ function lineupTick(){
     luP.forEach(function(q){ luLen += Math.hypot(q[0]-luX, q[1]-luY); luX = q[0]; luY = q[1]; });
     var luSec = Math.max(luBase, Math.ceil(luLen/(SPEED*weaponSpeedMul(cand)) + LU_REACH_PAD));
     cand.nadeTask = {type:L.type, x:L.to.x, y:L.to.y, from:{x:L.from.x, y:L.from.y}, until: tick + luSec*TICK_HZ, why:"лайнап «"+(L.name||LU_TYPE[L.type])+"»",
-                     start:tick, lob:true, range:4000, now:true, lineup:true, exec:execT && L.type === "smoke"};
+                     start:tick, lob:true, range:4000, now:true, lineup:true, exec:execT && L.type === "smoke", npm:luM};
     logEvent(cand.id+": идёт на лайнап «"+(L.name||LU_TYPE[L.type])+"»");
   });
 }
 var LU_REACH_PAD = 3;
-var SETUP_DETOUR = 300;   // (v424) проектное число: крюк к точке броска лайнапа сетапа (лишний путь по прямой); заменить данными (как далеко от своего пути про кидают сетап)
 var CLR_REB_SEC = 12, EXEC_REACH = 1000, EXEC_QUEUE_R = 600, EXEC_QUEUE_N = 3, EXEC_WAIT_SEC = 20;   // (v355) проектные числа

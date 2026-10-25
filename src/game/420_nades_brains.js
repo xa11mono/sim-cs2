@@ -32,7 +32,7 @@ function nadeUseTick(b){
     if(have("flash") && (area || spots.length)) opts.push({t:"flash", pts:(area ? [area] : []).concat(spots), w:NBu.flash || 1});
     if(have("molly") && spots.length) opts.push({t:"molly", pts:spots, w:NBu.molly || 1});
     if(have("he") && spots.length) opts.push({t:"he", pts:spots, w:NBu.he || 0.5});
-    if(have("smoke") && ents.length && (b.team !== "T" || tSmokeReserveOk())) opts.push({t:"smoke", pts:ents, w:NBu.smoke || 1});
+    if(have("smoke") && ents.length) opts.push({t:"smoke", pts:ents, w:NBu.smoke || 1});
     var wS = opts.reduce(function(a, o){ return a + o.w; }, 0), rr = hashRand(tick*13 + b.id.charCodeAt(b.id.length-1)*29) * wS;
     for(var oi = 0; oi < opts.length && !plan; oi++){ rr -= opts[oi].w; if(rr <= 0) plan = opts[oi]; }
     if(!plan && opts.length) plan = opts[opts.length-1];
@@ -68,7 +68,7 @@ function nadeBrains(){
       var A0 = aw[aw.length-1];
       var smA = ts.filter(function(b){ return b.tRole !== "lurker" && b.nades.smoke > 0 && !b.nadeTask && Math.hypot(b.x-A0.x, b.y-A0.y) < 1250 && Math.hypot(b.x-A0.x, b.y-A0.y) > 350; })
         .sort(function(a, c){ return Math.hypot(a.x-A0.x, a.y-A0.y) - Math.hypot(c.x-A0.x, c.y-A0.y); })[0];
-      if(smA && tSmokeReserveOk()){
+      if(smA){
         var spAw = {x: A0.x + (smA.x-A0.x)*0.3, y: A0.y + (smA.y-A0.y)*0.3};
         if(assignNade(smA, "smoke", spAw, "смок на линию AWP", {now:true, range:1300})){ nadeFlags.antiAwp = true;
           voiceLog("T", "antiawp", smA.id, "их AWP в прошлых раундах бил "+calloutName(A0.x, A0.y)+" — смок на его линию"); }
@@ -111,11 +111,10 @@ function nadeBrains(){
       assignNade(ent, "flash", {x:fx, y:fy}, "под заход", {bkey:"T.exec.flash."+tt.site}); // некому — сам себе
     }
     var mollies = ts.filter(function(b){ return b.nades.molly > 0; });
-    // раздел 12: последний молотов команды не тратим на выход — он нужен на
-    // пост-плант, сбить дефуз (если CT мало — выход дожмут и без него)
-    var keepMol = BAL.keepMol && mollies.length === 1 && aliveCount("CT") >= 2;
-    var mol = keepMol ? null : mollies.filter(function(b){ return !(bomb.state === "carried" && bomb.carrier === b); })[0] || mollies[0];
-    if(keepMol) logEvent("T: единственный молотов берегут на пост-плант");
+    // (v428) молотов выхода — у того, чей молотов по плану команды не отложен на после планта (365: npCanUse); было отдельное правило
+    // «единственный молотов команды берегут на пост-плант» (keepMol)
+    var mol = mollies.filter(function(b){ return !(bomb.state === "carried" && bomb.carrier === b) && npCanUse(b, "molly", "exec", null); })[0] ||
+              mollies.filter(function(b){ return npCanUse(b, "molly", "exec", null); })[0];
     var molT = g.anchor, molWhy = "выжечь опорника";
     {
       bots.forEach(function(o){
