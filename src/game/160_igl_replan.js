@@ -134,15 +134,6 @@ function bStageFix(){
     if(up) g.tStageUp = pickSpots(k.toLowerCase()+"stageUp", up, 1, {rMax:140, minGap:40, hideFrom:[SITES[k], g.anchor]})[0] || up;
   }
 }
-// (v426, ЗАПЛАТКА; владелец 25.10, Mirage м1 р6: T стоит на спавне «без задачи») роль, которой нет ни в одной группе тактики
-// (лёркер — свой план), на сетапе держит мид, как саппорт в выходах Ancient. В 9 из 18 тактик Mirage (≈ половина раундов по весам)
-// у саппорта нет группы: tools/tactics_bake.py раздаёт роли только тем, кто зашёл на сайт по проходу, а где были остальные («far»)
-// не записывает. Заменить данными — место четвёртого из демок, когда будут образцы Mirage для пересборки тактик
-function tNoGroupMid(tt, tac, pick, midOpt){
-  var inG = {}; (tac.groups || []).forEach(function(G){ (G.roles || []).forEach(function(r){ inG[r] = 1; }); });
-  var free = pick(["entry", "awp", "igl", "support"].filter(function(r){ return !inG[r]; }));
-  if(free.length) groupPost(free, tt.tMidPt || GEO.tMid, GEO.tMidLook, "tmid", midOpt);
-}
 function stagePost(mem, k){
   var g = GEO[k], opt = {rMax:200, minGap:50, hideFrom:[SITES[k], g.anchor], see:[g.tEntry], avoidNades: BAL.tAdapt ? tDeathSpots() : []};
   if(!mem.length) return;

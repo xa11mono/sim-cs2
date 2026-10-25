@@ -12,14 +12,6 @@ function tBrain(){
   var secLeft = ROUND_TIME_SEC - (simTime - roundStartTime);
   // (v381, М130, владелец 16.10: «при сейве идут коллы ПЕРЕКОЛЛ B → A: минус на сайте») решили сейвить — план раунда кончился:
   // ни выхода, ни переколлов, ни коллов IGL. Раньше перепривязка ниже шла раньше проверки сейва
-  // (v424, владелец 25.10: «zont1x сделал два фрага и всё равно сейвит») сейв решён, когда T меньше; T настреляли и сравнялись числом с CT —
-  // раунд снова можно выиграть, сейв снят: тактика дальше (поздно — выход сразу, ниже). Посты сейва (уровень «выжить») сняты явно
-  if(tt.saving && bomb.state !== "planted" && aliveCount("T") >= aliveCount("CT") && aliveCount("CT") > 0){
-    tt.saving = false;
-    bots.forEach(function(b){ if(b.team !== "T") return; b._saveSpot = null; if(b.alive && b.post && /^save/.test(b.post.tag)) clearPost(b); });
-    logEvent("T: сейв отменён — "+aliveCount("T")+"v"+aliveCount("CT")+", играем раунд");
-    voiceLog("T", "tsaveoff", (bots.filter(function(b){ return b.team === "T" && b.alive; })[0]||{}).id, "их столько же — сейв отменяю, играем");
-  }
   if(tt.saving && bomb.state !== "planted"){ tSaveHold(); return; }
   // поздно — выходим, даже если по плану ещё setup
   if(tt.phase === "setup" && (tick >= tt.execTick || secLeft < 35)){
@@ -350,9 +342,7 @@ function tBrain(){
         if(G.stage === "TMID"){ mem.forEach(function(b){ b._stageInfo = null; }); groupPost(mem, tt.tMidPt || GEO.tMid, GEO.tMidLook, "tmid", midOpt); return; }
         mem.forEach(function(b){ if(memAll.indexOf(b) < 0) memAll.push(b); }); });
       stagePost(memAll, tt.site);
-      tNoGroupMid(tt, tac, pick, midOpt);
     } else if(tac.groups && tac.style !== "fake"){
-      tNoGroupMid(tt, tac, pick, midOpt);
       tac.groups.forEach(function(G, gi){
         var mem = pick(G.roles);
         if(!mem.length) return;

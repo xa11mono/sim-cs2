@@ -636,7 +636,7 @@ function stepTick(){
     bot.y = bot.baseY + offY;
   });
   resolveEngagements();
-  smokeSpamTick(); if(BAL.smokeReact) smokeStandTick();
+  smokeSpamTick();
   infoFallbackTick();
   if(BAL.smokeReact) smokeHeTick();
   teamInfoTick(); // раздел 11: коллы из восприятия этого тика → командная память
