@@ -130,10 +130,12 @@ function lineupTick(){
     var leavesSite = function(b){ if(b.team !== "CT" || L.trigger === "retake" || L.trigger === "call") return false; var k = b.tRole === "anchorA" ? "A" : b.tRole === "anchorB" ? "B" : null; if(!k) return false;
       var P0 = b.post && b.post.tag === "anchor" ? b.post : SITES[k]; return Math.hypot(L.from.x-P0.x, L.from.y-P0.y) > 300; };
     // (v423, владелец 25.10, Mirage м1 р2: лёркер с B бежал за лайнапом в Underpath и на Top Mid, саппорт — назад на спавн, донк — с
-    // B Apartments на Top Mid) лайнап сетапа T кидает тот, чей пост роли (конец маршрута, если идёт по маршруту) не дальше SETUP_POST_R от
-    // точки броска, и не лёркер (у него свой план) — гранату кидают со своего участка, а не бегут за ней через карту
-    var setupFar = function(b){ if(b.team !== "T" || L.trigger !== "setup") return false; if(b.tRole === "lurker") return true;
-      var P0 = (b._route && b._route.want && b._route.want[0]) || b.post; return !P0 || Math.hypot(L.from.x-P0.x, L.from.y-P0.y) > SETUP_POST_R; };
+    // B Apartments на Top Mid) лайнап сетапа T кидает тот, кому точка броска по пути к посту роли (конец маршрута, если идёт по маршруту):
+    // крюк через неё — не больше SETUP_DETOUR. (v424) в v423 было «пост ≤ 500 от точки броска, не лёркер» — запретило броски по дороге
+    // со спавна: на м1 р3 смок в Window со спавна кинуть стало некому. Лёркеру — тоже можно, если по пути
+    var setupFar = function(b){ if(b.team !== "T" || L.trigger !== "setup") return false;
+      var P0 = (b._route && b._route.want && b._route.want[0]) || b.post; if(!P0) return false;
+      return Math.hypot(L.from.x-b.x, L.from.y-b.y) + Math.hypot(P0.x-L.from.x, P0.y-L.from.y) - Math.hypot(P0.x-b.x, P0.y-b.y) > SETUP_DETOUR; };
     var okBot = function(b){ return b.team === L.team && b.alive && b.nades && b.nades[L.type] > 0 && !leavesSite(b) && !setupFar(b) &&
       !b.planting && !b.defusing && !(bomb.state === "carried" && bomb.carrier === b) && Math.hypot(b.x-L.from.x, b.y-L.from.y) < maxD; };
     // (v359, р7) кто уже стоит на сайте T (взял его) — с сайта за гранатой назад не уходит
@@ -152,7 +154,7 @@ function lineupTick(){
     if(solo){
       var busyN = (solo.nadeTask && solo.nadeTask.type === L.type ? 1 : 0) + (solo.nadeQueue||[]).filter(function(q){ return q.type === L.type; }).length;
       if(solo.nades && solo.nades[L.type] > busyN && !solo.planting && (solo.nadeQueue||[]).length < 4 && !onTSite(solo)){
-        nadeFlags[key] = true; nadeFlags["luok"+L.id] = true;
+        nadeFlags[key] = true; nadeFlags["luok"+L.id] = true; proGroupDone(L);
         if(!solo.nadeTask){
           var sP = Math.max(7, Math.ceil(pathLenTo(solo, L.from.x, L.from.y)/SPEED + LU_REACH_PAD));
           solo.nadeTask = {type:L.type, x:L.to.x, y:L.to.y, from:{x:L.from.x, y:L.from.y}, until: tick + sP*TICK_HZ, why:"лайнап «"+(L.name||LU_TYPE[L.type])+"»", start:tick, lob:true, range:4000, now:true, lineup:true, exec:L.type === "smoke"};
@@ -171,7 +173,7 @@ function lineupTick(){
         return b.nades[L.type] >= need && Math.hypot(t.from.x-L.from.x, t.from.y-L.from.y) < EXEC_QUEUE_R; })
         .sort(function(a, b2){ return (utilRole(a) ? 0 : 400) + cost(a) - (utilRole(b2) ? 0 : 400) - cost(b2); })[0];
       if(qb){
-        nadeFlags[key] = true; nadeFlags["luok"+L.id] = true;
+        nadeFlags[key] = true; nadeFlags["luok"+L.id] = true; proGroupDone(L);
         (qb.nadeQueue = qb.nadeQueue || []).push({type:L.type, x:L.to.x, y:L.to.y, from:{x:L.from.x, y:L.from.y}, why:"лайнап «"+(L.name||LU_TYPE[L.type])+"»", lineup:true, exec:true});
         logEvent(qb.id+": следом кинет «"+(L.name||LU_TYPE[L.type])+"»");
         return;
@@ -193,7 +195,7 @@ function lineupTick(){
       nadeFlags[key] = true; return; // так и не нашли, кто бросит — сдаёмся
     }
     nadeFlags[key] = true;
-    nadeFlags["luok"+L.id] = true;
+    nadeFlags["luok"+L.id] = true; proGroupDone(L);
     // (v340, отметка владельца: sh1ro шёл на смок Connector, задание сгорело у уступа — развернулся, «отталкивает») срок — не
     // меньше дороги до точки броска по пути + LU_REACH_PAD с (проектное число); раньше только 7 / 12 / 20 с
     var luBase = hot ? ((BAL.nadeReach && L.trigger === "timed") ? 12 : 7) : 20, luP = buildWaypointPath(cand.baseX, cand.baseY, cand.z, L.from.x, L.from.y, 0), luLen = 0, luX = cand.baseX, luY = cand.baseY;
@@ -205,5 +207,5 @@ function lineupTick(){
   });
 }
 var LU_REACH_PAD = 3;
-var SETUP_POST_R = 500;   // (v423) проектное число: радиус от поста роли до точки броска лайнапа сетапа; заменить данными (с какого расстояния от своей позиции про кидают сетап)
+var SETUP_DETOUR = 300;   // (v424) проектное число: крюк к точке броска лайнапа сетапа (лишний путь по прямой); заменить данными (как далеко от своего пути про кидают сетап)
 var CLR_REB_SEC = 12, EXEC_REACH = 1000, EXEC_QUEUE_R = 600, EXEC_QUEUE_N = 3, EXEC_WAIT_SEC = 20;   // (v355) проектные числа

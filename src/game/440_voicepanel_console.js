@@ -8,7 +8,7 @@ var VOICE_KEYS = {
   see:  "clr clz hurt fin eg rpfast mo midback rotread s sh buy antiawp prt afall presave nostop midtake",
   hear: "zoom rl rushm",
   nade: "awps defsmk hesm hesmk hestack hefin pop psm rtflash rtawp sflash early fb tfb dump",
-  self: "clutch clutchpos clutchsw tcl tcpp tsave lowhp awpsave awpsaveT midcare rebalOff back cb cov pphold egw",
+  self: "clutch clutchpos clutchsw tcl tcpp tsave tsaveoff lowhp awpsave awpsaveT midcare rebalOff back cb cov pphold egw",
   plan: "abort allin assist fake fakeworked flank midcover pick reb rebal regroup rgo ppsplit pptime probe saferot solo sv trade upslow rtentry die"
 };
 var VOICE_KEY_KIND = {};

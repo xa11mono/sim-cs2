@@ -157,10 +157,25 @@ function smokeHeTick(){
   });
 }
 // смок закрыл угол, который держал: часть игроков меняет позицию (отходит глубже)
+// (v424) пост в дыму: бот, который стоит на посту внутри активного смока (пришёл на пост, когда смок уже стоял), уходит из него
+// той же реакцией, что и при взрыве смока на посту (shiftHold — глубже, туда, откуда центр смока не виден). Проверка — раз в 32 тика
+var SMOKE_STAND_PAD = 20;   // (v424) проектное число: «в дыму» — ближе радиуса смока + 20 к центру
+function smokeStandTick(){
+  if(tick % 32) return;
+  bots.forEach(function(b){
+    if(!b.alive || b._sawEnemy || !(b.atPost && b.post && b.post.hold)) return;
+    var s = smokes.filter(function(q){ return smkActive(q) && Math.hypot(q.x-b.x, q.y-b.y) < NADE.smoke.radius + SMOKE_STAND_PAD; })[0];
+    if(s) shiftHold(b, {x:s.x, y:s.y}, null, "стою в дыму");
+  });
+}
 function smokeShiftOnDetonate(s){
   bots.forEach(function(b){
     if(!b.alive || b.team === s.team || b._sawEnemy || !(b.atPost && b.post && b.post.hold)) return;
-    var d = Math.hypot(s.x-b.x, s.y-b.y); if(d < 150 || d > 700 || !hasLOS(b.x, b.y, s.x, s.y, b.z)) return;
+    var d = Math.hypot(s.x-b.x, s.y-b.y);
+    // (v424, владелец 25.10, Mirage м1: «стоят статуями в центре дыма») смок лёг на сам пост — уходит из него всегда (раньше ближе 150 к смоку
+    // при радиусе 70 реакции не было вовсе: за матч 24 раза ≥ 3 с в дыму, опорник A в р1 — 17 с на посту в дыму)
+    if(d < NADE.smoke.radius + SMOKE_STAND_PAD){ shiftHold(b, {x:s.x, y:s.y}, null, "стою в дыму"); return; }
+    if(d < 150 || d > 700 || !hasLOS(b.x, b.y, s.x, s.y, b.z)) return;
     var lk = b.lookTarget || b.post.look; if(!lk) return;
     if(!segHitsCircle(b.x, b.y, lk.x, lk.y, s.x, s.y, NADE.smoke.radius)) return;   // смок не на его линии
     if(hashRand(s.born*53 + b.id.charCodeAt(0)*29 + b.id.length) >= SMK.shiftP) return;

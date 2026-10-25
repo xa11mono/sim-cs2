@@ -25,16 +25,20 @@ function proLineups(){
   return PRO_LINEUPS;
 }
 // розыгрыш группы на раунд: граната в эту цель летит с вероятностью — сумма долей её лайнапов (не больше 1; доли посчитаны на одни
-// и те же раунды — tools/cluster.py ctxN), место броска — одно из лайнапов группы по их долям; остальные места группы в этом раунде молчат
+// и те же раунды — tools/cluster.py ctxN). Место броска заранее не выбирается (v424: в v423 выбиралось по долям — на Mirage м1 р3 выпал
+// смок в Window со спавна, а со спавна кинуть было некому — окно не закрыли): выпала цель — открыты все места группы, кидают с того,
+// где первым нашёлся бросающий, остальные места группы гасятся (proGroupDone)
 function proRollGroup(L){
   var G = PRO_GROUPS[L.grp] || [L], hid = 0, i;
   for(i = 0; i < L.grp.length; i++) hid = (hid*31 + L.grp.charCodeAt(i)) % 1000003;
-  var seed = roundNum*7919 + matchNum*104729 + hid, sum = 0;
-  G.forEach(function(x){ sum += x.prob; });
-  var win = hashRand(seed) < Math.min(1, sum), r = hashRand(seed + 17) * sum, pick = null;
-  G.forEach(function(x){ if(pick) return; r -= x.prob; if(r <= 0) pick = x; });
-  pick = pick || G[G.length-1];
-  G.forEach(function(x){ nadeFlags["pr"+x.id] = win && x === pick; });
+  var sum = 0; G.forEach(function(x){ sum += x.prob; });
+  var win = hashRand(roundNum*7919 + matchNum*104729 + hid) < Math.min(1, sum);
+  G.forEach(function(x){ nadeFlags["pr"+x.id] = win; });
+}
+// лайнап группы нашёл бросающего — другие места той же цели в этом раунде не кидаются
+function proGroupDone(L){
+  if(!L.pro || !L.grp) return;
+  (PRO_GROUPS[L.grp] || []).forEach(function(x){ if(x !== L) nadeFlags["lu"+x.id] = true; });
 }
 // встроенная "общая" граната не летит, если про-лайнапы того же типа уже
 // покрывают эту ситуацию (сторона, триггер, сайт)
