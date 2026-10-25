@@ -239,7 +239,7 @@
   <div id="topbar">
     <div class="tb-id">
       <h1>Ancient</h1>
-      <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 413, 25.10</div>
+      <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 414, 25.10</div>
     </div>
     <div class="tb-group" id="tbMatch">
       <button id="btnPause">Пауза</button>
@@ -5478,6 +5478,18 @@ function tDefuseGo(tt, ts){
 }
 function bombTimeLeftTicks(){ return bomb && bomb.state==="planted" ? bomb.explodeTick - tick : Infinity; }
 
+// (v414, М155) почему носитель сейчас не начинает плант — одно место: читает bombTick (null — начинает) и подпись «почему» (550).
+// Порядок проверок и условия — прежние (v263, Б2: в огне не начинают)
+function plantBlock(c, tac, site){
+  if(!site) return "нет сайта у тактики";
+  if(tac.phase === "setup") return "фаза setup";
+  if(c.state !== "patrol") return "состояние " + c.state + ", не patrol";
+  if(c._sawEnemy && c._nearestEnemyDist < 500) return "видит врага в " + Math.round(c._nearestEnemyDist);
+  if(!canPlantAt(tac.site, c.baseX, c.baseY)) return "не на сайте / не на месте про";
+  if(c._noPlantUntil > tick) return "запрет после срыва ещё " + ((c._noPlantUntil - tick)/TICK_HZ).toFixed(1) + " с";
+  if(inFire(c.baseX, c.baseY)) return "в огне";
+  return null;
+}
 function bombTick(){
   if(!bomb) return;
   if(bomb.state === "carried"){
@@ -5495,14 +5507,14 @@ function bombTick(){
         var sh = c._shotAtBy, dSh = sh ? Math.hypot(sh.x-c.x, sh.y-c.y) : 0;
         var hitRecent = c._hurtT && tick - c._hurtT < 20;
         if(sh && sh.alive && (hitRecent || dSh < 700)){
-          c.planting = false; c._noPlantUntil = tick + 1.2*TICK_HZ; c._fakePlantAt = 0;
+          c.planting = false; c._noPlantUntil = tick + 1.2*TICK_HZ; c._fakePlantAt = 0; c._plantAbort = {t:tick, why: "стреляют: " + (sh.id||"") + " в " + Math.round(dSh) + (c._visible && c._visible.indexOf(sh) >= 0 ? " (вижу)" : " (не вижу)")};   // (v414, М155) для подписи
           if(!c._prV || tick - c._prV > 8*TICK_HZ){ c._prV = tick; logEvent(c.id+": по мне стреляют — бросил плант, отвечаю"); }
           return;
         }
       }
       // фейк-плант: начал ставить — CT слышат и выходят сбивать — прервал
       if(c._fakePlantAt && tick >= c._fakePlantAt){
-        c.planting = false; c._fakePlantAt = 0; c._noPlantUntil = tick + 90;
+        c.planting = false; c._fakePlantAt = 0; c._noPlantUntil = tick + 90; c._plantAbort = {t:tick, why:"фейк-плант"};
         voiceLog("T", "fakeplant", c.id, "фейк-плант — сейчас выйдут сбивать, держите!");
         return;
       }
@@ -5519,8 +5531,7 @@ function bombTick(){
     // Плант: на сайте, в патруле; видимый враг мешает только если он близко
     // (раньше любой видимый CT через полкарты — и носитель стоял на точке
     // планта до конца раунда: это и были почти все проигрыши T по времени)
-    var nearFoe = c._sawEnemy && c._nearestEnemyDist < 500;
-    if(site && tac.phase !== "setup" && c.state === "patrol" && !nearFoe && canPlantAt(tac.site, c.baseX, c.baseY) && !(c._noPlantUntil > tick) && !inFire(c.baseX, c.baseY)){   // (v263, Б2) в огне плант не начинают — не доживут
+    if(!plantBlock(c, tac, site)){
       c.planting = true; c.plantUntil = tick + PLANT_TICKS; c.path = []; c.pathIdx = 0; if(SND && SND.on) sndBomb("plant", c.baseX, c.baseY);
       // фейк-плант (раз за раунд): свои рядом держат углы, CT по инфе рядом —
       // начать и через ~1с бросить: CT на звук выйдут под прицел
@@ -14796,7 +14807,8 @@ function fightCycleTick(b, dtSec, busy){
     }
     return;
   }
-  if(b._sawEnemy && !(F.retreat && F.ph === "off")){ F.ph = "line"; F.ax = b.baseX; F.ay = b.baseY; F.t = tick; F.until = 0; F.retreat = false; F.better = null; F.sv = undefined; return; }   // снова вижу врага — на линии (уходя от выстрелов в плечо — не останавливается)
+  if(b._sawEnemy && !(F.retreat && F.ph === "off")){ if(F.ph === "off") b._fcSnap = tick;   // (v414, М154) уход отменён — для подписи «почему»
+    F.ph = "line"; F.ax = b.baseX; F.ay = b.baseY; F.t = tick; F.until = 0; F.retreat = false; F.better = null; F.sv = undefined; return; }   // снова вижу врага — на линии (уходя от выстрелов в плечо — не останавливается)
   if(F.ph === "off" && tick >= F.until && (!F.retreat || Math.hypot(F.cx-b.baseX, F.cy-b.baseY) < 2)){
     F.retreat = false;
     if(fightRand(b, 4) >= D.repeek){ b._fc = null; return; }   // не выглядывает снова — перестрелка закончена
@@ -15472,7 +15484,9 @@ function tryShoot(shooter, target, dist){
       endX = sv.x; endY = sv.y;
     }
   }
-  tracers.push({wc:tracerClass(shooter.weapon), x1:shooter.x, y1:shooter.y, x2:endX, y2:endY, team:shooter.team, born:nowTs, hit:hit, head:headshot, prefire:prefire, miss:!hit, zone:hitZone});
+  tracers.push({wc:tracerClass(shooter.weapon), x1:shooter.x, y1:shooter.y, x2:endX, y2:endY, team:shooter.team, born:nowTs, hit:hit, head:headshot, prefire:prefire, miss:!hit, zone:hitZone,
+    tk:tick, sdx:shooter.x-(shooter.px != null ? shooter.px : shooter.x), sdy:shooter.y-(shooter.py != null ? shooter.py : shooter.y),   // (v414, М154) сдвиг за тик — для рисования
+    tdx: hit ? target.x-(target.px != null ? target.px : target.x) : 0, tdy: hit ? target.y-(target.py != null ? target.py : target.y) : 0});
   if(SND && SND.on) sndShot(shooter.weapon, shooter.x, shooter.y);
   // выстрел слышно далеко (шаг 5: с конусом обзора боты не видят спиной —
   // но разворачиваются на звук стрельбы; в кого попали — точно знает откуда)
@@ -16893,7 +16907,7 @@ function stepTick(){
   var STAIRS_SLOPE_THRESHOLD = 0.35;
   bots.forEach(function(bot){
     if(!bot.alive) return;
-    bot.px = bot.x; bot.py = bot.y;
+    bot.px = bot.x; bot.py = bot.y; bot.pfacing = bot.facing;   // (v414, М154) взгляд на начало тика — только для рисования (сглаживание, 620_draw)
     updatePost(bot);
     updateReload(bot);
     if(!bot.post) updateRoamer(bot);
@@ -16974,7 +16988,7 @@ function stepTick(){
       // Из огня бот ВЫХОДИТ обычным бегом по пути к ближайшему краю (раньше его
       // каждый тик сдвигало наружу напрямую — выглядело как отбрасывание).
       if(bot.defusing){ bot.defuseCooldownUntil = tick + 32; logEvent(bot.id+" прервал дефуз — молотов, не доживёт"); }
-      if(bot.planting){ bot._noPlantUntil = tick + 32; logEvent(bot.id+" прервал плант — молотов, не доживёт"); }
+      if(bot.planting){ bot._noPlantUntil = tick + 32; bot._plantAbort = {t:tick, why:"огонь"}; logEvent(bot.id+" прервал плант — молотов, не доживёт"); }
       bot.atPost = false; bot.defusing = false; bot.planting = false;
       bot._burning = true;
       if(!bot._fireExit || inFire(bot._fireExit.x, bot._fireExit.y) || bot._fireExitFire !== burn){
@@ -17095,6 +17109,7 @@ function stepTick(){
     }
 
     if(!ladderTick(bot) && !((bot.holding && !bot._burning) || bot.curSpeed <= 0.5 || (bot._fc && (bot._fc.ph !== "line" || bot._fc.own)))){
+      if(bot._fc) bot._fcWalk = tick;   // (v414, М154) перестрелка ещё жива, а бот идёт по маршруту — для подписи «почему»
       if(bot.path.length === 0 || bot.pathIdx >= bot.path.length){
         if(bot.forcedRetreat) bot.forcedRetreat = false;
         assignNewDestination(bot, tick);
@@ -17500,9 +17515,18 @@ function whyText(b){
   if(b.planting) pt = "ставит бомбу"; if(b.defusing) pt = "дефузит";
   var lr = b.lookReason, lt = lr ? (WHY_LOOK[lr] || lr) : "по ходу движения";
   if(b._fc && b._fc.ph !== "line") pt = b._fc.ph === "off" ? "бой · ушёл с линии за укрытие" : "бой · выглядывает снова";
+  // (v414, М154) на линии: стрейфит (держит врага) или бой «остывает»; идёт по маршруту при живой перестрелке; уход за укрытие отменён
+  else if(b._fc) pt = "бой · на линии · " + (b._fc.own ? "стрейфит" : "не видит врага");
   else if(b.state === "engage") pt = "бой · на линии";
   else if(b.state === "hold") pt = "бой · держит угол";
   else if(b.state === "retreat") pt = "бой · отходит";
+  if(b._fc && tick - (b._fcWalk||-99) <= 2) pt += " · ИДЁТ ПО МАРШРУТУ В БОЮ";
+  if(tick - (b._fcSnap||-999) < TICK_HZ) pt += " · уход за укрытие отменён (видит врага)";
+  // (v414, М155) носитель бомбы: что мешает начать плант (plantBlock — то же условие, что в bombTick) и почему бросил
+  if(bomb && bomb.state === "carried" && bomb.carrier === b && !b.planting && typeof teamTac !== "undefined" && teamTac.T){
+    var pbr = plantBlock(b, teamTac.T, SITES[teamTac.T.site]);
+    if(pbr && (pbr !== "не на сайте / не на месте про" || /^plantspot/.test(t))) pt += " · не ставит: " + pbr; }
+  if(b._plantAbort && tick - b._plantAbort.t < 2*TICK_HZ) pt += " · бросил плант: " + b._plantAbort.why;
   if(lr === "look" && b._lkTop && b._lkTop.length){
     lt = "смотрит: " + b._lkTop.map(function(t){ return t[0] + " " + t[1].toFixed(2); }).join(" › ");
     return pt + " · " + lt; }
@@ -19782,7 +19806,11 @@ function draw(){
     if(b._idle && !b._sawEnemy && !b.planting && !b.defusing){
       sway = 0;
     }
-    b._visFacing = b.facing === undefined ? undefined : b.facing + sway;
+    // (v414, М154) взгляд — со сглаживанием между тиками, как позиция (alpha ниже, строка с rx): игра 64 тика/с, экран 60–144 кадра —
+    // в кадр попадало 0, 1 или 2 тика, и в бою (до ≈ 10° за тик) прицел шёл ступеньками 0 / 10 / 20° за кадр
+    var fA = Math.max(0, Math.min(1, accumulator / TICK_MS)), f0 = b.pfacing, f1 = b.facing;
+    var fI = f1 === undefined ? undefined : (f0 === undefined ? f1 : f0 + ((((f1 - f0) + Math.PI) % (2*Math.PI) + 2*Math.PI) % (2*Math.PI) - Math.PI)*fA);
+    b._visFacing = fI === undefined ? undefined : fI + sway;
     b._idlePhase = ph;
   });
 
@@ -19977,52 +20005,56 @@ function draw(){
     var TS0 = BAL.tracerStyle;
     for(var ti=tracers.length-1; ti>=0; ti--){
       var tr = tracers[ti];
+      // (v414, М154) пока не прошёл следующий тик, стрелок и цель нарисованы со сглаживанием (отстают до тика) — трассер от них же, а не от
+      // позиции на конец тика; дальше — на месте, где стреляли
+      var X1 = tr.x1, Y1 = tr.y1, X2 = tr.x2, Y2 = tr.y2;
+      if(tr.tk === tick){ var kL = 1 - Math.max(0, Math.min(1, accumulator / TICK_MS)); X1 -= (tr.sdx||0)*kL; Y1 -= (tr.sdy||0)*kL; X2 -= (tr.tdx||0)*kL; Y2 -= (tr.tdy||0)*kL; }
       var TSt = (TS0 && TRACER_STYLE[tr.wc]) || TRACER_STYLE.rifle, life = TS0 ? TSt.life : 170, TRAVEL = TS0 ? TSt.travel : 70;
       var age = nowTs - tr.born;
       if(age > life){ tracers.splice(ti,1); continue; }
       if(!showTracers.checked) continue;
       var a = 1 - age/life, S = view.scale;
       var col = tr.team==="CT" ? "126,186,242" : "246,190,96";   // (v258) цвета команд насыщеннее
-      if(TS0 && TSt.glow){ ctx.strokeStyle = "rgba(200,235,255,"+(a*0.18)+")"; ctx.lineWidth = TSt.glow/S; ctx.beginPath(); ctx.moveTo(tr.x1,tr.y1); ctx.lineTo(tr.x2,tr.y2); ctx.stroke(); }
+      if(TS0 && TSt.glow){ ctx.strokeStyle = "rgba(200,235,255,"+(a*0.18)+")"; ctx.lineWidth = TSt.glow/S; ctx.beginPath(); ctx.moveTo(X1,Y1); ctx.lineTo(X2,Y2); ctx.stroke(); }
       // (v258) след светлеет от стрелка к цели — видно, откуда стреляли
-      var tGr = ctx.createLinearGradient(tr.x1, tr.y1, tr.x2, tr.y2);
+      var tGr = ctx.createLinearGradient(X1, Y1, X2, Y2);
       tGr.addColorStop(0, "rgba("+col+","+(a*(TS0 ? TSt.trailA : 0.32)*0.25)+")"); tGr.addColorStop(1, "rgba("+col+","+(a*(TS0 ? TSt.trailA : 0.32)*1.35)+")");
       ctx.strokeStyle = tGr;
       ctx.lineWidth = (TS0 ? TSt.trailW : 1)/S;
-      ctx.beginPath(); ctx.moveTo(tr.x1,tr.y1); ctx.lineTo(tr.x2,tr.y2); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(X1,Y1); ctx.lineTo(X2,Y2); ctx.stroke();
       var prog = Math.min(1, age/TRAVEL), tail = Math.max(0, prog-(TS0 ? TSt.tail : 0.3));
       if(prog < 1 || age < TRAVEL+30){
         ctx.strokeStyle = tr.team==="CT" ? "rgba(228,242,255,"+(0.95*a)+")" : "rgba(255,240,206,"+(0.95*a)+")";
         ctx.lineWidth = (TS0 ? TSt.core : 1.9)/S;
         ctx.beginPath();
-        ctx.moveTo(tr.x1+(tr.x2-tr.x1)*tail, tr.y1+(tr.y2-tr.y1)*tail);
-        ctx.lineTo(tr.x1+(tr.x2-tr.x1)*prog, tr.y1+(tr.y2-tr.y1)*prog);
+        ctx.moveTo(X1+(X2-X1)*tail, Y1+(Y2-Y1)*tail);
+        ctx.lineTo(X1+(X2-X1)*prog, Y1+(Y2-Y1)*prog);
         ctx.stroke();
       }
       if(age < (TS0 ? TSt.fl : 55)){
         var mf = 1 - age/(TS0 ? TSt.fl : 55);
         ctx.fillStyle = "rgba(255,210,120,"+(0.85*mf)+")";
-        ctx.beginPath(); ctx.arc(tr.x1, tr.y1, ((TS0 ? TSt.fr : 3) + (TS0 ? TSt.fg : 4)*mf)/S, 0, Math.PI*2); ctx.fill();
+        ctx.beginPath(); ctx.arc(X1, Y1, ((TS0 ? TSt.fr : 3) + (TS0 ? TSt.fg : 4)*mf)/S, 0, Math.PI*2); ctx.fill();
       }
       if(prog >= 1 && age < TRAVEL + 100){
         var ia = 1 - (age-TRAVEL)/100;
         if(tr.hit){
           ctx.fillStyle = "rgba(230,40,40,"+(0.75*ia)+")";
-          ctx.beginPath(); ctx.arc(tr.x2, tr.y2, (3 + 7*(1-ia))/S, 0, Math.PI*2); ctx.fill();
+          ctx.beginPath(); ctx.arc(X2, Y2, (3 + 7*(1-ia))/S, 0, Math.PI*2); ctx.fill();
           if(tr.head){
             ctx.strokeStyle = "rgba(255,255,255,"+(0.9*ia)+")"; ctx.lineWidth = 1.6/S;
-            ctx.beginPath(); ctx.arc(tr.x2, tr.y2, (6 + 8*(1-ia))/S, 0, Math.PI*2); ctx.stroke();
+            ctx.beginPath(); ctx.arc(X2, Y2, (6 + 8*(1-ia))/S, 0, Math.PI*2); ctx.stroke();
           }
         } else {
           ctx.fillStyle = "rgba(210,210,200,"+(0.7*ia)+")";
-          ctx.beginPath(); ctx.arc(tr.x2, tr.y2, 2.2/S, 0, Math.PI*2); ctx.fill();
+          ctx.beginPath(); ctx.arc(X2, Y2, 2.2/S, 0, Math.PI*2); ctx.fill();
         }
       }
       if(tr.prefire){
         ctx.strokeStyle = "rgba(255,255,255,"+(a*0.45)+")";
         ctx.lineWidth = 0.9/S;
         ctx.setLineDash([4/S, 4/S]);
-        ctx.beginPath(); ctx.moveTo(tr.x1,tr.y1); ctx.lineTo(tr.x2,tr.y2); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(X1,Y1); ctx.lineTo(X2,Y2); ctx.stroke();
         ctx.setLineDash([]);
       }
     }
