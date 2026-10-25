@@ -71,6 +71,9 @@ function feedEvent(kind, text){
   if(killfeed.length > 8) killfeed.length = 8;
   renderFeed();
 }
+// (v430) строка, которую ещё не показывали, въезжает справа (класс in); уже показанные при перестройке стоят на месте
+var HUD_KF_SHOWN = typeof WeakSet !== "undefined" ? new WeakSet() : null;
+function kfIn(k){ if(!HUD_KF_SHOWN || HUD_KF_SHOWN.has(k)) return ""; HUD_KF_SHOWN.add(k); return " in"; }
 function renderFeed(){
   var el = document.getElementById("killfeed"); if(!el) return;
   el.innerHTML = killfeed.map(function(k){
@@ -81,15 +84,18 @@ function renderFeed(){
       if(k.as) h += (k.asFlash ? kfSvg("flash", "md fl", KF_MOD_T.flash) : '<span class="pl">+</span>')+'<span class="'+k.attTeam.toLowerCase()+' as">'+esc(k.as)+'</span>';
       h += kfSvg(wkey, "wp", wn) || '<span class="w">'+esc(wn)+'</span>';
       ["smoke","wall","hs","noscope","blind"].forEach(function(m){ if(k[m]) h += kfSvg(m, "md", KF_MOD_T[m]); });
-      return '<div class="kf'+(k.tk ? ' tk" title="убил своего' : '')+'">'+h+'<span class="'+k.vicTeam.toLowerCase()+'">'+esc(k.vic)+'</span></div>';
+      return '<div class="kf'+kfIn(k)+(k.tk ? ' tk" title="убил своего' : '')+'">'+h+'<span class="'+k.vicTeam.toLowerCase()+'">'+esc(k.vic)+'</span></div>';
     }
-    return '<div class="kf ev '+k.kind+'">'+esc(k.text)+'</div>';
+    return '<div class="kf ev '+k.kind+kfIn(k)+'">'+esc(k.text)+'</div>';
   }).join("");
 }
 var bannerTimer = null;
 function showBanner(text, team, ms){
   var el = document.getElementById("banner"); if(!el) return;
-  el.textContent = nickify(text); el.className = "show "+(team||"").toLowerCase();
+  var big = /^(ACE|КЛАТЧ)/.test(String(text));
+  el.textContent = nickify(text);
+  if(/\bshow\b/.test(el.className)){ el.className = ""; void el.offsetWidth; }   // уже показан — раскрыть заново
+  el.className = "show "+(team||"").toLowerCase()+(big ? " big" : "");
   if(bannerTimer) clearTimeout(bannerTimer);
   bannerTimer = setTimeout(function(){ el.className = ""; }, ms||2000);
 }
@@ -126,12 +132,13 @@ function showRoundCard(winner, reason){
     logEvent("Клатч выигран: "+clutchInfo.id+" (1v"+clutchInfo.n+")", true);
     feedEvent("clutch", "Клатч 1v"+clutchInfo.n+" — "+clutchInfo.id);
   }
-  el.innerHTML = '<div class="rc-t '+(winner||"").toLowerCase()+'">'+(winner ? "ПОБЕДА "+esc(TEAM_NAME[winner]) : "НИЧЬЯ")+'</div>'+
+  el.innerHTML = '<div class="rc-bar"></div><div class="rc-in"><div class="rc-t '+(winner||"").toLowerCase()+'">'+(winner ? "Победа "+esc(TEAM_NAME[winner]) : "Ничья")+'</div>'+
     '<div class="rc-r">Раунд '+roundNum+' · '+(winner ? 'за '+winner+' · ' : '')+why+'</div>'+
     (clutch ? '<div class="rc-c">клатч 1v'+clutchInfo.n+' выигран — '+esc(nick(clutchInfo.id))+'</div>' : '')+
-    (mvp && mvp.b ? '<div class="rc-m">MVP: <b>'+esc(nick(mvp.b.id))+'</b> ('+(ROLE_LABEL[mvp.b.tRole]||"")+') · '+(mvp.b.roundKills||0)+' фраг(а), '+Math.round(mvp.b.roundDmg||0)+' урона</div>' : '')+
-    '<div class="rc-s"><span class="ct">'+esc(TEAM_NAME.CT)+'</span> '+score.CT+' : '+score.T+' <span class="t">'+esc(TEAM_NAME.T)+'</span></div><div class="rc-h" id="rcHalf"></div>';
-  el.className = "show";
+    (mvp && mvp.b ? '<div class="rc-m"><div class="rc-ph">'+plPhoto(mvp.b)+'</div><div class="rc-mv">MVP <b>'+esc(nick(mvp.b.id))+'</b>'+(ROLE_LABEL[mvp.b.tRole] ? ' · '+ROLE_LABEL[mvp.b.tRole] : '')+'<br>'+(mvp.b.roundKills||0)+' фраг(а), '+Math.round(mvp.b.roundDmg||0)+' урона</div></div>' : '')+
+    '<div class="rc-s"><span class="ct">'+esc(TEAM_NAME.CT)+'</span> '+score.CT+'<i>:</i>'+score.T+' <span class="t">'+esc(TEAM_NAME.T)+'</span></div><div class="rc-h" id="rcHalf"></div></div>';
+  el.className = ""; void el.offsetWidth;   // (v430) показ заново — анимации с начала
+  el.className = "show "+(winner||"").toLowerCase();
   if(cardTimer) clearTimeout(cardTimer);
   cardTimer = setTimeout(function(){ el.className = ""; }, Math.max(2500, ROUND_RESTART_DELAY_SEC*1000 - 200));
 }
@@ -146,25 +153,26 @@ var econClosed = false; try { econClosed = localStorage.getItem("econClosed") ==
 })();
 function renderEcon(){
   var el = document.getElementById("econ"); if(!el) return;
-  var h = '<button type="button" class="ec-tg" aria-expanded="'+(!econClosed)+'" title="'+(econClosed ? 'Показать экономику' : 'Скрыть экономику')+'"><span class="ec-ar">'+(econClosed ? '▸' : '▾')+'</span> Экономика · раунд '+roundNum+(roundNum>HALF_ROUNDS?' (2-я половина)':'')+'</button>';
+  var h = '<button type="button" class="ec-tg" aria-expanded="'+(!econClosed)+'" title="'+(econClosed ? 'Показать экономику' : 'Скрыть экономику')+'"><span class="ec-ar"></span>Экономика<span class="ec-rn">раунд '+roundNum+(roundNum>HALF_ROUNDS?' · 2-я половина':'')+'</span></button>';
   el.classList.toggle("closed", econClosed);
   if(econClosed){ domHtml(el, h); return; }
   ["CT","T"].forEach(function(team){
     var te = teamEco[team];
     var mates = bots.filter(function(b){ return b.team===team; });
     var total = mates.reduce(function(a,b){ return a+b.money; }, 0);
-    h += '<div class="tm '+team.toLowerCase()+'"><span>'+team+' · '+ROUND_TYPE_LABEL[te.roundType]+'</span><span>$'+total+' · при поражении +'+LOSS_BONUS[Math.min(4,te.lossLevel)]+'</span></div>';
-    if(team === "T" && teamTac.T){ var PH = {setup:"сетап", execute:"выход", postplant:"пост-плант"}; h += '<div style="color:var(--t);opacity:.85">тактика: «'+teamTac.T.tac.name+'» · '+PH[teamTac.T.phase]+'</div>';
-      if(teamTac.T.read) h += '<div style="color:var(--t);opacity:.7;font-size:10px">IGL: '+teamTac.T.read+'</div>'; }
-    if(team === "CT" && teamTac.CT && teamTac.CT.setup){ h += '<div style="color:var(--ct);opacity:.8;font-size:10px">расстановка: «'+teamTac.CT.setup.name+'»'+(teamTac.CT.setupWhy ? ' — '+teamTac.CT.setupWhy : '')+'</div>'; }
-    if(team === "CT"){ var cl = teamTac.CT && teamTac.CT.call; h += '<div style="color:var(--ct);opacity:.85">'+(bomb && bomb.state==="planted" ? (cl0save() ? "сейв" : (bomb.retake ? (bomb.retake.phase==="gather" ? (bomb.retake.need === 1 && aliveCount("CT") <= 1 ? "ретейк "+bomb.site+" в одиночку: подход" : "ретейк "+bomb.site+": сбор "+(bomb.retake.ready||0)+"/"+(bomb.retake.need||"?")) : bomb.retake.phase==="util" ? "ретейк "+bomb.site+": флешка — сейчас заход" : "ретейк "+bomb.site+": заход!") : "ретейк "+bomb.site)) : (cl ? "колл: T на "+cl.site+" (~"+Math.max(1,Math.round(cl.count))+") — ротируют "+Object.keys(teamTac.CT.rot||{}).length : "расстановка по ролям"))+'</div>'; }
+    var tl = team.toLowerCase();
+    h += '<div class="tm '+tl+'"><span class="tm-n"><i>'+team+'</i>'+ROUND_TYPE_LABEL[te.roundType]+'</span><span class="tm-m">$'+total+'<small> · при поражении +'+LOSS_BONUS[Math.min(4,te.lossLevel)]+'</small></span></div>';
+    if(team === "T" && teamTac.T){ var PH = {setup:"сетап", execute:"выход", postplant:"пост-плант"}; h += '<div class="ec-i t">тактика «'+teamTac.T.tac.name+'» · <b>'+PH[teamTac.T.phase]+'</b></div>';
+      if(teamTac.T.read) h += '<div class="ec-i t sub">IGL: '+teamTac.T.read+'</div>'; }
+    if(team === "CT" && teamTac.CT && teamTac.CT.setup){ h += '<div class="ec-i ct sub">расстановка «'+teamTac.CT.setup.name+'»'+(teamTac.CT.setupWhy ? ' — '+teamTac.CT.setupWhy : '')+'</div>'; }
+    if(team === "CT"){ var cl = teamTac.CT && teamTac.CT.call; h += '<div class="ec-i ct">'+(bomb && bomb.state==="planted" ? (cl0save() ? "сейв" : (bomb.retake ? (bomb.retake.phase==="gather" ? (bomb.retake.need === 1 && aliveCount("CT") <= 1 ? "ретейк "+bomb.site+" в одиночку: подход" : "ретейк "+bomb.site+": сбор "+(bomb.retake.ready||0)+"/"+(bomb.retake.need||"?")) : bomb.retake.phase==="util" ? "ретейк "+bomb.site+": флешка — сейчас заход" : "ретейк "+bomb.site+": заход!") : "ретейк "+bomb.site)) : (cl ? "колл: T на "+cl.site+" (~"+Math.max(1,Math.round(cl.count))+") — ротируют "+Object.keys(teamTac.CT.rot||{}).length : "расстановка по ролям"))+'</div>'; }
     h += '<table>';
     mates.forEach(function(b){
       var wpn = WEAPONS[b.primary || b.secondary].name;
       var arm = (b.helmet ? "КШ" : (b.armor ? "К" : "—")) + (b.armor && b.armorHp != null && b.armorHp < 100 ? " "+b.armorHp : "") + (b.kit ? "+кит" : "");
-      var c4 = bomb && bomb.carrier === b ? " 💣" : "";
-      var nd = b.nades ? ("●".repeat(b.nades.smoke) + "✦".repeat(b.nades.flash) + "▲".repeat(b.nades.he) + "♨".repeat(b.nades.molly)) : "";
-      h += '<tr class="'+(b.alive?'':'dead')+'"><td title="'+esc(b.prof ? b.prof.style+" · aim "+b.prof.aim+", агрессия "+b.prof.aggr+", дисциплина "+b.prof.disc+(b._mistakes ? " · ошибок: "+b._mistakes : "") : "")+'">'+pnum(b.id)+' '+esc(nick(b.id))+c4+'</td><td>'+(ROLE_LABEL[b.tRole]||"")+(b.retakeRole && bomb && bomb.state==="planted" && !cl0save() ? ' · '+({defuser:"дефузер",cover:"прикрытие",flank:"фланг"}[b.retakeRole]) : "")+'</td><td>'+wpn+'</td><td>'+arm+'</td><td title="● дым · ✦ флешка · ▲ HE · ♨ молотов">'+nd+'</td><td>'+b.kills+'/'+b.deaths+'</td><td class="m">$'+b.money+'</td></tr>';
+      var c4 = bomb && bomb.carrier === b ? hudC4("c4i") : "";
+      var nd = b.nades ? ('<i class="nd s"></i>'.repeat(b.nades.smoke) + '<i class="nd f"></i>'.repeat(b.nades.flash) + '<i class="nd h"></i>'.repeat(b.nades.he) + '<i class="nd m"></i>'.repeat(b.nades.molly)) : "";
+      h += '<tr class="'+(b.alive?'':'dead')+'"><td class="nm" title="'+esc(b.prof ? b.prof.style+" · aim "+b.prof.aim+", агрессия "+b.prof.aggr+", дисциплина "+b.prof.disc+(b._mistakes ? " · ошибок: "+b._mistakes : "") : "")+'"><span class="pn">'+pnum(b.id)+'</span>'+esc(nick(b.id))+c4+'</td><td class="rl">'+(ROLE_LABEL[b.tRole]||"")+(b.retakeRole && bomb && bomb.state==="planted" && !cl0save() ? ' · '+({defuser:"дефузер",cover:"прикрытие",flank:"фланг"}[b.retakeRole]) : "")+'</td><td class="wp">'+wpn+'</td><td class="ar">'+arm+'</td><td class="ndc" title="серый — дым · белый — флешка · красный — HE · оранжевый — молотов">'+nd+'</td><td class="kd">'+b.kills+'/'+b.deaths+'</td><td class="m">$'+b.money+'</td></tr>';
     });
     h += '</table>';
   });

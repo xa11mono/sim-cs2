@@ -32,13 +32,16 @@ function voiceFeed(team, who, text, kind){
   if(voiceLines.length > 60) voiceLines.length = 60;
   renderVoice();
 }
+// (v430) новая фраза появляется плавно (класс in — один раз); бомба во времени — значок C4, а не эмодзи
+var HUD_VOICE_SHOWN = typeof WeakSet !== "undefined" ? new WeakSet() : null;
 function renderVoice(){
   var el = document.getElementById("voice"); if(!el) return;
   var body = voiceLines.length ? voiceLines.map(function(v){
-    return '<div class="vl '+v.kind+'" title="'+VOICE_KIND_T[v.kind]+'"><span class="vt">'+v.t+'</span><span class="vw '+v.team.toLowerCase()+'">'+esc(v.who)+
+    var nw = HUD_VOICE_SHOWN && !HUD_VOICE_SHOWN.has(v) ? (HUD_VOICE_SHOWN.add(v), " in") : "";
+    return '<div class="vl '+v.kind+nw+'" title="'+VOICE_KIND_T[v.kind]+'"><span class="vt">'+(v.t === "💣" ? hudC4() : v.t)+'</span><span class="vw '+v.team.toLowerCase()+'">'+esc(v.who)+
       '</span><span class="vx">'+esc(v.text)+'</span></div>';
   }).join("") : '<div class="vl none">в этом раунде ещё никто ничего не сказал</div>';
-  el.innerHTML = '<div class="vh">ВОЙС РАУНДА <span>Ё — консоль</span></div>' + body;
+  el.innerHTML = '<div class="vh">Войс раунда <span><kbd>Ё</kbd>консоль</span></div>' + body;
 }
 function toggleConsole(on){
   var lg = document.getElementById("log"), vc = document.getElementById("voice"); if(!lg || !vc) return;

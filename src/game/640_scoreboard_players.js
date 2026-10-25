@@ -18,29 +18,39 @@ function seriesUpdate(){
 function domText(el, v){ v = String(v); if(el && el.textContent !== v) el.textContent = v; }
 function domClass(el, v){ if(el && el.className !== v) el.className = v; }
 function domHtml(el, v){ if(el && el._html !== v){ el._html = v; el.innerHTML = v; } }
+// (v430) счёт и «живые» выкатываются при смене (hudRoll); полоса под таймером — сколько осталось раунда / фризтайма; бомба — значок C4
+var HUD_SB_FRZ = {start:null, len:1};
 function scoreboardUpdate(rtLeft){
   seriesUpdate();
-
+  if(typeof paused !== "undefined") hudPaused(paused);
   var $ = function(id){ return document.getElementById(id); };
   ["T","CT"].forEach(function(t){
     var lg = $("sbLogo"+t);
     var src = TEAM_LOGO[t] || "";   // (v270) после смены сторон логотип переезжает вместе с командой
     if(lg.dataset.src !== src){ lg.dataset.src = src; if(src) lg.innerHTML = '<img alt="" src="'+src+'">'; else lg.textContent = t; }
     var nm = $("sbName"+t); if(nm.textContent !== TEAM_NAME[t]){ nm.textContent = TEAM_NAME[t]; nm.title = TEAM_NAME[t]; }
-    domText($("sbScore"+t), score[t]);
-    domText($("sbAlive"+t), bots.filter(function(b){ return b.team === t && b.alive; }).length);
+    hudRoll($("sbScore"+t), score[t]);
+    hudRoll($("sbAlive"+t), bots.filter(function(b){ return b.team === t && b.alive; }).length);
   });
   domText($("sbMatch"), "матч № "+matchNum);
   if(!WARM.on) domText($("sbRound"), "РАУНД "+Math.max(1, roundNum));
-  var tm = $("sbTime"), planted = bomb && bomb.state === "planted" && roundState === "live";
+  var tm = $("sbTime"), pg = $("sbProg"), planted = bomb && bomb.state === "planted" && roundState === "live";
+  hudBombEdge(planted);
+  var prog = function(f, cls){ f = Math.max(0, Math.min(1, f)); f = Math.round(f*500)/500;
+    if(pg && pg._f !== f){ pg._f = f; pg.style.transform = "scaleX("+f+")"; } domClass(pg, cls); };
   // бомба стоит — как в CS2: вместо времени раунда значок бомбы (время до взрыва зрители не видят)
-  if(planted){ domText(tm, "💣"); domClass(tm, "sb-time bomb"); return; }
+  if(planted){ domHtml(tm, hudC4()); domClass(tm, "sb-time bomb"); prog(1, "bomb"); return; }
+  if(roundState === "freeze"){ if(HUD_SB_FRZ.start !== roundStartTime){ HUD_SB_FRZ.start = roundStartTime; HUD_SB_FRZ.len = Math.max(1, roundStartTime - simTime); } }
   var sec = roundState === "freeze" ? Math.max(0, roundStartTime - simTime) : rtLeft;
+  tm._html = undefined;   // значок бомбы снят — следующий плант нарисует его заново
   if(!WARM.on) domText(tm, Math.floor(sec/60)+":"+("0"+Math.floor(sec%60)).slice(-2));
-  domClass(tm, "sb-time" + (roundState === "live" && sec <= 10 ? " low" : ""));
+  var low = roundState === "live" && sec <= 10;
+  domClass(tm, "sb-time" + (low ? " low" : ""));
+  if(roundState === "freeze") prog(sec/HUD_SB_FRZ.len, "frz");
+  else prog(roundState === "live" ? sec/ROUND_TIME_SEC : 0, low ? "low" : "");
   // (v306) разминка: вместо раунда — «РАЗМИНКА · матч в …» и обратный отсчёт до матча
   if(WARM.on){ var wl = Math.max(0, Math.ceil(WARM.left)); domText($("sbRound"), "РАЗМИНКА · матч в "+WARM.match);
-    domText(tm, Math.floor(wl/60)+":"+("0"+(wl%60)).slice(-2)); }
+    domText(tm, Math.floor(wl/60)+":"+("0"+(wl%60)).slice(-2)); prog(0, ""); }
 }
 
 // ---------- панели игроков (Н7): как на трансляции; по центру — выбранный кликом ----------
@@ -140,8 +150,31 @@ function plItemsDone(b){
   for(var k in S.have) if(!S.now[k]) delete S.have[k];   // пропало (бросил, умер) — при новом появлении снова анимация
   S.now = {}; S.first = false;
 }
-function plCard(b){
-  var sel = plSelected === b.id ? " sel" : "", n = nick(b.id), hp = b.alive ? Math.max(0, Math.round(b.hp)) : 0, low = hp > 0 && hp <= 25 ? " low" : "";
+// (v430) панель строится один раз (каркас по составу стороны), дальше меняются только значения — поэтому работают переходы:
+// полоса HP и белый «след урона», вспышка при попадании, гаснущая карточка при смерти, «прокрутка» денег и фрагов.
+// Раньше панель целиком перестраивалась ~10 раз в секунду (и анимировать было нечего — элементы каждый раз новые)
+function plSkel(ids){
+  return '<div class="pl-tag"></div>' + ids.map(function(id){
+    return '<div class="pl-card" data-id="'+id+'" tabindex="0" title="Показать игрока"><div class="pl-hit"></div>'+
+      '<div class="pl-num"></div>'+
+      '<div class="pl-body"><div class="pl-nick"></div>'+
+        '<div class="pl-stat"><span>'+PL_KILL+'<i class="pk"></i></span><span>'+PL_SKULL+'<i class="pd"></i></span><span class="pl-money">$<i class="pm"></i></span></div></div>'+
+      '<div class="pl-ava"></div>'+
+      '<div class="pl-side"><div class="pl-top"><span class="pl-wp"></span><span class="pl-hp"></span></div><div class="pl-gear"></div></div>'+
+      '<div class="pl-bar"><b class="tr"></b><b class="hp"></b></div></div>';
+  }).join("");
+}
+var PL_MONEY = function(v){ return v.toLocaleString("en-US"); };
+function plCardUpdate(c, b){
+  var q = function(s){ return c.querySelector(s); };
+  var R = c._r || (c._r = {num:q(".pl-num"), nick:q(".pl-nick"), k:q(".pk"), d:q(".pd"), m:q(".pm"), ava:q(".pl-ava"), wp:q(".pl-wp"),
+    hp:q(".pl-hp"), gear:q(".pl-gear"), tr:q(".pl-bar .tr"), hb:q(".pl-bar .hp"), hit:q(".pl-hit")});
+  var hp = b.alive ? Math.max(0, Math.round(b.hp)) : 0, low = hp > 0 && hp <= 25;
+  domClass(c, "pl-card" + (b.alive ? "" : " dead") + (plSelected === b.id ? " sel" : "") + (low ? " low" : ""));
+  domText(R.num, plNum(b));
+  domText(R.nick, nick(b.id));
+  hudNum(R.k, b.kills || 0); hudNum(R.d, b.deaths || 0); hudNum(R.m, buyShowMoney(b), PL_MONEY);
+  if(R.ava._id !== b.id){ R.ava._id = b.id; R.ava.innerHTML = plPhoto(b); }
   var wp = "", gear = "";
   if(b.alive){
     var hide = buyShowHidden(b);
@@ -151,29 +184,37 @@ function plCard(b){
     });
   }
   plItemsDone(b);
-  return '<div class="pl-card'+(b.alive ? "" : " dead")+sel+'" data-id="'+b.id+'" tabindex="0" title="Показать игрока">'+
-    '<div class="pl-num">'+plNum(b)+'</div>'+
-    '<div class="pl-body"><div class="pl-nick">'+esc(n)+'</div>'+
-      '<div class="pl-stat"><span>'+PL_KILL+(b.kills||0)+'</span><span>'+PL_SKULL+(b.deaths||0)+'</span><span class="pl-money">$'+buyShowMoney(b).toLocaleString("en-US")+'</span></div></div>'+
-    '<div class="pl-ava">'+plPhoto(b)+'</div>'+
-    '<div class="pl-side"><div class="pl-top">'+wp+'<span class="pl-hp'+low+'">'+(b.alive ? hp : "☠")+'</span></div><div class="pl-gear">'+gear+'</div></div>'+
-    '<div class="pl-bar"><b class="'+low.trim()+'" style="width:'+hp+'%"></b></div></div>';
+  domHtml(R.wp, wp); domHtml(R.gear, gear);
+  domHtml(R.hp, b.alive ? String(hp) : PL_SKULL);
+  // HP: полоса сразу, «след» — с задержкой (CSS); стало меньше — красная вспышка, умер — вспышка дольше
+  var f = hp/100;
+  if(R.f !== f){
+    var tr = "scaleX("+f+")";
+    if(R.f === undefined || f > R.f){ R.tr.style.transition = "none"; R.tr.style.transform = tr; R.hb.style.transform = tr; }
+    else { R.tr.style.transition = ""; R.tr.style.transform = tr; R.hb.style.transform = tr; }
+    if(R.f !== undefined && f < R.f && R.alive !== false)
+      hudAnim(R.hit, [{opacity:b.alive ? .9 : 1}, {opacity:0}], {duration:b.alive ? 520 : 1100, easing:"cubic-bezier(.2,.8,.2,1)"});
+    R.f = f;
+  }
+  if(R.alive === true && !b.alive) hudAnim(c, [{transform:"translateX("+(b.team === "T" ? "-" : "")+"6px)"}, {transform:"none"}], {duration:320, easing:"cubic-bezier(.2,.8,.2,1)"});
+  R.alive = b.alive;
 }
 function playersUpdate(){
   ["T","CT"].forEach(function(t){
     var el = document.getElementById("pl"+t); if(!el) return;
-    var foc = document.activeElement && el.contains(document.activeElement) ? document.activeElement.dataset.id : null;
-    var h = '<div class="pl-tag">'+esc(TEAM_NAME[t])+'</div>'+bots.filter(function(b){ return b.team === t; }).map(plCard).join("");
-    if(el._html === h) return;   // (v397, М146) ничего не поменялось — не перестраивать панель
-    domHtml(el, h);
-    if(foc){ var fe = el.querySelector('[data-id="'+foc+'"]'); if(fe) fe.focus(); }
+    var mates = bots.filter(function(b){ return b.team === t; }), key = mates.map(function(b){ return b.id; }).join(",");
+    if(el._key !== key){ el._key = key; el.innerHTML = plSkel(mates.map(function(b){ return b.id; })); el._cards = el.querySelectorAll(".pl-card"); el._tag = el.querySelector(".pl-tag"); }
+    domText(el._tag, TEAM_NAME[t]);
+    mates.forEach(function(b, i){ plCardUpdate(el._cards[i], b); });
   });
   var f = document.getElementById("plFocus"), b = plSelected && teamBot(plSelected);
   if(!b || !b.alive){ plSelected = null; domClass(f, ""); var ph0 = document.getElementById("pfPhoto"); if(ph0) ph0.dataset.id = ""; return; }
   var cls = "show "+b.team.toLowerCase()+(f.classList.contains("pop") ? " pop" : ""); if(f.className !== cls) f.className = cls;
   var ph = document.getElementById("pfPhoto"); if(ph.dataset.id !== b.id){ ph.dataset.id = b.id; ph.innerHTML = plPhoto(b); f.classList.remove("pop"); void f.offsetWidth; f.classList.add("pop"); }   // (v303) новая карточка — анимация заново
   domText(document.getElementById("pfNick"), nick(b.id));
-  domText(document.getElementById("pfHp"), Math.max(0, Math.round(b.hp)));
+  var php = Math.max(0, Math.round(b.hp));
+  domText(document.getElementById("pfHp"), php);
+  if(f._hp !== php){ f._hp = php; f.style.setProperty("--hp", String(php/100)); }
   domHtml(document.getElementById("pfKd"), (b.kills||0)+'<i></i>'+(b.deaths||0));
 }
 // клик по строке игрока в панели — его карточка; повторный клик — убрать

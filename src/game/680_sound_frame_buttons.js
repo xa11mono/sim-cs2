@@ -170,19 +170,19 @@ function sndTick(){   // пиканье бомбы — раз в тик пров
   // (v346, владелец: «сделай, чтобы звук был включён по умолчанию») звук включён сразу; браузер даёт звук только после действия
   // на странице — запускается при первом клике / клавише где угодно. Выключил кнопкой — запоминается в этом браузере
   var pref = null; try{ pref = localStorage.getItem("sndOff"); }catch(e){}
-  SND.on = pref !== "1"; b.className = SND.on ? "on" : ""; b.textContent = SND.on ? "Звук: вкл" : "Звук";
+  SND.on = pref !== "1"; b.className = SND.on ? "on" : ""; b.textContent = "Звук"; b.title = b.title.replace(/ — (вкл|выкл)$/, "") + (SND.on ? " — вкл" : " — выкл");
   var wake = function(){ if(!SND.on) return; sndInit(); if(SND.ctx && SND.ctx.state !== "running") SND.ctx.resume().catch(function(){}); };
   ["pointerdown", "keydown"].forEach(function(ev){ document.addEventListener(ev, wake, {capture:true}); });
   // (v326) включил — сразу короткий сигнал (слышно, что звук работает); если браузер / страница не дали звук — пишем это на кнопке
   // (v425, владелец 25.10: «нужно добавить ползунок громкости звуков игры») общая громкость — SND.master; 0,85 — как было; запоминается
   var vol = document.getElementById("sndVol"), v0 = null; try{ v0 = localStorage.getItem("sndVol"); }catch(e){}
   SND.vol = v0 != null && !isNaN(+v0) ? Math.max(0, Math.min(1, +v0)) : 0.85;
-  if(vol){ vol.value = Math.round(SND.vol*100);
-    vol.addEventListener("input", function(){ SND.vol = (+vol.value)/100; if(SND.master) SND.master.gain.value = SND.vol;
+  if(vol){ vol.value = Math.round(SND.vol*100); vol.style.setProperty("--v", vol.value+"%");   // (v430) --v — заполнение дорожки (только вид)
+    vol.addEventListener("input", function(){ SND.vol = (+vol.value)/100; if(SND.master) SND.master.gain.value = SND.vol; vol.style.setProperty("--v", vol.value+"%");
       try{ localStorage.setItem("sndVol", String(SND.vol)); }catch(e){} }); }
   b.addEventListener("click", function(){
     sndInit(); if(!SND.ctx){ b.textContent = "Звук: браузер не умеет"; return; }
-    SND.on = !SND.on; b.className = SND.on ? "on" : ""; b.textContent = SND.on ? "Звук: вкл" : "Звук";
+    SND.on = !SND.on; b.className = SND.on ? "on" : ""; b.textContent = "Звук"; b.title = b.title.replace(/ — (вкл|выкл)$/, "") + (SND.on ? " — вкл" : " — выкл");
     try{ localStorage.setItem("sndOff", SND.on ? "0" : "1"); }catch(e){}
     if(!SND.on) return;
     var go = function(){ sndTone(0.35, 0.12, 880, "sine"); sndTone(0.35, 0.12, 1320, "sine", 0.13); };
@@ -217,7 +217,7 @@ function frame(ts){
   requestAnimationFrame(frame);
 }
 document.getElementById("btnFreshMatch").addEventListener("click", function(){ var n = Math.max(1, parseInt(document.getElementById("inpMatchNum").value, 10) || 1); var sel = document.getElementById("selSeries"), bo = sel ? +sel.value : 3; if(bo !== SERIES.bo || seriesDone()) SERIES = {bo:bo, maps:{}}; var cw = document.getElementById("chkWarm"); if(cw && !cw.checked) freshMatch(n); else warmStart(n); paused = false; var bp = document.getElementById("btnPause"); if(bp){ bp.textContent = "Пауза"; bp.classList.remove("active"); } logEvent("Матч №"+n+" с чистого листа (воспроизводимый)", true); });
-setInterval(function(){ var el = document.getElementById("matchTick"); if(el) el.textContent = "сейчас "+matchNum+"-й, тик "+tick; }, 250);
+setInterval(function(){ var el = document.getElementById("matchTick"); if(el) el.textContent = "матч "+matchNum+" · тик "+tick; }, 250);
 var BOT_INIT = bots.map(function(b){ var o = {keys:{}, vals:{}}; for(var k in b){ o.keys[k] = 1; var v = b[k]; if(v === null || (typeof v !== "object" && typeof v !== "function")) o.vals[k] = v; } return o; });
 window.__ev=function(src){return eval(src);};
 /*@@WARM_AUTO@@*/
