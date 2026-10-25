@@ -100,12 +100,73 @@ function contactTick(b){
   if(swing && !C.own && b.nades && b.nades.flash > 0 && C.d > 150 && !hasLOS(b.x, b.y, look.x, look.y, b.z)) assignNade(b, "flash", look, "флешка под выход на врага рядом", {now:true, range:900});
   voiceLog(b.team, "ct"+b.id+Math.round(tick/64), b.id, (swing ? "выхожу на него " : "держу ")+calloutName(look.x, look.y));
 }
+// ======================= (v419, хвост 350:70, владелец 25.10) ЗАДЕРЖАТЬ ГРАНАТОЙ — одно место для CT =======================
+// PRO_PLAY.md (CT): «отказать и потянуть — утилитой задерживать», «тиммейт держит утилиту и кидает при контакте», «молотов
+// останавливает подход». CT знает, что группа T идёт на него: держит угол от контакта (contact:hold) или команда видела / слышала T
+// у входа на сайт (в первые 25 с хватает одного, дальше — двое; на сайте уже больше одного — поздно; кидает ближайший к входу CT —
+// как было в «молотове на раш»). Кидает, только пока врага сам не видит и известных врагов ближе DELAY_SAFE нет, и только С МЕСТА
+// (здесь — here: не идёт на точку броска nadeThrowSpot, не долетает — не кидает; враг появился — задание снимается, в руках оружие):
+//  · проход открыт — молотов, нет — смок (не туда, где уже горит);
+//  · между ним и группой дым, а свой рядом стреляется с ней (contactMateFight) — HE (не в сам дым: HE его разрывает), нет —
+//    флешка, если её хлопок по формуле ослепления (flashDirK) не слепит ни одного своего; свой не в бою — дым держит проход сам.
+// Потом — снова угол с оружием. Заменяет «молотов на раш» (410) и молотов / HE опорника «задержать выход» по коллу (420).
+var DELAY_SAFE = 350, DELAY_GAP = 6;   // проектные числа: 350 — из ТЗ владельца (300–400, не из демок), 6 с — пауза между бросками
+function delaySafe(b){
+  if(b._sawEnemy) return false;
+  var BL = beliefLast[b.team] || {};
+  for(var id in BL){ var e = BL[id], ob = teamBot(id);
+    if(ob && ob.alive && ob.team !== b.team && tick - e.tick <= CONTACT_AGE*TICK_HZ && Math.hypot(e.x-b.x, e.y-b.y) < DELAY_SAFE) return false; }
+  return true;
+}
+function flashSafeFor(b, t){
+  return !bots.some(function(o){ if(o === b || !o.alive || o.team !== b.team) return false;
+    var k = flashDirK(o, t); return k && BAL.flashMax*k*Math.max(0, 1 - Math.hypot(o.x-t.x, o.y-t.y)/1100) > 0.35; });   // как хлопок (400), без увёртки и колла
+}
+function delayCanThrow(o){ return o.alive && o.team === "CT" && o.nades && (o.nades.molly > 0 || o.nades.smoke > 0) && !o.nadeTask && !o._sawEnemy; }
+function delayTarget(b){
+  var K = b._contact;
+  if(K && K.tag === "contact:hold" && tick < K.until)
+    return Math.hypot(K.x-b.x, K.y-b.y) >= DELAY_SAFE ? {x:K.x, y:K.y, why:"держу "+calloutName(K.x, K.y)} : null;   // враг уже в упор — оружие
+  if(!delayCanThrow(b)) return null;
+  var early = tick - roundStartTick < 25*TICK_HZ, best = null, sig = (teamIntel.CT && teamIntel.CT.sig) || [];
+  ["A","B"].forEach(function(k){
+    var ent = GEO[k] && GEO[k].tEntry; if(!ent) return;
+    var src = {}, onS = {};
+    sig.forEach(function(sg){ if(!sg.id || sg.id === "?") return;
+      if((sg.type === "sound" || sg.type === "spotted") && tick - sg.tick < 2.5*TICK_HZ && Math.hypot(sg.x-ent.x, sg.y-ent.y) < 700) src[sg.id] = 1;
+      if(sg.type === "spotted" && tick - sg.tick < 1.5*TICK_HZ && Math.hypot(sg.x-SITES[k].x, sg.y-SITES[k].y) < 220) onS[sg.id] = 1; });
+    if(Object.keys(src).length < (early ? 1 : 2) || Object.keys(onS).length > 1) return;
+    var ok = function(o){ var d = Math.hypot(o.x-ent.x, o.y-ent.y); return d < NADE_THROW_RANGE*1.1 && d > 150; };
+    if(!ok(b)) return;
+    var dB = Math.hypot(b.x-ent.x, b.y-ent.y);
+    if(bots.some(function(o){ return o !== b && delayCanThrow(o) && ok(o) && Math.hypot(o.x-ent.x, o.y-ent.y) < dB; })) return;   // кидает ближайший
+    if(!best || dB < best.d) best = {x:ent.x, y:ent.y, d:dB, why:"вход "+k};
+  });
+  return best;
+}
+function ctDelayNade(b){
+  if(b.team !== "CT" || !b.alive || !b.nades || b.nadeTask || b.planting || b.defusing || (bomb && bomb.state === "planted")) return;
+  if(tick - (b._delayT == null ? -1e9 : b._delayT) < DELAY_GAP*TICK_HZ || !delaySafe(b)) return;
+  var t = delayTarget(b); if(!t) return;
+  var type = null, inSmoke = smokeCovered(t.x, t.y);
+  if(inSmoke || smokeBlocks(b.x, b.y, t.x, t.y)){
+    if(!contactMateFight(b, t)) return;
+    if(b.nades.he > 0 && !inSmoke) type = "he";
+    else if(b.nades.flash > 0 && flashSafeFor(b, t)) type = "flash";
+  } else if(!fires.some(function(f){ return Math.hypot(f.x-t.x, f.y-t.y) < NADE.molly.radius; })){
+    type = b.nades.molly > 0 ? "molly" : (b.nades.smoke > 0 ? "smoke" : null);
+  }
+  if(!type || !assignNade(b, type, t, "задержать: "+t.why, {now:true, here:true})) return;
+  b._delayT = tick;
+  voiceLog("CT", "dly"+b.id+Math.round(tick/64), b.id, ({molly:"молотов", smoke:"смок", he:"HE", flash:"флешка"})[type]+" — "+t.why);
+}
 function teamBrains(){
   if(roundState !== "live" || !teamTac.T) return;
   bombTick();
   if(roundState !== "live") return; // дефуз мог только что закончить раунд
   routeTick();
   bots.forEach(function(b){ contactTick(b); });   // (v367) реакция на контакт — до мозгов, их посты её не перебивают
+  bots.forEach(function(b){ ctDelayNade(b); });   // (v419) задержать гранатой — после реакции на контакт (знает, держит ли угол)
   SPOT_TEAM = "T"; tBrain(); SPOT_TEAM = "CT"; ctBrain(); SPOT_TEAM = null; endgameBrain(); lineupTick(); smokeEdgeTick(); weaponPickupTick(); itemPickupTick(); lkpTick();
   if(BAL.soundMore) bots.forEach(function(b){ if(b.alive && b._heardReload) reloadPeek(b); });
   if(BAL.assistPeek && tick % 4 === 0) bots.forEach(function(b){ if(b.alive) assistPeek(b); });

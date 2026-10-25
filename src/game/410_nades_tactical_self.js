@@ -201,25 +201,8 @@ function nadeReact(){
         voiceLog(team, "hefin"+eH, th.id, eH+" на "+h.hp+" за углом — HE"); }
     }
   });
-  ["A","B"].forEach(function(k){
-    if(nadeFlags["rushMolly"+k] || !(bomb.state !== "planted")) return;
-    var g = GEO[k], ent = g.tEntry, srcs = {};
-    // раньше: только ЗВУК от 2+ T за 1.5с в 550px и ни одного T на сайте —
-    // почти не срабатывало (звук через колл приходит с задержкой, часть теряется).
-    // Теперь: видели или слышали, окно 2.5с, 700px; в начале раунда (≤25с)
-    // хватает одного — это ранний раш; один T уже на сайте — не помеха
-    var early = tick - roundStartTick < 25*TICK_HZ;
-    teamIntel.CT.sig.forEach(function(sg){ if((sg.type === "sound" || sg.type === "spotted") && tick - sg.tick < 2.5*TICK_HZ && Math.hypot(sg.x-ent.x, sg.y-ent.y) < 700 && sg.id && sg.id !== "?") srcs[sg.id] = 1; });
-    if(Object.keys(srcs).length < (early ? 1 : 2)) return;
-    var onS = {}; teamIntel.CT.sig.forEach(function(sg){ if(sg.type === "spotted" && sg.id && tick - sg.tick < 1.5*TICK_HZ && Math.hypot(sg.x-SITES[k].x, sg.y-SITES[k].y) < 220) onS[sg.id] = 1; });
-    if(Object.keys(onS).length > 1) return; // уже зашли — поздно
-    var c = bots.filter(function(b){ return b.alive && b.team === "CT" && b.nades && b.nades.molly > 0 && !b.nadeTask && !b._sawEnemy &&
-      Math.hypot(b.x-ent.x, b.y-ent.y) < NADE_THROW_RANGE*1.1 && Math.hypot(b.x-ent.x, b.y-ent.y) > 150; })
-      .sort(function(a, b2){ return Math.hypot(a.x-ent.x, a.y-ent.y) - Math.hypot(b2.x-ent.x, b2.y-ent.y); })[0];
-    if(!c) return;
-    if(assignNade(c, "molly", ent, "молотов на раш "+k, {now:true})){ nadeFlags["rushMolly"+k] = tick;
-      voiceLog("CT", "rushm"+k, c.id, "слышу раш на "+k+" — молотов во вход!"); }
-  });
+  // (v419) «молотов на раш» (видели / слышали T у входа на сайт → ближайший CT молотов во вход) — теперь в «задержать гранатой»
+  // (ctDelayNade, 350): одно место для задержки CT гранатой, то же условие инфы, бросок только с места
   // (v294) «ранняя граната на задержку» (молотов/HE опорника во вход своего сайта на 7–18 с) убрана: у ботов рвалась рядом с врагом
   // в 3 % случаев; у про такого броска нет (CT молотовы по времени — Mid, T Lower, Ramp — есть в лайнапах про)
   ["CT","T"].forEach(function(team){

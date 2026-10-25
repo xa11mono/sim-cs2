@@ -22385,12 +22385,73 @@ function contactTick(b){
   if(swing && !C.own && b.nades && b.nades.flash > 0 && C.d > 150 && !hasLOS(b.x, b.y, look.x, look.y, b.z)) assignNade(b, "flash", look, "флешка под выход на врага рядом", {now:true, range:900});
   voiceLog(b.team, "ct"+b.id+Math.round(tick/64), b.id, (swing ? "выхожу на него " : "держу ")+calloutName(look.x, look.y));
 }
+// ======================= (v419, хвост 350:70, владелец 25.10) ЗАДЕРЖАТЬ ГРАНАТОЙ — одно место для CT =======================
+// PRO_PLAY.md (CT): «отказать и потянуть — утилитой задерживать», «тиммейт держит утилиту и кидает при контакте», «молотов
+// останавливает подход». CT знает, что группа T идёт на него: держит угол от контакта (contact:hold) или команда видела / слышала T
+// у входа на сайт (в первые 25 с хватает одного, дальше — двое; на сайте уже больше одного — поздно; кидает ближайший к входу CT —
+// как было в «молотове на раш»). Кидает, только пока врага сам не видит и известных врагов ближе DELAY_SAFE нет, и только С МЕСТА
+// (здесь — here: не идёт на точку броска nadeThrowSpot, не долетает — не кидает; враг появился — задание снимается, в руках оружие):
+//  · проход открыт — молотов, нет — смок (не туда, где уже горит);
+//  · между ним и группой дым, а свой рядом стреляется с ней (contactMateFight) — HE (не в сам дым: HE его разрывает), нет —
+//    флешка, если её хлопок по формуле ослепления (flashDirK) не слепит ни одного своего; свой не в бою — дым держит проход сам.
+// Потом — снова угол с оружием. Заменяет «молотов на раш» (410) и молотов / HE опорника «задержать выход» по коллу (420).
+var DELAY_SAFE = 350, DELAY_GAP = 6;   // проектные числа: 350 — из ТЗ владельца (300–400, не из демок), 6 с — пауза между бросками
+function delaySafe(b){
+  if(b._sawEnemy) return false;
+  var BL = beliefLast[b.team] || {};
+  for(var id in BL){ var e = BL[id], ob = teamBot(id);
+    if(ob && ob.alive && ob.team !== b.team && tick - e.tick <= CONTACT_AGE*TICK_HZ && Math.hypot(e.x-b.x, e.y-b.y) < DELAY_SAFE) return false; }
+  return true;
+}
+function flashSafeFor(b, t){
+  return !bots.some(function(o){ if(o === b || !o.alive || o.team !== b.team) return false;
+    var k = flashDirK(o, t); return k && BAL.flashMax*k*Math.max(0, 1 - Math.hypot(o.x-t.x, o.y-t.y)/1100) > 0.35; });   // как хлопок (400), без увёртки и колла
+}
+function delayCanThrow(o){ return o.alive && o.team === "CT" && o.nades && (o.nades.molly > 0 || o.nades.smoke > 0) && !o.nadeTask && !o._sawEnemy; }
+function delayTarget(b){
+  var K = b._contact;
+  if(K && K.tag === "contact:hold" && tick < K.until)
+    return Math.hypot(K.x-b.x, K.y-b.y) >= DELAY_SAFE ? {x:K.x, y:K.y, why:"держу "+calloutName(K.x, K.y)} : null;   // враг уже в упор — оружие
+  if(!delayCanThrow(b)) return null;
+  var early = tick - roundStartTick < 25*TICK_HZ, best = null, sig = (teamIntel.CT && teamIntel.CT.sig) || [];
+  ["A","B"].forEach(function(k){
+    var ent = GEO[k] && GEO[k].tEntry; if(!ent) return;
+    var src = {}, onS = {};
+    sig.forEach(function(sg){ if(!sg.id || sg.id === "?") return;
+      if((sg.type === "sound" || sg.type === "spotted") && tick - sg.tick < 2.5*TICK_HZ && Math.hypot(sg.x-ent.x, sg.y-ent.y) < 700) src[sg.id] = 1;
+      if(sg.type === "spotted" && tick - sg.tick < 1.5*TICK_HZ && Math.hypot(sg.x-SITES[k].x, sg.y-SITES[k].y) < 220) onS[sg.id] = 1; });
+    if(Object.keys(src).length < (early ? 1 : 2) || Object.keys(onS).length > 1) return;
+    var ok = function(o){ var d = Math.hypot(o.x-ent.x, o.y-ent.y); return d < NADE_THROW_RANGE*1.1 && d > 150; };
+    if(!ok(b)) return;
+    var dB = Math.hypot(b.x-ent.x, b.y-ent.y);
+    if(bots.some(function(o){ return o !== b && delayCanThrow(o) && ok(o) && Math.hypot(o.x-ent.x, o.y-ent.y) < dB; })) return;   // кидает ближайший
+    if(!best || dB < best.d) best = {x:ent.x, y:ent.y, d:dB, why:"вход "+k};
+  });
+  return best;
+}
+function ctDelayNade(b){
+  if(b.team !== "CT" || !b.alive || !b.nades || b.nadeTask || b.planting || b.defusing || (bomb && bomb.state === "planted")) return;
+  if(tick - (b._delayT == null ? -1e9 : b._delayT) < DELAY_GAP*TICK_HZ || !delaySafe(b)) return;
+  var t = delayTarget(b); if(!t) return;
+  var type = null, inSmoke = smokeCovered(t.x, t.y);
+  if(inSmoke || smokeBlocks(b.x, b.y, t.x, t.y)){
+    if(!contactMateFight(b, t)) return;
+    if(b.nades.he > 0 && !inSmoke) type = "he";
+    else if(b.nades.flash > 0 && flashSafeFor(b, t)) type = "flash";
+  } else if(!fires.some(function(f){ return Math.hypot(f.x-t.x, f.y-t.y) < NADE.molly.radius; })){
+    type = b.nades.molly > 0 ? "molly" : (b.nades.smoke > 0 ? "smoke" : null);
+  }
+  if(!type || !assignNade(b, type, t, "задержать: "+t.why, {now:true, here:true})) return;
+  b._delayT = tick;
+  voiceLog("CT", "dly"+b.id+Math.round(tick/64), b.id, ({molly:"молотов", smoke:"смок", he:"HE", flash:"флешка"})[type]+" — "+t.why);
+}
 function teamBrains(){
   if(roundState !== "live" || !teamTac.T) return;
   bombTick();
   if(roundState !== "live") return; // дефуз мог только что закончить раунд
   routeTick();
   bots.forEach(function(b){ contactTick(b); });   // (v367) реакция на контакт — до мозгов, их посты её не перебивают
+  bots.forEach(function(b){ ctDelayNade(b); });   // (v419) задержать гранатой — после реакции на контакт (знает, держит ли угол)
   SPOT_TEAM = "T"; tBrain(); SPOT_TEAM = "CT"; ctBrain(); SPOT_TEAM = null; endgameBrain(); lineupTick(); smokeEdgeTick(); weaponPickupTick(); itemPickupTick(); lkpTick();
   if(BAL.soundMore) bots.forEach(function(b){ if(b.alive && b._heardReload) reloadPeek(b); });
   if(BAL.assistPeek && tick % 4 === 0) bots.forEach(function(b){ if(b.alive) assistPeek(b); });
@@ -23077,7 +23138,9 @@ function assignNade(b, type, target, why, opts){
   // себе, дамп…) не дублируют уже летящую/назначенную туда же
   if(BAL.nadeDedup && type !== "smoke" && (nadesInAir.some(function(n){ return n.team === b.team && n.type === type && Math.hypot((n.tx||n.x)-target.x, (n.ty||n.y)-target.y) < 120; }) ||
      bots.some(function(o){ return o !== b && o.alive && o.team === b.team && o.nadeTask && o.nadeTask.type === type && Math.hypot(o.nadeTask.x-target.x, o.nadeTask.y-target.y) < 120; }))) return false;
-  b.nadeTask = {type:type, x:target.x, y:target.y, until: tick + 10*64, why:why||"", start:tick, lob:true, range:(opts && opts.range) || NADE_THROW_RANGE, now:!!(opts && opts.now)};
+  // (v419) here — бросок только с места (задержать гранатой, 350): срок 2 с, на точку броска не идёт
+  var here = !!(opts && opts.here);
+  b.nadeTask = {type:type, x:target.x, y:target.y, until: tick + (here ? 2 : 10)*64, why:why||"", start:tick, lob:true, range:(opts && opts.range) || NADE_THROW_RANGE, now:!!(opts && opts.now), here:here};
   return true;
 }
 // задание на гранату выполняется, как только точка видна и в пределах броска
@@ -23099,6 +23162,7 @@ function updateNadeTasks(){
       if(b.post && b.post.tag === "lineup") clearPost(b);
       return; }
     if(b.planting || b.defusing) return;
+    if(t.here && !delaySafe(b)){ b.nadeTask = null; return; }   // (v419) враг виден / в упор — граната убирается, в руках оружие
     // (v359, р7) T уже на сайте выхода, а точка броска позади — задание снимается: с взятого сайта назад за гранатой не уходят
     if(t.lineup && t.from && b.team === "T" && teamTac.T && SITES[teamTac.T.site] && bomb.state !== "planted"){
       var Sx = SITES[teamTac.T.site], dB = Math.hypot(b.x-Sx.x, b.y-Sx.y);
@@ -23131,7 +23195,7 @@ function updateNadeTasks(){
       // по пути не мешают» для любого броска; теперь сквозь стены летят только лайнапы про (из демок, так кидали на самом деле).
       // Свой бросок — над открытым местом (проходы, окна, укрытия); нет пути — идёт на точку рядом, откуда граната долетает
       // (nadeThrowSpot: безопасную от известных врагов); нет и такой — не кидает
-      if(throwNade(b, t.type, t.x, t.y, true, t.why) || !/стена|потолок/.test(NADE_FAIL||"") || t._spotTried){ b.nadeTask = null; return; }   // (v373) и под крышей — на точку, откуда долетит
+      if(throwNade(b, t.type, t.x, t.y, true, t.why) || !/стена|потолок/.test(NADE_FAIL||"") || t._spotTried || t.here){ b.nadeTask = null; return; }   // (v373) и под крышей — на точку, откуда долетит
       t._spotTried = true;
       var fs = nadeThrowSpot(b, t);
       if(!fs){ b.nadeTask = null; return; }
@@ -23408,10 +23472,7 @@ function detonate(n){
     bots.forEach(function(b){
       if(!b.alive) return;
       var d = Math.hypot(b.x-n.x, b.y-n.y);
-      if(d > 1000 || !flashSeen(b, n)) return;
-      var a = Math.atan2(n.y-b.y, n.x-b.x);
-      var off = b.facing === undefined ? 0 : Math.abs(((a - b.facing + Math.PI) % (2*Math.PI) + 2*Math.PI) % (2*Math.PI) - Math.PI);
-      var dirK = off < 0.55 ? 1 : (off < 1.6 ? 0.5 : 0.12);  // смотрел прямо / краем глаза / спиной
+      var dirK = flashDirK(b, n); if(!dirK) return;
       // враг, который видел/слышал летящую флешку, может успеть отвернуться —
       // тем вероятнее, чем выше навык (раньше флешка слепила "по учебнику" всегда)
       // (этап 3, P2-2) свой отворачивается наверняка (×0,18 ниже), только если дослушал колл «флешу!» до хлопка;
@@ -23508,6 +23569,15 @@ function applyDamage(att, b, dmg, src, o){
 // (v321, М13) флешку взрывают в воздухе, часто над крышей/стеной (точки разрыва про из демок лежат «в стене» на радаре);
 // стены у нас без высоты, поэтому видно вспышку над крышей — если виден край рядом с ней: точка в 30 или 60 ед. карты от
 // разрыва вне стены, до которой у бота есть линия (проектные числа)
+// (v419) насколько флешка в точке n слепит b по направлению взгляда: 0 — не видит / дальше 1000, иначе 1 / 0,5 / 0,12 (прямо /
+// краем глаза / спиной). Одно место: хлопок (выше) и проверка перед броском «не слепит своих» (flashSafeFor, 350)
+function flashDirK(b, n){
+  var d = Math.hypot(b.x-n.x, b.y-n.y);
+  if(d > 1000 || !flashSeen(b, n)) return 0;
+  var a = Math.atan2(n.y-b.y, n.x-b.x);
+  var off = b.facing === undefined ? 0 : Math.abs(((a - b.facing + Math.PI) % (2*Math.PI) + 2*Math.PI) % (2*Math.PI) - Math.PI);
+  return off < 0.55 ? 1 : (off < 1.6 ? 0.5 : 0.12);  // смотрел прямо / краем глаза / спиной
+}
 function flashSeen(b, n){
   if(!insideSolidWall(n.x, n.y) && hasVision(b.x, b.y, n.x, n.y)) return true;
   for(var r = 30; r <= 60; r += 30) for(var k = 0; k < 8; k++){
@@ -23783,25 +23853,8 @@ function nadeReact(){
         voiceLog(team, "hefin"+eH, th.id, eH+" на "+h.hp+" за углом — HE"); }
     }
   });
-  ["A","B"].forEach(function(k){
-    if(nadeFlags["rushMolly"+k] || !(bomb.state !== "planted")) return;
-    var g = GEO[k], ent = g.tEntry, srcs = {};
-    // раньше: только ЗВУК от 2+ T за 1.5с в 550px и ни одного T на сайте —
-    // почти не срабатывало (звук через колл приходит с задержкой, часть теряется).
-    // Теперь: видели или слышали, окно 2.5с, 700px; в начале раунда (≤25с)
-    // хватает одного — это ранний раш; один T уже на сайте — не помеха
-    var early = tick - roundStartTick < 25*TICK_HZ;
-    teamIntel.CT.sig.forEach(function(sg){ if((sg.type === "sound" || sg.type === "spotted") && tick - sg.tick < 2.5*TICK_HZ && Math.hypot(sg.x-ent.x, sg.y-ent.y) < 700 && sg.id && sg.id !== "?") srcs[sg.id] = 1; });
-    if(Object.keys(srcs).length < (early ? 1 : 2)) return;
-    var onS = {}; teamIntel.CT.sig.forEach(function(sg){ if(sg.type === "spotted" && sg.id && tick - sg.tick < 1.5*TICK_HZ && Math.hypot(sg.x-SITES[k].x, sg.y-SITES[k].y) < 220) onS[sg.id] = 1; });
-    if(Object.keys(onS).length > 1) return; // уже зашли — поздно
-    var c = bots.filter(function(b){ return b.alive && b.team === "CT" && b.nades && b.nades.molly > 0 && !b.nadeTask && !b._sawEnemy &&
-      Math.hypot(b.x-ent.x, b.y-ent.y) < NADE_THROW_RANGE*1.1 && Math.hypot(b.x-ent.x, b.y-ent.y) > 150; })
-      .sort(function(a, b2){ return Math.hypot(a.x-ent.x, a.y-ent.y) - Math.hypot(b2.x-ent.x, b2.y-ent.y); })[0];
-    if(!c) return;
-    if(assignNade(c, "molly", ent, "молотов на раш "+k, {now:true})){ nadeFlags["rushMolly"+k] = tick;
-      voiceLog("CT", "rushm"+k, c.id, "слышу раш на "+k+" — молотов во вход!"); }
-  });
+  // (v419) «молотов на раш» (видели / слышали T у входа на сайт → ближайший CT молотов во вход) — теперь в «задержать гранатой»
+  // (ctDelayNade, 350): одно место для задержки CT гранатой, то же условие инфы, бросок только с места
   // (v294) «ранняя граната на задержку» (молотов/HE опорника во вход своего сайта на 7–18 с) убрана: у ботов рвалась рядом с врагом
   // в 3 % случаев; у про такого броска нет (CT молотовы по времени — Mid, T Lower, Ramp — есть в лайнапах про)
   ["CT","T"].forEach(function(team){
@@ -24020,16 +24073,13 @@ function nadeBrains(){
       if(near.length) logEvent("CT: T закрыли смоком "+tt.site+" — гранаты туда, где они встают");
     }
   }
-  // CT: колл по сайту — опорник того сайта задерживает выход молотовом, при 2+ добавляет HE
+  // CT: колл по сайту — ротатор перекрывает вход смоком. (v419) молотов / HE опорника «задержать выход» отсюда убраны — задержка
+  // гранатой одна, ctDelayNade (350): опорник кидает, когда сам знает, что группа идёт на него, и только с места
   var call = teamTac.CT && teamTac.CT.call;
   if(call && !nadeFlags["ct"+call.site]){
     nadeFlags["ct"+call.site] = true;
     var anc = byRole(cts, call.site === "A" ? "anchorA" : "anchorB");
     var ge = GEO[call.site];
-    if(anc){
-      if(anc.nades.molly > 0) assignNade(anc, "molly", ge.tEntry, "задержать выход", {bkey:"CT.call.molly."+call.site});
-      else if(anc.nades.he > 0) assignNade(anc, "he", ge.tEntry, "по выходу", {bkey:"CT.call.molly."+call.site});
-    }
     var rot = byRole(cts, "rotator");
     if(rot && rot.nades.smoke > 0 && (call.count >= 2 || BAL.ctUtilEarly)) assignNade(rot, "smoke", ge.tEntry, "перекрыть вход", {bkey:"CT.call.smoke."+call.site});
     if(BAL.ctUtilEarly && anc && !anc.nadeTask && anc.nades.smoke > 0) assignNade(anc, "smoke", ge.tEntry, "перекрыть вход", {bkey:"CT.call.smoke."+call.site});
@@ -27819,7 +27869,6 @@ function builtinLineups(){
     out.push({key:"T.fake.smoke."+k, team:"T", type:"smoke", trigger:"setup", site:k, name:"фейк-смок (фейк на "+k+")", from:g.tStage, to:g.ctEntry});
     out.push({key:"T.fake.flash."+k, team:"T", type:"flash", trigger:"setup", site:k, name:"фейк-флешка (фейк на "+k+")", from:g.tStage, to:mid(g.tEntry, st, 0.4)});
     out.push({key:"T.pp.molly."+k, team:"T", type:"molly", trigger:"postplant", site:k, name:"на дефуз", from:g.tEntry, to:st.plant || st});
-    out.push({key:"CT.call.molly."+k, team:"CT", type:"molly", trigger:"call", site:k, name:"задержать выход", from:g.anchor, to:g.tEntry});
     out.push({key:"CT.call.smoke."+k, team:"CT", type:"smoke", trigger:"call", site:k, name:"перекрыть вход", from:g.anchor, to:g.tEntry});
     out.push({key:"CT.take.he."+k, team:"CT", type:"he", trigger:"exec", site:k, name:"в смок — не дать занять сайт", from:g.anchor, to:mid(g.tEntry, st, 0.35)});
     out.push({key:"CT.retake.flash."+k, team:"CT", type:"flash", trigger:"retake", site:k, name:"ретейк", from:g.ctEntry, to:st.plant || st});
@@ -31076,6 +31125,8 @@ var __SNAP = [
 ["CONTACT_GAP", function(){ return CONTACT_GAP; }, function(v){ try{ CONTACT_GAP = v; }catch(e){} }],
 ["SPOT_PERSONAL", function(){ return SPOT_PERSONAL; }, function(v){ try{ SPOT_PERSONAL = v; }catch(e){} }],
 ["FOLLOW_GAP", function(){ return FOLLOW_GAP; }, function(v){ try{ FOLLOW_GAP = v; }catch(e){} }],
+["DELAY_SAFE", function(){ return DELAY_SAFE; }, function(v){ try{ DELAY_SAFE = v; }catch(e){} }],
+["DELAY_GAP", function(){ return DELAY_GAP; }, function(v){ try{ DELAY_GAP = v; }catch(e){} }],
 ["NADE", function(){ return NADE; }, function(v){ try{ NADE = v; }catch(e){} }],
 ["NADE_THROW_RANGE", function(){ return NADE_THROW_RANGE; }, function(v){ try{ NADE_THROW_RANGE = v; }catch(e){} }],
 ["NADE_HEAR_R", function(){ return NADE_HEAR_R; }, function(v){ try{ NADE_HEAR_R = v; }catch(e){} }],

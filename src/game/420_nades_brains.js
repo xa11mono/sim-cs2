@@ -167,16 +167,13 @@ function nadeBrains(){
       if(near.length) logEvent("CT: T закрыли смоком "+tt.site+" — гранаты туда, где они встают");
     }
   }
-  // CT: колл по сайту — опорник того сайта задерживает выход молотовом, при 2+ добавляет HE
+  // CT: колл по сайту — ротатор перекрывает вход смоком. (v419) молотов / HE опорника «задержать выход» отсюда убраны — задержка
+  // гранатой одна, ctDelayNade (350): опорник кидает, когда сам знает, что группа идёт на него, и только с места
   var call = teamTac.CT && teamTac.CT.call;
   if(call && !nadeFlags["ct"+call.site]){
     nadeFlags["ct"+call.site] = true;
     var anc = byRole(cts, call.site === "A" ? "anchorA" : "anchorB");
     var ge = GEO[call.site];
-    if(anc){
-      if(anc.nades.molly > 0) assignNade(anc, "molly", ge.tEntry, "задержать выход", {bkey:"CT.call.molly."+call.site});
-      else if(anc.nades.he > 0) assignNade(anc, "he", ge.tEntry, "по выходу", {bkey:"CT.call.molly."+call.site});
-    }
     var rot = byRole(cts, "rotator");
     if(rot && rot.nades.smoke > 0 && (call.count >= 2 || BAL.ctUtilEarly)) assignNade(rot, "smoke", ge.tEntry, "перекрыть вход", {bkey:"CT.call.smoke."+call.site});
     if(BAL.ctUtilEarly && anc && !anc.nadeTask && anc.nades.smoke > 0) assignNade(anc, "smoke", ge.tEntry, "перекрыть вход", {bkey:"CT.call.smoke."+call.site});

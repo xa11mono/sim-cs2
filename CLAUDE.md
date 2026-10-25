@@ -95,7 +95,7 @@ v166 — `docs/V166_CHANGES.md` (список владельца). Главны�
 | карта команды `belief` из гипотез: `beliefTick`; чтение `beliefZoneKnown` | `240_belief_tick`; `beliefZoneKnown` — `260_look_threat` |
 | **взгляд** (одно место, v381): арбитр `lookArbiter` / `LOOK_LEVEL`, общий фильтр `lookFilter`; делёж углов `lookCands`, `lookPlan`, `smoothLookFilter`; пики до контакта `prePeekTick`, углы `cornerLook`; числа `LOOK`, `threatEntrances` | `270_look_plan_smooth`, `250_look_prepeek_corners`, `260_look_threat` |
 | смоки: прострел `smokeSpamTick`, `smokeEnemyPossible`; дыры от пуль `smokeBulletHole` | `290_smoke_react`; `smokeBulletHole` — `360_nades_buy_smoke_vision` |
-| **реакция на контакт** (одно место): `contactTick`; `teamBrains` | `350_contact_reaction` |
+| **реакция на контакт** (одно место): `contactTick`; `teamBrains`; **CT задерживает гранатой** (одно место, v419): `ctDelayNade` | `350_contact_reaction` |
 | гранаты: закуп `buyNades`, дым и видимость `smokeBlocks`; бросок `throwNade` (навес по дуге, как в v390 — гранаты В3–В5 откачены в v400, ветка `nades-v398`); лайнапы `lineupTick`; срабатывание `detonate`, `nadesTick`; гранаты «себе» `selfNadeTick`, `nadeReact`; решения `nadeBrains` / `nadeUseTick` | `360_nades_buy_smoke_vision`, `380_nades_throw`, `390_nades_lineups`, `400_nades_physics_damage`, `410_nades_tactical_self`, `420_nades_brains` |
 | **урон и смерть — одно место** `applyDamage` (пули, HE, молотов; по своим `FF_MUL`) | `400_nades_physics_damage` |
 | **панель войса** (одно место показа): `voiceFeed` / `renderVoice`, цвета `VOICE_KIND` / `VOICE_KEYS`; консоль `logEvent` (#log) — по Ё, `toggleConsole` | `440_voicepanel_console` |

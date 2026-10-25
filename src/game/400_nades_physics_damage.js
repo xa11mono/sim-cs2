@@ -43,10 +43,7 @@ function detonate(n){
     bots.forEach(function(b){
       if(!b.alive) return;
       var d = Math.hypot(b.x-n.x, b.y-n.y);
-      if(d > 1000 || !flashSeen(b, n)) return;
-      var a = Math.atan2(n.y-b.y, n.x-b.x);
-      var off = b.facing === undefined ? 0 : Math.abs(((a - b.facing + Math.PI) % (2*Math.PI) + 2*Math.PI) % (2*Math.PI) - Math.PI);
-      var dirK = off < 0.55 ? 1 : (off < 1.6 ? 0.5 : 0.12);  // смотрел прямо / краем глаза / спиной
+      var dirK = flashDirK(b, n); if(!dirK) return;
       // враг, который видел/слышал летящую флешку, может успеть отвернуться —
       // тем вероятнее, чем выше навык (раньше флешка слепила "по учебнику" всегда)
       // (этап 3, P2-2) свой отворачивается наверняка (×0,18 ниже), только если дослушал колл «флешу!» до хлопка;
@@ -143,6 +140,15 @@ function applyDamage(att, b, dmg, src, o){
 // (v321, М13) флешку взрывают в воздухе, часто над крышей/стеной (точки разрыва про из демок лежат «в стене» на радаре);
 // стены у нас без высоты, поэтому видно вспышку над крышей — если виден край рядом с ней: точка в 30 или 60 ед. карты от
 // разрыва вне стены, до которой у бота есть линия (проектные числа)
+// (v419) насколько флешка в точке n слепит b по направлению взгляда: 0 — не видит / дальше 1000, иначе 1 / 0,5 / 0,12 (прямо /
+// краем глаза / спиной). Одно место: хлопок (выше) и проверка перед броском «не слепит своих» (flashSafeFor, 350)
+function flashDirK(b, n){
+  var d = Math.hypot(b.x-n.x, b.y-n.y);
+  if(d > 1000 || !flashSeen(b, n)) return 0;
+  var a = Math.atan2(n.y-b.y, n.x-b.x);
+  var off = b.facing === undefined ? 0 : Math.abs(((a - b.facing + Math.PI) % (2*Math.PI) + 2*Math.PI) % (2*Math.PI) - Math.PI);
+  return off < 0.55 ? 1 : (off < 1.6 ? 0.5 : 0.12);  // смотрел прямо / краем глаза / спиной
+}
 function flashSeen(b, n){
   if(!insideSolidWall(n.x, n.y) && hasVision(b.x, b.y, n.x, n.y)) return true;
   for(var r = 30; r <= 60; r += 30) for(var k = 0; k < 8; k++){
