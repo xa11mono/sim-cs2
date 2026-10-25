@@ -6,7 +6,7 @@
 // меняется от раунда к раунду, как у живых команд.
 // =====================================================================
 if(BAL.nadeMore) PRO_LINEUPS_RAW = PRO_LINEUPS_RAW.concat(MAP.lineups.proExtra);
-var PRO_LINEUPS = null;
+var PRO_LINEUPS = null, PRO_GROUPS = {};
 function proLineups(){
   if(PRO_LINEUPS) return PRO_LINEUPS;
   if(typeof PRO_LINEUPS_RAW === "undefined") return (PRO_LINEUPS = []);
@@ -14,7 +14,27 @@ function proLineups(){
     var f = snapToWalkable(L.from.x, L.from.y) || L.from;
     return {id:L.id, team:L.team, type:L.type, trigger:L.trigger, site:L.site, name:L.name, from:{x:f.x, y:f.y}, to:L.to, prob:L.prob, at:L.at, pro:true};
   });
+  // (v423, 3в) одна цель — одна граната: лайнапы про одной стороны, триггера, сайта и типа с целью в одной зоне карты — группа
+  // (tools/cluster.py режет броски по месту броска: смок на Stairs с T Roof, с T Ramp… — у каждого свой маленький p)
+  PRO_GROUPS = {};
+  PRO_LINEUPS.forEach(function(L){
+    var zt = zoneIdAt(L.to.x, L.to.y) || (Math.round(L.to.x/150)+","+Math.round(L.to.y/150));
+    L.grp = [L.team, L.trigger, L.site, L.type, zt].join("|");
+    (PRO_GROUPS[L.grp] = PRO_GROUPS[L.grp] || []).push(L);
+  });
   return PRO_LINEUPS;
+}
+// розыгрыш группы на раунд: граната в эту цель летит с вероятностью — сумма долей её лайнапов (не больше 1; доли посчитаны на одни
+// и те же раунды — tools/cluster.py ctxN), место броска — одно из лайнапов группы по их долям; остальные места группы в этом раунде молчат
+function proRollGroup(L){
+  var G = PRO_GROUPS[L.grp] || [L], hid = 0, i;
+  for(i = 0; i < L.grp.length; i++) hid = (hid*31 + L.grp.charCodeAt(i)) % 1000003;
+  var seed = roundNum*7919 + matchNum*104729 + hid, sum = 0;
+  G.forEach(function(x){ sum += x.prob; });
+  var win = hashRand(seed) < Math.min(1, sum), r = hashRand(seed + 17) * sum, pick = null;
+  G.forEach(function(x){ if(pick) return; r -= x.prob; if(r <= 0) pick = x; });
+  pick = pick || G[G.length-1];
+  G.forEach(function(x){ nadeFlags["pr"+x.id] = win && x === pick; });
 }
 // встроенная "общая" граната не летит, если про-лайнапы того же типа уже
 // покрывают эту ситуацию (сторона, триггер, сайт)

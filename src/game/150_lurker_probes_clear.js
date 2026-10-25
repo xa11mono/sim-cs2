@@ -100,7 +100,12 @@ function tProbes(tt, ts){
     if(b._midFlank && b._midFlank.round === roundNum) return; // заходит через Red Room — не проба
     var m = /^stage(A|B)(:.*)?$/.exec(b.post.tag) || /^probe(.+)$/.exec(b.post.tag);
     var key = b.post.tag === "tmid" ? "M" : m ? (b.post.tag.indexOf("stage") === 0 ? b.post.tag.slice(5) : m[1]) : null;
-    if(b._probe && b._probe.key) key = b._probe.key;
+    // проба этого раунда держит свою группу, пока бот на пробе / в бою (тег поста не стадия); (v423, владелец 25.10, Mirage м1 р2: донк после
+    // перевода IGL на A трижды уходил пробой B в B Apartments) — встал на стадию другой группы: старая проба забыта, группа — по стадии
+    if(b._probe && b._probe.key && b._probe.round === roundNum){
+      if(key && key !== b._probe.key && (/^stage/.test(b.post.tag) || b.post.tag === "tmid")) b._probe = null;
+      else key = b._probe.key;
+    }
     if(!key) return;
     (groups[key] = groups[key] || []).push(b);
   });
@@ -135,7 +140,8 @@ function tProbes(tt, ts){
         // напарник: второй встаёт в 1–2с позади и держит тот же угол — если
         // пробу снимут, он первый на размен
         if(BAL.pairs){
-          var bud = ts.filter(function(o){ return o !== pb && o.alive && o.tRole !== "lurker" && !(bomb.state === "carried" && bomb.carrier === o) &&
+          // (v423, Mirage м1 р2: AWP и саппорт со стадии A уходили напарником пробы B) напарник — из той же группы (стадии), не любой ближайший
+          var bud = gr.filter(function(o){ return o !== pb && o.alive && o.tRole !== "lurker" && !(bomb.state === "carried" && bomb.carrier === o) &&
             !(o._probeLock && o._probeLock >= tick-1) && Math.hypot(o.x-pb.x, o.y-pb.y) < 500; })
             .sort(function(a, c){ return Math.hypot(a.x-pb.x, a.y-pb.y) - Math.hypot(c.x-pb.x, c.y-pb.y); })[0];
           P.buddy = bud ? bud.id : null;

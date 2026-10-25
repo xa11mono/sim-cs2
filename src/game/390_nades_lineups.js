@@ -93,10 +93,8 @@ function lineupTick(){
   allLineups().forEach(function(L){
     var key = "lu"+L.id; if(nadeFlags[key]) return;
     // (v150) про-лайнап: в этом раунде кидается с вероятностью, как у про
-    if(L.pro && nadeFlags["pr"+L.id] === undefined){
-      var hid = 0; for(var hi=0; hi<L.id.length; hi++) hid = hid*31 + L.id.charCodeAt(hi);
-      nadeFlags["pr"+L.id] = hashRand(roundNum*7919 + matchNum*104729 + hid) < L.prob;
-    }
+    // (v423, 3в) кубик — на цель (группу лайнапов одной цели, proRollGroup), а не на каждое место броска
+    if(L.pro && nadeFlags["pr"+L.id] === undefined) proRollGroup(L);
     if(L.pro && !nadeFlags["pr"+L.id] && tCrossSmoke(L)) nadeFlags["pr"+L.id] = true;
     if(L.pro && !nadeFlags["pr"+L.id]){ if(!(L.team === "T" && L.type === "smoke")) nadeFlags[key] = true; return; }
     var siteOk = function(k){ return L.site === "any" || L.site === k; };
@@ -131,7 +129,12 @@ function lineupTick(){
     // то, что кидается рядом с его постом (≤300 px — проектное число); по коллу и на ретейке — как раньше
     var leavesSite = function(b){ if(b.team !== "CT" || L.trigger === "retake" || L.trigger === "call") return false; var k = b.tRole === "anchorA" ? "A" : b.tRole === "anchorB" ? "B" : null; if(!k) return false;
       var P0 = b.post && b.post.tag === "anchor" ? b.post : SITES[k]; return Math.hypot(L.from.x-P0.x, L.from.y-P0.y) > 300; };
-    var okBot = function(b){ return b.team === L.team && b.alive && b.nades && b.nades[L.type] > 0 && !leavesSite(b) &&
+    // (v423, владелец 25.10, Mirage м1 р2: лёркер с B бежал за лайнапом в Underpath и на Top Mid, саппорт — назад на спавн, донк — с
+    // B Apartments на Top Mid) лайнап сетапа T кидает тот, чей пост роли (конец маршрута, если идёт по маршруту) не дальше SETUP_POST_R от
+    // точки броска, и не лёркер (у него свой план) — гранату кидают со своего участка, а не бегут за ней через карту
+    var setupFar = function(b){ if(b.team !== "T" || L.trigger !== "setup") return false; if(b.tRole === "lurker") return true;
+      var P0 = (b._route && b._route.want && b._route.want[0]) || b.post; return !P0 || Math.hypot(L.from.x-P0.x, L.from.y-P0.y) > SETUP_POST_R; };
+    var okBot = function(b){ return b.team === L.team && b.alive && b.nades && b.nades[L.type] > 0 && !leavesSite(b) && !setupFar(b) &&
       !b.planting && !b.defusing && !(bomb.state === "carried" && bomb.carrier === b) && Math.hypot(b.x-L.from.x, b.y-L.from.y) < maxD; };
     // (v359, р7) кто уже стоит на сайте T (взял его) — с сайта за гранатой назад не уходит
     var onTSite = function(b){ var S = L.team === "T" && tt && SITES[tt.site]; return !!S && (onSite(S, b.x, b.y) || Math.hypot(b.x-S.x, b.y-S.y) < 450) && Math.hypot(L.from.x-S.x, L.from.y-S.y) > Math.hypot(b.x-S.x, b.y-S.y) + 200; };
@@ -202,4 +205,5 @@ function lineupTick(){
   });
 }
 var LU_REACH_PAD = 3;
+var SETUP_POST_R = 500;   // (v423) проектное число: радиус от поста роли до точки броска лайнапа сетапа; заменить данными (с какого расстояния от своей позиции про кидают сетап)
 var CLR_REB_SEC = 12, EXEC_REACH = 1000, EXEC_QUEUE_R = 600, EXEC_QUEUE_N = 3, EXEC_WAIT_SEC = 20;   // (v355) проектные числа
