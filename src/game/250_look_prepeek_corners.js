@@ -20,9 +20,14 @@ function smokeEdge(o, p){
   return best;
 }
 // свой на линии взгляда (ближе точки) или стоит у самой точки взгляда
+// (v413, Б5д-3 / М153, владелец 25.10) на бегу свой впереди, бегущий туда же, — не помеха взгляду: смотрим мимо него по ходу (выход T Mirage:
+// колонна к T Ramp — у каждого свой «на линии», взгляд уводился в сторону в ~половине тиков). «Бежит» — как в lookArbiter (> 60·SPD_K),
+// «туда же» — ходы в пределах 60° (cos > 0,5 — проектное число)
 function lookOnMate(b, p){
   var dp = Math.hypot(p.x-b.x, p.y-b.y), ap = Math.atan2(p.y-b.y, p.x-b.x);
+  var run = b.curSpeed > 60*SPD_K && b.heading !== undefined;
   return bots.some(function(o){ if(o === b || !o.alive || o.team !== b.team) return false;
+    if(run && o.curSpeed > 60*SPD_K && o.heading !== undefined && Math.cos(o.heading - b.heading) > 0.5) return false;
     var dm = Math.hypot(o.x-b.x, o.y-b.y); if(dm < 20) return false;
     var off = Math.abs(((Math.atan2(o.y-b.y, o.x-b.x)-ap+Math.PI)%(2*Math.PI)+2*Math.PI)%(2*Math.PI)-Math.PI);
     // свой ближе точки на той же линии (смотрит ему в спину) или стоит у самой
@@ -31,13 +36,19 @@ function lookOnMate(b, p){
 }
 // открытое направление: видимые точки своей и соседних зон (как проходы для
 // сейва), не перекрытые своими; лучше — где враг может быть и ближе к углу поста
+// (v413, Б5д-3 / М153, владелец 25.10: T к T Ramp смотрели на Palace Entry под 100–146° и держали это 1,4 с) свой тыл (isRearZone — как
+// у lookCands) не берётся; на ходу — ничего за спиной (> 1,5 рад от хода, как сказал владелец), запомненная точка на ходу проверяется
+// заново; впереди всё закрыто своими — null: смотрит по ходу движения
 function openDirLook(b){
-  if(b._odl && tick - b._odl.t < 90 && b._odl.post === (b.post && b.post.id)) return b._odl.p;
+  var moving = b.curSpeed > 60*SPD_K && b.heading !== undefined;
+  var ahead = function(q){ return !moving || _angOff(Math.atan2(q.y-b.y, q.x-b.x), b.heading) <= 1.5; };
+  if(b._odl && tick - b._odl.t < 90 && b._odl.post === (b.post && b.post.id) && (!b._odl.p || ahead(b._odl.p))) return b._odl.p;
   var zi = bzOf(b.x, b.y), cands = [], seen = {};
   var postA = b.post && b.post.look ? Math.atan2(b.post.look.y-b.y, b.post.look.x-b.x) : null;
   var addZ = function(j){ if(j < 0 || seen[j]) return; seen[j] = 1;
+    if(zi >= 0 && j !== zi && isRearZone(b.team, zi, j, b)) return;
     (ZONE_SAMPLES[BZ.ids[j]] || (BZ.cent[j] ? [BZ.cent[j]] : [])).forEach(function(q){ var d = Math.hypot(q.x-b.x, q.y-b.y);
-      if(d < 120 || d > 900 || !hasLOS(b.x, b.y, q.x, q.y, b.z) || lookOnMate(b, q)) return;
+      if(d < 120 || d > 900 || !ahead(q) || !hasLOS(b.x, b.y, q.x, q.y, b.z) || lookOnMate(b, q)) return;
       var sc = beliefZoneKnown(b.team, j) + (reachPossible(b.team, j) ? 0.35 : 0) + d/3000;
       if(postA !== null){ var off = Math.abs(((Math.atan2(q.y-b.y, q.x-b.x)-postA+Math.PI)%(2*Math.PI)+2*Math.PI)%(2*Math.PI)-Math.PI); sc += 0.15*Math.cos(off); }
       cands.push({p:q, sc:sc}); }); };
