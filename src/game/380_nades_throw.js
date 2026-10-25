@@ -172,7 +172,7 @@ function assignNade(b, type, target, why, opts){
   if(opts && opts.bkey && !builtinAllowed(opts.bkey)) return false; // встроенная выключена или заменена своим лайнапом
   // (v428) план гранат команды (365): граната, отложенная на более поздний момент (выход, после планта, ретейк), сейчас не тратится;
   // гранаты выхода T — момент «выход» и тогда, когда их кидают заранее, до пика (preExec)
-  var npm = (opts && opts.bkey && /^T\.exec\./.test(opts.bkey)) ? "exec" : npMomentNow(b);
+  var npm = (opts && opts.bkey && /^T\.exec\./.test(opts.bkey)) ? "exec" : (opts && opts.bkey && /^T\.fake\./.test(opts.bkey)) ? "fake" : npMomentNow(b);
   if(!npCanUse(b, type, npm, null)){ NADE_FAIL = npWhyNot(b, type); return false; }
   if(b.nadeTask && (b.nadeTask.type === type || b.nadeTask.lineup)) return false; // свой лайнап не перебиваем
   if(type === "smoke" && smokeCovered(target.x, target.y)) return false;

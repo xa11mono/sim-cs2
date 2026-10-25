@@ -30,6 +30,11 @@ function proLineups(){
 // где первым нашёлся бросающий, остальные места группы гасятся (proGroupDone)
 function proRollGroup(L){
   var G = PRO_GROUPS[L.grp] || [L], hid = 0, i;
+  // (v429) гранаты на тайминг (CT по времени) и сетапа / выхода T — по плану гранат команды (365): цель летит, если её запланировали
+  // (у кого-то из живых граната с этой целью), а не по своему кубику; колл, ретейк, после планта — кубиком, как было
+  if((L.team === "CT" && L.trigger === "timed") || (L.team === "T" && (L.trigger === "insta" || L.trigger === "setup" || L.trigger === "exec"))){
+    var win0 = npPlanned(L); G.forEach(function(x){ nadeFlags["pr"+x.id] = win0; }); return;
+  }
   for(i = 0; i < L.grp.length; i++) hid = (hid*31 + L.grp.charCodeAt(i)) % 1000003;
   var sum = 0; G.forEach(function(x){ sum += x.prob; });
   var win = hashRand(roundNum*7919 + matchNum*104729 + hid) < Math.min(1, sum);

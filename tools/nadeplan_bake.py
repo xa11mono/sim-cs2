@@ -70,14 +70,24 @@ for r in csv.DictReader(open(os.path.join(mapdir.pro_dir(MAP), 'pro_nades.csv'),
     else: z = to if to in ('A', 'B', 'mid') else fr
     if z not in ('A', 'B', 'mid'): z = 'mid'
     cnt[sd][r['type']][m + '|' + z] += 1
-out = {'_about': 'tools/nadeplan_bake.py: доли бросков про по «момент|зона» для каждого типа гранаты (сумма по типу = 1)'}
+# (v429) фейк: в раундах с плантом — гранаты T, упавшие на ДРУГОЙ сайт до планта; среднее по раундам, где такие были
+plant, fper = {}, collections.defaultdict(collections.Counter)
+for r in csv.DictReader(open(os.path.join(mapdir.pro_dir(MAP), 'pro_nades.csv'), encoding='utf-8')):
+    if r['side'] == 'T' and r['secToPlant'] != '' and r['site'] in ('A', 'B'): plant[r['rid']] = r['site']
+for r in csv.DictReader(open(os.path.join(mapdir.pro_dir(MAP), 'pro_nades.csv'), encoding='utf-8')):
+    if r['side'] != 'T' or r['rid'] not in plant or r['secToPlant'] == '' or float(r['secToPlant']) < 0: continue
+    if region(float(r['lx']), float(r['ly'])) == ('B' if plant[r['rid']] == 'A' else 'A'): fper[r['rid']][r['type']] += 1
+fr = [k for k in plant if sum(fper[k].values()) > 0]
+fakeBy = {t: round(sum(fper[k][t] for k in fr) / max(1, len(fr)), 2) for t in ('smoke', 'flash', 'molly', 'he')}
+out = {'_about': 'tools/nadeplan_bake.py: доли бросков про по «момент|зона» для каждого типа гранаты (сумма по типу = 1); fakeBy — гранат T на другой сайт до планта за раунд, где такие были'}
 for sd in cnt:
     out[sd] = {}
     for t, c in cnt[sd].items():
         n = sum(c.values())
         out[sd][t] = {k: round(v / n, 4) for k, v in sorted(c.items(), key=lambda kv: -kv[1])}
+out['fakeBy'] = fakeBy   # гранат фейка за раунд с фейком (T)
 open(os.path.join(M, 'nadeplan.json'), 'w', encoding='utf-8').write(json.dumps(out, ensure_ascii=False, indent=1) + '\n')
-print('nadeplan.json (%s):' % MAP, {sd: {t: len(v) for t, v in out[sd].items()} for sd in ('CT', 'T')})
+print('fakeBy', fakeBy); print('nadeplan.json (%s):' % MAP, {sd: {t: len(v) for t, v in out[sd].items()} for sd in ('CT', 'T')})
 for sd in ('CT', 'T'):
     for t in ('smoke', 'flash', 'molly', 'he'):
         print('  %s %-5s' % (sd, t), ', '.join('%s %d%%' % (k, round(100 * v)) for k, v in list(out[sd].get(t, {}).items())[:6]))

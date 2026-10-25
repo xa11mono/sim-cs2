@@ -9,8 +9,9 @@
 //   зона: A / B / mid — сторона карты (posSideOf, 280): у CT — сторона его места в расстановке, у T — сайт его группы в тактике.
 // План строится в закупе — после выбора тактики и расстановки (buyPhase, 530): команда знает план раунда и покупает под него.
 // Гранату на поздний момент раньше не кидают (её берегут) — кроме последнего живого; на свой момент и позже — можно.
-var NP_ORDER = {CT: {now: 0, call: 1, retake: 2}, T: {now: 0, exec: 1, postplant: 2}};
-var NP_LABEL = {now: "сейчас", call: "колл", retake: "ретейк", exec: "выход", postplant: "после планта"};
+// (v429) у T — ещё «фейк»: гранаты на другой сайт до настоящего выхода (тактика-фейк), тратятся там специально
+var NP_ORDER = {CT: {now: 0, call: 1, retake: 2}, T: {now: 0, fake: 1, exec: 2, postplant: 3}};
+var NP_LABEL = {now: "сейчас", call: "колл", retake: "ретейк", fake: "фейк", exec: "выход", postplant: "после планта"};
 
 // зона места на карте: A / B / mid (сторона зоны — posSideOf)
 function npZoneAt(x, y){
@@ -30,9 +31,10 @@ function npZoneOf(b){
   }
   var tt = teamTac.T, tac = tt && tt.tac; if(!tac) return "mid";
   var other = tac.site === "A" ? "B" : "A";
-  if(b.tRole === "lurker") return other;
+  if(b.tRole === "lurker") return tac.style === "fake" ? tac.fake : other;
   if(tac.style === "rush") return tac.site;
   var G = (tac.groups || []).filter(function(g){ return (g.roles || []).indexOf(b.tRole) >= 0; })[0];
+  if(tac.style === "fake" && b.tRole === "support") return tac.fake;   // фейкеры (420: поддержка и лёркер) — на фейковом сайте
   if(G) return G.stage === "TMID" ? "mid" : tac.site;
   if(tac.groups && tac.style !== "fake") return "mid";
   if(tac.style === "default") return (b.tRole === "entry" || b.tRole === "support") ? other : b.tRole === "awp" ? "mid" : tac.site;
@@ -43,7 +45,8 @@ function npZoneOf(b){
 function npMomentNow(b){
   if(b.team === "CT"){ if(bomb && bomb.state === "planted") return "retake"; var ct = teamTac.CT; return (ct && ct.call && ct.call.count >= 1) ? "call" : "now"; }
   if(bomb && bomb.state === "planted") return "postplant";
-  var tt = teamTac.T; return (tt && (tt.phase === "execute" || preExecNow(tt))) ? "exec" : "now";
+  var tt = teamTac.T; if(tt && (tt.phase === "execute" || preExecNow(tt))) return "exec";
+  return (tt && tt.fakeOn && tt.phase === "setup") ? "fake" : "now";
 }
 // доля «момент|зона» → выбор по случайному числу u
 function npPick(sh, u){
@@ -64,6 +67,13 @@ function teamNadePlan(team, rt){
     var e = NB[t] || 0, k = Math.floor(e) + (hr(ti+1) < e - Math.floor(e) ? 1 : 0);
     for(var i = 0; i < k; i++){ var mz = npPick(SH[t], hr(50 + n++)); want.push({t:t, m:mz[0], z:mz[1] === "mid" || mz[1] === "A" || mz[1] === "B" ? mz[1] : null}); }
   });
+  // (v429) тактика-фейк: гранаты фейка — сколько про кидают на другой сайт до планта (MAP.nadeplan.fakeBy), из гранат «сейчас»
+  var tac = team === "T" && teamTac.T && teamTac.T.tac;
+  if(tac && tac.style === "fake" && tac.fake){
+    var FB = (MAP.nadeplan || {}).fakeBy || {};
+    ["smoke", "flash", "molly", "he"].forEach(function(t, ti){ var e = FB[t] || 0, k = Math.floor(e) + (hr(80+ti) < e - Math.floor(e) ? 1 : 0);
+      for(var i = 0; i < k; i++){ var w = want.filter(function(x){ return x.t === t && x.m === "now"; })[0] || (want.push({t:t}), want[want.length-1]); w.m = "fake"; w.z = tac.fake; } });
+  }
   var ps = bots.filter(function(o){ return o.team === team; }), zone = {}, plan = {}, items = {}, cost = {};
   ps.forEach(function(o){ zone[o.id] = npZoneOf(o); });
   var cap = rt === "pistol" ? function(o){ return 800; } : function(o){ return o.money; };
@@ -77,15 +87,49 @@ function teamNadePlan(team, rt){
     (plan[o.id] = plan[o.id] || []).push(it.t); (items[o.id] = items[o.id] || []).push({t:it.t, m:it.m, z:zone[o.id]});
     cost[o.id] = (cost[o.id]||0) + pr;
   });
+  // (v429) у гранаты «сейчас» и «выход» — конкретная цель из демок: лайнап про этой зоны на этот момент (группа одной цели, 320),
+  // по долям про; одна цель — одна граната. Хозяин кинет её, когда придёт время лайнапа (390: розыгрыш лайнапа — по плану)
+  var taken = {}, gi = 0;
+  Object.keys(items).forEach(function(id){ items[id].forEach(function(it){
+    var trig = team === "CT" ? (it.m === "now" ? ["timed"] : null) : (it.m === "now" ? ["insta","setup"] : it.m === "exec" ? ["exec"] : null);
+    if(!trig) return;
+    var site = team === "T" && teamTac.T && teamTac.T.site, G = {}, tot = 0;
+    proLineups().forEach(function(L){
+      if(L.team !== team || L.type !== it.t || trig.indexOf(L.trigger) < 0 || taken[L.grp]) return;
+      if(team === "T" && L.site !== "any" && L.site !== site) return;
+      if((team === "CT" || it.m === "exec") && it.z && npZoneAt(team === "CT" ? L.from.x : L.to.x, team === "CT" ? L.from.y : L.to.y) !== it.z) return;
+      G[L.grp] = (G[L.grp] || 0) + L.prob;
+    });
+    var ks = Object.keys(G); ks.forEach(function(k){ tot += G[k]; }); if(!tot) return;
+    var r = hr(300 + gi++) * tot, pick = ks[ks.length-1];
+    for(var i = 0; i < ks.length; i++){ r -= G[ks[i]]; if(r <= 0){ pick = ks[i]; break; } }
+    it.lu = pick; taken[pick] = 1;
+  }); });
   E._tnp = {k:key, plan:plan, items:items};
   return plan;
+}
+// (v429) лайнап этой группы запланирован командой на раунд — у кого-то из живых граната с этой целью
+function npPlanned(L){ return bots.some(function(o){ return o.alive && o.team === L.team && (o._nplan || []).some(function(it){ return it.lu === L.grp; }); }); }
+function npOwner(b, L){ return (b._nplan || []).some(function(it){ return it.lu === L.grp; }); }
+// (v429) может ли враг быть у точки — по тому, что команда знает: все живые враги недавно (≤ 4 с) замечены далеко (> 900) — нет.
+// Граната на тайминг «на всякий случай» в место, где врага точно нет, не летит (остаётся на потом). Как smokeEnemyPossible (290)
+function npFoeMaybe(team, pt){
+  var foe = team === "CT" ? "T" : "CT", BL = beliefLast[team] || {}, alive = 0, away = 0;
+  bots.forEach(function(e){ if(e.team !== foe || !e.alive) return; alive++; var L = BL[e.id]; if(L && tick - L.tick < 4*TICK_HZ && Math.hypot(L.x-pt.x, L.y-pt.y) > 900) away++; });
+  return alive > away;
+}
+// (v429) флешка — только под пик: рядом с точкой (≤ 700) свой собирается выглянуть (ранний пик CT, проба T) или команда ждёт там врага
+function npPeekReady(team, pt, thrower){
+  return bots.some(function(o){ return o !== thrower && o.alive && o.team === team && o.post && /^(earlyPeek|probe)/.test(o.post.tag) &&
+    Math.hypot(o.post.x-pt.x, o.post.y-pt.y) < 700; });
 }
 // перед закупом: гранаты, оставшиеся с прошлого раунда, — без плана (кидать можно в любой момент)
 function npRoundStart(b){ b._nplan = []; if(b.nades) ["smoke","flash","molly","he"].forEach(function(t){ for(var i = 0; i < (b.nades[t]||0); i++) b._nplan.push({t:t, m:"now", z:null}); }); }
 // куплена граната t — у бойца появляется запись плана (момент и зона); не из плана — «сейчас», своя зона
 function npBought(b, t){
-  var E = teamEco[b.team] || {}, L = (E._tnp && E._tnp.items && E._tnp.items[b.id]) || [], i;
-  for(i = 0; i < L.length; i++) if(L[i].t === t && !L[i].got){ L[i].got = true; (b._nplan = b._nplan || []).push({t:t, m:L[i].m, z:L[i].z}); return; }
+  var E = teamEco[b.team] || {}, cur = E._tnp && E._tnp.k.indexOf(matchNum+":"+roundNum+":") === 0;
+  var L = (cur && E._tnp.items && E._tnp.items[b.id]) || [], i;   // (v429) только план этого раунда (после смены сторон висел прошлый)
+  for(i = 0; i < L.length; i++) if(L[i].t === t && !L[i].got){ L[i].got = true; (b._nplan = b._nplan || []).push({t:t, m:L[i].m, z:L[i].z, lu:L[i].lu}); return; }
   (b._nplan = b._nplan || []).push({t:t, m:"now", z:npZoneOf(b)});
 }
 // можно ли бойцу кинуть гранату t на момент m в зону z (z = null — зона не важна): есть граната, отложенная не на более поздний

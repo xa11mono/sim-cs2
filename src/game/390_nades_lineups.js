@@ -106,6 +106,10 @@ function lineupTick(){
     // (v294) флешки T на сетапе из лайнапов про — только если команда ждёт врага у точки: про кидают их под пик, а боты — по часам
     // (рвались рядом с врагом в 50 % против 88 % у про)
     if(go && L.pro && L.team === "T" && L.trigger === "setup" && L.type === "flash" && !nadeWorth("T", L.to)) go = false;
+    // (v429) флешка CT на тайминг — только под пик: рядом с точкой свой собирается выглянуть (ранний пик); нет — остаётся на потом
+    if(go && L.pro && L.team === "CT" && L.trigger === "timed" && L.type === "flash" && !npPeekReady("CT", L.to, null)) go = false;
+    // (v429) граната на тайминг «на всякий случай» — не туда, где врага точно нет (все живые враги недавно замечены далеко)
+    if(go && L.pro && L.type !== "flash" && ((L.team === "CT" && L.trigger === "timed") || (L.team === "T" && L.trigger === "setup")) && !npFoeMaybe(L.team, L.to)) go = false;
     if(!go) return;
     // кто кидает: ближайший к точке броска, но не энтри (он заходит первым) и не
     // носитель бомбы; в горячих фазах (выход, колл, ретейк, пост-плант) — только
@@ -135,6 +139,9 @@ function lineupTick(){
     // (v359, р7) кто уже стоит на сайте T (взял его) — с сайта за гранатой назад не уходит
     var onTSite = function(b){ var S = L.team === "T" && tt && SITES[tt.site]; return !!S && (onSite(S, b.x, b.y) || Math.hypot(b.x-S.x, b.y-S.y) < 450) && Math.hypot(L.from.x-S.x, L.from.y-S.y) > Math.hypot(b.x-S.x, b.y-S.y) + 200; };
     var cand = bots.filter(function(b){ return okBot(b) && !b.nadeTask && !onTSite(b); }).sort(function(a, b2){ return cost(a) - cost(b2); })[0];
+    // (v429) запланированную цель кидает её хозяин по плану гранат; хозяин жив, но сейчас не может (занят, далеко) — ждём его
+    if(L.pro && L.grp && bots.some(function(o){ return o.alive && o.team === L.team && npOwner(o, L); }))
+      cand = bots.filter(function(b){ return okBot(b) && !b.nadeTask && !onTSite(b) && npOwner(b, L); }).sort(function(a, b2){ return cost(a) - cost(b2); })[0];
     // (v355) свободного нет — граната выхода встаёт в очередь тому, кто уже идёт на лайнап рядом (точки броска ≤ EXEC_QUEUE_R):
     // кинет вторую следом (через NADE_GAP), как про кидают смок + флешку с одной точки. Раньше: одно задание на бойца — лайнап сгорал
     // (v359, владелец: «один и тот же игрок кидает несколько гранат по очереди; обычно гранаты дают одному — чтобы другие пикали не
