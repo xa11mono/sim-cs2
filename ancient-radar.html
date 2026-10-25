@@ -144,6 +144,7 @@
   #matchTick{font-size:11.5px;color:var(--text-dim);}
   button{font-family:inherit;font-size:12.5px;color:var(--text);background:var(--panel-2);border:1px solid var(--line);border-radius:6px;padding:6px 11px;cursor:pointer;line-height:1.3;}
   button:hover{background:var(--line);border-color:var(--line-2);}
+  #sndVol{width:78px;margin:0 0 0 -4px;accent-color:var(--text-dim);cursor:pointer;vertical-align:middle;}   /* (v425) громкость звуков — рядом с «Звук» */
   button.active{background:var(--accent-dim);color:#fff;border-color:var(--accent);}
   button.primary{background:var(--mark);color:#1c1708;border-color:var(--mark);font-weight:600;}
   button.primary:hover{background:#f2d37f;border-color:#f2d37f;}
@@ -239,7 +240,7 @@
   <div id="topbar">
     <div class="tb-id">
       <h1>Ancient</h1>
-      <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 423, 25.10</div>
+      <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 426, 25.10</div>
     </div>
     <div class="tb-group" id="tbMatch">
       <button id="btnPause">Пауза</button>
@@ -289,6 +290,7 @@
       </details>
       <button id="btnWarmSkip" class="primary" style="display:none" title="Закончить разминку и начать матч сейчас">Начать матч</button>
       <button id="btnSnd" title="Звуки игры: шаги, выстрелы, гранаты, бомба, плант, дефуз — синтез в браузере (не файлы CS2); громкость — по расстоянию от середины экрана">Звук</button>
+      <input type="range" id="sndVol" min="0" max="100" step="5" value="85" title="Громкость звуков игры (запоминается в этом браузере)" aria-label="Громкость звуков игры">
       <button id="btnObs" class="on" title="Автообсервер: сам выбирает, за кем следить, и ведёт камеру (клавиша O). Двинул камеру или выбрал игрока сам — обсервер ждёт 6 с">Обсервер <kbd>O</kbd></button>
       <button id="btnObsMap" title="Обсервер чередует: когда тихо — вся карта, бой / плант / выход — камера на игроке. Выключить — всегда на игроке">Вся карта</button>
       <span id="mkSlot"></span>
@@ -6502,6 +6504,15 @@ function bStageFix(){
     if(up) g.tStageUp = pickSpots(k.toLowerCase()+"stageUp", up, 1, {rMax:140, minGap:40, hideFrom:[SITES[k], g.anchor]})[0] || up;
   }
 }
+// (v426, ЗАПЛАТКА; владелец 25.10, Mirage м1 р6: T стоит на спавне «без задачи») роль, которой нет ни в одной группе тактики
+// (лёркер — свой план), на сетапе держит мид, как саппорт в выходах Ancient. В 9 из 18 тактик Mirage (≈ половина раундов по весам)
+// у саппорта нет группы: tools/tactics_bake.py раздаёт роли только тем, кто зашёл на сайт по проходу, а где были остальные («far»)
+// не записывает. Заменить данными — место четвёртого из демок, когда будут образцы Mirage для пересборки тактик
+function tNoGroupMid(tt, tac, pick, midOpt){
+  var inG = {}; (tac.groups || []).forEach(function(G){ (G.roles || []).forEach(function(r){ inG[r] = 1; }); });
+  var free = pick(["entry", "awp", "igl", "support"].filter(function(r){ return !inG[r]; }));
+  if(free.length) groupPost(free, tt.tMidPt || GEO.tMid, GEO.tMidLook, "tmid", midOpt);
+}
 function stagePost(mem, k){
   var g = GEO[k], opt = {rMax:200, minGap:50, hideFrom:[SITES[k], g.anchor], see:[g.tEntry], avoidNades: BAL.tAdapt ? tDeathSpots() : []};
   if(!mem.length) return;
@@ -6570,6 +6581,14 @@ function tBrain(){
   var secLeft = ROUND_TIME_SEC - (simTime - roundStartTime);
   // (v381, М130, владелец 16.10: «при сейве идут коллы ПЕРЕКОЛЛ B → A: минус на сайте») решили сейвить — план раунда кончился:
   // ни выхода, ни переколлов, ни коллов IGL. Раньше перепривязка ниже шла раньше проверки сейва
+  // (v424, владелец 25.10: «zont1x сделал два фрага и всё равно сейвит») сейв решён, когда T меньше; T настреляли и сравнялись числом с CT —
+  // раунд снова можно выиграть, сейв снят: тактика дальше (поздно — выход сразу, ниже). Посты сейва (уровень «выжить») сняты явно
+  if(tt.saving && bomb.state !== "planted" && aliveCount("T") >= aliveCount("CT") && aliveCount("CT") > 0){
+    tt.saving = false;
+    bots.forEach(function(b){ if(b.team !== "T") return; b._saveSpot = null; if(b.alive && b.post && /^save/.test(b.post.tag)) clearPost(b); });
+    logEvent("T: сейв отменён — "+aliveCount("T")+"v"+aliveCount("CT")+", играем раунд");
+    voiceLog("T", "tsaveoff", (bots.filter(function(b){ return b.team === "T" && b.alive; })[0]||{}).id, "их столько же — сейв отменяю, играем");
+  }
   if(tt.saving && bomb.state !== "planted"){ tSaveHold(); return; }
   // поздно — выходим, даже если по плану ещё setup
   if(tt.phase === "setup" && (tick >= tt.execTick || secLeft < 35)){
@@ -6900,7 +6919,9 @@ function tBrain(){
         if(G.stage === "TMID"){ mem.forEach(function(b){ b._stageInfo = null; }); groupPost(mem, tt.tMidPt || GEO.tMid, GEO.tMidLook, "tmid", midOpt); return; }
         mem.forEach(function(b){ if(memAll.indexOf(b) < 0) memAll.push(b); }); });
       stagePost(memAll, tt.site);
+      tNoGroupMid(tt, tac, pick, midOpt);
     } else if(tac.groups && tac.style !== "fake"){
+      tNoGroupMid(tt, tac, pick, midOpt);
       tac.groups.forEach(function(G, gi){
         var mem = pick(G.roles);
         if(!mem.length) return;
@@ -10561,9 +10582,25 @@ function posOwnZones(side, who){
   return C[key] = Object.keys(by).map(function(nm){ return {name: nm, share: by[nm]/N}; }).sort(function(a, c){ return c.share - a.share; });
 }
 // места роли + свои места игрока по демкам этой карты (доля времени выше средней по его местам); демок нет — места роли как есть
+// (v425, владелец 25.10, Mirage м1 р6: расстановка 3-1-1, а на A один) сторона места CT: A / B / мид — по спискам мест сайтов набора карты
+// (tactics.pos), иначе — к чему ближе точка зоны (сайт A, сайт B, мид CT)
+var POS_SIDE = {};
+function posSideOf(nm){
+  if(POS_SIDE[nm] !== undefined) return POS_SIDE[nm];
+  var inL = function(k, keys){ return keys.some(function(f){ return (POS[k] && POS[k][f] || []).indexOf(nm) >= 0; }); };
+  var s = inL("A", ["ctHold","ctSecond","ctRetake"]) ? "A" : inL("B", ["ctHold","ctSecond","ctRetake"]) ? "B" : inL("M", ["ctHold"]) ? "M" : null;
+  if(!s){ var p = zonePoint(nm, GEO.ctMid);
+    if(p){ var c = [["A", SITES.A], ["B", SITES.B], ["M", GEO.ctMid]].map(function(q){ return [q[0], Math.hypot(p.x-q[1].x, p.y-q[1].y)]; }).sort(function(a, d){ return a[1]-d[1]; }); s = c[0][0]; } }
+  return (POS_SIDE[nm] = s);
+}
+// места роли + свои места игрока по демкам (доля выше средней по его местам) — только на стороне слота расстановки: сторону задаёт
+// расстановка, привычка игрока — точку внутри стороны. (v425) раньше свои места брались со всей карты и по весу перебивали места роли:
+// в 3-1-1 ротатор TeSeS вставал на A в 44 % раундов (Van — его место из демок), мидер kyousuke — на B в 69 %; на A в среднем 1,6 из 3
 function posNamesOwn(b, names){
-  var own = posOwnZones(b.team, nick(b.id)), out = names.slice();
-  own.forEach(function(o){ if(o.share >= 1/own.length && out.indexOf(o.name) < 0 && zonesByName(o.name).length) out.push(o.name); });
+  var own = posOwnZones(b.team, nick(b.id)), out = names.slice(), sides = {};
+  names.forEach(function(nm){ var s = posSideOf(nm); if(s) sides[s] = (sides[s]||0) + 1; });
+  var side = Object.keys(sides).sort(function(a, c){ return sides[c] - sides[a]; })[0];
+  own.forEach(function(o){ if(o.share >= 1/own.length && out.indexOf(o.name) < 0 && zonesByName(o.name).length && (!side || posSideOf(o.name) === side)) out.push(o.name); });
   return out;
 }
 function posPickName(b, names, seed){
@@ -10868,10 +10905,25 @@ function smokeHeTick(){
   });
 }
 // смок закрыл угол, который держал: часть игроков меняет позицию (отходит глубже)
+// (v424) пост в дыму: бот, который стоит на посту внутри активного смока (пришёл на пост, когда смок уже стоял), уходит из него
+// той же реакцией, что и при взрыве смока на посту (shiftHold — глубже, туда, откуда центр смока не виден). Проверка — раз в 32 тика
+var SMOKE_STAND_PAD = 20;   // (v424) проектное число: «в дыму» — ближе радиуса смока + 20 к центру
+function smokeStandTick(){
+  if(tick % 32) return;
+  bots.forEach(function(b){
+    if(!b.alive || b._sawEnemy || !(b.atPost && b.post && b.post.hold)) return;
+    var s = smokes.filter(function(q){ return smkActive(q) && Math.hypot(q.x-b.x, q.y-b.y) < NADE.smoke.radius + SMOKE_STAND_PAD; })[0];
+    if(s) shiftHold(b, {x:s.x, y:s.y}, null, "стою в дыму");
+  });
+}
 function smokeShiftOnDetonate(s){
   bots.forEach(function(b){
     if(!b.alive || b.team === s.team || b._sawEnemy || !(b.atPost && b.post && b.post.hold)) return;
-    var d = Math.hypot(s.x-b.x, s.y-b.y); if(d < 150 || d > 700 || !hasLOS(b.x, b.y, s.x, s.y, b.z)) return;
+    var d = Math.hypot(s.x-b.x, s.y-b.y);
+    // (v424, владелец 25.10, Mirage м1: «стоят статуями в центре дыма») смок лёг на сам пост — уходит из него всегда (раньше ближе 150 к смоку
+    // при радиусе 70 реакции не было вовсе: за матч 24 раза ≥ 3 с в дыму, опорник A в р1 — 17 с на посту в дыму)
+    if(d < NADE.smoke.radius + SMOKE_STAND_PAD){ shiftHold(b, {x:s.x, y:s.y}, null, "стою в дыму"); return; }
+    if(d < 150 || d > 700 || !hasLOS(b.x, b.y, s.x, s.y, b.z)) return;
     var lk = b.lookTarget || b.post.look; if(!lk) return;
     if(!segHitsCircle(b.x, b.y, lk.x, lk.y, s.x, s.y, NADE.smoke.radius)) return;   // смок не на его линии
     if(hashRand(s.born*53 + b.id.charCodeAt(0)*29 + b.id.length) >= SMK.shiftP) return;
@@ -11173,16 +11225,20 @@ function proLineups(){
   return PRO_LINEUPS;
 }
 // розыгрыш группы на раунд: граната в эту цель летит с вероятностью — сумма долей её лайнапов (не больше 1; доли посчитаны на одни
-// и те же раунды — tools/cluster.py ctxN), место броска — одно из лайнапов группы по их долям; остальные места группы в этом раунде молчат
+// и те же раунды — tools/cluster.py ctxN). Место броска заранее не выбирается (v424: в v423 выбиралось по долям — на Mirage м1 р3 выпал
+// смок в Window со спавна, а со спавна кинуть было некому — окно не закрыли): выпала цель — открыты все места группы, кидают с того,
+// где первым нашёлся бросающий, остальные места группы гасятся (proGroupDone)
 function proRollGroup(L){
   var G = PRO_GROUPS[L.grp] || [L], hid = 0, i;
   for(i = 0; i < L.grp.length; i++) hid = (hid*31 + L.grp.charCodeAt(i)) % 1000003;
-  var seed = roundNum*7919 + matchNum*104729 + hid, sum = 0;
-  G.forEach(function(x){ sum += x.prob; });
-  var win = hashRand(seed) < Math.min(1, sum), r = hashRand(seed + 17) * sum, pick = null;
-  G.forEach(function(x){ if(pick) return; r -= x.prob; if(r <= 0) pick = x; });
-  pick = pick || G[G.length-1];
-  G.forEach(function(x){ nadeFlags["pr"+x.id] = win && x === pick; });
+  var sum = 0; G.forEach(function(x){ sum += x.prob; });
+  var win = hashRand(roundNum*7919 + matchNum*104729 + hid) < Math.min(1, sum);
+  G.forEach(function(x){ nadeFlags["pr"+x.id] = win; });
+}
+// лайнап группы нашёл бросающего — другие места той же цели в этом раунде не кидаются
+function proGroupDone(L){
+  if(!L.pro || !L.grp) return;
+  (PRO_GROUPS[L.grp] || []).forEach(function(x){ if(x !== L) nadeFlags["lu"+x.id] = true; });
 }
 // встроенная "общая" граната не летит, если про-лайнапы того же типа уже
 // покрывают эту ситуацию (сторона, триггер, сайт)
@@ -13376,10 +13432,12 @@ function lineupTick(){
     var leavesSite = function(b){ if(b.team !== "CT" || L.trigger === "retake" || L.trigger === "call") return false; var k = b.tRole === "anchorA" ? "A" : b.tRole === "anchorB" ? "B" : null; if(!k) return false;
       var P0 = b.post && b.post.tag === "anchor" ? b.post : SITES[k]; return Math.hypot(L.from.x-P0.x, L.from.y-P0.y) > 300; };
     // (v423, владелец 25.10, Mirage м1 р2: лёркер с B бежал за лайнапом в Underpath и на Top Mid, саппорт — назад на спавн, донк — с
-    // B Apartments на Top Mid) лайнап сетапа T кидает тот, чей пост роли (конец маршрута, если идёт по маршруту) не дальше SETUP_POST_R от
-    // точки броска, и не лёркер (у него свой план) — гранату кидают со своего участка, а не бегут за ней через карту
-    var setupFar = function(b){ if(b.team !== "T" || L.trigger !== "setup") return false; if(b.tRole === "lurker") return true;
-      var P0 = (b._route && b._route.want && b._route.want[0]) || b.post; return !P0 || Math.hypot(L.from.x-P0.x, L.from.y-P0.y) > SETUP_POST_R; };
+    // B Apartments на Top Mid) лайнап сетапа T кидает тот, кому точка броска по пути к посту роли (конец маршрута, если идёт по маршруту):
+    // крюк через неё — не больше SETUP_DETOUR. (v424) в v423 было «пост ≤ 500 от точки броска, не лёркер» — запретило броски по дороге
+    // со спавна: на м1 р3 смок в Window со спавна кинуть стало некому. Лёркеру — тоже можно, если по пути
+    var setupFar = function(b){ if(b.team !== "T" || L.trigger !== "setup") return false;
+      var P0 = (b._route && b._route.want && b._route.want[0]) || b.post; if(!P0) return false;
+      return Math.hypot(L.from.x-b.x, L.from.y-b.y) + Math.hypot(P0.x-L.from.x, P0.y-L.from.y) - Math.hypot(P0.x-b.x, P0.y-b.y) > SETUP_DETOUR; };
     var okBot = function(b){ return b.team === L.team && b.alive && b.nades && b.nades[L.type] > 0 && !leavesSite(b) && !setupFar(b) &&
       !b.planting && !b.defusing && !(bomb.state === "carried" && bomb.carrier === b) && Math.hypot(b.x-L.from.x, b.y-L.from.y) < maxD; };
     // (v359, р7) кто уже стоит на сайте T (взял его) — с сайта за гранатой назад не уходит
@@ -13398,7 +13456,7 @@ function lineupTick(){
     if(solo){
       var busyN = (solo.nadeTask && solo.nadeTask.type === L.type ? 1 : 0) + (solo.nadeQueue||[]).filter(function(q){ return q.type === L.type; }).length;
       if(solo.nades && solo.nades[L.type] > busyN && !solo.planting && (solo.nadeQueue||[]).length < 4 && !onTSite(solo)){
-        nadeFlags[key] = true; nadeFlags["luok"+L.id] = true;
+        nadeFlags[key] = true; nadeFlags["luok"+L.id] = true; proGroupDone(L);
         if(!solo.nadeTask){
           var sP = Math.max(7, Math.ceil(pathLenTo(solo, L.from.x, L.from.y)/SPEED + LU_REACH_PAD));
           solo.nadeTask = {type:L.type, x:L.to.x, y:L.to.y, from:{x:L.from.x, y:L.from.y}, until: tick + sP*TICK_HZ, why:"лайнап «"+(L.name||LU_TYPE[L.type])+"»", start:tick, lob:true, range:4000, now:true, lineup:true, exec:L.type === "smoke"};
@@ -13417,7 +13475,7 @@ function lineupTick(){
         return b.nades[L.type] >= need && Math.hypot(t.from.x-L.from.x, t.from.y-L.from.y) < EXEC_QUEUE_R; })
         .sort(function(a, b2){ return (utilRole(a) ? 0 : 400) + cost(a) - (utilRole(b2) ? 0 : 400) - cost(b2); })[0];
       if(qb){
-        nadeFlags[key] = true; nadeFlags["luok"+L.id] = true;
+        nadeFlags[key] = true; nadeFlags["luok"+L.id] = true; proGroupDone(L);
         (qb.nadeQueue = qb.nadeQueue || []).push({type:L.type, x:L.to.x, y:L.to.y, from:{x:L.from.x, y:L.from.y}, why:"лайнап «"+(L.name||LU_TYPE[L.type])+"»", lineup:true, exec:true});
         logEvent(qb.id+": следом кинет «"+(L.name||LU_TYPE[L.type])+"»");
         return;
@@ -13439,7 +13497,7 @@ function lineupTick(){
       nadeFlags[key] = true; return; // так и не нашли, кто бросит — сдаёмся
     }
     nadeFlags[key] = true;
-    nadeFlags["luok"+L.id] = true;
+    nadeFlags["luok"+L.id] = true; proGroupDone(L);
     // (v340, отметка владельца: sh1ro шёл на смок Connector, задание сгорело у уступа — развернулся, «отталкивает») срок — не
     // меньше дороги до точки броска по пути + LU_REACH_PAD с (проектное число); раньше только 7 / 12 / 20 с
     var luBase = hot ? ((BAL.nadeReach && L.trigger === "timed") ? 12 : 7) : 20, luP = buildWaypointPath(cand.baseX, cand.baseY, cand.z, L.from.x, L.from.y, 0), luLen = 0, luX = cand.baseX, luY = cand.baseY;
@@ -13451,7 +13509,7 @@ function lineupTick(){
   });
 }
 var LU_REACH_PAD = 3;
-var SETUP_POST_R = 500;   // (v423) проектное число: радиус от поста роли до точки броска лайнапа сетапа; заменить данными (с какого расстояния от своей позиции про кидают сетап)
+var SETUP_DETOUR = 300;   // (v424) проектное число: крюк к точке броска лайнапа сетапа (лишний путь по прямой); заменить данными (как далеко от своего пути про кидают сетап)
 var CLR_REB_SEC = 12, EXEC_REACH = 1000, EXEC_QUEUE_R = 600, EXEC_QUEUE_N = 3, EXEC_WAIT_SEC = 20;   // (v355) проектные числа
 // ---------- физика полёта и срабатывание ----------
 function nadeWallHit(x1,y1,x2,y2){
@@ -14254,7 +14312,7 @@ var VOICE_KEYS = {
   see:  "clr clz hurt fin eg rpfast mo midback rotread s sh buy antiawp prt afall presave nostop midtake",
   hear: "zoom rl rushm",
   nade: "awps defsmk hesm hesmk hestack hefin pop psm rtflash rtawp sflash early fb tfb dump",
-  self: "clutch clutchpos clutchsw tcl tcpp tsave lowhp awpsave awpsaveT midcare rebalOff back cb cov pphold egw",
+  self: "clutch clutchpos clutchsw tcl tcpp tsave tsaveoff lowhp awpsave awpsaveT midcare rebalOff back cb cov pphold egw",
   plan: "abort allin assist fake fakeworked flank midcover pick reb rebal regroup rgo ppsplit pptime probe saferot solo sv trade upslow rtentry die"
 };
 var VOICE_KEY_KIND = {};
@@ -14804,15 +14862,22 @@ function fightPathFree(b, x0, y0, x1, y1){
   for(var i = 1; i <= n; i++){ var x = x0 + (x1-x0)*i/n, y = y0 + (y1-y0)*i/n; if(stepBlocked(px, py, x, y, b)) return false; px = x; py = y; }
   return true;
 }
+// (v426, владелец 25.10, Mirage м1 р4: donk 1 против 4 «ушёл с линии», а стоит в открытую) укрытие — скрытое и от остальных врагов,
+// которых бот знает (видел / слышал за 4 с, ≤ 1200 — exposedTo, то же, что у перезарядки), а не только от того, с кем стреляется. Такого
+// рядом нет — как раньше: скрытое от него одного
 function fightCover(b, e, R){
-  for(var k=1;k<=3;k++){
-    var r = R*k/3, best = null, bd = -1;
-    for(var i=0;i<16;i++){
-      var a = i*Math.PI/8, x = b.baseX + Math.cos(a)*r, y = b.baseY + Math.sin(a)*r;
-      if(insideSolidWall(x, y) || !fightPathFree(b, b.baseX, b.baseY, x, y) || fightSeen(e, x, y, b.z)) continue;
-      var de = Math.hypot(x-e.x, y-e.y); if(de > bd){ bd = de; best = {x:x, y:y}; }
+  var others = exposedTo(b, 1200, 4*TICK_HZ, true).filter(function(o){ return Math.hypot(o.x-e.x, o.y-e.y) > 60; });
+  for(var pass = others.length ? 0 : 1; pass < 2; pass++){
+    for(var k=1;k<=3;k++){
+      var r = R*k/3, best = null, bd = -1;
+      for(var i=0;i<16;i++){
+        var a = i*Math.PI/8, x = b.baseX + Math.cos(a)*r, y = b.baseY + Math.sin(a)*r;
+        if(insideSolidWall(x, y) || !fightPathFree(b, b.baseX, b.baseY, x, y) || fightSeen(e, x, y, b.z)) continue;
+        if(pass === 0 && others.some(function(o){ return hasLOS(x, y, o.x, o.y, b.z); })) continue;
+        var de = Math.hypot(x-e.x, y-e.y); if(de > bd){ bd = de; best = {x:x, y:y}; }
+      }
+      if(best) return best;
     }
-    if(best) return best;
   }
   return null;
 }
@@ -17480,7 +17545,7 @@ function stepTick(){
     bot.y = bot.baseY + offY;
   });
   resolveEngagements();
-  smokeSpamTick();
+  smokeSpamTick(); if(BAL.smokeReact) smokeStandTick();
   infoFallbackTick();
   if(BAL.smokeReact) smokeHeTick();
   teamInfoTick(); // раздел 11: коллы из восприятия этого тика → командная память
@@ -21132,10 +21197,12 @@ var __SNAP = [
 ["LOOK_FRESH", function(){ return LOOK_FRESH; }, function(v){ try{ LOOK_FRESH = v; }catch(e){} }],
 ["POSPREF", function(){ return POSPREF; }, function(v){ try{ POSPREF = v; }catch(e){} }],
 ["PPN", function(){ return PPN; }, function(v){ try{ PPN = v; }catch(e){} }],
+["POS_SIDE", function(){ return POS_SIDE; }, function(v){ try{ POS_SIDE = v; }catch(e){} }],
 ["HOLD", function(){ return HOLD; }, function(v){ try{ HOLD = v; }catch(e){} }],
 ["HOLD_CANDS", function(){ return HOLD_CANDS; }, function(v){ try{ HOLD_CANDS = v; }catch(e){} }],
 ["SMK", function(){ return SMK; }, function(v){ try{ SMK = v; }catch(e){} }],
 ["SMK_ENTRY_R", function(){ return SMK_ENTRY_R; }, function(v){ try{ SMK_ENTRY_R = v; }catch(e){} }],
+["SMOKE_STAND_PAD", function(){ return SMOKE_STAND_PAD; }, function(v){ try{ SMOKE_STAND_PAD = v; }catch(e){} }],
 ["PRO_PROLE", function(){ return PRO_PROLE; }, function(v){ try{ PRO_PROLE = v; }catch(e){} }],
 ["PROLE_NADES", function(){ return PROLE_NADES; }, function(v){ try{ PROLE_NADES = v; }catch(e){} }],
 ["PROLE_LABEL", function(){ return PROLE_LABEL; }, function(v){ try{ PROLE_LABEL = v; }catch(e){} }],
@@ -21206,7 +21273,7 @@ var __SNAP = [
 ["CROSS_NEAR", function(){ return CROSS_NEAR; }, function(v){ try{ CROSS_NEAR = v; }catch(e){} }],
 ["SOLO_SHARE", function(){ return SOLO_SHARE; }, function(v){ try{ SOLO_SHARE = v; }catch(e){} }],
 ["LU_REACH_PAD", function(){ return LU_REACH_PAD; }, function(v){ try{ LU_REACH_PAD = v; }catch(e){} }],
-["SETUP_POST_R", function(){ return SETUP_POST_R; }, function(v){ try{ SETUP_POST_R = v; }catch(e){} }],
+["SETUP_DETOUR", function(){ return SETUP_DETOUR; }, function(v){ try{ SETUP_DETOUR = v; }catch(e){} }],
 ["CLR_REB_SEC", function(){ return CLR_REB_SEC; }, function(v){ try{ CLR_REB_SEC = v; }catch(e){} }],
 ["EXEC_REACH", function(){ return EXEC_REACH; }, function(v){ try{ EXEC_REACH = v; }catch(e){} }],
 ["EXEC_QUEUE_R", function(){ return EXEC_QUEUE_R; }, function(v){ try{ EXEC_QUEUE_R = v; }catch(e){} }],
@@ -22175,7 +22242,7 @@ var SND_R = {step:600, shot:2000, awp:2600, nade:1500, bomb:1200};   // (v326) �
 function sndInit(){
   if(SND.ctx) return;
   var C = window.AudioContext || window.webkitAudioContext; if(!C) return;
-  SND.ctx = new C(); SND.master = SND.ctx.createGain(); SND.master.gain.value = 0.85; SND.master.connect(SND.ctx.destination);   // (v325) громче по просьбе владельца; (v326) соединение с колонками было закомментировано по ошибке — звука не было вовсе
+  SND.ctx = new C(); SND.master = SND.ctx.createGain(); SND.master.gain.value = SND.vol != null ? SND.vol : 0.85; SND.master.connect(SND.ctx.destination);   // (v325) громче по просьбе владельца; (v326) соединение с колонками было закомментировано по ошибке — звука не было вовсе
   var len = SND.ctx.sampleRate, buf = SND.ctx.createBuffer(1, len, SND.ctx.sampleRate), d = buf.getChannelData(0), sd = 12345;
   for(var i=0;i<len;i++){ sd = (sd*1103515245 + 12345) & 0x7fffffff; d[i] = sd/0x3fffffff - 1; }
   SND.noise = buf;
@@ -22317,6 +22384,12 @@ function sndTick(){   // пиканье бомбы — раз в тик пров
   var wake = function(){ if(!SND.on) return; sndInit(); if(SND.ctx && SND.ctx.state !== "running") SND.ctx.resume().catch(function(){}); };
   ["pointerdown", "keydown"].forEach(function(ev){ document.addEventListener(ev, wake, {capture:true}); });
   // (v326) включил — сразу короткий сигнал (слышно, что звук работает); если браузер / страница не дали звук — пишем это на кнопке
+  // (v425, владелец 25.10: «нужно добавить ползунок громкости звуков игры») общая громкость — SND.master; 0,85 — как было; запоминается
+  var vol = document.getElementById("sndVol"), v0 = null; try{ v0 = localStorage.getItem("sndVol"); }catch(e){}
+  SND.vol = v0 != null && !isNaN(+v0) ? Math.max(0, Math.min(1, +v0)) : 0.85;
+  if(vol){ vol.value = Math.round(SND.vol*100);
+    vol.addEventListener("input", function(){ SND.vol = (+vol.value)/100; if(SND.master) SND.master.gain.value = SND.vol;
+      try{ localStorage.setItem("sndVol", String(SND.vol)); }catch(e){} }); }
   b.addEventListener("click", function(){
     sndInit(); if(!SND.ctx){ b.textContent = "Звук: браузер не умеет"; return; }
     SND.on = !SND.on; b.className = SND.on ? "on" : ""; b.textContent = SND.on ? "Звук: вкл" : "Звук";
