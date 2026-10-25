@@ -350,7 +350,9 @@ function tBrain(){
         if(G.stage === "TMID"){ mem.forEach(function(b){ b._stageInfo = null; }); groupPost(mem, tt.tMidPt || GEO.tMid, GEO.tMidLook, "tmid", midOpt); return; }
         mem.forEach(function(b){ if(memAll.indexOf(b) < 0) memAll.push(b); }); });
       stagePost(memAll, tt.site);
+      tNoGroupMid(tt, tac, pick, midOpt);
     } else if(tac.groups && tac.style !== "fake"){
+      tNoGroupMid(tt, tac, pick, midOpt);
       tac.groups.forEach(function(G, gi){
         var mem = pick(G.roles);
         if(!mem.length) return;

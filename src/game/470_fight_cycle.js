@@ -24,15 +24,22 @@ function fightPathFree(b, x0, y0, x1, y1){
   for(var i = 1; i <= n; i++){ var x = x0 + (x1-x0)*i/n, y = y0 + (y1-y0)*i/n; if(stepBlocked(px, py, x, y, b)) return false; px = x; py = y; }
   return true;
 }
+// (v426, владелец 25.10, Mirage м1 р4: donk 1 против 4 «ушёл с линии», а стоит в открытую) укрытие — скрытое и от остальных врагов,
+// которых бот знает (видел / слышал за 4 с, ≤ 1200 — exposedTo, то же, что у перезарядки), а не только от того, с кем стреляется. Такого
+// рядом нет — как раньше: скрытое от него одного
 function fightCover(b, e, R){
-  for(var k=1;k<=3;k++){
-    var r = R*k/3, best = null, bd = -1;
-    for(var i=0;i<16;i++){
-      var a = i*Math.PI/8, x = b.baseX + Math.cos(a)*r, y = b.baseY + Math.sin(a)*r;
-      if(insideSolidWall(x, y) || !fightPathFree(b, b.baseX, b.baseY, x, y) || fightSeen(e, x, y, b.z)) continue;
-      var de = Math.hypot(x-e.x, y-e.y); if(de > bd){ bd = de; best = {x:x, y:y}; }
+  var others = exposedTo(b, 1200, 4*TICK_HZ, true).filter(function(o){ return Math.hypot(o.x-e.x, o.y-e.y) > 60; });
+  for(var pass = others.length ? 0 : 1; pass < 2; pass++){
+    for(var k=1;k<=3;k++){
+      var r = R*k/3, best = null, bd = -1;
+      for(var i=0;i<16;i++){
+        var a = i*Math.PI/8, x = b.baseX + Math.cos(a)*r, y = b.baseY + Math.sin(a)*r;
+        if(insideSolidWall(x, y) || !fightPathFree(b, b.baseX, b.baseY, x, y) || fightSeen(e, x, y, b.z)) continue;
+        if(pass === 0 && others.some(function(o){ return hasLOS(x, y, o.x, o.y, b.z); })) continue;
+        var de = Math.hypot(x-e.x, y-e.y); if(de > bd){ bd = de; best = {x:x, y:y}; }
+      }
+      if(best) return best;
     }
-    if(best) return best;
   }
   return null;
 }
