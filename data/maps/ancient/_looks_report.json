@@ -1,0 +1,1458 @@
+{
+ "map": "ancient",
+ "rows": [
+  {
+   "setup": "stackA",
+   "name": "Стак A",
+   "role": "rotator",
+   "phase": "",
+   "pos": "Triple Box",
+   "look": "A Site",
+   "lookPt": null,
+   "issues": [
+    "zone"
+   ],
+   "at": {
+    "x": 751,
+    "y": 516
+   },
+   "lk": {
+    "x": 618,
+    "y": 573
+   },
+   "open": 206,
+   "seen": 1,
+   "spots": 3,
+   "dist": 206
+  },
+  {
+   "setup": "stackA",
+   "name": "Стак A",
+   "role": "rotator",
+   "phase": "",
+   "pos": "Temple",
+   "look": "A Site",
+   "lookPt": null,
+   "issues": [
+    "zone"
+   ],
+   "at": {
+    "x": 789,
+    "y": 300
+   },
+   "lk": {
+    "x": 618,
+    "y": 573
+   },
+   "open": 206,
+   "seen": 1,
+   "spots": 3,
+   "dist": 206
+  },
+  {
+   "setup": "stackA",
+   "name": "Стак A",
+   "role": "roamer",
+   "phase": "",
+   "pos": "Back Site",
+   "look": "Long",
+   "lookPt": null,
+   "issues": [
+    "zone"
+   ],
+   "at": {
+    "x": 488,
+    "y": 435
+   },
+   "lk": {
+    "x": 347,
+    "y": 734
+   },
+   "open": 368,
+   "seen": 3,
+   "spots": 3,
+   "dist": 368
+  },
+  {
+   "setup": "stackA",
+   "name": "Стак A",
+   "role": "roamer",
+   "phase": "",
+   "pos": "Plat",
+   "look": "Long",
+   "lookPt": null,
+   "issues": [
+    "zone"
+   ],
+   "at": {
+    "x": 343,
+    "y": 418
+   },
+   "lk": {
+    "x": 347,
+    "y": 734
+   },
+   "open": 368,
+   "seen": 3,
+   "spots": 3,
+   "dist": 368
+  },
+  {
+   "setup": "stackB",
+   "name": "Стак B",
+   "role": "rotator",
+   "phase": "",
+   "pos": "Site B",
+   "look": "Ramp",
+   "lookPt": null,
+   "issues": [
+    "zone"
+   ],
+   "at": {
+    "x": 1533,
+    "y": 845
+   },
+   "lk": {
+    "x": 1693,
+    "y": 1021
+   },
+   "open": 302,
+   "seen": 2,
+   "spots": 3,
+   "dist": 302
+  },
+  {
+   "setup": "stackB",
+   "name": "Стак B",
+   "role": "rotator",
+   "phase": "",
+   "pos": "90",
+   "look": "Ramp",
+   "lookPt": null,
+   "issues": [
+    "zone"
+   ],
+   "at": {
+    "x": 1683,
+    "y": 747
+   },
+   "lk": {
+    "x": 1693,
+    "y": 1021
+   },
+   "open": 264,
+   "seen": 1,
+   "spots": 3,
+   "dist": 264
+  },
+  {
+   "setup": "stackB",
+   "name": "Стак B",
+   "role": "roamer",
+   "phase": "",
+   "pos": "Second Lane",
+   "look": "Cave",
+   "lookPt": null,
+   "issues": [
+    "zone"
+   ],
+   "at": {
+    "x": 1435,
+    "y": 676
+   },
+   "lk": {
+    "x": 1386,
+    "y": 830
+   },
+   "open": 136,
+   "seen": 3,
+   "spots": 3,
+   "dist": 136
+  },
+  {
+   "setup": "stackB",
+   "name": "Стак B",
+   "role": "roamer",
+   "phase": "",
+   "pos": "B Site",
+   "look": "Cave",
+   "lookPt": null,
+   "issues": [
+    "zone"
+   ],
+   "at": {
+    "x": 1533,
+    "y": 845
+   },
+   "lk": {
+    "x": 1386,
+    "y": 830
+   },
+   "open": 136,
+   "seen": 3,
+   "spots": 3,
+   "dist": 136
+  },
+  {
+   "setup": "midAggro",
+   "name": "Агрессия мидом за инфой",
+   "role": "mid",
+   "phase": "early",
+   "pos": "Mid",
+   "look": "Lower Mid",
+   "lookPt": null,
+   "issues": [
+    "zone"
+   ],
+   "at": {
+    "x": 984,
+    "y": 1120
+   },
+   "lk": {
+    "x": 759,
+    "y": 1192
+   },
+   "open": 274,
+   "seen": 3,
+   "spots": 3,
+   "dist": 274
+  },
+  {
+   "setup": "midAggro",
+   "name": "Агрессия мидом за инфой",
+   "role": "mid",
+   "phase": "early",
+   "pos": "Chamber Lane",
+   "look": "Lower Mid",
+   "lookPt": null,
+   "issues": [
+    "zone",
+    "wall"
+   ],
+   "at": {
+    "x": 796,
+    "y": 926
+   },
+   "lk": {
+    "x": 759,
+    "y": 1192
+   },
+   "open": 71,
+   "seen": 0,
+   "spots": 3,
+   "dist": 284
+  },
+  {
+   "setup": "midAggro",
+   "name": "Агрессия мидом за инфой",
+   "role": "roamer",
+   "phase": "early",
+   "pos": "Top Mid",
+   "look": "Mid",
+   "lookPt": null,
+   "issues": [
+    "zone"
+   ],
+   "at": {
+    "x": 972,
+    "y": 844
+   },
+   "lk": {
+    "x": 984,
+    "y": 1120
+   },
+   "open": 389,
+   "seen": 3,
+   "spots": 3,
+   "dist": 389
+  },
+  {
+   "setup": "retakeA",
+   "name": "Ретейк-сетап A (A отдают, играют ретейк)",
+   "role": "anchorA",
+   "phase": "",
+   "pos": "Temple",
+   "look": "A Site",
+   "lookPt": null,
+   "issues": [
+    "zone"
+   ],
+   "at": {
+    "x": 609,
+    "y": 364
+   },
+   "lk": {
+    "x": 618,
+    "y": 573
+   },
+   "open": 182,
+   "seen": 2,
+   "spots": 3,
+   "dist": 182
+  },
+  {
+   "setup": "retakeA",
+   "name": "Ретейк-сетап A (A отдают, играют ретейк)",
+   "role": "rotator",
+   "phase": "",
+   "pos": "CT Lane",
+   "look": "Triple Box",
+   "lookPt": null,
+   "issues": [
+    "zone"
+   ],
+   "at": {
+    "x": 815,
+    "y": 449
+   },
+   "lk": {
+    "x": 751,
+    "y": 516
+   },
+   "open": 95,
+   "seen": 2,
+   "spots": 3,
+   "dist": 95
+  },
+  {
+   "setup": "retakeB",
+   "name": "Ретейк-сетап B",
+   "role": "anchorB",
+   "phase": "",
+   "pos": "Second Lane",
+   "look": "B Site",
+   "lookPt": null,
+   "issues": [
+    "zone"
+   ],
+   "at": {
+    "x": 1435,
+    "y": 676
+   },
+   "lk": {
+    "x": 1533,
+    "y": 845
+   },
+   "open": 160,
+   "seen": 1,
+   "spots": 3,
+   "dist": 200
+  },
+  {
+   "setup": "retakeB",
+   "name": "Ретейк-сетап B",
+   "role": "rotator",
+   "phase": "",
+   "pos": "Back Halls",
+   "look": "Second Lane",
+   "lookPt": null,
+   "issues": [
+    "zone"
+   ],
+   "at": {
+    "x": 1598,
+    "y": 501
+   },
+   "lk": {
+    "x": 1435,
+    "y": 676
+   },
+   "open": 177,
+   "seen": 2,
+   "spots": 3,
+   "dist": 177
+  },
+  {
+   "setup": "pickA",
+   "name": "Пик мейна A за инфой",
+   "role": "anchorA",
+   "phase": "early",
+   "pos": "Long",
+   "look": "A Main",
+   "lookPt": null,
+   "issues": [
+    "zone"
+   ],
+   "at": {
+    "x": 347,
+    "y": 734
+   },
+   "lk": {
+    "x": 376,
+    "y": 833
+   },
+   "open": 179,
+   "seen": 3,
+   "spots": 3,
+   "dist": 179
+  },
+  {
+   "setup": "pickB",
+   "name": "Пик рампы B за инфой",
+   "role": "anchorB",
+   "phase": "early",
+   "pos": "Ramp",
+   "look": "T Lower",
+   "lookPt": null,
+   "issues": [
+    "zone"
+   ],
+   "at": {
+    "x": 1693,
+    "y": 1021
+   },
+   "lk": {
+    "x": 1573,
+    "y": 1164
+   },
+   "open": 155,
+   "seen": 2,
+   "spots": 3,
+   "dist": 155
+  },
+  {
+   "setup": "cavePush",
+   "name": "Пуш кейва за инфой (до Lamp Room)",
+   "role": "roamer",
+   "phase": "",
+   "pos": "Dark",
+   "look": "T Upper",
+   "lookPt": null,
+   "issues": [
+    "zone",
+    "wall"
+   ],
+   "at": {
+    "x": 1359,
+    "y": 981
+   },
+   "lk": {
+    "x": 1314,
+    "y": 1204
+   },
+   "open": 73,
+   "seen": 0,
+   "spots": 3,
+   "dist": 182
+  },
+  {
+   "setup": "cavePush",
+   "name": "Пуш кейва за инфой (до Lamp Room)",
+   "role": "roamer",
+   "phase": "",
+   "pos": "Lamp Room",
+   "look": "T Upper",
+   "lookPt": null,
+   "issues": [
+    "zone"
+   ],
+   "at": {
+    "x": 1264,
+    "y": 1156
+   },
+   "lk": {
+    "x": 1314,
+    "y": 1204
+   },
+   "open": 64,
+   "seen": 2,
+   "spots": 3,
+   "dist": 64
+  },
+  {
+   "setup": "cavePush",
+   "name": "Пуш кейва за инфой (до Lamp Room)",
+   "role": "roamer",
+   "phase": "early",
+   "pos": "Dark",
+   "look": "T Upper",
+   "lookPt": null,
+   "issues": [
+    "zone",
+    "wall"
+   ],
+   "at": {
+    "x": 1359,
+    "y": 981
+   },
+   "lk": {
+    "x": 1314,
+    "y": 1204
+   },
+   "open": 73,
+   "seen": 0,
+   "spots": 3,
+   "dist": 182
+  },
+  {
+   "setup": "cavePush",
+   "name": "Пуш кейва за инфой (до Lamp Room)",
+   "role": "roamer",
+   "phase": "early",
+   "pos": "Lamp Room",
+   "look": "T Upper",
+   "lookPt": null,
+   "issues": [
+    "zone"
+   ],
+   "at": {
+    "x": 1264,
+    "y": 1156
+   },
+   "lk": {
+    "x": 1314,
+    "y": 1204
+   },
+   "open": 64,
+   "seen": 2,
+   "spots": 3,
+   "dist": 64
+  },
+  {
+   "setup": "cavePush",
+   "name": "Пуш кейва за инфой (до Lamp Room)",
+   "role": "anchorB",
+   "phase": "",
+   "pos": "Cave",
+   "look": "Dark",
+   "lookPt": null,
+   "issues": [
+    "zone"
+   ],
+   "at": {
+    "x": 1386,
+    "y": 830
+   },
+   "lk": {
+    "x": 1359,
+    "y": 981
+   },
+   "open": 225,
+   "seen": 3,
+   "spots": 3,
+   "dist": 225
+  },
+  {
+   "setup": "cavePush",
+   "name": "Пуш кейва за инфой (до Lamp Room)",
+   "role": "anchorB",
+   "phase": "",
+   "pos": "B Site",
+   "look": "Dark",
+   "lookPt": null,
+   "issues": [
+    "zone"
+   ],
+   "at": {
+    "x": 1533,
+    "y": 845
+   },
+   "lk": {
+    "x": 1359,
+    "y": 981
+   },
+   "open": 142,
+   "seen": 2,
+   "spots": 3,
+   "dist": 142
+  },
+  {
+   "setup": "redRoom",
+   "name": "Контроль Red Room + Short",
+   "role": "mid",
+   "phase": "",
+   "pos": "Red Room",
+   "look": "Top Mid",
+   "lookPt": null,
+   "issues": [
+    "zone"
+   ],
+   "at": {
+    "x": 959,
+    "y": 574
+   },
+   "lk": {
+    "x": 972,
+    "y": 844
+   },
+   "open": 257,
+   "seen": 3,
+   "spots": 3,
+   "dist": 257
+  },
+  {
+   "setup": "redRoom",
+   "name": "Контроль Red Room + Short",
+   "role": "mid",
+   "phase": "",
+   "pos": "Sniper Nest",
+   "look": "Top Mid",
+   "lookPt": null,
+   "issues": [
+    "zone"
+   ],
+   "at": {
+    "x": 971,
+    "y": 704
+   },
+   "lk": {
+    "x": 972,
+    "y": 844
+   },
+   "open": 185,
+   "seen": 3,
+   "spots": 3,
+   "dist": 185
+  },
+  {
+   "setup": "redRoom",
+   "name": "Контроль Red Room + Short",
+   "role": "roamer",
+   "phase": "",
+   "pos": "Short",
+   "look": "Donut",
+   "lookPt": null,
+   "issues": [
+    "zone",
+    "wall"
+   ],
+   "at": {
+    "x": 629,
+    "y": 773
+   },
+   "lk": {
+    "x": 590,
+    "y": 968
+   },
+   "open": 83,
+   "seen": 1,
+   "spots": 3,
+   "dist": 166
+  },
+  {
+   "setup": "caveEarly",
+   "name": "Ранний кейв за инфой",
+   "role": "anchorB",
+   "phase": "",
+   "pos": "B Site",
+   "look": "Ramp",
+   "lookPt": null,
+   "issues": [
+    "zone"
+   ],
+   "at": {
+    "x": 1533,
+    "y": 845
+   },
+   "lk": {
+    "x": 1693,
+    "y": 1021
+   },
+   "open": 302,
+   "seen": 2,
+   "spots": 3,
+   "dist": 302
+  },
+  {
+   "setup": "caveEarly",
+   "name": "Ранний кейв за инфой",
+   "role": "anchorB",
+   "phase": "",
+   "pos": "Site B",
+   "look": "Ramp",
+   "lookPt": null,
+   "issues": [
+    "zone"
+   ],
+   "at": {
+    "x": 1533,
+    "y": 845
+   },
+   "lk": {
+    "x": 1693,
+    "y": 1021
+   },
+   "open": 302,
+   "seen": 2,
+   "spots": 3,
+   "dist": 302
+  },
+  {
+   "setup": "caveEarly",
+   "name": "Ранний кейв за инфой",
+   "role": "anchorB",
+   "phase": "early",
+   "pos": "Cave",
+   "look": "Dark",
+   "lookPt": null,
+   "issues": [
+    "zone"
+   ],
+   "at": {
+    "x": 1386,
+    "y": 830
+   },
+   "lk": {
+    "x": 1359,
+    "y": 981
+   },
+   "open": 225,
+   "seen": 3,
+   "spots": 3,
+   "dist": 225
+  },
+  {
+   "setup": "chamberCave",
+   "name": "Чембер + кейв за инфой",
+   "role": "mid",
+   "phase": "early",
+   "pos": "Chamber Lane",
+   "look": "Lower Mid",
+   "lookPt": null,
+   "issues": [
+    "zone",
+    "wall"
+   ],
+   "at": {
+    "x": 796,
+    "y": 926
+   },
+   "lk": {
+    "x": 759,
+    "y": 1192
+   },
+   "open": 71,
+   "seen": 0,
+   "spots": 3,
+   "dist": 284
+  },
+  {
+   "setup": "chamberCave",
+   "name": "Чембер + кейв за инфой",
+   "role": "anchorB",
+   "phase": "early",
+   "pos": "Cave",
+   "look": "Dark",
+   "lookPt": null,
+   "issues": [
+    "zone"
+   ],
+   "at": {
+    "x": 1386,
+    "y": 830
+   },
+   "lk": {
+    "x": 1359,
+    "y": 981
+   },
+   "open": 225,
+   "seen": 3,
+   "spots": 3,
+   "dist": 225
+  },
+  {
+   "setup": "donutCave",
+   "name": "Донат + кейв",
+   "role": "mid",
+   "phase": "",
+   "pos": "Donut",
+   "look": "Lower Mid",
+   "lookPt": null,
+   "issues": [
+    "zone",
+    "wall"
+   ],
+   "at": {
+    "x": 590,
+    "y": 968
+   },
+   "lk": {
+    "x": 759,
+    "y": 1192
+   },
+   "open": 133,
+   "seen": 0,
+   "spots": 3,
+   "dist": 333
+  },
+  {
+   "setup": "donutCave",
+   "name": "Донат + кейв",
+   "role": "roamer",
+   "phase": "",
+   "pos": "Cave",
+   "look": "Dark",
+   "lookPt": null,
+   "issues": [
+    "zone"
+   ],
+   "at": {
+    "x": 1386,
+    "y": 830
+   },
+   "lk": {
+    "x": 1359,
+    "y": 981
+   },
+   "open": 225,
+   "seen": 3,
+   "spots": 3,
+   "dist": 225
+  },
+  {
+   "setup": "chamberPeek",
+   "name": "Пик Чембера за инфой",
+   "role": "mid",
+   "phase": "early",
+   "pos": "Chamber Lane",
+   "look": "Lower Mid",
+   "lookPt": null,
+   "issues": [
+    "zone",
+    "wall"
+   ],
+   "at": {
+    "x": 796,
+    "y": 926
+   },
+   "lk": {
+    "x": 759,
+    "y": 1192
+   },
+   "open": 71,
+   "seen": 0,
+   "spots": 3,
+   "dist": 284
+  },
+  {
+   "setup": "donutHold",
+   "name": "Донат держит мид",
+   "role": "mid",
+   "phase": "",
+   "pos": "Donut",
+   "look": "Lower Mid",
+   "lookPt": null,
+   "issues": [
+    "zone",
+    "wall"
+   ],
+   "at": {
+    "x": 590,
+    "y": 968
+   },
+   "lk": {
+    "x": 759,
+    "y": 1192
+   },
+   "open": 133,
+   "seen": 0,
+   "spots": 3,
+   "dist": 333
+  },
+  {
+   "setup": "midCave",
+   "name": "Мид + кейв за инфой",
+   "role": "mid",
+   "phase": "early",
+   "pos": "Mid",
+   "look": "Lower Mid",
+   "lookPt": null,
+   "issues": [
+    "zone"
+   ],
+   "at": {
+    "x": 984,
+    "y": 1120
+   },
+   "lk": {
+    "x": 759,
+    "y": 1192
+   },
+   "open": 274,
+   "seen": 3,
+   "spots": 3,
+   "dist": 274
+  },
+  {
+   "setup": "midCave",
+   "name": "Мид + кейв за инфой",
+   "role": "roamer",
+   "phase": "early",
+   "pos": "Cave",
+   "look": "Dark",
+   "lookPt": null,
+   "issues": [
+    "zone"
+   ],
+   "at": {
+    "x": 1386,
+    "y": 830
+   },
+   "lk": {
+    "x": 1359,
+    "y": 981
+   },
+   "open": 225,
+   "seen": 3,
+   "spots": 3,
+   "dist": 225
+  },
+  {
+   "setup": "darkPush",
+   "name": "Пуш Dark за инфой",
+   "role": "roamer",
+   "phase": "",
+   "pos": "Cave",
+   "look": "Dark",
+   "lookPt": null,
+   "issues": [
+    "zone"
+   ],
+   "at": {
+    "x": 1386,
+    "y": 830
+   },
+   "lk": {
+    "x": 1359,
+    "y": 981
+   },
+   "open": 225,
+   "seen": 3,
+   "spots": 3,
+   "dist": 225
+  },
+  {
+   "setup": "darkPush",
+   "name": "Пуш Dark за инфой",
+   "role": "roamer",
+   "phase": "early",
+   "pos": "Dark",
+   "look": "Lamp Room",
+   "lookPt": null,
+   "issues": [
+    "zone"
+   ],
+   "at": {
+    "x": 1359,
+    "y": 981
+   },
+   "lk": {
+    "x": 1301,
+    "y": 1064
+   },
+   "open": 85,
+   "seen": 3,
+   "spots": 3,
+   "dist": 85
+  },
+  {
+   "setup": "chamberDark",
+   "name": "Чембер + Dark за инфой",
+   "role": "mid",
+   "phase": "early",
+   "pos": "Chamber Lane",
+   "look": "Lower Mid",
+   "lookPt": null,
+   "issues": [
+    "zone",
+    "wall"
+   ],
+   "at": {
+    "x": 796,
+    "y": 926
+   },
+   "lk": {
+    "x": 759,
+    "y": 1192
+   },
+   "open": 71,
+   "seen": 0,
+   "spots": 3,
+   "dist": 284
+  },
+  {
+   "setup": "chamberDark",
+   "name": "Чембер + Dark за инфой",
+   "role": "roamer",
+   "phase": "",
+   "pos": "Cave",
+   "look": "Dark",
+   "lookPt": null,
+   "issues": [
+    "zone"
+   ],
+   "at": {
+    "x": 1386,
+    "y": 830
+   },
+   "lk": {
+    "x": 1359,
+    "y": 981
+   },
+   "open": 225,
+   "seen": 3,
+   "spots": 3,
+   "dist": 225
+  },
+  {
+   "setup": "chamberDark",
+   "name": "Чембер + Dark за инфой",
+   "role": "roamer",
+   "phase": "early",
+   "pos": "Dark",
+   "look": "Lamp Room",
+   "lookPt": null,
+   "issues": [
+    "zone"
+   ],
+   "at": {
+    "x": 1359,
+    "y": 981
+   },
+   "lk": {
+    "x": 1301,
+    "y": 1064
+   },
+   "open": 85,
+   "seen": 3,
+   "spots": 3,
+   "dist": 85
+  },
+  {
+   "setup": "doubleMid",
+   "name": "Двое в мид за инфой",
+   "role": "mid",
+   "phase": "early",
+   "pos": "Mid",
+   "look": "Lower Mid",
+   "lookPt": null,
+   "issues": [
+    "zone"
+   ],
+   "at": {
+    "x": 984,
+    "y": 1120
+   },
+   "lk": {
+    "x": 759,
+    "y": 1192
+   },
+   "open": 274,
+   "seen": 3,
+   "spots": 3,
+   "dist": 274
+  },
+  {
+   "setup": "doubleMid",
+   "name": "Двое в мид за инфой",
+   "role": "rotator",
+   "phase": "early",
+   "pos": "Mid",
+   "look": "Lower Mid",
+   "lookPt": null,
+   "issues": [
+    "zone"
+   ],
+   "at": {
+    "x": 984,
+    "y": 1120
+   },
+   "lk": {
+    "x": 759,
+    "y": 1192
+   },
+   "open": 274,
+   "seen": 3,
+   "spots": 3,
+   "dist": 274
+  },
+  {
+   "setup": "doubleMid",
+   "name": "Двое в мид за инфой",
+   "role": "rotator",
+   "phase": "early",
+   "pos": "Top Mid",
+   "look": "Lower Mid",
+   "lookPt": null,
+   "issues": [
+    "zone",
+    "wall"
+   ],
+   "at": {
+    "x": 972,
+    "y": 844
+   },
+   "lk": {
+    "x": 759,
+    "y": 1192
+   },
+   "open": 18,
+   "seen": 0,
+   "spots": 3,
+   "dist": 355
+  },
+  {
+   "setup": "aMainPush",
+   "name": "Пуш мейна A за инфой",
+   "role": "anchorA",
+   "phase": "early",
+   "pos": "A Main",
+   "look": "A Hall",
+   "lookPt": null,
+   "issues": [
+    "zone"
+   ],
+   "at": {
+    "x": 376,
+    "y": 833
+   },
+   "lk": {
+    "x": 430,
+    "y": 960
+   },
+   "open": 158,
+   "seen": 3,
+   "spots": 3,
+   "dist": 158
+  },
+  {
+   "setup": "shortA",
+   "name": "A с Short (0-3-2)",
+   "role": "anchorA",
+   "phase": "",
+   "pos": "Short",
+   "look": "A Site",
+   "lookPt": null,
+   "issues": [
+    "zone"
+   ],
+   "at": {
+    "x": 629,
+    "y": 773
+   },
+   "lk": {
+    "x": 618,
+    "y": 573
+   },
+   "open": 304,
+   "seen": 3,
+   "spots": 3,
+   "dist": 304
+  },
+  {
+   "setup": "shortA",
+   "name": "A с Short (0-3-2)",
+   "role": "mid",
+   "phase": "",
+   "pos": "Donut",
+   "look": "Lower Mid",
+   "lookPt": null,
+   "issues": [
+    "zone",
+    "wall"
+   ],
+   "at": {
+    "x": 590,
+    "y": 968
+   },
+   "lk": {
+    "x": 759,
+    "y": 1192
+   },
+   "open": 133,
+   "seen": 0,
+   "spots": 3,
+   "dist": 333
+  },
+  {
+   "setup": "heavyB",
+   "name": "Трое на B (1-1-3)",
+   "role": "rotator",
+   "phase": "",
+   "pos": "Second Lane",
+   "look": "B Site",
+   "lookPt": null,
+   "issues": [
+    "zone"
+   ],
+   "at": {
+    "x": 1435,
+    "y": 676
+   },
+   "lk": {
+    "x": 1533,
+    "y": 845
+   },
+   "open": 160,
+   "seen": 1,
+   "spots": 3,
+   "dist": 200
+  },
+  {
+   "setup": "heavyB",
+   "name": "Трое на B (1-1-3)",
+   "role": "rotator",
+   "phase": "",
+   "pos": "90",
+   "look": "B Site",
+   "lookPt": null,
+   "issues": [
+    "zone"
+   ],
+   "at": {
+    "x": 1683,
+    "y": 747
+   },
+   "lk": {
+    "x": 1556,
+    "y": 839
+   },
+   "open": 183,
+   "seen": 3,
+   "spots": 3,
+   "dist": 183
+  },
+  {
+   "setup": "heavyB",
+   "name": "Трое на B (1-1-3)",
+   "role": "roamer",
+   "phase": "",
+   "pos": "Cave",
+   "look": "Dark",
+   "lookPt": null,
+   "issues": [
+    "zone"
+   ],
+   "at": {
+    "x": 1386,
+    "y": 830
+   },
+   "lk": {
+    "x": 1359,
+    "y": 981
+   },
+   "open": 225,
+   "seen": 3,
+   "spots": 3,
+   "dist": 225
+  },
+  {
+   "setup": "midStack",
+   "name": "Четверо в миде (0-4-1)",
+   "role": "anchorA",
+   "phase": "",
+   "pos": "Short",
+   "look": "A Site",
+   "lookPt": null,
+   "issues": [
+    "zone"
+   ],
+   "at": {
+    "x": 629,
+    "y": 773
+   },
+   "lk": {
+    "x": 618,
+    "y": 573
+   },
+   "open": 304,
+   "seen": 3,
+   "spots": 3,
+   "dist": 304
+  },
+  {
+   "setup": "midStack",
+   "name": "Четверо в миде (0-4-1)",
+   "role": "mid",
+   "phase": "",
+   "pos": "Donut",
+   "look": "Lower Mid",
+   "lookPt": null,
+   "issues": [
+    "zone",
+    "wall"
+   ],
+   "at": {
+    "x": 590,
+    "y": 968
+   },
+   "lk": {
+    "x": 759,
+    "y": 1192
+   },
+   "open": 133,
+   "seen": 0,
+   "spots": 3,
+   "dist": 333
+  },
+  {
+   "setup": "midStack",
+   "name": "Четверо в миде (0-4-1)",
+   "role": "rotator",
+   "phase": "",
+   "pos": "Top Mid",
+   "look": "Mid",
+   "lookPt": null,
+   "issues": [
+    "zone"
+   ],
+   "at": {
+    "x": 972,
+    "y": 844
+   },
+   "lk": {
+    "x": 984,
+    "y": 1120
+   },
+   "open": 389,
+   "seen": 3,
+   "spots": 3,
+   "dist": 389
+  },
+  {
+   "setup": "midStack",
+   "name": "Четверо в миде (0-4-1)",
+   "role": "rotator",
+   "phase": "",
+   "pos": "Sniper Nest",
+   "look": "Mid",
+   "lookPt": null,
+   "issues": [
+    "zone"
+   ],
+   "at": {
+    "x": 971,
+    "y": 704
+   },
+   "lk": {
+    "x": 984,
+    "y": 1120
+   },
+   "open": 460,
+   "seen": 2,
+   "spots": 3,
+   "dist": 460
+  },
+  {
+   "setup": "midStack",
+   "name": "Четверо в миде (0-4-1)",
+   "role": "roamer",
+   "phase": "",
+   "pos": "Red Room",
+   "look": "Top Mid",
+   "lookPt": null,
+   "issues": [
+    "zone"
+   ],
+   "at": {
+    "x": 959,
+    "y": 574
+   },
+   "lk": {
+    "x": 972,
+    "y": 844
+   },
+   "open": 257,
+   "seen": 3,
+   "spots": 3,
+   "dist": 257
+  },
+  {
+   "setup": "threeMid",
+   "name": "Трое в миде (1-3-1)",
+   "role": "mid",
+   "phase": "",
+   "pos": "Donut",
+   "look": "Lower Mid",
+   "lookPt": null,
+   "issues": [
+    "zone",
+    "wall"
+   ],
+   "at": {
+    "x": 590,
+    "y": 968
+   },
+   "lk": {
+    "x": 759,
+    "y": 1192
+   },
+   "open": 133,
+   "seen": 0,
+   "spots": 3,
+   "dist": 333
+  },
+  {
+   "setup": "threeMid",
+   "name": "Трое в миде (1-3-1)",
+   "role": "rotator",
+   "phase": "",
+   "pos": "Top Mid",
+   "look": "Mid",
+   "lookPt": null,
+   "issues": [
+    "zone"
+   ],
+   "at": {
+    "x": 972,
+    "y": 844
+   },
+   "lk": {
+    "x": 984,
+    "y": 1120
+   },
+   "open": 389,
+   "seen": 3,
+   "spots": 3,
+   "dist": 389
+  },
+  {
+   "setup": "threeMid",
+   "name": "Трое в миде (1-3-1)",
+   "role": "rotator",
+   "phase": "",
+   "pos": "Sniper Nest",
+   "look": "Mid",
+   "lookPt": null,
+   "issues": [
+    "zone"
+   ],
+   "at": {
+    "x": 971,
+    "y": 704
+   },
+   "lk": {
+    "x": 984,
+    "y": 1120
+   },
+   "open": 460,
+   "seen": 2,
+   "spots": 3,
+   "dist": 460
+  },
+  {
+   "setup": "threeMid",
+   "name": "Трое в миде (1-3-1)",
+   "role": "roamer",
+   "phase": "",
+   "pos": "Red Room",
+   "look": "Top Mid",
+   "lookPt": null,
+   "issues": [
+    "zone"
+   ],
+   "at": {
+    "x": 959,
+    "y": 574
+   },
+   "lk": {
+    "x": 972,
+    "y": 844
+   },
+   "open": 257,
+   "seen": 3,
+   "spots": 3,
+   "dist": 257
+  }
+ ]
+}

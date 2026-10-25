@@ -368,7 +368,8 @@
   "heights",
   "cover",
   "wallbang",
-  "spawns"
+  "spawns",
+  "checklooks"
  ],
  "frozen": {
   "map.json": "выравнивание слоя зон (zoneLayer), поправка спавна T и сайта A — подобраны руками в v166 под зоны, нарисованные руками; поле spawnSpots пересобирает шаг spawns (v321)",

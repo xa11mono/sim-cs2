@@ -19,16 +19,18 @@ navmesh.json, walls.json, heights.json, cover.json, zones.json, wallbang.json, p
   demos    — всё из демок про (tools/demos_bake.py --map: места про, взгляды, сетки, позиции знания, лайнапы, тактики,
              границы сайтов)
   spawns   — точки спавна из демок (tools/spawns_bake.py --map → map.json, spawnSpots)
+  checklooks — (v421) проверка: взгляды расстановок CT не заданы одним именем зоны и не упираются в стену (tools/ct_look_check.js,
+             видимость игры; набор не меняет, отчёт _looks_report.json). Последний шаг: проверяет уже собранный набор
 Каждый шаг можно запустить отдельно (--only). Один и тот же вход даёт те же файлы.
 """
-import json, math, os, shutil, subprocess, sys
+import json, math, os, shutil, subprocess, sys, tempfile
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 sys.path.insert(0, HERE)
 import mapdir  # noqa: E402
 
-STEPS = ['navmesh', 'walls', 'heights', 'cover', 'zones', 'zones3d', 'wallbang', 'map', 'demos', 'spawns']
+STEPS = ['navmesh', 'walls', 'heights', 'cover', 'zones', 'zones3d', 'wallbang', 'map', 'demos', 'spawns', 'checklooks']
 
 
 def say(*a):
@@ -355,6 +357,33 @@ def step_map(name, R):
             'ui': M.get('ui', {})}
     open(mapdir.path(name, 'map.json'), 'w', encoding='utf-8').write(json.dumps(meta, ensure_ascii=False, indent=1) + '\n')
     say('  map.json, radar.png (pxUnits %.2f)' % meta['pxUnits'])
+
+
+LOOK_ISSUE = {'zone': 'взгляд задан именем зоны, нет точки из демок (lookPt)', 'wall': 'обзор по направлению взгляда закрыт ближе 150 — смотрит в стену',
+              'nozone': 'позиция или взгляд не нашлись среди зон карты', 'nospot': 'у позиции не нашлось места'}
+LOOK_NOTE = {'far': 'замечание: направление открыто, но сама точка взгляда за препятствием'}
+
+
+def step_checklooks(name, R):
+    """(v421) проверка взглядов расстановок CT (tactics.json → ctSetups) той же логикой, что в игре: tools/ct_look_check.js на сборке
+    sim.html этой карты. Только наблюдает — набор не меняет; отчёт — _looks_report.json (в MAP не попадает), итог — в консоль."""
+    sim = os.path.join(tempfile.mkdtemp(), 'sim.html')
+    subprocess.run([sys.executable, os.path.join(ROOT, 'src', 'build.py'), '--map', name, sim], check=True, stdout=subprocess.DEVNULL)
+    rep = mapdir.path(name, '_looks_report.json')
+    try:
+        subprocess.run(['node', os.path.join(HERE, 'ct_look_check.js'), sim, rep], check=True)
+    finally:
+        os.remove(sim)
+    rows = json.load(open(rep, encoding='utf-8'))['rows']
+    bad = [r for r in rows if set(r['issues']) & set(LOOK_ISSUE)]
+    say('  взглядов CT проверено: %d, с ошибками: %d (отчёт _looks_report.json)' % (len(rows), len(bad)))
+    for k, txt in list(LOOK_ISSUE.items()) + list(LOOK_NOTE.items()):
+        n = [r for r in rows if k in r['issues']]
+        if not n: continue
+        say('  %s — %d:' % (txt, len(n)))
+        for r in n[:40]:
+            say('    %s / %s%s: стоит %s → смотрит %s%s' % (r['setup'], r['role'], ' (ранний выход)' if r['phase'] else '', r['pos'], r['look'] or 'на опорную точку',
+                                                   ', обзор %d из %d' % (r['open'], r['dist']) if 'open' in r and k in ('wall', 'far') else ''))
 
 
 def main():
