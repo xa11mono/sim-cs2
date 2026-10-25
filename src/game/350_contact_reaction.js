@@ -41,6 +41,14 @@ function contactCritical(b, C){
 // стоит / туда идёт свой (≤ SPOT_PERSONAL); на того же врага, на которого уже выходит свой, второй не выходит, а держит угол
 var SPOT_PERSONAL = 70, FOLLOW_GAP = 70;   // проектные числа: «личное место» чуть больше границы 60 из демок
 function spotTaken(b, q){ return bots.some(function(o){ return o !== b && o.alive && o.team === b.team && (Math.hypot(o.x-q.x, o.y-q.y) < SPOT_PERSONAL || (o.post && Math.hypot(o.post.x-q.x, o.post.y-q.y) < SPOT_PERSONAL)); }); }
+// (v418) свой рядом (≤ 600 — как «своих рядом» в счёте) сейчас в бою, и тот, с кем он стреляется, по знанию команды (≤ 1 с) — у этого
+// контакта (≤ 400). 600 — как nM ниже; 400 — проектное число («та же группа»)
+function contactMateFight(b, C){
+  var BL = beliefLast[b.team] || {};
+  return bots.filter(function(o){
+    if(o === b || !o.alive || o.team !== b.team || !o._sawEnemy || !o._fc || !o._nearestEnemyBot || Math.hypot(o.x-b.x, o.y-b.y) > 600) return false;
+    var e = BL[o._nearestEnemyBot.id]; return e && tick - e.tick <= TICK_HZ && Math.hypot(e.x-C.x, e.y-C.y) <= 400; })[0] || null;
+}
 function contactTick(b){
   if(!b.alive || roundState !== "live") return;
   var K = b._contact;
@@ -55,7 +63,10 @@ function contactTick(b){
   // тот же — уточнить место и продлить: реакция держится, пока знание о нём свежее (≤ CONTACT_AGE) + CONTACT_HOLD после
   // (Б1, ENGINE_AUDIT Х3: раньше кончалась по таймеру при живом знании — пост снят, бот шёл назад на пост роли, через CONTACT_GAP
   // тот же враг давал контакт снова — половина «ходит туда-сюда»)
-  if(K && Math.hypot(C.x-K.x, C.y-K.y) < 120){ K.x = C.x; K.y = C.y; K.until = tick + CONTACT_HOLD*TICK_HZ; return; }
+  // (v418) держит — а свой рядом начал бой с этой группой: решение «держать / выйти» пересматривается (ниже, contactMateFight)
+  var reMate = K && K.tag === "contact:hold" && tick - (b._mateReT||-1e9) >= CONTACT_GAP*TICK_HZ && contactMateFight(b, C);   // не чаще CONTACT_GAP
+  if(K && Math.hypot(C.x-K.x, C.y-K.y) < 120 && !reMate){ K.x = C.x; K.y = C.y; K.until = tick + CONTACT_HOLD*TICK_HZ; return; }
+  if(reMate) b._mateReT = tick;
   if(b._contactT && tick - b._contactT < CONTACT_GAP*TICK_HZ && !K) return;
   var look = {x:C.x, y:C.y};
   if(contactCritical(b, C)){
@@ -67,7 +78,10 @@ function contactTick(b){
   var foe = b.team === "CT" ? "T" : "CT", BL = beliefLast[b.team] || {}, nE = 0;
   for(var id in BL){ var e = BL[id], ob = teamBot(id); if(ob && ob.alive && ob.team === foe && tick - BL[id].tick <= 5*TICK_HZ && Math.hypot(e.x-b.x, e.y-b.y) < 900) nE++; }
   var nM = bots.filter(function(o){ return o !== b && o.alive && o.team === b.team && Math.hypot(o.x-b.x, o.y-b.y) < 600; }).length;
-  var swing = b.hp > LOW_HP && Math.max(1, nE) <= nM + 1;
+  // (v418, скрин владельца 25.10: T впятером вышли на A и стреляются с 9-м, 5-й рядом «держит» — врагов 5 > своих 2 + 1) счёт тел не
+  // различал «идут на меня» и «стреляются с моим»: свой рядом в бою с этой группой — выходит (стрелять, пока свой ещё жив, — кроссфайр,
+  // PRO_PLAY 3: «кроссфайры — хлеб с маслом»). Только то, что игрок знает: свой стреляется рядом (слышно), его противник — в знании команды
+  var swing = b.hp > LOW_HP && (Math.max(1, nE) <= nM + 1 || !!contactMateFight(b, C));
   if(swing && bots.some(function(o){ return o !== b && o.alive && o.team === b.team && o._contact && o._contact.tag === "contact:swing" && tick < o._contact.until && Math.hypot(o._contact.x-C.x, o._contact.y-C.y) < 200; })) swing = false;   // на него уже выходит свой
   var cand = pickSpots("ct"+b.id+Math.round(look.x/40)+","+Math.round(look.y/40), {x:b.x, y:b.y}, 4, {rMax: swing ? CONTACT_SWING : 160, minGap:30, see:[look]})
     .filter(function(q){ return Math.hypot(q.x-look.x, q.y-look.y) >= 120 && !spotTaken(b, q); });
