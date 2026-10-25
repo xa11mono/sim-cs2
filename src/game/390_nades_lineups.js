@@ -127,7 +127,9 @@ function lineupTick(){
     // планта — помощь: зона не важна, кидает ближайший, у кого есть
     var luM = L.team === "CT" ? ({timed:"now", call:"call", retake:"retake"}[L.trigger] || "now")
                               : ({insta:"now", setup:"now", exec:"exec", postplant:"postplant"}[L.trigger] || "now");
-    var luZ = (luM === "now" || luM === "exec") ? (L._npz || (L._npz = L.team === "CT" ? npZoneAt(L.from.x, L.from.y) : npZoneAt(L.to.x, L.to.y))) : null;
+    // у T на сетапе зона не проверяется (v428, м1 Mirage: с ней T на сетапе кидали 4,7 гранаты за раунд вместо 6,6, у про 6,7): у про
+    // 61 % смоков T на сетапе летят в мид — их кидают все, кто идёт через спавн и мид; с сайта на сайт T не кидают и так (карта)
+    var luZ = (L.team === "CT" && luM === "now") || luM === "exec" ? (L._npz || (L._npz = L.team === "CT" ? npZoneAt(L.from.x, L.from.y) : npZoneAt(L.to.x, L.to.y))) : null;
     var okBot = function(b){ return b.team === L.team && b.alive && b.nades && b.nades[L.type] > 0 && npCanUse(b, L.type, luM, luZ) &&
       !b.planting && !b.defusing && !(bomb.state === "carried" && bomb.carrier === b) && Math.hypot(b.x-L.from.x, b.y-L.from.y) < maxD; };
     // (v359, р7) кто уже стоит на сайте T (взял его) — с сайта за гранатой назад не уходит
