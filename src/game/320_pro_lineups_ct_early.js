@@ -27,6 +27,13 @@ function proCovers(key){
   var bl = (typeof builtinLineups === "function" ? builtinLineups() : []).filter(function(L){ return L.key === key; })[0];
   if(!bl) return false;
   var site = p[1] === "insta" ? "any" : p[p.length-1];
+  // (v422, владелец 25.10: «выход в сухую, гранаты остаются в карманах»; Mirage м1 р2 — смок «вход CT» отклонён) граната выхода: встроенная
+  // не летит, только если лайнап про того же типа на этот сайт В ЭТОМ РАУНДЕ выпал и нашёл, кто кинет (как свои лайнапы — builtinAllowed).
+  // Было: отключалась, если такой лайнап про вообще есть, — на Mirage их десятки с p 0,02–0,09, и на выходе не летело почти ничего
+  if(trig === "exec") return proLineups().some(function(L){
+    return L.team === p[0] && L.trigger === "exec" && (L.site === site || L.site === "any") && L.type === bl.type &&
+      nadeFlags["pr"+L.id] === true && !!nadeFlags["luok"+L.id];
+  });
   return !!(PRO_COVER[p[0]+"|"+trig+"|"+site+"|"+bl.type] || PRO_COVER[p[0]+"|"+trig+"|any|"+bl.type]);
 }
 
