@@ -126,7 +126,11 @@ function fightCycleTick(b, dtSec, busy){
     }
     return;
   }
-  if(b._sawEnemy && !(F.retreat && F.ph === "off")){ if(F.ph === "off") b._fcSnap = tick;   // (v414, М154) уход отменён — для подписи «почему»
+  // (v415, Б5к шаг 3, М154) снова вижу врага — на линию. Раньше и в фазе «off» сразу: решив уйти, бот на следующем тике ещё видел врага
+  // (шага не сделал) — уход отменялся (подпись v414 на м3: 160 снимков за 45 с). Теперь уход доходит до укрытия; на линию — только если
+  // и у укрытия враг виден (укрытие не спасает). Уходя от выстрелов в плечо (retreat) — как раньше, не останавливается
+  var atCover = F.ph === "off" && Math.hypot(F.cx-b.baseX, F.cy-b.baseY) < 2;
+  if(b._sawEnemy && !(F.ph === "off" && (F.retreat || !atCover))){ if(F.ph === "off") b._fcSnap = tick;   // у укрытия видно врага — для подписи «почему»
     F.ph = "line"; F.ax = b.baseX; F.ay = b.baseY; F.t = tick; F.until = 0; F.retreat = false; F.better = null; F.sv = undefined; return; }   // снова вижу врага — на линии (уходя от выстрелов в плечо — не останавливается)
   if(F.ph === "off" && tick >= F.until && (!F.retreat || Math.hypot(F.cx-b.baseX, F.cy-b.baseY) < 2)){
     F.retreat = false;

@@ -367,8 +367,10 @@ function stepTick(){
       }
     }
 
-    if(!ladderTick(bot) && !((bot.holding && !bot._burning) || bot.curSpeed <= 0.5 || (bot._fc && (bot._fc.ph !== "line" || bot._fc.own)))){
-      if(bot._fc) bot._fcWalk = tick;   // (v414, М154) перестрелка ещё жива, а бот идёт по маршруту — для подписи «почему»
+    // (v415, Б5к шаг 3, М154) в живой перестрелке (_fc) по маршруту не идёт. Раньше на линии шёл, когда «не держит» врага (_fc.own гаснет
+    // ≈ 0,25 с после контакта): при мигающей видимости бот чередовал стрейф и шаг по маршруту (подпись v414 на м3: 116 снимков за 45 с).
+    // Перестрелка кончается как раньше — врага не видно дольше паузы про (470, PEEK_PRO.pause)
+    if(!ladderTick(bot) && !((bot.holding && !bot._burning) || bot.curSpeed <= 0.5 || bot._fc)){
       if(bot.path.length === 0 || bot.pathIdx >= bot.path.length){
         if(bot.forcedRetreat) bot.forcedRetreat = false;
         assignNewDestination(bot, tick);
