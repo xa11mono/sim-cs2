@@ -176,7 +176,9 @@ function ctSetupRole(b, role, ct){
   var nm = BAL.proPrior ? names[posPickName(b, names, roundNum*97 + role.length*13 + matchNum)] : names[Math.floor(hashRand(roundNum*97 + role.length*13 + matchNum) * names.length)];
   var ref = role === "anchorA" ? GEO.A.anchor : role === "anchorB" ? GEO.B.anchor : GEO.ctMid;
   var c = zonePoint(nm, ref); if(!c) return false;
-  var lk = (P.look && zonePoint(P.look, c)) || ref;
+  // (v417, М153) куда смотрят про с этой точки — точка из демок (lookPt, tools/tactics_bake.py / ct_lookpt_add.py); по имени зоны точка
+  // бралась рядом с ботом и направление терялось (Mirage, опорник A в ctStd_212: про смотрят на −52° к A, а точка зоны «CT» — на 159°, назад)
+  var lk = (P.lookPt && {x: P.lookPt[0], y: P.lookPt[1]}) || (P.look && zonePoint(P.look, c)) || ref;
   // прятаться от мида по умолчанию — но не тогда, когда сам взгляд НАПРАВЛЕН
   // в сторону мида/тоннеля (Пуш кейва): иначе позицию тянуло в укромный
   // уголок, откуда "спрятанное от мида" направление и есть тот самый Dark/

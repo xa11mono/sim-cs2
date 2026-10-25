@@ -39,12 +39,15 @@ function lookOnMate(b, p){
 // (v413, Б5д-3 / М153, владелец 25.10: T к T Ramp смотрели на Palace Entry под 100–146° и держали это 1,4 с) свой тыл (isRearZone — как
 // у lookCands) не берётся; на ходу — ничего за спиной (> 1,5 рад от хода, как сказал владелец), запомненная точка на ходу проверяется
 // заново; впереди всё закрыто своими — null: смотрит по ходу движения
+// (v417, М153, скрин владельца: NiKo, опорник A, м1 р1 1:49 — стоял на посту, мимо прошёл CT2, взгляд ушёл «на CT» назад: точка в своей
+// же зоне, isRearZone её не отсекает, а «не за спину» было только на ходу) стоя на посту — то же правило от угла поста: ничего дальше 1,5 рад
 function openDirLook(b){
   var moving = b.curSpeed > 60*SPD_K && b.heading !== undefined;
-  var ahead = function(q){ return !moving || _angOff(Math.atan2(q.y-b.y, q.x-b.x), b.heading) <= 1.5; };
+  var postA = b.post && b.post.look ? Math.atan2(b.post.look.y-b.y, b.post.look.x-b.x) : null;
+  var refA = moving ? b.heading : postA;
+  var ahead = function(q){ return refA === null || _angOff(Math.atan2(q.y-b.y, q.x-b.x), refA) <= 1.5; };
   if(b._odl && tick - b._odl.t < 90 && b._odl.post === (b.post && b.post.id) && (!b._odl.p || ahead(b._odl.p))) return b._odl.p;
   var zi = bzOf(b.x, b.y), cands = [], seen = {};
-  var postA = b.post && b.post.look ? Math.atan2(b.post.look.y-b.y, b.post.look.x-b.x) : null;
   var addZ = function(j){ if(j < 0 || seen[j]) return; seen[j] = 1;
     if(zi >= 0 && j !== zi && isRearZone(b.team, zi, j, b)) return;
     (ZONE_SAMPLES[BZ.ids[j]] || (BZ.cent[j] ? [BZ.cent[j]] : [])).forEach(function(q){ var d = Math.hypot(q.x-b.x, q.y-b.y);

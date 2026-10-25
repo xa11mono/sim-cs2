@@ -434,9 +434,13 @@ def game_tactics(A):
             cand = [p['area'].split(' / ')[0]] + [byid[a['id']]['area'].split(' / ')[0] for a in sl.get('alternatives', []) if a['id'] in byid]
             pz = [z for z in dict.fromkeys(cand) if z in allow][:3] or allow[:2]
             lk = p['angle']['zone'].split(' / ')[0]
+            # (v417, М153) куда смотрят про с этой точки — сама точка: по имени зоны игра брала точку зоны рядом с ботом, и направление
+            # терялось (Mirage, ct_dark_2: про смотрят на −52° к A, а точка зоны «CT» рядом с постом — на 159°, назад)
+            lp = [round(p['angle']['x'], 1), round(p['angle']['y'], 1)] if p['angle'].get('x') is not None else None
             if lk == pz[0] or lk not in set(allow) | tpath | set(posd['M']['tHold']):
-                lk = entries[side][0] if side in entries else (posd['M']['tHold'] or [lk])[0]
+                lk = entries[side][0] if side in entries else (posd['M']['tHold'] or [lk])[0]; lp = None
             R = {'pos': pz, 'look': lk}
+            if lp: R['lookPt'] = lp
             role = {'anchor_A': 'anchorA', 'anchor_B': 'anchorB', 'mid_control': 'mid'}.get(sl['role'])
             if role and role not in roles:
                 roles[role] = R

@@ -760,7 +760,11 @@
       "Sandwich",
       "Triple Box"
      ],
-     "look": "CT"
+     "look": "CT",
+     "lookPt": [
+      957.5,
+      1485.6
+     ]
     },
     "mid": {
      "pos": [
@@ -775,7 +779,11 @@
       "B Plat",
       "Van"
      ],
-     "look": "B Apartments"
+     "look": "B Apartments",
+     "lookPt": [
+      689.5,
+      406.4
+     ]
     },
     "rotator": {
      "pos": [
@@ -783,7 +791,11 @@
       "Sandwich",
       "Triple Box"
      ],
-     "look": "Palace Exit"
+     "look": "Palace Exit",
+     "lookPt": [
+      1285.8,
+      1559.5
+     ]
     },
     "roamer": {
      "pos": [
@@ -791,7 +803,11 @@
       "Connector",
       "Underpath"
      ],
-     "look": "Top Mid"
+     "look": "Top Mid",
+     "lookPt": [
+      1505.9,
+      778.8
+     ]
     }
    }
   },
@@ -807,7 +823,11 @@
       "Triple Box",
       "A Site"
      ],
-     "look": "CT"
+     "look": "CT",
+     "lookPt": [
+      957.5,
+      1485.6
+     ]
     },
     "mid": {
      "pos": [
@@ -815,7 +835,11 @@
       "Underpath",
       "Connector"
      ],
-     "look": "Top Mid"
+     "look": "Top Mid",
+     "lookPt": [
+      1505.9,
+      778.8
+     ]
     },
     "anchorB": {
      "pos": [
@@ -823,7 +847,11 @@
       "B Plat",
       "Kitchen"
      ],
-     "look": "B Plat"
+     "look": "B Plat",
+     "lookPt": [
+      514.3,
+      406.4
+     ]
     },
     "rotator": {
      "pos": [
@@ -831,7 +859,11 @@
       "Triple Box",
       "A Site"
      ],
-     "look": "Palace Exit"
+     "look": "Palace Exit",
+     "lookPt": [
+      1285.8,
+      1559.5
+     ]
     },
     "roamer": {
      "pos": [
@@ -839,7 +871,11 @@
       "Kitchen",
       "Van"
      ],
-     "look": "B Apartments"
+     "look": "B Apartments",
+     "lookPt": [
+      689.5,
+      406.4
+     ]
     }
    }
   },
@@ -870,7 +906,11 @@
       "Van",
       "Bench"
      ],
-     "look": "B Apartments"
+     "look": "B Apartments",
+     "lookPt": [
+      689.5,
+      406.4
+     ]
     },
     "rotator": {
      "pos": [
@@ -886,7 +926,11 @@
       "Connector",
       "Under Window"
      ],
-     "look": "Top Mid"
+     "look": "Top Mid",
+     "lookPt": [
+      1505.9,
+      778.8
+     ]
     }
    }
   },
@@ -909,7 +953,11 @@
       "Window",
       "Underpath"
      ],
-     "look": "Top Mid"
+     "look": "Top Mid",
+     "lookPt": [
+      1505.9,
+      778.8
+     ]
     },
     "anchorB": {
      "pos": [
@@ -917,7 +965,11 @@
       "Van",
       "Bench"
      ],
-     "look": "B Apartments"
+     "look": "B Apartments",
+     "lookPt": [
+      689.5,
+      406.4
+     ]
     },
     "rotator": {
      "pos": [
@@ -925,7 +977,11 @@
       "Triple Box",
       "Jungle"
      ],
-     "look": "CT"
+     "look": "CT",
+     "lookPt": [
+      957.5,
+      1485.6
+     ]
     },
     "roamer": {
      "pos": [
@@ -933,7 +989,11 @@
       "Triple Box",
       "Jungle"
      ],
-     "look": "Palace Exit"
+     "look": "Palace Exit",
+     "lookPt": [
+      1285.8,
+      1559.5
+     ]
     }
    },
    "stack": "A"
@@ -950,7 +1010,11 @@
       "Dark",
       "Stairs"
      ],
-     "look": "Catwalk"
+     "look": "Catwalk",
+     "lookPt": [
+      1057.3,
+      811.5
+     ]
     },
     "mid": {
      "pos": [
@@ -965,7 +1029,11 @@
       "B Plat",
       "Van"
      ],
-     "look": "Stove"
+     "look": "Stove",
+     "lookPt": [
+      667.6,
+      325.5
+     ]
     },
     "rotator": {
      "pos": [
@@ -973,14 +1041,22 @@
       "Connector",
       "Underpath"
      ],
-     "look": "Top Mid"
+     "look": "Top Mid",
+     "lookPt": [
+      1505.9,
+      778.8
+     ]
     },
     "roamer": {
      "pos": [
       "B Plat",
       "Van"
      ],
-     "look": "B Apartments"
+     "look": "B Apartments",
+     "lookPt": [
+      689.5,
+      406.4
+     ]
     }
    }
   },
@@ -996,14 +1072,22 @@
       "A Site",
       "Cross"
      ],
-     "look": "Catwalk"
+     "look": "Catwalk",
+     "lookPt": [
+      1057.3,
+      811.5
+     ]
     },
     "anchorB": {
      "pos": [
       "Van",
       "B Plat"
      ],
-     "look": "B Plat"
+     "look": "B Plat",
+     "lookPt": [
+      514.3,
+      406.4
+     ]
     },
     "rotator": {
      "pos": [
@@ -1011,7 +1095,11 @@
       "A Site",
       "Cross"
      ],
-     "look": "CT"
+     "look": "CT",
+     "lookPt": [
+      957.5,
+      1485.6
+     ]
     },
     "roamer": {
      "pos": [
@@ -1019,13 +1107,21 @@
       "A Site",
       "Cross"
      ],
-     "look": "Palace Exit"
+     "look": "Palace Exit",
+     "lookPt": [
+      1285.8,
+      1559.5
+     ]
     },
     "mid": {
      "pos": [
       "B Plat"
      ],
-     "look": "B Apartments"
+     "look": "B Apartments",
+     "lookPt": [
+      689.5,
+      406.4
+     ]
     }
    },
    "stack": "A"
@@ -1049,7 +1145,11 @@
       "B Plat",
       "Van"
      ],
-     "look": "B Apartments"
+     "look": "B Apartments",
+     "lookPt": [
+      689.5,
+      406.4
+     ]
     },
     "rotator": {
      "pos": [
@@ -1057,7 +1157,11 @@
       "Triple Box",
       "A Trash"
      ],
-     "look": "CT"
+     "look": "CT",
+     "lookPt": [
+      957.5,
+      1485.6
+     ]
     },
     "roamer": {
      "pos": [
@@ -1065,7 +1169,11 @@
       "Triple Box",
       "A Trash"
      ],
-     "look": "Palace Exit"
+     "look": "Palace Exit",
+     "lookPt": [
+      1285.8,
+      1559.5
+     ]
     },
     "mid": {
      "pos": [
@@ -1073,7 +1181,11 @@
       "Triple Box",
       "A Trash"
      ],
-     "look": "Cross"
+     "look": "Cross",
+     "lookPt": [
+      1101.7,
+      1230.0
+     ]
     }
    },
    "stack": "A"
@@ -1090,7 +1202,11 @@
       "Stairs",
       "A Site"
      ],
-     "look": "Catwalk"
+     "look": "Catwalk",
+     "lookPt": [
+      1057.3,
+      811.5
+     ]
     },
     "anchorB": {
      "pos": [
@@ -1098,7 +1214,11 @@
       "Bench",
       "Arches"
      ],
-     "look": "B Plat"
+     "look": "B Plat",
+     "lookPt": [
+      514.3,
+      406.4
+     ]
     },
     "rotator": {
      "pos": [
@@ -1106,7 +1226,11 @@
       "A Site",
       "Cross"
      ],
-     "look": "Underpath"
+     "look": "Underpath",
+     "lookPt": [
+      912.7,
+      844.8
+     ]
     },
     "roamer": {
      "pos": [
@@ -1114,7 +1238,11 @@
       "Bench",
       "Arches"
      ],
-     "look": "B Apartments"
+     "look": "B Apartments",
+     "lookPt": [
+      689.5,
+      406.4
+     ]
     },
     "mid": {
      "pos": [
@@ -1122,7 +1250,11 @@
       "Bench",
       "Arches"
      ],
-     "look": "B Apartments"
+     "look": "B Apartments",
+     "lookPt": [
+      638.5,
+      420.0
+     ]
     }
    },
    "stack": "B"
