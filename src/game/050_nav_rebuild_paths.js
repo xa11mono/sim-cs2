@@ -272,17 +272,8 @@ function navJumpCost(a, edge){
 }
 var ROUTE_PORTAL = 0;   // (v406) цена перехода между участками сверх длины (было 40 при длине от центров участков): с длиной от точки входа не нужна — спуск со спавна T по рампе (607) короче бордюра (624), а с ценой 8 выбирался бордюр
 var ROUTE_NOISE = 0.25, ROUTE_NOISE_C = 40;   // доля и клетка (ед. карты) — проектные числа (v405)
-// (v412, Б5д-1 / М151, владелец 25.10: «все бегут в одну точку на спуске», Mirage спавн T → T Ramp) у выхода к T Ramp на маршруте лежали
-// два треугольника навмеша (1155, 1152) с проходом 4 ед. карты — натянутый путь всех пятерых сходился в эту щель. Четверть переходов
-// навмеша CS2 (Mirage 2053 из 7858, Ancient 1419 из 5944) — касание участков углом, у́же корпуса игрока. Путь через такой проход не
-// идёт (кроме выхода из участка старта и входа в участок цели — бот там уже стоит / туда и идёт); пути без них нет — прежний поиск.
-// NAV_HULL_W — корпус игрока CS2 32 ед. игры (VIS_SHOULDER: ±16) / 2,5 ед. игры на ед. карты
-var NAV_HULL_W = 13;
-function navPortalW(edge){ return edge._w != null ? edge._w : (edge._w = Math.hypot(edge.left.x-edge.right.x, edge.left.y-edge.right.y)); }
-function zoneRoute(fromId, toId, team){
-  zoneDijkstra.minW = NAV_HULL_W; var r = zoneDijkstra(fromId, toId, team); zoneDijkstra.minW = 0;
-  return r || zoneDijkstra(fromId, toId, team);
-}
+// (v416, М151) запрет пути через проходы у́же корпуса (v412) убран: у Kitchen, Hole, TV (Mirage) и T Lower ↔ Ruins (Ancient) других
+// проходов нет — путь шёл в обход в 4–15 раз длиннее (надпись «навмеш не связывает напрямую»). Схождение на спуске T разводит полоса (laneShift)
 function zoneDijkstra(fromId, toId, team){
   if(fromId===toId) return [fromId];
   var side = team === "CT" ? zoneSideMap() : null;
@@ -303,7 +294,6 @@ function zoneDijkstra(fromId, toId, team){
     var fromCentroid = entry[u] || zoneCentroid(zonesById[u]);
     (zoneGraph[u]||[]).forEach(function(edge){
       if(visited[edge.to]) return;
-      if(zoneDijkstra.minW && u !== fromId && edge.to !== toId && navPortalW(edge) < zoneDijkstra.minW) return;   // (v412) щель у́же корпуса
       var w = dist2(fromCentroid, edge.mid) + ROUTE_PORTAL + navJumpCost(zonesById[u], edge); // small fixed cost per portal crossing
       if(side && side[edge.to] !== undefined && side[edge.to] < ROUTE_SIDE_LINE) w *= ROUTE_ENEMY_SIDE;   // (v259) CT — по своей стороне
       // (v405) у бота своя полоса — и свой выбор среди почти равных путей: цена перехода × (1 ± ROUTE_NOISE) по клетке ROUTE_NOISE_C
@@ -457,11 +447,11 @@ function buildWaypointPath(fromX, fromY, fromZ, toX, toY, toZ, team, lane){
   if(!toZ) toZ = navFloorZ(tz, toX, toY);
   if(fz.id === tz.id) return [[toX,toY,toZ||0]];
   zoneDijkstra.noise = lane != null ? Math.round(lane*1000) + roundNum*13 : null; zoneDijkstra.from = {x: fromX, y: fromY};
-  var route = zoneRoute(fz.id, tz.id, team);
+  var route = zoneDijkstra(fz.id, tz.id, team);
   if(!route){ if(!NAV_GRID) navGridBuild();
     var alts = (NAV_GRID[Math.floor(toX/NAV_GRID_C)+","+Math.floor(toY/NAV_GRID_C)]||[]).map(function(i){ return NAVAREAS[i]; })
       .filter(function(a){ return a !== tz && !NAV_BLOCKED[a.id] && pointInPoly(toX, toY, a.points); }).sort(function(a, c){ return Math.abs(a.z - tLvl) - Math.abs(c.z - tLvl); });
-    for(var ai=0; ai<alts.length && !route; ai++){ route = zoneRoute(fz.id, alts[ai].id, team); if(route) tz = alts[ai]; } }
+    for(var ai=0; ai<alts.length && !route; ai++){ route = zoneDijkstra(fz.id, alts[ai].id, team); if(route) tz = alts[ai]; } }
   // (v375, отметка владельца: T0 на Tetris «застревает, его выкидывает, прыгает» — бомба лежала там, куда пути по навмешу нет;
   // раньше шёл по прямой к цели, в ящик/стену, и бился о него; сторож: «застой» с путём из одной точки) цели не достичь —
   // путь к ближайшему достижимому месту рядом с ней
