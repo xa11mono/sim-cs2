@@ -239,7 +239,7 @@
   <div id="topbar">
     <div class="tb-id">
       <h1>Mirage</h1>
-      <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 420, 25.10</div>
+      <div class="sub" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 423, 25.10</div>
     </div>
     <div class="tb-group" id="tbMatch">
       <button id="btnPause">Пауза</button>
@@ -16150,7 +16150,12 @@ function tProbes(tt, ts){
     if(b._midFlank && b._midFlank.round === roundNum) return; // заходит через Red Room — не проба
     var m = /^stage(A|B)(:.*)?$/.exec(b.post.tag) || /^probe(.+)$/.exec(b.post.tag);
     var key = b.post.tag === "tmid" ? "M" : m ? (b.post.tag.indexOf("stage") === 0 ? b.post.tag.slice(5) : m[1]) : null;
-    if(b._probe && b._probe.key) key = b._probe.key;
+    // проба этого раунда держит свою группу, пока бот на пробе / в бою (тег поста не стадия); (v423, владелец 25.10, Mirage м1 р2: донк после
+    // перевода IGL на A трижды уходил пробой B в B Apartments) — встал на стадию другой группы: старая проба забыта, группа — по стадии
+    if(b._probe && b._probe.key && b._probe.round === roundNum){
+      if(key && key !== b._probe.key && (/^stage/.test(b.post.tag) || b.post.tag === "tmid")) b._probe = null;
+      else key = b._probe.key;
+    }
     if(!key) return;
     (groups[key] = groups[key] || []).push(b);
   });
@@ -16185,7 +16190,8 @@ function tProbes(tt, ts){
         // напарник: второй встаёт в 1–2с позади и держит тот же угол — если
         // пробу снимут, он первый на размен
         if(BAL.pairs){
-          var bud = ts.filter(function(o){ return o !== pb && o.alive && o.tRole !== "lurker" && !(bomb.state === "carried" && bomb.carrier === o) &&
+          // (v423, Mirage м1 р2: AWP и саппорт со стадии A уходили напарником пробы B) напарник — из той же группы (стадии), не любой ближайший
+          var bud = gr.filter(function(o){ return o !== pb && o.alive && o.tRole !== "lurker" && !(bomb.state === "carried" && bomb.carrier === o) &&
             !(o._probeLock && o._probeLock >= tick-1) && Math.hypot(o.x-pb.x, o.y-pb.y) < 500; })
             .sort(function(a, c){ return Math.hypot(a.x-pb.x, a.y-pb.y) - Math.hypot(c.x-pb.x, c.y-pb.y); })[0];
           P.buddy = bud ? bud.id : null;
@@ -21159,7 +21165,7 @@ function proRolePost(b, key, names, ref, look, tag){
 // меняется от раунда к раунду, как у живых команд.
 // =====================================================================
 if(BAL.nadeMore) PRO_LINEUPS_RAW = PRO_LINEUPS_RAW.concat(MAP.lineups.proExtra);
-var PRO_LINEUPS = null;
+var PRO_LINEUPS = null, PRO_GROUPS = {};
 function proLineups(){
   if(PRO_LINEUPS) return PRO_LINEUPS;
   if(typeof PRO_LINEUPS_RAW === "undefined") return (PRO_LINEUPS = []);
@@ -21167,7 +21173,27 @@ function proLineups(){
     var f = snapToWalkable(L.from.x, L.from.y) || L.from;
     return {id:L.id, team:L.team, type:L.type, trigger:L.trigger, site:L.site, name:L.name, from:{x:f.x, y:f.y}, to:L.to, prob:L.prob, at:L.at, pro:true};
   });
+  // (v423, 3в) одна цель — одна граната: лайнапы про одной стороны, триггера, сайта и типа с целью в одной зоне карты — группа
+  // (tools/cluster.py режет броски по месту броска: смок на Stairs с T Roof, с T Ramp… — у каждого свой маленький p)
+  PRO_GROUPS = {};
+  PRO_LINEUPS.forEach(function(L){
+    var zt = zoneIdAt(L.to.x, L.to.y) || (Math.round(L.to.x/150)+","+Math.round(L.to.y/150));
+    L.grp = [L.team, L.trigger, L.site, L.type, zt].join("|");
+    (PRO_GROUPS[L.grp] = PRO_GROUPS[L.grp] || []).push(L);
+  });
   return PRO_LINEUPS;
+}
+// розыгрыш группы на раунд: граната в эту цель летит с вероятностью — сумма долей её лайнапов (не больше 1; доли посчитаны на одни
+// и те же раунды — tools/cluster.py ctxN), место броска — одно из лайнапов группы по их долям; остальные места группы в этом раунде молчат
+function proRollGroup(L){
+  var G = PRO_GROUPS[L.grp] || [L], hid = 0, i;
+  for(i = 0; i < L.grp.length; i++) hid = (hid*31 + L.grp.charCodeAt(i)) % 1000003;
+  var seed = roundNum*7919 + matchNum*104729 + hid, sum = 0;
+  G.forEach(function(x){ sum += x.prob; });
+  var win = hashRand(seed) < Math.min(1, sum), r = hashRand(seed + 17) * sum, pick = null;
+  G.forEach(function(x){ if(pick) return; r -= x.prob; if(r <= 0) pick = x; });
+  pick = pick || G[G.length-1];
+  G.forEach(function(x){ nadeFlags["pr"+x.id] = win && x === pick; });
 }
 // встроенная "общая" граната не летит, если про-лайнапы того же типа уже
 // покрывают эту ситуацию (сторона, триггер, сайт)
@@ -21180,6 +21206,13 @@ function proCovers(key){
   var bl = (typeof builtinLineups === "function" ? builtinLineups() : []).filter(function(L){ return L.key === key; })[0];
   if(!bl) return false;
   var site = p[1] === "insta" ? "any" : p[p.length-1];
+  // (v422, владелец 25.10: «выход в сухую, гранаты остаются в карманах»; Mirage м1 р2 — смок «вход CT» отклонён) граната выхода: встроенная
+  // не летит, только если лайнап про того же типа на этот сайт В ЭТОМ РАУНДЕ выпал и нашёл, кто кинет (как свои лайнапы — builtinAllowed).
+  // Было: отключалась, если такой лайнап про вообще есть, — на Mirage их десятки с p 0,02–0,09, и на выходе не летело почти ничего
+  if(trig === "exec") return proLineups().some(function(L){
+    return L.team === p[0] && L.trigger === "exec" && (L.site === site || L.site === "any") && L.type === bl.type &&
+      nadeFlags["pr"+L.id] === true && !!nadeFlags["luok"+L.id];
+  });
   return !!(PRO_COVER[p[0]+"|"+trig+"|"+site+"|"+bl.type] || PRO_COVER[p[0]+"|"+trig+"|any|"+bl.type]);
 }
 
@@ -23317,10 +23350,8 @@ function lineupTick(){
   allLineups().forEach(function(L){
     var key = "lu"+L.id; if(nadeFlags[key]) return;
     // (v150) про-лайнап: в этом раунде кидается с вероятностью, как у про
-    if(L.pro && nadeFlags["pr"+L.id] === undefined){
-      var hid = 0; for(var hi=0; hi<L.id.length; hi++) hid = hid*31 + L.id.charCodeAt(hi);
-      nadeFlags["pr"+L.id] = hashRand(roundNum*7919 + matchNum*104729 + hid) < L.prob;
-    }
+    // (v423, 3в) кубик — на цель (группу лайнапов одной цели, proRollGroup), а не на каждое место броска
+    if(L.pro && nadeFlags["pr"+L.id] === undefined) proRollGroup(L);
     if(L.pro && !nadeFlags["pr"+L.id] && tCrossSmoke(L)) nadeFlags["pr"+L.id] = true;
     if(L.pro && !nadeFlags["pr"+L.id]){ if(!(L.team === "T" && L.type === "smoke")) nadeFlags[key] = true; return; }
     var siteOk = function(k){ return L.site === "any" || L.site === k; };
@@ -23355,7 +23386,12 @@ function lineupTick(){
     // то, что кидается рядом с его постом (≤300 px — проектное число); по коллу и на ретейке — как раньше
     var leavesSite = function(b){ if(b.team !== "CT" || L.trigger === "retake" || L.trigger === "call") return false; var k = b.tRole === "anchorA" ? "A" : b.tRole === "anchorB" ? "B" : null; if(!k) return false;
       var P0 = b.post && b.post.tag === "anchor" ? b.post : SITES[k]; return Math.hypot(L.from.x-P0.x, L.from.y-P0.y) > 300; };
-    var okBot = function(b){ return b.team === L.team && b.alive && b.nades && b.nades[L.type] > 0 && !leavesSite(b) &&
+    // (v423, владелец 25.10, Mirage м1 р2: лёркер с B бежал за лайнапом в Underpath и на Top Mid, саппорт — назад на спавн, донк — с
+    // B Apartments на Top Mid) лайнап сетапа T кидает тот, чей пост роли (конец маршрута, если идёт по маршруту) не дальше SETUP_POST_R от
+    // точки броска, и не лёркер (у него свой план) — гранату кидают со своего участка, а не бегут за ней через карту
+    var setupFar = function(b){ if(b.team !== "T" || L.trigger !== "setup") return false; if(b.tRole === "lurker") return true;
+      var P0 = (b._route && b._route.want && b._route.want[0]) || b.post; return !P0 || Math.hypot(L.from.x-P0.x, L.from.y-P0.y) > SETUP_POST_R; };
+    var okBot = function(b){ return b.team === L.team && b.alive && b.nades && b.nades[L.type] > 0 && !leavesSite(b) && !setupFar(b) &&
       !b.planting && !b.defusing && !(bomb.state === "carried" && bomb.carrier === b) && Math.hypot(b.x-L.from.x, b.y-L.from.y) < maxD; };
     // (v359, р7) кто уже стоит на сайте T (взял его) — с сайта за гранатой назад не уходит
     var onTSite = function(b){ var S = L.team === "T" && tt && SITES[tt.site]; return !!S && (onSite(S, b.x, b.y) || Math.hypot(b.x-S.x, b.y-S.y) < 450) && Math.hypot(L.from.x-S.x, L.from.y-S.y) > Math.hypot(b.x-S.x, b.y-S.y) + 200; };
@@ -23426,6 +23462,7 @@ function lineupTick(){
   });
 }
 var LU_REACH_PAD = 3;
+var SETUP_POST_R = 500;   // (v423) проектное число: радиус от поста роли до точки броска лайнапа сетапа; заменить данными (с какого расстояния от своей позиции про кидают сетап)
 var CLR_REB_SEC = 12, EXEC_REACH = 1000, EXEC_QUEUE_R = 600, EXEC_QUEUE_N = 3, EXEC_WAIT_SEC = 20;   // (v355) проектные числа
 // ---------- физика полёта и срабатывание ----------
 function nadeWallHit(x1,y1,x2,y2){
@@ -31118,6 +31155,7 @@ var __SNAP = [
 ["PP", function(){ return PP; }, function(v){ try{ PP = v; }catch(e){} }],
 ["PRO_ROLE", function(){ return PRO_ROLE; }, function(v){ try{ PRO_ROLE = v; }catch(e){} }],
 ["PRO_LINEUPS", function(){ return PRO_LINEUPS; }, function(v){ try{ PRO_LINEUPS = v; }catch(e){} }],
+["PRO_GROUPS", function(){ return PRO_GROUPS; }, function(v){ try{ PRO_GROUPS = v; }catch(e){} }],
 ["PRO_COVER", function(){ return PRO_COVER; }, function(v){ try{ PRO_COVER = v; }catch(e){} }],
 ["LAND_PUNISH_R", function(){ return LAND_PUNISH_R; }, function(v){ try{ LAND_PUNISH_R = v; }catch(e){} }],
 ["LAND_PUNISH_FRESH", function(){ return LAND_PUNISH_FRESH; }, function(v){ try{ LAND_PUNISH_FRESH = v; }catch(e){} }],
@@ -31179,6 +31217,7 @@ var __SNAP = [
 ["CROSS_NEAR", function(){ return CROSS_NEAR; }, function(v){ try{ CROSS_NEAR = v; }catch(e){} }],
 ["SOLO_SHARE", function(){ return SOLO_SHARE; }, function(v){ try{ SOLO_SHARE = v; }catch(e){} }],
 ["LU_REACH_PAD", function(){ return LU_REACH_PAD; }, function(v){ try{ LU_REACH_PAD = v; }catch(e){} }],
+["SETUP_POST_R", function(){ return SETUP_POST_R; }, function(v){ try{ SETUP_POST_R = v; }catch(e){} }],
 ["CLR_REB_SEC", function(){ return CLR_REB_SEC; }, function(v){ try{ CLR_REB_SEC = v; }catch(e){} }],
 ["EXEC_REACH", function(){ return EXEC_REACH; }, function(v){ try{ EXEC_REACH = v; }catch(e){} }],
 ["EXEC_QUEUE_R", function(){ return EXEC_QUEUE_R; }, function(v){ try{ EXEC_QUEUE_R = v; }catch(e){} }],
