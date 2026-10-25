@@ -166,7 +166,7 @@ function stepTick(){
   var STAIRS_SLOPE_THRESHOLD = 0.35;
   bots.forEach(function(bot){
     if(!bot.alive) return;
-    bot.px = bot.x; bot.py = bot.y;
+    bot.px = bot.x; bot.py = bot.y; bot.pfacing = bot.facing;   // (v414, М154) взгляд на начало тика — только для рисования (сглаживание, 620_draw)
     updatePost(bot);
     updateReload(bot);
     if(!bot.post) updateRoamer(bot);
@@ -247,7 +247,7 @@ function stepTick(){
       // Из огня бот ВЫХОДИТ обычным бегом по пути к ближайшему краю (раньше его
       // каждый тик сдвигало наружу напрямую — выглядело как отбрасывание).
       if(bot.defusing){ bot.defuseCooldownUntil = tick + 32; logEvent(bot.id+" прервал дефуз — молотов, не доживёт"); }
-      if(bot.planting){ bot._noPlantUntil = tick + 32; logEvent(bot.id+" прервал плант — молотов, не доживёт"); }
+      if(bot.planting){ bot._noPlantUntil = tick + 32; bot._plantAbort = {t:tick, why:"огонь"}; logEvent(bot.id+" прервал плант — молотов, не доживёт"); }
       bot.atPost = false; bot.defusing = false; bot.planting = false;
       bot._burning = true;
       if(!bot._fireExit || inFire(bot._fireExit.x, bot._fireExit.y) || bot._fireExitFire !== burn){
@@ -368,6 +368,7 @@ function stepTick(){
     }
 
     if(!ladderTick(bot) && !((bot.holding && !bot._burning) || bot.curSpeed <= 0.5 || (bot._fc && (bot._fc.ph !== "line" || bot._fc.own)))){
+      if(bot._fc) bot._fcWalk = tick;   // (v414, М154) перестрелка ещё жива, а бот идёт по маршруту — для подписи «почему»
       if(bot.path.length === 0 || bot.pathIdx >= bot.path.length){
         if(bot.forcedRetreat) bot.forcedRetreat = false;
         assignNewDestination(bot, tick);

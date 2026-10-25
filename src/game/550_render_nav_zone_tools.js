@@ -45,9 +45,18 @@ function whyText(b){
   if(b.planting) pt = "ставит бомбу"; if(b.defusing) pt = "дефузит";
   var lr = b.lookReason, lt = lr ? (WHY_LOOK[lr] || lr) : "по ходу движения";
   if(b._fc && b._fc.ph !== "line") pt = b._fc.ph === "off" ? "бой · ушёл с линии за укрытие" : "бой · выглядывает снова";
+  // (v414, М154) на линии: стрейфит (держит врага) или бой «остывает»; идёт по маршруту при живой перестрелке; уход за укрытие отменён
+  else if(b._fc) pt = "бой · на линии · " + (b._fc.own ? "стрейфит" : "не видит врага");
   else if(b.state === "engage") pt = "бой · на линии";
   else if(b.state === "hold") pt = "бой · держит угол";
   else if(b.state === "retreat") pt = "бой · отходит";
+  if(b._fc && tick - (b._fcWalk||-99) <= 2) pt += " · ИДЁТ ПО МАРШРУТУ В БОЮ";
+  if(tick - (b._fcSnap||-999) < TICK_HZ) pt += " · уход за укрытие отменён (видит врага)";
+  // (v414, М155) носитель бомбы: что мешает начать плант (plantBlock — то же условие, что в bombTick) и почему бросил
+  if(bomb && bomb.state === "carried" && bomb.carrier === b && !b.planting && typeof teamTac !== "undefined" && teamTac.T){
+    var pbr = plantBlock(b, teamTac.T, SITES[teamTac.T.site]);
+    if(pbr && (pbr !== "не на сайте / не на месте про" || /^plantspot/.test(t))) pt += " · не ставит: " + pbr; }
+  if(b._plantAbort && tick - b._plantAbort.t < 2*TICK_HZ) pt += " · бросил плант: " + b._plantAbort.why;
   if(lr === "look" && b._lkTop && b._lkTop.length){
     lt = "смотрит: " + b._lkTop.map(function(t){ return t[0] + " " + t[1].toFixed(2); }).join(" › ");
     return pt + " · " + lt; }

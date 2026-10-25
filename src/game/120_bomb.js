@@ -121,6 +121,18 @@ function tDefuseGo(tt, ts){
 }
 function bombTimeLeftTicks(){ return bomb && bomb.state==="planted" ? bomb.explodeTick - tick : Infinity; }
 
+// (v414, М155) почему носитель сейчас не начинает плант — одно место: читает bombTick (null — начинает) и подпись «почему» (550).
+// Порядок проверок и условия — прежние (v263, Б2: в огне не начинают)
+function plantBlock(c, tac, site){
+  if(!site) return "нет сайта у тактики";
+  if(tac.phase === "setup") return "фаза setup";
+  if(c.state !== "patrol") return "состояние " + c.state + ", не patrol";
+  if(c._sawEnemy && c._nearestEnemyDist < 500) return "видит врага в " + Math.round(c._nearestEnemyDist);
+  if(!canPlantAt(tac.site, c.baseX, c.baseY)) return "не на сайте / не на месте про";
+  if(c._noPlantUntil > tick) return "запрет после срыва ещё " + ((c._noPlantUntil - tick)/TICK_HZ).toFixed(1) + " с";
+  if(inFire(c.baseX, c.baseY)) return "в огне";
+  return null;
+}
 function bombTick(){
   if(!bomb) return;
   if(bomb.state === "carried"){
@@ -138,14 +150,14 @@ function bombTick(){
         var sh = c._shotAtBy, dSh = sh ? Math.hypot(sh.x-c.x, sh.y-c.y) : 0;
         var hitRecent = c._hurtT && tick - c._hurtT < 20;
         if(sh && sh.alive && (hitRecent || dSh < 700)){
-          c.planting = false; c._noPlantUntil = tick + 1.2*TICK_HZ; c._fakePlantAt = 0;
+          c.planting = false; c._noPlantUntil = tick + 1.2*TICK_HZ; c._fakePlantAt = 0; c._plantAbort = {t:tick, why: "стреляют: " + (sh.id||"") + " в " + Math.round(dSh) + (c._visible && c._visible.indexOf(sh) >= 0 ? " (вижу)" : " (не вижу)")};   // (v414, М155) для подписи
           if(!c._prV || tick - c._prV > 8*TICK_HZ){ c._prV = tick; logEvent(c.id+": по мне стреляют — бросил плант, отвечаю"); }
           return;
         }
       }
       // фейк-плант: начал ставить — CT слышат и выходят сбивать — прервал
       if(c._fakePlantAt && tick >= c._fakePlantAt){
-        c.planting = false; c._fakePlantAt = 0; c._noPlantUntil = tick + 90;
+        c.planting = false; c._fakePlantAt = 0; c._noPlantUntil = tick + 90; c._plantAbort = {t:tick, why:"фейк-плант"};
         voiceLog("T", "fakeplant", c.id, "фейк-плант — сейчас выйдут сбивать, держите!");
         return;
       }
@@ -162,8 +174,7 @@ function bombTick(){
     // Плант: на сайте, в патруле; видимый враг мешает только если он близко
     // (раньше любой видимый CT через полкарты — и носитель стоял на точке
     // планта до конца раунда: это и были почти все проигрыши T по времени)
-    var nearFoe = c._sawEnemy && c._nearestEnemyDist < 500;
-    if(site && tac.phase !== "setup" && c.state === "patrol" && !nearFoe && canPlantAt(tac.site, c.baseX, c.baseY) && !(c._noPlantUntil > tick) && !inFire(c.baseX, c.baseY)){   // (v263, Б2) в огне плант не начинают — не доживут
+    if(!plantBlock(c, tac, site)){
       c.planting = true; c.plantUntil = tick + PLANT_TICKS; c.path = []; c.pathIdx = 0; if(SND && SND.on) sndBomb("plant", c.baseX, c.baseY);
       // фейк-плант (раз за раунд): свои рядом держат углы, CT по инфе рядом —
       // начать и через ~1с бросить: CT на звук выйдут под прицел

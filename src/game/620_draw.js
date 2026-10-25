@@ -259,7 +259,11 @@ function draw(){
     if(b._idle && !b._sawEnemy && !b.planting && !b.defusing){
       sway = 0;
     }
-    b._visFacing = b.facing === undefined ? undefined : b.facing + sway;
+    // (v414, М154) взгляд — со сглаживанием между тиками, как позиция (alpha ниже, строка с rx): игра 64 тика/с, экран 60–144 кадра —
+    // в кадр попадало 0, 1 или 2 тика, и в бою (до ≈ 10° за тик) прицел шёл ступеньками 0 / 10 / 20° за кадр
+    var fA = Math.max(0, Math.min(1, accumulator / TICK_MS)), f0 = b.pfacing, f1 = b.facing;
+    var fI = f1 === undefined ? undefined : (f0 === undefined ? f1 : f0 + ((((f1 - f0) + Math.PI) % (2*Math.PI) + 2*Math.PI) % (2*Math.PI) - Math.PI)*fA);
+    b._visFacing = fI === undefined ? undefined : fI + sway;
     b._idlePhase = ph;
   });
 
@@ -454,52 +458,56 @@ function draw(){
     var TS0 = BAL.tracerStyle;
     for(var ti=tracers.length-1; ti>=0; ti--){
       var tr = tracers[ti];
+      // (v414, М154) пока не прошёл следующий тик, стрелок и цель нарисованы со сглаживанием (отстают до тика) — трассер от них же, а не от
+      // позиции на конец тика; дальше — на месте, где стреляли
+      var X1 = tr.x1, Y1 = tr.y1, X2 = tr.x2, Y2 = tr.y2;
+      if(tr.tk === tick){ var kL = 1 - Math.max(0, Math.min(1, accumulator / TICK_MS)); X1 -= (tr.sdx||0)*kL; Y1 -= (tr.sdy||0)*kL; X2 -= (tr.tdx||0)*kL; Y2 -= (tr.tdy||0)*kL; }
       var TSt = (TS0 && TRACER_STYLE[tr.wc]) || TRACER_STYLE.rifle, life = TS0 ? TSt.life : 170, TRAVEL = TS0 ? TSt.travel : 70;
       var age = nowTs - tr.born;
       if(age > life){ tracers.splice(ti,1); continue; }
       if(!showTracers.checked) continue;
       var a = 1 - age/life, S = view.scale;
       var col = tr.team==="CT" ? "126,186,242" : "246,190,96";   // (v258) цвета команд насыщеннее
-      if(TS0 && TSt.glow){ ctx.strokeStyle = "rgba(200,235,255,"+(a*0.18)+")"; ctx.lineWidth = TSt.glow/S; ctx.beginPath(); ctx.moveTo(tr.x1,tr.y1); ctx.lineTo(tr.x2,tr.y2); ctx.stroke(); }
+      if(TS0 && TSt.glow){ ctx.strokeStyle = "rgba(200,235,255,"+(a*0.18)+")"; ctx.lineWidth = TSt.glow/S; ctx.beginPath(); ctx.moveTo(X1,Y1); ctx.lineTo(X2,Y2); ctx.stroke(); }
       // (v258) след светлеет от стрелка к цели — видно, откуда стреляли
-      var tGr = ctx.createLinearGradient(tr.x1, tr.y1, tr.x2, tr.y2);
+      var tGr = ctx.createLinearGradient(X1, Y1, X2, Y2);
       tGr.addColorStop(0, "rgba("+col+","+(a*(TS0 ? TSt.trailA : 0.32)*0.25)+")"); tGr.addColorStop(1, "rgba("+col+","+(a*(TS0 ? TSt.trailA : 0.32)*1.35)+")");
       ctx.strokeStyle = tGr;
       ctx.lineWidth = (TS0 ? TSt.trailW : 1)/S;
-      ctx.beginPath(); ctx.moveTo(tr.x1,tr.y1); ctx.lineTo(tr.x2,tr.y2); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(X1,Y1); ctx.lineTo(X2,Y2); ctx.stroke();
       var prog = Math.min(1, age/TRAVEL), tail = Math.max(0, prog-(TS0 ? TSt.tail : 0.3));
       if(prog < 1 || age < TRAVEL+30){
         ctx.strokeStyle = tr.team==="CT" ? "rgba(228,242,255,"+(0.95*a)+")" : "rgba(255,240,206,"+(0.95*a)+")";
         ctx.lineWidth = (TS0 ? TSt.core : 1.9)/S;
         ctx.beginPath();
-        ctx.moveTo(tr.x1+(tr.x2-tr.x1)*tail, tr.y1+(tr.y2-tr.y1)*tail);
-        ctx.lineTo(tr.x1+(tr.x2-tr.x1)*prog, tr.y1+(tr.y2-tr.y1)*prog);
+        ctx.moveTo(X1+(X2-X1)*tail, Y1+(Y2-Y1)*tail);
+        ctx.lineTo(X1+(X2-X1)*prog, Y1+(Y2-Y1)*prog);
         ctx.stroke();
       }
       if(age < (TS0 ? TSt.fl : 55)){
         var mf = 1 - age/(TS0 ? TSt.fl : 55);
         ctx.fillStyle = "rgba(255,210,120,"+(0.85*mf)+")";
-        ctx.beginPath(); ctx.arc(tr.x1, tr.y1, ((TS0 ? TSt.fr : 3) + (TS0 ? TSt.fg : 4)*mf)/S, 0, Math.PI*2); ctx.fill();
+        ctx.beginPath(); ctx.arc(X1, Y1, ((TS0 ? TSt.fr : 3) + (TS0 ? TSt.fg : 4)*mf)/S, 0, Math.PI*2); ctx.fill();
       }
       if(prog >= 1 && age < TRAVEL + 100){
         var ia = 1 - (age-TRAVEL)/100;
         if(tr.hit){
           ctx.fillStyle = "rgba(230,40,40,"+(0.75*ia)+")";
-          ctx.beginPath(); ctx.arc(tr.x2, tr.y2, (3 + 7*(1-ia))/S, 0, Math.PI*2); ctx.fill();
+          ctx.beginPath(); ctx.arc(X2, Y2, (3 + 7*(1-ia))/S, 0, Math.PI*2); ctx.fill();
           if(tr.head){
             ctx.strokeStyle = "rgba(255,255,255,"+(0.9*ia)+")"; ctx.lineWidth = 1.6/S;
-            ctx.beginPath(); ctx.arc(tr.x2, tr.y2, (6 + 8*(1-ia))/S, 0, Math.PI*2); ctx.stroke();
+            ctx.beginPath(); ctx.arc(X2, Y2, (6 + 8*(1-ia))/S, 0, Math.PI*2); ctx.stroke();
           }
         } else {
           ctx.fillStyle = "rgba(210,210,200,"+(0.7*ia)+")";
-          ctx.beginPath(); ctx.arc(tr.x2, tr.y2, 2.2/S, 0, Math.PI*2); ctx.fill();
+          ctx.beginPath(); ctx.arc(X2, Y2, 2.2/S, 0, Math.PI*2); ctx.fill();
         }
       }
       if(tr.prefire){
         ctx.strokeStyle = "rgba(255,255,255,"+(a*0.45)+")";
         ctx.lineWidth = 0.9/S;
         ctx.setLineDash([4/S, 4/S]);
-        ctx.beginPath(); ctx.moveTo(tr.x1,tr.y1); ctx.lineTo(tr.x2,tr.y2); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(X1,Y1); ctx.lineTo(X2,Y2); ctx.stroke();
         ctx.setLineDash([]);
       }
     }

@@ -319,7 +319,9 @@ function tryShoot(shooter, target, dist){
       endX = sv.x; endY = sv.y;
     }
   }
-  tracers.push({wc:tracerClass(shooter.weapon), x1:shooter.x, y1:shooter.y, x2:endX, y2:endY, team:shooter.team, born:nowTs, hit:hit, head:headshot, prefire:prefire, miss:!hit, zone:hitZone});
+  tracers.push({wc:tracerClass(shooter.weapon), x1:shooter.x, y1:shooter.y, x2:endX, y2:endY, team:shooter.team, born:nowTs, hit:hit, head:headshot, prefire:prefire, miss:!hit, zone:hitZone,
+    tk:tick, sdx:shooter.x-(shooter.px != null ? shooter.px : shooter.x), sdy:shooter.y-(shooter.py != null ? shooter.py : shooter.y),   // (v414, М154) сдвиг за тик — для рисования
+    tdx: hit ? target.x-(target.px != null ? target.px : target.x) : 0, tdy: hit ? target.y-(target.py != null ? target.py : target.y) : 0});
   if(SND && SND.on) sndShot(shooter.weapon, shooter.x, shooter.y);
   // выстрел слышно далеко (шаг 5: с конусом обзора боты не видят спиной —
   // но разворачиваются на звук стрельбы; в кого попали — точно знает откуда)

@@ -126,7 +126,8 @@ function fightCycleTick(b, dtSec, busy){
     }
     return;
   }
-  if(b._sawEnemy && !(F.retreat && F.ph === "off")){ F.ph = "line"; F.ax = b.baseX; F.ay = b.baseY; F.t = tick; F.until = 0; F.retreat = false; F.better = null; F.sv = undefined; return; }   // снова вижу врага — на линии (уходя от выстрелов в плечо — не останавливается)
+  if(b._sawEnemy && !(F.retreat && F.ph === "off")){ if(F.ph === "off") b._fcSnap = tick;   // (v414, М154) уход отменён — для подписи «почему»
+    F.ph = "line"; F.ax = b.baseX; F.ay = b.baseY; F.t = tick; F.until = 0; F.retreat = false; F.better = null; F.sv = undefined; return; }   // снова вижу врага — на линии (уходя от выстрелов в плечо — не останавливается)
   if(F.ph === "off" && tick >= F.until && (!F.retreat || Math.hypot(F.cx-b.baseX, F.cy-b.baseY) < 2)){
     F.retreat = false;
     if(fightRand(b, 4) >= D.repeek){ b._fc = null; return; }   // не выглядывает снова — перестрелка закончена
