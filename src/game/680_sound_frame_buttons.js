@@ -32,7 +32,7 @@ var SND_R = {step:600, shot:2000, awp:2600, nade:1500, bomb:1200};   // (v326) �
 function sndInit(){
   if(SND.ctx) return;
   var C = window.AudioContext || window.webkitAudioContext; if(!C) return;
-  SND.ctx = new C(); SND.master = SND.ctx.createGain(); SND.master.gain.value = 0.85; SND.master.connect(SND.ctx.destination);   // (v325) громче по просьбе владельца; (v326) соединение с колонками было закомментировано по ошибке — звука не было вовсе
+  SND.ctx = new C(); SND.master = SND.ctx.createGain(); SND.master.gain.value = SND.vol != null ? SND.vol : 0.85; SND.master.connect(SND.ctx.destination);   // (v325) громче по просьбе владельца; (v326) соединение с колонками было закомментировано по ошибке — звука не было вовсе
   var len = SND.ctx.sampleRate, buf = SND.ctx.createBuffer(1, len, SND.ctx.sampleRate), d = buf.getChannelData(0), sd = 12345;
   for(var i=0;i<len;i++){ sd = (sd*1103515245 + 12345) & 0x7fffffff; d[i] = sd/0x3fffffff - 1; }
   SND.noise = buf;
@@ -174,6 +174,12 @@ function sndTick(){   // пиканье бомбы — раз в тик пров
   var wake = function(){ if(!SND.on) return; sndInit(); if(SND.ctx && SND.ctx.state !== "running") SND.ctx.resume().catch(function(){}); };
   ["pointerdown", "keydown"].forEach(function(ev){ document.addEventListener(ev, wake, {capture:true}); });
   // (v326) включил — сразу короткий сигнал (слышно, что звук работает); если браузер / страница не дали звук — пишем это на кнопке
+  // (v425, владелец 25.10: «нужно добавить ползунок громкости звуков игры») общая громкость — SND.master; 0,85 — как было; запоминается
+  var vol = document.getElementById("sndVol"), v0 = null; try{ v0 = localStorage.getItem("sndVol"); }catch(e){}
+  SND.vol = v0 != null && !isNaN(+v0) ? Math.max(0, Math.min(1, +v0)) : 0.85;
+  if(vol){ vol.value = Math.round(SND.vol*100);
+    vol.addEventListener("input", function(){ SND.vol = (+vol.value)/100; if(SND.master) SND.master.gain.value = SND.vol;
+      try{ localStorage.setItem("sndVol", String(SND.vol)); }catch(e){} }); }
   b.addEventListener("click", function(){
     sndInit(); if(!SND.ctx){ b.textContent = "Звук: браузер не умеет"; return; }
     SND.on = !SND.on; b.className = SND.on ? "on" : ""; b.textContent = SND.on ? "Звук: вкл" : "Звук";

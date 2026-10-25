@@ -98,9 +98,25 @@ function posOwnZones(side, who){
   return C[key] = Object.keys(by).map(function(nm){ return {name: nm, share: by[nm]/N}; }).sort(function(a, c){ return c.share - a.share; });
 }
 // места роли + свои места игрока по демкам этой карты (доля времени выше средней по его местам); демок нет — места роли как есть
+// (v425, владелец 25.10, Mirage м1 р6: расстановка 3-1-1, а на A один) сторона места CT: A / B / мид — по спискам мест сайтов набора карты
+// (tactics.pos), иначе — к чему ближе точка зоны (сайт A, сайт B, мид CT)
+var POS_SIDE = {};
+function posSideOf(nm){
+  if(POS_SIDE[nm] !== undefined) return POS_SIDE[nm];
+  var inL = function(k, keys){ return keys.some(function(f){ return (POS[k] && POS[k][f] || []).indexOf(nm) >= 0; }); };
+  var s = inL("A", ["ctHold","ctSecond","ctRetake"]) ? "A" : inL("B", ["ctHold","ctSecond","ctRetake"]) ? "B" : inL("M", ["ctHold"]) ? "M" : null;
+  if(!s){ var p = zonePoint(nm, GEO.ctMid);
+    if(p){ var c = [["A", SITES.A], ["B", SITES.B], ["M", GEO.ctMid]].map(function(q){ return [q[0], Math.hypot(p.x-q[1].x, p.y-q[1].y)]; }).sort(function(a, d){ return a[1]-d[1]; }); s = c[0][0]; } }
+  return (POS_SIDE[nm] = s);
+}
+// места роли + свои места игрока по демкам (доля выше средней по его местам) — только на стороне слота расстановки: сторону задаёт
+// расстановка, привычка игрока — точку внутри стороны. (v425) раньше свои места брались со всей карты и по весу перебивали места роли:
+// в 3-1-1 ротатор TeSeS вставал на A в 44 % раундов (Van — его место из демок), мидер kyousuke — на B в 69 %; на A в среднем 1,6 из 3
 function posNamesOwn(b, names){
-  var own = posOwnZones(b.team, nick(b.id)), out = names.slice();
-  own.forEach(function(o){ if(o.share >= 1/own.length && out.indexOf(o.name) < 0 && zonesByName(o.name).length) out.push(o.name); });
+  var own = posOwnZones(b.team, nick(b.id)), out = names.slice(), sides = {};
+  names.forEach(function(nm){ var s = posSideOf(nm); if(s) sides[s] = (sides[s]||0) + 1; });
+  var side = Object.keys(sides).sort(function(a, c){ return sides[c] - sides[a]; })[0];
+  own.forEach(function(o){ if(o.share >= 1/own.length && out.indexOf(o.name) < 0 && zonesByName(o.name).length && (!side || posSideOf(o.name) === side)) out.push(o.name); });
   return out;
 }
 function posPickName(b, names, seed){
