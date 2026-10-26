@@ -56,8 +56,10 @@ autoPortals();
 var NAVAREAS = MAP.navmesh.areas;
 // (v372) подъёмы из демок (tools/climbs_bake.py → MAP.climbs): уступ, на который .nav даёт только спрыгнуть, а про забираются
 // (ящики, выступы; Ancient — Mid → Xbox). Связь «вверх» — в граф навмеша, сам подъём — как по лестнице (laddersBuild)
+// NAV_CLIMB_UP — связи «вверх», которых нет в .nav (только подъём из демок): по ним лезут подъёмом (ladderTick), не шагом (v430)
+var NAV_CLIMB_UP = {};
 (function(){ var byId = {}; NAVAREAS.forEach(function(a){ byId[a.id] = a; });
-  ((MAP.climbs && MAP.climbs.climbs) || []).forEach(function(c){ var lo = byId[c.lo.area]; if(lo && byId[c.hi.area] && lo.conn.indexOf(c.hi.area) < 0) lo.conn.push(c.hi.area); }); })();
+  ((MAP.climbs && MAP.climbs.climbs) || []).forEach(function(c){ var lo = byId[c.lo.area]; if(lo && byId[c.hi.area] && lo.conn.indexOf(c.hi.area) < 0){ lo.conn.push(c.hi.area); NAV_CLIMB_UP[c.lo.area+">"+c.hi.area] = true; } }); })();
 
 // Pristine copy of the parsed .nav data, kept untouched — everything below
 // (winding normalization, in particular) mutates NAVAREAS in place, so a

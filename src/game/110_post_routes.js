@@ -57,7 +57,10 @@ function routeTick(){
     var R = b._route; if(!R) return;
     if(!b.alive || roundState !== "live" || tick - R.t0 > 35*TICK_HZ){ b._route = null; return; }
     var Z = R.zones[R.idx];
-    if(Z && routeIn(Z, b)){ R.idx++; routeSetAim(b, R); }
+    // шаг пройден — бот в зоне шага или дошёл до точки шага. (v430, М167, м1 Mirage р3: энтри donk 12 с стоял в 30 ед. от Side Alley:
+    // точка шага у края зоны, «дошёл» — в 34 ед. от неё, ещё снаружи, а шаг ждал «внутри зоны»)
+    var cpR = R.pts[R.idx], atCp = cpR && b.atPost && b.post && b.post.tag === "route:"+R.names[Math.min(R.idx, R.names.length-1)] && Math.hypot(b.post.x-cpR.x, b.post.y-cpR.y) < 1;
+    if(Z && (routeIn(Z, b) || atCp)){ R.idx++; routeSetAim(b, R); }
     if(R.idx >= R.zones.length){
       var W = R.want; b._routeDone = R.key+"|"+roundNum; b._route = null;
       if(b._task && b._task.lv === 2) b._task = null;   // маршрут пройден — его задача кончилась, пост роли ставится сразу

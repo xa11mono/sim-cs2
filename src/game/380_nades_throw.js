@@ -10,31 +10,28 @@ var NADE_HAND = 60, NADE_ARCS = [380, 220, 120, 60];
 // (А5) по геометрии: дуга — ломаная из NADE_ARC_SEG отрезков, каждый — луч гранаты m3Line(…, 'nade'): крыши, стены, ящики,
 // решётки как в игре (полёт по настоящей физике — шаг В2)
 var NADE_ARC_SEG = 12;
-function nadeArc(b, tx, ty){
+// дуга высоты h от руки (пол у (x0,y0) на этаже z0 + NADE_HAND) до пола у цели: проходит ли по всему пути ниже потолков и над стенами
+function nadeArcClear(x0, y0, z0, tx, ty, h){
   var M = m3();
   if(M){
-    var za = visFloorAt(b.x, b.y, b.z) + NADE_HAND, zb = visFloorAt(tx, ty) + 10, cov = nadeCovered(tx, ty);
-    for(var a3 = 0; a3 < NADE_ARCS.length; a3++){
-      var h3 = NADE_ARCS[a3], ok3 = true, px3 = b.x, py3 = b.y, pz3 = za;
-      for(var k3 = 1; k3 <= NADE_ARC_SEG && ok3; k3++){ var t3 = k3/NADE_ARC_SEG, x3 = b.x + (tx-b.x)*t3, y3 = b.y + (ty-b.y)*t3, z3 = za + (zb-za)*t3 + 4*h3*t3*(1-t3);
-        if(!m3Line(M, px3, py3, pz3, x3, y3, z3, "nade")) ok3 = false; px3 = x3; py3 = y3; pz3 = z3; }
-      if(ok3) return {h: h3, under: cov};
-    }
-    return null;
+    var za = visFloorAt(x0, y0, z0) + NADE_HAND, zb = visFloorAt(tx, ty) + 10, px3 = x0, py3 = y0, pz3 = za;
+    for(var k3 = 1; k3 <= NADE_ARC_SEG; k3++){ var t3 = k3/NADE_ARC_SEG, x3 = x0 + (tx-x0)*t3, y3 = y0 + (ty-y0)*t3, z3 = za + (zb-za)*t3 + 4*h*t3*(1-t3);
+      if(!m3Line(M, px3, py3, pz3, x3, y3, z3, "nade")) return false; px3 = x3; py3 = y3; pz3 = z3; }
+    return true;
   }
   visReady();
-  var z0 = (b.z != null ? b.z : visFloorAt(b.x, b.y)) + NADE_HAND, z1 = visFloorAt(tx, ty) + 10;
-  var d = Math.hypot(tx-b.x, ty-b.y), n = Math.max(2, Math.ceil(d / VIS_CELL)), W = VIS.W, Cl = VIS.ceil, S = VIS.solid;
-  var tCov = nadeCovered(tx, ty);
-  for(var a = 0; a < NADE_ARCS.length; a++){
-    var h = NADE_ARCS[a], ok = true;
-    for(var k = 1; k < n && ok; k++){ var t = k/n, x = b.x + (tx-b.x)*t, y = b.y + (ty-b.y)*t;
-      var i = Math.floor(x / VIS_CELL), j = Math.floor(y / VIS_CELL); if(i < 0 || j < 0 || i >= W || j >= W) continue;
-      var z = z0 + (z1-z0)*t + 4*h*t*(1-t), c = Cl[j*W + i];
-      if(c !== Infinity && z > c - 12) ok = false;            // крыша
-      if(S[j*W + i] > z - 6) ok = false; }                     // (v370) стена / укрытие с известным верхом — граната над ним, не сквозь
-    if(ok) return {h: h, under: tCov};
-  }
+  var z0h = (z0 != null ? z0 : visFloorAt(x0, y0)) + NADE_HAND, z1 = visFloorAt(tx, ty) + 10;
+  var d = Math.hypot(tx-x0, ty-y0), n = Math.max(2, Math.ceil(d / VIS_CELL)), W = VIS.W, Cl = VIS.ceil, S = VIS.solid;
+  for(var k = 1; k < n; k++){ var t = k/n, x = x0 + (tx-x0)*t, y = y0 + (ty-y0)*t;
+    var i = Math.floor(x / VIS_CELL), j = Math.floor(y / VIS_CELL); if(i < 0 || j < 0 || i >= W || j >= W) continue;
+    var z = z0h + (z1-z0h)*t + 4*h*t*(1-t), c = Cl[j*W + i];
+    if(c !== Infinity && z > c - 12) return false;            // крыша
+    if(S[j*W + i] > z - 6) return false; }                     // (v370) стена / укрытие с известным верхом — граната над ним, не сквозь
+  return true;
+}
+function nadeArc(b, tx, ty){
+  var cov = nadeCovered(tx, ty);
+  for(var a = 0; a < NADE_ARCS.length; a++) if(nadeArcClear(b.x, b.y, b.z, tx, ty, NADE_ARCS[a])) return {h: NADE_ARCS[a], under: cov};
   return null;
 }
 // (v373) своя граната через стену — только так, как кидают про. Замер (tools/nade_walls_pro.py, Mirage, 35 592 броска): у про 79 %
@@ -125,7 +122,7 @@ function throwNade(b, type, tx, ty, lob, why, trusted){
     var leMul = b.prof ? (1.5 - prof(b, "util")) : 1;
     if(BAL.execErr && b.prof && hashRand(tick*43 + b.id.charCodeAt(1)*3) < (1-prof(b, "util"))*0.08){ leMul *= 3; noteMistake(b, "промахнулся гранатой ("+NADE[type].name+")"); }
     var le = BAL.lobErr * leMul * hashRand(tick*71 + b.id.charCodeAt(0)*5), la2 = hashRand(tick*13 + b.id.length*97)*Math.PI*2;
-    nd.lob = true; nd.arcH = ARC ? ARC.h : NADE_ARCS[0]; nd.under = !!(ARC && ARC.under); nd.sx = b.x; nd.sy = b.y; nd.aimX = tx; nd.aimY = ty; nd.tx = tx + Math.cos(la2)*le; nd.ty = ty + Math.sin(la2)*le; nd.flight = Math.max(30, Math.round(d/650*TICK_HZ));
+    nd.lob = true; nd.sz = b.z; nd.arcH = ARC ? ARC.h : NADE_ARCS[0]; nd.under = !!(ARC && ARC.under); nd.sx = b.x; nd.sy = b.y; nd.aimX = tx; nd.aimY = ty; nd.tx = tx + Math.cos(la2)*le; nd.ty = ty + Math.sin(la2)*le; nd.flight = Math.max(30, Math.round(d/650*TICK_HZ));
   }
   // кто может увернуться от этой флешки: видел бросающего или был рядом (слышит чеку)
   if(type === "flash" && BAL.flashAware){

@@ -169,8 +169,10 @@ function nadesTick(){
         // (v323, М30) упала в стену или разброс унёс её за стену от точки прицела — не взрывается в стене, а отскакивает:
         // встаёт у стены со стороны полёта и дальше катится как обычная (отскок от стен — ниже)
         var hitW = insideSolidWall(n.x, n.y) || nadeWallHit(n.aimX, n.aimY, n.x, n.y);
-        // (v323, М33) разброс унёс под крышу — упала на крышу: разрыв виден и слышен, но на тех, кто под ней, не действует
-        if(!hitW && !n.under && nadeCovered(n.x, n.y)){ nadesInAir.splice(i,1); n.onRoof = true; nadeOrigin(n); nadeFx.push({x:n.x, y:n.y, type:n.type, born:tick, roof:true}); continue; }
+        // (v323, М33) разброс унёс под крышу — упала на крышу: разрыв виден и слышен, но на тех, кто под ней, не действует.
+        // (v430, М167, м1 Mirage р6/р8/р12: цель открыта, разброс 18–65 px унёс под соседний навес — граната «пропадала») на крышу —
+        // только если своей дугой под навес не залетает; залетает (навес сбоку, дуга проходит под ним) — падает под него
+        if(!hitW && !n.under && nadeCovered(n.x, n.y) && !nadeArcClear(n.sx, n.sy, n.sz, n.x, n.y, n.arcH)){ nadesInAir.splice(i,1); n.onRoof = true; nadeOrigin(n); nadeFx.push({x:n.x, y:n.y, type:n.type, born:tick, roof:true}); continue; }
         if(!hitW){ nadesInAir.splice(i,1); detonate(n); continue; }
         var bx = n.aimX, by = n.aimY;
         if(insideSolidWall(bx, by)){ for(var q = 1; q <= 40; q++){ var f2 = 1 - q/40; bx = n.sx + (n.aimX-n.sx)*f2; by = n.sy + (n.aimY-n.sy)*f2; if(!insideSolidWall(bx, by)) break; } }

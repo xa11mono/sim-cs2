@@ -21,6 +21,10 @@ function freezeLookTick(){
   bots.forEach(function(b, i){
     if(!b.alive) return;
     if(!isFinite(b.facing)) b.facing = Math.atan2(1024-b.y, 1024-b.x);   // ещё не смотрел никуда — к середине карты
+    // (v430, М167, владелец: «на закупке крутятся, троятся; на мини-карте нормально») взгляд на начало тика — для сглаживания
+    // рисования (620_draw), как в живом раунде (строка «bot.pfacing» ниже): на закупке не запоминался, и большой радар каждый
+    // тик заново проводил взгляд от угла прошлого раунда до нынешнего
+    b.pfacing = b.facing;
     var F = b._fz;
     if(!F || F.round !== roundNum){ F = b._fz = {round: roundNum, until: tick, target: b.facing}; }
     if(tick >= F.until){
