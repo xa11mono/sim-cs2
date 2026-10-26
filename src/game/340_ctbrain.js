@@ -287,7 +287,7 @@ function ctBrain(){
     // (v158) у про после взрыва живы 2,1 CT, у ботов было 1,2: сейвят раньше
     if(BAL.groupRetake) hopeless = hopeless || (cts.length >= 2 && cts.length <= tsAlive - 2) || (cts.length === 1 && tsAlive >= 3) ||
       (cts.length === 1 && tsAlive === 2 && !(cts[0].kit && needSecs + 8 < secs)); // 2v4 — ещё пробуем, 1v3/1v4/2v5 — сейв
-    if(cts.length && hopeless && (equip >= 1800 || needSecs > secs)){
+    if(cts.length && hopeless && ((equip >= 1800 && saveWorth("CT")) || needSecs > secs)){   // (v434) сохранять — если оружие перейдёт в следующий раунд (saveWorth); не успеть — сейв всё равно
       ct.saving = true; saveCancelTrades("CT");
       logEvent("CT: сейв — ретейк "+cts.length+"v"+tsAlive+(needSecs > secs ? ", не успеть" : "")+", сохраняем оружие");
     }
@@ -314,7 +314,7 @@ function ctBrain(){
   if(BAL.ctPreSave && !planted && !ct.saving && !ct._noResave && ct.call && ct.call.count >= 3 && cts.length){
     var tsA2 = aliveCount("T"), eq2 = cts.reduce(function(a,b){ return a + (b.primary ? WEAPONS[b.primary].price : 0); }, 0)/cts.length;
     var secL2 = ROUND_TIME_SEC - (simTime - roundStartTime);
-    if(((cts.length === 1 && tsA2 >= 3) || (cts.length === 2 && tsA2 >= 5)) && eq2 >= 2700 && secL2 > 25){
+    if(((cts.length === 1 && tsA2 >= 3) || (cts.length === 2 && tsA2 >= 5)) && eq2 >= 2700 && secL2 > 25 && saveWorth("CT")){
       ct.saving = true; ct.preSave = true; saveCancelTrades("CT");
       logEvent("CT: сейв до планта — "+cts.length+"v"+tsA2+", выход на "+ct.call.site+" — сохраняем оружие");
       voiceLog("CT", "presave", cts[0].id, cts.length+" против "+tsA2+", они уже на "+ct.call.site+" — сейв");
@@ -337,7 +337,7 @@ function ctBrain(){
     if(!planted && !ct.saving && ctLandPunish(b)) return;   // (v343) услышал приземление одного рядом — выходит на него
     if(ct.flank && !ct.flank.dead && ct.flank.id === b.id && !ct.saving && flankPost(b, ct.flank, planted)) return;
     // (35) ретейк 2 на 3+ — AWP не несут в почти проигранный ретейк: снайпер сейвит
-    if(BAL.awpSave && planted && b.primary === "AWP" && cts.length === 2 && aliveCount("T") >= 3){
+    if(BAL.awpSave && planted && b.primary === "AWP" && cts.length === 2 && aliveCount("T") >= 3 && saveWorth("CT")){
       if(!b._saveSpot){ b._saveSpot = pickSaveSpot(b); voiceLog("CT", "awpsave"+b.id, b.id, "2 на "+aliveCount("T")+" — сейвлю AWP"); }
       setPost(b, b._saveSpot, {x:bomb.x, y:bomb.y}, true, "save"); return;
     }

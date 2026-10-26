@@ -12,7 +12,16 @@ function tBrain(){
   var secLeft = ROUND_TIME_SEC - (simTime - roundStartTime);
   // (v381, М130, владелец 16.10: «при сейве идут коллы ПЕРЕКОЛЛ B → A: минус на сайте») решили сейвить — план раунда кончился:
   // ни выхода, ни переколлов, ни коллов IGL. Раньше перепривязка ниже шла раньше проверки сейва
-  if(tt.saving && bomb.state !== "planted"){ tSaveHold(); return; }
+  // (v434, PRINCIPLES М158, владелец 25.10: «сейв должен пересматриваться по ходу раунда»; м1 Mirage р11: сейв с 2 на 4, sh1ro убил двоих —
+  // 2 на 2, а сейв продолжался) расклад живых сменился — то же решение заново (tSaveWant): у про при новом раскладе не сейвят — сейв снят
+  if(tt.saving && bomb.state !== "planted"){
+    var tsS = bots.filter(function(b){ return b.team === "T" && b.alive; }), sitS = tsS.length+"v"+aliveCount("CT");
+    if(sitS === tt.saveSit || tSaveWant(tsS, tsS.length, aliveCount("CT"), secLeft, site)){ tt.saveSit = sitS; tSaveHold(); return; }
+    tt.saving = 0; tt.saveSit = null;
+    tsS.forEach(function(b){ b._saveSpot = null; if(b.post && b.post.tag === "save") clearPost(b); });
+    logEvent("T: сейв снят — теперь "+sitS+", играем раунд");
+    if(tsS[0]) voiceLog("T", "tunsave"+sitS, tsS[0].id, "теперь "+sitS.replace("v", " на ")+" — играем, не сейвим");
+  }
   // поздно — выходим, даже если по плану ещё setup
   if(tt.phase === "setup" && (tick >= tt.execTick || secLeft < 35)){
     // раздел: синхронный выход по времени — команда не идёт на сайт вразнобой,
@@ -226,25 +235,28 @@ function tBrain(){
   // поставить) или сохранять нечего (пистолеты).
   if(BAL.tSave && bomb.state !== "planted" && !tt.saving && ts.length){
     var aC = aliveCount("CT"), aT = ts.length;
-    var gunVal = ts.reduce(function(a, b){ return a + (b.primary ? WEAPONS[b.primary].price : 0); }, 0) / aT;
-    var carOn = bomb.state === "carried" && bomb.carrier && bomb.carrier.alive && Math.hypot(bomb.carrier.x-site.x, bomb.carrier.y-site.y) < 380;
-    // (v381, М137, владелец 16.10: «Т-шники как будто часто сейвят») раньше 1 против 4 за 55 с до конца сейвили всегда, а у про в таком
-    // раскладе выживают без планта (сейв) только 5–10 % раз. Теперь — та же доля, что у про (T_SAVE_PRO, демки Ancient + Mirage),
-    // один бросок на расклад и отрезок времени в раунде
-    var hopeless = tSaveRoll(aT, aC, secLeft);
-    if(hopeless && gunVal >= 1500 && !carOn){
-      tt.saving = tick; saveCancelTrades("T");
+    if(tSaveWant(ts, aT, aC, secLeft, site)){
+      tt.saving = tick; tt.saveSit = aT+"v"+aC; saveCancelTrades("T");
       logEvent("T: сейв — "+aT+"v"+aC+", "+Math.round(secLeft)+"с — сохраняем оружие");
       voiceLog("T", "tsave", ts[0].id, aT === 1 ? "я один против "+aC+" — сейвлю" : "двое на "+aC+", мало времени — сейв");
     }
   }
   // (35) T: двое против 4+, мало времени — снайпер сохраняет AWP, второй пробует
-  if(BAL.awpSave && !tt.saving && bomb.state !== "planted" && ts.length === 2 && aliveCount("CT") >= 4 && secLeft < 45){
+  if(BAL.awpSave && !tt.saving && bomb.state !== "planted" && ts.length === 2 && aliveCount("CT") >= 4 && secLeft < 45 && saveWorth("T")){   // (v434) есть что сохранять
     var awT = ts.filter(function(b){ return b.primary === "AWP" && !(bomb.state === "carried" && bomb.carrier === b); })[0];
     if(awT){ if(!awT._saveSpot){ awT._saveSpot = pickSaveSpotT(awT); voiceLog("T", "awpsaveT", awT.id, "сейвлю AWP"); }
       setPost(awT, awT._saveSpot, null, true, "save"); ts = ts.filter(function(b){ return b !== awT; }); }
   }
-  if(tt.saving && bomb.state !== "planted"){ tSaveHold(); return; }
+  // (v434, PRINCIPLES М158, владелец 25.10: «сейв должен пересматриваться по ходу раунда»; м1 Mirage р11: сейв с 2 на 4, sh1ro убил двоих —
+  // 2 на 2, а сейв продолжался) расклад живых сменился — то же решение заново (tSaveWant): у про при новом раскладе не сейвят — сейв снят
+  if(tt.saving && bomb.state !== "planted"){
+    var tsS = bots.filter(function(b){ return b.team === "T" && b.alive; }), sitS = tsS.length+"v"+aliveCount("CT");
+    if(sitS === tt.saveSit || tSaveWant(tsS, tsS.length, aliveCount("CT"), secLeft, site)){ tt.saveSit = sitS; tSaveHold(); return; }
+    tt.saving = 0; tt.saveSit = null;
+    tsS.forEach(function(b){ b._saveSpot = null; if(b.post && b.post.tag === "save") clearPost(b); });
+    logEvent("T: сейв снят — теперь "+sitS+", играем раунд");
+    if(tsS[0]) voiceLog("T", "tunsave"+sitS, tsS[0].id, "теперь "+sitS.replace("v", " на ")+" — играем, не сейвим");
+  }
   // бомба на земле — ближайший (не лёркер) идёт за ней
   var fetcher = null;
   // бомбу уже подобрали — старый пост "за бомбой" снять (иначе носитель

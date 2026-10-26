@@ -31,6 +31,23 @@ function startHalf(silent){
 // (v270) Смена сторон — как в регламенте (ESL, раздел 2.4–2.4.1): после 12-го раунда;
 // в начале каждого овертайма команды остаются на стороне прошлой половины и меняются
 // на перерыве внутри овертайма (раунды 28, 34, …).
+// (v434) раунд r начинается с нуля по снаряжению: вторая половина, каждая половина овертайма (startHalf). Одно место для resetRound и
+// для сейва (saveWorth): сохранять оружие имеет смысл, только если оно перейдёт в следующий раунд
+function roundResetsGear(r){ return r === HALF_ROUNDS+1 || (!!BAL.overtime && r > regRounds() && (r - regRounds() - 1) % OT_HALF === 0); }
+// (v434) окончен ли матч после раунда r при счёте sCT : sT — одно место для endRound и для сейва
+function matchOverWith(r, sCT, sT){
+  if(!BAL.overtime) return sCT >= MATCH_WIN || sT >= MATCH_WIN || r >= regRounds();
+  if(r < regRounds()) return sCT >= MATCH_WIN || sT >= MATCH_WIN;
+  if(r === regRounds()) return sCT !== sT;
+  var tgt = matchWinTarget(); if(sCT >= tgt || sT >= tgt) return true;
+  return (r - regRounds()) % (OT_HALF*2) === 0 && otIndex() + 1 >= OT_MAX;   // предохранитель
+}
+// (v434, М167, владелец: «сейвят на последних раундах половин») есть что сохранять: оружие перейдёт в следующий раунд (он не с нуля) и
+// проигрыш этого раунда не кончает матч для команды. Так решает игрок: сейв — это оружие на следующий раунд, а не «выжить»
+function saveWorth(team){
+  var s = {CT: score.CT, T: score.T}; s[team === "CT" ? "T" : "CT"]++;
+  return !roundResetsGear(roundNum+1) && !matchOverWith(roundNum, s.CT, s.T);
+}
 function sideSwapNow(r){
   if(r === HALF_ROUNDS+1) return true;
   if(!BAL.overtime || r <= regRounds()) return false;
@@ -132,16 +149,8 @@ function endRound(winner, reason){
   roundEndTime = simTime;
   var why = reason === "time" ? " (время вышло)" : (reason === "bomb" ? " (взрыв)" : (reason === "defuse" ? " (дефуз)" : ""));
   logEvent("Раунд "+roundNum+" завершён"+(winner? " — победа "+winner+" ("+TEAM_NAME[winner]+")"+why : " — обе команды уничтожены")+". Счёт "+TEAM_NAME.CT+" (CT) "+score.CT+" : "+score.T+" "+TEAM_NAME.T+" (T)", true);
-  var over;
-  if(!BAL.overtime) over = score.CT >= MATCH_WIN || score.T >= MATCH_WIN || roundNum >= regRounds();
-  else {
-    var tgt = matchWinTarget();
-    if(roundNum < regRounds()) over = score.CT >= MATCH_WIN || score.T >= MATCH_WIN;
-    else if(roundNum === regRounds()) over = score.CT !== score.T;
-    else {
-      over = score.CT >= tgt || score.T >= tgt;
-      if(!over && (roundNum - regRounds()) % (OT_HALF*2) === 0 && otIndex() + 1 >= OT_MAX) over = true; // предохранитель
-    }
+  var over = matchOverWith(roundNum, score.CT, score.T);
+  if(BAL.overtime){
     if(!over && roundNum >= regRounds() && (roundNum - regRounds()) % (OT_HALF*2) === 0)
       logEvent((roundNum === regRounds() ? "" : "ещё ")+"ОВЕРТАЙМ при "+score.CT+":"+score.T+" — MR3, по $"+OT_MONEY+", до "+(MATCH_WIN + OT_HALF*(otIndex(roundNum+1)+1))+" побед", true);
   }
@@ -161,11 +170,9 @@ function resetRound(){
   voiceLines = []; if(typeof document !== "undefined") renderVoice();   // (v264) войс — только этого раунда
   roundNum++;
   if(sideSwapNow(roundNum)) swapSides();
-  if(roundNum === HALF_ROUNDS+1) startHalf(); // вторая половина: деньги и оружие с нуля
-  if(BAL.overtime && roundNum > regRounds() && (roundNum - regRounds() - 1) % OT_HALF === 0){
-    startHalf(true);
-    bots.forEach(function(b){ b.money = OT_MONEY; });
-    logEvent("Овертайм: половина — по $"+OT_MONEY, true);
+  if(roundResetsGear(roundNum)){   // вторая половина / половина овертайма: деньги и оружие с нуля
+    if(roundNum === HALF_ROUNDS+1) startHalf();
+    else { startHalf(true); bots.forEach(function(b){ b.money = OT_MONEY; }); logEvent("Овертайм: половина — по $"+OT_MONEY, true); }
   }
   bots.forEach(function(b){
     var sp = b.spawnPt;

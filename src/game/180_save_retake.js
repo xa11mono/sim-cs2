@@ -33,6 +33,14 @@ function tSaveRoll(aT, aC, secLeft){
   var k = secLeft > 55 ? 0 : (secLeft > 30 ? 1 : 2);
   return hashRand(roundNum*911 + matchNum*37 + aT*101 + aC*13 + k*7) < P[k];
 }
+// (v434) сейвить ли T сейчас — одно решение для начала сейва и для пересмотра (170): раунд безнадёжен по доле про для этого расклада
+// (tSaveRoll), есть что сохранять (оружие ≥ 1500 в среднем и перейдёт в следующий раунд — saveWorth, 530), носитель не на сайте
+function tSaveWant(ts, aT, aC, secLeft, site){
+  if(!ts.length) return false;
+  var gunVal = ts.reduce(function(a, b){ return a + (b.primary ? WEAPONS[b.primary].price : 0); }, 0) / aT;
+  var carOn = bomb.state === "carried" && bomb.carrier && bomb.carrier.alive && Math.hypot(bomb.carrier.x-site.x, bomb.carrier.y-site.y) < 380;
+  return gunVal >= 1500 && !carOn && saveWorth("T") && tSaveRoll(aT, aC, secLeft);
+}
 // сейв T: каждый живой — к своему месту сейва (один раз выбранному), бомбу не ставит
 function tSaveHold(){
   bots.forEach(function(b){ if(b.team !== "T" || !b.alive) return;
