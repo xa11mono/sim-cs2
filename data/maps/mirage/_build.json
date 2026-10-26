@@ -405,6 +405,13 @@
   ],
   "tSpawn": [
    "T Spawn"
-  ]
+  ],
+  "callouts": {
+   "Tetris": "Ramp",
+   "Palace Exit": "Palace",
+   "Cross": "Connector",
+   "B Apartments": "Apps",
+   "B Short": "Short"
+  }
  }
 }

@@ -2,7 +2,7 @@
  "tTactics": [
   {
    "id": "splitA_tetris",
-   "name": "A: 2 Tetris + 1 Palace Exit",
+   "name": "Сплит A: Ramp + Palace",
    "site": "A",
    "pools": [
     "full",
@@ -45,7 +45,7 @@
   },
   {
    "id": "defB_bapartment",
-   "name": "B: 3 B Apartments, поздно",
+   "name": "Дефолт → поздний выход B через Apps",
    "site": "B",
    "pools": [
     "full",
@@ -83,7 +83,7 @@
   },
   {
    "id": "execB_bapartment",
-   "name": "B: 3 B Apartments",
+   "name": "Выход B через Apps",
    "site": "B",
    "pools": [
     "full",
@@ -122,7 +122,7 @@
   },
   {
    "id": "execA_palaceexit",
-   "name": "A: 2 Palace Exit",
+   "name": "Выход A через Palace",
    "site": "A",
    "pools": [
     "full",
@@ -160,7 +160,7 @@
   },
   {
    "id": "execA_tetris",
-   "name": "A: 2 Tetris",
+   "name": "Выход A через Ramp",
    "site": "A",
    "pools": [
     "full",
@@ -195,7 +195,7 @@
   },
   {
    "id": "splitB_bapartment",
-   "name": "B: 2 B Apartments + 2 B Short, поздно",
+   "name": "Сплит B: Apps + Short, поздний",
    "site": "B",
    "pools": [
     "full",
@@ -242,7 +242,7 @@
   },
   {
    "id": "splitA_tetris2",
-   "name": "A: 2 Tetris + 1 Palace Exit",
+   "name": "Сплит A: Ramp + Palace (вариант 2)",
    "site": "A",
    "pools": [
     "full",
@@ -285,7 +285,7 @@
   },
   {
    "id": "splitA_cross",
-   "name": "A: 2 Cross + 1 Palace Exit",
+   "name": "Сплит A: Connector + Palace",
    "site": "A",
    "pools": [
     "full",
@@ -332,7 +332,7 @@
   },
   {
    "id": "defA_cross",
-   "name": "A: 2 Cross, поздно",
+   "name": "Дефолт → поздний выход A через Connector",
    "site": "A",
    "pools": [
     "full",
@@ -370,7 +370,7 @@
   },
   {
    "id": "defA_cross2",
-   "name": "A: 2 Cross, поздно",
+   "name": "Дефолт → поздний выход A через Connector (вариант 2)",
    "site": "A",
    "pools": [
     "full",
@@ -408,7 +408,7 @@
   },
   {
    "id": "defB_bshort",
-   "name": "B: 1 B Short, поздно",
+   "name": "Дефолт → поздний выход B через Short",
    "site": "B",
    "pools": [
     "full",
@@ -445,7 +445,7 @@
   },
   {
    "id": "defA_cross3",
-   "name": "A: 1 Cross, поздно",
+   "name": "Дефолт → поздний выход A через Connector (вариант 3)",
    "site": "A",
    "pools": [
     "full",
@@ -483,7 +483,7 @@
   },
   {
    "id": "splitA_cross2",
-   "name": "A: 2 Cross + 1 Palace Exit, поздно",
+   "name": "Сплит A: Connector + Palace, поздний",
    "site": "A",
    "pools": [
     "full",
@@ -530,7 +530,7 @@
   },
   {
    "id": "splitA_palaceexit",
-   "name": "A: 1 Palace Exit + 1 Tetris, поздно",
+   "name": "Сплит A: Palace + Ramp, поздний",
    "site": "A",
    "pools": [
     "full",
@@ -574,7 +574,7 @@
   },
   {
    "id": "rushA",
-   "name": "A: раш через Tetris",
+   "name": "Раш A через Ramp",
    "site": "A",
    "pools": [
     "eco",
@@ -592,7 +592,7 @@
   },
   {
    "id": "rushB",
-   "name": "B: раш через B Apartments",
+   "name": "Раш B через Apps",
    "site": "B",
    "pools": [
     "eco",
@@ -614,7 +614,7 @@
   },
   {
    "id": "fakeA_B",
-   "name": "B: фейк A (3 B Apartments)",
+   "name": "Фейк A → выход B через Apps",
    "site": "B",
    "fake": "A",
    "pools": [
@@ -653,7 +653,7 @@
   },
   {
    "id": "fakeB_A",
-   "name": "A: фейк B (2 Tetris + 1 Palace Exit)",
+   "name": "Фейк B → сплит A: Ramp + Palace",
    "site": "A",
    "fake": "B",
    "pools": [

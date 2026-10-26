@@ -230,6 +230,27 @@ EXEC_LEAD = 9                  # выход за 9 с до планта (мед�
 ROUTE_MAX = 6                  # маршрут — не больше 6 последних зон до входа — проектное число
 HOLD_R = 420                   # «держит сайт» — CT-точка ближе 420 ед. карты (1050 ед. игры) к центру плантов — проектное число
 TITLE = {'A': 'A', 'B': 'B'}
+# (v436, владелец 26.10: «названия тактик — как на про-сцене: не "2 Cross", а сплит A через мид») название — по проходам, как их зовут про
+# (рецепт карты tactics.callouts: зона входа на сайт → проход: Tetris → Ramp, Cross → Connector, B Apartments → Apps…) и стилю: выход,
+# сплит, дефолт → поздний выход, раш, фейк. Нет callouts в рецепте — старые названия (Ancient: свои названия, заморожен)
+CALL = TAC.get('callouts', {})
+NAMES = collections.Counter()
+
+
+def tac_name(site, style, tempo, ents, old):
+    if not CALL:
+        return old
+    L = ' + '.join(dict.fromkeys(CALL.get(e, e) for e in ents))
+    if style == 'rush':
+        n = 'Раш %s через %s' % (site, L)
+    elif style == 'split':
+        n = 'Сплит %s: %s' % (site, L) + {'быстро': ', быстрый', 'поздно': ', поздний', 'норма': ''}.get(tempo, '')
+    elif style == 'default':
+        n = 'Дефолт → поздний выход %s через %s' % (site, L)
+    else:
+        n = ('Быстрый выход' if tempo == 'быстро' else 'Выход') + ' %s через %s' % (site, L)
+    NAMES[n] += 1
+    return n if NAMES[n] == 1 else '%s (вариант %d)' % (n, NAMES[n])
 
 
 def _route(A, site, lane):
@@ -312,6 +333,7 @@ def game_tactics(A):
         style = 'rush' if rush else ('split' if len(lanes) > 1 else ('default' if tempo == 'поздно' else 'exec'))
         main = lanes[0][0]
         name = '%s: ' % TITLE[site] + ' + '.join('%d %s' % (c, ent(l)) for l, c in lanes) + {'быстро': ', быстро', 'поздно': ', поздно', 'норма': ''}[tempo]
+        name = tac_name(site, style, tempo, [ent(l) for l, c in lanes], name)
         base = '%s%s_%s' % ({'rush': 'rush', 'split': 'split', 'default': 'def', 'exec': 'exec'}[style], site,
                              ''.join(c for c in ent(main).lower() if c.isalnum())[:10])
         used[base] += 1
@@ -357,7 +379,7 @@ def game_tactics(A):
                         if l != 'far': ls[l] += c * s['n']
             if ls:
                 main = ls.most_common(1)[0][0]
-                tt.append({'id': 'rush%s' % site, 'name': '%s: раш через %s' % (site, ent_of(site, main)), 'site': site, 'pools': ['eco', 'pistol', 'force'],
+                tt.append({'id': 'rush%s' % site, 'name': tac_name(site, 'rush', 'быстро', [ent_of(site, main)], '%s: раш через %s' % (site, ent_of(site, main))), 'site': site, 'pools': ['eco', 'pistol', 'force'],
                            'setupEnd': 0, 'style': 'rush', 'rushVia': _route(A, site, main), 'weight': 0.5, 'n': 0})
     # (v365, владелец: «добавляй фейки») фейк-выходы — по демкам: раунд с плантом, где за 8–30 с до планта T бросили 2+ гранаты
     # (смок / молотов / флешка) у другого сайта (≤ FAKE_R ед. карты от средней точки плантов того сайта). Вес — доля таких раундов
@@ -372,7 +394,7 @@ def game_tactics(A):
         if not base:
             continue
         share = k / fs['n']
-        tt.append({'id': 'fake%s_%s' % (fake, real), 'name': '%s: фейк %s (%s)' % (real, fake, base['name'].split(': ', 1)[-1]), 'site': real,
+        tt.append({'id': 'fake%s_%s' % (fake, real), 'name': ('Фейк %s → %s' % (fake, base['name'][:1].lower() + base['name'][1:])) if CALL else '%s: фейк %s (%s)' % (real, fake, base['name'].split(': ', 1)[-1]), 'site': real,
                    'fake': fake, 'pools': ['full', 'half'], 'setupEnd': base['setupEnd'], 'style': 'fake',
                    'weight': round(wsum * share / (1 - share), 2), 'groups': base.get('groups', []), 'n': k})
     # ---- зоны по сторонам ----
