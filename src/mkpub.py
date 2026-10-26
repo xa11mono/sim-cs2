@@ -9,10 +9,18 @@ from mapset import map_arg, inject_map
 from gamesrc import game_source   # v377: исходник игры — склейка src/game/*
 MAPNAME, _ = map_arg(sys.argv[1:])
 s = inject_map(inject(game_source()), MAPNAME)   # v255: «Отметить момент»
-# (v430) страница — целый документ: <!doctype html>, кодировка, та же обёртка, что ставит публикация (000_head.html). Раньше
-# обёртка отрезалась, и файл, открытый с диска, шёл в режиме совместимости (quirks): таблицы не наследовали шрифт, отступы
-# другие — вид отличался от артефакта. Теперь файл с диска и артефакт выглядят одинаково
+# (v430) страница — целый документ: <!doctype html> и обёртка из 000_head.html — файл с диска идёт в обычном режиме, как артефакт
+# (без doctype браузер включал режим совместимости: другие шрифты в таблицах, отступы). Стили игры из <head> переносим в начало
+# <body>: публикация артефакта заменяет <head> своим, и всё, что лежало в нём, терялось (v430: пропали табло и панели игроков)
 assert s.lstrip().lower().startswith('<!doctype html>')
+_hb = s.index('<body>')
+_head = s[:_hb]
+_hs = _head.index('<style>') + len('<style>'); _he = _head.index('</style>')
+WRAP_END = '[hidden]:not([hidden=until-found i]){display:none!important}'
+_css = _head[_hs:_he]
+_wrap_css = _css[:_css.index(WRAP_END) + len(WRAP_END)] if WRAP_END in _css else ''
+_game_css = _css[len(_wrap_css):]
+s = _head[:_hs] + _wrap_css + _head[_he:] + '<body>' + ('<style>' + _game_css + '</style>' if _game_css.strip() else '') + s[_hb + len('<body>'):]
 s = s.replace('window.__ev=function(src){return eval(src);};', '')
 s = s.replace('/*@@WARM_AUTO@@*/', 'warmStart(1);')
 # (v349, владелец: «обновляй версию в радаре и дату») подпись версии — номер из последней записи docs/DECISIONS.md и дата сборки
