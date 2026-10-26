@@ -1,5 +1,5 @@
 # Публикуемая версия: python3 src/mkpub.py [--map ancient] → <карта>-radar.html (для Ancient — ancient-radar.html)
-# Берёт игру (склейка src/game/* — src/gamesrc.py; v239 = v166), убирает обёртку <head>…<body> (её добавляет публикация) и тестовый вход window.__ev.
+# Берёт игру (склейка src/game/* — src/gamesrc.py; v239 = v166) целым документом (v430) и убирает тестовый вход window.__ev.
 # v317: вшивает набор выбранной карты (data/maps/<карта>/, src/mapset.py).
 import os, sys
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -9,15 +9,18 @@ from mapset import map_arg, inject_map
 from gamesrc import game_source   # v377: исходник игры — склейка src/game/*
 MAPNAME, _ = map_arg(sys.argv[1:])
 s = inject_map(inject(game_source()), MAPNAME)   # v255: «Отметить момент»
-# v269: стили игры, которые лежат в <style> внутри <head> (табло, панели игроков, редактор карты, подсказки), раньше
-# отрезались вместе с обёрткой — на опубликованной странице их не было. Берём их (без правил самой обёртки) и ставим в начало
-head = s[:s.index('<body>')]
-hs = head[head.index('<style>') + len('<style>'):head.index('</style>')]
+# (v430) страница — целый документ: <!doctype html> и обёртка из 000_head.html — файл с диска идёт в обычном режиме, как артефакт
+# (без doctype браузер включал режим совместимости: другие шрифты в таблицах, отступы). Стили игры из <head> переносим в начало
+# <body>: публикация артефакта заменяет <head> своим, и всё, что лежало в нём, терялось (v430: пропали табло и панели игроков)
+assert s.lstrip().lower().startswith('<!doctype html>')
+_hb = s.index('<body>')
+_head = s[:_hb]
+_hs = _head.index('<style>') + len('<style>'); _he = _head.index('</style>')
 WRAP_END = '[hidden]:not([hidden=until-found i]){display:none!important}'
-game_css = hs[hs.index(WRAP_END) + len(WRAP_END):] if WRAP_END in hs else hs
-s = s[s.index('<body>') + len('<body>'):]
-s = '<style>' + game_css + '</style>' + s
-s = s.replace('</body></html>', '')
+_css = _head[_hs:_he]
+_wrap_css = _css[:_css.index(WRAP_END) + len(WRAP_END)] if WRAP_END in _css else ''
+_game_css = _css[len(_wrap_css):]
+s = _head[:_hs] + _wrap_css + _head[_he:] + '<body>' + ('<style>' + _game_css + '</style>' if _game_css.strip() else '') + s[_hb + len('<body>'):]
 s = s.replace('window.__ev=function(src){return eval(src);};', '')
 s = s.replace('/*@@WARM_AUTO@@*/', 'warmStart(1);')
 # (v349, владелец: «обновляй версию в радаре и дату») подпись версии — номер из последней записи docs/DECISIONS.md и дата сборки
@@ -35,5 +38,5 @@ _SF = os.path.join(HERE, '..', 'data', 'sounds', 'sounds.json')
 if os.path.exists(_SF):
     s = s.replace('/*@@SOUNDS@@*/', 'SND_DATA = ' + open(_SF, encoding='utf-8').read() + ';')   # (v306) опубликованная страница начинается с разминки; sim.html — нет (замеры, снимки)
 assert '__ev' not in s
-open(os.path.join(HERE, '..', MAPNAME + '-radar.html'), 'w', encoding='utf-8').write('\n' + s)
+open(os.path.join(HERE, '..', MAPNAME + '-radar.html'), 'w', encoding='utf-8').write(s)
 print(len(s))

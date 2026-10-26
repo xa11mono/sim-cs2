@@ -10,7 +10,7 @@
 function mkSnapList(){
   if(MK.snap) return MK.snap;
   MK.snap = __SNAP.filter(function(e){
-    if(/^SND/.test(e[0])) return false;   // (v324) звук — только показ, в нём AudioContext (не копируется) — в снимок не идёт
+    if(/^(SND|HUD_)/.test(e[0])) return false;   // (v324) звук и (v430) HUD_* — только показ (AudioContext, элементы страницы) — в снимок не идут
     try{ var v = e[1]();
       if(typeof v === "function") return false;
       if(v && typeof v === "object" && (v.nodeType || v instanceof CanvasRenderingContext2D || v instanceof HTMLImageElement)) return false;
@@ -338,9 +338,9 @@ function mkShowCopy(t){ var a = mkEl("mkCopyBox"); a.value = t; a.style.display 
 (function(){
   // (v256) кнопки: «◀ 10 с» — рядом с паузой, «Отметки» и «Отметить момент» — в правой части панели (#mkSlot)
   var bar = mkEl("btnPause"), slot = mkEl("mkSlot");
-  bar.insertAdjacentHTML("afterend", '<button id="btnBack10" title="Перемотать на 10 секунд игры назад">◀ 10 с</button>');
+  bar.insertAdjacentHTML("afterend", '<button id="btnBack10" title="Перемотать на 10 секунд игры назад">10 с</button>');
   (slot || bar).insertAdjacentHTML(slot ? "beforeend" : "afterend", '<button id="btnMarks">Отметки (0)</button>' +
-    '<button id="btnMark" class="primary" title="Пауза и отметка момента: что не так, кто, категория (клавиша M)">Отметить момент <kbd>M</kbd></button>');
+    '<button id="btnMark" class="primary" title="Отметить момент: пауза и отметка — что не так, кто, категория (клавиша M)">Отметить <kbd>M</kbd></button>');
   mkEl("main").insertAdjacentHTML("beforeend",
     '<div id="mkPanel" class="mk-panel" style="display:none">' +
       '<div class="mk-head"><b>Отметка момента</b><button id="mkX">✕</button></div>' +

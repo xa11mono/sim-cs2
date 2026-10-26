@@ -1,4 +1,4 @@
-<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}  .med{position:absolute;top:10px;right:12px;width:300px;background:rgba(10,14,9,0.94);border:1px solid var(--accent-dim);padding:10px 12px;border-radius:6px;font-size:12px;line-height:1.5;z-index:6;}
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}  .med{position:absolute;top:10px;right:12px;width:300px;background:rgba(18,22,16,.97);border:1px solid var(--line-2);padding:11px 13px;border-radius:12px;box-shadow:var(--sh-pop);font-size:12px;line-height:1.5;z-index:6;}
   .med-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px;color:var(--accent);}
   .med-tabs button{font-size:11px;padding:2px 8px;margin-left:4px;}
   .med-tabs button.on{background:var(--accent);color:#0a0e09;border-color:var(--accent);}
@@ -12,21 +12,52 @@
   .med-row{display:flex;gap:6px;margin-bottom:6px;} .med-row button{flex:1;font-size:11px;padding:4px 6px;}
   .med-save{font-size:11px;color:var(--text-dim);}
   .med-save.warn{color:#ffd76a;} .med-save.ok{color:var(--accent);}
-  .hgt-tip{position:absolute;z-index:7;pointer-events:none;background:rgba(10,14,9,0.94);border:1px solid var(--accent-dim);border-radius:5px;padding:5px 8px;font-size:11.5px;line-height:1.45;color:var(--text);white-space:nowrap;}
+  .hgt-tip{position:absolute;z-index:7;pointer-events:none;background:rgba(18,22,16,.97);border:1px solid var(--line-2);border-radius:8px;box-shadow:var(--sh-pop);padding:5px 8px;font-size:11.5px;line-height:1.45;color:var(--text);white-space:nowrap;}
   .hgt-tip b{color:var(--accent);font-weight:600;}
   .wb-tip{white-space:normal;width:400px;} .med-sel{background:var(--panel-2);color:var(--text);border:1px solid var(--line);border-radius:4px;padding:2px 4px;font-size:11px;}
   .med-lv{display:flex;gap:4px;align-items:center;margin-bottom:6px;flex-wrap:wrap;} .med-lv button{font-size:11px;padding:3px 9px;} .med-lv button.on{background:var(--accent);color:#0a0e09;border-color:var(--accent);}
   .med-lv input{width:52px;background:var(--panel-2);color:var(--text);border:1px solid var(--line);border-radius:4px;padding:2px 5px;}
-  /* табло как на трансляции (Н6): плоское, без «рваной бумаги» */
-  /* (v269) HUD по образцу трансляции ESL, по правилам docs/DESIGN_SOURCES.md: плотность «кокпит», острые углы, числа моно,
-     иерархия весом и цветом; цвета команд — данные; номера = номера в кружках радара */
-  :root{--hud-f:'Roboto Condensed','Golos Text',sans-serif; --hud-n:'IBM Plex Mono',ui-monospace,monospace; --hud-ink:#121510;
-        --hud-row:rgba(18,22,16,.9); --hud-row-sel:rgba(40,46,36,.95); --hud-dim:#8d9786; --hud-line:rgba(255,255,255,.07); --hud-money:#9fbf6a;}
-  #scoreboard{position:absolute;top:8px;left:50%;transform:translateX(-50%);pointer-events:none;z-index:4;font-family:var(--hud-f);display:flex;flex-direction:column;align-items:stretch;}
+  /* (v430) HUD трансляции: табло, панели игроков, карточка выбранного. Цвета команд — данные (чья сторона).
+     Движение — на события игры: урон (вспышка и «след» на полосе HP), смерть, счёт, деньги, купленное; всё — transform / opacity */
+  :root{--hud-f:'Roboto Condensed','Golos Text',sans-serif; --hud-n:'IBM Plex Mono',ui-monospace,monospace; --hud-ink:#10130e;
+        --hud-row:rgba(15,19,14,.93); --hud-row-sel:rgba(36,43,32,.96); --hud-dim:#8f9988; --hud-line:rgba(255,255,255,.06); --hud-money:#a5c36a;
+        --t-glow:rgba(217,162,74,.13); --ct-glow:rgba(90,155,217,.13);}
+  /* ---- табло ---- */
+  #scoreboard{position:absolute;top:8px;left:50%;transform:translateX(-50%);pointer-events:none;z-index:4;font-family:var(--hud-f);display:flex;flex-direction:column;align-items:stretch;zoom:var(--k);}
   #scoreboard .sb-head{display:flex;justify-content:space-between;}
-  #scoreboard .sb-head span{background:var(--accent);color:var(--hud-ink);font-size:11px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;padding:2px 10px 1px;line-height:1.3;}
+  #scoreboard .sb-head span{background:var(--accent);color:var(--hud-ink);font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;padding:2px 10px 1px;line-height:1.3;}
+  #scoreboard .sb-head span + span{background:#2a3225;color:var(--text-dim);}
+  #scoreboard .sb-main{display:flex;align-items:stretch;background:var(--hud-row);position:relative;box-shadow:0 10px 24px -8px rgba(0,0,0,.55);}
+  #scoreboard .sb-team{display:flex;align-items:center;gap:10px;padding:7px 12px;border-top:2px solid transparent;}
+  #scoreboard .sb-team.t{border-top-color:var(--t);background:linear-gradient(90deg,var(--t-glow),transparent 70%);}
+  #scoreboard .sb-team.ct{border-top-color:var(--ct);flex-direction:row-reverse;background:linear-gradient(270deg,var(--ct-glow),transparent 70%);}
+  #scoreboard .sb-logo{width:30px;height:30px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:500;overflow:hidden;}
+  #scoreboard .sb-logo img{width:92%;height:92%;object-fit:contain;}
+  #scoreboard .t .sb-logo{color:var(--t);} #scoreboard .ct .sb-logo{color:var(--ct);}
+  #scoreboard .sb-name{font-size:12.5px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;color:#c9cfc2;max-width:130px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  #scoreboard .sb-score{font-family:var(--hud-n);font-size:30px;font-weight:500;color:#fff;min-width:30px;text-align:center;line-height:1;display:inline-block;}
+  #scoreboard .sb-mid{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:4px 16px 6px;min-width:96px;
+    border-left:1px solid var(--hud-line);border-right:1px solid var(--hud-line);background:rgba(0,0,0,.18);}
+  #scoreboard .sb-round{font-size:11px;font-weight:500;letter-spacing:.08em;color:var(--hud-dim);text-transform:uppercase;line-height:1.1;white-space:nowrap;}
+  #scoreboard .sb-time{font-family:var(--hud-n);font-size:18px;font-weight:500;color:#fff;line-height:1.1;display:flex;align-items:center;justify-content:center;min-height:20px;}
+  #scoreboard .sb-time.low{color:#ff8a7e;animation:sbLow 1s steps(1,end) infinite;}
+  @keyframes sbLow{50%{opacity:.55;}}
+  #scoreboard .sb-time.bomb{color:#ff5a4c;}
+  #scoreboard .sb-time.bomb svg{width:30px;height:22px;animation:sbBomb 1s ease-in-out infinite;}
+  @keyframes sbBomb{0%,100%{opacity:1;}50%{opacity:.45;}}
+  /* полоса оставшегося времени раунда / фризтайма — внизу середины табло */
+  #scoreboard .sb-prog{position:absolute;left:0;right:0;bottom:0;height:2px;background:rgba(255,255,255,.06);overflow:hidden;}
+  #scoreboard .sb-prog b{display:block;height:100%;background:#d8ddd1;transform-origin:left center;transform:scaleX(1);transition:transform .25s linear;}
+  #scoreboard .sb-prog b.low{background:#ff8a7e;} #scoreboard .sb-prog b.bomb{background:#ff5a4c;} #scoreboard .sb-prog b.frz{background:var(--accent);}
+  #scoreboard .sb-series{display:flex;justify-content:space-between;padding:4px 6px 0;}
+  #scoreboard .sb-series span{display:flex;gap:4px;} #scoreboard #sbSerCT{flex-direction:row-reverse;}
+  #scoreboard .sb-series i{display:block;width:12px;height:5px;background:rgba(255,255,255,.12);}
+  #scoreboard #sbSerT i.w{background:var(--t);} #scoreboard #sbSerCT i.w{background:var(--ct);}
+  #scoreboard .sb-alive{display:flex;align-items:center;justify-content:center;gap:6px;margin-top:4px;font-size:11px;color:var(--hud-dim);}
+  #scoreboard .sb-alive b{font-family:var(--hud-n);min-width:22px;padding:0 5px;text-align:center;font-size:13px;font-weight:600;color:var(--hud-ink);display:inline-block;}
+  #scoreboard .sb-alive b.t{background:var(--t);} #scoreboard .sb-alive b.ct{background:var(--ct);}
   #lookDbg{position:fixed;left:12px;top:390px;z-index:60;width:380px;max-height:calc(100vh - 402px);overflow:auto;background:#121610;border:1px solid var(--hud-line);
-    color:#d9dfd3;font:400 11px/1.35 var(--hud-f);padding:0;display:none;}
+    color:#d9dfd3;font:400 11px/1.35 var(--hud-f);padding:0;display:none;border-radius:var(--r);}
   #lookDbg .ld-h{padding:6px 8px;border-bottom:1px solid var(--hud-line);font-weight:500;letter-spacing:.04em;text-transform:uppercase;font-size:11px;}
   #lookDbg .ld-s{padding:5px 8px;border-bottom:1px solid var(--hud-line);}
   #lookDbg .ld-k{color:var(--hud-dim);text-transform:uppercase;letter-spacing:.05em;font-size:10px;margin-bottom:2px;}
@@ -36,84 +67,82 @@
   #lookDbg tr.pick td{color:#fff;} #lookDbg tr.pick td:first-child{box-shadow:inset 2px 0 0 #e8dc5a;padding-left:4px;}
   #lookDbg .ld-f{color:var(--hud-dim);font-size:10px;}
   /* (v307) мини-радар: вся карта, игроки точками с номером, бомба */
-  #miniMap{position:absolute;left:auto;right:12px;top:340px;cursor:default;width:232px;height:232px;z-index:5;background:rgba(10,13,9,.45);border:none;border-radius:4px;pointer-events:none;}
-  #btnObs.on,#btnObsMap.on{background:var(--accent);color:#0a0e09;border-color:var(--accent);}
-  /* (v304) серия BO3/BO5: квадраты карт под табло, закрашивает победитель карты */
-  #scoreboard .sb-series{display:flex;justify-content:space-between;padding:3px 6px 0;}
-  #scoreboard .sb-series span{display:flex;gap:4px;} #scoreboard #sbSerCT{flex-direction:row-reverse;}
-  #scoreboard .sb-series i{display:block;width:12px;height:12px;border:1px solid var(--hud-line);background:var(--hud-row);}
-  #scoreboard #sbSerT i.w{background:var(--t);border-color:var(--t);} #scoreboard #sbSerCT i.w{background:var(--ct);border-color:var(--ct);}
-  #scoreboard .sb-main{display:flex;align-items:stretch;background:var(--hud-row);border-bottom:1px solid var(--hud-line);}
-  #scoreboard .sb-team{display:flex;align-items:center;gap:10px;padding:6px 12px;border-top:2px solid transparent;}
-  #scoreboard .sb-team.t{border-top-color:var(--t);} #scoreboard .sb-team.ct{border-top-color:var(--ct);flex-direction:row-reverse;}
-  #scoreboard .sb-logo{width:30px;height:30px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:500;overflow:hidden;border:1px solid var(--hud-line);}
-  #scoreboard .sb-logo img{width:90%;height:90%;object-fit:contain;}
-  #scoreboard .t .sb-logo{color:var(--t);} #scoreboard .ct .sb-logo{color:var(--ct);}
-  #scoreboard .sb-name{font-family:'Roboto Condensed','Golos Text',sans-serif;font-size:12px;font-weight:400;letter-spacing:.06em;text-transform:uppercase;color:var(--hud-dim);max-width:124px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-  #scoreboard .sb-score{font-family:var(--hud-n);font-size:28px;font-weight:500;color:#fff;min-width:26px;text-align:center;line-height:1;}
-  #scoreboard .sb-mid{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;padding:3px 14px;min-width:80px;border-left:1px solid var(--hud-line);border-right:1px solid var(--hud-line);}
-  #scoreboard .sb-round{font-size:11px;font-weight:500;letter-spacing:.08em;color:var(--hud-dim);text-transform:uppercase;line-height:1.1;}
-  #scoreboard .sb-time{font-family:var(--hud-n);font-size:17px;font-weight:500;color:#fff;line-height:1.1;}
-  #scoreboard .sb-time.low{color:#ff8a7e;} #scoreboard .sb-time.bomb{color:#ff5a4c;}
-  #scoreboard .sb-alive{display:flex;align-items:center;justify-content:center;gap:6px;margin-top:4px;font-size:11px;color:var(--hud-dim);}
-  #scoreboard .sb-alive b{font-family:var(--hud-n);min-width:20px;padding:0 5px;text-align:center;font-size:13px;font-weight:500;color:var(--hud-ink);}
-  #scoreboard .sb-alive b.t{background:var(--t);} #scoreboard .sb-alive b.ct{background:var(--ct);}
-  /* панели игроков: строки без зазоров, разделены линией 1 px */
-  .pl-col{position:absolute;top:10px;width:330px;display:flex;flex-direction:column;pointer-events:none;z-index:3;font-family:var(--hud-f);color:#fff;}
+  #miniMap{position:absolute;left:auto;right:12px;top:340px;cursor:default;width:232px;height:232px;z-index:5;pointer-events:none;zoom:var(--k);
+    background:rgba(12,15,11,.55);border:1px solid var(--hud-line);border-radius:6px;box-shadow:0 8px 22px -10px rgba(0,0,0,.7);}
+  /* ---- панели игроков: строки без зазоров; кромка — цвет команды ---- */
+  .pl-col{position:absolute;top:10px;width:330px;display:flex;flex-direction:column;pointer-events:none;z-index:3;font-family:var(--hud-f);color:#fff;zoom:var(--k);box-shadow:0 10px 24px -8px rgba(0,0,0,.55);}
   #plT{left:12px;} #plCT{right:12px;}
   .pl-tag{display:flex;align-items:center;height:28px;padding:0 12px;font-size:14px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;background:var(--hud-row);border-top:2px solid;}
-  #plT .pl-tag{border-color:var(--t);color:var(--t);} #plCT .pl-tag{border-color:var(--ct);color:var(--ct);justify-content:flex-end;}
-  .pl-card{position:relative;display:flex;align-items:stretch;height:58px;background:var(--hud-row);border-top:1px solid var(--hud-line);pointer-events:auto;cursor:pointer;}
+  #plT .pl-tag{border-color:var(--t);color:var(--t);background:linear-gradient(90deg,var(--t-glow),var(--hud-row) 60%);}
+  #plCT .pl-tag{border-color:var(--ct);color:var(--ct);justify-content:flex-end;background:linear-gradient(270deg,var(--ct-glow),var(--hud-row) 60%);}
+  .pl-card{position:relative;display:flex;align-items:stretch;height:58px;background:var(--hud-row);border-top:1px solid var(--hud-line);pointer-events:auto;cursor:pointer;overflow:hidden;
+    transition:background-color var(--d2) var(--ease),opacity var(--d3) var(--ease);}
   .pl-card:hover{background:var(--hud-row-sel);}
   #plCT .pl-card{flex-direction:row-reverse;}
-  .pl-num{flex:none;width:22px;display:flex;align-items:center;justify-content:center;font-family:var(--hud-n);font-size:14px;font-weight:500;color:var(--hud-ink);}
+  .pl-num{flex:none;width:22px;display:flex;align-items:center;justify-content:center;font-family:var(--hud-n);font-size:14px;font-weight:600;color:var(--hud-ink);transition:background-color var(--d3) var(--ease),color var(--d3) var(--ease);}
   #plT .pl-num{background:var(--t);} #plCT .pl-num{background:var(--ct);}
-  .pl-body{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center;gap:5px;padding:0 11px;}
+  .pl-body{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center;gap:6px;padding:0 11px;position:relative;z-index:1;}
   #plCT .pl-body{align-items:flex-end;}
-  .pl-nick{font-size:17px;font-weight:500;letter-spacing:.04em;text-transform:uppercase;line-height:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;}
-  .pl-stat{display:flex;align-items:center;gap:10px;font-family:var(--hud-n);font-size:13px;color:var(--hud-dim);line-height:1;}
-  .pl-stat svg{width:11px;height:11px;fill:var(--hud-dim);margin-right:3px;vertical-align:-1px;}
+  .pl-nick{font-size:17px;font-weight:500;letter-spacing:.04em;text-transform:uppercase;line-height:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;transition:color var(--d3) var(--ease);}
+  .pl-stat{display:flex;align-items:center;gap:10px;font-family:var(--hud-n);font-size:12.5px;color:var(--hud-dim);line-height:1;}
+  .pl-stat > span{display:inline-flex;align-items:center;}
+  .pl-stat i{font-style:normal;display:inline-block;}
+  .pl-stat svg{width:11px;height:11px;fill:var(--hud-dim);margin-right:3px;}
   .pl-money{color:var(--hud-money);}
-  .pl-ava{flex:none;width:54px;align-self:flex-end;height:56px;display:flex;align-items:flex-end;justify-content:center;overflow:hidden;}
-  .pl-ava svg{width:40px;height:40px;fill:rgba(255,255,255,.16);} .pl-ava img{width:100%;height:100%;object-fit:cover;}
-  .pl-side{flex:none;width:86px;display:flex;flex-direction:column;align-items:flex-end;justify-content:center;gap:5px;padding:0 11px 0 4px;}
+  .pl-ava{flex:none;width:54px;align-self:flex-end;height:56px;display:flex;align-items:flex-end;justify-content:center;overflow:hidden;position:relative;z-index:1;}
+  .pl-ava svg{width:40px;height:40px;fill:rgba(255,255,255,.16);} .pl-ava img{width:100%;height:100%;object-fit:cover;transition:opacity var(--d3) var(--ease),filter var(--d3) var(--ease);}
+  .pl-side{flex:none;width:88px;display:flex;flex-direction:column;align-items:flex-end;justify-content:center;gap:6px;padding:0 11px 0 4px;position:relative;z-index:1;}
   #plCT .pl-side{align-items:flex-start;padding:0 4px 0 11px;}
   .pl-top{display:flex;align-items:center;gap:6px;} #plCT .pl-top{flex-direction:row-reverse;}
-  .pl-top svg.wp{height:13px;width:auto;max-width:44px;fill:#fff;opacity:.55;} #plCT .pl-top svg.wp{transform:scaleX(-1);}
-  .pl-hp{font-family:var(--hud-n);font-size:22px;font-weight:500;line-height:1;}
-  .pl-hp.low{color:#ff8a7e;}
+  .pl-wp{display:inline-flex;align-items:center;}
+  .pl-top svg.wp{height:13px;width:auto;max-width:44px;fill:#fff;opacity:.6;} #plCT .pl-top svg.wp{transform:scaleX(-1);}
+  .pl-hp{font-family:var(--hud-n);font-size:22px;font-weight:500;line-height:1;min-width:2ch;text-align:right;transition:color var(--d2) var(--ease);}
+  #plCT .pl-hp{text-align:left;}
+  .pl-card.low .pl-hp{color:#ff8a7e;} .pl-hp svg{width:15px;height:15px;fill:#6c7466;vertical-align:-1px;}
   .pl-gear{display:flex;align-items:center;gap:4px;height:12px;}
-  /* (v322, М28) купил / подобрал — иконка появляется: 220 мс, ease-out (DESIGN_SOURCES: движение только в ответ на действие, до 300 мс) */
-  .pl-it{display:inline-flex;align-items:center;flex:none;} .pl-it.new{animation:plItIn 220ms cubic-bezier(.2,.8,.2,1) both;}
+  /* (v322, М28) купил / подобрал — иконка появляется: 220 мс */
+  .pl-it{display:inline-flex;align-items:center;flex:none;} .pl-it.new{animation:plItIn 220ms var(--spring) both;}
   @keyframes plItIn{from{opacity:0;transform:translateY(-5px) scale(.6);}to{opacity:1;transform:none;}}
-  @media (prefers-reduced-motion: reduce){ .pl-it.new{animation:none;} }
-  .pl-gear svg{height:11px;width:auto;fill:rgba(255,255,255,.45);flex:none;} .pl-gear svg.kf{height:13px;opacity:.6;}
-  .pl-bar{position:absolute;left:22px;right:0;bottom:0;height:3px;}
+  .pl-gear svg{height:11px;width:auto;fill:rgba(255,255,255,.5);flex:none;} .pl-gear svg.kf{height:13px;opacity:.65;}
+  /* полоса HP: цвет команды + белый «след урона», который догоняет с задержкой (как на трансляциях CS2) */
+  .pl-bar{position:absolute;left:22px;right:0;bottom:0;height:3px;background:rgba(255,255,255,.05);z-index:2;}
   #plCT .pl-bar{left:0;right:22px;}
-  .pl-bar b{display:block;height:100%;opacity:.75;} #plT .pl-bar b{background:var(--t);} #plCT .pl-bar b{background:var(--ct);margin-left:auto;}
-  .pl-bar b.low{background:var(--danger)!important;opacity:1;}
-  #plT .pl-card.dead .pl-num,#plCT .pl-card.dead .pl-num{background:#3a3e36;color:#8d9786;} .pl-card.dead .pl-nick{color:#6f776a;} .pl-card.dead .pl-ava{opacity:.4;} .pl-card.dead .pl-hp{color:#6f776a;font-size:17px;}
-  .pl-card.sel{background:var(--hud-row-sel);box-shadow:inset 0 0 0 1px rgba(255,255,255,.55);}
+  .pl-bar b{position:absolute;inset:0;display:block;transform-origin:left center;will-change:transform;}
+  #plCT .pl-bar b{transform-origin:right center;}
+  .pl-bar b.tr{background:rgba(255,255,255,.7);transition:transform .55s var(--ease) .35s;}
+  .pl-bar b.hp{transition:transform .16s var(--ease);}
+  #plT .pl-bar b.hp{background:var(--t);} #plCT .pl-bar b.hp{background:var(--ct);}
+  .pl-card.low .pl-bar b.hp{background:var(--danger)!important;animation:plLow 1.1s ease-in-out infinite;}
+  @keyframes plLow{50%{opacity:.45;}}
+  /* вспышка урона: красный блик от края команды */
+  .pl-hit{position:absolute;inset:0;pointer-events:none;opacity:0;z-index:0;background:linear-gradient(90deg,rgba(229,89,78,.5),rgba(229,89,78,0) 75%);}
+  #plCT .pl-hit{background:linear-gradient(270deg,rgba(229,89,78,.5),rgba(229,89,78,0) 75%);}
+  .pl-card.dead{background:rgba(12,15,11,.82);}
+  .pl-card.dead .pl-num{background:#33382f!important;color:#7d8677;}
+  .pl-card.dead .pl-nick{color:#6c7466;} .pl-card.dead .pl-ava img{opacity:.35;filter:grayscale(1);} .pl-card.dead .pl-ava svg{opacity:.4;}
+  .pl-card.dead .pl-hp{color:#6c7466;font-size:17px;}
+  .pl-card.dead .pl-stat{opacity:.7;}
+  .pl-card.sel{background:var(--hud-row-sel);box-shadow:inset 0 0 0 1px rgba(255,255,255,.5);}
   .pl-card:focus-visible{outline:1px solid #fff;outline-offset:-1px;}
-  /* выбранный игрок: портрет, фраги | смерти, ник и HP; появление — 180 мс */
-  #plFocus{position:absolute;left:50%;bottom:14px;transform:translateX(-50%);display:none;flex-direction:column;width:200px;pointer-events:none;z-index:4;font-family:var(--hud-f);}
-  #plFocus.show{display:flex;animation:pfIn .18s cubic-bezier(.2,.8,.2,1);}
+  /* ---- выбранный игрок: портрет, фраги | смерти, ник и HP ---- */
+  #plFocus{position:absolute;left:50%;bottom:14px;transform:translateX(-50%);display:none;flex-direction:column;width:200px;pointer-events:none;z-index:4;font-family:var(--hud-f);zoom:var(--k);}
+  #plFocus.show{display:flex;animation:pfIn .18s var(--ease);}
   @keyframes pfIn{from{opacity:0;transform:translate(-50%,6px);}to{opacity:1;transform:translate(-50%,0);}}
-  @media (prefers-reduced-motion: reduce){ #plFocus.show{animation:none;} }
   #plFocus .pf-photo{position:relative;height:116px;display:flex;align-items:flex-end;justify-content:center;overflow:visible;}
-  /* (v303, владелец 14.10) квадрат под фото «строится» снизу вверх, фото выезжает и выходит за рамку сверху (как карточка игрока в HUD) */
-  #plFocus .pf-photo::before{content:"";position:absolute;inset:0;background:#1b2018;border-top:2px solid var(--ct);transform-origin:50% 100%;}
+  /* (v303) квадрат под фото «строится» снизу вверх, фото выезжает и выходит за рамку сверху */
+  #plFocus .pf-photo::before{content:"";position:absolute;inset:0;background:linear-gradient(180deg,#232a20,#171c15);border-top:2px solid var(--ct);transform-origin:50% 100%;}
   #plFocus.t .pf-photo::before{border-top-color:var(--t);}
-  #plFocus.pop .pf-photo::before{animation:pfBox .24s cubic-bezier(.2,.8,.2,1) both;}
+  #plFocus.pop .pf-photo::before{animation:pfBox .24s var(--ease) both;}
   #plFocus #pfPhoto{position:absolute;left:50%;bottom:0;width:168px;height:168px;transform:translateX(-50%);display:flex;align-items:flex-end;justify-content:center;z-index:1;}
-  #plFocus.pop #pfPhoto{animation:pfRise .34s cubic-bezier(.2,.8,.2,1) .1s both;}
+  #plFocus.pop #pfPhoto{animation:pfRise .34s var(--ease) .1s both;}
   @keyframes pfBox{from{transform:scaleY(0);}to{transform:scaleY(1);}}
   @keyframes pfRise{from{opacity:0;transform:translate(-50%,22px);}to{opacity:1;transform:translate(-50%,0);}}
-  @media (prefers-reduced-motion: reduce){ #plFocus.pop .pf-photo::before, #plFocus.pop #pfPhoto{animation:none;} }
-    #plFocus .pf-photo svg{width:100px;height:100px;fill:rgba(255,255,255,.14);} #plFocus .pf-photo img{width:100%;height:100%;object-fit:contain;object-position:50% 100%;}
+  #plFocus .pf-photo svg{width:100px;height:100px;fill:rgba(255,255,255,.14);} #plFocus .pf-photo img{width:100%;height:100%;object-fit:contain;object-position:50% 100%;}
   #plFocus .pf-kd{position:absolute;right:0;bottom:0;z-index:2;display:flex;align-items:center;gap:6px;padding:2px 8px;background:var(--hud-ink);font-family:var(--hud-n);font-size:12px;color:#fff;}
   #plFocus .pf-kd i{width:1px;height:10px;background:var(--hud-dim);}
-  #plFocus .pf-bar{display:flex;align-items:center;justify-content:space-between;gap:10px;height:30px;padding:0 10px;background:var(--hud-ink);border-top:1px solid var(--hud-line);}
+  #plFocus .pf-bar{box-shadow:0 10px 22px -8px rgba(0,0,0,.6);position:relative;display:flex;align-items:center;justify-content:space-between;gap:10px;height:30px;padding:0 10px;background:var(--hud-ink);border-top:1px solid var(--hud-line);overflow:hidden;}
+  #plFocus .pf-bar::after{content:"";position:absolute;left:0;bottom:0;height:2px;width:100%;background:var(--ct);transform-origin:left center;transform:scaleX(var(--hp,1));transition:transform .2s var(--ease);}
+  #plFocus.t .pf-bar::after{background:var(--t);}
   #plFocus #pfNick{font-size:15px;font-weight:500;letter-spacing:.04em;text-transform:uppercase;color:#fff;}
   #plFocus #pfHp{font-family:var(--hud-n);font-size:16px;font-weight:500;color:#fff;}
 </style></head><body>
