@@ -70,6 +70,12 @@
      ],
      "stage": "Stove",
      "look": "B Apartments"
+    },
+    {
+     "roles": [
+      "support"
+     ],
+     "stage": "TMID"
     }
    ]
   },
@@ -102,6 +108,12 @@
      ],
      "stage": "Stove",
      "look": "B Apartments"
+    },
+    {
+     "roles": [
+      "support"
+     ],
+     "stage": "TMID"
     }
    ]
   },
@@ -133,6 +145,12 @@
      ],
      "stage": "Palace",
      "look": "Palace Exit"
+    },
+    {
+     "roles": [
+      "support"
+     ],
+     "stage": "T Ramp"
     }
    ]
   },
@@ -161,6 +179,12 @@
      ],
      "stage": "T Ramp",
      "look": "Tetris"
+    },
+    {
+     "roles": [
+      "support"
+     ],
+     "stage": "T Ramp"
     }
    ]
   },
@@ -326,6 +350,12 @@
      ],
      "stage": "Connector",
      "look": "Cross"
+    },
+    {
+     "roles": [
+      "support"
+     ],
+     "stage": "T Ramp"
     }
    ]
   },
@@ -357,6 +387,12 @@
      ],
      "stage": "Connector",
      "look": "Cross"
+    },
+    {
+     "roles": [
+      "support"
+     ],
+     "stage": "T Ramp"
     }
    ]
   },
@@ -387,6 +423,12 @@
      ],
      "stage": "Short",
      "look": "B Short"
+    },
+    {
+     "roles": [
+      "support"
+     ],
+     "stage": "TMID"
     }
    ]
   },
@@ -418,6 +460,12 @@
      ],
      "stage": "Connector",
      "look": "Cross"
+    },
+    {
+     "roles": [
+      "support"
+     ],
+     "stage": "TMID"
     }
    ]
   },
@@ -577,6 +625,12 @@
      ],
      "stage": "Stove",
      "look": "B Apartments"
+    },
+    {
+     "roles": [
+      "support"
+     ],
+     "stage": "TMID"
     }
    ]
   },

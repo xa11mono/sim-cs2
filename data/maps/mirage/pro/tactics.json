@@ -34,6 +34,32 @@
    "tempo": "",
    "n": 214,
    "plantSec": 57.2,
+   "farHold": [
+    [
+     "T Ramp",
+     0.47
+    ],
+    [
+     "Mid Boxes",
+     0.15
+    ],
+    [
+     "Underpath",
+     0.13
+    ],
+    [
+     "T Roof",
+     0.12
+    ],
+    [
+     "Side Alley",
+     0.1
+    ],
+    [
+     "Mid",
+     0.09
+    ]
+   ],
    "fast": 0.27,
    "late": 0.3
   },
@@ -46,6 +72,32 @@
    "tempo": "",
    "n": 119,
    "plantSec": 77.0,
+   "farHold": [
+    [
+     "Underpath",
+     0.23
+    ],
+    [
+     "Mid Boxes",
+     0.22
+    ],
+    [
+     "T Ramp",
+     0.21
+    ],
+    [
+     "Top Mid",
+     0.2
+    ],
+    [
+     "T Apps",
+     0.15
+    ],
+    [
+     "Mid",
+     0.13
+    ]
+   ],
    "fast": 0.13,
    "late": 0.55
   },
@@ -59,6 +111,32 @@
    "tempo": "",
    "n": 109,
    "plantSec": 61.3,
+   "farHold": [
+    [
+     "Top Mid",
+     0.16
+    ],
+    [
+     "Mid Boxes",
+     0.15
+    ],
+    [
+     "Catwalk",
+     0.12
+    ],
+    [
+     "Underpath",
+     0.11
+    ],
+    [
+     "T Apps",
+     0.11
+    ],
+    [
+     "T Ramp",
+     0.07
+    ]
+   ],
    "fast": 0.29,
    "late": 0.33
   },
@@ -71,6 +149,32 @@
    "tempo": "",
    "n": 48,
    "plantSec": 72.7,
+   "farHold": [
+    [
+     "T Ramp",
+     0.56
+    ],
+    [
+     "Underpath",
+     0.27
+    ],
+    [
+     "Top Mid",
+     0.27
+    ],
+    [
+     "Mid",
+     0.21
+    ],
+    [
+     "T Apps",
+     0.17
+    ],
+    [
+     "T Roof",
+     0.15
+    ]
+   ],
    "fast": 0.17,
    "late": 0.44
   },
@@ -83,6 +187,32 @@
    "tempo": "",
    "n": 47,
    "plantSec": 70.9,
+   "farHold": [
+    [
+     "T Ramp",
+     0.72
+    ],
+    [
+     "Mid",
+     0.38
+    ],
+    [
+     "Side Alley",
+     0.26
+    ],
+    [
+     "Underpath",
+     0.23
+    ],
+    [
+     "Mid Boxes",
+     0.21
+    ],
+    [
+     "Top Mid",
+     0.17
+    ]
+   ],
    "fast": 0.15,
    "late": 0.4
   },
@@ -96,6 +226,32 @@
    "tempo": "",
    "n": 37,
    "plantSec": 75.8,
+   "farHold": [
+    [
+     "Mid Boxes",
+     0.19
+    ],
+    [
+     "Catwalk",
+     0.16
+    ],
+    [
+     "Connector",
+     0.16
+    ],
+    [
+     "Top Mid",
+     0.14
+    ],
+    [
+     "T Ramp",
+     0.14
+    ],
+    [
+     "Mid",
+     0.14
+    ]
+   ],
    "fast": 0.0,
    "late": 0.51
   },
@@ -110,6 +266,32 @@
    "tempo": "",
    "n": 30,
    "plantSec": 58.5,
+   "farHold": [
+    [
+     "T Ramp",
+     0.27
+    ],
+    [
+     "Mid",
+     0.2
+    ],
+    [
+     "Mid Boxes",
+     0.1
+    ],
+    [
+     "Underpath Stairs",
+     0.07
+    ],
+    [
+     "T Roof",
+     0.07
+    ],
+    [
+     "Underpath",
+     0.07
+    ]
+   ],
    "fast": 0.2,
    "late": 0.27
   },
@@ -123,6 +305,32 @@
    "tempo": "",
    "n": 30,
    "plantSec": 67.6,
+   "farHold": [
+    [
+     "T Ramp",
+     0.4
+    ],
+    [
+     "Underpath",
+     0.3
+    ],
+    [
+     "Mid",
+     0.27
+    ],
+    [
+     "Catwalk",
+     0.13
+    ],
+    [
+     "Connector",
+     0.13
+    ],
+    [
+     "Window",
+     0.1
+    ]
+   ],
    "fast": 0.1,
    "late": 0.43
   },
@@ -136,6 +344,32 @@
    "tempo": "",
    "n": 27,
    "plantSec": 85.2,
+   "farHold": [
+    [
+     "T Ramp",
+     0.33
+    ],
+    [
+     "Side Alley",
+     0.26
+    ],
+    [
+     "Mid Boxes",
+     0.22
+    ],
+    [
+     "Underpath",
+     0.22
+    ],
+    [
+     "Catwalk",
+     0.19
+    ],
+    [
+     "T Apps",
+     0.15
+    ]
+   ],
    "fast": 0.0,
    "late": 0.81
   },
@@ -148,6 +382,32 @@
    "tempo": "",
    "n": 24,
    "plantSec": 86.6,
+   "farHold": [
+    [
+     "T Ramp",
+     0.5
+    ],
+    [
+     "Mid",
+     0.42
+    ],
+    [
+     "Underpath",
+     0.33
+    ],
+    [
+     "Mid Boxes",
+     0.25
+    ],
+    [
+     "Top Mid",
+     0.21
+    ],
+    [
+     "Connector",
+     0.17
+    ]
+   ],
    "fast": 0.0,
    "late": 0.62
   },
@@ -160,6 +420,32 @@
    "tempo": "",
    "n": 17,
    "plantSec": 95.4,
+   "farHold": [
+    [
+     "Underpath",
+     0.53
+    ],
+    [
+     "Mid Boxes",
+     0.41
+    ],
+    [
+     "T Ramp",
+     0.35
+    ],
+    [
+     "Mid",
+     0.29
+    ],
+    [
+     "Top Mid",
+     0.29
+    ],
+    [
+     "Chair",
+     0.18
+    ]
+   ],
    "fast": 0.06,
    "late": 0.71
   },
@@ -172,6 +458,32 @@
    "tempo": "",
    "n": 13,
    "plantSec": 100.2,
+   "farHold": [
+    [
+     "Top Mid",
+     0.54
+    ],
+    [
+     "Mid",
+     0.46
+    ],
+    [
+     "Underpath",
+     0.46
+    ],
+    [
+     "Side Alley",
+     0.38
+    ],
+    [
+     "T Apps",
+     0.31
+    ],
+    [
+     "Catwalk",
+     0.23
+    ]
+   ],
    "fast": 0.0,
    "late": 0.77
   },
@@ -186,6 +498,32 @@
    "tempo": "",
    "n": 11,
    "plantSec": 87.9,
+   "farHold": [
+    [
+     "Mid Boxes",
+     0.55
+    ],
+    [
+     "Window",
+     0.18
+    ],
+    [
+     "Catwalk",
+     0.18
+    ],
+    [
+     "Underpath",
+     0.18
+    ],
+    [
+     "T Roof",
+     0.09
+    ],
+    [
+     "T Ramp",
+     0.09
+    ]
+   ],
    "fast": 0.0,
    "late": 0.91
   },
@@ -199,6 +537,32 @@
    "tempo": "",
    "n": 10,
    "plantSec": 82.6,
+   "farHold": [
+    [
+     "T Ramp",
+     0.8
+    ],
+    [
+     "Mid",
+     0.3
+    ],
+    [
+     "Palace Entry",
+     0.1
+    ],
+    [
+     "Underpath Stairs",
+     0.1
+    ],
+    [
+     "Side Alley",
+     0.1
+    ],
+    [
+     "T Roof",
+     0.1
+    ]
+   ],
    "fast": 0.1,
    "late": 0.7
   },
@@ -212,6 +576,32 @@
    "tempo": "",
    "n": 8,
    "plantSec": 70.9,
+   "farHold": [
+    [
+     "Palace",
+     0.25
+    ],
+    [
+     "Underpath Stairs",
+     0.25
+    ],
+    [
+     "Tetris",
+     0.25
+    ],
+    [
+     "T Apps",
+     0.12
+    ],
+    [
+     "Window",
+     0.12
+    ],
+    [
+     "Mid Boxes",
+     0.12
+    ]
+   ],
    "fast": 0.38,
    "late": 0.5
   },
@@ -226,6 +616,28 @@
    "tempo": "",
    "n": 8,
    "plantSec": 73.5,
+   "farHold": [
+    [
+     "Catwalk",
+     0.38
+    ],
+    [
+     "T Roof",
+     0.12
+    ],
+    [
+     "T Apps",
+     0.12
+    ],
+    [
+     "Mid Boxes",
+     0.12
+    ],
+    [
+     "Underpath",
+     0.12
+    ]
+   ],
    "fast": 0.25,
    "late": 0.5
   },
@@ -239,6 +651,32 @@
    "tempo": "",
    "n": 7,
    "plantSec": 56.3,
+   "farHold": [
+    [
+     "Top Mid",
+     0.57
+    ],
+    [
+     "Mid Boxes",
+     0.43
+    ],
+    [
+     "Catwalk",
+     0.29
+    ],
+    [
+     "T Roof",
+     0.29
+    ],
+    [
+     "Jungle",
+     0.29
+    ],
+    [
+     "Underpath Stairs",
+     0.14
+    ]
+   ],
    "fast": 0.0,
    "late": 0.29
   },
@@ -251,6 +689,32 @@
    "tempo": "",
    "n": 6,
    "plantSec": 69.9,
+   "farHold": [
+    [
+     "Mid",
+     0.67
+    ],
+    [
+     "Underpath",
+     0.5
+    ],
+    [
+     "Chair",
+     0.33
+    ],
+    [
+     "Palace Exit",
+     0.33
+    ],
+    [
+     "T Ramp",
+     0.33
+    ],
+    [
+     "B Short",
+     0.17
+    ]
+   ],
    "fast": 0.0,
    "late": 0.33
   },
@@ -265,6 +729,28 @@
    "tempo": "",
    "n": 6,
    "plantSec": 76.6,
+   "farHold": [
+    [
+     "Hole",
+     0.5
+    ],
+    [
+     "T Ramp",
+     0.33
+    ],
+    [
+     "Mid",
+     0.33
+    ],
+    [
+     "Connector",
+     0.17
+    ],
+    [
+     "Chair",
+     0.17
+    ]
+   ],
    "fast": 0.0,
    "late": 0.5
   },
@@ -278,6 +764,28 @@
    "tempo": "",
    "n": 4,
    "plantSec": 94.2,
+   "farHold": [
+    [
+     "Window",
+     0.5
+    ],
+    [
+     "Mid Boxes",
+     0.25
+    ],
+    [
+     "Mid",
+     0.25
+    ],
+    [
+     "T Spawn",
+     0.25
+    ],
+    [
+     "Top Mid",
+     0.25
+    ]
+   ],
    "fast": 0.0,
    "late": 0.75
   },
@@ -292,6 +800,24 @@
    "tempo": "",
    "n": 3,
    "plantSec": 95.0,
+   "farHold": [
+    [
+     "Top Mid",
+     0.33
+    ],
+    [
+     "Connector",
+     0.33
+    ],
+    [
+     "Mid",
+     0.33
+    ],
+    [
+     "T Ramp",
+     0.33
+    ]
+   ],
    "fast": 0.0,
    "late": 1.0
   },
@@ -306,6 +832,24 @@
    "tempo": "",
    "n": 3,
    "plantSec": 64.1,
+   "farHold": [
+    [
+     "Top Mid",
+     0.67
+    ],
+    [
+     "Hole",
+     0.33
+    ],
+    [
+     "Stove",
+     0.33
+    ],
+    [
+     "Connector",
+     0.33
+    ]
+   ],
    "fast": 0.0,
    "late": 0.33
   },
@@ -319,6 +863,32 @@
    "tempo": "",
    "n": 3,
    "plantSec": 93.5,
+   "farHold": [
+    [
+     "Mid",
+     0.33
+    ],
+    [
+     "Mid Boxes",
+     0.33
+    ],
+    [
+     "Window",
+     0.33
+    ],
+    [
+     "Underpath Stairs",
+     0.33
+    ],
+    [
+     "T Ramp",
+     0.33
+    ],
+    [
+     "Top Mid",
+     0.33
+    ]
+   ],
    "fast": 0.0,
    "late": 1.0
   },
@@ -332,6 +902,28 @@
    "tempo": "",
    "n": 3,
    "plantSec": 76.3,
+   "farHold": [
+    [
+     "Connector",
+     0.33
+    ],
+    [
+     "Palace Exit",
+     0.33
+    ],
+    [
+     "B Apartments",
+     0.33
+    ],
+    [
+     "Window",
+     0.33
+    ],
+    [
+     "Stove",
+     0.33
+    ]
+   ],
    "fast": 0.0,
    "late": 0.67
   },
@@ -344,6 +936,28 @@
    "tempo": "",
    "n": 2,
    "plantSec": 77.0,
+   "farHold": [
+    [
+     "Mid",
+     1.5
+    ],
+    [
+     "T Ramp",
+     1.0
+    ],
+    [
+     "Side Alley",
+     0.5
+    ],
+    [
+     "Catwalk",
+     0.5
+    ],
+    [
+     "Cross",
+     0.5
+    ]
+   ],
    "fast": 0.0,
    "late": 0.5
   },
@@ -357,6 +971,28 @@
    "tempo": "",
    "n": 2,
    "plantSec": 74.0,
+   "farHold": [
+    [
+     "Underpath Stairs",
+     0.5
+    ],
+    [
+     "Mid Boxes",
+     0.5
+    ],
+    [
+     "T Ramp",
+     0.5
+    ],
+    [
+     "Catwalk",
+     0.5
+    ],
+    [
+     "Palace",
+     0.5
+    ]
+   ],
    "fast": 0.0,
    "late": 0.5
   },
@@ -370,6 +1006,24 @@
    "tempo": "",
    "n": 2,
    "plantSec": 72.3,
+   "farHold": [
+    [
+     "T Ramp",
+     1.0
+    ],
+    [
+     "Top Mid",
+     0.5
+    ],
+    [
+     "B Apartments",
+     0.5
+    ],
+    [
+     "Mid Boxes",
+     0.5
+    ]
+   ],
    "fast": 0.0,
    "late": 0.5
   },
@@ -384,6 +1038,24 @@
    "tempo": "",
    "n": 2,
    "plantSec": 67.1,
+   "farHold": [
+    [
+     "Underpath",
+     0.5
+    ],
+    [
+     "Mid Boxes",
+     0.5
+    ],
+    [
+     "Mid",
+     0.5
+    ],
+    [
+     "Chair",
+     0.5
+    ]
+   ],
    "fast": 0.0,
    "late": 0.5
   },
@@ -397,6 +1069,16 @@
    "tempo": "",
    "n": 1,
    "plantSec": 106.2,
+   "farHold": [
+    [
+     "Connector",
+     1.0
+    ],
+    [
+     "Pillars",
+     1.0
+    ]
+   ],
    "fast": 0.0,
    "late": 1.0
   },
@@ -411,6 +1093,16 @@
    "tempo": "",
    "n": 1,
    "plantSec": 94.2,
+   "farHold": [
+    [
+     "Side Alley",
+     1.0
+    ],
+    [
+     "Mid",
+     1.0
+    ]
+   ],
    "fast": 0.0,
    "late": 1.0
   },
@@ -423,6 +1115,20 @@
    "tempo": "",
    "n": 1,
    "plantSec": 84.5,
+   "farHold": [
+    [
+     "B Apartments",
+     2.0
+    ],
+    [
+     "Drop",
+     1.0
+    ],
+    [
+     "T Apps",
+     1.0
+    ]
+   ],
    "fast": 0.0,
    "late": 1.0
   },
@@ -435,6 +1141,20 @@
    "tempo": "",
    "n": 1,
    "plantSec": 108.2,
+   "farHold": [
+    [
+     "Palace",
+     2.0
+    ],
+    [
+     "Tetris",
+     1.0
+    ],
+    [
+     "T Ramp",
+     1.0
+    ]
+   ],
    "fast": 0.0,
    "late": 1.0
   },
@@ -449,6 +1169,16 @@
    "tempo": "",
    "n": 1,
    "plantSec": 80.0,
+   "farHold": [
+    [
+     "Mid Bench",
+     1.0
+    ],
+    [
+     "Catwalk",
+     1.0
+    ]
+   ],
    "fast": 0.0,
    "late": 1.0
   },
@@ -462,6 +1192,20 @@
    "tempo": "",
    "n": 1,
    "plantSec": 87.5,
+   "farHold": [
+    [
+     "Stove",
+     1.0
+    ],
+    [
+     "Mid",
+     1.0
+    ],
+    [
+     "Ladder",
+     1.0
+    ]
+   ],
    "fast": 0.0,
    "late": 1.0
   },
@@ -474,6 +1218,20 @@
    "tempo": "",
    "n": 1,
    "plantSec": 105.3,
+   "farHold": [
+    [
+     "T Ramp",
+     2.0
+    ],
+    [
+     "Pillars",
+     1.0
+    ],
+    [
+     "Ladder",
+     1.0
+    ]
+   ],
    "fast": 0.0,
    "late": 1.0
   },
@@ -487,6 +1245,20 @@
    "tempo": "",
    "n": 1,
    "plantSec": 114.4,
+   "farHold": [
+    [
+     "Chair",
+     1.0
+    ],
+    [
+     "Mid",
+     1.0
+    ],
+    [
+     "Catwalk",
+     1.0
+    ]
+   ],
    "fast": 0.0,
    "late": 1.0
   },
@@ -500,6 +1272,20 @@
    "tempo": "",
    "n": 1,
    "plantSec": 80.8,
+   "farHold": [
+    [
+     "Palace Exit",
+     1.0
+    ],
+    [
+     "Tetris",
+     1.0
+    ],
+    [
+     "T Ramp",
+     1.0
+    ]
+   ],
    "fast": 0.0,
    "late": 1.0
   },
@@ -514,6 +1300,16 @@
    "tempo": "",
    "n": 1,
    "plantSec": 72.1,
+   "farHold": [
+    [
+     "Palace",
+     1.0
+    ],
+    [
+     "Connector",
+     1.0
+    ]
+   ],
    "fast": 0.0,
    "late": 0.0
   },
@@ -527,6 +1323,16 @@
    "tempo": "",
    "n": 1,
    "plantSec": 67.1,
+   "farHold": [
+    [
+     "T Ramp",
+     2.0
+    ],
+    [
+     "T Roof",
+     1.0
+    ]
+   ],
    "fast": 0.0,
    "late": 0.0
   },
@@ -541,6 +1347,12 @@
    "tempo": "",
    "n": 1,
    "plantSec": 29.5,
+   "farHold": [
+    [
+     "Connector",
+     1.0
+    ]
+   ],
    "fast": 1.0,
    "late": 0.0
   }

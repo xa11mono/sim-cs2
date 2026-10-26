@@ -103,11 +103,16 @@ function posOwnZones(side, who){
 var POS_SIDE = {};
 function posSideOf(nm){
   if(POS_SIDE[nm] !== undefined) return POS_SIDE[nm];
-  var inL = function(k, keys){ return keys.some(function(f){ return (POS[k] && POS[k][f] || []).indexOf(nm) >= 0; }); };
-  var s = inL("A", ["ctHold","ctSecond","ctRetake"]) ? "A" : inL("B", ["ctHold","ctSecond","ctRetake"]) ? "B" : inL("M", ["ctHold"]) ? "M" : null;
-  if(!s){ var p = zonePoint(nm, GEO.ctMid);
-    if(p){ var c = [["A", SITES.A], ["B", SITES.B], ["M", GEO.ctMid]].map(function(q){ return [q[0], Math.hypot(p.x-q[1].x, p.y-q[1].y)]; }).sort(function(a, d){ return a[1]-d[1]; }); s = c[0][0]; } }
-  return (POS_SIDE[nm] = s);
+  // (v433, М167, владелец: «kyousuke играет окно, а не шорт») сторона места — где его держат CT (ctHold A / B / мид); в нескольких списках
+  // или ни в одном — к чему ближе (центр сайта / мид CT). Раньше первыми шли списки A и B целиком, с местами ретейка (ctRetake): Short и
+  // Connector — места ретейка B и A — становились «B» и «A», хотя держат их с мида (Short в 283 ед. от мида, в 521 от B); Underpath
+  // (держат и с B, и с мида) — «B». Мидеру kyousuke его место из демок Short (16 % раундов) отсекалось как чужая сторона
+  var hold = ["A","B","M"].filter(function(k){ return (POS[k] && POS[k].ctHold || []).indexOf(nm) >= 0; });
+  var s = hold.length === 1 ? hold[0] : null;
+  if(!s){ var p = zonePoint(nm, GEO.ctMid), cs = hold.length ? hold : ["A","B","M"], ref = {A: SITES.A, B: SITES.B, M: GEO.ctMid};
+    if(p){ var c = cs.map(function(k){ return [k, Math.hypot(p.x-ref[k].x, p.y-ref[k].y)]; }).sort(function(a, d){ return a[1]-d[1]; }); s = c[0][0]; } }
+  if(s) POS_SIDE[nm] = s;   // нет точки зоны (ещё не готовы при загрузке) — не запоминается
+  return s;
 }
 // места роли + свои места игрока по демкам (доля выше средней по его местам) — только на стороне слота расстановки: сторону задаёт
 // расстановка, привычка игрока — точку внутри стороны. (v425) раньше свои места брались со всей карты и по весу перебивали места роли:

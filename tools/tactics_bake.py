@@ -130,6 +130,7 @@ def analyse():
     T = collections.Counter(); TR = collections.defaultdict(collections.Counter); TPLANT = collections.defaultdict(list)
     TE = collections.defaultdict(collections.Counter)   # вход (ветка) → зоны, из которых заходили на сайт
     TCNT = collections.defaultdict(collections.Counter)  # подпись → игроков по веткам (сумма по раундам)
+    FARH = collections.defaultdict(collections.Counter)  # (v433) подпись → где держат «far» (не заходили на сайт до планта) с 15-й с
     CT = collections.Counter(); CTF = collections.Counter(); n_ct = 0
     allr = []
     per_demo = []
@@ -159,11 +160,12 @@ def analyse():
                 CTF[tuple(sorted(fwd))] += 1
             # ---- T ----
             if not r['tplant'] or r['site'] not in ('A', 'B'): continue
-            site = r['site']; lanes = []
+            site = r['site']; lanes = []; far_h = []
             for sid, g in G.items():
                 m = (g.tick.values >= t0) & (g.tick.values <= r['tplant'])
                 if not m.any() or g.side.values[m][0] != 'T': continue
                 xs, ys = g.x.values[m][::8], g.y.values[m][::8]
+                ts8 = g.tick.values[m][::8]; xa, ya = xs, ys
                 if not ENTRY:   # до первого захода на сайт (ближе ENTER_R к центру плантов)
                     inn = np.nonzero(np.hypot(xs - CEN[site][0], ys - CEN[site][1]) < ENTER_R)[0]
                     if not len(inn):
@@ -176,6 +178,10 @@ def analyse():
                     if z and (not seq or seq[-1] != z): seq.append(z)
                 lane, route = lane_of(seq if (ENTRY or xs is not None) else None, site, SZ)
                 lanes.append(lane)
+                if lane == 'far':   # (v433) где он провёл больше всего времени с 15-й с до планта
+                    zc = collections.Counter(zone(x, y) for x, y, tq in zip(xa, ya, ts8) if tq >= t0 + 15*64)
+                    zc.pop(None, None)
+                    far_h.append(zc.most_common(1)[0][0] if zc else None)
                 if lane != 'far':
                     TR[(site, lane)][tuple(route)] += 1
                     TE[(site, lane)][route[-1]] += 1
@@ -189,6 +195,8 @@ def analyse():
                 sig = (site, tuple(sorted(l for l in c if l != 'far')), '')
                 for l in c: TCNT[sig][l] += c[l]
             T[sig] += 1; TPLANT[sig].append(sec)
+            for h in far_h:
+                if h: FARH[sig][h] += 1
     nplant = sum(T.values())
     out = {'map': MAPNAME, 'plants': nplant, 'ctRounds': n_ct, 'siteZones': {k: sorted(v) for k, v in (SZ or {}).items()},
            'siteCenter': CEN,
@@ -201,6 +209,7 @@ def analyse():
         if not ENTRY:
             lanes['far'] = max(0, 5 - sum(lanes.values()))
         out['T'].append({'site': sig[0], 'lanes': lanes, 'tempo': sig[2], 'n': n, 'plantSec': round(float(np.median(ps)), 1),
+                         'farHold': [[z, round(c / n, 2)] for z, c in FARH[sig].most_common(6)],
                          'fast': round(float((ps < 40).mean()), 2), 'late': round(float((ps > 75).mean()), 2)})
     print('== T: модальные маршруты по входам')
     for k, C in sorted(TR.items()):
@@ -327,6 +336,16 @@ def game_tactics(A):
                 if len(via) >= 2:
                     g['stage'] = via[-2]; g['look'] = ent(l)
                 groups.append(g)
+            # (v433, PRINCIPLES М159/М167: «у каждой роли всегда есть задача»; саппорт без группы стоял «без задачи» — 53 с в р10 м1 Mirage)
+            # кто не заходил на сайт до планта (far: лёркер и ещё кто-то) — по демкам держат мид или подход к своему сайту (farHold: где
+            # провели больше всего времени с 15-й с). Лёркер — свой мозг в игре (другой сайт); саппорт без группы — группа на самом частом
+            # месте far не на другом сайте: зона мида — TMID (точка — места T в миде по демкам), иначе — эта зона
+            have = {r for g in groups for r in g['roles']}
+            if 'support' not in have and s['lanes'].get('far', 0) >= 2:
+                other = 'B' if site == 'A' else 'A'
+                hz = next((z for z, _ in s.get('farHold', []) if z and z not in set(REG.get(other, []))), None)
+                if hz:
+                    groups.append({'roles': ['support'], 'stage': 'TMID' if hz in set(REG.get('mid', [])) else hz})
             t['groups'] = groups
         tt.append(t)
     for site in 'AB':      # раш на каждый сайт — у эко и пистолеток должен быть выбор
