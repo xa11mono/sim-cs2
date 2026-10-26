@@ -37,13 +37,16 @@ function ctBrain(){
   }
   ["A","B"].forEach(function(k){
     var est = intelEstimate("CT", SITES[k].x, SITES[k].y, 400, 5*64);
-    var car = ct.bombDown ? {x:ct.bombDown.x, y:ct.bombDown.y, tick:tick} : teamIntel.CT.carrier;
-    var carrierHere = car && tick - car.tick < 5*64 && Math.hypot(car.x-SITES[k].x, car.y-SITES[k].y) < 400;
-    // войс: бомбу видели на подходе к этому сайту (заметно ближе к нему, чем к другому)
+    // бомба у сайта / на подходе к нему (заметно ближе к нему, чем к другому). (v432, М167, м1 Mirage р11: sh1ro с бомбой видели в Connector,
+    // потом на Mid, уже по пути на B, — CT до конца раунда держали A) где носитель — по знанию команды (knowEnemySpots: гипотезы с
+    // направлением хода, со временем расходятся), а не точка, где его видели, на 5 с: точка у Connector считалась «бомба идёт на A»,
+    // куда бы он ни шёл. Бомба выбита и лежит — где лежит. «Скорее всего» — больше половины веса гипотез
     var ko2 = k === "A" ? "B" : "A";
-    var carrierTo = !carrierHere && car && tick - car.tick < 5*64 &&
-      Math.hypot(car.x-SITES[k].x, car.y-SITES[k].y) < 900 &&
-      Math.hypot(car.x-SITES[k].x, car.y-SITES[k].y) + 250 < Math.hypot(car.x-SITES[ko2].x, car.y-SITES[ko2].y);
+    var carS = ct.bombDown ? [{x:ct.bombDown.x, y:ct.bombDown.y, w:1}] : (teamIntel.CT.carrierId ? knowEnemySpots("CT", teamIntel.CT.carrierId) : []);
+    var wHere = 0, wTo = 0;
+    carS.forEach(function(q){ var dk = Math.hypot(q.x-SITES[k].x, q.y-SITES[k].y);
+      if(dk < 400) wHere += q.w; else if(dk < 900 && dk + 250 < Math.hypot(q.x-SITES[ko2].x, q.y-SITES[ko2].y)) wTo += q.w; });
+    var carrierHere = wHere > 0.5, carrierTo = !carrierHere && wHere + wTo > 0.5;
     // войс: "минус на A" — тиммейта убили у сайта за последние 8с
     var deathsHere = intelDeathsNear("CT", SITES[k].x, SITES[k].y, 450, 8*64);
     // слышали плант — T точно на этом сайте, и их там минимум двое

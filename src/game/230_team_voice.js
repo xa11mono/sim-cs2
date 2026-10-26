@@ -116,10 +116,11 @@ function teamPropose(b, m){
 // ---------- поводы: по своему b.know ----------
 function teamNotice(b){
   var K = b.know, V = b.voice; if(!K) return;
-  // see: видимые враги по зонам
+  // see: видимые САМИМ враги по зонам. (v432, М167, м1 Mirage р11: TN1R со спавна давал «один A Trash», «один Ticket» — их видел sh1ro)
+  // в знании «видим» — это радар команды; говорит тот, кто видит сам, остальные и так знают по радару
   var byZone = {};
   for(var id in K.enemies){
-    var B = K.enemies[id]; if(!B.visible) continue;
+    var B = K.enemies[id]; if(!B.visible || !B.mine) continue;
     var z = B.last.zone; if(!z) continue;
     (byZone[z] = byZone[z] || []).push(B);
   }

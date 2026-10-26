@@ -146,8 +146,11 @@ function tBrain(){
     if(nClr >= 2){
       var crC = bomb.carrier, dHc = polyLen(pathPts(crC.x, crC.y, site.x, site.y)), dOc = polyLen(pathPts(crC.x, crC.y, So.x, So.y));
       var bO = beliefCount("T", BZ.siteNear[other]||[]), bH = beliefCount("T", BZ.siteNear[tt.site]||[]);
-      var eOc = intelEstimate("T", So.x, So.y, 500, 6*TICK_HZ);
-      if(bO < 0.9 && eOc.seen + eOc.heard === 0 && (bH >= 0.8 || dOc < dHc) && secLeft > dOc/SPEED + PLANT_TICKS/TICK_HZ + 8 && iglTake(tt, tick)){
+      // (v432, М167, м1 Mirage р10: в 1:06 «B прочекали — пусто», хотя T знали — karrigan на B, 6 с назад убил там donk) пусто — по знанию
+      // команды (beliefCount: гипотезы врагов с направлением хода, уже со смертью своего), и другой сайт по знанию не полнее нашего: у него
+      // меньше ждём врагов, или столько же, а носителю туда ближе. Было: «меньше одного врага» (0,69 < 0,9) и никого не видели и не слышали
+      // за 6 с — знание о karrigan (0,69 на B против 0,57 на A) не учитывалось, и перекол уводил всех на сайт, где их ждали больше
+      if(bO < 0.9 && (bO < bH || (bO <= bH && dOc < dHc)) && secLeft > dOc/SPEED + PLANT_TICKS/TICK_HZ + 8 && iglTake(tt, tick)){
         tt._clrReb = true; tt.rebound = true;
         voiceLog("T", "clrreb"+other, "IGL", "ПЕРЕКОЛЛ "+tt.site+" → "+other+": "+other+" прочекали — пусто, все на "+other+", ставим там!");
         logEvent("IGL: "+other+" прочекан и пуст — перекол → "+other);

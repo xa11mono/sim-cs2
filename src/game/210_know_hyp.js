@@ -138,6 +138,18 @@ function knowValue(zid, side, K){
   return (side === "T" ? g.posT : g.posCT)[zid] ? 2 : 1;
 }
 
+// (v432) где, по знанию команды, враг id сейчас: виден — где виден; иначе точки гипотез с весами (held — где был, moved — центр зоны,
+// куда мог уйти с учётом направления хода; moved_unknown — без места). Знание у бойцов одной команды общее по радару — берётся у первого живого
+function knowEnemySpots(team, id){
+  var g = knowGraph();
+  for(var i = 0; i < bots.length; i++){ var b = bots[i]; if(!b.alive || b.team !== team || !b.know || !b.know.enemies) continue;
+    var B = b.know.enemies[id]; if(!B) return [];
+    if(B.visible) return [{x: B.last.x, y: B.last.y, w: 1}];
+    return (B.hyps || []).map(function(h){ var p = h.type === "held" ? h : (h.zone && g.c[h.zone]); return p ? {x: p.x, y: p.y, w: h.weight || 0} : null; }).filter(Boolean);
+  }
+  return [];
+}
+
 // ---------- гипотезы от последнего точного контакта ----------
 function knowBuild(K, side, last){
   var g = knowGraph(), Z0 = last.zone, hyps = [];
@@ -248,8 +260,9 @@ function knowRoundStart(b){
 
 // ---------- зрение и радар: вижу / потерял ----------
 function knowVision(b){
-  var K = b.know, seen = {}, list = [];
+  var K = b.know, seen = {}, list = [], own = {};
   bots.forEach(function(m){ if(m.alive && m.team === b.team) (m._visible || []).forEach(function(e){ if(e.alive && !seen[e.id]){ seen[e.id] = true; list.push(e); } }); });
+  (b._visible || []).forEach(function(e){ own[e.id] = true; });
   list.forEach(function(e){
     var B = K.enemies[e.id];
     var last = {x: e.x, y: e.y, zone: knowZoneAt(e.x, e.y, e.z), tick: tick, stance: e.crouching ? "crouch" : "stand",
@@ -257,7 +270,7 @@ function knowVision(b){
                 weapon: e.weapon && e.weapon.key};
     var was = B && B.visible;
     if(!B){ B = K.enemies[e.id] = {id: e.id, side: e.team}; }
-    B.last = last; B.visible = true;
+    B.last = last; B.visible = true; B.mine = !!own[e.id];   // (v432) visible — видит команда (радар), mine — сам (колл «вижу» — только своё)
     B.hyps = [{type: "held", zone: last.zone, x: last.x, y: last.y, weight: 1}];
     if(e.planting && !K.planted) K.plantSeen = knowNearestSite(e.x, e.y);
     if(!was) knowTrace(b, e.id, "увидел (" + knowZoneName(last.zone) + ")");
@@ -265,7 +278,7 @@ function knowVision(b){
   for(var id in K.enemies){
     var B2 = K.enemies[id];
     if(B2.visible && !seen[id]){
-      B2.visible = false;
+      B2.visible = false; B2.mine = false;
       B2.hyps = knowBuild(K, B2.side, B2.last);
       B2.hyps[0].inView = true;   // край видимости: «пусто» засчитается, только когда посмотрят заново
       knowTrace(b, id, "потерял из вида (" + knowZoneName(B2.last.zone) + ")");

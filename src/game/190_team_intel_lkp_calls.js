@@ -94,7 +94,7 @@ function teamInfoTick(){
         var prevCar = teamIntel[b.team].carrier;
         if(!prevCar || tick - prevCar.tick > 5*64)
           voiceLog(b.team, "bomb", b.id, "бомба у "+e.id+" "+calloutName(e.x, e.y)+"!");
-        teamIntel[b.team].carrier = {x:e.x, y:e.y, tick:tick, by:b.id};
+        teamIntel[b.team].carrier = {x:e.x, y:e.y, tick:tick, by:b.id}; teamIntel[b.team].carrierId = e.id;   // (v432) кто носитель — помнят до конца раунда, где он — знание (knowEnemySpots)
       }
     });
     // слышу — своё; команде — только то, что сказано в войсе (teamChannel → teamHeardToIntel)
