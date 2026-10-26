@@ -129,11 +129,11 @@ function lineupTick(){
     // гранаты по плану команды (365): граната этого типа отложена на этот момент или раньше и — до контакта / на сетапе / на выходе —
     // для зоны лайнапа (CT — где стоит бросающий, T — куда падает граната; как в tools/nadeplan_bake.py). Колл, ретейк, после
     // планта — помощь: зона не важна, кидает ближайший, у кого есть
-    var luM = L.team === "CT" ? ({timed:"now", call:"call", retake:"retake"}[L.trigger] || "now")
-                              : ({insta:"now", setup:"now", exec:"exec", postplant:"postplant"}[L.trigger] || "now");
-    // у T на сетапе зона не проверяется (v428, м1 Mirage: с ней T на сетапе кидали 4,7 гранаты за раунд вместо 6,6, у про 6,7): у про
-    // 61 % смоков T на сетапе летят в мид — их кидают все, кто идёт через спавн и мид; с сайта на сайт T не кидают и так (карта)
-    var luZ = (L.team === "CT" && luM === "now") || luM === "exec" ? (L._npz || (L._npz = L.team === "CT" ? npZoneAt(L.from.x, L.from.y) : npZoneAt(L.to.x, L.to.y))) : null;
+    var luM = npMomentOfLineup(L);
+    // зона лайнапа — до контакта / на сетапе / на выходе (CT — откуда бросок, T — куда падает); колл, ретейк, после планта — помощь, зона
+    // не важна. (v430) у T на сетапе зона снова проверяется: в v428 её сняли, думая, что из-за неё просел сетап, — причина была в другом
+    // (v429, гранаты на потом); без неё лайнапы сетапа доставались кому угодно (м1 Mirage: 500–1000 ед. назад за гранатой)
+    var luZ = luM === "now" || luM === "exec" ? (L._npz || (L._npz = L.team === "CT" ? npZoneAt(L.from.x, L.from.y) : npZoneAt(L.to.x, L.to.y))) : null;
     var okBot = function(b){ return b.team === L.team && b.alive && b.nades && b.nades[L.type] > 0 && npCanUse(b, L.type, luM, luZ) &&
       !b.planting && !b.defusing && !(bomb.state === "carried" && bomb.carrier === b) && Math.hypot(b.x-L.from.x, b.y-L.from.y) < maxD; };
     // (v359, р7) кто уже стоит на сайте T (взял его) — с сайта за гранатой назад не уходит

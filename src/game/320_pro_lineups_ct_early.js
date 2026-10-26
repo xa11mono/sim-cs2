@@ -19,7 +19,10 @@ function proLineups(){
   PRO_GROUPS = {};
   PRO_LINEUPS.forEach(function(L){
     var zt = zoneIdAt(L.to.x, L.to.y) || (Math.round(L.to.x/150)+","+Math.round(L.to.y/150));
-    L.grp = [L.team, L.trigger, L.site, L.type, zt].join("|");
+    // (v430, М167, м1 Mirage р4: смок Catwalk «инста» (donk) и «сетап» (TN1R) — два дыма в одно место) группа — по моменту плана гранат
+    // (365: CT по времени, T инста и сетап — «сейчас»), а не по триггеру; у «сейчас» — без сайта (та же цель в тактике на A и на B)
+    var mo = npMomentOfLineup(L);
+    L.grp = [L.team, mo, mo === "now" ? "" : L.site, L.type, zt].join("|");
     (PRO_GROUPS[L.grp] = PRO_GROUPS[L.grp] || []).push(L);
   });
   return PRO_LINEUPS;

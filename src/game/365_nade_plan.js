@@ -41,6 +41,21 @@ function npZoneOf(b){
   if(tac.style === "split") return (b.tRole === "entry" || b.tRole === "igl") ? tac.site : "mid";
   return b.tRole === "support" ? "mid" : tac.site;   // exec, fake: поддержка — мид / фейк, остальные — у цели
 }
+// момент плана гранат у лайнапа про (по его триггеру) — одно место для 320 (группы) и 390 (кто кидает)
+function npMomentOfLineup(L){
+  return L.team === "CT" ? ({timed:"now", call:"call", retake:"retake"}[L.trigger] || "now")
+                         : ({insta:"now", setup:"now", exec:"exec", postplant:"postplant"}[L.trigger] || "now");
+}
+// (v430, М167) зоны мест роли CT в расстановке и соседние (граф знания, 210): лайнап «по времени» кидает тот, у чьих мест точка броска.
+// Было — только сторона карты: опорник B с Van шёл в Hole / B Short кинуть HE в мид (700 ед. от поста). Нет расстановки — null (любой)
+function npRoleZones(b){
+  var S = teamTac.CT && teamTac.CT.setup, R = S && S.roles && S.roles[b.tRole];
+  var names = (R && R.pos) || (R && R.early && R.early.pos) || []; if(!names.length) return null;
+  var g = knowGraph(), set = {};
+  names.forEach(function(nm){ var p = zonePoint(nm, GEO.ctMid); if(!p) return; var z = knowZoneAt(p.x, p.y); if(z == null) return;
+    set[z] = 1; (g.adj[z] || []).forEach(function(a){ set[a] = 1; }); });
+  return set;
+}
 // момент раунда для команды бойца сейчас
 function npMomentNow(b){
   if(b.team === "CT"){ if(bomb && bomb.state === "planted") return "retake"; var ct = teamTac.CT; return (ct && ct.call && ct.call.count >= 1) ? "call" : "now"; }
@@ -90,14 +105,18 @@ function teamNadePlan(team, rt){
   // (v429) у гранаты «сейчас» и «выход» — конкретная цель из демок: лайнап про этой зоны на этот момент (группа одной цели, 320),
   // по долям про; одна цель — одна граната. Хозяин кинет её, когда придёт время лайнапа (390: розыгрыш лайнапа — по плану)
   var taken = {}, gi = 0;
-  Object.keys(items).forEach(function(id){ items[id].forEach(function(it){
+  Object.keys(items).forEach(function(id){ var ob = bots.filter(function(o){ return o.id === id; })[0], RZ = team === "CT" && ob ? npRoleZones(ob) : null;
+    items[id].forEach(function(it){
     var trig = team === "CT" ? (it.m === "now" ? ["timed"] : null) : (it.m === "now" ? ["insta","setup"] : it.m === "exec" ? ["exec"] : null);
     if(!trig) return;
     var site = team === "T" && teamTac.T && teamTac.T.site, G = {}, tot = 0;
     proLineups().forEach(function(L){
       if(L.team !== team || L.type !== it.t || trig.indexOf(L.trigger) < 0 || taken[L.grp]) return;
       if(team === "T" && L.site !== "any" && L.site !== site) return;
-      if((team === "CT" || it.m === "exec") && it.z && npZoneAt(team === "CT" ? L.from.x : L.to.x, team === "CT" ? L.from.y : L.to.y) !== it.z) return;
+      // зона цели — зона хозяина: CT — откуда бросок, T — куда падает (и «сейчас», и выход; v430: у T «сейчас» не сверялась — entry группы B
+      // получал смок на Stairs и шёл назад к T Ramp, м1 Mirage р8). CT — ещё и у мест своей роли (npRoleZones)
+      if(it.z && npZoneAt(team === "CT" ? L.from.x : L.to.x, team === "CT" ? L.from.y : L.to.y) !== it.z) return;
+      if(RZ && !RZ[knowZoneAt(L.from.x, L.from.y)]) return;
       G[L.grp] = (G[L.grp] || 0) + L.prob;
     });
     var ks = Object.keys(G); ks.forEach(function(k){ tot += G[k]; }); if(!tot) return;
