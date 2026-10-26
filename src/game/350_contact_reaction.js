@@ -19,13 +19,16 @@ var CONTACT_R = 700, CONTACT_AGE = 2.5, CONTACT_HOLD = 2.5, CONTACT_SWING = 220,
 function contactInfo(b){
   var best = null, bd = CONTACT_R, BL = beliefLast[b.team] || {}, myZ = {}, trade = tick < (b._tradeUntil || 0);
   myZ[zoneIdAt3(b.x, b.y, b.z)] = 1; if(b.post) myZ[zoneIdAt3(b.post.x, b.post.y, b.post.z != null ? b.post.z : b.z)] = 1;
-  var take = function(x, y, seen){ var d = Math.hypot(x-b.x, y-b.y); if(d < bd){ bd = d; best = {x:x, y:y, seen:seen}; } };
-  var li = b.lastIntel; if(li && !li.src && tick - li.tick <= CONTACT_AGE*TICK_HZ) take(li.x, li.y, true);
+  var take = function(x, y, seen, id){ var d = Math.hypot(x-b.x, y-b.y); if(d < bd){ bd = d; best = {x:x, y:y, seen:seen, id:id || null}; } };
+  // (v435, М168, скрин владельца 26.10: после фрага «держит свой контакт» на месте убитого) источник — живой враг: убитый (киллфид)
+  // контактом не бывает — ни то, где его видел, ни его звук (раньше их брали ещё 2,5 с после смерти и держали взгляд на трупе)
+  var deadSrc = function(id){ var o = id ? teamBot(id) : null; return !!o && !o.alive; };
+  var li = b.lastIntel; if(li && !li.src && tick - li.tick <= CONTACT_AGE*TICK_HZ && !deadSrc(li.id)) take(li.x, li.y, true, li.id);
   for(var id in BL){ var e = BL[id], ob = teamBot(id); if(!ob || !ob.alive || tick - e.tick > CONTACT_AGE*TICK_HZ) continue;
-    if(trade || myZ[zoneIdAt3(e.x, e.y, e.z)]) take(e.x, e.y, e.src === "spotted"); }
-  var hs = b.heardSound; if(hs && hs.team && hs.team !== b.team && tick - hs.tick <= CONTACT_AGE*TICK_HZ && (hs.kind !== "call" || trade || myZ[zoneIdAt3(hs.x, hs.y, hs.z)])) take(hs.x, hs.y, false);
+    if(trade || myZ[zoneIdAt3(e.x, e.y, e.z)]) take(e.x, e.y, e.src === "spotted", id); }
+  var hs = b.heardSound; if(hs && hs.team && hs.team !== b.team && tick - hs.tick <= CONTACT_AGE*TICK_HZ && !deadSrc(hs.src) && (hs.kind !== "call" || trade || myZ[zoneIdAt3(hs.x, hs.y, hs.z)])) take(hs.x, hs.y, false, hs.src);
   var N = b._lastNade; if(!best && N && N.type === "flash" && tick - N.t >= NADE.flash.fuse - 8 && tick - N.t < NADE.flash.fuse + 40 && Math.hypot(N.x-b.x, N.y-b.y) < CONTACT_R) best = {x:N.x, y:N.y, own:true};
-  return best ? {x:best.x, y:best.y, d:bd, seen:!!best.seen, own:!!best.own} : null;
+  return best ? {x:best.x, y:best.y, d:bd, seen:!!best.seen, own:!!best.own, id:best.id || null} : null;
 }
 function contactCritical(b, C){
   if(b.planting || b.defusing) return true;
@@ -51,8 +54,9 @@ function contactMateFight(b, C){
 }
 function contactTick(b){
   if(!b.alive || roundState !== "live") return;
-  var K = b._contact;
-  if(K && tick >= K.until){ K = b._contact = null;
+  var K = b._contact, kd = K && K.id ? teamBot(K.id) : null;
+  // (v435, М168) контакт кончается по таймеру — или сразу, когда его враг убит (киллфид): держать взгляд на трупе незачем
+  if(K && (tick >= K.until || (kd && !kd.alive))){ K = b._contact = null;
     // (v375, отметка владельца: игрок 8 после смерти тиммейта стоял на спавне CT, «выходит на врага рядом», а врага нет) реакция
     // на контакт кончилась — её точка снимается, бот возвращается к своей задаче (раньше пост «контакт» оставался до конца раунда)
     if(b.post && /^contact/.test(b.post.tag)) clearPost(b); }
@@ -65,13 +69,13 @@ function contactTick(b){
   // тот же враг давал контакт снова — половина «ходит туда-сюда»)
   // (v418) держит — а свой рядом начал бой с этой группой: решение «держать / выйти» пересматривается (ниже, contactMateFight)
   var reMate = K && K.tag === "contact:hold" && tick - (b._mateReT||-1e9) >= CONTACT_GAP*TICK_HZ && contactMateFight(b, C);   // не чаще CONTACT_GAP
-  if(K && Math.hypot(C.x-K.x, C.y-K.y) < 120 && !reMate){ K.x = C.x; K.y = C.y; K.until = tick + CONTACT_HOLD*TICK_HZ; return; }
+  if(K && Math.hypot(C.x-K.x, C.y-K.y) < 120 && !reMate){ K.x = C.x; K.y = C.y; if(C.id) K.id = C.id; K.until = tick + CONTACT_HOLD*TICK_HZ; return; }
   if(reMate) b._mateReT = tick;
   if(b._contactT && tick - b._contactT < CONTACT_GAP*TICK_HZ && !K) return;
   var look = {x:C.x, y:C.y};
   if(contactCritical(b, C)){
     // задача важнее: взгляд — на контакт (не перебивает задачу), а у CT, идущего на бомбу, — смок на врага, если есть
-    b._contact = {x:C.x, y:C.y, until: tick + CONTACT_HOLD*TICK_HZ, lock:false}; b._contactT = tick;
+    b._contact = {x:C.x, y:C.y, id:C.id, until: tick + CONTACT_HOLD*TICK_HZ, lock:false}; b._contactT = tick;
     if(b.team === "CT" && bomb && bomb.state === "planted" && b.nades && b.nades.smoke > 0 && !b.defusing && C.d > 150) assignNade(b, "smoke", look, "смок на врага рядом — иду к бомбе", {now:true, range:900});
     return;
   }
@@ -94,8 +98,8 @@ function contactTick(b){
   var sp = cand[0]; if(!sp) return;
   var tag = swing ? "contact:swing" : "contact:hold";
   // (v378) задача важнее контакта (бомба, сейв — арбитр места, setPost) — ноги остаются на ней, взгляд — на контакт
-  if(!setPost(b, sp, look, true, tag)){ b._contact = {x:C.x, y:C.y, until: tick + CONTACT_HOLD*TICK_HZ, lock:false}; b._contactT = tick; return; }
-  b._contact = {x:C.x, y:C.y, until: tick + CONTACT_HOLD*TICK_HZ, lock:true, pt:sp, tag:tag}; b._contactT = tick;
+  if(!setPost(b, sp, look, true, tag)){ b._contact = {x:C.x, y:C.y, id:C.id, until: tick + CONTACT_HOLD*TICK_HZ, lock:false}; b._contactT = tick; return; }
+  b._contact = {x:C.x, y:C.y, id:C.id, until: tick + CONTACT_HOLD*TICK_HZ, lock:true, pt:sp, tag:tag}; b._contactT = tick;
   b._reposUntil = 0; b._probeLock = 0; b.lastIntel = {x:look.x, y:look.y, tick:tick, src:"call"};
   if(swing && !C.own && b.nades && b.nades.flash > 0 && C.d > 150 && !hasLOS(b.x, b.y, look.x, look.y, b.z)) assignNade(b, "flash", look, "флешка под выход на врага рядом", {now:true, range:900});
   voiceLog(b.team, "ct"+b.id+Math.round(tick/64), b.id, (swing ? "выхожу на него " : "держу ")+calloutName(look.x, look.y));

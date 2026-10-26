@@ -106,6 +106,10 @@ function fightCycleTick(b, dtSec, busy){
     F = b._fc = {ph:"line", ax:b.baseX, ay:b.baseY, t:tick, until:0, seen:tick};
   }
   if(b._sawEnemy){ F.seen = tick; F.e = b._nearestEnemyBot; }
+  // (v435, М168, скрин владельца 26.10: после фрага «бой · на линии · не видит врага») противник этой перестрелки убит (киллфид), другого
+  // не видит и по нему не стреляют — перестрелка кончилась сейчас. Раньше «на линии» держалось до паузы про (до 2,7 с) / конца стрельбы
+  // и только тогда проверялось, жив ли враг
+  if(F.e && !F.e.alive && !b._sawEnemy && !ssNew){ b._fc = null; return; }
   F.moving = false;
   if(ssNew && F.ph !== "off"){
     F.ss = SS.t; F.e = SS.by;
@@ -123,7 +127,7 @@ function fightCycleTick(b, dtSec, busy){
     if(!F.until && b.lastShotTick >= F.t) F.until = b.lastShotTick + Math.round((peekQ(D.dur, fightRand(b, 1)) + 0.5)*TICK_HZ);
     if(F.until && tick >= F.until){
       var e = F.e;
-      if(!e || !e.alive){ b._fc = null; return; }
+      if(!e){ b._fc = null; return; }
       var c = fightCover(b, e, peekQ(D.shift, fightRand(b, 2)));
       if(!c) c = fightCover(b, e, D.shift[4]);
       if(!c){ F.until = 0; F.t = tick; return; }   // укрыться негде — остаётся на линии

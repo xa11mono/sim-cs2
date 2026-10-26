@@ -62,7 +62,7 @@ function resolveEngagements(){
       if(!b.lastIntel || b.lastIntel.tick < tick - 1) b._intelPre = b.lastIntel;
       // память для префайра (план §3/§6): "видел врага тут только что" —
       // обновляется каждый тик реального контакта, не только на входе в бой
-      b.lastIntel = {x:b._nearestEnemyBot.x, y:b._nearestEnemyBot.y, tick:tick};
+      b.lastIntel = {x:b._nearestEnemyBot.x, y:b._nearestEnemyBot.y, tick:tick, id:b._nearestEnemyBot.id};   // (v435) id — кого видел (контакт кончается с его смертью)
     } else {
       // раньше тут было contactStreak = 0 и nextShotTick = 0: один тик без LOS
       // (враг чуть сдвинулся за край угла, пик закончился) — и стрелок заново
