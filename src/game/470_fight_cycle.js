@@ -303,12 +303,6 @@ function lowHpBack(b){
 // выход T, время раунда, размен, бомба, ротация на подтверждённый выход.
 // (v438) слышимость бега: тот же радиус, что у звука шагов (540: SOUND_RADIUS_RUN × BAL.stepHearMul)
 function STEP_HEAR_R(){ return SOUND_RADIUS_RUN * (BAL.stepHearMul || 1); }
-// есть ли точка зоны ближе r к (x, y) — по точкам зоны (ZONE_SAMPLES, 060); нет точек — по центру
-function zoneWithin(zid, x, y, r){
-  var S = ZONE_SAMPLES[zid]; if(!S || !S.length){ var c = BZ.cent && BZ.cent[BZ.idx[zid]]; return !c || Math.hypot(c.x-x, c.y-y) <= r; }
-  for(var i = 0; i < S.length; i++) if(Math.hypot(S[i].x-x, S[i].y-y) <= r) return true;
-  return false;
-}
 function dangerWalk(b){
   if(!b.post || b.state !== "patrol" || !BZ.ids.length) return false;
   var tag = b.post.tag || "";

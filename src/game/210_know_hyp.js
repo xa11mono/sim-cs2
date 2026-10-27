@@ -151,7 +151,7 @@ function knowEnemySpots(team, id){
 }
 
 // (v438) сколько врагов (сумма весов гипотез знания команды) может быть ближе r хотя бы к одной из точек pts: держит / видели — по точке,
-// «ушёл в зону» — по ближней точке зоны (zoneWithin, 470), «ушёл неизвестно куда» — не считается. Для «услышит ли кто-то мой бег»
+// «ушёл в зону» — по центру зоны, «ушёл неизвестно куда» — не считается. Для «услышит ли кто-то мой бег»
 function knowMassNear(team, pts, r){
   var K = null; for(var i = 0; i < bots.length && !K; i++){ var b = bots[i]; if(b.alive && b.team === team && b.know && b.know.enemies) K = b.know.enemies; }
   if(!K) return 0;
@@ -161,7 +161,7 @@ function knowMassNear(team, pts, r){
     if(B.visible){ if(near(B.last.x, B.last.y)) m += 1; return; }
     (B.hyps || []).forEach(function(h){ var w = h.weight || 0; if(!w) return;
       if(h.type === "held"){ if(near(h.x, h.y)) m += w; }
-      else if(h.zone && pts.some(function(q){ return zoneWithin(h.zone, q[0], q[1], r); })) m += w; }); });
+      else if(h.zone && g.c[h.zone] && near(g.c[h.zone].x, g.c[h.zone].y)) m += w; }); });   // зона — по её центру, как knowEnemySpots (по краю зоны — соседняя зона «рядом» почти всегда: замер v438 — шифта стало больше)
   return m;
 }
 // ---------- гипотезы от последнего точного контакта ----------
