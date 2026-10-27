@@ -126,6 +126,7 @@ function applyDamage(att, b, dmg, src, o){
   dropBomb(b);
   intelDeath(b, foe);   // своего убил свой — в войсе «минус», без «убил X»: враг тут ни при чём
   if(foe){ LOOK_REPLAN[foe.team] = true; foe._killHowT = tick; }   // _killHowT — для обсервера (показ)
+  if(foe) hlKill(foe);   // (v447) хайлайт: серия в ударе
   if(foe){ foe.kills++; foe.roundKills++; foe.money = Math.min(MAX_MONEY, foe.money + (o.reward || 300)); }
   else if(mate) att.money = Math.max(0, att.money + FF_TK_CASH);
   var wkey = o.wkey || (src === "HE" ? "HE" : "MOLOTOV");

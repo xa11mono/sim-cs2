@@ -73,6 +73,7 @@ function tryShoot(shooter, target, dist){
     shooter._place = Math.max(0, Math.min(1, 1 - hD/0.35));
     shooter._headLvl = 0.55 + 0.4*skN;
   }
+  if(cs <= 1) hlContact(shooter, target);   // (v447) хайлайт: жребий «в ударе» в начале дуэли
   if(cs <= 1){
     shooter._hes = 0;
     if(BAL.execErr && shooter.prof && hashRand(tick*23 + shooter.id.charCodeAt(1)*13 + target.id.charCodeAt(1)) < 0.015 + (1-prof(shooter,"disc"))*0.05){
@@ -91,7 +92,7 @@ function tryShoot(shooter, target, dist){
     else if(tsp > 100*SPD_K) visLag = -2;
     shooter._visLag = visLag;
   } else if(BAL.partialVis) visLag = shooter._visLag || 0;
-  effReaction = Math.max(4, Math.round(shooter.reactionTicks * (shooter._reactMul || 1) * clutchMul) + (shooter._peekLag || 0) + ((BAL.awpClose && shooter.weapon.key === "AWP" && dist < 230) ? 0 : (shooter.weapon.scopeTicks || 0)) + (shooter._hes || 0) + visLag);
+  effReaction = Math.max(4, Math.round(shooter.reactionTicks * (shooter._reactMul || 1) * clutchMul * hlReact(shooter)) + (shooter._peekLag || 0) + ((BAL.awpClose && shooter.weapon.key === "AWP" && dist < 230) ? 0 : Math.round((shooter.weapon.scopeTicks || 0) * hlScope(shooter))) + (shooter._hes || 0) + visLag);
   if(shooter._smokeShot){ /* прострел смока — без реакции на "появление", он и не появлялся */ }
   else if(cs < effReaction){
     // префаер — только по тому, что сам только что видел (≤1.4с), а не по коллу/
@@ -159,7 +160,7 @@ function tryShoot(shooter, target, dist){
   // первая пуля после реакции чуть хуже (довёл прицел не до конца): у про точность 1-го выстрела очереди 0,34 против 0,39 у
   // следующих (Mirage, видимые цели) → ×(1 + AIM_FLICK); кто держал угол / заходил с прицелом — меньше
   var settle = Math.max(0, 1 - (cs - effReaction)/24);
-  var aimS = aimSigma(shooter, target, dist) * (1 + AIM_FLICK * settle * Math.min(shooter._preAim||1, (shooter._reactMul||1) < 1 ? 0.35 : 1));
+  var aimS = hlAim(shooter) * aimSigma(shooter, target, dist) * (1 + AIM_FLICK * settle * Math.min(shooter._preAim||1, (shooter._reactMul||1) < 1 ? 0.35 : 1));
   if(BAL.hitbox) recoilErr *= 0.3; // (6) отдача теперь — паттерн (ниже), тут только её "шум"
   var rest2 = recoilErr*recoilErr + spamErr*spamErr + aimS*aimS + 0.5*aimD*aimD, sM = 1;
   if(shooter.onStairs) sM *= 2.2;
