@@ -10,7 +10,10 @@
 function mkSnapList(){
   if(MK.snap) return MK.snap;
   MK.snap = __SNAP.filter(function(e){
-    if(/^(SND|HUD_)/.test(e[0])) return false;   // (v324) звук и (v430) HUD_* — только показ (AudioContext, элементы страницы) — в снимок не идут
+    if(/^(SND|HUD_)/.test(e[0])) return false;
+    // (v445, скрин владельца 28.10: «Ошибка игры… HTMLImageElement object could not be cloned», м1 тик 1280) кэши картинок (KF_IMG — иконки
+    // киллфида, NADE_IMG — силуэты гранат, v437) — показ, не игра; список снимка собирается один раз, когда кэш ещё пуст, — поэтому по имени
+    if(/IMG$/.test(e[0])) return false;   // (v324) звук и (v430) HUD_* — только показ (AudioContext, элементы страницы) — в снимок не идут
     try{ var v = e[1]();
       if(typeof v === "function") return false;
       if(v && typeof v === "object" && (v.nodeType || v instanceof CanvasRenderingContext2D || v instanceof HTMLImageElement)) return false;
@@ -95,7 +98,9 @@ function mkCheckpoint(){
 // вызывается из frame() после шагов симуляции
 function mkAfterTicks(){
   if(MK.busy || paused) return;
-  if(MK.cpMatch !== matchNum || tick - MK.lastCpTick >= MK.CP_EVERY || tick < MK.lastCpTick) mkCheckpoint();
+  // снимок для перемотки не должен останавливать игру: не получился — пропуск (перемотка возьмёт предыдущий), в консоль — причина
+  if(MK.cpMatch !== matchNum || tick - MK.lastCpTick >= MK.CP_EVERY || tick < MK.lastCpTick){
+    try{ mkCheckpoint(); }catch(e){ MK.lastCpTick = tick; MK.cpMatch = matchNum; if(typeof console !== "undefined") console.warn("снимок для перемотки не сделан:", e); } }
 }
 // перемотка: ближайший снимок не позже цели (или начало матча) → быстрый пересчёт до тика
 function mkGoTo(match, target, done){
