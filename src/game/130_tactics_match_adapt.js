@@ -169,7 +169,10 @@ function chooseTactic(){
     tmode = setupSec < tac.setupEnd - 6 ? ", быстрый" : (setupSec > tac.setupEnd + 8 ? ", поздний" : "");
     // длинный сетап: сначала дефолт (контроль карты), свою расстановку тактика
     // занимает за столько же секунд до выхода, сколько ей нужно было с начала раунда
-    var need = Math.max(14, tac.setupEnd - 6);
+    // (v440, замер группы 3: у «дефолтов» фаза дефолта не включалась — их setupEnd 68–91 с и есть поздний выход, need ≈ весь сетап, и группа
+    // с первой секунды стояла на точке выхода: Connector 0,53 игрока против 0,04 у про) у тактики-дефолта своя расстановка — это точка выхода
+    // рядом с картой, занимают её за 14 с до выхода (проектное число, как нижняя граница need)
+    var need = tac.style === "default" ? 14 : Math.max(14, tac.setupEnd - 6);
     if(setupSec - need >= 12) defUntil = roundStartTick + (setupSec - need)*64;
   }
   teamTac.T = {tac:tac, site:tac.site, phase: tac.setupEnd > 0 ? "setup" : "execute", execTick: roundStartTick + setupSec*64, defUntil: defUntil, minExec: (BAL.proTempo && tac.setupEnd > 0) ? Math.min(setupSec, 30) : 0, needT: (BAL.proTempo && tac.setupEnd > 0) ? Math.max(14, tac.setupEnd - 6) : 0,
