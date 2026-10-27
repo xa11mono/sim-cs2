@@ -199,7 +199,24 @@ var FRAME_CATCHUP_MS = 100;   // (v397, М146) проектное число: �
 // мини-карта берут его отсюда, а не читают заново после записей (тогда браузер пересчитывает раскладку всей страницы)
 var frameWrapR = null;
 function wrapRect(){ return frameWrapR || (frameWrapR = wrap.getBoundingClientRect()); }
+// (v444, владелец 27.10: «симуляция зависла полностью, кнопки работают; свернул — чёрный экран») любая ошибка в тике или рисовании
+// раньше обрывала цикл кадров навсегда (requestAnimationFrame — в конце frame): картинка стоит, кнопки живы. Теперь ошибка ставит
+// игру на паузу и показывает себя на экране (что, матч, тик) — для скриншота; цикл кадров не умирает
+var FATAL = null;
+function showFatal(e){
+  paused = true; var bp = document.getElementById("btnPause"); if(bp) bp.textContent = "Продолжить";
+  if(FATAL) return; FATAL = e;
+  var d = document.createElement("div"); d.id = "fatalBox";
+  d.style.cssText = "position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:9999;max-width:80vw;padding:12px 16px;background:#3a0d0d;border:1px solid #e5484d;color:#ffd7d7;font:12px/1.45 monospace;white-space:pre-wrap;border-radius:6px";
+  d.textContent = "Ошибка игры — сделай скриншот этого окна\nматч " + matchNum + " · раунд " + roundNum + " · тик " + tick + "\n" + String(e && e.message || e) + "\n" + String(e && e.stack || "").split("\n").slice(1, 6).join("\n");
+  document.body.appendChild(d);
+}
+window.addEventListener("error", function(ev){ showFatal(ev.error || ev.message); });
 function frame(ts){
+  try{ frameBody(ts); }catch(e){ showFatal(e); }
+  requestAnimationFrame(frame);
+}
+function frameBody(ts){
   nowTs = ts; frameWrapR = null; wrapRect();
   if(SND && SND.ctx) sndFireTick();   // (v333) треск огня — и останавливается, когда огонь погас / раунд кончился / звук выключен
   if(lastFrame===null) lastFrame = ts;
@@ -218,7 +235,6 @@ function frame(ts){
   obsOverlay();
   miniDraw();
   frameWrapR = null;   // вне кадра (клики, перемотка) — читать заново
-  requestAnimationFrame(frame);
 }
 document.getElementById("btnFreshMatch").addEventListener("click", function(){ var n = Math.max(1, parseInt(document.getElementById("inpMatchNum").value, 10) || 1); var sel = document.getElementById("selSeries"), bo = sel ? +sel.value : 3; if(bo !== SERIES.bo || seriesDone()) SERIES = {bo:bo, maps:{}}; var cw = document.getElementById("chkWarm"); if(cw && !cw.checked) freshMatch(n); else warmStart(n); paused = false; var bp = document.getElementById("btnPause"); if(bp){ bp.textContent = "Пауза"; bp.classList.remove("active"); } logEvent("Матч №"+n+" с чистого листа (воспроизводимый)", true); });
 setInterval(function(){ var el = document.getElementById("matchTick"); if(el) el.textContent = "матч "+matchNum+" · тик "+tick; }, 250);
