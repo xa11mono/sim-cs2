@@ -105,6 +105,8 @@ function ldCandName(c){
   if(c.pro) return "как у про";
   if(c.snd) return "звук / контакт";
   if(c.pos) return "позиция " + c.pos;
+  // (v437) «путь к известному врагу» раньше подписывался «угол поста» (у обоих строковый ключ) — владелец видел «угол поста» на взгляде за спину
+  if(c.j === "known") return "путь к известному врагу";
   if(typeof c.j === "string") return "угол поста";
   if(c.j >= 1000){ var z1 = BZ.ids[c.j-1000]; return "вход из " + (zoneUserName(z1) || z1); }
   var z = BZ.ids[c.j]; return zoneUserName(z) || z;

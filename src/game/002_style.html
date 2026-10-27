@@ -177,10 +177,11 @@
   canvas:active{cursor:grabbing;}
   #hud{display:none!important;}
   /* бомба стоит: красная кромка по краю экрана пульсирует (только opacity — слой на видеокарте); карту не закрывает */
-  #main::after{content:"";position:absolute;inset:0;pointer-events:none;z-index:2;opacity:0;
+  /* (v437, владелец 27.10) кромка вспыхивает с каждым писком бомбы (hudBombPulse, 635) и гаснет до слабого фона — не режет глаз */
+  #bombEdge{position:absolute;inset:0;pointer-events:none;z-index:2;opacity:0;
     box-shadow:inset 0 0 0 1px rgba(229,89,78,.6),inset 0 0 70px -14px rgba(229,89,78,.6);transition:opacity .45s var(--ease);}
-  body.bomb-on #main::after{opacity:1;will-change:opacity;animation:bombEdge 1.5s ease-in-out infinite;}
-  @keyframes bombEdge{50%{opacity:.3;}}
+  body.bomb-on #bombEdge{opacity:.12;will-change:opacity;}
+  @media (prefers-reduced-motion: reduce){ body.bomb-on #bombEdge{opacity:.3;} }
 
   /* ---------- служебные плашки на карте ---------- */
   /* «контакт» — пилюля под табло (раньше — в правом верхнем углу поверх панели CT); точка пульсирует */
@@ -192,10 +193,6 @@
   @keyframes ctDot{50%{opacity:.25;}}
   #warn{position:absolute;top:336px;left:12px;display:none;zoom:var(--k);max-width:340px;padding:6px 11px;border-radius:var(--r-sm);font-size:11px;
     background:rgba(217,131,47,.14);border:1px solid var(--site);color:#f0a865;}
-  #legend{position:absolute;bottom:10px;left:12px;display:flex;gap:4px 12px;flex-wrap:wrap;max-width:calc(100% - 380px);padding:6px 11px;
-    font-size:11px;background:rgba(16,20,15,.88);border:1px solid var(--line);border-radius:999px;zoom:var(--k);}
-  #legend span{display:flex;align-items:center;gap:5px;color:var(--text-dim);}
-  #legend i{width:8px;height:8px;border-radius:50%;display:inline-block;}
 
   /* ---------- киллфид: строка въезжает справа, свои — с кромкой цвета команды ---------- */
   #killfeed{position:absolute;top:150px;right:354px;width:360px;display:flex;flex-direction:column;align-items:flex-end;gap:3px;pointer-events:none;z-index:6;
@@ -204,6 +201,9 @@
     background:linear-gradient(90deg,rgba(10,12,9,.55),rgba(10,12,9,.86));border-radius:3px;box-shadow:0 1px 3px rgba(0,0,0,.35);}
   #killfeed .kf.in{animation:kfIn var(--d3) var(--ease) both;}
   @keyframes kfIn{from{opacity:0;transform:translateX(26px);}to{opacity:1;transform:none;}}
+  #killfeed .kf.old{animation:kfOut .6s var(--ease) forwards;}   /* (v437) строка гаснет перед тем, как уйти (KF_LIFE, 630) */
+  @keyframes kfOut{to{opacity:0;transform:translateX(16px);}}
+  @media (prefers-reduced-motion: reduce){ #killfeed .kf.old{animation:none;opacity:.4;} }
   #killfeed .kf .ct{color:#93c6f4;font-weight:500;} #killfeed .kf .t{color:#f2bb55;font-weight:500;}
   #killfeed .kf .pl{color:#e8e8e2;margin:0 -2px;} #killfeed .kf svg{flex:none;} #killfeed .kf svg.wp{margin:0 2px;}
   #killfeed .kf .w{color:#f4f4ee;font-size:11px;font-weight:600;}

@@ -120,7 +120,7 @@ function checkRoundEnd(){
     // после планта смерть всех T раунд НЕ заканчивает — CT ещё должны дефузнуть
     if(!ctAlive){ endRound("T", "elim"); return; }
     if(tick >= bomb.explodeTick){
-      bomb.state = "exploded"; if(SND && SND.on) sndBomb("boom", bomb.x, bomb.y);
+      bomb.state = "exploded"; if(SND && SND.on) sndBomb("boom", bomb.x, bomb.y); hudBombBoom();   // (v437) вспышка кромки — только вид
       bots.forEach(function(b){
         if(b.alive) applyDamage(null, b, bombDamageAt(b.x, b.y), "C4", {wkey:"C4", noFeed:true});
       });

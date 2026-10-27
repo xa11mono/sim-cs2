@@ -3,7 +3,7 @@
 // (там камера): громкость 0,15 + 0,85·(1 − d/R), R — дальность слышимости типа (ед. карты; шаги ~ бег 1100 ед. игры = 440). Бомба пикает
 // чаще к концу (интервал 1 → 0,1 с — проектное число, как на слух в CS2). При быстрой перемотке — не больше SND_MAX звуков
 // за 50 мс. Выключено, пока не нажать «Звук» (браузер не даёт играть звук без клика)
-var SND = {on:false, ctx:null, noise:null, slot:0, n:0, beepNext:0, buf:{}}, SND_MAX = 6;
+var SND = {on:false, ctx:null, noise:null, slot:0, n:0, buf:{}}, SND_MAX = 6;
 // (v329, М46) записи (набор владельца, data/sounds/, вставляет src/mkpub.py) — выстрелы, гранаты, плант; чего нет — синтез ниже
 var SND_DATA = null; /*@@SOUNDS@@*/
 // (v331) записи по ключам: <ОРУЖИЕ>_1/_2 — варианты, <ОРУЖИЕ>_far — издалека; n_* — гранаты, c4_* — бомба, step_* — шаги
@@ -159,11 +159,15 @@ function sndBomb(kind, x, y){
   else if(kind === "boom"){ sndNoise(1.0*g, 2.2, "lowpass", 220, 0.6); sndTone(0.8*g, 1.4, 55, "sine", 0, 25); }
   else if(kind === "defused") sndTone(0.25*g, 0.5, 1200, "sine", 0, 2400);
 }
-function sndTick(){   // пиканье бомбы — раз в тик проверка, когда следующее
-  if(!SND.on || !bomb || bomb.state !== "planted") return;
-  var left = bombTimeLeftTicks()/TICK_HZ; if(tick < SND.beepNext) return;
-  sndBomb("beep", bomb.x, bomb.y);
-  SND.beepNext = tick + Math.round(Math.max(0.1, Math.min(1, 0.1 + 0.9*left/40))*TICK_HZ);
+// писк бомбы — одно расписание для звука и для кромки экрана (v437): раз в тик проверка, когда следующий; только вид и звук, игру не меняет
+var BEEP_NEXT = 0;
+function bombBeepTick(){
+  if(!bomb || bomb.state !== "planted"){ BEEP_NEXT = 0; return; }
+  if(tick < BEEP_NEXT) return;
+  var left = bombTimeLeftTicks()/TICK_HZ, gap = Math.max(0.1, Math.min(1, 0.1 + 0.9*left/40));
+  BEEP_NEXT = tick + Math.round(gap*TICK_HZ);
+  if(SND.on) sndBomb("beep", bomb.x, bomb.y);
+  hudBombPulse(gap);
 }
 (function(){
   var b = document.getElementById("btnSnd"); if(!b) return;

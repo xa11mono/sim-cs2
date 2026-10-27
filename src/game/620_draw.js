@@ -384,15 +384,12 @@ function draw(){
     timeArc(fr.x, fr.y, r0 + 3.5/S0, life/NADE.molly.life, fr.team, fade);
   });
   // граната в полёте: форма по типу (не только цвет) — дым кружок, флешка ромб, HE кружок с точкой, молотов треугольник
-  var nadeIcon = function(type, x, y, px){
-    var r = px/S0;
-    ctx.lineWidth = 1.3/S0; ctx.strokeStyle = "rgba(12,14,10,0.85)";
-    ctx.beginPath();
-    if(type === "flash"){ ctx.moveTo(x, y-r*1.3); ctx.lineTo(x+r*1.1, y); ctx.lineTo(x, y+r*1.3); ctx.lineTo(x-r*1.1, y); ctx.closePath(); ctx.fillStyle = "#ffffff"; }
-    else if(type === "molly"){ ctx.moveTo(x, y-r*1.3); ctx.lineTo(x+r*1.15, y+r*0.85); ctx.lineTo(x-r*1.15, y+r*0.85); ctx.closePath(); ctx.fillStyle = "#ff9a3c"; }
-    else { ctx.arc(x, y, r, 0, Math.PI*2); ctx.fillStyle = type === "he" ? "#e8584c" : "#d6d9d1"; }
-    ctx.fill(); ctx.stroke();
-    if(type === "he"){ ctx.fillStyle = "rgba(40,10,8,0.9)"; ctx.beginPath(); ctx.arc(x, y, r*0.38, 0, Math.PI*2); ctx.fill(); }
+  // (v437) летящая граната — силуэт гранаты (NADE_ICON, 630) вместо фигур; тёмная тень — чтобы читался на светлом полу
+  var nadeIcon = function(n, x, y, px){
+    var im = nadeImg(n.type, n.team); if(!im || !im.complete || !im.naturalWidth) return;
+    var h = px*3.2/S0, w = h*im._ar;
+    ctx.save(); ctx.shadowColor = "rgba(0,0,0,0.85)"; ctx.shadowBlur = 3;
+    ctx.drawImage(im, x - w/2, y - h/2, w, h); ctx.restore();
   };
   var nadeRGB = function(t){ return t === "smoke" ? "214,217,209" : t === "flash" ? "255,255,255" : t === "he" ? "232,88,76" : "255,154,60"; };
   nadesInAir.forEach(function(n){
@@ -407,7 +404,7 @@ function draw(){
       ctx.strokeStyle = "rgba("+rgb+",0.6)"; ctx.lineWidth = 1.1/S0;
       ctx.beginPath(); ctx.arc(n.tx, n.ty, 5/S0, 0, Math.PI*2); ctx.moveTo(n.tx-8/S0, n.ty); ctx.lineTo(n.tx-3/S0, n.ty); ctx.moveTo(n.tx+3/S0, n.ty); ctx.lineTo(n.tx+8/S0, n.ty); ctx.stroke();
       ctx.fillStyle = "rgba(0,0,0,0.38)"; ctx.beginPath(); ctx.ellipse(n.x, n.y, 3.2/S0, 2/S0, 0, 0, Math.PI*2); ctx.fill();
-      nadeIcon(n.type, n.x, n.y - hgt*22/S0, 4.2 + 2.6*hgt);
+      nadeIcon(n, n.x, n.y - hgt*22/S0, 4.2 + 2.6*hgt);
       return;
     }
     // брошена прямо: след гаснет к началу
@@ -417,7 +414,7 @@ function draw(){
       ctx.strokeStyle = tg; ctx.lineWidth = 1.4/S0;
       ctx.beginPath(); n.trail.forEach(function(p,i){ if(i===0) ctx.moveTo(p[0],p[1]); else ctx.lineTo(p[0],p[1]); }); ctx.lineTo(n.x,n.y); ctx.stroke();
     }
-    nadeIcon(n.type, n.x, n.y, 4.4);
+    nadeIcon(n, n.x, n.y, 4.4);
   });
   nadeFx.forEach(function(fx){
     var age = tick - fx.born;
@@ -582,6 +579,27 @@ function draw(){
     if(bomb.state === "planted"){
       ctx.fillStyle = "#e05c52"; ctx.font = "600 "+(11/view.scale)+"px 'IBM Plex Mono',monospace";
       ctx.fillText(Math.max(0,(bomb.explodeTick-tick)/TICK_HZ).toFixed(1)+"с", bomb.x, bomb.y-10/view.scale);
+    }
+  }
+  // (v437, владелец 27.10) взрыв бомбы — огненное ядро до радиуса смертельного урона (≥ 100, по BOMB_DMG) и ударная волна до
+  // края урона (BOMB_DMG.reach); длительности (0,35 / 1,4 / 1,6 с) — проектные числа вида
+  if(bomb && bomb.state === "exploded" && bomb.explodeTick != null){
+    var ba = (tick - bomb.explodeTick)/TICK_HZ;
+    if(ba >= 0 && ba < 2.2){
+      var rKill = BOMB_DMG.sigma*Math.sqrt(Math.log(BOMB_DMG.max/100));
+      var eo = function(p){ p = Math.max(0, Math.min(1, p)); return 1 - Math.pow(1 - p, 3); };
+      var ca = Math.max(0, 1 - ba/1.6), rc = Math.max(1, rKill*eo(ba/0.35));
+      if(ca > 0){
+        var gr = ctx.createRadialGradient(bomb.x, bomb.y, 0, bomb.x, bomb.y, rc);
+        gr.addColorStop(0, "rgba(255,236,190,"+(0.85*ca)+")"); gr.addColorStop(0.35, "rgba(255,150,60,"+(0.6*ca)+")");
+        gr.addColorStop(1, "rgba(229,89,78,0)");
+        ctx.fillStyle = gr; ctx.beginPath(); ctx.arc(bomb.x, bomb.y, rc, 0, Math.PI*2); ctx.fill();
+      }
+      [0, 0.18].forEach(function(dl, wi){
+        var p = (ba - dl)/1.4; if(p <= 0 || p >= 1) return;
+        ctx.strokeStyle = "rgba(255,"+(wi ? 120 : 190)+",90,"+(0.75*(1 - p))+")"; ctx.lineWidth = (wi ? 1.5 : 3.5)/view.scale;
+        ctx.beginPath(); ctx.arc(bomb.x, bomb.y, BOMB_DMG.reach*eo(p), 0, Math.PI*2); ctx.stroke();
+      });
     }
   }
   if(document.getElementById("chkRoam").checked){
@@ -837,19 +855,9 @@ function draw(){
   scoreboardUpdate(rtLeft);
   if(!draw._plN || ++draw._plN > 6){ draw._plN = 1; playersUpdate(); }
   if(!draw._econN || ++draw._econN > 8){ draw._econN = 1; renderEcon(); }
+  kfExpireTick();   // (v437) затухание строк киллфида
 
-  if(roundState === "freeze"){
-    ctx.save(); ctx.setTransform(1,0,0,1,0,0);
-    var fzl = Math.max(0, roundStartTime - simTime);
-    var fy = 112; // под табло
-    ctx.fillStyle = "rgba(10,14,9,0.85)"; ctx.fillRect(cv.width/2-230, fy, 460, 44);
-    ctx.strokeStyle = "rgba(148,180,73,0.7)"; ctx.strokeRect(cv.width/2-230, fy, 460, 44);
-    ctx.fillStyle = "#e8ecdd"; ctx.textAlign = "center"; ctx.font = "600 15px 'IBM Plex Sans',sans-serif";
-    ctx.fillText("ЗАКУПКА · раунд "+roundNum+" · "+fzl.toFixed(1)+"с", cv.width/2, fy+20);
-    ctx.font = "11px 'IBM Plex Mono',monospace"; ctx.fillStyle = "#8b9a80";
-    ctx.fillText("CT: "+ROUND_TYPE_LABEL[teamEco.CT.roundType]+" · T: "+ROUND_TYPE_LABEL[teamEco.T.roundType]+(teamTac.T?" · «"+teamTac.T.tac.name+"»":""), cv.width/2, fy+36);
-    ctx.restore();
-  }
+  // (v437, владелец 27.10) плашки «ЗАКУПКА · раунд N» больше нет — время закупа на табло, типы закупа и тактика — в «Экономике»
   if(roundState === "matchover"){
     ctx.save();
     ctx.setTransform(1,0,0,1,0,0);

@@ -58,8 +58,21 @@ function hudPaused(on){
   var b = document.body; if(!b) return;
   if(!!b._paused !== !!on){ b._paused = !!on; b.classList.toggle("is-paused", !!on); }
 }
-// бомба стоит — по краю экрана пульсирует красная кромка (CSS body.bomb-on #main::after); класс меняется только при смене состояния
+// бомба стоит — по краю экрана слабая красная кромка (CSS body.bomb-on #bombEdge); класс меняется только при смене состояния
 function hudBombEdge(on){
   var b = document.body; if(!b) return;
   if(!!b._bomb !== !!on){ b._bomb = !!on; b.classList.toggle("bomb-on", !!on); }
+}
+// (v437, владелец 27.10) вспышка кромки в такт писку бомбы: вызывает bombBeepTick (680) на каждом писке; вспышка короче
+// промежутка до следующего писка — к концу таймера мигает чаще, как пищит. Яркость 0,5 — проектное число («слабо, не резать глаз»)
+// (v437) взрыв бомбы — кромка вспыхивает в полную силу и гаснет за 1,4 с (вместе с волной на карте, 620)
+function hudBombBoom(){
+  var el = typeof document !== "undefined" && document.getElementById("bombEdge"); if(!el) return;
+  if(el._pulse) try { el._pulse.cancel(); } catch(e){}
+  el._pulse = hudAnim(el, [{opacity:1}, {opacity:0}], {duration:1400, easing:"ease-out"});
+}
+function hudBombPulse(gapSec){
+  var el = typeof document !== "undefined" && document.getElementById("bombEdge"); if(!el) return;
+  if(el._pulse) try { el._pulse.cancel(); } catch(e){}
+  el._pulse = hudAnim(el, [{opacity:0.5}, {opacity:0.12}], {duration: Math.max(90, Math.min(700, gapSec*1000*0.8)), easing:"ease-out"});
 }

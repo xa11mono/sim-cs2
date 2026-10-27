@@ -146,7 +146,7 @@ function stepTick(){
   if(roundState !== "live") return;
   nadeBrains(); updateNadeTasks(); nadesTick(); // шаг 5: гранаты
   if(roundState === "live" && tick % 16 === 0) tClearCalls();
-  if(SND && SND.on) sndTick();   // (v323, М40) пиканье бомбы   // (v321, М24) «B чисто» — T увидел пустую зону у сайта
+  bombBeepTick();   // (v323, М40; v437 — и кромка экрана) пиканье бомбы   // (v321, М24) «B чисто» — T увидел пустую зону у сайта
   if(roundState !== "live") return;
   var dtSec = TICK_MS/1000, maxDelta = ACCEL*dtSec;
   // movement tuning (plan-driven "natural, not robotic" pass):
