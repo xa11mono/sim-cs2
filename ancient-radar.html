@@ -532,7 +532,7 @@
   <div id="topbar">
     <div class="tb-id">
       <h1>Ancient<span id="matchTick" class="mono" title="Какой матч сейчас идёт и тик — запиши, если увидел баг"></span></h1>
-      <div class="sub mono" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 437, 27.10</div>
+      <div class="sub mono" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 442, 27.10</div>
     </div>
     <div class="tb-group" id="tbMatch">
       <button id="btnPause">Пауза</button>
@@ -4272,6 +4272,7 @@ var ROUTE_PORTAL = 0;   // (v406) цена перехода между учас�
 var ROUTE_NOISE = 0.25, ROUTE_NOISE_C = 40;   // доля и клетка (ед. карты) — проектные числа (v405)
 // (v416, М151) запрет пути через проходы у́же корпуса (v412) убран: у Kitchen, Hole, TV (Mirage) и T Lower ↔ Ruins (Ancient) других
 // проходов нет — путь шёл в обход в 4–15 раз длиннее (надпись «навмеш не связывает напрямую»). Схождение на спуске T разводит полоса (laneShift)
+var FIRE_DETOUR = 600;   // (v438) цена перехода через горящий огонь, ед. карты: обход до ~600 длиннее — лучше, чем сквозь огонь (проектное число)
 function zoneDijkstra(fromId, toId, team){
   if(fromId===toId) return [fromId];
   var side = team === "CT" ? zoneSideMap() : null;
@@ -4296,6 +4297,9 @@ function zoneDijkstra(fromId, toId, team){
       if(side && side[edge.to] !== undefined && side[edge.to] < ROUTE_SIDE_LINE) w *= ROUTE_ENEMY_SIDE;   // (v259) CT — по своей стороне
       // (v405) у бота своя полоса — и свой выбор среди почти равных путей: цена перехода × (1 ± ROUTE_NOISE) по клетке ROUTE_NOISE_C
       // вокруг перехода (вся клетка — один множитель: соседние полосы прохода, бордюр и рампа, получают разную цену у разных ботов)
+      // (v438, док владельца 27.10: «боты часто идут в молик») переход в горящем огне — дороже на FIRE_DETOUR: путь обходит молотов, если обход
+      // не длиннее; иначе идёт через огонь (как и раньше — fireCommit / ждёт у края). Только путь движения (buildWaypointPath)
+      if(zoneDijkstra.fire && fires.length && inFire(edge.mid.x, edge.mid.y)) w += FIRE_DETOUR;
       var nz = zoneDijkstra.noise; if(nz != null) w *= 1 + ROUTE_NOISE*(hashRand(Math.floor(edge.mid.x/ROUTE_NOISE_C)*7919 + Math.floor(edge.mid.y/ROUTE_NOISE_C)*104729 + nz) - 0.5)*2;
       var alt = dist[u] + w;
       if(dist[edge.to]===undefined || alt<dist[edge.to]){
@@ -4444,7 +4448,7 @@ function buildWaypointPath(fromX, fromY, fromZ, toX, toY, toZ, team, lane){
   if(!pointInPoly(toX, toY, tz.points)){ var cq = navClampInto(tz, toX, toY); toX = cq.x; toY = cq.y; }
   if(!toZ) toZ = navFloorZ(tz, toX, toY);
   if(fz.id === tz.id) return [[toX,toY,toZ||0]];
-  zoneDijkstra.noise = lane != null ? Math.round(lane*1000) + roundNum*13 : null; zoneDijkstra.from = {x: fromX, y: fromY};
+  zoneDijkstra.noise = lane != null ? Math.round(lane*1000) + roundNum*13 : null; zoneDijkstra.from = {x: fromX, y: fromY}; zoneDijkstra.fire = true;
   var route = zoneDijkstra(fz.id, tz.id, team);
   if(!route){ if(!NAV_GRID) navGridBuild();
     var alts = (NAV_GRID[Math.floor(toX/NAV_GRID_C)+","+Math.floor(toY/NAV_GRID_C)]||[]).map(function(i){ return NAVAREAS[i]; })
@@ -4455,7 +4459,7 @@ function buildWaypointPath(fromX, fromY, fromZ, toX, toY, toZ, team, lane){
   // путь к ближайшему достижимому месту рядом с ней
   if(!route){ zoneDijkstra.nearest = true; route = zoneDijkstra(fz.id, tz.id, team); zoneDijkstra.nearest = false;
     if(route && route[route.length-1] !== tz.id){ var lz = zonesById[route[route.length-1]]; if(lz){ var lc = zoneCentroid(lz); toX = lc.x; toY = lc.y; toZ = lz.z; tz = lz; } } }
-  zoneDijkstra.noise = null; zoneDijkstra.from = null;
+  zoneDijkstra.noise = null; zoneDijkstra.from = null; zoneDijkstra.fire = false;
   if(!route) return [[toX,toY,toZ||0]]; // disconnected zones — direct line fallback rather than a stuck bot
   var corridor = [], cPair = [];   // cPair — участки по обе стороны перехода (v340)
   for(var i=0;i<route.length-1;i++){
@@ -6167,7 +6171,10 @@ function chooseTactic(){
     tmode = setupSec < tac.setupEnd - 6 ? ", быстрый" : (setupSec > tac.setupEnd + 8 ? ", поздний" : "");
     // длинный сетап: сначала дефолт (контроль карты), свою расстановку тактика
     // занимает за столько же секунд до выхода, сколько ей нужно было с начала раунда
-    var need = Math.max(14, tac.setupEnd - 6);
+    // (v440, замер группы 3: у «дефолтов» фаза дефолта не включалась — их setupEnd 68–91 с и есть поздний выход, need ≈ весь сетап, и группа
+    // с первой секунды стояла на точке выхода: Connector 0,53 игрока против 0,04 у про) у тактики-дефолта своя расстановка — это точка выхода
+    // рядом с картой, занимают её за 14 с до выхода (проектное число, как нижняя граница need)
+    var need = tac.style === "default" ? 14 : Math.max(14, tac.setupEnd - 6);
     if(setupSec - need >= 12) defUntil = roundStartTick + (setupSec - need)*64;
   }
   teamTac.T = {tac:tac, site:tac.site, phase: tac.setupEnd > 0 ? "setup" : "execute", execTick: roundStartTick + setupSec*64, defUntil: defUntil, minExec: (BAL.proTempo && tac.setupEnd > 0) ? Math.min(setupSec, 30) : 0, needT: (BAL.proTempo && tac.setupEnd > 0) ? Math.max(14, tac.setupEnd - 6) : 0,
@@ -6366,7 +6373,10 @@ function ctSetupRole(b, role, ct){
   // уголок, откуда "спрятанное от мида" направление и есть тот самый Dark/
   // Lamp Room, который нужно смотреть — в итоге стоял к нему спиной
   var hideMid = R.hideFrom === false ? [] : [GEO.tMid];
-  var spots = pickSpots("cts:"+S.id+":"+role+":"+nm, c, 3, {rMax:150, minGap:45, see:[lk], hideFrom:hideMid});
+  var spots = pickSpots("cts:"+S.id+":"+role+":"+nm, c, 6, {rMax:150, minGap:45, see:[lk], hideFrom:hideMid});
+  // (v441, док владельца 27.10, р6: мидер kyousuke с местом «B Short» встал в Stove — за дверью Apps, на стороне T) точка — в зоне своего
+  // места: в 150 от точки зоны легко попасть в соседнюю, а соседняя бывает уже чужой стороной. Нет такой — как было
+  var inNm = spots.filter(function(q){ return zoneUserName(zoneIdAt(q.x, q.y)) === nm; }); spots = (inNm.length ? inNm : spots).slice(0, 3);
   var tag = (role === "anchorA" || role === "anchorB") ? "anchor" : role === "mid" ? "mid" : "set:"+role;
   var spC = spots[weightedPick(spots.length, roundNum*53 + b.id.charCodeAt(2||1))];
   // встал в той самой зоне, куда велено смотреть (роумер в Cave с взглядом
@@ -6940,7 +6950,9 @@ function tSetSite(tt, site){
 // дефуза; каждому — своё, ближайшее по пути. Раньше — любые укрытия в 300–620 ед. от бомбы, имена мест не учитывались
 function ppTimeNamed(group, bp0, site, rMax){
   var P = POS[site] && POS[site].tPost; if(!P || !P.length) return false;
-  var pts = []; P.forEach(function(n){ var zp = zonePoint(n, bp0); if(zp && Math.hypot(zp.x-bp0.x, zp.y-bp0.y) <= rMax && !pts.some(function(q){ return Math.hypot(q.x-zp.x, q.y-zp.y) < 110; })) pts.push({n:n, x:zp.x, y:zp.y}); });
+  // (v442, док владельца 27.10, р7: «их не слышно — отходим от бомбы», а встали на Firebox / A Trash у самой бомбы; замер: T ближе 150 к бомбе
+  // 21 % против 12–19 % у про) «на время» — не ближе 320 к бомбе (та же мерка, что у groupPost ниже в 170 — rMin 320)
+  var pts = []; P.forEach(function(n){ var zp = zonePoint(n, bp0); if(zp && Math.hypot(zp.x-bp0.x, zp.y-bp0.y) <= rMax && Math.hypot(zp.x-bp0.x, zp.y-bp0.y) >= 320 && !pts.some(function(q){ return Math.hypot(q.x-zp.x, q.y-zp.y) < 110; })) pts.push({n:n, x:zp.x, y:zp.y}); });
   if(!pts.length) return false;
   var used = {};
   group.forEach(function(b){
@@ -7063,7 +7075,13 @@ function tBrain(){
     var pickOther = (tt.phase === "setup" || lateOK) && teamIntel.T.sig.some(function(sg){ return sg.type === "kill" && tick - sg.tick < pickWin*TICK_HZ &&
       (sg.role === ancO ? Math.hypot(sg.x-SITES[other].x, sg.y-SITES[other].y) < 600 : Math.hypot(sg.x-SITES[other].x, sg.y-SITES[other].y) < 350); });
     var poSig = pickOther ? teamIntel.T.sig.filter(function(sg){ return sg.type === "kill" && tick - sg.tick < pickWin*TICK_HZ; }).pop() : null;
-    if(pickOther && aliveT >= (lateOK ? 2 : 3) && beliefCount("T", BZ.siteNear[other]||[]) < 0.9 && there < 1.5 && iglReads(tt, "po") && iglTake(tt, poSig ? poSig.tick : tick)){
+    // (v440, док владельца 27.10, р10: сняли CT на B — перекол на B, а носитель стоял у A и пошёл на B через мид) и на сетапе — только если
+    // носитель успевает дойти до другого сайта по пути и поставить (та же мерка, что у позднего колла) и туда не дальше, чем до своего, на 800
+    // (проектное число: другой сайт — через полкарты, пока группа ждёт носителя)
+    var carOK = !(bomb && bomb.state === "carried" && bomb.carrier && bomb.carrier.alive) ||
+      secLeft > pathLenTo(bomb.carrier, SITES[other].x, SITES[other].y)/SPEED + PLANT_TICKS/TICK_HZ + 10 &&
+      pathLenTo(bomb.carrier, SITES[other].x, SITES[other].y) <= pathLenTo(bomb.carrier, SITES[tt.site].x, SITES[tt.site].y) + 800;
+    if(pickOther && carOK && aliveT >= (lateOK ? 2 : 3) && beliefCount("T", BZ.siteNear[other]||[]) < 0.9 && there < 1.5 && iglReads(tt, "po") && iglTake(tt, poSig ? poSig.tick : tick)){
       tt.rebound = true;
       voiceLog("T", "reb"+other, "IGL", lateOK ? "ПЕРЕКОЛЛ "+tt.site+" → "+other+": на "+tt.site+" их больше, на "+other+" сняли опорника — бомба на "+other+"!" : "минус на "+other+", там пусто — все на "+other+"!");
       logEvent("IGL: перекол → "+other+" (сняли CT, сайт пустой)");
@@ -7294,15 +7312,18 @@ function tBrain(){
 
   if(tt.phase === "setup"){
     if(lurker) lurkerBrain(lurker, tt, other);
-    var inDef = BAL.proTempo && tt.defUntil && tick < tt.defUntil && tick < tt.execTick - tt.needT*TICK_HZ && tac.style !== "default";
+    // (v440, док владельца 27.10: «дефолт сравнить с про»; «энтри свою роль не играл») фаза дефолта — у всех тактик с долгим сетапом, и у
+    // тактик-«дефолтов» тоже: раньше их группы с первой секунды шли к точке выхода (Connector, Apps) — на 25–50-й с у ботов 0,86 игрока на
+    // A Site / Cross / Connector против 0,06 у про (демки Mirage, раунды с поздним плантом). Энтри — у своей цели (у про в дефолте перед A —
+    // T Ramp 0,63 игрока), а не у другого сайта: раньше энтри стоял на B в выходе на A и шёл через карту / за лайнапом
+    var inDef = BAL.proTempo && tt.defUntil && tick < tt.defUntil && tick < tt.execTick - tt.needT*TICK_HZ;
     if(inDef){
-      // дефолт: растягиваем CT — двое у другого сайта, AWP на миде, IGL у цели
+      // дефолт: мид держит поддержка, лёркер — у другого сайта (lurkerBrain), остальные — у цели
       if(!tt._defLog){ tt._defLog = true; logEvent("T: сначала дефолт, "+tac.name+" — позже"); }
       // (снайпер — с группой у цели, мид держит поддержка: AWP на миде в дефолте
       // у ботов был первой жертвой в 19% раундов, у про — 4%)
-      stagePost(pick(["entry"]), other);
       groupPost(pick(["support"]), tt.tMidPt || GEO.tMid, GEO.tMidLook, "tmid", midOpt);
-      stagePost(pick(["igl","awp"]), tt.site);
+      stagePost(pick(["entry","igl","awp"]), tt.site);
     } else if(tac.groups && tac.style !== "fake" && tt.site !== tac.site){   // (v365) фейк — своя ветка ниже
       // (этап 2, P1-1) сайт плана сменили: точки подготовки и маршруты групп тактики — под старый сайт (Donut, A Hall…).
       // Раньше группа ставилась на них и с новым сайтом (тег stageB:Donut у A): ждала на старой точке. Теперь — стандартная
@@ -7746,7 +7767,13 @@ function tBrain(){
           cand.push({x:c.x, y:c.y, dCT:Math.hypot(c.x-CT_SPAWN.x, c.y-CT_SPAWN.y)});
         });
         cand.sort(function(a, c2){ return a.dCT - c2.dCT; });
-        var pts = [{x:CT_SPAWN.x, y:CT_SPAWN.y}], minGap = 280;
+        // (v442, док владельца 27.10: «охота на последних — как будто рандомные точки, а не где была инфа») сначала — где по знанию команды
+        // могут быть живые CT (гипотезы знания, тяжёлые первыми; точки на сайте — тоже, это и есть «где была инфа»); потом — места у спавна CT
+        var minGap = 280, pts = [];
+        var kn = []; bots.forEach(function(o){ if(o.team === "CT" && o.alive) knowEnemySpots("T", o.id).forEach(function(q){ if(q.w >= 0.05) kn.push(q); }); });
+        kn.sort(function(a, c2){ return c2.w - a.w; });
+        kn.forEach(function(q){ if(pts.length < 5 && !insideSolidWall(q.x, q.y) && pts.every(function(p){ return Math.hypot(p.x-q.x, p.y-q.y) > minGap; })) pts.push({x:q.x, y:q.y}); });
+        if(pts.every(function(p){ return Math.hypot(p.x-CT_SPAWN.x, p.y-CT_SPAWN.y) > minGap; })) pts.push({x:CT_SPAWN.x, y:CT_SPAWN.y});
         for(var ci=0; ci<cand.length && pts.length<7; ci++){
           var c = cand[ci];
           if(pts.every(function(p){ return Math.hypot(p.x-c.x, p.y-c.y) > minGap; })) pts.push({x:c.x, y:c.y});
@@ -7816,7 +7843,9 @@ function tBrain(){
       // обязательно (снять дефузера), встать под главный вход ретейка, от
       // остальных закрыться, не стоять кучей, по возможности кроссфаер
       holdGroup(group, {key:"pp"+bomb.site+Math.round(bp0.x/30), center:bp0, rArea: BAL.ppFar ? 420 : 320, rMin: BAL.ppFar ? 180 : 90, rMax: BAL.ppFar ? 520 : 420, must:[bp0], mustFirst:BAL.ppSpread, rMax2: BAL.ppFar ? 680 : 560,
-        voice:function(b, r){ if(r.main) voiceLog("T", "pphold"+b.id+Math.round(r.main.pt.x/60), b.id, "держу бомбу, смотрю "+calloutName(r.main.pt.x, r.main.pt.y).replace(/^на /,"")); }}, "postplant:hold");
+        // (v442, док владельца 27.10: «войс спамится» — «держу бомбу, смотрю X» каждый игрок при каждой смене угла, 3–4 строки в секунду) — один
+        // раз за раунд на игрока: куда смотрит дальше, видно на радаре
+        voice:function(b, r){ if(r.main && b._ppSaid !== roundNum && (b._ppSaid = roundNum)) voiceLog("T", "pphold"+b.id, b.id, "держу бомбу, смотрю "+calloutName(r.main.pt.x, r.main.pt.y).replace(/^на /,"")); }}, "postplant:hold");
       return;
     }
     if(BAL.namedPos){
@@ -7903,6 +7932,11 @@ function tSaveWant(ts, aT, aC, secLeft, site){
   if(!ts.length) return false;
   var gunVal = ts.reduce(function(a, b){ return a + (b.primary ? WEAPONS[b.primary].price : 0); }, 0) / aT;
   var carOn = bomb.state === "carried" && bomb.carrier && bomb.carrier.alive && Math.hypot(bomb.carrier.x-site.x, bomb.carrier.y-site.y) < 380;
+  // (v442, док владельца 27.10, р6: сейвили вдвоём при 10 тыс. и 9 тыс. у команды) сохранять оружие стоит, только если без него команда
+  // в следующем раунде не купит фулл всем: деньги команды + доход за поражение против фулла каждому и оружия сейвящих (проектная мерка)
+  var Ts = bots.filter(function(o){ return o.team === "T"; }), inc = nextLossIncome("T");
+  var bank = Ts.reduce(function(a, o){ return a + o.money + inc; }, 0), need = Ts.reduce(function(a, o){ return a + fullNeedU(o); }, 0) + gunVal*aT;
+  if(bank >= need) return false;
   return gunVal >= 1500 && !carOn && saveWorth("T") && tSaveRoll(aT, aC, secLeft);
 }
 // сейв T: каждый живой — к своему месту сейва (один раз выбранному), бомбу не ставит
@@ -10075,10 +10109,15 @@ function exposedShiftTick(b){
 }
 // (v163) где враг из точки q выйдет на линию бота: идём по его пути к боту,
 // первая точка, которую бот видит (не ближе 50px). Нет такой — null
+// (v442, док владельца 27.10: «падает FPS»; отметка р7 — на тике решений 40–73 пути, почти все отсюда) кэш — на все точки q, пока бот в той же
+// клетке 16 ед. (раньше одна запись: варианты взгляда перебирают несколько q подряд, и каждая выталкивала прошлую). Ответ тот же
 function appearFrom(b, q){
-  var k = Math.round(q.x/40)+","+Math.round(q.y/40)+"|"+Math.round(b.x/16)+","+Math.round(b.y/16);
-  if(b._apfK === k) return b._apfV;
-  b._apfK = k; b._apfV = null;
+  var pk = Math.round(b.x/16)+","+Math.round(b.y/16), k = Math.round(q.x/40)+","+Math.round(q.y/40);
+  if(b._apfP !== pk){ b._apfP = pk; b._apfC = {}; }
+  if(k in b._apfC) return b._apfC[k];
+  var v = appearFromCalc(b, q); b._apfC[k] = v; return v;
+}
+function appearFromCalc(b, q){
   var wp = buildWaypointPath(q.x, q.y, 0, b.x, b.y, 0); if(!wp || !wp.length) return null;
   var prev = {x:q.x, y:q.y};
   for(var i=0;i<wp.length;i++){
@@ -10089,7 +10128,7 @@ function appearFrom(b, q){
       for(var it=0; it<6; it++){ var m = (lo+hi)/2, mp = {x:prev.x+(p.x-prev.x)*m, y:prev.y+(p.y-prev.y)*m}; if(hasLOS(b.x, b.y, mp.x, mp.y, b.z)) hi = m; else lo = m; }
       var r = {x:prev.x+(p.x-prev.x)*hi, y:prev.y+(p.y-prev.y)*hi};
       if(Math.hypot(r.x-b.x, r.y-b.y) < 50) return null;
-      b._apfV = r; return r;
+      return r;
     }
     prev = p;
   }
@@ -10590,7 +10629,12 @@ function lookCands(b, W){
   // последнего CT на A) команда знает, где враг (видели / слышали ≤ KNOWN_SEC), — смотреть туда, откуда он придёт: вдоль
   // своего пути к нему, на дальнюю видимую точку этого пути (до 400 ед.). Вес KNOWN_W — проектное число
   var kw = knownWayLook(b);
-  if(kw) out.push({j:"known", pt:kw.pt, sc:kw.sc, fresh:false, a:Math.atan2(kw.pt.y-b.y, kw.pt.x-b.x), f: D ? [["путь к известному врагу ("+kw.id+", "+kw.age.toFixed(1)+" с)", kw.sc]] : null});
+  // (v441, док владельца 27.10, р1: m0NESY и karrigan шли к Van и смотрели назад на Kitchen — «путь» к sh1ro на T Spawn; замер: 36 % этого
+  // взгляда на ходу — за спиной) на ходу — те же множители, что у остальных вариантов («по ходу» / «за спиной»); раньше их не было
+  if(kw){ var kwa = Math.atan2(kw.pt.y-b.y, kw.pt.x-b.x), kws = kw.sc, kwF = D ? [["путь к известному врагу ("+kw.id+", "+kw.age.toFixed(1)+" с)", kw.sc]] : null;
+    if(moving){ var kwh = _angOff(kwa, b.heading); if(kwh < 0.9){ kws *= LOOK.headK; if(kwF) kwF.push(["по ходу", LOOK.headK]); }
+      else if(kwh > 1.9){ kws *= rearCov ? LOOK.behindMoveCov : LOOK.behindMove; if(kwF) kwF.push([rearCov ? "за спиной (прикрыт)" : "за спиной", rearCov ? LOOK.behindMoveCov : LOOK.behindMove]); } }
+    out.push({j:"known", pt:kw.pt, sc:kws, fresh:false, a:kwa, f:kwF}); }
   return out;
 }
 var KNOWN_SEC = 10, KNOWN_W = 0.2;
@@ -11409,6 +11453,9 @@ function rebalSpot(b, k, taken, avoidPts, opt){
   var L = PRO_SPOTS["CT|pre"] || [], best = null, bs = -1e9;
   for(var i=0;i<L.length;i++){ var s = L[i];
     if(Math.hypot(s[0]-SITES[k].x, s[1]-SITES[k].y) > REBAL.R || insideSolidWall(s[0], s[1])) continue;
+    // (v441, док владельца 27.10, р6: karrigan «беру угол на Catwalk» пошёл с B в Window через Market) угол сайта — в REBAL.R от сайта и по
+    // пути (до 1,3 × REBAL.R — проектное число), а не только по прямой: Window в 560 от B по прямой, по пути — через полкарты
+    if(polyLen(pathPts(SITES[k].x, SITES[k].y, s[0], s[1])) > REBAL.R*1.3) continue;
     if(bots.some(function(o){ return o !== b && o.alive && o.team === "CT" && Math.hypot(o.x-s[0], o.y-s[1]) < 70; })) continue;
     var modes = [[s[3], s[4]]]; if(s.length > 5) modes.push([s[5], s[6]]);
     modes.forEach(function(m){
@@ -12263,7 +12310,10 @@ function ctBrain(){
   }
   if(ct.call){
     var quiet = tick - (ct.call.evTick||ct.call.tick);
-    var massNow = beliefCount("CT", BZ.siteNear[ct.call.site]||[]);
+    // (v441, док владельца 27.10, р6: убили лёркера в Palace и T в B Apps — через 6 с «отбой колла на B: там вероятно пусто», трое ушли на A)
+    // «пусто» — и у сайта, и в зонах подхода к нему (соседние зоны сайта: T Apps у B): T, стоящие у входа, — не пустой сайт
+    var nearZ = (BZ.siteNear[ct.call.site]||[]).slice(); nearZ.slice().forEach(function(z){ (BZ.nbr[z]||[]).forEach(function(n){ if(nearZ.indexOf(n) < 0) nearZ.push(n); }); });
+    var massNow = beliefCount("CT", nearZ);
     var lkpHere = lkpNear("CT", SITES[ct.call.site].x, SITES[ct.call.site].y, 500);
     // (v262, К4) тишина — не новая инфа: колл, под который уже ушла ротация, тишиной не снимается
     // (раньше «давно тихо — по местам» разворачивал ротаторов на полпути и оставлял их на промежуточной точке)
@@ -12846,7 +12896,10 @@ function contactTick(b){
   // тот же враг давал контакт снова — половина «ходит туда-сюда»)
   // (v418) держит — а свой рядом начал бой с этой группой: решение «держать / выйти» пересматривается (ниже, contactMateFight)
   var reMate = K && K.tag === "contact:hold" && tick - (b._mateReT||-1e9) >= CONTACT_GAP*TICK_HZ && contactMateFight(b, C);   // не чаще CONTACT_GAP
-  if(K && Math.hypot(C.x-K.x, C.y-K.y) < 120 && !reMate){ K.x = C.x; K.y = C.y; if(C.id) K.id = C.id; K.until = tick + CONTACT_HOLD*TICK_HZ; return; }
+  // (v438) уточнилось место врага, а с точки выхода его теперь не видно — точка выбирается заново (ниже), а не держится старая
+  // не чаще раза в секунду (проектное число): враг на ходу, и точка, выбранная сейчас, через тик снова «не видит» — бот метался бы
+  var swLost = K && K.tag === "contact:swing" && K.pt && tick - (b._contactT||0) >= TICK_HZ && !hasLOS(K.pt.x, K.pt.y, C.x, C.y, b.z);
+  if(K && Math.hypot(C.x-K.x, C.y-K.y) < 120 && !reMate && !swLost){ K.x = C.x; K.y = C.y; if(C.id) K.id = C.id; K.until = tick + CONTACT_HOLD*TICK_HZ; return; }
   if(reMate) b._mateReT = tick;
   if(b._contactT && tick - b._contactT < CONTACT_GAP*TICK_HZ && !K) return;
   var look = {x:C.x, y:C.y};
@@ -12866,9 +12919,19 @@ function contactTick(b){
   // (v418б, владелец 25.10: «про не выпрыгивает из дыма на пятерых даже под стрельбу тиммейта — играет от края дыма») между ним и врагом
   // дым — не выходит, держит (место выхода выбиралось по прямой видимости без дыма)
   if(swing && smokeBlocks(b.x, b.y, look.x, look.y)) swing = false;
+  // (v440, док владельца 27.10: magixx с бомбой «делал агрессию в андере», р8 — с бомбой и 22 HP ждал файта) носитель бомбы на выход не идёт,
+  // пока жив кто-то ещё из своих: бомба в первом бою — потеря раунда; держит угол (последний живой — играет сам)
+  if(swing && bomb && bomb.state === "carried" && bomb.carrier === b && aliveCount(b.team) > 1) swing = false;
   if(swing && bots.some(function(o){ return o !== b && o.alive && o.team === b.team && o._contact && o._contact.tag === "contact:swing" && tick < o._contact.until && Math.hypot(o._contact.x-C.x, o._contact.y-C.y) < 200; })) swing = false;   // на него уже выходит свой
-  var cand = pickSpots("ct"+b.id+Math.round(look.x/40)+","+Math.round(look.y/40), {x:b.x, y:b.y}, 4, {rMax: swing ? CONTACT_SWING : 160, minGap:30, see:[look]})
-    .filter(function(q){ return Math.hypot(q.x-look.x, q.y-look.y) >= 120 && !spotTaken(b, q); });
+  // (v438, док владельца 27.10: точка «выхожу на него» на ящике Short / в Underpath без вида на врага — бот стоял 22 с) точка — на полу
+  // своего уровня (не крыша ящика, не другой этаж: navAtLevel) и, если выходит, — оттуда видно место врага (3D-видимость с пола точки).
+  // Нет такой — не выходит, держит (точку держать ищем так же, но вид не обязателен: держит угол, откуда враг придёт)
+  var spotOk = function(q, needSee){ var a = b.z == null ? null : navAtLevel(q.x, q.y, b.z); if(b.z != null && !a) return false;
+    return !needSee || hasLOS(q.x, q.y, look.x, look.y, a ? a.z : b.z); };
+  var contactSpots = function(sw){ return pickSpots("ct"+b.id+Math.round(look.x/40)+","+Math.round(look.y/40)+(sw ? "s" : "h"), {x:b.x, y:b.y}, 6, {rMax: sw ? CONTACT_SWING : 160, minGap:30, see:[look]})
+    .filter(function(q){ return Math.hypot(q.x-look.x, q.y-look.y) >= 120 && !spotTaken(b, q) && spotOk(q, sw); }); };
+  var cand = contactSpots(swing);
+  if(swing && !cand.length){ swing = false; cand = contactSpots(false); }
   if(hasLOS(b.x, b.y, look.x, look.y, b.z) && !swing) cand.unshift({x:b.x, y:b.y});
   cand.sort(swing ? function(a, c){ return Math.hypot(a.x-look.x, a.y-look.y) - Math.hypot(c.x-look.x, c.y-look.y); }
                   : function(a, c){ return Math.hypot(a.x-b.x, a.y-b.y) - Math.hypot(c.x-b.x, c.y-b.y); });
@@ -13305,11 +13368,27 @@ function npUse(b, t, m){
   if(best >= 0) L.splice(best, 1);
 }
 function fireDamageFor(sec){ var n = Math.floor(sec/FIRE_HIT_SEC), d = 0; for(var k=1;k<=n;k++) d += Math.min(FIRE_HIT_MAX, k); return d; }
+// (v438) загорелся молотов — у кого оставшийся путь проходит через огонь (точка пути или отрезок ближе радиуса огня), путь строится
+// заново (buildWaypointPath обходит огонь, FIRE_DETOUR, 050): раньше путь, построенный до огня, вёл прямо в него
+function fireRepath(fx, fy){
+  var R = NADE.molly.radius + FIRE_BODY;
+  bots.forEach(function(b){ if(!b.alive || !b.path || b.pathIdx >= b.path.length || b.planting || b.defusing) return;
+    if(Math.hypot(b.baseX-fx, b.baseY-fy) <= R) return;   // уже в огне — выходит своим ходом (540)
+    var px = b.baseX, py = b.baseY;
+    for(var i = b.pathIdx; i < b.path.length; i++){ var q = b.path[i];
+      var dx = q[0]-px, dy = q[1]-py, L2 = dx*dx + dy*dy, t = L2 > 0 ? Math.max(0, Math.min(1, ((fx-px)*dx + (fy-py)*dy)/L2)) : 0;
+      if(Math.hypot(px + dx*t - fx, py + dy*t - fy) <= R){ b.path = []; b.pathIdx = 0; return; }
+      px = q[0]; py = q[1]; } });
+}
 function fireCommit(b){
   if(!b) return false;
   if(b.planting || b.defusing) return b.hp > fireDamageFor(((b.planting ? b.plantUntil : b.defuseUntil) - tick)/TICK_HZ) + 10;
   var going = b.path && b.pathIdx < b.path.length;
   if(!going || b.holding || (b.post && inFire(b.post.x, b.post.y))) return false;   // держит угол — не идёт насквозь, а стоит в огне
+  // (v438, док владельца 27.10: «боты часто идут в молик»; замер: 224 захода «сам» на 8 матчей) сквозь огонь — только задача, которая
+  // не ждёт, пока он прогорит: бомба (плант, дефуз, сбить плант / дефуз, ретейк и сбор под него, убежать от взрыва, поднять бомбу).
+  // Остальные ждут у края (fireSafe) или идут в обход (путь, FIRE_DETOUR). Было — любой, у кого хватало HP
+  if(!(b.post && /^(plantspot|defuse|antidefuse|stopplant|retake|gather|flee|fetch)/.test(b.post.tag || ""))) return false;
   return b.hp > fireDamageFor(2*NADE.molly.radius/(SPEED*weaponSpeedMul(b))) + FIRE_MARGIN;
 }
 // (v321) высота шага: без связи в навмеше нельзя подняться выше прыжка (JUMP_UP), и нельзя залезть туда, откуда есть
@@ -13793,8 +13872,11 @@ function throwNade(b, type, tx, ty, lob, why, trusted){
 }
 function smokeCovered(x, y){
   // план §7: "два бота не кидают смок в одну точку, пока один ещё не рассеялся"
-  if(smokes.some(function(s){ return Math.hypot(s.x-x, s.y-y) < 60 && s.until - tick > 64; })) return true;
-  return nadesInAir.some(function(n){ return n.type === "smoke" && Math.hypot((n.tx||n.x)-x, (n.ty||n.y)-y) < 60; });
+  // (v438, док владельца 27.10: два смока Stove + B Apps в 128 ед.; у про такая пара — 3 раунда из 742) «то же место» — облака
+  // перекрылись бы (центры ближе двух радиусов смока), а не ближе 60
+  var R = 2*NADE.smoke.radius;
+  if(smokes.some(function(s){ return Math.hypot(s.x-x, s.y-y) < R && s.until - tick > 64; })) return true;
+  return nadesInAir.some(function(n){ return n.type === "smoke" && Math.hypot((n.tx||n.x)-x, (n.ty||n.y)-y) < R; });
 }
 function assignNade(b, type, target, why, opts){
   if(!b || !b.alive || !b.nades || b.nades[type] <= 0) return false;
@@ -13849,8 +13931,10 @@ function updateNadeTasks(){
       // оставляет (кроме боя: engage / retreat — сначала бой)
       if(Math.hypot(t.from.x-b.baseX, t.from.y-b.baseY) > 36 && !(b.atPost && b.post && b.post.tag === "lineup")){
         if(b.state === "hold" && !b._sawEnemy) leaveHold(b);
-        // (v378) задача важнее броска (арбитр места) — бросок отменён, как живой игрок бросает лайнап ради боя / бомбы / колла
-        if(b.state === "patrol" && !setPost(b, t.from, {x:t.x, y:t.y}, true, "lineup")){ b.nadeTask = null; b.nadeQueue = null; }
+        // (v378) задача важнее броска (арбитр места) — бросок не идёт, пока она не кончится (с v438 — ждёт, а не отменяется)
+        // (v438, док владельца 27.10: «мид взяли без гранат, хотя куплены»; замер: 29 % заданий снимала задача важнее — бой, перестановка)
+        // задача важнее — бросок ждёт, пока она кончится (срок задания until остаётся: момент прошёл — граната не летит). Было — снимался сразу
+        if(b.state === "patrol") setPost(b, t.from, {x:t.x, y:t.y}, true, "lineup");
         return; }
       postKeep(b);   // стоит на точке броска — затея ещё идёт
       if(!nadeReady(b)) return;   // (v340) только что кинул другую — задание ждёт
@@ -13866,6 +13950,7 @@ function updateNadeTasks(){
       // по пути не мешают» для любого броска; теперь сквозь стены летят только лайнапы про (из демок, так кидали на самом деле).
       // Свой бросок — над открытым местом (проходы, окна, укрытия); нет пути — идёт на точку рядом, откуда граната долетает
       // (nadeThrowSpot: безопасную от известных врагов); нет и такой — не кидает
+      if(!nadeReady(b)) return;   // (v438) пауза между гранатами — задание ждёт (раньше снималось: 277 заданий на 8 матчей)
       if(throwNade(b, t.type, t.x, t.y, true, t.why) || !/стена|потолок/.test(NADE_FAIL||"") || t._spotTried || t.here){ b.nadeTask = null; return; }   // (v373) и под крышей — на точку, откуда долетит
       t._spotTried = true;
       var fs = nadeThrowSpot(b, t);
@@ -14005,6 +14090,12 @@ function lineupTick(){
     if(go && L.pro && L.team === "CT" && L.trigger === "timed" && L.type === "flash" && !npPeekReady("CT", L.to, null)) go = false;
     // (v429) граната на тайминг «на всякий случай» — не туда, где врага точно нет (все живые враги недавно замечены далеко)
     if(go && L.pro && L.type !== "flash" && ((L.team === "CT" && L.trigger === "timed") || (L.team === "T" && L.trigger === "setup")) && !npFoeMaybe(L.team, L.to)) go = false;
+    // (v438) цель уже закрыта смоком (свой смок рядом — облака перекрылись бы, smokeCovered) — второй туда не летит, лайнап закрыт
+    if(go && L.type === "smoke" && smokeCovered(L.to.x, L.to.y)){ nadeFlags[key] = true; return; }
+    // (v438, док владельца 27.10: m0NESY 5 с стоял с молотовом на точке — в 57 ед. от места падения стоял kyousuke) HE / молотов — не туда,
+    // где стоит или куда идёт свой: ждёт, пока место освободится (момент лайнапа держит своё окно)
+    if(go && (L.type === "molly" || L.type === "he")){ var Rk = NADE[L.type].radius + 40;
+      if(bots.some(function(o){ return o.alive && o.team === L.team && (Math.hypot(o.x-L.to.x, o.y-L.to.y) < Rk || (o.post && Math.hypot(o.post.x-L.to.x, o.post.y-L.to.y) < Rk)); })) go = false; }
     if(!go) return;
     // кто кидает: ближайший к точке броска, но не энтри (он заходит первым) и не
     // носитель бомбы; в горячих фазах (выход, колл, ретейк, пост-плант) — только
@@ -14019,7 +14110,8 @@ function lineupTick(){
     // "по времени" — ~4 м (не бросать позицию ради гранаты)
     if(L.pro && L.trigger === "setup") maxD = BAL.nadeReach ? 1100 : 700;
     if(L.pro && L.trigger === "timed"){ maxD = BAL.nadeReach ? 850 : 400; hot = true; }
-    var cost = function(b){ return Math.hypot(b.x-L.from.x, b.y-L.from.y) + (b.tRole === "entry" ? 300 : 0) + nadeRoleCost(b); };
+    // (v438, док владельца 27.10: TN1R из Ramp шёл к T Roof «538 по прямой» — 1500 по пути, через спавн) до точки броска — по пути
+    var cost = function(b){ return pathLenTo(b, L.from.x, L.from.y) + (b.tRole === "entry" ? 300 : 0) + nadeRoleCost(b); };
     // (v428, PRINCIPLES М160; заменяет «опорник — не дальше 300 от поста» v285 и «лайнап сетапа по пути, крюк 300» v424) кидает хозяин
     // гранаты по плану команды (365): граната этого типа отложена на этот момент или раньше и — до контакта / на сетапе / на выходе —
     // для зоны лайнапа (CT — где стоит бросающий, T — куда падает граната; как в tools/nadeplan_bake.py). Колл, ретейк, после
@@ -14030,7 +14122,7 @@ function lineupTick(){
     // (v429, гранаты на потом); без неё лайнапы сетапа доставались кому угодно (м1 Mirage: 500–1000 ед. назад за гранатой)
     var luZ = luM === "now" || luM === "exec" ? (L._npz || (L._npz = L.team === "CT" ? npZoneAt(L.from.x, L.from.y) : npZoneAt(L.to.x, L.to.y))) : null;
     var okBot = function(b){ return b.team === L.team && b.alive && b.nades && b.nades[L.type] > 0 && npCanUse(b, L.type, luM, luZ) &&
-      !b.planting && !b.defusing && !(bomb.state === "carried" && bomb.carrier === b) && Math.hypot(b.x-L.from.x, b.y-L.from.y) < maxD; };
+      !b.planting && !b.defusing && !(bomb.state === "carried" && bomb.carrier === b) && Math.hypot(b.x-L.from.x, b.y-L.from.y) < maxD && pathLenTo(b, L.from.x, L.from.y) < maxD; };
     // (v359, р7) кто уже стоит на сайте T (взял его) — с сайта за гранатой назад не уходит
     var onTSite = function(b){ var S = L.team === "T" && tt && SITES[tt.site]; return !!S && (onSite(S, b.x, b.y) || Math.hypot(b.x-S.x, b.y-S.y) < 450) && Math.hypot(L.from.x-S.x, L.from.y-S.y) > Math.hypot(b.x-S.x, b.y-S.y) + 200; };
     var cand = bots.filter(function(b){ return okBot(b) && !b.nadeTask && !onTSite(b); }).sort(function(a, b2){ return cost(a) - cost(b2); })[0];
@@ -14141,7 +14233,7 @@ function detonate(n){
     // молотов, упавший в дым или рядом так, что огонь касается дыма, гаснет (как в CS2 — наоборот тоже: дым тушит огонь;
     // v321, М12: «чуть касается смока — тушится»)
     if(!smokes.some(function(s){ return Math.hypot(s.x-n.x, s.y-n.y) < smokeRadiusNow(s) + NADE.molly.radius*MOLLY_SMOKE_TOUCH; }))
-      fires.push({x:n.x, y:n.y, born:tick, until:tick+NADE.molly.life, team:n.team, thrower:n.thrower});
+    { fires.push({x:n.x, y:n.y, born:tick, until:tick+NADE.molly.life, team:n.team, thrower:n.thrower}); fireRepath(n.x, n.y); }
   }
   else if(T === "flash"){
     if(n.why === "под пик") nadeFlags.peekFlashPop = tick;
@@ -15089,7 +15181,7 @@ function knifeEnemyDist(b){
 function knifeTick(b){
   if(!BAL.knifeRun) return;
   var ok = b.alive && roundState === "live" && (b.state === "patrol" || b.state === "hold") && !b._sawEnemy && !b.planting && !b.defusing &&
-           !b.nadeTask && !(bomb && bomb.state === "carried" && bomb.carrier === b) && !(b._fc);
+           !b.nadeTask && !(bomb && bomb.state === "carried" && bomb.carrier === b) && !(b._fc) && !b._reloading;   // (v442) перезаряжается — в руках оружие (замер: 91–112 ножей при перезарядке на 8 матчей)
   if(!ok){ b._knU = null; }
   else if(b._knU == null) b._knU = hashRand(roundNum*7919 + tick*13 + b.id.charCodeAt(0)*31 + b.id.length*101);   // жребий на отрезок
   var want = false;
@@ -15271,7 +15363,9 @@ function reloadHeard(b, w){
 // коротко выходит на линию, откуда видно место звука. Агрессивные — чаще.
 function reloadPeek(b){
   var R = b._heardReload;
-  if(!BAL.soundMore || !R || tick >= R.until || b._sawEnemy || b.planting || b.defusing || b.hp <= 50) return false;
+  // (v442, док владельца 27.10, р9: zont1x «пикает на перезарядку», сам перезаряжаясь 15/30) пикает на перезарядку врага — только с полным
+  // магазином: сам перезаряжается — не выходит
+  if(!BAL.soundMore || !R || tick >= R.until || b._sawEnemy || b.planting || b.defusing || b.hp <= 50 || b._reloading) return false;
   if(b._rlPeekDone === R.until) return false;
   var d = Math.hypot(R.x-b.x, R.y-b.y); if(d > 450 || d < 60) return false;
   b._rlPeekDone = R.until;
@@ -15736,6 +15830,8 @@ function lowHpBack(b){
 // вероятностей кто-то вероятно есть и по таймингу он уже мог туда добежать,
 // идём тихо. Бегом — где пусто/враг ещё не успел, и когда надо спешить:
 // выход T, время раунда, размен, бомба, ротация на подтверждённый выход.
+// (v438) слышимость бега: тот же радиус, что у звука шагов (540: SOUND_RADIUS_RUN × BAL.stepHearMul)
+function STEP_HEAR_R(){ return SOUND_RADIUS_RUN * (BAL.stepHearMul || 1); }
 function dangerWalk(b){
   if(!b.post || b.state !== "patrol" || !BZ.ids.length) return false;
   var tag = b.post.tag || "";
@@ -16358,6 +16454,9 @@ function decideAction(bot, nearestDist, alliesNear, enemiesSeen){
     }
   }
   if(r === "anchorA" || r === "anchorB"){ holdScore += 0.15; retreatScore -= 0.05; } // опорник держит, ждёт помощь
+  // (v440, док 27.10, р8: носитель с 22 HP держал угол и ждал файта) носитель бомбы не лезет в дуэль, пока есть кому разменять / донести:
+  // те же веса, что у сейва (−0,25 / +0,25) — бомба дороже фрага
+  if(bomb && bomb.state === "carried" && bomb.carrier === bot && aliveCount(bot.team) > 1){ engageScore -= 0.25; retreatScore += 0.25; }
   if(r === "entry"){ engageScore += 0.15; }                                          // энтри лезет в первую дуэль
   if(r === "lurker"){ holdScore += 0.08; }
   if(wk === "AWP" || wk === "SSG" || (bot.weapon && bot.weapon.scoped)){ holdScore += wk === "AWP" ? 0.15 : 0.08; engageScore -= wk === "AWP" ? 0.10 : 0.05; } // снайперки/прицел — дальняя линия
@@ -17156,6 +17255,13 @@ function buyFullKit(b, idx){
   NPL.forEach(function(t){ var pr = nadePrice(t, b.team), tot = b.nades.smoke + b.nades.flash + b.nades.he + b.nades.molly;
     var need = NPL.filter(function(x){ return x === t; }).length;
     if(tot < 4 && b.money >= pr && b.nades[t] < need){ b.money -= pr; b.nades[t]++; npBought(b, t); } });
+  // (v438, док владельца 27.10: «куча денег, а гранаты до конца не закупают»; замер: 1,7–2,1 гранаты на игрока) план — это сколько про
+  // БРОСАЮТ за раунд (MAP.pro.nadesBy); покупают больше: полный закуп «с гранатами» — ≈ $5000 T / $6000 CT (ProSettings, гайд по экономике
+  // CS2; docs/PRO_PLAY.md) — после оружия, брони и кита это ≈ 4 гранаты. Остаток денег сверх того, что нужно на фулл в следующем раунде
+  // при поражении, — до 4 гранат по набору роли (NADE_WISH_PRO), без плана (момент «сейчас», своя зона: npBought)
+  var keepF = Math.max(0, fullNeed(b) - nextLossIncome(b.team)), wishF = NADE_WISH_PRO[b.tRole] || NADE_WISH[b.tRole] || [];
+  wishF.forEach(function(t){ var pr = nadePrice(t, b.team), tot = b.nades.smoke + b.nades.flash + b.nades.he + b.nades.molly;
+    if(tot < 4 && b.money - pr >= keepF && (t === "flash" ? b.nades.flash < 2 : b.nades[t] < 1)){ b.money -= pr; b.nades[t]++; npBought(b, t); } });
   b._fullKit = roundNum;
 }
 // лучшая основная, которую можно купить, оставив `keep` денег; не ниже того, что уже есть
@@ -17241,7 +17347,9 @@ function teamDrops(team){
   mates.forEach(function(poor){
     var rifle = rifleFor(team, poor);
     var cur = poor.primary ? WEAPONS[poor.primary].tier : -1;
-    if(cur >= 6 || poor.money >= rifle.price) return;
+    // (v442, док владельца 27.10, р7: у TN1R 3500 — «на AK хватает», купил броню и Galil, у magixx осталось 9650) хватает ли — на винтовку
+    // с бронёй (fullNeed), а не на одну винтовку
+    if(cur >= 6 || poor.money >= fullNeed(poor)) return;
     var rich = mates.filter(function(m){ return m !== poor && m.money - rifle.price >= fullNeed(m); })
                     .sort(function(a,b){ return b.money - a.money; })[0];
     if(!rich) return;
@@ -17687,8 +17795,10 @@ function stepTick(){
     bot.walking = (BAL.pieSlice && bot._pie && bot._pie.slice && tick - bot._pie.t < 16 && !bot.holding && !bot._sawEnemy && !(bot.post && /^repos/.test(bot.post.tag))) || !bot.holding && !bot._sawEnemy && !(bot._stopPlantUntil > tick) && !(bot._tradeLock && bot._tradeLock.until > tick) &&
       // уход с засвеченного угла после фрага — бегом, а не шифтом (позиция и так известна)
       !(bot.post && /^repos/.test(bot.post.tag) && bot._reposUntil > tick) &&
-      ((bot.lastIntel && tick - bot.lastIntel.tick < CAUTION_TICKS) ||
-       (bot.heardSound && tick - bot.heardSound.tick < SOUND_CAUTION_TICKS) ||
+      // (v438, док 27.10) свежая инфа / звук — шагом, только если этот враг сам может услышать мой бег (≤ 1,5 слышимости бега — проектное
+      // число: враг мог подойти). Было — любой звук: выстрелы за 2000 px давали 6 с шифта по всей карте
+      ((bot.lastIntel && tick - bot.lastIntel.tick < CAUTION_TICKS && Math.hypot(bot.lastIntel.x-bot.baseX, bot.lastIntel.y-bot.baseY) <= 1.5*STEP_HEAR_R()) ||
+       (bot.heardSound && tick - bot.heardSound.tick < SOUND_CAUTION_TICKS && Math.hypot(bot.heardSound.x-bot.baseX, bot.heardSound.y-bot.baseY) <= 1.5*STEP_HEAR_R()) ||
        // роумер подходит к точке чека тихо
        (bot.role === "roamer" && !bot.roamChecking && bot.roamTarget && bot.state === "patrol" &&
         Math.hypot(bot.roamTarget.x-bot.baseX, bot.roamTarget.y-bot.baseY) < ROAM_QUIET_RADIUS) ||
@@ -17719,6 +17829,12 @@ function stepTick(){
     if(bot.walking && bot.team === "CT" && bomb && bomb.state === "planted" && bot.post && /^(gather|retake|defuse|rotate)/.test(bot.post.tag)){
       var dB = Math.hypot(bomb.x-bot.baseX, bomb.y-bot.baseY);
       if(bombTimeLeftTicks()/TICK_HZ <= dB/(SPEED*WALK_SPEED_FRAC) + (bot.kit ? 5 : 10) + 1.5) bot.walking = false;
+    }
+    // (v438, док владельца 27.10: NiKo за 3,5 с до взрыва шёл шифтом и погиб от бомбы) в зоне смертельного взрыва (урон ≥ HP, BOMB_DMG) —
+    // шагом, только если шагом успевает выйти из неё до взрыва (+1 с — проектное число); иначе бегом. Любая сторона, любая задача
+    if(bot.walking && bomb && bomb.state === "planted" && bombDamageAt(bot.baseX, bot.baseY) >= bot.hp){
+      var rKill = BOMB_DMG.sigma*Math.sqrt(2*Math.log(BOMB_DMG.max/Math.max(1, bot.hp))), dOut = Math.max(0, rKill - bombPathLen(bot.baseX, bot.baseY));
+      if(bombTimeLeftTicks()/TICK_HZ <= dOut/(SPEED*WALK_SPEED_FRAC) + 1) bot.walking = false;
     }
     knifeTick(bot); prePeekTick(bot); exposedShiftTick(bot); jumpCheckTick(bot);
     var runSpeed = (bot.walking ? SPEED*WALK_SPEED_FRAC : SPEED) * weaponSpeedMul(bot);
@@ -20898,7 +21014,7 @@ function draw(){
   if(bomb && bomb.state === "exploded" && bomb.explodeTick != null){
     var ba = (tick - bomb.explodeTick)/TICK_HZ;
     if(ba >= 0 && ba < 2.2){
-      var rKill = BOMB_DMG.sigma*Math.sqrt(Math.log(BOMB_DMG.max/100));
+      var rKill = BOMB_DMG.sigma*Math.sqrt(2*Math.log(BOMB_DMG.max/100));   // урон = max·exp(−L²/2σ²) (120)
       var eo = function(p){ p = Math.max(0, Math.min(1, p)); return 1 - Math.pow(1 - p, 3); };
       var ca = Math.max(0, 1 - ba/1.6), rc = Math.max(1, rKill*eo(ba/0.35));
       if(ca > 0){
@@ -21779,6 +21895,7 @@ var __SNAP = [
 ["ROUTE_PORTAL", function(){ return ROUTE_PORTAL; }, function(v){ try{ ROUTE_PORTAL = v; }catch(e){} }],
 ["ROUTE_NOISE", function(){ return ROUTE_NOISE; }, function(v){ try{ ROUTE_NOISE = v; }catch(e){} }],
 ["ROUTE_NOISE_C", function(){ return ROUTE_NOISE_C; }, function(v){ try{ ROUTE_NOISE_C = v; }catch(e){} }],
+["FIRE_DETOUR", function(){ return FIRE_DETOUR; }, function(v){ try{ FIRE_DETOUR = v; }catch(e){} }],
 ["LANE_W", function(){ return LANE_W; }, function(v){ try{ LANE_W = v; }catch(e){} }],
 ["ZONE_CENTROIDS", function(){ return ZONE_CENTROIDS; }, function(v){ try{ ZONE_CENTROIDS = v; }catch(e){} }],
 ["DANGER_SAMPLES", function(){ return DANGER_SAMPLES; }, function(v){ try{ DANGER_SAMPLES = v; }catch(e){} }],
