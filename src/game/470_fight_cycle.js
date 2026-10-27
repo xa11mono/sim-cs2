@@ -329,12 +329,12 @@ function dangerWalk(b){
     var q = b.path[i], sl = Math.hypot(q[0]-px, q[1]-py); acc += sl; px = q[0]; py = q[1]; pts.push([px, py]);
   }
   if(!pts.length) pts.push([b.post.x, b.post.y]);
-  // (v438, док владельца 27.10: «шифтит там, где его никто не услышит»; замер: 29 % шифта — враги дальше 600) шифт — только если по знанию
-  // команды враг может быть в пределах слышимости бега от меня или от пути впереди (knowMassNear, 210; STEP_HEAR_R). Было — вес зон пути и
-  // соседних (beliefZoneKnown): большая зона (Mid) или соседняя за 1000 px пугала так же, как враг за углом
-  var seenZ = {}, dz = knowMassNear(foe, [[b.baseX, b.baseY]].concat(pts), STEP_HEAR_R());
+  var seenZ = {}, dz = 0;
   pts.forEach(function(q){
     var zi = bzOf(q[0], q[1]); if(zi < 0 || seenZ[zi]) return; seenZ[zi] = 1;
+    var own = reachPossible(foe, zi) ? beliefZoneKnown(foe, zi) : 0;
+    var nb = 0; (BZ.nbr[zi]||[]).forEach(function(j){ if(reachPossible(foe, j)) nb = Math.max(nb, beliefZoneKnown(foe, j)); });
+    dz = Math.max(dz, own + 0.5*nb);
     // (v143) непроверенный угол вплотную к пути, куда враг мог успеть — тихо,
     // чтобы чекнуть его и не спалиться (у про: "иду шифтом, чекаю каждый угол")
     { var uc = uncheckedW(foe, zi); (BZ.nbr[zi]||[]).forEach(function(j){ var c = BZ.cent[j]; if(c && Math.hypot(c.x-q[0], c.y-q[1]) < 320) uc = Math.max(uc, uncheckedW(foe, j)); });
@@ -342,6 +342,17 @@ function dangerWalk(b){
   });
   b._dwVal = dz >= (BAL.dangerWalkThr || 0.12);
   if(b._dwVal && !dwPrev) b._dwOnT = tick;
-  // (v438) «враг недавно рядом с путём (≤ 650, ≤ 15 с)» отдельно больше не нужен: это гипотеза «держит» в знании (knowMassNear выше)
+  // "чисто" в одной зоне ≠ безопасно вокруг: карта вероятностей после колла
+  // "проверил — пусто" обнуляет зону, и раньше бот сразу срывался на бег и
+  // палил позицию. Если враг недавно (≤15с) был засвечен рядом с путём (≤650px)
+  // и он жив — идём тихо, пока его не найдут снова
+  if(!b._dwVal && BAL.clearQuiet){
+    var L = beliefLast[b.team] || {}, BL = beliefLast[b.team] || {};
+    outer: for(var eid in BL){
+      var lo = BL[eid]; if(!lo || tick - lo.tick > 15*TICK_HZ) continue;
+      var foeB = bots.filter(function(o){ return o.id === eid; })[0]; if(!foeB || !foeB.alive) continue;
+      for(var pi = 0; pi < pts.length; pi++) if(Math.hypot(pts[pi][0]-lo.x, pts[pi][1]-lo.y) < 650){ b._dwVal = true; b._dwWhy = "near"; if(!dwPrev) b._dwOnT = tick; break outer; }
+    }
+  }
   return b._dwVal;
 }

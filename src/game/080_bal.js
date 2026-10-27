@@ -66,6 +66,7 @@ var BAL = {
   soundMore: true,
   smartPlant: true,
   dangerWalk: true,
+  clearQuiet: true,
   tSave: true,
   timingVar: true,  // время выхода T гуляет: быстрый / обычный / поздний
   nadeReact: true,  // гранаты по ситуации: молотов на раш по звуку, HE в стак, флешка себе перед соло-пиком
