@@ -190,8 +190,10 @@ function stepTick(){
     bot.walking = (BAL.pieSlice && bot._pie && bot._pie.slice && tick - bot._pie.t < 16 && !bot.holding && !bot._sawEnemy && !(bot.post && /^repos/.test(bot.post.tag))) || !bot.holding && !bot._sawEnemy && !(bot._stopPlantUntil > tick) && !(bot._tradeLock && bot._tradeLock.until > tick) &&
       // уход с засвеченного угла после фрага — бегом, а не шифтом (позиция и так известна)
       !(bot.post && /^repos/.test(bot.post.tag) && bot._reposUntil > tick) &&
-      ((bot.lastIntel && tick - bot.lastIntel.tick < CAUTION_TICKS) ||
-       (bot.heardSound && tick - bot.heardSound.tick < SOUND_CAUTION_TICKS) ||
+      // (v438, док 27.10) свежая инфа / звук — шагом, только если этот враг сам может услышать мой бег (≤ 1,5 слышимости бега — проектное
+      // число: враг мог подойти). Было — любой звук: выстрелы за 2000 px давали 6 с шифта по всей карте
+      ((bot.lastIntel && tick - bot.lastIntel.tick < CAUTION_TICKS && Math.hypot(bot.lastIntel.x-bot.baseX, bot.lastIntel.y-bot.baseY) <= 1.5*STEP_HEAR_R()) ||
+       (bot.heardSound && tick - bot.heardSound.tick < SOUND_CAUTION_TICKS && Math.hypot(bot.heardSound.x-bot.baseX, bot.heardSound.y-bot.baseY) <= 1.5*STEP_HEAR_R()) ||
        // роумер подходит к точке чека тихо
        (bot.role === "roamer" && !bot.roamChecking && bot.roamTarget && bot.state === "patrol" &&
         Math.hypot(bot.roamTarget.x-bot.baseX, bot.roamTarget.y-bot.baseY) < ROAM_QUIET_RADIUS) ||
