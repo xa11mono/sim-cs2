@@ -39,6 +39,11 @@ function tSaveWant(ts, aT, aC, secLeft, site){
   if(!ts.length) return false;
   var gunVal = ts.reduce(function(a, b){ return a + (b.primary ? WEAPONS[b.primary].price : 0); }, 0) / aT;
   var carOn = bomb.state === "carried" && bomb.carrier && bomb.carrier.alive && Math.hypot(bomb.carrier.x-site.x, bomb.carrier.y-site.y) < 380;
+  // (v442, док владельца 27.10, р6: сейвили вдвоём при 10 тыс. и 9 тыс. у команды) сохранять оружие стоит, только если без него команда
+  // в следующем раунде не купит фулл всем: деньги команды + доход за поражение против фулла каждому и оружия сейвящих (проектная мерка)
+  var Ts = bots.filter(function(o){ return o.team === "T"; }), inc = nextLossIncome("T");
+  var bank = Ts.reduce(function(a, o){ return a + o.money + inc; }, 0), need = Ts.reduce(function(a, o){ return a + fullNeedU(o); }, 0) + gunVal*aT;
+  if(bank >= need) return false;
   return gunVal >= 1500 && !carOn && saveWorth("T") && tSaveRoll(aT, aC, secLeft);
 }
 // сейв T: каждый живой — к своему месту сейва (один раз выбранному), бомбу не ставит

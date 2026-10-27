@@ -800,7 +800,13 @@ function tBrain(){
           cand.push({x:c.x, y:c.y, dCT:Math.hypot(c.x-CT_SPAWN.x, c.y-CT_SPAWN.y)});
         });
         cand.sort(function(a, c2){ return a.dCT - c2.dCT; });
-        var pts = [{x:CT_SPAWN.x, y:CT_SPAWN.y}], minGap = 280;
+        // (v442, док владельца 27.10: «охота на последних — как будто рандомные точки, а не где была инфа») сначала — где по знанию команды
+        // могут быть живые CT (гипотезы знания, тяжёлые первыми; точки на сайте — тоже, это и есть «где была инфа»); потом — места у спавна CT
+        var minGap = 280, pts = [];
+        var kn = []; bots.forEach(function(o){ if(o.team === "CT" && o.alive) knowEnemySpots("T", o.id).forEach(function(q){ if(q.w >= 0.05) kn.push(q); }); });
+        kn.sort(function(a, c2){ return c2.w - a.w; });
+        kn.forEach(function(q){ if(pts.length < 5 && !insideSolidWall(q.x, q.y) && pts.every(function(p){ return Math.hypot(p.x-q.x, p.y-q.y) > minGap; })) pts.push({x:q.x, y:q.y}); });
+        if(pts.every(function(p){ return Math.hypot(p.x-CT_SPAWN.x, p.y-CT_SPAWN.y) > minGap; })) pts.push({x:CT_SPAWN.x, y:CT_SPAWN.y});
         for(var ci=0; ci<cand.length && pts.length<7; ci++){
           var c = cand[ci];
           if(pts.every(function(p){ return Math.hypot(p.x-c.x, p.y-c.y) > minGap; })) pts.push({x:c.x, y:c.y});
@@ -870,7 +876,9 @@ function tBrain(){
       // обязательно (снять дефузера), встать под главный вход ретейка, от
       // остальных закрыться, не стоять кучей, по возможности кроссфаер
       holdGroup(group, {key:"pp"+bomb.site+Math.round(bp0.x/30), center:bp0, rArea: BAL.ppFar ? 420 : 320, rMin: BAL.ppFar ? 180 : 90, rMax: BAL.ppFar ? 520 : 420, must:[bp0], mustFirst:BAL.ppSpread, rMax2: BAL.ppFar ? 680 : 560,
-        voice:function(b, r){ if(r.main) voiceLog("T", "pphold"+b.id+Math.round(r.main.pt.x/60), b.id, "держу бомбу, смотрю "+calloutName(r.main.pt.x, r.main.pt.y).replace(/^на /,"")); }}, "postplant:hold");
+        // (v442, док владельца 27.10: «войс спамится» — «держу бомбу, смотрю X» каждый игрок при каждой смене угла, 3–4 строки в секунду) — один
+        // раз за раунд на игрока: куда смотрит дальше, видно на радаре
+        voice:function(b, r){ if(r.main && b._ppSaid !== roundNum && (b._ppSaid = roundNum)) voiceLog("T", "pphold"+b.id, b.id, "держу бомбу, смотрю "+calloutName(r.main.pt.x, r.main.pt.y).replace(/^на /,"")); }}, "postplant:hold");
       return;
     }
     if(BAL.namedPos){

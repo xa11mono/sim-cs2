@@ -352,7 +352,9 @@ function teamDrops(team){
   mates.forEach(function(poor){
     var rifle = rifleFor(team, poor);
     var cur = poor.primary ? WEAPONS[poor.primary].tier : -1;
-    if(cur >= 6 || poor.money >= rifle.price) return;
+    // (v442, док владельца 27.10, р7: у TN1R 3500 — «на AK хватает», купил броню и Galil, у magixx осталось 9650) хватает ли — на винтовку
+    // с бронёй (fullNeed), а не на одну винтовку
+    if(cur >= 6 || poor.money >= fullNeed(poor)) return;
     var rich = mates.filter(function(m){ return m !== poor && m.money - rifle.price >= fullNeed(m); })
                     .sort(function(a,b){ return b.money - a.money; })[0];
     if(!rich) return;

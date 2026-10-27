@@ -46,7 +46,9 @@ function reloadHeard(b, w){
 // коротко выходит на линию, откуда видно место звука. Агрессивные — чаще.
 function reloadPeek(b){
   var R = b._heardReload;
-  if(!BAL.soundMore || !R || tick >= R.until || b._sawEnemy || b.planting || b.defusing || b.hp <= 50) return false;
+  // (v442, док владельца 27.10, р9: zont1x «пикает на перезарядку», сам перезаряжаясь 15/30) пикает на перезарядку врага — только с полным
+  // магазином: сам перезаряжается — не выходит
+  if(!BAL.soundMore || !R || tick >= R.until || b._sawEnemy || b.planting || b.defusing || b.hp <= 50 || b._reloading) return false;
   if(b._rlPeekDone === R.until) return false;
   var d = Math.hypot(R.x-b.x, R.y-b.y); if(d > 450 || d < 60) return false;
   b._rlPeekDone = R.until;

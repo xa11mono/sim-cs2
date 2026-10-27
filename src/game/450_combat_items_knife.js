@@ -127,7 +127,7 @@ function knifeEnemyDist(b){
 function knifeTick(b){
   if(!BAL.knifeRun) return;
   var ok = b.alive && roundState === "live" && (b.state === "patrol" || b.state === "hold") && !b._sawEnemy && !b.planting && !b.defusing &&
-           !b.nadeTask && !(bomb && bomb.state === "carried" && bomb.carrier === b) && !(b._fc);
+           !b.nadeTask && !(bomb && bomb.state === "carried" && bomb.carrier === b) && !(b._fc) && !b._reloading;   // (v442) перезаряжается — в руках оружие (замер: 91–112 ножей при перезарядке на 8 матчей)
   if(!ok){ b._knU = null; }
   else if(b._knU == null) b._knU = hashRand(roundNum*7919 + tick*13 + b.id.charCodeAt(0)*31 + b.id.length*101);   // жребий на отрезок
   var want = false;

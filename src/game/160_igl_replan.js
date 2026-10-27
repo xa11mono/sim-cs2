@@ -175,7 +175,9 @@ function tSetSite(tt, site){
 // дефуза; каждому — своё, ближайшее по пути. Раньше — любые укрытия в 300–620 ед. от бомбы, имена мест не учитывались
 function ppTimeNamed(group, bp0, site, rMax){
   var P = POS[site] && POS[site].tPost; if(!P || !P.length) return false;
-  var pts = []; P.forEach(function(n){ var zp = zonePoint(n, bp0); if(zp && Math.hypot(zp.x-bp0.x, zp.y-bp0.y) <= rMax && !pts.some(function(q){ return Math.hypot(q.x-zp.x, q.y-zp.y) < 110; })) pts.push({n:n, x:zp.x, y:zp.y}); });
+  // (v442, док владельца 27.10, р7: «их не слышно — отходим от бомбы», а встали на Firebox / A Trash у самой бомбы; замер: T ближе 150 к бомбе
+  // 21 % против 12–19 % у про) «на время» — не ближе 320 к бомбе (та же мерка, что у groupPost ниже в 170 — rMin 320)
+  var pts = []; P.forEach(function(n){ var zp = zonePoint(n, bp0); if(zp && Math.hypot(zp.x-bp0.x, zp.y-bp0.y) <= rMax && Math.hypot(zp.x-bp0.x, zp.y-bp0.y) >= 320 && !pts.some(function(q){ return Math.hypot(q.x-zp.x, q.y-zp.y) < 110; })) pts.push({n:n, x:zp.x, y:zp.y}); });
   if(!pts.length) return false;
   var used = {};
   group.forEach(function(b){

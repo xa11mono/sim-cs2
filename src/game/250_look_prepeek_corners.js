@@ -204,10 +204,15 @@ function exposedShiftTick(b){
 }
 // (v163) где враг из точки q выйдет на линию бота: идём по его пути к боту,
 // первая точка, которую бот видит (не ближе 50px). Нет такой — null
+// (v442, док владельца 27.10: «падает FPS»; отметка р7 — на тике решений 40–73 пути, почти все отсюда) кэш — на все точки q, пока бот в той же
+// клетке 16 ед. (раньше одна запись: варианты взгляда перебирают несколько q подряд, и каждая выталкивала прошлую). Ответ тот же
 function appearFrom(b, q){
-  var k = Math.round(q.x/40)+","+Math.round(q.y/40)+"|"+Math.round(b.x/16)+","+Math.round(b.y/16);
-  if(b._apfK === k) return b._apfV;
-  b._apfK = k; b._apfV = null;
+  var pk = Math.round(b.x/16)+","+Math.round(b.y/16), k = Math.round(q.x/40)+","+Math.round(q.y/40);
+  if(b._apfP !== pk){ b._apfP = pk; b._apfC = {}; }
+  if(k in b._apfC) return b._apfC[k];
+  var v = appearFromCalc(b, q); b._apfC[k] = v; return v;
+}
+function appearFromCalc(b, q){
   var wp = buildWaypointPath(q.x, q.y, 0, b.x, b.y, 0); if(!wp || !wp.length) return null;
   var prev = {x:q.x, y:q.y};
   for(var i=0;i<wp.length;i++){
@@ -218,7 +223,7 @@ function appearFrom(b, q){
       for(var it=0; it<6; it++){ var m = (lo+hi)/2, mp = {x:prev.x+(p.x-prev.x)*m, y:prev.y+(p.y-prev.y)*m}; if(hasLOS(b.x, b.y, mp.x, mp.y, b.z)) hi = m; else lo = m; }
       var r = {x:prev.x+(p.x-prev.x)*hi, y:prev.y+(p.y-prev.y)*hi};
       if(Math.hypot(r.x-b.x, r.y-b.y) < 50) return null;
-      b._apfV = r; return r;
+      return r;
     }
     prev = p;
   }
