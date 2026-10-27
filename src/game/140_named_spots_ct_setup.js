@@ -184,7 +184,10 @@ function ctSetupRole(b, role, ct){
   // уголок, откуда "спрятанное от мида" направление и есть тот самый Dark/
   // Lamp Room, который нужно смотреть — в итоге стоял к нему спиной
   var hideMid = R.hideFrom === false ? [] : [GEO.tMid];
-  var spots = pickSpots("cts:"+S.id+":"+role+":"+nm, c, 3, {rMax:150, minGap:45, see:[lk], hideFrom:hideMid});
+  var spots = pickSpots("cts:"+S.id+":"+role+":"+nm, c, 6, {rMax:150, minGap:45, see:[lk], hideFrom:hideMid});
+  // (v441, док владельца 27.10, р6: мидер kyousuke с местом «B Short» встал в Stove — за дверью Apps, на стороне T) точка — в зоне своего
+  // места: в 150 от точки зоны легко попасть в соседнюю, а соседняя бывает уже чужой стороной. Нет такой — как было
+  var inNm = spots.filter(function(q){ return zoneUserName(zoneIdAt(q.x, q.y)) === nm; }); spots = (inNm.length ? inNm : spots).slice(0, 3);
   var tag = (role === "anchorA" || role === "anchorB") ? "anchor" : role === "mid" ? "mid" : "set:"+role;
   var spC = spots[weightedPick(spots.length, roundNum*53 + b.id.charCodeAt(2||1))];
   // встал в той самой зоне, куда велено смотреть (роумер в Cave с взглядом

@@ -73,6 +73,9 @@ function rebalSpot(b, k, taken, avoidPts, opt){
   var L = PRO_SPOTS["CT|pre"] || [], best = null, bs = -1e9;
   for(var i=0;i<L.length;i++){ var s = L[i];
     if(Math.hypot(s[0]-SITES[k].x, s[1]-SITES[k].y) > REBAL.R || insideSolidWall(s[0], s[1])) continue;
+    // (v441, док владельца 27.10, р6: karrigan «беру угол на Catwalk» пошёл с B в Window через Market) угол сайта — в REBAL.R от сайта и по
+    // пути (до 1,3 × REBAL.R — проектное число), а не только по прямой: Window в 560 от B по прямой, по пути — через полкарты
+    if(polyLen(pathPts(SITES[k].x, SITES[k].y, s[0], s[1])) > REBAL.R*1.3) continue;
     if(bots.some(function(o){ return o !== b && o.alive && o.team === "CT" && Math.hypot(o.x-s[0], o.y-s[1]) < 70; })) continue;
     var modes = [[s[3], s[4]]]; if(s.length > 5) modes.push([s[5], s[6]]);
     modes.forEach(function(m){

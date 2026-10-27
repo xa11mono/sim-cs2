@@ -130,7 +130,10 @@ function ctBrain(){
   }
   if(ct.call){
     var quiet = tick - (ct.call.evTick||ct.call.tick);
-    var massNow = beliefCount("CT", BZ.siteNear[ct.call.site]||[]);
+    // (v441, док владельца 27.10, р6: убили лёркера в Palace и T в B Apps — через 6 с «отбой колла на B: там вероятно пусто», трое ушли на A)
+    // «пусто» — и у сайта, и в зонах подхода к нему (соседние зоны сайта: T Apps у B): T, стоящие у входа, — не пустой сайт
+    var nearZ = (BZ.siteNear[ct.call.site]||[]).slice(); nearZ.slice().forEach(function(z){ (BZ.nbr[z]||[]).forEach(function(n){ if(nearZ.indexOf(n) < 0) nearZ.push(n); }); });
+    var massNow = beliefCount("CT", nearZ);
     var lkpHere = lkpNear("CT", SITES[ct.call.site].x, SITES[ct.call.site].y, 500);
     // (v262, К4) тишина — не новая инфа: колл, под который уже ушла ротация, тишиной не снимается
     // (раньше «давно тихо — по местам» разворачивал ротаторов на полпути и оставлял их на промежуточной точке)

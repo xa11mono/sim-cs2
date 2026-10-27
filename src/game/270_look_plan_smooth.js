@@ -165,7 +165,12 @@ function lookCands(b, W){
   // последнего CT на A) команда знает, где враг (видели / слышали ≤ KNOWN_SEC), — смотреть туда, откуда он придёт: вдоль
   // своего пути к нему, на дальнюю видимую точку этого пути (до 400 ед.). Вес KNOWN_W — проектное число
   var kw = knownWayLook(b);
-  if(kw) out.push({j:"known", pt:kw.pt, sc:kw.sc, fresh:false, a:Math.atan2(kw.pt.y-b.y, kw.pt.x-b.x), f: D ? [["путь к известному врагу ("+kw.id+", "+kw.age.toFixed(1)+" с)", kw.sc]] : null});
+  // (v441, док владельца 27.10, р1: m0NESY и karrigan шли к Van и смотрели назад на Kitchen — «путь» к sh1ro на T Spawn; замер: 36 % этого
+  // взгляда на ходу — за спиной) на ходу — те же множители, что у остальных вариантов («по ходу» / «за спиной»); раньше их не было
+  if(kw){ var kwa = Math.atan2(kw.pt.y-b.y, kw.pt.x-b.x), kws = kw.sc, kwF = D ? [["путь к известному врагу ("+kw.id+", "+kw.age.toFixed(1)+" с)", kw.sc]] : null;
+    if(moving){ var kwh = _angOff(kwa, b.heading); if(kwh < 0.9){ kws *= LOOK.headK; if(kwF) kwF.push(["по ходу", LOOK.headK]); }
+      else if(kwh > 1.9){ kws *= rearCov ? LOOK.behindMoveCov : LOOK.behindMove; if(kwF) kwF.push([rearCov ? "за спиной (прикрыт)" : "за спиной", rearCov ? LOOK.behindMoveCov : LOOK.behindMove]); } }
+    out.push({j:"known", pt:kw.pt, sc:kws, fresh:false, a:kwa, f:kwF}); }
   return out;
 }
 var KNOWN_SEC = 10, KNOWN_W = 0.2;
