@@ -69,10 +69,7 @@ function contactTick(b){
   // тот же враг давал контакт снова — половина «ходит туда-сюда»)
   // (v418) держит — а свой рядом начал бой с этой группой: решение «держать / выйти» пересматривается (ниже, contactMateFight)
   var reMate = K && K.tag === "contact:hold" && tick - (b._mateReT||-1e9) >= CONTACT_GAP*TICK_HZ && contactMateFight(b, C);   // не чаще CONTACT_GAP
-  // (v438) уточнилось место врага, а с точки выхода его теперь не видно — точка выбирается заново (ниже), а не держится старая
-  // не чаще раза в секунду (проектное число): враг на ходу, и точка, выбранная сейчас, через тик снова «не видит» — бот метался бы
-  var swLost = K && K.tag === "contact:swing" && K.pt && tick - (b._contactT||0) >= TICK_HZ && !hasLOS(K.pt.x, K.pt.y, C.x, C.y, b.z);
-  if(K && Math.hypot(C.x-K.x, C.y-K.y) < 120 && !reMate && !swLost){ K.x = C.x; K.y = C.y; if(C.id) K.id = C.id; K.until = tick + CONTACT_HOLD*TICK_HZ; return; }
+  if(K && Math.hypot(C.x-K.x, C.y-K.y) < 120 && !reMate){ K.x = C.x; K.y = C.y; if(C.id) K.id = C.id; K.until = tick + CONTACT_HOLD*TICK_HZ; return; }
   if(reMate) b._mateReT = tick;
   if(b._contactT && tick - b._contactT < CONTACT_GAP*TICK_HZ && !K) return;
   var look = {x:C.x, y:C.y};
@@ -93,15 +90,8 @@ function contactTick(b){
   // дым — не выходит, держит (место выхода выбиралось по прямой видимости без дыма)
   if(swing && smokeBlocks(b.x, b.y, look.x, look.y)) swing = false;
   if(swing && bots.some(function(o){ return o !== b && o.alive && o.team === b.team && o._contact && o._contact.tag === "contact:swing" && tick < o._contact.until && Math.hypot(o._contact.x-C.x, o._contact.y-C.y) < 200; })) swing = false;   // на него уже выходит свой
-  // (v438, док владельца 27.10: точка «выхожу на него» на ящике Short / в Underpath без вида на врага — бот стоял 22 с) точка — на полу
-  // своего уровня (не крыша ящика, не другой этаж: navAtLevel) и, если выходит, — оттуда видно место врага (3D-видимость с пола точки).
-  // Нет такой — не выходит, держит (точку держать ищем так же, но вид не обязателен: держит угол, откуда враг придёт)
-  var spotOk = function(q, needSee){ var a = b.z == null ? null : navAtLevel(q.x, q.y, b.z); if(b.z != null && !a) return false;
-    return !needSee || hasLOS(q.x, q.y, look.x, look.y, a ? a.z : b.z); };
-  var contactSpots = function(sw){ return pickSpots("ct"+b.id+Math.round(look.x/40)+","+Math.round(look.y/40)+(sw ? "s" : "h"), {x:b.x, y:b.y}, 6, {rMax: sw ? CONTACT_SWING : 160, minGap:30, see:[look]})
-    .filter(function(q){ return Math.hypot(q.x-look.x, q.y-look.y) >= 120 && !spotTaken(b, q) && spotOk(q, sw); }); };
-  var cand = contactSpots(swing);
-  if(swing && !cand.length){ swing = false; cand = contactSpots(false); }
+  var cand = pickSpots("ct"+b.id+Math.round(look.x/40)+","+Math.round(look.y/40), {x:b.x, y:b.y}, 4, {rMax: swing ? CONTACT_SWING : 160, minGap:30, see:[look]})
+    .filter(function(q){ return Math.hypot(q.x-look.x, q.y-look.y) >= 120 && !spotTaken(b, q); });
   if(hasLOS(b.x, b.y, look.x, look.y, b.z) && !swing) cand.unshift({x:b.x, y:b.y});
   cand.sort(swing ? function(a, c){ return Math.hypot(a.x-look.x, a.y-look.y) - Math.hypot(c.x-look.x, c.y-look.y); }
                   : function(a, c){ return Math.hypot(a.x-b.x, a.y-b.y) - Math.hypot(c.x-b.x, c.y-b.y); });
