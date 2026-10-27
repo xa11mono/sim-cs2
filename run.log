@@ -1,0 +1,57 @@
+браузеры: C:\Users\Mono\AppData\Local\ms-playwright
+playwright 1.56.0
+> git fetch --quiet origin cf2fb229eb0288539186185572f89d36034cac20
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_vlawicbp FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_vlawicbp\src\build.py --map mirage C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\d442why2_mir.html
+> git fetch --quiet origin cf2fb229eb0288539186185572f89d36034cac20
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_bgu8wgg1 FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_bgu8wgg1\src\build.py --map ancient C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\d442why2_anc.html
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\engine\walk_run.py --job=d442why2_mir,C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\d442why2_mir.html --job=d442why2_anc,C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\d442why2_anc.html --matches=3,7,11,13,17,19,23,29 --par=8
+матчей в очереди: 16, одновременно: 8
+… идёт 8: d442why2_mir м3 (0.0 мин), d442why2_mir м7 (0.0 мин), d442why2_mir м11 (0.0 мин), d442why2_mir м13 (0.0 мин), d442why2_mir м17 (0.0 мин), d442why2_mir м19 (0.0 мин), d442why2_mir м23 (0.0 мин), d442why2_mir м29 (0.0 мин) | готово 0/16, в очереди 8, прошло 0.0 мин
+… идёт 8: d442why2_mir м3 (0.5 мин), d442why2_mir м7 (0.5 мин), d442why2_mir м11 (0.5 мин), d442why2_mir м13 (0.5 мин), d442why2_mir м17 (0.5 мин), d442why2_mir м19 (0.5 мин), d442why2_mir м23 (0.5 мин), d442why2_mir м29 (0.5 мин) | готово 0/16, в очереди 8, прошло 0.5 мин
+… идёт 8: d442why2_mir м3 (1.0 мин), d442why2_mir м7 (1.0 мин), d442why2_mir м11 (1.0 мин), d442why2_mir м13 (1.0 мин), d442why2_mir м17 (1.0 мин), d442why2_mir м19 (1.0 мин), d442why2_mir м23 (1.0 мин), d442why2_mir м29 (1.0 мин) | готово 0/16, в очереди 8, прошло 1.0 мин
+… идёт 8: d442why2_mir м3 (1.5 мин), d442why2_mir м7 (1.5 мин), d442why2_mir м11 (1.5 мин), d442why2_mir м13 (1.5 мин), d442why2_mir м17 (1.5 мин), d442why2_mir м19 (1.5 мин), d442why2_mir м23 (1.5 мин), d442why2_mir м29 (1.5 мин) | готово 0/16, в очереди 8, прошло 1.5 мин
+… идёт 8: d442why2_mir м3 (2.0 мин), d442why2_mir м7 (2.0 мин), d442why2_mir м11 (2.0 мин), d442why2_mir м13 (2.0 мин), d442why2_mir м17 (2.0 мин), d442why2_mir м19 (2.0 мин), d442why2_mir м23 (2.0 мин), d442why2_mir м29 (2.0 мин) | готово 0/16, в очереди 8, прошло 2.0 мин
+… идёт 8: d442why2_mir м3 (2.5 мин), d442why2_mir м7 (2.5 мин), d442why2_mir м11 (2.5 мин), d442why2_mir м13 (2.5 мин), d442why2_mir м17 (2.5 мин), d442why2_mir м19 (2.5 мин), d442why2_mir м23 (2.5 мин), d442why2_mir м29 (2.5 мин) | готово 0/16, в очереди 8, прошло 2.5 мин
+… идёт 8: d442why2_mir м3 (3.0 мин), d442why2_mir м7 (3.0 мин), d442why2_mir м11 (3.0 мин), d442why2_mir м13 (3.0 мин), d442why2_mir м17 (3.0 мин), d442why2_mir м19 (3.0 мин), d442why2_mir м23 (3.0 мин), d442why2_mir м29 (3.0 мин) | готово 0/16, в очереди 8, прошло 3.0 мин
+… идёт 8: d442why2_mir м3 (3.5 мин), d442why2_mir м7 (3.5 мин), d442why2_mir м11 (3.5 мин), d442why2_mir м13 (3.5 мин), d442why2_mir м17 (3.5 мин), d442why2_mir м19 (3.5 мин), d442why2_mir м23 (3.5 мин), d442why2_mir м29 (3.5 мин) | готово 0/16, в очереди 8, прошло 3.5 мин
+… идёт 8: d442why2_mir м3 (4.1 мин), d442why2_mir м7 (4.1 мин), d442why2_mir м11 (4.1 мин), d442why2_mir м13 (4.1 мин), d442why2_mir м17 (4.1 мин), d442why2_mir м19 (4.1 мин), d442why2_mir м23 (4.1 мин), d442why2_mir м29 (4.1 мин) | готово 0/16, в очереди 8, прошло 4.1 мин
+… идёт 8: d442why2_mir м3 (4.6 мин), d442why2_mir м7 (4.6 мин), d442why2_mir м11 (4.6 мин), d442why2_mir м13 (4.6 мин), d442why2_mir м17 (4.6 мин), d442why2_mir м19 (4.6 мин), d442why2_mir м23 (4.6 мин), d442why2_mir м29 (4.6 мин) | готово 0/16, в очереди 8, прошло 4.6 мин
+d442why2_mir match 3 rc 0 4412050 — готово 1/16, 5 мин
+… идёт 8: d442why2_mir м7 (5.1 мин), d442why2_mir м11 (5.1 мин), d442why2_mir м13 (5.1 мин), d442why2_mir м17 (5.1 мин), d442why2_mir м19 (5.1 мин), d442why2_mir м23 (5.1 мин), d442why2_mir м29 (5.1 мин), d442why2_anc м3 (0.1 мин) | готово 1/16, в очереди 7, прошло 5.1 мин
+… идёт 8: d442why2_mir м7 (5.6 мин), d442why2_mir м11 (5.6 мин), d442why2_mir м13 (5.6 мин), d442why2_mir м17 (5.6 мин), d442why2_mir м19 (5.6 мин), d442why2_mir м23 (5.6 мин), d442why2_mir м29 (5.6 мин), d442why2_anc м3 (0.6 мин) | готово 1/16, в очереди 7, прошло 5.6 мин
+d442why2_mir match 23 rc 0 5115014 — готово 2/16, 6 мин
+d442why2_mir match 11 rc 0 5301521 — готово 3/16, 6 мин
+… идёт 8: d442why2_mir м7 (6.1 мин), d442why2_mir м13 (6.1 мин), d442why2_mir м17 (6.1 мин), d442why2_mir м19 (6.1 мин), d442why2_mir м29 (6.1 мин), d442why2_anc м3 (1.1 мин), d442why2_anc м7 (0.3 мин), d442why2_anc м11 (0.2 мин) | готово 3/16, в очереди 5, прошло 6.1 мин
+… идёт 8: d442why2_mir м7 (6.6 мин), d442why2_mir м13 (6.6 мин), d442why2_mir м17 (6.6 мин), d442why2_mir м19 (6.6 мин), d442why2_mir м29 (6.6 мин), d442why2_anc м3 (1.6 мин), d442why2_anc м7 (0.8 мин), d442why2_anc м11 (0.7 мин) | готово 3/16, в очереди 5, прошло 6.6 мин
+d442why2_mir match 19 rc 0 5458983 — готово 4/16, 7 мин
+… идёт 8: d442why2_mir м7 (7.1 мин), d442why2_mir м13 (7.1 мин), d442why2_mir м17 (7.1 мин), d442why2_mir м29 (7.1 мин), d442why2_anc м3 (2.1 мин), d442why2_anc м7 (1.3 мин), d442why2_anc м11 (1.2 мин), d442why2_anc м13 (0.4 мин) | готово 4/16, в очереди 4, прошло 7.1 мин
+d442why2_mir match 13 rc 0 6254922 — готово 5/16, 7 мин
+d442why2_mir match 29 rc 0 6762323 — готово 6/16, 8 мин
+… идёт 8: d442why2_mir м7 (7.6 мин), d442why2_mir м17 (7.6 мин), d442why2_anc м3 (2.6 мин), d442why2_anc м7 (1.8 мин), d442why2_anc м11 (1.7 мин), d442why2_anc м13 (0.9 мин), d442why2_anc м17 (0.4 мин), d442why2_anc м19 (0.1 мин) | готово 6/16, в очереди 2, прошло 7.6 мин
+… идёт 8: d442why2_mir м7 (8.1 мин), d442why2_mir м17 (8.1 мин), d442why2_anc м3 (3.1 мин), d442why2_anc м7 (2.3 мин), d442why2_anc м11 (2.2 мин), d442why2_anc м13 (1.4 мин), d442why2_anc м17 (0.9 мин), d442why2_anc м19 (0.6 мин) | готово 6/16, в очереди 2, прошло 8.1 мин
+… идёт 8: d442why2_mir м7 (8.6 мин), d442why2_mir м17 (8.6 мин), d442why2_anc м3 (3.6 мин), d442why2_anc м7 (2.8 мин), d442why2_anc м11 (2.7 мин), d442why2_anc м13 (1.9 мин), d442why2_anc м17 (1.4 мин), d442why2_anc м19 (1.1 мин) | готово 6/16, в очереди 2, прошло 8.6 мин
+… идёт 8: d442why2_mir м7 (9.1 мин), d442why2_mir м17 (9.1 мин), d442why2_anc м3 (4.1 мин), d442why2_anc м7 (3.3 мин), d442why2_anc м11 (3.2 мин), d442why2_anc м13 (2.4 мин), d442why2_anc м17 (1.9 мин), d442why2_anc м19 (1.6 мин) | готово 6/16, в очереди 2, прошло 9.1 мин
+… идёт 8: d442why2_mir м7 (9.6 мин), d442why2_mir м17 (9.6 мин), d442why2_anc м3 (4.6 мин), d442why2_anc м7 (3.8 мин), d442why2_anc м11 (3.7 мин), d442why2_anc м13 (2.9 мин), d442why2_anc м17 (2.4 мин), d442why2_anc м19 (2.1 мин) | готово 6/16, в очереди 2, прошло 9.6 мин
+… идёт 8: d442why2_mir м7 (10.1 мин), d442why2_mir м17 (10.1 мин), d442why2_anc м3 (5.1 мин), d442why2_anc м7 (4.3 мин), d442why2_anc м11 (4.2 мин), d442why2_anc м13 (3.4 мин), d442why2_anc м17 (2.9 мин), d442why2_anc м19 (2.6 мин) | готово 6/16, в очереди 2, прошло 10.1 мин
+d442why2_mir match 7 rc 0 8307447 — готово 7/16, 10 мин
+d442why2_mir match 17 rc 0 8725873 — готово 8/16, 10 мин
+d442why2_anc match 3 rc 0 5473790 — готово 9/16, 10 мин
+d442why2_anc match 13 rc 0 3951368 — готово 10/16, 10 мин
+… идёт 6: d442why2_anc м7 (4.8 мин), d442why2_anc м11 (4.8 мин), d442why2_anc м17 (3.4 мин), d442why2_anc м19 (3.1 мин), d442why2_anc м23 (0.5 мин), d442why2_anc м29 (0.5 мин) | готово 10/16, в очереди 0, прошло 10.6 мин
+d442why2_anc match 7 rc 0 4974939 — готово 11/16, 11 мин
+… идёт 5: d442why2_anc м11 (5.3 мин), d442why2_anc м17 (3.9 мин), d442why2_anc м19 (3.6 мин), d442why2_anc м23 (1.0 мин), d442why2_anc м29 (1.0 мин) | готово 11/16, в очереди 0, прошло 11.1 мин
+d442why2_anc match 17 rc 0 4393549 — готово 12/16, 11 мин
+d442why2_anc match 11 rc 0 6404241 — готово 13/16, 11 мин
+… идёт 3: d442why2_anc м19 (4.1 мин), d442why2_anc м23 (1.5 мин), d442why2_anc м29 (1.5 мин) | готово 13/16, в очереди 0, прошло 11.6 мин
+d442why2_anc match 19 rc 0 5321514 — готово 14/16, 12 мин
+… идёт 2: d442why2_anc м23 (2.0 мин), d442why2_anc м29 (2.0 мин) | готово 14/16, в очереди 0, прошло 12.1 мин
+… идёт 2: d442why2_anc м23 (2.5 мин), d442why2_anc м29 (2.5 мин) | готово 14/16, в очереди 0, прошло 12.6 мин
+… идёт 2: d442why2_anc м23 (3.0 мин), d442why2_anc м29 (3.0 мин) | готово 14/16, в очереди 0, прошло 13.1 мин
+d442why2_anc match 29 rc 0 4541515 — готово 15/16, 13 мин
+… идёт 1: d442why2_anc м23 (3.5 мин) | готово 15/16, в очереди 0, прошло 13.6 мин
+… идёт 1: d442why2_anc м23 (4.0 мин) | готово 15/16, в очереди 0, прошло 14.1 мин
+d442why2_anc match 23 rc 0 6178770 — готово 16/16, 15 мин
+done
+all done
