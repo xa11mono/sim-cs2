@@ -101,6 +101,7 @@ function timeoutCheck(winner){
     }
   });
 }
+var DEF_STAGE_SEC = 25;   // (v444) из демок Mirage — см. chooseTactic, need
 function chooseTactic(){
   var type = teamEco.T.roundType;
   var pool = T_TACTICS.filter(function(t){ return t.pools.indexOf(type) >= 0; });
@@ -172,10 +173,14 @@ function chooseTactic(){
     // (v440, замер группы 3: у «дефолтов» фаза дефолта не включалась — их setupEnd 68–91 с и есть поздний выход, need ≈ весь сетап, и группа
     // с первой секунды стояла на точке выхода: Connector 0,53 игрока против 0,04 у про) у тактики-дефолта своя расстановка — это точка выхода
     // рядом с картой, занимают её за 14 с до выхода (проектное число, как нижняя граница need)
-    var need = tac.style === "default" ? 14 : Math.max(14, tac.setupEnd - 6);
+    // (v444, владелец 27.10: «замени числа на числа из демок») у дефолта группа тактики идёт на свою точку за DEF_STAGE_SEC до выхода: демки
+    // Mirage, раунды с плантом после 60 с — точку подготовки (Connector у A, B Apartments у B) начинают занимать за ~35 с до планта
+    // (Connector 0,09 → 0,52 игрока к 15–20 с), на сайт заходят за ~10 с до планта: 35 − 10 = 25 с до выхода. Было 14 (проектное) —
+    // группа доходила к самому выходу. Ancient — то же число (у демок Ancient нет времени по раундам)
+    var need = tac.style === "default" ? DEF_STAGE_SEC : Math.max(14, tac.setupEnd - 6);
     if(setupSec - need >= 12) defUntil = roundStartTick + (setupSec - need)*64;
   }
-  teamTac.T = {tac:tac, site:tac.site, phase: tac.setupEnd > 0 ? "setup" : "execute", execTick: roundStartTick + setupSec*64, defUntil: defUntil, minExec: (BAL.proTempo && tac.setupEnd > 0) ? Math.min(setupSec, 30) : 0, needT: (BAL.proTempo && tac.setupEnd > 0) ? (tac.style === "default" ? 14 : Math.max(14, tac.setupEnd - 6)) : 0,   // (v443) у дефолта — как need выше: иначе фаза дефолта (170, inDef) не включалась вовсе
+  teamTac.T = {tac:tac, site:tac.site, phase: tac.setupEnd > 0 ? "setup" : "execute", execTick: roundStartTick + setupSec*64, defUntil: defUntil, minExec: (BAL.proTempo && tac.setupEnd > 0) ? Math.min(setupSec, 30) : 0, needT: (BAL.proTempo && tac.setupEnd > 0) ? (tac.style === "default" ? DEF_STAGE_SEC : Math.max(14, tac.setupEnd - 6)) : 0,   // (v443) у дефолта — как need выше: иначе фаза дефолта (170, inDef) не включалась вовсе
                execStart: tac.setupEnd > 0 ? null : tick, // раш: выход сразу — отсчёт задержек ролей с начала раунда
                read: readTxt, seenCT:{A:0, B:0}, setupSec:setupSec};
   var M = tacMem[tac.id];
