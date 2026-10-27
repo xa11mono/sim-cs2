@@ -260,6 +260,13 @@ function buyFullKit(b, idx){
   NPL.forEach(function(t){ var pr = nadePrice(t, b.team), tot = b.nades.smoke + b.nades.flash + b.nades.he + b.nades.molly;
     var need = NPL.filter(function(x){ return x === t; }).length;
     if(tot < 4 && b.money >= pr && b.nades[t] < need){ b.money -= pr; b.nades[t]++; npBought(b, t); } });
+  // (v438, док владельца 27.10: «куча денег, а гранаты до конца не закупают»; замер: 1,7–2,1 гранаты на игрока) план — это сколько про
+  // БРОСАЮТ за раунд (MAP.pro.nadesBy); покупают больше: полный закуп «с гранатами» — ≈ $5000 T / $6000 CT (ProSettings, гайд по экономике
+  // CS2; docs/PRO_PLAY.md) — после оружия, брони и кита это ≈ 4 гранаты. Остаток денег сверх того, что нужно на фулл в следующем раунде
+  // при поражении, — до 4 гранат по набору роли (NADE_WISH_PRO), без плана (момент «сейчас», своя зона: npBought)
+  var keepF = Math.max(0, fullNeed(b) - nextLossIncome(b.team)), wishF = NADE_WISH_PRO[b.tRole] || NADE_WISH[b.tRole] || [];
+  wishF.forEach(function(t){ var pr = nadePrice(t, b.team), tot = b.nades.smoke + b.nades.flash + b.nades.he + b.nades.molly;
+    if(tot < 4 && b.money - pr >= keepF && (t === "flash" ? b.nades.flash < 2 : b.nades[t] < 1)){ b.money -= pr; b.nades[t]++; npBought(b, t); } });
   b._fullKit = roundNum;
 }
 // лучшая основная, которую можно купить, оставив `keep` денег; не ниже того, что уже есть
