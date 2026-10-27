@@ -532,7 +532,7 @@
   <div id="topbar">
     <div class="tb-id">
       <h1>Ancient<span id="matchTick" class="mono" title="Какой матч сейчас идёт и тик — запиши, если увидел баг"></span></h1>
-      <div class="sub mono" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 443, 27.10</div>
+      <div class="sub mono" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 444, 28.10</div>
     </div>
     <div class="tb-group" id="tbMatch">
       <button id="btnPause">Пауза</button>
@@ -6275,6 +6275,7 @@ function timeoutCheck(winner){
     }
   });
 }
+var DEF_STAGE_SEC = 25;   // (v444) из демок Mirage — см. chooseTactic, need
 function chooseTactic(){
   var type = teamEco.T.roundType;
   var pool = T_TACTICS.filter(function(t){ return t.pools.indexOf(type) >= 0; });
@@ -6346,10 +6347,14 @@ function chooseTactic(){
     // (v440, замер группы 3: у «дефолтов» фаза дефолта не включалась — их setupEnd 68–91 с и есть поздний выход, need ≈ весь сетап, и группа
     // с первой секунды стояла на точке выхода: Connector 0,53 игрока против 0,04 у про) у тактики-дефолта своя расстановка — это точка выхода
     // рядом с картой, занимают её за 14 с до выхода (проектное число, как нижняя граница need)
-    var need = tac.style === "default" ? 14 : Math.max(14, tac.setupEnd - 6);
+    // (v444, владелец 27.10: «замени числа на числа из демок») у дефолта группа тактики идёт на свою точку за DEF_STAGE_SEC до выхода: демки
+    // Mirage, раунды с плантом после 60 с — точку подготовки (Connector у A, B Apartments у B) начинают занимать за ~35 с до планта
+    // (Connector 0,09 → 0,52 игрока к 15–20 с), на сайт заходят за ~10 с до планта: 35 − 10 = 25 с до выхода. Было 14 (проектное) —
+    // группа доходила к самому выходу. Ancient — то же число (у демок Ancient нет времени по раундам)
+    var need = tac.style === "default" ? DEF_STAGE_SEC : Math.max(14, tac.setupEnd - 6);
     if(setupSec - need >= 12) defUntil = roundStartTick + (setupSec - need)*64;
   }
-  teamTac.T = {tac:tac, site:tac.site, phase: tac.setupEnd > 0 ? "setup" : "execute", execTick: roundStartTick + setupSec*64, defUntil: defUntil, minExec: (BAL.proTempo && tac.setupEnd > 0) ? Math.min(setupSec, 30) : 0, needT: (BAL.proTempo && tac.setupEnd > 0) ? (tac.style === "default" ? 14 : Math.max(14, tac.setupEnd - 6)) : 0,   // (v443) у дефолта — как need выше: иначе фаза дефолта (170, inDef) не включалась вовсе
+  teamTac.T = {tac:tac, site:tac.site, phase: tac.setupEnd > 0 ? "setup" : "execute", execTick: roundStartTick + setupSec*64, defUntil: defUntil, minExec: (BAL.proTempo && tac.setupEnd > 0) ? Math.min(setupSec, 30) : 0, needT: (BAL.proTempo && tac.setupEnd > 0) ? (tac.style === "default" ? DEF_STAGE_SEC : Math.max(14, tac.setupEnd - 6)) : 0,   // (v443) у дефолта — как need выше: иначе фаза дефолта (170, inDef) не включалась вовсе
                execStart: tac.setupEnd > 0 ? null : tick, // раш: выход сразу — отсчёт задержек ролей с начала раунда
                read: readTxt, seenCT:{A:0, B:0}, setupSec:setupSec};
   var M = tacMem[tac.id];
@@ -22202,6 +22207,7 @@ var __SNAP = [
 ["OPP_KEY", function(){ return OPP_KEY; }, function(v){ try{ OPP_KEY = v; }catch(e){} }],
 ["OPP", function(){ return OPP; }, function(v){ try{ OPP = v; }catch(e){} }],
 ["TOUT", function(){ return TOUT; }, function(v){ try{ TOUT = v; }catch(e){} }],
+["DEF_STAGE_SEC", function(){ return DEF_STAGE_SEC; }, function(v){ try{ DEF_STAGE_SEC = v; }catch(e){} }],
 ["POS", function(){ return POS; }, function(v){ try{ POS = v; }catch(e){} }],
 ["OUTWARD_CACHE", function(){ return OUTWARD_CACHE; }, function(v){ try{ OUTWARD_CACHE = v; }catch(e){} }],
 ["CT_SETUPS", function(){ return CT_SETUPS; }, function(v){ try{ CT_SETUPS = v; }catch(e){} }],
@@ -22580,7 +22586,8 @@ var __SNAP = [
 ["SND_CAP", function(){ return SND_CAP; }, function(v){ try{ SND_CAP = v; }catch(e){} }],
 ["BUY_GAIN", function(){ return BUY_GAIN; }, function(v){ try{ BUY_GAIN = v; }catch(e){} }],
 ["SND_GUN", function(){ return SND_GUN; }, function(v){ try{ SND_GUN = v; }catch(e){} }],
-["BEEP_NEXT", function(){ return BEEP_NEXT; }, function(v){ try{ BEEP_NEXT = v; }catch(e){} }]
+["BEEP_NEXT", function(){ return BEEP_NEXT; }, function(v){ try{ BEEP_NEXT = v; }catch(e){} }],
+["FATAL", function(){ return FATAL; }, function(v){ try{ FATAL = v; }catch(e){} }]
 ];
 // ======================= v167: «Отметить момент», перемотка (v397: без разбора нейросетью — М147) =======================
 // Инструмент для владельца и Claude, мозг ботов не трогает. Описание — docs/tasks/02-mark-moment.md.
@@ -23501,7 +23508,24 @@ var FRAME_CATCHUP_MS = 100;   // (v397, М146) проектное число: �
 // мини-карта берут его отсюда, а не читают заново после записей (тогда браузер пересчитывает раскладку всей страницы)
 var frameWrapR = null;
 function wrapRect(){ return frameWrapR || (frameWrapR = wrap.getBoundingClientRect()); }
+// (v444, владелец 27.10: «симуляция зависла полностью, кнопки работают; свернул — чёрный экран») любая ошибка в тике или рисовании
+// раньше обрывала цикл кадров навсегда (requestAnimationFrame — в конце frame): картинка стоит, кнопки живы. Теперь ошибка ставит
+// игру на паузу и показывает себя на экране (что, матч, тик) — для скриншота; цикл кадров не умирает
+var FATAL = null;
+function showFatal(e){
+  paused = true; var bp = document.getElementById("btnPause"); if(bp) bp.textContent = "Продолжить";
+  if(FATAL) return; FATAL = e;
+  var d = document.createElement("div"); d.id = "fatalBox";
+  d.style.cssText = "position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:9999;max-width:80vw;padding:12px 16px;background:#3a0d0d;border:1px solid #e5484d;color:#ffd7d7;font:12px/1.45 monospace;white-space:pre-wrap;border-radius:6px";
+  d.textContent = "Ошибка игры — сделай скриншот этого окна\nматч " + matchNum + " · раунд " + roundNum + " · тик " + tick + "\n" + String(e && e.message || e) + "\n" + String(e && e.stack || "").split("\n").slice(1, 6).join("\n");
+  document.body.appendChild(d);
+}
+window.addEventListener("error", function(ev){ showFatal(ev.error || ev.message); });
 function frame(ts){
+  try{ frameBody(ts); }catch(e){ showFatal(e); }
+  requestAnimationFrame(frame);
+}
+function frameBody(ts){
   nowTs = ts; frameWrapR = null; wrapRect();
   if(SND && SND.ctx) sndFireTick();   // (v333) треск огня — и останавливается, когда огонь погас / раунд кончился / звук выключен
   if(lastFrame===null) lastFrame = ts;
@@ -23520,7 +23544,6 @@ function frame(ts){
   obsOverlay();
   miniDraw();
   frameWrapR = null;   // вне кадра (клики, перемотка) — читать заново
-  requestAnimationFrame(frame);
 }
 document.getElementById("btnFreshMatch").addEventListener("click", function(){ var n = Math.max(1, parseInt(document.getElementById("inpMatchNum").value, 10) || 1); var sel = document.getElementById("selSeries"), bo = sel ? +sel.value : 3; if(bo !== SERIES.bo || seriesDone()) SERIES = {bo:bo, maps:{}}; var cw = document.getElementById("chkWarm"); if(cw && !cw.checked) freshMatch(n); else warmStart(n); paused = false; var bp = document.getElementById("btnPause"); if(bp){ bp.textContent = "Пауза"; bp.classList.remove("active"); } logEvent("Матч №"+n+" с чистого листа (воспроизводимый)", true); });
 setInterval(function(){ var el = document.getElementById("matchTick"); if(el) el.textContent = "матч "+matchNum+" · тик "+tick; }, 250);
