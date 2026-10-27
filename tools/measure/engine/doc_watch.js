@@ -4,7 +4,7 @@
 // где стоят T в дефолте, сейв при деньгах, пик на перезарядку, нож при перезарядке, пути на тик решений.
 (function(){
   var g = (typeof window !== "undefined" ? window : globalThis);
-  var D = {nt:{}, ntEx:[], fire:{birth:0, commit:0, other:0}, walk:{n:0, far:0, bomb:0}, swing:{n:0, noLos:0, high:0}, known:{n:0, behind:0},
+  var D = {nt:{}, ntEx:[], swEx:[], fire:{birth:0, commit:0, other:0}, walk:{n:0, far:0, bomb:0}, swing:{n:0, noLos:0, high:0}, known:{n:0, behind:0},
     smokeDup:{n:0, dup:0}, pp:{n:0, near:0}, voice:{n:0, rounds:0}, def:{}, save:{n:0, rich:0}, rl:{peek:0, knife:0}, path:{n:0, ticks:0, max:0},
     buy:{T:[0,0], CT:[0,0]}, thrown:{T:0, CT:0}};
   function inc(o, k, v){ o[k] = (o[k]||0) + (v == null ? 1 : v); }
@@ -48,6 +48,9 @@
       var foes = bots.filter(function(o){ return o.alive && o.team !== b.team; });
       if(b.walking){ D.walk.n++; var dmin = 1e9; foes.forEach(function(o){ dmin = Math.min(dmin, Math.hypot(o.x-b.x, o.y-b.y)); }); if(dmin > 600) D.walk.far++;
         if(bomb && bomb.state === "planted" && bombTimeLeftTicks() < 5*TICK_HZ && bombDamageAt(b.x, b.y) >= b.hp) D.walk.bomb++; }
+      if(b.post && b.post.tag === "contact:swing" && b._contact && D.swEx.length < 1500 && b.__swP !== b.post){ b.__swP = b.post;   // (v438) примеры: раунд, тик, бот, точка, контакт, видно, на полу
+        var lz = b.z != null ? navAtLevel(b.post.x, b.post.y, b.z) : null;
+        D.swEx.push([roundNum, tick, b.id, Math.round(b.post.x), Math.round(b.post.y), Math.round(b._contact.x), Math.round(b._contact.y), hasLOS(b.post.x, b.post.y, b._contact.x, b._contact.y, lz ? lz.z : b.z) ? 1 : 0, (b.z == null || lz) ? 1 : 0]); }
       if(b.post && b.post.tag === "contact:swing" && b._contact){ D.swing.n++;
         if(!hasLOS(b.post.x, b.post.y, b._contact.x, b._contact.y)) D.swing.noLos++;
         if(b.z != null && !navAtLevel(b.post.x, b.post.y, b.z)) D.swing.high++; }   // на уровне бота пола у точки нет (ящик, другой этаж)
