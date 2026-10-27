@@ -1,0 +1,87 @@
+> C:\Program Files\nodejs\npm.CMD install --prefix C:\Windows\system32\config\systemprofile\.simcs2_node playwright@1.56.0
+
+added 2 packages in 47s
+> C:\Windows\system32\config\systemprofile\.simcs2_node\node_modules\.bin\playwright.cmd install chromium
+Downloading Chromium 141.0.7390.37 (playwright build v1194)[2m from https://cdn.playwright.dev/dbazure/download/playwright/builds/chromium/1194/chromium-win64.zip[22m
+|                                                                                |   0% of 148.9 MiB
+|■■■■■■■■                                                                        |  10% of 148.9 MiB
+Error: read ECONNRESET
+    at TLSWrap.onStreamRead (node:internal/stream_base_commons:216:20) {
+  errno: -4077,
+  code: 'ECONNRESET',
+  syscall: 'read'
+}
+Downloading Chromium 141.0.7390.37 (playwright build v1194)[2m from https://playwright.download.prss.microsoft.com/dbazure/download/playwright/builds/chromium/1194/chromium-win64.zip[22m
+|                                                                                |   0% of 148.9 MiB
+|■■■■■■■■                                                                        |  10% of 148.9 MiB
+|■■■■■■■■■■■■■■■■                                                                |  20% of 148.9 MiB
+|■■■■■■■■■■■■■■■■■■■■■■■■                                                        |  30% of 148.9 MiB
+|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                                |  40% of 148.9 MiB
+|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                        |  50% of 148.9 MiB
+|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                |  60% of 148.9 MiB
+|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                        |  70% of 148.9 MiB
+|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                |  80% of 148.9 MiB
+|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■        |  90% of 148.9 MiB
+|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■| 100% of 148.9 MiB
+Chromium 141.0.7390.37 (playwright build v1194) downloaded to C:\Windows\system32\config\systemprofile\AppData\Local\ms-playwright\chromium-1194
+Downloading FFMPEG playwright build v1011[2m from https://cdn.playwright.dev/dbazure/download/playwright/builds/ffmpeg/1011/ffmpeg-win64.zip[22m
+|                                                                                |   1% of 1.3 MiB
+|■■■■■■■■                                                                        |  10% of 1.3 MiB
+|■■■■■■■■■■■■■■■■                                                                |  20% of 1.3 MiB
+|■■■■■■■■■■■■■■■■■■■■■■■■                                                        |  30% of 1.3 MiB
+|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                                |  40% of 1.3 MiB
+|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                        |  50% of 1.3 MiB
+|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                |  60% of 1.3 MiB
+|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                        |  71% of 1.3 MiB
+|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                |  80% of 1.3 MiB
+|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■        |  90% of 1.3 MiB
+|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■| 100% of 1.3 MiB
+FFMPEG playwright build v1011 downloaded to C:\Windows\system32\config\systemprofile\AppData\Local\ms-playwright\ffmpeg-1011
+Downloading Chromium Headless Shell 141.0.7390.37 (playwright build v1194)[2m from https://cdn.playwright.dev/dbazure/download/playwright/builds/chromium/1194/chromium-headless-shell-win64.zip[22m
+Error: read ECONNRESET
+    at TLSWrap.onStreamRead (node:internal/stream_base_commons:216:20) {
+  errno: -4077,
+  code: 'ECONNRESET',
+  syscall: 'read'
+}
+Downloading Chromium Headless Shell 141.0.7390.37 (playwright build v1194)[2m from https://playwright.download.prss.microsoft.com/dbazure/download/playwright/builds/chromium/1194/chromium-headless-shell-win64.zip[22m
+|                                                                                |   0% of 91 MiB
+|■■■■■■■■                                                                        |  10% of 91 MiB
+|■■■■■■■■■■■■■■■■                                                                |  20% of 91 MiB
+|■■■■■■■■■■■■■■■■■■■■■■■■                                                        |  30% of 91 MiB
+|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                                |  40% of 91 MiB
+|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                        |  50% of 91 MiB
+|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                |  60% of 91 MiB
+|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                        |  70% of 91 MiB
+|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                |  80% of 91 MiB
+|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■        |  90% of 91 MiB
+Downloading Chromium Headless Shell 141.0.7390.37 (playwright build v1194)[2m from https://cdn.playwright.dev/builds/chromium/1194/chromium-headless-shell-win64.zip[22m
+|                                                                                |   0% of 91 MiB
+|■■■■■■■■                                                                        |  10% of 91 MiB
+|■■■■■■■■■■■■■■■■                                                                |  20% of 91 MiB
+|■■■■■■■■■■■■■■■■■■■■■■■■                                                        |  30% of 91 MiB
+|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                                |  40% of 91 MiB
+|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                        |  50% of 91 MiB
+|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                |  60% of 91 MiB
+|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                        |  70% of 91 MiB
+|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                |  80% of 91 MiB
+|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■        |  90% of 91 MiB
+|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■| 100% of 91 MiB
+(node:6900) [DEP0147] DeprecationWarning: In future versions of Node.js, fs.rmdir(path, { recursive: true }) will be removed. Use fs.rm(path, { recursive: true }) instead
+(Use `node --trace-deprecation ...` to show where the warning was created)
+Downloading Chromium Headless Shell 141.0.7390.37 (playwright build v1194)[2m from https://cdn.playwright.dev/dbazure/download/playwright/builds/chromium/1194/chromium-headless-shell-win64.zip[22m
+|                                                                                |   0% of 91 MiB
+Downloading Chromium Headless Shell 141.0.7390.37 (playwright build v1194)[2m from https://playwright.download.prss.microsoft.com/dbazure/download/playwright/builds/chromium/1194/chromium-headless-shell-win64.zip[22m
+|                                                                                |   0% of 91 MiB
+Error: read ECONNRESET
+    at TLSWrap.onStreamRead (node:internal/stream_base_commons:216:20) {
+  errno: -4077,
+  code: 'ECONNRESET',
+  syscall: 'read'
+}
+Failed to install browsers
+Error: Failed to download Chromium Headless Shell 141.0.7390.37 (playwright build v1194), caused by
+Error: Download failure, code=1
+    at ChildProcess.<anonymous> (C:\Windows\System32\config\systemprofile\.simcs2_node\node_modules\playwright-core\lib\server\registry\browserFetcher.js:94:32)
+    at ChildProcess.emit (node:events:514:28)
+    at ChildProcess._handle.onexit (node:internal/child_process:295:12)
