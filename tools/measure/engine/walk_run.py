@@ -36,6 +36,11 @@ print(f'матчей в очереди: {total}, одновременно: {par}
 while todo or run:
     while todo and len(run) < par: run.append(start(*todo.pop(0)))
     time.sleep(1)
+    # (27.10, владелец: «видеть в прямом эфире, сколько матчей идёт») раз в 30 с — какие матчи сейчас играются и сколько готово
+    if time.time() - globals().get('_hb', 0) >= 30:
+        _hb = time.time()
+        print(f'… идёт {len(run)}: ' + ', '.join(f'{r[2]} м{r[3]} ({round((time.time() - r[4])/60, 1)} мин)' for r in run) +
+              f' | готово {fin}/{total}, в очереди {len(todo)}, прошло {round((time.time() - T0)/60, 1)} мин', flush=True)
     for r in run[:]:
         p, fo, l, m, t0 = r
         if p.poll() is None and time.time() - t0 < 2400: continue
