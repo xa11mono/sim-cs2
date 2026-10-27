@@ -16,8 +16,8 @@ def row(lab):
     for name, r, d in R:
         rounds += len(r.get('rounds', []))
         w = r.get('walk') or {}; S['stall'] += len(w.get('stall', [])); S['nav'] += len(w.get('nav', []))
-        for k in ('fire', 'walk', 'swing', 'known', 'smokeDup', 'pp', 'save', 'rl'):
-            for kk, v in d[k].items(): S[k + '.' + kk] += v
+        for k in ('fire', 'walk', 'swing', 'known', 'smokeDup', 'pp', 'save', 'rl', 'car', 'entryOther'):
+            for kk, v in (d.get(k) or {}).items(): S[k + '.' + kk] += v
         S['voice.n'] += d['voice']['n']; S['path.n'] += d['path']['n']; S['path.ticks'] += d['path']['ticks']; S['path.max'] = max(S['path.max'], d['path']['max'])
         for kk, v in d['nt'].items(): nt[kk] += v
         for t in ('T', 'CT'): S['buy.' + t + '.n'] += d['buy'][t][0]; S['buy.' + t + '.p'] += d['buy'][t][1]; S['thrown.' + t] += d['thrown'][t]
@@ -37,6 +37,8 @@ for lab in sys.argv[1:]:
     print('сейв T при деньгах команды ≥ 15000          ', pct(S['save.rich'], S['save.n']))
     print('пик на перезарядку, сам перезаряжаясь       ', S['rl.peek'], '| нож при перезарядке', S['rl.knife'])
     print('движение: stall / nav на 100 раундов      ', round(100*S['stall']/max(1, rounds)), '/', round(100*S['nav']/max(1, rounds)))
+    print('носитель: выход на врага / в дуэли / в дуэли с HP<30', pct(S['car.swing'], S['car.n']), '|', S['car.engage'], '|', S['car.lowEngage'])
+    print('энтри на сетапе у другого сайта         ', pct(S['entryOther.other'], S['entryOther.n']))
     print('войс: строк на раунд                       ', round(S['voice.n'] / max(1, rounds), 1))
     print('пути: в среднем за тик / максимум за тик   ', round(S['path.n'] / max(1, S['path.ticks']), 1), '/', S['path.max'])
     for t in ('T', 'CT'): print('гранат куплено на игрока %s' % t, round(S['buy.%s.n' % t] / max(1, S['buy.%s.p' % t]), 2), '| брошено за раунд', round(S['thrown.' + t] / max(1, rounds), 1))

@@ -6,7 +6,7 @@
   var g = (typeof window !== "undefined" ? window : globalThis);
   var D = {nt:{}, ntEx:[], swEx:[], fire:{birth:0, commit:0, other:0}, walk:{n:0, far:0, bomb:0}, swing:{n:0, noLos:0, high:0}, known:{n:0, behind:0},
     smokeDup:{n:0, dup:0}, pp:{n:0, near:0}, voice:{n:0, rounds:0}, def:{}, save:{n:0, rich:0}, rl:{peek:0, knife:0}, path:{n:0, ticks:0, max:0},
-    buy:{T:[0,0], CT:[0,0]}, thrown:{T:0, CT:0}};
+    buy:{T:[0,0], CT:[0,0]}, thrown:{T:0, CT:0}, car:{n:0, swing:0, engage:0, lowEngage:0}, entryOther:{n:0, other:0}};
   function inc(o, k, v){ o[k] = (o[k]||0) + (v == null ? 1 : v); }
   function zn(x, y){ var z = zoneIdAt(x, y); return (z && zoneUserName(z)) || "?"; }
   // --- задания гранат: чем кончилось (брошена / задача важнее не пустила / отказ броска / срок) ---
@@ -56,6 +56,8 @@
         if(b.z != null && !navAtLevel(b.post.x, b.post.y, b.z)) D.swing.high++; }   // на уровне бота пола у точки нет (ящик, другой этаж)
       if(b._lkPick && b._lkPick.j === "known" && b.curSpeed > 60*SPD_K && b.heading !== undefined){ D.known.n++;
         var a = Math.atan2(b._lkPick.pt.y-b.y, b._lkPick.pt.x-b.x), d = Math.abs(((a - b.heading + Math.PI) % (2*Math.PI) + 2*Math.PI) % (2*Math.PI) - Math.PI); if(d > 1.9) D.known.behind++; }
+      if(bomb && bomb.state === "carried" && bomb.carrier === b){ D.car.n++; if(b.post && b.post.tag === "contact:swing") D.car.swing++; if(b.state === "engage"){ D.car.engage++; if(b.hp < 30) D.car.lowEngage++; } }
+      if(b.team === "T" && b.tRole === "entry" && teamTac.T && teamTac.T.phase === "setup" && secIn >= 15 && typeof npZoneAt === "function"){ D.entryOther.n++; var zs = npZoneAt(b.x, b.y); if((zs === "A" || zs === "B") && zs !== teamTac.T.site) D.entryOther.other++; }
       if(b.team === "T" && bomb && bomb.state === "planted"){ var sp = (tick - bomb.plantTick)/TICK_HZ; if(sp >= 10 && sp < 40){ D.pp.n++; if(Math.hypot(b.x-bomb.x, b.y-bomb.y) < 150) D.pp.near++; } }
       if(b.team === "T" && secIn >= 25 && secIn <= 50 && teamTac.T && teamTac.T.tac && teamTac.T.tac.style === "default" && bomb.state !== "planted"){
         var key = teamTac.T.site + "|" + zn(b.x, b.y); inc(D.def, key); }
