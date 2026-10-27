@@ -41,12 +41,17 @@
     for(var i = b.pathIdx || 0; b.path && i < b.path.length && acc < 260; i++){ var q = b.path[i]; acc += Math.hypot(q[0]-px, q[1]-py); px = q[0]; py = q[1]; pts.push([px, py]); }
     if(!pts.length && b.post) pts.push([b.post.x, b.post.y]);
     var thr = BAL.dangerWalkThr || 0.12, seen = {}, flagZ = {};
+    // (v443) как в 470: без запаса по таймингу (если в игре он убран) и только при живом враге, не засвеченном далеко за 5 с
+    var v443 = /unacc/.test(String(dangerWalk)), BLw = beliefLast[b.team] || {};
+    var unacc = !v443 || bots.some(function(e){ if(!e.alive || e.team === b.team) return false; var l = BLw[e.id]; if(!l || tick - l.tick > 5*TICK_HZ) return true;
+      return pts.some(function(q){ return Math.hypot(q[0]-l.x, q[1]-l.y) <= 1.5*STEP_HEAR_R(); }); });
+    var uW = function(j){ var R = REACH[foe]; return (v443 && R && !(R[j] <= tick)) ? 0 : uncheckedW(foe, j); };
     pts.forEach(function(q){ var zi = bzOf(q[0], q[1]); if(zi < 0 || seen[zi]) return; seen[zi] = 1;
       var own = reachPossible(foe, zi) ? beliefZoneKnown(foe, zi) : 0, nb = 0;
       (BZ.nbr[zi]||[]).forEach(function(j){ if(reachPossible(foe, j)){ var v = beliefZoneKnown(foe, j); if(v > nb) nb = v; } });
       if(own + 0.5*nb >= thr){ o.zone = 1; flagZ[zi] = 1; (BZ.nbr[zi]||[]).forEach(function(j){ flagZ[j] = 1; }); }
-      var uc = uncheckedW(foe, zi); (BZ.nbr[zi]||[]).forEach(function(j){ var c = BZ.cent[j]; if(c && Math.hypot(c.x-q[0], c.y-q[1]) < 320) uc = Math.max(uc, uncheckedW(foe, j)); });
-      if(uc >= 0.8 && LOOK.uncheckWalk >= thr) o.unc = 1; });
+      var uc = uW(zi); (BZ.nbr[zi]||[]).forEach(function(j){ var c = BZ.cent[j]; if(c && Math.hypot(c.x-q[0], c.y-q[1]) < 320) uc = Math.max(uc, uW(j)); });
+      if(unacc && uc >= 0.8 && LOOK.uncheckWalk >= thr) o.unc = 1; });
     if(o.zone) o.real = bots.some(function(e){ return e.alive && e.team !== b.team && flagZ[bzOf(e.x, e.y)]; }) ? 1 : 0;
     if(BAL.clearQuiet){ var BL = beliefLast[b.team] || {};
       for(var eid in BL){ var lo = BL[eid]; if(!lo || tick - lo.tick > 15*TICK_HZ) continue; var fb = teamBot(eid); if(!fb || !fb.alive) continue;
