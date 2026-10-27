@@ -1,3 +1,6 @@
-{"par": 4, "jobs": [
-  {"label": "s443tr_mir", "ref": "7aa0b0a50863511ce8e9f080d9587e04b589d962", "map": "mirage", "matches": [7, 11, 19, 29]}
+{"par": 8, "jobs": [
+  {"label": "b443_mir", "ref": "81a5359699340cd37545a5bd844856e75e3e9d45", "map": "mirage", "matches": [3, 7, 11, 13, 17, 19, 23, 29]},
+  {"label": "s444_mir", "ref": "72e95bb9147f416045ad75b94250151ec15c7526", "map": "mirage", "matches": [3, 7, 11, 13, 17, 19, 23, 29]},
+  {"label": "b443_anc", "ref": "81a5359699340cd37545a5bd844856e75e3e9d45", "map": "ancient", "matches": [3, 7, 11, 13, 17, 19, 23, 29]},
+  {"label": "s444_anc", "ref": "72e95bb9147f416045ad75b94250151ec15c7526", "map": "ancient", "matches": [3, 7, 11, 13, 17, 19, 23, 29]}
 ]}

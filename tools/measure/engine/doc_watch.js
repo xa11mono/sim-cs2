@@ -6,7 +6,7 @@
   var g = (typeof window !== "undefined" ? window : globalThis);
   var D = {nt:{}, ntEx:[], swEx:[], fire:{birth:0, commit:0, other:0}, walk:{n:0, far:0, bomb:0}, swing:{n:0, noLos:0, high:0}, known:{n:0, behind:0},
     smokeDup:{n:0, dup:0}, pp:{n:0, near:0}, voice:{n:0, rounds:0}, def:{}, save:{n:0, rich:0}, rl:{peek:0, knife:0}, path:{n:0, ticks:0, max:0},
-    buy:{T:[0,0], CT:[0,0]}, thrown:{T:0, CT:0}, car:{n:0, swing:0, engage:0, lowEngage:0}, entryOther:{n:0, other:0}, defD:{}, tacZ:{}, walkWhy:{}, voiceK:{}, walk2:{}, execWhy:{}, voiceRep:{}, defTr:[]};
+    buy:{T:[0,0], CT:[0,0]}, thrown:{T:0, CT:0}, car:{n:0, swing:0, engage:0, lowEngage:0}, entryOther:{n:0, other:0}, defD:{}, tacZ:{}, walkWhy:{}, voiceK:{}, walk2:{}, execWhy:{}, voiceRep:{}, defTr:[], lateTr:[]};
   function inc(o, k, v){ o[k] = (o[k]||0) + (v == null ? 1 : v); }
   function zn(x, y){ var z = zoneIdAt(x, y); return (z && zoneUserName(z)) || "?"; }
   // --- задания гранат: чем кончилось (брошена / задача важнее не пустила / отказ броска / срок) ---
@@ -128,6 +128,11 @@
     if(tick % 128 === 0 && teamTac.T && teamTac.T.tac && teamTac.T.tac.style === "default" && D.defTr.length < 4000){ var TT2 = teamTac.T;
       D.defTr.push([roundNum, Math.round((tick - roundStartTick)/TICK_HZ), TT2.tac.id, TT2.site, TT2.phase, Math.round((TT2.execTick - tick)/TICK_HZ), TT2.defUntil ? Math.round((TT2.defUntil - tick)/TICK_HZ) : null,
         bots.filter(function(o){ return o.team === "T" && o.alive; }).map(function(o){ return o.tRole + ":" + (o.post ? o.post.tag : "-") + "@" + zn(o.x, o.y); }).join(" ; "), LOGS.slice(-2).join(" / ")]); }
+    // (v444) последние 25 с без планта: что делают T (роль:задача@зона, носитель), фаза, сайт, стиль — «стоят и ждут контакт, когда надо ставить»
+    var secLeft2 = ROUND_TIME_SEC - (simTime - roundStartTime);
+    if(tick % 128 === 0 && secLeft2 <= 25 && bomb && bomb.state !== "planted" && teamTac.T && teamTac.T.tac && D.lateTr.length < 3000 && aliveCount("T") > 0){ var TT3 = teamTac.T;
+      D.lateTr.push([roundNum, Math.round(secLeft2), TT3.tac.style, TT3.site, TT3.phase, !!TT3.saving, bomb.state, aliveCount("CT"),
+        bots.filter(function(o){ return o.team === "T" && o.alive; }).map(function(o){ return (bomb.carrier === o ? "*" : "") + o.tRole + ":" + (o.post ? o.post.tag : "-") + "@" + zn(o.x, o.y) + (o._sawEnemy ? "!" : ""); }).join(" ; ")]); }
     if(teamTac.T && teamTac.T.saving && !D.__sv){ D.__sv = roundNum; D.save.n++; var m = bots.filter(function(o){ return o.team === "T"; }).reduce(function(a, o){ return a + o.money; }, 0); if(m >= 15000) D.save.rich++; }
     if(D.__sv && D.__sv !== roundNum) D.__sv = 0;
   };
