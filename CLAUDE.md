@@ -50,9 +50,9 @@ v166 — `docs/V166_CHANGES.md` (список владельца). Главны�
 **Сборка набора из исходников (v318):** `python3 tools/map_build.py <карта>` по рецепту `data/maps/<карта>/_build.json`
 (навмеш из `.nav`, стены, высоты, укрытия, зоны по подписям радара, всё из демок; bake-скрипты — с ключом `--map`, общий
 `tools/mapdir.py`). Карты: Ancient (заморожено всё, кроме высот/укрытий/прострелов), Mirage (`python3 src/mkpub.py --map mirage` → `mirage-radar.html`,
-страница на аккаунте владельца — https://claude.ai/artifact/EBaRN7xYH1QXzC1iiTNZ4x (обновлена до v407, 22.10; QzmQZEd5t9EdnhcXET9Agn — на другом аккаунте, обновлена до v442, 27.10), база правок — коллекция `map-mirage`). Проверка глазами — `tools/map_shot.js`.
+страница на аккаунте владельца — https://claude.ai/artifact/EBaRN7xYH1QXzC1iiTNZ4x (обновлена до v407, 22.10; QzmQZEd5t9EdnhcXET9Agn — на другом аккаунте, обновлена до v443, 27.10), база правок — коллекция `map-mirage`). Проверка глазами — `tools/map_shot.js`.
 Сборка: `python3 src/build.py [--map ancient]` → `sim.html` (склейка `src/game/*` с набором карты и тестовым входом для
-замеров). Публикуемая: `python3 src/mkpub.py [--map ancient]` → `ancient-radar.html` (страница на аккаунте владельца — https://claude.ai/artifact/VcutdCmiqN164CLNYowQvP (снова с v388, сейчас v407, 22.10; 6nWEKBXyNAybDYzgPT1sH7 — на другом аккаунте, v370–v386, снова v442 27.10); там же база
+замеров). Публикуемая: `python3 src/mkpub.py [--map ancient]` → `ancient-radar.html` (страница на аккаунте владельца — https://claude.ai/artifact/VcutdCmiqN164CLNYowQvP (снова с v388, сейчас v407, 22.10; 6nWEKBXyNAybDYzgPT1sH7 — на другом аккаунте, v370–v386, снова v443 27.10); там же база
 правок карты — коллекция `map`).
 **Исходник игры (v377) — модули `src/game/`**: склейка всех `src/game/*` по порядку номеров (`src/gamesrc.py`, одно место
 чтения) == прежний `game.html`; `src/game.html` больше нет. Порядок, видимость `var`/функций, числа при загрузке —

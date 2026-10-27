@@ -115,7 +115,11 @@ function contactTick(b){
   b._contact = {x:C.x, y:C.y, id:C.id, until: tick + CONTACT_HOLD*TICK_HZ, lock:true, pt:sp, tag:tag}; b._contactT = tick;
   b._reposUntil = 0; b._probeLock = 0; b.lastIntel = {x:look.x, y:look.y, tick:tick, src:"call"};
   if(swing && !C.own && b.nades && b.nades.flash > 0 && C.d > 150 && !hasLOS(b.x, b.y, look.x, look.y, b.z)) assignNade(b, "flash", look, "флешка под выход на врага рядом", {now:true, range:900});
-  voiceLog(b.team, "ct"+b.id+Math.round(tick/64), b.id, (swing ? "выхожу на него " : "держу ")+calloutName(look.x, look.y));
+  // (v443, док владельца 27.10: «войс раунда спамится») «держу X» — 23 строки за раунд, один бот повторял её ~3 раза: это пересказ своих
+  // действий, а в войсе про — враг, где и сколько, свои гранаты (PRO_PLAY, «Войс»). «Держу» не говорится; «выхожу на него» — один раз
+  // на врага за раунд (у каждого нового выбора точки раньше — снова)
+  if(swing){ var sk = C.id || calloutName(look.x, look.y), SS = b._swSaid && b._swSaid.r === roundNum ? b._swSaid : (b._swSaid = {r:roundNum});
+    if(!SS[sk]){ SS[sk] = 1; voiceLog(b.team, "ct"+b.id+Math.round(tick/64), b.id, "выхожу на него "+calloutName(look.x, look.y)); } }
 }
 // ======================= (v419, хвост 350:70, владелец 25.10) ЗАДЕРЖАТЬ ГРАНАТОЙ — одно место для CT =======================
 // PRO_PLAY.md (CT): «отказать и потянуть — утилитой задерживать», «тиммейт держит утилиту и кидает при контакте», «молотов
