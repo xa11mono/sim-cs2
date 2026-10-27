@@ -532,7 +532,7 @@
   <div id="topbar">
     <div class="tb-id">
       <h1>Mirage<span id="matchTick" class="mono" title="Какой матч сейчас идёт и тик — запиши, если увидел баг"></span></h1>
-      <div class="sub mono" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 442, 27.10</div>
+      <div class="sub mono" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 443, 27.10</div>
     </div>
     <div class="tb-group" id="tbMatch">
       <button id="btnPause">Пауза</button>
@@ -831,6 +831,202 @@ var MAP = {"id":"mirage","name":"Mirage","store":"mirage-live-radar","db":"map-m
 {"id":"c942_1692","name":"Ticket","shape":"piece","pt":[942.4,1691.8],"wall":null,"top":-32.0,"floor":-165,"h":133,"cat":"high","src":"nav","poly":[[928.8,1682.7],[960.2,1677.8],[963.2,1680.8],[967.3,1707.9],[963.9,1709.6],[934.8,1718.4],[932.8,1709.7]],"note":"стены нет: в игре сейчас сквозь него видно и ходят"}
 ],
 "own": []
+},"defaultpos":{
+ "_src": "tools/defpos_bake.py: раунды с плантом после 60 с, T на 25–50 с",
+ "sites": {
+  "A": [
+   [
+    "T Ramp",
+    0.732
+   ],
+   [
+    "Side Alley",
+    0.405
+   ],
+   [
+    "Mid Boxes",
+    0.357
+   ],
+   [
+    "Mid",
+    0.314
+   ],
+   [
+    "Underpath",
+    0.308
+   ],
+   [
+    "Top Mid",
+    0.306
+   ],
+   [
+    "Palace",
+    0.292
+   ],
+   [
+    "T Spawn",
+    0.268
+   ],
+   [
+    "Pillars",
+    0.197
+   ],
+   [
+    "T Roof",
+    0.169
+   ],
+   [
+    "T Apps",
+    0.166
+   ],
+   [
+    "Underpath Stairs",
+    0.143
+   ],
+   [
+    "Palace Entry",
+    0.142
+   ],
+   [
+    "Palace Exit",
+    0.111
+   ],
+   [
+    "Stove",
+    0.1
+   ],
+   [
+    "Chair",
+    0.092
+   ],
+   [
+    "Catwalk",
+    0.083
+   ],
+   [
+    "Apps Ramp",
+    0.078
+   ],
+   [
+    "Ladder",
+    0.067
+   ],
+   [
+    "Ramp",
+    0.064
+   ],
+   [
+    "House",
+    0.06
+   ],
+   [
+    "Connector",
+    0.059
+   ],
+   [
+    "Tetris",
+    0.056
+   ]
+  ],
+  "B": [
+   [
+    "T Apps",
+    0.594
+   ],
+   [
+    "Mid Boxes",
+    0.441
+   ],
+   [
+    "Side Alley",
+    0.404
+   ],
+   [
+    "Stove",
+    0.403
+   ],
+   [
+    "Top Mid",
+    0.362
+   ],
+   [
+    "Underpath",
+    0.343
+   ],
+   [
+    "Mid",
+    0.253
+   ],
+   [
+    "B Apartments",
+    0.216
+   ],
+   [
+    "T Ramp",
+    0.195
+   ],
+   [
+    "Underpath Stairs",
+    0.186
+   ],
+   [
+    "House",
+    0.166
+   ],
+   [
+    "Catwalk",
+    0.123
+   ],
+   [
+    "T Spawn",
+    0.121
+   ],
+   [
+    "Apps Ramp",
+    0.109
+   ],
+   [
+    "Chair",
+    0.102
+   ],
+   [
+    "Palace",
+    0.096
+   ],
+   [
+    "T Roof",
+    0.096
+   ],
+   [
+    "Ladder",
+    0.081
+   ],
+   [
+    "Palace Entry",
+    0.078
+   ],
+   [
+    "Ramp",
+    0.072
+   ],
+   [
+    "TV",
+    0.058
+   ],
+   [
+    "Connector",
+    0.058
+   ],
+   [
+    "Pillars",
+    0.057
+   ],
+   [
+    "B Short",
+    0.052
+   ]
+  ]
+ }
 },"heights":{
 "_about": [
  "Высоты и этажи Mirage. Делает tools/heights_bake.py --map mirage из navmesh.json набора карты и радаров Simple Radar.",
@@ -16242,7 +16438,7 @@ function chooseTactic(){
     var need = tac.style === "default" ? 14 : Math.max(14, tac.setupEnd - 6);
     if(setupSec - need >= 12) defUntil = roundStartTick + (setupSec - need)*64;
   }
-  teamTac.T = {tac:tac, site:tac.site, phase: tac.setupEnd > 0 ? "setup" : "execute", execTick: roundStartTick + setupSec*64, defUntil: defUntil, minExec: (BAL.proTempo && tac.setupEnd > 0) ? Math.min(setupSec, 30) : 0, needT: (BAL.proTempo && tac.setupEnd > 0) ? Math.max(14, tac.setupEnd - 6) : 0,
+  teamTac.T = {tac:tac, site:tac.site, phase: tac.setupEnd > 0 ? "setup" : "execute", execTick: roundStartTick + setupSec*64, defUntil: defUntil, minExec: (BAL.proTempo && tac.setupEnd > 0) ? Math.min(setupSec, 30) : 0, needT: (BAL.proTempo && tac.setupEnd > 0) ? (tac.style === "default" ? 14 : Math.max(14, tac.setupEnd - 6)) : 0,   // (v443) у дефолта — как need выше: иначе фаза дефолта (170, inDef) не включалась вовсе
                execStart: tac.setupEnd > 0 ? null : tick, // раш: выход сразу — отсчёт задержек ролей с начала раунда
                read: readTxt, seenCT:{A:0, B:0}, setupSec:setupSec};
   var M = tacMem[tac.id];
@@ -17383,12 +17579,37 @@ function tBrain(){
     // T Ramp 0,63 игрока), а не у другого сайта: раньше энтри стоял на B в выходе на A и шёл через карту / за лайнапом
     var inDef = BAL.proTempo && tt.defUntil && tick < tt.defUntil && tick < tt.execTick - tt.needT*TICK_HZ;
     if(inDef){
-      // дефолт: мид держит поддержка, лёркер — у другого сайта (lurkerBrain), остальные — у цели
+      // дефолт: лёркер — у другого сайта (lurkerBrain), остальные — по местам про (ниже)
       if(!tt._defLog){ tt._defLog = true; logEvent("T: сначала дефолт, "+tac.name+" — позже"); }
       // (снайпер — с группой у цели, мид держит поддержка: AWP на миде в дефолте
       // у ботов был первой жертвой в 19% раундов, у про — 4%)
-      groupPost(pick(["support"]), tt.tMidPt || GEO.tMid, GEO.tMidLook, "tmid", midOpt);
-      stagePost(pick(["entry","igl","awp"]), tt.site);
+      // (v443, док владельца 27.10 «дефолт сравнить с про») места — из демок (MAP.defaultpos, tools/defpos_bake.py): сколько T в среднем
+      // в каждой зоне на 20–50-й с раундов с выходом на этот сайт. Раньше трое шли к точке подготовки цели: на Mirage B — 2,1 игрока
+      // в T Apps / Stove / B Apartments против 1,1 у про, на миде 1,0 против 1,9. Зоны — жребий раз на раунд по этим долям (без
+      // повтора); ближняя к цели — энтри, дальше IGL, AWP, поддержка; взгляд — на ближайший к зоне вход (A, B или мид)
+      var DPS = ((MAP.defaultpos || {}).sites || {})[tt.site], dm = pick(["entry","igl","awp","support"]);
+      if(DPS && DPS.length){
+        if(!tt._defZ || tt._defZ.n !== dm.length){
+          var pool = DPS.filter(function(z){ return !!zonePoint(z[0]); }).map(function(z){ return z.slice(); }), ch = [];
+          for(var dk = 0; dk < dm.length && pool.length; dk++){
+            var wt = pool.reduce(function(a, z){ return a + z[1]; }, 0), u = hashRand(roundNum*733 + matchNum*91 + dk*17 + 5)*wt, di = 0;
+            while(di < pool.length - 1 && u > pool[di][1]){ u -= pool[di][1]; di++; }
+            ch.push(pool[di][0]); pool.splice(di, 1);
+          }
+          tt._defZ = {n: dm.length, z: ch};
+        }
+        var tgt = SITES[tt.site], RO = {entry:0, igl:1, awp:2, support:3};
+        var zs = tt._defZ.z.map(function(n){ return {n:n, p:zonePoint(n, tgt)}; }).filter(function(z){ return z.p; })
+          .sort(function(a, c){ return Math.hypot(a.p.x-tgt.x, a.p.y-tgt.y) - Math.hypot(c.p.x-tgt.x, c.p.y-tgt.y); });
+        dm.sort(function(a, c){ return RO[a.tRole] - RO[c.tRole]; }).forEach(function(b, i){
+          var Z = zs[i]; if(!Z) return;
+          var lk = [GEO.A.tEntry, GEO.B.tEntry, GEO.tMidLook].filter(Boolean).sort(function(a, c){ return Math.hypot(a.x-Z.p.x, a.y-Z.p.y) - Math.hypot(c.x-Z.p.x, c.y-Z.p.y); })[0];
+          groupPost([b], Z.p, lk, "default:"+Z.n, {rMax:160, minGap:50, see:[lk]});
+        });
+      } else {
+        groupPost(pick(["support"]), tt.tMidPt || GEO.tMid, GEO.tMidLook, "tmid", midOpt);
+        stagePost(pick(["entry","igl","awp"]), tt.site);
+      }
     } else if(tac.groups && tac.style !== "fake" && tt.site !== tac.site){   // (v365) фейк — своя ветка ниже
       // (этап 2, P1-1) сайт плана сменили: точки подготовки и маршруты групп тактики — под старый сайт (Donut, A Hall…).
       // Раньше группа ставилась на них и с новым сайтом (тег stageB:Donut у A): ждала на старой точке. Теперь — стандартная
@@ -17879,7 +18100,8 @@ function tBrain(){
     // (5) клатч T после планта: один — сразу играет на время (дальнее укрытие в
     // пределах слышимости дефуза), выходит только на звук дефуза
     if(BAL.tClutch && group.length === 1 && aliveCount("CT") >= 1 && bombTimeLeftTicks() > 6*TICK_HZ){
-      if(!tt._tcPP){ tt._tcPP = tick; voiceLog("T", "tcpp", group[0].id, "я один на пост-планте — прячусь, играю на время, выйду на звук дефуза"); }
+      // (v443) «я один» — только если T правда один: группа пост-планта без лёркера и охотников бывала из одного при живых других
+      if(!tt._tcPP){ tt._tcPP = tick; if(aliveCount("T") === 1) voiceLog("T", "tcpp", group[0].id, "я один на пост-планте — прячусь, играю на время, выйду на звук дефуза"); }
       if(!ppTimeNamed(group, bp0, bomb.site, DEFUSE_HEAR-90))
         groupPost(group, bp0, gs.ctEntry, "postplant:time", {rMin:300, rMax:Math.min(600, DEFUSE_HEAR-90), minGap:110, hideFrom:[gs.ctEntry, bp0]});
       return;
@@ -23007,7 +23229,11 @@ function contactTick(b){
   b._contact = {x:C.x, y:C.y, id:C.id, until: tick + CONTACT_HOLD*TICK_HZ, lock:true, pt:sp, tag:tag}; b._contactT = tick;
   b._reposUntil = 0; b._probeLock = 0; b.lastIntel = {x:look.x, y:look.y, tick:tick, src:"call"};
   if(swing && !C.own && b.nades && b.nades.flash > 0 && C.d > 150 && !hasLOS(b.x, b.y, look.x, look.y, b.z)) assignNade(b, "flash", look, "флешка под выход на врага рядом", {now:true, range:900});
-  voiceLog(b.team, "ct"+b.id+Math.round(tick/64), b.id, (swing ? "выхожу на него " : "держу ")+calloutName(look.x, look.y));
+  // (v443, док владельца 27.10: «войс раунда спамится») «держу X» — 23 строки за раунд, один бот повторял её ~3 раза: это пересказ своих
+  // действий, а в войсе про — враг, где и сколько, свои гранаты (PRO_PLAY, «Войс»). «Держу» не говорится; «выхожу на него» — один раз
+  // на врага за раунд (у каждого нового выбора точки раньше — снова)
+  if(swing){ var sk = C.id || calloutName(look.x, look.y), SS = b._swSaid && b._swSaid.r === roundNum ? b._swSaid : (b._swSaid = {r:roundNum});
+    if(!SS[sk]){ SS[sk] = 1; voiceLog(b.team, "ct"+b.id+Math.round(tick/64), b.id, "выхожу на него "+calloutName(look.x, look.y)); } }
 }
 // ======================= (v419, хвост 350:70, владелец 25.10) ЗАДЕРЖАТЬ ГРАНАТОЙ — одно место для CT =======================
 // PRO_PLAY.md (CT): «отказать и потянуть — утилитой задерживать», «тиммейт держит утилиту и кидает при контакте», «молотов
@@ -25924,6 +26150,15 @@ function dangerWalk(b){
   }
   if(!pts.length) pts.push([b.post.x, b.post.y]);
   var seenZ = {}, dz = 0;
+  // (v443, док владельца 27.10 р9: «игрок 4 шёл на шифте, где его никто бы не слышал — все CT в B Apps и на маркете») непроверенный
+  // угол заставлял идти шагом, если враг мог туда добежать хотя бы через 4 с, — а где команда видела врагов, не смотрел. Замер v442:
+  // первые 20 с раунда, враг в 600–900, — шагом 50 % у ботов T против 30 % у про, и в 54 % таких моментов причиной был этот угол.
+  // Теперь угол — только если враг мог уже быть там (без запаса) и есть живой враг, которого команда не видела / не слышала
+  // за 5 с (проектное число, как «свежая» инфа в 540) дальше слышимости моего бега от пути. Все живые засвечены далеко — бегом
+  var foeAll = bots.filter(function(o){ return o.alive && o.team !== b.team; }), BLw = beliefLast[b.team] || {};
+  var unacc = foeAll.some(function(o){ var e = BLw[o.id]; if(!e || tick - e.tick > 5*TICK_HZ) return true;
+    return pts.some(function(q){ return Math.hypot(q[0]-e.x, q[1]-e.y) <= 1.5*STEP_HEAR_R(); }); });
+  var uncW = function(j){ var R = REACH[foe]; return (R && !(R[j] <= tick)) ? 0 : uncheckedW(foe, j); };
   pts.forEach(function(q){
     var zi = bzOf(q[0], q[1]); if(zi < 0 || seenZ[zi]) return; seenZ[zi] = 1;
     var own = reachPossible(foe, zi) ? beliefZoneKnown(foe, zi) : 0;
@@ -25931,7 +26166,7 @@ function dangerWalk(b){
     dz = Math.max(dz, own + 0.5*nb);
     // (v143) непроверенный угол вплотную к пути, куда враг мог успеть — тихо,
     // чтобы чекнуть его и не спалиться (у про: "иду шифтом, чекаю каждый угол")
-    { var uc = uncheckedW(foe, zi); (BZ.nbr[zi]||[]).forEach(function(j){ var c = BZ.cent[j]; if(c && Math.hypot(c.x-q[0], c.y-q[1]) < 320) uc = Math.max(uc, uncheckedW(foe, j)); });
+    if(unacc){ var uc = uncW(zi); (BZ.nbr[zi]||[]).forEach(function(j){ var c = BZ.cent[j]; if(c && Math.hypot(c.x-q[0], c.y-q[1]) < 320) uc = Math.max(uc, uncW(j)); });
       if(uc >= 0.8) dz = Math.max(dz, LOOK.uncheckWalk); }
   });
   b._dwVal = dz >= (BAL.dangerWalkThr || 0.12);
