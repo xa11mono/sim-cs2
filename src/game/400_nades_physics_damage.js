@@ -35,7 +35,7 @@ function detonate(n){
     // молотов, упавший в дым или рядом так, что огонь касается дыма, гаснет (как в CS2 — наоборот тоже: дым тушит огонь;
     // v321, М12: «чуть касается смока — тушится»)
     if(!smokes.some(function(s){ return Math.hypot(s.x-n.x, s.y-n.y) < smokeRadiusNow(s) + NADE.molly.radius*MOLLY_SMOKE_TOUCH; }))
-    { fires.push({x:n.x, y:n.y, born:tick, until:tick+NADE.molly.life, team:n.team, thrower:n.thrower}); fireRepath(n.x, n.y); }
+      fires.push({x:n.x, y:n.y, born:tick, until:tick+NADE.molly.life, team:n.team, thrower:n.thrower});
   }
   else if(T === "flash"){
     if(n.why === "под пик") nadeFlags.peekFlashPop = tick;

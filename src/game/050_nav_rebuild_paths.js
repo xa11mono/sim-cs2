@@ -274,7 +274,6 @@ var ROUTE_PORTAL = 0;   // (v406) цена перехода между учас�
 var ROUTE_NOISE = 0.25, ROUTE_NOISE_C = 40;   // доля и клетка (ед. карты) — проектные числа (v405)
 // (v416, М151) запрет пути через проходы у́же корпуса (v412) убран: у Kitchen, Hole, TV (Mirage) и T Lower ↔ Ruins (Ancient) других
 // проходов нет — путь шёл в обход в 4–15 раз длиннее (надпись «навмеш не связывает напрямую»). Схождение на спуске T разводит полоса (laneShift)
-var FIRE_DETOUR = 600;   // (v438) цена перехода через горящий огонь, ед. карты: обход до ~600 длиннее — лучше, чем сквозь огонь (проектное число)
 function zoneDijkstra(fromId, toId, team){
   if(fromId===toId) return [fromId];
   var side = team === "CT" ? zoneSideMap() : null;
@@ -299,9 +298,6 @@ function zoneDijkstra(fromId, toId, team){
       if(side && side[edge.to] !== undefined && side[edge.to] < ROUTE_SIDE_LINE) w *= ROUTE_ENEMY_SIDE;   // (v259) CT — по своей стороне
       // (v405) у бота своя полоса — и свой выбор среди почти равных путей: цена перехода × (1 ± ROUTE_NOISE) по клетке ROUTE_NOISE_C
       // вокруг перехода (вся клетка — один множитель: соседние полосы прохода, бордюр и рампа, получают разную цену у разных ботов)
-      // (v438, док владельца 27.10: «боты часто идут в молик») переход в горящем огне — дороже на FIRE_DETOUR: путь обходит молотов, если обход
-      // не длиннее; иначе идёт через огонь (как и раньше — fireCommit / ждёт у края). Только путь движения (buildWaypointPath)
-      if(zoneDijkstra.fire && fires.length && inFire(edge.mid.x, edge.mid.y)) w += FIRE_DETOUR;
       var nz = zoneDijkstra.noise; if(nz != null) w *= 1 + ROUTE_NOISE*(hashRand(Math.floor(edge.mid.x/ROUTE_NOISE_C)*7919 + Math.floor(edge.mid.y/ROUTE_NOISE_C)*104729 + nz) - 0.5)*2;
       var alt = dist[u] + w;
       if(dist[edge.to]===undefined || alt<dist[edge.to]){
@@ -450,7 +446,7 @@ function buildWaypointPath(fromX, fromY, fromZ, toX, toY, toZ, team, lane){
   if(!pointInPoly(toX, toY, tz.points)){ var cq = navClampInto(tz, toX, toY); toX = cq.x; toY = cq.y; }
   if(!toZ) toZ = navFloorZ(tz, toX, toY);
   if(fz.id === tz.id) return [[toX,toY,toZ||0]];
-  zoneDijkstra.noise = lane != null ? Math.round(lane*1000) + roundNum*13 : null; zoneDijkstra.from = {x: fromX, y: fromY}; zoneDijkstra.fire = true;
+  zoneDijkstra.noise = lane != null ? Math.round(lane*1000) + roundNum*13 : null; zoneDijkstra.from = {x: fromX, y: fromY};
   var route = zoneDijkstra(fz.id, tz.id, team);
   if(!route){ if(!NAV_GRID) navGridBuild();
     var alts = (NAV_GRID[Math.floor(toX/NAV_GRID_C)+","+Math.floor(toY/NAV_GRID_C)]||[]).map(function(i){ return NAVAREAS[i]; })
@@ -461,7 +457,7 @@ function buildWaypointPath(fromX, fromY, fromZ, toX, toY, toZ, team, lane){
   // путь к ближайшему достижимому месту рядом с ней
   if(!route){ zoneDijkstra.nearest = true; route = zoneDijkstra(fz.id, tz.id, team); zoneDijkstra.nearest = false;
     if(route && route[route.length-1] !== tz.id){ var lz = zonesById[route[route.length-1]]; if(lz){ var lc = zoneCentroid(lz); toX = lc.x; toY = lc.y; toZ = lz.z; tz = lz; } } }
-  zoneDijkstra.noise = null; zoneDijkstra.from = null; zoneDijkstra.fire = false;
+  zoneDijkstra.noise = null; zoneDijkstra.from = null;
   if(!route) return [[toX,toY,toZ||0]]; // disconnected zones — direct line fallback rather than a stuck bot
   var corridor = [], cPair = [];   // cPair — участки по обе стороны перехода (v340)
   for(var i=0;i<route.length-1;i++){
