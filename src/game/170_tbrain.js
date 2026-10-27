@@ -351,12 +351,37 @@ function tBrain(){
     // T Ramp 0,63 игрока), а не у другого сайта: раньше энтри стоял на B в выходе на A и шёл через карту / за лайнапом
     var inDef = BAL.proTempo && tt.defUntil && tick < tt.defUntil && tick < tt.execTick - tt.needT*TICK_HZ;
     if(inDef){
-      // дефолт: мид держит поддержка, лёркер — у другого сайта (lurkerBrain), остальные — у цели
+      // дефолт: лёркер — у другого сайта (lurkerBrain), остальные — по местам про (ниже)
       if(!tt._defLog){ tt._defLog = true; logEvent("T: сначала дефолт, "+tac.name+" — позже"); }
       // (снайпер — с группой у цели, мид держит поддержка: AWP на миде в дефолте
       // у ботов был первой жертвой в 19% раундов, у про — 4%)
-      groupPost(pick(["support"]), tt.tMidPt || GEO.tMid, GEO.tMidLook, "tmid", midOpt);
-      stagePost(pick(["entry","igl","awp"]), tt.site);
+      // (v443, док владельца 27.10 «дефолт сравнить с про») места — из демок (MAP.defaultpos, tools/defpos_bake.py): сколько T в среднем
+      // в каждой зоне на 20–50-й с раундов с выходом на этот сайт. Раньше трое шли к точке подготовки цели: на Mirage B — 2,1 игрока
+      // в T Apps / Stove / B Apartments против 1,1 у про, на миде 1,0 против 1,9. Зоны — жребий раз на раунд по этим долям (без
+      // повтора); ближняя к цели — энтри, дальше IGL, AWP, поддержка; взгляд — на ближайший к зоне вход (A, B или мид)
+      var DPS = ((MAP.defaultpos || {}).sites || {})[tt.site], dm = pick(["entry","igl","awp","support"]);
+      if(DPS && DPS.length){
+        if(!tt._defZ || tt._defZ.n !== dm.length){
+          var pool = DPS.filter(function(z){ return !!zonePoint(z[0]); }).map(function(z){ return z.slice(); }), ch = [];
+          for(var dk = 0; dk < dm.length && pool.length; dk++){
+            var wt = pool.reduce(function(a, z){ return a + z[1]; }, 0), u = hashRand(roundNum*733 + matchNum*91 + dk*17 + 5)*wt, di = 0;
+            while(di < pool.length - 1 && u > pool[di][1]){ u -= pool[di][1]; di++; }
+            ch.push(pool[di][0]); pool.splice(di, 1);
+          }
+          tt._defZ = {n: dm.length, z: ch};
+        }
+        var tgt = SITES[tt.site], RO = {entry:0, igl:1, awp:2, support:3};
+        var zs = tt._defZ.z.map(function(n){ return {n:n, p:zonePoint(n, tgt)}; }).filter(function(z){ return z.p; })
+          .sort(function(a, c){ return Math.hypot(a.p.x-tgt.x, a.p.y-tgt.y) - Math.hypot(c.p.x-tgt.x, c.p.y-tgt.y); });
+        dm.sort(function(a, c){ return RO[a.tRole] - RO[c.tRole]; }).forEach(function(b, i){
+          var Z = zs[i]; if(!Z) return;
+          var lk = [GEO.A.tEntry, GEO.B.tEntry, GEO.tMidLook].filter(Boolean).sort(function(a, c){ return Math.hypot(a.x-Z.p.x, a.y-Z.p.y) - Math.hypot(c.x-Z.p.x, c.y-Z.p.y); })[0];
+          groupPost([b], Z.p, lk, "default:"+Z.n, {rMax:160, minGap:50, see:[lk]});
+        });
+      } else {
+        groupPost(pick(["support"]), tt.tMidPt || GEO.tMid, GEO.tMidLook, "tmid", midOpt);
+        stagePost(pick(["entry","igl","awp"]), tt.site);
+      }
     } else if(tac.groups && tac.style !== "fake" && tt.site !== tac.site){   // (v365) фейк — своя ветка ниже
       // (этап 2, P1-1) сайт плана сменили: точки подготовки и маршруты групп тактики — под старый сайт (Donut, A Hall…).
       // Раньше группа ставилась на них и с новым сайтом (тег stageB:Donut у A): ждала на старой точке. Теперь — стандартная

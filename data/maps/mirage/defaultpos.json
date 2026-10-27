@@ -1,0 +1,197 @@
+{
+ "_src": "tools/defpos_bake.py: раунды с плантом после 60 с, T на 25–50 с",
+ "sites": {
+  "A": [
+   [
+    "T Ramp",
+    0.732
+   ],
+   [
+    "Side Alley",
+    0.405
+   ],
+   [
+    "Mid Boxes",
+    0.357
+   ],
+   [
+    "Mid",
+    0.314
+   ],
+   [
+    "Underpath",
+    0.308
+   ],
+   [
+    "Top Mid",
+    0.306
+   ],
+   [
+    "Palace",
+    0.292
+   ],
+   [
+    "T Spawn",
+    0.268
+   ],
+   [
+    "Pillars",
+    0.197
+   ],
+   [
+    "T Roof",
+    0.169
+   ],
+   [
+    "T Apps",
+    0.166
+   ],
+   [
+    "Underpath Stairs",
+    0.143
+   ],
+   [
+    "Palace Entry",
+    0.142
+   ],
+   [
+    "Palace Exit",
+    0.111
+   ],
+   [
+    "Stove",
+    0.1
+   ],
+   [
+    "Chair",
+    0.092
+   ],
+   [
+    "Catwalk",
+    0.083
+   ],
+   [
+    "Apps Ramp",
+    0.078
+   ],
+   [
+    "Ladder",
+    0.067
+   ],
+   [
+    "Ramp",
+    0.064
+   ],
+   [
+    "House",
+    0.06
+   ],
+   [
+    "Connector",
+    0.059
+   ],
+   [
+    "Tetris",
+    0.056
+   ]
+  ],
+  "B": [
+   [
+    "T Apps",
+    0.594
+   ],
+   [
+    "Mid Boxes",
+    0.441
+   ],
+   [
+    "Side Alley",
+    0.404
+   ],
+   [
+    "Stove",
+    0.403
+   ],
+   [
+    "Top Mid",
+    0.362
+   ],
+   [
+    "Underpath",
+    0.343
+   ],
+   [
+    "Mid",
+    0.253
+   ],
+   [
+    "B Apartments",
+    0.216
+   ],
+   [
+    "T Ramp",
+    0.195
+   ],
+   [
+    "Underpath Stairs",
+    0.186
+   ],
+   [
+    "House",
+    0.166
+   ],
+   [
+    "Catwalk",
+    0.123
+   ],
+   [
+    "T Spawn",
+    0.121
+   ],
+   [
+    "Apps Ramp",
+    0.109
+   ],
+   [
+    "Chair",
+    0.102
+   ],
+   [
+    "Palace",
+    0.096
+   ],
+   [
+    "T Roof",
+    0.096
+   ],
+   [
+    "Ladder",
+    0.081
+   ],
+   [
+    "Palace Entry",
+    0.078
+   ],
+   [
+    "Ramp",
+    0.072
+   ],
+   [
+    "TV",
+    0.058
+   ],
+   [
+    "Connector",
+    0.058
+   ],
+   [
+    "Pillars",
+    0.057
+   ],
+   [
+    "B Short",
+    0.052
+   ]
+  ]
+ }
+}
