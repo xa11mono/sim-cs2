@@ -1,0 +1,85 @@
+браузеры: C:\Users\Mono\AppData\Local\ms-playwright
+playwright 1.56.0
+> git fetch --quiet origin 31a84bdc462335d2f5c6dc689ef959489982c922
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_oz1ha3yy FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_oz1ha3yy\src\build.py --map mirage C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\abl_noswing_mir.html
+> git fetch --quiet origin 3fb82f375292b2c386df86417fedee9219c8933c
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild__te1r7os FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild__te1r7os\src\build.py --map mirage C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\abl_nowalk_mir.html
+> git fetch --quiet origin 53f6cd60abeb2993f30bdfe9cead1845694acfc8
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_avco2gj9 FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_avco2gj9\src\build.py --map mirage C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\abl_nofire_mir.html
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\engine\walk_run.py --job=abl_noswing_mir,C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\abl_noswing_mir.html --job=abl_nowalk_mir,C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\abl_nowalk_mir.html --job=abl_nofire_mir,C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\abl_nofire_mir.html --matches=3,7,11,13,17,19,23,29 --par=8
+матчей в очереди: 24, одновременно: 8
+… идёт 8: abl_noswing_mir м3 (0.0 мин), abl_noswing_mir м7 (0.0 мин), abl_noswing_mir м11 (0.0 мин), abl_noswing_mir м13 (0.0 мин), abl_noswing_mir м17 (0.0 мин), abl_noswing_mir м19 (0.0 мин), abl_noswing_mir м23 (0.0 мин), abl_noswing_mir м29 (0.0 мин) | готово 0/24, в очереди 16, прошло 0.0 мин
+… идёт 8: abl_noswing_mir м3 (0.5 мин), abl_noswing_mir м7 (0.5 мин), abl_noswing_mir м11 (0.5 мин), abl_noswing_mir м13 (0.5 мин), abl_noswing_mir м17 (0.5 мин), abl_noswing_mir м19 (0.5 мин), abl_noswing_mir м23 (0.5 мин), abl_noswing_mir м29 (0.5 мин) | готово 0/24, в очереди 16, прошло 0.5 мин
+… идёт 8: abl_noswing_mir м3 (1.0 мин), abl_noswing_mir м7 (1.0 мин), abl_noswing_mir м11 (1.0 мин), abl_noswing_mir м13 (1.0 мин), abl_noswing_mir м17 (1.0 мин), abl_noswing_mir м19 (1.0 мин), abl_noswing_mir м23 (1.0 мин), abl_noswing_mir м29 (1.0 мин) | готово 0/24, в очереди 16, прошло 1.0 мин
+… идёт 8: abl_noswing_mir м3 (1.5 мин), abl_noswing_mir м7 (1.5 мин), abl_noswing_mir м11 (1.5 мин), abl_noswing_mir м13 (1.5 мин), abl_noswing_mir м17 (1.5 мин), abl_noswing_mir м19 (1.5 мин), abl_noswing_mir м23 (1.5 мин), abl_noswing_mir м29 (1.5 мин) | готово 0/24, в очереди 16, прошло 1.5 мин
+… идёт 8: abl_noswing_mir м3 (2.0 мин), abl_noswing_mir м7 (2.0 мин), abl_noswing_mir м11 (2.0 мин), abl_noswing_mir м13 (2.0 мин), abl_noswing_mir м17 (2.0 мин), abl_noswing_mir м19 (2.0 мин), abl_noswing_mir м23 (2.0 мин), abl_noswing_mir м29 (2.0 мин) | готово 0/24, в очереди 16, прошло 2.0 мин
+… идёт 8: abl_noswing_mir м3 (2.5 мин), abl_noswing_mir м7 (2.5 мин), abl_noswing_mir м11 (2.5 мин), abl_noswing_mir м13 (2.5 мин), abl_noswing_mir м17 (2.5 мин), abl_noswing_mir м19 (2.5 мин), abl_noswing_mir м23 (2.5 мин), abl_noswing_mir м29 (2.5 мин) | готово 0/24, в очереди 16, прошло 2.5 мин
+… идёт 8: abl_noswing_mir м3 (3.0 мин), abl_noswing_mir м7 (3.0 мин), abl_noswing_mir м11 (3.0 мин), abl_noswing_mir м13 (3.0 мин), abl_noswing_mir м17 (3.0 мин), abl_noswing_mir м19 (3.0 мин), abl_noswing_mir м23 (3.0 мин), abl_noswing_mir м29 (3.0 мин) | готово 0/24, в очереди 16, прошло 3.0 мин
+… идёт 8: abl_noswing_mir м3 (3.5 мин), abl_noswing_mir м7 (3.5 мин), abl_noswing_mir м11 (3.5 мин), abl_noswing_mir м13 (3.5 мин), abl_noswing_mir м17 (3.5 мин), abl_noswing_mir м19 (3.5 мин), abl_noswing_mir м23 (3.5 мин), abl_noswing_mir м29 (3.5 мин) | готово 0/24, в очереди 16, прошло 3.5 мин
+… идёт 8: abl_noswing_mir м3 (4.0 мин), abl_noswing_mir м7 (4.0 мин), abl_noswing_mir м11 (4.0 мин), abl_noswing_mir м13 (4.0 мин), abl_noswing_mir м17 (4.0 мин), abl_noswing_mir м19 (4.0 мин), abl_noswing_mir м23 (4.0 мин), abl_noswing_mir м29 (4.0 мин) | готово 0/24, в очереди 16, прошло 4.0 мин
+… идёт 8: abl_noswing_mir м3 (4.5 мин), abl_noswing_mir м7 (4.5 мин), abl_noswing_mir м11 (4.5 мин), abl_noswing_mir м13 (4.5 мин), abl_noswing_mir м17 (4.5 мин), abl_noswing_mir м19 (4.5 мин), abl_noswing_mir м23 (4.5 мин), abl_noswing_mir м29 (4.5 мин) | готово 0/24, в очереди 16, прошло 4.5 мин
+… идёт 8: abl_noswing_mir м3 (5.0 мин), abl_noswing_mir м7 (5.0 мин), abl_noswing_mir м11 (5.0 мин), abl_noswing_mir м13 (5.0 мин), abl_noswing_mir м17 (5.0 мин), abl_noswing_mir м19 (5.0 мин), abl_noswing_mir м23 (5.0 мин), abl_noswing_mir м29 (5.0 мин) | готово 0/24, в очереди 16, прошло 5.0 мин
+abl_noswing_mir match 19 rc 0 4567906 — готово 1/24, 5 мин
+… идёт 8: abl_noswing_mir м3 (5.5 мин), abl_noswing_mir м7 (5.5 мин), abl_noswing_mir м11 (5.5 мин), abl_noswing_mir м13 (5.5 мин), abl_noswing_mir м17 (5.5 мин), abl_noswing_mir м23 (5.5 мин), abl_noswing_mir м29 (5.5 мин), abl_nowalk_mir м3 (0.5 мин) | готово 1/24, в очереди 15, прошло 5.5 мин
+abl_noswing_mir match 7 rc 0 5276702 — готово 2/24, 6 мин
+… идёт 8: abl_noswing_mir м3 (6.1 мин), abl_noswing_mir м11 (6.1 мин), abl_noswing_mir м13 (6.1 мин), abl_noswing_mir м17 (6.1 мин), abl_noswing_mir м23 (6.1 мин), abl_noswing_mir м29 (6.1 мин), abl_nowalk_mir м3 (1.0 мин), abl_nowalk_mir м7 (0.4 мин) | готово 2/24, в очереди 14, прошло 6.1 мин
+abl_noswing_mir match 13 rc 0 5556104 — готово 3/24, 6 мин
+… идёт 8: abl_noswing_mir м3 (6.6 мин), abl_noswing_mir м11 (6.6 мин), abl_noswing_mir м17 (6.6 мин), abl_noswing_mir м23 (6.6 мин), abl_noswing_mir м29 (6.6 мин), abl_nowalk_mir м3 (1.5 мин), abl_nowalk_mir м7 (0.9 мин), abl_nowalk_mir м11 (0.1 мин) | готово 3/24, в очереди 13, прошло 6.6 мин
+abl_noswing_mir match 3 rc 0 5801012 — готово 4/24, 7 мин
+abl_noswing_mir match 29 rc 0 6448661 — готово 5/24, 7 мин
+… идёт 8: abl_noswing_mir м11 (7.1 мин), abl_noswing_mir м17 (7.1 мин), abl_noswing_mir м23 (7.1 мин), abl_nowalk_mir м3 (2.0 мин), abl_nowalk_mir м7 (1.4 мин), abl_nowalk_mir м11 (0.6 мин), abl_nowalk_mir м13 (0.5 мин), abl_nowalk_mir м17 (0.1 мин) | готово 5/24, в очереди 11, прошло 7.1 мин
+abl_noswing_mir match 17 rc 0 6439504 — готово 6/24, 7 мин
+abl_noswing_mir match 23 rc 0 6923149 — готово 7/24, 7 мин
+… идёт 8: abl_noswing_mir м11 (7.6 мин), abl_nowalk_mir м3 (2.5 мин), abl_nowalk_mir м7 (1.9 мин), abl_nowalk_mir м11 (1.1 мин), abl_nowalk_mir м13 (1.0 мин), abl_nowalk_mir м17 (0.6 мин), abl_nowalk_mir м19 (0.5 мин), abl_nowalk_mir м23 (0.1 мин) | готово 7/24, в очереди 9, прошло 7.6 мин
+abl_noswing_mir match 11 rc 0 7174190 — готово 8/24, 8 мин
+… идёт 8: abl_nowalk_mir м3 (3.0 мин), abl_nowalk_mir м7 (2.4 мин), abl_nowalk_mir м11 (1.6 мин), abl_nowalk_mir м13 (1.5 мин), abl_nowalk_mir м17 (1.1 мин), abl_nowalk_mir м19 (1.0 мин), abl_nowalk_mir м23 (0.6 мин), abl_nowalk_mir м29 (0.0 мин) | готово 8/24, в очереди 8, прошло 8.1 мин
+… идёт 8: abl_nowalk_mir м3 (3.5 мин), abl_nowalk_mir м7 (2.9 мин), abl_nowalk_mir м11 (2.1 мин), abl_nowalk_mir м13 (2.0 мин), abl_nowalk_mir м17 (1.6 мин), abl_nowalk_mir м19 (1.5 мин), abl_nowalk_mir м23 (1.1 мин), abl_nowalk_mir м29 (0.5 мин) | готово 8/24, в очереди 8, прошло 8.6 мин
+… идёт 8: abl_nowalk_mir м3 (4.0 мин), abl_nowalk_mir м7 (3.4 мин), abl_nowalk_mir м11 (2.6 мин), abl_nowalk_mir м13 (2.5 мин), abl_nowalk_mir м17 (2.1 мин), abl_nowalk_mir м19 (2.0 мин), abl_nowalk_mir м23 (1.6 мин), abl_nowalk_mir м29 (1.0 мин) | готово 8/24, в очереди 8, прошло 9.1 мин
+… идёт 8: abl_nowalk_mir м3 (4.5 мин), abl_nowalk_mir м7 (3.9 мин), abl_nowalk_mir м11 (3.2 мин), abl_nowalk_mir м13 (3.0 мин), abl_nowalk_mir м17 (2.6 мин), abl_nowalk_mir м19 (2.5 мин), abl_nowalk_mir м23 (2.1 мин), abl_nowalk_mir м29 (1.5 мин) | готово 8/24, в очереди 8, прошло 9.6 мин
+… идёт 8: abl_nowalk_mir м3 (5.0 мин), abl_nowalk_mir м7 (4.4 мин), abl_nowalk_mir м11 (3.7 мин), abl_nowalk_mir м13 (3.5 мин), abl_nowalk_mir м17 (3.1 мин), abl_nowalk_mir м19 (3.0 мин), abl_nowalk_mir м23 (2.6 мин), abl_nowalk_mir м29 (2.0 мин) | готово 8/24, в очереди 8, прошло 10.1 мин
+… идёт 8: abl_nowalk_mir м3 (5.5 мин), abl_nowalk_mir м7 (4.9 мин), abl_nowalk_mir м11 (4.2 мин), abl_nowalk_mir м13 (4.0 мин), abl_nowalk_mir м17 (3.6 мин), abl_nowalk_mir м19 (3.5 мин), abl_nowalk_mir м23 (3.2 мин), abl_nowalk_mir м29 (2.5 мин) | готово 8/24, в очереди 8, прошло 10.6 мин
+… идёт 8: abl_nowalk_mir м3 (6.0 мин), abl_nowalk_mir м7 (5.4 мин), abl_nowalk_mir м11 (4.7 мин), abl_nowalk_mir м13 (4.5 мин), abl_nowalk_mir м17 (4.1 мин), abl_nowalk_mir м19 (4.0 мин), abl_nowalk_mir м23 (3.7 мин), abl_nowalk_mir м29 (3.0 мин) | готово 8/24, в очереди 8, прошло 11.1 мин
+abl_nowalk_mir match 19 rc 0 4041706 — готово 9/24, 12 мин
+… идёт 8: abl_nowalk_mir м3 (6.5 мин), abl_nowalk_mir м7 (5.9 мин), abl_nowalk_mir м11 (5.2 мин), abl_nowalk_mir м13 (5.0 мин), abl_nowalk_mir м17 (4.6 мин), abl_nowalk_mir м23 (4.2 мин), abl_nowalk_mir м29 (3.6 мин), abl_nofire_mir м3 (0.1 мин) | готово 9/24, в очереди 7, прошло 11.6 мин
+… идёт 8: abl_nowalk_mir м3 (7.0 мин), abl_nowalk_mir м7 (6.4 мин), abl_nowalk_mir м11 (5.7 мин), abl_nowalk_mir м13 (5.5 мин), abl_nowalk_mir м17 (5.1 мин), abl_nowalk_mir м23 (4.7 мин), abl_nowalk_mir м29 (4.1 мин), abl_nofire_mir м3 (0.6 мин) | готово 9/24, в очереди 7, прошло 12.1 мин
+abl_nowalk_mir match 7 rc 0 6103497 — готово 10/24, 12 мин
+… идёт 8: abl_nowalk_mir м3 (7.5 мин), abl_nowalk_mir м11 (6.2 мин), abl_nowalk_mir м13 (6.0 мин), abl_nowalk_mir м17 (5.6 мин), abl_nowalk_mir м23 (5.2 мин), abl_nowalk_mir м29 (4.6 мин), abl_nofire_mir м3 (1.1 мин), abl_nofire_mir м7 (0.3 мин) | готово 10/24, в очереди 6, прошло 12.6 мин
+abl_nowalk_mir match 3 rc 0 7375141 — готово 11/24, 13 мин
+abl_nowalk_mir match 13 rc 0 5320754 — готово 12/24, 13 мин
+… идёт 8: abl_nowalk_mir м11 (6.7 мин), abl_nowalk_mir м17 (6.1 мин), abl_nowalk_mir м23 (5.7 мин), abl_nowalk_mir м29 (5.1 мин), abl_nofire_mir м3 (1.6 мин), abl_nofire_mir м7 (0.8 мин), abl_nofire_mir м11 (0.2 мин), abl_nofire_mir м13 (0.1 мин) | готово 12/24, в очереди 4, прошло 13.1 мин
+… идёт 8: abl_nowalk_mir м11 (7.2 мин), abl_nowalk_mir м17 (6.6 мин), abl_nowalk_mir м23 (6.2 мин), abl_nowalk_mir м29 (5.6 мин), abl_nofire_mir м3 (2.1 мин), abl_nofire_mir м7 (1.3 мин), abl_nofire_mir м11 (0.7 мин), abl_nofire_mir м13 (0.6 мин) | готово 12/24, в очереди 4, прошло 13.6 мин
+abl_nowalk_mir match 11 rc 0 6198326 — готово 13/24, 14 мин
+… идёт 8: abl_nowalk_mir м17 (7.1 мин), abl_nowalk_mir м23 (6.7 мин), abl_nowalk_mir м29 (6.1 мин), abl_nofire_mir м3 (2.6 мин), abl_nofire_mir м7 (1.8 мин), abl_nofire_mir м11 (1.2 мин), abl_nofire_mir м13 (1.1 мин), abl_nofire_mir м17 (0.3 мин) | готово 13/24, в очереди 3, прошло 14.1 мин
+abl_nowalk_mir match 17 rc 0 6812704 — готово 14/24, 14 мин
+… идёт 8: abl_nowalk_mir м23 (7.2 мин), abl_nowalk_mir м29 (6.6 мин), abl_nofire_mir м3 (3.1 мин), abl_nofire_mir м7 (2.3 мин), abl_nofire_mir м11 (1.7 мин), abl_nofire_mir м13 (1.6 мин), abl_nofire_mir м17 (0.8 мин), abl_nofire_mir м19 (0.4 мин) | готово 14/24, в очереди 2, прошло 14.6 мин
+abl_nowalk_mir match 23 rc 0 6607366 — готово 15/24, 15 мин
+… идёт 8: abl_nowalk_mir м29 (7.1 мин), abl_nofire_mir м3 (3.6 мин), abl_nofire_mir м7 (2.8 мин), abl_nofire_mir м11 (2.2 мин), abl_nofire_mir м13 (2.1 мин), abl_nofire_mir м17 (1.3 мин), abl_nofire_mir м19 (0.9 мин), abl_nofire_mir м23 (0.4 мин) | готово 15/24, в очереди 1, прошло 15.1 мин
+… идёт 8: abl_nowalk_mir м29 (7.6 мин), abl_nofire_mir м3 (4.1 мин), abl_nofire_mir м7 (3.3 мин), abl_nofire_mir м11 (2.7 мин), abl_nofire_mir м13 (2.6 мин), abl_nofire_mir м17 (1.8 мин), abl_nofire_mir м19 (1.4 мин), abl_nofire_mir м23 (0.9 мин) | готово 15/24, в очереди 1, прошло 15.6 мин
+… идёт 8: abl_nowalk_mir м29 (8.1 мин), abl_nofire_mir м3 (4.6 мин), abl_nofire_mir м7 (3.8 мин), abl_nofire_mir м11 (3.2 мин), abl_nofire_mir м13 (3.1 мин), abl_nofire_mir м17 (2.3 мин), abl_nofire_mir м19 (1.9 мин), abl_nofire_mir м23 (1.4 мин) | готово 15/24, в очереди 1, прошло 16.1 мин
+… идёт 8: abl_nowalk_mir м29 (8.6 мин), abl_nofire_mir м3 (5.1 мин), abl_nofire_mir м7 (4.3 мин), abl_nofire_mir м11 (3.7 мин), abl_nofire_mir м13 (3.6 мин), abl_nofire_mir м17 (2.8 мин), abl_nofire_mir м19 (2.4 мин), abl_nofire_mir м23 (1.9 мин) | готово 15/24, в очереди 1, прошло 16.6 мин
+abl_nowalk_mir match 29 rc 0 8544223 — готово 16/24, 17 мин
+… идёт 8: abl_nofire_mir м3 (5.6 мин), abl_nofire_mir м7 (4.8 мин), abl_nofire_mir м11 (4.2 мин), abl_nofire_mir м13 (4.1 мин), abl_nofire_mir м17 (3.3 мин), abl_nofire_mir м19 (2.9 мин), abl_nofire_mir м23 (2.4 мин), abl_nofire_mir м29 (0.1 мин) | готово 16/24, в очереди 0, прошло 17.1 мин
+… идёт 8: abl_nofire_mir м3 (6.1 мин), abl_nofire_mir м7 (5.3 мин), abl_nofire_mir м11 (4.7 мин), abl_nofire_mir м13 (4.6 мин), abl_nofire_mir м17 (3.8 мин), abl_nofire_mir м19 (3.4 мин), abl_nofire_mir м23 (2.9 мин), abl_nofire_mir м29 (0.6 мин) | готово 16/24, в очереди 0, прошло 17.6 мин
+… идёт 8: abl_nofire_mir м3 (6.6 мин), abl_nofire_mir м7 (5.8 мин), abl_nofire_mir м11 (5.2 мин), abl_nofire_mir м13 (5.1 мин), abl_nofire_mir м17 (4.3 мин), abl_nofire_mir м19 (3.9 мин), abl_nofire_mir м23 (3.4 мин), abl_nofire_mir м29 (1.1 мин) | готово 16/24, в очереди 0, прошло 18.1 мин
+abl_nofire_mir match 3 rc 0 6876596 — готово 17/24, 19 мин
+… идёт 7: abl_nofire_mir м7 (6.3 мин), abl_nofire_mir м11 (5.7 мин), abl_nofire_mir м13 (5.6 мин), abl_nofire_mir м17 (4.8 мин), abl_nofire_mir м19 (4.4 мин), abl_nofire_mir м23 (3.9 мин), abl_nofire_mir м29 (1.6 мин) | готово 17/24, в очереди 0, прошло 18.6 мин
+abl_nofire_mir match 11 rc 0 5721282 — готово 18/24, 19 мин
+… идёт 6: abl_nofire_mir м7 (6.8 мин), abl_nofire_mir м13 (6.1 мин), abl_nofire_mir м17 (5.3 мин), abl_nofire_mir м19 (4.9 мин), abl_nofire_mir м23 (4.4 мин), abl_nofire_mir м29 (2.1 мин) | готово 18/24, в очереди 0, прошло 19.1 мин
+abl_nofire_mir match 13 rc 0 5991773 — готово 19/24, 20 мин
+… идёт 5: abl_nofire_mir м7 (7.3 мин), abl_nofire_mir м17 (5.8 мин), abl_nofire_mir м19 (5.4 мин), abl_nofire_mir м23 (4.9 мин), abl_nofire_mir м29 (2.6 мин) | готово 19/24, в очереди 0, прошло 19.6 мин
+abl_nofire_mir match 17 rc 0 5761180 — готово 20/24, 20 мин
+abl_nofire_mir match 19 rc 0 5984523 — готово 21/24, 20 мин
+… идёт 3: abl_nofire_mir м7 (7.8 мин), abl_nofire_mir м23 (5.4 мин), abl_nofire_mir м29 (3.1 мин) | готово 21/24, в очереди 0, прошло 20.1 мин
+abl_nofire_mir match 7 rc 0 7830371 — готово 22/24, 20 мин
+… идёт 2: abl_nofire_mir м23 (6.0 мин), abl_nofire_mir м29 (3.6 мин) | готово 22/24, в очереди 0, прошло 20.6 мин
+… идёт 2: abl_nofire_mir м23 (6.5 мин), abl_nofire_mir м29 (4.1 мин) | готово 22/24, в очереди 0, прошло 21.1 мин
+abl_nofire_mir match 29 rc 0 4220221 — готово 23/24, 21 мин
+… идёт 1: abl_nofire_mir м23 (7.0 мин) | готово 23/24, в очереди 0, прошло 21.6 мин
+… идёт 1: abl_nofire_mir м23 (7.5 мин) | готово 23/24, в очереди 0, прошло 22.1 мин
+… идёт 1: abl_nofire_mir м23 (8.0 мин) | готово 23/24, в очереди 0, прошло 22.6 мин
+abl_nofire_mir match 23 rc 0 8484867 — готово 24/24, 23 мин
+done
+all done

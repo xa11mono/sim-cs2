@@ -1,0 +1,5 @@
+{"par": 8, "jobs": [
+  {"label": "abl_noswing_mir", "ref": "31a84bdc462335d2f5c6dc689ef959489982c922", "map": "mirage", "matches": [3, 7, 11, 13, 17, 19, 23, 29]},
+  {"label": "abl_nowalk_mir", "ref": "3fb82f375292b2c386df86417fedee9219c8933c", "map": "mirage", "matches": [3, 7, 11, 13, 17, 19, 23, 29]},
+  {"label": "abl_nofire_mir", "ref": "53f6cd60abeb2993f30bdfe9cead1845694acfc8", "map": "mirage", "matches": [3, 7, 11, 13, 17, 19, 23, 29]}
+]}
