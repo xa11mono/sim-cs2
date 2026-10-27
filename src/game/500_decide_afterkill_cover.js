@@ -53,6 +53,9 @@ function decideAction(bot, nearestDist, alliesNear, enemiesSeen){
     }
   }
   if(r === "anchorA" || r === "anchorB"){ holdScore += 0.15; retreatScore -= 0.05; } // опорник держит, ждёт помощь
+  // (v440, док 27.10, р8: носитель с 22 HP держал угол и ждал файта) носитель бомбы не лезет в дуэль, пока есть кому разменять / донести:
+  // те же веса, что у сейва (−0,25 / +0,25) — бомба дороже фрага
+  if(bomb && bomb.state === "carried" && bomb.carrier === bot && aliveCount(bot.team) > 1){ engageScore -= 0.25; retreatScore += 0.25; }
   if(r === "entry"){ engageScore += 0.15; }                                          // энтри лезет в первую дуэль
   if(r === "lurker"){ holdScore += 0.08; }
   if(wk === "AWP" || wk === "SSG" || (bot.weapon && bot.weapon.scoped)){ holdScore += wk === "AWP" ? 0.15 : 0.08; engageScore -= wk === "AWP" ? 0.10 : 0.05; } // снайперки/прицел — дальняя линия
