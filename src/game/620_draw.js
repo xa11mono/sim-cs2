@@ -586,7 +586,7 @@ function draw(){
   if(bomb && bomb.state === "exploded" && bomb.explodeTick != null){
     var ba = (tick - bomb.explodeTick)/TICK_HZ;
     if(ba >= 0 && ba < 2.2){
-      var rKill = BOMB_DMG.sigma*Math.sqrt(Math.log(BOMB_DMG.max/100));
+      var rKill = BOMB_DMG.sigma*Math.sqrt(2*Math.log(BOMB_DMG.max/100));   // урон = max·exp(−L²/2σ²) (120)
       var eo = function(p){ p = Math.max(0, Math.min(1, p)); return 1 - Math.pow(1 - p, 3); };
       var ca = Math.max(0, 1 - ba/1.6), rc = Math.max(1, rKill*eo(ba/0.35));
       if(ca > 0){

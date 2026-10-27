@@ -301,6 +301,14 @@ function lowHpBack(b){
 // вероятностей кто-то вероятно есть и по таймингу он уже мог туда добежать,
 // идём тихо. Бегом — где пусто/враг ещё не успел, и когда надо спешить:
 // выход T, время раунда, размен, бомба, ротация на подтверждённый выход.
+// (v438) слышимость бега: тот же радиус, что у звука шагов (540: SOUND_RADIUS_RUN × BAL.stepHearMul)
+function STEP_HEAR_R(){ return SOUND_RADIUS_RUN * (BAL.stepHearMul || 1); }
+// есть ли точка зоны ближе r к (x, y) — по точкам зоны (ZONE_SAMPLES, 060); нет точек — по центру
+function zoneWithin(zid, x, y, r){
+  var S = ZONE_SAMPLES[zid]; if(!S || !S.length){ var c = BZ.cent && BZ.cent[BZ.idx[zid]]; return !c || Math.hypot(c.x-x, c.y-y) <= r; }
+  for(var i = 0; i < S.length; i++) if(Math.hypot(S[i].x-x, S[i].y-y) <= r) return true;
+  return false;
+}
 function dangerWalk(b){
   if(!b.post || b.state !== "patrol" || !BZ.ids.length) return false;
   var tag = b.post.tag || "";
@@ -331,7 +339,9 @@ function dangerWalk(b){
   pts.forEach(function(q){
     var zi = bzOf(q[0], q[1]); if(zi < 0 || seenZ[zi]) return; seenZ[zi] = 1;
     var own = reachPossible(foe, zi) ? beliefZoneKnown(foe, zi) : 0;
-    var nb = 0; (BZ.nbr[zi]||[]).forEach(function(j){ if(reachPossible(foe, j)) nb = Math.max(nb, beliefZoneKnown(foe, j)); });
+    // (v438, док владельца 27.10: «шифтит там, где его никто не услышит») соседняя зона пугает, только если враг в ней может услышать бег:
+    // её ближняя точка — в пределах слышимости шагов бегом от этого места пути (STEP_HEAR_R). Было — любая соседняя зона, даже за 1000 px
+    var nb = 0; (BZ.nbr[zi]||[]).forEach(function(j){ if(reachPossible(foe, j) && zoneWithin(BZ.ids[j], q[0], q[1], STEP_HEAR_R())) nb = Math.max(nb, beliefZoneKnown(foe, j)); });
     dz = Math.max(dz, own + 0.5*nb);
     // (v143) непроверенный угол вплотную к пути, куда враг мог успеть — тихо,
     // чтобы чекнуть его и не спалиться (у про: "иду шифтом, чекаю каждый угол")

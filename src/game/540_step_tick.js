@@ -223,6 +223,12 @@ function stepTick(){
       var dB = Math.hypot(bomb.x-bot.baseX, bomb.y-bot.baseY);
       if(bombTimeLeftTicks()/TICK_HZ <= dB/(SPEED*WALK_SPEED_FRAC) + (bot.kit ? 5 : 10) + 1.5) bot.walking = false;
     }
+    // (v438, док владельца 27.10: NiKo за 3,5 с до взрыва шёл шифтом и погиб от бомбы) в зоне смертельного взрыва (урон ≥ HP, BOMB_DMG) —
+    // шагом, только если шагом успевает выйти из неё до взрыва (+1 с — проектное число); иначе бегом. Любая сторона, любая задача
+    if(bot.walking && bomb && bomb.state === "planted" && bombDamageAt(bot.baseX, bot.baseY) >= bot.hp){
+      var rKill = BOMB_DMG.sigma*Math.sqrt(2*Math.log(BOMB_DMG.max/Math.max(1, bot.hp))), dOut = Math.max(0, rKill - bombPathLen(bot.baseX, bot.baseY));
+      if(bombTimeLeftTicks()/TICK_HZ <= dOut/(SPEED*WALK_SPEED_FRAC) + 1) bot.walking = false;
+    }
     knifeTick(bot); prePeekTick(bot); exposedShiftTick(bot); jumpCheckTick(bot);
     var runSpeed = (bot.walking ? SPEED*WALK_SPEED_FRAC : SPEED) * weaponSpeedMul(bot);
     // атакующий, который прямо сейчас видит врага, останавливается и
