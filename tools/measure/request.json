@@ -1,1 +1,5 @@
-{"par": 8, "jobs": [{"label": "d438g1e_mir", "ref": "21d530d86f51488c9843702fb82f828b91586341", "map": "mirage", "matches": [1, 3, 7, 11, 13, 17, 19, 23, 29]}, {"label": "d438g1e_anc", "ref": "21d530d86f51488c9843702fb82f828b91586341", "map": "ancient", "matches": [1, 3, 7, 11, 13, 17, 19, 23, 29]}, {"label": "d439g2b_mir", "ref": "9355ab437f07779b2f2a9227ff0df3d28cb87eae", "map": "mirage", "matches": [1, 3, 7, 11, 13, 17, 19, 23, 29]}, {"label": "d439g2b_anc", "ref": "9355ab437f07779b2f2a9227ff0df3d28cb87eae", "map": "ancient", "matches": [1, 3, 7, 11, 13, 17, 19, 23, 29]}]}
+{"par": 8, "jobs": [
+  {"label": "abl_noswing_mir", "ref": "31a84bdc462335d2f5c6dc689ef959489982c922", "map": "mirage", "matches": [3, 7, 11, 13, 17, 19, 23, 29]},
+  {"label": "abl_nowalk_mir", "ref": "3fb82f375292b2c386df86417fedee9219c8933c", "map": "mirage", "matches": [3, 7, 11, 13, 17, 19, 23, 29]},
+  {"label": "abl_nofire_mir", "ref": "53f6cd60abeb2993f30bdfe9cead1845694acfc8", "map": "mirage", "matches": [3, 7, 11, 13, 17, 19, 23, 29]}
+]}
