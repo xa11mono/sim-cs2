@@ -1,0 +1,29 @@
+браузеры: C:\Users\Mono\AppData\Local\ms-playwright
+playwright 1.56.0
+> git fetch --quiet origin 7aa0b0a50863511ce8e9f080d9587e04b589d962
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_g9nt0zj9 FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_g9nt0zj9\src\build.py --map mirage C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\s443tr_mir.html
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\engine\walk_run.py --job=s443tr_mir,C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\s443tr_mir.html --matches=7,11,19,29 --par=4
+матчей в очереди: 4, одновременно: 4
+… идёт 4: s443tr_mir м7 (0.0 мин), s443tr_mir м11 (0.0 мин), s443tr_mir м19 (0.0 мин), s443tr_mir м29 (0.0 мин) | готово 0/4, в очереди 0, прошло 0.0 мин
+… идёт 4: s443tr_mir м7 (0.5 мин), s443tr_mir м11 (0.5 мин), s443tr_mir м19 (0.5 мин), s443tr_mir м29 (0.5 мин) | готово 0/4, в очереди 0, прошло 0.5 мин
+… идёт 4: s443tr_mir м7 (1.0 мин), s443tr_mir м11 (1.0 мин), s443tr_mir м19 (1.0 мин), s443tr_mir м29 (1.0 мин) | готово 0/4, в очереди 0, прошло 1.0 мин
+… идёт 4: s443tr_mir м7 (1.5 мин), s443tr_mir м11 (1.5 мин), s443tr_mir м19 (1.5 мин), s443tr_mir м29 (1.5 мин) | готово 0/4, в очереди 0, прошло 1.5 мин
+… идёт 4: s443tr_mir м7 (2.0 мин), s443tr_mir м11 (2.0 мин), s443tr_mir м19 (2.0 мин), s443tr_mir м29 (2.0 мин) | готово 0/4, в очереди 0, прошло 2.0 мин
+… идёт 4: s443tr_mir м7 (2.5 мин), s443tr_mir м11 (2.5 мин), s443tr_mir м19 (2.5 мин), s443tr_mir м29 (2.5 мин) | готово 0/4, в очереди 0, прошло 2.5 мин
+… идёт 4: s443tr_mir м7 (3.0 мин), s443tr_mir м11 (3.0 мин), s443tr_mir м19 (3.0 мин), s443tr_mir м29 (3.0 мин) | готово 0/4, в очереди 0, прошло 3.0 мин
+… идёт 4: s443tr_mir м7 (3.6 мин), s443tr_mir м11 (3.6 мин), s443tr_mir м19 (3.6 мин), s443tr_mir м29 (3.6 мин) | готово 0/4, в очереди 0, прошло 3.6 мин
+… идёт 4: s443tr_mir м7 (4.1 мин), s443tr_mir м11 (4.1 мин), s443tr_mir м19 (4.1 мин), s443tr_mir м29 (4.1 мин) | готово 0/4, в очереди 0, прошло 4.1 мин
+… идёт 4: s443tr_mir м7 (4.6 мин), s443tr_mir м11 (4.6 мин), s443tr_mir м19 (4.6 мин), s443tr_mir м29 (4.6 мин) | готово 0/4, в очереди 0, прошло 4.6 мин
+… идёт 4: s443tr_mir м7 (5.1 мин), s443tr_mir м11 (5.1 мин), s443tr_mir м19 (5.1 мин), s443tr_mir м29 (5.1 мин) | готово 0/4, в очереди 0, прошло 5.1 мин
+s443tr_mir match 11 rc 0 5687863 — готово 1/4, 5 мин
+s443tr_mir match 7 rc 0 6079204 — готово 2/4, 6 мин
+… идёт 2: s443tr_mir м19 (5.6 мин), s443tr_mir м29 (5.6 мин) | готово 2/4, в очереди 0, прошло 5.6 мин
+… идёт 2: s443tr_mir м19 (6.1 мин), s443tr_mir м29 (6.1 мин) | готово 2/4, в очереди 0, прошло 6.1 мин
+… идёт 2: s443tr_mir м19 (6.6 мин), s443tr_mir м29 (6.6 мин) | готово 2/4, в очереди 0, прошло 6.6 мин
+… идёт 2: s443tr_mir м19 (7.1 мин), s443tr_mir м29 (7.1 мин) | готово 2/4, в очереди 0, прошло 7.1 мин
+s443tr_mir match 19 rc 0 8304447 — готово 3/4, 7 мин
+… идёт 1: s443tr_mir м29 (7.6 мин) | готово 3/4, в очереди 0, прошло 7.6 мин
+s443tr_mir match 29 rc 0 8945062 — готово 4/4, 8 мин
+done
+all done
