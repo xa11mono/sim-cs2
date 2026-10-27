@@ -6,7 +6,7 @@
   var g = (typeof window !== "undefined" ? window : globalThis);
   var D = {nt:{}, ntEx:[], swEx:[], fire:{birth:0, commit:0, other:0}, walk:{n:0, far:0, bomb:0}, swing:{n:0, noLos:0, high:0}, known:{n:0, behind:0},
     smokeDup:{n:0, dup:0}, pp:{n:0, near:0}, voice:{n:0, rounds:0}, def:{}, save:{n:0, rich:0}, rl:{peek:0, knife:0}, path:{n:0, ticks:0, max:0},
-    buy:{T:[0,0], CT:[0,0]}, thrown:{T:0, CT:0}, car:{n:0, swing:0, engage:0, lowEngage:0}, entryOther:{n:0, other:0}};
+    buy:{T:[0,0], CT:[0,0]}, thrown:{T:0, CT:0}, car:{n:0, swing:0, engage:0, lowEngage:0}, entryOther:{n:0, other:0}, defD:{}, tacZ:{}, walkWhy:{}, voiceK:{}};
   function inc(o, k, v){ o[k] = (o[k]||0) + (v == null ? 1 : v); }
   function zn(x, y){ var z = zoneIdAt(x, y); return (z && zoneUserName(z)) || "?"; }
   // --- задания гранат: чем кончилось (брошена / задача важнее не пустила / отказ броска / срок) ---
@@ -27,7 +27,7 @@
       if(SM.some(function(s){ return s.team === n.team && tick - s.t <= 15*TICK_HZ && Math.hypot(s.x-n.x, s.y-n.y) < 160; })) D.smokeDup.dup++;
       SM.push({team:n.team, t:tick, x:n.x, y:n.y}); } return DT.apply(this, arguments); }; }
   // --- войс ---
-  if(typeof voiceFeed === "function"){ var VF = voiceFeed; voiceFeed = function(){ if(roundState === "live") D.voice.n++; return VF.apply(this, arguments); }; }
+  if(typeof voiceFeed === "function"){ var VF = voiceFeed; voiceFeed = function(team, who, text, kind){ if(roundState === "live"){ D.voice.n++; var k = String(text).replace(/«[^»]*»/g, "X").replace(/\d+/g, "N").replace(/(T|CT)N/g, "ID").slice(0, 34); inc(D.voiceK, k); } return VF.apply(this, arguments); }; }
   // --- пути (FPS): сколько раз строится путь за тик ---
   if(typeof buildWaypointPath === "function"){ var BW = buildWaypointPath; buildWaypointPath = function(){ D.path.n++; return BW.apply(this, arguments); }; }
   var prevFire = {}, lastR = -1, pathT = 0;
@@ -46,7 +46,12 @@
     var secIn = (tick - roundStartTick)/TICK_HZ;
     bots.forEach(function(b){ if(!b.alive) return;
       var foes = bots.filter(function(o){ return o.alive && o.team !== b.team; });
-      if(b.walking){ D.walk.n++; var dmin = 1e9; foes.forEach(function(o){ dmin = Math.min(dmin, Math.hypot(o.x-b.x, o.y-b.y)); }); if(dmin > 600) D.walk.far++;
+      if(b.walking){ D.walk.n++; var dmin = 1e9; foes.forEach(function(o){ dmin = Math.min(dmin, Math.hypot(o.x-b.x, o.y-b.y)); }); if(dmin > 600){ D.walk.far++;
+          var wr = [], tgw = b.post ? String(b.post.tag) : "";
+          if(b.lastIntel && tick - b.lastIntel.tick < CAUTION_TICKS) wr.push("intel"); if(b.heardSound && tick - b.heardSound.tick < SOUND_CAUTION_TICKS) wr.push("heard");
+          if(b.role === "roamer" && b.roamTarget) wr.push("roam"); if(/^(flank|gather|probe|shift|retake|rotate|defuse|endhunt)/.test(tgw)) wr.push("tag:" + tgw.split(":")[0]);
+          if(b.tRole === "lurker" && /^lurk/.test(tgw)) wr.push("lurker"); if(b._dwVal) wr.push("danger:" + (b._dwWhy || "zone")); if(b._pie && b._pie.slice && tick - b._pie.t < 16) wr.push("pie");
+          inc(D.walkWhy, b.team + "|" + (wr.join(",") || "?")); }
         if(bomb && bomb.state === "planted" && bombTimeLeftTicks() < 5*TICK_HZ && bombDamageAt(b.x, b.y) >= b.hp) D.walk.bomb++; }
       if(b.post && b.post.tag === "contact:swing" && b._contact && D.swEx.length < 1500 && b.__swP !== b.post){ b.__swP = b.post;   // (v438) примеры: раунд, тик, бот, точка, контакт, видно, на полу
         var lz = b.z != null ? navAtLevel(b.post.x, b.post.y, b.z) : null;
@@ -60,7 +65,10 @@
       if(b.team === "T" && b.tRole === "entry" && teamTac.T && teamTac.T.phase === "setup" && secIn >= 15 && typeof npZoneAt === "function"){ D.entryOther.n++; var zs = npZoneAt(b.x, b.y); if((zs === "A" || zs === "B") && zs !== teamTac.T.site) D.entryOther.other++; }
       if(b.team === "T" && bomb && bomb.state === "planted"){ var sp = (tick - bomb.plantTick)/TICK_HZ; if(sp >= 10 && sp < 40){ D.pp.n++; if(Math.hypot(b.x-bomb.x, b.y-bomb.y) < 150) D.pp.near++; } }
       if(b.team === "T" && secIn >= 25 && secIn <= 50 && teamTac.T && teamTac.T.tac && teamTac.T.tac.style === "default" && bomb.state !== "planted"){
-        var key = teamTac.T.site + "|" + zn(b.x, b.y); inc(D.def, key); }
+        var key = teamTac.T.site + "|" + zn(b.x, b.y); inc(D.def, key);
+        inc(D.defD, teamTac.T.site + "|" + zn(b.x, b.y) + "|" + b.tRole + "|" + (b.post ? String(b.post.tag).split(":")[0] : "-") + "|" + teamTac.T.phase); }
+      // (v443) все тактики: где стоят T на 25–50-й с по стилю тактики — дефолт ли это у других стилей и у Ancient
+      if(b.team === "T" && secIn >= 25 && secIn <= 50 && teamTac.T && teamTac.T.tac && bomb.state !== "planted") inc(D.tacZ, teamTac.T.tac.style + "|" + teamTac.T.site + "|" + zn(b.x, b.y));
     });
     if(teamTac.T && teamTac.T.saving && !D.__sv){ D.__sv = roundNum; D.save.n++; var m = bots.filter(function(o){ return o.team === "T"; }).reduce(function(a, o){ return a + o.money; }, 0); if(m >= 15000) D.save.rich++; }
     if(D.__sv && D.__sv !== roundNum) D.__sv = 0;
