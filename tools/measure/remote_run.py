@@ -33,6 +33,15 @@ def ensure_playwright():
         npx = os.path.join(home, 'node_modules', '.bin', 'playwright.cmd' if os.name == 'nt' else 'playwright')
         sh([npx, 'install', 'chromium'], cwd=home)
     os.environ['NODE_PATH'] = os.path.join(home, 'node_modules')
+    # (27.10) раннер — служба Windows от системной учётки: её папка браузеров пустая. Есть уже скачанный браузер этой версии у
+    # пользователя ПК (C:\Users\*\AppData\Local\ms-playwright) — берём его, не качаем заново; нет — ставим (если уже стоит, быстро)
+    import glob
+    have_b = [d for d in glob.glob(os.path.join(os.environ.get('SystemDrive', 'C:') + os.sep, 'Users', '*', 'AppData', 'Local', 'ms-playwright'))
+              if glob.glob(os.path.join(d, 'chromium_headless_shell-1194', '*'))]
+    if have_b: os.environ['PLAYWRIGHT_BROWSERS_PATH'] = have_b[0]; log('браузеры: ' + have_b[0])
+    else:
+        npx = os.path.join(home, 'node_modules', '.bin', 'playwright.cmd' if os.name == 'nt' else 'playwright')
+        sh([npx, 'install', 'chromium'], cwd=home)
     log('playwright ' + PW_VER)
 
 def build(ref, mapname, out):
