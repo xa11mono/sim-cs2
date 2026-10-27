@@ -413,11 +413,21 @@ function stepTick(){
         var step = bot.curSpeed * dtSec;
         // (v370, владелец: «не стоят в толпе») идём за своим, который идёт туда же, — держим дистанцию, а не наступаем ему на пятки:
         // у про на выходе ближайший свой ближе 60 ед. карты только 11–13 % времени (tools: демки Mirage / Ancient), у ботов — 25 %
+        // (v448, док владельца 28.10 №4: «когда бегут по склону, сильно замедляются») раньше задний плёлся за своим на 25–36 % скорости
+        // (матч 1 р1: T1 за T3 на спавне — 10–12 ед. за 16 тиков вместо 24; у про в первые 10 с середина скорости 95, у ботов 85). Теперь
+        // сначала обходит сбоку (шаг в сторону от своего, если там пол своего уровня без обрыва и не стена), и только если некуда — тормозит
+        var folK = 1, folSide = 0;
         if(dist > FOLLOW_GAP){
           var fx = dx/Math.max(dist, 0.01), fy = dy/Math.max(dist, 0.01);
           for(var fi = 0; fi < bots.length; fi++){ var fo = bots[fi]; if(fo === bot || !fo.alive || fo.team !== bot.team || !(fo.curSpeed > 40) || fo.heading === undefined) continue;
-            var ox = fo.x-bot.x, oy = fo.y-bot.y, fwd = ox*fx + oy*fy, lat = Math.abs(ox*fy - oy*fx);
-            if(fwd > 0 && fwd < FOLLOW_GAP && lat < 40 && Math.cos(fo.heading)*fx + Math.sin(fo.heading)*fy > 0.5) step *= Math.max(0.25, (fwd - 20) / (FOLLOW_GAP - 20)); }
+            var ox = fo.x-bot.x, oy = fo.y-bot.y, fwd = ox*fx + oy*fy, crs = ox*fy - oy*fx, lat = Math.abs(crs);
+            if(fwd > 0 && fwd < FOLLOW_GAP && lat < 40 && Math.cos(fo.heading)*fx + Math.sin(fo.heading)*fy > 0.5){ var kf = Math.max(0.25, (fwd - 20) / (FOLLOW_GAP - 20));
+              if(kf < folK){ folK = kf; folSide = crs > 0 ? -1 : 1; } } }   // folSide — в сторону, противоположную своему
+          if(folK < 1){
+            var sdx = fx*0.8 + fy*folSide*0.6, sdy = fy*0.8 - fx*folSide*0.6, sqx = bot.baseX + sdx*30, sqy = bot.baseY + sdy*30;
+            if(!stepBlocked(bot.baseX, bot.baseY, sqx, sqy, bot) && navSegOnLevel(bot.baseX, bot.baseY, bot.z, sqx, sqy, bot.z) && navSegNoDrop(bot.baseX, bot.baseY, bot.z, sqx, sqy, bot.z)){ dx = sdx*dist; dy = sdy*dist; }
+            else step *= folK;
+          }
         }
 
         // "лестницы" (план §3): нет отдельного типа портала на навмеше, зато

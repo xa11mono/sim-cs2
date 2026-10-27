@@ -45,7 +45,11 @@ function openDirLook(b){
   var moving = b.curSpeed > 60*SPD_K && b.heading !== undefined;
   var postA = b.post && b.post.look ? Math.atan2(b.post.look.y-b.y, b.post.look.x-b.x) : null;
   var refA = moving ? b.heading : postA;
-  var ahead = function(q){ return refA === null || _angOff(Math.atan2(q.y-b.y, q.x-b.x), refA) <= 1.5; };
+  // (v448, док владельца 28.10 №4: «перебивает взгляд у игрока 1» — м1 т1768: на развороте взял «открытое» на T Spawn в 1,27 рад от бега,
+  // через 0,1 с бег выпрямился, а взгляд остался за спиной сбоку) на бегу «впереди» — в 0,9 рад от направления бега (как у взгляда про
+  // на ходу, 270), стоя — в 1,5 рад от угла поста, как было
+  var aheadMax = moving ? 0.9 : 1.5;
+  var ahead = function(q){ return refA === null || _angOff(Math.atan2(q.y-b.y, q.x-b.x), refA) <= aheadMax; };
   if(b._odl && tick - b._odl.t < 90 && b._odl.post === (b.post && b.post.id) && (!b._odl.p || ahead(b._odl.p))) return b._odl.p;
   var zi = bzOf(b.x, b.y), cands = [], seen = {};
   var addZ = function(j){ if(j < 0 || seen[j]) return; seen[j] = 1;

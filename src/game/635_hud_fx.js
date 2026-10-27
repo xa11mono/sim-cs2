@@ -74,5 +74,7 @@ function hudBombBoom(){
 function hudBombPulse(gapSec){
   var el = typeof document !== "undefined" && document.getElementById("bombEdge"); if(!el) return;
   if(el._pulse) try { el._pulse.cancel(); } catch(e){}
-  el._pulse = hudAnim(el, [{opacity:0.5}, {opacity:0.12}], {duration: Math.max(90, Math.min(700, gapSec*1000*0.8)), easing:"ease-out"});
+  // (v448, док владельца 28.10 №4: «подсветка не мигает с тиками бомбы») вспышка — сигнал, не украшение: не выключается системной настройкой
+  // «меньше анимации» (hudAnim её глушил, HUD_REDUCED) и ярче (0,75 — проектное число; было 0,5 — на экране владельца не видно)
+  if(typeof el.animate === "function") try { el._pulse = el.animate([{opacity:0.75}, {opacity:0.12}], {duration: Math.max(90, Math.min(700, gapSec*1000*0.8)), easing:"ease-out"}); } catch(e){}
 }
