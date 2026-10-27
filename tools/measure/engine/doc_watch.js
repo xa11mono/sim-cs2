@@ -6,7 +6,7 @@
   var g = (typeof window !== "undefined" ? window : globalThis);
   var D = {nt:{}, ntEx:[], swEx:[], fire:{birth:0, commit:0, other:0}, walk:{n:0, far:0, bomb:0}, swing:{n:0, noLos:0, high:0}, known:{n:0, behind:0},
     smokeDup:{n:0, dup:0}, pp:{n:0, near:0}, voice:{n:0, rounds:0}, def:{}, save:{n:0, rich:0}, rl:{peek:0, knife:0}, path:{n:0, ticks:0, max:0},
-    buy:{T:[0,0], CT:[0,0]}, thrown:{T:0, CT:0}, car:{n:0, swing:0, engage:0, lowEngage:0}, entryOther:{n:0, other:0}, defD:{}, tacZ:{}, walkWhy:{}, voiceK:{}, walk2:{}, execWhy:{}, voiceRep:{}, defTr:[], lateTr:[]};
+    buy:{T:[0,0], CT:[0,0]}, thrown:{T:0, CT:0}, car:{n:0, swing:0, engage:0, lowEngage:0}, entryOther:{n:0, other:0}, defD:{}, tacZ:{}, walkWhy:{}, voiceK:{}, walk2:{}, execWhy:{}, voiceRep:{}, defTr:[], lateTr:[], drop:{}};
   function inc(o, k, v){ o[k] = (o[k]||0) + (v == null ? 1 : v); }
   function zn(x, y){ var z = zoneIdAt(x, y); return (z && zoneUserName(z)) || "?"; }
   // --- задания гранат: чем кончилось (брошена / задача важнее не пустила / отказ броска / срок) ---
@@ -88,6 +88,10 @@
       prevFire[b.id] = !!f;
       if(b.post && b.post.tag === "repos:reload" && b._reloading && b.__rlT !== b.post) { b.__rlT = b.post; D.rl.peek++; }
       if(b._knife && b._reloading && !b.__kr){ b.__kr = 1; D.rl.knife++; } else if(!(b._knife && b._reloading)) b.__kr = 0; });
+    // (v446) спрыгивания: высота бота за 16 тиков упала больше чем на 40 (не лестница) — команда | первые 10 с или позже | зона, откуда
+    if(tick % 16 === 0){ bots.forEach(function(b){ if(!b.alive){ b.__dz = null; return; } var z = b.z || 0;
+      if(b.__dz && b.__dz.r === roundNum && b.__dz.z - z > 40 && !b._ladder) inc(D.drop, b.team + "|" + ((tick - roundStartTick) < 10*TICK_HZ ? "<10" : ">10") + "|" + b.__dz.zn);
+      b.__dz = {z: z, r: roundNum, zn: zn(b.x, b.y)}; }); }
     if(tick % 32) return;
     var secIn = (tick - roundStartTick)/TICK_HZ;
     bots.forEach(function(b){ if(!b.alive) return;
