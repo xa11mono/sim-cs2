@@ -38,7 +38,12 @@ def ensure_playwright():
 def build(ref, mapname, out):
     tmp = tempfile.mkdtemp(prefix='simbuild_')
     try:
-        sh(['git', 'fetch', '--quiet', 'origin', ref], cwd=ROOT)
+        # (27.10) связь с GitHub на ПК владельца рвётся посреди скачивания («Connection was reset») — до 4 попыток с паузой
+        for k in range(4):
+            try: sh(['git', 'fetch', '--quiet', 'origin', ref], cwd=ROOT); break
+            except subprocess.CalledProcessError:
+                if k == 3: raise
+                log('git fetch оборвался — ещё раз через %d с' % (15*(k+1))); __import__('time').sleep(15*(k+1))
         sh(['git', '-c', 'core.autocrlf=false', 'worktree', 'add', '--quiet', '--detach', '--force', tmp, 'FETCH_HEAD'], cwd=ROOT)
         # без CRLF: Git для Windows по умолчанию меняет концы строк — сборка была бы не та, что в облаке
         sh([PY, os.path.join(tmp, 'src', 'build.py'), '--map', mapname, out], cwd=tmp)
