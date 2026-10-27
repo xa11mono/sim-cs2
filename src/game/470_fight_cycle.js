@@ -330,6 +330,15 @@ function dangerWalk(b){
   }
   if(!pts.length) pts.push([b.post.x, b.post.y]);
   var seenZ = {}, dz = 0;
+  // (v443, док владельца 27.10 р9: «игрок 4 шёл на шифте, где его никто бы не слышал — все CT в B Apps и на маркете») непроверенный
+  // угол заставлял идти шагом, если враг мог туда добежать хотя бы через 4 с, — а где команда видела врагов, не смотрел. Замер v442:
+  // первые 20 с раунда, враг в 600–900, — шагом 50 % у ботов T против 30 % у про, и в 54 % таких моментов причиной был этот угол.
+  // Теперь угол — только если враг мог уже быть там (без запаса) и есть живой враг, которого команда не видела / не слышала
+  // за 5 с (проектное число, как «свежая» инфа в 540) дальше слышимости моего бега от пути. Все живые засвечены далеко — бегом
+  var foeAll = bots.filter(function(o){ return o.alive && o.team !== b.team; }), BLw = beliefLast[b.team] || {};
+  var unacc = foeAll.some(function(o){ var e = BLw[o.id]; if(!e || tick - e.tick > 5*TICK_HZ) return true;
+    return pts.some(function(q){ return Math.hypot(q[0]-e.x, q[1]-e.y) <= 1.5*STEP_HEAR_R(); }); });
+  var uncW = function(j){ var R = REACH[foe]; return (R && !(R[j] <= tick)) ? 0 : uncheckedW(foe, j); };
   pts.forEach(function(q){
     var zi = bzOf(q[0], q[1]); if(zi < 0 || seenZ[zi]) return; seenZ[zi] = 1;
     var own = reachPossible(foe, zi) ? beliefZoneKnown(foe, zi) : 0;
@@ -337,7 +346,7 @@ function dangerWalk(b){
     dz = Math.max(dz, own + 0.5*nb);
     // (v143) непроверенный угол вплотную к пути, куда враг мог успеть — тихо,
     // чтобы чекнуть его и не спалиться (у про: "иду шифтом, чекаю каждый угол")
-    { var uc = uncheckedW(foe, zi); (BZ.nbr[zi]||[]).forEach(function(j){ var c = BZ.cent[j]; if(c && Math.hypot(c.x-q[0], c.y-q[1]) < 320) uc = Math.max(uc, uncheckedW(foe, j)); });
+    if(unacc){ var uc = uncW(zi); (BZ.nbr[zi]||[]).forEach(function(j){ var c = BZ.cent[j]; if(c && Math.hypot(c.x-q[0], c.y-q[1]) < 320) uc = Math.max(uc, uncW(j)); });
       if(uc >= 0.8) dz = Math.max(dz, LOOK.uncheckWalk); }
   });
   b._dwVal = dz >= (BAL.dangerWalkThr || 0.12);

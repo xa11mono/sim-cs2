@@ -847,7 +847,8 @@ function tBrain(){
     // (5) клатч T после планта: один — сразу играет на время (дальнее укрытие в
     // пределах слышимости дефуза), выходит только на звук дефуза
     if(BAL.tClutch && group.length === 1 && aliveCount("CT") >= 1 && bombTimeLeftTicks() > 6*TICK_HZ){
-      if(!tt._tcPP){ tt._tcPP = tick; voiceLog("T", "tcpp", group[0].id, "я один на пост-планте — прячусь, играю на время, выйду на звук дефуза"); }
+      // (v443) «я один» — только если T правда один: группа пост-планта без лёркера и охотников бывала из одного при живых других
+      if(!tt._tcPP){ tt._tcPP = tick; if(aliveCount("T") === 1) voiceLog("T", "tcpp", group[0].id, "я один на пост-планте — прячусь, играю на время, выйду на звук дефуза"); }
       if(!ppTimeNamed(group, bp0, bomb.site, DEFUSE_HEAR-90))
         groupPost(group, bp0, gs.ctEntry, "postplant:time", {rMin:300, rMax:Math.min(600, DEFUSE_HEAR-90), minGap:110, hideFrom:[gs.ctEntry, bp0]});
       return;
