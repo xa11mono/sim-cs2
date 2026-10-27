@@ -6,7 +6,7 @@
   var g = (typeof window !== "undefined" ? window : globalThis);
   var D = {nt:{}, ntEx:[], swEx:[], fire:{birth:0, commit:0, other:0}, walk:{n:0, far:0, bomb:0}, swing:{n:0, noLos:0, high:0}, known:{n:0, behind:0},
     smokeDup:{n:0, dup:0}, pp:{n:0, near:0}, voice:{n:0, rounds:0}, def:{}, save:{n:0, rich:0}, rl:{peek:0, knife:0}, path:{n:0, ticks:0, max:0},
-    buy:{T:[0,0], CT:[0,0]}, thrown:{T:0, CT:0}, car:{n:0, swing:0, engage:0, lowEngage:0}, entryOther:{n:0, other:0}, defD:{}, tacZ:{}, walkWhy:{}, voiceK:{}, walk2:{}, execWhy:{}, voiceRep:{}};
+    buy:{T:[0,0], CT:[0,0]}, thrown:{T:0, CT:0}, car:{n:0, swing:0, engage:0, lowEngage:0}, entryOther:{n:0, other:0}, defD:{}, tacZ:{}, walkWhy:{}, voiceK:{}, walk2:{}, execWhy:{}, voiceRep:{}, defTr:[]};
   function inc(o, k, v){ o[k] = (o[k]||0) + (v == null ? 1 : v); }
   function zn(x, y){ var z = zoneIdAt(x, y); return (z && zoneUserName(z)) || "?"; }
   // --- задания гранат: чем кончилось (брошена / задача важнее не пустила / отказ броска / срок) ---
@@ -124,6 +124,10 @@
     if(tick % 32 === 0){ var sec2 = (tick - roundStartTick)/TICK_HZ, tb2 = sec2 < 20 ? "<20" : sec2 < 45 ? "20-45" : ">45";
       bots.forEach(function(b){ if(!b.alive || !b.walking) return; var dm = 1e9; bots.forEach(function(o){ if(o.alive && o.team !== b.team) dm = Math.min(dm, Math.hypot(o.x-b.x, o.y-b.y)); });
         if(dm <= 600) return; inc(D.walk2, b.team + "|" + tb2 + "|" + (dm < 900 ? "600-900" : dm < 1300 ? "900-1300" : ">1300") + "|" + walkParts(b)); }); }
+    // (v443б) след дефолта: раз в 2 с — фаза, время до выхода, у каждого T роль, тег поста, зона
+    if(tick % 128 === 0 && teamTac.T && teamTac.T.tac && teamTac.T.tac.style === "default" && D.defTr.length < 4000){ var TT2 = teamTac.T;
+      D.defTr.push([roundNum, Math.round((tick - roundStartTick)/TICK_HZ), TT2.tac.id, TT2.site, TT2.phase, Math.round((TT2.execTick - tick)/TICK_HZ), TT2.defUntil ? Math.round((TT2.defUntil - tick)/TICK_HZ) : null,
+        bots.filter(function(o){ return o.team === "T" && o.alive; }).map(function(o){ return o.tRole + ":" + (o.post ? o.post.tag : "-") + "@" + zn(o.x, o.y); }).join(" ; "), LOGS.slice(-2).join(" / ")]); }
     if(teamTac.T && teamTac.T.saving && !D.__sv){ D.__sv = roundNum; D.save.n++; var m = bots.filter(function(o){ return o.team === "T"; }).reduce(function(a, o){ return a + o.money; }, 0); if(m >= 15000) D.save.rich++; }
     if(D.__sv && D.__sv !== roundNum) D.__sv = 0;
   };
