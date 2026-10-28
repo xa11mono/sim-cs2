@@ -64,7 +64,8 @@ def main():
     for j in req.get('shots', []):
         sim = os.path.join(sims, j['label'] + '.html'); build(j['ref'], j.get('map', 'ancient'), sim)
         out = os.path.join(ROOT, 'tools', 'measure', 'runs', j['label']); os.makedirs(out, exist_ok=True)
-        sh(['node', os.path.join(ROOT, 'tools', 'clutch_replay_shot.js'), sim, str(j['match']), str(j['round']), out,
+        scr = 'timeout_shot.js' if j.get('kind') == 'timeout' else 'clutch_replay_shot.js'
+        sh(['node', os.path.join(ROOT, 'tools', scr), sim, str(j['match']), str(j['round']), out,
             str(j.get('step', 900)), str(j.get('n', 26)), '1600', '900', j.get('mode', 'both')], cwd=ROOT)
     for j in req.get('jobs', []):
         sim = os.path.join(sims, j['label'] + '.html')
