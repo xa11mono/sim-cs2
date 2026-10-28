@@ -118,7 +118,7 @@ v166 — `docs/V166_CHANGES.md` (список владельца). Главны�
 | киллфид `feedKill` (иконки `KF_ICON`, затухание `kfExpireTick`), силуэты летящих гранат `NADE_ICON` / `nadeImg`, баннеры, карточка раунда, экономика на экране | `630_killfeed_banners_econ` |
 | табло `scoreboardUpdate`, панели игроков `playersUpdate` | `640_scoreboard_players` |
 | место вставки «Отметить момент» (`@@BUILD@@`) | `650_marks_hook` |
-| разминка `warm*`; автообсервер `obs*`, мини-карта; звук `snd*` (писк бомбы и кромка экрана — одно расписание `bombBeepTick`), главный цикл `frame`, кнопки | `660_warmup`, `670_observer`, `680_sound_frame_buttons` |
+| разминка `warm*`; автообсервер `obs*` (числа `OBS_K`, бой `obsFight`, слежка `OBS.lock`), мини-карта; **повтор клатча** `rp*` (запись `rpRecord`, клип `rpBuild`, эмоции `rpEmotions`, перейти к раунду `rpGoto` / `#round=М.Р`); звук `snd*` (писк бомбы и кромка экрана — одно расписание `bombBeepTick`), главный цикл `frame`, кнопки | `660_warmup`, `670_observer`, `675_replay`, `680_sound_frame_buttons` |
 | **отметки владельца** (v255): `src/marks.js` (кнопка M, снимок, перемотка), сборка — `src/marks_build.py`; открыть снимок — `tools/mark_open.js`; разбор по истории (что было до, что перебило, веса зон) — `tools/mark_story.js` (v401); раскадровка со слоями — `tools/mark_frames.js` (v407б); повтор с хранилищем браузера владельца — `tools/replay_owner.js` | отдельные файлы |
 
 Замеры: `tools/measure/measure.py <метка> --matches=3,7,11,13,17,19` работают и с v166. Аудит поведения по механикам

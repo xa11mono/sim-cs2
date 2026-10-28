@@ -227,13 +227,18 @@ function frameBody(ts){
     // пропущенные тики разом (минута вкладки в фоне = ~3800 тиков в одном кадре — страница вставала на секунды, а следующий кадр
     // снова долгий — «снежный ком»). Теперь игра в такой момент идёт медленнее реального времени. Тики те же — игра не меняется
     accumulator += Math.min(dt, FRAME_CATCHUP_MS);
+    // (v459) повтор клатча не успел до конца закупки — игра ждёт (те же тики потом, исход тот же)
+    if(rpHold()) accumulator = 0;
     while(accumulator >= TICK_MS){ stepTick(); accumulator -= TICK_MS; }
     mkAfterTicks();
   }
-  obsFrame(ts);
-  draw();
-  obsOverlay();
-  miniDraw();
+  rpRecord();   // (v459) запись для повтора клатча — только читает
+  if(!rpFrame(ts)){   // идёт повтор — он рисует экран сам
+    obsFrame(ts);
+    draw();
+    obsOverlay();
+    miniDraw();
+  }
   frameWrapR = null;   // вне кадра (клики, перемотка) — читать заново
 }
 document.getElementById("btnFreshMatch").addEventListener("click", function(){ var n = Math.max(1, parseInt(document.getElementById("inpMatchNum").value, 10) || 1); var sel = document.getElementById("selSeries"), bo = sel ? +sel.value : 3; if(bo !== SERIES.bo || seriesDone()) SERIES = {bo:bo, maps:{}}; var cw = document.getElementById("chkWarm"); if(cw && !cw.checked) freshMatch(n); else warmStart(n); paused = false; var bp = document.getElementById("btnPause"); if(bp){ bp.textContent = "Пауза"; bp.classList.remove("active"); } logEvent("Матч №"+n+" с чистого листа (воспроизводимый)", true); });
