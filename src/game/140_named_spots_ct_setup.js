@@ -109,7 +109,10 @@ function chooseCtSetup(){
     // CT тоже помнят, какие расстановки в этом матче сработали, а какие нет
     var CM = ctSetupMem[S.id] || {n:0, w:0};
     w *= 0.3 + 1.7*((CM.w + 1)/(CM.n + 2));
-    if(BAL.timeouts && roundNum <= TOUT.CT.until && TOUT.CT.avoid.indexOf(S.id) >= 0) w *= 0.15; // после тайм-аута
+    if(BAL.timeouts && roundNum <= TOUT.CT.until){ var CP = TOUT.CT.plan || {};   // (v460) план тренера после паузы
+      if(TOUT.CT.avoid.indexOf(S.id) >= 0) w *= 0.15;
+      if(CP.stack && S.stack === CP.stack) w *= 6;
+      if(CP.retake && S.id === "retake" + CP.retake) w *= 4; }
     return w;
   });
   var S = BAL.ctSetups ? CT_SETUPS[weightedChoice(CT_SETUPS, weights, roundNum*4217 + matchNum*881 + 5)] : (BAL.ctSetup === "1-1-1" ? CT_SETUPS[1] : CT_SETUPS[0]);

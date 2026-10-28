@@ -65,7 +65,8 @@ function swapSides(){
   var sc = score.CT; score.CT = score.T; score.T = sc;
   // тайм-ауты — у команды; серия поражений и «чего избегать» — про прошлую сторону, обнуляются
   var to = TOUT.CT; TOUT.CT = TOUT.T; TOUT.T = to;
-  ["CT","T"].forEach(function(s){ TOUT[s].streak = 0; TOUT[s].until = 0; TOUT[s].avoid = []; });
+  ["CT","T"].forEach(function(s){ TOUT[s].streak = 0; TOUT[s].until = 0; TOUT[s].avoid = []; TOUT[s].plan = null; });
+  TO_DEATHS = {CT:[], T:[]};   // (v460) смерти по зонам — про прошлую сторону
   // память матча — по раскладу: эту откладываем, другую достаём (или начинаем с нуля)
   MEM_BOX[oldT] = memSnapshot();
   if(MEM_BOX[SIDE_TEAM.T]) memRestore(MEM_BOX[SIDE_TEAM.T]); else memStart();
@@ -209,7 +210,7 @@ function resetRound(){
   ["CT","T"].forEach(function(t){ ROAM_ROUTES[t].forEach(function(p){ p.cleared = -99999; }); });
   // freeze-тайм (план §8): закуп и расстановка, никто не двигается. Таймер
   // раунда (1:55) и тайминги тактик отсчитываются от его конца.
-  var FZ = BAL.freeze;
+  var FZ = BAL.freeze + (TO_NOW && TO_NOW.round === roundNum ? TO_SEC : 0);   // (v460) тактическая пауза — закупка дольше на 30 с
   roundState = FZ > 0 ? "freeze" : "live";
   roundStartTime = simTime + FZ; roundStartTick = tick + Math.round(FZ*TICK_HZ);
   // киллфид — только текущий раунд

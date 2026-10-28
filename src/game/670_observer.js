@@ -134,6 +134,7 @@ function obsFrame(ts){
   domClass(document.getElementById("btnObs"), OBS.on ? "on" : "");
   domClass(document.getElementById("btnObsMap"), OBS.on && OBS.full ? "on" : "");
   if(!OBS.on) return;
+  if(typeof TS !== "undefined" && TS.P && TS.P.phase === "cam") return;   // (v460) пауза: камера на спавне команды — ведёт показ паузы
   var dt = OBS.last ? Math.min(0.1, (ts - OBS.last)/1000) : 0.016; OBS.last = ts;
   // (v459) новый матч (тик снова с нуля) — отметки времени обсервера заново
   if(OBS.mt !== matchNum || tick < OBS.tk){ OBS.mt = matchNum; OBS.since = tick; OBS.deadAt = 0; OBS.prevUntil = 0; OBS.planT = tick; }

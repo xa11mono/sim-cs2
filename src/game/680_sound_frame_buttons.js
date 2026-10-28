@@ -233,7 +233,7 @@ function frameBody(ts){
     mkAfterTicks();
   }
   rpRecord();   // (v459) запись для повтора клатча — только читает
-  if(!rpFrame(ts)){   // идёт повтор — он рисует экран сам
+  if(!rpFrame(ts) && !tsFrame(ts)){   // идёт повтор клатча или сцена паузы — они рисуют экран сами
     obsFrame(ts);
     draw();
     obsOverlay();
