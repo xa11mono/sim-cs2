@@ -35,7 +35,7 @@ function rpNum(v){ return typeof v === "number" && isFinite(v) ? v : NaN; }
 // ---------- запись ----------
 function rpNewRec(){
   var nk = {}; bots.forEach(function(b){ nk[b.id] = nick(b.id); });
-  return {m: matchNum, round: roundNum, t0: tick, s: [], kills: [], tr: [], ev: [], nick: nk, team: {CT: TEAM_NAME.CT, T: TEAM_NAME.T},
+  return {m: matchNum, round: roundNum, t0: tick, s: [], kills: [], tr: [], ev: [], vo: [], nick: nk, team: {CT: TEAM_NAME.CT, T: TEAM_NAME.T},
           logo: {CT: TEAM_LOGO.CT, T: TEAM_LOGO.T}, score0: {CT: score.CT, T: score.T}, solo: {}, lastBomb: bomb ? bomb.state : null};
 }
 function rpSample(R){
@@ -84,6 +84,12 @@ function rpRecord(){
     }
   }
   RP.lastTs = nowTs;
+  // (владелец 28.10) войс раунда со временем — в повторе слышно, что говорили в эфире (новые фразы — сверху списка)
+  if(RP.rec && (rs === "live" || rs === "ending" || rs === "matchover")){
+    if(!RP.voSeen || RP.voSeen.r !== RP.rec) RP.voSeen = {r: RP.rec, set: new WeakSet()};
+    for(var vi = voiceLines.length - 1; vi >= 0; vi--){ var v = voiceLines[vi]; if(RP.voSeen.set.has(v)) continue; RP.voSeen.set.add(v);
+      RP.rec.vo.push({t: tick, who: v.who, team: v.team, text: v.text, kind: v.kind}); }
+  }
   // киллфид раунда — новые строки
   if(RP.rec && (rs === "live" || rs === "ending" || rs === "matchover")){
     if(!RP.kfSeen || RP.kfSeen.r !== RP.rec) RP.kfSeen = {r: RP.rec, set: typeof WeakSet !== "undefined" ? new WeakSet() : null, n: 0};
@@ -148,7 +154,7 @@ function rpEls(){
   if(RP_EL) return RP_EL;
   var root = document.getElementById("rp"); if(!root) return null;
   RP_EL = {root: root, cv: document.getElementById("rpCv"), tag: root.querySelector(".rp-tag"), l3: root.querySelector(".rp-l3"), feed: root.querySelector(".rp-feed"),
-    slow: root.querySelector(".rp-slow"), emo: root.querySelector(".rp-emo"), shade: root.querySelector(".rp-shade"), skip: root.querySelector(".rp-skip"), title: root.querySelector(".rp-title")};
+    slow: root.querySelector(".rp-slow"), emo: root.querySelector(".rp-emo"), vox: root.querySelector(".rp-vox"), shade: root.querySelector(".rp-shade"), skip: root.querySelector(".rp-skip"), title: root.querySelector(".rp-title")};
   RP_EL.ctx = RP_EL.cv.getContext("2d");
   RP_EL.skip.addEventListener("click", function(e){ e.stopPropagation(); rpStop(); });
   window.addEventListener("keydown", function(e){ if(!RP.on) return; if(e.key === "Escape" || e.code === "Space"){ e.preventDefault(); e.stopImmediatePropagation(); rpStop(); } }, true);
@@ -175,7 +181,7 @@ function rpStop(){
 }
 function rpEnd(){
   RP.on = false; RP.P = null; RP.holding = false;
-  var E = rpEls(); if(E){ E.root.className = ""; E.emo.innerHTML = ""; }
+  var E = rpEls(); if(E){ E.root.className = ""; E.emo.innerHTML = ""; if(E.vox){ E.vox.innerHTML = ""; E.vox._k = ""; } }
   if(typeof OBS !== "undefined") OBS.sc = 0;   // обсервер заново берёт камеру
 }
 // игра ждёт конца повтора: закупка кончается, а повтор ещё идёт (680: тики не считаются)
@@ -220,7 +226,21 @@ function rpFrame(ts){
   E.root.classList.toggle("intro", P.phase === "intro");
   E.root.classList.toggle("out", P.phase === "out");
   rpFeed(E, P);
+  rpVoiceLive(E, P);
   return true;
+}
+// войс в повторе: фразы появляются в свою секунду и держатся 3,5 с игры, не больше 4 строк (обе команды, цвет — сторона)
+function rpVoiceLive(E, P){
+  var el = E.vox; if(!el) return;
+  if(P.phase !== "clip" && P.phase !== "cut"){ if(el.innerHTML) el.innerHTML = ""; return; }
+  var R = P.R, from = P.rt - 3.5*TICK_HZ, L = R.vo.filter(function(v){ return v.t <= P.rt && v.t >= from; }).slice(-4);
+  var key = L.map(function(v){ return v.t + v.text; }).join("|"); if(el._k === key) return; el._k = key;
+  el.innerHTML = L.map(function(v){ return '<div class="rp-vl ' + String(v.team).toLowerCase() + '"><b>' + esc(v.who) + '</b><span>' + esc(v.text) + '</span></div>'; }).join("");
+}
+// войс клатча — для экрана реакций: что говорили с начала клатча до конца раунда (последние 6)
+function rpVoiceClutch(R){
+  var C = R.clutch, from = (R.solo[C.id] || R.t0) - 2*TICK_HZ;
+  return R.vo.filter(function(v){ return v.t >= from && v.kind !== "death"; }).slice(-6);
 }
 // замедление вокруг фрагов клатча (плавно)
 function rpSpeed(P){
@@ -426,7 +446,10 @@ function rpEmotions(E, R){
     '<div class="rp-eh ' + win.toLowerCase() + '">' + (R.logo[win] ? '<img alt="" src="' + R.logo[win] + '">' : '') + '<span>' + esc(R.team[win]) + '</span><em>клатч 1v' + C.n + ' — ' + esc(R.nick[C.id]) + '</em></div>' +
     row(win, "hype") +
     '<div class="rp-eh2 ' + lose.toLowerCase() + '">' + esc(R.team[lose]) + ' — реакция</div>' +
-    row(lose, "sad");
+    row(lose, "sad") +
+    (function(){ var V = rpVoiceClutch(R); if(!V.length) return "";
+      return '<div class="rp-air"><div class="rp-air-h">в эфире во время клатча</div>' + V.map(function(v, i){
+        return '<div class="rp-vl ' + String(v.team).toLowerCase() + '" style="--i:' + i + '"><b>' + esc(v.who) + '</b><span>' + esc(v.text) + '</span></div>'; }).join("") + '</div>'; })();
 }
 // ---------- переход к раунду (найти и посмотреть клатч): #round=матч.раунд в адресе или rpGoto(матч, раунд) ----------
 // Матч перематывается тиками без отрисовки до закупки нужного раунда — дальше идёт обычным ходом (тот же матч бит в бит)
