@@ -21,8 +21,7 @@ function nadeOrigin(n){
   if(insideSolidWall(ex, ey)){ ex = n.ox; ey = n.oy; }
   intelPush(foe, {type:"sound", x:ex, y:ey, id:n.thrower.id, kind:"nade", by:saw.id});
   (saw.ears || (saw.ears = [])).push({x:ex, y:ey, tick:tick, team:n.team, kind:"nade", occl:true});
-  var zn = zoneIdAt(ex, ey);
-  voiceLog(foe, "nf"+(zn||"")+roundNum+Math.floor(tick/(4*TICK_HZ)), saw.id, NADE[n.type].name+" прилетела из "+(zn ? zoneUserName(zn) : calloutName(ex, ey)));
+  // (док 6) в войс — через знание и канал команды (teamNotice: «гранату кинули из X»), а не отдельной надписью
 }
 function detonate(n){
   var T = n.type;

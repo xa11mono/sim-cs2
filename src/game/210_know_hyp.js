@@ -306,7 +306,7 @@ function knowHearing(b){
 function knowSources(K, test, sec){
   var src = [];
   if(K) K.heard.forEach(function(h){
-    if(tick - h.tick > sec*TICK_HZ || (h.kind !== "steps" && h.kind !== "water" && h.kind !== "shots") || !test(h)) return;
+    if(tick - h.tick > sec*TICK_HZ || (h.kind !== "steps" && h.kind !== "water" && h.kind !== "shots" && h.kind !== "nade") || !test(h)) return;
     // (v358, владелец: «пишется двое Underpass, а живой только один») один бегущий враг за sec с шумит в разных местах —
     // раньше каждое место дальше srcApart считалось новым врагом. Теперь источник «идёт» за звуком: тот же, если до его
     // последнего звука не дальше srcApart + путь бегом за прошедшее время

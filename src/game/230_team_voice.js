@@ -74,7 +74,7 @@ function teamText(m){
   if(m.kind === "defuse") return "дефузят!";
   if(m.kind === "death") return "убили с " + z + (m.awp ? ", AWP" : "");
   if(m.kind === "flash") return "флешу!";
-  if(m.kind === "hear") return (m.count >= 3 ? "несколько, " : m.count === 2 ? "двое, " : "") + (m.sound === "shots" ? "стреляют " : m.sound === "water" ? "шаги в воде " : "шаги ") + z;
+  if(m.kind === "hear") return (m.count >= 3 ? "несколько, " : m.count === 2 ? "двое, " : "") + (m.sound === "shots" ? "стреляют " : m.sound === "water" ? "шаги в воде " : m.sound === "nade" ? "гранату кинули из " : "шаги ") + z;
   var n = m.count >= 3 ? "несколько" : m.count === 2 ? "двое" : "один";
   if(m.awp && m.count === 1) return "AWP " + z;
   return n + " " + z + (m.awp ? ", один с AWP" : "");
@@ -140,7 +140,9 @@ function teamNotice(b){
     var s = K.heard[i];
     if(s.kind === "plant" && b.team === "CT"){ teamPropose(b, {kind: "plant", site: knowNearestSite(s.x, s.y)}); continue; }
     if(s.kind === "defuse" && b.team === "T"){ teamPropose(b, {kind: "defuse"}); continue; }
-    if(s.kind !== "steps" && s.kind !== "water" && s.kind !== "shots") continue;
+    // (док 6, п.19: р15 T закинули с B Apartments смок, флешку и HE — «прилетела из B Apartments» было только надписью, знание команды
+    // не менялось, ротации не было) откуда кинули гранату — тоже «слышу врага там»: говорится в войс и идёт в знание команды
+    if(s.kind !== "steps" && s.kind !== "water" && s.kind !== "shots" && s.kind !== "nade") continue;
     if(!s.zone) continue;
     // шумит тот, кого я сейчас вижу, — про него уже «see»
     var vis = (b._visible || []).some(function(e){ return Math.hypot(e.x-s.x, e.y-s.y) <= s.err + 30; });

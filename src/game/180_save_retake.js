@@ -1,8 +1,9 @@
+var SAVE_TOPN = 12;
 function pickSaveSpot(b){
   // только то, что команда знает (радар/слышали за 15с), а не настоящие позиции T
   var ts = [], BLs = beliefLast.CT || {};
   for(var eidS in BLs){ var loS = BLs[eidS]; if(tick - loS.tick > 15*TICK_HZ) continue; if(bots.some(function(o){ return o.id === eidS && o.alive; })) ts.push({x:loS.x, y:loS.y}); }
-  var best = null, bs = -Infinity;
+  var best = null, bs = -Infinity, cands = [];
   NAVAREAS.forEach(function(z, i){
     if(i % 3) return; // прореживаем кандидатов — ~650 хватает с запасом
     if(NAV_BLOCKED[z.id] || !(zoneGraph[z.id]||[]).length) return;
@@ -19,8 +20,19 @@ function pickSaveSpot(b){
     var dSelf = Math.hypot(c.x-b.baseX, c.y-b.baseY);
     var zcC = zoneIdAt(c.x, c.y), openC = zcC ? (ZONE_DANGER[zcC] || []).length : 0;   // (v375) не на виду — как у T
     var sc = Math.min(dT, 1200)*0.6 - dSelf - openC*40; // подальше от T, но не бежать через всю карту, укрыто
-    if(sc > bs){ bs = sc; best = c; }
+    cands.push({c:c, sc:sc, dT:dT, openC:openC});
   });
+  // (док 6, п.7: kyousuke р4 сейвил на Vent — 62 ед. по прямой, 1255 по пути через Mid, Ramp, Catwalk — и встретил T на Cross) лучшие
+  // SAVE_TOPN мест по прямой пересчитываются по пути: «недалеко бежать» — длина пути, а путь, где команда видела T (≤ 15 с) с его точек, — не
+  // сейв. SAVE_TOPN — проектное число (чтобы не искать путь к 600 местам)
+  cands.sort(function(a, c){ return c.sc - a.sc; });
+  cands.slice(0, SAVE_TOPN).forEach(function(q){
+    var pts = pathPts(b.baseX, b.baseY, q.c.x, q.c.y), L = polyLen(pts), seenP = false;
+    for(var k = 0; k < pts.length && !seenP; k++) ts.forEach(function(t){ if(!seenP && hasLOS(pts[k][0], pts[k][1], t.x, t.y)) seenP = true; });
+    if(seenP) return;
+    var sc2 = Math.min(q.dT, 1200)*0.6 - L - q.openC*40;
+    if(sc2 > bs){ bs = sc2; best = q.c; } });
+  if(!best && cands.length) best = cands[0].c;
   return best ? {x:best.x, y:best.y} : {x:CT_SPAWN.x, y:CT_SPAWN.y};
 }
 // укрытие для сейва T: подальше от известных CT и от сайтов, не на виду у живых CT

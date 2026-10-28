@@ -28,11 +28,14 @@ function bombDamageAt(x, y){
 // выбиралась раз за раунд при полном HP с запасом всего 10 HP — потом бота ранили, а до самой точки он не доходит ровно. Теперь:
 // запас FLEE_HP_MARGIN, точка пересчитывается, если HP упало и она больше не спасает, дальше 900 px тоже ищем (до досягаемости
 // взрыва), а если не спасает ни одна — берём ту, где урон меньше всего (раньше — точка сбора, путь через сам взрыв)
-var FLEE_HP_MARGIN = 30;   // проектное число: урон в точке ухода не больше HP − 30 (бот встаёт не ровно в точку)
+var FLEE_HP_MARGIN = 30, FLEE_MOVE = 300;   // проектное число: урон в точке ухода не больше HP − 30 (бот встаёт не ровно в точку)
 function bombFleePoint(b){
   if(!bomb || bomb.state !== "planted") return null;
   var F = b._flee;
-  if(F && F.round === roundNum && F.m === matchNum && (!F.pt || F.hp <= b.hp || bombDamageAt(F.pt.x, F.pt.y) <= Math.max(0, b.hp - FLEE_HP_MARGIN))) return F.pt;
+  // (док 6, п.16: zont1x р11 — точку ухода посчитали, когда он был на TV (House), а уходить пришлось с T Ramp: 1305 ед. через всю карту вместо 154)
+  // точка держится, пока боец рядом с местом, откуда её считали (FLEE_MOVE — проектное число); ушёл дальше — считается заново
+  if(F && F.round === roundNum && F.m === matchNum && Math.hypot(b.x-F.x0, b.y-F.y0) <= FLEE_MOVE &&
+     (!F.pt || F.hp <= b.hp || bombDamageAt(F.pt.x, F.pt.y) <= Math.max(0, b.hp - FLEE_HP_MARGIN))) return F.pt;
   var R = BOMB_DMG.sigma, best = null, bs = Infinity, low = null, ls = Infinity;   // R — «внутри волны»: путь не должен туда заходить
   if(!BZ.ids.length) beliefBuild();
   BZ.cent.forEach(function(c, i){
@@ -53,7 +56,7 @@ function bombFleePoint(b){
     if(!ok && L < 1400 && dq*20 + sc < ls){ ls = dq*20 + sc; low = q; }   // запасной: меньше урона, потом ближе
   });
   if(!best) best = low;
-  b._flee = {round:roundNum, m:matchNum, pt:best, hp:b.hp};
+  b._flee = {round:roundNum, m:matchNum, pt:best, hp:b.hp, x0:b.x, y0:b.y};
   if(best && b._fleeLog !== roundNum){ b._fleeLog = roundNum; logEvent(b.id+": уходит от бомбы — "+calloutName(best.x, best.y)); }
   return best;
 }
