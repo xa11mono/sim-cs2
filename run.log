@@ -1,0 +1,16 @@
+playwright 1.56.0, браузеры: C:\Windows\system32\config\systemprofile\.simcs2_node\ms-playwright
+> git fetch --quiet origin 564792c1596fa4e6d3bf3e54b112919b91b6aba3
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_kfkdegvv FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_kfkdegvv\src\build.py --map ancient C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v460b_anc.html
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\engine\walk_run.py --job=v460b_anc,C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v460b_anc.html --matches=3,7,11,13,17,19,23,29 --par=8
+матчей в очереди: 8, одновременно: 8
+v460b_anc match 29 rc 0 4118621 — готово 1/8, 5 мин
+v460b_anc match 17 rc 0 4666323 — готово 2/8, 5 мин
+v460b_anc match 23 rc 0 5205650 — готово 3/8, 6 мин
+v460b_anc match 11 rc 0 6569473 — готово 4/8, 7 мин
+v460b_anc match 19 rc 0 6799115 — готово 5/8, 7 мин
+v460b_anc match 7 rc 0 9086407 — готово 6/8, 7 мин
+v460b_anc match 13 rc 0 7474526 — готово 7/8, 8 мин
+v460b_anc match 3 rc 0 7691560 — готово 8/8, 8 мин
+done
+all done
