@@ -1,0 +1,102 @@
+браузеры: C:\Users\Mono\AppData\Local\ms-playwright
+playwright 1.56.0
+> git fetch --quiet origin 31bd8c2e6e5c2958874152debd554a14591423bc
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_trk7ft60 FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_trk7ft60\src\build.py --map ancient C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\a450c_kp_anc.html
+> git fetch --quiet origin b8f53d237257970f2bdc5b4e6a502b0de1bdbb5f
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_g5klezsj FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_g5klezsj\src\build.py --map ancient C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\a450c_swing_anc.html
+> git fetch --quiet origin 4be59993015658b4f1fdedb9bfcfcb2f99ae2ed7
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_1na61z1x FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_1na61z1x\src\build.py --map ancient C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\a450c_lost_anc.html
+> git fetch --quiet origin 50d727f49b67c8e543ba47c79c2910b1bfc2e524
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_qythkofm FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_qythkofm\src\build.py --map ancient C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\a450c_cmp_anc.html
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\engine\walk_run.py --job=a450c_kp_anc,C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\a450c_kp_anc.html --job=a450c_swing_anc,C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\a450c_swing_anc.html --job=a450c_lost_anc,C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\a450c_lost_anc.html --job=a450c_cmp_anc,C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\a450c_cmp_anc.html --matches=3,7,11,13,17,19,23,29 --par=8
+матчей в очереди: 32, одновременно: 8
+… идёт 8: a450c_kp_anc м3 (0.0 мин), a450c_kp_anc м7 (0.0 мин), a450c_kp_anc м11 (0.0 мин), a450c_kp_anc м13 (0.0 мин), a450c_kp_anc м17 (0.0 мин), a450c_kp_anc м19 (0.0 мин), a450c_kp_anc м23 (0.0 мин), a450c_kp_anc м29 (0.0 мин) | готово 0/32, в очереди 24, прошло 0.0 мин
+… идёт 8: a450c_kp_anc м3 (0.5 мин), a450c_kp_anc м7 (0.5 мин), a450c_kp_anc м11 (0.5 мин), a450c_kp_anc м13 (0.5 мин), a450c_kp_anc м17 (0.5 мин), a450c_kp_anc м19 (0.5 мин), a450c_kp_anc м23 (0.5 мин), a450c_kp_anc м29 (0.5 мин) | готово 0/32, в очереди 24, прошло 0.5 мин
+… идёт 8: a450c_kp_anc м3 (1.0 мин), a450c_kp_anc м7 (1.0 мин), a450c_kp_anc м11 (1.0 мин), a450c_kp_anc м13 (1.0 мин), a450c_kp_anc м17 (1.0 мин), a450c_kp_anc м19 (1.0 мин), a450c_kp_anc м23 (1.0 мин), a450c_kp_anc м29 (1.0 мин) | готово 0/32, в очереди 24, прошло 1.0 мин
+… идёт 8: a450c_kp_anc м3 (1.5 мин), a450c_kp_anc м7 (1.5 мин), a450c_kp_anc м11 (1.5 мин), a450c_kp_anc м13 (1.5 мин), a450c_kp_anc м17 (1.5 мин), a450c_kp_anc м19 (1.5 мин), a450c_kp_anc м23 (1.5 мин), a450c_kp_anc м29 (1.5 мин) | готово 0/32, в очереди 24, прошло 1.5 мин
+… идёт 8: a450c_kp_anc м3 (2.0 мин), a450c_kp_anc м7 (2.0 мин), a450c_kp_anc м11 (2.0 мин), a450c_kp_anc м13 (2.0 мин), a450c_kp_anc м17 (2.0 мин), a450c_kp_anc м19 (2.0 мин), a450c_kp_anc м23 (2.0 мин), a450c_kp_anc м29 (2.0 мин) | готово 0/32, в очереди 24, прошло 2.0 мин
+… идёт 8: a450c_kp_anc м3 (2.5 мин), a450c_kp_anc м7 (2.5 мин), a450c_kp_anc м11 (2.5 мин), a450c_kp_anc м13 (2.5 мин), a450c_kp_anc м17 (2.5 мин), a450c_kp_anc м19 (2.5 мин), a450c_kp_anc м23 (2.5 мин), a450c_kp_anc м29 (2.5 мин) | готово 0/32, в очереди 24, прошло 2.5 мин
+… идёт 8: a450c_kp_anc м3 (3.0 мин), a450c_kp_anc м7 (3.0 мин), a450c_kp_anc м11 (3.0 мин), a450c_kp_anc м13 (3.0 мин), a450c_kp_anc м17 (3.0 мин), a450c_kp_anc м19 (3.0 мин), a450c_kp_anc м23 (3.0 мин), a450c_kp_anc м29 (3.0 мин) | готово 0/32, в очереди 24, прошло 3.0 мин
+… идёт 8: a450c_kp_anc м3 (3.5 мин), a450c_kp_anc м7 (3.5 мин), a450c_kp_anc м11 (3.5 мин), a450c_kp_anc м13 (3.5 мин), a450c_kp_anc м17 (3.5 мин), a450c_kp_anc м19 (3.5 мин), a450c_kp_anc м23 (3.5 мин), a450c_kp_anc м29 (3.5 мин) | готово 0/32, в очереди 24, прошло 3.5 мин
+… идёт 8: a450c_kp_anc м3 (4.0 мин), a450c_kp_anc м7 (4.0 мин), a450c_kp_anc м11 (4.0 мин), a450c_kp_anc м13 (4.0 мин), a450c_kp_anc м17 (4.0 мин), a450c_kp_anc м19 (4.0 мин), a450c_kp_anc м23 (4.0 мин), a450c_kp_anc м29 (4.0 мин) | готово 0/32, в очереди 24, прошло 4.0 мин
+a450c_kp_anc match 13 rc 0 4116877 — готово 1/32, 4 мин
+a450c_kp_anc match 11 rc 0 4285712 — готово 2/32, 4 мин
+… идёт 8: a450c_kp_anc м3 (4.5 мин), a450c_kp_anc м7 (4.5 мин), a450c_kp_anc м17 (4.5 мин), a450c_kp_anc м19 (4.5 мин), a450c_kp_anc м23 (4.5 мин), a450c_kp_anc м29 (4.5 мин), a450c_swing_anc м3 (0.5 мин), a450c_swing_anc м7 (0.3 мин) | готово 2/32, в очереди 22, прошло 4.5 мин
+… идёт 8: a450c_kp_anc м3 (5.0 мин), a450c_kp_anc м7 (5.0 мин), a450c_kp_anc м17 (5.0 мин), a450c_kp_anc м19 (5.0 мин), a450c_kp_anc м23 (5.0 мин), a450c_kp_anc м29 (5.0 мин), a450c_swing_anc м3 (1.0 мин), a450c_swing_anc м7 (0.8 мин) | готово 2/32, в очереди 22, прошло 5.0 мин
+a450c_kp_anc match 7 rc 0 4999021 — готово 3/32, 5 мин
+a450c_kp_anc match 3 rc 0 5122740 — готово 4/32, 5 мин
+a450c_kp_anc match 19 rc 0 5799338 — готово 5/32, 6 мин
+… идёт 8: a450c_kp_anc м17 (5.6 мин), a450c_kp_anc м23 (5.6 мин), a450c_kp_anc м29 (5.6 мин), a450c_swing_anc м3 (1.5 мин), a450c_swing_anc м7 (1.3 мин), a450c_swing_anc м11 (0.3 мин), a450c_swing_anc м13 (0.3 мин), a450c_swing_anc м17 (0.1 мин) | готово 5/32, в очереди 19, прошло 5.6 мин
+a450c_kp_anc match 17 rc 0 6201312 — готово 6/32, 6 мин
+… идёт 8: a450c_kp_anc м23 (6.1 мин), a450c_kp_anc м29 (6.1 мин), a450c_swing_anc м3 (2.0 мин), a450c_swing_anc м7 (1.8 мин), a450c_swing_anc м11 (0.8 мин), a450c_swing_anc м13 (0.8 мин), a450c_swing_anc м17 (0.6 мин), a450c_swing_anc м19 (0.1 мин) | готово 6/32, в очереди 18, прошло 6.1 мин
+a450c_kp_anc match 29 rc 0 6065722 — готово 7/32, 6 мин
+… идёт 8: a450c_kp_anc м23 (6.6 мин), a450c_swing_anc м3 (2.5 мин), a450c_swing_anc м7 (2.3 мин), a450c_swing_anc м11 (1.3 мин), a450c_swing_anc м13 (1.3 мин), a450c_swing_anc м17 (1.1 мин), a450c_swing_anc м19 (0.6 мин), a450c_swing_anc м23 (0.2 мин) | готово 7/32, в очереди 17, прошло 6.6 мин
+… идёт 8: a450c_kp_anc м23 (7.1 мин), a450c_swing_anc м3 (3.0 мин), a450c_swing_anc м7 (2.8 мин), a450c_swing_anc м11 (1.8 мин), a450c_swing_anc м13 (1.8 мин), a450c_swing_anc м17 (1.6 мин), a450c_swing_anc м19 (1.1 мин), a450c_swing_anc м23 (0.7 мин) | готово 7/32, в очереди 17, прошло 7.1 мин
+… идёт 8: a450c_kp_anc м23 (7.6 мин), a450c_swing_anc м3 (3.5 мин), a450c_swing_anc м7 (3.3 мин), a450c_swing_anc м11 (2.3 мин), a450c_swing_anc м13 (2.3 мин), a450c_swing_anc м17 (2.1 мин), a450c_swing_anc м19 (1.6 мин), a450c_swing_anc м23 (1.2 мин) | готово 7/32, в очереди 17, прошло 7.6 мин
+… идёт 8: a450c_kp_anc м23 (8.1 мин), a450c_swing_anc м3 (4.0 мин), a450c_swing_anc м7 (3.8 мин), a450c_swing_anc м11 (2.9 мин), a450c_swing_anc м13 (2.8 мин), a450c_swing_anc м17 (2.6 мин), a450c_swing_anc м19 (2.1 мин), a450c_swing_anc м23 (1.7 мин) | готово 7/32, в очереди 17, прошло 8.1 мин
+a450c_kp_anc match 23 rc 0 8207954 — готово 8/32, 8 мин
+… идёт 8: a450c_swing_anc м3 (4.5 мин), a450c_swing_anc м7 (4.3 мин), a450c_swing_anc м11 (3.4 мин), a450c_swing_anc м13 (3.3 мин), a450c_swing_anc м17 (3.1 мин), a450c_swing_anc м19 (2.6 мин), a450c_swing_anc м23 (2.2 мин), a450c_swing_anc м29 (0.5 мин) | готово 8/32, в очереди 16, прошло 8.6 мин
+… идёт 8: a450c_swing_anc м3 (5.0 мин), a450c_swing_anc м7 (4.8 мин), a450c_swing_anc м11 (3.9 мин), a450c_swing_anc м13 (3.8 мин), a450c_swing_anc м17 (3.6 мин), a450c_swing_anc м19 (3.1 мин), a450c_swing_anc м23 (2.7 мин), a450c_swing_anc м29 (1.0 мин) | готово 8/32, в очереди 16, прошло 9.1 мин
+… идёт 8: a450c_swing_anc м3 (5.5 мин), a450c_swing_anc м7 (5.3 мин), a450c_swing_anc м11 (4.4 мин), a450c_swing_anc м13 (4.3 мин), a450c_swing_anc м17 (4.1 мин), a450c_swing_anc м19 (3.6 мин), a450c_swing_anc м23 (3.2 мин), a450c_swing_anc м29 (1.5 мин) | готово 8/32, в очереди 16, прошло 9.6 мин
+… идёт 8: a450c_swing_anc м3 (6.0 мин), a450c_swing_anc м7 (5.8 мин), a450c_swing_anc м11 (4.9 мин), a450c_swing_anc м13 (4.8 мин), a450c_swing_anc м17 (4.6 мин), a450c_swing_anc м19 (4.1 мин), a450c_swing_anc м23 (3.7 мин), a450c_swing_anc м29 (2.0 мин) | готово 8/32, в очереди 16, прошло 10.1 мин
+a450c_swing_anc match 7 rc 0 5999146 — готово 9/32, 11 мин
+… идёт 8: a450c_swing_anc м3 (6.5 мин), a450c_swing_anc м11 (5.4 мин), a450c_swing_anc м13 (5.3 мин), a450c_swing_anc м17 (5.1 мин), a450c_swing_anc м19 (4.6 мин), a450c_swing_anc м23 (4.2 мин), a450c_swing_anc м29 (2.5 мин), a450c_lost_anc м3 (0.1 мин) | готово 9/32, в очереди 15, прошло 10.6 мин
+… идёт 8: a450c_swing_anc м3 (7.0 мин), a450c_swing_anc м11 (5.9 мин), a450c_swing_anc м13 (5.8 мин), a450c_swing_anc м17 (5.6 мин), a450c_swing_anc м19 (5.1 мин), a450c_swing_anc м23 (4.7 мин), a450c_swing_anc м29 (3.0 мин), a450c_lost_anc м3 (0.6 мин) | готово 9/32, в очереди 15, прошло 11.1 мин
+… идёт 8: a450c_swing_anc м3 (7.5 мин), a450c_swing_anc м11 (6.4 мин), a450c_swing_anc м13 (6.3 мин), a450c_swing_anc м17 (6.1 мин), a450c_swing_anc м19 (5.6 мин), a450c_swing_anc м23 (5.2 мин), a450c_swing_anc м29 (3.5 мин), a450c_lost_anc м3 (1.1 мин) | готово 9/32, в очереди 15, прошло 11.6 мин
+a450c_swing_anc match 23 rc 0 5238295 — готово 10/32, 12 мин
+a450c_swing_anc match 17 rc 0 6567832 — готово 11/32, 12 мин
+… идёт 8: a450c_swing_anc м3 (8.0 мин), a450c_swing_anc м11 (6.9 мин), a450c_swing_anc м13 (6.8 мин), a450c_swing_anc м19 (6.1 мин), a450c_swing_anc м29 (4.0 мин), a450c_lost_anc м3 (1.6 мин), a450c_lost_anc м7 (0.3 мин), a450c_lost_anc м11 (0.1 мин) | готово 11/32, в очереди 13, прошло 12.1 мин
+a450c_swing_anc match 13 rc 0 6421889 — готово 12/32, 12 мин
+a450c_swing_anc match 3 rc 0 8180370 — готово 13/32, 12 мин
+… идёт 8: a450c_swing_anc м11 (7.4 мин), a450c_swing_anc м19 (6.6 мин), a450c_swing_anc м29 (4.5 мин), a450c_lost_anc м3 (2.1 мин), a450c_lost_anc м7 (0.8 мин), a450c_lost_anc м11 (0.6 мин), a450c_lost_anc м13 (0.5 мин), a450c_lost_anc м17 (0.4 мин) | готово 13/32, в очереди 11, прошло 12.6 мин
+… идёт 8: a450c_swing_anc м11 (7.9 мин), a450c_swing_anc м19 (7.1 мин), a450c_swing_anc м29 (5.0 мин), a450c_lost_anc м3 (2.6 мин), a450c_lost_anc м7 (1.3 мин), a450c_lost_anc м11 (1.1 мин), a450c_lost_anc м13 (1.0 мин), a450c_lost_anc м17 (0.9 мин) | готово 13/32, в очереди 11, прошло 13.1 мин
+… идёт 8: a450c_swing_anc м11 (8.4 мин), a450c_swing_anc м19 (7.6 мин), a450c_swing_anc м29 (5.5 мин), a450c_lost_anc м3 (3.1 мин), a450c_lost_anc м7 (1.8 мин), a450c_lost_anc м11 (1.6 мин), a450c_lost_anc м13 (1.5 мин), a450c_lost_anc м17 (1.4 мин) | готово 13/32, в очереди 11, прошло 13.6 мин
+a450c_swing_anc match 11 rc 0 8481340 — готово 14/32, 14 мин
+a450c_swing_anc match 29 rc 0 5478362 — готово 15/32, 14 мин
+… идёт 8: a450c_swing_anc м19 (8.1 мин), a450c_lost_anc м3 (3.6 мин), a450c_lost_anc м7 (2.3 мин), a450c_lost_anc м11 (2.1 мин), a450c_lost_anc м13 (2.0 мин), a450c_lost_anc м17 (1.9 мин), a450c_lost_anc м19 (0.5 мин), a450c_lost_anc м23 (0.1 мин) | готово 15/32, в очереди 9, прошло 14.1 мин
+a450c_swing_anc match 19 rc 0 8330675 — готово 16/32, 14 мин
+… идёт 8: a450c_lost_anc м3 (4.1 мин), a450c_lost_anc м7 (2.8 мин), a450c_lost_anc м11 (2.6 мин), a450c_lost_anc м13 (2.5 мин), a450c_lost_anc м17 (2.4 мин), a450c_lost_anc м19 (1.0 мин), a450c_lost_anc м23 (0.6 мин), a450c_lost_anc м29 (0.2 мин) | готово 16/32, в очереди 8, прошло 14.6 мин
+… идёт 8: a450c_lost_anc м3 (4.6 мин), a450c_lost_anc м7 (3.3 мин), a450c_lost_anc м11 (3.1 мин), a450c_lost_anc м13 (3.0 мин), a450c_lost_anc м17 (2.9 мин), a450c_lost_anc м19 (1.5 мин), a450c_lost_anc м23 (1.1 мин), a450c_lost_anc м29 (0.7 мин) | готово 16/32, в очереди 8, прошло 15.1 мин
+… идёт 8: a450c_lost_anc м3 (5.1 мин), a450c_lost_anc м7 (3.8 мин), a450c_lost_anc м11 (3.6 мин), a450c_lost_anc м13 (3.5 мин), a450c_lost_anc м17 (3.4 мин), a450c_lost_anc м19 (2.0 мин), a450c_lost_anc м23 (1.6 мин), a450c_lost_anc м29 (1.2 мин) | готово 16/32, в очереди 8, прошло 15.6 мин
+… идёт 8: a450c_lost_anc м3 (5.6 мин), a450c_lost_anc м7 (4.3 мин), a450c_lost_anc м11 (4.1 мин), a450c_lost_anc м13 (4.0 мин), a450c_lost_anc м17 (3.9 мин), a450c_lost_anc м19 (2.5 мин), a450c_lost_anc м23 (2.1 мин), a450c_lost_anc м29 (1.7 мин) | готово 16/32, в очереди 8, прошло 16.1 мин
+a450c_lost_anc match 13 rc 0 4174527 — готово 17/32, 16 мин
+… идёт 8: a450c_lost_anc м3 (6.1 мин), a450c_lost_anc м7 (4.8 мин), a450c_lost_anc м11 (4.6 мин), a450c_lost_anc м17 (4.4 мин), a450c_lost_anc м19 (3.0 мин), a450c_lost_anc м23 (2.6 мин), a450c_lost_anc м29 (2.2 мин), a450c_cmp_anc м3 (0.1 мин) | готово 17/32, в очереди 7, прошло 16.6 мин
+a450c_lost_anc match 17 rc 0 4331938 — готово 18/32, 17 мин
+a450c_lost_anc match 3 rc 0 6432279 — готово 19/32, 17 мин
+… идёт 8: a450c_lost_anc м7 (5.4 мин), a450c_lost_anc м11 (5.1 мин), a450c_lost_anc м19 (3.5 мин), a450c_lost_anc м23 (3.2 мин), a450c_lost_anc м29 (2.7 мин), a450c_cmp_anc м3 (0.6 мин), a450c_cmp_anc м7 (0.4 мин), a450c_cmp_anc м11 (0.0 мин) | готово 19/32, в очереди 5, прошло 17.1 мин
+a450c_lost_anc match 11 rc 0 5417207 — готово 20/32, 18 мин
+a450c_lost_anc match 7 rc 0 5496387 — готово 21/32, 18 мин
+… идёт 8: a450c_lost_anc м19 (4.0 мин), a450c_lost_anc м23 (3.7 мин), a450c_lost_anc м29 (3.2 мин), a450c_cmp_anc м3 (1.1 мин), a450c_cmp_anc м7 (0.9 мин), a450c_cmp_anc м11 (0.5 мин), a450c_cmp_anc м13 (0.1 мин), a450c_cmp_anc м17 (0.1 мин) | готово 21/32, в очереди 3, прошло 17.6 мин
+… идёт 8: a450c_lost_anc м19 (4.5 мин), a450c_lost_anc м23 (4.2 мин), a450c_lost_anc м29 (3.7 мин), a450c_cmp_anc м3 (1.6 мин), a450c_cmp_anc м7 (1.4 мин), a450c_cmp_anc м11 (1.0 мин), a450c_cmp_anc м13 (0.6 мин), a450c_cmp_anc м17 (0.6 мин) | готово 21/32, в очереди 3, прошло 18.1 мин
+… идёт 8: a450c_lost_anc м19 (5.0 мин), a450c_lost_anc м23 (4.7 мин), a450c_lost_anc м29 (4.2 мин), a450c_cmp_anc м3 (2.1 мин), a450c_cmp_anc м7 (1.9 мин), a450c_cmp_anc м11 (1.5 мин), a450c_cmp_anc м13 (1.1 мин), a450c_cmp_anc м17 (1.1 мин) | готово 21/32, в очереди 3, прошло 18.6 мин
+… идёт 8: a450c_lost_anc м19 (5.5 мин), a450c_lost_anc м23 (5.2 мин), a450c_lost_anc м29 (4.7 мин), a450c_cmp_anc м3 (2.7 мин), a450c_cmp_anc м7 (2.4 мин), a450c_cmp_anc м11 (2.0 мин), a450c_cmp_anc м13 (1.6 мин), a450c_cmp_anc м17 (1.6 мин) | готово 21/32, в очереди 3, прошло 19.1 мин
+… идёт 8: a450c_lost_anc м19 (6.0 мин), a450c_lost_anc м23 (5.7 мин), a450c_lost_anc м29 (5.3 мин), a450c_cmp_anc м3 (3.2 мин), a450c_cmp_anc м7 (2.9 мин), a450c_cmp_anc м11 (2.5 мин), a450c_cmp_anc м13 (2.1 мин), a450c_cmp_anc м17 (2.1 мин) | готово 21/32, в очереди 3, прошло 19.6 мин
+a450c_lost_anc match 19 rc 0 6163662 — готово 22/32, 20 мин
+… идёт 8: a450c_lost_anc м23 (6.2 мин), a450c_lost_anc м29 (5.8 мин), a450c_cmp_anc м3 (3.7 мин), a450c_cmp_anc м7 (3.4 мин), a450c_cmp_anc м11 (3.1 мин), a450c_cmp_anc м13 (2.6 мин), a450c_cmp_anc м17 (2.6 мин), a450c_cmp_anc м19 (0.4 мин) | готово 22/32, в очереди 2, прошло 20.1 мин
+… идёт 8: a450c_lost_anc м23 (6.7 мин), a450c_lost_anc м29 (6.3 мин), a450c_cmp_anc м3 (4.2 мин), a450c_cmp_anc м7 (3.9 мин), a450c_cmp_anc м11 (3.6 мин), a450c_cmp_anc м13 (3.1 мин), a450c_cmp_anc м17 (3.1 мин), a450c_cmp_anc м19 (0.9 мин) | готово 22/32, в очереди 2, прошло 20.6 мин
+a450c_lost_anc match 23 rc 0 7206085 — готово 23/32, 21 мин
+a450c_lost_anc match 29 rc 0 6374900 — готово 24/32, 21 мин
+… идёт 8: a450c_cmp_anc м3 (4.7 мин), a450c_cmp_anc м7 (4.4 мин), a450c_cmp_anc м11 (4.1 мин), a450c_cmp_anc м13 (3.6 мин), a450c_cmp_anc м17 (3.6 мин), a450c_cmp_anc м19 (1.4 мин), a450c_cmp_anc м23 (0.2 мин), a450c_cmp_anc м29 (0.1 мин) | готово 24/32, в очереди 0, прошло 21.1 мин
+a450c_cmp_anc match 7 rc 0 4237220 — готово 25/32, 21 мин
+… идёт 7: a450c_cmp_anc м3 (5.2 мин), a450c_cmp_anc м11 (4.6 мин), a450c_cmp_anc м13 (4.1 мин), a450c_cmp_anc м17 (4.1 мин), a450c_cmp_anc м19 (1.9 мин), a450c_cmp_anc м23 (0.7 мин), a450c_cmp_anc м29 (0.6 мин) | готово 25/32, в очереди 0, прошло 21.6 мин
+… идёт 7: a450c_cmp_anc м3 (5.7 мин), a450c_cmp_anc м11 (5.1 мин), a450c_cmp_anc м13 (4.6 мин), a450c_cmp_anc м17 (4.6 мин), a450c_cmp_anc м19 (2.4 мин), a450c_cmp_anc м23 (1.2 мин), a450c_cmp_anc м29 (1.1 мин) | готово 25/32, в очереди 0, прошло 22.2 мин
+… идёт 7: a450c_cmp_anc м3 (6.2 мин), a450c_cmp_anc м11 (5.6 мин), a450c_cmp_anc м13 (5.1 мин), a450c_cmp_anc м17 (5.1 мин), a450c_cmp_anc м19 (2.9 мин), a450c_cmp_anc м23 (1.7 мин), a450c_cmp_anc м29 (1.6 мин) | готово 25/32, в очереди 0, прошло 22.7 мин
+a450c_cmp_anc match 17 rc 0 5450269 — готово 26/32, 23 мин
+… идёт 6: a450c_cmp_anc м3 (6.7 мин), a450c_cmp_anc м11 (6.1 мин), a450c_cmp_anc м13 (5.6 мин), a450c_cmp_anc м19 (3.4 мин), a450c_cmp_anc м23 (2.2 мин), a450c_cmp_anc м29 (2.1 мин) | готово 26/32, в очереди 0, прошло 23.2 мин
+a450c_cmp_anc match 13 rc 0 5936338 — готово 27/32, 23 мин
+a450c_cmp_anc match 3 rc 0 6662713 — готово 28/32, 23 мин
+… идёт 4: a450c_cmp_anc м11 (6.6 мин), a450c_cmp_anc м19 (3.9 мин), a450c_cmp_anc м23 (2.7 мин), a450c_cmp_anc м29 (2.6 мин) | готово 28/32, в очереди 0, прошло 23.7 мин
+… идёт 4: a450c_cmp_anc м11 (7.1 мин), a450c_cmp_anc м19 (4.4 мин), a450c_cmp_anc м23 (3.3 мин), a450c_cmp_anc м29 (3.2 мин) | готово 28/32, в очереди 0, прошло 24.2 мин
+a450c_cmp_anc match 19 rc 0 5073217 — готово 29/32, 24 мин
+… идёт 3: a450c_cmp_anc м11 (7.6 мин), a450c_cmp_anc м23 (3.8 мин), a450c_cmp_anc м29 (3.7 мин) | готово 29/32, в очереди 0, прошло 24.7 мин
+a450c_cmp_anc match 23 rc 0 4295767 — готово 30/32, 25 мин
+a450c_cmp_anc match 11 rc 0 8375564 — готово 31/32, 25 мин
+… идёт 1: a450c_cmp_anc м29 (4.2 мин) | готово 31/32, в очереди 0, прошло 25.2 мин
+… идёт 1: a450c_cmp_anc м29 (4.7 мин) | готово 31/32, в очереди 0, прошло 25.7 мин
+a450c_cmp_anc match 29 rc 0 5488405 — готово 32/32, 26 мин
+done
+all done
