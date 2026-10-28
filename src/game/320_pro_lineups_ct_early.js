@@ -141,11 +141,15 @@ function ctEarlyPeek(b, ct){
   if(E.st === 0 && !bots.some(function(o){ return o !== b && o.alive && o.team === b.team && Math.hypot(o.x-b.x, o.y-b.y) <= TRADE_R; })) return false;
   // (v285, владелец 14.10) опорник выходит за инфой, только если на его сайте остаётся свой (≤450 px — как защитники в ротациях)
   if(E.st === 0 && /^anchor/.test(b.tRole) && !bots.some(function(o){ return o !== b && o.alive && o.team === b.team && Math.hypot(o.x-SITES[k].x, o.y-SITES[k].y) < 450; })) return false;
+  // (v450, док владельца 28.10 №5: «в расстановке 3-0-2 kyousuke идёт пикать окно, хотя на миду 0») роль «мид» пикает с мида, только если
+  // по расстановке он стоит на миде (npZoneOf — сторона мест роли); стоит на сайте (3-0-2: B Plat) — выглядывает от своего места в сторону
+  // мида (на B — Short), а не идёт в окно. Владелец: «можно, чтобы шёл шорт пикать»
+  var midSide = b.tRole === "mid" && npZoneOf(b) === "mid";
   var g = GEO[k], stg = b.tRole === "mid" ? (GEO.tMid || g.tStage) : g.tStage;
   // уже слышим/видим T рядом с точкой выхода — поздно, не лезем
   if(intelEstimate("CT", g.tEntry.x, g.tEntry.y, 600, 4*TICK_HZ).n > 0){ E.st = 2; return false; }
   if(!E.pt){
-    var from = b.tRole === "mid" ? GEO.ctMid : g.tEntry;
+    var from = b.tRole === "mid" ? (midSide ? GEO.ctMid : (b.post || b)) : g.tEntry;
     E.pt = pickSpots("early"+k+b.tRole, from, 1, {rMax:220, minGap:40, see:[stg]})[0];
     if(!E.pt){ E.st = 2; return false; }
     E.st = 1;

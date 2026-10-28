@@ -78,6 +78,15 @@ function resolveEngagements(){
       // (v408, Б5в, видео владельца 22.10: игрок 9 стоял 2,5 с с новой задачей «трейд» в 80 ед. и построенным путём — «держу» здесь
       // значит скорость 0 и путь не идёт) задача в другом месте (пост не достигнут) и перестрелка кончилась (_fc снят) — «держу» снимается
       var taskAway = !b._fc && b.post && !b.atPost && Math.hypot(b.post.x-b.baseX, b.post.y-b.baseY) > 40;
+      // (v450, док владельца 28.10 №5; м3 р1: носитель T4 с задачей «плант» в 270 ед. 14 с ходил «линия / укрытие» по слуху, ни разу не видя
+      // врага) носитель в выходе, врага не видит — перестрелка по памяти кончилась, идёт ставить
+      // (v450) и любой T в выходе, кто не видит врага дольше паузы про в перестрелке (PEEK_PRO.T.pause, верхний край — 2,7 с): перестрелка
+      // кончилась, «держу» снимается, идёт по задаче (м3 р1: T4 10 с стоял «на линии», ни разу не видя врага)
+      var tEx = b.team === "T" && bomb && bomb.state !== "planted" && teamTac.T && teamTac.T.phase === "execute";
+      var carGo = tEx && bomb.state === "carried" && bomb.carrier === b && b.post && /^plantspot/.test(b.post.tag);
+      var lostLong = tEx && tick - (b._lastSawT || -1e9) > PEEK_PRO.T.pause[4]*TICK_HZ;
+      if((carGo || lostLong) && b._fc){ b._fc = null; }
+      if(carGo || lostLong) taskAway = taskAway || (b.post && !b.atPost && Math.hypot(b.post.x-b.baseX, b.post.y-b.baseY) > 40);
       var stillWatching = b.holding && !taskAway && b.lastIntel && (tick - b.lastIntel.tick) < CAUTION_TICKS;
       if(!stillWatching && b.state !== "patrol"){ b.state = "patrol"; b.holding = false; b.forcedRetreat = false; }
       return;

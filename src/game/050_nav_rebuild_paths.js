@@ -277,9 +277,16 @@ var ROUTE_PORTAL = 0;   // (v406) цена перехода между учас�
 // (v416, М151) запрет пути через проходы у́же корпуса (v412) убран: у Kitchen, Hole, TV (Mirage) и T Lower ↔ Ruins (Ancient) других
 // проходов нет — путь шёл в обход в 4–15 раз длиннее (надпись «навмеш не связывает напрямую»). Схождение на спуске T разводит полоса (laneShift)
 var FIRE_DETOUR = 600;   // (v438) цена перехода через горящий огонь, ед. карты: обход до ~600 длиннее — лучше, чем сквозь огонь (проектное число)
+var KNOWN_PATH_SEC = 6, KNOWN_PATH_R = 300, KNOWN_DETOUR = 500;   // (v450) проектные числа: «свежая» инфа (как контакт ≤ 6 с), радиус места, цена обхода
 function zoneDijkstra(fromId, toId, team){
   if(fromId===toId) return [fromId];
   var side = team === "CT" ? zoneSideMap() : null;
+  // (v450, док владельца 28.10 №5: игрокам 2 и 4 после контакта на миде «дали путь через врагов» — к лайнапу и в Палас) путь движения
+  // обходит места, где команда видела / слышала живого врага ≤ KNOWN_PATH_SEC: переход ближе KNOWN_PATH_R к такому месту дороже на
+  // KNOWN_DETOUR (как огонь, v438) — обход берётся, если он не намного длиннее. Только путь движения (zoneDijkstra.fire)
+  var KP = [];
+  if(zoneDijkstra.fire && team){ var BLk = beliefLast[team] || {};
+    for(var kid in BLk){ var kl = BLk[kid]; if(!kl || tick - kl.tick > KNOWN_PATH_SEC*TICK_HZ) continue; var ko = teamBot(kid); if(ko && ko.alive && ko.team !== team) KP.push(kl); } }
   var dist = {}, prev = {}, visited = {};
   dist[fromId] = 0;
   var entry = {}; if(zoneDijkstra.from) entry[fromId] = zoneDijkstra.from;
@@ -302,6 +309,7 @@ function zoneDijkstra(fromId, toId, team){
       // (v438, док владельца 27.10: «боты часто идут в молик») переход в горящем огне — дороже на FIRE_DETOUR: путь обходит молотов, если обход
       // не длиннее; иначе идёт через огонь (как и раньше — fireCommit / ждёт у края). Только путь движения (buildWaypointPath)
       if(zoneDijkstra.fire && fires.length && inFire(edge.mid.x, edge.mid.y)) w += FIRE_DETOUR;
+      for(var kq = 0; kq < KP.length; kq++) if(Math.hypot(KP[kq].x-edge.mid.x, KP[kq].y-edge.mid.y) < KNOWN_PATH_R){ w += KNOWN_DETOUR; break; }
       var alt = dist[u] + w;
       if(dist[edge.to]===undefined || alt<dist[edge.to]){
         dist[edge.to] = alt; prev[edge.to] = u; entry[edge.to] = edge.mid; heap.push(edge.to, alt);

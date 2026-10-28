@@ -183,7 +183,8 @@ function renderEcon(){
     var total = mates.reduce(function(a,b){ return a+b.money; }, 0);
     var tl = team.toLowerCase();
     h += '<div class="tm '+tl+'"><span class="tm-n"><i>'+team+'</i>'+ROUND_TYPE_LABEL[te.roundType]+'</span><span class="tm-m">$'+total+'<small> · при поражении +'+LOSS_BONUS[Math.min(4,te.lossLevel)]+'</small></span></div>';
-    if(team === "T" && teamTac.T){ var PH = {setup:"сетап", execute:"выход", postplant:"пост-плант"}; h += '<div class="ec-i t">тактика «'+teamTac.T.tac.name+'» · <b>'+PH[teamTac.T.phase]+'</b></div>';
+    if(team === "T" && teamTac.T){ var PH = {setup:"сетап", execute:"выход", postplant:"пост-плант"}; var RC = (teamTac.T.recalls || []).map(function(r){ return ' → <b>перекол '+r.from+' → '+r.to+'</b> ('+r.sec+' с)'; }).join('');   // (v450) переколы раунда
+      h += '<div class="ec-i t">тактика «'+teamTac.T.tac.name+'» · <b>'+PH[teamTac.T.phase]+'</b>'+RC+'</div>';
       if(teamTac.T.read) h += '<div class="ec-i t sub">IGL: '+teamTac.T.read+'</div>'; }
     if(team === "CT" && teamTac.CT && teamTac.CT.setup){ h += '<div class="ec-i ct sub">расстановка «'+teamTac.CT.setup.name+'»'+(teamTac.CT.setupWhy ? ' — '+teamTac.CT.setupWhy : '')+'</div>'; }
     if(team === "CT"){ var cl = teamTac.CT && teamTac.CT.call; h += '<div class="ec-i ct">'+(bomb && bomb.state==="planted" ? (cl0save() ? "сейв" : (bomb.retake ? (bomb.retake.phase==="gather" ? (bomb.retake.need === 1 && aliveCount("CT") <= 1 ? "ретейк "+bomb.site+" в одиночку: подход" : "ретейк "+bomb.site+": сбор "+(bomb.retake.ready||0)+"/"+(bomb.retake.need||"?")) : bomb.retake.phase==="util" ? "ретейк "+bomb.site+": флешка — сейчас заход" : "ретейк "+bomb.site+": заход!") : "ретейк "+bomb.site)) : (cl ? "колл: T на "+cl.site+" (~"+Math.max(1,Math.round(cl.count))+") — ротируют "+Object.keys(teamTac.CT.rot||{}).length : "расстановка по ролям"))+'</div>'; }

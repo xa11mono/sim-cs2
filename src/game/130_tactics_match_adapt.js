@@ -101,6 +101,7 @@ function timeoutCheck(winner){
     }
   });
 }
+var DEF_GROUP_R = 450;   // (v450) ед. карты: «район группы» для мест дефолта — проектное число (≈ зона и её соседи)
 var DEF_STAGE_SEC = 25;   // (v444) из демок Mirage — см. chooseTactic, need
 function chooseTactic(){
   var type = teamEco.T.roundType;

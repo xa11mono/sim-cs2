@@ -361,22 +361,32 @@ function tBrain(){
       // повтора); ближняя к цели — энтри, дальше IGL, AWP, поддержка; взгляд — на ближайший к зоне вход (A, B или мид)
       var DPS = ((MAP.defaultpos || {}).sites || {})[tt.site], dm = pick(["entry","igl","awp","support"]);
       if(DPS && DPS.length){
+        // (v450, док владельца 28.10 №5: «выход через Палас — в Палас никто не пошёл», «Рамп + Палас, а заходят через Рампу и Коннектор»,
+        // «тактика одна, а игроки делают другое») места дефолта — по долям про, но в районе своей группы тактики: зона про, ближняя
+        // (≤ DEF_GROUP_R) к пути или точке подготовки группы (G.via, G.stage; мид — TMID). У группы нет таких зон — встаёт на точку подготовки
+        // группы. Раньше зоны выпадали жребием по всей карте — группа Паласа стояла на миде, и потом шла в Палас через карту и врагов
+        var gOf = function(b){ var r = null; (tac.groups || []).forEach(function(G){ if(!r && G.roles.indexOf(b.tRole) >= 0) r = G; }); return r; };
+        var gPts = function(G){ var P = [];
+          if(!G) return P;
+          if(G.stage === "TMID"){ var tm = tt.tMidPt || GEO.tMid; if(tm) P.push(tm); return P; }
+          (G.via || []).concat(G.stage ? [G.stage] : []).forEach(function(n){ var q = zonePoint(n, SITES[tt.site]); if(q) P.push(q); });
+          return P; };
         if(!tt._defZ || tt._defZ.n !== dm.length){
-          var pool = DPS.filter(function(z){ return !!zonePoint(z[0]); }).map(function(z){ return z.slice(); }), ch = [];
-          for(var dk = 0; dk < dm.length && pool.length; dk++){
+          var used = {}, ch = {};
+          dm.forEach(function(b, dk){ var G = gOf(b), P = gPts(G);
+            var pool = DPS.filter(function(z){ var q = zonePoint(z[0]); return q && !used[z[0]] && (!P.length || P.some(function(p){ return Math.hypot(p.x-q.x, p.y-q.y) <= DEF_GROUP_R; })); });
+            if(!pool.length){ ch[b.id] = null; return; }
             var wt = pool.reduce(function(a, z){ return a + z[1]; }, 0), u = hashRand(roundNum*733 + matchNum*91 + dk*17 + 5)*wt, di = 0;
             while(di < pool.length - 1 && u > pool[di][1]){ u -= pool[di][1]; di++; }
-            ch.push(pool[di][0]); pool.splice(di, 1);
-          }
+            ch[b.id] = pool[di][0]; used[pool[di][0]] = 1; });
           tt._defZ = {n: dm.length, z: ch};
         }
-        var tgt = SITES[tt.site], RO = {entry:0, igl:1, awp:2, support:3};
-        var zs = tt._defZ.z.map(function(n){ return {n:n, p:zonePoint(n, tgt)}; }).filter(function(z){ return z.p; })
-          .sort(function(a, c){ return Math.hypot(a.p.x-tgt.x, a.p.y-tgt.y) - Math.hypot(c.p.x-tgt.x, c.p.y-tgt.y); });
-        dm.sort(function(a, c){ return RO[a.tRole] - RO[c.tRole]; }).forEach(function(b, i){
-          var Z = zs[i]; if(!Z) return;
-          var lk = [GEO.A.tEntry, GEO.B.tEntry, GEO.tMidLook].filter(Boolean).sort(function(a, c){ return Math.hypot(a.x-Z.p.x, a.y-Z.p.y) - Math.hypot(c.x-Z.p.x, c.y-Z.p.y); })[0];
-          groupPost([b], Z.p, lk, "default:"+Z.n, {rMax:160, minGap:50, see:[lk]});
+        dm.forEach(function(b){
+          var zn0 = tt._defZ.z[b.id], P = gPts(gOf(b)), tgt = SITES[tt.site];
+          var Zp = zn0 ? zonePoint(zn0, P[P.length-1] || tgt) : (P[P.length-1] || null), tag = zn0 ? "default:"+zn0 : "default:group";
+          if(!Zp) return;
+          var lk = [GEO.A.tEntry, GEO.B.tEntry, GEO.tMidLook].filter(Boolean).sort(function(a, c){ return Math.hypot(a.x-Zp.x, a.y-Zp.y) - Math.hypot(c.x-Zp.x, c.y-Zp.y); })[0];
+          groupPost([b], Zp, lk, tag, {rMax:160, minGap:50, see:[lk]});
         });
       } else {
         groupPost(pick(["support"]), tt.tMidPt || GEO.tMid, GEO.tMidLook, "tmid", midOpt);
