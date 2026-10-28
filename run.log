@@ -1,0 +1,27 @@
+playwright 1.56.0, браузеры: C:\Windows\system32\config\systemprofile\.simcs2_node\ms-playwright
+> git fetch --quiet origin 017f086deb7eb1906ef8c3ba2450e62f09ed87f5
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_cnvp0dv1 FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_cnvp0dv1\src\build.py --map ancient C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v460_anc.html
+> git fetch --quiet origin d0584e6295e681f07a88db814395a30726c5e6e5
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_fl34r0a2 FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_fl34r0a2\src\build.py --map ancient C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v459_anc.html
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\engine\walk_run.py --job=v460_anc,C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v460_anc.html --job=v459_anc,C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v459_anc.html --matches=3,7,11,13,17,19,23,29 --par=8
+матчей в очереди: 16, одновременно: 8
+v460_anc match 29 rc 0 4118621 — готово 1/16, 5 мин
+v460_anc match 19 rc 0 4518897 — готово 2/16, 5 мин
+v460_anc match 13 rc 0 5358448 — готово 3/16, 6 мин
+v460_anc match 17 rc 0 5121138 — готово 4/16, 6 мин
+v460_anc match 11 rc 0 7090368 — готово 5/16, 8 мин
+v460_anc match 7 rc 0 10022695 — готово 6/16, 8 мин
+v460_anc match 3 rc 0 7960692 — готово 7/16, 9 мин
+v460_anc match 23 rc 0 7878477 — готово 8/16, 9 мин
+v459_anc match 3 rc 0 6145264 — готово 9/16, 11 мин
+v459_anc match 13 rc 0 5607302 — готово 10/16, 12 мин
+v459_anc match 11 rc 0 5969236 — готово 11/16, 12 мин
+v459_anc match 19 rc 0 4367830 — готово 12/16, 13 мин
+v459_anc match 7 rc 0 7760938 — готово 13/16, 14 мин
+v459_anc match 29 rc 0 5601273 — готово 14/16, 15 мин
+v459_anc match 17 rc 0 8307162 — готово 15/16, 16 мин
+v459_anc match 23 rc 0 8281567 — готово 16/16, 17 мин
+done
+all done
