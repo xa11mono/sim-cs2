@@ -48,20 +48,6 @@ var SPOT_PERSONAL = 70, FOLLOW_GAP = 70;   // проектные числа: «�
 function spotTaken(b, q){ return bots.some(function(o){ return o !== b && o.alive && o.team === b.team && (Math.hypot(o.x-q.x, o.y-q.y) < SPOT_PERSONAL || (o.post && Math.hypot(o.post.x-q.x, o.post.y-q.y) < SPOT_PERSONAL)); }); }
 // (v418) свой рядом (≤ 600 — как «своих рядом» в счёте) сейчас в бою, и тот, с кем он стреляется, по знанию команды (≤ 1 с) — у этого
 // контакта (≤ 400). 600 — как nM ниже; 400 — проектное число («та же группа»)
-// (v451, М174) «плечо торчит, а глаз не видит»: точка, где врага, идущего от look к ней, увидят раньше, чем он увидит сам — враг (глаз)
-// видит плечо или корпус бота, а глаз бота не видит врага ни одной частью. Сторож первой дуэли (16 матчей × 2 карты): CT стоит, T
-// выходит, T увидел первым — в 24 из 41 (Ancient) и 21 из 37 (Mirage) CT не видел T потому, что виден был только край его тела;
-// 65 % таких CT стояли на точке реакции на контакт. Про: держащий угол стреляет первым в 75 % таких дуэлей, у нас — 60 %.
-// Проверка — по линии подхода (look и треть / две трети пути к точке) и в стороны от look на 60 ед. (проектное число — ширина прохода)
-function eyeBehindShoulder(q, qz, look){
-  var dx = q.x-look.x, dy = q.y-look.y, L = Math.hypot(dx, dy) || 1, nx = -dy/L*60, ny = dx/L*60;
-  var P = [{x:look.x, y:look.y}, {x:look.x+dx/3, y:look.y+dy/3}, {x:look.x+dx*2/3, y:look.y+dy*2/3}, {x:look.x+nx, y:look.y+ny}, {x:look.x-nx, y:look.y-ny}];
-  for(var i = 0; i < P.length; i++){ var p = P[i];
-    if(Math.hypot(p.x-q.x, p.y-q.y) < 60 || insideSolidWall(p.x, p.y)) continue;
-    var A = visParts(p.x, p.y, false, q.x, q.y, false, true, null, qz); if(!(A.head || A.body)) continue;
-    var B = visParts(q.x, q.y, false, p.x, p.y, false, true, qz, null); if(!(B.head || B.body)) return true; }
-  return false;
-}
 function contactMateFight(b, C){
   var BL = beliefLast[b.team] || {};
   return bots.filter(function(o){
@@ -123,12 +109,11 @@ function contactTick(b){
   // Нет такой — не выходит, держит (точку держать ищем так же, но вид не обязателен: держит угол, откуда враг придёт)
   var spotOk = function(q, needSee){ var a = b.z == null ? null : navAtLevel(q.x, q.y, b.z); if(b.z != null && !a) return false;
     return !needSee || hasLOS(q.x, q.y, look.x, look.y, a ? a.z : b.z); };
-  var contactSpots = function(sw){ var L = pickSpots("ct"+b.id+Math.round(look.x/40)+","+Math.round(look.y/40)+(sw ? "s" : "h"), {x:b.x, y:b.y}, 6, {rMax: sw ? CONTACT_SWING : 160, minGap:30, see:[look]})
-    .filter(function(q){ return Math.hypot(q.x-look.x, q.y-look.y) >= 120 && !spotTaken(b, q) && spotOk(q, sw); });
-    var safe = L.filter(function(q){ return !eyeBehindShoulder(q, b.z, look); }); return safe.length ? safe : L; };
+  var contactSpots = function(sw){ return pickSpots("ct"+b.id+Math.round(look.x/40)+","+Math.round(look.y/40)+(sw ? "s" : "h"), {x:b.x, y:b.y}, 6, {rMax: sw ? CONTACT_SWING : 160, minGap:30, see:[look]})
+    .filter(function(q){ return Math.hypot(q.x-look.x, q.y-look.y) >= 120 && !spotTaken(b, q) && spotOk(q, sw); }); };
   var cand = contactSpots(swing);
   if(swing && !cand.length){ swing = false; cand = contactSpots(false); }
-  if(hasLOS(b.x, b.y, look.x, look.y, b.z) && !swing && !eyeBehindShoulder(b, b.z, look)) cand.unshift({x:b.x, y:b.y});
+  if(hasLOS(b.x, b.y, look.x, look.y, b.z) && !swing) cand.unshift({x:b.x, y:b.y});
   cand.sort(swing ? function(a, c){ return Math.hypot(a.x-look.x, a.y-look.y) - Math.hypot(c.x-look.x, c.y-look.y); }
                   : function(a, c){ return Math.hypot(a.x-b.x, a.y-b.y) - Math.hypot(c.x-b.x, c.y-b.y); });
   var sp = cand[0]; if(!sp) return;
