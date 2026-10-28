@@ -214,6 +214,7 @@ function postKillDecide(sh, tg, vp, here){
 function afterKillMove(sh, tg, w){
   if(!sh.alive || sh.planting || sh.defusing) return false;   // (v370) носитель — как все (v368)
   if(afterKillReact(sh, tg, w)) return true;
+  if(hlHot(sh)) return false;   // (v447) в ударе — не уходит в укрытие, держит линию на следующего
   if((sh._visible||[]).some(function(o){ return o.alive && o !== tg; })) return false;   // ещё кого-то видит — стреляет (движение в бою — fightCycleTick)
   return killMoveCover(sh, tg);
 }
