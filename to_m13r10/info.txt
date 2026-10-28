@@ -1,0 +1,1 @@
+{"round":10,"state":"freeze","pause":{"side":"T","name":"Team Spirit","caller":"coach","left":1,"facts":["умираем на «Ramp» (3 за 4 р.)","не заходит «Раш A через мейн»","на A видели меньше CT (2 против 3 за 4 р.)","заготовка «Мид → CT, A с двух сторон»"]},"freeze":45}

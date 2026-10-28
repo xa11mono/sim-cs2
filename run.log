@@ -1,0 +1,12 @@
+playwright 1.56.0, браузеры: C:\Windows\system32\config\systemprofile\.simcs2_node\ms-playwright
+> git fetch --quiet origin d465d15b83b4dd1e0e809ef327ca8c85ed190c0a
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_pl0zupq9 FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_pl0zupq9\src\build.py --map ancient C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\to_m13r10.html
+> node C:\actions-runner\_work\sim-cs2\sim-cs2\tools\timeout_shot.js C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\to_m13r10.html 13 10 C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\to_m13r10 1000 36 1600 900 both
+{"round":10,"state":"freeze","pause":{"side":"T","name":"Team Spirit","caller":"coach","left":1,"facts":["умираем на «Ramp» (3 за 4 р.)","не заходит «Раш A через мейн»","на A видели меньше CT (2 против 3 за 4 р.)","заготовка «Мид → CT, A с двух сторон»"]},"freeze":45}
+> git fetch --quiet origin d465d15b83b4dd1e0e809ef327ca8c85ed190c0a
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_w6wwjlmo FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_w6wwjlmo\src\build.py --map ancient C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\to_m11r8.html
+> node C:\actions-runner\_work\sim-cs2\sim-cs2\tools\timeout_shot.js C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\to_m11r8.html 11 8 C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\to_m11r8 1000 36 1600 900 both
+{"round":8,"state":"freeze","pause":{"side":"CT","name":"Team Falcons","caller":"igl","left":2,"facts":["T ходят на B (3 из 5) — больше людей на B","на B проигрываем после планта (2) — от ретейка","расстановку «Ретейк-сетап B» прочитали — меняем"]},"freeze":45}
+all done
