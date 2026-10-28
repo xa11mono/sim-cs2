@@ -277,7 +277,7 @@ var ROUTE_PORTAL = 0;   // (v406) цена перехода между учас�
 // (v416, М151) запрет пути через проходы у́же корпуса (v412) убран: у Kitchen, Hole, TV (Mirage) и T Lower ↔ Ruins (Ancient) других
 // проходов нет — путь шёл в обход в 4–15 раз длиннее (надпись «навмеш не связывает напрямую»). Схождение на спуске T разводит полоса (laneShift)
 var FIRE_DETOUR = 600;   // (v438) цена перехода через горящий огонь, ед. карты: обход до ~600 длиннее — лучше, чем сквозь огонь (проектное число)
-var KNOWN_PATH_SEC = 6, KNOWN_PATH_R = 300, KNOWN_DETOUR = 500;   // (v450) проектные числа: «свежая» инфа (как контакт ≤ 6 с), радиус места, цена обхода
+var KNOWN_PATH_SEC = 6, KNOWN_PATH_R = 300, KNOWN_DETOUR = 0;   // (v450) проектные числа: «свежая» инфа (как контакт ≤ 6 с), радиус места, цена обхода
 function zoneDijkstra(fromId, toId, team){
   if(fromId===toId) return [fromId];
   var side = team === "CT" ? zoneSideMap() : null;
