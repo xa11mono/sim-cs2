@@ -336,7 +336,7 @@ function rpEmotions(E, R){
         '<div class="rp-say"><b>' + esc(say) + '</b></div>' +
         '<div class="rp-ph">' + ph + '</div>' +
         '<div class="rp-nm"><span>' + esc(R.nick[id] || id) + '</span>' + (st.k ? '<i>' + st.k + ' уб.</i>' : '') + '</div>' +
-        (vx ? '<div class="rp-vx" title="последнее в войсе за раунд">«' + esc(vx) + '»</div>' : '') + '</div>';
+        '<div class="rp-vx" title="последнее в войсе за раунд">' + (vx ? '«' + esc(vx) + '»' : '') + '</div></div>';
     }).join("") + '</div>';
   };
   E.emo.innerHTML =

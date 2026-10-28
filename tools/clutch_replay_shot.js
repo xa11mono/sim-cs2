@@ -17,15 +17,15 @@ const { chromium } = require('playwright'); const fs = require('fs'), path = req
     while(matchNum === M0 && !(roundNum === r && roundState === "live") && guard++ < 2e6) stepTick();
     // раунд — тиками, после каждого — запись, как после кадра страницы
     guard = 0;
-    while(matchNum === M0 && roundNum === r && guard++ < 2e5){ stepTick(); nowTs += 1000/TICK_HZ; rpRecord(); if(RP.pending || roundState !== "live") break; }
-    for(var i = 0; i < 8; i++){ stepTick(); nowTs += 1000/TICK_HZ; rpRecord(); }   // хвост после конца раунда
+    while(matchNum === M0 && roundNum === r && guard++ < 2e5){ nowTs += 1000/TICK_HZ; stepTick(); rpRecord(); if(RP.pending || roundState !== "live") break; }
+    for(var i = 0; i < 8; i++){ nowTs += 1000/TICK_HZ; stepTick(); rpRecord(); }   // хвост после конца раунда
     paused = false;
     var R = RP.last;
     return JSON.stringify({round: roundNum, state: roundState, pending: !!RP.pending, clutch: R && R.clutch, kills: R ? R.kills.length : 0, samples: R ? R.s.length : 0,
       segs: R && R.clutch ? rpBuild(R).segs.map(function(s){ return [s.a, s.b, s.m.map(function(q){ return q.kind; }).join(",")]; }) : null});
   } + ')(' + m + ',' + r + ')'), [+m, +r]);
-  console.log(info);
+  console.log(info); fs.writeFileSync(path.join(out, 'info.txt'), info + '\n');
   for(let i = 0; i < n; i++){ await pg.waitForTimeout(step); await pg.screenshot({path: path.join(out, 'rp_' + String(i).padStart(2, '0') + '.png')}); }
-  if(errs.length) console.log('ОШИБКИ:', errs.slice(0, 5).join('\n'));
+  if(errs.length){ console.log('ОШИБКИ:', errs.slice(0, 5).join('\n')); fs.appendFileSync(path.join(out, 'info.txt'), 'ОШИБКИ:\n' + errs.join('\n') + '\n'); }
   await br.close();
 })();

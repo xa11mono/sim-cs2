@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Прогоны замера на ПК владельца (исполнитель GitHub, .github/workflows/measure.yml). Игру не меняет.
-Задание — tools/measure/request.json в ветке measure/<что-угодно>:
+Задание — tools/measure/request.json в ветке measure/<что-угодно> (v459: можно и "shots" — снимки повтора клатча):
   {"par": 6, "jobs": [{"label": "b1fix_anc", "ref": "b1-walk-who", "map": "ancient", "matches": [3,7,11,13,17,19,23,29]}, ...]}
 ref — ветка или коммит, чью игру играть; инструменты замера (сторож, раннер) берутся из текущей ветки measure/…
 Для каждого задания: сборка игры ref во временную папку → walk_run.py (сторож ходьбы + обычный сторож) → tools/measure/runs/<label>/.
@@ -33,7 +33,15 @@ def ensure_playwright():
         npx = os.path.join(home, 'node_modules', '.bin', 'playwright.cmd' if os.name == 'nt' else 'playwright')
         sh([npx, 'install', 'chromium'], cwd=home)
     os.environ['NODE_PATH'] = os.path.join(home, 'node_modules')
-    log('playwright ' + PW_VER)
+    # (v459) браузер — тоже в своей папке: исполнитель как служба Windows (учётная запись SYSTEM) не видит браузер из профиля
+    # пользователя («Executable doesn't exist … systemprofile … headless_shell.exe» — ни один матч не начинался). Нет — поставить
+    os.environ['PLAYWRIGHT_BROWSERS_PATH'] = os.path.join(home, 'ms-playwright')
+    exe = subprocess.run(['node', '-e', "process.stdout.write(require('playwright').chromium.executablePath())"],
+                         capture_output=True, text=True, cwd=home).stdout.strip()
+    if not exe or not os.path.exists(exe):
+        npx = os.path.join(home, 'node_modules', '.bin', 'playwright.cmd' if os.name == 'nt' else 'playwright')
+        sh([npx, 'install', 'chromium'], cwd=home)
+    log('playwright ' + PW_VER + ', браузеры: ' + os.environ['PLAYWRIGHT_BROWSERS_PATH'])
 
 def build(ref, mapname, out):
     tmp = tempfile.mkdtemp(prefix='simbuild_')
@@ -52,12 +60,18 @@ def main():
     par = int(req.get('par', 6)); sims = os.path.join(ROOT, 'tools', 'measure', 'runs', '_sims'); os.makedirs(sims, exist_ok=True)
     # сначала собрать все версии, потом все матчи одной очередью (освободилось место — сразу следующий матч любой версии)
     jobargs = []; mset = None
-    for j in req['jobs']:
+    # (v459) снимки экрана: {"shots": [{"label", "ref", "map", "match", "round", "step"?, "n"?}]} — tools/clutch_replay_shot.js
+    for j in req.get('shots', []):
+        sim = os.path.join(sims, j['label'] + '.html'); build(j['ref'], j.get('map', 'ancient'), sim)
+        out = os.path.join(ROOT, 'tools', 'measure', 'runs', j['label']); os.makedirs(out, exist_ok=True)
+        sh(['node', os.path.join(ROOT, 'tools', 'clutch_replay_shot.js'), sim, str(j['match']), str(j['round']), out,
+            str(j.get('step', 900)), str(j.get('n', 26))], cwd=ROOT)
+    for j in req.get('jobs', []):
         sim = os.path.join(sims, j['label'] + '.html')
         build(j['ref'], j.get('map', 'ancient'), sim); jobargs.append('--job=%s,%s' % (j['label'], sim))
         m = ','.join(str(x) for x in j.get('matches', [3, 7, 11, 13, 17, 19, 23, 29]))
         assert mset in (None, m), 'у всех заданий — одни и те же матчи'; mset = m
-    sh([PY, os.path.join(HERE, 'engine', 'walk_run.py')] + jobargs + ['--matches=' + mset, '--par=%d' % par], cwd=ROOT)
+    if jobargs: sh([PY, os.path.join(HERE, 'engine', 'walk_run.py')] + jobargs + ['--matches=' + mset, '--par=%d' % par], cwd=ROOT)
     log('all done')
 
 if __name__ == '__main__':
