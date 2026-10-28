@@ -1,0 +1,4 @@
+{"par": 2, "jobs": [], "shots": [
+  {"label": "rp_m7r26", "ref": "b2b631baa967bf8dac9d7e15d9020f7e32e4cb45", "map": "ancient", "match": 7, "round": 26, "step": 900, "n": 34, "mode": "both"},
+  {"label": "rp_m3r15", "ref": "b2b631baa967bf8dac9d7e15d9020f7e32e4cb45", "map": "ancient", "match": 3, "round": 15, "step": 900, "n": 34, "mode": "both"}
+]}

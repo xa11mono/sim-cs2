@@ -1,0 +1,12 @@
+playwright 1.56.0, браузеры: C:\Windows\system32\config\systemprofile\.simcs2_node\ms-playwright
+> git fetch --quiet origin b2b631baa967bf8dac9d7e15d9020f7e32e4cb45
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_9czn3afh FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_9czn3afh\src\build.py --map ancient C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\rp_m7r26.html
+> node C:\actions-runner\_work\sim-cs2\sim-cs2\tools\clutch_replay_shot.js C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\rp_m7r26.html 7 26 C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\rp_m7r26 900 34 1600 900 both
+{"round":26,"state":"ending","pending":true,"clutch":{"id":"CT2","side":"CT","n":4,"alive":true,"hp":64,"kills":3},"kills":8,"samples":6280,"segs":[[173804,174734.4,"kill,kill,kill,defuse"]]}
+> git fetch --quiet origin b2b631baa967bf8dac9d7e15d9020f7e32e4cb45
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_z9x7yyfn FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_z9x7yyfn\src\build.py --map ancient C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\rp_m3r15.html
+> node C:\actions-runner\_work\sim-cs2\sim-cs2\tools\clutch_replay_shot.js C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\rp_m3r15.html 3 15 C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\rp_m3r15 900 34 1600 900 both
+{"round":15,"state":"ending","pending":true,"clutch":{"id":"T0","side":"T","n":3,"alive":true,"hp":100,"kills":3},"kills":9,"samples":7400,"segs":[[100865,101063.4,"kill"],[101580,101778.4,"kill"],[101885,102083.4,"plant"],[102762,102928.4,"kill"]]}
+all done
