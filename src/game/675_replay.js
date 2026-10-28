@@ -263,9 +263,11 @@ function rpDraw(E, x, P, dt, W, H, dpr){
   // камера: клатчер и ближайший живой враг (≤ 800) или тот, кого он убьёт / убил рядом по времени — оба в кадре
   var cx = bx(ci), cy = by(ci), tx = cx, ty = cy, span = 720, foe = -1, fd = 800;
   var sg = P.phase === "clip" || P.phase === "cut" ? P.segs[P.si] : null;
-  if(sg) sg.m.forEach(function(m){ if(m.kind === "kill" && Math.abs(m.t - P.rt) < 1.6*TICK_HZ){ var vi = rpBotIdx(m.k.vic); if(vi >= 0){ var d = Math.hypot(bx(vi)-cx, by(vi)-cy); if(d < 1400){ foe = vi; fd = -1; } } } });
+  if(sg) sg.m.forEach(function(m){ if(m.kind === "kill" && Math.abs(m.t - P.rt) < 1.6*TICK_HZ){ var vi = rpBotIdx(m.k.vic); if(vi >= 0){ var d = Math.hypot(bx(vi)-cx, by(vi)-cy); if(d < 900){ foe = vi; fd = -1; } } } });
   if(foe < 0) for(var i = 0; i < n; i++){ if(bots[i].team === R.clutch.side || !A.b[i*RP_NB+3]) continue; var d = Math.hypot(bx(i)-cx, by(i)-cy); if(d < fd){ fd = d; foe = i; } }
-  if(foe >= 0){ var ox = bx(foe), oy = by(foe); tx = (cx + ox)/2; ty = (cy + oy)/2; span = Math.max(600, Math.hypot(ox-cx, oy-cy)*2.3); }
+  // дефуз / плант клатчера — камера на нём, без дальних врагов
+  if(A.b[ci*RP_NB+7]) foe = -1;
+  if(foe >= 0){ var ox = bx(foe), oy = by(foe); tx = (cx + ox)/2; ty = (cy + oy)/2; span = Math.min(1150, Math.max(600, Math.hypot(ox-cx, oy-cy)*2.3)); }
   var slowNow = rpSpeed(P) < 0.9; if(slowNow && P.phase === "clip") span *= 0.86;
   var off = Math.hypot(tx-cx, ty-cy), om = 0.3*span; if(off > om){ tx = cx + (tx-cx)*om/off; ty = cy + (ty-cy)*om/off; }
   var top = H*0.09, bot = H*0.09, avH = H - top - bot, sc = Math.min(W, avH)/span;
