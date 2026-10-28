@@ -532,7 +532,7 @@
   <div id="topbar">
     <div class="tb-id">
       <h1>Ancient<span id="matchTick" class="mono" title="Какой матч сейчас идёт и тик — запиши, если увидел баг"></span></h1>
-      <div class="sub mono" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 446, 28.10</div>
+      <div class="sub mono" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 449, 28.10</div>
     </div>
     <div class="tb-group" id="tbMatch">
       <button id="btnPause">Пауза</button>
@@ -576,6 +576,7 @@
           <label class="chk"><input type="checkbox" id="chkZoneEdit"> зоны спавнов/сайтов (перо)</label>
           <label class="chk" title="Сдвинуть/отмасштабировать весь слой зон и тактических точек целиком"><input type="checkbox" id="chkZoneAlign"> выравнивание зон</label>
           <label class="chk"><input type="checkbox" id="chkAlign"> выравнивание navmesh</label>
+          <label class="chk" title="(v447) Хайлайты: шанс, что игрок в начале дуэли «в ударе» — быстрее реакция, точнее прицел, флик AWP, выходит на следующего. 0 — без хайлайтов. Меняет игру с нового матча (кнопка «Сыграть»)">хайлайты <input type="range" id="hlP" min="0" max="30" step="1" style="width:90px;vertical-align:middle"> <span id="hlPv"></span></label>
           <label class="chk"><input type="checkbox" id="chkNavWarp" title="Навмеш смещён от стен по-разному в разных углах карты — обычный общий сдвиг/масштаб это не лечит, нужно несколько опорных точек"> калибровка навмеша (точки)</label>
           <button id="btnExportProject" title="Всё, что сохранено только в этом браузере (стены, точки калибровки, зоны) — одним JSON, чтобы зашить в код">Экспорт проекта</button>
         </div>
@@ -10163,7 +10164,11 @@ function openDirLook(b){
   var moving = b.curSpeed > 60*SPD_K && b.heading !== undefined;
   var postA = b.post && b.post.look ? Math.atan2(b.post.look.y-b.y, b.post.look.x-b.x) : null;
   var refA = moving ? b.heading : postA;
-  var ahead = function(q){ return refA === null || _angOff(Math.atan2(q.y-b.y, q.x-b.x), refA) <= 1.5; };
+  // (v448, док владельца 28.10 №4: «перебивает взгляд у игрока 1» — м1 т1768: на развороте взял «открытое» на T Spawn в 1,27 рад от бега,
+  // через 0,1 с бег выпрямился, а взгляд остался за спиной сбоку) на бегу «впереди» — в 0,9 рад от направления бега (как у взгляда про
+  // на ходу, 270), стоя — в 1,5 рад от угла поста, как было
+  var aheadMax = moving ? 0.9 : 1.5;
+  var ahead = function(q){ return refA === null || _angOff(Math.atan2(q.y-b.y, q.x-b.x), refA) <= aheadMax; };
   if(b._odl && tick - b._odl.t < 90 && b._odl.post === (b.post && b.post.id) && (!b._odl.p || ahead(b._odl.p))) return b._odl.p;
   var zi = bzOf(b.x, b.y), cands = [], seen = {};
   var addZ = function(j){ if(j < 0 || seen[j]) return; seen[j] = 1;
@@ -10949,6 +10954,10 @@ function lookUrgent(b){
   if(hs && hs.team && hs.team !== b.team && tick - hs.tick <= 96 && Math.hypot(hs.x-b.x, hs.y-b.y) < 300) return 1;
   return 0;
 }
+function lookPtAlive(b, pt){
+  if(!pt) return false; var a = Math.atan2(pt.y-b.y, pt.x-b.x);
+  return (b._lkC || []).some(function(c){ return c && c.pt && c.sc > 0 && _angOff(Math.atan2(c.pt.y-b.y, c.pt.x-b.x), a) < SL.same; });
+}
 function smoothLookFilter(b, look, urgent){
   var moving = b.curSpeed > 60*SPD_K && b.heading !== undefined;
   // на бегу без цели — изредка короткий взгляд на опасный угол сбоку
@@ -11002,6 +11011,10 @@ function smoothLookFilter(b, look, urgent){
   if(dA < SL.same){ S.pt = {x:look.x, y:look.y}; return look; }            // то же направление — просто уточняем точку
   var hold = urgent ? SL.holdAlert : (moving ? SL.holdMove : SL.holdStand);
   if(tick - S.since < hold) return S.pt;                                    // старое ещё не "досмотрели"
+  // (v448, док владельца 28.10 №4: игрок 4 «перебивает взгляд» — м1 т1368–1450 держал точку T Roof 1,3 с, хотя её уже никто не предлагал,
+  // а запрет «не возвращаться к брошенному» не пускал к T Ramp, куда звал делёж) держимая точка, которую не предлагает ни один вариант
+  // взгляда (lookCands) и ни свой путь, — не держится дольше hold: запрет возврата — против метаний между двумя живыми вариантами
+  if(moving && !lookPtAlive(b, S.pt)){ b._sl = {pt:{x:look.x, y:look.y}, since:tick, prev:S.pt, left:tick}; return look; }
   if(S.prev && tick - S.left < (urgent ? SL.backAlert : SL.backBlock)){                                // не возвращаться сразу к брошенному
     var aP = Math.atan2(S.prev.y-b.y, S.prev.x-b.x);
     var dP = Math.abs(((aN-aP+Math.PI)%(2*Math.PI)+2*Math.PI)%(2*Math.PI)-Math.PI);
@@ -13067,7 +13080,9 @@ function contactInfo(b){
   for(var id in BL){ var e = BL[id], ob = teamBot(id); if(!ob || !ob.alive || tick - e.tick > CONTACT_AGE*TICK_HZ) continue;
     if(trade || myZ[zoneIdAt3(e.x, e.y, e.z)]) take(e.x, e.y, e.src === "spotted", id); }
   var hs = b.heardSound; if(hs && hs.team && hs.team !== b.team && tick - hs.tick <= CONTACT_AGE*TICK_HZ && !deadSrc(hs.src) && (hs.kind !== "call" || trade || myZ[zoneIdAt3(hs.x, hs.y, hs.z)])) take(hs.x, hs.y, false, hs.src);
-  var N = b._lastNade; if(!best && N && N.type === "flash" && tick - N.t >= NADE.flash.fuse - 8 && tick - N.t < NADE.flash.fuse + 40 && Math.hypot(N.x-b.x, N.y-b.y) < CONTACT_R) best = {x:N.x, y:N.y, own:true};
+  // (v448, док владельца 28.10 №4: у игрока 1 «якорь контакт холд, когда он далеко, не стрелялся и никого не видел») своя флешка —
+  // контакт только если кинута себе под пик («флешу себе и выхожу»); раньше любая своя флешка (на сайт за 700 ед.) давала «держу свой контакт»
+  var N = b._lastNade; if(!best && N && N.type === "flash" && N.self && tick - N.t >= NADE.flash.fuse - 8 && tick - N.t < NADE.flash.fuse + 40 && Math.hypot(N.x-b.x, N.y-b.y) < CONTACT_R) best = {x:N.x, y:N.y, own:true};
   return best ? {x:best.x, y:best.y, d:bd, seen:!!best.seen, own:!!best.own, id:best.id || null} : null;
 }
 function contactCritical(b, C){
@@ -13128,7 +13143,7 @@ function contactTick(b){
   // (v418, скрин владельца 25.10: T впятером вышли на A и стреляются с 9-м, 5-й рядом «держит» — врагов 5 > своих 2 + 1) счёт тел не
   // различал «идут на меня» и «стреляются с моим»: свой рядом в бою с этой группой — выходит (стрелять, пока свой ещё жив, — кроссфайр,
   // PRO_PLAY 3: «кроссфайры — хлеб с маслом»). Только то, что игрок знает: свой стреляется рядом (слышно), его противник — в знании команды
-  var swing = b.hp > LOW_HP && (Math.max(1, nE) <= nM + 1 || !!contactMateFight(b, C));
+  var swing = b.hp > LOW_HP && (Math.max(1, nE) <= nM + 1 || !!contactMateFight(b, C) || hlHot(b));   // (v447) в ударе — выходит и на численный перевес
   // (v418б, владелец 25.10: «про не выпрыгивает из дыма на пятерых даже под стрельбу тиммейта — играет от края дыма») между ним и врагом
   // дым — не выходит, держит (место выхода выбиралось по прямой видимости без дыма)
   if(swing && smokeBlocks(b.x, b.y, look.x, look.y)) swing = false;
@@ -14039,7 +14054,7 @@ function throwNade(b, type, tx, ty, lob, why, trusted){
   if(lob && !ARC){ if(!hasLOS(b.x, b.y, tx, ty, b.z)){ NADE_FAIL = "дуга упирается в потолок, цель не видна"; return false; } lob = false; }
   // (v340, отметка владельца: «кидает через крытую зону» — kyousuke из-под крыши B Apps навесом через стену) сам под крышей /
   // под другим этажом — навесом нельзя (дуга упрётся в потолок): только низом, если цель видна (окно, проход)
-  b.nades[type]--; b._nadeT = tick; b._lastNade = {type:type, x:tx, y:ty, t:tick};
+  b.nades[type]--; b._nadeT = tick; b._lastNade = {type:type, x:tx, y:ty, t:tick, self: /себе/.test(String(why || (b.nadeTask && b.nadeTask.why) || ""))};   // (v448) self — флешка себе под пик (контакт — 350)
   npUse(b, type, (b.nadeTask && b.nadeTask.type === type && b.nadeTask.npm) || npMomentNow(b));   // (v428) запись плана гранат снята
   var d = Math.max(60, Math.hypot(tx-b.x, ty-b.y)); if(!lob) d = Math.min(NADE_THROW_RANGE, d);
   var a = Math.atan2(ty-b.y, tx-b.x);
@@ -14541,6 +14556,7 @@ function applyDamage(att, b, dmg, src, o){
   dropBomb(b);
   intelDeath(b, foe);   // своего убил свой — в войсе «минус», без «убил X»: враг тут ни при чём
   if(foe){ LOOK_REPLAN[foe.team] = true; foe._killHowT = tick; }   // _killHowT — для обсервера (показ)
+  if(foe) hlKill(foe);   // (v447) хайлайт: серия в ударе
   if(foe){ foe.kills++; foe.roundKills++; foe.money = Math.min(MAX_MONEY, foe.money + (o.reward || 300)); }
   else if(mate) att.money = Math.max(0, att.money + FF_TK_CASH);
   var wkey = o.wkey || (src === "HE" ? "HE" : "MOLOTOV");
@@ -16329,6 +16345,7 @@ function tryShoot(shooter, target, dist){
     shooter._place = Math.max(0, Math.min(1, 1 - hD/0.35));
     shooter._headLvl = 0.55 + 0.4*skN;
   }
+  if(cs <= 1) hlContact(shooter, target);   // (v447) хайлайт: жребий «в ударе» в начале дуэли
   if(cs <= 1){
     shooter._hes = 0;
     if(BAL.execErr && shooter.prof && hashRand(tick*23 + shooter.id.charCodeAt(1)*13 + target.id.charCodeAt(1)) < 0.015 + (1-prof(shooter,"disc"))*0.05){
@@ -16347,7 +16364,7 @@ function tryShoot(shooter, target, dist){
     else if(tsp > 100*SPD_K) visLag = -2;
     shooter._visLag = visLag;
   } else if(BAL.partialVis) visLag = shooter._visLag || 0;
-  effReaction = Math.max(4, Math.round(shooter.reactionTicks * (shooter._reactMul || 1) * clutchMul) + (shooter._peekLag || 0) + ((BAL.awpClose && shooter.weapon.key === "AWP" && dist < 230) ? 0 : (shooter.weapon.scopeTicks || 0)) + (shooter._hes || 0) + visLag);
+  effReaction = Math.max(4, Math.round(shooter.reactionTicks * (shooter._reactMul || 1) * clutchMul * hlReact(shooter)) + (shooter._peekLag || 0) + ((BAL.awpClose && shooter.weapon.key === "AWP" && dist < 230) ? 0 : Math.round((shooter.weapon.scopeTicks || 0) * hlScope(shooter))) + (shooter._hes || 0) + visLag);
   if(shooter._smokeShot){ /* прострел смока — без реакции на "появление", он и не появлялся */ }
   else if(cs < effReaction){
     // префаер — только по тому, что сам только что видел (≤1.4с), а не по коллу/
@@ -16415,7 +16432,7 @@ function tryShoot(shooter, target, dist){
   // первая пуля после реакции чуть хуже (довёл прицел не до конца): у про точность 1-го выстрела очереди 0,34 против 0,39 у
   // следующих (Mirage, видимые цели) → ×(1 + AIM_FLICK); кто держал угол / заходил с прицелом — меньше
   var settle = Math.max(0, 1 - (cs - effReaction)/24);
-  var aimS = aimSigma(shooter, target, dist) * (1 + AIM_FLICK * settle * Math.min(shooter._preAim||1, (shooter._reactMul||1) < 1 ? 0.35 : 1));
+  var aimS = hlAim(shooter) * aimSigma(shooter, target, dist) * (1 + AIM_FLICK * settle * Math.min(shooter._preAim||1, (shooter._reactMul||1) < 1 ? 0.35 : 1));
   if(BAL.hitbox) recoilErr *= 0.3; // (6) отдача теперь — паттерн (ниже), тут только её "шум"
   var rest2 = recoilErr*recoilErr + spamErr*spamErr + aimS*aimS + 0.5*aimD*aimD, sM = 1;
   if(shooter.onStairs) sM *= 2.2;
@@ -16625,6 +16642,40 @@ function duelContext(bot, enemiesSeen, alliesNear){
   }
   return o;
 }
+// ======================= (v447, владелец 28.10) ХАЙЛАЙТЫ — «игрок в ударе» — одно место =======================
+// Владелец: «шанс, что игрок сделает что-то нереальное: энтри первого в голову, второго одной пулей, флик с AWP». Не подстроенная
+// ситуация: в начале дуэли (первый тик, когда видит цель) жребий с шансом HL.p — выпало, игрок на HL.sec с «в ударе»: реакция ×HL.react,
+// ошибка прицела ×HL.aim, AWP доводит прицел (scope) ×HL.scope — флик. Убил в ударе — окно продлевается; пока в ударе, после фрага не
+// уходит в укрытие и выходит на контакт, даже если врагов больше (идёт на следующего). Мораль — не здесь (М171, на потом).
+// Калибровка (демки Ancient, 92 демки): раундов с 3 убийствами одного за ≤ 4 с — 7,2 % у про, у ботов v446 — 3,2–4,1 %; всего раундов
+// с 3+ убийствами одного у ботов уже как у про (35 / 32 %) — хайлайт делает серии быстрее, а не больше. Числа силы — проектные.
+// Шанс — ползунок «Хайлайты» в меню «Инструменты» (хранится в браузере); 0 — игра как без хайлайтов (бит в бит).
+var HL = {p: 0.06, sec: 4, react: 0.5, aim: 0.6, scope: 0.4};   // проектные числа; p подобрать по сериям про (см. выше)
+var HL_KEY = "sim-hl-v1";
+try{ var _hl = JSON.parse(localStorage.getItem(HL_KEY) || "null"); if(_hl && isFinite(_hl.p)) HL.p = Math.max(0, Math.min(1, +_hl.p)); }catch(e){}
+function hlHot(b){ return !!(b && b._hot && b._hot.round === roundNum && tick < b._hot.until); }
+// первый тик контакта с целью (tryShoot, cs ≤ 1)
+function hlContact(b, target){
+  if(!(HL.p > 0) || hlHot(b)) return;
+  var u = hashRand(tick*977 + b.id.charCodeAt(b.id.length-1)*131 + target.id.charCodeAt(target.id.length-1)*17 + matchNum*7 + roundNum*389);
+  if(u < HL.p) b._hot = {round: roundNum, until: tick + HL.sec*TICK_HZ, kills: 0};
+}
+// убил (applyDamage): в ударе — окно продлевается; со второго подряд — в войсе
+function hlKill(killer){
+  if(!hlHot(killer)) return;
+  var H = killer._hot; H.kills++; H.until = tick + HL.sec*TICK_HZ;
+  if(H.kills >= 2) voiceLog(killer.team, "hl"+killer.id+roundNum+"_"+H.kills, killer.id, "в ударе — минус "+H.kills+" подряд!");
+}
+// множители для tryShoot
+function hlReact(b){ return hlHot(b) ? HL.react : 1; }
+function hlAim(b){ return hlHot(b) ? HL.aim : 1; }
+function hlScope(b){ return hlHot(b) ? HL.scope : 1; }
+// ползунок «хайлайты» (меню «Инструменты»): шанс в процентах на дуэль; сразу в игре, хранится в браузере
+(function(){ if(typeof document === "undefined") return; var r = document.getElementById("hlP"), v = document.getElementById("hlPv"); if(!r) return;
+  var show = function(){ v.textContent = Math.round(HL.p*100) + "%"; };
+  r.value = Math.round(HL.p*100); show();
+  r.addEventListener("input", function(){ HL.p = (+r.value || 0)/100; show(); try{ localStorage.setItem(HL_KEY, JSON.stringify({p: HL.p})); }catch(e){} });
+})();
 function decideAction(bot, nearestDist, alliesNear, enemiesSeen){
   var hpFrac = Math.max(0, bot.hp)/100;
   // было enemiesSeen - alliesNear — себя не считали, и КАЖДАЯ дуэль 1 на 1
@@ -16841,6 +16892,7 @@ function postKillDecide(sh, tg, vp, here){
 function afterKillMove(sh, tg, w){
   if(!sh.alive || sh.planting || sh.defusing) return false;   // (v370) носитель — как все (v368)
   if(afterKillReact(sh, tg, w)) return true;
+  if(hlHot(sh)) return false;   // (v447) в ударе — не уходит в укрытие, держит линию на следующего
   if((sh._visible||[]).some(function(o){ return o.alive && o !== tg; })) return false;   // ещё кого-то видит — стреляет (движение в бою — fightCycleTick)
   return killMoveCover(sh, tg);
 }
@@ -18244,11 +18296,21 @@ function stepTick(){
         var step = bot.curSpeed * dtSec;
         // (v370, владелец: «не стоят в толпе») идём за своим, который идёт туда же, — держим дистанцию, а не наступаем ему на пятки:
         // у про на выходе ближайший свой ближе 60 ед. карты только 11–13 % времени (tools: демки Mirage / Ancient), у ботов — 25 %
+        // (v448, док владельца 28.10 №4: «когда бегут по склону, сильно замедляются») раньше задний плёлся за своим на 25–36 % скорости
+        // (матч 1 р1: T1 за T3 на спавне — 10–12 ед. за 16 тиков вместо 24; у про в первые 10 с середина скорости 95, у ботов 85). Теперь
+        // сначала обходит сбоку (шаг в сторону от своего, если там пол своего уровня без обрыва и не стена), и только если некуда — тормозит
+        var folK = 1, folSide = 0;
         if(dist > FOLLOW_GAP){
           var fx = dx/Math.max(dist, 0.01), fy = dy/Math.max(dist, 0.01);
           for(var fi = 0; fi < bots.length; fi++){ var fo = bots[fi]; if(fo === bot || !fo.alive || fo.team !== bot.team || !(fo.curSpeed > 40) || fo.heading === undefined) continue;
-            var ox = fo.x-bot.x, oy = fo.y-bot.y, fwd = ox*fx + oy*fy, lat = Math.abs(ox*fy - oy*fx);
-            if(fwd > 0 && fwd < FOLLOW_GAP && lat < 40 && Math.cos(fo.heading)*fx + Math.sin(fo.heading)*fy > 0.5) step *= Math.max(0.25, (fwd - 20) / (FOLLOW_GAP - 20)); }
+            var ox = fo.x-bot.x, oy = fo.y-bot.y, fwd = ox*fx + oy*fy, crs = ox*fy - oy*fx, lat = Math.abs(crs);
+            if(fwd > 0 && fwd < FOLLOW_GAP && lat < 40 && Math.cos(fo.heading)*fx + Math.sin(fo.heading)*fy > 0.5){ var kf = Math.max(0.25, (fwd - 20) / (FOLLOW_GAP - 20));
+              if(kf < folK){ folK = kf; folSide = crs > 0 ? -1 : 1; } } }   // folSide — в сторону, противоположную своему
+          if(folK < 1){
+            var sdx = fx*0.8 + fy*folSide*0.6, sdy = fy*0.8 - fx*folSide*0.6, sqx = bot.baseX + sdx*30, sqy = bot.baseY + sdy*30;
+            if(!stepBlocked(bot.baseX, bot.baseY, sqx, sqy, bot) && navSegOnLevel(bot.baseX, bot.baseY, bot.z, sqx, sqy, bot.z) && navSegNoDrop(bot.baseX, bot.baseY, bot.z, sqx, sqy, bot.z)){ dx = sdx*dist; dy = sdy*dist; }
+            else step *= folK;
+          }
         }
 
         // "лестницы" (план §3): нет отдельного типа портала на навмеше, зато
@@ -21813,7 +21875,9 @@ function hudBombBoom(){
 function hudBombPulse(gapSec){
   var el = typeof document !== "undefined" && document.getElementById("bombEdge"); if(!el) return;
   if(el._pulse) try { el._pulse.cancel(); } catch(e){}
-  el._pulse = hudAnim(el, [{opacity:0.5}, {opacity:0.12}], {duration: Math.max(90, Math.min(700, gapSec*1000*0.8)), easing:"ease-out"});
+  // (v448, док владельца 28.10 №4: «подсветка не мигает с тиками бомбы») вспышка — сигнал, не украшение: не выключается системной настройкой
+  // «меньше анимации» (hudAnim её глушил, HUD_REDUCED) и ярче (0,75 — проектное число; было 0,5 — на экране владельца не видно)
+  if(typeof el.animate === "function") try { el._pulse = el.animate([{opacity:0.75}, {opacity:0.12}], {duration: Math.max(90, Math.min(700, gapSec*1000*0.8)), easing:"ease-out"}); } catch(e){}
 }
 // ---------- (v241, из переделки) табло (Н6): счёт, раунд, таймер, живые — как на трансляции ----------
 // Логотипы команд — LINEUP[команда].logo (картинка data:/svg), по сторонам — TEAM_LOGO; пока нет — буква стороны.
@@ -22427,6 +22491,8 @@ var __SNAP = [
 ["AIM_HEAD_PISTOL", function(){ return AIM_HEAD_PISTOL; }, function(v){ try{ AIM_HEAD_PISTOL = v; }catch(e){} }],
 ["STATE_LABEL", function(){ return STATE_LABEL; }, function(v){ try{ STATE_LABEL = v; }catch(e){} }],
 ["TRADE_R", function(){ return TRADE_R; }, function(v){ try{ TRADE_R = v; }catch(e){} }],
+["HL", function(){ return HL; }, function(v){ try{ HL = v; }catch(e){} }],
+["HL_KEY", function(){ return HL_KEY; }, function(v){ try{ HL_KEY = v; }catch(e){} }],
 ["roundNum", function(){ return roundNum; }, function(v){ try{ roundNum = v; }catch(e){} }],
 ["score", function(){ return score; }, function(v){ try{ score = v; }catch(e){} }],
 ["roundState", function(){ return roundState; }, function(v){ try{ roundState = v; }catch(e){} }],
