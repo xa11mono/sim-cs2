@@ -18,8 +18,18 @@ var RP_K = {
   intro: 0.7, outro: 0.5,
   tracer: 0.22        // след выстрела в повторе, с игры
 };
-var RP = {on: false, rec: null, last: null, P: null, enabled: true, prevRs: null, kfSeen: null, lastTs: 0, holding: false};
-try{ RP.enabled = localStorage.getItem("sim-rp") !== "0"; }catch(e){}
+var RP = {on: false, rec: null, last: null, P: null, enabled: true, mode: "auto", prevRs: null, kfSeen: null, lastTs: 0, holding: false};
+try{ RP.enabled = localStorage.getItem("sim-rp") !== "0"; RP.mode = localStorage.getItem("sim-rp-mode") || "auto"; }catch(e){}
+// (владелец 28.10) как на трансляции, показ бывает разный: клип + реакция, только клип (фраги с замедлением), только реакция.
+// «авто» — выбор по раунду (доли — проектные числа); фрагов и дефуза у клатчера нет — показывать в клипе нечего, только реакция
+var RP_MODES = {both: 0.5, clip: 0.3, emo: 0.2};
+function rpMode(R, B){
+  var has = B.moments.some(function(m){ return m.kind === "kill" || m.kind === "defuse"; });
+  var m = RP.mode;
+  if(m === "auto"){ var u = (rpHash(R.m + "|" + R.round + "|mode") % 1000)/1000; m = u < RP_MODES.both ? "both" : u < RP_MODES.both + RP_MODES.clip ? "clip" : "emo"; }
+  if(!has || !B.segs.length) m = "emo";
+  return m;
+}
 var RP_NB = 9;   // чисел на игрока в снимке: x, y, взгляд, жив, hp, присел, этаж (-1 под полом / 1 над), плант(+)/дефуз(−) 0..1, ослеплён
 function rpNum(v){ return typeof v === "number" && isFinite(v) ? v : NaN; }
 // ---------- запись ----------
@@ -141,11 +151,12 @@ function rpEls(){
   window.addEventListener("keydown", function(e){ if(!RP.on) return; if(e.key === "Escape" || e.code === "Space"){ e.preventDefault(); e.stopImmediatePropagation(); rpStop(); } }, true);
   return RP_EL;
 }
-function rpPlay(R){
+function rpPlay(R, mode){
   if(!R || !R.clutch || !R.s.length) return false;
   var E = rpEls(); if(!E) return false;
-  var B = rpBuild(R), C = R.clutch;
-  RP.P = {R: R, segs: B.segs, si: 0, rt: B.segs.length ? B.segs[0].a : R.end, phase: "intro", ph0: performance.now(), last: performance.now(),
+  var B = rpBuild(R), C = R.clutch, md = mode || rpMode(R, B);
+  if(md === "emo") B.segs = [];
+  RP.P = {R: R, mode: md, segs: B.segs, si: 0, rt: B.segs.length ? B.segs[0].a : R.end, phase: "intro", ph0: performance.now(), last: performance.now(),
           cam: null, feedShown: {}, ci: rpBotIdx(C.id)};
   RP.on = true; RP.pending = null;
   var tm = C.side, nm = R.nick[C.id];
@@ -188,7 +199,7 @@ function rpFrame(ts){
     var sg = P.segs[P.si], sp = rpSpeed(P);
     P.rt += dt*TICK_HZ*sp;
     E.slow.className = "rp-slow" + (sp < 0.9 ? " on" : "");
-    if(P.rt >= sg.b){ if(P.si + 1 < P.segs.length) go("cut"); else go("emo"); }
+    if(P.rt >= sg.b){ if(P.si + 1 < P.segs.length) go("cut"); else go(P.mode === "clip" ? "out" : "emo"); }
   }
   if(P.phase === "cut" && el >= RP_K.cut){ P.si++; P.rt = P.segs[P.si].a; P.cam = null; go("clip"); }
   if(P.phase === "emo" && !P.emoOn){ if(!P.drawn) rpDraw(E, x, P, dt, W, H, dpr); rpBlurBg(E, x); rpEmotions(E, R); P.emoOn = true; E.root.classList.add("emo"); E.slow.className = "rp-slow"; }
@@ -210,7 +221,7 @@ function rpFrame(ts){
 }
 // замедление вокруг фрагов клатча (плавно)
 function rpSpeed(P){
-  var sg = P.segs[P.si], best = 1;
+  var sg = P.segs[P.si], best = 1; if(!sg) return 1;
   sg.m.forEach(function(m){ if(m.kind !== "kill" && m.kind !== "defuse") return; var d = Math.abs(P.rt - m.t)/TICK_HZ;
     if(d < RP_K.slowR){ var f = d/RP_K.slowR, v = RP_K.slow + (1 - RP_K.slow)*f*f; if(v < best) best = v; } });
   return best;
@@ -308,48 +319,101 @@ function rpBlurBg(E, x){
   x.fillStyle = "rgba(6,8,6,.55)"; x.fillRect(0, 0, c.width, c.height);
 }
 // ---------- эмоции: портреты в строчку, что кричат и что последним сказали ----------
-// реакции — проектные фразы (показ): живые, разговорные, с матом (владелец 28.10). Язык — язык войса команды (владелец: Falcons
-// общаются на английском, даже русские игроки; Spirit — на русском); команды нет в списке — по-русски.
-// Выбор — по ситуации игрока, вариант — от номера матча/раунда (повтор того же раунда — те же фразы)
+// Реакции — проектные фразы (показ, владелец 28.10): живые, разговорные, с матом, разной громкости — не все орут: кто-то просто «nice»,
+// проигравшие чаще спокойно («nt», «ладно, следующий»). Громкость — значок в начале фразы: «!» — крик (заглавными, встряска),
+// без значка — обычным голосом, «~» — тихо. Язык — язык войса команды (Falcons — английский, Spirit — русский); русскоговорящие
+// в англоязычной команде иногда срываются на русский, и тиммейты подхватывают («хорош, братан», «бля, nice») — пул mix.
+// Вариант — от номера матча/раунда и игрока (повтор того же раунда — те же фразы).
 var RP_LANG = {"Team Falcons": "en", "Team Spirit": "ru"};
+var RP_RU = {"m0NESY": 1, "kyousuke": 1, "donk": 1, "sh1ro": 1, "zont1x": 1, "magixx": 1};   // говорят по-русски
 var RP_SAY = {
   ru: {
-    hero:     ["ДА БЛЯТЬ!!!", "ИЗИ НАХУЙ!", "ЗАБРАЛ, СУКА!", "ДАААА, ЕБАТЬ!", "КТО ТАМ ГОВОРИЛ, ЧТО Я НЕ ВЫВОЖУ?!", "ВОТ ЭТО Я ВЫДАЛ!"],
-    heroLow:  ["НА {hp} ХП, БЛЯТЬ!!", "С {hp} ХП ЗАБРАЛ, Я ЕБУ!"],
-    mate:     ["ЕБАТЬ ТЫ ВЫДАЛ!", "ДА ЛАДНО, ОДИН НА {n}!", "КРАСАВА, БРАТ!", "ТЫ ЁБАНЫЙ МОНСТР!", "ЛЮТЫЙ, СУКА!", "АХАХА, НУ ТЫ ЗВЕРЬ!", "ЗАБИРАЙ… ЗАБРАЛ!!"],
-    mateHype: ["ЭТО ЧТО ВООБЩЕ БЫЛО?!", "1 НА {n}, Я В АХУЕ!", "ЕБАТЬ, ЭЙС-КЛАТЧ!"],
-    mateAlive:["Я ТУТ ЧИСТО ДЛЯ МАССОВКИ, АХАХ", "КРАСАВА, Я ЖЕ ГОВОРИЛ!"],
-    victim:   ["да как он меня, блять", "сука, он же один был", "откуда он вылез?", "я его вообще не видел", "пиздец, сразу в башку"],
-    loserAlive:["бля, я не успел", "сорян, пацаны", "ну я ж бежал…"],
-    loser:    ["ну это пиздец", "как это можно отдать?", "собрались, следующий", "ебучий клатч", "минус раунд, хуже не бывает"]
+    hero: ["!ДА БЛЯТЬ!", "!ИЗИ НАХУЙ!", "!ЗАБРАЛ, СУКА!", "!ДАААА, ЕБАТЬ!", "!ВОТ ЭТО Я ВЫДАЛ!", "!КТО ТАМ ГОВОРИЛ, ЧТО Я НЕ ВЫВОЖУ?!",
+      "!АХАХАХ, ДА-ДА-ДА!", "!ОДИН НА {n}, ИЗИ!", "!ПОГНАЛИ, БЛЯТЬ!", "!Я ЖЕ ГОВОРИЛ — ДАЙТЕ ВРЕМЯ!", "!ЕСТЬ!!!", "!ВСЁ, ВСЁ, ВСЁ!",
+      "всё, раунд наш", "спокойно, пацаны, спокойно", "ну а кто, если не я", "изи, без нервов", "я знал, что он туда полезет",
+      "хорошо, что не спешил", "чё, нормально же", "так и задумывалось", "ну я ж сказал — сейв не нужен", "гоу дальше",
+      "~фух…", "~руки трясутся, бля", "~ладно, это было стрёмно", "~сердце сейчас выпрыгнет", "~повезло, честно", "~воды дайте"],
+    heroLow: ["!НА {hp} ХП, БЛЯТЬ!", "!С {hp} ХП ЗАБРАЛ, Я ЕБУ!", "на {hp} хп, ребят… на {hp}", "{hp} хп, но кого это волнует",
+      "~{hp} хп, я чуть не сдох", "~на {hp} хп… я сам в шоке"],
+    mate: ["!ЕБАТЬ ТЫ ВЫДАЛ!", "!ДА ЛАДНО, ОДИН НА {n}!", "!КРАСАВА, БРАТ!", "!ТЫ ЁБАНЫЙ МОНСТР!", "!ЛЮТЫЙ, СУКА!", "!АХАХА, НУ ТЫ ЗВЕРЬ!",
+      "!ЗАБИРАЙ… ЗАБРАЛ!", "!ДАВАЙ-ДАВАЙ-ДАВАЙ… ДААА!", "!ВОТ ЭТО ДА!", "!ХОРОШ, ХОРОШ!", "!ДАААА!", "!ПОГНАЛИ!",
+      "найс", "найс, брат", "красавчик", "хорош", "сильно", "ну ты дал", "вот это ты молодец", "лучший", "ну ты машина",
+      "вот это я понимаю", "держи пять", "чисто сыграл", "ахах, ну ты даёшь", "так и надо",
+      "~найс…", "~я в шоке, честно", "~ну красиво, чё", "~ладно, ты гений", "~ну всё, раунд", "~хорош"],
+    mateHype: ["!ЭТО ЧТО ВООБЩЕ БЫЛО?!", "!1 НА {n}, Я В АХУЕ!", "!ЕБАТЬ, ЭТО В ХАЙЛАЙТЫ!", "!КЛИПАЙТЕ, КЛИПАЙТЕ!", "!ОН ОДИН ВСЕХ ВЫНЕС!",
+      "1 на {n}… я молчу", "это просто нереально", "~я не знаю, что сказать"],
+    mateAlive: ["я тут чисто для массовки, ахах", "красава, я прикрывал", "!ДАААА!", "~я даже не стрелял", "!ХОРОШ, БРАТ!", "найс, вместе вытащили"],
+    victim: ["да как он меня, блять", "сука, он же один был", "откуда он вылез?", "я его вообще не видел", "сразу в башку, пиздец",
+      "бля, я рано вышел", "ну тут я сам виноват", "надо было ждать", "он чё, читер?", "ну это знать надо было",
+      "~nice, чё", "~сильно сыграл", "~ну ладно", "~не повезло", "~бывает", "~он хорош, признаю", "!КАК?!", "!ДА ЛАДНО?!"],
+    loserAlive: ["бля, я не успел", "сорян, пацаны", "ну я ж бежал…", "мне бы секунду", "~не успел, сорри", "~бомба далеко была",
+      "~ну, дефузил же почти", "!БЛЯЯЯТЬ!"],
+    loser: ["~нт", "~ладно, следующий", "~найс трай, пацаны", "~собираемся", "~ничего, ничего", "~бывает", "~обидно", "~окей, ресет",
+      "~голову не вешаем", "~норм играли, просто он выдал", "сильно он, чё", "минус раунд, ладно", "собрались, следующий",
+      "ну это пиздец", "как это можно отдать?", "надо было вдвоём идти", "ну тут без шансов", "!НУ КАК?!", "!ЁБАНЫЙ КЛАТЧ!"]
   },
   en: {
-    hero:     ["LET'S FUCKING GOOO!", "EZ CLAP!", "WHO ELSE?!", "TOO EASY!", "I'M HIM!", "GET REKT!"],
-    heroLow:  ["{hp} HP, BABY!!", "ON {hp} HP, LET'S GO!"],
-    mate:     ["WHAT THE FUCK?!", "HOLY SHIT!", "1V{n}, ARE YOU KIDDING ME?!", "INSANE, BRO!", "YOU'RE A MONSTER!", "NICE NICE NICE!", "LET'S GOOO!"],
-    mateHype: ["1V{n}?! WHAT IS THIS?!", "ACTUAL MADMAN!", "HE'S NOT HUMAN!"],
-    mateAlive:["I just watched, lol", "NICE, I HAD YOUR BACK!"],
-    victim:   ["how the fuck...", "he was alone, man", "where did he come from?", "no way, dude", "didn't even see him"],
-    loserAlive:["fuck, too late", "my bad, guys", "couldn't make it..."],
-    loser:    ["unreal...", "can't lose that round", "reset, next one", "fuck this clutch", "that's on us"]
+    hero: ["!LET'S FUCKING GOOO!", "!EZ CLAP!", "!WHO ELSE?!", "!TOO EASY!", "!I'M HIM!", "!1V{n}, BABY!", "!YEEEES!", "!COME ON!",
+      "!WHAT DID I SAY?!", "!GET IN!", "!ONE MORE TIME!", "calm, calm, calm", "that's our round", "ez, no stress", "knew he'd peek there",
+      "patience, boys", "told you, no save", "just how we planned it", "next round, let's go", "~holy…", "~my hands are shaking",
+      "~okay, that was close", "~phew", "~lucky, honestly", "~need some water"],
+    heroLow: ["!{hp} HP, BABY!", "!ON {hp} HP, LET'S GO!", "{hp} hp… {hp}!", "{hp} hp, who cares", "~{hp} hp, I almost died"],
+    mate: ["!WHAT THE FUCK?!", "!HOLY SHIT!", "!1V{n}, ARE YOU KIDDING ME?!", "!INSANE, BRO!", "!YOU'RE A MONSTER!", "!NICE NICE NICE!",
+      "!LET'S GOOO!", "!BIG BIG BIG!", "!THAT'S MY BOY!", "!YES YES YES!", "nice", "nice one", "well played", "huge", "clean",
+      "beast", "so good, man", "you're crazy", "that's how it's done", "gimme five", "~nice…", "~wow", "~gg, he's cracked",
+      "~unreal, bro", "~okay, round"],
+    mateHype: ["!1V{n}?! WHAT IS THIS?!", "!ACTUAL MADMAN!", "!HE'S NOT HUMAN!", "!CLIP IT! CLIP IT!", "1v{n}… I'm speechless",
+      "that's absurd", "~I have no words"],
+    mateAlive: ["I just watched, lol", "!NICE, I HAD YOUR BACK!", "~I didn't even shoot", "!YEEES!", "we got it together, nice"],
+    victim: ["how the fuck...", "he was alone, man", "where did he come from?", "no way, dude", "didn't even see him", "my bad, peeked too early",
+      "should've waited", "is he walling? lol", "~nice", "~nh", "~he played it well", "~unlucky", "~fair enough", "!HOW?!", "!NO WAY!"],
+    loserAlive: ["fuck, too late", "my bad, guys", "couldn't make it...", "needed one more second", "~sorry, too far", "~almost had the defuse",
+      "!FUUUCK!"],
+    loser: ["~nt", "~nice try, guys", "~next one", "~it's fine, reset", "~unlucky", "~heads up", "~gg on that one", "~we played it fine",
+      "he's good, man", "unreal...", "can't lose that round", "reset, next one", "that's on us", "should've gone together",
+      "!HOW?!", "!ARE YOU SERIOUS?!"]
+  },
+  // русский в англоязычной команде: русскоговорящие — часто, остальные — иногда подхватывают
+  mix: {
+    hero: ["!ДАВАЙ, БЛЯ! LET'S GO!", "!ИЗИ, BOYS!", "!SUKA, YES!", "!ЕСТЬ! EZ!", "~фух, guys", "ez, братва"],
+    mate: ["!HOROSH, BRATAN!", "!БЛЯ, NICE!", "!DAVAI DAVAI DAVAI!", "!SUKA, INSANE!", "!ХАРОШ!", "!BRATAN, WHAT?!",
+      "nice, братан", "хорош, хорош", "~бля, nice", "!ЕБАТЬ, WHAT A CLUTCH!", "krasava, man", "~харош, bro"],
+    loser: ["~бля… nt", "~ладно, next", "!СУКА!", "~ну ок, reset", "~blyat, unlucky"]
   }
 };
 function rpHash(s){ var h = 2166136261 >>> 0; s = String(s); for(var i = 0; i < s.length; i++) h = Math.imul(h ^ s.charCodeAt(i), 16777619) >>> 0; return h; }
-function rpPick(list, key, R){ if(!list) return ""; var t = list[rpHash(R.m + "|" + R.round + "|" + key) % list.length]; return t.replace("{n}", R.clutch.n).replace("{hp}", Math.max(1, Math.round(R.clutch.hp||0))); }
+// фраза и громкость: {t, lvl: 3 крик / 2 обычно / 1 тихо}
+function rpPick(list, key, R){
+  if(!list || !list.length) return {t: "", lvl: 2};
+  var t = list[rpHash(R.m + "|" + R.round + "|" + key) % list.length], lvl = 2;
+  if(t.charAt(0) === "!"){ lvl = 3; t = t.slice(1); } else if(t.charAt(0) === "~"){ lvl = 1; t = t.slice(1); }
+  t = t.split("{n}").join(R.clutch.n).split("{hp}").join(Math.max(1, Math.round(R.clutch.hp||0)));
+  return {t: lvl === 3 ? t.toUpperCase() : t, lvl: lvl};
+}
+// что говорит игрок: ситуация → категория; язык команды; русскоговорящий в англоязычной команде (или его тиммейт) — иногда mix
+function rpSay(R, id, side){
+  var C = R.clutch, st = R.st[id] || {}, win = side === C.side, hero = id === C.id, cat;
+  if(win) cat = hero ? (C.hp > 0 && C.hp <= 30 && rpHash(R.round + "lo" + id) % 2 ? "heroLow" : "hero") : st.alive ? "mateAlive" : (C.n >= 3 && rpHash(R.round + "hy" + id) % 3 === 0 ? "mateHype" : "mate");
+  else cat = st.killer === C.id ? "victim" : st.alive ? "loserAlive" : "loser";
+  var lang = RP_LANG[R.team[side]] || "ru", nm = R.nick[id] || id;
+  if(lang === "en"){
+    var ruMe = !!RP_RU[nm], ruMate = Object.keys(R.nick).some(function(o){ return o !== id && bots.some(function(b){ return b.id === o && b.team === side; }) && RP_RU[R.nick[o]]; });
+    var u = (rpHash(R.m + "|" + R.round + "|mix|" + id) % 100)/100, mixCat = cat === "heroLow" ? "hero" : cat === "mateHype" || cat === "mateAlive" ? "mate" : cat === "victim" || cat === "loserAlive" ? "loser" : cat;
+    if(RP_SAY.mix[mixCat] && ((ruMe && u < 0.4) || (!ruMe && ruMate && win && u < 0.15))) return rpPick(RP_SAY.mix[mixCat], id + "m", R);
+  }
+  return rpPick(RP_SAY[lang][cat], id, R);
+}
 function rpEmotions(E, R){
   var C = R.clutch, win = C.side, lose = win === "CT" ? "T" : "CT";
   var row = function(side, mood){
     var ids = bots.filter(function(b){ return b.team === side; }).map(function(b){ return b.id; });
     if(side === win){ ids.sort(function(a, b){ return (a === C.id ? 0 : 1) - (b === C.id ? 0 : 1); }); var c0 = ids.shift(); ids.splice(Math.floor(ids.length/2), 0, c0); }
     return '<div class="rp-row ' + mood + ' ' + side.toLowerCase() + '">' + ids.map(function(id, i){
-      var st = R.st[id] || {}, hero = id === C.id, say;
-      var L = RP_SAY[RP_LANG[R.team[side]] || "ru"];
-      if(side === win) say = hero ? (C.hp > 0 && C.hp <= 30 ? rpPick(L.heroLow, id, R) : rpPick(L.hero, id, R)) : st.alive ? rpPick(L.mateAlive, id, R) : rpPick(C.n >= 4 ? L.mateHype : L.mate, id, R);
-      else say = st.killer === C.id ? rpPick(L.victim, id, R) : st.alive ? rpPick(L.loserAlive, id, R) : rpPick(L.loser, id, R);
+      var st = R.st[id] || {}, hero = id === C.id, say = rpSay(R, id, side);
       var vx = R.vox && R.vox[id];
       var b = teamBot(id), ph = b ? plPhoto(b) : "";
       return '<div class="rp-card' + (hero ? ' hero' : '') + (st.alive ? '' : ' dead') + '" style="--i:' + i + '">' +
-        '<div class="rp-say"><b>' + esc(say) + '</b></div>' +
+        '<div class="rp-say lvl' + say.lvl + '"><b>' + esc(say.t) + '</b></div>' +
         '<div class="rp-ph">' + ph + '</div>' +
         '<div class="rp-nm"><span>' + esc(R.nick[id] || id) + '</span>' + (st.k ? '<i>' + st.k + ' уб.</i>' : '') + '</div>' +
         '<div class="rp-vx" title="последнее в войсе за раунд">' + (vx ? '«' + esc(vx) + '»' : '') + '</div></div>';
@@ -382,6 +446,7 @@ function rpGoto(m, r){
 (function(){
   if(typeof document === "undefined") return;
   var c = document.getElementById("chkRp"); if(c){ c.checked = RP.enabled; c.addEventListener("change", function(){ RP.enabled = c.checked; try{ localStorage.setItem("sim-rp", c.checked ? "1" : "0"); }catch(e){} if(!c.checked && RP.on) rpStop(); }); }
-  var b = document.getElementById("btnRpLast"); if(b) b.addEventListener("click", function(){ if(RP.last){ rpPlay(RP.last); } else if(typeof showBanner === "function") showBanner("Клатча в этом матче ещё не было", null, 1800); });
+  var sm = document.getElementById("selRp"); if(sm){ sm.value = RP.mode; sm.addEventListener("change", function(){ RP.mode = sm.value; try{ localStorage.setItem("sim-rp-mode", sm.value); }catch(e){} }); }
+  var b = document.getElementById("btnRpLast"); if(b) b.addEventListener("click", function(){ if(RP.last){ rpPlay(RP.last, RP.mode === "auto" ? "both" : RP.mode); } else if(typeof showBanner === "function") showBanner("Клатча в этом матче ещё не было", null, 1800); });
   var hm = /(?:^|[#&])round=(\d+)\.(\d+)/.exec(location.hash || ""); if(hm) setTimeout(function(){ rpGoto(+hm[1], +hm[2]); }, 300);
 })();

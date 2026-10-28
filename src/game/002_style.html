@@ -440,7 +440,13 @@
     background:#fff;color:#0b0f0b;font-size:15px;font-weight:700;letter-spacing:.02em;box-shadow:0 6px 18px -6px rgba(0,0,0,.7);
     animation:rpSay .4s var(--spring) both;animation-delay:calc(var(--i)*90ms + .75s);}
   #rp .rp-say::after{content:"";position:absolute;top:100%;left:50%;margin-left:-6px;border:6px solid transparent;border-top-color:#fff;}
-  #rp .rp-row.hype .rp-say b{display:inline-block;animation:rpShout .32s ease-in-out calc(var(--i)*90ms + 1.15s) 4 alternate;}
+  /* громкость: 3 — крик (встряска), 2 — обычно, 1 — тихо */
+  #rp .rp-say.lvl3 b{display:inline-block;animation:rpShout .32s ease-in-out calc(var(--i)*90ms + 1.15s) 4 alternate;}
+  #rp .rp-row.hype .rp-say.lvl2{font-weight:600;}
+  #rp .rp-row.hype .rp-say.lvl1{font-size:12px;font-weight:500;font-style:italic;background:rgba(255,255,255,.78);padding:4px 9px;}
+  #rp .rp-row.hype .rp-say.lvl1::after{border-top-color:rgba(255,255,255,.78);}
+  #rp .rp-row.sad .rp-say.lvl3{color:#ffb3aa;font-style:normal;font-weight:700;}
+  #rp .rp-row.sad .rp-say.lvl2{color:var(--text);font-style:normal;}
   #rp .rp-card.hero .rp-say{background:var(--mark);font-size:18px;} #rp .rp-card.hero .rp-say::after{border-top-color:var(--mark);}
   #rp .rp-row.sad .rp-say{background:rgba(20,24,18,.92);color:var(--text-dim);font-weight:500;font-style:italic;font-size:12px;
     animation-delay:calc(var(--i)*80ms + 1.8s);}
