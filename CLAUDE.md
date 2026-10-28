@@ -78,7 +78,7 @@ v166 — `docs/V166_CHANGES.md` (список владельца). Главны�
 | позиция: `setPost` / `updatePost`, маршруты `startRoute` / `routeTick` | `110_post_routes` |
 | **где встать по почерку, оружию и прошлому раунду** (одно место): `posPref`, `posPickName`, `posTick`; «держать район» `holdSpot` / `holdGroup`, варианты `holdCands` | `280_pos_pref_hold` |
 | бомба: `bombTick`, урон взрыва `bombDamageAt` (`BOMB_DMG`), куда бежать `bombFleePoint`, дефуз | `120_bomb` |
-| тактики T `chooseTactic`, память матча `memSnapshot`/`memRestore`/`memStart`, `MEM_BOX`, профиль соперника `OPP.by`, тайм-ауты | `130_tactics_match_adapt` |
+| тактики T `chooseTactic`, память матча `memSnapshot`/`memRestore`/`memStart`, `MEM_BOX`, профиль соперника `OPP.by`; **тактические паузы** (v460): `TOUT`, `timeoutCheck` / `timeoutWant`, план тренера `coachPlan`, `TO_NOW`; показ паузы — `676_timeout_show` (`ts*`) | `130_tactics_match_adapt`, `676_timeout_show` |
 | позиции по названиям зон, расстановки CT `chooseCtSetup`, любимые углы | `140_named_spots_ct_setup` |
 | лёркер `lurkerBrain`, пробы, «проверено — пусто» `markClear` | `150_lurker_probes_clear` |
 | IGL `tIglReplan`, стадии `stagePost` / `tSetSite` | `160_igl_replan` |
