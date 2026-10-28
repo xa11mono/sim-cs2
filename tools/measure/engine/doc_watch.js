@@ -152,7 +152,7 @@
       var vp = visParts(tg.x, tg.y, tg.crouching, sh.x, sh.y, sh.crouching, true, tg.z, sh.z), a2 = Math.atan2(sh.y-tg.y, sh.x-tg.x);
       P.rev = {parts: !!(vp.head || vp.body), myParts: (function(){ var q = visParts(sh.x, sh.y, sh.crouching, tg.x, tg.y, tg.crouching, true, sh.z, tg.z); return (q.head?"h":"") + (q.body?"b":""); })(),
         fov: inFov(tg, sh.x, sh.y), off: +Math.abs(((a2 - (tg.facing||0) + Math.PI) % (2*Math.PI) + 2*Math.PI) % (2*Math.PI) - Math.PI).toFixed(2),
-        blind: tick < tg.blindUntil, smoke: !!smokeBlocks(sh.x, sh.y, tg.x, tg.y), sp: Math.round(tg.curSpeed||0), look: tg.lookTarget ? 1 : 0}; }
+        blind: tick < tg.blindUntil, smoke: !!smokeBlocks(sh.x, sh.y, tg.x, tg.y), sp: Math.round(tg.curSpeed||0), look: tg.lookTarget ? 1 : 0, tag: tg.post && tg.post.tag || '-', atPost: !!tg.atPost, crouch: !!tg.crouching, z: zn(tg.x, tg.y), zs: zn(sh.x, sh.y), off2: Math.round(Math.hypot(tg.x-tg.baseX, tg.y-tg.baseY)), fc: tg._fc ? (tg._fc.st || tg._fc.state || 1) : 0}; }
     P.last = tick; var l0 = sh.lastShotTick; var r = TSd.apply(this, arguments);
     if(sh.lastShotTick === tick && l0 !== tick){ P.n++; if(P.shot == null){ P.shot = tick; P.spS = Math.round(sh.curSpeed||0); P.rm = +(sh._reactMul||1).toFixed(2); P.pl = sh._peekLag||0; P.vl = sh._visLag||0; } }
     return r; }; }
