@@ -1,0 +1,104 @@
+playwright 1.56.0, браузеры: C:\Windows\system32\config\systemprofile\.simcs2_node\ms-playwright
+> git fetch --quiet origin 43271da74eba886fd7016c65c7a82fd053f27420
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_ma82eeuu FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_ma82eeuu\src\build.py --map ancient C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v460b_anc.html
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\engine\walk_run.py --job=v460b_anc,C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v460b_anc.html --matches=3,7,11,13,17,19,23,29 --par=8
+матчей в очереди: 8, одновременно: 8
+node:internal/process/promises:394
+    triggerUncaughtException(err, true /* fromPromise */);
+    ^
+
+page.evaluate: ReferenceError: __ev is not defined
+    at eval (eval at evaluate (:290:30), <anonymous>:1:6)
+    at UtilityScript.evaluate (<anonymous>:292:16)
+    at UtilityScript.<anonymous> (<anonymous>:1:44)
+    at C:\actions-runner\_work\sim-cs2\sim-cs2\src\q.js:5:22
+node:internal/process/promises:394
+    triggerUncaughtException(err, true /* fromPromise */);
+    ^
+
+page.evaluate: ReferenceError: __ev is not defined
+    at eval (eval at evaluate (:290:30), <anonymous>:1:6)
+    at UtilityScript.evaluate (<anonymous>:292:16)
+    at UtilityScript.<anonymous> (<anonymous>:1:44)
+    at C:\actions-runner\_work\sim-cs2\sim-cs2\src\q.js:5:22
+
+Node.js v24.21.0
+
+Node.js v24.21.0
+node:internal/process/promises:394
+    triggerUncaughtException(err, true /* fromPromise */);
+    ^
+
+page.evaluate: ReferenceError: __ev is not defined
+    at eval (eval at evaluate (:290:30), <anonymous>:1:6)
+    at UtilityScript.evaluate (<anonymous>:292:16)
+    at UtilityScript.<anonymous> (<anonymous>:1:44)
+    at C:\actions-runner\_work\sim-cs2\sim-cs2\src\q.js:5:22
+
+Node.js v24.21.0
+node:internal/process/promises:394
+    triggerUncaughtException(err, true /* fromPromise */);
+    ^
+
+page.evaluate: ReferenceError: __ev is not defined
+    at eval (eval at evaluate (:290:30), <anonymous>:1:6)
+    at UtilityScript.evaluate (<anonymous>:292:16)
+    at UtilityScript.<anonymous> (<anonymous>:1:44)
+    at C:\actions-runner\_work\sim-cs2\sim-cs2\src\q.js:5:22
+
+Node.js v24.21.0
+node:internal/process/promises:394
+    triggerUncaughtException(err, true /* fromPromise */);
+    ^
+
+page.evaluate: ReferenceError: __ev is not defined
+    at eval (eval at evaluate (:290:30), <anonymous>:1:6)
+    at UtilityScript.evaluate (<anonymous>:292:16)
+    at UtilityScript.<anonymous> (<anonymous>:1:44)
+    at C:\actions-runner\_work\sim-cs2\sim-cs2\src\q.js:5:22
+
+Node.js v24.21.0
+node:internal/process/promises:394
+    triggerUncaughtException(err, true /* fromPromise */);
+    ^
+
+page.evaluate: ReferenceError: __ev is not defined
+    at eval (eval at evaluate (:290:30), <anonymous>:1:6)
+    at UtilityScript.evaluate (<anonymous>:292:16)
+    at UtilityScript.<anonymous> (<anonymous>:1:44)
+    at C:\actions-runner\_work\sim-cs2\sim-cs2\src\q.js:5:22
+
+Node.js v24.21.0
+node:internal/process/promises:394
+    triggerUncaughtException(err, true /* fromPromise */);
+    ^
+
+page.evaluate: ReferenceError: __ev is not defined
+    at eval (eval at evaluate (:290:30), <anonymous>:1:6)
+    at UtilityScript.evaluate (<anonymous>:292:16)
+    at UtilityScript.<anonymous> (<anonymous>:1:44)
+    at C:\actions-runner\_work\sim-cs2\sim-cs2\src\q.js:5:22
+
+Node.js v24.21.0
+node:internal/process/promises:394
+    triggerUncaughtException(err, true /* fromPromise */);
+    ^
+
+page.evaluate: ReferenceError: __ev is not defined
+    at eval (eval at evaluate (:290:30), <anonymous>:1:6)
+    at UtilityScript.evaluate (<anonymous>:292:16)
+    at UtilityScript.<anonymous> (<anonymous>:1:44)
+    at C:\actions-runner\_work\sim-cs2\sim-cs2\src\q.js:5:22
+
+Node.js v24.21.0
+v460b_anc match 3 rc 1 0 — готово 1/8, 0 мин
+v460b_anc match 7 rc 1 0 — готово 2/8, 0 мин
+v460b_anc match 11 rc 1 0 — готово 3/8, 0 мин
+v460b_anc match 13 rc 1 0 — готово 4/8, 0 мин
+v460b_anc match 17 rc 1 0 — готово 5/8, 0 мин
+v460b_anc match 19 rc 1 0 — готово 6/8, 0 мин
+v460b_anc match 23 rc 1 0 — готово 7/8, 0 мин
+v460b_anc match 29 rc 1 0 — готово 8/8, 0 мин
+done
+all done
