@@ -532,7 +532,7 @@
   <div id="topbar">
     <div class="tb-id">
       <h1>Ancient<span id="matchTick" class="mono" title="Какой матч сейчас идёт и тик — запиши, если увидел баг"></span></h1>
-      <div class="sub mono" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 452, 28.10</div>
+      <div class="sub mono" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 458, 28.10</div>
     </div>
     <div class="tb-group" id="tbMatch">
       <button id="btnPause">Пауза</button>
@@ -4453,11 +4453,11 @@ var ZDJ = {tick: -1, graph: null, s: {}};
 // (док 6) места врагов по знанию команды для цены пути (zoneDijkstra) — раз в тик на команду; вес < 0,05 не берётся (проектное число: «почти нет»)
 var KPC = {};
 function knownPathSpots(team){
-  var C = KPC[team]; if(C && C.tick === tick) return C.L;
+  var C = KPC[team]; if(C && C.tick === tick && C.m === matchNum) return C.L;
   var L = [];
   bots.forEach(function(e){ if(!e.alive || e.team === team) return;
     (knowEnemySpots(team, e.id) || []).forEach(function(q){ if(q.w >= 0.05) L.push({x: q.x, y: q.y, w: q.w}); }); });
-  KPC[team] = {tick: tick, L: L}; return L;
+  KPC[team] = {tick: tick, m: matchNum, L: L}; return L;
 }   // (док 6) продолжаемые поиски пути этого тика (zoneDijkstra) — ключ: начало и обстановка
 function zoneDijkstra(fromId, toId, team){
   if(fromId===toId) return [fromId];
@@ -4473,7 +4473,7 @@ function zoneDijkstra(fromId, toId, team){
   var fx0 = zoneDijkstra.from, fireOn = !!(zoneDijkstra.fire && fires.length);
   var key = fromId + "|" + (team||"") + "|" + (fx0 ? fx0.x + "," + fx0.y : "") + "|" + (fireOn ? fires.map(function(f){ return f.x + "," + f.y + "," + f.born; }).join(";") : "") + "|" +
             KP.map(function(q){ return q.x + "," + q.y + "," + q.w; }).join(";");
-  var DJ = ZDJ.tick === tick && ZDJ.graph === zoneGraph ? ZDJ.s : (ZDJ.tick = tick, ZDJ.graph = zoneGraph, ZDJ.s = {});
+  var DJ = ZDJ.tick === tick && ZDJ.m === matchNum && ZDJ.graph === zoneGraph ? ZDJ.s : (ZDJ.tick = tick, ZDJ.m = matchNum, ZDJ.graph = zoneGraph, ZDJ.s = {});
   var S = DJ[key];
   if(!S){ S = DJ[key] = {dist: {}, prev: {}, visited: {}, entry: {}, heap: makeHeap(), relax: null}; S.dist[fromId] = 0; if(fx0) S.entry[fromId] = fx0; S.heap.push(fromId, 0); }
   var dist = S.dist, prev = S.prev, visited = S.visited, entry = S.entry, heap = S.heap;
@@ -22383,8 +22383,6 @@ var __SNAP = [
 ["FIRE_DETOUR", function(){ return FIRE_DETOUR; }, function(v){ try{ FIRE_DETOUR = v; }catch(e){} }],
 ["KNOWN_PATH_R", function(){ return KNOWN_PATH_R; }, function(v){ try{ KNOWN_PATH_R = v; }catch(e){} }],
 ["KNOWN_DETOUR", function(){ return KNOWN_DETOUR; }, function(v){ try{ KNOWN_DETOUR = v; }catch(e){} }],
-["ZDJ", function(){ return ZDJ; }, function(v){ try{ ZDJ = v; }catch(e){} }],
-["KPC", function(){ return KPC; }, function(v){ try{ KPC = v; }catch(e){} }],
 ["LANE_W", function(){ return LANE_W; }, function(v){ try{ LANE_W = v; }catch(e){} }],
 ["NAV_DROP_STEP", function(){ return NAV_DROP_STEP; }, function(v){ try{ NAV_DROP_STEP = v; }catch(e){} }],
 ["ZONE_CENTROIDS", function(){ return ZONE_CENTROIDS; }, function(v){ try{ ZONE_CENTROIDS = v; }catch(e){} }],

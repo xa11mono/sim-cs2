@@ -282,11 +282,11 @@ var ZDJ = {tick: -1, graph: null, s: {}};
 // (док 6) места врагов по знанию команды для цены пути (zoneDijkstra) — раз в тик на команду; вес < 0,05 не берётся (проектное число: «почти нет»)
 var KPC = {};
 function knownPathSpots(team){
-  var C = KPC[team]; if(C && C.tick === tick) return C.L;
+  var C = KPC[team]; if(C && C.tick === tick && C.m === matchNum) return C.L;
   var L = [];
   bots.forEach(function(e){ if(!e.alive || e.team === team) return;
     (knowEnemySpots(team, e.id) || []).forEach(function(q){ if(q.w >= 0.05) L.push({x: q.x, y: q.y, w: q.w}); }); });
-  KPC[team] = {tick: tick, L: L}; return L;
+  KPC[team] = {tick: tick, m: matchNum, L: L}; return L;
 }   // (док 6) продолжаемые поиски пути этого тика (zoneDijkstra) — ключ: начало и обстановка
 function zoneDijkstra(fromId, toId, team){
   if(fromId===toId) return [fromId];
@@ -302,7 +302,7 @@ function zoneDijkstra(fromId, toId, team){
   var fx0 = zoneDijkstra.from, fireOn = !!(zoneDijkstra.fire && fires.length);
   var key = fromId + "|" + (team||"") + "|" + (fx0 ? fx0.x + "," + fx0.y : "") + "|" + (fireOn ? fires.map(function(f){ return f.x + "," + f.y + "," + f.born; }).join(";") : "") + "|" +
             KP.map(function(q){ return q.x + "," + q.y + "," + q.w; }).join(";");
-  var DJ = ZDJ.tick === tick && ZDJ.graph === zoneGraph ? ZDJ.s : (ZDJ.tick = tick, ZDJ.graph = zoneGraph, ZDJ.s = {});
+  var DJ = ZDJ.tick === tick && ZDJ.m === matchNum && ZDJ.graph === zoneGraph ? ZDJ.s : (ZDJ.tick = tick, ZDJ.m = matchNum, ZDJ.graph = zoneGraph, ZDJ.s = {});
   var S = DJ[key];
   if(!S){ S = DJ[key] = {dist: {}, prev: {}, visited: {}, entry: {}, heap: makeHeap(), relax: null}; S.dist[fromId] = 0; if(fx0) S.entry[fromId] = fx0; S.heap.push(fromId, 0); }
   var dist = S.dist, prev = S.prev, visited = S.visited, entry = S.entry, heap = S.heap;
