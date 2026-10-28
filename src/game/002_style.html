@@ -387,10 +387,9 @@
   #rp .rp-l3 img{height:62%;width:auto;}
   #rp .rp-l3 b{display:block;font-size:20px;font-weight:700;letter-spacing:.03em;color:#fff;line-height:1.05;}
   #rp .rp-l3 span{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--mark);}
-  #rp .rp-l3 .rp-k{font-style:normal;font-family:var(--num);font-weight:600;font-size:26px;min-width:38px;height:38px;display:grid;place-items:center;
-    margin-left:6px;border:1px solid var(--mark);color:#ffe49a;}
-  #rp .rp-l3 .rp-k::after{content:"уб.";font-size:9px;letter-spacing:.1em;margin-top:-6px;color:var(--text-dim);}
-  #rp .rp-l3 .rp-k{grid-template-rows:1fr auto;padding-top:4px;}
+  #rp .rp-l3 .rp-k{font-style:normal;font-family:var(--num);font-weight:600;font-size:24px;line-height:1;min-width:40px;display:flex;flex-direction:column;
+    align-items:center;padding:4px 8px 3px;margin-left:6px;border:1px solid var(--mark);color:#ffe49a;}
+  #rp .rp-l3 .rp-k::after{content:"фраги";font-family:var(--cond);font-weight:500;font-size:9px;letter-spacing:.12em;text-transform:uppercase;margin-top:3px;color:var(--text-dim);}
   #rp .rp-l3 .rp-k.pop{animation:rpPop .45s var(--spring);}
   @keyframes rpPop{0%{transform:scale(1.5);}100%{transform:none;}}
   #rp .rp-feed{position:absolute;top:calc(9% + 12px);right:20px;display:flex;flex-direction:column;align-items:flex-end;gap:3px;pointer-events:none;font-size:13px;}
@@ -413,13 +412,14 @@
   #rp .rp-skip:hover{color:#fff;border-color:var(--text-mute);}
   /* эмоции: портреты в строчку, над размытым кадром */
   #rp .rp-emo{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:3% 2%;}
-  #rp.emo .rp-emo{display:flex;}
+  #rp.emo .rp-emo{display:flex;} #rp.emo .rp-feed{display:none;}
   #rp .rp-eh{display:flex;align-items:center;gap:12px;font-size:28px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:#fff;
     animation:rpIn .5s var(--ease) both;}
   #rp .rp-eh img{height:44px;} #rp .rp-eh em{font-style:normal;font-size:15px;letter-spacing:.14em;color:var(--mark);font-weight:500;}
   #rp .rp-eh.ct span{color:#a6cdf2;} #rp .rp-eh.t span{color:#f6cf86;}
   #rp .rp-eh2{font-size:13px;letter-spacing:.2em;text-transform:uppercase;color:var(--text-dim);margin-top:10px;animation:rpIn .5s var(--ease) 1.2s both;}
   #rp .rp-row{display:flex;justify-content:center;align-items:flex-end;gap:14px;width:100%;}
+  #rp .rp-card .rp-vx:empty::before{content:"\00a0";}
   #rp .rp-card{position:relative;width:min(16vw,170px);display:flex;flex-direction:column;align-items:center;
     animation:rpCard .55s var(--spring) both;animation-delay:calc(var(--i)*90ms + .2s);}
   #rp .rp-row.sad .rp-card{width:min(11vw,118px);animation-delay:calc(var(--i)*80ms + 1.3s);}
