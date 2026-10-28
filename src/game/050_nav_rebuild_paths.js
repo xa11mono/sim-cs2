@@ -475,7 +475,7 @@ function buildWaypointPath(fromX, fromY, fromZ, toX, toY, toZ, team, lane){
   // на FIRE_DETOUR (как и задумано в v438); иначе — путь через огонь: у края огня бот ждёт, пока погаснет (fireSafe, 540)
   if(route && fires.length){ zoneDijkstra.fire = false; var r0 = zoneDijkstra(fz.id, tz.id, team); zoneDijkstra.fire = true;
     var rLen = function(R){ var L = 0, px = fromX, py = fromY; for(var ri = 0; ri < R.length-1; ri++){ var e = (zoneGraph[R[ri]]||[]).find(function(x){ return x.to === R[ri+1]; }); if(e && e.mid){ L += Math.hypot(e.mid.x-px, e.mid.y-py); px = e.mid.x; py = e.mid.y; } } return L + Math.hypot(toX-px, toY-py); };
-    if(r0 && rLen(route) > rLen(r0) + FIRE_DETOUR){ route = r0; var waitFire = true; } }
+    if(r0 && rLen(route) > rLen(r0) + FIRE_DETOUR) route = r0; }
   if(!route){ if(!NAV_GRID) navGridBuild();
     var alts = (NAV_GRID[Math.floor(toX/NAV_GRID_C)+","+Math.floor(toY/NAV_GRID_C)]||[]).map(function(i){ return NAVAREAS[i]; })
       .filter(function(a){ return a !== tz && !NAV_BLOCKED[a.id] && pointInPoly(toX, toY, a.points); }).sort(function(a, c){ return Math.abs(a.z - tLvl) - Math.abs(c.z - tLvl); });
@@ -532,14 +532,6 @@ function buildWaypointPath(fromX, fromY, fromZ, toX, toY, toZ, team, lane){
   }
   // drop the leading point (== bot's current position, not a real waypoint)
   var outP = lane != null ? laneShift(path.slice(1), lane, fromX, fromY, fromZ, cuts.map(function(ci){ return corridor[ci].mid; })) : path.slice(1);
-  // обход слишком длинный — путь до края огня: там бот ждёт (fireSafe), погаснет — путь строится заново (fireGoneRepath, 370).
-  // Раньше (v450б) путь шёл в огонь, бот упирался в край — переносы (nav) на Ancient 157 → 261 на 100 раундов
-  if(waitFire){ var cutP = [], cx = fromX, cy = fromY, stop = false;
-    for(var wi = 0; wi < outP.length && !stop; wi++){ var Q = outP[wi], sl = Math.hypot(Q[0]-cx, Q[1]-cy), ns = Math.max(1, Math.ceil(sl/8)), lastOk = null;
-      for(var si = 1; si <= ns; si++){ var sx = cx + (Q[0]-cx)*si/ns, sy = cy + (Q[1]-cy)*si/ns; if(fires.some(function(f){ return fireTouches(f, sx, sy); })){ stop = true; break; } lastOk = [sx, sy, Q[2]]; }
-      if(stop){ if(lastOk && Math.hypot(lastOk[0]-cx, lastOk[1]-cy) > 24) cutP.push([cx + (lastOk[0]-cx)*0.7, cy + (lastOk[1]-cy)*0.7, Q[2]]); }
-      else { cutP.push(Q); cx = Q[0]; cy = Q[1]; } }
-    if(stop) outP = cutP.length ? cutP : [[fromX, fromY, fromZ||0]]; }
   return outP;
 }
 
