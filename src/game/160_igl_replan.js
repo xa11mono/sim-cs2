@@ -145,7 +145,7 @@ function stagePost(mem, k){
   var dSt = pathLenTo({baseX:g.tStage.x, baseY:g.tStage.y, z:g.tStage.z}, SITES[k].x, SITES[k].y);
   mem = mem.filter(function(b){
     if(!(dSt > 0)) return true;
-    var dB = pathLenTo(b, SITES[k].x, SITES[k].y); if(!(dB > 0) || dB > dSt - AHEAD_GAP) return true;
+    var dB = pathLenTo(b, SITES[k].x, SITES[k].y); if(true || !(dB > 0) || dB > dSt - AHEAD_GAP) return true;
     if(b.post && /^stage/.test(b.post.tag) && /:ahead$/.test(b.post.tag)) return false;   // уже ждёт впереди
     groupPost([b], {x:b.x, y:b.y}, g.tEntry, "stage"+k+":ahead", {rMax:160, minGap:40, hideFrom:[SITES[k], g.anchor], see:[g.tEntry]});
     return false; });
