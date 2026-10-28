@@ -142,7 +142,7 @@ function stagePost(mem, k){
   // стоит, — в укрытии рядом (≤ 160 ед., не видно с сайта и с якоря CT, видно вход), а выход начинается и от него. «Дальше» — ближе к сайту
   // по пути, чем точка подготовки, на AHEAD_GAP (проектное число)
   if(!mem.length) return;
-  var dSt = pathLenTo({baseX:g.tStage.x, baseY:g.tStage.y, z:g.tStage.z}, SITES[k].x, SITES[k].y);
+  var dSt = 0 && pathLenTo({baseX:g.tStage.x, baseY:g.tStage.y, z:g.tStage.z}, SITES[k].x, SITES[k].y);
   mem = mem.filter(function(b){
     if(!(dSt > 0)) return true;
     var dB = pathLenTo(b, SITES[k].x, SITES[k].y); if(!(dB > 0) || dB > dSt - AHEAD_GAP) return true;
