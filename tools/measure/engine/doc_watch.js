@@ -141,6 +141,20 @@
     if(teamTac.T && teamTac.T.saving && !D.__sv){ D.__sv = roundNum; D.save.n++; var m = bots.filter(function(o){ return o.team === "T"; }).reduce(function(a, o){ return a + o.money; }, 0); if(m >= 15000) D.save.rich++; }
     if(D.__sv && D.__sv !== roundNum) D.__sv = 0;
   };
+  // --- (М174) первая дуэль раунда: кто кого увидел раньше (первый вызов tryShoot по этой цели), куда смотрел, скорость, реакция, выстрелы ---
+  D.duel = []; var PRd = {}, dRound = -1, dDone = false;
+  if(typeof tryShoot === "function"){ var TSd = tryShoot; tryShoot = function(sh, tg, dist){
+    if(roundNum !== dRound){ dRound = roundNum; PRd = {}; dDone = false; }
+    var k = sh.id + ">" + tg.id, P = PRd[k];
+    if(!P || tick - P.last > 64){ var a = Math.atan2(tg.y-sh.y, tg.x-sh.x), hD = Math.abs(((a - (sh.facing||0) + Math.PI) % (2*Math.PI) + 2*Math.PI) % (2*Math.PI) - Math.PI);
+      P = PRd[k] = {seen:tick, last:tick, sp0:Math.round(sh.curSpeed||0), hD:+hD.toFixed(2), hold:!!sh.holding, shot:null, spS:null, n:0, dist:Math.round(dist), rt:sh.reactionTicks}; }
+    P.last = tick; var l0 = sh.lastShotTick; var r = TSd.apply(this, arguments);
+    if(sh.lastShotTick === tick && l0 !== tick){ P.n++; if(P.shot == null){ P.shot = tick; P.spS = Math.round(sh.curSpeed||0); P.rm = +(sh._reactMul||1).toFixed(2); P.pl = sh._peekLag||0; P.vl = sh._visLag||0; } }
+    return r; }; }
+  if(typeof applyDamage === "function"){ var ADd = applyDamage; applyDamage = function(att, b){ var al = b.alive; var r = ADd.apply(this, arguments);
+    if(roundState === "live" && al && !b.alive && att && att.id && att.team !== b.team && roundNum === dRound && !dDone){ dDone = true;
+      D.duel.push({r:roundNum, k:att.id, kt:att.team, v:b.id, t:tick - roundStartTick, A:PRd[att.id+">"+b.id] || null, B:PRd[b.id+">"+att.id] || null}); }
+    return r; }; }
   D.report = function(){ var o = {}; for(var k in D) if(typeof D[k] !== "function" && k.indexOf("__") !== 0) o[k] = D[k]; return o; };
   g.DOCW = D;
 })();
