@@ -150,7 +150,7 @@ function coachPlan(side){
     if(rd.stack){ P.stack = rd.stack; P.site = rd.stack === "A" ? "B" : "A"; P.facts.push({k: "stackRead", S: rd.stack, T: P.site, n: rd.n, of: rd.of, log: "CT стакают "+rd.stack+" ("+rd.n+" из "+rd.of+") — идём "+P.site}); }
     else {
       var last = ctRead.slice(-4), seen = {A: 0, B: 0}; last.forEach(function(r){ seen.A += r.A||0; seen.B += r.B||0; });
-      if(last.length >= 2 && seen.A !== seen.B){ P.site = seen.A < seen.B ? "A" : "B"; P.facts.push({k: "weakSite", T: P.site, a: seen.A, b: seen.B, of: last.length, log: "на "+P.site+" видели меньше CT ("+seen.A+" против "+seen.B+" за "+last.length+" р.)"}); }
+      if(last.length >= 2 && Math.abs(seen.A - seen.B) >= 2){   // разница в одного — не основание P.site = seen.A < seen.B ? "A" : "B"; P.facts.push({k: "weakSite", T: P.site, a: seen.A, b: seen.B, of: last.length, log: "на "+P.site+" видели меньше CT ("+seen.A+" против "+seen.B+" за "+last.length+" р.)"}); }
     }
     // заготовка: тактика на сайт плана (или любой), которую в этом матче ещё не играли
     var pool = T_TACTICS.filter(function(t){ return t.style !== "fake" && (!P.site || t.site === P.site) && !(tacMem[t.id] && tacMem[t.id].n > 0) && P.avoid.indexOf(t.id) < 0; });
@@ -160,8 +160,9 @@ function coachPlan(side){
     H.forEach(function(r){ if(r.site) by[r.site]++; if(r.site && r.planted && r.winner === "T") lost[r.site]++; });
     var top = by.A >= by.B ? "A" : "B";
     if(H.length >= 3 && by[top] >= 3){ P.stack = top; P.site = top; P.facts.push({k: "tSite", S: top, n: by[top], of: H.length, log: "T ходят на "+top+" ("+by[top]+" из "+H.length+") — больше людей на "+top}); }
-    ["A","B"].forEach(function(k){ if(lost[k] >= 2 && !P.retake){ P.retake = k; P.facts.push({k: "retake", S: k, n: lost[k], log: "на "+k+" проигрываем после планта ("+lost[k]+") — от ретейка"}); } });
     P.avoid = ctSetupHist.slice(-2).filter(function(id, i, a){ return a.indexOf(id) === i; });
+    // от ретейка — только если ретейк на этом сайте ещё не играли последние раунды (иначе он и не сработал)
+    ["A","B"].forEach(function(k){ if(lost[k] >= 2 && !P.retake && P.avoid.indexOf("retake" + k) < 0){ P.retake = k; P.facts.push({k: "retake", S: k, n: lost[k], log: "на "+k+" проигрываем после планта ("+lost[k]+") — от ретейка"}); } });
     if(P.avoid.length){ var sf = setupById(P.avoid[P.avoid.length-1]); P.facts.push({k: "readSetup", setup: sf ? sf.name : P.avoid[0], log: "расстановку «"+(sf ? sf.name : P.avoid[0])+"» прочитали — меняем"}); }
   }
   if(!P.facts.length) P.facts.push({k: "reset", log: "перезагрузка: спокойно, по своей игре"});
