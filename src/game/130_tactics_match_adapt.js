@@ -150,7 +150,8 @@ function coachPlan(side){
     if(rd.stack){ P.stack = rd.stack; P.site = rd.stack === "A" ? "B" : "A"; P.facts.push({k: "stackRead", S: rd.stack, T: P.site, n: rd.n, of: rd.of, log: "CT стакают "+rd.stack+" ("+rd.n+" из "+rd.of+") — идём "+P.site}); }
     else {
       var last = ctRead.slice(-4), seen = {A: 0, B: 0}; last.forEach(function(r){ seen.A += r.A||0; seen.B += r.B||0; });
-      if(last.length >= 2 && Math.abs(seen.A - seen.B) >= 2){   // разница в одного — не основание P.site = seen.A < seen.B ? "A" : "B"; P.facts.push({k: "weakSite", T: P.site, a: seen.A, b: seen.B, of: last.length, log: "на "+P.site+" видели меньше CT ("+seen.A+" против "+seen.B+" за "+last.length+" р.)"}); }
+      // разница в одного — не основание
+      if(last.length >= 2 && Math.abs(seen.A - seen.B) >= 2){ P.site = seen.A < seen.B ? "A" : "B"; P.facts.push({k: "weakSite", T: P.site, a: seen.A, b: seen.B, of: last.length, log: "на "+P.site+" видели меньше CT ("+seen.A+" против "+seen.B+" за "+last.length+" р.)"}); }
     }
     // заготовка: тактика на сайт плана (или любой), которую в этом матче ещё не играли
     var pool = T_TACTICS.filter(function(t){ return t.style !== "fake" && (!P.site || t.site === P.site) && !(tacMem[t.id] && tacMem[t.id].n > 0) && P.avoid.indexOf(t.id) < 0; });
