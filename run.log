@@ -1,0 +1,8 @@
+браузеры: C:\Users\Mono\AppData\Local\ms-playwright
+playwright 1.56.0
+> git fetch --quiet origin e0bedb256323a6748c0bfac882ded1b54eb7553a
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_f8ibkck2 FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_f8ibkck2\src\build.py --map ancient C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\x450_swing_anc.html
+> git fetch --quiet origin e0bedb256323a6748c0bfac882ded1b54eb7553a
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_gcm_p8n4 FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_gcm_p8n4\src\build.py --map ancient C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\x450_swing_anc2.html
