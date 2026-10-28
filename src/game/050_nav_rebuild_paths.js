@@ -278,6 +278,7 @@ var ROUTE_PORTAL = 0;   // (v406) цена перехода между учас�
 // проходов нет — путь шёл в обход в 4–15 раз длиннее (надпись «навмеш не связывает напрямую»). Схождение на спуске T разводит полоса (laneShift)
 var FIRE_DETOUR = 600;   // (v438) цена перехода через горящий огонь, ед. карты: обход до ~600 длиннее — лучше, чем сквозь огонь (проектное число)
 var KNOWN_PATH_SEC = 6, KNOWN_PATH_R = 300, KNOWN_DETOUR = 500;   // (v450) проектные числа: «свежая» инфа (как контакт ≤ 6 с), радиус места, цена обхода
+var ZDJ = {tick: -1, graph: null, s: {}};   // (док 6) продолжаемые поиски пути этого тика (zoneDijkstra) — ключ: начало и обстановка
 function zoneDijkstra(fromId, toId, team){
   if(fromId===toId) return [fromId];
   var side = team === "CT" ? zoneSideMap() : null;
@@ -287,17 +288,17 @@ function zoneDijkstra(fromId, toId, team){
   var KP = [];
   if(zoneDijkstra.fire && team){ var BLk = beliefLast[team] || {};
     for(var kid in BLk){ var kl = BLk[kid]; if(!kl || tick - kl.tick > KNOWN_PATH_SEC*TICK_HZ) continue; var ko = teamBot(kid); if(ko && ko.alive && ko.team !== team) KP.push(kl); } }
-  var dist = {}, prev = {}, visited = {};
-  dist[fromId] = 0;
-  var entry = {}; if(zoneDijkstra.from) entry[fromId] = zoneDijkstra.from;
-  var heap = makeHeap();
-  heap.push(fromId, 0);
-  while(heap.size()){
-    var top = heap.pop();
-    var u = top.id;
-    if(visited[u]) continue;
-    visited[u] = true;
-    if(u===toId) break;
+  // (док 6, п.6 «зависания»: в тике планта — 1069 поисков пути, 1,08 с; 707 из них — от бомбы к местам-кандидатам сейва, 349 — от бойца к
+  // зонам ухода) поиск из одного начала в одной обстановке (тот же тик, команда, точка старта, огонь, известные враги, граф) продолжается
+  // с места, где остановился прошлый, а не начинается заново: порядок обхода тот же, что у отдельного поиска до цели, — путь бит в бит
+  var fx0 = zoneDijkstra.from, fireOn = !!(zoneDijkstra.fire && fires.length);
+  var key = fromId + "|" + (team||"") + "|" + (fx0 ? fx0.x + "," + fx0.y : "") + "|" + (fireOn ? fires.map(function(f){ return f.x + "," + f.y + "," + f.born; }).join(";") : "") + "|" +
+            KP.map(function(q){ return q.x + "," + q.y; }).join(";");
+  var DJ = ZDJ.tick === tick && ZDJ.graph === zoneGraph ? ZDJ.s : (ZDJ.tick = tick, ZDJ.graph = zoneGraph, ZDJ.s = {});
+  var S = DJ[key];
+  if(!S){ S = DJ[key] = {dist: {}, prev: {}, visited: {}, entry: {}, heap: makeHeap(), relax: null}; S.dist[fromId] = 0; if(fx0) S.entry[fromId] = fx0; S.heap.push(fromId, 0); }
+  var dist = S.dist, prev = S.prev, visited = S.visited, entry = S.entry, heap = S.heap;
+  var relax = function(u){
     // (v406, владелец 22.10: «зачем все идут в одну точку, а не прямо вниз» — спавн T → T Ramp) длина — от точки, через которую в участок
     // вошли (середина перехода; у начала — сама точка старта, zoneDijkstra.from), а не от центра участка: по центрам мелко нарезанная
     // рампа «стоила» дороже бордюра того же пути. Переход между участками — ROUTE_PORTAL (было 40 — проектное число)
@@ -308,13 +309,23 @@ function zoneDijkstra(fromId, toId, team){
       if(side && side[edge.to] !== undefined && side[edge.to] < ROUTE_SIDE_LINE) w *= ROUTE_ENEMY_SIDE;   // (v259) CT — по своей стороне
       // (v438, док владельца 27.10: «боты часто идут в молик») переход в горящем огне — дороже на FIRE_DETOUR: путь обходит молотов, если обход
       // не длиннее; иначе идёт через огонь (как и раньше — fireCommit / ждёт у края). Только путь движения (buildWaypointPath)
-      if(zoneDijkstra.fire && fires.length && inFire(edge.mid.x, edge.mid.y)) w += FIRE_DETOUR;
+      if(fireOn && inFire(edge.mid.x, edge.mid.y)) w += FIRE_DETOUR;
       for(var kq = 0; kq < KP.length; kq++) if(Math.hypot(KP[kq].x-edge.mid.x, KP[kq].y-edge.mid.y) < KNOWN_PATH_R){ w += KNOWN_DETOUR; break; }
       var alt = dist[u] + w;
       if(dist[edge.to]===undefined || alt<dist[edge.to]){
         dist[edge.to] = alt; prev[edge.to] = u; entry[edge.to] = edge.mid; heap.push(edge.to, alt);
       }
     });
+  };
+  if(!visited[toId]){
+    if(S.relax != null){ relax(S.relax); S.relax = null; }   // прошлый поиск остановился на своей цели, не раскрыв её переходы
+    while(heap.size()){
+      var u = heap.pop().id;
+      if(visited[u]) continue;
+      visited[u] = true;
+      if(u===toId){ S.relax = u; break; }
+      relax(u);
+    }
   }
   if(dist[toId]===undefined){
     if(!zoneDijkstra.nearest) return null;
