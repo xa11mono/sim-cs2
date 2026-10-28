@@ -1,0 +1,26 @@
+{
+ "par": 2,
+ "jobs": [],
+ "shots": [
+  {
+   "label": "rp_m7r26",
+   "ref": "d0584e6295e681f07a88db814395a30726c5e6e5",
+   "map": "ancient",
+   "match": 7,
+   "round": 26,
+   "step": 900,
+   "n": 34,
+   "mode": "both"
+  },
+  {
+   "label": "rp_m3r15",
+   "ref": "d0584e6295e681f07a88db814395a30726c5e6e5",
+   "map": "ancient",
+   "match": 3,
+   "round": 15,
+   "step": 900,
+   "n": 34,
+   "mode": "emo"
+  }
+ ]
+}
