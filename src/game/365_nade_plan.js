@@ -99,7 +99,9 @@ function teamNadePlan(team, rt){
     if(!pool.length) return;
     pool.sort(function(a, c){ return ((plan[a.id]||[]).length - (plan[c.id]||[]).length) || (c.money - a.money); });
     var o = pool[0];
-    (plan[o.id] = plan[o.id] || []).push(it.t); (items[o.id] = items[o.id] || []).push({t:it.t, m:it.m, z:zone[o.id]});
+    // (док 6, п.1: «мид взяли без гранат» — у про 61 % смоков T «сейчас|мид», у ботов в м1 18 %) граната остаётся в зоне плана, даже если
+    // её купил боец другой зоны (в зоне плана некому); раньше она получала зону хозяина — и смоки в мид у T с группами A/B пропадали
+    (plan[o.id] = plan[o.id] || []).push(it.t); (items[o.id] = items[o.id] || []).push({t:it.t, m:it.m, z:it.z || zone[o.id]});
     cost[o.id] = (cost[o.id]||0) + pr;
   });
   // (v429) у гранаты «сейчас» и «выход» — конкретная цель из демок: лайнап про этой зоны на этот момент (группа одной цели, 320),
