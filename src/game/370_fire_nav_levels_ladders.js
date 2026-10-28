@@ -1,6 +1,15 @@
 function fireDamageFor(sec){ var n = Math.floor(sec/FIRE_HIT_SEC), d = 0; for(var k=1;k<=n;k++) d += Math.min(FIRE_HIT_MAX, k); return d; }
 // (v438) загорелся молотов — у кого оставшийся путь проходит через огонь (точка пути или отрезок ближе радиуса огня), путь строится
 // заново (buildWaypointPath обходит огонь, FIRE_DETOUR, 050): раньше путь, построенный до огня, вёл прямо в него
+// (v450, док владельца 28.10 №5: «раш через Рампу, а идут через Палас»; м19 р1: CT кинули молотов на T Ramp, путь T0 к Tetris построился
+// в обход через Palace Entry и после того, как огонь погас, остался тем же — T0 вернулся на спавн и пошёл через Палас) огонь погас / потушен
+// — пути, построенные, пока он горел (обход, v438), строятся заново: обход больше не нужен
+var FIRE_GONE_R = 1500;   // (v450) ед. карты: кто мог идти в обход этого огня — проектное число
+function fireGoneRepath(fr){
+  // (путь, построенный при огне, отметить нельзя: маршрут тактики склеивает свои куски) — пути всех, кто в FIRE_GONE_R от огня
+  bots.forEach(function(b){ if(!b.alive || !b.path || !b.path.length || b.planting || b.defusing || Math.hypot(b.baseX-fr.x, b.baseY-fr.y) > FIRE_GONE_R) return;
+    b.path = []; b.pathIdx = 0; });
+}
 function fireRepath(fx, fy){
   var R = NADE.molly.radius + FIRE_BODY;
   bots.forEach(function(b){ if(!b.alive || !b.path || b.pathIdx >= b.path.length || b.planting || b.defusing) return;

@@ -208,9 +208,9 @@ function nadesTick(){
   for(var s=smokes.length-1;s>=0;s--) if(tick >= smokes[s].until) smokes.splice(s,1);
   for(var f=fires.length-1;f>=0;f--){
     var fr = fires[f];
-    if(tick >= fr.until){ fires.splice(f,1); continue; }
+    if(tick >= fr.until){ fires.splice(f,1); fireGoneRepath(fr); continue; }
     // дым, раскрывшийся на огне, тушит его
-    if(smokes.some(function(sm){ return Math.hypot(sm.x-fr.x, sm.y-fr.y) < smokeRadiusNow(sm) + NADE.molly.radius*MOLLY_SMOKE_TOUCH; })){ if(SND && SND.on) sndNade("extinguish", fr.x, fr.y); fires.splice(f,1); continue; }
+    if(smokes.some(function(sm){ return Math.hypot(sm.x-fr.x, sm.y-fr.y) < smokeRadiusNow(sm) + NADE.molly.radius*MOLLY_SMOKE_TOUCH; })){ if(SND && SND.on) sndNade("extinguish", fr.x, fr.y); fires.splice(f,1); fireGoneRepath(fr); continue; }
     bots.forEach(function(b){
       if(!b.alive) return;   // (v263, Б1) огонь жжёт и своих — множитель в applyDamage
       if(fireTouches(fr, b.x, b.y)){

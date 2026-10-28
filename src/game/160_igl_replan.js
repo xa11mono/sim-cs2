@@ -134,8 +134,21 @@ function bStageFix(){
     if(up) g.tStageUp = pickSpots(k.toLowerCase()+"stageUp", up, 1, {rMax:140, minGap:40, hideFrom:[SITES[k], g.anchor]})[0] || up;
   }
 }
+var AHEAD_GAP = 120;   // (v450) ед. карты: «уже впереди точки подготовки» — проектное число
 function stagePost(mem, k){
   var g = GEO[k], opt = {rMax:200, minGap:50, hideFrom:[SITES[k], g.anchor], see:[g.tEntry], avoidNades: BAL.tAdapt ? tDeathSpots() : []};
+  // (v450, владелец 28.10: м1 р6 — «почти вышли на B, у игрока 0 появляется якорь stageB, который ведёт назад. Зачем?») точка подготовки —
+  // одна на всех, и кто уже прошёл дальше неё к сайту (после перекола, после дефолта), шёл назад «собираться». Теперь он ждёт там, где
+  // стоит, — в укрытии рядом (≤ 160 ед., не видно с сайта и с якоря CT, видно вход), а выход начинается и от него. «Дальше» — ближе к сайту
+  // по пути, чем точка подготовки, на AHEAD_GAP (проектное число)
+  if(!mem.length) return;
+  var dSt = pathLenTo({baseX:g.tStage.x, baseY:g.tStage.y, z:g.tStage.z}, SITES[k].x, SITES[k].y);
+  mem = mem.filter(function(b){
+    if(!(dSt > 0)) return true;
+    var dB = pathLenTo(b, SITES[k].x, SITES[k].y); if(!(dB > 0) || dB > dSt - AHEAD_GAP) return true;
+    if(b.post && /^stage/.test(b.post.tag) && /:ahead$/.test(b.post.tag)) return false;   // уже ждёт впереди
+    groupPost([b], {x:b.x, y:b.y}, g.tEntry, "stage"+k+":ahead", {rMax:160, minGap:40, hideFrom:[SITES[k], g.anchor], see:[g.tEntry]});
+    return false; });
   if(!mem.length) return;
   var SSk = (MAP.tactics.plays.stageSplit || {})[k];
   if(SSk && BAL.bStageLow && g.tStageUp && mem.length >= 3){
