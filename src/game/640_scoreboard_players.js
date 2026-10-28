@@ -174,7 +174,7 @@ function plCardUpdate(c, b){
   domText(R.num, plNum(b));
   domText(R.nick, nick(b.id));
   hudNum(R.k, b.kills || 0); hudNum(R.d, b.deaths || 0); hudNum(R.m, buyShowMoney(b), PL_MONEY);
-  if(R.ava._id !== b.id){ R.ava._id = b.id; R.ava.innerHTML = plPhoto(b); }
+  if(R.ava._id !== nick(b.id)){ R.ava._id = nick(b.id); R.ava.innerHTML = plPhoto(b); }   // (док 6) фото — по нику: после смены сторон тот же слот у другого игрока
   var wp = "", gear = "";
   if(b.alive){
     var hide = buyShowHidden(b);
@@ -210,7 +210,7 @@ function playersUpdate(){
   var f = document.getElementById("plFocus"), b = plSelected && teamBot(plSelected);
   if(!b || !b.alive){ plSelected = null; domClass(f, ""); var ph0 = document.getElementById("pfPhoto"); if(ph0) ph0.dataset.id = ""; return; }
   var cls = "show "+b.team.toLowerCase()+(f.classList.contains("pop") ? " pop" : ""); if(f.className !== cls) f.className = cls;
-  var ph = document.getElementById("pfPhoto"); if(ph.dataset.id !== b.id){ ph.dataset.id = b.id; ph.innerHTML = plPhoto(b); f.classList.remove("pop"); void f.offsetWidth; f.classList.add("pop"); }   // (v303) новая карточка — анимация заново
+  var ph = document.getElementById("pfPhoto"); if(ph.dataset.id !== nick(b.id)){ ph.dataset.id = nick(b.id); ph.innerHTML = plPhoto(b); f.classList.remove("pop"); void f.offsetWidth; f.classList.add("pop"); }   // (v303) новая карточка — анимация заново
   domText(document.getElementById("pfNick"), nick(b.id));
   var php = Math.max(0, Math.round(b.hp));
   domText(document.getElementById("pfHp"), php);
