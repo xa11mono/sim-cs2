@@ -1,1 +1,3 @@
-{"par": 8, "jobs": [{"label": "h451_anc", "ref": "8bc7c11f98316acdba119af687bb844e55552a2c", "map": "ancient", "matches": [3, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61]}]}
+{"par": 8, "jobs": [
+  {"label": "f454_mir", "ref": "988020af6825a0a8ff5757db2215b7e353e5857b", "map": "mirage", "matches": [3, 7, 11, 13, 17, 19, 23, 29]}
+]}
