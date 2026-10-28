@@ -229,7 +229,11 @@ function updateRetake(cts){
     logEvent("CT: ретейк — живых T нет, сразу на бомбу");
   }
   if(R.phase === "gather"){
-    var ready = alive.filter(function(b){ var a = R.approaches[R.assign[b.id]]; return Math.hypot(a.x-b.baseX, a.y-b.baseY) < 70; }).length;
+    // (док 6, п.9: р5 CT убили троих на сайте, стояли в 36–220 от бомбы — и ушли на точки сбора за 200–390, потом обратно; у про от смерти
+    // последнего T у бомбы до конца дефуза — 6,6 с, медиана) точка сбора — чтобы зайти вместе, а не по одному; кто уже ближе к бомбе, чем его
+    // точка сбора, — уже зашёл: он «на месте»
+    var atAp = function(b, a){ return a && (Math.hypot(a.x-b.baseX, a.y-b.baseY) < 70 || Math.hypot(b.baseX-bomb.x, b.baseY-bomb.y) < Math.hypot(a.x-bomb.x, a.y-bomb.y)); };
+    var ready = alive.filter(function(b){ return atAp(b, R.approaches[R.assign[b.id]]); }).length;
     var need = Math.min(alive.length, alive.length >= 3 ? 3 : alive.length);
     if(BAL.groupRetake){
       // у про второй заходит через ~3с после первого, у ботов было 5с: ждём
@@ -248,7 +252,7 @@ function updateRetake(cts){
     // (v370, владелец: «kyousuke после фрага стоит на сборе и ждёт, хотя может играть сам» — снимок р3: 12 с на Bench, T один с 46 HP)
     // инициатива: ждём своих, только пока нас на точках меньше, чем живых T (киллфид — это знает и живой игрок); на точке —
     // только здоровые (HP > LOW_HP). Временное правило владельца (16.10) — потом заменить на числа из демок (сколько про ждут на сборе)
-    var readyFit = alive.filter(function(b){ var ap = R.approaches[R.assign[b.id]]; return ap && Math.hypot(ap.x-b.baseX, ap.y-b.baseY) < 70 && b.hp > LOW_HP; }).length;
+    var readyFit = alive.filter(function(b){ return atAp(b, R.approaches[R.assign[b.id]]) && b.hp > LOW_HP; }).length;
     var initiative = readyFit >= 1 && readyFit >= aliveCount("T") && ready < need;
     if(ready >= need || late || initiative){
       if(initiative) logEvent("CT: ретейк — нас на точках "+readyFit+", живых T "+aliveCount("T")+" — заходим, не дожидаясь остальных");
@@ -340,6 +344,8 @@ function retakePost(b, cts){
         if(nbw !== R.backWatch){ R.backWatch = nbw; if(bwb) voiceLog("CT", "back", bwb.id, "смотрю спину — может прийти люрк"); } }
       if(R.backWatch === b.id){ setPost(b, a, GEO.rotator, true, gTag(b, R), 0); return; }
     }
+    // (док 6) уже ближе к бомбе, чем своя точка сбора, — назад на сбор не идёт: ждёт своих там, где стоит
+    if(Math.hypot(b.baseX-bp.x, b.baseY-bp.y) < Math.hypot(a.x-bp.x, a.y-bp.y)){ setPost(b, {x:b.baseX, y:b.baseY}, bp, true, gTag(b, R), 0); return; }
     setPost(b, a, bp, true, gTag(b, R), 0);
     return;
   }

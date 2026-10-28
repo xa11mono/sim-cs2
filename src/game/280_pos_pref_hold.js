@@ -15,6 +15,16 @@ function posWeaponClass(b){
   if(/^(MAC10|MP9|MP7|UMP|P90)$/.test(k)) return "smg";
   return "pistol";
 }
+// (док 6, п.4, владелец 28.10: «ПП — сильный разброс и скорострельность, должен стоять в упор к врагам: выход на A — не на Ticket, а у рампы, на 90»)
+// дальность оружия — с какого расстояния CT убивают этим классом (75-й процентиль, м; демки Mirage, tools/measure/pro_checks.py: ПП 272 убийства,
+// пистолет 856, винтовка 4124). Место, откуда до врага дальше дальности своего оружия, стоит меньше — во столько раз, во сколько его дальность меньше
+// нужной (относительно винтовки: у винтовок и AWP — 1, как было)
+var WPN_RANGE_M = {smg: 16.1, pistol: 21.1, rifle: 25.6};
+function wpnRangeFit(b, d){
+  var c = posWeaponClass(b); if(c !== "smg" && c !== "pistol") return 1;
+  var k = 39.37/PX_UNITS, R = WPN_RANGE_M[c]*k, Rr = WPN_RANGE_M.rifle*k;
+  return d <= R ? 1 : d >= Rr ? R/Rr : R/d;
+}
 function posTable(side, who, wc){
   var key = side + "|" + who + "|" + wc; if(POSPREF.cache[key]) return POSPREF.cache[key];
   var P = KNOW_POSITIONS.points.filter(function(q){ return q.side === side; }), NP = 0, NW = 0, raw = {}, mx = 0;
@@ -133,12 +143,16 @@ function posPickName(b, names, seed){
   // времени там (posOwnZones); раньше — самая похожая одна позиция по почерку + оружию (posPref), у всех с винтовкой Window ≈ 1, и kyousuke
   // стоял в Window 8 раундов из 12 (в демках — 8 % времени). Демок нет — как раньше
   var own = posOwnZones(b.team, nick(b.id)), ownBy = {}; own.forEach(function(o){ ownBy[normZoneName(o.name)] = o.share; });
+  // (док 6) с ПП / пистолетом место дальше от подхода T, чем дальность оружия, — реже (wpnRangeFit; подходы T — GEO: входы A, B и мид T)
+  var TE = b.team === "CT" ? [GEO.A && GEO.A.tEntry, GEO.B && GEO.B.tEntry, GEO.tMid].filter(Boolean) : [];
+  var fitOf = function(nm){ if(!TE.length) return 1; var p = zonePoint(nm, GEO.ctMid); if(!p) return 1;
+    return wpnRangeFit(b, Math.min.apply(null, TE.map(function(e){ return Math.hypot(e.x-p.x, e.y-p.y); }))); };
   var w = names.map(function(nm){
-    if(own.length) return BAL.proFloor*0.1 + (ownBy[normZoneName(nm)] || 0);
+    if(own.length) return (BAL.proFloor*0.1 + (ownBy[normZoneName(nm)] || 0))*fitOf(nm);
     var ids = zonesByName(nm), best = 0;
     KNOW_POSITIONS.points.forEach(function(q){ if(q.side !== b.team) return; if(q.zid === undefined) q.zid = zoneIdAt(q.x, q.y) || null;
       if(q.zid && ids.indexOf(q.zid) >= 0) best = Math.max(best, posPref(b, q)); });
-    return BAL.proFloor + best; });
+    return (BAL.proFloor + best)*fitOf(nm); });
   var tot = w.reduce(function(a, v){ return a+v; }, 0), r = hashRand(seed)*tot, pick = w.length-1;
   for(var i=0;i<w.length;i++){ r -= w[i]; if(r <= 0){ pick = i; break; } }
   return (PPN.v[ck] = pick);
@@ -207,7 +221,7 @@ function holdSpot(b, T){
     if(useMust && !mustPts.every(function(m){ return hasLOS(c.x, c.y, m.x, m.y); })) return null;
     var main = 0, mainE = null, open = 0;
     E.forEach(function(e){ if(!hasLOS(c.x, c.y, e.pt.x, e.pt.y)) return; var v = e.wn; open += v; if(v > main){ main = v; mainE = e; } });
-    var s = HOLD.seeMain*main - HOLD.extraOpen*(open - main), why = [];
+    var s = HOLD.seeMain*main*(mainE ? wpnRangeFit(b, Math.hypot(c.x-mainE.pt.x, c.y-mainE.pt.y)) : 1) - HOLD.extraOpen*(open - main), why = [];   // (док 6) вход дальше дальности оружия — виден, но держать его хуже
     var ex = spotExposure(team, c.x, c.y); if(ex > 1) s -= HOLD.staticOpen*(ex - 1);
     if(tick - (b.lastShotTick||-1e9) < HOLD.burnSec*TICK_HZ && Math.hypot(c.x-b.x, c.y-b.y) < HOLD.burnR){ s -= HOLD.burned; why.push("засвечен"); }
     if(intelDeathsNear(team, c.x, c.y, HOLD.burnR, 10*TICK_HZ) > 0){ s -= HOLD.burned; why.push("тут убили своего"); }
