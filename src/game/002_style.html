@@ -417,7 +417,7 @@
     animation:rpIn .5s var(--ease) both;}
   #rp .rp-eh img{height:44px;} #rp .rp-eh em{font-style:normal;font-size:15px;letter-spacing:.14em;color:var(--mark);font-weight:500;}
   #rp .rp-eh.ct span{color:#a6cdf2;} #rp .rp-eh.t span{color:#f6cf86;}
-  #rp .rp-eh2{font-size:13px;letter-spacing:.2em;text-transform:uppercase;color:var(--text-dim);margin-top:10px;animation:rpIn .5s var(--ease) 1.2s both;}
+  #rp .rp-eh2{font-size:13px;letter-spacing:.2em;text-transform:uppercase;color:var(--text-dim);margin:10px 0 50px;animation:rpIn .5s var(--ease) 1.2s both;}
   #rp .rp-row{display:flex;justify-content:center;align-items:flex-end;gap:14px;width:100%;}
   #rp .rp-card .rp-vx:empty::before{content:"\00a0";}
   #rp .rp-card{position:relative;width:min(16vw,170px);display:flex;flex-direction:column;align-items:center;
@@ -445,6 +445,9 @@
   #rp .rp-row.sad .rp-say{background:rgba(20,24,18,.92);color:var(--text-dim);font-weight:500;font-style:italic;font-size:12px;
     animation-delay:calc(var(--i)*80ms + 1.8s);}
   #rp .rp-row.sad .rp-say::after{border-top-color:rgba(20,24,18,.92);}
+  /* у проигравших карточки узкие: фраза в 2 строки, через одну — выше, чтобы соседние не налезали */
+  #rp .rp-row.sad .rp-say{white-space:normal;width:max-content;max-width:min(13vw,138px);text-align:center;line-height:1.25;}
+  #rp .rp-row.sad .rp-card:nth-child(even) .rp-say{bottom:calc(100% + 18px);}
   @keyframes rpSay{from{opacity:0;transform:translate(-50%,8px) scale(.8);}to{opacity:1;transform:translateX(-50%);}}
   @keyframes rpShout{from{transform:rotate(-2.5deg) scale(1);}to{transform:rotate(2.5deg) scale(1.08);}}
   #rp.rm *{animation:none!important;transition:none!important;}

@@ -308,19 +308,34 @@ function rpBlurBg(E, x){
   x.fillStyle = "rgba(6,8,6,.55)"; x.fillRect(0, 0, c.width, c.height);
 }
 // ---------- эмоции: портреты в строчку, что кричат и что последним сказали ----------
-// реакции — проектные фразы (показ). Выбор — по ситуации игрока, вариант — от номера матча/раунда (повтор того же раунда — те же)
+// реакции — проектные фразы (показ): живые, разговорные, с матом (владелец 28.10). Язык — язык войса команды (владелец: Falcons
+// общаются на английском, даже русские игроки; Spirit — на русском); команды нет в списке — по-русски.
+// Выбор — по ситуации игрока, вариант — от номера матча/раунда (повтор того же раунда — те же фразы)
+var RP_LANG = {"Team Falcons": "en", "Team Spirit": "ru"};
 var RP_SAY = {
-  hero:   ["ДААААА!", "ВОТ ТАК!", "ИЗИ, ИЗИ!", "Я ЖЕ ГОВОРИЛ!", "ОН МОЙ!"],
-  heroLow:["НА {hp} ХП!!!", "ЕЛЕ ЖИВОЙ, НО ЗАБРАЛ!"],
-  mate:   ["НАЙС!!", "КРАСАВЧИК!", "ЧТО ТЫ СДЕЛАЛ?!", "ДА-ДА-ДА!", "ЛЕГЕНДА!", "ВАУ, 1 В {n}!", "ЗАБРАЛ!!"],
-  mateHype:["ЭЙС-КЛАТЧ! НЕРЕАЛЬНО!", "1 В {n}, ТЫ МОНСТР!", "ОРУ!!!"],
-  mateAlive:["ПРИКРЫЛ, ДАВАЙ!", "НАЙС, БРАТ!"],
-  victim: ["как он меня...", "ну как так?", "он один был!", "не может быть", "откуда он?!"],
-  loserAlive:["я не успел...", "сорри, пацаны", "бомбу не нашёл"],
-  loser:  ["собрались, следующий", "так нельзя отдавать", "это был наш раунд...", "эх..."]
+  ru: {
+    hero:     ["ДА БЛЯТЬ!!!", "ИЗИ НАХУЙ!", "ЗАБРАЛ, СУКА!", "ДАААА, ЕБАТЬ!", "КТО ТАМ ГОВОРИЛ, ЧТО Я НЕ ВЫВОЖУ?!", "ВОТ ЭТО Я ВЫДАЛ!"],
+    heroLow:  ["НА {hp} ХП, БЛЯТЬ!!", "С {hp} ХП ЗАБРАЛ, Я ЕБУ!"],
+    mate:     ["ЕБАТЬ ТЫ ВЫДАЛ!", "ДА ЛАДНО, ОДИН НА {n}!", "КРАСАВА, БРАТ!", "ТЫ ЁБАНЫЙ МОНСТР!", "ЛЮТЫЙ, СУКА!", "АХАХА, НУ ТЫ ЗВЕРЬ!", "ЗАБИРАЙ… ЗАБРАЛ!!"],
+    mateHype: ["ЭТО ЧТО ВООБЩЕ БЫЛО?!", "1 НА {n}, Я В АХУЕ!", "ЕБАТЬ, ЭЙС-КЛАТЧ!"],
+    mateAlive:["Я ТУТ ЧИСТО ДЛЯ МАССОВКИ, АХАХ", "КРАСАВА, Я ЖЕ ГОВОРИЛ!"],
+    victim:   ["да как он меня, блять", "сука, он же один был", "откуда он вылез?", "я его вообще не видел", "пиздец, сразу в башку"],
+    loserAlive:["бля, я не успел", "сорян, пацаны", "ну я ж бежал…"],
+    loser:    ["ну это пиздец", "как это можно отдать?", "собрались, следующий", "ебучий клатч", "минус раунд, хуже не бывает"]
+  },
+  en: {
+    hero:     ["LET'S FUCKING GOOO!", "EZ CLAP!", "WHO ELSE?!", "TOO EASY!", "I'M HIM!", "GET REKT!"],
+    heroLow:  ["{hp} HP, BABY!!", "ON {hp} HP, LET'S GO!"],
+    mate:     ["WHAT THE FUCK?!", "HOLY SHIT!", "1V{n}, ARE YOU KIDDING ME?!", "INSANE, BRO!", "YOU'RE A MONSTER!", "NICE NICE NICE!", "LET'S GOOO!"],
+    mateHype: ["1V{n}?! WHAT IS THIS?!", "ACTUAL MADMAN!", "HE'S NOT HUMAN!"],
+    mateAlive:["I just watched, lol", "NICE, I HAD YOUR BACK!"],
+    victim:   ["how the fuck...", "he was alone, man", "where did he come from?", "no way, dude", "didn't even see him"],
+    loserAlive:["fuck, too late", "my bad, guys", "couldn't make it..."],
+    loser:    ["unreal...", "can't lose that round", "reset, next one", "fuck this clutch", "that's on us"]
+  }
 };
 function rpHash(s){ var h = 2166136261 >>> 0; s = String(s); for(var i = 0; i < s.length; i++) h = Math.imul(h ^ s.charCodeAt(i), 16777619) >>> 0; return h; }
-function rpPick(list, key, R){ var t = list[rpHash(R.m + "|" + R.round + "|" + key) % list.length]; return t.replace("{n}", R.clutch.n).replace("{hp}", Math.max(1, Math.round(R.clutch.hp||0))); }
+function rpPick(list, key, R){ if(!list) return ""; var t = list[rpHash(R.m + "|" + R.round + "|" + key) % list.length]; return t.replace("{n}", R.clutch.n).replace("{hp}", Math.max(1, Math.round(R.clutch.hp||0))); }
 function rpEmotions(E, R){
   var C = R.clutch, win = C.side, lose = win === "CT" ? "T" : "CT";
   var row = function(side, mood){
@@ -328,8 +343,9 @@ function rpEmotions(E, R){
     if(side === win){ ids.sort(function(a, b){ return (a === C.id ? 0 : 1) - (b === C.id ? 0 : 1); }); var c0 = ids.shift(); ids.splice(Math.floor(ids.length/2), 0, c0); }
     return '<div class="rp-row ' + mood + ' ' + side.toLowerCase() + '">' + ids.map(function(id, i){
       var st = R.st[id] || {}, hero = id === C.id, say;
-      if(side === win) say = hero ? (C.hp > 0 && C.hp <= 30 ? rpPick(RP_SAY.heroLow, id, R) : rpPick(RP_SAY.hero, id, R)) : st.alive ? rpPick(RP_SAY.mateAlive, id, R) : rpPick(C.n >= 4 ? RP_SAY.mateHype : RP_SAY.mate, id, R);
-      else say = st.killer === C.id ? rpPick(RP_SAY.victim, id, R) : st.alive ? rpPick(RP_SAY.loserAlive, id, R) : rpPick(RP_SAY.loser, id, R);
+      var L = RP_SAY[RP_LANG[R.team[side]] || "ru"];
+      if(side === win) say = hero ? (C.hp > 0 && C.hp <= 30 ? rpPick(L.heroLow, id, R) : rpPick(L.hero, id, R)) : st.alive ? rpPick(L.mateAlive, id, R) : rpPick(C.n >= 4 ? L.mateHype : L.mate, id, R);
+      else say = st.killer === C.id ? rpPick(L.victim, id, R) : st.alive ? rpPick(L.loserAlive, id, R) : rpPick(L.loser, id, R);
       var vx = R.vox && R.vox[id];
       var b = teamBot(id), ph = b ? plPhoto(b) : "";
       return '<div class="rp-card' + (hero ? ' hero' : '') + (st.alive ? '' : ' dead') + '" style="--i:' + i + '">' +
