@@ -1,4 +1,3 @@
-{"par": 2, "jobs": [], "shots": [
-  {"label": "to_m13r10", "kind": "timeout", "ref": "d465d15b83b4dd1e0e809ef327ca8c85ed190c0a", "map": "ancient", "match": 13, "round": 10, "step": 1000, "n": 36},
-  {"label": "to_m11r8", "kind": "timeout", "ref": "d465d15b83b4dd1e0e809ef327ca8c85ed190c0a", "map": "ancient", "match": 11, "round": 8, "step": 1000, "n": 36}
+{"par": 8, "jobs": [
+  {"label": "v460b_anc", "ref": "43271da74eba886fd7016c65c7a82fd053f27420", "map": "ancient", "matches": [3, 7, 11, 13, 17, 19, 23, 29]}
 ]}
