@@ -16,6 +16,13 @@ const { chromium } = require('playwright'); const fs = require('fs'), path = req
         R.kills.push({tick: tick, round: roundNum, att: att.id, vic: vic.id, w: wkey, d: Math.round(full), wall2d: cd < full - 12, los3d: hasLOS(att.x, att.y, vic.x, vic.y, att.z, vic.z),
           from: calloutName(att.x, att.y), to: calloutName(vic.x, vic.y)}); } }catch(e){}
       return fk.apply(this, arguments); };
+    R.throws = [];
+    var tn = throwNade;
+    throwNade = function(b, type, x, y){ var r = tn.apply(this, arguments);
+      try{ if(r){ var foe = b.team === "CT" ? "T" : "CT";
+        R.throws.push({tick: tick, round: roundNum, id: b.id, team: b.team, type: type, why: String(arguments[5]||""), foes: aliveCount(foe), bomb: bomb.state,
+          defusing: bots.some(function(o){ return o.alive && o.defusing; }), to: calloutName(x, y), zone: npZoneAt(x, y)}); } }catch(e){}
+      return r; };
     var ob = onBlind;
     onBlind = function(b, threat){ var r = ob.apply(this, arguments);
       try{ watch.push({b: b, th: {x: threat.x, y: threat.y}, t0: tick, end: b.blindUntil, back: !!(b._blind && b._blind.back), samp: []}); }catch(e){}
@@ -36,6 +43,6 @@ const { chromium } = require('playwright'); const fs = require('fs'), path = req
     return R;
   } + ')')(mt), +mt);
   fs.writeFileSync(outp, JSON.stringify(res));
-  console.log('убийств', res.kills.length, 'ослеплений', res.blind.length, 'раундов', res.setups.length);
+  console.log('бросков', res.throws.length, 'убийств', res.kills.length, 'ослеплений', res.blind.length, 'раундов', res.setups.length);
   await br.close();
 })();
