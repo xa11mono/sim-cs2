@@ -6,7 +6,7 @@
   var g = (typeof window !== "undefined" ? window : globalThis);
   var D = {nt:{}, ntEx:[], swEx:[], fire:{birth:0, commit:0, other:0}, walk:{n:0, far:0, bomb:0}, swing:{n:0, noLos:0, high:0}, known:{n:0, behind:0},
     smokeDup:{n:0, dup:0}, pp:{n:0, near:0}, voice:{n:0, rounds:0}, def:{}, save:{n:0, rich:0}, rl:{peek:0, knife:0}, path:{n:0, ticks:0, max:0},
-    buy:{T:[0,0], CT:[0,0]}, thrown:{T:0, CT:0}, car:{n:0, swing:0, engage:0, lowEngage:0}, entryOther:{n:0, other:0}, defD:{}, tacZ:{}, walkWhy:{}, voiceK:{}, walk2:{}, execWhy:{}, voiceRep:{}, defTr:[], lateTr:[], drop:{}};
+    buy:{T:[0,0], CT:[0,0]}, thrown:{T:0, CT:0}, car:{n:0, swing:0, engage:0, lowEngage:0}, entryOther:{n:0, other:0}, defD:{}, tacZ:{}, walkWhy:{}, voiceK:{}, walk2:{}, execWhy:{}, voiceRep:{}, defTr:[], lateTr:[], drop:{}, tacId:{}};
   function inc(o, k, v){ o[k] = (o[k]||0) + (v == null ? 1 : v); }
   function zn(x, y){ var z = zoneIdAt(x, y); return (z && zoneUserName(z)) || "?"; }
   // --- задания гранат: чем кончилось (брошена / задача важнее не пустила / отказ броска / срок) ---
@@ -118,6 +118,7 @@
         var key = teamTac.T.site + "|" + zn(b.x, b.y); inc(D.def, key);
         inc(D.defD, teamTac.T.site + "|" + zn(b.x, b.y) + "|" + b.tRole + "|" + (b.post ? String(b.post.tag).split(":")[0] : "-") + "|" + teamTac.T.phase); }
       // (v443) все тактики: где стоят T на 25–50-й с по стилю тактики — дефолт ли это у других стилей и у Ancient
+      if(b.team === "T" && secIn >= 15 && secIn <= 60 && teamTac.T && teamTac.T.tac && teamTac.T.phase === "setup" && bomb.state !== "planted") inc(D.tacId, teamTac.T.tac.id + "|" + teamTac.T.site + "|" + zn(b.x, b.y));   // (v450) по тактике: где стоят до выхода
       if(b.team === "T" && secIn >= 25 && secIn <= 50 && teamTac.T && teamTac.T.tac && bomb.state !== "planted") inc(D.tacZ, teamTac.T.tac.style + "|" + teamTac.T.site + "|" + zn(b.x, b.y));
     });
     // (v443б) выход: смена фазы setup → execute и подтягивание выхода (> 2 с) — с последними сообщениями IGL
