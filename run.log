@@ -1,0 +1,11 @@
+браузеры: C:\Users\Mono\AppData\Local\ms-playwright
+playwright 1.56.0
+> git fetch --quiet origin 8bc7c11f98316acdba119af687bb844e55552a2c
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_6fz4sbcr FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_6fz4sbcr\src\build.py --map ancient C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\h451_anc.html
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\engine\walk_run.py --job=h451_anc,C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\h451_anc.html --matches=3,7,11,13,17,19,23,29,31,37,41,43,47,53,59,61 --par=8
+матчей в очереди: 16, одновременно: 8
+… идёт 8: h451_anc м3 (0.0 мин), h451_anc м7 (0.0 мин), h451_anc м11 (0.0 мин), h451_anc м13 (0.0 мин), h451_anc м17 (0.0 мин), h451_anc м19 (0.0 мин), h451_anc м23 (0.0 мин), h451_anc м29 (0.0 мин) | готово 0/16, в очереди 8, прошло 0.0 мин
+… идёт 8: h451_anc м3 (0.5 мин), h451_anc м7 (0.5 мин), h451_anc м11 (0.5 мин), h451_anc м13 (0.5 мин), h451_anc м17 (0.5 мин), h451_anc м19 (0.5 мин), h451_anc м23 (0.5 мин), h451_anc м29 (0.5 мин) | готово 0/16, в очереди 8, прошло 0.5 мин
+… идёт 8: h451_anc м3 (1.0 мин), h451_anc м7 (1.0 мин), h451_anc м11 (1.0 мин), h451_anc м13 (1.0 мин), h451_anc м17 (1.0 мин), h451_anc м19 (1.0 мин), h451_anc м23 (1.0 мин), h451_anc м29 (1.0 мин) | готово 0/16, в очереди 8, прошло 1.0 мин
+… идёт 8: h451_anc м3 (1.5 мин), h451_anc м7 (1.5 мин), h451_anc м11 (1.5 мин), h451_anc м13 (1.5 мин), h451_anc м17 (1.5 мин), h451_anc м19 (1.5 мин), h451_anc м23 (1.5 мин), h451_anc м29 (1.5 мин) | готово 0/16, в очереди 8, прошло 1.5 мин
