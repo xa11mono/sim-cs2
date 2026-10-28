@@ -1,0 +1,1 @@
+{"round":15,"state":"ending","pending":true,"clutch":{"id":"T0","side":"T","n":3,"alive":true,"hp":100,"kills":3},"kills":9,"samples":7400,"segs":[[100865,101063.4,"kill"],[101580,101778.4,"kill"],[101885,102083.4,"plant"],[102762,102928.4,"kill"]]}
