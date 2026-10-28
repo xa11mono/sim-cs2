@@ -147,7 +147,12 @@
     if(roundNum !== dRound){ dRound = roundNum; PRd = {}; dDone = false; }
     var k = sh.id + ">" + tg.id, P = PRd[k];
     if(!P || tick - P.last > 64){ var a = Math.atan2(tg.y-sh.y, tg.x-sh.x), hD = Math.abs(((a - (sh.facing||0) + Math.PI) % (2*Math.PI) + 2*Math.PI) % (2*Math.PI) - Math.PI);
-      P = PRd[k] = {seen:tick, last:tick, sp0:Math.round(sh.curSpeed||0), hD:+hD.toFixed(2), hold:!!sh.holding, shot:null, spS:null, n:0, dist:Math.round(dist), rt:sh.reactionTicks}; }
+      P = PRd[k] = {seen:tick, last:tick, sp0:Math.round(sh.curSpeed||0), hD:+hD.toFixed(2), hold:!!sh.holding, shot:null, spS:null, n:0, dist:Math.round(dist), rt:sh.reactionTicks};
+      // видит ли цель стрелка в этот же тик, и если нет — почему (части тела / поле зрения / ослеплён / дым)
+      var vp = visParts(tg.x, tg.y, tg.crouching, sh.x, sh.y, sh.crouching, true, tg.z, sh.z), a2 = Math.atan2(sh.y-tg.y, sh.x-tg.x);
+      P.rev = {parts: !!(vp.head || vp.body), myParts: (function(){ var q = visParts(sh.x, sh.y, sh.crouching, tg.x, tg.y, tg.crouching, true, sh.z, tg.z); return (q.head?"h":"") + (q.body?"b":""); })(),
+        fov: inFov(tg, sh.x, sh.y), off: +Math.abs(((a2 - (tg.facing||0) + Math.PI) % (2*Math.PI) + 2*Math.PI) % (2*Math.PI) - Math.PI).toFixed(2),
+        blind: tick < tg.blindUntil, smoke: !!smokeBlocks(sh.x, sh.y, tg.x, tg.y), sp: Math.round(tg.curSpeed||0), look: tg.lookTarget ? 1 : 0}; }
     P.last = tick; var l0 = sh.lastShotTick; var r = TSd.apply(this, arguments);
     if(sh.lastShotTick === tick && l0 !== tick){ P.n++; if(P.shot == null){ P.shot = tick; P.spS = Math.round(sh.curSpeed||0); P.rm = +(sh._reactMul||1).toFixed(2); P.pl = sh._peekLag||0; P.vl = sh._visLag||0; } }
     return r; }; }
