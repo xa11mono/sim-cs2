@@ -308,9 +308,7 @@ function zoneDijkstra(fromId, toId, team){
       if(side && side[edge.to] !== undefined && side[edge.to] < ROUTE_SIDE_LINE) w *= ROUTE_ENEMY_SIDE;   // (v259) CT — по своей стороне
       // (v438, док владельца 27.10: «боты часто идут в молик») переход в горящем огне — дороже на FIRE_DETOUR: путь обходит молотов, если обход
       // не длиннее; иначе идёт через огонь (как и раньше — fireCommit / ждёт у края). Только путь движения (buildWaypointPath)
-      // (v450, м19 р1: путь T0 к Tetris из-за молотова на T Ramp ушёл через спавн и Палас — ~1500 ед. обхода) цена — один раз на вход в огонь
-      // (переход в огне, а точка, откуда входим, — нет), а не за каждый переход внутри: огонь в несколько участков набирал > обхода через пол-карты
-      if(zoneDijkstra.fire && fires.length && inFire(edge.mid.x, edge.mid.y) && !inFire(fromCentroid.x, fromCentroid.y)) w += FIRE_DETOUR;
+      if(zoneDijkstra.fire && fires.length && inFire(edge.mid.x, edge.mid.y)) w += FIRE_DETOUR;
       for(var kq = 0; kq < KP.length; kq++) if(Math.hypot(KP[kq].x-edge.mid.x, KP[kq].y-edge.mid.y) < KNOWN_PATH_R){ w += KNOWN_DETOUR; break; }
       var alt = dist[u] + w;
       if(dist[edge.to]===undefined || alt<dist[edge.to]){
@@ -472,6 +470,12 @@ function buildWaypointPath(fromX, fromY, fromZ, toX, toY, toZ, team, lane){
   if(fz.id === tz.id) return [[toX,toY,toZ||0]];
   zoneDijkstra.from = {x: fromX, y: fromY}; zoneDijkstra.fire = true;
   var route = zoneDijkstra(fz.id, tz.id, team);
+  // (v450, м19 р1: путь T0 к Tetris из-за молотова на T Ramp ушёл через спавн и Палас — ~1500 ед. обхода) цена огня копится по каждому
+  // переходу внутри него, и обход через пол-карты выходил «дешевле». Обход берётся, только если он не длиннее пути через огонь больше чем
+  // на FIRE_DETOUR (как и задумано в v438); иначе — путь через огонь: у края огня бот ждёт, пока погаснет (fireSafe, 540)
+  if(route && fires.length){ zoneDijkstra.fire = false; var r0 = zoneDijkstra(fz.id, tz.id, team); zoneDijkstra.fire = true;
+    var rLen = function(R){ var L = 0, px = fromX, py = fromY; for(var ri = 0; ri < R.length-1; ri++){ var e = (zoneGraph[R[ri]]||[]).find(function(x){ return x.to === R[ri+1]; }); if(e && e.mid){ L += Math.hypot(e.mid.x-px, e.mid.y-py); px = e.mid.x; py = e.mid.y; } } return L + Math.hypot(toX-px, toY-py); };
+    if(r0 && rLen(route) > rLen(r0) + FIRE_DETOUR) route = r0; }
   if(!route){ if(!NAV_GRID) navGridBuild();
     var alts = (NAV_GRID[Math.floor(toX/NAV_GRID_C)+","+Math.floor(toY/NAV_GRID_C)]||[]).map(function(i){ return NAVAREAS[i]; })
       .filter(function(a){ return a !== tz && !NAV_BLOCKED[a.id] && pointInPoly(toX, toY, a.points); }).sort(function(a, c){ return Math.abs(a.z - tLvl) - Math.abs(c.z - tLvl); });
