@@ -472,7 +472,12 @@ function stepTick(){
         // walls are a physical obstacle for movement (not just LOS) — a
         // straight zone-to-portal-to-zone line can still clip a wall corner
         // on a hand-drawn map, so check before committing the step.
-        if(!stepBlocked(bot.baseX,bot.baseY,nx,ny,bot)){ // стены + в огонь без причины не заходим
+        // (v450г) путь идёт сквозь огонь (обход длиннее, 050), а заходить в огонь боту не по делу (fireCommit) — ждёт у края, пока не
+        // погаснет (fireGoneRepath, 370). Раньше упирался в край: веер проб, «застрял» → отталкивание, сброс пути, тот же путь заново —
+        // переносы у огня на Ancient 58 → 128 на 100 раундов (замер 28.10)
+        var fireWait = !inFire(bot.baseX, bot.baseY) && inFire(nx, ny) && !fireCommit(bot) && fireOnSeg(bot.baseX, bot.baseY, target[0], target[1]);
+        if(fireWait){ bot.curSpeed = 0; bot.walking = false; }
+        else if(!stepBlocked(bot.baseX,bot.baseY,nx,ny,bot)){ // стены + в огонь без причины не заходим
           bot.baseX = nx; bot.baseY = ny;
           if(isLastLeg && dist <= step){ bot.baseX = target[0]; bot.baseY = target[1]; bot.pathIdx++; }   // (v323) высота — только по навмешу (ниже), не по точке пути
         } else {
@@ -520,6 +525,8 @@ function stepTick(){
         var actuallyMoved = Math.hypot(bot.baseX-startX, bot.baseY-startY);
         // (v403) высота бота — одно место navFollowFloor (370): после шага здесь и после любого другого движения за тик (конец цикла)
         if(actuallyMoved > 0) navFollowFloor(bot);
+        if(fireWait){ bot.stuckTicks = 0; bot._np = null; bot._netStuck = 0; bot._progTick = tick; bot._progBest = Infinity; bot._idleT = tick; bot._trail = []; }
+        else {
         // "топчется": каждый тик куда-то сдвигается (веер проб у угла туда-сюда),
         // но за 1.5с никуда не ушёл — раньше это не считалось застреванием
         // (движение в тике было), и бот стоял у угла с кругами шагов
@@ -616,6 +623,7 @@ function stepTick(){
             navUnlinkBlocked(bot, pw);
             bot.path = []; bot.pathIdx = 0; bot.stuckTicks = 0;
           }
+        }
         }
       }
     } else {

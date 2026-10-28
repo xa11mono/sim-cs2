@@ -344,6 +344,9 @@ function fireSafe(p, b){
 var FIRE_BODY = 6.4;
 function fireRadiusNow(f){ return NADE.molly.radius*Math.min(1, 0.35 + (tick - f.born)/14); }
 function fireTouches(f, x, y){ return areaHas(f, fireRadiusNow(f) + FIRE_BODY, x, y); }
+// (v450г) отрезок проходит через огонь (шаг 8 ед.)
+function fireOnSeg(x1, y1, x2, y2){ var n = Math.max(1, Math.ceil(Math.hypot(x2-x1, y2-y1)/8));
+  for(var i = 1; i <= n; i++) if(inFire(x1 + (x2-x1)*i/n, y1 + (y2-y1)*i/n)) return true; return false; }
 function inFire(x, y){
   for(var i=0;i<fires.length;i++){ if(fireTouches(fires[i], x, y)) return fires[i]; }
   return null;
