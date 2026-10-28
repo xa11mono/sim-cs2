@@ -70,8 +70,9 @@ function rpRecord(){
     if(S && tick < S.t){ R = RP.rec = rpNewRec(); S = null; }   // перемотка назад (отметки) — запись раунда заново
     if(!S || S.t !== tick){
       R.s.push(rpSample(R));
-      // выстрелы этого кадра (tracers.born — время кадра)
-      tracers.forEach(function(q){ if(q.born > RP.lastTs) R.tr.push({t: tick, x1: q.x1, y1: q.y1, x2: q.x2, y2: q.y2, team: q.team, hit: !!q.hit, head: !!q.head}); });
+      // новые выстрелы (по самим записям, а не по времени кадра)
+      if(!RP.trSeen || RP.trSeen.r !== R) RP.trSeen = {r: R, set: new WeakSet()};
+      tracers.forEach(function(q){ if(RP.trSeen.set.has(q)) return; RP.trSeen.set.add(q); R.tr.push({t: tick, x1: q.x1, y1: q.y1, x2: q.x2, y2: q.y2, team: q.team, hit: !!q.hit, head: !!q.head}); });
       // кто остался один в команде — с какого тика (для «клип с первого фрага клатча»)
       ["CT","T"].forEach(function(s){ var al = bots.filter(function(b){ return b.team === s && b.alive; }); if(al.length === 1 && !R.solo[al[0].id]) R.solo[al[0].id] = tick; });
       // плант / дефуз — моменты
@@ -107,8 +108,10 @@ function rpRoundEnd(R){
   var me = teamBot(c.id);
   R.clutch = {id: c.id, side: c.team, n: c.n, alive: !!(me && me.alive), hp: me ? me.hp : 0, kills: me ? (me.roundKills||0) : 0};
   // войс раунда: последнее, что сказал каждый (voiceLines — новые сверху)
-  R.vox = {};
-  voiceLines.forEach(function(v){ var id = rpIdByNick(v.who); if(id && !R.vox[id] && v.kind !== "death") R.vox[id] = v.text; });
+  // одинаковый колл у нескольких (часто — общий «B чисто») показываем один раз, у того, кто сказал позже всех
+  R.vox = {}; var seenVx = {};
+  voiceLines.forEach(function(v){ var id = rpIdByNick(v.who); if(!id || R.vox[id] || v.kind === "death") return;
+    var key = String(v.text).toLowerCase(); if(seenVx[key]){ R.vox[id] = ""; return; } seenVx[key] = 1; R.vox[id] = v.text; });
   R.st = {}; bots.forEach(function(b){ R.st[b.id] = {alive: b.alive, hp: b.hp, k: b.roundKills||0, killer: b._killer || null}; });
   RP.last = R;
   if(RP.enabled && typeof document !== "undefined") RP.pending = {rec: R, at: R.endSim + RP_K.startDelay};
