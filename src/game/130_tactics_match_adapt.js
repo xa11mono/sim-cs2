@@ -80,26 +80,92 @@ function readCT(){
   ["A","B"].forEach(function(k){ var o = k === "A" ? "B" : "A"; var n = last.filter(function(r){ return r[k] >= 2 && r[k] > r[o]; }).length; if(n >= 2 && n > out.n){ out.stack = k; out.n = n; } });
   return out;
 }
-// ---- тайм-ауты ----
-// Проиграли 3 раунда подряд — IGL берёт тайм-аут (в турнирах их несколько по
-// 30с; у нас 3 на матч). После него на 4 раунда: T не повторяют последние
-// тактики, которые не сработали; CT уходят от своих последних расстановок.
-var TOUT = {CT:{left:3, streak:0, until:0, avoid:[]}, T:{left:3, streak:0, until:0, avoid:[]}};
-function timeoutsReset(){ TOUT = {CT:{left:3, streak:0, until:0, avoid:[]}, T:{left:3, streak:0, until:0, avoid:[]}}; }
+// ---- тактические паузы (v460, владелец 28.10) ----
+// Регламент турниров CS2 (SwitzerLAN, docs/PRO_PLAY.md): у команды 3 паузы по 30 с за основное время; в овертайме оставшиеся
+// сгорают, на каждый овертайм — 1. Демки Ancient (tools/timeout_demos.py, 92 демки): ~3,65 паузы на карту на обе команды;
+// команда, проигравшая раунд перед паузой, берёт следующий в 57 % (190 из 336).
+// Берёт проигравшая раунд команда — тренер (чаще) или IGL — по тому, что видела команда: серия поражений, проиграли клатч соперника,
+// соперник близко к победе; последнюю паузу держат на конец половины (правила и доли — проектные, timeoutWant).
+// Пауза = закупка дольше на TO_SEC и план тренера (coachPlan) на TO_PLAN_ROUNDS раунда — только из того, что видела команда:
+// где CT стакают / куда ходят T, какие тактики и расстановки провалились, где мы умираем; заготовка — тактика, которую в этом
+// матче ещё не играли, на первый раунд после паузы. Показ паузы — 676_timeout_show.js (только показ).
+var TO_SEC = 30, TO_PLAN_ROUNDS = 3;
+var TOUT = {CT:{left:3, streak:0, until:0, avoid:[], plan:null}, T:{left:3, streak:0, until:0, avoid:[], plan:null}};
+var TO_NOW = null, TO_LAST = null, TO_FORCE = false, TO_DEATHS = {CT:[], T:[]};
+function timeoutsReset(){ TOUT = {CT:{left:3, streak:0, until:0, avoid:[], plan:null}, T:{left:3, streak:0, until:0, avoid:[], plan:null}}; TO_NOW = null; TO_DEATHS = {CT:[], T:[]}; }
 function timeoutCheck(winner){
   if(!BAL.timeouts) return;
-  ["CT","T"].forEach(function(team){
-    var T0 = TOUT[team];
-    if(team === winner){ T0.streak = 0; return; }
-    T0.streak++;
-    if(T0.streak >= 3 && T0.left > 0 && roundNum !== HALF_ROUNDS && roundState !== "matchover"){
-      T0.left--; T0.streak = 0; T0.until = roundNum + 4;
-      T0.avoid = team === "T" ? tacHist.slice(-3) : ctSetupHist.slice(-3);
-      var names = team === "T" ? T0.avoid.map(function(id){ var t = T_TACTICS.filter(function(x){ return x.id === id; })[0]; return t ? t.name : id; })
-                               : T0.avoid.map(function(id){ var t = CT_SETUPS.filter(function(x){ return x.id === id; })[0]; return t ? t.name : id; });
-      logEvent("ТАЙМ-АУТ "+team+" — три поражения подряд. "+(team === "T" ? "IGL: не повторяем «"+names.join("», «")+"»" : "CT: меняем расстановку, уходим от «"+names.join("», «")+"»")+" (осталось тайм-аутов: "+T0.left+")", true);
+  TO_NOW = null;
+  var nx = roundNum + 1;
+  // перед первым раундом каждого овертайма — ровно одна пауза у каждой команды (оставшиеся сгорают)
+  if(BAL.overtime && nx > regRounds() && (nx - regRounds() - 1) % (OT_HALF*2) === 0) ["CT","T"].forEach(function(s){ TOUT[s].left = 1; });
+  // где умирали в этом раунде (зоны) — тренер видит это по своей команде
+  ["CT","T"].forEach(function(s){ TO_DEATHS[s].push(bots.filter(function(b){ return b.team === s && !b.alive; }).map(function(b){ var zid = zoneIdAt3(b.x, b.y, b.z); return (zid && zoneMainName(ZONE_NAMES[zid])) || "?"; }));
+    if(TO_DEATHS[s].length > 6) TO_DEATHS[s].shift(); });
+  ["CT","T"].forEach(function(s){ if(s === winner) TOUT[s].streak = 0; else TOUT[s].streak++; });
+  if(!winner || matchOverWith(roundNum, score.CT, score.T) || sideSwapNow(nx)) return;   // конец матча / перерыв между половинами
+  var side = winner === "CT" ? "T" : "CT", L = TOUT[side];
+  var why = TO_FORCE ? "manual" : timeoutWant(side, winner);
+  if(!why) return;
+  if(L.left <= 0){ if(TO_FORCE) logEvent("Пауза не взята: у "+TEAM_NAME[side]+" пауз не осталось"); TO_FORCE = false; return; }
+  TO_FORCE = false;
+  L.left--; L.streak = 0; L.until = roundNum + TO_PLAN_ROUNDS;
+  var plan = coachPlan(side);
+  L.avoid = plan.avoid; L.plan = plan; plan.first = nx;
+  var caller = hashRand(roundNum*31 + matchNum*7 + 5) < 0.75 ? "coach" : "igl";
+  TO_NOW = TO_LAST = {side: side, team: SIDE_TEAM[side], name: TEAM_NAME[side], caller: caller, plan: plan, round: nx, why: why, left: L.left,
+    score: {CT: score.CT, T: score.T}, m: matchNum};
+  logEvent("ТАКТИЧЕСКАЯ ПАУЗА — "+TEAM_NAME[side]+" ("+side+", "+(caller === "coach" ? "тренер" : "IGL")+", осталось "+L.left+"): "+plan.facts.map(function(f){ return f.log; }).join("; "), true);
+}
+// брать ли паузу проигравшей раунд стороне: причина или null (проектные правила; доля пауз на карту — сверка с демками)
+function timeoutWant(side, winner){
+  var L = TOUT[side], mine = score[side], theirs = score[winner];
+  var u = hashRand(roundNum*7919 + matchNum*131 + (side === "CT" ? 1 : 2));
+  var clutchLost = !!(clutchInfo && clutchInfo.team === winner && clutchInfo.n >= 2);
+  var reg = roundNum < regRounds(), inHalf = reg ? ((roundNum - 1) % HALF_ROUNDS) + 1 : 0;
+  var reserve = reg && L.left === 1 && inHalf < HALF_ROUNDS - 3;          // последнюю — на конец половины
+  var danger = reg ? (theirs >= MATCH_WIN - 3 && theirs > mine) : theirs > mine;
+  if(L.streak >= 4) return "streak";
+  if(reserve) return clutchLost && u < 0.5 ? "clutch" : null;
+  if(L.streak >= 3) return "streak";
+  if(clutchLost && u < 0.6) return "clutch";
+  if(danger && L.streak >= 2 && u < 0.6) return "danger";
+  if(L.streak >= 2 && u < 0.25) return "streak";
+  return null;
+}
+function tacById(id){ return T_TACTICS.filter(function(x){ return x.id === id; })[0] || null; }
+function setupById(id){ return CT_SETUPS.filter(function(x){ return x.id === id; })[0] || null; }
+// план тренера: факты (что видела команда) → что делаем. Каждый факт — с числами, из них же строится речь на паузе (676)
+function coachPlan(side){
+  var P = {side: side, avoid: [], site: null, stack: null, retake: null, excl: null, facts: []};
+  var D = TO_DEATHS[side].slice(-4), cnt = {};
+  D.forEach(function(r){ r.forEach(function(z){ if(z && z !== "?") cnt[z] = (cnt[z]||0) + 1; }); });
+  var dz = Object.keys(cnt).sort(function(a, b){ return cnt[b] - cnt[a]; })[0];
+  if(dz && cnt[dz] >= 3) P.facts.push({k: "deaths", zone: dz, n: cnt[dz], of: D.length, log: "умираем на «"+dz+"» ("+cnt[dz]+" за "+D.length+" р.)"});
+  if(side === "T"){
+    var failed = tacHist.slice(-3).filter(function(id, i, a){ var M = tacMem[id]; return a.indexOf(id) === i && M && M.n >= 1 && M.w/M.n < 0.5; });
+    P.avoid = failed.slice();
+    if(failed.length){ var tf = tacById(failed[failed.length-1]); P.facts.push({k: "failed", tac: tf ? tf.name : failed[0], log: "не заходит «"+(tf ? tf.name : failed[0])+"»"}); }
+    var rd = readCT();
+    if(rd.stack){ P.stack = rd.stack; P.site = rd.stack === "A" ? "B" : "A"; P.facts.push({k: "stackRead", S: rd.stack, T: P.site, n: rd.n, of: rd.of, log: "CT стакают "+rd.stack+" ("+rd.n+" из "+rd.of+") — идём "+P.site}); }
+    else {
+      var last = ctRead.slice(-4), seen = {A: 0, B: 0}; last.forEach(function(r){ seen.A += r.A||0; seen.B += r.B||0; });
+      if(last.length >= 2 && seen.A !== seen.B){ P.site = seen.A < seen.B ? "A" : "B"; P.facts.push({k: "weakSite", T: P.site, a: seen.A, b: seen.B, of: last.length, log: "на "+P.site+" видели меньше CT ("+seen.A+" против "+seen.B+" за "+last.length+" р.)"}); }
     }
-  });
+    // заготовка: тактика на сайт плана (или любой), которую в этом матче ещё не играли
+    var pool = T_TACTICS.filter(function(t){ return t.style !== "fake" && (!P.site || t.site === P.site) && !(tacMem[t.id] && tacMem[t.id].n > 0) && P.avoid.indexOf(t.id) < 0; });
+    if(pool.length){ var ex = pool[Math.floor(hashRand(roundNum*577 + matchNum*41)*pool.length)]; P.excl = ex.id; P.facts.push({k: "excl", tac: ex.name, T: ex.site, log: "заготовка «"+ex.name+"»"}); }
+  } else {
+    var H = roundHist.slice(-5), by = {A: 0, B: 0}, lost = {A: 0, B: 0};
+    H.forEach(function(r){ if(r.site) by[r.site]++; if(r.site && r.planted && r.winner === "T") lost[r.site]++; });
+    var top = by.A >= by.B ? "A" : "B";
+    if(H.length >= 3 && by[top] >= 3){ P.stack = top; P.site = top; P.facts.push({k: "tSite", S: top, n: by[top], of: H.length, log: "T ходят на "+top+" ("+by[top]+" из "+H.length+") — больше людей на "+top}); }
+    ["A","B"].forEach(function(k){ if(lost[k] >= 2 && !P.retake){ P.retake = k; P.facts.push({k: "retake", S: k, n: lost[k], log: "на "+k+" проигрываем после планта ("+lost[k]+") — от ретейка"}); } });
+    P.avoid = ctSetupHist.slice(-2).filter(function(id, i, a){ return a.indexOf(id) === i; });
+    if(P.avoid.length){ var sf = setupById(P.avoid[P.avoid.length-1]); P.facts.push({k: "readSetup", setup: sf ? sf.name : P.avoid[0], log: "расстановку «"+(sf ? sf.name : P.avoid[0])+"» прочитали — меняем"}); }
+  }
+  if(!P.facts.length) P.facts.push({k: "reset", log: "перезагрузка: спокойно, по своей игре"});
+  return P;
 }
 var DEF_STAND = 13;   // (док 6) с: дольше этого про T до выхода на одном месте почти не стоят (90-й процентиль, демки Mirage)
 var DEF_GROUP_R = 450;   // (v450) ед. карты: «район группы» для мест дефолта — проектное число (≈ зона и её соседи)
@@ -121,7 +187,10 @@ function chooseTactic(){
     var l1 = tacHist[tacHist.length-1], l2 = tacHist[tacHist.length-2];
     if(l1 === t.id) w *= 0.35;                          // только что играли
     if(l1 === t.id && l2 === t.id) w *= 0.1;            // третий раз подряд — прочитана
-    if(BAL.timeouts && roundNum <= TOUT.T.until){ if(TOUT.T.avoid.indexOf(t.id) >= 0) w *= 0.15; else w *= 1.3; } // после тайм-аута
+    if(BAL.timeouts && roundNum <= TOUT.T.until){ var TP = TOUT.T.plan || {};   // (v460) план тренера после паузы
+      if(TOUT.T.avoid.indexOf(t.id) >= 0) w *= 0.15; else w *= 1.3;
+      if(TP.site) w *= t.site === TP.site ? 1.8 : 0.5;
+      if(TP.excl === t.id && roundNum === TP.first) w *= 8; }
     // (8) темп по счёту: два проигрыша подряд быстрыми выходами — медленнее
     // (дефолт), два проигрыша медленными — быстрее (раш/ранний выход)
     if(BAL.tempoShift && tempoRead){ if(tempoRead === "slow"){ if(t.style === "default") w *= 2.2; if(t.style === "rush") w *= 0.3; }

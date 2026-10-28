@@ -51,6 +51,9 @@
           <label class="chk" title="(v459) Повтор клатча: после выигранного клатча 1v2 и больше, пока закупка, — повтор фрагов с замедлением и реакция игроков. Только показ, игру не меняет"><input type="checkbox" id="chkRp" checked> повтор клатча</label>
           <label class="chk" title="(v459) Что показывать после клатча: авто — по-разному, как на трансляции"><select id="selRp"><option value="auto">авто</option><option value="both">клип + реакция</option><option value="clip">только клип</option><option value="emo">только реакция</option></select></label>
           <button id="btnRpLast" title="Показать повтор последнего клатча этого матча ещё раз">Повтор последнего клатча</button>
+          <button id="btnRpGo" title="Матч 7, раунд 26: клатч 1v4 (TN1R) — матч перематывается до закупки этого раунда, дальше смотреть">Клатч-раунд: матч 7, раунд 26</button>
+          <button id="btnToTake" title="Команда, проигравшая текущий раунд, возьмёт тактическую паузу (если пауз ещё есть). Меняет игру этого матча">Взять паузу (проигравшие раунд)</button>
+          <button id="btnToLast" title="Показать последнюю тактическую паузу этого матча ещё раз (только показ)">Показать последнюю паузу</button>
           <label class="chk"><input type="checkbox" id="chkNavWarp" title="Навмеш смещён от стен по-разному в разных углах карты — обычный общий сдвиг/масштаб это не лечит, нужно несколько опорных точек"> калибровка навмеша (точки)</label>
           <button id="btnExportProject" title="Всё, что сохранено только в этом браузере (стены, точки калибровки, зоны) — одним JSON, чтобы зашить в код">Экспорт проекта</button>
         </div>
@@ -215,6 +218,16 @@
       <div class="rp-title"></div>
       <div class="rp-shade"></div>
       <button class="rp-skip" type="button" title="Пропустить повтор (Esc или пробел)">Пропустить</button>
+    </div>
+    <!-- (v460) тактическая пауза (676_timeout_show.js): титр, доска тренера, разговор, камера на спавне -->
+    <div id="to">
+      <div class="to-bg"></div>
+      <div class="to-title"></div>
+      <div class="to-board"><div class="to-bh">план тренера</div><canvas></canvas></div>
+      <div class="to-talk"></div>
+      <div class="to-bar"><div class="to-l3"></div><div class="to-sub"></div></div>
+      <div class="to-shade"></div>
+      <button class="to-skip" type="button" title="Скрыть показ паузы (игра не меняется)">Скрыть</button>
     </div>
   </div>
 </div>
