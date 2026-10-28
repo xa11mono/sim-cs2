@@ -1,0 +1,168 @@
+playwright 1.56.0
+> git fetch --quiet origin 04cec8590f3edef9b794ca86a1ccf18c7566f548
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_750g6v1e FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_750g6v1e\src\build.py --map mirage C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\d452_mir.html
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\engine\walk_run.py --job=d452_mir,C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\d452_mir.html --matches=3,7,11,13,17,19,23,29 --par=8
+матчей в очереди: 8, одновременно: 8
+node:internal/process/promises:394
+    triggerUncaughtException(err, true /* fromPromise */);
+    ^
+
+browserType.launch: Executable doesn't exist at C:\Windows\system32\config\systemprofile\AppData\Local\ms-playwright\chromium_headless_shell-1194\chrome-win\headless_shell.exe
+╔═════════════════════════════════════════════════════════════════════════╗
+║ Looks like Playwright Test or Playwright was just installed or updated. ║
+║ Please run the following command to download new browsers:              ║
+║                                                                         ║
+║     npx playwright install                                              ║
+║                                                                         ║
+║ <3 Playwright Team                                                      ║
+╚═════════════════════════════════════════════════════════════════════════╝
+    at C:\actions-runner\_work\sim-cs2\sim-cs2\src\q.js:2:37
+    at Object.<anonymous> (C:\actions-runner\_work\sim-cs2\sim-cs2\src\q.js:5:75) {
+  name: 'Error'
+}
+
+Node.js v24.21.0
+node:internal/process/promises:394
+    triggerUncaughtException(err, true /* fromPromise */);
+    ^
+
+browserType.launch: Executable doesn't exist at C:\Windows\system32\config\systemprofile\AppData\Local\ms-playwright\chromium_headless_shell-1194\chrome-win\headless_shell.exe
+╔═════════════════════════════════════════════════════════════════════════╗
+║ Looks like Playwright Test or Playwright was just installed or updated. ║
+║ Please run the following command to download new browsers:              ║
+║                                                                         ║
+║     npx playwright install                                              ║
+║                                                                         ║
+║ <3 Playwright Team                                                      ║
+╚═════════════════════════════════════════════════════════════════════════╝
+    at C:\actions-runner\_work\sim-cs2\sim-cs2\src\q.js:2:37
+    at Object.<anonymous> (C:\actions-runner\_work\sim-cs2\sim-cs2\src\q.js:5:75) {
+  name: 'Error'
+}
+
+Node.js v24.21.0
+node:internal/process/promises:394
+    triggerUncaughtException(err, true /* fromPromise */);
+    ^
+
+browserType.launch: Executable doesn't exist at C:\Windows\system32\config\systemprofile\AppData\Local\ms-playwright\chromium_headless_shell-1194\chrome-win\headless_shell.exe
+╔═════════════════════════════════════════════════════════════════════════╗
+║ Looks like Playwright Test or Playwright was just installed or updated. ║
+║ Please run the following command to download new browsers:              ║
+║                                                                         ║
+║     npx playwright install                                              ║
+║                                                                         ║
+║ <3 Playwright Team                                                      ║
+╚═════════════════════════════════════════════════════════════════════════╝
+    at C:\actions-runner\_work\sim-cs2\sim-cs2\src\q.js:2:37
+    at Object.<anonymous> (C:\actions-runner\_work\sim-cs2\sim-cs2\src\q.js:5:75) {
+  name: 'Error'
+}
+
+Node.js v24.21.0
+node:internal/process/promises:394
+    triggerUncaughtException(err, true /* fromPromise */);
+    ^
+
+browserType.launch: Executable doesn't exist at C:\Windows\system32\config\systemprofile\AppData\Local\ms-playwright\chromium_headless_shell-1194\chrome-win\headless_shell.exe
+╔═════════════════════════════════════════════════════════════════════════╗
+║ Looks like Playwright Test or Playwright was just installed or updated. ║
+║ Please run the following command to download new browsers:              ║
+║                                                                         ║
+║     npx playwright install                                              ║
+║                                                                         ║
+║ <3 Playwright Team                                                      ║
+╚═════════════════════════════════════════════════════════════════════════╝
+    at C:\actions-runner\_work\sim-cs2\sim-cs2\src\q.js:2:37
+    at Object.<anonymous> (C:\actions-runner\_work\sim-cs2\sim-cs2\src\q.js:5:75) {
+  name: 'Error'
+}
+
+Node.js v24.21.0
+node:internal/process/promises:394
+    triggerUncaughtException(err, true /* fromPromise */);
+    ^
+
+browserType.launch: Executable doesn't exist at C:\Windows\system32\config\systemprofile\AppData\Local\ms-playwright\chromium_headless_shell-1194\chrome-win\headless_shell.exe
+╔═════════════════════════════════════════════════════════════════════════╗
+║ Looks like Playwright Test or Playwright was just installed or updated. ║
+║ Please run the following command to download new browsers:              ║
+║                                                                         ║
+║     npx playwright install                                              ║
+║                                                                         ║
+║ <3 Playwright Team                                                      ║
+╚═════════════════════════════════════════════════════════════════════════╝
+    at C:\actions-runner\_work\sim-cs2\sim-cs2\src\q.js:2:37
+    at Object.<anonymous> (C:\actions-runner\_work\sim-cs2\sim-cs2\src\q.js:5:75) {
+  name: 'Error'
+}
+
+Node.js v24.21.0
+node:internal/process/promises:394
+    triggerUncaughtException(err, true /* fromPromise */);
+    ^
+
+browserType.launch: Executable doesn't exist at C:\Windows\system32\config\systemprofile\AppData\Local\ms-playwright\chromium_headless_shell-1194\chrome-win\headless_shell.exe
+╔═════════════════════════════════════════════════════════════════════════╗
+║ Looks like Playwright Test or Playwright was just installed or updated. ║
+║ Please run the following command to download new browsers:              ║
+║                                                                         ║
+║     npx playwright install                                              ║
+║                                                                         ║
+║ <3 Playwright Team                                                      ║
+╚═════════════════════════════════════════════════════════════════════════╝
+    at C:\actions-runner\_work\sim-cs2\sim-cs2\src\q.js:2:37
+    at Object.<anonymous> (C:\actions-runner\_work\sim-cs2\sim-cs2\src\q.js:5:75) {
+  name: 'Error'
+}
+
+Node.js v24.21.0
+node:internal/process/promises:394
+    triggerUncaughtException(err, true /* fromPromise */);
+    ^
+
+browserType.launch: Executable doesn't exist at C:\Windows\system32\config\systemprofile\AppData\Local\ms-playwright\chromium_headless_shell-1194\chrome-win\headless_shell.exe
+╔═════════════════════════════════════════════════════════════════════════╗
+║ Looks like Playwright Test or Playwright was just installed or updated. ║
+║ Please run the following command to download new browsers:              ║
+║                                                                         ║
+║     npx playwright install                                              ║
+║                                                                         ║
+║ <3 Playwright Team                                                      ║
+╚═════════════════════════════════════════════════════════════════════════╝
+    at C:\actions-runner\_work\sim-cs2\sim-cs2\src\q.js:2:37
+    at Object.<anonymous> (C:\actions-runner\_work\sim-cs2\sim-cs2\src\q.js:5:75) {
+  name: 'Error'
+}
+
+Node.js v24.21.0
+node:internal/process/promises:394
+    triggerUncaughtException(err, true /* fromPromise */);
+    ^
+
+browserType.launch: Executable doesn't exist at C:\Windows\system32\config\systemprofile\AppData\Local\ms-playwright\chromium_headless_shell-1194\chrome-win\headless_shell.exe
+╔═════════════════════════════════════════════════════════════════════════╗
+║ Looks like Playwright Test or Playwright was just installed or updated. ║
+║ Please run the following command to download new browsers:              ║
+║                                                                         ║
+║     npx playwright install                                              ║
+║                                                                         ║
+║ <3 Playwright Team                                                      ║
+╚═════════════════════════════════════════════════════════════════════════╝
+    at C:\actions-runner\_work\sim-cs2\sim-cs2\src\q.js:2:37
+    at Object.<anonymous> (C:\actions-runner\_work\sim-cs2\sim-cs2\src\q.js:5:75) {
+  name: 'Error'
+}
+
+Node.js v24.21.0
+d452_mir match 3 rc 1 0 — готово 1/8, 0 мин
+d452_mir match 7 rc 1 0 — готово 2/8, 0 мин
+d452_mir match 11 rc 1 0 — готово 3/8, 0 мин
+d452_mir match 13 rc 1 0 — готово 4/8, 0 мин
+d452_mir match 17 rc 1 0 — готово 5/8, 0 мин
+d452_mir match 19 rc 1 0 — готово 6/8, 0 мин
+d452_mir match 23 rc 1 0 — готово 7/8, 0 мин
+d452_mir match 29 rc 1 0 — готово 8/8, 0 мин
+done
+all done
