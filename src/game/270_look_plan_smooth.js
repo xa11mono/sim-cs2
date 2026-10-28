@@ -272,6 +272,10 @@ function lookUrgent(b){
   if(hs && hs.team && hs.team !== b.team && tick - hs.tick <= 96 && Math.hypot(hs.x-b.x, hs.y-b.y) < 300) return 1;
   return 0;
 }
+function lookPtAlive(b, pt){
+  if(!pt) return false; var a = Math.atan2(pt.y-b.y, pt.x-b.x);
+  return (b._lkC || []).some(function(c){ return c && c.pt && c.sc > 0 && _angOff(Math.atan2(c.pt.y-b.y, c.pt.x-b.x), a) < SL.same; });
+}
 function smoothLookFilter(b, look, urgent){
   var moving = b.curSpeed > 60*SPD_K && b.heading !== undefined;
   // на бегу без цели — изредка короткий взгляд на опасный угол сбоку
@@ -325,6 +329,10 @@ function smoothLookFilter(b, look, urgent){
   if(dA < SL.same){ S.pt = {x:look.x, y:look.y}; return look; }            // то же направление — просто уточняем точку
   var hold = urgent ? SL.holdAlert : (moving ? SL.holdMove : SL.holdStand);
   if(tick - S.since < hold) return S.pt;                                    // старое ещё не "досмотрели"
+  // (v448, док владельца 28.10 №4: игрок 4 «перебивает взгляд» — м1 т1368–1450 держал точку T Roof 1,3 с, хотя её уже никто не предлагал,
+  // а запрет «не возвращаться к брошенному» не пускал к T Ramp, куда звал делёж) держимая точка, которую не предлагает ни один вариант
+  // взгляда (lookCands) и ни свой путь, — не держится дольше hold: запрет возврата — против метаний между двумя живыми вариантами
+  if(moving && !lookPtAlive(b, S.pt)){ b._sl = {pt:{x:look.x, y:look.y}, since:tick, prev:S.pt, left:tick}; return look; }
   if(S.prev && tick - S.left < (urgent ? SL.backAlert : SL.backBlock)){                                // не возвращаться сразу к брошенному
     var aP = Math.atan2(S.prev.y-b.y, S.prev.x-b.x);
     var dP = Math.abs(((aN-aP+Math.PI)%(2*Math.PI)+2*Math.PI)%(2*Math.PI)-Math.PI);
