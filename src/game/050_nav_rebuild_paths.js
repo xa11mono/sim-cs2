@@ -310,7 +310,7 @@ function zoneDijkstra(fromId, toId, team){
       // не длиннее; иначе идёт через огонь (как и раньше — fireCommit / ждёт у края). Только путь движения (buildWaypointPath)
       // (v450, м19 р1: путь T0 к Tetris из-за молотова на T Ramp ушёл через спавн и Палас — ~1500 ед. обхода) цена — один раз на вход в огонь
       // (переход в огне, а точка, откуда входим, — нет), а не за каждый переход внутри: огонь в несколько участков набирал > обхода через пол-карты
-      if(zoneDijkstra.fire && fires.length && inFire(edge.mid.x, edge.mid.y) && !inFire(fromCentroid.x, fromCentroid.y)) w += FIRE_DETOUR;
+      if(zoneDijkstra.fire && fires.length && inFire(edge.mid.x, edge.mid.y)) w += FIRE_DETOUR;
       for(var kq = 0; kq < KP.length; kq++) if(Math.hypot(KP[kq].x-edge.mid.x, KP[kq].y-edge.mid.y) < KNOWN_PATH_R){ w += KNOWN_DETOUR; break; }
       var alt = dist[u] + w;
       if(dist[edge.to]===undefined || alt<dist[edge.to]){
