@@ -14,7 +14,42 @@ var MAP3D = (typeof MAP !== "undefined" && MAP.map3d) || null, M3 = null;
 function m3(){
   if(M3 || !MAP3D) return M3;
   M3 = m3Load(MAP3D, zInflate);
+  m3SolidFill(M3);
   return M3;
+}
+// (v469, п.8 владельца 29.10, снимок м1 р5 т24667: zont1x с Catwalk видел ноги NiKo сквозь Triple Box) у некоторых предметов геометрия
+// столкновений — доски с щелями (Triple Box: полки −167…−163, −127…−104, −61…−55), а в игре ящик сплошной. Укрытие набора с пометкой
+// MAP.sightSolid (id → почему) становится сплошным: доски одного ящика — блоки с одинаковыми боковыми гранями; из них — один блок от
+// нижней доски до верхней (те же боковые грани). Блоки проверяет луч (m3Cast) сам, мимо столбиков — щели в столбиках пусты
+function m3SolidFill(M){
+  M.fill = [];
+  var ids = MAP.sightSolid; if(!ids || typeof COVER === "undefined" || !COVER.items) return;
+  var k2 = M.unit / M.cell, P = M.hullP, hb = M.hullBox;
+  COVER.items.forEach(function(it){
+    if(!ids[it.id] || !it.poly) return;
+    var poly = it.poly.map(function(p){ return {x: M.X0 + p[0]*k2, y: M.Y0 - p[1]*k2}; }), G = {};
+    for(var h = 0; h < M.hullFlag.length; h++){
+      if(!(M.hullFlag[h] & 1)) continue;
+      var cx = (hb[h*6] + hb[h*6+3])/2, cy = (hb[h*6+1] + hb[h*6+4])/2; if(!pointInPoly(cx, cy, poly)) continue;
+      var side = [];
+      for(var q = M.hullOff[h]; q < M.hullOff[h+1]; q++) if(Math.abs(P[q*4+2]) < 0.1) side.push([P[q*4], P[q*4+1], P[q*4+2], P[q*4+3]]);
+      if(side.length < 3) continue;
+      var key = side.map(function(s){ return Math.round(s[0]*50)+","+Math.round(s[1]*50)+","+Math.round(s[3]/2); }).sort().join(";");
+      var g = G[key] || (G[key] = {side: side, z0: Infinity, z1: -Infinity, x0: Infinity, y0: Infinity, x1: -Infinity, y1: -Infinity, n: 0});
+      g.n++; g.z0 = Math.min(g.z0, hb[h*6+2]); g.z1 = Math.max(g.z1, hb[h*6+5]);
+      g.x0 = Math.min(g.x0, hb[h*6]); g.y0 = Math.min(g.y0, hb[h*6+1]); g.x1 = Math.max(g.x1, hb[h*6+3]); g.y1 = Math.max(g.y1, hb[h*6+4]);
+    }
+    for(var k in G){ var g = G[k]; if(g.n < 2) continue;   // одна доска — не стопка
+      var pl = g.side.concat([[0, 0, 1, g.z1], [0, 0, -1, -g.z0]]);
+      M.fill.push({p: pl, box: [g.x0, g.y0, g.z0, g.x1, g.y1, g.z1], id: it.id}); }
+  });
+}
+function m3SegPlanes(pl, ax, ay, az, dx, dy, dz){   // как m3SegHull, по списку плоскостей [nx, ny, nz, d] → t входа или −1
+  var t0 = 0, t1 = 1;
+  for(var q = 0; q < pl.length; q++){ var n = pl[q], s = n[0]*ax + n[1]*ay + n[2]*az - n[3], v = n[0]*dx + n[1]*dy + n[2]*dz;
+    if(v === 0){ if(s > 0) return -1; continue; }
+    var t = -s / v; if(v < 0){ if(t > t0) t0 = t; } else if(t < t1) t1 = t; if(t0 > t1) return -1; }
+  return t0;
 }
 // ---------- распаковка zlib (RFC 1950/1951; заголовок 2 байта, хвост adler32 не проверяется) ----------
 var ZI_LB = [3,4,5,6,7,8,9,10,11,13,15,17,19,23,27,31,35,43,51,59,67,83,99,115,131,163,195,227,258];
@@ -206,6 +241,13 @@ function m3Cast(M, ax, ay, az, bx, by, bz, kind, first){
     if((i === ei && j === ej) || t1 >= 1) break;
     if(tmx < tmy){ t0 = tmx; tmx += tdx; i += sx; } else { t0 = tmy; tmy += tdy; j += sy; }
   }
+  // (v469) сплошные укрытия (m3SolidFill) — мимо столбиков, по отрезку целиком
+  var FL = M.fill || [];
+  for(var fi = 0; fi < FL.length; fi++){ var F = FL[fi], bx0 = F.box;
+    if(Math.max(wax, wax + wdx) < bx0[0] || Math.min(wax, wax + wdx) > bx0[3] || Math.max(way, way + wdy) < bx0[1] || Math.min(way, way + wdy) > bx0[4] || rzh < bx0[2] || rzl > bx0[5]) continue;
+    var tf = m3SegPlanes(F.p, wax, way, az, wdx, wdy, wdz);
+    if(tf >= 0){ if(!first) return {t: tf}; if(!best || tf < best.t) best = {t: tf, fill: fi}; }
+  }
   if(best && first){   // нормаль — в ед. игры (y игры противоположен y радара), навстречу лучу
     if(best.tri !== undefined){
       var T = M.tri, o = best.tri*9;
@@ -213,7 +255,8 @@ function m3Cast(M, ax, ay, az, bx, by, bz, kind, first){
       var nx = e1y*e2z - e1z*e2y, ny = e1z*e2x - e1x*e2z, nz = e1x*e2y - e1y*e2x, L = Math.hypot(nx, ny, nz) || 1;
       if(nx*wdx + ny*wdy + nz*wdz > 0){ nx = -nx; ny = -ny; nz = -nz; }
       best.nx = nx/L; best.ny = ny/L; best.nz = nz/L; best.mat = M.mats[M.triMat[best.tri]];
-    } else {
+    } else if(best.fill !== undefined){ best.nx = 0; best.ny = 0; best.nz = 1; best.mat = "wood"; }
+    else {
       var P = M.hullP, p = best.plane < 0 ? M.hullOff[best.hull] : best.plane;
       best.nx = P[p*4]; best.ny = P[p*4+1]; best.nz = P[p*4+2]; best.mat = M.mats[M.hullMat[best.hull]];
     }
