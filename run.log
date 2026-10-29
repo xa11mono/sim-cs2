@@ -1,0 +1,27 @@
+playwright 1.56.0, браузеры: C:\Windows\system32\config\systemprofile\.simcs2_node\ms-playwright
+> git fetch --quiet origin c541a2957ebb2d8e00f181cb21b0c3773d67c580
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild__si_gucg FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild__si_gucg\src\build.py --map mirage C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v468_mir.html
+> git fetch --quiet origin f3adb028d5803613e46df3fd754b7367bf3f233c
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_jwczozg6 FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_jwczozg6\src\build.py --map mirage C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v469_mir.html
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\engine\walk_run.py --job=v468_mir,C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v468_mir.html --job=v469_mir,C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v469_mir.html --matches=3,7,11,13,17,19,23,29 --par=8
+матчей в очереди: 16, одновременно: 8
+v468_mir match 29 rc 0 4257164 — готово 1/16, 6 мин
+v468_mir match 3 rc 0 5455850 — готово 2/16, 8 мин
+v468_mir match 13 rc 0 5544790 — готово 3/16, 8 мин
+v468_mir match 11 rc 0 6251573 — готово 4/16, 9 мин
+v468_mir match 17 rc 0 6717814 — готово 5/16, 9 мин
+v468_mir match 19 rc 0 6427631 — готово 6/16, 9 мин
+v468_mir match 23 rc 0 7120465 — готово 7/16, 10 мин
+v468_mir match 7 rc 0 8249756 — готово 8/16, 12 мин
+v469_mir match 3 rc 0 5212047 — готово 9/16, 13 мин
+v469_mir match 7 rc 0 5399573 — готово 10/16, 14 мин
+v469_mir match 13 rc 0 5483946 — готово 11/16, 15 мин
+v469_mir match 11 rc 0 6722753 — готово 12/16, 16 мин
+v469_mir match 17 rc 0 6119862 — готово 13/16, 17 мин
+v469_mir match 23 rc 0 5332253 — готово 14/16, 17 мин
+v469_mir match 29 rc 0 4356433 — готово 15/16, 17 мин
+v469_mir match 19 rc 0 8036030 — готово 16/16, 18 мин
+done
+all done
