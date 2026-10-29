@@ -336,9 +336,11 @@ function tBrain(){
   if(ts.length === 1 && bomb.state !== "planted" && tt.phase !== "postplant" && (tt.soloPlan || soloCan(ts[0]))){
     var solo = ts[0];
     if(!tt.soloPlan){
-      // сайт, где по инфе меньше CT (и ближе); сразу выход — ждать некого
-      var sc = function(k){ return beliefCount("T", BZ.siteNear[k]||[]) * 400 + Math.hypot(solo.x-SITES[k].x, solo.y-SITES[k].y); };
-      var ks2 = sc("A") <= sc("B") ? "A" : "B";
+      // (п.1/п.31 владельца 29.10: м1 р1 — sh1ro один в бою на A, а «я один» перевёл сайт на B и путь отхода ушёл через T-спавн; м1 р8 —
+      // через 20 с после колла «A стак» magixx пошёл ставить на A: знание о стаке «остыло», а сайт выбирался заново по карте врагов
+      // × 400 + расстояние) сайт — тот, что выбрала команда; другой — только если на свой уже не успеть поставить. Сразу выход — ждать некого
+      var canK = function(k){ return pathLenTo(solo, SITES[k].x, SITES[k].y)/SPEED + PLANT_TICKS/TICK_HZ <= secLeft; };
+      var ks2 = tt.site && (canK(tt.site) || bomb.state !== "carried") ? tt.site : (tt.site === "A" ? "B" : "A");
       tt.soloPlan = ks2;
       if(ks2 !== tt.site){ var exS = tt.execStart; tSetSite(tt, ks2); tt.execStart = exS; site = SITES[ks2]; g = GEO[ks2]; other = ks2 === "A" ? "B" : "A"; plantPt = site.plant || site; }
       if(tt.phase === "setup"){ tt.phase = "execute"; tt.execStart = tick; }
