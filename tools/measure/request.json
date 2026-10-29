@@ -1,4 +1,4 @@
 {"par": 2, "jobs": [], "shots": [
-  {"label": "snap_m17r27", "kind": "snap", "ref": "805f42ca1ae9f194cc78ef73a044f1b8f0abdf46", "map": "ancient", "match": 17, "round": 27, "ticks": 3000},
-  {"label": "snap_m13r7", "kind": "snap", "ref": "805f42ca1ae9f194cc78ef73a044f1b8f0abdf46", "map": "ancient", "match": 13, "round": 7, "ticks": 3000}
+  {"label": "snap_m17r27", "kind": "snap", "ref": "805f42ca1ae9f194cc78ef73a044f1b8f0abdf46", "map": "ancient", "match": 17, "round": 27, "ticks": 3000, "v": 2},
+  {"label": "snap_m13r7", "kind": "snap", "ref": "805f42ca1ae9f194cc78ef73a044f1b8f0abdf46", "map": "ancient", "match": 13, "round": 7, "ticks": 3000, "v": 2}
 ]}
