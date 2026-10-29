@@ -910,25 +910,10 @@ function tBrain(){
         groupPost(group, bp0, gs.ctEntry, "postplant:time", {rMin:300, rMax:Math.min(600, DEFUSE_HEAR-90), minGap:110, hideFrom:[gs.ctEntry, bp0]});
       return;
     }
-    if(BAL.ppTime && bombTimeLeftTicks() > 18*TICK_HZ && group.length){
-      var ctNear = intelEstimate("T", bp0.x, bp0.y, 900, 6*TICK_HZ);
-      var quiet = (ctNear.seen + ctNear.heard) === 0 && tick - bomb.plantTick > 4*TICK_HZ;
-      // гистерезис: раньше "тихо/не тихо" переключалось каждые пару секунд и
-      // T бегали между дальним укрытием и точкой у бомбы. Раз CT объявились —
-      // до конца раунда играем от бомбы; раз ушли на время — ждём реальной инфы
-      if(BAL.ppCommit){
-        if(tt._ppMode === "close") quiet = false;
-        else if(tt._ppMode === "time"){ var ctN2 = intelEstimate("T", bp0.x, bp0.y, 700, 3*TICK_HZ); if(ctN2.seen + ctN2.heard > 0){ tt._ppMode = "close"; quiet = false; } else quiet = true; }
-        else if(quiet) tt._ppMode = "time";
-        else if((ctNear.seen + ctNear.heard) > 0) tt._ppMode = "close";
-      }
-      if(quiet){
-        if(!tt._ppTimeLog){ tt._ppTimeLog = tick; voiceLog("T", "pptime", group[0].id, "их не слышно — отходим от бомбы, играем на время, слушаем дефуз"); }
-        if(!ppTimeNamed(group, bp0, bomb.site, DEFUSE_HEAR-80))
-          groupPost(group, bp0, gs.ctEntry, "postplant:time", {rMin:320, rMax:Math.min(620, DEFUSE_HEAR-80), minGap:110, hideFrom:[gs.ctEntry, bp0]});
-        return;
-      }
-    }
+    // (v469, п.9 владельца 29.10, р5 м1: после планта точки переназначались трижды — через 4 с тишины все уходили «на время» на T Ramp и CT,
+    // через 2,7 с при первой инфе возвращались) ответ про-аналитика 29.10: держать расстановку, пока кроссфайр работает и позиции не раскрыты;
+    // менять — по событию (раскрыли, граната, кто-то погиб, CT выходят), а не по таймеру. Режим «тихо — отходим на время» (BAL.ppTime) убран:
+    // у каждого своя точка у бомбы (holdGroup ниже), смена — реакция на контакт / анти-дефуз
     if(BAL.holdTask){
       // (v145) пост-плант у бомбы = "держать район вокруг бомбы": бомбу видеть
       // обязательно (снять дефузера), встать под главный вход ретейка, от

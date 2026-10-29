@@ -263,12 +263,17 @@ function zoneSideMap(){
 // вёл через каждый ящик и бортик напрямик. NAV_JUMP_COST / NAV_DROP_COST — ед. карты (~2,5 ед. игры), проектные числа:
 // прыжок ≈ 1,2 с бега в обход, спрыгнуть ≈ 0,6 с
 var NAV_JUMP_COST = 120, NAV_DROP_COST = 60;
+// (v469, п.5 владельца 29.10: «спрыгивают со звуком с любого уступа») UNVERIFIED: project heuristic, not confirmed CS2 threshold — проектное
+// число. Ответ про-аналитика 29.10: маленькое падение события приземления не даёт (спецификация CS2-демок), порога в единицах Valve не
+// публикует; 48 ед. — начальная настройка до проверки по демкам с player_footstep (land). Спуск ниже — тихо и шагом, и бегом (шаги —
+// отдельно); выше — звук приземления (слышимость — отдельно, landSound, 370). Раньше порог 40 и «приземление громкое всегда» (v322, csdb.gg)
+var LAND_SOUND_DROP = 48;
 function navJumpCost(a, edge){
   if(edge._jcost != null) return edge._jcost;
   var b = zonesById[edge.to]; if(!a || !b || !edge.mid) return (edge._jcost = 0);
   if(navPlane(a).flat || navPlane(b).flat) return (edge._jcost = 0);   // нет высот углов (Ancient) — как раньше
   var dz = navStepDz(a, b, edge.mid.x, edge.mid.y);
-  return (edge._jcost = dz > 18 ? NAV_JUMP_COST : dz < -40 ? NAV_DROP_COST : 0);
+  return (edge._jcost = dz > 18 ? NAV_JUMP_COST : dz < -LAND_SOUND_DROP ? NAV_DROP_COST : 0);   // (v469) тихий спуск (≤ LAND_SOUND_DROP) — без цены
 }
 var ROUTE_PORTAL = 0;   // (v406) цена перехода между участками сверх длины (было 40 при длине от центров участков): с длиной от точки входа не нужна — спуск со спавна T по рампе (607) короче бордюра (624), а с ценой 8 выбирался бордюр
 // (v446, владелец 28.10: «трое T со спавна идут в точку на Palace Entry и спрыгивают, хотя могли бежать прямо») шум цены переходов

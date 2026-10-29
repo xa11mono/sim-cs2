@@ -244,12 +244,12 @@ function navFollowFloor(bot){
     // (v336, владелец: «прыгают на рандом, где не нужно, и палятся») прыжок и приземление — по полу у края (navStepDz),
     // а не по центрам участков: ступени и пандусы Mirage (Stairs, Palace, рампы) больше не «прыжок» со звуком
     var djz = (a0z && naz !== a0z) ? navStepDz(a0z, naz, bot.baseX, bot.baseY) : (naz === a0z ? 0 : dzz);
-    if(djz > 18) bot._jump = {t:tick, up:true}; else if(djz < -40) bot._jump = {t:tick, up:false};
+    if(djz > 18) bot._jump = {t:tick, up:true}; else if(djz < -LAND_SOUND_DROP) bot._jump = {t:tick, up:false};
     // (v322, М29) прыжок / приземление слышно и при тихом шаге, далеко (csdb.gg: «громкий звук приземления, слышно
     // издалека», без числа) — радиус как у бега: проектное число
     // (v335, владелец: «звук прыжка в одном месте, а он в другом; приземление должно его перебивать») звучит только
     // приземление — там, где игрок приземлился: спрыгнул вниз — сразу; запрыгнул вверх — через LAND_DELAY с (полёт)
-    if(roundState === "live" && djz < -40) landSound(bot);
+    if(roundState === "live" && djz < -LAND_SOUND_DROP) landSound(bot);
     else if(roundState === "live" && djz > 18) bot._landAt = tick + Math.round(LAND_DELAY*TICK_HZ);
     // (v333) сменил этаж (спуск, лестница) — путь, построенный с прежнего этажа, пересчитывается с нового
     if(Math.abs(dzz) > JUMP_UP && bot.path && bot.pathIdx < bot.path.length){ bot.path = []; bot.pathIdx = 0; }
