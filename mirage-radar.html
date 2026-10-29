@@ -721,7 +721,7 @@
   <div id="topbar">
     <div class="tb-id">
       <h1>Mirage<span id="matchTick" class="mono" title="Какой матч сейчас идёт и тик — запиши, если увидел баг"></span></h1>
-      <div class="sub mono" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 465, 29.10</div>
+      <div class="sub mono" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 466, 29.10</div>
     </div>
     <div class="tb-group" id="tbMatch">
       <button id="btnPause">Пауза</button>
@@ -34130,6 +34130,8 @@ function obsManual(){ OBS.manualUntil = performance.now() + 6000; OBS.sc = 0; }
 // Фразы реакций — проектные (показ, не поведение). Выключить — «Инструменты → повтор клатча» (хранится в браузере).
 var RP_K = {
   minN: 2,            // клатч от 1v2
+  multiN: 3,          // (v466, владелец 29.10: «на про почти после каждого раунда повтор; мультикиллы с трёх, двойной — редко») мультикилл от 3 фрагов
+  multi2: 0.2,        // двойной — в доле раундов, где больше показать нечего (проектное число: владелец сказал «редко»)
   pre: 2, post: 1.1,  // клип: за pre с до момента и post с после
   merge: 1.6,         // моменты ближе merge с — один кусок
   maxClip: 20,        // клип длиннее maxClip с игры — короче запас до и после
@@ -34155,6 +34157,7 @@ function rpMode(R, B){
   var m = RP.mode;
   if(m === "auto"){ var u = (rpHash(R.m + "|" + R.round + "|mode") % 1000)/1000; m = u < RP_MODES.both ? "both" : u < RP_MODES.both + RP_MODES.clip ? "clip" : "emo"; }
   if(!has || !B.segs.length) m = "emo";
+  if(R.clutch.multi) m = "clip";   // (v466) реакций на мультикилл нет — фразы написаны про клатч (владелец не расписал реакции на мультикилл)
   return m;
 }
 // (v462, владелец 29.10: «нет анимаций, звуков… звуки главное») звук и голос показа (повтор, пауза) — одно место. Только если включён
@@ -34274,10 +34277,21 @@ function rpRoundEnd(R){
   R.win = win; R.score = {CT: score.CT, T: score.T};
   if(bomb && bomb.state === "defused"){ var df = null; bots.forEach(function(b){ if(b.alive && b.team === "CT" && b.defuseUntil && Math.abs(b.defuseUntil - R.end) < 3) df = b; }); R.ev.push({t: R.end, kind: "defuse", id: df ? df.id : null}); }
   if(bomb && bomb.state === "exploded") R.ev.push({t: R.end, kind: "boom", id: null});
-  var c = clutchInfo;
-  if(!(c && win && c.team === win && c.n >= RP_K.minN)) return;
-  var me = teamBot(c.id);
-  R.clutch = {id: c.id, side: c.team, n: c.n, alive: !!(me && me.alive), hp: me ? me.hp : 0, kills: me ? (me.roundKills||0) : 0};
+  // (v466) что показать после раунда — по порядку, как было в раунде: выигранный клатч 1v2+ и мультикиллы (3+ фрага; 2 — редко).
+  // Клатчер с мультикиллом — один повтор (клатч со всеми его фрагами раунда). Второй повтор — если успевает до конца закупки (rpFrame)
+  var H = [], c = clutchInfo, kc = {}, k1 = {};
+  R.kills.forEach(function(k){ if(!k.att || !k.vic || k.attTeam === k.vicTeam) return; kc[k.att] = (kc[k.att]||0) + 1; if(k1[k.att] == null) k1[k.att] = k.t; });
+  var mk = function(id, side){ var me = teamBot(id); return {id: id, side: side, alive: !!(me && me.alive), hp: me ? me.hp : 0, kills: kc[id]||0}; };
+  if(c && win && c.team === win && c.n >= RP_K.minN){ var h = mk(c.id, c.team); h.n = c.n; h.t = R.solo[c.id] || R.end; if((kc[c.id]||0) >= RP_K.multiN){ h.all = true; h.t = k1[c.id]; } H.push(h); }
+  var two = [];
+  bots.forEach(function(b){ if(H.length && H[0].id === b.id) return; var n = kc[b.id]||0;
+    if(n >= RP_K.multiN){ var h2 = mk(b.id, b.team); h2.multi = true; h2.n = n; h2.t = k1[b.id]; H.push(h2); }
+    else if(n === 2) two.push(b.id); });
+  if(!H.length && two.length && (rpHash(R.m + "|" + R.round + "|two") % 1000)/1000 < RP_K.multi2){
+    var id2 = two[rpHash(R.m + "|" + R.round + "|two2") % two.length], b2 = teamBot(id2); var h3 = mk(id2, b2.team); h3.multi = true; h3.n = 2; h3.t = k1[id2]; H.push(h3); }
+  if(!H.length) return;
+  H.sort(function(a, b){ return a.t - b.t; });
+  R.list = H; R.clutch = H[0];
   // войс раунда: последнее, что сказал каждый (voiceLines — новые сверху)
   // одинаковый колл у нескольких (часто — общий «B чисто») показываем один раз, у того, кто сказал позже всех
   R.vox = {}; var seenVx = {};
@@ -34285,13 +34299,13 @@ function rpRoundEnd(R){
     var key = String(v.text).toLowerCase(); if(seenVx[key]){ R.vox[id] = ""; return; } seenVx[key] = 1; R.vox[id] = v.text; });
   R.st = {}; bots.forEach(function(b){ R.st[b.id] = {alive: b.alive, hp: b.hp, k: b.roundKills||0, killer: b._killer || null}; });
   RP.last = R;
-  if(RP.enabled && typeof document !== "undefined") RP.pending = {rec: R, at: R.endSim + RP_K.startDelay};
+  if(RP.enabled && typeof document !== "undefined") RP.pending = {rec: R, at: R.endSim + RP_K.startDelay, i: 0};
 }
 // ---------- клип: куски вокруг моментов клатча ----------
 function rpBuild(R){
-  var C = R.clutch, from = (R.solo[C.id] || R.t0) - RP_K.pre*TICK_HZ, M = [];
+  var C = R.clutch, from = (C.multi || C.all ? R.t0 : (R.solo[C.id] || R.t0) - RP_K.pre*TICK_HZ), M = [];
   R.kills.forEach(function(k){ if(k.att === C.id && k.vic && k.vicTeam !== C.side && k.t >= from) M.push({t: k.t, kind: "kill", k: k}); });
-  R.ev.forEach(function(e){ if(e.t >= from && (e.id === C.id || e.kind === "boom")) M.push({t: e.t, kind: e.kind}); });
+  if(!C.multi) R.ev.forEach(function(e){ if(e.t >= from && (e.id === C.id || e.kind === "boom")) M.push({t: e.t, kind: e.kind}); });   // мультикилл — только его фраги
   M.sort(function(a, b){ return a.t - b.t; });
   var make = function(pre, post){
     var S = [];
@@ -34332,16 +34346,21 @@ function rpPlay(R, mode){
   if(md === "emo") B.segs = [];
   RP.P = {R: R, mode: md, segs: B.segs, si: 0, rt: B.segs.length ? B.segs[0].a : R.end, phase: "intro", ph0: performance.now(), last: performance.now(),
           cam: null, feedShown: {}, ci: rpBotIdx(C.id)};
-  RP.on = true; RP.pending = null;
+  RP.on = true;
   var tm = C.side, nm = R.nick[C.id];
   E.root.className = "on " + tm.toLowerCase() + (typeof HUD_REDUCED !== "undefined" && HUD_REDUCED ? " rm" : "");
-  E.title.innerHTML = '<div class="rp-t1">ПОВТОР</div><div class="rp-t2">Клатч 1v' + C.n + '</div><div class="rp-t3 ' + tm.toLowerCase() + '">' + esc(nm) + ' · ' + esc(R.team[tm]) + '</div>';
-  E.l3.innerHTML = (R.logo[tm] ? '<img alt="" src="' + R.logo[tm] + '">' : '') + '<div><b>' + esc(nm) + '</b><span>клатч 1v' + C.n + ' · раунд ' + R.round + '</span></div><i class="rp-k">0</i>';
+  var what = C.multi ? (C.n >= 5 ? "Эйс" : C.n + " " + (C.n >= 5 ? "киллов" : "килла")) : "Клатч 1v" + C.n;
+  E.title.innerHTML = '<div class="rp-t1">ПОВТОР</div><div class="rp-t2">' + what + '</div><div class="rp-t3 ' + tm.toLowerCase() + '">' + esc(nm) + ' · ' + esc(R.team[tm]) + '</div>';
+  E.l3.innerHTML = (R.logo[tm] ? '<img alt="" src="' + R.logo[tm] + '">' : '') + '<div><b>' + esc(nm) + '</b><span>' + what.toLowerCase() + ' · раунд ' + R.round + '</span></div><i class="rp-k">0</i>';
   E.feed.innerHTML = ""; E.emo.innerHTML = ""; E.slow.className = "rp-slow";
   return true;
 }
+// сколько секунд займёт повтор (для «успевает ли второй»): заставка + куски (+ замедление) + реакции + выход
+function rpEst(R){ var B = rpBuild(R), md = rpMode(R, B), L = B.segs.reduce(function(a, q){ return a + (q.b - q.a)/TICK_HZ + q.m.length*0.6; }, 0);
+  return RP_K.intro + L + (md === "clip" ? 0 : 15) + RP_K.outro; }
 function rpStop(){
   if(!RP.on) return;
+  RP.pending = null;   // «Пропустить» — весь показ этого раунда, не только текущий повтор
   var P = RP.P; if(P && P.phase !== "out"){ P.phase = "out"; P.ph0 = performance.now(); return; }
 }
 function rpEnd(){
@@ -34359,7 +34378,12 @@ function rpFrame(ts){
   if(!RP.on && RP.pending && !paused){
     var Pn = RP.pending;
     if(roundState === "live" && roundNum !== Pn.rec.round) RP.pending = null;
-    else if(simTime >= Pn.at) rpPlay(Pn.rec);
+    else if(simTime >= Pn.at){
+      var Lh = Pn.rec.list || [Pn.rec.clutch], hh = Lh[Pn.i]; Pn.rec.clutch = hh; Pn.i++;
+      // следующий повтор — если успевает до конца закупки (владелец: «если успеваешь — по очереди»)
+      if(Pn.i > 1 && roundState === "freeze" && roundStartTime - simTime < rpEst(Pn.rec)){ RP.pending = null; }
+      else { rpPlay(Pn.rec); RP.pending = Pn.i < Lh.length ? Pn : null; if(RP.pending) Pn.at = 0; }
+    }
   }
   if(!RP.on) return false;
   var E = rpEls(), P = RP.P; if(!E || !P){ rpEnd(); return false; }

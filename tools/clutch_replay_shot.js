@@ -21,7 +21,7 @@ const { chromium } = require('playwright'); const fs = require('fs'), path = req
     for(var i = 0; i < 8; i++){ stepTick(); rpRecord(); }   // хвост после конца раунда
     paused = false; var bp = document.getElementById("btnPause"); if(bp){ bp.textContent = "Пауза"; bp.classList.remove("active"); }
     var R = RP.last;
-    return JSON.stringify({round: roundNum, state: roundState, pending: !!RP.pending, clutch: R && R.clutch, kills: R ? R.kills.length : 0, samples: R ? R.s.length : 0,
+    return JSON.stringify({round: roundNum, state: roundState, pending: !!RP.pending, clutch: R && R.clutch, list: R && R.list, kills: R ? R.kills.length : 0, samples: R ? R.s.length : 0,
       segs: R && R.clutch ? rpBuild(R).segs.map(function(s){ return [s.a, s.b, s.m.map(function(q){ return q.kind; }).join(",")]; }) : null});
   } + ')(' + m + ',' + r + ',"' + md + '")'), [+m, +r, modeS || 'both']);
   console.log(info); fs.writeFileSync(path.join(out, 'info.txt'), info + '\n');
