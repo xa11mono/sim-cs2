@@ -357,6 +357,9 @@ function retakePost(b, cts){
     return;
   }
   if(b.retakeRole === "defuser"){
+    // (v469, п.17 владельца 29.10: «чтобы искали дефузы — 10 секунд, но успевают добежать до кита и раздефузить») дефузер без кита: кит
+    // своего убитого лежит рядом с дорогой — сначала за ним, если так снимет бомбу раньше (дефуз 5 с вместо 10) и успевает до взрыва
+    if(!b.kit){ var KT = retakeKitFor(b, bp); if(KT){ setPost(b, {x:KT.x, y:KT.y}, bp, true, "retakeKit"); return; } }
     // дефузер не тапает бомбу сразу на заходе (под пост-плант позиции T):
     // сначала первый входящий чистит, дефузер — за ним. Сразу — если время
     // поджимает, он один или первый уже на сайте/погиб
@@ -383,6 +386,13 @@ function retakePost(b, cts){
     setPost(b, a, bp, true, gTag(b, R), 0); return;
   }
   retakeClear(b, R, cts, a, bp);
+}
+function retakeKitFor(b, bp){
+  var left = bombTimeLeftTicks()/TICK_HZ, tNo = pathLenTo(b, bp.x, bp.y)/SPEED + 10, best = null, bt = tNo;
+  groundItems.forEach(function(G){ if(G.kind !== "kit") return;
+    var t = (pathLenTo(b, G.x, G.y) + Math.hypot(G.x-bp.x, G.y-bp.y)*1.3)/SPEED + 5;   // 1,3 — путь длиннее прямой, как в ретейке выше
+    if(t < bt && t + 1.5 < left){ bt = t; best = G; } });
+  return best;
 }
 function retakeClear(b, R, cts, a, bp){
   // прикрытие/фланг — места с видом на бомбу, со своей стороны захода

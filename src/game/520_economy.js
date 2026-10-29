@@ -223,8 +223,11 @@ function buyFullKit(b, idx){
   var wantAwp = idx === 1 && b.primary !== "AWP" && b.money >= WEAPONS.AWP.price + ARMOR_PRICE + HELMET_UPGRADE && !mates.some(function(m){ return m.primary === "AWP"; });
   var rifle = rifleFor(b.team, b), cheap = WEAPONS[T ? "GALIL" : "FAMAS"];
   var P = {weapon: wantAwp ? WEAPONS.AWP : (cur && cur.tier >= 6 ? null : rifle), refill: hp < ARMOR_REBUY.tight, top: hp >= ARMOR_REBUY.tight && hp < ARMOR_REBUY.full,
-           helmet: !b.helmet, kit: !T && !b.kit && !wantAwp && b.primary !== "AWP", nades: []};
+           helmet: !b.helmet, kit: false, nades: []};
   var kitN = mates.filter(function(m){ return m !== b && m.kit; }).length;
+  // (v469, п.17 владельца 29.10: «покупают не все дефузы — 2, 1, 3») ответ про-аналитика 29.10: в фулле 2–3 кита — опорник A, опорник B,
+  // третий — ротатор или мидер (без AWP); кит — на сдачу, после оружия, брони и гранат (срезается первым); у остальных — нет
+  P.kit = !T && !b.kit && !wantAwp && b.primary !== "AWP" && (b.tRole === "anchorA" || b.tRole === "anchorB" || ((b.tRole === "rotator" || b.tRole === "mid") && !mates.some(function(m){ return m !== b && (m.tRole === "rotator" || m.tRole === "mid") && m.kit; })));
   var have = {smoke:b.nades.smoke, flash:b.nades.flash, molly:b.nades.molly, he:b.nades.he}, fN = 0;
   // (v428) гранаты фулла — из плана команды (365_nade_plan: гранаты своей зоны на нужный момент), а не набор роли (NADE_WISH_PRO)
   var NPL = teamNadePlan(b.team, "full")[b.id] || [];
@@ -239,7 +242,7 @@ function buyFullKit(b, idx){
   var dropN = function(tag){ for(var i = P.nades.length-1; i >= 0; i--) if(P.nades[i].tag === tag){ P.nades.splice(i, 1); return true; } return false; };
   var anchor = b.tRole === "anchorA" || b.tRole === "anchorB";
   var cuts = T ? ["top","he", b.tRole === "entry" ? "molly" : "flash2", b.tRole === "entry" ? "flash2" : "molly","awp","rifle","helmet","flash1","smoke"]
-               : ["top","he","flash2", eg.full ? "helmet" : null, kitN >= 2 ? "kit" : null, anchor ? null : "molly","awp","rifle","flash1","smoke","kit","helmet","molly"];
+               : ["top","kit","he","flash2", eg.full ? "helmet" : null, anchor ? null : "molly","awp","rifle","flash1","smoke","helmet","molly"];
   for(var ci = 0; ci < cuts.length && cost() > b.money; ci++){
     var c = cuts[ci]; if(!c) continue;
     if(c === "top") P.top = false;
@@ -323,7 +326,9 @@ function buyForPlayer(b, type, idx){
     }
     if(!b.primary && (!b.secondary || WEAPONS[b.secondary].tier < 2)){ var fp = proPistol(b, "force", 1); if(fp && b.money >= WEAPONS[fp].price) buyItem(b, fp); }
     buyArmor(b, helmetWanted(b, "force"), ARMOR_REBUY.force);
-    if(b.team === "CT" && !b.kit && b.money >= 400 && idx % 2 === 0){ b.money -= 400; b.kit = true; }
+    // (v469, п.17) на форсе — один кит на команду: тот, у кого больше всех денег (ответ про-аналитика 29.10); раньше — каждый второй
+    if(b.team === "CT" && !b.kit && b.money >= 400 && !bots.some(function(o){ return o.team === "CT" && o !== b && o.kit; }) &&
+       !bots.some(function(o){ return o.team === "CT" && o !== b && o.money > b.money; })){ b.money -= 400; b.kit = true; }
   } else if(type === "half"){
     // хаф-бай: броня + SMG/дешёвая винтовка, но оставляем деньги на следующий раунд
     var keep = teamEco[b.team].bonus ? 0 : Math.max(0, fullNeed(b) - nextLossIncome(b.team));
