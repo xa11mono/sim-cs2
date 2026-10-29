@@ -9,7 +9,7 @@
 var RP_K = {
   minN: 2,            // клатч от 1v2
   multiN: 3,          // (v466, владелец 29.10: «на про почти после каждого раунда повтор; мультикиллы с трёх, двойной — редко») мультикилл от 3 фрагов
-  multi2: 0.2,        // двойной — в доле раундов, где больше показать нечего (проектное число: владелец сказал «редко»)
+  pick: {two: 0.65, special: 0.5, last: 0.35},   // (v469, п.26) доля раундов, где второстепенный момент попадает в кандидаты (проектные)        // двойной — в доле раундов, где больше показать нечего (проектное число: владелец сказал «редко»)
   pre: 2, post: 1.1,  // клип: за pre с до момента и post с после
   merge: 1.6,         // моменты ближе merge с — один кусок
   maxClip: 20,        // клип длиннее maxClip с игры — короче запас до и после
@@ -157,17 +157,29 @@ function rpRoundEnd(R){
   if(bomb && bomb.state === "exploded") R.ev.push({t: R.end, kind: "boom", id: null});
   // (v466) что показать после раунда — по порядку, как было в раунде: выигранный клатч 1v2+ и мультикиллы (3+ фрага; 2 — редко).
   // Клатчер с мультикиллом — один повтор (клатч со всеми его фрагами раунда). Второй повтор — если успевает до конца закупки (rpFrame)
-  var H = [], c = clutchInfo, kc = {}, k1 = {};
+  // (v469, п.26 владельца 29.10: «несколько мультикиллов, даже один килл, который раунд завершает, — больше вариативности») кандидаты
+  // раунда с приоритетом: клатч 100, эйс 95, 4к 90, 3к 80, 2к 40, фраг через смок / прострел / без прицела / ослеплённым 30, последний фраг
+  // раунда 20. Второстепенные (2к и ниже) — не каждый раунд (доля от раунда, RP_K.pick — проектные числа). В очередь — по приоритету, сколько
+  // влезает в паузу до конца закупки (rpEst), показ — по порядку, как было в раунде. Раньше: клатч и 3к+, двойной — редко и только один
+  var H = [], c = clutchInfo, kc = {}, k1 = {}, cand = [], usedId = {};
   R.kills.forEach(function(k){ if(!k.att || !k.vic || k.attTeam === k.vicTeam) return; kc[k.att] = (kc[k.att]||0) + 1; if(k1[k.att] == null) k1[k.att] = k.t; });
   var mk = function(id, side){ var me = teamBot(id); return {id: id, side: side, alive: !!(me && me.alive), hp: me ? me.hp : 0, kills: kc[id]||0}; };
-  if(c && win && c.team === win && c.n >= RP_K.minN){ var h = mk(c.id, c.team); h.n = c.n; h.t = R.solo[c.id] || R.end; if((kc[c.id]||0) >= RP_K.multiN){ h.all = true; h.t = k1[c.id]; } H.push(h); }
-  var two = [];
-  bots.forEach(function(b){ if(H.length && H[0].id === b.id) return; var n = kc[b.id]||0;
-    if(n >= RP_K.multiN){ var h2 = mk(b.id, b.team); h2.multi = true; h2.n = n; h2.t = k1[b.id]; H.push(h2); }
-    else if(n === 2) two.push(b.id); });
-  if(!H.length && two.length && (rpHash(R.m + "|" + R.round + "|two") % 1000)/1000 < RP_K.multi2){
-    var id2 = two[rpHash(R.m + "|" + R.round + "|two2") % two.length], b2 = teamBot(id2); var h3 = mk(id2, b2.team); h3.multi = true; h3.n = 2; h3.t = k1[id2]; H.push(h3); }
-  if(!H.length) return;
+  var roll = function(tag){ return (rpHash(R.m + "|" + R.round + "|" + tag) % 1000)/1000; };
+  if(c && win && c.team === win && c.n >= RP_K.minN){ var h = mk(c.id, c.team); h.n = c.n; h.t = R.solo[c.id] || R.end; if((kc[c.id]||0) >= RP_K.multiN){ h.all = true; h.t = k1[c.id]; } cand.push({h: h, pri: 100}); usedId[c.id] = 1; }
+  bots.forEach(function(b){ if(usedId[b.id]) return; var n = kc[b.id]||0;
+    if(n >= RP_K.multiN || (n === 2 && roll("two" + b.id) < RP_K.pick.two)){ var h2 = mk(b.id, b.team); h2.multi = true; h2.n = n; h2.t = k1[b.id];
+      cand.push({h: h2, pri: n >= 5 ? 95 : n === 4 ? 90 : n === 3 ? 80 : 40}); usedId[b.id] = 1; } });
+  var SPEC = [["smoke", "Через смок"], ["wall", "Прострел"], ["noscope", "Без прицела"], ["blind", "Ослеплённым"]];
+  R.kills.forEach(function(k, ki){ if(!k.att || usedId[k.att] || k.attTeam === k.vicTeam) return;
+    var sp = SPEC.filter(function(q){ return k[q[0]]; })[0]; if(!sp || roll("sp" + ki) >= RP_K.pick.special) return;
+    var h3 = mk(k.att, k.attTeam); h3.multi = true; h3.single = true; h3.n = 1; h3.kt = k.t; h3.t = k.t; h3.label = sp[1]; cand.push({h: h3, pri: 30}); usedId[k.att] = 1; });
+  var lastK = R.kills.filter(function(k){ return k.att && k.attTeam !== k.vicTeam; }).slice(-1)[0];
+  if(lastK && win && lastK.attTeam === win && !usedId[lastK.att] && !(bomb && (bomb.state === "exploded" || bomb.state === "defused")) && roll("last") < RP_K.pick.last){
+    var h4 = mk(lastK.att, lastK.attTeam); h4.multi = true; h4.single = true; h4.n = 1; h4.kt = lastK.t; h4.t = lastK.t; h4.label = "Последний фраг"; cand.push({h: h4, pri: 20}); }
+  if(!cand.length) return;
+  cand.sort(function(a, b){ return b.pri - a.pri || a.h.t - b.h.t; });
+  var avail = ROUND_RESTART_DELAY_SEC + BAL.freeze - RP_K.startDelay, used = 0;
+  cand.forEach(function(q, i){ R.clutch = q.h; var e = rpEst(R); if(i === 0 || used + e <= avail){ H.push(q.h); used += e; } });
   H.sort(function(a, b){ return a.t - b.t; });
   R.list = H; R.clutch = H[0];
   // войс раунда: последнее, что сказал каждый (voiceLines — новые сверху)
@@ -182,7 +194,7 @@ function rpRoundEnd(R){
 // ---------- клип: куски вокруг моментов клатча ----------
 function rpBuild(R){
   var C = R.clutch, from = (C.multi || C.all ? R.t0 : (R.solo[C.id] || R.t0) - RP_K.pre*TICK_HZ), M = [];
-  R.kills.forEach(function(k){ if(k.att === C.id && k.vic && k.vicTeam !== C.side && k.t >= from) M.push({t: k.t, kind: "kill", k: k}); });
+  R.kills.forEach(function(k){ if(k.att === C.id && k.vic && k.vicTeam !== C.side && k.t >= from && (!C.single || k.t === C.kt)) M.push({t: k.t, kind: "kill", k: k}); });   // (v469) один фраг — только он
   if(!C.multi) R.ev.forEach(function(e){ if(e.t >= from && (e.id === C.id || e.kind === "boom")) M.push({t: e.t, kind: e.kind}); });   // мультикилл — только его фраги
   M.sort(function(a, b){ return a.t - b.t; });
   var make = function(pre, post){
@@ -227,7 +239,7 @@ function rpPlay(R, mode){
   RP.on = true;
   var tm = C.side, nm = R.nick[C.id];
   E.root.className = "on " + tm.toLowerCase() + (typeof HUD_REDUCED !== "undefined" && HUD_REDUCED ? " rm" : "");
-  var what = C.multi ? (C.n >= 5 ? "Эйс" : C.n + " " + (C.n >= 5 ? "киллов" : "килла")) : "Клатч 1v" + C.n;
+  var what = C.single ? C.label : C.multi ? (C.n >= 5 ? "Эйс" : C.n + " " + (C.n >= 5 ? "киллов" : "килла")) : "Клатч 1v" + C.n;
   E.title.innerHTML = '<div class="rp-t1">ПОВТОР</div><div class="rp-t2">' + what + '</div><div class="rp-t3 ' + tm.toLowerCase() + '">' + esc(nm) + ' · ' + esc(R.team[tm]) + '</div>';
   E.l3.innerHTML = (R.logo[tm] ? '<img alt="" src="' + R.logo[tm] + '">' : '') + '<div><b>' + esc(nm) + '</b><span>' + what.toLowerCase() + ' · раунд ' + R.round + '</span></div><i class="rp-k">0</i>';
   E.feed.innerHTML = ""; E.emo.innerHTML = ""; E.slow.className = "rp-slow";
