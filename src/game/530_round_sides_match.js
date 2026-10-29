@@ -11,6 +11,7 @@ function buyPhase(){
   chooseTactic();
   ["CT","T"].forEach(function(team){
     var type = teamEco[team].roundType;
+    awpSwap(team);   // (v469, п.20) AWP — снайперу, до закупа (тогда он не купит вторую)
     if(type === "full") teamAwp(team);
     if(type === "full") teamDrops(team);
     var spent = 0;

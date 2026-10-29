@@ -352,6 +352,19 @@ function buyForPlayer(b, type, idx){
 
 // дроп (план §4, "решение по команде, не по одному"): в фулл-бай богатый
 // тиммейт покупает винтовку тому, кому на неё не хватает
+// (v469, п.20 владельца 29.10, р9 м1: TN1R подобрал AWP, а снайпер sh1ro остался с AK — «должны поменяться») AWP у не-снайпера, а снайпер
+// команды без неё — на закупке меняются: снайпер отдаёт свою винтовку, получает AWP (как дроп в CS; ответ про-аналитика 29.10: AWP —
+// снайперу). Снайпер — роль awp у T, мидер у CT (как awpAllowed, 450)
+function awpSwap(team){
+  var mates = bots.filter(function(b){ return b.team === team; });
+  var sn = mates.filter(function(b){ return (b.tRole === "awp" || (team === "CT" && b.tRole === "mid")) && b.primary !== "AWP"; })[0];
+  var hold = mates.filter(function(b){ return b !== sn && b.primary === "AWP" && !(b.tRole === "awp" || (team === "CT" && b.tRole === "mid")); })[0];
+  if(!sn || !hold) return;
+  var give = sn.primary || null; sn.primary = "AWP"; hold.primary = give;
+  logEvent(hold.id+" отдал AWP "+sn.id+(give ? ", взял "+WEAPONS[give].name : ""));
+  FREEZE_FX.push({kind:"drop", from:hold.id, to:sn.id, key:"AWP", t:tick});
+  if(give) FREEZE_FX.push({kind:"drop", from:sn.id, to:hold.id, key:give, t:tick});
+}
 function teamDrops(team){
   var mates = bots.filter(function(b){ return b.team === team; });
   mates.forEach(function(poor){
