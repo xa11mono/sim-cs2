@@ -16,7 +16,8 @@ var RP_K = {
   startDelay: 1.3,    // повтор начинается через startDelay с после конца раунда (видно карточку раунда и баннер)
   emo: 7,             // эмоции игроков, с
   intro: 0.7, outro: 0.5,
-  tracer: 0.22        // след выстрела в повторе, с игры
+  tracer: 0.22,       // след выстрела в повторе, с игры
+  angle: 1.1          // (v461) второй ракурс последнего фрага: с за сколько до фрага
 };
 var RP = {on: false, rec: null, last: null, P: null, enabled: true, mode: "auto", prevRs: null, kfSeen: null, lastTs: 0, holding: false};
 try{ RP.enabled = localStorage.getItem("sim-rp") !== "0"; RP.mode = localStorage.getItem("sim-rp-mode") || "auto"; }catch(e){}
@@ -72,7 +73,7 @@ function rpRecord(){
       R.s.push(rpSample(R));
       // новые выстрелы (по самим записям, а не по времени кадра)
       if(!RP.trSeen || RP.trSeen.r !== R) RP.trSeen = {r: R, set: new WeakSet()};
-      tracers.forEach(function(q){ if(RP.trSeen.set.has(q)) return; RP.trSeen.set.add(q); R.tr.push({t: tick, x1: q.x1, y1: q.y1, x2: q.x2, y2: q.y2, team: q.team, hit: !!q.hit, head: !!q.head}); });
+      tracers.forEach(function(q){ if(RP.trSeen.set.has(q)) return; RP.trSeen.set.add(q); R.tr.push({t: tick, x1: q.x1, y1: q.y1, x2: q.x2, y2: q.y2, team: q.team, hit: !!q.hit, head: !!q.head, wc: q.wc}); });
       // кто остался один в команде — с какого тика (для «клип с первого фрага клатча»)
       ["CT","T"].forEach(function(s){ var al = bots.filter(function(b){ return b.team === s && b.alive; }); if(al.length === 1 && !R.solo[al[0].id]) R.solo[al[0].id] = tick; });
       // плант / дефуз — моменты
@@ -144,6 +145,10 @@ function rpBuild(R){
   var segs = make(RP_K.pre, RP_K.post), len = function(S){ return S.reduce(function(s, q){ return s + q.b - q.a; }, 0)/TICK_HZ; };
   if(len(segs) > RP_K.maxClip) segs = make(1.2, 0.7);
   while(segs.length > 1 && len(segs) > RP_K.maxClip) segs.shift();   // очень длинный — последние моменты
+  // (v461) второй ракурс, как на трансляции: последний фраг клатча ещё раз — камера на жертве, замедленно
+  var lastK = null; M.forEach(function(m){ if(m.kind === "kill") lastK = m; });
+  if(lastK && segs.length){ var ia = -1; segs.forEach(function(q, i){ if(q.m.indexOf(lastK) >= 0) ia = i; });
+    if(ia >= 0) segs.splice(ia + 1, 0, {a: Math.max(R.t0, lastK.t - RP_K.angle*TICK_HZ), b: lastK.t + 0.5*TICK_HZ, m: [lastK], cam: "victim", vic: lastK.k.vic}); }
   return {segs: segs, moments: M};
 }
 function rpBotIdx(id){ for(var i = 0; i < bots.length; i++) if(bots[i].id === id) return i; return -1; }
@@ -245,6 +250,7 @@ function rpVoiceClutch(R){
 // замедление вокруг фрагов клатча (плавно)
 function rpSpeed(P){
   var sg = P.segs[P.si], best = 1; if(!sg) return 1;
+  if(sg.cam === "victim") best = 0.45;
   sg.m.forEach(function(m){ if(m.kind !== "kill" && m.kind !== "defuse") return; var d = Math.abs(P.rt - m.t)/TICK_HZ;
     if(d < RP_K.slowR){ var f = d/RP_K.slowR, v = RP_K.slow + (1 - RP_K.slow)*f*f; if(v < best) best = v; } });
   return best;
@@ -269,6 +275,7 @@ function rpDraw(E, x, P, dt, W, H, dpr){
   if(A.b[ci*RP_NB+7]) foe = -1;
   if(foe >= 0){ var ox = bx(foe), oy = by(foe); tx = (cx + ox)/2; ty = (cy + oy)/2; span = Math.min(1150, Math.max(600, Math.hypot(ox-cx, oy-cy)*2.3)); }
   var slowNow = rpSpeed(P) < 0.9; if(slowNow && P.phase === "clip") span *= 0.86;
+  if(sg && sg.cam === "victim"){ var vv = rpBotIdx(sg.vic); if(vv >= 0){ cx = bx(vv); cy = by(vv); tx = (cx*2 + bx(ci))/3; ty = (cy*2 + by(ci))/3; span = Math.max(520, Math.hypot(bx(ci)-cx, by(ci)-cy)*1.8); } }
   var off = Math.hypot(tx-cx, ty-cy), om = 0.3*span; if(off > om){ tx = cx + (tx-cx)*om/off; ty = cy + (ty-cy)*om/off; }
   var top = H*0.09, bot = H*0.09, avH = H - top - bot, sc = Math.min(W, avH)/span;
   if(!P.cam) P.cam = {x: tx, y: ty, s: sc};
@@ -317,6 +324,21 @@ function rpDraw(E, x, P, dt, W, H, dpr){
   if(sg) sg.m.forEach(function(m){ if(m.kind !== "kill") return; var a2 = (P.rt - m.t)/(0.7*TICK_HZ); if(a2 < 0 || a2 > 1) return; var vi = rpBotIdx(m.k.vic); if(vi < 0) return;
     x.strokeStyle = "rgba(255,228,150," + (1 - a2).toFixed(3) + ")"; x.lineWidth = 3*L; x.beginPath(); x.arc(bx(vi), by(vi), (10 + 34*a2)*L, 0, Math.PI*2); x.stroke(); });
   x.setTransform(1,0,0,1,0,0);
+  rpSound(P, R, ci);
+}
+// (v461) звук повтора: выстрелы и дефуз в свой момент клипа, громкость — по камере повтора. Звуковой движок (680) меряет расстояние от
+// центра живого радара — поэтому точка звука переносится: живой центр + (точка − центр камеры повтора). Заплатка (одно место звука)
+function rpSound(P, R, ci){
+  if(!SND || !SND.on || !SND.ctx || !P.cam) return;
+  var from = P.sndRt == null || P.sndRt > P.rt ? P.rt - 1 : P.sndRt; P.sndRt = P.rt;
+  if(P.phase !== "clip") return;
+  var r = cv.getBoundingClientRect(), c = navScreenToWorld(r.left + r.width/2, r.top + r.height/2);
+  var mv = function(x, y){ return {x: c.x + (x - P.cam.x), y: c.y + (y - P.cam.y)}; }, n = 0;
+  for(var j = rpTrFrom(R, from); j < R.tr.length && R.tr[j].t <= P.rt && n < 3; j++){ var T = R.tr[j]; if(T.t <= from) continue;
+    var q = mv(T.x1, T.y1); sndShot({key: T.wc === "awp" ? "AWP" : T.wc === "deagle" ? "DEAGLE" : T.wc === "pistol" ? "USP" : T.wc === "smg" ? "MP9" : "M4"}, q.x, q.y); n++; }
+  var I = rpAt(R, P.rt), J = rpAt(R, from), a1 = I.A.b[ci*RP_NB+7], a0 = J.A.b[ci*RP_NB+7];
+  if(a1 < 0 && !(a0 < 0)){ var q2 = mv(I.A.b[ci*RP_NB], I.A.b[ci*RP_NB+1]); sndBomb("defuse", q2.x, q2.y); }
+  R.ev.forEach(function(e){ if(e.kind === "defuse" && e.t > from && e.t <= P.rt){ var q3 = mv(I.A.b[ci*RP_NB], I.A.b[ci*RP_NB+1]); sndBomb("defused", q3.x, q3.y); } });
 }
 function rpTrFrom(R, t){ var lo = 0, hi = R.tr.length; while(lo < hi){ var mid = (lo + hi) >> 1; if(R.tr[mid].t < t) lo = mid + 1; else hi = mid; } return lo; }
 // киллфид повтора: строки появляются в момент фрага; счётчик фрагов клатча
@@ -332,6 +354,7 @@ function rpFeed(E, P){
     ["smoke","wall","hs","noscope","blind"].forEach(function(m){ if(k[m] && typeof kfSvg === "function") h += kfSvg(m, "md", KF_MOD_T[m]); });
     row.innerHTML = h + '<span class="' + String(k.vicTeam).toLowerCase() + '">' + esc(k.vicN) + '</span>';
     E.feed.insertBefore(row, E.feed.firstChild); while(E.feed.children.length > 5) E.feed.removeChild(E.feed.lastChild); });
+  if(P.segs[P.si] && P.segs[P.si].cam === "victim"){ E.root.classList.add("angle"); return; } E.root.classList.remove("angle");
   var ke = E.l3.querySelector(".rp-k"); if(ke && ke.textContent !== String(kc)){ ke.textContent = String(kc); ke.classList.remove("pop"); void ke.offsetWidth; ke.classList.add("pop"); }
 }
 // размытие фона без filter (дёшево): последний кадр — в маленький холст и обратно, растянутым, плюс затемнение

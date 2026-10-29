@@ -17,6 +17,7 @@ var OBS_K = {
   focusR: 900, siteR: 700,        // фокус (выход, плант, дефуз) — кто ближе focusR; в кадре — все ближе siteR
   nearR: 450, losR: 900,          // враг ближе nearR смотрит на игрока — скоро бой; линию видимости проверять ближе losR
   bombLast: 10,                   // последние bombLast с бомбы при CT рядом — фокус на бомбе
+  closeR: 800, closeV: 150,       // (v461) сближение: ближе closeR и навстречу быстрее closeV ед. карты/с — скоро бой
   wideToNear: 0.9                 // перелёт с общего плана на бой, с
 };
 function obsT(sec){ return sec*TICK_HZ; }
@@ -31,6 +32,9 @@ function obsCtx(){
     var s = o._shotAtBy; if(s && s.id && o._shotAtT != null && !(C.shotBy[s.id] >= o._shotAtT)) C.shotBy[s.id] = o._shotAtT;
   });
   C.F = obsFocus();
+  // (v461) сближение: позиции на прошлом пересчёте (тик назад и больше) — кто к кому идёт
+  C.pp = OBS.pp || null; C.ppT = OBS.ppT || 0;
+  if(tick !== OBS.ppT){ var pp = {}; bots.forEach(function(o){ pp[o.id] = {x: o.x, y: o.y}; }); OBS.pp = pp; OBS.ppT = tick; }
   return C;
 }
 // видят ли друг друга (линия без стен и полов, без учёта взгляда и дыма) — для «скоро бой»
@@ -84,6 +88,10 @@ function obsScore(b){
     var d = Math.hypot(o.x-b.x, o.y-b.y), v = 3/(1 + d/400);
     if(d < OBS_K.losR && !obsLos(b, o)) v *= 0.4;
     if(v > near) near = v;
+    // (v461) идут навстречу друг другу (сближаются быстрее closeV ед./с, ближе closeR, линия открыта) — бой вот-вот, раньше первого выстрела
+    var Pb = C.pp && C.pp[b.id], Po = C.pp && C.pp[o.id], dtp = (tick - C.ppT)/TICK_HZ;
+    if(Pb && Po && dtp > 0 && dtp < 0.5 && d < OBS_K.closeR){ var d0 = Math.hypot(Po.x-Pb.x, Po.y-Pb.y);
+      if((d0 - d)/dtp > OBS_K.closeV && obsLos(b, o)) sc += 3; }
     // (v307) враг ≤ nearR уже видит его или смотрит в его сторону (и линия открыта) — переключаемся заранее, до выстрелов
     if(d > OBS_K.nearR) return;
     if(o._sawEnemy && o._nearestEnemyBot === b) sc += 6;

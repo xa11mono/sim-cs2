@@ -15,6 +15,8 @@
     --ease:cubic-bezier(.2,.8,.2,1); --ease-in:cubic-bezier(.5,0,.75,0); --spring:cubic-bezier(.34,1.5,.64,1);
     --d1:120ms; --d2:180ms; --d3:280ms;
     --k:1;   /* масштаб HUD под ширину окна (635_hud_fx.js) */
+    /* (v461) показ трансляции (повтор клатча 675, пауза 676) — общие: пузырь реплики, подсветка героя */
+    --bubble:#fff; --bubble-ink:#0b0f0b; --bubble-quiet:rgba(255,255,255,.8); --bubble-dark:rgba(20,24,18,.92); --hero:var(--mark);
     /* иконки кнопок — маски (рисуются цветом текста; подписи кнопок скрипты меняют, иконки остаются) */
     --i-pause:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22%23000%22%3E%3Crect x=%226%22 y=%224.5%22 width=%224%22 height=%2215%22 rx=%221.2%22/%3E%3Crect x=%2214%22 y=%224.5%22 width=%224%22 height=%2215%22 rx=%221.2%22/%3E%3C/svg%3E");
     --i-play:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22%23000%22%3E%3Cpath d=%22M7 4.6v14.8a1 1 0 0 0 1.5.86l12.2-7.4a1 1 0 0 0 0-1.72L8.5 3.74A1 1 0 0 0 7 4.6z%22/%3E%3C/svg%3E");
@@ -383,6 +385,9 @@
     transform:translateY(-4px);transition:opacity var(--d2) var(--ease),transform var(--d2) var(--ease);}
   #rp .rp-slow::before{content:"×0.3 ";font-weight:700;}
   #rp .rp-slow.on{opacity:1;transform:none;}
+  #rp .rp-ang{font-family:var(--num);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:#fff;padding:3px 8px;border:1px solid rgba(255,255,255,.5);opacity:0;
+    transition:opacity var(--d2) var(--ease);}
+  #rp.angle .rp-ang{opacity:1;}
   #rp .rp-l3{display:flex;align-items:center;gap:12px;height:100%;}
   #rp .rp-l3 img{height:62%;width:auto;}
   #rp .rp-l3 b{display:block;font-size:20px;font-weight:700;letter-spacing:.03em;color:#fff;line-height:1.05;}
@@ -447,9 +452,9 @@
   #rp .rp-vx{margin-top:3px;max-width:100%;font-size:11px;color:var(--text-mute);text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
   /* что кричит — пузырь над портретом; победители «кричат» (встряска), проигравшие — тихо */
   #rp .rp-say{position:absolute;bottom:calc(100% - 14px);left:50%;transform:translateX(-50%);z-index:1;white-space:nowrap;padding:6px 11px;border-radius:3px;
-    background:#fff;color:#0b0f0b;font-size:15px;font-weight:700;letter-spacing:.02em;box-shadow:0 6px 18px -6px rgba(0,0,0,.7);
+    background:var(--bubble);color:var(--bubble-ink);font-size:15px;font-weight:700;letter-spacing:.02em;box-shadow:0 6px 18px -6px rgba(0,0,0,.7);
     animation:rpSay .4s var(--spring) both;animation-delay:calc(var(--i)*90ms + .75s);}
-  #rp .rp-say::after{content:"";position:absolute;top:100%;left:50%;margin-left:-6px;border:6px solid transparent;border-top-color:#fff;}
+  #rp .rp-say::after{content:"";position:absolute;top:100%;left:50%;margin-left:-6px;border:6px solid transparent;border-top-color:var(--bubble);}
   /* громкость: 3 — крик (встряска), 2 — обычно, 1 — тихо */
   #rp .rp-say.lvl3 b{display:inline-block;animation:rpShout .32s ease-in-out calc(var(--i)*90ms + 1.15s) 4 alternate;}
   #rp .rp-row.hype .rp-say.lvl2{font-weight:600;}
@@ -457,7 +462,7 @@
   #rp .rp-row.hype .rp-say.lvl1::after{border-top-color:rgba(255,255,255,.78);}
   #rp .rp-row.sad .rp-say.lvl3{color:#ffb3aa;font-style:normal;font-weight:700;}
   #rp .rp-row.sad .rp-say.lvl2{color:var(--text);font-style:normal;}
-  #rp .rp-card.hero .rp-say{background:var(--mark);font-size:18px;} #rp .rp-card.hero .rp-say::after{border-top-color:var(--mark);}
+  #rp .rp-card.hero .rp-say{background:var(--hero);font-size:18px;} #rp .rp-card.hero .rp-say::after{border-top-color:var(--hero);}
   #rp .rp-row.sad .rp-say{background:rgba(20,24,18,.92);color:var(--text-dim);font-weight:500;font-style:italic;font-size:12px;
     animation-delay:calc(var(--i)*80ms + 1.8s);}
   #rp .rp-row.sad .rp-say::after{border-top-color:rgba(20,24,18,.92);}
@@ -504,12 +509,12 @@
   #to .to-nm{display:flex;gap:6px;align-items:baseline;margin-top:6px;font-size:14px;font-weight:600;color:#fff;}
   #to .to-nm i{font-style:normal;font-size:10px;letter-spacing:.12em;color:var(--mark);}
   #to .to-say{position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);width:max-content;max-width:min(30vw,340px);padding:7px 12px;border-radius:3px;
-    background:#fff;color:#0b0f0b;font-size:15px;font-weight:600;line-height:1.25;text-align:center;opacity:0;box-shadow:0 6px 18px -6px rgba(0,0,0,.7);}
-  #to .to-say::after{content:"";position:absolute;top:100%;left:50%;margin-left:-6px;border:6px solid transparent;border-top-color:#fff;}
+    background:var(--bubble);color:var(--bubble-ink);font-size:15px;font-weight:600;line-height:1.25;text-align:center;opacity:0;box-shadow:0 6px 18px -6px rgba(0,0,0,.7);}
+  #to .to-say::after{content:"";position:absolute;top:100%;left:50%;margin-left:-6px;border:6px solid transparent;border-top-color:var(--bubble);}
   #to .to-say.in{animation:rpSay .35s var(--spring) both;}
   #to .to-say.lvl3{font-weight:700;} #to .to-say.lvl3 b{display:inline-block;animation:rpShout .3s ease-in-out .35s 4 alternate;}
   #to .to-say.lvl1{font-size:13px;font-weight:500;font-style:italic;background:rgba(255,255,255,.8);} #to .to-say.lvl1::after{border-top-color:rgba(255,255,255,.8);}
-  #to .to-card.coach .to-say{background:var(--mark);} #to .to-card.coach .to-say::after{border-top-color:var(--mark);}
+  #to .to-card.coach .to-say{background:var(--hero);} #to .to-card.coach .to-say::after{border-top-color:var(--hero);}
   #to .to-log{display:flex;flex-direction:column;align-items:center;gap:3px;min-height:96px;}
   #to .to-ll{font-size:13px;color:var(--text-dim);animation:rpVl .25s var(--ease) both;} #to .to-ll b{color:var(--text);font-weight:600;margin-right:8px;}
   /* нижняя полоса: кто на паузе + субтитр текущей реплики (в сцене «спавн» — поверх живой игры) */

@@ -23,7 +23,9 @@ function tsIgl(side){
 var TS_SAY = {
   ru: {
     open:  ["Так, слушаем все.", "Стоп, дышим. Слушаем.", "Ребята, внимание сюда.", "Так, без паники. Смотрим, что у нас."],
-    deaths:["Мы {n} раза из {of} умираем на {zone}. Туда больше не лезем по одному.", "{zone} — уже {n} смерти за {of} раунда. Хватит туда сыпаться."],
+    deathsT:["Мы {n} раза из {of} умираем на {zone}. Эти раунды идём в обход.", "{zone} — уже {n} смерти за {of} раунда. Туда не идём, выбираем другой путь."],
+    deathsCT:["Мы {n} раза из {of} умираем на {zone}. Эти раунды там не стоим.", "{zone} — {n} смерти за {of} раунда. Уходим оттуда, держим иначе."],
+    exclProf:["Достаём «{tac}». В прошлых матчах против них заходила — {w} из {n}.", "У нас есть «{tac}» — против них она работала, {w} из {n}. Играем."],
     failed:["«{tac}» не заходит. Больше не играем.", "«{tac}» они читают. Убираем."],
     stackRead:["Они стакают {S} — {n} раунда из {of}. Идём {T}, быстро и вместе.", "На {S} у них толпа, {n} из {of}. Значит, {T}."],
     weakSite:["На {T} у них меньше людей: {a} против {b} за {of} раунда. Бьём {T}.", "{T} пустой — видели там меньше всех. Туда."],
@@ -39,7 +41,9 @@ var TS_SAY = {
   },
   en: {
     open:  ["Okay, listen up.", "Stop, breathe. Listen.", "Guys, eyes here.", "Alright, no panic. Let's look at it."],
-    deaths:["We died at {zone} {n} times in {of}. Nobody goes there alone.", "{zone} — {n} deaths in {of} rounds. Stop feeding it."],
+    deathsT:["We died at {zone} {n} times in {of}. These rounds we go around it.", "{zone} — {n} deaths in {of} rounds. We take another path."],
+    deathsCT:["We died at {zone} {n} times in {of}. Nobody plays there these rounds.", "{zone} — {n} deaths in {of}. We hold it differently."],
+    exclProf:["Pull out {tac}. It worked against them before — {w} of {n}.", "We have {tac} — it hit vs them, {w} of {n}. Let's play it."],
     failed:["{tac} isn't working. We drop it.", "They read {tac}. Gone."],
     stackRead:["They stack {S} — {n} of {of}. We go {T}, fast and together.", "{S} is packed, {n} of {of}. So {T}."],
     weakSite:["{T} has fewer guys: {a} vs {b} over {of} rounds. We hit {T}.", "{T} is light, we saw the fewest there. Go."],
@@ -63,7 +67,7 @@ function tsScript(T){
   var team = bots.filter(function(b){ return b.team === side; });
   var say = function(who, cat, f, key){ var p = tsPick(L[cat], key || cat, T); S.push({who: who, t: tsFill(p.t, f || {}), lvl: p.lvl}); };
   say(lead, "open");
-  T.plan.facts.forEach(function(f, i){ if(L[f.k]) say(lead, f.k, f, f.k + i); });
+  T.plan.facts.forEach(function(f, i){ var key = f.k === "deaths" ? (side === "T" ? "deathsT" : "deathsCT") : f.k; if(L[key]) say(lead, key, f, key + i); });
   if(T.caller === "coach") say(igl.id, "iglOk");
   var others = team.filter(function(b){ return b.id !== igl.id; });
   for(var i = 0; i < 3 && others.length; i++){
@@ -105,7 +109,7 @@ function tsBoard(E, T, k){
     var p = ease((k - t)/1.2);
     if(f.k === "deaths") cross(tsZoneXY(f.zone), p, f.zone + " ×" + f.n);
     else if(f.k === "stackRead"){ dots(SITES[f.S], 3, p, "#5a9bd9"); ring(SITES[f.S], 70*L, p, chalk, isEn ? "STACK" : "СТАК"); }
-    else if(f.k === "weakSite" || f.k === "excl"){ if(f.T){ arrow(T_SPAWN, SITES[f.T], p, gold); ring(SITES[f.T], 60*L, ease((k - t - 1)/0.8), gold, f.k === "excl" ? (isEn ? "SAVED PLAY" : "ЗАГОТОВКА") : f.T); } }
+    else if(f.k === "weakSite" || f.k === "excl" || f.k === "exclProf"){ if(f.T){ arrow(T_SPAWN, SITES[f.T], p, gold); ring(SITES[f.T], 60*L, ease((k - t - 1)/0.8), gold, f.k !== "weakSite" ? (isEn ? "SAVED PLAY" : "ЗАГОТОВКА") : f.T); } }
     else if(f.k === "tSite"){ dots(SITES[f.S], 3, p, "#5a9bd9"); arrow(T_SPAWN, SITES[f.S], p, red); }
     else if(f.k === "retake"){ ring(SITES[f.S], 80*L, p, chalk, isEn ? "RETAKE" : "РЕТЕЙК"); if(GEO.rotator) arrow(GEO.rotator, SITES[f.S], ease((k - t - 0.6)/1), chalk); }
     else if(f.k === "failed" || f.k === "readSetup"){ /* в подписи доски */ }

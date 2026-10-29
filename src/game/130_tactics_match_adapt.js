@@ -128,11 +128,12 @@ function timeoutWant(side, winner){
   if(L.streak >= 4) return "streak";
   if(reserve) return clutchLost && u < 0.5 ? "clutch" : null;
   if(L.streak >= 3) return "streak";
-  if(clutchLost && u < 0.6) return "clutch";
-  if(danger && L.streak >= 2 && u < 0.6) return "danger";
-  if(L.streak >= 2 && u < 0.25) return "streak";
-  return null;
+  if(clutchLost && u < 0.4) return "clutch";
+  if(danger && L.streak >= 2 && u < 0.5) return "danger";
+  return null;   // (v461) «2 поражения — иногда» убрано: пауз было 4,9 на матч при 3,65 у про
 }
+function tacUsesZone(t, z){ return (t.groups || []).some(function(g){ return g.stage === z || (g.via || []).indexOf(z) >= 0; }); }
+function setupUsesZone(S, z){ return !!S.roles && Object.keys(S.roles).some(function(r){ return (S.roles[r].pos || []).indexOf(z) >= 0; }); }
 function tacById(id){ return T_TACTICS.filter(function(x){ return x.id === id; })[0] || null; }
 function setupById(id){ return CT_SETUPS.filter(function(x){ return x.id === id; })[0] || null; }
 // план тренера: факты (что видела команда) → что делаем. Каждый факт — с числами, из них же строится речь на паузе (676)
@@ -141,7 +142,8 @@ function coachPlan(side){
   var D = TO_DEATHS[side].slice(-4), cnt = {};
   D.forEach(function(r){ r.forEach(function(z){ if(z && z !== "?") cnt[z] = (cnt[z]||0) + 1; }); });
   var dz = Object.keys(cnt).sort(function(a, b){ return cnt[b] - cnt[a]; })[0];
-  if(dz && cnt[dz] >= 3) P.facts.push({k: "deaths", zone: dz, n: cnt[dz], of: D.length, log: "умираем на «"+dz+"» ("+cnt[dz]+" за "+D.length+" р.)"});
+  // (v461) где умираем — эти раунды туда не идём: T — тактики, чей путь или стадия через эту зону, реже; CT — расстановки с позицией там
+  if(dz && cnt[dz] >= 3){ P.avoidZone = dz; P.facts.push({k: "deaths", zone: dz, n: cnt[dz], of: D.length, log: "умираем на «"+dz+"» ("+cnt[dz]+" за "+D.length+" р.) — обходим"}); }
   if(side === "T"){
     var failed = tacHist.slice(-3).filter(function(id, i, a){ var M = tacMem[id]; return a.indexOf(id) === i && M && M.n >= 1 && M.w/M.n < 0.5; });
     P.avoid = failed.slice();
@@ -154,8 +156,16 @@ function coachPlan(side){
       if(last.length >= 2 && Math.abs(seen.A - seen.B) >= 2){ P.site = seen.A < seen.B ? "A" : "B"; P.facts.push({k: "weakSite", T: P.site, a: seen.A, b: seen.B, of: last.length, log: "на "+P.site+" видели меньше CT ("+seen.A+" против "+seen.B+" за "+last.length+" р.)"}); }
     }
     // заготовка: тактика на сайт плана (или любой), которую в этом матче ещё не играли
-    var pool = T_TACTICS.filter(function(t){ return t.style !== "fake" && (!P.site || t.site === P.site) && !(tacMem[t.id] && tacMem[t.id].n > 0) && P.avoid.indexOf(t.id) < 0; });
-    if(pool.length){ var ex = pool[Math.floor(hashRand(roundNum*577 + matchNum*41)*pool.length)]; P.excl = ex.id; P.facts.push({k: "excl", tac: ex.name, T: ex.site, log: "заготовка «"+ex.name+"»"}); }
+    // (v461) заготовка: тактика на сайт плана, которую в этой половине ещё не играли; из них — та, что против этого соперника
+    // заходила в прошлых матчах (tacMem с профилем соперника OPP.by); нет такой — ещё ни разу не игранная
+    var played = {}; tacHist.forEach(function(id){ played[id] = 1; });
+    var pool = T_TACTICS.filter(function(t){ return t.style !== "fake" && (!P.site || t.site === P.site) && !played[t.id] && P.avoid.indexOf(t.id) < 0 && !(P.avoidZone && tacUsesZone(t, P.avoidZone)); });
+    var rate = function(t){ var M = tacMem[t.id]; return M && M.n >= 1 ? (M.w + 1)/(M.n + 2) : 0.5; };
+    if(pool.length){ var best = -1, ex = null;
+      pool.forEach(function(t, i){ var v = rate(t) + hashRand(roundNum*577 + matchNum*41 + i)*0.01; if(v > best){ best = v; ex = t; } });
+      var EM = tacMem[ex.id], prof = !!(EM && EM.n >= 1 && EM.w/EM.n >= 0.5);
+      P.excl = ex.id; P.facts.push({k: prof ? "exclProf" : "excl", tac: ex.name, T: ex.site, w: EM ? Math.round(EM.w) : 0, n: EM ? Math.round(EM.n) : 0,
+        log: "заготовка «"+ex.name+"»"+(prof ? " (против них заходила: "+Math.round(EM.w)+" из "+Math.round(EM.n)+")" : "")}); }
   } else {
     var H = roundHist.slice(-5), by = {A: 0, B: 0}, lost = {A: 0, B: 0};
     H.forEach(function(r){ if(r.site) by[r.site]++; if(r.site && r.planted && r.winner === "T") lost[r.site]++; });
@@ -192,6 +202,8 @@ function chooseTactic(){
     if(BAL.timeouts && roundNum <= TOUT.T.until){ var TP = TOUT.T.plan || {};   // (v460) план тренера после паузы
       if(TOUT.T.avoid.indexOf(t.id) >= 0) w *= 0.15; else w *= 1.3;
       if(TP.site) w *= t.site === TP.site ? 1.8 : 0.5;
+      if(TP.avoidZone && tacUsesZone(t, TP.avoidZone)) w *= 0.3;                        // (v461) где умирали — обходим
+      if(TP.stack && t.site === TP.site && (t.style === "fast" || t.style === "rush" || t.style === "exec")) w *= 1.3;   // стак прочитан — быстро
       if(TP.excl === t.id && roundNum === TP.first) w *= 8; }
     // (8) темп по счёту: два проигрыша подряд быстрыми выходами — медленнее
     // (дефолт), два проигрыша медленными — быстрее (раш/ранний выход)

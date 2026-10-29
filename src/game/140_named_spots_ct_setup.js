@@ -112,6 +112,7 @@ function chooseCtSetup(){
     if(BAL.timeouts && roundNum <= TOUT.CT.until){ var CP = TOUT.CT.plan || {};   // (v460) план тренера после паузы
       if(TOUT.CT.avoid.indexOf(S.id) >= 0) w *= 0.15;
       if(CP.stack && S.stack === CP.stack) w *= 6;
+      if(CP.avoidZone && setupUsesZone(S, CP.avoidZone)) w *= 0.35;   // (v461) где умирали — эти раунды там не стоим
       if(CP.retake && S.id === "retake" + CP.retake) w *= 4; }
     return w;
   });

@@ -39,4 +39,5 @@ if os.path.exists(_SF):
     s = s.replace('/*@@SOUNDS@@*/', 'SND_DATA = ' + open(_SF, encoding='utf-8').read() + ';')   # (v306) опубликованная страница начинается с разминки; sim.html — нет (замеры, снимки)
 assert '__ev' not in s
 open(os.path.join(HERE, '..', MAPNAME + '-radar.html'), 'w', encoding='utf-8').write(s)
+from syntaxcheck import check; check(os.path.join(HERE, '..', MAPNAME + '-radar.html'))   # (v461)
 print(len(s))
