@@ -721,7 +721,7 @@
   <div id="topbar">
     <div class="tb-id">
       <h1>Mirage<span id="matchTick" class="mono" title="Какой матч сейчас идёт и тик — запиши, если увидел баг"></span></h1>
-      <div class="sub mono" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 466, 29.10</div>
+      <div class="sub mono" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 467, 29.10</div>
     </div>
     <div class="tb-group" id="tbMatch">
       <button id="btnPause">Пауза</button>
@@ -33307,14 +33307,26 @@ function mkSnapList(){
     // (v445, скрин владельца 28.10: «Ошибка игры… HTMLImageElement object could not be cloned», м1 тик 1280) кэши картинок (KF_IMG — иконки
     // киллфида, NADE_IMG — силуэты гранат, v437) — показ, не игра; список снимка собирается один раз, когда кэш ещё пуст, — поэтому по имени
     if(/IMG$/.test(e[0])) return false;   // (v324) звук и (v430) HUD_* — только показ (AudioContext, элементы страницы) — в снимок не идут
-    try{ var v = e[1]();
-      if(typeof v === "function") return false;
-      if(v && typeof v === "object" && (v.nodeType || v instanceof CanvasRenderingContext2D || v instanceof HTMLImageElement)) return false;
-      return true;
-    }catch(err){ return false; } });
+    try{ return typeof e[1]() !== "function"; }catch(err){ return false; } });
   return MK.snap;
 }
-function mkSnapshot(){ var o = {}; mkSnapList().forEach(function(e){ o[e[0]] = e[1](); }); return structuredClone(o); }
+// (v467, п.23 владельца 29.10: «Ошибка игры… HTMLDivElement object could not be cloned», м1 р10 — RP_EL окна повтора) список снимка
+// собирается один раз, а показ заводит элементы страницы позже (KF_IMG v295, ZDJ v458, RP_EL v466) — ручной список исключений каждый
+// раз отставал. Теперь снимок сам находит переменную, которую нельзя скопировать (элементы страницы, картинки, функции — это показ и
+// кэши, не игра), убирает её из списка навсегда и пишет в консоль. Копия — одна на все переменные: общие объекты (бот в bots и в целях)
+// остаются общими.
+function mkSnapshot(){
+  var list = mkSnapList();
+  for(;;){
+    var o = {}; list.forEach(function(e){ o[e[0]] = e[1](); });
+    try{ return structuredClone(o); }catch(err){
+      var bad = list.filter(function(e){ try{ structuredClone(o[e[0]]); return false; }catch(x){ return true; } });
+      if(!bad.length) throw err;
+      MK.snap = list = list.filter(function(e){ return bad.indexOf(e) < 0; });
+      try{ console.warn("снимок: не копируются, убраны из снимка — " + bad.map(function(e){ return e[0]; }).join(", ")); }catch(x){}
+    }
+  }
+}
 function mkRestore(data){ var c = structuredClone(data); mkSnapList().forEach(function(e){ if(e[0] in c) e[2](c[e[0]]); }); }
 // (v175) снимок → текст и обратно, чтобы хранить его в отметке файлом. В снимке
 // объекты ссылаются друг на друга (бот → цель → бот), поэтому каждый объект
