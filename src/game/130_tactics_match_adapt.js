@@ -176,6 +176,22 @@ function coachPlan(side){
     ["A","B"].forEach(function(k){ if(lost[k] >= 2 && !P.retake && P.avoid.indexOf("retake" + k) < 0){ P.retake = k; P.facts.push({k: "retake", S: k, n: lost[k], log: "на "+k+" проигрываем после планта ("+lost[k]+") — от ретейка"}); } });
     if(P.avoid.length){ var sf = setupById(P.avoid[P.avoid.length-1]); P.facts.push({k: "readSetup", setup: sf ? sf.name : P.avoid[0], log: "расстановку «"+(sf ? sf.name : P.avoid[0])+"» прочитали — меняем"}); }
   }
+  // (v469, владелец 29.10: «больше вариантов пауз — интересные раунды, а не только запрет расстановок») ещё виды плана — из того, что
+  // команда знает по прошлым раундам (итог, был ли плант, когда вышли — roundHist; где их AWP брал фраги — RMEM.awp), и каждый меняет игру
+  var RH = roundHist.slice(-3);
+  if(side === "T"){
+    var l2 = roundHist.slice(-2);
+    if(l2.length === 2 && l2.every(function(r){ return r.winner === "CT"; })){
+      if(l2.every(function(r){ return r.execSec != null && r.execSec < 32; })){ P.tempo = "slow"; P.facts.push({k: "tempoSlow", log: "два раунда проиграли быстрым выходом — играем медленно, от дефолта"}); }
+      else if(l2.every(function(r){ return r.execSec == null || r.execSec >= 45; })){ P.tempo = "fast"; P.facts.push({k: "tempoFast", log: "два раунда проиграли медленно — играем быстро"}); }
+    }
+    var rtk = RH.filter(function(r){ return r.planted && r.winner === "CT"; }).length;
+    if(rtk >= 2){ P.fake = true; P.facts.push({k: "fake", n: rtk, of: RH.length, log: "ставим, но они забирают ретейком ("+rtk+" из "+RH.length+") — быстро ротируют: фейк"}); }
+  } else {
+    var aw = (RMEM.awp || []).filter(function(q){ return roundNum - q.round <= 3 && GEO.ctMid && Math.hypot(q.x-GEO.ctMid.x, q.y-GEO.ctMid.y) < 600; });
+    var hasAwp = bots.some(function(b){ return b.team === "CT" && (b.primary === "AWP" || b.tRole === "mid"); });
+    if(aw.length && hasAwp && rmemRecent(RMEM.midDeath, 3).length < 2){ P.midAgg = true; P.facts.push({k: "awpEarly", n: aw.length, log: "наш AWP на миде берёт фраги ("+aw.length+" за 3 р.) — ранний пик AWP"}); }
+  }
   if(!P.facts.length) P.facts.push({k: "reset", log: "перезагрузка: спокойно, по своей игре"});
   return P;
 }
@@ -204,7 +220,10 @@ function chooseTactic(){
       if(TP.site) w *= t.site === TP.site ? 1.8 : 0.5;
       if(TP.avoidZone && tacUsesZone(t, TP.avoidZone)) w *= 0.3;                        // (v461) где умирали — обходим
       if(TP.stack && t.site === TP.site && (t.style === "fast" || t.style === "rush" || t.style === "exec")) w *= 1.3;   // стак прочитан — быстро
-      if(TP.excl === t.id && roundNum === TP.first) w *= 8; }
+      if(TP.excl === t.id && roundNum === TP.first) w *= 8;
+      if(TP.tempo === "fast"){ if(t.style === "rush" || (t.setupEnd && t.setupEnd <= 44)) w *= 2.5; if(t.style === "default") w *= 0.3; }   // (v469) план «быстро / медленно»
+      if(TP.tempo === "slow"){ if(t.style === "default") w *= 2.5; if(t.style === "rush") w *= 0.3; }
+      if(TP.fake && t.style === "fake") w *= 3; }   // (v469) план «фейк»
     // (8) темп по счёту: два проигрыша подряд быстрыми выходами — медленнее
     // (дефолт), два проигрыша медленными — быстрее (раш/ранний выход)
     if(BAL.tempoShift && tempoRead){ if(tempoRead === "slow"){ if(t.style === "default") w *= 2.2; if(t.style === "rush") w *= 0.3; }

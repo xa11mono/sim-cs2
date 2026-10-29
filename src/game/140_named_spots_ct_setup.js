@@ -113,7 +113,8 @@ function chooseCtSetup(){
       if(TOUT.CT.avoid.indexOf(S.id) >= 0) w *= 0.15;
       if(CP.stack && S.stack === CP.stack) w *= 6;
       if(CP.avoidZone && setupUsesZone(S, CP.avoidZone)) w *= 0.35;   // (v461) где умирали — эти раунды там не стоим
-      if(CP.retake && S.id === "retake" + CP.retake) w *= 4; }
+      if(CP.retake && S.id === "retake" + CP.retake) w *= 4;
+      if(CP.midAgg && S.midAggressive) w *= 4; }   // (v469) план «ранний пик AWP на миде»
     return w;
   });
   var S = BAL.ctSetups ? CT_SETUPS[weightedChoice(CT_SETUPS, weights, roundNum*4217 + matchNum*881 + 5)] : (BAL.ctSetup === "1-1-1" ? CT_SETUPS[1] : CT_SETUPS[0]);

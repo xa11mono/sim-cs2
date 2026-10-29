@@ -553,6 +553,22 @@
   #to .to-eq b:nth-child(2){animation-delay:.12s;} #to .to-eq b:nth-child(3){animation-delay:.24s;} #to .to-eq b:nth-child(4){animation-delay:.06s;}
   @keyframes toEq{from{transform:scaleY(.25);}to{transform:scaleY(1);}}
   #to .to-board{transition:opacity var(--d3) var(--ease),transform .55s var(--ease);}
+  /* (v469, владелец 29.10: «разные расстановки панелек, когда говорят, карты — чтобы всегда выглядело уникально») раскладки паузы — класс
+     lay-* на #to, выбирается от матча и раунда, не как в прошлой паузе (676 tsStart). Те же элементы и цвета, другое расположение */
+  #to.lay-mirror[data-scene="split"] .to-board{transform:translate(calc(-50% + 22vw),-50%) scale(.78);}
+  #to.lay-mirror[data-scene="split"] .to-talk{transform:translateX(-23vw);}
+  #to.lay-grid .to-row{flex-wrap:wrap;justify-content:center;width:min(60vw,720px);row-gap:52px;}
+  #to.lay-grid[data-scene="talk"] .to-card{width:min(15vw,170px);}
+  #to.lay-focus[data-scene="talk"] .to-row{align-items:flex-end;gap:10px;}
+  #to.lay-focus[data-scene="talk"] .to-card{width:min(8vw,100px);opacity:.4;}
+  #to.lay-focus[data-scene="talk"] .to-card.talking{width:min(20vw,240px);opacity:1;transform:none;}
+  #to.lay-focus .to-card{transition:width .45s var(--ease),opacity var(--d3) var(--ease),transform var(--d3) var(--ease);}
+  #to.lay-col[data-scene="split"] .to-row{flex-direction:column;flex-wrap:nowrap;align-items:flex-start;width:auto;row-gap:8px;gap:8px;}
+  #to.lay-col[data-scene="split"] .to-card{flex-direction:row;align-items:center;gap:10px;width:min(18vw,230px);}
+  #to.lay-col[data-scene="split"] .to-ph{width:58px;flex:none;}
+  #to.lay-col[data-scene="split"] .to-nm{margin-top:0;}
+  #to.lay-col[data-scene="split"] .to-say{bottom:50%;left:calc(100% + 10px);transform:translateY(50%);}
+  #to.lay-col[data-scene="split"] .to-say::after{top:50%;left:auto;right:100%;margin:-6px 0 0;border-top-color:transparent;border-right-color:var(--bubble);}
   #to.rm *{animation:none!important;transition:none!important;}
 
   @media (prefers-reduced-motion: reduce){

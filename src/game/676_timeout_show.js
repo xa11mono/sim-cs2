@@ -12,10 +12,15 @@ var TS_K = {title: 2.5, outro: 0.5};
 var TS_SEQ = [
   [["split", 10], ["cam", 7], ["talk", 10]],
   [["board", 8], ["split", 11], ["talk", 8]],
-  [["split", 9], ["talk", 9], ["cam", 9]]
+  [["split", 9], ["talk", 9], ["cam", 9]],
+  [["talk", 8], ["board", 9], ["split", 10]],   // (v469) ещё порядки сцен — разнообразие (владелец 29.10)
+  [["cam", 7], ["split", 11], ["board", 9]],
+  [["board", 9], ["talk", 9], ["cam", 9]]
 ];
+// (v469) раскладки (002_style, lay-*): обычная, зеркальная (доска справа, мини-доска слева), сетка портретов, крупный говорящий, портреты столбиком
+var TS_LAYS = ["", "lay-mirror", "lay-grid", "lay-focus", "lay-col", "lay-mirror lay-focus", "lay-grid lay-mirror"];
 var TS_LINE = 4.2;
-var TS = {P: null, el: null, lastRound: -1};
+var TS = {P: null, el: null, lastRound: -1, lastSeq: -1, lastLay: -1};
 function tsEls(){
   if(TS.el) return TS.el;
   var root = document.getElementById("to"); if(!root) return null;
@@ -42,6 +47,10 @@ var TS_SAY = {
     excl:  ["Есть заготовка — «{tac}». Они её ещё не видели.", "Достаём «{tac}». Этого они от нас не ждут."],
     tSite: ["Они {n} из {of} раз идут на {S}. Ставим больше людей на {S}.", "{S} — {n} заходов из {of}. Усиливаем {S}."],
     retake:["На {S} мы проигрываем после планта, {n} раза. Играем от ретейка.", "{S} не держим, отдаём и забираем ретейком."],
+    tempoFast:["Два раунда тянули и проиграли. Этот — быстро, все вместе.", "Медленно не заходит. Сразу выходим, без дефолта."],
+    tempoSlow:["Два раза влетели быстро и умерли. Спокойно, берём карту, выходим поздно.", "Не спешим. Дефолт, инфа, поздний выход."],
+    fake:  ["Ставим, а они забирают ретейком — {n} из {of}. Значит, быстро крутятся. Показываем один сайт, бьём другой.", "Они бегут на первый шум. Даём им шум — и уходим на другой."],
+    awpEarly:["Наш AWP на миде уже взял {n}. Этот раунд — ранний пик, ловим их на выходе.", "Мид у нас стреляет. AWP — сразу на мид, один выстрел и назад."],
     readSetup:["Нашу «{setup}» прочитали. Меняем расстановку.", "«{setup}» больше не стоим, они её знают."],
     reset: ["Ничего не меняем. Просто играем свою игру, спокойно.", "Всё нормально, это просто раунды. Перезагрузились."],
     iglOk: ["Понял. Я колю.", "Окей, тогда так и делаем.", "Принял. Работаем.", "Всё ясно, я веду."],
@@ -60,6 +69,10 @@ var TS_SAY = {
     excl:  ["We have one saved — {tac}. They haven't seen it.", "Pull out {tac}. They won't expect it."],
     tSite: ["They hit {S} {n} of {of}. More bodies on {S}.", "{S} — {n} of {of}. Stack it."],
     retake:["We lose {S} after the plant, {n} times. Play it from retake.", "Give {S}, take it back on the retake."],
+    tempoFast:["Two slow rounds, two losses. This one fast, all together.", "Slow isn't working. Straight out, no default."],
+    tempoSlow:["We rushed in twice and died. Calm, take map, go late.", "No rush. Default, info, late hit."],
+    fake:  ["We plant, they retake — {n} of {of}. They rotate fast. Show one site, hit the other.", "They run to the first noise. Give them noise — then go the other way."],
+    awpEarly:["Our AWP already got {n} mid. Early pick this round, catch them on the way out.", "Mid is ours. AWP straight to mid, one shot and back."],
     readSetup:["They read our {setup}. We change it.", "No more {setup}, they know it."],
     reset: ["Nothing changes. Just play our game, calm.", "We're fine, it's just rounds. Reset."],
     iglOk: ["Got it. I'll call it.", "Okay, we do that.", "Copy. Let's work.", "Clear, I lead."],
@@ -115,8 +128,12 @@ function tsBoard(E, T, k, kb){
     x.strokeStyle = col; x.lineWidth = 5*L; x.lineCap = "round"; x.setLineDash([16*L, 10*L]); x.beginPath(); x.moveTo(a.x, a.y); x.lineTo(ex, ey); x.stroke(); x.setLineDash([]);
     if(p >= 1){ var ang = Math.atan2(b.y - a.y, b.x - a.x), h = 22*L; x.beginPath(); x.moveTo(b.x, b.y); x.lineTo(b.x - Math.cos(ang - 0.45)*h, b.y - Math.sin(ang - 0.45)*h);
       x.moveTo(b.x, b.y); x.lineTo(b.x - Math.cos(ang + 0.45)*h, b.y - Math.sin(ang + 0.45)*h); x.stroke(); } };
+  var labs = [];   // (v469) подписи у одного места — друг над другом, а не поверх
   var ring = function(p0, r, p, col, txt){ if(!p0 || p <= 0) return; x.strokeStyle = col; x.lineWidth = 5*L; x.beginPath(); x.arc(p0.x, p0.y, r, -Math.PI/2, -Math.PI/2 + Math.PI*2*Math.min(1, p)); x.stroke();
-    if(txt && p >= 1){ x.fillStyle = col; x.font = "700 " + (30*L) + "px 'Roboto Condensed',sans-serif"; x.textAlign = "center"; x.textBaseline = "bottom"; x.fillText(txt, p0.x, p0.y - r - 8*L); } };
+    if(txt && p >= 1){ var nb = labs.filter(function(q){ return Math.hypot(q.x-p0.x, q.y-p0.y) < 120; }).length; labs.push(p0);
+      x.fillStyle = col; x.font = "700 " + (30*L) + "px 'Roboto Condensed',sans-serif"; x.textAlign = "center";
+      if(nb % 2){ x.textBaseline = "top"; x.fillText(txt, p0.x, p0.y + r + 8*L + (nb - 1)/2*36*L); }   // вторая подпись — под кругом (сверху бывает край доски)
+      else { x.textBaseline = "bottom"; x.fillText(txt, p0.x, p0.y - r - 8*L - nb/2*36*L); } } };
   var cross = function(p0, p, txt){ if(!p0 || p <= 0) return; var r = 20*L*Math.min(1, p*1.4); x.strokeStyle = red; x.lineWidth = 6*L;
     x.beginPath(); x.moveTo(p0.x - r, p0.y - r); x.lineTo(p0.x + r, p0.y + r); x.moveTo(p0.x + r, p0.y - r); x.lineTo(p0.x - r, p0.y + r); x.stroke();
     if(txt && p >= 1){ x.fillStyle = red; x.font = "600 " + (24*L) + "px 'Roboto Condensed',sans-serif"; x.textAlign = "left"; x.textBaseline = "middle"; x.fillText(txt, p0.x + 28*L, p0.y); } };
@@ -129,6 +146,9 @@ function tsBoard(E, T, k, kb){
     else if(f.k === "weakSite" || f.k === "excl" || f.k === "exclProf"){ if(f.T){ arrow(T_SPAWN, SITES[f.T], p, gold); ring(SITES[f.T], 60*L, ease((k - t - 1)/0.8), gold, f.k !== "weakSite" ? (isEn ? "SAVED PLAY" : "ЗАГОТОВКА") : f.T); } }
     else if(f.k === "tSite"){ dots(SITES[f.S], 3, p, "#5a9bd9"); arrow(T_SPAWN, SITES[f.S], p, red); }
     else if(f.k === "retake"){ ring(SITES[f.S], 80*L, p, chalk, isEn ? "RETAKE" : "РЕТЕЙК"); if(GEO.rotator) arrow(GEO.rotator, SITES[f.S], ease((k - t - 0.6)/1), chalk); }
+    else if(f.k === "tempoFast" || f.k === "tempoSlow"){ ring(T_SPAWN, 70*L, p, f.k === "tempoFast" ? gold : chalk, f.k === "tempoFast" ? (isEn ? "FAST" : "БЫСТРО") : (isEn ? "SLOW" : "МЕДЛЕННО")); }   // (v469)
+    else if(f.k === "fake"){ arrow(T_SPAWN, SITES.A, p, chalk); arrow(T_SPAWN, SITES.B, ease((k - t - 1)/1), gold); ring(SITES.A, 60*L, p, chalk, isEn ? "FAKE" : "ФЕЙК"); }
+    else if(f.k === "awpEarly"){ ring(GEO.ctMid, 60*L, p, gold, "AWP"); if(GEO.tMid) arrow(GEO.ctMid, GEO.tMid, ease((k - t - 0.6)/1), gold); }
     else if(f.k === "failed" || f.k === "readSetup"){ /* в подписи доски */ }
     t += step;
   });
@@ -138,7 +158,9 @@ function tsBoard(E, T, k, kb){
 // ---------- показ ----------
 function tsStart(T){
   var E = tsEls(); if(!E || !T) return false;
-  var seq = TS_SEQ[rpHash(T.m + "|" + T.round + "|seq") % TS_SEQ.length], at = TS_K.title, S = [{sc: "title", a: 0, b: at}];
+  var si = rpHash(T.m + "|" + T.round + "|seq") % TS_SEQ.length; if(si === TS.lastSeq) si = (si + 1) % TS_SEQ.length; TS.lastSeq = si;
+  var li = rpHash(T.m + "|" + T.round + "|lay") % TS_LAYS.length; if(li === TS.lastLay) li = (li + 1) % TS_LAYS.length; TS.lastLay = li;   // не как в прошлой паузе
+  var seq = TS_SEQ[si], at = TS_K.title, S = [{sc: "title", a: 0, b: at}];
   seq.forEach(function(q){ S.push({sc: q[0], a: at, b: at + q[1]}); at += q[1]; });
   TS.P = {T: T, t0: simTime, lines: tsScript(T), side: T.side, shown: -1, phase: "", manual: false, seq: S, end: at};
   var team = bots.filter(function(b){ return b.team === T.side; }), igl = tsIgl(T.side), en = (RP_LANG[T.name] || "ru") === "en";
@@ -154,7 +176,7 @@ function tsStart(T){
     return '<div class="to-card' + (c.id === "coach" ? " coach" : "") + '" data-id="' + c.id + '" style="--i:' + i + '"><div class="to-say"></div><div class="to-ph">' + ph + '<i class="to-eq"><b></b><b></b><b></b><b></b></i></div>' +
       '<div class="to-nm">' + esc(nm) + (tag ? '<i>' + tag + '</i>' : '') + '</div></div>'; }).join("") + '</div><div class="to-log"></div>';
   E.sub.innerHTML = "";
-  E.root.className = "on " + T.side.toLowerCase() + (typeof HUD_REDUCED !== "undefined" && HUD_REDUCED ? " rm" : "");
+  E.root.className = "on " + T.side.toLowerCase() + (TS_LAYS[li] ? " " + TS_LAYS[li] : "") + (typeof HUD_REDUCED !== "undefined" && HUD_REDUCED ? " rm" : "");
   // (v469, п.10 владельца 29.10: «убрать звук перехода — как будто плёнка меняется») свиста на смене кадров паузы нет
   return true;
 }
