@@ -31,6 +31,31 @@ function rpMode(R, B){
   if(!has || !B.segs.length) m = "emo";
   return m;
 }
+// (v462, владелец 29.10: «нет анимаций, звуков… звуки главное») звук и голос показа (повтор, пауза) — одно место. Только если включён
+// «Звук» (кнопка, 680): звук чата (chat_talk — присланный владельцем 15.10) на каждую реплику, свист на смену кадра, удар на фраг;
+// голос — синтез речи браузера (speechSynthesis), язык — язык команды; выключить голос — «Инструменты → озвучка реплик»
+var SHOW_TTS = true; try{ SHOW_TTS = localStorage.getItem("sim-tts") !== "0"; }catch(e){}
+function showSnd(kind, g){
+  if(typeof SND === "undefined" || !SND.on || !SND.ctx) return;
+  try{
+    if(kind === "chat"){ if(!sndPlay("chat_talk", g || 0.6, 0)) sndTone(0.12, 0.05, 1800, "sine"); }
+    else if(kind === "whoosh"){ sndNoise((g || 0.22), 0.32, "bandpass", 900, 0.6); sndNoise((g || 0.22)*0.6, 0.45, "highpass", 3200, 0.4, 0.04); }
+    else if(kind === "hit"){ sndTone(g || 0.22, 0.2, 95, "sine", 0, 45); sndNoise((g || 0.22)*0.8, 0.14, "lowpass", 420, 0.7); }
+    else if(kind === "pop"){ sndTone(g || 0.1, 0.07, 1100, "triangle", 0, 1700); }
+  }catch(e){}
+}
+function showSay(text, lang, lvl, who){
+  if(!SHOW_TTS || typeof SND === "undefined" || !SND.on || typeof speechSynthesis === "undefined") return;
+  try{
+    var u = new SpeechSynthesisUtterance(String(text).toLowerCase()), L = lang === "en" ? "en-US" : "ru-RU", h = rpHash(who || "x");
+    u.lang = L; u.pitch = 0.8 + (h % 40)/100; u.rate = lvl === 3 ? 1.15 : lvl === 1 ? 0.95 : 1.05; u.volume = (lvl === 1 ? 0.55 : lvl === 3 ? 1 : 0.85)*(SND.vol != null ? SND.vol : 0.85);
+    var vs = speechSynthesis.getVoices().filter(function(v){ return v.lang && v.lang.toLowerCase().indexOf(L.slice(0, 2).toLowerCase()) === 0; });
+    if(vs.length) u.voice = vs[h % vs.length];
+    if(speechSynthesis.pending) speechSynthesis.cancel();   // не копить очередь: реплика, которая уже на экране, важнее старой
+    speechSynthesis.speak(u);
+  }catch(e){}
+}
+function showHush(){ try{ if(typeof speechSynthesis !== "undefined") speechSynthesis.cancel(); }catch(e){} }
 var RP_NB = 9;   // чисел на игрока в снимке: x, y, взгляд, жив, hp, присел, этаж (-1 под полом / 1 над), плант(+)/дефуз(−) 0..1, ослеплён
 function rpNum(v){ return typeof v === "number" && isFinite(v) ? v : NaN; }
 // ---------- запись ----------
@@ -185,7 +210,7 @@ function rpStop(){
   var P = RP.P; if(P && P.phase !== "out"){ P.phase = "out"; P.ph0 = performance.now(); return; }
 }
 function rpEnd(){
-  RP.on = false; RP.P = null; RP.holding = false;
+  RP.on = false; RP.P = null; RP.holding = false; showHush();
   var E = rpEls(); if(E){ E.root.className = ""; E.emo.innerHTML = ""; if(E.vox){ E.vox.innerHTML = ""; E.vox._k = ""; } }
   if(typeof OBS !== "undefined") OBS.sc = 0;   // обсервер заново берёт камеру
 }
@@ -207,7 +232,7 @@ function rpFrame(ts){
   var W = E.cv.clientWidth, H = E.cv.clientHeight, dpr = window.devicePixelRatio || 1;
   if(E.cv.width !== Math.round(W*dpr) || E.cv.height !== Math.round(H*dpr)){ E.cv.width = Math.round(W*dpr); E.cv.height = Math.round(H*dpr); }
   var x = E.ctx, R = P.R, el = (now - P.ph0)/1000;
-  var go = function(ph){ P.phase = ph; P.ph0 = now; el = 0; };
+  var go = function(ph){ P.phase = ph; P.ph0 = now; el = 0; if(ph === "cut" || ph === "clip" || ph === "emo") showSnd("whoosh"); };
   if(P.phase === "intro"){ if(el >= RP_K.intro) go(P.segs.length ? "clip" : "emo"); }
   if(P.phase === "clip"){
     var sg = P.segs[P.si], sp = rpSpeed(P);
@@ -216,7 +241,7 @@ function rpFrame(ts){
     if(P.rt >= sg.b){ if(P.si + 1 < P.segs.length) go("cut"); else go(P.mode === "clip" ? "out" : "emo"); }
   }
   if(P.phase === "cut" && el >= RP_K.cut){ P.si++; P.rt = P.segs[P.si].a; P.cam = null; go("clip"); }
-  if(P.phase === "emo" && !P.emoOn){ if(!P.drawn) rpDraw(E, x, P, dt, W, H, dpr); rpBlurBg(E, x); rpEmotions(E, R); P.emoOn = true; E.root.classList.add("emo"); E.slow.className = "rp-slow"; }
+  if(P.phase === "emo" && !P.emoOn){ if(!P.drawn) rpDraw(E, x, P, dt, W, H, dpr); rpBlurBg(E, x); rpEmotions(E, R); rpEmotionSounds(R); P.emoOn = true; E.root.classList.add("emo"); E.slow.className = "rp-slow"; }
   if(P.phase === "emo" && el >= RP_K.emo) go("out");
   if(P.phase === "out" && el >= RP_K.outro){ rpEnd(); return false; }
   // картинка: клип и переходы — радар из записи; эмоции — размытый последний кадр (нарисован один раз)
@@ -239,7 +264,8 @@ function rpVoiceLive(E, P){
   var el = E.vox; if(!el) return;
   if(P.phase !== "clip" && P.phase !== "cut"){ if(el.innerHTML) el.innerHTML = ""; return; }
   var R = P.R, from = P.rt - 3.5*TICK_HZ, L = R.vo.filter(function(v){ return v.t <= P.rt && v.t >= from; }).slice(-4);
-  var key = L.map(function(v){ return v.t + v.text; }).join("|"); if(el._k === key) return; el._k = key;
+  var key = L.map(function(v){ return v.t + v.text; }).join("|"); if(el._k === key) return;
+  var last = L.length ? L[L.length-1].t + L[L.length-1].text : ""; if(last && last !== el._last){ el._last = last; showSnd("chat"); } el._k = key;
   el.innerHTML = L.map(function(v){ return '<div class="rp-vl ' + String(v.team).toLowerCase() + '"><b>' + esc(v.who) + '</b><span>' + esc(v.text) + '</span></div>'; }).join("");
 }
 // войс клатча — для экрана реакций: что говорили с начала клатча до конца раунда (последние 6)
@@ -338,6 +364,7 @@ function rpSound(P, R, ci){
     var q = mv(T.x1, T.y1); sndShot({key: T.wc === "awp" ? "AWP" : T.wc === "deagle" ? "DEAGLE" : T.wc === "pistol" ? "USP" : T.wc === "smg" ? "MP9" : "M4"}, q.x, q.y); n++; }
   var I = rpAt(R, P.rt), J = rpAt(R, from), a1 = I.A.b[ci*RP_NB+7], a0 = J.A.b[ci*RP_NB+7];
   if(a1 < 0 && !(a0 < 0)){ var q2 = mv(I.A.b[ci*RP_NB], I.A.b[ci*RP_NB+1]); sndBomb("defuse", q2.x, q2.y); }
+  R.kills.forEach(function(k){ if(k.att === R.clutch.id && k.t > from && k.t <= P.rt) showSnd("hit", 0.25); });
   R.ev.forEach(function(e){ if(e.kind === "defuse" && e.t > from && e.t <= P.rt){ var q3 = mv(I.A.b[ci*RP_NB], I.A.b[ci*RP_NB+1]); sndBomb("defused", q3.x, q3.y); } });
 }
 function rpTrFrom(R, t){ var lo = 0, hi = R.tr.length; while(lo < hi){ var mid = (lo + hi) >> 1; if(R.tr[mid].t < t) lo = mid + 1; else hi = mid; } return lo; }
@@ -450,6 +477,21 @@ function rpSay(R, id, side){
     if(RP_SAY.mix[mixCat] && ((ruMe && u < 0.4) || (!ruMe && ruMate && win && u < 0.15))) return rpPick(RP_SAY.mix[mixCat], id + "m", R);
   }
   return rpPick(RP_SAY[lang][cat], id, R);
+}
+function rpEmotionSounds(R){
+  var C = R.clutch, win = C.side, lose = win === "CT" ? "T" : "CT", lw = RP_LANG[R.team[win]] || "ru", ll = RP_LANG[R.team[lose]] || "ru";
+  var said = 0;
+  [win, lose].forEach(function(side){
+    var ids = bots.filter(function(b){ return b.team === side; }).map(function(b){ return b.id; });
+    if(side === win){ ids.sort(function(a, b){ return (a === C.id ? 0 : 1) - (b === C.id ? 0 : 1); }); var c0 = ids.shift(); ids.splice(Math.floor(ids.length/2), 0, c0); }
+    ids.forEach(function(id, i){
+      var d = side === win ? 750 + i*90 : 1800 + i*80, say = rpSay(R, id, side);
+      setTimeout(function(){ if(!RP.on) return; showSnd("chat", say.lvl === 1 ? 0.35 : 0.6);
+        // голос: герой, громкий тиммейт и один из соперников — больше трёх голосов разом не разобрать
+        if((id === C.id || (side === win && say.lvl === 3 && said < 2) || (side === lose && said < 3)) && said < 3){ said++; showSay(say.t, side === win ? lw : ll, say.lvl, id); }
+      }, d);
+    });
+  });
 }
 function rpEmotions(E, R){
   var C = R.clutch, win = C.side, lose = win === "CT" ? "T" : "CT";

@@ -4,7 +4,16 @@
 //   IGL отвечает, игроки переговариваются — разной громкостью) → камера на спавн команды (живая игра, субтитры разговора) → «погнали».
 // Что говорят — из настоящего плана (coachPlan: факты с числами); фразы-связки и болтовня — проектные. Язык — язык войса команды
 // (RP_LANG, 675), русскоговорящие в англоязычной команде иногда по-русски (RP_RU). Часы — время игры: на паузе игры показ стоит.
-var TS_K = {title: 2.5, board: 8, talk: 10, cam: 6};   // длительность сцен, с игры (сумма ≈ TO_SEC); проектные
+// (v462, владелец: «нет анимаций, звуков; заготовка и портреты в одном окне, чтобы чередовались, разнообразие») сцены: титр → один из
+// порядков TS_SEQ (выбор — от матча и раунда): доска; доска + портреты в одном окне; портреты; спавн с доской в углу. На смену сцены —
+// затемнение и свист, на реплику — звук чата и голос (675: showSnd / showSay). Длительности — с игры, проектные (сумма ≈ TO_SEC)
+var TS_K = {title: 2.5, outro: 0.5};
+var TS_SEQ = [
+  [["board", 6], ["split", 9], ["cam", 6], ["talk", 5]],
+  [["split", 8], ["talk", 6], ["board", 5], ["cam", 5]],
+  [["talk", 5], ["board", 6], ["split", 8], ["cam", 5]],
+  [["split", 7], ["cam", 6], ["board", 5], ["split", 6]]
+];
 var TS = {P: null, el: null, lastRound: -1};
 function tsEls(){
   if(TS.el) return TS.el;
@@ -79,16 +88,21 @@ function tsScript(T){
   return S;
 }
 // ---------- доска: мини-радар и план ----------
+function tsFocus(T){ var P = T.plan, f0 = P.facts.filter(function(f){ return f.T || f.S || f.zone; })[0];
+  if(f0 && (f0.T || f0.S) && SITES[f0.T || f0.S]) return SITES[f0.T || f0.S]; if(f0 && f0.zone) return tsZoneXY(f0.zone); return P.site && SITES[P.site] ? SITES[P.site] : null; }
 function tsZoneXY(name){
   var best = null; (ZONEMAP.zones || []).forEach(function(z){ if(best || !z.points || !z.points.length) return; if(zoneMainName(ZONE_NAMES[z.id]) === name){ var c = centroidOf(z.points); best = c; } });
   return best;
 }
-function tsBoard(E, T, k){
+function tsBoard(E, T, k, kb){
   var c = E.cv, W = c.clientWidth, H = c.clientHeight, dpr = window.devicePixelRatio || 1;
   if(c.width !== Math.round(W*dpr) || c.height !== Math.round(H*dpr)){ c.width = Math.round(W*dpr); c.height = Math.round(H*dpr); }
   var x = c.getContext("2d"), B = OBS_BOUNDS || {x0: 0, y0: 0, x1: 2048, y1: 2048};
   if(!OBS_BOUNDS && typeof obsFullView === "function") obsFullView(wrapRect()), B = OBS_BOUNDS || B;
   var sc = Math.min(W/(B.x1 - B.x0), H/(B.y1 - B.y0)) * 0.96, ox = W/2 - (B.x0 + B.x1)/2*sc, oy = H/2 - (B.y0 + B.y1)/2*sc;
+  // (v462) медленный наезд камеры доски на главное место плана (сайт плана или зона смертей) — «тренер показывает»
+  var fz = tsFocus(T); if(fz && kb > 0){ var z = 1 + 0.22*Math.min(1, kb), cx0 = (B.x0 + B.x1)/2, cy0 = (B.y0 + B.y1)/2;
+    var fx = cx0 + (fz.x - cx0)*Math.min(1, kb)*0.6, fy = cy0 + (fz.y - cy0)*Math.min(1, kb)*0.6; sc *= z; ox = W/2 - fx*sc; oy = H/2 - fy*sc; }
   x.setTransform(dpr,0,0,dpr,0,0); x.clearRect(0, 0, W, H);
   x.setTransform(dpr*sc,0,0,dpr*sc,dpr*ox,dpr*oy);
   if(imgReady){ x.globalAlpha = 0.55; x.drawImage(img, 0, 0, 2048, 2048); x.globalAlpha = 1; }
@@ -121,7 +135,9 @@ function tsBoard(E, T, k){
 // ---------- показ ----------
 function tsStart(T){
   var E = tsEls(); if(!E || !T) return false;
-  TS.P = {T: T, t0: simTime, lines: tsScript(T), side: T.side, shown: -1, phase: "", manual: false};
+  var seq = TS_SEQ[rpHash(T.m + "|" + T.round + "|seq") % TS_SEQ.length], at = TS_K.title, S = [{sc: "title", a: 0, b: at}];
+  seq.forEach(function(q){ S.push({sc: q[0], a: at, b: at + q[1]}); at += q[1]; });
+  TS.P = {T: T, t0: simTime, lines: tsScript(T), side: T.side, shown: -1, phase: "", manual: false, seq: S, end: at};
   var team = bots.filter(function(b){ return b.team === T.side; }), igl = tsIgl(T.side), en = (RP_LANG[T.name] || "ru") === "en";
   var pips = ""; for(var i = 0; i < (T.round > regRounds() ? 1 : 3); i++) pips += '<i class="' + (i < T.left ? "on" : "") + '"></i>';
   var logo = TEAM_LOGO[T.side];
@@ -132,14 +148,15 @@ function tsStart(T){
   E.talk.innerHTML = '<div class="to-row ' + T.side.toLowerCase() + '">' + cards.map(function(c, i){
     var b = c.id === "coach" ? null : teamBot(c.id), nm = b ? nick(b.id) : (en ? "Coach" : "Тренер"), ph = b ? plPhoto(b) : PL_SIL;
     var tag = c.id === "coach" ? (en ? "COACH" : "ТРЕНЕР") : (b === igl ? "IGL" : "");
-    return '<div class="to-card' + (c.id === "coach" ? " coach" : "") + '" data-id="' + c.id + '" style="--i:' + i + '"><div class="to-say"></div><div class="to-ph">' + ph + '</div>' +
+    return '<div class="to-card' + (c.id === "coach" ? " coach" : "") + '" data-id="' + c.id + '" style="--i:' + i + '"><div class="to-say"></div><div class="to-ph">' + ph + '<i class="to-eq"><b></b><b></b><b></b><b></b></i></div>' +
       '<div class="to-nm">' + esc(nm) + (tag ? '<i>' + tag + '</i>' : '') + '</div></div>'; }).join("") + '</div><div class="to-log"></div>';
   E.sub.innerHTML = "";
   E.root.className = "on " + T.side.toLowerCase() + (typeof HUD_REDUCED !== "undefined" && HUD_REDUCED ? " rm" : "");
+  showSnd("whoosh", 0.28);
   return true;
 }
 function tsStop(){ var P = TS.P; if(P && P.phase !== "out"){ P.outAt = simTime; P.phase = "out"; P.outReal = performance.now(); } }
-function tsEnd(){ TS.P = null; var E = tsEls(); if(E){ E.root.className = ""; E.talk.innerHTML = ""; E.sub.innerHTML = ""; } if(typeof OBS !== "undefined") OBS.sc = 0; }
+function tsEnd(){ TS.P = null; showHush(); var E = tsEls(); if(E){ E.root.className = ""; E.talk.innerHTML = ""; E.sub.innerHTML = ""; } if(typeof OBS !== "undefined") OBS.sc = 0; }
 // по кадру (680, после повтора клатча): true — экран нарисован здесь (сцены поверх); false — обычная отрисовка
 function tsFrame(ts){
   if(typeof TO_NOW === "undefined") return false;
@@ -148,19 +165,20 @@ function tsFrame(ts){
   var P = TS.P; if(!P) return false;
   var E = tsEls(); if(!E){ TS.P = null; return false; }
   if(!P.manual && (roundState !== "freeze" || roundNum !== P.T.round)){ tsEnd(); return false; }
-  var el = P.manual ? (performance.now() - P.r0)/1000 : simTime - P.t0, K = TS_K;
-  var tTitle = K.title, tBoard = tTitle + K.board, tTalk = tBoard + K.talk, tCam = tTalk + K.cam, tEnd = tCam + 3.5;
+  var el = P.manual ? (performance.now() - P.r0)/1000 : simTime - P.t0;
   if(!P.manual && roundStartTime - simTime < 1.2) tsStop();
-  var ph = el < tTitle ? "title" : el < tBoard ? "board" : el < tTalk ? "talk" : el < tCam ? "cam" : el < tEnd ? "talk2" : "out";
-  if(P.phase === "out"){ ph = "out"; }
-  if(ph === "out"){ var oe = (performance.now() - (P.outReal || (P.outReal = performance.now())))/1000; E.shade.style.opacity = Math.min(1, oe/0.5).toFixed(3); if(oe >= 0.5){ tsEnd(); return false; } return true; }
-  if(ph !== P.phase){ P.phase = ph; E.root.setAttribute("data-scene", ph); P.phT = el; }
-  E.shade.style.opacity = el < 0.4 ? (1 - el/0.4).toFixed(3) : (ph === "talk" && el - tBoard < 0.3) || (ph === "cam" && el - tTalk < 0.3) ? "0.6" : "0";
-  // реплики: по одной, равномерно на разговор (talk + cam + talk2), с первой — в сцене talk
-  var n = P.lines.length, span = (tEnd - 0.5) - tBoard, li = el < tBoard ? -1 : Math.min(n - 1, Math.floor((el - tBoard)/(span/n)));
+  if(el >= P.end + TS_K.outro && P.phase !== "out") tsStop();
+  if(P.phase === "out"){ var oe = (performance.now() - (P.outReal || (P.outReal = performance.now())))/1000; E.shade.style.opacity = Math.min(1, oe/0.5).toFixed(3); if(oe >= 0.5){ tsEnd(); return false; } return P.sc !== "cam"; }
+  var Q = P.seq.filter(function(q){ return el >= q.a && el < q.b; })[0] || P.seq[P.seq.length-1], sc = Q.sc;
+  if(sc !== P.sc){ P.sc = sc; P.phase = sc; P.scAt = el; E.root.setAttribute("data-scene", sc); if(sc !== "title") showSnd("whoosh"); }
+  var se = el - P.scAt;
+  E.shade.style.opacity = el < 0.4 ? (1 - el/0.4).toFixed(3) : se < 0.3 ? (0.55*(1 - se/0.3)).toFixed(3) : "0";
+  // реплики: по одной, равномерно на всё после титра
+  var n = P.lines.length, span = (P.end - 0.5) - TS_K.title, li = el < TS_K.title ? -1 : Math.min(n - 1, Math.floor((el - TS_K.title)/(span/n)));
   if(li !== P.shown){ P.shown = li; tsLine(E, P, li); }
-  if(ph === "board") tsBoard(E, P.T, el - tTitle);
-  if(ph === "cam"){ tsCam(P); return false; }   // живая игра под субтитрами: камера на спавне команды
+  // доска: на весь экран, в общем окне с портретами, в углу кадра спавна — рисуется, пока видна
+  if(sc === "board" || sc === "split" || sc === "cam") tsBoard(E, P.T, el - TS_K.title, sc === "cam" ? 0 : se/(Q.b - Q.a));
+  if(sc === "cam"){ tsCam(P); return false; }   // живая игра под субтитрами: камера на спавне команды
   return true;
 }
 function tsLine(E, P, li){
@@ -173,6 +191,7 @@ function tsLine(E, P, li){
   var log = E.talk.querySelector(".to-log");
   if(log){ var d = document.createElement("div"); d.className = "to-ll"; d.innerHTML = "<b>" + esc(who) + "</b>" + esc(L.t); log.appendChild(d); while(log.children.length > 4) log.removeChild(log.firstChild); }
   E.sub.innerHTML = '<div class="to-sl lvl' + L.lvl + '"><b>' + esc(who) + '</b>' + esc(L.t) + '</div>';
+  showSnd("chat", L.lvl === 1 ? 0.35 : 0.6); showSay(L.t, RP_LANG[P.T.name] || "ru", L.lvl, L.who + P.T.name);
 }
 // камера на спавне команды: свой кадр, обсервер не трогает (вызов draw — обычный, 680)
 function tsCam(P){
@@ -190,6 +209,7 @@ function tsReplayLast(){
 (function(){
   if(typeof document === "undefined") return;
   var b = document.getElementById("btnToLast"); if(b) b.addEventListener("click", tsReplayLast);
+  var tt = document.getElementById("chkTts"); if(tt){ tt.checked = SHOW_TTS; tt.addEventListener("change", function(){ SHOW_TTS = tt.checked; if(!tt.checked) showHush(); try{ localStorage.setItem("sim-tts", tt.checked ? "1" : "0"); }catch(e){} }); }
   var f = document.getElementById("btnToTake"); if(f) f.addEventListener("click", function(){ TO_FORCE = true; if(typeof showBanner === "function") showBanner("Пауза: возьмёт команда, проигравшая этот раунд", null, 2200); });
   // (v461) раунды для просмотра — из замера v461 на ПК (16 матчей): клатч 1v5 (м17 р27), пауза T, раунд взяли (м13 р7)
   var c = document.getElementById("btnRpGo"); if(c) c.addEventListener("click", function(){ rpJump(17, 27); });

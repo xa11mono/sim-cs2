@@ -525,6 +525,28 @@
   #to .to-sl{font-size:16px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;animation:rpVl .25s var(--ease) both;}
   #to .to-sl b{color:var(--mark);font-weight:600;margin-right:10px;} #to .to-sl.lvl3{font-weight:700;} #to .to-sl.lvl1{color:var(--text-dim);font-style:italic;}
   #to[data-scene="title"] .to-bar,#to[data-scene="board"] .to-sub{opacity:0;}
+  /* (v462) сцены паузы: доска + портреты в одном окне (split), доска в углу кадра спавна (cam), вход карточек, «эквалайзер» говорящего */
+  #to[data-scene="split"] .to-board{opacity:1;transform:translate(calc(-50% - 22vw),-50%) scale(.78);}
+  #to[data-scene="split"] .to-talk{opacity:1;transform:translateX(23vw);}
+  #to[data-scene="split"] .to-row{flex-wrap:wrap;justify-content:center;width:min(42vw,560px);row-gap:46px;}
+  #to[data-scene="split"] .to-card{width:min(9.5vw,120px);}
+  #to[data-scene="split"] .to-log{display:none;}
+  #to .to-talk{transition:opacity var(--d3) var(--ease),transform var(--d3) var(--ease);}
+  #to[data-scene="cam"] .to-board{opacity:.96;left:auto;top:auto;right:20px;bottom:calc(9% + 22px);width:min(24vw,300px);height:min(24vh,220px);transform:none;
+    box-shadow:0 0 0 3px #10140e,0 18px 40px -12px rgba(0,0,0,.8);}
+  #to[data-scene="cam"] .to-bh{font-size:10px;}
+  #to[data-scene="talk"] .to-card{animation:toCardA .5s var(--spring) both;animation-delay:calc(var(--i)*70ms);}
+  #to[data-scene="split"] .to-card{animation:toCardB .5s var(--spring) both;animation-delay:calc(var(--i)*60ms);}
+  @keyframes toCardA{from{opacity:0;transform:translateY(24px) scale(.9);}to{opacity:.55;transform:scale(.94);}}
+  @keyframes toCardB{from{opacity:0;transform:translateX(30px) scale(.9);}to{opacity:.55;transform:scale(.94);}}
+  #to .to-card.talking{animation:none;}
+  #to .to-ph{position:relative;}
+  #to .to-eq{position:absolute;left:8px;bottom:8px;display:flex;gap:2px;align-items:flex-end;height:16px;opacity:0;transition:opacity var(--d2) var(--ease);}
+  #to .to-card.talking .to-eq{opacity:1;}
+  #to .to-eq b{width:3px;height:100%;background:var(--hero);transform-origin:50% 100%;animation:toEq .45s ease-in-out infinite alternate;}
+  #to .to-eq b:nth-child(2){animation-delay:.12s;} #to .to-eq b:nth-child(3){animation-delay:.24s;} #to .to-eq b:nth-child(4){animation-delay:.06s;}
+  @keyframes toEq{from{transform:scaleY(.25);}to{transform:scaleY(1);}}
+  #to .to-board{transition:opacity var(--d3) var(--ease),transform .55s var(--ease);}
   #to.rm *{animation:none!important;transition:none!important;}
 
   @media (prefers-reduced-motion: reduce){
