@@ -1,0 +1,7 @@
+playwright 1.56.0, браузеры: C:\Windows\system32\config\systemprofile\.simcs2_node\ms-playwright
+> git fetch --quiet origin 40f6b90c158dc24408ec4fea31f75382d71d669f
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_etjhprvs FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_etjhprvs\src\build.py --map ancient C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\rp461_m7r26.html
+> node C:\actions-runner\_work\sim-cs2\sim-cs2\tools\clutch_replay_shot.js C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\rp461_m7r26.html 7 26 C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\rp461_m7r26 900 36 1600 900 both
+{"round":1,"state":"freeze","pending":false,"clutch":null,"kills":0,"samples":0,"segs":null}
+all done
