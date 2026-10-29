@@ -741,7 +741,8 @@
           <label class="chk" title="(v459) Повтор клатча: после выигранного клатча 1v2 и больше, пока закупка, — повтор фрагов с замедлением и реакция игроков. Только показ, игру не меняет"><input type="checkbox" id="chkRp" checked> повтор клатча</label>
           <label class="chk" title="(v459) Что показывать после клатча: авто — по-разному, как на трансляции"><select id="selRp"><option value="auto">авто</option><option value="both">клип + реакция</option><option value="clip">только клип</option><option value="emo">только реакция</option></select></label>
           <button id="btnRpLast" title="Показать повтор последнего клатча этого матча ещё раз">Повтор последнего клатча</button>
-          <button id="btnRpGo" title="Матч 7, раунд 26: клатч 1v4 (TN1R) — матч перематывается до закупки этого раунда, дальше смотреть">Клатч-раунд: матч 7, раунд 26</button>
+          <button id="btnRpGo" title="Матч 17, раунд 27: клатч 1v5 — матч перематывается до закупки этого раунда, дальше смотреть (совпадёт при «Хайлайты» 6 % и без своих правок карты)">Клатч-раунд: матч 17, раунд 27 (1v5)</button>
+          <button id="btnToGo" title="Матч 13, раунд 7: перед ним T берут тактическую паузу — матч перематывается до этой закупки">Пауза-раунд: матч 13, раунд 7</button>
           <button id="btnToTake" title="Команда, проигравшая текущий раунд, возьмёт тактическую паузу (если пауз ещё есть). Меняет игру этого матча">Взять паузу (проигравшие раунд)</button>
           <button id="btnToLast" title="Показать последнюю тактическую паузу этого матча ещё раз (только показ)">Показать последнюю паузу</button>
           <label class="chk"><input type="checkbox" id="chkNavWarp" title="Навмеш смещён от стен по-разному в разных углах карты — обычный общий сдвиг/масштаб это не лечит, нужно несколько опорных точек"> калибровка навмеша (точки)</label>
@@ -24686,7 +24687,9 @@ function tsReplayLast(){
   if(typeof document === "undefined") return;
   var b = document.getElementById("btnToLast"); if(b) b.addEventListener("click", tsReplayLast);
   var f = document.getElementById("btnToTake"); if(f) f.addEventListener("click", function(){ TO_FORCE = true; if(typeof showBanner === "function") showBanner("Пауза: возьмёт команда, проигравшая этот раунд", null, 2200); });
-  var c = document.getElementById("btnRpGo"); if(c) c.addEventListener("click", function(){ rpGoto(7, 26); });
+  // (v461) раунды для просмотра — из замера v461 на ПК (16 матчей): клатч 1v5 (м17 р27), пауза T, раунд взяли (м13 р7)
+  var c = document.getElementById("btnRpGo"); if(c) c.addEventListener("click", function(){ rpGoto(17, 27); });
+  var g = document.getElementById("btnToGo"); if(g) g.addEventListener("click", function(){ rpGoto(13, 7); });
 })();
 // ======================= (v323, М40) ЗВУК — только показ, на игру не влияет =======================
 // Синтез Web Audio (звуки Valve копировать нельзя): шум и тоны по типу события. Слышно то, что рядом с серединой экрана
