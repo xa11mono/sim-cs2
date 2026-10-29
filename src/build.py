@@ -11,3 +11,4 @@ name, args = map_arg(sys.argv[1:])
 out = args[0] if args else os.path.join(HERE, '..', 'sim.html')
 s = inject_map(inject(game_source()), name)
 open(out, 'w', encoding='utf-8').write(s)
+from syntaxcheck import check; check(out)   # (v461) битая страница — сборка падает сразу
