@@ -12,6 +12,9 @@ function nadeWallHit(x1,y1,x2,y2){
 // разбросом ~120 ед. карты (проектное число) идёт в инфу команды как «слышал там врага» и в войс «граната из X»
 function nadeOrigin(n){
   if(roundState !== "live" || !n.thrower || n.ox == null) return;
+  // (п.15 владельца 29.10, м1 р4 т28923: смок m0NESY с B Short встал после его смерти — «граната оттуда» ушла в инфу T как «слышал врага»
+  // («?») и держала прострел дыма) бросивший уже убит (киллфид видят все) — точка броска не место врага
+  if(!n.thrower.alive) return;
   var foe = n.team === "T" ? "CT" : "T";
   var pts = (n.trail || []).slice(-8).concat([[n.x, n.y]]);
   var saw = bots.filter(function(o){ return o.team === foe && o.alive && tick >= (o.blindUntil||0) &&

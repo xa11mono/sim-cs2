@@ -626,6 +626,9 @@ function tBrain(){
         else setPost(carrier, {x:carrier.x, y:carrier.y}, esc, true, "bombWait");
       } else setPost(carrier, ppt, g.ctEntry, true, "plantspot");
     }
+    // (п.4 владельца 29.10, м1 р2: «перекол на другой сайт, но туда идут не все») носитель ещё не готов ставить (ждёт вторую волну), а
+    // поста нет — после перекола пост старого сайта снят (tSetSite): к точке подготовки нового сайта, как остальные (раньше 3,5 с стоял)
+    else if(carrier && carrier.alive && !carrier.planting && !carrier.post) stagePost([carrier], tt.site);
     var rest = pick(["entry","awp","support","igl"]).filter(function(b){ return b !== carrier && ready(b); });
     // (v350, владелец: «все останавливаются далеко») раш: кто без задачи (поддержка, IGL; AWP без лайнапа) — идёт за энтри и держится
     // позади него (60–110 ед., проектные числа), а не стоит на месте сбора; энтри ждёт гранаты — ждут за ним

@@ -177,6 +177,11 @@ function teamDeath(att, vic){
 }
 
 // ---------- канал команды ----------
+function teamHeardDied(team, n){
+  var c = knowGraph().c[n.zone]; if(!c) return false;
+  var foe = team === "CT" ? "T" : "CT";
+  return teamIntel[foe].sig.some(function(g){ return g.type === "died" && g.tick >= n.made && Math.hypot(g.x-c.x, g.y-c.y) <= 300; });
+}
 function teamChannel(T){
   var mates = bots.filter(function(b){ return b.team === T.team; });
   // готовые фразы — в очередь
@@ -215,6 +220,10 @@ function teamChannel(T){
     else if(teamCovered(T, n)) why = "уже сказано";
     // про кого хотел сказать — уже в киллфиде (смерть видят все): говорить не о ком
     else if(n.ids && !n.ids.some(function(id){ var e = teamBot(id); return e && e.alive; })) why = "враг уже убит";
+    // (п.15 владельца 29.10, м1 р4: «слышу гранату с B Short» сказано через 1,5 с после того, как бросившего убили там же, — ушло в инфу
+    // как враг за дымом) звук без имени: после него в этой зоне убит враг (киллфид) — это был он; правило v273 (knowKill: свой звук
+    // ≤ 300 px от места фрага, полученный до него, забывается) — и для колла, который ещё не прозвучал
+    else if(n.kind === "hear" && n.zone && teamHeardDied(T.team, n)) why = "враг уже убит";
     else if(crowd && TEAM_PRIO[n.kind] === 0) why = "не до того — в канале толпа";
     else if(!sp || (!sp.alive && !(n.kind === "death" && tick - sp.voice.diedAt <= teamSec(TEAM.deadTalk)))) why = "говорящий погиб";
     if(why) continue;   // не прозвучало (устарело / уже сказано / враг убит / толпа / говорящий погиб)

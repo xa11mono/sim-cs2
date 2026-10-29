@@ -476,7 +476,7 @@ function stepTick(){
         // погаснет (fireGoneRepath, 370). Раньше упирался в край: веер проб, «застрял» → отталкивание, сброс пути, тот же путь заново —
         // переносы у огня на Ancient 58 → 128 на 100 раундов (замер 28.10)
         var fireWait = !inFire(bot.baseX, bot.baseY) && inFire(nx, ny) && !fireCommit(bot) && fireOnSeg(bot.baseX, bot.baseY, target[0], target[1]);
-        if(fireWait){ bot.curSpeed = 0; bot.walking = false; }
+        if(fireWait){ bot.curSpeed = 0; bot.walking = false; bot._fireWaitT = tick; }
         else if(!stepBlocked(bot.baseX,bot.baseY,nx,ny,bot)){ // стены + в огонь без причины не заходим
           bot.baseX = nx; bot.baseY = ny;
           if(isLastLeg && dist <= step){ bot.baseX = target[0]; bot.baseY = target[1]; bot.pathIdx++; }   // (v323) высота — только по навмешу (ниже), не по точке пути
