@@ -245,6 +245,12 @@ function weaponPickupTick(){
       return; }
     if(!taskCanSet(b, "pickup")) return;   // (v378) идёт по задаче важнее подбора — арбитр места
     if(b.post && b.post.tag === "pickup") return;
+    // (v469, п.27 владельца 29.10, р12 м1: опорник B karrigan пошёл за оружием с самого B, хотя рядом стояли свои) ответ про-аналитика 29.10:
+    // за оружием не ходят, пока рядом бой (свежая инфа о враге ≤ 1200 ед. игры = 480 px); опорник, держащий вход на свой сайт, со своей точки за ним не уходит —
+    // только со слабым оружием (пистолет / ПП); идёт второй линии игрок или тот, у кого хуже ствол
+    var LKp = beliefLast[b.team] || {};
+    for(var eP in LKp){ if(tick - LKp[eP].tick < 3*TICK_HZ && Math.hypot(LKp[eP].x-b.x, LKp[eP].y-b.y) < 1200/MAP.pxUnits) return; }
+    if((b.tRole === "anchorA" || b.tRole === "anchorB") && b.primary && WEAPONS[b.primary].tier >= 5) return;
     if(BAL.pickFix && b._pickBan > tick) return;
     var best = null, bd = BAL.pickupMore ? 420 : 230;
     groundWeapons.forEach(function(G){
