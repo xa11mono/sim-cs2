@@ -598,7 +598,10 @@ function tBrain(){
       var cm = ts.filter(function(o){ return o !== carrier && o.alive && o.tRole !== "lurker"; });
       var cLeft = ROUND_TIME_SEC - (tick - roundStartTick)/TICK_HZ, cWalk = polyLen(pathPts(carrier.x, carrier.y, ppt.x, ppt.y))/SPEED + PLANT_TICKS/TICK_HZ + 5;
       var BE = tt.bombEsc && tt.bombEsc.round === roundNum && tt.bombEsc.cid === carrier.id ? tt.bombEsc : null;
-      var esc = BE ? cm.filter(function(o){ return o.id === BE.id && !o._sawEnemy && !o.planting; })[0] : null;
+      // (п.21 владельца 29.10, м1 р5 т37570: «почему бы не отложить выход… пока игрок 2 не сможет выйти с паласа, чтобы сыграть вдвоём» —
+      // TN1R у огня в Palace увидел врага, и magixx в тот же тик пошёл ставить один) назначенный сопровождающий в бою — всё ещё сопровождающий:
+      // носитель ждёт его в пределах тех же ESC_WAIT_SEC / ESC_MAX_SEC (раньше бой снимал сопровождение сразу)
+      var esc = BE ? cm.filter(function(o){ return o.id === BE.id && !o.planting; })[0] : null;
       if(!esc && !cm.some(function(o){ return ready(o) && Math.hypot(o.x-carrier.x, o.y-carrier.y) <= TRADE_R; }) && cLeft >= cWalk){
         esc = cm.filter(function(o){ return !o._sawEnemy && !o.planting && !o.nadeTask && !(o._tradeLock && o._tradeLock.until > tick) && !(o._reposUntil && tick < o._reposUntil) && Math.hypot(o.x-ppt.x, o.y-ppt.y) > 350; })
           .sort(function(a, c){ return Math.hypot(a.x-carrier.x, a.y-carrier.y) - Math.hypot(c.x-carrier.x, c.y-carrier.y); })[0] || null;
@@ -822,9 +825,12 @@ function tBrain(){
         } else if(dfz) antiDef = antiDef.filter(function(b){ return late.indexOf(b) < 0; });
       }
       var spA = pickSpots("antidef"+Math.round(bpA.x/30)+","+Math.round(bpA.y/30), bpA, 4, {rMin:50, rMax:300, minGap:45, must:[bpA]});
+      // (п.16 владельца 29.10, м1 р4 т30561: «они оба стоят в одной позиции») каждый — ближайшая к себе из точек, которую ещё не занял свой
+      var adUsed = antiDef.filter(function(o){ return o._adSpot && o._adSpot.round === roundNum; }).map(function(o){ return o._adSpot.pt; });
       antiDef.forEach(function(b){
         if(!b._adSpot || b._adSpot.round !== roundNum){
-          var bs2 = null, bd2 = Infinity; spA.forEach(function(q){ var d = Math.hypot(q.x-b.x, q.y-b.y); if(d < bd2){ bd2 = d; bs2 = q; } });
+          var bs2 = null, bd2 = Infinity; spA.forEach(function(q){ if(adUsed.some(function(u){ return u.x === q.x && u.y === q.y; })) return; var d = Math.hypot(q.x-b.x, q.y-b.y); if(d < bd2){ bd2 = d; bs2 = q; } });
+          if(bs2) adUsed.push(bs2);
           b._adSpot = {round:roundNum, pt: bs2 || bpA};
         }
         setPost(b, b._adSpot.pt, bpA, true, "antidefuse"); b._stopPlantUntil = tick + 30; // бегом, не шагом

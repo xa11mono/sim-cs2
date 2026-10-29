@@ -331,7 +331,8 @@ function stepTick(){
         // (v298) шаг в стену не выбираем: сначала другая сторона, иначе стоим (раньше упирался и каждый тик выбирал заново — дёргался)
         var la0 = bot.facing !== undefined ? bot.facing : 0, pa0 = la0 + Math.PI/2;
         var tgt = function(d){ return {x: H.ax + Math.cos(pa0)*d*24 + Math.cos(la0)*H.fwd, y: H.ay + Math.sin(pa0)*d*24 + Math.sin(la0)*H.fwd}; };
-        if(H.dir){ var q0 = tgt(H.dir); if(stepBlocked(H.ax, H.ay, q0.x, q0.y, bot)){ var q1 = tgt(-H.dir); H.dir = stepBlocked(H.ax, H.ay, q1.x, q1.y, bot) ? 0 : -H.dir; } }
+        var idleBad = function(q){ return stepBlocked(H.ax, H.ay, q.x, q.y, bot) || stepNeedsJump(H.ax, H.ay, q.x, q.y, bot); };   // (п.19) и не на уступ
+        if(H.dir){ var q0 = tgt(H.dir); if(idleBad(q0)){ var q1 = tgt(-H.dir); H.dir = idleBad(q1) ? 0 : -H.dir; } }
       }
       // (v298, владелец 14.10: «переминание дёрганое») направление шага берётся один раз, когда выбран новый шаг (раньше — каждый тик от
       // взгляда: повернул голову — точка шага прыгала), и скорость не скачет: разгон и торможение к точке шага за ~0,25 с (проектное
@@ -350,7 +351,7 @@ function stepTick(){
         var ux = same ? sdx/sd : (H.vx || 0), uy = same ? sdy/sd : (H.vy || 0);
         var st = Math.min(same ? sd : 99, v1*dtSec);
         var sx = bot.baseX + ux*st, sy = bot.baseY + uy*st;
-        if(st > 0 && !stepBlocked(bot.baseX, bot.baseY, sx, sy, bot)){ bot.baseX = sx; bot.baseY = sy; bot.curSpeed = v1; bot.walking = true; H.vx = ux; H.vy = uy; H.v = v1; }
+        if(st > 0 && !stepBlocked(bot.baseX, bot.baseY, sx, sy, bot) && !stepNeedsJump(bot.baseX, bot.baseY, sx, sy, bot)){ bot.baseX = sx; bot.baseY = sy; bot.curSpeed = v1; bot.walking = true; H.vx = ux; H.vy = uy; H.v = v1; }
         else if(st > 0){ H.dir = 0; H.until = tick + 32; H.v = 0; H.vx = H.vy = 0; } // упёрся — постоять 0,5 с, потом новый шаг
         else { H.v = v1; if(v1 <= 0.5){ H.vx = H.vy = 0; } }
       } else { H.v = 0; H.vx = H.vy = 0; if(bot.curSpeed <= STRAFE) bot.curSpeed = 0; }
