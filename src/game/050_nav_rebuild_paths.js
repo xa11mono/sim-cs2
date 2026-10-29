@@ -288,6 +288,14 @@ function knownPathSpots(team){
     (knowEnemySpots(team, e.id) || []).forEach(function(q){ if(q.w >= 0.05) L.push({x: q.x, y: q.y, w: q.w}); }); });
   KPC[team] = {tick: tick, m: matchNum, L: L}; return L;
 }   // (док 6) продолжаемые поиски пути этого тика (zoneDijkstra) — ключ: начало и обстановка
+// (v469) штраф отрезка пути за место врага: KNOWN_DETOUR × вес × (длина отрезка внутри круга KNOWN_PATH_R) / диаметр круга
+function knownSegCost(a, b, q){
+  var dx = b.x - a.x, dy = b.y - a.y, L2 = dx*dx + dy*dy; if(L2 < 1e-9) return 0;
+  var fx = a.x - q.x, fy = a.y - q.y, R = KNOWN_PATH_R;
+  var B = 2*(fx*dx + fy*dy), C = fx*fx + fy*fy - R*R, D = B*B - 4*L2*C; if(D <= 0) return 0;
+  var sq = Math.sqrt(D), t0 = Math.max(0, (-B - sq)/(2*L2)), t1 = Math.min(1, (-B + sq)/(2*L2)); if(t1 <= t0) return 0;
+  return KNOWN_DETOUR*q.w*(t1 - t0)*Math.sqrt(L2)/(2*R);
+}
 function zoneDijkstra(fromId, toId, team){
   if(fromId===toId) return [fromId];
   var side = team === "CT" ? zoneSideMap() : null;
@@ -295,7 +303,12 @@ function zoneDijkstra(fromId, toId, team){
   // обходит места, где по знанию команды может быть живой враг. (док 6, п.2/7: р3 kyousuke шёл к посту через мид — T там видели 33 с назад,
   // а v450 брала только «видели/слышали ≤ 6 с»; сейв р4 — через мид и Ramp) места — гипотезы знания команды (knowEnemySpots: виден — там,
   // стоит — где был, ушёл — куда мог дойти) с их весом: переход ближе KNOWN_PATH_R к месту дороже на KNOWN_DETOUR × вес. Только путь движения
-  var KP = zoneDijkstra.fire && team ? knownPathSpots(team) : [];
+  // (v469, п.1/7/19 владельца 29.10: обход через весь мид вместо прямого пути — штраф копился на каждом переходе: у сайта участки мелкие,
+  // прямой путь (925) набирал 24 штрафа, обход (1855) — 15; снимки м1 р2, р4, р8) места врагов рядом с целью (≤ KNOWN_PATH_R) не штрафуются —
+  // к цели идти всё равно туда, и все пути кончаются у них (ретейк, плант); штраф — по длине пути внутри круга места (knownSegCost), а не
+  // за переход: сколько ни нарезано участков, пройти круг насквозь стоит KNOWN_DETOUR × вес
+  var tp0 = zoneDijkstra.toPt;
+  var KP = zoneDijkstra.fire && team ? knownPathSpots(team).filter(function(q){ return !tp0 || Math.hypot(q.x-tp0.x, q.y-tp0.y) > KNOWN_PATH_R; }) : [];
   // (док 6, п.6 «зависания»: в тике планта — 1069 поисков пути, 1,08 с; 707 из них — от бомбы к местам-кандидатам сейва, 349 — от бойца к
   // зонам ухода) поиск из одного начала в одной обстановке (тот же тик, команда, точка старта, огонь, известные враги, граф) продолжается
   // с места, где остановился прошлый, а не начинается заново: порядок обхода тот же, что у отдельного поиска до цели, — путь бит в бит
@@ -318,7 +331,7 @@ function zoneDijkstra(fromId, toId, team){
       // (v438, док владельца 27.10: «боты часто идут в молик») переход в горящем огне — дороже на FIRE_DETOUR: путь обходит молотов, если обход
       // не длиннее; иначе идёт через огонь (как и раньше — fireCommit / ждёт у края). Только путь движения (buildWaypointPath)
       if(fireOn && inFire(edge.mid.x, edge.mid.y)) w += FIRE_DETOUR;
-      for(var kq = 0; kq < KP.length; kq++) if(Math.hypot(KP[kq].x-edge.mid.x, KP[kq].y-edge.mid.y) < KNOWN_PATH_R) w += KNOWN_DETOUR*KP[kq].w;
+      for(var kq = 0; kq < KP.length; kq++) w += knownSegCost(fromCentroid, edge.mid, KP[kq]);
       var alt = dist[u] + w;
       if(dist[edge.to]===undefined || alt<dist[edge.to]){
         dist[edge.to] = alt; prev[edge.to] = u; entry[edge.to] = edge.mid; heap.push(edge.to, alt);
@@ -487,7 +500,7 @@ function buildWaypointPath(fromX, fromY, fromZ, toX, toY, toZ, team, lane){
   if(!pointInPoly(toX, toY, tz.points)){ var cq = navClampInto(tz, toX, toY); toX = cq.x; toY = cq.y; }
   if(!toZ) toZ = navFloorZ(tz, toX, toY);
   if(fz.id === tz.id) return [[toX,toY,toZ||0]];
-  zoneDijkstra.from = {x: fromX, y: fromY}; zoneDijkstra.fire = true;
+  zoneDijkstra.from = {x: fromX, y: fromY}; zoneDijkstra.toPt = {x: toX, y: toY}; zoneDijkstra.fire = true;
   var route = zoneDijkstra(fz.id, tz.id, team);
   // (v450, м19 р1: путь T0 к Tetris из-за молотова на T Ramp ушёл через спавн и Палас — ~1500 ед. обхода) цена огня копится по каждому
   // переходу внутри него, и обход через пол-карты выходил «дешевле». Обход берётся, только если он не длиннее пути через огонь больше чем
@@ -504,7 +517,7 @@ function buildWaypointPath(fromX, fromY, fromZ, toX, toY, toZ, team, lane){
   // путь к ближайшему достижимому месту рядом с ней
   if(!route){ zoneDijkstra.nearest = true; route = zoneDijkstra(fz.id, tz.id, team); zoneDijkstra.nearest = false;
     if(route && route[route.length-1] !== tz.id){ var lz = zonesById[route[route.length-1]]; if(lz){ var lc = zoneCentroid(lz); toX = lc.x; toY = lc.y; toZ = lz.z; tz = lz; } } }
-  zoneDijkstra.from = null; zoneDijkstra.fire = false;
+  zoneDijkstra.from = null; zoneDijkstra.toPt = null; zoneDijkstra.fire = false;
   if(!route) return [[toX,toY,toZ||0]]; // disconnected zones — direct line fallback rather than a stuck bot
   var corridor = [], cPair = [];   // cPair — участки по обе стороны перехода (v340)
   for(var i=0;i<route.length-1;i++){

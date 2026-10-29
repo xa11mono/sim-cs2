@@ -143,6 +143,8 @@ function knowValue(zid, side, K){
 function knowEnemySpots(team, id){
   var g = knowGraph();
   for(var i = 0; i < bots.length; i++){ var b = bots[i]; if(!b.alive || b.team !== team || !b.know || !b.know.enemies) continue;
+    // (v469, п.3 владельца: путь kyousuke в первый тик раунда — по знанию прошлого раунда «T на Drop 1.00») знание другого раунда — не знание
+    if(b.know.key !== matchNum + ":" + roundNum) return [];
     var B = b.know.enemies[id]; if(!B) return [];
     if(B.visible) return [{x: B.last.x, y: B.last.y, w: 1}];
     return (B.hyps || []).map(function(h){ var p = h.type === "held" ? h : (h.zone && g.c[h.zone]); return p ? {x: p.x, y: p.y, w: h.weight || 0} : null; }).filter(Boolean);
