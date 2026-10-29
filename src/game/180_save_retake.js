@@ -203,15 +203,22 @@ function updateRetake(cts){
       R.assign[far.id] = 1;
     }
   }
-  var def = null, dBest = Infinity;
-  // дефузер выбран — остаётся им, пока жив (раньше выбирался каждый тик заново:
-  // двое по очереди получали "дефузить"/"прикрывать" и дёргались на месте)
+  // (v464, владелец: «почему дефузит не ближайший?») дефузер — тот, кто раньше всех снимет бомбу: время дойти по карте
+  // (по зонам, а не по прямой — сквозь стены «близко» не считается) + сам дефуз 5 с с китом / 10 без. Раньше выбирался
+  // один раз в начале ретейка и оставался, пока жив: в m17 р27 (облако) sh1ro стоял в 100 ед. от бомбы с китом, а дефузер
+  // magixx ушёл на CT-спавн — бомба взорвалась. Теперь пересмотр каждый тик, но смена — только если другой успеет
+  // заметно раньше (на 2 с — проектное число, чтобы двое не перекидывали роль туда-сюда) и дефузер ещё не сел дефузить.
+  if(!R.bzD){ var zb = bzOf(bomb.x, bomb.y); R.bzD = zb >= 0 ? bzDist([zb]) : null; }
+  var defT = function(b){
+    var d = Math.hypot(b.x-bomb.x, b.y-bomb.y);
+    if(R.bzD){ var zi = bzOf(b.x, b.y); if(zi >= 0 && R.bzD[zi] < 1e8) d = Math.max(d, R.bzD[zi]); }
+    return d/SPEED + (b.kit ? 5 : 10);
+  };
+  var def = null, tBest = Infinity;
+  alive.forEach(function(b){ var t = defT(b); if(t < tBest){ tBest = t; def = b; } });
   var prevDef = R.defId && alive.filter(function(b){ return b.id === R.defId; })[0];
-  if(prevDef) def = prevDef;
-  else alive.forEach(function(b){
-    var d = Math.hypot(b.baseX-bomb.x, b.baseY-bomb.y) - (b.kit ? 400 : 0); // кит важнее пары метров
-    if(d < dBest){ dBest = d; def = b; }
-  });
+  if(prevDef && def !== prevDef && (prevDef.defusing || defT(prevDef) - tBest < 2)) def = prevDef;
+  if(def && prevDef && def !== prevDef && R.phase === "go") voiceLog("CT", "rtdef", def.id, "я ближе — дефужу я");
   if(def) R.defId = def.id;
   alive.forEach(function(b){ b.retakeRole = (b === def) ? "defuser" : (R.assign[b.id] !== 0 ? "flank" : "cover"); });
   if(BAL.ninjaDefuse && (R.phase === "gather" || R.phase === "util") && def && ninjaOk()){
