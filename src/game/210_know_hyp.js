@@ -45,7 +45,8 @@ var KNOW_LOG = [];
 // звук дошёл до игрока o: v166 кладёт его в o.heardSound, знание — в o.ears (одно место на «услышал»)
 function hearReal(o, s){
   if(roundState === "live"){ var sb = s.src ? teamBot(s.src) : null;   // (v358) этаж слышно (сверху / снизу) — высота источника
-    (o.ears || (o.ears = [])).push({x:s.x, y:s.y, z: sb ? sb.z : null, tick:tick, team:s.team, kind:s.kind, occl:!!s.occl}); }
+    (o.ears || (o.ears = [])).push({x:s.x, y:s.y, z: sb ? sb.z : null, tick:tick, team:s.team, kind:s.kind, occl:!!s.occl});
+    if(s.z == null && sb) s.z = sb.z; }   // (v469) и в «что услышал» — этаж звука (реакция на контакт: видно ли то место со своего этажа)
   // (v359, отметка владельца: m0NESY услышал флешку sh1ro из Connector в паре метров, а через 1 с молотов zont1x в 230 ед. —
   // «куда смотреть» перескочило на дальний звук, sh1ro вышел и убил) свежий (≤ 1,5 с) звук того же врага вдвое ближе — главнее
   // нового дальнего: взгляд остаётся на нём (знание получает оба — через ears)
