@@ -1,3 +1,4 @@
+var FLASH_EXIT_MAX = 413;   // px: 90 % флешек «под свой выход» у про (pro_nades.csv, purpose flash_exit)
 function nadeUsePick(b, pts, R){
   var I = nadeLaneIdx(), L = I.L, best = null, bd = Infinity;
   pts.forEach(function(p){
@@ -48,6 +49,10 @@ function nadeUseTick(b){
   if(!plan || !plan.pts.length) return;
   b._nadeUseT = tick;
   var pt = nadeUsePick(b, plan.pts); if(!pt) return;
+  // (v469, п.18 владельца 29.10, отметка м1 р8 т47249: TN1R из House кинул флешку «иду в бой» на Vent — до своей точки B Short ещё далеко,
+  // своих там нет, флешка никому не помогла) флешка под свой выход — пока сам рядом и выйдет следом: у про (2543 «flash_exit», демки Ancient,
+  // data/pro/pro_nades.csv) от бросающего до места флешки 175 / 304 / 413 px (10 / 50 / 90 %); дальше — не кидает, подойдёт ближе
+  if(plan.t === "flash" && entering && Math.hypot(pt.x-b.x, pt.y-b.y) > FLASH_EXIT_MAX){ b._nadeUseT = 0; return; }
   if(plan.t === "smoke" && smokeCovered(pt.x, pt.y)) return;
   if(assignNade(b, plan.t, pt, why, {now:true})) logEvent(b.id+": "+NADE[plan.t].name+" — "+why);
 }

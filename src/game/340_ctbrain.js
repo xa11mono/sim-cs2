@@ -1,3 +1,10 @@
+// (v469, п.18 владельца 29.10, р8 м1: в войсе «ПЕРЕКОЛЛ A → B: бомба замечена (~2)», а бомбу никто не видел) сайт планта выведен
+// исключением («никто у A не услышал писк — значит B», 220 knowPlant, plantGuess) — так и говорится, а не «замечена»
+function ctPlantGuessOnly(){
+  if(!bomb || bomb.state !== "planted") return false;
+  var cts = bots.filter(function(o){ return o.team === "CT" && o.alive && o.know; });
+  return cts.some(function(o){ return o.know.plantGuess; }) && !cts.some(function(o){ return o.know.plantSite && !o.know.plantGuess; });
+}
 function ctBrain(){
   var ct = teamTac.CT;
   var cts = bots.filter(function(b){ return b.team==="CT" && b.alive; });
@@ -110,7 +117,7 @@ function ctBrain(){
       var prevSite = ct.call ? ct.call.site : null;   // (v321, М23) колл переходит на другой сайт — «переколл»
       var prevCnt = isNew ? 0 : ct.call.count, prevLogged = isNew ? 0 : (ct.call.logged || 0);
       ct.call = {logged: prevLogged, site:best.site, count:best.count, tick:tick, evTick:tick, since:(!isNew && ct.call.since) || tick, sinceSite:best.site, undefended:best.undefended, bombSeen: best.carrier || best.plant, seen: best.est ? best.est.seen : 0, nades: best.nades || 0};
-      var how = best.plant ? "слышно плант" : (best.nades >= 2 && !best.est.seen) ? "гранаты на "+best.site+" — выход" : best.undefended ? "сайт пустой, опорник погиб" : best.carrier ? (ct.bombDown ? "бомба выбита, лежит там" : "бомба замечена") : best.deaths ? "минус на сайте" : (best.est.seen ? "вижу "+best.est.seen : best.est.heard ? "слышу" : "по инфе");
+      var how = best.plant ? "слышно плант" : (best.nades >= 2 && !best.est.seen) ? "гранаты на "+best.site+" — выход" : best.undefended ? "сайт пустой, опорник погиб" : best.carrier ? (ct.bombDown ? "бомба выбита, лежит там" : ctPlantGuessOnly() ? "плант не слышали на "+(best.site === "A" ? "B" : "A")+" — значит "+best.site : "бомба замечена") : best.deaths ? "минус на сайте" : (best.est.seen ? "вижу "+best.est.seen : best.est.heard ? "слышу" : "по инфе");
       var n1 = Math.max(1, Math.round(best.count));
       // в войс — только новый колл или когда их стало БОЛЬШЕ, чем уже говорили
       // (повтор колла) колл снялся и через пару секунд поднялся снова по той же
@@ -222,12 +229,18 @@ function ctBrain(){
       }
     }
     ct.spread = spread;
+    var deadR = bots.filter(function(o){ return o.team === "CT" && !o.alive; }).map(function(o){ return o.tRole; });
+    var aLost = deadR.indexOf(ks === "A" ? "anchorA" : "anchorB") >= 0 && deadR.filter(function(r){ return r === "mid" || r === "rotator" || r === (ks === "A" ? "anchorA" : "anchorB"); }).length >= 2;
     var pri = function(b){
       var r = b.tRole;
       if(r === "rotator") return 0;
       if(r === "roamer") return 1;
       if(BAL.countRot){
         if(r === "mid") return keepMid ? 99 : (allIn || ct.call.undefended || (ct.call.bombSeen && midMass < 0.9) || (need >= 2 && confirmed && midMass < 0.5)) ? 2 : 99;
+        // (v469, п.7 владельца 29.10, снимок м1 р4 т20487: мидер, ротатор и опорник A убиты, колл «T на A ~3», karrigan стоял на B до 1:24 —
+        // его держали «двое неучтённых») ответ про-аналитика 29.10: защита A потеряна (её опорник и ещё один с той стороны мертвы) и там 3+ T —
+        // опорник другого сайта стягивается сразу, не ждёт бомбу; держит свой сайт только свежая инфа о T у него (elseO), а не «двое неизвестно где»
+        if(r === (ko === "A" ? "anchorA" : "anchorB") && aLost && Math.round(ct.call.count) >= 3 && elseO === 0) return 3;
         if(r === (ko === "A" ? "anchorA" : "anchorB")) return keepOther ? (ct.call.undefended && !(ct.call.unacc >= 2) && otherMass < 1 ? 3 : 99) : (allIn || ct.call.undefended || (need >= 3 && confirmed && otherMass < 0.35)) ? 3 : 99;
       }
       // "сайт пустой, опорник погиб" — это не догадка по карте вероятностей, а
