@@ -1,0 +1,54 @@
+playwright 1.56.0, браузеры: C:\Windows\system32\config\systemprofile\.simcs2_node\ms-playwright
+> git fetch --quiet origin d990e70e48a6ef7abd6d2a83e25c109ae92bfe1e
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_i3fz3xq4 FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_i3fz3xq4\src\build.py --map ancient C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\snap464_m17r27.html
+> node C:\actions-runner\_work\sim-cs2\sim-cs2\tools\snap_round.js C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\snap464_m17r27.html 17 27 C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\snap464_m17r27 3000
+{"match":17,"matchNum":18,"round":1,"state":"freeze","tick":159441,"fp":"1gecw3a","score":"0:0","pause":null,"after":{"ticks":3000,"tick":162441,"round":1,"hash":2827445177},"restored":{"hash":2827445177,"same":true}} снимок 4050489 байт
+> git fetch --quiet origin 14321f6ab89c43f982d37f9cb169cd7ce7960154
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_ookh1ga5 FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_ookh1ga5\src\build.py --map ancient C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v463_anc8.html
+> git fetch --quiet origin d990e70e48a6ef7abd6d2a83e25c109ae92bfe1e
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_9vd12mmr FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_9vd12mmr\src\build.py --map ancient C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v464_anc8.html
+> git fetch --quiet origin 14321f6ab89c43f982d37f9cb169cd7ce7960154
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_fgutki5t FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_fgutki5t\src\build.py --map mirage C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v463_mir8.html
+> git fetch --quiet origin d990e70e48a6ef7abd6d2a83e25c109ae92bfe1e
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_ufhunur6 FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_ufhunur6\src\build.py --map mirage C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v464_mir8.html
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\engine\walk_run.py --job=v463_anc8,C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v463_anc8.html --job=v464_anc8,C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v464_anc8.html --job=v463_mir8,C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v463_mir8.html --job=v464_mir8,C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v464_mir8.html --matches=3,7,11,13,17,19,23,29 --par=2
+матчей в очереди: 32, одновременно: 2
+v463_anc8 match 3 rc 0 5914529 — готово 1/32, 5 мин
+v463_anc8 match 7 rc 0 5924267 — готово 2/32, 5 мин
+v463_anc8 match 13 rc 0 6065961 — готово 3/32, 10 мин
+v463_anc8 match 11 rc 0 7631265 — готово 4/32, 11 мин
+v463_anc8 match 19 rc 0 4466737 — готово 5/32, 15 мин
+v463_anc8 match 17 rc 0 7742021 — готово 6/32, 17 мин
+v463_anc8 match 29 rc 0 3925100 — готово 7/32, 20 мин
+v463_anc8 match 23 rc 0 6733235 — готово 8/32, 21 мин
+v464_anc8 match 3 rc 0 5914529 — готово 9/32, 26 мин
+v464_anc8 match 7 rc 0 6848388 — готово 10/32, 27 мин
+v464_anc8 match 11 rc 0 6439736 — готово 11/32, 31 мин
+v464_anc8 match 13 rc 0 5650429 — готово 12/32, 32 мин
+v464_anc8 match 19 rc 0 5283484 — готово 13/32, 37 мин
+v464_anc8 match 17 rc 0 6297987 — готово 14/32, 37 мин
+v464_anc8 match 29 rc 0 3925100 — готово 15/32, 41 мин
+v464_anc8 match 23 rc 0 6605057 — готово 16/32, 42 мин
+v463_mir8 match 7 rc 0 5115955 — готово 17/32, 48 мин
+v463_mir8 match 3 rc 0 8216401 — готово 18/32, 50 мин
+v463_mir8 match 11 rc 0 6307323 — готово 19/32, 55 мин
+v463_mir8 match 13 rc 0 6334468 — готово 20/32, 56 мин
+v463_mir8 match 19 rc 0 5717977 — готово 21/32, 62 мин
+v463_mir8 match 17 rc 0 7293026 — готово 22/32, 63 мин
+v463_mir8 match 23 rc 0 5366903 — готово 23/32, 68 мин
+v463_mir8 match 29 rc 0 6520061 — готово 24/32, 70 мин
+v464_mir8 match 3 rc 0 5455850 — готово 25/32, 74 мин
+v464_mir8 match 7 rc 0 8249756 — готово 26/32, 78 мин
+v464_mir8 match 11 rc 0 6251573 — готово 27/32, 80 мин
+v464_mir8 match 13 rc 0 5544790 — готово 28/32, 84 мин
+v464_mir8 match 17 rc 0 6717814 — готово 29/32, 87 мин
+v464_mir8 match 19 rc 0 6427631 — готово 30/32, 91 мин
+v464_mir8 match 23 rc 0 7120465 — готово 31/32, 94 мин
+v464_mir8 match 29 rc 0 4257164 — готово 32/32, 96 мин
+done
+all done
