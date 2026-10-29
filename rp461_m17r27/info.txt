@@ -1,0 +1,1 @@
+{"round":27,"state":"ending","pending":true,"clutch":{"id":"T4","side":"T","n":5,"alive":false,"hp":-9,"kills":3},"kills":8,"samples":9436,"segs":[[180544,180920.4,"kill,kill"],[182793,182991.4,"plant"],[184164,184362.4,"kill"],[184221.6,184324,"kill"],[185353,185519.4,"boom"]]}

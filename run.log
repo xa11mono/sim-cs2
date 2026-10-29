@@ -1,0 +1,12 @@
+playwright 1.56.0, браузеры: C:\Windows\system32\config\systemprofile\.simcs2_node\ms-playwright
+> git fetch --quiet origin 1eba7d1523328081a88bd7237dbbc600b46f0999
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_8dbwy2sn FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_8dbwy2sn\src\build.py --map ancient C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\rp461_m17r27.html
+> node C:\actions-runner\_work\sim-cs2\sim-cs2\tools\clutch_replay_shot.js C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\rp461_m17r27.html 17 27 C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\rp461_m17r27 900 40 1600 900 both
+{"round":27,"state":"ending","pending":true,"clutch":{"id":"T4","side":"T","n":5,"alive":false,"hp":-9,"kills":3},"kills":8,"samples":9436,"segs":[[180544,180920.4,"kill,kill"],[182793,182991.4,"plant"],[184164,184362.4,"kill"],[184221.6,184324,"kill"],[185353,185519.4,"boom"]]}
+> git fetch --quiet origin 1eba7d1523328081a88bd7237dbbc600b46f0999
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_wfdewh9d FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_wfdewh9d\src\build.py --map ancient C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\to461_m13r7.html
+> node C:\actions-runner\_work\sim-cs2\sim-cs2\tools\timeout_shot.js C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\to461_m13r7.html 13 7 C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\to461_m13r7 1000 34 1600 900 both
+{"round":7,"state":"freeze","pause":{"side":"T","name":"Team Spirit","caller":"coach","left":2,"facts":["умираем на «Mid» (3 за 4 р.) — обходим","не заходит «A: трое мейн + один Short»","заготовка «Быстрый A мейном, мид держат»"]},"freeze":45}
+all done

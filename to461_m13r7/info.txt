@@ -1,0 +1,1 @@
+{"round":7,"state":"freeze","pause":{"side":"T","name":"Team Spirit","caller":"coach","left":2,"facts":["умираем на «Mid» (3 за 4 р.) — обходим","не заходит «A: трое мейн + один Short»","заготовка «Быстрый A мейном, мид держат»"]},"freeze":45}
