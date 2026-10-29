@@ -1,4 +1,8 @@
-{"par": 2, "jobs": [], "shots": [
-  {"label": "snap_m17r27", "kind": "snap", "ref": "805f42ca1ae9f194cc78ef73a044f1b8f0abdf46", "map": "ancient", "match": 17, "round": 27, "ticks": 3000, "v": 2},
-  {"label": "snap_m13r7", "kind": "snap", "ref": "805f42ca1ae9f194cc78ef73a044f1b8f0abdf46", "map": "ancient", "match": 13, "round": 7, "ticks": 3000, "v": 2}
+{"par": 2, "jobs": [
+  {"label": "v463_anc8", "ref": "14321f6ab89c43f982d37f9cb169cd7ce7960154", "map": "ancient", "matches": [3, 7, 11, 13, 17, 19, 23, 29]},
+  {"label": "v464_anc8", "ref": "d990e70e48a6ef7abd6d2a83e25c109ae92bfe1e", "map": "ancient", "matches": [3, 7, 11, 13, 17, 19, 23, 29]},
+  {"label": "v463_mir8", "ref": "14321f6ab89c43f982d37f9cb169cd7ce7960154", "map": "mirage", "matches": [3, 7, 11, 13, 17, 19, 23, 29]},
+  {"label": "v464_mir8", "ref": "d990e70e48a6ef7abd6d2a83e25c109ae92bfe1e", "map": "mirage", "matches": [3, 7, 11, 13, 17, 19, 23, 29]}
+], "shots": [
+  {"label": "snap464_m17r27", "kind": "snap", "ref": "d990e70e48a6ef7abd6d2a83e25c109ae92bfe1e", "map": "ancient", "match": 17, "round": 27, "ticks": 3000, "v": 2}
 ]}
