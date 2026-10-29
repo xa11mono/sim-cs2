@@ -710,6 +710,22 @@
   #to .to-eq b:nth-child(2){animation-delay:.12s;} #to .to-eq b:nth-child(3){animation-delay:.24s;} #to .to-eq b:nth-child(4){animation-delay:.06s;}
   @keyframes toEq{from{transform:scaleY(.25);}to{transform:scaleY(1);}}
   #to .to-board{transition:opacity var(--d3) var(--ease),transform .55s var(--ease);}
+  /* (v469, владелец 29.10: «разные расстановки панелек, когда говорят, карты — чтобы всегда выглядело уникально») раскладки паузы — класс
+     lay-* на #to, выбирается от матча и раунда, не как в прошлой паузе (676 tsStart). Те же элементы и цвета, другое расположение */
+  #to.lay-mirror[data-scene="split"] .to-board{transform:translate(calc(-50% + 22vw),-50%) scale(.78);}
+  #to.lay-mirror[data-scene="split"] .to-talk{transform:translateX(-23vw);}
+  #to.lay-grid .to-row{flex-wrap:wrap;justify-content:center;width:min(60vw,720px);row-gap:52px;}
+  #to.lay-grid[data-scene="talk"] .to-card{width:min(15vw,170px);}
+  #to.lay-focus[data-scene="talk"] .to-row{align-items:flex-end;gap:10px;}
+  #to.lay-focus[data-scene="talk"] .to-card{width:min(8vw,100px);opacity:.4;}
+  #to.lay-focus[data-scene="talk"] .to-card.talking{width:min(20vw,240px);opacity:1;transform:none;}
+  #to.lay-focus .to-card{transition:width .45s var(--ease),opacity var(--d3) var(--ease),transform var(--d3) var(--ease);}
+  #to.lay-col[data-scene="split"] .to-row{flex-direction:column;flex-wrap:nowrap;align-items:flex-start;width:auto;row-gap:8px;gap:8px;}
+  #to.lay-col[data-scene="split"] .to-card{flex-direction:row;align-items:center;gap:10px;width:min(18vw,230px);}
+  #to.lay-col[data-scene="split"] .to-ph{width:58px;flex:none;}
+  #to.lay-col[data-scene="split"] .to-nm{margin-top:0;}
+  #to.lay-col[data-scene="split"] .to-say{bottom:50%;left:calc(100% + 10px);transform:translateY(50%);}
+  #to.lay-col[data-scene="split"] .to-say::after{top:50%;left:auto;right:100%;margin:-6px 0 0;border-top-color:transparent;border-right-color:var(--bubble);}
   #to.rm *{animation:none!important;transition:none!important;}
 
   @media (prefers-reduced-motion: reduce){
@@ -6678,6 +6694,22 @@ function coachPlan(side){
     ["A","B"].forEach(function(k){ if(lost[k] >= 2 && !P.retake && P.avoid.indexOf("retake" + k) < 0){ P.retake = k; P.facts.push({k: "retake", S: k, n: lost[k], log: "на "+k+" проигрываем после планта ("+lost[k]+") — от ретейка"}); } });
     if(P.avoid.length){ var sf = setupById(P.avoid[P.avoid.length-1]); P.facts.push({k: "readSetup", setup: sf ? sf.name : P.avoid[0], log: "расстановку «"+(sf ? sf.name : P.avoid[0])+"» прочитали — меняем"}); }
   }
+  // (v469, владелец 29.10: «больше вариантов пауз — интересные раунды, а не только запрет расстановок») ещё виды плана — из того, что
+  // команда знает по прошлым раундам (итог, был ли плант, когда вышли — roundHist; где их AWP брал фраги — RMEM.awp), и каждый меняет игру
+  var RH = roundHist.slice(-3);
+  if(side === "T"){
+    var l2 = roundHist.slice(-2);
+    if(l2.length === 2 && l2.every(function(r){ return r.winner === "CT"; })){
+      if(l2.every(function(r){ return r.execSec != null && r.execSec < 32; })){ P.tempo = "slow"; P.facts.push({k: "tempoSlow", log: "два раунда проиграли быстрым выходом — играем медленно, от дефолта"}); }
+      else if(l2.every(function(r){ return r.execSec == null || r.execSec >= 45; })){ P.tempo = "fast"; P.facts.push({k: "tempoFast", log: "два раунда проиграли медленно — играем быстро"}); }
+    }
+    var rtk = RH.filter(function(r){ return r.planted && r.winner === "CT"; }).length;
+    if(rtk >= 2){ P.fake = true; P.facts.push({k: "fake", n: rtk, of: RH.length, log: "ставим, но они забирают ретейком ("+rtk+" из "+RH.length+") — быстро ротируют: фейк"}); }
+  } else {
+    var aw = (RMEM.awp || []).filter(function(q){ return roundNum - q.round <= 3 && GEO.ctMid && Math.hypot(q.x-GEO.ctMid.x, q.y-GEO.ctMid.y) < 600; });
+    var hasAwp = bots.some(function(b){ return b.team === "CT" && (b.primary === "AWP" || b.tRole === "mid"); });
+    if(aw.length && hasAwp && rmemRecent(RMEM.midDeath, 3).length < 2){ P.midAgg = true; P.facts.push({k: "awpEarly", n: aw.length, log: "наш AWP на миде берёт фраги ("+aw.length+" за 3 р.) — ранний пик AWP"}); }
+  }
   if(!P.facts.length) P.facts.push({k: "reset", log: "перезагрузка: спокойно, по своей игре"});
   return P;
 }
@@ -6706,7 +6738,10 @@ function chooseTactic(){
       if(TP.site) w *= t.site === TP.site ? 1.8 : 0.5;
       if(TP.avoidZone && tacUsesZone(t, TP.avoidZone)) w *= 0.3;                        // (v461) где умирали — обходим
       if(TP.stack && t.site === TP.site && (t.style === "fast" || t.style === "rush" || t.style === "exec")) w *= 1.3;   // стак прочитан — быстро
-      if(TP.excl === t.id && roundNum === TP.first) w *= 8; }
+      if(TP.excl === t.id && roundNum === TP.first) w *= 8;
+      if(TP.tempo === "fast"){ if(t.style === "rush" || (t.setupEnd && t.setupEnd <= 44)) w *= 2.5; if(t.style === "default") w *= 0.3; }   // (v469) план «быстро / медленно»
+      if(TP.tempo === "slow"){ if(t.style === "default") w *= 2.5; if(t.style === "rush") w *= 0.3; }
+      if(TP.fake && t.style === "fake") w *= 3; }   // (v469) план «фейк»
     // (8) темп по счёту: два проигрыша подряд быстрыми выходами — медленнее
     // (дефолт), два проигрыша медленными — быстрее (раш/ранний выход)
     if(BAL.tempoShift && tempoRead){ if(tempoRead === "slow"){ if(t.style === "default") w *= 2.2; if(t.style === "rush") w *= 0.3; }
@@ -6892,7 +6927,8 @@ function chooseCtSetup(){
       if(TOUT.CT.avoid.indexOf(S.id) >= 0) w *= 0.15;
       if(CP.stack && S.stack === CP.stack) w *= 6;
       if(CP.avoidZone && setupUsesZone(S, CP.avoidZone)) w *= 0.35;   // (v461) где умирали — эти раунды там не стоим
-      if(CP.retake && S.id === "retake" + CP.retake) w *= 4; }
+      if(CP.retake && S.id === "retake" + CP.retake) w *= 4;
+      if(CP.midAgg && S.midAggressive) w *= 4; }   // (v469) план «ранний пик AWP на миде»
     return w;
   });
   var S = BAL.ctSetups ? CT_SETUPS[weightedChoice(CT_SETUPS, weights, roundNum*4217 + matchNum*881 + 5)] : (BAL.ctSetup === "1-1-1" ? CT_SETUPS[1] : CT_SETUPS[0]);
@@ -13687,9 +13723,9 @@ function contactTick(b){
   // (PRO_PLAY: выход — быстро, вместе, с разменом); держать угол — только одному против многих. Носителю — ниже (не выходит, но и не встаёт)
   var tExec = b.team === "T" && teamTac.T && teamTac.T.phase === "execute" && bomb && bomb.state !== "planted";
   var swing = b.hp > LOW_HP && (Math.max(1, nE) <= nM + 1 || !!contactMateFight(b, C) || hlHot(b) || (tExec && nE <= 2*(nM + 1)));   // (v447) в ударе — выходит и на численный перевес
-  // (v418б, владелец 25.10: «про не выпрыгивает из дыма на пятерых даже под стрельбу тиммейта — играет от края дыма») между ним и врагом
-  // дым — не выходит, держит (место выхода выбиралось по прямой видимости без дыма)
-  if(swing && smokeBlocks(b.x, b.y, look.x, look.y)) swing = false;
+  // (v469, п.21 владельца 29.10, р9 м1: свой стрелялся с magixx за двумя смоками, m0NESY стоял в contact hold) правило v418б «не выходить
+  // из-за дыма на врага» убрано по решению владельца: выход решают те же условия, что без дыма — свой рядом в бою с этой группой
+  // (contactMateFight), враги не в численном перевесе, HP; дым больше не запрещает выйти помочь
   // (v440, док владельца 27.10: magixx с бомбой «делал агрессию в андере», р8 — с бомбой и 22 HP ждал файта) носитель бомбы на выход не идёт,
   // пока жив кто-то ещё из своих: бомба в первом бою — потеря раунда; держит угол (последний живой — играет сам)
   if(swing && bomb && bomb.state === "carried" && bomb.carrier === b && aliveCount(b.team) > 1) swing = false;
@@ -23367,6 +23403,7 @@ var __SNAP = [
 ["RP_RU", function(){ return RP_RU; }, function(v){ try{ RP_RU = v; }catch(e){} }],
 ["RP_SAY", function(){ return RP_SAY; }, function(v){ try{ RP_SAY = v; }catch(e){} }],
 ["TS_SEQ", function(){ return TS_SEQ; }, function(v){ try{ TS_SEQ = v; }catch(e){} }],
+["TS_LAYS", function(){ return TS_LAYS; }, function(v){ try{ TS_LAYS = v; }catch(e){} }],
 ["TS_LINE", function(){ return TS_LINE; }, function(v){ try{ TS_LINE = v; }catch(e){} }],
 ["TS_SAY", function(){ return TS_SAY; }, function(v){ try{ TS_SAY = v; }catch(e){} }],
 ["SND", function(){ return SND; }, function(v){ try{ SND = v; }catch(e){} }],
@@ -24231,7 +24268,7 @@ function obsManual(){ OBS.manualUntil = performance.now() + 6000; OBS.sc = 0; }
 var RP_K = {
   minN: 2,            // клатч от 1v2
   multiN: 3,          // (v466, владелец 29.10: «на про почти после каждого раунда повтор; мультикиллы с трёх, двойной — редко») мультикилл от 3 фрагов
-  multi2: 0.2,        // двойной — в доле раундов, где больше показать нечего (проектное число: владелец сказал «редко»)
+  pick: {two: 0.65, special: 0.5, last: 0.35},   // (v469, п.26) доля раундов, где второстепенный момент попадает в кандидаты (проектные)        // двойной — в доле раундов, где больше показать нечего (проектное число: владелец сказал «редко»)
   pre: 2, post: 1.1,  // клип: за pre с до момента и post с после
   merge: 1.6,         // моменты ближе merge с — один кусок
   maxClip: 20,        // клип длиннее maxClip с игры — короче запас до и после
@@ -24379,17 +24416,29 @@ function rpRoundEnd(R){
   if(bomb && bomb.state === "exploded") R.ev.push({t: R.end, kind: "boom", id: null});
   // (v466) что показать после раунда — по порядку, как было в раунде: выигранный клатч 1v2+ и мультикиллы (3+ фрага; 2 — редко).
   // Клатчер с мультикиллом — один повтор (клатч со всеми его фрагами раунда). Второй повтор — если успевает до конца закупки (rpFrame)
-  var H = [], c = clutchInfo, kc = {}, k1 = {};
+  // (v469, п.26 владельца 29.10: «несколько мультикиллов, даже один килл, который раунд завершает, — больше вариативности») кандидаты
+  // раунда с приоритетом: клатч 100, эйс 95, 4к 90, 3к 80, 2к 40, фраг через смок / прострел / без прицела / ослеплённым 30, последний фраг
+  // раунда 20. Второстепенные (2к и ниже) — не каждый раунд (доля от раунда, RP_K.pick — проектные числа). В очередь — по приоритету, сколько
+  // влезает в паузу до конца закупки (rpEst), показ — по порядку, как было в раунде. Раньше: клатч и 3к+, двойной — редко и только один
+  var H = [], c = clutchInfo, kc = {}, k1 = {}, cand = [], usedId = {};
   R.kills.forEach(function(k){ if(!k.att || !k.vic || k.attTeam === k.vicTeam) return; kc[k.att] = (kc[k.att]||0) + 1; if(k1[k.att] == null) k1[k.att] = k.t; });
   var mk = function(id, side){ var me = teamBot(id); return {id: id, side: side, alive: !!(me && me.alive), hp: me ? me.hp : 0, kills: kc[id]||0}; };
-  if(c && win && c.team === win && c.n >= RP_K.minN){ var h = mk(c.id, c.team); h.n = c.n; h.t = R.solo[c.id] || R.end; if((kc[c.id]||0) >= RP_K.multiN){ h.all = true; h.t = k1[c.id]; } H.push(h); }
-  var two = [];
-  bots.forEach(function(b){ if(H.length && H[0].id === b.id) return; var n = kc[b.id]||0;
-    if(n >= RP_K.multiN){ var h2 = mk(b.id, b.team); h2.multi = true; h2.n = n; h2.t = k1[b.id]; H.push(h2); }
-    else if(n === 2) two.push(b.id); });
-  if(!H.length && two.length && (rpHash(R.m + "|" + R.round + "|two") % 1000)/1000 < RP_K.multi2){
-    var id2 = two[rpHash(R.m + "|" + R.round + "|two2") % two.length], b2 = teamBot(id2); var h3 = mk(id2, b2.team); h3.multi = true; h3.n = 2; h3.t = k1[id2]; H.push(h3); }
-  if(!H.length) return;
+  var roll = function(tag){ return (rpHash(R.m + "|" + R.round + "|" + tag) % 1000)/1000; };
+  if(c && win && c.team === win && c.n >= RP_K.minN){ var h = mk(c.id, c.team); h.n = c.n; h.t = R.solo[c.id] || R.end; if((kc[c.id]||0) >= RP_K.multiN){ h.all = true; h.t = k1[c.id]; } cand.push({h: h, pri: 100}); usedId[c.id] = 1; }
+  bots.forEach(function(b){ if(usedId[b.id]) return; var n = kc[b.id]||0;
+    if(n >= RP_K.multiN || (n === 2 && roll("two" + b.id) < RP_K.pick.two)){ var h2 = mk(b.id, b.team); h2.multi = true; h2.n = n; h2.t = k1[b.id];
+      cand.push({h: h2, pri: n >= 5 ? 95 : n === 4 ? 90 : n === 3 ? 80 : 40}); usedId[b.id] = 1; } });
+  var SPEC = [["smoke", "Через смок"], ["wall", "Прострел"], ["noscope", "Без прицела"], ["blind", "Ослеплённым"]];
+  R.kills.forEach(function(k, ki){ if(!k.att || usedId[k.att] || k.attTeam === k.vicTeam) return;
+    var sp = SPEC.filter(function(q){ return k[q[0]]; })[0]; if(!sp || roll("sp" + ki) >= RP_K.pick.special) return;
+    var h3 = mk(k.att, k.attTeam); h3.multi = true; h3.single = true; h3.n = 1; h3.kt = k.t; h3.t = k.t; h3.label = sp[1]; cand.push({h: h3, pri: 30}); usedId[k.att] = 1; });
+  var lastK = R.kills.filter(function(k){ return k.att && k.attTeam !== k.vicTeam; }).slice(-1)[0];
+  if(lastK && win && lastK.attTeam === win && !usedId[lastK.att] && !(bomb && (bomb.state === "exploded" || bomb.state === "defused")) && roll("last") < RP_K.pick.last){
+    var h4 = mk(lastK.att, lastK.attTeam); h4.multi = true; h4.single = true; h4.n = 1; h4.kt = lastK.t; h4.t = lastK.t; h4.label = "Последний фраг"; cand.push({h: h4, pri: 20}); }
+  if(!cand.length) return;
+  cand.sort(function(a, b){ return b.pri - a.pri || a.h.t - b.h.t; });
+  var avail = ROUND_RESTART_DELAY_SEC + BAL.freeze - RP_K.startDelay, used = 0;
+  cand.forEach(function(q, i){ R.clutch = q.h; var e = rpEst(R); if(i === 0 || used + e <= avail){ H.push(q.h); used += e; } });
   H.sort(function(a, b){ return a.t - b.t; });
   R.list = H; R.clutch = H[0];
   // войс раунда: последнее, что сказал каждый (voiceLines — новые сверху)
@@ -24404,7 +24453,7 @@ function rpRoundEnd(R){
 // ---------- клип: куски вокруг моментов клатча ----------
 function rpBuild(R){
   var C = R.clutch, from = (C.multi || C.all ? R.t0 : (R.solo[C.id] || R.t0) - RP_K.pre*TICK_HZ), M = [];
-  R.kills.forEach(function(k){ if(k.att === C.id && k.vic && k.vicTeam !== C.side && k.t >= from) M.push({t: k.t, kind: "kill", k: k}); });
+  R.kills.forEach(function(k){ if(k.att === C.id && k.vic && k.vicTeam !== C.side && k.t >= from && (!C.single || k.t === C.kt)) M.push({t: k.t, kind: "kill", k: k}); });   // (v469) один фраг — только он
   if(!C.multi) R.ev.forEach(function(e){ if(e.t >= from && (e.id === C.id || e.kind === "boom")) M.push({t: e.t, kind: e.kind}); });   // мультикилл — только его фраги
   M.sort(function(a, b){ return a.t - b.t; });
   var make = function(pre, post){
@@ -24449,7 +24498,7 @@ function rpPlay(R, mode){
   RP.on = true;
   var tm = C.side, nm = R.nick[C.id];
   E.root.className = "on " + tm.toLowerCase() + (typeof HUD_REDUCED !== "undefined" && HUD_REDUCED ? " rm" : "");
-  var what = C.multi ? (C.n >= 5 ? "Эйс" : C.n + " " + (C.n >= 5 ? "киллов" : "килла")) : "Клатч 1v" + C.n;
+  var what = C.single ? C.label : C.multi ? (C.n >= 5 ? "Эйс" : C.n + " " + (C.n >= 5 ? "киллов" : "килла")) : "Клатч 1v" + C.n;
   E.title.innerHTML = '<div class="rp-t1">ПОВТОР</div><div class="rp-t2">' + what + '</div><div class="rp-t3 ' + tm.toLowerCase() + '">' + esc(nm) + ' · ' + esc(R.team[tm]) + '</div>';
   E.l3.innerHTML = (R.logo[tm] ? '<img alt="" src="' + R.logo[tm] + '">' : '') + '<div><b>' + esc(nm) + '</b><span>' + what.toLowerCase() + ' · раунд ' + R.round + '</span></div><i class="rp-k">0</i>';
   E.feed.innerHTML = ""; E.emo.innerHTML = ""; E.slow.className = "rp-slow";
@@ -24872,10 +24921,15 @@ var TS_K = {title: 2.5, outro: 0.5};
 var TS_SEQ = [
   [["split", 10], ["cam", 7], ["talk", 10]],
   [["board", 8], ["split", 11], ["talk", 8]],
-  [["split", 9], ["talk", 9], ["cam", 9]]
+  [["split", 9], ["talk", 9], ["cam", 9]],
+  [["talk", 8], ["board", 9], ["split", 10]],   // (v469) ещё порядки сцен — разнообразие (владелец 29.10)
+  [["cam", 7], ["split", 11], ["board", 9]],
+  [["board", 9], ["talk", 9], ["cam", 9]]
 ];
+// (v469) раскладки (002_style, lay-*): обычная, зеркальная (доска справа, мини-доска слева), сетка портретов, крупный говорящий, портреты столбиком
+var TS_LAYS = ["", "lay-mirror", "lay-grid", "lay-focus", "lay-col", "lay-mirror lay-focus", "lay-grid lay-mirror"];
 var TS_LINE = 4.2;
-var TS = {P: null, el: null, lastRound: -1};
+var TS = {P: null, el: null, lastRound: -1, lastSeq: -1, lastLay: -1};
 function tsEls(){
   if(TS.el) return TS.el;
   var root = document.getElementById("to"); if(!root) return null;
@@ -24902,6 +24956,10 @@ var TS_SAY = {
     excl:  ["Есть заготовка — «{tac}». Они её ещё не видели.", "Достаём «{tac}». Этого они от нас не ждут."],
     tSite: ["Они {n} из {of} раз идут на {S}. Ставим больше людей на {S}.", "{S} — {n} заходов из {of}. Усиливаем {S}."],
     retake:["На {S} мы проигрываем после планта, {n} раза. Играем от ретейка.", "{S} не держим, отдаём и забираем ретейком."],
+    tempoFast:["Два раунда тянули и проиграли. Этот — быстро, все вместе.", "Медленно не заходит. Сразу выходим, без дефолта."],
+    tempoSlow:["Два раза влетели быстро и умерли. Спокойно, берём карту, выходим поздно.", "Не спешим. Дефолт, инфа, поздний выход."],
+    fake:  ["Ставим, а они забирают ретейком — {n} из {of}. Значит, быстро крутятся. Показываем один сайт, бьём другой.", "Они бегут на первый шум. Даём им шум — и уходим на другой."],
+    awpEarly:["Наш AWP на миде уже взял {n}. Этот раунд — ранний пик, ловим их на выходе.", "Мид у нас стреляет. AWP — сразу на мид, один выстрел и назад."],
     readSetup:["Нашу «{setup}» прочитали. Меняем расстановку.", "«{setup}» больше не стоим, они её знают."],
     reset: ["Ничего не меняем. Просто играем свою игру, спокойно.", "Всё нормально, это просто раунды. Перезагрузились."],
     iglOk: ["Понял. Я колю.", "Окей, тогда так и делаем.", "Принял. Работаем.", "Всё ясно, я веду."],
@@ -24920,6 +24978,10 @@ var TS_SAY = {
     excl:  ["We have one saved — {tac}. They haven't seen it.", "Pull out {tac}. They won't expect it."],
     tSite: ["They hit {S} {n} of {of}. More bodies on {S}.", "{S} — {n} of {of}. Stack it."],
     retake:["We lose {S} after the plant, {n} times. Play it from retake.", "Give {S}, take it back on the retake."],
+    tempoFast:["Two slow rounds, two losses. This one fast, all together.", "Slow isn't working. Straight out, no default."],
+    tempoSlow:["We rushed in twice and died. Calm, take map, go late.", "No rush. Default, info, late hit."],
+    fake:  ["We plant, they retake — {n} of {of}. They rotate fast. Show one site, hit the other.", "They run to the first noise. Give them noise — then go the other way."],
+    awpEarly:["Our AWP already got {n} mid. Early pick this round, catch them on the way out.", "Mid is ours. AWP straight to mid, one shot and back."],
     readSetup:["They read our {setup}. We change it.", "No more {setup}, they know it."],
     reset: ["Nothing changes. Just play our game, calm.", "We're fine, it's just rounds. Reset."],
     iglOk: ["Got it. I'll call it.", "Okay, we do that.", "Copy. Let's work.", "Clear, I lead."],
@@ -24975,8 +25037,12 @@ function tsBoard(E, T, k, kb){
     x.strokeStyle = col; x.lineWidth = 5*L; x.lineCap = "round"; x.setLineDash([16*L, 10*L]); x.beginPath(); x.moveTo(a.x, a.y); x.lineTo(ex, ey); x.stroke(); x.setLineDash([]);
     if(p >= 1){ var ang = Math.atan2(b.y - a.y, b.x - a.x), h = 22*L; x.beginPath(); x.moveTo(b.x, b.y); x.lineTo(b.x - Math.cos(ang - 0.45)*h, b.y - Math.sin(ang - 0.45)*h);
       x.moveTo(b.x, b.y); x.lineTo(b.x - Math.cos(ang + 0.45)*h, b.y - Math.sin(ang + 0.45)*h); x.stroke(); } };
+  var labs = [];   // (v469) подписи у одного места — друг над другом, а не поверх
   var ring = function(p0, r, p, col, txt){ if(!p0 || p <= 0) return; x.strokeStyle = col; x.lineWidth = 5*L; x.beginPath(); x.arc(p0.x, p0.y, r, -Math.PI/2, -Math.PI/2 + Math.PI*2*Math.min(1, p)); x.stroke();
-    if(txt && p >= 1){ x.fillStyle = col; x.font = "700 " + (30*L) + "px 'Roboto Condensed',sans-serif"; x.textAlign = "center"; x.textBaseline = "bottom"; x.fillText(txt, p0.x, p0.y - r - 8*L); } };
+    if(txt && p >= 1){ var nb = labs.filter(function(q){ return Math.hypot(q.x-p0.x, q.y-p0.y) < 120; }).length; labs.push(p0);
+      x.fillStyle = col; x.font = "700 " + (30*L) + "px 'Roboto Condensed',sans-serif"; x.textAlign = "center";
+      if(nb % 2){ x.textBaseline = "top"; x.fillText(txt, p0.x, p0.y + r + 8*L + (nb - 1)/2*36*L); }   // вторая подпись — под кругом (сверху бывает край доски)
+      else { x.textBaseline = "bottom"; x.fillText(txt, p0.x, p0.y - r - 8*L - nb/2*36*L); } } };
   var cross = function(p0, p, txt){ if(!p0 || p <= 0) return; var r = 20*L*Math.min(1, p*1.4); x.strokeStyle = red; x.lineWidth = 6*L;
     x.beginPath(); x.moveTo(p0.x - r, p0.y - r); x.lineTo(p0.x + r, p0.y + r); x.moveTo(p0.x + r, p0.y - r); x.lineTo(p0.x - r, p0.y + r); x.stroke();
     if(txt && p >= 1){ x.fillStyle = red; x.font = "600 " + (24*L) + "px 'Roboto Condensed',sans-serif"; x.textAlign = "left"; x.textBaseline = "middle"; x.fillText(txt, p0.x + 28*L, p0.y); } };
@@ -24989,6 +25055,9 @@ function tsBoard(E, T, k, kb){
     else if(f.k === "weakSite" || f.k === "excl" || f.k === "exclProf"){ if(f.T){ arrow(T_SPAWN, SITES[f.T], p, gold); ring(SITES[f.T], 60*L, ease((k - t - 1)/0.8), gold, f.k !== "weakSite" ? (isEn ? "SAVED PLAY" : "ЗАГОТОВКА") : f.T); } }
     else if(f.k === "tSite"){ dots(SITES[f.S], 3, p, "#5a9bd9"); arrow(T_SPAWN, SITES[f.S], p, red); }
     else if(f.k === "retake"){ ring(SITES[f.S], 80*L, p, chalk, isEn ? "RETAKE" : "РЕТЕЙК"); if(GEO.rotator) arrow(GEO.rotator, SITES[f.S], ease((k - t - 0.6)/1), chalk); }
+    else if(f.k === "tempoFast" || f.k === "tempoSlow"){ ring(T_SPAWN, 70*L, p, f.k === "tempoFast" ? gold : chalk, f.k === "tempoFast" ? (isEn ? "FAST" : "БЫСТРО") : (isEn ? "SLOW" : "МЕДЛЕННО")); }   // (v469)
+    else if(f.k === "fake"){ arrow(T_SPAWN, SITES.A, p, chalk); arrow(T_SPAWN, SITES.B, ease((k - t - 1)/1), gold); ring(SITES.A, 60*L, p, chalk, isEn ? "FAKE" : "ФЕЙК"); }
+    else if(f.k === "awpEarly"){ ring(GEO.ctMid, 60*L, p, gold, "AWP"); if(GEO.tMid) arrow(GEO.ctMid, GEO.tMid, ease((k - t - 0.6)/1), gold); }
     else if(f.k === "failed" || f.k === "readSetup"){ /* в подписи доски */ }
     t += step;
   });
@@ -24998,7 +25067,9 @@ function tsBoard(E, T, k, kb){
 // ---------- показ ----------
 function tsStart(T){
   var E = tsEls(); if(!E || !T) return false;
-  var seq = TS_SEQ[rpHash(T.m + "|" + T.round + "|seq") % TS_SEQ.length], at = TS_K.title, S = [{sc: "title", a: 0, b: at}];
+  var si = rpHash(T.m + "|" + T.round + "|seq") % TS_SEQ.length; if(si === TS.lastSeq) si = (si + 1) % TS_SEQ.length; TS.lastSeq = si;
+  var li = rpHash(T.m + "|" + T.round + "|lay") % TS_LAYS.length; if(li === TS.lastLay) li = (li + 1) % TS_LAYS.length; TS.lastLay = li;   // не как в прошлой паузе
+  var seq = TS_SEQ[si], at = TS_K.title, S = [{sc: "title", a: 0, b: at}];
   seq.forEach(function(q){ S.push({sc: q[0], a: at, b: at + q[1]}); at += q[1]; });
   TS.P = {T: T, t0: simTime, lines: tsScript(T), side: T.side, shown: -1, phase: "", manual: false, seq: S, end: at};
   var team = bots.filter(function(b){ return b.team === T.side; }), igl = tsIgl(T.side), en = (RP_LANG[T.name] || "ru") === "en";
@@ -25014,7 +25085,7 @@ function tsStart(T){
     return '<div class="to-card' + (c.id === "coach" ? " coach" : "") + '" data-id="' + c.id + '" style="--i:' + i + '"><div class="to-say"></div><div class="to-ph">' + ph + '<i class="to-eq"><b></b><b></b><b></b><b></b></i></div>' +
       '<div class="to-nm">' + esc(nm) + (tag ? '<i>' + tag + '</i>' : '') + '</div></div>'; }).join("") + '</div><div class="to-log"></div>';
   E.sub.innerHTML = "";
-  E.root.className = "on " + T.side.toLowerCase() + (typeof HUD_REDUCED !== "undefined" && HUD_REDUCED ? " rm" : "");
+  E.root.className = "on " + T.side.toLowerCase() + (TS_LAYS[li] ? " " + TS_LAYS[li] : "") + (typeof HUD_REDUCED !== "undefined" && HUD_REDUCED ? " rm" : "");
   // (v469, п.10 владельца 29.10: «убрать звук перехода — как будто плёнка меняется») свиста на смене кадров паузы нет
   return true;
 }
