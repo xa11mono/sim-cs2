@@ -721,7 +721,7 @@
   <div id="topbar">
     <div class="tb-id">
       <h1>Ancient<span id="matchTick" class="mono" title="Какой матч сейчас идёт и тик — запиши, если увидел баг"></span></h1>
-      <div class="sub mono" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 468, 29.10</div>
+      <div class="sub mono" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 469, 29.10</div>
     </div>
     <div class="tb-group" id="tbMatch">
       <button id="btnPause">Пауза</button>
@@ -3833,7 +3833,42 @@ var MAP3D = (typeof MAP !== "undefined" && MAP.map3d) || null, M3 = null;
 function m3(){
   if(M3 || !MAP3D) return M3;
   M3 = m3Load(MAP3D, zInflate);
+  m3SolidFill(M3);
   return M3;
+}
+// (v469, п.8 владельца 29.10, снимок м1 р5 т24667: zont1x с Catwalk видел ноги NiKo сквозь Triple Box) у некоторых предметов геометрия
+// столкновений — доски с щелями (Triple Box: полки −167…−163, −127…−104, −61…−55), а в игре ящик сплошной. Укрытие набора с пометкой
+// MAP.sightSolid (id → почему) становится сплошным: доски одного ящика — блоки с одинаковыми боковыми гранями; из них — один блок от
+// нижней доски до верхней (те же боковые грани). Блоки проверяет луч (m3Cast) сам, мимо столбиков — щели в столбиках пусты
+function m3SolidFill(M){
+  M.fill = [];
+  var ids = MAP.sightSolid; if(!ids || typeof COVER === "undefined" || !COVER.items) return;
+  var k2 = M.unit / M.cell, P = M.hullP, hb = M.hullBox;
+  COVER.items.forEach(function(it){
+    if(!ids[it.id] || !it.poly) return;
+    var poly = it.poly.map(function(p){ return {x: M.X0 + p[0]*k2, y: M.Y0 - p[1]*k2}; }), G = {};
+    for(var h = 0; h < M.hullFlag.length; h++){
+      if(!(M.hullFlag[h] & 1)) continue;
+      var cx = (hb[h*6] + hb[h*6+3])/2, cy = (hb[h*6+1] + hb[h*6+4])/2; if(!pointInPoly(cx, cy, poly)) continue;
+      var side = [];
+      for(var q = M.hullOff[h]; q < M.hullOff[h+1]; q++) if(Math.abs(P[q*4+2]) < 0.1) side.push([P[q*4], P[q*4+1], P[q*4+2], P[q*4+3]]);
+      if(side.length < 3) continue;
+      var key = side.map(function(s){ return Math.round(s[0]*50)+","+Math.round(s[1]*50)+","+Math.round(s[3]/2); }).sort().join(";");
+      var g = G[key] || (G[key] = {side: side, z0: Infinity, z1: -Infinity, x0: Infinity, y0: Infinity, x1: -Infinity, y1: -Infinity, n: 0});
+      g.n++; g.z0 = Math.min(g.z0, hb[h*6+2]); g.z1 = Math.max(g.z1, hb[h*6+5]);
+      g.x0 = Math.min(g.x0, hb[h*6]); g.y0 = Math.min(g.y0, hb[h*6+1]); g.x1 = Math.max(g.x1, hb[h*6+3]); g.y1 = Math.max(g.y1, hb[h*6+4]);
+    }
+    for(var k in G){ var g = G[k]; if(g.n < 2) continue;   // одна доска — не стопка
+      var pl = g.side.concat([[0, 0, 1, g.z1], [0, 0, -1, -g.z0]]);
+      M.fill.push({p: pl, box: [g.x0, g.y0, g.z0, g.x1, g.y1, g.z1], id: it.id}); }
+  });
+}
+function m3SegPlanes(pl, ax, ay, az, dx, dy, dz){   // как m3SegHull, по списку плоскостей [nx, ny, nz, d] → t входа или −1
+  var t0 = 0, t1 = 1;
+  for(var q = 0; q < pl.length; q++){ var n = pl[q], s = n[0]*ax + n[1]*ay + n[2]*az - n[3], v = n[0]*dx + n[1]*dy + n[2]*dz;
+    if(v === 0){ if(s > 0) return -1; continue; }
+    var t = -s / v; if(v < 0){ if(t > t0) t0 = t; } else if(t < t1) t1 = t; if(t0 > t1) return -1; }
+  return t0;
 }
 // ---------- распаковка zlib (RFC 1950/1951; заголовок 2 байта, хвост adler32 не проверяется) ----------
 var ZI_LB = [3,4,5,6,7,8,9,10,11,13,15,17,19,23,27,31,35,43,51,59,67,83,99,115,131,163,195,227,258];
@@ -4025,6 +4060,13 @@ function m3Cast(M, ax, ay, az, bx, by, bz, kind, first){
     if((i === ei && j === ej) || t1 >= 1) break;
     if(tmx < tmy){ t0 = tmx; tmx += tdx; i += sx; } else { t0 = tmy; tmy += tdy; j += sy; }
   }
+  // (v469) сплошные укрытия (m3SolidFill) — мимо столбиков, по отрезку целиком
+  var FL = M.fill || [];
+  for(var fi = 0; fi < FL.length; fi++){ var F = FL[fi], bx0 = F.box;
+    if(Math.max(wax, wax + wdx) < bx0[0] || Math.min(wax, wax + wdx) > bx0[3] || Math.max(way, way + wdy) < bx0[1] || Math.min(way, way + wdy) > bx0[4] || rzh < bx0[2] || rzl > bx0[5]) continue;
+    var tf = m3SegPlanes(F.p, wax, way, az, wdx, wdy, wdz);
+    if(tf >= 0){ if(!first) return {t: tf}; if(!best || tf < best.t) best = {t: tf, fill: fi}; }
+  }
   if(best && first){   // нормаль — в ед. игры (y игры противоположен y радара), навстречу лучу
     if(best.tri !== undefined){
       var T = M.tri, o = best.tri*9;
@@ -4032,7 +4074,8 @@ function m3Cast(M, ax, ay, az, bx, by, bz, kind, first){
       var nx = e1y*e2z - e1z*e2y, ny = e1z*e2x - e1x*e2z, nz = e1x*e2y - e1y*e2x, L = Math.hypot(nx, ny, nz) || 1;
       if(nx*wdx + ny*wdy + nz*wdz > 0){ nx = -nx; ny = -ny; nz = -nz; }
       best.nx = nx/L; best.ny = ny/L; best.nz = nz/L; best.mat = M.mats[M.triMat[best.tri]];
-    } else {
+    } else if(best.fill !== undefined){ best.nx = 0; best.ny = 0; best.nz = 1; best.mat = "wood"; }
+    else {
       var P = M.hullP, p = best.plane < 0 ? M.hullOff[best.hull] : best.plane;
       best.nx = P[p*4]; best.ny = P[p*4+1]; best.nz = P[p*4+2]; best.mat = M.mats[M.hullMat[best.hull]];
     }
@@ -4679,6 +4722,14 @@ function knownPathSpots(team){
     (knowEnemySpots(team, e.id) || []).forEach(function(q){ if(q.w >= 0.05) L.push({x: q.x, y: q.y, w: q.w}); }); });
   KPC[team] = {tick: tick, m: matchNum, L: L}; return L;
 }   // (док 6) продолжаемые поиски пути этого тика (zoneDijkstra) — ключ: начало и обстановка
+// (v469) штраф отрезка пути за место врага: KNOWN_DETOUR × вес × (длина отрезка внутри круга KNOWN_PATH_R) / диаметр круга
+function knownSegCost(a, b, q){
+  var dx = b.x - a.x, dy = b.y - a.y, L2 = dx*dx + dy*dy; if(L2 < 1e-9) return 0;
+  var fx = a.x - q.x, fy = a.y - q.y, R = KNOWN_PATH_R;
+  var B = 2*(fx*dx + fy*dy), C = fx*fx + fy*fy - R*R, D = B*B - 4*L2*C; if(D <= 0) return 0;
+  var sq = Math.sqrt(D), t0 = Math.max(0, (-B - sq)/(2*L2)), t1 = Math.min(1, (-B + sq)/(2*L2)); if(t1 <= t0) return 0;
+  return KNOWN_DETOUR*q.w*(t1 - t0)*Math.sqrt(L2)/(2*R);
+}
 function zoneDijkstra(fromId, toId, team){
   if(fromId===toId) return [fromId];
   var side = team === "CT" ? zoneSideMap() : null;
@@ -4686,7 +4737,12 @@ function zoneDijkstra(fromId, toId, team){
   // обходит места, где по знанию команды может быть живой враг. (док 6, п.2/7: р3 kyousuke шёл к посту через мид — T там видели 33 с назад,
   // а v450 брала только «видели/слышали ≤ 6 с»; сейв р4 — через мид и Ramp) места — гипотезы знания команды (knowEnemySpots: виден — там,
   // стоит — где был, ушёл — куда мог дойти) с их весом: переход ближе KNOWN_PATH_R к месту дороже на KNOWN_DETOUR × вес. Только путь движения
-  var KP = zoneDijkstra.fire && team ? knownPathSpots(team) : [];
+  // (v469, п.1/7/19 владельца 29.10: обход через весь мид вместо прямого пути — штраф копился на каждом переходе: у сайта участки мелкие,
+  // прямой путь (925) набирал 24 штрафа, обход (1855) — 15; снимки м1 р2, р4, р8) места врагов рядом с целью (≤ KNOWN_PATH_R) не штрафуются —
+  // к цели идти всё равно туда, и все пути кончаются у них (ретейк, плант); штраф — по длине пути внутри круга места (knownSegCost), а не
+  // за переход: сколько ни нарезано участков, пройти круг насквозь стоит KNOWN_DETOUR × вес
+  var tp0 = zoneDijkstra.toPt;
+  var KP = zoneDijkstra.fire && team ? knownPathSpots(team).filter(function(q){ return !tp0 || Math.hypot(q.x-tp0.x, q.y-tp0.y) > KNOWN_PATH_R; }) : [];
   // (док 6, п.6 «зависания»: в тике планта — 1069 поисков пути, 1,08 с; 707 из них — от бомбы к местам-кандидатам сейва, 349 — от бойца к
   // зонам ухода) поиск из одного начала в одной обстановке (тот же тик, команда, точка старта, огонь, известные враги, граф) продолжается
   // с места, где остановился прошлый, а не начинается заново: порядок обхода тот же, что у отдельного поиска до цели, — путь бит в бит
@@ -4709,7 +4765,7 @@ function zoneDijkstra(fromId, toId, team){
       // (v438, док владельца 27.10: «боты часто идут в молик») переход в горящем огне — дороже на FIRE_DETOUR: путь обходит молотов, если обход
       // не длиннее; иначе идёт через огонь (как и раньше — fireCommit / ждёт у края). Только путь движения (buildWaypointPath)
       if(fireOn && inFire(edge.mid.x, edge.mid.y)) w += FIRE_DETOUR;
-      for(var kq = 0; kq < KP.length; kq++) if(Math.hypot(KP[kq].x-edge.mid.x, KP[kq].y-edge.mid.y) < KNOWN_PATH_R) w += KNOWN_DETOUR*KP[kq].w;
+      for(var kq = 0; kq < KP.length; kq++) w += knownSegCost(fromCentroid, edge.mid, KP[kq]);
       var alt = dist[u] + w;
       if(dist[edge.to]===undefined || alt<dist[edge.to]){
         dist[edge.to] = alt; prev[edge.to] = u; entry[edge.to] = edge.mid; heap.push(edge.to, alt);
@@ -4878,7 +4934,7 @@ function buildWaypointPath(fromX, fromY, fromZ, toX, toY, toZ, team, lane){
   if(!pointInPoly(toX, toY, tz.points)){ var cq = navClampInto(tz, toX, toY); toX = cq.x; toY = cq.y; }
   if(!toZ) toZ = navFloorZ(tz, toX, toY);
   if(fz.id === tz.id) return [[toX,toY,toZ||0]];
-  zoneDijkstra.from = {x: fromX, y: fromY}; zoneDijkstra.fire = true;
+  zoneDijkstra.from = {x: fromX, y: fromY}; zoneDijkstra.toPt = {x: toX, y: toY}; zoneDijkstra.fire = true;
   var route = zoneDijkstra(fz.id, tz.id, team);
   // (v450, м19 р1: путь T0 к Tetris из-за молотова на T Ramp ушёл через спавн и Палас — ~1500 ед. обхода) цена огня копится по каждому
   // переходу внутри него, и обход через пол-карты выходил «дешевле». Обход берётся, только если он не длиннее пути через огонь больше чем
@@ -4895,7 +4951,7 @@ function buildWaypointPath(fromX, fromY, fromZ, toX, toY, toZ, team, lane){
   // путь к ближайшему достижимому месту рядом с ней
   if(!route){ zoneDijkstra.nearest = true; route = zoneDijkstra(fz.id, tz.id, team); zoneDijkstra.nearest = false;
     if(route && route[route.length-1] !== tz.id){ var lz = zonesById[route[route.length-1]]; if(lz){ var lc = zoneCentroid(lz); toX = lc.x; toY = lc.y; toZ = lz.z; tz = lz; } } }
-  zoneDijkstra.from = null; zoneDijkstra.fire = false;
+  zoneDijkstra.from = null; zoneDijkstra.toPt = null; zoneDijkstra.fire = false;
   if(!route) return [[toX,toY,toZ||0]]; // disconnected zones — direct line fallback rather than a stuck bot
   var corridor = [], cPair = [];   // cPair — участки по обе стороны перехода (v340)
   for(var i=0;i<route.length-1;i++){
@@ -9526,7 +9582,8 @@ var KNOW_LOG = [];
 // звук дошёл до игрока o: v166 кладёт его в o.heardSound, знание — в o.ears (одно место на «услышал»)
 function hearReal(o, s){
   if(roundState === "live"){ var sb = s.src ? teamBot(s.src) : null;   // (v358) этаж слышно (сверху / снизу) — высота источника
-    (o.ears || (o.ears = [])).push({x:s.x, y:s.y, z: sb ? sb.z : null, tick:tick, team:s.team, kind:s.kind, occl:!!s.occl}); }
+    (o.ears || (o.ears = [])).push({x:s.x, y:s.y, z: sb ? sb.z : null, tick:tick, team:s.team, kind:s.kind, occl:!!s.occl});
+    if(s.z == null && sb) s.z = sb.z; }   // (v469) и в «что услышал» — этаж звука (реакция на контакт: видно ли то место со своего этажа)
   // (v359, отметка владельца: m0NESY услышал флешку sh1ro из Connector в паре метров, а через 1 с молотов zont1x в 230 ед. —
   // «куда смотреть» перескочило на дальний звук, sh1ro вышел и убил) свежий (≤ 1,5 с) звук того же врага вдвое ближе — главнее
   // нового дальнего: взгляд остаётся на нём (знание получает оба — через ears)
@@ -9624,6 +9681,8 @@ function knowValue(zid, side, K){
 function knowEnemySpots(team, id){
   var g = knowGraph();
   for(var i = 0; i < bots.length; i++){ var b = bots[i]; if(!b.alive || b.team !== team || !b.know || !b.know.enemies) continue;
+    // (v469, п.3 владельца: путь kyousuke в первый тик раунда — по знанию прошлого раунда «T на Drop 1.00») знание другого раунда — не знание
+    if(b.know.key !== matchNum + ":" + roundNum) return [];
     var B = b.know.enemies[id]; if(!B) return [];
     if(B.visible) return [{x: B.last.x, y: B.last.y, w: 1}];
     return (B.hyps || []).map(function(h){ var p = h.type === "held" ? h : (h.zone && g.c[h.zone]); return p ? {x: p.x, y: p.y, w: h.weight || 0} : null; }).filter(Boolean);
@@ -13514,19 +13573,25 @@ function contactInfo(b){
   myZ[zoneIdAt3(b.x, b.y, b.z)] = 1; if(b.post) myZ[zoneIdAt3(b.post.x, b.post.y, b.post.z != null ? b.post.z : b.z)] = 1;
   // (док 6, п.11: р10 бросок флешки T на T Ramp дал contact:hold kyousuke на Catwalk и m0NESY на миде — 470 / 531 по прямой, 1215 / 937 по пути)
   // враг, которого не видно, «рядом» по пути (откуда он дойдёт), а не по прямой сквозь стены; видимый — по прямой (он уже стреляет)
-  var take = function(x, y, seen, id){ var d = Math.hypot(x-b.x, y-b.y); if(d >= bd) return; if(!seen){ d = pathLenTo(b, x, y); if(d >= bd) return; }
-    bd = d; best = {x:x, y:y, seen:seen, id:id || null}; };
+  // (v469, п.13/24 владельца 29.10, снимок м1 р6 т31475: m0NESY под балконом «держал контакт» на бросок гранаты из Palace Exit — этажом
+  // выше, оттуда не видно; zont1x в Palace держал контакт на шаги m0NESY под собой) contact hold — держать линию, по которой враг выйдет
+  // (ответ про-аналитика 29.10: на далёкие шаги, пока враг не вошёл в сектор обстрела, и на гранату вдали — не реагировать). Враг, которого
+  // сейчас не видно, — контакт, только если его место (с его этажом) видно отсюда или с поста: иначе держать нечего
+  var inSector = function(x, y, z){ return hasLOS(b.x, b.y, x, y, b.z, z) || (b.post && Math.hypot(b.post.x-b.x, b.post.y-b.y) < 160 && hasLOS(b.post.x, b.post.y, x, y, b.post.z != null ? b.post.z : b.z, z)); };
+  var take = function(x, y, seen, id, z){ var d = Math.hypot(x-b.x, y-b.y); if(d >= bd) return; if(!seen){ d = pathLenTo(b, x, y); if(d >= bd || !inSector(x, y, z)) return; }
+    bd = d; best = {x:x, y:y, z:z, seen:seen, id:id || null}; };
   // (v435, М168, скрин владельца 26.10: после фрага «держит свой контакт» на месте убитого) источник — живой враг: убитый (киллфид)
   // контактом не бывает — ни то, где его видел, ни его звук (раньше их брали ещё 2,5 с после смерти и держали взгляд на трупе)
   var deadSrc = function(id){ var o = id ? teamBot(id) : null; return !!o && !o.alive; };
-  var li = b.lastIntel; if(li && !li.src && tick - li.tick <= CONTACT_AGE*TICK_HZ && !deadSrc(li.id)) take(li.x, li.y, true, li.id);
+  var li = b.lastIntel; if(li && !li.src && tick - li.tick <= CONTACT_AGE*TICK_HZ && !deadSrc(li.id)) take(li.x, li.y, true, li.id, li.z);
   for(var id in BL){ var e = BL[id], ob = teamBot(id); if(!ob || !ob.alive || tick - e.tick > CONTACT_AGE*TICK_HZ) continue;
-    if(trade || myZ[zoneIdAt3(e.x, e.y, e.z)]) take(e.x, e.y, e.src === "spotted", id); }
-  var hs = b.heardSound; if(hs && hs.team && hs.team !== b.team && tick - hs.tick <= CONTACT_AGE*TICK_HZ && !deadSrc(hs.src) && (hs.kind !== "call" || trade || myZ[zoneIdAt3(hs.x, hs.y, hs.z)])) take(hs.x, hs.y, false, hs.src);
+    if(trade || myZ[zoneIdAt3(e.x, e.y, e.z)]) take(e.x, e.y, e.src === "spotted", id, e.z); }
+  // (v469) бросок гранаты (слышно чеку / бросок) — не контакт (ответ про-аналитика: на гранату вдали не реагировать); её место знание получает
+  var hs = b.heardSound; if(hs && hs.team && hs.team !== b.team && hs.kind !== "nade" && tick - hs.tick <= CONTACT_AGE*TICK_HZ && !deadSrc(hs.src) && (hs.kind !== "call" || trade || myZ[zoneIdAt3(hs.x, hs.y, hs.z)])) take(hs.x, hs.y, false, hs.src, hs.z);
   // (v448, док владельца 28.10 №4: у игрока 1 «якорь контакт холд, когда он далеко, не стрелялся и никого не видел») своя флешка —
   // контакт только если кинута себе под пик («флешу себе и выхожу»); раньше любая своя флешка (на сайт за 700 ед.) давала «держу свой контакт»
   var N = b._lastNade; if(!best && N && N.type === "flash" && N.self && tick - N.t >= NADE.flash.fuse - 8 && tick - N.t < NADE.flash.fuse + 40 && Math.hypot(N.x-b.x, N.y-b.y) < CONTACT_R) best = {x:N.x, y:N.y, own:true};
-  return best ? {x:best.x, y:best.y, d:bd, seen:!!best.seen, own:!!best.own, id:best.id || null} : null;
+  return best ? {x:best.x, y:best.y, z:best.z, d:bd, seen:!!best.seen, own:!!best.own, id:best.id || null} : null;
 }
 function contactCritical(b, C){
   if(b.planting || b.defusing) return true;
@@ -13583,6 +13648,10 @@ function contactTick(b){
   var foe = b.team === "CT" ? "T" : "CT", BL = beliefLast[b.team] || {}, nE = 0;
   for(var id in BL){ var e = BL[id], ob = teamBot(id); if(ob && ob.alive && ob.team === foe && tick - BL[id].tick <= 5*TICK_HZ && Math.hypot(e.x-b.x, e.y-b.y) < 900) nE++; }
   var nM = bots.filter(function(o){ return o !== b && o.alive && o.team === b.team && Math.hypot(o.x-b.x, o.y-b.y) < 600; }).length;
+  // (v469, п.14 владельца, снимок м1 р6 т34149: после колла «T на B (~3)» m0NESY пошёл на B, через 2,5 с его остановил contact hold на
+  // люркера и держал 17 с; ответ про-аналитика: ротатор и мидер стягиваются первыми, на одиночного люркера — не отвлекаться) идёт по
+  // задаче команды (ротация, сбор, ретейк), а рядом по знанию один враг — взгляд на него, ноги — на задаче
+  if(b.post && /^(rotate|gather|retake)/.test(b.post.tag) && nE <= 1){ b._contact = {x:C.x, y:C.y, id:C.id, until: tick + CONTACT_HOLD*TICK_HZ, lock:false}; b._contactT = tick; return; }
   // (v418, скрин владельца 25.10: T впятером вышли на A и стреляются с 9-м, 5-й рядом «держит» — врагов 5 > своих 2 + 1) счёт тел не
   // различал «идут на меня» и «стреляются с моим»: свой рядом в бою с этой группой — выходит (стрелять, пока свой ещё жив, — кроссфайр,
   // PRO_PLAY 3: «кроссфайры — хлеб с маслом»). Только то, что игрок знает: свой стреляется рядом (слышно), его противник — в знании команды
@@ -13603,13 +13672,14 @@ function contactTick(b){
   // (v438, док владельца 27.10: точка «выхожу на него» на ящике Short / в Underpath без вида на врага — бот стоял 22 с) точка — на полу
   // своего уровня (не крыша ящика, не другой этаж: navAtLevel) и, если выходит, — оттуда видно место врага (3D-видимость с пола точки).
   // Нет такой — не выходит, держит (точку держать ищем так же, но вид не обязателен: держит угол, откуда враг придёт)
-  var spotOk = function(q, needSee){ var a = b.z == null ? null : navAtLevel(q.x, q.y, b.z); if(b.z != null && !a) return false;
-    return !needSee || hasLOS(q.x, q.y, look.x, look.y, a ? a.z : b.z); };
+  // (v469) и держать — только оттуда, откуда видно место врага (с его этажом): точка «держу» без вида — п.13
+  var spotOk = function(q){ var a = b.z == null ? null : navAtLevel(q.x, q.y, b.z); if(b.z != null && !a) return false;
+    return hasLOS(q.x, q.y, look.x, look.y, a ? a.z : b.z, C.z); };
   var contactSpots = function(sw){ return pickSpots("ct"+b.id+Math.round(look.x/40)+","+Math.round(look.y/40)+(sw ? "s" : "h"), {x:b.x, y:b.y}, 6, {rMax: sw ? CONTACT_SWING : 160, minGap:30, see:[look]})
-    .filter(function(q){ return Math.hypot(q.x-look.x, q.y-look.y) >= 120 && !spotTaken(b, q) && spotOk(q, sw); }); };
+    .filter(function(q){ return Math.hypot(q.x-look.x, q.y-look.y) >= 120 && !spotTaken(b, q) && spotOk(q); }); };
   var cand = contactSpots(swing);
   if(swing && !cand.length){ swing = false; cand = contactSpots(false); }
-  if(hasLOS(b.x, b.y, look.x, look.y, b.z) && !swing) cand.unshift({x:b.x, y:b.y});
+  if(hasLOS(b.x, b.y, look.x, look.y, b.z, C.z) && !swing) cand.unshift({x:b.x, y:b.y});
   cand.sort(swing ? function(a, c){ return Math.hypot(a.x-look.x, a.y-look.y) - Math.hypot(c.x-look.x, c.y-look.y); }
                   : function(a, c){ return Math.hypot(a.x-b.x, a.y-b.y) - Math.hypot(c.x-b.x, c.y-b.y); });
   var sp = cand[0]; if(!sp) return;
@@ -14348,6 +14418,10 @@ function heightBlocked(x1, y1, x2, y2, b){
   // (v336) высота уступа — по полу у края (navStepDz), а не по центрам участков: у наклонного участка центр ниже края
   var a2 = navAt(x2, y2, b.z); if(!a2 || a2 === a1) return false;
   var up = navStepDz(a1, a2, x2, y2); if(up <= 18) return false;   // 18 — ступенька, шагом
+  // (v469, п.15 владельца 29.10, снимок м1 р6 т34970: m0NESY 3 с не мог сдвинуться у края пола под балконом) под точкой шага своего пола
+  // нет, а navAt отдаёт верхний пол над головой (+128) — это не уступ впереди, а потолок: проход под ним; есть ли там свой пол — решает
+  // offNavStep (шаг с пола в стену / ящик). Раньше каждый шаг к пути считался прыжком на +128 и запрещался. 72 — рост стоя (CS2)
+  if(up > 72 && a2.z - b.z > 72 && pointInPoly(x2, y2, a2.points)) return false;
   if(navLinked(a1, a2)) return false;
   return up > JUMP_UP || navLinked(a2, a1);
 }
@@ -14520,6 +14594,11 @@ function throwNade(b, type, tx, ty, lob, why, trusted){
   // (док 6, п.10: CT кидали флешку «ретейк» и смоки «иду в бой», когда живых T уже не было, — м1 р7, р10; у про 16 гранат из ~35 тыс.)
   // живых врагов нет (киллфид знают все) — гранату некуда и незачем: одно место для всех бросков
   if(roundState === "live" && aliveCount(b.team === "CT" ? "T" : "CT") === 0){ NADE_FAIL = "врагов нет"; return false; }
+  // (v469, п.4/26 владельца 29.10, р3 м1: karrigan кинул лайнап-молотов в B Apps, где 5 с стоял смок — молотов сразу погас) дым и огонь
+  // видно и слышно: молотов в дым — погаснет, не летит; смок на свой огонь — потушит свою задержку (ответ про-аналитика: тушить свой
+  // молотов — ошибка; чужой на своём проходе — можно), не летит. Те же касания, что гасят огонь при срабатывании (400)
+  if(type === "molly" && smokes.some(function(sm){ return Math.hypot(sm.x-tx, sm.y-ty) < smokeRadiusNow(sm) + NADE.molly.radius*MOLLY_SMOKE_TOUCH; })){ NADE_FAIL = "в дыму погаснет"; return false; }
+  if(type === "smoke" && fires.some(function(f){ return f.team === b.team && Math.hypot(f.x-tx, f.y-ty) < NADE.smoke.radius + NADE.molly.radius*MOLLY_SMOKE_TOUCH; })){ NADE_FAIL = "потушит свой огонь"; return false; }
   // (аудит 11.10) проверка прямо перед броском: HE / молотов не летит туда, где стоит свой (в радиусе поражения) —
   // бросок отменяется, граната остаётся. Раньше не проверялось: 37 % HE падали в 300 px от своего, урон по своим от
   // гранат — 88 случаев на 12 матчей (у про из 33 тимкиллов 30 — пули, docs/PRO_PLAY.md 6г)
