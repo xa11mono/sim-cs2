@@ -97,8 +97,15 @@ function finishPush(b){
   if((b.team === "CT" && teamTac.CT && teamTac.CT.saving) || (b.team === "T" && teamTac.T && teamTac.T.saving)) return;
   var HT = teamIntel[b.team].hurt; if(!HT) return;
   b._finNext = tick + 16;
+  // (v469, п.6/25 владельца 29.10: «пикают, дамажат и стоят ждут — должен выйти и добить») ответ про-аналитика 29.10: добивают раненого,
+  // которому хватит одного попадания (HP ≤ 20), или при численном перевесе (ближний с хорошим HP идёт первым — свой следом разменяет);
+  // нельзя: CT при равных или меньших силах (опорник держит позицию и тянет время), и винтовкой в упор против эко (пистолеты сильнее вблизи)
+  var foeT = b.team === "CT" ? "T" : "CT", nOwn = aliveCount(b.team), nEn = aliveCount(foeT);
+  if(b.team === "CT" && nOwn <= nEn) return;
+  var BR = teamIntel[b.team].buy; if(BR && BR.read === "eco" && b.primary && WEAPONS[b.primary].tier >= 5) return;
+  var hpMax = nOwn >= nEn + 1 ? 35 : 20;   // 20 — ответ про-аналитика; 35 при перевесе — прежнее проектное число (v334)
   var BL = beliefLast[b.team] || {}, tgt = null, tid = null;
-  for(var eid in HT){ var h = HT[eid]; if(h.hp > 35 || tick - h.tick > 8*TICK_HZ) continue;
+  for(var eid in HT){ var h = HT[eid]; if(h.hp > hpMax || tick - h.tick > 8*TICK_HZ) continue;
     var e = bots.filter(function(o){ return o.id === eid; })[0]; if(!e || !e.alive) continue;
     var lo = BL[eid]; if(!lo || tick - lo.tick > 4*TICK_HZ || Math.hypot(lo.x-b.x, lo.y-b.y) > 600) continue;
     if(bots.some(function(o){ return o !== b && o.alive && o.team === b.team && o.post && o.post.tag === "repos:finish" && o._finId === eid; })) continue; // уже идёт другой

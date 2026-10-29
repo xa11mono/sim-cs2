@@ -158,7 +158,7 @@ var ENTRY_WAIT = 128;   // (v375) 2 с: напарник на размен у в
 var TASK_LEVEL = [   // сверху — важнее; первая подходящая строка
   {lv:11, kind:"бомба",              re:/^(flee|defuse|stopplant|antidefuse|plantspot)$/},
   {lv:10, kind:"выжить",             re:/^save/},
-  {lv:9,  kind:"бой",                re:/^(contact|tradeR$|repos:killmove)/},
+  {lv:9,  kind:"бой",                re:/^(contact|tradeR$|repos:killmove|repos:finish)/},   // (v469, п.25) добить раненого — тоже бой, контакт его не перебивает
   {lv:8,  kind:"ретейк/сбор/ротация",re:/^(retake|gather|rotate$|rotate:|bombwatch|postplant|fetch$)/},
   {lv:7,  kind:"эндгейм/клатч",      re:/^(endhunt|hunt$|clutch)/},   // охота на последних — общий план команды, как и было (замок эндгейма)
   {lv:6,  kind:"перестановка в бою", re:/^repos/},
