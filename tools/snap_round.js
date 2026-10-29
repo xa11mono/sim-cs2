@@ -23,6 +23,19 @@ const { chromium } = require('playwright'); const fs = require('fs'), path = req
     return JSON.stringify({info: info, snap: snap});
   } + ')(' + m + ',' + r + ',' + N + ')'), [+m, +r, N]);
   const R = JSON.parse(res);
+  // проверка: тот же снимок — в новой странице, те же тики; отпечаток должен совпасть с непрерывной игрой (бит в бит)
+  const pg2 = await br.newPage(); await pg2.route(/^https?:/, q=>q.abort());
+  await pg2.goto(url.pathToFileURL(path.resolve(sim)).href); await pg2.waitForFunction(() => typeof window.__ev === 'function', null, {timeout: 60000});
+  await pg2.waitForTimeout(1000);
+  await pg2.evaluate((t) => { window.__SNAPTXT = t; }, R.snap);
+  const h2 = await pg2.evaluate((N) => window.__ev('(' + function(N){
+    paused = true; mkOpenSnap(window.__SNAPTXT);
+    var h = 2166136261 >>> 0, F = new Float64Array(1), U = new Uint32Array(F.buffer);
+    var mix = function(v){ F[0] = +v || 0; h = Math.imul(h ^ U[0], 16777619) >>> 0; h = Math.imul(h ^ U[1], 16777619) >>> 0; };
+    for(var t = 0; t < N; t++){ stepTick(); bots.forEach(function(b){ mix(b.x); mix(b.y); mix(b.facing); mix(b.hp); mix(b.money); }); }
+    return h;
+  } + ')(' + N + ')'), N);
+  R.info.restored = {hash: h2, same: h2 === R.info.after.hash};
   fs.writeFileSync(path.join(out, 'snap_m' + m + 'r' + r + '.json'), R.snap);
   fs.writeFileSync(path.join(out, 'info.txt'), JSON.stringify(R.info) + '\n'); console.log(JSON.stringify(R.info), 'снимок', R.snap.length, 'байт');
   await br.close();

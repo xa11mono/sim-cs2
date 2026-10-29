@@ -192,6 +192,6 @@ function tsReplayLast(){
   var b = document.getElementById("btnToLast"); if(b) b.addEventListener("click", tsReplayLast);
   var f = document.getElementById("btnToTake"); if(f) f.addEventListener("click", function(){ TO_FORCE = true; if(typeof showBanner === "function") showBanner("Пауза: возьмёт команда, проигравшая этот раунд", null, 2200); });
   // (v461) раунды для просмотра — из замера v461 на ПК (16 матчей): клатч 1v5 (м17 р27), пауза T, раунд взяли (м13 р7)
-  var c = document.getElementById("btnRpGo"); if(c) c.addEventListener("click", function(){ rpGoto(17, 27); });
-  var g = document.getElementById("btnToGo"); if(g) g.addEventListener("click", function(){ rpGoto(13, 7); });
+  var c = document.getElementById("btnRpGo"); if(c) c.addEventListener("click", function(){ rpJump(17, 27); });
+  var g = document.getElementById("btnToGo"); if(g) g.addEventListener("click", function(){ rpJump(13, 7); });
 })();

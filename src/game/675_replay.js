@@ -478,6 +478,23 @@ function rpEmotions(E, R){
 }
 // ---------- переход к раунду (найти и посмотреть клатч): #round=матч.раунд в адресе или rpGoto(матч, раунд) ----------
 // Матч перематывается тиками без отрисовки до закупки нужного раунда — дальше идёт обычным ходом (тот же матч бит в бит)
+// (v462) мгновенный переход: готовый снимок игры на закупке раунда (посчитан на ПК, tools/snap_round.js; лежит в хранилище файлов
+// страницы) — открывается как снимок отметки (mkOpenSnap), дальше игра идёт теми же тиками. Нет снимка или не загрузился — rpGoto
+var RP_SNAPS = {/*@@RP_SNAPS@@*/};
+function rpJump(m, r){
+  var u = RP_SNAPS[m + "." + r];
+  if(!u || typeof mkOpenSnap !== "function" || typeof fetch !== "function"){ rpGoto(m, r); return; }
+  var tg = document.createElement("div"); tg.className = "mk-prog"; tg.textContent = "открываю матч " + m + ", раунд " + r + "…"; wrap.appendChild(tg);
+  fetch(u.url).then(function(q){ if(!q.ok) throw new Error("HTTP " + q.status); return q.text(); }).then(function(t){
+    if(WARM.on) WARM = {on: false};
+    if(RP.on) rpEnd(); RP.rec = null; RP.pending = null; if(typeof TS !== "undefined"){ TS.lastRound = -1; if(TS.P) tsEnd(); }
+    mkOpenSnap(t); tg.remove(); paused = false;
+    var bp = document.getElementById("btnPause"); if(bp){ bp.textContent = "Пауза"; bp.classList.remove("active"); }
+    if(typeof OBS !== "undefined") OBS.sc = 0;
+    logEvent("Матч №" + m + ", раунд " + roundNum + " — открыт из готового снимка", true);
+    if(u.fp && typeof mkFp === "function" && mkFp() !== u.fp) showBanner("Свои правки карты или настройки — дальше матч может пойти иначе", null, 3500);
+  }).catch(function(e){ tg.remove(); logEvent("Снимок не открылся (" + (e && e.message) + ") — перематываю тиками", true); rpGoto(m, r); });
+}
 function rpGoto(m, r){
   m = Math.max(1, m|0); r = Math.max(1, r|0);
   freshMatch(m); paused = true; RP.rec = null; RP.pending = null; if(RP.on) rpEnd();
