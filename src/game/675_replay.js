@@ -12,9 +12,14 @@ var RP_K = {
   merge: 1.6,         // моменты ближе merge с — один кусок
   maxClip: 20,        // клип длиннее maxClip с игры — короче запас до и после
   slowR: 0.45, slow: 0.3,   // замедление ×slow в slowR с вокруг фрага
-  cut: 0.5,           // переход между кусками (затемнение), с
+  cut: 0.6,           // переход между кусками (наложение кадров), с
   startDelay: 1.3,    // повтор начинается через startDelay с после конца раунда (видно карточку раунда и баннер)
-  emo: 7,             // эмоции игроков, с
+  emo: 2.2,           // эмоции: после последней реплики экран ещё стоит emo с
+  typing: 0.45,       // реплика: «печатает…» перед фразой, с
+  sayMin: 1.1,        // реплика держится до следующей не меньше, с (с голосом — пока голос не кончится, не дольше sayMax)
+  sayMax: 3.6,
+  quiet: 0.85,        // реплика без голоса — до следующей, с
+  voices: 5,          // сколько реплик озвучено (клатчер, двое своих, двое соперников) — остальные только текстом
   intro: 0.7, outro: 0.5,
   tracer: 0.22        // след выстрела в повторе, с игры
 };
@@ -43,16 +48,17 @@ function showSnd(kind, g){
     else if(kind === "pop"){ sndTone(g || 0.1, 0.07, 1100, "triangle", 0, 1700); }
   }catch(e){}
 }
-function showSay(text, lang, lvl, who){
-  if(!SHOW_TTS || typeof SND === "undefined" || !SND.on || typeof speechSynthesis === "undefined") return;
+function showSay(text, lang, lvl, who, onEnd){
+  if(!SHOW_TTS || typeof SND === "undefined" || !SND.on || typeof speechSynthesis === "undefined") return false;
   try{
     var u = new SpeechSynthesisUtterance(String(text).toLowerCase()), L = lang === "en" ? "en-US" : "ru-RU", h = rpHash(who || "x");
     u.lang = L; u.pitch = 0.8 + (h % 40)/100; u.rate = lvl === 3 ? 1.15 : lvl === 1 ? 0.95 : 1.05; u.volume = (lvl === 1 ? 0.55 : lvl === 3 ? 1 : 0.85)*(SND.vol != null ? SND.vol : 0.85);
     var vs = speechSynthesis.getVoices().filter(function(v){ return v.lang && v.lang.toLowerCase().indexOf(L.slice(0, 2).toLowerCase()) === 0; });
     if(vs.length) u.voice = vs[h % vs.length];
     if(speechSynthesis.pending) speechSynthesis.cancel();   // не копить очередь: реплика, которая уже на экране, важнее старой
-    speechSynthesis.speak(u);
-  }catch(e){}
+    if(onEnd){ u.onend = onEnd; u.onerror = onEnd; }
+    speechSynthesis.speak(u); return true;
+  }catch(e){ return false; }
 }
 function showHush(){ try{ if(typeof speechSynthesis !== "undefined") speechSynthesis.cancel(); }catch(e){} }
 var RP_NB = 9;   // чисел на игрока в снимке: x, y, взгляд, жив, hp, присел, этаж (-1 под полом / 1 над), плант(+)/дефуз(−) 0..1, ослеплён
@@ -240,25 +246,33 @@ function rpFrame(ts){
   dpr = 1;   // (v463) кадр повтора рисует draw игры — в пикселях CSS, как основной холст
   if(E.cv.width !== W || E.cv.height !== H){ E.cv.width = W; E.cv.height = H; }
   var x = E.ctx, R = P.R, el = (now - P.ph0)/1000;
-  var go = function(ph){ P.phase = ph; P.ph0 = now; el = 0; if(ph === "cut" || ph === "clip" || ph === "emo") showSnd("whoosh"); };
+  // (v465, владелец: «между повторами моргание и цокает») переход между кусками — без затемнения и без свиста: последний кадр прошлого
+  // куска растворяется в новом за RP_K.cut с (наложение, как монтаж трансляции)
+  var go = function(ph){ P.phase = ph; P.ph0 = now; el = 0; };
   if(P.phase === "intro"){ if(el >= RP_K.intro) go(P.segs.length ? "clip" : "emo"); }
   if(P.phase === "clip"){
     var sg = P.segs[P.si], sp = rpSpeed(P);
     P.rt += dt*TICK_HZ*sp;
     E.slow.className = "rp-slow" + (sp < 0.9 ? " on" : "");
-    if(P.rt >= sg.b){ if(P.si + 1 < P.segs.length) go("cut"); else go(P.mode === "clip" ? "out" : "emo"); }
+    if(P.rt >= sg.b){
+      if(P.si + 1 < P.segs.length){
+        var xc = P.xfc || (P.xfc = document.createElement("canvas")); xc.width = E.cv.width; xc.height = E.cv.height;
+        xc.getContext("2d").drawImage(E.cv, 0, 0); P.xfT = now; P.si++; P.rt = P.segs[P.si].a; P.cam = null;
+      } else go(P.mode === "clip" ? "out" : "emo");
+    }
   }
-  if(P.phase === "cut" && el >= RP_K.cut){ P.si++; P.rt = P.segs[P.si].a; P.cam = null; go("clip"); }
-  if(P.phase === "emo" && !P.emoOn){ if(!P.drawn) rpDraw(E, x, P, dt, W, H, dpr); rpBlurBg(E, x); rpEmotions(E, R); rpEmotionSounds(R); P.emoOn = true; E.root.classList.add("emo"); E.slow.className = "rp-slow"; }
-  if(P.phase === "emo" && el >= RP_K.emo) go("out");
+  if(P.phase === "emo" && !P.emoOn){ if(!P.drawn) rpDraw(E, x, P, dt, W, H, dpr); rpBlurBg(E, x); rpEmotions(E, R, P); P.emoOn = true; E.root.classList.add("emo"); E.slow.className = "rp-slow"; }
+  if(P.phase === "emo" && P.emoOn && rpTalkTick(E, P, now)) go("out");
   if(P.phase === "out" && el >= RP_K.outro){ rpEnd(); return false; }
   // картинка: клип и переходы — радар из записи; эмоции — размытый последний кадр (нарисован один раз)
   if(!P.emoOn) rpDraw(E, x, P, dt, W, H, dpr);
+  if(P.xfT != null && !P.emoOn){ var xa = 1 - (now - P.xfT)/1000/RP_K.cut;
+    if(xa > 0 && P.xfc.width === E.cv.width && P.xfc.height === E.cv.height){ var cx2 = E.ctx; cx2.setTransform(1,0,0,1,0,0); cx2.globalAlpha = xa*xa*(3 - 2*xa); cx2.drawImage(P.xfc, 0, 0); cx2.globalAlpha = 1; }
+    else P.xfT = null; }
   // затемнение: начало, переход, конец
   var shade = 0;
   if(P.phase === "intro") shade = 1;   // титр на чёрном
-  if(P.phase === "cut"){ var h = RP_K.cut/2; shade = el < h ? el/h : Math.max(0, 1 - (el - h)/h); }
-  if(P.phase === "clip" && P.rt - P.segs[P.si].a < 0.25*TICK_HZ) shade = Math.max(0, 1 - (P.rt - P.segs[P.si].a)/(0.25*TICK_HZ));
+  if(P.phase === "clip" && P.si === 0 && P.rt - P.segs[P.si].a < 0.25*TICK_HZ) shade = Math.max(0, 1 - (P.rt - P.segs[P.si].a)/(0.25*TICK_HZ));
   if(P.phase === "out") shade = Math.min(1, el/RP_K.outro);
   E.shade.style.opacity = shade.toFixed(3);
   E.root.classList.toggle("intro", P.phase === "intro");
@@ -342,7 +356,7 @@ function rpSound(P, R, ci){
   var r = cv.getBoundingClientRect(), c = navScreenToWorld(r.left + r.width/2, r.top + r.height/2);
   var mv = function(x, y){ return {x: c.x + (x - P.cam.x), y: c.y + (y - P.cam.y)}; }, n = 0;
   for(var j = rpTrFrom(R, from); j < R.tr.length && R.tr[j].t <= P.rt && n < 3; j++){ var T = R.tr[j]; if(T.t <= from) continue;
-    var q = mv(T.x1, T.y1); sndShot({key: T.wc === "awp" ? "AWP" : T.wc === "deagle" ? "DEAGLE" : T.wc === "pistol" ? "USP" : T.wc === "smg" ? "MP9" : "M4"}, q.x, q.y); n++; }
+    var q = mv(T.x1, T.y1); sndShot(T.wk ? {key: T.wk, silenced: T.sil} : {key: T.wc === "awp" ? "AWP" : T.wc === "deagle" ? "DEAGLE" : T.wc === "pistol" ? "USP" : T.wc === "smg" ? "MP9" : "M4"}, q.x, q.y); n++; }   // (v465) звук — точного оружия выстрела (wk, глушитель), раньше — по классу следа: AK звучал как M4
   var I = rpAt(R, P.rt), J = rpAt(R, from), a1 = I.A.b[ci*RP_NB+7], a0 = J.A.b[ci*RP_NB+7];
   if(a1 < 0 && !(a0 < 0)){ var q2 = mv(I.A.b[ci*RP_NB], I.A.b[ci*RP_NB+1]); sndBomb("defuse", q2.x, q2.y); }
   R.kills.forEach(function(k){ if(k.att === R.clutch.id && k.t > from && k.t <= P.rt) showSnd("hit", 0.25); });
@@ -488,22 +502,47 @@ function rpSay(R, id, side){
   }
   return rpPick(RP_SAY[lang][cat], id, R);
 }
-function rpEmotionSounds(R){
-  var C = R.clutch, win = C.side, lose = win === "CT" ? "T" : "CT", lw = RP_LANG[R.team[win]] || "ru", ll = RP_LANG[R.team[lose]] || "ru";
-  var said = 0;
-  [win, lose].forEach(function(side){
-    var ids = bots.filter(function(b){ return b.team === side; }).map(function(b){ return b.id; });
-    if(side === win){ ids.sort(function(a, b){ return (a === C.id ? 0 : 1) - (b === C.id ? 0 : 1); }); var c0 = ids.shift(); ids.splice(Math.floor(ids.length/2), 0, c0); }
-    ids.forEach(function(id, i){
-      var d = side === win ? 750 + i*90 : 1800 + i*80, say = rpSay(R, id, side);
-      setTimeout(function(){ if(!RP.on) return; showSnd("chat", say.lvl === 1 ? 0.35 : 0.6);
-        // голос: герой, громкий тиммейт и один из соперников — больше трёх голосов разом не разобрать
-        if((id === C.id || (side === win && say.lvl === 3 && said < 2) || (side === lose && said < 3)) && said < 3){ said++; showSay(say.t, side === win ? lw : ll, say.lvl, id); }
-      }, d);
-    });
-  });
+// (v465, владелец: «фразы уже готовые висят — надо как на паузах, что они говорят по очереди») реакции — по очереди: карточка
+// подсвечивается, над ней «…» (печатает), потом фраза, звук чата и голос; следующий — когда голос кончился (без голоса — через RP_K.quiet с).
+// Сказанное остаётся, приглушённое. Порядок: клатчер → свои → соперники (сначала его жертвы). Раньше 10 голосов запускались за 1,5 с
+// и сбрасывали друг друга (showSay отменяет очередь) — слышно было одну-две реплики
+function rpTalkOrder(R){
+  var C = R.clutch, win = C.side, lose = win === "CT" ? "T" : "CT", L = [];
+  var ids = function(side){ return bots.filter(function(b){ return b.team === side; }).map(function(b){ return b.id; }); };
+  var w = ids(win).filter(function(id){ return id !== C.id; }).sort(function(a, b){ return rpSay(R, b, win).lvl - rpSay(R, a, win).lvl; });
+  var l = ids(lose).sort(function(a, b){ var sa = R.st[a] || {}, sb = R.st[b] || {}; return ((sb.killer === C.id) - (sa.killer === C.id)) || (rpSay(R, b, lose).lvl - rpSay(R, a, lose).lvl); });
+  L.push({id: C.id, side: win}); w.forEach(function(id){ L.push({id: id, side: win}); }); l.forEach(function(id){ L.push({id: id, side: lose}); });
+  var vw = 0, vl = 0;
+  L.forEach(function(q){ q.say = rpSay(R, q.id, q.side); q.lang = RP_LANG[R.team[q.side]] || "ru";
+    q.voice = q.id === C.id || (q.side === win ? vw++ < 2 : vl++ < 2); });
+  return L;
 }
-function rpEmotions(E, R){
+function rpTalkCard(E, q){ var c = E.emo.querySelector('.rp-card[data-id="' + q.id + '"]'); return {c: c, s: c && c.querySelector(".rp-say")}; }
+function rpTalkStart(E, T, now){
+  var q = T.L[T.i], k = rpTalkCard(E, q); T.st = "type"; T.t0 = now;
+  if(k.c) k.c.classList.add("talking"); if(k.s) k.s.className = "rp-say lvl" + q.say.lvl + " typing";
+}
+// true — все сказали и экран постоял RP_K.emo с
+function rpTalkTick(E, P, now){
+  var T = P.talk; if(!T) return true;
+  var el = (now - T.t0)/1000;
+  if(T.i >= T.L.length) return el >= RP_K.emo;
+  if(T.st === "wait"){ if(el >= 0.9) rpTalkStart(E, T, now); return false; }   // портреты встали — первый начинает
+  var q = T.L[T.i], k = rpTalkCard(E, q);
+  if(T.st === "type"){
+    if(el < RP_K.typing) return false;
+    T.st = "say"; T.t0 = now; T.voiceEnd = true;
+    if(k.s) k.s.className = "rp-say lvl" + q.say.lvl + " in";
+    showSnd("chat", q.say.lvl === 1 ? 0.35 : 0.6);
+    if(q.voice){ var tk = T.tok = {}; T.voiceEnd = false; if(!showSay(q.say.t, q.lang, q.say.lvl, q.id, function(){ if(T.tok === tk) T.voiceEnd = true; })) T.voiceEnd = true; }
+    return false;
+  }
+  if(el < (q.voice ? RP_K.sayMin : RP_K.quiet) || (!T.voiceEnd && el < RP_K.sayMax)) return false;
+  if(k.c){ k.c.classList.remove("talking"); k.c.classList.add("said"); }
+  T.i++; T.t0 = now; if(T.i < T.L.length) rpTalkStart(E, T, now);
+  return false;
+}
+function rpEmotions(E, R, P){
   var C = R.clutch, win = C.side, lose = win === "CT" ? "T" : "CT";
   var row = function(side, mood){
     var ids = bots.filter(function(b){ return b.team === side; }).map(function(b){ return b.id; });
@@ -512,8 +551,8 @@ function rpEmotions(E, R){
       var st = R.st[id] || {}, hero = id === C.id, say = rpSay(R, id, side);
       var vx = R.vox && R.vox[id];
       var pp = PLAYER_PHOTO[R.nick[id]], ph = pp ? '<img alt="" src="' + pp + '">' : PL_SIL;   // (v463) фото — того, кто играл раунд (после раунда стороны могли смениться)
-      return '<div class="rp-card' + (hero ? ' hero' : '') + (st.alive ? '' : ' dead') + '" style="--i:' + i + '">' +
-        '<div class="rp-say lvl' + say.lvl + '"><b>' + esc(say.t) + '</b></div>' +
+      return '<div class="rp-card' + (hero ? ' hero' : '') + (st.alive ? '' : ' dead') + '" data-id="' + id + '" style="--i:' + i + '">' +
+        '<div class="rp-say lvl' + say.lvl + '"><b>' + esc(say.t) + '</b><u><i></i><i></i><i></i></u></div>' +
         '<div class="rp-ph">' + ph + '</div>' +
         '<div class="rp-nm"><span>' + esc(R.nick[id] || id) + '</span>' + (st.k ? '<i>' + st.k + ' уб.</i>' : '') + '</div>' +
         '<div class="rp-vx" title="последнее в войсе за раунд">' + (vx ? '«' + esc(vx) + '»' : '') + '</div></div>';
@@ -527,6 +566,7 @@ function rpEmotions(E, R){
     (function(){ var V = rpVoiceClutch(R); if(!V.length) return "";
       return '<div class="rp-air"><div class="rp-air-h">в эфире во время клатча</div>' + V.map(function(v, i){
         return '<div class="rp-vl ' + String(v.team).toLowerCase() + '" style="--i:' + i + '"><b>' + esc(v.who) + '</b><span>' + esc(v.text) + '</span></div>'; }).join("") + '</div>'; })();
+  P.talk = {L: rpTalkOrder(R), i: 0, st: "wait", t0: performance.now()};
 }
 // ---------- переход к раунду (найти и посмотреть клатч): #round=матч.раунд в адресе или rpGoto(матч, раунд) ----------
 // Матч перематывается тиками без отрисовки до закупки нужного раунда — дальше идёт обычным ходом (тот же матч бит в бит)

@@ -450,10 +450,19 @@
   /* что кричит — пузырь над портретом; победители «кричат» (встряска), проигравшие — тихо */
   #rp .rp-say{position:absolute;bottom:calc(100% - 14px);left:50%;transform:translateX(-50%);z-index:1;white-space:nowrap;padding:6px 11px;border-radius:3px;
     background:var(--bubble);color:var(--bubble-ink);font-size:15px;font-weight:700;letter-spacing:.02em;box-shadow:0 6px 18px -6px rgba(0,0,0,.7);
-    animation:rpSay .4s var(--spring) both;animation-delay:calc(var(--i)*90ms + .75s);}
+    opacity:0;transition:opacity .25s;}
+  /* (v465) реакции по очереди: «…» — печатает, .in — сказал (появление), .said — сказанное приглушено; говорящий подсвечен */
+  #rp .rp-say u{display:none;text-decoration:none;gap:4px;padding:2px 2px;} #rp .rp-say u i{width:6px;height:6px;border-radius:50%;background:currentColor;opacity:.35;animation:rpDot 1s infinite;}
+  #rp .rp-say u i:nth-child(2){animation-delay:.15s;} #rp .rp-say u i:nth-child(3){animation-delay:.3s;}
+  @keyframes rpDot{0%,60%,100%{opacity:.3;transform:none;}30%{opacity:1;transform:translateY(-3px);}}
+  #rp .rp-say.typing{opacity:1;} #rp .rp-say.typing b{display:none!important;} #rp .rp-say.typing u{display:inline-flex;}
+  #rp .rp-say.in{opacity:1;animation:rpSay .4s var(--spring) both;}
+  #rp .rp-card.said .rp-say{animation:none;opacity:.5;transform:translateX(-50%) scale(.9);transition:opacity .5s,transform .5s;}
+  #rp .rp-card .rp-ph{transition:transform .3s var(--spring),box-shadow .3s,opacity .3s;}
+  #rp .rp-card.talking{z-index:2;} #rp .rp-card.talking .rp-ph{transform:translateY(-6px) scale(1.06);opacity:1!important;box-shadow:0 0 0 2px var(--mark),0 12px 36px -8px rgba(231,200,115,.6);}
   #rp .rp-say::after{content:"";position:absolute;top:100%;left:50%;margin-left:-6px;border:6px solid transparent;border-top-color:var(--bubble);}
   /* громкость: 3 — крик (встряска), 2 — обычно, 1 — тихо */
-  #rp .rp-say.lvl3 b{display:inline-block;animation:rpShout .32s ease-in-out calc(var(--i)*90ms + 1.15s) 4 alternate;}
+  #rp .rp-say.lvl3.in b{display:inline-block;animation:rpShout .32s ease-in-out .3s 4 alternate;}
   #rp .rp-row.hype .rp-say.lvl2{font-weight:600;}
   #rp .rp-row.hype .rp-say.lvl1{font-size:12px;font-weight:500;font-style:italic;background:rgba(255,255,255,.78);padding:4px 9px;}
   #rp .rp-row.hype .rp-say.lvl1::after{border-top-color:rgba(255,255,255,.78);}
@@ -461,7 +470,7 @@
   #rp .rp-row.sad .rp-say.lvl2{color:var(--text);font-style:normal;}
   #rp .rp-card.hero .rp-say{background:var(--hero);font-size:18px;} #rp .rp-card.hero .rp-say::after{border-top-color:var(--hero);}
   #rp .rp-row.sad .rp-say{background:rgba(20,24,18,.92);color:var(--text-dim);font-weight:500;font-style:italic;font-size:12px;
-    animation-delay:calc(var(--i)*80ms + 1.8s);}
+}
   #rp .rp-row.sad .rp-say::after{border-top-color:rgba(20,24,18,.92);}
   /* у проигравших карточки узкие: фраза в 2 строки, через одну — выше, чтобы соседние не налезали */
   #rp .rp-row.sad .rp-say{white-space:normal;width:max-content;max-width:min(13vw,138px);text-align:center;line-height:1.25;}
