@@ -329,6 +329,8 @@ CT идёт через зону с ролью `CTspawn`.
   `coachPlan` (факты с числами → `TOUT[side].plan`, действует `TO_PLAN_ROUNDS` раунда в `chooseTactic` / `chooseCtSetup`),
   `TO_NOW` — пауза перед следующим раундом (закупка + `TO_SEC` в `resetRound`). Показ (676, `tsFrame` после `rpFrame` в кадре):
   сцены по времени игры; в сцене «спавн» показ сам ставит камеру, обсервер ждёт.
+- (v462) Звук и голос показа — одно место `showSnd` / `showSay` / `showHush` (675). Мгновенный переход к раунду — `rpJump`: готовый
+  снимок (`RP_SNAPS`, хранилище файлов страницы) → `mkOpenSnap`; снимки считает `tools/snap_round.js` (на ПК, с проверкой бит в бит).
 - Запись в страницу (табло, панели, HUD) — через `domText` / `domClass` / `domHtml` (640): пишется только изменившееся. Новые
   панели писать так же; прямой `innerHTML` / `textContent` каждый кадр снова даёт пересчёт раскладки всей страницы.
 - Замер кадра: `node tools/measure/frame_prof.js sim.html 40 out.json 7` → `python3 tools/measure/frame_rep.py out.json` (время
