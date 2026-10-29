@@ -150,7 +150,7 @@ function lineupTick(){
     var okBot = function(b){ if(!(b.team === L.team && b.alive && b.nades && b.nades[L.type] > 0 &&
       !b.planting && !b.defusing && !(bomb.state === "carried" && bomb.carrier === b))) return false;
       var S = spotOf(b); if(!S || (!(L.pro && L.grp) && !npCanUse(b, L.type, luM, luZ))) return false;
-      var F = S.from; return Math.hypot(b.x-F.x, b.y-F.y) < maxD && pathLenTo(b, F.x, F.y) < maxD; };
+      var F = S.from; return Math.hypot(b.x-F.x, b.y-F.y) < maxD && pathLenTo(b, F.x, F.y) < maxD && !luBehind(b, F); };
     // (v359, р7) кто уже стоит на сайте T (взял его) — с сайта за гранатой назад не уходит
     var onTSite = function(b){ var S = L.team === "T" && tt && SITES[tt.site]; return !!S && (onSite(S, b.x, b.y) || Math.hypot(b.x-S.x, b.y-S.y) < 450) && Math.hypot(L.from.x-S.x, L.from.y-S.y) > Math.hypot(b.x-S.x, b.y-S.y) + 200; };
     var cand = bots.filter(function(b){ return okBot(b) && !b.nadeTask && !onTSite(b); }).sort(function(a, b2){ return cost(a) - cost(b2); })[0];
@@ -227,12 +227,28 @@ var LU_REACH_PAD = 3;
 // (док 6) точка броска цели L для бойца b: среди лайнапов той же цели (группа про, 320) своей стороны и сайта — ближайшая по пути из тех,
 // откуда ему можно: хозяину цели по плану гранат — любая; остальным — в зоне его гранаты (npCanUse) или (CT) в зоне, где он сейчас стоит.
 // Зона точки — как у плана: CT — откуда бросок, T — куда падает; колл, ретейк, после планта — зона не важна. Нет такой — null
+// (п.6 владельца 29.10, м1 р3 т15885: kyousuke шёл в Short, пробежал Window — и получил HE Cart с Window, назад 460 ед.; «почему он не мог
+// дойти до точки изначальной… если по таймингу должен был кинуть, то тогда её надо было кидать игроку 6, а это уже его проблема, что не
+// купил гранаты») точка броска не по пути: бот идёт к своей точке (пост не достигнут), а дорога через точку броска — в основном крюк
+// — эту гранату ему не дают
+var LU_DETOUR_K = 0.5;   // проектное число: доля дороги до точки броска, которая может быть крюком
+function luBehind(b, F){
+  var P = b.post; if(!P || b.atPost || P.tag === "lineup") return false;
+  // обе длины — одной меркой: путь команды (цена за известных врагов), от бота — с его этажа (pathPts берёт z 0: у Doors уходил на другой пол)
+  var Q = PATHQ_Q, fp = pathQ("lb"+b.team+"|"+Math.round(F.x/Q)+","+Math.round(F.y/Q)+">"+Math.round(P.x/Q)+","+Math.round(P.y/Q), function(){ return buildWaypointPath(F.x, F.y, 0, P.x, P.y, 0, b.team); });
+  var L = 0, px = F.x, py = F.y; fp.forEach(function(q){ L += Math.hypot(q[0]-px, q[1]-py); px = q[0]; py = q[1]; });
+  // «не по пути»: крюк (до точки броска + от неё до своей точки − прямо) больше половины дороги до точки броска (½ — проектное число).
+  // На снимке п.6: до Window 662, от Window до Short 861, от бота до Short 868 — крюк 655 из 662
+  var mF = pathLenTo(b, F.x, F.y);
+  return mF + L - pathLenTo(b, P.x, P.y) > LU_DETOUR_K*mF;
+}
 function luSpotFor(b, L, luM){
   var tt = teamTac.T, best = null, bl = Infinity, own = npOwner(b, L), myZ = L.team === "CT" ? npZoneAt(b.x, b.y) : null;
   (PRO_GROUPS[L.grp] || [L]).forEach(function(M){
     if(M.team !== L.team || (L.team === "T" && M.site !== "any" && tt && M.site !== tt.site)) return;
     if(!own){ var z = luM === "now" || luM === "exec" ? (M.team === "CT" ? npZoneAt(M.from.x, M.from.y) : npZoneAt(M.to.x, M.to.y)) : null;
       if(!npCanUse(b, L.type, luM, z) && !(myZ && z === myZ && npCanUse(b, L.type, luM, null))) return; }
+    if(luBehind(b, M.from)) return;   // (п.6) точка этой цели позади по ходу — берётся другая из группы, если есть
     var d = pathLenTo(b, M.from.x, M.from.y); if(d < bl){ bl = d; best = M; } });
   return best;
 }
