@@ -684,7 +684,8 @@ function tBrain(){
     // кто ждал выхода на своей точке с другой стороны (Donut, Dark, CT Lane…) —
     // тоже занимает ближние к себе позиции сайта, а не бежит к стандартному входу
     var sideT = rest.filter(function(b){ var SI = b._stageInfo; return SI && SI.round === roundNum && Math.hypot(SI.from.x-g.tStage.x, SI.from.y-g.tStage.y) > 250; });
-    var takers = rest.filter(function(b){ var r = roleT(b); return r==="entry" || r==="support" || r==="igl" || sideT.indexOf(b) >= 0; });
+    // (v469, п.1 владельца 29.10, р2 м1: sh1ro с MAC-10 получал «AWP линия») снайпер без AWP — обычный игрок захода: линия AWP — только с AWP
+    var takers = rest.filter(function(b){ var r = roleT(b); return r==="entry" || r==="support" || r==="igl" || (r==="awp" && b.primary!=="AWP") || sideT.indexOf(b) >= 0; });
     rest = rest.filter(function(b){ return sideT.indexOf(b) < 0; });
     // распределять точки — когда смоки выхода уже встали (≤1.5с) — чтобы
     // занимать места, которые дым закрывает от CT
@@ -759,7 +760,8 @@ function tBrain(){
       groupPost(rest.filter(function(b){ return b.tRole==="entry"; }), g.anchor, g.ctEntry, "clear"+tt.site, {rMax:130, minGap:50, see:[g.ctEntry]});
       groupPost(rest.filter(function(b){ return b.tRole==="support" || b.tRole==="igl"; }), plantPt, g.ctEntry, "sitehold"+tt.site, {rMin:40, rMax:210, minGap:60, see:[g.ctEntry]});
     }
-    groupPost(rest.filter(function(b){ return b.tRole==="awp"; }), g.tEntry, g.ctEntry, "awpline"+tt.site, {rMax:130, minGap:50, see:[g.ctEntry, plantPt]});
+    groupPost(rest.filter(function(b){ return b.tRole==="awp" && b.primary==="AWP"; }), g.tEntry, g.ctEntry, "awpline"+tt.site, {rMax:130, minGap:50, see:[g.ctEntry, plantPt]});
+    if(!BAL.namedPos) groupPost(rest.filter(function(b){ return b.tRole==="awp" && b.primary!=="AWP"; }), plantPt, g.ctEntry, "sitehold"+tt.site, {rMin:40, rMax:210, minGap:60, see:[g.ctEntry]});
   } else if(tt.phase === "postplant"){
     var gs = GEO[bomb.site];
     // прочь от бомбы (радиус взрыва убивает и своих). (v373, сторож: на Ancient T с постом «flee» за 2 с до взрыва ещё в зоне —

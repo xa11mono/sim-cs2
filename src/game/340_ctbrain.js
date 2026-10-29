@@ -269,7 +269,9 @@ function ctBrain(){
   var planted = bomb.state === "planted";
   // сейв: ретейк безнадёжен (сильно меньше людей или не успеть дойти+дефузнуть) —
   // CT не идут умирать, а сохраняют оружие на следующий раунд
-  if(planted && !ct.saving && !ct._noResave){
+  // (v469, п.16 владельца 29.10, снимок м1 р6 т36243: m0NESY бежал на ретейк за 2,6 с до взрыва — не добежать, не то что дефузить) после
+  // «сейв → ретейк» второй сейв запрещался (_noResave), даже когда время кончилось. «Не успеть дойти и снять» — новая инфа: сейв можно снова
+  if(planted && !ct.saving){
     var tsAlive = bots.filter(function(b){ return b.team==="T" && b.alive; }).length;
     var secs = bombTimeLeftTicks()/TICK_HZ;
     // честный расчёт (план §8): для каждого CT — длина реального пути до бомбы
@@ -290,6 +292,7 @@ function ctBrain(){
     // (v158) у про после взрыва живы 2,1 CT, у ботов было 1,2: сейвят раньше
     if(BAL.groupRetake) hopeless = hopeless || (cts.length >= 2 && cts.length <= tsAlive - 2) || (cts.length === 1 && tsAlive >= 3) ||
       (cts.length === 1 && tsAlive === 2 && !(cts[0].kit && needSecs + 8 < secs)); // 2v4 — ещё пробуем, 1v3/1v4/2v5 — сейв
+    if(ct._noResave && !(needSecs > secs)) hopeless = false;   // после «сейв → ретейк» — снова сейв только если не успеть
     if(cts.length && hopeless && ((equip >= 1800 && saveWorth("CT")) || needSecs > secs)){   // (v434) сохранять — если оружие перейдёт в следующий раунд (saveWorth); не успеть — сейв всё равно
       ct.saving = true; saveCancelTrades("CT");
       logEvent("CT: сейв — ретейк "+cts.length+"v"+tsAlive+(needSecs > secs ? ", не успеть" : "")+", сохраняем оружие");
