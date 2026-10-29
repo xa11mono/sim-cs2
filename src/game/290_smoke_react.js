@@ -118,6 +118,16 @@ function smokeSpamTick(){
       if(bS){ b._spam = {pt:bp, s:bS, seen:true, bursts:SMK.burstsMax, shot:0, nextBurst:tick + b.reactionTicks, until:tick + 4*TICK_HZ};
         logEvent(b.id+": слышит "+(b.team === "CT" ? "плант" : "дефуз")+" за смоком — простреливает"); return; }
     }
+    // (v469, п.6 владельца 29.10, р3 м1 т17330: kyousuke шёл через смок B Apartments к magixx, тот слышал его шаги в дыму 2 с и не стрелял —
+    // решение «стрелять в дым» было только у стоящего вне боя и разыгрывалось один раз на смок) слышит врага в дыму (шаги / выстрел,
+    // ≤ CONTACT_AGE с), до этого места линия свободна (кроме дыма) — очередь на звук сразу и на ходу, в бою тоже (владелец: «про сразу
+    // стреляет в смок и двигается»). И если сам в этом дыму
+    var hSm = hs && hs.team && hs.team !== b.team && (hs.kind === "steps" || hs.kind === "shots" || hs.kind === "hit") && tick - hs.tick < CONTACT_AGE*TICK_HZ ?
+      smokes.filter(function(sm){ return smkActive(sm) && Math.hypot(sm.x-hs.x, sm.y-hs.y) < smokeRadiusNow(sm) + 20; })[0] : null;
+    if(hSm && Math.hypot(hs.x-b.x, hs.y-b.y) < 900 && hasLOS(b.x, b.y, hs.x, hs.y, b.z, hs.z)){
+      b._spam = {pt:{x:hs.x, y:hs.y}, s:hSm, seen:true, bursts:SMK.burstsMax, shot:0, nextBurst:tick + b.reactionTicks, until:tick + 3*TICK_HZ};
+      logEvent(b.id+": слышит врага в смоке "+calloutName(hSm.x, hSm.y)+" — стреляет на звук"); return;
+    }
     if(b.curSpeed > 40*SPD_K) return;   // стоит (на посту или просто остановился)
     // (v353, владелец: «решение стрелять в смок в другой стороне перебивает существующую перестрелку») в перестрелке (цикл
     // «на линии → за укрытие» идёт, или враг виден был ≤ 3 с назад) — в посторонний смок не стреляет

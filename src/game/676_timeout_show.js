@@ -155,7 +155,7 @@ function tsStart(T){
       '<div class="to-nm">' + esc(nm) + (tag ? '<i>' + tag + '</i>' : '') + '</div></div>'; }).join("") + '</div><div class="to-log"></div>';
   E.sub.innerHTML = "";
   E.root.className = "on " + T.side.toLowerCase() + (typeof HUD_REDUCED !== "undefined" && HUD_REDUCED ? " rm" : "");
-  showSnd("whoosh", 0.28);
+  // (v469, п.10 владельца 29.10: «убрать звук перехода — как будто плёнка меняется») свиста на смене кадров паузы нет
   return true;
 }
 function tsStop(){ var P = TS.P; if(P && P.phase !== "out"){ P.outAt = simTime; P.phase = "out"; P.outReal = performance.now(); } }
@@ -173,7 +173,7 @@ function tsFrame(ts){
   if(el >= P.end + TS_K.outro && P.phase !== "out") tsStop();
   if(P.phase === "out"){ var oe = (performance.now() - (P.outReal || (P.outReal = performance.now())))/1000; E.shade.style.opacity = Math.min(1, oe/0.5).toFixed(3); if(oe >= 0.5){ tsEnd(); return false; } return P.sc !== "cam"; }
   var Q = P.seq.filter(function(q){ return el >= q.a && el < q.b; })[0] || P.seq[P.seq.length-1], sc = Q.sc;
-  if(sc !== P.sc){ P.sc = sc; P.phase = sc; P.scAt = el; E.root.setAttribute("data-scene", sc); if(sc !== "title") showSnd("whoosh"); }
+  if(sc !== P.sc){ P.sc = sc; P.phase = sc; P.scAt = el; E.root.setAttribute("data-scene", sc); }
   var se = el - P.scAt;
   E.shade.style.opacity = el < 0.4 ? (1 - el/0.4).toFixed(3) : se < 0.3 ? (0.55*(1 - se/0.3)).toFixed(3) : "0";
   // реплики: по одной, равномерно на всё после титра
@@ -194,7 +194,7 @@ function tsLine(E, P, li){
   var log = E.talk.querySelector(".to-log");
   if(log){ var d = document.createElement("div"); d.className = "to-ll"; d.innerHTML = "<b>" + esc(who) + "</b>" + esc(L.t); log.appendChild(d); while(log.children.length > 4) log.removeChild(log.firstChild); }
   E.sub.innerHTML = '<div class="to-sl lvl' + L.lvl + '"><b>' + esc(who) + '</b>' + esc(L.t) + '</div>';
-  showSnd("chat", L.lvl === 1 ? 0.35 : 0.6); showSay(L.t, RP_LANG[P.T.name] || "ru", L.lvl, L.who + P.T.name);
+  showSnd("chat", L.lvl === 1 ? 0.35 : 0.6);   // (v469, п.10) озвучки реплик на паузе нет — только тихий звук сообщения
 }
 // камера на спавне команды: свой кадр, обсервер не трогает (вызов draw — обычный, 680)
 function tsCam(P){

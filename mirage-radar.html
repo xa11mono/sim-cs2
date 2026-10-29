@@ -14786,12 +14786,17 @@ function zoneSideMap(){
 // вёл через каждый ящик и бортик напрямик. NAV_JUMP_COST / NAV_DROP_COST — ед. карты (~2,5 ед. игры), проектные числа:
 // прыжок ≈ 1,2 с бега в обход, спрыгнуть ≈ 0,6 с
 var NAV_JUMP_COST = 120, NAV_DROP_COST = 60;
+// (v469, п.5 владельца 29.10: «спрыгивают со звуком с любого уступа») UNVERIFIED: project heuristic, not confirmed CS2 threshold — проектное
+// число. Ответ про-аналитика 29.10: маленькое падение события приземления не даёт (спецификация CS2-демок), порога в единицах Valve не
+// публикует; 48 ед. — начальная настройка до проверки по демкам с player_footstep (land). Спуск ниже — тихо и шагом, и бегом (шаги —
+// отдельно); выше — звук приземления (слышимость — отдельно, landSound, 370). Раньше порог 40 и «приземление громкое всегда» (v322, csdb.gg)
+var LAND_SOUND_DROP = 48;
 function navJumpCost(a, edge){
   if(edge._jcost != null) return edge._jcost;
   var b = zonesById[edge.to]; if(!a || !b || !edge.mid) return (edge._jcost = 0);
   if(navPlane(a).flat || navPlane(b).flat) return (edge._jcost = 0);   // нет высот углов (Ancient) — как раньше
   var dz = navStepDz(a, b, edge.mid.x, edge.mid.y);
-  return (edge._jcost = dz > 18 ? NAV_JUMP_COST : dz < -40 ? NAV_DROP_COST : 0);
+  return (edge._jcost = dz > 18 ? NAV_JUMP_COST : dz < -LAND_SOUND_DROP ? NAV_DROP_COST : 0);   // (v469) тихий спуск (≤ LAND_SOUND_DROP) — без цены
 }
 var ROUTE_PORTAL = 0;   // (v406) цена перехода между участками сверх длины (было 40 при длине от центров участков): с длиной от точки входа не нужна — спуск со спавна T по рампе (607) короче бордюра (624), а с ценой 8 выбирался бордюр
 // (v446, владелец 28.10: «трое T со спавна идут в точку на Palace Entry и спрыгивают, хотя могли бежать прямо») шум цены переходов
@@ -15609,7 +15614,6 @@ var BAL = {
   ninjaDefuse: true,// все T известны далеко от бомбы — дефуз сразу и тихо, без сбора и гранат
   reloadCover: true,// перезарядка не на виду у известного врага: сначала шаг за укрытие
   lowHpBack: true,  // ≤ LOW_HP (25) HP один на угле рядом с врагом — отходит к своим
-  ppTime: true,
   blindPlay: true,  // ослеплённый: стоп/шаг назад за укрытие, а не идти дальше вслепую
   flashAware: true, // увернуться от флешки можно, только если видел/слышал бросок (поп-флешку из-за стены — почти нет)
   pistolSwap: true, // кончились патроны в бою, враг рядом — пистолет вместо долгой перезарядки
@@ -16210,7 +16214,7 @@ var ENTRY_WAIT = 128;   // (v375) 2 с: напарник на размен у в
 var TASK_LEVEL = [   // сверху — важнее; первая подходящая строка
   {lv:11, kind:"бомба",              re:/^(flee|defuse|stopplant|antidefuse|plantspot)$/},
   {lv:10, kind:"выжить",             re:/^save/},
-  {lv:9,  kind:"бой",                re:/^(contact|tradeR$|repos:killmove)/},
+  {lv:9,  kind:"бой",                re:/^(contact|tradeR$|repos:killmove|repos:finish)/},   // (v469, п.25) добить раненого — тоже бой, контакт его не перебивает
   {lv:8,  kind:"ретейк/сбор/ротация",re:/^(retake|gather|rotate$|rotate:|bombwatch|postplant|fetch$)/},
   {lv:7,  kind:"эндгейм/клатч",      re:/^(endhunt|hunt$|clutch)/},   // охота на последних — общий план команды, как и было (замок эндгейма)
   {lv:6,  kind:"перестановка в бою", re:/^repos/},
@@ -18345,7 +18349,8 @@ function tBrain(){
     // кто ждал выхода на своей точке с другой стороны (Donut, Dark, CT Lane…) —
     // тоже занимает ближние к себе позиции сайта, а не бежит к стандартному входу
     var sideT = rest.filter(function(b){ var SI = b._stageInfo; return SI && SI.round === roundNum && Math.hypot(SI.from.x-g.tStage.x, SI.from.y-g.tStage.y) > 250; });
-    var takers = rest.filter(function(b){ var r = roleT(b); return r==="entry" || r==="support" || r==="igl" || sideT.indexOf(b) >= 0; });
+    // (v469, п.1 владельца 29.10, р2 м1: sh1ro с MAC-10 получал «AWP линия») снайпер без AWP — обычный игрок захода: линия AWP — только с AWP
+    var takers = rest.filter(function(b){ var r = roleT(b); return r==="entry" || r==="support" || r==="igl" || (r==="awp" && b.primary!=="AWP") || sideT.indexOf(b) >= 0; });
     rest = rest.filter(function(b){ return sideT.indexOf(b) < 0; });
     // распределять точки — когда смоки выхода уже встали (≤1.5с) — чтобы
     // занимать места, которые дым закрывает от CT
@@ -18420,7 +18425,8 @@ function tBrain(){
       groupPost(rest.filter(function(b){ return b.tRole==="entry"; }), g.anchor, g.ctEntry, "clear"+tt.site, {rMax:130, minGap:50, see:[g.ctEntry]});
       groupPost(rest.filter(function(b){ return b.tRole==="support" || b.tRole==="igl"; }), plantPt, g.ctEntry, "sitehold"+tt.site, {rMin:40, rMax:210, minGap:60, see:[g.ctEntry]});
     }
-    groupPost(rest.filter(function(b){ return b.tRole==="awp"; }), g.tEntry, g.ctEntry, "awpline"+tt.site, {rMax:130, minGap:50, see:[g.ctEntry, plantPt]});
+    groupPost(rest.filter(function(b){ return b.tRole==="awp" && b.primary==="AWP"; }), g.tEntry, g.ctEntry, "awpline"+tt.site, {rMax:130, minGap:50, see:[g.ctEntry, plantPt]});
+    if(!BAL.namedPos) groupPost(rest.filter(function(b){ return b.tRole==="awp" && b.primary!=="AWP"; }), plantPt, g.ctEntry, "sitehold"+tt.site, {rMin:40, rMax:210, minGap:60, see:[g.ctEntry]});
   } else if(tt.phase === "postplant"){
     var gs = GEO[bomb.site];
     // прочь от бомбы (радиус взрыва убивает и своих). (v373, сторож: на Ancient T с постом «flee» за 2 с до взрыва ещё в зоне —
@@ -18571,25 +18577,10 @@ function tBrain(){
         groupPost(group, bp0, gs.ctEntry, "postplant:time", {rMin:300, rMax:Math.min(600, DEFUSE_HEAR-90), minGap:110, hideFrom:[gs.ctEntry, bp0]});
       return;
     }
-    if(BAL.ppTime && bombTimeLeftTicks() > 18*TICK_HZ && group.length){
-      var ctNear = intelEstimate("T", bp0.x, bp0.y, 900, 6*TICK_HZ);
-      var quiet = (ctNear.seen + ctNear.heard) === 0 && tick - bomb.plantTick > 4*TICK_HZ;
-      // гистерезис: раньше "тихо/не тихо" переключалось каждые пару секунд и
-      // T бегали между дальним укрытием и точкой у бомбы. Раз CT объявились —
-      // до конца раунда играем от бомбы; раз ушли на время — ждём реальной инфы
-      if(BAL.ppCommit){
-        if(tt._ppMode === "close") quiet = false;
-        else if(tt._ppMode === "time"){ var ctN2 = intelEstimate("T", bp0.x, bp0.y, 700, 3*TICK_HZ); if(ctN2.seen + ctN2.heard > 0){ tt._ppMode = "close"; quiet = false; } else quiet = true; }
-        else if(quiet) tt._ppMode = "time";
-        else if((ctNear.seen + ctNear.heard) > 0) tt._ppMode = "close";
-      }
-      if(quiet){
-        if(!tt._ppTimeLog){ tt._ppTimeLog = tick; voiceLog("T", "pptime", group[0].id, "их не слышно — отходим от бомбы, играем на время, слушаем дефуз"); }
-        if(!ppTimeNamed(group, bp0, bomb.site, DEFUSE_HEAR-80))
-          groupPost(group, bp0, gs.ctEntry, "postplant:time", {rMin:320, rMax:Math.min(620, DEFUSE_HEAR-80), minGap:110, hideFrom:[gs.ctEntry, bp0]});
-        return;
-      }
-    }
+    // (v469, п.9 владельца 29.10, р5 м1: после планта точки переназначались трижды — через 4 с тишины все уходили «на время» на T Ramp и CT,
+    // через 2,7 с при первой инфе возвращались) ответ про-аналитика 29.10: держать расстановку, пока кроссфайр работает и позиции не раскрыты;
+    // менять — по событию (раскрыли, граната, кто-то погиб, CT выходят), а не по таймеру. Режим «тихо — отходим на время» (BAL.ppTime) убран:
+    // у каждого своя точка у бомбы (holdGroup ниже), смена — реакция на контакт / анти-дефуз
     if(BAL.holdTask){
       // (v145) пост-плант у бомбы = "держать район вокруг бомбы": бомбу видеть
       // обязательно (снять дефузера), встать под главный вход ретейка, от
@@ -19002,6 +18993,9 @@ function retakePost(b, cts){
     return;
   }
   if(b.retakeRole === "defuser"){
+    // (v469, п.17 владельца 29.10: «чтобы искали дефузы — 10 секунд, но успевают добежать до кита и раздефузить») дефузер без кита: кит
+    // своего убитого лежит рядом с дорогой — сначала за ним, если так снимет бомбу раньше (дефуз 5 с вместо 10) и успевает до взрыва
+    if(!b.kit){ var KT = retakeKitFor(b, bp); if(KT){ setPost(b, {x:KT.x, y:KT.y}, bp, true, "retakeKit"); return; } }
     // дефузер не тапает бомбу сразу на заходе (под пост-плант позиции T):
     // сначала первый входящий чистит, дефузер — за ним. Сразу — если время
     // поджимает, он один или первый уже на сайте/погиб
@@ -19028,6 +19022,13 @@ function retakePost(b, cts){
     setPost(b, a, bp, true, gTag(b, R), 0); return;
   }
   retakeClear(b, R, cts, a, bp);
+}
+function retakeKitFor(b, bp){
+  var left = bombTimeLeftTicks()/TICK_HZ, tNo = pathLenTo(b, bp.x, bp.y)/SPEED + 10, best = null, bt = tNo;
+  groundItems.forEach(function(G){ if(G.kind !== "kit") return;
+    var t = (pathLenTo(b, G.x, G.y) + Math.hypot(G.x-bp.x, G.y-bp.y)*1.3)/SPEED + 5;   // 1,3 — путь длиннее прямой, как в ретейке выше
+    if(t < bt && t + 1.5 < left){ bt = t; best = G; } });
+  return best;
 }
 function retakeClear(b, R, cts, a, bp){
   // прикрытие/фланг — места с видом на бомбу, со своей стороны захода
@@ -22136,6 +22137,16 @@ function smokeSpamTick(){
       if(bS){ b._spam = {pt:bp, s:bS, seen:true, bursts:SMK.burstsMax, shot:0, nextBurst:tick + b.reactionTicks, until:tick + 4*TICK_HZ};
         logEvent(b.id+": слышит "+(b.team === "CT" ? "плант" : "дефуз")+" за смоком — простреливает"); return; }
     }
+    // (v469, п.6 владельца 29.10, р3 м1 т17330: kyousuke шёл через смок B Apartments к magixx, тот слышал его шаги в дыму 2 с и не стрелял —
+    // решение «стрелять в дым» было только у стоящего вне боя и разыгрывалось один раз на смок) слышит врага в дыму (шаги / выстрел,
+    // ≤ CONTACT_AGE с), до этого места линия свободна (кроме дыма) — очередь на звук сразу и на ходу, в бою тоже (владелец: «про сразу
+    // стреляет в смок и двигается»). И если сам в этом дыму
+    var hSm = hs && hs.team && hs.team !== b.team && (hs.kind === "steps" || hs.kind === "shots" || hs.kind === "hit") && tick - hs.tick < CONTACT_AGE*TICK_HZ ?
+      smokes.filter(function(sm){ return smkActive(sm) && Math.hypot(sm.x-hs.x, sm.y-hs.y) < smokeRadiusNow(sm) + 20; })[0] : null;
+    if(hSm && Math.hypot(hs.x-b.x, hs.y-b.y) < 900 && hasLOS(b.x, b.y, hs.x, hs.y, b.z, hs.z)){
+      b._spam = {pt:{x:hs.x, y:hs.y}, s:hSm, seen:true, bursts:SMK.burstsMax, shot:0, nextBurst:tick + b.reactionTicks, until:tick + 3*TICK_HZ};
+      logEvent(b.id+": слышит врага в смоке "+calloutName(hSm.x, hSm.y)+" — стреляет на звук"); return;
+    }
     if(b.curSpeed > 40*SPD_K) return;   // стоит (на посту или просто остановился)
     // (v353, владелец: «решение стрелять в смок в другой стороне перебивает существующую перестрелку») в перестрелке (цикл
     // «на линии → за укрытие» идёт, или враг виден был ≤ 3 с назад) — в посторонний смок не стреляет
@@ -22992,6 +23003,13 @@ function ctLandPunish(b){
   setPost(b, b._lp.pt, b._lp.pt, true, "repos:land");
   return true;
 }
+// (v469, п.18 владельца 29.10, р8 м1: в войсе «ПЕРЕКОЛЛ A → B: бомба замечена (~2)», а бомбу никто не видел) сайт планта выведен
+// исключением («никто у A не услышал писк — значит B», 220 knowPlant, plantGuess) — так и говорится, а не «замечена»
+function ctPlantGuessOnly(){
+  if(!bomb || bomb.state !== "planted") return false;
+  var cts = bots.filter(function(o){ return o.team === "CT" && o.alive && o.know; });
+  return cts.some(function(o){ return o.know.plantGuess; }) && !cts.some(function(o){ return o.know.plantSite && !o.know.plantGuess; });
+}
 function ctBrain(){
   var ct = teamTac.CT;
   var cts = bots.filter(function(b){ return b.team==="CT" && b.alive; });
@@ -23104,7 +23122,7 @@ function ctBrain(){
       var prevSite = ct.call ? ct.call.site : null;   // (v321, М23) колл переходит на другой сайт — «переколл»
       var prevCnt = isNew ? 0 : ct.call.count, prevLogged = isNew ? 0 : (ct.call.logged || 0);
       ct.call = {logged: prevLogged, site:best.site, count:best.count, tick:tick, evTick:tick, since:(!isNew && ct.call.since) || tick, sinceSite:best.site, undefended:best.undefended, bombSeen: best.carrier || best.plant, seen: best.est ? best.est.seen : 0, nades: best.nades || 0};
-      var how = best.plant ? "слышно плант" : (best.nades >= 2 && !best.est.seen) ? "гранаты на "+best.site+" — выход" : best.undefended ? "сайт пустой, опорник погиб" : best.carrier ? (ct.bombDown ? "бомба выбита, лежит там" : "бомба замечена") : best.deaths ? "минус на сайте" : (best.est.seen ? "вижу "+best.est.seen : best.est.heard ? "слышу" : "по инфе");
+      var how = best.plant ? "слышно плант" : (best.nades >= 2 && !best.est.seen) ? "гранаты на "+best.site+" — выход" : best.undefended ? "сайт пустой, опорник погиб" : best.carrier ? (ct.bombDown ? "бомба выбита, лежит там" : ctPlantGuessOnly() ? "плант не слышали на "+(best.site === "A" ? "B" : "A")+" — значит "+best.site : "бомба замечена") : best.deaths ? "минус на сайте" : (best.est.seen ? "вижу "+best.est.seen : best.est.heard ? "слышу" : "по инфе");
       var n1 = Math.max(1, Math.round(best.count));
       // в войс — только новый колл или когда их стало БОЛЬШЕ, чем уже говорили
       // (повтор колла) колл снялся и через пару секунд поднялся снова по той же
@@ -23216,12 +23234,18 @@ function ctBrain(){
       }
     }
     ct.spread = spread;
+    var deadR = bots.filter(function(o){ return o.team === "CT" && !o.alive; }).map(function(o){ return o.tRole; });
+    var aLost = deadR.indexOf(ks === "A" ? "anchorA" : "anchorB") >= 0 && deadR.filter(function(r){ return r === "mid" || r === "rotator" || r === (ks === "A" ? "anchorA" : "anchorB"); }).length >= 2;
     var pri = function(b){
       var r = b.tRole;
       if(r === "rotator") return 0;
       if(r === "roamer") return 1;
       if(BAL.countRot){
         if(r === "mid") return keepMid ? 99 : (allIn || ct.call.undefended || (ct.call.bombSeen && midMass < 0.9) || (need >= 2 && confirmed && midMass < 0.5)) ? 2 : 99;
+        // (v469, п.7 владельца 29.10, снимок м1 р4 т20487: мидер, ротатор и опорник A убиты, колл «T на A ~3», karrigan стоял на B до 1:24 —
+        // его держали «двое неучтённых») ответ про-аналитика 29.10: защита A потеряна (её опорник и ещё один с той стороны мертвы) и там 3+ T —
+        // опорник другого сайта стягивается сразу, не ждёт бомбу; держит свой сайт только свежая инфа о T у него (elseO), а не «двое неизвестно где»
+        if(r === (ko === "A" ? "anchorA" : "anchorB") && aLost && Math.round(ct.call.count) >= 3 && elseO === 0) return 3;
         if(r === (ko === "A" ? "anchorA" : "anchorB")) return keepOther ? (ct.call.undefended && !(ct.call.unacc >= 2) && otherMass < 1 ? 3 : 99) : (allIn || ct.call.undefended || (need >= 3 && confirmed && otherMass < 0.35)) ? 3 : 99;
       }
       // "сайт пустой, опорник погиб" — это не догадка по карте вероятностей, а
@@ -23263,7 +23287,9 @@ function ctBrain(){
   var planted = bomb.state === "planted";
   // сейв: ретейк безнадёжен (сильно меньше людей или не успеть дойти+дефузнуть) —
   // CT не идут умирать, а сохраняют оружие на следующий раунд
-  if(planted && !ct.saving && !ct._noResave){
+  // (v469, п.16 владельца 29.10, снимок м1 р6 т36243: m0NESY бежал на ретейк за 2,6 с до взрыва — не добежать, не то что дефузить) после
+  // «сейв → ретейк» второй сейв запрещался (_noResave), даже когда время кончилось. «Не успеть дойти и снять» — новая инфа: сейв можно снова
+  if(planted && !ct.saving){
     var tsAlive = bots.filter(function(b){ return b.team==="T" && b.alive; }).length;
     var secs = bombTimeLeftTicks()/TICK_HZ;
     // честный расчёт (план §8): для каждого CT — длина реального пути до бомбы
@@ -23284,6 +23310,7 @@ function ctBrain(){
     // (v158) у про после взрыва живы 2,1 CT, у ботов было 1,2: сейвят раньше
     if(BAL.groupRetake) hopeless = hopeless || (cts.length >= 2 && cts.length <= tsAlive - 2) || (cts.length === 1 && tsAlive >= 3) ||
       (cts.length === 1 && tsAlive === 2 && !(cts[0].kit && needSecs + 8 < secs)); // 2v4 — ещё пробуем, 1v3/1v4/2v5 — сейв
+    if(ct._noResave && !(needSecs > secs)) hopeless = false;   // после «сейв → ретейк» — снова сейв только если не успеть
     if(cts.length && hopeless && ((equip >= 1800 && saveWorth("CT")) || needSecs > secs)){   // (v434) сохранять — если оружие перейдёт в следующий раунд (saveWorth); не успеть — сейв всё равно
       ct.saving = true; saveCancelTrades("CT");
       logEvent("CT: сейв — ретейк "+cts.length+"v"+tsAlive+(needSecs > secs ? ", не успеть" : "")+", сохраняем оружие");
@@ -24455,12 +24482,12 @@ function navFollowFloor(bot){
     // (v336, владелец: «прыгают на рандом, где не нужно, и палятся») прыжок и приземление — по полу у края (navStepDz),
     // а не по центрам участков: ступени и пандусы Mirage (Stairs, Palace, рампы) больше не «прыжок» со звуком
     var djz = (a0z && naz !== a0z) ? navStepDz(a0z, naz, bot.baseX, bot.baseY) : (naz === a0z ? 0 : dzz);
-    if(djz > 18) bot._jump = {t:tick, up:true}; else if(djz < -40) bot._jump = {t:tick, up:false};
+    if(djz > 18) bot._jump = {t:tick, up:true}; else if(djz < -LAND_SOUND_DROP) bot._jump = {t:tick, up:false};
     // (v322, М29) прыжок / приземление слышно и при тихом шаге, далеко (csdb.gg: «громкий звук приземления, слышно
     // издалека», без числа) — радиус как у бега: проектное число
     // (v335, владелец: «звук прыжка в одном месте, а он в другом; приземление должно его перебивать») звучит только
     // приземление — там, где игрок приземлился: спрыгнул вниз — сразу; запрыгнул вверх — через LAND_DELAY с (полёт)
-    if(roundState === "live" && djz < -40) landSound(bot);
+    if(roundState === "live" && djz < -LAND_SOUND_DROP) landSound(bot);
     else if(roundState === "live" && djz > 18) bot._landAt = tick + Math.round(LAND_DELAY*TICK_HZ);
     // (v333) сменил этаж (спуск, лестница) — путь, построенный с прежнего этажа, пересчитывается с нового
     if(Math.abs(dzz) > JUMP_UP && bot.path && bot.pathIdx < bot.path.length){ bot.path = []; bot.pathIdx = 0; }
@@ -25589,6 +25616,7 @@ function nadeReact(){
 // Куда — откуда сюда кидали про (MAP.nadelanes: бросок с этого места (≤ 60 px) в нужную точку), иначе прямо, если стены нет.
 // Пауза бойца между такими решениями — 3 с (проектное число)
 var NADE_USE_GAP = 192;   // 3 с (TICK_HZ объявлен ниже — число)
+var FLASH_EXIT_MAX = 413;   // px: 90 % флешек «под свой выход» у про (pro_nades.csv, purpose flash_exit)
 function nadeUsePick(b, pts, R){
   var I = nadeLaneIdx(), L = I.L, best = null, bd = Infinity;
   pts.forEach(function(p){
@@ -25639,6 +25667,10 @@ function nadeUseTick(b){
   if(!plan || !plan.pts.length) return;
   b._nadeUseT = tick;
   var pt = nadeUsePick(b, plan.pts); if(!pt) return;
+  // (v469, п.18 владельца 29.10, отметка м1 р8 т47249: TN1R из House кинул флешку «иду в бой» на Vent — до своей точки B Short ещё далеко,
+  // своих там нет, флешка никому не помогла) флешка под свой выход — пока сам рядом и выйдет следом: у про (2543 «flash_exit», демки Ancient,
+  // data/pro/pro_nades.csv) от бросающего до места флешки 175 / 304 / 413 px (10 / 50 / 90 %); дальше — не кидает, подойдёт ближе
+  if(plan.t === "flash" && entering && Math.hypot(pt.x-b.x, pt.y-b.y) > FLASH_EXIT_MAX){ b._nadeUseT = 0; return; }
   if(plan.t === "smoke" && smokeCovered(pt.x, pt.y)) return;
   if(assignNade(b, plan.t, pt, why, {now:true})) logEvent(b.id+": "+NADE[plan.t].name+" — "+why);
 }
@@ -26213,6 +26245,12 @@ function weaponPickupTick(){
       return; }
     if(!taskCanSet(b, "pickup")) return;   // (v378) идёт по задаче важнее подбора — арбитр места
     if(b.post && b.post.tag === "pickup") return;
+    // (v469, п.27 владельца 29.10, р12 м1: опорник B karrigan пошёл за оружием с самого B, хотя рядом стояли свои) ответ про-аналитика 29.10:
+    // за оружием не ходят, пока рядом бой (свежая инфа о враге ≤ 1200 ед. игры = 480 px); опорник, держащий вход на свой сайт, со своей точки за ним не уходит —
+    // только со слабым оружием (пистолет / ПП); идёт второй линии игрок или тот, у кого хуже ствол
+    var LKp = beliefLast[b.team] || {};
+    for(var eP in LKp){ if(tick - LKp[eP].tick < 3*TICK_HZ && Math.hypot(LKp[eP].x-b.x, LKp[eP].y-b.y) < 1200/MAP.pxUnits) return; }
+    if((b.tRole === "anchorA" || b.tRole === "anchorB") && b.primary && WEAPONS[b.primary].tier >= 5) return;
     if(BAL.pickFix && b._pickBan > tick) return;
     var best = null, bd = BAL.pickupMore ? 420 : 230;
     groundWeapons.forEach(function(G){
@@ -26328,8 +26366,15 @@ function finishPush(b){
   if((b.team === "CT" && teamTac.CT && teamTac.CT.saving) || (b.team === "T" && teamTac.T && teamTac.T.saving)) return;
   var HT = teamIntel[b.team].hurt; if(!HT) return;
   b._finNext = tick + 16;
+  // (v469, п.6/25 владельца 29.10: «пикают, дамажат и стоят ждут — должен выйти и добить») ответ про-аналитика 29.10: добивают раненого,
+  // которому хватит одного попадания (HP ≤ 20), или при численном перевесе (ближний с хорошим HP идёт первым — свой следом разменяет);
+  // нельзя: CT при равных или меньших силах (опорник держит позицию и тянет время), и винтовкой в упор против эко (пистолеты сильнее вблизи)
+  var foeT = b.team === "CT" ? "T" : "CT", nOwn = aliveCount(b.team), nEn = aliveCount(foeT);
+  if(b.team === "CT" && nOwn <= nEn) return;
+  var BR = teamIntel[b.team].buy; if(BR && BR.read === "eco" && b.primary && WEAPONS[b.primary].tier >= 5) return;
+  var hpMax = nOwn >= nEn + 1 ? 35 : 20;   // 20 — ответ про-аналитика; 35 при перевесе — прежнее проектное число (v334)
   var BL = beliefLast[b.team] || {}, tgt = null, tid = null;
-  for(var eid in HT){ var h = HT[eid]; if(h.hp > 35 || tick - h.tick > 8*TICK_HZ) continue;
+  for(var eid in HT){ var h = HT[eid]; if(h.hp > hpMax || tick - h.tick > 8*TICK_HZ) continue;
     var e = bots.filter(function(o){ return o.id === eid; })[0]; if(!e || !e.alive) continue;
     var lo = BL[eid]; if(!lo || tick - lo.tick > 4*TICK_HZ || Math.hypot(lo.x-b.x, lo.y-b.y) > 600) continue;
     if(bots.some(function(o){ return o !== b && o.alive && o.team === b.team && o.post && o.post.tag === "repos:finish" && o._finId === eid; })) continue; // уже идёт другой
@@ -28186,8 +28231,11 @@ function buyFullKit(b, idx){
   var wantAwp = idx === 1 && b.primary !== "AWP" && b.money >= WEAPONS.AWP.price + ARMOR_PRICE + HELMET_UPGRADE && !mates.some(function(m){ return m.primary === "AWP"; });
   var rifle = rifleFor(b.team, b), cheap = WEAPONS[T ? "GALIL" : "FAMAS"];
   var P = {weapon: wantAwp ? WEAPONS.AWP : (cur && cur.tier >= 6 ? null : rifle), refill: hp < ARMOR_REBUY.tight, top: hp >= ARMOR_REBUY.tight && hp < ARMOR_REBUY.full,
-           helmet: !b.helmet, kit: !T && !b.kit && !wantAwp && b.primary !== "AWP", nades: []};
+           helmet: !b.helmet, kit: false, nades: []};
   var kitN = mates.filter(function(m){ return m !== b && m.kit; }).length;
+  // (v469, п.17 владельца 29.10: «покупают не все дефузы — 2, 1, 3») ответ про-аналитика 29.10: в фулле 2–3 кита — опорник A, опорник B,
+  // третий — ротатор или мидер (без AWP); кит — на сдачу, после оружия, брони и гранат (срезается первым); у остальных — нет
+  P.kit = !T && !b.kit && !wantAwp && b.primary !== "AWP" && (b.tRole === "anchorA" || b.tRole === "anchorB" || ((b.tRole === "rotator" || b.tRole === "mid") && !mates.some(function(m){ return m !== b && (m.tRole === "rotator" || m.tRole === "mid") && m.kit; })));
   var have = {smoke:b.nades.smoke, flash:b.nades.flash, molly:b.nades.molly, he:b.nades.he}, fN = 0;
   // (v428) гранаты фулла — из плана команды (365_nade_plan: гранаты своей зоны на нужный момент), а не набор роли (NADE_WISH_PRO)
   var NPL = teamNadePlan(b.team, "full")[b.id] || [];
@@ -28202,7 +28250,7 @@ function buyFullKit(b, idx){
   var dropN = function(tag){ for(var i = P.nades.length-1; i >= 0; i--) if(P.nades[i].tag === tag){ P.nades.splice(i, 1); return true; } return false; };
   var anchor = b.tRole === "anchorA" || b.tRole === "anchorB";
   var cuts = T ? ["top","he", b.tRole === "entry" ? "molly" : "flash2", b.tRole === "entry" ? "flash2" : "molly","awp","rifle","helmet","flash1","smoke"]
-               : ["top","he","flash2", eg.full ? "helmet" : null, kitN >= 2 ? "kit" : null, anchor ? null : "molly","awp","rifle","flash1","smoke","kit","helmet","molly"];
+               : ["top","kit","he","flash2", eg.full ? "helmet" : null, anchor ? null : "molly","awp","rifle","flash1","smoke","helmet","molly"];
   for(var ci = 0; ci < cuts.length && cost() > b.money; ci++){
     var c = cuts[ci]; if(!c) continue;
     if(c === "top") P.top = false;
@@ -28286,7 +28334,9 @@ function buyForPlayer(b, type, idx){
     }
     if(!b.primary && (!b.secondary || WEAPONS[b.secondary].tier < 2)){ var fp = proPistol(b, "force", 1); if(fp && b.money >= WEAPONS[fp].price) buyItem(b, fp); }
     buyArmor(b, helmetWanted(b, "force"), ARMOR_REBUY.force);
-    if(b.team === "CT" && !b.kit && b.money >= 400 && idx % 2 === 0){ b.money -= 400; b.kit = true; }
+    // (v469, п.17) на форсе — один кит на команду: тот, у кого больше всех денег (ответ про-аналитика 29.10); раньше — каждый второй
+    if(b.team === "CT" && !b.kit && b.money >= 400 && !bots.some(function(o){ return o.team === "CT" && o !== b && o.kit; }) &&
+       !bots.some(function(o){ return o.team === "CT" && o !== b && o.money > b.money; })){ b.money -= 400; b.kit = true; }
   } else if(type === "half"){
     // хаф-бай: броня + SMG/дешёвая винтовка, но оставляем деньги на следующий раунд
     var keep = teamEco[b.team].bonus ? 0 : Math.max(0, fullNeed(b) - nextLossIncome(b.team));
@@ -28310,6 +28360,19 @@ function buyForPlayer(b, type, idx){
 
 // дроп (план §4, "решение по команде, не по одному"): в фулл-бай богатый
 // тиммейт покупает винтовку тому, кому на неё не хватает
+// (v469, п.20 владельца 29.10, р9 м1: TN1R подобрал AWP, а снайпер sh1ro остался с AK — «должны поменяться») AWP у не-снайпера, а снайпер
+// команды без неё — на закупке меняются: снайпер отдаёт свою винтовку, получает AWP (как дроп в CS; ответ про-аналитика 29.10: AWP —
+// снайперу). Снайпер — роль awp у T, мидер у CT (как awpAllowed, 450)
+function awpSwap(team){
+  var mates = bots.filter(function(b){ return b.team === team; });
+  var sn = mates.filter(function(b){ return (b.tRole === "awp" || (team === "CT" && b.tRole === "mid")) && b.primary !== "AWP"; })[0];
+  var hold = mates.filter(function(b){ return b !== sn && b.primary === "AWP" && !(b.tRole === "awp" || (team === "CT" && b.tRole === "mid")); })[0];
+  if(!sn || !hold) return;
+  var give = sn.primary || null; sn.primary = "AWP"; hold.primary = give;
+  logEvent(hold.id+" отдал AWP "+sn.id+(give ? ", взял "+WEAPONS[give].name : ""));
+  FREEZE_FX.push({kind:"drop", from:hold.id, to:sn.id, key:"AWP", t:tick});
+  if(give) FREEZE_FX.push({kind:"drop", from:sn.id, to:hold.id, key:give, t:tick});
+}
 function teamDrops(team){
   var mates = bots.filter(function(b){ return b.team === team; });
   mates.forEach(function(poor){
@@ -28357,6 +28420,7 @@ function buyPhase(){
   chooseTactic();
   ["CT","T"].forEach(function(team){
     var type = teamEco[team].roundType;
+    awpSwap(team);   // (v469, п.20) AWP — снайперу, до закупа (тогда он не купит вторую)
     if(type === "full") teamAwp(team);
     if(type === "full") teamDrops(team);
     var spent = 0;
@@ -32895,6 +32959,7 @@ var __SNAP = [
 ["_zoneSide", function(){ return _zoneSide; }, function(v){ try{ _zoneSide = v; }catch(e){} }],
 ["NAV_JUMP_COST", function(){ return NAV_JUMP_COST; }, function(v){ try{ NAV_JUMP_COST = v; }catch(e){} }],
 ["NAV_DROP_COST", function(){ return NAV_DROP_COST; }, function(v){ try{ NAV_DROP_COST = v; }catch(e){} }],
+["LAND_SOUND_DROP", function(){ return LAND_SOUND_DROP; }, function(v){ try{ LAND_SOUND_DROP = v; }catch(e){} }],
 ["ROUTE_PORTAL", function(){ return ROUTE_PORTAL; }, function(v){ try{ ROUTE_PORTAL = v; }catch(e){} }],
 ["FIRE_DETOUR", function(){ return FIRE_DETOUR; }, function(v){ try{ FIRE_DETOUR = v; }catch(e){} }],
 ["KNOWN_PATH_R", function(){ return KNOWN_PATH_R; }, function(v){ try{ KNOWN_PATH_R = v; }catch(e){} }],
@@ -33175,6 +33240,7 @@ var __SNAP = [
 ["NADE_WORTH", function(){ return NADE_WORTH; }, function(v){ try{ NADE_WORTH = v; }catch(e){} }],
 ["nadeReactCd", function(){ return nadeReactCd; }, function(v){ try{ nadeReactCd = v; }catch(e){} }],
 ["NADE_USE_GAP", function(){ return NADE_USE_GAP; }, function(v){ try{ NADE_USE_GAP = v; }catch(e){} }],
+["FLASH_EXIT_MAX", function(){ return FLASH_EXIT_MAX; }, function(v){ try{ FLASH_EXIT_MAX = v; }catch(e){} }],
 ["FOV_DEG", function(){ return FOV_DEG; }, function(v){ try{ FOV_DEG = v; }catch(e){} }],
 ["FOV_NEAR", function(){ return FOV_NEAR; }, function(v){ try{ FOV_NEAR = v; }catch(e){} }],
 ["CONE_R", function(){ return CONE_R; }, function(v){ try{ CONE_R = v; }catch(e){} }],
@@ -35038,7 +35104,7 @@ function tsStart(T){
       '<div class="to-nm">' + esc(nm) + (tag ? '<i>' + tag + '</i>' : '') + '</div></div>'; }).join("") + '</div><div class="to-log"></div>';
   E.sub.innerHTML = "";
   E.root.className = "on " + T.side.toLowerCase() + (typeof HUD_REDUCED !== "undefined" && HUD_REDUCED ? " rm" : "");
-  showSnd("whoosh", 0.28);
+  // (v469, п.10 владельца 29.10: «убрать звук перехода — как будто плёнка меняется») свиста на смене кадров паузы нет
   return true;
 }
 function tsStop(){ var P = TS.P; if(P && P.phase !== "out"){ P.outAt = simTime; P.phase = "out"; P.outReal = performance.now(); } }
@@ -35056,7 +35122,7 @@ function tsFrame(ts){
   if(el >= P.end + TS_K.outro && P.phase !== "out") tsStop();
   if(P.phase === "out"){ var oe = (performance.now() - (P.outReal || (P.outReal = performance.now())))/1000; E.shade.style.opacity = Math.min(1, oe/0.5).toFixed(3); if(oe >= 0.5){ tsEnd(); return false; } return P.sc !== "cam"; }
   var Q = P.seq.filter(function(q){ return el >= q.a && el < q.b; })[0] || P.seq[P.seq.length-1], sc = Q.sc;
-  if(sc !== P.sc){ P.sc = sc; P.phase = sc; P.scAt = el; E.root.setAttribute("data-scene", sc); if(sc !== "title") showSnd("whoosh"); }
+  if(sc !== P.sc){ P.sc = sc; P.phase = sc; P.scAt = el; E.root.setAttribute("data-scene", sc); }
   var se = el - P.scAt;
   E.shade.style.opacity = el < 0.4 ? (1 - el/0.4).toFixed(3) : se < 0.3 ? (0.55*(1 - se/0.3)).toFixed(3) : "0";
   // реплики: по одной, равномерно на всё после титра
@@ -35077,7 +35143,7 @@ function tsLine(E, P, li){
   var log = E.talk.querySelector(".to-log");
   if(log){ var d = document.createElement("div"); d.className = "to-ll"; d.innerHTML = "<b>" + esc(who) + "</b>" + esc(L.t); log.appendChild(d); while(log.children.length > 4) log.removeChild(log.firstChild); }
   E.sub.innerHTML = '<div class="to-sl lvl' + L.lvl + '"><b>' + esc(who) + '</b>' + esc(L.t) + '</div>';
-  showSnd("chat", L.lvl === 1 ? 0.35 : 0.6); showSay(L.t, RP_LANG[P.T.name] || "ru", L.lvl, L.who + P.T.name);
+  showSnd("chat", L.lvl === 1 ? 0.35 : 0.6);   // (v469, п.10) озвучки реплик на паузе нет — только тихий звук сообщения
 }
 // камера на спавне команды: свой кадр, обсервер не трогает (вызов draw — обычный, 680)
 function tsCam(P){
@@ -35135,7 +35201,13 @@ var SND_R = {step:600, shot:2000, awp:2600, nade:1500, bomb:1200};   // (v326) �
 function sndInit(){
   if(SND.ctx) return;
   var C = window.AudioContext || window.webkitAudioContext; if(!C) return;
-  SND.ctx = new C(); SND.master = SND.ctx.createGain(); SND.master.gain.value = SND.vol != null ? SND.vol : 0.85; SND.master.connect(SND.ctx.destination);   // (v325) громче по просьбе владельца; (v326) соединение с колонками было закомментировано по ошибке — звука не было вовсе
+  SND.ctx = new C(); SND.master = SND.ctx.createGain(); SND.master.gain.value = SND.vol != null ? SND.vol : 0.85;
+  // (v469, п.11 владельца 29.10: «когда много звуков в один момент — сильный перегруз») за 50 мс могло сойтись до ~18 звуков (SND_CAP), их сумма
+  // шла прямо в выход громкостью 0,85 и обрезалась (клиппинг). Теперь общий канал — через компрессор-ограничитель: тихие звуки как были,
+  // пики прижимаются, а не обрезаются. Числа — обычные для ограничителя (порог −10 дБ, сильное сжатие, быстрая атака) — проектные
+  var lim = SND.ctx.createDynamicsCompressor ? SND.ctx.createDynamicsCompressor() : null;
+  if(lim){ lim.threshold.value = -10; lim.knee.value = 6; lim.ratio.value = 12; lim.attack.value = 0.003; lim.release.value = 0.15; SND.master.connect(lim); lim.connect(SND.ctx.destination); }
+  else SND.master.connect(SND.ctx.destination);   // (v325) громче по просьбе владельца; (v326) соединение с колонками было закомментировано по ошибке — звука не было вовсе
   var len = SND.ctx.sampleRate, buf = SND.ctx.createBuffer(1, len, SND.ctx.sampleRate), d = buf.getChannelData(0), sd = 12345;
   for(var i=0;i<len;i++){ sd = (sd*1103515245 + 12345) & 0x7fffffff; d[i] = sd/0x3fffffff - 1; }
   SND.noise = buf;
