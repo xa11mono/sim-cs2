@@ -1,0 +1,12 @@
+playwright 1.56.0, браузеры: C:\Windows\system32\config\systemprofile\.simcs2_node\ms-playwright
+> git fetch --quiet origin 805f42ca1ae9f194cc78ef73a044f1b8f0abdf46
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_kxwr7jt6 FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_kxwr7jt6\src\build.py --map ancient C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\snap_m17r27.html
+> node C:\actions-runner\_work\sim-cs2\sim-cs2\tools\snap_round.js C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\snap_m17r27.html 17 27 C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\snap_m17r27 3000
+{"match":17,"matchNum":17,"round":27,"state":"freeze","tick":175093,"fp":"1gecw3a","score":"13:13","pause":null,"after":{"ticks":3000,"tick":178093,"round":27,"hash":3351178913},"restored":{"hash":3351178913,"same":true}} снимок 4036664 байт
+> git fetch --quiet origin 805f42ca1ae9f194cc78ef73a044f1b8f0abdf46
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_q8g8ukuo FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_q8g8ukuo\src\build.py --map ancient C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\snap_m13r7.html
+> node C:\actions-runner\_work\sim-cs2\sim-cs2\tools\snap_round.js C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\snap_m13r7.html 13 7 C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\snap_m13r7 3000
+{"match":13,"matchNum":13,"round":7,"state":"freeze","tick":39146,"fp":"1gecw3a","score":"3:3","pause":"T","after":{"ticks":3000,"tick":42146,"round":7,"hash":1306886230},"restored":{"hash":1306886230,"same":true}} снимок 3177498 байт
+all done
