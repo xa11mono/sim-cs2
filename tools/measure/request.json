@@ -1,3 +1,4 @@
 {"par": 2, "jobs": [], "shots": [
-  {"label": "rp461_m7r26", "ref": "40f6b90c158dc24408ec4fea31f75382d71d669f", "map": "ancient", "match": 7, "round": 26, "step": 900, "n": 36, "mode": "both"}
+  {"label": "rp461_m17r27", "ref": "1eba7d1523328081a88bd7237dbbc600b46f0999", "map": "ancient", "match": 17, "round": 27, "step": 900, "n": 40, "mode": "both"},
+  {"label": "to461_m13r7", "kind": "timeout", "ref": "1eba7d1523328081a88bd7237dbbc600b46f0999", "map": "ancient", "match": 13, "round": 7, "step": 1000, "n": 34}
 ]}
