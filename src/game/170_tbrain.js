@@ -818,7 +818,9 @@ function tBrain(){
         var dfz = bots.filter(function(o){ return o.defusing && o.alive; })[0];
         var remT = dfz ? Math.max(0, (dfz.defuseUntil||tick) - tick) : 0;
         if(dfz && !(dfz.defuseUntil) ) remT = (teamEco.CT.roundType === "full" ? DEFUSE_KIT_TICKS : DEFUSE_TICKS);
-        var late = antiDef.filter(function(b){ return pathLenTo(b, bpA.x, bpA.y)/SPEED*TICK_HZ > remT + 24; });
+        // (п.17 владельца 29.10, м1 р4 т30711: «могли пикнуть через зону B Short, откуда отлично видно бомбу, и убить дефузера издалека») успеть —
+        // дойти до первой точки по пути, откуда бомбу видно (оттуда и стреляют), а не до самой бомбы
+        var late = antiDef.filter(function(b){ return bombSightLen(b, bpA)/SPEED*TICK_HZ > remT + 24; });
         if(dfz && late.length === antiDef.length && late.length && !tt._defLate){
           tt._defLate = tick;
           voiceLog("T", "deflate", late[0].id, "не успеваем на дефуз — сейв");

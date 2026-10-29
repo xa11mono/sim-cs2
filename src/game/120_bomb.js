@@ -29,6 +29,18 @@ function bombDamageAt(x, y){
 // запас FLEE_HP_MARGIN, точка пересчитывается, если HP упало и она больше не спасает, дальше 900 px тоже ищем (до досягаемости
 // взрыва), а если не спасает ни одна — берём ту, где урон меньше всего (раньше — точка сбора, путь через сам взрыв)
 var FLEE_HP_MARGIN = 30, FLEE_MOVE = 300;   // проектное число: урон в точке ухода не больше HP − 30 (бот встаёт не ровно в точку)
+// (п.17 владельца 29.10) сколько идти до первой точки по своему пути к бомбе, откуда бомбу видно (оттуда сбивают дефуз выстрелом); шаг 16 ед.
+function bombSightLen(b, bp){
+  if(hasLOS(b.x, b.y, bp.x, bp.y, b.z)) return 0;
+  var P = buildWaypointPath(b.baseX, b.baseY, b.z, bp.x, bp.y, 0, b.team, botLane(b)) || [], L = 0, px = b.baseX, py = b.baseY;
+  for(var i = 0; i < P.length; i++){
+    var qx = P[i][0], qy = P[i][1], sl = Math.hypot(qx-px, qy-py), n = Math.max(1, Math.ceil(sl/16));
+    for(var k = 1; k <= n; k++){ var x = px + (qx-px)*k/n, y = py + (qy-py)*k/n;
+      if(hasLOS(x, y, bp.x, bp.y, P[i][2] != null ? P[i][2] : b.z)) return L + sl*k/n; }
+    L += sl; px = qx; py = qy;
+  }
+  return L;
+}
 function bombFleePoint(b){
   if(!bomb || bomb.state !== "planted") return null;
   var F = b._flee;
