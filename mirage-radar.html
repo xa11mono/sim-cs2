@@ -172,6 +172,8 @@
     --ease:cubic-bezier(.2,.8,.2,1); --ease-in:cubic-bezier(.5,0,.75,0); --spring:cubic-bezier(.34,1.5,.64,1);
     --d1:120ms; --d2:180ms; --d3:280ms;
     --k:1;   /* масштаб HUD под ширину окна (635_hud_fx.js) */
+    /* (v461) показ трансляции (повтор клатча 675, пауза 676) — общие: пузырь реплики, подсветка героя */
+    --bubble:#fff; --bubble-ink:#0b0f0b; --bubble-quiet:rgba(255,255,255,.8); --bubble-dark:rgba(20,24,18,.92); --hero:var(--mark);
     /* иконки кнопок — маски (рисуются цветом текста; подписи кнопок скрипты меняют, иконки остаются) */
     --i-pause:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22%23000%22%3E%3Crect x=%226%22 y=%224.5%22 width=%224%22 height=%2215%22 rx=%221.2%22/%3E%3Crect x=%2214%22 y=%224.5%22 width=%224%22 height=%2215%22 rx=%221.2%22/%3E%3C/svg%3E");
     --i-play:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22%23000%22%3E%3Cpath d=%22M7 4.6v14.8a1 1 0 0 0 1.5.86l12.2-7.4a1 1 0 0 0 0-1.72L8.5 3.74A1 1 0 0 0 7 4.6z%22/%3E%3C/svg%3E");
@@ -523,6 +525,193 @@
   .mk-prog{position:absolute;left:50%;top:45%;transform:translate(-50%,-50%);z-index:60;padding:14px 22px;border-radius:var(--r-lg);font-size:14px;
     background:rgba(16,20,15,.97);border:1px solid var(--accent-dim);color:var(--accent);box-shadow:var(--sh-pop);}
 
+
+  /* ---------- (v459) повтор клатча (675_replay.js): поверх всего экрана; движение — transform/opacity, без filter ---------- */
+  #rp{position:absolute;inset:0;z-index:40;display:none;overflow:hidden;background:#060806;font-family:var(--cond);color:var(--text);}
+  #rp.on{display:block;}
+  #rpCv{position:absolute;inset:0;width:100%;height:100%;display:block;}
+  #rp .rp-vig{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at 50% 50%,transparent 55%,rgba(0,0,0,.55) 100%);}
+  #rp .rp-bar{position:absolute;left:0;right:0;height:9%;background:#000;display:flex;align-items:center;padding:0 22px;gap:14px;
+    transition:transform var(--d3) var(--ease);}
+  #rp .rp-bar.top{top:0;} #rp .rp-bar.bottom{bottom:0;}
+  #rp.emo .rp-bar.top{transform:translateY(-100%);} #rp.emo .rp-bar.bottom{transform:translateY(100%);}
+  #rp .rp-tag{display:inline-flex;align-items:center;gap:8px;font-weight:700;letter-spacing:.18em;font-size:15px;color:#fff;}
+  #rp .rp-tag i{width:9px;height:9px;border-radius:50%;background:var(--danger);box-shadow:0 0 10px rgba(229,89,78,.8);animation:rpRec 1s steps(2) infinite;}
+  @keyframes rpRec{50%{opacity:.2;}}
+  #rp .rp-slow{margin-left:auto;font-family:var(--num);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--mark);opacity:0;
+    transform:translateY(-4px);transition:opacity var(--d2) var(--ease),transform var(--d2) var(--ease);}
+  #rp .rp-slow::before{content:"×0.3 ";font-weight:700;}
+  #rp .rp-slow.on{opacity:1;transform:none;}
+  #rp .rp-l3{display:flex;align-items:center;gap:12px;height:100%;}
+  #rp .rp-l3 img{height:62%;width:auto;}
+  #rp .rp-l3 b{display:block;font-size:20px;font-weight:700;letter-spacing:.03em;color:#fff;line-height:1.05;}
+  #rp .rp-l3 span{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--mark);}
+  #rp .rp-l3 .rp-k{font-style:normal;font-family:var(--num);font-weight:600;font-size:24px;line-height:1;min-width:40px;display:flex;flex-direction:column;
+    align-items:center;padding:4px 8px 3px;margin-left:6px;border:1px solid var(--mark);color:#ffe49a;}
+  #rp .rp-l3 .rp-k::after{content:"фраги";font-family:var(--cond);font-weight:500;font-size:9px;letter-spacing:.12em;text-transform:uppercase;margin-top:3px;color:var(--text-dim);}
+  #rp .rp-l3 .rp-k.pop{animation:rpPop .45s var(--spring);}
+  @keyframes rpPop{0%{transform:scale(1.5);}100%{transform:none;}}
+  #rp .rp-feed{position:absolute;top:calc(9% + 12px);right:20px;display:flex;flex-direction:column;align-items:flex-end;gap:3px;pointer-events:none;font-size:13px;}
+  #rp .rp-feed .kf{display:flex;align-items:center;gap:6px;height:24px;padding:0 9px;white-space:nowrap;background:rgba(10,12,9,.86);border-radius:3px;
+    animation:kfIn var(--d3) var(--ease) both;}
+  #rp .rp-feed .kf.me{box-shadow:inset 0 0 0 1px rgba(231,200,115,.85);}
+  #rp .rp-feed .ct{color:#93c6f4;font-weight:500;} #rp .rp-feed .t{color:#f2bb55;font-weight:500;} #rp .rp-feed svg{flex:none;}
+  /* войс в повторе: слева над нижней полосой; на экране реакций — лента «в эфире» */
+  #rp .rp-vox{position:absolute;left:20px;bottom:calc(9% + 14px);display:flex;flex-direction:column;gap:4px;max-width:min(46vw,560px);pointer-events:none;}
+  #rp .rp-vl{display:flex;gap:8px;align-items:baseline;padding:5px 10px;background:rgba(10,12,9,.86);border-left:3px solid var(--t);font-size:14px;
+    animation:rpVl .25s var(--ease) both;}
+  #rp .rp-vl.ct{border-left-color:var(--ct);} #rp .rp-vl b{font-weight:600;white-space:nowrap;} #rp .rp-vl.t b{color:#f2bb55;} #rp .rp-vl.ct b{color:#93c6f4;}
+  #rp .rp-vl span{color:var(--text);}
+  @keyframes rpVl{from{opacity:0;transform:translateX(-12px);}to{opacity:1;transform:none;}}
+  #rp .rp-air{display:flex;flex-direction:column;align-items:center;gap:3px;margin-top:6px;max-width:min(70vw,760px);}
+  #rp .rp-air-h{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--text-mute);margin-bottom:2px;}
+  #rp .rp-air .rp-vl{font-size:13px;padding:3px 10px;animation-delay:calc(var(--i)*120ms + 2s);}
+  #rp .rp-shade{position:absolute;inset:0;background:#000;opacity:0;pointer-events:none;}
+  #rp .rp-title{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);text-align:center;z-index:2;opacity:0;pointer-events:none;
+    transition:opacity var(--d3) var(--ease);}
+  #rp.intro .rp-title{opacity:1;}
+  #rp .rp-t1{font-size:13px;letter-spacing:.5em;color:var(--danger);font-weight:700;}
+  #rp .rp-t2{font-size:44px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#ffe49a;line-height:1.1;margin:6px 0 4px;}
+  #rp .rp-t3{font-size:16px;letter-spacing:.12em;text-transform:uppercase;}
+  #rp .rp-t3.ct{color:#93c6f4;} #rp .rp-t3.t{color:#f2bb55;}
+  #rp.intro .rp-t2{animation:rpIn .6s var(--ease) both;}
+  @keyframes rpIn{from{opacity:0;transform:translateY(10px) scale(.96);}to{opacity:1;transform:none;}}
+  #rp .rp-skip{position:absolute;right:18px;bottom:calc(9% + 14px);z-index:3;font:500 12px var(--ui);padding:6px 12px;border-radius:var(--r-sm);
+    border:1px solid var(--line-2);background:rgba(14,17,13,.8);color:var(--text-dim);cursor:pointer;}
+  #rp .rp-skip:hover{color:#fff;border-color:var(--text-mute);}
+  /* эмоции: портреты в строчку, над размытым кадром */
+  #rp .rp-emo{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:3% 2%;}
+  #rp.emo .rp-emo{display:flex;} #rp.emo .rp-feed{display:none;}
+  #rp .rp-eh{display:flex;align-items:center;gap:12px;font-size:28px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:#fff;
+    animation:rpIn .5s var(--ease) both;}
+  #rp .rp-eh img{height:44px;} #rp .rp-eh em{font-style:normal;font-size:15px;letter-spacing:.14em;color:var(--mark);font-weight:500;}
+  #rp .rp-eh.ct span{color:#a6cdf2;} #rp .rp-eh.t span{color:#f6cf86;}
+  #rp .rp-eh2{font-size:13px;letter-spacing:.2em;text-transform:uppercase;color:var(--text-dim);margin:10px 0 50px;animation:rpIn .5s var(--ease) 1.2s both;}
+  #rp .rp-row{display:flex;justify-content:center;align-items:flex-end;gap:14px;width:100%;}
+  #rp .rp-card .rp-vx:empty::before{content:"\00a0";}
+  #rp .rp-card{position:relative;width:min(16vw,170px);display:flex;flex-direction:column;align-items:center;
+    animation:rpCard .55s var(--spring) both;animation-delay:calc(var(--i)*90ms + .2s);}
+  #rp .rp-row.sad .rp-card{width:min(11vw,118px);animation-delay:calc(var(--i)*80ms + 1.3s);}
+  @keyframes rpCard{from{opacity:0;transform:translateY(26px) scale(.92);}to{opacity:1;transform:none;}}
+  #rp .rp-ph{width:100%;aspect-ratio:1;overflow:hidden;background:linear-gradient(180deg,var(--panel-3),#0d100c);border-bottom:3px solid var(--t);}
+  #rp .rp-row.ct .rp-ph{border-bottom-color:var(--ct);}
+  #rp .rp-ph img{width:100%;height:100%;object-fit:cover;object-position:50% 12%;display:block;}
+  #rp .rp-ph svg{width:100%;height:100%;fill:rgba(255,255,255,.16);}
+  #rp .rp-card.hero{width:min(20vw,214px);} #rp .rp-card.hero .rp-ph{border-bottom-color:var(--mark);box-shadow:0 0 0 1px rgba(231,200,115,.55),0 10px 40px -8px rgba(231,200,115,.55);}
+  #rp .rp-row.sad .rp-ph{opacity:.62;}
+  #rp .rp-row.sad .rp-card.dead .rp-ph{opacity:.42;}
+  #rp .rp-nm{display:flex;align-items:baseline;gap:7px;margin-top:6px;font-size:15px;font-weight:600;color:#fff;}
+  #rp .rp-nm i{font-style:normal;font-family:var(--num);font-size:11px;color:var(--mark);}
+  #rp .rp-row.sad .rp-nm{font-size:12px;color:var(--text-dim);}
+  #rp .rp-vx{margin-top:3px;max-width:100%;font-size:11px;color:var(--text-mute);text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  /* что кричит — пузырь над портретом; победители «кричат» (встряска), проигравшие — тихо */
+  #rp .rp-say{position:absolute;bottom:calc(100% - 14px);left:50%;transform:translateX(-50%);z-index:1;white-space:nowrap;padding:6px 11px;border-radius:3px;
+    background:var(--bubble);color:var(--bubble-ink);font-size:15px;font-weight:700;letter-spacing:.02em;box-shadow:0 6px 18px -6px rgba(0,0,0,.7);
+    opacity:0;transition:opacity .25s;}
+  /* (v465) реакции по очереди: «…» — печатает, .in — сказал (появление), .said — сказанное приглушено; говорящий подсвечен */
+  #rp .rp-say u{display:none;text-decoration:none;gap:4px;padding:2px 2px;} #rp .rp-say u i{width:6px;height:6px;border-radius:50%;background:currentColor;opacity:.35;animation:rpDot 1s infinite;}
+  #rp .rp-say u i:nth-child(2){animation-delay:.15s;} #rp .rp-say u i:nth-child(3){animation-delay:.3s;}
+  @keyframes rpDot{0%,60%,100%{opacity:.3;transform:none;}30%{opacity:1;transform:translateY(-3px);}}
+  #rp .rp-say.typing{opacity:1;} #rp .rp-say.typing b{display:none!important;} #rp .rp-say.typing u{display:inline-flex;}
+  #rp .rp-say.in{opacity:1;animation:rpSay .4s var(--spring) both;}
+  #rp .rp-card.said .rp-say{animation:none;opacity:.5;transform:translateX(-50%) scale(.9);transition:opacity .5s,transform .5s;}
+  #rp .rp-card .rp-ph{transition:transform .3s var(--spring),box-shadow .3s,opacity .3s;}
+  #rp .rp-card.talking{z-index:2;} #rp .rp-card.talking .rp-ph{transform:translateY(-6px) scale(1.06);opacity:1!important;box-shadow:0 0 0 2px var(--mark),0 12px 36px -8px rgba(231,200,115,.6);}
+  #rp .rp-say::after{content:"";position:absolute;top:100%;left:50%;margin-left:-6px;border:6px solid transparent;border-top-color:var(--bubble);}
+  /* громкость: 3 — крик (встряска), 2 — обычно, 1 — тихо */
+  #rp .rp-say.lvl3.in b{display:inline-block;animation:rpShout .32s ease-in-out .3s 4 alternate;}
+  #rp .rp-row.hype .rp-say.lvl2{font-weight:600;}
+  #rp .rp-row.hype .rp-say.lvl1{font-size:12px;font-weight:500;font-style:italic;background:rgba(255,255,255,.78);padding:4px 9px;}
+  #rp .rp-row.hype .rp-say.lvl1::after{border-top-color:rgba(255,255,255,.78);}
+  #rp .rp-row.sad .rp-say.lvl3{color:#ffb3aa;font-style:normal;font-weight:700;}
+  #rp .rp-row.sad .rp-say.lvl2{color:var(--text);font-style:normal;}
+  #rp .rp-card.hero .rp-say{background:var(--hero);font-size:18px;} #rp .rp-card.hero .rp-say::after{border-top-color:var(--hero);}
+  #rp .rp-row.sad .rp-say{background:rgba(20,24,18,.92);color:var(--text-dim);font-weight:500;font-style:italic;font-size:12px;
+}
+  #rp .rp-row.sad .rp-say::after{border-top-color:rgba(20,24,18,.92);}
+  /* у проигравших карточки узкие: фраза в 2 строки, через одну — выше, чтобы соседние не налезали */
+  #rp .rp-row.sad .rp-say{white-space:normal;width:max-content;max-width:min(13vw,138px);text-align:center;line-height:1.25;}
+  #rp .rp-row.sad .rp-card:nth-child(even) .rp-say{bottom:calc(100% + 18px);}
+  @keyframes rpSay{from{opacity:0;transform:translate(-50%,8px) scale(.8);}to{opacity:1;transform:translateX(-50%);}}
+  @keyframes rpShout{from{transform:rotate(-2.5deg) scale(1);}to{transform:rotate(2.5deg) scale(1.08);}}
+  #rp.rm *{animation:none!important;transition:none!important;}
+  /* ---------- (v460) тактическая пауза (676_timeout_show.js): в стиле повтора клатча; движение — transform/opacity ---------- */
+  #to{position:absolute;inset:0;z-index:39;display:none;overflow:hidden;font-family:var(--cond);color:var(--text);pointer-events:none;}
+  #to.on{display:block;}
+  #to .to-bg{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 40%,rgba(28,34,26,.96),rgba(6,8,6,.98));transition:opacity var(--d3) var(--ease);}
+  #to[data-scene="cam"] .to-bg{opacity:0;}
+  #to .to-skip{pointer-events:auto;position:absolute;right:18px;bottom:calc(9% + 14px);z-index:3;font:500 12px var(--ui);padding:6px 12px;border-radius:var(--r-sm);
+    border:1px solid var(--line-2);background:rgba(14,17,13,.8);color:var(--text-dim);cursor:pointer;}
+  #to .to-shade{position:absolute;inset:0;background:#000;opacity:0;}
+  #to .to-title{position:absolute;left:50%;top:46%;transform:translate(-50%,-50%);text-align:center;opacity:0;transition:opacity var(--d3) var(--ease);}
+  #to[data-scene="title"] .to-title{opacity:1;}
+  #to .to-t1{font-size:13px;letter-spacing:.5em;color:var(--mark);font-weight:700;}
+  #to .to-t2{display:flex;align-items:center;justify-content:center;gap:14px;font-size:46px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;margin:8px 0 6px;
+    animation:rpIn .6s var(--ease) both;}
+  #to .to-t2 img{height:56px;} #to .to-t2.ct{color:#a6cdf2;} #to .to-t2.t{color:#f6cf86;}
+  #to .to-t3{font-size:14px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-dim);display:flex;align-items:center;justify-content:center;gap:8px;}
+  #to .to-pips{display:inline-flex;gap:5px;} #to .to-pips i{width:10px;height:10px;border:1px solid var(--mark);transform:skewX(-12deg);}
+  #to .to-pips i.on{background:var(--mark);}
+  /* доска */
+  #to .to-board{position:absolute;left:50%;top:50%;width:min(64vw,880px);height:min(74vh,700px);transform:translate(-50%,-50%) scale(.97);opacity:0;
+    transition:opacity var(--d3) var(--ease),transform var(--d3) var(--ease);background:#1d231b;border:1px solid var(--line-2);
+    box-shadow:0 0 0 6px #10140e,0 30px 80px -20px rgba(0,0,0,.8);}
+  #to[data-scene="board"] .to-board{opacity:1;transform:translate(-50%,-50%);}
+  #to .to-board canvas{position:absolute;inset:34px 10px 10px;width:calc(100% - 20px);height:calc(100% - 44px);}
+  #to .to-bh{position:absolute;left:14px;top:9px;font-size:12px;letter-spacing:.3em;text-transform:uppercase;color:var(--mark);}
+  /* разговор: портреты в строчку, говорящий — крупнее, пузырь над ним; ниже — последние реплики */
+  #to .to-talk{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;opacity:0;transition:opacity var(--d3) var(--ease);}
+  #to[data-scene="talk"] .to-talk,#to[data-scene="talk2"] .to-talk{opacity:1;}
+  #to .to-row{display:flex;gap:14px;align-items:flex-end;}
+  #to .to-card{position:relative;width:min(12vw,140px);display:flex;flex-direction:column;align-items:center;opacity:.55;transform:scale(.94);
+    transition:opacity var(--d2) var(--ease),transform var(--d2) var(--ease);}
+  #to .to-card.talking{opacity:1;transform:scale(1.06);}
+  #to .to-ph{width:100%;aspect-ratio:1;overflow:hidden;background:linear-gradient(180deg,var(--panel-3),#0d100c);border-bottom:3px solid var(--t);}
+  #to .to-row.ct .to-ph{border-bottom-color:var(--ct);} #to .to-card.coach .to-ph{border-bottom-color:var(--mark);}
+  #to .to-ph img{width:100%;height:100%;object-fit:cover;object-position:50% 12%;display:block;} #to .to-ph svg{width:100%;height:100%;fill:rgba(255,255,255,.16);}
+  #to .to-nm{display:flex;gap:6px;align-items:baseline;margin-top:6px;font-size:14px;font-weight:600;color:#fff;}
+  #to .to-nm i{font-style:normal;font-size:10px;letter-spacing:.12em;color:var(--mark);}
+  #to .to-say{position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);width:max-content;max-width:min(30vw,340px);padding:7px 12px;border-radius:3px;
+    background:var(--bubble);color:var(--bubble-ink);font-size:15px;font-weight:600;line-height:1.25;text-align:center;opacity:0;box-shadow:0 6px 18px -6px rgba(0,0,0,.7);}
+  #to .to-say::after{content:"";position:absolute;top:100%;left:50%;margin-left:-6px;border:6px solid transparent;border-top-color:var(--bubble);}
+  #to .to-say.in{animation:rpSay .35s var(--spring) both;}
+  #to .to-say.lvl3{font-weight:700;} #to .to-say.lvl3 b{display:inline-block;animation:rpShout .3s ease-in-out .35s 4 alternate;}
+  #to .to-say.lvl1{font-size:13px;font-weight:500;font-style:italic;background:rgba(255,255,255,.8);} #to .to-say.lvl1::after{border-top-color:rgba(255,255,255,.8);}
+  #to .to-card.coach .to-say{background:var(--hero);} #to .to-card.coach .to-say::after{border-top-color:var(--hero);}
+  #to .to-log{display:flex;flex-direction:column;align-items:center;gap:3px;min-height:96px;}
+  #to .to-ll{font-size:13px;color:var(--text-dim);animation:rpVl .25s var(--ease) both;} #to .to-ll b{color:var(--text);font-weight:600;margin-right:8px;}
+  /* нижняя полоса: кто на паузе + субтитр текущей реплики (в сцене «спавн» — поверх живой игры) */
+  #to .to-bar{position:absolute;left:0;right:0;bottom:0;height:9%;min-height:58px;background:#000;display:flex;align-items:center;gap:22px;padding:0 22px;}
+  #to .to-l3{display:flex;align-items:center;gap:12px;flex:none;} #to .to-l3 img{height:38px;}
+  #to .to-l3 b{display:block;font-size:19px;font-weight:700;color:#fff;line-height:1.05;} #to .to-l3 span{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--mark);}
+  #to .to-sub{flex:1;min-width:0;}
+  #to .to-sl{font-size:16px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;animation:rpVl .25s var(--ease) both;}
+  #to .to-sl b{color:var(--mark);font-weight:600;margin-right:10px;} #to .to-sl.lvl3{font-weight:700;} #to .to-sl.lvl1{color:var(--text-dim);font-style:italic;}
+  #to[data-scene="title"] .to-bar,#to[data-scene="board"] .to-sub{opacity:0;}
+  /* (v462) сцены паузы: доска + портреты в одном окне (split), доска в углу кадра спавна (cam), вход карточек, «эквалайзер» говорящего */
+  #to[data-scene="split"] .to-board{opacity:1;transform:translate(calc(-50% - 22vw),-50%) scale(.78);}
+  #to[data-scene="split"] .to-talk{opacity:1;transform:translateX(23vw);}
+  #to[data-scene="split"] .to-row{flex-wrap:wrap;justify-content:center;width:min(42vw,560px);row-gap:46px;}
+  #to[data-scene="split"] .to-card{width:min(9.5vw,120px);}
+  #to[data-scene="split"] .to-log{display:none;}
+  #to .to-talk{transition:opacity var(--d3) var(--ease),transform var(--d3) var(--ease);}
+  #to[data-scene="cam"] .to-board{opacity:.96;left:auto;top:auto;right:20px;bottom:calc(9% + 22px);width:min(24vw,300px);height:min(24vh,220px);transform:none;
+    box-shadow:0 0 0 3px #10140e,0 18px 40px -12px rgba(0,0,0,.8);}
+  #to[data-scene="cam"] .to-bh{font-size:10px;}
+  #to[data-scene="talk"] .to-card{animation:toCardA .5s var(--spring) both;animation-delay:calc(var(--i)*70ms);}
+  #to[data-scene="split"] .to-card{animation:toCardB .5s var(--spring) both;animation-delay:calc(var(--i)*60ms);}
+  @keyframes toCardA{from{opacity:0;transform:translateY(24px) scale(.9);}to{opacity:.55;transform:scale(.94);}}
+  @keyframes toCardB{from{opacity:0;transform:translateX(30px) scale(.9);}to{opacity:.55;transform:scale(.94);}}
+  #to .to-card.talking{animation:none;}
+  #to .to-ph{position:relative;}
+  #to .to-eq{position:absolute;left:8px;bottom:8px;display:flex;gap:2px;align-items:flex-end;height:16px;opacity:0;transition:opacity var(--d2) var(--ease);}
+  #to .to-card.talking .to-eq{opacity:1;}
+  #to .to-eq b{width:3px;height:100%;background:var(--hero);transform-origin:50% 100%;animation:toEq .45s ease-in-out infinite alternate;}
+  #to .to-eq b:nth-child(2){animation-delay:.12s;} #to .to-eq b:nth-child(3){animation-delay:.24s;} #to .to-eq b:nth-child(4){animation-delay:.06s;}
+  @keyframes toEq{from{transform:scaleY(.25);}to{transform:scaleY(1);}}
+  #to .to-board{transition:opacity var(--d3) var(--ease),transform .55s var(--ease);}
+  #to.rm *{animation:none!important;transition:none!important;}
+
   @media (prefers-reduced-motion: reduce){
     *,*::before,*::after{animation-duration:1ms!important;animation-iteration-count:1!important;animation-delay:0ms!important;transition-duration:1ms!important;}
   }
@@ -532,7 +721,7 @@
   <div id="topbar">
     <div class="tb-id">
       <h1>Mirage<span id="matchTick" class="mono" title="Какой матч сейчас идёт и тик — запиши, если увидел баг"></span></h1>
-      <div class="sub mono" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 458, 28.10</div>
+      <div class="sub mono" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 465, 29.10</div>
     </div>
     <div class="tb-group" id="tbMatch">
       <button id="btnPause">Пауза</button>
@@ -577,6 +766,14 @@
           <label class="chk" title="Сдвинуть/отмасштабировать весь слой зон и тактических точек целиком"><input type="checkbox" id="chkZoneAlign"> выравнивание зон</label>
           <label class="chk"><input type="checkbox" id="chkAlign"> выравнивание navmesh</label>
           <label class="chk" title="(v447) Хайлайты: шанс, что игрок в начале дуэли «в ударе» — быстрее реакция, точнее прицел, флик AWP, выходит на следующего. 0 — без хайлайтов. Меняет игру с нового матча (кнопка «Сыграть»)">хайлайты <input type="range" id="hlP" min="0" max="30" step="1" style="width:90px;vertical-align:middle"> <span id="hlPv"></span></label>
+          <label class="chk" title="(v459) Повтор клатча: после выигранного клатча 1v2 и больше, пока закупка, — повтор фрагов с замедлением и реакция игроков. Только показ, игру не меняет"><input type="checkbox" id="chkRp" checked> повтор клатча</label>
+          <label class="chk" title="(v462) Реплики игроков и тренера в повторе и на паузе — голосом браузера (синтез речи), на языке команды. Слышно, только когда включён «Звук»"><input type="checkbox" id="chkTts" checked> озвучка реплик</label>
+          <label class="chk" title="(v459) Что показывать после клатча: авто — по-разному, как на трансляции"><select id="selRp"><option value="auto">авто</option><option value="both">клип + реакция</option><option value="clip">только клип</option><option value="emo">только реакция</option></select></label>
+          <button id="btnRpLast" title="Показать повтор последнего клатча этого матча ещё раз">Повтор последнего клатча</button>
+          <button id="btnRpGo" title="Матч 17, раунд 27: клатч 1v5 — матч перематывается до закупки этого раунда, дальше смотреть (совпадёт при «Хайлайты» 6 % и без своих правок карты)">Клатч-раунд: матч 17, раунд 27 (1v5)</button>
+          <button id="btnToGo" title="Матч 13, раунд 7: перед ним T берут тактическую паузу — матч перематывается до этой закупки">Пауза-раунд: матч 13, раунд 7</button>
+          <button id="btnToTake" title="Команда, проигравшая текущий раунд, возьмёт тактическую паузу (если пауз ещё есть). Меняет игру этого матча">Взять паузу (проигравшие раунд)</button>
+          <button id="btnToLast" title="Показать последнюю тактическую паузу этого матча ещё раз (только показ)">Показать последнюю паузу</button>
           <label class="chk"><input type="checkbox" id="chkNavWarp" title="Навмеш смещён от стен по-разному в разных углах карты — обычный общий сдвиг/масштаб это не лечит, нужно несколько опорных точек"> калибровка навмеша (точки)</label>
           <button id="btnExportProject" title="Всё, что сохранено только в этом браузере (стены, точки калибровки, зоны) — одним JSON, чтобы зашить в код">Экспорт проекта</button>
         </div>
@@ -729,6 +926,29 @@
     <div id="killfeed"></div>
     <div id="banner"></div>
     <div id="roundCard"></div>
+    <!-- (v459) повтор клатча (675_replay.js): свой холст поверх всего, полосы кадра, титр, киллфид, эмоции -->
+    <div id="rp" aria-live="polite">
+      <canvas id="rpCv"></canvas>
+      <div class="rp-vig"></div>
+      <div class="rp-bar top"><span class="rp-tag"><i></i>ПОВТОР</span><span class="rp-slow">замедление</span></div>
+      <div class="rp-bar bottom"><div class="rp-l3"></div></div>
+      <div class="rp-feed"></div>
+      <div class="rp-vox"></div>
+      <div class="rp-emo"></div>
+      <div class="rp-title"></div>
+      <div class="rp-shade"></div>
+      <button class="rp-skip" type="button" title="Пропустить повтор (Esc или пробел)">Пропустить</button>
+    </div>
+    <!-- (v460) тактическая пауза (676_timeout_show.js): титр, доска тренера, разговор, камера на спавне -->
+    <div id="to">
+      <div class="to-bg"></div>
+      <div class="to-title"></div>
+      <div class="to-board"><div class="to-bh">план тренера</div><canvas></canvas></div>
+      <div class="to-talk"></div>
+      <div class="to-bar"><div class="to-l3"></div><div class="to-sub"></div></div>
+      <div class="to-shade"></div>
+      <button class="to-skip" type="button" title="Скрыть показ паузы (игра не меняется)">Скрыть</button>
+    </div>
   </div>
 </div>
 
@@ -16391,26 +16611,104 @@ function readCT(){
   ["A","B"].forEach(function(k){ var o = k === "A" ? "B" : "A"; var n = last.filter(function(r){ return r[k] >= 2 && r[k] > r[o]; }).length; if(n >= 2 && n > out.n){ out.stack = k; out.n = n; } });
   return out;
 }
-// ---- тайм-ауты ----
-// Проиграли 3 раунда подряд — IGL берёт тайм-аут (в турнирах их несколько по
-// 30с; у нас 3 на матч). После него на 4 раунда: T не повторяют последние
-// тактики, которые не сработали; CT уходят от своих последних расстановок.
-var TOUT = {CT:{left:3, streak:0, until:0, avoid:[]}, T:{left:3, streak:0, until:0, avoid:[]}};
-function timeoutsReset(){ TOUT = {CT:{left:3, streak:0, until:0, avoid:[]}, T:{left:3, streak:0, until:0, avoid:[]}}; }
+// ---- тактические паузы (v460, владелец 28.10) ----
+// Регламент турниров CS2 (SwitzerLAN, docs/PRO_PLAY.md): у команды 3 паузы по 30 с за основное время; в овертайме оставшиеся
+// сгорают, на каждый овертайм — 1. Демки Ancient (tools/timeout_demos.py, 92 демки): ~3,65 паузы на карту на обе команды;
+// команда, проигравшая раунд перед паузой, берёт следующий в 57 % (190 из 336).
+// Берёт проигравшая раунд команда — тренер (чаще) или IGL — по тому, что видела команда: серия поражений, проиграли клатч соперника,
+// соперник близко к победе; последнюю паузу держат на конец половины (правила и доли — проектные, timeoutWant).
+// Пауза = закупка дольше на TO_SEC и план тренера (coachPlan) на TO_PLAN_ROUNDS раунда — только из того, что видела команда:
+// где CT стакают / куда ходят T, какие тактики и расстановки провалились, где мы умираем; заготовка — тактика, которую в этом
+// матче ещё не играли, на первый раунд после паузы. Показ паузы — 676_timeout_show.js (только показ).
+var TO_SEC = 30, TO_PLAN_ROUNDS = 3;
+var TOUT = {CT:{left:3, streak:0, until:0, avoid:[], plan:null}, T:{left:3, streak:0, until:0, avoid:[], plan:null}};
+var TO_NOW = null, TO_LAST = null, TO_FORCE = false, TO_DEATHS = {CT:[], T:[]};
+function timeoutsReset(){ TOUT = {CT:{left:3, streak:0, until:0, avoid:[], plan:null}, T:{left:3, streak:0, until:0, avoid:[], plan:null}}; TO_NOW = null; TO_DEATHS = {CT:[], T:[]}; }
 function timeoutCheck(winner){
   if(!BAL.timeouts) return;
-  ["CT","T"].forEach(function(team){
-    var T0 = TOUT[team];
-    if(team === winner){ T0.streak = 0; return; }
-    T0.streak++;
-    if(T0.streak >= 3 && T0.left > 0 && roundNum !== HALF_ROUNDS && roundState !== "matchover"){
-      T0.left--; T0.streak = 0; T0.until = roundNum + 4;
-      T0.avoid = team === "T" ? tacHist.slice(-3) : ctSetupHist.slice(-3);
-      var names = team === "T" ? T0.avoid.map(function(id){ var t = T_TACTICS.filter(function(x){ return x.id === id; })[0]; return t ? t.name : id; })
-                               : T0.avoid.map(function(id){ var t = CT_SETUPS.filter(function(x){ return x.id === id; })[0]; return t ? t.name : id; });
-      logEvent("ТАЙМ-АУТ "+team+" — три поражения подряд. "+(team === "T" ? "IGL: не повторяем «"+names.join("», «")+"»" : "CT: меняем расстановку, уходим от «"+names.join("», «")+"»")+" (осталось тайм-аутов: "+T0.left+")", true);
+  TO_NOW = null;
+  var nx = roundNum + 1;
+  // перед первым раундом каждого овертайма — ровно одна пауза у каждой команды (оставшиеся сгорают)
+  if(BAL.overtime && nx > regRounds() && (nx - regRounds() - 1) % (OT_HALF*2) === 0) ["CT","T"].forEach(function(s){ TOUT[s].left = 1; });
+  // где умирали в этом раунде (зоны) — тренер видит это по своей команде
+  ["CT","T"].forEach(function(s){ TO_DEATHS[s].push(bots.filter(function(b){ return b.team === s && !b.alive; }).map(function(b){ var zid = zoneIdAt3(b.x, b.y, b.z); return (zid && zoneMainName(ZONE_NAMES[zid])) || "?"; }));
+    if(TO_DEATHS[s].length > 6) TO_DEATHS[s].shift(); });
+  ["CT","T"].forEach(function(s){ if(s === winner) TOUT[s].streak = 0; else TOUT[s].streak++; });
+  if(!winner || matchOverWith(roundNum, score.CT, score.T) || sideSwapNow(nx)) return;   // конец матча / перерыв между половинами
+  var side = winner === "CT" ? "T" : "CT", L = TOUT[side];
+  var why = TO_FORCE ? "manual" : timeoutWant(side, winner);
+  if(!why) return;
+  if(L.left <= 0){ if(TO_FORCE) logEvent("Пауза не взята: у "+TEAM_NAME[side]+" пауз не осталось"); TO_FORCE = false; return; }
+  TO_FORCE = false;
+  L.left--; L.streak = 0; L.until = roundNum + TO_PLAN_ROUNDS;
+  var plan = coachPlan(side);
+  L.avoid = plan.avoid; L.plan = plan; plan.first = nx;
+  var caller = hashRand(roundNum*31 + matchNum*7 + 5) < 0.75 ? "coach" : "igl";
+  TO_NOW = TO_LAST = {side: side, team: SIDE_TEAM[side], name: TEAM_NAME[side], caller: caller, plan: plan, round: nx, why: why, left: L.left,
+    score: {CT: score.CT, T: score.T}, m: matchNum};
+  logEvent("ТАКТИЧЕСКАЯ ПАУЗА — "+TEAM_NAME[side]+" ("+side+", "+(caller === "coach" ? "тренер" : "IGL")+", осталось "+L.left+"): "+plan.facts.map(function(f){ return f.log; }).join("; "), true);
+}
+// брать ли паузу проигравшей раунд стороне: причина или null (проектные правила; доля пауз на карту — сверка с демками)
+function timeoutWant(side, winner){
+  var L = TOUT[side], mine = score[side], theirs = score[winner];
+  var u = hashRand(roundNum*7919 + matchNum*131 + (side === "CT" ? 1 : 2));
+  var clutchLost = !!(clutchInfo && clutchInfo.team === winner && clutchInfo.n >= 2);
+  var reg = roundNum < regRounds(), inHalf = reg ? ((roundNum - 1) % HALF_ROUNDS) + 1 : 0;
+  var reserve = reg && L.left === 1 && inHalf < HALF_ROUNDS - 3;          // последнюю — на конец половины
+  var danger = reg ? (theirs >= MATCH_WIN - 3 && theirs > mine) : theirs > mine;
+  if(L.streak >= 4) return "streak";
+  if(reserve) return clutchLost && u < 0.5 ? "clutch" : null;
+  if(L.streak >= 3) return "streak";
+  if(clutchLost && u < 0.4) return "clutch";
+  if(danger && L.streak >= 2 && u < 0.5) return "danger";
+  return null;   // (v461) «2 поражения — иногда» убрано: пауз было 4,9 на матч при 3,65 у про
+}
+function tacUsesZone(t, z){ return (t.groups || []).some(function(g){ return g.stage === z || (g.via || []).indexOf(z) >= 0; }); }
+function setupUsesZone(S, z){ return !!S.roles && Object.keys(S.roles).some(function(r){ return (S.roles[r].pos || []).indexOf(z) >= 0; }); }
+function tacById(id){ return T_TACTICS.filter(function(x){ return x.id === id; })[0] || null; }
+function setupById(id){ return CT_SETUPS.filter(function(x){ return x.id === id; })[0] || null; }
+// план тренера: факты (что видела команда) → что делаем. Каждый факт — с числами, из них же строится речь на паузе (676)
+function coachPlan(side){
+  var P = {side: side, avoid: [], site: null, stack: null, retake: null, excl: null, facts: []};
+  var D = TO_DEATHS[side].slice(-4), cnt = {};
+  D.forEach(function(r){ r.forEach(function(z){ if(z && z !== "?") cnt[z] = (cnt[z]||0) + 1; }); });
+  var dz = Object.keys(cnt).sort(function(a, b){ return cnt[b] - cnt[a]; })[0];
+  // (v461) где умираем — эти раунды туда не идём: T — тактики, чей путь или стадия через эту зону, реже; CT — расстановки с позицией там
+  if(dz && cnt[dz] >= 3){ P.avoidZone = dz; P.facts.push({k: "deaths", zone: dz, n: cnt[dz], of: D.length, log: "умираем на «"+dz+"» ("+cnt[dz]+" за "+D.length+" р.) — обходим"}); }
+  if(side === "T"){
+    var failed = tacHist.slice(-3).filter(function(id, i, a){ var M = tacMem[id]; return a.indexOf(id) === i && M && M.n >= 1 && M.w/M.n < 0.5; });
+    P.avoid = failed.slice();
+    if(failed.length){ var tf = tacById(failed[failed.length-1]); P.facts.push({k: "failed", tac: tf ? tf.name : failed[0], log: "не заходит «"+(tf ? tf.name : failed[0])+"»"}); }
+    var rd = readCT();
+    if(rd.stack){ P.stack = rd.stack; P.site = rd.stack === "A" ? "B" : "A"; P.facts.push({k: "stackRead", S: rd.stack, T: P.site, n: rd.n, of: rd.of, log: "CT стакают "+rd.stack+" ("+rd.n+" из "+rd.of+") — идём "+P.site}); }
+    else {
+      var last = ctRead.slice(-4), seen = {A: 0, B: 0}; last.forEach(function(r){ seen.A += r.A||0; seen.B += r.B||0; });
+      // разница в одного — не основание
+      if(last.length >= 2 && Math.abs(seen.A - seen.B) >= 2){ P.site = seen.A < seen.B ? "A" : "B"; P.facts.push({k: "weakSite", T: P.site, a: seen.A, b: seen.B, of: last.length, log: "на "+P.site+" видели меньше CT ("+seen.A+" против "+seen.B+" за "+last.length+" р.)"}); }
     }
-  });
+    // заготовка: тактика на сайт плана (или любой), которую в этом матче ещё не играли
+    // (v461) заготовка: тактика на сайт плана, которую в этой половине ещё не играли; из них — та, что против этого соперника
+    // заходила в прошлых матчах (tacMem с профилем соперника OPP.by); нет такой — ещё ни разу не игранная
+    var played = {}; tacHist.forEach(function(id){ played[id] = 1; });
+    var pool = T_TACTICS.filter(function(t){ return t.style !== "fake" && (!P.site || t.site === P.site) && !played[t.id] && P.avoid.indexOf(t.id) < 0 && !(P.avoidZone && tacUsesZone(t, P.avoidZone)); });
+    var rate = function(t){ var M = tacMem[t.id]; return M && M.n >= 1 ? (M.w + 1)/(M.n + 2) : 0.5; };
+    if(pool.length){ var best = -1, ex = null;
+      pool.forEach(function(t, i){ var v = rate(t) + hashRand(roundNum*577 + matchNum*41 + i)*0.01; if(v > best){ best = v; ex = t; } });
+      var EM = tacMem[ex.id], prof = !!(EM && EM.n >= 1 && EM.w/EM.n >= 0.5);
+      P.excl = ex.id; P.facts.push({k: prof ? "exclProf" : "excl", tac: ex.name, T: ex.site, w: EM ? Math.round(EM.w) : 0, n: EM ? Math.round(EM.n) : 0,
+        log: "заготовка «"+ex.name+"»"+(prof ? " (против них заходила: "+Math.round(EM.w)+" из "+Math.round(EM.n)+")" : "")}); }
+  } else {
+    var H = roundHist.slice(-5), by = {A: 0, B: 0}, lost = {A: 0, B: 0};
+    H.forEach(function(r){ if(r.site) by[r.site]++; if(r.site && r.planted && r.winner === "T") lost[r.site]++; });
+    var top = by.A >= by.B ? "A" : "B";
+    if(H.length >= 3 && by[top] >= 3){ P.stack = top; P.site = top; P.facts.push({k: "tSite", S: top, n: by[top], of: H.length, log: "T ходят на "+top+" ("+by[top]+" из "+H.length+") — больше людей на "+top}); }
+    P.avoid = ctSetupHist.slice(-2).filter(function(id, i, a){ return a.indexOf(id) === i; });
+    // от ретейка — только если ретейк на этом сайте ещё не играли последние раунды (иначе он и не сработал)
+    ["A","B"].forEach(function(k){ if(lost[k] >= 2 && !P.retake && P.avoid.indexOf("retake" + k) < 0){ P.retake = k; P.facts.push({k: "retake", S: k, n: lost[k], log: "на "+k+" проигрываем после планта ("+lost[k]+") — от ретейка"}); } });
+    if(P.avoid.length){ var sf = setupById(P.avoid[P.avoid.length-1]); P.facts.push({k: "readSetup", setup: sf ? sf.name : P.avoid[0], log: "расстановку «"+(sf ? sf.name : P.avoid[0])+"» прочитали — меняем"}); }
+  }
+  if(!P.facts.length) P.facts.push({k: "reset", log: "перезагрузка: спокойно, по своей игре"});
+  return P;
 }
 var DEF_STAND = 13;   // (док 6) с: дольше этого про T до выхода на одном месте почти не стоят (90-й процентиль, демки Mirage)
 var DEF_GROUP_R = 450;   // (v450) ед. карты: «район группы» для мест дефолта — проектное число (≈ зона и её соседи)
@@ -16432,7 +16730,12 @@ function chooseTactic(){
     var l1 = tacHist[tacHist.length-1], l2 = tacHist[tacHist.length-2];
     if(l1 === t.id) w *= 0.35;                          // только что играли
     if(l1 === t.id && l2 === t.id) w *= 0.1;            // третий раз подряд — прочитана
-    if(BAL.timeouts && roundNum <= TOUT.T.until){ if(TOUT.T.avoid.indexOf(t.id) >= 0) w *= 0.15; else w *= 1.3; } // после тайм-аута
+    if(BAL.timeouts && roundNum <= TOUT.T.until){ var TP = TOUT.T.plan || {};   // (v460) план тренера после паузы
+      if(TOUT.T.avoid.indexOf(t.id) >= 0) w *= 0.15; else w *= 1.3;
+      if(TP.site) w *= t.site === TP.site ? 1.8 : 0.5;
+      if(TP.avoidZone && tacUsesZone(t, TP.avoidZone)) w *= 0.3;                        // (v461) где умирали — обходим
+      if(TP.stack && t.site === TP.site && (t.style === "fast" || t.style === "rush" || t.style === "exec")) w *= 1.3;   // стак прочитан — быстро
+      if(TP.excl === t.id && roundNum === TP.first) w *= 8; }
     // (8) темп по счёту: два проигрыша подряд быстрыми выходами — медленнее
     // (дефолт), два проигрыша медленными — быстрее (раш/ранний выход)
     if(BAL.tempoShift && tempoRead){ if(tempoRead === "slow"){ if(t.style === "default") w *= 2.2; if(t.style === "rush") w *= 0.3; }
@@ -16614,7 +16917,11 @@ function chooseCtSetup(){
     // CT тоже помнят, какие расстановки в этом матче сработали, а какие нет
     var CM = ctSetupMem[S.id] || {n:0, w:0};
     w *= 0.3 + 1.7*((CM.w + 1)/(CM.n + 2));
-    if(BAL.timeouts && roundNum <= TOUT.CT.until && TOUT.CT.avoid.indexOf(S.id) >= 0) w *= 0.15; // после тайм-аута
+    if(BAL.timeouts && roundNum <= TOUT.CT.until){ var CP = TOUT.CT.plan || {};   // (v460) план тренера после паузы
+      if(TOUT.CT.avoid.indexOf(S.id) >= 0) w *= 0.15;
+      if(CP.stack && S.stack === CP.stack) w *= 6;
+      if(CP.avoidZone && setupUsesZone(S, CP.avoidZone)) w *= 0.35;   // (v461) где умирали — эти раунды там не стоим
+      if(CP.retake && S.id === "retake" + CP.retake) w *= 4; }
     return w;
   });
   var S = BAL.ctSetups ? CT_SETUPS[weightedChoice(CT_SETUPS, weights, roundNum*4217 + matchNum*881 + 5)] : (BAL.ctSetup === "1-1-1" ? CT_SETUPS[1] : CT_SETUPS[0]);
@@ -18485,15 +18792,22 @@ function updateRetake(cts){
       R.assign[far.id] = 1;
     }
   }
-  var def = null, dBest = Infinity;
-  // дефузер выбран — остаётся им, пока жив (раньше выбирался каждый тик заново:
-  // двое по очереди получали "дефузить"/"прикрывать" и дёргались на месте)
+  // (v464, владелец: «почему дефузит не ближайший?») дефузер — тот, кто раньше всех снимет бомбу: время дойти по карте
+  // (по зонам, а не по прямой — сквозь стены «близко» не считается) + сам дефуз 5 с с китом / 10 без. Раньше выбирался
+  // один раз в начале ретейка и оставался, пока жив: в m17 р27 (облако) sh1ro стоял в 100 ед. от бомбы с китом, а дефузер
+  // magixx ушёл на CT-спавн — бомба взорвалась. Теперь пересмотр каждый тик, но смена — только если другой успеет
+  // заметно раньше (на 2 с — проектное число, чтобы двое не перекидывали роль туда-сюда) и дефузер ещё не сел дефузить.
+  if(!R.bzD){ var zb = bzOf(bomb.x, bomb.y); R.bzD = zb >= 0 ? bzDist([zb]) : null; }
+  var defT = function(b){
+    var d = Math.hypot(b.x-bomb.x, b.y-bomb.y);
+    if(R.bzD){ var zi = bzOf(b.x, b.y); if(zi >= 0 && R.bzD[zi] < 1e8) d = Math.max(d, R.bzD[zi]); }
+    return d/SPEED + (b.kit ? 5 : 10);
+  };
+  var def = null, tBest = Infinity;
+  alive.forEach(function(b){ var t = defT(b); if(t < tBest){ tBest = t; def = b; } });
   var prevDef = R.defId && alive.filter(function(b){ return b.id === R.defId; })[0];
-  if(prevDef) def = prevDef;
-  else alive.forEach(function(b){
-    var d = Math.hypot(b.baseX-bomb.x, b.baseY-bomb.y) - (b.kit ? 400 : 0); // кит важнее пары метров
-    if(d < dBest){ dBest = d; def = b; }
-  });
+  if(prevDef && def !== prevDef && (prevDef.defusing || defT(prevDef) - tBest < 2)) def = prevDef;
+  if(def && prevDef && def !== prevDef && R.phase === "go") voiceLog("CT", "rtdef", def.id, "я ближе — дефужу я");
   if(def) R.defId = def.id;
   alive.forEach(function(b){ b.retakeRole = (b === def) ? "defuser" : (R.assign[b.id] !== 0 ? "flank" : "cover"); });
   if(BAL.ninjaDefuse && (R.phase === "gather" || R.phase === "util") && def && ninjaOk()){
@@ -21713,7 +22027,7 @@ function blindBullet(b, pt){
   var a = Math.atan2(pt.y-b.y, pt.x-b.x) + (hashRand(tick*31 + b.id.charCodeAt(1))-0.5)*0.08;
   var cl = rayClipWalls(b.x, b.y, b.x + Math.cos(a)*(w.range||900), b.y + Math.sin(a)*(w.range||900));
   smokeBulletHole(b.x, b.y, cl.x, cl.y);
-  tracers.push({wc:tracerClass(b.weapon), x1:b.x, y1:b.y, x2:cl.x, y2:cl.y, team:b.team, born:nowTs, hit:false, miss:true}); if(tracers.length > 60) tracers.shift(); if(SND && SND.on) sndShot(b.weapon, b.x, b.y);
+  tracers.push({wc:tracerClass(b.weapon), wk:b.weapon && b.weapon.key, sil:!!(b.weapon && b.weapon.silenced), x1:b.x, y1:b.y, x2:cl.x, y2:cl.y, team:b.team, born:nowTs, hit:false, miss:true}); if(tracers.length > 60) tracers.shift(); if(SND && SND.on) sndShot(b.weapon, b.x, b.y);
   bots.forEach(function(o){ if(!o.alive || o.team === b.team) return;
     var hr = (hasLOS(o.x, o.y, b.x, b.y, o.z, b.z) ? GUN_HEAR_OPEN : GUN_HEAR_WALL) * (w.silenced ? 0.55 : 1);
     if(Math.hypot(o.x-b.x, o.y-b.y) < hr) o.heardSound = hearReal(o, {x:b.x, y:b.y, tick:tick, team:b.team, src:b.id, kind:"shots"}); });
@@ -26860,7 +27174,7 @@ function tryShoot(shooter, target, dist){
       endX = sv.x; endY = sv.y;
     }
   }
-  tracers.push({wc:tracerClass(shooter.weapon), x1:shooter.x, y1:shooter.y, x2:endX, y2:endY, team:shooter.team, born:nowTs, hit:hit, head:headshot, prefire:prefire, miss:!hit, zone:hitZone,
+  tracers.push({wc:tracerClass(shooter.weapon), wk:shooter.weapon && shooter.weapon.key, sil:!!(shooter.weapon && shooter.weapon.silenced), x1:shooter.x, y1:shooter.y, x2:endX, y2:endY, team:shooter.team, born:nowTs, hit:hit, head:headshot, prefire:prefire, miss:!hit, zone:hitZone,
     tk:tick, sdx:shooter.x-(shooter.px != null ? shooter.px : shooter.x), sdy:shooter.y-(shooter.py != null ? shooter.py : shooter.y),   // (v414, М154) сдвиг за тик — для рисования
     tdx: hit ? target.x-(target.px != null ? target.px : target.x) : 0, tdy: hit ? target.y-(target.py != null ? target.py : target.y) : 0});
   if(SND && SND.on) sndShot(shooter.weapon, shooter.x, shooter.y);
@@ -27998,7 +28312,8 @@ function swapSides(){
   var sc = score.CT; score.CT = score.T; score.T = sc;
   // тайм-ауты — у команды; серия поражений и «чего избегать» — про прошлую сторону, обнуляются
   var to = TOUT.CT; TOUT.CT = TOUT.T; TOUT.T = to;
-  ["CT","T"].forEach(function(s){ TOUT[s].streak = 0; TOUT[s].until = 0; TOUT[s].avoid = []; });
+  ["CT","T"].forEach(function(s){ TOUT[s].streak = 0; TOUT[s].until = 0; TOUT[s].avoid = []; TOUT[s].plan = null; });
+  TO_DEATHS = {CT:[], T:[]};   // (v460) смерти по зонам — про прошлую сторону
   // память матча — по раскладу: эту откладываем, другую достаём (или начинаем с нуля)
   MEM_BOX[oldT] = memSnapshot();
   if(MEM_BOX[SIDE_TEAM.T]) memRestore(MEM_BOX[SIDE_TEAM.T]); else memStart();
@@ -28142,7 +28457,7 @@ function resetRound(){
   ["CT","T"].forEach(function(t){ ROAM_ROUTES[t].forEach(function(p){ p.cleared = -99999; }); });
   // freeze-тайм (план §8): закуп и расстановка, никто не двигается. Таймер
   // раунда (1:55) и тайминги тактик отсчитываются от его конца.
-  var FZ = BAL.freeze;
+  var FZ = BAL.freeze + (TO_NOW && TO_NOW.round === roundNum ? TO_SEC : 0);   // (v460) тактическая пауза — закупка дольше на 30 с
   roundState = FZ > 0 ? "freeze" : "live";
   roundStartTime = simTime + FZ; roundStartTick = tick + Math.round(FZ*TICK_HZ);
   // киллфид — только текущий раунд
@@ -31836,6 +32151,7 @@ function draw(){
   });
 
   ctx.restore();
+  if(draw.noHud) return;   // (v463) кадр повтора клатча (675): только мир, без табло и панелей
   domText(document.getElementById("hContacts"), contacts/1);   // (v397, М146) только изменившееся — см. domText
   var ctEl = document.getElementById("contact"), ctD = contacts>0 ? "block" : "none"; if(ctEl.style.display !== ctD) ctEl.style.display = ctD;
   domText(document.getElementById("hTick"), tick);
@@ -32568,7 +32884,13 @@ var __SNAP = [
 ["MEM_BOX", function(){ return MEM_BOX; }, function(v){ try{ MEM_BOX = v; }catch(e){} }],
 ["OPP_KEY", function(){ return OPP_KEY; }, function(v){ try{ OPP_KEY = v; }catch(e){} }],
 ["OPP", function(){ return OPP; }, function(v){ try{ OPP = v; }catch(e){} }],
+["TO_SEC", function(){ return TO_SEC; }, function(v){ try{ TO_SEC = v; }catch(e){} }],
+["TO_PLAN_ROUNDS", function(){ return TO_PLAN_ROUNDS; }, function(v){ try{ TO_PLAN_ROUNDS = v; }catch(e){} }],
 ["TOUT", function(){ return TOUT; }, function(v){ try{ TOUT = v; }catch(e){} }],
+["TO_NOW", function(){ return TO_NOW; }, function(v){ try{ TO_NOW = v; }catch(e){} }],
+["TO_LAST", function(){ return TO_LAST; }, function(v){ try{ TO_LAST = v; }catch(e){} }],
+["TO_FORCE", function(){ return TO_FORCE; }, function(v){ try{ TO_FORCE = v; }catch(e){} }],
+["TO_DEATHS", function(){ return TO_DEATHS; }, function(v){ try{ TO_DEATHS = v; }catch(e){} }],
 ["DEF_STAND", function(){ return DEF_STAND; }, function(v){ try{ DEF_STAND = v; }catch(e){} }],
 ["DEF_GROUP_R", function(){ return DEF_GROUP_R; }, function(v){ try{ DEF_GROUP_R = v; }catch(e){} }],
 ["DEF_STAGE_SEC", function(){ return DEF_STAGE_SEC; }, function(v){ try{ DEF_STAGE_SEC = v; }catch(e){} }],
@@ -32949,6 +33271,16 @@ var __SNAP = [
 ["OBS_PLAN_MIN", function(){ return OBS_PLAN_MIN; }, function(v){ try{ OBS_PLAN_MIN = v; }catch(e){} }],
 ["OBS_WIDE_MAX", function(){ return OBS_WIDE_MAX; }, function(v){ try{ OBS_WIDE_MAX = v; }catch(e){} }],
 ["OBS_NEAR_CALM", function(){ return OBS_NEAR_CALM; }, function(v){ try{ OBS_NEAR_CALM = v; }catch(e){} }],
+["RP_MODES", function(){ return RP_MODES; }, function(v){ try{ RP_MODES = v; }catch(e){} }],
+["SHOW_TTS", function(){ return SHOW_TTS; }, function(v){ try{ SHOW_TTS = v; }catch(e){} }],
+["RP_NB", function(){ return RP_NB; }, function(v){ try{ RP_NB = v; }catch(e){} }],
+["RP_EL", function(){ return RP_EL; }, function(v){ try{ RP_EL = v; }catch(e){} }],
+["RP_LANG", function(){ return RP_LANG; }, function(v){ try{ RP_LANG = v; }catch(e){} }],
+["RP_RU", function(){ return RP_RU; }, function(v){ try{ RP_RU = v; }catch(e){} }],
+["RP_SAY", function(){ return RP_SAY; }, function(v){ try{ RP_SAY = v; }catch(e){} }],
+["TS_SEQ", function(){ return TS_SEQ; }, function(v){ try{ TS_SEQ = v; }catch(e){} }],
+["TS_LINE", function(){ return TS_LINE; }, function(v){ try{ TS_LINE = v; }catch(e){} }],
+["TS_SAY", function(){ return TS_SAY; }, function(v){ try{ TS_SAY = v; }catch(e){} }],
 ["SND", function(){ return SND; }, function(v){ try{ SND = v; }catch(e){} }],
 ["SND_MAX", function(){ return SND_MAX; }, function(v){ try{ SND_MAX = v; }catch(e){} }],
 ["SND_DATA", function(){ return SND_DATA; }, function(v){ try{ SND_DATA = v; }catch(e){} }],
@@ -33453,54 +33785,126 @@ function warmTick(dt){
 }
 // ======================= (v304) АВТООБСЕРВЕР — только показ, на игру не влияет =======================
 // Сам выбирает, за кем следить (как режиссёр трансляции): бой, плант/дефуз, клатч, только что фраг, по нему стреляют, рядом враг.
-// Держит выбранного не меньше 1,2 с (v305), переключается, если новый момент интереснее (×1,15) или выбранный погиб (через 1 с —
-// видно смерть). Камера плавно едет и приближает: бой — ближе, спокойно — дальше, между раундами — вся карта.
-// Ручное движение камеры, колесо или выбор игрока — обсервер ждёт 6 с. Числа — проектные (это показ, не поведение)
-var OBS = {on:true, id:null, since:0, deadAt:0, manualUntil:0, last:0, cx:1024, cy:1024, sc:0, tr:null}, OBS_TR = 0.6, OBS_OFF = 0.3;
-// (v321, М10) фокус обсервера: выход T на сайт (15 с от начала выхода), плант и 3 с после — интересный момент; камера
-// держится игроков у этого сайта (ближе 900 ед. карты), переключается между ними и показывает выход целиком; бой в другом
-// месте его не перебивает (проектные числа)
+// Держит выбранного не меньше OBS_K.hold с, переключается, если новый момент интереснее (×OBS_K.more), бой начался у другого
+// или выбранный погиб (через OBS_K.deathShow с — видно смерть, потом убийца). Камера плавно едет и приближает: бой — ближе,
+// спокойно — дальше, между раундами — вся карта. Ручное движение камеры или колесо — обсервер ждёт 6 с; клик по игроку
+// (панель или радар) — «слежка» за ним, пока не кликнешь снова или он не погибнет (v459).
+// (v459) Часы обсервера — тики игры, а не реальное время: на паузе он стоит (раньше на паузе перебирал игроков).
+var OBS = {on:true, id:null, since:0, deadAt:0, manualUntil:0, last:0, cx:1024, cy:1024, sc:0, tr:null, lock:null, mt:-1, tk:0}, OBS_TR = 0.6, OBS_OFF = 0.3;
+// (v459) все числа обсервера — одним местом, в секундах игры. Проектные числа (это показ, не поведение)
+var OBS_K = {
+  hold: 2.5, more: 1.3,           // держать игрока не меньше hold с; сменить, если другой интереснее в more раз
+  urgentGap: 1, quietGap: 1.5,    // срочно к чужому бою — не раньше urgentGap с на игроке и если у него боя не было quietGap с
+  calm: 8, execCycle: 2.5,        // спокойный дольше calm с — к другому; на выходе на сайт — по execCycle с на каждого
+  deathShow: 1.5, prevBlock: 5,   // место смерти видно deathShow с; только что показанного — не раньше prevBlock с обратно
+  fightLock: 2, fightScore: 1, fightUrgent: 0.5,   // «бой был» за последние N с — для «не уходить», для очков, для «срочно»
+  glimpse: 6,                     // видит врага не меньше glimpse тиков подряд — бой (мелькнул в щели на тик — ещё нет)
+  focusR: 900, siteR: 700,        // фокус (выход, плант, дефуз) — кто ближе focusR; в кадре — все ближе siteR
+  nearR: 450, losR: 900,          // враг ближе nearR смотрит на игрока — скоро бой; линию видимости проверять ближе losR
+  bombLast: 10,                   // последние bombLast с бомбы при CT рядом — фокус на бомбе
+  closeR: 800, closeV: 150,       // (v461) сближение: ближе closeR и навстречу быстрее closeV ед. карты/с — скоро бой
+  wideToNear: 0.9                 // перелёт с общего плана на бой, с
+};
+function obsT(sec){ return sec*TICK_HZ; }
+// (v459) общее на тик — считается один раз, а не для каждого бота: фокус, кто последним стрелял ПО ИГРОКУ (не в смок), видимость пар
+var OBC = null;
+function obsCtx(){
+  if(OBC && OBC.tick === tick && OBC.m === matchNum && OBC.rs === roundState) return OBC;
+  var C = {tick: tick, m: matchNum, rs: roundState, F: null, shotBy: {}, los: {}, alive: {CT: 0, T: 0}};
+  OBC = C;
+  bots.forEach(function(o){
+    if(o.alive) C.alive[o.team]++;
+    var s = o._shotAtBy; if(s && s.id && o._shotAtT != null && !(C.shotBy[s.id] >= o._shotAtT)) C.shotBy[s.id] = o._shotAtT;
+  });
+  C.F = obsFocus();
+  // (v461) сближение: позиции на прошлом пересчёте (тик назад и больше) — кто к кому идёт
+  C.pp = OBS.pp || null; C.ppT = OBS.ppT || 0;
+  if(tick !== OBS.ppT){ var pp = {}; bots.forEach(function(o){ pp[o.id] = {x: o.x, y: o.y}; }); OBS.pp = pp; OBS.ppT = tick; }
+  return C;
+}
+// видят ли друг друга (линия без стен и полов, без учёта взгляда и дыма) — для «скоро бой»
+function obsLos(a, b){
+  var C = obsCtx(), k = a.id < b.id ? a.id + "|" + b.id : b.id + "|" + a.id;
+  if(!(k in C.los)) C.los[k] = hasLOS(a.x, a.y, b.x, b.y, a.z, b.z);
+  return C.los[k];
+}
+// (v459) ОДНО определение «у игрока бой»: видит врага устойчиво, или по нему стреляли, или он стрелял по игроку за sec с.
+// Стрельба в дым (smokeSpamTick) боем не считается — раньше она держала камеру на «спамере», пока бой шёл в другом месте
+function obsFight(b, sec){
+  if(!b || !b.alive) return false;
+  if(b._sawEnemy && (b.contactStreak||0) >= OBS_K.glimpse) return true;
+  var w = obsT(sec);
+  if(b._shotAtT != null && tick - b._shotAtT < w) return true;
+  var sb = obsCtx().shotBy[b.id]; return sb != null && tick - sb < w;
+}
+// (v321, М10; v459 — дефуз и последние секунды бомбы) фокус обсервера — решающее место раунда: дефуз; плант и 3 с после;
+// бомба тикает последние bombLast с, а рядом CT (ретейк); выход T на сайт (15 с от начала выхода). Камера держится игроков
+// у фокуса (ближе focusR), бой в другом месте его не перебивает (проектные числа)
 function obsFocus(){
-  var tt = teamTac && teamTac.T; if(roundState !== "live") return null;
-  if(bomb && bomb.state === "planted" && bomb.plantTick && tick - bomb.plantTick < 3*TICK_HZ) return {x:bomb.x, y:bomb.y, site:bomb.site, plant:true};
-  if(bots.some(function(b){ return b.alive && b.planting; })){ var p = bots.filter(function(b){ return b.alive && b.planting; })[0]; return {x:p.x, y:p.y, site:tt && tt.site, plant:true}; }
-  if(tt && tt.phase === "execute" && tt.execStart != null && tick - tt.execStart < 15*TICK_HZ && SITES[tt.site]) return {x:SITES[tt.site].x, y:SITES[tt.site].y, site:tt.site};
+  if(roundState !== "live") return null;
+  var tt = teamTac && teamTac.T, df = null, pl = null;
+  bots.forEach(function(b){ if(!b.alive) return; if(b.defusing && !df) df = b; if(b.planting && !pl) pl = b; });
+  if(df) return {x: df.x, y: df.y, site: bomb && bomb.site, key: "defuse"};
+  if(bomb && bomb.state === "planted" && bomb.plantTick && tick - bomb.plantTick < 3*TICK_HZ) return {x: bomb.x, y: bomb.y, site: bomb.site, key: "plant"};
+  if(pl) return {x: pl.x, y: pl.y, site: tt && tt.site, key: "plant"};
+  if(bomb && bomb.state === "planted" && bombTimeLeftTicks() < obsT(OBS_K.bombLast) &&
+     bots.some(function(o){ return o.alive && o.team === "CT" && Math.hypot(o.x-bomb.x, o.y-bomb.y) < OBS_K.focusR; }))
+    return {x: bomb.x, y: bomb.y, site: bomb.site, key: "bomb"};
+  if(tt && tt.phase === "execute" && tt.execStart != null && tick - tt.execStart < 15*TICK_HZ && SITES[tt.site]) return {x: SITES[tt.site].x, y: SITES[tt.site].y, site: tt.site, key: "exec"};
   return null;
 }
 function obsScore(b){
   if(!b.alive) return 0;
-  var F = obsFocus();
-  // (v368, владелец: «обсервер не переключается на перестрелку») фокус выхода не гасит бой в другом месте: дерущийся вне
-  // фокуса — с обычным счётом (раньше 0,2 — бой magixx у T Ramp не показывали, пока шёл выход)
-  var fightNow = b._sawEnemy || tick - (b._shotAtT||-1e9) < TICK_HZ || tick - (b.lastShotTick||-1e9) < TICK_HZ;
-  if(F && !fightNow){ var dF = Math.hypot(b.x-F.x, b.y-F.y); if(dF > 900) return 0.2; }
+  var C = obsCtx(), F = C.F;
+  // (v368) фокус не гасит бой в другом месте: дерущийся вне фокуса — с обычным счётом
+  if(F && !obsFight(b, OBS_K.fightScore) && Math.hypot(b.x-F.x, b.y-F.y) > OBS_K.focusR) return 0.2;
   var foe = b.team === "CT" ? "T" : "CT", sc = 1;
   if(b.planting || b.defusing) sc += 9;
-  if(b._sawEnemy) sc += 6 + Math.min(4, (b.contactStreak||0)/16);
-  if(tick - (b._shotAtT||-1e9) < 64) sc += 5;
-  if(tick - (b.lastShotTick||-1e9) < 64) sc += 3;
-  if(b._killHowT && tick - b._killHowT < 128) sc += 2;
-  var mates = bots.filter(function(o){ return o.alive && o.team === b.team; }).length, foes = aliveCount(foe);
-  if(mates === 1 && foes >= 1) sc += 4;                                  // клатч
+  if(b._sawEnemy && (b.contactStreak||0) >= OBS_K.glimpse) sc += 6 + Math.min(4, (b.contactStreak||0)/16);
+  if(b._shotAtT != null && tick - b._shotAtT < TICK_HZ) sc += 5;
+  var sb = C.shotBy[b.id]; if(sb != null && tick - sb < TICK_HZ) sc += 3;
+  if(b._killHowT && tick - b._killHowT < 2*TICK_HZ) sc += 2;
+  if(C.alive[b.team] === 1 && C.alive[foe] >= 1) sc += 4;                    // клатч
   if(bomb && bomb.state === "carried" && bomb.carrier === b) sc += 1.5;
-  var dmin = Infinity; bots.forEach(function(o){ if(o.alive && o.team === foe) dmin = Math.min(dmin, Math.hypot(o.x-b.x, o.y-b.y)); });
-  sc += 3 / (1 + dmin/400);                                               // рядом враг — скоро бой
-  // (v307, владелец 14.10: «не успевает переключить — бота убивают») враг уже видит его или вот-вот выйдет: враг ≤ 450 px и видит
-  // его / смотрит в его сторону — переключаемся заранее, до выстрелов
-  bots.forEach(function(o){ if(!o.alive || o.team !== foe) return; var d = Math.hypot(o.x-b.x, o.y-b.y); if(d > 450) return;
+  // рядом враг — скоро бой. (v459) Расстояние по прямой — только если они могут увидеть друг друга; за стеной или на другом
+  // этаже — меньше (раньше враг этажом ниже считался «вот-вот бой»)
+  var near = 0;
+  bots.forEach(function(o){ if(!o.alive || o.team !== foe) return;
+    var d = Math.hypot(o.x-b.x, o.y-b.y), v = 3/(1 + d/400);
+    if(d < OBS_K.losR && !obsLos(b, o)) v *= 0.4;
+    if(v > near) near = v;
+    // (v461) идут навстречу друг другу (сближаются быстрее closeV ед./с, ближе closeR, линия открыта) — бой вот-вот, раньше первого выстрела
+    var Pb = C.pp && C.pp[b.id], Po = C.pp && C.pp[o.id], dtp = (tick - C.ppT)/TICK_HZ;
+    if(Pb && Po && dtp > 0 && dtp < 0.5 && d < OBS_K.closeR){ var d0 = Math.hypot(Po.x-Pb.x, Po.y-Pb.y);
+      if((d0 - d)/dtp > OBS_K.closeV && obsLos(b, o)) sc += 3; }
+    // (v307) враг ≤ nearR уже видит его или смотрит в его сторону (и линия открыта) — переключаемся заранее, до выстрелов
+    if(d > OBS_K.nearR) return;
     if(o._sawEnemy && o._nearestEnemyBot === b) sc += 6;
-    else if(o.facing !== undefined && _angOff(Math.atan2(b.y-o.y, b.x-o.x), o.facing) < 0.5) sc += 2.5; });
-  if(b.id === OBS.id) sc *= 1.05;                                         // инерция (v305: меньше — динамичнее)
-  if(b.id === OBS.prev && performance.now() < OBS.prevUntil && !b._sawEnemy) sc *= 0.5;   // (v305) только что показывали — не сразу обратно
+    else if(o.facing !== undefined && _angOff(Math.atan2(b.y-o.y, b.x-o.x), o.facing) < 0.5 && obsLos(b, o)) sc += 2.5;
+  });
+  sc += near;
+  if(b.id === OBS.id) sc *= 1.05;                                             // инерция
+  if(b.id === OBS.prev && tick < (OBS.prevUntil||0) && !b._sawEnemy) sc *= 0.5;   // только что показывали — не сразу обратно
   return sc;
 }
+function obsPickBest(except, within){
+  var B = null, S = 0;
+  bots.forEach(function(o){ if(o === except || !o.alive) return; if(within && Math.hypot(o.x-within.x, o.y-within.y) > OBS_K.focusR) return;
+    var v = obsScore(o); if(v > S){ S = v; B = o; } });
+  return {b: B, s: S};
+}
+// сменить игрока обсервера (одно место): прошлого — «только что показывали», карточка по центру — новый
+function obsSet(o, ts, fly){
+  if(OBS.id && OBS.id !== o.id){ OBS.prev = OBS.id; OBS.prevUntil = tick + obsT(OBS_K.prevBlock); }
+  OBS.id = o.id; OBS.since = tick; OBS.deadAt = 0;
+  if(fly && OBS.sc) OBS.tr = {t0: ts, fx: OBS.cx, fy: OBS.cy, fsc: OBS.sc};   // (v330, М48) начало перелёта камеры
+  if(o.alive && plSelected !== o.id){ plSelected = o.id; playersUpdate(); }
+}
 var OBS_BOUNDS = null, OBS_PLAN_MIN = 3, OBS_WIDE_MAX = 10, OBS_NEAR_CALM = 6;
-function obsFullView(r){
-  if(!OBS_BOUNDS){ var x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
-    NAVAREAS.forEach(function(a){ a.points.forEach(function(p){ if(p.x < x0) x0 = p.x; if(p.x > x1) x1 = p.x; if(p.y < y0) y0 = p.y; if(p.y > y1) y1 = p.y; }); });
-    OBS_BOUNDS = {x0: x0-30, y0: y0-30, x1: x1+30, y1: y1+30}; }
-  var B = OBS_BOUNDS, rr = function(id){ var e = document.getElementById(id); if(!e || !e.offsetParent) return null; return e.getBoundingClientRect(); };
-  // свободный прямоугольник в координатах холста: слева/справа — панели игроков, сверху — табло (если они видны)
+// свободная часть экрана (координаты холста): слева/справа — панели игроков, сверху — табло, снизу — карточка игрока (если видны).
+// ox/oy — насколько центр свободной части сдвинут от центра экрана (камера держит центр экрана)
+function obsFreeRect(r){
+  var rr = function(id){ var e = document.getElementById(id); if(!e || !e.offsetParent) return null; return e.getBoundingClientRect(); };
   var L = 0, R = r.width, T = 0, Bt = r.height, pT = rr("plT"), pC = rr("plCT"), sb = rr("scoreboard");
   if(pT && pT.right > r.left && pT.right < r.left + r.width/2) L = pT.right - r.left + 8;
   if(pC && pC.left < r.right && pC.left > r.left + r.width/2) R = pC.left - r.left - 8;
@@ -33508,106 +33912,117 @@ function obsFullView(r){
   var pf = rr("plFocus");   // (v364) карточка игрока обсервера внизу по центру — карта над ней, а не под ней
   if(pf && pf.height > 0 && pf.top > r.top + r.height/2 && pf.top < r.bottom) Bt = pf.top - r.top - 4;
   if(R - L < r.width*0.4){ L = 0; R = r.width; }   // узкий экран — панели поверх карты, берём всю ширину
-  var sc = Math.min((R - L)/(B.x1 - B.x0), (Bt - T)/(B.y1 - B.y0));
-  var cx = (B.x0 + B.x1)/2, cy = (B.y0 + B.y1)/2;
-  // центр карты — в центре свободного прямоугольника (камера держит центр экрана): сдвиг в координатах карты
-  var offX = ((L + R)/2 - r.width/2)/sc, offY = ((T + Bt)/2 - r.height/2)/sc;
-  return {x: cx - offX, y: cy - offY, sc: sc};
+  return {w: R - L, h: Bt - T, ox: (L + R)/2 - r.width/2, oy: (T + Bt)/2 - r.height/2};
+}
+function obsFullView(r){
+  if(!OBS_BOUNDS){ var x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+    NAVAREAS.forEach(function(a){ a.points.forEach(function(p){ if(p.x < x0) x0 = p.x; if(p.x > x1) x1 = p.x; if(p.y < y0) y0 = p.y; if(p.y > y1) y1 = p.y; }); });
+    OBS_BOUNDS = {x0: x0-30, y0: y0-30, x1: x1+30, y1: y1+30}; }
+  var B = OBS_BOUNDS, FR = obsFreeRect(r);
+  var sc = Math.min(FR.w/(B.x1 - B.x0), FR.h/(B.y1 - B.y0));
+  // центр карты — в центре свободного прямоугольника: сдвиг в координатах карты
+  return {x: (B.x0 + B.x1)/2 - FR.ox/sc, y: (B.y0 + B.y1)/2 - FR.oy/sc, sc: sc};
 }
 function obsFrame(ts){
   domClass(document.getElementById("btnObs"), OBS.on ? "on" : "");
   domClass(document.getElementById("btnObsMap"), OBS.on && OBS.full ? "on" : "");
   if(!OBS.on) return;
+  if(typeof TS !== "undefined" && TS.P && TS.P.phase === "cam") return;   // (v460) пауза: камера на спавне команды — ведёт показ паузы
   var dt = OBS.last ? Math.min(0.1, (ts - OBS.last)/1000) : 0.016; OBS.last = ts;
+  // (v459) новый матч (тик снова с нуля) — отметки времени обсервера заново
+  if(OBS.mt !== matchNum || tick < OBS.tk){ OBS.mt = matchNum; OBS.since = tick; OBS.deadAt = 0; OBS.prevUntil = 0; OBS.planT = tick; }
+  OBS.tk = tick;
   var r = wrapRect(), fitSc = Math.min(r.width/2048, r.height/2048) * 1.08;
   var manual = ts < OBS.manualUntil;
   var tx = 1024, ty = 1024, tsc = fitSc;
-  // (v359, владелец: «обсервер мог показывать всю ситуацию, всю карту») режим «Вся карта»: камера на всей карте, игрок не выбирается
-  // масштаб — чтобы вся карта (границы навмеша) поместилась в свободной части экрана: между панелями игроков, ниже табло
+  var lockB = OBS.lock ? teamBot(OBS.lock) : null; if(OBS.lock && !lockB) OBS.lock = null;
   if((roundState === "live" || WARM.on) && !manual){
-    var cur = OBS.id && bots.filter(function(o){ return o.id === OBS.id; })[0];
-    if(cur && !cur.alive && !OBS.deadAt) OBS.deadAt = ts;
-    var best = null, bs = 0; bots.forEach(function(o){ var v = obsScore(o); if(v > bs){ bs = v; best = o; } });
-    var curS = cur && cur.alive ? obsScore(cur) : 0;
-    // (v305, владелец 14.10: «менять игрока чаще») держит ≥ 1,2 с, переключается, если новый момент интереснее на 15 %; спокойный
-    // (не в бою) дольше 5 с — смена на другого, чтобы картинка не стояла
-    var calm = cur && cur.alive && !cur._sawEnemy && tick - (cur._shotAtT||-1e9) > 64 && tick - (cur.lastShotTick||-1e9) > 64;
-    if(calm && ts - OBS.since > 8000 && best === cur){ var b2 = null, s2 = 0; bots.forEach(function(o){ if(o === cur) return; var v = obsScore(o); if(v > s2){ s2 = v; b2 = o; } }); if(b2){ best = b2; bs = s2*2; } }
-    var inFight = function(o){ return o && o.alive && (o._sawEnemy || tick - (o._shotAtT||-1e9) < 32); };
-    // (v330, М47, владелец) у выбранного перестрелка (видит врага, стрелял или по нему стреляли ≤ 2 с) — не уходим с него, пока
-    // бой не кончился или он не погиб; ни другой бой, ни выход на сайт не перебивают
-    var curFight = cur && cur.alive && (cur._sawEnemy || tick - (cur._shotAtT||-1e9) < 2*TICK_HZ || tick - (cur.lastShotTick||-1e9) < 2*TICK_HZ);
-    // погиб — 1,5 с видно место смерти, потом к убийце, если жив (как режиссёр трансляции)
-    if(cur && !cur.alive && cur._killer && ts - OBS.deadAt > 1500){ var kb = bots.filter(function(o){ return o.id === cur._killer && o.alive; })[0]; if(kb){ best = kb; bs = Infinity; } }
-    // бой начался у другого, а у выбранного боя нет — сразу, без выдержки 1,2 с
-    var urgent = best && best !== cur && inFight(best) && !inFight(cur);
-    // (v310, владелец 14.10: «очень быстро стало меняться») держит ≥ 2,5 с, переключается при перевесе ×1,3; срочно (бой у другого) —
-    // не чаще раза в 1 с и только если у выбранного боя не было 1,5 с
-    if(urgent && (ts - OBS.since < 1000 || tick - Math.max(cur ? (cur._shotAtT||-1e9) : -1e9, cur ? (cur.lastShotTick||-1e9) : -1e9) < 96)) urgent = false;
-    var FO = obsFocus();
-    if(FO && cur && cur.alive && !curFight && Math.hypot(cur.x-FO.x, cur.y-FO.y) > 900) urgent = true;   // (v321, М10) начался выход — к нему (не посреди дуэли — v330)
-    // на выходе — переключение между его игроками: каждого держит 2,5 с, потом следующий интересный у сайта
-    if(FO && cur && cur.alive && !curFight && ts - OBS.since > 2500 && best === cur){ var b3 = null, s3 = 0; bots.forEach(function(o){ if(o === cur) return; var v = obsScore(o); if(v > s3){ s3 = v; b3 = o; } }); if(b3 && s3 > 1){ best = b3; bs = curS*2; } }
-    var canSwitch = !cur || (!cur.alive && ts - OBS.deadAt > 1500) || (!curFight && (urgent || (ts - OBS.since > 2500 && bs > curS*1.3)));
-    if(best && best !== cur && canSwitch){ if(cur){ OBS.prev = cur.id; OBS.prevUntil = ts + 5000; } OBS.id = best.id; OBS.since = ts; OBS.deadAt = 0; cur = best;
-      if(OBS.sc) OBS.tr = {t0: ts, fx: OBS.cx, fy: OBS.cy, fsc: OBS.sc};   // (v330, М48) начало перелёта камеры
+    var cur = OBS.id ? teamBot(OBS.id) : null;
+    if(cur && !cur.alive && !OBS.deadAt) OBS.deadAt = tick;
+    var deadLong = !!(cur && !cur.alive && tick - OBS.deadAt > obsT(OBS_K.deathShow));
+    // (v459) слежка: игрок, которого выбрал владелец; погиб — видно смерть, потом обсервер снова сам
+    if(lockB && !lockB.alive && (cur !== lockB || deadLong)){ OBS.lock = null; lockB = null; }
+    if(lockB){ if(cur !== lockB){ obsSet(lockB, ts, true); cur = lockB; } }
+    else {
+      var P = obsPickBest(null), best = P.b, bs = P.s, curS = cur && cur.alive ? obsScore(cur) : 0;
+      var curFight = obsFight(cur, OBS_K.fightLock), held = tick - OBS.since, F = obsCtx().F;
+      // спокойный (без боя) дольше calm с — смена на другого, чтобы картинка не стояла
+      if(cur && cur.alive && !obsFight(cur, OBS_K.fightScore) && held > obsT(OBS_K.calm) && best === cur){ var Q = obsPickBest(cur); if(Q.b){ best = Q.b; bs = Q.s*2; } }
+      // погиб — deathShow с видно место смерти, потом к убийце, если жив (как режиссёр трансляции)
+      if(deadLong && cur._killer){ var kb = teamBot(cur._killer); if(kb && kb.alive){ best = kb; bs = Infinity; } }
+      // бой начался у другого, а у выбранного боя нет — сразу, без выдержки (но не чаще urgentGap и не сразу после его боя)
+      var urgent = !!(best && best !== cur && obsFight(best, OBS_K.fightUrgent) && !obsFight(cur, OBS_K.fightUrgent));
+      if(urgent && cur && cur.alive && (held < obsT(OBS_K.urgentGap) || obsFight(cur, OBS_K.quietGap))) urgent = false;
+      var far = !!(F && cur && cur.alive && Math.hypot(cur.x-F.x, cur.y-F.y) > OBS_K.focusR);
+      if(far && !curFight) urgent = true;   // (v321, М10) начался выход — к нему (не посреди дуэли — v330)
+      // (v459) дефуз, плант, последние секунды бомбы — к ним даже из перестрелки в другом месте: это решает раунд
+      var decisive = far && F.key !== "exec";
+      if(decisive){ var D = obsPickBest(null, F); if(D.b){ best = D.b; bs = D.s; } }
+      // на выходе — переключение между его игроками: каждого держит execCycle с, потом следующий интересный у сайта
+      if(F && cur && cur.alive && !curFight && held > obsT(OBS_K.execCycle) && best === cur){ var E = obsPickBest(cur); if(E.b && E.s > 1){ best = E.b; bs = curS*2; } }
+      var canSwitch = !cur || deadLong || decisive || (cur.alive && !curFight && (urgent || (held > obsT(OBS_K.hold) && bs > curS*OBS_K.more)));
+      if(best && best !== cur && canSwitch){ obsSet(best, ts, true); cur = best; }
     }
-    // (v305) карточка по центру — всегда игрок обсервера (после ручного выбора обсервер возвращает её себе)
+    // (v305) карточка по центру — всегда игрок обсервера
     if(cur && cur.alive && plSelected !== cur.id){ plSelected = cur.id; playersUpdate(); }
     if(cur){
       tx = cur.x; ty = cur.y;
-      // (v310, владелец 14.10: «плохо видно, с кем он стреляется») соперник — тот, кого он видит, или кто видит его / стрелял по нему;
-      // в кадре оба (центр между ними, запас ×2,4), без боя — ближайший враг в 700 px тоже в кадре
+      // (v310) соперник — тот, кого он видит, или кто видит его; в кадре оба (центр между ними, запас ×2,4), без боя — ближайший враг в 700 px
       var e = (cur._sawEnemy && cur._nearestEnemyBot && cur._nearestEnemyBot.alive) ? cur._nearestEnemyBot : null;
       if(!e) bots.forEach(function(o){ if(!e && o.alive && o.team !== cur.team && o._sawEnemy && o._nearestEnemyBot === cur) e = o; });
       var near = null, nd = 700; if(!e) bots.forEach(function(o){ if(o.alive && o.team !== cur.team){ var d = Math.hypot(o.x-cur.x, o.y-cur.y); if(d < nd){ nd = d; near = o; } } });
       var fight = !!e, other = e || near; OBS.foeId = e ? e.id : null;
       if(other){ tx = (cur.x + other.x)/2; ty = (cur.y + other.y)/2; }
       var span = other ? Math.max(fight ? 650 : 900, Math.hypot(other.x-cur.x, other.y-cur.y)*2.4) : 1100;   // сколько карты видно
-      if(FO){   // (v321, М10) выход/плант — в кадре все игроки у сайта; (v345) без центра сайта — он тянул кадр на пустой сайт
+      var FO = obsCtx().F;
+      if(FO && !lockB){   // (v321, М10) выход/плант/дефуз — в кадре все игроки у сайта; (v345) без центра сайта
         var xs = [cur.x], ys = [cur.y];
-        bots.forEach(function(o){ if(o.alive && Math.hypot(o.x-FO.x, o.y-FO.y) < 700){ xs.push(o.x); ys.push(o.y); } });
+        bots.forEach(function(o){ if(o.alive && Math.hypot(o.x-FO.x, o.y-FO.y) < OBS_K.siteR){ xs.push(o.x); ys.push(o.y); } });
         var x0 = Math.min.apply(null, xs), x1 = Math.max.apply(null, xs), y0 = Math.min.apply(null, ys), y1 = Math.max.apply(null, ys);
         tx = (x0+x1)/2; ty = (y0+y1)/2; span = Math.max(700, (x1-x0)*1.3, (y1-y0)*1.3);
       }
-      // (v345, владелец: «масштаб и положение иногда странные» — выбранный у края кадра, в центре пустой сайт) игрок обсервера —
-      // всегда во внутренней части кадра: центр не дальше OBS_OFF от него (доля видимой области, проектное число)
+      // (v345) игрок обсервера — всегда во внутренней части кадра: центр не дальше OBS_OFF от него
       var offX = tx - cur.x, offY = ty - cur.y, offL = Math.hypot(offX, offY), offMax = OBS_OFF*span;
       if(offL > offMax){ tx = cur.x + offX*offMax/offL; ty = cur.y + offY*offMax/offL; }
-      tsc = Math.max(fitSc, Math.min(r.width, r.height) / span);
+      // (v459) масштаб и центр — по свободной части экрана (между панелями, под табло, над карточкой), как у «Вся карта»;
+      // раньше по всему окну — соперник мог оказаться под карточкой игрока
+      var FR = obsFreeRect(r);
+      tsc = Math.max(fitSc, Math.min(FR.w, FR.h) / span);
+      tx -= FR.ox/tsc; ty -= FR.oy/tsc;
     }
   } else if(manual) return;
-  // (v364, владелец: «обсервер приближает на игрока, а надо, чтобы всегда была видна вся карта») «Вся карта»: обсервер так же
-  // выбирает, за кем следить (карточка игрока), но камера не приближает — вся карта в свободной части экрана
-  // (v365, владелец: «зачем всё время — я просил, чтобы чередовалось») как трансляция: когда тихо (ни у кого нет боя, не ставят
-  // и не дефузят) — общий план, вся карта; начался бой, плант/дефуз, выход на сайт — камера на игроке. Каждый план держится
-  // не меньше OBS_PLAN_MIN с, чтобы не дёргалось; общий план — не дольше OBS_WIDE_MAX с подряд, потом снова игрок (проектные числа)
+  // (v359/v364/v365) «Вся карта» — как трансляция: когда тихо — общий план, бой / плант / дефуз / выход — камера на игроке.
+  // Каждый план держится не меньше OBS_PLAN_MIN с; общий план — не дольше OBS_WIDE_MAX с подряд. Слежка (v459) — всегда на игроке
   if(OBS.full && !manual){
-    var hot = bots.some(function(o){ return o.alive && (o._sawEnemy || o.planting || o.defusing || tick - (o._shotAtT||-1e9) < 2*TICK_HZ || tick - (o.lastShotTick||-1e9) < 2*TICK_HZ); }) || !!obsFocus();
+    var hot = bots.some(function(o){ return o.alive && (o.planting || o.defusing || obsFight(o, OBS_K.fightLock)); }) || !!obsCtx().F;
     var live = roundState === "live";
     var wantWide = !live || !hot;
-    if(OBS.wide === undefined){ OBS.wide = true; OBS.planT = ts; }
-    var held = ts - (OBS.planT||0);
-    if(live && OBS.wide && held > OBS_WIDE_MAX*1000 && !hot) wantWide = false;          // долго общий план — к игроку
-    if(live && !OBS.wide && !hot && held > OBS_NEAR_CALM*1000) wantWide = true;          // на игроке тихо — общий план
+    if(OBS.wide === undefined){ OBS.wide = true; OBS.planT = tick; }
+    var heldP = tick - (OBS.planT||0);
+    if(live && OBS.wide && heldP > obsT(OBS_WIDE_MAX) && !hot) wantWide = false;          // долго общий план — к игроку
+    if(live && !OBS.wide && !hot && heldP > obsT(OBS_NEAR_CALM)) wantWide = true;         // на игроке тихо — общий план
     else if(live && !OBS.wide && !hot) wantWide = false;
-    if(wantWide !== OBS.wide && (held > OBS_PLAN_MIN*1000 || (hot && OBS.wide))){ OBS.wide = wantWide; OBS.planT = ts; OBS.tr = null;
-      // (v368) с общего плана на бой — сразу на того, кто дерётся (а не на последнего выбранного)
-      if(!wantWide){ var fb = null, fs = 0; bots.forEach(function(o){ if(!o.alive || !(o._sawEnemy || o.planting || o.defusing || tick - (o.lastShotTick||-1e9) < 2*TICK_HZ)) return; var v = obsScore(o); if(v > fs){ fs = v; fb = o; } });
-        if(fb && fb.id !== OBS.id){ OBS.prev = OBS.id; OBS.prevUntil = ts + 5000; OBS.id = fb.id; OBS.since = ts; OBS.deadAt = 0; if(plSelected !== fb.id){ plSelected = fb.id; playersUpdate(); } } } }
+    if(live && lockB) wantWide = false;
+    if(wantWide !== OBS.wide && (heldP > obsT(OBS_PLAN_MIN) || (hot && OBS.wide) || (lockB && OBS.wide))){ OBS.wide = wantWide; OBS.planT = tick; OBS.tr = null;
+      if(!wantWide){
+        // (v368) с общего плана на бой — сразу на того, кто дерётся
+        if(!lockB){ var fb = null, fs = 0; bots.forEach(function(o){ if(!o.alive || !(o.planting || o.defusing || obsFight(o, OBS_K.fightLock))) return; var v = obsScore(o); if(v > fs){ fs = v; fb = o; } });
+          if(fb && fb.id !== OBS.id) obsSet(fb, ts, false); }
+        // (v459) и быстро: перелёт wideToNear с (раньше масштаб полз ~2,5 с — бой кончался раньше, чем камера доезжала)
+        if(OBS.sc) OBS.tr = {t0: ts, fx: OBS.cx, fy: OBS.cy, fsc: OBS.sc, dur: OBS_K.wideToNear, noDip: true};
+      } }
     if(OBS.wide){ OBS.tr = null; var FV = obsFullView(r); tx = FV.x; ty = FV.y; tsc = FV.sc; }
   }
-  // плавно: камера доезжает за ~0,5 с
-  // (v316, владелец 14.10: «далеко — слишком быстро») переезд спокойнее: ~0,8 с на близкое, к дальнему — не быстрее 900 px карты/с
+  // плавно: камера доезжает за ~0,8 с; к дальнему — не быстрее 900 px карты/с (v316)
   var k = 1 - Math.exp(-dt*3.2);
   if(!OBS.sc){ OBS.sc = view.scale; OBS.cx = (r.width/2 - view.panX)/view.scale; OBS.cy = (r.height/2 - view.panY)/view.scale; }
-  // (v330, М48, владелец: «смена далёких игроков очень резкая») перелёт к новому игроку — OBS_TR с, плавный разгон и торможение;
-  // далеко (больше 500 ед. карты) — на середине пути камера отдаляется (до 35 %), чтобы было видно, куда летит. Проектные числа
+  // (v330, М48) перелёт к новому игроку — OBS_TR с, плавный разгон и торможение; далеко (больше 500 ед. карты) — на середине пути
+  // камера отдаляется (до 35 %), чтобы было видно, куда летит. Проектные числа
   if(OBS.tr && OBS.tr.t0 && !manual){
-    var T = OBS.tr, p = Math.min(1, (ts - T.t0)/(OBS_TR*1000)), e = p < 0.5 ? 4*p*p*p : 1 - Math.pow(-2*p + 2, 3)/2;
-    var dist = Math.hypot(tx - T.fx, ty - T.fy), dip = Math.min(0.35, Math.max(0, (dist - 500)/2000));
-    OBS.cx = T.fx + (tx - T.fx)*e; OBS.cy = T.fy + (ty - T.fy)*e;
-    OBS.sc = (T.fsc + (tsc - T.fsc)*e) * (1 - dip*Math.sin(Math.PI*p));
+    var T = OBS.tr, p = Math.min(1, (ts - T.t0)/((T.dur || OBS_TR)*1000)), e2 = p < 0.5 ? 4*p*p*p : 1 - Math.pow(-2*p + 2, 3)/2;
+    var dist = Math.hypot(tx - T.fx, ty - T.fy), dip = T.noDip ? 0 : Math.min(0.35, Math.max(0, (dist - 500)/2000));
+    OBS.cx = T.fx + (tx - T.fx)*e2; OBS.cy = T.fy + (ty - T.fy)*e2;
+    OBS.sc = (T.fsc + (tsc - T.fsc)*e2) * (1 - dip*Math.sin(Math.PI*p));
     view.scale = OBS.sc; view.panX = r.width/2 - OBS.cx*OBS.sc; view.panY = r.height/2 - OBS.cy*OBS.sc;
     if(p >= 1) OBS.tr = null;
     return;
@@ -33615,7 +34030,7 @@ function obsFrame(ts){
   var mvx = (tx - OBS.cx)*k, mvy = (ty - OBS.cy)*k, mv = Math.hypot(mvx, mvy), mvMax = 900*dt;
   if(mv > mvMax){ mvx *= mvMax/mv; mvy *= mvMax/mv; }
   OBS.cx += mvx; OBS.cy += mvy;
-  // (v314, владелец 14.10: «масштаб резко меняется») масштаб — медленнее позиции (~1,5 с) и не быстрее ±45 % в секунду
+  // (v314) масштаб — медленнее позиции (~1,5 с) и не быстрее ±45 % в секунду
   var ks = 1 - Math.exp(-dt*1.6), nsc = OBS.sc + (tsc - OBS.sc)*ks, lim = Math.exp(0.45*dt);
   OBS.sc = Math.max(OBS.sc/lim, Math.min(OBS.sc*lim, nsc));
   view.scale = OBS.sc; view.panX = r.width/2 - OBS.cx*OBS.sc; view.panY = r.height/2 - OBS.cy*OBS.sc;
@@ -33654,14 +34069,23 @@ function miniDraw(){
 }
 // (v310) с кем бой у игрока обсервера — пунктир от него к сопернику и кольцо вокруг соперника
 function obsOverlay(){
-  if(!OBS.on || !OBS.id || !OBS.foeId) return;
+  if(!OBS.on || !OBS.id) return;
   if(roundState !== "live" && !WARM.on){ OBS.foeId = null; return; }   // (v316) раунд кончился — линии боя нет
-  var a = bots.filter(function(o){ return o.id === OBS.id; })[0], e = bots.filter(function(o){ return o.id === OBS.foeId; })[0];
-  if(!a || !e || !a.alive || !e.alive) return;
+  var a = teamBot(OBS.id); if(!a || !a.alive) return;
   ctx.save(); ctx.setTransform(view.scale,0,0,view.scale,view.panX,view.panY);
-  ctx.strokeStyle = "rgba(255,90,74,.85)"; ctx.lineWidth = 2/view.scale; ctx.setLineDash([6/view.scale, 5/view.scale]);
-  ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(e.x, e.y); ctx.stroke(); ctx.setLineDash([]);
-  var pr = (11 + 2*Math.sin(performance.now()/160))/view.scale; ctx.lineWidth = 2.5/view.scale; ctx.beginPath(); ctx.arc(e.x, e.y, pr, 0, Math.PI*2); ctx.stroke();
+  var e = OBS.foeId ? teamBot(OBS.foeId) : null;
+  if(e && e.alive){
+    ctx.strokeStyle = "rgba(255,90,74,.85)"; ctx.lineWidth = 2/view.scale; ctx.setLineDash([6/view.scale, 5/view.scale]);
+    ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(e.x, e.y); ctx.stroke(); ctx.setLineDash([]);
+    var pr = (11 + 2*Math.sin(performance.now()/160))/view.scale; ctx.lineWidth = 2.5/view.scale; ctx.beginPath(); ctx.arc(e.x, e.y, pr, 0, Math.PI*2); ctx.stroke();
+  }
+  // (v459) слежка за выбранным — метка под игроком
+  if(OBS.lock === a.id){
+    ctx.font = "600 "+(8/view.scale)+"px 'IBM Plex Mono',monospace"; ctx.textAlign = "center"; ctx.textBaseline = "top";
+    var lt = "слежка", tw = ctx.measureText(lt).width, ly = a.y + 11/view.scale;
+    ctx.fillStyle = "rgba(11,15,11,.78)"; ctx.fillRect(a.x - tw/2 - 3/view.scale, ly - 1/view.scale, tw + 6/view.scale, 11/view.scale);
+    ctx.fillStyle = "#e8ecdd"; ctx.fillText(lt, a.x, ly); ctx.textBaseline = "alphabetic";
+  }
   ctx.restore();
 }
 function obsManual(){ OBS.manualUntil = performance.now() + 6000; OBS.sc = 0; }
@@ -33679,8 +34103,856 @@ function obsManual(){ OBS.manualUntil = performance.now() + 6000; OBS.sc = 0; }
   if(bm) bm.addEventListener("click", function(){ var to = !(OBS.on && OBS.full); OBS.full = to; if(to) OBS.on = true; OBS.manualUntil = 0; OBS.tr = null;
     try{ localStorage.setItem("sim-obs-full", to ? "1" : "0"); }catch(e){} });
   cv.addEventListener("mousedown", obsManual); cv.addEventListener("wheel", obsManual, {passive:true});
-  ["plT","plCT"].forEach(function(id){ var el = document.getElementById(id); if(el) el.addEventListener("pointerdown", function(){ obsManual(); OBS.id = null; }); });
+  // (v459) клик по игроку (панель или радар) — слежка за ним; повторный клик по нему или клик мимо — обсервер снова сам.
+  // Карточку игрока обсервер и так держит выбранной, поэтому решает клик сам по себе, а не plSelected
+  var obsLockTo = function(id){ var b = id ? teamBot(id) : null;
+    if(!b || !b.alive || OBS.lock === id){ OBS.lock = null; return; }
+    OBS.lock = id; OBS.on = true; OBS.manualUntil = 0;
+    if(plSelected !== id){ plSelected = id; playersUpdate(); } };
+  ["plT","plCT"].forEach(function(id){ var el = document.getElementById(id); if(!el) return;
+    el.addEventListener("pointerdown", function(e){ if(e.button !== 0) return; var c = e.target.closest && e.target.closest(".pl-card"); if(c) obsLockTo(c.dataset.id); }); });
+  var obsDown = null;
+  cv.addEventListener("mousedown", function(e){ obsDown = e.button === 0 ? {x: e.clientX, y: e.clientY} : null; });
+  cv.addEventListener("mouseup", function(e){ var d = obsDown; obsDown = null;
+    if(!d || e.button !== 0 || Math.hypot(e.clientX-d.x, e.clientY-d.y) > 4) return;   // перетаскивание камеры — ручной режим, как раньше
+    var w = navScreenToWorld(e.clientX, e.clientY), best = null, bd = 16/view.scale;
+    bots.forEach(function(b){ if(!b.alive) return; var dd = Math.hypot(b.x-w.x, b.y-w.y); if(dd < bd){ bd = dd; best = b; } });
+    if(best) obsLockTo(best.id); else OBS.lock = null; });
   window.addEventListener("keydown", function(e){ if((e.key === "o" || e.key === "O" || e.key === "щ" || e.key === "Щ") && !/INPUT|TEXTAREA|SELECT/.test((e.target && e.target.tagName) || "")){ OBS.on = !OBS.on; OBS.sc = 0; OBS.manualUntil = 0; if(!OBS.on) fit(); } });
+})();
+// ======================= (v459, владелец 28.10) ПОВТОР КЛАТЧА — только показ, на игру не влияет =======================
+// Как на трансляции: раунд кончился клатчем 1v2+ — пока закупка, показываем повтор: клип с 2 с до первого фрага клатча, плавные
+// переходы к следующим фрагам, плант / дефуз, замедление на фрагах; потом экран размывается и сверху — портреты игроков в строчку:
+// что кричат (победители — радуются, проигравшие — расстроены) и что каждый последним сказал в войсе за раунд.
+// Запись: каждый кадр (после тиков) — лёгкий снимок того, что видно на радаре (игроки, дым, огонь, гранаты, бомба, выстрелы) и
+// киллфид раунда; хранится только текущий раунд и последний клатч. Повтор рисует сам на своём холсте — игра его не видит.
+// Если повтор не успел до конца закупки — игра ждёт (тики стоят) и потом идёт дальше теми же тиками: исход не меняется.
+// Фразы реакций — проектные (показ, не поведение). Выключить — «Инструменты → повтор клатча» (хранится в браузере).
+var RP_K = {
+  minN: 2,            // клатч от 1v2
+  pre: 2, post: 1.1,  // клип: за pre с до момента и post с после
+  merge: 1.6,         // моменты ближе merge с — один кусок
+  maxClip: 20,        // клип длиннее maxClip с игры — короче запас до и после
+  slowR: 0.45, slow: 0.3,   // замедление ×slow в slowR с вокруг фрага
+  cut: 0.6,           // переход между кусками (наложение кадров), с
+  startDelay: 1.3,    // повтор начинается через startDelay с после конца раунда (видно карточку раунда и баннер)
+  emo: 2.2,           // эмоции: после последней реплики экран ещё стоит emo с
+  typing: 0.45,       // реплика: «печатает…» перед фразой, с
+  sayMin: 1.1,        // реплика держится до следующей не меньше, с (с голосом — пока голос не кончится, не дольше sayMax)
+  sayMax: 3.6,
+  quiet: 0.85,        // реплика без голоса — до следующей, с
+  voices: 5,          // сколько реплик озвучено (клатчер, двое своих, двое соперников) — остальные только текстом
+  intro: 0.7, outro: 0.5,
+  tracer: 0.22        // след выстрела в повторе, с игры
+};
+var RP = {on: false, rec: null, last: null, P: null, enabled: true, mode: "auto", prevRs: null, kfSeen: null, lastTs: 0, holding: false};
+try{ RP.enabled = localStorage.getItem("sim-rp") !== "0"; RP.mode = localStorage.getItem("sim-rp-mode") || "auto"; }catch(e){}
+// (владелец 28.10) как на трансляции, показ бывает разный: клип + реакция, только клип (фраги с замедлением), только реакция.
+// «авто» — выбор по раунду (доли — проектные числа); фрагов и дефуза у клатчера нет — показывать в клипе нечего, только реакция
+var RP_MODES = {both: 0.5, clip: 0.3, emo: 0.2};
+function rpMode(R, B){
+  var has = B.moments.some(function(m){ return m.kind === "kill" || m.kind === "defuse"; });
+  var m = RP.mode;
+  if(m === "auto"){ var u = (rpHash(R.m + "|" + R.round + "|mode") % 1000)/1000; m = u < RP_MODES.both ? "both" : u < RP_MODES.both + RP_MODES.clip ? "clip" : "emo"; }
+  if(!has || !B.segs.length) m = "emo";
+  return m;
+}
+// (v462, владелец 29.10: «нет анимаций, звуков… звуки главное») звук и голос показа (повтор, пауза) — одно место. Только если включён
+// «Звук» (кнопка, 680): звук чата (chat_talk — присланный владельцем 15.10) на каждую реплику, свист на смену кадра, удар на фраг;
+// голос — синтез речи браузера (speechSynthesis), язык — язык команды; выключить голос — «Инструменты → озвучка реплик»
+var SHOW_TTS = true; try{ SHOW_TTS = localStorage.getItem("sim-tts") !== "0"; }catch(e){}
+function showSnd(kind, g){
+  if(typeof SND === "undefined" || !SND.on || !SND.ctx) return;
+  try{
+    if(kind === "chat"){ if(!sndPlay("chat_talk", g || 0.6, 0)) sndTone(0.12, 0.05, 1800, "sine"); }
+    else if(kind === "whoosh"){ sndNoise((g || 0.22), 0.32, "bandpass", 900, 0.6); sndNoise((g || 0.22)*0.6, 0.45, "highpass", 3200, 0.4, 0.04); }
+    else if(kind === "hit"){ sndTone(g || 0.22, 0.2, 95, "sine", 0, 45); sndNoise((g || 0.22)*0.8, 0.14, "lowpass", 420, 0.7); }
+    else if(kind === "pop"){ sndTone(g || 0.1, 0.07, 1100, "triangle", 0, 1700); }
+  }catch(e){}
+}
+function showSay(text, lang, lvl, who, onEnd){
+  if(!SHOW_TTS || typeof SND === "undefined" || !SND.on || typeof speechSynthesis === "undefined") return false;
+  try{
+    var u = new SpeechSynthesisUtterance(String(text).toLowerCase()), L = lang === "en" ? "en-US" : "ru-RU", h = rpHash(who || "x");
+    u.lang = L; u.pitch = 0.8 + (h % 40)/100; u.rate = lvl === 3 ? 1.15 : lvl === 1 ? 0.95 : 1.05; u.volume = (lvl === 1 ? 0.55 : lvl === 3 ? 1 : 0.85)*(SND.vol != null ? SND.vol : 0.85);
+    var vs = speechSynthesis.getVoices().filter(function(v){ return v.lang && v.lang.toLowerCase().indexOf(L.slice(0, 2).toLowerCase()) === 0; });
+    if(vs.length) u.voice = vs[h % vs.length];
+    if(speechSynthesis.pending) speechSynthesis.cancel();   // не копить очередь: реплика, которая уже на экране, важнее старой
+    if(onEnd){ u.onend = onEnd; u.onerror = onEnd; }
+    speechSynthesis.speak(u); return true;
+  }catch(e){ return false; }
+}
+function showHush(){ try{ if(typeof speechSynthesis !== "undefined") speechSynthesis.cancel(); }catch(e){} }
+var RP_NB = 9;   // чисел на игрока в снимке: x, y, взгляд, жив, hp, присел, этаж (-1 под полом / 1 над), плант(+)/дефуз(−) 0..1, ослеплён
+function rpNum(v){ return typeof v === "number" && isFinite(v) ? v : NaN; }
+// ---------- запись ----------
+function rpNewRec(){
+  var nk = {}; bots.forEach(function(b){ nk[b.id] = nick(b.id); });
+  var NK = {}; for(var k in NICKS) NK[k] = NICKS[k];
+  return {m: matchNum, round: roundNum, t0: tick, s: [], kills: [], tr: [], ev: [], vo: [], nick: nk, NK: NK, side: {CT: SIDE_TEAM.CT, T: SIDE_TEAM.T}, team: {CT: TEAM_NAME.CT, T: TEAM_NAME.T},
+          logo: {CT: TEAM_LOGO.CT, T: TEAM_LOGO.T}, score0: {CT: score.CT, T: score.T}, solo: {}, lastBomb: bomb ? bomb.state : null};
+}
+function rpSample(R){
+  var n = bots.length, B = new Float32Array(n*RP_NB);
+  bots.forEach(function(b, i){ var o = i*RP_NB;
+    var vf = b._visFacing !== undefined ? b._visFacing : b.facing;
+    var zb = b._zArea || 0; if(HEIGHTS.over && HEIGHTS.over.length) zb = b._lvl > 0 ? 999 : b._lvl < 0 ? -999 : 0;
+    var act = 0;
+    if(b.planting) act = Math.max(0.01, Math.min(1, 1 - (b.plantUntil - tick)/PLANT_TICKS));
+    else if(b.defusing){ var tot = b.kit ? DEFUSE_KIT_TICKS : DEFUSE_TICKS; act = -Math.max(0.01, Math.min(1, 1 - (b.defuseUntil - tick)/tot)); }
+    B[o] = b.x; B[o+1] = b.y; B[o+2] = rpNum(vf); B[o+3] = b.alive ? 1 : 0; B[o+4] = b.hp; B[o+5] = b.crouching ? 1 : 0;
+    B[o+6] = zb > 120 ? 1 : zb < -40 ? -1 : 0; B[o+7] = act; B[o+8] = tick < (b.blindUntil||0) ? 1 : 0;
+  });
+  var sm = [], fi = [], nd = [];
+  smokes.forEach(function(s){ var r = smokeRadiusNow(s); if(r > 2) sm.push(s.x, s.y, r); });
+  fires.forEach(function(f){ fi.push(f.x, f.y, fireRadiusNow(f)); });
+  nadesInAir.forEach(function(q){ nd.push(q.x, q.y, q.team === "CT" ? 1 : 0, q.type === "smoke" ? 0 : q.type === "flash" ? 1 : q.type === "he" ? 2 : 3); });
+  var bs = bomb ? bomb.state : null, ci = bomb && bomb.carrier ? bots.indexOf(bomb.carrier) : -1;
+  return {t: tick, b: B, sm: sm, fi: fi, nd: nd, bomb: bs ? {st: bs, x: bomb.x, y: bomb.y, c: ci} : null, w: rpWorld()};
+}
+// (v463) мир тика для кадра повтора: то, что читает draw (620) — поля игроков, дым, огонь, гранаты, эффекты, бомба, вещи на земле
+var RP_BF = ["x","y","z","alive","hp","crouching","facing","_visFacing","_reloading","reloadUntil","weapon","_zArea","_lvl","_jump","blindUntil","state","tRole",
+  "_knife","planting","defusing","plantUntil","defuseUntil","kit","onStairs","walking","_killHow","_sawEnemy","curSpeed","_idle","_idlePhase","holding","atPost"];
+function rpCl(o){ var c = {}; for(var k in o){ var v = o[k]; c[k] = Array.isArray(v) ? v.slice() : v; } return c; }
+function rpWorld(){
+  var W = {tick: tick, b: bots.map(function(o){ var c = {}; RP_BF.forEach(function(k){ c[k] = o[k]; }); return c; }),
+    sm: smokes.map(rpCl), fi: fires.map(rpCl), nd: nadesInAir.map(rpCl), fx: nadeFx.map(rpCl),
+    bomb: bomb ? rpCl(bomb) : null, bc: bomb && bomb.carrier ? bots.indexOf(bomb.carrier) : -1};
+  if(tick % 8 === 0){ W.gw = groundWeapons.map(rpCl); W.gi = groundItems.map(rpCl); }
+  return W;
+}
+function rpIdByNick(nm){ for(var id in NICKS) if(NICKS[id] === nm) return id; return null; }
+// после тиков кадра (680): записать, что изменилось; конец раунда — проверить клатч
+function rpRecord(){
+  var rs = roundState;
+  if(WARM.on){ RP.rec = null; RP.prevRs = rs; return; }
+  if(rs === "freeze") RP.rec = null;   // новый раунд — новая запись (клатч прошлого уже в RP.last)
+  // идёт раунд — пишем; после конца раунда (ending) — тоже, пока тот же раунд: последний фраг и «после» в клипе
+  var after = (rs === "ending" || rs === "matchover") && RP.rec && RP.rec.m === matchNum && RP.rec.round === roundNum;
+  if(rs === "live" || after){
+    var R = RP.rec; if(!R || R.m !== matchNum || R.round !== roundNum) R = RP.rec = rpNewRec();
+    var S = R.s.length ? R.s[R.s.length-1] : null;
+    if(S && tick < S.t){ R = RP.rec = rpNewRec(); S = null; }   // перемотка назад (отметки) — запись раунда заново
+    if(!S || S.t !== tick){
+      R.s.push(rpSample(R));
+      // новые выстрелы (по самим записям, а не по времени кадра)
+      if(!RP.trSeen || RP.trSeen.r !== R) RP.trSeen = {r: R, set: new WeakSet()};
+      tracers.forEach(function(q){ if(RP.trSeen.set.has(q)) return; RP.trSeen.set.add(q); var c = rpCl(q); c.t = tick; R.tr.push(c); });
+      // кто остался один в команде — с какого тика (для «клип с первого фрага клатча»)
+      ["CT","T"].forEach(function(s){ var al = bots.filter(function(b){ return b.team === s && b.alive; }); if(al.length === 1 && !R.solo[al[0].id]) R.solo[al[0].id] = tick; });
+      // плант / дефуз — моменты
+      var bst = bomb ? bomb.state : null;
+      if(bst !== R.lastBomb){
+        if(bst === "planted"){ var pl = null; if(S){ for(var i = 0; i < bots.length; i++) if(S.b[i*RP_NB+7] > 0) pl = bots[i]; } R.ev.push({t: tick, kind: "plant", id: pl ? pl.id : null}); }
+        R.lastBomb = bst;
+      }
+    }
+  }
+  RP.lastTs = nowTs;
+  // (владелец 28.10) войс раунда со временем — в повторе слышно, что говорили в эфире (новые фразы — сверху списка)
+  if(RP.rec && (rs === "live" || rs === "ending" || rs === "matchover")){
+    if(!RP.voSeen || RP.voSeen.r !== RP.rec) RP.voSeen = {r: RP.rec, set: new WeakSet()};
+    for(var vi = voiceLines.length - 1; vi >= 0; vi--){ var v = voiceLines[vi]; if(RP.voSeen.set.has(v)) continue; RP.voSeen.set.add(v);
+      RP.rec.vo.push({t: tick, who: v.who, team: v.team, text: v.text, kind: v.kind}); }
+  }
+  // киллфид раунда — новые строки
+  if(RP.rec && (rs === "live" || rs === "ending" || rs === "matchover")){
+    if(!RP.kfSeen || RP.kfSeen.r !== RP.rec) RP.kfSeen = {r: RP.rec, set: typeof WeakSet !== "undefined" ? new WeakSet() : null, n: 0};
+    var KS = RP.kfSeen;
+    for(var j = killfeed.length - 1; j >= 0; j--){ var k = killfeed[j]; if(KS.set ? KS.set.has(k) : k._rp) continue; if(KS.set) KS.set.add(k); else k._rp = 1;
+      if(k.kind !== "kill") continue;
+      RP.rec.kills.push({t: Math.round((k.at||simTime)*TICK_HZ), att: rpIdByNick(k.att), vic: rpIdByNick(k.vic), attTeam: k.attTeam, vicTeam: k.vicTeam,
+        w: k.w, hs: k.hs, smoke: k.smoke, wall: k.wall, noscope: k.noscope, blind: k.blind, attN: k.att, vicN: k.vic}); }
+  }
+  // конец раунда
+  if(RP.prevRs === "live" && (rs === "ending" || rs === "matchover") && RP.rec) rpRoundEnd(RP.rec);
+  RP.prevRs = rs;
+}
+function rpRoundEnd(R){
+  R.end = Math.round(roundEndTime*TICK_HZ); R.endSim = roundEndTime;
+  var win = score.CT > R.score0.CT ? "CT" : score.T > R.score0.T ? "T" : null;
+  R.win = win; R.score = {CT: score.CT, T: score.T};
+  if(bomb && bomb.state === "defused"){ var df = null; bots.forEach(function(b){ if(b.alive && b.team === "CT" && b.defuseUntil && Math.abs(b.defuseUntil - R.end) < 3) df = b; }); R.ev.push({t: R.end, kind: "defuse", id: df ? df.id : null}); }
+  if(bomb && bomb.state === "exploded") R.ev.push({t: R.end, kind: "boom", id: null});
+  var c = clutchInfo;
+  if(!(c && win && c.team === win && c.n >= RP_K.minN)) return;
+  var me = teamBot(c.id);
+  R.clutch = {id: c.id, side: c.team, n: c.n, alive: !!(me && me.alive), hp: me ? me.hp : 0, kills: me ? (me.roundKills||0) : 0};
+  // войс раунда: последнее, что сказал каждый (voiceLines — новые сверху)
+  // одинаковый колл у нескольких (часто — общий «B чисто») показываем один раз, у того, кто сказал позже всех
+  R.vox = {}; var seenVx = {};
+  voiceLines.forEach(function(v){ var id = rpIdByNick(v.who); if(!id || R.vox[id] || v.kind === "death") return;
+    var key = String(v.text).toLowerCase(); if(seenVx[key]){ R.vox[id] = ""; return; } seenVx[key] = 1; R.vox[id] = v.text; });
+  R.st = {}; bots.forEach(function(b){ R.st[b.id] = {alive: b.alive, hp: b.hp, k: b.roundKills||0, killer: b._killer || null}; });
+  RP.last = R;
+  if(RP.enabled && typeof document !== "undefined") RP.pending = {rec: R, at: R.endSim + RP_K.startDelay};
+}
+// ---------- клип: куски вокруг моментов клатча ----------
+function rpBuild(R){
+  var C = R.clutch, from = (R.solo[C.id] || R.t0) - RP_K.pre*TICK_HZ, M = [];
+  R.kills.forEach(function(k){ if(k.att === C.id && k.vic && k.vicTeam !== C.side && k.t >= from) M.push({t: k.t, kind: "kill", k: k}); });
+  R.ev.forEach(function(e){ if(e.t >= from && (e.id === C.id || e.kind === "boom")) M.push({t: e.t, kind: e.kind}); });
+  M.sort(function(a, b){ return a.t - b.t; });
+  var make = function(pre, post){
+    var S = [];
+    M.forEach(function(m){
+      var a = m.t - pre*TICK_HZ, b = Math.min(R.end + 0.6*TICK_HZ, m.t + post*TICK_HZ);
+      // дефуз — целиком: с начала дефуза
+      if(m.kind === "defuse"){ var i = rpIndexAt(R, m.t), ci = rpBotIdx(C.id);
+        while(i > 0 && R.s[i-1].b[ci*RP_NB+7] < 0) i--; a = Math.min(a, R.s[i].t - 0.8*TICK_HZ); }
+      a = Math.max(R.t0, a);
+      var L = S[S.length-1];
+      if(L && a - L.b < RP_K.merge*TICK_HZ){ L.b = Math.max(L.b, b); L.m.push(m); } else S.push({a: a, b: b, m: [m]});
+    });
+    return S;
+  };
+  var segs = make(RP_K.pre, RP_K.post), len = function(S){ return S.reduce(function(s, q){ return s + q.b - q.a; }, 0)/TICK_HZ; };
+  if(len(segs) > RP_K.maxClip) segs = make(1.2, 0.7);
+  while(segs.length > 1 && len(segs) > RP_K.maxClip) segs.shift();   // очень длинный — последние моменты
+  return {segs: segs, moments: M};
+}
+function rpBotIdx(id){ for(var i = 0; i < bots.length; i++) if(bots[i].id === id) return i; return -1; }
+function rpIndexAt(R, t){ var lo = 0, hi = R.s.length - 1; if(hi < 0) return 0; while(lo < hi){ var mid = (lo + hi + 1) >> 1; if(R.s[mid].t <= t) lo = mid; else hi = mid - 1; } return lo; }
+// ---------- показ ----------
+var RP_EL = null;
+function rpEls(){
+  if(RP_EL) return RP_EL;
+  var root = document.getElementById("rp"); if(!root) return null;
+  RP_EL = {root: root, cv: document.getElementById("rpCv"), tag: root.querySelector(".rp-tag"), l3: root.querySelector(".rp-l3"), feed: root.querySelector(".rp-feed"),
+    slow: root.querySelector(".rp-slow"), emo: root.querySelector(".rp-emo"), vox: root.querySelector(".rp-vox"), shade: root.querySelector(".rp-shade"), skip: root.querySelector(".rp-skip"), title: root.querySelector(".rp-title")};
+  RP_EL.ctx = RP_EL.cv.getContext("2d");
+  RP_EL.skip.addEventListener("click", function(e){ e.stopPropagation(); rpStop(); });
+  window.addEventListener("keydown", function(e){ if(!RP.on) return; if(e.key === "Escape" || e.code === "Space"){ e.preventDefault(); e.stopImmediatePropagation(); rpStop(); } }, true);
+  return RP_EL;
+}
+function rpPlay(R, mode){
+  if(!R || !R.clutch || !R.s.length) return false;
+  var E = rpEls(); if(!E) return false;
+  var B = rpBuild(R), C = R.clutch, md = mode || rpMode(R, B);
+  if(md === "emo") B.segs = [];
+  RP.P = {R: R, mode: md, segs: B.segs, si: 0, rt: B.segs.length ? B.segs[0].a : R.end, phase: "intro", ph0: performance.now(), last: performance.now(),
+          cam: null, feedShown: {}, ci: rpBotIdx(C.id)};
+  RP.on = true; RP.pending = null;
+  var tm = C.side, nm = R.nick[C.id];
+  E.root.className = "on " + tm.toLowerCase() + (typeof HUD_REDUCED !== "undefined" && HUD_REDUCED ? " rm" : "");
+  E.title.innerHTML = '<div class="rp-t1">ПОВТОР</div><div class="rp-t2">Клатч 1v' + C.n + '</div><div class="rp-t3 ' + tm.toLowerCase() + '">' + esc(nm) + ' · ' + esc(R.team[tm]) + '</div>';
+  E.l3.innerHTML = (R.logo[tm] ? '<img alt="" src="' + R.logo[tm] + '">' : '') + '<div><b>' + esc(nm) + '</b><span>клатч 1v' + C.n + ' · раунд ' + R.round + '</span></div><i class="rp-k">0</i>';
+  E.feed.innerHTML = ""; E.emo.innerHTML = ""; E.slow.className = "rp-slow";
+  return true;
+}
+function rpStop(){
+  if(!RP.on) return;
+  var P = RP.P; if(P && P.phase !== "out"){ P.phase = "out"; P.ph0 = performance.now(); return; }
+}
+function rpEnd(){
+  RP.on = false; RP.P = null; RP.holding = false; showHush();
+  var E = rpEls(); if(E){ E.root.className = ""; E.emo.innerHTML = ""; if(E.vox){ E.vox.innerHTML = ""; E.vox._k = ""; } }
+  if(typeof OBS !== "undefined") OBS.sc = 0;   // обсервер заново берёт камеру
+}
+// игра ждёт конца повтора: закупка кончается, а повтор ещё идёт (680: тики не считаются)
+function rpHold(){
+  var h = RP.on && ((roundState === "freeze" && simTime >= roundStartTime - 0.6) || (roundState === "matchover" && simTime - roundEndTime >= 6.5));
+  RP.holding = h; return h;
+}
+// кадр: true — повтор нарисовал экран сам (обычный draw не нужен)
+function rpFrame(ts){
+  if(!RP.on && RP.pending && !paused){
+    var Pn = RP.pending;
+    if(roundState === "live" && roundNum !== Pn.rec.round) RP.pending = null;
+    else if(simTime >= Pn.at) rpPlay(Pn.rec);
+  }
+  if(!RP.on) return false;
+  var E = rpEls(), P = RP.P; if(!E || !P){ rpEnd(); return false; }
+  var now = performance.now(), dt = Math.min(0.1, (now - P.last)/1000); P.last = now;
+  var W = E.cv.clientWidth, H = E.cv.clientHeight, dpr = window.devicePixelRatio || 1;
+  dpr = 1;   // (v463) кадр повтора рисует draw игры — в пикселях CSS, как основной холст
+  if(E.cv.width !== W || E.cv.height !== H){ E.cv.width = W; E.cv.height = H; }
+  var x = E.ctx, R = P.R, el = (now - P.ph0)/1000;
+  // (v465, владелец: «между повторами моргание и цокает») переход между кусками — без затемнения и без свиста: последний кадр прошлого
+  // куска растворяется в новом за RP_K.cut с (наложение, как монтаж трансляции)
+  var go = function(ph){ P.phase = ph; P.ph0 = now; el = 0; };
+  if(P.phase === "intro"){ if(el >= RP_K.intro) go(P.segs.length ? "clip" : "emo"); }
+  if(P.phase === "clip"){
+    var sg = P.segs[P.si], sp = rpSpeed(P);
+    P.rt += dt*TICK_HZ*sp;
+    E.slow.className = "rp-slow" + (sp < 0.9 ? " on" : "");
+    if(P.rt >= sg.b){
+      if(P.si + 1 < P.segs.length){
+        var xc = P.xfc || (P.xfc = document.createElement("canvas")); xc.width = E.cv.width; xc.height = E.cv.height;
+        xc.getContext("2d").drawImage(E.cv, 0, 0); P.xfT = now; P.si++; P.rt = P.segs[P.si].a; P.cam = null;
+      } else go(P.mode === "clip" ? "out" : "emo");
+    }
+  }
+  if(P.phase === "emo" && !P.emoOn){ if(!P.drawn) rpDraw(E, x, P, dt, W, H, dpr); rpBlurBg(E, x); rpEmotions(E, R, P); P.emoOn = true; E.root.classList.add("emo"); E.slow.className = "rp-slow"; }
+  if(P.phase === "emo" && P.emoOn && rpTalkTick(E, P, now)) go("out");
+  if(P.phase === "out" && el >= RP_K.outro){ rpEnd(); return false; }
+  // картинка: клип и переходы — радар из записи; эмоции — размытый последний кадр (нарисован один раз)
+  if(!P.emoOn) rpDraw(E, x, P, dt, W, H, dpr);
+  if(P.xfT != null && !P.emoOn){ var xa = 1 - (now - P.xfT)/1000/RP_K.cut;
+    if(xa > 0 && P.xfc.width === E.cv.width && P.xfc.height === E.cv.height){ var cx2 = E.ctx; cx2.setTransform(1,0,0,1,0,0); cx2.globalAlpha = xa*xa*(3 - 2*xa); cx2.drawImage(P.xfc, 0, 0); cx2.globalAlpha = 1; }
+    else P.xfT = null; }
+  // затемнение: начало, переход, конец
+  var shade = 0;
+  if(P.phase === "intro") shade = 1;   // титр на чёрном
+  if(P.phase === "clip" && P.si === 0 && P.rt - P.segs[P.si].a < 0.25*TICK_HZ) shade = Math.max(0, 1 - (P.rt - P.segs[P.si].a)/(0.25*TICK_HZ));
+  if(P.phase === "out") shade = Math.min(1, el/RP_K.outro);
+  E.shade.style.opacity = shade.toFixed(3);
+  E.root.classList.toggle("intro", P.phase === "intro");
+  E.root.classList.toggle("out", P.phase === "out");
+  rpFeed(E, P);
+  rpVoiceLive(E, P);
+  return true;
+}
+// войс в повторе: фразы появляются в свою секунду и держатся 3,5 с игры, не больше 4 строк (обе команды, цвет — сторона)
+function rpVoiceLive(E, P){
+  var el = E.vox; if(!el) return;
+  if(P.phase !== "clip" && P.phase !== "cut"){ if(el.innerHTML) el.innerHTML = ""; return; }
+  var R = P.R, from = P.rt - 3.5*TICK_HZ, L = R.vo.filter(function(v){ return v.t <= P.rt && v.t >= from; }).slice(-4);
+  var key = L.map(function(v){ return v.t + v.text; }).join("|"); if(el._k === key) return;
+  var last = L.length ? L[L.length-1].t + L[L.length-1].text : ""; if(last && last !== el._last){ el._last = last; showSnd("chat"); } el._k = key;
+  el.innerHTML = L.map(function(v){ return '<div class="rp-vl ' + String(v.team).toLowerCase() + '"><b>' + esc(v.who) + '</b><span>' + esc(v.text) + '</span></div>'; }).join("");
+}
+// войс клатча — для экрана реакций: что говорили с начала клатча до конца раунда (последние 6)
+function rpVoiceClutch(R){
+  var C = R.clutch, from = (R.solo[C.id] || R.t0) - 2*TICK_HZ;
+  return R.vo.filter(function(v){ return v.t >= from && v.kind !== "death"; }).slice(-6);
+}
+// замедление вокруг фрагов клатча (плавно)
+function rpSpeed(P){
+  var sg = P.segs[P.si], best = 1; if(!sg) return 1;
+  sg.m.forEach(function(m){ if(m.kind !== "kill" && m.kind !== "defuse") return; var d = Math.abs(P.rt - m.t)/TICK_HZ;
+    if(d < RP_K.slowR){ var f = d/RP_K.slowR, v = RP_K.slow + (1 - RP_K.slow)*f*f; if(v < best) best = v; } });
+  return best;
+}
+// снимок записи на дробный тик: между двумя соседними — плавно
+function rpAt(R, t){
+  var i = rpIndexAt(R, t), A = R.s[i], B = R.s[Math.min(R.s.length-1, i+1)];
+  var f = B.t > A.t ? Math.max(0, Math.min(1, (t - A.t)/(B.t - A.t))) : 0;
+  return {A: A, B: B, f: f};
+}
+function rpLerpAng(a, b, f){ if(isNaN(a)) return b; if(isNaN(b)) return a; var d = ((b - a + Math.PI*3) % (Math.PI*2)) - Math.PI; return a + d*f; }
+function rpDraw(E, x, P, dt, W, H, dpr){
+  P.drawn = true;
+  var R = P.R, I = rpAt(R, P.rt), A = I.A, B = I.B, f = I.f, n = bots.length, ci = P.ci;   // (v463) x, dpr переопределяются после кадра игры
+  var bx = function(i){ return A.b[i*RP_NB] + (B.b[i*RP_NB] - A.b[i*RP_NB])*f; }, by = function(i){ return A.b[i*RP_NB+1] + (B.b[i*RP_NB+1] - A.b[i*RP_NB+1])*f; };
+  // камера: клатчер и ближайший живой враг (≤ 800) или тот, кого он убьёт / убил рядом по времени — оба в кадре
+  var cx = bx(ci), cy = by(ci), tx = cx, ty = cy, span = 720, foe = -1, fd = 800;
+  var sg = P.phase === "clip" || P.phase === "cut" ? P.segs[P.si] : null;
+  if(sg) sg.m.forEach(function(m){ if(m.kind === "kill" && Math.abs(m.t - P.rt) < 1.6*TICK_HZ){ var vi = rpBotIdx(m.k.vic); if(vi >= 0){ var d = Math.hypot(bx(vi)-cx, by(vi)-cy); if(d < 900){ foe = vi; fd = -1; } } } });
+  if(foe < 0) for(var i = 0; i < n; i++){ if(bots[i].team === R.clutch.side || !A.b[i*RP_NB+3]) continue; var d = Math.hypot(bx(i)-cx, by(i)-cy); if(d < fd){ fd = d; foe = i; } }
+  // дефуз / плант клатчера — камера на нём, без дальних врагов
+  if(A.b[ci*RP_NB+7]) foe = -1;
+  if(foe >= 0){ var ox = bx(foe), oy = by(foe); tx = (cx + ox)/2; ty = (cy + oy)/2; span = Math.min(1150, Math.max(600, Math.hypot(ox-cx, oy-cy)*2.3)); }
+  var slowNow = rpSpeed(P) < 0.9; if(slowNow && P.phase === "clip") span *= 0.86;
+  var off = Math.hypot(tx-cx, ty-cy), om = 0.3*span; if(off > om){ tx = cx + (tx-cx)*om/off; ty = cy + (ty-cy)*om/off; }
+  var top = H*0.09, bot = H*0.09, avH = H - top - bot, sc = Math.min(W, avH)/span;
+  if(!P.cam) P.cam = {x: tx, y: ty, s: sc};
+  var k = 1 - Math.exp(-dt*3.5), ks = 1 - Math.exp(-dt*2.2);
+  P.cam.x += (tx - P.cam.x)*k; P.cam.y += (ty - P.cam.y)*k; P.cam.s += (sc - P.cam.s)*ks;
+  var S = P.cam.s, ox0 = W/2 - P.cam.x*S, oy0 = top + avH/2 - P.cam.y*S;
+  // (v463, владелец: «повтор без деталей, не тот дизайн, нет анимации стрельбы, взрыва») кадр повтора рисует сама игра (draw, 620) —
+  // по записанному миру этого тика (rpWorldPut), со всеми эффектами; поверх — только подсветка клатчера и вспышка фрага
+  rpWorldDraw(E, P, I, S, ox0, oy0, W, H);
+  x = E.ctx; dpr = 1;
+  x.setTransform(S,0,0,S,ox0,oy0);
+  var L = 1/S;
+  (function(){ var i = ci, px = bx(i), py = by(i);
+    if(!A.b[i*RP_NB+3]) return;
+    var rad = 7*L, pul = 1 + 0.12*Math.sin(performance.now()/180);
+    x.strokeStyle = "rgba(255,214,110,.95)"; x.lineWidth = 2.4*L; x.beginPath(); x.arc(px, py, rad + 7*L*pul, 0, Math.PI*2); x.stroke();
+    var nm = R.nick[bots[i].id]; x.font = "600 " + (10*L) + "px 'Roboto Condensed','Golos Text',sans-serif"; x.textAlign = "center"; var tw = x.measureText(nm).width;
+    x.fillStyle = "rgba(11,15,11,.8)"; x.fillRect(px - tw/2 - 4*L, py + rad + 9*L, tw + 8*L, 13*L); x.fillStyle = "#ffe49a"; x.textBaseline = "top"; x.fillText(nm, px, py + rad + 10.5*L); x.textBaseline = "alphabetic";
+  })();
+  // фраг клатчера: вспышка-кольцо у жертвы
+  if(sg) sg.m.forEach(function(m){ if(m.kind !== "kill") return; var a2 = (P.rt - m.t)/(0.7*TICK_HZ); if(a2 < 0 || a2 > 1) return; var vi = rpBotIdx(m.k.vic); if(vi < 0) return;
+    x.strokeStyle = "rgba(255,228,150," + (1 - a2).toFixed(3) + ")"; x.lineWidth = 3*L; x.beginPath(); x.arc(bx(vi), by(vi), (10 + 34*a2)*L, 0, Math.PI*2); x.stroke(); });
+  x.setTransform(1,0,0,1,0,0);
+  rpSound(P, R, ci);
+}
+// (v461) звук повтора: выстрелы и дефуз в свой момент клипа, громкость — по камере повтора. Звуковой движок (680) меряет расстояние от
+// центра живого радара — поэтому точка звука переносится: живой центр + (точка − центр камеры повтора). Заплатка (одно место звука)
+function rpSound(P, R, ci){
+  if(!SND || !SND.on || !SND.ctx || !P.cam) return;
+  var from = P.sndRt == null || P.sndRt > P.rt ? P.rt - 1 : P.sndRt; P.sndRt = P.rt;
+  if(P.phase !== "clip") return;
+  var r = cv.getBoundingClientRect(), c = navScreenToWorld(r.left + r.width/2, r.top + r.height/2);
+  var mv = function(x, y){ return {x: c.x + (x - P.cam.x), y: c.y + (y - P.cam.y)}; }, n = 0;
+  for(var j = rpTrFrom(R, from); j < R.tr.length && R.tr[j].t <= P.rt && n < 3; j++){ var T = R.tr[j]; if(T.t <= from) continue;
+    var q = mv(T.x1, T.y1); sndShot(T.wk ? {key: T.wk, silenced: T.sil} : {key: T.wc === "awp" ? "AWP" : T.wc === "deagle" ? "DEAGLE" : T.wc === "pistol" ? "USP" : T.wc === "smg" ? "MP9" : "M4"}, q.x, q.y); n++; }   // (v465) звук — точного оружия выстрела (wk, глушитель), раньше — по классу следа: AK звучал как M4
+  var I = rpAt(R, P.rt), J = rpAt(R, from), a1 = I.A.b[ci*RP_NB+7], a0 = J.A.b[ci*RP_NB+7];
+  if(a1 < 0 && !(a0 < 0)){ var q2 = mv(I.A.b[ci*RP_NB], I.A.b[ci*RP_NB+1]); sndBomb("defuse", q2.x, q2.y); }
+  R.kills.forEach(function(k){ if(k.att === R.clutch.id && k.t > from && k.t <= P.rt) showSnd("hit", 0.25); });
+  R.ev.forEach(function(e){ if(e.kind === "defuse" && e.t > from && e.t <= P.rt){ var q3 = mv(I.A.b[ci*RP_NB], I.A.b[ci*RP_NB+1]); sndBomb("defused", q3.x, q3.y); } });
+}
+// подставить записанный мир в игру на один вызов draw и вернуть всё обратно (игра этого не видит: между тиками, без изменений)
+function rpWorldDraw(E, P, I, S, ox0, oy0, W, H){
+  var R = P.R, A = I.A.w, B = (I.B && I.B.w) || A, f = I.f; if(!A){ return; }
+  var keep = {tick: tick, simTime: simTime, roundNum: roundNum, roundState: roundState, accumulator: accumulator, smokes: smokes, fires: fires, nadesInAir: nadesInAir,
+    nadeFx: nadeFx, bomb: bomb, tracers: tracers, soundPings: soundPings, groundWeapons: groundWeapons, groundItems: groundItems, teamTac: teamTac,
+    FREEZE_FX: FREEZE_FX, SIDE_TEAM: SIDE_TEAM, NICKS: NICKS, cv: cv, ctx: ctx, view: {scale: view.scale, panX: view.panX, panY: view.panY}};
+  var saved = bots.map(function(o){ var c = {px: o.px, py: o.py, pfacing: o.pfacing, path: o.path, _trail: o._trail}; RP_BF.forEach(function(k){ c[k] = o[k]; }); return c; });
+  var gw = null, gi = null; for(var j = R.s.indexOf(I.A); j >= 0; j--){ var w = R.s[j].w; if(w && w.gw){ gw = w.gw; gi = w.gi; break; } }
+  try{
+    tick = A.tick; simTime = tick*TICK_MS/1000; roundNum = R.round; roundState = "live"; accumulator = f*TICK_MS;
+    smokes = A.sm; fires = A.fi; nadesInAir = A.nd; nadeFx = A.fx; groundWeapons = gw || []; groundItems = gi || [];
+    bomb = A.bomb ? rpCl(A.bomb) : null; if(bomb) bomb.carrier = A.bc >= 0 ? bots[A.bc] : null;
+    var t0 = rpTrFrom(R, P.rt - 0.5*TICK_HZ), tl = [];
+    for(var q = t0; q < R.tr.length && R.tr[q].t <= P.rt; q++){ var c = rpCl(R.tr[q]); c.born = nowTs - (P.rt - c.t)*TICK_MS; c.tk = null; tl.push(c); }
+    tracers = tl; soundPings = []; teamTac = {T: null, CT: keep.teamTac && keep.teamTac.CT}; FREEZE_FX = [];
+    if(R.side){ SIDE_TEAM = R.side; } if(R.NK){ NICKS = R.NK; }
+    bots.forEach(function(o, i){ var a = A.b[i], b2 = B.b[i]; RP_BF.forEach(function(k){ o[k] = b2[k]; });
+      o.px = a.x; o.py = a.y; o.pfacing = a._visFacing !== undefined ? a._visFacing : a.facing; o.path = null; o._trail = []; });
+    cv = E.cv; ctx = E.ctx; view.scale = S; view.panX = ox0; view.panY = oy0;
+    draw.noHud = true; draw();
+  } catch(e){ /* кадр повтора не нарисовался — дальше игра не страдает: всё возвращается ниже */ }
+  finally {
+    draw.noHud = false;
+    bots.forEach(function(o, i){ var c = saved[i]; RP_BF.forEach(function(k){ o[k] = c[k]; }); o.px = c.px; o.py = c.py; o.pfacing = c.pfacing; o.path = c.path; o._trail = c._trail; });
+    tick = keep.tick; simTime = keep.simTime; roundNum = keep.roundNum; roundState = keep.roundState; accumulator = keep.accumulator;
+    smokes = keep.smokes; fires = keep.fires; nadesInAir = keep.nadesInAir; nadeFx = keep.nadeFx; bomb = keep.bomb; tracers = keep.tracers; soundPings = keep.soundPings;
+    groundWeapons = keep.groundWeapons; groundItems = keep.groundItems; teamTac = keep.teamTac; FREEZE_FX = keep.FREEZE_FX; SIDE_TEAM = keep.SIDE_TEAM; NICKS = keep.NICKS;
+    cv = keep.cv; ctx = keep.ctx; view.scale = keep.view.scale; view.panX = keep.view.panX; view.panY = keep.view.panY;
+  }
+}
+function rpTrFrom(R, t){ var lo = 0, hi = R.tr.length; while(lo < hi){ var mid = (lo + hi) >> 1; if(R.tr[mid].t < t) lo = mid + 1; else hi = mid; } return lo; }
+// киллфид повтора: строки появляются в момент фрага; счётчик фрагов клатча
+function rpFeed(E, P){
+  if(P.phase !== "clip" && P.phase !== "cut") return;
+  var R = P.R, C = R.clutch, add = false, kc = 0;
+  R.kills.forEach(function(k, i){ if(k.t > P.rt) return; if(k.att === C.id && k.vicTeam !== C.side) kc++;
+    if(P.feedShown[i] || P.rt - k.t > 4*TICK_HZ) return; if(k.t < P.segs[P.si].a - 0.2*TICK_HZ) return; P.feedShown[i] = 1; add = true;
+    var W = WEAPONS[k.w], wn = W ? W.name : k.w, wkey = k.w === "KNIFE" && k.attTeam === "T" ? "KNIFE_T" : k.w;
+    var row = document.createElement("div"); row.className = "kf" + (k.att === C.id ? " me" : "");
+    var h = k.attN ? '<span class="' + String(k.attTeam).toLowerCase() + '">' + esc(k.attN) + '</span>' : '';
+    h += (typeof kfSvg === "function" && kfSvg(wkey, "wp", wn)) || '<span class="w">' + esc(wn) + '</span>';
+    ["smoke","wall","hs","noscope","blind"].forEach(function(m){ if(k[m] && typeof kfSvg === "function") h += kfSvg(m, "md", KF_MOD_T[m]); });
+    row.innerHTML = h + '<span class="' + String(k.vicTeam).toLowerCase() + '">' + esc(k.vicN) + '</span>';
+    E.feed.insertBefore(row, E.feed.firstChild); while(E.feed.children.length > 5) E.feed.removeChild(E.feed.lastChild); });
+  var ke = E.l3.querySelector(".rp-k"); if(ke && ke.textContent !== String(kc)){ ke.textContent = String(kc); ke.classList.remove("pop"); void ke.offsetWidth; ke.classList.add("pop"); }
+}
+// размытие фона без filter (дёшево): последний кадр — в маленький холст и обратно, растянутым, плюс затемнение
+function rpBlurBg(E, x){
+  var c = E.cv, s = document.createElement("canvas"); s.width = Math.max(8, Math.round(c.width/14)); s.height = Math.max(8, Math.round(c.height/14));
+  var sx = s.getContext("2d"); sx.imageSmoothingEnabled = true; sx.drawImage(c, 0, 0, s.width, s.height);
+  var m = document.createElement("canvas"); m.width = Math.max(8, Math.round(c.width/5)); m.height = Math.max(8, Math.round(c.height/5));
+  var mx = m.getContext("2d"); mx.imageSmoothingEnabled = true; mx.drawImage(s, 0, 0, m.width, m.height);
+  x.setTransform(1,0,0,1,0,0); x.imageSmoothingEnabled = true; x.drawImage(m, 0, 0, c.width, c.height);
+  x.fillStyle = "rgba(6,8,6,.55)"; x.fillRect(0, 0, c.width, c.height);
+}
+// ---------- эмоции: портреты в строчку, что кричат и что последним сказали ----------
+// Реакции — проектные фразы (показ, владелец 28.10): живые, разговорные, с матом, разной громкости — не все орут: кто-то просто «nice»,
+// проигравшие чаще спокойно («nt», «ладно, следующий»). Громкость — значок в начале фразы: «!» — крик (заглавными, встряска),
+// без значка — обычным голосом, «~» — тихо. Язык — язык войса команды (Falcons — английский, Spirit — русский); русскоговорящие
+// в англоязычной команде иногда срываются на русский, и тиммейты подхватывают («хорош, братан», «бля, nice») — пул mix.
+// Вариант — от номера матча/раунда и игрока (повтор того же раунда — те же фразы).
+var RP_LANG = {"Team Falcons": "en", "Team Spirit": "ru"};
+var RP_RU = {"m0NESY": 1, "kyousuke": 1, "donk": 1, "sh1ro": 1, "zont1x": 1, "magixx": 1};   // говорят по-русски
+var RP_SAY = {
+  ru: {
+    hero: ["!ДА БЛЯТЬ!", "!ИЗИ НАХУЙ!", "!ЗАБРАЛ, СУКА!", "!ДАААА, ЕБАТЬ!", "!ВОТ ЭТО Я ВЫДАЛ!", "!КТО ТАМ ГОВОРИЛ, ЧТО Я НЕ ВЫВОЖУ?!",
+      "!АХАХАХ, ДА-ДА-ДА!", "!ОДИН НА {n}, ИЗИ!", "!ПОГНАЛИ, БЛЯТЬ!", "!Я ЖЕ ГОВОРИЛ — ДАЙТЕ ВРЕМЯ!", "!ЕСТЬ!!!", "!ВСЁ, ВСЁ, ВСЁ!",
+      "всё, раунд наш", "спокойно, пацаны, спокойно", "ну а кто, если не я", "изи, без нервов", "я знал, что он туда полезет",
+      "хорошо, что не спешил", "чё, нормально же", "так и задумывалось", "ну я ж сказал — сейв не нужен", "гоу дальше",
+      "~фух…", "~руки трясутся, бля", "~ладно, это было стрёмно", "~сердце сейчас выпрыгнет", "~повезло, честно", "~воды дайте"],
+    heroLow: ["!НА {hp} ХП, БЛЯТЬ!", "!С {hp} ХП ЗАБРАЛ, Я ЕБУ!", "на {hp} хп, ребят… на {hp}", "{hp} хп, но кого это волнует",
+      "~{hp} хп, я чуть не сдох", "~на {hp} хп… я сам в шоке"],
+    mate: ["!ЕБАТЬ ТЫ ВЫДАЛ!", "!ДА ЛАДНО, ОДИН НА {n}!", "!КРАСАВА, БРАТ!", "!ТЫ ЁБАНЫЙ МОНСТР!", "!ЛЮТЫЙ, СУКА!", "!АХАХА, НУ ТЫ ЗВЕРЬ!",
+      "!ЗАБИРАЙ… ЗАБРАЛ!", "!ДАВАЙ-ДАВАЙ-ДАВАЙ… ДААА!", "!ВОТ ЭТО ДА!", "!ХОРОШ, ХОРОШ!", "!ДАААА!", "!ПОГНАЛИ!",
+      "найс", "найс, брат", "красавчик", "хорош", "сильно", "ну ты дал", "вот это ты молодец", "лучший", "ну ты машина",
+      "вот это я понимаю", "держи пять", "чисто сыграл", "ахах, ну ты даёшь", "так и надо",
+      "~найс…", "~я в шоке, честно", "~ну красиво, чё", "~ладно, ты гений", "~ну всё, раунд", "~хорош"],
+    mateHype: ["!ЭТО ЧТО ВООБЩЕ БЫЛО?!", "!1 НА {n}, Я В АХУЕ!", "!ЕБАТЬ, ЭТО В ХАЙЛАЙТЫ!", "!КЛИПАЙТЕ, КЛИПАЙТЕ!", "!ОН ОДИН ВСЕХ ВЫНЕС!",
+      "1 на {n}… я молчу", "это просто нереально", "~я не знаю, что сказать"],
+    mateAlive: ["я тут чисто для массовки, ахах", "красава, я прикрывал", "!ДАААА!", "~я даже не стрелял", "!ХОРОШ, БРАТ!", "найс, вместе вытащили"],
+    victim: ["да как он меня, блять", "сука, он же один был", "откуда он вылез?", "я его вообще не видел", "сразу в башку, пиздец",
+      "бля, я рано вышел", "ну тут я сам виноват", "надо было ждать", "он чё, читер?", "ну это знать надо было",
+      "~nice, чё", "~сильно сыграл", "~ну ладно", "~не повезло", "~бывает", "~он хорош, признаю", "!КАК?!", "!ДА ЛАДНО?!"],
+    loserAlive: ["бля, я не успел", "сорян, пацаны", "ну я ж бежал…", "мне бы секунду", "~не успел, сорри", "~бомба далеко была",
+      "~ну, дефузил же почти", "!БЛЯЯЯТЬ!"],
+    loser: ["~нт", "~ладно, следующий", "~найс трай, пацаны", "~собираемся", "~ничего, ничего", "~бывает", "~обидно", "~окей, ресет",
+      "~голову не вешаем", "~норм играли, просто он выдал", "сильно он, чё", "минус раунд, ладно", "собрались, следующий",
+      "ну это пиздец", "как это можно отдать?", "надо было вдвоём идти", "ну тут без шансов", "!НУ КАК?!", "!ЁБАНЫЙ КЛАТЧ!"]
+  },
+  en: {
+    hero: ["!LET'S FUCKING GOOO!", "!EZ CLAP!", "!WHO ELSE?!", "!TOO EASY!", "!I'M HIM!", "!1V{n}, BABY!", "!YEEEES!", "!COME ON!",
+      "!WHAT DID I SAY?!", "!GET IN!", "!ONE MORE TIME!", "calm, calm, calm", "that's our round", "ez, no stress", "knew he'd peek there",
+      "patience, boys", "told you, no save", "just how we planned it", "next round, let's go", "~holy…", "~my hands are shaking",
+      "~okay, that was close", "~phew", "~lucky, honestly", "~need some water"],
+    heroLow: ["!{hp} HP, BABY!", "!ON {hp} HP, LET'S GO!", "{hp} hp… {hp}!", "{hp} hp, who cares", "~{hp} hp, I almost died"],
+    mate: ["!WHAT THE FUCK?!", "!HOLY SHIT!", "!1V{n}, ARE YOU KIDDING ME?!", "!INSANE, BRO!", "!YOU'RE A MONSTER!", "!NICE NICE NICE!",
+      "!LET'S GOOO!", "!BIG BIG BIG!", "!THAT'S MY BOY!", "!YES YES YES!", "nice", "nice one", "well played", "huge", "clean",
+      "beast", "so good, man", "you're crazy", "that's how it's done", "gimme five", "~nice…", "~wow", "~gg, he's cracked",
+      "~unreal, bro", "~okay, round"],
+    mateHype: ["!1V{n}?! WHAT IS THIS?!", "!ACTUAL MADMAN!", "!HE'S NOT HUMAN!", "!CLIP IT! CLIP IT!", "1v{n}… I'm speechless",
+      "that's absurd", "~I have no words"],
+    mateAlive: ["I just watched, lol", "!NICE, I HAD YOUR BACK!", "~I didn't even shoot", "!YEEES!", "we got it together, nice"],
+    victim: ["how the fuck...", "he was alone, man", "where did he come from?", "no way, dude", "didn't even see him", "my bad, peeked too early",
+      "should've waited", "is he walling? lol", "~nice", "~nh", "~he played it well", "~unlucky", "~fair enough", "!HOW?!", "!NO WAY!"],
+    loserAlive: ["fuck, too late", "my bad, guys", "couldn't make it...", "needed one more second", "~sorry, too far", "~almost had the defuse",
+      "!FUUUCK!"],
+    loser: ["~nt", "~nice try, guys", "~next one", "~it's fine, reset", "~unlucky", "~heads up", "~gg on that one", "~we played it fine",
+      "he's good, man", "unreal...", "can't lose that round", "reset, next one", "that's on us", "should've gone together",
+      "!HOW?!", "!ARE YOU SERIOUS?!"]
+  },
+  // русский в англоязычной команде: русскоговорящие — часто, остальные — иногда подхватывают
+  mix: {
+    hero: ["!ДАВАЙ, БЛЯ! LET'S GO!", "!ИЗИ, BOYS!", "!SUKA, YES!", "!ЕСТЬ! EZ!", "~фух, guys", "ez, братва"],
+    mate: ["!HOROSH, BRATAN!", "!БЛЯ, NICE!", "!DAVAI DAVAI DAVAI!", "!SUKA, INSANE!", "!ХАРОШ!", "!BRATAN, WHAT?!",
+      "nice, братан", "хорош, хорош", "~бля, nice", "!ЕБАТЬ, WHAT A CLUTCH!", "krasava, man", "~харош, bro"],
+    loser: ["~бля… nt", "~ладно, next", "!СУКА!", "~ну ок, reset", "~blyat, unlucky"]
+  }
+};
+function rpHash(s){ var h = 2166136261 >>> 0; s = String(s); for(var i = 0; i < s.length; i++) h = Math.imul(h ^ s.charCodeAt(i), 16777619) >>> 0; return h; }
+// фраза и громкость: {t, lvl: 3 крик / 2 обычно / 1 тихо}
+function rpPick(list, key, R){
+  if(!list || !list.length) return {t: "", lvl: 2};
+  var t = list[rpHash(R.m + "|" + R.round + "|" + key) % list.length], lvl = 2;
+  if(t.charAt(0) === "!"){ lvl = 3; t = t.slice(1); } else if(t.charAt(0) === "~"){ lvl = 1; t = t.slice(1); }
+  t = t.split("{n}").join(R.clutch.n).split("{hp}").join(Math.max(1, Math.round(R.clutch.hp||0)));
+  return {t: lvl === 3 ? t.toUpperCase() : t, lvl: lvl};
+}
+// что говорит игрок: ситуация → категория; язык команды; русскоговорящий в англоязычной команде (или его тиммейт) — иногда mix
+function rpSay(R, id, side){
+  var C = R.clutch, st = R.st[id] || {}, win = side === C.side, hero = id === C.id, cat;
+  if(win) cat = hero ? (C.hp > 0 && C.hp <= 30 && rpHash(R.round + "lo" + id) % 2 ? "heroLow" : "hero") : st.alive ? "mateAlive" : (C.n >= 3 && rpHash(R.round + "hy" + id) % 3 === 0 ? "mateHype" : "mate");
+  else cat = st.killer === C.id ? "victim" : st.alive ? "loserAlive" : "loser";
+  var lang = RP_LANG[R.team[side]] || "ru", nm = R.nick[id] || id;
+  if(lang === "en"){
+    var ruMe = !!RP_RU[nm], ruMate = Object.keys(R.nick).some(function(o){ return o !== id && bots.some(function(b){ return b.id === o && b.team === side; }) && RP_RU[R.nick[o]]; });
+    var u = (rpHash(R.m + "|" + R.round + "|mix|" + id) % 100)/100, mixCat = cat === "heroLow" ? "hero" : cat === "mateHype" || cat === "mateAlive" ? "mate" : cat === "victim" || cat === "loserAlive" ? "loser" : cat;
+    if(RP_SAY.mix[mixCat] && ((ruMe && u < 0.4) || (!ruMe && ruMate && win && u < 0.15))) return rpPick(RP_SAY.mix[mixCat], id + "m", R);
+  }
+  return rpPick(RP_SAY[lang][cat], id, R);
+}
+// (v465, владелец: «фразы уже готовые висят — надо как на паузах, что они говорят по очереди») реакции — по очереди: карточка
+// подсвечивается, над ней «…» (печатает), потом фраза, звук чата и голос; следующий — когда голос кончился (без голоса — через RP_K.quiet с).
+// Сказанное остаётся, приглушённое. Порядок: клатчер → свои → соперники (сначала его жертвы). Раньше 10 голосов запускались за 1,5 с
+// и сбрасывали друг друга (showSay отменяет очередь) — слышно было одну-две реплики
+function rpTalkOrder(R){
+  var C = R.clutch, win = C.side, lose = win === "CT" ? "T" : "CT", L = [];
+  var ids = function(side){ return bots.filter(function(b){ return b.team === side; }).map(function(b){ return b.id; }); };
+  var w = ids(win).filter(function(id){ return id !== C.id; }).sort(function(a, b){ return rpSay(R, b, win).lvl - rpSay(R, a, win).lvl; });
+  var l = ids(lose).sort(function(a, b){ var sa = R.st[a] || {}, sb = R.st[b] || {}; return ((sb.killer === C.id) - (sa.killer === C.id)) || (rpSay(R, b, lose).lvl - rpSay(R, a, lose).lvl); });
+  L.push({id: C.id, side: win}); w.forEach(function(id){ L.push({id: id, side: win}); }); l.forEach(function(id){ L.push({id: id, side: lose}); });
+  var vw = 0, vl = 0;
+  L.forEach(function(q){ q.say = rpSay(R, q.id, q.side); q.lang = RP_LANG[R.team[q.side]] || "ru";
+    q.voice = q.id === C.id || (q.side === win ? vw++ < 2 : vl++ < 2); });
+  return L;
+}
+function rpTalkCard(E, q){ var c = E.emo.querySelector('.rp-card[data-id="' + q.id + '"]'); return {c: c, s: c && c.querySelector(".rp-say")}; }
+function rpTalkStart(E, T, now){
+  var q = T.L[T.i], k = rpTalkCard(E, q); T.st = "type"; T.t0 = now;
+  if(k.c) k.c.classList.add("talking"); if(k.s) k.s.className = "rp-say lvl" + q.say.lvl + " typing";
+}
+// true — все сказали и экран постоял RP_K.emo с
+function rpTalkTick(E, P, now){
+  var T = P.talk; if(!T) return true;
+  var el = (now - T.t0)/1000;
+  if(T.i >= T.L.length) return el >= RP_K.emo;
+  if(T.st === "wait"){ if(el >= 0.9) rpTalkStart(E, T, now); return false; }   // портреты встали — первый начинает
+  var q = T.L[T.i], k = rpTalkCard(E, q);
+  if(T.st === "type"){
+    if(el < RP_K.typing) return false;
+    T.st = "say"; T.t0 = now; T.voiceEnd = true;
+    if(k.s) k.s.className = "rp-say lvl" + q.say.lvl + " in";
+    showSnd("chat", q.say.lvl === 1 ? 0.35 : 0.6);
+    if(q.voice){ var tk = T.tok = {}; T.voiceEnd = false; if(!showSay(q.say.t, q.lang, q.say.lvl, q.id, function(){ if(T.tok === tk) T.voiceEnd = true; })) T.voiceEnd = true; }
+    return false;
+  }
+  if(el < (q.voice ? RP_K.sayMin : RP_K.quiet) || (!T.voiceEnd && el < RP_K.sayMax)) return false;
+  if(k.c){ k.c.classList.remove("talking"); k.c.classList.add("said"); }
+  T.i++; T.t0 = now; if(T.i < T.L.length) rpTalkStart(E, T, now);
+  return false;
+}
+function rpEmotions(E, R, P){
+  var C = R.clutch, win = C.side, lose = win === "CT" ? "T" : "CT";
+  var row = function(side, mood){
+    var ids = bots.filter(function(b){ return b.team === side; }).map(function(b){ return b.id; });
+    if(side === win){ ids.sort(function(a, b){ return (a === C.id ? 0 : 1) - (b === C.id ? 0 : 1); }); var c0 = ids.shift(); ids.splice(Math.floor(ids.length/2), 0, c0); }
+    return '<div class="rp-row ' + mood + ' ' + side.toLowerCase() + '">' + ids.map(function(id, i){
+      var st = R.st[id] || {}, hero = id === C.id, say = rpSay(R, id, side);
+      var vx = R.vox && R.vox[id];
+      var pp = PLAYER_PHOTO[R.nick[id]], ph = pp ? '<img alt="" src="' + pp + '">' : PL_SIL;   // (v463) фото — того, кто играл раунд (после раунда стороны могли смениться)
+      return '<div class="rp-card' + (hero ? ' hero' : '') + (st.alive ? '' : ' dead') + '" data-id="' + id + '" style="--i:' + i + '">' +
+        '<div class="rp-say lvl' + say.lvl + '"><b>' + esc(say.t) + '</b><u><i></i><i></i><i></i></u></div>' +
+        '<div class="rp-ph">' + ph + '</div>' +
+        '<div class="rp-nm"><span>' + esc(R.nick[id] || id) + '</span>' + (st.k ? '<i>' + st.k + ' уб.</i>' : '') + '</div>' +
+        '<div class="rp-vx" title="последнее в войсе за раунд">' + (vx ? '«' + esc(vx) + '»' : '') + '</div></div>';
+    }).join("") + '</div>';
+  };
+  E.emo.innerHTML =
+    '<div class="rp-eh ' + win.toLowerCase() + '">' + (R.logo[win] ? '<img alt="" src="' + R.logo[win] + '">' : '') + '<span>' + esc(R.team[win]) + '</span><em>клатч 1v' + C.n + ' — ' + esc(R.nick[C.id]) + '</em></div>' +
+    row(win, "hype") +
+    '<div class="rp-eh2 ' + lose.toLowerCase() + '">' + esc(R.team[lose]) + ' — реакция</div>' +
+    row(lose, "sad") +
+    (function(){ var V = rpVoiceClutch(R); if(!V.length) return "";
+      return '<div class="rp-air"><div class="rp-air-h">в эфире во время клатча</div>' + V.map(function(v, i){
+        return '<div class="rp-vl ' + String(v.team).toLowerCase() + '" style="--i:' + i + '"><b>' + esc(v.who) + '</b><span>' + esc(v.text) + '</span></div>'; }).join("") + '</div>'; })();
+  P.talk = {L: rpTalkOrder(R), i: 0, st: "wait", t0: performance.now()};
+}
+// ---------- переход к раунду (найти и посмотреть клатч): #round=матч.раунд в адресе или rpGoto(матч, раунд) ----------
+// Матч перематывается тиками без отрисовки до закупки нужного раунда — дальше идёт обычным ходом (тот же матч бит в бит)
+// (v462) мгновенный переход: готовый снимок игры на закупке раунда (посчитан на ПК, tools/snap_round.js; лежит в хранилище файлов
+// страницы) — открывается как снимок отметки (mkOpenSnap), дальше игра идёт теми же тиками. Нет снимка или не загрузился — rpGoto
+// снимки v461 (м17 р27 и м13 р7, tools/snap_round.js на ПК, прогон pc-results/113: восстановление — бит в бит); лежат в хранилище файлов
+// опубликованной страницы Ancient (артефакт владельца); fp — отпечаток настроек, при котором снимок считался
+var RP_SNAPS = {"17.27": {url: "/_blob/796483b1a08520d9144489538cc82d9a", fp: "1gecw3a"}, "13.7": {url: "/_blob/f3db2bee0eb3f72bc4f1e76a4fbc0e4a", fp: "1gecw3a"}};
+function rpJump(m, r){
+  var u = RP_SNAPS[m + "." + r];
+  if(!u || typeof mkOpenSnap !== "function" || typeof fetch !== "function"){ rpGoto(m, r); return; }
+  var tg = document.createElement("div"); tg.className = "mk-prog"; tg.textContent = "открываю матч " + m + ", раунд " + r + "…"; wrap.appendChild(tg);
+  fetch(u.url).then(function(q){ if(!q.ok) throw new Error("HTTP " + q.status); return q.text(); }).then(function(t){
+    if(WARM.on) WARM = {on: false};
+    if(RP.on) rpEnd(); RP.rec = null; RP.pending = null; if(typeof TS !== "undefined"){ TS.lastRound = -1; if(TS.P) tsEnd(); }
+    mkOpenSnap(t); tg.remove(); paused = false;
+    var bp = document.getElementById("btnPause"); if(bp){ bp.textContent = "Пауза"; bp.classList.remove("active"); }
+    if(typeof OBS !== "undefined") OBS.sc = 0;
+    logEvent("Матч №" + m + ", раунд " + roundNum + " — открыт из готового снимка", true);
+    if(u.fp && typeof mkFp === "function" && mkFp() !== u.fp) showBanner("Свои правки карты или настройки — дальше матч может пойти иначе", null, 3500);
+  }).catch(function(e){ tg.remove(); logEvent("Снимок не открылся (" + (e && e.message) + ") — перематываю тиками", true); rpGoto(m, r); });
+}
+function rpGoto(m, r){
+  m = Math.max(1, m|0); r = Math.max(1, r|0);
+  freshMatch(m); paused = true; RP.rec = null; RP.pending = null; if(RP.on) rpEnd();
+  var M0 = matchNum, tg = document.createElement("div"); tg.className = "mk-prog"; tg.textContent = "перематываю к раунду " + r + "…"; wrap.appendChild(tg);
+  var step = function(){
+    var t0 = performance.now();
+    while(performance.now() - t0 < 40){
+      if(matchNum !== M0 || roundNum > r || (roundNum === r && roundState === "freeze")){
+        tg.remove(); paused = false; var bp = document.getElementById("btnPause"); if(bp){ bp.textContent = "Пауза"; bp.classList.remove("active"); }
+        if(typeof logEvent === "function") logEvent("Матч №" + m + ", раунд " + roundNum + " — перемотано", true); return; }
+      stepTick();
+    }
+    tg.textContent = "перематываю к раунду " + r + "… сейчас " + roundNum; setTimeout(step, 0);
+  };
+  step();
+}
+(function(){
+  if(typeof document === "undefined") return;
+  var c = document.getElementById("chkRp"); if(c){ c.checked = RP.enabled; c.addEventListener("change", function(){ RP.enabled = c.checked; try{ localStorage.setItem("sim-rp", c.checked ? "1" : "0"); }catch(e){} if(!c.checked && RP.on) rpStop(); }); }
+  var sm = document.getElementById("selRp"); if(sm){ sm.value = RP.mode; sm.addEventListener("change", function(){ RP.mode = sm.value; try{ localStorage.setItem("sim-rp-mode", sm.value); }catch(e){} }); }
+  var b = document.getElementById("btnRpLast"); if(b) b.addEventListener("click", function(){ if(RP.last){ rpPlay(RP.last, RP.mode === "auto" ? "both" : RP.mode); } else if(typeof showBanner === "function") showBanner("Клатча в этом матче ещё не было", null, 1800); });
+  var hm = /(?:^|[#&])round=(\d+)\.(\d+)/.exec(location.hash || ""); if(hm) setTimeout(function(){ rpGoto(+hm[1], +hm[2]); }, 300);
+})();
+// ======================= (v460, владелец 28.10) ПОКАЗ ТАКТИЧЕСКОЙ ПАУЗЫ — только показ, на игру не влияет =======================
+// Пауза (TO_NOW, 130) — закупка дольше на TO_SEC. Пока она идёт, как на трансляции, сцены сменяют друг друга:
+//   титр «Тактическая пауза» → доска тренера (план рисуется на мини-радаре) → разговор (портреты: тренер или IGL объясняет план,
+//   IGL отвечает, игроки переговариваются — разной громкостью) → камера на спавн команды (живая игра, субтитры разговора) → «погнали».
+// Что говорят — из настоящего плана (coachPlan: факты с числами); фразы-связки и болтовня — проектные. Язык — язык войса команды
+// (RP_LANG, 675), русскоговорящие в англоязычной команде иногда по-русски (RP_RU). Часы — время игры: на паузе игры показ стоит.
+// (v462, владелец: «нет анимаций, звуков; заготовка и портреты в одном окне, чтобы чередовались, разнообразие») сцены: титр → один из
+// порядков TS_SEQ (выбор — от матча и раунда): доска; доска + портреты в одном окне; портреты; спавн с доской в углу. На смену сцены —
+// затемнение и свист, на реплику — звук чата и голос (675: showSnd / showSay). Длительности — с игры, проектные (сумма ≈ TO_SEC)
+var TS_K = {title: 2.5, outro: 0.5};
+// (v463, владелец: «всё очень быстро меняется, не успеваешь осознать») три сцены по 8–10 с, реплика — не меньше TS_LINE с
+var TS_SEQ = [
+  [["split", 10], ["cam", 7], ["talk", 10]],
+  [["board", 8], ["split", 11], ["talk", 8]],
+  [["split", 9], ["talk", 9], ["cam", 9]]
+];
+var TS_LINE = 4.2;
+var TS = {P: null, el: null, lastRound: -1};
+function tsEls(){
+  if(TS.el) return TS.el;
+  var root = document.getElementById("to"); if(!root) return null;
+  TS.el = {root: root, cv: root.querySelector(".to-board canvas"), board: root.querySelector(".to-board"), talk: root.querySelector(".to-talk"),
+    title: root.querySelector(".to-title"), l3: root.querySelector(".to-l3"), sub: root.querySelector(".to-sub"), shade: root.querySelector(".to-shade"),
+    skip: root.querySelector(".to-skip")};
+  TS.el.skip.addEventListener("click", function(e){ e.stopPropagation(); tsStop(); });
+  return TS.el;
+}
+function tsIgl(side){
+  var team = bots.filter(function(b){ return b.team === side; });
+  return team.filter(function(b){ return b.prof && /IGL/.test(b.prof.style||""); })[0] || team.filter(function(b){ return b.tRole === "igl" || b.tRole === "support"; })[0] || team[0];
+}
+// ---------- разговор: из фактов плана ----------
+var TS_SAY = {
+  ru: {
+    open:  ["Так, слушаем все.", "Стоп, дышим. Слушаем.", "Ребята, внимание сюда.", "Так, без паники. Смотрим, что у нас."],
+    deathsT:["Мы {n} раза из {of} умираем на {zone}. Эти раунды идём в обход.", "{zone} — уже {n} смерти за {of} раунда. Туда не идём, выбираем другой путь."],
+    deathsCT:["Мы {n} раза из {of} умираем на {zone}. Эти раунды там не стоим.", "{zone} — {n} смерти за {of} раунда. Уходим оттуда, держим иначе."],
+    exclProf:["Достаём «{tac}». В прошлых матчах против них заходила — {w} из {n}.", "У нас есть «{tac}» — против них она работала, {w} из {n}. Играем."],
+    failed:["«{tac}» не заходит. Больше не играем.", "«{tac}» они читают. Убираем."],
+    stackRead:["Они стакают {S} — {n} раунда из {of}. Идём {T}, быстро и вместе.", "На {S} у них толпа, {n} из {of}. Значит, {T}."],
+    weakSite:["На {T} у них меньше людей: {a} против {b} за {of} раунда. Бьём {T}.", "{T} пустой — видели там меньше всех. Туда."],
+    excl:  ["Есть заготовка — «{tac}». Они её ещё не видели.", "Достаём «{tac}». Этого они от нас не ждут."],
+    tSite: ["Они {n} из {of} раз идут на {S}. Ставим больше людей на {S}.", "{S} — {n} заходов из {of}. Усиливаем {S}."],
+    retake:["На {S} мы проигрываем после планта, {n} раза. Играем от ретейка.", "{S} не держим, отдаём и забираем ретейком."],
+    readSetup:["Нашу «{setup}» прочитали. Меняем расстановку.", "«{setup}» больше не стоим, они её знают."],
+    reset: ["Ничего не меняем. Просто играем свою игру, спокойно.", "Всё нормально, это просто раунды. Перезагрузились."],
+    iglOk: ["Понял. Я колю.", "Окей, тогда так и делаем.", "Принял. Работаем.", "Всё ясно, я веду."],
+    chat:  ["~спокойно, вывозим", "я флешку дам", "~окей", "давайте с утилитой в этот раз", "!ДАВАЙ, ПОДНЯЛИСЬ!", "~я за тобой зайду", "бля, соберёмся",
+            "дайте мне угол на входе", "~норм, норм", "!ВСЁ, ПОГНАЛИ!", "я на трейд, не боимся"],
+    close: ["!ПОГНАЛИ!", "!ДАВАЙ, ЗАБИРАЕМ!", "Всё, один раунд. Вперёд.", "!РАБОТАЕМ!"]
+  },
+  en: {
+    open:  ["Okay, listen up.", "Stop, breathe. Listen.", "Guys, eyes here.", "Alright, no panic. Let's look at it."],
+    deathsT:["We died at {zone} {n} times in {of}. These rounds we go around it.", "{zone} — {n} deaths in {of} rounds. We take another path."],
+    deathsCT:["We died at {zone} {n} times in {of}. Nobody plays there these rounds.", "{zone} — {n} deaths in {of}. We hold it differently."],
+    exclProf:["Pull out {tac}. It worked against them before — {w} of {n}.", "We have {tac} — it hit vs them, {w} of {n}. Let's play it."],
+    failed:["{tac} isn't working. We drop it.", "They read {tac}. Gone."],
+    stackRead:["They stack {S} — {n} of {of}. We go {T}, fast and together.", "{S} is packed, {n} of {of}. So {T}."],
+    weakSite:["{T} has fewer guys: {a} vs {b} over {of} rounds. We hit {T}.", "{T} is light, we saw the fewest there. Go."],
+    excl:  ["We have one saved — {tac}. They haven't seen it.", "Pull out {tac}. They won't expect it."],
+    tSite: ["They hit {S} {n} of {of}. More bodies on {S}.", "{S} — {n} of {of}. Stack it."],
+    retake:["We lose {S} after the plant, {n} times. Play it from retake.", "Give {S}, take it back on the retake."],
+    readSetup:["They read our {setup}. We change it.", "No more {setup}, they know it."],
+    reset: ["Nothing changes. Just play our game, calm.", "We're fine, it's just rounds. Reset."],
+    iglOk: ["Got it. I'll call it.", "Okay, we do that.", "Copy. Let's work.", "Clear, I lead."],
+    chat:  ["~calm, we got this", "I'll flash it", "~okay", "use the utility this time", "!LET'S GO, BOYS!", "~I'll trade you", "focus up",
+            "give me the entry angle", "~fine, fine", "!COME ON!", "I'm on the trade, no fear"],
+    close: ["!LET'S GO!", "!WE TAKE THIS!", "One round. Go.", "!LET'S WORK!"]
+  },
+  mix:  { chat: ["~давай, boys", "харош, focus", "!DAVAI DAVAI!", "~окей, okay", "blyat, focus up", "~спокойно, guys"] }
+};
+function tsFill(t, f){ return String(t).replace(/\{(\w+)\}/g, function(m, k){ return f[k] != null ? f[k] : m; }); }
+function tsPick(list, key, T){ if(!list || !list.length) return {t: "", lvl: 2}; var t = list[rpHash(T.m + "|" + T.round + "|" + key) % list.length], lvl = 2;
+  if(t.charAt(0) === "!"){ lvl = 3; t = t.slice(1); } else if(t.charAt(0) === "~"){ lvl = 1; t = t.slice(1); } return {t: lvl === 3 ? t.toUpperCase() : t, lvl: lvl}; }
+function tsScript(T){
+  var lang = RP_LANG[T.name] || "ru", L = TS_SAY[lang], side = T.side, igl = tsIgl(side), lead = T.caller === "coach" ? "coach" : igl.id, S = [];
+  var team = bots.filter(function(b){ return b.team === side; });
+  var say = function(who, cat, f, key){ var p = tsPick(L[cat], key || cat, T); S.push({who: who, t: tsFill(p.t, f || {}), lvl: p.lvl}); };
+  if(T.plan.facts.length < 3) say(lead, "open");
+  T.plan.facts.forEach(function(f, i){ var key = f.k === "deaths" ? (side === "T" ? "deathsT" : "deathsCT") : f.k; if(L[key]) say(lead, key, f, key + i); });
+  if(T.caller === "coach") say(igl.id, "iglOk");
+  var others = team.filter(function(b){ return b.id !== igl.id; });
+  for(var i = 0; i < 1 && others.length; i++){
+    var b = others[rpHash(T.round + "|ch|" + i) % others.length]; others = others.filter(function(o){ return o !== b; });
+    var mix = lang === "en" && RP_RU[nick(b.id)] && rpHash(T.round + "mx" + b.id) % 100 < 40;
+    var p = tsPick(mix ? TS_SAY.mix.chat : L.chat, "ch" + b.id, T); S.push({who: b.id, t: p.t, lvl: p.lvl});
+  }
+  say(igl.id, "close");
+  // не больше, чем влезает по TS_LINE с на реплику (без последней «погнали» — её не выкидываем)
+  var room = Math.max(3, Math.floor((27 - TS_K.title)/TS_LINE)); while(S.length > room) S.splice(S.length - 2, 1);
+  return S;
+}
+// ---------- доска: мини-радар и план ----------
+function tsFocus(T){ var P = T.plan, f0 = P.facts.filter(function(f){ return f.T || f.S || f.zone; })[0];
+  if(f0 && (f0.T || f0.S) && SITES[f0.T || f0.S]) return SITES[f0.T || f0.S]; if(f0 && f0.zone) return tsZoneXY(f0.zone); return P.site && SITES[P.site] ? SITES[P.site] : null; }
+function tsZoneXY(name){
+  var best = null; (ZONEMAP.zones || []).forEach(function(z){ if(best || !z.points || !z.points.length) return; if(zoneMainName(ZONE_NAMES[z.id]) === name){ var c = centroidOf(z.points); best = c; } });
+  return best;
+}
+function tsBoard(E, T, k, kb){
+  var c = E.cv, W = c.clientWidth, H = c.clientHeight, dpr = window.devicePixelRatio || 1;
+  if(c.width !== Math.round(W*dpr) || c.height !== Math.round(H*dpr)){ c.width = Math.round(W*dpr); c.height = Math.round(H*dpr); }
+  var x = c.getContext("2d"), B = OBS_BOUNDS || {x0: 0, y0: 0, x1: 2048, y1: 2048};
+  if(!OBS_BOUNDS && typeof obsFullView === "function") obsFullView(wrapRect()), B = OBS_BOUNDS || B;
+  var sc = Math.min(W/(B.x1 - B.x0), H/(B.y1 - B.y0)) * 0.96, ox = W/2 - (B.x0 + B.x1)/2*sc, oy = H/2 - (B.y0 + B.y1)/2*sc;
+  // (v462) медленный наезд камеры доски на главное место плана (сайт плана или зона смертей) — «тренер показывает»
+  var fz = tsFocus(T); if(fz && kb > 0){ var z = 1 + 0.22*Math.min(1, kb), cx0 = (B.x0 + B.x1)/2, cy0 = (B.y0 + B.y1)/2;
+    var fx = cx0 + (fz.x - cx0)*Math.min(1, kb)*0.6, fy = cy0 + (fz.y - cy0)*Math.min(1, kb)*0.6; sc *= z; ox = W/2 - fx*sc; oy = H/2 - fy*sc; }
+  x.setTransform(dpr,0,0,dpr,0,0); x.clearRect(0, 0, W, H);
+  x.setTransform(dpr*sc,0,0,dpr*sc,dpr*ox,dpr*oy);
+  if(imgReady){ x.globalAlpha = 0.55; x.drawImage(img, 0, 0, 2048, 2048); x.globalAlpha = 1; }
+  var L = 1/sc, P = T.plan, ease = function(a){ a = Math.max(0, Math.min(1, a)); return 1 - Math.pow(1 - a, 3); };
+  var chalk = "rgba(245,244,236,.95)", red = "rgba(255,110,96,.95)", gold = "rgba(255,214,110,.95)";
+  var arrow = function(a, b, p, col){ if(!a || !b || p <= 0) return; var ex = a.x + (b.x - a.x)*p, ey = a.y + (b.y - a.y)*p;
+    x.strokeStyle = col; x.lineWidth = 5*L; x.lineCap = "round"; x.setLineDash([16*L, 10*L]); x.beginPath(); x.moveTo(a.x, a.y); x.lineTo(ex, ey); x.stroke(); x.setLineDash([]);
+    if(p >= 1){ var ang = Math.atan2(b.y - a.y, b.x - a.x), h = 22*L; x.beginPath(); x.moveTo(b.x, b.y); x.lineTo(b.x - Math.cos(ang - 0.45)*h, b.y - Math.sin(ang - 0.45)*h);
+      x.moveTo(b.x, b.y); x.lineTo(b.x - Math.cos(ang + 0.45)*h, b.y - Math.sin(ang + 0.45)*h); x.stroke(); } };
+  var ring = function(p0, r, p, col, txt){ if(!p0 || p <= 0) return; x.strokeStyle = col; x.lineWidth = 5*L; x.beginPath(); x.arc(p0.x, p0.y, r, -Math.PI/2, -Math.PI/2 + Math.PI*2*Math.min(1, p)); x.stroke();
+    if(txt && p >= 1){ x.fillStyle = col; x.font = "700 " + (30*L) + "px 'Roboto Condensed',sans-serif"; x.textAlign = "center"; x.textBaseline = "bottom"; x.fillText(txt, p0.x, p0.y - r - 8*L); } };
+  var cross = function(p0, p, txt){ if(!p0 || p <= 0) return; var r = 20*L*Math.min(1, p*1.4); x.strokeStyle = red; x.lineWidth = 6*L;
+    x.beginPath(); x.moveTo(p0.x - r, p0.y - r); x.lineTo(p0.x + r, p0.y + r); x.moveTo(p0.x + r, p0.y - r); x.lineTo(p0.x - r, p0.y + r); x.stroke();
+    if(txt && p >= 1){ x.fillStyle = red; x.font = "600 " + (24*L) + "px 'Roboto Condensed',sans-serif"; x.textAlign = "left"; x.textBaseline = "middle"; x.fillText(txt, p0.x + 28*L, p0.y); } };
+  var dots = function(p0, n, p, col){ if(!p0 || p <= 0) return; for(var i = 0; i < n; i++){ if(p*n < i + 0.5) break; var a = i/n*Math.PI*2; x.fillStyle = col; x.beginPath(); x.arc(p0.x + Math.cos(a)*40*L, p0.y + Math.sin(a)*40*L, 13*L, 0, Math.PI*2); x.fill(); x.strokeStyle = "#0b0f0b"; x.lineWidth = 2*L; x.stroke(); } };
+  var t = 0.6, step = 1.6, isEn = (RP_LANG[T.name] || "ru") === "en";
+  P.facts.forEach(function(f){
+    var p = ease((k - t)/1.2);
+    if(f.k === "deaths") cross(tsZoneXY(f.zone), p, f.zone + " ×" + f.n);
+    else if(f.k === "stackRead"){ dots(SITES[f.S], 3, p, "#5a9bd9"); ring(SITES[f.S], 70*L, p, chalk, isEn ? "STACK" : "СТАК"); }
+    else if(f.k === "weakSite" || f.k === "excl" || f.k === "exclProf"){ if(f.T){ arrow(T_SPAWN, SITES[f.T], p, gold); ring(SITES[f.T], 60*L, ease((k - t - 1)/0.8), gold, f.k !== "weakSite" ? (isEn ? "SAVED PLAY" : "ЗАГОТОВКА") : f.T); } }
+    else if(f.k === "tSite"){ dots(SITES[f.S], 3, p, "#5a9bd9"); arrow(T_SPAWN, SITES[f.S], p, red); }
+    else if(f.k === "retake"){ ring(SITES[f.S], 80*L, p, chalk, isEn ? "RETAKE" : "РЕТЕЙК"); if(GEO.rotator) arrow(GEO.rotator, SITES[f.S], ease((k - t - 0.6)/1), chalk); }
+    else if(f.k === "failed" || f.k === "readSetup"){ /* в подписи доски */ }
+    t += step;
+  });
+  if(P.side === "T" && P.site && !P.facts.some(function(f){ return f.T; })) arrow(T_SPAWN, SITES[P.site], ease((k - t)/1.2), gold);
+  x.setTransform(1,0,0,1,0,0);
+}
+// ---------- показ ----------
+function tsStart(T){
+  var E = tsEls(); if(!E || !T) return false;
+  var seq = TS_SEQ[rpHash(T.m + "|" + T.round + "|seq") % TS_SEQ.length], at = TS_K.title, S = [{sc: "title", a: 0, b: at}];
+  seq.forEach(function(q){ S.push({sc: q[0], a: at, b: at + q[1]}); at += q[1]; });
+  TS.P = {T: T, t0: simTime, lines: tsScript(T), side: T.side, shown: -1, phase: "", manual: false, seq: S, end: at};
+  var team = bots.filter(function(b){ return b.team === T.side; }), igl = tsIgl(T.side), en = (RP_LANG[T.name] || "ru") === "en";
+  var pips = ""; for(var i = 0; i < (T.round > regRounds() ? 1 : 3); i++) pips += '<i class="' + (i < T.left ? "on" : "") + '"></i>';
+  var logo = TEAM_LOGO[T.side];
+  E.title.innerHTML = '<div class="to-t1">ТАКТИЧЕСКАЯ ПАУЗА</div><div class="to-t2 ' + T.side.toLowerCase() + '">' + (logo ? '<img alt="" src="' + logo + '">' : '') + esc(T.name) + '</div>' +
+    '<div class="to-t3">' + (T.caller === "coach" ? "взял тренер" : "взял " + esc(nick(igl.id))) + ' · ' + T.score.CT + ':' + T.score.T + ' · осталось <span class="to-pips">' + pips + '</span></div>';
+  E.l3.innerHTML = (logo ? '<img alt="" src="' + logo + '">' : '') + '<div><b>' + esc(T.name) + '</b><span>тактическая пауза · ' + (T.caller === "coach" ? "тренер" : "IGL " + esc(nick(igl.id))) + '</span></div>';
+  var cards = [{id: "coach"}].concat(team.map(function(b){ return {id: b.id}; }));
+  E.talk.innerHTML = '<div class="to-row ' + T.side.toLowerCase() + '">' + cards.map(function(c, i){
+    var b = c.id === "coach" ? null : teamBot(c.id), nm = b ? nick(b.id) : (en ? "Coach" : "Тренер"), ph = b ? plPhoto(b) : PL_SIL;
+    var tag = c.id === "coach" ? (en ? "COACH" : "ТРЕНЕР") : (b === igl ? "IGL" : "");
+    return '<div class="to-card' + (c.id === "coach" ? " coach" : "") + '" data-id="' + c.id + '" style="--i:' + i + '"><div class="to-say"></div><div class="to-ph">' + ph + '<i class="to-eq"><b></b><b></b><b></b><b></b></i></div>' +
+      '<div class="to-nm">' + esc(nm) + (tag ? '<i>' + tag + '</i>' : '') + '</div></div>'; }).join("") + '</div><div class="to-log"></div>';
+  E.sub.innerHTML = "";
+  E.root.className = "on " + T.side.toLowerCase() + (typeof HUD_REDUCED !== "undefined" && HUD_REDUCED ? " rm" : "");
+  showSnd("whoosh", 0.28);
+  return true;
+}
+function tsStop(){ var P = TS.P; if(P && P.phase !== "out"){ P.outAt = simTime; P.phase = "out"; P.outReal = performance.now(); } }
+function tsEnd(){ TS.P = null; showHush(); var E = tsEls(); if(E){ E.root.className = ""; E.talk.innerHTML = ""; E.sub.innerHTML = ""; } if(typeof OBS !== "undefined") OBS.sc = 0; }
+// по кадру (680, после повтора клатча): true — экран нарисован здесь (сцены поверх); false — обычная отрисовка
+function tsFrame(ts){
+  if(typeof TO_NOW === "undefined") return false;
+  // пауза этого раунда: закупка идёт, повтор клатча не играет — начинаем
+  if(!TS.P && TO_NOW && roundState === "freeze" && roundNum === TO_NOW.round && TS.lastRound !== roundNum && !(RP && RP.on)){ TS.lastRound = roundNum; tsStart(TO_NOW); }
+  var P = TS.P; if(!P) return false;
+  var E = tsEls(); if(!E){ TS.P = null; return false; }
+  if(!P.manual && (roundState !== "freeze" || roundNum !== P.T.round)){ tsEnd(); return false; }
+  var el = P.manual ? (performance.now() - P.r0)/1000 : simTime - P.t0;
+  if(!P.manual && roundStartTime - simTime < 1.2) tsStop();
+  if(el >= P.end + TS_K.outro && P.phase !== "out") tsStop();
+  if(P.phase === "out"){ var oe = (performance.now() - (P.outReal || (P.outReal = performance.now())))/1000; E.shade.style.opacity = Math.min(1, oe/0.5).toFixed(3); if(oe >= 0.5){ tsEnd(); return false; } return P.sc !== "cam"; }
+  var Q = P.seq.filter(function(q){ return el >= q.a && el < q.b; })[0] || P.seq[P.seq.length-1], sc = Q.sc;
+  if(sc !== P.sc){ P.sc = sc; P.phase = sc; P.scAt = el; E.root.setAttribute("data-scene", sc); if(sc !== "title") showSnd("whoosh"); }
+  var se = el - P.scAt;
+  E.shade.style.opacity = el < 0.4 ? (1 - el/0.4).toFixed(3) : se < 0.3 ? (0.55*(1 - se/0.3)).toFixed(3) : "0";
+  // реплики: по одной, равномерно на всё после титра
+  var n = P.lines.length, span = (P.end - 0.5) - TS_K.title, li = el < TS_K.title ? -1 : Math.min(n - 1, Math.floor((el - TS_K.title)/(span/n)));
+  if(li !== P.shown){ P.shown = li; tsLine(E, P, li); }
+  // доска: на весь экран, в общем окне с портретами, в углу кадра спавна — рисуется, пока видна
+  if(sc === "board" || sc === "split" || sc === "cam") tsBoard(E, P.T, el - TS_K.title, sc === "cam" ? 0 : se/(Q.b - Q.a));
+  if(sc === "cam"){ tsCam(P); return false; }   // живая игра под субтитрами: камера на спавне команды
+  return true;
+}
+function tsLine(E, P, li){
+  var cards = E.talk.querySelectorAll(".to-card");
+  for(var i = 0; i < cards.length; i++){ cards[i].classList.remove("talking"); var sy = cards[i].querySelector(".to-say"); sy.className = "to-say"; sy.innerHTML = ""; }
+  if(li < 0) return;
+  var L = P.lines[li], c = E.talk.querySelector('.to-card[data-id="' + L.who + '"]');
+  if(c){ c.classList.add("talking"); var s = c.querySelector(".to-say"); s.className = "to-say lvl" + L.lvl + " in"; s.innerHTML = "<b>" + esc(L.t) + "</b>"; }
+  var who = L.who === "coach" ? ((RP_LANG[P.T.name] || "ru") === "en" ? "Coach" : "Тренер") : nick(L.who);
+  var log = E.talk.querySelector(".to-log");
+  if(log){ var d = document.createElement("div"); d.className = "to-ll"; d.innerHTML = "<b>" + esc(who) + "</b>" + esc(L.t); log.appendChild(d); while(log.children.length > 4) log.removeChild(log.firstChild); }
+  E.sub.innerHTML = '<div class="to-sl lvl' + L.lvl + '"><b>' + esc(who) + '</b>' + esc(L.t) + '</div>';
+  showSnd("chat", L.lvl === 1 ? 0.35 : 0.6); showSay(L.t, RP_LANG[P.T.name] || "ru", L.lvl, L.who + P.T.name);
+}
+// камера на спавне команды: свой кадр, обсервер не трогает (вызов draw — обычный, 680)
+function tsCam(P){
+  var team = bots.filter(function(b){ return b.team === P.side && b.alive; }); if(!team.length) return;
+  var c = centroidOf(team), r = wrapRect(), span = 520, sc = Math.min(r.width, r.height)/span, k = 0.06;
+  if(!P.cam){ P.cam = {x: c.x, y: c.y, s: sc*0.8}; }
+  P.cam.x += (c.x - P.cam.x)*k; P.cam.y += (c.y - P.cam.y)*k; P.cam.s += (sc - P.cam.s)*0.04;
+  view.scale = P.cam.s; view.panX = r.width/2 - P.cam.x*P.cam.s; view.panY = r.height/2 - P.cam.y*P.cam.s;
+}
+// показать последнюю паузу ещё раз (кнопка «Инструменты»): по реальному времени, игра идёт своим ходом
+function tsReplayLast(){
+  if(!TO_LAST){ if(typeof showBanner === "function") showBanner("Пауз в этом матче ещё не было", null, 1800); return; }
+  if(tsStart(TO_LAST)){ TS.P.manual = true; TS.P.r0 = performance.now(); }
+}
+(function(){
+  if(typeof document === "undefined") return;
+  var b = document.getElementById("btnToLast"); if(b) b.addEventListener("click", tsReplayLast);
+  var tt = document.getElementById("chkTts"); if(tt){ tt.checked = SHOW_TTS; tt.addEventListener("change", function(){ SHOW_TTS = tt.checked; if(!tt.checked) showHush(); try{ localStorage.setItem("sim-tts", tt.checked ? "1" : "0"); }catch(e){} }); }
+  var f = document.getElementById("btnToTake"); if(f) f.addEventListener("click", function(){ TO_FORCE = true; if(typeof showBanner === "function") showBanner("Пауза: возьмёт команда, проигравшая этот раунд", null, 2200); });
+  // (v461) раунды для просмотра — из замера v461 на ПК (16 матчей): клатч 1v5 (м17 р27), пауза T, раунд взяли (м13 р7)
+  var c = document.getElementById("btnRpGo"); if(c) c.addEventListener("click", function(){ rpJump(17, 27); });
+  var g = document.getElementById("btnToGo"); if(g) g.addEventListener("click", function(){ rpJump(13, 7); });
 })();
 // ======================= (v323, М40) ЗВУК — только показ, на игру не влияет =======================
 // Синтез Web Audio (звуки Valve копировать нельзя): шум и тоны по типу события. Слышно то, что рядом с серединой экрана
@@ -33911,13 +35183,18 @@ function frameBody(ts){
     // пропущенные тики разом (минута вкладки в фоне = ~3800 тиков в одном кадре — страница вставала на секунды, а следующий кадр
     // снова долгий — «снежный ком»). Теперь игра в такой момент идёт медленнее реального времени. Тики те же — игра не меняется
     accumulator += Math.min(dt, FRAME_CATCHUP_MS);
+    // (v459) повтор клатча не успел до конца закупки — игра ждёт (те же тики потом, исход тот же)
+    if(rpHold()) accumulator = 0;
     while(accumulator >= TICK_MS){ stepTick(); accumulator -= TICK_MS; }
     mkAfterTicks();
   }
-  obsFrame(ts);
-  draw();
-  obsOverlay();
-  miniDraw();
+  rpRecord();   // (v459) запись для повтора клатча — только читает
+  if(!rpFrame(ts) && !tsFrame(ts)){   // идёт повтор клатча или сцена паузы — они рисуют экран сами
+    obsFrame(ts);
+    draw();
+    obsOverlay();
+    miniDraw();
+  }
   frameWrapR = null;   // вне кадра (клики, перемотка) — читать заново
 }
 document.getElementById("btnFreshMatch").addEventListener("click", function(){ var n = Math.max(1, parseInt(document.getElementById("inpMatchNum").value, 10) || 1); var sel = document.getElementById("selSeries"), bo = sel ? +sel.value : 3; if(bo !== SERIES.bo || seriesDone()) SERIES = {bo:bo, maps:{}}; var cw = document.getElementById("chkWarm"); if(cw && !cw.checked) freshMatch(n); else warmStart(n); paused = false; var bp = document.getElementById("btnPause"); if(bp){ bp.textContent = "Пауза"; bp.classList.remove("active"); } logEvent("Матч №"+n+" с чистого листа (воспроизводимый)", true); });
