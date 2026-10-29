@@ -721,7 +721,7 @@
   <div id="topbar">
     <div class="tb-id">
       <h1>Ancient<span id="matchTick" class="mono" title="Какой матч сейчас идёт и тик — запиши, если увидел баг"></span></h1>
-      <div class="sub mono" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 467, 29.10</div>
+      <div class="sub mono" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 468, 29.10</div>
     </div>
     <div class="tb-group" id="tbMatch">
       <button id="btnPause">Пауза</button>
@@ -14351,10 +14351,30 @@ function heightBlocked(x1, y1, x2, y2, b){
   if(navLinked(a1, a2)) return false;
   return up > JUMP_UP || navLinked(a2, a1);
 }
-var HGT_TOP = null, HGT_BOT = null;
-function hgtLevelOf(id){   // 1 — пол над другим полом, -1 — под другим полом (heights.over), 0 — обычный
-  if(!HGT_TOP){ HGT_TOP = {}; HGT_BOT = {}; (HEIGHTS.over || []).forEach(function(o){ HGT_TOP[o.top] = 1; HGT_BOT[o.bottom] = 1; }); }
-  return HGT_BOT[id] ? -1 : HGT_TOP[id] ? 1 : 0;
+var HGT_TOP = null;
+// (v468, п.2/12/23 владельца 29.10: серый на лестнице, в Dark наполовину под полом, в B Apps) «под другим полом» — не весь участок
+// навмеша, а только место, над которым правда лежит другой пол: перекрытие пары участков (heights.over: poly — где верхний пол над
+// нижним) и игрок ниже верхнего пола (на лестнице он уже выше — не серый). Раньше серым был весь нижний участок, даже его часть под небом.
+// hgtUnder → номера перекрытий над игроком (рядом с ним, HGT_NEAR) — рисование кладёт серое только на их часть кружка.
+var HGT_NEAR = 60;   // проектное число; ед. радара: перекрытие ближе — может задеть кружок игрока (7 пикселей экрана — до ~20 ед. при мелком масштабе)
+function hgtLevelOf(id){   // 1 — пол над другим полом (светлый ободок), 0 — обычный
+  if(!HGT_TOP){ HGT_TOP = {}; (HEIGHTS.over || []).forEach(function(o){ HGT_TOP[o.top] = 1; }); }
+  return HGT_TOP[id] ? 1 : 0;
+}
+function hgtUnder(x, y, z, a){
+  var O = HEIGHTS.over || [], out = []; if(!a || z == null) return out;
+  for(var i = 0; i < O.length; i++){ var o = O[i]; if(o.bottom !== a.id || !o.poly || o.poly.length < 3) continue;
+    var t = navArea(o.top); if(!t || t.z < z + 40) continue;   // 40 — выше ступеньки: игрок стоит на верхнем полу или над ним
+    var x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity;
+    o.poly.forEach(function(p){ if(p[0] < x0) x0 = p[0]; if(p[0] > x1) x1 = p[0]; if(p[1] < y0) y0 = p[1]; if(p[1] > y1) y1 = p[1]; });
+    if(x < x0 - HGT_NEAR || x > x1 + HGT_NEAR || y < y0 - HGT_NEAR || y > y1 + HGT_NEAR) continue;
+    out.push(i);
+  }
+  return out;
+}
+function hgtUnderCenter(x, y, U){   // центр игрока под другим полом — для мини-карты и повтора (там кружок целиком)
+  var O = HEIGHTS.over || [];
+  return (U || []).some(function(i){ return pointInPoly(x, y, O[i].poly.map(function(p){ return {x: p[0], y: p[1]}; })); });
 }
 // (v373, сторож: «застой» — 20 раз за раунд на Ancient; бот с путём упирается в уступ, и новый путь — тот же) путь строится по
 // связям навмеша, а шаг проверяет высоту уступа (heightBlocked) — если они расходятся, бот стоит до конца раунда. Самоисправление:
@@ -18352,7 +18372,7 @@ function resetRound(){
     // прошлого раунда, продолжался после спавна — бота тянуло обратно туда, где он лез. Всё движение прошлого раунда — сброс
     b._climb = null; b._fireExit = null; b._fireExitFire = null; b._unstickT = null; b._task = null; b._hold = null;
     // (v353, владелец: «тусклость кружка сохраняется после окончания раунда») этаж для рисования — сразу по спавну, а не через 16 тиков движения
-    var za0 = navArea(b._area); b._zArea = za0 ? za0.z : 0; b._lvl = za0 ? hgtLevelOf(za0.id) : 0;
+    var za0 = navArea(b._area); b._zArea = za0 ? za0.z : 0; b._under = hgtUnder(b.x, b.y, b.z, za0); b._lvl = hgtUnderCenter(b.x, b.y, b._under) ? -1 : za0 ? hgtLevelOf(za0.id) : 0;
     b.baseX = b.x; b.baseY = b.y;
     b.px = b.x; b.py = b.y;
     b.path = []; b.pathIdx = 0; b.alive = true; b.hp = 100;
@@ -18560,7 +18580,7 @@ function stepTick(){
     updateReload(bot);
     if(!bot.post) updateRoamer(bot);
     // этаж под ботом (раздел 9: метка уровня на радаре) — раз в 16 тиков хватает
-    if(tick % 16 === 0){ var za = zoneOf(bot.baseX, bot.baseY, bot.z); bot._zArea = za ? za.z : 0; bot._lvl = za ? hgtLevelOf(za.id) : 0; }
+    if(tick % 16 === 0){ var za = zoneOf(bot.baseX, bot.baseY, bot.z); bot._zArea = za ? za.z : 0; bot._under = hgtUnder(bot.baseX, bot.baseY, bot.z, za); bot._lvl = hgtUnderCenter(bot.baseX, bot.baseY, bot._under) ? -1 : za ? hgtLevelOf(za.id) : 0; }
     // "на лестнице" пересчитывается только в ветке движения — если бот
     // остановился (держит угол, стоит на посту), флаг раньше оставался от
     // последнего отрезка пути навсегда: бот, дошедший до поста по лестнице,
@@ -21996,10 +22016,22 @@ function draw(){
       ctx.lineTo(rx + Math.cos(vf)*tipR, ry + Math.sin(vf)*tipR);
       ctx.closePath();
     } else ctx.arc(rx,ry,r,0,Math.PI*2);
-    // (v323, М5) под другим полом (Underpass, под Palace) — кружок тусклый и сероватый, как на радаре CS2 игрок под этажом
-    var under = zb < -40;
-    ctx.fillStyle = under ? (bot.team==="CT" ? "rgba(122,140,158,0.55)" : "rgba(158,144,122,0.55)") : (bot.team==="CT" ? "#5a9bd9" : "#d9a24a");
-    ctx.fill();
+    // (v323, М5) под другим полом (Underpass, под Palace) — тусклый и сероватый, как на радаре CS2 игрок под этажом.
+    // (v468, п.12 владельца) серой — только та часть кружка, над которой правда другой пол (bot._under — перекрытия, hgtUnder):
+    // наполовину под полом — наполовину серый; на карте без перекрытий — по высоте участка, как раньше
+    var under = !(HEIGHTS.over && HEIGHTS.over.length) && zb < -40, U = (HEIGHTS.over && HEIGHTS.over.length && bot._under) || [];
+    var colIn = bot.team==="CT" ? "#5a9bd9" : "#d9a24a", colUnder = bot.team==="CT" ? "rgba(122,140,158,0.55)" : "rgba(158,144,122,0.55)";
+    if(!U.length){ ctx.fillStyle = under ? colUnder : colIn; ctx.fill(); }
+    else {
+      var shape = new Path2D();
+      if(vf !== undefined){ shape.arc(rx, ry, r, vf + 0.95, vf - 0.95 + Math.PI*2); shape.lineTo(rx + Math.cos(vf)*r*1.85, ry + Math.sin(vf)*r*1.85); shape.closePath(); }
+      else shape.arc(rx, ry, r, 0, Math.PI*2);
+      var polys = new Path2D();
+      U.forEach(function(i){ var P = HEIGHTS.over[i].poly; polys.moveTo(P[0][0], P[0][1]); for(var q = 1; q < P.length; q++) polys.lineTo(P[q][0], P[q][1]); polys.closePath(); });
+      var outside = new Path2D(); outside.rect(rx - 40*r, ry - 40*r, 80*r, 80*r); outside.addPath(polys);
+      ctx.save(); ctx.clip(outside, "evenodd"); ctx.fillStyle = colIn; ctx.fill(shape); ctx.restore();       // часть под небом — свой цвет
+      ctx.save(); ctx.clip(polys, "nonzero"); ctx.fillStyle = colUnder; ctx.fill(shape); ctx.restore();     // часть под полом — серая
+    }
     ctx.lineWidth = 1.5/view.scale; ctx.strokeStyle = under ? "rgba(11,15,11,0.5)" : "#0b0f0b"; ctx.stroke();
     if(false){
       var fx = rx + Math.cos(vf)*r*1.8;
@@ -22938,7 +22970,7 @@ var __SNAP = [
 ["NAV_GAP_TOL", function(){ return NAV_GAP_TOL; }, function(v){ try{ NAV_GAP_TOL = v; }catch(e){} }],
 ["NAV_OFF_R", function(){ return NAV_OFF_R; }, function(v){ try{ NAV_OFF_R = v; }catch(e){} }],
 ["HGT_TOP", function(){ return HGT_TOP; }, function(v){ try{ HGT_TOP = v; }catch(e){} }],
-["HGT_BOT", function(){ return HGT_BOT; }, function(v){ try{ HGT_BOT = v; }catch(e){} }],
+["HGT_NEAR", function(){ return HGT_NEAR; }, function(v){ try{ HGT_NEAR = v; }catch(e){} }],
 ["NAV_UNLINKED", function(){ return NAV_UNLINKED; }, function(v){ try{ NAV_UNLINKED = v; }catch(e){} }],
 ["FIRE_BODY", function(){ return FIRE_BODY; }, function(v){ try{ FIRE_BODY = v; }catch(e){} }],
 ["NADE_HAND", function(){ return NADE_HAND; }, function(v){ try{ NADE_HAND = v; }catch(e){} }],
@@ -24137,7 +24169,7 @@ function rpSample(R){
   return {t: tick, b: B, sm: sm, fi: fi, nd: nd, bomb: bs ? {st: bs, x: bomb.x, y: bomb.y, c: ci} : null, w: rpWorld()};
 }
 // (v463) мир тика для кадра повтора: то, что читает draw (620) — поля игроков, дым, огонь, гранаты, эффекты, бомба, вещи на земле
-var RP_BF = ["x","y","z","alive","hp","crouching","facing","_visFacing","_reloading","reloadUntil","weapon","_zArea","_lvl","_jump","blindUntil","state","tRole",
+var RP_BF = ["x","y","z","alive","hp","crouching","facing","_visFacing","_reloading","reloadUntil","weapon","_zArea","_lvl","_under","_jump","blindUntil","state","tRole",
   "_knife","planting","defusing","plantUntil","defuseUntil","kit","onStairs","walking","_killHow","_sawEnemy","curSpeed","_idle","_idlePhase","holding","atPost"];
 function rpCl(o){ var c = {}; for(var k in o){ var v = o[k]; c[k] = Array.isArray(v) ? v.slice() : v; } return c; }
 function rpWorld(){

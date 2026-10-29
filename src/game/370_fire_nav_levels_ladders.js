@@ -299,10 +299,30 @@ function heightBlocked(x1, y1, x2, y2, b){
   if(navLinked(a1, a2)) return false;
   return up > JUMP_UP || navLinked(a2, a1);
 }
-var HGT_TOP = null, HGT_BOT = null;
-function hgtLevelOf(id){   // 1 — пол над другим полом, -1 — под другим полом (heights.over), 0 — обычный
-  if(!HGT_TOP){ HGT_TOP = {}; HGT_BOT = {}; (HEIGHTS.over || []).forEach(function(o){ HGT_TOP[o.top] = 1; HGT_BOT[o.bottom] = 1; }); }
-  return HGT_BOT[id] ? -1 : HGT_TOP[id] ? 1 : 0;
+var HGT_TOP = null;
+// (v468, п.2/12/23 владельца 29.10: серый на лестнице, в Dark наполовину под полом, в B Apps) «под другим полом» — не весь участок
+// навмеша, а только место, над которым правда лежит другой пол: перекрытие пары участков (heights.over: poly — где верхний пол над
+// нижним) и игрок ниже верхнего пола (на лестнице он уже выше — не серый). Раньше серым был весь нижний участок, даже его часть под небом.
+// hgtUnder → номера перекрытий над игроком (рядом с ним, HGT_NEAR) — рисование кладёт серое только на их часть кружка.
+var HGT_NEAR = 60;   // проектное число; ед. радара: перекрытие ближе — может задеть кружок игрока (7 пикселей экрана — до ~20 ед. при мелком масштабе)
+function hgtLevelOf(id){   // 1 — пол над другим полом (светлый ободок), 0 — обычный
+  if(!HGT_TOP){ HGT_TOP = {}; (HEIGHTS.over || []).forEach(function(o){ HGT_TOP[o.top] = 1; }); }
+  return HGT_TOP[id] ? 1 : 0;
+}
+function hgtUnder(x, y, z, a){
+  var O = HEIGHTS.over || [], out = []; if(!a || z == null) return out;
+  for(var i = 0; i < O.length; i++){ var o = O[i]; if(o.bottom !== a.id || !o.poly || o.poly.length < 3) continue;
+    var t = navArea(o.top); if(!t || t.z < z + 40) continue;   // 40 — выше ступеньки: игрок стоит на верхнем полу или над ним
+    var x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity;
+    o.poly.forEach(function(p){ if(p[0] < x0) x0 = p[0]; if(p[0] > x1) x1 = p[0]; if(p[1] < y0) y0 = p[1]; if(p[1] > y1) y1 = p[1]; });
+    if(x < x0 - HGT_NEAR || x > x1 + HGT_NEAR || y < y0 - HGT_NEAR || y > y1 + HGT_NEAR) continue;
+    out.push(i);
+  }
+  return out;
+}
+function hgtUnderCenter(x, y, U){   // центр игрока под другим полом — для мини-карты и повтора (там кружок целиком)
+  var O = HEIGHTS.over || [];
+  return (U || []).some(function(i){ return pointInPoly(x, y, O[i].poly.map(function(p){ return {x: p[0], y: p[1]}; })); });
 }
 // (v373, сторож: «застой» — 20 раз за раунд на Ancient; бот с путём упирается в уступ, и новый путь — тот же) путь строится по
 // связям навмеша, а шаг проверяет высоту уступа (heightBlocked) — если они расходятся, бот стоит до конца раунда. Самоисправление:

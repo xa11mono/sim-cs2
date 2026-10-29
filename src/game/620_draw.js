@@ -769,10 +769,22 @@ function draw(){
       ctx.lineTo(rx + Math.cos(vf)*tipR, ry + Math.sin(vf)*tipR);
       ctx.closePath();
     } else ctx.arc(rx,ry,r,0,Math.PI*2);
-    // (v323, М5) под другим полом (Underpass, под Palace) — кружок тусклый и сероватый, как на радаре CS2 игрок под этажом
-    var under = zb < -40;
-    ctx.fillStyle = under ? (bot.team==="CT" ? "rgba(122,140,158,0.55)" : "rgba(158,144,122,0.55)") : (bot.team==="CT" ? "#5a9bd9" : "#d9a24a");
-    ctx.fill();
+    // (v323, М5) под другим полом (Underpass, под Palace) — тусклый и сероватый, как на радаре CS2 игрок под этажом.
+    // (v468, п.12 владельца) серой — только та часть кружка, над которой правда другой пол (bot._under — перекрытия, hgtUnder):
+    // наполовину под полом — наполовину серый; на карте без перекрытий — по высоте участка, как раньше
+    var under = !(HEIGHTS.over && HEIGHTS.over.length) && zb < -40, U = (HEIGHTS.over && HEIGHTS.over.length && bot._under) || [];
+    var colIn = bot.team==="CT" ? "#5a9bd9" : "#d9a24a", colUnder = bot.team==="CT" ? "rgba(122,140,158,0.55)" : "rgba(158,144,122,0.55)";
+    if(!U.length){ ctx.fillStyle = under ? colUnder : colIn; ctx.fill(); }
+    else {
+      var shape = new Path2D();
+      if(vf !== undefined){ shape.arc(rx, ry, r, vf + 0.95, vf - 0.95 + Math.PI*2); shape.lineTo(rx + Math.cos(vf)*r*1.85, ry + Math.sin(vf)*r*1.85); shape.closePath(); }
+      else shape.arc(rx, ry, r, 0, Math.PI*2);
+      var polys = new Path2D();
+      U.forEach(function(i){ var P = HEIGHTS.over[i].poly; polys.moveTo(P[0][0], P[0][1]); for(var q = 1; q < P.length; q++) polys.lineTo(P[q][0], P[q][1]); polys.closePath(); });
+      var outside = new Path2D(); outside.rect(rx - 40*r, ry - 40*r, 80*r, 80*r); outside.addPath(polys);
+      ctx.save(); ctx.clip(outside, "evenodd"); ctx.fillStyle = colIn; ctx.fill(shape); ctx.restore();       // часть под небом — свой цвет
+      ctx.save(); ctx.clip(polys, "nonzero"); ctx.fillStyle = colUnder; ctx.fill(shape); ctx.restore();     // часть под полом — серая
+    }
     ctx.lineWidth = 1.5/view.scale; ctx.strokeStyle = under ? "rgba(11,15,11,0.5)" : "#0b0f0b"; ctx.stroke();
     if(false){
       var fx = rx + Math.cos(vf)*r*1.8;

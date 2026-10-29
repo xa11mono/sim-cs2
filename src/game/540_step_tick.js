@@ -174,7 +174,7 @@ function stepTick(){
     updateReload(bot);
     if(!bot.post) updateRoamer(bot);
     // этаж под ботом (раздел 9: метка уровня на радаре) — раз в 16 тиков хватает
-    if(tick % 16 === 0){ var za = zoneOf(bot.baseX, bot.baseY, bot.z); bot._zArea = za ? za.z : 0; bot._lvl = za ? hgtLevelOf(za.id) : 0; }
+    if(tick % 16 === 0){ var za = zoneOf(bot.baseX, bot.baseY, bot.z); bot._zArea = za ? za.z : 0; bot._under = hgtUnder(bot.baseX, bot.baseY, bot.z, za); bot._lvl = hgtUnderCenter(bot.baseX, bot.baseY, bot._under) ? -1 : za ? hgtLevelOf(za.id) : 0; }
     // "на лестнице" пересчитывается только в ветке движения — если бот
     // остановился (держит угол, стоит на посту), флаг раньше оставался от
     // последнего отрезка пути навсегда: бот, дошедший до поста по лестнице,
