@@ -8,12 +8,13 @@
 // порядков TS_SEQ (выбор — от матча и раунда): доска; доска + портреты в одном окне; портреты; спавн с доской в углу. На смену сцены —
 // затемнение и свист, на реплику — звук чата и голос (675: showSnd / showSay). Длительности — с игры, проектные (сумма ≈ TO_SEC)
 var TS_K = {title: 2.5, outro: 0.5};
+// (v463, владелец: «всё очень быстро меняется, не успеваешь осознать») три сцены по 8–10 с, реплика — не меньше TS_LINE с
 var TS_SEQ = [
-  [["board", 6], ["split", 9], ["cam", 6], ["talk", 5]],
-  [["split", 8], ["talk", 6], ["board", 5], ["cam", 5]],
-  [["talk", 5], ["board", 6], ["split", 8], ["cam", 5]],
-  [["split", 7], ["cam", 6], ["board", 5], ["split", 6]]
+  [["split", 10], ["cam", 7], ["talk", 10]],
+  [["board", 8], ["split", 11], ["talk", 8]],
+  [["split", 9], ["talk", 9], ["cam", 9]]
 ];
+var TS_LINE = 4.2;
 var TS = {P: null, el: null, lastRound: -1};
 function tsEls(){
   if(TS.el) return TS.el;
@@ -75,16 +76,18 @@ function tsScript(T){
   var lang = RP_LANG[T.name] || "ru", L = TS_SAY[lang], side = T.side, igl = tsIgl(side), lead = T.caller === "coach" ? "coach" : igl.id, S = [];
   var team = bots.filter(function(b){ return b.team === side; });
   var say = function(who, cat, f, key){ var p = tsPick(L[cat], key || cat, T); S.push({who: who, t: tsFill(p.t, f || {}), lvl: p.lvl}); };
-  say(lead, "open");
+  if(T.plan.facts.length < 3) say(lead, "open");
   T.plan.facts.forEach(function(f, i){ var key = f.k === "deaths" ? (side === "T" ? "deathsT" : "deathsCT") : f.k; if(L[key]) say(lead, key, f, key + i); });
   if(T.caller === "coach") say(igl.id, "iglOk");
   var others = team.filter(function(b){ return b.id !== igl.id; });
-  for(var i = 0; i < 3 && others.length; i++){
+  for(var i = 0; i < 1 && others.length; i++){
     var b = others[rpHash(T.round + "|ch|" + i) % others.length]; others = others.filter(function(o){ return o !== b; });
     var mix = lang === "en" && RP_RU[nick(b.id)] && rpHash(T.round + "mx" + b.id) % 100 < 40;
     var p = tsPick(mix ? TS_SAY.mix.chat : L.chat, "ch" + b.id, T); S.push({who: b.id, t: p.t, lvl: p.lvl});
   }
   say(igl.id, "close");
+  // не больше, чем влезает по TS_LINE с на реплику (без последней «погнали» — её не выкидываем)
+  var room = Math.max(3, Math.floor((27 - TS_K.title)/TS_LINE)); while(S.length > room) S.splice(S.length - 2, 1);
   return S;
 }
 // ---------- доска: мини-радар и план ----------

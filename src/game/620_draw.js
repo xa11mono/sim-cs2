@@ -835,6 +835,7 @@ function draw(){
   });
 
   ctx.restore();
+  if(draw.noHud) return;   // (v463) кадр повтора клатча (675): только мир, без табло и панелей
   domText(document.getElementById("hContacts"), contacts/1);   // (v397, М146) только изменившееся — см. domText
   var ctEl = document.getElementById("contact"), ctD = contacts>0 ? "block" : "none"; if(ctEl.style.display !== ctD) ctEl.style.display = ctD;
   domText(document.getElementById("hTick"), tick);

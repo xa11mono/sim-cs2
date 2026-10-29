@@ -542,9 +542,6 @@
     transform:translateY(-4px);transition:opacity var(--d2) var(--ease),transform var(--d2) var(--ease);}
   #rp .rp-slow::before{content:"×0.3 ";font-weight:700;}
   #rp .rp-slow.on{opacity:1;transform:none;}
-  #rp .rp-ang{font-family:var(--num);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:#fff;padding:3px 8px;border:1px solid rgba(255,255,255,.5);opacity:0;
-    transition:opacity var(--d2) var(--ease);}
-  #rp.angle .rp-ang{opacity:1;}
   #rp .rp-l3{display:flex;align-items:center;gap:12px;height:100%;}
   #rp .rp-l3 img{height:62%;width:auto;}
   #rp .rp-l3 b{display:block;font-size:20px;font-weight:700;letter-spacing:.03em;color:#fff;line-height:1.05;}
@@ -715,7 +712,7 @@
   <div id="topbar">
     <div class="tb-id">
       <h1>Ancient<span id="matchTick" class="mono" title="Какой матч сейчас идёт и тик — запиши, если увидел баг"></span></h1>
-      <div class="sub mono" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 462, 29.10</div>
+      <div class="sub mono" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 463, 29.10</div>
     </div>
     <div class="tb-group" id="tbMatch">
       <button id="btnPause">Пауза</button>
@@ -924,7 +921,7 @@
     <div id="rp" aria-live="polite">
       <canvas id="rpCv"></canvas>
       <div class="rp-vig"></div>
-      <div class="rp-bar top"><span class="rp-tag"><i></i>ПОВТОР</span><span class="rp-ang">второй ракурс</span><span class="rp-slow">замедление</span></div>
+      <div class="rp-bar top"><span class="rp-tag"><i></i>ПОВТОР</span><span class="rp-slow">замедление</span></div>
       <div class="rp-bar bottom"><div class="rp-l3"></div></div>
       <div class="rp-feed"></div>
       <div class="rp-vox"></div>
@@ -22049,6 +22046,7 @@ function draw(){
   });
 
   ctx.restore();
+  if(draw.noHud) return;   // (v463) кадр повтора клатча (675): только мир, без табло и панелей
   domText(document.getElementById("hContacts"), contacts/1);   // (v397, М146) только изменившееся — см. domText
   var ctEl = document.getElementById("contact"), ctD = contacts>0 ? "block" : "none"; if(ctEl.style.display !== ctD) ctEl.style.display = ctD;
   domText(document.getElementById("hTick"), tick);
@@ -23176,6 +23174,7 @@ var __SNAP = [
 ["RP_RU", function(){ return RP_RU; }, function(v){ try{ RP_RU = v; }catch(e){} }],
 ["RP_SAY", function(){ return RP_SAY; }, function(v){ try{ RP_SAY = v; }catch(e){} }],
 ["TS_SEQ", function(){ return TS_SEQ; }, function(v){ try{ TS_SEQ = v; }catch(e){} }],
+["TS_LINE", function(){ return TS_LINE; }, function(v){ try{ TS_LINE = v; }catch(e){} }],
 ["TS_SAY", function(){ return TS_SAY; }, function(v){ try{ TS_SAY = v; }catch(e){} }],
 ["SND", function(){ return SND; }, function(v){ try{ SND = v; }catch(e){} }],
 ["SND_MAX", function(){ return SND_MAX; }, function(v){ try{ SND_MAX = v; }catch(e){} }],
@@ -24034,8 +24033,7 @@ var RP_K = {
   startDelay: 1.3,    // повтор начинается через startDelay с после конца раунда (видно карточку раунда и баннер)
   emo: 7,             // эмоции игроков, с
   intro: 0.7, outro: 0.5,
-  tracer: 0.22,       // след выстрела в повторе, с игры
-  angle: 1.1          // (v461) второй ракурс последнего фрага: с за сколько до фрага
+  tracer: 0.22        // след выстрела в повторе, с игры
 };
 var RP = {on: false, rec: null, last: null, P: null, enabled: true, mode: "auto", prevRs: null, kfSeen: null, lastTs: 0, holding: false};
 try{ RP.enabled = localStorage.getItem("sim-rp") !== "0"; RP.mode = localStorage.getItem("sim-rp-mode") || "auto"; }catch(e){}
@@ -24079,7 +24077,8 @@ function rpNum(v){ return typeof v === "number" && isFinite(v) ? v : NaN; }
 // ---------- запись ----------
 function rpNewRec(){
   var nk = {}; bots.forEach(function(b){ nk[b.id] = nick(b.id); });
-  return {m: matchNum, round: roundNum, t0: tick, s: [], kills: [], tr: [], ev: [], vo: [], nick: nk, team: {CT: TEAM_NAME.CT, T: TEAM_NAME.T},
+  var NK = {}; for(var k in NICKS) NK[k] = NICKS[k];
+  return {m: matchNum, round: roundNum, t0: tick, s: [], kills: [], tr: [], ev: [], vo: [], nick: nk, NK: NK, side: {CT: SIDE_TEAM.CT, T: SIDE_TEAM.T}, team: {CT: TEAM_NAME.CT, T: TEAM_NAME.T},
           logo: {CT: TEAM_LOGO.CT, T: TEAM_LOGO.T}, score0: {CT: score.CT, T: score.T}, solo: {}, lastBomb: bomb ? bomb.state : null};
 }
 function rpSample(R){
@@ -24098,7 +24097,18 @@ function rpSample(R){
   fires.forEach(function(f){ fi.push(f.x, f.y, fireRadiusNow(f)); });
   nadesInAir.forEach(function(q){ nd.push(q.x, q.y, q.team === "CT" ? 1 : 0, q.type === "smoke" ? 0 : q.type === "flash" ? 1 : q.type === "he" ? 2 : 3); });
   var bs = bomb ? bomb.state : null, ci = bomb && bomb.carrier ? bots.indexOf(bomb.carrier) : -1;
-  return {t: tick, b: B, sm: sm, fi: fi, nd: nd, bomb: bs ? {st: bs, x: bomb.x, y: bomb.y, c: ci} : null};
+  return {t: tick, b: B, sm: sm, fi: fi, nd: nd, bomb: bs ? {st: bs, x: bomb.x, y: bomb.y, c: ci} : null, w: rpWorld()};
+}
+// (v463) мир тика для кадра повтора: то, что читает draw (620) — поля игроков, дым, огонь, гранаты, эффекты, бомба, вещи на земле
+var RP_BF = ["x","y","z","alive","hp","crouching","facing","_visFacing","_reloading","reloadUntil","weapon","_zArea","_lvl","_jump","blindUntil","state","tRole",
+  "_knife","planting","defusing","plantUntil","defuseUntil","kit","onStairs","walking","_killHow","_sawEnemy","curSpeed","_idle","_idlePhase","holding","atPost"];
+function rpCl(o){ var c = {}; for(var k in o){ var v = o[k]; c[k] = Array.isArray(v) ? v.slice() : v; } return c; }
+function rpWorld(){
+  var W = {tick: tick, b: bots.map(function(o){ var c = {}; RP_BF.forEach(function(k){ c[k] = o[k]; }); return c; }),
+    sm: smokes.map(rpCl), fi: fires.map(rpCl), nd: nadesInAir.map(rpCl), fx: nadeFx.map(rpCl),
+    bomb: bomb ? rpCl(bomb) : null, bc: bomb && bomb.carrier ? bots.indexOf(bomb.carrier) : -1};
+  if(tick % 8 === 0){ W.gw = groundWeapons.map(rpCl); W.gi = groundItems.map(rpCl); }
+  return W;
 }
 function rpIdByNick(nm){ for(var id in NICKS) if(NICKS[id] === nm) return id; return null; }
 // после тиков кадра (680): записать, что изменилось; конец раунда — проверить клатч
@@ -24116,7 +24126,7 @@ function rpRecord(){
       R.s.push(rpSample(R));
       // новые выстрелы (по самим записям, а не по времени кадра)
       if(!RP.trSeen || RP.trSeen.r !== R) RP.trSeen = {r: R, set: new WeakSet()};
-      tracers.forEach(function(q){ if(RP.trSeen.set.has(q)) return; RP.trSeen.set.add(q); R.tr.push({t: tick, x1: q.x1, y1: q.y1, x2: q.x2, y2: q.y2, team: q.team, hit: !!q.hit, head: !!q.head, wc: q.wc}); });
+      tracers.forEach(function(q){ if(RP.trSeen.set.has(q)) return; RP.trSeen.set.add(q); var c = rpCl(q); c.t = tick; R.tr.push(c); });
       // кто остался один в команде — с какого тика (для «клип с первого фрага клатча»)
       ["CT","T"].forEach(function(s){ var al = bots.filter(function(b){ return b.team === s && b.alive; }); if(al.length === 1 && !R.solo[al[0].id]) R.solo[al[0].id] = tick; });
       // плант / дефуз — моменты
@@ -24188,10 +24198,6 @@ function rpBuild(R){
   var segs = make(RP_K.pre, RP_K.post), len = function(S){ return S.reduce(function(s, q){ return s + q.b - q.a; }, 0)/TICK_HZ; };
   if(len(segs) > RP_K.maxClip) segs = make(1.2, 0.7);
   while(segs.length > 1 && len(segs) > RP_K.maxClip) segs.shift();   // очень длинный — последние моменты
-  // (v461) второй ракурс, как на трансляции: последний фраг клатча ещё раз — камера на жертве, замедленно
-  var lastK = null; M.forEach(function(m){ if(m.kind === "kill") lastK = m; });
-  if(lastK && segs.length){ var ia = -1; segs.forEach(function(q, i){ if(q.m.indexOf(lastK) >= 0) ia = i; });
-    if(ia >= 0) segs.splice(ia + 1, 0, {a: Math.max(R.t0, lastK.t - RP_K.angle*TICK_HZ), b: lastK.t + 0.5*TICK_HZ, m: [lastK], cam: "victim", vic: lastK.k.vic}); }
   return {segs: segs, moments: M};
 }
 function rpBotIdx(id){ for(var i = 0; i < bots.length; i++) if(bots[i].id === id) return i; return -1; }
@@ -24248,7 +24254,8 @@ function rpFrame(ts){
   var E = rpEls(), P = RP.P; if(!E || !P){ rpEnd(); return false; }
   var now = performance.now(), dt = Math.min(0.1, (now - P.last)/1000); P.last = now;
   var W = E.cv.clientWidth, H = E.cv.clientHeight, dpr = window.devicePixelRatio || 1;
-  if(E.cv.width !== Math.round(W*dpr) || E.cv.height !== Math.round(H*dpr)){ E.cv.width = Math.round(W*dpr); E.cv.height = Math.round(H*dpr); }
+  dpr = 1;   // (v463) кадр повтора рисует draw игры — в пикселях CSS, как основной холст
+  if(E.cv.width !== W || E.cv.height !== H){ E.cv.width = W; E.cv.height = H; }
   var x = E.ctx, R = P.R, el = (now - P.ph0)/1000;
   var go = function(ph){ P.phase = ph; P.ph0 = now; el = 0; if(ph === "cut" || ph === "clip" || ph === "emo") showSnd("whoosh"); };
   if(P.phase === "intro"){ if(el >= RP_K.intro) go(P.segs.length ? "clip" : "emo"); }
@@ -24294,7 +24301,6 @@ function rpVoiceClutch(R){
 // замедление вокруг фрагов клатча (плавно)
 function rpSpeed(P){
   var sg = P.segs[P.si], best = 1; if(!sg) return 1;
-  if(sg.cam === "victim") best = 0.45;
   sg.m.forEach(function(m){ if(m.kind !== "kill" && m.kind !== "defuse") return; var d = Math.abs(P.rt - m.t)/TICK_HZ;
     if(d < RP_K.slowR){ var f = d/RP_K.slowR, v = RP_K.slow + (1 - RP_K.slow)*f*f; if(v < best) best = v; } });
   return best;
@@ -24308,7 +24314,7 @@ function rpAt(R, t){
 function rpLerpAng(a, b, f){ if(isNaN(a)) return b; if(isNaN(b)) return a; var d = ((b - a + Math.PI*3) % (Math.PI*2)) - Math.PI; return a + d*f; }
 function rpDraw(E, x, P, dt, W, H, dpr){
   P.drawn = true;
-  var R = P.R, I = rpAt(R, P.rt), A = I.A, B = I.B, f = I.f, n = bots.length, ci = P.ci;
+  var R = P.R, I = rpAt(R, P.rt), A = I.A, B = I.B, f = I.f, n = bots.length, ci = P.ci;   // (v463) x, dpr переопределяются после кадра игры
   var bx = function(i){ return A.b[i*RP_NB] + (B.b[i*RP_NB] - A.b[i*RP_NB])*f; }, by = function(i){ return A.b[i*RP_NB+1] + (B.b[i*RP_NB+1] - A.b[i*RP_NB+1])*f; };
   // камера: клатчер и ближайший живой враг (≤ 800) или тот, кого он убьёт / убил рядом по времени — оба в кадре
   var cx = bx(ci), cy = by(ci), tx = cx, ty = cy, span = 720, foe = -1, fd = 800;
@@ -24319,51 +24325,25 @@ function rpDraw(E, x, P, dt, W, H, dpr){
   if(A.b[ci*RP_NB+7]) foe = -1;
   if(foe >= 0){ var ox = bx(foe), oy = by(foe); tx = (cx + ox)/2; ty = (cy + oy)/2; span = Math.min(1150, Math.max(600, Math.hypot(ox-cx, oy-cy)*2.3)); }
   var slowNow = rpSpeed(P) < 0.9; if(slowNow && P.phase === "clip") span *= 0.86;
-  if(sg && sg.cam === "victim"){ var vv = rpBotIdx(sg.vic); if(vv >= 0){ cx = bx(vv); cy = by(vv); tx = (cx*2 + bx(ci))/3; ty = (cy*2 + by(ci))/3; span = Math.max(520, Math.hypot(bx(ci)-cx, by(ci)-cy)*1.8); } }
   var off = Math.hypot(tx-cx, ty-cy), om = 0.3*span; if(off > om){ tx = cx + (tx-cx)*om/off; ty = cy + (ty-cy)*om/off; }
   var top = H*0.09, bot = H*0.09, avH = H - top - bot, sc = Math.min(W, avH)/span;
   if(!P.cam) P.cam = {x: tx, y: ty, s: sc};
   var k = 1 - Math.exp(-dt*3.5), ks = 1 - Math.exp(-dt*2.2);
   P.cam.x += (tx - P.cam.x)*k; P.cam.y += (ty - P.cam.y)*k; P.cam.s += (sc - P.cam.s)*ks;
   var S = P.cam.s, ox0 = W/2 - P.cam.x*S, oy0 = top + avH/2 - P.cam.y*S;
-  x.setTransform(dpr,0,0,dpr,0,0); x.fillStyle = "#060806"; x.fillRect(0,0,W,H);
-  x.setTransform(dpr*S,0,0,dpr*S,dpr*ox0,dpr*oy0);
-  if(imgReady) x.drawImage(img,0,0,2048,2048);
+  // (v463, владелец: «повтор без деталей, не тот дизайн, нет анимации стрельбы, взрыва») кадр повтора рисует сама игра (draw, 620) —
+  // по записанному миру этого тика (rpWorldPut), со всеми эффектами; поверх — только подсветка клатчера и вспышка фрага
+  rpWorldDraw(E, P, I, S, ox0, oy0, W, H);
+  x = E.ctx; dpr = 1;
+  x.setTransform(S,0,0,S,ox0,oy0);
   var L = 1/S;
-  // дым, огонь, гранаты в полёте
-  for(var q = 0; q < A.sm.length; q += 3){ var r = A.sm[q+2], g = x.createRadialGradient(A.sm[q], A.sm[q+1], r*0.1, A.sm[q], A.sm[q+1], r);
-    g.addColorStop(0, "rgba(214,217,209,.88)"); g.addColorStop(1, "rgba(176,180,170,.5)"); x.fillStyle = g; x.beginPath(); x.arc(A.sm[q], A.sm[q+1], r, 0, Math.PI*2); x.fill(); }
-  for(q = 0; q < A.fi.length; q += 3){ var fr = x.createRadialGradient(A.fi[q], A.fi[q+1], 0, A.fi[q], A.fi[q+1], A.fi[q+2]);
-    fr.addColorStop(0, "rgba(255,196,92,.72)"); fr.addColorStop(1, "rgba(214,70,30,.25)"); x.fillStyle = fr; x.beginPath(); x.arc(A.fi[q], A.fi[q+1], A.fi[q+2], 0, Math.PI*2); x.fill(); }
-  for(q = 0; q < A.nd.length; q += 4){ x.fillStyle = ["#d6d9d1","#ffffff","#e8584c","#ff9a3c"][A.nd[q+3]]; x.beginPath(); x.arc(A.nd[q], A.nd[q+1], 3.2*L, 0, Math.PI*2); x.fill(); x.strokeStyle = "#0b0f0b"; x.lineWidth = L; x.stroke(); }
-  // выстрелы: последние tracer с игры
-  var tl = RP_K.tracer*TICK_HZ, t0i = rpTrFrom(R, P.rt - tl);
-  for(var j = t0i; j < R.tr.length && R.tr[j].t <= P.rt; j++){ var T = R.tr[j], a = 1 - (P.rt - T.t)/tl; if(a <= 0) continue;
-    x.strokeStyle = (T.team === "CT" ? "rgba(170,210,250," : "rgba(255,214,140,") + (a*(T.hit ? 0.95 : 0.55)).toFixed(3) + ")"; x.lineWidth = (T.hit ? 1.8 : 1.1)*L;
-    x.beginPath(); x.moveTo(T.x1, T.y1); x.lineTo(T.x2, T.y2); x.stroke(); }
-  // бомба
-  if(A.bomb && A.bomb.st !== "carried"){ var on = A.bomb.st !== "planted" || Math.floor(P.rt/24) % 2 === 0;
-    x.fillStyle = A.bomb.st === "planted" ? (on ? "#ff5a4a" : "#7a2620") : "#ffd25a"; x.fillRect(A.bomb.x - 6*L, A.bomb.y - 4*L, 12*L, 8*L); x.strokeStyle = "#0b0f0b"; x.lineWidth = 1.4*L; x.strokeRect(A.bomb.x - 6*L, A.bomb.y - 4*L, 12*L, 8*L); }
-  // игроки: погибшие — крестик, живые — кружок с носиком взгляда (как на радаре), hp, номер; клатчер — золотое кольцо и ник
-  for(i = 0; i < n; i++){
-    var o = i*RP_NB, px = bx(i), py = by(i), team = bots[i].team, col = team === "CT" ? "#5a9bd9" : "#d9a24a";
-    if(!A.b[o+3]){ var rr = 6*L; x.strokeStyle = team === "CT" ? "rgba(90,160,230,.95)" : "rgba(230,160,60,.95)"; x.lineWidth = 2.6*L;
-      x.beginPath(); x.moveTo(px-rr, py-rr); x.lineTo(px+rr, py+rr); x.moveTo(px+rr, py-rr); x.lineTo(px-rr, py+rr); x.stroke(); continue; }
-    var rad = (A.b[o+5] ? 6.2 : 7)*L, vf = rpLerpAng(A.b[o+2], B.b[o+2], f), under = A.b[o+6] < 0;
-    if(i === ci){ var pul = 1 + 0.12*Math.sin(performance.now()/180); x.strokeStyle = "rgba(255,214,110,.95)"; x.lineWidth = 2.4*L; x.beginPath(); x.arc(px, py, rad + 6*L*pul, 0, Math.PI*2); x.stroke(); }
-    if(A.b[o+8]){ x.fillStyle = "rgba(255,255,255,.55)"; x.beginPath(); x.arc(px, py, rad + 4*L, 0, Math.PI*2); x.fill(); }
-    x.beginPath();
-    if(!isNaN(vf)){ x.arc(px, py, rad, vf + 0.95, vf - 0.95 + Math.PI*2); x.lineTo(px + Math.cos(vf)*rad*1.85, py + Math.sin(vf)*rad*1.85); x.closePath(); }
-    else x.arc(px, py, rad, 0, Math.PI*2);
-    x.fillStyle = under ? (team === "CT" ? "rgba(122,140,158,.6)" : "rgba(158,144,122,.6)") : col; x.fill(); x.lineWidth = 1.5*L; x.strokeStyle = "#0b0f0b"; x.stroke();
-    var hp = A.b[o+4], bw = 18*L, bh = 2.5*L; x.fillStyle = "rgba(0,0,0,.5)"; x.fillRect(px-bw/2, py-rad-8*L, bw, bh);
-    x.fillStyle = hp > 50 ? "#94b449" : hp > 25 ? "#d9832f" : "#c1584f"; x.fillRect(px-bw/2, py-rad-8*L, bw*Math.max(0, hp)/100, bh);
-    var act = A.b[o+7]; if(act){ x.beginPath(); x.arc(px, py, rad + 5*L, -Math.PI/2, -Math.PI/2 + Math.abs(act)*Math.PI*2); x.strokeStyle = act > 0 ? "#e05c52" : "#5a9bd9"; x.lineWidth = 2.5*L; x.stroke(); }
-    x.fillStyle = "#0b0f0b"; x.font = "700 " + (8.5*L) + "px 'IBM Plex Mono',monospace"; x.textAlign = "center"; x.textBaseline = "middle"; x.fillText(String(pnum(bots[i].id)), px, py + 0.5*L);
-    if(i === ci){ var nm = R.nick[bots[i].id]; x.font = "600 " + (10*L) + "px 'Roboto Condensed','Golos Text',sans-serif"; var tw = x.measureText(nm).width;
-      x.fillStyle = "rgba(11,15,11,.8)"; x.fillRect(px - tw/2 - 4*L, py + rad + 5*L, tw + 8*L, 13*L); x.fillStyle = "#ffe49a"; x.textBaseline = "top"; x.fillText(nm, px, py + rad + 6.5*L); }
-    x.textBaseline = "alphabetic";
-  }
+  (function(){ var i = ci, px = bx(i), py = by(i);
+    if(!A.b[i*RP_NB+3]) return;
+    var rad = 7*L, pul = 1 + 0.12*Math.sin(performance.now()/180);
+    x.strokeStyle = "rgba(255,214,110,.95)"; x.lineWidth = 2.4*L; x.beginPath(); x.arc(px, py, rad + 7*L*pul, 0, Math.PI*2); x.stroke();
+    var nm = R.nick[bots[i].id]; x.font = "600 " + (10*L) + "px 'Roboto Condensed','Golos Text',sans-serif"; x.textAlign = "center"; var tw = x.measureText(nm).width;
+    x.fillStyle = "rgba(11,15,11,.8)"; x.fillRect(px - tw/2 - 4*L, py + rad + 9*L, tw + 8*L, 13*L); x.fillStyle = "#ffe49a"; x.textBaseline = "top"; x.fillText(nm, px, py + rad + 10.5*L); x.textBaseline = "alphabetic";
+  })();
   // фраг клатчера: вспышка-кольцо у жертвы
   if(sg) sg.m.forEach(function(m){ if(m.kind !== "kill") return; var a2 = (P.rt - m.t)/(0.7*TICK_HZ); if(a2 < 0 || a2 > 1) return; var vi = rpBotIdx(m.k.vic); if(vi < 0) return;
     x.strokeStyle = "rgba(255,228,150," + (1 - a2).toFixed(3) + ")"; x.lineWidth = 3*L; x.beginPath(); x.arc(bx(vi), by(vi), (10 + 34*a2)*L, 0, Math.PI*2); x.stroke(); });
@@ -24385,6 +24365,36 @@ function rpSound(P, R, ci){
   R.kills.forEach(function(k){ if(k.att === R.clutch.id && k.t > from && k.t <= P.rt) showSnd("hit", 0.25); });
   R.ev.forEach(function(e){ if(e.kind === "defuse" && e.t > from && e.t <= P.rt){ var q3 = mv(I.A.b[ci*RP_NB], I.A.b[ci*RP_NB+1]); sndBomb("defused", q3.x, q3.y); } });
 }
+// подставить записанный мир в игру на один вызов draw и вернуть всё обратно (игра этого не видит: между тиками, без изменений)
+function rpWorldDraw(E, P, I, S, ox0, oy0, W, H){
+  var R = P.R, A = I.A.w, B = (I.B && I.B.w) || A, f = I.f; if(!A){ return; }
+  var keep = {tick: tick, simTime: simTime, roundNum: roundNum, roundState: roundState, accumulator: accumulator, smokes: smokes, fires: fires, nadesInAir: nadesInAir,
+    nadeFx: nadeFx, bomb: bomb, tracers: tracers, soundPings: soundPings, groundWeapons: groundWeapons, groundItems: groundItems, teamTac: teamTac,
+    FREEZE_FX: FREEZE_FX, SIDE_TEAM: SIDE_TEAM, NICKS: NICKS, cv: cv, ctx: ctx, view: {scale: view.scale, panX: view.panX, panY: view.panY}};
+  var saved = bots.map(function(o){ var c = {px: o.px, py: o.py, pfacing: o.pfacing, path: o.path, _trail: o._trail}; RP_BF.forEach(function(k){ c[k] = o[k]; }); return c; });
+  var gw = null, gi = null; for(var j = R.s.indexOf(I.A); j >= 0; j--){ var w = R.s[j].w; if(w && w.gw){ gw = w.gw; gi = w.gi; break; } }
+  try{
+    tick = A.tick; simTime = tick*TICK_MS/1000; roundNum = R.round; roundState = "live"; accumulator = f*TICK_MS;
+    smokes = A.sm; fires = A.fi; nadesInAir = A.nd; nadeFx = A.fx; groundWeapons = gw || []; groundItems = gi || [];
+    bomb = A.bomb ? rpCl(A.bomb) : null; if(bomb) bomb.carrier = A.bc >= 0 ? bots[A.bc] : null;
+    var t0 = rpTrFrom(R, P.rt - 0.5*TICK_HZ), tl = [];
+    for(var q = t0; q < R.tr.length && R.tr[q].t <= P.rt; q++){ var c = rpCl(R.tr[q]); c.born = nowTs - (P.rt - c.t)*TICK_MS; c.tk = null; tl.push(c); }
+    tracers = tl; soundPings = []; teamTac = {T: null, CT: keep.teamTac && keep.teamTac.CT}; FREEZE_FX = [];
+    if(R.side){ SIDE_TEAM = R.side; } if(R.NK){ NICKS = R.NK; }
+    bots.forEach(function(o, i){ var a = A.b[i], b2 = B.b[i]; RP_BF.forEach(function(k){ o[k] = b2[k]; });
+      o.px = a.x; o.py = a.y; o.pfacing = a._visFacing !== undefined ? a._visFacing : a.facing; o.path = null; o._trail = []; });
+    cv = E.cv; ctx = E.ctx; view.scale = S; view.panX = ox0; view.panY = oy0;
+    draw.noHud = true; draw();
+  } catch(e){ /* кадр повтора не нарисовался — дальше игра не страдает: всё возвращается ниже */ }
+  finally {
+    draw.noHud = false;
+    bots.forEach(function(o, i){ var c = saved[i]; RP_BF.forEach(function(k){ o[k] = c[k]; }); o.px = c.px; o.py = c.py; o.pfacing = c.pfacing; o.path = c.path; o._trail = c._trail; });
+    tick = keep.tick; simTime = keep.simTime; roundNum = keep.roundNum; roundState = keep.roundState; accumulator = keep.accumulator;
+    smokes = keep.smokes; fires = keep.fires; nadesInAir = keep.nadesInAir; nadeFx = keep.nadeFx; bomb = keep.bomb; tracers = keep.tracers; soundPings = keep.soundPings;
+    groundWeapons = keep.groundWeapons; groundItems = keep.groundItems; teamTac = keep.teamTac; FREEZE_FX = keep.FREEZE_FX; SIDE_TEAM = keep.SIDE_TEAM; NICKS = keep.NICKS;
+    cv = keep.cv; ctx = keep.ctx; view.scale = keep.view.scale; view.panX = keep.view.panX; view.panY = keep.view.panY;
+  }
+}
 function rpTrFrom(R, t){ var lo = 0, hi = R.tr.length; while(lo < hi){ var mid = (lo + hi) >> 1; if(R.tr[mid].t < t) lo = mid + 1; else hi = mid; } return lo; }
 // киллфид повтора: строки появляются в момент фрага; счётчик фрагов клатча
 function rpFeed(E, P){
@@ -24399,7 +24409,6 @@ function rpFeed(E, P){
     ["smoke","wall","hs","noscope","blind"].forEach(function(m){ if(k[m] && typeof kfSvg === "function") h += kfSvg(m, "md", KF_MOD_T[m]); });
     row.innerHTML = h + '<span class="' + String(k.vicTeam).toLowerCase() + '">' + esc(k.vicN) + '</span>';
     E.feed.insertBefore(row, E.feed.firstChild); while(E.feed.children.length > 5) E.feed.removeChild(E.feed.lastChild); });
-  if(P.segs[P.si] && P.segs[P.si].cam === "victim"){ E.root.classList.add("angle"); return; } E.root.classList.remove("angle");
   var ke = E.l3.querySelector(".rp-k"); if(ke && ke.textContent !== String(kc)){ ke.textContent = String(kc); ke.classList.remove("pop"); void ke.offsetWidth; ke.classList.add("pop"); }
 }
 // размытие фона без filter (дёшево): последний кадр — в маленький холст и обратно, растянутым, плюс затемнение
@@ -24519,7 +24528,7 @@ function rpEmotions(E, R){
     return '<div class="rp-row ' + mood + ' ' + side.toLowerCase() + '">' + ids.map(function(id, i){
       var st = R.st[id] || {}, hero = id === C.id, say = rpSay(R, id, side);
       var vx = R.vox && R.vox[id];
-      var b = teamBot(id), ph = b ? plPhoto(b) : "";
+      var pp = PLAYER_PHOTO[R.nick[id]], ph = pp ? '<img alt="" src="' + pp + '">' : PL_SIL;   // (v463) фото — того, кто играл раунд (после раунда стороны могли смениться)
       return '<div class="rp-card' + (hero ? ' hero' : '') + (st.alive ? '' : ' dead') + '" style="--i:' + i + '">' +
         '<div class="rp-say lvl' + say.lvl + '"><b>' + esc(say.t) + '</b></div>' +
         '<div class="rp-ph">' + ph + '</div>' +
@@ -24590,12 +24599,13 @@ function rpGoto(m, r){
 // порядков TS_SEQ (выбор — от матча и раунда): доска; доска + портреты в одном окне; портреты; спавн с доской в углу. На смену сцены —
 // затемнение и свист, на реплику — звук чата и голос (675: showSnd / showSay). Длительности — с игры, проектные (сумма ≈ TO_SEC)
 var TS_K = {title: 2.5, outro: 0.5};
+// (v463, владелец: «всё очень быстро меняется, не успеваешь осознать») три сцены по 8–10 с, реплика — не меньше TS_LINE с
 var TS_SEQ = [
-  [["board", 6], ["split", 9], ["cam", 6], ["talk", 5]],
-  [["split", 8], ["talk", 6], ["board", 5], ["cam", 5]],
-  [["talk", 5], ["board", 6], ["split", 8], ["cam", 5]],
-  [["split", 7], ["cam", 6], ["board", 5], ["split", 6]]
+  [["split", 10], ["cam", 7], ["talk", 10]],
+  [["board", 8], ["split", 11], ["talk", 8]],
+  [["split", 9], ["talk", 9], ["cam", 9]]
 ];
+var TS_LINE = 4.2;
 var TS = {P: null, el: null, lastRound: -1};
 function tsEls(){
   if(TS.el) return TS.el;
@@ -24657,16 +24667,18 @@ function tsScript(T){
   var lang = RP_LANG[T.name] || "ru", L = TS_SAY[lang], side = T.side, igl = tsIgl(side), lead = T.caller === "coach" ? "coach" : igl.id, S = [];
   var team = bots.filter(function(b){ return b.team === side; });
   var say = function(who, cat, f, key){ var p = tsPick(L[cat], key || cat, T); S.push({who: who, t: tsFill(p.t, f || {}), lvl: p.lvl}); };
-  say(lead, "open");
+  if(T.plan.facts.length < 3) say(lead, "open");
   T.plan.facts.forEach(function(f, i){ var key = f.k === "deaths" ? (side === "T" ? "deathsT" : "deathsCT") : f.k; if(L[key]) say(lead, key, f, key + i); });
   if(T.caller === "coach") say(igl.id, "iglOk");
   var others = team.filter(function(b){ return b.id !== igl.id; });
-  for(var i = 0; i < 3 && others.length; i++){
+  for(var i = 0; i < 1 && others.length; i++){
     var b = others[rpHash(T.round + "|ch|" + i) % others.length]; others = others.filter(function(o){ return o !== b; });
     var mix = lang === "en" && RP_RU[nick(b.id)] && rpHash(T.round + "mx" + b.id) % 100 < 40;
     var p = tsPick(mix ? TS_SAY.mix.chat : L.chat, "ch" + b.id, T); S.push({who: b.id, t: p.t, lvl: p.lvl});
   }
   say(igl.id, "close");
+  // не больше, чем влезает по TS_LINE с на реплику (без последней «погнали» — её не выкидываем)
+  var room = Math.max(3, Math.floor((27 - TS_K.title)/TS_LINE)); while(S.length > room) S.splice(S.length - 2, 1);
   return S;
 }
 // ---------- доска: мини-радар и план ----------
