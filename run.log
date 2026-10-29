@@ -1,0 +1,21 @@
+playwright 1.56.0, браузеры: C:\Windows\system32\config\systemprofile\.simcs2_node\ms-playwright
+> git fetch --quiet origin 939043b61cfeb78850a5d75dd57d06724f0b3d9a
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_fp6dh01s FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_fp6dh01s\src\build.py --map ancient C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\snap466_m13r8.html
+> node C:\actions-runner\_work\sim-cs2\sim-cs2\tools\snap_round.js C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\snap466_m13r8.html 13 8 C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\snap466_m13r8 3000
+{"match":13,"matchNum":13,"round":8,"state":"freeze","tick":51086,"fp":"1gecw3a","score":"2:5","pause":null,"after":{"ticks":3000,"tick":54086,"round":8,"hash":40283520},"restored":{"hash":40283520,"same":true}} снимок 3336496 байт
+> git fetch --quiet origin 939043b61cfeb78850a5d75dd57d06724f0b3d9a
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_g3n9_w80 FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_g3n9_w80\src\build.py --map ancient C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v466_anc8.html
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\engine\walk_run.py --job=v466_anc8,C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v466_anc8.html --matches=3,7,11,13,17,19,23,29 --par=2
+матчей в очереди: 8, одновременно: 2
+v466_anc8 match 3 rc 0 5914529 — готово 1/8, 5 мин
+v466_anc8 match 7 rc 0 6848388 — готово 2/8, 6 мин
+v466_anc8 match 11 rc 0 6439736 — готово 3/8, 11 мин
+v466_anc8 match 13 rc 0 5650429 — готово 4/8, 11 мин
+v466_anc8 match 19 rc 0 5283484 — готово 5/8, 16 мин
+v466_anc8 match 17 rc 0 6297987 — готово 6/8, 16 мин
+v466_anc8 match 29 rc 0 3925100 — готово 7/8, 20 мин
+v466_anc8 match 23 rc 0 6605057 — готово 8/8, 21 мин
+done
+all done

@@ -1,0 +1,5 @@
+{"par": 2, "jobs": [
+  {"label": "v466_anc8", "ref": "939043b61cfeb78850a5d75dd57d06724f0b3d9a", "map": "ancient", "matches": [3, 7, 11, 13, 17, 19, 23, 29]}
+], "shots": [
+  {"label": "snap466_m13r8", "kind": "snap", "ref": "939043b61cfeb78850a5d75dd57d06724f0b3d9a", "map": "ancient", "match": 13, "round": 8, "ticks": 3000, "v": 2}
+]}
