@@ -44,7 +44,8 @@
   detonate = function(n){
     if(roundState === "live" && n.type === "flash" && n.thrower) bots.forEach(function(o){
       if(!o.alive || o.team === n.team || Math.hypot(o.x-n.x, o.y-n.y) > 600 || !hasLOS(o.x, o.y, n.x, n.y)) return;
-      FL.push({b:o, t:tick, x:o.x, y:o.y, tx:n.ox, ty:n.oy, by:n.thrower.id}); });
+      FL.push({b:o, t:tick, x:o.x, y:o.y, tx:n.ox, ty:n.oy, by:n.thrower.id}); W.n.flashSeen = (W.n.flashSeen||0) + 1; });
+    if(roundState === "live" && n.type === "flash" && n.thrower) W.n.flashPop = (W.n.flashPop||0) + 1;   // (30.10) знаменатель «флешка без реакции»: хлопки и враги в 600 px на линии
     return DT.apply(this, arguments); };
   // пустое чтение LKP: перебор ключей пустого LKP команды при свежем знании в beliefLast
   function wrapLKP(){
@@ -100,7 +101,7 @@
     if(bomb.state === "planted" && bombTimeLeftTicks() <= 2*64) bots.forEach(function(b){ var s = S[b.id];
       if(b.alive && !s.boom && bombDamageAt(b.x, b.y) >= b.hp){ s.boom = 1; W.n.danger++; inc(W.dangerBy, "взрыв"); if(W.ev.danger.length < EVMAX) W.ev.danger.push([tick, b.id, "в зоне взрыва", b.post ? b.post.tag : "-"]); } });
     // флешки: через 1,5 с — повернулся к бросавшему или ушёл
-    FL = FL.filter(function(f){ if(tick - f.t < 96) return true; if(!f.b.alive) return false;
+    FL = FL.filter(function(f){ if(tick - f.t < 96) return true; if(!f.b.alive) return false; W.n.flashChecked = (W.n.flashChecked||0) + 1;
       var a = Math.atan2(f.ty-f.b.y, f.tx-f.b.x), d = Math.abs(Math.atan2(Math.sin(a-(f.b.facing||0)), Math.cos(a-(f.b.facing||0))));
       if(d > Math.PI/3 && Math.hypot(f.b.x-f.x, f.b.y-f.y) < 60){ W.n.danger++; inc(W.dangerBy, "флешка без реакции"); if(W.ev.danger.length < EVMAX) W.ev.danger.push([tick, f.b.id, "флешка "+f.by+" — не повернулся", f.b.post ? f.b.post.tag : "-"]); }
       return false; });
