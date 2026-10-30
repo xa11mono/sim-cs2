@@ -1,0 +1,99 @@
+playwright 1.56.0, браузеры: C:\Windows\system32\config\systemprofile\.simcs2_node\ms-playwright
+> git fetch --quiet origin 628d0eed9cc852f7ca1486923addbad79cfe920d
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_16_x3znz FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_16_x3znz\src\build.py --map mirage C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\t480_mir.html
+> git fetch --quiet origin 2d149830ca409e50c45077a3cc5d716652c1e363
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_5m76cj4f FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_5m76cj4f\src\build.py --map mirage C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\t483_mir.html
+> git fetch --quiet origin 628d0eed9cc852f7ca1486923addbad79cfe920d
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_48xwnus1 FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_48xwnus1\src\build.py --map ancient C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\t480_anc.html
+> git fetch --quiet origin 2d149830ca409e50c45077a3cc5d716652c1e363
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_013kx5m3 FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_013kx5m3\src\build.py --map ancient C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\t483_anc.html
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\engine\walk_run.py --job=t480_mir,C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\t480_mir.html --job=t483_mir,C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\t483_mir.html --job=t480_anc,C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\t480_anc.html --job=t483_anc,C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\t483_anc.html --matches=3,7,11,13,17,19,23,29,31,37,41,43,47,53,59,61 --par=8
+матчей в очереди: 64, одновременно: 8
+t480_mir match 23 rc 0 4517417 — готово 1/64, 7 мин
+t480_mir match 13 rc 0 4801977 — готово 2/64, 7 мин
+t480_mir match 29 rc 0 6126580 — готово 3/64, 9 мин
+t480_mir match 11 rc 0 6374302 — готово 4/64, 9 мин
+t480_mir match 7 rc 0 6314721 — готово 5/64, 9 мин
+t480_mir match 17 rc 0 6078880 — готово 6/64, 9 мин
+t480_mir match 19 rc 0 6359564 — готово 7/64, 10 мин
+t480_mir match 3 rc 0 8558676 — готово 8/64, 14 мин
+t480_mir match 41 rc 0 5306253 — готово 9/64, 17 мин
+t480_mir match 43 rc 0 5042040 — готово 10/64, 18 мин
+t480_mir match 31 rc 0 7962573 — готово 11/64, 19 мин
+t480_mir match 59 rc 0 6602659 — готово 12/64, 20 мин
+t480_mir match 37 rc 0 8379124 — готово 13/64, 20 мин
+t480_mir match 53 rc 0 7872581 — готово 14/64, 21 мин
+t480_mir match 47 rc 0 7431925 — готово 15/64, 22 мин
+node:internal/process/promises:394
+    triggerUncaughtException(err, true /* fromPromise */);
+    ^
+
+page.evaluate: TypeError: Cannot read properties of undefined (reading 'x')
+    at nadeQueueNext (file:///C:/actions-runner/_work/sim-cs2/sim-cs2/tools/measure/runs/_sims/t483_mir.html:25336:56)
+    at updateNadeTask1 (file:///C:/actions-runner/_work/sim-cs2/sim-cs2/tools/measure/runs/_sims/t483_mir.html:25362:58)
+    at file:///C:/actions-runner/_work/sim-cs2/sim-cs2/tools/measure/runs/_sims/t483_mir.html:25357:44
+    at Array.forEach (<anonymous>)
+    at updateNadeTasks (file:///C:/actions-runner/_work/sim-cs2/sim-cs2/tools/measure/runs/_sims/t483_mir.html:25355:8)
+    at stepTick (file:///C:/actions-runner/_work/sim-cs2/sim-cs2/tools/measure/runs/_sims/t483_mir.html:29596:17)
+    at eval (eval at window.__ev (file:///C:/actions-runner/_work/sim-cs2/sim-cs2/tools/measure/runs/_sims/t483_mir.html:35306:34), <anonymous>:479:28)
+    at window.__ev (file:///C:/actions-runner/_work/sim-cs2/sim-cs2/tools/measure/runs/_sims/t483_mir.html:36275:34)
+    at eval (eval at evaluate (:290:30), <anonymous>:1:6)
+    at UtilityScript.evaluate (<anonymous>:292:16)
+    at C:\actions-runner\_work\sim-cs2\sim-cs2\src\q.js:5:22
+
+Node.js v24.21.0
+t483_mir match 3 rc 1 0 — готово 16/64, 25 мин
+t483_mir match 7 rc 0 5284953 — готово 17/64, 26 мин
+t480_mir match 61 rc 0 8306977 — готово 18/64, 27 мин
+t483_mir match 11 rc 0 5250962 — готово 19/64, 27 мин
+t483_mir match 13 rc 0 6000368 — готово 20/64, 29 мин
+t483_mir match 19 rc 0 5741125 — готово 21/64, 30 мин
+t483_mir match 23 rc 0 5252262 — готово 22/64, 30 мин
+t483_mir match 17 rc 0 6623324 — готово 23/64, 31 мин
+t483_mir match 29 rc 0 5220411 — готово 24/64, 34 мин
+t483_mir match 31 rc 0 6493682 — готово 25/64, 35 мин
+t483_mir match 37 rc 0 5365267 — готово 26/64, 35 мин
+t483_mir match 43 rc 0 5541155 — готово 27/64, 37 мин
+t483_mir match 41 rc 0 6627750 — готово 28/64, 38 мин
+t483_mir match 59 rc 0 5663398 — готово 29/64, 40 мин
+t483_mir match 53 rc 0 6596089 — готово 30/64, 40 мин
+t483_mir match 61 rc 0 5120652 — готово 31/64, 42 мин
+t483_mir match 47 rc 0 8231182 — готово 32/64, 42 мин
+t480_anc match 3 rc 0 5878097 — готово 33/64, 43 мин
+t480_anc match 7 rc 0 5655114 — готово 34/64, 43 мин
+t480_anc match 11 rc 0 5450296 — готово 35/64, 45 мин
+t480_anc match 13 rc 0 5955008 — готово 36/64, 45 мин
+t480_anc match 17 rc 0 4942837 — готово 37/64, 46 мин
+t480_anc match 19 rc 0 5143186 — готово 38/64, 46 мин
+t480_anc match 37 rc 0 4003541 — готово 39/64, 49 мин
+t480_anc match 23 rc 0 5519923 — готово 40/64, 49 мин
+t480_anc match 29 rc 0 5530073 — готово 41/64, 50 мин
+t480_anc match 31 rc 0 4793704 — готово 42/64, 50 мин
+t480_anc match 47 rc 0 4548111 — готово 43/64, 52 мин
+t480_anc match 43 rc 0 6373031 — готово 44/64, 54 мин
+t480_anc match 53 rc 0 6201548 — готово 45/64, 55 мин
+t480_anc match 41 rc 0 7255926 — готово 46/64, 55 мин
+t480_anc match 59 rc 0 5884874 — готово 47/64, 56 мин
+t483_anc match 7 rc 0 4793867 — готово 48/64, 57 мин
+t483_anc match 3 rc 0 6171088 — готово 49/64, 58 мин
+t480_anc match 61 rc 0 8017232 — готово 50/64, 60 мин
+t483_anc match 19 rc 0 5611347 — готово 51/64, 63 мин
+t483_anc match 17 rc 0 5333823 — готово 52/64, 63 мин
+t483_anc match 11 rc 0 7940051 — готово 53/64, 63 мин
+t483_anc match 29 rc 0 5257718 — готово 54/64, 64 мин
+t483_anc match 13 rc 0 7714669 — готово 55/64, 64 мин
+t483_anc match 23 rc 0 5989071 — готово 56/64, 64 мин
+t483_anc match 31 rc 0 6008516 — готово 57/64, 66 мин
+t483_anc match 37 rc 0 4581181 — готово 58/64, 66 мин
+t483_anc match 43 rc 0 5472437 — готово 59/64, 70 мин
+t483_anc match 53 rc 0 4912266 — готово 60/64, 70 мин
+t483_anc match 47 rc 0 5580906 — готово 61/64, 70 мин
+t483_anc match 41 rc 0 6230216 — готово 62/64, 70 мин
+t483_anc match 61 rc 0 5569182 — готово 63/64, 71 мин
+t483_anc match 59 rc 0 5689383 — готово 64/64, 71 мин
+done
+all done
