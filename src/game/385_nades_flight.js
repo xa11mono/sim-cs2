@@ -148,7 +148,7 @@
   }
 
   // Как кинуть, чтобы граната разорвалась у цели (бот целится так, как целился бы человек: поворот на цель, наклон и сила).
-  // from — ноги [X, Y, Z]; aim — точка [X, Y, Z] (смок / молотов — пол у цели; флешка / HE — над целью); o: {duck, vel, noJump, wz, wide}.
+  // from — ноги [X, Y, Z]; aim — точка [X, Y, Z] (смок / молотов — пол у цели; флешка / HE — над целью); o: {duck, vel, noJump, wz, wide, guess, guessOk}.
   // Перебор: наклон от −75° до +45° шагом AIM_STEP при каждой силе (ЛКМ, обе, ПКМ), каждый — настоящим полётом (nadeThrow:
   // стены, отскоки, запал, качение); лучший — уточняется наклоном. Не вышло ближе AIM_JUMP_IF — то же с прыжком на бинде
   // (так про кидают дальние смоки); и всё ещё мимо — поворот в сторону на AIM_YAW (В4: «с разбега» удалено — разбег только у
@@ -160,6 +160,7 @@
   // лайнап — кэш, 380). Своя граната — как раньше (быстрее)
   var AIM_STEP = 4, AIM_FINE = [2, 1, 0.5], AIM_JUMP_IF = 48, AIM_YAW = [-3, 3, -7, 7, -12, 12];   // градусы, ед. — проектные числа (скорость ≈ 10 мс на бросок)
   var AIM_YAW_WIDE = [-1, 1, -2, 2, -3, 3, -4, 4, -6, 6, -9, 9, -12, 12];   // градусы — проектные числа
+  var AIM_LOCAL_YAW = 3, AIM_LOCAL_PIT = 4;   // градусы — проектные числа (уточнение у готового броска, o.guess)
   function nadeAim(type, from, aim, trace, o) {
     o = o || {};
     var dx = aim[0] - from[0], dy = aim[1] - from[1];
@@ -181,6 +182,16 @@
         if (b0.jump !== !!jump) return;
         [-st, st].forEach(function (dp) { tryOne(b0.pitch + dp, b0.strength, jump); });
       });
+    }
+    // (физика гранат, 30.10) o.guess — готовый бросок из соседней точки (лайнап: решение для точки лайнапа): сначала уточняется рядом с
+    // ним — поворот ±AIM_LOCAL_YAW, наклон ±AIM_LOCAL_PIT шагом 0,5° при той же силе и прыжке (≈ 0,2 тыс. полётов вместо ≈ 2–6 тыс.);
+    // вышло не хуже o.guessOk — это и есть ответ, иначе — полный перебор (он может только улучшить найденное)
+    if (o.guess) {
+      var g = o.guess;
+      for (var gy = -AIM_LOCAL_YAW; gy <= AIM_LOCAL_YAW + 1e-9; gy += 0.5) { yaw = g.yaw + gy;
+        for (var gp = -AIM_LOCAL_PIT; gp <= AIM_LOCAL_PIT + 1e-9; gp += 0.5) tryOne(g.pitch + gp, g.strength, g.jump); }
+      yaw = yaw0;
+      if (o.guessOnly || best.sc <= (o.guessOk != null ? o.guessOk : AIM_JUMP_IF)) { delete best.sc; return best; }
     }
     search(false);
     if (best.sc > AIM_JUMP_IF && !o.noJump) search(true);

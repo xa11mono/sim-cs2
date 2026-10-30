@@ -14,17 +14,26 @@ function nadeTraceFn(){ var M = m3(); return function(A, B, r){ return m3NadeTra
 // (той же физикой, что полетит), или null (цель под ногами / нет геометрии). Ошибка e3 — в 3D (флешке высота вдвое легче: ей важно
 // хлопнуть на виду). Под целью несколько полов (под балконом, под мостом) — у цели нет высоты: целится в каждый пол, куда можно
 // дойти, и берёт тот, куда граната долетает точнее (своя граната под балкон — под балкон, если туда долетает)
-function nadeSolve(type, x, y, z, tx, ty, duck, wide){
+// (30.10, ошибка PR #2) кэш — только для ТОГО ЖЕ состояния броска: точное место (x, y, z), присед, перебор; раньше ключ округлялся
+// до 4 px и 8 ед. — решение из соседней точки уходило в бросок из другой. Скорость игрока в бросок не идёт (бот кидает стоя:
+// throwUntil), ни в подборе, ни в вылете. guess — готовое решение из соседней точки (уточняется рядом с ним, nadeAim o.guess)
+function nadeSolve(type, x, y, z, tx, ty, duck, wide, guess){
   var M = m3(); if(!M) return null;
-  var key = type+"|"+Math.round(x/4)+","+Math.round(y/4)+","+Math.round(z/8)+"|"+Math.round(tx/4)+","+Math.round(ty/4)+(duck ? "d" : "")+(wide ? "w" : "");
+  var key = type+"|"+x+","+y+","+z+"|"+tx+","+ty+(duck ? "d" : "")+(wide ? "w" : "")+(guess ? "|g"+guess.yaw+","+guess.pitch+","+guess.strength+(guess.jump ? "j" : "") : "");
   var c0 = nadeAimCache(key); if(c0 !== undefined) return c0;
+  var t0 = (typeof performance !== "undefined") ? performance.now() : 0;
   var F = m3Game(M, x, y), T = m3Game(M, tx, ty), fl = nadeAimFloors(M, tx, ty), r = null;
   fl.forEach(function(fz){
-    var q = nadeAim(type, [F[0], F[1], z], [T[0], T[1], fz + (NADE_AIM_DZ[type] || 0)], nadeTraceFn(), {duck: !!duck, wz: type === "flash" ? 0.5 : 1, wide: !!wide});
+    var o = {duck: !!duck, wz: type === "flash" ? 0.5 : 1, wide: !!wide};
+    if(guess){ o.guess = guess; o.guessOk = guess.e3 + NADE_GUESS_SLACK; o.wide = false; }   // уточнение не вышло — обычный (не широкий) перебор: дешевле
+    var q = nadeAim(type, [F[0], F[1], z], [T[0], T[1], fz + (NADE_AIM_DZ[type] || 0)], nadeTraceFn(), o);
     if(q && (!r || q.e3 < r.e3)) r = q; });
   if(r){ var R = m3Radar(M, r.det[0], r.det[1]); r.x = R[0]; r.y = R[1]; }
+  if(t0){ NADE_SOLVE_MS.push(performance.now() - t0); if(NADE_SOLVE_MS.length > 500) NADE_SOLVE_MS.shift(); }
   return nadeAimCache(key, r);
 }
+var NADE_GUESS_SLACK = 16;   // ед.: уточнённый бросок из места бойца не хуже решения точки лайнапа + столько — принят (проектное число)
+var NADE_SOLVE_MS = [];      // время последних 500 подборов, мс — только для проверки (tools/tests), игра не читает
 // полы у цели, куда можно дойти пешком (вид 1 геометрии; нет таких — верхний пол, как visFloorAt)
 function nadeAimFloors(M, tx, ty){
   var c = m3Cell(M, tx, ty), F = M.floors, o = [];
@@ -89,7 +98,7 @@ function nadeCovered(x, y){
 var NADE_GAP = Math.round(1.1*64);
 function nadeReady(b){ return tick - (b._nadeT == null ? -1e9 : b._nadeT) >= NADE_GAP; }
 var NADE_FAIL = null;   // (v369) почему последний бросок не состоялся — для проверки
-// from — (лайнап) точка броска из набора: бросок подбирается из неё (кэш — один на лайнап), летит — из того места, где боец стоит
+// from — (лайнап) точка броска из набора: навигация и подсказка подбора; бросок подбирается и летит из места, где боец стоит
 function throwNade(b, type, tx, ty, lob, why, trusted, from){
   NADE_FAIL = null;
   if(!b.nades || b.nades[type] <= 0){ NADE_FAIL = "нет гранаты"; return false; }
@@ -104,10 +113,16 @@ function throwNade(b, type, tx, ty, lob, why, trusted, from){
   if(type === "smoke" && fires.some(function(f){ return f.team === b.team && Math.hypot(f.x-tx, f.y-ty) < NADE.smoke.radius + NADE.molly.radius*MOLLY_SMOKE_TOUCH; })){ NADE_FAIL = "потушит свой огонь"; return false; }
   if(lob && !trusted && nadeTallWall(b.x, b.y, tx, ty, type)){ NADE_FAIL = "стена на пути"; return false; }   // (v373) сквозь стену — только как кидают про (MAP.nadelanes)
   if(!m3()){ NADE_FAIL = "нет геометрии карты"; return false; }
-  // (физика гранат) как кинуть — подбор физикой (nadeSolve); лайнап — из его точки броска (боец стоит в ней с точностью до шага)
-  var bz = b.z != null ? b.z : visFloorAt(b.x, b.y), fx = from ? from.x : b.x, fy = from ? from.y : b.y;
-  var fz = from ? (function(){ var na = navAtLevel(fx, fy, bz); return na ? na.z : bz; })() : bz;
-  var S = nadeSolve(type, fx, fy, fz, tx, ty, b.crouching, !!trusted);
+  // (физика гранат) как кинуть — подбор физикой (nadeSolve) из ТОГО состояния, из которого граната полетит: место бойца (x, y),
+  // его пол (z), присед. Лайнап: from — точка навигации и данных лайнапа, не место вылета (30.10, ошибка PR #2: бросок подбирался для
+  // from, а летел из места бойца — до 36 px в стороне, лайнапы ложились в 183–185 px от цели); решение для from — только подсказка
+  // (guess), с которой начинается подбор из места бойца. Не нашлось броска отсюда — отказ с причиной (задание снимается, назад не идёт)
+  var bz = b.z != null ? b.z : visFloorAt(b.x, b.y), guess = null;
+  if(from && (from.x !== b.x || from.y !== b.y)){
+    var na = navAtLevel(from.x, from.y, bz), fz = na ? na.z : bz;
+    guess = nadeSolve(type, from.x, from.y, fz, tx, ty, b.crouching, !!trusted);
+  }
+  var S = nadeSolve(type, b.x, b.y, bz, tx, ty, b.crouching, !!trusted, guess);
   if(!S){ NADE_FAIL = "цель под ногами"; return false; }
   // своя — ближе NADE_AIM_OK (флешке — вдвое); лайнап — и мимо, но не так, что отсюда туда не кинуть вовсе (× 4)
   if(S.e3 > NADE_AIM_OK * (trusted ? 4 : type === "flash" ? 2 : 1)){ NADE_FAIL = "не долетит: стена / потолок"; return false; }
@@ -148,7 +163,7 @@ function throwNade(b, type, tx, ty, lob, why, trusted, from){
   npUse(b, type, (b.nadeTask && b.nadeTask.type === type && b.nadeTask.npm) || npMomentNow(b));   // (v428) запись плана гранат снята
   if(miss) noteMistake(b, "промахнулся гранатой ("+NADE[type].name+")");
   var nd = Object.assign(nadeState(type, L.p, L.v), {type:type, x:b.x, y:b.y, z:L.p[2], tx:PR[0], ty:PR[1], born:tick, thrower:b, team:b.team,
-            trail:[], why:why||"", ox:b.x, oy:b.y, lob:!!lob, aimX:tx, aimY:ty, exec:[+dYaw.toFixed(2), +dPit.toFixed(2)]});   // exec — ошибка исполнения: поворот и наклон, °
+            trail:[], why:why||"", ox:b.x, oy:b.y, lob:!!lob, aimX:tx, aimY:ty, exec:[+dYaw.toFixed(2), +dPit.toFixed(2)], plan:[S.x, S.y, S.det[2], S.e3], from0:[b.x, b.y, bz]});   // exec — ошибка исполнения (поворот, наклон, °); plan — где сработает по подбору (радар x, y; z, ошибка e3); from0 — откуда кинул
   // кто может увернуться от этой флешки: видел бросающего или был рядом (слышит чеку)
   if(type === "flash" && BAL.flashAware){
     nd.aware = {};
