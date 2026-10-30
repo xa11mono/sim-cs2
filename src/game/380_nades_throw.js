@@ -40,7 +40,27 @@ var NADE_AIM_SCATTER = {"smoke":{"yaw":[0.0,0.0,0.0,0.1,0.1,0.1,0.2,0.25,0.4,0.7
 function nadeQuant(D, u){ var x = u*10, i = Math.min(9, Math.floor(x)); return D[i] + (D[i+1] - D[i])*(x - i); }
 var NADE_UTIL0 = null;   // средний множитель навыка (1,5 − util) по профилям — навык меняет разброс относительно среднего про
 function nadeUtilMul0(){ if(NADE_UTIL0 == null){ var s = 0, n = 0; for(var k in PROFILES){ s += 1.5 - (PROFILES[k].util != null ? PROFILES[k].util : 0.5); n++; } NADE_UTIL0 = n ? s/n : 1; } return NADE_UTIL0; }
-var NADE_GUESS_SLACK = 16;   // ед.: уточнённый бросок из места бойца не хуже решения точки лайнапа + столько — принят (проектное число)
+var NADE_GUESS_SLACK = 16;
+// (этап 3, скорость) решение для точки лайнапа (подсказка подбора из места бойца) — своё хранилище, не вытесняется общим кэшем (тот
+// чистится целиком после 4000 решений); считается заранее во freeze-тайм (nadePrecalcTick, 540) — в раунде остаётся только уточнение
+// из места бойца. Решение — то же самое (тот же nadeSolve, точное состояние): игра бит в бит та же, меняется только когда считается
+var nadeGuessStore = (function(){ var C = {}; return function(k, v){ if(v === undefined) return C[k]; return (C[k] = v); }; })();
+function nadeGuess(type, x, y, z, tx, ty, duck, wide){
+  var k = type+"|"+x+","+y+","+z+"|"+tx+","+ty+(duck ? "d" : "")+(wide ? "w" : ""), g = nadeGuessStore(k);
+  if(g === undefined) g = nadeGuessStore(k, nadeSolve(type, x, y, z, tx, ty, duck, wide));
+  return g;
+}
+var NADE_PRECALC_I = 0, NADE_PRECALC_MS = 12;   // мс за тик freeze-тайма на подсчёт лайнапов (проектное число: < кадра 60 Гц)
+function nadePrecalcTick(){
+  if(!m3() || typeof allLineups !== "function") return;
+  var L = allLineups(), t0 = (typeof performance !== "undefined") ? performance.now() : 0;
+  while(NADE_PRECALC_I < L.length){
+    var lu = L[NADE_PRECALC_I++]; if(!lu || !lu.from || !lu.to || !NADE[lu.type]) continue;
+    var na = navAt(lu.from.x, lu.from.y, null); if(!na) continue;
+    nadeGuess(lu.type, lu.from.x, lu.from.y, na.z, lu.to.x, lu.to.y, false, true);
+    if(!t0 || performance.now() - t0 >= NADE_PRECALC_MS) break;
+  }
+}   // ед.: уточнённый бросок из места бойца не хуже решения точки лайнапа + столько — принят (проектное число)
 var NADE_SOLVE_MS = [];      // время последних 500 подборов, мс — только для проверки (tools/tests), игра не читает
 // (30.10, этаж) где у цели может лечь смок / огонь: полы, куда можно дойти, в клетке цели; нет таких (цель лайнапа — только x, y,
 // среднее разрывов про — бывает над верхом ящика: Mirage prx280 / prx282, в клетке только верх ящика −83 вида «подсадка», про — −166)
@@ -145,7 +165,7 @@ function throwNade(b, type, tx, ty, lob, why, trusted, from){
   var bz = b.z != null ? b.z : visFloorAt(b.x, b.y), guess = null;
   if(from && (from.x !== b.x || from.y !== b.y)){
     var na = navAtLevel(from.x, from.y, bz), fz = na ? na.z : bz;
-    guess = nadeSolve(type, from.x, from.y, fz, tx, ty, b.crouching, !!trusted);
+    guess = nadeGuess(type, from.x, from.y, fz, tx, ty, b.crouching, !!trusted);
   }
   var S = nadeSolve(type, b.x, b.y, bz, tx, ty, b.crouching, !!trusted, guess);
   if(!S){ NADE_FAIL = "цель под ногами"; return false; }

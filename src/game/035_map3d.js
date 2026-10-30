@@ -339,7 +339,12 @@ var M3_SKIN = 0.25;
 function m3NadeTrace(M, A, B, r){
   r = r || 0;
   var ax = A[0], ay = A[1], az = A[2], dx = B[0] - ax, dy = B[1] - ay, dz = B[2] - az;
-  if(!M.nTriSeen){ M.nTriSeen = new Uint32Array(M.triFlag.length); M.nHullSeen = new Uint32Array(M.hullFlag.length); M.nStamp = 0; }
+  // (этап 3, скорость) плоскости треугольника / блока считаются один раз и хранятся (M.nTriPl, M.nHullPl, F.pl): то же число, без
+  // пересчёта и новых массивов на каждый ход каждой гранаты; ответ — бит в бит прежний
+  if(!M.nTriSeen){ M.nTriSeen = new Uint32Array(M.triFlag.length); M.nHullSeen = new Uint32Array(M.hullFlag.length); M.nStamp = 0; M.nTriPl = new Map(); M.nHullPl = [];
+    var T0 = M.tri, nt = M.triFlag.length, XY = M.nTriXY = new Float32Array(nt*4);   // охват треугольника по x, y (один раз)
+    for(var kk = 0; kk < nt; kk++){ var oo = kk*9; XY[kk*4] = Math.min(T0[oo], T0[oo+3], T0[oo+6]); XY[kk*4+1] = Math.max(T0[oo], T0[oo+3], T0[oo+6]);
+      XY[kk*4+2] = Math.min(T0[oo+1], T0[oo+4], T0[oo+7]); XY[kk*4+3] = Math.max(T0[oo+1], T0[oo+4], T0[oo+7]); } }
   var stamp = ++M.nStamp; if(stamp > 4e9){ M.nTriSeen.fill(0); M.nHullSeen.fill(0); M.nStamp = stamp = 1; }
   var x0 = Math.min(ax, B[0]) - r, x1 = Math.max(ax, B[0]) + r, y0 = Math.min(ay, B[1]) - r, y1 = Math.max(ay, B[1]) + r;
   var z0 = Math.min(az, B[2]) - r, z1 = Math.max(az, B[2]) + r;
@@ -352,18 +357,18 @@ function m3NadeTrace(M, A, B, r){
     for(var n = 0; n < lt.length; n++){
       var k = lt[n]; if(M.nTriSeen[k] === stamp) continue; M.nTriSeen[k] = stamp;
       if(!(M.triFlag[k] & 2) || M.triZ[k*2] > z1 || M.triZ[k*2+1] < z0) continue;
-      var o = k*9;
-      if(Math.min(T[o], T[o+3], T[o+6]) > x1 || Math.max(T[o], T[o+3], T[o+6]) < x0 || Math.min(T[o+1], T[o+4], T[o+7]) > y1 || Math.max(T[o+1], T[o+4], T[o+7]) < y0) continue;
-      var h = m3BoxTri(T, o, ax, ay, az, dx, dy, dz, r);
+      var XY = M.nTriXY, k4 = k*4;
+      if(XY[k4] > x1 || XY[k4+1] < x0 || XY[k4+2] > y1 || XY[k4+3] < y0) continue;
+      var tp = m3TriPl(M, k), h = tp ? m3BoxPlanes(tp, ax, ay, az, dx, dy, dz, r) : null;
       if(h && (!best || h[0] < best.f)) best = {f: h[0], n: [h[1], h[2], h[3]], mat: M.mats[M.triMat[k]], sky: false, prim: "tri"};
     }
     for(n = 0; n < lh.length; n++){
       var hh = lh[n]; if(M.nHullSeen[hh] === stamp) continue; M.nHullSeen[hh] = stamp;
       if(!(M.hullFlag[hh] & 2)) continue;
       var q6 = hh*6; if(hb[q6] > x1 || hb[q6+3] < x0 || hb[q6+1] > y1 || hb[q6+4] < y0 || hb[q6+2] > z1 || hb[q6+5] < z0) continue;
-      var pl = [];
-      for(var q = M.hullOff[hh]; q < M.hullOff[hh+1]; q++) pl.push(M.hullP[q*4], M.hullP[q*4+1], M.hullP[q*4+2], M.hullP[q*4+3]);
-      m3BevelPush(pl, hb[q6], hb[q6+1], hb[q6+2], hb[q6+3], hb[q6+4], hb[q6+5]);
+      var pl = M.nHullPl[hh];
+      if(!pl){ pl = []; for(var q = M.hullOff[hh]; q < M.hullOff[hh+1]; q++) pl.push(M.hullP[q*4], M.hullP[q*4+1], M.hullP[q*4+2], M.hullP[q*4+3]);
+        m3BevelPush(pl, hb[q6], hb[q6+1], hb[q6+2], hb[q6+3], hb[q6+4], hb[q6+5]); M.nHullPl[hh] = pl; }
       var h2 = m3BoxPlanes(pl, ax, ay, az, dx, dy, dz, r);
       if(h2 && (!best || h2[0] < best.f)) best = {f: h2[0], n: [h2[1], h2[2], h2[3]], mat: M.mats[M.hullMat[hh]], sky: false, prim: "hull"};
     }
@@ -371,7 +376,7 @@ function m3NadeTrace(M, A, B, r){
   var FL = M.fill || [];
   for(var fi = 0; fi < FL.length; fi++){ var F = FL[fi], bx = F.box;
     if(bx[0] > x1 || bx[3] < x0 || bx[1] > y1 || bx[4] < y0 || bx[2] > z1 || bx[5] < z0) continue;
-    var pf = []; F.p.forEach(function(p){ pf.push(p[0], p[1], p[2], p[3]); }); m3BevelPush(pf, bx[0], bx[1], bx[2], bx[3], bx[4], bx[5]);
+    var pf = F.pl; if(!pf){ pf = []; F.p.forEach(function(p){ pf.push(p[0], p[1], p[2], p[3]); }); m3BevelPush(pf, bx[0], bx[1], bx[2], bx[3], bx[4], bx[5]); F.pl = pf; }
     var h3 = m3BoxPlanes(pf, ax, ay, az, dx, dy, dz, r);
     if(h3 && (!best || h3[0] < best.f)) best = {f: h3[0], n: [h3[1], h3[2], h3[3]], mat: "wood", sky: false, prim: "fill"};
   }
@@ -394,8 +399,11 @@ function m3BoxPlanes(pl, ax, ay, az, dx, dy, dz, r){
   if(t0 < 0){ if(sE < -M3_SKIN) return null; t0 = 0; }   // начало внутри: чуть — касание сейчас, глубоко — выходит
   return [t0, pl[e], pl[e+1], pl[e+2]];
 }
+// плоскости треугольника k (без опоры кубика) — из хранилища, первый раз — m3TriPlanes; null — вырожденный
+function m3TriPl(M, k){ var p = M.nTriPl.get(k); if(p === undefined){ p = m3TriPlanes(M.tri, k*9); M.nTriPl.set(k, p); } return p; }
 // треугольник (вершины T[o..o+8]) как пластина: плоскость с двух сторон, рёбра, охват → как m3BoxPlanes
-function m3BoxTri(T, o, ax, ay, az, dx, dy, dz, r){
+function m3BoxTri(T, o, ax, ay, az, dx, dy, dz, r){ var pl = m3TriPlanes(T, o); return pl ? m3BoxPlanes(pl, ax, ay, az, dx, dy, dz, r) : null; }
+function m3TriPlanes(T, o){
   var px = T[o], py = T[o+1], pz = T[o+2], qx = T[o+3], qy = T[o+4], qz = T[o+5], wx = T[o+6], wy = T[o+7], wz = T[o+8];
   var e1x = qx-px, e1y = qy-py, e1z = qz-pz, e2x = wx-px, e2y = wy-py, e2z = wz-pz;
   var nx = e1y*e2z - e1z*e2y, ny = e1z*e2x - e1x*e2z, nz = e1x*e2y - e1y*e2x, L = Math.hypot(nx, ny, nz);
@@ -411,7 +419,7 @@ function m3BoxTri(T, o, ax, ay, az, dx, dy, dz, r){
     pl.push(mx, my, mz, mx*V[a*3] + my*V[a*3+1] + mz*V[a*3+2]);
   }
   m3BevelPush(pl, Math.min(px, qx, wx), Math.min(py, qy, wy), Math.min(pz, qz, wz), Math.max(px, qx, wx), Math.max(py, qy, wy), Math.max(pz, qz, wz));
-  return m3BoxPlanes(pl, ax, ay, az, dx, dy, dz, r);
+  return pl;
 }
 if(typeof module !== "undefined" && module.exports) module.exports = {zInflate: zInflate, m3Load: m3Load, m3Line: m3Line, m3Hit: m3Hit,
   m3Floors: m3Floors, m3FloorKinds: m3FloorKinds, m3FloorAt: m3FloorAt, m3NadeTrace: m3NadeTrace, m3BoxPlanes: m3BoxPlanes,
