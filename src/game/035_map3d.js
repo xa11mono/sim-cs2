@@ -321,5 +321,97 @@ function m3SolidHit(ax, ay, bx, by){
   }
   return null;
 }
+// ---------- радар ↔ ед. игры (физика гранаты считает в ед. игры: x, y игры; y игры противоположен y радара) ----------
+function m3Game(M, x, y){ var k = M.unit / M.cell; return [M.X0 + x * k, M.Y0 - y * k]; }
+function m3Radar(M, X, Y){ var k = M.cell / M.unit; return [(X - M.X0) * k, (M.Y0 - Y) * k]; }
+// ---------- луч гранаты с размером — trace для физики гранаты (385_nades_flight), всё в ед. игры ----------
+// (физика гранат, 30.10) граната — кубик ±r (не точка): движение A → B кубика против геометрии маски 'nade' (треугольники, выпуклые
+// блоки, сплошные укрытия). Как трасса кубика в Source: каждая плоскость препятствия отодвигается на опору кубика r·(|nx|+|ny|+|nz|),
+// и отрезок центра режется о получившийся выпуклый объём. Блок — его плоскости + 6 плоскостей охвата («скосы», как у Source);
+// треугольник — тонкая пластина: плоскость с двух сторон, 3 плоскости рёбер и 6 плоскостей охвата. Точно для граней и осевых
+// рёбер, у косых рёбер — с запасом ≤ r·(√3 − 1) (кубик касается чуть раньше, не позже — сквозь не проходит).
+// Сквозь тонкое не пролетает при любой скорости: режется весь отрезок хода, а не точки по тикам.
+// Начало чуть внутри (≤ M3_SKIN — после прошлого касания) и движение внутрь — касание в t = 0; глубже — граната выходит
+// (не застревает в геометрии, где оказалась не по своей вине). Неба нет (В2б: у Mirage небо ниже смоков про, у Ancient его нет).
+// → null или {f: доля пути 0..1, n: [nx, ny, nz] нормаль навстречу ходу, mat, sky: false, prim: 'tri'|'hull'|'fill'}
+var M3_SKIN = 0.25;
+function m3NadeTrace(M, A, B, r){
+  r = r || 0;
+  var ax = A[0], ay = A[1], az = A[2], dx = B[0] - ax, dy = B[1] - ay, dz = B[2] - az;
+  if(!M.nTriSeen){ M.nTriSeen = new Uint32Array(M.triFlag.length); M.nHullSeen = new Uint32Array(M.hullFlag.length); M.nStamp = 0; }
+  var stamp = ++M.nStamp; if(stamp > 4e9){ M.nTriSeen.fill(0); M.nHullSeen.fill(0); M.nStamp = stamp = 1; }
+  var x0 = Math.min(ax, B[0]) - r, x1 = Math.max(ax, B[0]) + r, y0 = Math.min(ay, B[1]) - r, y1 = Math.max(ay, B[1]) + r;
+  var z0 = Math.min(az, B[2]) - r, z1 = Math.max(az, B[2]) + r;
+  var BU = M.unit * M.B, BN = M.BN;
+  var i0 = Math.max(0, Math.floor((x0 - M.X0) / BU)), i1 = Math.min(BN - 1, Math.floor((x1 - M.X0) / BU));
+  var j0 = Math.max(0, Math.floor((M.Y0 - y1) / BU)), j1 = Math.min(BN - 1, Math.floor((M.Y0 - y0) / BU));
+  var best = null, T = M.tri, hb = M.hullBox;
+  for(var j = j0; j <= j1; j++) for(var i = i0; i <= i1; i++){
+    var b = j*BN + i, lt = M.bTri[b], lh = M.bHull[b];
+    for(var n = 0; n < lt.length; n++){
+      var k = lt[n]; if(M.nTriSeen[k] === stamp) continue; M.nTriSeen[k] = stamp;
+      if(!(M.triFlag[k] & 2) || M.triZ[k*2] > z1 || M.triZ[k*2+1] < z0) continue;
+      var o = k*9;
+      if(Math.min(T[o], T[o+3], T[o+6]) > x1 || Math.max(T[o], T[o+3], T[o+6]) < x0 || Math.min(T[o+1], T[o+4], T[o+7]) > y1 || Math.max(T[o+1], T[o+4], T[o+7]) < y0) continue;
+      var h = m3BoxTri(T, o, ax, ay, az, dx, dy, dz, r);
+      if(h && (!best || h[0] < best.f)) best = {f: h[0], n: [h[1], h[2], h[3]], mat: M.mats[M.triMat[k]], sky: false, prim: "tri"};
+    }
+    for(n = 0; n < lh.length; n++){
+      var hh = lh[n]; if(M.nHullSeen[hh] === stamp) continue; M.nHullSeen[hh] = stamp;
+      if(!(M.hullFlag[hh] & 2)) continue;
+      var q6 = hh*6; if(hb[q6] > x1 || hb[q6+3] < x0 || hb[q6+1] > y1 || hb[q6+4] < y0 || hb[q6+2] > z1 || hb[q6+5] < z0) continue;
+      var pl = [];
+      for(var q = M.hullOff[hh]; q < M.hullOff[hh+1]; q++) pl.push(M.hullP[q*4], M.hullP[q*4+1], M.hullP[q*4+2], M.hullP[q*4+3]);
+      m3BevelPush(pl, hb[q6], hb[q6+1], hb[q6+2], hb[q6+3], hb[q6+4], hb[q6+5]);
+      var h2 = m3BoxPlanes(pl, ax, ay, az, dx, dy, dz, r);
+      if(h2 && (!best || h2[0] < best.f)) best = {f: h2[0], n: [h2[1], h2[2], h2[3]], mat: M.mats[M.hullMat[hh]], sky: false, prim: "hull"};
+    }
+  }
+  var FL = M.fill || [];
+  for(var fi = 0; fi < FL.length; fi++){ var F = FL[fi], bx = F.box;
+    if(bx[0] > x1 || bx[3] < x0 || bx[1] > y1 || bx[4] < y0 || bx[2] > z1 || bx[5] < z0) continue;
+    var pf = []; F.p.forEach(function(p){ pf.push(p[0], p[1], p[2], p[3]); }); m3BevelPush(pf, bx[0], bx[1], bx[2], bx[3], bx[4], bx[5]);
+    var h3 = m3BoxPlanes(pf, ax, ay, az, dx, dy, dz, r);
+    if(h3 && (!best || h3[0] < best.f)) best = {f: h3[0], n: [h3[1], h3[2], h3[3]], mat: "wood", sky: false, prim: "fill"};
+  }
+  return best;
+}
+function m3BevelPush(pl, x0, y0, z0, x1, y1, z1){ pl.push(1, 0, 0, x1, -1, 0, 0, -x0, 0, 1, 0, y1, 0, -1, 0, -y0, 0, 0, 1, z1, 0, 0, -1, -z0); }
+// отрезок центра A + t·D против выпуклого объёма (плоскости [nx, ny, nz, d] подряд, внутри — n·x ≤ d), каждая отодвинута на опору
+// кубика r → [t, nx, ny, nz] (плоскость входа) или null
+function m3BoxPlanes(pl, ax, ay, az, dx, dy, dz, r){
+  var t0 = -Infinity, t1 = Infinity, e = -1, sE = 0;
+  for(var q = 0; q < pl.length; q += 4){
+    var nx = pl[q], ny = pl[q+1], nz = pl[q+2], d = pl[q+3] + r*(Math.abs(nx) + Math.abs(ny) + Math.abs(nz));
+    var s = nx*ax + ny*ay + nz*az - d, v = nx*dx + ny*dy + nz*dz;
+    if(v === 0){ if(s > 0) return null; continue; }
+    var t = -s / v;
+    if(v < 0){ if(t > t0){ t0 = t; e = q; sE = s; } } else if(t < t1) t1 = t;
+    if(t0 > t1) return null;
+  }
+  if(e < 0 || t0 > 1 || t1 < 0) return null;
+  if(t0 < 0){ if(sE < -M3_SKIN) return null; t0 = 0; }   // начало внутри: чуть — касание сейчас, глубоко — выходит
+  return [t0, pl[e], pl[e+1], pl[e+2]];
+}
+// треугольник (вершины T[o..o+8]) как пластина: плоскость с двух сторон, рёбра, охват → как m3BoxPlanes
+function m3BoxTri(T, o, ax, ay, az, dx, dy, dz, r){
+  var px = T[o], py = T[o+1], pz = T[o+2], qx = T[o+3], qy = T[o+4], qz = T[o+5], wx = T[o+6], wy = T[o+7], wz = T[o+8];
+  var e1x = qx-px, e1y = qy-py, e1z = qz-pz, e2x = wx-px, e2y = wy-py, e2z = wz-pz;
+  var nx = e1y*e2z - e1z*e2y, ny = e1z*e2x - e1x*e2z, nz = e1x*e2y - e1y*e2x, L = Math.hypot(nx, ny, nz);
+  if(L < 1e-6) return null;
+  nx /= L; ny /= L; nz /= L;
+  var d = nx*px + ny*py + nz*pz, pl = [nx, ny, nz, d, -nx, -ny, -nz, -d];
+  var V = [px, py, pz, qx, qy, qz, wx, wy, wz];
+  for(var a = 0; a < 3; a++){
+    var b = (a + 1) % 3, c = (a + 2) % 3, ex = V[b*3]-V[a*3], ey = V[b*3+1]-V[a*3+1], ez = V[b*3+2]-V[a*3+2];
+    var mx = ey*nz - ez*ny, my = ez*nx - ex*nz, mz = ex*ny - ey*nx, ml = Math.hypot(mx, my, mz); if(ml < 1e-9) return null;
+    mx /= ml; my /= ml; mz /= ml;
+    if(mx*(V[c*3]-V[a*3]) + my*(V[c*3+1]-V[a*3+1]) + mz*(V[c*3+2]-V[a*3+2]) > 0){ mx = -mx; my = -my; mz = -mz; }
+    pl.push(mx, my, mz, mx*V[a*3] + my*V[a*3+1] + mz*V[a*3+2]);
+  }
+  m3BevelPush(pl, Math.min(px, qx, wx), Math.min(py, qy, wy), Math.min(pz, qz, wz), Math.max(px, qx, wx), Math.max(py, qy, wy), Math.max(pz, qz, wz));
+  return m3BoxPlanes(pl, ax, ay, az, dx, dy, dz, r);
+}
 if(typeof module !== "undefined" && module.exports) module.exports = {zInflate: zInflate, m3Load: m3Load, m3Line: m3Line, m3Hit: m3Hit,
-  m3Floors: m3Floors, m3FloorKinds: m3FloorKinds, m3FloorAt: m3FloorAt};
+  m3Floors: m3Floors, m3FloorKinds: m3FloorKinds, m3FloorAt: m3FloorAt, m3NadeTrace: m3NadeTrace, m3BoxPlanes: m3BoxPlanes,
+  m3BoxTri: m3BoxTri, m3Cell: m3Cell, m3Game: m3Game, m3Radar: m3Radar};
