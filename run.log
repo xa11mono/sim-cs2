@@ -1,0 +1,43 @@
+playwright 1.56.0, браузеры: C:\Windows\system32\config\systemprofile\.simcs2_node\ms-playwright
+> git fetch --quiet origin ab327ece7f4dce10c9e3334e02891cd6bbadaa78
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_xg0awxdd FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_xg0awxdd\src\build.py --map mirage C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\nf486_mir.html
+> git fetch --quiet origin ab327ece7f4dce10c9e3334e02891cd6bbadaa78
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_zgc9auas FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_zgc9auas\src\build.py --map ancient C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\nf486_anc.html
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\engine\walk_run.py --job=nf486_mir,C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\nf486_mir.html --job=nf486_anc,C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\nf486_anc.html --matches=3,7,11,13,17,19,23,29,31,37,41,43,47,53,59,61 --par=8
+матчей в очереди: 32, одновременно: 8
+nf486_mir match 29 rc 0 5003135 — готово 1/32, 8 мин
+nf486_mir match 3 rc 0 4916904 — готово 2/32, 8 мин
+nf486_mir match 23 rc 0 5396533 — готово 3/32, 9 мин
+nf486_mir match 19 rc 0 5954600 — готово 4/32, 9 мин
+nf486_mir match 13 rc 0 6418146 — готово 5/32, 10 мин
+nf486_mir match 11 rc 0 6178401 — готово 6/32, 10 мин
+nf486_mir match 7 rc 0 6609721 — готово 7/32, 10 мин
+nf486_mir match 17 rc 0 8521421 — готово 8/32, 13 мин
+nf486_mir match 31 rc 0 5786571 — готово 9/32, 16 мин
+nf486_mir match 37 rc 0 5458199 — готово 10/32, 17 мин
+nf486_mir match 47 rc 0 4620456 — готово 11/32, 17 мин
+nf486_mir match 41 rc 0 4994019 — готово 12/32, 18 мин
+nf486_mir match 53 rc 0 5638579 — готово 13/32, 19 мин
+nf486_mir match 43 rc 0 6909921 — готово 14/32, 20 мин
+nf486_mir match 59 rc 0 6399905 — готово 15/32, 20 мин
+nf486_anc match 13 rc 0 4123564 — готово 16/32, 24 мин
+nf486_anc match 7 rc 0 5874739 — готово 17/32, 25 мин
+nf486_anc match 11 rc 0 6373750 — готово 18/32, 26 мин
+nf486_anc match 3 rc 0 6766256 — готово 19/32, 26 мин
+nf486_mir match 61 rc 0 8348688 — готово 20/32, 26 мин
+nf486_anc match 17 rc 0 6196624 — готово 21/32, 27 мин
+nf486_anc match 23 rc 0 4975153 — готово 22/32, 27 мин
+nf486_anc match 19 rc 0 5673150 — готово 23/32, 28 мин
+nf486_anc match 29 rc 0 5869609 — готово 24/32, 32 мин
+nf486_anc match 37 rc 0 5221463 — готово 25/32, 33 мин
+nf486_anc match 41 rc 0 5665511 — готово 26/32, 33 мин
+nf486_anc match 47 rc 0 5299208 — готово 27/32, 34 мин
+nf486_anc match 59 rc 0 5052087 — готово 28/32, 34 мин
+nf486_anc match 31 rc 0 7862800 — готово 29/32, 35 мин
+nf486_anc match 43 rc 0 8069243 — готово 30/32, 36 мин
+nf486_anc match 53 rc 0 7780877 — готово 31/32, 37 мин
+nf486_anc match 61 rc 0 6212251 — готово 32/32, 38 мин
+done
+all done
