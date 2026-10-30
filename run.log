@@ -1,0 +1,49 @@
+playwright 1.56.0, браузеры: C:\Windows\system32\config\systemprofile\.simcs2_node\ms-playwright
+> git fetch --quiet origin 486483721444717e59a7ae2b54a4f3e0caf08f9f
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_t_r_v6lj FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_t_r_v6lj\src\build.py --map mirage C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\phys_mir_b.html
+> git fetch --quiet origin 486483721444717e59a7ae2b54a4f3e0caf08f9f
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_cu_j7gcd FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_cu_j7gcd\src\build.py --map ancient C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\phys_anc_b.html
+> git fetch --quiet origin 8e15ac1c8a338aefcb5dbf74a7c97948e7670074
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_ntgd9ol1 FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_ntgd9ol1\src\build.py --map mirage C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v479chk_mir_b.html
+> git fetch --quiet origin 8e15ac1c8a338aefcb5dbf74a7c97948e7670074
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_xdf7k323 FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_xdf7k323\src\build.py --map ancient C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v479chk_anc_b.html
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\engine\walk_run.py --job=phys_mir_b,C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\phys_mir_b.html --job=phys_anc_b,C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\phys_anc_b.html --job=v479chk_mir_b,C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v479chk_mir_b.html --job=v479chk_anc_b,C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v479chk_anc_b.html --matches=31,37,41,43,47,53,59,61 --par=8
+матчей в очереди: 32, одновременно: 8
+phys_mir_b match 41 rc 0 5502182 — готово 1/32, 8 мин
+phys_mir_b match 37 rc 0 5889071 — готово 2/32, 8 мин
+phys_mir_b match 43 rc 0 6056023 — готово 3/32, 9 мин
+phys_mir_b match 31 rc 0 5460445 — готово 4/32, 9 мин
+phys_mir_b match 61 rc 0 6361730 — готово 5/32, 9 мин
+phys_mir_b match 47 rc 0 6023909 — готово 6/32, 10 мин
+phys_mir_b match 59 rc 0 6287701 — готово 7/32, 10 мин
+phys_mir_b match 53 rc 0 8212542 — готово 8/32, 13 мин
+phys_anc_b match 41 rc 0 4587962 — готово 9/32, 15 мин
+phys_anc_b match 31 rc 0 5258142 — готово 10/32, 15 мин
+phys_anc_b match 37 rc 0 5458234 — готово 11/32, 16 мин
+phys_anc_b match 59 rc 0 4651316 — готово 12/32, 16 мин
+phys_anc_b match 47 rc 0 5678774 — готово 13/32, 17 мин
+phys_anc_b match 43 rc 0 5818627 — готово 14/32, 17 мин
+phys_anc_b match 53 rc 0 7684658 — готово 15/32, 19 мин
+phys_anc_b match 61 rc 0 7699786 — готово 16/32, 24 мин
+v479chk_mir_b match 47 rc 0 4650942 — готово 17/32, 24 мин
+v479chk_mir_b match 31 rc 0 5715528 — готово 18/32, 24 мин
+v479chk_mir_b match 37 rc 0 6238877 — готово 19/32, 25 мин
+v479chk_mir_b match 43 rc 0 6192030 — готово 20/32, 26 мин
+v479chk_mir_b match 53 rc 0 6235260 — готово 21/32, 26 мин
+v479chk_mir_b match 41 rc 0 6651692 — готово 22/32, 26 мин
+v479chk_mir_b match 59 rc 0 6085044 — готово 23/32, 28 мин
+v479chk_anc_b match 41 rc 0 4773699 — готово 24/32, 30 мин
+v479chk_anc_b match 31 rc 0 6044464 — готово 25/32, 31 мин
+v479chk_mir_b match 61 rc 0 5599177 — готово 26/32, 31 мин
+v479chk_anc_b match 47 rc 0 4739764 — готово 27/32, 32 мин
+v479chk_anc_b match 37 rc 0 6666343 — готово 28/32, 32 мин
+v479chk_anc_b match 43 rc 0 5500586 — готово 29/32, 32 мин
+v479chk_anc_b match 53 rc 0 6241126 — готово 30/32, 33 мин
+v479chk_anc_b match 61 rc 0 3291782 — готово 31/32, 34 мин
+v479chk_anc_b match 59 rc 0 7796741 — готово 32/32, 37 мин
+done
+all done
