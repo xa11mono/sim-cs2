@@ -107,12 +107,8 @@ function endgameBrain(){
       }
       if(b._egC && b._egC.round === roundNum && b._egC.fl === K.id && mC){ setPost(b, b._egC.spot, {x:kp.x, y:kp.y}, true, "endhunt"); return; }
       if(!b._egC || b._egC.gk !== gk || b._egC.round !== roundNum || b._egC.fl){
-        var farC = function(){ return walk({x: kp.x + (b.x-kp.x)*Math.min(0.9, 420/d), y: kp.y + (b.y-kp.y)*Math.min(0.9, 420/d)}); };
-        var center = d < 650 ? {x:b.x, y:b.y} : farC();
+        var center = d < 650 ? {x:b.x, y:b.y} : walk({x: kp.x + (b.x-kp.x)*Math.min(0.9, 420/d), y: kp.y + (b.y-kp.y)*Math.min(0.9, 420/d)});
         var spots = pickSpots("eg:"+b.id+":"+gk, center, 2, {rMax: d < 650 ? 120 : 200, minGap:40, see:[kp]});
-        // (п.14 владельца 29.10, м1 р4 т28573: m0NESY в 618 от цели получил «охоту» — точку в Catwalk, где стоял, без линии на цель, и
-        // не пошёл помогать) рядом с собой места с видом на цель нет — подход к цели, как у тех, кто дальше
-        if(d < 650 && !(spots[0] && hasLOS(spots[0].x, spots[0].y, kp.x, kp.y))) spots = pickSpots("eg:"+b.id+":"+gk+":f", farC(), 2, {rMax:200, minGap:40, see:[kp]});
         b._egC = {gk:gk, round:roundNum, spot:spots[0], look:{x:kp.x, y:kp.y}};
       }
       if(BAL.groupPlay && BAL.egPair && egWaitPartner(b, mine, kp)) return;
