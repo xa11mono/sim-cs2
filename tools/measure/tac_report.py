@@ -9,6 +9,7 @@ def load(d):
     out = []
     for f in sorted(glob.glob(os.path.join(d, 'rec_*.json*'))):
         op = gzip.open if f.endswith('.gz') else open
+        if os.path.getsize(f) == 0: print('  пусто (матч упал):', os.path.basename(f)); continue
         with op(f, 'rt', encoding='utf-8') as h: out.append(json.load(h))
     return out
 
