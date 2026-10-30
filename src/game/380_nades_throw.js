@@ -92,9 +92,9 @@ function nadeAimFloors(M, tx, ty){
   return o.length ? o : [visFloorAt(tx, ty)];
 }
 // долетит ли своя граната бойца из (x, y) (пол z, null — пол под точкой) в цель — тот же порог, что у своего броска
-function nadeLands(type, x, y, z, tx, ty, trusted){
+function nadeLands(type, x, y, z, tx, ty){
   var S = nadeSolve(type, x, y, z != null ? z : visFloorAt(x, y), tx, ty, false);
-  return !!S && S.levelOk !== false && S.e3 <= nadeAimLimit(type, !!trusted);
+  return !!S && S.levelOk !== false && S.e3 <= nadeAimLimit(type, false);
 }
 // (v373) своя граната через стену — только так, как кидают про. Замер (tools/nade_walls_pro.py, Mirage, 35 592 броска): у про 79 %
 // бросков прямая «рука → разрыв» проходит сквозь стену радара (через крыши, над ящиками), толщиной — до 290 px у 10 % смоков;
@@ -385,9 +385,8 @@ function nadeThrowSpot(b, t){
   var bl = (typeof beliefLast !== "undefined" && beliefLast[b.team]) || {}, foes = [];
   for(var e in bl){ var q = bl[e]; if(q && tick - q.tick <= 8*TICK_HZ && bots.some(function(o){ return o.id === e && o.alive; })) foes.push({x:q.x, y:q.y}); }
   // (v373) кандидаты — места, откуда про кидали в эту точку (MAP.nadelanes), и точки рядом без стены на пути
-  // (v488) и место про — только если отсюда долетает по физике (nadeLands, предел как у броска с места про — trusted): раньше «долетит ли —
-  // решит бросок», и бот шёл к точке, где бросок отказывал «не долетит» (облако, Ancient м11 + м17: главная причина качелей с гранатой)
-  var c = nadeLaneFroms(t.x, t.y).filter(function(q){ return Math.hypot(q.x-b.x, q.y-b.y) <= NADE_SPOT_R && navAt(q.x, q.y) && nadeLands(t.type, q.x, q.y, null, t.x, t.y, true); }).map(function(q){ return {x:q.x, y:q.y, lane:true}; })
+  // бросок с места про — как у про (долетит ли — решит бросок); своё место — граната долетает по физике (nadeLands, физика гранат 30.10)
+  var c = nadeLaneFroms(t.x, t.y).filter(function(q){ return Math.hypot(q.x-b.x, q.y-b.y) <= NADE_SPOT_R && navAt(q.x, q.y); }).map(function(q){ return {x:q.x, y:q.y, lane:true}; })
     .concat(pickSpots("nthr"+b.id+"_"+Math.round(t.x)+","+Math.round(t.y), {x:b.x, y:b.y}, 8, {rMax:NADE_SPOT_R, minGap:40, hideFrom:foes})
       .filter(function(q){ return Math.hypot(q.x-t.x, q.y-t.y) <= t.range*0.85 && !crossesWall(q.x, q.y, t.x, t.y) && nadeLands(t.type, q.x, q.y, null, t.x, t.y); }))
     .filter(function(q){ return !foes.some(function(f){ return hasLOS(q.x, q.y, f.x, f.y); }) && !luBehind(b, q); });   // (п.12) и не позади по ходу (390)
