@@ -1,0 +1,4 @@
+{"par": 8, "jobs": [
+  {"label": "phys_mir", "ref": "347e477192048a84f5a385896326e334f31e1536", "map": "mirage", "matches": [3, 7, 11, 13, 17, 19, 23, 29]},
+  {"label": "phys_anc", "ref": "347e477192048a84f5a385896326e334f31e1536", "map": "ancient", "matches": [3, 7, 11, 13, 17, 19, 23, 29]}
+]}
