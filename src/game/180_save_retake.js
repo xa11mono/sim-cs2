@@ -101,8 +101,10 @@ function pickSaveSpotT(b){
 // укрытие. Заходят все вместе, когда у точек собралось достаточно людей —
 // или раньше, если по честному расчёту иначе не успеть (путь от точки сбора
 // до бомбы + дефуз > остаток таймера).
+// (п.6/30 владельца 29.10, м1 р8: лайнап выбран по пути 1100, а шёл 2046 — с v469 движение платит за известных врагов, а длина «сколько
+// идти» считалась без этого) длина — того же пути, по которому бот пойдёт (цена команды за известных врагов, его полоса)
 function pathLenTo(b, x, y){
-  var Q = PATHQ_Q, p = pathQ("l"+Math.round(b.baseX/Q)+","+Math.round(b.baseY/Q)+","+Math.round((b.z||0)/32)+">"+Math.round(x/Q)+","+Math.round(y/Q), function(){ return buildWaypointPath(b.baseX, b.baseY, b.z, x, y, 0); });
+  var Q = PATHQ_Q, p = pathQ("l"+b.team+"|"+b.id+"|"+Math.round(b.baseX/Q)+","+Math.round(b.baseY/Q)+","+Math.round((b.z||0)/32)+">"+Math.round(x/Q)+","+Math.round(y/Q), function(){ return buildWaypointPath(b.baseX, b.baseY, b.z, x, y, 0, b.team, botLane(b)); });
   var L = 0, px = b.baseX, py = b.baseY;
   p.forEach(function(q){ L += Math.hypot(q[0]-px, q[1]-py); px = q[0]; py = q[1]; });
   return L;

@@ -406,10 +406,13 @@ function lookKnowCands(b){
   // свои уши ≤ 1 с; бросок гранаты рядом — враг точно там (v359)
   var hs = b.heardSound;
   if(hs && tick - hs.tick <= LOOK_FRESH) add(LOOK_LEVEL.sound, "sound", {x: hs.x, y: hs.y, age: tick - hs.tick}, hs.kind === "nade" ? LOOK.freshK : 1);
-  // убили тиммейта рядом ≤ 3 с: туда, откуда убили (убийцу видел он — точка на радаре), иначе место смерти
+  // убили тиммейта рядом ≤ 3 с: туда, откуда убили (убийцу видел он — точка на радаре), иначе место смерти.
+  // (п.26 владельца 29.10, м1 р7: CT на B смотрели в Kitchen по смерти kyousuke на Ramp — проверки «рядом» в коде не было, срабатывала
+  // любая смерть на карте) «рядом» — то же, что у отхода CT «свой убит рядом» (300: FB.deathR по прямой и по пути)
   var sg = teamIntel[b.team] && teamIntel[b.team].sig;
   if(sg) for(var i = sg.length-1; i >= 0; i--){ var s = sg[i]; if(tick - s.tick > 3*TICK_HZ) break;
     if(s.type !== "died" || s.id === b.id) continue;
+    if(Math.hypot(s.x-b.x, s.y-b.y) >= FB.deathR || polyLen(pathPts(b.x, b.y, s.x, s.y)) >= FB.deathR) continue;
     add(LOOK_LEVEL.sound, "death", {x: s.kx != null ? s.kx : s.x, y: s.kx != null ? s.ky : s.y, age: tick - s.tick}); break; }
   // команда знает сейчас: видят (радар) / слышали / сказали ≤ 1 с; в упор (≤ 250 px) — та же «свежая угроза», что у зоны
   var BL = beliefLast[b.team] || {};
@@ -451,8 +454,10 @@ function lookFilter(b, look, LD){
     if(alt){ look = alt; b.lookReason = "open"; if(LD) LD.steps.push("на линии свой — взял другое открытое направление"); }
     // (v413, Б5д-3) на бегу открытого направления впереди нет — по ходу движения, а не в спину своему
     else if(b.curSpeed > 60*SPD_K){ look = null; b.lookReason = null; if(LD) LD.steps.push("на линии свой, впереди открытого нет — по ходу движения"); } }
-  if(look && !/^(enemy|pro)$/.test(b.lookReason || "")){ var lw0 = look; look = openLook(b, look); if(LD && look !== lw0) LD.steps.push("стена по взгляду — взял открытое направление рядом"); }
-  if(!b._sawEnemy && !/^(enemy|spam|cover|contact)$/.test(b.lookReason || "")){
+  // (п.5 владельца 29.10, м1 р2 т12072: по zont1x стреляли из B Short, арбитр выбрал «на звук», а этот фильтр повернул его на «открытое
+  // рядом» — Stove, стрелок в 45–79° от взгляда) на звук / свой контакт — угол, из-за которого враг (cornerLook), даже если стена близко
+  if(look && !/^(enemy|pro|sound|contact)$/.test(b.lookReason || "")){ var lw0 = look; look = openLook(b, look); if(LD && look !== lw0) LD.steps.push("стена по взгляду — взял открытое направление рядом"); }
+  if(!b._sawEnemy && !/^(enemy|spam|cover|contact|sound)$/.test(b.lookReason || "")){   // (п.5) и на звук — угол врага, не «открытое»
     var wla = look ? Math.atan2(look.y-b.y, look.x-b.x) : (!(b.curSpeed > 15*SPD_K) && b.facing !== undefined ? b.facing : null);
     if(wla !== null && flatWallAhead(b, wla, 80)){ var wal = openDirNear(b, wla); look = wal || null; if(wal) b.lookReason = (b.lookReason||"") + "+open"; if(LD) LD.steps.push(wal ? "стена в 80 px — повернул на открытое" : "стена в 80 px — открытого нет"); }
   }

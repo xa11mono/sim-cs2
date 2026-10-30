@@ -336,9 +336,11 @@ function tBrain(){
   if(ts.length === 1 && bomb.state !== "planted" && tt.phase !== "postplant" && (tt.soloPlan || soloCan(ts[0]))){
     var solo = ts[0];
     if(!tt.soloPlan){
-      // сайт, где по инфе меньше CT (и ближе); сразу выход — ждать некого
-      var sc = function(k){ return beliefCount("T", BZ.siteNear[k]||[]) * 400 + Math.hypot(solo.x-SITES[k].x, solo.y-SITES[k].y); };
-      var ks2 = sc("A") <= sc("B") ? "A" : "B";
+      // (п.1/п.31 владельца 29.10: м1 р1 — sh1ro один в бою на A, а «я один» перевёл сайт на B и путь отхода ушёл через T-спавн; м1 р8 —
+      // через 20 с после колла «A стак» magixx пошёл ставить на A: знание о стаке «остыло», а сайт выбирался заново по карте врагов
+      // × 400 + расстояние) сайт — тот, что выбрала команда; другой — только если на свой уже не успеть поставить. Сразу выход — ждать некого
+      var canK = function(k){ return pathLenTo(solo, SITES[k].x, SITES[k].y)/SPEED + PLANT_TICKS/TICK_HZ <= secLeft; };
+      var ks2 = tt.site && (canK(tt.site) || bomb.state !== "carried") ? tt.site : (tt.site === "A" ? "B" : "A");
       tt.soloPlan = ks2;
       if(ks2 !== tt.site){ var exS = tt.execStart; tSetSite(tt, ks2); tt.execStart = exS; site = SITES[ks2]; g = GEO[ks2]; other = ks2 === "A" ? "B" : "A"; plantPt = site.plant || site; }
       if(tt.phase === "setup"){ tt.phase = "execute"; tt.execStart = tick; }
@@ -384,7 +386,9 @@ function tBrain(){
           (G.via || []).concat(G.stage ? [G.stage] : []).forEach(function(n){ var q = zonePoint(n, SITES[tt.site]); if(q) P.push(q); });
           return P; };
         var defPick = function(b, used, seed){ var P = gPts(gOf(b));
-          var pool = DPS.filter(function(z){ var q = zonePoint(z[0]); return q && !used[z[0]] && (!P.length || P.some(function(p){ return Math.hypot(p.x-q.x, p.y-q.y) <= DEF_GROUP_R; })); });
+          // (п.28 владельца 29.10, м1 р8: группа Ramp получила места Mid Boxes / Chair / Connector — по прямой ≤ 450 сквозь стены) район
+          // группы — по пути, а не по прямой
+          var pool = DPS.filter(function(z){ var q = zonePoint(z[0]); return q && !used[z[0]] && (!P.length || P.some(function(p){ return Math.hypot(p.x-q.x, p.y-q.y) <= DEF_GROUP_R && polyLen(pathPts(p.x, p.y, q.x, q.y)) <= DEF_GROUP_R; })); });
           if(!pool.length) return null;
           var wt = pool.reduce(function(a, z){ return a + z[1]; }, 0), u = hashRand(seed)*wt, di = 0;
           while(di < pool.length - 1 && u > pool[di][1]){ u -= pool[di][1]; di++; }
@@ -598,7 +602,10 @@ function tBrain(){
       var cm = ts.filter(function(o){ return o !== carrier && o.alive && o.tRole !== "lurker"; });
       var cLeft = ROUND_TIME_SEC - (tick - roundStartTick)/TICK_HZ, cWalk = polyLen(pathPts(carrier.x, carrier.y, ppt.x, ppt.y))/SPEED + PLANT_TICKS/TICK_HZ + 5;
       var BE = tt.bombEsc && tt.bombEsc.round === roundNum && tt.bombEsc.cid === carrier.id ? tt.bombEsc : null;
-      var esc = BE ? cm.filter(function(o){ return o.id === BE.id && !o._sawEnemy && !o.planting; })[0] : null;
+      // (п.21 владельца 29.10, м1 р5 т37570: «почему бы не отложить выход… пока игрок 2 не сможет выйти с паласа, чтобы сыграть вдвоём» —
+      // TN1R у огня в Palace увидел врага, и magixx в тот же тик пошёл ставить один) назначенный сопровождающий в бою — всё ещё сопровождающий:
+      // носитель ждёт его в пределах тех же ESC_WAIT_SEC / ESC_MAX_SEC (раньше бой снимал сопровождение сразу)
+      var esc = BE ? cm.filter(function(o){ return o.id === BE.id && !o.planting; })[0] : null;
       if(!esc && !cm.some(function(o){ return ready(o) && Math.hypot(o.x-carrier.x, o.y-carrier.y) <= TRADE_R; }) && cLeft >= cWalk){
         esc = cm.filter(function(o){ return !o._sawEnemy && !o.planting && !o.nadeTask && !(o._tradeLock && o._tradeLock.until > tick) && !(o._reposUntil && tick < o._reposUntil) && Math.hypot(o.x-ppt.x, o.y-ppt.y) > 350; })
           .sort(function(a, c){ return Math.hypot(a.x-carrier.x, a.y-carrier.y) - Math.hypot(c.x-carrier.x, c.y-carrier.y); })[0] || null;
@@ -626,6 +633,9 @@ function tBrain(){
         else setPost(carrier, {x:carrier.x, y:carrier.y}, esc, true, "bombWait");
       } else setPost(carrier, ppt, g.ctEntry, true, "plantspot");
     }
+    // (п.4 владельца 29.10, м1 р2: «перекол на другой сайт, но туда идут не все») носитель ещё не готов ставить (ждёт вторую волну), а
+    // поста нет — после перекола пост старого сайта снят (tSetSite): к точке подготовки нового сайта, как остальные (раньше 3,5 с стоял)
+    else if(carrier && carrier.alive && !carrier.planting && !carrier.post) stagePost([carrier], tt.site);
     var rest = pick(["entry","awp","support","igl"]).filter(function(b){ return b !== carrier && ready(b); });
     // (v350, владелец: «все останавливаются далеко») раш: кто без задачи (поддержка, IGL; AWP без лайнапа) — идёт за энтри и держится
     // позади него (60–110 ед., проектные числа), а не стоит на месте сбора; энтри ждёт гранаты — ждут за ним
@@ -810,7 +820,9 @@ function tBrain(){
         var dfz = bots.filter(function(o){ return o.defusing && o.alive; })[0];
         var remT = dfz ? Math.max(0, (dfz.defuseUntil||tick) - tick) : 0;
         if(dfz && !(dfz.defuseUntil) ) remT = (teamEco.CT.roundType === "full" ? DEFUSE_KIT_TICKS : DEFUSE_TICKS);
-        var late = antiDef.filter(function(b){ return pathLenTo(b, bpA.x, bpA.y)/SPEED*TICK_HZ > remT + 24; });
+        // (п.17 владельца 29.10, м1 р4 т30711: «могли пикнуть через зону B Short, откуда отлично видно бомбу, и убить дефузера издалека») успеть —
+        // дойти до первой точки по пути, откуда бомбу видно (оттуда и стреляют), а не до самой бомбы
+        var late = antiDef.filter(function(b){ return bombSightLen(b, bpA)/SPEED*TICK_HZ > remT + 24; });
         if(dfz && late.length === antiDef.length && late.length && !tt._defLate){
           tt._defLate = tick;
           voiceLog("T", "deflate", late[0].id, "не успеваем на дефуз — сейв");
@@ -819,9 +831,12 @@ function tBrain(){
         } else if(dfz) antiDef = antiDef.filter(function(b){ return late.indexOf(b) < 0; });
       }
       var spA = pickSpots("antidef"+Math.round(bpA.x/30)+","+Math.round(bpA.y/30), bpA, 4, {rMin:50, rMax:300, minGap:45, must:[bpA]});
+      // (п.16 владельца 29.10, м1 р4 т30561: «они оба стоят в одной позиции») каждый — ближайшая к себе из точек, которую ещё не занял свой
+      var adUsed = antiDef.filter(function(o){ return o._adSpot && o._adSpot.round === roundNum; }).map(function(o){ return o._adSpot.pt; });
       antiDef.forEach(function(b){
         if(!b._adSpot || b._adSpot.round !== roundNum){
-          var bs2 = null, bd2 = Infinity; spA.forEach(function(q){ var d = Math.hypot(q.x-b.x, q.y-b.y); if(d < bd2){ bd2 = d; bs2 = q; } });
+          var bs2 = null, bd2 = Infinity; spA.forEach(function(q){ if(adUsed.some(function(u){ return u.x === q.x && u.y === q.y; })) return; var d = Math.hypot(q.x-b.x, q.y-b.y); if(d < bd2){ bd2 = d; bs2 = q; } });
+          if(bs2) adUsed.push(bs2);
           b._adSpot = {round:roundNum, pt: bs2 || bpA};
         }
         setPost(b, b._adSpot.pt, bpA, true, "antidefuse"); b._stopPlantUntil = tick + 30; // бегом, не шагом

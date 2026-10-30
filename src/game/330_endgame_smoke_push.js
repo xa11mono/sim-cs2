@@ -147,11 +147,16 @@ function smokePushReason(b, S){
   if(mate) return "пушим вместе";
   return null;
 }
+// (п.15 владельца 29.10: «стреляет в смок, хотя только что убил оттуда врага») сигнал про врага, который уже убит, — не повод: смерть
+// видна всем в киллфиде (так же lkpTick стирает метку убитого). Раньше «видели / слышали CT1» 2,4 / 1,5 с назад держали прострел дыма
+// после его смерти. Неопознанный звук («?») — не про кого-то, остаётся
+function sigFoeDead(g){ var id = g && g.id; if(!id || id === "?") return false; var o = teamBot(id); return !!(o && !o.alive); }
 function enemyBeyondSmoke(b, S, r){
   var sig = teamIntel[b.team].sig, ax = S.x - b.x, ay = S.y - b.y;
   for(var i=sig.length-1; i>=0; i--){
     var g = sig[i]; if(tick - g.tick > 6*TICK_HZ) break;
     if(g.type !== "spotted" && g.type !== "sound") continue;
+    if(sigFoeDead(g)) continue;
     if(Math.hypot(g.x-S.x, g.y-S.y) > r + 350) continue;
     if((g.x-b.x)*ax + (g.y-b.y)*ay > 0) return true;   // по ту сторону, куда идём
   }

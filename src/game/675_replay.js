@@ -18,8 +18,7 @@ var RP_K = {
   startDelay: 1.3,    // повтор начинается через startDelay с после конца раунда (видно карточку раунда и баннер)
   emo: 2.2,           // эмоции: после последней реплики экран ещё стоит emo с
   typing: 0.45,       // реплика: «печатает…» перед фразой, с
-  sayMin: 1.1,        // реплика держится до следующей не меньше, с (с голосом — пока голос не кончится, не дольше sayMax)
-  sayMax: 3.6,
+  sayMin: 1.1,        // реплика держится до следующей не меньше, с
   quiet: 0.85,        // реплика без голоса — до следующей, с
   voices: 5,          // сколько реплик озвучено (клатчер, двое своих, двое соперников) — остальные только текстом
   intro: 0.7, outro: 0.5,
@@ -40,8 +39,7 @@ function rpMode(R, B){
 }
 // (v462, владелец 29.10: «нет анимаций, звуков… звуки главное») звук и голос показа (повтор, пауза) — одно место. Только если включён
 // «Звук» (кнопка, 680): звук чата (chat_talk — присланный владельцем 15.10) на каждую реплику, свист на смену кадра, удар на фраг;
-// голос — синтез речи браузера (speechSynthesis), язык — язык команды; выключить голос — «Инструменты → озвучка реплик»
-var SHOW_TTS = true; try{ SHOW_TTS = localStorage.getItem("sim-tts") !== "0"; }catch(e){}
+// голоса нет (п.18 владельца 29.10: «убрать озвучку игроков в клатчах»; на паузе убран в v469) — реплики только текстом
 function showSnd(kind, g){
   if(typeof SND === "undefined" || !SND.on || !SND.ctx) return;
   try{
@@ -51,19 +49,6 @@ function showSnd(kind, g){
     else if(kind === "pop"){ sndTone(g || 0.1, 0.07, 1100, "triangle", 0, 1700); }
   }catch(e){}
 }
-function showSay(text, lang, lvl, who, onEnd){
-  if(!SHOW_TTS || typeof SND === "undefined" || !SND.on || typeof speechSynthesis === "undefined") return false;
-  try{
-    var u = new SpeechSynthesisUtterance(String(text).toLowerCase()), L = lang === "en" ? "en-US" : "ru-RU", h = rpHash(who || "x");
-    u.lang = L; u.pitch = 0.8 + (h % 40)/100; u.rate = lvl === 3 ? 1.15 : lvl === 1 ? 0.95 : 1.05; u.volume = (lvl === 1 ? 0.55 : lvl === 3 ? 1 : 0.85)*(SND.vol != null ? SND.vol : 0.85);
-    var vs = speechSynthesis.getVoices().filter(function(v){ return v.lang && v.lang.toLowerCase().indexOf(L.slice(0, 2).toLowerCase()) === 0; });
-    if(vs.length) u.voice = vs[h % vs.length];
-    if(speechSynthesis.pending) speechSynthesis.cancel();   // не копить очередь: реплика, которая уже на экране, важнее старой
-    if(onEnd){ u.onend = onEnd; u.onerror = onEnd; }
-    speechSynthesis.speak(u); return true;
-  }catch(e){ return false; }
-}
-function showHush(){ try{ if(typeof speechSynthesis !== "undefined") speechSynthesis.cancel(); }catch(e){} }
 var RP_NB = 9;   // чисел на игрока в снимке: x, y, взгляд, жив, hp, присел, этаж (-1 под полом / 1 над), плант(+)/дефуз(−) 0..1, ослеплён
 function rpNum(v){ return typeof v === "number" && isFinite(v) ? v : NaN; }
 // ---------- запись ----------
@@ -142,6 +127,9 @@ function rpRecord(){
     var KS = RP.kfSeen;
     for(var j = killfeed.length - 1; j >= 0; j--){ var k = killfeed[j]; if(KS.set ? KS.set.has(k) : k._rp) continue; if(KS.set) KS.set.add(k); else k._rp = 1;
       if(k.kind !== "kill") continue;
+      // (п.18/22/34 владельца 29.10) после перемотки запись раунда начинается заново, а киллфид — весь раунд: фраги до начала записи
+      // в клип не попадут (кадров нет) — это не моменты этой записи (раньше давали мультикилл с пустым клипом → экран «клатч 1v2»)
+      var kt = Math.round((k.at||simTime)*TICK_HZ); if(kt < RP.rec.t0) continue;
       RP.rec.kills.push({t: Math.round((k.at||simTime)*TICK_HZ), att: rpIdByNick(k.att), vic: rpIdByNick(k.vic), attTeam: k.attTeam, vicTeam: k.vicTeam,
         w: k.w, hs: k.hs, smoke: k.smoke, wall: k.wall, noscope: k.noscope, blind: k.blind, attN: k.att, vicN: k.vic}); }
   }
@@ -232,7 +220,10 @@ function rpEls(){
 function rpPlay(R, mode){
   if(!R || !R.clutch || !R.s.length) return false;
   var E = rpEls(); if(!E) return false;
-  var B = rpBuild(R), C = R.clutch, md = mode || rpMode(R, B);
+  var B = rpBuild(R), C = R.clutch, md = C.multi ? "clip" : mode || rpMode(R, B);
+  // (п.18/22/34 владельца 29.10) мультикилл / фраг — только клип: экран реакций написан про выигранный клатч. Кадров нет — показывать нечего
+  // (раньше пустой клип уходил в реакции с заголовком «клатч 1v» + число фрагов, в т.ч. у мёртвого и у проигравшей команды)
+  if(C.multi && !B.segs.length) return false;
   if(md === "emo") B.segs = [];
   RP.P = {R: R, mode: md, segs: B.segs, si: 0, rt: B.segs.length ? B.segs[0].a : R.end, phase: "intro", ph0: performance.now(), last: performance.now(),
           cam: null, feedShown: {}, ci: rpBotIdx(C.id)};
@@ -254,7 +245,7 @@ function rpStop(){
   var P = RP.P; if(P && P.phase !== "out"){ P.phase = "out"; P.ph0 = performance.now(); return; }
 }
 function rpEnd(){
-  RP.on = false; RP.P = null; RP.holding = false; showHush();
+  RP.on = false; RP.P = null; RP.holding = false;
   var E = rpEls(); if(E){ E.root.className = ""; E.emo.innerHTML = ""; if(E.vox){ E.vox.innerHTML = ""; E.vox._k = ""; } }
   if(typeof OBS !== "undefined") OBS.sc = 0;   // обсервер заново берёт камеру
 }
@@ -271,8 +262,8 @@ function rpFrame(ts){
     else if(simTime >= Pn.at){
       var Lh = Pn.rec.list || [Pn.rec.clutch], hh = Lh[Pn.i]; Pn.rec.clutch = hh; Pn.i++;
       // следующий повтор — если успевает до конца закупки (владелец: «если успеваешь — по очереди»)
-      if(Pn.i > 1 && roundState === "freeze" && roundStartTime - simTime < rpEst(Pn.rec)){ RP.pending = null; }
-      else { rpPlay(Pn.rec); RP.pending = Pn.i < Lh.length ? Pn : null; if(RP.pending) Pn.at = 0; }
+      if(Pn.n && roundState === "freeze" && roundStartTime - simTime < rpEst(Pn.rec)){ RP.pending = null; }
+      else { if(rpPlay(Pn.rec)) Pn.n = (Pn.n||0) + 1; RP.pending = Pn.i < Lh.length ? Pn : null; if(RP.pending) Pn.at = 0; }
     }
   }
   if(!RP.on) return false;
@@ -541,7 +532,7 @@ function rpSay(R, id, side){
 // (v465, владелец: «фразы уже готовые висят — надо как на паузах, что они говорят по очереди») реакции — по очереди: карточка
 // подсвечивается, над ней «…» (печатает), потом фраза, звук чата и голос; следующий — когда голос кончился (без голоса — через RP_K.quiet с).
 // Сказанное остаётся, приглушённое. Порядок: клатчер → свои → соперники (сначала его жертвы). Раньше 10 голосов запускались за 1,5 с
-// и сбрасывали друг друга (showSay отменяет очередь) — слышно было одну-две реплики
+// и сбрасывали друг друга — слышно было одну-две реплики
 function rpTalkOrder(R){
   var C = R.clutch, win = C.side, lose = win === "CT" ? "T" : "CT", L = [];
   var ids = function(side){ return bots.filter(function(b){ return b.team === side; }).map(function(b){ return b.id; }); };
@@ -567,13 +558,12 @@ function rpTalkTick(E, P, now){
   var q = T.L[T.i], k = rpTalkCard(E, q);
   if(T.st === "type"){
     if(el < RP_K.typing) return false;
-    T.st = "say"; T.t0 = now; T.voiceEnd = true;
+    T.st = "say"; T.t0 = now;
     if(k.s) k.s.className = "rp-say lvl" + q.say.lvl + " in";
     showSnd("chat", q.say.lvl === 1 ? 0.35 : 0.6);
-    if(q.voice){ var tk = T.tok = {}; T.voiceEnd = false; if(!showSay(q.say.t, q.lang, q.say.lvl, q.id, function(){ if(T.tok === tk) T.voiceEnd = true; })) T.voiceEnd = true; }
     return false;
   }
-  if(el < (q.voice ? RP_K.sayMin : RP_K.quiet) || (!T.voiceEnd && el < RP_K.sayMax)) return false;
+  if(el < (q.voice ? RP_K.sayMin : RP_K.quiet)) return false;
   if(k.c){ k.c.classList.remove("talking"); k.c.classList.add("said"); }
   T.i++; T.t0 = now; if(T.i < T.L.length) rpTalkStart(E, T, now);
   return false;

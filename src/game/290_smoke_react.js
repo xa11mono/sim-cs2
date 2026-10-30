@@ -56,7 +56,7 @@ function smkEvidence0(b, s){
   // сейчас ждёт врага у этого входа: свежий звук / колл / видели в SMK_ENTRY_R ед. от смока за 6 с или колл «выход» на этот сайт.
   // Раньше смок у входа простреливали всегда, даже когда все враги были на другой стороне карты
   if(entry){
-    var sigE = (teamIntel[b.team].sig || []).some(function(g){ return tick - g.tick <= 6*TICK_HZ && (g.type === "spotted" || g.type === "sound") && Math.hypot(g.x-s.x, g.y-s.y) < SMK_ENTRY_R; });
+    var sigE = (teamIntel[b.team].sig || []).some(function(g){ return tick - g.tick <= 6*TICK_HZ && (g.type === "spotted" || g.type === "sound") && !sigFoeDead(g) && Math.hypot(g.x-s.x, g.y-s.y) < SMK_ENTRY_R; });
     var cl = b.team === "CT" && teamTac.CT && teamTac.CT.call, near = cl && SITES[cl.site] && Math.hypot(SITES[cl.site].x-s.x, SITES[cl.site].y-s.y) < 900 && cl.count >= 1.5;
     if(sigE || near) return {kind:"entry", pt:beyond};
   }

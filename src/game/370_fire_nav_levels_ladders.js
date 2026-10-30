@@ -281,6 +281,16 @@ function offNavStep(x1, y1, x2, y2, b){
       if(aw) return false; } }
   return true;
 }
+// (п.19 владельца 29.10, м1 р5 т34629: TeSeS переминался на посту и шагнул на ящик в Ticket, 62 ед. выше пола) шаг без прыжка: выше
+// ступеньки (18, как в heightBlocked) — только прыжком; переминание на месте не прыгает
+function stepNeedsJump(x1, y1, x2, y2, b){
+  if(!b || b.z == null) return false;
+  var a1 = navAt(x1, y1, b.z) || navArea(b._area); if(!a1) return false;
+  var a2 = navAt(x2, y2, b.z) || navAtLevel(x2, y2, a1.z);   // (снимок п.19: уступ +63 navAt своего уровня не отдаёт — берётся пол в пределах прыжка)
+  if(!a2 || a2 === a1) return false;
+  var up = navStepDz(a1, a2, x2, y2);
+  return up > 18 && !(up > 72 && a2.z - b.z > 72);   // выше роста над головой — потолок, не уступ (как в heightBlocked)
+}
 function heightBlocked(x1, y1, x2, y2, b){
   if(!b || b.z == null) return false;
   // (v323, М38) стоит в щели между участками навмеша — берётся участок, где был (bot._area); раньше щель пропускала проверку,

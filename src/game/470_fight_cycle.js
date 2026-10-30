@@ -204,6 +204,11 @@ function exposedTo(b, maxD, maxAge, anyLos){
   var BL = beliefLast[b.team] || {}, out = [];
   for(var eid in BL){ var lo = BL[eid]; if(tick - lo.tick > maxAge) continue; var e = bots.filter(function(o){ return o.id === eid; })[0]; if(!e || !e.alive) continue;
     if(Math.hypot(lo.x-b.x, lo.y-b.y) < maxD && (anyLos || hasLOS(b.x, b.y, lo.x, lo.y, b.z))) out.push({x:lo.x, y:lo.y}); }
+  // (п.5 владельца 29.10, м1 р2 т12112: zont1x с 16 HP перезаряжался на виду — метку стрелка lkpTick стёр в тот же тик) по нему самому
+  // попали — откуда, он знает сам (урон + звук выстрела, heardSound «hit»): это тоже «на виду»
+  var hs = b.heardSound;
+  if(hs && hs.kind === "hit" && hs.team && hs.team !== b.team && tick - hs.tick <= maxAge && Math.hypot(hs.x-b.x, hs.y-b.y) < maxD &&
+     !out.some(function(q){ return Math.hypot(q.x-hs.x, q.y-hs.y) < 60; })) out.push({x:hs.x, y:hs.y});
   return out;
 }
 function coverForReload(b, from){

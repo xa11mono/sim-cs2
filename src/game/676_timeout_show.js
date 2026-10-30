@@ -6,7 +6,7 @@
 // (RP_LANG, 675), русскоговорящие в англоязычной команде иногда по-русски (RP_RU). Часы — время игры: на паузе игры показ стоит.
 // (v462, владелец: «нет анимаций, звуков; заготовка и портреты в одном окне, чтобы чередовались, разнообразие») сцены: титр → один из
 // порядков TS_SEQ (выбор — от матча и раунда): доска; доска + портреты в одном окне; портреты; спавн с доской в углу. На смену сцены —
-// затемнение и свист, на реплику — звук чата и голос (675: showSnd / showSay). Длительности — с игры, проектные (сумма ≈ TO_SEC)
+// затемнение и свист, на реплику — звук чата (675: showSnd). Длительности — с игры, проектные (сумма ≈ TO_SEC)
 var TS_K = {title: 2.5, outro: 0.5};
 // (v463, владелец: «всё очень быстро меняется, не успеваешь осознать») три сцены по 8–10 с, реплика — не меньше TS_LINE с
 var TS_SEQ = [
@@ -162,7 +162,8 @@ function tsStart(T){
   var li = rpHash(T.m + "|" + T.round + "|lay") % TS_LAYS.length; if(li === TS.lastLay) li = (li + 1) % TS_LAYS.length; TS.lastLay = li;   // не как в прошлой паузе
   var seq = TS_SEQ[si], at = TS_K.title, S = [{sc: "title", a: 0, b: at}];
   seq.forEach(function(q){ S.push({sc: q[0], a: at, b: at + q[1]}); at += q[1]; });
-  TS.P = {T: T, t0: simTime, lines: tsScript(T), side: T.side, shown: -1, phase: "", manual: false, seq: S, end: at};
+  TS.P = {T: T, t0: simTime, lines: tsScript(T), side: T.side, shown: -1, phase: "", manual: false, seq: S, end: at,
+          view0: {scale: view.scale, panX: view.panX, panY: view.panY}};   // вид до паузы — вернуть после (п.8)
   var team = bots.filter(function(b){ return b.team === T.side; }), igl = tsIgl(T.side), en = (RP_LANG[T.name] || "ru") === "en";
   var pips = ""; for(var i = 0; i < (T.round > regRounds() ? 1 : 3); i++) pips += '<i class="' + (i < T.left ? "on" : "") + '"></i>';
   var logo = TEAM_LOGO[T.side];
@@ -181,7 +182,10 @@ function tsStart(T){
   return true;
 }
 function tsStop(){ var P = TS.P; if(P && P.phase !== "out"){ P.outAt = simTime; P.phase = "out"; P.outReal = performance.now(); } }
-function tsEnd(){ TS.P = null; showHush(); var E = tsEls(); if(E){ E.root.className = ""; E.talk.innerHTML = ""; E.sub.innerHTML = ""; } if(typeof OBS !== "undefined") OBS.sc = 0; }
+// (п.8 владельца 29.10: «камера сохраняет положение после пауз»; владелец: обсервер выключен — вернуть камеру туда, где была;
+// включён — как сейчас: обсервер заново берёт кадр)
+function tsEnd(){ var v0 = TS.P && TS.P.view0; if(v0 && typeof OBS !== "undefined" && !OBS.on){ view.scale = v0.scale; view.panX = v0.panX; view.panY = v0.panY; }
+  TS.P = null; var E = tsEls(); if(E){ E.root.className = ""; E.talk.innerHTML = ""; E.sub.innerHTML = ""; } if(typeof OBS !== "undefined") OBS.sc = 0; }
 // по кадру (680, после повтора клатча): true — экран нарисован здесь (сцены поверх); false — обычная отрисовка
 function tsFrame(ts){
   if(typeof TO_NOW === "undefined") return false;
@@ -234,7 +238,6 @@ function tsReplayLast(){
 (function(){
   if(typeof document === "undefined") return;
   var b = document.getElementById("btnToLast"); if(b) b.addEventListener("click", tsReplayLast);
-  var tt = document.getElementById("chkTts"); if(tt){ tt.checked = SHOW_TTS; tt.addEventListener("change", function(){ SHOW_TTS = tt.checked; if(!tt.checked) showHush(); try{ localStorage.setItem("sim-tts", tt.checked ? "1" : "0"); }catch(e){} }); }
   var f = document.getElementById("btnToTake"); if(f) f.addEventListener("click", function(){ TO_FORCE = true; if(typeof showBanner === "function") showBanner("Пауза: возьмёт команда, проигравшая этот раунд", null, 2200); });
   // (v461) раунды для просмотра — из замера v461 на ПК (16 матчей): клатч 1v5 (м17 р27), пауза T, раунд взяли (м13 р7)
   var c = document.getElementById("btnRpGo"); if(c) c.addEventListener("click", function(){ rpJump(17, 27); });

@@ -82,7 +82,7 @@ function tIglReplan(tt, site, other, secLeft){
           var trvR = Math.hypot(ctrR.x-SITES[other].x, ctrR.y-SITES[other].y)*1.4/SPEED;
           voiceLog("T", "rotread", "IGL", toward.length+" CT ротируют на "+tt.site+" — идём на "+other+", но углы чекаем, там может кто-то остаться");
           logEvent("IGL: слышим ротацию CT на "+tt.site+" → перекол на "+other+" (не значит, что там пусто)");
-          tSetSite(tt, other); tt.phase = "setup"; tt.takeAssign = null;
+          tSetSite(tt, other); tt.phase = "setup";
           tt.execTick = tick + Math.round(Math.min(Math.max(4, trvR*0.7), 12)*TICK_HZ);
           return true;
         } else logEvent("IGL: слышим ротацию CT на "+tt.site+", но это может быть фейк — играем по плану");
@@ -172,6 +172,9 @@ function tSetSite(tt, site){
   // (v450, владелец 28.10: «в экономике после главной тактики писать перекол») — для показа (630): откуда и куда перекол
   if(old && site && old !== site) (tt.recalls || (tt.recalls = [])).push({from: old, to: site, sec: Math.round((tick - roundStartTick)/TICK_HZ)});
   tt.site = site; tt.execStart = null; tt.plantPick = null;
+  // (п.4 владельца 29.10, м1 р2 т11617: после перекола B→A T1 остался на «siteholdA: B Boost») места на сайте (takeAssign) — под
+  // старый сайт; сбрасывались только в двух местах смены из пяти
+  if(old !== site) tt.takeAssign = null;
   nadeFlags.tExec = false; nadeFlags.tExecSm = false; nadeFlags.peekFlashPlanned = false;
   bots.forEach(function(b){
     if(b.team !== "T") return;
@@ -179,6 +182,10 @@ function tSetSite(tt, site){
     // (раньше два пути смены обнуляли и «пройден», и группа снова шла по маршруту к старому сайту)
     if(b._route) b._routeDone = b._route.key + "|" + roundNum;
     b._route = null; b._stageInfo = null;
+    // (п.4 владельца 29.10, м1 р2: после перекола B→A носитель ещё 3 с шёл на «stageB» в B Apartments) пост под старый сайт (стадия,
+    // зачистка, удержание) — снят: новый даст тактика под новый сайт
+    var tg = b.post && b.post.tag;
+    if(old && old !== site && tg && (tg.indexOf("stage" + old) === 0 || tg.indexOf("sitehold" + old) === 0 || tg.indexOf("clear" + old) === 0)) clearPost(b);
     var t = b.nadeTask;
     if(old && old !== site && t && SITES[old] && Math.hypot(t.x-SITES[old].x, t.y-SITES[old].y) < Math.hypot(t.x-SITES[site].x, t.y-SITES[site].y)){
       b.nadeTask = null; b.nadeQueue = null; if(b.post && b.post.tag === "lineup") clearPost(b);
