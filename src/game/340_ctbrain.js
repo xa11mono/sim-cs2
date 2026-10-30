@@ -99,7 +99,9 @@ function ctBrain(){
     // (тактика 30.10, задание владельца: «CT реагируют на информацию, а не на сам факт гранаты; фейк не уводит всех») гранаты без увиденных /
     // услышанных T, смерти своего, бомбы — намёк, а не «выход ~3»: было 2,6 (две гранаты — и колл обходил терпение, уходили ротатор, роумер,
     // мидер). Теперь — один (проектное число; ротатор идёт после терпения); выход подтверждают шаги, контакт, бомба — тогда счёт растёт по ним
-    var cnt = Math.max(est.seen, est.heard ? 1 : 0, (carrierHere||carrierTo) ? 2 : 0, plantHere ? 2 : 0, undefended ? 1 : 0, Math.min(3, deathsHere), Math.min(5, mass), nadeHere >= 2 ? 1 : 0);
+    // (тактика 30.10, задание владельца: «не смешивать отсутствие защитников CT с отсутствием T») «сайт пустой» (undefended) — некому
+    // держать: повод заполнить сайт (pri ниже), но не знание о T — в счёт T не входит (было +1, и колл звучал «сайт пустой (~1)»)
+    var cnt = Math.max(est.seen, est.heard ? 1 : 0, (carrierHere||carrierTo) ? 2 : 0, plantHere ? 2 : 0, Math.min(3, deathsHere), Math.min(5, mass), nadeHere >= 2 ? 1 : 0);
     var score = ev + mass;
     res[k] = {site:k, score:score, ev:ev, count:cnt, est:est, carrier:carrierHere||carrierTo, undefended:undefended, deaths:deathsHere, plant:plantHere, nades:nadeHere};
     if(!best || score > best.score) best = res[k];
@@ -120,7 +122,7 @@ function ctBrain(){
       var prevSite = ct.call ? ct.call.site : null;   // (v321, М23) колл переходит на другой сайт — «переколл»
       var prevCnt = isNew ? 0 : ct.call.count, prevLogged = isNew ? 0 : (ct.call.logged || 0);
       ct.call = {logged: prevLogged, site:best.site, count:best.count, tick:tick, evTick:tick, since:(!isNew && ct.call.since) || tick, sinceSite:best.site, undefended:best.undefended, bombSeen: best.carrier || best.plant, seen: best.est ? best.est.seen : 0, nades: best.nades || 0};
-      var how = best.plant ? "слышно плант" : (best.nades >= 2 && !best.est.seen) ? "гранаты на "+best.site+" — выход" : best.undefended ? "сайт пустой, опорник погиб" : best.carrier ? (ct.bombDown ? "бомба выбита, лежит там" : ctPlantGuessOnly() ? "плант не слышали на "+(best.site === "A" ? "B" : "A")+" — значит "+best.site : "бомба замечена") : best.deaths ? "минус на сайте" : (best.est.seen ? "вижу "+best.est.seen : best.est.heard ? "слышу" : "по инфе");
+      var how = best.plant ? "слышно плант" : (best.nades >= 2 && !best.est.seen) ? "гранаты на "+best.site+" — выход" : best.undefended ? "некому держать — опорник погиб" : best.carrier ? (ct.bombDown ? "бомба выбита, лежит там" : ctPlantGuessOnly() ? "плант не слышали на "+(best.site === "A" ? "B" : "A")+" — значит "+best.site : "бомба замечена") : best.deaths ? "минус на сайте" : (best.est.seen ? "вижу "+best.est.seen : best.est.heard ? "слышу" : "по инфе");
       var n1 = Math.max(1, Math.round(best.count));
       // в войс — только новый колл или когда их стало БОЛЬШЕ, чем уже говорили
       // (повтор колла) колл снялся и через пару секунд поднялся снова по той же
@@ -130,8 +132,10 @@ function ctBrain(){
       var dup = BAL.callDedup && cm && n1 <= cm.n && tick - cm.tick < 15*TICK_HZ;
       // (v381, М130, владелец 16.10: «при сейве идут коллы ПЕРЕКОЛЛ B → A: минус на сайте (~1)») команда сейвит — коллов сайта нет
       if((isNew || n1 > prevLogged) && !dup && !ct.saving){ ct.call.logged = n1; CM[best.site] = {n:n1, tick:tick};
-        if(isNew && prevSite && prevSite !== best.site) intelCallLog("CT", "recall"+best.site+tick, "ПЕРЕКОЛЛ "+prevSite+" → "+best.site+": "+how+" (~"+n1+")", null, "recall");
-        else intelCallLog("CT", "site"+best.site+n1, "T на "+best.site+" (~"+n1+", "+how+")", null, "plan"); }
+        // о T ничего не знаем (только «некому держать») — так и говорят, без «T на … (~1)»
+        var noT = best.count < 0.5;
+        if(isNew && prevSite && prevSite !== best.site) intelCallLog("CT", "recall"+best.site+tick, "ПЕРЕКОЛЛ "+prevSite+" → "+best.site+": "+how+(noT ? "" : " (~"+n1+")"), null, "recall");
+        else intelCallLog("CT", "site"+best.site+n1, noT ? best.site+": "+how+", T там не видели" : "T на "+best.site+" (~"+n1+", "+how+")", null, "plan"); }
       else if(dup) ct.call.logged = Math.max(ct.call.logged||0, cm.n);
     } else { ct.call.evTick = tick; ct.call.undefended = best.undefended; if(best.carrier || best.plant) ct.call.bombSeen = true; }
   } else if(ct.call){

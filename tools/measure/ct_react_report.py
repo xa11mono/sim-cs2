@@ -10,3 +10,8 @@ for f in sys.argv[1:]:
     print('  раундов %d; ротаций CT %d; из них по коллу «гранаты», T не видели: %d; ротаций на сайт не тот, что у T: %d' % (len(R), len(rot), len(blind), len(wrong)))
     print('  раунды-фейки T: %d, в них ротаций на фейковый сайт: %s' % (len(fake), [sum(1 for x in r['rot'] if x[2] != r['site']) for r in fake]))
     print('  фейк-дефуз %d, дефуз %d; переколы T «прочекан — пусто» %d' % (sum(r['fakeDef'] for r in R), sum(r['realDef'] for r in R), sum(len(r['clrReb']) for r in R)))
+    dv = [(r, x) for r in R for x in r.get('dv', [])]
+    bait = [(r, x) for r, x in dv if x[1] == 'bait']
+    died = sum(1 for r, x in bait if any(dd[1] == x[2] and 0 <= dd[0] - x[0] <= 192 for dd in r.get('dead', [])))
+    print('  T на звук дефуза: байт-пиков %d (погиб в 3 с: %d), «все на бомбу» %d, «фейк — держим» %d, «настоящий» %d' % (
+        len(bait), died, sum(1 for r, x in dv if x[1] == 'antidef'), sum(1 for r, x in dv if x[1] == 'dffake'), sum(1 for r, x in dv if x[1] == 'dfreal')))

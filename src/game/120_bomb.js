@@ -123,23 +123,40 @@ function ctDefuseThreat(dTicks){
     if(!e || tick - e.tick > 8*TICK_HZ) return true;
     return polyLen(pathPts(e.x, e.y, bomb.x, bomb.y))/SPEED*TICK_HZ < dTicks; });
 }
+// (тактика 30.10, задание владельца: «T не должны на звук дефуза выходить всей командой; один проверяет / провоцирует, остальные
+// поддерживают; не пикать на каждый звук»; PRO_PLAY 6ж) ответ: "all" — все на бомбу (дефуз идёт дальше первого звука — настоящий, или
+// ждать нельзя: не успеем, если он настоящий), "bait" — один выглядывает проверить (байт-пик), остальные держат места; false — не выходим.
+// Было: true / false, на true шли все в 1100 ед.; «горячий» T шёл без раздумий по монетке (0,25 × агрессия) — снято
+var BAIT_MAX = 2;   // байт-пиков за раунд — проектное число (6ж: «сколько раз байтят — не расписано»)
 function tDefuseGo(tt, ts){
   var heard = ts.filter(function(b){ return tick - (b._defuseHeard||-9999) < 110; });
   if(!heard.length) return false;
-  if(!BAL.fakeRead) return true;
+  if(!BAL.fakeRead) return "all";
   var h0 = Math.max.apply(null, heard.map(function(b){ return b._defuseHeard; }));
   var cont = ts.some(function(b){ return (b._defuseCont||-9999) > h0 + 36; });
-  if(cont){ if(tt._dfRead !== h0){ tt._dfRead = h0; voiceLog("T", "dfreal"+h0, heard[0].id, "дефуз не прекращается — настоящий, все на бомбу!"); } return true; }
+  if(cont){ if(tt._dfRead !== h0){ tt._dfRead = h0; voiceLog("T", "dfreal"+h0, heard[0].id, "дефуз не прекращается — настоящий, все на бомбу!"); } return "all"; }
   var kitGuess = teamEco.CT.roundType === "full" ? DEFUSE_KIT_TICKS : DEFUSE_TICKS;
   var near = heard.slice().sort(function(a, c){ return pathLenTo(a, bomb.x, bomb.y) - pathLenTo(c, bomb.x, bomb.y); })[0];
   var travel = pathLenTo(near, bomb.x, bomb.y)/SPEED*TICK_HZ;
   var canWait = travel + 60 < kitGuess && bombTimeLeftTicks() > kitGuess + 40;
-  var aggr = near.prof ? prof(near, "aggr") : 0.5;
-  var rush = hashRand(h0*7 + near.id.charCodeAt(1)) < 0.25*aggr;           // горячий — иногда без раздумий
-  if(!canWait || rush) return true;
-  if(tick - h0 < 52) return false;                                          // слушают ~0.8с
+  if(!canWait) return "all";                                                // если настоящий — иначе не успеть: идут все
+  if(tick - h0 < 52){                                                       // слушают ~0,8 с; один может выглянуть проверить
+    if(tt._baitH0 === h0) return "bait";
+    if((tt._baitN && tt._baitN.round === roundNum ? tt._baitN.n : 0) >= BAIT_MAX) return false;
+    var bt = tDefuseBaiter(ts); if(!bt) return false;                       // некому без размена — слушают
+    tt._baitH0 = h0; tt._baiter = bt.id; tt._baitN = {round: roundNum, n: (tt._baitN && tt._baitN.round === roundNum ? tt._baitN.n : 0) + 1};
+    return "bait";
+  }
   if(tt._dfFake !== h0){ tt._dfFake = h0; voiceLog("T", "dffake"+h0, near.id, "тапнул и замолчал — фейк, не выходим, держим углы"); }
   return false;
+}
+// кто выглядывает проверить дефуз: ближе всех (по пути до точки, откуда видно бомбу — bombSightLen, 170) из тех, кто не в бою и не ставит,
+// и рядом с кем есть свой (≤ TRADE_R) — размен, если за звуком ждут с прицелом
+function tDefuseBaiter(ts){
+  var C = ts.filter(function(b){ return !b.planting && !b._sawEnemy && Math.hypot(b.x-bomb.x, b.y-bomb.y) < 1100 &&
+    ts.some(function(o){ return o !== b && Math.hypot(o.x-b.x, o.y-b.y) <= TRADE_R; }); });
+  C.sort(function(a, c){ return bombSightLen(a, bomb) - bombSightLen(c, bomb); });
+  return C[0] || null;
 }
 function bombTimeLeftTicks(){ return bomb && bomb.state==="planted" ? bomb.explodeTick - tick : Infinity; }
 

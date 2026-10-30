@@ -800,7 +800,7 @@ function tBrain(){
       if(tick - (tt._defLateSeen || tt._defLate) > 2*TICK_HZ) tt._defLate = null;
       else { ts.forEach(function(b){ if(!b._saveSpot) b._saveSpot = pickSaveSpotT(b); if(!b.planting) setPost(b, b._saveSpot, null, true, "save"); }); return; }
     }
-    var antiDef = [];
+    var antiDef = [], dfGo = false;
     defuseContTick();
     // (v296, владелец 14.10: «фейк-дефуз и обычный — его туда-сюда перенаправляет», отметка: раунд 1, тик 5848 — T2 за 10 тиков
     // «на время» → «на бомбу» → «на время» → «сейв») одно решение на одну попытку дефуза: кто пошёл на бомбу — идёт, пока дефуз
@@ -817,9 +817,11 @@ function tBrain(){
         if(AS && b.atPost && dfNow && !b._sawEnemy){ if(!AS.arr) AS.arr = tick; else if(tick - AS.arr > 32 && !AS.push){ AS.push = true; AS.pt = bpC; voiceLog("T", "adpush"+b.id+roundNum, b.id, "отсюда бомбу не видно — иду прямо на дефуз"); } }
         setPost(b, AS ? AS.pt : bpC, bpC, true, "antidefuse"); b._stopPlantUntil = tick + 30; });
     } else
-    if(BAL.antiDefuse && tDefuseGo(tt, ts)){
+    if(BAL.antiDefuse && (dfGo = tDefuseGo(tt, ts))){
       var bpA = {x:bomb.x, y:bomb.y};
-      antiDef = ts.filter(function(b){ return !b.planting && Math.hypot(b.x-bpA.x, b.y-bpA.y) < 1100; });
+      // байт-пик: на первый звук выглядывает один (tDefuseBaiter), остальные держат свои места (120: tDefuseGo)
+      antiDef = dfGo === "bait" ? ts.filter(function(b){ return b.id === tt._baiter && !b.planting; }) : ts.filter(function(b){ return !b.planting && Math.hypot(b.x-bpA.x, b.y-bpA.y) < 1100; });
+      if(dfGo === "bait" && antiDef.length && tt._baitV !== tt._baitH0){ tt._baitV = tt._baitH0; voiceLog("T", "bait"+tt._baitH0, antiDef[0].id, "звук дефуза — выгляну проверить, прикройте"); }
       // (S6) не успеть — не бежать на троих: сколько осталось дефузить (кит
       // не знаем — считаем, что есть, если у CT был фулл-бай), и сколько бежать
       if(BAL.defuseReach){
@@ -847,8 +849,9 @@ function tBrain(){
         }
         setPost(b, b._adSpot.pt, bpA, true, "antidefuse"); b._stopPlantUntil = tick + 30; // бегом, не шагом
       });
-      if(antiDef.length && tt._adVoice !== roundNum){ tt._adVoice = roundNum; voiceLog("T", "antidef", antiDef[0].id, "дефузят! все на бомбу!"); }
-      if(antiDef.length) tt._adCommit = {round:roundNum, ids:antiDef.map(function(b){ return b.id; }), last:tick};
+      if(dfGo === "all" && antiDef.length && tt._adVoice !== roundNum){ tt._adVoice = roundNum; voiceLog("T", "antidef", antiDef[0].id, "дефузят! все на бомбу!"); }
+      // байт — не обязательство: проверяющий не держится за бомбу после звука (снимется с решением «фейк»); все — до конца дефуза (как было)
+      if(antiDef.length && dfGo === "all") tt._adCommit = {round:roundNum, ids:antiDef.map(function(b){ return b.id; }), last:tick};
     }
     if(lurker && antiDef.indexOf(lurker) < 0) lurkerBrain(lurker, tt, other);
     var group = pick(["entry","awp","support","igl"]).filter(function(b){ return antiDef.indexOf(b) < 0; });
