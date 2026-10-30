@@ -84,6 +84,10 @@ function lineupTick(){
   var tt = teamTac.T, ct = teamTac.CT, since = tick - roundStartTick;
   allLineups().forEach(function(L){
     var key = "lu"+L.id; if(nadeFlags[key]) return;
+    // (v488) лайнап, с точки которого бросок не долетит (решение точки — то же, что считает закупка: nadePrecalcTick / nadeGuess), не
+    // назначается: раньше бот шёл к точке, там «не долетит: стена / потолок» — задание снималось, и он возвращался (облако v485, Ancient
+    // м11 + м17: 18 из 29 качелей tug с lineup)
+    if(!luFeasible(L)){ nadeFlags[key] = true; return; }
     // (v150) про-лайнап: в этом раунде кидается с вероятностью, как у про
     // (v423, 3в) кубик — на цель (группу лайнапов одной цели, proRollGroup), а не на каждое место броска
     if(L.pro && nadeFlags["pr"+L.id] === undefined) proRollGroup(L);
@@ -220,6 +224,14 @@ function lineupTick(){
   });
 }
 var LU_REACH_PAD = 3;
+// (v488) долетит ли граната лайнапа с его точки: решение подбора для точки лайнапа (то же, что throwNade берёт подсказкой) — этаж верный и
+// промах в пределах действия гранаты (nadeAimLimit, как отказ «не долетит» в throwNade). Нет геометрии / навмеша — не судим (true)
+function luFeasible(L){
+  if(!L || !L.from || !L.to || !m3()) return true;
+  var na = navAt(L.from.x, L.from.y, null); if(!na) return true;
+  var g = nadeGuess(L.type, L.from.x, L.from.y, na.z, L.to.x, L.to.y, false, true);
+  return !!g && g.levelOk !== false && g.e3 <= nadeAimLimit(L.type, true);
+}
 // (док 6) точка броска цели L для бойца b: среди лайнапов той же цели (группа про, 320) своей стороны и сайта — ближайшая по пути из тех,
 // откуда ему можно: хозяину цели по плану гранат — любая; остальным — в зоне его гранаты (npCanUse) или (CT) в зоне, где он сейчас стоит.
 // Зона точки — как у плана: CT — откуда бросок, T — куда падает; колл, ретейк, после планта — зона не важна. Нет такой — null
@@ -245,6 +257,7 @@ function luSpotFor(b, L, luM){
     if(!own){ var z = luM === "now" || luM === "exec" ? (M.team === "CT" ? npZoneAt(M.from.x, M.from.y) : npZoneAt(M.to.x, M.to.y)) : null;
       if(!npCanUse(b, L.type, luM, z) && !(myZ && z === myZ && npCanUse(b, L.type, luM, null))) return; }
     if(luBehind(b, M.from)) return;   // (п.6) точка этой цели позади по ходу — берётся другая из группы, если есть
+    if(!luFeasible(M)) return;        // (v488) с этой точки бросок не долетит — другая точка группы
     var d = pathLenTo(b, M.from.x, M.from.y); if(d < bl){ bl = d; best = M; } });
   return best;
 }
