@@ -4,7 +4,7 @@ freshMatch(__M__);
 var M0=matchNum;
 /*@@WATCH@@*/
 var REC={rounds:[], kills:[], pos:[], plants:[], buys:[], nades:[], jit:{alive:0, look:0, moveEng:0, moveIdle:0, moveOther:0, ev:[]}}, rs=null, cur=null;
-var ofk=feedKill; feedKill=function(att,vic,weap,hs){ REC.kills.push([tick, att?att.id:null, att?att.team:null, att?Math.round(att.x):null, att?Math.round(att.y):null, vic.id, vic.team, Math.round(vic.x), Math.round(vic.y), String(weap), hs?1:0, att&&att.weapon?att.weapon.key:null, vic.tRole||'']); return ofk.apply(this,arguments); };
+var ofk=feedKill; feedKill=function(att,vic,weap,hs){ if(typeof REC!=='undefined'&&REC.tac) REC.tac.d.push([tick, vic.id, vic.team, att?att.id:null]); REC.kills.push([tick, att?att.id:null, att?att.team:null, att?Math.round(att.x):null, att?Math.round(att.y):null, vic.id, vic.team, Math.round(vic.x), Math.round(vic.y), String(weap), hs?1:0, att&&att.weapon?att.weapon.key:null, vic.tRole||'']); return ofk.apply(this,arguments); };
 var oer=endRound; endRound=function(w,reason){ if(cur){ cur.t1=tick; cur.winner=w; cur.reason=reason; cur.bomb=bomb.state; } return oer.apply(this,arguments); };
 var otn=throwNade; throwNade=function(b,type,tx,ty){ var ok0=roundState==='live' && b.nades && b.nades[type]>0, x0=b.x, y0=b.y, sp0=Math.round(b.curSpeed||0), lu0=(arguments[6]||arguments[7])?1:0, ls=tick-(b.lastShotTick||-999); var res=otn.apply(this,arguments); if(ok0 && res!==false) REC.nades.push([tick, b.team, type, b.id, (b.tRole||b.ctRole||''), Math.round(x0), Math.round(y0), Math.round(tx), Math.round(ty), ls, sp0, lu0]); return res; };   // (v370) только состоявшийся бросок (throwNade может отказать)
 // (v181) стрельба: каждый выстрел пулей — тик, стрелок, команда, оружие, дистанция, цель,
@@ -14,6 +14,14 @@ REC.shots=[]; var ots=tryShoot; tryShoot=function(sh,tg,dist){ var a0=sh.ammo, l
 // (30.10) det: + z разрыва, первое касание [x, y, z, вид], куда целился [x, y], ошибка подбора e3; roof — граната легла на крышу (без действия)
 REC.roof=[]; var oor=nadeOrigin; nadeOrigin=function(n){ if(roundState==='live' && n.onRoof) REC.roof.push([tick, n.team, n.type, Math.round(n.x), Math.round(n.y), n.thrower?n.thrower.id:'']); return oor.apply(this,arguments); };
 REC.det=[]; var odt=detonate; detonate=function(n){ if(roundState==='live'){ var sh=0; bots.forEach(function(o){ if(o.alive && o.team!==n.team && Math.hypot(o.x-n.x,o.y-n.y)<400 && tick-(o.lastShotTick||-999)<=64) sh++; }); var f0=n.bounces&&n.bounces[0], R0=f0&&typeof m3Radar==='function'?m3Radar(m3(),f0[0],f0[1]):null; REC.det.push([tick, n.team, n.type, Math.round(n.x), Math.round(n.y), sh, n.thrower?n.thrower.id:'', String(n.why||''), n.z!=null?Math.round(n.z):null, R0?[Math.round(R0[0]),Math.round(R0[1]),Math.round(f0[2]),f0[3]]:null, n.aimX!=null?[Math.round(n.aimX),Math.round(n.aimY)]:(n.tx!=null?[Math.round(n.tx),Math.round(n.ty)]:null), n.plan?Math.round(n.plan[3]):null]); } return odt.apply(this,arguments); };
+
+// (тактика 30.10) REC.tac — выход T, коллы и ротации CT, «сайт пуст», дефуз и байт-пики; для любой версии игры (typeof-проверки).
+//  ex: [r, тик выхода, сайт]; on: [r, тик первого T на сайте, сайт]; call: [тик, сайт, счёт, видели, гранат, некому держать];
+//  rot: [тик, кто, сайт]; sc: [тик, сайт, CT на сайте по факту, возраст проверки 9 главных точек CT (с, −1 — не проверялась),
+//  проверенных зон в 750 за 8 / 12 / 20 с]; dv: [тик, команда, ключ войса, кто, текст]; fk: [тик, текст] — фейк-дефуз / дефуз; d: [тик, жертва, команда, убийца]
+REC.tac={ex:[], on:[], call:[], rot:[], sc:[], dv:[], fk:[], d:[]}; var TACR={};
+var ovl_=voiceLog; voiceLog=function(team,key,who,text){ if(roundState==='live' && /^(bait|dfreal|dffake|antidef|deflate|clrreb|exreb|reb|rot)/.test(String(key))) REC.tac.dv.push([tick, team, String(key).replace(/\d+$/,''), who, String(text).slice(0,60)]); return ovl_.apply(this,arguments); };
+var olg_=logEvent; logEvent=function(s){ if(roundState==='live' && /фейк-дефуз|дефузит/.test(String(s))) REC.tac.fk.push([tick, String(s).slice(0,40)]); return olg_.apply(this,arguments); };
 var H={};
 // (v262) К4: ротация CT — кто на какой сайт идёт по колу (ct.rot); разворот = сайт сменился (A→B) или сняли и снова
 // послали на тот же в одном раунде; «бросили» = сняли с ротации без планта/смерти/конца раунда. К5: бомбу выбили
@@ -43,6 +51,19 @@ for(var t=0;t<__T__;t++){ stepTick(); if(typeof WATCH!=='undefined') WATCH.tick(
  })();
  if(bomb.state==='planted' && cur && cur.plant==null){ cur.plant=tick; cur.site=bomb.site; REC.plants.push([tick, bomb.site, Math.round(bomb.x), Math.round(bomb.y)]); }
 
+ (function(){ if(typeof teamTac==='undefined') return; var tt=teamTac.T, ct=teamTac.CT, TA=REC.tac;
+  if(TACR.r!==roundNum) TACR={r:roundNum};
+  if(tt&&tt.phase==='execute'&&TACR.ex==null){ TACR.ex=tick; TA.ex.push([roundNum,tick,tt.site]); }
+  if(tt&&TACR.on==null&&SITES[tt.site]&&bots.some(function(b){ return b.team==='T'&&b.alive&&onSite(SITES[tt.site],b.x,b.y); })){ TACR.on=tick; TA.on.push([roundNum,tick,tt.site]); }
+  var c=ct&&ct.call; var ck=c?c.site+'|'+Math.round(c.count*2)+'|'+(c.seen||0)+'|'+(c.nades||0)+'|'+(c.undefended?1:0):''; if(ck!==TACR.ck){ TACR.ck=ck; if(c) TA.call.push([tick,c.site,+c.count.toFixed(1),c.seen||0,c.nades||0,c.undefended?1:0]); }
+  if(ct&&ct.go&&ct.go.ids){ for(var id in ct.go.ids){ var kk=id+ct.go.site; if(!TACR['g'+kk]){ TACR['g'+kk]=1; TA.rot.push([tick,id,ct.go.site]); } } }
+  if(tick%64===0&&bomb.state!=='planted'&&typeof CLEARZ!=='undefined'&&typeof POS!=='undefined') ['A','B'].forEach(function(k){
+   var P=POS[k], names=((P&&P.ctHold)||[]).slice(0,9), zs={}; names.forEach(function(nm){ var zp=zonePoint(nm,SITES[k]), z=zp?zoneIdAt(zp.x,zp.y):null; if(z) zs[z]=1; });
+   var truth=bots.filter(function(o){ return o.team==='CT'&&o.alive&&(zs[zoneIdAt(o.x,o.y)]||Math.hypot(o.x-SITES[k].x,o.y-SITES[k].y)<750); }).length;
+   var ages=names.map(function(nm){ var zp=zonePoint(nm,SITES[k]), z=zp?zoneIdAt(zp.x,zp.y):null, C=z?CLEARZ.T[z]:null; return C?Math.round((tick-C.tick)/TICK_HZ):-1; });
+   var near=[8,12,20].map(function(F){ var n=0; for(var zc in CLEARZ.T){ var Cz=CLEARZ.T[zc]; if(Cz&&tick-Cz.tick<F*TICK_HZ&&Math.hypot(Cz.x-SITES[k].x,Cz.y-SITES[k].y)<750) n++; } return n; });
+   TA.sc.push([tick,k,truth,ages,near]); });
+ })();
  if(tick%16===0){ REC.hp=REC.hp||[]; bots.forEach(function(b){ if(b.alive) REC.hp.push([tick, b.id, b.hp]); }); }   // (v373) HP — для сравнения раскладов с про
  if(tick%16===0) bots.forEach(function(b){ REC.pos.push([tick, b.id, b.team==='CT'?1:0, Math.round(b.x), Math.round(b.y), b.alive?1:0, Math.round((b.facing||0)*100)/100, b.weapon?b.weapon.key:'', b._knife?1:0]); });
  bots.forEach(function(b){ if(!b.alive){ delete H[b.id]; return; } REC.jit.alive++;
