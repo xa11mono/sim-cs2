@@ -56,23 +56,14 @@ function nadeGuess(type, x, y, z, tx, ty, duck, wide){
   if(g === undefined) g = nadeGuessStore(k, nadeSolve(type, x, y, z, tx, ty, duck, wide));
   return g;
 }
-// (этап 1в) лайнап выполним вообще: из его точки броска стоя есть бросок в допуске (nadeAimLimit) и на нужный этаж — решение точки
-// лайнапа (то же, что подсказка подбора, посчитано во freeze-тайм). Нет — лайнап не назначается (390): иначе боец идёт к точке,
-// бросок там отказан, и он идёт назад (прогон 127: tug +34 / +49 %, половина событий tug — с постом lineup)
-// пол под точкой лайнапа: участок навмеша, нет его (точка у края) — пол геометрии (как у бойца, вставшего туда)
-function nadeFromZ(F){ var na = navAt(F.x, F.y, null); return na ? na.z : visFloorAt(F.x, F.y); }
-function nadeLineupOk(L){
-  if(!m3() || !L || !L.from || !L.to || !NADE[L.type]) return true;
-  var g = nadeGuess(L.type, L.from.x, L.from.y, nadeFromZ(L.from), L.to.x, L.to.y, false, true);
-  return !!g && g.levelOk !== false && g.e3 <= nadeAimLimit(L.type, true);
-}
 var NADE_PRECALC_I = 0, NADE_PRECALC_MS = 12;   // мс за тик freeze-тайма на подсчёт лайнапов (проектное число: < кадра 60 Гц)
 function nadePrecalcTick(){
   if(!m3() || typeof allLineups !== "function") return;
   var L = allLineups(), t0 = (typeof performance !== "undefined") ? performance.now() : 0;
   while(NADE_PRECALC_I < L.length){
     var lu = L[NADE_PRECALC_I++]; if(!lu || !lu.from || !lu.to || !NADE[lu.type]) continue;
-    nadeGuess(lu.type, lu.from.x, lu.from.y, nadeFromZ(lu.from), lu.to.x, lu.to.y, false, true);
+    var na = navAt(lu.from.x, lu.from.y, null); if(!na) continue;
+    nadeGuess(lu.type, lu.from.x, lu.from.y, na.z, lu.to.x, lu.to.y, false, true);
     if(!t0 || performance.now() - t0 >= NADE_PRECALC_MS) break;
   }
 }   // ед.: уточнённый бросок из места бойца не хуже решения точки лайнапа + столько — принят (проектное число)
