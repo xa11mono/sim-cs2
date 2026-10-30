@@ -1,0 +1,6 @@
+{"par": 8, "jobs": [
+  {"label": "phys_mir_b", "ref": "486483721444717e59a7ae2b54a4f3e0caf08f9f", "map": "mirage", "matches": [31, 37, 41, 43, 47, 53, 59, 61]},
+  {"label": "phys_anc_b", "ref": "486483721444717e59a7ae2b54a4f3e0caf08f9f", "map": "ancient", "matches": [31, 37, 41, 43, 47, 53, 59, 61]},
+  {"label": "v479chk_mir_b", "ref": "8e15ac1c8a338aefcb5dbf74a7c97948e7670074", "map": "mirage", "matches": [31]},
+  {"label": "v479chk_anc_b", "ref": "8e15ac1c8a338aefcb5dbf74a7c97948e7670074", "map": "ancient", "matches": [31]}
+]}
