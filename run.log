@@ -1,0 +1,43 @@
+playwright 1.56.0, браузеры: C:\Windows\system32\config\systemprofile\.simcs2_node\ms-playwright
+> git fetch --quiet origin de45b28da0218ed87ae46aa21267c92966ee1f11
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_58hvjuyf FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_58hvjuyf\src\build.py --map mirage C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\final_mir.html
+> git fetch --quiet origin de45b28da0218ed87ae46aa21267c92966ee1f11
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_9i_n0ol3 FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_9i_n0ol3\src\build.py --map ancient C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\final_anc.html
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\engine\walk_run.py --job=final_mir,C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\final_mir.html --job=final_anc,C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\final_anc.html --matches=3,7,11,13,17,19,23,29,31,37,41,43,47,53,59,61 --par=8
+матчей в очереди: 32, одновременно: 8
+final_mir match 23 rc 0 5248328 — готово 1/32, 7 мин
+final_mir match 19 rc 0 4528208 — готово 2/32, 7 мин
+final_mir match 13 rc 0 5314197 — готово 3/32, 8 мин
+final_mir match 3 rc 0 5519155 — готово 4/32, 9 мин
+final_mir match 7 rc 0 6110089 — готово 5/32, 9 мин
+final_mir match 29 rc 0 6095000 — готово 6/32, 9 мин
+final_mir match 11 rc 0 8197906 — готово 7/32, 12 мин
+final_mir match 17 rc 0 8068083 — готово 8/32, 13 мин
+final_mir match 37 rc 0 5332524 — готово 9/32, 15 мин
+final_mir match 31 rc 0 5608251 — готово 10/32, 15 мин
+final_mir match 41 rc 0 5822302 — готово 11/32, 17 мин
+final_mir match 43 rc 0 5857858 — готово 12/32, 17 мин
+final_mir match 47 rc 0 6206805 — готово 13/32, 19 мин
+final_mir match 53 rc 0 6645757 — готово 14/32, 19 мин
+final_mir match 61 rc 0 4949218 — готово 15/32, 21 мин
+final_mir match 59 rc 0 6107077 — готово 16/32, 21 мин
+final_anc match 7 rc 0 4605569 — готово 17/32, 21 мин
+final_anc match 3 rc 0 5849874 — готово 18/32, 22 мин
+final_anc match 11 rc 0 4375361 — готово 19/32, 23 мин
+final_anc match 13 rc 0 4367712 — готово 20/32, 24 мин
+final_anc match 17 rc 0 5345243 — готово 21/32, 26 мин
+final_anc match 19 rc 0 5683641 — готово 22/32, 27 мин
+final_anc match 29 rc 0 5038694 — готово 23/32, 28 мин
+final_anc match 41 rc 0 4627446 — готово 24/32, 30 мин
+final_anc match 43 rc 0 5060264 — готово 25/32, 30 мин
+final_anc match 23 rc 0 6923176 — готово 26/32, 30 мин
+final_anc match 31 rc 0 6612762 — готово 27/32, 30 мин
+final_anc match 37 rc 0 7411108 — готово 28/32, 32 мин
+final_anc match 47 rc 0 4752824 — готово 29/32, 32 мин
+final_anc match 53 rc 0 5905579 — готово 30/32, 34 мин
+final_anc match 61 rc 0 5059593 — готово 31/32, 35 мин
+final_anc match 59 rc 0 7811386 — готово 32/32, 37 мин
+done
+all done
