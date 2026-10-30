@@ -148,7 +148,7 @@
   }
 
   // Как кинуть, чтобы граната разорвалась у цели (бот целится так, как целился бы человек: поворот на цель, наклон и сила).
-  // from — ноги [X, Y, Z]; aim — точка [X, Y, Z] (смок / молотов — пол у цели; флешка / HE — над целью); o: {duck, vel, noJump, wz, wide, guess, guessOk}.
+  // from — ноги [X, Y, Z]; aim — точка [X, Y, Z] (смок / молотов — пол у цели; флешка / HE — над целью); o: {duck, vel, noJump, wz, wide, guess, guessOk, levels, levelTol}.
   // Перебор: наклон от −75° до +45° шагом AIM_STEP при каждой силе (ЛКМ, обе, ПКМ), каждый — настоящим полётом (nadeThrow:
   // стены, отскоки, запал, качение); лучший — уточняется наклоном. Не вышло ближе AIM_JUMP_IF — то же с прыжком на бинде
   // (так про кидают дальние смоки); и всё ещё мимо — поворот в сторону на AIM_YAW (В4: «с разбега» удалено — разбег только у
@@ -160,6 +160,7 @@
   // лайнап — кэш, 380). Своя граната — как раньше (быстрее)
   var AIM_STEP = 4, AIM_FINE = [2, 1, 0.5], AIM_JUMP_IF = 48, AIM_YAW = [-3, 3, -7, 7, -12, 12];   // градусы, ед. — проектные числа (скорость ≈ 10 мс на бросок)
   var AIM_YAW_WIDE = [-1, 1, -2, 2, -3, 3, -4, 4, -6, 6, -9, 9, -12, 12];   // градусы — проектные числа
+  var AIM_LEVEL_MISS = 10000;   // ед.: «не тот этаж» всегда хуже нужного этажа (не порог, а порядок выбора)
   var AIM_LOCAL_YAW = 3, AIM_LOCAL_PIT = 4;   // градусы — проектные числа (уточнение у готового броска, o.guess)
   function nadeAim(type, from, aim, trace, o) {
     o = o || {};
@@ -172,8 +173,12 @@
       // (физика гранат, 30.10) ошибка — по месту в 3D (высота — с весом o.wz, по умолчанию 1): раньше высота шла с весом 0,5 и
       // смок «на крышу над целью» выигрывал у смока на пол цели рядом
       var exy = Math.hypot(r.det[0] - aim[0], r.det[1] - aim[1]), dz = r.det[2] - aim[2], sc = Math.hypot(exy, dz * (o.wz != null ? o.wz : 1));
+      // (30.10, этаж) o.levels — высоты полов у цели: граната должна сработать на одном из них (± o.levelTol), иначе бросок «не тот
+      // этаж / крыша» — хуже любого броска на нужный этаж (+ AIM_LEVEL_MISS к ошибке); levelOk — в ответе
+      var lvOk = !o.levels || o.levels.some(function (z) { return Math.abs(r.det[2] - z) <= o.levelTol; });
+      if (!lvOk) sc += AIM_LEVEL_MISS;
       if (!best || sc < best.sc) best = { yaw: yaw, pitch: pitch, strength: s, jump: !!jump, det: r.det, t: r.t, how: r.how, err: exy, dz: dz,
-                                          e3: sc, bounces: r.bounces.length, land: r.bounces.length ? r.bounces[0].slice(0, 3) : r.det, sc: sc };
+                                          e3: sc, levelOk: lvOk, bounces: r.bounces.length, land: r.bounces.length ? r.bounces[0].slice(0, 3) : r.det, sc: sc };
     }
     function search(jump) {
       [1, 0.5, 0].forEach(function (s) { for (var pt = -75; pt <= 45; pt += AIM_STEP) tryOne(pt, s, jump); });

@@ -44,8 +44,8 @@
     if(n.plan){ r.plan = [+n.plan[0].toFixed(1), +n.plan[1].toFixed(1), +n.plan[2].toFixed(1), +n.plan[3].toFixed(0)]; r.from0 = n.from0.map(function(v){ return +v.toFixed(1); }); }
     if(n.bounces){ var f0 = n.bounces[0]; if(f0){ var R0 = m3Radar(m3(), f0[0], f0[1]); r.first = [+R0[0].toFixed(1), +R0[1].toFixed(1), +f0[2].toFixed(1), f0[3]]; } }
     if(n.p0) r.p0 = n.p0;
-    // пол у цели: сработала не выше / не ниже пола цели больше чем на 64 ед. (смок, молотов) — «тот же этаж»; иначе — другой этаж / крыша
-    if(n.z != null && (lu.type === "smoke" || lu.type === "molly")){ var fl = nadeAimFloors(m3(), lu.to.x, lu.to.y); r.floorOk = fl.some(function(z){ return Math.abs(n.z - z) <= 64; }); }
+    // пол у цели (смок, молотов): сработала в NADE_LEVEL_TOL от одного из полов в NADE_LEVEL_R px от цели и не на крыше — «тот же этаж»
+    if(n.z != null && (lu.type === "smoke" || lu.type === "molly")){ var fl = nadeLandFloors(m3(), lu.to.x, lu.to.y); r.floorOk = !n.onRoof && fl.some(function(z){ return Math.abs(n.z - z) <= NADE_LEVEL_TOL; }); }
     r.contacts = n.bounces ? n.bounces.map(function(q){ return q[3]; }) : (walls ? ["wall2d×" + walls] : []);
     r.path = path;
     out.push(r);

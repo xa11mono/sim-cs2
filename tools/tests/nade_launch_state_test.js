@@ -5,7 +5,8 @@
 // пол отличается > 40 ед.); E — отказ (нет броска отсюда): гранаты нет, граната не потрачена, причина; F — боец бежит: вылет тот же,
 // что стоя (скорость не идёт ни в подбор, ни в вылет).
 // Проверки у каждого броска: где сработала = где сработает по подбору (бит в бит), точка вылета — у самого бойца (≤ 23 ед. по
-// горизонтали: рука в 16 ед. перед глазами), подбор шёл из места бойца (from0 = x, y, z бойца).
+// горизонтали: рука в 16 ед. перед глазами), подбор шёл из места бойца (from0 = x, y, z бойца); смок / молотов — на полу у цели
+// (nadeLandFloors ± NADE_LEVEL_TOL), не на крыше.
 (function(){
   freshMatch(1); roundState = "live"; BAL.lobErr = 0; BAL.execErr = false;
   var BAD = {ancient: "pro88 pro99 prx16 prx66 prx108", mirage: "pro1 pro2 pro30 pro49 pro53 pro64 pro65 pro69 prx15 prx28 prx31 prx41 prx91 prx103 prx112 prx128 prx142 prx171 prx182 prx211 prx213 prx244 prx259 prx291 prx294"};
@@ -35,7 +36,8 @@
     if(dPlan > 1e-6 || Math.abs(n.z - n.plan[2]) > 1e-6) fail(lu.id + ": сработала не там, где по подбору (" + dPlan.toFixed(2) + " px)");
     var f0 = n.bounces[0], R0 = f0 ? m3Radar(M, f0[0], f0[1]) : null;
     // тот же этаж, что цель (смок / молотов): сработала в 64 ед. от одного из полов цели, куда можно дойти; иначе — крыша / другой этаж
-    var floorOk = (lu.type !== "smoke" && lu.type !== "molly") || nadeAimFloors(M, lu.to.x, lu.to.y).some(function(fz){ return Math.abs(n.z - fz) <= 64; });
+    var floorOk = (lu.type !== "smoke" && lu.type !== "molly") || nadeLandFloors(M, lu.to.x, lu.to.y).some(function(fz){ return Math.abs(n.z - fz) <= NADE_LEVEL_TOL; }) && !n.onRoof;
+    if(!floorOk) fail(lu.id + ": смок / молотов брошен, а лёг на другой этаж / крышу (z " + n.z.toFixed(0) + ")");   // (этап 1) такой бросок не должен состояться
     return {p0: p0, v0: v0, end: [n.x, n.y, n.z], err: Math.hypot(n.x - lu.to.x, n.y - lu.to.y), t: n.t, first: R0 ? [R0[0], R0[1], f0[2], f0[3]] : null, roof: !!n.onRoof, floorOk: floorOk};
   }
   function floorZ(x, y){ var na = navAt(x, y, null); return na ? na.z : visFloorAt(x, y); }
