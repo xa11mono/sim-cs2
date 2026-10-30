@@ -41,6 +41,11 @@ var NADE_AIM_SCATTER = {"smoke":{"yaw":[0.0,0.0,0.0,0.1,0.1,0.1,0.2,0.25,0.4,0.7
 function nadeQuant(D, u){ var x = u*10, i = Math.min(9, Math.floor(x)); return D[i] + (D[i+1] - D[i])*(x - i); }
 var NADE_UTIL0 = null;   // средний множитель навыка (1,5 − util) по профилям — навык меняет разброс относительно среднего про
 function nadeUtilMul0(){ if(NADE_UTIL0 == null){ var s = 0, n = 0; for(var k in PROFILES){ s += 1.5 - (PROFILES[k].util != null ? PROFILES[k].util : 0.5); n++; } NADE_UTIL0 = n ? s/n : 1; } return NADE_UTIL0; }
+function nadeAimLimit(type, trusted){
+  if(!trusted) return NADE_AIM_OK * (type === "flash" ? 2 : 1);
+  var M = m3(), R = NADE[type] && NADE[type].radius ? NADE[type].radius * (M ? M.unit / M.cell : 1) : 0;
+  return R ? Math.min(NADE_AIM_OK * 4, Math.max(NADE_AIM_OK, R)) : NADE_AIM_OK * 4;
+}
 var NADE_GUESS_SLACK = 16;
 // (этап 3, скорость) решение для точки лайнапа (подсказка подбора из места бойца) — своё хранилище, не вытесняется общим кэшем (тот
 // чистится целиком после 4000 решений); считается заранее во freeze-тайм (nadePrecalcTick, 540) — в раунде остаётся только уточнение
@@ -89,7 +94,7 @@ function nadeAimFloors(M, tx, ty){
 // долетит ли своя граната бойца из (x, y) (пол z, null — пол под точкой) в цель — тот же порог, что у своего броска
 function nadeLands(type, x, y, z, tx, ty){
   var S = nadeSolve(type, x, y, z != null ? z : visFloorAt(x, y), tx, ty, false);
-  return !!S && S.levelOk !== false && S.e3 <= NADE_AIM_OK * (type === "flash" ? 2 : 1);
+  return !!S && S.levelOk !== false && S.e3 <= nadeAimLimit(type, false);
 }
 // (v373) своя граната через стену — только так, как кидают про. Замер (tools/nade_walls_pro.py, Mirage, 35 592 броска): у про 79 %
 // бросков прямая «рука → разрыв» проходит сквозь стену радара (через крыши, над ящиками), толщиной — до 290 px у 10 % смоков;
@@ -173,7 +178,10 @@ function throwNade(b, type, tx, ty, lob, why, trusted, from){
   // своя — ближе NADE_AIM_OK (флешке — вдвое); лайнап — и мимо, но не так, что отсюда туда не кинуть вовсе (× 4)
   // (30.10, этаж) смок / молотов, который отсюда ложится только на другой этаж или крышу, — не кидается (раньше проходил по 3D-ошибке ≤ 400 ед.)
   if(S.levelOk === false){ NADE_FAIL = "не тот этаж / крыша"; return false; }
-  if(S.e3 > NADE_AIM_OK * (trusted ? 4 : type === "flash" ? 2 : 1)){ NADE_FAIL = "не долетит: стена / потолок"; return false; }
+  // (этап 1б) лайнап — в пределах действия самой гранаты: дым, огонь, HE, сработавшие дальше своего радиуса от цели, цель не накрывают
+  // (прогон 126, Mirage м53: молотов «T Ramp» с ошибкой подбора 378 ед. — в пределах прежних 400 — ударил в стену в 25 px и загорелся у
+  // своего, тот застрял в огне: 30 «переносов»). Радиус — NADE (px радара → ед. игры); флешке радиуса нет — как было (× 4)
+  if(S.e3 > nadeAimLimit(type, trusted)){ NADE_FAIL = "не долетит: стена / потолок"; return false; }
   var a = Math.atan2(ty-b.y, tx-b.x), M = m3(), F = m3Game(M, b.x, b.y);
   // вылет — тот бросок, что подобрала физика (S): в полёте — состояние физики (ед. игры: p, v, t, касания — 385), x, y, z — где
   // граната сейчас (радар; z — ед. игры), tx, ty — где сработает по расчёту той же физики (другие решения смотрят туда)
