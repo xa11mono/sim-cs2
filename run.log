@@ -1,0 +1,27 @@
+playwright 1.56.0, браузеры: C:\Windows\system32\config\systemprofile\.simcs2_node\ms-playwright
+> git fetch --quiet origin 66d1e29232affd2102bbdc1de69eb9651e52a4f0
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_p5h9ysfm FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_p5h9ysfm\src\build.py --map mirage C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v478_mir.html
+> git fetch --quiet origin 66d1e29232affd2102bbdc1de69eb9651e52a4f0
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_mfu_d8qx FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_mfu_d8qx\src\build.py --map ancient C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v478_anc.html
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\engine\walk_run.py --job=v478_mir,C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v478_mir.html --job=v478_anc,C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v478_anc.html --matches=3,7,11,13,17,19,23,29 --par=8
+матчей в очереди: 16, одновременно: 8
+v478_mir match 11 rc 0 4185673 — готово 1/16, 6 мин
+v478_mir match 29 rc 0 4120038 — готово 2/16, 6 мин
+v478_mir match 13 rc 0 4507075 — готово 3/16, 7 мин
+v478_mir match 17 rc 0 5040967 — готово 4/16, 8 мин
+v478_mir match 7 rc 0 6370955 — готово 5/16, 10 мин
+v478_mir match 19 rc 0 8114980 — готово 6/16, 12 мин
+v478_mir match 23 rc 0 8013526 — готово 7/16, 12 мин
+v478_anc match 7 rc 0 4353332 — готово 8/16, 12 мин
+v478_mir match 3 rc 0 8037465 — готово 9/16, 13 мин
+v478_anc match 3 rc 0 5240506 — готово 10/16, 13 мин
+v478_anc match 13 rc 0 4199375 — готово 11/16, 13 мин
+v478_anc match 11 rc 0 5630889 — готово 12/16, 14 мин
+v478_anc match 19 rc 0 5445318 — готово 13/16, 17 мин
+v478_anc match 17 rc 0 6894885 — готово 14/16, 18 мин
+v478_anc match 23 rc 0 5268004 — готово 15/16, 18 мин
+v478_anc match 29 rc 0 7231216 — готово 16/16, 20 мин
+done
+all done
