@@ -27,7 +27,11 @@ var olg_=logEvent; logEvent=function(s){ if(roundState==='live' && /фейк-д�
 //  react (новая важнее), end (старая кончилась: не подтверждалась, снята), swap (того же уровня, старая жива), down (ниже, старая жива —
 //  арбитр так не должен), same (та же задача заново, сразу после конца); osc — качели A → B → A за 8 с (B короче 8 с).
 //  n — назначений (новых задач), pr — игроко-раундов; pat — частые пары «было → стало» по классам swap / down / osc (до 40)
-REC.task={n:0, pr:0, cls:{react:0, end:0, swap:0, down:0, same:0}, osc:0, oscPat:{}, pat:{}, ev:[]}; var TK={};
+REC.task={n:0, pr:0, cls:{react:0, end:0, swap:0, down:0, same:0}, osc:0, oscThrow:0, oscPat:{}, pat:{}, ev:[]}; var TK={}, TKC={}, TKT={};
+// снятие задачи механикой (clearPost) и состоявшийся бросок (throwNade) — перехват только для учёта (игру не меняет): снятая в тот же тик
+// и заменённая задача — «кончилась», а не «понижение»; качели X → lineup → X с броском — «кинул и вернулся», считаются отдельно (oscThrow)
+var ocp_=clearPost; clearPost=function(b){ if(b) TKC[b.id]=tick; return ocp_.apply(this,arguments); };
+var otn_=throwNade; throwNade=function(b){ var r=otn_.apply(this,arguments); if(r!==false&&b) TKT[b.id]=tick; return r; };
 // жива ли прошлая задача — только чтение (taskKeepUntil меняет состояние бота — сторож игру не трогает): подтверждалась ≤ TASK_STALE или держит
 // свой замок (контакт, перестановка, размен, подмена)
 function tkKeep(b, tag){ tag=String(tag); if(/^contact/.test(tag)) return b._contact&&b._contact.lock?b._contact.until:0; if(/^repos/.test(tag)) return b._reposUntil||0;
@@ -83,13 +87,14 @@ for(var t=0;t<__T__;t++){ stepTick(); if(typeof WATCH!=='undefined') WATCH.tick(
   if(TK.r!==roundNum){ TK={r:roundNum, b:{}}; RT.pr+=bots.length; }
   bots.forEach(function(b){ if(!b.alive) return; var T=b._task, S=TK.b[b.id]||(TK.b[b.id]={k:null,P:null,h:[]});
    if(!T||T.round!==roundNum){ if(S.P) S.P.cleared=true; return; }   // задачу сняли (clearPost) — прошлая кончилась
+   if(S.P&&TKC[b.id]>=S.P.seen) S.P.cleared=true;   // снята и заменена в один тик
    var k=T.tb+'|'+T.t0;
-   if(S.k===k&&!(S.P&&S.P.cleared)){ S.P={tb:T.tb,lv:T.lv,t:T.t,tag:T.tag,t0:T.t0}; return; }
+   if(S.k===k&&!(S.P&&S.P.cleared)){ S.P={tb:T.tb,lv:T.lv,t:T.t,tag:T.tag,t0:T.t0,seen:tick}; return; }
    RT.n++; var c=tkCls(b, S.P, T);
    if(c){ RT.cls[c]++; if(c==='swap'||c==='down'){ var pk=c+': '+S.P.tb+' → '+T.tb; RT.pat[pk]=(RT.pat[pk]||0)+1; if(RT.ev.length<300) RT.ev.push([tick,b.id,c,S.P.tb,T.tb,Math.round(b.x),Math.round(b.y)]); } }
    S.h.push([T.tb, tick]); if(S.h.length>3) S.h.shift();
-   if(S.h.length===3 && S.h[0][0]===S.h[2][0] && S.h[1][0]!==S.h[0][0] && S.h[2][1]-S.h[1][1]<8*64 && S.h[2][1]-S.h[0][1]<16*64){ RT.osc++; var ok=S.h[0][0]+' → '+S.h[1][0]+' → '+S.h[0][0]; RT.oscPat[ok]=(RT.oscPat[ok]||0)+1; }
-   S.k=k; S.P={tb:T.tb,lv:T.lv,t:T.t,tag:T.tag,t0:T.t0}; });
+   if(S.h.length===3 && S.h[0][0]===S.h[2][0] && S.h[1][0]!==S.h[0][0] && S.h[2][1]-S.h[1][1]<8*64 && S.h[2][1]-S.h[0][1]<16*64){ var thr=S.h[1][0]==='lineup'&&TKT[b.id]>=S.h[1][1]; if(thr) RT.oscThrow++; else { RT.osc++; var ok=S.h[0][0]+' → '+S.h[1][0]+' → '+S.h[0][0]; RT.oscPat[ok]=(RT.oscPat[ok]||0)+1; } }
+   S.k=k; S.P={tb:T.tb,lv:T.lv,t:T.t,tag:T.tag,t0:T.t0,seen:tick}; });
  })();
  if(tick%16===0){ REC.hp=REC.hp||[]; bots.forEach(function(b){ if(b.alive) REC.hp.push([tick, b.id, b.hp]); }); }   // (v373) HP — для сравнения раскладов с про
  if(tick%16===0) bots.forEach(function(b){ REC.pos.push([tick, b.id, b.team==='CT'?1:0, Math.round(b.x), Math.round(b.y), b.alive?1:0, Math.round((b.facing||0)*100)/100, b.weapon?b.weapon.key:'', b._knife?1:0]); });
