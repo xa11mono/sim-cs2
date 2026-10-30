@@ -81,7 +81,11 @@ for(var t=0;t<__T__;t++){ stepTick(); if(typeof WATCH!=='undefined') WATCH.tick(
    // проверили) и свежая инфа T о CT у сайта за 8 с (intelEstimate: видели + слышали); сторож только читает
    var bel=(typeof beliefCount==='function'&&BZ.siteNear)?+beliefCount('T',BZ.siteNear[k]||[]).toFixed(2):null;
    var fr=typeof intelEstimate==='function'?intelEstimate('T',SITES[k].x,SITES[k].y,600,8*TICK_HZ):null;
-   TA.sc.push([tick,k,truth,ages,near,bel,fr?fr.seen+fr.heard:null,aliveCount('CT'),aliveCount('T')]); });
+   // ожидание CT на сайте по расстановкам про, совместимым с увиденным (knowSetupRead — только до 40-й с и при 5 живых CT); CT, которых T
+   // свежо (≤ 8 с) видели в другом месте (дальше 900 от сайта), и сколько CT мертво — для оценки «насколько защищён» (калибровка)
+   var SR=typeof knowSetupRead==='function'?knowSetupRead('T'):null, BLT=(typeof beliefLast!=='undefined'&&beliefLast.T)||{}, away=0;
+   for(var eid in BLT){ var q=BLT[eid], ob=bots.filter(function(o){return o.id===eid&&o.alive;})[0]; if(ob&&tick-q.tick<=8*TICK_HZ&&Math.hypot(q.x-SITES[k].x,q.y-SITES[k].y)>900) away++; }
+   TA.sc.push([tick,k,truth,ages,near,bel,fr?fr.seen+fr.heard:null,aliveCount('CT'),aliveCount('T'),SR?+SR.E[k].toFixed(2):null,away,Math.round((tick-roundStartTick)/TICK_HZ)]); });
  })();
  (function(){ if(typeof taskLevel!=='function') return; var RT=REC.task;
   if(TK.r!==roundNum){ TK={r:roundNum, b:{}}; RT.pr+=bots.length; }
