@@ -148,14 +148,18 @@
   }
 
   // Как кинуть, чтобы граната разорвалась у цели (бот целится так, как целился бы человек: поворот на цель, наклон и сила).
-  // from — ноги [X, Y, Z]; aim — точка [X, Y, Z] (смок / молотов — пол у цели; флешка / HE — над целью); o: {duck, vel, noJump}.
+  // from — ноги [X, Y, Z]; aim — точка [X, Y, Z] (смок / молотов — пол у цели; флешка / HE — над целью); o: {duck, vel, noJump, wz, wide}.
   // Перебор: наклон от −75° до +45° шагом AIM_STEP при каждой силе (ЛКМ, обе, ПКМ), каждый — настоящим полётом (nadeThrow:
   // стены, отскоки, запал, качение); лучший — уточняется наклоном. Не вышло ближе AIM_JUMP_IF — то же с прыжком на бинде
   // (так про кидают дальние смоки); и всё ещё мимо — поворот в сторону на AIM_YAW (В4: «с разбега» удалено — разбег только у
   // записанных лайнапов, и бот его делает сам, 380: nadeRecTick)
   // (обход края, отскок от стены). Ответ — лучший бросок {yaw, pitch, strength, jump, det, t, how, err: ед. по горизонтали,
   // dz, bounces}; null — только если цель на месте бросающего.
+  // o.wide (лайнап набора, физика гранат 30.10) — поворот вбок чаще (AIM_YAW_WIDE) и при всех силах: место лайнапа — среднее мест
+  // про (±60 ед.), прицел «прямо на цель» оттуда часто не тот; на лайнапах набора доля ≤ 32 ед. 38 → 45 %, решение ≈ 0,1 с (одно на
+  // лайнап — кэш, 380). Своя граната — как раньше (быстрее)
   var AIM_STEP = 4, AIM_FINE = [2, 1, 0.5], AIM_JUMP_IF = 48, AIM_YAW = [-3, 3, -7, 7, -12, 12];   // градусы, ед. — проектные числа (скорость ≈ 10 мс на бросок)
+  var AIM_YAW_WIDE = [-1, 1, -2, 2, -3, 3, -4, 4, -6, 6, -9, 9, -12, 12];   // градусы — проектные числа
   function nadeAim(type, from, aim, trace, o) {
     o = o || {};
     var dx = aim[0] - from[0], dy = aim[1] - from[1];
@@ -164,9 +168,11 @@
     var vel = o.vel;
     function tryOne(pitch, s, jump) {
       var r = nadeThrow({ type: type, pos: from, yaw: yaw, pitch: pitch, strength: s, duck: o.duck, vel: vel, jump: jump, spawn: 0 }, trace);
-      var exy = Math.hypot(r.det[0] - aim[0], r.det[1] - aim[1]), dz = r.det[2] - aim[2], sc = exy + Math.abs(dz) * 0.5;
+      // (физика гранат, 30.10) ошибка — по месту в 3D (высота — с весом o.wz, по умолчанию 1): раньше высота шла с весом 0,5 и
+      // смок «на крышу над целью» выигрывал у смока на пол цели рядом
+      var exy = Math.hypot(r.det[0] - aim[0], r.det[1] - aim[1]), dz = r.det[2] - aim[2], sc = Math.hypot(exy, dz * (o.wz != null ? o.wz : 1));
       if (!best || sc < best.sc) best = { yaw: yaw, pitch: pitch, strength: s, jump: !!jump, det: r.det, t: r.t, how: r.how, err: exy, dz: dz,
-                                          bounces: r.bounces.length, sc: sc };
+                                          e3: sc, bounces: r.bounces.length, land: r.bounces.length ? r.bounces[0].slice(0, 3) : r.det, sc: sc };
     }
     function search(jump) {
       [1, 0.5, 0].forEach(function (s) { for (var pt = -75; pt <= 45; pt += AIM_STEP) tryOne(pt, s, jump); });
@@ -177,11 +183,12 @@
       });
     }
     search(false);
-    if (best.err > AIM_JUMP_IF && !o.noJump) search(true);
+    if (best.sc > AIM_JUMP_IF && !o.noJump) search(true);
     // всё ещё мимо — поворот чуть в сторону (обойти край стены, отскок от стены), наклон — шагом вдвое крупнее
-    if (best.err > AIM_JUMP_IF) AIM_YAW.forEach(function (dy_) {
+    if (best.sc > AIM_JUMP_IF) (o.wide ? AIM_YAW_WIDE : AIM_YAW).forEach(function (dy_) {
       yaw = yaw0 + dy_;
-      for (var pt = -75; pt <= 45; pt += 2 * AIM_STEP) { tryOne(pt, best.strength, best.jump); }
+      if (o.wide) { var jb = best.jump; [1, 0.5, 0].forEach(function (s) { for (var pt = -75; pt <= 45; pt += AIM_STEP) tryOne(pt, s, jb); }); }
+      else for (var pt = -75; pt <= 45; pt += 2 * AIM_STEP) { tryOne(pt, best.strength, best.jump); }
     });
     yaw = best.yaw;
     if (best.yaw !== yaw0) AIM_FINE.forEach(function (st) { var b0 = best; [-st, st].forEach(function (dp) { tryOne(b0.pitch + dp, b0.strength, b0.jump); }); });
