@@ -93,7 +93,6 @@ function exuBackup(it, tt, excl){
     if(o === excl || o.team !== "T" || !o.alive || o.planting || !o.nades || o.nades.smoke - busy(o) <= 0) return false;
     if(o.tRole === "lurker" || (bomb.state === "carried" && bomb.carrier === o)) return false;
     if(o.nadeTask && !exuIsExec(o.nadeTask) && o.nadeTask.lineup) return false;   // свой лайнап не перебиваем
-    if(o.nadeTask && (!it.from || !o.nadeTask.from)) return false;   // своя граната с места — не откладывается в очередь (exuReassign)
     if(it.from && luBehind(o, it.from)) return false;   // точка броска позади по ходу — назад за гранатой не идут (380)
     return true;
   }).map(function(o){
@@ -122,15 +121,14 @@ function exuReassign(it, tt){
   var why = it.why+" (вместо "+it.owner+")";
   if(it.from){
     var sec = Math.ceil(pathLenTo(b, it.from.x, it.from.y)/(SPEED*weaponSpeedMul(b)) + LU_REACH_PAD);
-    // своя граната резервного — в очередь, только если она с точкой броска (очередь — броски с точки, 380: nadeQueueNext); своя без точки
-    // (бросок с места) в очередь не встаёт — такого резервного не берём (было: unshift без from → nadeQueueNext падал на q.from.x, прогон 133)
-    if(b.nadeTask && !b.nadeTask.from) return false;
+    // своя граната резервного — в очередь (380: nadeQueueNext вернёт её после смока выхода — и с точкой броска, и с места)
     if(b.nadeTask) (b.nadeQueue = b.nadeQueue || []).unshift(b.nadeTask);
     b.nadeTask = {type:"smoke", x:it.x, y:it.y, from:{x:it.from.x, y:it.from.y}, until:tick + Math.max(7, sec)*TICK_HZ, why:why, start:tick,
                   lob:true, range:4000, now:true, lineup:true, exec:true, npm:"exec", exu:it.id};
   } else {
-    if(b.nadeTask) return false;
-    if(!assignNade(b, "smoke", {x:it.x, y:it.y}, why, {now:true, range:1300, bkey:"T.exec.re."+it.id})) return false;
+    var own = b.nadeTask; b.nadeTask = null;   // своя граната — в очередь, смок выхода вперёд; не вышло назначить — вернуть как было
+    if(!assignNade(b, "smoke", {x:it.x, y:it.y}, why, {now:true, range:1300, bkey:"T.exec.re."+it.id})){ b.nadeTask = own; return false; }
+    if(own) (b.nadeQueue = b.nadeQueue || []).unshift(own);
     b.nadeTask.exec = true; b.nadeTask.exu = it.id;
   }
   var was = it.owner;

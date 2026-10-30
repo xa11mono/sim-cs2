@@ -280,6 +280,9 @@ function nadeQueueNext(b){
   if(!b.alive || !b.nadeQueue || !b.nadeQueue.length || b.nadeTask) return;
   var q = b.nadeQueue.shift();
   if(!b.nades || b.nades[q.type] <= 0 || roundState !== "live") return nadeQueueNext(b);
+  // (v487) в очереди — и своя граната с места (без точки броска): её отложила передача смока выхода (366: exuReassign). Возвращается тем же
+  // заданием со свежим сроком (как в assignNade: с места — 2 с, иначе 10 с). Было: очередь знала только броски с точки, q.from.x падал (v483)
+  if(!q.from){ b.nadeTask = Object.assign({}, q, {until: tick + (q.here ? 2 : 10)*TICK_HZ, start: tick, int: null}); return; }
   var qSec = Math.max(6, Math.ceil(pathLenTo(b, q.from.x, q.from.y)/SPEED + LU_REACH_PAD));   // (v359) точка следующей — бывает дальше
   b.nadeTask = {type:q.type, x:q.x, y:q.y, from:q.from, until: tick + qSec*TICK_HZ, why:q.why, start:tick, lob:true, range:4000, now:true, lineup:true, exec:q.exec && q.type === "smoke", npm:q.npm, exu:q.exu};
 }
