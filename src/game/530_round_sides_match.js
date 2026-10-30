@@ -190,7 +190,7 @@ function resetRound(){
       if(spot && !insideSolidWall(spot[0], spot[1])){ b.x = spot[0]; b.y = spot[1]; }
     }
     var nsp = navAt(b.x, b.y, null); b._area = nsp ? nsp.id : null; if(nsp) b.z = nsp.z;   // (v321) высота — по навмешу под точкой спавна; (v323) и участок
-    b._jump = null; b._nadeT = null;   // (v340) интервал гранат — с нового раунда заново
+    b._jump = null; b._nadeT = null; b._nadeNo = null;   // (v340) интервал гранат — с нового раунда заново; (v489) память отказавших бросков
     // (v375, отметки владельца: «заспавнился на Tetris / на сайте A в начале раунда») подъём по лестнице/ящику, начатый в конце
     // прошлого раунда, продолжался после спавна — бота тянуло обратно туда, где он лез. Всё движение прошлого раунда — сброс
     b._climb = null; b._fireExit = null; b._fireExitFire = null; b._unstickT = null; b._task = null; b._hold = null;

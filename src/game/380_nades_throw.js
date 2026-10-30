@@ -162,7 +162,7 @@ function throwNade(b, type, tx, ty, lob, why, trusted, from){
   // молотов — ошибка; чужой на своём проходе — можно), не летит. Те же касания, что гасят огонь при срабатывании (400)
   if(type === "molly" && smokes.some(function(sm){ return Math.hypot(sm.x-tx, sm.y-ty) < smokeRadiusNow(sm) + NADE.molly.radius*MOLLY_SMOKE_TOUCH; })){ NADE_FAIL = "в дыму погаснет"; return false; }
   if(type === "smoke" && fires.some(function(f){ return f.team === b.team && Math.hypot(f.x-tx, f.y-ty) < NADE.smoke.radius + NADE.molly.radius*MOLLY_SMOKE_TOUCH; })){ NADE_FAIL = "потушит свой огонь"; return false; }
-  if(lob && !trusted && nadeTallWall(b.x, b.y, tx, ty, type)){ NADE_FAIL = "стена на пути"; return false; }   // (v373) сквозь стену — только как кидают про (MAP.nadelanes)
+  if(lob && !trusted && nadeTallWall(b.x, b.y, tx, ty, type)){ NADE_FAIL = "стена на пути"; nadeNoteFail(b, type, tx, ty); return false; }   // (v373) сквозь стену — только как кидают про (MAP.nadelanes)
   if(!m3()){ NADE_FAIL = "нет геометрии карты"; return false; }
   // (физика гранат) как кинуть — подбор физикой (nadeSolve) из ТОГО состояния, из которого граната полетит: место бойца (x, y),
   // его пол (z), присед. Лайнап: from — точка навигации и данных лайнапа, не место вылета (30.10, ошибка PR #2: бросок подбирался для
@@ -177,11 +177,11 @@ function throwNade(b, type, tx, ty, lob, why, trusted, from){
   if(!S){ NADE_FAIL = "цель под ногами"; return false; }
   // своя — ближе NADE_AIM_OK (флешке — вдвое); лайнап — и мимо, но не так, что отсюда туда не кинуть вовсе (× 4)
   // (30.10, этаж) смок / молотов, который отсюда ложится только на другой этаж или крышу, — не кидается (раньше проходил по 3D-ошибке ≤ 400 ед.)
-  if(S.levelOk === false){ NADE_FAIL = "не тот этаж / крыша"; return false; }
+  if(S.levelOk === false){ NADE_FAIL = "не тот этаж / крыша"; nadeNoteFail(b, type, tx, ty); return false; }
   // (этап 1б) лайнап — в пределах действия самой гранаты: дым, огонь, HE, сработавшие дальше своего радиуса от цели, цель не накрывают
   // (прогон 126, Mirage м53: молотов «T Ramp» с ошибкой подбора 378 ед. — в пределах прежних 400 — ударил в стену в 25 px и загорелся у
   // своего, тот застрял в огне: 30 «переносов»). Радиус — NADE (px радара → ед. игры); флешке радиуса нет — как было (× 4)
-  if(S.e3 > nadeAimLimit(type, trusted)){ NADE_FAIL = "не долетит: стена / потолок"; return false; }
+  if(S.e3 > nadeAimLimit(type, trusted)){ NADE_FAIL = "не долетит: стена / потолок"; nadeNoteFail(b, type, tx, ty); return false; }
   var a = Math.atan2(ty-b.y, tx-b.x), M = m3(), F = m3Game(M, b.x, b.y);
   // вылет — тот бросок, что подобрала физика (S): в полёте — состояние физики (ед. игры: p, v, t, касания — 385), x, y, z — где
   // граната сейчас (радар; z — ед. игры), tx, ty — где сработает по расчёту той же физики (другие решения смотрят туда)
@@ -256,8 +256,22 @@ function smokeCovered(x, y){
   if(smokes.some(function(s){ return Math.hypot(s.x-x, s.y-y) < R && s.until - tick > 64; })) return true;
   return nadesInAir.some(function(n){ return n.type === "smoke" && Math.hypot((n.tx||n.x)-x, (n.ty||n.y)-y) < R; });
 }
+// (v489) бросок, отказавший «не долетит / стена / этаж», — запоминается: до конца раунда та же граната в ту же цель (≤ NADE_NO_TO) с того же места
+// (≤ NADE_NO_FROM) не назначается. Облако v487, Ancient м11 + м17: после такого отказа 25–30 % целей пробовались снова через 0,2–0,8 с (медиана),
+// 120 / 142 лишних попытки за матч — мозг гранат не помнил, что отсюда не долетело. Числа — проектные
+var NADE_NO_TO = 80, NADE_NO_FROM = 120;
+function nadeNoteFail(b, type, tx, ty){
+  if(!/долетит|стена|этаж/.test(NADE_FAIL || "")) return;
+  var L = b._nadeNo && b._nadeNo.round === roundNum ? b._nadeNo.list : (b._nadeNo = {round: roundNum, list: []}).list;
+  L.push({type: type, tx: tx, ty: ty, x: b.x, y: b.y});
+}
+function nadeFailedHere(b, type, tx, ty){
+  var N = b._nadeNo; if(!N || N.round !== roundNum) return false;
+  return N.list.some(function(q){ return q.type === type && Math.hypot(q.tx-tx, q.ty-ty) <= NADE_NO_TO && Math.hypot(q.x-b.x, q.y-b.y) <= NADE_NO_FROM; });
+}
 function assignNade(b, type, target, why, opts){
   if(!b || !b.alive || !b.nades || b.nades[type] <= 0) return false;
+  if(nadeFailedHere(b, type, target.x, target.y)){ NADE_FAIL = "отсюда уже не долетела"; return false; }
   if(opts && opts.bkey && !builtinAllowed(opts.bkey)) return false; // встроенная выключена или заменена своим лайнапом
   // (v428) план гранат команды (365): граната, отложенная на более поздний момент (выход, после планта, ретейк), сейчас не тратится;
   // гранаты выхода T — момент «выход» и тогда, когда их кидают заранее, до пика (preExec)
