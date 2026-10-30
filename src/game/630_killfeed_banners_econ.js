@@ -153,11 +153,11 @@ function showRoundCard(winner, reason){
     clutchShown = clutchInfo.id;
     showBanner("КЛАТЧ 1v"+clutchInfo.n+" — "+clutchInfo.id+"!", winner, 3200);
     logEvent("Клатч выигран: "+clutchInfo.id+" (1v"+clutchInfo.n+")", true);
-    feedEvent("clutch", "Клатч 1v"+clutchInfo.n+" — "+clutchInfo.id);
+    feedEvent("clutch", "Клатч 1 на "+clutchInfo.n+" — "+clutchInfo.id);
   }
   el.innerHTML = '<div class="rc-bar"></div><div class="rc-in"><div class="rc-t '+(winner||"").toLowerCase()+'">'+(winner ? "Победа "+esc(TEAM_NAME[winner]) : "Ничья")+'</div>'+
     '<div class="rc-r">Раунд '+roundNum+' · '+(winner ? 'за '+winner+' · ' : '')+why+'</div>'+
-    (clutch ? '<div class="rc-c">клатч 1v'+clutchInfo.n+' выигран — '+esc(nick(clutchInfo.id))+'</div>' : '')+
+    (clutch ? '<div class="rc-c"><span>клатч 1 на '+clutchInfo.n+'</span><b>'+esc(nick(clutchInfo.id))+'</b></div>' : '')+
     (mvp && mvp.b ? '<div class="rc-m"><div class="rc-ph">'+plPhoto(mvp.b)+'</div><div class="rc-mv">MVP <b>'+esc(nick(mvp.b.id))+'</b>'+(ROLE_LABEL[mvp.b.tRole] ? ' · '+ROLE_LABEL[mvp.b.tRole] : '')+'<br>'+(mvp.b.roundKills||0)+' фраг(а), '+Math.round(mvp.b.roundDmg||0)+' урона</div></div>' : '')+
     '<div class="rc-s"><span class="ct">'+esc(TEAM_NAME.CT)+'</span> '+score.CT+'<i>:</i>'+score.T+' <span class="t">'+esc(TEAM_NAME.T)+'</span></div><div class="rc-h" id="rcHalf"></div></div><div class="rc-next" title="до следующего раунда"><b id="rcNext"></b></div>';
   el.className = ""; void el.offsetWidth;   // (v430) показ заново — анимации с начала
