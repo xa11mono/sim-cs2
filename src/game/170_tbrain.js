@@ -1,5 +1,6 @@
 function tBrain(){
   var tt = teamTac.T; if(!tt) return;
+  exuTick(tt);   // (тактика 30.10) гранаты выхода: жизненный цикл, провал, резервный исполнитель (366)
   if(BAL.proTempo && tt.phase === "setup" && tt.minExec && tt.execTick < roundStartTick + tt.minExec*TICK_HZ) tt.execTick = roundStartTick + tt.minExec*TICK_HZ;
   bStageFix();
   if(tt.seenCT && tick % 16 === 0 && (tt.phase === "setup" || (tt.execStart != null && tick - tt.execStart < 8*TICK_HZ))){
@@ -37,12 +38,15 @@ function tBrain(){
       goNow = staged >= need;
       if(!goNow && !tt._waitLog){ tt._waitLog = true; logEvent("T: ждём — не все на точках выхода"); }
     }
-    // смоки выхода ещё летят — ждём, пока встанут (до ~2с), чтобы энтри не пикал под открытые углы
-    if(goNow && BAL.nadeEarly && secLeft >= 35 && tt._smT && tick - tt._smT < 5*TICK_HZ && tick - tt.execTick < 5*TICK_HZ && tExecNadesFlying()){
-      goNow = false; if(!tt._smWaitLog){ tt._smWaitLog = true; logEvent("T: ждём, пока встанут смоки"); }
+    // (тактика 30.10) критичные смоки выхода ещё не закрыли вход (идут кидать / летят / раскрываются / ищем замену) — ждём их, а не
+    // «пока летят, но не дольше 5 с»: одно решение — exuGate (366). Поздно (< EXU_LATE с) — выходим и без них
+    if(goNow && BAL.nadeEarly && secLeft >= EXU_LATE){
+      var XG = exuGate(tt);
+      if(!XG.go){ goNow = false; if(tt._smWaitLog !== XG.why){ tt._smWaitLog = XG.why; logEvent("T: ждём — "+XG.why); exuEv("wait", null, {why:XG.why}); } }
     }
     if(goNow){
       tt.phase = "execute"; tt.execStart = tick; siteHeatPending[tt.site] = 1;
+      exuEv("exec", null, {site:tt.site, late:secLeft < EXU_LATE});
       logEvent("T: выход на "+tt.site+"!"+(tt._waitLog ? " (все собрались)" : ""));
     }
   }
@@ -548,7 +552,8 @@ function tBrain(){
       // плантом; флешки — 52 %: их кидают под заход, их не ждут). Размен вдвоём — по-прежнему только энтри
       var secW = ROUND_TIME_SEC - (simTime - roundStartTime);
       if(!S0 || !atExit || b.nadeTask || b._utilWDone === roundNum || secW < UTIL_MIN_LEFT){ b._utilW = null; return false; }   // (v353) за раунд ждёт один раз
-      var inAir = nadesInAir.some(function(n){ return n.team === "T" && n.type !== "flash" && Math.hypot((n.tx != null ? n.tx : n.x)-S0.x, (n.ty != null ? n.ty : n.y)-S0.y) < 900; });
+      // (тактика 30.10) и критичный смок выхода, который ещё не встал (идут кидать / летит / раскрывается — 366), а не только граната в воздухе
+      var inAir = exuPending(tt.site) || nadesInAir.some(function(n){ return n.team === "T" && n.type !== "flash" && Math.hypot((n.tx != null ? n.tx : n.x)-S0.x, (n.ty != null ? n.ty : n.y)-S0.y) < 900; });
       // (v349, отметка владельца: «всё равно выходят до взрыва») и пока свой несёт гранату выхода на этот сайт (лайнап «(выход, A)»)
       var reExec = new RegExp("выход, " + tt.site);
       var waitT = function(t){ return t && t.type !== "flash" && reExec.test(t.why || ""); };   // флешки выхода — под заход, их не ждут
@@ -567,7 +572,7 @@ function tBrain(){
         var cov = seen ? pickSpots("utilw"+Math.round(b.x/30)+","+Math.round(b.y/30)+tt.site, {x:b.x, y:b.y}, 1, {rMax:80, minGap:20, hideFrom:hf})[0] : null;
         if(cov && hf.some(function(q){ return hasLOS(cov.x, cov.y, q.x, q.y); })) cov = null;
         b._utilW = {round: roundNum, t: tick, x: cov ? cov.x : b.x, y: cov ? cov.y : b.y}; }
-      var waitOn = tick - b._utilW.t < (rush ? UTIL_WAIT_RUSH : UTIL_WAIT)*TICK_HZ;
+      var waitOn = tick - b._utilW.t < (rush ? UTIL_WAIT_RUSH : UTIL_WAIT)*TICK_HZ || (!rush && exuPending(tt.site));   // (тактика 30.10) критичный смок — до готовности (366)
       // (v353, владелец: «в 351 знали про CT, но чего-то ждали и не выходили») ждал до предела — больше в этом раунде не ждёт: раньше
       // условие то пропадало, то появлялось, таймер начинался заново, и выход откладывался без конца
       if(!waitOn) b._utilWDone = roundNum;
@@ -584,8 +589,10 @@ function tBrain(){
       // энтри под флешку от тиммейта: входит в угол сразу после хлопка (≤0.5с),
       // а если флешки не будет/не долетела за 3с — идёт без неё
       if(b.tRole === "entry" && nadeFlags.peekFlashPlanned){
+        // (тактика 30.10) флешка уже летит — ждёт хлопка (когда — знает физика броска: etaDet), а не уходит по 3 с, пока она в воздухе
         var popped = nadeFlags.peekFlashPop && tick - nadeFlags.peekFlashPop >= 0;
-        return popped || since > 3*TICK_HZ;
+        var flying = nadesInAir.some(function(n){ return n.team === "T" && n.type === "flash" && n.why === "под пик"; });
+        return popped || (since > 3*TICK_HZ && !flying);
       }
       if(!rush && (b.tRole === "igl" || (b === carrier && b.tRole !== "entry"))) return !!tt.wave2;
       return since >= (DELAY[b.tRole] !== undefined ? DELAY[b.tRole] : 60);

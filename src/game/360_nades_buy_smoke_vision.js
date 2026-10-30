@@ -141,9 +141,10 @@ function smokeHoleClear(s, r, x1, y1, x2, y2){
   });
 }
 var MOLLY_SMOKE_TOUCH = 0.9;   // (v321) огонь гаснет, когда круг огня касается дыма (0,9 радиуса огня — касание с запасом) — проектное число
+var SMOKE_GROW = 40;   // тиков: дым раскрывается до полного радиуса (≈ 0,6 с; проектное число) — одно число для рисунка, видимости и выхода T (366)
 function smokeRadiusNow(s){
   var age = tick - s.born, left = s.until - tick;
-  var grow = Math.min(1, age/40), fade = Math.min(1, left/64); // раскрывается ~0.6с, в конце рассеивается
+  var grow = Math.min(1, age/SMOKE_GROW), fade = Math.min(1, left/64); // раскрывается ~0.6с, в конце рассеивается
   // HE в дыму: на ~1.3с дым разлетается (дыра), потом снова затягивается
   var hole = 1;
   if(s.holeUntil && tick < s.holeUntil){ var hp = (s.holeUntil - tick)/s.holeLen; hole = 0.3 + 0.7*(1 - Math.min(1, hp*1.4)); }

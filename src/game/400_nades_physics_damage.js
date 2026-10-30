@@ -39,7 +39,7 @@ function detonate(n){
   if(T !== "decoy") nadeOrigin(n);
   // (11) гранаты видно/слышно: где разорвалась граната врага — это инфа о его плане
   if(BAL.tacRead && roundState === "live" && T !== "decoy"){ var foeT = n.team === "T" ? "CT" : "T"; var NS = teamIntel[foeT].nadeSeen || (teamIntel[foeT].nadeSeen = []); NS.push({x:n.x, y:n.y, type:T, tick:tick}); if(NS.length > 30) NS.shift(); }
-  if(T === "smoke"){ smokes.push({x:n.x, y:n.y, born:tick, until:tick+NADE.smoke.life, team:n.team}); if(BAL.smokeReact) smokeShiftOnDetonate(smokes[smokes.length-1]); }
+  if(T === "smoke"){ exuLanded(n, false); smokes.push({x:n.x, y:n.y, born:tick, until:tick+NADE.smoke.life, team:n.team}); if(BAL.smokeReact) smokeShiftOnDetonate(smokes[smokes.length-1]); }
   else if(T === "molly"){
     // молотов, упавший в дым или рядом так, что огонь касается дыма, гаснет (как в CS2 — наоборот тоже: дым тушит огонь;
     // v321, М12: «чуть касается смока — тушится»)
@@ -182,7 +182,7 @@ function nadesTick(){
     if(!how) continue;
     nadesInAir.splice(i,1);
     if(how === "lost"){ logEvent("граната "+NADE[n.type].name+" ушла за карту (физика) — без срабатывания"); continue; }   // не должно быть: под картой пол
-    if((n.type === "smoke" || n.type === "molly") && nadeOnRoof(n.x, n.y, n.z)){ n.onRoof = true; nadeOrigin(n); nadeFx.push({x:n.x, y:n.y, type:n.type, born:tick, roof:true}); continue; }
+    if((n.type === "smoke" || n.type === "molly") && nadeOnRoof(n.x, n.y, n.z)){ n.onRoof = true; nadeOrigin(n); nadeFx.push({x:n.x, y:n.y, type:n.type, born:tick, roof:true}); if(n.type === "smoke") exuLanded(n, true); continue; }
     detonate(n);
   }
   for(var s=smokes.length-1;s>=0;s--) if(tick >= smokes[s].until) smokes.splice(s,1);

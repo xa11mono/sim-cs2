@@ -29,10 +29,6 @@ function preExecNow(tt){
   var secLeft = ROUND_TIME_SEC - (simTime - roundStartTime);
   return tick >= tt.execTick - 4*TICK_HZ && secLeft > 30 && !(tt.tac && (tt.tac.style === "rush" || tt.tac.style === "fake"));
 }
-function tExecNadesFlying(){
-  return nadesInAir.some(function(n){ return n.team === "T" && (n.type === "smoke" || n.type === "molly"); }) ||
-    bots.some(function(b){ return b.alive && b.team === "T" && b.nadeTask && (b.nadeTask.type === "smoke") && b.nadeTask.exec; });
-}
 // (v359, отметка владельца р6: «почему не кидают гранаты на Connector, когда идут по Short — ситуация общая») про-смок кидается
 // с вероятностью, как у про, и в этом раунде его могло не выпасть — тогда T шли по открытому месту под Connector / Window без
 // смока. Теперь смок из лайнапов про кидается и вне своей вероятности, если свой T сейчас пойдёт по месту, которое видно из

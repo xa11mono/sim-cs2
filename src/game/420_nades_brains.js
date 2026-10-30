@@ -102,7 +102,6 @@ function nadeBrains(){
     if(BAL.tSmoke && smokers[0] && assignNade(smokers[0], "smoke", g.ctEntry, "вход CT", Object.assign({bkey:"T.exec.ctEntry."+tt.site}, eo))) smokers[0].nadeTask.exec = true;
     if(BAL.tSmoke && smokers[1] && assignNade(smokers[1], "smoke", cross, "кросс", Object.assign({bkey:"T.exec.cross."+tt.site}, eo))) smokers[1].nadeTask.exec = true;
     if(preEx) logEvent("T: гранаты выхода на "+tt.site+" — заранее, до пика");
-    tt._smT = tick;
   }
   if(tt.phase === "execute" && !nadeFlags.tExec && BAL.tUtil){
     nadeFlags.tExec = true;

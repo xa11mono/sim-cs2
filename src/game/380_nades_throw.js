@@ -211,7 +211,7 @@ function throwNade(b, type, tx, ty, lob, why, trusted, from){
   npUse(b, type, (b.nadeTask && b.nadeTask.type === type && b.nadeTask.npm) || npMomentNow(b));   // (v428) запись плана гранат снята
   if(miss) noteMistake(b, "промахнулся гранатой ("+NADE[type].name+")");
   var nd = Object.assign(nadeState(type, L.p, L.v), {type:type, x:b.x, y:b.y, z:L.p[2], tx:PR[0], ty:PR[1], born:tick, thrower:b, team:b.team,
-            trail:[], why:why||"", ox:b.x, oy:b.y, lob:!!lob, aimX:tx, aimY:ty, exec:[+dYaw.toFixed(2), +dPit.toFixed(2)], plan:[S.x, S.y, S.det[2], S.e3], from0:[b.x, b.y, bz], vel0:V});   // exec — ошибка исполнения (поворот, наклон, °); plan — где сработает по подбору (радар x, y; z, ошибка e3); from0 — откуда кинул
+            trail:[], why:why||"", ox:b.x, oy:b.y, lob:!!lob, etaDet: tick + Math.ceil(Fl.t*TICK_HZ), aimX:tx, aimY:ty, exec:[+dYaw.toFixed(2), +dPit.toFixed(2)], plan:[S.x, S.y, S.det[2], S.e3], from0:[b.x, b.y, bz], vel0:V});   // exec — ошибка исполнения (поворот, наклон, °); plan — где сработает по подбору (радар x, y; z, ошибка e3); from0 — откуда кинул
   // кто может увернуться от этой флешки: видел бросающего или был рядом (слышит чеку)
   if(type === "flash" && BAL.flashAware){
     nd.aware = {};
@@ -219,6 +219,7 @@ function throwNade(b, type, tx, ty, lob, why, trusted, from){
     bots.forEach(function(o){ if(o.alive && o !== b && (Math.hypot(o.x-b.x, o.y-b.y) < 450 || hasVision(o.x, o.y, b.x, b.y))) nd.aware[o.id] = true; });
   }
   nadesInAir.push(nd); if(SND && SND.on) sndNade("throw", b.x, b.y);
+  if(b.nadeTask) b.nadeTask.exuThrown = true; exuThrown(b, nd);   // (тактика 30.10) граната выхода T: когда сработает — знает команда (366)
   if(type === "flash" && b.voice) teamPropose(b, {kind: "flash", nade: nd});
   b.throwUntil = tick + 18; // ~0.3с стоит на броске
   b.facing = a;
@@ -280,7 +281,7 @@ function nadeQueueNext(b){
   var q = b.nadeQueue.shift();
   if(!b.nades || b.nades[q.type] <= 0 || roundState !== "live") return nadeQueueNext(b);
   var qSec = Math.max(6, Math.ceil(pathLenTo(b, q.from.x, q.from.y)/SPEED + LU_REACH_PAD));   // (v359) точка следующей — бывает дальше
-  b.nadeTask = {type:q.type, x:q.x, y:q.y, from:q.from, until: tick + qSec*TICK_HZ, why:q.why, start:tick, lob:true, range:4000, now:true, lineup:true, exec:q.exec && q.type === "smoke", npm:q.npm};
+  b.nadeTask = {type:q.type, x:q.x, y:q.y, from:q.from, until: tick + qSec*TICK_HZ, why:q.why, start:tick, lob:true, range:4000, now:true, lineup:true, exec:q.exec && q.type === "smoke", npm:q.npm, exu:q.exu};
 }
 // (этап 4) скорость бойца в миг броска: сдвиг за последний тик (движение идёт после гранат — 540), ед/с игры [vx, vy, 0]; y игры
 // противоположен y радара. Обновляется каждый тик раунда для всех живых (nadeVelTrack), до заданий на гранату
@@ -299,6 +300,12 @@ var NADE_STILL_V = 5;   // ед/с игры (проектное число: за
 function updateNadeTasks(){
   nadeVelTrack();
   bots.forEach(function(b){
+    // (тактика 30.10) граната выхода T снята без броска — почему (NADE_FAIL последней попытки): для журнала 366
+    var t0 = b.nadeTask; NADE_FAIL = null; updateNadeTask1(b);
+    if(t0 && t0.exu != null && b.nadeTask !== t0 && t0.exuThrown !== true) exuTaskGone(t0, b);
+  });
+}
+function updateNadeTask1(b){
     if(!b.nadeTask && b.nadeQueue && b.nadeQueue.length) nadeQueueNext(b);
     var t = b.nadeTask; if(!t) return;
     if(!b.alive || tick > t.until || !b.nades || b.nades[t.type] <= 0){
@@ -365,7 +372,6 @@ function updateNadeTasks(){
       if(!fs){ b.nadeTask = null; return; }
       t.from = fs; t.gen = !fs.lane; t.until = Math.max(t.until, tick + Math.ceil(pathLenTo(b, fs.x, fs.y)/SPEED + 2)*TICK_HZ);
     }
-  });
 }
 
 // (v370) откуда докинуть свою гранату: точка в NADE_SPOT_R от бойца, откуда так кидают про (или без стены на пути), цель в
