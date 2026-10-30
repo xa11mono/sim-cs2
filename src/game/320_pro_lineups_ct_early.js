@@ -88,7 +88,9 @@ function flankPost(b, F, planted){
   if(F.stage >= pts.length) return false;
   var P = pts[F.stage];
   setPost(b, P.p, P.look, true, P.tag);
-  if(b.atPost){
+  // (п.20 владельца 29.10, м1 р7: kyousuke, стоя на «за укрытие на перезарядку», прошёл все три этапа фланга без захода) этап — только на
+  // точке этапа (пост этого этапа), а не на любом посту, куда его увела другая задача
+  if(b.atPost && b.post && b.post.tag === P.tag){
     if(!F.arr) F.arr = tick;
     if(tick - F.arr > 40){ F.stage++; F.arr = 0; }   // коротко проверил угол — дальше
   }
