@@ -1,0 +1,49 @@
+playwright 1.56.0, браузеры: C:\Windows\system32\config\systemprofile\.simcs2_node\ms-playwright
+> git fetch --quiet origin f7d72a07120fbb6f642f33ad187f0dd6db8aed16
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_g_ua3hb4 FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_g_ua3hb4\src\build.py --map mirage C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v469_mir_b.html
+> git fetch --quiet origin 484df683ed8fa763deae6833d8b421868e734cdc
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_8398b123 FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_8398b123\src\build.py --map mirage C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v479_mir_b.html
+> git fetch --quiet origin f7d72a07120fbb6f642f33ad187f0dd6db8aed16
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_q99883t8 FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_q99883t8\src\build.py --map ancient C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v469_anc_b.html
+> git fetch --quiet origin 484df683ed8fa763deae6833d8b421868e734cdc
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_4_r8nle_ FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_4_r8nle_\src\build.py --map ancient C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v479_anc_b.html
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\engine\walk_run.py --job=v469_mir_b,C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v469_mir_b.html --job=v479_mir_b,C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v479_mir_b.html --job=v469_anc_b,C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v469_anc_b.html --job=v479_anc_b,C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v479_anc_b.html --matches=31,37,41,43,47,53,59,61 --par=8
+матчей в очереди: 32, одновременно: 8
+v469_mir_b match 47 rc 0 4018686 — готово 1/32, 5 мин
+v469_mir_b match 41 rc 0 3883144 — готово 2/32, 5 мин
+v469_mir_b match 59 rc 0 4413505 — готово 3/32, 6 мин
+v469_mir_b match 37 rc 0 5102217 — готово 4/32, 6 мин
+v469_mir_b match 53 rc 0 5372936 — готово 5/32, 7 мин
+v469_mir_b match 31 rc 0 5239969 — готово 6/32, 7 мин
+v469_mir_b match 61 rc 0 6348607 — готово 7/32, 8 мин
+v469_mir_b match 43 rc 0 7370506 — готово 8/32, 9 мин
+v479_mir_b match 31 rc 0 5715478 — готово 9/32, 14 мин
+v479_mir_b match 47 rc 0 4650892 — готово 10/32, 14 мин
+v479_mir_b match 37 rc 0 6238827 — готово 11/32, 15 мин
+v479_mir_b match 41 rc 0 6651642 — готово 12/32, 15 мин
+v479_mir_b match 43 rc 0 6191980 — готово 13/32, 16 мин
+v479_mir_b match 53 rc 0 6235210 — готово 14/32, 16 мин
+v479_mir_b match 59 rc 0 6084994 — готово 15/32, 17 мин
+v479_mir_b match 61 rc 0 5599127 — готово 16/32, 17 мин
+v469_anc_b match 41 rc 0 5345773 — готово 17/32, 20 мин
+v469_anc_b match 31 rc 0 6979987 — готово 18/32, 21 мин
+v469_anc_b match 47 rc 0 5178531 — готово 19/32, 21 мин
+v469_anc_b match 61 rc 0 4090309 — готово 20/32, 21 мин
+v469_anc_b match 37 rc 0 7590652 — готово 21/32, 22 мин
+v469_anc_b match 59 rc 0 4992166 — готово 22/32, 22 мин
+v469_anc_b match 53 rc 0 5736711 — готово 23/32, 22 мин
+v469_anc_b match 43 rc 0 7384953 — готово 24/32, 23 мин
+v479_anc_b match 41 rc 0 4773649 — готово 25/32, 27 мин
+v479_anc_b match 61 rc 0 3291734 — готово 26/32, 27 мин
+v479_anc_b match 47 rc 0 4739715 — готово 27/32, 27 мин
+v479_anc_b match 31 rc 0 6044414 — готово 28/32, 27 мин
+v479_anc_b match 43 rc 0 5500536 — готово 29/32, 28 мин
+v479_anc_b match 37 rc 0 6666293 — готово 30/32, 29 мин
+v479_anc_b match 53 rc 0 6241076 — готово 31/32, 29 мин
+v479_anc_b match 59 rc 0 7796691 — готово 32/32, 31 мин
+done
+all done
