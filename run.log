@@ -1,0 +1,49 @@
+playwright 1.56.0, браузеры: C:\Windows\system32\config\systemprofile\.simcs2_node\ms-playwright
+> git fetch --quiet origin f3c1d055e23a26a1d36493c56feaa8bcd55c50a5
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_mnzz5sqi FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_mnzz5sqi\src\build.py --map mirage C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v478a_mir.html
+> git fetch --quiet origin f3c1d055e23a26a1d36493c56feaa8bcd55c50a5
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_zyxmhfaz FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_zyxmhfaz\src\build.py --map ancient C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v478a_anc.html
+> git fetch --quiet origin b9d6632b641109713e167fa8ddf1ca53fc1b0e75
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_9rep37tq FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_9rep37tq\src\build.py --map mirage C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v478b_mir.html
+> git fetch --quiet origin b9d6632b641109713e167fa8ddf1ca53fc1b0e75
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_kf6ty62a FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_kf6ty62a\src\build.py --map ancient C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v478b_anc.html
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\engine\walk_run.py --job=v478a_mir,C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v478a_mir.html --job=v478a_anc,C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v478a_anc.html --job=v478b_mir,C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v478b_mir.html --job=v478b_anc,C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v478b_anc.html --matches=3,7,11,13,17,19,23,29 --par=8
+матчей в очереди: 32, одновременно: 8
+v478a_mir match 13 rc 0 4257902 — готово 1/32, 6 мин
+v478a_mir match 23 rc 0 4175166 — готово 2/32, 7 мин
+v478a_mir match 3 rc 0 4738715 — готово 3/32, 7 мин
+v478a_mir match 29 rc 0 5400248 — готово 4/32, 9 мин
+v478a_mir match 19 rc 0 6007805 — готово 5/32, 9 мин
+v478a_mir match 17 rc 0 6994567 — готово 6/32, 11 мин
+v478a_mir match 7 rc 0 7585773 — готово 7/32, 12 мин
+v478a_anc match 3 rc 0 4998976 — готово 8/32, 12 мин
+v478a_mir match 11 rc 0 8128546 — готово 9/32, 13 мин
+v478a_anc match 7 rc 0 5079899 — готово 10/32, 13 мин
+v478a_anc match 11 rc 0 7155185 — готово 11/32, 16 мин
+v478a_anc match 17 rc 0 6174597 — готово 12/32, 16 мин
+v478a_anc match 23 rc 0 3849179 — готово 13/32, 17 мин
+v478a_anc match 19 rc 0 4692926 — готово 14/32, 17 мин
+v478a_anc match 29 rc 0 3517276 — готово 15/32, 17 мин
+v478a_anc match 13 rc 0 7581168 — готово 16/32, 18 мин
+v478b_mir match 7 rc 0 4484719 — готово 17/32, 20 мин
+v478b_mir match 3 rc 0 5325467 — готово 18/32, 22 мин
+v478b_mir match 17 rc 0 4347722 — готово 19/32, 23 мин
+v478b_mir match 29 rc 0 3915406 — готово 20/32, 24 мин
+v478b_mir match 13 rc 0 5080939 — готово 21/32, 24 мин
+v478b_mir match 23 rc 0 4802623 — готово 22/32, 25 мин
+v478b_mir match 11 rc 0 6615186 — готово 23/32, 26 мин
+v478b_mir match 19 rc 0 6127464 — готово 24/32, 26 мин
+v478b_anc match 3 rc 0 5160104 — готово 25/32, 27 мин
+v478b_anc match 11 rc 0 5561324 — готово 26/32, 30 мин
+v478b_anc match 19 rc 0 4631661 — готово 27/32, 30 мин
+v478b_anc match 7 rc 0 7036873 — готово 28/32, 30 мин
+v478b_anc match 17 rc 0 5431114 — готово 29/32, 31 мин
+v478b_anc match 23 rc 0 5970923 — готово 30/32, 32 мин
+v478b_anc match 29 rc 0 5514044 — готово 31/32, 33 мин
+v478b_anc match 13 rc 0 7663560 — готово 32/32, 33 мин
+done
+all done
