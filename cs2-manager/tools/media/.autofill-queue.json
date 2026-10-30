@@ -1,0 +1,7894 @@
+{
+ "v": 2,
+ "items": {
+  "players:arT": {
+   "kind": "players",
+   "name": "arT",
+   "state": "done",
+   "attempts": 0,
+   "tried": {
+    "hltv": "ok"
+   },
+   "src": "hltv"
+  },
+  "players:DarkMeister": {
+   "kind": "players",
+   "name": "DarkMeister",
+   "state": "done",
+   "attempts": 0,
+   "tried": {
+    "hltv": "ok"
+   },
+   "src": "hltv"
+  },
+  "players:ryu": {
+   "kind": "players",
+   "name": "ryu",
+   "state": "missing",
+   "attempts": 0,
+   "tried": {
+    "hltv": "none",
+    "liquipedia": "none"
+   },
+   "why": "нет ссылки на изображение"
+  },
+  "players:max": {
+   "kind": "players",
+   "name": "max",
+   "state": "missing",
+   "attempts": 0,
+   "tried": {
+    "hltv": "none",
+    "liquipedia": "none"
+   },
+   "why": "нет ссылки на изображение"
+  },
+  "players:dgt": {
+   "kind": "players",
+   "name": "dgt",
+   "state": "missing",
+   "attempts": 0,
+   "tried": {
+    "hltv": "none",
+    "liquipedia": "none"
+   },
+   "why": "нет ссылки на изображение"
+  },
+  "players:HUASOPEEK": {
+   "kind": "players",
+   "name": "HUASOPEEK",
+   "state": "missing",
+   "attempts": 0,
+   "tried": {
+    "hltv": "none",
+    "liquipedia": "none"
+   },
+   "why": "нет ссылки на изображение"
+  },
+  "players:Kursy": {
+   "kind": "players",
+   "name": "Kursy",
+   "state": "done",
+   "attempts": 0,
+   "tried": {
+    "hltv": "ok"
+   },
+   "src": "hltv"
+  },
+  "players:Jorko": {
+   "kind": "players",
+   "name": "Jorko",
+   "state": "missing",
+   "attempts": 0,
+   "tried": {
+    "hltv": "none",
+    "liquipedia": "none"
+   },
+   "why": "нет ссылки на изображение"
+  },
+  "players:Tatu": {
+   "kind": "players",
+   "name": "Tatu",
+   "state": "done",
+   "attempts": 0,
+   "tried": {
+    "hltv": "ok"
+   },
+   "src": "hltv"
+  },
+  "players:Rzinh0": {
+   "kind": "players",
+   "name": "Rzinh0",
+   "state": "missing",
+   "attempts": 0,
+   "tried": {
+    "hltv": "none",
+    "liquipedia": "none"
+   },
+   "why": "нет кандидатов"
+  },
+  "players:JDC": {
+   "kind": "players",
+   "name": "JDC",
+   "state": "done",
+   "attempts": 0,
+   "tried": {
+    "hltv": "ok"
+   },
+   "src": "hltv"
+  },
+  "players:she1zzZJEZ": {
+   "kind": "players",
+   "name": "she1zzZJEZ",
+   "state": "missing",
+   "attempts": 0,
+   "tried": {
+    "hltv": "none",
+    "liquipedia": "none"
+   },
+   "why": "нет кандидатов"
+  },
+  "players:oNte": {
+   "kind": "players",
+   "name": "oNte",
+   "state": "missing",
+   "attempts": 0,
+   "tried": {
+    "hltv": "none",
+    "liquipedia": "none"
+   },
+   "why": "нет кандидатов"
+  },
+  "players:tadeo": {
+   "kind": "players",
+   "name": "tadeo",
+   "state": "missing",
+   "attempts": 0,
+   "tried": {
+    "hltv": "none",
+    "liquipedia": "none"
+   },
+   "why": "нет кандидатов"
+  },
+  "players:dwushka": {
+   "kind": "players",
+   "name": "dwushka",
+   "state": "missing",
+   "attempts": 0,
+   "tried": {
+    "hltv": "none",
+    "liquipedia": "none"
+   },
+   "why": "нет ссылки на изображение"
+  },
+  "players:LNZ": {
+   "kind": "players",
+   "name": "LNZ",
+   "state": "missing",
+   "attempts": 0,
+   "tried": {
+    "hltv": "none",
+    "liquipedia": "none"
+   },
+   "why": "нет ссылки на изображение"
+  },
+  "players:mo0N": {
+   "kind": "players",
+   "name": "mo0N",
+   "state": "missing",
+   "attempts": 0,
+   "tried": {
+    "hltv": "none",
+    "liquipedia": "none"
+   },
+   "why": "нет ссылки на изображение"
+  },
+  "players:xZero": {
+   "kind": "players",
+   "name": "xZero",
+   "state": "missing",
+   "attempts": 0,
+   "tried": {
+    "hltv": "none",
+    "liquipedia": "none"
+   },
+   "why": "нет кандидатов"
+  },
+  "players:Dawy": {
+   "kind": "players",
+   "name": "Dawy",
+   "state": "missing",
+   "attempts": 0,
+   "tried": {
+    "hltv": "none",
+    "liquipedia": "none"
+   },
+   "why": "нет ссылки на изображение"
+  },
+  "players:Westmelon": {
+   "kind": "players",
+   "name": "Westmelon",
+   "state": "done",
+   "attempts": 0,
+   "tried": {
+    "hltv": "ok"
+   },
+   "src": "hltv"
+  },
+  "players:Gizmy": {
+   "kind": "players",
+   "name": "Gizmy",
+   "state": "missing",
+   "attempts": 0,
+   "tried": {
+    "hltv": "none",
+    "liquipedia": "none"
+   },
+   "why": "нет ссылки на изображение"
+  },
+  "players:sirah": {
+   "kind": "players",
+   "name": "sirah",
+   "state": "missing",
+   "attempts": 0,
+   "tried": {
+    "hltv": "none",
+    "liquipedia": "none"
+   },
+   "why": "нет ссылки на изображение"
+  },
+  "players:poiii": {
+   "kind": "players",
+   "name": "poiii",
+   "state": "missing",
+   "attempts": 0,
+   "tried": {
+    "hltv": "none",
+    "liquipedia": "none"
+   },
+   "why": "нет ссылки на изображение"
+  },
+  "players:s0m": {
+   "kind": "players",
+   "name": "s0m",
+   "state": "done",
+   "attempts": 0,
+   "tried": {
+    "hltv": "ok"
+   },
+   "src": "hltv"
+  },
+  "players:pr1metapz": {
+   "kind": "players",
+   "name": "pr1metapz",
+   "state": "done",
+   "attempts": 0,
+   "tried": {
+    "hltv": "ok"
+   },
+   "src": "hltv"
+  },
+  "players:mir": {
+   "kind": "players",
+   "name": "mir",
+   "state": "done",
+   "attempts": 0,
+   "tried": {
+    "hltv": "ok"
+   },
+   "src": "hltv"
+  },
+  "players:F0R3VER": {
+   "kind": "players",
+   "name": "F0R3VER",
+   "state": "missing",
+   "attempts": 0,
+   "tried": {
+    "hltv": "none",
+    "liquipedia": "none"
+   },
+   "why": "нет ссылки на изображение"
+  },
+  "players:AquaR85": {
+   "kind": "players",
+   "name": "AquaR85",
+   "state": "missing",
+   "attempts": 0,
+   "tried": {
+    "hltv": "none",
+    "liquipedia": "none"
+   },
+   "why": "нет кандидатов"
+  },
+  "players:oRO": {
+   "kind": "players",
+   "name": "oRO",
+   "state": "missing",
+   "attempts": 0,
+   "tried": {
+    "hltv": "none",
+    "liquipedia": "none"
+   },
+   "why": "нет ссылки на изображение"
+  },
+  "players:clax": {
+   "kind": "players",
+   "name": "clax",
+   "state": "missing",
+   "attempts": 0,
+   "tried": {
+    "hltv": "none",
+    "liquipedia": "none"
+   },
+   "why": "нет ссылки на изображение"
+  },
+  "players:kashjld": {
+   "kind": "players",
+   "name": "kashjld",
+   "state": "missing",
+   "attempts": 0,
+   "tried": {
+    "hltv": "none",
+    "liquipedia": "none"
+   },
+   "why": "нет кандидатов"
+  },
+  "players:zHend": {
+   "kind": "players",
+   "name": "zHend",
+   "state": "missing",
+   "attempts": 0,
+   "tried": {
+    "hltv": "none",
+    "liquipedia": "none"
+   },
+   "why": "нет ссылки на изображение"
+  },
+  "players:Anlele": {
+   "kind": "players",
+   "name": "Anlele",
+   "state": "missing",
+   "attempts": 0,
+   "tried": {
+    "hltv": "none",
+    "liquipedia": "none"
+   },
+   "why": "нет кандидатов"
+  },
+  "players:khaN": {
+   "kind": "players",
+   "name": "khaN",
+   "state": "missing",
+   "attempts": 0,
+   "tried": {
+    "hltv": "none",
+    "liquipedia": "none"
+   },
+   "why": "нет ссылки на изображение"
+  },
+  "players:syph0": {
+   "kind": "players",
+   "name": "syph0",
+   "state": "missing",
+   "attempts": 0,
+   "tried": {
+    "hltv": "none",
+    "liquipedia": "none"
+   },
+   "why": "нет ссылки на изображение"
+  },
+  "players:StRoGo": {
+   "kind": "players",
+   "name": "StRoGo",
+   "state": "missing",
+   "attempts": 0,
+   "tried": {
+    "hltv": "none",
+    "liquipedia": "none"
+   },
+   "why": "нет ссылки на изображение"
+  },
+  "players:deko": {
+   "kind": "players",
+   "name": "deko",
+   "state": "done",
+   "attempts": 0,
+   "tried": {
+    "hltv": "ok"
+   },
+   "src": "hltv"
+  },
+  "players:ctom": {
+   "kind": "players",
+   "name": "ctom",
+   "state": "missing",
+   "attempts": 0,
+   "tried": {
+    "hltv": "none",
+    "liquipedia": "none"
+   },
+   "why": "нет кандидатов"
+  },
+  "players:m3wsu": {
+   "kind": "players",
+   "name": "m3wsu",
+   "state": "missing",
+   "attempts": 0,
+   "tried": {
+    "hltv": "none",
+    "liquipedia": "none"
+   },
+   "why": "нет ссылки на изображение"
+  },
+  "players:kelieN": {
+   "kind": "players",
+   "name": "kelieN",
+   "state": "done",
+   "attempts": 0,
+   "tried": {
+    "hltv": "ok"
+   },
+   "src": "hltv"
+  },
+  "players:VINI": {
+   "kind": "players",
+   "name": "VINI",
+   "state": "done",
+   "attempts": 0,
+   "tried": {
+    "hltv": "ok"
+   },
+   "src": "hltv"
+  },
+  "players:dav1deuS": {
+   "kind": "players",
+   "name": "dav1deuS",
+   "state": "done",
+   "attempts": 0,
+   "tried": {
+    "hltv": "ok"
+   },
+   "src": "hltv"
+  },
+  "players:Ltz": {
+   "kind": "players",
+   "name": "Ltz",
+   "state": "missing",
+   "attempts": 0,
+   "tried": {
+    "hltv": "none",
+    "liquipedia": "none"
+   },
+   "why": "нет ссылки на изображение"
+  },
+  "players:r0lf": {
+   "kind": "players",
+   "name": "r0lf",
+   "state": "missing",
+   "attempts": 0,
+   "tried": {
+    "hltv": "none",
+    "liquipedia": "none"
+   },
+   "why": "нет кандидатов"
+  },
+  "players:era": {
+   "kind": "players",
+   "name": "era",
+   "state": "missing",
+   "attempts": 0,
+   "tried": {
+    "hltv": "none",
+    "liquipedia": "none"
+   },
+   "why": "нет ссылки на изображение"
+  },
+  "players:uP": {
+   "kind": "players",
+   "name": "uP",
+   "state": "missing",
+   "attempts": 0,
+   "tried": {
+    "hltv": "none",
+    "liquipedia": "none"
+   },
+   "why": "нет кандидатов"
+  },
+  "players:eZaVid": {
+   "kind": "players",
+   "name": "eZaVid",
+   "state": "missing",
+   "attempts": 0,
+   "tried": {
+    "hltv": "none",
+    "liquipedia": "none"
+   },
+   "why": "нет кандидатов"
+  },
+  "players:mazzay": {
+   "kind": "players",
+   "name": "mazzay",
+   "state": "missing",
+   "attempts": 0,
+   "tried": {
+    "hltv": "none",
+    "liquipedia": "none"
+   },
+   "why": "нет кандидатов"
+  },
+  "players:rim3": {
+   "kind": "players",
+   "name": "rim3",
+   "state": "missing",
+   "attempts": 0,
+   "tried": {
+    "hltv": "none",
+    "liquipedia": "none"
+   },
+   "why": "нет ссылки на изображение"
+  },
+  "players:mhl": {
+   "kind": "players",
+   "name": "mhl",
+   "state": "done",
+   "attempts": 0,
+   "tried": {
+    "hltv": "ok"
+   },
+   "src": "hltv"
+  },
+  "players:Cxz": {
+   "kind": "players",
+   "name": "Cxz",
+   "state": "missing",
+   "attempts": 0,
+   "tried": {
+    "hltv": "none",
+    "liquipedia": "none"
+   },
+   "why": "нет кандидатов"
+  },
+  "players:hext": {
+   "kind": "players",
+   "name": "hext",
+   "state": "done",
+   "attempts": 0,
+   "tried": {
+    "hltv": "ok"
+   },
+   "src": "hltv"
+  },
+  "players:CaNito": {
+   "kind": "players",
+   "name": "CaNito",
+   "state": "missing",
+   "attempts": 0,
+   "tried": {
+    "hltv": "none",
+    "liquipedia": "none"
+   },
+   "why": "нет кандидатов"
+  },
+  "players:OSAMAS": {
+   "kind": "players",
+   "name": "OSAMAS",
+   "state": "missing",
+   "attempts": 0,
+   "tried": {
+    "hltv": "none",
+    "liquipedia": "none"
+   },
+   "why": "нет ссылки на изображение"
+  },
+  "players:B0ye": {
+   "kind": "players",
+   "name": "B0ye",
+   "state": "missing",
+   "attempts": 0,
+   "tried": {
+    "hltv": "none",
+    "liquipedia": "none"
+   },
+   "why": "нет ссылки на изображение"
+  },
+  "players:Banjo": {
+   "kind": "players",
+   "name": "Banjo",
+   "state": "missing",
+   "attempts": 0,
+   "tried": {
+    "hltv": "none",
+    "liquipedia": "none"
+   },
+   "why": "нет ссылки на изображение"
+  },
+  "players:Matheos": {
+   "kind": "players",
+   "name": "Matheos",
+   "state": "missing",
+   "attempts": 0,
+   "tried": {
+    "hltv": "none",
+    "liquipedia": "none"
+   },
+   "why": "нет ссылки на изображение"
+  },
+  "players:ex1st": {
+   "kind": "players",
+   "name": "ex1st",
+   "state": "done",
+   "attempts": 0,
+   "tried": {
+    "hltv": "ok"
+   },
+   "src": "hltv"
+  },
+  "players:VILBy": {
+   "kind": "players",
+   "name": "VILBy",
+   "state": "done",
+   "attempts": 0,
+   "tried": {
+    "hltv": "ok"
+   },
+   "src": "hltv"
+  },
+  "players:Kiryasoo": {
+   "kind": "players",
+   "name": "Kiryasoo",
+   "state": "missing",
+   "attempts": 0,
+   "tried": {
+    "hltv": "none",
+    "liquipedia": "none"
+   },
+   "why": "нет ссылки на изображение"
+  },
+  "players:Netrix": {
+   "kind": "players",
+   "name": "Netrix",
+   "state": "missing",
+   "attempts": 0,
+   "tried": {
+    "hltv": "none",
+    "liquipedia": "none"
+   },
+   "why": "нет кандидатов"
+  },
+  "players:s1nside": {
+   "kind": "players",
+   "name": "s1nside",
+   "state": "missing",
+   "attempts": 0,
+   "tried": {
+    "hltv": "none",
+    "liquipedia": "none"
+   },
+   "why": "нет ссылки на изображение"
+  },
+  "players:k0gaSs": {
+   "kind": "players",
+   "name": "k0gaSs",
+   "state": "missing",
+   "attempts": 0,
+   "tried": {
+    "hltv": "none",
+    "liquipedia": "none"
+   },
+   "why": "нет кандидатов"
+  },
+  "players:MahaR": {
+   "kind": "players",
+   "name": "MahaR",
+   "state": "missing",
+   "attempts": 0,
+   "tried": {
+    "hltv": "none",
+    "liquipedia": "none"
+   },
+   "why": "нет ссылки на изображение"
+  },
+  "players:FAZERY": {
+   "kind": "players",
+   "name": "FAZERY",
+   "state": "missing",
+   "attempts": 0,
+   "tried": {
+    "hltv": "none",
+    "liquipedia": "none"
+   },
+   "why": "нет ссылки на изображение"
+  },
+  "players:skizzyee": {
+   "kind": "players",
+   "name": "skizzyee",
+   "state": "missing",
+   "attempts": 0,
+   "tried": {
+    "hltv": "none",
+    "liquipedia": "none"
+   },
+   "why": "нет кандидатов"
+  },
+  "players:yoki": {
+   "kind": "players",
+   "name": "yoki",
+   "state": "missing",
+   "attempts": 0,
+   "tried": {
+    "hltv": "none",
+    "liquipedia": "none"
+   },
+   "why": "нет кандидатов"
+  },
+  "players:kodak": {
+   "kind": "players",
+   "name": "kodak",
+   "state": "missing",
+   "attempts": 0,
+   "tried": {
+    "hltv": "none",
+    "liquipedia": "none"
+   },
+   "why": "нет кандидатов"
+  },
+  "players:SHiNE": {
+   "kind": "players",
+   "name": "SHiNE",
+   "state": "missing",
+   "attempts": 0,
+   "tried": {
+    "hltv": "none",
+    "liquipedia": "none"
+   },
+   "why": "нет ссылки на изображение"
+  },
+  "players:hitori": {
+   "kind": "players",
+   "name": "hitori",
+   "state": "missing",
+   "attempts": 0,
+   "tried": {
+    "hltv": "none",
+    "liquipedia": "none"
+   },
+   "why": "нет ссылки на изображение"
+  },
+  "players:Junyme": {
+   "kind": "players",
+   "name": "Junyme",
+   "state": "missing",
+   "attempts": 0,
+   "tried": {
+    "hltv": "none",
+    "liquipedia": "none"
+   },
+   "why": "нет ссылки на изображение"
+  },
+  "players:yksjupe": {
+   "kind": "players",
+   "name": "yksjupe",
+   "state": "missing",
+   "attempts": 0,
+   "tried": {
+    "hltv": "none",
+    "liquipedia": "none"
+   },
+   "why": "нет ссылки на изображение"
+  },
+  "players:eSx": {
+   "kind": "players",
+   "name": "eSx",
+   "state": "missing",
+   "attempts": 0,
+   "tried": {
+    "hltv": "none",
+    "liquipedia": "none"
+   },
+   "why": "нет ссылки на изображение"
+  },
+  "players:mixer": {
+   "kind": "players",
+   "name": "mixer",
+   "state": "missing",
+   "attempts": 0,
+   "tried": {
+    "hltv": "none",
+    "liquipedia": "none"
+   },
+   "why": "нет кандидатов"
+  },
+  "players:dupreeh": {
+   "kind": "players",
+   "name": "dupreeh",
+   "state": "done",
+   "attempts": 0,
+   "tried": {
+    "hltv": "ok"
+   },
+   "src": "hltv"
+  },
+  "players:k0nfig": {
+   "kind": "players",
+   "name": "k0nfig",
+   "state": "done",
+   "attempts": 0,
+   "tried": {
+    "hltv": "ok"
+   },
+   "src": "hltv"
+  },
+  "players:Luken": {
+   "kind": "players",
+   "name": "Luken",
+   "state": "done",
+   "attempts": 0,
+   "tried": {
+    "hltv": "ok"
+   },
+   "src": "hltv"
+  },
+  "players:Shr": {
+   "kind": "players",
+   "name": "Shr",
+   "state": "done",
+   "attempts": 0,
+   "tried": {
+    "hltv": "ok"
+   },
+   "src": "hltv"
+  },
+  "players:detr0ittJ": {
+   "kind": "players",
+   "name": "detr0ittJ",
+   "state": "done",
+   "attempts": 0,
+   "tried": {
+    "hltv": "ok"
+   },
+   "src": "hltv"
+  },
+  "players:chayJESUS": {
+   "kind": "players",
+   "name": "chayJESUS",
+   "state": "done",
+   "attempts": 0,
+   "tried": {
+    "hltv": "ok"
+   },
+   "src": "hltv"
+  },
+  "players:Grizz": {
+   "kind": "players",
+   "name": "Grizz",
+   "state": "done",
+   "attempts": 0,
+   "tried": {
+    "hltv": "ok"
+   },
+   "src": "hltv"
+  },
+  "players:HEN1": {
+   "kind": "players",
+   "name": "HEN1",
+   "state": "done",
+   "attempts": 0,
+   "tried": {
+    "hltv": "ok"
+   },
+   "src": "hltv"
+  },
+  "players:Peeping": {
+   "kind": "players",
+   "name": "Peeping",
+   "state": "done",
+   "attempts": 0,
+   "tried": {
+    "hltv": "ok"
+   },
+   "src": "hltv"
+  },
+  "players:JOTA": {
+   "kind": "players",
+   "name": "JOTA",
+   "state": "done",
+   "attempts": 0,
+   "tried": {
+    "hltv": "ok"
+   },
+   "src": "hltv"
+  },
+  "players:Wolffe": {
+   "kind": "players",
+   "name": "Wolffe",
+   "state": "done",
+   "attempts": 0,
+   "tried": {
+    "hltv": "ok"
+   },
+   "src": "hltv"
+  },
+  "players:MarKE": {
+   "kind": "players",
+   "name": "MarKE",
+   "state": "done",
+   "attempts": 0,
+   "tried": {
+    "hltv": "ok"
+   },
+   "src": "hltv"
+  },
+  "players:Cxzi": {
+   "kind": "players",
+   "name": "Cxzi",
+   "state": "done",
+   "attempts": 0,
+   "tried": {
+    "hltv": "ok"
+   },
+   "src": "hltv"
+  },
+  "players:WolfY": {
+   "kind": "players",
+   "name": "WolfY",
+   "state": "done",
+   "attempts": 0,
+   "tried": {
+    "hltv": "ok"
+   },
+   "src": "hltv"
+  },
+  "players:H0NeST": {
+   "kind": "players",
+   "name": "H0NeST",
+   "state": "done",
+   "attempts": 0,
+   "tried": {
+    "hltv": "ok"
+   },
+   "src": "hltv"
+  },
+  "players:nosraC": {
+   "kind": "players",
+   "name": "nosraC",
+   "state": "done",
+   "attempts": 0,
+   "tried": {
+    "hltv": "ok"
+   },
+   "src": "hltv"
+  },
+  "players:Bwills": {
+   "kind": "players",
+   "name": "Bwills",
+   "state": "done",
+   "attempts": 0,
+   "tried": {
+    "hltv": "ok"
+   },
+   "src": "hltv"
+  },
+  "players:SLIGHT": {
+   "kind": "players",
+   "name": "SLIGHT",
+   "state": "done",
+   "attempts": 0,
+   "tried": {
+    "hltv": "ok"
+   },
+   "src": "hltv"
+  },
+  "players:Alisson": {
+   "kind": "players",
+   "name": "Alisson",
+   "state": "done",
+   "attempts": 0,
+   "tried": {
+    "hltv": "ok"
+   },
+   "src": "hltv"
+  },
+  "players:Zoker": {
+   "kind": "players",
+   "name": "Zoker",
+   "state": "done",
+   "attempts": 0,
+   "tried": {
+    "hltv": "ok"
+   },
+   "src": "hltv"
+  },
+  "players:Olga": {
+   "kind": "players",
+   "name": "Olga",
+   "state": "done",
+   "attempts": 0,
+   "tried": {
+    "hltv": "ok"
+   },
+   "src": "hltv"
+  },
+  "players:Andrew": {
+   "kind": "players",
+   "name": "Andrew",
+   "state": "missing",
+   "attempts": 0,
+   "tried": {
+    "hltv": "none",
+    "liquipedia": "none"
+   },
+   "why": "нет ссылки на изображение"
+  },
+  "players:Pose1doNN": {
+   "kind": "players",
+   "name": "Pose1doNN",
+   "state": "done",
+   "attempts": 0,
+   "tried": {
+    "hltv": "ok"
+   },
+   "src": "hltv"
+  },
+  "players:fREQ": {
+   "kind": "players",
+   "name": "fREQ",
+   "state": "done",
+   "attempts": 0,
+   "tried": {
+    "hltv": "ok"
+   },
+   "src": "hltv"
+  },
+  "players:KAISER": {
+   "kind": "players",
+   "name": "KAISER",
+   "state": "done",
+   "attempts": 0,
+   "tried": {
+    "hltv": "ok"
+   },
+   "src": "hltv"
+  },
+  "players:CLASIA": {
+   "kind": "players",
+   "name": "CLASIA",
+   "state": "done",
+   "attempts": 0,
+   "tried": {
+    "hltv": "ok"
+   },
+   "src": "hltv"
+  },
+  "players:Zero": {
+   "kind": "players",
+   "name": "Zero",
+   "state": "done",
+   "attempts": 0,
+   "tried": {
+    "hltv": "ok"
+   },
+   "src": "hltv"
+  },
+  "players:ninjaZ": {
+   "kind": "players",
+   "name": "ninjaZ",
+   "state": "done",
+   "attempts": 0,
+   "tried": {
+    "hltv": "ok"
+   },
+   "src": "hltv"
+  },
+  "players:Crisp": {
+   "kind": "players",
+   "name": "Crisp",
+   "state": "done",
+   "attempts": 0,
+   "tried": {
+    "hltv": "ok"
+   },
+   "src": "hltv"
+  },
+  "players:FaNg": {
+   "kind": "players",
+   "name": "FaNg",
+   "state": "done",
+   "attempts": 0,
+   "tried": {
+    "hltv": "ok"
+   },
+   "src": "hltv"
+  },
+  "players:Cryptic": {
+   "kind": "players",
+   "name": "Cryptic",
+   "state": "done",
+   "attempts": 0,
+   "tried": {
+    "hltv": "ok"
+   },
+   "src": "hltv"
+  },
+  "players:Sandman": {
+   "kind": "players",
+   "name": "Sandman",
+   "state": "done",
+   "attempts": 0,
+   "tried": {
+    "hltv": "ok"
+   },
+   "src": "hltv"
+  },
+  "players:Fruitcupx": {
+   "kind": "players",
+   "name": "Fruitcupx",
+   "state": "done",
+   "attempts": 0,
+   "tried": {
+    "hltv": "ok"
+   },
+   "src": "hltv"
+  },
+  "players:LyttleZ": {
+   "kind": "players",
+   "name": "LyttleZ",
+   "state": "done",
+   "attempts": 0,
+   "tried": {
+    "hltv": "ok"
+   },
+   "src": "hltv"
+  },
+  "players:Rkzinho": {
+   "kind": "players",
+   "name": "Rkzinho",
+   "state": "done",
+   "attempts": 0,
+   "tried": {
+    "hltv": "ok"
+   },
+   "src": "hltv"
+  },
+  "players:Markz": {
+   "kind": "players",
+   "name": "Markz",
+   "state": "done",
+   "attempts": 0,
+   "tried": {
+    "hltv": "ok"
+   },
+   "src": "hltv"
+  },
+  "players:BiBiAhn": {
+   "kind": "players",
+   "name": "BiBiAhn",
+   "state": "done",
+   "attempts": 0,
+   "tried": {
+    "hltv": "ok"
+   },
+   "src": "hltv"
+  },
+  "players:aNgelo": {
+   "kind": "players",
+   "name": "aNgelo",
+   "state": "done",
+   "attempts": 0,
+   "tried": {
+    "hltv": "ok"
+   },
+   "src": "hltv"
+  },
+  "players:Leomonster": {
+   "kind": "players",
+   "name": "Leomonster",
+   "state": "done",
+   "attempts": 0,
+   "tried": {
+    "hltv": "ok"
+   },
+   "src": "hltv"
+  },
+  "players:MITHPUTTINI": {
+   "kind": "players",
+   "name": "MITHPUTTINI",
+   "state": "done",
+   "attempts": 0,
+   "tried": {
+    "hltv": "ok"
+   },
+   "src": "hltv"
+  },
+  "players:killerPandas": {
+   "kind": "players",
+   "name": "killerPandas",
+   "state": "done",
+   "attempts": 0,
+   "tried": {
+    "hltv": "ok"
+   },
+   "src": "hltv"
+  },
+  "players:GaBi": {
+   "kind": "players",
+   "name": "GaBi",
+   "state": "done",
+   "attempts": 0,
+   "tried": {
+    "hltv": "ok"
+   },
+   "src": "hltv"
+  },
+  "players:REKMEISTER": {
+   "kind": "players",
+   "name": "REKMEISTER",
+   "state": "done",
+   "attempts": 0,
+   "tried": {
+    "hltv": "ok"
+   },
+   "src": "hltv"
+  },
+  "players:Panic": {
+   "kind": "players",
+   "name": "Panic",
+   "state": "done",
+   "attempts": 0,
+   "tried": {
+    "hltv": "ok"
+   },
+   "src": "hltv"
+  },
+  "players:Evan": {
+   "kind": "players",
+   "name": "Evan",
+   "state": "done",
+   "attempts": 0,
+   "tried": {
+    "hltv": "ok"
+   },
+   "src": "hltv"
+  },
+  "players:Valter0k": {
+   "kind": "players",
+   "name": "Valter0k",
+   "state": "missing",
+   "attempts": 0,
+   "tried": {
+    "hltv": "none",
+    "liquipedia": "none"
+   },
+   "why": "нет кандидатов"
+  },
+  "players:RenanZin": {
+   "kind": "players",
+   "name": "RenanZin",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {
+    "liquipedia": "none"
+   },
+   "why": "нет кандидатов"
+  },
+  "players:WOOD7": {
+   "kind": "players",
+   "name": "WOOD7",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {
+    "liquipedia": "none"
+   },
+   "why": "нет ссылки на изображение"
+  },
+  "players:FraGuTy": {
+   "kind": "players",
+   "name": "FraGuTy",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {
+    "liquipedia": "none"
+   },
+   "why": "нет ссылки на изображение"
+  },
+  "players:Lekzi": {
+   "kind": "players",
+   "name": "Lekzi",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {
+    "liquipedia": "none"
+   },
+   "why": "нет кандидатов"
+  },
+  "players:Hezz": {
+   "kind": "players",
+   "name": "Hezz",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {
+    "liquipedia": "none"
+   },
+   "why": "нет ссылки на изображение"
+  },
+  "players:BK1": {
+   "kind": "players",
+   "name": "BK1",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {
+    "liquipedia": "none"
+   },
+   "why": "нет ссылки на изображение"
+  },
+  "players:kaahSENSEI": {
+   "kind": "players",
+   "name": "kaahSENSEI",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {
+    "liquipedia": "none"
+   },
+   "why": "нет ссылки на изображение"
+  },
+  "players:KmZ": {
+   "kind": "players",
+   "name": "KmZ",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {
+    "liquipedia": "none"
+   },
+   "why": "нет ссылки на изображение"
+  },
+  "players:cLd": {
+   "kind": "players",
+   "name": "cLd",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {
+    "liquipedia": "none"
+   },
+   "why": "нет ссылки на изображение"
+  },
+  "players:Jotag3": {
+   "kind": "players",
+   "name": "Jotag3",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {
+    "liquipedia": "none"
+   },
+   "why": "нет кандидатов"
+  },
+  "players:Thuister": {
+   "kind": "players",
+   "name": "Thuister",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {
+    "liquipedia": "none"
+   },
+   "why": "нет кандидатов"
+  },
+  "players:Dani": {
+   "kind": "players",
+   "name": "Dani",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {
+    "liquipedia": "none"
+   },
+   "why": "нет ссылки на изображение"
+  },
+  "players:CoolComs": {
+   "kind": "players",
+   "name": "CoolComs",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {
+    "liquipedia": "none"
+   },
+   "why": "нет ссылки на изображение"
+  },
+  "players:ABM": {
+   "kind": "players",
+   "name": "ABM",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {
+    "liquipedia": "none"
+   },
+   "why": "нет ссылки на изображение"
+  },
+  "players:Fawx": {
+   "kind": "players",
+   "name": "Fawx",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {
+    "liquipedia": "none"
+   },
+   "why": "нет ссылки на изображение"
+  },
+  "players:Gabe": {
+   "kind": "players",
+   "name": "Gabe",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {
+    "liquipedia": "none"
+   },
+   "why": "нет ссылки на изображение"
+  },
+  "players:Pol0": {
+   "kind": "players",
+   "name": "Pol0",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {
+    "liquipedia": "none"
+   },
+   "why": "нет ссылки на изображение"
+  },
+  "players:CAJUN": {
+   "kind": "players",
+   "name": "CAJUN",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {
+    "liquipedia": "none"
+   },
+   "why": "нет ссылки на изображение"
+  },
+  "players:SeRCEra": {
+   "kind": "players",
+   "name": "SeRCEra",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {
+    "liquipedia": "none"
+   },
+   "why": "нет кандидатов"
+  },
+  "players:SayYouWill": {
+   "kind": "players",
+   "name": "SayYouWill",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {
+    "liquipedia": "none"
+   },
+   "why": "нет кандидатов"
+  },
+  "players:CaPiM": {
+   "kind": "players",
+   "name": "CaPiM",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {
+    "liquipedia": "none"
+   },
+   "why": "нет кандидатов"
+  },
+  "players:Walco": {
+   "kind": "players",
+   "name": "Walco",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {
+    "liquipedia": "none"
+   },
+   "why": "нет ссылки на изображение"
+  },
+  "players:deemO": {
+   "kind": "players",
+   "name": "deemO",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {
+    "liquipedia": "none"
+   },
+   "why": "нет ссылки на изображение"
+  },
+  "players:AGL": {
+   "kind": "players",
+   "name": "AGL",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {
+    "liquipedia": "none"
+   },
+   "why": "нет кандидатов"
+  },
+  "players:delboNi": {
+   "kind": "players",
+   "name": "delboNi",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {
+    "liquipedia": "none"
+   },
+   "why": "нет ссылки на изображение"
+  },
+  "players:Noktse": {
+   "kind": "players",
+   "name": "Noktse",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {
+    "liquipedia": "none"
+   },
+   "why": "нет ссылки на изображение"
+  },
+  "players:Lucaozy": {
+   "kind": "players",
+   "name": "Lucaozy",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {
+    "liquipedia": "none"
+   },
+   "why": "нет ссылки на изображение"
+  },
+  "players:PKL": {
+   "kind": "players",
+   "name": "PKL",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {
+    "liquipedia": "none"
+   },
+   "why": "нет ссылки на изображение"
+  },
+  "players:REGIANE": {
+   "kind": "players",
+   "name": "REGIANE",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {
+    "liquipedia": "none"
+   },
+   "why": "нет ссылки на изображение"
+  },
+  "players:Luk1nha": {
+   "kind": "players",
+   "name": "Luk1nha",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {
+    "liquipedia": "none"
+   },
+   "why": "нет кандидатов"
+  },
+  "players:FRIZZY": {
+   "kind": "players",
+   "name": "FRIZZY",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {
+    "liquipedia": "none"
+   },
+   "why": "нет кандидатов"
+  },
+  "players:Reix": {
+   "kind": "players",
+   "name": "Reix",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {
+    "liquipedia": "none"
+   },
+   "why": "нет ссылки на изображение"
+  },
+  "players:Serendipity": {
+   "kind": "players",
+   "name": "Serendipity",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {
+    "liquipedia": "none"
+   },
+   "why": "нет кандидатов"
+  },
+  "players:MaxOff": {
+   "kind": "players",
+   "name": "MaxOff",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {
+    "liquipedia": "none"
+   },
+   "why": "нет ссылки на изображение"
+  },
+  "players:Kermi": {
+   "kind": "players",
+   "name": "Kermi",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {
+    "liquipedia": "none"
+   },
+   "why": "нет кандидатов"
+  },
+  "players:Sofiaxyz": {
+   "kind": "players",
+   "name": "Sofiaxyz",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {
+    "liquipedia": "none"
+   },
+   "why": "нет ссылки на изображение"
+  },
+  "players:Johan": {
+   "kind": "players",
+   "name": "Johan",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {
+    "liquipedia": "none"
+   },
+   "why": "нет ссылки на изображение"
+  },
+  "players:Emy": {
+   "kind": "players",
+   "name": "Emy",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {
+    "liquipedia": "none"
+   },
+   "why": "нет ссылки на изображение"
+  },
+  "players:Eleven": {
+   "kind": "players",
+   "name": "Eleven",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {
+    "liquipedia": "none"
+   },
+   "why": "нет ссылки на изображение"
+  },
+  "players:Jerr1": {
+   "kind": "players",
+   "name": "Jerr1",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {
+    "liquipedia": "none"
+   },
+   "why": "нет кандидатов"
+  },
+  "players:Lich": {
+   "kind": "players",
+   "name": "Lich",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {
+    "liquipedia": "none"
+   },
+   "why": "нет кандидатов"
+  },
+  "players:gloRinsz": {
+   "kind": "players",
+   "name": "gloRinsz",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {
+    "liquipedia": "none"
+   },
+   "why": "нет ссылки на изображение"
+  },
+  "players:stx": {
+   "kind": "players",
+   "name": "stx",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {
+    "liquipedia": "none"
+   },
+   "why": "нет ссылки на изображение"
+  },
+  "players:Royals": {
+   "kind": "players",
+   "name": "Royals",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {
+    "liquipedia": "none"
+   },
+   "why": "нет кандидатов"
+  },
+  "players:brokeN": {
+   "kind": "players",
+   "name": "brokeN",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {
+    "liquipedia": "none"
+   },
+   "why": "нет кандидатов"
+  },
+  "players:CutzMeretz": {
+   "kind": "players",
+   "name": "CutzMeretz",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {
+    "liquipedia": "none"
+   },
+   "why": "нет ссылки на изображение"
+  },
+  "players:910": {
+   "kind": "players",
+   "name": "910",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:957": {
+   "kind": "players",
+   "name": "957",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:sh1ro": {
+   "kind": "players",
+   "name": "sh1ro",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:magixx": {
+   "kind": "players",
+   "name": "magixx",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:tN1R": {
+   "kind": "players",
+   "name": "tN1R",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:zont1x": {
+   "kind": "players",
+   "name": "zont1x",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:donk": {
+   "kind": "players",
+   "name": "donk",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:karrigan": {
+   "kind": "players",
+   "name": "karrigan",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:NiKo": {
+   "kind": "players",
+   "name": "NiKo",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:TeSeS": {
+   "kind": "players",
+   "name": "TeSeS",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:m0NESY": {
+   "kind": "players",
+   "name": "m0NESY",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:kyousuke": {
+   "kind": "players",
+   "name": "kyousuke",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:apEX": {
+   "kind": "players",
+   "name": "apEX",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:ropz": {
+   "kind": "players",
+   "name": "ropz",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:ZywOo": {
+   "kind": "players",
+   "name": "ZywOo",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:flameZ": {
+   "kind": "players",
+   "name": "flameZ",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:mezii": {
+   "kind": "players",
+   "name": "mezii",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:torzsi": {
+   "kind": "players",
+   "name": "torzsi",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Spinx": {
+   "kind": "players",
+   "name": "Spinx",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:xertioN": {
+   "kind": "players",
+   "name": "xertioN",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:PR": {
+   "kind": "players",
+   "name": "PR",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:xelex": {
+   "kind": "players",
+   "name": "xelex",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:FalleN": {
+   "kind": "players",
+   "name": "FalleN",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:yuurih": {
+   "kind": "players",
+   "name": "yuurih",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:YEKINDAR": {
+   "kind": "players",
+   "name": "YEKINDAR",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:KSCERATO": {
+   "kind": "players",
+   "name": "KSCERATO",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:molodoy": {
+   "kind": "players",
+   "name": "molodoy",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:huNter-": {
+   "kind": "players",
+   "name": "huNter-",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:NertZ": {
+   "kind": "players",
+   "name": "NertZ",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:r1nkle": {
+   "kind": "players",
+   "name": "r1nkle",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:HeavyGod": {
+   "kind": "players",
+   "name": "HeavyGod",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:MATYS": {
+   "kind": "players",
+   "name": "MATYS",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Aleksib": {
+   "kind": "players",
+   "name": "Aleksib",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:iM": {
+   "kind": "players",
+   "name": "iM",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:b1t": {
+   "kind": "players",
+   "name": "b1t",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:w0nderful": {
+   "kind": "players",
+   "name": "w0nderful",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:makazze": {
+   "kind": "players",
+   "name": "makazze",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:xfl0ud": {
+   "kind": "players",
+   "name": "xfl0ud",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:dem0n": {
+   "kind": "players",
+   "name": "dem0n",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Krabeni": {
+   "kind": "players",
+   "name": "Krabeni",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:cmtry": {
+   "kind": "players",
+   "name": "cmtry",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:dziugss": {
+   "kind": "players",
+   "name": "dziugss",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:dumau": {
+   "kind": "players",
+   "name": "dumau",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:latto": {
+   "kind": "players",
+   "name": "latto",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:n1ssim": {
+   "kind": "players",
+   "name": "n1ssim",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:try": {
+   "kind": "players",
+   "name": "try",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:XANTARES": {
+   "kind": "players",
+   "name": "XANTARES",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:woxic": {
+   "kind": "players",
+   "name": "woxic",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Jimpphat": {
+   "kind": "players",
+   "name": "Jimpphat",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Wicadia": {
+   "kind": "players",
+   "name": "Wicadia",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:frozen": {
+   "kind": "players",
+   "name": "frozen",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Twistzz": {
+   "kind": "players",
+   "name": "Twistzz",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Neityu": {
+   "kind": "players",
+   "name": "Neityu",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:jcobbb": {
+   "kind": "players",
+   "name": "jcobbb",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:bLitz": {
+   "kind": "players",
+   "name": "bLitz",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Techno": {
+   "kind": "players",
+   "name": "Techno",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:tikuak": {
+   "kind": "players",
+   "name": "tikuak",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Boombl4": {
+   "kind": "players",
+   "name": "Boombl4",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:zorte": {
+   "kind": "players",
+   "name": "zorte",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:S1ren": {
+   "kind": "players",
+   "name": "S1ren",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:d1Ledez": {
+   "kind": "players",
+   "name": "d1Ledez",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Magnojez": {
+   "kind": "players",
+   "name": "Magnojez",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:HooXi": {
+   "kind": "players",
+   "name": "HooXi",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:phzy": {
+   "kind": "players",
+   "name": "phzy",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:jabbi": {
+   "kind": "players",
+   "name": "jabbi",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Staehr": {
+   "kind": "players",
+   "name": "Staehr",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:meyern": {
+   "kind": "players",
+   "name": "meyern",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:luchov": {
+   "kind": "players",
+   "name": "luchov",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Maka": {
+   "kind": "players",
+   "name": "Maka",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:misutaaa": {
+   "kind": "players",
+   "name": "misutaaa",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Graviti": {
+   "kind": "players",
+   "name": "Graviti",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:NAF": {
+   "kind": "players",
+   "name": "NAF",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:EliGE": {
+   "kind": "players",
+   "name": "EliGE",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:malbsMd": {
+   "kind": "players",
+   "name": "malbsMd",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:JT": {
+   "kind": "players",
+   "name": "JT",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:alex666": {
+   "kind": "players",
+   "name": "alex666",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:npl": {
+   "kind": "players",
+   "name": "npl",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:kensizor": {
+   "kind": "players",
+   "name": "kensizor",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:esenthial": {
+   "kind": "players",
+   "name": "esenthial",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:s1zzi": {
+   "kind": "players",
+   "name": "s1zzi",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:biguzera": {
+   "kind": "players",
+   "name": "biguzera",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:saffee": {
+   "kind": "players",
+   "name": "saffee",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:snow": {
+   "kind": "players",
+   "name": "snow",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:tabseN": {
+   "kind": "players",
+   "name": "tabseN",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:faveN": {
+   "kind": "players",
+   "name": "faveN",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:blameF": {
+   "kind": "players",
+   "name": "blameF",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Brollan": {
+   "kind": "players",
+   "name": "Brollan",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:nilo": {
+   "kind": "players",
+   "name": "nilo",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:susp": {
+   "kind": "players",
+   "name": "susp",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:MartinezSa": {
+   "kind": "players",
+   "name": "MartinezSa",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Chr1zN": {
+   "kind": "players",
+   "name": "Chr1zN",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:FL1T": {
+   "kind": "players",
+   "name": "FL1T",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Jame": {
+   "kind": "players",
+   "name": "Jame",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:xiELO": {
+   "kind": "players",
+   "name": "xiELO",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:xseveN": {
+   "kind": "players",
+   "name": "xseveN",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:stavn": {
+   "kind": "players",
+   "name": "stavn",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:jL": {
+   "kind": "players",
+   "name": "jL",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Krimbo": {
+   "kind": "players",
+   "name": "Krimbo",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:xKacpersky": {
+   "kind": "players",
+   "name": "xKacpersky",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:n0rb3r7": {
+   "kind": "players",
+   "name": "n0rb3r7",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:mizu": {
+   "kind": "players",
+   "name": "mizu",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:frontales": {
+   "kind": "players",
+   "name": "frontales",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Snax": {
+   "kind": "players",
+   "name": "Snax",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:REZ": {
+   "kind": "players",
+   "name": "REZ",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Tauson": {
+   "kind": "players",
+   "name": "Tauson",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:FL4MUS": {
+   "kind": "players",
+   "name": "FL4MUS",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:hypex": {
+   "kind": "players",
+   "name": "hypex",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:nqz": {
+   "kind": "players",
+   "name": "nqz",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:insani": {
+   "kind": "players",
+   "name": "insani",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:venomzera": {
+   "kind": "players",
+   "name": "venomzera",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:tomaszin": {
+   "kind": "players",
+   "name": "tomaszin",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:MaSvAl": {
+   "kind": "players",
+   "name": "MaSvAl",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:AW": {
+   "kind": "players",
+   "name": "AW",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:tenzy": {
+   "kind": "players",
+   "name": "tenzy",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:JamYoung": {
+   "kind": "players",
+   "name": "JamYoung",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Jee": {
+   "kind": "players",
+   "name": "Jee",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Mercury": {
+   "kind": "players",
+   "name": "Mercury",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Moseyuh": {
+   "kind": "players",
+   "name": "Moseyuh",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:cptkurtka023": {
+   "kind": "players",
+   "name": "cptkurtka023",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:headtr1ck": {
+   "kind": "players",
+   "name": "headtr1ck",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:zeRRoFIX": {
+   "kind": "players",
+   "name": "zeRRoFIX",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:onic": {
+   "kind": "players",
+   "name": "onic",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:slaxz-": {
+   "kind": "players",
+   "name": "slaxz-",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Swisher": {
+   "kind": "players",
+   "name": "Swisher",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:s1n": {
+   "kind": "players",
+   "name": "s1n",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:JBa": {
+   "kind": "players",
+   "name": "JBa",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Lake": {
+   "kind": "players",
+   "name": "Lake",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:z4KR": {
+   "kind": "players",
+   "name": "z4KR",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:EmiliaQAQ": {
+   "kind": "players",
+   "name": "EmiliaQAQ",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Starry": {
+   "kind": "players",
+   "name": "Starry",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:C4LLM3SU3": {
+   "kind": "players",
+   "name": "C4LLM3SU3",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:device": {
+   "kind": "players",
+   "name": "device",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:rain": {
+   "kind": "players",
+   "name": "rain",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:cadiaN": {
+   "kind": "players",
+   "name": "cadiaN",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:bodyy": {
+   "kind": "players",
+   "name": "bodyy",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:adamb": {
+   "kind": "players",
+   "name": "adamb",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:degster": {
+   "kind": "players",
+   "name": "degster",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:X5G7V": {
+   "kind": "players",
+   "name": "X5G7V",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:nafany": {
+   "kind": "players",
+   "name": "nafany",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:BELCHONOKK": {
+   "kind": "players",
+   "name": "BELCHONOKK",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:fame": {
+   "kind": "players",
+   "name": "fame",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:ArtFr0st": {
+   "kind": "players",
+   "name": "ArtFr0st",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:acoR": {
+   "kind": "players",
+   "name": "acoR",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Cabbi": {
+   "kind": "players",
+   "name": "Cabbi",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:MistR": {
+   "kind": "players",
+   "name": "MistR",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:s1mple": {
+   "kind": "players",
+   "name": "s1mple",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:electroNic": {
+   "kind": "players",
+   "name": "electroNic",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Magisk": {
+   "kind": "players",
+   "name": "Magisk",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Senzu": {
+   "kind": "players",
+   "name": "Senzu",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:mzinho": {
+   "kind": "players",
+   "name": "mzinho",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:MAJ3R": {
+   "kind": "players",
+   "name": "MAJ3R",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:regali": {
+   "kind": "players",
+   "name": "regali",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Kvem": {
+   "kind": "players",
+   "name": "Kvem",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:jottAAA": {
+   "kind": "players",
+   "name": "jottAAA",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:nitr0": {
+   "kind": "players",
+   "name": "nitr0",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Sonic": {
+   "kind": "players",
+   "name": "Sonic",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:hallzerk": {
+   "kind": "players",
+   "name": "hallzerk",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Grim": {
+   "kind": "players",
+   "name": "Grim",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Jeorge": {
+   "kind": "players",
+   "name": "Jeorge",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:KaiR0N-": {
+   "kind": "players",
+   "name": "KaiR0N-",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Xant3r": {
+   "kind": "players",
+   "name": "Xant3r",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:robo": {
+   "kind": "players",
+   "name": "robo",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:chelo": {
+   "kind": "players",
+   "name": "chelo",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:decenty": {
+   "kind": "players",
+   "name": "decenty",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:noway": {
+   "kind": "players",
+   "name": "noway",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:saadzin": {
+   "kind": "players",
+   "name": "saadzin",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:exit": {
+   "kind": "players",
+   "name": "exit",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:zevy": {
+   "kind": "players",
+   "name": "zevy",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:kye": {
+   "kind": "players",
+   "name": "kye",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:JW": {
+   "kind": "players",
+   "name": "JW",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:KRIMZ": {
+   "kind": "players",
+   "name": "KRIMZ",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:maxster": {
+   "kind": "players",
+   "name": "maxster",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:dex": {
+   "kind": "players",
+   "name": "dex",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:twist": {
+   "kind": "players",
+   "name": "twist",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:bobeksde": {
+   "kind": "players",
+   "name": "bobeksde",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:fear": {
+   "kind": "players",
+   "name": "fear",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:jambo": {
+   "kind": "players",
+   "name": "jambo",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:jackasmo": {
+   "kind": "players",
+   "name": "jackasmo",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Rainwaker": {
+   "kind": "players",
+   "name": "Rainwaker",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:afro": {
+   "kind": "players",
+   "name": "afro",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:lux": {
+   "kind": "players",
+   "name": "lux",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:yxngstxr": {
+   "kind": "players",
+   "name": "yxngstxr",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:AZUWU": {
+   "kind": "players",
+   "name": "AZUWU",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:alex": {
+   "kind": "players",
+   "name": "alex",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:mopoz": {
+   "kind": "players",
+   "name": "mopoz",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:sausol": {
+   "kind": "players",
+   "name": "sausol",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:dav1g": {
+   "kind": "players",
+   "name": "dav1g",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:chopper": {
+   "kind": "players",
+   "name": "chopper",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:raalz": {
+   "kind": "players",
+   "name": "raalz",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:kraghen": {
+   "kind": "players",
+   "name": "kraghen",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:flayy": {
+   "kind": "players",
+   "name": "flayy",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:b1elany": {
+   "kind": "players",
+   "name": "b1elany",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:nEMANHA": {
+   "kind": "players",
+   "name": "nEMANHA",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:m1N1": {
+   "kind": "players",
+   "name": "m1N1",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:sinnopsyy": {
+   "kind": "players",
+   "name": "sinnopsyy",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Bibu": {
+   "kind": "players",
+   "name": "Bibu",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:salazar": {
+   "kind": "players",
+   "name": "salazar",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:NickyB": {
+   "kind": "players",
+   "name": "NickyB",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:ztr": {
+   "kind": "players",
+   "name": "ztr",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:podi": {
+   "kind": "players",
+   "name": "podi",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:jocab": {
+   "kind": "players",
+   "name": "jocab",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Demho": {
+   "kind": "players",
+   "name": "Demho",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Prism": {
+   "kind": "players",
+   "name": "Prism",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:ultimate": {
+   "kind": "players",
+   "name": "ultimate",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Qlocuu": {
+   "kind": "players",
+   "name": "Qlocuu",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Stewie2k": {
+   "kind": "players",
+   "name": "Stewie2k",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:shox": {
+   "kind": "players",
+   "name": "shox",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Snappi": {
+   "kind": "players",
+   "name": "Snappi",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Maden": {
+   "kind": "players",
+   "name": "Maden",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:siuhy": {
+   "kind": "players",
+   "name": "siuhy",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:sdy": {
+   "kind": "players",
+   "name": "sdy",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Perfecto": {
+   "kind": "players",
+   "name": "Perfecto",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:HObbit": {
+   "kind": "players",
+   "name": "HObbit",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Techno4k": {
+   "kind": "players",
+   "name": "Techno4k",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:1eeR": {
+   "kind": "players",
+   "name": "1eeR",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:kmrn": {
+   "kind": "players",
+   "name": "kmrn",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:zweih": {
+   "kind": "players",
+   "name": "zweih",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:nicoodoz": {
+   "kind": "players",
+   "name": "nicoodoz",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:INS": {
+   "kind": "players",
+   "name": "INS",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:SunPayus": {
+   "kind": "players",
+   "name": "SunPayus",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:cass1n": {
+   "kind": "players",
+   "name": "cass1n",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Attacker": {
+   "kind": "players",
+   "name": "Attacker",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Austin": {
+   "kind": "players",
+   "name": "Austin",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:TO0RO": {
+   "kind": "players",
+   "name": "TO0RO",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:nettik": {
+   "kind": "players",
+   "name": "nettik",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Alkaren": {
+   "kind": "players",
+   "name": "Alkaren",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Vexite": {
+   "kind": "players",
+   "name": "Vexite",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:MisterLoAF": {
+   "kind": "players",
+   "name": "MisterLoAF",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:StalkerxD": {
+   "kind": "players",
+   "name": "StalkerxD",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Liazz": {
+   "kind": "players",
+   "name": "Liazz",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Mokuj1n": {
+   "kind": "players",
+   "name": "Mokuj1n",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Texta": {
+   "kind": "players",
+   "name": "Texta",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:story": {
+   "kind": "players",
+   "name": "story",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:MaiL09": {
+   "kind": "players",
+   "name": "MaiL09",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:aliStair": {
+   "kind": "players",
+   "name": "aliStair",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:history": {
+   "kind": "players",
+   "name": "history",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:glowiing": {
+   "kind": "players",
+   "name": "glowiing",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:BRACE": {
+   "kind": "players",
+   "name": "BRACE",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:asap": {
+   "kind": "players",
+   "name": "asap",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Bymas": {
+   "kind": "players",
+   "name": "Bymas",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:kashl1d": {
+   "kind": "players",
+   "name": "kashl1d",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:L1haNg": {
+   "kind": "players",
+   "name": "L1haNg",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:cobrazera": {
+   "kind": "players",
+   "name": "cobrazera",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:sjuush": {
+   "kind": "players",
+   "name": "sjuush",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:junior": {
+   "kind": "players",
+   "name": "junior",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:vision": {
+   "kind": "players",
+   "name": "vision",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Zesta": {
+   "kind": "players",
+   "name": "Zesta",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:suki": {
+   "kind": "players",
+   "name": "suki",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:br0": {
+   "kind": "players",
+   "name": "br0",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:krazy": {
+   "kind": "players",
+   "name": "krazy",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:BOROS": {
+   "kind": "players",
+   "name": "BOROS",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:nota": {
+   "kind": "players",
+   "name": "nota",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:oSee": {
+   "kind": "players",
+   "name": "oSee",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:cool4st": {
+   "kind": "players",
+   "name": "cool4st",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:z1k4": {
+   "kind": "players",
+   "name": "z1k4",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:ChildKing": {
+   "kind": "players",
+   "name": "ChildKing",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:AccuracyTG": {
+   "kind": "players",
+   "name": "AccuracyTG",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:mantuu": {
+   "kind": "players",
+   "name": "mantuu",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:pz": {
+   "kind": "players",
+   "name": "pz",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:dea": {
+   "kind": "players",
+   "name": "dea",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:SpavaQu": {
+   "kind": "players",
+   "name": "SpavaQu",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Kaide": {
+   "kind": "players",
+   "name": "Kaide",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:synyx": {
+   "kind": "players",
+   "name": "synyx",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:shield": {
+   "kind": "players",
+   "name": "shield",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:lauNX": {
+   "kind": "players",
+   "name": "lauNX",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:eraa": {
+   "kind": "players",
+   "name": "eraa",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:dycha": {
+   "kind": "players",
+   "name": "dycha",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:apocdude": {
+   "kind": "players",
+   "name": "apocdude",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:cej0t": {
+   "kind": "players",
+   "name": "cej0t",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:qx": {
+   "kind": "players",
+   "name": "qx",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:dexter": {
+   "kind": "players",
+   "name": "dexter",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:ewjerkz": {
+   "kind": "players",
+   "name": "ewjerkz",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:kauez": {
+   "kind": "players",
+   "name": "kauez",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:ksloks": {
+   "kind": "players",
+   "name": "ksloks",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:z1Nny": {
+   "kind": "players",
+   "name": "z1Nny",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:aNdu": {
+   "kind": "players",
+   "name": "aNdu",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:kAlash": {
+   "kind": "players",
+   "name": "kAlash",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:bnox": {
+   "kind": "players",
+   "name": "bnox",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:chengking": {
+   "kind": "players",
+   "name": "chengking",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:nin9": {
+   "kind": "players",
+   "name": "nin9",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:yAmi": {
+   "kind": "players",
+   "name": "yAmi",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:nyezin": {
+   "kind": "players",
+   "name": "nyezin",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:lan": {
+   "kind": "players",
+   "name": "lan",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:sk0R": {
+   "kind": "players",
+   "name": "sk0R",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:KENSI": {
+   "kind": "players",
+   "name": "KENSI",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:bsd": {
+   "kind": "players",
+   "name": "bsd",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:snav": {
+   "kind": "players",
+   "name": "snav",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:hardzao": {
+   "kind": "players",
+   "name": "hardzao",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:djay": {
+   "kind": "players",
+   "name": "djay",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:KIRO": {
+   "kind": "players",
+   "name": "KIRO",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Ryujin": {
+   "kind": "players",
+   "name": "Ryujin",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Omichella": {
+   "kind": "players",
+   "name": "Omichella",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:3gl": {
+   "kind": "players",
+   "name": "3gl",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:foggers": {
+   "kind": "players",
+   "name": "foggers",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Tiger": {
+   "kind": "players",
+   "name": "Tiger",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:abr": {
+   "kind": "players",
+   "name": "abr",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:nicx": {
+   "kind": "players",
+   "name": "nicx",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:nacho": {
+   "kind": "players",
+   "name": "nacho",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:buda": {
+   "kind": "players",
+   "name": "buda",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:levi": {
+   "kind": "players",
+   "name": "levi",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:coldzera": {
+   "kind": "players",
+   "name": "coldzera",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:MagnumZ": {
+   "kind": "players",
+   "name": "MagnumZ",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:wetfy": {
+   "kind": "players",
+   "name": "wetfy",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:PokemoN": {
+   "kind": "players",
+   "name": "PokemoN",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:4ever": {
+   "kind": "players",
+   "name": "4ever",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Ro1f": {
+   "kind": "players",
+   "name": "Ro1f",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:nifee": {
+   "kind": "players",
+   "name": "nifee",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:m1QUSE": {
+   "kind": "players",
+   "name": "m1QUSE",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:MICHU": {
+   "kind": "players",
+   "name": "MICHU",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:zmb": {
+   "kind": "players",
+   "name": "zmb",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:ckzao": {
+   "kind": "players",
+   "name": "ckzao",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:diozera": {
+   "kind": "players",
+   "name": "diozera",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:felps": {
+   "kind": "players",
+   "name": "felps",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:ivz": {
+   "kind": "players",
+   "name": "ivz",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:pesadelo": {
+   "kind": "players",
+   "name": "pesadelo",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:bl1x1": {
+   "kind": "players",
+   "name": "bl1x1",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Frontsiderr": {
+   "kind": "players",
+   "name": "Frontsiderr",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Raijin": {
+   "kind": "players",
+   "name": "Raijin",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:SaVage": {
+   "kind": "players",
+   "name": "SaVage",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Flierax": {
+   "kind": "players",
+   "name": "Flierax",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:controlez": {
+   "kind": "players",
+   "name": "controlez",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:ROUX": {
+   "kind": "players",
+   "name": "ROUX",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:erkaSt": {
+   "kind": "players",
+   "name": "erkaSt",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:rage": {
+   "kind": "players",
+   "name": "rage",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:smooya": {
+   "kind": "players",
+   "name": "smooya",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Goofy": {
+   "kind": "players",
+   "name": "Goofy",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:CeRq": {
+   "kind": "players",
+   "name": "CeRq",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:urban0": {
+   "kind": "players",
+   "name": "urban0",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:tomiko": {
+   "kind": "players",
+   "name": "tomiko",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:H4SAN4TOR": {
+   "kind": "players",
+   "name": "H4SAN4TOR",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:shg": {
+   "kind": "players",
+   "name": "shg",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:morelz": {
+   "kind": "players",
+   "name": "morelz",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Bååten": {
+   "kind": "players",
+   "name": "Bååten",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:CRUC1AL": {
+   "kind": "players",
+   "name": "CRUC1AL",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:leo_drk": {
+   "kind": "players",
+   "name": "leo_drk",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:joel": {
+   "kind": "players",
+   "name": "joel",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:j0w": {
+   "kind": "players",
+   "name": "j0w",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:brnz4n": {
+   "kind": "players",
+   "name": "brnz4n",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:nardes": {
+   "kind": "players",
+   "name": "nardes",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:mlhzin": {
+   "kind": "players",
+   "name": "mlhzin",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:consti": {
+   "kind": "players",
+   "name": "consti",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:reiko": {
+   "kind": "players",
+   "name": "reiko",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:avid": {
+   "kind": "players",
+   "name": "avid",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Joey": {
+   "kind": "players",
+   "name": "Joey",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:notineki": {
+   "kind": "players",
+   "name": "notineki",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:executor": {
+   "kind": "players",
+   "name": "executor",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:aragornN": {
+   "kind": "players",
+   "name": "aragornN",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:xerolte": {
+   "kind": "players",
+   "name": "xerolte",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:SADDYX": {
+   "kind": "players",
+   "name": "SADDYX",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Nexius": {
+   "kind": "players",
+   "name": "Nexius",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:dan1": {
+   "kind": "players",
+   "name": "dan1",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Kyojin": {
+   "kind": "players",
+   "name": "Kyojin",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:oxygeN": {
+   "kind": "players",
+   "name": "oxygeN",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:laxiee": {
+   "kind": "players",
+   "name": "laxiee",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:bnc": {
+   "kind": "players",
+   "name": "bnc",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:divine": {
+   "kind": "players",
+   "name": "divine",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:revoltz": {
+   "kind": "players",
+   "name": "revoltz",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:naitte": {
+   "kind": "players",
+   "name": "naitte",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:tom1jed": {
+   "kind": "players",
+   "name": "tom1jed",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:abizz": {
+   "kind": "players",
+   "name": "abizz",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:BnTeT": {
+   "kind": "players",
+   "name": "BnTeT",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:spooke": {
+   "kind": "players",
+   "name": "spooke",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:DSSj": {
+   "kind": "players",
+   "name": "DSSj",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:chelleos": {
+   "kind": "players",
+   "name": "chelleos",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:p5p": {
+   "kind": "players",
+   "name": "p5p",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:flying": {
+   "kind": "players",
+   "name": "flying",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:ElephanT": {
+   "kind": "players",
+   "name": "ElephanT",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:madness": {
+   "kind": "players",
+   "name": "madness",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:lampada": {
+   "kind": "players",
+   "name": "lampada",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:h1te": {
+   "kind": "players",
+   "name": "h1te",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:relaxxie": {
+   "kind": "players",
+   "name": "relaxxie",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:aidKiT": {
+   "kind": "players",
+   "name": "aidKiT",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:poizon": {
+   "kind": "players",
+   "name": "poizon",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:CYPHER": {
+   "kind": "players",
+   "name": "CYPHER",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:XotiC": {
+   "kind": "players",
+   "name": "XotiC",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:jmqa": {
+   "kind": "players",
+   "name": "jmqa",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:anarkez": {
+   "kind": "players",
+   "name": "anarkez",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Aerial": {
+   "kind": "players",
+   "name": "Aerial",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Tuurtle": {
+   "kind": "players",
+   "name": "Tuurtle",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:ZEDKO": {
+   "kind": "players",
+   "name": "ZEDKO",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Farlig": {
+   "kind": "players",
+   "name": "Farlig",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:simke": {
+   "kind": "players",
+   "name": "simke",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:phr": {
+   "kind": "players",
+   "name": "phr",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:J0LZ": {
+   "kind": "players",
+   "name": "J0LZ",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Vegi": {
+   "kind": "players",
+   "name": "Vegi",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:floppy": {
+   "kind": "players",
+   "name": "floppy",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Annihilation": {
+   "kind": "players",
+   "name": "Annihilation",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Rickeh": {
+   "kind": "players",
+   "name": "Rickeh",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:ogwizard": {
+   "kind": "players",
+   "name": "ogwizard",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:freshie": {
+   "kind": "players",
+   "name": "freshie",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:brett": {
+   "kind": "players",
+   "name": "brett",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:f4stzin": {
+   "kind": "players",
+   "name": "f4stzin",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:pavv": {
+   "kind": "players",
+   "name": "pavv",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:vsm": {
+   "kind": "players",
+   "name": "vsm",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:motm": {
+   "kind": "players",
+   "name": "motm",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:fr3nd": {
+   "kind": "players",
+   "name": "fr3nd",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:naz": {
+   "kind": "players",
+   "name": "naz",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:SaMey": {
+   "kind": "players",
+   "name": "SaMey",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:hAdji": {
+   "kind": "players",
+   "name": "hAdji",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:7kick": {
+   "kind": "players",
+   "name": "7kick",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:suonko": {
+   "kind": "players",
+   "name": "suonko",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:sh1nejezzz": {
+   "kind": "players",
+   "name": "sh1nejezzz",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:xenization": {
+   "kind": "players",
+   "name": "xenization",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:damyo": {
+   "kind": "players",
+   "name": "damyo",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:xanzu": {
+   "kind": "players",
+   "name": "xanzu",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:MUTiRiS": {
+   "kind": "players",
+   "name": "MUTiRiS",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:dukefissura": {
+   "kind": "players",
+   "name": "dukefissura",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Re1GN": {
+   "kind": "players",
+   "name": "Re1GN",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Chill": {
+   "kind": "players",
+   "name": "Chill",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:VLDN": {
+   "kind": "players",
+   "name": "VLDN",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:SENSEi": {
+   "kind": "players",
+   "name": "SENSEi",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:allu": {
+   "kind": "players",
+   "name": "allu",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Queenix": {
+   "kind": "players",
+   "name": "Queenix",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:ISSAA": {
+   "kind": "players",
+   "name": "ISSAA",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:BLACKEAGLE": {
+   "kind": "players",
+   "name": "BLACKEAGLE",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:yungher": {
+   "kind": "players",
+   "name": "yungher",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:happ": {
+   "kind": "players",
+   "name": "happ",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:n1cks": {
+   "kind": "players",
+   "name": "n1cks",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:piriajr": {
+   "kind": "players",
+   "name": "piriajr",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:chop": {
+   "kind": "players",
+   "name": "chop",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:kisserek": {
+   "kind": "players",
+   "name": "kisserek",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:icyvl0ne": {
+   "kind": "players",
+   "name": "icyvl0ne",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Hack1ng": {
+   "kind": "players",
+   "name": "Hack1ng",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:ADDICT": {
+   "kind": "players",
+   "name": "ADDICT",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:WasteOfAmmo": {
+   "kind": "players",
+   "name": "WasteOfAmmo",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:drace": {
+   "kind": "players",
+   "name": "drace",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Summer": {
+   "kind": "players",
+   "name": "Summer",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:expSasiKi": {
+   "kind": "players",
+   "name": "expSasiKi",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:gxx-": {
+   "kind": "players",
+   "name": "gxx-",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:DEPRESHN": {
+   "kind": "players",
+   "name": "DEPRESHN",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:juanflatroo": {
+   "kind": "players",
+   "name": "juanflatroo",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:SHiPZ": {
+   "kind": "players",
+   "name": "SHiPZ",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Enzo": {
+   "kind": "players",
+   "name": "Enzo",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:nexa": {
+   "kind": "players",
+   "name": "nexa",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Nodios": {
+   "kind": "players",
+   "name": "Nodios",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:FASHR": {
+   "kind": "players",
+   "name": "FASHR",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Fadey": {
+   "kind": "players",
+   "name": "Fadey",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:hate": {
+   "kind": "players",
+   "name": "hate",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:PwnAlone": {
+   "kind": "players",
+   "name": "PwnAlone",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:ayameuu": {
+   "kind": "players",
+   "name": "ayameuu",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:prt": {
+   "kind": "players",
+   "name": "prt",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:xaler": {
+   "kind": "players",
+   "name": "xaler",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:pancc": {
+   "kind": "players",
+   "name": "pancc",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:tatazin": {
+   "kind": "players",
+   "name": "tatazin",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:lash": {
+   "kind": "players",
+   "name": "lash",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:togs": {
+   "kind": "players",
+   "name": "togs",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Gratisfaction": {
+   "kind": "players",
+   "name": "Gratisfaction",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:yiksrezo": {
+   "kind": "players",
+   "name": "yiksrezo",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:keen": {
+   "kind": "players",
+   "name": "keen",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:w1sely": {
+   "kind": "players",
+   "name": "w1sely",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Purely": {
+   "kind": "players",
+   "name": "Purely",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:jkaem": {
+   "kind": "players",
+   "name": "jkaem",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Porya": {
+   "kind": "players",
+   "name": "Porya",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:sterling": {
+   "kind": "players",
+   "name": "sterling",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:devoduvek": {
+   "kind": "players",
+   "name": "devoduvek",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:interz": {
+   "kind": "players",
+   "name": "interz",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Thomas": {
+   "kind": "players",
+   "name": "Thomas",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Kristou": {
+   "kind": "players",
+   "name": "Kristou",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:CacaNito": {
+   "kind": "players",
+   "name": "CacaNito",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:ANa": {
+   "kind": "players",
+   "name": "ANa",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:b4rtiN": {
+   "kind": "players",
+   "name": "b4rtiN",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:LUCAS1": {
+   "kind": "players",
+   "name": "LUCAS1",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:EspiranTo": {
+   "kind": "players",
+   "name": "EspiranTo",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:sergej": {
+   "kind": "players",
+   "name": "sergej",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:k1not1": {
+   "kind": "players",
+   "name": "k1not1",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:souz4h": {
+   "kind": "players",
+   "name": "souz4h",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:febreeze": {
+   "kind": "players",
+   "name": "febreeze",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:ponter": {
+   "kind": "players",
+   "name": "ponter",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:atarax1a": {
+   "kind": "players",
+   "name": "atarax1a",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:HEAP": {
+   "kind": "players",
+   "name": "HEAP",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:bluewh1te": {
+   "kind": "players",
+   "name": "bluewh1te",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:hazr": {
+   "kind": "players",
+   "name": "hazr",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:DayMake": {
+   "kind": "players",
+   "name": "DayMake",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:TjP": {
+   "kind": "players",
+   "name": "TjP",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Ex3rcice": {
+   "kind": "players",
+   "name": "Ex3rcice",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:darko": {
+   "kind": "players",
+   "name": "darko",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:STYKO": {
+   "kind": "players",
+   "name": "STYKO",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:blocker": {
+   "kind": "players",
+   "name": "blocker",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:FinigaN": {
+   "kind": "players",
+   "name": "FinigaN",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:kabal": {
+   "kind": "players",
+   "name": "kabal",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Patrick": {
+   "kind": "players",
+   "name": "Patrick",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:speed4k": {
+   "kind": "players",
+   "name": "speed4k",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:somebody": {
+   "kind": "players",
+   "name": "somebody",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:EMUHLEET": {
+   "kind": "players",
+   "name": "EMUHLEET",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Skadoodle": {
+   "kind": "players",
+   "name": "Skadoodle",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:tatm": {
+   "kind": "players",
+   "name": "tatm",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:rainny": {
+   "kind": "players",
+   "name": "rainny",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:stanislaw": {
+   "kind": "players",
+   "name": "stanislaw",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:zock": {
+   "kind": "players",
+   "name": "zock",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:grape": {
+   "kind": "players",
+   "name": "grape",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:deco": {
+   "kind": "players",
+   "name": "deco",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Crunchy": {
+   "kind": "players",
+   "name": "Crunchy",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:clyd1e": {
+   "kind": "players",
+   "name": "clyd1e",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:viridian": {
+   "kind": "players",
+   "name": "viridian",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:syrsoN": {
+   "kind": "players",
+   "name": "syrsoN",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:buster": {
+   "kind": "players",
+   "name": "buster",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Kntz": {
+   "kind": "players",
+   "name": "Kntz",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:chawzyyy": {
+   "kind": "players",
+   "name": "chawzyyy",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:dobu": {
+   "kind": "players",
+   "name": "dobu",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:splashske": {
+   "kind": "players",
+   "name": "splashske",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:tele": {
+   "kind": "players",
+   "name": "tele",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:xureba": {
+   "kind": "players",
+   "name": "xureba",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:cerolzin": {
+   "kind": "players",
+   "name": "cerolzin",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:mawth": {
+   "kind": "players",
+   "name": "mawth",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:supra": {
+   "kind": "players",
+   "name": "supra",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Caleyy": {
+   "kind": "players",
+   "name": "Caleyy",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Sobol": {
+   "kind": "players",
+   "name": "Sobol",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:YumsaN": {
+   "kind": "players",
+   "name": "YumsaN",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:gLong": {
+   "kind": "players",
+   "name": "gLong",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Efire": {
+   "kind": "players",
+   "name": "Efire",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:swag": {
+   "kind": "players",
+   "name": "swag",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:jayzaR": {
+   "kind": "players",
+   "name": "jayzaR",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:TOAO": {
+   "kind": "players",
+   "name": "TOAO",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:gejmzilla": {
+   "kind": "players",
+   "name": "gejmzilla",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:XigN": {
+   "kind": "players",
+   "name": "XigN",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Freeman": {
+   "kind": "players",
+   "name": "Freeman",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:shz": {
+   "kind": "players",
+   "name": "shz",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:TACO": {
+   "kind": "players",
+   "name": "TACO",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:RUSH": {
+   "kind": "players",
+   "name": "RUSH",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:caike": {
+   "kind": "players",
+   "name": "caike",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:tahsiN": {
+   "kind": "players",
+   "name": "tahsiN",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:jedqr": {
+   "kind": "players",
+   "name": "jedqr",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Liina": {
+   "kind": "players",
+   "name": "Liina",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:mari": {
+   "kind": "players",
+   "name": "mari",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Drop": {
+   "kind": "players",
+   "name": "Drop",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:trindade": {
+   "kind": "players",
+   "name": "trindade",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:empathy": {
+   "kind": "players",
+   "name": "empathy",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:mello": {
+   "kind": "players",
+   "name": "mello",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:timo": {
+   "kind": "players",
+   "name": "timo",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:gbb": {
+   "kind": "players",
+   "name": "gbb",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:tomate": {
+   "kind": "players",
+   "name": "tomate",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:tex1y": {
+   "kind": "players",
+   "name": "tex1y",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:riskyb0b": {
+   "kind": "players",
+   "name": "riskyb0b",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:fury5k": {
+   "kind": "players",
+   "name": "fury5k",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:cheeseball": {
+   "kind": "players",
+   "name": "cheeseball",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:EXUS": {
+   "kind": "players",
+   "name": "EXUS",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:juho": {
+   "kind": "players",
+   "name": "juho",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:PerX": {
+   "kind": "players",
+   "name": "PerX",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:paz": {
+   "kind": "players",
+   "name": "paz",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:byali": {
+   "kind": "players",
+   "name": "byali",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:viz": {
+   "kind": "players",
+   "name": "viz",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:fl4ish": {
+   "kind": "players",
+   "name": "fl4ish",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:remix": {
+   "kind": "players",
+   "name": "remix",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:poppins": {
+   "kind": "players",
+   "name": "poppins",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:nikz": {
+   "kind": "players",
+   "name": "nikz",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:mds": {
+   "kind": "players",
+   "name": "mds",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:dott1": {
+   "kind": "players",
+   "name": "dott1",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:pepe": {
+   "kind": "players",
+   "name": "pepe",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:bacc": {
+   "kind": "players",
+   "name": "bacc",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:next": {
+   "kind": "players",
+   "name": "next",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Lekr0": {
+   "kind": "players",
+   "name": "Lekr0",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Zyphon": {
+   "kind": "players",
+   "name": "Zyphon",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:nitzie": {
+   "kind": "players",
+   "name": "nitzie",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:hades": {
+   "kind": "players",
+   "name": "hades",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Alv": {
+   "kind": "players",
+   "name": "Alv",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:spirit": {
+   "kind": "players",
+   "name": "spirit",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Get_Jeka": {
+   "kind": "players",
+   "name": "Get_Jeka",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Anlelele": {
+   "kind": "players",
+   "name": "Anlelele",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:B1NGO": {
+   "kind": "players",
+   "name": "B1NGO",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:gump": {
+   "kind": "players",
+   "name": "gump",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:IMAGINE": {
+   "kind": "players",
+   "name": "IMAGINE",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Nivera": {
+   "kind": "players",
+   "name": "Nivera",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:flamie": {
+   "kind": "players",
+   "name": "flamie",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:wiz": {
+   "kind": "players",
+   "name": "wiz",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:reversive": {
+   "kind": "players",
+   "name": "reversive",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:GooseBreeder": {
+   "kind": "players",
+   "name": "GooseBreeder",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Hatz": {
+   "kind": "players",
+   "name": "Hatz",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:RCF": {
+   "kind": "players",
+   "name": "RCF",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Ksu": {
+   "kind": "players",
+   "name": "Ksu",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:bizinha": {
+   "kind": "players",
+   "name": "bizinha",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:stormzyn": {
+   "kind": "players",
+   "name": "stormzyn",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:agt": {
+   "kind": "players",
+   "name": "agt",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:phx": {
+   "kind": "players",
+   "name": "phx",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:jared": {
+   "kind": "players",
+   "name": "jared",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:roca": {
+   "kind": "players",
+   "name": "roca",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:nbl": {
+   "kind": "players",
+   "name": "nbl",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:destiny": {
+   "kind": "players",
+   "name": "destiny",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:swayu": {
+   "kind": "players",
+   "name": "swayu",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:F1KU": {
+   "kind": "players",
+   "name": "F1KU",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Boye": {
+   "kind": "players",
+   "name": "Boye",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Markoś": {
+   "kind": "players",
+   "name": "Markoś",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:youka": {
+   "kind": "players",
+   "name": "youka",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:mag1k3Y": {
+   "kind": "players",
+   "name": "mag1k3Y",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:sideffect": {
+   "kind": "players",
+   "name": "sideffect",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:LaiKeXu": {
+   "kind": "players",
+   "name": "LaiKeXu",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:74LOR": {
+   "kind": "players",
+   "name": "74LOR",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:hf": {
+   "kind": "players",
+   "name": "hf",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:niki1": {
+   "kind": "players",
+   "name": "niki1",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:freakazoid": {
+   "kind": "players",
+   "name": "freakazoid",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Aunkere": {
+   "kind": "players",
+   "name": "Aunkere",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:iDk": {
+   "kind": "players",
+   "name": "iDk",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:ELUSIVE": {
+   "kind": "players",
+   "name": "ELUSIVE",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:izaa": {
+   "kind": "players",
+   "name": "izaa",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:gabs": {
+   "kind": "players",
+   "name": "gabs",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Cooper": {
+   "kind": "players",
+   "name": "Cooper",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:aelor": {
+   "kind": "players",
+   "name": "aelor",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:tsug": {
+   "kind": "players",
+   "name": "tsug",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:steel": {
+   "kind": "players",
+   "name": "steel",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:drg": {
+   "kind": "players",
+   "name": "drg",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:nython": {
+   "kind": "players",
+   "name": "nython",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:lenci": {
+   "kind": "players",
+   "name": "lenci",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:danoco": {
+   "kind": "players",
+   "name": "danoco",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:desh": {
+   "kind": "players",
+   "name": "desh",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Sapec": {
+   "kind": "players",
+   "name": "Sapec",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:olimp": {
+   "kind": "players",
+   "name": "olimp",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:kRaSnaL": {
+   "kind": "players",
+   "name": "kRaSnaL",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:prosus": {
+   "kind": "players",
+   "name": "prosus",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Lack1": {
+   "kind": "players",
+   "name": "Lack1",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:TRAVIS": {
+   "kind": "players",
+   "name": "TRAVIS",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:yvro": {
+   "kind": "players",
+   "name": "yvro",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Maze": {
+   "kind": "players",
+   "name": "Maze",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Muciek": {
+   "kind": "players",
+   "name": "Muciek",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:sugaR": {
+   "kind": "players",
+   "name": "sugaR",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:4X1s": {
+   "kind": "players",
+   "name": "4X1s",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:KusMe": {
+   "kind": "players",
+   "name": "KusMe",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:hasteka": {
+   "kind": "players",
+   "name": "hasteka",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Dirty": {
+   "kind": "players",
+   "name": "Dirty",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:KRAXYT": {
+   "kind": "players",
+   "name": "KRAXYT",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:sowalio": {
+   "kind": "players",
+   "name": "sowalio",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Wonderzce": {
+   "kind": "players",
+   "name": "Wonderzce",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:VanceKK": {
+   "kind": "players",
+   "name": "VanceKK",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:shadiy": {
+   "kind": "players",
+   "name": "shadiy",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:rekonz": {
+   "kind": "players",
+   "name": "rekonz",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Kras": {
+   "kind": "players",
+   "name": "Kras",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Bart4k": {
+   "kind": "players",
+   "name": "Bart4k",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:emi": {
+   "kind": "players",
+   "name": "emi",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:DEVIL": {
+   "kind": "players",
+   "name": "DEVIL",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Jonji": {
+   "kind": "players",
+   "name": "Jonji",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:juliano": {
+   "kind": "players",
+   "name": "juliano",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:trk": {
+   "kind": "players",
+   "name": "trk",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:lulitenz": {
+   "kind": "players",
+   "name": "lulitenz",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:fl0m": {
+   "kind": "players",
+   "name": "fl0m",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:zuzu": {
+   "kind": "players",
+   "name": "zuzu",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:vanessa": {
+   "kind": "players",
+   "name": "vanessa",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:cobalt": {
+   "kind": "players",
+   "name": "cobalt",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:t9rnay": {
+   "kind": "players",
+   "name": "t9rnay",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:NBK-": {
+   "kind": "players",
+   "name": "NBK-",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:doni": {
+   "kind": "players",
+   "name": "doni",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Forester": {
+   "kind": "players",
+   "name": "Forester",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:n1Xen": {
+   "kind": "players",
+   "name": "n1Xen",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:St0m4k": {
+   "kind": "players",
+   "name": "St0m4k",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:BledarD": {
+   "kind": "players",
+   "name": "BledarD",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:void": {
+   "kind": "players",
+   "name": "void",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Kobe": {
+   "kind": "players",
+   "name": "Kobe",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:dako": {
+   "kind": "players",
+   "name": "dako",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Winnieeeee": {
+   "kind": "players",
+   "name": "Winnieeeee",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Biuckmt": {
+   "kind": "players",
+   "name": "Biuckmt",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Kiyo": {
+   "kind": "players",
+   "name": "Kiyo",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:almazer": {
+   "kind": "players",
+   "name": "almazer",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Maluk3": {
+   "kind": "players",
+   "name": "Maluk3",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Ant1ka": {
+   "kind": "players",
+   "name": "Ant1ka",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:rox": {
+   "kind": "players",
+   "name": "rox",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Impulse": {
+   "kind": "players",
+   "name": "Impulse",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:ottoNd": {
+   "kind": "players",
+   "name": "ottoNd",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:es3tag": {
+   "kind": "players",
+   "name": "es3tag",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:zAAz": {
+   "kind": "players",
+   "name": "zAAz",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:futoi": {
+   "kind": "players",
+   "name": "futoi",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:tutehen": {
+   "kind": "players",
+   "name": "tutehen",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:bones": {
+   "kind": "players",
+   "name": "bones",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:upE": {
+   "kind": "players",
+   "name": "upE",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:maaryy": {
+   "kind": "players",
+   "name": "maaryy",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Nami": {
+   "kind": "players",
+   "name": "Nami",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:jakekeS": {
+   "kind": "players",
+   "name": "jakekeS",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:sSen": {
+   "kind": "players",
+   "name": "sSen",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:ammar": {
+   "kind": "players",
+   "name": "ammar",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:swetsi": {
+   "kind": "players",
+   "name": "swetsi",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:xdENiSZERA": {
+   "kind": "players",
+   "name": "xdENiSZERA",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Buzz": {
+   "kind": "players",
+   "name": "Buzz",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:bokor": {
+   "kind": "players",
+   "name": "bokor",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:spamzzy": {
+   "kind": "players",
+   "name": "spamzzy",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:tripex17": {
+   "kind": "players",
+   "name": "tripex17",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Beccie": {
+   "kind": "players",
+   "name": "Beccie",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:AdrieN": {
+   "kind": "players",
+   "name": "AdrieN",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:bekker": {
+   "kind": "players",
+   "name": "bekker",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:cerber": {
+   "kind": "players",
+   "name": "cerber",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:torox": {
+   "kind": "players",
+   "name": "torox",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:HaZ": {
+   "kind": "players",
+   "name": "HaZ",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:b1lal": {
+   "kind": "players",
+   "name": "b1lal",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:fanatyk": {
+   "kind": "players",
+   "name": "fanatyk",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:DeathZz": {
+   "kind": "players",
+   "name": "DeathZz",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:RuStY": {
+   "kind": "players",
+   "name": "RuStY",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:SmithZz": {
+   "kind": "players",
+   "name": "SmithZz",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:arki": {
+   "kind": "players",
+   "name": "arki",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:vilga": {
+   "kind": "players",
+   "name": "vilga",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:sergelen19k": {
+   "kind": "players",
+   "name": "sergelen19k",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:AntyVirus": {
+   "kind": "players",
+   "name": "AntyVirus",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Mechanical": {
+   "kind": "players",
+   "name": "Mechanical",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:yoi": {
+   "kind": "players",
+   "name": "yoi",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:rubeN": {
+   "kind": "players",
+   "name": "rubeN",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:yeda": {
+   "kind": "players",
+   "name": "yeda",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:balencyy": {
+   "kind": "players",
+   "name": "balencyy",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:colin": {
+   "kind": "players",
+   "name": "colin",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:valde": {
+   "kind": "players",
+   "name": "valde",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:El1an": {
+   "kind": "players",
+   "name": "El1an",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:anttzz": {
+   "kind": "players",
+   "name": "anttzz",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:HOLY": {
+   "kind": "players",
+   "name": "HOLY",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Dr3nquu": {
+   "kind": "players",
+   "name": "Dr3nquu",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:eskyy": {
+   "kind": "players",
+   "name": "eskyy",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:IZR": {
+   "kind": "players",
+   "name": "IZR",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:arrozdoce": {
+   "kind": "players",
+   "name": "arrozdoce",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:fr0k": {
+   "kind": "players",
+   "name": "fr0k",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:marie": {
+   "kind": "players",
+   "name": "marie",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:NickelBack": {
+   "kind": "players",
+   "name": "NickelBack",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:deeN": {
+   "kind": "players",
+   "name": "deeN",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Something": {
+   "kind": "players",
+   "name": "Something",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:shady": {
+   "kind": "players",
+   "name": "shady",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:TMB": {
+   "kind": "players",
+   "name": "TMB",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:w1dow": {
+   "kind": "players",
+   "name": "w1dow",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Yoghi": {
+   "kind": "players",
+   "name": "Yoghi",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:doltn": {
+   "kind": "players",
+   "name": "doltn",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:moonwalk": {
+   "kind": "players",
+   "name": "moonwalk",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:bajmi": {
+   "kind": "players",
+   "name": "bajmi",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Brilliance": {
+   "kind": "players",
+   "name": "Brilliance",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Hrdina": {
+   "kind": "players",
+   "name": "Hrdina",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:SENER1": {
+   "kind": "players",
+   "name": "SENER1",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:rikon": {
+   "kind": "players",
+   "name": "rikon",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:innocent": {
+   "kind": "players",
+   "name": "innocent",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Pepo": {
+   "kind": "players",
+   "name": "Pepo",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:alpha": {
+   "kind": "players",
+   "name": "alpha",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:kinqie": {
+   "kind": "players",
+   "name": "kinqie",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Vert": {
+   "kind": "players",
+   "name": "Vert",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:lkz": {
+   "kind": "players",
+   "name": "lkz",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:kyxsan": {
+   "kind": "players",
+   "name": "kyxsan",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:JBOEN": {
+   "kind": "players",
+   "name": "JBOEN",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:sFade8": {
+   "kind": "players",
+   "name": "sFade8",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Lucky": {
+   "kind": "players",
+   "name": "Lucky",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:gr1ks": {
+   "kind": "players",
+   "name": "gr1ks",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:rate": {
+   "kind": "players",
+   "name": "rate",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:clouden": {
+   "kind": "players",
+   "name": "clouden",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:gafolo": {
+   "kind": "players",
+   "name": "gafolo",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:koala": {
+   "kind": "players",
+   "name": "koala",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:maxxkor": {
+   "kind": "players",
+   "name": "maxxkor",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:rdnzao": {
+   "kind": "players",
+   "name": "rdnzao",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:doc": {
+   "kind": "players",
+   "name": "doc",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Ax1Le": {
+   "kind": "players",
+   "name": "Ax1Le",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:reck": {
+   "kind": "players",
+   "name": "reck",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:xeedo": {
+   "kind": "players",
+   "name": "xeedo",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:qw1nk1": {
+   "kind": "players",
+   "name": "qw1nk1",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:cairne": {
+   "kind": "players",
+   "name": "cairne",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Sdaim": {
+   "kind": "players",
+   "name": "Sdaim",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:beastik": {
+   "kind": "players",
+   "name": "beastik",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:SHOCK": {
+   "kind": "players",
+   "name": "SHOCK",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:MoDo": {
+   "kind": "players",
+   "name": "MoDo",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:stressarN": {
+   "kind": "players",
+   "name": "stressarN",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:flouzer": {
+   "kind": "players",
+   "name": "flouzer",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:senka": {
+   "kind": "players",
+   "name": "senka",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:ayuki": {
+   "kind": "players",
+   "name": "ayuki",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:soulfly": {
+   "kind": "players",
+   "name": "soulfly",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:IceBerg": {
+   "kind": "players",
+   "name": "IceBerg",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:leakz": {
+   "kind": "players",
+   "name": "leakz",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Djoko": {
+   "kind": "players",
+   "name": "Djoko",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Brooxsy": {
+   "kind": "players",
+   "name": "Brooxsy",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Chucky": {
+   "kind": "players",
+   "name": "Chucky",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Qikert": {
+   "kind": "players",
+   "name": "Qikert",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:lattykk": {
+   "kind": "players",
+   "name": "lattykk",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:reyoz": {
+   "kind": "players",
+   "name": "reyoz",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:cronuss": {
+   "kind": "players",
+   "name": "cronuss",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:oz1k": {
+   "kind": "players",
+   "name": "oz1k",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:REDSTAR": {
+   "kind": "players",
+   "name": "REDSTAR",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:h4rn": {
+   "kind": "players",
+   "name": "h4rn",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:FenomeN": {
+   "kind": "players",
+   "name": "FenomeN",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:draken": {
+   "kind": "players",
+   "name": "draken",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:hampus": {
+   "kind": "players",
+   "name": "hampus",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Svedjehed": {
+   "kind": "players",
+   "name": "Svedjehed",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Dytor": {
+   "kind": "players",
+   "name": "Dytor",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:kl1m": {
+   "kind": "players",
+   "name": "kl1m",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:opdust": {
+   "kind": "players",
+   "name": "opdust",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:ay0k": {
+   "kind": "players",
+   "name": "ay0k",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  },
+  "players:Nikodeon": {
+   "kind": "players",
+   "name": "Nikodeon",
+   "state": "pending",
+   "attempts": 0,
+   "tried": {},
+   "refresh": true
+  }
+ },
+ "blocked": {
+  "hltv": {
+   "kind": "challenge",
+   "detail": "www.hltv.org: HTTP 403 (антибот-проверка, не обходим)",
+   "status": 403,
+   "at": "2026-10-30T19:11:25.614Z"
+  }
+ },
+ "runs": [
+  {
+   "at": "2026-10-30T19:13:00.408Z",
+   "got": 61,
+   "miss": 59,
+   "off": {
+    "hltv": "www.hltv.org: HTTP 403 (антибот-проверка, не обходим)"
+   }
+  }
+ ]
+}

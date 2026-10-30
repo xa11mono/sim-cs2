@@ -1,6 +1,6 @@
 {
  "v": 1,
- "generated": "2026-10-30T19:01:03.603132+00:00",
+ "generated": "2026-10-30T19:12:57.066Z",
  "sources": [
   {
    "id": "liga",
@@ -13,6 +13,11 @@
    "name": "lootmarket/esport-team-logos",
    "url": "https://github.com/lootmarket/esport-team-logos",
    "license": "логотипы — материалы правообладателей"
+  },
+  {
+   "id": "hltv",
+   "name": "HLTV.org",
+   "url": "https://www.hltv.org/"
   }
  ],
  "teams": {
@@ -5003,6 +5008,555 @@
    "src": "liga:Pro-Journey-Teams",
    "match": "Nikodeon",
    "full": "assets/media/players/full/nikodeon.webp"
+  },
+  "arT": {
+   "file": "assets/media/players/art.webp",
+   "src": "hltv",
+   "page": "https://www.hltv.org/player/12521/art",
+   "url": "https://img-cdn.hltv.org/playerbodyshot/mY31sKAC0TCq8OFQFYXdSu.png?bg=3e4c54&h=100&ixlib=java-2.1.0&rect=121%2C8%2C467%2C467&w=100&s=7c5cc00c81828523bfe07af1191b1600",
+   "sha1": "9bae514d514a4a1e738314737e0c638dd25b9c68",
+   "fetched": "2026-10-30",
+   "full": "assets/media/players/full/art.webp"
+  },
+  "DarkMeister": {
+   "file": "assets/media/players/darkmeister.webp",
+   "src": "hltv",
+   "page": "https://www.hltv.org/player/26013/darkmeister",
+   "url": "https://img-cdn.hltv.org/playerbodyshot/7w43lttA0PJGwHp6hsPuJV.png?bg=3e4c54&h=100&ixlib=java-2.1.0&rect=124%2C8%2C467%2C467&w=100&s=a379209b75b23615b933b665343994d2",
+   "sha1": "db032d90fb993e2a622282bbc16f8aff7489cd11",
+   "fetched": "2026-10-30",
+   "full": "assets/media/players/full/darkmeister.webp"
+  },
+  "Kursy": {
+   "file": "assets/media/players/kursy.webp",
+   "src": "hltv",
+   "page": "https://www.hltv.org/player/20482/kursy",
+   "url": "https://img-cdn.hltv.org/playerbodyshot/vWOw0YLcMKPKFH8tGzphdu.png?bg=3e4c54&h=100&ixlib=java-2.1.0&rect=121%2C4%2C467%2C467&w=100&s=0d45c8da0b6c47a33ff45b8bcc486842",
+   "sha1": "87d3f96ce2f6c0597247674e5c23ebf67f21aef4",
+   "fetched": "2026-10-30",
+   "full": "assets/media/players/full/kursy.webp"
+  },
+  "Tatu": {
+   "file": "assets/media/players/tatu.webp",
+   "src": "hltv",
+   "page": "https://www.hltv.org/player/24089/tatu",
+   "url": "https://img-cdn.hltv.org/playerbodyshot/4Lz931Y9-4T_H6LKPo285A.png?bg=3e4c54&h=100&ixlib=java-2.1.0&rect=121%2C4%2C467%2C467&w=100&s=871405178793c4b6508d03e22137e57a",
+   "sha1": "3eacd5c27d889ee6e71fb76642a66f28332c911d",
+   "fetched": "2026-10-30",
+   "full": "assets/media/players/full/tatu.webp"
+  },
+  "JDC": {
+   "file": "assets/media/players/jdc.webp",
+   "src": "hltv",
+   "page": "https://www.hltv.org/player/14929/jdc",
+   "url": "https://img-cdn.hltv.org/playerbodyshot/Yy5X8ZmIapfPDU-aUN5Fol.png?bg=3e4c54&h=100&ixlib=java-2.1.0&rect=121%2C8%2C467%2C467&w=100&s=741fd1aa6ffd3404d3f8825eeb67f09b",
+   "sha1": "0eea5083b26c651524a837f026cf51e1770c4c8d",
+   "fetched": "2026-10-30",
+   "full": "assets/media/players/full/jdc.webp"
+  },
+  "Westmelon": {
+   "file": "assets/media/players/westmelon.webp",
+   "src": "hltv",
+   "page": "https://www.hltv.org/player/16551/westmelon",
+   "url": "https://img-cdn.hltv.org/playerbodyshot/w9IH6NVwZaEghBrni9KUye.png?bg=3e4c54&h=100&ixlib=java-2.1.0&rect=128%2C4%2C467%2C467&w=100&s=f90570121a7acca49bb7dfaf3f77b9bd",
+   "sha1": "fe911aa59d6307f4b88d33a1972126190cc05cdc",
+   "fetched": "2026-10-30",
+   "full": "assets/media/players/full/westmelon.webp"
+  },
+  "s0m": {
+   "file": "assets/media/players/s0m.webp",
+   "src": "hltv",
+   "page": "https://www.hltv.org/player/14365/s0m",
+   "url": "https://img-cdn.hltv.org/playerbodyshot/NbLhK2BeLrpaJdUVqBLKoH.png?bg=3e4c54&h=100&ixlib=java-2.1.0&rect=101%2C0%2C486%2C486&w=100&s=9cf70e2e21d1c0bcb2e2a9a770fd0c6d",
+   "sha1": "539b024d4efd5ed316169e3ff18fe6cb9ab68b44",
+   "fetched": "2026-10-30",
+   "full": "assets/media/players/full/s0m.webp"
+  },
+  "pr1metapz": {
+   "file": "assets/media/players/pr1metapz.webp",
+   "src": "hltv",
+   "page": "https://www.hltv.org/player/21139/pr1metapz",
+   "url": "https://img-cdn.hltv.org/playerbodyshot/_SORbdXWnK6TmFjZnsgOzT.png?bg=3e4c54&h=100&ixlib=java-2.1.0&rect=121%2C8%2C467%2C467&w=100&s=21af4e80ae4546f6de162dcf3d685701",
+   "sha1": "7ae5d645ee01d672e4d994a37fcb4d5309483bcb",
+   "fetched": "2026-10-30",
+   "full": "assets/media/players/full/pr1metapz.webp"
+  },
+  "mir": {
+   "file": "assets/media/players/mir.webp",
+   "src": "hltv",
+   "page": "https://www.hltv.org/player/8789/mir",
+   "url": "https://img-cdn.hltv.org/playerbodyshot/meU9nRqt3v2RTPIqaWvOb2.png?bg=3e4c54&h=100&ixlib=java-2.1.0&rect=116%2C8%2C467%2C467&w=100&s=49babdc707f77dd5f82826a1e1af074a",
+   "sha1": "38411b766f3bd0000c9adc745877336ba265c125",
+   "fetched": "2026-10-30",
+   "full": "assets/media/players/full/mir.webp"
+  },
+  "deko": {
+   "file": "assets/media/players/deko.webp",
+   "src": "hltv",
+   "page": "https://www.hltv.org/player/20113/deko",
+   "url": "https://img-cdn.hltv.org/playerbodyshot/tcGDSAOiy0rQZtr4zV_J3N.png?bg=3e4c54&h=100&ixlib=java-2.1.0&rect=121%2C8%2C467%2C467&w=100&s=4295515961bb21e7732a09b8094d7816",
+   "sha1": "ebd1587aea72aa802e81af3f5492cba8050a03f2",
+   "fetched": "2026-10-30",
+   "full": "assets/media/players/full/deko.webp"
+  },
+  "kelieN": {
+   "file": "assets/media/players/kelien.webp",
+   "src": "hltv",
+   "page": "https://www.hltv.org/player/23048/kelien",
+   "url": "https://img-cdn.hltv.org/playerbodyshot/6V_5T7Lpx91roU5XC6gYPd.png?bg=3e4c54&h=100&ixlib=java-2.1.0&rect=121%2C0%2C467%2C467&w=100&s=eee8059d5fbd00c807e26c0b7b7a1023",
+   "sha1": "8569ba596f47114d5387bd2a5f330736addffd28",
+   "fetched": "2026-10-30",
+   "full": "assets/media/players/full/kelien.webp"
+  },
+  "VINI": {
+   "file": "assets/media/players/vini.webp",
+   "src": "hltv",
+   "page": "https://www.hltv.org/player/12822/vini",
+   "url": "https://img-cdn.hltv.org/playerbodyshot/NVWPaqn56Bcj07kdrIHhi8.png?bg=3e4c54&h=100&ixlib=java-2.1.0&rect=121%2C8%2C467%2C467&w=100&s=9611a86857f462d73fec8273c43e0e86",
+   "sha1": "27767fddea4713849fc06b14b195974842a71d5e",
+   "fetched": "2026-10-30",
+   "full": "assets/media/players/full/vini.webp"
+  },
+  "dav1deuS": {
+   "file": "assets/media/players/dav1deus.webp",
+   "src": "hltv",
+   "page": "https://www.hltv.org/player/18865/dav1deus",
+   "url": "https://img-cdn.hltv.org/playerbodyshot/ebwg5Oc5am5KRc2xgDjwnR.png?bg=3e4c54&h=100&ixlib=java-2.1.0&rect=121%2C8%2C467%2C467&w=100&s=0512248ece1b972a9de7f7eaa13fd3ca",
+   "sha1": "0d6113efefc119634e9a98c9a19faed7be66ca3e",
+   "fetched": "2026-10-30",
+   "full": "assets/media/players/full/dav1deus.webp"
+  },
+  "mhl": {
+   "file": "assets/media/players/mhl.webp",
+   "src": "hltv",
+   "page": "https://www.hltv.org/player/16847/mhl",
+   "url": "https://img-cdn.hltv.org/playerbodyshot/a4qc6RnQ6t0T9VNWsQh2JI.png?bg=3e4c54&h=100&ixlib=java-2.1.0&rect=121%2C8%2C467%2C467&w=100&s=0f9332230bfc8ccdd656ba715d425e93",
+   "sha1": "32f423f6eeb2eb2f87294385a6f323a511d8e8e4",
+   "fetched": "2026-10-30",
+   "full": "assets/media/players/full/mhl.webp"
+  },
+  "hext": {
+   "file": "assets/media/players/hext.webp",
+   "src": "hltv",
+   "page": "https://www.hltv.org/player/18838/hext",
+   "url": "https://img-cdn.hltv.org/playerbodyshot/auJc1D6EgxxhacsKFPWvdB.png?bg=3e4c54&h=100&ixlib=java-2.1.0&rect=121%2C8%2C467%2C467&w=100&s=5fc6076250476c3d6f1c43cc52dc1711",
+   "sha1": "ac3b98b79551dfb9c9a2d9537c432e1617264ebc",
+   "fetched": "2026-10-30",
+   "full": "assets/media/players/full/hext.webp"
+  },
+  "ex1st": {
+   "file": "assets/media/players/ex1st.webp",
+   "src": "hltv",
+   "page": "https://www.hltv.org/player/20960/ex1st",
+   "url": "https://img-cdn.hltv.org/playerbodyshot/Gk7_FpqKGooggT5Jb8V_Bx.png?bg=3e4c54&h=100&ixlib=java-2.1.0&rect=121%2C8%2C467%2C467&w=100&s=1a39f03cc409274d7e7b28f4d2913012",
+   "sha1": "9bd4786a51b5343fce6699a52a7ec4bc9669efe9",
+   "fetched": "2026-10-30",
+   "full": "assets/media/players/full/ex1st.webp"
+  },
+  "VILBy": {
+   "file": "assets/media/players/vilby.webp",
+   "src": "hltv",
+   "page": "https://www.hltv.org/player/23193/vilby",
+   "url": "https://img-cdn.hltv.org/playerbodyshot/JKe43GVvuEUgn6_OBNhoVN.png?bg=3e4c54&h=100&ixlib=java-2.1.0&rect=113%2C4%2C482%2C482&w=100&s=13a7be81acaef2b874d50faeb03a1053",
+   "sha1": "8f8e3a8683063acdcd2bb7925602970089b21dc3",
+   "fetched": "2026-10-30",
+   "full": "assets/media/players/full/vilby.webp"
+  },
+  "dupreeh": {
+   "file": "assets/media/players/dupreeh.webp",
+   "src": "hltv",
+   "page": "https://www.hltv.org/player/7398/dupreeh",
+   "url": "https://img-cdn.hltv.org/playerbodyshot/bUB9D95e9-m1vmV1uOJkYL.png?bg=3e4c54&h=100&ixlib=java-2.1.0&rect=121%2C0%2C467%2C467&w=100&s=17faf5d938eb63c6a0374c8d9881fd66",
+   "sha1": "b2a6fed163d31c3bc8e474b7e3a4a733c387f5d2",
+   "fetched": "2026-10-30",
+   "full": "assets/media/players/full/dupreeh.webp"
+  },
+  "k0nfig": {
+   "file": "assets/media/players/k0nfig.webp",
+   "src": "hltv",
+   "page": "https://www.hltv.org/player/9078/k0nfig",
+   "url": "https://img-cdn.hltv.org/playerbodyshot/xp6ox-z9MYV1fDg5c_47Jw.png?bg=3e4c54&h=100&ixlib=java-2.1.0&rect=121%2C4%2C467%2C467&w=100&s=2a3c55d3bc38dc2ba1f679f299bb0ae4",
+   "sha1": "6292bea09a31c3dc6c76377f3dc1563528f6bb75",
+   "fetched": "2026-10-30",
+   "full": "assets/media/players/full/k0nfig.webp"
+  },
+  "Luken": {
+   "file": "assets/media/players/luken.webp",
+   "src": "hltv",
+   "page": "https://www.hltv.org/player/15914/luken",
+   "url": "https://img-cdn.hltv.org/playerbodyshot/JqVWwhZsaPPcwzUZWYSNAD.png?bg=3e4c54&h=100&ixlib=java-2.1.0&rect=121%2C0%2C467%2C467&w=100&s=9d49894a9f0558b3f19f21e5562e2a91",
+   "sha1": "52d693b7e76b46f4af195756b77cd82a3e758f9c",
+   "fetched": "2026-10-30",
+   "full": "assets/media/players/full/luken.webp"
+  },
+  "Shr": {
+   "file": "assets/media/players/shr.webp",
+   "src": "hltv",
+   "page": "https://www.hltv.org/player/21136/shr",
+   "url": "https://img-cdn.hltv.org/playerbodyshot/KyRbsRUnjwGVMbdlA1kYsn.png?bg=3e4c54&h=100&ixlib=java-2.1.0&rect=121%2C0%2C467%2C467&w=100&s=55d27704f5046157c89f1090d4f5a7af",
+   "sha1": "3ac35d1933cdd751ba597db014c80a00beaa681d",
+   "fetched": "2026-10-30",
+   "full": "assets/media/players/full/shr.webp"
+  },
+  "detr0ittJ": {
+   "file": "assets/media/players/detr0ittj.webp",
+   "src": "hltv",
+   "page": "https://www.hltv.org/player/18610/detr0ittj",
+   "url": "https://img-cdn.hltv.org/playerbodyshot/JRxdRMY8ZPLUbc0bZq6R_M.png?bg=3e4c54&h=100&ixlib=java-2.1.0&rect=121%2C8%2C467%2C467&w=100&s=918f6f2d656b3b915312e3daf27088f2",
+   "sha1": "19a7f1d1b53081eb038518d659589f1b55e96005",
+   "fetched": "2026-10-30",
+   "full": "assets/media/players/full/detr0ittj.webp"
+  },
+  "chayJESUS": {
+   "file": "assets/media/players/chayjesus.webp",
+   "src": "hltv",
+   "page": "https://www.hltv.org/player/20026/chayjesus",
+   "url": "https://img-cdn.hltv.org/playerbodyshot/xEcBlEHzSQM8gXAijZlXJ3.png?bg=3e4c54&h=100&ixlib=java-2.1.0&rect=121%2C0%2C467%2C467&w=100&s=7100acefa144e216f8e0f022a493bbb0",
+   "sha1": "612b81e17c8e85ef81a6117ea9044202549856e1",
+   "fetched": "2026-10-30",
+   "full": "assets/media/players/full/chayjesus.webp"
+  },
+  "Grizz": {
+   "file": "assets/media/players/grizz.webp",
+   "src": "hltv",
+   "page": "https://www.hltv.org/player/22069/grizz",
+   "url": "https://img-cdn.hltv.org/playerbodyshot/dskR5YuXKMCMjdzKIfbD6D.png?bg=3e4c54&h=100&ixlib=java-2.1.0&rect=121%2C8%2C467%2C467&w=100&s=973a7e42f93e2db56dc784d26f0e1386",
+   "sha1": "c7c0702d6b1ba3755445b2ba5ffdd8e5d433bf09",
+   "fetched": "2026-10-30",
+   "full": "assets/media/players/full/grizz.webp"
+  },
+  "HEN1": {
+   "file": "assets/media/players/hen1.webp",
+   "src": "hltv",
+   "page": "https://www.hltv.org/player/8565/hen1",
+   "url": "https://img-cdn.hltv.org/playerbodyshot/g8yCCk8BGZyN5KIFKAx4hv.png?bg=3e4c54&h=100&ixlib=java-2.1.0&rect=124%2C0%2C467%2C467&w=100&s=28f0852d02ea5021209b889fa01d2d00",
+   "sha1": "5f17a9143d0b2ab30ed1ab448ab0d1c9d9c3fdb2",
+   "fetched": "2026-10-30",
+   "full": "assets/media/players/full/hen1.webp"
+  },
+  "Peeping": {
+   "file": "assets/media/players/peeping.webp",
+   "src": "hltv",
+   "page": "https://www.hltv.org/player/22135/peeping",
+   "url": "https://img-cdn.hltv.org/playerbodyshot/bHEkMeXvOmCg5C3LfTo_cY.png?bg=3e4c54&h=100&ixlib=java-2.1.0&rect=121%2C8%2C467%2C467&w=100&s=78ab46b5c1251e19cb94274fdb0d50e7",
+   "sha1": "1e1627fb3d45ba887a08c286faaf761161a65669",
+   "fetched": "2026-10-30",
+   "full": "assets/media/players/full/peeping.webp"
+  },
+  "JOTA": {
+   "file": "assets/media/players/jota.webp",
+   "src": "hltv",
+   "page": "https://www.hltv.org/player/17861/jota",
+   "url": "https://img-cdn.hltv.org/playerbodyshot/edmWYsY1FnBxtimxWJ-IqN.png?bg=3e4c54&h=100&ixlib=java-2.1.0&rect=124%2C0%2C467%2C467&w=100&s=129272a45dd29914c6221786b11ae959",
+   "sha1": "da934b58ffca35afdf4c16cffc230bcc06780756",
+   "fetched": "2026-10-30",
+   "full": "assets/media/players/full/jota.webp"
+  },
+  "Wolffe": {
+   "file": "assets/media/players/wolffe.webp",
+   "src": "hltv",
+   "page": "https://www.hltv.org/player/17622/wolffe",
+   "url": "https://img-cdn.hltv.org/playerbodyshot/qEQ39l7cAiApZuIOxVz_b2.png?bg=3e4c54&h=100&ixlib=java-2.1.0&rect=121%2C8%2C467%2C467&w=100&s=3939918b69c2b453e916404df4d57fb3",
+   "sha1": "cc771428a3b363b7ac66cd241803bb5e13e41292",
+   "fetched": "2026-10-30",
+   "full": "assets/media/players/full/wolffe.webp"
+  },
+  "MarKE": {
+   "file": "assets/media/players/marke.webp",
+   "src": "hltv",
+   "page": "https://www.hltv.org/player/10892/marke",
+   "url": "https://img-cdn.hltv.org/playerbodyshot/oq3tn88NaOoAAxVz1DsxQD.png?bg=3e4c54&h=100&ixlib=java-2.1.0&rect=124%2C0%2C467%2C467&w=100&s=f21fe2ca64341db8526afc0c2d2aed44",
+   "sha1": "d0cb2e2a20a2daf3c9097c2b6fbe300d247fecf2",
+   "fetched": "2026-10-30",
+   "full": "assets/media/players/full/marke.webp"
+  },
+  "Cxzi": {
+   "file": "assets/media/players/cxzi.webp",
+   "src": "hltv",
+   "page": "https://www.hltv.org/player/17353/cxzi",
+   "url": "https://img-cdn.hltv.org/playerbodyshot/ehUELnIC00p5pA28-COgrU.png?bg=3e4c54&h=100&ixlib=java-2.1.0&rect=121%2C8%2C467%2C467&w=100&s=2121281c522f33ac731798a1e8b8678d",
+   "sha1": "7a8d29cb6061010c960a89e75c46d6fa9f073839",
+   "fetched": "2026-10-30",
+   "full": "assets/media/players/full/cxzi.webp"
+  },
+  "WolfY": {
+   "file": "assets/media/players/wolfy.webp",
+   "src": "hltv",
+   "page": "https://www.hltv.org/player/12937/wolfy",
+   "url": "https://img-cdn.hltv.org/playerbodyshot/Y4XJtLB2sAxE-y3sAok3JH.png?bg=3e4c54&h=100&ixlib=java-2.1.0&rect=124%2C4%2C467%2C467&w=100&s=de71c2700e51696753728ad741492a89",
+   "sha1": "4bef2562434c818d18b20685009268c4a4705563",
+   "fetched": "2026-10-30",
+   "full": "assets/media/players/full/wolfy.webp"
+  },
+  "H0NeST": {
+   "file": "assets/media/players/h0nest.webp",
+   "src": "hltv",
+   "page": "https://www.hltv.org/player/24045/h0nest",
+   "url": "https://img-cdn.hltv.org/playerbodyshot/j00XD6i-734YOrBkn9GHm0.png?bg=3e4c54&h=100&ixlib=java-2.1.0&rect=128%2C4%2C467%2C467&w=100&s=e1243edee48b34da28200da4401d811e",
+   "sha1": "c0e450a3654204e0fcc3cd3fbbaa9d8854fe1bd7",
+   "fetched": "2026-10-30",
+   "full": "assets/media/players/full/h0nest.webp"
+  },
+  "nosraC": {
+   "file": "assets/media/players/nosrac.webp",
+   "src": "hltv",
+   "page": "https://www.hltv.org/player/17918/nosrac",
+   "url": "https://img-cdn.hltv.org/playerbodyshot/JGj7Utzg_zl3PbPJFvUB24.png?bg=3e4c54&h=100&ixlib=java-2.1.0&rect=124%2C8%2C467%2C467&w=100&s=b0a6fd65cc682dcf9616a74132e23a5f",
+   "sha1": "b935ee937eb7c32811b818b84286a665394febc7",
+   "fetched": "2026-10-30",
+   "full": "assets/media/players/full/nosrac.webp"
+  },
+  "Bwills": {
+   "file": "assets/media/players/bwills.webp",
+   "src": "hltv",
+   "page": "https://www.hltv.org/player/16647/bwills",
+   "url": "https://img-cdn.hltv.org/playerbodyshot/Ryl-9uj2azXwwD8fV0eN2i.png?bg=3e4c54&h=100&ixlib=java-2.1.0&rect=113%2C4%2C467%2C467&w=100&s=1449736c30f9228aebf8add5d76780de",
+   "sha1": "f674b9c09e304e701bf0523b52a6eaa2c8b6820e",
+   "fetched": "2026-10-30",
+   "full": "assets/media/players/full/bwills.webp"
+  },
+  "SLIGHT": {
+   "file": "assets/media/players/slight.webp",
+   "src": "hltv",
+   "page": "https://www.hltv.org/player/19128/slight",
+   "url": "https://img-cdn.hltv.org/playerbodyshot/cke7FvZX_Yx9MQ_3nzkCjS.png?bg=3e4c54&h=100&ixlib=java-2.1.0&rect=117%2C8%2C467%2C467&w=100&s=314b0e1272918df6e05c5a4a6bab4284",
+   "sha1": "e8bbcdf36c6cd9c1fbccaa1c8e39375dd3a4a59f",
+   "fetched": "2026-10-30",
+   "full": "assets/media/players/full/slight.webp"
+  },
+  "Alisson": {
+   "file": "assets/media/players/alisson.webp",
+   "src": "hltv",
+   "page": "https://www.hltv.org/player/20521/alisson",
+   "url": "https://img-cdn.hltv.org/playerbodyshot/I4rt4qw-9kLOuouaYmj5_Y.png?bg=3e4c54&h=100&ixlib=java-2.1.0&rect=116%2C8%2C467%2C467&w=100&s=aff3b82e14603babd8223f878751b9f0",
+   "sha1": "822e20b94b32b62440c41e723e8c28478b53f4cc",
+   "fetched": "2026-10-30",
+   "full": "assets/media/players/full/alisson.webp"
+  },
+  "Zoker": {
+   "file": "assets/media/players/zoker.webp",
+   "src": "hltv",
+   "page": "https://www.hltv.org/player/24763/zoker",
+   "url": "https://img-cdn.hltv.org/playerbodyshot/O451skqDH-anmbBH763qVB.png?bg=3e4c54&h=100&ixlib=java-2.1.0&rect=128%2C0%2C467%2C467&w=100&s=006089c8761570b63df971800fe574f2",
+   "sha1": "640f7de25120345599fe289a46f6743f9877759a",
+   "fetched": "2026-10-30",
+   "full": "assets/media/players/full/zoker.webp"
+  },
+  "Olga": {
+   "file": "assets/media/players/olga.webp",
+   "src": "hltv",
+   "page": "https://www.hltv.org/player/11215/olga",
+   "url": "https://img-cdn.hltv.org/playerbodyshot/tKBzXRPTA2VSsfdZG057AK.png?bg=3e4c54&h=100&ixlib=java-2.1.0&rect=117%2C8%2C467%2C467&w=100&s=824f56c5fc3276855bb1597ebd13a024",
+   "sha1": "1611d9d5200c6b411d2fd9434278c8fef98652e9",
+   "fetched": "2026-10-30",
+   "full": "assets/media/players/full/olga.webp"
+  },
+  "Pose1doNN": {
+   "file": "assets/media/players/pose1donn.webp",
+   "src": "hltv",
+   "page": "https://www.hltv.org/player/20787/pose1donn",
+   "url": "https://img-cdn.hltv.org/playerbodyshot/tJW-M_SYUe92ED_CN-53m7.png?bg=3e4c54&h=100&ixlib=java-2.1.0&rect=124%2C4%2C467%2C467&w=100&s=e8fadafad04a7991739de60ffcb70475",
+   "sha1": "1eeffc95250c6972c76ab48c2e4f0db6ce9834a7",
+   "fetched": "2026-10-30",
+   "full": "assets/media/players/full/pose1donn.webp"
+  },
+  "fREQ": {
+   "file": "assets/media/players/freq.webp",
+   "src": "hltv",
+   "page": "https://www.hltv.org/player/20885/freq",
+   "url": "https://img-cdn.hltv.org/playerbodyshot/jcZVpgSK4bVmVXs4T2pTp_.png?bg=3e4c54&h=100&ixlib=java-2.1.0&rect=117%2C8%2C467%2C467&w=100&s=da2deb74ec6614a43c0d91d06968be46",
+   "sha1": "0588ee2a62413e4c9bc52e7dcd35d0efd422327a",
+   "fetched": "2026-10-30",
+   "full": "assets/media/players/full/freq.webp"
+  },
+  "KAISER": {
+   "file": "assets/media/players/kaiser.webp",
+   "src": "hltv",
+   "page": "https://www.hltv.org/player/18322/kaiser",
+   "url": "https://img-cdn.hltv.org/playerbodyshot/Jcpia6mEGUkZWfaEKSW7JP.png?bg=3e4c54&h=100&ixlib=java-2.1.0&rect=117%2C8%2C467%2C467&w=100&s=5156af952d9a020bd5de73647db42f21",
+   "sha1": "8f9db6da01d69a94194c2912c69f7fc883a5538b",
+   "fetched": "2026-10-30",
+   "full": "assets/media/players/full/kaiser.webp"
+  },
+  "CLASIA": {
+   "file": "assets/media/players/clasia.webp",
+   "src": "hltv",
+   "page": "https://www.hltv.org/player/19846/clasia",
+   "url": "https://img-cdn.hltv.org/playerbodyshot/Zl0L_tILdjf3bCx2FQi5uB.png?bg=3e4c54&h=100&ixlib=java-2.1.0&rect=117%2C0%2C467%2C467&w=100&s=c02ceb674dc31422d8cb525894605684",
+   "sha1": "5f782bb8df5ca810135da9b35d644e6f1a7572cd",
+   "fetched": "2026-10-30",
+   "full": "assets/media/players/full/clasia.webp"
+  },
+  "Zero": {
+   "file": "assets/media/players/zero.webp",
+   "src": "hltv",
+   "page": "https://www.hltv.org/player/24857/zero",
+   "url": "https://img-cdn.hltv.org/playerbodyshot/6q-uT0mSJyubUKR7ralrV6.png?bg=3e4c54&h=100&ixlib=java-2.1.0&rect=121%2C4%2C467%2C467&w=100&s=5884fa1045c1eb76f013d345e8f1b37b",
+   "sha1": "433b9c1861a366f4c810a904fde1a6f0e5ef4110",
+   "fetched": "2026-10-30",
+   "full": "assets/media/players/full/zero.webp"
+  },
+  "ninjaZ": {
+   "file": "assets/media/players/ninjaz.webp",
+   "src": "hltv",
+   "page": "https://www.hltv.org/player/20083/ninjaz",
+   "url": "https://img-cdn.hltv.org/playerbodyshot/VyhvmYUutr7J6yuF5hwJ2h.png?bg=3e4c54&h=100&ixlib=java-2.1.0&rect=121%2C4%2C467%2C467&w=100&s=dbb061a956adf096065555d4f07aea94",
+   "sha1": "9af3b1da34c39829c0dc0138b96a7b28a4a77357",
+   "fetched": "2026-10-30",
+   "full": "assets/media/players/full/ninjaz.webp"
+  },
+  "Crisp": {
+   "file": "assets/media/players/crisp.webp",
+   "src": "hltv",
+   "page": "https://www.hltv.org/player/24679/crisp",
+   "url": "https://img-cdn.hltv.org/playerbodyshot/SclxVRrOOibyGc-7_0nIyX.png?bg=3e4c54&h=100&ixlib=java-2.1.0&rect=121%2C4%2C467%2C467&w=100&s=d2dfbcd82176408ef649c9a82d964492",
+   "sha1": "6205843015da2f7a20b60d8b776e29ecc10a953d",
+   "fetched": "2026-10-30",
+   "full": "assets/media/players/full/crisp.webp"
+  },
+  "FaNg": {
+   "file": "assets/media/players/fang.webp",
+   "src": "hltv",
+   "page": "https://www.hltv.org/player/17372/fang",
+   "url": "https://img-cdn.hltv.org/playerbodyshot/nfQTxaPem3_-L59KKwmYIg.png?bg=3e4c54&h=100&ixlib=java-2.1.0&rect=109%2C0%2C467%2C467&w=100&s=367722920edb3100b3439fe8c0082a7c",
+   "sha1": "a0bc42ce634832811caa021645e065710ad2d609",
+   "fetched": "2026-10-30",
+   "full": "assets/media/players/full/fang.webp"
+  },
+  "Cryptic": {
+   "file": "assets/media/players/cryptic.webp",
+   "src": "hltv",
+   "page": "https://www.hltv.org/player/15176/cryptic",
+   "url": "https://img-cdn.hltv.org/playerbodyshot/3t037NFUwFc8xrVhETWkmo.png?bg=3e4c54&h=100&ixlib=java-2.1.0&rect=117%2C8%2C467%2C467&w=100&s=f9962f7b1a50dfbe3ea30daec3ecabbb",
+   "sha1": "10c2e371ec89c0f759e4a8cc5b5a7436651c82ab",
+   "fetched": "2026-10-30",
+   "full": "assets/media/players/full/cryptic.webp"
+  },
+  "Sandman": {
+   "file": "assets/media/players/sandman.webp",
+   "src": "hltv",
+   "page": "https://www.hltv.org/player/22552/sandman",
+   "url": "https://img-cdn.hltv.org/playerbodyshot/Plr4g1zhIPdNWr4uAk8DkZ.png?bg=3e4c54&h=100&ixlib=java-2.1.0&rect=121%2C8%2C467%2C467&w=100&s=14c23a94dfcf5402c0bd47037eae105b",
+   "sha1": "ef1b386e5afaf91f395e178a8410d6e2eacc194a",
+   "fetched": "2026-10-30",
+   "full": "assets/media/players/full/sandman.webp"
+  },
+  "Fruitcupx": {
+   "file": "assets/media/players/fruitcupx.webp",
+   "src": "hltv",
+   "page": "https://www.hltv.org/player/19079/fruitcupx",
+   "url": "https://img-cdn.hltv.org/playerbodyshot/Qvv2qC3Z4xwemnxUsNqshZ.png?bg=3e4c54&h=100&ixlib=java-2.1.0&rect=121%2C8%2C467%2C467&w=100&s=d624e1711cab1602a444529239a2397a",
+   "sha1": "ac8d542e1ef1c9df84d266e11929da5e9c6383ab",
+   "fetched": "2026-10-30",
+   "full": "assets/media/players/full/fruitcupx.webp"
+  },
+  "LyttleZ": {
+   "file": "assets/media/players/lyttlez.webp",
+   "src": "hltv",
+   "page": "https://www.hltv.org/player/21733/lyttlez",
+   "url": "https://img-cdn.hltv.org/playerbodyshot/YdpCsYNm-n5Su7-v1GWiwO.png?bg=3e4c54&h=100&ixlib=java-2.1.0&rect=121%2C8%2C467%2C467&w=100&s=3a4050fa9a5c54445d40b26070321370",
+   "sha1": "27b2cf0befb0699bade6019dd5687d3e7d83c1a9",
+   "fetched": "2026-10-30",
+   "full": "assets/media/players/full/lyttlez.webp"
+  },
+  "Rkzinho": {
+   "file": "assets/media/players/rkzinho.webp",
+   "src": "hltv",
+   "page": "https://www.hltv.org/player/25087/rkzinho",
+   "url": "https://img-cdn.hltv.org/playerbodyshot/_0EEFSN93GqtMxu5dmWYvl.png?bg=3e4c54&h=100&ixlib=java-2.1.0&rect=121%2C4%2C467%2C467&w=100&s=c1e8b4e7106e11d204df2556147838ad",
+   "sha1": "2ad5853c698ac68d661735b34979cce9dafec7d4",
+   "fetched": "2026-10-30",
+   "full": "assets/media/players/full/rkzinho.webp"
+  },
+  "Markz": {
+   "file": "assets/media/players/markz.webp",
+   "src": "hltv",
+   "page": "https://www.hltv.org/player/24223/markz",
+   "url": "https://img-cdn.hltv.org/playerbodyshot/d4k48g5G-u6E5nzpXUfhTs.png?bg=3e4c54&h=100&ixlib=java-2.1.0&rect=124%2C8%2C467%2C467&w=100&s=115aed84e30e2c9bdebed01227f4f9ae",
+   "sha1": "2c08ceee65ccee75c4a86db6e3eb9c4e626a8206",
+   "fetched": "2026-10-30",
+   "full": "assets/media/players/full/markz.webp"
+  },
+  "BiBiAhn": {
+   "file": "assets/media/players/bibiahn.webp",
+   "src": "hltv",
+   "page": "https://www.hltv.org/player/18641/bibiahn",
+   "url": "https://img-cdn.hltv.org/playerbodyshot/bzm8ZTcuxiBDRV4DFIKjs0.png?bg=3e4c54&h=100&ixlib=java-2.1.0&rect=117%2C8%2C467%2C467&w=100&s=bc6a597a444a29425874ee90f3144b26",
+   "sha1": "72fc96581d9ca1a71a3a4c60c4f1bae1389f66a4",
+   "fetched": "2026-10-30",
+   "full": "assets/media/players/full/bibiahn.webp"
+  },
+  "aNgelo": {
+   "file": "assets/media/players/angelo.webp",
+   "src": "hltv",
+   "page": "https://www.hltv.org/player/24296/angelo",
+   "url": "https://img-cdn.hltv.org/playerbodyshot/ORCidHQuediGMwgvOrcYRo.png?bg=3e4c54&h=100&ixlib=java-2.1.0&rect=121%2C8%2C467%2C467&w=100&s=7ff12707567a0e6923330d8270cb5711",
+   "sha1": "9511cfbcfd04f0e3d3daf079a4c00e02873b2376",
+   "fetched": "2026-10-30",
+   "full": "assets/media/players/full/angelo.webp"
+  },
+  "Leomonster": {
+   "file": "assets/media/players/leomonster.webp",
+   "src": "hltv",
+   "page": "https://www.hltv.org/player/17132/leomonster",
+   "url": "https://img-cdn.hltv.org/playerbodyshot/460VtX8E_hF2t0KsDvTd1U.png?bg=3e4c54&h=100&ixlib=java-2.1.0&rect=121%2C4%2C467%2C467&w=100&s=828616b783b4caed7bbe2635ff3cb37f",
+   "sha1": "005a1920b710f94c1fd5b8d0dbc2bd337426c6a7",
+   "fetched": "2026-10-30",
+   "full": "assets/media/players/full/leomonster.webp"
+  },
+  "MITHPUTTINI": {
+   "file": "assets/media/players/mithputtini.webp",
+   "src": "hltv",
+   "page": "https://www.hltv.org/player/16661/mithputtini",
+   "url": "https://img-cdn.hltv.org/playerbodyshot/g9h1KXpCMSmiungC3FclzV.png?bg=3e4c54&h=100&ixlib=java-2.1.0&rect=116%2C8%2C467%2C467&w=100&s=b9053046bf70cba8a18c5386fbcd327d",
+   "sha1": "de15e49dfafca4931e94c60e88a90a32b856d70b",
+   "fetched": "2026-10-30",
+   "full": "assets/media/players/full/mithputtini.webp"
+  },
+  "killerPandas": {
+   "file": "assets/media/players/killerpandas.webp",
+   "src": "hltv",
+   "page": "https://www.hltv.org/player/24664/killerpandas",
+   "url": "https://img-cdn.hltv.org/playerbodyshot/Y_EKvFy6KQL8AKapqxrRQi.png?bg=3e4c54&h=100&ixlib=java-2.1.0&rect=124%2C8%2C467%2C467&w=100&s=131b81ef9762718851b830aedfa46951",
+   "sha1": "9b0dc1958311058c7a52595e1f19d98d850d9fb6",
+   "fetched": "2026-10-30",
+   "full": "assets/media/players/full/killerpandas.webp"
+  },
+  "GaBi": {
+   "file": "assets/media/players/gabi.webp",
+   "src": "hltv",
+   "page": "https://www.hltv.org/player/16341/gabi",
+   "url": "https://img-cdn.hltv.org/playerbodyshot/XeIDYOVmSqvtDw-zbJUzi3.png?bg=3e4c54&h=100&ixlib=java-2.1.0&rect=121%2C8%2C467%2C467&w=100&s=a7def24eb5c901d27f9c2643de5452f3",
+   "sha1": "d512e241a29835376f681a4957c76a286079981a",
+   "fetched": "2026-10-30",
+   "full": "assets/media/players/full/gabi.webp"
+  },
+  "REKMEISTER": {
+   "file": "assets/media/players/rekmeister.webp",
+   "src": "hltv",
+   "page": "https://www.hltv.org/player/22835/rekmeister",
+   "url": "https://img-cdn.hltv.org/playerbodyshot/k1Rpjgi16WJMtSDfkRIW_V.png?bg=3e4c54&h=100&ixlib=java-2.1.0&rect=121%2C0%2C467%2C467&w=100&s=3ff194a6bd5a0cc02fab9bcae49333eb",
+   "sha1": "a56b1cd00acbaa385ee0517d5d2e0c9b18cd9515",
+   "fetched": "2026-10-30",
+   "full": "assets/media/players/full/rekmeister.webp"
+  },
+  "Panic": {
+   "file": "assets/media/players/panic.webp",
+   "src": "hltv",
+   "page": "https://www.hltv.org/player/23226/panic",
+   "url": "https://img-cdn.hltv.org/playerbodyshot/lwnftEQCaGKgJFQjYpRcta.png?bg=3e4c54&h=100&ixlib=java-2.1.0&rect=117%2C4%2C467%2C467&w=100&s=32e58489cc5aff43ddd6bb8780fdf703",
+   "sha1": "962aafb3545e3e90773f7baa93346e9fdaba03f4",
+   "fetched": "2026-10-30",
+   "full": "assets/media/players/full/panic.webp"
+  },
+  "Evan": {
+   "file": "assets/media/players/evan.webp",
+   "src": "hltv",
+   "page": "https://www.hltv.org/player/23675/evan",
+   "url": "https://img-cdn.hltv.org/playerbodyshot/ZywOQmHlCnOJ2EXeeaPAiq.png?bg=3e4c54&h=100&ixlib=java-2.1.0&rect=116%2C8%2C467%2C467&w=100&s=211ea2c5a3d9af1a6152c4573f194d86",
+   "sha1": "c8acb1a67bf6b3363d3ee33288daca9fae3354ed",
+   "fetched": "2026-10-30",
+   "full": "assets/media/players/full/evan.webp"
   }
  },
  "tournaments": {},
@@ -5010,17 +5564,12 @@
  "missing": {
   "teams": [],
   "players": [
-   "arT",
-   "DarkMeister",
    "ryu",
    "max",
    "dgt",
    "HUASOPEEK",
-   "Kursy",
    "Jorko",
-   "Tatu",
    "Rzinh0",
-   "JDC",
    "she1zzZJEZ",
    "oNte",
    "tadeo",
@@ -5029,13 +5578,9 @@
    "mo0N",
    "xZero",
    "Dawy",
-   "Westmelon",
    "Gizmy",
    "sirah",
    "poiii",
-   "s0m",
-   "pr1metapz",
-   "mir",
    "F0R3VER",
    "AquaR85",
    "oRO",
@@ -5046,12 +5591,8 @@
    "khaN",
    "syph0",
    "StRoGo",
-   "deko",
    "ctom",
    "m3wsu",
-   "kelieN",
-   "VINI",
-   "dav1deuS",
    "Ltz",
    "r0lf",
    "era",
@@ -5059,16 +5600,12 @@
    "eZaVid",
    "mazzay",
    "rim3",
-   "mhl",
    "Cxz",
-   "hext",
    "CaNito",
    "OSAMAS",
    "B0ye",
    "Banjo",
    "Matheos",
-   "ex1st",
-   "VILBy",
    "Kiryasoo",
    "Netrix",
    "s1nside",
@@ -5084,51 +5621,7 @@
    "yksjupe",
    "eSx",
    "mixer",
-   "dupreeh",
-   "k0nfig",
-   "Luken",
-   "Shr",
-   "detr0ittJ",
-   "chayJESUS",
-   "Grizz",
-   "HEN1",
-   "Peeping",
-   "JOTA",
-   "Wolffe",
-   "MarKE",
-   "Cxzi",
-   "WolfY",
-   "H0NeST",
-   "nosraC",
-   "Bwills",
-   "SLIGHT",
-   "Alisson",
-   "Zoker",
-   "Olga",
    "Andrew",
-   "Pose1doNN",
-   "fREQ",
-   "KAISER",
-   "CLASIA",
-   "Zero",
-   "ninjaZ",
-   "Crisp",
-   "FaNg",
-   "Cryptic",
-   "Sandman",
-   "Fruitcupx",
-   "LyttleZ",
-   "Rkzinho",
-   "Markz",
-   "BiBiAhn",
-   "aNgelo",
-   "Leomonster",
-   "MITHPUTTINI",
-   "killerPandas",
-   "GaBi",
-   "REKMEISTER",
-   "Panic",
-   "Evan",
    "Valter0k",
    "RenanZin",
    "WOOD7",
