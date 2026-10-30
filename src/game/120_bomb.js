@@ -143,7 +143,7 @@ function tDefuseGo(tt, ts){
   if(tick - h0 < 52){                                                       // слушают ~0,8 с; один может выглянуть проверить
     if(tt._baitH0 === h0) return "bait";
     if((tt._baitN && tt._baitN.round === roundNum ? tt._baitN.n : 0) >= BAIT_MAX) return false;
-    var bt = tDefuseBaiter(ts); if(!bt) return false;                       // некому без размена — слушают
+    var bt = BAL.fakeBait ? tDefuseBaiter(ts) : null; if(!bt) return false;                       // некому без размена — слушают
     tt._baitH0 = h0; tt._baiter = bt.id; tt._baitN = {round: roundNum, n: (tt._baitN && tt._baitN.round === roundNum ? tt._baitN.n : 0) + 1};
     return "bait";
   }
@@ -277,7 +277,7 @@ function bombTick(){
         // по знанию команды (≤ 8 с) ближе к бомбе, чем пробежит за время дефуза, или о ком-то из живых нет свежей инфы (угол не проверен —
         // вслепую не дефузят, тапают и ждут пик). Все T известны далеко — фейк бесполезен, дефуз сразу
         var doFake = tLeftAlive && !bomb.fakeDone && bombTimeLeftTicks() > dTicks + 5*TICK_HZ;
-        if(doFake && BAL.fakeRead){ bomb.fakeDone = true; doFake = ctDefuseThreat(dTicks); }
+        if(doFake && BAL.fakeRead){ bomb.fakeDone = true; doFake = BAL.fakeBait && ctDefuseThreat(dTicks); }
         if(doFake){
           bomb.fakeDone = true;
           cand.fakeUntil = tick + 26; cand.fakeHoldUntil = tick + 26 + 110;
