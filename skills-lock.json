@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "skills": {
+    "better-design": {
+      "source": "Moddingflow/better-design",
+      "sourceType": "github",
+      "skillPath": "skills/better-design/SKILL.md",
+      "computedHash": "bc11d902e4d1a4c4f6182daae4924255103b98b674da8eaab335008123bd5097"
+    }
+  }
+}

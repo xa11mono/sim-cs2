@@ -881,10 +881,7 @@ function draw(){
     ctx.save();
     ctx.setTransform(1,0,0,1,0,0);
     ctx.fillStyle = "rgba(6,8,6,0.55)"; ctx.fillRect(0,0,cv.width,cv.height);
-    ctx.fillStyle = "#e8ecdd"; ctx.textAlign = "center"; ctx.font = "600 22px 'IBM Plex Sans',sans-serif";
-    // (карточка итога раунда — HTML-оверлей #roundCard)
-    ctx.font = "13px 'IBM Plex Mono',monospace"; ctx.fillStyle = "#8b9a80";
-    ctx.fillText("следующий раунд через "+Math.max(0, (ROUND_RESTART_DELAY_SEC-(simTime-roundEndTime))).toFixed(1)+"с", cv.width/2, cv.height/2 + 115);
+    // (карточка итога раунда — HTML-оверлей #roundCard; отсчёт до следующего раунда — полоса внизу карточки, 640)
     ctx.restore();
   }
 }

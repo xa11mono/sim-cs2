@@ -21,6 +21,7 @@
      Движение — на события игры: урон (вспышка и «след» на полосе HP), смерть, счёт, деньги, купленное; всё — transform / opacity */
   :root{--hud-f:'Roboto Condensed','Golos Text',sans-serif; --hud-n:'IBM Plex Mono',ui-monospace,monospace; --hud-ink:#10130e;
         --hud-row:rgba(15,19,14,.93); --hud-row-sel:rgba(36,43,32,.96); --hud-dim:#8f9988; --hud-line:rgba(255,255,255,.06); --hud-money:#a5c36a;
+        --hud-hi:#fff; --t-hi:#f0bd62; --ct-hi:#8fc0ef; --low:#ff8a7e; --bomb:#ff5a4c;
         --t-glow:rgba(217,162,74,.13); --ct-glow:rgba(90,155,217,.13);}
   /* ---- табло ---- */
   #scoreboard{position:absolute;top:8px;left:50%;transform:translateX(-50%);pointer-events:none;z-index:4;font-family:var(--hud-f);display:flex;flex-direction:column;align-items:stretch;zoom:var(--k);}
@@ -35,20 +36,20 @@
   #scoreboard .sb-logo img{width:92%;height:92%;object-fit:contain;}
   #scoreboard .t .sb-logo{color:var(--t);} #scoreboard .ct .sb-logo{color:var(--ct);}
   #scoreboard .sb-name{font-size:12.5px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;color:#c9cfc2;max-width:130px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-  #scoreboard .sb-score{font-family:var(--hud-n);font-size:30px;font-weight:500;color:#fff;min-width:30px;text-align:center;line-height:1;display:inline-block;}
+  #scoreboard .sb-score{font-family:var(--hud-n);font-size:30px;font-weight:500;color:var(--hud-hi);min-width:30px;text-align:center;line-height:1;display:inline-block;}
   #scoreboard .sb-mid{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:4px 16px 6px;min-width:96px;
     border-left:1px solid var(--hud-line);border-right:1px solid var(--hud-line);background:rgba(0,0,0,.18);}
   #scoreboard .sb-round{font-size:11px;font-weight:500;letter-spacing:.08em;color:var(--hud-dim);text-transform:uppercase;line-height:1.1;white-space:nowrap;}
-  #scoreboard .sb-time{font-family:var(--hud-n);font-size:18px;font-weight:500;color:#fff;line-height:1.1;display:flex;align-items:center;justify-content:center;min-height:20px;}
-  #scoreboard .sb-time.low{color:#ff8a7e;animation:sbLow 1s steps(1,end) infinite;}
+  #scoreboard .sb-time{font-family:var(--hud-n);font-size:18px;font-weight:500;color:var(--hud-hi);line-height:1.1;display:flex;align-items:center;justify-content:center;min-height:20px;}
+  #scoreboard .sb-time.low{color:var(--low);animation:sbLow 1s steps(1,end) infinite;}
   @keyframes sbLow{50%{opacity:.55;}}
-  #scoreboard .sb-time.bomb{color:#ff5a4c;}
+  #scoreboard .sb-time.bomb{color:var(--bomb);}
   #scoreboard .sb-time.bomb svg{width:30px;height:22px;animation:sbBomb 1s ease-in-out infinite;}
   @keyframes sbBomb{0%,100%{opacity:1;}50%{opacity:.45;}}
   /* полоса оставшегося времени раунда / фризтайма — внизу середины табло */
   #scoreboard .sb-prog{position:absolute;left:0;right:0;bottom:0;height:2px;background:rgba(255,255,255,.06);overflow:hidden;}
   #scoreboard .sb-prog b{display:block;height:100%;background:#d8ddd1;transform-origin:left center;transform:scaleX(1);transition:transform .25s linear;}
-  #scoreboard .sb-prog b.low{background:#ff8a7e;} #scoreboard .sb-prog b.bomb{background:#ff5a4c;} #scoreboard .sb-prog b.frz{background:var(--accent);}
+  #scoreboard .sb-prog b.low{background:var(--low);} #scoreboard .sb-prog b.bomb{background:var(--bomb);} #scoreboard .sb-prog b.frz{background:var(--accent);}
   #scoreboard .sb-series{display:flex;justify-content:space-between;padding:4px 6px 0;}
   #scoreboard .sb-series span{display:flex;gap:4px;} #scoreboard #sbSerCT{flex-direction:row-reverse;}
   #scoreboard .sb-series i{display:block;width:20px;height:7px;background:rgba(255,255,255,.07);box-shadow:inset 0 0 0 1px rgba(255,255,255,.38);}
@@ -56,6 +57,21 @@
   #scoreboard .sb-alive{display:flex;align-items:center;justify-content:center;gap:6px;margin-top:4px;font-size:11px;color:var(--hud-dim);}
   #scoreboard .sb-alive b{font-family:var(--hud-n);min-width:22px;padding:0 5px;text-align:center;font-size:13px;font-weight:600;color:var(--hud-ink);display:inline-block;}
   #scoreboard .sb-alive b.t{background:var(--t);} #scoreboard .sb-alive b.ct{background:var(--ct);}
+  /* клатч (DESIGN.md «Клатч»): полоса под табло вместо «5 vs 5» — плашка «клатч» цвета стороны, ник, «1 на N»; 1 на 1 — плашка во всю
+     полосу (duel). Появляется сдвигом из-под табло (transform / opacity), без анимаций при «уменьшить движение» (635: hudAnim) */
+  #scoreboard .sb-clutch{display:none;align-items:stretch;align-self:center;margin-top:4px;height:26px;background:var(--hud-row);box-shadow:0 10px 24px -8px rgba(0,0,0,.55);
+    font-family:var(--hud-f);}
+  #scoreboard.cl .sb-alive{display:none;}
+  #scoreboard.cl .sb-clutch{display:flex;animation:clIn var(--d3) var(--ease) both;}
+  @keyframes clIn{from{opacity:0;transform:translateY(-6px);}to{opacity:1;transform:none;}}
+  #scoreboard .sb-clutch .cl-tag{display:flex;align-items:center;padding:0 10px;font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--hud-ink);background:var(--mark);}
+  #scoreboard .sb-clutch .cl-who{display:flex;align-items:center;padding:0 10px;font-size:13px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;}
+  #scoreboard.cl-t .cl-who{color:var(--t-hi);} #scoreboard.cl-ct .cl-who{color:var(--ct-hi);}
+  #scoreboard .sb-clutch .cl-n{display:flex;align-items:center;gap:5px;padding:0 10px;border-left:1px solid var(--hud-line);font-family:var(--hud-n);font-size:15px;font-weight:600;color:var(--hud-hi);}
+  #scoreboard .sb-clutch .cl-n em{font-family:var(--hud-f);font-style:normal;font-size:11px;font-weight:500;color:var(--hud-dim);text-transform:uppercase;letter-spacing:.06em;}
+  #scoreboard .sb-clutch .cl-n i{font-style:normal;display:inline-block;}
+  #scoreboard.duel .sb-clutch .cl-tag{background:var(--bomb);}
+  #scoreboard.cl-t .sb-clutch{border-bottom:2px solid var(--t);} #scoreboard.cl-ct .sb-clutch{border-bottom:2px solid var(--ct);}
   #lookDbg{position:fixed;left:12px;top:390px;z-index:60;width:380px;max-height:calc(100vh - 402px);overflow:auto;background:#121610;border:1px solid var(--hud-line);
     color:#d9dfd3;font:400 11px/1.35 var(--hud-f);padding:0;display:none;border-radius:var(--r);}
   #lookDbg .ld-h{padding:6px 8px;border-bottom:1px solid var(--hud-line);font-weight:500;letter-spacing:.04em;text-transform:uppercase;font-size:11px;}

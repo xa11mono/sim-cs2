@@ -216,18 +216,23 @@
   #killfeed .kf.boom{border-color:var(--danger);background:rgba(80,20,15,.88);color:#ffb3aa;} #killfeed .kf.round{opacity:.6;font-weight:400;}
 
   /* ---------- баннер (мультикилл, клатч): раскрывается от центра, по нему проходит блик ---------- */
-  #banner{position:absolute;top:156px;left:50%;transform:translateX(-50%);opacity:0;pointer-events:none;z-index:7;overflow:hidden;
-    font-family:var(--cond);font-weight:500;font-size:18px;letter-spacing:.05em;text-transform:uppercase;padding:7px 20px;
-    background:linear-gradient(180deg,rgba(28,33,25,.96),rgba(14,17,13,.96));border:1px solid var(--accent-dim);border-radius:3px;color:#fff;
+  /* (DESIGN.md «Баннер события») мультикилл / эйс / клатч — та же анатомия, что полоса клатча на табло: плашка события + ник цвета стороны.
+     2K–4K — плашка цвета стороны; ACE и выигранный клатч (.big) — плашка --mark, крупнее, один проблеск. Острые углы, как весь HUD */
+  #banner{position:absolute;top:156px;left:50%;transform:translateX(-50%);opacity:0;pointer-events:none;z-index:7;overflow:hidden;display:flex;align-items:stretch;
+    font-family:var(--cond);font-weight:600;font-size:18px;letter-spacing:.05em;text-transform:uppercase;height:36px;
+    background:var(--hud-row);box-shadow:0 10px 24px -8px rgba(0,0,0,.55);color:var(--hud-hi);
     clip-path:inset(0 50% 0 50%);transition:opacity var(--d2) var(--ease),clip-path var(--d3) var(--ease);zoom:var(--k);}
   #banner.show{opacity:1;clip-path:inset(0 0 0 0);}
+  #banner .bn-tag{display:flex;align-items:center;padding:0 14px;color:var(--hud-ink);background:var(--accent);}
+  #banner .bn-who{display:flex;align-items:center;padding:0 16px;}
+  #banner.t .bn-tag{background:var(--t);} #banner.ct .bn-tag{background:var(--ct);}
+  #banner.t .bn-who{color:var(--t-hi);} #banner.ct .bn-who{color:var(--ct-hi);}
+  #banner.t{border-bottom:2px solid var(--t);} #banner.ct{border-bottom:2px solid var(--ct);}
   #banner::after{content:"";position:absolute;top:0;bottom:0;left:-40%;width:30%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.18),transparent);
     transform:skewX(-18deg);opacity:0;}
-  #banner.show::after{animation:bnShine .9s var(--ease) .15s;}
+  #banner.big.show::after{animation:bnShine .9s var(--ease) .15s;}
   @keyframes bnShine{0%{left:-40%;opacity:1;}100%{left:120%;opacity:1;}}
-  #banner.ct{border-color:var(--ct);color:#d6e8fa;box-shadow:0 6px 24px -8px rgba(90,155,217,.55);}
-  #banner.t{border-color:var(--t);color:#f8e2b8;box-shadow:0 6px 24px -8px rgba(217,162,74,.55);}
-  #banner.big{font-size:22px;padding:9px 26px;border-color:var(--mark);color:#ffeab0;box-shadow:0 0 0 1px rgba(231,200,115,.25),0 10px 36px -6px rgba(231,200,115,.5);}
+  #banner.big{font-size:22px;height:44px;} #banner.big .bn-tag{background:var(--mark);padding:0 18px;}
 
   /* ---------- карточка конца раунда: полоса цвета победителя раскрывается от центра, затем текст ---------- */
   #roundCard{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) scale(.96);opacity:0;pointer-events:none;z-index:8;min-width:380px;
@@ -247,7 +252,7 @@
   #roundCard.show .rc-in > :nth-child(6){animation-delay:250ms;}
   @keyframes rcUp{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
   #roundCard .rc-t{font-family:var(--cond);font-size:26px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;line-height:1.1;}
-  #roundCard .rc-t.ct{color:#8fc0ef;} #roundCard .rc-t.t{color:#f0bd62;}
+  #roundCard .rc-t.ct{color:var(--ct-hi);} #roundCard .rc-t.t{color:var(--t-hi);}
   #roundCard .rc-r{color:var(--text-dim);font-size:12.5px;margin-top:4px;}
   #roundCard .rc-c{display:inline-block;margin-top:8px;padding:2px 10px;border-radius:999px;font-size:12px;font-weight:600;color:#ffe49a;
     background:rgba(231,200,115,.12);border:1px solid rgba(231,200,115,.45);}
@@ -262,6 +267,10 @@
   #roundCard .rc-s span{font-family:var(--cond);font-size:12.5px;letter-spacing:.05em;text-transform:uppercase;font-weight:500;}
   #roundCard .rc-s .ct{color:var(--ct);} #roundCard .rc-s .t{color:var(--t);} #roundCard .rc-s i{font-style:normal;color:var(--text-mute);font-size:18px;}
   #roundCard .rc-h:empty{display:none;}
+  /* отсчёт до следующего раунда (был текстом на холсте под карточкой) — полоса по нижнему краю карточки, цвет победителя */
+  #roundCard .rc-next{height:2px;margin-top:12px;background:var(--hud-line);overflow:hidden;}
+  #roundCard .rc-next b{display:block;height:100%;background:var(--text-mute);transform-origin:left center;}
+  #roundCard.t .rc-next b{background:var(--t);} #roundCard.ct .rc-next b{background:var(--ct);}
   #roundCard .rc-h{margin-top:10px;padding-top:8px;border-top:1px solid var(--line);font-family:var(--cond);font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--accent);}
 
   /* ---------- экономика ---------- */
@@ -385,13 +394,17 @@
     transform:translateY(-4px);transition:opacity var(--d2) var(--ease),transform var(--d2) var(--ease);}
   #rp .rp-slow::before{content:"×0.3 ";font-weight:700;}
   #rp .rp-slow.on{opacity:1;transform:none;}
-  #rp .rp-l3{display:flex;align-items:center;gap:12px;height:100%;}
-  #rp .rp-l3 img{height:62%;width:auto;}
-  #rp .rp-l3 b{display:block;font-size:20px;font-weight:700;letter-spacing:.03em;color:#fff;line-height:1.05;}
-  #rp .rp-l3 span{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--mark);}
-  #rp .rp-l3 .rp-k{font-style:normal;font-family:var(--num);font-weight:600;font-size:24px;line-height:1;min-width:40px;display:flex;flex-direction:column;
-    align-items:center;padding:4px 8px 3px;margin-left:6px;border:1px solid var(--mark);color:#ffe49a;}
-  #rp .rp-l3 .rp-k::after{content:"фраги";font-family:var(--cond);font-weight:500;font-size:9px;letter-spacing:.12em;text-transform:uppercase;margin-top:3px;color:var(--text-dim);}
+  /* нижняя плашка повтора (DESIGN.md «Баннер события»): логотип, плашка события (--mark), ник цвета стороны, раунд, счётчик фрагов */
+  #rp .rp-l3{display:flex;align-items:stretch;height:44px;margin:auto 0;background:var(--hud-row);box-shadow:0 10px 24px -8px rgba(0,0,0,.55);}
+  #rp.t .rp-l3{border-bottom:2px solid var(--t);} #rp.ct .rp-l3{border-bottom:2px solid var(--ct);}
+  #rp .rp-l3 img{height:30px;width:auto;align-self:center;margin:0 12px;}
+  #rp .rp-l3 .rp-what{display:flex;align-items:center;padding:0 16px;font-size:18px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--hud-ink);background:var(--mark);}
+  #rp .rp-l3 b{display:flex;align-items:center;padding:0 16px;font-size:20px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--hud-hi);}
+  #rp.t .rp-l3 b{color:var(--t-hi);} #rp.ct .rp-l3 b{color:var(--ct-hi);}
+  #rp .rp-l3 .rp-rd{display:flex;align-items:center;padding:0 14px;font-size:11px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--hud-dim);border-left:1px solid var(--hud-line);}
+  #rp .rp-l3 .rp-k{font-style:normal;font-family:var(--num);font-weight:600;font-size:24px;line-height:1;min-width:56px;display:flex;flex-direction:column;
+    align-items:center;justify-content:center;padding:0 12px;border-left:1px solid var(--hud-line);color:var(--hud-hi);}
+  #rp .rp-l3 .rp-k::after{content:"фраги";font-family:var(--cond);font-weight:500;font-size:11px;letter-spacing:.06em;text-transform:uppercase;margin-top:2px;color:var(--hud-dim);}
   #rp .rp-l3 .rp-k.pop{animation:rpPop .45s var(--spring);}
   @keyframes rpPop{0%{transform:scale(1.5);}100%{transform:none;}}
   #rp .rp-feed{position:absolute;top:calc(9% + 12px);right:20px;display:flex;flex-direction:column;align-items:flex-end;gap:3px;pointer-events:none;font-size:13px;}

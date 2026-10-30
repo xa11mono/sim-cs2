@@ -114,7 +114,9 @@ var bannerTimer = null;
 function showBanner(text, team, ms){
   var el = document.getElementById("banner"); if(!el) return;
   var big = /^(ACE|КЛАТЧ)/.test(String(text));
-  el.textContent = nickify(text);
+  // (DESIGN.md «Баннер события») «4K — ник», «КЛАТЧ 1v3 — ник!» → плашка события + ник; иначе — одна строка
+  var t2 = nickify(text), m2 = /^(\dK|ACE|КЛАТЧ 1v\d) — (.+?)!?$/.exec(t2);
+  el.innerHTML = m2 ? '<span class="bn-tag">'+esc(m2[1].replace(/1v(\d)/, "1 на $1"))+'</span><span class="bn-who">'+esc(m2[2])+'</span>' : '<span class="bn-who">'+esc(t2)+'</span>';
   if(/\bshow\b/.test(el.className)){ el.className = ""; void el.offsetWidth; }   // уже показан — раскрыть заново
   el.className = "show "+(team||"").toLowerCase()+(big ? " big" : "");
   if(bannerTimer) clearTimeout(bannerTimer);
@@ -157,11 +159,12 @@ function showRoundCard(winner, reason){
     '<div class="rc-r">Раунд '+roundNum+' · '+(winner ? 'за '+winner+' · ' : '')+why+'</div>'+
     (clutch ? '<div class="rc-c">клатч 1v'+clutchInfo.n+' выигран — '+esc(nick(clutchInfo.id))+'</div>' : '')+
     (mvp && mvp.b ? '<div class="rc-m"><div class="rc-ph">'+plPhoto(mvp.b)+'</div><div class="rc-mv">MVP <b>'+esc(nick(mvp.b.id))+'</b>'+(ROLE_LABEL[mvp.b.tRole] ? ' · '+ROLE_LABEL[mvp.b.tRole] : '')+'<br>'+(mvp.b.roundKills||0)+' фраг(а), '+Math.round(mvp.b.roundDmg||0)+' урона</div></div>' : '')+
-    '<div class="rc-s"><span class="ct">'+esc(TEAM_NAME.CT)+'</span> '+score.CT+'<i>:</i>'+score.T+' <span class="t">'+esc(TEAM_NAME.T)+'</span></div><div class="rc-h" id="rcHalf"></div></div>';
+    '<div class="rc-s"><span class="ct">'+esc(TEAM_NAME.CT)+'</span> '+score.CT+'<i>:</i>'+score.T+' <span class="t">'+esc(TEAM_NAME.T)+'</span></div><div class="rc-h" id="rcHalf"></div></div><div class="rc-next" title="до следующего раунда"><b id="rcNext"></b></div>';
   el.className = ""; void el.offsetWidth;   // (v430) показ заново — анимации с начала
   el.className = "show "+(winner||"").toLowerCase();
-  if(cardTimer) clearTimeout(cardTimer);
-  cardTimer = setTimeout(function(){ el.className = ""; }, Math.max(2500, ROUND_RESTART_DELAY_SEC*1000 - 200));
+  // (DESIGN.md «Карточка конца раунда») карточка живёт, пока раунд в «ending» (640: scoreboardUpdate снимает её с концом состояния игры);
+  // был таймер реального времени — при ускоренной игре / перемотке карточка висела на закупке следующего раунда
+  if(cardTimer){ clearTimeout(cardTimer); cardTimer = null; }
 }
 
 // (v275) панель экономики сворачивается: клик по заголовку; выбор помнится в этом браузере

@@ -232,7 +232,9 @@ function rpPlay(R, mode){
   E.root.className = "on " + tm.toLowerCase() + (typeof HUD_REDUCED !== "undefined" && HUD_REDUCED ? " rm" : "");
   var what = C.single ? C.label : C.multi ? (C.n >= 5 ? "Эйс" : C.n + " " + (C.n >= 5 ? "киллов" : "килла")) : "Клатч 1v" + C.n;
   E.title.innerHTML = '<div class="rp-t1">ПОВТОР</div><div class="rp-t2">' + what + '</div><div class="rp-t3 ' + tm.toLowerCase() + '">' + esc(nm) + ' · ' + esc(R.team[tm]) + '</div>';
-  E.l3.innerHTML = (R.logo[tm] ? '<img alt="" src="' + R.logo[tm] + '">' : '') + '<div><b>' + esc(nm) + '</b><span>' + what.toLowerCase() + ' · раунд ' + R.round + '</span></div><i class="rp-k">0</i>';
+  // (DESIGN.md «Баннер события») нижняя плашка повтора — та же анатомия, что баннер и полоса клатча: плашка события, ник цвета стороны, счётчик
+  E.l3.innerHTML = (R.logo[tm] ? '<img alt="" src="' + R.logo[tm] + '">' : '') + '<span class="rp-what">' + esc(what.replace(/1v(\d)/, "1 на $1")) + '</span><b>' + esc(nm) +
+    '</b><span class="rp-rd">раунд ' + R.round + '</span><i class="rp-k">0</i>';
   E.feed.innerHTML = ""; E.emo.innerHTML = ""; E.slow.className = "rp-slow";
   return true;
 }

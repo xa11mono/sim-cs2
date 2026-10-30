@@ -32,6 +32,17 @@ function scoreboardUpdate(rtLeft){
     hudRoll($("sbScore"+t), score[t]);
     hudRoll($("sbAlive"+t), bots.filter(function(b){ return b.team === t && b.alive; }).length);
   });
+  // (DESIGN.md, «Клатч») один живой против двух и больше (clutchInfo — 630: checkClutch) — полоса клатча вместо «5 vs 5»: кто и против
+  // скольких; число соперников перекатывается (hudRoll), «1 на 1» — отдельное состояние (duel). Раунд кончился — полоса уходит
+  var sb = $("scoreboard"), CI = typeof clutchInfo !== "undefined" ? clutchInfo : null, cb = CI && roundState === "live" && bots.filter(function(b){ return b.id === CI.id && b.alive; })[0];
+  var foeN = cb ? bots.filter(function(b){ return b.team !== cb.team && b.alive; }).length : 0;
+  if(cb && foeN >= 1){
+    sb.classList.add("cl"); sb.classList.toggle("cl-t", cb.team === "T"); sb.classList.toggle("cl-ct", cb.team === "CT"); sb.classList.toggle("duel", foeN === 1);
+    domText($("sbClWho"), nick(cb.id)); hudRoll($("sbClN"), foeN);
+  } else if(sb.classList.contains("cl")) sb.classList.remove("cl", "duel");
+  var rcEl = $("roundCard"); if(rcEl && roundState !== "ending" && rcEl.className) rcEl.className = "";
+  var rcN = $("rcNext");
+  if(rcN && roundState === "ending") rcN.style.transform = "scaleX("+Math.max(0, Math.min(1, 1 - (simTime - roundEndTime)/ROUND_RESTART_DELAY_SEC)).toFixed(3)+")";
   domText($("sbMatch"), "матч № "+matchNum);
   if(!WARM.on) domText($("sbRound"), "РАУНД "+Math.max(1, roundNum));
   var tm = $("sbTime"), pg = $("sbProg"), planted = bomb && bomb.state === "planted" && roundState === "live";
