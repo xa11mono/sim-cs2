@@ -2,7 +2,7 @@
   "note": "Задание для .github/workflows/media.yml: правка этого файла и пуш в ветку media/** запускают скачивание.",
   "only": "players",
   "refresh": true,
-  "sources": "pandascore,hltv,liquipedia",
+  "sources": "hltv,pandascore,liquipedia",
   "limit": 0,
-  "id": 1
+  "id": 2
 }
