@@ -162,6 +162,10 @@
   var AIM_YAW_WIDE = [-1, 1, -2, 2, -3, 3, -4, 4, -6, 6, -9, 9, -12, 12];   // градусы — проектные числа
   var AIM_LEVEL_MISS = 10000;   // ед.: «не тот этаж» всегда хуже нужного этажа (не порог, а порядок выбора)
   var AIM_LOCAL_YAW = 3, AIM_LOCAL_PIT = 4;   // градусы — проектные числа (уточнение у готового броска, o.guess)
+  var AIM_FAST_NEAR = 160, AIM_FAST_N = 6;   // ед., штук — проектные числа (≈ 40 полётов на подбор смока)
+  // ед.: «то же место» для смока — порог совпадения физики с про (NADES.md). Пробовал 80 (разброс одного лайнапа у самих про — до 23–79 ед.):
+  // смоки лайнапов быстрее про на 0,3–0,7 с, но медиана промаха 5 → 22 px, в 32 ед. — 45 → 18 из 54 (Ancient): не взято
+  var AIM_SAME = 32;
   function nadeAim(type, from, aim, trace, o) {
     o = o || {};
     var dx = aim[0] - from[0], dy = aim[1] - from[1];
@@ -177,8 +181,28 @@
       // этаж / крыша» — хуже любого броска на нужный этаж (+ AIM_LEVEL_MISS к ошибке); levelOk — в ответе
       var lvOk = !o.levels || o.levels.some(function (z) { return Math.abs(r.det[2] - z) <= o.levelTol; });
       if (!lvOk) sc += AIM_LEVEL_MISS;
-      if (!best || sc < best.sc) best = { yaw: yaw, pitch: pitch, strength: s, jump: !!jump, det: r.det, t: r.t, how: r.how, err: exy, dz: dz,
+      // (тактика 30.10) смок: из бросков, что ложатся в «то же место» (≤ AIM_SAME), — самый быстрый. Раньше брался самый точный, а
+      // точнее всех ложится крутая «свеча» без качения: на ровном полу 600 ед. — 4,9 с вместо 2,0 с, 1200 ед. — 7,6 с (опыт
+      // tools/nades/smoke_time.js); точность внутри 32 ед. смоку не нужна (радиус дыма ≈ 144 ед.). Флешка / HE рвутся по запалу — им
+      // время всё равно; молотов — как было
+      var fast = type === 'smoke' && best && sc <= AIM_SAME && best.sc <= AIM_SAME;
+      if (!best || (fast ? r.t < best.t : sc < best.sc)) best = { yaw: yaw, pitch: pitch, strength: s, jump: !!jump, det: r.det, t: r.t, how: r.how, err: exy, dz: dz,
                                           e3: sc, levelOk: lvOk, bounces: r.bounces.length, land: r.bounces.length ? r.bounces[0].slice(0, 3) : r.det, sc: sc };
+      if (coarse) coarse.push({ pitch: pitch, s: s, jump: !!jump, t: r.t, sc: sc });
+      return sc;
+    }
+    // (тактика 30.10) смок: сетка наклонов в 4° у пологих бросков почти никогда не попадает в 32 ед. (качение чувствительно к наклону), и
+    // лучшей оставалась «свеча». Уточнение — у самых быстрых бросков сетки, что легли не дальше AIM_FAST_NEAR (до AIM_FAST_N штук):
+    // наклон ±2, ±1, ±0,5° к лучшему из них; попал в AIM_SAME — он быстрее и становится ответом (tryOne)
+    var coarse = type === 'smoke' ? [] : null;
+    function refineFast() {
+      if (!coarse || !best || !coarse.length) return;
+      var C = coarse.filter(function (c) { return c.t < best.t && c.sc <= AIM_FAST_NEAR; }).sort(function (a, b) { return a.t - b.t; }).slice(0, AIM_FAST_N);
+      coarse = null;   // уточнение — один раз
+      C.forEach(function (c) {
+        var cur = c.pitch, csc = c.sc;
+        AIM_FINE.forEach(function (st) { [-st, st].forEach(function (dp) { var q = tryOne(cur + dp, c.s, c.jump); if (q < csc) { csc = q; cur += dp; } }); });
+      });
     }
     function search(jump) {
       [1, 0.5, 0].forEach(function (s) { for (var pt = -75; pt <= 45; pt += AIM_STEP) tryOne(pt, s, jump); });
@@ -187,6 +211,7 @@
         if (b0.jump !== !!jump) return;
         [-st, st].forEach(function (dp) { tryOne(b0.pitch + dp, b0.strength, jump); });
       });
+      refineFast();
     }
     // (физика гранат, 30.10) o.guess — готовый бросок из соседней точки (лайнап: решение для точки лайнапа): сначала уточняется рядом с
     // ним — поворот ±AIM_LOCAL_YAW, наклон ±AIM_LOCAL_PIT шагом 0,5° при той же силе и прыжке (≈ 0,2 тыс. полётов вместо ≈ 2–6 тыс.);
@@ -199,7 +224,18 @@
       if (o.guessOnly || best.sc <= (o.guessOk != null ? o.guessOk : AIM_JUMP_IF)) { delete best.sc; return best; }
     }
     search(false);
-    if (best.sc > AIM_JUMP_IF && !o.noJump) search(true);
+    // (тактика 30.10) смок — и в прыжке, даже если без прыжка попал: дальний смок про кидают в прыжке — он ниже и быстрее «свечи» (из
+    // попавших в AIM_SAME берётся самый быстрый, tryOne)
+    if ((best.sc > AIM_JUMP_IF || (type === 'smoke' && best.sc <= AIM_SAME)) && !o.noJump) { if (type === 'smoke') coarse = []; search(true); }
+    // (тактика 30.10) лайнап смока (o.wide; решение одно на лайнап — кэш, 380) попал — ещё поворот вбок ради более быстрого броска: у про
+    // дальние смоки часто — пологий бросок в прыжке с отскоком от стены на 1–3° в сторону от цели (Ancient «First Lane»: про 5,2–5,5 с,
+    // прямо на цель — только «свеча» 10,8 с). ЛКМ (у про 86–90 % совпавших бросков — NADES.md), с прыжком и без; уточнение — refineFast
+    if (type === 'smoke' && o.wide && best.sc <= AIM_SAME) AIM_YAW_WIDE.forEach(function (dy_) {
+      yaw = yaw0 + dy_; coarse = [];
+      [false, true].forEach(function (jb) { if (jb && o.noJump) return; for (var pt = -75; pt <= 45; pt += AIM_STEP) tryOne(pt, 1, jb); });
+      refineFast();
+    });
+    yaw = best.yaw;
     // всё ещё мимо — поворот чуть в сторону (обойти край стены, отскок от стены), наклон — шагом вдвое крупнее
     if (best.sc > AIM_JUMP_IF) (o.wide ? AIM_YAW_WIDE : AIM_YAW).forEach(function (dy_) {
       yaw = yaw0 + dy_;
