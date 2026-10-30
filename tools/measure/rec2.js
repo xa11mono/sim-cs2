@@ -73,7 +73,11 @@ for(var t=0;t<__T__;t++){ stepTick(); if(typeof WATCH!=='undefined') WATCH.tick(
    var truth=bots.filter(function(o){ return o.team==='CT'&&o.alive&&(zs[zoneIdAt(o.x,o.y)]||Math.hypot(o.x-SITES[k].x,o.y-SITES[k].y)<750); }).length;
    var ages=names.map(function(nm){ var zp=zonePoint(nm,SITES[k]), z=zp?zoneIdAt(zp.x,zp.y):null, C=z?CLEARZ.T[z]:null; return C?Math.round((tick-C.tick)/TICK_HZ):-1; });
    var near=[8,12,20].map(function(F){ var n=0; for(var zc in CLEARZ.T){ var Cz=CLEARZ.T[zc]; if(Cz&&tick-Cz.tick<F*TICK_HZ&&Math.hypot(Cz.x-SITES[k].x,Cz.y-SITES[k].y)<750) n++; } return n; });
-   TA.sc.push([tick,k,truth,ages,near]); });
+   // (аудит 30.10) оценка T: ожидаемое число CT у сайта по знанию команды (beliefCount по зонам у сайта — гипотезы: видели, слышали, убили,
+   // проверили) и свежая инфа T о CT у сайта за 8 с (intelEstimate: видели + слышали); сторож только читает
+   var bel=(typeof beliefCount==='function'&&BZ.siteNear)?+beliefCount('T',BZ.siteNear[k]||[]).toFixed(2):null;
+   var fr=typeof intelEstimate==='function'?intelEstimate('T',SITES[k].x,SITES[k].y,600,8*TICK_HZ):null;
+   TA.sc.push([tick,k,truth,ages,near,bel,fr?fr.seen+fr.heard:null,aliveCount('CT'),aliveCount('T')]); });
  })();
  (function(){ if(typeof taskLevel!=='function') return; var RT=REC.task;
   if(TK.r!==roundNum){ TK={r:roundNum, b:{}}; RT.pr+=bots.length; }
