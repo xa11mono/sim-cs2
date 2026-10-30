@@ -1,6 +1,4 @@
 {"par": 8, "jobs": [
-  {"label": "k485_mir", "ref": "d931e128458aa0e41ec908038e9955e6c4fe3935", "map": "mirage", "matches": [3, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61]},
-  {"label": "k486_mir", "ref": "c9f03bdf05ef05b1162e3376b3befc6d0a78aa9f", "map": "mirage", "matches": [3, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61]},
-  {"label": "k485_anc", "ref": "d931e128458aa0e41ec908038e9955e6c4fe3935", "map": "ancient", "matches": [3, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61]},
-  {"label": "k486_anc", "ref": "c9f03bdf05ef05b1162e3376b3befc6d0a78aa9f", "map": "ancient", "matches": [3, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61]}
+  {"label": "nf486_mir", "ref": "ab327ece7f4dce10c9e3334e02891cd6bbadaa78", "map": "mirage", "matches": [3, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61]},
+  {"label": "nf486_anc", "ref": "ab327ece7f4dce10c9e3334e02891cd6bbadaa78", "map": "ancient", "matches": [3, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61]}
 ]}
