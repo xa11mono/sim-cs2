@@ -1,38 +1,100 @@
 // ---------- бросок ----------
-// (v323, М33) сверху сюда граната не упадёт: над полом крыша (штриховка радара → потолок видимости) или другой этаж навмеша
-// выше больше чем на 100 ед. карты (под Palace, Underpass). Навесом сюда не кинуть — только низом, через вход
-// (v370, владелец: «в игре есть крыша, но гранаты кидают вперёд, а траектория идёт будто через крышу») навес — дуга по высоте:
-// от руки (пол + NADE_HAND) до пола у цели, высота над прямой — h. Бот примеряет дуги NADE_ARCS от высокой к низкой (как игрок:
-// сильный навес, слабый, снизу) и берёт первую, что по всему пути проходит ниже потолков (потолок крытого пола —
-// VIS.ceil, тот же, что для видимости). under — цель под крышей и дуга заходит под неё: граната падает под крышу, а не на неё.
-// Нет такой — низом (если цель видна) или не кидает. Высоты — ед. игры; дуги — проектные числа
-var NADE_HAND = 60, NADE_ARCS = [380, 220, 120, 60];
-// (А5) по геометрии: дуга — ломаная из NADE_ARC_SEG отрезков, каждый — луч гранаты m3Line(…, 'nade'): крыши, стены, ящики,
-// решётки как в игре (полёт по настоящей физике — шаг В2)
-var NADE_ARC_SEG = 12;
-// дуга высоты h от руки (пол у (x0,y0) на этаже z0 + NADE_HAND) до пола у цели: проходит ли по всему пути ниже потолков и над стенами
-function nadeArcClear(x0, y0, z0, tx, ty, h){
-  var M = m3();
-  if(M){
-    var za = visFloorAt(x0, y0, z0) + NADE_HAND, zb = visFloorAt(tx, ty) + 10, px3 = x0, py3 = y0, pz3 = za;
-    for(var k3 = 1; k3 <= NADE_ARC_SEG; k3++){ var t3 = k3/NADE_ARC_SEG, x3 = x0 + (tx-x0)*t3, y3 = y0 + (ty-y0)*t3, z3 = za + (zb-za)*t3 + 4*h*t3*(1-t3);
-      if(!m3Line(M, px3, py3, pz3, x3, y3, z3, "nade")) return false; px3 = x3; py3 = y3; pz3 = z3; }
-    return true;
-  }
-  visReady();
-  var z0h = (z0 != null ? z0 : visFloorAt(x0, y0)) + NADE_HAND, z1 = visFloorAt(tx, ty) + 10;
-  var d = Math.hypot(tx-x0, ty-y0), n = Math.max(2, Math.ceil(d / VIS_CELL)), W = VIS.W, Cl = VIS.ceil, S = VIS.solid;
-  for(var k = 1; k < n; k++){ var t = k/n, x = x0 + (tx-x0)*t, y = y0 + (ty-y0)*t;
-    var i = Math.floor(x / VIS_CELL), j = Math.floor(y / VIS_CELL); if(i < 0 || j < 0 || i >= W || j >= W) continue;
-    var z = z0h + (z1-z0h)*t + 4*h*t*(1-t), c = Cl[j*W + i];
-    if(c !== Infinity && z > c - 12) return false;            // крыша
-    if(S[j*W + i] > z - 6) return false; }                     // (v370) стена / укрытие с известным верхом — граната над ним, не сквозь
-  return true;
+// (физика гранат, 30.10.2026) бросок — как у человека: поворот на цель, наклон и сила (ЛКМ / обе / ПКМ), подобранные НАСТОЯЩИМ
+// полётом (385_nades_flight: nadeAim — дуга, стены, крыши, отскоки, запал по геометрии игры, m3NadeTrace кубиком гранаты).
+// Куда упадёт и долетит ли — решает только физика: прежние навес по прямой к цели (полёт и рисунок — разные дуги), «дуги под
+// потолками» (nadeArc / nadeArcClear: у 62–73 % лайнапов про их дуга шла сквозь геометрию) и «упала на крышу» по точке цели удалены.
+// Своя граната кидается, если физика доводит её к цели ближе NADE_AIM_OK ед. игры (флешке — вдвое), лайнап (trusted) — лучшим
+// броском, если ближе NADE_AIM_OK × 4 (дальше — отсюда туда стоя не кинуть: у про был разбег / прыжок, данных о нём в лайнапе нет).
+var NADE_AIM_OK = 100;   // ед. игры (≈ 40 px радара) — проектное число (ветка nades-v398, В3)
+var NADE_AIM_DZ = {smoke: 0, molly: 0, flash: 80, he: 20};   // куда целиться по высоте над полом у цели, ед. (проектные числа, В3)
+// кэш решений — внутри функции: снимок «Отметить момент» копирует глобальные var, а кэш ему не нужен (и большой)
+var nadeAimCache = (function(){ var C = {}, n = 0; return function(k, v){ if(v === undefined) return C[k]; if(++n > 4000){ C = {}; n = 0; } return (C[k] = v); }; })();
+function nadeTraceFn(){ var M = m3(); return function(A, B, r){ return m3NadeTrace(M, A, B, r); }; }
+// лучший бросок стоя из (x, y) радара с пола z (ед. игры) в точку (tx, ty) радара → решение nadeAim + x, y радара, где сработает
+// (той же физикой, что полетит), или null (цель под ногами / нет геометрии). Ошибка e3 — в 3D (флешке высота вдвое легче: ей важно
+// хлопнуть на виду). Под целью несколько полов (под балконом, под мостом) — у цели нет высоты: целится в каждый пол, куда можно
+// дойти, и берёт тот, куда граната долетает точнее (своя граната под балкон — под балкон, если туда долетает)
+// (30.10, ошибка PR #2) кэш — только для ТОГО ЖЕ состояния броска: точное место (x, y, z), присед, перебор; раньше ключ округлялся
+// до 4 px и 8 ед. — решение из соседней точки уходило в бросок из другой. vel — (этап 4) скорость бойца в миг броска, ед/с игры
+// [vx, vy, vz] (nadeBotVel): та же в подборе и в вылете (×1,25 по горизонтали — 385), и в ключе кэша. guess — готовое решение из
+// соседней точки (уточняется рядом с ним, nadeAim o.guess)
+function nadeSolve(type, x, y, z, tx, ty, duck, wide, guess, vel){
+  var M = m3(); if(!M) return null;
+  var key = type+"|"+x+","+y+","+z+"|"+tx+","+ty+(duck ? "d" : "")+(wide ? "w" : "")+(guess ? "|g"+guess.yaw+","+guess.pitch+","+guess.strength+(guess.jump ? "j" : "") : "")+(vel ? "|v"+vel[0]+","+vel[1]+","+vel[2] : "");
+  var c0 = nadeAimCache(key); if(c0 !== undefined) return c0;
+  var t0 = (typeof performance !== "undefined") ? performance.now() : 0;
+  var F = m3Game(M, x, y), T = m3Game(M, tx, ty), fl = nadeAimFloors(M, tx, ty), lv = nadeLandFloors(M, tx, ty), r = null;
+  fl.forEach(function(fz){
+    var o = {duck: !!duck, wz: type === "flash" ? 0.5 : 1, wide: !!wide, vel: vel || null};
+    if(type === "smoke" || type === "molly"){ o.levels = lv; o.levelTol = NADE_LEVEL_TOL; }   // (этаж) смок и огонь — на полу у цели
+    if(guess){ o.guess = guess; o.guessOk = guess.levelOk === false ? 0 : guess.e3 + NADE_GUESS_SLACK; o.wide = false; }   // уточнение не вышло — обычный (не широкий) перебор: дешевле
+    var q = nadeAim(type, [F[0], F[1], z], [T[0], T[1], fz + (NADE_AIM_DZ[type] || 0)], nadeTraceFn(), o);
+    if(q && (!r || q.e3 < r.e3)) r = q; });
+  if(r){ var R = m3Radar(M, r.det[0], r.det[1]); r.x = R[0]; r.y = R[1]; }
+  if(t0){ NADE_SOLVE_MS.push(performance.now() - t0); if(NADE_SOLVE_MS.length > 500) NADE_SOLVE_MS.shift(); }
+  return nadeAimCache(key, r);
 }
-function nadeArc(b, tx, ty){
-  var cov = nadeCovered(tx, ty);
-  for(var a = 0; a < NADE_ARCS.length; a++) if(nadeArcClear(b.x, b.y, b.z, tx, ty, NADE_ARCS[a])) return {h: NADE_ARCS[a], under: cov};
-  return null;
+// (30.10, этап 2) разброс прицела про при повторе одного броска — децили |Δповорота| и |Δнаклона|, ° (0, 10, …, 100 %): демки Mirage +
+// Ancient (throws.json), броски стоя с места в 8 ед. в одну клетку разрыва 96 ед., групп ≥ 3 (tools/nades/aim_scatter_pro.py; точность
+// углов в демке — 0,1°). Разрыв про при этом: смок p50 7 / p90 33 ед., флешка 8 / 36, HE 5 / 20, молотов 6 / 24
+var NADE_AIM_SCATTER = {"smoke":{"yaw":[0.0,0.0,0.0,0.1,0.1,0.1,0.2,0.25,0.4,0.7,4.3],"pitch":[0.0,0.0,0.0,0.1,0.1,0.2,0.2,0.4,0.6,1.2,5.0]},"flash":{"yaw":[0.0,0.0,0.05,0.1,0.2,0.3,0.4,0.65,1.0,1.6,4.6],"pitch":[0.0,0.0,0.1,0.15,0.3,0.45,0.7,1.0,1.45,2.25,5.0]},"he":{"yaw":[0.0,0,0.1,0.15,0.25,0.4,0.6,0.85,1.3,2,4.75],"pitch":[0.0,0.0,0.0,0.05,0.15,0.3,0.5,0.7,1.1,1.9,5.0]},"molly":{"yaw":[0.0,0.0,0.05,0.1,0.1,0.2,0.3,0.4,0.6,0.95,4.35],"pitch":[0,0.0,0.05,0.1,0.2,0.2,0.3,0.4,0.7,1.45,5.0]}};
+function nadeQuant(D, u){ var x = u*10, i = Math.min(9, Math.floor(x)); return D[i] + (D[i+1] - D[i])*(x - i); }
+var NADE_UTIL0 = null;   // средний множитель навыка (1,5 − util) по профилям — навык меняет разброс относительно среднего про
+function nadeUtilMul0(){ if(NADE_UTIL0 == null){ var s = 0, n = 0; for(var k in PROFILES){ s += 1.5 - (PROFILES[k].util != null ? PROFILES[k].util : 0.5); n++; } NADE_UTIL0 = n ? s/n : 1; } return NADE_UTIL0; }
+function nadeAimLimit(type, trusted){
+  if(!trusted) return NADE_AIM_OK * (type === "flash" ? 2 : 1);
+  var M = m3(), R = NADE[type] && NADE[type].radius ? NADE[type].radius * (M ? M.unit / M.cell : 1) : 0;
+  return R ? Math.min(NADE_AIM_OK * 4, Math.max(NADE_AIM_OK, R)) : NADE_AIM_OK * 4;
+}
+var NADE_GUESS_SLACK = 16;
+// (этап 3, скорость) решение для точки лайнапа (подсказка подбора из места бойца) — своё хранилище, не вытесняется общим кэшем (тот
+// чистится целиком после 4000 решений); считается заранее во freeze-тайм (nadePrecalcTick, 540) — в раунде остаётся только уточнение
+// из места бойца. Решение — то же самое (тот же nadeSolve, точное состояние): игра бит в бит та же, меняется только когда считается
+var nadeGuessStore = (function(){ var C = {}; return function(k, v){ if(v === undefined) return C[k]; return (C[k] = v); }; })();
+function nadeGuess(type, x, y, z, tx, ty, duck, wide){
+  var k = type+"|"+x+","+y+","+z+"|"+tx+","+ty+(duck ? "d" : "")+(wide ? "w" : ""), g = nadeGuessStore(k);
+  if(g === undefined) g = nadeGuessStore(k, nadeSolve(type, x, y, z, tx, ty, duck, wide));
+  return g;
+}
+var NADE_PRECALC_I = 0, NADE_PRECALC_MS = 12;   // мс за тик freeze-тайма на подсчёт лайнапов (проектное число: < кадра 60 Гц)
+function nadePrecalcTick(){
+  if(!m3() || typeof allLineups !== "function") return;
+  var L = allLineups(), t0 = (typeof performance !== "undefined") ? performance.now() : 0;
+  while(NADE_PRECALC_I < L.length){
+    var lu = L[NADE_PRECALC_I++]; if(!lu || !lu.from || !lu.to || !NADE[lu.type]) continue;
+    var na = navAt(lu.from.x, lu.from.y, null); if(!na) continue;
+    nadeGuess(lu.type, lu.from.x, lu.from.y, na.z, lu.to.x, lu.to.y, false, true);
+    if(!t0 || performance.now() - t0 >= NADE_PRECALC_MS) break;
+  }
+}   // ед.: уточнённый бросок из места бойца не хуже решения точки лайнапа + столько — принят (проектное число)
+var NADE_SOLVE_MS = [];      // время последних 500 подборов, мс — только для проверки (tools/tests), игра не читает
+// (30.10, этаж) где у цели может лечь смок / огонь: полы, куда можно дойти, в клетке цели; нет таких (цель лайнапа — только x, y,
+// среднее разрывов про — бывает над верхом ящика: Mirage prx280 / prx282, в клетке только верх ящика −83 вида «подсадка», про — −166)
+// — полы, куда можно дойти, в NADE_LEVEL_R px от цели. Соседние полы не берутся, если в клетке цели пол есть: у края спуска рядом
+// нижний уровень (Mirage pro68 / pro103 / prx6 / prx47: цель −40, в 13 px — −166, молотов падал вниз, у про — −40). Крыш в полах нет
+var NADE_LEVEL_R = 13, NADE_LEVEL_TOL = 64;   // px радара (32 ед. — порог совпадения с про, NADES.md); ед. — «ящик» (проектные числа)
+function nadeLandFloors(M, tx, ty){
+  var F = M.floors, c0 = m3Cell(M, tx, ty), o = [];
+  if(c0 >= 0) for(var q = F.st[c0]; q < F.st[c0+1]; q++) if(F.kind[q] === 1) o.push(F.z[q]);
+  if(o.length) return o;
+  var n = Math.ceil(NADE_LEVEL_R / M.cell);
+  for(var dj = -n; dj <= n; dj++) for(var di = -n; di <= n; di++){
+    if(Math.hypot(di, dj)*M.cell > NADE_LEVEL_R) continue;
+    var c = m3Cell(M, tx + di*M.cell, ty + dj*M.cell); if(c < 0) continue;
+    for(q = F.st[c]; q < F.st[c+1]; q++) if(F.kind[q] === 1 && o.indexOf(F.z[q]) < 0) o.push(F.z[q]);
+  }
+  return o.length ? o : [visFloorAt(tx, ty)];
+}
+// полы у цели, куда можно дойти пешком (вид 1 геометрии; нет таких — верхний пол, как visFloorAt)
+function nadeAimFloors(M, tx, ty){
+  var c = m3Cell(M, tx, ty), F = M.floors, o = [];
+  if(c >= 0) for(var q = F.st[c]; q < F.st[c+1]; q++) if(F.kind[q] === 1) o.push(F.z[q]);
+  return o.length ? o : [visFloorAt(tx, ty)];
+}
+// долетит ли своя граната бойца из (x, y) (пол z, null — пол под точкой) в цель — тот же порог, что у своего броска
+function nadeLands(type, x, y, z, tx, ty){
+  var S = nadeSolve(type, x, y, z != null ? z : visFloorAt(x, y), tx, ty, false);
+  return !!S && S.levelOk !== false && S.e3 <= nadeAimLimit(type, false);
 }
 // (v373) своя граната через стену — только так, как кидают про. Замер (tools/nade_walls_pro.py, Mirage, 35 592 броска): у про 79 %
 // бросков прямая «рука → разрыв» проходит сквозь стену радара (через крыши, над ящиками), толщиной — до 290 px у 10 % смоков;
@@ -87,7 +149,8 @@ function nadeCovered(x, y){
 var NADE_GAP = Math.round(1.1*64);
 function nadeReady(b){ return tick - (b._nadeT == null ? -1e9 : b._nadeT) >= NADE_GAP; }
 var NADE_FAIL = null;   // (v369) почему последний бросок не состоялся — для проверки
-function throwNade(b, type, tx, ty, lob, why, trusted){
+// from — (лайнап) точка броска из набора: навигация и подсказка подбора; бросок подбирается и летит из места, где боец стоит
+function throwNade(b, type, tx, ty, lob, why, trusted, from){
   NADE_FAIL = null;
   if(!b.nades || b.nades[type] <= 0){ NADE_FAIL = "нет гранаты"; return false; }
   if(!nadeReady(b)){ NADE_FAIL = "пауза между гранатами"; return false; }
@@ -99,39 +162,56 @@ function throwNade(b, type, tx, ty, lob, why, trusted){
   // молотов — ошибка; чужой на своём проходе — можно), не летит. Те же касания, что гасят огонь при срабатывании (400)
   if(type === "molly" && smokes.some(function(sm){ return Math.hypot(sm.x-tx, sm.y-ty) < smokeRadiusNow(sm) + NADE.molly.radius*MOLLY_SMOKE_TOUCH; })){ NADE_FAIL = "в дыму погаснет"; return false; }
   if(type === "smoke" && fires.some(function(f){ return f.team === b.team && Math.hypot(f.x-tx, f.y-ty) < NADE.smoke.radius + NADE.molly.radius*MOLLY_SMOKE_TOUCH; })){ NADE_FAIL = "потушит свой огонь"; return false; }
+  if(lob && !trusted && nadeTallWall(b.x, b.y, tx, ty, type)){ NADE_FAIL = "стена на пути"; return false; }   // (v373) сквозь стену — только как кидают про (MAP.nadelanes)
+  if(!m3()){ NADE_FAIL = "нет геометрии карты"; return false; }
+  // (физика гранат) как кинуть — подбор физикой (nadeSolve) из ТОГО состояния, из которого граната полетит: место бойца (x, y),
+  // его пол (z), присед. Лайнап: from — точка навигации и данных лайнапа, не место вылета (30.10, ошибка PR #2: бросок подбирался для
+  // from, а летел из места бойца — до 36 px в стороне, лайнапы ложились в 183–185 px от цели); решение для from — только подсказка
+  // (guess), с которой начинается подбор из места бойца. Не нашлось броска отсюда — отказ с причиной (задание снимается, назад не идёт)
+  var bz = b.z != null ? b.z : visFloorAt(b.x, b.y), guess = null;
+  if(from && (from.x !== b.x || from.y !== b.y)){
+    var na = navAtLevel(from.x, from.y, bz), fz = na ? na.z : bz;
+    guess = nadeGuess(type, from.x, from.y, fz, tx, ty, b.crouching, !!trusted);
+  }
+  var V = nadeBotVel(b), S = nadeSolve(type, b.x, b.y, bz, tx, ty, b.crouching, !!trusted, guess, V);
+  if(!S){ NADE_FAIL = "цель под ногами"; return false; }
+  // своя — ближе NADE_AIM_OK (флешке — вдвое); лайнап — и мимо, но не так, что отсюда туда не кинуть вовсе (× 4)
+  // (30.10, этаж) смок / молотов, который отсюда ложится только на другой этаж или крышу, — не кидается (раньше проходил по 3D-ошибке ≤ 400 ед.)
+  if(S.levelOk === false){ NADE_FAIL = "не тот этаж / крыша"; return false; }
+  // (этап 1б) лайнап — в пределах действия самой гранаты: дым, огонь, HE, сработавшие дальше своего радиуса от цели, цель не накрывают
+  // (прогон 126, Mirage м53: молотов «T Ramp» с ошибкой подбора 378 ед. — в пределах прежних 400 — ударил в стену в 25 px и загорелся у
+  // своего, тот застрял в огне: 30 «переносов»). Радиус — NADE (px радара → ед. игры); флешке радиуса нет — как было (× 4)
+  if(S.e3 > nadeAimLimit(type, trusted)){ NADE_FAIL = "не долетит: стена / потолок"; return false; }
+  var a = Math.atan2(ty-b.y, tx-b.x), M = m3(), F = m3Game(M, b.x, b.y);
+  // вылет — тот бросок, что подобрала физика (S): в полёте — состояние физики (ед. игры: p, v, t, касания — 385), x, y, z — где
+  // граната сейчас (радар; z — ед. игры), tx, ty — где сработает по расчёту той же физики (другие решения смотрят туда)
+  // лайнап не идеален: исполнение со своей ошибкой — ошибка прицела (поворот и наклон), куда граната с ней упадёт — решает физика.
+  // (30.10, этап 2) величина — разброс прицела про при повторе одного броска (NADE_AIM_SCATTER, демки обеих карт, по типу гранаты) ×
+  // навык (util: 1,5 − util к среднему по профилям) × BAL.lobErr (1 — как у про) × 3 при промахе execErr. Было: BAL.lobErr = 90 px
+  // точки падения (придумано) → ≈ 4° поворота в медиане, в 10–40 раз больше, чем у про. Бросок прямо (цель видна) — без ошибки
+  var tr = nadeTraceFn(), dYaw = 0, dPit = 0, miss = false;
+  if(lob){
+    var leMul = b.prof ? (1.5 - prof(b, "util")) / nadeUtilMul0() : 1;
+    if(BAL.execErr && b.prof && hashRand(tick*43 + b.id.charCodeAt(1)*3) < (1-prof(b, "util"))*0.08){ leMul *= 3; miss = true; }
+    var SC = NADE_AIM_SCATTER[type], k0 = BAL.lobErr * leMul, c0 = b.id.charCodeAt(0);
+    dYaw = (hashRand(tick*13 + b.id.length*97) < 0.5 ? -1 : 1) * nadeQuant(SC.yaw, hashRand(tick*71 + c0*5)) * k0;
+    dPit = (hashRand(tick*37 + c0*11) < 0.5 ? -1 : 1) * nadeQuant(SC.pitch, hashRand(tick*59 + c0*7)) * k0;
+  }
+  // где сработает — полёт именно этого вылета (из того места, где стоит, с ошибкой исполнения) той же физикой, что полетит:
+  // расчёт и полёт совпадают бит в бит
+  var L = nadeLaunch({pos: [F[0], F[1], bz], yaw: S.yaw + dYaw, pitch: S.pitch + dPit, strength: S.strength, duck: !!b.crouching, jump: S.jump, vel: V}, tr);
+  var Fl = nadeFly(type, L.p, L.v, tr), PR = m3Radar(M, Fl.det[0], Fl.det[1]);
   // (аудит 11.10) проверка прямо перед броском: HE / молотов не летит туда, где стоит свой (в радиусе поражения) —
   // бросок отменяется, граната остаётся. Раньше не проверялось: 37 % HE падали в 300 px от своего, урон по своим от
   // гранат — 88 случаев на 12 матчей (у про из 33 тимкиллов 30 — пули, docs/PRO_PLAY.md 6г)
-  // (этап 4, P1) проверяется и точка, где молотов реально загорится: прямой бросок вспыхивает, когда скорость падает ниже 70
-  // (полёт ниже), т. е. на 70/64/(1−0,96) ≈ 27 px ближе цели. И сам бросающий — тоже «свой». Раньше: опорник CT кидал
-  // «задержать выход» в точку в 79 px (радиус 72), огонь вспыхивал в 52 px — горел сам (5–10 раз на 12 матчей)
-  var dL = Math.max(60, Math.hypot(tx-b.x, ty-b.y)); if(!lob) dL = Math.min(NADE_THROW_RANGE, dL);
-  var aL = Math.atan2(ty-b.y, tx-b.x), shortL = (type === "molly" && !lob) ? 70/TICK_HZ/(1-0.96) : 0;
-  var lx = b.x + Math.cos(aL)*Math.max(0, dL - shortL), ly = b.y + Math.sin(aL)*Math.max(0, dL - shortL);
+  // (физика гранат) и там, где граната сработает на самом деле (точка полёта PR), и сам бросающий — тоже «свой»
   if((type === "he" || type === "molly") && bots.some(function(o){ return o.alive && o.team === b.team &&
-      (Math.hypot(o.x-tx, o.y-ty) < NADE[type].radius || Math.hypot(o.x-lx, o.y-ly) < NADE[type].radius); })){ NADE_FAIL = "свой в зоне"; return false; }
-  // (v323, М33) цель под крышей / под другим этажом — навесом не долетит: кидает низом (прямо, с отскоком от стен), если
-  // точка видна; иначе не кидает
-  // (v369) лайнап из набора (точка броска и цель — из демок про / свой лайнап): брошен так в игре — дуга не проверяется
-  // (v370) остальное — дугой по высоте (nadeArc): навес, что проходит под потолками; нет — низом, если цель видна
-  if(lob && !trusted && nadeTallWall(b.x, b.y, tx, ty, type)){ NADE_FAIL = "стена на пути"; return false; }   // (v373) сквозь стену — только как кидают про (MAP.nadelanes)
-  var ARC = lob ? (trusted ? {h: NADE_ARCS[0], under: nadeCovered(tx, ty)} : nadeArc(b, tx, ty)) : null;   // (v375, отметка: молотов лайнапа про в T Ramp «пропадал» — падал «на крышу») лайнап про попадает под крышу, как у про
-  if(lob && !ARC){ if(!hasLOS(b.x, b.y, tx, ty, b.z)){ NADE_FAIL = "дуга упирается в потолок, цель не видна"; return false; } lob = false; }
-  // (v340, отметка владельца: «кидает через крытую зону» — kyousuke из-под крыши B Apps навесом через стену) сам под крышей /
-  // под другим этажом — навесом нельзя (дуга упрётся в потолок): только низом, если цель видна (окно, проход)
+      (Math.hypot(o.x-tx, o.y-ty) < NADE[type].radius || Math.hypot(o.x-PR[0], o.y-PR[1]) < NADE[type].radius); })){ NADE_FAIL = "свой в зоне"; return false; }
   b.nades[type]--; b._nadeT = tick; b._lastNade = {type:type, x:tx, y:ty, t:tick, self: /себе/.test(String(why || (b.nadeTask && b.nadeTask.why) || ""))};   // (v448) self — флешка себе под пик (контакт — 350)
   npUse(b, type, (b.nadeTask && b.nadeTask.type === type && b.nadeTask.npm) || npMomentNow(b));   // (v428) запись плана гранат снята
-  var d = Math.max(60, Math.hypot(tx-b.x, ty-b.y)); if(!lob) d = Math.min(NADE_THROW_RANGE, d);
-  var a = Math.atan2(ty-b.y, tx-b.x);
-  var v0 = d * (1-0.96) * TICK_HZ; // при затухании 0.96/тик пролетит примерно d
-  var nd = {type:type, x:b.x, y:b.y, vx:Math.cos(a)*v0, vy:Math.sin(a)*v0, born:tick, thrower:b, team:b.team, trail:[], why:why||"", ox:b.x, oy:b.y};
-  if(lob){
-    // лайнап не идеален: небольшой разброс точки падения
-    var leMul = b.prof ? (1.5 - prof(b, "util")) : 1;
-    if(BAL.execErr && b.prof && hashRand(tick*43 + b.id.charCodeAt(1)*3) < (1-prof(b, "util"))*0.08){ leMul *= 3; noteMistake(b, "промахнулся гранатой ("+NADE[type].name+")"); }
-    var le = BAL.lobErr * leMul * hashRand(tick*71 + b.id.charCodeAt(0)*5), la2 = hashRand(tick*13 + b.id.length*97)*Math.PI*2;
-    nd.lob = true; nd.sz = b.z; nd.arcH = ARC ? ARC.h : NADE_ARCS[0]; nd.under = !!(ARC && ARC.under); nd.sx = b.x; nd.sy = b.y; nd.aimX = tx; nd.aimY = ty; nd.tx = tx + Math.cos(la2)*le; nd.ty = ty + Math.sin(la2)*le; nd.flight = Math.max(30, Math.round(d/650*TICK_HZ));
-  }
+  if(miss) noteMistake(b, "промахнулся гранатой ("+NADE[type].name+")");
+  var nd = Object.assign(nadeState(type, L.p, L.v), {type:type, x:b.x, y:b.y, z:L.p[2], tx:PR[0], ty:PR[1], born:tick, thrower:b, team:b.team,
+            trail:[], why:why||"", ox:b.x, oy:b.y, lob:!!lob, aimX:tx, aimY:ty, exec:[+dYaw.toFixed(2), +dPit.toFixed(2)], plan:[S.x, S.y, S.det[2], S.e3], from0:[b.x, b.y, bz], vel0:V});   // exec — ошибка исполнения (поворот, наклон, °); plan — где сработает по подбору (радар x, y; z, ошибка e3); from0 — откуда кинул
   // кто может увернуться от этой флешки: видел бросающего или был рядом (слышит чеку)
   if(type === "flash" && BAL.flashAware){
     nd.aware = {};
@@ -202,7 +282,22 @@ function nadeQueueNext(b){
   var qSec = Math.max(6, Math.ceil(pathLenTo(b, q.from.x, q.from.y)/SPEED + LU_REACH_PAD));   // (v359) точка следующей — бывает дальше
   b.nadeTask = {type:q.type, x:q.x, y:q.y, from:q.from, until: tick + qSec*TICK_HZ, why:q.why, start:tick, lob:true, range:4000, now:true, lineup:true, exec:q.exec && q.type === "smoke", npm:q.npm};
 }
+// (этап 4) скорость бойца в миг броска: сдвиг за последний тик (движение идёт после гранат — 540), ед/с игры [vx, vy, 0]; y игры
+// противоположен y радара. Обновляется каждый тик раунда для всех живых (nadeVelTrack), до заданий на гранату
+// Вертикаль — 0: бот бросает с земли (прыжка у бота нет; подъём по ступеням — не прыжок, а модель CS считает прыжком всё, что
+// поднимается быстрее 60 ед/с — 385 AIR_VZ). Сдвиг больше двух полных шагов за тик (SPEED × 2) — перенос (лестница, перемотка), не скорость
+function nadeVelTrack(){
+  var M = m3(), k = M ? M.unit / M.cell : 1;
+  bots.forEach(function(b){ var p = b._nvP, v = null;
+    if(p && p[2] === tick - 1 && b.alive){ var dx = b.x - p[0], dy = b.y - p[1]; if(Math.hypot(dx, dy)*TICK_HZ <= 2*SPEED) v = [dx*TICK_HZ*k, -dy*TICK_HZ*k, 0]; }
+    b._nv = v; b._nvP = [b.x, b.y, tick]; });
+}
+function nadeBotVel(b){ var v = b._nv; return v && (v[0] || v[1]) ? v : null; }
+// лайнап — бросок стоя (решение для точки лайнапа — стоя): боец, который ещё идёт (скорость > NADE_STILL_V), сначала останавливается
+// (на посту лайнапа скорость гасится — 540), бросок — в тот тик, когда стоит. Своя граната летит с хода — со скоростью бойца
+var NADE_STILL_V = 5;   // ед/с игры (проектное число: заметно меньше шага 2,5 ед. за тик)
 function updateNadeTasks(){
+  nadeVelTrack();
   bots.forEach(function(b){
     if(!b.nadeTask && b.nadeQueue && b.nadeQueue.length) nadeQueueNext(b);
     var t = b.nadeTask; if(!t) return;
@@ -250,8 +345,9 @@ function updateNadeTasks(){
         return; }
       postKeep(b);   // стоит на точке броска — затея ещё идёт
       if(!nadeReady(b)) return;   // (v340) только что кинул другую — задание ждёт
+      var vNow = nadeBotVel(b); if(vNow && Math.hypot(vNow[0], vNow[1]) > NADE_STILL_V) return;   // (этап 4) лайнап — стоя: ещё идёт — ждёт
       // не вышло на время (пауза между гранатами, свой в зоне огня) — задание остаётся, попробует снова; раньше снималось молча
-      if(!throwNade(b, t.type, t.x, t.y, true, t.why, !t.gen) && NADE_FAIL && /пауза|свой/.test(NADE_FAIL)) return;   // своя точка (gen) — дуга проверяется
+      if(!throwNade(b, t.type, t.x, t.y, true, t.why, !t.gen, t.from) && NADE_FAIL && /пауза|свой/.test(NADE_FAIL)) return;   // своя точка (gen) — дуга проверяется
       b.nadeTask = null; if(b.post && b.post.tag === "lineup") clearPost(b); return;
     }
     if(d <= t.range && hasLOS(b.x, b.y, t.x, t.y, b.z)){
@@ -263,7 +359,7 @@ function updateNadeTasks(){
       // Свой бросок — над открытым местом (проходы, окна, укрытия); нет пути — идёт на точку рядом, откуда граната долетает
       // (nadeThrowSpot: безопасную от известных врагов); нет и такой — не кидает
       if(!nadeReady(b)) return;   // (v438) пауза между гранатами — задание ждёт (раньше снималось: 277 заданий на 8 матчей)
-      if(throwNade(b, t.type, t.x, t.y, true, t.why) || !/стена|потолок/.test(NADE_FAIL||"") || t._spotTried || t.here){ b.nadeTask = null; return; }   // (v373) и под крышей — на точку, откуда долетит
+      if(throwNade(b, t.type, t.x, t.y, true, t.why) || !/стена|потолок|этаж/.test(NADE_FAIL||"") || t._spotTried || t.here){ b.nadeTask = null; return; }   // (v373) и под крышей — на точку, откуда долетит
       t._spotTried = true;
       var fs = nadeThrowSpot(b, t);
       if(!fs){ b.nadeTask = null; return; }
@@ -280,10 +376,10 @@ function nadeThrowSpot(b, t){
   var bl = (typeof beliefLast !== "undefined" && beliefLast[b.team]) || {}, foes = [];
   for(var e in bl){ var q = bl[e]; if(q && tick - q.tick <= 8*TICK_HZ && bots.some(function(o){ return o.id === e && o.alive; })) foes.push({x:q.x, y:q.y}); }
   // (v373) кандидаты — места, откуда про кидали в эту точку (MAP.nadelanes), и точки рядом без стены на пути
-  // бросок с места про — как у про (без проверки дуги); своё место — дуга должна пройти под потолками (nadeArc)
+  // бросок с места про — как у про (долетит ли — решит бросок); своё место — граната долетает по физике (nadeLands, физика гранат 30.10)
   var c = nadeLaneFroms(t.x, t.y).filter(function(q){ return Math.hypot(q.x-b.x, q.y-b.y) <= NADE_SPOT_R && navAt(q.x, q.y); }).map(function(q){ return {x:q.x, y:q.y, lane:true}; })
     .concat(pickSpots("nthr"+b.id+"_"+Math.round(t.x)+","+Math.round(t.y), {x:b.x, y:b.y}, 8, {rMax:NADE_SPOT_R, minGap:40, hideFrom:foes})
-      .filter(function(q){ return Math.hypot(q.x-t.x, q.y-t.y) <= t.range*0.85 && !crossesWall(q.x, q.y, t.x, t.y) && nadeArc({x:q.x, y:q.y, z:null}, t.x, t.y); }))
+      .filter(function(q){ return Math.hypot(q.x-t.x, q.y-t.y) <= t.range*0.85 && !crossesWall(q.x, q.y, t.x, t.y) && nadeLands(t.type, q.x, q.y, null, t.x, t.y); }))
     .filter(function(q){ return !foes.some(function(f){ return hasLOS(q.x, q.y, f.x, f.y); }) && !luBehind(b, q); });   // (п.12) и не позади по ходу (390)
   if(c.length > 12) c = c.sort(function(a, d){ return Math.hypot(a.x-b.x, a.y-b.y) - Math.hypot(d.x-b.x, d.y-b.y); }).slice(0, 12);
   var best = null, bL = Infinity;
