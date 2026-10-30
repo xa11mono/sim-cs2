@@ -33,6 +33,13 @@ function nadeSolve(type, x, y, z, tx, ty, duck, wide, guess){
   if(t0){ NADE_SOLVE_MS.push(performance.now() - t0); if(NADE_SOLVE_MS.length > 500) NADE_SOLVE_MS.shift(); }
   return nadeAimCache(key, r);
 }
+// (30.10, этап 2) разброс прицела про при повторе одного броска — децили |Δповорота| и |Δнаклона|, ° (0, 10, …, 100 %): демки Mirage +
+// Ancient (throws.json), броски стоя с места в 8 ед. в одну клетку разрыва 96 ед., групп ≥ 3 (tools/nades/aim_scatter_pro.py; точность
+// углов в демке — 0,1°). Разрыв про при этом: смок p50 7 / p90 33 ед., флешка 8 / 36, HE 5 / 20, молотов 6 / 24
+var NADE_AIM_SCATTER = {"smoke":{"yaw":[0.0,0.0,0.0,0.1,0.1,0.1,0.2,0.25,0.4,0.7,4.3],"pitch":[0.0,0.0,0.0,0.1,0.1,0.2,0.2,0.4,0.6,1.2,5.0]},"flash":{"yaw":[0.0,0.0,0.05,0.1,0.2,0.3,0.4,0.65,1.0,1.6,4.6],"pitch":[0.0,0.0,0.1,0.15,0.3,0.45,0.7,1.0,1.45,2.25,5.0]},"he":{"yaw":[0.0,0,0.1,0.15,0.25,0.4,0.6,0.85,1.3,2,4.75],"pitch":[0.0,0.0,0.0,0.05,0.15,0.3,0.5,0.7,1.1,1.9,5.0]},"molly":{"yaw":[0.0,0.0,0.05,0.1,0.1,0.2,0.3,0.4,0.6,0.95,4.35],"pitch":[0,0.0,0.05,0.1,0.2,0.2,0.3,0.4,0.7,1.45,5.0]}};
+function nadeQuant(D, u){ var x = u*10, i = Math.min(9, Math.floor(x)); return D[i] + (D[i+1] - D[i])*(x - i); }
+var NADE_UTIL0 = null;   // средний множитель навыка (1,5 − util) по профилям — навык меняет разброс относительно среднего про
+function nadeUtilMul0(){ if(NADE_UTIL0 == null){ var s = 0, n = 0; for(var k in PROFILES){ s += 1.5 - (PROFILES[k].util != null ? PROFILES[k].util : 0.5); n++; } NADE_UTIL0 = n ? s/n : 1; } return NADE_UTIL0; }
 var NADE_GUESS_SLACK = 16;   // ед.: уточнённый бросок из места бойца не хуже решения точки лайнапа + столько — принят (проектное число)
 var NADE_SOLVE_MS = [];      // время последних 500 подборов, мс — только для проверки (tools/tests), игра не читает
 // (30.10, этаж) где у цели может лечь смок / огонь: полы, куда можно дойти, в клетке цели; нет таких (цель лайнапа — только x, y,
@@ -149,25 +156,17 @@ function throwNade(b, type, tx, ty, lob, why, trusted, from){
   var a = Math.atan2(ty-b.y, tx-b.x), M = m3(), F = m3Game(M, b.x, b.y);
   // вылет — тот бросок, что подобрала физика (S): в полёте — состояние физики (ед. игры: p, v, t, касания — 385), x, y, z — где
   // граната сейчас (радар; z — ед. игры), tx, ty — где сработает по расчёту той же физики (другие решения смотрят туда)
-  // лайнап не идеален: исполнение со своей ошибкой — ошибка прицела (поворот и наклон), не сдвиг точки падения. Величина — прежняя
-  // (BAL.lobErr px × навык, промах execErr × 3): поворот — на угол, под которым видна боковая часть ошибки, наклон — на столько, на
-  // сколько этот бросок уводит место падения вдоль (два пробных полёта ±1°). Куда граната с такой ошибкой упадёт — решает
-  // физика (раньше та же ошибка сдвигала точку падения мимо физики, и разброс уносил её «на крышу»). Бросок прямо — без ошибки
+  // лайнап не идеален: исполнение со своей ошибкой — ошибка прицела (поворот и наклон), куда граната с ней упадёт — решает физика.
+  // (30.10, этап 2) величина — разброс прицела про при повторе одного броска (NADE_AIM_SCATTER, демки обеих карт, по типу гранаты) ×
+  // навык (util: 1,5 − util к среднему по профилям) × BAL.lobErr (1 — как у про) × 3 при промахе execErr. Было: BAL.lobErr = 90 px
+  // точки падения (придумано) → ≈ 4° поворота в медиане, в 10–40 раз больше, чем у про. Бросок прямо (цель видна) — без ошибки
   var tr = nadeTraceFn(), dYaw = 0, dPit = 0, miss = false;
   if(lob){
-    var leMul = b.prof ? (1.5 - prof(b, "util")) : 1;
+    var leMul = b.prof ? (1.5 - prof(b, "util")) / nadeUtilMul0() : 1;
     if(BAL.execErr && b.prof && hashRand(tick*43 + b.id.charCodeAt(1)*3) < (1-prof(b, "util"))*0.08){ leMul *= 3; miss = true; }
-    var le = BAL.lobErr * leMul * hashRand(tick*71 + b.id.charCodeAt(0)*5) * M.unit / M.cell, la2 = hashRand(tick*13 + b.id.length*97)*Math.PI*2;
-    if(le > 0) (function(){
-      var o0 = {type:type, pos:[F[0], F[1], bz], yaw:S.yaw, strength:S.strength, duck:!!b.crouching, jump:S.jump, spawn:0}, yr = S.yaw*Math.PI/180;
-      var rel = la2 - yr, lPar = le*Math.cos(rel), lPerp = le*Math.sin(rel);
-      // по первому касанию (где граната упала), не по точке срабатывания: отскоки после падения ошибку не мерят
-      var land = function(r){ return r.bounces.length ? r.bounces[0] : r.det; }, l0 = S.land;
-      var dd = Math.hypot(l0[0]-F[0], l0[1]-F[1]); if(dd > 1) dYaw = Math.atan2(lPerp, dd)*180/Math.PI;
-      var u = function(p){ var q = land(nadeThrow(Object.assign({}, o0, {pitch: p}), tr)); return (q[0]-F[0])*Math.cos(yr) + (q[1]-F[1])*Math.sin(yr); };
-      var g = (u(S.pitch - 1) - u(S.pitch + 1))/2;   // ед. дальше на 1° выше (наклон вниз = +)
-      if(Math.abs(g) > 1) dPit = Math.max(-8, Math.min(8, -lPar/g));
-    })();
+    var SC = NADE_AIM_SCATTER[type], k0 = BAL.lobErr * leMul, c0 = b.id.charCodeAt(0);
+    dYaw = (hashRand(tick*13 + b.id.length*97) < 0.5 ? -1 : 1) * nadeQuant(SC.yaw, hashRand(tick*71 + c0*5)) * k0;
+    dPit = (hashRand(tick*37 + c0*11) < 0.5 ? -1 : 1) * nadeQuant(SC.pitch, hashRand(tick*59 + c0*7)) * k0;
   }
   // где сработает — полёт именно этого вылета (из того места, где стоит, с ошибкой исполнения) той же физикой, что полетит:
   // расчёт и полёт совпадают бит в бит
