@@ -22,6 +22,17 @@ REC.det=[]; var odt=detonate; detonate=function(n){ if(roundState==='live'){ var
 REC.tac={ex:[], on:[], call:[], rot:[], sc:[], dv:[], fk:[], d:[]}; var TACR={};
 var ovl_=voiceLog; voiceLog=function(team,key,who,text){ if(roundState==='live' && /^(bait|dfreal|dffake|antidef|deflate|clrreb|exreb|reb|rot)/.test(String(key))) REC.tac.dv.push([tick, team, String(key).replace(/\d+$/,''), who, String(text).slice(0,60)]); return ovl_.apply(this,arguments); };
 var olg_=logEvent; logEvent=function(s){ if(roundState==='live' && /фейк-дефуз|дефузит/.test(String(s))) REC.tac.fk.push([tick, String(s).slice(0,40)]); return olg_.apply(this,arguments); };
+
+// (аудит 30.10) REC.task — смены задач места (арбитр 110: b._task) у живых ботов. На смену: класс —
+//  react (новая важнее), end (старая кончилась: не подтверждалась, снята), swap (того же уровня, старая жива), down (ниже, старая жива —
+//  арбитр так не должен), same (та же задача заново, сразу после конца); osc — качели A → B → A за 8 с (B короче 8 с).
+//  n — назначений (новых задач), pr — игроко-раундов; pat — частые пары «было → стало» по классам swap / down / osc (до 40)
+REC.task={n:0, pr:0, cls:{react:0, end:0, swap:0, down:0, same:0}, osc:0, oscPat:{}, pat:{}, ev:[]}; var TK={};
+// жива ли прошлая задача — только чтение (taskKeepUntil меняет состояние бота — сторож игру не трогает): подтверждалась ≤ TASK_STALE или держит
+// свой замок (контакт, перестановка, размен, подмена)
+function tkKeep(b, tag){ tag=String(tag); if(/^contact/.test(tag)) return b._contact&&b._contact.lock?b._contact.until:0; if(/^repos/.test(tag)) return b._reposUntil||0;
+  if(/^tradeR/.test(tag)) return b._tradeLock?b._tradeLock.until:0; if(/^fill/.test(tag)) return b._fillLock?b._fillLock.until:0; return 0; }
+function tkCls(b, P, T){ if(!P) return null; var alive=!P.cleared&&((tick-P.t<=TASK_STALE)||(tick<tkKeep(b,P.tag))); if(P.tb===T.tb) return 'same'; if(T.lv>P.lv) return 'react'; if(!alive) return 'end'; return T.lv===P.lv?'swap':'down'; }
 var H={};
 // (v262) К4: ротация CT — кто на какой сайт идёт по колу (ct.rot); разворот = сайт сменился (A→B) или сняли и снова
 // послали на тот же в одном раунде; «бросили» = сняли с ротации без планта/смерти/конца раунда. К5: бомбу выбили
@@ -63,6 +74,18 @@ for(var t=0;t<__T__;t++){ stepTick(); if(typeof WATCH!=='undefined') WATCH.tick(
    var ages=names.map(function(nm){ var zp=zonePoint(nm,SITES[k]), z=zp?zoneIdAt(zp.x,zp.y):null, C=z?CLEARZ.T[z]:null; return C?Math.round((tick-C.tick)/TICK_HZ):-1; });
    var near=[8,12,20].map(function(F){ var n=0; for(var zc in CLEARZ.T){ var Cz=CLEARZ.T[zc]; if(Cz&&tick-Cz.tick<F*TICK_HZ&&Math.hypot(Cz.x-SITES[k].x,Cz.y-SITES[k].y)<750) n++; } return n; });
    TA.sc.push([tick,k,truth,ages,near]); });
+ })();
+ (function(){ if(typeof taskLevel!=='function') return; var RT=REC.task;
+  if(TK.r!==roundNum){ TK={r:roundNum, b:{}}; RT.pr+=bots.length; }
+  bots.forEach(function(b){ if(!b.alive) return; var T=b._task, S=TK.b[b.id]||(TK.b[b.id]={k:null,P:null,h:[]});
+   if(!T||T.round!==roundNum){ if(S.P) S.P.cleared=true; return; }   // задачу сняли (clearPost) — прошлая кончилась
+   var k=T.tb+'|'+T.t0;
+   if(S.k===k&&!(S.P&&S.P.cleared)){ S.P={tb:T.tb,lv:T.lv,t:T.t,tag:T.tag,t0:T.t0}; return; }
+   RT.n++; var c=tkCls(b, S.P, T);
+   if(c){ RT.cls[c]++; if(c==='swap'||c==='down'){ var pk=c+': '+S.P.tb+' → '+T.tb; RT.pat[pk]=(RT.pat[pk]||0)+1; if(RT.ev.length<300) RT.ev.push([tick,b.id,c,S.P.tb,T.tb,Math.round(b.x),Math.round(b.y)]); } }
+   S.h.push([T.tb, tick]); if(S.h.length>3) S.h.shift();
+   if(S.h.length===3 && S.h[0][0]===S.h[2][0] && S.h[1][0]!==S.h[0][0] && S.h[2][1]-S.h[1][1]<8*64 && S.h[2][1]-S.h[0][1]<16*64){ RT.osc++; var ok=S.h[0][0]+' → '+S.h[1][0]+' → '+S.h[0][0]; RT.oscPat[ok]=(RT.oscPat[ok]||0)+1; }
+   S.k=k; S.P={tb:T.tb,lv:T.lv,t:T.t,tag:T.tag,t0:T.t0}; });
  })();
  if(tick%16===0){ REC.hp=REC.hp||[]; bots.forEach(function(b){ if(b.alive) REC.hp.push([tick, b.id, b.hp]); }); }   // (v373) HP — для сравнения раскладов с про
  if(tick%16===0) bots.forEach(function(b){ REC.pos.push([tick, b.id, b.team==='CT'?1:0, Math.round(b.x), Math.round(b.y), b.alive?1:0, Math.round((b.facing||0)*100)/100, b.weapon?b.weapon.key:'', b._knife?1:0]); });
