@@ -116,6 +116,13 @@ function defuseContTick(){
 // T решают, бежать ли на звук дефуза сейчас: если время позволяет — ~0.8с
 // ждут, продолжается ли звук (настоящий дефуз) или стих (фейк — CT ждут пика).
 // Не успевают — бегут сразу (тогда фейк их и ловит). Агрессивный — иногда сразу
+// T может успеть к бомбе за время дефуза (по знанию CT): свежая инфа (≤ 8 с) — путь до бомбы бегом короче дефуза; нет свежей инфы — может
+function ctDefuseThreat(dTicks){
+  var BL = beliefLast.CT || {};
+  return bots.some(function(t){ if(t.team !== "T" || !t.alive) return false; var e = BL[t.id];
+    if(!e || tick - e.tick > 8*TICK_HZ) return true;
+    return polyLen(pathPts(e.x, e.y, bomb.x, bomb.y))/SPEED*TICK_HZ < dTicks; });
+}
 function tDefuseGo(tt, ts){
   var heard = ts.filter(function(b){ return tick - (b._defuseHeard||-9999) < 110; });
   if(!heard.length) return false;
@@ -248,8 +255,12 @@ function bombTick(){
         var tLeftAlive = bots.some(function(o){ return o.team==="T" && o.alive; });
         // фейк-дефуз (план §8): если T живы и время с запасом — сначала "тапнуть"
         // дефуз, чтобы T на звук выглянули, и встретить их, стоя с прицелом на угол
+        // (тактика 30.10, задание владельца: «фейк-дефуз — не обязательный и не случайный, только при подходящих условиях»; PRO_PLAY 6ж)
+        // было: монетка 55 %. Теперь по тому, что CT знает: фейк имеет смысл, только если T могут успеть сорвать дефуз — кто-то из живых T
+        // по знанию команды (≤ 8 с) ближе к бомбе, чем пробежит за время дефуза, или о ком-то из живых нет свежей инфы (угол не проверен —
+        // вслепую не дефузят, тапают и ждут пик). Все T известны далеко — фейк бесполезен, дефуз сразу
         var doFake = tLeftAlive && !bomb.fakeDone && bombTimeLeftTicks() > dTicks + 5*TICK_HZ;
-        if(doFake && BAL.fakeRead){ bomb.fakeDone = true; doFake = hashRand(roundNum*577 + matchNum*31 + 3) < 0.55; }  // не каждый раз — иначе читают
+        if(doFake && BAL.fakeRead){ bomb.fakeDone = true; doFake = ctDefuseThreat(dTicks); }
         if(doFake){
           bomb.fakeDone = true;
           cand.fakeUntil = tick + 26; cand.fakeHoldUntil = tick + 26 + 110;

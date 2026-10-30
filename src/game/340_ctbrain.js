@@ -96,7 +96,10 @@ function ctBrain(){
     // самого сайта, и его встречает только штатный опорник в одиночку
     if(ev <= 0 && mass < 1.7) return;
     // бомбу видели у сайта — это выход, а не один игрок: минимум двое
-    var cnt = Math.max(est.seen, est.heard ? 1 : 0, (carrierHere||carrierTo) ? 2 : 0, plantHere ? 2 : 0, undefended ? 1 : 0, Math.min(3, deathsHere), Math.min(5, mass), nadeHere >= 2 ? 2.6 : 0);
+    // (тактика 30.10, задание владельца: «CT реагируют на информацию, а не на сам факт гранаты; фейк не уводит всех») гранаты без увиденных /
+    // услышанных T, смерти своего, бомбы — намёк, а не «выход ~3»: было 2,6 (две гранаты — и колл обходил терпение, уходили ротатор, роумер,
+    // мидер). Теперь — один (проектное число; ротатор идёт после терпения); выход подтверждают шаги, контакт, бомба — тогда счёт растёт по ним
+    var cnt = Math.max(est.seen, est.heard ? 1 : 0, (carrierHere||carrierTo) ? 2 : 0, plantHere ? 2 : 0, undefended ? 1 : 0, Math.min(3, deathsHere), Math.min(5, mass), nadeHere >= 2 ? 1 : 0);
     var score = ev + mass;
     res[k] = {site:k, score:score, ev:ev, count:cnt, est:est, carrier:carrierHere||carrierTo, undefended:undefended, deaths:deathsHere, plant:plantHere, nades:nadeHere};
     if(!best || score > best.score) best = res[k];

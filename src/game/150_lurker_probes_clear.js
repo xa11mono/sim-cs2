@@ -309,6 +309,19 @@ function markClear(team, x, y, who){
   voiceLog(team, "clz"+zid, who, "чекнул "+(zoneUserName(zid) || calloutName(x, y))+" — пусто");
   return zid;
 }
+// (тактика 30.10, задание владельца: «не выставлять "сайт пуст" только потому, что один игрок не увидел противника») сайт k проверен и пуст
+// для команды team — каждая из главных точек CT этого сайта (pos.<k>.ctHold: зоны, где CT стоят чаще всего, по демкам про; первые
+// SITE_CHECK_N) недавно (≤ CLR_REB_SEC с) прочекана своими пустой (CLEARZ: увидели зону — никого) и после этого там никого не видели.
+// Было: любые 2 зоны в 750 от центра сайта. Ответ {ok, done: [имена], missing: [имена]}: missing — непроверенные углы
+var SITE_CHECK_N = 6;   // проектное число: ctHold[0] + ctSecond (ctHold[1..5]) — набор карты (tools/tactics_bake.py)
+function siteCheckRead(team, k){
+  var P = POS[k], names = ((P && P.ctHold) || []).slice(0, SITE_CHECK_N), done = [], missing = [];
+  names.forEach(function(nm){
+    var zp = zonePoint(nm, SITES[k]), zid = zp ? zoneIdAt(zp.x, zp.y) : null, C = zid ? CLEARZ[team][zid] : null;
+    if(C && tick - C.tick < CLR_REB_SEC*TICK_HZ) done.push(nm); else missing.push(nm);
+  });
+  return {ok: names.length > 0 && !missing.length, done: done, missing: missing};
+}
 // IGL не идеален: примерно в четверти случаев повод для колла (соло, пустой
 // сайт, стак) он пропускает — решение принимается один раз на повод за раунд
 function iglReads(tt, kind){
