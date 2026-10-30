@@ -1,0 +1,8 @@
+{
+  "note": "Задание для .github/workflows/media.yml: правка этого файла и пуш в ветку media/** запускают скачивание.",
+  "only": "players",
+  "refresh": true,
+  "sources": "pandascore,hltv,liquipedia",
+  "limit": 0,
+  "id": 1
+}

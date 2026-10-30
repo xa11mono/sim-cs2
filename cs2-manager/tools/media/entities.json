@@ -1,0 +1,5565 @@
+{
+"teams": [
+"Team Spirit",
+"Team Falcons",
+"Team Vitality",
+"MOUZ",
+"FURIA",
+"G2",
+"NAVI",
+"FUT",
+"Legacy",
+"Aurora",
+"FAZE",
+"The Mongolz",
+"BETBOOM",
+"Astralis",
+"9z",
+"3DMAX",
+"Team Liquid",
+"B8",
+"paiN",
+"BIG",
+"HEROIC",
+"PARIVISION",
+"NIP",
+"HOTU",
+"GamerLegion",
+"MIBR",
+"magic",
+"TYLOO",
+"Inner Circle",
+"M80",
+"Lynn Vision",
+"100 Thieves",
+"OG",
+"Virtus.pro",
+"K27",
+"1win",
+"Sashi",
+"BC.GAME",
+"Eternal Fire",
+"NRG",
+"Nemiga",
+"WW Team",
+"Imperial",
+"Fluxo",
+"EYEBALLERS",
+"Alliance",
+"fnatic",
+"Luminosity",
+"Iberian Soul",
+"9INE",
+"Wildcard",
+"JiJieHao",
+"BBL",
+"FOKUS",
+"Betclic",
+"Spirit Academy",
+"NAVI Junior",
+"G2 Ares",
+"MOUZ NXT",
+"SAW",
+"fnatic Rising",
+"HEROIC Academy",
+"Astralis Talent",
+"Falcons Force",
+"FURIA Academy",
+"BIG Academy",
+"paiN Academy"
+],
+"players": [
+"sh1ro",
+"magixx",
+"tN1R",
+"zont1x",
+"donk",
+"karrigan",
+"NiKo",
+"TeSeS",
+"m0NESY",
+"kyousuke",
+"apEX",
+"ropz",
+"ZywOo",
+"flameZ",
+"mezii",
+"torzsi",
+"Spinx",
+"xertioN",
+"PR",
+"xelex",
+"FalleN",
+"yuurih",
+"YEKINDAR",
+"KSCERATO",
+"molodoy",
+"huNter-",
+"NertZ",
+"r1nkle",
+"HeavyGod",
+"MATYS",
+"Aleksib",
+"iM",
+"b1t",
+"w0nderful",
+"makazze",
+"xfl0ud",
+"dem0n",
+"Krabeni",
+"cmtry",
+"dziugss",
+"arT",
+"dumau",
+"latto",
+"n1ssim",
+"try",
+"XANTARES",
+"woxic",
+"Jimpphat",
+"kyxsan",
+"Wicadia",
+"frozen",
+"Twistzz",
+"Neityu",
+"jcobbb",
+"JBOEN",
+"bLitz",
+"Techno",
+"910",
+"tikuak",
+"DarkMeister",
+"Boombl4",
+"zorte",
+"S1ren",
+"d1Ledez",
+"Magnojez",
+"HooXi",
+"phzy",
+"jabbi",
+"Staehr",
+"ryu",
+"max",
+"dgt",
+"meyern",
+"luchov",
+"HUASOPEEK",
+"Maka",
+"Lucky",
+"misutaaa",
+"Kursy",
+"Graviti",
+"NAF",
+"EliGE",
+"malbsMd",
+"JT",
+"Jorko",
+"alex666",
+"npl",
+"kensizor",
+"esenthial",
+"s1zzi",
+"biguzera",
+"saffee",
+"snow",
+"Tatu",
+"Rzinh0",
+"tabseN",
+"JDC",
+"faveN",
+"blameF",
+"gr1ks",
+"Brollan",
+"nilo",
+"susp",
+"MartinezSa",
+"Chr1zN",
+"FL1T",
+"Jame",
+"xiELO",
+"she1zzZJEZ",
+"xseveN",
+"stavn",
+"jL",
+"Krimbo",
+"oNte",
+"xKacpersky",
+"n0rb3r7",
+"tadeo",
+"mizu",
+"dwushka",
+"frontales",
+"Snax",
+"REZ",
+"Tauson",
+"FL4MUS",
+"hypex",
+"LNZ",
+"nqz",
+"insani",
+"venomzera",
+"tomaszin",
+"MaSvAl",
+"sFade8",
+"AW",
+"mo0N",
+"tenzy",
+"JamYoung",
+"Jee",
+"Mercury",
+"Moseyuh",
+"xZero",
+"cptkurtka023",
+"headtr1ck",
+"zeRRoFIX",
+"onic",
+"Dawy",
+"slaxz-",
+"Swisher",
+"s1n",
+"JBa",
+"Lake",
+"Westmelon",
+"z4KR",
+"EmiliaQAQ",
+"Starry",
+"C4LLM3SU3",
+"device",
+"rain",
+"Gizmy",
+"sirah",
+"poiii",
+"cadiaN",
+"bodyy",
+"s0m",
+"adamb",
+"pr1metapz",
+"mir",
+"degster",
+"F0R3VER",
+"AquaR85",
+"oRO",
+"clax",
+"X5G7V",
+"xeedo",
+"kashjld",
+"qw1nk1",
+"Ax1Le",
+"nafany",
+"BELCHONOKK",
+"fame",
+"ArtFr0st",
+"acoR",
+"Cabbi",
+"zHend",
+"Anlele",
+"MistR",
+"s1mple",
+"electroNic",
+"Magisk",
+"Senzu",
+"mzinho",
+"MAJ3R",
+"regali",
+"soulfly",
+"Kvem",
+"jottAAA",
+"nitr0",
+"Sonic",
+"hallzerk",
+"Grim",
+"Jeorge",
+"KaiR0N-",
+"Xant3r",
+"robo",
+"khaN",
+"syph0",
+"StRoGo",
+"deko",
+"ctom",
+"m3wsu",
+"kelieN",
+"chelo",
+"VINI",
+"decenty",
+"noway",
+"saadzin",
+"exit",
+"dav1deuS",
+"zevy",
+"kye",
+"Ltz",
+"JW",
+"KRIMZ",
+"maxster",
+"r0lf",
+"dex",
+"twist",
+"era",
+"bobeksde",
+"uP",
+"eZaVid",
+"fear",
+"jambo",
+"jackasmo",
+"cairne",
+"mazzay",
+"Rainwaker",
+"afro",
+"lux",
+"yxngstxr",
+"AZUWU",
+"alex",
+"mopoz",
+"sausol",
+"dav1g",
+"chopper",
+"raalz",
+"kraghen",
+"flayy",
+"rim3",
+"b1elany",
+"nEMANHA",
+"mhl",
+"Cxz",
+"reck",
+"hext",
+"m1N1",
+"sinnopsyy",
+"Bibu",
+"CaNito",
+"OSAMAS",
+"IceBerg",
+"salazar",
+"leakz",
+"B0ye",
+"NickyB",
+"ztr",
+"Banjo",
+"podi",
+"jocab",
+"Matheos",
+"Demho",
+"Prism",
+"ex1st",
+"ultimate",
+"Qlocuu",
+"VILBy",
+"Kiryasoo",
+"Netrix",
+"s1nside",
+"k0gaSs",
+"MahaR",
+"FAZERY",
+"skizzyee",
+"yoki",
+"kodak",
+"SHiNE",
+"hitori",
+"Junyme",
+"yksjupe",
+"kl1m",
+"opdust",
+"ay0k",
+"Nikodeon",
+"eSx",
+"mixer",
+"dupreeh",
+"Stewie2k",
+"shox",
+"Snappi",
+"k0nfig",
+"Maden",
+"siuhy",
+"sdy",
+"Perfecto",
+"HObbit",
+"Techno4k",
+"1eeR",
+"kmrn",
+"zweih",
+"nicoodoz",
+"INS",
+"SunPayus",
+"cass1n",
+"Attacker",
+"Austin",
+"TO0RO",
+"nettik",
+"Alkaren",
+"Vexite",
+"MisterLoAF",
+"StalkerxD",
+"Liazz",
+"Mokuj1n",
+"Texta",
+"story",
+"MaiL09",
+"aliStair",
+"history",
+"glowiing",
+"BRACE",
+"asap",
+"Bymas",
+"kashl1d",
+"L1haNg",
+"cobrazera",
+"sjuush",
+"junior",
+"vision",
+"Zesta",
+"suki",
+"br0",
+"krazy",
+"BOROS",
+"nota",
+"oSee",
+"cool4st",
+"z1k4",
+"ChildKing",
+"AccuracyTG",
+"mantuu",
+"pz",
+"dea",
+"Luken",
+"SpavaQu",
+"Kaide",
+"synyx",
+"shield",
+"lauNX",
+"eraa",
+"dycha",
+"apocdude",
+"cej0t",
+"Shr",
+"detr0ittJ",
+"qx",
+"dexter",
+"ewjerkz",
+"chayJESUS",
+"kauez",
+"Grizz",
+"ksloks",
+"HEN1",
+"z1Nny",
+"aNdu",
+"kAlash",
+"bnox",
+"chengking",
+"nin9",
+"yAmi",
+"nyezin",
+"Peeping",
+"JOTA",
+"Wolffe",
+"lan",
+"sk0R",
+"KENSI",
+"MarKE",
+"bsd",
+"snav",
+"Cxzi",
+"hardzao",
+"djay",
+"KIRO",
+"Ryujin",
+"Omichella",
+"3gl",
+"foggers",
+"Tiger",
+"abr",
+"nicx",
+"nacho",
+"buda",
+"levi",
+"WolfY",
+"coldzera",
+"MagnumZ",
+"wetfy",
+"PokemoN",
+"4ever",
+"Ro1f",
+"nifee",
+"m1QUSE",
+"MICHU",
+"zmb",
+"ckzao",
+"H0NeST",
+"nosraC",
+"diozera",
+"felps",
+"ivz",
+"pesadelo",
+"bl1x1",
+"Frontsiderr",
+"Raijin",
+"SaVage",
+"Flierax",
+"controlez",
+"ROUX",
+"erkaSt",
+"rage",
+"smooya",
+"Goofy",
+"CeRq",
+"Bwills",
+"SLIGHT",
+"Alisson",
+"Zoker",
+"urban0",
+"tomiko",
+"H4SAN4TOR",
+"shg",
+"morelz",
+"Bååten",
+"CRUC1AL",
+"leo_drk",
+"joel",
+"Olga",
+"j0w",
+"Andrew",
+"Pose1doNN",
+"brnz4n",
+"nardes",
+"mlhzin",
+"consti",
+"reiko",
+"avid",
+"Joey",
+"notineki",
+"executor",
+"aragornN",
+"xerolte",
+"SADDYX",
+"Nexius",
+"dan1",
+"Kyojin",
+"oxygeN",
+"fREQ",
+"KAISER",
+"laxiee",
+"bnc",
+"divine",
+"revoltz",
+"naitte",
+"CLASIA",
+"tom1jed",
+"abizz",
+"BnTeT",
+"spooke",
+"DSSj",
+"chelleos",
+"p5p",
+"flying",
+"ElephanT",
+"madness",
+"lampada",
+"h1te",
+"relaxxie",
+"Zero",
+"aidKiT",
+"poizon",
+"CYPHER",
+"XotiC",
+"jmqa",
+"anarkez",
+"Aerial",
+"Tuurtle",
+"ZEDKO",
+"Farlig",
+"simke",
+"phr",
+"J0LZ",
+"Vegi",
+"floppy",
+"Annihilation",
+"Rickeh",
+"ninjaZ",
+"ogwizard",
+"freshie",
+"brett",
+"f4stzin",
+"pavv",
+"vsm",
+"motm",
+"fr3nd",
+"naz",
+"SaMey",
+"hAdji",
+"7kick",
+"suonko",
+"sh1nejezzz",
+"xenization",
+"damyo",
+"xanzu",
+"MUTiRiS",
+"dukefissura",
+"Re1GN",
+"Chill",
+"VLDN",
+"SENSEi",
+"allu",
+"Queenix",
+"ISSAA",
+"BLACKEAGLE",
+"yungher",
+"Crisp",
+"FaNg",
+"Cryptic",
+"happ",
+"n1cks",
+"piriajr",
+"chop",
+"Sandman",
+"kisserek",
+"icyvl0ne",
+"Hack1ng",
+"ADDICT",
+"WasteOfAmmo",
+"drace",
+"Summer",
+"expSasiKi",
+"gxx-",
+"DEPRESHN",
+"juanflatroo",
+"SHiPZ",
+"Enzo",
+"nexa",
+"Nodios",
+"FASHR",
+"Fadey",
+"hate",
+"PwnAlone",
+"ayameuu",
+"Fruitcupx",
+"prt",
+"xaler",
+"pancc",
+"tatazin",
+"lash",
+"togs",
+"Gratisfaction",
+"yiksrezo",
+"957",
+"keen",
+"w1sely",
+"Purely",
+"jkaem",
+"Porya",
+"sterling",
+"devoduvek",
+"interz",
+"Thomas",
+"Kristou",
+"CacaNito",
+"ANa",
+"b4rtiN",
+"LUCAS1",
+"EspiranTo",
+"sergej",
+"LyttleZ",
+"k1not1",
+"souz4h",
+"Rkzinho",
+"Markz",
+"febreeze",
+"BiBiAhn",
+"ponter",
+"aNgelo",
+"atarax1a",
+"HEAP",
+"bluewh1te",
+"hazr",
+"DayMake",
+"TjP",
+"Ex3rcice",
+"darko",
+"STYKO",
+"blocker",
+"FinigaN",
+"kabal",
+"Patrick",
+"speed4k",
+"somebody",
+"EMUHLEET",
+"Skadoodle",
+"tatm",
+"rainny",
+"stanislaw",
+"zock",
+"Leomonster",
+"grape",
+"deco",
+"Crunchy",
+"clyd1e",
+"viridian",
+"syrsoN",
+"buster",
+"Kntz",
+"chawzyyy",
+"dobu",
+"splashske",
+"MITHPUTTINI",
+"killerPandas",
+"GaBi",
+"REKMEISTER",
+"Panic",
+"Evan",
+"tele",
+"xureba",
+"cerolzin",
+"Valter0k",
+"RenanZin",
+"mawth",
+"WOOD7",
+"FraGuTy",
+"supra",
+"Caleyy",
+"Sobol",
+"YumsaN",
+"gLong",
+"Efire",
+"swag",
+"jayzaR",
+"TOAO",
+"gejmzilla",
+"XigN",
+"Freeman",
+"shz",
+"TACO",
+"RUSH",
+"caike",
+"tahsiN",
+"jedqr",
+"Liina",
+"mari",
+"Lekzi",
+"Drop",
+"trindade",
+"empathy",
+"mello",
+"Hezz",
+"timo",
+"gbb",
+"tomate",
+"BK1",
+"tex1y",
+"riskyb0b",
+"fury5k",
+"cheeseball",
+"EXUS",
+"juho",
+"PerX",
+"paz",
+"byali",
+"viz",
+"kaahSENSEI",
+"fl4ish",
+"KmZ",
+"remix",
+"cLd",
+"Jotag3",
+"Thuister",
+"Dani",
+"poppins",
+"nikz",
+"mds",
+"CoolComs",
+"dott1",
+"pepe",
+"bacc",
+"next",
+"Lekr0",
+"Zyphon",
+"nitzie",
+"hades",
+"Alv",
+"spirit",
+"Get_Jeka",
+"Anlelele",
+"B1NGO",
+"gump",
+"IMAGINE",
+"Nivera",
+"flamie",
+"wiz",
+"reversive",
+"GooseBreeder",
+"Hatz",
+"RCF",
+"Ksu",
+"bizinha",
+"stormzyn",
+"agt",
+"phx",
+"jared",
+"roca",
+"ABM",
+"nbl",
+"Fawx",
+"Gabe",
+"Pol0",
+"CAJUN",
+"destiny",
+"SeRCEra",
+"swayu",
+"SayYouWill",
+"F1KU",
+"Boye",
+"Markoś",
+"youka",
+"mag1k3Y",
+"sideffect",
+"LaiKeXu",
+"74LOR",
+"hf",
+"niki1",
+"freakazoid",
+"Aunkere",
+"iDk",
+"ELUSIVE",
+"izaa",
+"gabs",
+"CaPiM",
+"Cooper",
+"aelor",
+"tsug",
+"Walco",
+"steel",
+"deemO",
+"drg",
+"nython",
+"AGL",
+"lenci",
+"danoco",
+"desh",
+"delboNi",
+"Noktse",
+"Lucaozy",
+"PKL",
+"Sapec",
+"olimp",
+"kRaSnaL",
+"prosus",
+"Lack1",
+"TRAVIS",
+"yvro",
+"Maze",
+"Muciek",
+"sugaR",
+"4X1s",
+"KusMe",
+"hasteka",
+"Dirty",
+"KRAXYT",
+"sowalio",
+"Wonderzce",
+"VanceKK",
+"shadiy",
+"rekonz",
+"Kras",
+"Bart4k",
+"emi",
+"DEVIL",
+"Jonji",
+"juliano",
+"trk",
+"lulitenz",
+"REGIANE",
+"Luk1nha",
+"fl0m",
+"zuzu",
+"FRIZZY",
+"Reix",
+"vanessa",
+"Serendipity",
+"cobalt",
+"MaxOff",
+"Kermi",
+"t9rnay",
+"NBK-",
+"doni",
+"Forester",
+"n1Xen",
+"St0m4k",
+"BledarD",
+"void",
+"Kobe",
+"dako",
+"Winnieeeee",
+"Biuckmt",
+"Kiyo",
+"almazer",
+"Maluk3",
+"Ant1ka",
+"rox",
+"Impulse",
+"ottoNd",
+"es3tag",
+"zAAz",
+"Sofiaxyz",
+"futoi",
+"Johan",
+"tutehen",
+"Emy",
+"bones",
+"upE",
+"maaryy",
+"Nami",
+"jakekeS",
+"sSen",
+"ammar",
+"swetsi",
+"xdENiSZERA",
+"Buzz",
+"Eleven",
+"bokor",
+"Jerr1",
+"Lich",
+"gloRinsz",
+"spamzzy",
+"stx",
+"tripex17",
+"Beccie",
+"AdrieN",
+"bekker",
+"cerber",
+"torox",
+"HaZ",
+"b1lal",
+"fanatyk",
+"DeathZz",
+"RuStY",
+"SmithZz",
+"arki",
+"vilga",
+"Royals",
+"brokeN",
+"sergelen19k",
+"AntyVirus",
+"Mechanical",
+"yoi",
+"rubeN",
+"yeda",
+"balencyy",
+"colin",
+"valde",
+"El1an",
+"anttzz",
+"HOLY",
+"Dr3nquu",
+"eskyy",
+"IZR",
+"arrozdoce",
+"fr0k",
+"marie",
+"NickelBack",
+"deeN",
+"Something",
+"shady",
+"TMB",
+"w1dow",
+"Yoghi",
+"doltn",
+"CutzMeretz",
+"moonwalk",
+"bajmi",
+"Brilliance",
+"Hrdina",
+"SENER1",
+"rikon",
+"innocent",
+"Pepo",
+"alpha",
+"kinqie",
+"Vert",
+"lkz"
+],
+"playerMeta": [
+{
+"nick": "sh1ro",
+"country": "RU",
+"team": "Team Spirit"
+},
+{
+"nick": "magixx",
+"country": "RU",
+"team": "Team Spirit"
+},
+{
+"nick": "tN1R",
+"country": "BY",
+"team": "Team Spirit"
+},
+{
+"nick": "zont1x",
+"country": "UA",
+"team": "Team Spirit"
+},
+{
+"nick": "donk",
+"country": "RU",
+"team": "Team Spirit"
+},
+{
+"nick": "karrigan",
+"country": "DK",
+"team": "Team Falcons"
+},
+{
+"nick": "NiKo",
+"country": "BA",
+"team": "Team Falcons"
+},
+{
+"nick": "TeSeS",
+"country": "DK",
+"team": "Team Falcons"
+},
+{
+"nick": "m0NESY",
+"country": "RU",
+"team": "Team Falcons"
+},
+{
+"nick": "kyousuke",
+"country": "RU",
+"team": "Team Falcons"
+},
+{
+"nick": "apEX",
+"country": "FR",
+"team": "Team Vitality"
+},
+{
+"nick": "ropz",
+"country": "EE",
+"team": "Team Vitality"
+},
+{
+"nick": "ZywOo",
+"country": "FR",
+"team": "Team Vitality"
+},
+{
+"nick": "flameZ",
+"country": "IL",
+"team": "Team Vitality"
+},
+{
+"nick": "mezii",
+"country": "GB",
+"team": "Team Vitality"
+},
+{
+"nick": "torzsi",
+"country": "HU",
+"team": "MOUZ"
+},
+{
+"nick": "Spinx",
+"country": "IL",
+"team": "MOUZ"
+},
+{
+"nick": "xertioN",
+"country": "IL",
+"team": "MOUZ"
+},
+{
+"nick": "PR",
+"country": "CZ",
+"team": "MOUZ"
+},
+{
+"nick": "xelex",
+"country": "HU",
+"team": "MOUZ"
+},
+{
+"nick": "FalleN",
+"country": "BR",
+"team": "FURIA"
+},
+{
+"nick": "yuurih",
+"country": "BR",
+"team": "FURIA"
+},
+{
+"nick": "YEKINDAR",
+"country": "LV",
+"team": "FURIA"
+},
+{
+"nick": "KSCERATO",
+"country": "BR",
+"team": "FURIA"
+},
+{
+"nick": "molodoy",
+"country": "KZ",
+"team": "FURIA"
+},
+{
+"nick": "huNter-",
+"country": "BA",
+"team": "G2"
+},
+{
+"nick": "NertZ",
+"country": "IL",
+"team": "G2"
+},
+{
+"nick": "r1nkle",
+"country": "UA",
+"team": "G2"
+},
+{
+"nick": "HeavyGod",
+"country": "IL",
+"team": "G2"
+},
+{
+"nick": "MATYS",
+"country": "SK",
+"team": "G2"
+},
+{
+"nick": "Aleksib",
+"country": "FI",
+"team": "NAVI"
+},
+{
+"nick": "iM",
+"country": "RO",
+"team": "NAVI"
+},
+{
+"nick": "b1t",
+"country": "UA",
+"team": "NAVI"
+},
+{
+"nick": "w0nderful",
+"country": "UA",
+"team": "NAVI"
+},
+{
+"nick": "makazze",
+"country": "XK",
+"team": "NAVI"
+},
+{
+"nick": "xfl0ud",
+"country": "TR",
+"team": "FUT"
+},
+{
+"nick": "dem0n",
+"country": "UA",
+"team": "FUT"
+},
+{
+"nick": "Krabeni",
+"country": "XK",
+"team": "FUT"
+},
+{
+"nick": "cmtry",
+"country": "UA",
+"team": "FUT"
+},
+{
+"nick": "dziugss",
+"country": "LT",
+"team": "FUT"
+},
+{
+"nick": "arT",
+"country": "BR",
+"team": "Legacy"
+},
+{
+"nick": "dumau",
+"country": "BR",
+"team": "Legacy"
+},
+{
+"nick": "latto",
+"country": "BR",
+"team": "Legacy"
+},
+{
+"nick": "n1ssim",
+"country": "BR",
+"team": "Legacy"
+},
+{
+"nick": "try",
+"country": "AR",
+"team": "Legacy"
+},
+{
+"nick": "XANTARES",
+"country": "TR",
+"team": "Aurora"
+},
+{
+"nick": "woxic",
+"country": "TR",
+"team": "Aurora"
+},
+{
+"nick": "Jimpphat",
+"country": "FI",
+"team": "Aurora"
+},
+{
+"nick": "kyxsan",
+"country": "ES",
+"team": "Aurora"
+},
+{
+"nick": "Wicadia",
+"country": "TR",
+"team": "Aurora"
+},
+{
+"nick": "frozen",
+"country": "SK",
+"team": "FAZE"
+},
+{
+"nick": "Twistzz",
+"country": "CA",
+"team": "FAZE"
+},
+{
+"nick": "Neityu",
+"country": "FR",
+"team": "FAZE"
+},
+{
+"nick": "jcobbb",
+"country": "PL",
+"team": "FAZE"
+},
+{
+"nick": "JBOEN",
+"country": "RS",
+"team": "FAZE"
+},
+{
+"nick": "bLitz",
+"country": "MN",
+"team": "The Mongolz"
+},
+{
+"nick": "Techno",
+"country": "MN",
+"team": "The Mongolz"
+},
+{
+"nick": "910",
+"country": "MN",
+"team": "The Mongolz"
+},
+{
+"nick": "tikuak",
+"country": "MN",
+"team": "The Mongolz"
+},
+{
+"nick": "DarkMeister",
+"country": "MN",
+"team": "The Mongolz"
+},
+{
+"nick": "Boombl4",
+"country": "RU",
+"team": "BETBOOM"
+},
+{
+"nick": "zorte",
+"country": "RU",
+"team": "BETBOOM"
+},
+{
+"nick": "S1ren",
+"country": "RU",
+"team": "BETBOOM"
+},
+{
+"nick": "d1Ledez",
+"country": "RU",
+"team": "BETBOOM"
+},
+{
+"nick": "Magnojez",
+"country": "RU",
+"team": "BETBOOM"
+},
+{
+"nick": "HooXi",
+"country": "DK",
+"team": "Astralis"
+},
+{
+"nick": "phzy",
+"country": "SE",
+"team": "Astralis"
+},
+{
+"nick": "jabbi",
+"country": "DK",
+"team": "Astralis"
+},
+{
+"nick": "Staehr",
+"country": "DK",
+"team": "Astralis"
+},
+{
+"nick": "ryu",
+"country": "RU",
+"team": "Astralis"
+},
+{
+"nick": "max",
+"country": "AR",
+"team": "9z"
+},
+{
+"nick": "dgt",
+"country": "AR",
+"team": "9z"
+},
+{
+"nick": "meyern",
+"country": "AR",
+"team": "9z"
+},
+{
+"nick": "luchov",
+"country": "AR",
+"team": "9z"
+},
+{
+"nick": "HUASOPEEK",
+"country": "BR",
+"team": "9z"
+},
+{
+"nick": "Maka",
+"country": "FR",
+"team": "3DMAX"
+},
+{
+"nick": "Lucky",
+"country": "DK",
+"team": "3DMAX"
+},
+{
+"nick": "misutaaa",
+"country": "FR",
+"team": "3DMAX"
+},
+{
+"nick": "Kursy",
+"country": "FR",
+"team": "3DMAX"
+},
+{
+"nick": "Graviti",
+"country": "FR",
+"team": "3DMAX"
+},
+{
+"nick": "NAF",
+"country": "CA",
+"team": "Team Liquid"
+},
+{
+"nick": "EliGE",
+"country": "US",
+"team": "Team Liquid"
+},
+{
+"nick": "malbsMd",
+"country": "GT",
+"team": "Team Liquid"
+},
+{
+"nick": "JT",
+"country": "ZA",
+"team": "Team Liquid"
+},
+{
+"nick": "Jorko",
+"country": "US",
+"team": "Team Liquid"
+},
+{
+"nick": "alex666",
+"country": "UA",
+"team": "B8"
+},
+{
+"nick": "npl",
+"country": "UA",
+"team": "B8"
+},
+{
+"nick": "kensizor",
+"country": "UA",
+"team": "B8"
+},
+{
+"nick": "esenthial",
+"country": "UA",
+"team": "B8"
+},
+{
+"nick": "s1zzi",
+"country": "UA",
+"team": "B8"
+},
+{
+"nick": "biguzera",
+"country": "BR",
+"team": "paiN"
+},
+{
+"nick": "saffee",
+"country": "BR",
+"team": "paiN"
+},
+{
+"nick": "snow",
+"country": "BR",
+"team": "paiN"
+},
+{
+"nick": "Tatu",
+"country": "BR",
+"team": "paiN"
+},
+{
+"nick": "Rzinh0",
+"country": "BR",
+"team": "paiN"
+},
+{
+"nick": "tabseN",
+"country": "DE",
+"team": "BIG"
+},
+{
+"nick": "JDC",
+"country": "DE",
+"team": "BIG"
+},
+{
+"nick": "faveN",
+"country": "DE",
+"team": "BIG"
+},
+{
+"nick": "blameF",
+"country": "DK",
+"team": "BIG"
+},
+{
+"nick": "gr1ks",
+"country": "GB",
+"team": "BIG"
+},
+{
+"nick": "Brollan",
+"country": "SE",
+"team": "HEROIC"
+},
+{
+"nick": "nilo",
+"country": "SE",
+"team": "HEROIC"
+},
+{
+"nick": "susp",
+"country": "SE",
+"team": "HEROIC"
+},
+{
+"nick": "MartinezSa",
+"country": "ES",
+"team": "HEROIC"
+},
+{
+"nick": "Chr1zN",
+"country": "DK",
+"team": "HEROIC"
+},
+{
+"nick": "FL1T",
+"country": "RU",
+"team": "PARIVISION"
+},
+{
+"nick": "Jame",
+"country": "RU",
+"team": "PARIVISION"
+},
+{
+"nick": "xiELO",
+"country": "RU",
+"team": "PARIVISION"
+},
+{
+"nick": "she1zzZJEZ",
+"country": "UA",
+"team": "PARIVISION"
+},
+{
+"nick": "xseveN",
+"country": "FI",
+"team": "PARIVISION"
+},
+{
+"nick": "stavn",
+"country": "DK",
+"team": "NIP"
+},
+{
+"nick": "jL",
+"country": "LT",
+"team": "NIP"
+},
+{
+"nick": "Krimbo",
+"country": "DE",
+"team": "NIP"
+},
+{
+"nick": "oNte",
+"country": "SE",
+"team": "NIP"
+},
+{
+"nick": "xKacpersky",
+"country": "PL",
+"team": "NIP"
+},
+{
+"nick": "n0rb3r7",
+"country": "RU",
+"team": "HOTU"
+},
+{
+"nick": "tadeo",
+"country": "SA",
+"team": "HOTU"
+},
+{
+"nick": "mizu",
+"country": "RU",
+"team": "HOTU"
+},
+{
+"nick": "dwushka",
+"country": "DE",
+"team": "HOTU"
+},
+{
+"nick": "frontales",
+"country": "RU",
+"team": "HOTU"
+},
+{
+"nick": "Snax",
+"country": "PL",
+"team": "GamerLegion"
+},
+{
+"nick": "REZ",
+"country": "SE",
+"team": "GamerLegion"
+},
+{
+"nick": "Tauson",
+"country": "DK",
+"team": "GamerLegion"
+},
+{
+"nick": "FL4MUS",
+"country": "RU",
+"team": "GamerLegion"
+},
+{
+"nick": "hypex",
+"country": "PL",
+"team": "GamerLegion"
+},
+{
+"nick": "LNZ",
+"country": "BR",
+"team": "MIBR"
+},
+{
+"nick": "nqz",
+"country": "BR",
+"team": "MIBR"
+},
+{
+"nick": "insani",
+"country": "BR",
+"team": "MIBR"
+},
+{
+"nick": "venomzera",
+"country": "BR",
+"team": "MIBR"
+},
+{
+"nick": "tomaszin",
+"country": "AR",
+"team": "MIBR"
+},
+{
+"nick": "MaSvAl",
+"country": "BY",
+"team": "magic"
+},
+{
+"nick": "sFade8",
+"country": "DE",
+"team": "magic"
+},
+{
+"nick": "AW",
+"country": "RU",
+"team": "magic"
+},
+{
+"nick": "mo0N",
+"country": "CL",
+"team": "magic"
+},
+{
+"nick": "tenzy",
+"country": "RU",
+"team": "magic"
+},
+{
+"nick": "JamYoung",
+"country": "CN",
+"team": "TYLOO"
+},
+{
+"nick": "Jee",
+"country": "CN",
+"team": "TYLOO"
+},
+{
+"nick": "Mercury",
+"country": "CN",
+"team": "TYLOO"
+},
+{
+"nick": "Moseyuh",
+"country": "CN",
+"team": "TYLOO"
+},
+{
+"nick": "xZero",
+"country": "CN",
+"team": "TYLOO"
+},
+{
+"nick": "cptkurtka023",
+"country": "UA",
+"team": "Inner Circle"
+},
+{
+"nick": "headtr1ck",
+"country": "UA",
+"team": "Inner Circle"
+},
+{
+"nick": "zeRRoFIX",
+"country": "UA",
+"team": "Inner Circle"
+},
+{
+"nick": "onic",
+"country": "UA",
+"team": "Inner Circle"
+},
+{
+"nick": "Dawy",
+"country": "PL",
+"team": "Inner Circle"
+},
+{
+"nick": "slaxz-",
+"country": "DE",
+"team": "M80"
+},
+{
+"nick": "Swisher",
+"country": "US",
+"team": "M80"
+},
+{
+"nick": "s1n",
+"country": "DE",
+"team": "M80"
+},
+{
+"nick": "JBa",
+"country": "US",
+"team": "M80"
+},
+{
+"nick": "Lake",
+"country": "US",
+"team": "M80"
+},
+{
+"nick": "Westmelon",
+"country": "CN",
+"team": "Lynn Vision"
+},
+{
+"nick": "z4KR",
+"country": "CN",
+"team": "Lynn Vision"
+},
+{
+"nick": "EmiliaQAQ",
+"country": "CN",
+"team": "Lynn Vision"
+},
+{
+"nick": "Starry",
+"country": "CN",
+"team": "Lynn Vision"
+},
+{
+"nick": "C4LLM3SU3",
+"country": "CN",
+"team": "Lynn Vision"
+},
+{
+"nick": "device",
+"country": "DK",
+"team": "100 Thieves"
+},
+{
+"nick": "rain",
+"country": "NO",
+"team": "100 Thieves"
+},
+{
+"nick": "Gizmy",
+"country": "US",
+"team": "100 Thieves"
+},
+{
+"nick": "sirah",
+"country": "US",
+"team": "100 Thieves"
+},
+{
+"nick": "poiii",
+"country": "US",
+"team": "100 Thieves"
+},
+{
+"nick": "cadiaN",
+"country": "DK",
+"team": "OG"
+},
+{
+"nick": "bodyy",
+"country": "FR",
+"team": "OG"
+},
+{
+"nick": "s0m",
+"country": null,
+"team": "OG"
+},
+{
+"nick": "adamb",
+"country": "SE",
+"team": "OG"
+},
+{
+"nick": "pr1metapz",
+"country": "DE",
+"team": "OG"
+},
+{
+"nick": "mir",
+"country": "RU",
+"team": "Virtus.pro"
+},
+{
+"nick": "degster",
+"country": "RU",
+"team": "Virtus.pro"
+},
+{
+"nick": "F0R3VER",
+"country": "RU",
+"team": "Virtus.pro"
+},
+{
+"nick": "AquaR85",
+"country": "RU",
+"team": "Virtus.pro"
+},
+{
+"nick": "oRO",
+"country": "RU",
+"team": "Virtus.pro"
+},
+{
+"nick": "clax",
+"country": "GB",
+"team": "K27"
+},
+{
+"nick": "X5G7V",
+"country": "RU",
+"team": "K27"
+},
+{
+"nick": "xeedo",
+"country": "CA",
+"team": "K27"
+},
+{
+"nick": "kashjld",
+"country": "RU",
+"team": "K27"
+},
+{
+"nick": "qw1nk1",
+"country": "US",
+"team": "K27"
+},
+{
+"nick": "Ax1Le",
+"country": "EE",
+"team": "1win"
+},
+{
+"nick": "nafany",
+"country": "RU",
+"team": "1win"
+},
+{
+"nick": "BELCHONOKK",
+"country": "RU",
+"team": "1win"
+},
+{
+"nick": "fame",
+"country": "US",
+"team": "1win"
+},
+{
+"nick": "ArtFr0st",
+"country": "RU",
+"team": "1win"
+},
+{
+"nick": "acoR",
+"country": "DK",
+"team": "Sashi"
+},
+{
+"nick": "Cabbi",
+"country": "DK",
+"team": "Sashi"
+},
+{
+"nick": "zHend",
+"country": "BR",
+"team": "Sashi"
+},
+{
+"nick": "Anlele",
+"country": "BR",
+"team": "Sashi"
+},
+{
+"nick": "MistR",
+"country": "DK",
+"team": "Sashi"
+},
+{
+"nick": "s1mple",
+"country": "UA",
+"team": "BC.GAME"
+},
+{
+"nick": "electroNic",
+"country": "RU",
+"team": "BC.GAME"
+},
+{
+"nick": "Magisk",
+"country": "DK",
+"team": "BC.GAME"
+},
+{
+"nick": "Senzu",
+"country": "MN",
+"team": "BC.GAME"
+},
+{
+"nick": "mzinho",
+"country": "MN",
+"team": "BC.GAME"
+},
+{
+"nick": "MAJ3R",
+"country": "TR",
+"team": "Eternal Fire"
+},
+{
+"nick": "regali",
+"country": "US",
+"team": "Eternal Fire"
+},
+{
+"nick": "soulfly",
+"country": "US",
+"team": "Eternal Fire"
+},
+{
+"nick": "Kvem",
+"country": "UA",
+"team": "Eternal Fire"
+},
+{
+"nick": "jottAAA",
+"country": "TR",
+"team": "Eternal Fire"
+},
+{
+"nick": "nitr0",
+"country": "US",
+"team": "NRG"
+},
+{
+"nick": "Sonic",
+"country": "ZA",
+"team": "NRG"
+},
+{
+"nick": "hallzerk",
+"country": "NO",
+"team": "NRG"
+},
+{
+"nick": "Grim",
+"country": "US",
+"team": "NRG"
+},
+{
+"nick": "Jeorge",
+"country": "US",
+"team": "NRG"
+},
+{
+"nick": "KaiR0N-",
+"country": "RU",
+"team": "Nemiga"
+},
+{
+"nick": "Xant3r",
+"country": "RU",
+"team": "Nemiga"
+},
+{
+"nick": "robo",
+"country": "RU",
+"team": "Nemiga"
+},
+{
+"nick": "khaN",
+"country": "RU",
+"team": "Nemiga"
+},
+{
+"nick": "syph0",
+"country": "RU",
+"team": "Nemiga"
+},
+{
+"nick": "StRoGo",
+"country": "RU",
+"team": "WW Team"
+},
+{
+"nick": "deko",
+"country": "RU",
+"team": "WW Team"
+},
+{
+"nick": "ctom",
+"country": "RU",
+"team": "WW Team"
+},
+{
+"nick": "m3wsu",
+"country": "RU",
+"team": "WW Team"
+},
+{
+"nick": "kelieN",
+"country": "RU",
+"team": "WW Team"
+},
+{
+"nick": "chelo",
+"country": "BR",
+"team": "Imperial"
+},
+{
+"nick": "VINI",
+"country": "BR",
+"team": "Imperial"
+},
+{
+"nick": "decenty",
+"country": "BR",
+"team": "Imperial"
+},
+{
+"nick": "noway",
+"country": "BR",
+"team": "Imperial"
+},
+{
+"nick": "saadzin",
+"country": "BR",
+"team": "Imperial"
+},
+{
+"nick": "exit",
+"country": "BR",
+"team": "Fluxo"
+},
+{
+"nick": "dav1deuS",
+"country": "CL",
+"team": "Fluxo"
+},
+{
+"nick": "zevy",
+"country": "BR",
+"team": "Fluxo"
+},
+{
+"nick": "kye",
+"country": "BR",
+"team": "Fluxo"
+},
+{
+"nick": "Ltz",
+"country": "US",
+"team": "Fluxo"
+},
+{
+"nick": "JW",
+"country": "SE",
+"team": "EYEBALLERS"
+},
+{
+"nick": "KRIMZ",
+"country": "SE",
+"team": "EYEBALLERS"
+},
+{
+"nick": "maxster",
+"country": "SE",
+"team": "EYEBALLERS"
+},
+{
+"nick": "r0lf",
+"country": null,
+"team": "EYEBALLERS"
+},
+{
+"nick": "dex",
+"country": "SE",
+"team": "EYEBALLERS"
+},
+{
+"nick": "twist",
+"country": "SE",
+"team": "Alliance"
+},
+{
+"nick": "era",
+"country": "SE",
+"team": "Alliance"
+},
+{
+"nick": "bobeksde",
+"country": "SE",
+"team": "Alliance"
+},
+{
+"nick": "uP",
+"country": "SE",
+"team": "Alliance"
+},
+{
+"nick": "eZaVid",
+"country": "SE",
+"team": "Alliance"
+},
+{
+"nick": "fear",
+"country": "UA",
+"team": "fnatic"
+},
+{
+"nick": "jambo",
+"country": "UA",
+"team": "fnatic"
+},
+{
+"nick": "jackasmo",
+"country": "UA",
+"team": "fnatic"
+},
+{
+"nick": "cairne",
+"country": "US",
+"team": "fnatic"
+},
+{
+"nick": "mazzay",
+"country": null,
+"team": "fnatic"
+},
+{
+"nick": "Rainwaker",
+"country": "BG",
+"team": "Luminosity"
+},
+{
+"nick": "afro",
+"country": "FR",
+"team": "Luminosity"
+},
+{
+"nick": "lux",
+"country": "BR",
+"team": "Luminosity"
+},
+{
+"nick": "yxngstxr",
+"country": "SE",
+"team": "Luminosity"
+},
+{
+"nick": "AZUWU",
+"country": "GB",
+"team": "Luminosity"
+},
+{
+"nick": "alex",
+"country": "ES",
+"team": "Iberian Soul"
+},
+{
+"nick": "mopoz",
+"country": "ES",
+"team": "Iberian Soul"
+},
+{
+"nick": "sausol",
+"country": "ES",
+"team": "Iberian Soul"
+},
+{
+"nick": "dav1g",
+"country": "ES",
+"team": "Iberian Soul"
+},
+{
+"nick": "chopper",
+"country": "RU",
+"team": "Iberian Soul"
+},
+{
+"nick": "raalz",
+"country": "DK",
+"team": "9INE"
+},
+{
+"nick": "kraghen",
+"country": "DK",
+"team": "9INE"
+},
+{
+"nick": "flayy",
+"country": "PL",
+"team": "9INE"
+},
+{
+"nick": "rim3",
+"country": "FR",
+"team": "9INE"
+},
+{
+"nick": "b1elany",
+"country": "PL",
+"team": "9INE"
+},
+{
+"nick": "nEMANHA",
+"country": "SK",
+"team": "Wildcard"
+},
+{
+"nick": "mhl",
+"country": "PL",
+"team": "Wildcard"
+},
+{
+"nick": "Cxz",
+"country": "US",
+"team": "Wildcard"
+},
+{
+"nick": "reck",
+"country": "BE",
+"team": "Wildcard"
+},
+{
+"nick": "hext",
+"country": "CA",
+"team": "Wildcard"
+},
+{
+"nick": "m1N1",
+"country": "LB",
+"team": "JiJieHao"
+},
+{
+"nick": "sinnopsyy",
+"country": "XK",
+"team": "JiJieHao"
+},
+{
+"nick": "Bibu",
+"country": "IQ",
+"team": "JiJieHao"
+},
+{
+"nick": "CaNito",
+"country": null,
+"team": "JiJieHao"
+},
+{
+"nick": "OSAMAS",
+"country": null,
+"team": "JiJieHao"
+},
+{
+"nick": "IceBerg",
+"country": "FI",
+"team": "BBL"
+},
+{
+"nick": "salazar",
+"country": "DK",
+"team": "BBL"
+},
+{
+"nick": "leakz",
+"country": "US",
+"team": "BBL"
+},
+{
+"nick": "B0ye",
+"country": "TR",
+"team": "BBL"
+},
+{
+"nick": "NickyB",
+"country": "DK",
+"team": "BBL"
+},
+{
+"nick": "ztr",
+"country": "SE",
+"team": "FOKUS"
+},
+{
+"nick": "Banjo",
+"country": "CA",
+"team": "FOKUS"
+},
+{
+"nick": "podi",
+"country": "FI",
+"team": "FOKUS"
+},
+{
+"nick": "jocab",
+"country": "SE",
+"team": "FOKUS"
+},
+{
+"nick": "Matheos",
+"country": "AR",
+"team": "FOKUS"
+},
+{
+"nick": "Demho",
+"country": "PL",
+"team": "Betclic"
+},
+{
+"nick": "Prism",
+"country": "PL",
+"team": "Betclic"
+},
+{
+"nick": "ex1st",
+"country": "PL",
+"team": "Betclic"
+},
+{
+"nick": "ultimate",
+"country": "PL",
+"team": "Betclic"
+},
+{
+"nick": "Qlocuu",
+"country": "PL",
+"team": "Betclic"
+},
+{
+"nick": "VILBy",
+"country": "RU",
+"team": "Spirit Academy"
+},
+{
+"nick": "Kiryasoo",
+"country": "RU",
+"team": "Spirit Academy"
+},
+{
+"nick": "Netrix",
+"country": "RU",
+"team": "Spirit Academy"
+},
+{
+"nick": "s1nside",
+"country": "RU",
+"team": "Spirit Academy"
+},
+{
+"nick": "k0gaSs",
+"country": "RU",
+"team": "Spirit Academy"
+},
+{
+"nick": "MahaR",
+"country": "EU",
+"team": "NAVI Junior"
+},
+{
+"nick": "FAZERY",
+"country": "EU",
+"team": "NAVI Junior"
+},
+{
+"nick": "skizzyee",
+"country": "EU",
+"team": "NAVI Junior"
+},
+{
+"nick": "yoki",
+"country": "EU",
+"team": "NAVI Junior"
+},
+{
+"nick": "kodak",
+"country": "EU",
+"team": "NAVI Junior"
+},
+{
+"nick": "SHiNE",
+"country": "EU",
+"team": "G2 Ares"
+},
+{
+"nick": "hitori",
+"country": "EU",
+"team": "G2 Ares"
+},
+{
+"nick": "Junyme",
+"country": "EU",
+"team": "G2 Ares"
+},
+{
+"nick": "yksjupe",
+"country": "EU",
+"team": "G2 Ares"
+},
+{
+"nick": "kl1m",
+"country": "EU",
+"team": "G2 Ares"
+},
+{
+"nick": "opdust",
+"country": "EU",
+"team": "MOUZ NXT"
+},
+{
+"nick": "ay0k",
+"country": "EU",
+"team": "MOUZ NXT"
+},
+{
+"nick": "Nikodeon",
+"country": "EU",
+"team": "MOUZ NXT"
+},
+{
+"nick": "eSx",
+"country": "EU",
+"team": "MOUZ NXT"
+},
+{
+"nick": "mixer",
+"country": "EU",
+"team": "MOUZ NXT"
+},
+{
+"nick": "dupreeh",
+"country": "DK",
+"team": null
+},
+{
+"nick": "Stewie2k",
+"country": "US",
+"team": null
+},
+{
+"nick": "shox",
+"country": "FR",
+"team": null
+},
+{
+"nick": "Snappi",
+"country": "DK",
+"team": null
+},
+{
+"nick": "k0nfig",
+"country": "DK",
+"team": null
+},
+{
+"nick": "Maden",
+"country": "ME",
+"team": null
+},
+{
+"nick": "siuhy",
+"country": "PL",
+"team": null
+},
+{
+"nick": "sdy",
+"country": "UA",
+"team": null
+},
+{
+"nick": "Perfecto",
+"country": "RU",
+"team": null
+},
+{
+"nick": "HObbit",
+"country": "KZ",
+"team": null
+},
+{
+"nick": "Techno4k",
+"country": "MN",
+"team": null
+},
+{
+"nick": "1eeR",
+"country": "BY",
+"team": null
+},
+{
+"nick": "kmrn",
+"country": "US",
+"team": null
+},
+{
+"nick": "zweih",
+"country": "RU",
+"team": null
+},
+{
+"nick": "nicoodoz",
+"country": "DK",
+"team": null
+},
+{
+"nick": "INS",
+"country": "AU",
+"team": null
+},
+{
+"nick": "SunPayus",
+"country": "ES",
+"team": null
+},
+{
+"nick": "cass1n",
+"country": "BR",
+"team": null
+},
+{
+"nick": "Attacker",
+"country": "CN",
+"team": null
+},
+{
+"nick": "Austin",
+"country": "US",
+"team": null
+},
+{
+"nick": "TO0RO",
+"country": "RU",
+"team": null
+},
+{
+"nick": "nettik",
+"country": "NZ",
+"team": null
+},
+{
+"nick": "Alkaren",
+"country": "KZ",
+"team": null
+},
+{
+"nick": "Vexite",
+"country": "AU",
+"team": null
+},
+{
+"nick": "MisterLoAF",
+"country": "BR",
+"team": null
+},
+{
+"nick": "StalkerxD",
+"country": "CZ",
+"team": null
+},
+{
+"nick": "Liazz",
+"country": "AU",
+"team": null
+},
+{
+"nick": "Mokuj1n",
+"country": "RU",
+"team": null
+},
+{
+"nick": "Texta",
+"country": "AU",
+"team": null
+},
+{
+"nick": "story",
+"country": "PT",
+"team": null
+},
+{
+"nick": "MaiL09",
+"country": "SE",
+"team": null
+},
+{
+"nick": "aliStair",
+"country": "AU",
+"team": null
+},
+{
+"nick": "history",
+"country": "BR",
+"team": null
+},
+{
+"nick": "glowiing",
+"country": "RU",
+"team": null
+},
+{
+"nick": "BRACE",
+"country": "AU",
+"team": null
+},
+{
+"nick": "asap",
+"country": "AU",
+"team": null
+},
+{
+"nick": "Bymas",
+"country": "LT",
+"team": null
+},
+{
+"nick": "kashl1d",
+"country": "RU",
+"team": null
+},
+{
+"nick": "L1haNg",
+"country": "CN",
+"team": null
+},
+{
+"nick": "cobrazera",
+"country": "MN",
+"team": null
+},
+{
+"nick": "sjuush",
+"country": "DK",
+"team": null
+},
+{
+"nick": "junior",
+"country": "US",
+"team": null
+},
+{
+"nick": "vision",
+"country": "AU",
+"team": null
+},
+{
+"nick": "Zesta",
+"country": "MN",
+"team": null
+},
+{
+"nick": "suki",
+"country": "CN",
+"team": null
+},
+{
+"nick": "br0",
+"country": "DK",
+"team": null
+},
+{
+"nick": "krazy",
+"country": "PT",
+"team": null
+},
+{
+"nick": "BOROS",
+"country": "JO",
+"team": null
+},
+{
+"nick": "nota",
+"country": "RU",
+"team": null
+},
+{
+"nick": "oSee",
+"country": "US",
+"team": null
+},
+{
+"nick": "cool4st",
+"country": "MN",
+"team": null
+},
+{
+"nick": "z1k4",
+"country": "RU",
+"team": null
+},
+{
+"nick": "ChildKing",
+"country": "CN",
+"team": null
+},
+{
+"nick": "AccuracyTG",
+"country": "MN",
+"team": null
+},
+{
+"nick": "mantuu",
+"country": "PL",
+"team": null
+},
+{
+"nick": "pz",
+"country": "AU",
+"team": null
+},
+{
+"nick": "dea",
+"country": "RU",
+"team": null
+},
+{
+"nick": "Luken",
+"country": "AR",
+"team": null
+},
+{
+"nick": "SpavaQu",
+"country": "PL",
+"team": null
+},
+{
+"nick": "Kaide",
+"country": "RU",
+"team": null
+},
+{
+"nick": "synyx",
+"country": "UA",
+"team": null
+},
+{
+"nick": "shield",
+"country": "LV",
+"team": null
+},
+{
+"nick": "lauNX",
+"country": "RO",
+"team": null
+},
+{
+"nick": "eraa",
+"country": "SE",
+"team": null
+},
+{
+"nick": "dycha",
+"country": "PL",
+"team": null
+},
+{
+"nick": "apocdude",
+"country": "AU",
+"team": null
+},
+{
+"nick": "cej0t",
+"country": "PL",
+"team": null
+},
+{
+"nick": "Shr",
+"country": "PT",
+"team": null
+},
+{
+"nick": "detr0ittJ",
+"country": "BR",
+"team": null
+},
+{
+"nick": "qx",
+"country": "DK",
+"team": null
+},
+{
+"nick": "dexter",
+"country": "AU",
+"team": null
+},
+{
+"nick": "ewjerkz",
+"country": "PT",
+"team": null
+},
+{
+"nick": "chayJESUS",
+"country": "BR",
+"team": null
+},
+{
+"nick": "kauez",
+"country": "BR",
+"team": null
+},
+{
+"nick": "Grizz",
+"country": "US",
+"team": null
+},
+{
+"nick": "ksloks",
+"country": "BR",
+"team": null
+},
+{
+"nick": "HEN1",
+"country": "BR",
+"team": null
+},
+{
+"nick": "z1Nny",
+"country": "RU",
+"team": null
+},
+{
+"nick": "aNdu",
+"country": "EE",
+"team": null
+},
+{
+"nick": "kAlash",
+"country": "KZ",
+"team": null
+},
+{
+"nick": "bnox",
+"country": "PL",
+"team": null
+},
+{
+"nick": "chengking",
+"country": "CN",
+"team": null
+},
+{
+"nick": "nin9",
+"country": "MN",
+"team": null
+},
+{
+"nick": "yAmi",
+"country": "MN",
+"team": null
+},
+{
+"nick": "nyezin",
+"country": "BR",
+"team": null
+},
+{
+"nick": "Peeping",
+"country": "US",
+"team": null
+},
+{
+"nick": "JOTA",
+"country": "BR",
+"team": null
+},
+{
+"nick": "Wolffe",
+"country": "US",
+"team": null
+},
+{
+"nick": "lan",
+"country": "CN",
+"team": null
+},
+{
+"nick": "sk0R",
+"country": "MN",
+"team": null
+},
+{
+"nick": "KENSI",
+"country": "RU",
+"team": null
+},
+{
+"nick": "MarKE",
+"country": "MX",
+"team": null
+},
+{
+"nick": "bsd",
+"country": "BR",
+"team": null
+},
+{
+"nick": "snav",
+"country": "US",
+"team": null
+},
+{
+"nick": "Cxzi",
+"country": "US",
+"team": null
+},
+{
+"nick": "hardzao",
+"country": "BR",
+"team": null
+},
+{
+"nick": "djay",
+"country": "CA",
+"team": null
+},
+{
+"nick": "KIRO",
+"country": "RU",
+"team": null
+},
+{
+"nick": "Ryujin",
+"country": "UZ",
+"team": null
+},
+{
+"nick": "Omichella",
+"country": "AU",
+"team": null
+},
+{
+"nick": "3gl",
+"country": "CN",
+"team": null
+},
+{
+"nick": "foggers",
+"country": "AU",
+"team": null
+},
+{
+"nick": "Tiger",
+"country": "CN",
+"team": null
+},
+{
+"nick": "abr",
+"country": "BR",
+"team": null
+},
+{
+"nick": "nicx",
+"country": "US",
+"team": null
+},
+{
+"nick": "nacho",
+"country": "AR",
+"team": null
+},
+{
+"nick": "buda",
+"country": "AR",
+"team": null
+},
+{
+"nick": "levi",
+"country": "BR",
+"team": null
+},
+{
+"nick": "WolfY",
+"country": "US",
+"team": null
+},
+{
+"nick": "coldzera",
+"country": "BR",
+"team": null
+},
+{
+"nick": "MagnumZ",
+"country": "MN",
+"team": null
+},
+{
+"nick": "wetfy",
+"country": "UZ",
+"team": null
+},
+{
+"nick": "PokemoN",
+"country": "PK",
+"team": null
+},
+{
+"nick": "4ever",
+"country": "CN",
+"team": null
+},
+{
+"nick": "Ro1f",
+"country": "SE",
+"team": null
+},
+{
+"nick": "nifee",
+"country": "UA",
+"team": null
+},
+{
+"nick": "m1QUSE",
+"country": "BY",
+"team": null
+},
+{
+"nick": "MICHU",
+"country": "PL",
+"team": null
+},
+{
+"nick": "zmb",
+"country": "BR",
+"team": null
+},
+{
+"nick": "ckzao",
+"country": "BR",
+"team": null
+},
+{
+"nick": "H0NeST",
+"country": "UA",
+"team": null
+},
+{
+"nick": "nosraC",
+"country": "US",
+"team": null
+},
+{
+"nick": "diozera",
+"country": "BR",
+"team": null
+},
+{
+"nick": "felps",
+"country": "BR",
+"team": null
+},
+{
+"nick": "ivz",
+"country": "AR",
+"team": null
+},
+{
+"nick": "pesadelo",
+"country": "BR",
+"team": null
+},
+{
+"nick": "bl1x1",
+"country": "RU",
+"team": null
+},
+{
+"nick": "Frontsiderr",
+"country": "PL",
+"team": null
+},
+{
+"nick": "Raijin",
+"country": "RU",
+"team": null
+},
+{
+"nick": "SaVage",
+"country": "AU",
+"team": null
+},
+{
+"nick": "Flierax",
+"country": "UA",
+"team": null
+},
+{
+"nick": "controlez",
+"country": "MN",
+"team": null
+},
+{
+"nick": "ROUX",
+"country": "MN",
+"team": null
+},
+{
+"nick": "erkaSt",
+"country": "MN",
+"team": null
+},
+{
+"nick": "rage",
+"country": "CN",
+"team": null
+},
+{
+"nick": "smooya",
+"country": "GB",
+"team": null
+},
+{
+"nick": "Goofy",
+"country": "PL",
+"team": null
+},
+{
+"nick": "CeRq",
+"country": "BG",
+"team": null
+},
+{
+"nick": "Bwills",
+"country": "US",
+"team": null
+},
+{
+"nick": "SLIGHT",
+"country": "US",
+"team": null
+},
+{
+"nick": "Alisson",
+"country": "BR",
+"team": null
+},
+{
+"nick": "Zoker",
+"country": "US",
+"team": null
+},
+{
+"nick": "urban0",
+"country": "BR",
+"team": null
+},
+{
+"nick": "tomiko",
+"country": "PL",
+"team": null
+},
+{
+"nick": "H4SAN4TOR",
+"country": "RU",
+"team": null
+},
+{
+"nick": "shg",
+"country": "RU",
+"team": null
+},
+{
+"nick": "morelz",
+"country": "PL",
+"team": null
+},
+{
+"nick": "Bååten",
+"country": "SE",
+"team": null
+},
+{
+"nick": "CRUC1AL",
+"country": "NL",
+"team": null
+},
+{
+"nick": "leo_drk",
+"country": "BR",
+"team": null
+},
+{
+"nick": "joel",
+"country": "SE",
+"team": null
+},
+{
+"nick": "Olga",
+"country": "BR",
+"team": null
+},
+{
+"nick": "j0w",
+"country": "BR",
+"team": null
+},
+{
+"nick": "Andrew",
+"country": "US",
+"team": null
+},
+{
+"nick": "Pose1doNN",
+"country": "US",
+"team": null
+},
+{
+"nick": "brnz4n",
+"country": "BR",
+"team": null
+},
+{
+"nick": "nardes",
+"country": "BR",
+"team": null
+},
+{
+"nick": "mlhzin",
+"country": "BR",
+"team": null
+},
+{
+"nick": "consti",
+"country": "US",
+"team": null
+},
+{
+"nick": "reiko",
+"country": "PL",
+"team": null
+},
+{
+"nick": "avid",
+"country": "SE",
+"team": null
+},
+{
+"nick": "Joey",
+"country": "ES",
+"team": null
+},
+{
+"nick": "notineki",
+"country": "UA",
+"team": null
+},
+{
+"nick": "executor",
+"country": "RU",
+"team": null
+},
+{
+"nick": "aragornN",
+"country": "PT",
+"team": null
+},
+{
+"nick": "xerolte",
+"country": "MN",
+"team": null
+},
+{
+"nick": "SADDYX",
+"country": "FI",
+"team": null
+},
+{
+"nick": "Nexius",
+"country": "BE",
+"team": null
+},
+{
+"nick": "dan1",
+"country": "MK",
+"team": null
+},
+{
+"nick": "Kyojin",
+"country": "FR",
+"team": null
+},
+{
+"nick": "oxygeN",
+"country": "BG",
+"team": null
+},
+{
+"nick": "fREQ",
+"country": "BR",
+"team": null
+},
+{
+"nick": "KAISER",
+"country": "AR",
+"team": null
+},
+{
+"nick": "laxiee",
+"country": "MN",
+"team": null
+},
+{
+"nick": "bnc",
+"country": "BR",
+"team": null
+},
+{
+"nick": "divine",
+"country": "BR",
+"team": null
+},
+{
+"nick": "revoltz",
+"country": "BR",
+"team": null
+},
+{
+"nick": "naitte",
+"country": "BR",
+"team": null
+},
+{
+"nick": "CLASIA",
+"country": "US",
+"team": null
+},
+{
+"nick": "tom1jed",
+"country": "AR",
+"team": null
+},
+{
+"nick": "abizz",
+"country": "AR",
+"team": null
+},
+{
+"nick": "BnTeT",
+"country": "ID",
+"team": null
+},
+{
+"nick": "spooke",
+"country": "SE",
+"team": null
+},
+{
+"nick": "DSSj",
+"country": "UZ",
+"team": null
+},
+{
+"nick": "chelleos",
+"country": "AU",
+"team": null
+},
+{
+"nick": "p5p",
+"country": "CN",
+"team": null
+},
+{
+"nick": "flying",
+"country": "CN",
+"team": null
+},
+{
+"nick": "ElephanT",
+"country": "AU",
+"team": null
+},
+{
+"nick": "madness",
+"country": "CN",
+"team": null
+},
+{
+"nick": "lampada",
+"country": "RU",
+"team": null
+},
+{
+"nick": "h1te",
+"country": "RU",
+"team": null
+},
+{
+"nick": "relaxxie",
+"country": "RU",
+"team": null
+},
+{
+"nick": "Zero",
+"country": "CN",
+"team": null
+},
+{
+"nick": "aidKiT",
+"country": "MK",
+"team": null
+},
+{
+"nick": "poizon",
+"country": "BG",
+"team": null
+},
+{
+"nick": "CYPHER",
+"country": "GB",
+"team": null
+},
+{
+"nick": "XotiC",
+"country": "US",
+"team": null
+},
+{
+"nick": "jmqa",
+"country": "RU",
+"team": null
+},
+{
+"nick": "anarkez",
+"country": "IL",
+"team": null
+},
+{
+"nick": "Aerial",
+"country": "FI",
+"team": null
+},
+{
+"nick": "Tuurtle",
+"country": "BR",
+"team": null
+},
+{
+"nick": "ZEDKO",
+"country": "CZ",
+"team": null
+},
+{
+"nick": "Farlig",
+"country": "DK",
+"team": null
+},
+{
+"nick": "simke",
+"country": "BA",
+"team": null
+},
+{
+"nick": "phr",
+"country": "PL",
+"team": null
+},
+{
+"nick": "J0LZ",
+"country": "CA",
+"team": null
+},
+{
+"nick": "Vegi",
+"country": "PL",
+"team": null
+},
+{
+"nick": "floppy",
+"country": "US",
+"team": null
+},
+{
+"nick": "Annihilation",
+"country": "MN",
+"team": null
+},
+{
+"nick": "Rickeh",
+"country": "AU",
+"team": null
+},
+{
+"nick": "ninjaZ",
+"country": "BR",
+"team": null
+},
+{
+"nick": "ogwizard",
+"country": "UA",
+"team": null
+},
+{
+"nick": "freshie",
+"country": "CA",
+"team": null
+},
+{
+"nick": "brett",
+"country": "US",
+"team": null
+},
+{
+"nick": "f4stzin",
+"country": "BR",
+"team": null
+},
+{
+"nick": "pavv",
+"country": "AR",
+"team": null
+},
+{
+"nick": "vsm",
+"country": "BR",
+"team": null
+},
+{
+"nick": "motm",
+"country": "US",
+"team": null
+},
+{
+"nick": "fr3nd",
+"country": "US",
+"team": null
+},
+{
+"nick": "naz",
+"country": "AR",
+"team": null
+},
+{
+"nick": "SaMey",
+"country": "PL",
+"team": null
+},
+{
+"nick": "hAdji",
+"country": "FR",
+"team": null
+},
+{
+"nick": "7kick",
+"country": "RO",
+"team": null
+},
+{
+"nick": "suonko",
+"country": "PL",
+"team": null
+},
+{
+"nick": "sh1nejezzz",
+"country": "RU",
+"team": null
+},
+{
+"nick": "xenization",
+"country": "MN",
+"team": null
+},
+{
+"nick": "damyo",
+"country": "AU",
+"team": null
+},
+{
+"nick": "xanzu",
+"country": "PH",
+"team": null
+},
+{
+"nick": "MUTiRiS",
+"country": "PT",
+"team": null
+},
+{
+"nick": "dukefissura",
+"country": "KZ",
+"team": null
+},
+{
+"nick": "Re1GN",
+"country": "RU",
+"team": null
+},
+{
+"nick": "Chill",
+"country": "BY",
+"team": null
+},
+{
+"nick": "VLDN",
+"country": "RS",
+"team": null
+},
+{
+"nick": "SENSEi",
+"country": "UA",
+"team": null
+},
+{
+"nick": "allu",
+"country": "FI",
+"team": null
+},
+{
+"nick": "Queenix",
+"country": "DK",
+"team": null
+},
+{
+"nick": "ISSAA",
+"country": "JO",
+"team": null
+},
+{
+"nick": "BLACKEAGLE",
+"country": "SY",
+"team": null
+},
+{
+"nick": "yungher",
+"country": "BR",
+"team": null
+},
+{
+"nick": "Crisp",
+"country": "US",
+"team": null
+},
+{
+"nick": "FaNg",
+"country": "CA",
+"team": null
+},
+{
+"nick": "Cryptic",
+"country": "US",
+"team": null
+},
+{
+"nick": "happ",
+"country": "BR",
+"team": null
+},
+{
+"nick": "n1cks",
+"country": "BR",
+"team": null
+},
+{
+"nick": "piriajr",
+"country": "BR",
+"team": null
+},
+{
+"nick": "chop",
+"country": "US",
+"team": null
+},
+{
+"nick": "Sandman",
+"country": "US",
+"team": null
+},
+{
+"nick": "kisserek",
+"country": "PL",
+"team": null
+},
+{
+"nick": "icyvl0ne",
+"country": "UZ",
+"team": null
+},
+{
+"nick": "Hack1ng",
+"country": "CN",
+"team": null
+},
+{
+"nick": "ADDICT",
+"country": "NZ",
+"team": null
+},
+{
+"nick": "WasteOfAmmo",
+"country": "ID",
+"team": null
+},
+{
+"nick": "drace",
+"country": "CN",
+"team": null
+},
+{
+"nick": "Summer",
+"country": "CN",
+"team": null
+},
+{
+"nick": "expSasiKi",
+"country": "CN",
+"team": null
+},
+{
+"nick": "gxx-",
+"country": "XK",
+"team": null
+},
+{
+"nick": "DEPRESHN",
+"country": "HR",
+"team": null
+},
+{
+"nick": "juanflatroo",
+"country": "XK",
+"team": null
+},
+{
+"nick": "SHiPZ",
+"country": "BG",
+"team": null
+},
+{
+"nick": "Enzo",
+"country": "PL",
+"team": null
+},
+{
+"nick": "nexa",
+"country": "RS",
+"team": null
+},
+{
+"nick": "Nodios",
+"country": "DK",
+"team": null
+},
+{
+"nick": "FASHR",
+"country": "NL",
+"team": null
+},
+{
+"nick": "Fadey",
+"country": "ZA",
+"team": null
+},
+{
+"nick": "hate",
+"country": "US",
+"team": null
+},
+{
+"nick": "PwnAlone",
+"country": "US",
+"team": null
+},
+{
+"nick": "ayameuu",
+"country": "US",
+"team": null
+},
+{
+"nick": "Fruitcupx",
+"country": "US",
+"team": null
+},
+{
+"nick": "prt",
+"country": "BR",
+"team": null
+},
+{
+"nick": "xaler",
+"country": "US",
+"team": null
+},
+{
+"nick": "pancc",
+"country": "BR",
+"team": null
+},
+{
+"nick": "tatazin",
+"country": "BR",
+"team": null
+},
+{
+"nick": "lash",
+"country": "BR",
+"team": null
+},
+{
+"nick": "togs",
+"country": "BR",
+"team": null
+},
+{
+"nick": "Gratisfaction",
+"country": "NZ",
+"team": null
+},
+{
+"nick": "yiksrezo",
+"country": "RU",
+"team": null
+},
+{
+"nick": "957",
+"country": "CN",
+"team": null
+},
+{
+"nick": "keen",
+"country": "LV",
+"team": null
+},
+{
+"nick": "w1sely",
+"country": "RU",
+"team": null
+},
+{
+"nick": "Purely",
+"country": "CN",
+"team": null
+},
+{
+"nick": "jkaem",
+"country": "NO",
+"team": null
+},
+{
+"nick": "Porya",
+"country": "RU",
+"team": null
+},
+{
+"nick": "sterling",
+"country": "AU",
+"team": null
+},
+{
+"nick": "devoduvek",
+"country": "FR",
+"team": null
+},
+{
+"nick": "interz",
+"country": "RU",
+"team": null
+},
+{
+"nick": "Thomas",
+"country": "GB",
+"team": null
+},
+{
+"nick": "Kristou",
+"country": "DK",
+"team": null
+},
+{
+"nick": "CacaNito",
+"country": "MK",
+"team": null
+},
+{
+"nick": "ANa",
+"country": "RO",
+"team": null
+},
+{
+"nick": "b4rtiN",
+"country": "BR",
+"team": null
+},
+{
+"nick": "LUCAS1",
+"country": "BR",
+"team": null
+},
+{
+"nick": "EspiranTo",
+"country": "LT",
+"team": null
+},
+{
+"nick": "sergej",
+"country": "FI",
+"team": null
+},
+{
+"nick": "LyttleZ",
+"country": "BR",
+"team": null
+},
+{
+"nick": "k1not1",
+"country": "BR",
+"team": null
+},
+{
+"nick": "souz4h",
+"country": "BR",
+"team": null
+},
+{
+"nick": "Rkzinho",
+"country": "BR",
+"team": null
+},
+{
+"nick": "Markz",
+"country": "BR",
+"team": null
+},
+{
+"nick": "febreeze",
+"country": "US",
+"team": null
+},
+{
+"nick": "BiBiAhn",
+"country": "AU",
+"team": null
+},
+{
+"nick": "ponter",
+"country": "BR",
+"team": null
+},
+{
+"nick": "aNgelo",
+"country": "BR",
+"team": null
+},
+{
+"nick": "atarax1a",
+"country": "AR",
+"team": null
+},
+{
+"nick": "HEAP",
+"country": "SE",
+"team": null
+},
+{
+"nick": "bluewh1te",
+"country": "RU",
+"team": null
+},
+{
+"nick": "hazr",
+"country": "AU",
+"team": null
+},
+{
+"nick": "DayMake",
+"country": "RU",
+"team": null
+},
+{
+"nick": "TjP",
+"country": "AU",
+"team": null
+},
+{
+"nick": "Ex3rcice",
+"country": "FR",
+"team": null
+},
+{
+"nick": "darko",
+"country": "PL",
+"team": null
+},
+{
+"nick": "STYKO",
+"country": "SK",
+"team": null
+},
+{
+"nick": "blocker",
+"country": "BG",
+"team": null
+},
+{
+"nick": "FinigaN",
+"country": "RU",
+"team": null
+},
+{
+"nick": "kabal",
+"country": "MN",
+"team": null
+},
+{
+"nick": "Patrick",
+"country": "BG",
+"team": null
+},
+{
+"nick": "speed4k",
+"country": "RU",
+"team": null
+},
+{
+"nick": "somebody",
+"country": "CN",
+"team": null
+},
+{
+"nick": "EMUHLEET",
+"country": "US",
+"team": null
+},
+{
+"nick": "Skadoodle",
+"country": "US",
+"team": null
+},
+{
+"nick": "tatm",
+"country": "US",
+"team": null
+},
+{
+"nick": "rainny",
+"country": "BR",
+"team": null
+},
+{
+"nick": "stanislaw",
+"country": "CA",
+"team": null
+},
+{
+"nick": "zock",
+"country": "UY",
+"team": null
+},
+{
+"nick": "Leomonster",
+"country": "BR",
+"team": null
+},
+{
+"nick": "grape",
+"country": "US",
+"team": null
+},
+{
+"nick": "deco",
+"country": "AR",
+"team": null
+},
+{
+"nick": "Crunchy",
+"country": "AU",
+"team": null
+},
+{
+"nick": "clyd1e",
+"country": "PH",
+"team": null
+},
+{
+"nick": "viridian",
+"country": "AU",
+"team": null
+},
+{
+"nick": "syrsoN",
+"country": "DE",
+"team": null
+},
+{
+"nick": "buster",
+"country": "KZ",
+"team": null
+},
+{
+"nick": "Kntz",
+"country": "TH",
+"team": null
+},
+{
+"nick": "chawzyyy",
+"country": "SE",
+"team": null
+},
+{
+"nick": "dobu",
+"country": "MN",
+"team": null
+},
+{
+"nick": "splashske",
+"country": "SG",
+"team": null
+},
+{
+"nick": "MITHPUTTINI",
+"country": "BR",
+"team": null
+},
+{
+"nick": "killerPandas",
+"country": "US",
+"team": null
+},
+{
+"nick": "GaBi",
+"country": "BR",
+"team": null
+},
+{
+"nick": "REKMEISTER",
+"country": "US",
+"team": null
+},
+{
+"nick": "Panic",
+"country": "CA",
+"team": null
+},
+{
+"nick": "Evan",
+"country": "US",
+"team": null
+},
+{
+"nick": "tele",
+"country": "BR",
+"team": null
+},
+{
+"nick": "xureba",
+"country": "BR",
+"team": null
+},
+{
+"nick": "cerolzin",
+"country": "BR",
+"team": null
+},
+{
+"nick": "Valter0k",
+"country": "UA",
+"team": null
+},
+{
+"nick": "RenanZin",
+"country": "BR",
+"team": null
+},
+{
+"nick": "mawth",
+"country": "BR",
+"team": null
+},
+{
+"nick": "WOOD7",
+"country": "BR",
+"team": null
+},
+{
+"nick": "FraGuTy",
+"country": "AR",
+"team": null
+},
+{
+"nick": "supra",
+"country": "EE",
+"team": null
+},
+{
+"nick": "Caleyy",
+"country": "XK",
+"team": null
+},
+{
+"nick": "Sobol",
+"country": "PL",
+"team": null
+},
+{
+"nick": "YumsaN",
+"country": "RU",
+"team": null
+},
+{
+"nick": "gLong",
+"country": "CN",
+"team": null
+},
+{
+"nick": "Efire",
+"country": "MN",
+"team": null
+},
+{
+"nick": "swag",
+"country": "US",
+"team": null
+},
+{
+"nick": "jayzaR",
+"country": "SE",
+"team": null
+},
+{
+"nick": "TOAO",
+"country": "PL",
+"team": null
+},
+{
+"nick": "gejmzilla",
+"country": "XK",
+"team": null
+},
+{
+"nick": "XigN",
+"country": "KR",
+"team": null
+},
+{
+"nick": "Freeman",
+"country": "HK",
+"team": null
+},
+{
+"nick": "shz",
+"country": "BR",
+"team": null
+},
+{
+"nick": "TACO",
+"country": "BR",
+"team": null
+},
+{
+"nick": "RUSH",
+"country": "US",
+"team": null
+},
+{
+"nick": "caike",
+"country": "BR",
+"team": null
+},
+{
+"nick": "tahsiN",
+"country": "DE",
+"team": null
+},
+{
+"nick": "jedqr",
+"country": "PL",
+"team": null
+},
+{
+"nick": "Liina",
+"country": "PL",
+"team": null
+},
+{
+"nick": "mari",
+"country": "BR",
+"team": null
+},
+{
+"nick": "Lekzi",
+"country": "BR",
+"team": null
+},
+{
+"nick": "Drop",
+"country": "CA",
+"team": null
+},
+{
+"nick": "trindade",
+"country": "BR",
+"team": null
+},
+{
+"nick": "empathy",
+"country": "CA",
+"team": null
+},
+{
+"nick": "mello",
+"country": "BR",
+"team": null
+},
+{
+"nick": "Hezz",
+"country": "AR",
+"team": null
+},
+{
+"nick": "timo",
+"country": "UY",
+"team": null
+},
+{
+"nick": "gbb",
+"country": "BR",
+"team": null
+},
+{
+"nick": "tomate",
+"country": "BR",
+"team": null
+},
+{
+"nick": "BK1",
+"country": "AR",
+"team": null
+},
+{
+"nick": "tex1y",
+"country": "RU",
+"team": null
+},
+{
+"nick": "riskyb0b",
+"country": "RU",
+"team": null
+},
+{
+"nick": "fury5k",
+"country": "MN",
+"team": null
+},
+{
+"nick": "cheeseball",
+"country": "AU",
+"team": null
+},
+{
+"nick": "EXUS",
+"country": "PL",
+"team": null
+},
+{
+"nick": "juho",
+"country": "FI",
+"team": null
+},
+{
+"nick": "PerX",
+"country": "DE",
+"team": null
+},
+{
+"nick": "paz",
+"country": "TR",
+"team": null
+},
+{
+"nick": "byali",
+"country": "PL",
+"team": null
+},
+{
+"nick": "viz",
+"country": "US",
+"team": null
+},
+{
+"nick": "kaahSENSEI",
+"country": "BR",
+"team": null
+},
+{
+"nick": "fl4ish",
+"country": "BR",
+"team": null
+},
+{
+"nick": "KmZ",
+"country": "US",
+"team": null
+},
+{
+"nick": "remix",
+"country": "BR",
+"team": null
+},
+{
+"nick": "cLd",
+"country": "BR",
+"team": null
+},
+{
+"nick": "Jotag3",
+"country": "BR",
+"team": null
+},
+{
+"nick": "Thuister",
+"country": "BR",
+"team": null
+},
+{
+"nick": "Dani",
+"country": "BR",
+"team": null
+},
+{
+"nick": "poppins",
+"country": "BR",
+"team": null
+},
+{
+"nick": "nikz",
+"country": "BR",
+"team": null
+},
+{
+"nick": "mds",
+"country": "US",
+"team": null
+},
+{
+"nick": "CoolComs",
+"country": "GB",
+"team": null
+},
+{
+"nick": "dott1",
+"country": "AR",
+"team": null
+},
+{
+"nick": "pepe",
+"country": "BR",
+"team": null
+},
+{
+"nick": "bacc",
+"country": "BR",
+"team": null
+},
+{
+"nick": "next",
+"country": "AR",
+"team": null
+},
+{
+"nick": "Lekr0",
+"country": "SE",
+"team": null
+},
+{
+"nick": "Zyphon",
+"country": "DK",
+"team": null
+},
+{
+"nick": "nitzie",
+"country": "RU",
+"team": null
+},
+{
+"nick": "hades",
+"country": "PL",
+"team": null
+},
+{
+"nick": "Alv",
+"country": "RU",
+"team": null
+},
+{
+"nick": "spirit",
+"country": "RU",
+"team": null
+},
+{
+"nick": "Get_Jeka",
+"country": "BY",
+"team": null
+},
+{
+"nick": "Anlelele",
+"country": "DK",
+"team": null
+},
+{
+"nick": "B1NGO",
+"country": "CN",
+"team": null
+},
+{
+"nick": "gump",
+"country": "AU",
+"team": null
+},
+{
+"nick": "IMAGINE",
+"country": "MN",
+"team": null
+},
+{
+"nick": "Nivera",
+"country": "BE",
+"team": null
+},
+{
+"nick": "flamie",
+"country": "RU",
+"team": null
+},
+{
+"nick": "wiz",
+"country": "US",
+"team": null
+},
+{
+"nick": "reversive",
+"country": "AR",
+"team": null
+},
+{
+"nick": "GooseBreeder",
+"country": "CA",
+"team": null
+},
+{
+"nick": "Hatz",
+"country": "AU",
+"team": null
+},
+{
+"nick": "RCF",
+"country": "BR",
+"team": null
+},
+{
+"nick": "Ksu",
+"country": "RU",
+"team": null
+},
+{
+"nick": "bizinha",
+"country": "BR",
+"team": null
+},
+{
+"nick": "stormzyn",
+"country": "BR",
+"team": null
+},
+{
+"nick": "agt",
+"country": "AR",
+"team": null
+},
+{
+"nick": "phx",
+"country": "BR",
+"team": null
+},
+{
+"nick": "jared",
+"country": "US",
+"team": null
+},
+{
+"nick": "roca",
+"country": "US",
+"team": null
+},
+{
+"nick": "ABM",
+"country": "AR",
+"team": null
+},
+{
+"nick": "nbl",
+"country": "AR",
+"team": null
+},
+{
+"nick": "Fawx",
+"country": "US",
+"team": null
+},
+{
+"nick": "Gabe",
+"country": "US",
+"team": null
+},
+{
+"nick": "Pol0",
+"country": "US",
+"team": null
+},
+{
+"nick": "CAJUN",
+"country": "US",
+"team": null
+},
+{
+"nick": "destiny",
+"country": "BR",
+"team": null
+},
+{
+"nick": "SeRCEra",
+"country": "US",
+"team": null
+},
+{
+"nick": "swayu",
+"country": "US",
+"team": null
+},
+{
+"nick": "SayYouWill",
+"country": "US",
+"team": null
+},
+{
+"nick": "F1KU",
+"country": "PL",
+"team": null
+},
+{
+"nick": "Boye",
+"country": "DK",
+"team": null
+},
+{
+"nick": "Markoś",
+"country": "PL",
+"team": null
+},
+{
+"nick": "youka",
+"country": "RU",
+"team": null
+},
+{
+"nick": "mag1k3Y",
+"country": "KZ",
+"team": null
+},
+{
+"nick": "sideffect",
+"country": "MN",
+"team": null
+},
+{
+"nick": "LaiKeXu",
+"country": "CN",
+"team": null
+},
+{
+"nick": "74LOR",
+"country": "AU",
+"team": null
+},
+{
+"nick": "hf",
+"country": "PK",
+"team": null
+},
+{
+"nick": "niki1",
+"country": "BG",
+"team": null
+},
+{
+"nick": "freakazoid",
+"country": "US",
+"team": null
+},
+{
+"nick": "Aunkere",
+"country": "RU",
+"team": null
+},
+{
+"nick": "iDk",
+"country": "BR",
+"team": null
+},
+{
+"nick": "ELUSIVE",
+"country": "ZA",
+"team": null
+},
+{
+"nick": "izaa",
+"country": "BR",
+"team": null
+},
+{
+"nick": "gabs",
+"country": "BR",
+"team": null
+},
+{
+"nick": "CaPiM",
+"country": "BR",
+"team": null
+},
+{
+"nick": "Cooper",
+"country": "US",
+"team": null
+},
+{
+"nick": "aelor",
+"country": "US",
+"team": null
+},
+{
+"nick": "tsug",
+"country": "BR",
+"team": null
+},
+{
+"nick": "Walco",
+"country": "CA",
+"team": null
+},
+{
+"nick": "steel",
+"country": "CA",
+"team": null
+},
+{
+"nick": "deemO",
+"country": "BR",
+"team": null
+},
+{
+"nick": "drg",
+"country": "BR",
+"team": null
+},
+{
+"nick": "nython",
+"country": "BR",
+"team": null
+},
+{
+"nick": "AGL",
+"country": "AR",
+"team": null
+},
+{
+"nick": "lenci",
+"country": "AR",
+"team": null
+},
+{
+"nick": "danoco",
+"country": "BR",
+"team": null
+},
+{
+"nick": "desh",
+"country": "BR",
+"team": null
+},
+{
+"nick": "delboNi",
+"country": "BR",
+"team": null
+},
+{
+"nick": "Noktse",
+"country": "AR",
+"team": null
+},
+{
+"nick": "Lucaozy",
+"country": "BR",
+"team": null
+},
+{
+"nick": "PKL",
+"country": "BR",
+"team": null
+},
+{
+"nick": "Sapec",
+"country": "SE",
+"team": null
+},
+{
+"nick": "olimp",
+"country": "PL",
+"team": null
+},
+{
+"nick": "kRaSnaL",
+"country": "PL",
+"team": null
+},
+{
+"nick": "prosus",
+"country": "DE",
+"team": null
+},
+{
+"nick": "Lack1",
+"country": "KZ",
+"team": null
+},
+{
+"nick": "TRAVIS",
+"country": "RU",
+"team": null
+},
+{
+"nick": "yvro",
+"country": "PL",
+"team": null
+},
+{
+"nick": "Maze",
+"country": "DK",
+"team": null
+},
+{
+"nick": "Muciek",
+"country": "PL",
+"team": null
+},
+{
+"nick": "sugaR",
+"country": "AZ",
+"team": null
+},
+{
+"nick": "4X1s",
+"country": "LV",
+"team": null
+},
+{
+"nick": "KusMe",
+"country": "RU",
+"team": null
+},
+{
+"nick": "hasteka",
+"country": "MN",
+"team": null
+},
+{
+"nick": "Dirty",
+"country": "US",
+"team": null
+},
+{
+"nick": "KRAXYT",
+"country": "AU",
+"team": null
+},
+{
+"nick": "sowalio",
+"country": "RU",
+"team": null
+},
+{
+"nick": "Wonderzce",
+"country": "MN",
+"team": null
+},
+{
+"nick": "VanceKK",
+"country": "CN",
+"team": null
+},
+{
+"nick": "shadiy",
+"country": "LV",
+"team": null
+},
+{
+"nick": "rekonz",
+"country": "AU",
+"team": null
+},
+{
+"nick": "Kras",
+"country": "AU",
+"team": null
+},
+{
+"nick": "Bart4k",
+"country": "MN",
+"team": null
+},
+{
+"nick": "emi",
+"country": "RS",
+"team": null
+},
+{
+"nick": "DEVIL",
+"country": "FR",
+"team": null
+},
+{
+"nick": "Jonji",
+"country": "CA",
+"team": null
+},
+{
+"nick": "juliano",
+"country": "SE",
+"team": null
+},
+{
+"nick": "trk",
+"country": "BR",
+"team": null
+},
+{
+"nick": "lulitenz",
+"country": "AR",
+"team": null
+},
+{
+"nick": "REGIANE",
+"country": "BR",
+"team": null
+},
+{
+"nick": "Luk1nha",
+"country": "BR",
+"team": null
+},
+{
+"nick": "fl0m",
+"country": "US",
+"team": null
+},
+{
+"nick": "zuzu",
+"country": "BR",
+"team": null
+},
+{
+"nick": "FRIZZY",
+"country": "US",
+"team": null
+},
+{
+"nick": "Reix",
+"country": "BR",
+"team": null
+},
+{
+"nick": "vanessa",
+"country": "US",
+"team": null
+},
+{
+"nick": "Serendipity",
+"country": "US",
+"team": null
+},
+{
+"nick": "cobalt",
+"country": "US",
+"team": null
+},
+{
+"nick": "MaxOff",
+"country": "AR",
+"team": null
+},
+{
+"nick": "Kermi",
+"country": "US",
+"team": null
+},
+{
+"nick": "t9rnay",
+"country": "BR",
+"team": null
+},
+{
+"nick": "NBK-",
+"country": "FR",
+"team": null
+},
+{
+"nick": "doni",
+"country": "UA",
+"team": null
+},
+{
+"nick": "Forester",
+"country": "RU",
+"team": null
+},
+{
+"nick": "n1Xen",
+"country": "DK",
+"team": null
+},
+{
+"nick": "St0m4k",
+"country": "UA",
+"team": null
+},
+{
+"nick": "BledarD",
+"country": "XK",
+"team": null
+},
+{
+"nick": "void",
+"country": "AU",
+"team": null
+},
+{
+"nick": "Kobe",
+"country": "AU",
+"team": null
+},
+{
+"nick": "dako",
+"country": "KZ",
+"team": null
+},
+{
+"nick": "Winnieeeee",
+"country": "AU",
+"team": null
+},
+{
+"nick": "Biuckmt",
+"country": "CN",
+"team": null
+},
+{
+"nick": "Kiyo",
+"country": "AU",
+"team": null
+},
+{
+"nick": "almazer",
+"country": "RU",
+"team": null
+},
+{
+"nick": "Maluk3",
+"country": "BR",
+"team": null
+},
+{
+"nick": "Ant1ka",
+"country": "RU",
+"team": null
+},
+{
+"nick": "rox",
+"country": "AR",
+"team": null
+},
+{
+"nick": "Impulse",
+"country": "RS",
+"team": null
+},
+{
+"nick": "ottoNd",
+"country": "FI",
+"team": null
+},
+{
+"nick": "es3tag",
+"country": "DK",
+"team": null
+},
+{
+"nick": "zAAz",
+"country": "LB",
+"team": null
+},
+{
+"nick": "Sofiaxyz",
+"country": "BR",
+"team": null
+},
+{
+"nick": "futoi",
+"country": "BR",
+"team": null
+},
+{
+"nick": "Johan",
+"country": "US",
+"team": null
+},
+{
+"nick": "tutehen",
+"country": "AR",
+"team": null
+},
+{
+"nick": "Emy",
+"country": "US",
+"team": null
+},
+{
+"nick": "bones",
+"country": "US",
+"team": null
+},
+{
+"nick": "upE",
+"country": "SE",
+"team": null
+},
+{
+"nick": "maaryy",
+"country": "PL",
+"team": null
+},
+{
+"nick": "Nami",
+"country": "PL",
+"team": null
+},
+{
+"nick": "jakekeS",
+"country": "RU",
+"team": null
+},
+{
+"nick": "sSen",
+"country": "DK",
+"team": null
+},
+{
+"nick": "ammar",
+"country": "XK",
+"team": null
+},
+{
+"nick": "swetsi",
+"country": "RU",
+"team": null
+},
+{
+"nick": "xdENiSZERA",
+"country": "RU",
+"team": null
+},
+{
+"nick": "Buzz",
+"country": "DK",
+"team": null
+},
+{
+"nick": "Eleven",
+"country": "BR",
+"team": null
+},
+{
+"nick": "bokor",
+"country": "BR",
+"team": null
+},
+{
+"nick": "Jerr1",
+"country": "BR",
+"team": null
+},
+{
+"nick": "Lich",
+"country": "BR",
+"team": null
+},
+{
+"nick": "gloRinsz",
+"country": "CA",
+"team": null
+},
+{
+"nick": "spamzzy",
+"country": "CO",
+"team": null
+},
+{
+"nick": "stx",
+"country": "US",
+"team": null
+},
+{
+"nick": "tripex17",
+"country": "UA",
+"team": null
+},
+{
+"nick": "Beccie",
+"country": "DK",
+"team": null
+},
+{
+"nick": "AdrieN",
+"country": "PL",
+"team": null
+},
+{
+"nick": "bekker",
+"country": "DK",
+"team": null
+},
+{
+"nick": "cerber",
+"country": "XK",
+"team": null
+},
+{
+"nick": "torox",
+"country": "RU",
+"team": null
+},
+{
+"nick": "HaZ",
+"country": "AU",
+"team": null
+},
+{
+"nick": "b1lal",
+"country": "LB",
+"team": null
+},
+{
+"nick": "fanatyk",
+"country": "PL",
+"team": null
+},
+{
+"nick": "DeathZz",
+"country": "ES",
+"team": null
+},
+{
+"nick": "RuStY",
+"country": "SE",
+"team": null
+},
+{
+"nick": "SmithZz",
+"country": "FR",
+"team": null
+},
+{
+"nick": "arki",
+"country": "ES",
+"team": null
+},
+{
+"nick": "vilga",
+"country": "RU",
+"team": null
+},
+{
+"nick": "Royals",
+"country": "BR",
+"team": null
+},
+{
+"nick": "brokeN",
+"country": "BR",
+"team": null
+},
+{
+"nick": "sergelen19k",
+"country": "MN",
+"team": null
+},
+{
+"nick": "AntyVirus",
+"country": "PL",
+"team": null
+},
+{
+"nick": "Mechanical",
+"country": "AU",
+"team": null
+},
+{
+"nick": "yoi",
+"country": "CN",
+"team": null
+},
+{
+"nick": "rubeN",
+"country": "CN",
+"team": null
+},
+{
+"nick": "yeda",
+"country": "BR",
+"team": null
+},
+{
+"nick": "balencyy",
+"country": "BR",
+"team": null
+},
+{
+"nick": "colin",
+"country": "CA",
+"team": null
+},
+{
+"nick": "valde",
+"country": "DK",
+"team": null
+},
+{
+"nick": "El1an",
+"country": "RU",
+"team": null
+},
+{
+"nick": "anttzz",
+"country": "RU",
+"team": null
+},
+{
+"nick": "HOLY",
+"country": "RO",
+"team": null
+},
+{
+"nick": "Dr3nquu",
+"country": "PL",
+"team": null
+},
+{
+"nick": "eskyy",
+"country": "PL",
+"team": null
+},
+{
+"nick": "IZR",
+"country": "MN",
+"team": null
+},
+{
+"nick": "arrozdoce",
+"country": "PT",
+"team": null
+},
+{
+"nick": "fr0k",
+"country": "UZ",
+"team": null
+},
+{
+"nick": "marie",
+"country": "DK",
+"team": null
+},
+{
+"nick": "NickelBack",
+"country": "RU",
+"team": null
+},
+{
+"nick": "deeN",
+"country": "LV",
+"team": null
+},
+{
+"nick": "Something",
+"country": "RU",
+"team": null
+},
+{
+"nick": "shady",
+"country": "RU",
+"team": null
+},
+{
+"nick": "TMB",
+"country": "DK",
+"team": null
+},
+{
+"nick": "w1dow",
+"country": "DE",
+"team": null
+},
+{
+"nick": "Yoghi",
+"country": "RO",
+"team": null
+},
+{
+"nick": "doltn",
+"country": "US",
+"team": null
+},
+{
+"nick": "CutzMeretz",
+"country": "BR",
+"team": null
+},
+{
+"nick": "moonwalk",
+"country": "PL",
+"team": null
+},
+{
+"nick": "bajmi",
+"country": "PL",
+"team": null
+},
+{
+"nick": "Brilliance",
+"country": "BY",
+"team": null
+},
+{
+"nick": "Hrdina",
+"country": "SK",
+"team": null
+},
+{
+"nick": "SENER1",
+"country": "XK",
+"team": null
+},
+{
+"nick": "rikon",
+"country": "RU",
+"team": null
+},
+{
+"nick": "innocent",
+"country": "PL",
+"team": null
+},
+{
+"nick": "Pepo",
+"country": "SK",
+"team": null
+},
+{
+"nick": "alpha",
+"country": "RU",
+"team": null
+},
+{
+"nick": "kinqie",
+"country": "RU",
+"team": null
+},
+{
+"nick": "Vert",
+"country": "RU",
+"team": null
+},
+{
+"nick": "lkz",
+"country": "BR",
+"team": null
+}
+],
+"tournaments": [
+"IEM Katowice (Spodek Arena)",
+"BLAST Premier Spring Groups",
+"ESL Pro League",
+"PGL Bucharest",
+"BLAST Premier Spring Final",
+"FISSURE Playground",
+"IEM Dallas",
+"IEM Cologne Major",
+"Esports World Cup",
+"ESL Pro League Playoffs",
+"IEM Chengdu",
+"Tipsport Masters Prague",
+"BLAST Premier World Final",
+"StarLadder Major",
+"Ukrainian Cup",
+"European Academy League",
+"RES Latin American Series",
+"Kazakhstan Open",
+"Turkish Masters",
+"Tipsport Cup",
+"Open Qualifier Europe",
+"European Pro League",
+"CCT Academy Series",
+"Closed Qualifier Europe",
+"Online Cup Weekly",
+"United21 League",
+"LAN Cup Prague",
+"Skyesports Masters",
+"Regional LAN Finals",
+"Academy Cup Europe",
+"CCT Rising Series",
+"Baltic Masters Riga",
+"United21 Division",
+"European Pro League 2nd Division",
+"Iberian Cup Madrid",
+"Open Qualifier Americas",
+"Academy League",
+"Balkan Showdown",
+"Future Stars Cup",
+"Grassroots CS2 Cup",
+"Nordic Championship Finals",
+"Entry League",
+"Nordic National League",
+"CCT Europe Series",
+"Academy Masters",
+"Polish Championship",
+"CCT North America Series",
+"Brazilian Championship",
+"CCT South America Series",
+"Young Talents Cup",
+"ESL Challenger League Europe",
+"ESL Challenger League North America",
+"Regional Academy Finals",
+"ESL Challenger League Asia-Pacific",
+"Elisa Invitational",
+"YaLLa Compass Contenders",
+"Prodigy Invitational",
+"RES Regional European Series"
+]
+}

@@ -1,0 +1,47 @@
+/* v26 · кубки и награды — полоса трофеев как на HLTV (одна строка, прокрутка), подсказка с крупным кубком */
+.tw-strip{display:flex!important;flex-wrap:nowrap!important;gap:1px!important;overflow-x:auto;overflow-y:hidden;padding:0!important;margin:0!important;
+  background:#141920;min-height:66px;scroll-behavior:smooth;scrollbar-width:thin;scrollbar-color:#3c4757 #141920;overscroll-behavior-x:contain}
+.tw-strip::-webkit-scrollbar{height:7px}.tw-strip::-webkit-scrollbar-track{background:#141920}
+.tw-strip::-webkit-scrollbar-thumb{background:#3c4757;border-radius:6px}.tw-strip::-webkit-scrollbar-thumb:hover{background:#56657a}
+.tw-tile{position:relative;flex:0 0 66px;height:66px;padding:0!important;margin:0!important;border:0!important;border-radius:0!important;cursor:pointer;
+  background:linear-gradient(180deg,#2e3644 0%,#262d39 100%)!important;display:flex;align-items:center;justify-content:center;overflow:visible;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.04);transition:background-color .18s ease}
+.tw-tile:hover,.tw-tile:focus-visible{background:linear-gradient(180deg,#384356 0%,#2c3442 100%)!important;outline:none}
+.tw-tile:focus-visible{box-shadow:inset 0 0 0 1px var(--accent,#e58e26)}
+.tw-tile.static{cursor:default}
+.tw-img{display:block;width:56px;height:62px;transition:transform .22s cubic-bezier(.34,1.5,.64,1),filter .22s ease;
+  filter:drop-shadow(0 2px 2px rgba(0,0,0,.45))}
+.tw-img .tw-svg{width:100%;height:100%;display:block}
+.tw-tile:hover .tw-img,.tw-tile:focus-visible .tw-img{transform:translateY(-3px) scale(1.08);filter:drop-shadow(0 5px 5px rgba(0,0,0,.5)) brightness(1.08)}
+/* значки в углу: счётчик (MVP), звезда (Major), год */
+.tw-b{position:absolute;right:3px;bottom:3px;min-width:17px;height:17px;padding:0 4px;border-radius:9px;display:flex;align-items:center;justify-content:center;
+  font:800 9.5px/1 Arial,Helvetica,sans-serif;color:#fff;pointer-events:none;box-shadow:0 1px 2px rgba(0,0,0,.5)}
+.tw-b.cnt{background:#3e4a5c;border:1px solid #5d6c82;font-size:10px}
+.tw-b.star{background:radial-gradient(circle at 35% 30%,#ffe9a1,#e2a72c 60%,#9a6a10);color:#fff;font-size:10px;text-shadow:0 1px 1px rgba(0,0,0,.4)}
+.tw-b.yr{background:#3a4658;border:1px solid #56657a;color:#dfe6ef;font-size:9px;letter-spacing:-.2px}
+.tw-empty{font-size:10px;color:var(--text-muted,#8a96a3);padding:10px 12px;align-self:center}
+/* подсказка: крупный кубок + название */
+.tw-tip{position:fixed;z-index:100000;display:flex;align-items:center;gap:12px;max-width:340px;padding:10px 14px 10px 10px;pointer-events:none;
+  background:linear-gradient(180deg,#232a35,#1a2029);border:1px solid #3a4658;border-radius:6px;box-shadow:0 14px 40px rgba(0,0,0,.6);
+  opacity:0;transform:translateY(4px) scale(.97);transition:opacity .14s ease,transform .18s cubic-bezier(.2,.8,.2,1);color:#e8edf3;font-size:11px;line-height:1.35}
+.tw-tip.on{opacity:1;transform:none}
+.tw-tip-img{flex:0 0 auto;width:92px;height:104px;border-radius:4px;background:radial-gradient(ellipse at 50% 40%,#3a4658 0%,#232a35 70%);
+  display:flex;align-items:flex-end;justify-content:center;padding:4px}
+.tw-tip-img .tw-svg{width:100%;height:100%;filter:drop-shadow(0 4px 6px rgba(0,0,0,.55))}
+.tw-tip-txt{display:flex;flex-direction:column;gap:3px;min-width:0}
+.tw-tip-txt b{font-size:12.5px;font-weight:800;color:#fff}
+.tw-tip-txt small{font-size:10.5px;color:#a9b4c2}
+.tw-tip-txt i{color:#7f8b99}
+.tw-tip-hint{color:var(--accent,#e58e26)!important;margin-top:2px}
+/* достижения в окне игрока */
+.tw-pl-ach{margin:0 0 8px;border:1px solid var(--border,#2a3240);background:#1c212b}
+.tw-ach-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:7px 10px;border-bottom:1px solid #2a3240;
+  font-size:10.5px;font-weight:800;color:#c9d2dd}
+.tw-chips{display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end}
+.tw-chip{display:inline-flex;align-items:center;gap:4px;height:20px;padding:0 8px;border-radius:3px;font-size:10px;font-weight:700;color:#fff;white-space:nowrap}
+.tw-chip b{font-weight:900}
+.tw-chip.gold{background:linear-gradient(180deg,#f0b429,#d4950f);color:#1b1404}
+.tw-chip.slate{background:#3e4a5c}
+.tw-chip.orange{background:linear-gradient(180deg,#f08a3a,#c4561b)}
+.tw-none{font-size:10px;color:#7f8b99;font-weight:600}
+@media (prefers-reduced-motion:reduce){.tw-img,.tw-tip{transition:none}.tw-tile:hover .tw-img{transform:none}}

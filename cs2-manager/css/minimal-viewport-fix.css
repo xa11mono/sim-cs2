@@ -1,0 +1,80 @@
+
+html, body { max-width:100%; }
+#dice-modal.modal-backdrop{
+  position:fixed !important;
+  inset:0 !important;
+  width:100vw !important;
+  height:100dvh !important;
+  min-height:0 !important;
+  box-sizing:border-box !important;
+  padding:12px !important;
+  display:none;
+  align-items:center !important;
+  justify-content:center !important;
+  overflow:hidden !important;
+}
+#dice-modal .modal-box{
+  box-sizing:border-box !important;
+  width:min(980px, calc(100vw - 24px)) !important;
+  max-width:calc(100vw - 24px) !important;
+  height:auto !important;
+  max-height:calc(100dvh - 24px) !important;
+  min-height:0 !important;
+  margin:0 !important;
+  padding:10px 12px 8px !important;
+  overflow-x:hidden !important;
+  overflow-y:auto !important;
+  overscroll-behavior:contain !important;
+  -webkit-overflow-scrolling:touch !important;
+}
+@media (max-height:850px){
+  #dice-modal .modal-box{
+    max-height:calc(100dvh - 16px) !important;
+    padding:8px 10px 7px !important;
+  }
+  #dice-modal .veto-box{
+    margin:3px 0 6px !important;
+  }
+  #dice-modal #current-map-title{
+    margin:1px 0 5px !important;
+    min-height:29px !important;
+    padding:4px 15px !important;
+  }
+  #dice-modal .tactical-pause-toolbar{
+    margin:3px 0 5px !important;
+  }
+  #dice-modal .match-modal-team-card{
+    min-height:0 !important;
+    padding:8px 10px !important;
+  }
+  #dice-modal .match-modal-score-num{
+    font-size:32px !important;
+  }
+  #dice-modal .match-section{
+    margin-top:3px !important;
+    padding:5px 7px !important;
+  }
+  #dice-modal .live-detail-stats{
+    margin:3px 0 !important;
+  }
+  #dice-modal .ticker-box{
+    max-height:58px !important;
+    min-height:0 !important;
+  }
+  #dice-modal .match-bottom-actions{
+    margin-top:3px !important;
+    padding-top:4px !important;
+  }
+}
+@media (max-width:700px){
+  #dice-modal.modal-backdrop{
+    padding:6px !important;
+  }
+  #dice-modal .modal-box{
+    width:calc(100vw - 12px) !important;
+    max-width:calc(100vw - 12px) !important;
+    max-height:calc(100dvh - 12px) !important;
+    padding:7px 7px 6px !important;
+    border-radius:9px !important;
+  }
+}

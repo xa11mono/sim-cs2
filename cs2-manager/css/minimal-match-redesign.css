@@ -1,0 +1,258 @@
+
+:root{
+  --bg:#0b0e12;
+  --card:#11151b;
+  --card-2:#0e1217;
+  --border:#242b35;
+  --border-soft:#1b222b;
+  --text:#e7ebf0;
+  --text-muted:#7f8997;
+  --blue:#4f9cf7;
+  --loss:#ef5364;
+  --accent:#d6a24a;
+  --win:#58c58a;
+}
+#dice-modal.modal-backdrop {
+  padding: 14px !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+#dice-modal .modal-box {
+  width: min(1180px, 94vw) !important;
+  max-width: 1180px !important;
+  max-height: 94vh !important;
+  padding: 16px 24px 14px !important;
+  overflow-y: auto !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 8px !important;
+  scrollbar-width: thin;
+  scrollbar-color: #272f3d transparent;
+}
+#dice-modal .modal-box::-webkit-scrollbar {
+  width: 5px;
+}
+#dice-modal .modal-box::-webkit-scrollbar-thumb {
+  background: #272f3d;
+  border-radius: 4px;
+}
+.live-coeff-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 4px;
+  padding: 3px 9px;
+  background: #111721;
+  border: 1px solid #283344;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 800;
+  color: #fff;
+}
+.live-detail-stats-compact {
+  display: flex !important;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 14px !important;
+}
+.live-stat-chip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+}
+.live-stat-chip .chip-label {
+  color: var(--text-muted);
+  font-size: 10px;
+  text-transform: uppercase;
+  font-weight: bold;
+}
+.live-stat-chip .chip-val {
+  font-weight: 800;
+}
+#dice-modal .match-modal-head {
+  min-height: auto !important;
+  padding: 0 0 6px !important;
+  border-bottom: 1px solid #242b35 !important;
+}
+#dice-modal .match-modal-head h3 {
+  font-size: 18px !important;
+  font-weight: 700 !important;
+}
+#dice-modal .match-modal-kicker {
+  font-size: 11px !important;
+}
+#dice-modal #dice-close-btn {
+  font-size: 11px !important;
+  padding: 6px 14px !important;
+}
+#dice-modal .veto-box {
+  font-size: 12px !important;
+  padding: 8px 14px !important;
+  margin: 0 !important;
+  background: #0f131a !important;
+  border: 1px solid #252d38 !important;
+  border-radius: 8px !important;
+}
+#dice-modal .map-draft-chip {
+  font-size: 10.5px !important;
+  padding: 3px 8px !important;
+}
+#dice-modal #current-map-title {
+  font-size: 14.5px !important;
+  min-height: 32px !important;
+  padding: 4px 22px !important;
+  margin: 0 auto !important;
+  font-weight: 700 !important;
+}
+#dice-modal .match-state-pill {
+  font-size: 10.5px !important;
+  min-height: 22px !important;
+  padding: 3px 12px !important;
+  margin: 0 auto !important;
+}
+#dice-modal .tactical-pause-toolbar {
+  gap: 10px !important;
+  margin: 0 !important;
+}
+#dice-modal .tactical-pause-toolbar button {
+  font-size: 11px !important;
+  padding: 6px 14px !important;
+}
+#dice-modal .match-modal-scoreline {
+  margin: 2px 0 !important;
+  gap: 14px !important;
+}
+#dice-modal .match-modal-team-card {
+  padding: 12px 18px !important;
+  min-height: 110px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  text-align: center !important;
+}
+#dice-modal .match-modal-team-name {
+  font-size: 17px !important;
+  font-weight: 800 !important;
+}
+#dice-modal .match-modal-score-num {
+  font-size: 52px !important;
+  line-height: 1 !important;
+  margin: 3px 0 !important;
+}
+#dice-modal .match-modal-series {
+  font-size: 11.5px !important;
+}
+#dice-modal .match-modal-team-card .map-live-winrate {
+  display: inline-flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  min-width: 110px !important;
+  padding: 4px 14px !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  border-radius: 6px !important;
+}
+#dice-modal .match-section {
+  margin: 0 !important;
+  padding: 8px 12px !important;
+}
+#dice-modal .match-section-title,
+#dice-modal .live-detail-stats-title {
+  font-size: 11px !important;
+  letter-spacing: 0.5px !important;
+  margin-bottom: 4px !important;
+}
+#dice-modal .bet-info-row {
+  font-size: 11.5px !important;
+  margin-bottom: 3px !important;
+}
+#dice-modal .momentum-bar {
+  height: 6px !important;
+}
+#dice-modal .live-stat-row {
+  font-size: 11.5px !important;
+  margin: 3px 0 !important;
+}
+#dice-modal .live-stat-value {
+  font-size: 11px !important;
+}
+#dice-modal .round-timeline-box {
+  padding: 7px 10px !important;
+  margin: 0 !important;
+}
+#dice-modal .timeline-row {
+  gap: 3px !important;
+}
+#dice-modal .timeline-cell {
+  min-width: 25px !important;
+  width: 25px !important;
+  height: 25px !important;
+  font-size: 10px !important;
+  line-height: 25px !important;
+}
+#dice-modal .round-buy-strip {
+  padding: 6px 12px !important;
+  margin: 0 !important;
+}
+#dice-modal .round-buy-head {
+  font-size: 11px !important;
+}
+#dice-modal .round-buy-team {
+  font-size: 12px !important;
+}
+#dice-modal .round-buy-pill {
+  font-size: 9.5px !important;
+  padding: 3px 7px !important;
+}
+#dice-modal .economy-note {
+  font-size: 9.5px !important;
+}
+#dice-modal .ticker-box {
+  min-height: 58px !important;
+  max-height: 78px !important;
+  margin: 0 !important;
+  padding: 5px 8px !important;
+  background: #0d1217 !important;
+  border: 1px solid #232b35 !important;
+  border-radius: 8px !important;
+  overflow-y: auto !important;
+  scrollbar-width: thin;
+  scrollbar-color: #272f3d transparent;
+}
+#dice-modal .ticker-box::-webkit-scrollbar {
+  width: 4px;
+}
+#dice-modal .ticker-box::-webkit-scrollbar-thumb {
+  background: #272f3d;
+  border-radius: 4px;
+}
+#dice-modal .broadcast-phase-line {
+  font-size: 10.5px !important;
+  padding: 3px 6px !important;
+}
+#dice-modal .ticker-line,
+#dice-modal .broadcast-highlight-line,
+#dice-modal .broadcast-tactic-line,
+#dice-modal .broadcast-economy-line {
+  font-size: 10.5px !important;
+  padding: 3px 6px !important;
+}
+#dice-modal .match-bottom-actions {
+  margin: 0 !important;
+  padding: 6px 0 0 !important;
+  gap: 5px !important;
+  border-top: 1px solid #242b35 !important;
+}
+#dice-modal .v7-speed-label,
+#dice-modal .match-bottom-actions span {
+  font-size: 10.5px !important;
+}
+#dice-modal .v7-speed-preset,
+#dice-modal .tv-speed-btn,
+#dice-modal .match-bottom-actions .secondary {
+  font-size: 10.5px !important;
+  padding: 5px 11px !important;
+}

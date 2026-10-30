@@ -1,0 +1,62 @@
+# Медиатека CS2 Manager: фото игроков и логотипы с PandaScore / HLTV / Liquipedia (tools/media/autofill.mjs).
+# Задание — cs2-manager/media-request.json в ветке media/…; результат пушится в ту же ветку (cs2-manager/assets/media).
+# Ключ PandaScore — секрет репозитория PANDASCORE_TOKEN (без него PandaScore пропускается).
+name: media
+on:
+  push:
+    branches: ['media/**']
+    paths: ['cs2-manager/media-request.json', '.github/workflows/media.yml']
+  workflow_dispatch:
+concurrency:
+  group: media
+  cancel-in-progress: false
+permissions:
+  contents: write
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    defaults:
+      run:
+        working-directory: cs2-manager
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install Playwright
+        run: |
+          npm install --no-save playwright
+          npx playwright install --with-deps chromium
+      - name: Check sources
+        env:
+          PANDASCORE_TOKEN: ${{ secrets.PANDASCORE_TOKEN }}
+        run: node tools/media/autofill.mjs --check || true
+      - name: Fetch media
+        env:
+          PANDASCORE_TOKEN: ${{ secrets.PANDASCORE_TOKEN }}
+        run: |
+          ARGS="--sources $(jq -r '.sources' media-request.json)"
+          ONLY=$(jq -r '.only // empty' media-request.json); [ -n "$ONLY" ] && ARGS="$ARGS --only $ONLY"
+          [ "$(jq -r '.refresh' media-request.json)" = "true" ] && ARGS="$ARGS --refresh"
+          LIM=$(jq -r '.limit // 0' media-request.json); [ "$LIM" != "0" ] && ARGS="$ARGS --limit $LIM"
+          echo "autofill $ARGS"
+          node tools/media/autofill.mjs $ARGS 2>&1 | tee media-run.log
+      - name: Publish results
+        if: always()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898699+github-actions[bot]@users.noreply.github.com"
+          git add -A assets/media media-run.log
+          git add -f tools/media/.autofill-queue.json || true
+          git diff --cached --quiet && { echo "нет изменений"; exit 0; }
+          git commit -q -m "media: результат прогона ${{ github.run_number }}"
+          git push origin HEAD:${{ github.ref_name }}
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: media-log-${{ github.run_number }}
+          path: |
+            cs2-manager/media-run.log
+            cs2-manager/tools/media/.autofill-queue.json
+          if-no-files-found: ignore

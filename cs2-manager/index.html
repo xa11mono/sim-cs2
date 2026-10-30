@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>CS2 Manager · HLTV</title>
+<link rel="stylesheet" href="css/auto_style_1.css">
+<link rel="stylesheet" href="css/minimal-match-redesign.css">
+<link rel="stylesheet" href="css/minimal-viewport-fix.css">
+<link rel="stylesheet" href="css/gsl-2x2-layout.css">
+
+<link rel="stylesheet" href="css/v15-training-calendar-styles.css">
+
+<link rel="stylesheet" href="css/v16-settings-menu-styles.css">
+
+<link rel="stylesheet" href="css/v22-styles.css">
+
+<link rel="stylesheet" href="css/v25-hltv-css.css">
+  <link rel="stylesheet" href="css/v26-trophies.css">
+<link rel="stylesheet" href="css/v27-hltv-site.css">
+<link rel="stylesheet" href="css/v27-ui.css">
+<link rel="stylesheet" href="css/v29-news.css">
+<link rel="stylesheet" href="css/v30-portal.css">
+
+</head>
+
+<body>
+
+<div class="app-layout">
+  <div class="sidebar">
+    <div class="season-banner">
+      <div>
+        <div style="font-size:9.5px; color:var(--text-muted); text-transform:uppercase;">Киберсезон</div>
+        <div style="font-size:14px; font-weight:bold; color:#fff;" id="season-title">Сезон 1</div>
+      </div>
+      <div style="display:flex; gap:5px; align-items:center;">
+        <span id="pickem-trophy-display" title="Награда Pick'Em">🥉 Бронза</span>
+        <div class="season-pill" id="season-progress">Турнир: 1 / 10</div>
+        <button type="button" class="settings-menu-btn" onclick="toggleSettingsMenu()" title="Настройки и управление базой" aria-label="Открыть настройки">☰</button>
+      </div>
+    </div>
+    <div class="calendar-panel" id="game-calendar-panel">
+      <div class="calendar-head">
+        <div>
+          <div class="calendar-title">📅 Игровой календарь</div>
+          <div class="calendar-date" id="calendar-date">01.01.2026 • Пн</div>
+        </div>
+        <div class="calendar-clock" id="calendar-clock">09:00</div>
+      </div>
+      <div class="calendar-meta">
+        <div class="calendar-stat"><span style="color:var(--text-muted);">Скорость</span><b id="calendar-speed-label">1x</b></div>
+        <div class="calendar-stat"><span style="color:var(--text-muted);">Статус</span><b id="calendar-status-label">▶ Идёт время</b></div>
+      </div>
+      <div class="calendar-controls">
+        <button type="button" class="secondary" id="calendar-pause-btn" onclick="toggleGameCalendarPause()">⏸ Пауза</button>
+        <button type="button" class="secondary active-speed" data-calendar-speed="1" onclick="setGameCalendarSpeed(1)">1x</button>
+        <button type="button" class="secondary" data-calendar-speed="2" onclick="setGameCalendarSpeed(2)">2x</button>
+        <button type="button" class="secondary" data-calendar-speed="5" onclick="setGameCalendarSpeed(5)">5x</button>
+        <button type="button" id="calendar-skip-btn" class="secondary" style="color:var(--gold);border-color:var(--gold);" onclick="skipGameCalendarDay()">⏭ День</button>
+      </div>
+      <div class="calendar-next-event" id="calendar-next-event">Загрузка расписания…</div>
+      <button type="button" class="secondary" style="width:100%;margin-top:5px;color:var(--diamond);border-color:var(--diamond);" onclick="v22OpenCalendar()">🗓 Открыть календарь</button>
+      <div id="calendar-camps-box"></div>
+    </div>
+    <div class="save-panel legacy-save-panel">
+      <h3>💾 Управление базой & Сейвы</h3>
+      <div class="row" style="margin-bottom: 4px;">
+        <button class="secondary" style="font-size:9.5px; flex:1;" onclick="exportData()">💾 Экспорт</button>
+        <button class="secondary" style="font-size:9.5px; flex:1;" onclick="document.getElementById('import-file').click()">📁 Загрузить</button>
+        <input type="file" id="import-file" style="display:none;" accept=".json" onchange="importData(event)">
+      </div>
+      <div class="row">
+        <button class="secondary" style="font-size:9.5px; color:#fbc531; flex:1;" onclick="clearHistoryOnly()">🗑 Очистить историю</button>
+        <button class="secondary" style="font-size:9.5px; color:var(--win); flex:1;" onclick="cleanZeroHistory()">🧹 Очистить пустые</button>
+        <button class="secondary" style="font-size:9.5px; color:var(--loss); flex:1;" onclick="resetToDefault()">⚠️ Сброс</button>
+      </div>
+    </div>
+    <div class="settings-drawer-backdrop" id="settings-drawer-backdrop" onclick="closeSettingsMenu(event)">
+      <aside class="settings-drawer" id="settings-drawer" onclick="event.stopPropagation()" aria-label="Настройки и управление базой">
+        <div class="settings-drawer-head">
+          <div>
+            <div class="settings-drawer-title">⚙️ Настройки</div>
+            <div class="settings-drawer-sub">Управление базой данных и сохранениями</div>
+          </div>
+          <button type="button" class="secondary settings-close-btn" onclick="closeSettingsMenu()" title="Закрыть">✕</button>
+        </div>
+        <div class="settings-section">
+          <div class="settings-section-title">💾 Сейвы и база</div>
+          <div class="settings-actions-grid">
+            <button type="button" class="secondary" onclick="exportData()">💾 Экспорт</button>
+            <button type="button" class="secondary" onclick="document.getElementById('settings-import-file').click()">📁 Загрузить</button>
+            <input type="file" id="settings-import-file" style="display:none;" accept=".json" onchange="importData(event)">
+            <button type="button" class="secondary warn" onclick="clearHistoryOnly()">🗑 Очистить историю</button>
+            <button type="button" class="secondary good" onclick="cleanZeroHistory()">🧹 Очистить пустые</button>
+            <button type="button" class="secondary danger-soft" onclick="resetToDefault()">⚠️ Сброс</button>
+          </div>
+        </div>
+        <div class="settings-section settings-help">
+          <div class="settings-section-title">ℹ️ Управление</div>
+          <div>Турниры, календарь, буткемпы и ростеры теперь остаются в основном интерфейсе. Здесь только служебные функции, чтобы не занимать место на экране.</div>
+        </div>
+      </aside>
+    </div>
+    <div class="panel rating-panel">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <h3 style="font-size:12px; margin:0;">Рейтинг команд (<span id="total-count">0</span>)</h3>
+        <span style="font-size:9.5px; color:var(--text-muted);">Клик = HLTV профиль</span>
+      </div>
+      <div class="table-scroll-wrap">
+        <table id="rating-table">
+          <thead>
+            <tr>
+              <th class="rank-cell">#</th>
+              <th>Команда</th>
+              <th class="pts">Очки</th>
+              <th class="actions"></th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+    <div id="hltv-hub-backdrop" class="modal-backdrop hl-hub-backdrop">
+      <div class="modal-box hltv-profile-box hl-hub-window" id="hltv-profile-box">
+        <div class="hltv-drag-handle hl-titlebar-like" id="hltv-drag-handle">
+          <span class="hl-brand">HLTV <small>TEAM PROFILE</small></span>
+          <button class="hl-close" type="button" onclick="closeHltvHub()" title="Закрыть">✕</button>
+        </div>
+
+        <div class="hltv-players-row hl-roster-row" id="hltv-players-row"></div>
+
+        <div class="hl-team-head">
+          <div class="hl-team-brand">
+            <div id="hl-logo" class="hl-logo">CS</div>
+            <div class="hl-team-copy">
+              <div class="hl-country"><span id="hltv-team-flag"></span><span id="hl-country-name">Россия</span></div>
+              <div id="history-header" class="hl-team-name">—</div>
+              <div id="history-team-name" class="hl-team-sub">—</div>
+            </div>
+          </div>
+          <div class="hl-head-actions">
+            <button type="button" class="hl-social-btn x" title="X (Twitter)" aria-label="X">𝕏</button>
+            <button type="button" class="hl-social-btn ig" title="Instagram" aria-label="Instagram">📷</button>
+            <button type="button" class="hl-fan-btn" id="hltv-fan-btn" onclick="window.hubToggleFan && window.hubToggleFan()">+ Стать фанатом</button>
+          </div>
+        </div>
+
+        <div id="hl-rows" class="hl-team-rows"></div>
+
+        <div class="hl-trophy-head">
+          <span>Титулы и трофеи</span><span class="muted">только 1-е место</span>
+        </div>
+        <div id="trophy-cabinet" class="trophy-cabinet hl-trophy-cabinet"></div>
+
+        <button class="secondary hl-details-btn" id="hltv-details-toggle" type="button" onclick="toggleHltvDetails()">Подробнее <span>⌄</span></button>
+        <div id="hltv-details-block" class="hl-details-block" style="display:none;">
+          <div id="team-extra-stats" class="hl-team-extra"></div>
+          <div id="bootcamp-btn-box" style="margin-top:7px;">
+            <div class="manual-bootcamp-box">
+              <div class="manual-bootcamp-title">🏕️ <b>Стратегический буткемп</b></div>
+              <div id="manual-bootcamp-status" class="manual-bootcamp-status">Команда сама не восстанавливается автоматически.</div>
+              <button type="button" class="secondary" style="width:100%; margin-top:4px; color:var(--gold); border-color:var(--gold);" onclick="runManualBootcampSelected()">🏕️ Отправить команду на буткемп</button>
+            </div>
+          </div>
+          <div class="hl-history-title">📜 История турниров</div>
+          <ul id="history-list" class="hl-history-list"><li style="color:var(--text-muted);">Нет сыгранных турниров</li></ul>
+        </div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="row">
+        <input type="text" id="new-team-name" placeholder="Новая команда" style="flex:1; font-size:10.5px;">
+        <input type="number" id="new-team-pts" placeholder="Очки" value="600" style="width:50px; font-size:10.5px;">
+        <select id="new-team-style" style="font-size:9.5px; width:88px;">
+          <option value="Aggressive">Агрессия</option>
+          <option value="Discipline">Дисциплина</option>
+          <option value="Tactical" selected>Тактический</option>
+          <option value="Chaos">Хаос/Скрим</option>
+        </select>
+        <button class="primary" style="font-size:9.5px;" onclick="addTeam()">+ Добавить</button>
+      </div>
+      <div style="margin-top:5px; border-top:1px solid var(--border); padding-top:3px;">
+        <div style="font-size:10.5px; font-weight:bold; color:var(--gold); margin-bottom:3px;">🏆 Зал Славы CS2:</div>
+        <div id="hall-of-fame" style="max-height:75px; overflow-y:auto;">
+          <div style="font-size:9.5px; color:var(--text-muted);">Сезоны еще не завершены</div>
+        </div>
+      </div>
+      <div style="margin-top:5px; border-top:1px solid var(--border); padding-top:4px;">
+        <div style="font-size:10.5px; font-weight:bold; color:var(--accent); margin-bottom:3px;">📚 Последние турниры</div>
+        <div id="tournament-archive" style="max-height:95px; overflow-y:auto;">
+          <div style="font-size:9.5px; color:var(--text-muted);">Турниры еще не завершены</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="main-stage">
+    <div class="analytics-bar">
+      <div class="stat-card">
+        <div class="stat-card-title">🔥 Доминант сезона</div>
+        <div class="stat-card-val" id="dash-dominant">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card-title">👑 Активные Эпохи</div>
+        <div class="stat-card-val" id="dash-era" style="color:var(--era);">Нет</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card-title">🗺️ Топ-карта меты</div>
+        <div class="stat-card-val" id="dash-map">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card-title">⚡ Апсеты сезона</div>
+        <div class="stat-card-val" id="dash-money" style="color:var(--gold);">0</div>
+      </div>
+    </div>
+    <div id="event-alert-box" class="event-banner-box"></div>
+    <div class="panel" style="margin-bottom:6px; padding:7px 10px;">
+      <div class="controls">
+        <div class="row">
+          <button type="button" class="secondary" id="v22-create-toggle" style="color:var(--accent);border-color:var(--accent);" onclick="v22ToggleCreate()">🛠 Создать турнир ▾</button>
+          <span id="v22-create-fields" class="v22-create-fields">
+          <label>Статус турнира:
+            <select id="tour-prestige" onchange="onPrestigeChange()" style="border-color:var(--accent); font-weight:bold;">
+              <option value="major">⭐ Major (Финал BO5 / $1.25M)</option>
+              <option value="elite">🔥 S-Tier Elite (x1.5 / $500k)</option>
+              <option value="regular" selected>🏆 Обычный сезонный турнир ($150k)</option>
+            </select>
+          </label>
+          <label>Название: <input type="text" id="tour-name" value="BLAST Premier Spring" style="width:170px;"></label>
+          <label id="lbl-min-score">Мин: <input type="number" id="min-score" value="300" style="width:40px;"></label>
+          <label id="lbl-max-score">Макс: <input type="number" id="max-score" value="2000" style="width:40px;"></label>
+          <label>Сетка:
+            <select id="tour-size">
+              <option value="8">8 команд</option>
+              <option value="16" selected>16 команд</option>
+              <option value="32">32 команды (Макс.)</option>
+            </select>
+          </label>
+          <label>Шаблон:
+            <select id="tour-template" onchange="applyTournamentTemplate()" style="width:130px;">
+              <option value="custom" selected>⚙️ Свой</option>
+              <option value="major">⭐ Major</option>
+              <option value="iem">🔥 IEM / Elite</option>
+              <option value="blast">💥 BLAST</option>
+              <option value="esl">🏆 ESL Pro League</option>
+              <option value="cct">🌐 CCT / Open</option>
+			  <option value="bounty">🎯 BLAST Bounty Hunt</option>
+            </select>
+          </label>
+          <label>Формат сетки:
+            <select id="tour-format" onchange="onFormatChange()">
+              <option value="single" selected>Single Elim</option>
+              <option value="double">Double Elim</option>
+              <option value="swiss">🇨🇭 Swiss System (16 к.)</option>
+              <option value="gsl">📦 GSL Groups (16 к.)</option>
+			  <option value="bounty">🎯 BLAST Bounty (32 к.)</option>
+            </select>
+          </label>
+          <button class="primary" style="margin-top:12px;" onclick="initTournamentCycle()">Сгенерировать сетку</button>
+          </span>
+          <button class="secondary" id="pickem-open-btn" style="margin-top:12px; display:none; color:var(--diamond);" onclick="openPickemModal()">🎯 Major Pick'Em</button>
+          <button class="secondary" id="sim-all-btn" style="margin-top:12px; display:none;" onclick="simulateWholeTournament()">⚡ Быстро всё</button>
+          <button class="secondary" id="sim-step-btn" style="margin-top:12px; display:none; color:var(--win);" onclick="startStepByStepSim()">🐢 Пошагово</button>
+          <button class="secondary" id="sim-tv-btn" style="margin-top:12px; display:none; color:#fbc531; border-color:#fbc531;" onclick="startTVBroadcastMode()">📺 Запустить эфир</button>
+          <button class="danger" id="stop-sim-btn" style="margin-top:12px; display:none;" onclick="stopAllSimulations()">⏹ Остановить</button>
+        </div>
+      </div>
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-top:5px; font-size:10px;">
+        <span id="tour-meta-badges" style="color:var(--text-muted);">Создайте турнир для генерации сетки</span>
+        <span id="tour-status" style="color:var(--accent); font-weight:bold;"></span>
+      </div>
+    </div>
+    <div id="qualification-root"></div>
+    <div id="broadcast-panel" class="broadcast-panel" style="display:none;">
+      <div class="broadcast-head">
+        <div>
+          <span class="broadcast-title">📺 Турнирный эфир</span>
+          <span id="broadcast-status" class="broadcast-status" style="margin-left:6px;">Эфир не запущен</span>
+        </div>
+        <div class="broadcast-actions">
+          <button type="button" class="secondary" id="broadcast-pause-btn">⏸ Пауза</button>
+          <button type="button" class="secondary" id="broadcast-next-btn">⏭ Следующий матч</button>
+          <button type="button" class="secondary" id="broadcast-stop-btn" style="color:var(--loss);">⏹ Стоп</button>
+        </div>
+      </div>
+      <div class="broadcast-grid">
+        <div class="broadcast-box">
+          <div class="broadcast-box-title">🔴 Сейчас в эфире</div>
+          <div id="broadcast-live-list"><div class="broadcast-empty">Матчи еще не начались</div></div>
+        </div>
+        <div class="broadcast-box">
+          <div class="broadcast-box-title">🗓 Расписание</div>
+          <div id="broadcast-schedule-list"><div class="broadcast-empty">Расписание появится после запуска</div></div>
+        </div>
+      </div>
+    </div>
+    <div id="v21-tournament-switcher" class="v21-tournament-switcher">
+  <div class="v21-ts-head">
+    <div>🖥 <b>Турниры сейчас</b> <span id="v21-ts-count" class="v21-ts-count">—</span></div>
+    <div class="v21-ts-sub">Только параллельные турниры • остальные — в календаре <button type="button" class="secondary v21-ts-open" onclick="v22OpenCalendar()">🗓 Календарь</button></div>
+  </div>
+  <div id="v21-ts-list" class="v21-ts-list"></div>
+</div>
+<div class="bracket-scroll-area">
+      <div id="bracket-root-layout"></div>
+      <div id="bronze-section" style="display:none;">
+        <h4 style="margin: 0 0 6px 0; color: #cd7f32; font-size:11px;">🥉 Матч за 3-е место</h4>
+        <div id="bronze-bracket" style="max-width: 215px;"></div>
+      </div>
+    </div>
+  </div>
+</div>
+<div id="v21-parallel-modal" class="v21-parallel-modal" onclick="v21CloseParallel(event)">
+  <div class="v21-parallel-box" onclick="event.stopPropagation()">
+    <div class="v21-parallel-head">
+      <div><div id="v21-parallel-title" class="v21-parallel-title">Параллельный турнир</div><div id="v21-parallel-kicker" class="v21-parallel-kicker"></div></div>
+      <button type="button" class="secondary" style="color:var(--loss);border-color:var(--loss);" onclick="v21CloseParallel()">✕ Закрыть</button>
+    </div>
+    <div id="v21-parallel-body"></div>
+  </div>
+</div>
+<div id="dice-modal" class="modal-backdrop">
+  <div class="modal-box">
+    <div class="match-modal-head">
+      <div style="min-width:0; text-align:left;">
+        <h3 id="dice-match-title" style="margin:0; font-size:12px;">Симуляция матча</h3>
+        <div class="match-modal-kicker"><span class="match-modal-live-dot"></span><span id="dice-match-substatus">LIVE • трансляция матча</span></div>
+      </div>
+      <button id="dice-close-btn" class="secondary modal-close-btn" style="color:var(--loss); border-color:var(--loss);" onclick="closeCurrentMatchViewer()">⏹ Закрыть</button>
+    </div>
+    <div id="dice-match-hype" style="font-size:9.5px; margin: 6px 0 2px;"></div>
+    <div id="veto-container" class="veto-box"></div>
+    <div style="display:flex; align-items:center; justify-content:center; gap:8px; flex-wrap:wrap; margin-top:8px;">
+      <div id="current-map-title" class="map-banner" style="margin:0;">Mirage</div>
+    </div>
+    <div id="live-match-state-banner" class="match-state-pill" style="display:none;">▶ Идет игра</div>
+    <div id="tactical-pause-panel" class="tactical-pause-toolbar">
+      <button type="button" class="secondary" id="pause-t1-btn" onclick="callTacticalPause(1)" style="color:var(--blue); border-color:var(--blue);">⏱ Таймаут (К1): 3 ост.</button>
+      <button type="button" class="secondary" id="pause-t2-btn" onclick="callTacticalPause(2)" style="color:var(--loss); border-color:var(--loss);">⏱ Таймаут (К2): 3 ост.</button>
+    </div>
+    <div class="match-modal-scoreline">
+      <div class="match-modal-team-card t1">
+        <div id="team1-live-name" class="match-modal-team-name">К1</div>
+        <div id="team1-live-score" class="match-modal-score-num">0</div>
+        <div id="team1-maps-won" class="match-modal-series">0 карт</div>
+      </div>
+      <div class="match-modal-vs">VS</div>
+      <div class="match-modal-team-card t2">
+        <div id="team2-live-name" class="match-modal-team-name">К2</div>
+        <div id="team2-live-score" class="match-modal-score-num">0</div>
+        <div id="team2-maps-won" class="match-modal-series" style="color:var(--loss);">0 карт</div>
+      </div>
+    </div>
+    <div class="match-section momentum-wrap">
+      <div class="match-section-title">📈 Инициатива</div>
+      <div class="bet-info-row">
+        <span id="mom-t1-pct">Инициатива: 50%</span>
+        <span id="mom-t2-pct">50%</span>
+      </div>
+      <div class="momentum-bar">
+        <div id="mom-fill-t1" class="momentum-fill-t1" style="width: 50%;"></div>
+        <div id="mom-fill-t2" class="momentum-fill-t2" style="width: 50%;"></div>
+      </div>
+    </div>
+<div id="live-detail-stats" class="match-section" style="display:none; padding: 6px 12px;">
+      <div class="live-detail-stats-compact">
+        <div class="live-stat-chip">
+          <span class="chip-label">🔥 Серия:</span>
+          <span id="stat-team1-streak" class="live-stat-team1 chip-val">—</span>
+          <span style="color:var(--text-muted); font-size:10px;">vs</span>
+          <span id="stat-team2-streak" class="live-stat-team2 chip-val">—</span>
+        </div>
+        <div class="live-stat-chip">
+          <span class="chip-label">🎯 Последние 8:</span>
+          <span id="stat-team1-last" class="live-stat-team1 chip-val">—</span>
+          <span style="color:var(--text-muted); font-size:10px;">vs</span>
+          <span id="stat-team2-last" class="live-stat-team2 chip-val">—</span>
+        </div>
+        <div class="live-stat-chip">
+          <span class="chip-label">📊 Винрейт раундов:</span>
+          <span id="stat-team1-roundpct" class="live-stat-team1 chip-val">50%</span>
+          <span style="color:var(--text-muted); font-size:10px;">/</span>
+          <span id="stat-team2-roundpct" class="live-stat-team2 chip-val">50%</span>
+        </div>
+        <div class="live-stat-chip">
+          <span class="chip-label">⭐ Раунд+ / клатчи:</span>
+          <span id="stat-team1-plus" class="live-stat-team1 chip-val">0 / 0</span>
+          <span style="color:var(--text-muted); font-size:10px;">vs</span>
+          <span id="stat-team2-plus" class="live-stat-team2 chip-val">0 / 0</span>
+        </div>
+        <div class="live-stat-chip">
+          <span class="chip-label">💰 Экономика:</span>
+          <span id="stat-team1-economy" class="live-stat-team1 chip-val">—</span>
+          <span style="color:var(--text-muted); font-size:10px;">vs</span>
+          <span id="stat-team2-economy" class="live-stat-team2 chip-val">—</span>
+        </div>
+      </div>
+    </div>
+    <div class="round-timeline-box match-section">
+      <div class="timeline-row" id="timeline-first-half"></div>
+      <div class="timeline-row" id="timeline-second-half" style="margin-top:2px;"></div>
+    </div>
+    <div id="round-buy-strip" class="round-buy-strip match-section" style="display:none;">
+      <div class="round-buy-head"><span>💰 Закуп текущего раунда</span><span id="round-buy-round" class="round-buy-round">Раунд 1</span></div>
+      <div id="round-buy-row" class="round-buy-row"></div>
+      <div id="round-buy-note" class="economy-note"></div>
+    </div>
+    <div id="match-live-ticker" class="ticker-box">
+      <div class="ticker-line" style="color:var(--text-muted);">▶ Матч запускается…</div>
+    </div>
+    <div id="manual-match-start-panel" style="display:none; margin-top:7px;">
+      <button type="button" id="manual-match-start-btn" class="primary" style="width:100%; font-size:9px; padding:5px 8px;">▶ Начать матч</button>
+    </div>
+    <div id="tv-playback-controls" class="match-bottom-actions" style="display:flex; align-items:center; justify-content:center; gap:4px; flex-wrap:wrap; margin-top:6px;">
+      <span style="font-size:8.5px; color:var(--text-muted); margin-right:2px;">Скорость:</span>
+      <button type="button" class="secondary tv-speed-btn" data-speed="0.5" style="font-size:8.5px; padding:3px 6px;">0.5x</button>
+      <button type="button" class="secondary tv-speed-btn" data-speed="1" style="font-size:8.5px; padding:3px 6px;">1x</button>
+      <button type="button" class="secondary tv-speed-btn" data-speed="1.2" style="font-size:8.5px; padding:3px 6px;">1.2x</button>
+      <button type="button" class="secondary tv-speed-btn" data-speed="2" style="font-size:8.5px; padding:3px 6px;">2x</button>
+      <button type="button" class="secondary" id="tv-pause-btn" style="font-size:8.5px; padding:3px 6px;">⏸ Пауза</button>
+      <button type="button" class="secondary" id="tv-skip-btn" style="font-size:8.5px; padding:3px 6px; color:var(--gold); border-color:var(--gold);">⏭ Скипнуть этот матч</button>
+    </div>
+    <div id="dice-verdict" style="font-weight:bold; font-size:11.5px; min-height:15px; margin-top:5px; color:var(--win);"></div>
+  </div>
+</div>
+<div id="pickem-modal" class="modal-backdrop">
+  <div class="modal-box" style="width:760px;max-width:94vw;text-align:left;">
+    <h3 style="margin-top:0;color:var(--diamond);">🎯 Major Pick'Em Challenge</h3>
+    <p id="pickem-modal-help" style="font-size:10.5px;color:var(--text-muted);margin-bottom:10px;">
+      Выберите категорию (вкладку) и нажимайте на команды, чтобы добавить их в прогноз — повторный клик снимает выбор.
+      На каждом Swiss-этапе нужно угадать 2× 3:0, 6× ADVANCE и 2× 0:3 (5 очков из 10 = этап «пройден»).
+    </p>
+    <div id="pickem-content"></div>
+    <div style="display:flex;justify-content:flex-end;gap:6px;margin-top:14px;">
+      <button class="secondary" onclick="closePickemModal()">Закрыть</button>
+      <button class="primary" onclick="savePickemChoice()">Сохранить прогнозы</button>
+    </div>
+  </div>
+</div>
+<script src="js/manager/v29-storage-guard.js"></script>
+<script src="js/data-real-2026.js"></script>
+<script src="js/manager/auto_script_1.js"></script>
+<script src="js/manager/v34-persist.js"></script>
+<script src="js/manager/auto_script_2.js"></script>
+<script src="js/manager/auto_script_3.js"></script>
+<script src="js/manager/auto_script_4.js"></script>
+<script src="js/manager/auto_script_5.js"></script>
+<script src="js/manager/v15-training-calendar-layer.js"></script>
+<script src="js/manager/v16-settings-and-generation-fix.js"></script>
+<script src="js/manager/v17-smart-calendar-skip.js"></script>
+<script src="js/manager/v18-calendar-match-sync.js"></script>
+<script src="js/manager/v19-pretty-schedule-and-speed-sync.js"></script>
+<script src="js/manager/v20-schedule-resync-and-realistic-day.js"></script>
+<script src="js/manager/v25-hltv-hub.js"></script>
+<script src="js/manager/v26-trophies.js"></script>
+<script src="js/manager/v28-rosters.js"></script>
+<script src="js/radar/cs2-radar-full.js"></script>
+<script src="js/radar/grenade-system.js"></script>
+<script src="js/radar/combat-system.js"></script>
+<script src="js/radar/bomb-system.js"></script>
+<script src="js/radar/cs2-radar-v279-full-mirage-tactics.js"></script>
+<script src="js/radar/cs2-radar-v2714-fast-render.js"></script>
+<script src="js/radar/mirage-behavior-v28-integrated.js"></script>
+<script src="js/radar/cs2-radar-v2715-role-sync.js"></script>
+<script src="js/manager/v33-real-rosters.js"></script>
+<script src="js/manager/v21-parallel-tournaments-academies-layer.js"></script>
+<script src="js/manager/v22-calendar-window-and-waves.js"></script>
+<script src="js/radar/cs2-radar-v266-hold-look.js"></script>
+<script src="js/radar/cs2-radar-v267-runtime-fix.js"></script>
+<script src="js/manager/auto_script_6.js"></script>
+<script src="js/radar/cs2-ai-pipeline.js"></script>
+<script src="js/boot-check.js"></script>
+<script src="assets/media/media-manifest.js"></script>
+<script src="js/manager/v27-hltv-site.js"></script>
+<script src="js/manager/v27-ui.js"></script>
+<script src="js/manager/v29-core.js"></script>
+<script src="js/manager/v29-news.js"></script>
+<script src="js/manager/v30-market.js"></script>
+<script src="js/manager/v30-news.js"></script>
+<script src="js/manager/v30-calendar.js"></script>
+<script src="js/manager/v31-career-core.js"></script>
+<script src="js/manager/v30-portal-events.js"></script>
+<script src="js/manager/v34-match.js"></script>
+<script src="js/manager/v30-portal-home.js"></script>
+<script src="js/manager/v30-portal-people.js"></script>
+<script src="js/manager/v31-media.js"></script>
+<script src="js/manager/v31-career-ui.js"></script>
+<script src="js/manager/v32-spectator.js"></script>
+<script src="js/manager/v33-prestige.js"></script>
+<script src="js/manager/v33-pickem.js"></script>
+<script src="js/manager/v33-awards.js"></script>
+<script src="js/manager/v33-comments.js"></script>
+<script src="js/manager/v33-time.js"></script>
+<script src="js/manager/v33-shows.js"></script>
+<script src="js/manager/v34-roster-ai.js"></script>
+<script src="js/manager/v34-round.js"></script>
+<script src="js/manager/v34-news.js"></script>
+</body>
+</html>
+
