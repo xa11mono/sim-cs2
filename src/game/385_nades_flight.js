@@ -166,6 +166,9 @@
   // ед.: «то же место» для смока — порог совпадения физики с про (NADES.md). Пробовал 80 (разброс одного лайнапа у самих про — до 23–79 ед.):
   // смоки лайнапов быстрее про на 0,3–0,7 с, но медиана промаха 5 → 22 px, в 32 ед. — 45 → 18 из 54 (Ancient): не взято
   var AIM_SAME = 32;
+  // с, ед.: 99 % смоков про летят не дольше 8,1 с (throws.json: Mirage 8,06, Ancient 8,13; 11 тыс. смоков на карту); 90 % бросков одного
+  // лайнапа у про — в 23–79 ед. (NADES.md)
+  var AIM_SLOW = 8.1, AIM_SAME_PRO = 80;
   function nadeAim(type, from, aim, trace, o) {
     o = o || {};
     var dx = aim[0] - from[0], dy = aim[1] - from[1];
@@ -186,6 +189,8 @@
       // tools/nades/smoke_time.js); точность внутри 32 ед. смоку не нужна (радиус дыма ≈ 144 ед.). Флешка / HE рвутся по запалу — им
       // время всё равно; молотов — как было
       var fast = type === 'smoke' && best && sc <= AIM_SAME && best.sc <= AIM_SAME;
+      // самый быстрый смок в пределах разброса про (AIM_SAME_PRO) — запасной ответ, если лучший в AIM_SAME дольше AIM_SLOW (см. ниже)
+      if (type === 'smoke' && sc <= AIM_SAME_PRO && (!alt || r.t < alt.t)) alt = { pitch: pitch, s: s, jump: !!jump, yaw: yaw, t: r.t };
       if (!best || (fast ? r.t < best.t : sc < best.sc)) best = { yaw: yaw, pitch: pitch, strength: s, jump: !!jump, det: r.det, t: r.t, how: r.how, err: exy, dz: dz,
                                           e3: sc, levelOk: lvOk, bounces: r.bounces.length, land: r.bounces.length ? r.bounces[0].slice(0, 3) : r.det, sc: sc };
       if (coarse) coarse.push({ pitch: pitch, s: s, jump: !!jump, t: r.t, sc: sc });
@@ -194,7 +199,13 @@
     // (тактика 30.10) смок: сетка наклонов в 4° у пологих бросков почти никогда не попадает в 32 ед. (качение чувствительно к наклону), и
     // лучшей оставалась «свеча». Уточнение — у самых быстрых бросков сетки, что легли не дальше AIM_FAST_NEAR (до AIM_FAST_N штук):
     // наклон ±2, ±1, ±0,5° к лучшему из них; попал в AIM_SAME — он быстрее и становится ответом (tryOne)
-    var coarse = type === 'smoke' ? [] : null;
+    var coarse = type === 'smoke' ? [] : null, alt = null;
+    // (тактика 30.10) смок, который и в AIM_SAME ложится только «свечой» дольше AIM_SLOW (так долго у про не летает 99 % смоков), — берётся
+    // самый быстрый из легших в разброс самих про (AIM_SAME_PRO): игрок кинул бы так. Ответ — тем же tryOne (с полями лучшего)
+    function finish() {
+      if (type === 'smoke' && best && alt && best.t > AIM_SLOW && alt.t < best.t) { var keep = AIM_SAME; AIM_SAME = -1; yaw = alt.yaw; best = null; tryOne(alt.pitch, alt.s, alt.jump); AIM_SAME = keep; }
+      delete best.sc; return best;
+    }
     function refineFast() {
       if (!coarse || !best || !coarse.length) return;
       var C = coarse.filter(function (c) { return c.t < best.t && c.sc <= AIM_FAST_NEAR; }).sort(function (a, b) { return a.t - b.t; }).slice(0, AIM_FAST_N);
@@ -221,7 +232,7 @@
       for (var gy = -AIM_LOCAL_YAW; gy <= AIM_LOCAL_YAW + 1e-9; gy += 0.5) { yaw = g.yaw + gy;
         for (var gp = -AIM_LOCAL_PIT; gp <= AIM_LOCAL_PIT + 1e-9; gp += 0.5) tryOne(g.pitch + gp, g.strength, g.jump); }
       yaw = yaw0;
-      if (o.guessOnly || best.sc <= (o.guessOk != null ? o.guessOk : AIM_JUMP_IF)) { delete best.sc; return best; }
+      if (o.guessOnly || best.sc <= (o.guessOk != null ? o.guessOk : AIM_JUMP_IF)) return finish();
     }
     search(false);
     // (тактика 30.10) смок — и в прыжке, даже если без прыжка попал: дальний смок про кидают в прыжке — он ниже и быстрее «свечи» (из
@@ -244,8 +255,7 @@
     });
     yaw = best.yaw;
     if (best.yaw !== yaw0) AIM_FINE.forEach(function (st) { var b0 = best; [-st, st].forEach(function (dp) { tryOne(b0.pitch + dp, b0.strength, b0.jump); }); });
-    delete best.sc;
-    return best;
+    return finish();
   }
 
   var api = { NADE_P: P, nadeLaunch: nadeLaunch, nadeState: nadeState, nadeStep: nadeStep, nadeFly: nadeFly, nadeThrow: nadeThrow, nadeAim: nadeAim };
