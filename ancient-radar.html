@@ -737,7 +737,7 @@
   <div id="topbar">
     <div class="tb-id">
       <h1>Ancient<span id="matchTick" class="mono" title="Какой матч сейчас идёт и тик — запиши, если увидел баг"></span></h1>
-      <div class="sub mono" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 469, 29.10</div>
+      <div class="sub mono" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 479, 30.10</div>
     </div>
     <div class="tb-group" id="tbMatch">
       <button id="btnPause">Пауза</button>
@@ -783,7 +783,6 @@
           <label class="chk"><input type="checkbox" id="chkAlign"> выравнивание navmesh</label>
           <label class="chk" title="(v447) Хайлайты: шанс, что игрок в начале дуэли «в ударе» — быстрее реакция, точнее прицел, флик AWP, выходит на следующего. 0 — без хайлайтов. Меняет игру с нового матча (кнопка «Сыграть»)">хайлайты <input type="range" id="hlP" min="0" max="30" step="1" style="width:90px;vertical-align:middle"> <span id="hlPv"></span></label>
           <label class="chk" title="(v459) Повтор клатча: после выигранного клатча 1v2 и больше, пока закупка, — повтор фрагов с замедлением и реакция игроков. Только показ, игру не меняет"><input type="checkbox" id="chkRp" checked> повтор клатча</label>
-          <label class="chk" title="(v462) Реплики игроков и тренера в повторе и на паузе — голосом браузера (синтез речи), на языке команды. Слышно, только когда включён «Звук»"><input type="checkbox" id="chkTts" checked> озвучка реплик</label>
           <label class="chk" title="(v459) Что показывать после клатча: авто — по-разному, как на трансляции"><select id="selRp"><option value="auto">авто</option><option value="both">клип + реакция</option><option value="clip">только клип</option><option value="emo">только реакция</option></select></label>
           <button id="btnRpLast" title="Показать повтор последнего клатча этого матча ещё раз">Повтор последнего клатча</button>
           <button id="btnRpGo" title="Матч 17, раунд 27: клатч 1v5 — матч перематывается до закупки этого раунда, дальше смотреть (совпадёт при «Хайлайты» 6 % и без своих правок карты)">Клатч-раунд: матч 17, раунд 27 (1v5)</button>
@@ -6145,7 +6144,8 @@ var TASK_LEVEL = [   // сверху — важнее; первая подход
   {lv:8,  kind:"ретейк/сбор/ротация",re:/^(retake|gather|rotate$|rotate:|bombwatch|postplant|fetch$)/},
   {lv:7,  kind:"эндгейм/клатч",      re:/^(endhunt|hunt$|clutch)/},   // охота на последних — общий план команды, как и было (замок эндгейма)
   {lv:6,  kind:"перестановка в бою", re:/^repos/},
-  {lv:5,  kind:"команда",            re:/^(fill$|rotateHold|fetchCover|bombEscort|bombWait|coverplant)/},
+  {lv:5,  kind:"команда",            re:/^(fill$|rotateHold|fetchCover|bombEscort|bombWait|coverplant|flank\d$)/},   // (п.20 владельца 29.10: фланг CT
+  // «из-за частого перебивания путей… нет захода в спину» — был уровнем 1, его перебивало и ожидание у дыма) фланг — задача команды
   {lv:4,  kind:"гранаты/ожидания",   re:/^(lineup|smokeWait|utilWait|utilHold)$/},
   {lv:3,  kind:"личная перестановка",re:/^(pickup$|probe|rebal|shift$|earlyPeek|midcover)/},
   {lv:2,  kind:"маршрут",            re:/^route:/},
@@ -6290,6 +6290,18 @@ function bombDamageAt(x, y){
 // запас FLEE_HP_MARGIN, точка пересчитывается, если HP упало и она больше не спасает, дальше 900 px тоже ищем (до досягаемости
 // взрыва), а если не спасает ни одна — берём ту, где урон меньше всего (раньше — точка сбора, путь через сам взрыв)
 var FLEE_HP_MARGIN = 30, FLEE_MOVE = 300;   // проектное число: урон в точке ухода не больше HP − 30 (бот встаёт не ровно в точку)
+// (п.17 владельца 29.10) сколько идти до первой точки по своему пути к бомбе, откуда бомбу видно (оттуда сбивают дефуз выстрелом); шаг 16 ед.
+function bombSightLen(b, bp){
+  if(hasLOS(b.x, b.y, bp.x, bp.y, b.z)) return 0;
+  var P = buildWaypointPath(b.baseX, b.baseY, b.z, bp.x, bp.y, 0, b.team, botLane(b)) || [], L = 0, px = b.baseX, py = b.baseY;
+  for(var i = 0; i < P.length; i++){
+    var qx = P[i][0], qy = P[i][1], sl = Math.hypot(qx-px, qy-py), n = Math.max(1, Math.ceil(sl/16));
+    for(var k = 1; k <= n; k++){ var x = px + (qx-px)*k/n, y = py + (qy-py)*k/n;
+      if(hasLOS(x, y, bp.x, bp.y, P[i][2] != null ? P[i][2] : b.z)) return L + sl*k/n; }
+    L += sl; px = qx; py = qy;
+  }
+  return L;
+}
 function bombFleePoint(b){
   if(!bomb || bomb.state !== "planted") return null;
   var F = b._flee;
@@ -7487,7 +7499,7 @@ function tIglReplan(tt, site, other, secLeft){
           var trvR = Math.hypot(ctrR.x-SITES[other].x, ctrR.y-SITES[other].y)*1.4/SPEED;
           voiceLog("T", "rotread", "IGL", toward.length+" CT ротируют на "+tt.site+" — идём на "+other+", но углы чекаем, там может кто-то остаться");
           logEvent("IGL: слышим ротацию CT на "+tt.site+" → перекол на "+other+" (не значит, что там пусто)");
-          tSetSite(tt, other); tt.phase = "setup"; tt.takeAssign = null;
+          tSetSite(tt, other); tt.phase = "setup";
           tt.execTick = tick + Math.round(Math.min(Math.max(4, trvR*0.7), 12)*TICK_HZ);
           return true;
         } else logEvent("IGL: слышим ротацию CT на "+tt.site+", но это может быть фейк — играем по плану");
@@ -7577,6 +7589,9 @@ function tSetSite(tt, site){
   // (v450, владелец 28.10: «в экономике после главной тактики писать перекол») — для показа (630): откуда и куда перекол
   if(old && site && old !== site) (tt.recalls || (tt.recalls = [])).push({from: old, to: site, sec: Math.round((tick - roundStartTick)/TICK_HZ)});
   tt.site = site; tt.execStart = null; tt.plantPick = null;
+  // (п.4 владельца 29.10, м1 р2 т11617: после перекола B→A T1 остался на «siteholdA: B Boost») места на сайте (takeAssign) — под
+  // старый сайт; сбрасывались только в двух местах смены из пяти
+  if(old !== site) tt.takeAssign = null;
   nadeFlags.tExec = false; nadeFlags.tExecSm = false; nadeFlags.peekFlashPlanned = false;
   bots.forEach(function(b){
     if(b.team !== "T") return;
@@ -7584,6 +7599,10 @@ function tSetSite(tt, site){
     // (раньше два пути смены обнуляли и «пройден», и группа снова шла по маршруту к старому сайту)
     if(b._route) b._routeDone = b._route.key + "|" + roundNum;
     b._route = null; b._stageInfo = null;
+    // (п.4 владельца 29.10, м1 р2: после перекола B→A носитель ещё 3 с шёл на «stageB» в B Apartments) пост под старый сайт (стадия,
+    // зачистка, удержание) — снят: новый даст тактика под новый сайт
+    var tg = b.post && b.post.tag;
+    if(old && old !== site && tg && (tg.indexOf("stage" + old) === 0 || tg.indexOf("sitehold" + old) === 0 || tg.indexOf("clear" + old) === 0)) clearPost(b);
     var t = b.nadeTask;
     if(old && old !== site && t && SITES[old] && Math.hypot(t.x-SITES[old].x, t.y-SITES[old].y) < Math.hypot(t.x-SITES[site].x, t.y-SITES[site].y)){
       b.nadeTask = null; b.nadeQueue = null; if(b.post && b.post.tag === "lineup") clearPost(b);
@@ -7948,9 +7967,11 @@ function tBrain(){
   if(ts.length === 1 && bomb.state !== "planted" && tt.phase !== "postplant" && (tt.soloPlan || soloCan(ts[0]))){
     var solo = ts[0];
     if(!tt.soloPlan){
-      // сайт, где по инфе меньше CT (и ближе); сразу выход — ждать некого
-      var sc = function(k){ return beliefCount("T", BZ.siteNear[k]||[]) * 400 + Math.hypot(solo.x-SITES[k].x, solo.y-SITES[k].y); };
-      var ks2 = sc("A") <= sc("B") ? "A" : "B";
+      // (п.1/п.31 владельца 29.10: м1 р1 — sh1ro один в бою на A, а «я один» перевёл сайт на B и путь отхода ушёл через T-спавн; м1 р8 —
+      // через 20 с после колла «A стак» magixx пошёл ставить на A: знание о стаке «остыло», а сайт выбирался заново по карте врагов
+      // × 400 + расстояние) сайт — тот, что выбрала команда; другой — только если на свой уже не успеть поставить. Сразу выход — ждать некого
+      var canK = function(k){ return pathLenTo(solo, SITES[k].x, SITES[k].y)/SPEED + PLANT_TICKS/TICK_HZ <= secLeft; };
+      var ks2 = tt.site && (canK(tt.site) || bomb.state !== "carried") ? tt.site : (tt.site === "A" ? "B" : "A");
       tt.soloPlan = ks2;
       if(ks2 !== tt.site){ var exS = tt.execStart; tSetSite(tt, ks2); tt.execStart = exS; site = SITES[ks2]; g = GEO[ks2]; other = ks2 === "A" ? "B" : "A"; plantPt = site.plant || site; }
       if(tt.phase === "setup"){ tt.phase = "execute"; tt.execStart = tick; }
@@ -7996,7 +8017,9 @@ function tBrain(){
           (G.via || []).concat(G.stage ? [G.stage] : []).forEach(function(n){ var q = zonePoint(n, SITES[tt.site]); if(q) P.push(q); });
           return P; };
         var defPick = function(b, used, seed){ var P = gPts(gOf(b));
-          var pool = DPS.filter(function(z){ var q = zonePoint(z[0]); return q && !used[z[0]] && (!P.length || P.some(function(p){ return Math.hypot(p.x-q.x, p.y-q.y) <= DEF_GROUP_R; })); });
+          // (п.28 владельца 29.10, м1 р8: группа Ramp получила места Mid Boxes / Chair / Connector — по прямой ≤ 450 сквозь стены) район
+          // группы — по пути, а не по прямой
+          var pool = DPS.filter(function(z){ var q = zonePoint(z[0]); return q && !used[z[0]] && (!P.length || P.some(function(p){ return Math.hypot(p.x-q.x, p.y-q.y) <= DEF_GROUP_R && polyLen(pathPts(p.x, p.y, q.x, q.y)) <= DEF_GROUP_R; })); });
           if(!pool.length) return null;
           var wt = pool.reduce(function(a, z){ return a + z[1]; }, 0), u = hashRand(seed)*wt, di = 0;
           while(di < pool.length - 1 && u > pool[di][1]){ u -= pool[di][1]; di++; }
@@ -8210,7 +8233,10 @@ function tBrain(){
       var cm = ts.filter(function(o){ return o !== carrier && o.alive && o.tRole !== "lurker"; });
       var cLeft = ROUND_TIME_SEC - (tick - roundStartTick)/TICK_HZ, cWalk = polyLen(pathPts(carrier.x, carrier.y, ppt.x, ppt.y))/SPEED + PLANT_TICKS/TICK_HZ + 5;
       var BE = tt.bombEsc && tt.bombEsc.round === roundNum && tt.bombEsc.cid === carrier.id ? tt.bombEsc : null;
-      var esc = BE ? cm.filter(function(o){ return o.id === BE.id && !o._sawEnemy && !o.planting; })[0] : null;
+      // (п.21 владельца 29.10, м1 р5 т37570: «почему бы не отложить выход… пока игрок 2 не сможет выйти с паласа, чтобы сыграть вдвоём» —
+      // TN1R у огня в Palace увидел врага, и magixx в тот же тик пошёл ставить один) назначенный сопровождающий в бою — всё ещё сопровождающий:
+      // носитель ждёт его в пределах тех же ESC_WAIT_SEC / ESC_MAX_SEC (раньше бой снимал сопровождение сразу)
+      var esc = BE ? cm.filter(function(o){ return o.id === BE.id && !o.planting; })[0] : null;
       if(!esc && !cm.some(function(o){ return ready(o) && Math.hypot(o.x-carrier.x, o.y-carrier.y) <= TRADE_R; }) && cLeft >= cWalk){
         esc = cm.filter(function(o){ return !o._sawEnemy && !o.planting && !o.nadeTask && !(o._tradeLock && o._tradeLock.until > tick) && !(o._reposUntil && tick < o._reposUntil) && Math.hypot(o.x-ppt.x, o.y-ppt.y) > 350; })
           .sort(function(a, c){ return Math.hypot(a.x-carrier.x, a.y-carrier.y) - Math.hypot(c.x-carrier.x, c.y-carrier.y); })[0] || null;
@@ -8238,6 +8264,9 @@ function tBrain(){
         else setPost(carrier, {x:carrier.x, y:carrier.y}, esc, true, "bombWait");
       } else setPost(carrier, ppt, g.ctEntry, true, "plantspot");
     }
+    // (п.4 владельца 29.10, м1 р2: «перекол на другой сайт, но туда идут не все») носитель ещё не готов ставить (ждёт вторую волну), а
+    // поста нет — после перекола пост старого сайта снят (tSetSite): к точке подготовки нового сайта, как остальные (раньше 3,5 с стоял)
+    else if(carrier && carrier.alive && !carrier.planting && !carrier.post) stagePost([carrier], tt.site);
     var rest = pick(["entry","awp","support","igl"]).filter(function(b){ return b !== carrier && ready(b); });
     // (v350, владелец: «все останавливаются далеко») раш: кто без задачи (поддержка, IGL; AWP без лайнапа) — идёт за энтри и держится
     // позади него (60–110 ед., проектные числа), а не стоит на месте сбора; энтри ждёт гранаты — ждут за ним
@@ -8422,7 +8451,9 @@ function tBrain(){
         var dfz = bots.filter(function(o){ return o.defusing && o.alive; })[0];
         var remT = dfz ? Math.max(0, (dfz.defuseUntil||tick) - tick) : 0;
         if(dfz && !(dfz.defuseUntil) ) remT = (teamEco.CT.roundType === "full" ? DEFUSE_KIT_TICKS : DEFUSE_TICKS);
-        var late = antiDef.filter(function(b){ return pathLenTo(b, bpA.x, bpA.y)/SPEED*TICK_HZ > remT + 24; });
+        // (п.17 владельца 29.10, м1 р4 т30711: «могли пикнуть через зону B Short, откуда отлично видно бомбу, и убить дефузера издалека») успеть —
+        // дойти до первой точки по пути, откуда бомбу видно (оттуда и стреляют), а не до самой бомбы
+        var late = antiDef.filter(function(b){ return bombSightLen(b, bpA)/SPEED*TICK_HZ > remT + 24; });
         if(dfz && late.length === antiDef.length && late.length && !tt._defLate){
           tt._defLate = tick;
           voiceLog("T", "deflate", late[0].id, "не успеваем на дефуз — сейв");
@@ -8431,9 +8462,12 @@ function tBrain(){
         } else if(dfz) antiDef = antiDef.filter(function(b){ return late.indexOf(b) < 0; });
       }
       var spA = pickSpots("antidef"+Math.round(bpA.x/30)+","+Math.round(bpA.y/30), bpA, 4, {rMin:50, rMax:300, minGap:45, must:[bpA]});
+      // (п.16 владельца 29.10, м1 р4 т30561: «они оба стоят в одной позиции») каждый — ближайшая к себе из точек, которую ещё не занял свой
+      var adUsed = antiDef.filter(function(o){ return o._adSpot && o._adSpot.round === roundNum; }).map(function(o){ return o._adSpot.pt; });
       antiDef.forEach(function(b){
         if(!b._adSpot || b._adSpot.round !== roundNum){
-          var bs2 = null, bd2 = Infinity; spA.forEach(function(q){ var d = Math.hypot(q.x-b.x, q.y-b.y); if(d < bd2){ bd2 = d; bs2 = q; } });
+          var bs2 = null, bd2 = Infinity; spA.forEach(function(q){ if(adUsed.some(function(u){ return u.x === q.x && u.y === q.y; })) return; var d = Math.hypot(q.x-b.x, q.y-b.y); if(d < bd2){ bd2 = d; bs2 = q; } });
+          if(bs2) adUsed.push(bs2);
           b._adSpot = {round:roundNum, pt: bs2 || bpA};
         }
         setPost(b, b._adSpot.pt, bpA, true, "antidefuse"); b._stopPlantUntil = tick + 30; // бегом, не шагом
@@ -8684,8 +8718,10 @@ function pickSaveSpotT(b){
 // укрытие. Заходят все вместе, когда у точек собралось достаточно людей —
 // или раньше, если по честному расчёту иначе не успеть (путь от точки сбора
 // до бомбы + дефуз > остаток таймера).
+// (п.6/30 владельца 29.10, м1 р8: лайнап выбран по пути 1100, а шёл 2046 — с v469 движение платит за известных врагов, а длина «сколько
+// идти» считалась без этого) длина — того же пути, по которому бот пойдёт (цена команды за известных врагов, его полоса)
 function pathLenTo(b, x, y){
-  var Q = PATHQ_Q, p = pathQ("l"+Math.round(b.baseX/Q)+","+Math.round(b.baseY/Q)+","+Math.round((b.z||0)/32)+">"+Math.round(x/Q)+","+Math.round(y/Q), function(){ return buildWaypointPath(b.baseX, b.baseY, b.z, x, y, 0); });
+  var Q = PATHQ_Q, p = pathQ("l"+b.team+"|"+b.id+"|"+Math.round(b.baseX/Q)+","+Math.round(b.baseY/Q)+","+Math.round((b.z||0)/32)+">"+Math.round(x/Q)+","+Math.round(y/Q), function(){ return buildWaypointPath(b.baseX, b.baseY, b.z, x, y, 0, b.team, botLane(b)); });
   var L = 0, px = b.baseX, py = b.baseY;
   p.forEach(function(q){ L += Math.hypot(q[0]-px, q[1]-py); px = q[0]; py = q[1]; });
   return L;
@@ -10437,6 +10473,11 @@ function teamDeath(att, vic){
 }
 
 // ---------- канал команды ----------
+function teamHeardDied(team, n){
+  var c = knowGraph().c[n.zone]; if(!c) return false;
+  var foe = team === "CT" ? "T" : "CT";
+  return teamIntel[foe].sig.some(function(g){ return g.type === "died" && g.tick >= n.made && Math.hypot(g.x-c.x, g.y-c.y) <= 300; });
+}
 function teamChannel(T){
   var mates = bots.filter(function(b){ return b.team === T.team; });
   // готовые фразы — в очередь
@@ -10475,6 +10516,10 @@ function teamChannel(T){
     else if(teamCovered(T, n)) why = "уже сказано";
     // про кого хотел сказать — уже в киллфиде (смерть видят все): говорить не о ком
     else if(n.ids && !n.ids.some(function(id){ var e = teamBot(id); return e && e.alive; })) why = "враг уже убит";
+    // (п.15 владельца 29.10, м1 р4: «слышу гранату с B Short» сказано через 1,5 с после того, как бросившего убили там же, — ушло в инфу
+    // как враг за дымом) звук без имени: после него в этой зоне убит враг (киллфид) — это был он; правило v273 (knowKill: свой звук
+    // ≤ 300 px от места фрага, полученный до него, забывается) — и для колла, который ещё не прозвучал
+    else if(n.kind === "hear" && n.zone && teamHeardDied(T.team, n)) why = "враг уже убит";
     else if(crowd && TEAM_PRIO[n.kind] === 0) why = "не до того — в канале толпа";
     else if(!sp || (!sp.alive && !(n.kind === "death" && tick - sp.voice.diedAt <= teamSec(TEAM.deadTalk)))) why = "говорящий погиб";
     if(why) continue;   // не прозвучало (устарело / уже сказано / враг убит / толпа / говорящий погиб)
@@ -11604,10 +11649,13 @@ function lookKnowCands(b){
   // свои уши ≤ 1 с; бросок гранаты рядом — враг точно там (v359)
   var hs = b.heardSound;
   if(hs && tick - hs.tick <= LOOK_FRESH) add(LOOK_LEVEL.sound, "sound", {x: hs.x, y: hs.y, age: tick - hs.tick}, hs.kind === "nade" ? LOOK.freshK : 1);
-  // убили тиммейта рядом ≤ 3 с: туда, откуда убили (убийцу видел он — точка на радаре), иначе место смерти
+  // убили тиммейта рядом ≤ 3 с: туда, откуда убили (убийцу видел он — точка на радаре), иначе место смерти.
+  // (п.26 владельца 29.10, м1 р7: CT на B смотрели в Kitchen по смерти kyousuke на Ramp — проверки «рядом» в коде не было, срабатывала
+  // любая смерть на карте) «рядом» — то же, что у отхода CT «свой убит рядом» (300: FB.deathR по прямой и по пути)
   var sg = teamIntel[b.team] && teamIntel[b.team].sig;
   if(sg) for(var i = sg.length-1; i >= 0; i--){ var s = sg[i]; if(tick - s.tick > 3*TICK_HZ) break;
     if(s.type !== "died" || s.id === b.id) continue;
+    if(Math.hypot(s.x-b.x, s.y-b.y) >= FB.deathR || polyLen(pathPts(b.x, b.y, s.x, s.y)) >= FB.deathR) continue;
     add(LOOK_LEVEL.sound, "death", {x: s.kx != null ? s.kx : s.x, y: s.kx != null ? s.ky : s.y, age: tick - s.tick}); break; }
   // команда знает сейчас: видят (радар) / слышали / сказали ≤ 1 с; в упор (≤ 250 px) — та же «свежая угроза», что у зоны
   var BL = beliefLast[b.team] || {};
@@ -11649,8 +11697,10 @@ function lookFilter(b, look, LD){
     if(alt){ look = alt; b.lookReason = "open"; if(LD) LD.steps.push("на линии свой — взял другое открытое направление"); }
     // (v413, Б5д-3) на бегу открытого направления впереди нет — по ходу движения, а не в спину своему
     else if(b.curSpeed > 60*SPD_K){ look = null; b.lookReason = null; if(LD) LD.steps.push("на линии свой, впереди открытого нет — по ходу движения"); } }
-  if(look && !/^(enemy|pro)$/.test(b.lookReason || "")){ var lw0 = look; look = openLook(b, look); if(LD && look !== lw0) LD.steps.push("стена по взгляду — взял открытое направление рядом"); }
-  if(!b._sawEnemy && !/^(enemy|spam|cover|contact)$/.test(b.lookReason || "")){
+  // (п.5 владельца 29.10, м1 р2 т12072: по zont1x стреляли из B Short, арбитр выбрал «на звук», а этот фильтр повернул его на «открытое
+  // рядом» — Stove, стрелок в 45–79° от взгляда) на звук / свой контакт — угол, из-за которого враг (cornerLook), даже если стена близко
+  if(look && !/^(enemy|pro|sound|contact)$/.test(b.lookReason || "")){ var lw0 = look; look = openLook(b, look); if(LD && look !== lw0) LD.steps.push("стена по взгляду — взял открытое направление рядом"); }
+  if(!b._sawEnemy && !/^(enemy|spam|cover|contact|sound)$/.test(b.lookReason || "")){   // (п.5) и на звук — угол врага, не «открытое»
     var wla = look ? Math.atan2(look.y-b.y, look.x-b.x) : (!(b.curSpeed > 15*SPD_K) && b.facing !== undefined ? b.facing : null);
     if(wla !== null && flatWallAhead(b, wla, 80)){ var wal = openDirNear(b, wla); look = wal || null; if(wal) b.lookReason = (b.lookReason||"") + "+open"; if(LD) LD.steps.push(wal ? "стена в 80 px — повернул на открытое" : "стена в 80 px — открытого нет"); }
   }
@@ -12022,7 +12072,7 @@ function smkEvidence0(b, s){
   // сейчас ждёт врага у этого входа: свежий звук / колл / видели в SMK_ENTRY_R ед. от смока за 6 с или колл «выход» на этот сайт.
   // Раньше смок у входа простреливали всегда, даже когда все враги были на другой стороне карты
   if(entry){
-    var sigE = (teamIntel[b.team].sig || []).some(function(g){ return tick - g.tick <= 6*TICK_HZ && (g.type === "spotted" || g.type === "sound") && Math.hypot(g.x-s.x, g.y-s.y) < SMK_ENTRY_R; });
+    var sigE = (teamIntel[b.team].sig || []).some(function(g){ return tick - g.tick <= 6*TICK_HZ && (g.type === "spotted" || g.type === "sound") && !sigFoeDead(g) && Math.hypot(g.x-s.x, g.y-s.y) < SMK_ENTRY_R; });
     var cl = b.team === "CT" && teamTac.CT && teamTac.CT.call, near = cl && SITES[cl.site] && Math.hypot(SITES[cl.site].x-s.x, SITES[cl.site].y-s.y) < 900 && cl.count >= 1.5;
     if(sigE || near) return {kind:"entry", pt:beyond};
   }
@@ -12504,7 +12554,9 @@ function flankPost(b, F, planted){
   if(F.stage >= pts.length) return false;
   var P = pts[F.stage];
   setPost(b, P.p, P.look, true, P.tag);
-  if(b.atPost){
+  // (п.20 владельца 29.10, м1 р7: kyousuke, стоя на «за укрытие на перезарядку», прошёл все три этапа фланга без захода) этап — только на
+  // точке этапа (пост этого этапа), а не на любом посту, куда его увела другая задача
+  if(b.atPost && b.post && b.post.tag === P.tag){
     if(!F.arr) F.arr = tick;
     if(tick - F.arr > 40){ F.stage++; F.arr = 0; }   // коротко проверил угол — дальше
   }
@@ -12865,11 +12917,16 @@ function smokePushReason(b, S){
   if(mate) return "пушим вместе";
   return null;
 }
+// (п.15 владельца 29.10: «стреляет в смок, хотя только что убил оттуда врага») сигнал про врага, который уже убит, — не повод: смерть
+// видна всем в киллфиде (так же lkpTick стирает метку убитого). Раньше «видели / слышали CT1» 2,4 / 1,5 с назад держали прострел дыма
+// после его смерти. Неопознанный звук («?») — не про кого-то, остаётся
+function sigFoeDead(g){ var id = g && g.id; if(!id || id === "?") return false; var o = teamBot(id); return !!(o && !o.alive); }
 function enemyBeyondSmoke(b, S, r){
   var sig = teamIntel[b.team].sig, ax = S.x - b.x, ay = S.y - b.y;
   for(var i=sig.length-1; i>=0; i--){
     var g = sig[i]; if(tick - g.tick > 6*TICK_HZ) break;
     if(g.type !== "spotted" && g.type !== "sound") continue;
+    if(sigFoeDead(g)) continue;
     if(Math.hypot(g.x-S.x, g.y-S.y) > r + 350) continue;
     if((g.x-b.x)*ax + (g.y-b.y)*ay > 0) return true;   // по ту сторону, куда идём
   }
@@ -14466,6 +14523,16 @@ function offNavStep(x1, y1, x2, y2, b){
       if(aw) return false; } }
   return true;
 }
+// (п.19 владельца 29.10, м1 р5 т34629: TeSeS переминался на посту и шагнул на ящик в Ticket, 62 ед. выше пола) шаг без прыжка: выше
+// ступеньки (18, как в heightBlocked) — только прыжком; переминание на месте не прыгает
+function stepNeedsJump(x1, y1, x2, y2, b){
+  if(!b || b.z == null) return false;
+  var a1 = navAt(x1, y1, b.z) || navArea(b._area); if(!a1) return false;
+  var a2 = navAt(x2, y2, b.z) || navAtLevel(x2, y2, a1.z);   // (снимок п.19: уступ +63 navAt своего уровня не отдаёт — берётся пол в пределах прыжка)
+  if(!a2 || a2 === a1) return false;
+  var up = navStepDz(a1, a2, x2, y2);
+  return up > 18 && !(up > 72 && a2.z - b.z > 72);   // выше роста над головой — потолок, не уступ (как в heightBlocked)
+}
 function heightBlocked(x1, y1, x2, y2, b){
   if(!b || b.z == null) return false;
   // (v323, М38) стоит в щели между участками навмеша — берётся участок, где был (bot._area); раньше щель пропускала проверку,
@@ -14801,7 +14868,15 @@ function updateNadeTasks(){
         // (v378) задача важнее броска (арбитр места) — бросок не идёт, пока она не кончится (с v438 — ждёт, а не отменяется)
         // (v438, док владельца 27.10: «мид взяли без гранат, хотя куплены»; замер: 29 % заданий снимала задача важнее — бой, перестановка)
         // задача важнее — бросок ждёт, пока она кончится (срок задания until остаётся: момент прошёл — граната не летит). Было — снимался сразу
+        // (п.2/12 владельца 29.10: «бросать задачи и идти назад и кидать её»; м1 р2 NiKo — отход увёл от Connector, потом снова туда;
+        // р4 donk — фланг к миду, потом назад в T Apps) ждёт — пока перебившая задача не увела его от точки броска: вернуться к броску —
+        // только если точка не дальше по пути, чем была, когда перебили; ушёл дальше — бросок снят (идти назад за гранатой не надо)
         if(b.state === "patrol") setPost(b, t.from, {x:t.x, y:t.y}, true, "lineup");
+        var lu = b.state === "patrol" && b.post && b.post.tag === "lineup";
+        if(!lu){ if(!t.int) t.int = {d: pathLenTo(b, t.from.x, t.from.y)}; }
+        else if(t.int){ var dI = t.int.d; t.int = null;
+          if(pathLenTo(b, t.from.x, t.from.y) > dI + 36){ logEvent(b.id+": граната отменена — после другой задачи точка броска позади ("+t.why+")");
+            b.nadeTask = null; b.nadeQueue = null; clearPost(b); return; } }
         return; }
       postKeep(b);   // стоит на точке броска — затея ещё идёт
       if(!nadeReady(b)) return;   // (v340) только что кинул другую — задание ждёт
@@ -14839,7 +14914,7 @@ function nadeThrowSpot(b, t){
   var c = nadeLaneFroms(t.x, t.y).filter(function(q){ return Math.hypot(q.x-b.x, q.y-b.y) <= NADE_SPOT_R && navAt(q.x, q.y); }).map(function(q){ return {x:q.x, y:q.y, lane:true}; })
     .concat(pickSpots("nthr"+b.id+"_"+Math.round(t.x)+","+Math.round(t.y), {x:b.x, y:b.y}, 8, {rMax:NADE_SPOT_R, minGap:40, hideFrom:foes})
       .filter(function(q){ return Math.hypot(q.x-t.x, q.y-t.y) <= t.range*0.85 && !crossesWall(q.x, q.y, t.x, t.y) && nadeArc({x:q.x, y:q.y, z:null}, t.x, t.y); }))
-    .filter(function(q){ return !foes.some(function(f){ return hasLOS(q.x, q.y, f.x, f.y); }); });
+    .filter(function(q){ return !foes.some(function(f){ return hasLOS(q.x, q.y, f.x, f.y); }) && !luBehind(b, q); });   // (п.12) и не позади по ходу (390)
   if(c.length > 12) c = c.sort(function(a, d){ return Math.hypot(a.x-b.x, a.y-b.y) - Math.hypot(d.x-b.x, d.y-b.y); }).slice(0, 12);
   var best = null, bL = Infinity;
   c.forEach(function(q){ var L = pathLenTo(b, q.x, q.y); if(L < bL){ bL = L; best = q; } });
@@ -14997,7 +15072,7 @@ function lineupTick(){
     var okBot = function(b){ if(!(b.team === L.team && b.alive && b.nades && b.nades[L.type] > 0 &&
       !b.planting && !b.defusing && !(bomb.state === "carried" && bomb.carrier === b))) return false;
       var S = spotOf(b); if(!S || (!(L.pro && L.grp) && !npCanUse(b, L.type, luM, luZ))) return false;
-      var F = S.from; return Math.hypot(b.x-F.x, b.y-F.y) < maxD && pathLenTo(b, F.x, F.y) < maxD; };
+      var F = S.from; return Math.hypot(b.x-F.x, b.y-F.y) < maxD && pathLenTo(b, F.x, F.y) < maxD && !luBehind(b, F); };
     // (v359, р7) кто уже стоит на сайте T (взял его) — с сайта за гранатой назад не уходит
     var onTSite = function(b){ var S = L.team === "T" && tt && SITES[tt.site]; return !!S && (onSite(S, b.x, b.y) || Math.hypot(b.x-S.x, b.y-S.y) < 450) && Math.hypot(L.from.x-S.x, L.from.y-S.y) > Math.hypot(b.x-S.x, b.y-S.y) + 200; };
     var cand = bots.filter(function(b){ return okBot(b) && !b.nadeTask && !onTSite(b); }).sort(function(a, b2){ return cost(a) - cost(b2); })[0];
@@ -15074,12 +15149,28 @@ var LU_REACH_PAD = 3;
 // (док 6) точка броска цели L для бойца b: среди лайнапов той же цели (группа про, 320) своей стороны и сайта — ближайшая по пути из тех,
 // откуда ему можно: хозяину цели по плану гранат — любая; остальным — в зоне его гранаты (npCanUse) или (CT) в зоне, где он сейчас стоит.
 // Зона точки — как у плана: CT — откуда бросок, T — куда падает; колл, ретейк, после планта — зона не важна. Нет такой — null
+// (п.6 владельца 29.10, м1 р3 т15885: kyousuke шёл в Short, пробежал Window — и получил HE Cart с Window, назад 460 ед.; «почему он не мог
+// дойти до точки изначальной… если по таймингу должен был кинуть, то тогда её надо было кидать игроку 6, а это уже его проблема, что не
+// купил гранаты») точка броска не по пути: бот идёт к своей точке (пост не достигнут), а дорога через точку броска — в основном крюк
+// — эту гранату ему не дают
+var LU_DETOUR_K = 0.5;   // проектное число: доля дороги до точки броска, которая может быть крюком
+function luBehind(b, F){
+  var P = b.post; if(!P || b.atPost || P.tag === "lineup") return false;
+  // обе длины — одной меркой: путь команды (цена за известных врагов), от бота — с его этажа (pathPts берёт z 0: у Doors уходил на другой пол)
+  var Q = PATHQ_Q, fp = pathQ("lb"+b.team+"|"+Math.round(F.x/Q)+","+Math.round(F.y/Q)+">"+Math.round(P.x/Q)+","+Math.round(P.y/Q), function(){ return buildWaypointPath(F.x, F.y, 0, P.x, P.y, 0, b.team); });
+  var L = 0, px = F.x, py = F.y; fp.forEach(function(q){ L += Math.hypot(q[0]-px, q[1]-py); px = q[0]; py = q[1]; });
+  // «не по пути»: крюк (до точки броска + от неё до своей точки − прямо) больше половины дороги до точки броска (½ — проектное число).
+  // На снимке п.6: до Window 662, от Window до Short 861, от бота до Short 868 — крюк 655 из 662
+  var mF = pathLenTo(b, F.x, F.y);
+  return mF + L - pathLenTo(b, P.x, P.y) > LU_DETOUR_K*mF;
+}
 function luSpotFor(b, L, luM){
   var tt = teamTac.T, best = null, bl = Infinity, own = npOwner(b, L), myZ = L.team === "CT" ? npZoneAt(b.x, b.y) : null;
   (PRO_GROUPS[L.grp] || [L]).forEach(function(M){
     if(M.team !== L.team || (L.team === "T" && M.site !== "any" && tt && M.site !== tt.site)) return;
     if(!own){ var z = luM === "now" || luM === "exec" ? (M.team === "CT" ? npZoneAt(M.from.x, M.from.y) : npZoneAt(M.to.x, M.to.y)) : null;
       if(!npCanUse(b, L.type, luM, z) && !(myZ && z === myZ && npCanUse(b, L.type, luM, null))) return; }
+    if(luBehind(b, M.from)) return;   // (п.6) точка этой цели позади по ходу — берётся другая из группы, если есть
     var d = pathLenTo(b, M.from.x, M.from.y); if(d < bl){ bl = d; best = M; } });
   return best;
 }
@@ -15098,6 +15189,9 @@ function nadeWallHit(x1,y1,x2,y2){
 // разбросом ~120 ед. карты (проектное число) идёт в инфу команды как «слышал там врага» и в войс «граната из X»
 function nadeOrigin(n){
   if(roundState !== "live" || !n.thrower || n.ox == null) return;
+  // (п.15 владельца 29.10, м1 р4 т28923: смок m0NESY с B Short встал после его смерти — «граната оттуда» ушла в инфу T как «слышал врага»
+  // («?») и держала прострел дыма) бросивший уже убит (киллфид видят все) — точка броска не место врага
+  if(!n.thrower.alive) return;
   var foe = n.team === "T" ? "CT" : "T";
   var pts = (n.trail || []).slice(-8).concat([[n.x, n.y]]);
   var saw = bots.filter(function(o){ return o.team === foe && o.alive && tick >= (o.blindUntil||0) &&
@@ -16132,6 +16226,9 @@ function weaponPickupTick(){
       // метался между ними и стоял на месте (путь пересчитывался). Общий лимит
       // на "хожу за оружием" — 7с, потом 8с не отвлекается на ганы
       if(!b._pickSince || tick - b._pickSeen > 4) b._pickSince = tick; b._pickSeen = tick;
+      // (п.10 владельца 29.10, м1 р4 т24280: m0NESY 3,3 с стоял у края молотова на Mid, и «идёт дольше 6 с» сняло затею за 215 ед. до
+      // оружия) ждёт, пока погаснет огонь на пути (540: fireWait), — это не «иду слишком долго»: сроки на это время стоят
+      if(b._fireWaitT != null && tick - b._fireWaitT <= 1){ b._pickT.t++; b._pickSince++; }
       var pickTooLong = BAL.pickFix && tick - b._pickSince > (b._pickSave === roundNum ? 12 : 7)*TICK_HZ;   // (v334) на сейве идёт шагом — дольше
       if((b.atPost && tick - b._pickT.t > TICK_HZ) || tick - b._pickT.t > (b._pickSave === roundNum ? 12 : 6)*TICK_HZ || pickTooLong){ b._pickIgnore = {x:b.post.x, y:b.post.y, round:roundNum}; if(pickTooLong) b._pickBan = tick + 8*TICK_HZ; clearPost(b); b._pickGo = null; b._pickSince = 0; }
       else postKeep(b);   // идёт за оружием — затея ещё идёт (арбитр места)
@@ -16639,6 +16736,11 @@ function exposedTo(b, maxD, maxAge, anyLos){
   var BL = beliefLast[b.team] || {}, out = [];
   for(var eid in BL){ var lo = BL[eid]; if(tick - lo.tick > maxAge) continue; var e = bots.filter(function(o){ return o.id === eid; })[0]; if(!e || !e.alive) continue;
     if(Math.hypot(lo.x-b.x, lo.y-b.y) < maxD && (anyLos || hasLOS(b.x, b.y, lo.x, lo.y, b.z))) out.push({x:lo.x, y:lo.y}); }
+  // (п.5 владельца 29.10, м1 р2 т12112: zont1x с 16 HP перезаряжался на виду — метку стрелка lkpTick стёр в тот же тик) по нему самому
+  // попали — откуда, он знает сам (урон + звук выстрела, heardSound «hit»): это тоже «на виду»
+  var hs = b.heardSound;
+  if(hs && hs.kind === "hit" && hs.team && hs.team !== b.team && tick - hs.tick <= maxAge && Math.hypot(hs.x-b.x, hs.y-b.y) < maxD &&
+     !out.some(function(q){ return Math.hypot(q.x-hs.x, q.y-hs.y) < 60; })) out.push({x:hs.x, y:hs.y});
   return out;
 }
 function coverForReload(b, from){
@@ -18916,7 +19018,8 @@ function stepTick(){
         // (v298) шаг в стену не выбираем: сначала другая сторона, иначе стоим (раньше упирался и каждый тик выбирал заново — дёргался)
         var la0 = bot.facing !== undefined ? bot.facing : 0, pa0 = la0 + Math.PI/2;
         var tgt = function(d){ return {x: H.ax + Math.cos(pa0)*d*24 + Math.cos(la0)*H.fwd, y: H.ay + Math.sin(pa0)*d*24 + Math.sin(la0)*H.fwd}; };
-        if(H.dir){ var q0 = tgt(H.dir); if(stepBlocked(H.ax, H.ay, q0.x, q0.y, bot)){ var q1 = tgt(-H.dir); H.dir = stepBlocked(H.ax, H.ay, q1.x, q1.y, bot) ? 0 : -H.dir; } }
+        var idleBad = function(q){ return stepBlocked(H.ax, H.ay, q.x, q.y, bot) || stepNeedsJump(H.ax, H.ay, q.x, q.y, bot); };   // (п.19) и не на уступ
+        if(H.dir){ var q0 = tgt(H.dir); if(idleBad(q0)){ var q1 = tgt(-H.dir); H.dir = idleBad(q1) ? 0 : -H.dir; } }
       }
       // (v298, владелец 14.10: «переминание дёрганое») направление шага берётся один раз, когда выбран новый шаг (раньше — каждый тик от
       // взгляда: повернул голову — точка шага прыгала), и скорость не скачет: разгон и торможение к точке шага за ~0,25 с (проектное
@@ -18935,7 +19038,7 @@ function stepTick(){
         var ux = same ? sdx/sd : (H.vx || 0), uy = same ? sdy/sd : (H.vy || 0);
         var st = Math.min(same ? sd : 99, v1*dtSec);
         var sx = bot.baseX + ux*st, sy = bot.baseY + uy*st;
-        if(st > 0 && !stepBlocked(bot.baseX, bot.baseY, sx, sy, bot)){ bot.baseX = sx; bot.baseY = sy; bot.curSpeed = v1; bot.walking = true; H.vx = ux; H.vy = uy; H.v = v1; }
+        if(st > 0 && !stepBlocked(bot.baseX, bot.baseY, sx, sy, bot) && !stepNeedsJump(bot.baseX, bot.baseY, sx, sy, bot)){ bot.baseX = sx; bot.baseY = sy; bot.curSpeed = v1; bot.walking = true; H.vx = ux; H.vy = uy; H.v = v1; }
         else if(st > 0){ H.dir = 0; H.until = tick + 32; H.v = 0; H.vx = H.vy = 0; } // упёрся — постоять 0,5 с, потом новый шаг
         else { H.v = v1; if(v1 <= 0.5){ H.vx = H.vy = 0; } }
       } else { H.v = 0; H.vx = H.vy = 0; if(bot.curSpeed <= STRAFE) bot.curSpeed = 0; }
@@ -19061,7 +19164,7 @@ function stepTick(){
         // погаснет (fireGoneRepath, 370). Раньше упирался в край: веер проб, «застрял» → отталкивание, сброс пути, тот же путь заново —
         // переносы у огня на Ancient 58 → 128 на 100 раундов (замер 28.10)
         var fireWait = !inFire(bot.baseX, bot.baseY) && inFire(nx, ny) && !fireCommit(bot) && fireOnSeg(bot.baseX, bot.baseY, target[0], target[1]);
-        if(fireWait){ bot.curSpeed = 0; bot.walking = false; }
+        if(fireWait){ bot.curSpeed = 0; bot.walking = false; bot._fireWaitT = tick; }
         else if(!stepBlocked(bot.baseX,bot.baseY,nx,ny,bot)){ // стены + в огонь без причины не заходим
           bot.baseX = nx; bot.baseY = ny;
           if(isLastLeg && dist <= step){ bot.baseX = target[0]; bot.baseY = target[1]; bot.pathIdx++; }   // (v323) высота — только по навмешу (ниже), не по точке пути
@@ -23171,6 +23274,7 @@ var __SNAP = [
 ["CROSS_NEAR", function(){ return CROSS_NEAR; }, function(v){ try{ CROSS_NEAR = v; }catch(e){} }],
 ["SOLO_SHARE", function(){ return SOLO_SHARE; }, function(v){ try{ SOLO_SHARE = v; }catch(e){} }],
 ["LU_REACH_PAD", function(){ return LU_REACH_PAD; }, function(v){ try{ LU_REACH_PAD = v; }catch(e){} }],
+["LU_DETOUR_K", function(){ return LU_DETOUR_K; }, function(v){ try{ LU_DETOUR_K = v; }catch(e){} }],
 ["CLR_REB_SEC", function(){ return CLR_REB_SEC; }, function(v){ try{ CLR_REB_SEC = v; }catch(e){} }],
 ["EXEC_REACH", function(){ return EXEC_REACH; }, function(v){ try{ EXEC_REACH = v; }catch(e){} }],
 ["EXEC_QUEUE_R", function(){ return EXEC_QUEUE_R; }, function(v){ try{ EXEC_QUEUE_R = v; }catch(e){} }],
@@ -23396,7 +23500,6 @@ var __SNAP = [
 ["OBS_WIDE_MAX", function(){ return OBS_WIDE_MAX; }, function(v){ try{ OBS_WIDE_MAX = v; }catch(e){} }],
 ["OBS_NEAR_CALM", function(){ return OBS_NEAR_CALM; }, function(v){ try{ OBS_NEAR_CALM = v; }catch(e){} }],
 ["RP_MODES", function(){ return RP_MODES; }, function(v){ try{ RP_MODES = v; }catch(e){} }],
-["SHOW_TTS", function(){ return SHOW_TTS; }, function(v){ try{ SHOW_TTS = v; }catch(e){} }],
 ["RP_NB", function(){ return RP_NB; }, function(v){ try{ RP_NB = v; }catch(e){} }],
 ["RP_EL", function(){ return RP_EL; }, function(v){ try{ RP_EL = v; }catch(e){} }],
 ["RP_LANG", function(){ return RP_LANG; }, function(v){ try{ RP_LANG = v; }catch(e){} }],
@@ -24277,8 +24380,7 @@ var RP_K = {
   startDelay: 1.3,    // повтор начинается через startDelay с после конца раунда (видно карточку раунда и баннер)
   emo: 2.2,           // эмоции: после последней реплики экран ещё стоит emo с
   typing: 0.45,       // реплика: «печатает…» перед фразой, с
-  sayMin: 1.1,        // реплика держится до следующей не меньше, с (с голосом — пока голос не кончится, не дольше sayMax)
-  sayMax: 3.6,
+  sayMin: 1.1,        // реплика держится до следующей не меньше, с
   quiet: 0.85,        // реплика без голоса — до следующей, с
   voices: 5,          // сколько реплик озвучено (клатчер, двое своих, двое соперников) — остальные только текстом
   intro: 0.7, outro: 0.5,
@@ -24299,8 +24401,7 @@ function rpMode(R, B){
 }
 // (v462, владелец 29.10: «нет анимаций, звуков… звуки главное») звук и голос показа (повтор, пауза) — одно место. Только если включён
 // «Звук» (кнопка, 680): звук чата (chat_talk — присланный владельцем 15.10) на каждую реплику, свист на смену кадра, удар на фраг;
-// голос — синтез речи браузера (speechSynthesis), язык — язык команды; выключить голос — «Инструменты → озвучка реплик»
-var SHOW_TTS = true; try{ SHOW_TTS = localStorage.getItem("sim-tts") !== "0"; }catch(e){}
+// голоса нет (п.18 владельца 29.10: «убрать озвучку игроков в клатчах»; на паузе убран в v469) — реплики только текстом
 function showSnd(kind, g){
   if(typeof SND === "undefined" || !SND.on || !SND.ctx) return;
   try{
@@ -24310,19 +24411,6 @@ function showSnd(kind, g){
     else if(kind === "pop"){ sndTone(g || 0.1, 0.07, 1100, "triangle", 0, 1700); }
   }catch(e){}
 }
-function showSay(text, lang, lvl, who, onEnd){
-  if(!SHOW_TTS || typeof SND === "undefined" || !SND.on || typeof speechSynthesis === "undefined") return false;
-  try{
-    var u = new SpeechSynthesisUtterance(String(text).toLowerCase()), L = lang === "en" ? "en-US" : "ru-RU", h = rpHash(who || "x");
-    u.lang = L; u.pitch = 0.8 + (h % 40)/100; u.rate = lvl === 3 ? 1.15 : lvl === 1 ? 0.95 : 1.05; u.volume = (lvl === 1 ? 0.55 : lvl === 3 ? 1 : 0.85)*(SND.vol != null ? SND.vol : 0.85);
-    var vs = speechSynthesis.getVoices().filter(function(v){ return v.lang && v.lang.toLowerCase().indexOf(L.slice(0, 2).toLowerCase()) === 0; });
-    if(vs.length) u.voice = vs[h % vs.length];
-    if(speechSynthesis.pending) speechSynthesis.cancel();   // не копить очередь: реплика, которая уже на экране, важнее старой
-    if(onEnd){ u.onend = onEnd; u.onerror = onEnd; }
-    speechSynthesis.speak(u); return true;
-  }catch(e){ return false; }
-}
-function showHush(){ try{ if(typeof speechSynthesis !== "undefined") speechSynthesis.cancel(); }catch(e){} }
 var RP_NB = 9;   // чисел на игрока в снимке: x, y, взгляд, жив, hp, присел, этаж (-1 под полом / 1 над), плант(+)/дефуз(−) 0..1, ослеплён
 function rpNum(v){ return typeof v === "number" && isFinite(v) ? v : NaN; }
 // ---------- запись ----------
@@ -24401,6 +24489,9 @@ function rpRecord(){
     var KS = RP.kfSeen;
     for(var j = killfeed.length - 1; j >= 0; j--){ var k = killfeed[j]; if(KS.set ? KS.set.has(k) : k._rp) continue; if(KS.set) KS.set.add(k); else k._rp = 1;
       if(k.kind !== "kill") continue;
+      // (п.18/22/34 владельца 29.10) после перемотки запись раунда начинается заново, а киллфид — весь раунд: фраги до начала записи
+      // в клип не попадут (кадров нет) — это не моменты этой записи (раньше давали мультикилл с пустым клипом → экран «клатч 1v2»)
+      var kt = Math.round((k.at||simTime)*TICK_HZ); if(kt < RP.rec.t0) continue;
       RP.rec.kills.push({t: Math.round((k.at||simTime)*TICK_HZ), att: rpIdByNick(k.att), vic: rpIdByNick(k.vic), attTeam: k.attTeam, vicTeam: k.vicTeam,
         w: k.w, hs: k.hs, smoke: k.smoke, wall: k.wall, noscope: k.noscope, blind: k.blind, attN: k.att, vicN: k.vic}); }
   }
@@ -24491,7 +24582,10 @@ function rpEls(){
 function rpPlay(R, mode){
   if(!R || !R.clutch || !R.s.length) return false;
   var E = rpEls(); if(!E) return false;
-  var B = rpBuild(R), C = R.clutch, md = mode || rpMode(R, B);
+  var B = rpBuild(R), C = R.clutch, md = C.multi ? "clip" : mode || rpMode(R, B);
+  // (п.18/22/34 владельца 29.10) мультикилл / фраг — только клип: экран реакций написан про выигранный клатч. Кадров нет — показывать нечего
+  // (раньше пустой клип уходил в реакции с заголовком «клатч 1v» + число фрагов, в т.ч. у мёртвого и у проигравшей команды)
+  if(C.multi && !B.segs.length) return false;
   if(md === "emo") B.segs = [];
   RP.P = {R: R, mode: md, segs: B.segs, si: 0, rt: B.segs.length ? B.segs[0].a : R.end, phase: "intro", ph0: performance.now(), last: performance.now(),
           cam: null, feedShown: {}, ci: rpBotIdx(C.id)};
@@ -24513,7 +24607,7 @@ function rpStop(){
   var P = RP.P; if(P && P.phase !== "out"){ P.phase = "out"; P.ph0 = performance.now(); return; }
 }
 function rpEnd(){
-  RP.on = false; RP.P = null; RP.holding = false; showHush();
+  RP.on = false; RP.P = null; RP.holding = false;
   var E = rpEls(); if(E){ E.root.className = ""; E.emo.innerHTML = ""; if(E.vox){ E.vox.innerHTML = ""; E.vox._k = ""; } }
   if(typeof OBS !== "undefined") OBS.sc = 0;   // обсервер заново берёт камеру
 }
@@ -24530,8 +24624,8 @@ function rpFrame(ts){
     else if(simTime >= Pn.at){
       var Lh = Pn.rec.list || [Pn.rec.clutch], hh = Lh[Pn.i]; Pn.rec.clutch = hh; Pn.i++;
       // следующий повтор — если успевает до конца закупки (владелец: «если успеваешь — по очереди»)
-      if(Pn.i > 1 && roundState === "freeze" && roundStartTime - simTime < rpEst(Pn.rec)){ RP.pending = null; }
-      else { rpPlay(Pn.rec); RP.pending = Pn.i < Lh.length ? Pn : null; if(RP.pending) Pn.at = 0; }
+      if(Pn.n && roundState === "freeze" && roundStartTime - simTime < rpEst(Pn.rec)){ RP.pending = null; }
+      else { if(rpPlay(Pn.rec)) Pn.n = (Pn.n||0) + 1; RP.pending = Pn.i < Lh.length ? Pn : null; if(RP.pending) Pn.at = 0; }
     }
   }
   if(!RP.on) return false;
@@ -24800,7 +24894,7 @@ function rpSay(R, id, side){
 // (v465, владелец: «фразы уже готовые висят — надо как на паузах, что они говорят по очереди») реакции — по очереди: карточка
 // подсвечивается, над ней «…» (печатает), потом фраза, звук чата и голос; следующий — когда голос кончился (без голоса — через RP_K.quiet с).
 // Сказанное остаётся, приглушённое. Порядок: клатчер → свои → соперники (сначала его жертвы). Раньше 10 голосов запускались за 1,5 с
-// и сбрасывали друг друга (showSay отменяет очередь) — слышно было одну-две реплики
+// и сбрасывали друг друга — слышно было одну-две реплики
 function rpTalkOrder(R){
   var C = R.clutch, win = C.side, lose = win === "CT" ? "T" : "CT", L = [];
   var ids = function(side){ return bots.filter(function(b){ return b.team === side; }).map(function(b){ return b.id; }); };
@@ -24826,13 +24920,12 @@ function rpTalkTick(E, P, now){
   var q = T.L[T.i], k = rpTalkCard(E, q);
   if(T.st === "type"){
     if(el < RP_K.typing) return false;
-    T.st = "say"; T.t0 = now; T.voiceEnd = true;
+    T.st = "say"; T.t0 = now;
     if(k.s) k.s.className = "rp-say lvl" + q.say.lvl + " in";
     showSnd("chat", q.say.lvl === 1 ? 0.35 : 0.6);
-    if(q.voice){ var tk = T.tok = {}; T.voiceEnd = false; if(!showSay(q.say.t, q.lang, q.say.lvl, q.id, function(){ if(T.tok === tk) T.voiceEnd = true; })) T.voiceEnd = true; }
     return false;
   }
-  if(el < (q.voice ? RP_K.sayMin : RP_K.quiet) || (!T.voiceEnd && el < RP_K.sayMax)) return false;
+  if(el < (q.voice ? RP_K.sayMin : RP_K.quiet)) return false;
   if(k.c){ k.c.classList.remove("talking"); k.c.classList.add("said"); }
   T.i++; T.t0 = now; if(T.i < T.L.length) rpTalkStart(E, T, now);
   return false;
@@ -24915,7 +25008,7 @@ function rpGoto(m, r){
 // (RP_LANG, 675), русскоговорящие в англоязычной команде иногда по-русски (RP_RU). Часы — время игры: на паузе игры показ стоит.
 // (v462, владелец: «нет анимаций, звуков; заготовка и портреты в одном окне, чтобы чередовались, разнообразие») сцены: титр → один из
 // порядков TS_SEQ (выбор — от матча и раунда): доска; доска + портреты в одном окне; портреты; спавн с доской в углу. На смену сцены —
-// затемнение и свист, на реплику — звук чата и голос (675: showSnd / showSay). Длительности — с игры, проектные (сумма ≈ TO_SEC)
+// затемнение и свист, на реплику — звук чата (675: showSnd). Длительности — с игры, проектные (сумма ≈ TO_SEC)
 var TS_K = {title: 2.5, outro: 0.5};
 // (v463, владелец: «всё очень быстро меняется, не успеваешь осознать») три сцены по 8–10 с, реплика — не меньше TS_LINE с
 var TS_SEQ = [
@@ -25071,7 +25164,8 @@ function tsStart(T){
   var li = rpHash(T.m + "|" + T.round + "|lay") % TS_LAYS.length; if(li === TS.lastLay) li = (li + 1) % TS_LAYS.length; TS.lastLay = li;   // не как в прошлой паузе
   var seq = TS_SEQ[si], at = TS_K.title, S = [{sc: "title", a: 0, b: at}];
   seq.forEach(function(q){ S.push({sc: q[0], a: at, b: at + q[1]}); at += q[1]; });
-  TS.P = {T: T, t0: simTime, lines: tsScript(T), side: T.side, shown: -1, phase: "", manual: false, seq: S, end: at};
+  TS.P = {T: T, t0: simTime, lines: tsScript(T), side: T.side, shown: -1, phase: "", manual: false, seq: S, end: at,
+          view0: {scale: view.scale, panX: view.panX, panY: view.panY}};   // вид до паузы — вернуть после (п.8)
   var team = bots.filter(function(b){ return b.team === T.side; }), igl = tsIgl(T.side), en = (RP_LANG[T.name] || "ru") === "en";
   var pips = ""; for(var i = 0; i < (T.round > regRounds() ? 1 : 3); i++) pips += '<i class="' + (i < T.left ? "on" : "") + '"></i>';
   var logo = TEAM_LOGO[T.side];
@@ -25090,7 +25184,10 @@ function tsStart(T){
   return true;
 }
 function tsStop(){ var P = TS.P; if(P && P.phase !== "out"){ P.outAt = simTime; P.phase = "out"; P.outReal = performance.now(); } }
-function tsEnd(){ TS.P = null; showHush(); var E = tsEls(); if(E){ E.root.className = ""; E.talk.innerHTML = ""; E.sub.innerHTML = ""; } if(typeof OBS !== "undefined") OBS.sc = 0; }
+// (п.8 владельца 29.10: «камера сохраняет положение после пауз»; владелец: обсервер выключен — вернуть камеру туда, где была;
+// включён — как сейчас: обсервер заново берёт кадр)
+function tsEnd(){ var v0 = TS.P && TS.P.view0; if(v0 && typeof OBS !== "undefined" && !OBS.on){ view.scale = v0.scale; view.panX = v0.panX; view.panY = v0.panY; }
+  TS.P = null; var E = tsEls(); if(E){ E.root.className = ""; E.talk.innerHTML = ""; E.sub.innerHTML = ""; } if(typeof OBS !== "undefined") OBS.sc = 0; }
 // по кадру (680, после повтора клатча): true — экран нарисован здесь (сцены поверх); false — обычная отрисовка
 function tsFrame(ts){
   if(typeof TO_NOW === "undefined") return false;
@@ -25143,7 +25240,6 @@ function tsReplayLast(){
 (function(){
   if(typeof document === "undefined") return;
   var b = document.getElementById("btnToLast"); if(b) b.addEventListener("click", tsReplayLast);
-  var tt = document.getElementById("chkTts"); if(tt){ tt.checked = SHOW_TTS; tt.addEventListener("change", function(){ SHOW_TTS = tt.checked; if(!tt.checked) showHush(); try{ localStorage.setItem("sim-tts", tt.checked ? "1" : "0"); }catch(e){} }); }
   var f = document.getElementById("btnToTake"); if(f) f.addEventListener("click", function(){ TO_FORCE = true; if(typeof showBanner === "function") showBanner("Пауза: возьмёт команда, проигравшая этот раунд", null, 2200); });
   // (v461) раунды для просмотра — из замера v461 на ПК (16 матчей): клатч 1v5 (м17 р27), пауза T, раунд взяли (м13 р7)
   var c = document.getElementById("btnRpGo"); if(c) c.addEventListener("click", function(){ rpJump(17, 27); });
