@@ -204,6 +204,13 @@ function tSideZone(x, y){
   return ED_CACHE.CT[z] < ED_CACHE.T[z] * 0.95;   // ED_CACHE.CT — от спавна T
 }
 function rmemRecent(list, rounds){ return list.filter(function(e){ return roundNum - e.round <= rounds && e.round < roundNum; }); }
+// роль игрока соперника по памяти команды: район его привычного места (ctHabit) → опорник A / B, мид; CT-роли — только у CT
+function knownRole(o){
+  if(!o || o.team !== "CT") return null;
+  var h = habitTop(o.id, 2); if(!h) return null;
+  var r = setupRegionAt(h.x, h.y);
+  return r === "A" ? "anchorA" : r === "B" ? "anchorB" : r === "mid" ? "mid" : null;
+}
 function intelDeath(victim, killer){
   if(!victim || roundState !== "live") return;
   if(BAL.roundMem && killer){
@@ -237,7 +244,10 @@ function intelDeath(victim, killer){
        victim.team === "T" && bomb && bomb.state === "planted" ? "сижу у бомбы, жду дефуз" : "беру по одному"));
   }
   // команда убийцы тоже "знает", где и кого сняли (свой же игрок сказал "минус ...")
-  if(killer) intelPush(killer.team, {type:"kill", x:victim.x, y:victim.y, id:victim.id, role:victim.tRole, by:killer.id, conf:1});
+  // (аудит информации 30.10) роль убитого — то, что команда убийцы может знать: где этот игрок обычно стоит (ctHabit — увиденные и
+  // убитые в прошлых раундах; район — как у расстановок, setupRegionAt). Было victim.tRole — настоящая роль в этом раунде (скрытая инфа:
+  // T по ней решали «сняли опорника A — заходим», «минус на другом сайте — перекол»). Нет памяти о игроке — роль неизвестна (null)
+  if(killer) intelPush(killer.team, {type:"kill", x:victim.x, y:victim.y, id:victim.id, role:knownRole(victim), by:killer.id, conf:1});
   if(victim.team === "T" && !(bomb && bomb.state === "planted")) tDeathAdd(victim);
   // журнал смертей для IGL: кто, где, в какой фазе, откуда стреляли, разменяли ли
   if(teamTac.T && bomb && bomb.state !== "planted"){
