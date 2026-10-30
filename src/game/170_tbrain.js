@@ -571,7 +571,9 @@ function tBrain(){
         var cov = seen ? pickSpots("utilw"+Math.round(b.x/30)+","+Math.round(b.y/30)+tt.site, {x:b.x, y:b.y}, 1, {rMax:80, minGap:20, hideFrom:hf})[0] : null;
         if(cov && hf.some(function(q){ return hasLOS(cov.x, cov.y, q.x, q.y); })) cov = null;
         b._utilW = {round: roundNum, t: tick, x: cov ? cov.x : b.x, y: cov ? cov.y : b.y}; }
-      var waitOn = tick - b._utilW.t < (rush ? UTIL_WAIT_RUSH : UTIL_WAIT)*TICK_HZ || (!rush && exuPending(tt.site));   // (тактика 30.10) критичный смок — до готовности (366)
+      // (v485) предел UTIL_WAIT — и для критичного смока: без предела (v481) носитель дольше висел «ждать гранаты ↔ ставить» (прогон 133,
+      // Ancient: tug с utilWait 8,7 → 12,1 на 100 раундов, «plantspot → utilWait → plantspot» 3,0). Ждёт ли команда смоков — решает exuGate
+      var waitOn = tick - b._utilW.t < (rush ? UTIL_WAIT_RUSH : UTIL_WAIT)*TICK_HZ;
       // (v353, владелец: «в 351 знали про CT, но чего-то ждали и не выходили») ждал до предела — больше в этом раунде не ждёт: раньше
       // условие то пропадало, то появлялось, таймер начинался заново, и выход откладывался без конца
       if(!waitOn) b._utilWDone = roundNum;
