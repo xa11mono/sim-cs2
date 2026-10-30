@@ -117,6 +117,8 @@ function lineupTick(){
     if(go && (L.type === "molly" || L.type === "he")){ var Rk = NADE[L.type].radius + 40;
       if(bots.some(function(o){ return o.alive && o.team === L.team && (Math.hypot(o.x-L.to.x, o.y-L.to.y) < Rk || (o.post && Math.hypot(o.post.x-L.to.x, o.post.y-L.to.y) < Rk)); })) go = false; }
     if(!go) return;
+    // (физика гранат, этап 1в) из точки броска лайнапа (ни одной точки его группы) бросок не долетает / не на тот этаж — не назначается
+    if(!(PRO_GROUPS[L.grp] || [L]).some(nadeLineupOk)){ nadeFlags[key] = true; logEvent("лайнап «"+(L.name||LU_TYPE[L.type])+"» не назначен: из его точки бросок не долетает (физика)"); return; }
     // кто кидает: ближайший к точке броска, но не энтри (он заходит первым) и не
     // носитель бомбы; в горячих фазах (выход, колл, ретейк, пост-плант) — только
     // тот, кому до точки броска недалеко, иначе он бросит свою задачу и уйдёт назад
@@ -249,6 +251,7 @@ function luSpotFor(b, L, luM){
     if(!own){ var z = luM === "now" || luM === "exec" ? (M.team === "CT" ? npZoneAt(M.from.x, M.from.y) : npZoneAt(M.to.x, M.to.y)) : null;
       if(!npCanUse(b, L.type, luM, z) && !(myZ && z === myZ && npCanUse(b, L.type, luM, null))) return; }
     if(luBehind(b, M.from)) return;   // (п.6) точка этой цели позади по ходу — берётся другая из группы, если есть
+    if(!nadeLineupOk(M)) return;   // (физика гранат, этап 1в) отсюда бросок не долетает — другая точка группы
     var d = pathLenTo(b, M.from.x, M.from.y); if(d < bl){ bl = d; best = M; } });
   return best;
 }
