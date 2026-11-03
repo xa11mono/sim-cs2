@@ -32,6 +32,11 @@ REC.task={n:0, pr:0, cls:{react:0, end:0, swap:0, down:0, same:0}, osc:0, oscThr
 // и заменённая задача — «кончилась», а не «понижение»; качели X → lineup → X с броском — «кинул и вернулся», считаются отдельно (oscThrow)
 var ocp_=clearPost; clearPost=function(b){ if(b) TKC[b.id]=tick; return ocp_.apply(this,arguments); };
 var otn_=throwNade; throwNade=function(b){ var r=otn_.apply(this,arguments); if(r!==false&&b) TKT[b.id]=tick; return r; };
+// (03.11, гранаты) REC.nfail — отказы бросков (throwNade вернул false: причина NADE_FAIL) и задания гранат, снятые без броска
+// (команда|тип|лайнап|причина → число): почему флешек CT стало меньше (прогоны 143–145). Только учёт — игру не меняет
+REC.nfail={fail:{}, gone:{}}; var NFT={};
+var otnF=throwNade; throwNade=function(b,type){ var had=roundState==='live'&&b&&b.nades&&b.nades[type]>0, r=otnF.apply(this,arguments);
+  if(had&&r===false){ var k=b.team+'|'+type+'|'+((arguments[6]||arguments[7])?1:0)+'|'+String(typeof NADE_FAIL!=='undefined'?NADE_FAIL:'?'); REC.nfail.fail[k]=(REC.nfail.fail[k]||0)+1; } return r; };
 // жива ли прошлая задача — только чтение (taskKeepUntil меняет состояние бота — сторож игру не трогает): подтверждалась ≤ TASK_STALE или держит
 // свой замок (контакт, перестановка, размен, подмена)
 function tkKeep(b, tag){ tag=String(tag); if(/^contact/.test(tag)) return b._contact&&b._contact.lock?b._contact.until:0; if(/^repos/.test(tag)) return b._reposUntil||0;
@@ -87,6 +92,10 @@ for(var t=0;t<__T__;t++){ stepTick(); if(typeof WATCH!=='undefined') WATCH.tick(
    for(var eid in BLT){ var q=BLT[eid], ob=bots.filter(function(o){return o.id===eid&&o.alive;})[0]; if(ob&&tick-q.tick<=8*TICK_HZ&&Math.hypot(q.x-SITES[k].x,q.y-SITES[k].y)>900) away++; }
    TA.sc.push([tick,k,truth,ages,near,bel,fr?fr.seen+fr.heard:null,aliveCount('CT'),aliveCount('T'),SR?+SR.E[k].toFixed(2):null,away,Math.round((tick-roundStartTick)/TICK_HZ)]); });
  })();
+ if(roundState==='live'){ bots.forEach(function(b){ var t0=NFT[b.id], t=b.alive?b.nadeTask:null;
+   if(t0&&t0.t!==t&&TKT[b.id]!==tick&&t0.r===roundNum){ var why=!b.alive?'погиб':tick>t0.t.until?'срок':(b.nades&&b.nades[t0.t.type]<=0)?'нет гранаты':'снято';
+     var k=b.team+'|'+t0.t.type+'|'+(t0.t.from?1:0)+'|'+why; REC.nfail.gone[k]=(REC.nfail.gone[k]||0)+1; }
+   NFT[b.id]=t?{t:t, r:roundNum}:null; }); }
  (function(){ if(typeof taskLevel!=='function') return; var RT=REC.task;
   if(TK.r!==roundNum){ TK={r:roundNum, b:{}}; RT.pr+=bots.length; }
   bots.forEach(function(b){ if(!b.alive) return; var T=b._task, S=TK.b[b.id]||(TK.b[b.id]={k:null,P:null,h:[]});
