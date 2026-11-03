@@ -51,9 +51,29 @@ var NADE_GUESS_SLACK = 16;
 // чистится целиком после 4000 решений); считается заранее во freeze-тайм (nadePrecalcTick, 540) — в раунде остаётся только уточнение
 // из места бойца. Решение — то же самое (тот же nadeSolve, точное состояние): игра бит в бит та же, меняется только когда считается
 var nadeGuessStore = (function(){ var C = {}; return function(k, v){ if(v === undefined) return C[k]; return (C[k] = v); }; })();
+// (v493) прицел про для точки лайнапа (MAP.luaim, tools/nades/luaim_bake.js: броски про стоя у точки, повторённые нашей физикой ≤ 32 ед.
+// от цели) — вторая подсказка: подбор ищет ± 12° от направления на цель и не видит бросков со стены (Mirage «Jungle (выход, A)»: про —
+// поворот на ~105°). Из двух решений — лучшее (nadeBetter): Mirage — 26 из 106 таких лайнапов обычный подбор кладёт дальше 32 ед.
+var LU_AIM = null;
+function luAimFor(type, x, y, tx, ty){
+  if(!LU_AIM){ LU_AIM = {}; var A = MAP.luaim || {};
+    ((MAP.lineups && MAP.lineups.pro) || []).concat((MAP.lineups && MAP.lineups.proExtra) || []).forEach(function(l){
+      if(A[l.id]) LU_AIM[l.type+"|"+l.from.x+","+l.from.y+"|"+l.to.x+","+l.to.y] = A[l.id]; }); }
+  return LU_AIM[type+"|"+x+","+y+"|"+tx+","+ty] || null;
+}
+// лучше: оба в 32 ед. (подбор: AIM_SAME) — смок быстрее; иначе — ближе (с этажом: «не тот этаж» хуже всего)
+function nadeBetter(type, a, b){
+  if(!a) return b; if(!b) return a;
+  if((a.levelOk === false) !== (b.levelOk === false)) return a.levelOk === false ? b : a;
+  if(type === "smoke" && a.e3 <= 32 && b.e3 <= 32) return b.t < a.t ? b : a;
+  return b.e3 < a.e3 ? b : a;
+}
 function nadeGuess(type, x, y, z, tx, ty, duck, wide){
   var k = type+"|"+x+","+y+","+z+"|"+tx+","+ty+(duck ? "d" : "")+(wide ? "w" : ""), g = nadeGuessStore(k);
-  if(g === undefined) g = nadeGuessStore(k, nadeSolve(type, x, y, z, tx, ty, duck, wide));
+  if(g === undefined){ g = nadeSolve(type, x, y, z, tx, ty, duck, wide);
+    var A = luAimFor(type, x, y, tx, ty);
+    if(A) g = nadeBetter(type, g, nadeSolve(type, x, y, z, tx, ty, duck, wide, {yaw: A.yaw, pitch: A.pitch, strength: A.strength, jump: A.jump, e3: A.err, levelOk: true}));
+    nadeGuessStore(k, g); }
   return g;
 }
 var NADE_PRECALC_I = 0, NADE_PRECALC_MS = 12;   // мс за тик freeze-тайма на подсчёт лайнапов (проектное число: < кадра 60 Гц)
@@ -169,7 +189,7 @@ function throwNade(b, type, tx, ty, lob, why, trusted, from){
   // from, а летел из места бойца — до 36 px в стороне, лайнапы ложились в 183–185 px от цели); решение для from — только подсказка
   // (guess), с которой начинается подбор из места бойца. Не нашлось броска отсюда — отказ с причиной (задание снимается, назад не идёт)
   var bz = b.z != null ? b.z : visFloorAt(b.x, b.y), guess = null;
-  if(from && (from.x !== b.x || from.y !== b.y)){
+  if(from){   // (v493) и стоя ровно в точке: решение точки лайнапа — с прицелом про (luAimFor), подбор с нуля его не находит
     var na = navAtLevel(from.x, from.y, bz), fz = na ? na.z : bz;
     guess = nadeGuess(type, from.x, from.y, fz, tx, ty, b.crouching, !!trusted);
   }
