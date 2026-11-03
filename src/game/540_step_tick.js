@@ -649,7 +649,12 @@ function stepTick(){
         ramp = sgn*12*(cyc < 22 ? e3(cyc/22) : cyc < 54 ? 1 : cyc < 76 ? 1-e3((cyc-54)/22) : 0);
       } else ramp = 14*Math.sin((tick - bot.roamCheckStart)*0.3);
       offX = Math.cos(rla)*ramp; offY = Math.sin(rla)*ramp;
-      if(crossesWall(bot.baseX,bot.baseY,bot.baseX+offX,bot.baseY+offY)){ offX = 0; offY = 0; }
+      // (v503) смещение в стену — до стены (наибольшая доля без пересечения, 5 делений пополам), а не 0: обнуление при плавном росте
+      // смещения давало скачок на 8–10 px дважды за выглядывание (сторож nav, прогон 153: Mirage, роумер CT у лайнапа prx88 —
+      // 63 из 183 «переносов», (982, 1566) ↔ (976, 1560))
+      if(crossesWall(bot.baseX,bot.baseY,bot.baseX+offX,bot.baseY+offY)){ var wLo = 0, wHi = 1;
+        for(var wi = 0; wi < 5; wi++){ var wm = (wLo + wHi)/2; if(crossesWall(bot.baseX,bot.baseY,bot.baseX+offX*wm,bot.baseY+offY*wm)) wHi = wm; else wLo = wm; }
+        offX *= wLo; offY *= wLo; }
     }
     // Пик закончился (или бот перешёл из "атакует" в "держит угол"), пока он
     // всё ещё видит врага: раньше смещение пика просто обнулялось, и бот
