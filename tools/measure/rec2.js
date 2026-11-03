@@ -36,7 +36,8 @@ var otn_=throwNade; throwNade=function(b){ var r=otn_.apply(this,arguments); if(
 // (команда|тип|лайнап|причина → число): почему флешек CT стало меньше (прогоны 143–145). Только учёт — игру не меняет
 REC.nfail={fail:{}, gone:{}}; var NFT={};
 var otnF=throwNade; throwNade=function(b,type){ var had=roundState==='live'&&b&&b.nades&&b.nades[type]>0, r=otnF.apply(this,arguments);
-  if(had&&r===false){ var k=b.team+'|'+type+'|'+((arguments[6]||arguments[7])?1:0)+'|'+String(typeof NADE_FAIL!=='undefined'?NADE_FAIL:'?'); REC.nfail.fail[k]=(REC.nfail.fail[k]||0)+1; } return r; };
+  if(had&&r===false){ var k=b.team+'|'+type+'|'+((arguments[6]||arguments[7])?1:0)+'|'+String(typeof NADE_FAIL!=='undefined'?NADE_FAIL:'?'); REC.nfail.fail[k]=(REC.nfail.fail[k]||0)+1;
+    if(/долетит/.test(String(NADE_FAIL))){ var tk=b.nadeTask; if(!REC.nfail.x) REC.nfail.x=[]; if(REC.nfail.x.length<4000) REC.nfail.x.push([tick,b.team,type,(arguments[6]||arguments[7])?1:0,Math.round(b.x),Math.round(b.y),Math.round(b.z!=null?b.z:-99999),Math.round(arguments[2]),Math.round(arguments[3]),String(arguments[5]||(tk&&tk.why)||''),b.crouching?1:0,Math.round(b.curSpeed||0)]); } } return r; };   // (03.11) отказы «не долетит»: место, цель, причина
 // жива ли прошлая задача — только чтение (taskKeepUntil меняет состояние бота — сторож игру не трогает): подтверждалась ≤ TASK_STALE или держит
 // свой замок (контакт, перестановка, размен, подмена)
 function tkKeep(b, tag){ tag=String(tag); if(/^contact/.test(tag)) return b._contact&&b._contact.lock?b._contact.until:0; if(/^repos/.test(tag)) return b._reposUntil||0;
