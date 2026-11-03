@@ -256,13 +256,14 @@ function updatePost(b){
     // (иначе носитель останавливался у края зоны, снаружи, и не мог заложить)
     var arrived = b.post.tag === "plantspot" && teamTac.T && SITES[teamTac.T.site] ? (d < 10 || onSite(SITES[teamTac.T.site], b.baseX, b.baseY) && d < 60) :
       b.post.tag === "defuse" ? d < DEFUSE_R - 8 :   // (v359, отметка: m0NESY «дошёл» до бомбы в 34 ед., а дефуз — с 30: стоял 12 с до взрыва)
+      b.post.tag === "lineup" ? d < LU_AT :   // (v492) лайнап — в саму точку броска: с 34 px подбор отсюда — «свеча» (прогон 143)
       d < ((BAL.proSpots && b.post.pro) ? 9 : 34);
     // (опорник "не дошёл") точка поста чуть внутри угла/стены: бот доходил на
     // 30–60px и крутился рядом, не "вставая" на пост. Не приближается ~1.5с — встал
     if(BAL.arriveNear && !b.atPost && !arrived && b.post.tag !== "plantspot" && b.post.tag !== "defuse"){
       if(b._apId !== b.post.id){ b._apId = b.post.id; b._apBest = d; b._apT = tick; }
       else if(d < b._apBest - 6){ b._apBest = d; b._apT = tick; }
-      else if(d < 70 && tick - b._apT > 90) arrived = true;
+      else if(d < (b.post.tag === "lineup" ? RUN_NEAR : 70) && tick - b._apT > 90) arrived = true;
     }
     if(!b.atPost && arrived){ b.atPost = true; b.path = []; b.pathIdx = 0;
       // встал с AWP на угол — щелчок зума слышно рядом (≤200 по прямой, ≤120 за стеной)
