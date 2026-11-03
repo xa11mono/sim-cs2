@@ -309,18 +309,19 @@ function markClear(team, x, y, who){
   voiceLog(team, "clz"+zid, who, "чекнул "+(zoneUserName(zid) || calloutName(x, y))+" — пусто");
   return zid;
 }
-// (тактика 30.10, задание владельца: «не выставлять "сайт пуст" только потому, что один игрок не увидел противника») сайт k проверен и пуст
-// для команды team — каждая из главных точек CT этого сайта (pos.<k>.ctHold: зоны, где CT стоят чаще всего, по демкам про; первые
-// SITE_CHECK_N) недавно (≤ CLR_REB_SEC с) прочекана своими пустой (CLEARZ: увидели зону — никого) и после этого там никого не видели.
-// Было: любые 2 зоны в 750 от центра сайта. Ответ {ok, done: [имена], missing: [имена]}: missing — непроверенные углы
-var SITE_CHECK_N = 6;   // проектное число: ctHold[0] + ctSecond (ctHold[1..5]) — набор карты (tools/tactics_bake.py)
-function siteCheckRead(team, k){
-  var P = POS[k], names = ((P && P.ctHold) || []).slice(0, SITE_CHECK_N), done = [], missing = [];
-  names.forEach(function(nm){
-    var zp = zonePoint(nm, SITES[k]), zid = zp ? zoneIdAt(zp.x, zp.y) : null, C = zid ? CLEARZ[team][zid] : null;
-    if(C && tick - C.tick < CLR_REB_SEC*TICK_HZ) done.push(nm); else missing.push(nm);
-  });
-  return {ok: names.length > 0 && !missing.length, done: done, missing: missing};
+// (v490) оценка сайта k командой team — по тому, где команда недавно видела живых врагов: «не знаем, где» = живые враги, которых своя команда
+// не видела / не слышала за SITE_SEEN_SEC с дальше SITE_AWAY от сайта. Ступени: 0 — «вероятно пуст» (все замечены в другом месте), 1 —
+// «возможно ослаблен», 2+ — «защищён». Калибровка по факту (прогон 141, v489, 16 матчей на карту, выборки раз в секунду после 40-й с):
+//   0 неизвестных — сайт пуст в 94,8 % (Mirage) / 91,1 % (Ancient); 1 — 30 / 36 %; 2 — 12 / 13 %; 3+ — ≤ 5 %.
+// Было (v482): все 6 главных точек CT прочеканы за 12 с — почти не срабатывало; до v482: любые 2 зоны — ложно в 90–93 %.
+// Свежая инфа о враге у самого сайта (≤ SITE_SEEN_SEC) — «защищён» всегда. Ответ {unknown, near, level: "empty" | "weak" | "held"}
+var SITE_SEEN_SEC = 8, SITE_AWAY = 900;   // с, px — как в калибровке (сторож rec2.js); 8 с — окно свежей инфы intelEstimate, 900 — проектное
+function siteAssess(team, k){
+  var S = SITES[k], BL = beliefLast[team] || {}, foe = team === "T" ? "CT" : "T", unknown = 0, near = 0;
+  bots.forEach(function(o){ if(o.team !== foe || !o.alive) return; var q = BL[o.id];
+    var fresh = q && tick - q.tick <= SITE_SEEN_SEC*TICK_HZ;
+    if(fresh && Math.hypot(q.x-S.x, q.y-S.y) <= SITE_AWAY) near++; else if(!fresh) unknown++; });
+  return {unknown: unknown, near: near, level: near ? "held" : unknown === 0 ? "empty" : unknown === 1 ? "weak" : "held"};
 }
 // IGL не идеален: примерно в четверти случаев повод для колла (соло, пустой
 // сайт, стак) он пропускает — решение принимается один раз на повод за раунд

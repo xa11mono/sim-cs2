@@ -159,11 +159,11 @@ function tBrain(){
     }
   }
   // (v355, владелец: «zont1x чекнул Market, Window, Short, B Site, Bench, Car — пусто, но перекола нет», 4 на 1 стояли у A)
-  // свои только что прочекали другой сайт — там пусто (2+ зоны у сайта за CLR_REB_SEC с), а по знанию CT там нет, и носитель
+  // (v490) другой сайт «вероятно пуст» — все живые CT недавно замечены в другом месте (siteAssess, 150; было: 2+ / 6 прочеканных зон), и носи-
   // успевает дойти и поставить: идём туда. Повод — либо CT по знанию у нашего сайта, либо носитель ближе к другому. Раз за раунд
   if(!tt._clrReb && bomb.state === "carried" && bomb.carrier && bomb.carrier.alive && !carrierAtSite(tt) && aliveCount("T") >= 2){
-    var So = SITES[other], CR = siteCheckRead("T", other);
-    if(CR.ok){
+    var So = SITES[other], CR = siteAssess("T", other);   // (v490) «вероятно пуст» — все живые CT недавно замечены в другом месте
+    if(CR.level === "empty"){
       var crC = bomb.carrier, dHc = polyLen(pathPts(crC.x, crC.y, site.x, site.y)), dOc = polyLen(pathPts(crC.x, crC.y, So.x, So.y));
       var bO = beliefCount("T", BZ.siteNear[other]||[]), bH = beliefCount("T", BZ.siteNear[tt.site]||[]);
       // (v432, М167, м1 Mirage р10: в 1:06 «B прочекали — пусто», хотя T знали — karrigan на B, 6 с назад убил там donk) пусто — по знанию
