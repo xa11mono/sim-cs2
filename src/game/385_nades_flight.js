@@ -169,14 +169,14 @@
   // с, ед.: 99 % смоков про летят не дольше 8,1 с (throws.json: Mirage 8,06, Ancient 8,13; 11 тыс. смоков на карту); 90 % бросков одного
   // лайнапа у про — в 23–79 ед. (NADES.md)
   var AIM_SLOW = 8.1, AIM_SAME_PRO = 80;
+  var AIM_ROBUST_N = 16;   // штук — сколько бросков проверить на устойчивость (проектное число: ≤ 64 полёта)
   function nadeAim(type, from, aim, trace, o) {
     o = o || {};
     var dx = aim[0] - from[0], dy = aim[1] - from[1];
     if (Math.hypot(dx, dy) < 1) return null;
     var yaw0 = Math.atan2(dy, dx) / D2R, yaw = yaw0, best = null;
     var vel = o.vel;
-    function tryOne(pitch, s, jump) {
-      var r = nadeThrow({ type: type, pos: from, yaw: yaw, pitch: pitch, strength: s, duck: o.duck, vel: vel, jump: jump, spawn: 0 }, trace);
+    function score(r) {
       // (физика гранат, 30.10) ошибка — по месту в 3D (высота — с весом o.wz, по умолчанию 1): раньше высота шла с весом 0,5 и
       // смок «на крышу над целью» выигрывал у смока на пол цели рядом
       var exy = Math.hypot(r.det[0] - aim[0], r.det[1] - aim[1]), dz = r.det[2] - aim[2], sc = Math.hypot(exy, dz * (o.wz != null ? o.wz : 1));
@@ -184,6 +184,12 @@
       // этаж / крыша» — хуже любого броска на нужный этаж (+ AIM_LEVEL_MISS к ошибке); levelOk — в ответе
       var lvOk = !o.levels || o.levels.some(function (z) { return Math.abs(r.det[2] - z) <= o.levelTol; });
       if (!lvOk) sc += AIM_LEVEL_MISS;
+      return { exy: exy, dz: dz, sc: sc, lvOk: lvOk };
+    }
+    function tryOne(pitch, s, jump) {
+      var r = nadeThrow({ type: type, pos: from, yaw: yaw, pitch: pitch, strength: s, duck: o.duck, vel: vel, jump: jump, spawn: 0 }, trace);
+      var Q = score(r), exy = Q.exy, dz = Q.dz, sc = Q.sc, lvOk = Q.lvOk;
+      if (pool && sc <= AIM_SAME_PRO) pool.push({ yaw: yaw, pitch: pitch, s: s, jump: !!jump, t: r.t, sc: sc });
       // (тактика 30.10) смок: из бросков, что ложатся в «то же место» (≤ AIM_SAME), — самый быстрый. Раньше брался самый точный, а
       // точнее всех ложится крутая «свеча» без качения: на ровном полу 600 ед. — 4,9 с вместо 2,0 с, 1200 ед. — 7,6 с (опыт
       // tools/nades/smoke_time.js); точность внутри 32 ед. смоку не нужна (радиус дыма ≈ 144 ед.). Флешка / HE рвутся по запалу — им
@@ -202,8 +208,31 @@
     var coarse = type === 'smoke' ? [] : null, alt = null;
     // (тактика 30.10) смок, который и в AIM_SAME ложится только «свечой» дольше AIM_SLOW (так долго у про не летает 99 % смоков), — берётся
     // самый быстрый из легших в разброс самих про (AIM_SAME_PRO): игрок кинул бы так. Ответ — тем же tryOne (с полями лучшего)
+    // (v501) устойчивость: o.robust = [поворот, наклон], ° — разброс прицела про (380: NADE_ROBUST_Q, квантиль NADE_AIM_SCATTER). Бросок
+    // устойчив, если и со сдвигом прицела на столько в каждую сторону смок ложится в разброс про (AIM_SAME_PRO). Выбранный неустойчив —
+    // берётся первый устойчивый из легших в AIM_SAME_PRO (сначала в AIM_SAME, по времени полёта; не дольше выбранного или AIM_SLOW);
+    // устойчивых нет — выбранный. Прогон 150: смоки с подбором ≤ 32 ед. — 20–23 % легли дальше 60 px (разброс на отскоках «на лезвии»:
+    // Mirage, B Apps → B, сдвиг на 0,5° — 22 → 300 ед.)
+    var pool = type === 'smoke' && o.robust ? [] : null;
+    function steady(c) {
+      var dY = o.robust[0], dP = o.robust[1];
+      return [[dY, 0], [-dY, 0], [0, dP], [0, -dP]].every(function (d) {
+        var r = nadeThrow({ type: type, pos: from, yaw: c.yaw + d[0], pitch: c.pitch + d[1], strength: c.s, duck: o.duck, vel: vel, jump: c.jump, spawn: 0 }, trace);
+        return score(r).sc <= AIM_SAME_PRO; });
+    }
+    function forceBest(c) { var keep = AIM_SAME, pl = pool; AIM_SAME = -1; pool = null; yaw = c.yaw; best = null; tryOne(c.pitch, c.s, c.jump); AIM_SAME = keep; pool = pl; }
     function finish() {
-      if (type === 'smoke' && best && alt && best.t > AIM_SLOW && alt.t < best.t) { var keep = AIM_SAME; AIM_SAME = -1; yaw = alt.yaw; best = null; tryOne(alt.pitch, alt.s, alt.jump); AIM_SAME = keep; }
+      if (type === 'smoke' && best && alt && best.t > AIM_SLOW && alt.t < best.t) forceBest(alt);
+      if (pool && best && pool.length && !steady({ yaw: best.yaw, pitch: best.pitch, s: best.strength, jump: best.jump })) {
+        var tMax = Math.max(best.t, AIM_SLOW), seen = {}, n = 0, pick = null;
+        var C = pool.filter(function (c) { return c.t <= tMax; }).sort(function (a, b) { return ((a.sc > AIM_SAME) - (b.sc > AIM_SAME)) || a.t - b.t; });
+        for (var i = 0; i < C.length && n < AIM_ROBUST_N && !pick; i++) {
+          var c = C[i], key = c.yaw.toFixed(1) + '|' + c.pitch.toFixed(1) + '|' + c.s + '|' + c.jump;
+          if (seen[key]) continue; seen[key] = 1; n++;
+          if (steady(c)) pick = c;
+        }
+        if (pick) forceBest(pick);
+      }
       delete best.sc; return best;
     }
     function refineFast() {
