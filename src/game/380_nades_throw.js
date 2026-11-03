@@ -27,6 +27,7 @@ function nadeSolve(type, x, y, z, tx, ty, duck, wide, guess, vel){
   fl.forEach(function(fz){
     var o = {duck: !!duck, wz: type === "flash" ? 0.5 : 1, wide: !!wide, vel: vel || null};
     if(type === "smoke" || type === "molly"){ o.levels = lv; o.levelTol = NADE_LEVEL_TOL; }
+    if(!wide) o.need = nadeAimLimit(type, false);   // (v502) своя граната — порог «долетит» (385: шире поворот, если мимо)
     if(type === "smoke") o.robust = [nadeQuant(NADE_AIM_SCATTER.smoke.yaw, NADE_ROBUST_Q), nadeQuant(NADE_AIM_SCATTER.smoke.pitch, NADE_ROBUST_Q)];   // (v501) устойчивость (385)   // (этаж) смок и огонь — на полу у цели
     if(guess){ o.guess = guess; o.guessOk = guess.levelOk === false ? 0 : guess.e3 + NADE_GUESS_SLACK; o.wide = false; }   // уточнение не вышло — обычный (не широкий) перебор: дешевле
     var q = nadeAim(type, [F[0], F[1], z], [T[0], T[1], fz + (NADE_AIM_DZ[type] || 0)], nadeTraceFn(), o);

@@ -169,6 +169,7 @@
   // с, ед.: 99 % смоков про летят не дольше 8,1 с (throws.json: Mirage 8,06, Ancient 8,13; 11 тыс. смоков на карту); 90 % бросков одного
   // лайнапа у про — в 23–79 ед. (NADES.md)
   var AIM_SLOW = 8.1, AIM_SAME_PRO = 80;
+  var AIM_BANK = 40;   // ° — поворот перебора «своя граната не долетает» (проектное число: перебор прогона 152 — найденные до ± 36°)
   var AIM_ROBUST_N = 16;   // штук — сколько бросков проверить на устойчивость (проектное число: ≤ 64 полёта)
   function nadeAim(type, from, aim, trace, o) {
     o = o || {};
@@ -288,6 +289,16 @@
     // (AIM_SAME_PRO, ответ — finish). Раньше поворот перебирался только у лайнапа (o.wide) или если мимо: прогон 149, Mirage — смок T
     // «под плант» из B Apps в точку B: подбор 11,2 с (73 ед.), а в 80 ед. есть бросок 5,4 с поворотом на 4° (tools/nades, перебор
     // ± 30° шагом 1°); такие смоки — 116 из 1568 смоков Mirage > 8,1 с, предсказание подбора = полёт в игре
+    // (v502) своя граната всё ещё дальше порога игры (o.need, 380: nadeAimLimit) — поворот шире (± AIM_BANK, шагом 4°, у лучшего ± 2°: броски от
+    // стены и в обход угла) на полной силе (перебор прогона 152: все найденные — сила 1), наклон шагом AIM_STEP, затем уточнение
+    // наклона у лучшего. Прогон 152: из отказов «не долетит» подбор пропускал бросок в 13 / 7 из 120 (Mirage / Ancient; перебор ± 40°)
+    if (o.need && best.sc > o.need) {
+      for (var by = -AIM_BANK; by <= AIM_BANK; by += 4) { if (by === 0) continue; yaw = yaw0 + by;
+        for (var pt = -75; pt <= 45; pt += AIM_STEP) tryOne(pt, 1, best.jump); }
+      var yb = best.yaw, pb = best.pitch; [-2, 2].forEach(function (d) { yaw = yb + d; for (var q = -8; q <= 8; q += 2) tryOne(pb + q, 1, best.jump); });
+      yaw = best.yaw;
+      AIM_FINE.forEach(function (st) { var b0 = best; [-st, st].forEach(function (dp) { tryOne(b0.pitch + dp, b0.strength, b0.jump); }); });
+    }
     if (type === 'smoke' && best.t > AIM_SLOW && !(alt && alt.t <= AIM_SLOW)) {
       AIM_YAW_WIDE.forEach(function (dy_) {
         yaw = yaw0 + dy_; coarse = [];
