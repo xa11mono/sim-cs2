@@ -255,6 +255,18 @@
     });
     yaw = best.yaw;
     if (best.yaw !== yaw0) AIM_FINE.forEach(function (st) { var b0 = best; [-st, st].forEach(function (dp) { tryOne(b0.pitch + dp, b0.strength, b0.jump); }); });
+    // (v500) смок, который ложится только «свечой» дольше AIM_SLOW, — и поворот вбок (AIM_YAW_WIDE) ради быстрого броска в разброс про
+    // (AIM_SAME_PRO, ответ — finish). Раньше поворот перебирался только у лайнапа (o.wide) или если мимо: прогон 149, Mirage — смок T
+    // «под плант» из B Apps в точку B: подбор 11,2 с (73 ед.), а в 80 ед. есть бросок 5,4 с поворотом на 4° (tools/nades, перебор
+    // ± 30° шагом 1°); такие смоки — 116 из 1568 смоков Mirage > 8,1 с, предсказание подбора = полёт в игре
+    if (type === 'smoke' && best.t > AIM_SLOW && !(alt && alt.t <= AIM_SLOW)) {
+      AIM_YAW_WIDE.forEach(function (dy_) {
+        yaw = yaw0 + dy_; coarse = [];
+        [false, true].forEach(function (jb) { if (jb && o.noJump) return; for (var pt = -75; pt <= 45; pt += AIM_STEP) tryOne(pt, 1, jb); });
+        refineFast();
+      });
+      yaw = best.yaw;
+    }
     return finish();
   }
 
