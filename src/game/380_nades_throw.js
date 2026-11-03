@@ -349,14 +349,6 @@ function updateNadeTasks(){
 // радиус бросков про у точки лайнапа). Было 34–36 px (общий приход поста): прогон 143, Mirage — 548 из 730 лайнап-смоков брошены в
 // 28–36 px от точки, из них 20 % летят > 8,1 с (ближе 28 px — 1,5–2 %): подбор из того места — долгая «свеча»
 var LU_AT = 9;
-// (v494) точка лайнапа бывает вне навмеша (Mirage prx88 «Mid (по времени)»: 18×18 px вокруг — не пол; прогон 144 — 56 из 170 «переносов»
-// там: бот лез в саму точку, движок его отбрасывал). Стоя — встаёт в ближайшую точку пола (тот же navClampInto, что конец пути, 050)
-function luStand(t, b){
-  if(t.fromNav && t.fromNav.x0 === t.from.x && t.fromNav.y0 === t.from.y) return t.fromNav;
-  var p = {x: t.from.x, y: t.from.y};
-  if(!navAt(p.x, p.y)){ var a = navNearestZ(p.x, p.y, LU_AT*4, b.z); if(a){ var q = navClampInto(a, p.x, p.y); p = {x: q.x, y: q.y}; } }
-  p.x0 = t.from.x; p.y0 = t.from.y; return (t.fromNav = p);
-}
 var RUN_V = 0.9, RUN_COS = 0.94;   // скорость ≥ 90 % эталона (план п. 3); направление ± 20° (как перебор точки разгона)
 var RUN_SEC = 4, RUN_MARGIN = 8, RUN_PAST = 24, RUN_NEAR = 24;   // с — разбег не дольше (проектное); px — запас к пути разгона (проектное);
 // px — проскочил (проектное); px — «у точки»: 60 ед. — радиус, в котором бейк брал броски про у точки лайнапа (runup_bake.js), бросок из
@@ -441,8 +433,7 @@ function updateNadeTask1(b){
       // (v369, владелец: «пишется "идёт кидать гранату", но как будто не успевают кинуть») бот, стоявший на угле (state hold), к
       // точке броска не шёл вовсе — пост ставился только в patrol, и задание сгорало в 40–60 ед. от точки. Теперь угол он
       // оставляет (кроме боя: engage / retreat — сначала бой)
-      var FS = luStand(t, b);
-      if(Math.hypot(FS.x-b.baseX, FS.y-b.baseY) > LU_AT && !(b.atPost && b.post && b.post.tag === "lineup")){
+      if(Math.hypot(t.from.x-b.baseX, t.from.y-b.baseY) > LU_AT && !(b.atPost && b.post && b.post.tag === "lineup")){
         if(b.state === "hold" && !b._sawEnemy) leaveHold(b);
         // (v378) задача важнее броска (арбитр места) — бросок не идёт, пока она не кончится (с v438 — ждёт, а не отменяется)
         // (v438, док владельца 27.10: «мид взяли без гранат, хотя куплены»; замер: 29 % заданий снимала задача важнее — бой, перестановка)
@@ -450,7 +441,7 @@ function updateNadeTask1(b){
         // (п.2/12 владельца 29.10: «бросать задачи и идти назад и кидать её»; м1 р2 NiKo — отход увёл от Connector, потом снова туда;
         // р4 donk — фланг к миду, потом назад в T Apps) ждёт — пока перебившая задача не увела его от точки броска: вернуться к броску —
         // только если точка не дальше по пути, чем была, когда перебили; ушёл дальше — бросок снят (идти назад за гранатой не надо)
-        if(b.state === "patrol") setPost(b, {x: FS.x, y: FS.y}, {x:t.x, y:t.y}, true, "lineup");
+        if(b.state === "patrol") setPost(b, t.from, {x:t.x, y:t.y}, true, "lineup");
         var lu = b.state === "patrol" && b.post && b.post.tag === "lineup";
         if(!lu){ if(!t.int) t.int = {d: pathLenTo(b, t.from.x, t.from.y)}; }
         else if(t.int){ var dI = t.int.d; t.int = null;
