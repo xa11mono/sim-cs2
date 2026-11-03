@@ -215,6 +215,7 @@ function stepTick(){
        // добивание последнего — не бегом в открытую: последние метры тихим шагом
        (bot.post && bot.state === "patrol" && bot.post.tag === "endhunt" && Math.hypot(bot.post.x-bot.baseX, bot.post.y-bot.baseY) < 350));
     // (v257, К3) врагов живых нет (видно по табло) — шагом идти не от кого
+    if(bot.nadeTask && bot.nadeTask.runPh === "go") bot.walking = !!bot.nadeTask.runWalk;   // (разбег гранаты) шаг или бег — как у эталона про (380)
     if(bot.walking && aliveCount(bot.team === "CT" ? "T" : "CT") === 0) bot.walking = false;
     // (v299, И43, владелец 14.10: T0 стрелялся на A, лёркер T4 шёл к бою на шифте) тиммейт рядом уже в перестрелке (видит врага ≥ 0,3 с,
     // как у дабл-пика, или стрелял / по нему стреляли за 2 с) в 900 px от меня, а моя точка — не дальше 600 px от него: иду к бою — бегом, тишина уже ничего не даёт
@@ -290,7 +291,8 @@ function stepTick(){
     }
     // (v263, Б2) в огне — без торможения у конца пути: точка выхода всего в 28 px за краем, и бот, тормозя к ней, полз по
     // огню в 3–5 раз медленнее бега (на 3 матчах v262 почти все случаи «в огне > 1 с» — это он)
-    if(!bot.holding && bot.path.length && !burn){
+    // (физика гранат: разбег) бросок с разбега — без торможения: в точке броска скорость полная, как у про (380: runupTick)
+    if(!bot.holding && bot.path.length && !burn && !(bot.nadeTask && bot.nadeTask.runPh === "go")){
       var finalWp = bot.path[bot.path.length-1];
       var dFinal = Math.hypot(finalWp[0]-bot.baseX, finalWp[1]-bot.baseY);
       if(dFinal < BRAKE_RADIUS) targetSpeed = runSpeed * Math.max(0.35, dFinal/BRAKE_RADIUS);

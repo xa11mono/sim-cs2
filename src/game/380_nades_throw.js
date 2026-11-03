@@ -173,6 +173,9 @@ function throwNade(b, type, tx, ty, lob, why, trusted, from){
     var na = navAtLevel(from.x, from.y, bz), fz = na ? na.z : bz;
     guess = nadeGuess(type, from.x, from.y, fz, tx, ty, b.crouching, !!trusted);
   }
+  // (разбег) бросок на ходу — подсказка подбора: эталон броска про (поворот, наклон, сила, прыжок на бинде), уточняется с фактической скоростью
+  var RG = b.nadeTask && b.nadeTask.runPh === "go" ? runupFor(b.nadeTask) : null;
+  if(RG) guess = {yaw: RG.yaw, pitch: RG.pitch, strength: RG.strength, jump: RG.jump, e3: RG.err, levelOk: true};
   var V = nadeBotVel(b), S = nadeSolve(type, b.x, b.y, bz, tx, ty, b.crouching, !!trusted, guess, V);
   if(!S){ NADE_FAIL = "цель под ногами"; return false; }
   // своя — ближе NADE_AIM_OK (флешке — вдвое); лайнап — и мимо, но не так, что отсюда туда не кинуть вовсе (× 4)
@@ -322,6 +325,56 @@ function updateNadeTasks(){
     if(t0 && t0.exu != null && b.nadeTask !== t0 && t0.exuThrown !== true) exuTaskGone(t0, b);
   });
 }
+var RUN_V = 0.9, RUN_COS = 0.94;   // скорость ≥ 90 % эталона (план п. 3); направление ± 20° (как перебор точки разгона)
+var RUN_SEC = 4, RUN_MARGIN = 8, RUN_PAST = 24, RUN_NEAR = 24;   // с — разбег не дольше (проектное); px — запас к пути разгона (проектное);
+// px — проскочил (проектное); px — «у точки»: 60 ед. — радиус, в котором бейк брал броски про у точки лайнапа (runup_bake.js), бросок из
+// фактического места (подбор считает от него)
+function runupFor(t){ var R = MAP.runups; return R && t.luId ? R[t.luId] || null : null; }
+// точка разгона: позади точки броска против направления разбега, на пути разгона до скорости эталона (ACCEL, 540) + запас;
+// путь по навмешу от неё до точки броска — почти прямой (≤ RUN_STRAIGHT × по прямой: иначе бот идёт в обход — ступени, ящики — и к точке
+// подходит не с той стороны). Перебор: длина ×2 / ×3 / ×4 / ×1 (запас на разворот: бот приходит к точке разгона со стороны точки броска), отклонение 0 / ±10 / ±20°; не нашлось — null (бросок стоя)
+var RUN_STRAIGHT = 1.2;   // проектное число
+function runupStart(t, R){
+  var sp = R.speed / (m3() ? m3().unit / m3().cell : 1), d0 = sp*sp/(2*ACCEL) + RUN_MARGIN;   // px
+  var a0 = Math.atan2(-R.dir[1], R.dir[0]);   // y игры вверх, y радара вниз
+  var Ds = [2, 3, 4, 1], As = [0, 10, -10, 20, -20];
+  for(var i = 0; i < Ds.length; i++) for(var j = 0; j < As.length; j++){
+    var a = a0 + As[j]*Math.PI/180, d = d0*Ds[i], p = {x: t.from.x - Math.cos(a)*d, y: t.from.y - Math.sin(a)*d};
+    if(!navAt(p.x, p.y)) continue;
+    var P = buildWaypointPath(p.x, p.y, 0, t.from.x, t.from.y, 0), L = 0, px = p.x, py = p.y;
+    P.forEach(function(q){ L += Math.hypot(q[0]-px, q[1]-py); px = q[0]; py = q[1]; });
+    if(P.length && Math.hypot(px-t.from.x, py-t.from.y) < 8 && L <= RUN_STRAIGHT*d) return p;
+  }
+  return null;
+}
+function runupTick(b, t){
+  var R = runupFor(t);
+  if(!t.runPh){ t.runStart = runupStart(t, R); if(!t.runStart){ t.runFail = true; return false; } t.runPh = "to"; }
+  if(t.runPh === "to"){
+    if(Math.hypot(t.runStart.x-b.baseX, t.runStart.y-b.baseY) > 6){
+      if(b.state === "hold" && !b._sawEnemy) leaveHold(b);
+      if(b.state === "patrol") setPost(b, t.runStart, t.from, false, "lineup"); else return true;   // без удержания: пост с hold притягивается к месту про (proSnap)
+      postKeep(b); return true; }
+    t.runPh = "go"; t.runT0 = tick; t.runWalk = !!R.walk; t.runMin = Infinity;
+  }
+  // go: идёт от точки разгона через точку броска (пост — за ней на RUN_PAST по той же прямой, без удержания: у поста бот тормозит, а
+  // в точке броска скорость должна быть полной) и кидает на подходе
+  if(!t.runEnd){ var ex = t.from.x - t.runStart.x, ey = t.from.y - t.runStart.y, el = Math.hypot(ex, ey) || 1, e2 = {x: t.from.x + ex/el*RUN_PAST*2, y: t.from.y + ey/el*RUN_PAST*2};
+    t.runEnd = navAt(e2.x, e2.y) ? e2 : {x: t.from.x, y: t.from.y}; }
+  setPost(b, t.runEnd, {x: t.x, y: t.y}, false, "lineup");
+  var d = Math.hypot(t.from.x-b.baseX, t.from.y-b.baseY), step = SPEED/TICK_HZ, passed = d > t.runMin;
+  // бросок — в ближайший к точке тик: уже у точки (≤ шаг) или прошёл ближайшее место, бывшее ≤ RUN_NEAR; прошёл дальше / не успел — стоя
+  if(tick - t.runT0 > RUN_SEC*TICK_HZ || d > t.runMin + RUN_PAST){ t.runFail = true; t.runPh = null; clearPost(b); return true; }
+  // скорость в тик броска — как у эталона (± 10 %, план п. 3): не разогнался — не кидает (проскочит — бросок стоя)
+  var V = nadeBotVel(b), vOk = V && Math.hypot(V[0], V[1]) >= RUN_V*R.speed && (V[0]*R.dir[0] + V[1]*R.dir[1]) >= RUN_COS*Math.hypot(V[0], V[1]);
+  var at = vOk && (d <= step + 2 || (passed && t.runMin <= RUN_NEAR));
+  t.runMin = Math.min(t.runMin, d);
+  if(!at || !nadeReady(b)) return true;
+  if(!throwNade(b, t.type, t.x, t.y, true, t.why, true, t.from)){
+    if(NADE_FAIL && /пауза|свой/.test(NADE_FAIL)) return true;
+    t.runFail = true; t.runPh = null; clearPost(b); return true; }   // с хода не ложится (подбор с фактической скоростью) — бросок стоя
+  b.nadeTask = null; if(b.post && b.post.tag === "lineup") clearPost(b); return true;
+}
 function updateNadeTask1(b){
     if(!b.nadeTask && b.nadeQueue && b.nadeQueue.length) nadeQueueNext(b);
     var t = b.nadeTask; if(!t) return;
@@ -344,8 +397,12 @@ function updateNadeTask1(b){
     if(t.from && t.luL && tick % 32 === 0 && Math.hypot(t.from.x-b.baseX, t.from.y-b.baseY) > 36){
       var M = luSpotFor(b, t.luL, t.npm);
       if(M && (M.from.x !== t.from.x || M.from.y !== t.from.y) && pathLenTo(b, M.from.x, M.from.y) < pathLenTo(b, t.from.x, t.from.y)){
-        t.from = {x:M.from.x, y:M.from.y}; t.x = M.to.x; t.y = M.to.y; t.why = "лайнап «"+(M.name||LU_TYPE[M.type])+"»";
+        t.from = {x:M.from.x, y:M.from.y}; t.x = M.to.x; t.y = M.to.y; t.why = "лайнап «"+(M.name||LU_TYPE[M.type])+"»"; t.luId = M.id; t.runPh = null; t.runEnd = null;
         if(b.post && b.post.tag === "lineup") clearPost(b); } }
+    // (физика гранат: разбег) лайнап смока с эталоном броска на ходу (MAP.runups, tools/nades/runup_bake.js — броски про, повторённые скоростью
+    // бота): встать в точку разгона позади точки броска, пробежать (или пройти шагом) через неё и кинуть на ходу; подбор — от эталона с
+    // фактической скоростью бойца (throwNade: runGuess). Не вышло (нет точки разгона, не дошёл за RUN_SEC, проскочил) — бросок стоя, как раньше
+    if(t.from && t.type === "smoke" && !t.runFail && runupFor(t) && runupTick(b, t)) return;
     if(t.from){ // свой лайнап: сначала встать ровно в точку броска
       // раньше кидал только ближе 22px к точке, а "дошёл до поста" считается
       // уже с 34px — бот вставал в 23–34px и стоял до конца задания, не кидая
