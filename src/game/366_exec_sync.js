@@ -172,6 +172,15 @@ function exuGate(tt){
   });
   return {go: !wait, why: wait, eta: eta};
 }
+// (v510) быстрый выход (сняли CT на сайте, их ≤ 2, там соло) — не ждёт смоков, которые ещё не брошены, но брошенный критичный смок
+// (летит / раскрывается) дожидается: ответ — тик, когда раскроется последний (0 — ждать нечего)
+function exuHoldEta(tt){
+  var E = exuCur(), eta = 0;
+  Object.keys(E.items).forEach(function(k){ var it = E.items[k]; if(!it.crit || it.site !== tt.site) return;
+    if(it.state === "flying") eta = Math.max(eta, (it.eta || tick) + SMOKE_GROW);
+    else if(it.state === "forming") eta = Math.max(eta, it.useAt); });
+  return eta > tick ? eta : 0;
+}
 // боец у выхода: есть ли ещё не готовая критичная граната этого сайта (170: utilWait — ждёт и её, а не только гранаты в воздухе)
 function exuPending(site){ var E = exuCur(); return Object.keys(E.items).some(function(k){ var it = E.items[k];
   return it.crit && it.site === site && (it.state === "assigned" || it.state === "flying" || it.state === "forming" || (it.state === "failed" && !it.done)); }); }

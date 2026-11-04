@@ -10,6 +10,7 @@ const path = require('path'), fs = require('fs'), ROOT = path.join(__dirname, '.
 const map = process.argv[2] || 'ancient';
 const W = require('./world.js').load(map), N = require(path.join(ROOT, 'src/game/385_nades_flight.js'));
 const M = W.M, k = M.unit / M.cell, game = (x, y) => [M.X0 + x * k, M.Y0 - y * k];
+const DT_TOL = 1;   // с — допуск времени полёта к демке (проектное число)
 const SAME = 32, NEAR = 60, REF = +(process.env.REF || 5);   // ° — уточнение у прицела про: точка лайнапа в ≤ 60 ед. от места про (проектное число)
 const LU = JSON.parse(fs.readFileSync(path.join(ROOT, 'data/maps', map, 'lineups.json')));
 // с места: стоя или почти стоя (горизонтальная скорость < 40 ед/с — как отбор разбега, runup_bake.js), в том числе прыжок на месте;
@@ -34,6 +35,8 @@ for (const L of LU.pro.concat(LU.proExtra || [])) {
       if (r.how === 'lost') continue;
       const e = Math.hypot(r.det[0] - T[0], r.det[1] - T[1]), ez = Math.abs(r.det[2] - tz);
       if (e > SAME || ez > 64) continue;
+      // (v509) время полёта — как у про в этой демке: дольше на DT_TOL — физика повторяет бросок не так (Mirage pro75: у нас 8,1 с, у про ≤ 7,7)
+      if (r.t > t.det.dt + DT_TOL) continue;
       const c = {yaw: +(t.yaw + dy).toFixed(2), pitch: +(t.pitch + dp).toFixed(2), strength: s, jump: jb, t: +r.t.toFixed(2), err: Math.round(e), d: Math.hypot(dy, dp)};
       if (!best || (L.type === 'smoke' ? c.t < best.t : c.err < best.err)) best = c;
     }

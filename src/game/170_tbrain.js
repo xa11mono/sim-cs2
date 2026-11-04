@@ -1,3 +1,12 @@
+// (v510) быстрый выход (сняли CT на сайте / их ≤ 2 / там соло): критичный смок выхода уже брошен — заходим, как раскроется
+// (не дольше EXU_FAST_MAX), ещё не брошен — сразу. Ожидание — exuHoldEta (366)
+var EXU_FAST_MAX = 4;   // с (проектное число)
+function tFastGo(tt, go){
+  var eta = BAL.nadeEarly && ROUND_TIME_SEC - (simTime - roundStartTime) >= EXU_LATE ? exuHoldEta(tt) : 0;
+  if(!eta){ go(); return; }
+  tt._fastGo = {go:go, r:roundNum, until: Math.min(eta, tick + EXU_FAST_MAX*TICK_HZ)};
+  exuEv("wait", null, {why:"быстрый выход — ждём смок"}); logEvent("T: заходим, как раскроется смок");
+}
 function tBrain(){
   var tt = teamTac.T; if(!tt) return;
   exuTick(tt);   // (тактика 30.10) гранаты выхода: жизненный цикл, провал, резервный исполнитель (366)
@@ -7,6 +16,9 @@ function tBrain(){
     ["A","B"].forEach(function(k){ var e = intelEstimate("T", SITES[k].x, SITES[k].y, 450, 4*TICK_HZ); if(e.seen > tt.seenCT[k]) tt.seenCT[k] = e.seen; });
   }
   if(tt.phase !== "setup" && !tt.histed){ tt.histed = true; tSiteHist.push(tt.site); }
+  // (v510) отложенный быстрый выход: брошенный критичный смок раскрылся (или ждали дольше EXU_FAST_MAX) — заходим
+  if(tt._fastGo && (tt._fastGo.r !== roundNum || tt.phase !== "setup")) tt._fastGo = null;
+  if(tt._fastGo && (!exuHoldEta(tt) || tick >= tt._fastGo.until)){ var fgo = tt._fastGo.go; tt._fastGo = null; fgo(); }
   var tac = tt.tac, site = SITES[tt.site], g = GEO[tt.site];
   var other = tt.site === "A" ? "B" : "A";
   var plantPt = site.plant || site;
@@ -61,10 +73,10 @@ function tBrain(){
     // (v359, отметка владельца р7: TN1R снял двоих на A на 16-й с, а команда ещё ждала тайминга, и он ушёл кидать молотов на
     // Connector) раннее «не спешим» (proTempo, до 22 с) — не когда наш уже стоит на сайте: сайт взят, заходим
     var ourOnSite = bots.some(function(o){ return o.team === "T" && o.alive && (onSite(site, o.x, o.y) || Math.hypot(o.x-site.x, o.y-site.y) < 450); });
-    if(pickSig && aliveCount("T") >= 4 && (!BAL.proTempo || tick - roundStartTick > 22*TICK_HZ || ourOnSite) && iglTake(tt, pickSig.tick)){
-      tt.phase = "execute"; tt.execStart = tick; siteHeatPending[tt.site] = 1;
-      voiceLog("T", "pick"+tt.site, "IGL", "минус на "+tt.site+", заходим сразу!");
-      logEvent("T: выход на "+tt.site+"! (сняли CT на сайте)");
+    if(!tt._fastGo && pickSig && aliveCount("T") >= 4 && (!BAL.proTempo || tick - roundStartTick > 22*TICK_HZ || ourOnSite) && iglTake(tt, pickSig.tick)){
+      tFastGo(tt, function(){ tt.phase = "execute"; tt.execStart = tick; siteHeatPending[tt.site] = 1;
+        voiceLog("T", "pick"+tt.site, "IGL", "минус на "+tt.site+", заходим сразу!");
+        logEvent("T: выход на "+tt.site+"! (сняли CT на сайте)"); });
     }
   }
   if(bomb.state === "planted" && tt.phase !== "postplant"){ tt.phase = "postplant";
@@ -204,16 +216,16 @@ function tBrain(){
   // заходим сразу, на тот сайт, где по нашей инфе CT нет (было: бомба ждала сбора 2 против 1 на 67-й с)
   // (v356, владелец: «4 на 1, бомба в толпе на T Ramp, не выходят на A, чего-то ждут») раньше — раз за раунд: после перекола
   // (снова сетап) правило уже не срабатывало. Теперь и повторно, если сетап затянулся за назначенное время выхода
-  if(tt.phase === "setup" && (!tt.fewGo || tick > (tt.execTick||0))){
+  if(tt.phase === "setup" && !tt._fastGo && (!tt.fewGo || tick > (tt.execTick||0))){
     var aCT = aliveCount("CT"), aT = aliveCount("T");
-    if(aCT <= 2 && aT > aCT){
+    if(aCT <= 2 && aT > aCT){ tt.fewGo = true; tFastGo(tt, function(){
       var seenHere = intelEstimate("T", site.x, site.y, 600, 8*TICK_HZ).seen, seenOther = intelEstimate("T", SITES[other].x, SITES[other].y, 600, 8*TICK_HZ).seen;
       var was = tt.site;
       if(seenHere > 0 && seenOther === 0){ tSetSite(tt, other); site = SITES[tt.site]; g = GEO[tt.site]; other = tt.site === "A" ? "B" : "A"; }
       tt.fewGo = true; tt.phase = "execute"; tt.execStart = tick; siteHeatPending[tt.site] = 1;
       voiceLog("T", "few"+roundNum, "IGL", was !== tt.site ? "ПЕРЕКОЛЛ "+was+" → "+tt.site+": их осталось "+aCT+", на "+was+" видели — заходим сейчас!"
                                                            : "их осталось "+aCT+" — заходим сейчас, бомба на "+tt.site+"!");
-      logEvent("T: выход на "+tt.site+"! (CT осталось "+aCT+")");
+      logEvent("T: выход на "+tt.site+"! (CT осталось "+aCT+")"); });
     }
   }
   // (v381, М132) читаем расстановку CT по увиденному: новая картина — в войс (кто увидел — тот и говорит, команда понимает остальное)
@@ -229,9 +241,9 @@ function tBrain(){
     // (v381, М132) или по расстановке: на нашем сайте видели одного, и по увиденному в других районах там больше одного не ждут
     var srS = tt.setupRead && tick - roundStartTick <= 40*TICK_HZ ? tt.setupRead.E[tt.site] : null;
     if(eS.seen === 1 && (beliefCount("T", BZ.siteNear[tt.site]||[]) < 1.4 || srS != null && srS <= 1.2) && aliveT2 >= 4 && iglReads(tt, "so")){
-      tt.soloGo = true; tt.phase = "execute"; tt.execStart = tick; siteHeatPending[tt.site] = 1;
-      voiceLog("T", "solo"+tt.site, "IGL", "на "+tt.site+" один — заходим сейчас!");
-      logEvent("T: выход на "+tt.site+"! (по инфе там соло)");
+      tt.soloGo = true; tFastGo(tt, function(){ tt.phase = "execute"; tt.execStart = tick; siteHeatPending[tt.site] = 1;
+        voiceLog("T", "solo"+tt.site, "IGL", "на "+tt.site+" один — заходим сейчас!");
+        logEvent("T: выход на "+tt.site+"! (по инфе там соло)"); });
     }
   }
   var ts = bots.filter(function(b){ return b.team==="T" && b.alive; });
