@@ -403,7 +403,10 @@ function tBrain(){
         var defPick = function(b, used, seed){ var P = gPts(gOf(b));
           // (п.28 владельца 29.10, м1 р8: группа Ramp получила места Mid Boxes / Chair / Connector — по прямой ≤ 450 сквозь стены) район
           // группы — по пути, а не по прямой
-          var pool = DPS.filter(function(z){ var q = zonePoint(z[0]); return q && !used[z[0]] && (!P.length || P.some(function(p){ return Math.hypot(p.x-q.x, p.y-q.y) <= DEF_GROUP_R && polyLen(pathPts(p.x, p.y, q.x, q.y)) <= DEF_GROUP_R; })); });
+          // (Г4, 04.11, владелец: «дефолт играется сразу, на спавне так долго не стоят — возможно, в демках раунды-паузы») зона своего
+          // спавна — не место дефолта (в defaultpos.json у сайта A — 0,27 игрока; проверить данные на ПК — 00_PLAN)
+          var spZ = zoneIdAt(T_SPAWN.x, T_SPAWN.y);
+          var pool = DPS.filter(function(z){ var q = zonePoint(z[0]); return q && !used[z[0]] && zoneIdAt(q.x, q.y) !== spZ && (!P.length || P.some(function(p){ return Math.hypot(p.x-q.x, p.y-q.y) <= DEF_GROUP_R && polyLen(pathPts(p.x, p.y, q.x, q.y)) <= DEF_GROUP_R; })); });
           if(!pool.length) return null;
           var wt = pool.reduce(function(a, z){ return a + z[1]; }, 0), u = hashRand(seed)*wt, di = 0;
           while(di < pool.length - 1 && u > pool[di][1]){ u -= pool[di][1]; di++; }
@@ -420,7 +423,7 @@ function tBrain(){
           var Zp = zn0 ? zonePoint(zn0, P[P.length-1] || tgt) : (P[P.length-1] || null), tag = zn0 ? "default:"+zn0 : "default:group";
           if(!Zp) return;
           var lk = [GEO.A.tEntry, GEO.B.tEntry, GEO.tMidLook].filter(Boolean).sort(function(a, c){ return Math.hypot(a.x-Zp.x, a.y-Zp.y) - Math.hypot(c.x-Zp.x, c.y-Zp.y); })[0];
-          groupPost([b], Zp, lk, tag, {rMax:160, minGap:50, see:[lk]});
+          groupPost([b], Zp, lk, tag, {rMax:160, minGap:50, see:[lk], zone: zn0 ? zoneIdAt(Zp.x, Zp.y) : null});   // (Г4, п.13: «default:Side Alley» стоял на T Spawn)
         });
       } else {
         groupPost(pick(["support"]), tt.tMidPt || GEO.tMid, GEO.tMidLook, "tmid", midOpt);

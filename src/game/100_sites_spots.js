@@ -187,7 +187,7 @@ function pickSpots(key, center, count, o){
   var expT = BAL.openAngles ? ((o && o.team) || SPOT_TEAM) : null;
   var ppTeam = BAL.proPrior ? ((o && o.team) || SPOT_TEAM) : null, ppL = ppTeam ? ppLayer(ppTeam) : null;
   var ck = key+"|"+count+"|"+Math.round(center.x)+","+Math.round(center.y) + (expT ? "|e"+expT : "") +
-    (o && o.cross ? "|x"+Math.round(o.cross.from.x/40)+","+Math.round(o.cross.from.y/40) : "") + (ppL ? "|p"+ppL : "");
+    (o && o.cross ? "|x"+Math.round(o.cross.from.x/40)+","+Math.round(o.cross.from.y/40) : "") + (ppL ? "|p"+ppL : "") + (o && o.zone ? "|z"+o.zone : "");
   if(spotCache[ck]) return spotCache[ck];
   o = o || {};
   var rMin = o.rMin||0, rMax = o.rMax||170, gap = o.minGap||55;
@@ -198,6 +198,7 @@ function pickSpots(key, center, count, o){
     var d = Math.hypot(c.x-center.x, c.y-center.y);
     if(d < rMin || d > rMax) return;
     if(insideSolidWall(c.x, c.y)) return;
+    if(o.zone && zoneIdAt(c.x, c.y) !== o.zone) return;   // (Г4, 04.11, п.13) место — внутри названной зоны
     if(o.must && !o.must.every(function(m){ return hasLOS(c.x, c.y, m.x, m.y); })) return;
     if(o.reach && segCrossesManualWalls(center.x, center.y, c.x, c.y) && d < 60) return;
     var sc = 0;
