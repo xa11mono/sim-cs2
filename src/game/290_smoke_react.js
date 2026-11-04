@@ -172,10 +172,13 @@ function smokeHeTick(){
 function smokeShiftOnDetonate(s){
   bots.forEach(function(b){
     if(!b.alive || b.team === s.team || b._sawEnemy || !(b.atPost && b.post && b.post.hold)) return;
-    var d = Math.hypot(s.x-b.x, s.y-b.y); if(d < 150 || d > 700 || !hasLOS(b.x, b.y, s.x, s.y, b.z)) return;
-    var lk = b.lookTarget || b.post.look; if(!lk) return;
-    if(!segHitsCircle(b.x, b.y, lk.x, lk.y, s.x, s.y, NADE.smoke.radius)) return;   // смок не на его линии
-    if(hashRand(s.born*53 + b.id.charCodeAt(0)*29 + b.id.length) >= SMK.shiftP) return;
+    var d = Math.hypot(s.x-b.x, s.y-b.y); if(d > 700 || !hasLOS(b.x, b.y, s.x, s.y, b.z)) return;
+    // (Г4, 04.11, разбор отметок п.21 и ответ владельца 7Б: «позиция полезна — держит край дыма; через дым задачу не выполнить — отходит на
+    // запасную») смок лёг на сам пост (стоит в дыму — не видит ничего) — меняет позицию всегда; раньше смок ближе 150 не учитывался вовсе
+    var inside = d < NADE.smoke.radius;   // дым раскроется до полного радиуса
+    var lk = b.lookTarget || b.post.look; if(!lk && !inside) return;
+    if(!inside && !segHitsCircle(b.x, b.y, lk.x, lk.y, s.x, s.y, NADE.smoke.radius)) return;   // смок не на его линии
+    if(!inside && hashRand(s.born*53 + b.id.charCodeAt(0)*29 + b.id.length) >= SMK.shiftP) return;
     shiftHold(b, {x:s.x, y:s.y}, null, "смок закрыл угол");
   });
 }
