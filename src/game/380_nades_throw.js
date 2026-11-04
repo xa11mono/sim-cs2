@@ -519,12 +519,26 @@ function nadeThrowSpot(b, t){
   for(var e in bl){ var q = bl[e]; if(q && tick - q.tick <= 8*TICK_HZ && bots.some(function(o){ return o.id === e && o.alive; })) foes.push({x:q.x, y:q.y}); }
   // (v373) кандидаты — места, откуда про кидали в эту точку (MAP.nadelanes), и точки рядом без стены на пути
   // бросок с места про — как у про (долетит ли — решит бросок); своё место — граната долетает по физике (nadeLands, физика гранат 30.10)
+  var seen = function(q){ return foes.some(function(f){ return hasLOS(q.x, q.y, f.x, f.y); }); };
   var c = nadeLaneFroms(t.x, t.y).filter(function(q){ return Math.hypot(q.x-b.x, q.y-b.y) <= NADE_SPOT_R && navAt(q.x, q.y); }).map(function(q){ return {x:q.x, y:q.y, lane:true}; })
+    .filter(function(q){ return !seen(q); })
     .concat(pickSpots("nthr"+b.id+"_"+Math.round(t.x)+","+Math.round(t.y), {x:b.x, y:b.y}, 8, {rMax:NADE_SPOT_R, minGap:40, hideFrom:foes})
-      .filter(function(q){ return Math.hypot(q.x-t.x, q.y-t.y) <= t.range*0.85 && !crossesWall(q.x, q.y, t.x, t.y) && nadeLands(t.type, q.x, q.y, null, t.x, t.y); }))
-    .filter(function(q){ return !foes.some(function(f){ return hasLOS(q.x, q.y, f.x, f.y); }) && !luBehind(b, q); });   // (п.12) и не позади по ходу (390)
-  if(c.length > 12) c = c.sort(function(a, d){ return Math.hypot(a.x-b.x, a.y-b.y) - Math.hypot(d.x-b.x, d.y-b.y); }).slice(0, 12);
-  var best = null, bL = Infinity;
-  c.forEach(function(q){ var L = pathLenTo(b, q.x, q.y); if(L < bL){ bL = L; best = q; } });
-  return best && bL <= NADE_SPOT_R*1.5 ? best : null;
+      .filter(function(q){ return Math.hypot(q.x-t.x, q.y-t.y) <= t.range*0.85 && !crossesWall(q.x, q.y, t.x, t.y) && !seen(q); }).map(function(q){ q.own = true; return q; }));
+  // (Г6, скорость, 04.11; фризы до 0,6 с) подбор броска (nadeLands — физика полёта) — самое дорогое; выбирается одна точка — ближайшая по
+  // пути из годных. Годных не больше 12 (отбор по прямой ниже не нужен) — подбор идёт по точкам в порядке длины пути, до первой годной:
+  // та же точка, что дал бы подбор у всех (порядок при равной длине — исходный). Больше 12 — как было: проверить все и взять 12 ближайших
+  var ok = function(q){ return (!q.own || nadeLands(t.type, q.x, q.y, null, t.x, t.y)) && !luBehind(b, q); };   // (п.12) и не позади по ходу (390)
+  if(c.length > 12){
+    // (Г6) годных больше 12 — берутся 12 ближайших по прямой: проверка годности идёт по точкам в порядке близости до 12-й годной (у флешки
+    // мест про бывает ~900 — раньше годность, с поиском пути, считалась у всех: до 0,5 с). Сортировка устойчивая — те же 12, что раньше
+    var cs = c.slice().sort(function(a, d){ return Math.hypot(a.x-b.x, a.y-b.y) - Math.hypot(d.x-b.x, d.y-b.y); }), c2 = [];
+    for(var j = 0; j < cs.length && c2.length < 12; j++) if(ok(cs[j])) c2.push(cs[j]);
+    c = c2;
+    var best = null, bL = Infinity;
+    c.forEach(function(q){ var L = pathLenTo(b, q.x, q.y); if(L < bL){ bL = L; best = q; } });
+    return best && bL <= NADE_SPOT_R*1.5 ? best : null;
+  }
+  var L = c.map(function(q, i){ return {q:q, L:pathLenTo(b, q.x, q.y), i:i}; }).sort(function(a, d){ return a.L - d.L || a.i - d.i; });
+  for(var k = 0; k < L.length; k++){ if(L[k].L > NADE_SPOT_R*1.5) return null; if(ok(L[k].q)) return L[k].q; }
+  return null;
 }
