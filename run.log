@@ -1,0 +1,51 @@
+playwright 1.56.0, браузеры: C:\Windows\system32\config\systemprofile\.simcs2_node\ms-playwright
+> git fetch --quiet origin 619a28b2f32d4ddfb844e52cf29575daf6b69676
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_wpvpu99b FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_wpvpu99b\src\build.py --map mirage C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\p2a_mir.html
+  nadeguess.json устарел (код подбора или данные карты менялись) — не включён; пересчитать: python3 tools/nades/guess_bake.py --map mirage
+> git fetch --quiet origin d8191bc1c046e7dff597a007e71d26321abf6453
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_vdhvwuss FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_vdhvwuss\src\build.py --map mirage C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\p2b_mir.html
+  nadeguess.json устарел (код подбора или данные карты менялись) — не включён; пересчитать: python3 tools/nades/guess_bake.py --map mirage
+> git fetch --quiet origin 76a13a88ea28f7e2366410a7dfc99a090452a757
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_yv7kznv2 FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_yv7kznv2\src\build.py --map mirage C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\p2c_mir.html
+> git fetch --quiet origin 76a13a88ea28f7e2366410a7dfc99a090452a757
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_61xj5quv FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_61xj5quv\src\build.py --map ancient C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\p2c_anc.html
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\engine\walk_run.py --job=p2a_mir,C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\p2a_mir.html --job=p2b_mir,C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\p2b_mir.html --job=p2c_mir,C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\p2c_mir.html --job=p2c_anc,C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\p2c_anc.html --matches=3,7,11,13,17,19,23,29 --par=8
+матчей в очереди: 32, одновременно: 8
+p2a_mir match 17 rc 0 4884308 — готово 1/32, 7 мин
+p2a_mir match 3 rc 0 5180133 — готово 2/32, 8 мин
+p2a_mir match 7 rc 0 4800254 — готово 3/32, 8 мин
+p2a_mir match 29 rc 0 5215602 — готово 4/32, 8 мин
+p2a_mir match 11 rc 0 5434815 — готово 5/32, 8 мин
+p2a_mir match 19 rc 0 5999605 — готово 6/32, 8 мин
+p2a_mir match 23 rc 0 5956445 — готово 7/32, 9 мин
+p2a_mir match 13 rc 0 6159036 — готово 8/32, 9 мин
+p2b_mir match 7 rc 0 3610421 — готово 9/32, 14 мин
+p2b_mir match 11 rc 0 5248138 — готово 10/32, 15 мин
+p2b_mir match 3 rc 0 5101055 — готово 11/32, 15 мин
+p2b_mir match 29 rc 0 4482190 — готово 12/32, 16 мин
+p2b_mir match 17 rc 0 5512641 — готово 13/32, 16 мин
+p2b_mir match 23 rc 0 5959309 — готово 14/32, 17 мин
+p2b_mir match 13 rc 0 6615145 — готово 15/32, 18 мин
+p2b_mir match 19 rc 0 7987558 — готово 16/32, 20 мин
+p2c_mir match 7 rc 0 4632019 — готово 17/32, 22 мин
+p2c_mir match 13 rc 0 4405629 — готово 18/32, 23 мин
+p2c_mir match 17 rc 0 5455117 — готово 19/32, 23 мин
+p2c_mir match 11 rc 0 6754059 — готово 20/32, 25 мин
+p2c_mir match 3 rc 0 7937962 — готово 21/32, 25 мин
+p2c_mir match 29 rc 0 3877558 — готово 22/32, 25 мин
+p2c_mir match 19 rc 0 6051800 — готово 23/32, 26 мин
+p2c_mir match 23 rc 0 8006367 — готово 24/32, 29 мин
+p2c_anc match 3 rc 0 5864881 — готово 25/32, 29 мин
+p2c_anc match 7 rc 0 6129246 — готово 26/32, 30 мин
+p2c_anc match 11 rc 0 6334274 — готово 27/32, 31 мин
+p2c_anc match 19 rc 0 5014505 — готово 28/32, 31 мин
+p2c_anc match 23 rc 0 5322623 — готово 29/32, 32 мин
+p2c_anc match 17 rc 0 5981098 — готово 30/32, 32 мин
+p2c_anc match 13 rc 0 7566743 — готово 31/32, 33 мин
+p2c_anc match 29 rc 0 5601463 — готово 32/32, 34 мин
+done
+all done
