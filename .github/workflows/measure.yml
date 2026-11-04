@@ -6,7 +6,7 @@ on:
     branches: ['measure/**']
   workflow_dispatch:
 concurrency:
-  group: measure
+  group: measure-g6b
   cancel-in-progress: false
 permissions:
   contents: write
