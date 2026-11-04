@@ -190,7 +190,7 @@
     function tryOne(pitch, s, jump) {
       var r = nadeThrow({ type: type, pos: from, yaw: yaw, pitch: pitch, strength: s, duck: o.duck, vel: vel, jump: jump, spawn: 0 }, trace);
       var Q = score(r), exy = Q.exy, dz = Q.dz, sc = Q.sc, lvOk = Q.lvOk;
-      if (pool && sc <= AIM_SAME_PRO) pool.push({ yaw: yaw, pitch: pitch, s: s, jump: !!jump, t: r.t, sc: sc });
+      if (pool && sc <= ROB_OK) pool.push({ yaw: yaw, pitch: pitch, s: s, jump: !!jump, t: r.t, sc: sc });
       // (тактика 30.10) смок: из бросков, что ложатся в «то же место» (≤ AIM_SAME), — самый быстрый. Раньше брался самый точный, а
       // точнее всех ложится крутая «свеча» без качения: на ровном полу 600 ед. — 4,9 с вместо 2,0 с, 1200 ед. — 7,6 с (опыт
       // tools/nades/smoke_time.js); точность внутри 32 ед. смоку не нужна (радиус дыма ≈ 144 ед.). Флешка / HE рвутся по запалу — им
@@ -214,19 +214,23 @@
     // берётся первый устойчивый из легших в AIM_SAME_PRO (сначала в AIM_SAME, по времени полёта; не дольше выбранного или AIM_SLOW);
     // устойчивых нет — выбранный. Прогон 150: смоки с подбором ≤ 32 ед. — 20–23 % легли дальше 60 px (разброс на отскоках «на лезвии»:
     // Mirage, B Apps → B, сдвиг на 0,5° — 22 → 300 ед.)
-    var pool = type === 'smoke' && o.robust ? [] : null;
+    // (v505) и своя граната любого типа (o.need — порог «долетит», 380): устойчива, если со сдвигом прицела ложится в тот же порог; из
+    // кандидатов — сначала точнее (не смок). Сцена v504 (свои броски отказов прогона 152): молотов / HE с подбором ≤ 100 ед. после
+    // разброса прицела — до 500–1200 px от цели
+    var pool = o.robust && (type === 'smoke' || o.need) ? [] : null, ROB_OK = type === 'smoke' ? AIM_SAME_PRO : (o.need || AIM_SAME_PRO);
     function steady(c) {
       var dY = o.robust[0], dP = o.robust[1];
       return [[dY, 0], [-dY, 0], [0, dP], [0, -dP]].every(function (d) {
         var r = nadeThrow({ type: type, pos: from, yaw: c.yaw + d[0], pitch: c.pitch + d[1], strength: c.s, duck: o.duck, vel: vel, jump: c.jump, spawn: 0 }, trace);
-        return score(r).sc <= AIM_SAME_PRO; });
+        return score(r).sc <= ROB_OK; });
     }
     function forceBest(c) { var keep = AIM_SAME, pl = pool; AIM_SAME = -1; pool = null; yaw = c.yaw; best = null; tryOne(c.pitch, c.s, c.jump); AIM_SAME = keep; pool = pl; }
     function finish() {
       if (type === 'smoke' && best && alt && best.t > AIM_SLOW && alt.t < best.t) forceBest(alt);
       if (pool && best && pool.length && !steady({ yaw: best.yaw, pitch: best.pitch, s: best.strength, jump: best.jump })) {
         var tMax = Math.max(best.t, AIM_SLOW), seen = {}, n = 0, pick = null;
-        var C = pool.filter(function (c) { return c.t <= tMax; }).sort(function (a, b) { return ((a.sc > AIM_SAME) - (b.sc > AIM_SAME)) || a.t - b.t; });
+        var C = type === 'smoke' ? pool.filter(function (c) { return c.t <= tMax; }).sort(function (a, b) { return ((a.sc > AIM_SAME) - (b.sc > AIM_SAME)) || a.t - b.t; })
+              : pool.slice().sort(function (a, b) { return a.sc - b.sc; });
         for (var i = 0; i < C.length && n < AIM_ROBUST_N && !pick; i++) {
           var c = C[i], key = c.yaw.toFixed(1) + '|' + c.pitch.toFixed(1) + '|' + c.s + '|' + c.jump;
           if (seen[key]) continue; seen[key] = 1; n++;
