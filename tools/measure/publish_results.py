@@ -26,3 +26,19 @@ g('init', '-q'); g('-c', 'core.autocrlf=false', 'add', '-A')
 g('-c', 'user.name=pc-runner', '-c', 'user.email=pc-runner@users.noreply.github.com', 'commit', '-q', '-m', 'результаты прогона %s (%d файлов)' % (run_no, n))
 g('push', '-q', '--force', 'https://x-access-token:%s@github.com/%s' % (tok, repo), 'HEAD:refs/heads/pc-results/%s' % run_no)
 print('pushed pc-results/%s, files %d' % (run_no, n))
+# (04.11, владелец: «место на диске кончается… да, встраивай уборку в скрипт») уборка после выкладки: результаты уже на GitHub
+# (pc-results/<N>) — локальные копии не нужны. Временная папка выкладки, результаты прогона (runs/<метка>, runs/_sims), временные
+# папки прошлых прогонов (pcres_*, simbuild_*), брошенные worktree; .git исполнителя сжимается (каждый прогон докачивает версию игры)
+def _rm(p):
+    try: shutil.rmtree(p, ignore_errors=True)
+    except Exception as e: print('уборка: не удалось', p, e)
+_rm(tmp)
+for j in req.get('jobs', []) + req.get('shots', []): _rm(os.path.join(HERE, 'runs', j['label']))
+_rm(os.path.join(HERE, 'runs', '_sims'))
+td = tempfile.gettempdir()
+for f in os.listdir(td):
+    if f.startswith('pcres_') or f.startswith('simbuild_'): _rm(os.path.join(td, f))
+subprocess.run(['git', 'worktree', 'prune'], cwd=ROOT)
+subprocess.run(['git', 'gc', '--prune=now', '--quiet'], cwd=ROOT)
+print('уборка: готово')
+
