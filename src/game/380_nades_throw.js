@@ -239,7 +239,7 @@ function throwNade(b, type, tx, ty, lob, why, trusted, from){
   if((type === "he" || type === "molly") && bots.some(function(o){ return o.alive && o.team === b.team &&
       (Math.hypot(o.x-tx, o.y-ty) < NADE[type].radius || Math.hypot(o.x-PR[0], o.y-PR[1]) < NADE[type].radius); })){ NADE_FAIL = "свой в зоне"; return false; }
   b.nades[type]--; b._nadeT = tick; b._lastNade = {type:type, x:tx, y:ty, t:tick, self: /себе/.test(String(why || (b.nadeTask && b.nadeTask.why) || ""))};   // (v448) self — флешка себе под пик (контакт — 350)
-  npUse(b, type, (b.nadeTask && b.nadeTask.type === type && b.nadeTask.npm) || npMomentNow(b));   // (v428) запись плана гранат снята
+  npUse(b, type, (b.nadeTask && b.nadeTask.type === type && b.nadeTask.npm) || npMomentNow(b), b.nadeTask && b.nadeTask.type === type && b.nadeTask.luL ? b.nadeTask.luL.grp : null);   // (v428) запись плана гранат снята
   if(miss) noteMistake(b, "промахнулся гранатой ("+NADE[type].name+")");
   var nd = Object.assign(nadeState(type, L.p, L.v), {type:type, x:b.x, y:b.y, z:L.p[2], tx:PR[0], ty:PR[1], born:tick, thrower:b, team:b.team,
             trail:[], why:why||"", ox:b.x, oy:b.y, lob:!!lob, etaDet: tick + Math.ceil(Fl.t*TICK_HZ), aimX:tx, aimY:ty, exec:[+dYaw.toFixed(2), +dPit.toFixed(2)], plan:[S.x, S.y, S.det[2], S.e3], from0:[b.x, b.y, bz], vel0:V});   // exec — ошибка исполнения (поворот, наклон, °); plan — где сработает по подбору (радар x, y; z, ошибка e3); from0 — откуда кинул
@@ -308,7 +308,9 @@ function assignNade(b, type, target, why, opts){
   // гранаты выхода T — момент «выход» и тогда, когда их кидают заранее, до пика (preExec)
   var npm = (opts && opts.bkey && /^T\.exec\./.test(opts.bkey)) ? "exec" : (opts && opts.bkey && /^T\.fake\./.test(opts.bkey)) ? "fake" : npMomentNow(b);
   if(!npCanUse(b, type, npm, null)){ NADE_FAIL = npWhyNot(b, type); return false; }
-  if(b.nadeTask && (b.nadeTask.type === type || b.nadeTask.lineup)) return false; // свой лайнап не перебиваем
+  // (Г3, 04.11, разбор отметок п.19: молотов «комбо» затёрт смоком «отрезать вход», ни один не брошен; сторож: 74 замены на 8 матчей Mirage)
+  // задание гранаты не перебивается другим — бросок доводится или сгорает по сроку (раньше перебивался любой не-лайнап другого типа)
+  if(b.nadeTask) return false;
   if(type === "smoke" && smokeCovered(target.x, target.y)) return false;
   // одна граната одного типа в одну точку: другие механики (комбо, флешка
   // себе, дамп…) не дублируют уже летящую/назначенную туда же
@@ -485,7 +487,9 @@ function updateNadeTask1(b){
         return; }
       postKeep(b);   // стоит на точке броска — затея ещё идёт
       if(!nadeReady(b)) return;   // (v340) только что кинул другую — задание ждёт
-      var vNow = nadeBotVel(b); if(vNow && Math.hypot(vNow[0], vNow[1]) > NADE_STILL_V) return;   // (этап 4) лайнап — стоя: ещё идёт — ждёт
+      // (Г3, 04.11, п.19: молотов «по инфе» 4 с ждал остановки, а ретейк вёл бойца к киту — сгорел) стоя — только лайнап (точный бросок про);
+      // своя точка броска (gen) — и на ходу: подбор считает бросок со скоростью бойца (nadeBotVel → nadeSolve)
+      var vNow = nadeBotVel(b); if(!t.gen && vNow && Math.hypot(vNow[0], vNow[1]) > NADE_STILL_V) return;   // (этап 4) лайнап — стоя: ещё идёт — ждёт
       // не вышло на время (пауза между гранатами, свой в зоне огня) — задание остаётся, попробует снова; раньше снималось молча
       if(!throwNade(b, t.type, t.x, t.y, true, t.why, !t.gen, t.from) && NADE_FAIL && /пауза|свой/.test(NADE_FAIL)) return;   // своя точка (gen) — дуга проверяется
       if(t.gen && b.nadeTask === t && /долетит/.test(NADE_FAIL||"") && nadeRunPlan(b, t)) return;   // (v504) с места не долетает — с разбега

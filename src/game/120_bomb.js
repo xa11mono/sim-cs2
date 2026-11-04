@@ -95,7 +95,9 @@ function dropBomb(b){
 // иначе путь по навмешу (раньше в части мест — прямая × 1,3 / 1,2) + время дефуза. from — точка, откуда считать (точка сбора), иначе — сам бот
 function defuseEta(b, from){
   if(b.defusing) return Math.max(0, (b.defuseUntil - tick)/TICK_HZ);
-  var L = from ? polyLen(pathPts(from.x, from.y, bomb.x, bomb.y)) : pathLenTo(b, bomb.x, bomb.y);
+  // (Г3, 04.11, разбор отметок п.32: роль дефузера CT4 ↔ CT2 каждые 0,5 с) время — по кратчайшему пути навмеша: путь команды (обход мест,
+  // где ждут врага) меняется вместе со знанием и прыгал между двумя маршрутами (Kitchen ↔ Apartments) — оценка «кто раньше» скакала
+  var f = from || b, L = polyLen(pathPts(f.x, f.y, bomb.x, bomb.y));
   return L/SPEED + (b.kit ? DEFUSE_KIT_TICKS : DEFUSE_TICKS)/TICK_HZ;
 }
 var DEFUSE_HEAR = 700;
