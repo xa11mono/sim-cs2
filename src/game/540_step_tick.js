@@ -138,7 +138,7 @@ function stepTick(){
     return;
   }
   if(roundState === "freeze"){
-    freezeLookTick(); nadePrecalcTick(); spotExposurePrecalcTick();   // (физика гранат, этап 3) решения лайнапов — заранее, пока стоят
+    freezeLookTick(); nadePrecalcTick();   // (физика гранат, этап 3) решения лайнапов — заранее, пока стоят
     if(simTime >= roundStartTime){ roundState = "live"; FREEZE_FX = []; logEvent("Freeze-тайм окончен — раунд пошёл"); }
     return;
   }
