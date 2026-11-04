@@ -1,0 +1,5 @@
+{"par": 8, "jobs": [
+  {"label": "g6c_mir", "ref": "76a797da2ae4c6eea71aa7a7f31f1fbe8ad83c39", "map": "mirage", "matches": [3, 7, 11, 13, 17, 19, 23, 29]},
+  {"label": "g6c_anc", "ref": "76a797da2ae4c6eea71aa7a7f31f1fbe8ad83c39", "map": "ancient", "matches": [3, 7, 11, 13, 17, 19, 23, 29]},
+  {"label": "b512_anc8", "ref": "9d232a23afe8a14a9c651836d2ef4cf9f2a156ac", "map": "ancient", "matches": [3, 7, 11, 13, 17, 19, 23, 29]}
+]}
