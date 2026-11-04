@@ -1,0 +1,9 @@
+playwright 1.56.0, браузеры: C:\Windows\system32\config\systemprofile\.simcs2_node\ms-playwright
+> git fetch --quiet origin d32ac070d504678221347e893bb34c1b01d9f8b1
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_3ujbz583 FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_3ujbz583\src\build.py --map mirage C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\k512_mir1.html
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\engine\walk_run.py --job=k512_mir1,C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\k512_mir1.html --matches=3 --par=1
+матчей в очереди: 1, одновременно: 1
+k512_mir1 match 3 rc 0 8464294 — готово 1/1, 9 мин
+done
+all done
