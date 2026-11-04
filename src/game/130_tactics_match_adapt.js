@@ -195,7 +195,6 @@ function coachPlan(side){
   if(!P.facts.length) P.facts.push({k: "reset", log: "перезагрузка: спокойно, по своей игре"});
   return P;
 }
-var DEF_STAND = 13;   // (док 6) с: дольше этого про T до выхода на одном месте почти не стоят (90-й процентиль, демки Mirage)
 var DEF_GROUP_R = 450;   // (v450) ед. карты: «район группы» для мест дефолта — проектное число (≈ зона и её соседи)
 var DEF_STAGE_SEC = 25;   // (v444) из демок Mirage — см. chooseTactic, need
 function chooseTactic(){

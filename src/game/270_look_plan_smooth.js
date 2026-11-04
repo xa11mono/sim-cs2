@@ -167,7 +167,7 @@ function lookCands(b, W){
   var kw = knownWayLook(b);
   // (v441, док владельца 27.10, р1: m0NESY и karrigan шли к Van и смотрели назад на Kitchen — «путь» к sh1ro на T Spawn; замер: 36 % этого
   // взгляда на ходу — за спиной) на ходу — те же множители, что у остальных вариантов («по ходу» / «за спиной»); раньше их не было
-  if(kw){ var kwa = Math.atan2(kw.pt.y-b.y, kw.pt.x-b.x), kws = kw.sc, kwF = D ? [["путь к известному врагу ("+kw.id+", "+kw.age.toFixed(1)+" с)", kw.sc]] : null;
+  if(kw){ var kwa = Math.atan2(kw.pt.y-b.y, kw.pt.x-b.x), kws = kw.sc, kwF = D ? [["путь к известному врагу ("+kw.id+", "+kw.age.toFixed(1)+" с)", kw.cov ? kw.sc/LOOK.mateThere : kw.sc]].concat(kw.cov ? [["путь закрывает свой", LOOK.mateThere]] : []) : null;
     if(moving){ var kwh = _angOff(kwa, b.heading); if(kwh < 0.9){ kws *= LOOK.headK; if(kwF) kwF.push(["по ходу", LOOK.headK]); }
       else if(kwh > 1.9){ kws *= rearCov ? LOOK.behindMoveCov : LOOK.behindMove; if(kwF) kwF.push([rearCov ? "за спиной (прикрыт)" : "за спиной", rearCov ? LOOK.behindMoveCov : LOOK.behindMove]); } }
     out.push({j:"known", pt:kw.pt, sc:kws, fresh:false, a:kwa, f:kwF}); }
@@ -189,7 +189,10 @@ function knownWayLook(b){
     px = qx; py = qy;
   }
   if(!far || Math.hypot(far.x-b.x, far.y-b.y) < 60) return null;
-  return {pt:far, sc:KNOWN_W*Math.exp(-best.age/KNOWN_SEC), id:best.id, age:best.age};
+  // (Г2, 04.11, разбор отметок п.28: T1 смотрел в андер, где стоит T0) на этом пути стоит свой — враг сначала выйдет на него: путь закрыт
+  // своим — то же правило, что у взгляда на звук (lookKnowPt: «путь закрывает свой» → LOOK.mateThere)
+  var cov = bots.some(function(o){ return o !== b && o.alive && o.team === b.team && P.some(function(w){ return Math.hypot(w[0]-b.x, w[1]-b.y) > 60 && Math.hypot(w[0]-o.x, w[1]-o.y) <= 120; }); });
+  return {pt:far, sc:KNOWN_W*Math.exp(-best.age/KNOWN_SEC)*(cov ? LOOK.mateThere : 1), id:best.id, age:best.age, cov:cov};
 }
 // раз в 8 тиков: кандидаты всем + делёж направлений внутри команды
 function lookPlan(team){
@@ -373,11 +376,15 @@ function lookKnowPt(b, q, zb, mates, moving){
   // отвлекает (holdRelevant: > 550 px и вне ±66° от угла поста)
   if(!q.commit && !holdRelevant(b, q)) return null;
   var za = Math.atan2(q.y-b.y, q.x-b.x);
-  // на бегу за спину — только на самый свежий и близкий (v296, И37: отходя от врага, держит его, если он свежий ≤ 0,3 с или ≤ 250 px)
-  if(!q.commit && moving && _angOff(za, b.heading) > 1.9 && q.age > 20 && d > 250) return null;
+  // (Г2, 04.11, ответ владельца 2: «отходит от известного врага — контролирует направление его повторного появления, не смотрит в одну
+  // точку, уходя в другую сторону») правило «на бегу за спину — только самый свежий (≤ 0,3 с) и близкий (≤ 250)» убрано: известный враг
+  // за спиной — такой же кандидат; что важнее — решают вес и арбитр (свежесть, дистанция)
   // (v280) туда, где враг от шума появится (первая видимая точка его пути ко мне); (v287) видна с места бота — не пересчитывать
-  var apf = appearFrom(b, q); if(apf) apf = {x: apf.x, y: apf.y, vis: true};
-  var pt = apf || cornerLook(b, q) || openToward(b, za, LOOK.sndOpen);
+  // (Г2, 04.11, разбор отметок п.18: T4 стрелял сверху из B Apartments через окно, линия видна в обе стороны — CT1 смотрел «где он появится
+  // по пути» в Kitchen, себе за спину) место знания видно отсюда (3D, с его высотой) — смотреть на само место; не видно — как раньше
+  var srcVis = hasLOS(b.x, b.y, q.x, q.y, b.z, q.z);
+  var apf = srcVis ? null : appearFrom(b, q); if(apf) apf = {x: apf.x, y: apf.y, vis: true};
+  var pt = srcVis ? {x: q.x, y: q.y} : (apf || cornerLook(b, q) || openToward(b, za, LOOK.sndOpen));
   // (v281) видимой точки нет — место, где враг на своём пути зайдёт в мою зону
   if(!pt){ var wq0 = buildWaypointPath(q.x, q.y, 0, b.x, b.y, 0) || [];
     for(var wi0 = 0; wi0 < wq0.length; wi0++){ if(bzOf(wq0[wi0][0], wq0[wi0][1]) === zb){ var ep = {x: wq0[wi0][0], y: wq0[wi0][1]}; if(Math.hypot(ep.x-b.x, ep.y-b.y) > 40) pt = ep; break; } } }

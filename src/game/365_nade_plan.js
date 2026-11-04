@@ -161,14 +161,19 @@ function npCanUse(b, t, m, z){
   var L = (b._nplan || []).filter(function(it){ return it.t === t; });
   if(!L.length || aliveCount(b.team) === 1) return true;
   var O = NP_ORDER[b.team];
-  return L.some(function(it){ return O[it.m] <= O[m] && (!z || !it.z || it.z === z); });
+  // (Г3, 04.11, разбор отметок п.9: T3 бросил запланированный смок Connector «себе» в бою — цель осталась без хозяина, её отдали лёркеру
+  // за 1300 ед.) граната, закреплённая за целью лайнапа (lu), до конца своего момента — только для этой цели (её кидает лайнап, 390)
+  return L.some(function(it){ return O[it.m] <= O[m] && (!z || !it.z || it.z === z) && !(it.lu && O[it.m] === O[m]); });
 }
 // почему нельзя — для лога: на какой момент она отложена
 function npWhyNot(b, t){ var it = (b._nplan || []).filter(function(q){ return q.t === t; })[0]; return it ? "бережёт на «"+(NP_LABEL[it.m] || it.m)+"»" : ""; }
 // граната брошена — запись плана снята: той, что на этот момент, иначе самой ранней из доступных
-function npUse(b, t, m){
+function npUse(b, t, m, lu){
   var L = b._nplan || [], O = NP_ORDER[b.team], best = -1;
-  for(var i = 0; i < L.length; i++){ if(L[i].t !== t) continue; if(L[i].m === m){ best = i; break; } if(O[L[i].m] <= O[m] && (best < 0 || O[L[i].m] < O[L[best].m])) best = i; }
+  // (Г3) брошен лайнап цели lu — снимается её запись; иначе — запись без цели (закреплённые за целью не тратятся на другое)
+  if(lu) for(var j = 0; j < L.length; j++) if(L[j].t === t && L[j].lu === lu){ L.splice(j, 1); return; }
+  for(var i = 0; i < L.length; i++){ if(L[i].t !== t || L[i].lu) continue; if(L[i].m === m){ best = i; break; } if(O[L[i].m] <= O[m] && (best < 0 || O[L[i].m] < O[L[best].m])) best = i; }
+  if(best < 0) for(i = 0; i < L.length; i++){ if(L[i].t !== t) continue; if(L[i].m === m){ best = i; break; } if(O[L[i].m] <= O[m] && (best < 0 || O[L[i].m] < O[L[best].m])) best = i; }
   if(best < 0) for(i = 0; i < L.length; i++) if(L[i].t === t){ best = i; break; }
   if(best >= 0) L.splice(best, 1);
 }

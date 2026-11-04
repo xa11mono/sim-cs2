@@ -413,15 +413,8 @@ function tBrain(){
           dm.forEach(function(b, dk){ ch[b.id] = defPick(b, used, roundNum*733 + matchNum*91 + dk*17 + 5); if(ch[b.id]) used[ch[b.id]] = 1; });
           tt._defZ = {n: dm.length, z: ch};
         }
-        // (док 6, п.8, владелец 28.10: «он не должен там стоять, он должен двигаться — странность, что очень долго стоит и ничего не делает»)
-        // у про T с 5-й по 60-ю с стоит на одном месте обычно до 4 с, 90 % — не дольше DEF_STAND (13 с; демки Mirage, tools/measure/pro_checks.py);
-        // donk р5 стоял на месте дефолта ~60 с. Простоял на месте дефолта DEF_STAND — берёт другое место своей группы (те же доли про), не занятое своими
-        dm.forEach(function(b, dk){ var z0 = tt._defZ.z[b.id];
-          if(!z0 || !b.atPost || !b.post || b.post.tag !== "default:"+z0){ b._defArr = null; return; }
-          if(!b._defArr || b._defArr.z !== z0) b._defArr = {z: z0, t: tick};
-          if(tick - b._defArr.t < DEF_STAND*TICK_HZ) return;
-          var used2 = {}; used2[z0] = 1; dm.forEach(function(o){ if(o !== b && tt._defZ.z[o.id]) used2[tt._defZ.z[o.id]] = 1; });
-          var nz = defPick(b, used2, roundNum*733 + matchNum*91 + dk*17 + tick); if(nz){ tt._defZ.z[b.id] = nz; b._defArr = null; } });
+        // (Г3, 04.11, пп. 27/29 и ответ владельца: «в реальности нет таймера — место меняют по ситуации, по геймсенсу») смена места дефолта
+        // через DEF_STAND (13 с стояния) убрана: место меняется по событиям — контакт (350), перестановки (470/480), план IGL (160)
         dm.forEach(function(b){
           var zn0 = tt._defZ.z[b.id], P = gPts(gOf(b)), tgt = SITES[tt.site];
           var Zp = zn0 ? zonePoint(zn0, P[P.length-1] || tgt) : (P[P.length-1] || null), tag = zn0 ? "default:"+zn0 : "default:group";
@@ -564,15 +557,13 @@ function tBrain(){
       var secW = ROUND_TIME_SEC - (simTime - roundStartTime);
       if(!S0 || !atExit || b.nadeTask || b._utilWDone === roundNum || secW < UTIL_MIN_LEFT){ b._utilW = null; return false; }   // (v353) за раунд ждёт один раз
       // (тактика 30.10) и критичный смок выхода, который ещё не встал (идут кидать / летит / раскрывается — 366), а не только граната в воздухе
-      var inAir = exuPending(tt.site) || nadesInAir.some(function(n){ return n.team === "T" && n.type !== "flash" && Math.hypot((n.tx != null ? n.tx : n.x)-S0.x, (n.ty != null ? n.ty : n.y)-S0.y) < 900; });
-      // (v349, отметка владельца: «всё равно выходят до взрыва») и пока свой несёт гранату выхода на этот сайт (лайнап «(выход, A)»)
-      var reExec = new RegExp("выход, " + tt.site);
-      var waitT = function(t){ return t && t.type !== "flash" && reExec.test(t.why || ""); };   // флешки выхода — под заход, их не ждут
-      var pending = ts.some(function(o){ return o !== b && o.alive && (o.nadeTask && o.nadeTask.lineup && waitT(o.nadeTask) || (o.nadeQueue || []).some(waitT)); });
-      // (v351, владелец: «зачем они выходят по одному») и пока рядом нет своего на размен (≤ TRADE_R) — выход вдвоём
+      // (Г3, 04.11, разбор отметок п.30: T0 и T3 ждали «смок выхода» у T1, который уже стоял на сайте, — exuGate в тот момент: можно) ждать ли
+      // гранаты выхода — одно решение, exuGate (366: критичные смоки — назначен / летит / раскрывается / не вышел, замена). Убраны вторые
+      // правила здесь: «свой несёт лайнап «(выход, …)»» (v349) и «любой смок T в воздухе у сайта»
+      var inAir = !exuGate(tt).go;
       var mate = b.tRole !== "entry" || ts.some(function(o){ return o !== b && o.alive && o.tRole !== "lurker" && Math.hypot(o.x-b.x, o.y-b.y) <= TRADE_R; });
-      if(!inAir && !pending && mate){ b._utilW = null; return false; }
-      if(!mate && !inAir && !pending && !(b._utilW && b._utilW.round === roundNum)) voiceLog("T", "tradewait"+b.id+roundNum, b.id, "жду размен — выходим вдвоём");
+      if(!inAir && mate){ b._utilW = null; return false; }
+      if(!mate && !inAir && !(b._utilW && b._utilW.round === roundNum)) voiceLog("T", "tradewait"+b.id+roundNum, b.id, "жду размен — выходим вдвоём");
       // (v349, отметка владельца: donk ждал на выходе с T Ramp на виду у NiKo — бой начинался раньше гранат) ждёт в ближайшем
       // укрытии (≤ 150 ед.: не видно с сайта, опорника и входа CT), а не там, где застала проверка
       if(!b._utilW || b._utilW.round !== roundNum){ var g0 = GEO[tt.site], hf = [S0, g0 && g0.anchor, g0 && g0.ctEntry].filter(Boolean);

@@ -181,6 +181,3 @@ function exuHoldEta(tt){
     else if(it.state === "forming") eta = Math.max(eta, it.useAt); });
   return eta > tick ? eta : 0;
 }
-// боец у выхода: есть ли ещё не готовая критичная граната этого сайта (170: utilWait — ждёт и её, а не только гранаты в воздухе)
-function exuPending(site){ var E = exuCur(); return Object.keys(E.items).some(function(k){ var it = E.items[k];
-  return it.crit && it.site === site && (it.state === "assigned" || it.state === "flying" || it.state === "forming" || (it.state === "failed" && !it.done)); }); }

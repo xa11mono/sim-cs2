@@ -298,7 +298,7 @@ function ctBrain(){
     // / скорость + время дефуза ЕГО (с китом или без); берём лучший вариант
     var needSecs = Infinity;
     cts.forEach(function(b){
-      var t = pathLenTo(b, bomb.x, bomb.y)/SPEED + (b.kit ? 5 : 10) + 1.0;
+      var t = defuseEta(b) + 1.0;   // (Г1) дефузит — остаток дефуза
       if(t < needSecs) needSecs = t;
     });
     // сейвить имеет смысл только то, что стоит денег: с пистолетами и без
@@ -324,7 +324,7 @@ function ctBrain(){
     var tsS = aliveCount("T");
     if(planted){
       var secsS = bombTimeLeftTicks()/TICK_HZ, needS = Infinity;
-      cts.forEach(function(b){ var t = pathLenTo(b, bomb.x, bomb.y)/SPEED + (b.kit ? 5 : 10) + 1.0; if(t < needS) needS = t; });
+      cts.forEach(function(b){ var t = defuseEta(b) + 1.0; if(t < needS) needS = t; });
       var evenS = cts.length >= tsS || (cts.length === tsS - 1 && needS + 7 < secsS);
       if(evenS && needS + 2 < secsS && tsS > 0){
         ct.saving = false; ct._noResave = true; cts.forEach(function(b){ b._saveSpot = null; });

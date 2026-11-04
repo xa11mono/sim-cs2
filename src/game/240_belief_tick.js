@@ -109,16 +109,4 @@ function beliefCount(team, zoneList){
   });
   return tot;
 }
-function beliefZone(team, i){ var B = belief[team], t = 0; Object.keys(B).forEach(function(eid){ t += B[eid][i]; }); return t; }
-// как beliefZone, но дисконтирует "чистый прогноз" (никогда/давно не видели
-// этого врага живьём) — иначе идле-боты стоят пред-прицелившись точно в
-// статистически вероятную клетку так, будто реально знают, где враг, хотя
-// это просто "скорее всего туда пошёл" без единого реального контакта
-function beliefZoneFresh(team, i){
-  var B = belief[team], seen = beliefSeen[team], t = 0;
-  Object.keys(B).forEach(function(eid){
-    var fresh = tick - (seen[eid] == null ? -1e9 : seen[eid]) < 10*TICK_HZ;
-    t += B[eid][i] * (fresh ? 1 : 0.3);
-  });
-  return t;
-}
+// (Г2, 04.11) beliefZone / beliefZoneFresh (×0,3 «чистому прогнозу») убраны — одно чтение карты команды: beliefZoneKnown (260)

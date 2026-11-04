@@ -210,12 +210,7 @@ function updateRetake(cts){
   // один раз в начале ретейка и оставался, пока жив: в m17 р27 (облако) sh1ro стоял в 100 ед. от бомбы с китом, а дефузер
   // magixx ушёл на CT-спавн — бомба взорвалась. Теперь пересмотр каждый тик, но смена — только если другой успеет
   // заметно раньше (на 2 с — проектное число, чтобы двое не перекидывали роль туда-сюда) и дефузер ещё не сел дефузить.
-  if(!R.bzD){ var zb = bzOf(bomb.x, bomb.y); R.bzD = zb >= 0 ? bzDist([zb]) : null; }
-  var defT = function(b){
-    var d = Math.hypot(b.x-bomb.x, b.y-bomb.y);
-    if(R.bzD){ var zi = bzOf(b.x, b.y); if(zi >= 0 && R.bzD[zi] < 1e8) d = Math.max(d, R.bzD[zi]); }
-    return d/SPEED + (b.kit ? 5 : 10);
-  };
+  var defT = function(b){ return defuseEta(b); };   // (Г1) путь по навмешу; дефузит — остаток
   var def = null, tBest = Infinity;
   alive.forEach(function(b){ var t = defT(b); if(t < tBest){ tBest = t; def = b; } });
   var prevDef = R.defId && alive.filter(function(b){ return b.id === R.defId; })[0];
@@ -224,8 +219,8 @@ function updateRetake(cts){
   if(def) R.defId = def.id;
   alive.forEach(function(b){ b.retakeRole = (b === def) ? "defuser" : (R.assign[b.id] !== 0 ? "flank" : "cover"); });
   if(BAL.ninjaDefuse && (R.phase === "gather" || R.phase === "util") && def && ninjaOk()){
-    var tLeftN = bombTimeLeftTicks()/TICK_HZ, dN = Math.hypot(def.x-bomb.x, def.y-bomb.y);
-    if(tLeftN > dN/SPEED*1.3 + (def.kit ? 5 : 10) + 1){
+    var tLeftN = bombTimeLeftTicks()/TICK_HZ;
+    if(tLeftN > defuseEta(def) + 1){
       R.phase = "go"; R.goTick = tick; R.ninja = tick; R.entryId = "-";
       voiceLog("CT", "ninja", def.id, "их нет у бомбы — тихо дефузю, прикройте");
       logEvent("CT: ниндзя-дефуз — все T известны далеко от бомбы");
@@ -248,7 +243,7 @@ function updateRetake(cts){
       // у про второй заходит через ~3с после первого, у ботов было 5с: ждём
       // каждого, кто успевает дойти до своей точки сбора и ещё зайти на дефуз
       var sL = bombTimeLeftTicks()/TICK_HZ, aD = R.approaches[R.assign[def.id]] || R.approaches[0];
-      var gN = Math.hypot(aD.x-bomb.x, aD.y-bomb.y)/SPEED*1.3 + (def.kit ? 5 : 10) + 1.5;
+      var gN = defuseEta(def, aD) + 1.5;
       need = alive.filter(function(b){ var ap = R.approaches[R.assign[b.id]] || aD; return pathLenTo(b, ap.x, ap.y)/SPEED <= sL - gN - 2; }).length;
       need = Math.max(1, need);
       if(!R.gStart) R.gStart = tick;
@@ -256,7 +251,7 @@ function updateRetake(cts){
     var secsLeft = bombTimeLeftTicks()/TICK_HZ;
     // сколько нужно на заход: от точки сбора до бомбы + дефуз
     var a0 = R.approaches[R.assign[def.id]];
-    var goNeed = Math.hypot(a0.x-bomb.x, a0.y-bomb.y)/SPEED*1.3 + (def.kit ? 5 : 10) + 1.5;
+    var goNeed = defuseEta(def, a0) + 1.5;
     var late = secsLeft - goNeed < 3;
     // (v370, владелец: «kyousuke после фрага стоит на сборе и ждёт, хотя может играть сам» — снимок р3: 12 с на Bench, T один с 46 HP)
     // инициатива: ждём своих, только пока нас на точках меньше, чем живых T (киллфид — это знает и живой игрок); на точке —
@@ -278,7 +273,7 @@ function updateRetake(cts){
   }
   if(R.phase === "util"){
     var popped = nadeFlags["pop:ретейк"] !== undefined && tick - nadeFlags["pop:ретейк"] >= 6;
-    var lateU = bombTimeLeftTicks()/TICK_HZ - ((def ? Math.hypot(def.x-bomb.x, def.y-bomb.y) : 400)/SPEED*1.3 + (def && def.kit ? 5 : 10) + 1.5) < 3;
+    var lateU = bombTimeLeftTicks()/TICK_HZ - ((def ? defuseEta(def) : 400/SPEED*1.3 + 10) + 1.5) < 3;
     if(popped || tick - R.utilTick > 2.2*TICK_HZ || lateU){
       R.phase = "go"; R.goTick = tick;
       logEvent("CT: ретейк — заходим"+(popped ? " под флешку!" : "!"));
@@ -405,7 +400,7 @@ function retakeClear(b, R, cts, a, bp){
 }
 function retakeDefGo(b, R, cts){
   var secsLeft = bombTimeLeftTicks()/TICK_HZ;
-  var late2 = secsLeft - (Math.hypot(b.x-bomb.x, b.y-bomb.y)/SPEED*1.2 + (b.kit ? 5 : 10) + 1) < 2.5;
+  var late2 = secsLeft - (defuseEta(b) + 1) < 2.5;
   if(late2) return true;
   // (v370, снимок р3: kyousuke один против одного T на сайте сразу сел дефузить и умер) один на ретейке или один T — дефузит
   // сразу, только если сайт уже проверен: сам у бомбы (≤ 320 — точки зачистки) ≥ 1,5 с и никого не видит, или где последний T — знаем (≤ 5 с) и он далеко

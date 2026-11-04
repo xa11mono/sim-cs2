@@ -310,15 +310,8 @@ function tryShoot(shooter, target, dist){
     endX = cl.x; endY = cl.y;
     // (v263, Б1) промах летит дальше и попадает в того, кто на его пути, — в своего тоже (урон по своим — в applyDamage).
     // Куда попала — по той же доле зон, что и без хитбоксов; урон — оружия на дистанции до него
-    var sv = bulletVictim(shooter, endX, endY, target);
-    if(sv){
-      var sd = Math.hypot(sv.x-shooter.x, sv.y-shooter.y), sz = hashRand(seedS+13);
-      var sm = sz < 0.22 ? 0.75 : (sz < 0.42 ? 1.25 : 1.0), sArm = sz >= 0.22 && sv.armor;
-      var sdmg = w.dmg * Math.pow(w.rm, sd*PX_UNITS/500) * sm;
-      sv._hurtT = tick; sv._hitFx = {t:nowTs, head:false}; if(BAL.tagging) sv._tagUntil = tick + 16;
-      applyDamage(shooter, sv, sdmg, "bullet", {armorRatio: sArm ? w.armorPen : null, wkey:w.key, reward:w.killReward||300, note:" (шальная пуля, дист. "+Math.round(sd)+")"});
-      endX = sv.x; endY = sv.y;
-    }
+    var sv = bulletLineHit(shooter, endX, endY, target, seedS+13, "шальная пуля");
+    if(sv){ endX = sv.x; endY = sv.y; }
   }
   tracers.push({wc:tracerClass(shooter.weapon), wk:shooter.weapon && shooter.weapon.key, sil:!!(shooter.weapon && shooter.weapon.silenced), x1:shooter.x, y1:shooter.y, x2:endX, y2:endY, team:shooter.team, born:nowTs, hit:hit, head:headshot, prefire:prefire, miss:!hit, zone:hitZone,
     tk:tick, sdx:shooter.x-(shooter.px != null ? shooter.px : shooter.x), sdy:shooter.y-(shooter.py != null ? shooter.py : shooter.y),   // (v414, М154) сдвиг за тик — для рисования

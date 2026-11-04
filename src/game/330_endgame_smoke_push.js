@@ -161,7 +161,7 @@ function enemyBeyondSmoke(b, S, r){
     if((g.x-b.x)*ax + (g.y-b.y)*ay > 0) return true;   // по ту сторону, куда идём
   }
   var zi = bzOf(S.x, S.y); if(zi < 0) return false;
-  var m = beliefZoneFresh(b.team, zi); (BZ.nbr[zi]||[]).forEach(function(n){ m += 0.5*beliefZoneFresh(b.team, n); });
+  var m = beliefZoneKnown(b.team, zi); (BZ.nbr[zi]||[]).forEach(function(n){ m += 0.5*beliefZoneKnown(b.team, n); });
   return m > 0.6;
 }
 function smokeEdgeTick(){
