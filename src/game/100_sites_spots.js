@@ -39,7 +39,7 @@ function buildSites(){
     SITES[k] = {key:k, x:sp.x, y:sp.y, poly:poly};
     var ps = sitePlantSpot(SITES[k]); SITES[k].plant = ps;
   });
-  spotCache = {}; OUTWARD_CACHE = {}; EXP_CACHE = {}; ED_CACHE = {CT:null, T:null};
+  spotCache = {}; OUTWARD_CACHE = {}; EXP_CACHE = {}; ED_CACHE = {CT:null, T:null}; SPOT_PRE_I = 0;
   ["A","B"].forEach(function(k){
     var s = SITES[k];
     var tp = pathPts(T_SPAWN.x, T_SPAWN.y, s.x, s.y);
@@ -182,6 +182,21 @@ function spotExposure(team, x, y){
   }
   EXP_CACHE[ck] = n;
   return n;
+}
+// (v512, владелец: «первые секунды после начала матча очень лагает») открытость мест (spotExposure — от карты, кэш на весь матч) для
+// всех мест, из которых выбирает pickSpots, — заранее во freeze-тайм, по SPOT_PRE_MS за тик: первый тик раунда выбирал места
+// ~0,5 с (профиль: pickSpots → spotExposure → hasLOS). Значения те же (тот же расчёт, та же геометрия) — меняется только когда считается
+var SPOT_PRE_I = 0, SPOT_PRE_MS = 8;   // мс за тик (проектное число: < кадра 60 Гц)
+function spotExposurePrecalcTick(){
+  if(!BAL.openAngles || !BZ.ids.length) return;
+  var N = NAVAREAS.length, t0 = performance.now();
+  while(SPOT_PRE_I < 2*N){
+    var i = SPOT_PRE_I++, z = NAVAREAS[i % N], team = i < N ? "CT" : "T";
+    if(NAV_BLOCKED[z.id] || !(zoneGraph[z.id]||[]).length) continue;
+    var c = zoneCentroid(z); if(insideSolidWall(c.x, c.y)) continue;
+    spotExposure(team, c.x, c.y);
+    if(performance.now() - t0 >= SPOT_PRE_MS) break;
+  }
 }
 function pickSpots(key, center, count, o){
   var expT = BAL.openAngles ? ((o && o.team) || SPOT_TEAM) : null;
