@@ -36,7 +36,8 @@ for (const L of LU.pro.concat(LU.proExtra || [])) {
       const e = Math.hypot(r.det[0] - T[0], r.det[1] - T[1]), ez = Math.abs(r.det[2] - tz);
       if (e > SAME || ez > 64) continue;
       // (v509) время полёта — как у про в этой демке: дольше на DT_TOL — физика повторяет бросок не так (Mirage pro75: у нас 8,1 с, у про ≤ 7,7)
-      if (r.t > t.det.dt + DT_TOL) continue;
+      // и смок не дольше AIM_SLOW 8,1 с (385: так долго у про не летает 99 % смоков; pro75 — бросок про 7,4 с, у нас 8,3)
+      if (r.t > t.det.dt + DT_TOL || (L.type === 'smoke' && r.t > 8.1)) continue;
       const c = {yaw: +(t.yaw + dy).toFixed(2), pitch: +(t.pitch + dp).toFixed(2), strength: s, jump: jb, t: +r.t.toFixed(2), err: Math.round(e), d: Math.hypot(dy, dp)};
       if (!best || (L.type === 'smoke' ? c.t < best.t : c.err < best.err)) best = c;
     }
