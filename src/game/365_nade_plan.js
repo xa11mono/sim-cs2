@@ -130,6 +130,8 @@ function teamNadePlan(team, rt){
   return plan;
 }
 // (v429) лайнап этой группы запланирован командой на раунд — у кого-то из живых граната с этой целью
+// (v511) есть ли у карты лайнап про T со смоком выхода на сайт (тогда смоки выхода — только из лайнапов, 420)
+function npHasExecSmoke(site){ return !!BAL.proLineups && proLineups().some(function(L){ return L.team === "T" && L.trigger === "exec" && L.type === "smoke" && (L.site === site || L.site === "any"); }); }
 function npPlanned(L){ return bots.some(function(o){ return o.alive && o.team === L.team && (o._nplan || []).some(function(it){ return it.lu === L.grp; }); }); }
 function npOwner(b, L){ return (b._nplan || []).some(function(it){ return it.lu === L.grp; }); }
 // (v429) может ли враг быть у точки — по тому, что команда знает: все живые враги недавно (≤ 4 с) замечены далеко (> 900) — нет.

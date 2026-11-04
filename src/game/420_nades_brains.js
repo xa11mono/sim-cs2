@@ -99,6 +99,10 @@ function nadeBrains(){
     var smokers = ts.filter(function(b){ return b.nades.smoke > 0 && b.tRole !== "lurker"; });
     var cross = {x:(g.anchor.x+g.ctEntry.x)/2, y:(g.anchor.y+g.ctEntry.y)/2};
     var eo = BAL.nadeEarly ? {now:true, range:1300} : {};
+    // (v511) смоки выхода — из лайнапов про (390, план команды 365). «Вход CT» / «кросс» (точки геометрии v166, не из демок; прогон 157:
+    // из них — почти все провалы критичных смоков: «не долетит», «стена на пути», «не дошёл за срок») — только запасом, если у карты
+    // нет лайнапа про со смоком выхода на этот сайт
+    if(npHasExecSmoke(tt.site)) smokers = [];
     if(BAL.tSmoke && smokers[0] && assignNade(smokers[0], "smoke", g.ctEntry, "вход CT", Object.assign({bkey:"T.exec.ctEntry."+tt.site}, eo))) smokers[0].nadeTask.exec = true;
     if(BAL.tSmoke && smokers[1] && assignNade(smokers[1], "smoke", cross, "кросс", Object.assign({bkey:"T.exec.cross."+tt.site}, eo))) smokers[1].nadeTask.exec = true;
     if(preEx) logEvent("T: гранаты выхода на "+tt.site+" — заранее, до пика");
