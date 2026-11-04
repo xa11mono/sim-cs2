@@ -26,19 +26,22 @@ for (const L of LU.pro.concat(LU.proExtra || [])) {
   const good = [];
   for (const t of near.slice(0, 30)) {
     let best = null;
-    for (const s of (t.strength != null ? [t.strength] : [1, 0.5, 0])) for (let dy = -REF; dy <= REF; dy += 0.5) for (let dp = -REF; dp <= REF; dp += 0.5) {
-      const r = N.nadeThrow({type: L.type, pos: [F[0], F[1], z], yaw: t.yaw + dy, pitch: t.pitch + dp, strength: s, duck: false, vel: [0, 0, 0], jump: !!t.jumpBind || t.move === 'jump', spawn: 0}, W.trace);
+    // (04.11) прыжок: в демке часть прыжковых бросков помечена «стоя» без бинда (Mirage pro54: долетает только прыжковый) — у бросков
+    // без отметки пробуется и прыжок
+    const J = (!!t.jumpBind || t.move === 'jump') ? [true] : [false, true];
+    for (const jb of J) for (const s of (t.strength != null ? [t.strength] : [1, 0.5, 0])) for (let dy = -REF; dy <= REF; dy += 0.5) for (let dp = -REF; dp <= REF; dp += 0.5) {
+      const r = N.nadeThrow({type: L.type, pos: [F[0], F[1], z], yaw: t.yaw + dy, pitch: t.pitch + dp, strength: s, duck: false, vel: [0, 0, 0], jump: jb, spawn: 0}, W.trace);
       if (r.how === 'lost') continue;
       const e = Math.hypot(r.det[0] - T[0], r.det[1] - T[1]), ez = Math.abs(r.det[2] - tz);
       if (e > SAME || ez > 64) continue;
-      const c = {yaw: +(t.yaw + dy).toFixed(2), pitch: +(t.pitch + dp).toFixed(2), strength: s, jump: !!t.jumpBind || t.move === 'jump', t: +r.t.toFixed(2), err: Math.round(e)};
+      const c = {yaw: +(t.yaw + dy).toFixed(2), pitch: +(t.pitch + dp).toFixed(2), strength: s, jump: jb, t: +r.t.toFixed(2), err: Math.round(e), d: Math.hypot(dy, dp)};
       if (!best || (L.type === 'smoke' ? c.t < best.t : c.err < best.err)) best = c;
     }
     if (best) good.push(best);
   }
   if (!good.length) continue;
   good.sort((a, b) => L.type === 'smoke' ? a.t - b.t : a.err - b.err);
-  const g = good[good.length >> 1]; g.n = good.length; out[L.id] = g; nOk++;
+  const g = good[good.length >> 1]; g.n = good.length; delete g.d; out[L.id] = g; nOk++;
 }
 fs.writeFileSync(path.join(ROOT, 'data/maps', map, 'luaim.json'), JSON.stringify(out));
 console.log(JSON.stringify({map, lineups: nAll, withAim: nOk}));
