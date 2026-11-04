@@ -498,11 +498,10 @@ function updateNadeTask1(b){
       // (nadeThrowSpot: безопасную от известных врагов); нет и такой — не кидает
       if(!nadeReady(b)) return;   // (v438) пауза между гранатами — задание ждёт (раньше снималось: 277 заданий на 8 матчей)
       if(throwNade(b, t.type, t.x, t.y, true, t.why)){ b.nadeTask = null; return; }
-      if(/долетит/.test(NADE_FAIL||"") && nadeRunPlan(b, t)) return;   // (v504) с места не долетает — с разбега
       if(!/стена|потолок|этаж/.test(NADE_FAIL||"") || t._spotTried || t.here){ b.nadeTask = null; return; }   // (v373) и под крышей — на точку, откуда долетит
       t._spotTried = true;
       var fs = nadeThrowSpot(b, t);
-      if(!fs){ b.nadeTask = null; return; }
+      if(!fs){ if(/долетит/.test(NADE_FAIL||"") && nadeRunPlan(b, t)) return; b.nadeTask = null; return; }   // (v507) места, откуда долетит стоя, нет — с разбега (v504 пробовал разбег раньше места: прогон 156 — бросков со своей точки 157 → 119–126 на 100 раундов)
       t.from = fs; t.gen = !fs.lane; t.until = Math.max(t.until, tick + Math.ceil(pathLenTo(b, fs.x, fs.y)/SPEED + 2)*TICK_HZ);
     }
 }
