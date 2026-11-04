@@ -142,7 +142,7 @@ function applyDamage(att, b, dmg, src, o){
   intelDeath(b, foe);   // своего убил свой — в войсе «минус», без «убил X»: враг тут ни при чём
   if(foe){ LOOK_REPLAN[foe.team] = true; foe._killHowT = tick; }   // _killHowT — для обсервера (показ)
   if(foe) hlKill(foe);   // (v447) хайлайт: серия в ударе
-  if(foe){ foe.kills++; foe.roundKills++; foe.money = Math.min(MAX_MONEY, foe.money + (o.reward || 300)); }
+  if(foe){ foe.kills++; foe.roundKills++; foe.money = Math.min(MAX_MONEY, foe.money + (o.reward || 300)); ecoKnowKill(foe, o.reward || 300); }   // (Г1) награда видна в киллфиде
   else if(mate) att.money = Math.max(0, att.money + FF_TK_CASH);
   var wkey = o.wkey || (src === "HE" ? "HE" : "MOLOTOV");
   logEvent((att?att.id:(src === "C4" ? "бомба" : "?"))+" ["+(o.wkey ? (WEAPONS[o.wkey] ? WEAPONS[o.wkey].name : o.wkey) : src)+"] "+(mate ? "убил своего " : att === b ? "убил себя " : "устранил ")+b.id+(o.note||""), true);

@@ -253,7 +253,9 @@ function navFollowFloor(bot){
     else if(roundState === "live" && djz > 18) bot._landAt = tick + Math.round(LAND_DELAY*TICK_HZ);
     // (v333) сменил этаж (спуск, лестница) — путь, построенный с прежнего этажа, пересчитывается с нового
     if(Math.abs(dzz) > JUMP_UP && bot.path && bot.pathIdx < bot.path.length){ bot.path = []; bot.pathIdx = 0; }
-    bot.z = naz.z; bot._area = naz.id; }
+    // (Г1, 04.11, разбор отметок п.15) высота бота — пол участка под ногами (плоскость по высотам углов, navFloorZ), а не одна высота на
+    // весь участок: на ровном Top Mid стык участков −205 / −179 давал скачок +26 за тик (сторож: 53–74 таких скачка на раунд)
+    bot.z = navFloorZ(naz, bot.baseX, bot.baseY); bot._area = naz.id; }
 }
 // (v403) как далеко от пола своего уровня (± JUMP_UP) точка: 0 — на полу, дальше NAV_OFF_R — NAV_OFF_R+1 (шаг 2 ед. карты)
 var NAV_OFF_R = 24;   // проектное число: дальше бот вне пола не бывает (перенос navSnap — через 0,5 с)

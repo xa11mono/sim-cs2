@@ -292,18 +292,28 @@ function tClearCalls(){
         if(c.tick > last){ last = c.tick; who = c.by; } }
     } else {
       var smp = ZONE_SAMPLES[zid] || []; if(smp.length < 3) return;
-      who = (ts.filter(function(b){ return tick >= (b.blindUntil||0) &&
-        smp.filter(function(q){ return Math.hypot(q.x-b.x, q.y-b.y) < 900 && inFov(b, q.x, q.y) && hasVision(b.x, b.y, q.x, q.y); }).length * 3 >= smp.length * 2; })[0] || {}).id;
+      who = (ts.filter(function(b){ return zoneSeenAll(b.id, zid); })[0] || {}).id;   // (Г1) все точки зоны, а не 2/3
     }
     var wb = who && ts.filter(function(b){ return b.id === who; })[0]; if(!wb) return;
     // сам сейчас видит врага — ему не до коллов; враг в зоне виден своим — не пусто
     if(bots.some(function(e){ return e.team === "CT" && e.alive && Math.hypot(e.x-wb.x, e.y-wb.y) < 900 && hasVision(wb.x, wb.y, e.x, e.y); })) return;
     if(bots.some(function(e){ return e.team === "CT" && e.alive && zoneIdAt(e.x, e.y) === zid && ts.some(function(b){ return hasVision(b.x, b.y, e.x, e.y); }); })) return;
-    markClear("T", p.x, p.y, wb.id); CLEARZ.T[zid].round = roundNum;
+    if(markClear("T", p.x, p.y, wb.id, ps.length > 0)) CLEARZ.T[zid].round = roundNum;
   });
 }
-function markClear(team, x, y, who){
+// (Г1, 04.11, разбор отметок «угроза»: «чекнул A Site — пусто», а CT стоял в невидимой трети зоны — 23 из 767 коллов на 8 матчах Mirage)
+// «пусто» — только про то, что реально видели: зона пуста, только если тот, кто говорит, сейчас видит все её точки (ZONE_SAMPLES: в поле
+// зрения, на линии, ≤ 1100). Раньше звали из пяти мест по разным правилам — проба и ранний пик CT по «команда ничего не знает рядом»,
+// зачистка углов T по «0,5 с никого не видно», проверка зон по ≥ 2/3 точек. Исключение — проверка по местам из демок (posChecked: все места
+// зоны были в поле зрения своих за CLR_POS_SEC — tClearCalls)
+function zoneSeenAll(who, zid){
+  var wb = who && bots.filter(function(o){ return o.id === who; })[0], smp = ZONE_SAMPLES[zid] || [];
+  if(!wb || !wb.alive || !smp.length || tick < (wb.blindUntil||0)) return false;
+  return smp.every(function(q){ return Math.hypot(q.x-wb.x, q.y-wb.y) < 1100 && inFov(wb, q.x, q.y) && hasVision(wb.x, wb.y, q.x, q.y); });
+}
+function markClear(team, x, y, who, posChecked){
   var zid = zoneIdAt(x, y); if(!zid) return null;
+  if(!posChecked && !zoneSeenAll(who, zid)) return null;
   CLEARZ[team][zid] = {tick:tick, x:x, y:y};
   knowClearZone(team, x, y);
   voiceLog(team, "clz"+zid, who, "чекнул "+(zoneUserName(zid) || calloutName(x, y))+" — пусто");
