@@ -48,6 +48,36 @@ var H={};
 // послали на тот же в одном раунде; «бросили» = сняли с ротации без планта/смерти/конца раунда. К5: бомбу выбили
 // (носитель погиб) — кто через 5 с её держит взглядом, сколько CT ближе 900 px, куда колл.
 REC.rotx={n:0, rev:0, back:0, drop:0, ev:[]}; REC.bd=[]; var RX={}, BD=null, BS0=null;
+// (04.11, проверка гранат по просьбе владельца) только учёт, игру не меняет:
+//  REC.gx.exec — выход T: [раунд, тик выхода, критичных смоков: готов / ждали / провал, ждёт ли exuGate]
+//  REC.gx.molly — враги в огне в миг разрыва молотова: [раунд, команда бросившего, id, вышел через тиков (-1 — погиб в огне, -2 — не вышел до конца огня)]
+//  REC.gx.react — вражеская граната, которую видел хоть один боец: [раунд, тип, сколько видели, ответная граната ≤ 5 с, смена поста ≤ 3 с, отошёл ≥ 60 px ≤ 3 с]
+REC.gx={exec:[],molly:[],react:[]}; var GXR=null, GXT=[], GXM=[], GXE=null;
+var odetGX=detonate; detonate=function(n){
+  var r=odetGX.apply(this,arguments);
+  try{ if(roundState==='live' && n && n.type!=='decoy'){
+    var foes=bots.filter(function(o){ return o.alive && o.team!==n.team; });
+    if(n.type==='molly'){ var fr=fires[fires.length-1]; if(fr && fr.born===tick) foes.forEach(function(o){ if(inFire(o.x,o.y)) GXM.push({o:o,t0:tick,f:fr,r:roundNum,team:n.team}); }); }
+    var seers=foes.filter(function(o){ return hasVision(o.x,o.y,n.x,n.y); });
+    if(seers.length) GXT.push({t0:tick,r:roundNum,type:n.type,seen:seers.map(function(o){ return {o:o,x:o.x,y:o.y,tag:o.post&&o.post.tag}; }),nx:n.x,ny:n.y,cn:0,pc:0,mv:0});
+  } }catch(e){}
+  return r; };
+var othGX=throwNade; throwNade=function(b){ var had=b&&b.nades?JSON.stringify(b.nades):null, r=othGX.apply(this,arguments);
+  if(r!==false && had){ GXT.forEach(function(g){ if(tick-g.t0<=5*TICK_HZ && g.seen.some(function(s){ return s.o.team===b.team; })) g.cn=1; }); } return r; };
+function GX_TICK(){
+  if(roundState!=='live'){ GXE=null; return; }
+  var tt=teamTac&&teamTac.T;
+  if(tt && tt.phase==='execute' && GXE!==roundNum){ GXE=roundNum; var E=(typeof exuCur==='function')?exuCur():null, c={ready:0,wait:0,fail:0};
+    if(E) Object.keys(E.items).forEach(function(k){ var it=E.items[k]; if(!it.crit||it.site!==tt.site) return; if(it.state==='ready') c.ready++; else if(it.state==='failed'||it.state==='void') c.fail++; else c.wait++; });
+    REC.gx.exec.push([roundNum,tick,c.ready,c.wait,c.fail,(typeof exuGate==='function'&&!exuGate(tt).go)?1:0]); }
+  GXM=GXM.filter(function(m){ var o=m.o;
+    if(!o.alive){ REC.gx.molly.push([m.r,m.team,o.id,-1]); return false; }
+    if(!inFire(o.x,o.y)){ REC.gx.molly.push([m.r,m.team,o.id,tick-m.t0]); return false; }
+    if(tick>m.f.until||m.r!==roundNum){ REC.gx.molly.push([m.r,m.team,o.id,-2]); return false; } return true; });
+  GXT=GXT.filter(function(g){
+    if(tick-g.t0<=3*TICK_HZ) g.seen.forEach(function(s){ var o=s.o; if(!o.alive) return; if((o.post&&o.post.tag)!==s.tag) g.pc=1; if(Math.hypot(o.x-g.nx,o.y-g.ny)-Math.hypot(s.x-g.nx,s.y-g.ny)>=60) g.mv=1; });
+    if(tick-g.t0>5*TICK_HZ||g.r!==roundNum){ REC.gx.react.push([g.r,g.type,g.seen.length,g.cn,g.pc,g.mv]); return false; } return true; });
+}
 // (04.11) перед каждым «переносом» (PROB nav) — последние 6 тиков бойца: база, видимая позиция, высота, состояние, путь, подъём. Только учёт
 REC.navx=[]; var NAVH={}, NAVN=0;
 function NAVH_TICK(){ if(typeof PROB==='undefined'||!PROB.n) return;
@@ -57,7 +87,7 @@ function NAVH_TICK(){ if(typeof PROB==='undefined'||!PROB.n) return;
   else if(PROB.n.nav<NAVN) NAVN=PROB.n.nav;
 }
 for(var t=0;t<__T__;t++){ stepTick(); if(typeof WATCH!=='undefined') WATCH.tick();
- NAVH_TICK();
+ NAVH_TICK(); GX_TICK();
  if(matchNum!==M0) break;
  if(roundState!==rs){ if(roundState==='live'){ cur={r:roundNum, t0:tick, ctType:teamEco.CT.roundType, tType:teamEco.T.roundType, tac:(typeof teamTac!=='undefined'&&teamTac.T&&teamTac.T.tac)?teamTac.T.tac.id:null, tsite:(typeof teamTac!=='undefined'&&teamTac.T)?teamTac.T.site:null, ctSetup:(typeof teamTac!=='undefined'&&teamTac.CT&&teamTac.CT.setup)?teamTac.CT.setup.id:null}; REC.rounds.push(cur);
    bots.forEach(function(b){ REC.buys.push([roundNum, b.id, b.team, b.primary||'', b.secondary||'', b.armor?1:0, b.helmet?1:0, b.kit?1:0, b.nades?(b.nades.smoke+b.nades.flash+b.nades.he+b.nades.molly):0, b.money]); }); H={}; }
