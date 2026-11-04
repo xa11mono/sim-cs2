@@ -48,7 +48,16 @@ var H={};
 // послали на тот же в одном раунде; «бросили» = сняли с ротации без планта/смерти/конца раунда. К5: бомбу выбили
 // (носитель погиб) — кто через 5 с её держит взглядом, сколько CT ближе 900 px, куда колл.
 REC.rotx={n:0, rev:0, back:0, drop:0, ev:[]}; REC.bd=[]; var RX={}, BD=null, BS0=null;
+// (04.11) перед каждым «переносом» (PROB nav) — последние 6 тиков бойца: база, видимая позиция, высота, состояние, путь, подъём. Только учёт
+REC.navx=[]; var NAVH={}, NAVN=0;
+function NAVH_TICK(){ if(typeof PROB==='undefined'||!PROB.n) return;
+  bots.forEach(function(b){ if(!b.alive) return; var h=NAVH[b.id]||(NAVH[b.id]=[]); var wp=b.path&&b.path[b.pathIdx];
+    h.push([tick,Math.round(b.baseX*10)/10,Math.round(b.baseY*10)/10,Math.round(b.x*10)/10,Math.round(b.y*10)/10,Math.round(b.z||0),b.state,b.walking?1:0,b.crouching?1:0,wp?[Math.round(wp.x),Math.round(wp.y)]:null,b._climb?1:0,b.holding?1:0,Math.round(b.curSpeed||0)]); if(h.length>6) h.shift(); });
+  if(PROB.n.nav>NAVN){ var k=PROB.n.nav-NAVN; NAVN=PROB.n.nav; for(var i=PROB.ev.length-1;i>=0&&k>0;i--){ var e=PROB.ev[i]; if(e.kind!=='nav'||e.tick!==tick) continue; k--; if(REC.navx.length<800) REC.navx.push({e:[e.tick,e.id,e.text,e.x,e.y,e.round],h:(NAVH[e.id]||[]).slice()}); } }
+  else if(PROB.n.nav<NAVN) NAVN=PROB.n.nav;
+}
 for(var t=0;t<__T__;t++){ stepTick(); if(typeof WATCH!=='undefined') WATCH.tick();
+ NAVH_TICK();
  if(matchNum!==M0) break;
  if(roundState!==rs){ if(roundState==='live'){ cur={r:roundNum, t0:tick, ctType:teamEco.CT.roundType, tType:teamEco.T.roundType, tac:(typeof teamTac!=='undefined'&&teamTac.T&&teamTac.T.tac)?teamTac.T.tac.id:null, tsite:(typeof teamTac!=='undefined'&&teamTac.T)?teamTac.T.site:null, ctSetup:(typeof teamTac!=='undefined'&&teamTac.CT&&teamTac.CT.setup)?teamTac.CT.setup.id:null}; REC.rounds.push(cur);
    bots.forEach(function(b){ REC.buys.push([roundNum, b.id, b.team, b.primary||'', b.secondary||'', b.armor?1:0, b.helmet?1:0, b.kit?1:0, b.nades?(b.nades.smoke+b.nades.flash+b.nades.he+b.nades.molly):0, b.money]); }); H={}; }
