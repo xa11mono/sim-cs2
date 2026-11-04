@@ -10,6 +10,9 @@ import base64, json, os
 
 # данные из демок в папке карты, которые игре не нужны (В1: броски про, ≈ 15 МБ) — в MAP не кладутся
 NOT_MAP = {'throws.json', 'throws_check.json'}
+# (v512) nadeguess.json — подборы бросков лайнапов, посчитанные заранее (tools/nades/guess_bake.py): в MAP только если отпечаток
+# кода подбора и данных карты (nade_hash) тот же, с которым считали; иначе игра считает их сама во freeze-тайм, как раньше
+NADE_SRC = ('035_', '080_', '360_', '365_', '380_', '385_', '390_', '400_')
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 MAPS = os.path.join(HERE, '..', 'data', 'maps')
@@ -26,6 +29,19 @@ def map_arg(argv):
     return name, rest
 
 
+def nade_hash(name):
+    import hashlib
+    h = hashlib.sha1()
+    g = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'game')
+    for fn in sorted(os.listdir(g)):
+        if fn.startswith(NADE_SRC): h.update(fn.encode()); h.update(open(os.path.join(g, fn), 'rb').read())
+    d = os.path.join(MAPS, name)
+    for fn in sorted(os.listdir(d)):
+        if fn.endswith('.json') and not fn.startswith('_') and fn not in NOT_MAP and fn != 'nadeguess.json':
+            h.update(fn.encode()); h.update(open(os.path.join(d, fn), 'rb').read())
+    return h.hexdigest()[:16]
+
+
 def map_js(name):
     d = os.path.join(MAPS, name)
     meta = json.load(open(os.path.join(d, 'map.json'), encoding='utf-8'))
@@ -37,6 +53,10 @@ def map_js(name):
         if not fn.endswith('.json') or fn == 'map.json' or fn.startswith('_'): continue   # _*.json — рецепт и отчёты tools/map_build.py
         if fn in NOT_MAP: continue
         txt = open(os.path.join(d, fn), encoding='utf-8').read().strip()
+        if fn == 'nadeguess.json' and json.loads(txt).get('v') != nade_hash(name):
+            import sys
+            print('  nadeguess.json устарел (код подбора или данные карты менялись) — не включён; пересчитать: python3 tools/nades/guess_bake.py --map ' + name, file=sys.stderr)
+            continue
         json.loads(txt)  # битый файл — ошибка сборки, а не страницы
         parts.append(',' + json.dumps(fn[:-5]) + ':' + txt)
     js = ''.join(parts) + '}'
