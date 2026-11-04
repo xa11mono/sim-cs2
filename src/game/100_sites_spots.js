@@ -39,7 +39,7 @@ function buildSites(){
     SITES[k] = {key:k, x:sp.x, y:sp.y, poly:poly};
     var ps = sitePlantSpot(SITES[k]); SITES[k].plant = ps;
   });
-  spotCache = {}; OUTWARD_CACHE = {}; EXP_CACHE = {}; ED_CACHE = {CT:null, T:null}; SPOT_PRE_I = 0;
+  spotCache = {}; OUTWARD_CACHE = {}; EXP_CACHE = {}; EXP_PRE = {}; ED_CACHE = {CT:null, T:null}; SPOT_PRE_I = 0;
   ["A","B"].forEach(function(k){
     var s = SITES[k];
     var tp = pathPts(T_SPAWN.x, T_SPAWN.y, s.x, s.y);
@@ -159,10 +159,14 @@ var spotCache = {};
 // (2) открытые углы: сколько РАЗНЫХ направлений со стороны врага (зоны ближе
 // к его спавну, чем моя) видят точку. Про встаёт так, чтобы его видели с
 // одного выхода за раз; точка под 3–4 выходами — смерть от первого же захода
-var SPOT_TEAM = null, ED_CACHE = {CT:null, T:null}, EXP_CACHE = {};
+var SPOT_TEAM = null, ED_CACHE = {CT:null, T:null}, EXP_CACHE = {}, EXP_PRE = {};
 function spotExposure(team, x, y){
   if(!BZ.ids.length || !team) return 0;
   var ck = team+Math.round(x/12)+","+Math.round(y/12); if(EXP_CACHE[ck] !== undefined) return EXP_CACHE[ck];
+  var pk = team+x+","+y; if(EXP_PRE[pk] !== undefined) return (EXP_CACHE[ck] = EXP_PRE[pk]);   // (v512) посчитано заранее — та же точка
+  return (EXP_CACHE[ck] = spotExposureCalc(team, x, y));
+}
+function spotExposureCalc(team, x, y){
   var ED = ED_CACHE[team];
   if(!ED){ var sp = team === "CT" ? T_SPAWN : CT_SPAWN, z0 = bzOf(sp.x, sp.y); ED = ED_CACHE[team] = bzDist(z0 >= 0 ? [z0] : []); }
   var zc = bzOf(x, y), bins = {}, n = 0;
@@ -180,12 +184,12 @@ function spotExposure(team, x, y){
       }
     }
   }
-  EXP_CACHE[ck] = n;
   return n;
 }
-// (v512, владелец: «первые секунды после начала матча очень лагает») открытость мест (spotExposure — от карты, кэш на весь матч) для
+// (v512, владелец: «первые секунды после начала матча очень лагает») открытость мест (spotExposureCalc — от карты) для
 // всех мест, из которых выбирает pickSpots, — заранее во freeze-тайм, по SPOT_PRE_MS за тик: первый тик раунда выбирал места
-// ~0,5 с (профиль: pickSpots → spotExposure → hasLOS). Значения те же (тот же расчёт, та же геометрия) — меняется только когда считается
+// ~0,5 с (профиль: pickSpots → spotExposure → hasLOS). Своё хранилище по точной точке (EXP_PRE): кэш клеток EXP_CACHE заполняется в том
+// же порядке, что и без предрасчёта (в клетке 12 px — значение первой спросившей точки), игра бит в бит та же
 var SPOT_PRE_I = 0, SPOT_PRE_MS = 8;   // мс за тик (проектное число: < кадра 60 Гц)
 function spotExposurePrecalcTick(){
   if(!BAL.openAngles || !BZ.ids.length) return;
@@ -194,7 +198,7 @@ function spotExposurePrecalcTick(){
     var i = SPOT_PRE_I++, z = NAVAREAS[i % N], team = i < N ? "CT" : "T";
     if(NAV_BLOCKED[z.id] || !(zoneGraph[z.id]||[]).length) continue;
     var c = zoneCentroid(z); if(insideSolidWall(c.x, c.y)) continue;
-    spotExposure(team, c.x, c.y);
+    var pk = team+c.x+","+c.y; if(EXP_PRE[pk] === undefined) EXP_PRE[pk] = spotExposureCalc(team, c.x, c.y);
     if(performance.now() - t0 >= SPOT_PRE_MS) break;
   }
 }
