@@ -178,6 +178,17 @@ function prePeekDecide(b, C, zB){
   if(BAL.popAim && hPos){ var fr = [0.35, 0.5, 0.22, 0.65];
     for(var fi=0; fi<fr.length; fi++){ var P = {x: C.pt.x + (hPos.x-C.pt.x)*fr[fi], y: C.pt.y + (hPos.y-C.pt.y)*fr[fi]};
       if(!insideSolidWall(P.x, P.y) && hasLOS(hPos.x, hPos.y, P.x, P.y) && Math.hypot(P.x-hPos.x, P.y-hPos.y) > 90){ popPt = P; break; } } }
+  // (v506, владелец 04.11: «флешка тиммейту под пик — очень часто так выбивают позиции: один флешит, второй выходит») свой рядом
+  // (mates: ≤ TRADE_R, не в бою) с флешкой и без задания кидает поп-флешку в ту же точку, пикер ждёт её хлопка (540: _waitPopKey, не
+  // дольше 3,5 с — проектное число: запал 1,6 с + бросок) и выходит. Нет такого — флешка себе, как было
+  var fm = (!BAL.popAim || holder) ? mates.filter(function(o){ return o.nades && o.nades.flash > 0 && !o.nadeTask && !o.holding && o.state === "patrol" && !o.planting && !o.defusing; })
+    .sort(function(p, q){ return Math.hypot(p.x-b.x, p.y-b.y) - Math.hypot(q.x-b.x, q.y-b.y); })[0] : null;
+  if(fm){ var whyM = "флешу под пик "+b.id+" ("+calloutName(C.beyond.x, C.beyond.y)+")";
+    if(assignNade(fm, "flash", popPt, whyM, {now:true, range:700})){
+      b._waitPopUntil = tick + Math.round(3.5*TICK_HZ); b._waitPopKey = "pop:"+whyM; b._ppMate = null;
+      voiceLog(b.team, "mflash"+b.id+key, fm.id, "флешу "+b.id+" под пик — "+calloutName(C.beyond.x, C.beyond.y));
+      if(!b._ppV || tick - b._ppV > 6*TICK_HZ){ b._ppV = tick; logEvent(b.id+": угол держат — "+fm.id+" флешит мне, выхожу под хлопок"); }
+      return; } }
   if(b.nades && b.nades.flash > 0 && !b.nadeTask && b._ppFlashR !== roundNum && (!BAL.popAim || holder) && assignNade(b, "flash", popPt, "флешу себе под пик", {now:true, range:700})){
     b._ppFlashR = roundNum; b._ppWaitUntil = tick + 40; b._ppMate = null;
     if(!b._ppV || tick - b._ppV > 6*TICK_HZ){ b._ppV = tick; logEvent(b.id+": угол держат — флешу себе и выхожу"); }

@@ -44,7 +44,13 @@ function detonate(n){
     // молотов, упавший в дым или рядом так, что огонь касается дыма, гаснет (как в CS2 — наоборот тоже: дым тушит огонь;
     // v321, М12: «чуть касается смока — тушится»)
     if(!smokes.some(function(s){ return Math.hypot(s.x-n.x, s.y-n.y) < smokeRadiusNow(s) + NADE.molly.radius*MOLLY_SMOKE_TOUCH; }))
-    { fires.push({x:n.x, y:n.y, born:tick, until:tick+NADE.molly.life, team:n.team, thrower:n.thrower}); fireRepath(n.x, n.y); }
+    { fires.push({x:n.x, y:n.y, born:tick, until:tick+NADE.molly.life, team:n.team, thrower:n.thrower}); fireRepath(n.x, n.y);
+      // (v506, владелец 04.11: «инфа про молотов — просто знали, что кинули молотов, но чтобы это никуда не уводило») враг, который видит
+      // огонь, говорит в войс «молотов на …» — только колл в панель войса: знание о врагах и решения не меняются (где разорвалась граната
+      // врага, команда и так помнит — nadeSeen выше)
+      if(roundState === "live"){ var mSaw = bots.filter(function(o){ return o.alive && o.team !== n.team && hasVision(o.x, o.y, n.x, n.y); })
+          .sort(function(p, q){ return Math.hypot(p.x-n.x, p.y-n.y) - Math.hypot(q.x-n.x, q.y-n.y); })[0];
+        if(mSaw) voiceLog(mSaw.team, "molly"+Math.round(n.x/40)+","+Math.round(n.y/40)+"@"+roundNum, mSaw.id, "молотов "+calloutName(n.x, n.y)); } }
   }
   else if(T === "flash"){
     if(n.why === "под пик") nadeFlags.peekFlashPop = tick;
