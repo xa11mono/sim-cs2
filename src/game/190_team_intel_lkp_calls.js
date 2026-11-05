@@ -175,7 +175,25 @@ function zonePoint(name, near){
 }
 function zoneUserName(id){ if(ZONE_NAMES[id]) return zoneMainName(ZONE_NAMES[id]); var z = zoneById(id); return z && z.name ? (ZONE_DEFAULT_LABEL[z.name]||z.name) : null; }
 function zoneLabel(id){ return zoneUserName(id) || id; }
-function zoneIdAt(x, y){ for(var i=0;i<ZONEMAP.zones.length;i++){ if(pointInPoly(x, y, ZONEMAP.zones[i].points)) return ZONEMAP.zones[i].id; } return null; }
+// (Д3, скорость: профиль облака — проверка «точка в многоугольнике» ~5 % времени тика, отсюда — перебор всех зон) сетка: в клетке —
+// номера зон, чья рамка её задевает, по возрастанию; первая зона по порядку, в которой точка, — та же, что при полном переборе (бит в бит).
+// Сетка строится заново, если зоны заменены (applyZoneLayerToData — новые массивы точек) или редактор двигал точку (ZIDX = null, 560)
+var ZIDX = null, ZIDX_C = 64;
+function zoneIdxOk(){ var Z = ZONEMAP.zones; if(!ZIDX || ZIDX.refs.length !== Z.length) return false;
+  for(var i = 0; i < Z.length; i++) if(ZIDX.refs[i] !== Z[i].points) return false; return true; }
+function zoneIdxBuild(){
+  var cells = {}, refs = [];
+  ZONEMAP.zones.forEach(function(z, i){ refs.push(z.points); var P = z.points; if(!P || !P.length) return;
+    var x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity;
+    P.forEach(function(q){ if(q.x < x0) x0 = q.x; if(q.x > x1) x1 = q.x; if(q.y < y0) y0 = q.y; if(q.y > y1) y1 = q.y; });
+    for(var cx = Math.floor(x0/ZIDX_C); cx <= Math.floor(x1/ZIDX_C); cx++) for(var cy = Math.floor(y0/ZIDX_C); cy <= Math.floor(y1/ZIDX_C); cy++){
+      var k = cx+","+cy; (cells[k] || (cells[k] = [])).push(i); } });
+  ZIDX = {cells:cells, refs:refs};
+}
+function zoneIdAt(x, y){
+  if(!zoneIdxOk()) zoneIdxBuild();
+  var L = ZIDX.cells[Math.floor(x/ZIDX_C)+","+Math.floor(y/ZIDX_C)]; if(!L) return null;
+  for(var i = 0; i < L.length; i++){ var z = ZONEMAP.zones[L[i]]; if(pointInPoly(x, y, z.points)) return z.id; } return null; }
 // ---- "войс" (как тимспик): короткие коллы, которые слышит вся команда ----
 // где это на карте — простыми словами, по ближайшей известной точке
 // from=true — "откуда" (с A), иначе "где" (на A)

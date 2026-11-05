@@ -340,7 +340,13 @@ function zoneDijkstra(fromId, toId, team){
       // (v438, док владельца 27.10: «боты часто идут в молик») переход в горящем огне — дороже на FIRE_DETOUR: путь обходит молотов, если обход
       // не длиннее; иначе идёт через огонь (как и раньше — fireCommit / ждёт у края). Только путь движения (buildWaypointPath)
       if(fireOn && inFire(edge.mid.x, edge.mid.y)) w += FIRE_DETOUR;
-      for(var kq = 0; kq < nKP; kq++) w += knownSegCost(fromCentroid, edge.mid, KP[kq]);
+      // (Д3, скорость; облако м7: 60 млн вызовов knownSegCost за 8000 тиков) отсев по оси — тот же, что первой строкой knownSegCost
+      // (места дальше R от отрезка по оси — 0), но без вызова функции; порядок сложения и сами слагаемые те же — результат бит в бит
+      if(nKP){ var sax = fromCentroid.x, say = fromCentroid.y, sbx = edge.mid.x, sby = edge.mid.y;
+        var mnx = sax < sbx ? sax : sbx, mxx = sax < sbx ? sbx : sax, mny = say < sby ? say : sby, mxy = say < sby ? sby : say, KR = KNOWN_PATH_R;
+        for(var kq = 0; kq < nKP; kq++){ var kqp = KP[kq];
+          if(mxx < kqp.x - KR || mnx > kqp.x + KR || mxy < kqp.y - KR || mny > kqp.y + KR) continue;
+          w += knownSegCost(fromCentroid, edge.mid, kqp); } }
       var alt = dist[u] + w;
       if(dist[edge.to]===undefined || alt<dist[edge.to]){
         dist[edge.to] = alt; prev[edge.to] = u; entry[edge.to] = edge.mid; heap.push(edge.to, alt);
