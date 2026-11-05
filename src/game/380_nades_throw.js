@@ -23,7 +23,8 @@ function nadeSolve(type, x, y, z, tx, ty, duck, wide, guess, vel){
   var key = type+"|"+x+","+y+","+z+"|"+tx+","+ty+(duck ? "d" : "")+(wide ? "w" : "")+(guess ? "|g"+guess.yaw+","+guess.pitch+","+guess.strength+(guess.jump ? "j" : "") : "")+(vel ? "|v"+vel[0]+","+vel[1]+","+vel[2] : "");
   var c0 = nadeAimCache(key); if(c0 !== undefined) return c0;
   var t0 = (typeof performance !== "undefined") ? performance.now() : 0;
-  if(NADE_TICK.t !== tick){ NADE_TICK.t = tick; NADE_TICK.ms = 0; }
+  if(NADE_TICK.t !== tick){ NADE_TICK.t = tick; NADE_TICK.n = 0; }
+  NADE_TICK.n++;   // подбор не из кэша — счёт тика (не время: игра не должна зависеть от скорости компьютера)
   var F = m3Game(M, x, y), T = m3Game(M, tx, ty), fl = nadeAimFloors(M, tx, ty), lv = nadeLandFloors(M, tx, ty), r = null;
   fl.forEach(function(fz){
     var o = {duck: !!duck, wz: type === "flash" ? 0.5 : 1, wide: !!wide, vel: vel || null};
@@ -34,7 +35,7 @@ function nadeSolve(type, x, y, z, tx, ty, duck, wide, guess, vel){
     var q = nadeAim(type, [F[0], F[1], z], [T[0], T[1], fz + (NADE_AIM_DZ[type] || 0)], nadeTraceFn(), o);
     if(q && (!r || q.e3 < r.e3)) r = q; });
   if(r){ var R = m3Radar(M, r.det[0], r.det[1]); r.x = R[0]; r.y = R[1]; }
-  if(t0){ var dtS = performance.now() - t0; NADE_TICK.ms += dtS; NADE_SOLVE_MS.push(dtS); if(NADE_SOLVE_MS.length > 500) NADE_SOLVE_MS.shift(); }
+  if(t0){ NADE_SOLVE_MS.push(performance.now() - t0); if(NADE_SOLVE_MS.length > 500) NADE_SOLVE_MS.shift(); }
   return nadeAimCache(key, r);
 }
 // (30.10, этап 2) разброс прицела про при повторе одного броска — децили |Δповорота| и |Δнаклона|, ° (0, 10, …, 100 %): демки Mirage +
@@ -97,10 +98,11 @@ function nadePrecalcTick(){
   }
 }   // ед.: уточнённый бросок из места бойца не хуже решения точки лайнапа + столько — принят (проектное число)
 // (Д3, фризы на гранатах; облако м7: 70 % подборов — без подсказки, 28–93 мс, «не долетает» → подбор с места + с разбега под тремя
-// углами в одном тике — до 1,8 с) подбора — не больше NADE_BUDGET_MS за тик: исчерпан — бросок / разбег подбираются в следующих тиках
-// (задание остаётся, «пауза»). Проектное число (кадр 15,6 мс). Сдвигает момент броска на тики — проверка прогоном, не бит в бит
-var NADE_BUDGET_MS = 8, NADE_TICK = {t: -1, ms: 0};
-function nadeBudgetLeft(){ return NADE_TICK.t !== tick || NADE_TICK.ms < NADE_BUDGET_MS; }
+// углами в одном тике — до 1,8 с) подборов не из кэша — не больше NADE_BUDGET_N за тик: исчерпано — бросок / разбег — в следующих тиках
+// (задание остаётся, «пауза»). Счёт подборов, а не мс: v515 считала время — игра зависела от скорости компьютера (прогон 199 отменён).
+// Проектное число. Сдвигает момент броска на тики — проверка прогоном, не бит в бит
+var NADE_BUDGET_N = 1, NADE_TICK = {t: -1, n: 0};
+function nadeBudgetLeft(){ return NADE_TICK.t !== tick || NADE_TICK.n < NADE_BUDGET_N; }
 var NADE_SOLVE_MS = [];      // время последних 500 подборов, мс — только для проверки (tools/tests), игра не читает
 // (30.10, этаж) где у цели может лечь смок / огонь: полы, куда можно дойти, в клетке цели; нет таких (цель лайнапа — только x, y,
 // среднее разрывов про — бывает над верхом ящика: Mirage prx280 / prx282, в клетке только верх ящика −83 вида «подсадка», про — −166)
