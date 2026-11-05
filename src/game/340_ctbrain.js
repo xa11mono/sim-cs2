@@ -119,6 +119,9 @@ function ctBrain(){
     var fresh = best.est.seen + best.est.heard > 0 || best.carrier || best.plant || best.deaths > 0 || best.nades >= 2;
     if(!(fresh && (best.carrier || best.plant || Math.round(best.count) > Math.round(ct.call.count)))) best = res[ct.go.site] || null;
   }
+  // (Д2, владелец 05.11: «спамился колл отбой… все на B») остался один T до планта — колл снят на весь раунд (эндгейм 330: один на него), а не
+  // ставится снова новой инфой на следующем тике (колл ↔ отбой каждый тик, «отбой» каждый раз шёл в войс)
+  if(best && ct._lastTOff === roundNum && !planted0 && aliveCount("T") === 1) best = null;
   if(best){
     var isNew = !ct.call || ct.call.site !== best.site;
     if(isNew || best.count > ct.call.count + 0.4 || tick - ct.call.tick > 64){
@@ -150,7 +153,10 @@ function ctBrain(){
   // (ответ 6Б) остался один T до планта, нас двое и больше — это эндгейм (330: один на него, остальные держат линии), а не ротация под колл
   var lastT = !planted0 && aliveCount("T") === 1 && cts.length >= 2;
   if(ct.call && (lastT || (!planted0 && siteAssess("CT", ct.call.site).level === "empty"))){
-    intelCallLog("CT", "calloffK"+ct.call.site+tick, "отбой колла на "+ct.call.site+": "+(lastT ? "остался один — играем на него" : "все T замечены не там — по ситуации"), null, "plan");
+    // в войс — раз за раунд на сайт и причину (ключ войса раньше был с тиком — повтор не гасился)
+    var offK = ct.call.site + (lastT ? "L" : "E"), OS = ct._offSaid || (ct._offSaid = {});
+    if(OS[offK] !== roundNum){ OS[offK] = roundNum; intelCallLog("CT", "calloffK"+offK, "отбой колла на "+ct.call.site+": "+(lastT ? "остался один — играем на него" : "все T замечены не там — по ситуации"), null, "plan"); }
+    if(lastT) ct._lastTOff = roundNum;
     ct.call = null; ct.go = null;
   }
   if(ct.call){

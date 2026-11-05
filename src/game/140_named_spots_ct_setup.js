@@ -217,8 +217,7 @@ function rememberRound(winner){
   var cs = teamTac.CT && teamTac.CT.setup;
   if(cs){ var CM = ctSetupMem[cs.id] || (ctSetupMem[cs.id] = {n:0, w:0}); CM.n++; if(winner === "CT") CM.w++; }
   roundHist.push({site: tt.site, planted: !!(bomb && bomb.plantTick && bomb.plantTick >= roundStartTick), winner: winner,
-                  execSec: tt.execStart != null ? (tt.execStart - roundStartTick)/TICK_HZ : null, lowPlan: tt.lowPlan || null,
-                  tEarly: bots.filter(function(b){ return b.team === "T" && !b.alive && b._diedT >= roundStartTick && b._diedT - roundStartTick < 30*TICK_HZ && b._killerTeam === "CT"; }).length});
+                  execSec: tt.execStart != null ? (tt.execStart - roundStartTick)/TICK_HZ : null});
 }
 // ---- любимые углы CT (для T) ----
 // ошибки исполнения — в лог не каждую (чтобы не засорять), но видно, что они есть
