@@ -224,13 +224,8 @@ function intelDeath(victim, killer){
   var saw = killer && hasVision(victim.x, victim.y, killer.x, killer.y);
   intelPush(victim.team, {type:"died", x:victim.x, y:victim.y, id:victim.id, conf:1, kid: killer ? killer.id : null, kx: saw ? killer.x : null, ky: saw ? killer.y : null});   // кто убил — видно в киллфиде
   if(saw) intelPush(victim.team, {type:"spotted", x:killer.x, y:killer.y, id:killer.id, by:victim.id, conf:1});
-  else if(killer){
-    // не видел, кто убил, но по попаданиям/звуку выстрела понятно, откуда
-    // стреляли — примерно (±~90px), как "убили откуда-то с ..." в войсе
-    var jx = (hashRand(tick*31 + (victim.id.charCodeAt(victim.id.length-1)||0)) - 0.5) * 180;
-    var jy = (hashRand(tick*57 + 7) - 0.5) * 180;
-    intelPush(victim.team, {type:"sound", x:killer.x+jx, y:killer.y+jy, id:killer.id, by:victim.id, kind:"shot", conf:0.6});
-  }
+  // (00_PLAN, аудит 2.2, 05.11) не видел, кто убил, — «убили откуда-то с …» говорит в войс сам погибший (230: teamDeath, с задержкой фразы),
+  // а не мгновенно в память команды (было: intelPush «sound» ±90 px в тик смерти — раньше, чем это можно сказать)
   var place = calloutName(victim.x, victim.y);
   var mine = aliveCount(victim.team), theirs = aliveCount(victim.team === "CT" ? "T" : "CT");
   voiceLog(victim.team, "die"+victim.id, victim.id, "минус "+place+

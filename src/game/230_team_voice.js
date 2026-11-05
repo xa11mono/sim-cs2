@@ -171,7 +171,13 @@ function teamDeath(att, vic){
   // остальное недосказанное мёртвый уже не скажет
   vic.voice.pending = [];
   var B = vic.know.enemies[att.id];
-  if(!B || !B.visible) return;                  // не видел, откуда — сказать нечего
+  // (00_PLAN, аудит 2.2) не видел убийцу — по попаданиям / звуку выстрела понятно, откуда стреляли, примерно (±90 px, как было в 190):
+  // «стреляли с …» — фраза «слышу» (как шаги), доходит до команды, когда договорена
+  if(!B || !B.visible){
+    var jx = (hashRand(tick*31 + (vic.id.charCodeAt(vic.id.length-1)||0)) - 0.5) * 180, jy = (hashRand(tick*57 + 7) - 0.5) * 180;
+    var zS = knowZoneAt(att.x + jx, att.y + jy); if(!zS) return;
+    vic.voice.diedAt = tick; teamPropose(vic, {kind: "hear", zone: zS, sound: "shots", count: 1}); return;
+  }
   vic.voice.diedAt = tick;
   teamPropose(vic, {kind: "death", zone: B.last.zone, enemy: att.id, awp: B.last.weapon === "AWP"});
 }

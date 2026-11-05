@@ -29,7 +29,8 @@ function nadeOrigin(n){
   if(!saw) return;
   var j = hashRand(tick*31 + n.ox*7), ja = hashRand(tick*17 + n.oy*3)*Math.PI*2, ex = n.ox + Math.cos(ja)*120*j, ey = n.oy + Math.sin(ja)*120*j;
   if(insideSolidWall(ex, ey)){ ex = n.ox; ey = n.oy; }
-  intelPush(foe, {type:"sound", x:ex, y:ey, id:n.thrower.id, kind:"nade", by:saw.id});
+  // (00_PLAN, аудит 2.2, 05.11) видевший бросок говорит в войс (230: «слышу» — с задержкой фразы), а не мгновенно в память команды
+  var zN = knowZoneAt(ex, ey); if(zN && saw.voice) teamPropose(saw, {kind: "hear", zone: zN, sound: "nade", count: 1});
   (saw.ears || (saw.ears = [])).push({x:ex, y:ey, tick:tick, team:n.team, kind:"nade", occl:true});
   // (док 6) в войс — через знание и канал команды (teamNotice: «гранату кинули из X»), а не отдельной надписью
 }
