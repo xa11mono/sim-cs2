@@ -191,16 +191,17 @@ function navNearestZ(x, y, tol, z){
 // (Б1, Х1) «бот на полу» — одно место для шага (offNavStep) и для проверки «вне навмеша» (stepTick → navSnap): пол своего уровня в
 // NAV_STEP_TOL или щель к связанному участку в NAV_GAP_TOL. Раньше шаг пускал в щель, а проверка считала пол по NAV_STEP_TOL и на
 // своей высоте bot.z: бот, идущий по шву между участками, через 0,5 с «вне навмеша — перенесён» со сбросом пути
-function navOnFloor(x, y, b, cur){
+function navOnFloor(x, y, b, cur, strict){
   var lvl0 = navArea(b._area) ? navArea(b._area).z : b.z;
   if(navNearLevel(x, y, NAV_STEP_TOL, lvl0)) return true;
   cur = cur || navArea(b._area); if(!cur) return false;
   // (v403, отметка владельца 22.10, A Default: «прошёл сквозь укрытия») щель к участку, связанному только обратной связью (с него
   // можно спрыгнуть сюда), — не шаг туда, если он выше ступеньки: с пола в ящик высотой 70 бот «входил» по связи «спрыгнуть с ящика»
-  // (00_PLAN п.3а, 04.11, прогон 172: Mirage м11 — 6 переносов подряд у Vent, 844,805) щель — это шов МЕЖДУ участками: точка в NAV_GAP_TOL
-  // и от своего, и от связанного. Раньше хватало связанного: идя с соседнего участка, бот заходил на 7 ед. за наружный край Vent (там
-  // стена), участок становился Vent — и та же точка уже «вне пола» → перенос
-  if(!navFloorNear(x, y, NAV_GAP_TOL, function(a){ return a === cur; })) return false;
+  // (00_PLAN п.3а, 05.11, прогон 172: Mirage м11 — 6 переносов подряд у Vent, 844,805) для ШАГА (strict, offNavStep) щель — это шов МЕЖДУ
+  // участками: точка в NAV_GAP_TOL и от своего, и от связанного. Иначе, идя с соседнего участка, бот заходил на 7 ед. за наружный край Vent
+  // (там стена), участок становился Vent — и та же точка уже «вне пола» → перенос. Проверка «вне пола» (stepTick) — мягкая, как была:
+  // всё, что пустил шаг, она принимает (строгое для неё — прогон 173: переносов 55 → 138 — бот в законной щели, пока участок не сменился)
+  if(strict && !navFloorNear(x, y, NAV_GAP_TOL, function(a){ return a === cur; })) return false;
   return !!navFloorNear(x, y, NAV_GAP_TOL, function(a){ return a !== cur && (navLinked(cur, a) || (navLinked(a, cur) && a.z <= cur.z + 18)); });
 }
 // (v403) высота бота — одно место: после любого движения за тик (шаг пути, бой — fightCycleTick, у угла, пик; stepTick зовёт в конце
@@ -278,7 +279,7 @@ function offNavStep(x1, y1, x2, y2, b){
   // (v405) шаг по пути к следующей точке (спрыгнуть с края стенки на рампу — отметка владельца 22.10, T Ramp: T вставали на краю) — можно
   var a1 = navNearLevel(x1, y1, NAV_STEP_TOL, lvl0); if(!a1) return !navStepAlongPath(x1, y1, x2, y2, b) && navFloorDist(x2, y2, lvl0) > navFloorDist(x1, y1, lvl0);
   var cur = navArea(b._area) || a1;
-  if(navOnFloor(x2, y2, b, cur)) return false;
+  if(navOnFloor(x2, y2, b, cur, true)) return false;
   // (v341, отметка владельца: sh1ro и magixx «снова застряли там же» — спуск со спавна T, −166 → −258) щель спрыгивания бывает
   // шире NAV_GAP_TOL: шаг по пути прямо к следующей точке, под которой пол связанного участка, — это задуманный переход
   var wp = b.path && b.path[b.pathIdx];

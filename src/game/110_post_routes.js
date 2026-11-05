@@ -221,6 +221,10 @@ function setPost(b, pt, look, hold, tag, spreadIdx){
   var tagB = taskTagB(tag);
   var psn = (BAL.proSpots && hold && pt) ? proSnap(b, pt, look, tag) : null;
   if(psn){ pt = psn.pt; spreadIdx = 0; }
+  // (00_PLAN п.3а, 05.11, прогон 173: Mirage — «держать бомбу» / «мало HP» у Vent на (845, 807), за краем пола, — бот упирался или его
+  // переносило по кругу) точка поста — на полу: вне навмеша — ближайшая точка ближайшего участка (в 40 ед., как перенос navSnap)
+  if(pt && !navAt(pt.x, pt.y)){ var naP = navFloorNear(pt.x, pt.y, 40, function(a){ return b.z == null || Math.abs(a.z - b.z) <= JUMP_UP; });
+    if(naP){ var cqP = navClampInto(naP, pt.x, pt.y); pt = Object.assign({}, pt, {x:cqP.x, y:cqP.y}); } }
   var id = tag + "|" + Math.round(pt.x) + "," + Math.round(pt.y);
   if(!b._task || b._task.tb !== tagB || b._task.round !== roundNum || !taskAlive(b)) b._task = {tag:String(tag), tb:tagB, lv:lv, t0:tick, t:tick, round:roundNum};
   else { b._task.t = tick; b._task.tag = String(tag); }
