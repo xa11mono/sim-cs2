@@ -181,3 +181,49 @@ function exuHoldEta(tt){
     else if(it.state === "forming") eta = Math.max(eta, it.useAt); });
   return eta > tick ? eta : 0;
 }
+// (00_PLAN п.8, ответ владельца 5, 05.11: «мидер ждёт смок, перекрывающий опасную линию на его пути — Mirage Window; смоки синхронно»)
+// До выхода (сетап / дефолт) T не выходит на линию, которую закроет свой смок, ещё не вставший: смок назначен (тиммейт идёт кидать —
+// войс), летит или раскрывается, а с обычного места CT (KNOW_POSITIONS) на точку бойца есть вид, и линия проходит через место смока
+// (≤ радиуса дыма). Ждёт там, где стоит, если оттуда этого места CT не видно (уже на виду — ждать незачем). Ждать перестаёт, когда смок
+// встал или его не будет (задание снято, кидающий погиб) — по тем же признакам, что знает команда. Своя граната, контакт, носитель — не ждут
+var SLW_R = 1100;   // ед.: места CT дальше — не в счёт (тот же радиус, что проверка мест «пусто», posClearTick 150)
+function smokeLinePending(team){
+  var L = [];
+  bots.forEach(function(o){ if(o.team !== team || !o.alive) return;
+    [o.nadeTask].concat(o.nadeQueue || []).forEach(function(t){ if(t && t.type === "smoke" && t.x != null) L.push({x:t.x, y:t.y, owner:o.id, st:"assigned"}); }); });
+  nadesInAir.forEach(function(n){ if(n.team === team && n.type === "smoke") L.push({x:n.aimX != null ? n.aimX : n.x, y:n.aimY != null ? n.aimY : n.y, owner:n.thrower ? n.thrower.id : null, st:"flying"}); });
+  smokes.forEach(function(s){ if(s.team === team && smokeRadiusNow(s) < NADE.smoke.radius) L.push({x:s.x, y:s.y, owner:null, st:"forming"}); });
+  return L;
+}
+function smokeLineWait(b, P, S){
+  if(!S.length) return null;
+  var R = NADE.smoke.radius, Q = enemyPositions(b.team);
+  for(var i = 0; i < Q.length; i++){ var q = Q[i];
+    if(Math.hypot(q.x-P.x, q.y-P.y) > SLW_R) continue;
+    var s = S.filter(function(s){ return s.owner !== b.id && segPtDist(s.x, s.y, q.x, q.y, P.x, P.y) <= R; })[0]; if(!s) continue;
+    if(!hasLOS(q.x, q.y, P.x, P.y) || hasLOS(q.x, q.y, b.x, b.y, null, b.z)) continue;
+    return {s:s, q:q};
+  }
+  return null;
+}
+function smokeLineTick(){
+  var tt = teamTac.T; if(!tt || tt.phase === "execute" || tt.phase === "postplant" || bomb.state === "planted") return;
+  var S = null;
+  bots.forEach(function(b){
+    var W = b._slw && b._slw.round === roundNum ? b._slw : null, on = !!(W && W.on);
+    var stop = function(){ if(on && b.post && b.post.tag === "smokeLine") clearPost(b); b._slw = {round:roundNum, t:tick, on:false}; };
+    if(b.team !== "T" || !b.alive) return;
+    if(b.nadeTask || b._sawEnemy || (bomb.carrier === b && b.planting)){ if(on) stop(); return; }
+    if(W && tick - W.t < 16){ if(on) postKeep(b); return; }   // пересмотр раз в 0,25 с (BELIEF_STEP)
+    var P = on ? W.dest : b.post; if(!P){ if(on) stop(); return; }   // ждущий — проверяется точка, куда шёл
+    if(on && b.post && b.post.tag !== "smokeLine"){ b._slw = {round:roundNum, t:tick, on:false}; return; }   // пост перебила задача важнее
+    if(S === null) S = smokeLinePending("T");
+    var w = smokeLineWait(b, P, S);
+    if(!w){ if(on) logEvent(b.id+": смок встал / его не будет — идёт дальше"); stop(); return; }
+    if(!on){
+      if(!setPost(b, {x:b.x, y:b.y}, {x:w.q.x, y:w.q.y}, true, "smokeLine")){ b._slw = {round:roundNum, t:tick, on:false}; return; }   // держит задача важнее
+      logEvent(b.id+": ждёт смок у "+calloutName(w.s.x, w.s.y).replace(/^на /, "")+" — не выходит на линию с "+calloutName(w.q.x, w.q.y).replace(/^на /, "")); }
+    else postKeep(b);
+    b._slw = {round:roundNum, t:tick, on:true, dest:on ? W.dest : {x:P.x, y:P.y}};
+  });
+}
