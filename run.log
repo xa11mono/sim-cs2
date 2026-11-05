@@ -1,0 +1,43 @@
+playwright 1.56.0, браузеры: C:\Windows\system32\config\systemprofile\.simcs2_node\ms-playwright
+> git fetch --quiet origin a536a6eff23894a59eb9b26a3ce908c0f31e7ee7
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_vuxuj5cz FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_vuxuj5cz\src\build.py --map mirage C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\n25_mir.html
+> git fetch --quiet origin a536a6eff23894a59eb9b26a3ce908c0f31e7ee7
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_snuhhlfs FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_snuhhlfs\src\build.py --map ancient C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\n25_anc.html
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\engine\walk_run.py --job=n25_mir,C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\n25_mir.html --job=n25_anc,C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\n25_anc.html --matches=3,7,11,13,17,19,23,29,31,37,41,43,47,53,59,61 --par=8
+матчей в очереди: 32, одновременно: 8
+n25_mir match 11 rc 0 5656775 — готово 1/32, 9 мин
+n25_mir match 3 rc 0 5789956 — готово 2/32, 9 мин
+n25_mir match 29 rc 0 5656707 — готово 3/32, 9 мин
+n25_mir match 23 rc 0 6024526 — готово 4/32, 10 мин
+n25_mir match 19 rc 0 6167401 — готово 5/32, 10 мин
+n25_mir match 13 rc 0 6491403 — готово 6/32, 11 мин
+n25_mir match 7 rc 0 8465535 — готово 7/32, 13 мин
+n25_mir match 17 rc 0 8349343 — готово 8/32, 13 мин
+n25_mir match 31 rc 0 4230500 — готово 9/32, 16 мин
+n25_mir match 43 rc 0 4711841 — готово 10/32, 17 мин
+n25_mir match 37 rc 0 5665120 — готово 11/32, 18 мин
+n25_mir match 47 rc 0 5322606 — готово 12/32, 19 мин
+n25_mir match 53 rc 0 6024213 — готово 13/32, 20 мин
+n25_mir match 41 rc 0 6919416 — готово 14/32, 21 мин
+n25_mir match 61 rc 0 5551670 — готово 15/32, 22 мин
+n25_mir match 59 rc 0 5948479 — готово 16/32, 23 мин
+n25_anc match 7 rc 0 4483650 — готово 17/32, 26 мин
+n25_anc match 3 rc 0 5604623 — готово 18/32, 27 мин
+n25_anc match 13 rc 0 4066499 — готово 19/32, 27 мин
+n25_anc match 11 rc 0 5986844 — готово 20/32, 30 мин
+n25_anc match 17 rc 0 5705754 — готово 21/32, 30 мин
+n25_anc match 19 rc 0 6249292 — готово 22/32, 32 мин
+n25_anc match 37 rc 0 4418748 — готово 23/32, 34 мин
+n25_anc match 29 rc 0 6524558 — готово 24/32, 35 мин
+n25_anc match 23 rc 0 7651354 — готово 25/32, 36 мин
+n25_anc match 31 rc 0 5959429 — готово 26/32, 37 мин
+n25_anc match 41 rc 0 5202998 — готово 27/32, 37 мин
+n25_anc match 43 rc 0 4438127 — готово 28/32, 38 мин
+n25_anc match 53 rc 0 4194597 — готово 29/32, 39 мин
+n25_anc match 47 rc 0 6181319 — готово 30/32, 41 мин
+n25_anc match 61 rc 0 5628450 — готово 31/32, 42 мин
+n25_anc match 59 rc 0 6078551 — готово 32/32, 43 мин
+done
+all done
