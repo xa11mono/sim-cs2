@@ -21,6 +21,8 @@ jobs:
       # cmd, а не PowerShell: на Windows запуск скриптов PowerShell по умолчанию запрещён (шаг падал без вывода)
       - name: Play matches
         shell: cmd
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           python tools/measure/remote_run.py
           set RC=%ERRORLEVEL%
