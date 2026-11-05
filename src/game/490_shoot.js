@@ -37,6 +37,10 @@ function tryShoot(shooter, target, dist){
   // а не по контакту бота с кем угодно: раньше вторая цель в живой перестрелке шла без реакции (34 % выстрелов раньше 150 мс)
   var cs = (shooter._ts && shooter._ts[target.id]) || 0;
   if(!shooter.alive || !target.alive) return;
+  // (05.11, пакет гранат) граната в руках — не стреляет (достал — кидает); после броска другое оружие в руках через NADE_AFTER (медиана про, 380).
+  // «Увидел врага — убирает гранату» пробовалось и убрано: правило без данных, съедало броски «иду в бой», «по инфе» (облако: 60 из 127 доставаний)
+  if(nadeHolding(shooter)) return;
+  if(tick < (shooter._nadeOutUntil || 0)) return;
   if(BAL.knifeRun && (shooter._knife || (shooter._drawUntil && tick < shooter._drawUntil))){ if(shooter._knife){ shooter._knife = false; shooter._drawUntil = tick + Math.round(0.4*TICK_HZ); } return; } // достаёт оружие
   // отступающий стреляет на отходе (раньше не стрелял вообще — его просто
   // расстреливали в спину); бег и так режет ему точность
