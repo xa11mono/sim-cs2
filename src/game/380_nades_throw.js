@@ -176,17 +176,6 @@ function nadeCovered(x, y){
 // игрока — не меньше NADE_GAP с: демки про Mirage, 20 539 пар бросков подряд — минимум 1,1 с (0,5-й процентиль), быстрее 1 с — 0 %
 var NADE_GAP = Math.round(1.1*64);
 function nadeReady(b){ return tick - (b._nadeT == null ? -1e9 : b._nadeT) >= NADE_GAP; }
-// (05.11, пакет гранат, аудит 5.2: «бросок мгновенный — успевают кинуть перед смертью») граната в руках до броска — не меньше, чем у про:
-// tools/nades/draw_time_pro.py, демки Mirage, 35 тыс. бросков — от первой выборки с гранатой в руках до броска, p5 (минимум без
-// ожидания): смок 1,02 с, флешка 1,00, HE 1,00, молотов 1,02; после броска другое оружие в руках — медиана 0,14–0,16 с. Пока граната в руках —
-// не стреляет (490). Идущий на лайнап достаёт заранее, за это время до точки (updateNadeTasks)
-var NADE_DRAW = {smoke: 1.02, flash: 1.0, he: 1.0, molly: 1.02}, NADE_AFTER = 0.15;
-function nadeDrawStart(b, type){ if(!(b._draw && b._draw.type === type && b._draw.r === roundNum)) b._draw = {type: type, t0: tick, r: roundNum}; }
-function nadeDrawn(b, type){ var D = b._draw; return !!D && D.type === type && D.r === roundNum && tick - D.t0 >= (NADE_DRAW[type] || 1)*TICK_HZ; }
-// держит гранату — только пока есть задание её бросить; задание снято (срок, бросок невозможен) — убирает (другое оружие через NADE_AFTER)
-function nadeHolding(b){ var D = b._draw; if(!D || D.r !== roundNum) return false;
-  if(!(b.nadeTask && b.nadeTask.type === D.type) && !((b.nadeQueue || []).length)){ b._draw = null; b._nadeOutUntil = tick + Math.round(NADE_AFTER*TICK_HZ); return false; }
-  return true; }
 var NADE_FAIL = null;   // (v369) почему последний бросок не состоялся — для проверки
 // from — (лайнап) точка броска из набора: навигация и подсказка подбора; бросок подбирается и летит из места, где боец стоит
 function throwNade(b, type, tx, ty, lob, why, trusted, from){
@@ -251,18 +240,6 @@ function throwNade(b, type, tx, ty, lob, why, trusted, from){
   // (физика гранат) и там, где граната сработает на самом деле (точка полёта PR), и сам бросающий — тоже «свой»
   if((type === "he" || type === "molly") && bots.some(function(o){ return o.alive && o.team === b.team &&
       (Math.hypot(o.x-tx, o.y-ty) < NADE[type].radius || Math.hypot(o.x-PR[0], o.y-PR[1]) < NADE[type].radius); })){ NADE_FAIL = "свой в зоне"; return false; }
-  // (05.11) граната ещё не в руках достаточно долго — достаёт; бросок не теряется: прямой вызов (не из задания) становится заданием «с места»,
-  // и кто ждёт хлопка этой гранаты — ждёт и это время
-  if(!nadeDrawn(b, type)){
-    nadeDrawStart(b, type); NADE_FAIL = "пауза: достаёт гранату";
-    if(!(b.nadeTask && b.nadeTask.type === type)){
-      b.nadeTask = {type:type, x:tx, y:ty, until: tick + Math.round(((NADE_DRAW[type] || 1) + 1)*TICK_HZ), why:why||"", start:tick, lob:!!lob, range:4000, now:true, here:true, npm:npMomentNow(b)};
-      if(from) b.nadeTask.from = {x:from.x, y:from.y};
-      if(b._waitPopKey === "pop:"+(why||"") && b._waitPopUntil > tick) b._waitPopUntil += Math.round((NADE_DRAW[type] || 1)*TICK_HZ);
-    }
-    return false;
-  }
-  b._draw = null; b._nadeOutUntil = tick + Math.round(NADE_AFTER*TICK_HZ);
   b.nades[type]--; b._nadeT = tick; b._lastNade = {type:type, x:tx, y:ty, t:tick, self: /себе/.test(String(why || (b.nadeTask && b.nadeTask.why) || ""))};   // (v448) self — флешка себе под пик (контакт — 350)
   npUse(b, type, (b.nadeTask && b.nadeTask.type === type && b.nadeTask.npm) || npMomentNow(b), b.nadeTask && b.nadeTask.type === type && b.nadeTask.luL ? b.nadeTask.luL.grp : null);   // (v428) запись плана гранат снята
   var nd = Object.assign(nadeState(type, L.p, L.v), {type:type, x:b.x, y:b.y, z:L.p[2], tx:PR[0], ty:PR[1], born:tick, thrower:b, team:b.team,
@@ -438,13 +415,7 @@ function runupTick(b, t){
   var R = runupFor(t);
   if(!t.runPh){ t.runStart = runupStart(t, R); if(!t.runStart){ if(t.runOwn){ b.nadeTask = null; return true; } t.runFail = true; return false; } t.runPh = "to"; }
   if(t.runPh === "to"){
-    // (05.11) достаёт гранату заранее (за время доставания до точки разгона); у точки разгона ждёт, пока к броску граната будет в руках
-    // не меньше NADE_DRAW (разбег сам идёт runTime)
-    var dRS = Math.hypot(t.runStart.x-b.baseX, t.runStart.y-b.baseY);
-    if(!b._sawEnemy && dRS <= SPEED*(NADE_DRAW[t.type] || 1)) nadeDrawStart(b, t.type);
-    if(dRS <= 6){ var runT = Math.hypot(t.from.x-t.runStart.x, t.from.y-t.runStart.y)/(SPEED*(R.walk ? WALK_SPEED_FRAC : 1)), D0 = b._draw;
-      if(!D0 || D0.type !== t.type || tick - D0.t0 + runT*TICK_HZ < (NADE_DRAW[t.type] || 1)*TICK_HZ){ nadeDrawStart(b, t.type); postKeep(b); return true; } }
-    if(dRS > 6){
+    if(Math.hypot(t.runStart.x-b.baseX, t.runStart.y-b.baseY) > 6){
       if(b.state === "hold" && !b._sawEnemy) leaveHold(b);
       if(b.state === "patrol") setPost(b, t.runStart, t.from, false, "lineup"); else return true;   // без удержания: пост с hold притягивается к месту про (proSnap)
       postKeep(b); return true; }
@@ -505,8 +476,6 @@ function updateNadeTask1(b){
       // оставляет (кроме боя: engage / retreat — сначала бой)
       if(Math.hypot(t.from.x-b.baseX, t.from.y-b.baseY) > LU_AT && !(b.atPost && b.post && b.post.tag === "lineup")){
         if(b.state === "hold" && !b._sawEnemy) leaveHold(b);
-        // (05.11) достаёт гранату заранее — когда до точки броска осталось меньше времени доставания (как про: подходят с гранатой в руках)
-        if(!b._sawEnemy && Math.hypot(t.from.x-b.baseX, t.from.y-b.baseY) <= SPEED*(NADE_DRAW[t.type] || 1)) nadeDrawStart(b, t.type);
         // (v378) задача важнее броска (арбитр места) — бросок не идёт, пока она не кончится (с v438 — ждёт, а не отменяется)
         // (v438, док владельца 27.10: «мид взяли без гранат, хотя куплены»; замер: 29 % заданий снимала задача важнее — бой, перестановка)
         // задача важнее — бросок ждёт, пока она кончится (срок задания until остаётся: момент прошёл — граната не летит). Было — снимался сразу
@@ -533,7 +502,6 @@ function updateNadeTask1(b){
     if(d <= t.range && hasLOS(b.x, b.y, t.x, t.y, b.z)){
       if(!nadeReady(b)) return;   // (v340) только что кинул другую — задание ждёт
       if(!throwNade(b, t.type, t.x, t.y, false, t.why) && /долетит/.test(NADE_FAIL||"") && nadeRunPlan(b, t)) return;   // (v504) с разбега
-      if(/пауза/.test(NADE_FAIL||"")) return;   // (05.11) достаёт гранату — задание остаётся
       b.nadeTask = null;
     } else if(t.lob && d <= t.range*0.85 && (t.now || tick - t.start > 64)){
       // навесом — точки не видно. (v370, отметка владельца: magixx кинул смок из T Ramp в Window сквозь здания) раньше «стены
@@ -542,7 +510,6 @@ function updateNadeTask1(b){
       // (nadeThrowSpot: безопасную от известных врагов); нет и такой — не кидает
       if(!nadeReady(b)) return;   // (v438) пауза между гранатами — задание ждёт (раньше снималось: 277 заданий на 8 матчей)
       if(throwNade(b, t.type, t.x, t.y, true, t.why)){ b.nadeTask = null; return; }
-      if(/пауза/.test(NADE_FAIL||"")) return;   // (05.11) достаёт гранату — задание остаётся
       if(!/стена|потолок|этаж/.test(NADE_FAIL||"") || t._spotTried || t.here){ b.nadeTask = null; return; }   // (v373) и под крышей — на точку, откуда долетит
       t._spotTried = true;
       var fs = nadeThrowSpot(b, t);
