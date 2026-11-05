@@ -217,6 +217,7 @@ function setPost(b, pt, look, hold, tag, spreadIdx){
       return setPost(b, cp, nx, true, "route:"+R.names[Math.min(R.idx, R.names.length-1)]);
     }
   }
+  if(lv === 1 && !/^after:/.test(String(tag))){ var AF = afterTaskPick(b, pt); if(AF) return setPost(b, AF.pt, AF.look, true, "after:hold"); }
   if(!taskCanSet(b, tag)) return false;
   var tagB = taskTagB(tag);
   var psn = (BAL.proSpots && hold && pt) ? proSnap(b, pt, look, tag) : null;
@@ -247,6 +248,21 @@ function setPost(b, pt, look, hold, tag, spreadIdx){
   b.atPost = false;
   if(b.state === "patrol"){ b.path = []; b.pathIdx = 0; }
   return true;
+}
+// (5) после временной задачи (ответ владельца 04.11, `docs/tasks/OWNER_ANSWERS_2026-11-04.md`): не «вернуться на пост», а оценить. Ушёл
+// по бою (контакт, перестановка в бою — уровни 9 и 6), задача кончилась, роль зовёт на пост: если враг, известный команде (за SITE_SEEN_SEC),
+// простреливает пост, а место, где бот сейчас, — нет, угроза осталась: остаётся, где стоит, смотрит на врага; инфа устарела / враг ушёл —
+// назад на пост. На посту свой — пост сдвигается рядом (spotTaken в setPost), команда ротирует — роль даёт новый пост (сама)
+function afterTaskPick(b, pt){
+  var T = b._task;
+  if(T && T.round === roundNum && (T.lv === 9 || T.lv === 6) && !taskAlive(b)) b._aft = {round:roundNum, x:b.baseX, y:b.baseY};
+  var A = b._aft; if(!A || A.round !== roundNum || !pt) return null;
+  var BL = beliefLast[b.team] || {}, foe = b.team === "T" ? "CT" : "T", th = null;
+  bots.some(function(o){ var e = BL[o.id]; if(!o.alive || o.team !== foe || !e || tick - e.tick > SITE_SEEN_SEC*TICK_HZ) return false;
+    if(hasLOS(e.x, e.y, pt.x, pt.y) && !hasLOS(e.x, e.y, A.x, A.y)){ th = e; return true; } return false; });
+  if(!th){ b._aft = null; return null; }
+  if(b._aftSaid !== roundNum && (b._aftSaid = roundNum)) logEvent(b.id+": задача кончилась, но пост простреливается ("+calloutName(th.x, th.y).replace(/^на /,"")+") — остаюсь");
+  return {pt:{x:A.x, y:A.y}, look:{x:th.x, y:th.y}};
 }
 // механика сама сняла свою точку — её задача кончилась (следующая ставится без ожидания)
 function clearPost(b){ b._task = null; if(b.post){ b.post = null; b.atPost = false; if(b.state==="patrol"){ b.path = []; b.pathIdx = 0; } } }
