@@ -1,0 +1,27 @@
+playwright 1.56.0, браузеры: C:\Windows\system32\config\systemprofile\.simcs2_node\ms-playwright
+> git fetch --quiet origin 9a266bb9854b40dc3a45380224c05801304e57d2
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_z5q6a3oi FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_z5q6a3oi\src\build.py --map ancient C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\n18b_anc.html
+> git fetch --quiet origin 06243e1f761e685c9f0333796566719aa86691e8
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_721tsvm7 FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_721tsvm7\src\build.py --map ancient C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\n19b_anc.html
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\engine\walk_run.py --job=n18b_anc,C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\n18b_anc.html --job=n19b_anc,C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\n19b_anc.html --matches=31,37,41,43,47,53,59,61 --par=8
+матчей в очереди: 16, одновременно: 8
+n18b_anc match 37 rc 0 3859972 — готово 1/16, 5 мин
+n18b_anc match 31 rc 0 5461432 — готово 2/16, 6 мин
+n18b_anc match 43 rc 0 4441503 — готово 3/16, 6 мин
+n18b_anc match 59 rc 0 4657698 — готово 4/16, 6 мин
+n18b_anc match 47 rc 0 4562269 — готово 5/16, 6 мин
+n18b_anc match 53 rc 0 5600763 — готово 6/16, 7 мин
+n18b_anc match 61 rc 0 9796637 — готово 7/16, 10 мин
+n18b_anc match 41 rc 0 8754585 — готово 8/16, 10 мин
+n19b_anc match 37 rc 0 4803728 — готово 9/16, 12 мин
+n19b_anc match 31 rc 0 6232692 — готово 10/16, 12 мин
+n19b_anc match 43 rc 0 5377373 — готово 11/16, 12 мин
+n19b_anc match 47 rc 0 5481279 — готово 12/16, 13 мин
+n19b_anc match 41 rc 0 7856846 — готово 13/16, 15 мин
+n19b_anc match 53 rc 0 8405404 — готово 14/16, 15 мин
+n19b_anc match 61 rc 0 8258548 — готово 15/16, 15 мин
+n19b_anc match 59 rc 0 5951708 — готово 16/16, 16 мин
+done
+all done
