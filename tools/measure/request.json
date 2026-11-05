@@ -1,4 +1,5 @@
 {"par": 12, "jobs": [
-  {"label": "v516_mir", "ref": "66e37a9c39f21a99a6d41b8bb843c674aa2be56f", "map": "mirage", "matches": [3, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61]},
-  {"label": "v516_anc", "ref": "66e37a9c39f21a99a6d41b8bb843c674aa2be56f", "map": "ancient", "matches": [3, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61]}
+  {"label": "r514_mir", "ref": "fd9be2b98b55c274e85d89de237a78f534237fba", "map": "mirage", "replay": {"from": "v514_mir", "rounds": "all"}, "matches": [3, 7, 11, 13, 17, 19, 23, 29]},
+  {"label": "r516a_mir", "ref": "ff2d936baa4b902e1dd4e0f565427b212d120d93", "map": "mirage", "replay": {"from": "v514_mir", "rounds": "all"}, "matches": [3, 7, 11, 13, 17, 19, 23, 29]},
+  {"label": "r516b_mir", "ref": "45eb9d2dc40061eae420aaab46dd2bcc231b7188", "map": "mirage", "replay": {"from": "v514_mir", "rounds": "all"}, "matches": [3, 7, 11, 13, 17, 19, 23, 29]}
 ]}
