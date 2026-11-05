@@ -1,0 +1,24 @@
+playwright 1.56.0, браузеры: C:\Windows\system32\config\systemprofile\.simcs2_node\ms-playwright
+> git fetch --quiet origin 66e37a9c39f21a99a6d41b8bb843c674aa2be56f
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_g92fuut_ FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_g92fuut_\src\build.py --map mirage C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v516_mir.html
+> git fetch --quiet origin 66e37a9c39f21a99a6d41b8bb843c674aa2be56f
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_ad1hww3v FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_ad1hww3v\src\build.py --map ancient C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v516_anc.html
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\engine\walk_run.py --job=v516_mir,C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v516_mir.html --job=v516_anc,C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v516_anc.html --matches=3,7,11,13,17,19,23,29,31,37,41,43,47,53,59,61 --par=12
+матчей в очереди: 32, одновременно: 12
+v516_mir match 41  rc 0 4610090 — готово 1/32, 5 мин
+v516_mir match 3  rc 0 6316107 — готово 2/32, 7 мин
+v516_mir match 31  rc 0 6152109 — готово 3/32, 7 мин
+v516_mir match 23  rc 0 6960268 — готово 4/32, 8 мин
+v516_mir match 29  rc 0 6349170 — готово 5/32, 8 мин
+v516_mir match 11  rc 0 6886564 — готово 6/32, 8 мин
+v516_mir match 7  rc 0 7060842 — готово 7/32, 8 мин
+v516_mir match 17  rc 0 7549605 — готово 8/32, 9 мин
+v516_mir match 19  rc 0 7708442 — готово 9/32, 9 мин
+v516_mir match 43  rc 0 8720572 — готово 10/32, 9 мин
+v516_mir match 37  rc 0 8191486 — готово 11/32, 10 мин
+v516_mir match 13  rc 0 8557531 — готово 12/32, 10 мин
+v516_mir match 47  rc 0 7329261 — готово 13/32, 14 мин
+v516_mir match 59  rc 0 7558277 — готово 14/32, 16 мин
+v516_anc match 11  rc 0 6720127 — готово 15/32, 16 мин
