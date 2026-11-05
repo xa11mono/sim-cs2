@@ -1,11 +1,20 @@
 // (В5) nades: [..., ls, скорость бойца в миг броска px/с, лайнап 1/0]
 // один воспроизводимый матч: позиции/фраги/раунды/закуп/гранаты + детектор дёрганий каждый тик
+// (05.11, план «ускорение проверок») снимки раундов: /*@@SNAPS@@*/ → walk_run.py вставляет SNAP_ON = 1 (базовый прогон пишет REC.snaps —
+// снимок в конце каждого раунда, на границе тика, из него новая версия переигрывает следующий раунд с закупкой); при переигровке
+// строка «freshMatch» заменяется восстановлением снимка. В снимке — только то, что изменилось с загрузки страницы (постоянные таблицы
+// кода — из новой версии), без точных кэшей (WPM, ZDJ, KPC — их содержимое не меняет результат) и без отметок (MK*)
+var SNAP_ON = 0, SNAP_S0 = {}, SNAP_SKIP = /^(WPM|ZDJ|KPC|MK.*)$/, SNAP_NEXT = 0;
+/*@@SNAPS@@*/
+if(SNAP_ON) mkSnapList().forEach(function(e){ if(SNAP_SKIP.test(e[0])) return; try{ SNAP_S0[e[0]] = mkPack(e[1]()); }catch(x){} });
+function snapTake(){ var o = {}; mkSnapList().forEach(function(e){ if(SNAP_SKIP.test(e[0])) return; var v = e[1](), s; try{ s = mkPack(v); }catch(x){ return; } if(s !== SNAP_S0[e[0]]) o[e[0]] = v; }); return mkPack(o); }
+var R_END = 0;
 freshMatch(__M__);
 var M0=matchNum;
 /*@@WATCH@@*/
 var REC={rounds:[], kills:[], pos:[], plants:[], buys:[], nades:[], jit:{alive:0, look:0, moveEng:0, moveIdle:0, moveOther:0, ev:[]}}, rs=null, cur=null;
 var ofk=feedKill; feedKill=function(att,vic,weap,hs){ REC.kills.push([tick, att?att.id:null, att?att.team:null, att?Math.round(att.x):null, att?Math.round(att.y):null, vic.id, vic.team, Math.round(vic.x), Math.round(vic.y), String(weap), hs?1:0, att&&att.weapon?att.weapon.key:null, vic.tRole||'']); return ofk.apply(this,arguments); };
-var oer=endRound; endRound=function(w,reason){ if(cur){ cur.t1=tick; cur.winner=w; cur.reason=reason; cur.bomb=bomb.state; } return oer.apply(this,arguments); };
+var oer=endRound; endRound=function(w,reason){ if(SNAP_ON) SNAP_NEXT = roundNum + 1; if(cur){ cur.t1=tick; cur.winner=w; cur.reason=reason; cur.bomb=bomb.state; } return oer.apply(this,arguments); };
 var otn=throwNade; throwNade=function(b,type,tx,ty){ var ok0=roundState==='live' && b.nades && b.nades[type]>0, x0=b.x, y0=b.y, sp0=Math.round(b.curSpeed||0), lu0=(arguments[6]||arguments[7])?1:0, ls=tick-(b.lastShotTick||-999); var res=otn.apply(this,arguments); if(ok0 && res!==false) REC.nades.push([tick, b.team, type, b.id, (b.tRole||b.ctRole||''), Math.round(x0), Math.round(y0), Math.round(tx), Math.round(ty), ls, sp0, lu0]); return res; };   // (v370) только состоявшийся бросок (throwNade может отказать)
 // (v181) стрельба: каждый выстрел пулей — тик, стрелок, команда, оружие, дистанция, цель,
 // сколько тиков враг уже виден, скорость стрелка (одинаково для любой версии)
@@ -25,6 +34,7 @@ REC.fc=[]; REC.task=[]; REC.voice=[]; REC.slow=[]; REC.exu=[]; var FCP={}, TKP={
 // duel — строки журнала игры о решениях в бою (почему ушёл с линии / держит / отходит / атакует, союзников рядом, врагов видит) [тик, текст]
 REC.duel=[]; var DUEL_RE=/укрыт|с линии|в плечо|выгляд|держ|отход|отступ|атак|дуэл|пик|размен|добив|сближ|не лезет/;
 if(typeof logEvent==='function'){ var olg=logEvent; logEvent=function(text){ if(roundState==='live' && REC.duel.length<40000 && DUEL_RE.test(String(text))) REC.duel.push([tick, String(text).slice(0,200)]); return olg.apply(this,arguments); }; }
+if(SNAP_ON){ REC.snaps = {}; }
 if(typeof voiceFeed==='function'){ var ovf=voiceFeed; voiceFeed=function(team,who,text,kind){ if(roundState==='live') REC.voice.push([tick, team, who||'', String(text), kind||'']); return ovf.apply(this,arguments); }; }
 if(typeof exuEv==='function'){ var oex=exuEv; exuEv=function(kind,it,extra){ var r=oex.apply(this,arguments); REC.exu.push([tick, kind, it?it.id:null, it?it.owner:null, it?!!it.crit:null, it?it.site:null, it&&it.x!=null?Math.round(it.x):null, it&&it.y!=null?Math.round(it.y):null, extra?JSON.stringify(extra).slice(0,160):'']); return r; }; }
 var oad=applyDamage; applyDamage=function(att,b,dmg,src){ var h0=b?b.hp:0; var r=oad.apply(this,arguments); if(roundState==='live'&&b) REC.dmg.push([tick, att?att.id:null, att?att.team:null, b.id, Math.round(Math.min(h0,dmg)), String(src||''), Math.max(0,Math.round(b.hp))]); return r; };
@@ -33,6 +43,8 @@ var oad=applyDamage; applyDamage=function(att,b,dmg,src){ var h0=b?b.hp:0; var r
 // (носитель погиб) — кто через 5 с её держит взглядом, сколько CT ближе 900 px, куда колл.
 REC.rotx={n:0, rev:0, back:0, drop:0, ev:[]}; REC.bd=[]; var RX={}, BD=null, BS0=null;
 for(var t=0;t<__T__;t++){ var _t0=performance.now(); stepTick(); var _dt=performance.now()-_t0; if(_dt>25 && roundState==='live'){ var _nt=bots.filter(function(b){return b.alive&&b.nadeTask;}); REC.slow.push([tick, Math.round(_dt), (typeof nadesInAir!=='undefined'&&nadesInAir.length)||0, _nt.length, _nt.map(function(b){return b.id+':'+b.nadeTask.type;}).join(' ')]); } if(typeof WATCH!=='undefined') WATCH.tick();
+ if(SNAP_NEXT && matchNum===M0){ REC.snaps[SNAP_NEXT] = {t:tick, s:snapTake()}; SNAP_NEXT = 0; }
+ if(R_END && roundNum > R_END) break;
  if(matchNum!==M0) break;
  if(roundState!==rs){ if(roundState==='live'){ cur={r:roundNum, t0:tick, ctType:teamEco.CT.roundType, tType:teamEco.T.roundType, tac:(typeof teamTac!=='undefined'&&teamTac.T&&teamTac.T.tac)?teamTac.T.tac.id:null, tsite:(typeof teamTac!=='undefined'&&teamTac.T)?teamTac.T.site:null, ctSetup:(typeof teamTac!=='undefined'&&teamTac.CT&&teamTac.CT.setup)?teamTac.CT.setup.id:null}; REC.rounds.push(cur);
    bots.forEach(function(b){ REC.buys.push([roundNum, b.id, b.team, b.primary||'', b.secondary||'', b.armor?1:0, b.helmet?1:0, b.kit?1:0, b.nades?(b.nades.smoke+b.nades.flash+b.nades.he+b.nades.molly):0, b.money]); }); H={}; }
