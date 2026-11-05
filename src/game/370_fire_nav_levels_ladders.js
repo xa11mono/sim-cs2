@@ -363,8 +363,18 @@ function navUnlinkBlocked(bot, pw){
   PATHQ = {}; PATHQ_N = 0;
   logEvent("навмеш: связь "+a1.id+" → "+e.to+" непроходима (уступ) — убрана, путь заново (самоисправление)");
 }
+// (00_PLAN, владелец 05.11: «упор в стену» на Mid Boxes — 52 за 8 матчей) стена в шаге — с высотой: crossesWall — по клеткам сверху (клетка без пола
+// на любой высоте — стена во всю высоту), и боковая грань ящика под ногами стоящего на ящике была «стеной» — он не мог сойти. Плоская проверка
+// сказала «стена» — 3D-луч геометрии игры (маска «nade» — твёрдое) на высоте бота: чуть выше ступеньки (STEP_UP_Z) и на уровне тела
+// (STEP_BODY_Z); стена — если упирается. Высоты нет (Ancient без 3D, бот без z) — как было
+var STEP_UP_Z = 19, STEP_BODY_Z = 50;   // ед. игры: ступенька 18 (heightBlocked) + 1; тело — середина роста стоя (72) — проектное
+function stepWall(x1, y1, x2, y2, b){
+  if(!crossesWall(x1, y1, x2, y2)) return false;
+  var M = MAP3D && m3(); if(!M || !b || b.z == null) return true;
+  return !m3Line(M, x1, y1, b.z + STEP_UP_Z, x2, y2, b.z + STEP_UP_Z, "nade") || !m3Line(M, x1, y1, b.z + STEP_BODY_Z, x2, y2, b.z + STEP_BODY_Z, "nade");
+}
 function stepBlocked(x1,y1,x2,y2,b){
-  if(crossesWall(x1,y1,x2,y2)) return true;
+  if(stepWall(x1, y1, x2, y2, b)) return true;
   if(heightBlocked(x1, y1, x2, y2, b)) return true;
   if(b && b.baseX != null && offNavStep(x1, y1, x2, y2, b)) return true;   // (v336) с пола навмеша — в стену/ящик нельзя
   if(!inFire(x1,y1) && inFire(x2,y2)) return !fireCommit(b);
