@@ -54,6 +54,24 @@ function fightBetter(b, e, cx, cy, R){
   }
   return best;
 }
+// (00_PLAN, ответ владельца 4, 05.11: «за укрытием — держит / джигл / меняет угол; не однообразный джигл; против AWP — плечо»)
+// другое место пика: как fightBetter, но не ближе minD к прошлой точке пика (px, py)
+function fightBetterAway(b, e, cx, cy, R, px, py, minD){
+  var best = null, bd = Infinity;
+  for(var k=1;k<=3;k++) for(var i=0;i<16;i++){
+    var a = i*Math.PI/8, r = R*k/3, x = cx + Math.cos(a)*r, y = cy + Math.sin(a)*r;
+    if(Math.hypot(x-px, y-py) < minD || insideSolidWall(x, y) || !fightPathFree(b, cx, cy, x, y) || !hasLOS(x, y, e.x, e.y, b.z, e.z)) continue;
+    var d = Math.hypot(x-cx, y-cy); if(d < bd){ bd = d; best = {x:x, y:y}; }
+  }
+  return best;
+}
+// место «показать плечо»: на отрезке укрытие → точка пика первое место, где врагу видно только плечо (visParts side), но не голову и тело
+function fightShoulderPt(b, e, cx, cy, ax, ay){
+  var L = Math.hypot(ax-cx, ay-cy); if(L < FIGHT_STEP) return null;
+  for(var d = FIGHT_STEP; d < L; d += FIGHT_STEP){ var x = cx + (ax-cx)*d/L, y = cy + (ay-cy)*d/L;
+    var p = visParts(e.x, e.y, e.crouching, x, y, false, true, e.z, b.z); if(p.head || p.body) return null; if(p.side) return {x:x, y:y}; }
+  return null;
+}
 // (Б4) движение на линии (одно место): стрейф поперёк линии огня, перед выстрелом — контрстрейф (встречная клавиша + трение).
 // Числа игры CS2: sv_accelerate 5.5, sv_friction 5.2, sv_stopspeed 80 ед./с. Стоял (держал угол) — до первого выстрела стоит;
 // вошёл в перестрелку на ходу — гасит ту скорость; между очередями — шаг вбок и обратно (люди всегда в движении)
@@ -111,6 +129,7 @@ function fightCycleTick(b, dtSec, busy){
   // и только тогда проверялось, жив ли враг
   if(F.e && !F.e.alive && !b._sawEnemy && !ssNew){ b._fc = null; return; }
   F.moving = false;
+  if(ssNew && F.sh && !F.sh.done){ F.sh.done = true; ssNew = false; F.ss = SS.t; }   // показывал плечо — AWP выстрелил: выглядывает, пока он перезаряжается
   if(ssNew && F.ph !== "off"){
     F.ss = SS.t; F.e = SS.by;
     var cs = fightCover(b, SS.by, peekQ(D.shift, fightRand(b, 5))) || fightCover(b, SS.by, D.shift[4]);
@@ -146,11 +165,18 @@ function fightCycleTick(b, dtSec, busy){
   if(F.ph === "off" && tick >= F.until && (!F.retreat || Math.hypot(F.cx-b.baseX, F.cy-b.baseY) < 2)){
     F.retreat = false;
     if(fightRand(b, 4) >= D.repeek){ b._fc = null; return; }   // не выглядывает снова — перестрелка закончена
-    F.ph = "back";
+    F.ph = "back"; F.nPeek = (F.nPeek || 0) + 1; F.sh = null;
     if(F.better){ F.ax = F.better.x; F.ay = F.better.y; F.better = null; }   // (М149) выглядывает с места, откуда видно врага целиком
+    // (ответ 4) второй и дальше пик в этой перестрелке — с другого места (не ближе медианы сдвига про D.shift[2] к прошлому): не однообразный джигл
+    else if(F.nPeek >= 2 && F.e){ var nb = fightBetterAway(b, F.e, F.cx, F.cy, D.shift[4], F.ax, F.ay, D.shift[2]); if(nb){ F.ax = nb.x; F.ay = nb.y; } }
+    // (ответ 4) против AWP (оружие врага видно) — сначала плечо: выстрелил — выглядывает целиком, пока он перезаряжается; нет — через паузу про
+    if(F.e && F.e.primary === "AWP"){ var shp = fightShoulderPt(b, F.e, F.cx, F.cy, F.ax, F.ay); if(shp) F.sh = {x:shp.x, y:shp.y, t0:0, shot:F.e.lastShotTick || -1, done:false}; }
   }
-  var tx = F.ph === "off" ? F.cx : F.ax, ty = F.ph === "off" ? F.cy : F.ay;
+  var shOn = F.ph === "back" && F.sh && !F.sh.done;
+  if(shOn && F.e && (F.e.lastShotTick || -1) > F.sh.shot){ F.sh.done = true; shOn = false; }   // AWP выстрелил (слышно) — выглядывает целиком
+  var tx = F.ph === "off" ? F.cx : shOn ? F.sh.x : F.ax, ty = F.ph === "off" ? F.cy : shOn ? F.sh.y : F.ay;
   var d = Math.hypot(tx-b.baseX, ty-b.baseY);
+  if(d < 2 && shOn){ if(!F.sh.t0) F.sh.t0 = tick; if(tick - F.sh.t0 >= peekQ(D.pause, fightRand(b, 7))*TICK_HZ) F.sh.done = true; return; }   // плечо показано — ждёт выстрела до паузы про
   if(d < 2){ if(F.ph === "back"){ F.ph = "line"; F.t = tick; F.until = 0; F.sv = undefined; } return; }
   var stp = Math.min(d, SPEED*weaponSpeedMul(b)*dtSec), nx = b.baseX + (tx-b.baseX)/d*stp, ny = b.baseY + (ty-b.baseY)/d*stp;
   if(stepBlocked(b.baseX, b.baseY, nx, ny, b)){ b._fc = null; return; }
