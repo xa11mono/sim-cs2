@@ -1,0 +1,24 @@
+playwright 1.56.0, браузеры: C:\Windows\system32\config\systemprofile\.simcs2_node\ms-playwright
+> git fetch --quiet origin 0242f4d8493acff0bbcd595b341d3c76f0c3a9d9
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_fuoos5ii FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_fuoos5ii\src\build.py --map mirage C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v515_mir.html
+> git fetch --quiet origin 0242f4d8493acff0bbcd595b341d3c76f0c3a9d9
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_uxqr0g6a FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_uxqr0g6a\src\build.py --map ancient C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v515_anc.html
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\engine\walk_run.py --job=v515_mir,C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v515_mir.html --job=v515_anc,C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v515_anc.html --matches=3,7,11,13,17,19,23,29,31,37,41,43,47,53,59,61 --par=12
+матчей в очереди: 32, одновременно: 12
+v515_mir match 13  rc 0 4949412 — готово 1/32, 6 мин
+v515_mir match 37  rc 0 5074455 — готово 2/32, 6 мин
+v515_mir match 41  rc 0 5647564 — готово 3/32, 6 мин
+v515_mir match 23  rc 0 6204770 — готово 4/32, 8 мин
+v515_mir match 19  rc 0 6785350 — готово 5/32, 8 мин
+v515_mir match 7  rc 0 6566164 — готово 6/32, 8 мин
+v515_mir match 31  rc 0 7081755 — готово 7/32, 8 мин
+v515_mir match 11  rc 0 7740707 — готово 8/32, 9 мин
+v515_mir match 3  rc 0 7894365 — готово 9/32, 10 мин
+v515_mir match 17  rc 0 8219180 — готово 10/32, 10 мин
+v515_mir match 43  rc 0 8584147 — готово 11/32, 10 мин
+v515_mir match 29  rc 0 9283786 — готово 12/32, 11 мин
+v515_mir match 59  rc 0 6211249 — готово 13/32, 14 мин
+v515_mir match 47  rc 0 7192167 — готово 14/32, 15 мин
+v515_anc match 3  rc 0 5727585 — готово 15/32, 15 мин
