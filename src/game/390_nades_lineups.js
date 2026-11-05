@@ -91,7 +91,7 @@ function lineupTick(){
     if(L.pro && !nadeFlags["pr"+L.id]){ if(!(L.team === "T" && L.type === "smoke")) nadeFlags[key] = true; return; }
     var siteOk = function(k){ return L.site === "any" || L.site === k; };
     var go = false;
-    if(L.trigger === "insta") go = since > TICK_HZ;
+    if(L.trigger === "insta") go = since >= (L.at != null ? L.at : 1)*TICK_HZ;   // (п.7, 05.11) время броска про из демок (L.at, Mirage — 0,5 с); было 1 с всем
     else if(L.trigger === "timed") go = bomb.state !== "planted" && since >= (L.at||0)*TICK_HZ && since < ((L.at||0)+12)*TICK_HZ;
     else if(L.pro && L.team === "T" && L.trigger === "setup") go = tt.phase === "setup" && since >= Math.max(1, (L.at||12)-1)*TICK_HZ && siteOk(tt.site);
     else if(L.team === "T" && L.trigger === "setup") go = tt.phase === "setup" && since > 12*TICK_HZ && siteOk(tt.site);

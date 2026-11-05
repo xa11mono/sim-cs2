@@ -191,6 +191,8 @@
       var r = nadeThrow({ type: type, pos: from, yaw: yaw, pitch: pitch, strength: s, duck: o.duck, vel: vel, jump: jump, spawn: 0 }, trace);
       var Q = score(r), exy = Q.exy, dz = Q.dz, sc = Q.sc, lvOk = Q.lvOk;
       if (pool && sc <= ROB_OK) pool.push({ yaw: yaw, pitch: pitch, s: s, jump: !!jump, t: r.t, sc: sc });
+      var ceil = r.bounces.some(function (q) { return q[3] === 'wall' && q[6] < -0.5; });
+      if (!ceil && sc <= (o.need || AIM_SAME_PRO) && (!clean || sc < clean.sc)) clean = { yaw: yaw, pitch: pitch, s: s, jump: !!jump, t: r.t, sc: sc };
       // (тактика 30.10) смок: из бросков, что ложатся в «то же место» (≤ AIM_SAME), — самый быстрый. Раньше брался самый точный, а
       // точнее всех ложится крутая «свеча» без качения: на ровном полу 600 ед. — 4,9 с вместо 2,0 с, 1200 ед. — 7,6 с (опыт
       // tools/nades/smoke_time.js); точность внутри 32 ед. смоку не нужна (радиус дыма ≈ 144 ед.). Флешка / HE рвутся по запалу — им
@@ -199,7 +201,7 @@
       // самый быстрый смок в пределах разброса про (AIM_SAME_PRO) — запасной ответ, если лучший в AIM_SAME дольше AIM_SLOW (см. ниже)
       if (type === 'smoke' && sc <= AIM_SAME_PRO && (!alt || r.t < alt.t)) alt = { pitch: pitch, s: s, jump: !!jump, yaw: yaw, t: r.t };
       if (!best || (fast ? r.t < best.t : sc < best.sc)) best = { yaw: yaw, pitch: pitch, strength: s, jump: !!jump, det: r.det, t: r.t, how: r.how, err: exy, dz: dz,
-                                          e3: sc, levelOk: lvOk, bounces: r.bounces.length, land: r.bounces.length ? r.bounces[0].slice(0, 3) : r.det, sc: sc };
+                                          e3: sc, levelOk: lvOk, bounces: r.bounces.length, land: r.bounces.length ? r.bounces[0].slice(0, 3) : r.det, sc: sc, ceil: ceil };
       if (coarse) coarse.push({ pitch: pitch, s: s, jump: !!jump, t: r.t, sc: sc });
       return sc;
     }
@@ -217,7 +219,9 @@
     // (v505) и своя граната любого типа (o.need — порог «долетит», 380): устойчива, если со сдвигом прицела ложится в тот же порог; из
     // кандидатов — сначала точнее (не смок). Сцена v504 (свои броски отказов прогона 152): молотов / HE с подбором ≤ 100 ед. после
     // разброса прицела — до 500–1200 px от цели
-    var pool = o.robust && (type === 'smoke' || o.need) ? [] : null, ROB_OK = type === 'smoke' ? AIM_SAME_PRO : (o.need || AIM_SAME_PRO);
+    // (00_PLAN п.25, 05.11) и молотов лайнапа: на границе MOLLY_MAX (2 с) со сдвигом прицела летит дольше и рвётся в воздухе (не на полу
+    // цели — «не тот этаж», неустойчив) — подбор берёт другой бросок
+    var pool = o.robust && (type === 'smoke' || type === 'molly' || o.need) ? [] : null, ROB_OK = type === 'smoke' ? AIM_SAME_PRO : (o.need || AIM_SAME_PRO);
     function steady(c) {
       var dY = o.robust[0], dP = o.robust[1];
       return [[dY, 0], [-dY, 0], [0, dP], [0, -dP]].every(function (d) {
@@ -225,7 +229,11 @@
         return score(r).sc <= ROB_OK; });
     }
     function forceBest(c) { var keep = AIM_SAME, pl = pool; AIM_SAME = -1; pool = null; yaw = c.yaw; best = null; tryOne(c.pitch, c.s, c.jump); AIM_SAME = keep; pool = pl; }
+    // (00_PLAN п.20, 05.11: HE «под ноги» — дуга задела потолок в ~90 ед. перед бойцом и докатилась до цели) из бросков, что ложатся в
+    // порог «долетит» (o.need, иначе разброс про), — сначала без касания потолка; через потолок — только если других нет
+    var clean = null;
     function finish() {
+      if (best && best.ceil && clean && type !== 'smoke') forceBest(clean);
       if (type === 'smoke' && best && alt && best.t > AIM_SLOW && alt.t < best.t) forceBest(alt);
       if (pool && best && pool.length && !steady({ yaw: best.yaw, pitch: best.pitch, s: best.strength, jump: best.jump })) {
         var tMax = Math.max(best.t, AIM_SLOW), seen = {}, n = 0, pick = null;
@@ -238,7 +246,7 @@
         }
         if (pick) forceBest(pick);
       }
-      delete best.sc; return best;
+      delete best.sc; delete best.ceil; return best;
     }
     function refineFast() {
       if (!coarse || !best || !coarse.length) return;
