@@ -22,7 +22,35 @@ function lurkerBrain(b, tt, other){
     startRoute(b, P.via, "lurk"+other+pi);
   }
   var LP = b._lurkPlan;
+  // (00_PLAN, пакет тактики, ответ владельца 05.11: «лёркер сам решает обход — только по информации команды и плану: подтверждённый стак CT на
+  // другой стороне, CT не успевают по времени, CT сместились ротацией; не уходит, если выход уже идёт или маршрут опасен; прошёл — «пусто»
+  // только про проверенное; дальше — держать проход, резать ротацию, поздний выход со своей стороны, к команде, если мало времени»)
+  // до выхода (сетап): у сайта выхода команда недавно (SITE_SEEN_SEC) знает двоих и больше CT (стак / ротация туда) или по таймингам
+  // (REACH — знание команды) CT ещё не могли быть ни в одной зоне его пути — проходит свою сторону: вход → точка опорника → проход ротации
+  // (LURK_CHECK на точке; «пусто» — tClearCalls / markClear, только про виденное), там держит проход до выхода. Свежая инфа о CT у пути —
+  // не идёт (опасно). Мало времени (EXU_LATE) — не начинает
   if(tt.phase === "setup" && !lurkGoNow(tt)){
+    var SO = b._lurkSolo && b._lurkSolo.round === roundNum && b._lurkSolo.site === other ? b._lurkSolo : null;
+    if(!SO && !b._sawEnemy && ROUND_TIME_SEC - (simTime - roundStartTime) > EXU_LATE){
+      var route = [LP.entry, go.anchor, GEO.rotator].filter(Boolean), BLs = beliefLast.T || {};
+      // опасно — известный команде (за SITE_SEEN_SEC) CT простреливает точку пути: с его места есть линия на неё
+      var danger = route.some(function(p){ return bots.some(function(o){ var e = BLs[o.id]; return o.alive && o.team === "CT" && e && tick - e.tick <= SITE_SEEN_SEC*TICK_HZ && hasLOS(e.x, e.y, p.x, p.y); }); });
+      var stack = siteAssess("T", tt.site).near >= 2;
+      // CT не успевают: по таймингам команды (REACH: с какого тика враг мог бы быть в зоне) — позже, чем лёркер дойдёт до точки по пути
+      var RT = REACH.T, early = !!RT && route.every(function(p){ var z = bzOf(p.x, p.y); return z >= 0 && RT[z] > tick + pathLenTo(b, p.x, p.y)/SPEED*TICK_HZ; });
+      if(!danger && (stack || early)){
+        SO = b._lurkSolo = {round:roundNum, site:other, route:route, i:0, t:0};
+        voiceLog("T", "lurksolo"+roundNum, b.id, "прохожу "+other+(stack ? " — они на "+tt.site : " — туда ещё не успели")+", держу проход");
+        logEvent(b.id+": лёркер идёт через "+other+" сам — "+(stack ? "стак CT на "+tt.site : "по таймингам CT там ещё нет"));
+      }
+    }
+    if(SO){
+      if(b._sawEnemy || ROUND_TIME_SEC - (simTime - roundStartTime) <= EXU_LATE){ b._lurkSolo = null; }   // бой — свой контакт (350); мало времени — к своим
+      else { var si = Math.min(SO.i, SO.route.length-1), lk = si < SO.route.length-1 ? SO.route[si+1] : GEO[tt.site].ctEntry;
+        b._route = null; setPost(b, SO.route[si], lk, true, si === SO.route.length-1 ? "lurkRot" : "lurk"+si);
+        if(b.atPost){ if(!SO.t) SO.t = tick; if(tick - SO.t > LURK_CHECK*TICK_HZ && si < SO.route.length-1){ SO.i = si+1; SO.t = 0; } }
+        return; }
+    }
     // не стоит столбом весь сетап: чередует укрытие и короткий выгляд на
     // проход сайта ("есть ли кто?") — ~5с в укрытии, ~2.5с на выгляде
     var hide = pickSpots("lurkStage"+other+LP.name, LP.stage, 1, {rMax:200, minGap:40, hideFrom:[SITES[other], go.anchor], see:[LP.entry]})[0];
@@ -46,10 +74,11 @@ function lurkerBrain(b, tt, other){
     // LURK_CHECK с (было 2,3 с на каждой — шёл весь выход). Проектные числа
     var site = SITES[tt.site], gs = GEO[tt.site];
     if(!b._lurkGo || b._lurkGo.round !== roundNum || b._lurkGo.site !== tt.site){
-      var nearOther = Math.hypot(b.x-LP.entry.x, b.y-LP.entry.y) < 500;
+      var nearOther = Math.hypot(b.x-LP.entry.x, b.y-LP.entry.y) < 500, soloOn = b._lurkSolo && b._lurkSolo.round === roundNum;
       b._route = null; b._routeDone = null;   // маршрут лёрка сетапа — закончен
-      b._lurkGo = {round:roundNum, site:tt.site, route: nearOther ? [LP.entry, go.anchor, GEO.rotator, gs.ctEntry] : [gs.tStage || gs.tEntry, gs.tEntry], i:0, t:0};
-      voiceLog("T", "lurkgo"+roundNum, b.id, nearOther ? "захожу с "+other+" — режу ротацию, буду со спины на "+tt.site : "иду к вам на "+tt.site);
+      // (ответ владельца 05.11) прошёл свою сторону сам до выхода — поздний выход оттуда: с прохода ротации в спину сайту выхода
+      b._lurkGo = {round:roundNum, site:tt.site, route: soloOn ? [GEO.rotator, gs.ctEntry] : nearOther ? [LP.entry, go.anchor, GEO.rotator, gs.ctEntry] : [gs.tStage || gs.tEntry, gs.tEntry], i:0, t:0};
+      voiceLog("T", "lurkgo"+roundNum, b.id, soloOn ? "выхожу с прохода — со спины на "+tt.site : nearOther ? "захожу с "+other+" — режу ротацию, буду со спины на "+tt.site : "иду к вам на "+tt.site);
     }
     var LG = b._lurkGo, i = Math.min(LG.i, LG.route.length-1);
     var look = i < LG.route.length-1 ? LG.route[i+1] : site;
