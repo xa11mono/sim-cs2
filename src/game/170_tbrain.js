@@ -29,7 +29,10 @@ function tBrain(){
   // 2 на 2, а сейв продолжался) расклад живых сменился — то же решение заново (tSaveWant): у про при новом раскладе не сейвят — сейв снят
   if(tt.saving && bomb.state !== "planted"){
     var tsS = bots.filter(function(b){ return b.team === "T" && b.alive; }), sitS = tsS.length+"v"+aliveCount("CT");
-    if(sitS === tt.saveSit || tSaveWant(tsS, tsS.length, aliveCount("CT"), secLeft, site)){ tt.saveSit = sitS; tSaveHold(); return; }
+    // (00_PLAN п.10, ответ 6А) и когда появился реальный плант (tPlantChance, 180): сейв снят, при том же раскладе в этом раунде не включается
+    var plantGo = tPlantChance(tsS, secLeft);
+    if(!plantGo && (sitS === tt.saveSit || tSaveWant(tsS, tsS.length, aliveCount("CT"), secLeft, site))){ tt.saveSit = sitS; tSaveHold(); return; }
+    if(plantGo){ tt.plantGo = roundNum+":"+sitS; if(plantGo !== tt.site) tSetSite(tt, plantGo); voiceLog("T", "tplgo"+roundNum, tsS[0].id, plantGo+" пустой — успеваем поставить, идём"); }
     tt.saving = 0; tt.saveSit = null;
     tsS.forEach(function(b){ b._saveSpot = null; if(b.post && b.post.tag === "save") clearPost(b); });
     logEvent("T: сейв снят — теперь "+sitS+", играем раунд");
@@ -258,7 +261,9 @@ function tBrain(){
   // поставить) или сохранять нечего (пистолеты).
   if(BAL.tSave && bomb.state !== "planted" && !tt.saving && ts.length){
     var aC = aliveCount("CT"), aT = ts.length;
-    if(tSaveWant(ts, aT, aC, secLeft, site)){
+    var pcS = tt.plantGo !== roundNum+":"+aT+"v"+aC && tSaveWant(ts, aT, aC, secLeft, site) ? tPlantChance(ts, secLeft) : false;
+    if(pcS){ tt.plantGo = roundNum+":"+aT+"v"+aC; if(pcS !== tt.site) tSetSite(tt, pcS); voiceLog("T", "tplgo"+roundNum, ts[0].id, pcS+" пустой — успеваем поставить, идём"); }   // (п.10, ответ 6А) реальный плант — не сейв
+    else if(pcS === null && tt.plantGo !== roundNum+":"+aT+"v"+aC){
       tt.saving = tick; tt.saveSit = aT+"v"+aC; saveCancelTrades("T");
       logEvent("T: сейв — "+aT+"v"+aC+", "+Math.round(secLeft)+"с — сохраняем оружие");
       voiceLog("T", "tsave", ts[0].id, aT === 1 ? "я один против "+aC+" — сейвлю" : "двое на "+aC+", мало времени — сейв");
@@ -274,7 +279,10 @@ function tBrain(){
   // 2 на 2, а сейв продолжался) расклад живых сменился — то же решение заново (tSaveWant): у про при новом раскладе не сейвят — сейв снят
   if(tt.saving && bomb.state !== "planted"){
     var tsS = bots.filter(function(b){ return b.team === "T" && b.alive; }), sitS = tsS.length+"v"+aliveCount("CT");
-    if(sitS === tt.saveSit || tSaveWant(tsS, tsS.length, aliveCount("CT"), secLeft, site)){ tt.saveSit = sitS; tSaveHold(); return; }
+    // (00_PLAN п.10, ответ 6А) и когда появился реальный плант (tPlantChance, 180): сейв снят, при том же раскладе в этом раунде не включается
+    var plantGo = tPlantChance(tsS, secLeft);
+    if(!plantGo && (sitS === tt.saveSit || tSaveWant(tsS, tsS.length, aliveCount("CT"), secLeft, site))){ tt.saveSit = sitS; tSaveHold(); return; }
+    if(plantGo){ tt.plantGo = roundNum+":"+sitS; if(plantGo !== tt.site) tSetSite(tt, plantGo); voiceLog("T", "tplgo"+roundNum, tsS[0].id, plantGo+" пустой — успеваем поставить, идём"); }
     tt.saving = 0; tt.saveSit = null;
     tsS.forEach(function(b){ b._saveSpot = null; if(b.post && b.post.tag === "save") clearPost(b); });
     logEvent("T: сейв снят — теперь "+sitS+", играем раунд");

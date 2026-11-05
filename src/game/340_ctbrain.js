@@ -145,6 +145,14 @@ function ctBrain(){
     // новой инфы нет — оценка "сколько там" только тает вместе с картой
     ct.call.count = Math.min(ct.call.count, beliefCount("CT", BZ.siteNear[ct.call.site]||[]) + 0.3);
   }
+  // (00_PLAN п.11, 05.11: колл A держался, когда последний T с бомбой ушёл в мид — опорник B 15 с бежал ротацией) новая инфа снимает колл,
+  // под который ушла ротация: все живые T замечены командой за SITE_SEEN_SEC далеко от сайта колла (siteAssess «empty» — та же оценка, что у T)
+  // (ответ 6Б) остался один T до планта, нас двое и больше — это эндгейм (330: один на него, остальные держат линии), а не ротация под колл
+  var lastT = !planted0 && aliveCount("T") === 1 && cts.length >= 2;
+  if(ct.call && (lastT || (!planted0 && siteAssess("CT", ct.call.site).level === "empty"))){
+    intelCallLog("CT", "calloffK"+ct.call.site+tick, "отбой колла на "+ct.call.site+": "+(lastT ? "остался один — играем на него" : "все T замечены не там — по ситуации"), null, "plan");
+    ct.call = null; ct.go = null;
+  }
   if(ct.call){
     var quiet = tick - (ct.call.evTick||ct.call.tick);
     // (v441, док владельца 27.10, р6: убили лёркера в Palace и T в B Apps — через 6 с «отбой колла на B: там вероятно пусто», трое ушли на A)

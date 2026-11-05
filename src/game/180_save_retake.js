@@ -49,6 +49,9 @@ function tSaveRoll(aT, aC, secLeft){
 // (tSaveRoll), есть что сохранять (оружие ≥ 1500 в среднем и перейдёт в следующий раунд — saveWorth, 530), носитель не на сайте
 function tSaveWant(ts, aT, aC, secLeft, site){
   if(!ts.length) return false;
+  // (00_PLAN п.10, ответ владельца 6А: «сейв отменяется, когда известна позиция противников и их можно изолировать») все живые CT замечены
+  // командой за SITE_SEEN_SEC (siteAssess: неизвестных 0) — не сейв
+  if(siteAssess("T", "A").unknown === 0) return false;
   var gunVal = ts.reduce(function(a, b){ return a + (b.primary ? WEAPONS[b.primary].price : 0); }, 0) / aT;
   var carOn = bomb.state === "carried" && bomb.carrier && bomb.carrier.alive && Math.hypot(bomb.carrier.x-site.x, bomb.carrier.y-site.y) < 380;
   // (v442, док владельца 27.10, р6: сейвили вдвоём при 10 тыс. и 9 тыс. у команды) сохранять оружие стоит, только если без него команда
@@ -57,6 +60,20 @@ function tSaveWant(ts, aT, aC, secLeft, site){
   var bank = Ts.reduce(function(a, o){ return a + o.money + inc; }, 0), need = Ts.reduce(function(a, o){ return a + fullNeedU(o); }, 0) + gunVal*aT;
   if(bank >= need) return false;
   return gunVal >= 1500 && !carOn && saveWorth("T") && tSaveRoll(aT, aC, secLeft);
+}
+// (00_PLAN п.10, ответ владельца 6А, 05.11: «если последний игрок ещё может безопасно забрать бомбу и установить её, он должен оценить
+// возможность завершить раунд; прятаться ради оружия при реальной возможности установки — плохое решение») есть ли у T реальный плант по
+// тому, что команда знает: бомба у живого T или лежит; сайт, который команда оценивает как пустой (siteAssess «empty» — все живые CT замечены
+// далеко за SITE_SEEN_SEC: верно в 95 % Mirage / 91 % Ancient, прогон 141); ближайший к бомбе T доходит до сайта и ставит до конца раунда
+function tPlantChance(ts, secLeft){
+  if(!bomb || (bomb.state !== "carried" && bomb.state !== "dropped")) return false;
+  var src = bomb.state === "carried" ? bomb.carrier : null; if(src && !src.alive) return false;
+  return ["A","B"].filter(function(k){
+    if(siteAssess("T", k).level !== "empty") return false;
+    var S = SITES[k];
+    return ts.some(function(b){ var L = src ? (b === src ? pathLenTo(b, S.x, S.y) : Infinity) : pathLenTo(b, bomb.x, bomb.y) + polyLen(pathPts(bomb.x, bomb.y, S.x, S.y, bomb.z));
+      return L/SPEED + PLANT_TICKS/TICK_HZ < secLeft; });
+  })[0] || null;   // сайт, куда успевают (A раньше B — порядок проверки; оба пусты — редкость)
 }
 // сейв T: каждый живой — к своему месту сейва (один раз выбранному), бомбу не ставит
 function tSaveHold(){
