@@ -1,0 +1,27 @@
+playwright 1.56.0, браузеры: C:\Windows\system32\config\systemprofile\.simcs2_node\ms-playwright
+> git fetch --quiet origin f063663d286cf620de18c2035701291ddc1cf74c
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_rmzm6lx8 FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_rmzm6lx8\src\build.py --map mirage C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\n5_mir.html
+> git fetch --quiet origin f063663d286cf620de18c2035701291ddc1cf74c
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_nf8iaqht FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_nf8iaqht\src\build.py --map ancient C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\n5_anc.html
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\engine\walk_run.py --job=n5_mir,C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\n5_mir.html --job=n5_anc,C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\n5_anc.html --matches=3,7,11,13,17,19,23,29 --par=8
+матчей в очереди: 16, одновременно: 8
+n5_mir match 19 rc 0 5999982 — готово 1/16, 8 мин
+n5_mir match 29 rc 0 5576666 — готово 2/16, 8 мин
+n5_mir match 17 rc 0 5569226 — готово 3/16, 8 мин
+n5_mir match 13 rc 0 6241008 — готово 4/16, 9 мин
+n5_mir match 3 rc 0 6389746 — готово 5/16, 9 мин
+n5_mir match 11 rc 0 6548272 — готово 6/16, 9 мин
+n5_mir match 7 rc 0 7050518 — готово 7/16, 10 мин
+n5_mir match 23 rc 0 7165333 — готово 8/16, 10 мин
+n5_anc match 11 rc 0 5105703 — готово 9/16, 14 мин
+n5_anc match 3 rc 0 5184514 — готово 10/16, 14 мин
+n5_anc match 17 rc 0 4847618 — готово 11/16, 15 мин
+n5_anc match 7 rc 0 5541621 — готово 12/16, 15 мин
+n5_anc match 19 rc 0 5921581 — готово 13/16, 16 мин
+n5_anc match 13 rc 0 6535431 — готово 14/16, 16 мин
+n5_anc match 29 rc 0 6025323 — готово 15/16, 17 мин
+n5_anc match 23 rc 0 7099219 — готово 16/16, 18 мин
+done
+all done
