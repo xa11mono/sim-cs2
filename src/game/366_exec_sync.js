@@ -227,3 +227,29 @@ function smokeLineTick(){
     b._slw = {round:roundNum, t:tick, on:true, dest:on ? W.dest : {x:P.x, y:P.y}};
   });
 }
+// (00_PLAN, владелец 05.11: «тушат смоком, когда готовится выход: в коридоре — банан на Inferno, Ramp на Mirage — кинули молотов; T не бегут
+// через разгоревшийся молотов и не отдают позицию — тушат лишним смоком») готовится выход (сетап / выход до планта) и путь кого-то из T
+// проходит через огонь соперника — смок на этот огонь кидает ближайший T с лишним смоком (не отложенным на выход планом гранат — npCanUse),
+// один на огонь. Огонь гаснет по физике (400). У про — 3,6 % смоков на огне соперника (tools/nades/smoke_on_fire_pro.py), у ботов было 0
+function fireSmokeTick(){
+  var tt = teamTac.T; if(!tt || !fires.length || bomb.state === "planted" || (tt.phase !== "setup" && tt.phase !== "execute")) return;
+  if(tick % 16) return;   // раз в 0,25 с (BELIEF_STEP)
+  var ts = bots.filter(function(b){ return b.team === "T" && b.alive; });
+  fires.forEach(function(f){
+    if(f.team === "T" || f._smk) return;
+    var onPath = ts.some(function(b){ var P = b.path || [], px = b.baseX, py = b.baseY;
+      for(var i = b.pathIdx || 0; i < P.length; i++){ var q = P[i]; if(fireTouches(f, q[0], q[1]) || fireOnSegF(f, px, py, q[0], q[1])) return true; px = q[0]; py = q[1]; }
+      return false; });
+    if(!onPath) return;
+    // (владелец 05.11: «если не критично подождать — можно не тушить») на выходе ждать нельзя — тушат; на сетапе — только если огонь прогорит
+    // позже, чем назначен выход (tt.execTick); погаснет раньше — ждут, смок не тратят
+    if(tt.phase === "setup" && !(tt.execTick && f.until > tt.execTick)) return;
+    var c = ts.filter(function(b){ return b.nades && b.nades.smoke > 0 && !b.nadeTask && !b._sawEnemy && !b.planting && Math.hypot(b.x-f.x, b.y-f.y) <= NADE_THROW_RANGE &&
+      npCanUse(b, "smoke", npMomentNow(b), null); }).sort(function(a, d){ return Math.hypot(a.x-f.x, a.y-f.y) - Math.hypot(d.x-f.x, d.y-f.y); })[0];
+    if(!c || !assignNade(c, "smoke", {x:f.x, y:f.y}, "потушить молотов на пути выхода", {now:true})) return;
+    f._smk = tick;
+    voiceLog("T", "fsmk"+c.id+tick, c.id, "тушу молотов "+calloutName(f.x, f.y).replace(/^на /, "")+" — проходим");
+  });
+}
+function fireOnSegF(f, x1, y1, x2, y2){ var n = Math.max(1, Math.ceil(Math.hypot(x2-x1, y2-y1)/8));
+  for(var i = 1; i <= n; i++) if(fireTouches(f, x1 + (x2-x1)*i/n, y1 + (y2-y1)*i/n)) return true; return false; }

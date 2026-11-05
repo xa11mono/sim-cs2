@@ -242,7 +242,7 @@ function teamBrains(){
   routeTick();
   bots.forEach(function(b){ contactTick(b); });   // (v367) реакция на контакт — до мозгов, их посты её не перебивают
   bots.forEach(function(b){ ctDelayNade(b); });   // (v419) задержать гранатой — после реакции на контакт (знает, держит ли угол)
-  SPOT_TEAM = "T"; tBrain(); SPOT_TEAM = "CT"; ctBrain(); SPOT_TEAM = null; endgameBrain(); lineupTick(); smokeEdgeTick(); smokeLineTick(); weaponPickupTick(); itemPickupTick(); lkpTick();
+  SPOT_TEAM = "T"; tBrain(); SPOT_TEAM = "CT"; ctBrain(); SPOT_TEAM = null; endgameBrain(); lineupTick(); smokeEdgeTick(); smokeLineTick(); fireSmokeTick(); weaponPickupTick(); itemPickupTick(); lkpTick();
   if(BAL.soundMore) bots.forEach(function(b){ if(b.alive && b._heardReload) reloadPeek(b); });
   if(BAL.assistPeek && tick % 4 === 0) bots.forEach(function(b){ if(b.alive) assistPeek(b); });
   if(BAL.lowHpBack && tick % 8 === 2) bots.forEach(function(b){ if(b.alive) lowHpBack(b); });
