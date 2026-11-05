@@ -1,0 +1,27 @@
+playwright 1.56.0, браузеры: C:\Windows\system32\config\systemprofile\.simcs2_node\ms-playwright
+> git fetch --quiet origin d6c5ab652e706a4ee30cbfb201aa5513f3231e1b
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_gyhp4l76 FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_gyhp4l76\src\build.py --map mirage C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\n13_mir.html
+> git fetch --quiet origin d6c5ab652e706a4ee30cbfb201aa5513f3231e1b
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_xh0uypu9 FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_xh0uypu9\src\build.py --map ancient C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\n13_anc.html
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\engine\walk_run.py --job=n13_mir,C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\n13_mir.html --job=n13_anc,C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\n13_anc.html --matches=3,7,11,13,17,19,23,29 --par=8
+матчей в очереди: 16, одновременно: 8
+n13_mir match 11 rc 0 4518674 — готово 1/16, 6 мин
+n13_mir match 29 rc 0 5283294 — готово 2/16, 7 мин
+n13_mir match 7 rc 0 5549420 — готово 3/16, 7 мин
+n13_mir match 19 rc 0 5717345 — готово 4/16, 8 мин
+n13_mir match 3 rc 0 5842473 — готово 5/16, 8 мин
+n13_mir match 23 rc 0 6595906 — готово 6/16, 9 мин
+n13_mir match 17 rc 0 6713588 — готово 7/16, 9 мин
+n13_mir match 13 rc 0 7799981 — готово 8/16, 10 мин
+n13_anc match 3 rc 0 5378590 — готово 9/16, 13 мин
+n13_anc match 7 rc 0 5489996 — готово 10/16, 14 мин
+n13_anc match 13 rc 0 5068407 — готово 11/16, 14 мин
+n13_anc match 11 rc 0 5840078 — готово 12/16, 14 мин
+n13_anc match 23 rc 0 4923964 — готово 13/16, 14 мин
+n13_anc match 17 rc 0 5950617 — готово 14/16, 14 мин
+n13_anc match 19 rc 0 5310166 — готово 15/16, 15 мин
+n13_anc match 29 rc 0 5755431 — готово 16/16, 16 мин
+done
+all done
