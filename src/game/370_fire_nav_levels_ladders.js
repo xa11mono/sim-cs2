@@ -371,6 +371,9 @@ var STEP_UP_Z = 19, STEP_BODY_Z = 50;   // ед. игры: ступенька 18
 function stepWall(x1, y1, x2, y2, b){
   if(!crossesWall(x1, y1, x2, y2)) return false;
   var M = MAP3D && m3(); if(!M || !b || b.z == null) return true;
+  // (прогон 181, Ancient 16 матчей: переносов 45 → 67) снимать «стену» — только когда сходит вниз: пол там, куда шагает, ниже ног больше чем на
+  // ступеньку в пределах щели NAV_GAP_TOL (бот у края ящика / уступа); остальные шаги — по-старому (низкая преграда, за которой у навмеша нет пола, — стена)
+  if(!navFloorNear(x2, y2, NAV_GAP_TOL, function(a){ return a.z < b.z - 18; })) return true;   // внизу рядом (щель) пола нет — не сход
   return !m3Line(M, x1, y1, b.z + STEP_UP_Z, x2, y2, b.z + STEP_UP_Z, "nade") || !m3Line(M, x1, y1, b.z + STEP_BODY_Z, x2, y2, b.z + STEP_BODY_Z, "nade");
 }
 function stepBlocked(x1,y1,x2,y2,b){
