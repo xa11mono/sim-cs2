@@ -127,6 +127,20 @@ function contactTick(b){
   // (contactMateFight), враги не в численном перевесе, HP; дым больше не запрещает выйти помочь
   // (v440, док владельца 27.10: magixx с бомбой «делал агрессию в андере», р8 — с бомбой и 22 HP ждал файта) носитель бомбы на выход не идёт,
   // пока жив кто-то ещё из своих: бомба в первом бою — потеря раунда; держит угол (последний живой — играет сам)
+  // (00_PLAN, ответ владельца 05.11 — схема «после перестрелки»: «противник может повторно выйти — удерживает угол из укрытия; повторный выход —
+  // только при преимуществе: союзник готов к размену, флешка, противник перезаряжается, надо сорвать плант; не обязательное желание повторить
+  // перестрелку») после СВОЕЙ перестрелки с этим врагом (сам видел его и стрелял за CONTACT_AGE) выход — только с преимуществом; численность
+  // (nE ≤ nM + 1) и «в ударе» — не повод. Нет преимущества — «накиньте флешку» (365); некому — держит угол
+  var fought = C.seen && C.id && tick - (b.lastShotTick || -1e9) <= CONTACT_AGE*TICK_HZ;
+  if(fought && swing){
+    var HR = b._heardReload, PHc = teamIntel[b.team] && teamIntel[b.team].plantHeard;
+    var adv = !!contactMateFight(b, C)
+      || bots.some(function(o){ return o !== b && o.alive && o.team === b.team && !o._sawEnemy && Math.hypot(o.x-b.x, o.y-b.y) <= TRADE_R; })   // размен рядом
+      || !!(HR && HR.id === C.id && tick < HR.until)                                                                                            // перезаряжается
+      || !!(b.team === "CT" && PHc && tick - PHc.tick < 5*TICK_HZ);                                                                              // сорвать плант
+    if(!adv && !C.own) adv = !!nadeAskFlash(b, look, "флешу под пик "+b.id+" ("+calloutName(look.x, look.y)+")");
+    if(!adv) swing = false;
+  }
   if(swing && bomb && bomb.state === "carried" && bomb.carrier === b && aliveCount(b.team) > 1) swing = false;
   // (v450) носитель в выходе не встаёт «держать контакт»: идёт за своими на точку планта (взгляд — на контакт, задача — прежняя)
   if(tExec && bomb.state === "carried" && bomb.carrier === b && aliveCount(b.team) > 1){ b._contact = {x:C.x, y:C.y, id:C.id, until: tick + CONTACT_HOLD*TICK_HZ, lock:false}; b._contactT = tick; return; }
