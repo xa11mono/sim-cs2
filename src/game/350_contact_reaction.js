@@ -41,7 +41,10 @@ function contactInfo(b){
       for(var k in BL){ var q = BL[k], oq = teamBot(k); if(oq && oq.alive && tick - q.tick <= SITE_SEEN_SEC*TICK_HZ && myZ[zoneIdAt3(q.x, q.y, q.z)]){ myThreat = true; break; } }
       if(!myThreat) Object.keys(myZ).forEach(function(z){ var j = BZ.idx[z]; if(j !== undefined && beliefZoneKnown(b.team, j) >= 0.45) myThreat = true; }); }
     return !myThreat; };
-  var mateFights = function(id){ return bots.some(function(o){ return o !== b && o.alive && o.team === b.team && o._sawEnemy && o._nearestEnemyBot && o._nearestEnemyBot.id === id; }); };
+  // (прогон 178: перетягивание Ancient 67 → 97 — «пост-плант / лайнап → контакт → обратно») помогает тот, у кого задача не важнее личной
+  // перестановки (уровни 1–3: пост роли, маршрут, личное) — держащий бомбу, идущий кидать гранату и т. п. свою задачу ради помощи не бросает
+  var freeToHelp = !b.post || taskLevel(b.post.tag) <= 3;
+  var mateFights = function(id){ return freeToHelp && bots.some(function(o){ return o !== b && o.alive && o.team === b.team && o._sawEnemy && o._nearestEnemyBot && o._nearestEnemyBot.id === id; }); };
   for(var id in BL){ var e = BL[id], ob = teamBot(id); if(!ob || !ob.alive || tick - e.tick > CONTACT_AGE*TICK_HZ) continue;
     if(trade || myZ[zoneIdAt3(e.x, e.y, e.z)] || (mateFights(id) && calm())) take(e.x, e.y, e.src === "spotted", id, e.z); }
   // (v469) бросок гранаты (слышно чеку / бросок) — не контакт (ответ про-аналитика: на гранату вдали не реагировать); её место знание получает
