@@ -221,6 +221,8 @@ function lineupTick(){
     var luSec = Math.max(luBase, Math.ceil(luLen/(SPEED*weaponSpeedMul(cand)) + LU_REACH_PAD));
     cand.nadeTask = {type:L.type, x:LS.to.x, y:LS.to.y, from:{x:LS.from.x, y:LS.from.y}, until: tick + luSec*TICK_HZ, why:"лайнап «"+(LS.name||LU_TYPE[L.type])+"»",
                      start:tick, lob:true, range:4000, now:true, lineup:true, exec:execT && L.type === "smoke", npm:luM, luL: L.pro && L.grp ? L : null, luId: LS.id};
+    // (п.14) флешка CT на тайминг — под конкретного выглядывающего (не бросающего): он выйдет на хлопок (380)
+    if(L.pro && L.team === "CT" && L.trigger === "timed" && L.type === "flash"){ var pkr = npPeekReady("CT", L.to, cand); if(pkr) cand.nadeTask.peekFor = pkr.id; }
     logEvent(cand.id+": идёт на лайнап «"+(LS.name||LU_TYPE[L.type])+"»");
   });
 }

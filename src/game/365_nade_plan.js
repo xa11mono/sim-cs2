@@ -142,9 +142,16 @@ function npFoeMaybe(team, pt){
   return alive > away;
 }
 // (v429) флешка — только под пик: рядом с точкой (≤ 700) свой собирается выглянуть (ранний пик CT, проба T) или команда ждёт там врага
+// (00_PLAN п.14, ответ 7А, 05.11) флешка под пик — под конкретного выглядывающего, не того, кто кидает: свой, кто уже выглядывает (ранний
+// пик, проба) в ЗОНУ хлопка (куда смотрит его пик — post.look). Раньше — любой пик в 700 ед. от точки: флешку «на мид» оправдывал пик CT4
+// в сторону A (разбор отметок п.14), и под неё никто не выходил. Кто выходит под флешку, если в эту зону никто не выглядывает, и откуда —
+// вопрос владельцу (ранний пик мидера ведёт на Top Mid — так не надо). Ответ — выглядывающий или null; он ждёт хлопка (380: _waitPopKey)
 function npPeekReady(team, pt, thrower){
-  return bots.some(function(o){ return o !== thrower && o.alive && o.team === team && o.post && /^(earlyPeek|probe)/.test(o.post.tag) &&
-    Math.hypot(o.post.x-pt.x, o.post.y-pt.y) < 700; });
+  var Z = npZoneAt(pt.x, pt.y), best = null, bd = Infinity;
+  bots.forEach(function(o){ if(o === thrower || !o.alive || o.team !== team || !o.post || !/^(earlyPeek|probe)/.test(o.post.tag)) return;
+    var lk = o.post.look || o.post; if(npZoneAt(lk.x, lk.y) !== Z) return;
+    var d = Math.hypot(o.post.x-pt.x, o.post.y-pt.y); if(d < bd){ bd = d; best = o; } });
+  return best;
 }
 // перед закупом: гранаты, оставшиеся с прошлого раунда, — без плана (кидать можно в любой момент)
 function npRoundStart(b){ b._nplan = []; if(b.nades) ["smoke","flash","molly","he"].forEach(function(t){ for(var i = 0; i < (b.nades[t]||0); i++) b._nplan.push({t:t, m:"now", z:null}); }); }
