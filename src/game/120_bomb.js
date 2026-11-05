@@ -82,9 +82,17 @@ function resetBomb(){
   bomb = {state:"carried", carrier:carrier, x:carrier.x, y:carrier.y, site:null, plantTick:-1, explodeTick:-1};
   bots.forEach(function(b){ b.planting = false; b.defusing = false; b.fakeUntil = 0; b.fakeHoldUntil = 0; b.retakeRole = null; b._defuseHeard = -9999; b._tradeLock = null; b._fillLock = null; });
 }
+// (00_PLAN, прогон 184: Mirage м23 — 32 переноса «вне пола» у T Ramp, 1482,1281, бот шёл за бомбой) упавшее (бомба, оружие, гранаты, кит) — на пол
+// навмеша: место смерти — рисуемая позиция (b.x: стрейф, отход от стены) и разброс предметов ±8 бывают в стене; там — ближайшая точка
+// ближайшего участка (в 40 ед., как перенос navSnap и точка поста setPost)
+function dropOnFloor(x, y, z){
+  if(navAt(x, y)) return {x:x, y:y};
+  var a = navFloorNear(x, y, 40, function(q){ return z == null || Math.abs(q.z - z) <= JUMP_UP; }); if(!a) return {x:x, y:y};
+  var c = navClampInto(a, x, y); return {x:c.x, y:c.y};
+}
 function dropBomb(b){
   if(bomb && bomb.state === "carried" && bomb.carrier === b){
-    bomb.state = "dropped"; bomb.x = b.x; bomb.y = b.y; bomb.carrier = null;
+    var dp = dropOnFloor(b.x, b.y, b.z); bomb.state = "dropped"; bomb.x = dp.x; bomb.y = dp.y; bomb.carrier = null;
     logEvent(b.id+" погиб с бомбой — C4 на земле");
   }
 }

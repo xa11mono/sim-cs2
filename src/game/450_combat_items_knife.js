@@ -76,8 +76,9 @@ var groundWeapons = [];
 var groundItems = [];
 var NADE_DROP_ORDER = ["molly","smoke","he","flash"];
 function dropWeaponOnDeath(b){
-  var j = function(){ return {x:b.x + (hashRand(tick*7 + groundItems.length)*16 - 8), y:b.y + (hashRand(tick*13 + groundItems.length)*16 - 8)}; };
-  if(b.primary && WEAPONS[b.primary]) groundWeapons.push({key:b.primary, x:b.x, y:b.y, t:tick, from:b.id});
+  var j = function(){ return dropOnFloor(b.x + (hashRand(tick*7 + groundItems.length)*16 - 8), b.y + (hashRand(tick*13 + groundItems.length)*16 - 8), b.z); };   // (00_PLAN) на пол (120)
+  var w0 = dropOnFloor(b.x, b.y, b.z);
+  if(b.primary && WEAPONS[b.primary]) groundWeapons.push({key:b.primary, x:w0.x, y:w0.y, t:tick, from:b.id});
   else if(b.secondary && WEAPONS[b.secondary]){ var p0 = j(); groundItems.push({kind:"pistol", key:b.secondary, x:p0.x, y:p0.y, t:tick, from:b.id}); }
   var N = b.nades || {}, nt = NADE_DROP_ORDER.filter(function(k){ return (N[k]||0) > 0; })[0];
   if(nt){ var p1 = j(); groundItems.push({kind:"nade", key:nt, x:p1.x, y:p1.y, t:tick, from:b.id}); }
