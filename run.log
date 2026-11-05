@@ -1,0 +1,27 @@
+playwright 1.56.0, браузеры: C:\Windows\system32\config\systemprofile\.simcs2_node\ms-playwright
+> git fetch --quiet origin 6edf173953ed39036289c0aef759695ddc83c792
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_2aytu1yd FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_2aytu1yd\src\build.py --map mirage C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\n7_mir.html
+> git fetch --quiet origin 6edf173953ed39036289c0aef759695ddc83c792
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_54le9wvk FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_54le9wvk\src\build.py --map ancient C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\n7_anc.html
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\engine\walk_run.py --job=n7_mir,C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\n7_mir.html --job=n7_anc,C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\n7_anc.html --matches=3,7,11,13,17,19,23,29 --par=8
+матчей в очереди: 16, одновременно: 8
+n7_mir match 13 rc 0 4914947 — готово 1/16, 7 мин
+n7_mir match 7 rc 0 5431628 — готово 2/16, 7 мин
+n7_mir match 29 rc 0 5271711 — готово 3/16, 7 мин
+n7_mir match 19 rc 0 5732766 — готово 4/16, 8 мин
+n7_mir match 23 rc 0 6132900 — готово 5/16, 8 мин
+n7_mir match 11 rc 0 6313498 — готово 6/16, 8 мин
+n7_mir match 17 rc 0 6524288 — готово 7/16, 10 мин
+n7_mir match 3 rc 0 6694316 — готово 8/16, 10 мин
+n7_anc match 11 rc 0 5062331 — готово 9/16, 13 мин
+n7_anc match 3 rc 0 5497427 — готово 10/16, 14 мин
+n7_anc match 19 rc 0 5535759 — готово 11/16, 15 мин
+n7_anc match 29 rc 0 4466895 — готово 12/16, 15 мин
+n7_anc match 17 rc 0 5850783 — готово 13/16, 15 мин
+n7_anc match 23 rc 0 4971553 — готово 14/16, 15 мин
+n7_anc match 13 rc 0 6184858 — готово 15/16, 15 мин
+n7_anc match 7 rc 0 7409919 — готово 16/16, 16 мин
+done
+all done
