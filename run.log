@@ -1,0 +1,44 @@
+playwright 1.56.0, браузеры: C:\Windows\system32\config\systemprofile\.simcs2_node\ms-playwright
+> git fetch --quiet origin 7ee1c2db7bbf798c48738d64e310bb3d86b95f1e
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_e30n2sj_ FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_e30n2sj_\src\build.py --map mirage C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\n29_mir.html
+  nadeguess.json устарел (код подбора или данные карты менялись) — не включён; пересчитать: python3 tools/nades/guess_bake.py --map mirage
+> git fetch --quiet origin 7ee1c2db7bbf798c48738d64e310bb3d86b95f1e
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_cyqwjt5d FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_cyqwjt5d\src\build.py --map ancient C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\n29_anc.html
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\engine\walk_run.py --job=n29_mir,C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\n29_mir.html --job=n29_anc,C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\n29_anc.html --matches=3,7,11,13,17,19,23,29,31,37,41,43,47,53,59,61 --par=8
+матчей в очереди: 32, одновременно: 8
+n29_mir match 3 rc 0 4463521 — готово 1/32, 6 мин
+n29_mir match 19 rc 0 4361399 — готово 2/32, 6 мин
+n29_mir match 7 rc 0 5032059 — готово 3/32, 7 мин
+n29_mir match 29 rc 0 5264114 — готово 4/32, 8 мин
+n29_mir match 23 rc 0 6291825 — готово 5/32, 9 мин
+n29_mir match 17 rc 0 6121247 — готово 6/32, 9 мин
+n29_mir match 11 rc 0 6095135 — готово 7/32, 9 мин
+n29_mir match 13 rc 0 8113011 — готово 8/32, 12 мин
+n29_mir match 41 rc 0 4016281 — готово 9/32, 13 мин
+n29_mir match 31 rc 0 5093714 — готово 10/32, 13 мин
+n29_mir match 37 rc 0 5997233 — готово 11/32, 14 мин
+n29_mir match 47 rc 0 4779444 — готово 12/32, 16 мин
+n29_mir match 53 rc 0 5733165 — готово 13/32, 17 мин
+n29_mir match 59 rc 0 6039373 — готово 14/32, 18 мин
+n29_mir match 43 rc 0 7920890 — готово 15/32, 19 мин
+n29_anc match 7 rc 0 4436943 — готово 16/32, 19 мин
+n29_anc match 3 rc 0 4585584 — готово 17/32, 20 мин
+n29_anc match 11 rc 0 4854135 — готово 18/32, 21 мин
+n29_mir match 61 rc 0 6902564 — готово 19/32, 22 мин
+n29_anc match 29 rc 0 3838793 — готово 20/32, 24 мин
+n29_anc match 19 rc 0 4955318 — готово 21/32, 24 мин
+n29_anc match 13 rc 0 8063737 — готово 22/32, 26 мин
+n29_anc match 23 rc 0 6095257 — готово 23/32, 26 мин
+n29_anc match 31 rc 0 5360616 — готово 24/32, 26 мин
+n29_anc match 17 rc 0 7580165 — готово 25/32, 27 мин
+n29_anc match 37 rc 0 5220759 — готово 26/32, 27 мин
+n29_anc match 41 rc 0 4873364 — готово 27/32, 28 мин
+n29_anc match 47 rc 0 5259152 — готово 28/32, 30 мин
+n29_anc match 53 rc 0 4763550 — готово 29/32, 31 мин
+n29_anc match 43 rc 0 7763024 — готово 30/32, 33 мин
+n29_anc match 59 rc 0 6233636 — готово 31/32, 33 мин
+n29_anc match 61 rc 0 7972404 — готово 32/32, 34 мин
+done
+all done
