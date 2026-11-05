@@ -97,7 +97,11 @@ function defuseEta(b, from){
   if(b.defusing) return Math.max(0, (b.defuseUntil - tick)/TICK_HZ);
   // (Г3, 04.11, разбор отметок п.32: роль дефузера CT4 ↔ CT2 каждые 0,5 с) время — по кратчайшему пути навмеша: путь команды (обход мест,
   // где ждут врага) меняется вместе со знанием и прыгал между двумя маршрутами (Kitchen ↔ Apartments) — оценка «кто раньше» скакала
-  var f = from || b, L = polyLen(pathPts(f.x, f.y, bomb.x, bomb.y));
+  // (00_PLAN п.3б, 04.11, прогон 172: смен дефузера при живом прежнем 43 → 85; снимок м11 р8: у стоящего CT4 оценка 9,9 → 16,7 с) путь — с
+  // высотой бота и бомбы: pathPts строит путь от высоты 0, и там, где этажи один над другим, начало бралось то на одном этаже, то на другом
+  var f = from || b, fz = f.z != null ? f.z : null, Q = PATHQ_Q;
+  var p = pathQ("e"+roundNum+":"+Math.round(f.x/Q)+","+Math.round(f.y/Q)+","+(fz == null ? "-" : Math.round(fz/9)), function(){ return buildWaypointPath(f.x, f.y, fz, bomb.x, bomb.y, bomb.z); });
+  var L = polyLen([[f.x, f.y]].concat(p.map(function(q){ return [q[0], q[1]]; })));
   return L/SPEED + (b.kit ? DEFUSE_KIT_TICKS : DEFUSE_TICKS)/TICK_HZ;
 }
 var DEFUSE_HEAR = 700;
