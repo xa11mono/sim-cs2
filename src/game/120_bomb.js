@@ -116,7 +116,7 @@ function defuseSees(b){
   var fb = visFloorAt(bomb.x, bomb.y, bomb.z), az = b._area && navArea(b._area); if(bomb.z != null && Math.abs(fb - bomb.z) > JUMP_UP) fb = bomb.z;
   return !visWallHit(b.baseX, b.baseY, bomb.x, bomb.y) && visMarch(b.baseX, b.baseY, fv + VIS_EYE.crouch, bomb.x, bomb.y, fb + 8);
 }
-var ESC_MAX_SEC = 8, ESC_WAIT_SEC = 8;
+var ESC_MAX_SEC = 8;   // (05.11) ESC_WAIT_SEC (8 с всем) убран — сколько ждать сопровождающего, по ситуации (170, ответ владельца 10)
 var UTIL_WAIT = 7, UTIL_WAIT_RUSH = 2.5, UTIL_AT_ENTRY = 140, UTIL_MIN_LEFT = 25;   // (v363) 7 с — между медианой 2,7 и 75 % 6,6 с у про (последняя граната → заход первого), 25 с до конца — уже не ждут   // (v346) ждать свои гранаты на выходе — проектные числа   // (v342) сопровождение носителя — проектные числа
 function defuseSound(ct){
   bots.forEach(function(o){

@@ -173,7 +173,33 @@ function selfNadeTick(){
 //  • флешка себе под пик: идёт один на угол, за которым свежая инфа о враге
 //    (≤5с) — кидает флешку через угол и выходит на хлопок.
 var nadeReactCd = {CT:0, T:0};
+// (00_PLAN, пакет тактики, ответ владельца 4 от 04.11: «уход от HE — по звуку / виду / траектории, не после урона: до взрыва > 0,8 с —
+// полноценный отход; 0,4–0,8 — короткий шаг в ближайшее укрытие; < 0,4 — без бессмысленного рывка; куда — за стену, из зоны; держит проход
+// (AWP) / плант — может остаться и принять урон»; числа — стартовые из ответа) знает о гранате тот, кто видит её в полёте или видел бросок
+// (nd.aware — как у флешки, 380); место взрыва — куда она летит (n.tx, n.ty — та же физика, что видна глазом); в радиусе урона — уходит на
+// точку вне радиуса или за стену от места взрыва, до которой успевает дойти (бег до взрыва)
+var HE_DODGE_FULL = 0.8, HE_DODGE_MIN = 0.4;   // с — проектные числа (ответы владельца 04.11)
+function heDodgeTick(){
+  nadesInAir.forEach(function(n){
+    if(n.type !== "he") return; var DZ = n._dz || (n._dz = {});
+    var eta = ((n.etaDet || tick) - tick)/TICK_HZ; if(eta < HE_DODGE_MIN) return;
+    var R = NADE.he.radius, det = {x:n.tx, y:n.ty};
+    bots.forEach(function(b){
+      if(DZ[b.id] || !b.alive || b.planting || b.defusing || (b.primary === "AWP" && b.atPost) || b === n.thrower) return;
+      if(Math.hypot(b.x-det.x, b.y-det.y) > R || !hasLOS(b.x, b.y, det.x, det.y, b.z)) return;
+      var knows = (n.aware && n.aware[b.id]) || hasVision(b.x, b.y, n.x, n.y); if(!knows) return;
+      DZ[b.id] = 1;   // решение — один раз на гранату, в миг, когда узнал о ней
+      var reach = SPEED*eta*(eta > HE_DODGE_FULL ? 1 : 0.5);
+      var sp = pickSpots("hed"+Math.round(b.x/30)+","+Math.round(b.y/30), {x:b.x, y:b.y}, 4, {rMax:Math.max(40, reach), minGap:20, hideFrom:[det]})
+        .filter(function(q){ return Math.hypot(q.x-b.x, q.y-b.y) <= reach && (Math.hypot(q.x-det.x, q.y-det.y) > R || !hasLOS(q.x, q.y, det.x, det.y)); })
+        .sort(function(p, q){ return Math.hypot(p.x-b.x, p.y-b.y) - Math.hypot(q.x-b.x, q.y-b.y); })[0];
+      if(sp && setPost(b, sp, det, true, "repos:he")){ b._reposUntil = tick + Math.round((eta + 0.5)*TICK_HZ);
+        if(!b._heDodgeLog || tick - b._heDodgeLog > 3*TICK_HZ){ b._heDodgeLog = tick; logEvent(b.id+": HE рядом — ухожу ("+eta.toFixed(1)+" с до взрыва)"); } }
+    });
+  });
+}
 function nadeReact(){
+  heDodgeTick();
   if(tick % 8) return;
   // (19) мало HP и враг рядом — выкинуть оставшиеся гранаты во врага, пока жив
   if(BAL.utilDump) bots.forEach(function(b){

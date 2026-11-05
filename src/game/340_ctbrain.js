@@ -292,6 +292,10 @@ function ctBrain(){
     var cand = cts.filter(function(b){ return (b.tRole === "mid" || b.tRole === "roamer") && !(ct.rot && ct.rot[b.id]) &&
       Math.hypot(b.x-SITES[fs].x, b.y-SITES[fs].y) > 500; })
       .sort(function(a, b2){ return (a.tRole === "mid" ? 0 : 1) - (b2.tRole === "mid" ? 0 : 1); })[0];
+    // (ответ владельца 9) маршрут у врага — не идти: на зоне маршрута фланга (набор карты) команда недавно (SITE_SEEN_SEC) видела / слышала T
+    var CFr = ((MAP.tactics.plays.ctFlank || {}).route || {})[fs === "A" ? "A" : "B"] || [], BLc = beliefLast.CT || {};
+    if(cand && CFr.some(function(n){ var zp = zonePoint(n, SITES[fs]), zz = zp && zoneIdAt(zp.x, zp.y); return zz && bots.some(function(o){ var e = BLc[o.id];
+      return o.alive && o.team === "T" && e && tick - e.tick <= SITE_SEEN_SEC*TICK_HZ && zoneIdAt(e.x, e.y) === zz; }); })) cand = null;
     if(cand){
       ct.flank = {id:cand.id, site:fs, stage:0, arr:0};
       voiceLog("CT", "flank"+fs, cand.id, "захожу им в спину через мид на "+fs);
@@ -400,6 +404,11 @@ function ctBrain(){
       var sps = pickSpots("stopplant"+Math.round(ppt.x/40)+","+Math.round(ppt.y/40), ppt, 4, {rMin:60, rMax:280, minGap:50, must:[ppt]});
       var bsp = null, bsd = Infinity;
       sps.forEach(function(q){ var d = Math.hypot(q.x-b.x, q.y-b.y); if(d < bsd){ bsd = d; bsp = q; } });
+      // (00_PLAN, пакет тактики, ответ владельца 6 от 04.11: «плант идёт (3,2 с): успевает убить — главное; нет — сильная позиция; не бежать
+      // через открытое ради безнадёжной попытки») не успевает дойти до места, откуда видно ставящего, до конца планта — не бежит (ретейк)
+      if(bsp && !hasLOS(b.x, b.y, PHs.x, PHs.y, b.z) && pathLenTo(b, bsp.x, bsp.y)/SPEED*TICK_HZ > PHs.tick + PLANT_TICKS - tick){
+        if(b._noStopLog !== PHs.tick){ b._noStopLog = PHs.tick; voiceLog("CT", "nostopT"+b.id, b.id, "не успеваю сбить плант — держу, играем ретейк"); }
+        bsp = null; }
       if(bsp){
         if(b._stopPlantLog !== PHs.tick){ b._stopPlantLog = PHs.tick; voiceLog("CT", "stop"+b.id, b.id, "слышу плант — иду сбивать!"); }
         b._stopPlantUntil = tick + 2*TICK_HZ; b._reposUntil = 0;

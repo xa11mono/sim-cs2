@@ -646,7 +646,7 @@ function tBrain(){
       var BE = tt.bombEsc && tt.bombEsc.round === roundNum && tt.bombEsc.cid === carrier.id ? tt.bombEsc : null;
       // (п.21 владельца 29.10, м1 р5 т37570: «почему бы не отложить выход… пока игрок 2 не сможет выйти с паласа, чтобы сыграть вдвоём» —
       // TN1R у огня в Palace увидел врага, и magixx в тот же тик пошёл ставить один) назначенный сопровождающий в бою — всё ещё сопровождающий:
-      // носитель ждёт его в пределах тех же ESC_WAIT_SEC / ESC_MAX_SEC (раньше бой снимал сопровождение сразу)
+      // носитель ждёт его в пределах того же времени ожидания / ESC_MAX_SEC (раньше бой снимал сопровождение сразу)
       var esc = BE ? cm.filter(function(o){ return o.id === BE.id && !o.planting; })[0] : null;
       if(!esc && !cm.some(function(o){ return ready(o) && Math.hypot(o.x-carrier.x, o.y-carrier.y) <= TRADE_R; }) && cLeft >= cWalk){
         esc = cm.filter(function(o){ return !o._sawEnemy && !o.planting && !o.nadeTask && !(o._tradeLock && o._tradeLock.until > tick) && !(o._reposUntil && tick < o._reposUntil) && Math.hypot(o.x-ppt.x, o.y-ppt.y) > 350; })
@@ -656,14 +656,17 @@ function tBrain(){
         if(esc && pathLenTo(esc, carrier.x, carrier.y)/SPEED > ESC_MAX_SEC) esc = null;
         if(esc){ BE = tt.bombEsc = {round: roundNum, cid: carrier.id, id: esc.id, since: tick}; voiceLog("T", "besc"+carrier.id, esc.id, "иду к бомбе — "+carrier.id+", заходим вместе"); }
       }
-      // (v342) ждать сопровождение — не дольше ESC_WAIT_SEC и только если он не дальше ESC_MAX_SEC бега (проверка каждые 0,5 с;
+      // (v342) ждать сопровождение — не дольше времени по ситуации (ниже) и только если он не дальше ESC_MAX_SEC бега (проверка каждые 0,5 с;
       // проектные числа: в демках про — только доля «носитель один», 5 %)
       // (v359, отметка владельца: magixx с бомбой ждал на T Ramp ~10 с, сопровождающий кидал лайнап, а на A уже никого) сайт по
       // знанию пуст (на сайте и у него < 0,5 CT по карте команды) или сопровождающий занят гранатой — не ждём, идём ставить
       if(esc && (beliefCount("T", BZ.siteNear[tt.site]||[]) < 0.5 || esc.nadeTask)) esc = null;
       if(esc && BE){ if(BE.since == null) BE.since = tick;
         if(tick - (BE.lenT || -1e9) >= 32){ BE.lenT = tick; BE.far = pathLenTo(esc, carrier.x, carrier.y)/SPEED > ESC_MAX_SEC; }
-        if(BE.far || tick - BE.since > ESC_WAIT_SEC*TICK_HZ) esc = null; }
+        // (00_PLAN, пакет тактики, ответ владельца 10 от 04.11: «не 8 с для всех: рядом 1,5–2,5; сопровождающий в бою 2–3; опасный проход
+        // 2–3,5; ждём гранаты 3–4,5; 8 с — только при явном «держим»») сколько ждать — по ситуации, середины диапазонов (проектные числа ответа)
+        var escW = !exuGate(tt).go ? 3.75 : siteAssess("T", tt.site).near >= 1 ? 2.75 : esc._sawEnemy ? 2.5 : 2.0;
+        if(BE.far || tick - BE.since > escW*TICK_HZ) esc = null; }
       if(esc && cLeft >= cWalk){
         var dE = Math.hypot(esc.x-carrier.x, esc.y-carrier.y);
         var lnE = Math.hypot(ppt.x-carrier.x, ppt.y-carrier.y) || 1, ePt = walk({x: carrier.x + (ppt.x-carrier.x)/lnE*Math.min(90, lnE), y: carrier.y + (ppt.y-carrier.y)/lnE*Math.min(90, lnE)});

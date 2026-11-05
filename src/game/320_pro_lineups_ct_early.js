@@ -78,6 +78,16 @@ function flankPost(b, F, planted){
   if(!F.routed){ F.routed = true;
     startRoute(b, CF.route[fk], "flank"+F.site); }
   var fst = CF.stage[fk];
+  // (00_PLAN, ответ владельца 9 от 04.11) фланг «по своей стороне прямо на сайт» (набор карты: ctFlank.end = "site", Mirage): после маршрута —
+  // с последней его зоны на сайт (вход CT), без захода на сторону T
+  if(CF.end === "site"){
+    var rr = CF.route[fk] || [], lastZ = rr.length ? zonePoint(rr[rr.length-1], g.ctEntry) : null;
+    var ptsS = [{p: lastZ || g.ctEntry, look: SITES[F.site], tag: "flank0"}, {p: planted && bomb ? walk({x:bomb.x, y:bomb.y}) : g.anchor, look: g.tEntry, tag: "flank1"}];
+    if(F.stage >= ptsS.length) return false;
+    var PS = ptsS[F.stage]; setPost(b, PS.p, PS.look, true, PS.tag);
+    if(b.atPost && b.post && b.post.tag === PS.tag){ if(!F.arr) F.arr = tick; if(tick - F.arr > 40){ F.stage++; F.arr = 0; } }
+    return true;
+  }
   var pts = [
     {p: (fst && zonePoint(fst, g.tStage)) || GEO.tMid,  look: g.tStage, tag: "flank0"},
     {p: g.tStage,  look: g.tEntry, tag: "flank1"},
