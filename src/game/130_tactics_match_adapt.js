@@ -197,9 +197,33 @@ function coachPlan(side){
 }
 var DEF_GROUP_R = 450;   // (v450) ед. карты: «район группы» для мест дефолта — проектное число (≈ зона и её соседи)
 var DEF_STAGE_SEC = 25;   // (v444) из демок Mirage — см. chooseTactic, need
+// (эко-система, шаг 2; ответ владельца 05.11 — docs/tasks/OWNER_ECO_TACTICS_2026-11-05.md) экономика и план — два решения: тип закупа уже
+// выбран (decideRoundType), план — по тому, какое оружие будет у пятерых (своё сохранённое + что купят этим закупом), а не по надписи
+// «эко». Мало оружия (≤ LOW_EQ_PRIM основных стволов) — три плана: раш (rush), сгруппированный выход на один сайт (exec), медленный
+// раунд от контроля карты с поздним решением (default); выбирает IGL — по своему стилю (агрессия / дисциплина профиля), по тому, что
+// команда видела о CT (рано теряли своих от CT в прошлых раундах — CT агрессивны → медленно, наказать выход), и по прошлому эко
+// (раш не удался — CT ждут его снова). Числа — проектные (ответы владельца 05.11: «не придумывать вероятности» — калибровать по демкам)
+var LOW_EQ_PRIM = 2;   // проектное число
+function tEquipProfile(type){
+  var buys = type === "full" || type === "half" || type === "force", prim = 0, rifle = 0;
+  bots.forEach(function(b){ if(b.team !== "T") return; var w = b.primary && WEAPONS[b.primary];
+    if(w || buys) prim++; if((w && w.tier >= 6) || type === "full") rifle++; });
+  return {prim:prim, rifle:rifle, low: prim <= LOW_EQ_PRIM};
+}
+var LOW_PLAN = {rush:"раш", exec:"сгруппированный выход", "default":"медленный раунд"};
+function lowPlanFactors(){
+  var igl = bots.filter(function(b){ return b.team === "T" && b.tRole === "igl"; })[0];
+  var F = {rush: 0.5 + prof(igl, "aggr"), exec: 1, "default": 0.5 + prof(igl, "disc")}, why = [];
+  var early = roundHist.slice(-3).filter(function(r){ return r.tEarly >= 1; }).length;   // свои гибли от CT до 30-й с
+  if(early){ F["default"] *= 1 + 0.5*early; why.push("CT рано выходили ("+early+" из 3)"); }
+  var lastLow = roundHist.slice().reverse().filter(function(r){ return r.lowPlan; })[0];
+  if(lastLow && lastLow.lowPlan === "rush" && lastLow.winner !== "T"){ F.rush *= 0.5; why.push("прошлый раш не прошёл"); }
+  return {F:F, why:why};
+}
 function chooseTactic(){
   var type = teamEco.T.roundType;
-  var pool = T_TACTICS.filter(function(t){ return t.pools.indexOf(type) >= 0; });
+  var EQ = tEquipProfile(type), LF = EQ.low ? lowPlanFactors() : null;
+  var pool = EQ.low ? T_TACTICS.filter(function(t){ return !!LOW_PLAN[t.style]; }) : T_TACTICS.filter(function(t){ return t.pools.indexOf(type) >= 0; });
   var rd = readCT(), readTxt = null;
   var tempoRead = null;
   if(BAL.tempoShift){ var lastT = roundHist.slice(-2);
@@ -235,15 +259,15 @@ function chooseTactic(){
     return w;
   });
   if(rd.stack) readTxt = "читаем CT: "+rd.stack+" — стак "+rd.n+" из "+rd.of+" раундов → уходим от "+rd.stack+" / фейк на "+rd.stack;
-  // (v155) у про плант раньше 35с — 13% плантов; у ботов было 26%, раши шли
-  // в 19% раундов. Доля рашей теперь задана по типу закупа, остальное — выходы
-  if(BAL.proTempo){
-    var RP = {pistol:0.20, eco:0.25, force:0.08, half:0, full:0}[type] || 0;
-    var rW = 0, nW = 0; pool.forEach(function(t, i){ if(t.style === "rush") rW += weights[i]; else nW += weights[i]; });
-    if(rW > 0 && nW > 0){ var kR = RP > 0 ? (RP/(1-RP))*nW/rW : 0; pool.forEach(function(t, i){ if(t.style === "rush") weights[i] *= kR; }); }
+  // мало оружия — план выбирает IGL: у каждого плана своя доля (LF.F), внутри плана — веса тактик как выше. Было (v155): доля рашей
+  // задана по надписи закупа (эко 25 %, пистолетка 20 %, форс 8 %), а на Mirage в пуле эко были только раши — эко всегда было рашем
+  if(LF){
+    var cw = {}; pool.forEach(function(t, i){ cw[t.style] = (cw[t.style] || 0) + weights[i]; });
+    pool.forEach(function(t, i){ weights[i] *= LF.F[t.style] / cw[t.style]; });
   }
   var tac = pool[weightedChoice(pool, weights, roundNum*7919 + matchNum*104729 + 17)];
   lastTacticId = tac.id; tacHist.push(tac.id);
+  if(LF) logEvent("IGL: мало оружия ("+EQ.prim+" ствола на пятерых) — "+LOW_PLAN[tac.style]+(LF.why.length ? " ("+LF.why.join(", ")+")" : ""));
   // тайминг выхода гуляет от раунда к раунду (иначе его читают): ~25% —
   // быстрый (на 30% раньше), ~50% — обычный ±4с, ~25% — поздний (+10…18с)
   var setupSec = tac.setupEnd, tmode = "";
@@ -285,7 +309,7 @@ function chooseTactic(){
   }
   teamTac.T = {tac:tac, site:tac.site, phase: tac.setupEnd > 0 ? "setup" : "execute", execTick: roundStartTick + setupSec*64, defUntil: defUntil, minExec: (BAL.proTempo && tac.setupEnd > 0) ? Math.min(setupSec, 30) : 0, needT: (BAL.proTempo && tac.setupEnd > 0) ? (tac.style === "default" ? DEF_STAGE_SEC : Math.max(14, tac.setupEnd - 6)) : 0,   // (v443) у дефолта — как need выше: иначе фаза дефолта (170, inDef) не включалась вовсе
                execStart: tac.setupEnd > 0 ? null : tick, // раш: выход сразу — отсчёт задержек ролей с начала раунда
-               read: readTxt, seenCT:{A:0, B:0}, setupSec:setupSec};
+               read: readTxt, seenCT:{A:0, B:0}, setupSec:setupSec, lowPlan: LF ? tac.style : null};
   var M = tacMem[tac.id];
   var igl = bots.filter(function(b){ return b.team==="T" && b.tRole==="igl"; })[0];
   if(readTxt) logEvent("IGL "+(igl?igl.id:"T")+": "+readTxt);
