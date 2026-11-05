@@ -174,13 +174,20 @@ function lookCands(b, W){
   return out;
 }
 var KNOWN_SEC = 10, KNOWN_W = 0.2;
+var KWL_CELL = 24, KWL_TTL = 32;   // проектные числа
 function knownWayLook(b){
   var BL = beliefLast[b.team] || {}, best = null;
   for(var id in BL){ var l = BL[id]; if(!l) continue; var age = (tick - l.tick)/TICK_HZ; if(age > KNOWN_SEC) continue;
     var e = bots.filter(function(o){ return o.id === id; })[0]; if(!e || !e.alive) continue;   // жив — видно по табло
     if(!best || age < best.age) best = {id:id, x:l.x, y:l.y, age:age}; }
   if(!best || Math.hypot(best.x-b.x, best.y-b.y) < 120) return null;
-  var P = buildWaypointPath(b.x, b.y, b.z, best.x, best.y, null, b.team); if(!P || !P.length) return null;
+  // (Д3, скорость; облако м7: в долгих тиках поиск пути зовут прежде всего отсюда — путь к известному врагу каждый тик каждого бота с
+  // точной позиции) путь — тот же, пока бот в той же клетке KWL_CELL и враг (и его место — с той же клеткой) тот же, не дольше KWL_TTL тиков
+  // (проектные числа, как кэш appearPoint — клетка 24). Сдвигает игру на доли — проверка прогоном
+  var KC = b._kwl, kk = best.id+"|"+Math.round(best.x/KWL_CELL)+","+Math.round(best.y/KWL_CELL)+"|"+Math.round(b.x/KWL_CELL)+","+Math.round(b.y/KWL_CELL);
+  var P = KC && KC.k === kk && tick - KC.t <= KWL_TTL && KC.t <= tick ? KC.P : null;
+  if(!P){ P = buildWaypointPath(b.x, b.y, b.z, best.x, best.y, null, b.team); b._kwl = {k:kk, t:tick, P:P}; }
+  if(!P || !P.length) return null;
   var px = b.x, py = b.y, walked = 0, far = null;
   for(var i=0;i<P.length && walked < 400;i++){
     var qx = P[i][0], qy = P[i][1], L = Math.hypot(qx-px, qy-py), n = Math.max(1, Math.ceil(L/20));
