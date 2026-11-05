@@ -27,7 +27,7 @@ function pickSaveSpot(b){
   // сейв. SAVE_TOPN — проектное число (чтобы не искать путь к 600 местам)
   cands.sort(function(a, c){ return c.sc - a.sc; });
   cands.slice(0, SAVE_TOPN).forEach(function(q){
-    var pts = pathPts(b.baseX, b.baseY, q.c.x, q.c.y), L = polyLen(pts), seenP = false;
+    var pts = pathPts(b.baseX, b.baseY, q.c.x, q.c.y, b.z), L = polyLen(pts), seenP = false;
     for(var k = 0; k < pts.length && !seenP; k++) ts.forEach(function(t){ if(!seenP && hasLOS(pts[k][0], pts[k][1], t.x, t.y)) seenP = true; });
     if(seenP) return;
     var sc2 = Math.min(q.dT, 1200)*0.6 - L - q.openC*40;
@@ -263,6 +263,7 @@ function updateRetake(cts){
       // ретейк как команда: сначала утилита (флешка на сайт/на известного T,
       // смок на подход T), заход — под хлопок; если гранат нет или время
       // поджимает — сразу
+      if(BAL.retakeRoles && !R.entryId) retakeEntryPick(R, alive, def);
       var util = BAL.retakeRoles && !late && alive.length >= 2 && retakeUtil(R, alive);
       if(util){ R.phase = "util"; R.utilTick = tick;
         logEvent("CT: ретейк — все на точках ("+ready+"/"+alive.length+"), "+util+" — заход под флешку"); }
@@ -290,20 +291,24 @@ function updateRetake(cts){
     }
   }
   // первый входящий: не дефузер, из основной точки захода, ближе всех к бомбе
-  if(R.phase === "go" && BAL.retakeRoles && !R.entryId){
-    var ents = alive.filter(function(b){ return b !== def; });
-    ents.sort(function(a, c){ return ((R.assign[a.id] === 0 ? 0 : 300) + Math.hypot(a.x-bomb.x, a.y-bomb.y)) - ((R.assign[c.id] === 0 ? 0 : 300) + Math.hypot(c.x-bomb.x, c.y-bomb.y)); });
-    R.entryId = ents[0] ? ents[0].id : "-";
-    if(ents[0]) voiceLog("CT", "rtentry", ents[0].id, "захожу первым, "+(def ? def.id+" дефузит за мной" : "прикрывайте"));
-  }
+  if(R.phase === "go" && BAL.retakeRoles && !R.entryId) retakeEntryPick(R, alive, def);
 }
-// утилита перед заходом на ретейк: кто кидает флешку (не дефузер, если можно)
-// и куда — на известного T у бомбы (свежая инфа), иначе на саму бомбу
+// первый входящий: не дефузер, из основной точки захода, ближе всех к бомбе. (00_PLAN, ответы владельца 3 и 7А, 05.11) выбирается до
+// флешки: флешку кидает не он — «под флешку выходит не тот, кто кидает» (раньше оба — ближайший к бомбе, обычно один и тот же бот)
+function retakeEntryPick(R, alive, def){
+  var ents = alive.filter(function(b){ return b !== def; });
+  ents.sort(function(a, c){ return ((R.assign[a.id] === 0 ? 0 : 300) + Math.hypot(a.x-bomb.x, a.y-bomb.y)) - ((R.assign[c.id] === 0 ? 0 : 300) + Math.hypot(c.x-bomb.x, c.y-bomb.y)); });
+  R.entryId = ents[0] ? ents[0].id : "-";
+  if(ents[0]) voiceLog("CT", "rtentry", ents[0].id, "захожу первым, "+(def ? def.id+" дефузит за мной" : "прикрывайте"));
+}
+// утилита перед заходом на ретейк: кто кидает флешку — не первый входящий (под флешку выходит другой, ответ 7А), по возможности и не
+// дефузер; куда — на известного T у бомбы (свежая инфа), иначе на саму бомбу
 function retakeUtil(R, alive){
   if(nadeFlags.retakeFlash) return null;
   var bp = ctBombPos(), def = alive.filter(function(b){ return b.id === R.defId; })[0];
+  var rank = function(b){ return b.id === R.entryId ? 2 : b === def ? 1 : 0; };
   var fls = alive.filter(function(b){ return b.nades && b.nades.flash > 0; })
-    .sort(function(a, c){ return ((a === def) ? 500 : 0) + Math.hypot(a.x-bp.x, a.y-bp.y) - (((c === def) ? 500 : 0) + Math.hypot(c.x-bp.x, c.y-bp.y)); });
+    .sort(function(a, c){ return rank(a) - rank(c) || Math.hypot(a.x-bp.x, a.y-bp.y) - Math.hypot(c.x-bp.x, c.y-bp.y); });
   var fl = fls[0]; if(!fl) return null;
   var tgt = bp, L = beliefLast.CT, bestA = Infinity;
   for(var id in L){ var e = L[id]; if(tick - e.tick > 10*TICK_HZ) continue; if(Math.hypot(e.x-bp.x, e.y-bp.y) > 650) continue;

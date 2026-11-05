@@ -419,7 +419,7 @@ function lookKnowCands(b){
   var sg = teamIntel[b.team] && teamIntel[b.team].sig;
   if(sg) for(var i = sg.length-1; i >= 0; i--){ var s = sg[i]; if(tick - s.tick > 3*TICK_HZ) break;
     if(s.type !== "died" || s.id === b.id) continue;
-    if(Math.hypot(s.x-b.x, s.y-b.y) >= FB.deathR || polyLen(pathPts(b.x, b.y, s.x, s.y)) >= FB.deathR) continue;
+    if(Math.hypot(s.x-b.x, s.y-b.y) >= FB.deathR || polyLen(pathPts(b.x, b.y, s.x, s.y, b.z)) >= FB.deathR) continue;
     add(LOOK_LEVEL.sound, "death", {x: s.kx != null ? s.kx : s.x, y: s.kx != null ? s.ky : s.y, age: tick - s.tick}); break; }
   // команда знает сейчас: видят (радар) / слышали / сказали ≤ 1 с; в упор (≤ 250 px) — та же «свежая угроза», что у зоны
   var BL = beliefLast[b.team] || {};

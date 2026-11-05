@@ -9,8 +9,11 @@ function pathQ(key, fn){
   if(PATHQ_N > 6000){ PATHQ = {}; PATHQ_N = 0; }
   var v = fn(); PATHQ[key] = {t: tick, v: v}; PATHQ_N++; return v;
 }
-function pathPts(ax, ay, bx, by){
-  var Q = PATHQ_Q, p = pathQ("p"+Math.round(ax/Q)+","+Math.round(ay/Q)+">"+Math.round(bx/Q)+","+Math.round(by/Q), function(){ return buildWaypointPath(ax, ay, 0, bx, by, 0); });
+// (00_PLAN п.3б, 05.11) az / bz — высота начала / конца (бот, бомба): без неё путь строился от высоты 0, и там, где этажи один над
+// другим, начало бралось то на одном этаже, то на другом (оценка «через сколько дойду» у стоящего бота прыгала на 7 с). Нет высоты — 0, как было
+function pathPts(ax, ay, bx, by, az, bz){
+  var Q = PATHQ_Q, zk = (az == null ? "" : ","+Math.round(az/9)) + (bz == null ? "" : ">"+Math.round(bz/9));
+  var p = pathQ("p"+Math.round(ax/Q)+","+Math.round(ay/Q)+">"+Math.round(bx/Q)+","+Math.round(by/Q)+zk, function(){ return buildWaypointPath(ax, ay, az == null ? 0 : az, bx, by, bz == null ? 0 : bz); });
   return [[ax,ay]].concat(p.map(function(q){ return [q[0], q[1]]; }));
 }
 function polyLen(pts){ var L=0; for(var i=1;i<pts.length;i++) L += Math.hypot(pts[i][0]-pts[i-1][0], pts[i][1]-pts[i-1][1]); return L; }

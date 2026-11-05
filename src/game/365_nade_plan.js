@@ -172,6 +172,8 @@ function npUse(b, t, m, lu){
   var L = b._nplan || [], O = NP_ORDER[b.team], best = -1;
   // (Г3) брошен лайнап цели lu — снимается её запись; иначе — запись без цели (закреплённые за целью не тратятся на другое)
   if(lu) for(var j = 0; j < L.length; j++) if(L[j].t === t && L[j].lu === lu){ L.splice(j, 1); return; }
+  // (00_PLAN п.7) цель lu кинул не её хозяин — граната хозяина больше не закреплена за ней (остаётся ему на свой момент)
+  if(lu) bots.forEach(function(o){ if(o !== b && o.team === b.team) (o._nplan || []).forEach(function(it){ if(it.lu === lu) it.lu = null; }); });
   for(var i = 0; i < L.length; i++){ if(L[i].t !== t || L[i].lu) continue; if(L[i].m === m){ best = i; break; } if(O[L[i].m] <= O[m] && (best < 0 || O[L[i].m] < O[L[best].m])) best = i; }
   if(best < 0) for(i = 0; i < L.length; i++){ if(L[i].t !== t) continue; if(L[i].m === m){ best = i; break; } if(O[L[i].m] <= O[m] && (best < 0 || O[L[i].m] < O[L[best].m])) best = i; }
   if(best < 0) for(i = 0; i < L.length; i++) if(L[i].t === t){ best = i; break; }

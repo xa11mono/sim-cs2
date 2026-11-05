@@ -5,6 +5,9 @@ function ctPlantGuessOnly(){
   var cts = bots.filter(function(o){ return o.team === "CT" && o.alive && o.know; });
   return cts.some(function(o){ return o.know.plantGuess; }) && !cts.some(function(o){ return o.know.plantSite && !o.know.plantGuess; });
 }
+// (00_PLAN, аудит 4.2, 05.11) CT «у сайта» — по длине пути с его высотой, а не по прямой: за стеной или на другом этаже по
+// прямой «рядом», а дойти — далеко; такой CT считался защитником, и на сайт не шли
+function ctNearSite(b, S, r){ return Math.hypot(b.x-S.x, b.y-S.y) < r && polyLen(pathPts(b.x, b.y, S.x, S.y, b.z)) < r; }
 function ctBrain(){
   var ct = teamTac.CT;
   var cts = bots.filter(function(b){ return b.team==="CT" && b.alive; });
@@ -60,7 +63,7 @@ function ctBrain(){
     var PH = teamIntel.CT.plantHeard, plantHere = PH && PH.site === k && tick - PH.tick < 5*TICK_HZ;
     var anchorRole = k==="A" ? "anchorA" : "anchorB";
     var anchorAlive = cts.some(function(b){ return b.tRole===anchorRole; });
-    var holdingHere = cts.some(function(b){ return Math.hypot(b.x-SITES[k].x, b.y-SITES[k].y) < 420; });
+    var holdingHere = cts.some(function(b){ return ctNearSite(b, SITES[k], 420); });
     // (v355, владелец: «колл сработал, хотя у него клатч» — 2 на 4, опорника B сняли, колл «B пустой» увёл NiKo с A, где были T) «сайт пустой» —
     // повод для колла только при 3+ живых CT: вдвоём / в одиночку сайт без опорника — не довод бросать свой
     var undefended = !anchorAlive && !holdingHere && !planted0 && cts.length >= 3;
@@ -168,7 +171,7 @@ function ctBrain(){
   if(ct.call && !planted0){
     var ks = ct.call.site, ko = ks === "A" ? "B" : "A", sc0 = SITES[ks];
     var need = Math.max(1, Math.ceil(ct.call.count - 0.25));
-    var defenders = cts.filter(function(b){ return Math.hypot(b.x-sc0.x, b.y-sc0.y) < 450; }).length;
+    var defenders = cts.filter(function(b){ return ctNearSite(b, sc0, 450); }).length;
     // защитников ≈ сколько там врагов (сайт даёт позиционное преимущество)
     var send = Math.max(0, Math.min(3, need - defenders));
     // терпение: на первый звук/одного-двух не дёргаемся — ротация только

@@ -154,7 +154,7 @@ function infoFallbackTick(){
     // (v291, И31, владелец 14.10: раунд 1, тик 2858 — игрок 6 на Mid «минус рядом» от смерти на Back Site: 926 px по прямой,
     // 1150 пешком, другой конец карты) смерть рядом — по длине пути, а не по прямой
     var died = teamIntel.CT.sig.some(function(sg){ return sg.type === "died" && tick - sg.tick <= FB.window*TICK_HZ && Math.hypot(sg.x-b.x, sg.y-b.y) < FB.deathR &&
-      polyLen(pathPts(b.x, b.y, sg.x, sg.y)) < FB.deathR; });
+      polyLen(pathPts(b.x, b.y, sg.x, sg.y, b.z)) < FB.deathR; });
     var hurt = b._hurtT && tick - b._hurtT < 2*TICK_HZ && b.hp < FB.hurtHp;
     var why = ids >= FB.enemies ? "их "+ids+" — откатываюсь" : died ? "минус рядом — откатываюсь" : hurt ? "ранен — откатываюсь" : null;
     if(!why) return;

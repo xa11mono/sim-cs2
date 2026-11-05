@@ -12,7 +12,7 @@ function bombPathLen(x, y){
   var C = bomb._pathC || (bomb._pathC = {}), k = Math.round(x/8)+","+Math.round(y/8);
   if(C[k] != null) return C[k];
   var L = Infinity;
-  if(Math.hypot(x-bomb.x, y-bomb.y) < BOMB_DMG.reach){ var pts = pathPts(bomb.x, bomb.y, x, y); if(pts.length) L = polyLen(pts); }
+  if(Math.hypot(x-bomb.x, y-bomb.y) < BOMB_DMG.reach){ var pts = pathPts(bomb.x, bomb.y, x, y, bomb.z); if(pts.length) L = polyLen(pts); }
   return (C[k] = L);
 }
 function bombDamageAt(x, y){
@@ -56,7 +56,7 @@ function bombFleePoint(b){
     if(dB > BOMB_DMG.reach + 100) return;
     var q = walk(c), dq = bombDamageAt(q.x, q.y);
     var ok = dq <= Math.max(0, b.hp - FLEE_HP_MARGIN);   // там взрыв не добьёт и с запасом
-    var pts = pathPts(b.x, b.y, q.x, q.y);
+    var pts = pathPts(b.x, b.y, q.x, q.y, b.z);
     if(pts.length < 1) return;
     var L = polyLen(pts), minD = Infinity;
     for(var k=1;k<pts.length;k++){ var dd = distToSeg(bomb.x, bomb.y, [pts[k-1][0], pts[k-1][1], pts[k][0], pts[k][1]]); if(dd < minD) minD = dd; }
@@ -97,11 +97,8 @@ function defuseEta(b, from){
   if(b.defusing) return Math.max(0, (b.defuseUntil - tick)/TICK_HZ);
   // (Г3, 04.11, разбор отметок п.32: роль дефузера CT4 ↔ CT2 каждые 0,5 с) время — по кратчайшему пути навмеша: путь команды (обход мест,
   // где ждут врага) меняется вместе со знанием и прыгал между двумя маршрутами (Kitchen ↔ Apartments) — оценка «кто раньше» скакала
-  // (00_PLAN п.3б, 04.11, прогон 172: смен дефузера при живом прежнем 43 → 85; снимок м11 р8: у стоящего CT4 оценка 9,9 → 16,7 с) путь — с
-  // высотой бота и бомбы: pathPts строит путь от высоты 0, и там, где этажи один над другим, начало бралось то на одном этаже, то на другом
-  var f = from || b, fz = f.z != null ? f.z : null, Q = PATHQ_Q;
-  var p = pathQ("e"+roundNum+":"+Math.round(f.x/Q)+","+Math.round(f.y/Q)+","+(fz == null ? "-" : Math.round(fz/9)), function(){ return buildWaypointPath(f.x, f.y, fz, bomb.x, bomb.y, bomb.z); });
-  var L = polyLen([[f.x, f.y]].concat(p.map(function(q){ return [q[0], q[1]]; })));
+  // (00_PLAN п.3б) путь — с высотой бота и бомбы (pathPts без высоты брал этаж наугад: оценка у стоящего бота 9,9 → 16,7 с, м11 р8)
+  var f = from || b, L = polyLen(pathPts(f.x, f.y, bomb.x, bomb.y, f.z, bomb.z));
   return L/SPEED + (b.kit ? DEFUSE_KIT_TICKS : DEFUSE_TICKS)/TICK_HZ;
 }
 var DEFUSE_HEAR = 700;
@@ -135,7 +132,7 @@ function ctDefuseThreat(dTicks){
   var BL = beliefLast.CT || {};
   return bots.some(function(t){ if(t.team !== "T" || !t.alive) return false; var e = BL[t.id];
     if(!e || tick - e.tick > 8*TICK_HZ) return true;
-    return polyLen(pathPts(e.x, e.y, bomb.x, bomb.y))/SPEED*TICK_HZ < dTicks; });
+    return polyLen(pathPts(e.x, e.y, bomb.x, bomb.y, e.z, bomb.z))/SPEED*TICK_HZ < dTicks; });
 }
 // (тактика 30.10, задание владельца: «T не должны на звук дефуза выходить всей командой; один проверяет / провоцирует, остальные
 // поддерживают; не пикать на каждый звук»; PRO_PLAY 6ж) ответ: "all" — все на бомбу (дефуз идёт дальше первого звука — настоящий, или

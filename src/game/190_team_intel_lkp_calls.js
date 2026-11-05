@@ -276,7 +276,7 @@ function intelDeath(victim, killer){
       // (v154) снайпер и лёркер T в дефолте на размен не срываются: у про их роль — держать свою линию
       if(BAL.duelValue && !(bomb && bomb.state === "planted") && ((o.weapon && o.weapon.key === "AWP") || (o.team === "T" && o.tRole === "lurker" && teamTac.T && teamTac.T.phase === "setup"))) return;
       if(Math.hypot(o.x-victim.x, o.y-victim.y) > TRADE_R) return;   // (v248) разменивает тот, кто рядом (как у про)
-      var L = polyLen(pathPts(o.x, o.y, victim.x, victim.y));
+      var L = polyLen(pathPts(o.x, o.y, victim.x, victim.y, o.z, victim.z));
       if(L <= 480) cands.push({b:o, L:L});
     });
     cands.sort(function(a, c){ return a.L - c.L; });
@@ -330,7 +330,7 @@ function intelDeath(victim, killer){
       if(!o.alive || o.team !== victim.team || o === victim || o.planting || o.defusing || o._sawEnemy || o._tradeLock || o._fillLock) return;
       if(o.team === "T" && (o.tRole === "lurker" || (bomb && bomb.carrier === o))) return;
       if(Math.hypot(o.x-fc.x, o.y-fc.y) > 2*FILL_NEAR && aliveCount(victim.team) < 3) return;
-      var L = polyLen(pathPts(o.x, o.y, fc.x, fc.y)), near = L <= FILL_NEAR;
+      var L = polyLen(pathPts(o.x, o.y, fc.x, fc.y, o.z)), near = L <= FILL_NEAR;
       if(!near && aliveCount(victim.team) < 3) return;
       if(!near && !bots.some(function(m){ return m !== o && m.alive && m.team === o.team && Math.hypot(m.x-o.x, m.y-o.y) <= TRADE_R; })) return;
       if(!near && intelEstimate(o.team, o.x, o.y, 600, 4*TICK_HZ).n > 0) return;

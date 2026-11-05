@@ -32,7 +32,7 @@ function flankSpot(b, mate, ep){
   cand.some(function(q){
     var a1 = Math.atan2(q.y-ep.y, q.x-ep.x), a2 = Math.atan2(mate.y-ep.y, mate.x-ep.x), da = _angOff(a1, a2);
     if(da < 0.87 || da > 2.1) return false;
-    var pts = pathPts(b.x, b.y, q.x, q.y); if(!pts.length || polyLen(pts) > 1000) return false;
+    var pts = pathPts(b.x, b.y, q.x, q.y, b.z); if(!pts.length || polyLen(pts) > 1000) return false;
     if(pts.some(function(w){ return Math.hypot(w[0]-ep.x, w[1]-ep.y) < 200; })) return false;
     sp = q; return true; });
   return sp;

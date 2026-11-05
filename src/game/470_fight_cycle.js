@@ -178,9 +178,9 @@ function safeRotate(b, dest, site){
   // у самого сайта T и так ждут (туда и идём) — опасность считаем только на
   // дороге ДО последних ~5м, где выбор маршрута ещё есть
   var far = function(pts){ return densify(pts, 60).filter(function(q){ return Math.hypot(q[0]-dest.x, q[1]-dest.y) > 500; }); };
-  var direct = pathPts(b.x, b.y, dest.x, dest.y);
+  var direct = pathPts(b.x, b.y, dest.x, dest.y, b.z);
   if(!pathDanger("CT", far(direct))) return;
-  var v1 = pathPts(b.x, b.y, CT_SPAWN.x, CT_SPAWN.y), v2 = pathPts(CT_SPAWN.x, CT_SPAWN.y, dest.x, dest.y);
+  var v1 = pathPts(b.x, b.y, CT_SPAWN.x, CT_SPAWN.y, b.z), v2 = pathPts(CT_SPAWN.x, CT_SPAWN.y, dest.x, dest.y);
   var Ld = polyLen(direct), Lv = polyLen(v1) + polyLen(v2);
   if(Lv > Ld*1.7 + 150) { logEvent(b.id+": путь на "+site+" опасный, но крюк слишком длинный — иду напрямую, тихо"); return; }
   if(pathDanger("CT", far(v1.concat(v2.slice(1))))) { logEvent(b.id+": к "+site+" оба пути опасные — иду напрямую, тихо"); return; }
@@ -262,7 +262,7 @@ function lowHpBack(b){
     var ents = threatEntrances(b.team, cen, 700).filter(function(E){
       if(threat.some(function(t){ return Math.hypot(E.pt.x-t.x, E.pt.y-t.y) < 250; })) return false;
       if(mates.some(function(o){ return o.lookTarget && Math.hypot(o.lookTarget.x-E.pt.x, o.lookTarget.y-E.pt.y) < 220; })) return false;
-      var pe = pathPts(b.x, b.y, E.pt.x, E.pt.y); return pe.length && polyLen(pe) <= 1000; });   // 1000 px — проектное число (как у фланга)
+      var pe = pathPts(b.x, b.y, E.pt.x, E.pt.y, b.z); return pe.length && polyLen(pe) <= 1000; });   // 1000 px — проектное число (как у фланга)
     var E0 = ents[0];
     var spE = E0 ? pickSpots("lowhpE"+tick+b.id, E0.pt, 2, {rMin:120, rMax:280, minGap:40, must:[E0.pt], hideFrom:threat.slice(0, 3)})[0] : null;
     if(spE){
@@ -297,7 +297,7 @@ function lowHpBack(b){
   // скрытое от врагов: играть от него и ждать своих (раньше шёл к ближайшему тиммейту на любом расстоянии).
   var m = null, mL = Infinity;
   mates.sort(function(a, c){ return Math.hypot(a.x-b.x, a.y-b.y) - Math.hypot(c.x-b.x, c.y-b.y); }).slice(0, 2).forEach(function(o){
-    var pts = pathPts(b.x, b.y, o.x, o.y); if(!pts.length) return;
+    var pts = pathPts(b.x, b.y, o.x, o.y, b.z, o.z); if(!pts.length) return;
     var L = polyLen(pts); if(L > LOWHP_MATE_PATH || L >= mL) return;
     var bad = pts.some(function(q, k){ return k > 0 && threat.some(function(t){ return Math.hypot(q[0]-t.x, q[1]-t.y) < 250; }); });
     if(!bad){ m = o; mL = L; }

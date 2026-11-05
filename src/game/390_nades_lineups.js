@@ -150,9 +150,14 @@ function lineupTick(){
     // (v359, р7) кто уже стоит на сайте T (взял его) — с сайта за гранатой назад не уходит
     var onTSite = function(b){ var S = L.team === "T" && tt && SITES[tt.site]; return !!S && (onSite(S, b.x, b.y) || Math.hypot(b.x-S.x, b.y-S.y) < 450) && Math.hypot(L.from.x-S.x, L.from.y-S.y) > Math.hypot(b.x-S.x, b.y-S.y) + 200; };
     var cand = bots.filter(function(b){ return okBot(b) && !b.nadeTask && !onTSite(b); }).sort(function(a, b2){ return cost(a) - cost(b2); })[0];
-    // (v429) запланированную цель кидает её хозяин по плану гранат; хозяин жив, но сейчас не может (занят, далеко) — ждём его
-    if(L.pro && L.grp && bots.some(function(o){ return o.alive && o.team === L.team && npOwner(o, L); }))
-      cand = bots.filter(function(b){ return okBot(b) && !b.nadeTask && !onTSite(b) && npOwner(b, L); }).sort(function(a, b2){ return cost(a) - cost(b2); })[0];
+    // (v429) запланированную цель кидает её хозяин по плану гранат. (00_PLAN п.7, ответ владельца 5, 05.11: «кидает тот, у кого есть граната,
+    // бросок и маршрут не ломается, успевает») хозяин сейчас не может (занят, далеко, не по пути) — кидает тот, кто может (есть граната,
+    // точка броска рядом и по пути — okBot), если его граната этого типа не закреплена за другой целью на этот момент; раньше ждали хозяина
+    // (разбор отметок п.7: на точке броска стоял не хозяин, хозяин был далеко — граната полетела поздно)
+    if(L.pro && L.grp && bots.some(function(o){ return o.alive && o.team === L.team && npOwner(o, L); })){
+      var candO = bots.filter(function(b){ return okBot(b) && !b.nadeTask && !onTSite(b) && npOwner(b, L); }).sort(function(a, b2){ return cost(a) - cost(b2); })[0];
+      cand = candO || (cand && npCanUse(cand, L.type, luM, luZ) ? cand : null);
+    }
     // (v355) свободного нет — граната выхода встаёт в очередь тому, кто уже идёт на лайнап рядом (точки броска ≤ EXEC_QUEUE_R):
     // кинет вторую следом (через NADE_GAP), как про кидают смок + флешку с одной точки. Раньше: одно задание на бойца — лайнап сгорал
     // (v359, владелец: «один и тот же игрок кидает несколько гранат по очереди; обычно гранаты дают одному — чтобы другие пикали не
