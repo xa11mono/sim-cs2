@@ -89,6 +89,9 @@ while todo or run:
         fin += 1
         if l in SNAPS and not R: split_snaps(l, m)
         rf = os.path.join(MEAS, 'runs', l, f'rec_{m}_r{R}.json' if R else f'rec_{m}.json')
+        # (05.11, ранний стоп) половина готова — промежуточная выкладка (pc-results/<N>-half): можно сравнить и, если явно хуже, отменить прогон
+        if fin == total // 2 and total >= 8 and os.environ.get('GITHUB_TOKEN'):
+            subprocess.run([sys.executable, os.path.join(MEAS, 'publish_results.py'), '--part=half'], cwd=ROOT)
         print(l, 'match', m, ('round %d ' % R) if R else '', 'rc', p.returncode, os.path.getsize(rf),
               f'— готово {fin}/{total}, {round((time.time() - T0)/60)} мин', flush=True)
 print('done')
