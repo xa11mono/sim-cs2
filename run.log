@@ -1,0 +1,27 @@
+playwright 1.56.0, браузеры: C:\Windows\system32\config\systemprofile\.simcs2_node\ms-playwright
+> git fetch --quiet origin cdafd5b6610f4aade51d9556f278c2ad18ba8be7
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_gktwun61 FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_gktwun61\src\build.py --map mirage C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\n16_mir.html
+> git fetch --quiet origin cdafd5b6610f4aade51d9556f278c2ad18ba8be7
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild__vo3hhc9 FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild__vo3hhc9\src\build.py --map ancient C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\n16_anc.html
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\engine\walk_run.py --job=n16_mir,C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\n16_mir.html --job=n16_anc,C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\n16_anc.html --matches=3,7,11,13,17,19,23,29 --par=8
+матчей в очереди: 16, одновременно: 8
+n16_mir match 17 rc 0 4291847 — готово 1/16, 6 мин
+n16_mir match 29 rc 0 4353169 — готово 2/16, 6 мин
+n16_mir match 11 rc 0 4786225 — готово 3/16, 6 мин
+n16_mir match 3 rc 0 4818700 — готово 4/16, 7 мин
+n16_mir match 19 rc 0 5672903 — готово 5/16, 8 мин
+n16_mir match 13 rc 0 5688399 — готово 6/16, 8 мин
+n16_mir match 23 rc 0 5861852 — готово 7/16, 8 мин
+n16_mir match 7 rc 0 6582404 — готово 8/16, 9 мин
+n16_anc match 3 rc 0 4740203 — готово 9/16, 12 мин
+n16_anc match 11 rc 0 5265388 — готово 10/16, 13 мин
+n16_anc match 17 rc 0 4469627 — готово 11/16, 13 мин
+n16_anc match 7 rc 0 5617649 — готово 12/16, 14 мин
+n16_anc match 13 rc 0 5661689 — готово 13/16, 14 мин
+n16_anc match 19 rc 0 6544956 — готово 14/16, 15 мин
+n16_anc match 23 rc 0 5680355 — готово 15/16, 15 мин
+n16_anc match 29 rc 0 6040977 — готово 16/16, 16 мин
+done
+all done
