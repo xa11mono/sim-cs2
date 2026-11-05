@@ -158,8 +158,9 @@ function ctEarlyPeek(b, ct){
     if(!E.pt){ E.st = 2; return false; }
     E.st = 1;
     voiceLog("CT", "early"+b.id, b.id, "выгляну за инфой "+calloutName(E.pt.x, E.pt.y));
-    // флешка себе под ранний пик (если есть и не эко у соперника)
-    if(BAL.ctEarlyUtil && b.nades && b.nades.flash > 0 && !antiEco("CT") && hashRand(roundNum*97 + b.id.charCodeAt(2)*5) < 0.6){
+    // (00_PLAN п.14, владелец 05.11) под ранний пик — сначала «накиньте флешку» (365: nadeAskFlash); некому — флешка себе (если есть и не эко у соперника)
+    if(BAL.ctEarlyUtil && !antiEco("CT") && nadeAskFlash(b, stg, "флешу под ранний пик "+b.id)){}
+    else if(BAL.ctEarlyUtil && b.nades && b.nades.flash > 0 && !antiEco("CT") && hashRand(roundNum*97 + b.id.charCodeAt(2)*5) < 0.6){
       var whyF = "себе под ранний пик "+b.id;
       throwNade(b, "flash", stg.x, stg.y, true, whyF);
       b._waitPopUntil = tick + Math.round(1.1*TICK_HZ); b._waitPopKey = "pop:"+whyF;
@@ -172,11 +173,14 @@ function ctEarlyPeek(b, ct){
     // до A Hall, в 4 % — до Stairs (88 демок, первые 35 с); у ботов до v271 — 0 (стояли у входа 2,5 с и назад).
     // Дальше идти некуда — «пусто» в войс (markClear: знание команды и колл «чекнул … — пусто») и назад на точку
     if(tick - E.arr > 0.8*TICK_HZ && !E.deepDone){
-      var wp = buildWaypointPath(b.x, b.y, 0, stg.x, stg.y, 0), nxt = null;
+      // (00_PLAN, владелец 05.11: «на Top Mid — не один: либо вдвоём по миду, либо кто-то держит с Short, чтобы Top Mid был виден») подпуш
+      // дальше — только в связке: свой рядом (TRADE_R) или свой видит точку подпуша; дальше — до последней такой точки
+      var paired = function(q){ return bots.some(function(o){ return o !== b && o.alive && o.team === b.team && (Math.hypot(o.x-q.x, o.y-q.y) <= TRADE_R || hasLOS(o.x, o.y, q.x, q.y, o.z)); }); };
+      var wp = buildWaypointPath(b.x, b.y, b.z, stg.x, stg.y, 0), nxt = null;   // (п.3б) с высотой бота
       for(var wi = 0; wi < wp.length; wi++){
         var q = {x: wp[wi][0], y: wp[wi][1]}, zq = bzOf(q.x, q.y);
         if(zq < 0 || reachPossible("CT", zq)) break;   // туда T уже могли дойти — дальше не лезем
-        nxt = q;
+        if(paired(q)) nxt = q;
       }
       if(nxt && Math.hypot(nxt.x-b.x, nxt.y-b.y) > 60){ E.pt = walk(nxt); E.arr = 0; E.deep = (E.deep||0) + 1; setPost(b, E.pt, stg, true, "earlyPeek"); return true; }
       E.deepDone = true;

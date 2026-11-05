@@ -221,10 +221,12 @@ function nadeReact(){
     }
   });
   bots.forEach(function(b){
-    if(!b.alive || b._sawEnemy || b.nadeTask || b.planting || b.defusing || !b.nades || b.nades.flash <= 0) return;
+    // (00_PLAN п.14, владелец 05.11: «накиньте флешку» — общая механика; у про — 3–4 раза за раунд) идущий на угол, за которым враг, сначала
+    // просит флешку у своих (365: nadeAskFlash); некому — флешка себе, как было (только один и со своей флешкой)
+    if(!b.alive || b._sawEnemy || b.nadeTask || b.planting || b.defusing) return;
     if(!b.post || b.atPost || b.state !== "patrol" || tick < (b._selfFlashCd||0)) return;
     if(bomb.state === "carried" && bomb.carrier === b) return;
-    if(bots.some(function(o){ return o !== b && o.alive && o.team === b.team && Math.hypot(o.x-b.x, o.y-b.y) < 220; })) return; // не один — пикнут вместе
+    var alone = !bots.some(function(o){ return o !== b && o.alive && o.team === b.team && Math.hypot(o.x-b.x, o.y-b.y) < 220; });   // не один — пикнут вместе
     var dP = Math.hypot(b.post.x-b.x, b.post.y-b.y); if(dP > 260 || dP < 50) return;
     var L = beliefLast[b.team] || {}, tgt = null;
     for(var eid in L){ var lo = L[eid]; if(tick - lo.tick > 5*TICK_HZ) continue;
@@ -234,6 +236,8 @@ function nadeReact(){
     if(!tgt) return;
     if(nadesInAir.some(function(n){ return n.team === b.team && n.type === "flash" && Math.hypot((n.tx||n.x)-tgt.x, (n.ty||n.y)-tgt.y) < 150; })) return; // туда уже летит флешка
     if(teamSaving(b.team)) return;   // (v247) сейв — не выходим
+    if(nadeAskFlash(b, tgt, "флешу под пик "+b.id+" ("+calloutName(tgt.x, tgt.y)+")")){ b._selfFlashCd = tick + 12*TICK_HZ; return; }
+    if(!alone || !b.nades || b.nades.flash <= 0) return;
     b._selfFlashCd = tick + 12*TICK_HZ;
     var why = "себе под пик "+b.id;
     throwNade(b, "flash", tgt.x, tgt.y, true, why);
