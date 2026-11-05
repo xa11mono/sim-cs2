@@ -187,10 +187,13 @@ function tBrain(){
       // за 6 с — знание о karrigan (0,69 на B против 0,57 на A) не учитывалось, и перекол уводил всех на сайт, где их ждали больше
       if(bO < 0.9 && (bO < bH || (bO <= bH && dOc < dHc)) && secLeft > dOc/SPEED + PLANT_TICKS/TICK_HZ + 8 && iglTake(tt, tick)){
         tt._clrReb = true; tt.rebound = true;
-        voiceLog("T", "clrreb"+other, "IGL", "ПЕРЕКОЛЛ "+tt.site+" → "+other+": "+other+" прочекали — пусто, все на "+other+", ставим там!");
-        logEvent("IGL: "+other+" прочекан и пуст — перекол → "+other);
+        // (ответ владельца 2) подтверждённо пуст (позиции и подходы проверены / закрыты) — выход и плант сразу; только вероятно пуст (все CT
+        // замечены в другом месте) — переколл, но занимать осторожно: сетап (занять и прочекать сайт), выход — по таймингу
+        var conf = CR.confirmed;
+        voiceLog("T", "clrreb"+other, "IGL", "ПЕРЕКОЛЛ "+tt.site+" → "+other+": "+(conf ? other+" прочекали — пусто, все на "+other+", ставим там!" : other+" вероятно пустой — идём, заходим аккуратно, чекаем"));
+        logEvent("IGL: "+other+(conf ? " прочекан и пуст" : " вероятно пуст")+" — перекол → "+other);
         tSetSite(tt, other); site = SITES[tt.site];
-        if(aliveCount("CT") <= 2 || tt.phase === "execute"){ tt.phase = "execute"; tt.execStart = tick; tt.fewGo = true; }
+        if(conf){ tt.phase = "execute"; tt.execStart = tick; tt.fewGo = true; }
         else { tt.phase = "setup"; tt.execTick = tick + 4*TICK_HZ; }
         return;
       }

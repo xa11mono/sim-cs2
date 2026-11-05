@@ -317,7 +317,7 @@ function zoneSeenAll(who, zid){
 function markClear(team, x, y, who, posChecked){
   var zid = zoneIdAt(x, y); if(!zid) return null;
   if(!posChecked && !zoneSeenAll(who, zid)) return null;
-  CLEARZ[team][zid] = {tick:tick, x:x, y:y};
+  CLEARZ[team][zid] = {tick:tick, x:x, y:y, round:roundNum};
   knowClearZone(team, x, y);
   voiceLog(team, "clz"+zid, who, "чекнул "+(zoneUserName(zid) || calloutName(x, y))+" — пусто");
   return zid;
@@ -334,7 +334,21 @@ function siteAssess(team, k){
   bots.forEach(function(o){ if(o.team !== foe || !o.alive) return; var q = BL[o.id];
     var fresh = q && tick - q.tick <= SITE_SEEN_SEC*TICK_HZ;
     if(fresh && Math.hypot(q.x-S.x, q.y-S.y) <= SITE_AWAY) near++; else if(!fresh) unknown++; });
-  return {unknown: unknown, near: near, level: near ? "held" : unknown === 0 ? "empty" : unknown === 1 ? "weak" : "held"};
+  var level = near ? "held" : unknown === 0 ? "empty" : unknown === 1 ? "weak" : "held";
+  return {unknown: unknown, near: near, level: level, confirmed: level === "empty" && siteConfirmed(team, k)};
+}
+// (00_PLAN, пакет тактики, ответ владельца 2 от 04.11: «три уровня — не проверен / вероятно пуст / подтверждённо пуст; одна чистая точка — мало;
+// проверены основные позиции, подходы неизвестны — занимать осторожно; подходы проверены или закрыты дымом / своими — можно ставить; пусто = нет
+// неустранённых угроз») подтверждённо пуст — для T: все основные позиции сайта (набор карты pos.tClear) проверены командой в этом раунде за
+// CLR_POS_SEC («чекнул — пусто», markClear), и каждый подход CT (pos.ctRetake) проверен так же, закрыт дымом или там стоит свой.
+// Точки — данные набора карты, не код
+function siteConfirmed(team, k){
+  var P = POS[k], CZ = CLEARZ[team] || {}, S = SITES[k]; if(!P || !P.tClear || !P.tClear.length) return false;
+  var fresh = function(n){ var p = zonePoint(n, S); if(!p) return true; var z = zoneIdAt(p.x, p.y), c = z && CZ[z];
+    return !!(c && c.round === roundNum && tick - c.tick <= CLR_POS_SEC*TICK_HZ); };
+  if(!P.tClear.every(fresh)) return false;
+  return (P.ctRetake || []).every(function(n){ var p = zonePoint(n, S); if(!p) return true; var z = zoneIdAt(p.x, p.y);
+    return fresh(n) || smokeCovered(p.x, p.y) || bots.some(function(o){ return o.alive && o.team === team && zoneIdAt(o.x, o.y) === z; }); });
 }
 // IGL не идеален: примерно в четверти случаев повод для колла (соло, пустой
 // сайт, стак) он пропускает — решение принимается один раз на повод за раунд
