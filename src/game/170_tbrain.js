@@ -450,9 +450,26 @@ function tBrain(){
         mem.forEach(function(b){ if(memAll.indexOf(b) < 0) memAll.push(b); }); });
       stagePost(memAll, tt.site);
     } else if(tac.groups && tac.style !== "fake"){
+      // (00_PLAN, пакет тактики, ответ владельца 1 от 04.11: «сплит, игрок группы погиб до выхода — продолжить (оставшийся держит позицию),
+      // ждать или отменить; оставшийся не обязан идти вместо погибшего — держать пространство или к основной группе; мало времени — группой»)
+      // основная группа — та, где больше ролей; в другой группе погиб свой — решение один раз за раунд: мало времени (EXU_LATE) — к основной;
+      // оставшиеся на своей точке и без контакта — держат её (сплит продолжается); иначе — к основной. Ключевая граната погибшего — exuBackup (366)
+      var gMain = 0; tac.groups.forEach(function(G, gi){ if(G.roles.length > tac.groups[gMain].roles.length) gMain = gi; });
+      var GN = tt._gN && tt._gN.r === roundNum ? tt._gN : (tt._gN = {r: roundNum, n: {}, dec: {}});
       tac.groups.forEach(function(G, gi){
         var mem = pick(G.roles);
+        if(GN.n[gi] == null) GN.n[gi] = mem.length;
         if(!mem.length) return;
+        if(gi !== gMain && mem.length < GN.n[gi] && tt.phase === "setup"){
+          if(!GN.dec[gi]){ var hold = mem.every(function(b){ return b.atPost && !b._sawEnemy && b.post && /^stage/.test(b.post.tag); });
+            GN.dec[gi] = (secLeft < EXU_LATE || !hold) ? "merge" : "hold";
+            voiceLog("T", "splitdec"+gi+roundNum, mem[0].id, GN.dec[gi] === "merge" ? "своего сняли — сплит отменяем, иду к основной" : "своего сняли — держу здесь, отвлекаю ротацию");
+            logEvent("T: сплит — в группе «"+(G.stage || "?")+"» погиб свой — "+(GN.dec[gi] === "merge" ? "к основной группе" : "держат позицию")); }
+          if(GN.dec[gi] === "merge"){ var GM = tac.groups[gMain], spM = GM.stage ? (zonePoint(GM.stage, g.tStage) || g.tStage) : g.tStage, lkM = GM.look ? (zonePoint(GM.look, spM) || g.tEntry) : g.tEntry;
+            mem.forEach(function(b){ b._route = null; b._stageInfo = {from:spM, to:lkM, look: GM.look ? SITES[tt.site] : g.anchor, round:roundNum}; });
+            groupPost(mem, spM, lkM, "stage"+tt.site+(GM.stage ? ":"+GM.stage : ""), {rMax:200, minGap:50, hideFrom:[SITES[tt.site], lkM], see:[lkM]});
+            return; }
+        }
         // после дефолта маршрут "от спавна" уже не нужен — идут к своей точке кратчайшим путём
         if(!tt.defUntil) mem.forEach(function(b){ startRoute(b, G.via, tac.id+":"+gi); });
         if(G.stage === "TMID"){ mem.forEach(function(b){ b._stageInfo = null; }); groupPost(mem, tt.tMidPt || GEO.tMid, GEO.tMidLook, "tmid", midOpt); return; }
