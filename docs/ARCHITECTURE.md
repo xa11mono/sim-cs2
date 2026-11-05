@@ -136,6 +136,9 @@
 - Журнал `EXU.ev` (assign / throw / det / ready / fail / reassign / drop / wait / exec) — `tools/measure/exec_sync.js`,
   сводка `tools/measure/exec_sync_report.py`.
 
+- (05.11, 00_PLAN п.8) там же — ожидание своих смоков до выхода: `smokeLineTick` (вызов из `teamBrains`, 350). T в сетапе / дефолте не
+  выходит на линию с обычного места CT (`enemyPositions`, KNOW_POSITIONS) на свою точку, если её закроет свой смок, который ещё не встал
+  (`smokeLinePending`: задание — войс, летит, раскрывается); ждёт, где стоит, задачей `smokeLine` (уровень «гранаты/ожидания», 110).
 ## Счёт ошибок движения — одно место (v407, 22.10.2026)
 `src/game/545_problem_watch.js`: `PROB` (n: stall / nav / tug; ev — события с ботом, местом, тиком, раундом, текстом), `probTick()` —
 в конце `stepTick`, только наблюдает (игра бит в бит). Застрял — бот хочет и пытается идти к одной задаче 5 с и сдвинулся < 25 px
