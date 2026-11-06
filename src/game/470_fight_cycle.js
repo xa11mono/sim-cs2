@@ -111,6 +111,22 @@ function fightStrafe(b, F, dtSec){
   b.curSpeed = Math.abs(F.sv); b.walking = false;
 }
 function fightRand(b, salt){ return hashRand(tick*31 + b.id.charCodeAt(0)*17 + b.id.charCodeAt(b.id.length-1)*7 + salt); }
+// (дуэли, ответ нейросети владельца 05.11 — docs/tasks/OWNER_PERF_DUELS_2026-11-05.md; замечание владельца Д1: «увидели — сразу за стенку
+// и стоят») пик за инфой и дуэль — разные: таймер про (PEEK_PRO dur — окно между первым и последним выстрелом у про, пауза, доля повторного
+// пика) — для пика; в дуэли бот остаётся на линии, пока это выгодно, и уходит, когда стало невыгодно. Выгодно: враг этой перестрелки виден
+// и жив, бот в обмене не позади (получил от всех с начала перестрелки не больше, чем нанёс ему), второй видимый враг — только если свой рядом
+// может его открыть (размен), бот не перезаряжается. Чисел нет: «впереди» — сравнение урона, а не порог HP (в ответе чисел нет)
+function duelHits(L, t0, id){ var s = 0; (L || []).forEach(function(h){ if(h[0] >= t0 && (id == null || h[1] === id)) s += h[2]; }); return s; }
+function duelEdge(b, F){
+  var e = F.e; if(!e || !e.alive) return null;
+  var vis = b._visible || []; if(vis.indexOf(e) < 0) return null;
+  if(b._reloading || b.ammo <= 0) return null;
+  var dealt = duelHits(b._hitOut, F.t0, e.id), taken = duelHits(b._hitIn, F.t0, null);
+  if(taken > dealt) return null;   // проигрывает обмен — уходит (одна линия, никто не попал или впереди — остаётся: «один противник, одна линия — можно продолжать»)
+  var other = vis.filter(function(o){ return o !== e && o.alive; });
+  if(other.length && !bots.some(function(m){ return m !== b && m.alive && m.team === b.team && Math.hypot(m.x-b.x, m.y-b.y) <= TRADE_R && other.some(function(o){ return hasLOS(m.x, m.y, o.x, o.y, m.z, o.z); }); })) return null;
+  return {dealt: dealt, taken: taken};
+}
 // каждый тик движения: фазы line (на линии) → off (за укрытием) → back (выглядывает снова) → line …
 function fightCycleTick(b, dtSec, busy){
   var F = b._fc, D = PEEK_PRO[b.team];
@@ -121,7 +137,7 @@ function fightCycleTick(b, dtSec, busy){
   if(ssNew){ var mp = visParts(b.x, b.y, b.crouching, SS.by.x, SS.by.y, SS.by.crouching, true, b.z, SS.by.z); if((mp.head || mp.body) && !mp.side) ssNew = false; }
   if(!F){
     if((!b._sawEnemy && !ssNew) || (b.state !== "engage" && b.state !== "hold")) return;
-    F = b._fc = {ph:"line", ax:b.baseX, ay:b.baseY, t:tick, until:0, seen:tick};
+    F = b._fc = {ph:"line", ax:b.baseX, ay:b.baseY, t:tick, t0:tick, until:0, seen:tick};
   }
   if(b._sawEnemy){ F.seen = tick; F.e = b._nearestEnemyBot; }
   // (v435, М168, скрин владельца 26.10: после фрага «бой · на линии · не видит врага») противник этой перестрелки убит (киллфид), другого
@@ -147,6 +163,11 @@ function fightCycleTick(b, dtSec, busy){
     if(F.until && tick >= F.until){
       var e = F.e;
       if(!e){ b._fc = null; return; }
+      // дуэль выгодна — не уходит: следующее окно стрельбы (длительность про, не меньше реакции игрока)
+      var DE = duelEdge(b, F);
+      if(DE){ F.until = tick + Math.max(b.reactionTicks || 1, Math.round(peekQ(D.dur, fightRand(b, 9))*TICK_HZ));
+        if(!b._fcD || tick - b._fcD > 4*TICK_HZ){ b._fcD = tick; logEvent(b.id+": дуэль выгодна (нанёс "+DE.dealt+", получил "+DE.taken+") — остаюсь на линии, добиваю"); }
+        return; }
       var c = fightCover(b, e, peekQ(D.shift, fightRand(b, 2)));
       if(!c) c = fightCover(b, e, D.shift[4]);
       if(!c){ F.until = 0; F.t = tick; return; }   // укрыться негде — остаётся на линии
@@ -164,7 +185,10 @@ function fightCycleTick(b, dtSec, busy){
     F.ph = "line"; F.ax = b.baseX; F.ay = b.baseY; F.t = tick; F.until = 0; F.retreat = false; F.better = null; F.sv = undefined; return; }   // снова вижу врага — на линии (уходя от выстрелов в плечо — не останавливается)
   if(F.ph === "off" && tick >= F.until && (!F.retreat || Math.hypot(F.cx-b.baseX, F.cy-b.baseY) < 2)){
     F.retreat = false;
-    if(fightRand(b, 4) >= D.repeek){ b._fc = null; return; }   // не выглядывает снова — перестрелка закончена
+    // раненого мной врага (в обмене впереди) — выглядывает добить (ответ нейросети: пик становится дуэлью, если «можно добить раненого»);
+    // иначе — доля повторного пика про
+    var fin = F.e && F.e.alive && duelHits(b._hitOut, F.t0, F.e.id) > duelHits(b._hitIn, F.t0, null);
+    if(!fin && fightRand(b, 4) >= D.repeek){ b._fc = null; return; }   // не выглядывает снова — перестрелка закончена
     F.ph = "back"; F.nPeek = (F.nPeek || 0) + 1; F.sh = null;
     if(F.better){ F.ax = F.better.x; F.ay = F.better.y; F.better = null; }   // (М149) выглядывает с места, откуда видно врага целиком
     // (ответ 4) второй и дальше пик в этой перестрелке — с другого места (не ближе медианы сдвига про D.shift[2] к прошлому): не однообразный джигл

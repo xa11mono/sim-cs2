@@ -141,7 +141,8 @@ function contactTick(b){
     var adv = !!contactMateFight(b, C)
       || bots.some(function(o){ return o !== b && o.alive && o.team === b.team && !o._sawEnemy && Math.hypot(o.x-b.x, o.y-b.y) <= TRADE_R; })   // размен рядом
       || !!(HR && HR.id === C.id && tick < HR.until)                                                                                            // перезаряжается
-      || !!(b.team === "CT" && PHc && tick - PHc.tick < 5*TICK_HZ);                                                                              // сорвать плант
+      || !!(b.team === "CT" && PHc && tick - PHc.tick < 5*TICK_HZ)                                                                               // сорвать плант
+      || duelHits(b._hitOut, tick - CONTACT_AGE*TICK_HZ, C.id) > duelHits(b._hitIn, tick - CONTACT_AGE*TICK_HZ, null);                         // (дуэли 06.11) ранил его больше, чем получил, — добить
     if(!adv && !C.own) adv = !!nadeAskFlash(b, look, "флешу под пик "+b.id+" ("+calloutName(look.x, look.y)+")");
     if(!adv) swing = false;
   }
