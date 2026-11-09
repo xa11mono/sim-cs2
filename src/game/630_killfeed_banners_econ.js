@@ -12,23 +12,24 @@ var clutchShown = null, clutchInfo = null;
 function esc(t){ return String(t).replace(/[&<>]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;"}[c]; }); }
 // (v241) киллфид как в CS2 (из переделки): иконка оружия, ассист (40+ урона или флешка), значки
 // «в голову», «убийца ослеплён». wkey — ключ WEAPONS, "HE", "MOLOTOV" или "KNIFE"
-// (v518d, владелец А-17: «если по нему пострелял ещё и враг, в помощи показывается ник врага») ассист — только своему убийцы (при убийстве своего
-// урон по убитому нанесли враги — их в ассист не ставим); убийца себе не ассистирует; то же — флешкой. Порог — как в CS2: от 26 урона
-// (владелец 09.11; было 40 — проектное число, ассистов почти не было)
+// (v518d, владелец 09.11) ассист — тот, кто нанёс убитому ≥ ASSIST_DMG (как в CS2 — от 26) или ослепил его своей флешкой, кроме самого убийцы.
+// Урон по убитому в _dmgBy — только от его врагов, поэтому при убийстве своего («враг ранил на 30, karrigan случайно добил TeSeS») ассист — враг,
+// и в киллфиде он цветом своей команды: «karrigan (CT) + donk (T) → TeSeS». Убийце фраг за своего не идёт (400), ассист идёт в счёт ассистенту
 var ASSIST_DMG = 26;
 function killAssist(att, vic){
-  var best = null, bd = ASSIST_DMG - 1, D = vic._dmgBy || {}, mine = function(id){ var o = att ? teamBot(id) : null; return !!o && o.team === att.team && id !== att.id; };
-  for(var id in D) if(mine(id) && D[id] > bd){ bd = D[id]; best = id; }
-  if(best) return {id:best, flash:false};
-  if(vic._blindBy && vic.blindUntil > tick && mine(vic._blindBy)) return {id:vic._blindBy, flash:true};
-  return null;
+  var best = null, bd = ASSIST_DMG - 1, D = vic._dmgBy || {};
+  for(var id in D) if((!att || id !== att.id) && D[id] > bd){ bd = D[id]; best = id; }
+  var fb = vic._blindBy && vic.blindUntil > tick && (!att || vic._blindBy !== att.id) ? teamBot(vic._blindBy) : null;
+  if(!best && fb && fb.team !== vic.team) best = fb.id, fb = true; else fb = false;
+  var o = best ? teamBot(best) : null; if(!o) return null;
+  return {id:best, flash:fb, team:o.team};
 }
 function feedKill(att, vic, wkey, hs, mods){
   mods = mods || {};
   teamDeath(att, vic);   // до киллфида в знании: видел убийцу — успевает сказать, откуда
   knowKill(att, vic);
-  var as = killAssist(att, vic);
-  killfeed.unshift({kind:"kill", att:att?nick(att.id):"?", attTeam:att?att.team:"", as:as?nick(as.id):null, asFlash:as&&as.flash,
+  var as = killAssist(att, vic); if(as){ var ab = teamBot(as.id); if(ab) ab.assists = (ab.assists||0) + 1; }   // (v518d) ассист — в счёт
+  killfeed.unshift({kind:"kill", att:att?nick(att.id):"?", attTeam:att?att.team:"", as:as?nick(as.id):null, asFlash:as&&as.flash, asTeam:as?as.team:"",
     vic:nick(vic.id), vicTeam:vic.team, w:wkey, hs:hs, smoke:!!mods.smoke, wall:!!mods.wall, noscope:!!mods.noscope, blind:!!mods.blind, tk:!!mods.tk, t:nowTs, at:simTime});
   if(killfeed.length > 8) killfeed.length = 8;
   renderFeed();
@@ -106,7 +107,7 @@ function renderFeed(){
       var W = WEAPONS[k.w], wn = W ? W.name : (k.w === "MOLOTOV" ? "молотов" : k.w === "KNIFE" ? "нож" : k.w === "C4" ? "бомба" : k.w);
       var wkey = k.w === "KNIFE" && k.attTeam === "T" ? "KNIFE_T" : k.w;
       var h = k.att == null ? '' : '<span class="'+k.attTeam.toLowerCase()+'">'+esc(k.att)+'</span>';
-      if(k.as) h += (k.asFlash ? kfSvg("flash", "md fl", KF_MOD_T.flash) : '<span class="pl">+</span>')+'<span class="'+k.attTeam.toLowerCase()+' as">'+esc(k.as)+'</span>';
+      if(k.as) h += (k.asFlash ? kfSvg("flash", "md fl", KF_MOD_T.flash) : '<span class="pl">+</span>')+'<span class="'+(k.asTeam || k.attTeam).toLowerCase()+' as">'+esc(k.as)+'</span>';
       h += kfSvg(wkey, "wp", wn) || '<span class="w">'+esc(wn)+'</span>';
       ["smoke","wall","hs","noscope","blind"].forEach(function(m){ if(k[m]) h += kfSvg(m, "md", KF_MOD_T[m]); });
       return '<div class="kf'+kfIn(k)+old+(k.tk ? ' tk" title="убил своего' : '')+'">'+h+'<span class="'+k.vicTeam.toLowerCase()+'">'+esc(k.vic)+'</span></div>';

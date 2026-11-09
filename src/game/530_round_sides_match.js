@@ -109,7 +109,7 @@ function newMatch(){
   resetMatchMemory(); timeoutsReset();
   score.CT = 0; score.T = 0;
   roundNum = 0;
-  bots.forEach(function(b){ b.kills = 0; b.deaths = 0; });
+  bots.forEach(function(b){ b.kills = 0; b.deaths = 0; b.assists = 0; });
   startHalf(true);
   logEvent("Новый матч #"+matchNum, true);
   resetRound(); // roundNum → 1, закуп пистолетного
