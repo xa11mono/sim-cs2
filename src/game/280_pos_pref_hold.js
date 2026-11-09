@@ -183,7 +183,8 @@ var HOLD = {
   pro: 1.2,         // бонус точке, где обычно стоят про (0..1 из демок)
   keep: 0.35,       // бонус текущей точке
   reeval: 128,      // тиков между пересчётами (2с), раньше — если сменился главный вход
-  minW: 0.02        // вход с опасностью ниже — не учитываем
+  minW: 0.02,       // вход с опасностью ниже — не учитываем
+  anyW: 0.5         // (v520) T.anyFrom: базовый вес каждого входа — неизвестный враг может прийти любым (проектное число)
 };
 var HOLD_CANDS = {};
 function holdCands(center, rMin, rMax, team){
@@ -213,7 +214,13 @@ function holdCands(center, rMin, rMax, team){
 // T: {key, center, rArea, rMin, rMax, must:[pt], mates:[{pt, see}]}
 function holdSpot(b, T){
   var team = b.team, center = T.center;
-  var E = threatEntrances(team, center, T.rArea || 280).filter(function(e){ return e.w > HOLD.minW; });
+  // (v520, отметка владельца 09.11 м200 р2: после планта трое T пошли держать Hole — знание о единственном живом CT далеко, веса входов ~0,
+  // остался один вход по шуму; владелец: «последний может выйти откуда угодно — с Ramp, с Palace, с Connector; занимают позиции, откуда видна
+  // бомба, держат в голове, откуда ждать») T.anyFrom — неизвестный враг может прийти любым входом: каждому входу базовый вес HOLD.anyW
+  // (проектное число), знание команды добавляется сверху
+  var E = threatEntrances(team, center, T.rArea || 280);
+  if(T.anyFrom) E.forEach(function(e){ e.w += HOLD.anyW; });
+  E = E.filter(function(e){ return e.w > HOLD.minW; });
   var wmax = E.length ? E[0].w : 1;
   E.forEach(function(e){ e.wn = e.w / wmax; });
   var cands = holdCands(center, T.rMin || 0, T.rMax || 340, team);
@@ -273,7 +280,7 @@ function holdGroup(members, T, tag){
       // mustFirst: бомбу (цель) обязательно видит только первый; остальные держат
       // подходы и слушают — как про после планта (не все с линией на бомбу)
       var mustNow = (T.mustFirst && chosen.length > 0) ? [] : T.must;
-      var r = holdSpot(b, {key:T.key, center:T.center, rArea:T.rArea, rMin:T.rMin, rMax:(T.mustFirst && chosen.length > 0 && T.rMax2) || T.rMax, must:mustNow, mates:chosen});
+      var r = holdSpot(b, {key:T.key, center:T.center, rArea:T.rArea, rMin:T.rMin, rMax:(T.mustFirst && chosen.length > 0 && T.rMax2) || T.rMax, must:mustNow, mates:chosen, anyFrom:T.anyFrom});
       // (v373, сторож: «метание» — двое на пост-планте каждые пару секунд менялись проходами, войс «держу бомбу, смотрю…»
       // спамился) пересмотр точки — новая, только если она заметно лучше старой (на 15 % — проектное число) и старую не занял свой
       if(r && same && H.pt && r.s < (H.s || 0) + Math.abs(H.s || 0)*0.15 + 0.01 && !chosen.some(function(c){ return Math.hypot(c.pt.x-H.pt.x, c.pt.y-H.pt.y) < 60; })){ H.t = tick; r = null; }

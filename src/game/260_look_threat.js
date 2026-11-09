@@ -134,7 +134,7 @@ function enemywardLook(team, p){
 // (v151) где враг появится, если пойдёт из зоны j ко мне: последняя видимая
 // мне точка его пути по навмешу (угол, из-за которого он выйдет) — туда и
 // пре-эйм. Кэш по клетке 24px и зоне.
-var APPEAR = {};
+var APPEAR = {}, APPEAR_N = 0;
 function appearPoint(o, j){
   var c = BZ.cent[j]; if(!c) return null;
   var k = Math.round(o.x/24)+","+Math.round(o.y/24)+"|"+j;
@@ -144,7 +144,7 @@ function appearPoint(o, j){
   for(var i=0; i<wp.length; i++){ var q = {x:wp[i][0], y:wp[i][1]}, d = Math.hypot(q.x-o.x, q.y-o.y);
     if(d < 50) break;
     if(hasLOS(o.x, o.y, q.x, q.y, o.z)){ last = q; break; } }
-  if(Object.keys(APPEAR).length > 20000) APPEAR = {};
+  if(++APPEAR_N > 20000){ APPEAR = {}; APPEAR_N = 0; }   // (v520, лаги м200 р2) счётчик, а не Object.keys на каждой записи
   APPEAR[k] = last; return last;
 }
 var PL_GRID = {};

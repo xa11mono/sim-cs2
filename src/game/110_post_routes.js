@@ -236,6 +236,21 @@ function detourStart(b, kind, tag, sec){
 // механика держит свою текущую задачу (пост не меняется — подтвердить, что затея ещё идёт)
 function postKeep(b){ if(b.post && b._task && b._task.tag === b.post.tag) b._task.t = tick; }
 var POST_DWELL = 96;   // (v375) 1,5 с — проектное число
+var POST_EXACT = /^(plantspot|defuse|lineup|pickup|fetch|stopplant|antidefuse|ladder|smokeWait|route)/;
+var POST_VIEW_R = 120, POST_VIEW = {k: null, m: {}};   // px — насколько можно сдвинуть пост ради обзора (проектное число)
+function postViewPoint(pt, look){
+  var kk = matchNum+":"+roundNum; if(POST_VIEW.k !== kk){ POST_VIEW.k = kk; POST_VIEW.m = {}; }
+  var key = Math.round(pt.x/4)+","+Math.round(pt.y/4)+">"+Math.round(look.x/8)+","+Math.round(look.y/8);
+  if(key in POST_VIEW.m) return POST_VIEW.m[key];
+  var a0 = navAt(pt.x, pt.y), best = null, bd = 1e9;
+  NAVAREAS.forEach(function(z){
+    if(NAV_BLOCKED[z.id] || !(zoneGraph[z.id]||[]).length) return;
+    var c = zoneCentroid(z), d = Math.hypot(c.x-pt.x, c.y-pt.y); if(d > POST_VIEW_R || d >= bd || insideSolidWall(c.x, c.y)) return;
+    var a = navAt(c.x, c.y); if(!a || (a0 && Math.abs(a.z - a0.z) > JUMP_UP)) return;
+    if(!hasLOS(c.x, c.y, look.x, look.y)) return;
+    best = {x: c.x, y: c.y}; bd = d; });
+  return (POST_VIEW.m[key] = best);
+}
 function setPost(b, pt, look, hold, tag, spreadIdx){
   // сменил позицию после фрага — роль в этом раунде ставит его уже на новую точку
   if(BAL.holdShift && b._hs && b._hs.round === roundNum && b._hs.tag === tag && pt && Math.hypot(pt.x-b._hs.pt.x, pt.y-b._hs.pt.y) < 320) pt = b._hs.pt;
@@ -255,11 +270,20 @@ function setPost(b, pt, look, hold, tag, spreadIdx){
   if(!taskCanSet(b, tag)) return false;
   var tagB = taskTagB(tag);
   var psn = (BAL.proSpots && hold && pt) ? proSnap(b, pt, look, tag) : null;
+  // (v520, отметки владельца 09.11 м200 р1/р3: мидер у Window и NiKo у Hole — точку уводило к месту про, откуда не видно того, что держит пост:
+  // (824,857) → (838,867), Mid виден → не виден) место про — только если оттуда точка взгляда поста видна не хуже, чем с выбранной
+  if(psn && look && hasLOS(pt.x, pt.y, look.x, look.y) && !hasLOS(psn.pt.x, psn.pt.y, look.x, look.y)) psn = null;
   if(psn){ pt = psn.pt; spreadIdx = 0; }
   // (00_PLAN п.3а, 05.11, прогон 173: Mirage — «держать бомбу» / «мало HP» у Vent на (845, 807), за краем пола, — бот упирался или его
   // переносило по кругу) точка поста — на полу: вне навмеша — ближайшая точка ближайшего участка (в 40 ед., как перенос navSnap)
   if(pt && !navAt(pt.x, pt.y)){ var naP = navFloorNear(pt.x, pt.y, 40, function(a){ return b.z == null || Math.abs(a.z - b.z) <= JUMP_UP; });
     if(naP){ var cqP = navClampInto(naP, pt.x, pt.y); pt = Object.assign({}, pt, {x:cqP.x, y:cqP.y}); } }
+  // (v520, отметки владельца 09.11 м200 р1/р3 и вопрос владельца «справится ли правка на другой карте»: точку поста выбирают пять мест — раскладка
+  // CT, ветка мида, «держать район», место про, раздвигание — и ни одно не обязано проверять главное: видно ли с точки то, ради чего пост.
+  // Мидер вставал за стену Window, NiKo — в Hole, откуда Top Mid не виден) одно место для всех: пост с точкой взгляда, откуда её не видно, —
+  // на ближайшую точку рядом (≤ POST_VIEW_R, тот же этаж), откуда видно; нет такой — как выбрано. Точные места (бомба, лайнап, подбор,
+  // маршрут) — как есть
+  if(hold && look && pt && !POST_EXACT.test(String(tag)) && !hasLOS(pt.x, pt.y, look.x, look.y)){ var pv = postViewPoint(pt, look); if(pv) pt = Object.assign({}, pt, {x:pv.x, y:pv.y}); }
   var id = tag + "|" + Math.round(pt.x) + "," + Math.round(pt.y);
   if(!b._task || b._task.tb !== tagB || b._task.round !== roundNum || !taskAlive(b)) b._task = {tag:String(tag), tb:tagB, lv:lv, t0:tick, t:tick, round:roundNum};
   else { b._task.t = tick; b._task.tag = String(tag); }
@@ -270,11 +294,12 @@ function setPost(b, pt, look, hold, tag, spreadIdx){
   // а не в него. Одно место для всех постов (было: раздвиг на 22 ед. только по spreadIdx). Точные места (бомба, лайнап, подбор) — как есть
   // (v373, отметка владельца: donk стоял на спавне T весь раунд) точка маршрута — не место, где стоять: маршрут засчитывает её, когда
   // бот ближе 70, а сдвиг на 80 не давал дойти — маршрут вставал. Точки маршрута не сдвигаются
-  if((spreadIdx || spotTaken(b, {x:x, y:y})) && !/^(plantspot|defuse|lineup|pickup|fetch|stopplant|antidefuse|ladder|smokeWait|route)/.test(tag)){
+  if((spreadIdx || spotTaken(b, {x:x, y:y})) && !POST_EXACT.test(String(tag))){
     var la = look ? Math.atan2(look.y-y, look.x-x) : 0, x0 = x, y0 = y;
     [Math.PI/2, -Math.PI/2, Math.PI*0.75, -Math.PI*0.75].some(function(da){
       var nx = x0 + Math.cos(la+da)*(SPOT_PERSONAL+10), ny = y0 + Math.sin(la+da)*(SPOT_PERSONAL+10);
       if(insideSolidWall(nx, ny) || segCrossesManualWalls(x0, y0, nx, ny) || !navAt(nx, ny) || spotTaken(b, {x:nx, y:ny})) return false;
+      if(look && hasLOS(x0, y0, look.x, look.y) && !hasLOS(nx, ny, look.x, look.y)) return false;   // (v520) раздвигание не отнимает обзор поста
       x = nx; y = ny; return true; });
   }
   b.post = {id:id, x:x, y:y, look:look||null, hold:hold, tag:tag};

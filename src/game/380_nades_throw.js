@@ -192,7 +192,20 @@ var NADE_GAP = Math.round(1.1*64);
 function nadeReady(b){ return tick - (b._nadeT == null ? -1e9 : b._nadeT) >= NADE_GAP; }
 var NADE_FAIL = null;   // (v369) почему последний бросок не состоялся — для проверки
 // from — (лайнап) точка броска из набора: навигация и подсказка подбора; бросок подбирается и летит из места, где боец стоит
+// (v520, отметка владельца 09.11 м200 р2 «лагает»: zont1x на ходу («у меня 6 — кидаю всё») 94 раза подряд подбирал флешку в ту же цель —
+// «не долетит: стена / потолок», полный 3D-подбор каждый тик, 3 с за 23 с игры) не долетевший бросок в ту же цель пересчитывается, только
+// когда бот сместился на NADE_RETRY_D от места прошлой попытки (проектное число: на ходу это ≈ 6–8 тиков, а не каждый тик) — обстановка
+// для полёта поменялась; до того — тот же отказ
+var NADE_RETRY_D = 24;
 function throwNade(b, type, tx, ty, lob, why, trusted, from){
+  var M0 = b._tnMiss;
+  if(M0 && M0.r === roundNum && M0.type === type && M0.tx === tx && M0.ty === ty && M0.lob === !!lob && Math.hypot(b.baseX-M0.x, b.baseY-M0.y) < NADE_RETRY_D &&
+     b.nades && b.nades[type] > 0 && nadeReady(b)){ NADE_FAIL = M0.why; return false; }
+  var ok = throwNadeTry(b, type, tx, ty, lob, why, trusted, from);
+  b._tnMiss = (!ok && /долетит|стена|потолок/.test(NADE_FAIL || "")) ? {r: roundNum, type: type, tx: tx, ty: ty, lob: !!lob, x: b.baseX, y: b.baseY, why: NADE_FAIL} : null;
+  return ok;
+}
+function throwNadeTry(b, type, tx, ty, lob, why, trusted, from){
   NADE_FAIL = null;
   if(!b.nades || b.nades[type] <= 0){ NADE_FAIL = "нет гранаты"; return false; }
   if(!nadeReady(b)){ NADE_FAIL = "пауза между гранатами"; return false; }

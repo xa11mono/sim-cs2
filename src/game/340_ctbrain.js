@@ -636,10 +636,8 @@ function ctBrain(){
             .filter(function(q){ return hasLOS(q.x, q.y, GEO.ctMidLook.x, GEO.ctMidLook.y); })
             .sort(function(a, c){ return Math.hypot(c.x-GEO.ctMidLook.x, c.y-GEO.ctMidLook.y) - Math.hypot(a.x-GEO.ctMidLook.x, a.y-GEO.ctMidLook.y); });
           if(ac[0]){ mp = ac[0]; if(b._mwV !== roundNum){ b._mwV = roundNum; logEvent(b.id+" (AWP): мид с дальней точки — дистанция моя"); } }
-        } else if(wT < 5){
-          var cc = pickSpots("midClose", GEO.ctMid, 4, {rMin:120, rMax:360, minGap:50, see:[GEO.ctMid], hideFrom:[GEO.ctMidLook, GEO.tMid]})[0];
-          if(cc){ mp = cc; if(b._mwV !== roundNum){ b._mwV = roundNum; logEvent(b.id+": с "+(b.weapon ? b.weapon.name : "пистолетом")+" на миде — ближний угол, на длинные линии не выхожу"); } }
-        }
+        }   // (v520) ветка «пистолет / ПП — ближний угол, спрятанный от мида» убрана: правило на оружие ставило мидера за стену (отметка владельца
+            // 09.11 м200 р1); место — общий выбор мида (midOpts: видеть мид, прятаться от T-мида), обзор поста проверяет setPost (postViewPoint)
       }
       if(mp && b._holdLog !== roundNum){ b._holdLog = roundNum; logEvent(b.id+": мид с «"+mNames[mi]+"»"); }
       setPost(b, mp || midOpts[midPick], midLook, true, "mid");
