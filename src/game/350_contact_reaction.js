@@ -247,7 +247,7 @@ function ctDelayNade(b){
 // линии, откуда прилетело (то, что знает живой игрок: откуда выстрел / где разорвалось), на ближайшее место своего этажа, откуда той точки не
 // видно, ≤ HURT_R. Это отклонение с возвратом (detourOk / detourStart, 110): главная задача потом ставит свою точку снова (уже от нового места)
 // — кроме «ставит / дефузит / бомба» (contactCritical, уровень 11). Взгляд — туда, откуда прилетело (look поста).
-var HURT_R = 220, HURT_REACT = 32;   // px, тики (0,5 с — реакция) — проектные числа
+var HURT_R = 220, HURT_REACT = 32, HURT_STEP = 120;   // px, тики (0,5 с — реакция) — проектные числа
 function hurtReactTick(b){
   if(!b.alive || !b._hurtT || b._hurtDone === b._hurtT) return;
   b._hurtDone = b._hurtT;
@@ -255,8 +255,12 @@ function hurtReactTick(b){
   var F = b._hurtFrom; if(!F || contactCritical(b)) return;
   if(taskAlive(b) && b._task.lv >= 11) return;
   var fz = F.z != null ? F.z : null;
-  var cand = pickSpots("hurt"+Math.round(b.x/30)+","+Math.round(b.y/30)+"|"+Math.round(F.x/60)+","+Math.round(F.y/60), {x:b.x, y:b.y}, 6, {rMax:HURT_R, minGap:30, hideFrom:[F]})
-    .filter(function(q){ var a = b.z == null ? null : navAtLevel(q.x, q.y, b.z); if(b.z != null && !a) return false;
+  // (v519b, разбор по эпизодам 09.11: в 12 из 15 случаев точка стояла, а через 1 с бот всё ещё на линии — ближайший укрытый центр участка навмеша
+  // был в 2–3 с ходьбы под огнём) пуля от известного стрелка — шаг с его линии рядом: тот же поиск укрытия, что в перестрелке (fightCover, 470:
+  // точки в 1/3–1 радиуса по 16 направлениям, где стрелок не видит ни головы, ни корпуса, свой не стоит); нет — как раньше, участки навмеша
+  var fc0 = b._hurtSrc === "bullet" && b._hurtBy && b._hurtBy.alive ? (fightCover(b, b._hurtBy, 60) || fightCover(b, b._hurtBy, HURT_STEP)) : null;
+  var cand = fc0 ? [fc0] : pickSpots("hurt"+Math.round(b.x/30)+","+Math.round(b.y/30)+"|"+Math.round(F.x/60)+","+Math.round(F.y/60), {x:b.x, y:b.y}, 6, {rMax:HURT_R, minGap:30, hideFrom:[F]})
+    .filter(function(q){ if(fc0) return true; var a = b.z == null ? null : navAtLevel(q.x, q.y, b.z); if(b.z != null && !a) return false;
       return !spotTaken(b, q) && !hasLOS(q.x, q.y, F.x, F.y, a ? a.z : b.z, fz); })
     .sort(function(p, q){ return Math.hypot(p.x-b.x, p.y-b.y) - Math.hypot(q.x-b.x, q.y-b.y); });
   var sp = cand[0]; if(!sp) return;

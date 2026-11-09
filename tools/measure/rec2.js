@@ -45,6 +45,11 @@ var oad=applyDamage; applyDamage=function(att,b,dmg,src){ var h0=b?b.hp:0; var r
 // arrive — «дошёл до поста» с высотой не своего пола [тик, бот, задача, z бота, верхний пол у точки поста]; defst — начал дефуз [тик, кто, назначен ретейком];
 // recall — смена сайта T [тик, с, на, кто вызвал (функция)]; pick — подбор оружия [тик, текст]; he — урон HE [тик, жертва, 3D-линия от точки разрыва 1/0];
 // blind — ослепление [тик, кто, секунд, чья флешка]
+// refuse — арбитр задач отказал [тик, бот, какую задачу хотели поставить, какая держит, её уровень, идёт отклонение (вид)] — чья механика кому не дала
+REC.refuse=[]; var RFP={};
+if(typeof setPost==='function'){ var osp=setPost; setPost=function(b,pt,look,hold,tag){ var r=osp.apply(this,arguments);
+  if(r===false&&roundState==='live'&&b&&REC.refuse.length<60000){ var k=b.id+'|'+tag; if(!RFP[k]||tick-RFP[k]>=32){ RFP[k]=tick; var T=b._task; REC.refuse.push([tick, b.id, String(tag), T?String(T.tag):'', T?T.lv:0, b._detour&&tick<b._detour.until?b._detour.kind:'']); } }
+  return r; }; }
 REC.jump=[]; REC.arrive=[]; REC.defst=[]; REC.recall=[]; REC.pick=[]; REC.he=[]; REC.blind=[]; var ATP={}, DFP={}, BLP={};
 if(typeof tSetSite==='function'){ var oss=tSetSite; tSetSite=function(tt,site){ var old=tt&&tt.site; if(roundState==='live'&&old&&site&&old!==site){ var st=String(new Error().stack||'').split('\n')[2]||''; REC.recall.push([tick, old, site, (st.match(/at (\w+)/)||[])[1]||'?']); } return oss.apply(this,arguments); }; }
 if(typeof logEvent==='function'){ var olp=logEvent; logEvent=function(text){ if(roundState==='live'&&/подобрал/.test(String(text))&&REC.pick.length<5000) REC.pick.push([tick, String(text).slice(0,120)]); return olp.apply(this,arguments); }; }

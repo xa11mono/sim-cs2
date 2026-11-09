@@ -59,7 +59,7 @@ class Rec:
 
 def analyze(label):
     N = collections.Counter(); byC = collections.defaultdict(collections.Counter); rounds = 0
-    stand_sec = []; flash_n = flash_hit = 0; awp_sh = awp_close = 0
+    stand_sec = []; flash_n = flash_hit = 0; awp_sh = awp_close = 0; EP = collections.defaultdict(list)
     for d in load(label):
         R = Rec(d); rounds += len(d['rounds'])
         # ---- 1. ушёл за укрытие, не выглянул, враг жив — и стоит
@@ -75,6 +75,38 @@ def analyze(label):
                     k = 3
                     while k < 15 and (R.moved(b, t, t + (k + 1) * TICK) or 1e9) < STAND_PX: k += 1
                     stand_sec.append(k)
+        SEE = collections.defaultdict(list)
+        for x in d['see']: SEE[x[1]].append(x)
+        # ---- (09.11, правила владельца: точное определение, набор Б, список эпизодов)
+        # A1 «ранен без боя — стоит»: урон от врага, жертва не в перестрелке (±0,5 с), жива ещё 1 с, задача не «бомба», и за 1 с сдвинулась < 25 px.
+        # Б1 — то же, но ушла (≥ 25 px) — правильная реакция
+        for e in d['dmg']:
+            t, att, att_t, vic, dmg, src, hp = e[:7]
+            if not att_t or att_t == R.team.get(vic) or hp <= 0: continue
+            if R.phase(vic, t-32) or R.phase(vic, t) or R.phase(vic, t + 32): continue
+            if cat(R.tag(vic, t)) in ('уход от бомбы',) or re.match(r'^(defuse|plantspot|stopplant|antidefuse)', R.tag(vic, t)): continue
+            m = R.moved(vic, t, t + TICK)
+            if m is None: continue
+            # (разбор эпизодов 09.11) за эту секунду увидел стрелка и стреляет в ответ (перестрелка началась после попадания) — правильно, это Б
+            fought = any(t < x[0] <= t + TICK for x in R.fc.get(vic, [])) or any(x[1] == vic and t < x[0] <= t + TICK for x in SEE.get(vic, []))
+            if fought: N['Б1а ранен — увидел стрелка и отвечает'] += 1
+            elif m < STAND_PX: N['A1 ранен, стрелка не видит, не отвечает — через 1 с на месте'] += 1; EP['A1'].append([d['match'], t, vic, R.tag(vic, t), src])
+            else: N['Б1 ранен без боя — ушёл'] += 1
+        # A2 «ушёл за укрытие и стоит»: перестрелка кончилась в укрытии (враг жив), бот не на своём посту и 3 с стоит (< 25 px), врага не видит.
+        # Б2 — то же, но стоит на своём посту (держать угол — правильно)
+        atp = collections.defaultdict(dict)
+        for a in d['act']: atp[a[1]][a[0]] = a[7]
+        for b, L in R.fc.items():
+            for i, e in enumerate(L):
+                if e[3] != 'off' or not e[6]: continue
+                nx = L[i + 1] if i + 1 < len(L) else None
+                if not nx or nx[3] != '': continue
+                t = nx[0]; m = R.moved(b, t, t + 3 * TICK)
+                if m is None or m >= STAND_PX: continue
+                if any(t < x[0] <= t + 3*TICK for x in R.fc.get(b, [])): continue
+                post = atp[b].get(t - t % 32 + 32, 0)
+                if post: N['Б2 после боя стоит на своём посту'] += 1
+                else: N['A2 после боя стоит не на посту 3 с'] += 1; EP['A2'].append([d['match'], t, b, R.tag(b, t)])
         # ---- 2. получил урон, стрелка не видел (не в перестрелке), 3 с стоит на месте
         for e in d['dmg']:
             t, att, att_t, vic, dmg, src, hp = e[:7]
@@ -198,6 +230,7 @@ def analyze(label):
                     c = [cat(R.tag(b, t)) == 'сейв' for b in alive]
                     if c[0] != c[1]: split = True; break
             N['раундов: двое T, один сейв, другой нет'] += split
+    json.dump(EP, open(os.path.join(HERE, 'runs', label, 'episodes.json'), 'w'))   # (09.11) эпизоды для разбора и переигровки
     print('== %s: раундов %d (на 100 раундов — в скобках)' % (label, rounds))
     f = lambda n: '%d (%.1f)' % (n, 100.0 * n / rounds) if rounds else str(n)
     for k, v in N.items(): print('  %s: %s' % (k, f(v)))

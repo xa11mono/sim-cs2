@@ -143,7 +143,7 @@ function applyDamage(att, b, dmg, src, o){
     var HO = foe._hitOut || (foe._hitOut = []); HO.push([tick, b.id, dl0]); if(HO.length > 16) HO.shift(); }
   // (v518a, пак 09.11 п.6) «ранен» — одно место для пули, HE и огня (раньше ставили только пули, 490 / 450): откуда — то, что знает живой игрок:
   // пуля — откуда стреляли (звук выстрела + сторона попадания), HE / огонь — где разорвалось / горит. Реакция — hurtReactTick (350)
-  if(foe){ b._hurtT = tick; b._hurtSrc = src; b._hurtFrom = o.from || {x:foe.x, y:foe.y, z:foe.z}; }
+  if(foe){ b._hurtT = tick; b._hurtSrc = src; b._hurtFrom = o.from || {x:foe.x, y:foe.y, z:foe.z}; b._hurtBy = o.from ? null : foe; }
   b.hp -= dmg;
   if(b.hp > 0) return false;
   b.alive = false; b.deaths++; b._killer = att && att !== b ? att.id : null;   // (v330) кто убил — для обсервера (показ)
@@ -189,6 +189,18 @@ function flashSeen(b, n){
     if(!insideSolidWall(x, y) && hasVision(b.x, b.y, x, y)) return true;
   }
   return false;
+}
+// (v519b, разбор по эпизодам 09.11: из 236 флешек вспышку видел хоть один враг у 90 — остальные хлопали за стеной / укрытием (182 пары
+// «флешка — враг рядом»), на другом этаже (287), в дыму (106); владелец: «флешка вроде летит хорошо, но врагов вообще не слепит») кидать флешку
+// туда, где хлопок кто-то из врагов может увидеть: по знанию бросающего — известные команде враги (≤ 5 с), места рядом, где они вероятно
+// (карта команды ≥ 0,15), и проходы, откуда выйдут (threatEntrances). Глаза — пол места + рост; линия — 3D-геометрия и дым, как у хлопка
+function flashUseful(b, det){
+  var foe = b.team === "T" ? "CT" : "T", BL = beliefLast[b.team] || {}, P = [];
+  bots.forEach(function(o){ var q = BL[o.id]; if(o.alive && o.team === foe && q && tick - q.tick <= 5*TICK_HZ && Math.hypot(q.x-det.x, q.y-det.y) < 1000) P.push({x:q.x, y:q.y, z:q.z}); });
+  BZ.cent.forEach(function(c, i){ if(c && Math.hypot(c.x-det.x, c.y-det.y) < 450 && beliefZoneKnown(b.team, i) >= 0.15) P.push({x:c.x, y:c.y, z:null}); });
+  threatEntrances(b.team, {x:det.x, y:det.y}, 300).slice(0, 4).forEach(function(E){ P.push({x:E.pt.x, y:E.pt.y, z:null}); });
+  return P.some(function(q){ var ez = visFloorAt(q.x, q.y, q.z) + VIS_EYE.stand;
+    return !smokeBlocks(q.x, q.y, det.x, det.y) && (visMarch(q.x, q.y, ez, det.x, det.y, det.z) || visMarch(q.x, q.y, ez, det.x, det.y, det.z + 16)); });
 }
 function nadesTick(){
   var nTr = nadesInAir.length ? nadeTraceFn() : null;   // луч гранаты (m3NadeTrace); не глобальная var: снимок «Отметить момент» не копирует функции
