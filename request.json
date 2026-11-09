@@ -1,0 +1,8 @@
+{"par": 12, "jobs": [
+  {"label": "r518a_mir", "ref": "810194000a96de3bcd4e28d3152452f0603d3c34", "map": "mirage", "replay": {"from": "v517_mir", "rounds": "all"}, "matches": [3, 7, 11, 13, 17, 19, 23, 29]},
+  {"label": "r518b_mir", "ref": "0849d3e78827f88f863137801188531ede04a76e", "map": "mirage", "replay": {"from": "v517_mir", "rounds": "all"}, "matches": [3, 7, 11, 13, 17, 19, 23, 29]},
+  {"label": "r518c_mir", "ref": "2b50f688ccb81be17584ec575f7b12bd081c7085", "map": "mirage", "replay": {"from": "v517_mir", "rounds": "all"}, "matches": [3, 7, 11, 13, 17, 19, 23, 29]},
+  {"label": "r518a_anc", "ref": "810194000a96de3bcd4e28d3152452f0603d3c34", "map": "ancient", "replay": {"from": "v517_anc", "rounds": "all"}, "matches": [3, 7, 11, 13, 17, 19, 23, 29]},
+  {"label": "r518b_anc", "ref": "0849d3e78827f88f863137801188531ede04a76e", "map": "ancient", "replay": {"from": "v517_anc", "rounds": "all"}, "matches": [3, 7, 11, 13, 17, 19, 23, 29]},
+  {"label": "r518c_anc", "ref": "2b50f688ccb81be17584ec575f7b12bd081c7085", "map": "ancient", "replay": {"from": "v517_anc", "rounds": "all"}, "matches": [3, 7, 11, 13, 17, 19, 23, 29]}
+]}
