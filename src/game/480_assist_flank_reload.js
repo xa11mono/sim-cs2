@@ -61,6 +61,8 @@ function flankAssist(b){
   var ep = {x:E.x, y:E.y};
   var sp = flankSpot(b, mate, ep);
   if(!sp) return false;
+  // (v518a) идёт по задаче важнее захода — заход как отклонение (detourOk, 110): цена — время дойти до точки захода
+  if(!taskCanSet(b, "repos:flank")){ var fsec = pathLenTo(b, sp.x, sp.y)/SPEED; if(!detourOk(b, "help", fsec)) return false; detourStart(b, "help", "repos:flank", fsec + 2); }
   b._reposUntil = 0; b._probeLock = 0;
   setPost(b, sp, ep, true, "repos:flank");
   if(!b.post || b.post.tag !== "repos:flank") return false;
@@ -74,7 +76,9 @@ function flankAssist(b){
 function assistPeek(b){
   if(!BAL.assistPeek || b._sawEnemy || b.planting || b.defusing || b.hp <= LOW_HP) return false;
   if(tick < (b._assistNext||0)) return false;
-  if(!taskCanSet(b, "repos:assist")) return false;   // (v378) идёт по задаче не ниже — арбитр места
+  // (v378) идёт по задаче не ниже — арбитр места; (v518a) главная задача терпит отклонение — помогает и с неё (detourOk, 110)
+  var detour = !taskCanSet(b, "repos:assist");
+  if(detour && !detourOk(b, "help")) return false;
   // (v368) носитель выходит вдвоём с тиммейтом, как все (раньше «в дуэли не лезет» — на раше magixx шёл в 400 ед. позади боя)
   var mate = null, E = null;
   bots.forEach(function(m){
@@ -92,6 +96,7 @@ function assistPeek(b){
     .filter(function(q){ return !spotTaken(b, q) && hasLOS(q.x, q.y, ep.x, ep.y); })[0];   // (v370) рядом, но не плечом к плечу (было > 22)
   if(!sp) return false;
   b._reposUntil = 0; b._probeLock = 0;
+  if(detour) detourStart(b, "help", "repos:assist", 2);
   setPost(b, sp, ep, true, "repos:assist");
   if(!b.post || b.post.tag !== "repos:assist") return false;
   if(b.state === "hold") leaveHold(b);

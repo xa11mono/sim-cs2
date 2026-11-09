@@ -192,12 +192,46 @@ function taskLevel(tag){ tag = String(tag || ""); for(var i=0;i<TASK_LEVEL.lengt
 function taskAlive(b){ var T = b._task; return !!T && T.round === roundNum && (tick - T.t <= TASK_STALE || tick < taskKeepUntil(b, T.tag)); }
 // можно ли сейчас поставить задачу tag (то же решение, что примет setPost) — для механик, которые решают, затевать ли своё
 function taskCanSet(b, tag){
+  var D = b._detour;
+  if(D && (D.round !== roundNum || tick >= D.until || !b.alive)) D = b._detour = null;
+  if(D){ if(taskTagB(tag) === D.tb) return true;   // (v518a) отклонение уточняет свою точку
+    if(taskLevel(tag) <= D.lv) return false; }      // главная задача ждёт конца отклонения (не перебивает его каждый тик)
   var T = b._task; if(!taskAlive(b)) return true;
   var lv = taskLevel(tag), tb = taskTagB(tag);
   if(tb === T.tb) return true;                     // та же задача — уточняет точку
   if(lv > T.lv) return true;                       // важнее — сразу
   if(lv < T.lv) return false;                      // ниже — ждёт, пока текущая кончится
   return tick - T.t0 >= POST_DWELL;                // того же уровня — не раньше POST_DWELL (защита от дёрганья)
+}
+// ---- (v518a, пак владельца 09.11, docs/reports/ARCH_ROOT_CAUSES_2026-11-09.md п.1) ОТКЛОНЕНИЕ С ВОЗВРАТОМ — одно место ----
+// Помочь своему в бою, подобрать оружие по пути, уйти от урона — не задача-соперник по лестнице TASK_LEVEL (там помощь 6 и подбор 3 проигрывали
+// пост-планту 8, ретейку 8, охоте 7, сейву 10 всегда — «смотрит, но не идёт», «прошёл мимо калаша»), а короткое отклонение от главной задачи:
+// можно, если главная задача это время терпит (taskSlackSec), и не дольше DETOUR_MAX; пока идёт — главная задача его не перебивает (taskCanSet),
+// кончилось (срок / механика сняла точку) — главная задача ставит свою точку снова, путь — от того места, где бот сейчас.
+// Нельзя: ставит / дефузит, задача «бомба» (уровень 11); помогать в бою — и на сейве (сейв от боя и уходит).
+var DETOUR_MAX = {help: 4, pickup: 3, hurt: 3};   // с — проектные числа (первые кандидаты на замену данными)
+// сколько секунд главная задача бота может подождать: CT с бомбой на карте — запас до «не успею дефузнуть» (3 с — как contactCritical);
+// T на пост-планте — 0, если дефузят (анти-дефуз важнее); CT на сейве — до «не успею уйти от взрыва к своей точке сейва»; остальное — не срочно
+function taskSlackSec(b){
+  if(!bomb || bomb.state !== "planted") return Infinity;
+  var left = bombTimeLeftTicks()/TICK_HZ;
+  if(b.team === "T") return bots.some(function(o){ return o.alive && o.defusing; }) ? 0 : Infinity;
+  if(teamTac.CT && teamTac.CT.saving) return b._saveSpot ? left - pathLenTo(b, b._saveSpot.x, b._saveSpot.y)/SPEED - 2 : left - 4;
+  return left - defuseEta(b) - 3;
+}
+// можно ли отклониться (cost — сколько секунд отнимет отклонение от главной задачи)
+function detourOk(b, kind, cost){
+  if(!b.alive || b.planting || b.defusing) return false;
+  if(b._detour && b._detour.round === roundNum && tick < b._detour.until) return false;   // одно отклонение за раз
+  var lv = taskAlive(b) ? b._task.lv : 1;
+  if(lv >= 11 || (kind === "help" && lv >= 10)) return false;
+  cost = cost || 0;
+  return cost <= DETOUR_MAX[kind] && cost + (kind === "pickup" ? 0.5 : CONTACT_HOLD) <= taskSlackSec(b);
+}
+// начать отклонение: задача tag на sec секунд, главная задача (её уровень) ждёт
+function detourStart(b, kind, tag, sec){
+  var lv = taskAlive(b) ? b._task.lv : 1;
+  b._detour = {kind:kind, tb:taskTagB(tag), lv:Math.max(lv, taskLevel(tag)), until: tick + Math.round(sec*TICK_HZ), round:roundNum};
 }
 // механика держит свою текущую задачу (пост не меняется — подтвердить, что затея ещё идёт)
 function postKeep(b){ if(b.post && b._task && b._task.tag === b.post.tag) b._task.t = tick; }
@@ -265,7 +299,7 @@ function afterTaskPick(b, pt){
   return {pt:{x:A.x, y:A.y}, look:{x:th.x, y:th.y}};
 }
 // механика сама сняла свою точку — её задача кончилась (следующая ставится без ожидания)
-function clearPost(b){ b._task = null; if(b.post){ b.post = null; b.atPost = false; if(b.state==="patrol"){ b.path = []; b.pathIdx = 0; } } }
+function clearPost(b){ b._task = null; if(b._detour && b.post && taskTagB(b.post.tag) === b._detour.tb) b._detour = null; if(b.post){ b.post = null; b.atPost = false; if(b.state==="patrol"){ b.path = []; b.pathIdx = 0; } } }
 function updatePost(b){
   if(!b.post || b.state !== "patrol"){ b.atPost = false; return; }
   var ep = fireSafe(b.post, b);

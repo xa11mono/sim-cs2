@@ -206,8 +206,9 @@ function prePeekDecide(b, C, zB){
 function exposedShiftTick(b){
   if(!BAL.seenShift || !b.alive || b._sawEnemy || !b.atPost || !b.post || !b.post.hold) return;
   var li = b.lastIntel; if(!li || li.src || tick - li.tick < 24 || tick - li.tick > 90) return;
-  var hurt = b._hurtT && tick - b._hurtT < 4*TICK_HZ, shot = b._shotAtT && tick - b._shotAtT < 3*TICK_HZ;
-  if(!hurt && !shot) return;
+  // (v518a) ранен — одна реакция на урон, hurtReactTick (350); здесь — только «стреляли, но не попали» (позиция известна)
+  var hurt = false, shot = b._shotAtT && tick - b._shotAtT < 3*TICK_HZ && !(b._hurtT && tick - b._hurtT < 4*TICK_HZ);
+  if(!shot) return;
   if(b._esT && tick - b._esT < 6*TICK_HZ) return; b._esT = tick;
   var foe = b.team === "CT" ? "T" : "CT";
   if(aliveCount(foe) === 0) return;

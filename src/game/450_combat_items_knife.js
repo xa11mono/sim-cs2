@@ -49,7 +49,7 @@ function bulletLineHit(sh, ex, ey, skip, seed, note){
   var w = sh.weapon, sd = Math.hypot(sv.x-sh.x, sv.y-sh.y), sz = hashRand(seed);
   var sm = sz < 0.22 ? 0.75 : (sz < 0.42 ? 1.25 : 1.0), sArm = sz >= 0.22 && sv.armor;
   var sdmg = w.dmg * Math.pow(w.rm, sd*PX_UNITS/500) * sm;
-  sv._hurtT = tick; sv._hitFx = {t:nowTs, head:false}; if(BAL.tagging) sv._tagUntil = tick + 16;
+  sv._hitFx = {t:nowTs, head:false}; if(BAL.tagging) sv._tagUntil = tick + 16;
   applyDamage(sh, sv, sdmg, "bullet", {armorRatio: sArm ? w.armorPen : null, wkey:w.key, reward:w.killReward||300, note:" ("+note+", дист. "+Math.round(sd)+")"});
   return sv;
 }
@@ -181,6 +181,18 @@ function awpAllowed(b){
   if(!BAL.pickupMore) return false;
   return !bots.some(function(o){ return o.alive && o.team === b.team && o !== b && (o.primary === "AWP" || o.tRole === "awp" || (b.team === "CT" && o.tRole === "mid")); });
 }
+// (v518a, пак 09.11 п.1; владелец: «оружие заметно лучше — взять без опасного отклонения от позиции», «бомба взорвётся через 6 с …
+// у него есть время подобрать», «по пути пропустил калаш, который мог безопасно подобрать») задача ниже подбора — можно сразу; выше —
+// отклонение (detourOk, 110): цена — сколько крюк до оружия добавит к пути до своей точки задачи
+function pickDetour(b, G){
+  if(taskCanSet(b, "pickup")) return true;
+  var P = b.post, toG = pathLenTo(b, G.x, G.y), cost = toG;
+  if(P){ var back = polyLen(pathPts(G.x, G.y, P.x, P.y, b.z)); cost = toG + back - pathLenTo(b, P.x, P.y); }
+  cost = Math.max(0, cost)/SPEED + 0.3;
+  if(!detourOk(b, "pickup", cost)) return false;
+  detourStart(b, "pickup", "pickup", toG/SPEED + 1.5);
+  return true;
+}
 function weaponPickupTick(){
   if(!BAL.weaponDrop || roundState !== "live") return;
   if(!groundWeapons.length){ bots.forEach(function(b){ if(b.alive && b.post && b.post.tag === "pickup"){ clearPost(b); } b._pickGo = null; }); return; }
@@ -209,7 +221,7 @@ function weaponPickupTick(){
     else if(b._pickGo && b._pickGo.round === roundNum && !(b.post && b.post.tag === "pickup")){
       var PG = b._pickGo;
       if(!groundWeapons.some(function(G){ return Math.hypot(G.x-PG.x, G.y-PG.y) < 40; })) b._pickGo = null;
-      else if(b.state === "patrol" && !b._sawEnemy && !(bomb.state === "carried" && bomb.carrier === b) && taskCanSet(b, "pickup") && setPost(b, {x:PG.x, y:PG.y}, null, true, "pickup")){
+      else if(b.state === "patrol" && !b._sawEnemy && !(bomb.state === "carried" && bomb.carrier === b) && pickDetour(b, PG) && setPost(b, {x:PG.x, y:PG.y}, null, true, "pickup")){
         logEvent(b.id+": возвращаюсь за оружием"); return; }
     }
     var cur = pickValue(b, b.primary);
@@ -228,18 +240,19 @@ function weaponPickupTick(){
     // (9) в бою: с пистолетом/ПП, рядом (≤170px) лежит винтовка/AWP убитого, врага
     // сейчас не видно ~0.5с — быстро поднять (как в CS: "подобрал АК и дальше")
     if(BAL.fightPickup && !b._sawEnemy && (b.state === "hold" || b.state === "engage" || b.state === "patrol") && tick - (b._lastSawT||0) > 32 &&
-       !(bomb.state === "carried" && bomb.carrier === b) && taskCanSet(b, "pickup") && b._fpT !== tick){
+       !(bomb.state === "carried" && bomb.carrier === b) && b._fpT !== tick){
       // не срывается ради гана с важной позиции: после планта (ретейк/пост-плант)
       // и когда рядом свежая инфа о враге — только если ган почти под ногами
       var LKf = beliefLast[b.team] || {}, foeNear = false;
       for(var eF in LKf){ if(tick - LKf[eF].tick < 3*TICK_HZ && Math.hypot(LKf[eF].x-b.x, LKf[eF].y-b.y) < 900){ foeNear = true; break; } }
-      var gBest = null, gd = (foeNear || bomb.state === "planted") ? 80 : 170;
+      // (v518a) после планта — как везде; терпит ли это главная задача — pickDetour (цена по пути), а не «бомба стоит — только под ногами»
+      var gBest = null, gd = foeNear ? 80 : 170;
       groundWeapons.forEach(function(G){
         if(pickValue(b, G.key) < cur + 2) return;
         if(G.key === "AWP" && !awpAllowed(b) && cur >= 5) return;
         if(b._pickIgnore && b._pickIgnore.round === roundNum && Math.hypot(G.x-b._pickIgnore.x, G.y-b._pickIgnore.y) < 40) return;
         var dG = Math.hypot(G.x-b.x, G.y-b.y); if(dG < gd && hasLOS(b.x, b.y, G.x, G.y, b.z)){ gd = dG; gBest = G; } });
-      if(gBest && (b.state !== "patrol" || intelEstimate(b.team, gBest.x, gBest.y, 450, 3*TICK_HZ).n > 0)){
+      if(gBest && (b.state !== "patrol" || intelEstimate(b.team, gBest.x, gBest.y, 450, 3*TICK_HZ).n > 0) && pickDetour(b, gBest)){
         b._fpT = tick;
         if(b.state !== "patrol"){ b.state = "patrol"; b.holding = false; b.stateSince = tick; }
         if(setPost(b, {x:gBest.x, y:gBest.y}, null, true, "pickup")) b._pickGo = {x:gBest.x, y:gBest.y, round:roundNum};
@@ -249,17 +262,10 @@ function weaponPickupTick(){
     }
     // сходить за ним: рядом, заметно лучше своего, не в бою, без свежей инфы о враге рядом
     if(b.state !== "patrol" || b._sawEnemy || (bomb.state === "carried" && bomb.carrier === b)) return;
-    var savingNow = teamTac.CT && teamTac.CT.saving && b.team === "CT";
-    // ретейк/дефуз/отход — не до того; (v334, М63) на сейве — подобрать лучшее оружие рядом (≤ 450), если там врага по инфе нет
-    if(bomb.state === "planted" && !savingNow) return;
-    if(savingNow){ var gs = null, gsd = 450; if(BAL.pickFix && b._pickBan > tick) return;
-      groundWeapons.forEach(function(G){ if(pickValue(b, G.key) <= cur) return; var dG = Math.hypot(G.x-b.x, G.y-b.y);
-        if(b._pickIgnore && b._pickIgnore.round === roundNum && Math.hypot(G.x-b._pickIgnore.x, G.y-b._pickIgnore.y) < 40) return;
-        if(dG < gsd && intelEstimate("CT", G.x, G.y, 450, 5*TICK_HZ).n === 0){ gsd = dG; gs = G; } });
-      if(gs && !(b.post && b.post.tag === "pickup") && setPost(b, {x:gs.x, y:gs.y}, null, true, "pickup")) logEvent(b.id+": сейв — по пути подбираю "+WEAPONS[gs.key].name);
-      if(gs && b.post && b.post.tag === "pickup"){ b._pickGo = {x:gs.x, y:gs.y, round:roundNum}; b._pickSave = roundNum; }
-      return; }
-    if(!taskCanSet(b, "pickup")) return;   // (v378) идёт по задаче важнее подбора — арбитр места
+    // (v518a, пак 09.11 п.1) было: «бомба стоит — не ходить» и отдельная ветка сейва, которую арбитр не пускал (сейв 10 > подбор 3).
+    // Теперь одно правило для всех задач: ниже подбора — идёт, как было; выше — если главная задача терпит крюк (pickDetour, ниже)
+    var savingNow = b.team === "CT" && teamTac.CT && teamTac.CT.saving;
+    if(tick < (b._pdT || 0)) return;   // крюк по пути — не чаще раза в 0,25 с на бота (путь на пару «бот — оружие» — раз за решение)
     if(b.post && b.post.tag === "pickup") return;
     // (v469, п.27 владельца 29.10, р12 м1: опорник B karrigan пошёл за оружием с самого B, хотя рядом стояли свои) ответ про-аналитика 29.10:
     // за оружием не ходят, пока рядом бой (свежая инфа о враге ≤ 1200 ед. игры = 480 px); опорник, держащий вход на свой сайт, со своей точки за ним не уходит —
@@ -278,8 +284,10 @@ function weaponPickupTick(){
       var d = Math.hypot(G.x-b.x, G.y-b.y); if(d < bd){ bd = d; best = G; }
     });
     if(!best) return;
-    var danger = intelEstimate(b.team, best.x, best.y, 450, 3*TICK_HZ).n > 0;
+    var danger = intelEstimate(b.team, best.x, best.y, 450, (savingNow ? 5 : 3)*TICK_HZ).n > 0;
     if(danger) return;
-    if(setPost(b, {x:best.x, y:best.y}, null, true, "pickup")) b._pickGo = {x:best.x, y:best.y, round:roundNum};
+    b._pdT = tick + 16;
+    if(!pickDetour(b, best)) return;
+    if(setPost(b, {x:best.x, y:best.y}, null, true, "pickup")){ b._pickGo = {x:best.x, y:best.y, round:roundNum}; if(savingNow){ b._pickSave = roundNum; logEvent(b.id+": сейв — по пути подбираю "+WEAPONS[best.key].name); } }
   });
 }

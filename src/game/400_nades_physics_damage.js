@@ -94,7 +94,7 @@ function detonate(n){
       var d = Math.hypot(b.x-n.x, b.y-n.y);
       if(d > NADE.he.radius || !hasLOS(n.x, n.y, b.x, b.y, null, b.z)) return;
       var dmg = NADE.he.dmg * (1 - d/NADE.he.radius);
-      applyDamage(n.thrower, b, dmg, "HE", {armorRatio: b.armor ? NADE.he.armorK : null});
+      applyDamage(n.thrower, b, dmg, "HE", {armorRatio: b.armor ? NADE.he.armorK : null, from:{x:n.x, y:n.y, z:n.z}});
     });
   }
   nadeFx.push({type:T, x:n.x, y:n.y, born:tick});
@@ -136,6 +136,9 @@ function applyDamage(att, b, dmg, src, o){
     // (дуэли 06.11) кто кому сколько в этой перестрелке — 470 duelEdge: последние попадания у обоих, [тик, кто, урон]
     var HL = b._hitIn || (b._hitIn = []); HL.push([tick, foe.id, dl0]); if(HL.length > 16) HL.shift();
     var HO = foe._hitOut || (foe._hitOut = []); HO.push([tick, b.id, dl0]); if(HO.length > 16) HO.shift(); }
+  // (v518a, пак 09.11 п.6) «ранен» — одно место для пули, HE и огня (раньше ставили только пули, 490 / 450): откуда — то, что знает живой игрок:
+  // пуля — откуда стреляли (звук выстрела + сторона попадания), HE / огонь — где разорвалось / горит. Реакция — hurtReactTick (350)
+  if(foe){ b._hurtT = tick; b._hurtSrc = src; b._hurtFrom = o.from || {x:foe.x, y:foe.y, z:foe.z}; }
   b.hp -= dmg;
   if(b.hp > 0) return false;
   b.alive = false; b.deaths++; b._killer = att && att !== b ? att.id : null;   // (v330) кто убил — для обсервера (показ)
@@ -207,7 +210,7 @@ function nadesTick(){
         // (v323, М35) урон за удар растёт 1 → 8, удар раз в 0,2 с — чем дольше в огне, тем сильнее (fireDamageFor)
         if(!b._fireIn || b._fireIn.f !== fr){ b._fireIn = {f:fr, t:tick, hits:0}; }
         var hitsNow = Math.floor((tick - b._fireIn.t)/TICK_HZ/FIRE_HIT_SEC);
-        while(b._fireIn.hits < hitsNow && b.alive){ b._fireIn.hits++; if(SND && SND.on && b._fireIn.hits % 3 === 1) sndBody("burn", b.x, b.y); applyDamage(fr.thrower, b, Math.min(FIRE_HIT_MAX, b._fireIn.hits), "молотов"); }
+        while(b._fireIn.hits < hitsNow && b.alive){ b._fireIn.hits++; if(SND && SND.on && b._fireIn.hits % 3 === 1) sndBody("burn", b.x, b.y); applyDamage(fr.thrower, b, Math.min(FIRE_HIT_MAX, b._fireIn.hits), "молотов", {from:{x:fr.x, y:fr.y}}); }
       } else if(b._fireIn && b._fireIn.f === fr){ b._fireIn = null; }
     });
   }

@@ -258,7 +258,6 @@ function tryShoot(shooter, target, dist){
     else if(zr < 0.42){ mult = 1.25; armored = target.armor; hitZone = "stomach"; }
     else { mult = 1.0; armored = target.armor; hitZone = "chest"; }
     var dmg = Math.max(1, Math.round(base * mult * (armored ? w.armorPen : 1)));   // ожидаемый урон в HP (для логов); сам урон — applyDamage
-    target._hurtT = tick;
     if(BAL.tagging) target._tagUntil = tick + 16; // попали — на ~0.25с замедлен
     target._hitFx = {t:nowTs, head:headshot};
     if(BAL.duelPlace && headshot && burstIdx === 0 && (shooter._place||0) > 0.8 && target.hp <= dmg && hashRand(seedS+29) < 0.5) logEvent(shooter.id+": прицел стоял на угле — хэдшот с первой пули по "+target.id);
