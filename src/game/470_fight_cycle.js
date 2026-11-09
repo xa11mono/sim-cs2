@@ -27,16 +27,20 @@ function fightPathFree(b, x0, y0, x1, y1){
 // (v426, владелец 25.10, Mirage м1 р4: donk 1 против 4 «ушёл с линии», а стоит в открытую) укрытие — скрытое и от остальных врагов,
 // которых бот знает (видел / слышал за 4 с, ≤ 1200 — exposedTo, то же, что у перезарядки), а не только от того, с кем стреляется. Такого
 // рядом нет — как раньше: скрытое от него одного
-function fightCover(b, e, R){
+// (v518b, пак 09.11 п.5; владелец А-5: «раш Б, и все в одном месте толпятся — никто не протягивает раш») укрытие — не туда, где уже стоит / куда
+// уходит свой (≤ FIGHT_MATE_R), и при «давить» (fightPush) — не назад: из укрытий выбирается то, что ближе к точке задачи, а не дальше от врага
+var FIGHT_MATE_R = 30;   // px — проектное число (укрытие одного человека)
+function fightMateAt(b, x, y){ return bots.some(function(o){ return o !== b && o.alive && o.team === b.team && (Math.hypot(o.baseX-x, o.baseY-y) < FIGHT_MATE_R || (o._fc && o._fc.ph === "off" && Math.hypot(o._fc.cx-x, o._fc.cy-y) < FIGHT_MATE_R)); }); }
+function fightCover(b, e, R, toward){
   var others = exposedTo(b, 1200, 4*TICK_HZ, true).filter(function(o){ return Math.hypot(o.x-e.x, o.y-e.y) > 60; });
   for(var pass = others.length ? 0 : 1; pass < 2; pass++){
     for(var k=1;k<=3;k++){
-      var r = R*k/3, best = null, bd = -1;
+      var r = R*k/3, best = null, bd = -Infinity;
       for(var i=0;i<16;i++){
         var a = i*Math.PI/8, x = b.baseX + Math.cos(a)*r, y = b.baseY + Math.sin(a)*r;
-        if(insideSolidWall(x, y) || !fightPathFree(b, b.baseX, b.baseY, x, y) || fightSeen(e, x, y, b.z)) continue;
+        if(insideSolidWall(x, y) || !fightPathFree(b, b.baseX, b.baseY, x, y) || fightSeen(e, x, y, b.z) || fightMateAt(b, x, y)) continue;
         if(pass === 0 && others.some(function(o){ return hasLOS(x, y, o.x, o.y, b.z); })) continue;
-        var de = Math.hypot(x-e.x, y-e.y); if(de > bd){ bd = de; best = {x:x, y:y}; }
+        var de = toward ? -Math.hypot(x-toward.x, y-toward.y) : Math.hypot(x-e.x, y-e.y); if(de > bd){ bd = de; best = {x:x, y:y}; }
       }
       if(best) return best;
     }
@@ -117,6 +121,16 @@ function fightRand(b, salt){ return hashRand(tick*31 + b.id.charCodeAt(0)*17 + b
 // и жив, бот в обмене не позади (получил от всех с начала перестрелки не больше, чем нанёс ему), второй видимый враг — только если свой рядом
 // может его открыть (размен), бот не перезаряжается. Чисел нет: «впереди» — сравнение урона, а не порог HP (в ответе чисел нет)
 function duelHits(L, t0, id){ var s = 0; (L || []).forEach(function(h){ if(h[0] >= t0 && (id == null || h[1] === id)) s += h[2]; }); return s; }
+// (v518b, пак 09.11 п.5) задача требует давить, а не дуэль «по таблице»: числа перестрелки про (PEEK_PRO) — про одиночную дуэль; а когда сбивают
+// дефуз / не успевают дефузнуть (taskSlackSec, 110 — бомба) или T идёт выходом к своей точке на сайте — стоять за укрытием нельзя. Владелец:
+// А-39 «трое T просто стоят … не дают даже дефуз сбить», А-5 «никто не протягивает раш». Тогда: на линии — пока не проигрывает обмен
+// заметно (FIGHT_PUSH_LOSE HP), укрытие — вперёд по задаче, выглядывает снова всегда
+var FIGHT_PUSH_SLACK = 8, FIGHT_PUSH_LOSE = 30;   // с, HP — проектные числа
+function fightPush(b){
+  if(bomb && bomb.state === "planted") return taskSlackSec(b) < FIGHT_PUSH_SLACK;
+  var tt = teamTac.T;
+  return b.team === "T" && b.tRole !== "lurker" && !!tt && tt.phase === "execute" && !!b.post && Math.hypot(b.post.x-b.baseX, b.post.y-b.baseY) > 120 && tt.site && SITES[tt.site] && Math.hypot(b.post.x-SITES[tt.site].x, b.post.y-SITES[tt.site].y) < 600;
+}
 function duelEdge(b, F){
   var e = F.e; if(!e || !e.alive) return null;
   var vis = b._visible || []; if(vis.indexOf(e) < 0) return null;
@@ -168,8 +182,13 @@ function fightCycleTick(b, dtSec, busy){
       if(DE){ F.until = tick + Math.max(b.reactionTicks || 1, Math.round(peekQ(D.dur, fightRand(b, 9))*TICK_HZ));
         if(!b._fcD || tick - b._fcD > 4*TICK_HZ){ b._fcD = tick; logEvent(b.id+": дуэль выгодна (нанёс "+DE.dealt+", получил "+DE.taken+") — остаюсь на линии, добиваю"); }
         return; }
-      var c = fightCover(b, e, peekQ(D.shift, fightRand(b, 2)));
-      if(!c) c = fightCover(b, e, D.shift[4]);
+      var push = fightPush(b), tw = push && b.post ? {x:b.post.x, y:b.post.y} : null;
+      if(push && duelHits(b._hitIn, F.t0, null) - duelHits(b._hitOut, F.t0, e.id) < FIGHT_PUSH_LOSE && !b._reloading && b.ammo > 0){
+        F.until = tick + Math.max(b.reactionTicks || 1, Math.round(peekQ(D.dur, fightRand(b, 9))*TICK_HZ));
+        if(!b._fcP || tick - b._fcP > 4*TICK_HZ){ b._fcP = tick; logEvent(b.id+": давлю по задаче — остаюсь на линии"); }
+        return; }
+      var c = fightCover(b, e, peekQ(D.shift, fightRand(b, 2)), tw);
+      if(!c) c = fightCover(b, e, D.shift[4], tw);
       if(!c){ F.until = 0; F.t = tick; return; }   // укрыться негде — остаётся на линии
       F.ph = "off"; F.cx = c.x; F.cy = c.y; F.ax = b.baseX; F.ay = b.baseY; F.own = false;
       F.until = tick + Math.round(peekQ(D.pause, fightRand(b, 3))*TICK_HZ);
@@ -188,7 +207,7 @@ function fightCycleTick(b, dtSec, busy){
     // раненого мной врага (в обмене впереди) — выглядывает добить (ответ нейросети: пик становится дуэлью, если «можно добить раненого»);
     // иначе — доля повторного пика про
     var fin = F.e && F.e.alive && duelHits(b._hitOut, F.t0, F.e.id) > duelHits(b._hitIn, F.t0, null);
-    if(!fin && fightRand(b, 4) >= D.repeek){ b._fc = null; return; }   // не выглядывает снова — перестрелка закончена
+    if(!fin && !fightPush(b) && fightRand(b, 4) >= D.repeek){ b._fc = null; return; }   // не выглядывает снова — перестрелка закончена ((v518b) давить по задаче — выглядывает всегда)
     F.ph = "back"; F.nPeek = (F.nPeek || 0) + 1; F.sh = null;
     if(F.better){ F.ax = F.better.x; F.ay = F.better.y; F.better = null; }   // (М149) выглядывает с места, откуда видно врага целиком
     // (ответ 4) второй и дальше пик в этой перестрелке — с другого места (не ближе медианы сдвига про D.shift[2] к прошлому): не однообразный джигл
