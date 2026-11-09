@@ -12,11 +12,13 @@ var clutchShown = null, clutchInfo = null;
 function esc(t){ return String(t).replace(/[&<>]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;"}[c]; }); }
 // (v241) киллфид как в CS2 (из переделки): иконка оружия, ассист (40+ урона или флешка), значки
 // «в голову», «убийца ослеплён». wkey — ключ WEAPONS, "HE", "MOLOTOV" или "KNIFE"
+// (v518d, владелец А-17: «если по нему пострелял ещё и враг, в помощи показывается ник врага») ассист — только своему убийцы (при убийстве своего
+// урон по убитому нанесли враги — их в ассист не ставим); убийца себе не ассистирует; то же — флешкой
 function killAssist(att, vic){
-  var best = null, bd = 39, D = vic._dmgBy || {};
-  for(var id in D) if((!att || id !== att.id) && D[id] > bd){ bd = D[id]; best = id; }
+  var best = null, bd = 39, D = vic._dmgBy || {}, mine = function(id){ var o = att ? teamBot(id) : null; return !!o && o.team === att.team && id !== att.id; };
+  for(var id in D) if(mine(id) && D[id] > bd){ bd = D[id]; best = id; }
   if(best) return {id:best, flash:false};
-  if(vic._blindBy && vic.blindUntil > tick && (!att || vic._blindBy !== att.id)) return {id:vic._blindBy, flash:true};
+  if(vic._blindBy && vic.blindUntil > tick && mine(vic._blindBy)) return {id:vic._blindBy, flash:true};
   return null;
 }
 function feedKill(att, vic, wkey, hs, mods){
