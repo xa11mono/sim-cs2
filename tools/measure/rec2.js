@@ -41,6 +41,15 @@ var oad=applyDamage; applyDamage=function(att,b,dmg,src){ var h0=b?b.hp:0; var r
 // (v262) К4: ротация CT — кто на какой сайт идёт по колу (ct.rot); разворот = сайт сменился (A→B) или сняли и снова
 // послали на тот же в одном раунде; «бросили» = сняли с ротации без планта/смерти/конца раунда. К5: бомбу выбили
 // (носитель погиб) — кто через 5 с её держит взглядом, сколько CT ближе 900 px, куда колл.
+// (v518, пак владельца 09.11, шаг 0 — чего не было в записи) jump — прыжок / спрыг бота [тик, бот, x, y, z, вверх 1/0, на месте (удержание) 1/0, задача];
+// arrive — «дошёл до поста» с высотой не своего пола [тик, бот, задача, z бота, верхний пол у точки поста]; defst — начал дефуз [тик, кто, назначен ретейком];
+// recall — смена сайта T [тик, с, на, кто вызвал (функция)]; pick — подбор оружия [тик, текст]; he — урон HE [тик, жертва, 3D-линия от точки разрыва 1/0];
+// blind — ослепление [тик, кто, секунд, чья флешка]
+REC.jump=[]; REC.arrive=[]; REC.defst=[]; REC.recall=[]; REC.pick=[]; REC.he=[]; REC.blind=[]; var ATP={}, DFP={}, BLP={};
+if(typeof tSetSite==='function'){ var oss=tSetSite; tSetSite=function(tt,site){ var old=tt&&tt.site; if(roundState==='live'&&old&&site&&old!==site){ var st=String(new Error().stack||'').split('\n')[2]||''; REC.recall.push([tick, old, site, (st.match(/at (\w+)/)||[])[1]||'?']); } return oss.apply(this,arguments); }; }
+if(typeof logEvent==='function'){ var olp=logEvent; logEvent=function(text){ if(roundState==='live'&&/подобрал/.test(String(text))&&REC.pick.length<5000) REC.pick.push([tick, String(text).slice(0,120)]); return olp.apply(this,arguments); }; }
+var odh=detonate; detonate=function(n){ if(roundState==='live'&&n&&n.type==='he'&&typeof visLine==='function'){ bots.forEach(function(b){ if(!b.alive||Math.hypot(b.x-n.x,b.y-n.y)>NADE.he.radius) return; if(!hasLOS(n.x,n.y,b.x,b.y,null,b.z)) return;
+  var l3=visLine(n.x,n.y,n.z,b.x,b.y,visFloorAt(b.x,b.y,b.z)+VIS_EYE.crouch,false)?1:0; REC.he.push([tick, b.id, l3]); }); } return odh.apply(this,arguments); };
 REC.rotx={n:0, rev:0, back:0, drop:0, ev:[]}; REC.bd=[]; var RX={}, BD=null, BS0=null;
 for(var t=0;t<__T__;t++){ var _t0=performance.now(); stepTick(); var _dt=performance.now()-_t0; if(_dt>25 && roundState==='live'){ var _nt=bots.filter(function(b){return b.alive&&b.nadeTask;}); REC.slow.push([tick, Math.round(_dt), (typeof nadesInAir!=='undefined'&&nadesInAir.length)||0, _nt.length, _nt.map(function(b){return b.id+':'+b.nadeTask.type;}).join(' ')]); } if(typeof WATCH!=='undefined') WATCH.tick();
  if(SNAP_NEXT && matchNum===M0){ REC.snaps[SNAP_NEXT] = {t:tick, s:snapTake()}; SNAP_NEXT = 0; }
@@ -71,6 +80,11 @@ for(var t=0;t<__T__;t++){ var _t0=performance.now(); stepTick(); var _dt=perform
  if(roundState==='live') bots.forEach(function(b){ var V=b.alive?(b._visible||[]):[], now={}; V.forEach(function(v){ now[v.id]=1; if(!(SEEN[b.id]||{})[v.id]) REC.see.push([tick, b.id, v.id, Math.round(Math.hypot(v.x-b.x,v.y-b.y))]); }); SEEN[b.id]=now; });
  if(roundState==='live') bots.forEach(function(b){ var ph=b.alive&&b._fc?b._fc.ph:''; if((FCP[b.id]||'')!==ph){ var e=b._fc&&b._fc.e; REC.fc.push([tick, b.id, FCP[b.id]||'', ph, e?e.id:'', e?Math.round(Math.hypot(e.x-b.x,e.y-b.y)):0, e&&e.alive?1:0, b._sawEnemy?1:0, Math.round(b.hp)]); FCP[b.id]=ph; }
    var tg=b.alive&&b.post?String(b.post.tag):''; if((TKP[b.id]||'')!==tg){ REC.task.push([tick, b.id, tg]); TKP[b.id]=tg; } });
+ if(roundState==='live') bots.forEach(function(b){ if(!b.alive) return;
+   if(b._jump&&b._jump.t===tick&&REC.jump.length<20000) REC.jump.push([tick, b.id, Math.round(b.x), Math.round(b.y), Math.round(b.z||0), b._jump.up?1:0, b._jc?1:0, b.post?String(b.post.tag):'']);
+   if(b.atPost&&!ATP[b.id]&&b.post&&b.z!=null){ var fz=visFloorAt(b.post.x,b.post.y,null); if(Math.abs(fz-b.z)>40) REC.arrive.push([tick, b.id, String(b.post.tag), Math.round(b.z), Math.round(fz)]); } ATP[b.id]=!!b.atPost;
+   if(b.defusing&&!DFP[b.id]) REC.defst.push([tick, b.id, (bomb.retake&&bomb.retake.defId)||'']); DFP[b.id]=!!b.defusing;
+   var bu=b.blindUntil||0; if(bu>tick&&bu>(BLP[b.id]||0)+8) REC.blind.push([tick, b.id, Math.round((bu-tick)/TICK_HZ*10)/10, b._blindBy||'']); BLP[b.id]=bu; });
  if(tick%32===0 && roundState==='live') bots.forEach(function(b){ if(b.alive) REC.act.push([tick, b.id, b.post?String(b.post.tag):'', b.state||'', b._fc?b._fc.ph:'', tick<(b.blindUntil||0)?1:0, b.crouching?1:0, b.atPost?1:0]); });
  if(cur && typeof teamTac!=='undefined' && teamTac.T){ if(cur.lowPlan===undefined) cur.lowPlan=teamTac.T.lowPlan||null; if(cur.exec==null && teamTac.T.execStart!=null) cur.exec=teamTac.T.execStart; }
  if(tick%16===0){ REC.hp=REC.hp||[]; bots.forEach(function(b){ if(b.alive) REC.hp.push([tick, b.id, b.hp]); }); }   // (v373) HP — для сравнения раскладов с про
