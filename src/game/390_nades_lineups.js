@@ -91,7 +91,7 @@ function lineupTick(){
     if(L.pro && !nadeFlags["pr"+L.id]){ if(!(L.team === "T" && L.type === "smoke")) nadeFlags[key] = true; return; }
     var siteOk = function(k){ return L.site === "any" || L.site === k; };
     var go = false;
-    if(L.trigger === "insta") go = since > TICK_HZ;
+    if(L.trigger === "insta") go = since >= (L.at != null ? L.at : 1)*TICK_HZ;   // (п.7, 05.11) время броска про из демок (L.at, Mirage — 0,5 с); было 1 с всем
     else if(L.trigger === "timed") go = bomb.state !== "planted" && since >= (L.at||0)*TICK_HZ && since < ((L.at||0)+12)*TICK_HZ;
     else if(L.pro && L.team === "T" && L.trigger === "setup") go = tt.phase === "setup" && since >= Math.max(1, (L.at||12)-1)*TICK_HZ && siteOk(tt.site);
     else if(L.team === "T" && L.trigger === "setup") go = tt.phase === "setup" && since > 12*TICK_HZ && siteOk(tt.site);
@@ -150,9 +150,14 @@ function lineupTick(){
     // (v359, р7) кто уже стоит на сайте T (взял его) — с сайта за гранатой назад не уходит
     var onTSite = function(b){ var S = L.team === "T" && tt && SITES[tt.site]; return !!S && (onSite(S, b.x, b.y) || Math.hypot(b.x-S.x, b.y-S.y) < 450) && Math.hypot(L.from.x-S.x, L.from.y-S.y) > Math.hypot(b.x-S.x, b.y-S.y) + 200; };
     var cand = bots.filter(function(b){ return okBot(b) && !b.nadeTask && !onTSite(b); }).sort(function(a, b2){ return cost(a) - cost(b2); })[0];
-    // (v429) запланированную цель кидает её хозяин по плану гранат; хозяин жив, но сейчас не может (занят, далеко) — ждём его
-    if(L.pro && L.grp && bots.some(function(o){ return o.alive && o.team === L.team && npOwner(o, L); }))
-      cand = bots.filter(function(b){ return okBot(b) && !b.nadeTask && !onTSite(b) && npOwner(b, L); }).sort(function(a, b2){ return cost(a) - cost(b2); })[0];
+    // (v429) запланированную цель кидает её хозяин по плану гранат. (00_PLAN п.7, ответ владельца 5, 05.11: «кидает тот, у кого есть граната,
+    // бросок и маршрут не ломается, успевает») хозяин сейчас не может (занят, далеко, не по пути) — кидает тот, кто может (есть граната,
+    // точка броска рядом и по пути — okBot), если его граната этого типа не закреплена за другой целью на этот момент; раньше ждали хозяина
+    // (разбор отметок п.7: на точке броска стоял не хозяин, хозяин был далеко — граната полетела поздно)
+    if(L.pro && L.grp && bots.some(function(o){ return o.alive && o.team === L.team && npOwner(o, L); })){
+      var candO = bots.filter(function(b){ return okBot(b) && !b.nadeTask && !onTSite(b) && npOwner(b, L); }).sort(function(a, b2){ return cost(a) - cost(b2); })[0];
+      cand = candO || (cand && npCanUse(cand, L.type, luM, luZ) ? cand : null);
+    }
     // (v355) свободного нет — граната выхода встаёт в очередь тому, кто уже идёт на лайнап рядом (точки броска ≤ EXEC_QUEUE_R):
     // кинет вторую следом (через NADE_GAP), как про кидают смок + флешку с одной точки. Раньше: одно задание на бойца — лайнап сгорал
     // (v359, владелец: «один и тот же игрок кидает несколько гранат по очереди; обычно гранаты дают одному — чтобы другие пикали не
@@ -216,6 +221,8 @@ function lineupTick(){
     var luSec = Math.max(luBase, Math.ceil(luLen/(SPEED*weaponSpeedMul(cand)) + LU_REACH_PAD));
     cand.nadeTask = {type:L.type, x:LS.to.x, y:LS.to.y, from:{x:LS.from.x, y:LS.from.y}, until: tick + luSec*TICK_HZ, why:"лайнап «"+(LS.name||LU_TYPE[L.type])+"»",
                      start:tick, lob:true, range:4000, now:true, lineup:true, exec:execT && L.type === "smoke", npm:luM, luL: L.pro && L.grp ? L : null, luId: LS.id};
+    // (п.14) флешка CT на тайминг — под конкретного выглядывающего (не бросающего): он выйдет на хлопок (380)
+    if(L.pro && L.team === "CT" && L.trigger === "timed" && L.type === "flash"){ var pkr = npPeekReady("CT", L.to, cand); if(pkr) cand.nadeTask.peekFor = pkr.id; }
     logEvent(cand.id+": идёт на лайнап «"+(LS.name||LU_TYPE[L.type])+"»");
   });
 }

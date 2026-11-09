@@ -164,7 +164,7 @@ var TASK_LEVEL = [   // сверху — важнее; первая подход
   {lv:6,  kind:"перестановка в бою", re:/^repos/},
   {lv:5,  kind:"команда",            re:/^(fill$|rotateHold|fetchCover|bombEscort|bombWait|coverplant|flank\d$)/},   // (п.20 владельца 29.10: фланг CT
   // «из-за частого перебивания путей… нет захода в спину» — был уровнем 1, его перебивало и ожидание у дыма) фланг — задача команды
-  {lv:4,  kind:"гранаты/ожидания",   re:/^(lineup|smokeWait|utilWait|utilHold)$/},
+  {lv:4,  kind:"гранаты/ожидания",   re:/^(lineup|smokeWait|smokeLine|utilWait|utilHold)$/},
   {lv:3,  kind:"личная перестановка",re:/^(pickup$|probe|rebal|shift$|earlyPeek|midcover)/},
   {lv:2,  kind:"маршрут",            re:/^route:/},
   {lv:1,  kind:"пост роли",          re:/(?:)/}
@@ -217,10 +217,15 @@ function setPost(b, pt, look, hold, tag, spreadIdx){
       return setPost(b, cp, nx, true, "route:"+R.names[Math.min(R.idx, R.names.length-1)]);
     }
   }
+  if(lv === 1 && !/^after:/.test(String(tag))){ var AF = afterTaskPick(b, pt); if(AF) return setPost(b, AF.pt, AF.look, true, "after:hold"); }
   if(!taskCanSet(b, tag)) return false;
   var tagB = taskTagB(tag);
   var psn = (BAL.proSpots && hold && pt) ? proSnap(b, pt, look, tag) : null;
   if(psn){ pt = psn.pt; spreadIdx = 0; }
+  // (00_PLAN п.3а, 05.11, прогон 173: Mirage — «держать бомбу» / «мало HP» у Vent на (845, 807), за краем пола, — бот упирался или его
+  // переносило по кругу) точка поста — на полу: вне навмеша — ближайшая точка ближайшего участка (в 40 ед., как перенос navSnap)
+  if(pt && !navAt(pt.x, pt.y)){ var naP = navFloorNear(pt.x, pt.y, 40, function(a){ return b.z == null || Math.abs(a.z - b.z) <= JUMP_UP; });
+    if(naP){ var cqP = navClampInto(naP, pt.x, pt.y); pt = Object.assign({}, pt, {x:cqP.x, y:cqP.y}); } }
   var id = tag + "|" + Math.round(pt.x) + "," + Math.round(pt.y);
   if(!b._task || b._task.tb !== tagB || b._task.round !== roundNum || !taskAlive(b)) b._task = {tag:String(tag), tb:tagB, lv:lv, t0:tick, t:tick, round:roundNum};
   else { b._task.t = tick; b._task.tag = String(tag); }
@@ -243,6 +248,21 @@ function setPost(b, pt, look, hold, tag, spreadIdx){
   b.atPost = false;
   if(b.state === "patrol"){ b.path = []; b.pathIdx = 0; }
   return true;
+}
+// (5) после временной задачи (ответ владельца 04.11, `docs/tasks/OWNER_ANSWERS_2026-11-04.md`): не «вернуться на пост», а оценить. Ушёл
+// по бою (контакт, перестановка в бою — уровни 9 и 6), задача кончилась, роль зовёт на пост: если враг, известный команде (за SITE_SEEN_SEC),
+// простреливает пост, а место, где бот сейчас, — нет, угроза осталась: остаётся, где стоит, смотрит на врага; инфа устарела / враг ушёл —
+// назад на пост. На посту свой — пост сдвигается рядом (spotTaken в setPost), команда ротирует — роль даёт новый пост (сама)
+function afterTaskPick(b, pt){
+  var T = b._task;
+  if(T && T.round === roundNum && (T.lv === 9 || T.lv === 6) && !taskAlive(b)) b._aft = {round:roundNum, x:b.baseX, y:b.baseY};
+  var A = b._aft; if(!A || A.round !== roundNum || !pt) return null;
+  var BL = beliefLast[b.team] || {}, foe = b.team === "T" ? "CT" : "T", th = null;
+  bots.some(function(o){ var e = BL[o.id]; if(!o.alive || o.team !== foe || !e || tick - e.tick > SITE_SEEN_SEC*TICK_HZ) return false;
+    if(hasLOS(e.x, e.y, pt.x, pt.y) && !hasLOS(e.x, e.y, A.x, A.y)){ th = e; return true; } return false; });
+  if(!th){ b._aft = null; return null; }
+  if(b._aftSaid !== roundNum && (b._aftSaid = roundNum)) logEvent(b.id+": задача кончилась, но пост простреливается ("+calloutName(th.x, th.y).replace(/^на /,"")+") — остаюсь");
+  return {pt:{x:A.x, y:A.y}, look:{x:th.x, y:th.y}};
 }
 // механика сама сняла свою точку — её задача кончилась (следующая ставится без ожидания)
 function clearPost(b){ b._task = null; if(b.post){ b.post = null; b.atPost = false; if(b.state==="patrol"){ b.path = []; b.pathIdx = 0; } } }

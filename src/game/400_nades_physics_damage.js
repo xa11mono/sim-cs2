@@ -29,7 +29,8 @@ function nadeOrigin(n){
   if(!saw) return;
   var j = hashRand(tick*31 + n.ox*7), ja = hashRand(tick*17 + n.oy*3)*Math.PI*2, ex = n.ox + Math.cos(ja)*120*j, ey = n.oy + Math.sin(ja)*120*j;
   if(insideSolidWall(ex, ey)){ ex = n.ox; ey = n.oy; }
-  intelPush(foe, {type:"sound", x:ex, y:ey, id:n.thrower.id, kind:"nade", by:saw.id});
+  // (00_PLAN, аудит 2.2, 05.11) видевший бросок говорит в войс (230: «слышу» — с задержкой фразы), а не мгновенно в память команды
+  var zN = knowZoneAt(ex, ey); if(zN && saw.voice) teamPropose(saw, {kind: "hear", zone: zN, sound: "nade", count: 1});
   (saw.ears || (saw.ears = [])).push({x:ex, y:ey, tick:tick, team:n.team, kind:"nade", occl:true});
   // (док 6) в войс — через знание и канал команды (teamNotice: «гранату кинули из X»), а не отдельной надписью
 }
@@ -131,7 +132,10 @@ function applyDamage(att, b, dmg, src, o){
   if(o.armorRatio != null) dmg = armorSoak(b, dmg, o.armorRatio, src);
   if(mate){ var fx = dmg + (b._ffFrac||0); dmg = Math.floor(fx); b._ffFrac = fx - dmg; if(dmg <= 0) return false; }
   else { dmg = Math.round(dmg); if(dmg <= 0) return false; }
-  if(foe){ var dl0 = Math.min(dmg, Math.max(0,b.hp)); foe.roundDmg = (foe.roundDmg||0) + dl0; var D0 = b._dmgBy || (b._dmgBy = {}); D0[foe.id] = (D0[foe.id]||0) + dl0; }
+  if(foe){ var dl0 = Math.min(dmg, Math.max(0,b.hp)); foe.roundDmg = (foe.roundDmg||0) + dl0; var D0 = b._dmgBy || (b._dmgBy = {}); D0[foe.id] = (D0[foe.id]||0) + dl0;
+    // (дуэли 06.11) кто кому сколько в этой перестрелке — 470 duelEdge: последние попадания у обоих, [тик, кто, урон]
+    var HL = b._hitIn || (b._hitIn = []); HL.push([tick, foe.id, dl0]); if(HL.length > 16) HL.shift();
+    var HO = foe._hitOut || (foe._hitOut = []); HO.push([tick, b.id, dl0]); if(HO.length > 16) HO.shift(); }
   b.hp -= dmg;
   if(b.hp > 0) return false;
   b.alive = false; b.deaths++; b._killer = att && att !== b ? att.id : null;   // (v330) кто убил — для обсервера (показ)
@@ -142,7 +146,7 @@ function applyDamage(att, b, dmg, src, o){
   intelDeath(b, foe);   // своего убил свой — в войсе «минус», без «убил X»: враг тут ни при чём
   if(foe){ LOOK_REPLAN[foe.team] = true; foe._killHowT = tick; }   // _killHowT — для обсервера (показ)
   if(foe) hlKill(foe);   // (v447) хайлайт: серия в ударе
-  if(foe){ foe.kills++; foe.roundKills++; foe.money = Math.min(MAX_MONEY, foe.money + (o.reward || 300)); }
+  if(foe){ foe.kills++; foe.roundKills++; foe.money = Math.min(MAX_MONEY, foe.money + (o.reward || 300)); ecoKnowKill(foe, o.reward || 300); }   // (Г1) награда видна в киллфиде
   else if(mate) att.money = Math.max(0, att.money + FF_TK_CASH);
   var wkey = o.wkey || (src === "HE" ? "HE" : "MOLOTOV");
   logEvent((att?att.id:(src === "C4" ? "бомба" : "?"))+" ["+(o.wkey ? (WEAPONS[o.wkey] ? WEAPONS[o.wkey].name : o.wkey) : src)+"] "+(mate ? "убил своего " : att === b ? "убил себя " : "устранил ")+b.id+(o.note||""), true);

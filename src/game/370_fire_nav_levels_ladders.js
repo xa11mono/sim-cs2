@@ -191,12 +191,17 @@ function navNearestZ(x, y, tol, z){
 // (Б1, Х1) «бот на полу» — одно место для шага (offNavStep) и для проверки «вне навмеша» (stepTick → navSnap): пол своего уровня в
 // NAV_STEP_TOL или щель к связанному участку в NAV_GAP_TOL. Раньше шаг пускал в щель, а проверка считала пол по NAV_STEP_TOL и на
 // своей высоте bot.z: бот, идущий по шву между участками, через 0,5 с «вне навмеша — перенесён» со сбросом пути
-function navOnFloor(x, y, b, cur){
+function navOnFloor(x, y, b, cur, strict){
   var lvl0 = navArea(b._area) ? navArea(b._area).z : b.z;
   if(navNearLevel(x, y, NAV_STEP_TOL, lvl0)) return true;
   cur = cur || navArea(b._area); if(!cur) return false;
   // (v403, отметка владельца 22.10, A Default: «прошёл сквозь укрытия») щель к участку, связанному только обратной связью (с него
   // можно спрыгнуть сюда), — не шаг туда, если он выше ступеньки: с пола в ящик высотой 70 бот «входил» по связи «спрыгнуть с ящика»
+  // (00_PLAN п.3а, 05.11, прогон 172: Mirage м11 — 6 переносов подряд у Vent, 844,805) для ШАГА (strict, offNavStep) щель — это шов МЕЖДУ
+  // участками: точка в NAV_GAP_TOL и от своего, и от связанного. Иначе, идя с соседнего участка, бот заходил на 7 ед. за наружный край Vent
+  // (там стена), участок становился Vent — и та же точка уже «вне пола» → перенос. Проверка «вне пола» (stepTick) — мягкая, как была:
+  // всё, что пустил шаг, она принимает (строгое для неё — прогон 173: переносов 55 → 138 — бот в законной щели, пока участок не сменился)
+  if(strict && !navFloorNear(x, y, NAV_GAP_TOL, function(a){ return a === cur; })) return false;
   return !!navFloorNear(x, y, NAV_GAP_TOL, function(a){ return a !== cur && (navLinked(cur, a) || (navLinked(a, cur) && a.z <= cur.z + 18)); });
 }
 // (v403) высота бота — одно место: после любого движения за тик (шаг пути, бой — fightCycleTick, у угла, пик; stepTick зовёт в конце
@@ -253,7 +258,9 @@ function navFollowFloor(bot){
     else if(roundState === "live" && djz > 18) bot._landAt = tick + Math.round(LAND_DELAY*TICK_HZ);
     // (v333) сменил этаж (спуск, лестница) — путь, построенный с прежнего этажа, пересчитывается с нового
     if(Math.abs(dzz) > JUMP_UP && bot.path && bot.pathIdx < bot.path.length){ bot.path = []; bot.pathIdx = 0; }
-    bot.z = naz.z; bot._area = naz.id; }
+    // (Г1, 04.11, разбор отметок п.15) высота бота — пол участка под ногами (плоскость по высотам углов, navFloorZ), а не одна высота на
+    // весь участок: на ровном Top Mid стык участков −205 / −179 давал скачок +26 за тик (сторож: 53–74 таких скачка на раунд)
+    bot.z = navFloorZ(naz, bot.baseX, bot.baseY); bot._area = naz.id; }
 }
 // (v403) как далеко от пола своего уровня (± JUMP_UP) точка: 0 — на полу, дальше NAV_OFF_R — NAV_OFF_R+1 (шаг 2 ед. карты)
 var NAV_OFF_R = 24;   // проектное число: дальше бот вне пола не бывает (перенос navSnap — через 0,5 с)
@@ -272,7 +279,7 @@ function offNavStep(x1, y1, x2, y2, b){
   // (v405) шаг по пути к следующей точке (спрыгнуть с края стенки на рампу — отметка владельца 22.10, T Ramp: T вставали на краю) — можно
   var a1 = navNearLevel(x1, y1, NAV_STEP_TOL, lvl0); if(!a1) return !navStepAlongPath(x1, y1, x2, y2, b) && navFloorDist(x2, y2, lvl0) > navFloorDist(x1, y1, lvl0);
   var cur = navArea(b._area) || a1;
-  if(navOnFloor(x2, y2, b, cur)) return false;
+  if(navOnFloor(x2, y2, b, cur, true)) return false;
   // (v341, отметка владельца: sh1ro и magixx «снова застряли там же» — спуск со спавна T, −166 → −258) щель спрыгивания бывает
   // шире NAV_GAP_TOL: шаг по пути прямо к следующей точке, под которой пол связанного участка, — это задуманный переход
   var wp = b.path && b.path[b.pathIdx];
@@ -356,8 +363,21 @@ function navUnlinkBlocked(bot, pw){
   PATHQ = {}; PATHQ_N = 0;
   logEvent("навмеш: связь "+a1.id+" → "+e.to+" непроходима (уступ) — убрана, путь заново (самоисправление)");
 }
+// (00_PLAN, владелец 05.11: «упор в стену» на Mid Boxes — 52 за 8 матчей) стена в шаге — с высотой: crossesWall — по клеткам сверху (клетка без пола
+// на любой высоте — стена во всю высоту), и боковая грань ящика под ногами стоящего на ящике была «стеной» — он не мог сойти. Плоская проверка
+// сказала «стена» — 3D-луч геометрии игры (маска «nade» — твёрдое) на высоте бота: чуть выше ступеньки (STEP_UP_Z) и на уровне тела
+// (STEP_BODY_Z); стена — если упирается. Высоты нет (Ancient без 3D, бот без z) — как было
+var STEP_UP_Z = 19, STEP_BODY_Z = 50;   // ед. игры: ступенька 18 (heightBlocked) + 1; тело — середина роста стоя (72) — проектное
+function stepWall(x1, y1, x2, y2, b){
+  if(!crossesWall(x1, y1, x2, y2)) return false;
+  var M = MAP3D && m3(); if(!M || !b || b.z == null) return true;
+  // (прогон 181, Ancient 16 матчей: переносов 45 → 67) снимать «стену» — только когда сходит вниз: пол там, куда шагает, ниже ног больше чем на
+  // ступеньку в пределах щели NAV_GAP_TOL (бот у края ящика / уступа); остальные шаги — по-старому (низкая преграда, за которой у навмеша нет пола, — стена)
+  if(!navFloorNear(x2, y2, NAV_GAP_TOL, function(a){ return a.z < b.z - 18; })) return true;   // внизу рядом (щель) пола нет — не сход
+  return !m3Line(M, x1, y1, b.z + STEP_UP_Z, x2, y2, b.z + STEP_UP_Z, "nade") || !m3Line(M, x1, y1, b.z + STEP_BODY_Z, x2, y2, b.z + STEP_BODY_Z, "nade");
+}
 function stepBlocked(x1,y1,x2,y2,b){
-  if(crossesWall(x1,y1,x2,y2)) return true;
+  if(stepWall(x1, y1, x2, y2, b)) return true;
   if(heightBlocked(x1, y1, x2, y2, b)) return true;
   if(b && b.baseX != null && offNavStep(x1, y1, x2, y2, b)) return true;   // (v336) с пола навмеша — в стену/ящик нельзя
   if(!inFire(x1,y1) && inFire(x2,y2)) return !fireCommit(b);

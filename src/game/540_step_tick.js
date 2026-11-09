@@ -672,7 +672,7 @@ function stepTick(){
     bot.x = bot.baseX + offX;
     bot.y = bot.baseY + offY;
   });
-  resolveEngagements();
+  resolveEngagements(); ecoKnowSeeTick();   // (Г1) с каким оружием видели врагов — для подсчёта их денег
   smokeSpamTick();
   infoFallbackTick();
   if(BAL.smokeReact) smokeHeTick();

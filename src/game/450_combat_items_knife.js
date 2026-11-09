@@ -41,6 +41,18 @@ function bulletVictim(sh, ex, ey, skip){
   }
   return best;
 }
+// (Г1, 04.11, разбор отметок п.5) пуля, которая летит дальше (промах, прострел дыма), попадает в первого на линии — одно место для обоих
+// (раньше прострел дыма урона не считал вовсе: трассер проходил сквозь игрока). Зона попадания — те же доли, что у промаха без хитбоксов;
+// урон — оружия на дистанции до него. Возвращает того, в кого попала, — или null
+function bulletLineHit(sh, ex, ey, skip, seed, note){
+  var sv = bulletVictim(sh, ex, ey, skip); if(!sv) return null;
+  var w = sh.weapon, sd = Math.hypot(sv.x-sh.x, sv.y-sh.y), sz = hashRand(seed);
+  var sm = sz < 0.22 ? 0.75 : (sz < 0.42 ? 1.25 : 1.0), sArm = sz >= 0.22 && sv.armor;
+  var sdmg = w.dmg * Math.pow(w.rm, sd*PX_UNITS/500) * sm;
+  sv._hurtT = tick; sv._hitFx = {t:nowTs, head:false}; if(BAL.tagging) sv._tagUntil = tick + 16;
+  applyDamage(sh, sv, sdmg, "bullet", {armorRatio: sArm ? w.armorPen : null, wkey:w.key, reward:w.killReward||300, note:" ("+note+", дист. "+Math.round(sd)+")"});
+  return sv;
+}
 function rayClipWalls(x1, y1, x2, y2){
   var best = 1, hit = false;
   for(var i=0;i<MANUAL_WALLS.length;i++){
@@ -64,8 +76,9 @@ var groundWeapons = [];
 var groundItems = [];
 var NADE_DROP_ORDER = ["molly","smoke","he","flash"];
 function dropWeaponOnDeath(b){
-  var j = function(){ return {x:b.x + (hashRand(tick*7 + groundItems.length)*16 - 8), y:b.y + (hashRand(tick*13 + groundItems.length)*16 - 8)}; };
-  if(b.primary && WEAPONS[b.primary]) groundWeapons.push({key:b.primary, x:b.x, y:b.y, t:tick, from:b.id});
+  var j = function(){ return dropOnFloor(b.x + (hashRand(tick*7 + groundItems.length)*16 - 8), b.y + (hashRand(tick*13 + groundItems.length)*16 - 8), b.z); };   // (00_PLAN) на пол (120)
+  var w0 = dropOnFloor(b.x, b.y, b.z);
+  if(b.primary && WEAPONS[b.primary]) groundWeapons.push({key:b.primary, x:w0.x, y:w0.y, t:tick, from:b.id});
   else if(b.secondary && WEAPONS[b.secondary]){ var p0 = j(); groundItems.push({kind:"pistol", key:b.secondary, x:p0.x, y:p0.y, t:tick, from:b.id}); }
   var N = b.nades || {}, nt = NADE_DROP_ORDER.filter(function(k){ return (N[k]||0) > 0; })[0];
   if(nt){ var p1 = j(); groundItems.push({kind:"nade", key:nt, x:p1.x, y:p1.y, t:tick, from:b.id}); }

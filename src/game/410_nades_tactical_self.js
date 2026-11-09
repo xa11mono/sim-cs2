@@ -173,7 +173,33 @@ function selfNadeTick(){
 //  • флешка себе под пик: идёт один на угол, за которым свежая инфа о враге
 //    (≤5с) — кидает флешку через угол и выходит на хлопок.
 var nadeReactCd = {CT:0, T:0};
+// (00_PLAN, пакет тактики, ответ владельца 4 от 04.11: «уход от HE — по звуку / виду / траектории, не после урона: до взрыва > 0,8 с —
+// полноценный отход; 0,4–0,8 — короткий шаг в ближайшее укрытие; < 0,4 — без бессмысленного рывка; куда — за стену, из зоны; держит проход
+// (AWP) / плант — может остаться и принять урон»; числа — стартовые из ответа) знает о гранате тот, кто видит её в полёте или видел бросок
+// (nd.aware — как у флешки, 380); место взрыва — куда она летит (n.tx, n.ty — та же физика, что видна глазом); в радиусе урона — уходит на
+// точку вне радиуса или за стену от места взрыва, до которой успевает дойти (бег до взрыва)
+var HE_DODGE_FULL = 0.8, HE_DODGE_MIN = 0.4;   // с — проектные числа (ответы владельца 04.11)
+function heDodgeTick(){
+  nadesInAir.forEach(function(n){
+    if(n.type !== "he") return; var DZ = n._dz || (n._dz = {});
+    var eta = ((n.etaDet || tick) - tick)/TICK_HZ; if(eta < HE_DODGE_MIN) return;
+    var R = NADE.he.radius, det = {x:n.tx, y:n.ty};
+    bots.forEach(function(b){
+      if(DZ[b.id] || !b.alive || b.planting || b.defusing || (b.primary === "AWP" && b.atPost) || b === n.thrower) return;
+      if(Math.hypot(b.x-det.x, b.y-det.y) > R || !hasLOS(b.x, b.y, det.x, det.y, b.z)) return;
+      var knows = (n.aware && n.aware[b.id]) || hasVision(b.x, b.y, n.x, n.y); if(!knows) return;
+      DZ[b.id] = 1;   // решение — один раз на гранату, в миг, когда узнал о ней
+      var reach = SPEED*eta*(eta > HE_DODGE_FULL ? 1 : 0.5);
+      var sp = pickSpots("hed"+Math.round(b.x/30)+","+Math.round(b.y/30), {x:b.x, y:b.y}, 4, {rMax:Math.max(40, reach), minGap:20, hideFrom:[det]})
+        .filter(function(q){ return Math.hypot(q.x-b.x, q.y-b.y) <= reach && (Math.hypot(q.x-det.x, q.y-det.y) > R || !hasLOS(q.x, q.y, det.x, det.y)); })
+        .sort(function(p, q){ return Math.hypot(p.x-b.x, p.y-b.y) - Math.hypot(q.x-b.x, q.y-b.y); })[0];
+      if(sp && setPost(b, sp, det, true, "repos:he")){ b._reposUntil = tick + Math.round((eta + 0.5)*TICK_HZ);
+        if(!b._heDodgeLog || tick - b._heDodgeLog > 3*TICK_HZ){ b._heDodgeLog = tick; logEvent(b.id+": HE рядом — ухожу ("+eta.toFixed(1)+" с до взрыва)"); } }
+    });
+  });
+}
 function nadeReact(){
+  heDodgeTick();
   if(tick % 8) return;
   // (19) мало HP и враг рядом — выкинуть оставшиеся гранаты во врага, пока жив
   if(BAL.utilDump) bots.forEach(function(b){
@@ -221,10 +247,12 @@ function nadeReact(){
     }
   });
   bots.forEach(function(b){
-    if(!b.alive || b._sawEnemy || b.nadeTask || b.planting || b.defusing || !b.nades || b.nades.flash <= 0) return;
+    // (00_PLAN п.14, владелец 05.11: «накиньте флешку» — общая механика; у про — 3–4 раза за раунд) идущий на угол, за которым враг, сначала
+    // просит флешку у своих (365: nadeAskFlash); некому — флешка себе, как было (только один и со своей флешкой)
+    if(!b.alive || b._sawEnemy || b.nadeTask || b.planting || b.defusing) return;
     if(!b.post || b.atPost || b.state !== "patrol" || tick < (b._selfFlashCd||0)) return;
     if(bomb.state === "carried" && bomb.carrier === b) return;
-    if(bots.some(function(o){ return o !== b && o.alive && o.team === b.team && Math.hypot(o.x-b.x, o.y-b.y) < 220; })) return; // не один — пикнут вместе
+    var alone = !bots.some(function(o){ return o !== b && o.alive && o.team === b.team && Math.hypot(o.x-b.x, o.y-b.y) < 220; });   // не один — пикнут вместе
     var dP = Math.hypot(b.post.x-b.x, b.post.y-b.y); if(dP > 260 || dP < 50) return;
     var L = beliefLast[b.team] || {}, tgt = null;
     for(var eid in L){ var lo = L[eid]; if(tick - lo.tick > 5*TICK_HZ) continue;
@@ -234,6 +262,8 @@ function nadeReact(){
     if(!tgt) return;
     if(nadesInAir.some(function(n){ return n.team === b.team && n.type === "flash" && Math.hypot((n.tx||n.x)-tgt.x, (n.ty||n.y)-tgt.y) < 150; })) return; // туда уже летит флешка
     if(teamSaving(b.team)) return;   // (v247) сейв — не выходим
+    if(nadeAskFlash(b, tgt, "флешу под пик "+b.id+" ("+calloutName(tgt.x, tgt.y)+")")){ b._selfFlashCd = tick + 12*TICK_HZ; return; }
+    if(!alone || !b.nades || b.nades.flash <= 0) return;
     b._selfFlashCd = tick + 12*TICK_HZ;
     var why = "себе под пик "+b.id;
     throwNade(b, "flash", tgt.x, tgt.y, true, why);

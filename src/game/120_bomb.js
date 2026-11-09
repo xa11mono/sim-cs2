@@ -12,7 +12,7 @@ function bombPathLen(x, y){
   var C = bomb._pathC || (bomb._pathC = {}), k = Math.round(x/8)+","+Math.round(y/8);
   if(C[k] != null) return C[k];
   var L = Infinity;
-  if(Math.hypot(x-bomb.x, y-bomb.y) < BOMB_DMG.reach){ var pts = pathPts(bomb.x, bomb.y, x, y); if(pts.length) L = polyLen(pts); }
+  if(Math.hypot(x-bomb.x, y-bomb.y) < BOMB_DMG.reach){ var pts = pathPts(bomb.x, bomb.y, x, y, bomb.z); if(pts.length) L = polyLen(pts); }
   return (C[k] = L);
 }
 function bombDamageAt(x, y){
@@ -56,7 +56,7 @@ function bombFleePoint(b){
     if(dB > BOMB_DMG.reach + 100) return;
     var q = walk(c), dq = bombDamageAt(q.x, q.y);
     var ok = dq <= Math.max(0, b.hp - FLEE_HP_MARGIN);   // там взрыв не добьёт и с запасом
-    var pts = pathPts(b.x, b.y, q.x, q.y);
+    var pts = pathPts(b.x, b.y, q.x, q.y, b.z);
     if(pts.length < 1) return;
     var L = polyLen(pts), minD = Infinity;
     for(var k=1;k<pts.length;k++){ var dd = distToSeg(bomb.x, bomb.y, [pts[k-1][0], pts[k-1][1], pts[k][0], pts[k][1]]); if(dd < minD) minD = dd; }
@@ -82,14 +82,33 @@ function resetBomb(){
   bomb = {state:"carried", carrier:carrier, x:carrier.x, y:carrier.y, site:null, plantTick:-1, explodeTick:-1};
   bots.forEach(function(b){ b.planting = false; b.defusing = false; b.fakeUntil = 0; b.fakeHoldUntil = 0; b.retakeRole = null; b._defuseHeard = -9999; b._tradeLock = null; b._fillLock = null; });
 }
+// (00_PLAN, прогон 184: Mirage м23 — 32 переноса «вне пола» у T Ramp, 1482,1281, бот шёл за бомбой) упавшее (бомба, оружие, гранаты, кит) — на пол
+// навмеша: место смерти — рисуемая позиция (b.x: стрейф, отход от стены) и разброс предметов ±8 бывают в стене; там — ближайшая точка
+// ближайшего участка (в 40 ед., как перенос navSnap и точка поста setPost)
+function dropOnFloor(x, y, z){
+  if(navAt(x, y)) return {x:x, y:y};
+  var a = navFloorNear(x, y, 40, function(q){ return z == null || Math.abs(q.z - z) <= JUMP_UP; }); if(!a) return {x:x, y:y};
+  var c = navClampInto(a, x, y); return {x:c.x, y:c.y};
+}
 function dropBomb(b){
   if(bomb && bomb.state === "carried" && bomb.carrier === b){
-    bomb.state = "dropped"; bomb.x = b.x; bomb.y = b.y; bomb.carrier = null;
+    var dp = dropOnFloor(b.x, b.y, b.z); bomb.state = "dropped"; bomb.x = dp.x; bomb.y = dp.y; bomb.carrier = null;
     logEvent(b.id+" погиб с бомбой — C4 на земле");
   }
 }
 // звук дефуза слышат T в радиусе 700px — именно звук, а не "всезнание":
 // T, которые не рядом, про дефуз не знают
+// (Г1, 04.11, разбор отметок п.4) сколько секунд этому CT до снятия бомбы — одно место для всех оценок «успеем ли» (сейв, сбор ретейка,
+// дефузер, ниндзя, контакт): уже дефузит — остаток дефуза (раньше и ему считали полные 10 с — сейв всей команды при начатом дефузе);
+// иначе путь по навмешу (раньше в части мест — прямая × 1,3 / 1,2) + время дефуза. from — точка, откуда считать (точка сбора), иначе — сам бот
+function defuseEta(b, from){
+  if(b.defusing) return Math.max(0, (b.defuseUntil - tick)/TICK_HZ);
+  // (Г3, 04.11, разбор отметок п.32: роль дефузера CT4 ↔ CT2 каждые 0,5 с) время — по кратчайшему пути навмеша: путь команды (обход мест,
+  // где ждут врага) меняется вместе со знанием и прыгал между двумя маршрутами (Kitchen ↔ Apartments) — оценка «кто раньше» скакала
+  // (00_PLAN п.3б) путь — с высотой бота и бомбы (pathPts без высоты брал этаж наугад: оценка у стоящего бота 9,9 → 16,7 с, м11 р8)
+  var f = from || b, L = polyLen(pathPts(f.x, f.y, bomb.x, bomb.y, f.z, bomb.z));
+  return L/SPEED + (b.kit ? DEFUSE_KIT_TICKS : DEFUSE_TICKS)/TICK_HZ;
+}
 var DEFUSE_HEAR = 700;
 var DEFUSE_R = 30;
 function defuseSees(b){
@@ -97,7 +116,7 @@ function defuseSees(b){
   var fb = visFloorAt(bomb.x, bomb.y, bomb.z), az = b._area && navArea(b._area); if(bomb.z != null && Math.abs(fb - bomb.z) > JUMP_UP) fb = bomb.z;
   return !visWallHit(b.baseX, b.baseY, bomb.x, bomb.y) && visMarch(b.baseX, b.baseY, fv + VIS_EYE.crouch, bomb.x, bomb.y, fb + 8);
 }
-var ESC_MAX_SEC = 8, ESC_WAIT_SEC = 8;
+var ESC_MAX_SEC = 8;   // (05.11) ESC_WAIT_SEC (8 с всем) убран — сколько ждать сопровождающего, по ситуации (170, ответ владельца 10)
 var UTIL_WAIT = 7, UTIL_WAIT_RUSH = 2.5, UTIL_AT_ENTRY = 140, UTIL_MIN_LEFT = 25;   // (v363) 7 с — между медианой 2,7 и 75 % 6,6 с у про (последняя граната → заход первого), 25 с до конца — уже не ждут   // (v346) ждать свои гранаты на выходе — проектные числа   // (v342) сопровождение носителя — проектные числа
 function defuseSound(ct){
   bots.forEach(function(o){
@@ -121,7 +140,7 @@ function ctDefuseThreat(dTicks){
   var BL = beliefLast.CT || {};
   return bots.some(function(t){ if(t.team !== "T" || !t.alive) return false; var e = BL[t.id];
     if(!e || tick - e.tick > 8*TICK_HZ) return true;
-    return polyLen(pathPts(e.x, e.y, bomb.x, bomb.y))/SPEED*TICK_HZ < dTicks; });
+    return polyLen(pathPts(e.x, e.y, bomb.x, bomb.y, e.z, bomb.z))/SPEED*TICK_HZ < dTicks; });
 }
 // (тактика 30.10, задание владельца: «T не должны на звук дефуза выходить всей командой; один проверяет / провоцирует, остальные
 // поддерживают; не пикать на каждый звук»; PRO_PLAY 6ж) ответ: "all" — все на бомбу (дефуз идёт дальше первого звука — настоящий, или

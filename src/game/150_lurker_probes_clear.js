@@ -22,7 +22,35 @@ function lurkerBrain(b, tt, other){
     startRoute(b, P.via, "lurk"+other+pi);
   }
   var LP = b._lurkPlan;
+  // (00_PLAN, пакет тактики, ответ владельца 05.11: «лёркер сам решает обход — только по информации команды и плану: подтверждённый стак CT на
+  // другой стороне, CT не успевают по времени, CT сместились ротацией; не уходит, если выход уже идёт или маршрут опасен; прошёл — «пусто»
+  // только про проверенное; дальше — держать проход, резать ротацию, поздний выход со своей стороны, к команде, если мало времени»)
+  // до выхода (сетап): у сайта выхода команда недавно (SITE_SEEN_SEC) знает двоих и больше CT (стак / ротация туда) или по таймингам
+  // (REACH — знание команды) CT ещё не могли быть ни в одной зоне его пути — проходит свою сторону: вход → точка опорника → проход ротации
+  // (LURK_CHECK на точке; «пусто» — tClearCalls / markClear, только про виденное), там держит проход до выхода. Свежая инфа о CT у пути —
+  // не идёт (опасно). Мало времени (EXU_LATE) — не начинает
   if(tt.phase === "setup" && !lurkGoNow(tt)){
+    var SO = b._lurkSolo && b._lurkSolo.round === roundNum && b._lurkSolo.site === other ? b._lurkSolo : null;
+    if(!SO && !b._sawEnemy && ROUND_TIME_SEC - (simTime - roundStartTime) > EXU_LATE){
+      var route = [LP.entry, go.anchor, GEO.rotator].filter(Boolean), BLs = beliefLast.T || {};
+      // опасно — известный команде (за SITE_SEEN_SEC) CT простреливает точку пути: с его места есть линия на неё
+      var danger = route.some(function(p){ return bots.some(function(o){ var e = BLs[o.id]; return o.alive && o.team === "CT" && e && tick - e.tick <= SITE_SEEN_SEC*TICK_HZ && hasLOS(e.x, e.y, p.x, p.y); }); });
+      var stack = siteAssess("T", tt.site).near >= 2;
+      // CT не успевают: по таймингам команды (REACH: с какого тика враг мог бы быть в зоне) — позже, чем лёркер дойдёт до точки по пути
+      var RT = REACH.T, early = !!RT && route.every(function(p){ var z = bzOf(p.x, p.y); return z >= 0 && RT[z] > tick + pathLenTo(b, p.x, p.y)/SPEED*TICK_HZ; });
+      if(!danger && (stack || early)){
+        SO = b._lurkSolo = {round:roundNum, site:other, route:route, i:0, t:0};
+        voiceLog("T", "lurksolo"+roundNum, b.id, "прохожу "+other+(stack ? " — они на "+tt.site : " — туда ещё не успели")+", держу проход");
+        logEvent(b.id+": лёркер идёт через "+other+" сам — "+(stack ? "стак CT на "+tt.site : "по таймингам CT там ещё нет"));
+      }
+    }
+    if(SO){
+      if(b._sawEnemy || ROUND_TIME_SEC - (simTime - roundStartTime) <= EXU_LATE){ b._lurkSolo = null; }   // бой — свой контакт (350); мало времени — к своим
+      else { var si = Math.min(SO.i, SO.route.length-1), lk = si < SO.route.length-1 ? SO.route[si+1] : GEO[tt.site].ctEntry;
+        b._route = null; setPost(b, SO.route[si], lk, true, si === SO.route.length-1 ? "lurkRot" : "lurk"+si);
+        if(b.atPost){ if(!SO.t) SO.t = tick; if(tick - SO.t > LURK_CHECK*TICK_HZ && si < SO.route.length-1){ SO.i = si+1; SO.t = 0; } }
+        return; }
+    }
     // не стоит столбом весь сетап: чередует укрытие и короткий выгляд на
     // проход сайта ("есть ли кто?") — ~5с в укрытии, ~2.5с на выгляде
     var hide = pickSpots("lurkStage"+other+LP.name, LP.stage, 1, {rMax:200, minGap:40, hideFrom:[SITES[other], go.anchor], see:[LP.entry]})[0];
@@ -46,10 +74,11 @@ function lurkerBrain(b, tt, other){
     // LURK_CHECK с (было 2,3 с на каждой — шёл весь выход). Проектные числа
     var site = SITES[tt.site], gs = GEO[tt.site];
     if(!b._lurkGo || b._lurkGo.round !== roundNum || b._lurkGo.site !== tt.site){
-      var nearOther = Math.hypot(b.x-LP.entry.x, b.y-LP.entry.y) < 500;
+      var nearOther = Math.hypot(b.x-LP.entry.x, b.y-LP.entry.y) < 500, soloOn = b._lurkSolo && b._lurkSolo.round === roundNum;
       b._route = null; b._routeDone = null;   // маршрут лёрка сетапа — закончен
-      b._lurkGo = {round:roundNum, site:tt.site, route: nearOther ? [LP.entry, go.anchor, GEO.rotator, gs.ctEntry] : [gs.tStage || gs.tEntry, gs.tEntry], i:0, t:0};
-      voiceLog("T", "lurkgo"+roundNum, b.id, nearOther ? "захожу с "+other+" — режу ротацию, буду со спины на "+tt.site : "иду к вам на "+tt.site);
+      // (ответ владельца 05.11) прошёл свою сторону сам до выхода — поздний выход оттуда: с прохода ротации в спину сайту выхода
+      b._lurkGo = {round:roundNum, site:tt.site, route: soloOn ? [GEO.rotator, gs.ctEntry] : nearOther ? [LP.entry, go.anchor, GEO.rotator, gs.ctEntry] : [gs.tStage || gs.tEntry, gs.tEntry], i:0, t:0};
+      voiceLog("T", "lurkgo"+roundNum, b.id, soloOn ? "выхожу с прохода — со спины на "+tt.site : nearOther ? "захожу с "+other+" — режу ротацию, буду со спины на "+tt.site : "иду к вам на "+tt.site);
     }
     var LG = b._lurkGo, i = Math.min(LG.i, LG.route.length-1);
     var look = i < LG.route.length-1 ? LG.route[i+1] : site;
@@ -165,6 +194,9 @@ function tProbes(tt, ts){
         // не "60% пути", а до первого места, откуда ВИДНО, что там дальше
         // (опорника/вход) — иначе подпуш кончался за углом и колл был "пусто"
         if(!P.deep){ var vp = probeViewPoint(from, to, look); if(vp) P.pt = vp; }
+        // (Г3, 04.11, разбор отметок п.16: проба снималась через 9 с от начала — шагом до точки у окна не доходила, 211 из 345 проб на
+        // 8 матчах Mirage) срок пробы — 9 с (проектное число, как было) после расчётного прихода: дорога шагом по пути + 9 с
+        P.dl = tick + Math.ceil((pathLenTo(pb, P.pt.x, P.pt.y)/(SPEED*WALK_SPEED_FRAC) + 9)*TICK_HZ);
         if(P.deep){
           voiceLog("T", "probe"+key+pb.id, pb.id, "подпушу "+(key === "M" ? "мид" : (zoneUserName(zoneIdAt(to.x, to.y)) || key.charAt(0)))+", посмотрю, сколько их там");
           // флешка под подпуш от ближайшего тиммейта (не вся раскидка — одна)
@@ -215,7 +247,7 @@ function tProbes(tt, ts){
         }
       }
     }
-    if((pb.atPost && tick - (P.at || (P.at = tick)) > stay) || tick - P.since > 9*TICK_HZ){
+    if((pb.atPost && tick - (P.at || (P.at = tick)) > stay) || tick > (P.dl || P.since + 9*TICK_HZ)){
       P.ph = 0; P.cleared = false; P.at = 0; P.saw = 0; P.until = tick + (6 + 3*hashRand(tick + pb.id.charCodeAt(1)))*TICK_HZ;
       pb._probeLock = 0; clearPost(pb); // вернётся на пост группы со следующего тика
     }
@@ -292,19 +324,29 @@ function tClearCalls(){
         if(c.tick > last){ last = c.tick; who = c.by; } }
     } else {
       var smp = ZONE_SAMPLES[zid] || []; if(smp.length < 3) return;
-      who = (ts.filter(function(b){ return tick >= (b.blindUntil||0) &&
-        smp.filter(function(q){ return Math.hypot(q.x-b.x, q.y-b.y) < 900 && inFov(b, q.x, q.y) && hasVision(b.x, b.y, q.x, q.y); }).length * 3 >= smp.length * 2; })[0] || {}).id;
+      who = (ts.filter(function(b){ return zoneSeenAll(b.id, zid); })[0] || {}).id;   // (Г1) все точки зоны, а не 2/3
     }
     var wb = who && ts.filter(function(b){ return b.id === who; })[0]; if(!wb) return;
     // сам сейчас видит врага — ему не до коллов; враг в зоне виден своим — не пусто
     if(bots.some(function(e){ return e.team === "CT" && e.alive && Math.hypot(e.x-wb.x, e.y-wb.y) < 900 && hasVision(wb.x, wb.y, e.x, e.y); })) return;
     if(bots.some(function(e){ return e.team === "CT" && e.alive && zoneIdAt(e.x, e.y) === zid && ts.some(function(b){ return hasVision(b.x, b.y, e.x, e.y); }); })) return;
-    markClear("T", p.x, p.y, wb.id); CLEARZ.T[zid].round = roundNum;
+    if(markClear("T", p.x, p.y, wb.id, ps.length > 0)) CLEARZ.T[zid].round = roundNum;
   });
 }
-function markClear(team, x, y, who){
+// (Г1, 04.11, разбор отметок «угроза»: «чекнул A Site — пусто», а CT стоял в невидимой трети зоны — 23 из 767 коллов на 8 матчах Mirage)
+// «пусто» — только про то, что реально видели: зона пуста, только если тот, кто говорит, сейчас видит все её точки (ZONE_SAMPLES: в поле
+// зрения, на линии, ≤ 1100). Раньше звали из пяти мест по разным правилам — проба и ранний пик CT по «команда ничего не знает рядом»,
+// зачистка углов T по «0,5 с никого не видно», проверка зон по ≥ 2/3 точек. Исключение — проверка по местам из демок (posChecked: все места
+// зоны были в поле зрения своих за CLR_POS_SEC — tClearCalls)
+function zoneSeenAll(who, zid){
+  var wb = who && bots.filter(function(o){ return o.id === who; })[0], smp = ZONE_SAMPLES[zid] || [];
+  if(!wb || !wb.alive || !smp.length || tick < (wb.blindUntil||0)) return false;
+  return smp.every(function(q){ return Math.hypot(q.x-wb.x, q.y-wb.y) < 1100 && inFov(wb, q.x, q.y) && hasVision(wb.x, wb.y, q.x, q.y); });
+}
+function markClear(team, x, y, who, posChecked){
   var zid = zoneIdAt(x, y); if(!zid) return null;
-  CLEARZ[team][zid] = {tick:tick, x:x, y:y};
+  if(!posChecked && !zoneSeenAll(who, zid)) return null;
+  CLEARZ[team][zid] = {tick:tick, x:x, y:y, round:roundNum};
   knowClearZone(team, x, y);
   voiceLog(team, "clz"+zid, who, "чекнул "+(zoneUserName(zid) || calloutName(x, y))+" — пусто");
   return zid;
@@ -321,7 +363,21 @@ function siteAssess(team, k){
   bots.forEach(function(o){ if(o.team !== foe || !o.alive) return; var q = BL[o.id];
     var fresh = q && tick - q.tick <= SITE_SEEN_SEC*TICK_HZ;
     if(fresh && Math.hypot(q.x-S.x, q.y-S.y) <= SITE_AWAY) near++; else if(!fresh) unknown++; });
-  return {unknown: unknown, near: near, level: near ? "held" : unknown === 0 ? "empty" : unknown === 1 ? "weak" : "held"};
+  var level = near ? "held" : unknown === 0 ? "empty" : unknown === 1 ? "weak" : "held";
+  return {unknown: unknown, near: near, level: level, confirmed: level === "empty" && siteConfirmed(team, k)};
+}
+// (00_PLAN, пакет тактики, ответ владельца 2 от 04.11: «три уровня — не проверен / вероятно пуст / подтверждённо пуст; одна чистая точка — мало;
+// проверены основные позиции, подходы неизвестны — занимать осторожно; подходы проверены или закрыты дымом / своими — можно ставить; пусто = нет
+// неустранённых угроз») подтверждённо пуст — для T: все основные позиции сайта (набор карты pos.tClear) проверены командой в этом раунде за
+// CLR_POS_SEC («чекнул — пусто», markClear), и каждый подход CT (pos.ctRetake) проверен так же, закрыт дымом или там стоит свой.
+// Точки — данные набора карты, не код
+function siteConfirmed(team, k){
+  var P = POS[k], CZ = CLEARZ[team] || {}, S = SITES[k]; if(!P || !P.tClear || !P.tClear.length) return false;
+  var fresh = function(n){ var p = zonePoint(n, S); if(!p) return true; var z = zoneIdAt(p.x, p.y), c = z && CZ[z];
+    return !!(c && c.round === roundNum && tick - c.tick <= CLR_POS_SEC*TICK_HZ); };
+  if(!P.tClear.every(fresh)) return false;
+  return (P.ctRetake || []).every(function(n){ var p = zonePoint(n, S); if(!p) return true; var z = zoneIdAt(p.x, p.y);
+    return fresh(n) || smokeCovered(p.x, p.y) || bots.some(function(o){ return o.alive && o.team === team && zoneIdAt(o.x, o.y) === z; }); });
 }
 // IGL не идеален: примерно в четверти случаев повод для колла (соло, пустой
 // сайт, стак) он пропускает — решение принимается один раз на повод за раунд

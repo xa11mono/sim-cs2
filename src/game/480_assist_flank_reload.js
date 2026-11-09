@@ -13,21 +13,26 @@ function flankSpot(b, mate, ep){
   // уже стою под другим углом (50–120° от линии тиммейта) — не обходить, а дожать со своей стороны: по своему пути к врагу до
   // первой точки, откуда его видно (идёт на неё с прицелом на врага — стрелять начнёт, как только тот покажется; Alley → CT Spawn: враг за углом виден с 5 px). Раньше точки обхода были только «за» врагом, и путь к ним
   // шёл мимо него — заход отменялся (игрок 6 в Connector, отметка 14.10, тик 3865)
+  // (Г4, 04.11, разбор отметок п.26: точка «дожать» бралась на пути без высоты — видимость с верхнего этажа (Vent) считалась с пола, а
+  // настоящий путь туда шёл через мид в 90 px от врага, 1313 px) путь — настоящий путь бота (его этаж, путь команды), видимость — с высотой
+  // точки пути; длина до точки ≤ 1000 и мимо врага ближе 200 — те же условия, что у обхода ниже
   var aMe = _angOff(Math.atan2(b.y-ep.y, b.x-ep.x), Math.atan2(mate.y-ep.y, mate.x-ep.x));
   if(aMe >= 0.87 && aMe <= 2.1){
-    var pp = pathPts(b.x, b.y, ep.x, ep.y), prev = {x:b.x, y:b.y};
-    if(pp.length && polyLen(pp) <= 1000) for(var i=0;i<pp.length;i++){
-      var w = {x:pp[i][0], y:pp[i][1]};
-      for(var k=1;k<=4;k++){ var q = {x:prev.x+(w.x-prev.x)*k/4, y:prev.y+(w.y-prev.y)*k/4};
-        if(hasLOS(q.x, q.y, ep.x, ep.y)) return walk(q); }
-      prev = w; }
+    var pp = buildWaypointPath(b.baseX, b.baseY, b.z, ep.x, ep.y, 0, b.team), prev = {x:b.x, y:b.y, z:b.z}, run = 0;
+    for(var i=0;i<pp.length && run <= 1000;i++){
+      var w = {x:pp[i][0], y:pp[i][1], z:pp[i][2]}, seg = Math.hypot(w.x-prev.x, w.y-prev.y);
+      for(var k=1;k<=4;k++){ var q = {x:prev.x+(w.x-prev.x)*k/4, y:prev.y+(w.y-prev.y)*k/4}, qz = prev.z != null && w.z != null ? prev.z+(w.z-prev.z)*k/4 : b.z;
+        if(run + seg*k/4 > 1000) break;
+        if(Math.hypot(q.x-ep.x, q.y-ep.y) < 200) return null;   // путь подходит к врагу ближе 200 раньше, чем открылась линия — не заход
+        if(hasLOS(q.x, q.y, ep.x, ep.y, qz)) return walk(q); }
+      run += seg; prev = w; }
   }
   var cand = pickSpots("flank"+tick+b.id, ep, 4, {rMin:150, rMax:420, minGap:40, must:[ep], cross:{from:{x:mate.x, y:mate.y}, pt:ep}});
   var sp = null;
   cand.some(function(q){
     var a1 = Math.atan2(q.y-ep.y, q.x-ep.x), a2 = Math.atan2(mate.y-ep.y, mate.x-ep.x), da = _angOff(a1, a2);
     if(da < 0.87 || da > 2.1) return false;
-    var pts = pathPts(b.x, b.y, q.x, q.y); if(!pts.length || polyLen(pts) > 1000) return false;
+    var pts = pathPts(b.x, b.y, q.x, q.y, b.z); if(!pts.length || polyLen(pts) > 1000) return false;
     if(pts.some(function(w){ return Math.hypot(w[0]-ep.x, w[1]-ep.y) < 200; })) return false;
     sp = q; return true; });
   return sp;

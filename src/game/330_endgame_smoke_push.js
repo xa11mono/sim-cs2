@@ -63,9 +63,27 @@ function endgameBrain(){
       teamTac[team]._egKey = egId;
       voiceLog(team, "eg"+gk, mine[0].id, (nFoe === 1 ? "последний" : "их двое")+" "+calloutName(kp.x, kp.y)+" — все на него!");
     }
+    // (00_PLAN п.11, ответ владельца 6Б, 05.11: «двое CT не выбегают на одного T одновременно: один контролирует T, второй — альтернативную
+    // линию, выход или ротацию; если T отходит — не оба преследуют; главное — не дать безопасно поставить») CT против последнего T до планта:
+    // на него — ближайший по пути; остальные держат сайт, который тот не прикрывает (дальний от него), — место опорника, взгляд на T
+    var hunter = null;
+    if(team === "CT" && nFoe === 1 && mine.length >= 2 && !(bomb && bomb.state === "planted")){
+      // роли — один раз на раунд и расклад (пока охотник жив): каждый тик заново охотник менялся (CT1 ↔ CT3) и с ним — сайт второго
+      var ER = TT0._egRoles;
+      if(ER && ER.key === roundNum+":"+mine.length && mine.some(function(m){ return m.id === ER.hunter; })) hunter = mine.filter(function(m){ return m.id === ER.hunter; })[0];
+      else { var bdH = Infinity; mine.forEach(function(m){ var dl = pathLenTo(m, kp.x, kp.y); if(dl < bdH){ bdH = dl; hunter = m; } });
+        if(hunter) TT0._egRoles = {key: roundNum+":"+mine.length, hunter: hunter.id, line: {}}; }
+    }
     mine.forEach(function(b){
       if(b.planting || b.defusing || b._sawEnemy || b._stopPlantUntil > tick) return;
       if(team === "T" && bomb && bomb.state === "carried" && bomb.carrier === b) return; // носитель ставит
+      if(hunter && b !== hunter){
+        var ERl = TT0._egRoles.line, kL = ERl[b.id] || (ERl[b.id] = ["A","B"].sort(function(p, q){ return Math.hypot(SITES[q].x-hunter.x, SITES[q].y-hunter.y) - Math.hypot(SITES[p].x-hunter.x, SITES[p].y-hunter.y); })[0]);
+        var gL = GEO[kL], lp = (gL && gL.anchor) || SITES[kL];
+        if(setPost(b, lp, {x:kp.x, y:kp.y}, true, "endhunt") && !(b._egL && b._egL.round === roundNum && b._egL.k === kL)){ b._egL = {round:roundNum, k:kL};
+          voiceLog(team, "egline"+b.id+roundNum, b.id, "держу "+kL+" — "+hunter.id+" на нём, не дадим поставить"); }
+        return;
+      }
       var d = Math.hypot(kp.x-b.x, kp.y-b.y);
       // (v146) по демкам: у про при перевесе до планта T в 77% идут ставить (≈8с),
       // а не ищут последних; CT — время на их стороне. Добивать идёт только тот,
@@ -161,7 +179,7 @@ function enemyBeyondSmoke(b, S, r){
     if((g.x-b.x)*ax + (g.y-b.y)*ay > 0) return true;   // по ту сторону, куда идём
   }
   var zi = bzOf(S.x, S.y); if(zi < 0) return false;
-  var m = beliefZoneFresh(b.team, zi); (BZ.nbr[zi]||[]).forEach(function(n){ m += 0.5*beliefZoneFresh(b.team, n); });
+  var m = beliefZoneKnown(b.team, zi); (BZ.nbr[zi]||[]).forEach(function(n){ m += 0.5*beliefZoneKnown(b.team, n); });
   return m > 0.6;
 }
 function smokeEdgeTick(){

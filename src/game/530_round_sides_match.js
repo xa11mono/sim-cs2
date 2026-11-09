@@ -22,6 +22,7 @@ function buyPhase(){
 }
 
 function startHalf(silent){
+  ecoKnowReset();   // (Г1) подсчёт денег соперника — заново: у всех $800
   bots.forEach(function(b){
     b.money = START_MONEY; b.primary = null; b.secondary = b.team==="CT" ? "USP" : "GLOCK";
     b.armor = false; b.helmet = false; b.armorHp = 0; b.kit = false; b.weapon = WEAPONS[b.secondary]; b.nades = emptyNades();

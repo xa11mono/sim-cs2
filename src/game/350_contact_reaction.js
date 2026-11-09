@@ -32,8 +32,21 @@ function contactInfo(b){
   // контактом не бывает — ни то, где его видел, ни его звук (раньше их брали ещё 2,5 с после смерти и держали взгляд на трупе)
   var deadSrc = function(id){ var o = id ? teamBot(id) : null; return !!o && !o.alive; };
   var li = b.lastIntel; if(li && !li.src && tick - li.tick <= CONTACT_AGE*TICK_HZ && !deadSrc(li.id)) take(li.x, li.y, true, li.id, li.z);
+  // (00_PLAN п.17, ответ владельца 8, 05.11: «мидер может помогать, если это не создаёт критическую дыру в контроле мида; помощь — не полная
+  // ротация: подойти на дистанцию помощи, прикрыть, разменять, вернуться») заменяет абсолютное правило v408 условным: враг вне его участка —
+  // его контакт и тогда, когда свой прямо сейчас стреляется с этим врагом, а на своём участке угрозы нет (свежей инфы о враге там нет, вес
+  // карты команды < 0,45 — порог «есть инфа», 250). Подход ≤ CONTACT_SWING и возврат через CONTACT_HOLD — как у любого контакта
+  var myThreat = null;
+  var calm = function(){ if(myThreat === null){ myThreat = false;
+      for(var k in BL){ var q = BL[k], oq = teamBot(k); if(oq && oq.alive && tick - q.tick <= SITE_SEEN_SEC*TICK_HZ && myZ[zoneIdAt3(q.x, q.y, q.z)]){ myThreat = true; break; } }
+      if(!myThreat) Object.keys(myZ).forEach(function(z){ var j = BZ.idx[z]; if(j !== undefined && beliefZoneKnown(b.team, j) >= 0.45) myThreat = true; }); }
+    return !myThreat; };
+  // (прогон 178: перетягивание Ancient 67 → 97 — «пост-плант / лайнап → контакт → обратно») помогает тот, у кого задача не важнее личной
+  // перестановки (уровни 1–3: пост роли, маршрут, личное) — держащий бомбу, идущий кидать гранату и т. п. свою задачу ради помощи не бросает
+  var freeToHelp = !b.post || taskLevel(b.post.tag) <= 3;
+  var mateFights = function(id){ return freeToHelp && bots.some(function(o){ return o !== b && o.alive && o.team === b.team && o._sawEnemy && o._nearestEnemyBot && o._nearestEnemyBot.id === id; }); };
   for(var id in BL){ var e = BL[id], ob = teamBot(id); if(!ob || !ob.alive || tick - e.tick > CONTACT_AGE*TICK_HZ) continue;
-    if(trade || myZ[zoneIdAt3(e.x, e.y, e.z)]) take(e.x, e.y, e.src === "spotted", id, e.z); }
+    if(trade || myZ[zoneIdAt3(e.x, e.y, e.z)] || (mateFights(id) && calm())) take(e.x, e.y, e.src === "spotted", id, e.z); }
   // (v469) бросок гранаты (слышно чеку / бросок) — не контакт (ответ про-аналитика: на гранату вдали не реагировать); её место знание получает
   var hs = b.heardSound; if(hs && hs.team && hs.team !== b.team && hs.kind !== "nade" && tick - hs.tick <= CONTACT_AGE*TICK_HZ && !deadSrc(hs.src) && (hs.kind !== "call" || trade || myZ[zoneIdAt3(hs.x, hs.y, hs.z)])) take(hs.x, hs.y, false, hs.src, hs.z);
   // (v448, док владельца 28.10 №4: у игрока 1 «якорь контакт холд, когда он далеко, не стрелялся и никого не видел») своя флешка —
@@ -45,7 +58,7 @@ function contactCritical(b, C){
   if(b.planting || b.defusing) return true;
   if(bomb && bomb.state === "planted"){
     var left = bombTimeLeftTicks()/TICK_HZ;
-    if(b.team === "CT" && !(teamTac.CT && teamTac.CT.saving)){ var need = Math.hypot(b.x-bomb.x, b.y-bomb.y)/SPEED*1.2 + (b.kit ? 5 : 10) + 1.5; if(left - need < 3) return true; }
+    if(b.team === "CT" && !(teamTac.CT && teamTac.CT.saving)){ var need = defuseEta(b) + 1.5; if(left - need < 3) return true; }
     if(bombDamageAt(b.x, b.y) >= b.hp*0.6 && left < 10) return true;   // в зоне взрыва и мало времени — бежит, не воюет
   }
   return false;
@@ -74,6 +87,10 @@ function contactTick(b){
   else if(!K && b.post && /^contact/.test(b.post.tag)) clearPost(b);   // точка контакта без самого контакта — тоже снять
   if(b._sawEnemy) return;   // видит врага — это уже бой
   var C = contactInfo(b); if(!C) return;
+  // (00_PLAN, аудит 3.4, 05.11: «контакт (ур. 9) держится, когда команде уже критически мало времени на ретейк») начатый контакт пересматривается
+  // по событию: стало критично (contactCritical — CT впритык на дефуз, ставит / дефузит, в зоне взрыва) — ноги к своей задаче, взгляд — на контакте.
+  // Раньше эта проверка была только для нового контакта, а начатый при той же инфе продлевался
+  if(K && K.lock && contactCritical(b, C)){ b._contact = {x:K.x, y:K.y, id:K.id, until:K.until, lock:false}; if(b.post && /^contact/.test(b.post.tag)) clearPost(b); return; }
   if(K && !(C.seen || C.d < 0.7*Math.hypot(K.x-b.x, K.y-b.y) || Math.hypot(C.x-K.x, C.y-K.y) < 120)) return;   // держит прежний контакт
   // тот же — уточнить место и продлить: реакция держится, пока знание о нём свежее (≤ CONTACT_AGE) + CONTACT_HOLD после
   // (Б1, ENGINE_AUDIT Х3: раньше кончалась по таймеру при живом знании — пост снят, бот шёл назад на пост роли, через CONTACT_GAP
@@ -107,12 +124,28 @@ function contactTick(b){
   // задачей «держу свой контакт») в выходе T (фаза execute до планта) контакт — это заход: выходит, если их не вдвое больше, чем нас рядом
   // (PRO_PLAY: выход — быстро, вместе, с разменом); держать угол — только одному против многих. Носителю — ниже (не выходит, но и не встаёт)
   var tExec = b.team === "T" && teamTac.T && teamTac.T.phase === "execute" && bomb && bomb.state !== "planted";
-  var swing = b.hp > LOW_HP && (Math.max(1, nE) <= nM + 1 || !!contactMateFight(b, C) || hlHot(b) || (tExec && nE <= 2*(nM + 1)));   // (v447) в ударе — выходит и на численный перевес
+  // (Г4, 04.11, разбор отметок п.2: T4 вышел на CT3 с 9 патронами в перезарядке) на перезарядке на врага не выходит — держит угол
+  var swing = !b._reloading && b.hp > LOW_HP && (Math.max(1, nE) <= nM + 1 || !!contactMateFight(b, C) || hlHot(b) || (tExec && nE <= 2*(nM + 1)));   // (v447) в ударе — выходит и на численный перевес
   // (v469, п.21 владельца 29.10, р9 м1: свой стрелялся с magixx за двумя смоками, m0NESY стоял в contact hold) правило v418б «не выходить
   // из-за дыма на врага» убрано по решению владельца: выход решают те же условия, что без дыма — свой рядом в бою с этой группой
   // (contactMateFight), враги не в численном перевесе, HP; дым больше не запрещает выйти помочь
   // (v440, док владельца 27.10: magixx с бомбой «делал агрессию в андере», р8 — с бомбой и 22 HP ждал файта) носитель бомбы на выход не идёт,
   // пока жив кто-то ещё из своих: бомба в первом бою — потеря раунда; держит угол (последний живой — играет сам)
+  // (00_PLAN, ответ владельца 05.11 — схема «после перестрелки»: «противник может повторно выйти — удерживает угол из укрытия; повторный выход —
+  // только при преимуществе: союзник готов к размену, флешка, противник перезаряжается, надо сорвать плант; не обязательное желание повторить
+  // перестрелку») после СВОЕЙ перестрелки с этим врагом (сам видел его и стрелял за CONTACT_AGE) выход — только с преимуществом; численность
+  // (nE ≤ nM + 1) и «в ударе» — не повод. Нет преимущества — «накиньте флешку» (365); некому — держит угол
+  var fought = C.seen && C.id && tick - (b.lastShotTick || -1e9) <= CONTACT_AGE*TICK_HZ;
+  if(fought && swing){
+    var HR = b._heardReload, PHc = teamIntel[b.team] && teamIntel[b.team].plantHeard;
+    var adv = !!contactMateFight(b, C)
+      || bots.some(function(o){ return o !== b && o.alive && o.team === b.team && !o._sawEnemy && Math.hypot(o.x-b.x, o.y-b.y) <= TRADE_R; })   // размен рядом
+      || !!(HR && HR.id === C.id && tick < HR.until)                                                                                            // перезаряжается
+      || !!(b.team === "CT" && PHc && tick - PHc.tick < 5*TICK_HZ)                                                                               // сорвать плант
+      || duelHits(b._hitOut, tick - CONTACT_AGE*TICK_HZ, C.id) > duelHits(b._hitIn, tick - CONTACT_AGE*TICK_HZ, null);                         // (дуэли 06.11) ранил его больше, чем получил, — добить
+    if(!adv && !C.own) adv = !!nadeAskFlash(b, look, "флешу под пик "+b.id+" ("+calloutName(look.x, look.y)+")");
+    if(!adv) swing = false;
+  }
   if(swing && bomb && bomb.state === "carried" && bomb.carrier === b && aliveCount(b.team) > 1) swing = false;
   // (v450) носитель в выходе не встаёт «держать контакт»: идёт за своими на точку планта (взгляд — на контакт, задача — прежняя)
   if(tExec && bomb.state === "carried" && bomb.carrier === b && aliveCount(b.team) > 1){ b._contact = {x:C.x, y:C.y, id:C.id, until: tick + CONTACT_HOLD*TICK_HZ, lock:false}; b._contactT = tick; return; }
@@ -210,7 +243,7 @@ function teamBrains(){
   routeTick();
   bots.forEach(function(b){ contactTick(b); });   // (v367) реакция на контакт — до мозгов, их посты её не перебивают
   bots.forEach(function(b){ ctDelayNade(b); });   // (v419) задержать гранатой — после реакции на контакт (знает, держит ли угол)
-  SPOT_TEAM = "T"; tBrain(); SPOT_TEAM = "CT"; ctBrain(); SPOT_TEAM = null; endgameBrain(); lineupTick(); smokeEdgeTick(); weaponPickupTick(); itemPickupTick(); lkpTick();
+  SPOT_TEAM = "T"; tBrain(); SPOT_TEAM = "CT"; ctBrain(); SPOT_TEAM = null; endgameBrain(); lineupTick(); smokeEdgeTick(); smokeLineTick(); fireSmokeTick(); weaponPickupTick(); itemPickupTick(); lkpTick();
   if(BAL.soundMore) bots.forEach(function(b){ if(b.alive && b._heardReload) reloadPeek(b); });
   if(BAL.assistPeek && tick % 4 === 0) bots.forEach(function(b){ if(b.alive) assistPeek(b); });
   if(BAL.lowHpBack && tick % 8 === 2) bots.forEach(function(b){ if(b.alive) lowHpBack(b); });
