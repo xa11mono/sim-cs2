@@ -7,6 +7,8 @@
 - «Ждёт проверки» больше не пишем (владелец 09.11: старые пометки проверять не будет). Сделано в коде и прошло прогон — сделано; повторится у
   владельца — новый пункт с новой датой.
 
+Карта работ (граф шагов + реестр 76 пунктов пака 09.11, обновляется Claude) — https://claude.ai/artifact/JcjQBsiAt6wgJKd4FPzbPC.
+
 Прежние планы целиком — в архиве (ничего не удалено): `docs/archive/00_PLAN-to-2026-11-09.md`, `docs/archive/ROADMAP-to-2026-11-09.md`
 (граф этапов), `docs/archive/PLAN-04.11-to-2026-11-09.md`, `docs/archive/OVERNIGHT_*`, `docs/archive/V166_CHANGES.md`,
 `docs/archive/PROBLEMS-2026-10-17.md`, `docs/archive/tasks-*`.
