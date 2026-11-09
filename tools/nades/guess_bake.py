@@ -12,7 +12,7 @@ out = os.path.join(mapset.MAPS, name, 'nadeguess.json')
 if os.path.exists(out): os.remove(out)   # считать без старого файла
 sim = os.path.join(tempfile.mkdtemp(), 'sim.html')
 subprocess.run(['python3', os.path.join(ROOT, 'src', 'build.py'), '--map', name, sim], check=True, stdout=subprocess.DEVNULL)
-js = r'''freshMatch(3); NADE_PRECALC_MS = 1e9; var n = allLineups().length;
+js = r'''freshMatch(3); NADE_PRECALC_N = 1e9; var n = allLineups().length;
 while(NADE_PRECALC_I < n) nadePrecalcTick();
 var bad = 0, s = JSON.stringify(nadeGuessStore.all(), function(k, v){ if(typeof v === "number" && !isFinite(v)) bad++; return v; });
 bad ? "BAD " + bad : s'''

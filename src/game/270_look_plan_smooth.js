@@ -377,6 +377,17 @@ function lookContactFresh(b){
   return !!(b._contact && tick < b._contact.until && tick - Math.max(b._contactT || -1e9, b._lastSawT || -1e9) <= LOOK_FRESH);
 }
 // точка взгляда на знание «враг там» (звук, контакт, инфа): не сквозь стену, а туда, где он выйдет на линию
+// (v520, отметка владельца 09.11 м200 р2 «лагает»: путь «враг → я» для взгляда строился каждый тик у каждого бота на каждое знание — 4949
+// путей за 23 с, 2,3 с) путь от места знания до бота — один на участок навмеша, где бот стоит, и обстановку огня; живёт LKP_PATH_TTL тиков
+// (проектное число): бот на бегу пересекает участок за доли секунды — путь «откуда враг зайдёт» за это время не меняется
+var LKP_PATH = {k: null, m: {}}, LKP_PATH_TTL = 32;
+function lookKnowPath(b, q){
+  var a = navAt(b.x, b.y, b.z), fs = fires.map(function(f){ return f.born; }).join(","), kk = matchNum+":"+roundNum;
+  if(LKP_PATH.k !== kk || LKP_PATH.n > 20000){ LKP_PATH.n = 0; LKP_PATH.k = kk; LKP_PATH.m = {}; }
+  var key = Math.round(q.x)+","+Math.round(q.y)+"|"+(a ? a.id : Math.round(b.x/16)+","+Math.round(b.y/16))+"|"+fs, e = LKP_PATH.m[key];
+  if(!e || tick - e.t >= LKP_PATH_TTL || tick < e.t){ LKP_PATH.n = (LKP_PATH.n||0) + 1; e = LKP_PATH.m[key] = {t: tick, p: buildWaypointPath(q.x, q.y, 0, b.x, b.y, 0) || []}; }
+  return e.p;
+}
 function lookKnowPt(b, q, zb, mates, moving){
   var d = Math.hypot(q.x-b.x, q.y-b.y); if(d > 700 || d < 20) return null;
   // (v279, владелец 14.10: якорь B развернулся спиной к Ramp на бой на миде в 650 px) держит пост — дальняя инфа вне его угла не
@@ -393,14 +404,14 @@ function lookKnowPt(b, q, zb, mates, moving){
   var apf = srcVis ? null : appearFrom(b, q); if(apf) apf = {x: apf.x, y: apf.y, vis: true};
   var pt = srcVis ? {x: q.x, y: q.y} : (apf || cornerLook(b, q) || openToward(b, za, LOOK.sndOpen));
   // (v281) видимой точки нет — место, где враг на своём пути зайдёт в мою зону
-  if(!pt){ var wq0 = buildWaypointPath(q.x, q.y, 0, b.x, b.y, 0) || [];
+  if(!pt){ var wq0 = lookKnowPath(b, q);
     for(var wi0 = 0; wi0 < wq0.length; wi0++){ if(bzOf(wq0[wi0][0], wq0[wi0][1]) === zb){ var ep = {x: wq0[wi0][0], y: wq0[wi0][1]}; if(Math.hypot(ep.x-b.x, ep.y-b.y) > 40) pt = ep; break; } } }
   // (v296, И37) враг рядом (≤ 250 px), а ни угла, ни точки появления — смотрим прямо на место, где он был
   if(!pt && d <= 250) pt = {x:q.x, y:q.y};
   if(!pt) return null;
   // (v277) враг от шума к боту сначала выйдет на тиммейта, стоящего на его пути, — угол закрыт им
   var cov = null;
-  if(d >= 300){ var wq = buildWaypointPath(q.x, q.y, 0, b.x, b.y, 0) || [];
+  if(d >= 300){ var wq = lookKnowPath(b, q);
     cov = mates.filter(function(o){ return wq.some(function(w){ return Math.hypot(w[0]-b.x, w[1]-b.y) > 150 && Math.hypot(w[0]-o.x, w[1]-o.y) <= 120; }); })[0] || null; }
   return {pt: pt, d: d, a: za, cov: cov};
 }

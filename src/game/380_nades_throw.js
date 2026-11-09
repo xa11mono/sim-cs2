@@ -78,23 +78,29 @@ function nadeBetter(type, a, b){
   if(type === "smoke" && a.e3 <= 32 && b.e3 <= 32) return b.t < a.t ? b : a;
   return b.e3 < a.e3 ? b : a;
 }
+function nadeGuessKey(type, x, y, z, tx, ty, duck, wide){ return type+"|"+x+","+y+","+z+"|"+tx+","+ty+(duck ? "d" : "")+(wide ? "w" : ""); }
 function nadeGuess(type, x, y, z, tx, ty, duck, wide){
-  var k = type+"|"+x+","+y+","+z+"|"+tx+","+ty+(duck ? "d" : "")+(wide ? "w" : ""), g = nadeGuessStore(k);
+  var k = nadeGuessKey(type, x, y, z, tx, ty, duck, wide), g = nadeGuessStore(k);
   if(g === undefined){ g = nadeSolve(type, x, y, z, tx, ty, duck, wide);
     var A = luAimFor(type, x, y, tx, ty);
     if(A) g = nadeBetter(type, g, nadeSolve(type, x, y, z, tx, ty, duck, wide, {yaw: A.yaw, pitch: A.pitch, strength: A.strength, jump: A.jump, e3: A.err, levelOk: true}));
     nadeGuessStore(k, g); }
   return g;
 }
-var NADE_PRECALC_I = 0, NADE_PRECALC_MS = 12;   // мс за тик freeze-тайма на подсчёт лайнапов (проектное число: < кадра 60 Гц)
+// (v520, отметка владельца 09.11 м200 р3: снимок «до» не доходил до момента отметки — у владельца и в облаке разное) подсчёт лайнапов
+// в freeze-тайм был ограничен 12 мс реального времени за тик: сколько успело посчитаться — зависело от скорости компьютера, а от этого —
+// подсказка подбора и бюджет подборов в бою: матч расходился. Теперь — не больше NADE_PRECALC_N новых подборов за тик (проектное число;
+// из кэша / MAP.nadeguess — не в счёт)
+var NADE_PRECALC_I = 0, NADE_PRECALC_N = 1;
 function nadePrecalcTick(){
   if(!m3() || typeof allLineups !== "function") return;
-  var L = allLineups(), t0 = (typeof performance !== "undefined") ? performance.now() : 0;
+  var L = allLineups(), n = 0;
   while(NADE_PRECALC_I < L.length){
     var lu = L[NADE_PRECALC_I++]; if(!lu || !lu.from || !lu.to || !NADE[lu.type]) continue;
     var na = navAt(lu.from.x, lu.from.y, null); if(!na) continue;
+    var had = nadeGuessStore(nadeGuessKey(lu.type, lu.from.x, lu.from.y, na.z, lu.to.x, lu.to.y, false, true)) !== undefined;
     nadeGuess(lu.type, lu.from.x, lu.from.y, na.z, lu.to.x, lu.to.y, false, true);
-    if(!t0 || performance.now() - t0 >= NADE_PRECALC_MS) break;
+    if(!had && ++n >= NADE_PRECALC_N) break;
   }
 }   // ед.: уточнённый бросок из места бойца не хуже решения точки лайнапа + столько — принят (проектное число)
 // (Д3, фризы на гранатах; облако м7: 70 % подборов — без подсказки, 28–93 мс, «не долетает» → подбор с места + с разбега под тремя
