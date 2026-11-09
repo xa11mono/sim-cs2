@@ -2,7 +2,7 @@
 // Саму карту belief больше не правит — она собирается из гипотез ботов (beliefTick)
 function beliefObserve(team, sg){
   if(!BZ.ids.length) return;
-  if((sg.type === "spotted" || sg.type === "sound") && sg.id && sg.id !== "?"){
+  if((sg.type === "spotted" || sg.type === "sound") && sg.id && sg.id !== "?" && !(teamBot(sg.id) && !teamBot(sg.id).alive)){   // (v519) убитый — не «где он сейчас»
     reachOpen(team, sg.x, sg.y, sg.id);
     beliefSeen[team][sg.id] = tick;
     var bl = beliefLast[team][sg.id];
@@ -38,7 +38,7 @@ function beliefTick(){
     var mates = [teamAgent(team)];
     Object.keys(B).forEach(function(eid){
       var e = bots.filter(function(o){ return o.id === eid; })[0];
-      if(!e || !e.alive){ delete B[eid]; return; } // смерть врага видна в киллфиде
+      if(!e || !e.alive){ delete B[eid]; delete beliefLast[team][eid]; return; } // смерть врага видна в киллфиде; (v519, пак 09.11 п.10) и его «где видели последний раз» — тоже
       var Q = new Float32Array(n), k = 0;
       mates.forEach(function(m){
         var H = m.know.enemies[eid]; if(!H) return; k++;

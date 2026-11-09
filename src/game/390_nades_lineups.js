@@ -79,6 +79,7 @@ function tSoloThrower(){
   var b = F && teamBot(F);
   return b && b.alive ? b : null;
 }
+var SOLO_LU_PATH = 900;   // px пути (≈ 6 с бега) — проектное число
 function lineupTick(){
   if(roundState !== "live" || !teamTac.T) return;
   var tt = teamTac.T, ct = teamTac.CT, since = tick - roundStartTick;
@@ -170,7 +171,9 @@ function lineupTick(){
     var solo = execT ? tSoloThrower() : null;
     if(solo){
       var busyN = (solo.nadeTask && solo.nadeTask.type === L.type ? 1 : 0) + (solo.nadeQueue||[]).filter(function(q){ return q.type === L.type; }).length;
-      if(solo.nades && solo.nades[L.type] > busyN && !solo.planting && (solo.nadeQueue||[]).length < 4 && !onTSite(solo)){
+      // (v519, пак 09.11 п.14; Р-23: «игрока тащит с другого конца карты кинуть гранату») раскид одним — только из точек броска в пределах
+      // SOLO_LU_PATH по пути от него; дальше — кидает тот, кому ближе (как обычно)
+      if(solo.nades && solo.nades[L.type] > busyN && !solo.planting && (solo.nadeQueue||[]).length < 4 && !onTSite(solo) && pathLenTo(solo, L.from.x, L.from.y) <= SOLO_LU_PATH){
         nadeFlags[key] = true; nadeFlags["luok"+L.id] = true; proGroupDone(L);
         if(!solo.nadeTask){
           var sP = Math.max(7, Math.ceil(pathLenTo(solo, L.from.x, L.from.y)/SPEED + LU_REACH_PAD));

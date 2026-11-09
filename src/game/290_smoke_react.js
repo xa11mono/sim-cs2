@@ -66,7 +66,7 @@ function blindBullet(b, pt){
   var w = b.weapon; if(!w || b.ammo <= 0) return false;
   b.ammo--; b.lastShotTick = tick; b.nextShotTick = tick + (w.fireIntervalTicks||6);
   var a = Math.atan2(pt.y-b.y, pt.x-b.x) + (hashRand(tick*31 + b.id.charCodeAt(1))-0.5)*0.08;
-  var cl = rayClipWalls(b.x, b.y, b.x + Math.cos(a)*(w.range||900), b.y + Math.sin(a)*(w.range||900));
+  var cl = bulletClip3(b, b.x + Math.cos(a)*(w.range||900), b.y + Math.sin(a)*(w.range||900), {x:pt.x, y:pt.y, z:pt.z});   // (v519) по 3D-геометрии
   smokeBulletHole(b.x, b.y, cl.x, cl.y);
   var sv = bulletLineHit(b, cl.x, cl.y, null, tick*37 + b.id.charCodeAt(1)*11, "сквозь дым");   // (Г1) пуля сквозь дым попадает в того, кто на линии
   if(sv) cl = {x:sv.x, y:sv.y};

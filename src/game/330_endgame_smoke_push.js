@@ -78,7 +78,19 @@ function endgameBrain(){
       if(b.planting || b.defusing || b._sawEnemy || b._stopPlantUntil > tick) return;
       if(team === "T" && bomb && bomb.state === "carried" && bomb.carrier === b) return; // носитель ставит
       if(hunter && b !== hunter){
-        var ERl = TT0._egRoles.line, kL = ERl[b.id] || (ERl[b.id] = ["A","B"].sort(function(p, q){ return Math.hypot(SITES[q].x-hunter.x, SITES[q].y-hunter.y) - Math.hypot(SITES[p].x-hunter.x, SITES[p].y-hunter.y); })[0]);
+        // (v519, пак 09.11 п.7; А-10: «идут всей толпой через одну позицию, не пытаются закрыть с двух сторон») остальные — не все на одну точку:
+        // ближайший по пути (после охотника) — альтернативная линия на T с другой стороны от охотника (flankSpot, как заход тиммейту), ответ
+        // владельца 6Б: «второй — альтернативную линию»; следующие — сайты по очереди (дальний от охотника, потом ближний). Роли — раз на расклад
+        var ERl = TT0._egRoles.line;
+        if(!TT0._egRoles.ord){ TT0._egRoles.ord = mine.filter(function(m){ return m !== hunter; }).sort(function(p, q){ return pathLenTo(p, kp.x, kp.y) - pathLenTo(q, kp.x, kp.y); }).map(function(m){ return m.id; }); }
+        var oi = TT0._egRoles.ord.indexOf(b.id);
+        if(oi === 0){
+          if(!b._egF || b._egF.gk !== gk || b._egF.round !== roundNum){ b._egF = {gk:gk, round:roundNum, spot: flankSpot(b, hunter, kp)}; }
+          if(b._egF.spot){ if(setPost(b, b._egF.spot, {x:kp.x, y:kp.y}, true, "endhunt") && b._egFv !== roundNum){ b._egFv = roundNum;
+            voiceLog(team, "egfl"+b.id+roundNum, b.id, "захожу на него с другой стороны — "+hunter.id+" держит"); } return; }
+        }
+        var sitesO = ["A","B"].sort(function(p, q){ return Math.hypot(SITES[q].x-hunter.x, SITES[q].y-hunter.y) - Math.hypot(SITES[p].x-hunter.x, SITES[p].y-hunter.y); });
+        var kL = ERl[b.id] || (ERl[b.id] = sitesO[Math.max(0, oi - 1) % 2]);
         var gL = GEO[kL], lp = (gL && gL.anchor) || SITES[kL];
         if(setPost(b, lp, {x:kp.x, y:kp.y}, true, "endhunt") && !(b._egL && b._egL.round === roundNum && b._egL.k === kL)){ b._egL = {round:roundNum, k:kL};
           voiceLog(team, "egline"+b.id+roundNum, b.id, "держу "+kL+" — "+hunter.id+" на нём, не дадим поставить"); }
@@ -95,7 +107,9 @@ function endgameBrain(){
         // начать охоту — враг свежий (≤ 3 с, демки); продолжить начатую — пока инфе ≤ 6 с (окно сигнала выше). Отпустило, а до точки
         // пика < 100 px (проектное число) — доходит и смотрит туда же (≤ 1,5 с), а не разворачивается за тик
         var hunting = b.post && b.post.tag === "endhunt";
-        if(kAge > (hunting ? 6 : 3)*TICK_HZ || d > 700){
+        // (v519, А-10: «идут очень поздно — про него знали ещё до того, как он убил тиммейта») охотник (ближайший по пути, выбран выше) идёт по
+        // знанию, и дальше 700 px по прямой — 700 px оставлено для остальных (2 на 2)
+        if(kAge > (hunting ? 6 : 3)*TICK_HZ || (d > 700 && b !== hunter)){
           if(hunting){
             var sp0 = b.post, nearSp = Math.hypot(sp0.x-b.x, sp0.y-b.y) < 100;
             if(nearSp && !b.atPost && (!b._egEnd || b._egEnd.round !== roundNum || tick - b._egEnd.t < 1.5*TICK_HZ)){

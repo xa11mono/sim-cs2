@@ -317,7 +317,10 @@ function updatePost(b){
     if(BAL.arriveNear && !b.atPost && !arrived && b.post.tag !== "plantspot" && b.post.tag !== "defuse"){
       if(b._apId !== b.post.id){ b._apId = b.post.id; b._apBest = d; b._apT = tick; }
       else if(d < b._apBest - 6){ b._apBest = d; b._apT = tick; }
-      else if(d < (b.post.tag === "lineup" ? RUN_NEAR : 70) && tick - b._apT > 90) arrived = true;
+      // (v519, пак 09.11 п.3; Р-32: bomb-watch «стоял на ступеньках, на точку не пришёл») «не приближается — значит дошёл» — только на этаже точки
+      // (последняя точка пути — её пол): под точкой на возвышенности, на лестнице, он в 30–70 px по радару и ближе не подойдёт — это не «дошёл»
+      else if(d < (b.post.tag === "lineup" ? RUN_NEAR : 70) && tick - b._apT > 90){ var lp = b.path && b.path.length ? b.path[b.path.length-1] : null;
+        if(!lp || lp[2] == null || b.z == null || Math.abs(lp[2] - b.z) <= 40) arrived = true; }
     }
     if(!b.atPost && arrived){ b.atPost = true; b.path = []; b.pathIdx = 0;
       // встал с AWP на угол — щелчок зума слышно рядом (≤200 по прямой, ≤120 за стеной)

@@ -253,8 +253,12 @@ function ctBrain(){
       }
     }
     ct.spread = spread;
-    var deadR = bots.filter(function(o){ return o.team === "CT" && !o.alive; }).map(function(o){ return o.tRole; });
-    var aLost = deadR.indexOf(ks === "A" ? "anchorA" : "anchorB") >= 0 && deadR.filter(function(r){ return r === "mid" || r === "rotator" || r === (ks === "A" ? "anchorA" : "anchorB"); }).length >= 2;
+    // (v519, пак 09.11 п.9) «защита сайта потеряна» — по тому, где свои погибли (у этого сайта и на миде рядом), а не по названиям ролей: роли CT
+    // меняются по расстановке каждый раунд, и «опорник A» в этом раунде мог стоять на миде. Нужны: хотя бы один погиб у самого сайта и всего ≥ 2
+    // у сайта / на миде (как было: опорник + ещё один с той стороны). 700 px — проектное число («у сайта» по прямой, как ctNearSite у колла)
+    var deadCT = bots.filter(function(o){ return o.team === "CT" && !o.alive; });
+    var nearS = function(o){ return Math.hypot(o.x-SITES[ks].x, o.y-SITES[ks].y) < 700; }, nearM = function(o){ return Math.hypot(o.x-GEO.ctMid.x, o.y-GEO.ctMid.y) < 700; };
+    var aLost = deadCT.some(nearS) && deadCT.filter(function(o){ return nearS(o) || nearM(o); }).length >= 2;
     var pri = function(b){
       var r = b.tRole;
       if(r === "rotator") return 0;

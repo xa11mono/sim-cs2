@@ -165,7 +165,10 @@ function tBrain(){
   if(tt.phase === "execute" && !tt._exReb && bomb.state === "carried" && bomb.carrier && bomb.carrier.alive && !carrierAtSite(tt)){
     var crE = bomb.carrier, dHe = polyLen(pathPts(crE.x, crE.y, SITES[tt.site].x, SITES[tt.site].y, crE.z)), dOe = polyLen(pathPts(crE.x, crE.y, SITES[other].x, SITES[other].y, crE.z));
     var eOe = intelEstimate("T", SITES[other].x, SITES[other].y, 400, 6*TICK_HZ), bOe = beliefCount("T", BZ.siteNear[other]||[]), bHe = beliefCount("T", BZ.siteNear[tt.site]||[]);
-    if(dOe < dHe && bOe < 0.9 && bOe < bHe && eOe.n < 1.5 && iglTake(tt, tick)){
+    // (v519, пак 09.11 п.12; А-6: на раше в первые секунды «B пустой, бомба рядом — ставим B!») «там пусто» — по знанию команды (siteAssess, 150: каждый
+    // живой CT где-то замечен, и не у того сайта), а не «по карте вероятностей меньше 0,9» — в начале раунда о CT ещё ничего не знают, и отсутствие
+    // информации считалось пустым сайтом
+    if(dOe < dHe && bOe < 0.9 && bOe < bHe && eOe.n < 1.5 && siteAssess("T", other).level === "empty" && iglTake(tt, tick)){
       tt._exReb = true;
       voiceLog("T", "exreb"+other, "IGL", other+" пустой, бомба рядом — ставим "+other+"!");
       logEvent("IGL: на выходе перекол → "+other+" (носителю ближе, там пусто)");
@@ -273,11 +276,9 @@ function tBrain(){
     }
   }
   // (35) T: двое против 4+, мало времени — снайпер сохраняет AWP, второй пробует
-  if(BAL.awpSave && !tt.saving && bomb.state !== "planted" && ts.length === 2 && aliveCount("CT") >= 4 && secLeft < 45 && saveWorth("T")){   // (v434) есть что сохранять
-    var awT = ts.filter(function(b){ return b.primary === "AWP" && !(bomb.state === "carried" && bomb.carrier === b); })[0];
-    if(awT){ if(!awT._saveSpot){ awT._saveSpot = pickSaveSpotT(awT); voiceLog("T", "awpsaveT", awT.id, "сейвлю AWP"); }
-      setPost(awT, awT._saveSpot, null, true, "save"); ts = ts.filter(function(b){ return b !== awT; }); }
-  }
+  // (v519, пак 09.11 п.22; А-15: «один тер уходит на сейв, а второй один выходит — либо оба сейвят, либо оба выходят») отдельное правило «двое против
+  // 4+, < 45 с — снайпер сейвит AWP, второй пробует» убрано: сейв — решение команды (tSaveWant ниже, по доле про для расклада 2 на N)
+
   // (v434, PRINCIPLES М158, владелец 25.10: «сейв должен пересматриваться по ходу раунда»; м1 Mirage р11: сейв с 2 на 4, sh1ro убил двоих —
   // 2 на 2, а сейв продолжался) расклад живых сменился — то же решение заново (tSaveWant): у про при новом раскладе не сейвят — сейв снят
   if(tt.saving && bomb.state !== "planted"){
@@ -399,6 +400,7 @@ function tBrain(){
       // в каждой зоне на 20–50-й с раундов с выходом на этот сайт. Раньше трое шли к точке подготовки цели: на Mirage B — 2,1 игрока
       // в T Apps / Stove / B Apartments против 1,1 у про, на миде 1,0 против 1,9. Зоны — жребий раз на раунд по этим долям (без
       // повтора); ближняя к цели — энтри, дальше IGL, AWP, поддержка; взгляд — на ближайший к зоне вход (A, B или мид)
+      var DEF_SPAWN_FRAC = 0.3;   // (v519) проектное число
       var DPS = ((MAP.defaultpos || {}).sites || {})[tt.site], dm = pick(["entry","igl","awp","support"]);
       if(DPS && DPS.length){
         // (v450, док владельца 28.10 №5: «выход через Палас — в Палас никто не пошёл», «Рамп + Палас, а заходят через Рампу и Коннектор»,
@@ -417,7 +419,11 @@ function tBrain(){
           // (Г4, 04.11, владелец: «дефолт играется сразу, на спавне так долго не стоят — возможно, в демках раунды-паузы») зона своего
           // спавна — не место дефолта (в defaultpos.json у сайта A — 0,27 игрока; проверить данные на ПК — 00_PLAN)
           var spZ = zoneIdAt(T_SPAWN.x, T_SPAWN.y);
-          var pool = DPS.filter(function(z){ var q = zonePoint(z[0]); return q && !used[z[0]] && zoneIdAt(q.x, q.y) !== spZ && (!P.length || P.some(function(p){ return Math.hypot(p.x-q.x, p.y-q.y) <= DEF_GROUP_R && polyLen(pathPts(p.x, p.y, q.x, q.y)) <= DEF_GROUP_R; })); });
+          // (v519, пак 09.11 п.21; А-24: «многие якоря рядом с T-спавном — их не должно быть») доли про — где T БЫЛИ на 20–50 с, в том числе
+          // проходя мимо спавна; место дефолта — не ближе DEF_SPAWN_FRAC пути от спавна T до цели (Mirage: T Spawn 4 %, Side Alley 11–14 %,
+          // Apps Ramp 19–25 %, Palace Entry 21–26 %, T Roof 27–34 % — места прохода)
+          var spL = polyLen(pathPts(T_SPAWN.x, T_SPAWN.y, SITES[tt.site].x, SITES[tt.site].y));
+          var pool = DPS.filter(function(z){ var q = zonePoint(z[0]); return q && !used[z[0]] && zoneIdAt(q.x, q.y) !== spZ && polyLen(pathPts(T_SPAWN.x, T_SPAWN.y, q.x, q.y)) >= DEF_SPAWN_FRAC*spL && (!P.length || P.some(function(p){ return Math.hypot(p.x-q.x, p.y-q.y) <= DEF_GROUP_R && polyLen(pathPts(p.x, p.y, q.x, q.y)) <= DEF_GROUP_R; })); });
           if(!pool.length) return null;
           var wt = pool.reduce(function(a, z){ return a + z[1]; }, 0), u = hashRand(seed)*wt, di = 0;
           while(di < pool.length - 1 && u > pool[di][1]){ u -= pool[di][1]; di++; }
@@ -434,7 +440,9 @@ function tBrain(){
           var Zp = zn0 ? zonePoint(zn0, P[P.length-1] || tgt) : (P[P.length-1] || null), tag = zn0 ? "default:"+zn0 : "default:group";
           if(!Zp) return;
           var lk = [GEO.A.tEntry, GEO.B.tEntry, GEO.tMidLook].filter(Boolean).sort(function(a, c){ return Math.hypot(a.x-Zp.x, a.y-Zp.y) - Math.hypot(c.x-Zp.x, c.y-Zp.y); })[0];
-          groupPost([b], Zp, lk, tag, {rMax:160, minGap:50, see:[lk], zone: zn0 ? zoneIdAt(Zp.x, Zp.y) : null});   // (Г4, п.13: «default:Side Alley» стоял на T Spawn)
+          // (v519, А-27: «не должно быть якорей в полностью открытых местах» — стоял в центре мида под Short, Connector, Window) место — укрытое
+          // от сторон CT (мид CT, сайты), видеть вход — как было
+          groupPost([b], Zp, lk, tag, {rMax:160, minGap:50, see:[lk], zone: zn0 ? zoneIdAt(Zp.x, Zp.y) : null, hideFrom:[GEO.ctMid, GEO.A.anchor, GEO.B.anchor].filter(Boolean)});   // (Г4, п.13: «default:Side Alley» стоял на T Spawn)
         });
       } else {
         groupPost(pick(["support"]), tt.tMidPt || GEO.tMid, GEO.tMidLook, "tmid", midOpt);
@@ -824,11 +832,19 @@ function tBrain(){
     // 5,9 с до взрыва (демки Ancient, 1194 игрока). Теперь каждый — когда до своей точки ухода идти столько, сколько осталось,
     // + запас 2 с (проектное число), но не позже 6 с
     var leftS = bombTimeLeftTicks()/TICK_HZ, defusingNow = bots.some(function(o){ return o.defusing; });
-    var fleeing = defusingNow ? [] : ts.filter(function(b){ if(b.planting) return false; var fp = bombFleePoint(b) || gs.tStage;
-      return leftS < 6 || leftS < pathLenTo(b, fp.x, fp.y)/(SPEED*weaponSpeedMul(b)) + 2; });
+    // (v519, пак 09.11 п.13; Р-17: «частое перебитие путей flee и postplant») решил уходить — уходит до взрыва (защёлка b._flee), точка ухода —
+    // одна (b._fleePt), а не пересчёт каждый тик: «оставшийся путь / скорость + 2 с» убывал, пока бот шёл, и он возвращался на пост-плант.
+    // Снимает уход только событие — начали дефуз (анти-дефуз важнее)
+    var fleeKey = roundNum + ":" + bomb.plantTick;
+    var fleeing = defusingNow ? [] : ts.filter(function(b){ if(b.planting) return false;
+      if(b._flee === fleeKey) return true;
+      var fp = bombFleePoint(b) || gs.tStage;
+      if(leftS < 6 || leftS < pathLenTo(b, fp.x, fp.y)/(SPEED*weaponSpeedMul(b)) + 2){ b._flee = fleeKey; b._fleePt = fp; return true; }
+      return false; });
+    if(defusingNow) ts.forEach(function(b){ b._flee = null; });
     if(fleeing.length){
       if(!tt.fleeLogged){ tt.fleeLogged = true; logEvent("T: уходим от бомбы — сейчас рванёт"); }
-      fleeing.forEach(function(b){ var fp = bombFleePoint(b); setPost(b, fp || gs.tStage, {x:bomb.x, y:bomb.y}, true, "flee"); });
+      fleeing.forEach(function(b){ setPost(b, b._fleePt || gs.tStage, {x:bomb.x, y:bomb.y}, true, "flee"); });
       ts = ts.filter(function(b){ return fleeing.indexOf(b) < 0; });
       if(!ts.length) return;
     }

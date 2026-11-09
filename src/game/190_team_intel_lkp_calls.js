@@ -231,6 +231,9 @@ function knownRole(o){
 }
 function intelDeath(victim, killer){
   if(!victim || roundState !== "live") return;
+  // (v519, пак 09.11 п.10; А-38: «убили мид, убили двоих опорников A, а опорник другого сайта до сих пор стоит» — «T у другого сайта» считался
+  // по последней позиции уже убитого) смерть видна в киллфиде всем: убитый стирается из памяти команды сразу, одно место, а не в каждом читателе
+  ["CT", "T"].forEach(function(t){ if(beliefLast[t]) delete beliefLast[t][victim.id]; });
   if(BAL.roundMem && killer){
     var secR = (tick - roundStartTick)/TICK_HZ;
     if(killer.team === "CT" && killer.weapon && killer.weapon.key === "AWP") RMEM.awp.push({x:killer.x, y:killer.y, round:roundNum});

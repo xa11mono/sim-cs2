@@ -305,7 +305,7 @@ function tryShoot(shooter, target, dist){
     else { var sgn = hashRand(seedS+3) < 0.5 ? -1 : 1; dev = sgn * (bA*1.15 + Math.abs(hashRand(seedS+7)-0.5)*2*sigma); }
     var far = Math.min(w.range, Math.hypot(dx,dy)*1.6 + 60);
     var ex = shooter.x + Math.cos(ang+dev)*far, ey = shooter.y + Math.sin(ang+dev)*far;
-    var cl = rayClipWalls(shooter.x, shooter.y, ex, ey);
+    var cl = bulletClip3(shooter, ex, ey, target);   // (v519) по 3D-геометрии (ящики), не только до стен редактора
     endX = cl.x; endY = cl.y;
     // (v263, Б1) промах летит дальше и попадает в того, кто на его пути, — в своего тоже (урон по своим — в applyDamage).
     // Куда попала — по той же доле зон, что и без хитбоксов; урон — оружия на дистанции до него

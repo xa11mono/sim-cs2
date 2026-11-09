@@ -247,7 +247,14 @@ function tProbes(tt, ts){
         }
       }
     }
+    // (v519, пак 09.11 п.13; Р-30: «почти дошёл, а пришлось возвращаться на другой конец мида — пусть идёт дальше от того места, докуда дошёл, как
+    // продолжение пробы») срок вышел, а бот за последнюю секунду приблизился к точке пробы — проба продолжается (срок — оставшийся путь + запас);
+    // снимается по сроку только тот, кто не идёт (застрял / стоит)
+    var dPr = Math.hypot(P.pt.x-pb.baseX, P.pt.y-pb.baseY);
+    if(!P.prT || tick - P.prT >= TICK_HZ){ P.prog = P.prD != null && dPr < P.prD - 10; P.prD = dPr; P.prT = tick; }
+    if(!pb.atPost && P.prog && tick > (P.dl || P.since + 9*TICK_HZ)) P.dl = tick + Math.ceil((pathLenTo(pb, P.pt.x, P.pt.y)/(SPEED*WALK_SPEED_FRAC) + 2)*TICK_HZ);
     if((pb.atPost && tick - (P.at || (P.at = tick)) > stay) || tick > (P.dl || P.since + 9*TICK_HZ)){
+      P.prD = null; P.prT = 0; P.prog = false;
       P.ph = 0; P.cleared = false; P.at = 0; P.saw = 0; P.until = tick + (6 + 3*hashRand(tick + pb.id.charCodeAt(1)))*TICK_HZ;
       pb._probeLock = 0; clearPost(pb); // вернётся на пост группы со следующего тика
     }

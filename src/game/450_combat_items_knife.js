@@ -53,6 +53,16 @@ function bulletLineHit(sh, ex, ey, skip, seed, note){
   applyDamage(sh, sv, sdmg, "bullet", {armorRatio: sArm ? w.armorPen : null, wkey:w.key, reward:w.killReward||300, note:" ("+note+", дист. "+Math.round(sd)+")"});
   return sv;
 }
+// (v519, пак 09.11 п.15; Р-2: «трассеры проходят через укрытия») пуля мимо — летит по 3D-геометрии карты (та же, что видимость: ящики, укрытия,
+// уступы), а не только до плоских стен редактора: от глаз стрелка к точке на высоте корпуса цели (tz — пол цели, ед. игры) и дальше по той же прямой;
+// где упёрлась — там конец трассера и шальной пули (bulletVictim ищет только до этой точки)
+function bulletClip3(sh, ex, ey, tgt){
+  var c = rayClipWalls(sh.x, sh.y, ex, ey), M = typeof m3 === "function" ? m3() : null; if(!M || !tgt) return c;
+  var az = visFloorAt(sh.x, sh.y, sh.z) + (sh.crouching ? VIS_EYE.crouch : VIS_EYE.stand), tz = visFloorAt(tgt.x, tgt.y, tgt.z) + 40;
+  var dT = Math.hypot(tgt.x-sh.x, tgt.y-sh.y) || 1, L = Math.hypot(c.x-sh.x, c.y-sh.y), bz = az + (tz - az)*L/dT;
+  var h = m3Cast(M, sh.x, sh.y, az, c.x, c.y, bz, "sight", true);
+  return h && h.t < 1 ? {x: sh.x + (c.x-sh.x)*h.t, y: sh.y + (c.y-sh.y)*h.t, wall: true} : c;
+}
 function rayClipWalls(x1, y1, x2, y2){
   var best = 1, hit = false;
   for(var i=0;i<MANUAL_WALLS.length;i++){
@@ -169,7 +179,7 @@ function pickValue(b, k){
     var teamAwp = bots.some(function(o){ return o !== b && o.alive && o.team === b.team && o.primary === "AWP"; });
     if(teamAwp) return weaponValue("AK") - 1;
     if(b.team === "T" && b.money >= WEAPONS.AWP.price) return weaponValue("AK") - 0.5;
-    if(b.team === "CT" && b.tRole !== "awp") return weaponValue("AK") - 0.5;
+    if(b.team === "CT" && !isSniper(b)) return weaponValue("AK") - 0.5;
   }
   if(k === "AK" && b.team === "CT") v += 0.6;
   return v;
@@ -177,9 +187,9 @@ function pickValue(b, k){
 // AWP с винтовкой в руках берёт только снайпер/мидер — пока у команды есть свой
 // живой снайпер или AWP у кого-то; нет — поднимает любой (AWP не бросают)
 function awpAllowed(b){
-  if(b.tRole === "awp" || b.tRole === "mid") return true;
+  if(isSniper(b)) return true;   // (v519) AWP — снайперу команды (было: роль «awp» или «мид» — у CT «мид» переходит по расстановке)
   if(!BAL.pickupMore) return false;
-  return !bots.some(function(o){ return o.alive && o.team === b.team && o !== b && (o.primary === "AWP" || o.tRole === "awp" || (b.team === "CT" && o.tRole === "mid")); });
+  return !bots.some(function(o){ return o.alive && o.team === b.team && o !== b && (o.primary === "AWP" || isSniper(o)); });
 }
 // (v518a, пак 09.11 п.1; владелец: «оружие заметно лучше — взять без опасного отклонения от позиции», «бомба взорвётся через 6 с …
 // у него есть время подобрать», «по пути пропустил калаш, который мог безопасно подобрать») задача ниже подбора — можно сразу; выше —

@@ -1,4 +1,5 @@
 // ---------- бомба ----------
+var DEFUSE_JUDGE = 0.3;   // (v519) с — ошибка оценки таймера игроком, проектное число
 var PLANT_TICKS = Math.round(3.2*64), BOMB_TICKS = 40*64, DEFUSE_TICKS = 10*64, DEFUSE_KIT_TICKS = 5*64;
 // (v271) Урон взрыва — как в CS2 после июля 2025: волна расходится по карте от бомбы, углы и
 // стены её гасят (Valve «запекает» урон в карту, формулы не публикует). Числа — из наших демок
@@ -121,16 +122,19 @@ var UTIL_WAIT = 7, UTIL_WAIT_RUSH = 2.5, UTIL_AT_ENTRY = 140, UTIL_MIN_LEFT = 25
 function defuseSound(ct){
   bots.forEach(function(o){
     if(!o.alive || o.team !== "T") return;
-    if(Math.hypot(o.x-bomb.x, o.y-bomb.y) < DEFUSE_HEAR){ o._defuseHeard = tick; o.heardSound = hearReal(o, {x:bomb.x, y:bomb.y, tick:tick, team:"CT", kind:"defuse"}); }
+    // (v519, пак 09.11 п.19; А-36: «простреливают ровно в ту точку, где стоит бомба, а игрок может стоять чуть дальше») звук — от дефузера (там он
+    // сидит; звук дефуза слышно рядом с бомбой — DEFUSE_HEAR), а не из точки бомбы
+    if(Math.hypot(o.x-bomb.x, o.y-bomb.y) < DEFUSE_HEAR){ o._defuseHeard = tick; o.heardSound = hearReal(o, {x:ct.x, y:ct.y, z:ct.z, tick:tick, team:"CT", kind:"defuse"}); }
   });
 }
 // (6) звук дефуза длится, пока дефузят: T рядом слышат, что он продолжается
 // (фейк — короткий "тап" и тишина). По этому и отличают фейк от настоящего
 function defuseContTick(){
   if(!bomb || bomb.state !== "planted") return;
-  var dfz = bots.some(function(o){ return o.alive && o.defusing; });
+  var dfz = bots.filter(function(o){ return o.alive && o.defusing; })[0];
   if(!dfz || tick % 8) return;
-  bots.forEach(function(o){ if(o.alive && o.team === "T" && Math.hypot(o.x-bomb.x, o.y-bomb.y) < DEFUSE_HEAR) o._defuseCont = tick; });
+  bots.forEach(function(o){ if(o.alive && o.team === "T" && Math.hypot(o.x-bomb.x, o.y-bomb.y) < DEFUSE_HEAR){ o._defuseCont = tick;
+    o.heardSound = hearReal(o, {x:dfz.x, y:dfz.y, z:dfz.z, tick:tick, team:"CT", kind:"defuse"}); } });   // (v519) звук идёт — от дефузера
 }
 // T решают, бежать ли на звук дефуза сейчас: если время позволяет — ~0.8с
 // ждут, продолжается ли звук (настоящий дефуз) или стих (фейк — CT ждут пика).
@@ -283,8 +287,17 @@ function bombTick(){
     } else {
       // (v353, отметка владельца: kyousuke дефузил через ящик в 41 ед. от бомбы — T не мог его увидеть) дефуз — ближе DEFUSE_R ед. карты
       // (~75 ед. игры: «использовать» в Source — до ~72) и только если бомбу видно из глаз присевшего (без стен и ящиков)
-      var cand = bots.filter(function(b){ return b.team==="CT" && b.alive && b.state==="patrol" && Math.hypot(b.baseX-bomb.x, b.baseY-bomb.y) < DEFUSE_R && defuseSees(b); })[0];
+      // (v519, пак 09.11 п.22; А-23) дефузит назначенный ретейком (updateRetake, 180: раньше всех снимет бомбу — путь + дефуз с китом / без), если он
+      // у бомбы; иначе — кто у бомбы (раньше — первый по списку ботов). Перед стартом — успеет ли, по своей оценке времени: игрок оценивает таймер по
+      // писку и может ошибиться на доли секунды (владелец: «может не хватить 0,001 секунды»): ошибка — DEFUSE_JUDGE с × (1,5 − дисциплина), знак — жребий;
+      // по оценке не успевает — не садится (сам таймер бомбы и дефуз — точные)
+      var atB = bots.filter(function(b){ return b.team==="CT" && b.alive && b.state==="patrol" && Math.hypot(b.baseX-bomb.x, b.baseY-bomb.y) < DEFUSE_R && defuseSees(b); });
+      var cand = (bomb.retake && atB.filter(function(b){ return b.id === bomb.retake.defId; })[0]) || atB[0];
       var dTicks = cand ? (cand.kit ? DEFUSE_KIT_TICKS : DEFUSE_TICKS) : 0;
+      if(cand && !cand.defusing && cand._djT !== bomb.plantTick){ cand._djT = bomb.plantTick;
+        var err = (hashRand(bomb.plantTick*13 + cand.id.charCodeAt(cand.id.length-1)*7) - 0.5)*2*DEFUSE_JUDGE*(1.5 - prof(cand, "disc"));
+        cand._djErr = err; }
+      if(cand && bombTimeLeftTicks()/TICK_HZ + (cand._djErr || 0) < dTicks/TICK_HZ){ if(cand._djLog !== bomb.plantTick){ cand._djLog = bomb.plantTick; logEvent(cand.id+": по таймеру не успеваю дефузнуть — не сажусь"); } cand = null; }
       if(cand && cand.fakeUntil && tick < cand.fakeUntil){ /* идёт фейк — ждём */ }
       else if(cand && cand.fakeHoldUntil && tick < cand.fakeHoldUntil){ /* после фейка держит угол */ }
       else if(cand && tick >= (cand.defuseCooldownUntil||0) && (!cand._sawEnemy || bombTimeLeftTicks() < dTicks+64)){

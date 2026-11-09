@@ -58,7 +58,7 @@ function detonate(n){
     nadeFlags["pop:"+n.why] = tick; // общий "хлопнула" для ожидающих (ретейк, поп на убийцу)
     bots.forEach(function(b){
       if(!b.alive) return;
-      var d = Math.hypot(b.x-n.x, b.y-n.y);
+      var d = n.z != null ? Math.hypot(b.x-n.x, b.y-n.y, (n.z - visFloorAt(b.x, b.y, b.z) - VIS_EYE.stand)/(MAP.pxUnits || 2.5)) : Math.hypot(b.x-n.x, b.y-n.y);   // (v519) в 3D
       var dirK = flashDirK(b, n); if(!dirK) return;
       // враг, который видел/слышал летящую флешку, может успеть отвернуться —
       // тем вероятнее, чем выше навык (раньше флешка слепила "по учебнику" всегда)
@@ -91,8 +91,13 @@ function detonate(n){
     });
     bots.forEach(function(b){
       if(!b.alive) return;   // (v263, Б1) HE ранит и своих, и бросившего — множитель в applyDamage
-      var d = Math.hypot(b.x-n.x, b.y-n.y);
-      if(d > NADE.he.radius || !hasLOS(n.x, n.y, b.x, b.y, null, b.z)) return;
+      // (v519, пак 09.11 п.4; А-2: «граната, взорвавшаяся в стене, убивает игрока») урон — от настоящей точки разрыва (высота — физика полёта, 385):
+      // расстояние в 3D и линия той же 3D-геометрией карты, что полёт, до корпуса или головы. Было: расстояние по радару и «видно ли» от глаз
+      // человека, стоящего на верхнем полу под гранатой (высота разрыва не бралась)
+      var bf = visFloorAt(b.x, b.y, b.z), pu = MAP.pxUnits || 2.5, nz = n.z != null ? n.z : bf + VIS_EYE.crouch;
+      var d = Math.hypot(b.x-n.x, b.y-n.y, (nz - (bf + 36))/pu);
+      if(d > NADE.he.radius) return;
+      if(n.z != null ? !(visMarch(n.x, n.y, nz + 4, b.x, b.y, bf + 36) || visMarch(n.x, n.y, nz + 4, b.x, b.y, bf + VIS_EYE.stand)) : !hasLOS(n.x, n.y, b.x, b.y, null, b.z)) return;
       var dmg = NADE.he.dmg * (1 - d/NADE.he.radius);
       applyDamage(n.thrower, b, dmg, "HE", {armorRatio: b.armor ? NADE.he.armorK : null, from:{x:n.x, y:n.y, z:n.z}});
     });
@@ -166,13 +171,18 @@ function applyDamage(att, b, dmg, src, o){
 // (v419) насколько флешка в точке n слепит b по направлению взгляда: 0 — не видит / дальше 1000, иначе 1 / 0,5 / 0,12 (прямо /
 // краем глаза / спиной). Одно место: хлопок (выше) и проверка перед броском «не слепит своих» (flashSafeFor, 350)
 function flashDirK(b, n){
-  var d = Math.hypot(b.x-n.x, b.y-n.y);
+  var d = n.z != null ? Math.hypot(b.x-n.x, b.y-n.y, (n.z - visFloorAt(b.x, b.y, b.z) - VIS_EYE.stand)/(MAP.pxUnits || 2.5)) : Math.hypot(b.x-n.x, b.y-n.y);
   if(d > 1000 || !flashSeen(b, n)) return 0;
   var a = Math.atan2(n.y-b.y, n.x-b.x);
   var off = b.facing === undefined ? 0 : Math.abs(((a - b.facing + Math.PI) % (2*Math.PI) + 2*Math.PI) % (2*Math.PI) - Math.PI);
   return off < 0.55 ? 1 : (off < 1.6 ? 0.5 : 0.12);  // смотрел прямо / краем глаза / спиной
 }
 function flashSeen(b, n){
+  // (v519, пак 09.11 п.4; А-22 / Р-7: «флешка, которая взрывается в стене, — надо учитывать высоту: над крышами на радаре она в стене») разрыв с
+  // высотой (флешка в полёте, 385) — линия от глаз бойца (его пол + рост) до точки разрыва той же 3D-геометрией карты: над крышей — видно, за
+  // стеной — нет. Точка без высоты (проверка перед броском «не слепит своих», 350) — как было: край в 30 / 60 ед. вне стены
+  if(n.z != null){ var ez = visFloorAt(b.x, b.y, b.z) + VIS_EYE.stand;
+    return !smokeBlocks(b.x, b.y, n.x, n.y) && (visMarch(b.x, b.y, ez, n.x, n.y, n.z) || visMarch(b.x, b.y, ez, n.x, n.y, n.z + 16)); }
   if(!insideSolidWall(n.x, n.y) && hasVision(b.x, b.y, n.x, n.y)) return true;
   for(var r = 30; r <= 60; r += 30) for(var k = 0; k < 8; k++){
     var a = k*Math.PI/4, x = n.x + Math.cos(a)*r, y = n.y + Math.sin(a)*r;

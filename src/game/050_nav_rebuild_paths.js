@@ -271,8 +271,16 @@ var LAND_SOUND_DROP = 48;
 function navJumpCost(a, edge){
   if(edge._jcost != null) return edge._jcost;
   var b = zonesById[edge.to]; if(!a || !b || !edge.mid) return (edge._jcost = 0);
-  if(navPlane(a).flat || navPlane(b).flat) return (edge._jcost = 0);   // нет высот углов (Ancient) — как раньше
-  var dz = navStepDz(a, b, edge.mid.x, edge.mid.y);
+  var dz;
+  if(navPlane(a).flat || navPlane(b).flat){
+    // (v519, пак 09.11 п.13; А-3: «на Ancient куча мест, где T бегут и постоянно прыгают») у навмеша Ancient нет высот углов — раньше цена
+    // прыжка была 0, и путь шёл через каждый уступ. Высота пола по обе стороны прохода — из 3D-геометрии карты (та же, что видимость): в 10 px
+    // от середины прохода внутрь каждого участка, этаж — ближайший к высоте участка (пандус так не даёт ложного уступа: пол непрерывный)
+    var M = typeof m3 === "function" ? m3() : null; if(!M) return (edge._jcost = 0);
+    var cen = function(A){ var x = 0, y = 0; A.points.forEach(function(q){ x += q.x; y += q.y; }); return {x:x/A.points.length, y:y/A.points.length}; };
+    var side = function(A){ var c = cen(A), dx = c.x-edge.mid.x, dy = c.y-edge.mid.y, L = Math.hypot(dx, dy) || 1; return visFloorAt(edge.mid.x + dx/L*10, edge.mid.y + dy/L*10, A.z); };
+    dz = side(b) - side(a);
+  } else dz = navStepDz(a, b, edge.mid.x, edge.mid.y);
   return (edge._jcost = dz > 18 ? NAV_JUMP_COST : dz < -LAND_SOUND_DROP ? NAV_DROP_COST : 0);   // (v469) тихий спуск (≤ LAND_SOUND_DROP) — без цены
 }
 var ROUTE_PORTAL = 0;   // (v406) цена перехода между участками сверх длины (было 40 при длине от центров участков): с длиной от точки входа не нужна — спуск со спавна T по рампе (607) короче бордюра (624), а с ценой 8 выбирался бордюр

@@ -82,11 +82,16 @@ function sitePlantOptions(k){
   var def = site.plant || sitePlantSpot(site), safe = null, open = null, bs = -Infinity, bo = -Infinity;
   // (v381, М135, владелец 16.10: «бомба ставится на укрытии») варианты — только места, где ставили про (MAP.pro.plants из демок):
   // центры участков навмеша на сайте включали верх ящиков и укрытий. Мест про нет — как раньше, участки навмеша
-  var PP = sitePlantPro(k);
+  // (v519, пак 09.11 п.20) места планта — только внутри зоны сайта и не на укрытии (раньше места про не проверялись ни тем, ни другим)
+  var PP = sitePlantPro(k).filter(function(c){ return (!site.poly || pointInPoly(c.x, c.y, site.poly)) && !covAt(c.x, c.y); });
+  if(covAt(def.x, def.y) && PP.length) def = {x:PP[0].x, y:PP[0].y};
+  // (v519, Р-10: бомбу «можно быстро убить с Palace Exit, Тетриса и других позиций») «безопасный» — не видно ни с одного места, откуда заходят CT
+  // (ctEntry и точки ретейка сайта, набор карты pos.<сайт>.ctRetake), а не только с одной точки входа
+  var ctIn = [g.ctEntry].concat(((POS[k] && POS[k].ctRetake) || []).map(function(n){ return zonePoint(n, def); })).filter(function(q){ return q && q.x != null; });
   (PP.length ? PP : (site.poly ? NAVAREAS.filter(function(z){ return !NAV_BLOCKED[z.id] && (zoneGraph[z.id]||[]).length; }).map(zoneCentroid) : [])).forEach(function(c){
     if(!PP.length && (!pointInPoly(c.x, c.y, site.poly) || insideSolidWall(c.x, c.y))) return;
     var dd = Math.hypot(c.x-def.x, c.y-def.y);
-    var sS = (hasLOS(c.x, c.y, g.ctEntry.x, g.ctEntry.y) ? 0 : 2) + (hasLOS(c.x, c.y, g.anchor.x, g.anchor.y) ? 0 : 0.5) - dd/400;
+    var sS = 2*ctIn.filter(function(q){ return !hasLOS(c.x, c.y, q.x, q.y); }).length/ctIn.length + (hasLOS(c.x, c.y, g.anchor.x, g.anchor.y) ? 0 : 0.5) - dd/400;
     var sO = (hasLOS(c.x, c.y, g.tEntry.x, g.tEntry.y) ? 2 : 0) + (hasLOS(c.x, c.y, g.tStage.x, g.tStage.y) ? 1 : 0) - dd/400;
     if(sS > bs){ bs = sS; safe = {x:c.x, y:c.y}; }
     if(sO > bo){ bo = sO; open = {x:c.x, y:c.y}; }
@@ -131,15 +136,19 @@ function choosePlant(tt){
 var PLANT_CELL = 24;
 function canPlantAt(k, x, y){
   var S = SITES[k]; if(!S) return false;
-  if(onSite(S, x, y)) return true;
-  return sitePlantPro(k).some(function(p){ return Math.abs(p.x-x) <= PLANT_CELL/2 && Math.abs(p.y-y) <= PLANT_CELL/2; });
+  if(covAt(x, y)) return false;   // (v519, пак 09.11 п.20; Р-11: «укрытия попадают внутрь зоны — на них плентить не могут»)
+  // (v519, владелец 09.11: «мы делали красную зону плантов — только в ней могут плентить») было ещё «или клетка, где ставили про» — она бывала
+  // и вне зоны; зоны сайта нет — как раньше (места про)
+  if(S.poly) return onSite(S, x, y);
+  return onSite(S, x, y) || sitePlantPro(k).some(function(p){ return Math.abs(p.x-x) <= PLANT_CELL/2 && Math.abs(p.y-y) <= PLANT_CELL/2; });
 }
 function sitePlantPro(k){
   return ((MAP.pro && MAP.pro.plants) || []).filter(function(p){ return p.site === k; }).sort(function(a, c){ return c.share - a.share; })
     .map(function(p){ return {x: p.x, y: p.y, share: p.share}; });
 }
 function sitePlantSpot(site){
-  var PP = sitePlantPro(site.key); if(PP.length) return {x: PP[0].x, y: PP[0].y};   // (v381, М135) самое частое место планта про
+  var PP = sitePlantPro(site.key).filter(function(c){ return (!site.poly || pointInPoly(c.x, c.y, site.poly)) && !covAt(c.x, c.y); });   // (v519) в зоне, не на укрытии
+  if(PP.length) return {x: PP[0].x, y: PP[0].y};   // (v381, М135) самое частое место планта про
   if(!site.poly) return {x:site.x, y:site.y};
   var c = centroidOf(site.poly), best = null, bd = Infinity;
   NAVAREAS.forEach(function(z){

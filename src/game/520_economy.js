@@ -403,7 +403,7 @@ function teamDrops(team){
 // тиммейт покупает и скидывает ему (как в CS)
 function teamAwp(team){
   var mates = bots.filter(function(b){ return b.team === team; });
-  var awper = team === "T" ? mates.filter(function(b){ return b.tRole === "awp"; })[0] : mates[1];
+  var awper = mates.filter(isSniper)[0] || (team === "T" ? mates.filter(function(b){ return b.tRole === "awp"; })[0] : mates[1]);   // (v519) снайпер команды
   if(!awper || awper.primary === "AWP") return;
   if(mates.some(function(m){ return m.primary === "AWP"; })) return;   // (v271) AWP у команды уже есть (подобрал) — вторую не берут: у про две AWP в 1% закупов
   var P = WEAPONS.AWP.price;

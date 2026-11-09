@@ -185,7 +185,8 @@ function tSetSite(tt, site){
     // (п.4 владельца 29.10, м1 р2: после перекола B→A носитель ещё 3 с шёл на «stageB» в B Apartments) пост под старый сайт (стадия,
     // зачистка, удержание) — снят: новый даст тактика под новый сайт
     var tg = b.post && b.post.tag;
-    if(old && old !== site && tg && (tg.indexOf("stage" + old) === 0 || tg.indexOf("sitehold" + old) === 0 || tg.indexOf("clear" + old) === 0)) clearPost(b);
+    // (v519, пак 09.11 п.12) и проба под старый сайт (у пробы свой тег probe…, раньше не снималась — после перекола бот ещё шёл «посмотреть» старый сайт)
+    if(old && old !== site && tg && (tg.indexOf("stage" + old) === 0 || tg.indexOf("sitehold" + old) === 0 || tg.indexOf("clear" + old) === 0 || (tg.indexOf("probe" + old) === 0))){ clearPost(b); if(b._probe) b._probe = null; }
     var t = b.nadeTask;
     if(old && old !== site && t && SITES[old] && Math.hypot(t.x-SITES[old].x, t.y-SITES[old].y) < Math.hypot(t.x-SITES[site].x, t.y-SITES[site].y)){
       b.nadeTask = null; b.nadeQueue = null; if(b.post && b.post.tag === "lineup") clearPost(b);
