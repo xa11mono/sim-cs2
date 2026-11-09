@@ -243,8 +243,6 @@ function throwNade(b, type, tx, ty, lob, why, trusted, from){
   // расчёт и полёт совпадают бит в бит
   var L = nadeLaunch({pos: [F[0], F[1], bz], yaw: S.yaw + dYaw, pitch: S.pitch + dPit, strength: S.strength, duck: !!b.crouching, jump: S.jump, vel: V}, tr);
   var Fl = nadeFly(type, L.p, L.v, tr), PR = m3Radar(M, Fl.det[0], Fl.det[1]);
-  // (v519b) флешка — только если хлопок кто-то из врагов может увидеть (flashUseful, 400): иначе она никого не слепит, граната остаётся
-  if(type === "flash" && roundState === "live" && !flashUseful(b, {x:PR[0], y:PR[1], z:Fl.det[2]})){ NADE_FAIL = "хлопок не увидят"; nadeNoteFail(b, type, tx, ty); return false; }
   // (аудит 11.10) проверка прямо перед броском: HE / молотов не летит туда, где стоит свой (в радиусе поражения) —
   // бросок отменяется, граната остаётся. Раньше не проверялось: 37 % HE падали в 300 px от своего, урон по своим от
   // гранат — 88 случаев на 12 матчей (у про из 33 тимкиллов 30 — пули, docs/PRO_PLAY.md 6г)

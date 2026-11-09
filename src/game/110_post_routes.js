@@ -270,7 +270,7 @@ function setPost(b, pt, look, hold, tag, spreadIdx){
   // а не в него. Одно место для всех постов (было: раздвиг на 22 ед. только по spreadIdx). Точные места (бомба, лайнап, подбор) — как есть
   // (v373, отметка владельца: donk стоял на спавне T весь раунд) точка маршрута — не место, где стоять: маршрут засчитывает её, когда
   // бот ближе 70, а сдвиг на 80 не давал дойти — маршрут вставал. Точки маршрута не сдвигаются
-  if((spreadIdx || spotTaken(b, {x:x, y:y})) && !/^(plantspot|defuse|lineup|pickup|fetch|stopplant|antidefuse|ladder|smokeWait|route|repos:hurt)/.test(tag)){
+  if((spreadIdx || spotTaken(b, {x:x, y:y})) && !/^(plantspot|defuse|lineup|pickup|fetch|stopplant|antidefuse|ladder|smokeWait|route)/.test(tag)){
     var la = look ? Math.atan2(look.y-y, look.x-x) : 0, x0 = x, y0 = y;
     [Math.PI/2, -Math.PI/2, Math.PI*0.75, -Math.PI*0.75].some(function(da){
       var nx = x0 + Math.cos(la+da)*(SPOT_PERSONAL+10), ny = y0 + Math.sin(la+da)*(SPOT_PERSONAL+10);
