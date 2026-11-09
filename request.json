@@ -1,0 +1,4 @@
+{"par": 12, "jobs": [
+  {"label": "r519_mir", "ref": "9c17f9dc92afa3975fec8c61e177dbbd9d79b0f8", "map": "mirage", "replay": {"from": "v517_mir", "rounds": "all"}, "matches": [3, 7, 11, 13, 17, 19, 23, 29]},
+  {"label": "r519_anc", "ref": "9c17f9dc92afa3975fec8c61e177dbbd9d79b0f8", "map": "ancient", "replay": {"from": "v517_anc", "rounds": "all"}, "matches": [3, 7, 11, 13, 17, 19, 23, 29]}
+]}
