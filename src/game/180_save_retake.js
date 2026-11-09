@@ -211,7 +211,9 @@ function updateRetake(cts){
   alive.forEach(function(b){
     if(R.assign[b.id] !== undefined) return;
     var bi = 0, bd = Infinity;
-    R.approaches.forEach(function(a, i){ var d = Math.hypot(a.x-b.baseX, a.y-b.baseY); if(d < bd){ bd = d; bi = i; } });
+    // (v518c, пак 09.11 п.8; владелец Р-31: «могли пройти в Маркет … зачем перебивать, когда уже почти дошли» — точка сбора была ближайшей по прямой,
+    // путь к ней — через Geyser, мид и Short) ближайшая по пути от того места, где бот сейчас (путь на пару «бот — точка» — один раз, при назначении)
+    R.approaches.forEach(function(a, i){ var d = pathLenTo(b, a.x, a.y); if(d < bd){ bd = d; bi = i; } });
     R.assign[b.id] = bi;
   });
   if(alive.length >= 3 && R.approaches.length > 1 && !R.flankSet){
@@ -364,10 +366,12 @@ function retakePost(b, cts){
     if(BAL.lurkCheck && aliveCount("T") >= 2){
       var dBp = function(o){ return Math.hypot(o.x-bp.x, o.y-bp.y); };
       var bwc = cts.filter(function(o){ return o.id === R.backWatch && o.alive; })[0];
-      if(!bwc || (cts.length > 1 && cts.every(function(o){ return o === bwc || !o.alive || dBp(o) > dBp(bwc); }))){
+      // (v518c, пак 09.11 п.8; Р-31: «смотрю спину» ×3) смотрящий спину закреплён, пока жив (раньше роль передавалась, когда он оказывался ближе
+      // всех к бомбе, и каждая передача заново шла в войс); колл — один раз за раунд на игрока
+      if(!bwc){
         var bwb = null; cts.forEach(function(o){ if(o.alive && (!bwb || dBp(o) > dBp(bwb))) bwb = o; });
         var nbw = bwb ? bwb.id : "-";
-        if(nbw !== R.backWatch){ R.backWatch = nbw; if(bwb) voiceLog("CT", "back", bwb.id, "смотрю спину — может прийти люрк"); } }
+        if(nbw !== R.backWatch){ R.backWatch = nbw; if(bwb) voiceLog("CT", "back"+bwb.id+"@"+roundNum, bwb.id, "смотрю спину — может прийти люрк"); } }
       if(R.backWatch === b.id){ setPost(b, a, GEO.rotator, true, gTag(b, R), 0); return; }
     }
     // (док 6) уже ближе к бомбе, чем своя точка сбора, — назад на сбор не идёт: ждёт своих там, где стоит

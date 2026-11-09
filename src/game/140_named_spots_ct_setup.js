@@ -154,6 +154,7 @@ function ctSeatRoles(S){
   team.forEach(function(b, i){ var r = roles[bestP[i]]; if(b.tRole !== r){ logEvent("CT: "+nick(b.id)+" в этой расстановке — "+r+" (по своим позициям)"); b.tRole = r; } });
 }
 // роль CT по расстановке: позиция по названию зоны (из нескольких — по раунду)
+var CT_ZONE_RES = {k:null, z:{}};   // (v518c) зоны мест CT, занятые в этом раунде: имя зоны → id бота
 function ctSetupRole(b, role, ct){
   var S = ct.setup; if(!S || !S.roles || !S.roles[role]) return false;
   var R = S.roles[role];
@@ -178,7 +179,15 @@ function ctSetupRole(b, role, ct){
   // B Short, B Plat, Window только 8 %. Демок игрока нет — только места роли, как было. Места других ролей не исключаются: NiKo в
   // демках у Connector 22 %, а Connector — в списке мида; двое в одной точке не встанут — личное место (pickSpots / spotTaken)
   var names = early ? P.pos : posNamesOwn(b, P.pos);
-  var nm = BAL.proPrior ? names[posPickName(b, names, roundNum*97 + role.length*13 + matchNum)] : names[Math.floor(hashRand(roundNum*97 + role.length*13 + matchNum) * names.length)];
+  // (v518c, пак 09.11 п.8; владелец Р-35: «1-3-1 — пошли все трое в Connector и стоят буквально в одном месте») места ролей делятся на команду:
+  // зону, которую в этом раунде уже занял другой живой CT, не берёт, пока у роли есть свободная (раньше — «места других ролей не исключаются»,
+  // от одной точки на двоих спасал только личный радиус 70 px). Своя зона держится за ботом до конца раунда (не перекидываются)
+  var RZ = CT_ZONE_RES.k === matchNum+":"+roundNum ? CT_ZONE_RES : (CT_ZONE_RES = {k: matchNum+":"+roundNum, z:{}});
+  var mineZ = names.filter(function(n){ return RZ.z[n] === b.id; })[0];
+  var freeZ = names.filter(function(n){ var o = RZ.z[n] ? teamBot(RZ.z[n]) : null; return !o || !o.alive || o === b; });
+  if(freeZ.length) names = freeZ;
+  var nm = mineZ || (BAL.proPrior ? names[posPickName(b, names, roundNum*97 + role.length*13 + matchNum)] : names[Math.floor(hashRand(roundNum*97 + role.length*13 + matchNum) * names.length)]);
+  Object.keys(RZ.z).forEach(function(n){ if(RZ.z[n] === b.id && n !== nm) delete RZ.z[n]; }); RZ.z[nm] = b.id;
   var ref = role === "anchorA" ? GEO.A.anchor : role === "anchorB" ? GEO.B.anchor : GEO.ctMid;
   var c = zonePoint(nm, ref); if(!c) return false;
   // (v417, М153) куда смотрят про с этой точки — точка из демок (lookPt, tools/tactics_bake.py / ct_lookpt_add.py); по имени зоны точка
@@ -198,10 +207,10 @@ function ctSetupRole(b, role, ct){
   // встал в той самой зоне, куда велено смотреть (роумер в Cave с взглядом
   // "на Cave") — смотрим дальше НАРУЖУ по пути к T, а не себе под ноги/на сайт
   if(spC && lk && Math.hypot(spC.x-lk.x, spC.y-lk.y) < 150){ var ow = outwardLook(spC, lk); if(ow) lk = ow; }
-  setPost(b, spC, lk, true, tag);
+  var placed = setPost(b, spC, lk, true, tag);   // (v518a, пак 09.11 п.1) отказ арбитра — роль не обслужена (было: всегда «сделано»)
   if(early && !b._earlyLog){ b._earlyLog = roundNum; }
   if(early && b._earlyLogged !== roundNum){ b._earlyLogged = roundNum; logEvent(b.id+" ("+ROLE_LABEL_CT(role)+"): выход за инфой — "+nm); }
-  return true;
+  return placed;
 }
 function ROLE_LABEL_CT(r){ return {anchorA:"опорник A", anchorB:"опорник B", mid:"мидер", rotator:"ротатор", roamer:"роумер"}[r] || r; }
 var events = []; var killfeed = []; // объявлены здесь, до loadOppProfile(), которая пишет в лог сразу при старте

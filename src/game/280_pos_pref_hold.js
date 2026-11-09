@@ -177,6 +177,7 @@ var HOLD = {
   burned: 1.5, burnR: 160, burnSec: 8,   // засвеченная точка
   stackR: 110, stack: 1.2,               // двое в одной точке — один пик забирает обоих
   cross: 0.8,       // кроссфаер: тот же главный вход под углом 50–120°
+  uncov: 0.3,       // (v518c) вход «опасный»: ≥ этой доли главного — пока его никто не держит, второй на тот же главный вход — штраф (проектное)
   travel: 0.6,      // штраф за путь, на 1000px
   objDist: 0.3,     // штраф за удалённость от цели (на весь радиус)
   pro: 1.2,         // бонус точке, где обычно стоят про (0..1 из демок)
@@ -217,6 +218,8 @@ function holdSpot(b, T){
   E.forEach(function(e){ e.wn = e.w / wmax; });
   var cands = holdCands(center, T.rMin || 0, T.rMax || 340, team);
   var mustPts = T.must || [];
+  // (v518c) опасные входы, которые ещё никто из своих в этой группе не держит
+  var uncov = E.filter(function(e){ return e.wn >= HOLD.uncov && !(T.mates||[]).some(function(m){ return m.see && Math.hypot(m.see.pt.x-e.pt.x, m.see.pt.y-e.pt.y) < 60; }); });
   var eval1 = function(c, useMust){
     if(useMust && !mustPts.every(function(m){ return hasLOS(c.x, c.y, m.x, m.y); })) return null;
     var main = 0, mainE = null, open = 0;
@@ -228,6 +231,9 @@ function holdSpot(b, T){
     (T.mates||[]).forEach(function(m){
       var dm = Math.hypot(m.pt.x-c.x, m.pt.y-c.y);
       if(dm < HOLD.stackR) s -= HOLD.stack;
+      // (v518c, пак 09.11 п.8; Р-21: «держу бомбу, смотрю Hole» ×3) тот же главный вход, а другой опасный вход (≥ HOLD.uncov доли главного) никто
+      // из своих не держит — штраф, а не бонус кроссфайра: сначала закрыть входы, потом кроссфайр на один
+      else if(mainE && m.see && Math.hypot(m.see.pt.x-mainE.pt.x, m.see.pt.y-mainE.pt.y) < 60 && uncov.length) s -= HOLD.cross;
       else if(mainE && m.see && Math.hypot(m.see.pt.x-mainE.pt.x, m.see.pt.y-mainE.pt.y) < 60 && dm > 90){
         var a1 = Math.atan2(c.y-mainE.pt.y, c.x-mainE.pt.x), a2 = Math.atan2(m.pt.y-mainE.pt.y, m.pt.x-mainE.pt.x);
         var da = _angOff(a1, a2); if(da > 0.87 && da < 2.1) s += HOLD.cross; else if(da > 0.5) s += HOLD.cross*0.4;
