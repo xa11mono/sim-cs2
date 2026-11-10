@@ -76,8 +76,8 @@ function spotTaken(b, q){ return bots.some(function(o){ return o !== b && o.aliv
 function contactMateFight(b, C){
   var BL = beliefLast[b.team] || {};
   return bots.filter(function(o){
-    if(o === b || !o.alive || o.team !== b.team || !o._sawEnemy || !o._fc || !o._nearestEnemyBot || Math.hypot(o.x-b.x, o.y-b.y) > 600) return false;
-    var e = BL[o._nearestEnemyBot.id]; return e && tick - e.tick <= TICK_HZ && Math.hypot(e.x-C.x, e.y-C.y) <= 400; })[0] || null;
+    if(o === b || !o.alive || o.team !== b.team || !o._sawEnemy || !o._fc || !o._nearestEnemyBot || !nearP(o.x, o.y, o.z, b.x, b.y, b.z, 600)) return false;
+    var e = BL[o._nearestEnemyBot.id]; return e && tick - e.tick <= TICK_HZ && nearP(e.x, e.y, e.z, C.x, C.y, C.z, 400); })[0] || null;
 }
 function contactTick(b){
   if(!b.alive || roundState !== "live") return;
@@ -114,8 +114,8 @@ function contactTick(b){
     return;
   }
   var foe = b.team === "CT" ? "T" : "CT", BL = beliefLast[b.team] || {}, nE = 0;
-  for(var id in BL){ var e = BL[id], ob = teamBot(id); if(ob && ob.alive && ob.team === foe && tick - BL[id].tick <= 5*TICK_HZ && Math.hypot(e.x-b.x, e.y-b.y) < 900) nE++; }
-  var nM = bots.filter(function(o){ return o !== b && o.alive && o.team === b.team && Math.hypot(o.x-b.x, o.y-b.y) < 600; }).length;
+  for(var id in BL){ var e = BL[id], ob = teamBot(id); if(ob && ob.alive && ob.team === foe && tick - BL[id].tick <= 5*TICK_HZ && nearP(e.x, e.y, e.z, b.x, b.y, b.z, 900)) nE++; }
+  var nM = bots.filter(function(o){ return o !== b && o.alive && o.team === b.team && nearP(o.x, o.y, o.z, b.x, b.y, b.z, 600); }).length;
   // (v469, п.14 владельца, снимок м1 р6 т34149: после колла «T на B (~3)» m0NESY пошёл на B, через 2,5 с его остановил contact hold на
   // люркера и держал 17 с; ответ про-аналитика: ротатор и мидер стягиваются первыми, на одиночного люркера — не отвлекаться) идёт по
   // задаче команды (ротация, сбор, ретейк), а рядом по знанию один враг — взгляд на него, ноги — на задаче
@@ -142,7 +142,7 @@ function contactTick(b){
   if(fought && swing){
     var HR = b._heardReload, PHc = teamIntel[b.team] && teamIntel[b.team].plantHeard;
     var adv = !!contactMateFight(b, C)
-      || bots.some(function(o){ return o !== b && o.alive && o.team === b.team && !o._sawEnemy && Math.hypot(o.x-b.x, o.y-b.y) <= TRADE_R; })   // размен рядом
+      || bots.some(function(o){ return o !== b && o.alive && o.team === b.team && !o._sawEnemy && nearP(o.x, o.y, o.z, b.x, b.y, b.z, TRADE_R); })   // размен рядом
       || !!(HR && HR.id === C.id && tick < HR.until)                                                                                            // перезаряжается
       || !!(b.team === "CT" && PHc && tick - PHc.tick < 5*TICK_HZ)                                                                               // сорвать плант
       || duelHits(b._hitOut, tick - CONTACT_AGE*TICK_HZ, C.id) > duelHits(b._hitIn, tick - CONTACT_AGE*TICK_HZ, null)

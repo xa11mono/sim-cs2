@@ -152,7 +152,7 @@ function ctEarlyPeek(b, ct){
   var zs = npZoneOf(b), k = zs === "A" || zs === "B" ? zs : (Math.hypot(b.x-SITES.A.x, b.y-SITES.A.y) < Math.hypot(b.x-SITES.B.x, b.y-SITES.B.y) ? "A" : "B");
   if(!/^(anchor|roamer|mid)/.test(b.tRole)) return false;
   // (v248) за инфой — не в одиночку: один выглядывает, тиммейт рядом на размене [11]
-  if(E.st === 0 && !bots.some(function(o){ return o !== b && o.alive && o.team === b.team && Math.hypot(o.x-b.x, o.y-b.y) <= TRADE_R; })) return false;
+  if(E.st === 0 && !bots.some(function(o){ return o !== b && o.alive && o.team === b.team && nearP(o.x, o.y, o.z, b.x, b.y, b.z, TRADE_R); })) return false;
   // (v285, владелец 14.10) опорник выходит за инфой, только если на его сайте остаётся свой (≤450 px — как защитники в ротациях)
   if(E.st === 0 && /^anchor/.test(b.tRole) && !bots.some(function(o){ return o !== b && o.alive && o.team === b.team && Math.hypot(o.x-SITES[k].x, o.y-SITES[k].y) < 450; })) return false;
   // (v450, док владельца 28.10 №5: «в расстановке 3-0-2 kyousuke идёт пикать окно, хотя на миду 0») роль «мид» пикает с мида, только если
@@ -185,7 +185,7 @@ function ctEarlyPeek(b, ct){
     if(tick - E.arr > 0.8*TICK_HZ && !E.deepDone){
       // (00_PLAN, владелец 05.11: «на Top Mid — не один: либо вдвоём по миду, либо кто-то держит с Short, чтобы Top Mid был виден») подпуш
       // дальше — только в связке: свой рядом (TRADE_R) или свой видит точку подпуша; дальше — до последней такой точки
-      var paired = function(q){ return bots.some(function(o){ return o !== b && o.alive && o.team === b.team && (Math.hypot(o.x-q.x, o.y-q.y) <= TRADE_R || hasLOS(o.x, o.y, q.x, q.y, o.z)); }); };
+      var paired = function(q){ return bots.some(function(o){ return o !== b && o.alive && o.team === b.team && (nearP(o.x, o.y, o.z, q.x, q.y, q.z, TRADE_R) || hasLOS(o.x, o.y, q.x, q.y, o.z)); }); };
       var wp = buildWaypointPath(b.x, b.y, b.z, stg.x, stg.y, 0), nxt = null;   // (п.3б) с высотой бота
       for(var wi = 0; wi < wp.length; wi++){
         var q = {x: wp[wi][0], y: wp[wi][1]}, zq = bzOf(q.x, q.y);

@@ -600,7 +600,7 @@ function tBrain(){
       // гранаты выхода — одно решение, exuGate (366: критичные смоки — назначен / летит / раскрывается / не вышел, замена). Убраны вторые
       // правила здесь: «свой несёт лайнап «(выход, …)»» (v349) и «любой смок T в воздухе у сайта»
       var inAir = !exuGate(tt).go;
-      var mate = b.tRole !== "entry" || ts.some(function(o){ return o !== b && o.alive && o.tRole !== "lurker" && Math.hypot(o.x-b.x, o.y-b.y) <= TRADE_R; });
+      var mate = b.tRole !== "entry" || ts.some(function(o){ return o !== b && o.alive && o.tRole !== "lurker" && nearP(o.x, o.y, o.z, b.x, b.y, b.z, TRADE_R); });
       if(!inAir && mate){ b._utilW = null; return false; }
       if(!mate && !inAir && !(b._utilW && b._utilW.round === roundNum)) voiceLog("T", "tradewait"+b.id+roundNum, b.id, "жду размен — выходим вдвоём");
       // (v349, отметка владельца: donk ждал на выходе с T Ramp на виду у NiKo — бой начинался раньше гранат) ждёт в ближайшем
@@ -656,7 +656,7 @@ function tBrain(){
       // TN1R у огня в Palace увидел врага, и magixx в тот же тик пошёл ставить один) назначенный сопровождающий в бою — всё ещё сопровождающий:
       // носитель ждёт его в пределах того же времени ожидания / ESC_MAX_SEC (раньше бой снимал сопровождение сразу)
       var esc = BE ? cm.filter(function(o){ return o.id === BE.id && !o.planting; })[0] : null;
-      if(!esc && !cm.some(function(o){ return ready(o) && Math.hypot(o.x-carrier.x, o.y-carrier.y) <= TRADE_R; }) && cLeft >= cWalk){
+      if(!esc && !cm.some(function(o){ return ready(o) && nearP(o.x, o.y, o.z, carrier.x, carrier.y, carrier.z, TRADE_R); }) && cLeft >= cWalk){
         esc = cm.filter(function(o){ return !o._sawEnemy && !o.planting && !o.nadeTask && !(o._tradeLock && o._tradeLock.until > tick) && !(o._reposUntil && tick < o._reposUntil) && Math.hypot(o.x-ppt.x, o.y-ppt.y) > 350; })
           .sort(function(a, c){ return Math.hypot(a.x-carrier.x, a.y-carrier.y) - Math.hypot(c.x-carrier.x, c.y-carrier.y); })[0] || null;
         // (v342, отметка владельца: magixx с бомбой ждал у B «сопровождение» с A — через всю карту) сопровождающий — не дальше
@@ -676,12 +676,11 @@ function tBrain(){
         var escW = !exuGate(tt).go ? 3.75 : siteAssess("T", tt.site).near >= 1 ? 2.75 : esc._sawEnemy ? 2.5 : 2.0;
         if(BE.far || tick - BE.since > escW*TICK_HZ) esc = null; }
       if(esc && cLeft >= cWalk){
-        var dE = Math.hypot(esc.x-carrier.x, esc.y-carrier.y);
         var lnE = Math.hypot(ppt.x-carrier.x, ppt.y-carrier.y) || 1, ePt = walk({x: carrier.x + (ppt.x-carrier.x)/lnE*Math.min(90, lnE), y: carrier.y + (ppt.y-carrier.y)/lnE*Math.min(90, lnE)});
         if(!(esc.post && esc.post.tag === "bombEscort" && Math.hypot(esc.post.x-ePt.x, esc.post.y-ePt.y) < 80)) setPost(esc, ePt, g.ctEntry, true, "bombEscort");
         else postKeep(esc);
         esc._probeLock = tick;
-        if(dE <= TRADE_R) setPost(carrier, ppt, g.ctEntry, true, "plantspot");
+        if(nearP(esc.x, esc.y, esc.z, carrier.x, carrier.y, carrier.z, TRADE_R)) setPost(carrier, ppt, g.ctEntry, true, "plantspot");   // (v532) напарник рядом — по пути
         else if(carrier.post && carrier.post.tag === "bombWait") postKeep(carrier);
         else setPost(carrier, {x:carrier.x, y:carrier.y}, esc, true, "bombWait");
       } else setPost(carrier, ppt, g.ctEntry, true, "plantspot");

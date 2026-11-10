@@ -177,7 +177,7 @@ function tDefuseGo(tt, ts){
 // и рядом с кем есть свой (≤ TRADE_R) — размен, если за звуком ждут с прицелом
 function tDefuseBaiter(ts){
   var C = ts.filter(function(b){ return !b.planting && !b._sawEnemy && Math.hypot(b.x-bomb.x, b.y-bomb.y) < 1100 &&
-    ts.some(function(o){ return o !== b && Math.hypot(o.x-b.x, o.y-b.y) <= TRADE_R; }); });
+    ts.some(function(o){ return o !== b && nearP(o.x, o.y, o.z, b.x, b.y, b.z, TRADE_R); }); });
   C.sort(function(a, c){ return bombSightLen(a, bomb) - bombSightLen(c, bomb); });
   return C[0] || null;
 }

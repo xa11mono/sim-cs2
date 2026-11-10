@@ -145,7 +145,7 @@ function prePeekDecide(b, C, zB){
   var repeek = b._avoidPeekUntil > tick && b._avoidPeekAt && Math.hypot(b._avoidPeekAt.x-C.beyond.x, b._avoidPeekAt.y-C.beyond.y) < 450;
   var tt = teamTac.T, execEntry = b.team === "T" && tt && tt.phase === "execute" && b.tRole === "entry";
   var secLeft = ROUND_TIME_SEC - (simTime - roundStartTime);
-  var mates = bots.filter(function(o){ return o !== b && o.alive && o.team === b.team && Math.hypot(o.x-b.x, o.y-b.y) < TRADE_R && !o._sawEnemy; });
+  var mates = bots.filter(function(o){ return o !== b && o.alive && o.team === b.team && nearP(o.x, o.y, o.z, b.x, b.y, b.z, TRADE_R) && !o._sawEnemy; });
   // (3) один угол за раз: из-за угла видно два опасных направления — второе
   // отдаём тиммейту (смотрит туда) или закрываем флешкой
   if(BAL.oneAngle){

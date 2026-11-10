@@ -293,7 +293,7 @@ function tryShoot(shooter, target, dist){
       shooter._exposedUntil = tick + 4*TICK_HZ;
       var postKill = BAL.awpRepos || BAL.styles ? afterKillMove(shooter, target, w) : false;
       if(!postKill && BAL.repos && shooter.atPost && shooter.post && shooter.post.hold && !shooter.planting && !shooter.defusing &&
-         bots.some(function(o){ return o.alive && o.team === target.team && Math.hypot(o.x-shooter.x, o.y-shooter.y) < 900; })){
+         bots.some(function(o){ return o.alive && o.team === target.team && nearP(o.x, o.y, o.z, shooter.x, shooter.y, shooter.z, 900); })){
         var alt = pickSpots("repos"+Math.round(shooter.post.x/30)+","+Math.round(shooter.post.y/30), shooter.post, 3,
           {rMin:55, rMax:170, minGap:40, see: shooter.post.look ? [shooter.post.look] : [], hideFrom:[{x:target.x, y:target.y}]});
         var ap = alt[hashRand(tick + shooter.id.charCodeAt(0)) < 0.5 ? 0 : Math.min(1, alt.length-1)];
@@ -359,7 +359,7 @@ var STATE_LABEL = {patrol:"патруль", hold:"держит угол", engage
 var TRADE_R = 272;
 function duelContext(bot, enemiesSeen, alliesNear){
   var o = {trade:0, up:false, forced:false, hurtFoe:false, awpLine:false, flashed:false};
-  bots.forEach(function(m){ if(m !== bot && m.alive && m.team === bot.team && Math.hypot(m.x-bot.x, m.y-bot.y) <= TRADE_R) o.trade++; });
+  bots.forEach(function(m){ if(m !== bot && m.alive && m.team === bot.team && nearP(m.x, m.y, m.z, bot.x, bot.y, bot.z, TRADE_R)) o.trade++; });
   var my = aliveCount(bot.team), their = aliveCount(bot.team === "CT" ? "T" : "CT");
   o.up = my > their;
   var tt = teamTac.T, secLeft = ROUND_TIME_SEC - (simTime - roundStartTime);

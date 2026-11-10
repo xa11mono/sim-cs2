@@ -94,7 +94,7 @@ function resolveEngagements(){
     if(tick - b.decisionTick < DECISION_INTERVAL_TICKS) return;
     if(b.planting || b.defusing) return; // закладывает/дефузит — решение уже принято
     b.decisionTick = tick;
-    var alliesNear = bots.filter(function(o){ return o!==b && o.team===b.team && o.alive && Math.hypot(o.x-b.x,o.y-b.y) < 550; }).length;
+    var alliesNear = bots.filter(function(o){ return o!==b && o.team===b.team && o.alive && nearP(o.x, o.y, o.z, b.x, b.y, b.z, 550); }).length;
     var enemiesSeen = bots.filter(function(o){ return o.team!==b.team && o.alive && Math.hypot(o.x-b.x,o.y-b.y) <= (b._nearestEnemyDist===Infinity? b.weapon.range : Math.max(b.weapon.range, b._nearestEnemyDist)) && hasVision(b.x,b.y,o.x,o.y) && inFov(b, o.x, o.y); }).length;
     var next = decideAction(b, b._nearestEnemyDist, alliesNear, enemiesSeen);
     // гистерезис: в отход и из отхода — не чаще раза в ~1.3с, иначе бот с низким

@@ -385,7 +385,7 @@ function lowHpBack(b){
   var low = b.hp <= LOW_HP;
   // (v531, владелец 10.11: «тиммейтов убили далеко, а игрок в Jungle, ещё не дошедший и не видевший врага, получил „рядом погиб свой“») «рядом» —
   // по пути, а не по прямой сквозь стены: 900 px по прямой через стену — это другая часть карты. Сначала прямая (путь не короче), потом путь
-  var nearPath = function(x, y, R){ return Math.hypot(x-b.x, y-b.y) < R && pathLenTo(b, x, y) < R; };
+  var nearPath = function(x, y, R){ return nearP(b.x, b.y, b.z, x, y, null, R); };   // (v532) общее «рядом по пути» (100)
   var lostNear = !low && ((teamIntel[b.team] && teamIntel[b.team].sig) || []).some(function(sg){ return sg.type === "died" && sg.id !== b.id && tick - sg.tick < 8*TICK_HZ && nearPath(sg.x, sg.y, 900); });
   if(!low && !lostNear) return;
   if(bomb && bomb.state === "planted") return; // ретейк/пост-плант — бомба важнее
@@ -395,7 +395,7 @@ function lowHpBack(b){
   b._lowHpNext = tick + TICK_HZ;
   var mates = bots.filter(function(o){ return o !== b && o.alive && o.team === b.team; });
   if(!mates.length) return; // один — отходить не к кому
-  if(mates.some(function(o){ return Math.hypot(o.x-b.x, o.y-b.y) < 350; })) return; // рядом уже есть свой
+  if(mates.some(function(o){ return nearP(o.x, o.y, o.z, b.x, b.y, b.z, 350); })) return; // рядом уже есть свой (v532 — по пути)
   var threat = exposedTo(b).concat([]); var BL = beliefLast[b.team] || {};
   var near = false; for(var eid in BL){ var lo = BL[eid]; if(tick - lo.tick < 8*TICK_HZ && nearPath(lo.x, lo.y, 700)){ near = true; threat.push({x:lo.x, y:lo.y}); } }   // (v531) враг рядом — тоже по пути
   if(!near) return;

@@ -291,7 +291,7 @@ function intelDeath(victim, killer){
       // как все; раненый уходит (lowHpBack) или отдаёт бомбу (bombPassTick, HP ≤ 30) — общие правила. Раньше при 3+ живых не менял
       // (v154) снайпер и лёркер T в дефолте на размен не срываются: у про их роль — держать свою линию
       if(BAL.duelValue && !(bomb && bomb.state === "planted") && ((o.weapon && o.weapon.key === "AWP") || (o.team === "T" && o.tRole === "lurker" && teamTac.T && teamTac.T.phase === "setup"))) return;
-      if(Math.hypot(o.x-victim.x, o.y-victim.y) > TRADE_R) return;   // (v248) разменивает тот, кто рядом (как у про)
+      if(!nearP(o.x, o.y, o.z, victim.x, victim.y, victim.z, TRADE_R)) return;   // (v248) разменивает тот, кто рядом (как у про)
       var L = polyLen(pathPts(o.x, o.y, victim.x, victim.y, o.z, victim.z));
       if(L <= 480) cands.push({b:o, L:L});
     });
@@ -348,7 +348,7 @@ function intelDeath(victim, killer){
       if(Math.hypot(o.x-fc.x, o.y-fc.y) > 2*FILL_NEAR && aliveCount(victim.team) < 3) return;
       var L = polyLen(pathPts(o.x, o.y, fc.x, fc.y, o.z)), near = L <= FILL_NEAR;
       if(!near && aliveCount(victim.team) < 3) return;
-      if(!near && !bots.some(function(m){ return m !== o && m.alive && m.team === o.team && Math.hypot(m.x-o.x, m.y-o.y) <= TRADE_R; })) return;
+      if(!near && !bots.some(function(m){ return m !== o && m.alive && m.team === o.team && nearP(m.x, m.y, m.z, o.x, o.y, o.z, TRADE_R); })) return;
       if(!near && intelEstimate(o.team, o.x, o.y, 600, 4*TICK_HZ).n > 0) return;
       if(L < fL){ fL = L; fBest = o; }
     });

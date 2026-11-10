@@ -8,7 +8,7 @@
 // забирал их по очереди: клатч 9% против 2% у про)
 function egWaitPartner(b, mine, kp){
   var dMe = Math.hypot(kp.x-b.x, kp.y-b.y);
-  var part = mine.filter(function(o){ return o !== b && o.alive && !o.planting && !o.defusing && Math.hypot(o.x-b.x, o.y-b.y) < 700; })
+  var part = mine.filter(function(o){ return o !== b && o.alive && !o.planting && !o.defusing && nearP(o.x, o.y, o.z, b.x, b.y, b.z, 700); })
     .sort(function(a, c){ return Math.hypot(a.x-b.x, a.y-b.y) - Math.hypot(c.x-b.x, c.y-b.y); })[0];
   if(!part) return false;
   var dP = Math.hypot(kp.x-part.x, kp.y-part.y);

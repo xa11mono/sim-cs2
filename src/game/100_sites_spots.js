@@ -16,6 +16,11 @@ function pathPts(ax, ay, bx, by, az, bz){
   var p = pathQ("p"+Math.round(ax/Q)+","+Math.round(ay/Q)+">"+Math.round(bx/Q)+","+Math.round(by/Q)+zk, function(){ return buildWaypointPath(ax, ay, az == null ? 0 : az, bx, by, bz == null ? 0 : bz); });
   return [[ax,ay]].concat(p.map(function(q){ return [q[0], q[1]]; }));
 }
+// (v532, владелец 10.11: «переведи на длину пути») «рядом» для решений (свой разменяет, сколько своих и врагов рядом, враг рядом) — по длине
+// пути, а не по прямой сквозь стены. Путь не короче прямой: дальше R по прямой — сразу «нет», без поиска пути; ближе NEAR_P_SAME — «да» (стена
+// между двумя точками в паре шагов дорогу почти не удлиняет). Путь — общий (без цены команды), высота — если известна. Одно место для всех
+var NEAR_P_SAME = 40;   // px — проектное число
+function nearP(ax, ay, az, bx, by, bz, R){ var d = Math.hypot(bx-ax, by-ay); if(d >= R) return false; if(d < NEAR_P_SAME) return true; return polyLen(pathPts(ax, ay, bx, by, az, bz)) < R; }
 function polyLen(pts){ var L=0; for(var i=1;i<pts.length;i++) L += Math.hypot(pts[i][0]-pts[i-1][0], pts[i][1]-pts[i-1][1]); return L; }
 function pointAtDist(pts, d){ // точка на ломаной на расстоянии d от начала
   var acc = 0;
