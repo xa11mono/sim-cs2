@@ -128,11 +128,11 @@ function tProbes(tt, ts){
     if(bomb.state === "dropped" && (tt.fetchId === b.id || (tt.fetchCover && tt.fetchCover.id === b.id))) return; // (v286, И26) за бомбой / прикрывает — не проба
     if(b._midFlank && b._midFlank.round === roundNum) return; // заходит через Red Room — не проба
     var m = /^stage(A|B)(:.*)?$/.exec(b.post.tag) || /^probe(.+)$/.exec(b.post.tag);
-    var key = b.post.tag === "tmid" ? "M" : m ? (b.post.tag.indexOf("stage") === 0 ? b.post.tag.slice(5) : m[1]) : null;
+    var key = taskProp(b.post.tag, "midTask") ? "M" : m ? (b.post.tag.indexOf("stage") === 0 ? b.post.tag.slice(5) : m[1]) : null;
     // проба этого раунда держит свою группу, пока бот на пробе / в бою (тег поста не стадия); (v423, владелец 25.10, Mirage м1 р2: донк после
     // перевода IGL на A трижды уходил пробой B в B Apartments) — встал на стадию другой группы: старая проба забыта, группа — по стадии
     if(b._probe && b._probe.key && b._probe.round === roundNum){
-      if(key && key !== b._probe.key && (/^stage/.test(b.post.tag) || b.post.tag === "tmid")) b._probe = null;
+      if(key && key !== b._probe.key && (/^stage/.test(b.post.tag) || taskProp(b.post.tag, "midTask"))) b._probe = null;
       else key = b._probe.key;
     }
     if(!key) return;

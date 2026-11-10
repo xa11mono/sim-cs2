@@ -146,7 +146,7 @@ function stagePost(mem, k){
   mem = mem.filter(function(b){
     if(!(dSt > 0)) return true;
     var dB = pathLenTo(b, SITES[k].x, SITES[k].y); if(!(dB > 0) || dB > dSt - AHEAD_GAP) return true;
-    if(b.post && /^stage/.test(b.post.tag) && /:ahead$/.test(b.post.tag)) return false;   // уже ждёт впереди
+    if(b.post && /^stage/.test(b.post.tag) && taskProp(b.post.tag, "waitsAhead")) return false;   // уже ждёт впереди
     groupPost([b], {x:b.x, y:b.y}, g.tEntry, "stage"+k+":ahead", {rMax:160, minGap:40, hideFrom:[SITES[k], g.anchor], see:[g.tEntry]});
     return false; });
   if(!mem.length) return;
@@ -189,7 +189,7 @@ function tSetSite(tt, site){
     if(old && old !== site && tg && (tg.indexOf("stage" + old) === 0 || tg.indexOf("sitehold" + old) === 0 || tg.indexOf("clear" + old) === 0 || (tg.indexOf("probe" + old) === 0))){ clearPost(b); if(b._probe) b._probe = null; }
     var t = b.nadeTask;
     if(old && old !== site && t && SITES[old] && Math.hypot(t.x-SITES[old].x, t.y-SITES[old].y) < Math.hypot(t.x-SITES[site].x, t.y-SITES[site].y)){
-      b.nadeTask = null; b.nadeQueue = null; if(b.post && b.post.tag === "lineup") clearPost(b);
+      b.nadeTask = null; b.nadeQueue = null; if(b.post && taskProp(b.post.tag, "lineupTask")) clearPost(b);
     }
   });
 }

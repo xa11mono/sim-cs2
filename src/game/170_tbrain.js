@@ -705,7 +705,7 @@ function tBrain(){
           if(hp && hfF.some(function(q){ return hasLOS(hp.x, hp.y, q.x, q.y); })) hp = null;
           setPost(o, hp || fp, SITES[tt.site], true, "utilHold"); return; }   // за энтри — в укрытии от мест CT (v353)
         if(o.post && o.post.tag === "rushFollow" && Math.hypot(o.post.x-fp.x, o.post.y-fp.y) < 40) return;   // не дёргать путь каждый тик
-        if(o.post && /^route:/.test(o.post.tag) && o._route && o._route.pts[o._route.idx] && Math.hypot(o.post.x-o._route.pts[o._route.idx].x, o.post.y-o._route.pts[o._route.idx].y) < 40) return;   // идёт по маршруту к текущей точке
+        if(o.post && taskProp(o.post.tag, "onRoute") && o._route && o._route.pts[o._route.idx] && Math.hypot(o.post.x-o._route.pts[o._route.idx].x, o.post.y-o._route.pts[o._route.idx].y) < 40) return;   // идёт по маршруту к текущей точке
         setPost(o, fp, SITES[tt.site], true, "rushFollow"); }); }
     // (S5) ставят — двое ближних прикрывают подходы к ставящему под разными углами
     if(BAL.coverPlant && carrier && carrier.alive && (carrier.planting || (carrier.post && carrier.post.tag === "plantspot" && Math.hypot(carrier.x-carrier.post.x, carrier.y-carrier.post.y) < 90))){

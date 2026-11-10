@@ -13,7 +13,7 @@ var MOVE = {run: 0, burn: null};   // выход moveSpeedTick: скорость
 
 // почему бот идёт шагом (первая подходящая причина; null — не шагом)
 function moveWalkWhy(bot){
-  if(BAL.pieSlice && bot._pie && bot._pie.slice && tick - bot._pie.t < 16 && !bot.holding && !bot._sawEnemy && !(bot.post && /^repos/.test(bot.post.tag))) return "режет угол";
+  if(BAL.pieSlice && bot._pie && bot._pie.slice && tick - bot._pie.t < 16 && !bot.holding && !bot._sawEnemy && !(bot.post && taskProp(bot.post.tag, "reposMove"))) return "режет угол";
   // "тихий шаг" (план §3): осторожен, если подозревает, что враг рядом —
   // либо только что видел (lastIntel), либо услышал шаги (heardSound) —
   // но сам сейчас его не видит и не держит угол в открытую (holding
@@ -22,7 +22,7 @@ function moveWalkWhy(bot){
   // отставание на один тик не критично для решения "идти тише".
   if(bot.holding || bot._sawEnemy || bot._stopPlantUntil > tick || (bot._tradeLock && bot._tradeLock.until > tick)) return null;
   // уход с засвеченного угла после фрага — бегом, а не шифтом (позиция и так известна)
-  if(bot.post && /^repos/.test(bot.post.tag) && bot._reposUntil > tick) return null;
+  if(bot.post && taskProp(bot.post.tag, "reposMove") && bot._reposUntil > tick) return null;
   // (v438, док 27.10) свежая инфа / звук — шагом, только если этот враг сам может услышать мой бег (≤ 1,5 слышимости бега — проектное
   // число: враг мог подойти). Было — любой звук: выстрелы за 2000 px давали 6 с шифта по всей карте
   if(bot.lastIntel && tick - bot.lastIntel.tick < CAUTION_TICKS && Math.hypot(bot.lastIntel.x-bot.baseX, bot.lastIntel.y-bot.baseY) <= 1.5*STEP_HEAR_R()) return "видел врага рядом";
@@ -31,22 +31,22 @@ function moveWalkWhy(bot){
   if(bot.role === "roamer" && !bot.roamChecking && bot.roamTarget && bot.state === "patrol" &&
      Math.hypot(bot.roamTarget.x-bot.baseX, bot.roamTarget.y-bot.baseY) < ROAM_QUIET_RADIUS) return "роумер у точки чека";
   // заход на занятый врагом сайт (ретейк/ротация) — последние метры шагом
-  if(bot.post && bot.state === "patrol" && (bot.post.tag === "flank1" || bot.post.tag === "flank2")) return "фланг";
-  if(bot.post && bot.state === "patrol" && /^gather/.test(bot.post.tag) && Math.hypot(bot.post.x-bot.baseX, bot.post.y-bot.baseY) < 500) return "сбор на ретейк — последние метры";
-  if(bot.post && bot.state === "patrol" && /^probe/.test(bot.post.tag) && Math.hypot(bot.post.x-bot.baseX, bot.post.y-bot.baseY) < 420) return "проба — последние метры";
-  if(bot.post && bot.state === "patrol" && bot.post.tag === "shift" && Math.hypot(bot.post.x-bot.baseX, bot.post.y-bot.baseY) < 450) return "перестановка — последние метры";
+  if(bot.post && bot.state === "patrol" && taskProp(bot.post.tag, "flankTask")) return "фланг";
+  if(bot.post && bot.state === "patrol" && taskProp(bot.post.tag, "gatherTask") && Math.hypot(bot.post.x-bot.baseX, bot.post.y-bot.baseY) < 500) return "сбор на ретейк — последние метры";
+  if(bot.post && bot.state === "patrol" && taskProp(bot.post.tag, "probeTask") && Math.hypot(bot.post.x-bot.baseX, bot.post.y-bot.baseY) < 420) return "проба — последние метры";
+  if(bot.post && bot.state === "patrol" && taskProp(bot.post.tag, "shiftTask") && Math.hypot(bot.post.x-bot.baseX, bot.post.y-bot.baseY) < 450) return "перестановка — последние метры";
   // клатч T с бомбой: без инфы — на шифте (не палится бегом); бежит,
   // только если время поджимает или все CT известны и далеко
   if(BAL.soloSlow && bot.team === "T" && bomb && bomb.state === "carried" && bomb.carrier === bot && aliveCount("T") === 1 && soloMayWalk(bot)) return "клатч с бомбой";
   if(BAL.cautious && bot.post && bot.state === "patrol" && taskProp(bot.post.tag, "cautiousEnd") &&
      Math.hypot(bot.post.x-bot.baseX, bot.post.y-bot.baseY) < 350) return "ретейк / ротация / дефуз — последние метры";
   // лёркер ходит тихо всегда, кроме самого начала (до своей точки на сетапе)
-  if(bot.tRole === "lurker" && bot.post && bot.state === "patrol" && /^lurk/.test(bot.post.tag) && bot.post.tag !== "lurkStage"+(teamTac.T && teamTac.T.site==="A"?"B":"A")) return "лёркер";
+  if(bot.tRole === "lurker" && bot.post && bot.state === "patrol" && taskProp(bot.post.tag, "lurkTask") && bot.post.tag !== "lurkStage"+(teamTac.T && teamTac.T.site==="A"?"B":"A")) return "лёркер";
   if(BAL.dangerWalk && dangerWalk(bot)) return "опасное место";
   // (v323, М39) к дефузу близко — подходит шифтом, чтобы не выдать себя, если время есть (defuseWalk)
   if(defuseWalk(bot)) return "подход к дефузу";
   // добивание последнего — не бегом в открытую: последние метры тихим шагом
-  if(bot.post && bot.state === "patrol" && bot.post.tag === "endhunt" && Math.hypot(bot.post.x-bot.baseX, bot.post.y-bot.baseY) < 350) return "охота на последнего — последние метры";
+  if(bot.post && bot.state === "patrol" && taskProp(bot.post.tag, "endhuntTask") && Math.hypot(bot.post.x-bot.baseX, bot.post.y-bot.baseY) < 350) return "охота на последнего — последние метры";
   return null;
 }
 // почему шаг отменён — бегом (первая подходящая причина; зовётся, только когда moveWalkWhy сказал «шагом»)

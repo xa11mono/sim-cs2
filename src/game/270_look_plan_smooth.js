@@ -3,7 +3,7 @@ function lookCands(b, W){
   if(zb < 0) zb = bzOf(b.x, b.y); if(zb < 0) return [];
   var team = b.team, out = [], moving = b.curSpeed > 60*SPD_K && b.heading !== undefined;
   var atHold = !moving && b.post && b.post.look && Math.hypot(b.post.x-b.x, b.post.y-b.y) < 160;
-  var postA = (b.post && b.post.look && !(b.post.tag === "save")) ? Math.atan2(b.post.look.y-(b.post.y||b.y), b.post.look.x-(b.post.x||b.x)) : null;
+  var postA = (b.post && b.post.look && !(taskProp(b.post.tag, "saveTask"))) ? Math.atan2(b.post.look.y-(b.post.y||b.y), b.post.look.x-(b.post.x||b.x)) : null;
   var mates = bots.filter(function(o){ return o !== b && o.alive && o.team === team; });
   var rearCov = moving && mates.some(function(o){ return Math.hypot(o.x-b.x, o.y-b.y) < 500; });
   var habZ = {};

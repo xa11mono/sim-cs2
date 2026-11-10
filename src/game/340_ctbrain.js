@@ -379,7 +379,7 @@ function ctBrain(){
       // сейв не на CT-спавне (там T как раз и будут искать), а в месте подальше от
       // бомбы и от живых T, откуда их не видно; каждый — своё ближайшее такое место
       if(!b._saveSpot){ b._saveSpot = pickSaveSpot(b); }
-      if(b.post && b.post.tag === "pickup" && taskAlive(b)) return;   // (v334, М63) по пути на сейв подбирает оружие — не перебивать
+      if(b.post && taskProp(b.post.tag, "pickupTask") && taskAlive(b)) return;   // (v334, М63) по пути на сейв подбирает оружие — не перебивать
       setPost(b, b._saveSpot, {x:bomb.x, y:bomb.y}, true, "save"); // взгляд — на угол, из-за которого придут от бомбы
       return;
     }

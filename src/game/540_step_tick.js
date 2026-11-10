@@ -61,7 +61,7 @@ function moveSoundEmit(bot, soundRadius, kind, label){
 // 150 ед. игры (60 ед. карты) — шагом 77 %, 150–300 (60–120) — 34 %, дальше — всегда бегом. Шагом — только если успевает дойти
 // и дефузнуть (запас 1,5 с). Кто идёт шагом в этом раунде — жребий на раунд и бота (решение не дёргается каждый тик)
 function defuseWalk(bot){
-  if(!(bomb && bomb.state === "planted" && bot.team === "CT" && bot.post && bot.post.tag === "defuse")) return false;
+  if(!(bomb && bomb.state === "planted" && bot.team === "CT" && bot.post && taskProp(bot.post.tag, "defuseTask"))) return false;
   var d = Math.hypot(bomb.x-bot.baseX, bomb.y-bot.baseY); if(d >= 120) return false;
   if(bombTimeLeftTicks()/TICK_HZ <= d/(SPEED*WALK_SPEED_FRAC) + (bot.kit ? 5 : 10) + 1.5) return false;
   var u = hashRand(roundNum*389 + matchNum*71 + bot.id.charCodeAt(bot.id.length-1)*13);

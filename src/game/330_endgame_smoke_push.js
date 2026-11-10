@@ -79,7 +79,7 @@ function endgameBrain(){
       if(team === "T" && bomb && bomb.state === "carried" && bomb.carrier === b) return; // носитель ставит
       // (v521, отметка владельца 10.11) бомбу ставят — остальные прикрывают плант (170, coverplant: держат входы вокруг точки планта), не охотятся
       var BC = team === "T" && bomb && bomb.state === "carried" ? bomb.carrier : null;
-      if(BC && BC.alive && (BC.planting || (BC.post && BC.post.tag === "plantspot" && Math.hypot(BC.x-BC.post.x, BC.y-BC.post.y) < 90)) && Math.hypot(b.x-BC.x, b.y-BC.y) < 550) return;
+      if(BC && BC.alive && (BC.planting || (BC.post && taskProp(BC.post.tag, "plantSpot") && Math.hypot(BC.x-BC.post.x, BC.y-BC.post.y) < 90)) && Math.hypot(b.x-BC.x, b.y-BC.y) < 550) return;
       if(hunter && b !== hunter){
         // (v519, пак 09.11 п.7; А-10: «идут всей толпой через одну позицию, не пытаются закрыть с двух сторон») остальные — не все на одну точку:
         // ближайший по пути (после охотника) — альтернативная линия на T с другой стороны от охотника (flankSpot, как заход тиммейту), ответ

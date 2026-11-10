@@ -83,7 +83,7 @@ function resolveEngagements(){
       // (v450) и любой T в выходе, кто не видит врага дольше паузы про в перестрелке (PEEK_PRO.T.pause, верхний край — 2,7 с): перестрелка
       // кончилась, «держу» снимается, идёт по задаче (м3 р1: T4 10 с стоял «на линии», ни разу не видя врага)
       var tEx = b.team === "T" && bomb && bomb.state !== "planted" && teamTac.T && teamTac.T.phase === "execute";
-      var carGo = tEx && bomb.state === "carried" && bomb.carrier === b && b.post && /^plantspot/.test(b.post.tag);
+      var carGo = tEx && bomb.state === "carried" && bomb.carrier === b && b.post && taskProp(b.post.tag, "plantGo");
       var lostLong = tEx && tick - (b._lastSawT || -1e9) > PEEK_PRO.T.pause[4]*TICK_HZ;
       if((carGo || lostLong) && b._fc){ fcEnd(b, carGo ? "конец: несу бомбу ставить" : "конец: в выходе врага не вижу дольше паузы — иду по задаче"); }
       if(carGo || lostLong) taskAway = taskAway || (b.post && !b.atPost && Math.hypot(b.post.x-b.baseX, b.post.y-b.baseY) > 40);

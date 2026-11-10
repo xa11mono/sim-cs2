@@ -243,7 +243,7 @@ function killMoveCover(sh, tg){
 function afterKillReact(sh, tg, w){
   // (9) на сейве убил — позиция засвечена (звук выстрела, килфид): уходит на
   // другое укрытие, откуда не видно место убийства и старую точку
-  if(BAL.saveMove && sh.post && sh.post.tag === "save" && sh._saveSpot){
+  if(BAL.saveMove && sh.post && taskProp(sh.post.tag, "saveTask") && sh._saveSpot){
     var hereS = {x:sh.x, y:sh.y}, vpS = {x:tg.x, y:tg.y};
     var altS = pickSpots("svmv"+tick+sh.id, hereS, 4, {rMin:170, rMax:480, minGap:60, hideFrom:[vpS, hereS]})
       .filter(function(q){ return Math.hypot(q.x-hereS.x, q.y-hereS.y) > 150 && !hasLOS(q.x, q.y, vpS.x, vpS.y); })[0];
