@@ -8786,16 +8786,12 @@ function tBrain(){
       // один раз, кто взял — держит до конца прикрытия; второго добирают, только если прикрывающих меньше двух
       var cp0 = carrier.planting ? {x:carrier.baseX, y:carrier.baseY} : {x:carrier.post.x, y:carrier.post.y};
       var CV = tt._cov; if(!CV || CV.round !== roundNum || Math.hypot(CV.x-cp0.x, CV.y-cp0.y) > 90) CV = tt._cov = {round:roundNum, x:cp0.x, y:cp0.y, by:{}};
-      var lkP = [g.ctEntry, g.anchor];
+      // (v521, отметка владельца 10.11 м200 р1: двое T стояли на Tetris, пока sh1ro ставил, — «могут пройти в сайт и занять позицию») прикрытие
+      // планта — той же системой, что пост-плант (holdGroup): все, кто рядом с точкой планта, видят её и держат разные входы (неизвестный
+      // враг может прийти любым — HOLD.anyW, знание сверху). Было: двое ближних на два заданных входа (вход CT, место опорника)
       var okCov = function(b){ return !b._sawEnemy && Math.hypot(b.x-CV.x, b.y-CV.y) < 550 && !(b._tradeLock && b._tradeLock.until > tick); };
-      var covs = rest.filter(function(b){ return CV.by[b.id] && okCov(b); });
-      Object.keys(CV.by).forEach(function(id){ if(!covs.some(function(b){ return b.id === id; })) delete CV.by[id]; });
-      rest.filter(function(b){ return !CV.by[b.id] && okCov(b); }).sort(function(a, c){ return Math.hypot(a.x-CV.x, a.y-CV.y) - Math.hypot(c.x-CV.x, c.y-CV.y); })
-        .forEach(function(b){ if(covs.length >= 2) return;
-          var used = Object.keys(CV.by).map(function(id){ return CV.by[id].ci; }), ci = used.indexOf(0) < 0 ? 0 : 1;
-          var sp = pickSpots("covplant"+tt.site+ci, CV, 2, {rMin:60, rMax:230, minGap:60, see:[lkP[ci]], must:[CV]})[0];
-          if(sp){ CV.by[b.id] = {ci:ci, sp:sp}; covs.push(b); } });
-      covs.forEach(function(b){ var A = CV.by[b.id]; setPost(b, A.sp, lkP[A.ci], true, "coverplant"); });
+      var covs = rest.filter(okCov);
+      if(covs.length) holdGroup(covs, {key:"cp"+tt.site+Math.round(CV.x/30)+","+Math.round(CV.y/30), center:{x:CV.x, y:CV.y}, rArea:320, rMin:60, rMax:420, must:[{x:CV.x, y:CV.y}], anyFrom:true}, "coverplant");
       if(covs.length && !tt._covVoice){ tt._covVoice = tick; voiceLog("T", "covplant", covs[0].id, "ставь, прикрываю"+(covs[1] ? " с "+covs[1].id : "")); }
       rest = rest.filter(function(b){ return covs.indexOf(b) < 0; });
     }
@@ -13452,6 +13448,9 @@ function endgameBrain(){
     mine.forEach(function(b){
       if(b.planting || b.defusing || b._sawEnemy || b._stopPlantUntil > tick) return;
       if(team === "T" && bomb && bomb.state === "carried" && bomb.carrier === b) return; // носитель ставит
+      // (v521, отметка владельца 10.11) бомбу ставят — остальные прикрывают плант (170, coverplant: держат входы вокруг точки планта), не охотятся
+      var BC = team === "T" && bomb && bomb.state === "carried" ? bomb.carrier : null;
+      if(BC && BC.alive && (BC.planting || (BC.post && BC.post.tag === "plantspot" && Math.hypot(BC.x-BC.post.x, BC.y-BC.post.y) < 90)) && Math.hypot(b.x-BC.x, b.y-BC.y) < 550) return;
       if(hunter && b !== hunter){
         // (v519, пак 09.11 п.7; А-10: «идут всей толпой через одну позицию, не пытаются закрыть с двух сторон») остальные — не все на одну точку:
         // ближайший по пути (после охотника) — альтернативная линия на T с другой стороны от охотника (flankSpot, как заход тиммейту), ответ
@@ -13514,8 +13513,11 @@ function endgameBrain(){
       }
       if(b._egC && b._egC.round === roundNum && b._egC.fl === K.id && mC){ setPost(b, b._egC.spot, {x:kp.x, y:kp.y}, true, "endhunt"); return; }
       if(!b._egC || b._egC.gk !== gk || b._egC.round !== roundNum || b._egC.fl){
-        var center = d < 650 ? {x:b.x, y:b.y} : walk({x: kp.x + (b.x-kp.x)*Math.min(0.9, 420/d), y: kp.y + (b.y-kp.y)*Math.min(0.9, 420/d)});
-        var spots = pickSpots("eg:"+b.id+":"+gk, center, 2, {rMax: d < 650 ? 120 : 200, minGap:40, see:[kp]});
+        // (v521, отметка владельца 10.11: двое стояли на Tetris — «рядом» с врагом (490 px по прямой), точка «держать угол на него» бралась рядом с
+        // собой и без вида на него) рядом — точка рядом, только если оттуда его видно; нет такой — подтягивается к нему, как дальний
+        var farC = walk({x: kp.x + (b.x-kp.x)*Math.min(0.9, 420/Math.max(1, d)), y: kp.y + (b.y-kp.y)*Math.min(0.9, 420/Math.max(1, d))});
+        var spots = d < 650 ? pickSpots("eg:"+b.id+":"+gk, {x:b.x, y:b.y}, 2, {rMax:120, minGap:40, see:[kp]}).filter(function(q){ return hasLOS(q.x, q.y, kp.x, kp.y); }) : [];
+        if(!spots.length) spots = pickSpots("egf:"+b.id+":"+gk, farC || {x:b.x, y:b.y}, 2, {rMax:200, minGap:40, see:[kp]});
         b._egC = {gk:gk, round:roundNum, spot:spots[0], look:{x:kp.x, y:kp.y}};
       }
       if(BAL.groupPlay && BAL.egPair && egWaitPartner(b, mine, kp)) return;
@@ -14489,7 +14491,10 @@ function contactTick(b){
       || bots.some(function(o){ return o !== b && o.alive && o.team === b.team && !o._sawEnemy && Math.hypot(o.x-b.x, o.y-b.y) <= TRADE_R; })   // размен рядом
       || !!(HR && HR.id === C.id && tick < HR.until)                                                                                            // перезаряжается
       || !!(b.team === "CT" && PHc && tick - PHc.tick < 5*TICK_HZ)                                                                               // сорвать плант
-      || duelHits(b._hitOut, tick - CONTACT_AGE*TICK_HZ, C.id) > duelHits(b._hitIn, tick - CONTACT_AGE*TICK_HZ, null);                         // (дуэли 06.11) ранил его больше, чем получил, — добить
+      || duelHits(b._hitOut, tick - CONTACT_AGE*TICK_HZ, C.id) > duelHits(b._hitIn, tick - CONTACT_AGE*TICK_HZ, null)
+      // (v521, владелец 10.11: «после боя слишком долго стоят»; ответ про дуэли: «по ситуации — мало HP у обоих: могут отойти, могут допушить»)
+      // размен с ним сейчас не проигрышный (та же оценка, что повторный пик в бою — 470 duelOdds) — тоже преимущество
+      || !!(function(){ var eo = C.id ? teamBot(C.id) : null, o = eo ? duelOdds(b, eo, C.x, C.y) : null; return o && o.ok; })();                         // (дуэли 06.11) ранил его больше, чем получил, — добить
     if(!adv && !C.own) adv = !!nadeAskFlash(b, look, "флешу под пик "+b.id+" ("+calloutName(look.x, look.y)+")");
     if(!adv) swing = false;
   }
@@ -18397,7 +18402,9 @@ function fightStrafe(b, F, dtSec){
   }
   var st = F.sv*dtSec, nx = b.baseX + ax*st, ny = b.baseY + ay*st;
   if(Math.abs(st) > 1e-6){
-    if(stepBlocked(b.baseX, b.baseY, nx, ny, b)){ F.sv = 0; F.sdir = -F.sdir; F.leg = 0; }
+    // (v521, дуэли, замечание владельца 09.11 «2–3 выстрела и оба за стену» — разбор 57 расставаний: 16 — стрейф уводил за край укрытия, врага
+    // больше не видно) стрейф — в пределах линии: шаг, после которого врага, видного сейчас, уже не видно, — разворот (как упор в стену)
+    if(stepBlocked(b.baseX, b.baseY, nx, ny, b) || (b._sawEnemy && hasLOS(b.baseX, b.baseY, e.x, e.y, b.z, e.z) && !hasLOS(nx, ny, e.x, e.y, b.z, e.z))){ F.sv = 0; F.sdir = -F.sdir; F.leg = 0; }
     else { b.baseX = nx; b.baseY = ny; }
   }
   b.curSpeed = Math.abs(F.sv); b.walking = false;
@@ -18436,6 +18443,14 @@ function duelTTK(sh, tg, d, hp, armored, skill){
   return {t: shots*60/w.rpm, shots: shots};
 }
 var DUEL_LOSE_K = 0.6;
+// выглянуть / выйти снова на врага e в точке (x, y): размен не проигрышный и патронов на него хватает (то, что знает игрок: нанесённый урон,
+// своё HP, оружие врага, дистанция) — одна оценка для повторного пика в бою (fightCycleTick) и для выхода после боя (contactTick)
+function duelOdds(b, e, x, y){
+  if(!e || !e.alive) return null;
+  var d = Math.hypot(x-b.x, y-b.y), P = {x:x, y:y, px:x, py:y, weapon:e.weapon, crouching:e.crouching};
+  var mine = duelTTK(b, P, d, Math.max(1, 100 - duelHits(b._hitOut, roundStartTick, e.id)), true, b.skill || 1), theirs = duelTTK(P, b, d, b.hp, !!b.armor, b.skill || 1);
+  return {mine: mine, theirs: theirs, ammoOk: !b._reloading && b.ammo >= mine.shots, ok: !b._reloading && b.ammo >= mine.shots && theirs.t >= mine.t*DUEL_LOSE_K};
+}
 function duelEval(b, F, cover){
   var e = F.e; if(!e || !e.alive) return null;
   var vis = (b._visible || []).filter(function(o){ return o.alive && o.team !== b.team; }), seesE = vis.indexOf(e) >= 0;
@@ -18520,10 +18535,9 @@ function fightCycleTick(b, dtSec, busy){
     var fin = F.e && F.e.alive && duelHits(b._hitOut, F.t0, F.e.id) > duelHits(b._hitIn, F.t0, null);
     // (v520) выглянуть снова — по той же оценке (с места, где враг был виден): размен мой, добить раненого или задача; патронов на врага мало —
     // сначала перезарядка за укрытием (ждёт, не выходит); проигрываю — не выглядывает, перестрелка для него закончена (жребия 26 % больше нет)
-    var DR = F.e && F.e.alive ? duelTTK(b, F.e, Math.hypot(F.e.x-b.x, F.e.y-b.y), Math.max(1, 100 - duelHits(b._hitOut, roundStartTick, F.e.id)), true, b.skill || 1) : null;
-    var DRe = F.e && F.e.alive ? duelTTK(F.e, b, Math.hypot(F.e.x-b.x, F.e.y-b.y), b.hp, !!b.armor, b.skill || 1) : null;
-    if(DR && (b._reloading || b.ammo < DR.shots) && (F.wait || 0) < 4*TICK_HZ){ F.wait = (F.wait || 0) + 1; return; }
-    if(!fin && !fightPush(b) && !(DR && DRe && b.ammo >= DR.shots && DRe.t >= DR.t*DUEL_LOSE_K)){ b._fc = null; return; }   // не выглядывает снова — перестрелка закончена ((v518b) давить по задаче — выглядывает всегда)
+    var DO = F.e ? duelOdds(b, F.e, F.e.x, F.e.y) : null;
+    if(DO && !DO.ammoOk && (F.wait || 0) < 4*TICK_HZ){ F.wait = (F.wait || 0) + 1; return; }
+    if(!fin && !fightPush(b) && !(DO && DO.ok)){ b._fc = null; return; }   // не выглядывает снова — перестрелка закончена ((v518b) давить по задаче — выглядывает всегда)
     F.ph = "back"; F.nPeek = (F.nPeek || 0) + 1; F.sh = null;
     if(F.better){ F.ax = F.better.x; F.ay = F.better.y; F.better = null; }   // (М149) выглядывает с места, откуда видно врага целиком
     // (ответ 4) второй и дальше пик в этой перестрелке — с другого места (не ближе медианы сдвига про D.shift[2] к прошлому): не однообразный джигл
@@ -19776,7 +19790,10 @@ function resolveEngagements(){
     if(next !== "patrol") b.roamChecking = false;
     b.holding = (next === "hold");
     b.holdSinceTick = b.holding ? (b.holdSinceTick===-999 ? tick : b.holdSinceTick) : -999;
-    b.crouching = b.holding && (tick - b.holdSinceTick > 25);
+    // (v521, дуэли: присед за низким укрытием рвал линию — враг пропадал, перестрелка «расходилась») держит угол — приседает, только если
+    // ближайший видимый враг виден и из приседа
+    var ceN = b._nearestEnemyBot, cvp = (b.holding && tick - b.holdSinceTick > 25 && ceN && b._sawEnemy) ? visParts(b.x, b.y, true, ceN.x, ceN.y, ceN.crouching, true, b.z, ceN.z) : null;
+    b.crouching = b.holding && (tick - b.holdSinceTick > 25) && (!cvp || !!(cvp.head || cvp.body || cvp.side));
     if(next === "retreat" && !b.forcedRetreat){
       // роумер отходит на предыдущую точку маршрута, а не на спавн
       var rt = (b.role === "roamer" && b.roamPrevPt) ? b.roamPrevPt : b.spawnPt;
@@ -25584,6 +25601,9 @@ function mkFp(){
 }
 function mkCheckpoint(){
   if(roundState === "matchover") return;
+  // (v521, баг владельца 10.11: «отметка до начала матча — физика разминки») в разминке снимков нет: номер матча тот же, снимок разминки попадал
+  // в «снимок до» отметки / «назад 10 с» и возвращал игру в разминку (сама разминка, WARM, в снимок не входит)
+  if(typeof WARM !== "undefined" && WARM.on) return;
   if(MK.cpMatch !== matchNum){ MK.cps = []; MK.cpMatch = matchNum; }
   var fp = mkFp();
   MK.cps = MK.cps.filter(function(c){ return c.fp === fp && c.tick !== tick; });
@@ -25752,6 +25772,7 @@ function mkPreSnap(){
 }
 function mkStart(){
   if(MK.busy) return;
+  if(typeof WARM !== "undefined" && WARM.on){ mkToast("Разминка — отметки только в матче"); return; }   // (v521) снимок разминки не открывается как матч
   if(MK.cur){ mkEl("mkText").focus(); return; }
   paused = true; mkPauseLabel();
   MK.cur = { snap: mkSnapshot(), state: mkState(), match: matchNum, tick: tick, round: roundNum, roundTime: Math.round((simTime - roundStartTime)*10)/10,
@@ -25946,6 +25967,7 @@ function warmEnd(){
   var n = WARM.n, snap = WARM.snap; WARM = {on:false};
   var sk = document.getElementById("btnWarmSkip"); if(sk) sk.style.display = "none";
   freshMatch(n); if(snap && typeof mkRestore === "function") mkRestore(snap);
+  if(typeof MK !== "undefined" && MK){ MK.cps = []; MK.lastCpTick = -1; }   // (v521) снимки для отметок — только из матча, не из разминки
   killfeed = []; renderFeed(); voiceLines = []; if(typeof renderVoice === "function") renderVoice(); paused = false;
 }
 function warmTick(dt){
