@@ -62,13 +62,13 @@ function moveRunWhy(bot){
   // (v257, К3) ретейк: шагом — только если шагом успевает дойти до бомбы и дефузнуть (та же мерка, что у ниндзя-дефуза)
   if(bot.team === "CT" && bomb && bomb.state === "planted" && bot.post && taskProp(bot.post.tag, "retakeMove")){
     var dB = Math.hypot(bomb.x-bot.baseX, bomb.y-bot.baseY);
-    if(bombTimeLeftTicks()/TICK_HZ <= dB/(SPEED*WALK_SPEED_FRAC) + (bot.kit ? 5 : 10) + 1.5) return "шагом не успеть к дефузу";
+    if(bombTimeLeftTicks()/TICK_HZ <= dB/(SPEED*WALK_SPEED_FRAC) + (bot.kit ? 5 : 10) + 1.5) return "на шифте не успеть к дефузу";
   }
   // (v438, док владельца 27.10: NiKo за 3,5 с до взрыва шёл шифтом и погиб от бомбы) в зоне смертельного взрыва (урон ≥ HP, BOMB_DMG) —
   // шагом, только если шагом успевает выйти из неё до взрыва (+1 с — проектное число); иначе бегом. Любая сторона, любая задача
   if(bomb && bomb.state === "planted" && bombDamageAt(bot.baseX, bot.baseY) >= bot.hp){
     var rKill = BOMB_DMG.sigma*Math.sqrt(2*Math.log(BOMB_DMG.max/Math.max(1, bot.hp))), dOut = Math.max(0, rKill - bombPathLen(bot.baseX, bot.baseY));
-    if(bombTimeLeftTicks()/TICK_HZ <= dOut/(SPEED*WALK_SPEED_FRAC) + 1) return "шагом не выйти из взрыва";
+    if(bombTimeLeftTicks()/TICK_HZ <= dOut/(SPEED*WALK_SPEED_FRAC) + 1) return "на шифте не выйти из взрыва";
   }
   return null;
 }
@@ -76,10 +76,10 @@ function moveRunWhy(bot){
 function moveWalkTick(bot){
   var w = moveWalkWhy(bot), r = null;
   if(bot.nadeTask && bot.nadeTask.runPh === "go"){   // (разбег гранаты) шаг или бег — как у эталона про (380)
-    if(bot.nadeTask.runWalk) w = "разбег гранаты шагом"; else { w = null; r = "разбег гранаты бегом"; } }
+    if(bot.nadeTask.runWalk) w = "разбег гранаты на шифте"; else { w = null; r = "разбег гранаты бегом"; } }
   if(w){ var rr = moveRunWhy(bot); if(rr){ r = rr; w = null; } }
   // (v544, владелец 10.11: «в песочнице указывать, как идти — на шифте или нет») ход, заданный владельцем в песочнице, — главнее всех причин
-  if(SANDBOX.on && bot._sbWalk === "walk"){ w = "песочница: шагом (задал владелец)"; r = null; }
+  if(SANDBOX.on && bot._sbWalk === "walk"){ w = "песочница: на шифте (задал владелец)"; r = null; }
   else if(SANDBOX.on && bot._sbWalk === "run"){ w = null; r = "песочница: бегом (задал владелец)"; }
   bot.walking = !!w; bot._walkWhy = w; bot._runWhy = r;
 }

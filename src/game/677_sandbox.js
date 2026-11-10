@@ -39,7 +39,7 @@ function sbPanel(){
   if(SB_PANEL_EL) return SB_PANEL_EL;
   var el = document.createElement("div"); el.className = "med sb-panel"; el.style.display = "none";
   el.innerHTML = '<div class="med-head"><b>Песочница</b><span class="med-src">раунд не кончается</span></div>' +
-    '<div class="med-hint">Тащи бота мышью. Shift + клик — выбранный бот идёт туда (ИИ при этом не включается). «Ход» — как идёт: сам / на шифте / бегом. «ИИ» — думает и стреляет сам. «В игре» — убрать / вернуть (вернуть — клик по карте).</div>' +
+    '<div class="med-hint">Тащи бота мышью. Shift + клик — выбранный бот идёт туда (ИИ при этом не включается). «Ход» — как идёт: сам / на шифте / бегом (в CS2 только шифт и бег). «ИИ» — думает и стреляет сам. «В игре» — убрать / вернуть (вернуть — клик по карте).</div>' +
     '<div class="med-row"><button data-sb="allOn">ИИ всем</button><button data-sb="allOff">ИИ никому</button><button data-sb="allOut">Убрать всех</button></div>' +
     '<div class="sb-list"></div><div class="sb-info med-info"></div>';
   document.getElementById("main").appendChild(el);
@@ -67,7 +67,7 @@ function sbLogic(b){
   L.push("задача места: " + sbEsc(b._task ? b._task.tag + " (уровень " + b._task.lv + ")" : "нет") + (b.post ? " · " + sbEsc(calloutName(b.post.x, b.post.y)) + (b.atPost ? " · дошёл" : "") : ""));
   L.push("режим боя: " + sbEsc(b.state) + (b._stateWhy ? " — " + sbEsc(b._stateWhy) : ""));
   if(b._fc || b._fcWhy) L.push("перестрелка: " + sbEsc(b._fc ? b._fc.ph : "нет") + (b._fcWhy ? " — " + sbEsc(b._fcWhy) : ""));
-  L.push("движение: " + sbEsc(Math.round(b.curSpeed || 0) + " px/с") + (b._walkWhy ? " · шагом: " + sbEsc(b._walkWhy) : "") + (b._runWhy ? " · бегом: " + sbEsc(b._runWhy) : "") + (b._stopWhy ? " · стоит: " + sbEsc(b._stopWhy) : ""));
+  L.push("движение: " + sbEsc(Math.round(b.curSpeed || 0) + " px/с") + (b._walkWhy ? " · на шифте: " + sbEsc(b._walkWhy) : "") + (b._runWhy ? " · бегом: " + sbEsc(b._runWhy) : "") + (b._stopWhy ? " · стоит: " + sbEsc(b._stopWhy) : ""));
   L.push("взгляд: " + sbEsc(b.lookReason || "по ходу") + (b.lookTarget ? " → " + sbEsc(calloutName(b.lookTarget.x, b.lookTarget.y)) : ""));
   if(b._contact) L.push("контакт: " + sbEsc((b._contact.tag || "") + " · ещё " + Math.max(0, ((b._contact.until - tick)/TICK_HZ)).toFixed(1) + " с"));
   if(b.nadeTask) L.push("граната: " + sbEsc(b.nadeTask.type + " — " + (b.nadeTask.why || "")));
