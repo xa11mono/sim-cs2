@@ -1,3 +1,7 @@
+// (v525, «одно решение — одно место», №4 шаг 1) режим боя бота (state: patrol / hold / engage / retreat) пишется только здесь; причина —
+// b._stateWhy (подпись на экране, запись матча). Решают по-прежнему разные механики (оценка decideAction, «врага не видно», после фрага,
+// нож) — они зовут эту функцию, а не пишут поле сами. Перестрелку (_fc) снаружи снимает только fcEnd (470)
+function fightState(b, next, why){ b.state = next; b._stateWhy = why; b._stateWhyT = tick; }
 function decideAction(bot, nearestDist, alliesNear, enemiesSeen){
   var hpFrac = Math.max(0, bot.hp)/100;
   // было enemiesSeen - alliesNear — себя не считали, и КАЖДАЯ дуэль 1 на 1
@@ -153,6 +157,7 @@ function decideAction(bot, nearestDist, alliesNear, enemiesSeen){
   var best = "hold", bestScore = holdScore;
   if(engageScore > bestScore){ best = "engage"; bestScore = engageScore; }
   if(retreatScore > bestScore){ best = "retreat"; bestScore = retreatScore; }
+  bot._actS = [holdScore, engageScore, retreatScore];   // (v525) для причины решения
   return best;
 }
 
@@ -167,7 +172,7 @@ function decideAction(bot, nearestDist, alliesNear, enemiesSeen){
 // сход с позиции после фрага: цель мертва — "смотрю на угол, где только что
 // видел врага" (hold по lastIntel) держал бота на месте ещё ~3с, и новый пост
 // не срабатывал. Снимаем бой-удержание, чтобы он реально ушёл.
-function leaveHold(b){ b.state = "patrol"; b.holding = false; b.crouching = false; b.decisionTick = tick; }
+function leaveHold(b){ fightState(b, "patrol", "после фрага — ухожу с угла"); b.holding = false; b.crouching = false; b.decisionTick = tick; }
 // (v156) решение после фрага — только по тому, что команда знает (ЛИП ≤5с),
 // а не по настоящим позициям врагов
 function postKillDecide(sh, tg, vp, here){
@@ -229,7 +234,7 @@ function killMoveCover(sh, tg){
   var spK = pickSpots("kmv"+tick+sh.id, hereK, 3, {rMin:KILL_MOVE[0], rMax:KILL_MOVE[1], minGap:30, hideFrom:[vpK], see:seeK})
     .filter(function(q){ return Math.hypot(q.x-hereK.x, q.y-hereK.y) >= KILL_MOVE[0]; })[0];
   if(!spK) return false;
-  sh._reposUntil = 0; sh._probeLock = 0; sh._fc = null;   // перестрелка с убитым кончилась — цикл «линия/укрытие» не держит на месте
+  sh._reposUntil = 0; sh._probeLock = 0; fcEnd(sh, "конец: враг убит — иду дальше");   // перестрелка с убитым кончилась — цикл «линия/укрытие» не держит на месте
   setPost(sh, spK, sh.post && sh.post.look ? sh.post.look : vpK, true, "repos:killmove");
   if(!sh.post || sh.post.tag !== "repos:killmove") return false;
   leaveHold(sh); sh._reposUntil = tick + 2*TICK_HZ;

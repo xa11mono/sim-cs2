@@ -190,6 +190,8 @@ function duelEval(b, F, cover){
 }
 // (v523) причина последнего решения перестрелки — только запись (подпись на экране, запись матча rec2): почему ушёл с линии / остался / бой кончился
 function fcWhy(b, why){ b._fcWhy = why; b._fcWhyT = tick; }
+// (v525) перестрелку снаружи (не из fightCycleTick) снимает только эта функция — с причиной
+function fcEnd(b, why){ b._fc = null; fcWhy(b, why); }
 // каждый тик движения: фазы line (на линии) → off (за укрытием) → back (выглядывает снова) → line …
 function fightCycleTick(b, dtSec, busy){
   var F = b._fc, D = PEEK_PRO[b.team];

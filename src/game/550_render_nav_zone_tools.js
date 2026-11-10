@@ -53,6 +53,7 @@ function whyText(b){
   if(tick - (b._fcSnap||-999) < TICK_HZ) pt += " · у укрытия видит врага — снова на линии";
   // (v523) почему перестрелка так решила (fcWhy, 470) и почему стоит / идёт шагом (535) — причина рядом с подписью
   if(b._fcWhy && tick - (b._fcWhyT||-999) < 3*TICK_HZ && (b._fc || /^конец/.test(b._fcWhy))) pt += " · " + b._fcWhy;
+  else if(!b._fc && b.state !== "patrol" && b._stateWhy && tick - (b._stateWhyT||-999) < 3*TICK_HZ) pt += " · " + b._stateWhy;
   else if(!b._fc && b._stopWhy && b.curSpeed < 1) pt += " · стоит: " + b._stopWhy;
   // (v414, М155) носитель бомбы: что мешает начать плант (plantBlock — то же условие, что в bombTick) и почему бросил
   if(bomb && bomb.state === "carried" && bomb.carrier === b && !b.planting && typeof teamTac !== "undefined" && teamTac.T){
