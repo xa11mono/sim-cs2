@@ -33,7 +33,7 @@ function fireCommit(b){
 }
 // (v321) высота шага: без связи в навмеше нельзя подняться выше прыжка (JUMP_UP), и нельзя залезть туда, откуда есть
 // только спуск (связь «только спрыгнуть» — окно B Apps на Mirage). Спрыгнуть — можно
-var JUMP_UP = 64;   // ед. игры: выше без помощи не запрыгнуть (CS2 ~ 66 с приседом; как JUMP_UP в tools/heights_bake.py)
+var JUMP_UP = NAV_JUMP_UP;   // ед. игры: выше без помощи не запрыгнуть (CS2 ~ 66 с приседом; как JUMP_UP в tools/heights_bake.py)
 var NAV_ID = null;
 function navArea(id){ if(id == null) return null; if(!NAV_ID || NAV_ID.src !== NAVAREAS){ NAV_ID = {src: NAVAREAS, m: {}}; NAVAREAS.forEach(function(a){ NAV_ID.m[a.id] = a; }); } return NAV_ID.m[id] || null; }
 // (v333) участок навмеша под точкой на уровне lvl (±JUMP_UP; в 12 ед. от края — тоже свой пол: щели навмеша, Ladder Room над Underpass)
@@ -86,7 +86,9 @@ function laddersBuild(){
     // на его высоте (± CLIMB_FLOOR_TOL) — узкий верх стены, на котором стоит участок .nav, — не подъём: путь вёл через него на −42
     var hi = inside(c.hi), M3 = m3();
     if(M3 && !m3Floors(M3, hi.x, hi.y).some(function(z){ return Math.abs(z - hi.z) <= CLIMB_FLOOR_TOL; })) return;
-    LADDERS.push({lo:inside(c.lo), hi:hi, up:true, sec:c.sec});
+    // (v533, владелец 10.11: «залезают на уступ 122 ед. напрямую, а должны через соседний ящик») подъём выше одного прыжка — через стоянку
+    // на промежуточном ящике (c.mid, из демок): бот лезет низ → стоянка → верх, а не по прямой сквозь стену
+    LADDERS.push({lo:inside(c.lo), hi:hi, up:true, sec:c.sec, mid:c.mid ? {x:c.mid.x, y:c.mid.y, z:c.mid.z} : null});
   });
 }
 // лестница, по которой бот с этажа z попадает на этаж zTo: конец на своём этаже в пределах r
@@ -95,7 +97,7 @@ function ladderFor(x, y, z, zTo, r){
   var best = null, bd = r;
   LADDERS.forEach(function(L){ (L.up ? [[L.lo, L.hi]] : [[L.lo, L.hi], [L.hi, L.lo]]).forEach(function(e){
     if(Math.abs(e[0].z - z) > JUMP_UP || Math.abs(e[1].z - zTo) > JUMP_UP) return;
-    var d = Math.hypot(e[0].x - x, e[0].y - y); if(d < bd){ bd = d; best = {near: e[0], far: e[1], sec: L.sec}; } }); });
+    var d = Math.hypot(e[0].x - x, e[0].y - y); if(d < bd){ bd = d; best = {near: e[0], far: e[1], sec: L.sec, mid: L.up ? L.mid : null}; } }); });
   return best;
 }
 // true — бот в этот тик на лестнице (обычный шаг не делается)
@@ -104,7 +106,9 @@ function ladderTick(bot){
   if(C){
     if(!bot.alive){ bot._climb = null; return false; }
     var p = Math.min(1, (tick - C.t0)/C.dur);
-    bot.baseX = bot.x = C.from.x + (C.to.x - C.from.x)*p; bot.baseY = bot.y = C.from.y + (C.to.y - C.from.y)*p; bot.z = C.from.z + (C.to.z - C.from.z)*p;
+    // (v533) через стоянку: первая половина времени — на промежуточный ящик, вторая — с него наверх
+    var A = C.from, B = C.to, q = p; if(C.mid){ if(p < 0.5){ B = C.mid; q = p*2; } else { A = C.mid; q = (p - 0.5)*2; } }
+    bot.baseX = bot.x = A.x + (B.x - A.x)*q; bot.baseY = bot.y = A.y + (B.y - A.y)*q; bot.z = A.z + (B.z - A.z)*q;
     bot.curSpeed = LADDER_SPEED/2.5;
     if(p >= 1){ bot.z = C.to.z; bot._area = C.to.area; bot._climb = null; bot.path = []; bot.pathIdx = 0; }
     return true;
@@ -124,7 +128,7 @@ function ladderTick(bot){
     return false;
   }
   var dz = Math.abs(L.far.z - L.near.z);
-  bot._climb = {t0: tick, dur: Math.max(8, Math.round((L.sec || dz/LADDER_SPEED)*TICK_HZ)), from: {x: bot.baseX, y: bot.baseY, z: bot.z}, to: L.far};
+  bot._climb = {t0: tick, dur: Math.max(8, Math.round((L.sec || dz/LADDER_SPEED)*TICK_HZ)), from: {x: bot.baseX, y: bot.baseY, z: bot.z}, to: L.far, mid: L.mid || null};
   if(bot.path[bot.pathIdx] && Math.hypot(bot.path[bot.pathIdx][0]-L.near.x, bot.path[bot.pathIdx][1]-L.near.y) < 4) bot.pathIdx++;
   return ladderTick(bot);
 }

@@ -37,6 +37,7 @@ function snapToWalkable(x, y){
   });
   return best ? {x:best.x, y:best.y} : {x:x, y:y};
 }
+var NAV_JUMP_UP = 64;   // (v533) ед. игры: выше без помощи не запрыгнуть — одно число для графа (нужно уже при загрузке) и движения (JUMP_UP, 370)
 function rebuildNav(){
   applyNavTransform();
   // rescale edge-matching tolerances to the current navmesh scale (see the
@@ -199,6 +200,10 @@ function rebuildNav(){
         zoneGraph[za.id].push({to:zb.id, mid:m, z:zb.z, left:sg[0], right:sg[1]});
         zoneGraph[zb.id].push({to:za.id, mid:m, z:za.z, left:sg[1], right:sg[0]});
         navAutoLinks++; } }); }
+  // (v533, владелец 10.11: «залезают на уступ, куда забраться невозможно») в .nav игры есть связи «вверх» выше прыжка (Mirage 13, Ancient 11):
+  // путь шёл по ним, и высота менялась сразу. Подняться выше прыжка можно только по лестнице (.nav ladders) или подъёмом из демок (там бот
+  // лезет — ladderTick); остальные такие связи из графа убраны
+  navTallDone = false;   // (v533) связи выше прыжка снимаются при первом поиске пути (navCutTall): при загрузке 3D-пол ещё не готов
 
   // Walls are no longer auto-derived from the navmesh at all — every attempt
   // at that (inset/MIN_KEEP tuning, then chain-stitching) kept trading one
@@ -268,20 +273,35 @@ var NAV_JUMP_COST = 120, NAV_DROP_COST = 60;
 // публикует; 48 ед. — начальная настройка до проверки по демкам с player_footstep (land). Спуск ниже — тихо и шагом, и бегом (шаги —
 // отдельно); выше — звук приземления (слышимость — отдельно, landSound, 370). Раньше порог 40 и «приземление громкое всегда» (v322, csdb.gg)
 var LAND_SOUND_DROP = 48;
+var navTallCut = 0, navTallDone = false;
+function navCutTall(){ navTallDone = true; navTallCut = 0;
+  (function(){ var lad = {};
+    ((MAP.navmesh && MAP.navmesh.ladders) || []).forEach(function(l){ var S = (l.below||[]).concat(l.above||[]); S.forEach(function(a){ S.forEach(function(b){ lad[a+">"+b] = 1; }); }); });
+    for(var id in zoneGraph){ var A = zonesById[id]; if(!A) continue;
+      zoneGraph[id] = zoneGraph[id].filter(function(e){ if(!e.mid || lad[id+">"+e.to] || NAV_CLIMB_UP[id+">"+e.to]) return true;
+        if(navEdgeDz(A, e) <= NAV_JUMP_UP) return true; navTallCut++; return false; }); } })();
+}
 function navJumpCost(a, edge){
   if(edge._jcost != null) return edge._jcost;
   var b = zonesById[edge.to]; if(!a || !b || !edge.mid) return (edge._jcost = 0);
+  var dz = navEdgeDz(a, edge);
+  return (edge._jcost = dz > 18 ? NAV_JUMP_COST : dz < -LAND_SOUND_DROP ? NAV_DROP_COST : 0);   // (v469) тихий спуск (≤ LAND_SOUND_DROP) — без цены
+}
+// перепад пола по переходу edge из участка a (+ — вверх); одно место для цены прыжка и для «выше прыжка — не пройти» (v533)
+function navEdgeDz(a, edge){
+  if(edge._dz != null) return edge._dz;
+  var b = zonesById[edge.to]; if(!a || !b || !edge.mid) return (edge._dz = 0);
   var dz;
   if(navPlane(a).flat || navPlane(b).flat){
     // (v519, пак 09.11 п.13; А-3: «на Ancient куча мест, где T бегут и постоянно прыгают») у навмеша Ancient нет высот углов — раньше цена
     // прыжка была 0, и путь шёл через каждый уступ. Высота пола по обе стороны прохода — из 3D-геометрии карты (та же, что видимость): в 10 px
     // от середины прохода внутрь каждого участка, этаж — ближайший к высоте участка (пандус так не даёт ложного уступа: пол непрерывный)
-    var M = typeof m3 === "function" ? m3() : null; if(!M) return (edge._jcost = 0);
+    var M = typeof m3 === "function" ? m3() : null; if(!M) return 0;
     var cen = function(A){ var x = 0, y = 0; A.points.forEach(function(q){ x += q.x; y += q.y; }); return {x:x/A.points.length, y:y/A.points.length}; };
     var side = function(A){ var c = cen(A), dx = c.x-edge.mid.x, dy = c.y-edge.mid.y, L = Math.hypot(dx, dy) || 1; return visFloorAt(edge.mid.x + dx/L*10, edge.mid.y + dy/L*10, A.z); };
     dz = side(b) - side(a);
   } else dz = navStepDz(a, b, edge.mid.x, edge.mid.y);
-  return (edge._jcost = dz > 18 ? NAV_JUMP_COST : dz < -LAND_SOUND_DROP ? NAV_DROP_COST : 0);   // (v469) тихий спуск (≤ LAND_SOUND_DROP) — без цены
+  return (edge._dz = dz);
 }
 var ROUTE_PORTAL = 0;   // (v406) цена перехода между участками сверх длины (было 40 при длине от центров участков): с длиной от точки входа не нужна — спуск со спавна T по рампе (607) короче бордюра (624), а с ценой 8 выбирался бордюр
 // (v446, владелец 28.10: «трое T со спавна идут в точку на Palace Entry и спрыгивают, хотя могли бежать прямо») шум цены переходов
@@ -515,6 +535,7 @@ function buildWaypointPath(fromX, fromY, fromZ, toX, toY, toZ, team, lane){
 function buildWaypointPath0(fromX, fromY, fromZ, toX, toY, toZ, team, lane){
   // (v341, отметка владельца: karrigan в щели у края нижнего пола — путь начинался с верхней полоски (−140) над ним, туда хода
   // нет, бот уходил с пола и его переносило по кругу) начало пути — пол рядом на высоте бота, а не ближайший центр участка
+  if(!navTallDone) navCutTall();
   var fz = fromZ != null ? navAt(fromX, fromY, fromZ) : null;
   if(fromZ != null && (!fz || Math.abs(fz.z - fromZ) > JUMP_UP)) fz = navNearestZ(fromX, fromY, NAV_GAP_TOL, fromZ);   // под точкой чужой этаж — свой рядом
   if(fz && !(zoneGraph[fz.id]||[]).length) fz = null;   // участок без переходов — маршрута от него нет (была прямая сквозь всё)
