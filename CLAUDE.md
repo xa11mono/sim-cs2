@@ -77,7 +77,7 @@ v166 — в `00_PLAN.md`. Главный принцип и правила ниж
 | оружие, боты `makeTeam`, роумер | `070_weapons_bots_roam`; `updateRoamer` — `430_fov_roam` |
 | переключатели и числа движка `BAL` | `080_bal` |
 | профили игроков, **команды** `LINEUP`, `SIDE_TEAM`, `seatPlayers` | `090_profiles_teams` |
-| сайты, точки планта, `pickSpots` | `100_sites_spots` |
+| сайты, точки планта, `pickSpots`; **«рядом» для решений — по пути** `nearP` (v532) | `100_sites_spots` |
 | позиция: `setPost` / `updatePost`, арбитр места `TASK_LEVEL`, **свойства задач** `TASK_PROP` / `taskProp` (v527); маршруты `startRoute` / `routeTick` | `110_post_routes` |
 | **где встать по почерку, оружию и прошлому раунду** (одно место): `posPref`, `posPickName`, `posTick`; «держать район» `holdSpot` / `holdGroup`, варианты `holdCands` | `280_pos_pref_hold` |
 | бомба: `bombTick`, урон взрыва `bombDamageAt` (`BOMB_DMG`), куда бежать `bombFleePoint`, дефуз | `120_bomb` |
