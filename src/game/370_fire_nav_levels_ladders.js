@@ -59,7 +59,7 @@ function navLinked(a, b){ var E = zoneGraph[a.id] || []; for(var i=0;i<E.length;
 // время подъёма (LADDER_SPEED ед. игры/с — проектное число, в CS2 по лестнице ~ шагом), без проверок стен и пола, в конце —
 // участок другого конца и путь заново. Раньше этаж у лестницы угадывался по полу под ногами (оба этажа рядом) — бота
 // перекидывало между этажами и он «трясся»
-var CLIMB_FLOOR_TOL = 24, CLIMB_MID_R = 50;   // CLIMB_MID_R — px, поиск поверхности промежуточного ящика у точки из демок (v541, проектное число)   // ед. игры — проектное число (как допуск пола участка в проверке набора)
+var CLIMB_FLOOR_TOL = 24, CLIMB_MID_R = 50, CLIMB_MAX_STEP = 68;   // CLIMB_MAX_STEP — ед. игры: прыжок с приседом в CS2 ~66 (как у JUMP_UP) + 2 на шаг сетки 3D (проектное)   // CLIMB_MID_R — px, поиск поверхности промежуточного ящика у точки из демок (v541, проектное число)   // ед. игры — проектное число (как допуск пола участка в проверке набора)
 var LADDERS = null, LADDER_SPEED = 150, LADDER_NEAR = 40, LADDER_SEEK = 260, LADDER_FAR = 150;
 function laddersBuild(){
   LADDERS = [];
@@ -98,7 +98,17 @@ function laddersBuild(){
         m3Floors(M3, mx, my).forEach(function(f){ if(Math.abs(f - c.mid.z) > CLIMB_FLOOR_TOL || f < c.lo.z + 18 || f > c.hi.z - 18) return;
           var g = Math.hypot(hi.x - mx, hi.y - my); if(!mid || g < mid.g) mid = {x: mx, y: my, z: f, g: g}; }); }
       if(!mid) return; }
-    LADDERS.push({lo:inside(c.lo), hi:hi, up:true, sec:c.sec, mid:mid ? {x:mid.x, y:mid.y, z:mid.z} : null});
+    // (v542, отметка и скрин владельца 10.11: «бот забирается на уступ, где написано „не пройти — край ящика“: как он туда залазит?») залазил
+    // подъёмом из демок 2135 / 2112 → верх ящика B — с прохода прямо на край: по 3D-геометрии там 81–86 ед., а прыжок в CS2 — до ~66 (с
+    // приседом). Сборщик подъёмов принимал шаг до прыжок + 25 (допуск высоты навмеша), а высота навмеша — центр участка, не пол у края.
+    // Теперь каждый шаг подъёма — по 3D: пол внизу (у точки низа) → поверхность стоянки → поверхность верха; шаг выше CLIMB_MAX_STEP — подъёма
+    // нет (так же, как в редакторе высот: «не пройти»). Подъём через промежуточный ящик, где оба шага — прыжки, остаётся
+    var lo = inside(c.lo);
+    if(M3){ var fLo = m3FloorAt(M3, lo.x, lo.y, lo.z + 18), fHi = m3Floors(M3, hi.x, hi.y).filter(function(z){ return Math.abs(z - hi.z) <= CLIMB_FLOOR_TOL; })[0];
+      if(fLo == null || fHi == null) return;
+      var steps = mid ? [mid.z - fLo, fHi - mid.z] : [fHi - fLo];
+      if(steps.some(function(d){ return d > CLIMB_MAX_STEP; })) return; }
+    LADDERS.push({lo:lo, hi:hi, up:true, sec:c.sec, mid:mid ? {x:mid.x, y:mid.y, z:mid.z} : null});
   });
 }
 // лестница, по которой бот с этажа z попадает на этаж zTo: конец на своём этаже в пределах r

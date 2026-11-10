@@ -275,10 +275,11 @@ var NAV_JUMP_COST = 120, NAV_DROP_COST = 60;
 var LAND_SOUND_DROP = 48;
 var navTallCut = 0, navTallDone = false;
 function navCutTall(){ navTallDone = true; navTallCut = 0;
-  (function(){ var lad = {};
+  (function(){ var lad = {}, climbOk = {}; if(!LADDERS) laddersBuild(); LADDERS.forEach(function(L){ if(L.up) climbOk[L.lo.area+">"+L.hi.area] = 1; });
     ((MAP.navmesh && MAP.navmesh.ladders) || []).forEach(function(l){ var S = (l.below||[]).concat(l.above||[]); S.forEach(function(a){ S.forEach(function(b){ lad[a+">"+b] = 1; }); }); });
     for(var id in zoneGraph){ var A = zonesById[id]; if(!A) continue;
-      zoneGraph[id] = zoneGraph[id].filter(function(e){ if(!e.mid || lad[id+">"+e.to] || NAV_CLIMB_UP[id+">"+e.to]) return true;
+      zoneGraph[id] = zoneGraph[id].filter(function(e){ if(NAV_CLIMB_UP[id+">"+e.to] && !climbOk[id+">"+e.to]){ navTallCut++; return false; }   // (v542) подъём из демок, отброшенный по 3D (laddersBuild), — и связи нет
+        if(!e.mid || lad[id+">"+e.to] || NAV_CLIMB_UP[id+">"+e.to]) return true;
         if(navEdgeDz(A, e) <= NAV_JUMP_UP) return true; navTallCut++; return false; }); } })();
 }
 function navJumpCost(a, edge){
