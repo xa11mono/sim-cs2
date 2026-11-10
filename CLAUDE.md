@@ -194,7 +194,7 @@
 | переключатели и числа движка `BAL` | `080_bal` |
 | профили игроков, **команды** `LINEUP`, `SIDE_TEAM`, `seatPlayers` | `090_profiles_teams` |
 | сайты, точки планта, `pickSpots`; **«рядом» для решений — по пути** `nearP` (v532) | `100_sites_spots` |
-| позиция: `setPost` / `updatePost`, арбитр места `TASK_LEVEL`, **свойства задач** `TASK_PROP` / `taskProp` (v527); маршруты `startRoute` / `routeTick` | `110_post_routes` |
+| позиция: `setPost` / `updatePost`, арбитр места `TASK_LEVEL`, **свойства задач** `TASK_PROP` / `taskProp` (v527); отклонение вместо отказа `taskDetourKind` / `detourOk` (v547); «дошёл» `POST_ARRIVE`; маршруты `startRoute` / `routeTick` | `110_post_routes` |
 | **где встать по почерку, оружию и прошлому раунду** (одно место): `posPref`, `posPickName`, `posTick`; «держать район» `holdSpot` / `holdGroup`, варианты `holdCands` | `280_pos_pref_hold` |
 | бомба: `bombTick`, урон взрыва `bombDamageAt` (`BOMB_DMG`), куда бежать `bombFleePoint`, дефуз | `120_bomb` |
 | тактики T `chooseTactic`, память матча `memSnapshot`/`memRestore`/`memStart`, `MEM_BOX`, профиль соперника `OPP.by`; **тактические паузы** (v460): `TOUT`, `timeoutCheck` / `timeoutWant`, план тренера `coachPlan`, `TO_NOW`; показ паузы — `676_timeout_show` (`ts*`) | `130_tactics_match_adapt`, `676_timeout_show` |
