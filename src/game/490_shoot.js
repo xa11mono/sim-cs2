@@ -29,6 +29,17 @@ function fireVAcc(sh, tg, dist){
   for(var k = 20; k > 0; k--){ var v = vmax*k/20; if(pB(v) >= FIRE_K*p0) return v; }
   return 0;
 }
+// (v524, владелец 10.11: «без прицела стреляют слишком часто; ноускоп — почти в упор, когда резко пикаешь и фликаешь, не успевая зайти в
+// прицел; в основном — в прицел») выстрел без прицела — то же правило «выстрел стоит того» (FIRE_K), что у стрельбы с ходу: без прицела, если
+// попасть в корпус так почти так же вероятно, как в прицеле (цель вблизи большая); иначе — время на прицел (scopeTicks). Раньше — любая
+// дистанция ближе 230 px (575 ед.). AWP_NOSCOPE — разброс AWP без прицела стоя, тыс. рад: данные игры CS2 (80,8 против 2,0 в прицеле)
+var AWP_NOSCOPE = 80.8;
+function awpNoscope(sh, tg, dist){
+  if(!BAL.awpClose || !sh.weapon || sh.weapon.key !== "AWP") return false;
+  var bA = Math.atan(BODY_HALF/Math.max(8, dist)), a = aimSigma(sh, tg, dist), w0 = shotSpread(sh, 0), ns = Math.hypot(w0, AWP_NOSCOPE/1000);
+  var pB = function(sp){ return 1 - Math.exp(-(bA*bA)/(2*(sp*sp + a*a))); };
+  return pB(ns) >= FIRE_K * pB(w0);
+}
 // (Б4) готовность к выстрелу для движения в дуэли (fightCycleTick): через сколько тиков бот мог бы выстрелить в эту цель
 // (реакция, темп оружия, остывание разброса); 0 — готов, ждёт только, пока погасит скорость
 function fireReady(sh, tg, n){ sh._fire = {t:tick, tg:tg.id, inT:Math.max(0, Math.ceil(n))}; }
@@ -92,7 +103,7 @@ function tryShoot(shooter, target, dist){
     else if(tsp > 100*SPD_K) visLag = -2;
     shooter._visLag = visLag;
   } else if(BAL.partialVis) visLag = shooter._visLag || 0;
-  effReaction = Math.max(4, Math.round(shooter.reactionTicks * (shooter._reactMul || 1) * clutchMul * hlReact(shooter)) + (shooter._peekLag || 0) + ((BAL.awpClose && shooter.weapon.key === "AWP" && dist < 230) ? 0 : Math.round((shooter.weapon.scopeTicks || 0) * hlScope(shooter))) + (shooter._hes || 0) + visLag);
+  effReaction = Math.max(4, Math.round(shooter.reactionTicks * (shooter._reactMul || 1) * clutchMul * hlReact(shooter)) + (shooter._peekLag || 0) + (awpNoscope(shooter, target, dist) ? 0 : Math.round((shooter.weapon.scopeTicks || 0) * hlScope(shooter))) + (shooter._hes || 0) + visLag);
   if(shooter._smokeShot){ /* прострел смока — без реакции на "появление", он и не появлялся */ }
   else if(cs < effReaction){
     // префаер — только по тому, что сам только что видел (≤1.4с), а не по коллу/
@@ -152,7 +163,8 @@ function tryShoot(shooter, target, dist){
   // в упор цель огромная и промахнуться почти невозможно, на длинной дистанции
   // в голову попадают редко — как в CS, а не одинаковые 50% на любой дистанции.
   var sk = shooter.skill;
-  var wSpread = shotSpread(shooter, shooter.curSpeed);
+  var noscope = awpNoscope(shooter, target, dist), nsS = noscope ? AWP_NOSCOPE/1000 : 0;   // без прицела — разброс оружия без прицела (данные игры)
+  var wSpread = Math.hypot(shotSpread(shooter, shooter.curSpeed), nsS);
   var comp = 0.55 + 0.35*Math.max(0, Math.min(1, (sk-0.8)/0.4));
   var recoilErr = w.recoil/1000 * Math.max(0, burstIdx-1) * (1-comp) * 1.6;
   var spamErr = (w.spam||0)/1000 * heat;
@@ -164,9 +176,6 @@ function tryShoot(shooter, target, dist){
   if(BAL.hitbox) recoilErr *= 0.3; // (6) отдача теперь — паттерн (ниже), тут только её "шум"
   var rest2 = recoilErr*recoilErr + spamErr*spamErr + aimS*aimS + 0.5*aimD*aimD, sM = 1;
   if(shooter.onStairs) sM *= 2.2;
-  // AWP в упор — ноускоп: без прицела, быстро, но разброс большой
-  var noscope = BAL.awpClose && w.key === "AWP" && dist < 230;
-  if(noscope) sM *= 2.4;
   if(prefire) sM *= BAL.prefireStrict ? 1.6 + 1.8*(1-prefireConfidence) : 1.3 + 1.4*(1-prefireConfidence);
   if(thruSmoke) sM *= 3.2;   // не видит цель — стреляет по памяти, почти вслепую
   if(shooter.atPost && shooter.curSpeed < 10) sM /= BAL.holdAcc;
@@ -175,7 +184,7 @@ function tryShoot(shooter, target, dist){
   // (Б4, контрстрейф) стрелять сейчас или сначала погасить скорость: игрок жмёт, когда попасть в корпус на ходу почти так же
   // вероятно, как стоя (не ниже FIRE_K от этого) — вблизи цель большая, и на ходу попадает (пистолет, ПП стреляют с бега),
   // вдали — сначала остановка. Иначе ждёт, пока сбросит скорость (контрстрейф — fightStrafe)
-  var w0 = shotSpread(shooter, 0), sig0 = Math.sqrt(w0*w0 + rest2) * sM;
+  var w0 = Math.hypot(shotSpread(shooter, 0), nsS), sig0 = Math.sqrt(w0*w0 + rest2) * sM;
   var pBody = function(sg){ return 1 - Math.exp(-(bA*bA)/(2*sg*sg)); };
   if(wSpread > w0 && pBody(sigma) < FIRE_K * pBody(sig0)){ fireReady(shooter, target, 0); return; }
   shooter._fire = null;

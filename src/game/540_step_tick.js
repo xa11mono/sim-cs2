@@ -193,7 +193,7 @@ function stepTick(){
     if(tick % 16 === 0){ var TR = bot._trail || (bot._trail = []); TR.push({x:bot.baseX, y:bot.baseY}); if(TR.length > 8) TR.shift(); }
     // перестрелка по данным: уйти с линии за укрытие и выглянуть снова
     fightCycleTick(bot, dtSec, bot.planting || bot.defusing || burn || tick < (bot.blindUntil||0));
-    if(bot._fc && bot._fc.ph !== "line"){ bot.curSpeed = bot._fc.moving ? SPEED*weaponSpeedMul(bot) : 0; bot._stopWhy = bot._fc.moving ? "перестрелка — идёт за укрытие / на линию" : "перестрелка — стоит за укрытием"; }
+    if(bot._fc && bot._fc.ph !== "line"){ bot.curSpeed = bot._fc.moving ? (bot._fc.mv || 0) : 0; bot._stopWhy = bot._fc.moving ? "перестрелка — идёт за укрытие / на линию" : "перестрелка — стоит за укрытием"; }
 
     // ---------- держит угол "живьём" ----------
     // Стоящий на посту / держащий угол без контакта не стоит статуей: медленно

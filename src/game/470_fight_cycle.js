@@ -150,30 +150,43 @@ function duelTTK(sh, tg, d, hp, armored, skill){
   return {t: shots*60/w.rpm, shots: shots};
 }
 var DUEL_LOSE_K = 0.6;
-// выглянуть / выйти снова на врага e в точке (x, y): размен не проигрышный и патронов на него хватает (то, что знает игрок: нанесённый урон,
-// своё HP, оружие врага, дистанция) — одна оценка для повторного пика в бою (fightCycleTick) и для выхода после боя (contactTick)
+// (v524, ответ владельца 10.11: «с полным HP не уходит оттого, что у врага оружие сильнее; уходит, когда реально проигрывает — получил много
+// урона»; «уходят, когда магазин пуст»; выжимка: решает реальное преимущество — HP обоих, нанесённый урон, свои рядом, несколько врагов, путь
+// отхода, — а не класс оружия) одна оценка из того, что знает игрок. Баланс размена = (сколько нашей стороне до фрага врага) против (сколько
+// их стороне до моего): мой огонь + огонь своих, кто этого врага видит (радар); огонь каждого видимого мне врага, делённый на тех наших, по
+// кому он может стрелять (я + свои, кто его видит). «Проигрываю» — баланс заметно хуже (< DUEL_LOSE_K, проектное число), чем в таком же бою
+// 1 на 1 при полном HP у обоих (r0): само оружие и дистанция в r0 уже учтены, поэтому оружие сильнее — не причина; причина — потерянное HP,
+// второй враг без своего на размен. Патроны: стрелять нечем (магазин пуст / перезарядка) — причина уйти; «мало» — нет
+function duelBalance(b, e, d, eHp, vis){
+  var sk = b.skill || 1, mine = duelTTK(b, e, d, eHp, true, sk), mine0 = duelTTK(b, e, d, 100, true, sk), theirs0 = duelTTK(e, b, d, 100, !!b.armor, sk);
+  var mates = bots.filter(function(m){ return m !== b && m.alive && m.team === b.team; });
+  var sees = function(o){ return mates.filter(function(m){ return (m._visible || []).indexOf(o) >= 0; }); };
+  var myRate = mine.t < Infinity ? 1/mine.t : 0;
+  sees(e).forEach(function(m){ var r = duelTTK(m, e, Math.hypot(e.x-m.x, e.y-m.y), eHp, true, sk); if(r.t < Infinity) myRate += 1/r.t; });
+  var rate = 0;
+  vis.forEach(function(o){ var r = duelTTK(o, b, Math.hypot(o.x-b.x, o.y-b.y), b.hp, !!b.armor, sk); if(r.t < Infinity) rate += (1/r.t)/(1 + sees(o).length); });
+  var theirs = rate > 0 ? 1/rate : Infinity, mineT = myRate > 0 ? 1/myRate : Infinity;
+  var r0 = mine0.t < Infinity ? theirs0.t/mine0.t : 0;
+  return {mine: mine, mineT: mineT, theirs: theirs, r0: r0, lose: !(mineT < Infinity) || theirs < mineT*r0*DUEL_LOSE_K};
+}
+// выглянуть / выйти снова на врага e в точке (x, y): та же оценка (то, что знает игрок: нанесённый урон, своё HP, оружие врага, дистанция) —
+// для повторного пика в бою (fightCycleTick) и для выхода после боя (contactTick). ammoOk — хватает ли патронов на этого врага (мало и есть
+// время — перезарядится за укрытием до выхода; времени нет — выходит с остатком)
 function duelOdds(b, e, x, y){
   if(!e || !e.alive) return null;
-  var d = Math.hypot(x-b.x, y-b.y), P = {x:x, y:y, px:x, py:y, weapon:e.weapon, crouching:e.crouching};
-  var mine = duelTTK(b, P, d, Math.max(1, 100 - duelHits(b._hitOut, roundStartTick, e.id)), true, b.skill || 1), theirs = duelTTK(P, b, d, b.hp, !!b.armor, b.skill || 1);
-  var need = Math.min(mine.shots, (b.weapon && b.weapon.mag) || mine.shots), aOk = !b._reloading && b.ammo >= need;
-  return {mine: mine, theirs: theirs, ammoOk: aOk, ok: aOk && theirs.t >= mine.t*DUEL_LOSE_K};
+  var d = Math.hypot(x-b.x, y-b.y), P = {x:x, y:y, px:x, py:y, weapon:e.weapon, crouching:e.crouching, alive:true};
+  var B = duelBalance(b, P, d, Math.max(1, 100 - duelHits(b._hitOut, roundStartTick, e.id)), [P]);
+  var need = Math.min(B.mine.shots, (b.weapon && b.weapon.mag) || B.mine.shots);
+  return {mine: B.mine, theirs: B.theirs, ammoOk: !b._reloading && b.ammo >= need, ok: !b._reloading && b.ammo > 0 && !B.lose};
 }
 function duelEval(b, F, cover){
   var e = F.e; if(!e || !e.alive) return null;
   var vis = (b._visible || []).filter(function(o){ return o.alive && o.team !== b.team; }), seesE = vis.indexOf(e) >= 0;
   var eHp = Math.max(1, 100 - duelHits(b._hitOut, roundStartTick, e.id));
-  var mine = duelTTK(b, e, Math.hypot(e.x-b.x, e.y-b.y), eHp, true, b.skill || 1), rate = 0;
-  (vis.length ? vis : [e]).forEach(function(o){ var r = duelTTK(o, b, Math.hypot(o.x-b.x, o.y-b.y), b.hp, !!b.armor, b.skill || 1); if(r.t < Infinity) rate += 1/r.t; });
-  // (v521, отметка владельца 10.11: «дал 2–3 выстрела, хотя фулловый, и ушёл» — на дистанции «нужно выстрелов» ≥ магазина, и после первого выстрела
-  // выходило «патронов мало») на линии патроны — причина уйти, только если их меньше, чем нужно на врага, и меньше доли тактической перезарядки
-  // (rlFrac, 480: та же граница, ниже которой игрок перезаряжается после боя)
-  var mag = (b.weapon && b.weapon.mag) || mine.shots, theirs = rate > 0 ? 1/rate : Infinity;
-  var ammoOk = !b._reloading && (b.ammo >= Math.min(mine.shots, mag) || b.ammo > mag*rlFracOf());
+  var B = duelBalance(b, e, Math.hypot(e.x-b.x, e.y-b.y), eHp, vis.length ? vis : [e]);
+  var canShoot = !b._reloading && b.ammo > 0;
   var ret = cover ? Math.hypot(cover.x-b.baseX, cover.y-b.baseY)/(SPEED*weaponSpeedMul(b)) : Infinity;
-  // равный размен — достреливает (владелец: уходить, когда явно проигрываешь и можешь уйти): «не мой» — только если им до моего фрага заметно
-  // меньше, чем мне до их (< DUEL_LOSE_K; проектное число — первый кандидат на замену данными демок)
-  return {sees: seesE, mine: mine.t, theirs: theirs, ret: ret, ammoOk: ammoOk, win: ammoOk && theirs >= mine.t*DUEL_LOSE_K, trapped: ret >= theirs};
+  return {sees: seesE, mine: B.mineT, theirs: B.theirs, ret: ret, ammoOk: canShoot, win: canShoot && !B.lose, trapped: ret >= B.theirs, bal: B.r0 > 0 && B.mineT < Infinity ? (B.theirs/B.mineT)/B.r0 : 0};
 }
 // (v523) причина последнего решения перестрелки — только запись (подпись на экране, запись матча rec2): почему ушёл с линии / остался / бой кончился
 function fcWhy(b, why){ b._fcWhy = why; b._fcWhyT = tick; }
@@ -204,7 +217,7 @@ function fightCycleTick(b, dtSec, busy){
     // (v520) уйти успеваю — ухожу; до укрытия дольше, чем меня убьют, — остаюсь (в упор уйти нельзя)
     var DVs = cs ? duelEval(b, {e: SS.by}, cs) : null; if(DVs && DVs.trapped && b.ammo > 0 && !b._reloading) cs = null;
     if(cs){
-      F.ph = "off"; F.retreat = true; F.own = false; F.cx = cs.x; F.cy = cs.y; F.ax = b.baseX; F.ay = b.baseY; F.seen = tick;
+      F.ph = "off"; F.mv = 0; F.retreat = true; F.own = false; F.cx = cs.x; F.cy = cs.y; F.ax = b.baseX; F.ay = b.baseY; F.seen = tick;
       F.until = tick + Math.round(peekQ(D.pause, fightRand(b, 6))*TICK_HZ);
       F.better = fightBetter(b, SS.by, cs.x, cs.y, D.shift[4]); fcWhy(b, "ушёл: стреляют в плечо, стрелка не видно");
       if(!b._fcS || tick - b._fcS > 4*TICK_HZ){ b._fcS = tick; logEvent(b.id+": стреляют в плечо из-за укрытия — ухожу за укрытие"); }
@@ -230,10 +243,10 @@ function fightCycleTick(b, dtSec, busy){
         return; }
       var c = c0;
       if(!c){ F.until = 0; F.t = tick; fcWhy(b, "остался: укрыться негде"); return; }   // укрыться негде — остаётся на линии
-      F.ph = "off"; F.cx = c.x; F.cy = c.y; F.ax = b.baseX; F.ay = b.baseY; F.own = false;
+      F.ph = "off"; F.mv = 0; F.cx = c.x; F.cy = c.y; F.ax = b.baseX; F.ay = b.baseY; F.own = false;
       F.until = tick + Math.round(peekQ(D.pause, fightRand(b, 3))*TICK_HZ);
-      fcWhy(b, "ушёл: " + (!DV ? "нет оценки" : !DV.ammoOk ? (b._reloading ? "перезаряжаюсь" : "патронов мало " + b.ammo + "/" + ((b.weapon && b.weapon.mag) || "?")) : "размен не мой (мне " + (DV.mine < 99 ? DV.mine.toFixed(1) : "—") + " с, им " + (DV.theirs < 99 ? DV.theirs.toFixed(1) : "—") + " с)"));
-      if(!b._fcV || tick - b._fcV > 4*TICK_HZ){ b._fcV = tick; logEvent(b.id+": размен не мой"+(DV ? " (мне до фрага "+(DV.mine < 99 ? DV.mine.toFixed(2) : "—")+" с, им "+DV.theirs.toFixed(2)+" с"+(DV.ammoOk ? "" : ", патронов мало")+")" : "")+" — ушёл с линии за укрытие"); }
+      fcWhy(b, "ушёл: " + (!DV ? "нет оценки" : !DV.ammoOk ? (b._reloading ? "перезаряжаюсь" : "магазин пуст") : "проигрываю размен (баланс " + DV.bal.toFixed(2) + " от равного; нам " + (DV.mine < 99 ? DV.mine.toFixed(1) : "—") + " с, им " + (DV.theirs < 99 ? DV.theirs.toFixed(1) : "—") + " с)"));
+      if(!b._fcV || tick - b._fcV > 4*TICK_HZ){ b._fcV = tick; logEvent(b.id+": размен не мой"+(DV ? " (мне до фрага "+(DV.mine < 99 ? DV.mine.toFixed(2) : "—")+" с, им "+DV.theirs.toFixed(2)+" с"+(DV.ammoOk ? "" : ", стрелять нечем")+")" : "")+" — ушёл с линии за укрытие"); }
     }
     return;
   }
@@ -253,10 +266,10 @@ function fightCycleTick(b, dtSec, busy){
     var DO = F.e ? duelOdds(b, F.e, F.e.x, F.e.y) : null;
     // патронов на врага мало — перезаряжается здесь, за укрытием (сам начинает: тактическая перезарядка ниже 35 % магазина могла не включиться —
     // отметка владельца 10.11: karrigan 10/12 ждал перезарядку 4 с и стоял), пока идёт — ждёт
-    if(DO && !DO.ammoOk && !b._sawEnemy && !b._reloading && b.weapon && b.ammo < b.weapon.mag){ b._reloading = true; b.reloadUntil = tick + Math.round(b.weapon.reload*TICK_HZ); if(BAL.soundMore) reloadHeard(b, b.weapon); }
+    if(DO && !DO.ammoOk && !b._sawEnemy && !b._reloading && b.weapon && b.ammo < b.weapon.mag && (b.ammo <= 0 || !fightPush(b))){ b._reloading = true; b.reloadUntil = tick + Math.round(b.weapon.reload*TICK_HZ); if(BAL.soundMore) reloadHeard(b, b.weapon); }
     if(DO && !DO.ammoOk && b._reloading){ F.until = Math.max(F.until, b.reloadUntil); fcWhy(b, "за укрытием: перезаряжаюсь"); return; }
-    if(!fin && !fightPush(b) && !(DO && DO.ok)){ b._fc = null; fcWhy(b, "конец: не выглядываю — " + (!DO ? "врага нет" : !DO.ammoOk ? "патронов мало" : "размен не мой")); return; }   // не выглядывает снова — перестрелка закончена ((v518b) давить по задаче — выглядывает всегда)
-    F.ph = "back"; F.nPeek = (F.nPeek || 0) + 1; F.sh = null; fcWhy(b, "выглядываю: " + (fin ? "добить раненого" : (DO && DO.ok) ? "размен мой" : "задача"));
+    if(!fin && !fightPush(b) && !(DO && DO.ok)){ b._fc = null; fcWhy(b, "конец: не выглядываю — " + (!DO ? "врага нет" : "проигрываю размен")); return; }   // не выглядывает снова — перестрелка закончена ((v518b) давить по задаче — выглядывает всегда)
+    F.ph = "back"; F.mv = 0; F.nPeek = (F.nPeek || 0) + 1; F.sh = null; fcWhy(b, "выглядываю: " + (fin ? "добить раненого" : (DO && DO.ok) ? "размен мой" : "задача"));
     if(F.better){ F.ax = F.better.x; F.ay = F.better.y; F.better = null; }   // (М149) выглядывает с места, откуда видно врага целиком
     // (ответ 4) второй и дальше пик в этой перестрелке — с другого места (не ближе медианы сдвига про D.shift[2] к прошлому): не однообразный джигл
     // (v521, владелец 10.11: «чередовать, чтобы врагу было тяжелее попасть: можно 2 раза пикнуть с одного места, на третий уйти, можно сразу на
@@ -273,8 +286,14 @@ function fightCycleTick(b, dtSec, busy){
   var tx = F.ph === "off" ? F.cx : shOn ? F.sh.x : F.ax, ty = F.ph === "off" ? F.cy : shOn ? F.sh.y : F.ay;
   var d = Math.hypot(tx-b.baseX, ty-b.baseY);
   if(d < 2 && shOn){ if(!F.sh.t0) F.sh.t0 = tick; if(tick - F.sh.t0 >= peekQ(D.pause, fightRand(b, 7))*TICK_HZ) F.sh.done = true; return; }   // плечо показано — ждёт выстрела до паузы про
-  if(d < 2){ if(F.ph === "back"){ F.ph = "line"; F.t = tick; F.until = 0; F.sv = undefined; } return; }
-  var stp = Math.min(d, SPEED*weaponSpeedMul(b)*dtSec), nx = b.baseX + (tx-b.baseX)/d*stp, ny = b.baseY + (ty-b.baseY)/d*stp;
+  if(d < 2){ F.mv = 0; if(F.ph === "back"){ F.ph = "line"; F.t = tick; F.until = 0; F.sv = undefined; } return; }
+  // (v524, владелец 10.11: «резко уходят влево-вправо и встают») за укрытие и обратно — той же физикой, что стрейф на линии (разгон CS_ACCEL,
+  // трение CS_FRIC, остановка csDecel): с места набирает скорость, перед точкой гасит её; не медленнее CS_STOP, пока не дошёл
+  var vmax = SPEED*weaponSpeedMul(b), mv = F.mv || 0;
+  if(d <= mv*mv/(2*csDecel(mv, vmax)) + 1) mv = Math.max(CS_STOP/PX_UNITS, mv - csDecel(mv, vmax)*dtSec);
+  else mv = Math.min(vmax, mv + Math.max(0, CS_ACCEL*vmax - CS_FRIC*mv)*dtSec);
+  F.mv = mv;
+  var stp = Math.min(d, mv*dtSec), nx = b.baseX + (tx-b.baseX)/d*stp, ny = b.baseY + (ty-b.baseY)/d*stp;
   if(stepBlocked(b.baseX, b.baseY, nx, ny, b)){ b._fc = null; fcWhy(b, "конец: упёрся по пути к укрытию"); return; }
   b.baseX = nx; b.baseY = ny; F.moving = true; b.crouching = false; b.walking = false;
 }
