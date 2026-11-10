@@ -67,7 +67,7 @@ hits = collections.defaultdict(list)
 for demo in demo_names():
     t = ticks_of(demo); t = t[t.tick % SAMPLE == 0]
     t = t.sort_values(['steamid', 'tick'], kind='stable')
-    X, Y, Z, S, T = t.x.values, t.y.values, t.Z.values, t.steamid.values, t.tick.values
+    X, Y, Z, S, T, YW = t.x.values, t.y.values, t.Z.values, t.steamid.values, t.tick.values, t.yaw.values
     A = areas_at(X, Y, Z)
     for sid in np.unique(S):
         w = np.where(S == sid)[0]; last = None
@@ -79,7 +79,14 @@ for demo in demo_names():
                 if a != pa and T[k] - T[pk] > SAMPLE and T[k] - T[pk] <= GAP_SEC * 64 and \
                         a not in by[pa]['conn'] and pa not in by[a]['conn'] and abs(by[a]['z'] - by[pa]['z']) <= JUMP_UP and \
                         Z[pk:k + 1].min() >= min(by[a]['z'], by[pa]['z']) - DZ:
-                    hits[(int(pa), int(a))].append((demo, float(X[pk]), float(Y[pk]), float(X[k]), float(Y[k]), (T[k] - T[pk]) / 64))
+                    # (v548) как летел: угол взгляда при отталкивании и приземлении относительно направления прыжка (на карте ось Y
+                    # перевёрнута — угол на карте = −yaw), прогиб траектории в воздухе (доля длины прыжка, + — влево от направления)
+                    th = np.arctan2(Y[k] - Y[pk], X[k] - X[pk]); L = max(1e-6, np.hypot(X[k] - X[pk], Y[k] - Y[pk]))
+                    wrap = lambda a: (a + np.pi) % (2*np.pi) - np.pi
+                    r0, r1 = wrap(np.radians(-YW[pk]) - th), wrap(np.radians(-YW[k]) - th)
+                    off = ((X[pk:k+1] - X[pk])*np.sin(th) - (Y[pk:k+1] - Y[pk])*np.cos(th))/L * -1
+                    bow = float(off[np.argmax(np.abs(off))]) if len(off) else 0.0
+                    hits[(int(pa), int(a))].append((demo, float(X[pk]), float(Y[pk]), float(X[k]), float(Y[k]), (T[k] - T[pk]) / 64, float(r0), float(r1), bow))
             last = k
     del t
 
@@ -88,11 +95,13 @@ for (pa, a), H in sorted(hits.items()):
     if len(H) < MIN_N or len({h[0] for h in H}) < MIN_DEMOS: continue
     st = ((cen[pa][0] - cen[a][0]) ** 2 + (cen[pa][1] - cen[a][1]) ** 2) ** 0.5; cap = max(DETOUR * st, st + 150)
     if nav_len(pa, a, cap + 1) <= cap: continue
-    M = np.array([h[1:6] for h in H])
+    M = np.array([h[1:9] for h in H])
+    cang = lambda v: float(np.degrees(np.arctan2(np.median(np.sin(v)), np.median(np.cos(v)))))   # медиана угла (по кругу)
     out.append({'a': {'area': pa, 'x': round(float(np.median(M[:, 0])), 1), 'y': round(float(np.median(M[:, 1])), 1), 'z': by[pa]['z']},
                 'b': {'area': a, 'x': round(float(np.median(M[:, 2])), 1), 'y': round(float(np.median(M[:, 3])), 1), 'z': by[a]['z']},
-                'n': len(H), 'demos': len({h[0] for h in H}), 'sec': round(float(np.median(M[:, 4])), 2)})
-    print('  прыжок %d → %d (перепад %+d): %d раз в %d демках, медиана %.2f с' % (pa, a, by[a]['z'] - by[pa]['z'], len(H), out[-1]['demos'], out[-1]['sec']))
+                'n': len(H), 'demos': len({h[0] for h in H}), 'sec': round(float(np.median(M[:, 4])), 2),
+                'yaw0': round(cang(M[:, 5]), 1), 'yaw1': round(cang(M[:, 6]), 1), 'bow': round(float(np.median(M[:, 7])), 3)})
+    print('  прыжок %d → %d (перепад %+d): %d раз в %d демках, медиана %.2f с; взгляд %+.0f° → %+.0f°, прогиб %+.3f' % (pa, a, by[a]['z'] - by[pa]['z'], len(H), out[-1]['demos'], out[-1]['sec'], out[-1]['yaw0'], out[-1]['yaw1'], out[-1]['bow']))
 f = mapdir.path(MAPNAME, 'climbs.json'); C = json.load(open(f, encoding='utf-8')); C['gaps'] = out
 json.dump(C, open(f, 'w', encoding='utf-8'), separators=(',', ':'))
 print('climbs.json: %d прыжков через щель' % len(out))

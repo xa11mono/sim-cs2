@@ -304,7 +304,8 @@ function navGapsAdd(){
     if(M){ var air = 0; for(var i = 1; i < 10; i++){ var t = i/10, z = za + (zb - za)*t;
         if(!m3Floors(M, pa.x + (pb.x - pa.x)*t, pa.y + (pb.y - pa.y)*t).some(function(f){ return Math.abs(f - z) <= NAV_FLOOR_TOL; })) air++; }
       if(air < GAP_AIR_MIN) return; }
-    var G = {a: {x: pa.x, y: pa.y, z: za, area: A.id}, b: {x: pb.x, y: pb.y, z: zb, area: B.id}, sec: g.sec};
+    // (v548) как летят про (gaps_bake): угол взгляда при отталкивании / приземлении к направлению прыжка (yaw0 / yaw1, °) и прогиб дуги (bow)
+    var G = {a: {x: pa.x, y: pa.y, z: za, area: A.id}, b: {x: pb.x, y: pb.y, z: zb, area: B.id}, sec: g.sec, yaw0: g.yaw0 || 0, yaw1: g.yaw1 || 0, bow: g.bow || 0};
     zoneGraph[A.id] = (zoneGraph[A.id] || []).filter(function(e){ return e.to !== B.id; });
     zoneGraph[A.id].push({to: B.id, mid: {x: pa.x, y: pa.y}, z: B.z, left: {x: pa.x, y: pa.y}, right: {x: pa.x, y: pa.y}, gap: G});
     NAV_GAPS.push(G); NAV_GAP_AT[navGapKey(pb.x, pb.y)] = G; });

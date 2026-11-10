@@ -748,7 +748,7 @@ function draw(){
     var CLd = bot._climb, airH = CLd && CLd.jump ? 4*(CLd.air || 0)*(1 - (CLd.air || 0)) : 0;
     if(CLd && CLd.jump){ var sOff = (4 + 10*airH)/view.scale;
       ctx.beginPath(); ctx.ellipse(rx + sOff*0.4, ry + sOff, r*(1 - 0.2*airH), r*0.55, 0, 0, Math.PI*2); ctx.fillStyle = "rgba(0,0,0,0.55)"; ctx.fill();   // тень на земле
-      r = r*(1 + 0.22*airH);
+      r = r*(1 + 0.35*airH);   // (v548) заметнее: до +35 % (DESIGN.md, «Маркер игрока»)
       ctx.beginPath(); ctx.arc(rx, ry, r + 3.5/view.scale, 0, Math.PI*2); ctx.setLineDash([3/view.scale, 2.5/view.scale]);
       ctx.strokeStyle = "rgba(255,255,255,0.85)"; ctx.lineWidth = 1.4/view.scale; ctx.stroke(); ctx.setLineDash([]); }   // пунктирный ободок — «в воздухе»   // (v535) под / над другим этажом — доля 0..1, плавно (floorViewTick, 370)
     // прыжок / спрыгнул — стрелка у игрока на 0,6 с
@@ -761,10 +761,10 @@ function draw(){
       ctx.beginPath(); ctx.arc(rx + 2/view.scale, ry + 3/view.scale, r, 0, Math.PI*2); ctx.fillStyle = "rgba(0,0,0,"+(0.45*oV).toFixed(3)+")"; ctx.fill();
       ctx.beginPath(); ctx.arc(rx, ry, r + 2.2/view.scale, 0, Math.PI*2); ctx.strokeStyle = "rgba(255,255,255,"+(0.75*oV).toFixed(3)+")"; ctx.lineWidth = 1.4/view.scale; ctx.stroke();
     }
-    if(tick < bot.blindUntil){
-      ctx.beginPath(); ctx.arc(rx, ry, r + 4/view.scale, 0, Math.PI*2);
-      ctx.fillStyle = "rgba(255,255,255,"+Math.min(0.8, (bot.blindUntil-tick)/64*0.4)+")"; ctx.fill();
-    }
+    // (v548, владелец 10.11: «непонятно, когда бот слепой — рядом с кружком ещё какой-то кружок; в смоке — не видно») состояние — на самом
+    // кружке (DESIGN.md, «Маркер игрока»): ослеплён — белеет, в дыму — серый и полупрозрачный. Было: белый круг вокруг (r + 4)
+    var blindK = tick < bot.blindUntil ? Math.min(1, (bot.blindUntil - tick)/64*0.5) : 0;
+    var smokeIn = smokes.some(function(sm){ var sr = smokeRadiusNow(sm); return sr > 8 && areaHas(sm, sr, bot.x, bot.y); });
     var vf = bot._visFacing !== undefined ? bot._visFacing : bot.facing;
     ctx.beginPath();
     if(vf !== undefined){
@@ -777,8 +777,12 @@ function draw(){
     // серого по доле «под этажом» (uV, 0..1): на лестнице меняется плавно, наполовину под полом — наполовину серый
     var under = uV > 0.5;
     var mixC = function(a, b, t){ return "rgba(" + Math.round(a[0] + (b[0]-a[0])*t) + "," + Math.round(a[1] + (b[1]-a[1])*t) + "," + Math.round(a[2] + (b[2]-a[2])*t) + "," + (a[3] + (b[3]-a[3])*t).toFixed(3) + ")"; };
-    ctx.fillStyle = bot.team === "CT" ? mixC([90,155,217,1], [122,140,158,0.55], uV) : mixC([217,162,74,1], [158,144,122,0.55], uV); ctx.fill();
-    ctx.lineWidth = 1.5/view.scale; ctx.strokeStyle = under ? "rgba(11,15,11,0.5)" : "#0b0f0b"; ctx.stroke();
+    var baseC = bot.team === "CT" ? [90,155,217,1] : [217,162,74,1], fillC = bot.team === "CT" ? mixC(baseC, [122,140,158,0.55], uV) : mixC(baseC, [158,144,122,0.55], uV);
+    if(smokeIn) fillC = mixC(baseC, [baseC[0],baseC[1],baseC[2],0.6], 1);
+    if(blindK > 0) fillC = mixC(baseC, [255,255,255,1], 0.75*blindK);
+    ctx.fillStyle = fillC; ctx.fill();
+    ctx.lineWidth = (blindK > 0 ? 2 : smokeIn ? 2.2 : 1.5)/view.scale; ctx.strokeStyle = blindK > 0 ? "#fff" : smokeIn ? "#2b3029" : under ? "rgba(11,15,11,0.5)" : "#0b0f0b";
+    if(smokeIn && !blindK) ctx.setLineDash([1.4/view.scale, 1.4/view.scale]); ctx.stroke(); ctx.setLineDash([]);
     if(false){
       var fx = rx + Math.cos(vf)*r*1.8;
       var fy = ry + Math.sin(vf)*r*1.8;

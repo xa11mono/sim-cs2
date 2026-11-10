@@ -70,7 +70,7 @@ print('кандидатов (только спрыгнуть, перепад > %
 hits = collections.defaultdict(list); rej = collections.defaultdict(collections.Counter)
 for demo in demo_names():
     t = ticks_of(demo)
-    X, Y, Z, S, T = t.x.values, t.y.values, t.Z.values, t.steamid.values, t.tick.values
+    X, Y, Z, S, T, YW = t.x.values, t.y.values, t.Z.values, t.steamid.values, t.tick.values, t.yaw.values
     SD = t.side.values; order = np.argsort(T, kind='stable'); TS = T[order]
     def boosted(k):   # свой прямо под ним в этот тик
         a0, a1 = np.searchsorted(TS, T[k]), np.searchsorted(TS, T[k], side='right'); o = order[a0:a1]
@@ -104,7 +104,10 @@ for demo in demo_names():
                     ms, mid = max_step(j, last_lo, k, lo_z, hi_z)
                     kind = 'boost' if boosted(k) else ('tall' if ms > STEP_MAX else 'ok')
                     rej[ci][kind] += 1
-                    if kind == 'ok': hits[ci].append((demo, float(X[last_lo]), float(Y[last_lo]), float(X[k]), float(Y[k]), (T[k] - T[last_lo]) / 64, mid))
+                    # (v548) угол взгляда при отталкивании и приземлении к направлению подъёма (низ → верх; на карте угол = −yaw)
+                    th = np.arctan2(Y[k] - Y[last_lo], X[k] - X[last_lo]); wr = lambda a: (a + np.pi) % (2*np.pi) - np.pi
+                    yw = (float(wr(np.radians(-YW[last_lo]) - th)), float(wr(np.radians(-YW[k]) - th)))
+                    if kind == 'ok': hits[ci].append((demo, float(X[last_lo]), float(Y[last_lo]), float(X[k]), float(Y[k]), (T[k] - T[last_lo]) / 64, mid, yw))
                     cool = T[k] + 5 * 64; last_lo = None
     del t
 
@@ -120,6 +123,8 @@ for ci, H in sorted(hits.items()):
     rec = {'lo': {'area': c['lo']['id'], 'x': round(float(np.median(a[:, 0])), 1), 'y': round(float(np.median(a[:, 1])), 1), 'z': c['lo']['z']},
            'hi': {'area': c['hi']['id'], 'x': round(float(np.median(a[:, 2])), 1), 'y': round(float(np.median(a[:, 3])), 1), 'z': c['hi']['z']},
            'n': len(H), 'demos': len({h[0] for h in H}), 'sec': round(float(np.median(a[:, 4])), 2)}
+    YW2 = np.array([h[7] for h in H]); cang = lambda v: round(float(np.degrees(np.arctan2(np.median(np.sin(v)), np.median(np.cos(v))))), 1)
+    rec['yaw0'], rec['yaw1'] = cang(YW2[:, 0]), cang(YW2[:, 1])   # (v548) взгляд при отталкивании / приземлении к направлению подъёма
     # (v533) подъём выше одного прыжка (> STEP_MAX) — только через промежуточную стоянку: её место (медиана) и участок навмеша под ней
     # (ближайший по высоте среди тех, что накрывают точку). участка навмеша под стоянкой может не быть — тогда точка без участка
     if c['hi']['z'] - c['lo']['z'] > STEP_MAX:
@@ -132,9 +137,11 @@ for ci, H in sorted(hits.items()):
         ma = min(under, key=lambda q: abs(q['z'] - mz)) if under else None
         rec['mid'] = {'area': ma['id'] if ma else None, 'x': round(mx, 1), 'y': round(my, 1), 'z': round(ma['z'] if ma else mz, 1)}
     out.append(rec)
-    print('  подъём %d → %d (перепад %d): %d раз в %d демках, медиана %.2f с' % (c['lo']['id'], c['hi']['id'], c['hi']['z'] - c['lo']['z'], len(H), out[-1]['demos'], out[-1]['sec']))
+    print('  подъём %d → %d (перепад %d): %d раз в %d демках, медиана %.2f с; взгляд %+.0f° → %+.0f°' % (c['lo']['id'], c['hi']['id'], c['hi']['z'] - c['lo']['z'], len(H), out[-1]['demos'], out[-1]['sec'], rec['yaw0'], rec['yaw1']))
 # (v375) цепочки (верх одного подъёма — низ другого: ящик на ящике) — бот на них зацикливался (лез, падал); оставляем одиночные
 los = {c['lo']['area'] for c in out}
 out = [c for c in out if c['hi']['area'] not in los]
-json.dump({'climbs': out}, open(mapdir.path(MAPNAME, 'climbs.json'), 'w', encoding='utf-8'), separators=(',', ':'))
+_f = mapdir.path(MAPNAME, 'climbs.json'); _old = json.load(open(_f, encoding='utf-8')) if os.path.exists(_f) else {}
+_old['climbs'] = out   # (v548) прыжки через щель (gaps, gaps_bake.py) не трогаем
+json.dump(_old, open(_f, 'w', encoding='utf-8'), separators=(',', ':'))
 print('climbs.json: %d подъёмов' % len(out))

@@ -121,7 +121,7 @@ function laddersBuild(){
       if(fLo == null || fHi == null) return;
       var steps = mid ? [mid.z - fLo, fHi - mid.z] : [fHi - fLo];
       if(steps.some(function(d){ return d > CLIMB_MAX_STEP; })) return; }
-    LADDERS.push({lo:lo, hi:hi, up:true, sec:c.sec, mid:mid ? {x:mid.x, y:mid.y, z:mid.z} : null});
+    LADDERS.push({lo:lo, hi:hi, up:true, sec:c.sec, mid:mid ? {x:mid.x, y:mid.y, z:mid.z} : null, yaw0:c.yaw0 || 0, yaw1:c.yaw1 || 0});   // (v548) взгляд из демок
   });
 }
 // лестница, по которой бот с этажа z попадает на этаж zTo: конец на своём этаже в пределах r
@@ -130,7 +130,7 @@ function ladderFor(x, y, z, zTo, r){
   var best = null, bd = r;
   LADDERS.forEach(function(L){ (L.up ? [[L.lo, L.hi]] : [[L.lo, L.hi], [L.hi, L.lo]]).forEach(function(e){
     if(Math.abs(e[0].z - z) > JUMP_UP || Math.abs(e[1].z - zTo) > JUMP_UP) return;
-    var d = Math.hypot(e[0].x - x, e[0].y - y); if(d < bd){ bd = d; best = {near: e[0], far: e[1], sec: L.sec, mid: L.up ? L.mid : null, jump: !!L.up}; } }); });
+    var d = Math.hypot(e[0].x - x, e[0].y - y); if(d < bd){ bd = d; best = {near: e[0], far: e[1], sec: L.sec, mid: L.up ? L.mid : null, jump: !!L.up, Y: L.up ? {yaw0: L.yaw0, yaw1: L.yaw1} : null}; } }); });
   return best;
 }
 // true — бот в этот тик на лестнице (обычный шаг не делается)
@@ -146,6 +146,10 @@ function ladderTick(bot){
     if(C.jump){ C.air = q;
       if(C.mid && p >= 0.5 && !C.land1){ C.land1 = true; bot.baseX = bot.x = C.mid.x; bot.baseY = bot.y = C.mid.y; landSound(bot, false, "up"); bot._jump = {t: tick, up: true}; } }
     bot.baseX = bot.x = A.x + (B.x - A.x)*q; bot.baseY = bot.y = A.y + (B.y - A.y)*q; bot.z = A.z + (B.z - A.z)*q;
+    // (v548, владелец 10.11: «в воздухе он должен по дуге поворачивать к приземлению; стрейф в воздухе — от клавиши и от того, куда смотришь»)
+    // прыжок через щель — дугой с прогибом из демок (G.bow — доля длины, + — влево): квадратичная кривая, середина отходит на bow·L
+    if(C.G && C.G.bow){ var Lc = Math.hypot(B.x - A.x, B.y - A.y), th = Math.atan2(B.y - A.y, B.x - A.x), k = 4*C.G.bow*Lc*q*(1 - q);
+      bot.baseX = bot.x = bot.x - Math.sin(th)*k; bot.baseY = bot.y = bot.y + Math.cos(th)*k; }
     bot.curSpeed = LADDER_SPEED/2.5;
     if(p >= 1){ bot.z = C.to.z; bot._area = C.to.area; bot._climb = null; bot.path = []; bot.pathIdx = 0; if(C.jump) landSound(bot, false, C.gap ? "gap" : "up"); }
     return true;
@@ -157,7 +161,7 @@ function ladderTick(bot){
   var G = wp && NAV_GAP_AT[navGapKey(wp[0], wp[1])];
   if(G && Math.abs(wp[2] - G.b.z) < 1){
     if(Math.hypot(G.a.x - bot.baseX, G.a.y - bot.baseY) > GAP_NEAR){ bot.path.splice(bot.pathIdx, 0, [G.a.x, G.a.y, G.a.z]); return false; }
-    bot._climb = {t0: tick, dur: Math.max(8, Math.round(G.sec*TICK_HZ)), from: {x: bot.baseX, y: bot.baseY, z: bot.z}, to: G.b, mid: null, jump: true, gap: true};
+    bot._climb = {t0: tick, dur: Math.max(8, Math.round(G.sec*TICK_HZ)), from: {x: bot.baseX, y: bot.baseY, z: bot.z}, to: G.b, mid: null, jump: true, gap: true, G: G};
     bot._jump = {t: tick, up: G.b.z >= G.a.z}; bot.pathIdx++;
     return ladderTick(bot);
   }
@@ -180,7 +184,7 @@ function ladderTick(bot){
   }
   var dz = Math.abs(L.far.z - L.near.z);
   // (v546) по лестнице шагом (bot.walking) — медленнее, как шаг (WALK_SPEED_FRAC), и бесшумно (шаги на лестнице — 540)
-  bot._climb = {t0: tick, dur: Math.max(8, Math.round((L.sec || dz/LADDER_SPEED/(!L.jump && bot.walking ? WALK_SPEED_FRAC : 1))*TICK_HZ)), from: {x: bot.baseX, y: bot.baseY, z: bot.z}, to: L.far, mid: L.mid || null, jump: !!L.jump};
+  bot._climb = {t0: tick, dur: Math.max(8, Math.round((L.sec || dz/LADDER_SPEED/(!L.jump && bot.walking ? WALK_SPEED_FRAC : 1))*TICK_HZ)), from: {x: bot.baseX, y: bot.baseY, z: bot.z}, to: L.far, mid: L.mid || null, jump: !!L.jump, Y: L.Y || null};
   if(L.jump) bot._jump = {t: tick, up: true};   // (v543) подъём из демок — прыжок: стрелка «прыжок» у игрока
   if(bot.path[bot.pathIdx] && Math.hypot(bot.path[bot.pathIdx][0]-L.near.x, bot.path[bot.pathIdx][1]-L.near.y) < 4) bot.pathIdx++;
   return ladderTick(bot);

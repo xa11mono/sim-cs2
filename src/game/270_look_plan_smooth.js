@@ -367,6 +367,7 @@ var LOOK_LEVEL = {
   fight:  11,  // бой: свой закреплённый контакт ≤ 1 с, спам в смок, тиммейт попросил держать второй угол
   sound:  10,  // свои уши ≤ 1 с (шаги, выстрел, граната рядом), убили тиммейта рядом ≤ 3 с (киллфид + радар)
   team:    9,  // команда знает сейчас (видят / слышат / сказали ≤ 1 с)
+  jump:    8,  // (v548) прыжок через щель: к отталкиванию — по направлению прыжка, в полёте — по дуге к приземлению (углы из демок)
   angle:   7,  // мой угол: поручен задачей (роум-чек, фейк-дефуз, точка про на посту) или выдан делёжом команды (lookPlan);
                // последняя позиция врага (1–8 с) и контакт старше 1 с — веса внутри дележа, чтобы чередовались с открытыми углами
   corner:  6,  // угол по пути, за которым может быть враг (prePeekTick)
@@ -467,11 +468,30 @@ function lookArbiter(b){
     var P = b._pie; if(P && P.danger > 0 && tick - P.t < 16 && P.dist < 320 && hasLOS(b.x, b.y, P.pt.x, P.pt.y, b.z)) C.push({lvl: LOOK_LEVEL.corner, kind: "corner", pt: P.pt, sc: P.danger});
     if(!moving && b.atPost && b.post && b.post.look) C.push({lvl: LOOK_LEVEL.post, kind: "post", pt: cornerLook(b, b.post.look) || b.post.look, sc: 1});
   }
+  var jl = jumpLook(b); if(jl) C.push(jl);
   var best = null;
   C.forEach(function(c){ if(c.pt && (!best || c.lvl > best.lvl || c.lvl === best.lvl && c.sc > best.sc)) best = c; });
   b._lookLvl = best ? best.lvl : 0; b.lookReason = best ? best.kind : null;
   if(LOOKDBG.on) b._ldArb = C.map(function(c){ return {lvl: c.lvl, kind: c.kind, sc: c.sc, pt: c.pt}; });
   return best ? best.pt : null;
+}
+// (v548, владелец 10.11, скрины прыжка с фургона на B Apps: «разбег — смотрит на машину; запрыгивает — по дуге поворачивает к приземлению»)
+// взгляд у прыжка через щель (NAV_GAPS, 050) — как у про (gaps_bake: yaw0 — при отталкивании, yaw1 — при приземлении, к направлению прыжка):
+// у края (≤ JUMP_TURN_R до точки отталкивания, следующий шаг пути — прыжок) — доворот к yaw0; в полёте — плавно от yaw0 к yaw1.
+// Про к отталкиванию уже смотрят почти по прыжку (фургон → B Apps: +5° → +11°). JUMP_TURN_R — проектное число
+var JUMP_TURN_R = 40;
+function jumpLook(b){
+  var C = b._climb, G = null, q = 0;
+  // подъём из демок (на ящик, с фургона на B Apps): углы — к направлению «низ → верх» (climbs_bake), от начала подъёма до приземления
+  if(C && C.jump && !C.G && C.Y){ q = Math.min(1, (tick - C.t0)/C.dur); var thc = Math.atan2(C.to.y - C.from.y, C.to.x - C.from.x), ac = thc + (C.Y.yaw0 + (C.Y.yaw1 - C.Y.yaw0)*q)*Math.PI/180;
+    return {lvl: LOOK_LEVEL.jump, kind: "jump", pt: {x: b.x + Math.cos(ac)*200, y: b.y + Math.sin(ac)*200}, sc: 1}; }
+  if(C && C.G){ G = C.G; q = Math.min(1, (tick - C.t0)/C.dur); }
+  else if(b.path && b.pathIdx < b.path.length){
+    for(var i = b.pathIdx; i < Math.min(b.path.length, b.pathIdx + 2); i++){ var g = NAV_GAP_AT[navGapKey(b.path[i][0], b.path[i][1])]; if(g){ G = g; break; } }
+    if(!G || Math.hypot(G.a.x - b.x, G.a.y - b.y) > JUMP_TURN_R) return null;
+  } else return null;
+  var th = Math.atan2(G.b.y - G.a.y, G.b.x - G.a.x), a = th + (G.yaw0 + (G.yaw1 - G.yaw0)*q)*Math.PI/180;
+  return {lvl: LOOK_LEVEL.jump, kind: "jump", pt: {x: b.x + Math.cos(a)*200, y: b.y + Math.sin(a)*200}, sc: 1};
 }
 // общий шаг после выбора: не в спину своему, не в стену, плавный поворот (на бегу без цели — по ходу)
 function lookFilter(b, look, LD){
