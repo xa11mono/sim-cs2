@@ -164,7 +164,7 @@ var TASK_LEVEL = [   // сверху — важнее; первая подход
   {lv:6,  kind:"перестановка в бою", re:/^repos/},
   {lv:5,  kind:"команда",            re:/^(fill$|rotateHold|fetchCover|bombEscort|bombWait|coverplant|flank\d$)/},   // (п.20 владельца 29.10: фланг CT
   // «из-за частого перебивания путей… нет захода в спину» — был уровнем 1, его перебивало и ожидание у дыма) фланг — задача команды
-  {lv:4,  kind:"гранаты/ожидания",   re:/^(lineup|smokeWait|utilWait|utilHold)$/},
+  {lv:4,  kind:"гранаты/ожидания",   re:/^(lineup|smokeWait|smokeLine|utilWait|utilHold)$/},
   {lv:3,  kind:"личная перестановка",re:/^(pickup$|probe|rebal|shift$|earlyPeek|midcover)/},
   {lv:2,  kind:"маршрут",            re:/^route:/},
   {lv:1,  kind:"пост роли",          re:/(?:)/}
@@ -192,6 +192,10 @@ function taskLevel(tag){ tag = String(tag || ""); for(var i=0;i<TASK_LEVEL.lengt
 function taskAlive(b){ var T = b._task; return !!T && T.round === roundNum && (tick - T.t <= TASK_STALE || tick < taskKeepUntil(b, T.tag)); }
 // можно ли сейчас поставить задачу tag (то же решение, что примет setPost) — для механик, которые решают, затевать ли своё
 function taskCanSet(b, tag){
+  var D = b._detour;
+  if(D && (D.round !== roundNum || tick >= D.until || !b.alive)) D = b._detour = null;
+  if(D){ if(taskTagB(tag) === D.tb) return true;   // (v518a) отклонение уточняет свою точку
+    if(taskLevel(tag) <= D.lv) return false; }      // главная задача ждёт конца отклонения (не перебивает его каждый тик)
   var T = b._task; if(!taskAlive(b)) return true;
   var lv = taskLevel(tag), tb = taskTagB(tag);
   if(tb === T.tb) return true;                     // та же задача — уточняет точку
@@ -199,9 +203,54 @@ function taskCanSet(b, tag){
   if(lv < T.lv) return false;                      // ниже — ждёт, пока текущая кончится
   return tick - T.t0 >= POST_DWELL;                // того же уровня — не раньше POST_DWELL (защита от дёрганья)
 }
+// ---- (v518a, пак владельца 09.11, docs/reports/ARCH_ROOT_CAUSES_2026-11-09.md п.1) ОТКЛОНЕНИЕ С ВОЗВРАТОМ — одно место ----
+// Помочь своему в бою, подобрать оружие по пути, уйти от урона — не задача-соперник по лестнице TASK_LEVEL (там помощь 6 и подбор 3 проигрывали
+// пост-планту 8, ретейку 8, охоте 7, сейву 10 всегда — «смотрит, но не идёт», «прошёл мимо калаша»), а короткое отклонение от главной задачи:
+// можно, если главная задача это время терпит (taskSlackSec), и не дольше DETOUR_MAX; пока идёт — главная задача его не перебивает (taskCanSet),
+// кончилось (срок / механика сняла точку) — главная задача ставит свою точку снова, путь — от того места, где бот сейчас.
+// Нельзя: ставит / дефузит, задача «бомба» (уровень 11); помогать в бою — и на сейве (сейв от боя и уходит).
+var DETOUR_MAX = {help: 4, pickup: 3, hurt: 3};   // с — проектные числа (первые кандидаты на замену данными)
+// сколько секунд главная задача бота может подождать: CT с бомбой на карте — запас до «не успею дефузнуть» (3 с — как contactCritical);
+// T на пост-планте — 0, если дефузят (анти-дефуз важнее); CT на сейве — до «не успею уйти от взрыва к своей точке сейва»; остальное — не срочно
+function taskSlackSec(b){
+  if(!bomb || bomb.state !== "planted") return Infinity;
+  var left = bombTimeLeftTicks()/TICK_HZ;
+  if(b.team === "T") return bots.some(function(o){ return o.alive && o.defusing; }) ? 0 : Infinity;
+  if(teamTac.CT && teamTac.CT.saving) return b._saveSpot ? left - pathLenTo(b, b._saveSpot.x, b._saveSpot.y)/SPEED - 2 : left - 4;
+  return left - defuseEta(b) - 3;
+}
+// можно ли отклониться (cost — сколько секунд отнимет отклонение от главной задачи)
+function detourOk(b, kind, cost){
+  if(!b.alive || b.planting || b.defusing) return false;
+  if(b._detour && b._detour.round === roundNum && tick < b._detour.until) return false;   // одно отклонение за раз
+  var lv = taskAlive(b) ? b._task.lv : 1;
+  if(lv >= 11 || (kind === "help" && lv >= 10)) return false;
+  cost = cost || 0;
+  return cost <= DETOUR_MAX[kind] && cost + (kind === "pickup" ? 0.5 : CONTACT_HOLD) <= taskSlackSec(b);
+}
+// начать отклонение: задача tag на sec секунд, главная задача (её уровень) ждёт
+function detourStart(b, kind, tag, sec){
+  var lv = taskAlive(b) ? b._task.lv : 1;
+  b._detour = {kind:kind, tb:taskTagB(tag), lv:Math.max(lv, taskLevel(tag)), until: tick + Math.round(sec*TICK_HZ), round:roundNum};
+}
 // механика держит свою текущую задачу (пост не меняется — подтвердить, что затея ещё идёт)
 function postKeep(b){ if(b.post && b._task && b._task.tag === b.post.tag) b._task.t = tick; }
 var POST_DWELL = 96;   // (v375) 1,5 с — проектное число
+var POST_EXACT = /^(plantspot|defuse|lineup|pickup|fetch|stopplant|antidefuse|ladder|smokeWait|route)/;
+var POST_VIEW_R = 120, POST_VIEW = {k: null, m: {}};   // px — насколько можно сдвинуть пост ради обзора (проектное число)
+function postViewPoint(pt, look){
+  var kk = matchNum+":"+roundNum; if(POST_VIEW.k !== kk){ POST_VIEW.k = kk; POST_VIEW.m = {}; }
+  var key = Math.round(pt.x/4)+","+Math.round(pt.y/4)+">"+Math.round(look.x/8)+","+Math.round(look.y/8);
+  if(key in POST_VIEW.m) return POST_VIEW.m[key];
+  var a0 = navAt(pt.x, pt.y), best = null, bd = 1e9;
+  NAVAREAS.forEach(function(z){
+    if(NAV_BLOCKED[z.id] || !(zoneGraph[z.id]||[]).length) return;
+    var c = zoneCentroid(z), d = Math.hypot(c.x-pt.x, c.y-pt.y); if(d > POST_VIEW_R || d >= bd || insideSolidWall(c.x, c.y)) return;
+    var a = navAt(c.x, c.y); if(!a || (a0 && Math.abs(a.z - a0.z) > JUMP_UP)) return;
+    if(!hasLOS(c.x, c.y, look.x, look.y)) return;
+    best = {x: c.x, y: c.y}; bd = d; });
+  return (POST_VIEW.m[key] = best);
+}
 function setPost(b, pt, look, hold, tag, spreadIdx){
   // сменил позицию после фрага — роль в этом раунде ставит его уже на новую точку
   if(BAL.holdShift && b._hs && b._hs.round === roundNum && b._hs.tag === tag && pt && Math.hypot(pt.x-b._hs.pt.x, pt.y-b._hs.pt.y) < 320) pt = b._hs.pt;
@@ -217,10 +266,24 @@ function setPost(b, pt, look, hold, tag, spreadIdx){
       return setPost(b, cp, nx, true, "route:"+R.names[Math.min(R.idx, R.names.length-1)]);
     }
   }
+  if(lv === 1 && !/^after:/.test(String(tag))){ var AF = afterTaskPick(b, pt); if(AF) return setPost(b, AF.pt, AF.look, true, "after:hold"); }
   if(!taskCanSet(b, tag)) return false;
   var tagB = taskTagB(tag);
   var psn = (BAL.proSpots && hold && pt) ? proSnap(b, pt, look, tag) : null;
+  // (v520, отметки владельца 09.11 м200 р1/р3: мидер у Window и NiKo у Hole — точку уводило к месту про, откуда не видно того, что держит пост:
+  // (824,857) → (838,867), Mid виден → не виден) место про — только если оттуда точка взгляда поста видна не хуже, чем с выбранной
+  if(psn && look && hasLOS(pt.x, pt.y, look.x, look.y) && !hasLOS(psn.pt.x, psn.pt.y, look.x, look.y)) psn = null;
   if(psn){ pt = psn.pt; spreadIdx = 0; }
+  // (00_PLAN п.3а, 05.11, прогон 173: Mirage — «держать бомбу» / «мало HP» у Vent на (845, 807), за краем пола, — бот упирался или его
+  // переносило по кругу) точка поста — на полу: вне навмеша — ближайшая точка ближайшего участка (в 40 ед., как перенос navSnap)
+  if(pt && !navAt(pt.x, pt.y)){ var naP = navFloorNear(pt.x, pt.y, 40, function(a){ return b.z == null || Math.abs(a.z - b.z) <= JUMP_UP; });
+    if(naP){ var cqP = navClampInto(naP, pt.x, pt.y); pt = Object.assign({}, pt, {x:cqP.x, y:cqP.y}); } }
+  // (v520, отметки владельца 09.11 м200 р1/р3 и вопрос владельца «справится ли правка на другой карте»: точку поста выбирают пять мест — раскладка
+  // CT, ветка мида, «держать район», место про, раздвигание — и ни одно не обязано проверять главное: видно ли с точки то, ради чего пост.
+  // Мидер вставал за стену Window, NiKo — в Hole, откуда Top Mid не виден) одно место для всех: пост с точкой взгляда, откуда её не видно, —
+  // на ближайшую точку рядом (≤ POST_VIEW_R, тот же этаж), откуда видно; нет такой — как выбрано. Точные места (бомба, лайнап, подбор,
+  // маршрут) — как есть
+  if(hold && look && pt && !POST_EXACT.test(String(tag)) && !hasLOS(pt.x, pt.y, look.x, look.y)){ var pv = postViewPoint(pt, look); if(pv) pt = Object.assign({}, pt, {x:pv.x, y:pv.y}); }
   var id = tag + "|" + Math.round(pt.x) + "," + Math.round(pt.y);
   if(!b._task || b._task.tb !== tagB || b._task.round !== roundNum || !taskAlive(b)) b._task = {tag:String(tag), tb:tagB, lv:lv, t0:tick, t:tick, round:roundNum};
   else { b._task.t = tick; b._task.tag = String(tag); }
@@ -231,11 +294,12 @@ function setPost(b, pt, look, hold, tag, spreadIdx){
   // а не в него. Одно место для всех постов (было: раздвиг на 22 ед. только по spreadIdx). Точные места (бомба, лайнап, подбор) — как есть
   // (v373, отметка владельца: donk стоял на спавне T весь раунд) точка маршрута — не место, где стоять: маршрут засчитывает её, когда
   // бот ближе 70, а сдвиг на 80 не давал дойти — маршрут вставал. Точки маршрута не сдвигаются
-  if((spreadIdx || spotTaken(b, {x:x, y:y})) && !/^(plantspot|defuse|lineup|pickup|fetch|stopplant|antidefuse|ladder|smokeWait|route)/.test(tag)){
+  if((spreadIdx || spotTaken(b, {x:x, y:y})) && !POST_EXACT.test(String(tag))){
     var la = look ? Math.atan2(look.y-y, look.x-x) : 0, x0 = x, y0 = y;
     [Math.PI/2, -Math.PI/2, Math.PI*0.75, -Math.PI*0.75].some(function(da){
       var nx = x0 + Math.cos(la+da)*(SPOT_PERSONAL+10), ny = y0 + Math.sin(la+da)*(SPOT_PERSONAL+10);
       if(insideSolidWall(nx, ny) || segCrossesManualWalls(x0, y0, nx, ny) || !navAt(nx, ny) || spotTaken(b, {x:nx, y:ny})) return false;
+      if(look && hasLOS(x0, y0, look.x, look.y) && !hasLOS(nx, ny, look.x, look.y)) return false;   // (v520) раздвигание не отнимает обзор поста
       x = nx; y = ny; return true; });
   }
   b.post = {id:id, x:x, y:y, look:look||null, hold:hold, tag:tag};
@@ -244,8 +308,23 @@ function setPost(b, pt, look, hold, tag, spreadIdx){
   if(b.state === "patrol"){ b.path = []; b.pathIdx = 0; }
   return true;
 }
+// (5) после временной задачи (ответ владельца 04.11, `docs/tasks/OWNER_ANSWERS_2026-11-04.md`): не «вернуться на пост», а оценить. Ушёл
+// по бою (контакт, перестановка в бою — уровни 9 и 6), задача кончилась, роль зовёт на пост: если враг, известный команде (за SITE_SEEN_SEC),
+// простреливает пост, а место, где бот сейчас, — нет, угроза осталась: остаётся, где стоит, смотрит на врага; инфа устарела / враг ушёл —
+// назад на пост. На посту свой — пост сдвигается рядом (spotTaken в setPost), команда ротирует — роль даёт новый пост (сама)
+function afterTaskPick(b, pt){
+  var T = b._task;
+  if(T && T.round === roundNum && (T.lv === 9 || T.lv === 6) && !taskAlive(b)) b._aft = {round:roundNum, x:b.baseX, y:b.baseY};
+  var A = b._aft; if(!A || A.round !== roundNum || !pt) return null;
+  var BL = beliefLast[b.team] || {}, foe = b.team === "T" ? "CT" : "T", th = null;
+  bots.some(function(o){ var e = BL[o.id]; if(!o.alive || o.team !== foe || !e || tick - e.tick > SITE_SEEN_SEC*TICK_HZ) return false;
+    if(hasLOS(e.x, e.y, pt.x, pt.y) && !hasLOS(e.x, e.y, A.x, A.y)){ th = e; return true; } return false; });
+  if(!th){ b._aft = null; return null; }
+  if(b._aftSaid !== roundNum && (b._aftSaid = roundNum)) logEvent(b.id+": задача кончилась, но пост простреливается ("+calloutName(th.x, th.y).replace(/^на /,"")+") — остаюсь");
+  return {pt:{x:A.x, y:A.y}, look:{x:th.x, y:th.y}};
+}
 // механика сама сняла свою точку — её задача кончилась (следующая ставится без ожидания)
-function clearPost(b){ b._task = null; if(b.post){ b.post = null; b.atPost = false; if(b.state==="patrol"){ b.path = []; b.pathIdx = 0; } } }
+function clearPost(b){ b._task = null; if(b._detour && b.post && taskTagB(b.post.tag) === b._detour.tb) b._detour = null; if(b.post){ b.post = null; b.atPost = false; if(b.state==="patrol"){ b.path = []; b.pathIdx = 0; } } }
 function updatePost(b){
   if(!b.post || b.state !== "patrol"){ b.atPost = false; return; }
   var ep = fireSafe(b.post, b);
@@ -254,16 +333,24 @@ function updatePost(b){
   if(b.post.hold){
     // точка планта: "дошёл" — это именно внутри зоны сайта, а не в 34px от точки
     // (иначе носитель останавливался у края зоны, снаружи, и не мог заложить)
-    var arrived = b.post.tag === "plantspot" && teamTac.T && SITES[teamTac.T.site] ? (d < 10 || onSite(SITES[teamTac.T.site], b.baseX, b.baseY) && d < 60) :
+    // (v521, отметки владельца 10.11 м200: kyousuke «не дошёл до якоря» — «дошёл» в 34 px у окна, точка на ступеньке, оттуда Top Mid виден, с места
+    // бота — нет; donk 10,6 с не ставил — «дошёл» в 10 px от точки планта, но снаружи зоны сайта, а ставить можно только в ней; sh1ro в обходе встал
+    // в 34 px от точки, откуда врага не видно) «дошёл» — когда отсюда можно делать то, ради чего пост: плант — внутри зоны сайта; пост с точкой
+    // взгляда, которую видно с точки поста, — когда её видно и с места бота. Нет — идёт дальше, до самой точки
+    var canView = function(){ var lk = b.post.look; return !lk || !hasLOS(ep.x, ep.y, lk.x, lk.y) || hasLOS(b.baseX, b.baseY, lk.x, lk.y, b.z); };   // считается только у точки (≤ 34 px)
+    var arrived = b.post.tag === "plantspot" && teamTac.T && SITES[teamTac.T.site] ? (onSite(SITES[teamTac.T.site], b.baseX, b.baseY) && d < 60) :
       b.post.tag === "defuse" ? d < DEFUSE_R - 8 :   // (v359, отметка: m0NESY «дошёл» до бомбы в 34 ед., а дефуз — с 30: стоял 12 с до взрыва)
       b.post.tag === "lineup" ? d < LU_AT :   // (v492) лайнап — в саму точку броска: с 34 px подбор отсюда — «свеча» (прогон 143)
-      d < ((BAL.proSpots && b.post.pro) ? 9 : 34);
+      (d < ((BAL.proSpots && b.post.pro) ? 9 : 34) && (b.atPost || canView()));
     // (опорник "не дошёл") точка поста чуть внутри угла/стены: бот доходил на
     // 30–60px и крутился рядом, не "вставая" на пост. Не приближается ~1.5с — встал
     if(BAL.arriveNear && !b.atPost && !arrived && b.post.tag !== "plantspot" && b.post.tag !== "defuse"){
       if(b._apId !== b.post.id){ b._apId = b.post.id; b._apBest = d; b._apT = tick; }
       else if(d < b._apBest - 6){ b._apBest = d; b._apT = tick; }
-      else if(d < (b.post.tag === "lineup" ? RUN_NEAR : 70) && tick - b._apT > 90) arrived = true;
+      // (v519, пак 09.11 п.3; Р-32: bomb-watch «стоял на ступеньках, на точку не пришёл») «не приближается — значит дошёл» — только на этаже точки
+      // (последняя точка пути — её пол): под точкой на возвышенности, на лестнице, он в 30–70 px по радару и ближе не подойдёт — это не «дошёл»
+      else if(d < (b.post.tag === "lineup" ? RUN_NEAR : 70) && tick - b._apT > 90){ var lp = b.path && b.path.length ? b.path[b.path.length-1] : null;
+        if(!lp || lp[2] == null || b.z == null || Math.abs(lp[2] - b.z) <= 40) arrived = true; }
     }
     if(!b.atPost && arrived){ b.atPost = true; b.path = []; b.pathIdx = 0;
       // встал с AWP на угол — щелчок зума слышно рядом (≤200 по прямой, ≤120 за стеной)

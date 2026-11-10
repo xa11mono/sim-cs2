@@ -258,12 +258,11 @@ function tryShoot(shooter, target, dist){
     else if(zr < 0.42){ mult = 1.25; armored = target.armor; hitZone = "stomach"; }
     else { mult = 1.0; armored = target.armor; hitZone = "chest"; }
     var dmg = Math.max(1, Math.round(base * mult * (armored ? w.armorPen : 1)));   // ожидаемый урон в HP (для логов); сам урон — applyDamage
-    target._hurtT = tick;
     if(BAL.tagging) target._tagUntil = tick + 16; // попали — на ~0.25с замедлен
     target._hitFx = {t:nowTs, head:headshot};
     if(BAL.duelPlace && headshot && burstIdx === 0 && (shooter._place||0) > 0.8 && target.hp <= dmg && hashRand(seedS+29) < 0.5) logEvent(shooter.id+": прицел стоял на угле — хэдшот с первой пули по "+target.id);
     if(SND && SND.on) sndBody(headshot ? (target.helmet ? "hshelm" : "hs") : (target.armor ? "kevlar" : "body"), target.x, target.y);
-    var killed = applyDamage(shooter, target, base * mult, "bullet", {armorRatio: armored ? w.armorPen : null, wkey:w.key, hs:headshot, reward:w.killReward||300, mods:{blind: shooter.blindUntil > tick, smoke: thruSmoke || smokeOnLine(shooter.x, shooter.y, target.x, target.y)},
+    var killed = applyDamage(shooter, target, base * mult, "bullet", {armorRatio: armored ? w.armorPen : null, wkey:w.key, hs:headshot, reward:w.killReward||300, mods:{blind: shooter.blindUntil > tick, smoke: thruSmoke || smokeOnLine(shooter.x, shooter.y, target.x, target.y), noscope: noscope},
       note:(headshot?" (в голову)":"")+" (дист. "+Math.round(dist)+", +$"+(w.killReward||300)+")"});
     if(BAL.hurtCall && !killed){
       var HT = teamIntel[shooter.team].hurt || (teamIntel[shooter.team].hurt = {});
@@ -306,19 +305,12 @@ function tryShoot(shooter, target, dist){
     else { var sgn = hashRand(seedS+3) < 0.5 ? -1 : 1; dev = sgn * (bA*1.15 + Math.abs(hashRand(seedS+7)-0.5)*2*sigma); }
     var far = Math.min(w.range, Math.hypot(dx,dy)*1.6 + 60);
     var ex = shooter.x + Math.cos(ang+dev)*far, ey = shooter.y + Math.sin(ang+dev)*far;
-    var cl = rayClipWalls(shooter.x, shooter.y, ex, ey);
+    var cl = bulletClip3(shooter, ex, ey, target);   // (v519) по 3D-геометрии (ящики), не только до стен редактора
     endX = cl.x; endY = cl.y;
     // (v263, Б1) промах летит дальше и попадает в того, кто на его пути, — в своего тоже (урон по своим — в applyDamage).
     // Куда попала — по той же доле зон, что и без хитбоксов; урон — оружия на дистанции до него
-    var sv = bulletVictim(shooter, endX, endY, target);
-    if(sv){
-      var sd = Math.hypot(sv.x-shooter.x, sv.y-shooter.y), sz = hashRand(seedS+13);
-      var sm = sz < 0.22 ? 0.75 : (sz < 0.42 ? 1.25 : 1.0), sArm = sz >= 0.22 && sv.armor;
-      var sdmg = w.dmg * Math.pow(w.rm, sd*PX_UNITS/500) * sm;
-      sv._hurtT = tick; sv._hitFx = {t:nowTs, head:false}; if(BAL.tagging) sv._tagUntil = tick + 16;
-      applyDamage(shooter, sv, sdmg, "bullet", {armorRatio: sArm ? w.armorPen : null, wkey:w.key, reward:w.killReward||300, note:" (шальная пуля, дист. "+Math.round(sd)+")"});
-      endX = sv.x; endY = sv.y;
-    }
+    var sv = bulletLineHit(shooter, endX, endY, target, seedS+13, "шальная пуля");
+    if(sv){ endX = sv.x; endY = sv.y; }
   }
   tracers.push({wc:tracerClass(shooter.weapon), wk:shooter.weapon && shooter.weapon.key, sil:!!(shooter.weapon && shooter.weapon.silenced), x1:shooter.x, y1:shooter.y, x2:endX, y2:endY, team:shooter.team, born:nowTs, hit:hit, head:headshot, prefire:prefire, miss:!hit, zone:hitZone,
     tk:tick, sdx:shooter.x-(shooter.px != null ? shooter.px : shooter.x), sdy:shooter.y-(shooter.py != null ? shooter.py : shooter.y),   // (v414, М154) сдвиг за тик — для рисования

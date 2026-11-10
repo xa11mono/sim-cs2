@@ -66,9 +66,11 @@ function blindBullet(b, pt){
   var w = b.weapon; if(!w || b.ammo <= 0) return false;
   b.ammo--; b.lastShotTick = tick; b.nextShotTick = tick + (w.fireIntervalTicks||6);
   var a = Math.atan2(pt.y-b.y, pt.x-b.x) + (hashRand(tick*31 + b.id.charCodeAt(1))-0.5)*0.08;
-  var cl = rayClipWalls(b.x, b.y, b.x + Math.cos(a)*(w.range||900), b.y + Math.sin(a)*(w.range||900));
+  var cl = bulletClip3(b, b.x + Math.cos(a)*(w.range||900), b.y + Math.sin(a)*(w.range||900), {x:pt.x, y:pt.y, z:pt.z});   // (v519) по 3D-геометрии
   smokeBulletHole(b.x, b.y, cl.x, cl.y);
-  tracers.push({wc:tracerClass(b.weapon), wk:b.weapon && b.weapon.key, sil:!!(b.weapon && b.weapon.silenced), x1:b.x, y1:b.y, x2:cl.x, y2:cl.y, team:b.team, born:nowTs, hit:false, miss:true}); if(tracers.length > 60) tracers.shift(); if(SND && SND.on) sndShot(b.weapon, b.x, b.y);
+  var sv = bulletLineHit(b, cl.x, cl.y, null, tick*37 + b.id.charCodeAt(1)*11, "сквозь дым");   // (Г1) пуля сквозь дым попадает в того, кто на линии
+  if(sv) cl = {x:sv.x, y:sv.y};
+  tracers.push({wc:tracerClass(b.weapon), wk:b.weapon && b.weapon.key, sil:!!(b.weapon && b.weapon.silenced), x1:b.x, y1:b.y, x2:cl.x, y2:cl.y, team:b.team, born:nowTs, hit:!!sv, miss:!sv}); if(tracers.length > 60) tracers.shift(); if(SND && SND.on) sndShot(b.weapon, b.x, b.y);
   bots.forEach(function(o){ if(!o.alive || o.team === b.team) return;
     var hr = (hasLOS(o.x, o.y, b.x, b.y, o.z, b.z) ? GUN_HEAR_OPEN : GUN_HEAR_WALL) * (w.silenced ? 0.55 : 1);
     if(Math.hypot(o.x-b.x, o.y-b.y) < hr) o.heardSound = hearReal(o, {x:b.x, y:b.y, tick:tick, team:b.team, src:b.id, kind:"shots"}); });
@@ -170,10 +172,13 @@ function smokeHeTick(){
 function smokeShiftOnDetonate(s){
   bots.forEach(function(b){
     if(!b.alive || b.team === s.team || b._sawEnemy || !(b.atPost && b.post && b.post.hold)) return;
-    var d = Math.hypot(s.x-b.x, s.y-b.y); if(d < 150 || d > 700 || !hasLOS(b.x, b.y, s.x, s.y, b.z)) return;
-    var lk = b.lookTarget || b.post.look; if(!lk) return;
-    if(!segHitsCircle(b.x, b.y, lk.x, lk.y, s.x, s.y, NADE.smoke.radius)) return;   // смок не на его линии
-    if(hashRand(s.born*53 + b.id.charCodeAt(0)*29 + b.id.length) >= SMK.shiftP) return;
+    var d = Math.hypot(s.x-b.x, s.y-b.y); if(d > 700 || !hasLOS(b.x, b.y, s.x, s.y, b.z)) return;
+    // (Г4, 04.11, разбор отметок п.21 и ответ владельца 7Б: «позиция полезна — держит край дыма; через дым задачу не выполнить — отходит на
+    // запасную») смок лёг на сам пост (стоит в дыму — не видит ничего) — меняет позицию всегда; раньше смок ближе 150 не учитывался вовсе
+    var inside = d < NADE.smoke.radius;   // дым раскроется до полного радиуса
+    var lk = b.lookTarget || b.post.look; if(!lk && !inside) return;
+    if(!inside && !segHitsCircle(b.x, b.y, lk.x, lk.y, s.x, s.y, NADE.smoke.radius)) return;   // смок не на его линии
+    if(!inside && hashRand(s.born*53 + b.id.charCodeAt(0)*29 + b.id.length) >= SMK.shiftP) return;
     shiftHold(b, {x:s.x, y:s.y}, null, "смок закрыл угол");
   });
 }

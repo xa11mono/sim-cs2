@@ -271,8 +271,16 @@ var LAND_SOUND_DROP = 48;
 function navJumpCost(a, edge){
   if(edge._jcost != null) return edge._jcost;
   var b = zonesById[edge.to]; if(!a || !b || !edge.mid) return (edge._jcost = 0);
-  if(navPlane(a).flat || navPlane(b).flat) return (edge._jcost = 0);   // нет высот углов (Ancient) — как раньше
-  var dz = navStepDz(a, b, edge.mid.x, edge.mid.y);
+  var dz;
+  if(navPlane(a).flat || navPlane(b).flat){
+    // (v519, пак 09.11 п.13; А-3: «на Ancient куча мест, где T бегут и постоянно прыгают») у навмеша Ancient нет высот углов — раньше цена
+    // прыжка была 0, и путь шёл через каждый уступ. Высота пола по обе стороны прохода — из 3D-геометрии карты (та же, что видимость): в 10 px
+    // от середины прохода внутрь каждого участка, этаж — ближайший к высоте участка (пандус так не даёт ложного уступа: пол непрерывный)
+    var M = typeof m3 === "function" ? m3() : null; if(!M) return (edge._jcost = 0);
+    var cen = function(A){ var x = 0, y = 0; A.points.forEach(function(q){ x += q.x; y += q.y; }); return {x:x/A.points.length, y:y/A.points.length}; };
+    var side = function(A){ var c = cen(A), dx = c.x-edge.mid.x, dy = c.y-edge.mid.y, L = Math.hypot(dx, dy) || 1; return visFloorAt(edge.mid.x + dx/L*10, edge.mid.y + dy/L*10, A.z); };
+    dz = side(b) - side(a);
+  } else dz = navStepDz(a, b, edge.mid.x, edge.mid.y);
   return (edge._jcost = dz > 18 ? NAV_JUMP_COST : dz < -LAND_SOUND_DROP ? NAV_DROP_COST : 0);   // (v469) тихий спуск (≤ LAND_SOUND_DROP) — без цены
 }
 var ROUTE_PORTAL = 0;   // (v406) цена перехода между участками сверх длины (было 40 при длине от центров участков): с длиной от точки входа не нужна — спуск со спавна T по рампе (607) короче бордюра (624), а с ценой 8 выбирался бордюр
@@ -295,8 +303,11 @@ function knownPathSpots(team){
 }   // (док 6) продолжаемые поиски пути этого тика (zoneDijkstra) — ключ: начало и обстановка
 // (v469) штраф отрезка пути за место врага: KNOWN_DETOUR × вес × (длина отрезка внутри круга KNOWN_PATH_R) / диаметр круга
 function knownSegCost(a, b, q){
+  // (Г6, скорость) отрезок целиком дальше R от места по оси — пересечения нет (тот же 0, что дал бы расчёт ниже)
+  var R = KNOWN_PATH_R;
+  if((a.x < q.x - R && b.x < q.x - R) || (a.x > q.x + R && b.x > q.x + R) || (a.y < q.y - R && b.y < q.y - R) || (a.y > q.y + R && b.y > q.y + R)) return 0;
   var dx = b.x - a.x, dy = b.y - a.y, L2 = dx*dx + dy*dy; if(L2 < 1e-9) return 0;
-  var fx = a.x - q.x, fy = a.y - q.y, R = KNOWN_PATH_R;
+  var fx = a.x - q.x, fy = a.y - q.y;
   var B = 2*(fx*dx + fy*dy), C = fx*fx + fy*fy - R*R, D = B*B - 4*L2*C; if(D <= 0) return 0;
   var sq = Math.sqrt(D), t0 = Math.max(0, (-B - sq)/(2*L2)), t1 = Math.min(1, (-B + sq)/(2*L2)); if(t1 <= t0) return 0;
   return KNOWN_DETOUR*q.w*(t1 - t0)*Math.sqrt(L2)/(2*R);
@@ -329,19 +340,26 @@ function zoneDijkstra(fromId, toId, team){
     // вошли (середина перехода; у начала — сама точка старта, zoneDijkstra.from), а не от центра участка: по центрам мелко нарезанная
     // рампа «стоила» дороже бордюра того же пути. Переход между участками — ROUTE_PORTAL (было 40 — проектное число)
     var fromCentroid = entry[u] || zoneCentroid(zonesById[u]);
-    (zoneGraph[u]||[]).forEach(function(edge){
-      if(visited[edge.to]) return;
+    var EL = zoneGraph[u] || [], nKP = KP.length;
+    for(var ei = 0; ei < EL.length; ei++){ var edge = EL[ei];
+      if(visited[edge.to]) continue;
       var w = dist2(fromCentroid, edge.mid) + ROUTE_PORTAL + navJumpCost(zonesById[u], edge); // small fixed cost per portal crossing
       if(side && side[edge.to] !== undefined && side[edge.to] < ROUTE_SIDE_LINE) w *= ROUTE_ENEMY_SIDE;   // (v259) CT — по своей стороне
       // (v438, док владельца 27.10: «боты часто идут в молик») переход в горящем огне — дороже на FIRE_DETOUR: путь обходит молотов, если обход
       // не длиннее; иначе идёт через огонь (как и раньше — fireCommit / ждёт у края). Только путь движения (buildWaypointPath)
       if(fireOn && inFire(edge.mid.x, edge.mid.y)) w += FIRE_DETOUR;
-      for(var kq = 0; kq < KP.length; kq++) w += knownSegCost(fromCentroid, edge.mid, KP[kq]);
+      // (Д3, скорость; облако м7: 60 млн вызовов knownSegCost за 8000 тиков) отсев по оси — тот же, что первой строкой knownSegCost
+      // (места дальше R от отрезка по оси — 0), но без вызова функции; порядок сложения и сами слагаемые те же — результат бит в бит
+      if(nKP){ var sax = fromCentroid.x, say = fromCentroid.y, sbx = edge.mid.x, sby = edge.mid.y;
+        var mnx = sax < sbx ? sax : sbx, mxx = sax < sbx ? sbx : sax, mny = say < sby ? say : sby, mxy = say < sby ? sby : say, KR = KNOWN_PATH_R;
+        for(var kq = 0; kq < nKP; kq++){ var kqp = KP[kq];
+          if(mxx < kqp.x - KR || mnx > kqp.x + KR || mxy < kqp.y - KR || mny > kqp.y + KR) continue;
+          w += knownSegCost(fromCentroid, edge.mid, kqp); } }
       var alt = dist[u] + w;
       if(dist[edge.to]===undefined || alt<dist[edge.to]){
         dist[edge.to] = alt; prev[edge.to] = u; entry[edge.to] = edge.mid; heap.push(edge.to, alt);
       }
-    });
+    }
   };
   if(!visited[toId]){
     if(S.relax != null){ relax(S.relax); S.relax = null; }   // прошлый поиск остановился на своей цели, не раскрыв её переходы
@@ -482,7 +500,19 @@ function laneShift(path, lane, x0, y0, z0, fixed){
     px = out[i][0]; py = out[i][1]; pz = out[i][2]; }
   return out;
 }
+// (Г6, скорость, 04.11) путь без команды (team не задан) зависит только от карты (граф, закрытые участки, стены) и огня — не от
+// времени и знаний: тот же запрос с теми же точными аргументами при том же графе и том же огне даёт тот же путь. Такие пути
+// запоминаются (копией: вызывающие правят точки). Замер м1 р6: 59 % вызовов — без команды, повторы — точные. Игра бит в бит та же
+var WPM = {graph: null, m: -1, n: 0, s: {}};
 function buildWaypointPath(fromX, fromY, fromZ, toX, toY, toZ, team, lane){
+  if(team) return buildWaypointPath0(fromX, fromY, fromZ, toX, toY, toZ, team, lane);
+  if(WPM.graph !== zoneGraph || WPM.m !== matchNum || WPM.n > 20000){ WPM.graph = zoneGraph; WPM.m = matchNum; WPM.n = 0; WPM.s = {}; }
+  var key = fromX+","+fromY+","+fromZ+">"+toX+","+toY+","+toZ+"|"+lane+"|"+(fires.length ? tick+":"+fires.map(function(f){ return f.x+","+f.y+","+f.born; }).join(";") : "");   // огонь растёт со временем — с огнём только в том же тике
+  var v = WPM.s[key];
+  if(!v){ v = WPM.s[key] = buildWaypointPath0(fromX, fromY, fromZ, toX, toY, toZ, team, lane); WPM.n++; }
+  return v.map(function(q){ return q.slice(); });
+}
+function buildWaypointPath0(fromX, fromY, fromZ, toX, toY, toZ, team, lane){
   // (v341, отметка владельца: karrigan в щели у края нижнего пола — путь начинался с верхней полоски (−140) над ним, туда хода
   // нет, бот уходил с пола и его переносило по кругу) начало пути — пол рядом на высоте бота, а не ближайший центр участка
   var fz = fromZ != null ? navAt(fromX, fromY, fromZ) : null;

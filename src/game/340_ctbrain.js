@@ -5,6 +5,9 @@ function ctPlantGuessOnly(){
   var cts = bots.filter(function(o){ return o.team === "CT" && o.alive && o.know; });
   return cts.some(function(o){ return o.know.plantGuess; }) && !cts.some(function(o){ return o.know.plantSite && !o.know.plantGuess; });
 }
+// (00_PLAN, аудит 4.2, 05.11) CT «у сайта» — по длине пути с его высотой, а не по прямой: за стеной или на другом этаже по
+// прямой «рядом», а дойти — далеко; такой CT считался защитником, и на сайт не шли
+function ctNearSite(b, S, r){ return Math.hypot(b.x-S.x, b.y-S.y) < r && polyLen(pathPts(b.x, b.y, S.x, S.y, b.z)) < r; }
 function ctBrain(){
   var ct = teamTac.CT;
   var cts = bots.filter(function(b){ return b.team==="CT" && b.alive; });
@@ -60,7 +63,7 @@ function ctBrain(){
     var PH = teamIntel.CT.plantHeard, plantHere = PH && PH.site === k && tick - PH.tick < 5*TICK_HZ;
     var anchorRole = k==="A" ? "anchorA" : "anchorB";
     var anchorAlive = cts.some(function(b){ return b.tRole===anchorRole; });
-    var holdingHere = cts.some(function(b){ return Math.hypot(b.x-SITES[k].x, b.y-SITES[k].y) < 420; });
+    var holdingHere = cts.some(function(b){ return ctNearSite(b, SITES[k], 420); });
     // (v355, владелец: «колл сработал, хотя у него клатч» — 2 на 4, опорника B сняли, колл «B пустой» увёл NiKo с A, где были T) «сайт пустой» —
     // повод для колла только при 3+ живых CT: вдвоём / в одиночку сайт без опорника — не довод бросать свой
     var undefended = !anchorAlive && !holdingHere && !planted0 && cts.length >= 3;
@@ -116,6 +119,9 @@ function ctBrain(){
     var fresh = best.est.seen + best.est.heard > 0 || best.carrier || best.plant || best.deaths > 0 || best.nades >= 2;
     if(!(fresh && (best.carrier || best.plant || Math.round(best.count) > Math.round(ct.call.count)))) best = res[ct.go.site] || null;
   }
+  // (Д2, владелец 05.11: «спамился колл отбой… все на B») остался один T до планта — колл снят на весь раунд (эндгейм 330: один на него), а не
+  // ставится снова новой инфой на следующем тике (колл ↔ отбой каждый тик, «отбой» каждый раз шёл в войс)
+  if(best && ct._lastTOff === roundNum && !planted0 && aliveCount("T") === 1) best = null;
   if(best){
     var isNew = !ct.call || ct.call.site !== best.site;
     if(isNew || best.count > ct.call.count + 0.4 || tick - ct.call.tick > 64){
@@ -141,6 +147,17 @@ function ctBrain(){
   } else if(ct.call){
     // новой инфы нет — оценка "сколько там" только тает вместе с картой
     ct.call.count = Math.min(ct.call.count, beliefCount("CT", BZ.siteNear[ct.call.site]||[]) + 0.3);
+  }
+  // (00_PLAN п.11, 05.11: колл A держался, когда последний T с бомбой ушёл в мид — опорник B 15 с бежал ротацией) новая инфа снимает колл,
+  // под который ушла ротация: все живые T замечены командой за SITE_SEEN_SEC далеко от сайта колла (siteAssess «empty» — та же оценка, что у T)
+  // (ответ 6Б) остался один T до планта, нас двое и больше — это эндгейм (330: один на него, остальные держат линии), а не ротация под колл
+  var lastT = !planted0 && aliveCount("T") === 1 && cts.length >= 2;
+  if(ct.call && (lastT || (!planted0 && siteAssess("CT", ct.call.site).level === "empty"))){
+    // в войс — раз за раунд на сайт и причину (ключ войса раньше был с тиком — повтор не гасился)
+    var offK = ct.call.site + (lastT ? "L" : "E"), OS = ct._offSaid || (ct._offSaid = {});
+    if(OS[offK] !== roundNum){ OS[offK] = roundNum; intelCallLog("CT", "calloffK"+offK, "отбой колла на "+ct.call.site+": "+(lastT ? "остался один — играем на него" : "все T замечены не там — по ситуации"), null, "plan"); }
+    if(lastT) ct._lastTOff = roundNum;
+    ct.call = null; ct.go = null;
   }
   if(ct.call){
     var quiet = tick - (ct.call.evTick||ct.call.tick);
@@ -168,7 +185,7 @@ function ctBrain(){
   if(ct.call && !planted0){
     var ks = ct.call.site, ko = ks === "A" ? "B" : "A", sc0 = SITES[ks];
     var need = Math.max(1, Math.ceil(ct.call.count - 0.25));
-    var defenders = cts.filter(function(b){ return Math.hypot(b.x-sc0.x, b.y-sc0.y) < 450; }).length;
+    var defenders = cts.filter(function(b){ return ctNearSite(b, sc0, 450); }).length;
     // защитников ≈ сколько там врагов (сайт даёт позиционное преимущество)
     var send = Math.max(0, Math.min(3, need - defenders));
     // терпение: на первый звук/одного-двух не дёргаемся — ротация только
@@ -236,8 +253,12 @@ function ctBrain(){
       }
     }
     ct.spread = spread;
-    var deadR = bots.filter(function(o){ return o.team === "CT" && !o.alive; }).map(function(o){ return o.tRole; });
-    var aLost = deadR.indexOf(ks === "A" ? "anchorA" : "anchorB") >= 0 && deadR.filter(function(r){ return r === "mid" || r === "rotator" || r === (ks === "A" ? "anchorA" : "anchorB"); }).length >= 2;
+    // (v519, пак 09.11 п.9) «защита сайта потеряна» — по тому, где свои погибли (у этого сайта и на миде рядом), а не по названиям ролей: роли CT
+    // меняются по расстановке каждый раунд, и «опорник A» в этом раунде мог стоять на миде. Нужны: хотя бы один погиб у самого сайта и всего ≥ 2
+    // у сайта / на миде (как было: опорник + ещё один с той стороны). 700 px — проектное число («у сайта» по прямой, как ctNearSite у колла)
+    var deadCT = bots.filter(function(o){ return o.team === "CT" && !o.alive; });
+    var nearS = function(o){ return Math.hypot(o.x-SITES[ks].x, o.y-SITES[ks].y) < 700; }, nearM = function(o){ return Math.hypot(o.x-GEO.ctMid.x, o.y-GEO.ctMid.y) < 700; };
+    var aLost = deadCT.some(nearS) && deadCT.filter(function(o){ return nearS(o) || nearM(o); }).length >= 2;
     var pri = function(b){
       var r = b.tRole;
       if(r === "rotator") return 0;
@@ -281,6 +302,10 @@ function ctBrain(){
     var cand = cts.filter(function(b){ return (b.tRole === "mid" || b.tRole === "roamer") && !(ct.rot && ct.rot[b.id]) &&
       Math.hypot(b.x-SITES[fs].x, b.y-SITES[fs].y) > 500; })
       .sort(function(a, b2){ return (a.tRole === "mid" ? 0 : 1) - (b2.tRole === "mid" ? 0 : 1); })[0];
+    // (ответ владельца 9) маршрут у врага — не идти: на зоне маршрута фланга (набор карты) команда недавно (SITE_SEEN_SEC) видела / слышала T
+    var CFr = ((MAP.tactics.plays.ctFlank || {}).route || {})[fs === "A" ? "A" : "B"] || [], BLc = beliefLast.CT || {};
+    if(cand && CFr.some(function(n){ var zp = zonePoint(n, SITES[fs]), zz = zp && zoneIdAt(zp.x, zp.y); return zz && bots.some(function(o){ var e = BLc[o.id];
+      return o.alive && o.team === "T" && e && tick - e.tick <= SITE_SEEN_SEC*TICK_HZ && zoneIdAt(e.x, e.y) === zz; }); })) cand = null;
     if(cand){
       ct.flank = {id:cand.id, site:fs, stage:0, arr:0};
       voiceLog("CT", "flank"+fs, cand.id, "захожу им в спину через мид на "+fs);
@@ -298,7 +323,7 @@ function ctBrain(){
     // / скорость + время дефуза ЕГО (с китом или без); берём лучший вариант
     var needSecs = Infinity;
     cts.forEach(function(b){
-      var t = pathLenTo(b, bomb.x, bomb.y)/SPEED + (b.kit ? 5 : 10) + 1.0;
+      var t = defuseEta(b) + 1.0;   // (Г1) дефузит — остаток дефуза
       if(t < needSecs) needSecs = t;
     });
     // сейвить имеет смысл только то, что стоит денег: с пистолетами и без
@@ -324,7 +349,7 @@ function ctBrain(){
     var tsS = aliveCount("T");
     if(planted){
       var secsS = bombTimeLeftTicks()/TICK_HZ, needS = Infinity;
-      cts.forEach(function(b){ var t = pathLenTo(b, bomb.x, bomb.y)/SPEED + (b.kit ? 5 : 10) + 1.0; if(t < needS) needS = t; });
+      cts.forEach(function(b){ var t = defuseEta(b) + 1.0; if(t < needS) needS = t; });
       var evenS = cts.length >= tsS || (cts.length === tsS - 1 && needS + 7 < secsS);
       if(evenS && needS + 2 < secsS && tsS > 0){
         ct.saving = false; ct._noResave = true; cts.forEach(function(b){ b._saveSpot = null; });
@@ -389,6 +414,11 @@ function ctBrain(){
       var sps = pickSpots("stopplant"+Math.round(ppt.x/40)+","+Math.round(ppt.y/40), ppt, 4, {rMin:60, rMax:280, minGap:50, must:[ppt]});
       var bsp = null, bsd = Infinity;
       sps.forEach(function(q){ var d = Math.hypot(q.x-b.x, q.y-b.y); if(d < bsd){ bsd = d; bsp = q; } });
+      // (00_PLAN, пакет тактики, ответ владельца 6 от 04.11: «плант идёт (3,2 с): успевает убить — главное; нет — сильная позиция; не бежать
+      // через открытое ради безнадёжной попытки») не успевает дойти до места, откуда видно ставящего, до конца планта — не бежит (ретейк)
+      if(bsp && !hasLOS(b.x, b.y, PHs.x, PHs.y, b.z) && pathLenTo(b, bsp.x, bsp.y)/SPEED*TICK_HZ > PHs.tick + PLANT_TICKS - tick){
+        if(b._noStopLog !== PHs.tick){ b._noStopLog = PHs.tick; voiceLog("CT", "nostopT"+b.id, b.id, "не успеваю сбить плант — держу, играем ретейк"); }
+        bsp = null; }
       if(bsp){
         if(b._stopPlantLog !== PHs.tick){ b._stopPlantLog = PHs.tick; voiceLog("CT", "stop"+b.id, b.id, "слышу плант — иду сбивать!"); }
         b._stopPlantUntil = tick + 2*TICK_HZ; b._reposUntil = 0;
@@ -606,10 +636,8 @@ function ctBrain(){
             .filter(function(q){ return hasLOS(q.x, q.y, GEO.ctMidLook.x, GEO.ctMidLook.y); })
             .sort(function(a, c){ return Math.hypot(c.x-GEO.ctMidLook.x, c.y-GEO.ctMidLook.y) - Math.hypot(a.x-GEO.ctMidLook.x, a.y-GEO.ctMidLook.y); });
           if(ac[0]){ mp = ac[0]; if(b._mwV !== roundNum){ b._mwV = roundNum; logEvent(b.id+" (AWP): мид с дальней точки — дистанция моя"); } }
-        } else if(wT < 5){
-          var cc = pickSpots("midClose", GEO.ctMid, 4, {rMin:120, rMax:360, minGap:50, see:[GEO.ctMid], hideFrom:[GEO.ctMidLook, GEO.tMid]})[0];
-          if(cc){ mp = cc; if(b._mwV !== roundNum){ b._mwV = roundNum; logEvent(b.id+": с "+(b.weapon ? b.weapon.name : "пистолетом")+" на миде — ближний угол, на длинные линии не выхожу"); } }
-        }
+        }   // (v520) ветка «пистолет / ПП — ближний угол, спрятанный от мида» убрана: правило на оружие ставило мидера за стену (отметка владельца
+            // 09.11 м200 р1); место — общий выбор мида (midOpts: видеть мид, прятаться от T-мида), обзор поста проверяет setPost (postViewPoint)
       }
       if(mp && b._holdLog !== roundNum){ b._holdLog = roundNum; logEvent(b.id+": мид с «"+mNames[mi]+"»"); }
       setPost(b, mp || midOpts[midPick], midLook, true, "mid");

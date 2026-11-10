@@ -21,7 +21,8 @@ var RP_K = {
   sayMin: 1.1,        // реплика держится до следующей не меньше, с
   quiet: 0.85,        // реплика без голоса — до следующей, с
   voices: 5,          // сколько реплик озвучено (клатчер, двое своих, двое соперников) — остальные только текстом
-  intro: 0.7, outro: 0.5,
+  intro: 0, outro: 0.5,   // (v518d, владелец А-4 / А-40: «не надо писать заголовки на чёрном экране, сразу начинать») заставки нет
+  live: 10,           // (v518d, владелец А-40: «до 10 секунд ещё можно забрать у раунда») повтор идёт и в начале нового раунда, пока боты бегут на места
   tracer: 0.22        // след выстрела в повторе, с игры
 };
 var RP = {on: false, rec: null, last: null, P: null, enabled: true, mode: "auto", prevRs: null, kfSeen: null, lastTs: 0, holding: false};
@@ -42,12 +43,14 @@ function rpMode(R, B){
 // голоса нет (п.18 владельца 29.10: «убрать озвучку игроков в клатчах»; на паузе убран в v469) — реплики только текстом
 function showSnd(kind, g){
   if(typeof SND === "undefined" || !SND.on || !SND.ctx) return;
+  RP.sndOwn = true;
   try{
     if(kind === "chat"){ if(!sndPlay("chat_talk", g || 0.6, 0)) sndTone(0.12, 0.05, 1800, "sine"); }
     else if(kind === "whoosh"){ sndNoise((g || 0.22), 0.32, "bandpass", 900, 0.6); sndNoise((g || 0.22)*0.6, 0.45, "highpass", 3200, 0.4, 0.04); }
     else if(kind === "hit"){ sndTone(g || 0.22, 0.2, 95, "sine", 0, 45); sndNoise((g || 0.22)*0.8, 0.14, "lowpass", 420, 0.7); }
     else if(kind === "pop"){ sndTone(g || 0.1, 0.07, 1100, "triangle", 0, 1700); }
   }catch(e){}
+  RP.sndOwn = false;
 }
 var RP_NB = 9;   // чисел на игрока в снимке: x, y, взгляд, жив, hp, присел, этаж (-1 под полом / 1 над), плант(+)/дефуз(−) 0..1, ослеплён
 function rpNum(v){ return typeof v === "number" && isFinite(v) ? v : NaN; }
@@ -153,10 +156,10 @@ function rpRoundEnd(R){
   R.kills.forEach(function(k){ if(!k.att || !k.vic || k.attTeam === k.vicTeam) return; kc[k.att] = (kc[k.att]||0) + 1; if(k1[k.att] == null) k1[k.att] = k.t; });
   var mk = function(id, side){ var me = teamBot(id); return {id: id, side: side, alive: !!(me && me.alive), hp: me ? me.hp : 0, kills: kc[id]||0}; };
   var roll = function(tag){ return (rpHash(R.m + "|" + R.round + "|" + tag) % 1000)/1000; };
-  if(c && win && c.team === win && c.n >= RP_K.minN){ var h = mk(c.id, c.team); h.n = c.n; h.t = R.solo[c.id] || R.end; if((kc[c.id]||0) >= RP_K.multiN){ h.all = true; h.t = k1[c.id]; } cand.push({h: h, pri: 100}); usedId[c.id] = 1; }
+  if(c && win && c.team === win && c.n >= RP_K.minN){ var h = mk(c.id, c.team); h.n = c.n; h.t = R.solo[c.id] || R.end; if((kc[c.id]||0) >= RP_K.multiN){ h.all = true; h.t = k1[c.id]; } cand.push({h: h, pri: (kc[c.id]||0) >= 5 ? 100 : (kc[c.id]||0) === 4 ? 95 : 90}); usedId[c.id] = 1; }
   bots.forEach(function(b){ if(usedId[b.id]) return; var n = kc[b.id]||0;
     if(n >= RP_K.multiN || (n === 2 && roll("two" + b.id) < RP_K.pick.two)){ var h2 = mk(b.id, b.team); h2.multi = true; h2.n = n; h2.t = k1[b.id];
-      cand.push({h: h2, pri: n >= 5 ? 95 : n === 4 ? 90 : n === 3 ? 80 : 40}); usedId[b.id] = 1; } });
+      cand.push({h: h2, pri: n >= 5 ? 100 : n === 4 ? 95 : n === 3 ? 80 : 40}); usedId[b.id] = 1; } });
   var SPEC = [["smoke", "Через смок"], ["wall", "Прострел"], ["noscope", "Без прицела"], ["blind", "Ослеплённым"]];
   R.kills.forEach(function(k, ki){ if(!k.att || usedId[k.att] || k.attTeam === k.vicTeam) return;
     var sp = SPEC.filter(function(q){ return k[q[0]]; })[0]; if(!sp || roll("sp" + ki) >= RP_K.pick.special) return;
@@ -166,9 +169,10 @@ function rpRoundEnd(R){
     var h4 = mk(lastK.att, lastK.attTeam); h4.multi = true; h4.single = true; h4.n = 1; h4.kt = lastK.t; h4.t = lastK.t; h4.label = "Последний фраг"; cand.push({h: h4, pri: 20}); }
   if(!cand.length) return;
   cand.sort(function(a, b){ return b.pri - a.pri || a.h.t - b.h.t; });
-  var avail = ROUND_RESTART_DELAY_SEC + BAL.freeze - RP_K.startDelay, used = 0;
+  var avail = ROUND_RESTART_DELAY_SEC + BAL.freeze - RP_K.startDelay + RP_K.live, used = 0;
   cand.forEach(function(q, i){ R.clutch = q.h; var e = rpEst(R); if(i === 0 || used + e <= avail){ H.push(q.h); used += e; } });
-  H.sort(function(a, b){ return a.t - b.t; });
+  // (v518d, владелец А-34: «если есть мультикиллы 4–5, сначала их, потом клатчи и всё остальное») показ — по важности (5к, 4к, клатч, 3к, 2к, особый
+  // фраг, последний), а не по времени в раунде; клатчер с 4–5 фрагами — один повтор с важностью мультикилла
   R.list = H; R.clutch = H[0];
   // войс раунда: последнее, что сказал каждый (voiceLines — новые сверху)
   // одинаковый колл у нескольких (часто — общий «B чисто») показываем один раз, у того, кто сказал позже всех
@@ -225,7 +229,7 @@ function rpPlay(R, mode){
   // (раньше пустой клип уходил в реакции с заголовком «клатч 1v» + число фрагов, в т.ч. у мёртвого и у проигравшей команды)
   if(C.multi && !B.segs.length) return false;
   if(md === "emo") B.segs = [];
-  RP.P = {R: R, mode: md, segs: B.segs, si: 0, rt: B.segs.length ? B.segs[0].a : R.end, phase: "intro", ph0: performance.now(), last: performance.now(),
+  RP.P = {R: R, mode: md, segs: B.segs, si: 0, rt: B.segs.length ? B.segs[0].a : R.end, phase: B.segs.length ? "clip" : "emo", ph0: performance.now(), last: performance.now(),
           cam: null, feedShown: {}, ci: rpBotIdx(C.id)};
   RP.on = true;
   var tm = C.side, nm = R.nick[C.id];
@@ -253,18 +257,18 @@ function rpEnd(){
 }
 // игра ждёт конца повтора: закупка кончается, а повтор ещё идёт (680: тики не считаются)
 function rpHold(){
-  var h = RP.on && ((roundState === "freeze" && simTime >= roundStartTime - 0.6) || (roundState === "matchover" && simTime - roundEndTime >= 6.5));
+  var h = RP.on && ((roundState === "live" && simTime >= roundStartTime + RP_K.live - 0.6) || (roundState === "matchover" && simTime - roundEndTime >= 6.5));
   RP.holding = h; return h;
 }
 // кадр: true — повтор нарисовал экран сам (обычный draw не нужен)
 function rpFrame(ts){
   if(!RP.on && RP.pending && !paused){
     var Pn = RP.pending;
-    if(roundState === "live" && roundNum !== Pn.rec.round) RP.pending = null;
+    if(roundState === "live" && roundNum !== Pn.rec.round && simTime >= roundStartTime + RP_K.live) RP.pending = null;
     else if(simTime >= Pn.at){
       var Lh = Pn.rec.list || [Pn.rec.clutch], hh = Lh[Pn.i]; Pn.rec.clutch = hh; Pn.i++;
       // следующий повтор — если успевает до конца закупки (владелец: «если успеваешь — по очереди»)
-      if(Pn.n && roundState === "freeze" && roundStartTime - simTime < rpEst(Pn.rec)){ RP.pending = null; }
+      if(Pn.n && roundNum !== Pn.rec.round && roundStartTime + RP_K.live - simTime < rpEst(Pn.rec)){ RP.pending = null; }
       else { if(rpPlay(Pn.rec)) Pn.n = (Pn.n||0) + 1; RP.pending = Pn.i < Lh.length ? Pn : null; if(RP.pending) Pn.at = 0; }
     }
   }
@@ -374,7 +378,7 @@ function rpDraw(E, x, P, dt, W, H, dpr){
   if(sg) sg.m.forEach(function(m){ if(m.kind !== "kill") return; var a2 = (P.rt - m.t)/(0.7*TICK_HZ); if(a2 < 0 || a2 > 1) return; var vi = rpBotIdx(m.k.vic); if(vi < 0) return;
     x.strokeStyle = "rgba(255,228,150," + (1 - a2).toFixed(3) + ")"; x.lineWidth = 3*L; x.beginPath(); x.arc(bx(vi), by(vi), (10 + 34*a2)*L, 0, Math.PI*2); x.stroke(); });
   x.setTransform(1,0,0,1,0,0);
-  rpSound(P, R, ci);
+  RP.sndOwn = true; try{ rpSound(P, R, ci); } finally { RP.sndOwn = false; }
 }
 // (v461) звук повтора: выстрелы и дефуз в свой момент клипа, громкость — по камере повтора. Звуковой движок (680) меряет расстояние от
 // центра живого радара — поэтому точка звука переносится: живой центр + (точка − центр камеры повтора). Заплатка (одно место звука)
@@ -389,6 +393,13 @@ function rpSound(P, R, ci){
   var I = rpAt(R, P.rt), J = rpAt(R, from), a1 = I.A.b[ci*RP_NB+7], a0 = J.A.b[ci*RP_NB+7];
   if(a1 < 0 && !(a0 < 0)){ var q2 = mv(I.A.b[ci*RP_NB], I.A.b[ci*RP_NB+1]); sndBomb("defuse", q2.x, q2.y); }
   R.kills.forEach(function(k){ if(k.att === R.clutch.id && k.t > from && k.t <= P.rt) showSnd("hit", 0.25); });
+  // (v518d, владелец А-35: «в повторах нет пиканья бомбы») писк — по тому же расписанию, что в игре (bombBeepTick, 680), по времени повтора
+  var PL = R.ev.filter(function(e){ return e.kind === "plant"; })[0];
+  if(PL){ var eT = PL.t + BOMB_TICKS, stopT = R.ev.filter(function(e){ return e.kind === "defuse" || e.kind === "boom"; }).reduce(function(m, e){ return Math.min(m, e.t); }, eT);
+    if(!R._bp){ var pi = rpBotIdx(PL.id), IP = rpAt(R, PL.t); R._bp = pi >= 0 ? {x: IP.A.b[pi*RP_NB], y: IP.A.b[pi*RP_NB+1]} : null; }
+    for(var bt = PL.t, guard = 0; bt <= Math.min(P.rt, stopT) && guard < 800; guard++){
+      if(bt > from && R._bp){ var qb = mv(R._bp.x, R._bp.y); sndBomb("beep", qb.x, qb.y); }
+      bt += Math.round(Math.max(0.1, Math.min(1, 0.1 + 0.9*((eT - bt)/TICK_HZ)/40))*TICK_HZ); } }
   R.ev.forEach(function(e){ if(e.kind === "defuse" && e.t > from && e.t <= P.rt){ var q3 = mv(I.A.b[ci*RP_NB], I.A.b[ci*RP_NB+1]); sndBomb("defused", q3.x, q3.y); } });
 }
 // подставить записанный мир в игру на один вызов draw и вернуть всё обратно (игра этого не видит: между тиками, без изменений)

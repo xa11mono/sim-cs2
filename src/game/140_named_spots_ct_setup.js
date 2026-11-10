@@ -154,6 +154,7 @@ function ctSeatRoles(S){
   team.forEach(function(b, i){ var r = roles[bestP[i]]; if(b.tRole !== r){ logEvent("CT: "+nick(b.id)+" в этой расстановке — "+r+" (по своим позициям)"); b.tRole = r; } });
 }
 // роль CT по расстановке: позиция по названию зоны (из нескольких — по раунду)
+var CT_ZONE_RES = {k:null, z:{}};   // (v518c) зоны мест CT, занятые в этом раунде: имя зоны → id бота
 function ctSetupRole(b, role, ct){
   var S = ct.setup; if(!S || !S.roles || !S.roles[role]) return false;
   var R = S.roles[role];
@@ -178,30 +179,48 @@ function ctSetupRole(b, role, ct){
   // B Short, B Plat, Window только 8 %. Демок игрока нет — только места роли, как было. Места других ролей не исключаются: NiKo в
   // демках у Connector 22 %, а Connector — в списке мида; двое в одной точке не встанут — личное место (pickSpots / spotTaken)
   var names = early ? P.pos : posNamesOwn(b, P.pos);
-  var nm = BAL.proPrior ? names[posPickName(b, names, roundNum*97 + role.length*13 + matchNum)] : names[Math.floor(hashRand(roundNum*97 + role.length*13 + matchNum) * names.length)];
+  // (v518c, пак 09.11 п.8; владелец Р-35: «1-3-1 — пошли все трое в Connector и стоят буквально в одном месте») места ролей делятся на команду:
+  // зону, которую в этом раунде уже занял другой живой CT, не берёт, пока у роли есть свободная (раньше — «места других ролей не исключаются»,
+  // от одной точки на двоих спасал только личный радиус 70 px). Своя зона держится за ботом до конца раунда (не перекидываются)
+  var RZ = CT_ZONE_RES.k === matchNum+":"+roundNum ? CT_ZONE_RES : (CT_ZONE_RES = {k: matchNum+":"+roundNum, z:{}});
+  var mineZ = names.filter(function(n){ return RZ.z[n] === b.id; })[0];
+  var freeZ = names.filter(function(n){ var o = RZ.z[n] ? teamBot(RZ.z[n]) : null; return !o || !o.alive || o === b; });
+  if(freeZ.length) names = freeZ;
+  var nm0 = mineZ || (BAL.proPrior ? names[posPickName(b, names, roundNum*97 + role.length*13 + matchNum)] : names[Math.floor(hashRand(roundNum*97 + role.length*13 + matchNum) * names.length)]);
   var ref = role === "anchorA" ? GEO.A.anchor : role === "anchorB" ? GEO.B.anchor : GEO.ctMid;
-  var c = zonePoint(nm, ref); if(!c) return false;
   // (v417, М153) куда смотрят про с этой точки — точка из демок (lookPt, tools/tactics_bake.py / ct_lookpt_add.py); по имени зоны точка
   // бралась рядом с ботом и направление терялось (Mirage, опорник A в ctStd_212: про смотрят на −52° к A, а точка зоны «CT» — на 159°, назад)
-  var lk = (P.lookPt && {x: P.lookPt[0], y: P.lookPt[1]}) || (P.look && zonePoint(P.look, c)) || ref;
   // прятаться от мида по умолчанию — но не тогда, когда сам взгляд НАПРАВЛЕН
   // в сторону мида/тоннеля (Пуш кейва): иначе позицию тянуло в укромный
   // уголок, откуда "спрятанное от мида" направление и есть тот самый Dark/
   // Lamp Room, который нужно смотреть — в итоге стоял к нему спиной
   var hideMid = R.hideFrom === false ? [] : [GEO.tMid];
-  var spots = pickSpots("cts:"+S.id+":"+role+":"+nm, c, 6, {rMax:150, minGap:45, see:[lk], hideFrom:hideMid});
-  // (v441, док владельца 27.10, р6: мидер kyousuke с местом «B Short» встал в Stove — за дверью Apps, на стороне T) точка — в зоне своего
-  // места: в 150 от точки зоны легко попасть в соседнюю, а соседняя бывает уже чужой стороной. Нет такой — как было
-  var inNm = spots.filter(function(q){ return zoneUserName(zoneIdAt(q.x, q.y)) === nm; }); spots = (inNm.length ? inNm : spots).slice(0, 3);
+  // (v520, отметка владельца 09.11 м200 р3: NiKo (rotator, смотреть Top Mid) получил своё место по демкам «Hole» — оттуда Top Mid не виден,
+  // точка бралась любая внутри зоны) место роли годно, только если с точки видно то, что роль держит (точка взгляда): выбранное место
+  // первым, потом остальные свободные места роли; нигде не видно — как было (выбранное место)
+  var tryN = [nm0].concat(names.filter(function(n){ return n !== nm0; })), nm = nm0, c = null, lk = null, spots = null;
+  for(var ti = 0; ti < tryN.length; ti++){
+    var c1 = zonePoint(tryN[ti], ref); if(!c1) continue;
+    var lk1 = (P.lookPt && {x: P.lookPt[0], y: P.lookPt[1]}) || (P.look && zonePoint(P.look, c1)) || ref;
+    var sp1 = pickSpots("cts:"+S.id+":"+role+":"+tryN[ti], c1, 6, {rMax:150, minGap:45, see:[lk1], hideFrom:hideMid});
+    // (v441, док владельца 27.10, р6: мидер kyousuke с местом «B Short» встал в Stove — за дверью Apps, на стороне T) точка — в зоне своего
+    // места: в 150 от точки зоны легко попасть в соседнюю, а соседняя бывает уже чужой стороной. Нет такой — как было
+    var in1 = sp1.filter(function(q){ return zoneUserName(zoneIdAt(q.x, q.y)) === tryN[ti]; }); sp1 = in1.length ? in1 : sp1;
+    var see1 = sp1.filter(function(q){ return hasLOS(q.x, q.y, lk1.x, lk1.y); });
+    if(ti === 0){ nm = tryN[0]; c = c1; lk = lk1; spots = sp1.slice(0, 3); }
+    if(see1.length){ nm = tryN[ti]; c = c1; lk = lk1; spots = see1.slice(0, 3); break; }
+  }
+  if(!c) return false;
+  Object.keys(RZ.z).forEach(function(n){ if(RZ.z[n] === b.id && n !== nm) delete RZ.z[n]; }); RZ.z[nm] = b.id;
   var tag = (role === "anchorA" || role === "anchorB") ? "anchor" : role === "mid" ? "mid" : "set:"+role;
   var spC = spots[weightedPick(spots.length, roundNum*53 + b.id.charCodeAt(2||1))];
   // встал в той самой зоне, куда велено смотреть (роумер в Cave с взглядом
   // "на Cave") — смотрим дальше НАРУЖУ по пути к T, а не себе под ноги/на сайт
   if(spC && lk && Math.hypot(spC.x-lk.x, spC.y-lk.y) < 150){ var ow = outwardLook(spC, lk); if(ow) lk = ow; }
-  setPost(b, spC, lk, true, tag);
+  var placed = setPost(b, spC, lk, true, tag);   // (v518a, пак 09.11 п.1) отказ арбитра — роль не обслужена (было: всегда «сделано»)
   if(early && !b._earlyLog){ b._earlyLog = roundNum; }
   if(early && b._earlyLogged !== roundNum){ b._earlyLogged = roundNum; logEvent(b.id+" ("+ROLE_LABEL_CT(role)+"): выход за инфой — "+nm); }
-  return true;
+  return placed;
 }
 function ROLE_LABEL_CT(r){ return {anchorA:"опорник A", anchorB:"опорник B", mid:"мидер", rotator:"ротатор", roamer:"роумер"}[r] || r; }
 var events = []; var killfeed = []; // объявлены здесь, до loadOppProfile(), которая пишет в лог сразу при старте

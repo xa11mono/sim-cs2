@@ -178,15 +178,11 @@ function prePeekDecide(b, C, zB){
   if(BAL.popAim && hPos){ var fr = [0.35, 0.5, 0.22, 0.65];
     for(var fi=0; fi<fr.length; fi++){ var P = {x: C.pt.x + (hPos.x-C.pt.x)*fr[fi], y: C.pt.y + (hPos.y-C.pt.y)*fr[fi]};
       if(!insideSolidWall(P.x, P.y) && hasLOS(hPos.x, hPos.y, P.x, P.y) && Math.hypot(P.x-hPos.x, P.y-hPos.y) > 90){ popPt = P; break; } } }
-  // (v506, владелец 04.11: «флешка тиммейту под пик — очень часто так выбивают позиции: один флешит, второй выходит») свой рядом
-  // (mates: ≤ TRADE_R, не в бою) с флешкой и без задания кидает поп-флешку в ту же точку, пикер ждёт её хлопка (540: _waitPopKey, не
-  // дольше 3,5 с — проектное число: запал 1,6 с + бросок) и выходит. Нет такого — флешка себе, как было
-  var fm = (!BAL.popAim || holder) ? mates.filter(function(o){ return o.nades && o.nades.flash > 0 && !o.nadeTask && !o.holding && o.state === "patrol" && !o.planting && !o.defusing; })
-    .sort(function(p, q){ return Math.hypot(p.x-b.x, p.y-b.y) - Math.hypot(q.x-b.x, q.y-b.y); })[0] : null;
-  if(fm){ var whyM = "флешу под пик "+b.id+" ("+calloutName(C.beyond.x, C.beyond.y)+")";
-    if(assignNade(fm, "flash", popPt, whyM, {now:true, range:700})){
-      b._waitPopUntil = tick + Math.round(3.5*TICK_HZ); b._waitPopKey = "pop:"+whyM; b._ppMate = null;
-      voiceLog(b.team, "mflash"+b.id+key, fm.id, "флешу "+b.id+" под пик — "+calloutName(C.beyond.x, C.beyond.y));
+  // (v506, владелец 04.11: «флешка тиммейту под пик — очень часто так выбивают позиции: один флешит, второй выходит») — просьба «накиньте
+  // флешку» (365: nadeAskFlash — ближайший свой, с лайнапа рядом или с места; 05.11 — не только в TRADE_R); пикер ждёт хлопка и выходит.
+  // Нет такого — флешка себе, как было
+  if(!BAL.popAim || holder){ var whyM = "флешу под пик "+b.id+" ("+calloutName(C.beyond.x, C.beyond.y)+")", fm = nadeAskFlash(b, popPt, whyM);
+    if(fm){ b._ppMate = null;
       if(!b._ppV || tick - b._ppV > 6*TICK_HZ){ b._ppV = tick; logEvent(b.id+": угол держат — "+fm.id+" флешит мне, выхожу под хлопок"); }
       return; } }
   if(b.nades && b.nades.flash > 0 && !b.nadeTask && b._ppFlashR !== roundNum && (!BAL.popAim || holder) && assignNade(b, "flash", popPt, "флешу себе под пик", {now:true, range:700})){
@@ -210,8 +206,9 @@ function prePeekDecide(b, C, zB){
 function exposedShiftTick(b){
   if(!BAL.seenShift || !b.alive || b._sawEnemy || !b.atPost || !b.post || !b.post.hold) return;
   var li = b.lastIntel; if(!li || li.src || tick - li.tick < 24 || tick - li.tick > 90) return;
-  var hurt = b._hurtT && tick - b._hurtT < 4*TICK_HZ, shot = b._shotAtT && tick - b._shotAtT < 3*TICK_HZ;
-  if(!hurt && !shot) return;
+  // (v518a) ранен — одна реакция на урон, hurtReactTick (350); здесь — только «стреляли, но не попали» (позиция известна)
+  var hurt = false, shot = b._shotAtT && tick - b._shotAtT < 3*TICK_HZ && !(b._hurtT && tick - b._hurtT < 4*TICK_HZ);
+  if(!shot) return;
   if(b._esT && tick - b._esT < 6*TICK_HZ) return; b._esT = tick;
   var foe = b.team === "CT" ? "T" : "CT";
   if(aliveCount(foe) === 0) return;

@@ -48,6 +48,9 @@ function payRoundEconomy(winner, reason){
       var inc = income;
       if(!won && team === "T" && reason === "time" && b.alive) inc = 0;
       b.money = Math.min(MAX_MONEY, b.money + inc);
+      // (Г1) то же — в подсчёте соперника: траты (увиденное оружие, если не принесено) и доход по правилам
+      var R = ecoKnowRow(team === "CT" ? "T" : "CT", b.id), spend = R.gun && R.gun !== R.carry ? WEAPONS[R.gun].price : 0;
+      R.m = Math.min(MAX_MONEY, Math.max(0, R.m - spend) + inc); R.carry = b.alive ? (R.gun || R.carry) : null; R.gun = null;
     });
     te.lastIncome = income;
     if(roundNum === 1 || roundNum === HALF_ROUNDS+1) te.wonPistol = won;
@@ -94,13 +97,24 @@ function fullNeed(b){
 }
 function nextLossIncome(team){ return LOSS_BONUS[Math.min(4, teamEco[team].lossLevel)]; }
 
-// оценка денег соперника: про считают по лосс-бонусу и тому, что те сохранили;
-// у нас — реальная средняя сумма с погрешностью ±$500 (не телепатия, а подсчёт)
+// (Г1, 04.11, внешний аудит — проверено: читались настоящие деньги и оружие соперника с шумом ±$500) оценка денег соперника — из того,
+// что команда знает, как про: старт половины $800; доход по правилам игры (победа / бонус за поражения / плант / T, доживший до конца
+// времени, — 0; всё это видно по ходу матча); награды за убийства — из киллфида; траты — оружие, с которым врага видели в этом раунде
+// (если не принёс его из прошлого, дожив). Броню и гранаты команда не видит — их в тратах нет (оценка денег поэтому чуть завышена).
+// Сохранённые винтовки — у тех, кто дожил до конца раунда с увиденной у него винтовкой
+var ECO_KNOW = {CT:{}, T:{}};   // команда → id врага → {m: деньги по подсчёту, gun: лучшее увиденное в раунде, carry: дожил с ним}
+function ecoKnowReset(){ ECO_KNOW = {CT:{}, T:{}}; }
+function ecoKnowRow(team, id){ var K = ECO_KNOW[team]; return K[id] || (K[id] = {m: START_MONEY, gun: null, carry: null}); }
+function ecoKnowSeeTick(){
+  bots.forEach(function(b){ if(!b.alive || !b._visible) return;
+    b._visible.forEach(function(e){ if(!e.primary || !WEAPONS[e.primary]) return; var R = ecoKnowRow(b.team, e.id);
+      if(!R.gun || WEAPONS[e.primary].price > WEAPONS[R.gun].price) R.gun = e.primary; }); });
+}
+function ecoKnowKill(killer, reward){ if(!killer) return; var R = ecoKnowRow(killer.team === "CT" ? "T" : "CT", killer.id); R.m = Math.min(MAX_MONEY, R.m + reward); }
 function enemyEcoGuess(team){
   var en = team === "CT" ? "T" : "CT", ms = bots.filter(function(b){ return b.team === en; });
-  var avg = ms.reduce(function(a, b){ return a + b.money; }, 0) / Math.max(1, ms.length);
-  var guns = ms.filter(function(b){ return b.primary && WEAPONS[b.primary].tier >= 5; }).length; // сохранили винтовки
-  avg += (hashRand(roundNum*557 + matchNum*19 + (team === "CT" ? 1 : 2)) - 0.5)*1000;
+  var avg = ms.reduce(function(a, b){ return a + ecoKnowRow(team, b.id).m; }, 0) / Math.max(1, ms.length);
+  var guns = ms.filter(function(b){ var c = ecoKnowRow(team, b.id).carry; return c && WEAPONS[c].tier >= 5; }).length; // сохранили винтовки (видели)
   var full = guns >= 3 || avg >= 4200;
   var eco = !full && guns <= 1 && avg < 2300;
   return {avg:avg, full:full, eco:eco, guns:guns};
@@ -389,7 +403,7 @@ function teamDrops(team){
 // тиммейт покупает и скидывает ему (как в CS)
 function teamAwp(team){
   var mates = bots.filter(function(b){ return b.team === team; });
-  var awper = team === "T" ? mates.filter(function(b){ return b.tRole === "awp"; })[0] : mates[1];
+  var awper = mates.filter(isSniper)[0] || (team === "T" ? mates.filter(function(b){ return b.tRole === "awp"; })[0] : mates[1]);   // (v519) снайпер команды
   if(!awper || awper.primary === "AWP") return;
   if(mates.some(function(m){ return m.primary === "AWP"; })) return;   // (v271) AWP у команды уже есть (подобрал) — вторую не берут: у про две AWP в 1% закупов
   var P = WEAPONS.AWP.price;

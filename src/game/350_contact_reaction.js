@@ -32,8 +32,24 @@ function contactInfo(b){
   // контактом не бывает — ни то, где его видел, ни его звук (раньше их брали ещё 2,5 с после смерти и держали взгляд на трупе)
   var deadSrc = function(id){ var o = id ? teamBot(id) : null; return !!o && !o.alive; };
   var li = b.lastIntel; if(li && !li.src && tick - li.tick <= CONTACT_AGE*TICK_HZ && !deadSrc(li.id)) take(li.x, li.y, true, li.id, li.z);
+  // (00_PLAN п.17, ответ владельца 8, 05.11: «мидер может помогать, если это не создаёт критическую дыру в контроле мида; помощь — не полная
+  // ротация: подойти на дистанцию помощи, прикрыть, разменять, вернуться») заменяет абсолютное правило v408 условным: враг вне его участка —
+  // его контакт и тогда, когда свой прямо сейчас стреляется с этим врагом, а на своём участке угрозы нет (свежей инфы о враге там нет, вес
+  // карты команды < 0,45 — порог «есть инфа», 250). Подход ≤ CONTACT_SWING и возврат через CONTACT_HOLD — как у любого контакта
+  var myThreat = null;
+  var calm = function(){ if(myThreat === null){ myThreat = false;
+      for(var k in BL){ var q = BL[k], oq = teamBot(k); if(oq && oq.alive && tick - q.tick <= SITE_SEEN_SEC*TICK_HZ && myZ[zoneIdAt3(q.x, q.y, q.z)]){ myThreat = true; break; } }
+      if(!myThreat) Object.keys(myZ).forEach(function(z){ var j = BZ.idx[z]; if(j !== undefined && beliefZoneKnown(b.team, j) >= 0.45) myThreat = true; }); }
+    return !myThreat; };
+  // (прогон 178: перетягивание Ancient 67 → 97 — «пост-плант / лайнап → контакт → обратно») помогает тот, у кого задача не важнее личной
+  // перестановки (уровни 1–3: пост роли, маршрут, личное) — держащий бомбу, идущий кидать гранату и т. п. свою задачу ради помощи не бросает
+  // (v518a, пак 09.11 п.1: на пост-планте / охоте / ретейке «смотрит, но не идёт» — свой бой рядом отсекался уровнем задачи > 3) помогает,
+  // если главная задача терпит отклонение (detourOk, 110: не ставит / не дефузит, не бомба, не сейв, время есть); тянуть туда-обратно
+  // (прогон 178) не даёт сам контакт: держится, пока знание свежее + CONTACT_HOLD, повтор — не чаще CONTACT_GAP
+  var freeToHelp = !b.post || taskLevel(b.post.tag) <= 3 || detourOk(b, "help");
+  var mateFights = function(id){ return freeToHelp && bots.some(function(o){ return o !== b && o.alive && o.team === b.team && o._sawEnemy && o._nearestEnemyBot && o._nearestEnemyBot.id === id; }); };
   for(var id in BL){ var e = BL[id], ob = teamBot(id); if(!ob || !ob.alive || tick - e.tick > CONTACT_AGE*TICK_HZ) continue;
-    if(trade || myZ[zoneIdAt3(e.x, e.y, e.z)]) take(e.x, e.y, e.src === "spotted", id, e.z); }
+    if(trade || myZ[zoneIdAt3(e.x, e.y, e.z)] || (mateFights(id) && calm())) take(e.x, e.y, e.src === "spotted", id, e.z); }
   // (v469) бросок гранаты (слышно чеку / бросок) — не контакт (ответ про-аналитика: на гранату вдали не реагировать); её место знание получает
   var hs = b.heardSound; if(hs && hs.team && hs.team !== b.team && hs.kind !== "nade" && tick - hs.tick <= CONTACT_AGE*TICK_HZ && !deadSrc(hs.src) && (hs.kind !== "call" || trade || myZ[zoneIdAt3(hs.x, hs.y, hs.z)])) take(hs.x, hs.y, false, hs.src, hs.z);
   // (v448, док владельца 28.10 №4: у игрока 1 «якорь контакт холд, когда он далеко, не стрелялся и никого не видел») своя флешка —
@@ -45,7 +61,7 @@ function contactCritical(b, C){
   if(b.planting || b.defusing) return true;
   if(bomb && bomb.state === "planted"){
     var left = bombTimeLeftTicks()/TICK_HZ;
-    if(b.team === "CT" && !(teamTac.CT && teamTac.CT.saving)){ var need = Math.hypot(b.x-bomb.x, b.y-bomb.y)/SPEED*1.2 + (b.kit ? 5 : 10) + 1.5; if(left - need < 3) return true; }
+    if(b.team === "CT" && !(teamTac.CT && teamTac.CT.saving)){ var need = defuseEta(b) + 1.5; if(left - need < 3) return true; }
     if(bombDamageAt(b.x, b.y) >= b.hp*0.6 && left < 10) return true;   // в зоне взрыва и мало времени — бежит, не воюет
   }
   return false;
@@ -74,6 +90,10 @@ function contactTick(b){
   else if(!K && b.post && /^contact/.test(b.post.tag)) clearPost(b);   // точка контакта без самого контакта — тоже снять
   if(b._sawEnemy) return;   // видит врага — это уже бой
   var C = contactInfo(b); if(!C) return;
+  // (00_PLAN, аудит 3.4, 05.11: «контакт (ур. 9) держится, когда команде уже критически мало времени на ретейк») начатый контакт пересматривается
+  // по событию: стало критично (contactCritical — CT впритык на дефуз, ставит / дефузит, в зоне взрыва) — ноги к своей задаче, взгляд — на контакте.
+  // Раньше эта проверка была только для нового контакта, а начатый при той же инфе продлевался
+  if(K && K.lock && contactCritical(b, C)){ b._contact = {x:K.x, y:K.y, id:K.id, until:K.until, lock:false}; if(b.post && /^contact/.test(b.post.tag)) clearPost(b); return; }
   if(K && !(C.seen || C.d < 0.7*Math.hypot(K.x-b.x, K.y-b.y) || Math.hypot(C.x-K.x, C.y-K.y) < 120)) return;   // держит прежний контакт
   // тот же — уточнить место и продлить: реакция держится, пока знание о нём свежее (≤ CONTACT_AGE) + CONTACT_HOLD после
   // (Б1, ENGINE_AUDIT Х3: раньше кончалась по таймеру при живом знании — пост снят, бот шёл назад на пост роли, через CONTACT_GAP
@@ -107,12 +127,31 @@ function contactTick(b){
   // задачей «держу свой контакт») в выходе T (фаза execute до планта) контакт — это заход: выходит, если их не вдвое больше, чем нас рядом
   // (PRO_PLAY: выход — быстро, вместе, с разменом); держать угол — только одному против многих. Носителю — ниже (не выходит, но и не встаёт)
   var tExec = b.team === "T" && teamTac.T && teamTac.T.phase === "execute" && bomb && bomb.state !== "planted";
-  var swing = b.hp > LOW_HP && (Math.max(1, nE) <= nM + 1 || !!contactMateFight(b, C) || hlHot(b) || (tExec && nE <= 2*(nM + 1)));   // (v447) в ударе — выходит и на численный перевес
+  // (Г4, 04.11, разбор отметок п.2: T4 вышел на CT3 с 9 патронами в перезарядке) на перезарядке на врага не выходит — держит угол
+  var swing = !b._reloading && b.hp > LOW_HP && (Math.max(1, nE) <= nM + 1 || !!contactMateFight(b, C) || hlHot(b) || (tExec && nE <= 2*(nM + 1)));   // (v447) в ударе — выходит и на численный перевес
   // (v469, п.21 владельца 29.10, р9 м1: свой стрелялся с magixx за двумя смоками, m0NESY стоял в contact hold) правило v418б «не выходить
   // из-за дыма на врага» убрано по решению владельца: выход решают те же условия, что без дыма — свой рядом в бою с этой группой
   // (contactMateFight), враги не в численном перевесе, HP; дым больше не запрещает выйти помочь
   // (v440, док владельца 27.10: magixx с бомбой «делал агрессию в андере», р8 — с бомбой и 22 HP ждал файта) носитель бомбы на выход не идёт,
   // пока жив кто-то ещё из своих: бомба в первом бою — потеря раунда; держит угол (последний живой — играет сам)
+  // (00_PLAN, ответ владельца 05.11 — схема «после перестрелки»: «противник может повторно выйти — удерживает угол из укрытия; повторный выход —
+  // только при преимуществе: союзник готов к размену, флешка, противник перезаряжается, надо сорвать плант; не обязательное желание повторить
+  // перестрелку») после СВОЕЙ перестрелки с этим врагом (сам видел его и стрелял за CONTACT_AGE) выход — только с преимуществом; численность
+  // (nE ≤ nM + 1) и «в ударе» — не повод. Нет преимущества — «накиньте флешку» (365); некому — держит угол
+  var fought = C.seen && C.id && tick - (b.lastShotTick || -1e9) <= CONTACT_AGE*TICK_HZ;
+  if(fought && swing){
+    var HR = b._heardReload, PHc = teamIntel[b.team] && teamIntel[b.team].plantHeard;
+    var adv = !!contactMateFight(b, C)
+      || bots.some(function(o){ return o !== b && o.alive && o.team === b.team && !o._sawEnemy && Math.hypot(o.x-b.x, o.y-b.y) <= TRADE_R; })   // размен рядом
+      || !!(HR && HR.id === C.id && tick < HR.until)                                                                                            // перезаряжается
+      || !!(b.team === "CT" && PHc && tick - PHc.tick < 5*TICK_HZ)                                                                               // сорвать плант
+      || duelHits(b._hitOut, tick - CONTACT_AGE*TICK_HZ, C.id) > duelHits(b._hitIn, tick - CONTACT_AGE*TICK_HZ, null)
+      // (v521, владелец 10.11: «после боя слишком долго стоят»; ответ про дуэли: «по ситуации — мало HP у обоих: могут отойти, могут допушить»)
+      // размен с ним сейчас не проигрышный (та же оценка, что повторный пик в бою — 470 duelOdds) — тоже преимущество
+      || !!(function(){ var eo = C.id ? teamBot(C.id) : null, o = eo ? duelOdds(b, eo, C.x, C.y) : null; return o && o.ok; })();                         // (дуэли 06.11) ранил его больше, чем получил, — добить
+    if(!adv && !C.own) adv = !!nadeAskFlash(b, look, "флешу под пик "+b.id+" ("+calloutName(look.x, look.y)+")");
+    if(!adv) swing = false;
+  }
   if(swing && bomb && bomb.state === "carried" && bomb.carrier === b && aliveCount(b.team) > 1) swing = false;
   // (v450) носитель в выходе не встаёт «держать контакт»: идёт за своими на точку планта (взгляд — на контакт, задача — прежняя)
   if(tExec && bomb.state === "carried" && bomb.carrier === b && aliveCount(b.team) > 1){ b._contact = {x:C.x, y:C.y, id:C.id, until: tick + CONTACT_HOLD*TICK_HZ, lock:false}; b._contactT = tick; return; }
@@ -203,14 +242,43 @@ function ctDelayNade(b){
   b._delayT = tick;
   voiceLog("CT", "dly"+b.id+Math.round(tick/64), b.id, ({molly:"молотов", smoke:"смок", he:"HE", flash:"флешка"})[type]+" — "+t.why);
 }
+// ======================= (v518a, пак владельца 09.11, п.6) РЕАКЦИЯ НА УРОН — одно место для любого состояния =======================
+// Владелец (А-28): «игрок стоял на виду, получил урон, но вместо того, чтобы уйти за укрытие или кинуть гранату, просто стоял, ему кинули HE,
+// и он умер»; «в постпланте … то же, только в другом состоянии». Было: «ранен» ставили только пули, а читали его три частных правила со своими
+// условиями (откат T — только setup до планта, откат CT — только впереди сайтов, «засветился» — только на посту и если сам видел врага).
+// Теперь: ранили (пуля, HE; огонь — выходит своим ходом, 540), а стрелка не видит и не в перестрелке (иначе это бой — 470) — уходит из-под
+// линии, откуда прилетело (то, что знает живой игрок: откуда выстрел / где разорвалось), на ближайшее место своего этажа, откуда той точки не
+// видно, ≤ HURT_R. Это отклонение с возвратом (detourOk / detourStart, 110): главная задача потом ставит свою точку снова (уже от нового места)
+// — кроме «ставит / дефузит / бомба» (contactCritical, уровень 11). Взгляд — туда, откуда прилетело (look поста).
+var HURT_R = 220, HURT_REACT = 32;   // px, тики (0,5 с — реакция) — проектные числа
+function hurtReactTick(b){
+  if(!b.alive || !b._hurtT || b._hurtDone === b._hurtT) return;
+  b._hurtDone = b._hurtT;
+  if(tick - b._hurtT > HURT_REACT || b._sawEnemy || b._fc || b._hurtSrc === "молотов") return;
+  var F = b._hurtFrom; if(!F || contactCritical(b)) return;
+  if(taskAlive(b) && b._task.lv >= 11) return;
+  var fz = F.z != null ? F.z : null;
+  var cand = pickSpots("hurt"+Math.round(b.x/30)+","+Math.round(b.y/30)+"|"+Math.round(F.x/60)+","+Math.round(F.y/60), {x:b.x, y:b.y}, 6, {rMax:HURT_R, minGap:30, hideFrom:[F]})
+    .filter(function(q){ var a = b.z == null ? null : navAtLevel(q.x, q.y, b.z); if(b.z != null && !a) return false;
+      return !spotTaken(b, q) && !hasLOS(q.x, q.y, F.x, F.y, a ? a.z : b.z, fz); })
+    .sort(function(p, q){ return Math.hypot(p.x-b.x, p.y-b.y) - Math.hypot(q.x-b.x, q.y-b.y); });
+  var sp = cand[0]; if(!sp) return;
+  var sec = pathLenTo(b, sp.x, sp.y)/SPEED;
+  if(sec > DETOUR_MAX.hurt || (!taskCanSet(b, "repos:hurt") && !detourOk(b, "hurt", sec))) return;
+  detourStart(b, "hurt", "repos:hurt", sec + 1.5);
+  if(!setPost(b, sp, {x:F.x, y:F.y}, true, "repos:hurt")){ b._detour = null; return; }
+  if(b.state === "hold") leaveHold(b);
+  b._reposUntil = 0; b._probeLock = 0;
+  logEvent(b.id+": ранен ("+b._hurtSrc+") — ухожу из-под линии "+calloutName(F.x, F.y)+" за укрытие");
+}
 function teamBrains(){
   if(roundState !== "live" || !teamTac.T) return;
   bombTick();
   if(roundState !== "live") return; // дефуз мог только что закончить раунд
   routeTick();
-  bots.forEach(function(b){ contactTick(b); });   // (v367) реакция на контакт — до мозгов, их посты её не перебивают
+  bots.forEach(function(b){ contactTick(b); hurtReactTick(b); });   // (v367) реакция на контакт — до мозгов, их посты её не перебивают; (v518a) и на урон
   bots.forEach(function(b){ ctDelayNade(b); });   // (v419) задержать гранатой — после реакции на контакт (знает, держит ли угол)
-  SPOT_TEAM = "T"; tBrain(); SPOT_TEAM = "CT"; ctBrain(); SPOT_TEAM = null; endgameBrain(); lineupTick(); smokeEdgeTick(); weaponPickupTick(); itemPickupTick(); lkpTick();
+  SPOT_TEAM = "T"; tBrain(); SPOT_TEAM = "CT"; ctBrain(); SPOT_TEAM = null; endgameBrain(); lineupTick(); smokeEdgeTick(); smokeLineTick(); fireSmokeTick(); weaponPickupTick(); itemPickupTick(); lkpTick();
   if(BAL.soundMore) bots.forEach(function(b){ if(b.alive && b._heardReload) reloadPeek(b); });
   if(BAL.assistPeek && tick % 4 === 0) bots.forEach(function(b){ if(b.alive) assistPeek(b); });
   if(BAL.lowHpBack && tick % 8 === 2) bots.forEach(function(b){ if(b.alive) lowHpBack(b); });

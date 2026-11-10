@@ -72,6 +72,10 @@ def main():
     for j in req.get('jobs', []):
         sim = os.path.join(sims, j['label'] + '.html')
         build(j['ref'], j.get('map', 'ancient'), sim); jobargs.append('--job=%s,%s' % (j['label'], sim))
+        # (05.11) "snaps": true — писать снимки раундов (база для переигровки); "replay": {"from": <метка базы>, "rounds": "eco" | "all" |
+        # "ct:eco" | "tac:rush" | "3+7+12"} — играть только выбранные раунды со снимков базы (engine/walk_run.py)
+        if j.get('snaps'): jobargs.append('--snaps=%s' % j['label'])
+        if j.get('replay'): jobargs.append('--replay=%s:%s:%s' % (j['label'], j['replay']['from'], j['replay'].get('rounds', 'all')))
         m = ','.join(str(x) for x in j.get('matches', [3, 7, 11, 13, 17, 19, 23, 29]))
         assert mset in (None, m), 'у всех заданий — одни и те же матчи'; mset = m
     if jobargs: sh([PY, os.path.join(HERE, 'engine', 'walk_run.py')] + jobargs + ['--matches=' + mset, '--par=%d' % par], cwd=ROOT)

@@ -36,6 +36,7 @@ function warmEnd(){
   var n = WARM.n, snap = WARM.snap; WARM = {on:false};
   var sk = document.getElementById("btnWarmSkip"); if(sk) sk.style.display = "none";
   freshMatch(n); if(snap && typeof mkRestore === "function") mkRestore(snap);
+  if(typeof MK !== "undefined" && MK){ MK.cps = []; MK.lastCpTick = -1; }   // (v521) снимки для отметок — только из матча, не из разминки
   killfeed = []; renderFeed(); voiceLines = []; if(typeof renderVoice === "function") renderVoice(); paused = false;
 }
 function warmTick(dt){

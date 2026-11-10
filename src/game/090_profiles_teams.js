@@ -50,6 +50,16 @@ function seatPlayers(){
   ["T","CT"].forEach(function(s){ TEAM_NAME[s] = LINEUP[SIDE_TEAM[s]].name; TEAM_LOGO[s] = LINEUP[SIDE_TEAM[s]].logo; });
 }
 seatPlayers();
+// (v519, пак 09.11 п.9; Р-19: «AWP отдают не снайперу, а мидеру — нужно отдавать снайперу команды») снайпер — роль игрока, а не места: у CT в ролях
+// снайпера нет (роли CT — места расстановки и пересчитываются каждый раунд), поэтому снайпер — тот, кто за T этой карты играет «awp» (tactics.playerRoles,
+// по демкам карты: на Mirage — sh1ro, m0NESY); данных нет — у T роль «awp», у CT — второй в составе (как было)
+function isSniper(b){
+  if(!b) return false;
+  var PRr = MAP.tactics && MAP.tactics.playerRoles, r = PRr && PRr[NICKS[b.id]];
+  if(r && r.T) return r.T === "awp";
+  if(b.team === "T") return b.tRole === "awp";
+  var mates = bots.filter(function(o){ return o.team === b.team; }); return mates[1] === b;
+}
 function prof(b, k, def){ return b && b.prof && b.prof[k] != null ? b.prof[k] : (def == null ? 0.5 : def); }
 
 function centroidOf(pts){ var cx=0, cy=0; pts.forEach(function(p){ cx+=p.x; cy+=p.y; }); return {x:cx/pts.length, y:cy/pts.length}; }
