@@ -201,7 +201,7 @@ function stepTick(){
     // в пределах ~25px, иногда замирает. Это настоящее движение (с коллизией),
     // не только анимация. Как только видит врага — сразу стоп (контр-страф).
     var idleHold = (bot.atPost || (bot.holding && !bot._sawEnemy)) && !bot._sawEnemy && !bot.planting && !bot.defusing &&
-                   !(bot.post && /^(gather|retake|defuse|save|stopplant|antidefuse|lineup|pickup)/.test(bot.post.tag)) &&
+                   !(bot.post && taskProp(bot.post.tag, "holdStrafeSkip")) &&
                    tick >= (bot.throwUntil||0) && !burn && !(bot.fakeHoldUntil && tick < bot.fakeHoldUntil) && !bot._fc;
     // (v420, отметка владельца 25.10: Mirage м1 р1 62 с, T4 и CT3 «дергается») в перестрелке (_fc) двигает только цикл боя (470):
     // переминание вокруг старой точки тянуло бота назад от укрытия (0,2–0,36 ед. за тик), цикл снова шагал к укрытию (1,5) —

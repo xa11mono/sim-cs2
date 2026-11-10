@@ -98,14 +98,14 @@ function pieAllowed(b){
   // пробы, лёрк, ранние пики CT, CT без колла. Ротации, выход T, ретейк —
   // бегом и с командой, как у про (там решает скорость и гранаты)
   var tag = (b.post && b.post.tag) || "", tt = teamTac.T, ct = teamTac.CT;
-  if(/^(endhunt|hunt|probe|earlyPeek|flank|lurk|midcover|clear|roam|shift|clutch)/.test(tag)) return true;
+  if(taskProp(tag, "pieCareful")) return true;
   if(bomb && bomb.state === "planted") return false;
   if(b.team === "T") return !!(tt && tt.phase === "setup");
   return !(ct && (ct.call || (ct.rot && ct.rot[b.id]))) && !/^(rotate|gather|stack|anchor2)/.test(tag);
 }
 function pieBusy(b){
   return !b.alive || !pieAllowed(b) || b.state !== "patrol" || b._sawEnemy || b.planting || b.defusing || b.holding || b.atPost ||
-    (b.post && /^(defuse|plantspot|flee|save|antidefuse|stopplant|retake|tradeR|repos|fetch|pickup|lineup)/.test(b.post.tag||"")) ||
+    (b.post && taskProp(b.post.tag, "pieBusy")) ||
     (bomb && bomb.state === "carried" && bomb.carrier === b && (ROUND_TIME_SEC - (simTime - roundStartTime)) < 30);
 }
 function prePeekTick(b){

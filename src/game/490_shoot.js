@@ -365,7 +365,7 @@ function duelContext(bot, enemiesSeen, alliesNear){
   else if(bot.team === "T" && tt && tt.phase && tt.phase !== "setup") o.forced = true;
   else if(my === 1) o.forced = true;
   else if(secLeft < 20) o.forced = true;
-  else if(bot.post && /^(retake|defuse|plantspot|antidefuse|endhunt|tradeR)/.test(bot.post.tag || "")) o.forced = true;
+  else if(bot.post && taskProp(bot.post.tag, "tradeUrgent")) o.forced = true;
   var e = bot._nearestEnemyBot;
   if(e){
     var HT = teamIntel[bot.team] && teamIntel[bot.team].hurt, hk = HT && HT[e.id];

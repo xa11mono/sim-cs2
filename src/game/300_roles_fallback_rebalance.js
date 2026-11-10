@@ -32,7 +32,7 @@ function tFallbackTick(){
     if(!b.alive || b.team !== "T" || b._sawEnemy || b.planting || b._fbRound === roundNum) return;
     if(bomb && bomb.state === "carried" && bomb.carrier === b && tt.phase !== "setup") return;
     if(!taskCanSet(b, "repos:fallback")) return;   // (v378) идёт по задаче не ниже отката — арбитр места
-    if(b.post && /^(exec|stage)/.test(b.post.tag||"")) return;   // на стадии / выходе по плану — не откатывается (решение плана, не важность)
+    if(b.post && taskProp(b.post.tag, "planStage")) return;   // на стадии / выходе по плану — не откатывается (решение плана, не важность)
     var zb = bzOf(b.x, b.y); if(zb < 0) return;
     var L = beliefLast.T || {}, ids = 0, cx = 0, cy = 0;
     for(var eid in L){ var lo = L[eid]; if(tick - lo.tick > FB.window*TICK_HZ) continue; var eb = bots.filter(function(o){ return o.id === eid; })[0]; if(!eb || !eb.alive) continue;
@@ -106,7 +106,7 @@ function siteRebalanceTick(){
   });
   ["A","B"].forEach(function(k){
     var site = SITES[k];
-    var defs = cts.filter(function(o){ return o.atPost && o.post && !o._sawEnemy && !o.nadeTask && Math.hypot(o.post.x-site.x, o.post.y-site.y) < REBAL.R && /^(anchor|rotator|set:|stack|cts:|rebal|rotateHold|sitehold)/.test(o.post.tag); });
+    var defs = cts.filter(function(o){ return o.atPost && o.post && !o._sawEnemy && !o.nadeTask && Math.hypot(o.post.x-site.x, o.post.y-site.y) < REBAL.R && taskProp(o.post.tag, "siteDefender"); });
     if(!defs.length) return;
     var T = defs.map(function(o){ return rebalLookOf(o); });
     defs.forEach(function(o, i){

@@ -144,6 +144,38 @@ function wallBoxes(){
   return _WB;
 }
 var ENTRY_WAIT = 128;   // (v375) 2 с: напарник на размен у входа на сайт (медиана про) — число, т.к. TICK_HZ объявлен ниже
+// ======================= (v527, «одно решение — одно место», №1) СВОЙСТВА ЗАДАЧ — одно место списков «какие это задачи» =======================
+// Раньше каждая механика держала у себя свой список имён чужих задач (регулярка по post.tag): 22 списка в 14 файлах, друг с другом не
+// сверенные. Теперь списки — здесь, под именем свойства; механика спрашивает taskProp(tag, "свойство"). Перенесены БЕЗ изменений (отпечаток
+// бит в бит). ПРАВИЛО: новая задача — пройти по этой таблице и вписать её в нужные свойства; новый список имён в коде механики — нельзя.
+// Проверка «это моя собственная задача» по одному имени (post.tag === "lineup" в коде лайнапа) — можно. Остался на месте один список —
+// /^(earlyPeek|probe)/ в 365_nade_plan (файл входит в отпечаток предрасчёта гранат: перенести вместе со следующим пересчётом nadeguess).
+// Следующий шаг (меняет игру): свести похожие свойства (holdsGround / holdsSite / siteDefender / reangleHolder; pieBusy / dangerWalkSkip /
+// shiftHoldBusy / holdStrafeSkip / blindCoverBusy) и перенести в строки TASK_LEVEL
+var TASK_PROP = {
+  rushFollowable:   /^(rushFollow|utilWait|utilHold|route:|plantspot|bombWait)/,   // раш: задачи, с которых бота можно позвать следом за энтри (170)
+  pieCareful:       /^(endhunt|hunt|probe|earlyPeek|flank|lurk|midcover|clear|roam|shift|clutch)/,   // срез угла: задачи, на которых угол режут (250)
+  pieBusy:          /^(defuse|plantspot|flee|save|antidefuse|stopplant|retake|tradeR|repos|fetch|pickup|lineup)/,   // срез угла: задачи, на которых углы не режут (некогда) (250)
+  lookAlongRetreat: /^(repos|flee|save)/,   // взгляд после планта: отход — исключение из «смотрит, куда идёт» (270)
+  planStage:        /^(exec|stage)/,   // откат T: на стадии / выходе по плану не откатывается (300)
+  siteDefender:     /^(anchor|rotator|set:|stack|cts:|rebal|rotateHold|sitehold)/,   // ребаланс: кто считается защитником сайта (300)
+  reangleHolder:    /^(anchor|stack|set:)/,   // CT: кто меняет угол, слыша врагов вне вида (340)
+  teamMove:         /^(rotate|gather|retake)/,   // контакт: идёт по задаче команды — на одиночного врага не отвлекается (350)
+  fireCommit:       /^(plantspot|defuse|antidefuse|stopplant|retake|gather|flee|fetch)/,   // огонь: задачи бомбы, ради которых идут через огонь (370)
+  nadeFight:        /^(contact:swing|tradeR|retakeEntry|retake|clear)/,   // гранаты себе: идёт в бой (420)
+  blindCoverBusy:   /^(defuse|plantspot|lineup|flee|save|tradeR)/,   // ослеплён: кого из своих не зовут прикрыть (460)
+  holdsGround:      /^(anchor|stack|set:|cts:|clutch|midcover)/,   // мало HP: CT держит позицию (470)
+  dangerWalkSkip:   /^(tradeR|flee|fetch|stopplant|antidefuse|repos|plantspot|lineup|defuse|smokeWait|pickup|retake|save|trade)/,   // опасное место: задачи, на которых не идут шагом (470)
+  holdsSite:        /^(anchor|stack|set:|cts:|clutch|retake)/,   // дабл-пик: держит сайт — не бросает (480)
+  tradeUrgent:      /^(retake|defuse|plantspot|antidefuse|endhunt|tradeR)/,   // размен: задачи, где «есть кому разменять» не проверяется (490)
+  shiftHoldBusy:    /^(save|repos|defuse|plantspot|lineup|pickup|endhunt|retake|gather|stopplant|antidefuse)/,   // смена угла на посту: задачи, которые не трогают (500)
+  cautiousEnd:      /^(retake|rotate|defuse)$/,   // шаг: последние метры ретейка / ротации / дефуза (535)
+  bombSpot:         /^(defuse|plantspot)/,   // бег к бою: задача у бомбы — исключение (535)
+  retakeMove:       /^(gather|retake|defuse|rotate)/,   // шаг на ретейке: проверка «успею ли шагом» (535)
+  holdStrafeSkip:   /^(gather|retake|defuse|save|stopplant|antidefuse|lineup|pickup)/,   // стрейф на посту: задачи, на которых не стрейфят (540)
+  exactSpot:        /^(plantspot|defuse|lineup|pickup|fetch|stopplant|antidefuse|ladder|smokeWait|route)/   // точное место: точку не сдвигают от своего (110) (110)
+};
+function taskProp(tag, prop){ return TASK_PROP[prop].test(String(tag == null ? "" : tag)); }
 // ======================= (v378, М126 этап 6) АРБИТР МЕСТА — одно место выбора задачи для позиции бота =======================
 // Раньше у каждой затеи (контакт, размен, подмена, эндгейм, подбор, ожидание у смока, лайнап, ребаланс, проба, перестановка,
 // маршрут) был свой «замок» со своим списком «кому можно меня перебить» — списки не сходились, механики перебивали друг друга
@@ -236,7 +268,7 @@ function detourStart(b, kind, tag, sec){
 // механика держит свою текущую задачу (пост не меняется — подтвердить, что затея ещё идёт)
 function postKeep(b){ if(b.post && b._task && b._task.tag === b.post.tag) b._task.t = tick; }
 var POST_DWELL = 96;   // (v375) 1,5 с — проектное число
-var POST_EXACT = /^(plantspot|defuse|lineup|pickup|fetch|stopplant|antidefuse|ladder|smokeWait|route)/;
+var POST_EXACT = TASK_PROP.exactSpot;   // (v527) список — в таблице свойств задач
 var POST_VIEW_R = 120, POST_VIEW = {k: null, m: {}};   // px — насколько можно сдвинуть пост ради обзора (проектное число)
 function postViewPoint(pt, look){
   var kk = matchNum+":"+roundNum; if(POST_VIEW.k !== kk){ POST_VIEW.k = kk; POST_VIEW.m = {}; }

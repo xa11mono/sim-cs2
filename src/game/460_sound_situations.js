@@ -178,7 +178,7 @@ function onBlind(b, threat){
   if(BAL.coverBlind){
     var mates = bots.filter(function(o){ return o !== b && o.alive && o.team === b.team && !o._sawEnemy && tick >= (o.blindUntil||0) && Math.hypot(o.x-b.x, o.y-b.y) < 260 && !o.planting && !o.defusing; });
     mates.forEach(function(o){ o.heardSound = {x:threat.x, y:threat.y, tick:tick, team:b.team === "CT" ? "T" : "CT", src:"?", kind:"call"}; o.lastIntel = {x:threat.x, y:threat.y, tick:tick, src:"call"}; });
-    var cov = mates.filter(function(o){ return o.hp > 50 && !(o.post && /^(defuse|plantspot|lineup|flee|save|tradeR)/.test(o.post.tag)); })
+    var cov = mates.filter(function(o){ return o.hp > 50 && !(o.post && taskProp(o.post.tag, "blindCoverBusy")); })
       .sort(function(a, c){ return Math.hypot(a.x-b.x, a.y-b.y) - Math.hypot(c.x-b.x, c.y-b.y); })[0];
     if(cov){
       // (v151) раньше точка бралась вплотную к ослеплённому — а он в это время

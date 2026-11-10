@@ -52,7 +52,7 @@ function flankAssist(b){
   var FL = b.post && b.post.tag === "repos:flank" && b._flankE ? teamBot(b._flankE) : null;
   var flStale = FL && FL.alive && tick - (b._flankT || 0) >= 32 && !hasLOS(b.post.x, b.post.y, FL.x, FL.y, b.z, FL.z);
   if(b.hp <= LOW_HP || (b._fcFlank && tick < b._fcFlank && !flStale)) return false;
-  if(b.team === "CT" && b.post && /^(anchor|stack|set:|cts:|clutch|retake)/.test(b.post.tag)) return false;   // держит сайт — не бросает
+  if(b.team === "CT" && b.post && taskProp(b.post.tag, "holdsSite")) return false;   // держит сайт — не бросает
   if(b.team === "T" && b.tRole === "lurker") return false;
   var mate = null, E = null;
   bots.forEach(function(m){

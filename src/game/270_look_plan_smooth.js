@@ -454,7 +454,7 @@ function lookAngleCand(b, moving){
   if(!b._lkPt) return null;
   // (v259, В2) после планта на бегу не идёт спиной вперёд ради угла из дележа (догадка, не свежая угроза): смотрит, куда идёт.
   // Отход (repos, flee, save) — исключение. После планта у ботов спиной было T 20 % / CT 15 %, у про 10 / 6,5 %
-  if(moving && bomb && bomb.state === "planted" && !(b.post && /^(repos|flee|save)/.test(b.post.tag||"")) && !(b.lastIntel && tick - b.lastIntel.tick < CAUTION_TICKS) &&
+  if(moving && bomb && bomb.state === "planted" && !(b.post && taskProp(b.post.tag, "lookAlongRetreat")) && !(b.lastIntel && tick - b.lastIntel.tick < CAUTION_TICKS) &&
      _angOff(Math.atan2(b._lkPt.y-b.y, b._lkPt.x-b.x), b.heading) > 1.9) return null;
   return {lvl: LOOK_LEVEL.angle, kind: "look", pt: (b._lkPt.vis ? b._lkPt : cornerLook(b, b._lkPt)) || b._lkPt, sc: 1};
 }

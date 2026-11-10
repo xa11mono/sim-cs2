@@ -38,7 +38,7 @@ function moveWalkWhy(bot){
   // клатч T с бомбой: без инфы — на шифте (не палится бегом); бежит,
   // только если время поджимает или все CT известны и далеко
   if(BAL.soloSlow && bot.team === "T" && bomb && bomb.state === "carried" && bomb.carrier === bot && aliveCount("T") === 1 && soloMayWalk(bot)) return "клатч с бомбой";
-  if(BAL.cautious && bot.post && bot.state === "patrol" && /^(retake|rotate|defuse)$/.test(bot.post.tag) &&
+  if(BAL.cautious && bot.post && bot.state === "patrol" && taskProp(bot.post.tag, "cautiousEnd") &&
      Math.hypot(bot.post.x-bot.baseX, bot.post.y-bot.baseY) < 350) return "ретейк / ротация / дефуз — последние метры";
   // лёркер ходит тихо всегда, кроме самого начала (до своей точки на сетапе)
   if(bot.tRole === "lurker" && bot.post && bot.state === "patrol" && /^lurk/.test(bot.post.tag) && bot.post.tag !== "lurkStage"+(teamTac.T && teamTac.T.site==="A"?"B":"A")) return "лёркер";
@@ -55,10 +55,10 @@ function moveRunWhy(bot){
   if(aliveCount(bot.team === "CT" ? "T" : "CT") === 0) return "врагов не осталось";
   // (v299, И43, владелец 14.10: T0 стрелялся на A, лёркер T4 шёл к бою на шифте) тиммейт рядом уже в перестрелке (видит врага ≥ 0,3 с,
   // как у дабл-пика, или стрелял / по нему стреляли за 2 с) в 900 px от меня, а моя точка — не дальше 600 px от него: иду к бою — бегом, тишина уже ничего не даёт
-  if(bot.post && !/^(defuse|plantspot)/.test(bot.post.tag) && bots.some(function(m){ return m !== bot && m.alive && m.team === bot.team &&
+  if(bot.post && !taskProp(bot.post.tag, "bombSpot") && bots.some(function(m){ return m !== bot && m.alive && m.team === bot.team &&
        ((m._sawEnemy && (m.contactStreak||0) >= 20) || tick - (m.lastShotTick||-1e9) < 2*TICK_HZ || tick - (m._shotAtT||-1e9) < 2*TICK_HZ) && Math.hypot(m.x-bot.baseX, m.y-bot.baseY) < 900 && Math.hypot(m.x-bot.post.x, m.y-bot.post.y) < 600; })) return "свой рядом уже в бою";
   // (v257, К3) ретейк: шагом — только если шагом успевает дойти до бомбы и дефузнуть (та же мерка, что у ниндзя-дефуза)
-  if(bot.team === "CT" && bomb && bomb.state === "planted" && bot.post && /^(gather|retake|defuse|rotate)/.test(bot.post.tag)){
+  if(bot.team === "CT" && bomb && bomb.state === "planted" && bot.post && taskProp(bot.post.tag, "retakeMove")){
     var dB = Math.hypot(bomb.x-bot.baseX, bomb.y-bot.baseY);
     if(bombTimeLeftTicks()/TICK_HZ <= dB/(SPEED*WALK_SPEED_FRAC) + (bot.kit ? 5 : 10) + 1.5) return "шагом не успеть к дефузу";
   }

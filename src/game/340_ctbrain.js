@@ -431,7 +431,7 @@ function ctBrain(){
     // ---- минус мидер: мид не бросают пустым ----
     if(BAL.midCover && !ct.call && cts.length >= 3 && midCoverPost(b, cts)) return;
     // ---- слышит нескольких, но со своей точки их не видно — выйти туда, откуда видно ----
-    if(BAL.reangle && b.atPost && !b._sawEnemy && tick >= (b._reangleNext||0) && /^(anchor|stack|set:)/.test(b.post.tag)){
+    if(BAL.reangle && b.atPost && !b._sawEnemy && tick >= (b._reangleNext||0) && taskProp(b.post.tag, "reangleHolder")){
       var sg2 = teamIntel.CT.sig, srcs = {}, sx = 0, sy = 0, sn = 0;
       for(var q2=sg2.length-1; q2>=0; q2--){
         var g2 = sg2[q2]; if(tick - g2.tick > 5*TICK_HZ) break;

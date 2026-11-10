@@ -24,7 +24,7 @@ function nadeUseTick(b){
   // маршрута у своего спавна) в бой — только туда, где враг может быть: выход на контакт/размен/ретейк/зачистка или выход T к
   // самому сайту (≤ 600 от него); точки маршрута — не бой; и рядом с точкой нет своих (mateNear)
   var siteT = tt && SITES[tt.site];
-  var entering = b.post && toPost > 120 && toPost < 800 && !/^route/.test(tag) && (/^(contact:swing|tradeR|retakeEntry|retake|clear)/.test(tag) ||
+  var entering = b.post && toPost > 120 && toPost < 800 && !/^route/.test(tag) && (taskProp(tag, "nadeFight") ||
     (b.team === "T" && tt && tt.phase === "execute" && b.tRole !== "lurker" && siteT && Math.hypot(b.post.x-siteT.x, b.post.y-siteT.y) < 600));
   if(entering){
     var area = {x:b.post.x, y:b.post.y}, ents = threatEntrances(b.team, area, 260).slice(0, 3).map(function(E){ return E.pt; });

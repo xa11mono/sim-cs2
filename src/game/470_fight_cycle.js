@@ -383,7 +383,7 @@ function lowHpBack(b){
   var lostNear = !low && ((teamIntel[b.team] && teamIntel[b.team].sig) || []).some(function(sg){ return sg.type === "died" && sg.id !== b.id && tick - sg.tick < 8*TICK_HZ && Math.hypot(sg.x-b.x, sg.y-b.y) < 900; });
   if(!low && !lostNear) return;
   if(bomb && bomb.state === "planted") return; // ретейк/пост-плант — бомба важнее
-  var defending = b.team === "CT" && b.post && /^(anchor|stack|set:|cts:|clutch|midcover)/.test(b.post.tag);
+  var defending = b.team === "CT" && b.post && taskProp(b.post.tag, "holdsGround");
   if(bomb && bomb.state === "carried" && bomb.carrier === b) return;
   if(!taskCanSet(b, "repos:lowhp")) return;   // (v378) идёт по задаче не ниже — арбитр места
   b._lowHpNext = tick + TICK_HZ;
@@ -468,7 +468,7 @@ function STEP_HEAR_R(){ return SOUND_RADIUS_RUN * (BAL.stepHearMul || 1); }
 function dangerWalk(b){
   if(!b.post || b.state !== "patrol" || !BZ.ids.length) return false;
   var tag = b.post.tag || "";
-  if(/^(tradeR|flee|fetch|stopplant|antidefuse|repos|plantspot|lineup|defuse|smokeWait|pickup|retake|save|trade)/.test(tag)) return false;
+  if(taskProp(tag, "dangerWalkSkip")) return false;
   var secLeft = ROUND_TIME_SEC - (simTime - roundStartTime), tt = teamTac.T, ct = teamTac.CT;
   if(b.team === "T"){
     if(secLeft < 30 && bomb.state !== "planted") return false;

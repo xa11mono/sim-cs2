@@ -693,7 +693,7 @@ function tBrain(){
     // (v350, владелец: «все останавливаются далеко») раш: кто без задачи (поддержка, IGL; AWP без лайнапа) — идёт за энтри и держится
     // позади него (60–110 ед., проектные числа), а не стоит на месте сбора; энтри ждёт гранаты — ждут за ним
     if(rush){ var eB = ts.filter(function(o){ return o.tRole === "entry" && o.alive; })[0];
-      if(eB) ts.forEach(function(o){ if(o === eB || !o.alive || (o === carrier && Math.hypot(o.x-site.x, o.y-site.y) < 450) || o.tRole === "lurker" || o.nadeTask || o._sawEnemy || (o.post && !/^(rushFollow|utilWait|utilHold|route:|plantspot|bombWait)/.test(o.post.tag))) return;   // (v368) носитель — тоже за энтри, в группе, пока не у сайта   // (v352) и пост маршрута — иначе вставал на старой точке маршрута
+      if(eB) ts.forEach(function(o){ if(o === eB || !o.alive || (o === carrier && Math.hypot(o.x-site.x, o.y-site.y) < 450) || o.tRole === "lurker" || o.nadeTask || o._sawEnemy || (o.post && !taskProp(o.post.tag, "rushFollowable"))) return;   // (v368) носитель — тоже за энтри, в группе, пока не у сайта   // (v352) и пост маршрута — иначе вставал на старой точке маршрута
         var dx = o.x-eB.x, dy = o.y-eB.y, dl = Math.hypot(dx, dy) || 1, k = Math.min(110, Math.max(60, dl));
         var fp = walk({x: eB.x + dx/dl*k, y: eB.y + dy/dl*k});
         // (v353, владелец: «тнир бежит и умирает, а донк ждёт») энтри ждёт — остальные стоят за ним (маршрут раша на паузе)

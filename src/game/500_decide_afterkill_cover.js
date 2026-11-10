@@ -308,7 +308,7 @@ function afterKillReact(sh, tg, w){
 // уйти с засвеченного угла чуть глубже: скрыто от точки контакта и известных
 // врагов, но видно тот же вход; до конца раунда это его новая точка
 function shiftHold(sh, vp, exceptId, why){
-  if(!(sh.atPost && sh.post && sh.post.hold) || /^(save|repos|defuse|plantspot|lineup|pickup|endhunt|retake|gather|stopplant|antidefuse)/.test(sh.post.tag)) return false;
+  if(!(sh.atPost && sh.post && sh.post.hold) || taskProp(sh.post.tag, "shiftHoldBusy")) return false;
   if(sh._hs && sh._hs.round === roundNum && tick - sh._hs.t < 8*TICK_HZ) return false;
   var here = {x:sh.x, y:sh.y}, knownE = [], LKs = beliefLast[sh.team] || {};
   for(var eH in LKs){ var qH = LKs[eH]; if(eH !== exceptId && tick - qH.tick < 10*TICK_HZ && Math.hypot(qH.x-sh.x, qH.y-sh.y) < 1400) knownE.push({x:qH.x, y:qH.y}); }
