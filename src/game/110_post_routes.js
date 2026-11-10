@@ -70,7 +70,7 @@ function routeTick(){
 }
 // (v162) ПРО-ТОЧКИ: [x, y, раундов, угол1, доля1, угол2?, доля2?] по слоям "сторона|pre/post"
 var PRO_SPOTS = MAP.pro.spots;
-var PSN = {R:120, occ:45, maxOff:1.05};
+var PSN = {R:120, occ:45, maxOff:1.05, open:60};   // open — (v530) px открытого вида по направлению угла, проектное число (половина R)
 var PSN_TAGS = /^(rebal|anchor|rotator|mid$|set:|clutch|stage|lurkStage|lurk$|awpline|postplant|repos:fallback|repos:back|sitehold|rotateHold|midcover|cts:|stack)/;
 function proSnap(b, pt, look, tag){
   if(!PSN_TAGS.test(tag || "")) return null;
@@ -80,8 +80,14 @@ function proSnap(b, pt, look, tag){
   b._psK = key; b._psR = roundNum; b._psM = matchNum; b._psV = null;
   var L = PRO_SPOTS[layer]; if(!L) return null;
   var best = null, bs = -1e9;
+  // (v530, отметки владельца 10.11 «игрок 5 не доходит до точки и стоит за стенкой», «якоря позиций бесполезны — с них ничего не видно»: точка про
+  // у Window (822,979) — стена в 28 px по направлению своего угла, у ротатора на CT — в 22 px; рядом есть точки про, откуда тот же угол открыт
+  // на 370–720 px) игрок встаёт туда, откуда видно то, что он держит: сначала — только точки, откуда угол виден (линия до точки взгляда или
+  // открыто по её направлению не меньше PSN.open); таких нет — как раньше, любые
+  for(var pass = 0; pass < 2 && !best; pass++)
   for(var i=0;i<L.length;i++){
     var s = L[i], d = Math.hypot(s[0]-pt.x, s[1]-pt.y); if(d > PSN.R) continue;
+    if(pass === 0 && look && !hasLOS(s[0], s[1], look.x, look.y)){ var la = Math.atan2(look.y-s[1], look.x-s[0]), rc = rayClipWalls(s[0], s[1], s[0]+Math.cos(la)*PSN.open, s[1]+Math.sin(la)*PSN.open); if(rc.wall) continue; }
     if(!hasLOS(s[0], s[1], pt.x, pt.y) || insideSolidWall(s[0], s[1])) continue;
     if(bots.some(function(o){ return o !== b && o.alive && o.team === b.team && o.post && Math.hypot(o.post.x-s[0], o.post.y-s[1]) < PSN.occ; })) continue;
     var modes = [[s[3], s[4]]]; if(s.length > 5) modes.push([s[5], s[6]]);
