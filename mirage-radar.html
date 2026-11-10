@@ -25586,7 +25586,7 @@ function navLinked(a, b){ var E = zoneGraph[a.id] || []; for(var i=0;i<E.length;
 // время подъёма (LADDER_SPEED ед. игры/с — проектное число, в CS2 по лестнице ~ шагом), без проверок стен и пола, в конце —
 // участок другого конца и путь заново. Раньше этаж у лестницы угадывался по полу под ногами (оба этажа рядом) — бота
 // перекидывало между этажами и он «трясся»
-var CLIMB_FLOOR_TOL = 24;   // ед. игры — проектное число (как допуск пола участка в проверке набора)
+var CLIMB_FLOOR_TOL = 24, CLIMB_MID_R = 50;   // CLIMB_MID_R — px, поиск поверхности промежуточного ящика у точки из демок (v541, проектное число)   // ед. игры — проектное число (как допуск пола участка в проверке набора)
 var LADDERS = null, LADDER_SPEED = 150, LADDER_NEAR = 40, LADDER_SEEK = 260, LADDER_FAR = 150;
 function laddersBuild(){
   LADDERS = [];
@@ -25605,17 +25605,27 @@ function laddersBuild(){
     if(LADDERS.some(function(L){ return L.up && Math.hypot(L.lo.x-c.lo.x, L.lo.y-c.lo.y) < 15 && Math.hypot(L.hi.x-c.hi.x, L.hi.y-c.hi.y) < 15 && Math.abs(L.hi.z-c.hi.z) < 20; })) return;
     // (v375, отметка владельца: CT0 «застряли, не следуют расстановке» — лез на ящик и падал по кругу) точка верха из демок бывает
     // на краю участка, не внутри: бот «залезал» и тут же падал на пол под ним. Концы подъёма — внутрь своих участков
+    // (v541, отметка владельца 10.11 «он всё равно залазит вот так»: точка верха из демок — где игрок первый раз на высоте верха, это ещё
+    // прыжок рядом с ящиком (118 из 123 подъёмов Mirage — без пола под точкой); раньше её тянуло к центру участка верха — бот «плыл» 150 ед.
+    // по воздуху к середине ящика) конец подъёма — ближайшая к точке из демок точка своего участка, у самого края (navClampInto)
     var inside = function(e){ var a = byId[e.area]; if(!a || pointInPoly(e.x, e.y, a.points)) return {x:e.x, y:e.y, z:e.z, area:e.area};
-      var c = cen(a), d = Math.hypot(c.x-e.x, c.y-e.y), k = d > 1 ? Math.min(1, 12/d) : 0, q = {x:e.x+(c.x-e.x)*k, y:e.y+(c.y-e.y)*k};
-      for(var i = 0; i < 6 && !pointInPoly(q.x, q.y, a.points); i++){ k = Math.min(1, k*2); q = {x:e.x+(c.x-e.x)*k, y:e.y+(c.y-e.y)*k}; }
-      return {x:q.x, y:q.y, z:e.z, area:e.area}; };
+      var q = navClampInto(a, e.x, e.y); return {x:q.x, y:q.y, z:e.z, area:e.area}; };
     // (v405, отметка владельца 22.10, Mirage у Palace Entry: «там забор так не перепрыгнуть») верх подъёма, где в 3D-геометрии нет пола
     // на его высоте (± CLIMB_FLOOR_TOL) — узкий верх стены, на котором стоит участок .nav, — не подъём: путь вёл через него на −42
     var hi = inside(c.hi), M3 = m3();
     if(M3 && !m3Floors(M3, hi.x, hi.y).some(function(z){ return Math.abs(z - hi.z) <= CLIMB_FLOOR_TOL; })) return;
     // (v533, владелец 10.11: «залезают на уступ 122 ед. напрямую, а должны через соседний ящик») подъём выше одного прыжка — через стоянку
     // на промежуточном ящике (c.mid, из демок): бот лезет низ → стоянка → верх, а не по прямой сквозь стену
-    LADDERS.push({lo:inside(c.lo), hi:hi, up:true, sec:c.sec, mid:c.mid ? {x:c.mid.x, y:c.mid.y, z:c.mid.z} : null});
+    // (v541) стоянка — на настоящей поверхности промежуточного ящика из 3D-геометрии (в радиусе CLIMB_MID_R от точки из демок, на её высоте,
+    // ближе всего к верху): точка из демок бывает в воздухе (13 из 15). Поверхности нет — подъёма нет
+    var mid = null;
+    if(c.mid){ if(!M3) return;
+      for(var dx = -CLIMB_MID_R; dx <= CLIMB_MID_R; dx += 2) for(var dy = -CLIMB_MID_R; dy <= CLIMB_MID_R; dy += 2){ if(Math.hypot(dx, dy) > CLIMB_MID_R) continue;
+        var mx = c.mid.x + dx, my = c.mid.y + dy;
+        m3Floors(M3, mx, my).forEach(function(f){ if(Math.abs(f - c.mid.z) > CLIMB_FLOOR_TOL || f < c.lo.z + 18 || f > c.hi.z - 18) return;
+          var g = Math.hypot(hi.x - mx, hi.y - my); if(!mid || g < mid.g) mid = {x: mx, y: my, z: f, g: g}; }); }
+      if(!mid) return; }
+    LADDERS.push({lo:inside(c.lo), hi:hi, up:true, sec:c.sec, mid:mid ? {x:mid.x, y:mid.y, z:mid.z} : null});
   });
 }
 // лестница, по которой бот с этажа z попадает на этаж zTo: конец на своём этаже в пределах r
@@ -34447,6 +34457,8 @@ function draw(){
       var P = b.path || [], i0 = b.pathIdx || 0;
       if(i0 < P.length){
         ctx.strokeStyle = "rgba("+col+",0.85)"; ctx.lineWidth = 1.6*s1; ctx.beginPath(); ctx.moveTo(b.baseX, b.baseY);
+        // (v541) идёт подъём — линия по самому подъёму (через промежуточный ящик), а не напрямую к следующей точке пути
+        var CL = b._climb; if(CL){ if(CL.mid && (tick - CL.t0)/CL.dur < 0.5) ctx.lineTo(CL.mid.x, CL.mid.y); ctx.lineTo(CL.to.x, CL.to.y); }
         for(var i = i0; i < P.length; i++) ctx.lineTo(P[i][0], P[i][1]);
         ctx.stroke();
         var pz = b.z;
@@ -35562,6 +35574,7 @@ var __SNAP = [
 ["JUMP_UP", function(){ return JUMP_UP; }, function(v){ try{ JUMP_UP = v; }catch(e){} }],
 ["NAV_ID", function(){ return NAV_ID; }, function(v){ try{ NAV_ID = v; }catch(e){} }],
 ["CLIMB_FLOOR_TOL", function(){ return CLIMB_FLOOR_TOL; }, function(v){ try{ CLIMB_FLOOR_TOL = v; }catch(e){} }],
+["CLIMB_MID_R", function(){ return CLIMB_MID_R; }, function(v){ try{ CLIMB_MID_R = v; }catch(e){} }],
 ["LADDER_SPEED", function(){ return LADDER_SPEED; }, function(v){ try{ LADDER_SPEED = v; }catch(e){} }],
 ["LADDER_NEAR", function(){ return LADDER_NEAR; }, function(v){ try{ LADDER_NEAR = v; }catch(e){} }],
 ["LADDER_SEEK", function(){ return LADDER_SEEK; }, function(v){ try{ LADDER_SEEK = v; }catch(e){} }],

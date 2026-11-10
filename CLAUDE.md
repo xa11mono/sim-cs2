@@ -53,9 +53,9 @@ v166 — в `00_PLAN.md`. Главный принцип и правила ниж
 **Сборка набора из исходников (v318):** `python3 tools/map_build.py <карта>` по рецепту `data/maps/<карта>/_build.json`
 (навмеш из `.nav`, стены, высоты, укрытия, зоны по подписям радара, всё из демок; bake-скрипты — с ключом `--map`, общий
 `tools/mapdir.py`). Карты: Ancient (заморожено всё, кроме высот/укрытий/прострелов), Mirage (`python3 src/mkpub.py --map mirage` → `mirage-radar.html`,
-страница на аккаунте владельца — https://claude.ai/artifact/MJyn1PwcYKgg7WEMyoYWcv (с 10.11 — v540; прежняя EBaRN7xYH1QXzC1iiTNZ4x с этого аккаунта не открывается); QzmQZEd5t9EdnhcXET9Agn — на другом аккаунте, обновлена до v457, 28.10), база правок — коллекция `map-mirage`). Проверка глазами — `tools/map_shot.js`.
+страница на аккаунте владельца — https://claude.ai/artifact/MJyn1PwcYKgg7WEMyoYWcv (с 10.11 — v541; прежняя EBaRN7xYH1QXzC1iiTNZ4x с этого аккаунта не открывается); QzmQZEd5t9EdnhcXET9Agn — на другом аккаунте, обновлена до v457, 28.10), база правок — коллекция `map-mirage`). Проверка глазами — `tools/map_shot.js`.
 Сборка: `python3 src/build.py [--map ancient]` → `sim.html` (склейка `src/game/*` с набором карты и тестовым входом для
-замеров). Публикуемая: `python3 src/mkpub.py [--map ancient]` → `ancient-radar.html` (страница на аккаунте владельца — https://claude.ai/artifact/FwpnXA7PSbsEyT5GXL7i5U (с 10.11 — v540; прежняя VcutdCmiqN164CLNYowQvP с этого аккаунта не открывается); 6nWEKBXyNAybDYzgPT1sH7 — на другом аккаунте, v370–v386, снова v457 28.10); там же база
+замеров). Публикуемая: `python3 src/mkpub.py [--map ancient]` → `ancient-radar.html` (страница на аккаунте владельца — https://claude.ai/artifact/FwpnXA7PSbsEyT5GXL7i5U (с 10.11 — v541; прежняя VcutdCmiqN164CLNYowQvP с этого аккаунта не открывается); 6nWEKBXyNAybDYzgPT1sH7 — на другом аккаунте, v370–v386, снова v457 28.10); там же база
 правок карты — коллекция `map`).
 **Исходник игры (v377) — модули `src/game/`**: склейка всех `src/game/*` по порядку номеров (`src/gamesrc.py`, одно место
 чтения) == прежний `game.html`; `src/game.html` больше нет. Порядок, видимость `var`/функций, числа при загрузке —

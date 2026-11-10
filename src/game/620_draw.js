@@ -632,6 +632,8 @@ function draw(){
       var P = b.path || [], i0 = b.pathIdx || 0;
       if(i0 < P.length){
         ctx.strokeStyle = "rgba("+col+",0.85)"; ctx.lineWidth = 1.6*s1; ctx.beginPath(); ctx.moveTo(b.baseX, b.baseY);
+        // (v541) идёт подъём — линия по самому подъёму (через промежуточный ящик), а не напрямую к следующей точке пути
+        var CL = b._climb; if(CL){ if(CL.mid && (tick - CL.t0)/CL.dur < 0.5) ctx.lineTo(CL.mid.x, CL.mid.y); ctx.lineTo(CL.to.x, CL.to.y); }
         for(var i = i0; i < P.length; i++) ctx.lineTo(P[i][0], P[i][1]);
         ctx.stroke();
         var pz = b.z;
