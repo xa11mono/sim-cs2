@@ -21135,7 +21135,7 @@ function stepTick(){
   bots.forEach(function(bot){
     if(!bot.alive) return;
     bot.px = bot.x; bot.py = bot.y; bot.pfacing = bot.facing;
-    if(bot._sbOff){ bot.curSpeed = 0; return; }   // (v536) песочница: ИИ выключен — стоит (677)   // (v414, М154) взгляд на начало тика — только для рисования (сглаживание, 620_draw)
+    if(bot._sbOff && !bot._sbGo){ bot.curSpeed = 0; return; }   // (v536) песочница: ИИ выключен — стоит; (v538) но идёт по приказу владельца, ИИ при этом не включается (677)   // (v414, М154) взгляд на начало тика — только для рисования (сглаживание, 620_draw)
     updatePost(bot);
     updateReload(bot);
     if(!bot.post) updateRoamer(bot);
@@ -27557,7 +27557,7 @@ function sbPanel(){
   if(SB_PANEL_EL) return SB_PANEL_EL;
   var el = document.createElement("div"); el.className = "med sb-panel"; el.style.display = "none";
   el.innerHTML = '<div class="med-head"><b>Песочница</b><span class="med-src">раунд не кончается</span></div>' +
-    '<div class="med-hint">Тащи бота мышью. Shift + клик — выбранный бот идёт туда. «ИИ» — думает и стреляет сам. «В игре» — убрать / вернуть (вернуть — клик по карте).</div>' +
+    '<div class="med-hint">Тащи бота мышью. Shift + клик — выбранный бот идёт туда (ИИ при этом не включается). «ИИ» — думает и стреляет сам. «В игре» — убрать / вернуть (вернуть — клик по карте).</div>' +
     '<div class="med-row"><button data-sb="allOn">ИИ всем</button><button data-sb="allOff">ИИ никому</button><button data-sb="allOut">Убрать всех</button></div>' +
     '<div class="sb-list"></div><div class="sb-info med-info"></div>';
   document.getElementById("main").appendChild(el);
@@ -27590,7 +27590,7 @@ function sbLogic(b){
   if(b.nadeTask) L.push("граната: " + sbEsc(b.nadeTask.type + " — " + (b.nadeTask.why || "")));
   L.push("этаж: " + ((b._underV || 0) > 0.5 ? "под другим этажом" : (b._overV || 0) > 0.5 ? "над другим этажом" : "обычный") + " · z " + Math.round(b.z || 0));
   L.push("видит врагов: " + sbEsc((b._visible || []).filter(function(o){ return o.alive && o.team !== b.team; }).map(function(o){ return o.id; }).join(", ") || "нет"));
-  if(b._sbOff) L.push("<i>ИИ выключен — стоит и не стреляет</i>");
+  if(b._sbOff) L.push("<i>ИИ выключен — " + (b._sbGo ? "идёт по приказу, не стреляет" : "стоит и не стреляет") + "</i>");
   return L.join("<br>");
 }
 function sbRender(force){
@@ -27624,7 +27624,7 @@ cv.addEventListener("mousedown", function(e){
   if(!SANDBOX.on || e.button !== 0 || (typeof mapEdOn === "function" && mapEdOn())) return;
   var w = navScreenToWorld(e.clientX, e.clientY);
   if(SANDBOX.place){ sbRevive(SANDBOX.place, w.x, w.y); SANDBOX.place = null; }
-  else if(e.shiftKey && SANDBOX.sel && SANDBOX.sel.alive){ var g = snapToWalkable(w.x, w.y); SANDBOX.sel._sbGo = {x: g.x, y: g.y}; SANDBOX.sel._sbOff = false; logEvent("песочница: " + SANDBOX.sel.id + " — иди сюда"); }
+  else if(e.shiftKey && SANDBOX.sel && SANDBOX.sel.alive){ var g = snapToWalkable(w.x, w.y); SANDBOX.sel._sbGo = {x: g.x, y: g.y}; /* (v538, владелец: «если ИИ выключен и я веду его — ИИ не включать») ИИ не трогаем */ logEvent("песочница: " + SANDBOX.sel.id + " — иди сюда"); }
   else { var b = sbPick(w); if(!b) return; SANDBOX.sel = b; SANDBOX.drag = b; }
   e.stopImmediatePropagation(); e.preventDefault(); sbRender(true); if(typeof draw === "function") draw();
 }, true);
