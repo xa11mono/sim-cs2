@@ -47,6 +47,7 @@ function awpNoscope(sh, tg, dist){
 // (реакция, темп оружия, остывание разброса); 0 — готов, ждёт только, пока погасит скорость
 function fireReady(sh, tg, n){ sh._fire = {t:tick, tg:tg.id, inT:Math.max(0, Math.ceil(n))}; }
 function tryShoot(shooter, target, dist){
+  if(shooter._sbOff) return;   // (v536) песочница: ИИ выключен — не стреляет (677)
   // (этап 2, P0-2) реакция и доводка — по ЭТОЙ цели (shooter._ts[id] — сколько тиков подряд её видно, гаснет как contactStreak),
   // а не по контакту бота с кем угодно: раньше вторая цель в живой перестрелке шла без реакции (34 % выстрелов раньше 150 мс)
   var cs = (shooter._ts && shooter._ts[target.id]) || 0;

@@ -345,6 +345,27 @@ function hgtUnder(x, y, z, a){
   }
   return out;
 }
+// (v535, владелец 10.11: «визуализируй игроков под другими этажами — Under, Dark; на лестнице эффект должен меняться плавно; не „ниже
+// основного пола“») одно место: что над игроком и под ним — по 3D-геометрии карты (m3Floors — все поверхности, на которых можно стоять, в
+// этой точке). Под этажом — над головой (выше FLOOR_HEAD) есть пол; над этажом — под ногами (ниже FLOOR_HEAD) есть другой пол. Доля —
+// по 9 точкам кружка игрока (центр + 8 по краю тела): наполовину под полом — наполовину. Считается каждый тик (на лестнице высота меняется
+// плавно — и доля тоже); рисование сглаживает (floorViewTick). Раньше — участок навмеша «внизу» пары перекрытий раз в 16 тиков, а на карте
+// без перекрытий (Ancient) — «зона ниже −40» (просто ниже основного пола)
+var FLOOR_HEAD = 72;   // ед. игры — рост стоя (CS2)
+function floorCover(x, y, z){
+  var M = typeof m3 === "function" ? m3() : null; if(!M || z == null) return {under: 0, over: 0};
+  var R = BODY_HALF, nu = 0, no = 0;
+  for(var i = 0; i < 9; i++){ var a = i*Math.PI/4, px = i ? x + Math.cos(a)*R : x, py = i ? y + Math.sin(a)*R : y, F = m3Floors(M, px, py), u = 0, o = 0;
+    for(var q = 0; q < F.length; q++){ if(F[q] > z + FLOOR_HEAD) u = 1; else if(F[q] < z - FLOOR_HEAD) o = 1; }
+    nu += u; no += o; }
+  return {under: nu/9, over: no/9};
+}
+// плавная смена на экране: доля «под этажом / над этажом» тянется к посчитанной за ~0,25 с (проектное число), без скачков
+function floorViewTick(b){
+  var c = floorCover(b.x, b.y, b.z), k = 0.25;
+  b._underV = b._underV == null ? c.under : b._underV + (c.under - b._underV)*k;
+  b._overV = b._overV == null ? c.over : b._overV + (c.over - b._overV)*k;
+}
 function hgtUnderCenter(x, y, U){   // центр игрока под другим полом — для мини-карты и повтора (там кружок целиком)
   var O = HEIGHTS.over || [];
   return (U || []).some(function(i){ return pointInPoly(x, y, O[i].poly.map(function(p){ return {x: p[0], y: p[1]}; })); });

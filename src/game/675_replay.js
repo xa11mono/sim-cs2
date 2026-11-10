@@ -65,12 +65,11 @@ function rpSample(R){
   var n = bots.length, B = new Float32Array(n*RP_NB);
   bots.forEach(function(b, i){ var o = i*RP_NB;
     var vf = b._visFacing !== undefined ? b._visFacing : b.facing;
-    var zb = b._zArea || 0; if(HEIGHTS.over && HEIGHTS.over.length) zb = b._lvl > 0 ? 999 : b._lvl < 0 ? -999 : 0;
     var act = 0;
     if(b.planting) act = Math.max(0.01, Math.min(1, 1 - (b.plantUntil - tick)/PLANT_TICKS));
     else if(b.defusing){ var tot = b.kit ? DEFUSE_KIT_TICKS : DEFUSE_TICKS; act = -Math.max(0.01, Math.min(1, 1 - (b.defuseUntil - tick)/tot)); }
     B[o] = b.x; B[o+1] = b.y; B[o+2] = rpNum(vf); B[o+3] = b.alive ? 1 : 0; B[o+4] = b.hp; B[o+5] = b.crouching ? 1 : 0;
-    B[o+6] = zb > 120 ? 1 : zb < -40 ? -1 : 0; B[o+7] = act; B[o+8] = tick < (b.blindUntil||0) ? 1 : 0;
+    B[o+6] = (b._overV||0) > 0.5 ? 1 : (b._underV||0) > 0.5 ? -1 : 0;   // (v535) этаж — по 3D (floorViewTick) B[o+7] = act; B[o+8] = tick < (b.blindUntil||0) ? 1 : 0;
   });
   var sm = [], fi = [], nd = [];
   smokes.forEach(function(s){ var r = smokeRadiusNow(s); if(r > 2) sm.push(s.x, s.y, r); });
@@ -80,7 +79,7 @@ function rpSample(R){
   return {t: tick, b: B, sm: sm, fi: fi, nd: nd, bomb: bs ? {st: bs, x: bomb.x, y: bomb.y, c: ci} : null, w: rpWorld()};
 }
 // (v463) мир тика для кадра повтора: то, что читает draw (620) — поля игроков, дым, огонь, гранаты, эффекты, бомба, вещи на земле
-var RP_BF = ["x","y","z","alive","hp","crouching","facing","_visFacing","_reloading","reloadUntil","weapon","_zArea","_lvl","_under","_jump","blindUntil","state","tRole",
+var RP_BF = ["x","y","z","alive","hp","crouching","facing","_visFacing","_reloading","reloadUntil","weapon","_underV","_overV","_jump","blindUntil","state","tRole",
   "_knife","planting","defusing","plantUntil","defuseUntil","kit","onStairs","walking","_killHow","_sawEnemy","curSpeed","_idle","_idlePhase","holding","atPost"];
 function rpCl(o){ var c = {}; for(var k in o){ var v = o[k]; c[k] = Array.isArray(v) ? v.slice() : v; } return c; }
 function rpWorld(){
