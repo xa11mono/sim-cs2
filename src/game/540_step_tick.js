@@ -171,7 +171,7 @@ function stepTick(){
   bots.forEach(function(bot){
     if(!bot.alive) return;
     bot.px = bot.x; bot.py = bot.y; bot.pfacing = bot.facing;
-    if(bot._sbOff && !bot._sbGo){ bot.curSpeed = 0; return; }   // (v536) песочница: ИИ выключен — стоит; (v538) но идёт по приказу владельца, ИИ при этом не включается (677)   // (v414, М154) взгляд на начало тика — только для рисования (сглаживание, 620_draw)
+    if(bot._sbOff && !bot._sbGo && !bot._climb){ bot.curSpeed = 0; return; }   // (v543) начатый подъём / прыжок доводится до конца   // (v536) песочница: ИИ выключен — стоит; (v538) но идёт по приказу владельца, ИИ при этом не включается (677)   // (v414, М154) взгляд на начало тика — только для рисования (сглаживание, 620_draw)
     updatePost(bot);
     updateReload(bot);
     if(!bot.post) updateRoamer(bot);

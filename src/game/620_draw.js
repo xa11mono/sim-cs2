@@ -741,7 +741,14 @@ function draw(){
     }
     // этажи (раздел 9): верхний уровень — светлый внешний ободок и тень снизу,
     // нижний (подвал/проходы под картой) — тёмный пунктирный ободок
-    var uV = bot._underV || 0, oV = bot._overV || 0;   // (v535) под / над другим этажом — доля 0..1, плавно (floorViewTick, 370)
+    var uV = bot._underV || 0, oV = bot._overV || 0;
+    // (v543) в прыжке (подъём из демок): тень на земле смещается вниз и кружок чуть больше — по высоте прыжка (дуга 4·q·(1−q), q — доля полёта)
+    var CLd = bot._climb, airH = CLd && CLd.jump ? 4*(CLd.air || 0)*(1 - (CLd.air || 0)) : 0;
+    if(CLd && CLd.jump){ var sOff = (4 + 10*airH)/view.scale;
+      ctx.beginPath(); ctx.ellipse(rx + sOff*0.4, ry + sOff, r*(1 - 0.2*airH), r*0.55, 0, 0, Math.PI*2); ctx.fillStyle = "rgba(0,0,0,0.55)"; ctx.fill();   // тень на земле
+      r = r*(1 + 0.22*airH);
+      ctx.beginPath(); ctx.arc(rx, ry, r + 3.5/view.scale, 0, Math.PI*2); ctx.setLineDash([3/view.scale, 2.5/view.scale]);
+      ctx.strokeStyle = "rgba(255,255,255,0.85)"; ctx.lineWidth = 1.4/view.scale; ctx.stroke(); ctx.setLineDash([]); }   // пунктирный ободок — «в воздухе»   // (v535) под / над другим этажом — доля 0..1, плавно (floorViewTick, 370)
     // прыжок / спрыгнул — стрелка у игрока на 0,6 с
     if(bot._jump && tick - bot._jump.t < 0.6*TICK_HZ){
       var jk = 1 - (tick - bot._jump.t)/(0.6*TICK_HZ), jy = bot._jump.up ? -1 : 1, jr = r + 7/view.scale;

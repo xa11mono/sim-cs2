@@ -14,7 +14,7 @@ function sbBot(id){ for(var i = 0; i < bots.length; i++) if(bots[i].id === id) r
 function sbTick(){
   roundStartTime += TICK_MS/1000;
   // приказ «иди сюда» (Shift + клик): держится, пока не дошёл — задача уровня выше всех (TASK_LEVEL, «приказ песочницы»)
-  bots.forEach(function(b){ var G = b._sbGo; if(!G) return; if(!b.alive || (b.atPost && b.post && b.post.tag === "sbGo")){ b._sbGo = null; return; }
+  bots.forEach(function(b){ var G = b._sbGo; if(!G) return; if(!b.alive || (b.atPost && !b._climb && b.post && b.post.tag === "sbGo")){ b._sbGo = null; return; }
     setPost(b, G, G.look || null, true, "sbGo"); });
   if(bomb && bomb.state === "planted" && bomb.explodeTick != null) bomb.explodeTick++;
 }
