@@ -16613,10 +16613,15 @@ function updatePost(b){
   if(b.post.hold){
     // точка планта: "дошёл" — это именно внутри зоны сайта, а не в 34px от точки
     // (иначе носитель останавливался у края зоны, снаружи, и не мог заложить)
-    var arrived = b.post.tag === "plantspot" && teamTac.T && SITES[teamTac.T.site] ? (d < 10 || onSite(SITES[teamTac.T.site], b.baseX, b.baseY) && d < 60) :
+    // (v521, отметки владельца 10.11 м200: kyousuke «не дошёл до якоря» — «дошёл» в 34 px у окна, точка на ступеньке, оттуда Top Mid виден, с места
+    // бота — нет; donk 10,6 с не ставил — «дошёл» в 10 px от точки планта, но снаружи зоны сайта, а ставить можно только в ней; sh1ro в обходе встал
+    // в 34 px от точки, откуда врага не видно) «дошёл» — когда отсюда можно делать то, ради чего пост: плант — внутри зоны сайта; пост с точкой
+    // взгляда, которую видно с точки поста, — когда её видно и с места бота. Нет — идёт дальше, до самой точки
+    var canView = function(){ var lk = b.post.look; return !lk || !hasLOS(ep.x, ep.y, lk.x, lk.y) || hasLOS(b.baseX, b.baseY, lk.x, lk.y, b.z); };   // считается только у точки (≤ 34 px)
+    var arrived = b.post.tag === "plantspot" && teamTac.T && SITES[teamTac.T.site] ? (onSite(SITES[teamTac.T.site], b.baseX, b.baseY) && d < 60) :
       b.post.tag === "defuse" ? d < DEFUSE_R - 8 :   // (v359, отметка: m0NESY «дошёл» до бомбы в 34 ед., а дефуз — с 30: стоял 12 с до взрыва)
       b.post.tag === "lineup" ? d < LU_AT :   // (v492) лайнап — в саму точку броска: с 34 px подбор отсюда — «свеча» (прогон 143)
-      d < ((BAL.proSpots && b.post.pro) ? 9 : 34);
+      (d < ((BAL.proSpots && b.post.pro) ? 9 : 34) && (b.atPost || canView()));
     // (опорник "не дошёл") точка поста чуть внутри угла/стены: бот доходил на
     // 30–60px и крутился рядом, не "вставая" на пост. Не приближается ~1.5с — встал
     if(BAL.arriveNear && !b.atPost && !arrived && b.post.tag !== "plantspot" && b.post.tag !== "defuse"){
@@ -17766,6 +17771,9 @@ function tProbes(tt, ts){
     }
     // выход вперёд / на вход
     setPost(pb, P.pt, look, true, "probe"+key);
+    // (v521, отметка владельца 10.11: у TN1R «перебивают путь shift и probeA» — личная перестановка и проба одного уровня сменяли друг друга
+    // каждые 1,5 с) проба по решению IGL заменяет личную перестановку этого бота в этом раунде: одна задача, а не две
+    if(pb.post && /^probe/.test(pb.post.tag)) pb._shift = null;
     pb._probeLock = tick;
     // напарник — ~150px позади пробы по той же линии, смотрит туда же
     if(BAL.pairs && P.buddy){
@@ -28953,7 +28961,11 @@ function flankClaim(b, eid, take){
   return !busy;
 }
 function flankAssist(b){
-  if(b.hp <= LOW_HP || b._fcFlank && tick < b._fcFlank) return false;
+  // (v521, отметка владельца 10.11: sh1ro шёл в обход, враг сдвинулся на 40 px — с точки обхода его больше не видно, sh1ro стоял, пока zont1x не убили)
+  // точка обхода, откуда врага уже не видно, — пересматривается сразу (не через 3 с), не чаще раза в 0,5 с
+  var FL = b.post && b.post.tag === "repos:flank" && b._flankE ? teamBot(b._flankE) : null;
+  var flStale = FL && FL.alive && tick - (b._flankT || 0) >= 32 && !hasLOS(b.post.x, b.post.y, FL.x, FL.y, b.z, FL.z);
+  if(b.hp <= LOW_HP || (b._fcFlank && tick < b._fcFlank && !flStale)) return false;
   if(b.team === "CT" && b.post && /^(anchor|stack|set:|cts:|clutch|retake)/.test(b.post.tag)) return false;   // держит сайт — не бросает
   if(b.team === "T" && b.tRole === "lurker") return false;
   var mate = null, E = null;
@@ -28975,7 +28987,7 @@ function flankAssist(b){
   if(b.state === "hold") leaveHold(b);
   b._reposUntil = tick + 6*TICK_HZ;
   b.lastIntel = {x:ep.x, y:ep.y, tick:tick, src:"call"};
-  flankClaim(b, E.id, true);
+  flankClaim(b, E.id, true); b._flankE = E.id; b._flankT = tick;
   voiceLog(b.team, "flank"+b.id, b.id, "захожу на "+E.id+" с другой стороны — помогаю "+mate.id);
   return true;
 }

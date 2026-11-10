@@ -47,7 +47,11 @@ function flankClaim(b, eid, take){
   return !busy;
 }
 function flankAssist(b){
-  if(b.hp <= LOW_HP || b._fcFlank && tick < b._fcFlank) return false;
+  // (v521, отметка владельца 10.11: sh1ro шёл в обход, враг сдвинулся на 40 px — с точки обхода его больше не видно, sh1ro стоял, пока zont1x не убили)
+  // точка обхода, откуда врага уже не видно, — пересматривается сразу (не через 3 с), не чаще раза в 0,5 с
+  var FL = b.post && b.post.tag === "repos:flank" && b._flankE ? teamBot(b._flankE) : null;
+  var flStale = FL && FL.alive && tick - (b._flankT || 0) >= 32 && !hasLOS(b.post.x, b.post.y, FL.x, FL.y, b.z, FL.z);
+  if(b.hp <= LOW_HP || (b._fcFlank && tick < b._fcFlank && !flStale)) return false;
   if(b.team === "CT" && b.post && /^(anchor|stack|set:|cts:|clutch|retake)/.test(b.post.tag)) return false;   // держит сайт — не бросает
   if(b.team === "T" && b.tRole === "lurker") return false;
   var mate = null, E = null;
@@ -69,7 +73,7 @@ function flankAssist(b){
   if(b.state === "hold") leaveHold(b);
   b._reposUntil = tick + 6*TICK_HZ;
   b.lastIntel = {x:ep.x, y:ep.y, tick:tick, src:"call"};
-  flankClaim(b, E.id, true);
+  flankClaim(b, E.id, true); b._flankE = E.id; b._flankT = tick;
   voiceLog(b.team, "flank"+b.id, b.id, "захожу на "+E.id+" с другой стороны — помогаю "+mate.id);
   return true;
 }

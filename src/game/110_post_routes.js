@@ -333,10 +333,15 @@ function updatePost(b){
   if(b.post.hold){
     // точка планта: "дошёл" — это именно внутри зоны сайта, а не в 34px от точки
     // (иначе носитель останавливался у края зоны, снаружи, и не мог заложить)
-    var arrived = b.post.tag === "plantspot" && teamTac.T && SITES[teamTac.T.site] ? (d < 10 || onSite(SITES[teamTac.T.site], b.baseX, b.baseY) && d < 60) :
+    // (v521, отметки владельца 10.11 м200: kyousuke «не дошёл до якоря» — «дошёл» в 34 px у окна, точка на ступеньке, оттуда Top Mid виден, с места
+    // бота — нет; donk 10,6 с не ставил — «дошёл» в 10 px от точки планта, но снаружи зоны сайта, а ставить можно только в ней; sh1ro в обходе встал
+    // в 34 px от точки, откуда врага не видно) «дошёл» — когда отсюда можно делать то, ради чего пост: плант — внутри зоны сайта; пост с точкой
+    // взгляда, которую видно с точки поста, — когда её видно и с места бота. Нет — идёт дальше, до самой точки
+    var canView = function(){ var lk = b.post.look; return !lk || !hasLOS(ep.x, ep.y, lk.x, lk.y) || hasLOS(b.baseX, b.baseY, lk.x, lk.y, b.z); };   // считается только у точки (≤ 34 px)
+    var arrived = b.post.tag === "plantspot" && teamTac.T && SITES[teamTac.T.site] ? (onSite(SITES[teamTac.T.site], b.baseX, b.baseY) && d < 60) :
       b.post.tag === "defuse" ? d < DEFUSE_R - 8 :   // (v359, отметка: m0NESY «дошёл» до бомбы в 34 ед., а дефуз — с 30: стоял 12 с до взрыва)
       b.post.tag === "lineup" ? d < LU_AT :   // (v492) лайнап — в саму точку броска: с 34 px подбор отсюда — «свеча» (прогон 143)
-      d < ((BAL.proSpots && b.post.pro) ? 9 : 34);
+      (d < ((BAL.proSpots && b.post.pro) ? 9 : 34) && (b.atPost || canView()));
     // (опорник "не дошёл") точка поста чуть внутри угла/стены: бот доходил на
     // 30–60px и крутился рядом, не "вставая" на пост. Не приближается ~1.5с — встал
     if(BAL.arriveNear && !b.atPost && !arrived && b.post.tag !== "plantspot" && b.post.tag !== "defuse"){
