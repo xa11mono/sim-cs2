@@ -156,7 +156,8 @@ function duelOdds(b, e, x, y){
   if(!e || !e.alive) return null;
   var d = Math.hypot(x-b.x, y-b.y), P = {x:x, y:y, px:x, py:y, weapon:e.weapon, crouching:e.crouching};
   var mine = duelTTK(b, P, d, Math.max(1, 100 - duelHits(b._hitOut, roundStartTick, e.id)), true, b.skill || 1), theirs = duelTTK(P, b, d, b.hp, !!b.armor, b.skill || 1);
-  return {mine: mine, theirs: theirs, ammoOk: !b._reloading && b.ammo >= mine.shots, ok: !b._reloading && b.ammo >= mine.shots && theirs.t >= mine.t*DUEL_LOSE_K};
+  var need = Math.min(mine.shots, (b.weapon && b.weapon.mag) || mine.shots), aOk = !b._reloading && b.ammo >= need;
+  return {mine: mine, theirs: theirs, ammoOk: aOk, ok: aOk && theirs.t >= mine.t*DUEL_LOSE_K};
 }
 function duelEval(b, F, cover){
   var e = F.e; if(!e || !e.alive) return null;
@@ -164,7 +165,11 @@ function duelEval(b, F, cover){
   var eHp = Math.max(1, 100 - duelHits(b._hitOut, roundStartTick, e.id));
   var mine = duelTTK(b, e, Math.hypot(e.x-b.x, e.y-b.y), eHp, true, b.skill || 1), rate = 0;
   (vis.length ? vis : [e]).forEach(function(o){ var r = duelTTK(o, b, Math.hypot(o.x-b.x, o.y-b.y), b.hp, !!b.armor, b.skill || 1); if(r.t < Infinity) rate += 1/r.t; });
-  var theirs = rate > 0 ? 1/rate : Infinity, ammoOk = !b._reloading && b.ammo >= mine.shots;
+  // (v521, отметка владельца 10.11: «дал 2–3 выстрела, хотя фулловый, и ушёл» — на дистанции «нужно выстрелов» ≥ магазина, и после первого выстрела
+  // выходило «патронов мало») на линии патроны — причина уйти, только если их меньше, чем нужно на врага, и меньше доли тактической перезарядки
+  // (rlFrac, 480: та же граница, ниже которой игрок перезаряжается после боя)
+  var mag = (b.weapon && b.weapon.mag) || mine.shots, theirs = rate > 0 ? 1/rate : Infinity;
+  var ammoOk = !b._reloading && (b.ammo >= Math.min(mine.shots, mag) || b.ammo > mag*rlFracOf());
   var ret = cover ? Math.hypot(cover.x-b.baseX, cover.y-b.baseY)/(SPEED*weaponSpeedMul(b)) : Infinity;
   // равный размен — достреливает (владелец: уходить, когда явно проигрываешь и можешь уйти): «не мой» — только если им до моего фрага заметно
   // меньше, чем мне до их (< DUEL_LOSE_K; проектное число — первый кандидат на замену данными демок)
@@ -243,12 +248,20 @@ function fightCycleTick(b, dtSec, busy){
     // (v520) выглянуть снова — по той же оценке (с места, где враг был виден): размен мой, добить раненого или задача; патронов на врага мало —
     // сначала перезарядка за укрытием (ждёт, не выходит); проигрываю — не выглядывает, перестрелка для него закончена (жребия 26 % больше нет)
     var DO = F.e ? duelOdds(b, F.e, F.e.x, F.e.y) : null;
-    if(DO && !DO.ammoOk && (F.wait || 0) < 4*TICK_HZ){ F.wait = (F.wait || 0) + 1; return; }
+    // патронов на врага мало — перезаряжается здесь, за укрытием (сам начинает: тактическая перезарядка ниже 35 % магазина могла не включиться —
+    // отметка владельца 10.11: karrigan 10/12 ждал перезарядку 4 с и стоял), пока идёт — ждёт
+    if(DO && !DO.ammoOk && !b._sawEnemy && !b._reloading && b.weapon && b.ammo < b.weapon.mag){ b._reloading = true; b.reloadUntil = tick + Math.round(b.weapon.reload*TICK_HZ); if(BAL.soundMore) reloadHeard(b, b.weapon); }
+    if(DO && !DO.ammoOk && b._reloading){ F.until = Math.max(F.until, b.reloadUntil); return; }
     if(!fin && !fightPush(b) && !(DO && DO.ok)){ b._fc = null; return; }   // не выглядывает снова — перестрелка закончена ((v518b) давить по задаче — выглядывает всегда)
     F.ph = "back"; F.nPeek = (F.nPeek || 0) + 1; F.sh = null;
     if(F.better){ F.ax = F.better.x; F.ay = F.better.y; F.better = null; }   // (М149) выглядывает с места, откуда видно врага целиком
     // (ответ 4) второй и дальше пик в этой перестрелке — с другого места (не ближе медианы сдвига про D.shift[2] к прошлому): не однообразный джигл
-    else if(F.nPeek >= 2 && F.e){ var nb = fightBetterAway(b, F.e, F.cx, F.cy, D.shift[4], F.ax, F.ay, D.shift[2]); if(nb){ F.ax = nb.x; F.ay = nb.y; } }
+    // (v521, владелец 10.11: «чередовать, чтобы врагу было тяжелее попасть: можно 2 раза пикнуть с одного места, на третий уйти, можно сразу на
+    // второй, можно вообще не пикать — нет конкретного правила») противник видел меня в этой точке и ждёт там же: чем больше раз видел (F.samePk),
+    // тем вероятнее выход с другого места (не ближе медианы сдвига про к прошлому) — доля 1 − 0,5^раз (проектное число); выходить ли вообще — оценка
+    // размена выше (duelOdds)
+    else if(F.nPeek >= 1 && F.e && fightRand(b, 11) >= Math.pow(0.5, F.samePk || 1)){ var nb = fightBetterAway(b, F.e, F.cx, F.cy, D.shift[4], F.ax, F.ay, D.shift[2]); if(nb){ F.ax = nb.x; F.ay = nb.y; F.samePk = 0; } }
+    F.samePk = (F.samePk || 0) + 1;
     // (ответ 4) против AWP (оружие врага видно) — сначала плечо: выстрелил — выглядывает целиком, пока он перезаряжается; нет — через паузу про
     if(F.e && F.e.primary === "AWP"){ var shp = fightShoulderPt(b, F.e, F.cx, F.cy, F.ax, F.ay); if(shp) F.sh = {x:shp.x, y:shp.y, t0:0, shot:F.e.lastShotTick || -1, done:false}; }
   }

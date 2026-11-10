@@ -105,6 +105,8 @@ function assistPeek(b){
   if(!b._assistVoice || tick - b._assistVoice > 4*TICK_HZ){ b._assistVoice = tick; voiceLog(b.team, "assist"+b.id, b.id, "выхожу с "+mate.id+" на "+E.id+" — дабл!"); }
   return true;
 }
+// доля магазина, ниже которой игрок перезаряжается после боя — и (v521) ниже которой на линии «патронов мало» (470 duelEval)
+function rlFracOf(){ return BAL.soundMore ? 0.75 : 0.35; }
 function updateReload(b){
   var w = b.weapon; if(!w || !b.alive) return;
   if(b._ammoFor !== w.key){ b._ammoFor = w.key; b.ammo = w.mag; b._reloading = false; b.reloadUntil = 0; }
@@ -114,7 +116,7 @@ function updateReload(b){
   // после перестрелки про перезаряжается почти всегда, если магазин заметно
   // потрачен (а не только когда он почти пуст) — отсюда и звук перезарядки,
   // на который пикают
-  var rlFrac = BAL.soundMore ? 0.75 : 0.35, rlWait = BAL.soundMore ? 96 : 64;
+  var rlFrac = rlFracOf(), rlWait = BAL.soundMore ? 96 : 64;
   var tacRl = !b._reloading && b.ammo > 0 && !b._sawEnemy && b.ammo < w.mag*rlFrac && tick - (b.lastShotTick||-999) > rlWait;
   // тактическая перезарядка на виду у известного врага — сначала за укрытие
   // (если патронов ещё не критично мало)
