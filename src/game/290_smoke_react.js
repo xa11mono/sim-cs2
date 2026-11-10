@@ -88,6 +88,10 @@ function smokeSpamTick(){
       // стреляем: если на линии за дымом реально кто-то есть — настоящий выстрел
       // (с пониженной точностью), иначе — очередь "по памяти" в дым
       if(tick < (b.nextShotTick||0)) return;
+      // (v528, владелец 10.11: «с AWP смок на ходу не простреливают — остановиться и выстрелить, и то редко; вдали он обычно стоит») снайперка
+      // (оружие с прицелом, scopeTicks) в дым стреляет только с точной скорости (≤ 34 % — та же граница, что у разброса, shotSpread): на ходу
+      // не стреляет, стоит — стреляет. Ради прострела не останавливается (как часто останавливаться — владелец: редко; числа нет)
+      if(b.weapon.scopeTicks && b.curSpeed > 0.34*SPEED*weaponSpeedMul(b)) return;
       var aim = Math.atan2(P.pt.y-b.y, P.pt.x-b.x), foe = null;
       if(b.facing !== undefined && _angOff(aim, b.facing) > 0.2) return;   // сначала довести прицел
       bots.forEach(function(e){ if(foe || !e.alive || e.team === b.team) return; var d = Math.hypot(e.x-b.x, e.y-b.y); if(d > 900) return;
