@@ -27,12 +27,12 @@ function sbPlace(b, x, y){
   b._underV = null; b._overV = null; floorViewTick(b);
 }
 function sbRevive(b, x, y){
-  b.alive = true; b.hp = 100; b.state = "patrol"; b.holding = false; b.post = null; b.atPost = false; b._task = null; b._contact = null;
+  b.alive = true; b.hp = 100; b.state = "patrol"; b.holding = false; clearPost(b); b._contact = null;
   b.contactStreak = 0; b._ts = {}; b.nextShotTick = 0; b._reloading = false; b._blind = null; b.blindUntil = 0;
   sbPlace(b, x, y);
   logEvent("песочница: " + b.id + " в игре");
 }
-function sbRemove(b){ b.alive = false; b.hp = 0; b.post = null; b._task = null; b._fc = null; if(SANDBOX.drag === b) SANDBOX.drag = null; logEvent("песочница: " + b.id + " убран"); }
+function sbRemove(b){ b.alive = false; b.hp = 0; clearPost(b); b._fc = null; if(SANDBOX.drag === b) SANDBOX.drag = null; logEvent("песочница: " + b.id + " убран"); }
 // ---------- панель ----------
 function sbEsc(s){ return String(s == null ? "" : s).replace(/[&<>]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;"}[c]; }); }
 function sbPanel(){
@@ -122,6 +122,8 @@ window.addEventListener("mousemove", function(e){
   var w = navScreenToWorld(e.clientX, e.clientY); sbPlace(SANDBOX.drag, w.x, w.y);
   if(typeof draw === "function") draw();
 });
-window.addEventListener("mouseup", function(){ if(SANDBOX.drag){ SANDBOX.drag.post = null; SANDBOX.drag._task = null; SANDBOX.drag = null; } });
+// (v540, скрин владельца 10.11: «Ошибка игры… Cannot read properties of null (reading 'tag')» в ctBrain) отпущенный бот терял пост, а «дошёл до
+// поста» (atPost) оставался — мозг CT читал задачу поста, которого нет. Пост снимает только clearPost (110): и пост, и «дошёл», и задачу
+window.addEventListener("mouseup", function(){ if(SANDBOX.drag){ clearPost(SANDBOX.drag); SANDBOX.drag = null; } });
 (function(){ var bt = document.getElementById("btnSandbox"); if(bt) bt.addEventListener("click", sbToggle); })();
 setInterval(function(){ if(SANDBOX.on || (SB_PANEL_EL && SB_PANEL_EL.style.display !== "none")) sbRender(false); }, 200);   // (v537) панель следует за SANDBOX.on и после перемотки
