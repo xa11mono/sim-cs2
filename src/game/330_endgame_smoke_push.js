@@ -77,6 +77,9 @@ function endgameBrain(){
     mine.forEach(function(b){
       if(b.planting || b.defusing || b._sawEnemy || b._stopPlantUntil > tick) return;
       if(team === "T" && bomb && bomb.state === "carried" && bomb.carrier === b) return; // носитель ставит
+      // (v521, отметка владельца 10.11) бомбу ставят — остальные прикрывают плант (170, coverplant: держат входы вокруг точки планта), не охотятся
+      var BC = team === "T" && bomb && bomb.state === "carried" ? bomb.carrier : null;
+      if(BC && BC.alive && (BC.planting || (BC.post && BC.post.tag === "plantspot" && Math.hypot(BC.x-BC.post.x, BC.y-BC.post.y) < 90)) && Math.hypot(b.x-BC.x, b.y-BC.y) < 550) return;
       if(hunter && b !== hunter){
         // (v519, пак 09.11 п.7; А-10: «идут всей толпой через одну позицию, не пытаются закрыть с двух сторон») остальные — не все на одну точку:
         // ближайший по пути (после охотника) — альтернативная линия на T с другой стороны от охотника (flankSpot, как заход тиммейту), ответ
@@ -139,8 +142,11 @@ function endgameBrain(){
       }
       if(b._egC && b._egC.round === roundNum && b._egC.fl === K.id && mC){ setPost(b, b._egC.spot, {x:kp.x, y:kp.y}, true, "endhunt"); return; }
       if(!b._egC || b._egC.gk !== gk || b._egC.round !== roundNum || b._egC.fl){
-        var center = d < 650 ? {x:b.x, y:b.y} : walk({x: kp.x + (b.x-kp.x)*Math.min(0.9, 420/d), y: kp.y + (b.y-kp.y)*Math.min(0.9, 420/d)});
-        var spots = pickSpots("eg:"+b.id+":"+gk, center, 2, {rMax: d < 650 ? 120 : 200, minGap:40, see:[kp]});
+        // (v521, отметка владельца 10.11: двое стояли на Tetris — «рядом» с врагом (490 px по прямой), точка «держать угол на него» бралась рядом с
+        // собой и без вида на него) рядом — точка рядом, только если оттуда его видно; нет такой — подтягивается к нему, как дальний
+        var farC = walk({x: kp.x + (b.x-kp.x)*Math.min(0.9, 420/Math.max(1, d)), y: kp.y + (b.y-kp.y)*Math.min(0.9, 420/Math.max(1, d))});
+        var spots = d < 650 ? pickSpots("eg:"+b.id+":"+gk, {x:b.x, y:b.y}, 2, {rMax:120, minGap:40, see:[kp]}).filter(function(q){ return hasLOS(q.x, q.y, kp.x, kp.y); }) : [];
+        if(!spots.length) spots = pickSpots("egf:"+b.id+":"+gk, farC || {x:b.x, y:b.y}, 2, {rMax:200, minGap:40, see:[kp]});
         b._egC = {gk:gk, round:roundNum, spot:spots[0], look:{x:kp.x, y:kp.y}};
       }
       if(BAL.groupPlay && BAL.egPair && egWaitPartner(b, mine, kp)) return;
