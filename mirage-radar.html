@@ -37716,6 +37716,13 @@ function sbRender(force){
   el.querySelector(".sb-info").innerHTML = sbLogic(SANDBOX.sel);
 }
 function sbToggle(){
+  // (v539, владелец 10.11: «нажимаю песочницу — сразу игра с физикой обычного матча, не разминки, и не ждать закупку») включение: разминка
+  // кончается (матч — как после неё, warmEnd), раунд между раундами — новый, закупка (freeze) пропускается — раунд идёт сразу
+  if(!SANDBOX.on){
+    if(typeof WARM !== "undefined" && WARM.on) warmEnd();   // до включения: warmEnd восстанавливает снимок матча (там песочница выключена)
+    if(roundState === "ending") resetRound();
+    if(roundState === "freeze"){ roundStartTime = simTime; roundStartTick = tick; }
+  }
   SANDBOX.on = !SANDBOX.on;
   if(!SANDBOX.on){ bots.forEach(function(b){ b._sbOff = false; }); SANDBOX.drag = null; SANDBOX.place = null; }
   var bt = document.getElementById("btnSandbox"); if(bt) bt.classList.toggle("on", SANDBOX.on);
