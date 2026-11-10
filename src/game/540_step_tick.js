@@ -84,10 +84,14 @@ function navSnap(bot){
   if(nb){ bot.baseX = bot.x = nb.x; bot.baseY = bot.y = nb.y; bot.z = nb.a.z; bot._area = nb.a.id; bot.path = []; bot.pathIdx = 0; bot._offNav = 0; logEvent(bot.id+": вне навмеша — перенесён на ближайший пол (заплатка)"); }
 }
 // (v335) звук приземления — одно место: слышат враги (как шаги, громко), на странице — запись приземления там, где он сейчас.
-// LAND_DELAY — время полёта при запрыгивании (CS2: прыжок ~0,6 с вверх-вниз; вверх на уступ — короче) — проектное число
-var LAND_DELAY = 0.35;
-function landSound(bot, quiet){
-  var R = SOUND_RADIUS_RUN*(quiet ? 0.5 : 1); bot._landAt = 0;
+// LAND_DELAY — время полёта при запрыгивании — в 050 (v546: нужно цене пути уже при загрузке)
+// (v546, владелец 10.11: «он может подойти вплотную и бесшумно запрыгнуть — должен уметь, когда нельзя палиться; на верхний этаж через
+// щель — с шумом») kind: "up" — запрыгнул на уступ / ящик (вплотную, шагом — бесшумно: bot.walking — решение хозяина шага, 535); "gap" — прыжок
+// через щель и спрыгивание — всегда слышно
+function landSound(bot, quiet, kind){
+  bot._landAt = 0;
+  if(kind === "up" && bot.walking) return;
+  var R = SOUND_RADIUS_RUN*(quiet ? 0.5 : 1);
   soundPings.push({x:bot.baseX, y:bot.baseY, team:bot.team, born:nowTs, radius:R});
   moveSoundEmit(bot, R, "steps", quiet ? "приземление (чек прыжком)" : "приземление");
   if(SND && SND.on) sndBody("land", bot.baseX, bot.baseY);
@@ -103,7 +107,7 @@ var JUMP_HOLD_SEC = 30;
 // «Вижу» с прыжка — как радар: visParts с поднятыми глазами (раньше только высокие стены visWallHit — 98–99 % «видели» без линии)
 var JUMP_APEX = 57;
 function jumpCheckTick(b){
-  if(b._landAt && tick >= b._landAt && b.alive && roundState === "live") landSound(b);   // (v335) запрыгнул — приземлился
+  if(b._landAt && tick >= b._landAt && b.alive && roundState === "live") landSound(b, false, "up");   // (v335) запрыгнул — приземлился
   var JS = MAP.pro && MAP.pro.jumps; if(!JS || !JS.length || roundState !== "live" || !b.alive) return;
   var J = b._jc;
   if(J){
@@ -261,7 +265,10 @@ function stepTick(){
       // с ножом чаще, при разгоне и торможении — в такт скорости
       var stride = SPEED*(bot.walking ? WALK_SPEED_FRAC*FOOTSTEP_INTERVAL_WALK : FOOTSTEP_INTERVAL_RUN)/TICK_HZ;
       var mv = bot._stepP ? Math.min(Math.hypot(bot.baseX-bot._stepP.x, bot.baseY-bot._stepP.y), 3*SPEED/TICK_HZ) : 0;   // реально пройдено за тик (упёрся в стену — не шагает)
-      bot._stepP = {x:bot.baseX, y:bot.baseY}; bot._stepDist = (bot._stepDist||0) + mv;
+      // (v546, владелец 10.11: «добавь звук лестнице, когда он спускается и поднимается»; бег по лестнице слышно как бег, шагом — бесшумно)
+      // на лестнице шаг — и по высоте (ед. игры → ед. карты, pxUnits); в прыжке (подъём из демок, щель) шагов нет — звучит только приземление
+      var CL = bot._climb; if(CL && CL.jump) mv = 0; else if(CL && bot._stepP && bot._stepP.z != null && bot.z != null) mv = Math.hypot(mv, (bot.z - bot._stepP.z)/(MAP.pxUnits || 2.5));
+      bot._stepP = {x:bot.baseX, y:bot.baseY, z:bot.z}; bot._stepDist = (bot._stepDist||0) + mv;
       if(bot._stepDist >= stride){
         bot._stepDist -= stride; if(bot._stepDist > stride) bot._stepDist = 0;
         bot.lastStepTick = tick;
@@ -271,7 +278,7 @@ function stepTick(){
         if(BAL.heardMe && roundState === "live"){ var zN = bzOf(bot.x, bot.y); if(zN >= 0){ var nearZ = [zN].concat(BZ.nbr[zN]||[]);
           if(nearZ.some(function(j){ var cj = BZ.cent[j]; return cj && Math.hypot(cj.x-bot.x, cj.y-bot.y) < soundRadius && reachPossible(bot.team, j) && beliefZoneKnown(bot.team, j) >= 0.2; })) bot._noisyT = tick; } }
         if(soundPings.length > 40) soundPings.shift();
-        moveSoundEmit(bot, soundRadius, wet ? "water" : "steps", (wet ? "всплески в воде" : "шаги")+(bot.walking ? " (тихо)" : ""));
+        moveSoundEmit(bot, soundRadius, wet ? "water" : "steps", (wet ? "всплески в воде" : CL ? "лестница" : "шаги")+(bot.walking ? " (тихо)" : ""));
       }
     }
 
@@ -496,7 +503,7 @@ function stepTick(){
         if(TRl.length >= 8 && tick - (bot._unstickT||-1e9) > 2*TICK_HZ && tick - (bot._idleT||-1e9) > 2*TICK_HZ && bot.z != null && bot.path.length && bot.pathIdx < bot.path.length &&
            TRl.every(function(q){ return Math.hypot(q.x-TRl[0].x, q.y-TRl[0].y) < 4; })){
           bot._unstickT = tick;
-          var pe = bot.path[bot.path.length-1], fr = buildWaypointPath(bot.baseX, bot.baseY, bot.z, pe[0], pe[1], pe[2], bot.team, botLane(bot)), p0 = fr && fr[0];
+          var pe = bot.path[bot.path.length-1], fr = buildWaypointPath(bot.baseX, bot.baseY, bot.z, pe[0], pe[1], pe[2], bot.team, botLane(bot), bot.walking), p0 = fr && fr[0];
           if(p0 && p0[2] != null && p0[2] <= bot.z + 18 && Math.hypot(p0[0]-bot.baseX, p0[1]-bot.baseY) <= 40 && Math.hypot(p0[0]-bot.baseX, p0[1]-bot.baseY) > 2 && !crossesWall(bot.baseX, bot.baseY, p0[0], p0[1])){
             bot.baseX = bot.x = p0[0]; bot.baseY = bot.y = p0[1]; bot.z = p0[2]; var a0 = navAt(p0[0], p0[1], p0[2]); if(a0) bot._area = a0.id;
             bot.path = fr; bot.pathIdx = 1; bot._trail = [];

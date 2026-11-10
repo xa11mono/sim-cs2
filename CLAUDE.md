@@ -73,7 +73,7 @@ v166 — в `00_PLAN.md`. Главный принцип и правила ниж
 | **карта** (данные — `MAP`, набор `data/maps/<карта>/`): стены `WALL_POLYS` / `applyWalls`; высоты `HEIGHTS` / `hgtInfo`; укрытия `COVER` / `covList`; прострелы `WALLBANG` / `wbList`, `wbAfter` | `030_map_walls_heights_cover_wallbang` |
 | **3D-геометрия игры** (А5 Mirage, А6 Ancient — с v388 у обеих карт, `MAP.map3d`): `m3()`, луч `m3Line`/`m3Hit`, этажи `m3Floors`, «в стене» `m3Solid`/`m3SolidHit`, распаковка `zInflate` | `035_map3d` |
 | **кто кого видит** (одно место, 3D): `VIS_*`, `visLine`, `visParts`, `visFloorAt`, `visInvalidate`; через неё `hasLOS` и таблица «откуда простреливается» `computeZoneDanger` | `040_visibility`; `hasLOS` — `050_nav_rebuild_paths`; `computeZoneDanger` — `060_zone_danger_user_zones` |
-| навмеш и пути: `rebuildNav`, `zoneDijkstra`, `funnel`, `buildWaypointPath`; связи выше прыжка `navCutTall` / перепад `navEdgeDz` (v533); уровни/лестницы/подъёмы `navAtLevel`, `laddersBuild`, `ladderTick` (подъём через промежуточный ящик — `mid`, v533); **под / над этажом** `floorCover` / `floorViewTick` (v535); «на полу» — одно место `navOnFloor`; огонь `inFire` | `050_nav_rebuild_paths`; `370_fire_nav_levels_ladders` |
+| навмеш и пути: `rebuildNav`, `zoneDijkstra`, `funnel`, `buildWaypointPath`; связи выше прыжка `navCutTall` / перепад `navEdgeDz` (v533); уровни/лестницы/подъёмы `navAtLevel`, `laddersBuild`, `ladderTick` (подъём через промежуточный ящик — `mid`, v533); **под / над этажом** `floorCover` / `floorViewTick` (v535); «на полу» — одно место `navOnFloor`; огонь `inFire`; **прыжки через щель** из демок `navGapsAdd` (`tools/gaps_bake.py`), цена перехода «время + шум по режиму» `navJumpCost` (v546) | `050_nav_rebuild_paths`; `370_fire_nav_levels_ladders` |
 | оружие, боты `makeTeam`, роумер | `070_weapons_bots_roam`; `updateRoamer` — `430_fov_roam` |
 | переключатели и числа движка `BAL` | `080_bal` |
 | профили игроков, **команды** `LINEUP`, `SIDE_TEAM`, `seatPlayers` | `090_profiles_teams` |
@@ -114,7 +114,7 @@ v166 — в `00_PLAN.md`. Главный принцип и правила ниж
 | экономика: `decideRoundType0`, `buyForPlayer`; что берут — доли про `smgFor`, `PRO_PISTOL` (`tools/buy_pro.py`) | `520_economy` |
 | **смена сторон и раунд**: `buyPhase`, `sideSwapNow`, `swapSides`, `freshMatch`, `endRound`, `resetRound` | `530_round_sides_match` |
 | **шагом / бегом / стоять** (одно место, v522): `moveWalkWhy` (причина шага), `moveRunWhy` (отмена шага), `moveWalkTick`, целевая скорость `moveSpeedTick`; причины у бота `_walkWhy` / `_runWhy` / `_stopWhy` | `535_move_mode` |
-| цикл `stepTick` (+ замирание, шаги, прыжки) | `540_step_tick` |
+| цикл `stepTick` (+ замирание, шаги, прыжки; звук приземления — одно место `landSound`, шаги на лестнице — v546) | `540_step_tick` |
 | **счёт ошибок движения** (одно место, только наблюдает, v407): `PROB` / `probTick` — застрял (с причиной), перенос, перетягивание; слой «ошибки движения», сторож замера | `545_problem_watch` |
 | рисование вспомогательного: навмеш/зоны (режимы редактирования); редактор лайнапов и форм зон | `550_render_nav_zone_tools`, `560_lineup_zone_editor` |
 | редактор карты `MAPED` (вкладки, Ctrl+Z, база; стены); высоты; укрытия; прострелы | `570_maped_core_walls`, `580_maped_heights`, `590_maped_cover`, `600_maped_wallbang` |

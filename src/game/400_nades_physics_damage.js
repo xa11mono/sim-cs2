@@ -129,6 +129,7 @@ function armorSoak(b, raw, ratio, src){
   if(b.armorHp <= 0){ b.armor = false; b.helmet = false; }
   return Math.max(0, h);
 }
+var HURT_SND_GAP = 32;   // (v546) тиков (0,5 с) — проектное число
 function applyDamage(att, b, dmg, src, o){
   o = o || {};
   if(!b.alive || dmg <= 0) return false;
@@ -145,6 +146,11 @@ function applyDamage(att, b, dmg, src, o){
   // пуля — откуда стреляли (звук выстрела + сторона попадания), HE / огонь — где разорвалось / горит. Реакция — hurtReactTick (350)
   if(foe){ b._hurtT = tick; b._hurtSrc = src; b._hurtFrom = o.from || {x:foe.x, y:foe.y, z:foe.z}; }
   b.hp -= dmg;
+  // (v546, владелец 10.11: «боты слышат, как кто-то подгорает в молотове или получил урон от пули, от гранаты» — это инфа) звук попадания
+  // слышат враги раненого (moveSoundEmit — как шаги: за стеной ближе, место — пятно): пуля и HE — как бег (таблица владельца: 800–900 ед.,
+  // «как бег / чуть громче»), огонь — 600 / 800 бега. Чаще раза в HURT_SND_GAP у одного игрока не повторяется (проектное число)
+  if(roundState === "live" && src !== "C4" && tick - (b._hurtSndT || -1e9) >= HURT_SND_GAP){ b._hurtSndT = tick; var fireH = src === "молотов";
+    moveSoundEmit(b, SOUND_RADIUS_RUN*(fireH ? 600/800 : 1), "steps", fireH ? "горит в молотове" : "попадание"); }
   if(b.hp > 0) return false;
   b.alive = false; b.deaths++; b._killer = att && att !== b ? att.id : null;   // (v330) кто убил — для обсервера (показ)
   dropWeaponOnDeath(b);

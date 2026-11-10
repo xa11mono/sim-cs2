@@ -239,7 +239,7 @@ function assignNewDestination(bot, tick){
   if(bot.post && bot.state === "patrol"){
     if(bot.atPost || bot.planting || bot.defusing) return; // стоит на посту — путь не нужен
     var epp = fireSafe(bot.post, bot);
-    bot.path = buildWaypointPath(bot.baseX, bot.baseY, bot.z, epp.x, epp.y, 0, bot.team, botLane(bot));
+    bot.path = buildWaypointPath(bot.baseX, bot.baseY, bot.z, epp.x, epp.y, (epp === bot.post && bot.post.z) || 0, bot.team, botLane(bot), bot.walking);   // (v546) высота поста (ящик), если известна
     bot.pathIdx = 0; bot.pickTick = tick;
     return;
   }
@@ -248,7 +248,7 @@ function assignNewDestination(bot, tick){
     var route = ROAM_ROUTES[bot.team];
     if(route && route.length){
       var rp = route[bot.roamIdx % route.length];
-      bot.path = buildWaypointPath(bot.baseX, bot.baseY, bot.z, rp.x, rp.y, 0, bot.team, botLane(bot));
+      bot.path = buildWaypointPath(bot.baseX, bot.baseY, bot.z, rp.x, rp.y, 0, bot.team, botLane(bot), bot.walking);
       bot.pathIdx = 0; bot.pickTick = tick; bot.roamTarget = rp;
       return;
     }

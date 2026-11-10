@@ -361,7 +361,7 @@ function setPost(b, pt, look, hold, tag, spreadIdx){
       if(look && hasLOS(x0, y0, look.x, look.y) && !hasLOS(nx, ny, look.x, look.y)) return false;   // (v520) раздвигание не отнимает обзор поста
       x = nx; y = ny; return true; });
   }
-  b.post = {id:id, x:x, y:y, look:look||null, hold:hold, tag:tag};
+  b.post = {id:id, x:x, y:y, z:(pt.z != null ? pt.z : navOnlyZ(x, y)), look:look||null, hold:hold, tag:tag};   // (v546) z — высота точки, если задана, или пол точки, если он там один (ящик); иначе null
   if(psn) b.post.pro = psn.sp;
   b.atPost = false;
   if(b.state === "patrol"){ b.path = []; b.pathIdx = 0; }
@@ -400,7 +400,7 @@ function updatePost(b){
     var arrived = b.post.tag === "plantspot" && teamTac.T && SITES[teamTac.T.site] ? (onSite(SITES[teamTac.T.site], b.baseX, b.baseY) && d < 60) :
       b.post.tag === "defuse" ? d < DEFUSE_R - 8 :   // (v359, отметка: m0NESY «дошёл» до бомбы в 34 ед., а дефуз — с 30: стоял 12 с до взрыва)
       b.post.tag === "lineup" ? d < LU_AT :   // (v492) лайнап — в саму точку броска: с 34 px подбор отсюда — «свеча» (прогон 143)
-      (d < ((BAL.proSpots && b.post.pro) ? 9 : 34) && (b.atPost || canView()));
+      (d < ((BAL.proSpots && b.post.pro) ? 9 : 34) && (b.atPost || canView()) && (b.post.z == null || b.z == null || Math.abs(b.post.z - b.z) <= 40));   // (v546) пост на ящике — «дошёл» только наверху
     // (опорник "не дошёл") точка поста чуть внутри угла/стены: бот доходил на
     // 30–60px и крутился рядом, не "вставая" на пост. Не приближается ~1.5с — встал
     if(BAL.arriveNear && !b.atPost && !arrived && b.post.tag !== "plantspot" && b.post.tag !== "defuse"){
@@ -409,7 +409,7 @@ function updatePost(b){
       // (v519, пак 09.11 п.3; Р-32: bomb-watch «стоял на ступеньках, на точку не пришёл») «не приближается — значит дошёл» — только на этаже точки
       // (последняя точка пути — её пол): под точкой на возвышенности, на лестнице, он в 30–70 px по радару и ближе не подойдёт — это не «дошёл»
       else if(d < (b.post.tag === "lineup" ? RUN_NEAR : 70) && tick - b._apT > 90){ var lp = b.path && b.path.length ? b.path[b.path.length-1] : null;
-        if(!lp || lp[2] == null || b.z == null || Math.abs(lp[2] - b.z) <= 40) arrived = true; }
+        if((!lp || lp[2] == null || b.z == null || Math.abs(lp[2] - b.z) <= 40) && (b.post.z == null || b.z == null || Math.abs(b.post.z - b.z) <= 40)) arrived = true; }   // (v546) и не под постом на ящике
     }
     if(!b.atPost && arrived){ b.atPost = true; b.path = []; b.pathIdx = 0;
       // встал с AWP на угол — щелчок зума слышно рядом (≤200 по прямой, ≤120 за стеной)

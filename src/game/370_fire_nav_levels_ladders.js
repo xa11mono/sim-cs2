@@ -52,6 +52,18 @@ function navLinked2(a, b){   // связь в сторону движения н
   for(var i=0;i<E.length;i++){ var m = navArea(E[i].to); if(m && navLinked(m, b)) return true; }
   return false;
 }
+// (v546) с участка a на уровень z (± ступенька) — прыжком по связи навмеша (перепад на краю ≤ NAV_JUMP_UP, не подъём из демок): с самого a или с
+// соседних участков его уровня (до 3 переходов — путь после натяжки пропускает участки, точка пути — на стыке участков)
+function navJumpLinked(a, z){
+  var Q = [a], seen = {}; seen[a.id] = 1;
+  for(var d = 0; d < 3 && Q.length; d++){ var N = [];
+    for(var q = 0; q < Q.length; q++){ var m = Q[q], E = zoneGraph[m.id] || [];
+      for(var i = 0; i < E.length; i++){ var t = navArea(E[i].to); if(!t) continue;
+        if(Math.abs(t.z - z) <= 18 && Math.abs(t.z - a.z) > 18 && !NAV_CLIMB_UP[m.id+">"+t.id] && navEdgeDz(m, E[i]) <= NAV_JUMP_UP) return true;
+        if(!seen[t.id] && Math.abs(t.z - a.z) <= 18){ seen[t.id] = 1; N.push(t); } } }
+    Q = N; }
+  return false;
+}
 function navLinked(a, b){ var E = zoneGraph[a.id] || []; for(var i=0;i<E.length;i++) if(E[i].to === b.id) return true; return false; }
 // (v359, владелец: «сделать систему лестниц, чтобы не было проблем с Palace») лестница — отдельный переход: концы лестницы —
 // участки .nav (MAP.navmesh.ladders), низ и верх — ближайшая пара участков разной высоты. Путь ведёт на другой этаж через
@@ -60,6 +72,7 @@ function navLinked(a, b){ var E = zoneGraph[a.id] || []; for(var i=0;i<E.length;
 // участок другого конца и путь заново. Раньше этаж у лестницы угадывался по полу под ногами (оба этажа рядом) — бота
 // перекидывало между этажами и он «трясся»
 var CLIMB_FLOOR_TOL = 24, CLIMB_MID_R = 50, CLIMB_MAX_STEP = 68;   // CLIMB_MAX_STEP — ед. игры: прыжок с приседом в CS2 ~66 (как у JUMP_UP) + 2 на шаг сетки 3D (проектное)   // CLIMB_MID_R — px, поиск поверхности промежуточного ящика у точки из демок (v541, проектное число)   // ед. игры — проектное число (как допуск пола участка в проверке набора)
+var GAP_NEAR = 8;   // (v546) ед. карты: у точки отталкивания — прыгает (проектное число)
 var LADDERS = null, LADDER_SPEED = 150, LADDER_NEAR = 40, LADDER_SEEK = 260, LADDER_FAR = 150;
 function laddersBuild(){
   LADDERS = [];
@@ -131,14 +144,28 @@ function ladderTick(bot){
     // (v543, владелец 10.11: «оттолкнуться можно беззвучно, а приземляться он должен со звуком; и видно, что он в прыжке») подъём из демок —
     // это прыжки: доля полёта текущего прыжка (C.air, 0..1 — для рисования), приземление на промежуточный ящик и наверху — со звуком (landSound)
     if(C.jump){ C.air = q;
-      if(C.mid && p >= 0.5 && !C.land1){ C.land1 = true; bot.baseX = bot.x = C.mid.x; bot.baseY = bot.y = C.mid.y; landSound(bot); bot._jump = {t: tick, up: true}; } }
+      if(C.mid && p >= 0.5 && !C.land1){ C.land1 = true; bot.baseX = bot.x = C.mid.x; bot.baseY = bot.y = C.mid.y; landSound(bot, false, "up"); bot._jump = {t: tick, up: true}; } }
     bot.baseX = bot.x = A.x + (B.x - A.x)*q; bot.baseY = bot.y = A.y + (B.y - A.y)*q; bot.z = A.z + (B.z - A.z)*q;
     bot.curSpeed = LADDER_SPEED/2.5;
-    if(p >= 1){ bot.z = C.to.z; bot._area = C.to.area; bot._climb = null; bot.path = []; bot.pathIdx = 0; if(C.jump) landSound(bot); }
+    if(p >= 1){ bot.z = C.to.z; bot._area = C.to.area; bot._climb = null; bot.path = []; bot.pathIdx = 0; if(C.jump) landSound(bot, false, C.gap ? "gap" : "up"); }
     return true;
   }
   if(bot.z == null || !bot.path || bot.pathIdx >= bot.path.length) return false;
-  var wp = bot.path[bot.pathIdx]; if(!wp || wp[2] == null || Math.abs(wp[2] - bot.z) <= JUMP_UP) return false;
+  var wp = bot.path[bot.pathIdx];
+  // (v546) прыжок через щель (NAV_GAPS, 050): следующая точка пути — точка приземления; у точки отталкивания (≤ GAP_NEAR) — прыжок
+  // (время полёта — медиана из демок, приземление — со звуком); дальше — сначала к точке отталкивания
+  var G = wp && NAV_GAP_AT[navGapKey(wp[0], wp[1])];
+  if(G && Math.abs(wp[2] - G.b.z) < 1){
+    if(Math.hypot(G.a.x - bot.baseX, G.a.y - bot.baseY) > GAP_NEAR){ bot.path.splice(bot.pathIdx, 0, [G.a.x, G.a.y, G.a.z]); return false; }
+    bot._climb = {t0: tick, dur: Math.max(8, Math.round(G.sec*TICK_HZ)), from: {x: bot.baseX, y: bot.baseY, z: bot.z}, to: G.b, mid: null, jump: true, gap: true};
+    bot._jump = {t: tick, up: G.b.z >= G.a.z}; bot.pathIdx++;
+    return ladderTick(bot);
+  }
+  if(!wp || wp[2] == null || Math.abs(wp[2] - bot.z) <= JUMP_UP) return false;
+  // (v546, владелец 10.11, Mirage A: бот залез на ящик −106 и спрыгнул) высоты по центрам участков (−106 → −40: 66) больше прыжка, а на краю
+  // перепад 57 — это прыжок по связи навмеша, а не лестница: раньше в путь вставлялся подъём из демок в 100 ед. от ящика, бот шёл к нему и падал
+  // (путь после натяжки пропускает соседний участок своего уровня — связь ищется и через него, как navLinked2)
+  var ca = navArea(bot._area); if(ca && navJumpLinked(ca, wp[2])) return false;
   var L = ladderFor(bot.baseX, bot.baseY, bot.z, wp[2], LADDER_SEEK); if(!L) return false;
   // путь действительно идёт через лестницу: эта точка (или следующая за точкой у лестницы) — у другого конца лестницы. Высота
   // конечной точки пути бывает «не знаю» (0) — по ней одной на лестницу не лезть (бот лез вверх-вниз)
@@ -152,7 +179,8 @@ function ladderTick(bot){
     return false;
   }
   var dz = Math.abs(L.far.z - L.near.z);
-  bot._climb = {t0: tick, dur: Math.max(8, Math.round((L.sec || dz/LADDER_SPEED)*TICK_HZ)), from: {x: bot.baseX, y: bot.baseY, z: bot.z}, to: L.far, mid: L.mid || null, jump: !!L.jump};
+  // (v546) по лестнице шагом (bot.walking) — медленнее, как шаг (WALK_SPEED_FRAC), и бесшумно (шаги на лестнице — 540)
+  bot._climb = {t0: tick, dur: Math.max(8, Math.round((L.sec || dz/LADDER_SPEED/(!L.jump && bot.walking ? WALK_SPEED_FRAC : 1))*TICK_HZ)), from: {x: bot.baseX, y: bot.baseY, z: bot.z}, to: L.far, mid: L.mid || null, jump: !!L.jump};
   if(L.jump) bot._jump = {t: tick, up: true};   // (v543) подъём из демок — прыжок: стрелка «прыжок» у игрока
   if(bot.path[bot.pathIdx] && Math.hypot(bot.path[bot.pathIdx][0]-L.near.x, bot.path[bot.pathIdx][1]-L.near.y) < 4) bot.pathIdx++;
   return ladderTick(bot);

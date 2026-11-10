@@ -193,7 +193,7 @@ maxDelta)` (целевая скорость: стоять / идти / выбе�
 | `lineups.json` | `lineups` | `baked` (лайнапы из редактора), `pro` и `proExtra` (из демок; `proExtra` — только при `BAL.nadeMore`; с В4 у записи `throws` — записанные броски про: варианты с `rec`, сила `s`, прыжок `j`, `tools/nades/lineups_rec.py` + `lineups_fit.js`), `builtinOff` | `LINEUPS_BAKED`, `PRO_LINEUPS_RAW`, `BUILTIN_OFF_BAKED` |
 | `pro.json` | `pro` | места и взгляды про из демок: `spots`, `prior`, `look`, `positions`; `pistolNades` (v370, `tools/nades_pro.py`) | `PRO_SPOTS`, `PRO_PRIOR`, `PRO_LOOK`, `KNOW_POSITIONS` |
 | `map3d.json` (А5, необязательный) | `map3d` | 3D-геометрия игры (раздел «Карта 3D» ниже): есть — видимость, «в стене», гранатные проверки идут по ней, стены радара — только рисование | `MAP3D`, `m3()` (`035_map3d.js`) |
-| `climbs.json` (v372, необязательный) | `climbs` | подъёмы из демок (`tools/climbs_bake.py`): уступ «только спрыгнуть», куда про залезают — `{lo, hi, n, sec}` | связь «вверх» в `NAVAREAS[].conn`, `LADDERS` (`up:true`) |
+| `climbs.json` (v372, необязательный) | `climbs`, `gaps` (v546) | подъёмы из демок (`tools/climbs_bake.py`): уступ «только спрыгнуть», куда про залезают — `{lo, hi, n, sec}`; прыжки через щель (`tools/gaps_bake.py`) — `{a, b, n, demos, sec}` | связь «вверх» в `NAVAREAS[].conn`, `LADDERS` (`up:true`); щель — `navGapsAdd` (050) |
 
 Старые имена (`ZONEMAP`, `HEIGHTS`, `T_TACTICS`, …) остались короткими ссылками на `MAP.…` на тех же местах кода — порядок
 выполнения и правки на месте (выравнивание зон, навмеша, правки редактора) прежние.
@@ -423,6 +423,10 @@ CT идёт через зону с ролью `CTspawn`.
 каждый тик, плавно; читают рисование (620) и повтор (675). Старые `_zArea` / `_lvl` / `_under` убраны.
 Подъёмы (v533): `climbs.json` хранит стоянку на промежуточном ящике (`mid`), `ladderTick` лезет через неё; связи `.nav` вверх выше прыжка
 (не лестница / не подъём) снимает `navCutTall` при первом поиске пути.
+Прыжки через щель (v546): `climbs.json` → `gaps` (`tools/gaps_bake.py`, демки); `navGapsAdd` (050, из `navCutTall`) кладёт связь A → B с
+`edge.gap` (над сплошным полом по 3D — нет); путь проходит точку отталкивания и приземления (`NAV_GAP_AT`), прыжок — `ladderTick`. Цена
+перехода `navJumpCost` — время + шум по режиму (`zoneDijkstra.quiet` = бот на шифте; `buildWaypointPath(..., quiet)`). Звук приземления —
+`landSound(bot, quiet, kind)` (540), шаги на лестнице — в хозяине шагов (540), звук ранения — `applyDamage` (400).
 Песочница (v536): `677_sandbox.js` — одно место; игру вне песочницы не меняет (проверки `SANDBOX.on`, `b._sbOff`).
 
 Свойства задач (v527): списки «какие это задачи» (раньше — регулярки по `post.tag` в 14 файлах) — в одной таблице `TASK_PROP` (110),
