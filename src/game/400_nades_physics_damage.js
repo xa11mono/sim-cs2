@@ -138,7 +138,7 @@ function applyDamage(att, b, dmg, src, o){
   if(mate){ var fx = dmg + (b._ffFrac||0); dmg = Math.floor(fx); b._ffFrac = fx - dmg; if(dmg <= 0) return false; }
   else { dmg = Math.round(dmg); if(dmg <= 0) return false; }
   if(foe){ var dl0 = Math.min(dmg, Math.max(0,b.hp)); foe.roundDmg = (foe.roundDmg||0) + dl0; var D0 = b._dmgBy || (b._dmgBy = {}); D0[foe.id] = (D0[foe.id]||0) + dl0;
-    // (дуэли 06.11) кто кому сколько в этой перестрелке — 470 duelEdge: последние попадания у обоих, [тик, кто, урон]
+    // (дуэли 06.11) кто кому сколько в этой перестрелке — 470 duelEval / fin: последние попадания у обоих, [тик, кто, урон]
     var HL = b._hitIn || (b._hitIn = []); HL.push([tick, foe.id, dl0]); if(HL.length > 16) HL.shift();
     var HO = foe._hitOut || (foe._hitOut = []); HO.push([tick, b.id, dl0]); if(HO.length > 16) HO.shift(); }
   // (v518a, пак 09.11 п.6) «ранен» — одно место для пули, HE и огня (раньше ставили только пули, 490 / 450): откуда — то, что знает живой игрок:
