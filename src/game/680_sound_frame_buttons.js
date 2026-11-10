@@ -113,8 +113,9 @@ function sndBody(kind, x, y, o){
 function sndFireTick(){
   if(!SND || !SND.ctx) return;
   var M = SND.fireMap || (SND.fireMap = new Map());
-  M.forEach(function(v, f){ if(!SND.on || fires.indexOf(f) < 0){ try{ v.stop(); }catch(e){} M.delete(f); } });
-  if(!SND.on || !SND.buf.n_fireloop) return;
+  // (v530, владелец 10.11: «звук молотова при паузе цикличен») на паузе треск огня замолкает, после паузы — снова
+  M.forEach(function(v, f){ if(!SND.on || paused || fires.indexOf(f) < 0){ try{ v.stop(); }catch(e){} M.delete(f); } });
+  if(!SND.on || paused || !SND.buf.n_fireloop) return;
   fires.forEach(function(f){
     if(M.has(f)) return; var g = sndGain(f.x, f.y, SND_R.nade, "fire"); if(!g) return;
     var c = SND.ctx, src = c.createBufferSource(); src.buffer = SND.buf.n_fireloop; src.loop = true;

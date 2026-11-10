@@ -41,7 +41,9 @@ function moveWalkWhy(bot){
   if(BAL.cautious && bot.post && bot.state === "patrol" && taskProp(bot.post.tag, "cautiousEnd") &&
      Math.hypot(bot.post.x-bot.baseX, bot.post.y-bot.baseY) < 350) return "ретейк / ротация / дефуз — последние метры";
   // лёркер ходит тихо всегда, кроме самого начала (до своей точки на сетапе)
-  if(bot.tRole === "lurker" && bot.post && bot.state === "patrol" && taskProp(bot.post.tag, "lurkTask") && bot.post.tag !== "lurkStage"+(teamTac.T && teamTac.T.site==="A"?"B":"A")) return "лёркер";
+  // (v530, отметка владельца 10.11 «раш, а лёрк ходит на шифте») тишина лёркера — чтобы его не услышали, пока команда играет медленно; на раше
+  // команда сама шумит и выходит сразу — шаг ничего не скрывает, он отстаёт
+  if(bot.tRole === "lurker" && !(teamTac.T && teamTac.T.tac && teamTac.T.tac.style === "rush") && bot.post && bot.state === "patrol" && taskProp(bot.post.tag, "lurkTask") && bot.post.tag !== "lurkStage"+(teamTac.T && teamTac.T.site==="A"?"B":"A")) return "лёркер";
   if(BAL.dangerWalk && dangerWalk(bot)) return "опасное место";
   // (v323, М39) к дефузу близко — подходит шифтом, чтобы не выдать себя, если время есть (defuseWalk)
   if(defuseWalk(bot)) return "подход к дефузу";

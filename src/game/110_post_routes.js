@@ -275,7 +275,10 @@ function detourOk(b, kind, cost){
   var lv = taskAlive(b) ? b._task.lv : 1;
   if(lv >= 11 || (kind === "help" && lv >= 10)) return false;
   cost = cost || 0;
-  return cost <= DETOUR_MAX[kind] && cost + (kind === "pickup" ? 0.5 : CONTACT_HOLD) <= taskSlackSec(b);
+  // (v530, отметка владельца 10.11 «убил, мог подобрать оружие, но ушёл»: сейв с пистолетом, AK в 96 px в стороне от пути — крюк 3,3 с > 3 с)
+  // на сейве цель — унести оружие в следующий раунд: подбор лучшего — сама цель, а не отвлечение; предел крюка — только время (taskSlackSec)
+  var maxC = (kind === "pickup" && taskAlive(b) && taskProp(b._task.tag, "saveTask")) ? Infinity : DETOUR_MAX[kind];
+  return cost <= maxC && cost + (kind === "pickup" ? 0.5 : CONTACT_HOLD) <= taskSlackSec(b);
 }
 // начать отклонение: задача tag на sec секунд, главная задача (её уровень) ждёт
 function detourStart(b, kind, tag, sec){

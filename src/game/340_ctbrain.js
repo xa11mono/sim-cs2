@@ -337,7 +337,10 @@ function ctBrain(){
     // (v158) у про после взрыва живы 2,1 CT, у ботов было 1,2: сейвят раньше
     if(BAL.groupRetake) hopeless = hopeless || (cts.length >= 2 && cts.length <= tsAlive - 2) || (cts.length === 1 && tsAlive >= 3) ||
       (cts.length === 1 && tsAlive === 2 && !(cts[0].kit && needSecs + 8 < secs)); // 2v4 — ещё пробуем, 1v3/1v4/2v5 — сейв
-    if(ct._noResave && !(needSecs > secs)) hopeless = false;   // после «сейв → ретейк» — снова сейв только если не успеть
+    if(ct._noResave && !(needSecs > secs)) hopeless = false;
+    // (v530, отметка владельца 10.11 «не идёт дефузить»: все T мертвы, до взрыва 10,9 с, дефуз 6,4 с — а оба CT шли «на сейв», включённый раньше)
+    // врагов не осталось (видно по табло) — сохранять не от кого: решает только «успеть ли дефузнуть» (снятие уже включённого сейва — ниже)
+    if(tsAlive === 0) hopeless = needSecs > secs;   // после «сейв → ретейк» — снова сейв только если не успеть
     if(cts.length && hopeless && ((equip >= 1800 && saveWorth("CT")) || needSecs > secs)){   // (v434) сохранять — если оружие перейдёт в следующий раунд (saveWorth); не успеть — сейв всё равно
       ct.saving = true; saveCancelTrades("CT");
       logEvent("CT: сейв — ретейк "+cts.length+"v"+tsAlive+(needSecs > secs ? ", не успеть" : "")+", сохраняем оружие");
@@ -351,7 +354,9 @@ function ctBrain(){
       var secsS = bombTimeLeftTicks()/TICK_HZ, needS = Infinity;
       cts.forEach(function(b){ var t = defuseEta(b) + 1.0; if(t < needS) needS = t; });
       var evenS = cts.length >= tsS || (cts.length === tsS - 1 && needS + 7 < secsS);
-      if(evenS && needS + 2 < secsS && tsS > 0){
+      // (v530) врагов не осталось (tsS = 0, видно по табло) — сохранять не от кого: сейв снимается, если просто успеть дефузнуть (было: при tsS = 0
+      // сейв не снимался вовсе — оба CT уходили от бомбы при мёртвых T)
+      if(tsS > 0 ? (evenS && needS + 2 < secsS) : needS < secsS){
         ct.saving = false; ct._noResave = true; cts.forEach(function(b){ b._saveSpot = null; });
         logEvent("CT: сейв → ретейк — теперь "+cts.length+"v"+tsS+", успеваем ("+Math.round(secsS)+"с)");
         voiceLog("CT", "sv2rt", cts[0].id, cts.length+" на "+tsS+" — успеваем, идём ретейкать!");

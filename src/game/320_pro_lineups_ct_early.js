@@ -221,7 +221,15 @@ function ctClutch(b, ct){
   if(car && tick - car.tick < 8*TICK_HZ){ var dA = Math.hypot(car.x-SITES.A.x, car.y-SITES.A.y), dB = Math.hypot(car.x-SITES.B.x, car.y-SITES.B.y); if(Math.min(dA, dB) < 1000) carSite = dA < dB ? "A" : "B"; }
   var mA = beliefCount("CT", BZ.siteNear.A||[]), mB = beliefCount("CT", BZ.siteNear.B||[]);
   var infoSite = mA > mB + 0.5 ? "A" : (mB > mA + 0.5 ? "B" : null);
-  var want = plantSite || carSite || infoSite;
+  // (v530, отметка владельца 10.11: «у него всех убили на A, он до сих пор на посту на B») карта вероятностей за 30 с остыла, и последний CT
+  // «угадывал ближний сайт», хотя команда знала факты: где в этом раунде в последний раз видели живых T (радар, войс). Нет свежей инфы —
+  // сайт, у которого их видели последним (большинство); не видели никого — как раньше, угадывает
+  var seenSite = null;
+  if(!plantSite && !carSite && !infoSite){ var BLc = beliefLast.CT || {}, nA = 0, nB = 0;
+    for(var sid in BLc){ var sq = BLc[sid], so = teamBot(sid); if(!so || !so.alive || so.team !== "T" || sq.tick < roundStartTick) continue;
+      if(Math.hypot(sq.x-SITES.A.x, sq.y-SITES.A.y) < Math.hypot(sq.x-SITES.B.x, sq.y-SITES.B.y)) nA++; else nB++; }
+    if(nA !== nB) seenSite = nA > nB ? "A" : "B"; }
+  var want = plantSite || carSite || infoSite || seenSite;
   var nT = aliveCount("T");
   if(!C.site){
     C.site = want || (Math.hypot(b.x-SITES.A.x, b.y-SITES.A.y) < Math.hypot(b.x-SITES.B.x, b.y-SITES.B.y) ? "A" : "B");
@@ -229,7 +237,7 @@ function ctClutch(b, ct){
     voiceLog("CT", "clutch", b.id, "я один против "+nT+" — "+(want ? "по инфе они на "+C.site+", играю "+C.site : "угадываю "+C.site+", тяну время"));
   } else if(want && want !== C.site){
     if(C.want !== want){ C.want = want; C.wantSince = tick; }
-    if(plantSite || carSite || tick - C.wantSince > 8*TICK_HZ){
+    if(plantSite || carSite || (seenSite && want === seenSite) || tick - C.wantSince > 8*TICK_HZ){   // (v530) «где видели последним» — факт, не колеблется: без выдержки 8 с
       C.site = want; C.since = tick;
       voiceLog("CT", "clutchsw"+C.site, b.id, (plantSite ? "плант на "+want : carSite ? "бомба у "+want : "инфа на "+want)+" — иду туда");
     }

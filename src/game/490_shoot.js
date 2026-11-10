@@ -156,7 +156,10 @@ function tryShoot(shooter, target, dist){
   // пистолеты — с ~110px, ПП и винтовки — с ~160px
   var tapFrom = w.key === "USP" ? 45 : (w.spam >= 30 ? 0 : (w.slot === "secondary" ? 110 : 160));
   var tapK = w.key === "USP" ? 0.4 : 0.7;
-  if(w.spam && dist > tapFrom && w.spam/1000*heat > tapK*bA){ fireReady(shooter, target, (heat - tapK*bA*1000/w.spam)*(w.recov||8)); return; }
+  // (v530, отметка владельца 10.11 «зажимают, когда половина пуль идёт в укрытие»: с 450 px видна одна голова — 13 пуль за 2 с, попала 1) отсечка
+  // или зажим — по размеру того, что видно: из-за укрытия торчит только голова — цель размером с голову, очередь в неё не идёт
+  var tgA = bA; if(!thruSmoke && !prefire){ var vpT = visParts(shooter.x, shooter.y, shooter.crouching, target.x, target.y, target.crouching, undefined, shooter.z, target.z); if(vpT.head && !vpT.body) tgA = hA; }
+  if(w.spam && dist > tapFrom && w.spam/1000*heat > tapK*tgA){ fireReady(shooter, target, (heat - tapK*tgA*1000/w.spam)*(w.recov||8)); return; }
   var burstIdx = tick - shooter.lastShotTick > SPRAY_RESET_TICKS ? 0 : shooter.burstCount;
 
   // ---- раздел 14: попадание — не "шанс N%", а угловая ошибка прицела ----

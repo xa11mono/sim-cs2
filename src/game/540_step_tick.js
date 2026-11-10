@@ -173,6 +173,9 @@ function stepTick(){
     updatePost(bot);
     updateReload(bot);
     if(!bot.post) updateRoamer(bot);
+    // (v530, отметка владельца 10.11 «застрял в фазе роумер проверяет точку»: флаг чека остался на 98 с — его снимает только updateRoamer,
+    // а он не зовётся, пока у бота есть задача; скорость при этом 0) получил задачу — чек роумера кончился
+    else if(bot.roamChecking) bot.roamChecking = false;
     // этаж под ботом (раздел 9: метка уровня на радаре) — раз в 16 тиков хватает
     if(tick % 16 === 0){ var za = zoneOf(bot.baseX, bot.baseY, bot.z); bot._zArea = za ? za.z : 0; bot._under = hgtUnder(bot.baseX, bot.baseY, bot.z, za); bot._lvl = hgtUnderCenter(bot.baseX, bot.baseY, bot._under) ? -1 : za ? hgtLevelOf(za.id) : 0; }
     // "на лестнице" пересчитывается только в ветке движения — если бот

@@ -228,6 +228,10 @@ function holdSpot(b, T){
   // (v518c) опасные входы, которые ещё никто из своих в этой группе не держит
   var uncov = E.filter(function(e){ return e.wn >= HOLD.uncov && !(T.mates||[]).some(function(m){ return m.see && Math.hypot(m.see.pt.x-e.pt.x, m.see.pt.y-e.pt.y) < 60; }); });
   var eval1 = function(c, useMust){
+    // (v530, отметка владельца 10.11 «у всех постплант в одной зоне — повтор уже исправлявшейся ошибки»: троим выдана одна точка, 355,647) место,
+    // которое в этой группе уже занял свой (ближе «личного места» SPOT_PERSONAL — граница из демок), — не вариант: двое в одной точке не стоят.
+    // Раньше это был только штраф (HOLD.stack), и когда точек с видом на бомбу мало, лучшая всё равно побеждала у всех
+    if((T.mates||[]).some(function(m){ return Math.hypot(m.pt.x-c.x, m.pt.y-c.y) < SPOT_PERSONAL; })) return null;
     if(useMust && !mustPts.every(function(m){ return hasLOS(c.x, c.y, m.x, m.y); })) return null;
     var main = 0, mainE = null, open = 0;
     E.forEach(function(e){ if(!hasLOS(c.x, c.y, e.pt.x, e.pt.y)) return; var v = e.wn; open += v; if(v > main){ main = v; mainE = e; } });

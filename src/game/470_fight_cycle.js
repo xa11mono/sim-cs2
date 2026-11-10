@@ -233,7 +233,10 @@ function fightCycleTick(b, dtSec, busy){
       var e = F.e;
       if(!e){ b._fc = null; return; }
       var push = fightPush(b), tw = push && b.post ? {x:b.post.x, y:b.post.y} : null;
-      var c0 = fightCover(b, e, peekQ(D.shift, fightRand(b, 2)), tw) || fightCover(b, e, D.shift[4], tw), DV = duelEval(b, F, c0);
+      // (v530, отметка владельца 10.11 «игра снова лагает»: поиск укрытия — 21 мс, а считался при каждой оценке размена — 68 раз за 10 с) укрытие
+      // ищется, только когда оно нужно: размен не мой или стрелять нечем. Решение то же (на «вижу врага / размен мой» укрытие не влияло)
+      var c0 = null, DV = duelEval(b, F, null);
+      if(DV && DV.sees && !DV.win){ c0 = fightCover(b, e, peekQ(D.shift, fightRand(b, 2)), tw) || fightCover(b, e, D.shift[4], tw); DV = duelEval(b, F, c0); }
       // размен выигрываю (или до укрытия дольше, чем меня убьют — уйти не успею) — стреляю дальше; следующая оценка — через время реакции
       if(DV && !DV.sees){ F.until = tick + 4; return; }   // врага не видно — стрелять не в кого: держит угол на линии (где появится), не отходит; бой кончится по «враг пропал» выше
       if(DV && DV.sees && (DV.win || (DV.trapped && !b._reloading && b.ammo > 0))){ F.until = tick + Math.max(b.reactionTicks || 1, 8); fcWhy(b, DV.win ? "остался: размен мой" : "остался: уйти не успею");
@@ -243,7 +246,7 @@ function fightCycleTick(b, dtSec, busy){
         F.until = tick + Math.max(b.reactionTicks || 1, Math.round(peekQ(D.dur, fightRand(b, 9))*TICK_HZ)); fcWhy(b, "остался: давлю по задаче");
         if(!b._fcP || tick - b._fcP > 4*TICK_HZ){ b._fcP = tick; logEvent(b.id+": давлю по задаче — остаюсь на линии"); }
         return; }
-      var c = c0;
+      var c = c0 || fightCover(b, e, peekQ(D.shift, fightRand(b, 2)), tw) || fightCover(b, e, D.shift[4], tw);
       if(!c){ F.until = 0; F.t = tick; fcWhy(b, "остался: укрыться негде"); return; }   // укрыться негде — остаётся на линии
       F.ph = "off"; F.mv = 0; F.cx = c.x; F.cy = c.y; F.ax = b.baseX; F.ay = b.baseY; F.own = false;
       F.until = tick + Math.round(peekQ(D.pause, fightRand(b, 3))*TICK_HZ);
