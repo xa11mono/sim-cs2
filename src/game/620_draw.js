@@ -245,7 +245,9 @@ function draw(){
   // контакты для HUD — считаем всегда, независимо от отрисовки
   bots.forEach(function(ct){
     if(ct.team!=="CT"||!ct.alive) return;
-    bots.forEach(function(t){ if(t.team==="T" && t.alive && hasVision(ct.x,ct.y,t.x,t.y)) contacts++; });
+    // (v545, отметка владельца 10.11: T в Dark под этажом, CT над ним — «ОБНАРУЖЕН КОНТАКТ», хотя друг друга не видят) табличка считала прямую
+    // по радару без высот (hasVision — 2D). Контакт — когда кто-то из пары правда видит другого (видимость ботов, 3D, _visible)
+    bots.forEach(function(t){ if(t.team==="T" && t.alive && ((ct._visible||[]).indexOf(t) >= 0 || (t._visible||[]).indexOf(ct) >= 0)) contacts++; });
   });
 
   // ---------- анимация ожидания (только визуал, на симуляцию не влияет) ----------
