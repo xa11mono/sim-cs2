@@ -383,7 +383,10 @@ var LOWHP_MATE_PATH = 600;   // проектное число: px пути (~150
 function lowHpBack(b){
   if(!BAL.lowHpBack || b._sawEnemy || b.planting || b.defusing || tick < (b._lowHpNext||0)) return;
   var low = b.hp <= LOW_HP;
-  var lostNear = !low && ((teamIntel[b.team] && teamIntel[b.team].sig) || []).some(function(sg){ return sg.type === "died" && sg.id !== b.id && tick - sg.tick < 8*TICK_HZ && Math.hypot(sg.x-b.x, sg.y-b.y) < 900; });
+  // (v531, владелец 10.11: «тиммейтов убили далеко, а игрок в Jungle, ещё не дошедший и не видевший врага, получил „рядом погиб свой“») «рядом» —
+  // по пути, а не по прямой сквозь стены: 900 px по прямой через стену — это другая часть карты. Сначала прямая (путь не короче), потом путь
+  var nearPath = function(x, y, R){ return Math.hypot(x-b.x, y-b.y) < R && pathLenTo(b, x, y) < R; };
+  var lostNear = !low && ((teamIntel[b.team] && teamIntel[b.team].sig) || []).some(function(sg){ return sg.type === "died" && sg.id !== b.id && tick - sg.tick < 8*TICK_HZ && nearPath(sg.x, sg.y, 900); });
   if(!low && !lostNear) return;
   if(bomb && bomb.state === "planted") return; // ретейк/пост-плант — бомба важнее
   var defending = b.team === "CT" && b.post && taskProp(b.post.tag, "holdsGround");
@@ -394,7 +397,7 @@ function lowHpBack(b){
   if(!mates.length) return; // один — отходить не к кому
   if(mates.some(function(o){ return Math.hypot(o.x-b.x, o.y-b.y) < 350; })) return; // рядом уже есть свой
   var threat = exposedTo(b).concat([]); var BL = beliefLast[b.team] || {};
-  var near = false; for(var eid in BL){ var lo = BL[eid]; if(tick - lo.tick < 8*TICK_HZ && Math.hypot(lo.x-b.x, lo.y-b.y) < 700){ near = true; threat.push({x:lo.x, y:lo.y}); } }
+  var near = false; for(var eid in BL){ var lo = BL[eid]; if(tick - lo.tick < 8*TICK_HZ && nearPath(lo.x, lo.y, 700)){ near = true; threat.push({x:lo.x, y:lo.y}); } }   // (v531) враг рядом — тоже по пути
   if(!near) return;
   // опорник на своём сайте с малым HP сайт не бросает — отходит, только если
   // совсем мало (≤20) и на него идут двое+
