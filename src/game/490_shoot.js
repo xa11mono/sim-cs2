@@ -46,6 +46,19 @@ function awpNoscope(sh, tg, dist){
 // (Б4) готовность к выстрелу для движения в дуэли (fightCycleTick): через сколько тиков бот мог бы выстрелить в эту цель
 // (реакция, темп оружия, остывание разброса); 0 — готов, ждёт только, пока погасит скорость
 function fireReady(sh, tg, n){ sh._fire = {t:tick, tg:tg.id, inT:Math.max(0, Math.ceil(n))}; }
+// (v547, ответ владельца 10.11, сейв: «приоритет — выживание оружия; в перестрелку — только в исключительных случаях: враг не видит бота и не
+// перекрывает путь отхода — пройти мимо, любая стрельба раскроет позицию; помочь своему — только если бой прямо в зоне видимости и размен
+// быстрый») бот на сейве стреляет, если враг видит его, стоит на его пути отхода (≤ SAVE_PATH_R от оставшегося пути / точки сейва) или
+// сейчас стреляется со своим. SAVE_PATH_R — проектное число
+var SAVE_PATH_R = 150;
+function saveShootOk(b, t){
+  if(!taskAlive(b) || !taskProp(b._task.tag, "saveTask")) return true;
+  if(t._visible && t._visible.indexOf(b) >= 0) return true;
+  var m = t._nearestEnemyBot; if(m && m !== b && m.team === b.team && m.alive && m._sawEnemy) return true;
+  var P = (b.path || []).slice(b.pathIdx || 0); if(b._saveSpot) P.push([b._saveSpot.x, b._saveSpot.y]);
+  for(var i = 0; i < P.length; i++) if(Math.hypot(P[i][0]-t.x, P[i][1]-t.y) < SAVE_PATH_R) return true;
+  return false;
+}
 function tryShoot(shooter, target, dist){
   if(shooter._sbOff) return;   // (v536) песочница: ИИ выключен — не стреляет (677)
   // (этап 2, P0-2) реакция и доводка — по ЭТОЙ цели (shooter._ts[id] — сколько тиков подряд её видно, гаснет как contactStreak),
@@ -57,6 +70,7 @@ function tryShoot(shooter, target, dist){
   // расстреливали в спину); бег и так режет ему точность
   if(shooter.planting || shooter.defusing) return; // руки заняты
   if(tick < shooter.blindUntil || tick < (shooter.throwUntil||0)) return; // ослеплён / бросает гранату
+  if(!saveShootOk(shooter, target)) return;   // (v547) сейв — проходит мимо
   // план §3: "бот, держащий угол, может выстрелить до того как истечёт обычная
   // реакция на новый визуальный контакт, если есть свежая информация 'враг там',
   // и шанс зависит от точности этой информации" — префайр обходит обычный gate

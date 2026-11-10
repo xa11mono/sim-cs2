@@ -280,8 +280,10 @@ function weaponPickupTick(){
     // (v469, п.27 владельца 29.10, р12 м1: опорник B karrigan пошёл за оружием с самого B, хотя рядом стояли свои) ответ про-аналитика 29.10:
     // за оружием не ходят, пока рядом бой (свежая инфа о враге ≤ 1200 ед. игры = 480 px); опорник, держащий вход на свой сайт, со своей точки за ним не уходит —
     // только со слабым оружием (пистолет / ПП); идёт второй линии игрок или тот, у кого хуже ствол
-    var LKp = beliefLast[b.team] || {};
-    for(var eP in LKp){ if(tick - LKp[eP].tick < 3*TICK_HZ && Math.hypot(LKp[eP].x-b.x, LKp[eP].y-b.y) < 1200/MAP.pxUnits) return; }
+    // (v547, владелец 10.11: «в ретейке, пост-планте, сейве не подбирают, даже когда есть возможность») у задачи фазы (уровень ≥ 7) враги рядом
+    // есть почти всегда — «бой рядом» её не отменяет: решают опасность у самого оружия (danger ниже) и терпит ли задача крюк (pickDetour)
+    var LKp = beliefLast[b.team] || {}, phaseP = taskAlive(b) && b._task.lv >= 7;
+    if(!phaseP) for(var eP in LKp){ if(tick - LKp[eP].tick < 3*TICK_HZ && Math.hypot(LKp[eP].x-b.x, LKp[eP].y-b.y) < 1200/MAP.pxUnits) return; }
     if((b.tRole === "anchorA" || b.tRole === "anchorB") && b.primary && WEAPONS[b.primary].tier >= 5) return;
     if(BAL.pickFix && b._pickBan > tick) return;
     var best = null, bd = BAL.pickupMore ? 420 : 230;

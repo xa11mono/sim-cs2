@@ -68,7 +68,9 @@ function decideAction(bot, nearestDist, alliesNear, enemiesSeen){
   if(bot.team === "T" && teamTac.T && teamTac.T.saving && !(bomb && bomb.state === "planted")){ engageScore -= 0.25; retreatScore += 0.25; } // сейв T — не лезть в дуэли
   if(bot.team === "CT" && teamTac.CT && teamTac.CT.preSave && !(bomb && bomb.state === "planted")){ engageScore -= 0.25; retreatScore += 0.25; }
   // враг ранен ("он на 20") — не отходить, а добивать
-  if(BAL.hurtCall && bot._nearestEnemyBot){ var HTd = teamIntel[bot.team].hurt, hk = HTd && HTd[bot._nearestEnemyBot.id];
+  // (v547, ответ владельца 10.11: «на сейве добивать раненого — нет: стрельба раскроет позицию, придут зажимать, потеря девайса») — не на сейве
+  var savingD = taskAlive(bot) && taskProp(bot._task.tag, "saveTask");
+  if(BAL.hurtCall && bot._nearestEnemyBot && !savingD){ var HTd = teamIntel[bot.team].hurt, hk = HTd && HTd[bot._nearestEnemyBot.id];
     if(hk && hk.hp <= 35 && tick - hk.tick < 10*TICK_HZ){ engageScore += 0.2; retreatScore -= 0.15; } }
   // после планта T держат бомбу, CT обязаны идти — время важнее HP
   if(bomb && bomb.state === "planted"){

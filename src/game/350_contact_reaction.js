@@ -47,9 +47,21 @@ function contactInfo(b){
   // если главная задача терпит отклонение (detourOk, 110: не ставит / не дефузит, не бомба, не сейв, время есть); тянуть туда-обратно
   // (прогон 178) не даёт сам контакт: держится, пока знание свежее + CONTACT_HOLD, повтор — не чаще CONTACT_GAP
   var freeToHelp = !b.post || taskLevel(b.post.tag) <= 3 || detourOk(b, "help");
-  var mateFights = function(id){ return freeToHelp && bots.some(function(o){ return o !== b && o.alive && o.team === b.team && o._sawEnemy && o._nearestEnemyBot && o._nearestEnemyBot.id === id; }); };
+  var mateFight0 = function(id){ return bots.some(function(o){ return o !== b && o.alive && o.team === b.team && o._sawEnemy && o._nearestEnemyBot && o._nearestEnemyBot.id === id; }); };
+  var mateFights = function(id){ return freeToHelp && mateFight0(id); };
+  // (v547, владелец 10.11: «в ретейке, пост-планте, охоте боты не помогают») «на своём участке спокойно» (calm, v408 — мидер держит мид) — только
+  // у того, кто держит пост роли; у задачи фазы (ретейк, пост-плант, охота: уровень ≥ 7) участок — вся задача, терпит ли она помощь — detourOk
+  var lvB = taskAlive(b) ? b._task.lv : 1, phase = lvB >= 7;
+  // (v547, ответ владельца 10.11, сейв: «помогать своему — только если перестрелка прямо в зоне видимости бота, бежать и открывать новые позиции не
+  // нужно, размен быстрый») на сейве — только враг, с которым свой сейчас стреляется и которого видно с места бота; ноги остаются на сейве
+  // (контакт ниже сейва — арбитр места), взгляд и выстрел — туда
+  var saving = taskAlive(b) && taskProp(b._task.tag, "saveTask");
+  // (v547, ответ владельца 10.11: «CT на ретейке выбивают — их цель убить всех, по которым есть инфа, которые могут помешать дефузу») CT с
+  // поставленной бомбой (не сейв) — инфа своих о враге рядом (по пути ≤ CONTACT_R, место видно — take) — его контакт, а не только своя зона
+  var retakeHunt = b.team === "CT" && bomb && bomb.state === "planted" && !saving && !(teamTac.CT && teamTac.CT.saving);
   for(var id in BL){ var e = BL[id], ob = teamBot(id); if(!ob || !ob.alive || tick - e.tick > CONTACT_AGE*TICK_HZ) continue;
-    if(trade || myZ[zoneIdAt3(e.x, e.y, e.z)] || (mateFights(id) && calm())) take(e.x, e.y, e.src === "spotted", id, e.z); }
+    if(saving){ if(mateFight0(id) && hasLOS(b.x, b.y, e.x, e.y, b.z, e.z)) take(e.x, e.y, e.src === "spotted", id, e.z); continue; }
+    if(trade || retakeHunt || myZ[zoneIdAt3(e.x, e.y, e.z)] || (mateFights(id) && (phase || calm()))) take(e.x, e.y, e.src === "spotted", id, e.z); }
   // (v469) бросок гранаты (слышно чеку / бросок) — не контакт (ответ про-аналитика: на гранату вдали не реагировать); её место знание получает
   var hs = b.heardSound; if(hs && hs.team && hs.team !== b.team && hs.kind !== "nade" && tick - hs.tick <= CONTACT_AGE*TICK_HZ && !deadSrc(hs.src) && (hs.kind !== "call" || trade || myZ[zoneIdAt3(hs.x, hs.y, hs.z)])) take(hs.x, hs.y, false, hs.src, hs.z);
   // (v448, док владельца 28.10 №4: у игрока 1 «якорь контакт холд, когда он далеко, не стрелялся и никого не видел») своя флешка —
@@ -153,6 +165,9 @@ function contactTick(b){
     if(!adv) swing = false;
   }
   if(swing && bomb && bomb.state === "carried" && bomb.carrier === b && aliveCount(b.team) > 1) swing = false;
+  // (v547, ответ владельца 10.11: «T на пост-планте незачем искать дуэли — сидит, ждёт, смотрит, откуда придут; дефузят — идёт сбивать (антидефуз —
+  // задача бомбы)») и на сейве на врага не выходит (держит / смотрит с места)
+  if(swing && ((b.team === "T" && bomb && bomb.state === "planted") || (taskAlive(b) && taskProp(b._task.tag, "saveTask")))) swing = false;
   // (v450) носитель в выходе не встаёт «держать контакт»: идёт за своими на точку планта (взгляд — на контакт, задача — прежняя)
   if(tExec && bomb.state === "carried" && bomb.carrier === b && aliveCount(b.team) > 1){ b._contact = {x:C.x, y:C.y, id:C.id, until: tick + CONTACT_HOLD*TICK_HZ, lock:false}; b._contactT = tick; return; }
   if(swing && bots.some(function(o){ return o !== b && o.alive && o.team === b.team && o._contact && o._contact.tag === "contact:swing" && tick < o._contact.until && Math.hypot(o._contact.x-C.x, o._contact.y-C.y) < 200; })) swing = false;   // на него уже выходит свой

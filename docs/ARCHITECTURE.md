@@ -423,6 +423,8 @@ CT идёт через зону с ролью `CTspawn`.
 каждый тик, плавно; читают рисование (620) и повтор (675). Старые `_zArea` / `_lvl` / `_under` убраны.
 Подъёмы (v533): `climbs.json` хранит стоянку на промежуточном ящике (`mid`), `ladderTick` лезет через неё; связи `.nav` вверх выше прыжка
 (не лестница / не подъём) снимает `navCutTall` при первом поиске пути.
+Отклонение вместо отказа (v547): `setPost` (110) при отказе задаче уровня 3–6 из-за задачи фазы (7–10) спрашивает `taskDetourKind` (вид — по
+свойствам `detourSelf` / `detourHelp` / `detourSeek` в `TASK_PROP`) и `detourOk`; механики, решающие до `setPost`, — `taskCanTry`. «Дошёл» — `POST_ARRIVE`.
 Прыжки через щель (v546): `climbs.json` → `gaps` (`tools/gaps_bake.py`, демки); `navGapsAdd` (050, из `navCutTall`) кладёт связь A → B с
 `edge.gap` (над сплошным полом по 3D — нет); путь проходит точку отталкивания и приземления (`NAV_GAP_AT`), прыжок — `ladderTick`. Цена
 перехода `navJumpCost` — время + шум по режиму (`zoneDijkstra.quiet` = бот на шифте; `buildWaypointPath(..., quiet)`). Звук приземления —

@@ -390,7 +390,7 @@ function ctBrain(){
     }
     if(ct.bombDown && ct.bombWatch.id === b.id){ // (v262, К5) держит выбитую бомбу и при колле
       setPost(b, ct.bombWatch.pt, {x:bomb.x, y:bomb.y}, true, "bombwatch"); return; }
-    if(!planted && !ct.saving && ctLandPunish(b)) return;   // (v343) услышал приземление одного рядом — выходит на него
+    if(!ct.saving && ctLandPunish(b)) return;   // (v547) и на ретейке («CT выбивают всех, по кому есть инфа» — владелец 10.11); терпит ли ретейк — отклонение (setPost)   // (v343) услышал приземление одного рядом — выходит на него
     if(ct.flank && !ct.flank.dead && ct.flank.id === b.id && !ct.saving && flankPost(b, ct.flank, planted)) return;
     // (35) ретейк 2 на 3+ — AWP не несут в почти проигранный ретейк: снайпер сейвит
     if(BAL.awpSave && planted && b.primary === "AWP" && cts.length === 2 && aliveCount("T") >= 3 && saveWorth("CT")){

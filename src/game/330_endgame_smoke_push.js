@@ -260,7 +260,7 @@ var LAND_PUNISH_R = 250, LAND_PUNISH_FRESH = 1.5, LAND_PUNISH_SEC = 4;
 function ctLandPunish(b){
   var P = b._lp;
   if(P && (P.round !== roundNum || tick > P.until || b._sawEnemy)){ b._lp = null; P = null; }
-  if(P){ setPost(b, P.pt, P.pt, true, "repos:land"); return true; }
+  if(P){ if(setPost(b, P.pt, P.pt, true, "repos:land")) return true; b._lp = null; return false; }   // (v547) отказали (задача важнее) — не «сделал»: мозг идёт дальше
   var h = b.heardSound;
   if(!h || !h.land || h.team === b.team || tick - h.tick > LAND_PUNISH_FRESH*TICK_HZ || b._lpDone === h.tick) return false;
   b._lpDone = h.tick;
@@ -271,7 +271,7 @@ function ctLandPunish(b){
   var go = hashRand(h.tick*13 + b.id.charCodeAt(b.id.length-1)*7 + roundNum) < (b.prof ? prof(b, "aggr") : 0.5);
   if(!go) return false;
   b._lp = {round: roundNum, pt: {x:h.x, y:h.y}, until: tick + LAND_PUNISH_SEC*TICK_HZ};
+  if(!setPost(b, b._lp.pt, b._lp.pt, true, "repos:land")){ b._lp = null; return false; }
   voiceLog("CT", "lp"+b.id+h.tick, b.id, "спрыгнул один — "+calloutName(h.x, h.y)+", выхожу на него");
-  setPost(b, b._lp.pt, b._lp.pt, true, "repos:land");
   return true;
 }

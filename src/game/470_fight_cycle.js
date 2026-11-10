@@ -388,10 +388,10 @@ function lowHpBack(b){
   var nearPath = function(x, y, R){ return nearP(b.x, b.y, b.z, x, y, null, R); };   // (v532) общее «рядом по пути» (100)
   var lostNear = !low && ((teamIntel[b.team] && teamIntel[b.team].sig) || []).some(function(sg){ return sg.type === "died" && sg.id !== b.id && tick - sg.tick < 8*TICK_HZ && nearPath(sg.x, sg.y, 900); });
   if(!low && !lostNear) return;
-  if(bomb && bomb.state === "planted") return; // ретейк/пост-плант — бомба важнее
+  // (v547) было «бомба стоит — не отходит» (ретейк / пост-плант важнее): терпит ли задача фазы отход — отклонение (taskCanTry, 110)
   var defending = b.team === "CT" && b.post && taskProp(b.post.tag, "holdsGround");
   if(bomb && bomb.state === "carried" && bomb.carrier === b) return;
-  if(!taskCanSet(b, "repos:lowhp")) return;   // (v378) идёт по задаче не ниже — арбитр места
+  if(!taskCanTry(b, "repos:lowhp")) return;   // (v378) идёт по задаче не ниже — арбитр места; (v547) задача фазы — отклонением
   b._lowHpNext = tick + TICK_HZ;
   var mates = bots.filter(function(o){ return o !== b && o.alive && o.team === b.team; });
   if(!mates.length) return; // один — отходить не к кому

@@ -159,6 +159,11 @@ var ENTRY_WAIT = 128;   // (v375) 2 с: напарник на размен у в
 // Следующий шаг (меняет игру): свести похожие свойства (holdsGround / holdsSite / siteDefender / reangleHolder; pieBusy / dangerWalkSkip /
 // shiftHoldBusy / holdStrafeSkip / blindCoverBusy) и перенести в строки TASK_LEVEL
 var TASK_PROP = {
+  // (v547) отклонение вместо отказа (setPost, taskCanTry): короткое действие, которое задача фазы (ретейк, пост-плант, охота, сейв) раньше
+  // молча перебивала. «Своё» — уйти от урона / перезарядиться / отойти; «помощь» — своему; «на дуэль» — выйти на врага самому
+  detourSelf:       /^repos:(hurt|rlcover|lowhp|back)$/,
+  detourHelp:       /^repos:(assist|flank|coverblind)$/,
+  detourSeek:       /^repos:(push|swing|land|reload)$/,
   rushFollowable:   /^(rushFollow|utilWait|utilHold|route:|plantspot|bombWait)/,   // раш: задачи, с которых бота можно позвать следом за энтри (170)
   pieCareful:       /^(endhunt|hunt|probe|earlyPeek|flank|lurk|midcover|clear|roam|shift|clutch)/,   // срез угла: задачи, на которых угол режут (250)
   pieBusy:          /^(defuse|plantspot|flee|save|antidefuse|stopplant|retake|tradeR|repos|fetch|pickup|lineup)/,   // срез угла: задачи, на которых углы не режут (некогда) (250)
@@ -265,7 +270,7 @@ function taskCanSet(b, tag){
 // можно, если главная задача это время терпит (taskSlackSec), и не дольше DETOUR_MAX; пока идёт — главная задача его не перебивает (taskCanSet),
 // кончилось (срок / механика сняла точку) — главная задача ставит свою точку снова, путь — от того места, где бот сейчас.
 // Нельзя: ставит / дефузит, задача «бомба» (уровень 11); помогать в бою — и на сейве (сейв от боя и уходит).
-var DETOUR_MAX = {help: 4, pickup: 3, hurt: 3};   // с — проектные числа (первые кандидаты на замену данными)
+var DETOUR_MAX = {help: 4, pickup: 3, hurt: 3, seek: 4};   // (v547) seek — как help   // с — проектные числа (первые кандидаты на замену данными)
 // сколько секунд главная задача бота может подождать: CT с бомбой на карте — запас до «не успею дефузнуть» (3 с — как contactCritical);
 // T на пост-планте — 0, если дефузят (анти-дефуз важнее); CT на сейве — до «не успею уйти от взрыва к своей точке сейва»; остальное — не срочно
 function taskSlackSec(b){
@@ -280,13 +285,25 @@ function detourOk(b, kind, cost){
   if(!b.alive || b.planting || b.defusing) return false;
   if(b._detour && b._detour.round === roundNum && tick < b._detour.until) return false;   // одно отклонение за раз
   var lv = taskAlive(b) ? b._task.lv : 1;
-  if(lv >= 11 || (kind === "help" && lv >= 10)) return false;
+  if(lv >= 11 || ((kind === "help" || kind === "seek") && lv >= 10)) return false;
+  // (v547, ответ владельца 10.11: «T на пост-планте незачем искать дуэли — сидит, ждёт; дефузят — идёт сбивать») выйти на врага самому — не T
+  // с поставленной бомбой (сбить дефуз — задача «бомба», уровень 11, сама)
+  if(kind === "seek" && b.team === "T" && bomb && bomb.state === "planted") return false;
   cost = cost || 0;
   // (v530, отметка владельца 10.11 «убил, мог подобрать оружие, но ушёл»: сейв с пистолетом, AK в 96 px в стороне от пути — крюк 3,3 с > 3 с)
   // на сейве цель — унести оружие в следующий раунд: подбор лучшего — сама цель, а не отвлечение; предел крюка — только время (taskSlackSec)
   var maxC = (kind === "pickup" && taskAlive(b) && taskProp(b._task.tag, "saveTask")) ? Infinity : DETOUR_MAX[kind];
   return cost <= maxC && cost + (kind === "pickup" ? 0.5 : CONTACT_HOLD) <= taskSlackSec(b);
 }
+// (v547, владелец 10.11: «в ретейке, пост-планте, сейве, охоте боты игнорируют многое, им запрещается что-либо делать — помогать, подбирать,
+// даже когда есть возможность») короткое действие задачи ниже фазы (уровни 3–6) при задаче фазы (7–10) — отклонение, а не отказ: вид
+// отклонения по свойству задачи (TASK_PROP: detourSelf / detourHelp / detourSeek); null — отказ, как раньше
+function taskDetourKind(b, tag){
+  if(!taskAlive(b) || b._task.lv < 7 || b._task.lv > 10 || taskLevel(tag) > 6) return null;
+  return taskProp(tag, "detourSelf") ? "hurt" : taskProp(tag, "detourHelp") ? "help" : taskProp(tag, "detourSeek") ? "seek" : null;
+}
+// можно ли затеять задачу tag (сразу или отклонением) — для механик, которые решают, затевать ли своё, до setPost
+function taskCanTry(b, tag){ if(taskCanSet(b, tag)) return true; var dk = taskDetourKind(b, tag); return !!dk && detourOk(b, dk, 0); }
 // начать отклонение: задача tag на sec секунд, главная задача (её уровень) ждёт
 function detourStart(b, kind, tag, sec){
   var lv = taskAlive(b) ? b._task.lv : 1;
@@ -295,6 +312,10 @@ function detourStart(b, kind, tag, sec){
 // механика держит свою текущую задачу (пост не меняется — подтвердить, что затея ещё идёт)
 function postKeep(b){ if(b.post && b._task && b._task.tag === b.post.tag) b._task.t = tick; }
 var POST_DWELL = 96;   // (v375) 1,5 с — проектное число
+// (v547, владелец 10.11, отметка «поставил ему точку, он не дошёл и перестал идти»: «дошёл» засчитывалось в 34 px (≈ 85 ед. игры) от точки —
+// бот вставал раньше точки, приказ песочницы снимался) «дошёл» — в самой точке (≈ 20 ед. игры, меньше ширины игрока); точка, до которой
+// не дойти (в углу, за краем), — как раньше: не приближается 1,4 с — встал (arriveNear). Было 34 (у места про — 9) — проектное число
+var POST_ARRIVE = 8;
 var POST_EXACT = TASK_PROP.exactSpot;   // (v527) список — в таблице свойств задач
 var POST_VIEW_R = 120, POST_VIEW = {k: null, m: {}};   // px — насколько можно сдвинуть пост ради обзора (проектное число)
 function postViewPoint(pt, look){
@@ -326,7 +347,9 @@ function setPost(b, pt, look, hold, tag, spreadIdx){
     }
   }
   if(lv === 1 && !/^after:/.test(String(tag))){ var AF = afterTaskPick(b, pt); if(AF) return setPost(b, AF.pt, AF.look, true, "after:hold"); }
-  if(!taskCanSet(b, tag)) return false;
+  if(!taskCanSet(b, tag)){ var dk = taskDetourKind(b, tag);   // (v547) задача фазы — не отказ, а отклонение, если она терпит это время
+    if(!dk || !pt || !detourOk(b, dk, pathLenTo(b, pt.x, pt.y)/SPEED)) return false;
+    detourStart(b, dk, tag, DETOUR_MAX[dk]); }
   var tagB = taskTagB(tag);
   var psn = (BAL.proSpots && hold && pt) ? proSnap(b, pt, look, tag) : null;
   // (v520, отметки владельца 09.11 м200 р1/р3: мидер у Window и NiKo у Hole — точку уводило к месту про, откуда не видно того, что держит пост:
@@ -400,7 +423,7 @@ function updatePost(b){
     var arrived = b.post.tag === "plantspot" && teamTac.T && SITES[teamTac.T.site] ? (onSite(SITES[teamTac.T.site], b.baseX, b.baseY) && d < 60) :
       b.post.tag === "defuse" ? d < DEFUSE_R - 8 :   // (v359, отметка: m0NESY «дошёл» до бомбы в 34 ед., а дефуз — с 30: стоял 12 с до взрыва)
       b.post.tag === "lineup" ? d < LU_AT :   // (v492) лайнап — в саму точку броска: с 34 px подбор отсюда — «свеча» (прогон 143)
-      (d < ((BAL.proSpots && b.post.pro) ? 9 : 34) && (b.atPost || canView()) && (b.post.z == null || b.z == null || Math.abs(b.post.z - b.z) <= 40));   // (v546) пост на ящике — «дошёл» только наверху
+      (d < POST_ARRIVE && (b.atPost || canView()) && (b.post.z == null || b.z == null || Math.abs(b.post.z - b.z) <= 40));   // (v546) пост на ящике — «дошёл» только наверху
     // (опорник "не дошёл") точка поста чуть внутри угла/стены: бот доходил на
     // 30–60px и крутился рядом, не "вставая" на пост. Не приближается ~1.5с — встал
     if(BAL.arriveNear && !b.atPost && !arrived && b.post.tag !== "plantspot" && b.post.tag !== "defuse"){
