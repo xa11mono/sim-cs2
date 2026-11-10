@@ -53,9 +53,9 @@ v166 — в `00_PLAN.md`. Главный принцип и правила ниж
 **Сборка набора из исходников (v318):** `python3 tools/map_build.py <карта>` по рецепту `data/maps/<карта>/_build.json`
 (навмеш из `.nav`, стены, высоты, укрытия, зоны по подписям радара, всё из демок; bake-скрипты — с ключом `--map`, общий
 `tools/mapdir.py`). Карты: Ancient (заморожено всё, кроме высот/укрытий/прострелов), Mirage (`python3 src/mkpub.py --map mirage` → `mirage-radar.html`,
-страница на аккаунте владельца — https://claude.ai/artifact/MJyn1PwcYKgg7WEMyoYWcv (с 10.11 — v521; прежняя EBaRN7xYH1QXzC1iiTNZ4x с этого аккаунта не открывается); QzmQZEd5t9EdnhcXET9Agn — на другом аккаунте, обновлена до v457, 28.10), база правок — коллекция `map-mirage`). Проверка глазами — `tools/map_shot.js`.
+страница на аккаунте владельца — https://claude.ai/artifact/MJyn1PwcYKgg7WEMyoYWcv (с 10.11 — v524; прежняя EBaRN7xYH1QXzC1iiTNZ4x с этого аккаунта не открывается); QzmQZEd5t9EdnhcXET9Agn — на другом аккаунте, обновлена до v457, 28.10), база правок — коллекция `map-mirage`). Проверка глазами — `tools/map_shot.js`.
 Сборка: `python3 src/build.py [--map ancient]` → `sim.html` (склейка `src/game/*` с набором карты и тестовым входом для
-замеров). Публикуемая: `python3 src/mkpub.py [--map ancient]` → `ancient-radar.html` (страница на аккаунте владельца — https://claude.ai/artifact/FwpnXA7PSbsEyT5GXL7i5U (с 10.11 — v521; прежняя VcutdCmiqN164CLNYowQvP с этого аккаунта не открывается); 6nWEKBXyNAybDYzgPT1sH7 — на другом аккаунте, v370–v386, снова v457 28.10); там же база
+замеров). Публикуемая: `python3 src/mkpub.py [--map ancient]` → `ancient-radar.html` (страница на аккаунте владельца — https://claude.ai/artifact/FwpnXA7PSbsEyT5GXL7i5U (с 10.11 — v524; прежняя VcutdCmiqN164CLNYowQvP с этого аккаунта не открывается); 6nWEKBXyNAybDYzgPT1sH7 — на другом аккаунте, v370–v386, снова v457 28.10); там же база
 правок карты — коллекция `map`).
 **Исходник игры (v377) — модули `src/game/`**: склейка всех `src/game/*` по порядку номеров (`src/gamesrc.py`, одно место
 чтения) == прежний `game.html`; `src/game.html` больше нет. Порядок, видимость `var`/функций, числа при загрузке —
@@ -109,10 +109,11 @@ v166 — в `00_PLAN.md`. Главный принцип и правила ниж
 | **движение в перестрелке** (одно место): `fightCycleTick` — на линии (стрейф и контрстрейф `fightStrafe`, v390) → за укрытие `fightCover` → снова; числа `PEEK_PRO`, `STRAFE_PRO`; безопасная ротация, мало HP | `470_fight_cycle` |
 | дабл-пик, фланг, перезарядка `updateReload` | `480_assist_flank_reload` |
 | стрельба `tryShoot` (целится в видимое); ошибка прицела `aimSigma`, разброс `shotSpread`, «стрелять с ходу» `FIRE_K`/`fireVAcc` (v390) | `490_shoot` |
-| `decideAction`, после фрага `afterKillMove`, `findCover` | `500_decide_afterkill_cover` |
+| **режим боя** (`state`: patrol / hold / engage / retreat) — одна точка записи `fightState` (v525), оценка `decideAction`; после фрага `afterKillMove`, `findCover`; **оценка размена** `duelBalance` / `duelEval` / `duelOdds` и конец перестрелки снаружи `fcEnd` — в `470_fight_cycle` | `500_decide_afterkill_cover` |
 | перестрелки `resolveEngagements` (visParts), `assignNewDestination` | `510_engagements` |
 | экономика: `decideRoundType0`, `buyForPlayer`; что берут — доли про `smgFor`, `PRO_PISTOL` (`tools/buy_pro.py`) | `520_economy` |
 | **смена сторон и раунд**: `buyPhase`, `sideSwapNow`, `swapSides`, `freshMatch`, `endRound`, `resetRound` | `530_round_sides_match` |
+| **шагом / бегом / стоять** (одно место, v522): `moveWalkWhy` (причина шага), `moveRunWhy` (отмена шага), `moveWalkTick`, целевая скорость `moveSpeedTick`; причины у бота `_walkWhy` / `_runWhy` / `_stopWhy` | `535_move_mode` |
 | цикл `stepTick` (+ замирание, шаги, прыжки) | `540_step_tick` |
 | **счёт ошибок движения** (одно место, только наблюдает, v407): `PROB` / `probTick` — застрял (с причиной), перенос, перетягивание; слой «ошибки движения», сторож замера | `545_problem_watch` |
 | рисование вспомогательного: навмеш/зоны (режимы редактирования); редактор лайнапов и форм зон | `550_render_nav_zone_tools`, `560_lineup_zone_editor` |
@@ -231,6 +232,15 @@ v166 — в `00_PLAN.md`. Главный принцип и правила ниж
 
 ## Правила кода
 - **Заменять, а не добавлять** — старая логика удаляется в той же правке.
+- **Новое условие — в функцию-хозяина решения, а не рядом (10.11, владелец).** У каждого решения бота один хозяин: место — `setPost` /
+  `TASK_LEVEL`, взгляд — `lookArbiter` / `LOOK_LEVEL`, шагом / бегом / стоять — `535_move_mode` (`moveWalkWhy`, `moveRunWhy`,
+  `moveSpeedTick`), режим боя — `fightState` (500), уйти с линии / выглянуть — `duelBalance` (470), урон — `applyDamage`, остальные — таблица «Где что». Правка поведения = новая строка (причина, кандидат, уровень)
+  **внутри хозяина**, на своём месте по порядку важности. Нельзя: новая функция / `*Tick`, которая сама пишет то же поле бота
+  (`walking`, `curSpeed`, `holding`, `crouching`, `facing`, `post`, `path`, `state`, `nadeTask`, фаза плана) в обход хозяина; свой
+  «замок» (`_xxxUntil`, `_xxxLock`), запрещающий другим механикам; проверка чужой задачи по имени (`post.tag` регуляркой) вместо
+  свойства задачи. Перед правкой — `grep -n 'поле\s*=' src/game/*.js`: кто ещё пишет это поле; пишут несколько мест, а хозяина нет
+  (список — `00_PLAN.md`, «одно решение — одно место») — сначала собрать их в одно место без смены логики (отпечаток бит в бит),
+  потом править. Каждое решение хозяина оставляет причину (`_walkWhy`, `lookReason`, `_task.tag`) — по ней ищут, кто кого перебил.
 - **Одно место на одно решение** (позиция, взгляд, гранаты, знание о врагах).
   Новое место — только с записью в ARCHITECTURE.md и согласием владельца.
 - `BAL.*`-переключатель — только временно, на время сравнения.
