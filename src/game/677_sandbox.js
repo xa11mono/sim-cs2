@@ -39,7 +39,7 @@ function sbPanel(){
   if(SB_PANEL_EL) return SB_PANEL_EL;
   var el = document.createElement("div"); el.className = "med sb-panel"; el.style.display = "none";
   el.innerHTML = '<div class="med-head"><b>Песочница</b><span class="med-src">раунд не кончается</span></div>' +
-    '<div class="med-hint">Тащи бота мышью. Shift + клик — выбранный бот идёт туда (ИИ при этом не включается). «ИИ» — думает и стреляет сам. «В игре» — убрать / вернуть (вернуть — клик по карте).</div>' +
+    '<div class="med-hint">Тащи бота мышью. Shift + клик — выбранный бот идёт туда (ИИ при этом не включается). «Ход» — как идёт: сам / на шифте / бегом. «ИИ» — думает и стреляет сам. «В игре» — убрать / вернуть (вернуть — клик по карте).</div>' +
     '<div class="med-row"><button data-sb="allOn">ИИ всем</button><button data-sb="allOff">ИИ никому</button><button data-sb="allOut">Убрать всех</button></div>' +
     '<div class="sb-list"></div><div class="sb-info med-info"></div>';
   document.getElementById("main").appendChild(el);
@@ -52,6 +52,7 @@ function sbPanel(){
     else if(k === "ai" && b) b._sbOff = !b._sbOff;
     else if(k === "in" && b){ if(b.alive) sbRemove(b); else { SANDBOX.place = b; SANDBOX.sel = b; } }
     else if(k === "sel" && b) SANDBOX.sel = b;
+    else if(k === "walk" && b) b._sbWalk = b._sbWalk == null ? "walk" : b._sbWalk === "walk" ? "run" : null;   // (v544) ход: сам → шагом → бегом → сам
     sbRender(true); if(typeof draw === "function") draw();
   });
   SB_PANEL_EL = el; return el;
@@ -84,7 +85,8 @@ function sbRender(force){
     var sel = SANDBOX.sel === b ? ' style="color:var(--accent)"' : '';
     return '<div class="med-row"><button data-sb="sel" data-id="' + b.id + '"' + sel + '>' + sbEsc(b.id + " " + (typeof nick === "function" ? nick(b.id) : "")) + '</button>' +
       '<button data-sb="ai" data-id="' + b.id + '">ИИ ' + (b._sbOff ? "выкл" : "вкл") + '</button>' +
-      '<button data-sb="in" data-id="' + b.id + '">' + (b.alive ? "в игре" : "убран") + '</button></div>';
+      '<button data-sb="in" data-id="' + b.id + '">' + (b.alive ? "в игре" : "убран") + '</button>' +
+      '<button data-sb="walk" data-id="' + b.id + '" title="Как идёт: сам решает / всегда на шифте / всегда бегом">' + (b._sbWalk === "walk" ? "шифт" : b._sbWalk === "run" ? "бег" : "ход сам") + '</button></div>';
   }).join("");
   el.querySelector(".sb-list").innerHTML = rows;
   el.querySelector(".sb-info").innerHTML = sbLogic(SANDBOX.sel);

@@ -78,6 +78,9 @@ function moveWalkTick(bot){
   if(bot.nadeTask && bot.nadeTask.runPh === "go"){   // (разбег гранаты) шаг или бег — как у эталона про (380)
     if(bot.nadeTask.runWalk) w = "разбег гранаты шагом"; else { w = null; r = "разбег гранаты бегом"; } }
   if(w){ var rr = moveRunWhy(bot); if(rr){ r = rr; w = null; } }
+  // (v544, владелец 10.11: «в песочнице указывать, как идти — на шифте или нет») ход, заданный владельцем в песочнице, — главнее всех причин
+  if(SANDBOX.on && bot._sbWalk === "walk"){ w = "песочница: шагом (задал владелец)"; r = null; }
+  else if(SANDBOX.on && bot._sbWalk === "run"){ w = null; r = "песочница: бегом (задал владелец)"; }
   bot.walking = !!w; bot._walkWhy = w; bot._runWhy = r;
 }
 // целевая скорость этого тика: стоять / идти / выбегать из огня / тормозить; заодно разгон к ней. Возвращает ничего;
