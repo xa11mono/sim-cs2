@@ -36,6 +36,9 @@ function fireVAcc(sh, tg, dist){
 var AWP_NOSCOPE = 80.8;
 function awpNoscope(sh, tg, dist){
   if(!BAL.awpClose || !sh.weapon || sh.weapon.key !== "AWP") return false;
+  // (v526, владелец 10.11: «в упор некоторые успевают и в прицеле»; «если есть время прицелиться — в прицел») кто стоял и уже целился в это
+  // место (держал угол), тот уже в прицеле — без прицела стреляет только застигнутый: на ходу / развернулся на врага
+  if(sh._heldAim) return false;
   var bA = Math.atan(BODY_HALF/Math.max(8, dist)), a = aimSigma(sh, tg, dist), w0 = shotSpread(sh, 0), ns = Math.hypot(w0, AWP_NOSCOPE/1000);
   var pB = function(sp){ return 1 - Math.exp(-(bA*bA)/(2*(sp*sp + a*a))); };
   return pB(ns) >= FIRE_K * pB(w0);
@@ -71,6 +74,7 @@ function tryShoot(shooter, target, dist){
     // стоит, выглянувший появляется на экране чуть позже (в CS — из-за сети).
     var pre = hD < 0.25 ? (shooter.curSpeed < 45*SPD_K ? BAL.holdReact : BAL.preaimReact) : (hD < 0.6 ? 0.9 : 1.1);
     shooter._reactMul = pre * (shooter.curSpeed > SPEED*0.8 ? BAL.moveReact : 1.0);
+    shooter._heldAim = hD < 0.25 && shooter.curSpeed < 45*SPD_K;   // (v526) стоял и уже целился сюда — со снайперкой он уже в прицеле
     shooter._peekLag = (shooter.curSpeed < 45*SPD_K && target.curSpeed > (BAL.pieSlice ? 60 : 45)*SPD_K) ? BAL.peekAdv : 0; // преимущество пикающего — только у быстрого выхода; кто режет угол шагом, его не имеет
     // раздел 14: "префайр угла" — кто заходил, уже целясь в типичную точку
     // (прицел почти на цели в момент появления), доводит прицел почти сразу,

@@ -109,7 +109,7 @@ v166 — в `00_PLAN.md`. Главный принцип и правила ниж
 | **движение в перестрелке** (одно место): `fightCycleTick` — на линии (стрейф и контрстрейф `fightStrafe`, v390) → за укрытие `fightCover` → снова; числа `PEEK_PRO`, `STRAFE_PRO`; безопасная ротация, мало HP | `470_fight_cycle` |
 | дабл-пик, фланг, перезарядка `updateReload` | `480_assist_flank_reload` |
 | стрельба `tryShoot` (целится в видимое); ошибка прицела `aimSigma`, разброс `shotSpread`, «стрелять с ходу» `FIRE_K`/`fireVAcc` (v390) | `490_shoot` |
-| `decideAction`, после фрага `afterKillMove`, `findCover` | `500_decide_afterkill_cover` |
+| **режим боя** (`state`: patrol / hold / engage / retreat) — одна точка записи `fightState` (v525), оценка `decideAction`; после фрага `afterKillMove`, `findCover`; **оценка размена** `duelBalance` / `duelEval` / `duelOdds` и конец перестрелки снаружи `fcEnd` — в `470_fight_cycle` | `500_decide_afterkill_cover` |
 | перестрелки `resolveEngagements` (visParts), `assignNewDestination` | `510_engagements` |
 | экономика: `decideRoundType0`, `buyForPlayer`; что берут — доли про `smgFor`, `PRO_PISTOL` (`tools/buy_pro.py`) | `520_economy` |
 | **смена сторон и раунд**: `buyPhase`, `sideSwapNow`, `swapSides`, `freshMatch`, `endRound`, `resetRound` | `530_round_sides_match` |
@@ -234,7 +234,7 @@ v166 — в `00_PLAN.md`. Главный принцип и правила ниж
 - **Заменять, а не добавлять** — старая логика удаляется в той же правке.
 - **Новое условие — в функцию-хозяина решения, а не рядом (10.11, владелец).** У каждого решения бота один хозяин: место — `setPost` /
   `TASK_LEVEL`, взгляд — `lookArbiter` / `LOOK_LEVEL`, шагом / бегом / стоять — `535_move_mode` (`moveWalkWhy`, `moveRunWhy`,
-  `moveSpeedTick`), урон — `applyDamage`, остальные — таблица «Где что». Правка поведения = новая строка (причина, кандидат, уровень)
+  `moveSpeedTick`), режим боя — `fightState` (500), уйти с линии / выглянуть — `duelBalance` (470), урон — `applyDamage`, остальные — таблица «Где что». Правка поведения = новая строка (причина, кандидат, уровень)
   **внутри хозяина**, на своём месте по порядку важности. Нельзя: новая функция / `*Tick`, которая сама пишет то же поле бота
   (`walking`, `curSpeed`, `holding`, `crouching`, `facing`, `post`, `path`, `state`, `nadeTask`, фаза плана) в обход хозяина; свой
   «замок» (`_xxxUntil`, `_xxxLock`), запрещающий другим механикам; проверка чужой задачи по имени (`post.tag` регуляркой) вместо
