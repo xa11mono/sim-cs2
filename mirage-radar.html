@@ -771,7 +771,7 @@
   <div id="topbar">
     <div class="tb-id">
       <h1>Mirage<span id="matchTick" class="mono" title="Какой матч сейчас идёт и тик — запиши, если увидел баг"></span></h1>
-      <div class="sub mono" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 546, 10.11</div>
+      <div class="sub mono" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 547, 10.11</div>
     </div>
     <div class="tb-group" id="tbMatch">
       <button id="btnPause">Пауза</button>
@@ -16526,6 +16526,11 @@ var ENTRY_WAIT = 128;   // (v375) 2 с: напарник на размен у в
 // Следующий шаг (меняет игру): свести похожие свойства (holdsGround / holdsSite / siteDefender / reangleHolder; pieBusy / dangerWalkSkip /
 // shiftHoldBusy / holdStrafeSkip / blindCoverBusy) и перенести в строки TASK_LEVEL
 var TASK_PROP = {
+  // (v547) отклонение вместо отказа (setPost, taskCanTry): короткое действие, которое задача фазы (ретейк, пост-плант, охота, сейв) раньше
+  // молча перебивала. «Своё» — уйти от урона / перезарядиться / отойти; «помощь» — своему; «на дуэль» — выйти на врага самому
+  detourSelf:       /^repos:(hurt|rlcover|lowhp|back)$/,
+  detourHelp:       /^repos:(assist|flank|coverblind)$/,
+  detourSeek:       /^repos:(push|swing|land|reload)$/,
   rushFollowable:   /^(rushFollow|utilWait|utilHold|route:|plantspot|bombWait)/,   // раш: задачи, с которых бота можно позвать следом за энтри (170)
   pieCareful:       /^(endhunt|hunt|probe|earlyPeek|flank|lurk|midcover|clear|roam|shift|clutch)/,   // срез угла: задачи, на которых угол режут (250)
   pieBusy:          /^(defuse|plantspot|flee|save|antidefuse|stopplant|retake|tradeR|repos|fetch|pickup|lineup)/,   // срез угла: задачи, на которых углы не режут (некогда) (250)
@@ -16632,7 +16637,7 @@ function taskCanSet(b, tag){
 // можно, если главная задача это время терпит (taskSlackSec), и не дольше DETOUR_MAX; пока идёт — главная задача его не перебивает (taskCanSet),
 // кончилось (срок / механика сняла точку) — главная задача ставит свою точку снова, путь — от того места, где бот сейчас.
 // Нельзя: ставит / дефузит, задача «бомба» (уровень 11); помогать в бою — и на сейве (сейв от боя и уходит).
-var DETOUR_MAX = {help: 4, pickup: 3, hurt: 3};   // с — проектные числа (первые кандидаты на замену данными)
+var DETOUR_MAX = {help: 4, pickup: 3, hurt: 3, seek: 4};   // (v547) seek — как help   // с — проектные числа (первые кандидаты на замену данными)
 // сколько секунд главная задача бота может подождать: CT с бомбой на карте — запас до «не успею дефузнуть» (3 с — как contactCritical);
 // T на пост-планте — 0, если дефузят (анти-дефуз важнее); CT на сейве — до «не успею уйти от взрыва к своей точке сейва»; остальное — не срочно
 function taskSlackSec(b){
@@ -16647,13 +16652,25 @@ function detourOk(b, kind, cost){
   if(!b.alive || b.planting || b.defusing) return false;
   if(b._detour && b._detour.round === roundNum && tick < b._detour.until) return false;   // одно отклонение за раз
   var lv = taskAlive(b) ? b._task.lv : 1;
-  if(lv >= 11 || (kind === "help" && lv >= 10)) return false;
+  if(lv >= 11 || ((kind === "help" || kind === "seek") && lv >= 10)) return false;
+  // (v547, ответ владельца 10.11: «T на пост-планте незачем искать дуэли — сидит, ждёт; дефузят — идёт сбивать») выйти на врага самому — не T
+  // с поставленной бомбой (сбить дефуз — задача «бомба», уровень 11, сама)
+  if(kind === "seek" && b.team === "T" && bomb && bomb.state === "planted") return false;
   cost = cost || 0;
   // (v530, отметка владельца 10.11 «убил, мог подобрать оружие, но ушёл»: сейв с пистолетом, AK в 96 px в стороне от пути — крюк 3,3 с > 3 с)
   // на сейве цель — унести оружие в следующий раунд: подбор лучшего — сама цель, а не отвлечение; предел крюка — только время (taskSlackSec)
   var maxC = (kind === "pickup" && taskAlive(b) && taskProp(b._task.tag, "saveTask")) ? Infinity : DETOUR_MAX[kind];
   return cost <= maxC && cost + (kind === "pickup" ? 0.5 : CONTACT_HOLD) <= taskSlackSec(b);
 }
+// (v547, владелец 10.11: «в ретейке, пост-планте, сейве, охоте боты игнорируют многое, им запрещается что-либо делать — помогать, подбирать,
+// даже когда есть возможность») короткое действие задачи ниже фазы (уровни 3–6) при задаче фазы (7–10) — отклонение, а не отказ: вид
+// отклонения по свойству задачи (TASK_PROP: detourSelf / detourHelp / detourSeek); null — отказ, как раньше
+function taskDetourKind(b, tag){
+  if(!taskAlive(b) || b._task.lv < 7 || b._task.lv > 10 || taskLevel(tag) > 6) return null;
+  return taskProp(tag, "detourSelf") ? "hurt" : taskProp(tag, "detourHelp") ? "help" : taskProp(tag, "detourSeek") ? "seek" : null;
+}
+// можно ли затеять задачу tag (сразу или отклонением) — для механик, которые решают, затевать ли своё, до setPost
+function taskCanTry(b, tag){ if(taskCanSet(b, tag)) return true; var dk = taskDetourKind(b, tag); return !!dk && detourOk(b, dk, 0); }
 // начать отклонение: задача tag на sec секунд, главная задача (её уровень) ждёт
 function detourStart(b, kind, tag, sec){
   var lv = taskAlive(b) ? b._task.lv : 1;
@@ -16662,6 +16679,10 @@ function detourStart(b, kind, tag, sec){
 // механика держит свою текущую задачу (пост не меняется — подтвердить, что затея ещё идёт)
 function postKeep(b){ if(b.post && b._task && b._task.tag === b.post.tag) b._task.t = tick; }
 var POST_DWELL = 96;   // (v375) 1,5 с — проектное число
+// (v547, владелец 10.11, отметка «поставил ему точку, он не дошёл и перестал идти»: «дошёл» засчитывалось в 34 px (≈ 85 ед. игры) от точки —
+// бот вставал раньше точки, приказ песочницы снимался) «дошёл» — в самой точке (≈ 20 ед. игры, меньше ширины игрока); точка, до которой
+// не дойти (в углу, за краем), — как раньше: не приближается 1,4 с — встал (arriveNear). Было 34 (у места про — 9) — проектное число
+var POST_ARRIVE = 8;
 var POST_EXACT = TASK_PROP.exactSpot;   // (v527) список — в таблице свойств задач
 var POST_VIEW_R = 120, POST_VIEW = {k: null, m: {}};   // px — насколько можно сдвинуть пост ради обзора (проектное число)
 function postViewPoint(pt, look){
@@ -16693,7 +16714,9 @@ function setPost(b, pt, look, hold, tag, spreadIdx){
     }
   }
   if(lv === 1 && !/^after:/.test(String(tag))){ var AF = afterTaskPick(b, pt); if(AF) return setPost(b, AF.pt, AF.look, true, "after:hold"); }
-  if(!taskCanSet(b, tag)) return false;
+  if(!taskCanSet(b, tag)){ var dk = taskDetourKind(b, tag);   // (v547) задача фазы — не отказ, а отклонение, если она терпит это время
+    if(!dk || !pt || !detourOk(b, dk, pathLenTo(b, pt.x, pt.y)/SPEED)) return false;
+    detourStart(b, dk, tag, DETOUR_MAX[dk]); }
   var tagB = taskTagB(tag);
   var psn = (BAL.proSpots && hold && pt) ? proSnap(b, pt, look, tag) : null;
   // (v520, отметки владельца 09.11 м200 р1/р3: мидер у Window и NiKo у Hole — точку уводило к месту про, откуда не видно того, что держит пост:
@@ -16767,7 +16790,7 @@ function updatePost(b){
     var arrived = b.post.tag === "plantspot" && teamTac.T && SITES[teamTac.T.site] ? (onSite(SITES[teamTac.T.site], b.baseX, b.baseY) && d < 60) :
       b.post.tag === "defuse" ? d < DEFUSE_R - 8 :   // (v359, отметка: m0NESY «дошёл» до бомбы в 34 ед., а дефуз — с 30: стоял 12 с до взрыва)
       b.post.tag === "lineup" ? d < LU_AT :   // (v492) лайнап — в саму точку броска: с 34 px подбор отсюда — «свеча» (прогон 143)
-      (d < ((BAL.proSpots && b.post.pro) ? 9 : 34) && (b.atPost || canView()) && (b.post.z == null || b.z == null || Math.abs(b.post.z - b.z) <= 40));   // (v546) пост на ящике — «дошёл» только наверху
+      (d < POST_ARRIVE && (b.atPost || canView()) && (b.post.z == null || b.z == null || Math.abs(b.post.z - b.z) <= 40));   // (v546) пост на ящике — «дошёл» только наверху
     // (опорник "не дошёл") точка поста чуть внутри угла/стены: бот доходил на
     // 30–60px и крутился рядом, не "вставая" на пост. Не приближается ~1.5с — встал
     if(BAL.arriveNear && !b.atPost && !arrived && b.post.tag !== "plantspot" && b.post.tag !== "defuse"){
@@ -23915,7 +23938,7 @@ var LAND_PUNISH_R = 250, LAND_PUNISH_FRESH = 1.5, LAND_PUNISH_SEC = 4;
 function ctLandPunish(b){
   var P = b._lp;
   if(P && (P.round !== roundNum || tick > P.until || b._sawEnemy)){ b._lp = null; P = null; }
-  if(P){ setPost(b, P.pt, P.pt, true, "repos:land"); return true; }
+  if(P){ if(setPost(b, P.pt, P.pt, true, "repos:land")) return true; b._lp = null; return false; }   // (v547) отказали (задача важнее) — не «сделал»: мозг идёт дальше
   var h = b.heardSound;
   if(!h || !h.land || h.team === b.team || tick - h.tick > LAND_PUNISH_FRESH*TICK_HZ || b._lpDone === h.tick) return false;
   b._lpDone = h.tick;
@@ -23926,8 +23949,8 @@ function ctLandPunish(b){
   var go = hashRand(h.tick*13 + b.id.charCodeAt(b.id.length-1)*7 + roundNum) < (b.prof ? prof(b, "aggr") : 0.5);
   if(!go) return false;
   b._lp = {round: roundNum, pt: {x:h.x, y:h.y}, until: tick + LAND_PUNISH_SEC*TICK_HZ};
+  if(!setPost(b, b._lp.pt, b._lp.pt, true, "repos:land")){ b._lp = null; return false; }
   voiceLog("CT", "lp"+b.id+h.tick, b.id, "спрыгнул один — "+calloutName(h.x, h.y)+", выхожу на него");
-  setPost(b, b._lp.pt, b._lp.pt, true, "repos:land");
   return true;
 }
 // (v469, п.18 владельца 29.10, р8 м1: в войсе «ПЕРЕКОЛЛ A → B: бомба замечена (~2)», а бомбу никто не видел) сайт планта выведен
@@ -24322,7 +24345,7 @@ function ctBrain(){
     }
     if(ct.bombDown && ct.bombWatch.id === b.id){ // (v262, К5) держит выбитую бомбу и при колле
       setPost(b, ct.bombWatch.pt, {x:bomb.x, y:bomb.y}, true, "bombwatch"); return; }
-    if(!planted && !ct.saving && ctLandPunish(b)) return;   // (v343) услышал приземление одного рядом — выходит на него
+    if(!ct.saving && ctLandPunish(b)) return;   // (v547) и на ретейке («CT выбивают всех, по кому есть инфа» — владелец 10.11); терпит ли ретейк — отклонение (setPost)   // (v343) услышал приземление одного рядом — выходит на него
     if(ct.flank && !ct.flank.dead && ct.flank.id === b.id && !ct.saving && flankPost(b, ct.flank, planted)) return;
     // (35) ретейк 2 на 3+ — AWP не несут в почти проигранный ретейк: снайпер сейвит
     if(BAL.awpSave && planted && b.primary === "AWP" && cts.length === 2 && aliveCount("T") >= 3 && saveWorth("CT")){
@@ -24682,9 +24705,21 @@ function contactInfo(b){
   // если главная задача терпит отклонение (detourOk, 110: не ставит / не дефузит, не бомба, не сейв, время есть); тянуть туда-обратно
   // (прогон 178) не даёт сам контакт: держится, пока знание свежее + CONTACT_HOLD, повтор — не чаще CONTACT_GAP
   var freeToHelp = !b.post || taskLevel(b.post.tag) <= 3 || detourOk(b, "help");
-  var mateFights = function(id){ return freeToHelp && bots.some(function(o){ return o !== b && o.alive && o.team === b.team && o._sawEnemy && o._nearestEnemyBot && o._nearestEnemyBot.id === id; }); };
+  var mateFight0 = function(id){ return bots.some(function(o){ return o !== b && o.alive && o.team === b.team && o._sawEnemy && o._nearestEnemyBot && o._nearestEnemyBot.id === id; }); };
+  var mateFights = function(id){ return freeToHelp && mateFight0(id); };
+  // (v547, владелец 10.11: «в ретейке, пост-планте, охоте боты не помогают») «на своём участке спокойно» (calm, v408 — мидер держит мид) — только
+  // у того, кто держит пост роли; у задачи фазы (ретейк, пост-плант, охота: уровень ≥ 7) участок — вся задача, терпит ли она помощь — detourOk
+  var lvB = taskAlive(b) ? b._task.lv : 1, phase = lvB >= 7;
+  // (v547, ответ владельца 10.11, сейв: «помогать своему — только если перестрелка прямо в зоне видимости бота, бежать и открывать новые позиции не
+  // нужно, размен быстрый») на сейве — только враг, с которым свой сейчас стреляется и которого видно с места бота; ноги остаются на сейве
+  // (контакт ниже сейва — арбитр места), взгляд и выстрел — туда
+  var saving = taskAlive(b) && taskProp(b._task.tag, "saveTask");
+  // (v547, ответ владельца 10.11: «CT на ретейке выбивают — их цель убить всех, по которым есть инфа, которые могут помешать дефузу») CT с
+  // поставленной бомбой (не сейв) — инфа своих о враге рядом (по пути ≤ CONTACT_R, место видно — take) — его контакт, а не только своя зона
+  var retakeHunt = b.team === "CT" && bomb && bomb.state === "planted" && !saving && !(teamTac.CT && teamTac.CT.saving);
   for(var id in BL){ var e = BL[id], ob = teamBot(id); if(!ob || !ob.alive || tick - e.tick > CONTACT_AGE*TICK_HZ) continue;
-    if(trade || myZ[zoneIdAt3(e.x, e.y, e.z)] || (mateFights(id) && calm())) take(e.x, e.y, e.src === "spotted", id, e.z); }
+    if(saving){ if(mateFight0(id) && hasLOS(b.x, b.y, e.x, e.y, b.z, e.z)) take(e.x, e.y, e.src === "spotted", id, e.z); continue; }
+    if(trade || retakeHunt || myZ[zoneIdAt3(e.x, e.y, e.z)] || (mateFights(id) && (phase || calm()))) take(e.x, e.y, e.src === "spotted", id, e.z); }
   // (v469) бросок гранаты (слышно чеку / бросок) — не контакт (ответ про-аналитика: на гранату вдали не реагировать); её место знание получает
   var hs = b.heardSound; if(hs && hs.team && hs.team !== b.team && hs.kind !== "nade" && tick - hs.tick <= CONTACT_AGE*TICK_HZ && !deadSrc(hs.src) && (hs.kind !== "call" || trade || myZ[zoneIdAt3(hs.x, hs.y, hs.z)])) take(hs.x, hs.y, false, hs.src, hs.z);
   // (v448, док владельца 28.10 №4: у игрока 1 «якорь контакт холд, когда он далеко, не стрелялся и никого не видел») своя флешка —
@@ -24788,6 +24823,9 @@ function contactTick(b){
     if(!adv) swing = false;
   }
   if(swing && bomb && bomb.state === "carried" && bomb.carrier === b && aliveCount(b.team) > 1) swing = false;
+  // (v547, ответ владельца 10.11: «T на пост-планте незачем искать дуэли — сидит, ждёт, смотрит, откуда придут; дефузят — идёт сбивать (антидефуз —
+  // задача бомбы)») и на сейве на врага не выходит (держит / смотрит с места)
+  if(swing && ((b.team === "T" && bomb && bomb.state === "planted") || (taskAlive(b) && taskProp(b._task.tag, "saveTask")))) swing = false;
   // (v450) носитель в выходе не встаёт «держать контакт»: идёт за своими на точку планта (взгляд — на контакт, задача — прежняя)
   if(tExec && bomb.state === "carried" && bomb.carrier === b && aliveCount(b.team) > 1){ b._contact = {x:C.x, y:C.y, id:C.id, until: tick + CONTACT_HOLD*TICK_HZ, lock:false}; b._contactT = tick; return; }
   if(swing && bots.some(function(o){ return o !== b && o.alive && o.team === b.team && o._contact && o._contact.tag === "contact:swing" && tick < o._contact.until && Math.hypot(o._contact.x-C.x, o._contact.y-C.y) < 200; })) swing = false;   // на него уже выходит свой
@@ -28424,8 +28462,10 @@ function weaponPickupTick(){
     // (v469, п.27 владельца 29.10, р12 м1: опорник B karrigan пошёл за оружием с самого B, хотя рядом стояли свои) ответ про-аналитика 29.10:
     // за оружием не ходят, пока рядом бой (свежая инфа о враге ≤ 1200 ед. игры = 480 px); опорник, держащий вход на свой сайт, со своей точки за ним не уходит —
     // только со слабым оружием (пистолет / ПП); идёт второй линии игрок или тот, у кого хуже ствол
-    var LKp = beliefLast[b.team] || {};
-    for(var eP in LKp){ if(tick - LKp[eP].tick < 3*TICK_HZ && Math.hypot(LKp[eP].x-b.x, LKp[eP].y-b.y) < 1200/MAP.pxUnits) return; }
+    // (v547, владелец 10.11: «в ретейке, пост-планте, сейве не подбирают, даже когда есть возможность») у задачи фазы (уровень ≥ 7) враги рядом
+    // есть почти всегда — «бой рядом» её не отменяет: решают опасность у самого оружия (danger ниже) и терпит ли задача крюк (pickDetour)
+    var LKp = beliefLast[b.team] || {}, phaseP = taskAlive(b) && b._task.lv >= 7;
+    if(!phaseP) for(var eP in LKp){ if(tick - LKp[eP].tick < 3*TICK_HZ && Math.hypot(LKp[eP].x-b.x, LKp[eP].y-b.y) < 1200/MAP.pxUnits) return; }
     if((b.tRole === "anchorA" || b.tRole === "anchorB") && b.primary && WEAPONS[b.primary].tier >= 5) return;
     if(BAL.pickFix && b._pickBan > tick) return;
     var best = null, bd = BAL.pickupMore ? 420 : 230;
@@ -29054,10 +29094,10 @@ function lowHpBack(b){
   var nearPath = function(x, y, R){ return nearP(b.x, b.y, b.z, x, y, null, R); };   // (v532) общее «рядом по пути» (100)
   var lostNear = !low && ((teamIntel[b.team] && teamIntel[b.team].sig) || []).some(function(sg){ return sg.type === "died" && sg.id !== b.id && tick - sg.tick < 8*TICK_HZ && nearPath(sg.x, sg.y, 900); });
   if(!low && !lostNear) return;
-  if(bomb && bomb.state === "planted") return; // ретейк/пост-плант — бомба важнее
+  // (v547) было «бомба стоит — не отходит» (ретейк / пост-плант важнее): терпит ли задача фазы отход — отклонение (taskCanTry, 110)
   var defending = b.team === "CT" && b.post && taskProp(b.post.tag, "holdsGround");
   if(bomb && bomb.state === "carried" && bomb.carrier === b) return;
-  if(!taskCanSet(b, "repos:lowhp")) return;   // (v378) идёт по задаче не ниже — арбитр места
+  if(!taskCanTry(b, "repos:lowhp")) return;   // (v378) идёт по задаче не ниже — арбитр места; (v547) задача фазы — отклонением
   b._lowHpNext = tick + TICK_HZ;
   var mates = bots.filter(function(o){ return o !== b && o.alive && o.team === b.team; });
   if(!mates.length) return; // один — отходить не к кому
@@ -29406,6 +29446,19 @@ function awpNoscope(sh, tg, dist){
 // (Б4) готовность к выстрелу для движения в дуэли (fightCycleTick): через сколько тиков бот мог бы выстрелить в эту цель
 // (реакция, темп оружия, остывание разброса); 0 — готов, ждёт только, пока погасит скорость
 function fireReady(sh, tg, n){ sh._fire = {t:tick, tg:tg.id, inT:Math.max(0, Math.ceil(n))}; }
+// (v547, ответ владельца 10.11, сейв: «приоритет — выживание оружия; в перестрелку — только в исключительных случаях: враг не видит бота и не
+// перекрывает путь отхода — пройти мимо, любая стрельба раскроет позицию; помочь своему — только если бой прямо в зоне видимости и размен
+// быстрый») бот на сейве стреляет, если враг видит его, стоит на его пути отхода (≤ SAVE_PATH_R от оставшегося пути / точки сейва) или
+// сейчас стреляется со своим. SAVE_PATH_R — проектное число
+var SAVE_PATH_R = 150;
+function saveShootOk(b, t){
+  if(!taskAlive(b) || !taskProp(b._task.tag, "saveTask")) return true;
+  if(t._visible && t._visible.indexOf(b) >= 0) return true;
+  var m = t._nearestEnemyBot; if(m && m !== b && m.team === b.team && m.alive && m._sawEnemy) return true;
+  var P = (b.path || []).slice(b.pathIdx || 0); if(b._saveSpot) P.push([b._saveSpot.x, b._saveSpot.y]);
+  for(var i = 0; i < P.length; i++) if(Math.hypot(P[i][0]-t.x, P[i][1]-t.y) < SAVE_PATH_R) return true;
+  return false;
+}
 function tryShoot(shooter, target, dist){
   if(shooter._sbOff) return;   // (v536) песочница: ИИ выключен — не стреляет (677)
   // (этап 2, P0-2) реакция и доводка — по ЭТОЙ цели (shooter._ts[id] — сколько тиков подряд её видно, гаснет как contactStreak),
@@ -29417,6 +29470,7 @@ function tryShoot(shooter, target, dist){
   // расстреливали в спину); бег и так режет ему точность
   if(shooter.planting || shooter.defusing) return; // руки заняты
   if(tick < shooter.blindUntil || tick < (shooter.throwUntil||0)) return; // ослеплён / бросает гранату
+  if(!saveShootOk(shooter, target)) return;   // (v547) сейв — проходит мимо
   // план §3: "бот, держащий угол, может выстрелить до того как истечёт обычная
   // реакция на новый визуальный контакт, если есть свежая информация 'враг там',
   // и шанс зависит от точности этой информации" — префайр обходит обычный gate
@@ -29843,7 +29897,9 @@ function decideAction(bot, nearestDist, alliesNear, enemiesSeen){
   if(bot.team === "T" && teamTac.T && teamTac.T.saving && !(bomb && bomb.state === "planted")){ engageScore -= 0.25; retreatScore += 0.25; } // сейв T — не лезть в дуэли
   if(bot.team === "CT" && teamTac.CT && teamTac.CT.preSave && !(bomb && bomb.state === "planted")){ engageScore -= 0.25; retreatScore += 0.25; }
   // враг ранен ("он на 20") — не отходить, а добивать
-  if(BAL.hurtCall && bot._nearestEnemyBot){ var HTd = teamIntel[bot.team].hurt, hk = HTd && HTd[bot._nearestEnemyBot.id];
+  // (v547, ответ владельца 10.11: «на сейве добивать раненого — нет: стрельба раскроет позицию, придут зажимать, потеря девайса») — не на сейве
+  var savingD = taskAlive(bot) && taskProp(bot._task.tag, "saveTask");
+  if(BAL.hurtCall && bot._nearestEnemyBot && !savingD){ var HTd = teamIntel[bot.team].hurt, hk = HTd && HTd[bot._nearestEnemyBot.id];
     if(hk && hk.hp <= 35 && tick - hk.tick < 10*TICK_HZ){ engageScore += 0.2; retreatScore -= 0.15; } }
   // после планта T держат бомбу, CT обязаны идти — время важнее HP
   if(bomb && bomb.state === "planted"){
@@ -35516,6 +35572,7 @@ var __SNAP = [
 ["TASK_STALE", function(){ return TASK_STALE; }, function(v){ try{ TASK_STALE = v; }catch(e){} }],
 ["DETOUR_MAX", function(){ return DETOUR_MAX; }, function(v){ try{ DETOUR_MAX = v; }catch(e){} }],
 ["POST_DWELL", function(){ return POST_DWELL; }, function(v){ try{ POST_DWELL = v; }catch(e){} }],
+["POST_ARRIVE", function(){ return POST_ARRIVE; }, function(v){ try{ POST_ARRIVE = v; }catch(e){} }],
 ["POST_EXACT", function(){ return POST_EXACT; }, function(v){ try{ POST_EXACT = v; }catch(e){} }],
 ["POST_VIEW_R", function(){ return POST_VIEW_R; }, function(v){ try{ POST_VIEW_R = v; }catch(e){} }],
 ["POST_VIEW", function(){ return POST_VIEW; }, function(v){ try{ POST_VIEW = v; }catch(e){} }],
@@ -35840,6 +35897,7 @@ var __SNAP = [
 ["AIM_FLICK", function(){ return AIM_FLICK; }, function(v){ try{ AIM_FLICK = v; }catch(e){} }],
 ["AIM_HEAD_PISTOL", function(){ return AIM_HEAD_PISTOL; }, function(v){ try{ AIM_HEAD_PISTOL = v; }catch(e){} }],
 ["AWP_NOSCOPE", function(){ return AWP_NOSCOPE; }, function(v){ try{ AWP_NOSCOPE = v; }catch(e){} }],
+["SAVE_PATH_R", function(){ return SAVE_PATH_R; }, function(v){ try{ SAVE_PATH_R = v; }catch(e){} }],
 ["STATE_LABEL", function(){ return STATE_LABEL; }, function(v){ try{ STATE_LABEL = v; }catch(e){} }],
 ["TRADE_R", function(){ return TRADE_R; }, function(v){ try{ TRADE_R = v; }catch(e){} }],
 ["HL", function(){ return HL; }, function(v){ try{ HL = v; }catch(e){} }],
