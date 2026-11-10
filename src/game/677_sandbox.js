@@ -5,7 +5,10 @@
 // «ИИ вкл / выкл» (выкл — стоит и не стреляет, мозги команды его не двигают) и «в игре / убран» (убрать — без киллфида; вернуть — на точку,
 // куда кликнешь); бота можно перетащить мышью; панель показывает логику выбранного бота (то же, что подпись на карте, и причины решений).
 // Игру вне песочницы не меняет: все проверки — SANDBOX.on / b._sbOff.
-var SANDBOX = {on: false, sel: null, drag: null, place: null, el: null, last: 0};
+var SANDBOX = {on: false, sel: null, drag: null, place: null, last: 0};
+// (v537, владелец 10.11: «чтобы отметки тоже работали в песочнице») SANDBOX — только данные (копируется в снимок отметки: открытый снимок
+// снова в песочнице, с теми же ИИ вкл / выкл у ботов); элемент панели — отдельно (элементы страницы в снимок не идут)
+var SB_PANEL_EL = null;
 function sbBot(id){ for(var i = 0; i < bots.length; i++) if(bots[i].id === id) return bots[i]; return null; }
 // один тик песочницы (stepTick, раунд идёт): часы раунда и бомбы стоят
 function sbTick(){
@@ -33,7 +36,7 @@ function sbRemove(b){ b.alive = false; b.hp = 0; b.post = null; b._task = null; 
 // ---------- панель ----------
 function sbEsc(s){ return String(s == null ? "" : s).replace(/[&<>]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;"}[c]; }); }
 function sbPanel(){
-  if(SANDBOX.el) return SANDBOX.el;
+  if(SB_PANEL_EL) return SB_PANEL_EL;
   var el = document.createElement("div"); el.className = "med sb-panel"; el.style.display = "none";
   el.innerHTML = '<div class="med-head"><b>Песочница</b><span class="med-src">раунд не кончается</span></div>' +
     '<div class="med-hint">Тащи бота мышью. Shift + клик — выбранный бот идёт туда. «ИИ» — думает и стреляет сам. «В игре» — убрать / вернуть (вернуть — клик по карте).</div>' +
@@ -51,7 +54,7 @@ function sbPanel(){
     else if(k === "sel" && b) SANDBOX.sel = b;
     sbRender(true); if(typeof draw === "function") draw();
   });
-  SANDBOX.el = el; return el;
+  SB_PANEL_EL = el; return el;
 }
 // причины решений выбранного бота — то, что пишут механики (только чтение)
 function sbLogic(b){
@@ -73,7 +76,9 @@ function sbLogic(b){
   return L.join("<br>");
 }
 function sbRender(force){
-  var el = sbPanel(); el.style.display = SANDBOX.on ? "" : "none"; if(!SANDBOX.on) return;
+  var el = sbPanel(); el.style.display = SANDBOX.on ? "" : "none";
+  var bt = document.getElementById("btnSandbox"); if(bt) bt.classList.toggle("on", SANDBOX.on);   // (v537) и после открытия отметки / перемотки
+  if(!SANDBOX.on) return;
   var now = performance.now(); if(!force && now - SANDBOX.last < 200) return; SANDBOX.last = now;   // 5 раз в секунду хватает
   var rows = bots.map(function(b){
     var sel = SANDBOX.sel === b ? ' style="color:var(--accent)"' : '';
@@ -112,4 +117,4 @@ window.addEventListener("mousemove", function(e){
 });
 window.addEventListener("mouseup", function(){ if(SANDBOX.drag){ SANDBOX.drag.post = null; SANDBOX.drag._task = null; SANDBOX.drag = null; } });
 (function(){ var bt = document.getElementById("btnSandbox"); if(bt) bt.addEventListener("click", sbToggle); })();
-setInterval(function(){ if(SANDBOX.on) sbRender(false); }, 200);
+setInterval(function(){ if(SANDBOX.on || (SB_PANEL_EL && SB_PANEL_EL.style.display !== "none")) sbRender(false); }, 200);   // (v537) панель следует за SANDBOX.on и после перемотки

@@ -157,7 +157,7 @@ function mkPlace(x, y){ return String(calloutName(x, y) || "").replace(/^на «
 function mkState(){
   return {
     match: matchNum, tick: tick, round: roundNum, roundTime: Math.round((simTime - roundStartTime)*10)/10,
-    roundState: roundState, score: {CT: score.CT, T: score.T}, bomb: {state: bomb.state, site: bomb.site || null,
+    roundState: roundState, sandbox: !!(typeof SANDBOX !== "undefined" && SANDBOX.on), score: {CT: score.CT, T: score.T}, bomb: {state: bomb.state, site: bomb.site || null,
       x: bomb.x != null ? Math.round(bomb.x) : null, y: bomb.y != null ? Math.round(bomb.y) : null},
     bots: bots.map(function(b){
       var f = b.facing || 0, ray = rayClipWalls(b.x, b.y, b.x + Math.cos(f)*700, b.y + Math.sin(f)*700);
