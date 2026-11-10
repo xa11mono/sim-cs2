@@ -20894,13 +20894,13 @@ function moveRunWhy(bot){
   // (v257, К3) ретейк: шагом — только если шагом успевает дойти до бомбы и дефузнуть (та же мерка, что у ниндзя-дефуза)
   if(bot.team === "CT" && bomb && bomb.state === "planted" && bot.post && taskProp(bot.post.tag, "retakeMove")){
     var dB = Math.hypot(bomb.x-bot.baseX, bomb.y-bot.baseY);
-    if(bombTimeLeftTicks()/TICK_HZ <= dB/(SPEED*WALK_SPEED_FRAC) + (bot.kit ? 5 : 10) + 1.5) return "шагом не успеть к дефузу";
+    if(bombTimeLeftTicks()/TICK_HZ <= dB/(SPEED*WALK_SPEED_FRAC) + (bot.kit ? 5 : 10) + 1.5) return "на шифте не успеть к дефузу";
   }
   // (v438, док владельца 27.10: NiKo за 3,5 с до взрыва шёл шифтом и погиб от бомбы) в зоне смертельного взрыва (урон ≥ HP, BOMB_DMG) —
   // шагом, только если шагом успевает выйти из неё до взрыва (+1 с — проектное число); иначе бегом. Любая сторона, любая задача
   if(bomb && bomb.state === "planted" && bombDamageAt(bot.baseX, bot.baseY) >= bot.hp){
     var rKill = BOMB_DMG.sigma*Math.sqrt(2*Math.log(BOMB_DMG.max/Math.max(1, bot.hp))), dOut = Math.max(0, rKill - bombPathLen(bot.baseX, bot.baseY));
-    if(bombTimeLeftTicks()/TICK_HZ <= dOut/(SPEED*WALK_SPEED_FRAC) + 1) return "шагом не выйти из взрыва";
+    if(bombTimeLeftTicks()/TICK_HZ <= dOut/(SPEED*WALK_SPEED_FRAC) + 1) return "на шифте не выйти из взрыва";
   }
   return null;
 }
@@ -20908,8 +20908,11 @@ function moveRunWhy(bot){
 function moveWalkTick(bot){
   var w = moveWalkWhy(bot), r = null;
   if(bot.nadeTask && bot.nadeTask.runPh === "go"){   // (разбег гранаты) шаг или бег — как у эталона про (380)
-    if(bot.nadeTask.runWalk) w = "разбег гранаты шагом"; else { w = null; r = "разбег гранаты бегом"; } }
+    if(bot.nadeTask.runWalk) w = "разбег гранаты на шифте"; else { w = null; r = "разбег гранаты бегом"; } }
   if(w){ var rr = moveRunWhy(bot); if(rr){ r = rr; w = null; } }
+  // (v544, владелец 10.11: «в песочнице указывать, как идти — на шифте или нет») ход, заданный владельцем в песочнице, — главнее всех причин
+  if(SANDBOX.on && bot._sbWalk === "walk"){ w = "песочница: на шифте (задал владелец)"; r = null; }
+  else if(SANDBOX.on && bot._sbWalk === "run"){ w = null; r = "песочница: бегом (задал владелец)"; }
   bot.walking = !!w; bot._walkWhy = w; bot._runWhy = r;
 }
 // целевая скорость этого тика: стоять / идти / выбегать из огня / тормозить; заодно разгон к ней. Возвращает ничего;
@@ -27594,7 +27597,7 @@ function sbPanel(){
   if(SB_PANEL_EL) return SB_PANEL_EL;
   var el = document.createElement("div"); el.className = "med sb-panel"; el.style.display = "none";
   el.innerHTML = '<div class="med-head"><b>Песочница</b><span class="med-src">раунд не кончается</span></div>' +
-    '<div class="med-hint">Тащи бота мышью. Shift + клик — выбранный бот идёт туда (ИИ при этом не включается). «ИИ» — думает и стреляет сам. «В игре» — убрать / вернуть (вернуть — клик по карте).</div>' +
+    '<div class="med-hint">Тащи бота мышью. Shift + клик — выбранный бот идёт туда (ИИ при этом не включается). «Ход» — как идёт: сам / на шифте / бегом (в CS2 только шифт и бег). «ИИ» — думает и стреляет сам. «В игре» — убрать / вернуть (вернуть — клик по карте).</div>' +
     '<div class="med-row"><button data-sb="allOn">ИИ всем</button><button data-sb="allOff">ИИ никому</button><button data-sb="allOut">Убрать всех</button></div>' +
     '<div class="sb-list"></div><div class="sb-info med-info"></div>';
   document.getElementById("main").appendChild(el);
@@ -27607,6 +27610,7 @@ function sbPanel(){
     else if(k === "ai" && b) b._sbOff = !b._sbOff;
     else if(k === "in" && b){ if(b.alive) sbRemove(b); else { SANDBOX.place = b; SANDBOX.sel = b; } }
     else if(k === "sel" && b) SANDBOX.sel = b;
+    else if(k === "walk" && b) b._sbWalk = b._sbWalk == null ? "walk" : b._sbWalk === "walk" ? "run" : null;   // (v544) ход: сам → шагом → бегом → сам
     sbRender(true); if(typeof draw === "function") draw();
   });
   SB_PANEL_EL = el; return el;
@@ -27621,7 +27625,7 @@ function sbLogic(b){
   L.push("задача места: " + sbEsc(b._task ? b._task.tag + " (уровень " + b._task.lv + ")" : "нет") + (b.post ? " · " + sbEsc(calloutName(b.post.x, b.post.y)) + (b.atPost ? " · дошёл" : "") : ""));
   L.push("режим боя: " + sbEsc(b.state) + (b._stateWhy ? " — " + sbEsc(b._stateWhy) : ""));
   if(b._fc || b._fcWhy) L.push("перестрелка: " + sbEsc(b._fc ? b._fc.ph : "нет") + (b._fcWhy ? " — " + sbEsc(b._fcWhy) : ""));
-  L.push("движение: " + sbEsc(Math.round(b.curSpeed || 0) + " px/с") + (b._walkWhy ? " · шагом: " + sbEsc(b._walkWhy) : "") + (b._runWhy ? " · бегом: " + sbEsc(b._runWhy) : "") + (b._stopWhy ? " · стоит: " + sbEsc(b._stopWhy) : ""));
+  L.push("движение: " + sbEsc(Math.round(b.curSpeed || 0) + " px/с") + (b._walkWhy ? " · на шифте: " + sbEsc(b._walkWhy) : "") + (b._runWhy ? " · бегом: " + sbEsc(b._runWhy) : "") + (b._stopWhy ? " · стоит: " + sbEsc(b._stopWhy) : ""));
   L.push("взгляд: " + sbEsc(b.lookReason || "по ходу") + (b.lookTarget ? " → " + sbEsc(calloutName(b.lookTarget.x, b.lookTarget.y)) : ""));
   if(b._contact) L.push("контакт: " + sbEsc((b._contact.tag || "") + " · ещё " + Math.max(0, ((b._contact.until - tick)/TICK_HZ)).toFixed(1) + " с"));
   if(b.nadeTask) L.push("граната: " + sbEsc(b.nadeTask.type + " — " + (b.nadeTask.why || "")));
@@ -27639,7 +27643,8 @@ function sbRender(force){
     var sel = SANDBOX.sel === b ? ' style="color:var(--accent)"' : '';
     return '<div class="med-row"><button data-sb="sel" data-id="' + b.id + '"' + sel + '>' + sbEsc(b.id + " " + (typeof nick === "function" ? nick(b.id) : "")) + '</button>' +
       '<button data-sb="ai" data-id="' + b.id + '">ИИ ' + (b._sbOff ? "выкл" : "вкл") + '</button>' +
-      '<button data-sb="in" data-id="' + b.id + '">' + (b.alive ? "в игре" : "убран") + '</button></div>';
+      '<button data-sb="in" data-id="' + b.id + '">' + (b.alive ? "в игре" : "убран") + '</button>' +
+      '<button data-sb="walk" data-id="' + b.id + '" title="Как идёт: сам решает / всегда на шифте / всегда бегом">' + (b._sbWalk === "walk" ? "шифт" : b._sbWalk === "run" ? "бег" : "ход сам") + '</button></div>';
   }).join("");
   el.querySelector(".sb-list").innerHTML = rows;
   el.querySelector(".sb-info").innerHTML = sbLogic(SANDBOX.sel);
