@@ -83,14 +83,14 @@ for(var t=0;t<__T__;t++){ var _t0=performance.now(); stepTick(); var _dt=perform
  if(bomb.state==='planted' && cur && cur.plant==null){ cur.plant=tick; cur.site=bomb.site; REC.plants.push([tick, bomb.site, Math.round(bomb.x), Math.round(bomb.y)]); }
 
  if(roundState==='live') bots.forEach(function(b){ var V=b.alive?(b._visible||[]):[], now={}; V.forEach(function(v){ now[v.id]=1; if(!(SEEN[b.id]||{})[v.id]) REC.see.push([tick, b.id, v.id, Math.round(Math.hypot(v.x-b.x,v.y-b.y))]); }); SEEN[b.id]=now; });
- if(roundState==='live') bots.forEach(function(b){ var ph=b.alive&&b._fc?b._fc.ph:''; if((FCP[b.id]||'')!==ph){ var e=b._fc&&b._fc.e; REC.fc.push([tick, b.id, FCP[b.id]||'', ph, e?e.id:'', e?Math.round(Math.hypot(e.x-b.x,e.y-b.y)):0, e&&e.alive?1:0, b._sawEnemy?1:0, Math.round(b.hp)]); FCP[b.id]=ph; }
+ if(roundState==='live') bots.forEach(function(b){ var ph=b.alive&&b._fc?b._fc.ph:''; if((FCP[b.id]||'')!==ph){ var e=b._fc&&b._fc.e; REC.fc.push([tick, b.id, FCP[b.id]||'', ph, e?e.id:'', e?Math.round(Math.hypot(e.x-b.x,e.y-b.y)):0, e&&e.alive?1:0, b._sawEnemy?1:0, Math.round(b.hp), (tick-(b._fcWhyT||-9)<=1)?b._fcWhy:'']); FCP[b.id]=ph; }
    var tg=b.alive&&b.post?String(b.post.tag):''; if((TKP[b.id]||'')!==tg){ REC.task.push([tick, b.id, tg]); TKP[b.id]=tg; } });
  if(roundState==='live') bots.forEach(function(b){ if(!b.alive) return;
    if(b._jump&&b._jump.t===tick&&REC.jump.length<20000) REC.jump.push([tick, b.id, Math.round(b.x), Math.round(b.y), Math.round(b.z||0), b._jump.up?1:0, b._jc?1:0, b.post?String(b.post.tag):'']);
    if(b.atPost&&!ATP[b.id]&&b.post&&b.z!=null){ var fz=visFloorAt(b.post.x,b.post.y,null); if(Math.abs(fz-b.z)>40) REC.arrive.push([tick, b.id, String(b.post.tag), Math.round(b.z), Math.round(fz)]); } ATP[b.id]=!!b.atPost;
    if(b.defusing&&!DFP[b.id]) REC.defst.push([tick, b.id, (bomb.retake&&bomb.retake.defId)||'']); DFP[b.id]=!!b.defusing;
    var bu=b.blindUntil||0; if(bu>tick&&bu>(BLP[b.id]||0)+8) REC.blind.push([tick, b.id, Math.round((bu-tick)/TICK_HZ*10)/10, b._blindBy||'']); BLP[b.id]=bu; });
- if(tick%32===0 && roundState==='live') bots.forEach(function(b){ if(b.alive) REC.act.push([tick, b.id, b.post?String(b.post.tag):'', b.state||'', b._fc?b._fc.ph:'', tick<(b.blindUntil||0)?1:0, b.crouching?1:0, b.atPost?1:0]); });
+ if(tick%32===0 && roundState==='live') bots.forEach(function(b){ if(b.alive) REC.act.push([tick, b.id, b.post?String(b.post.tag):'', b.state||'', b._fc?b._fc.ph:'', tick<(b.blindUntil||0)?1:0, b.crouching?1:0, b.atPost?1:0, b._walkWhy||'', b._runWhy||'', b._stopWhy||'']); });
  if(cur && typeof teamTac!=='undefined' && teamTac.T){ if(cur.lowPlan===undefined) cur.lowPlan=teamTac.T.lowPlan||null; if(cur.exec==null && teamTac.T.execStart!=null) cur.exec=teamTac.T.execStart; }
  if(tick%16===0){ REC.hp=REC.hp||[]; bots.forEach(function(b){ if(b.alive) REC.hp.push([tick, b.id, b.hp]); }); }   // (v373) HP — для сравнения раскладов с про
  if(tick%16===0) bots.forEach(function(b){ REC.pos.push([tick, b.id, b.team==='CT'?1:0, Math.round(b.x), Math.round(b.y), b.alive?1:0, Math.round((b.facing||0)*100)/100, b.weapon?b.weapon.key:'', b._knife?1:0]); });

@@ -175,6 +175,8 @@ function duelEval(b, F, cover){
   // меньше, чем мне до их (< DUEL_LOSE_K; проектное число — первый кандидат на замену данными демок)
   return {sees: seesE, mine: mine.t, theirs: theirs, ret: ret, ammoOk: ammoOk, win: ammoOk && theirs >= mine.t*DUEL_LOSE_K, trapped: ret >= theirs};
 }
+// (v523) причина последнего решения перестрелки — только запись (подпись на экране, запись матча rec2): почему ушёл с линии / остался / бой кончился
+function fcWhy(b, why){ b._fcWhy = why; b._fcWhyT = tick; }
 // каждый тик движения: фазы line (на линии) → off (за укрытием) → back (выглядывает снова) → line …
 function fightCycleTick(b, dtSec, busy){
   var F = b._fc, D = PEEK_PRO[b.team];
@@ -193,7 +195,7 @@ function fightCycleTick(b, dtSec, busy){
   // (v435, М168, скрин владельца 26.10: после фрага «бой · на линии · не видит врага») противник этой перестрелки убит (киллфид), другого
   // не видит и по нему не стреляют — перестрелка кончилась сейчас. Раньше «на линии» держалось до паузы про (до 2,7 с) / конца стрельбы
   // и только тогда проверялось, жив ли враг
-  if(F.e && !F.e.alive && !b._sawEnemy && !ssNew){ b._fc = null; return; }
+  if(F.e && !F.e.alive && !b._sawEnemy && !ssNew){ b._fc = null; fcWhy(b, "конец: враг убит"); return; }
   F.moving = false;
   if(ssNew && F.sh && !F.sh.done){ F.sh.done = true; ssNew = false; F.ss = SS.t; }   // показывал плечо — AWP выстрелил: выглядывает, пока он перезаряжается
   if(ssNew && F.ph !== "off"){
@@ -204,13 +206,13 @@ function fightCycleTick(b, dtSec, busy){
     if(cs){
       F.ph = "off"; F.retreat = true; F.own = false; F.cx = cs.x; F.cy = cs.y; F.ax = b.baseX; F.ay = b.baseY; F.seen = tick;
       F.until = tick + Math.round(peekQ(D.pause, fightRand(b, 6))*TICK_HZ);
-      F.better = fightBetter(b, SS.by, cs.x, cs.y, D.shift[4]);
+      F.better = fightBetter(b, SS.by, cs.x, cs.y, D.shift[4]); fcWhy(b, "ушёл: стреляют в плечо, стрелка не видно");
       if(!b._fcS || tick - b._fcS > 4*TICK_HZ){ b._fcS = tick; logEvent(b.id+": стреляют в плечо из-за укрытия — ухожу за укрытие"); }
     }
   }
   if(F.ph === "line"){
     fightStrafe(b, F, dtSec);
-    if(!b._sawEnemy && tick - F.seen > D.pause[4]*TICK_HZ){ b._fc = null; return; }   // враг пропал — перестрелка кончилась
+    if(!b._sawEnemy && tick - F.seen > D.pause[4]*TICK_HZ){ b._fc = null; fcWhy(b, "конец: врага не видно дольше паузы"); return; }   // враг пропал — перестрелка кончилась
     if(!F.until && b.lastShotTick >= F.t) F.until = b.lastShotTick + Math.max(b.reactionTicks || 1, 8);   // (v520) первая оценка размена — через время реакции после первого выстрела (было: таймер «длительность пика про» ≈ 1 с)
     if(F.until && tick >= F.until){
       var e = F.e;
@@ -219,17 +221,18 @@ function fightCycleTick(b, dtSec, busy){
       var c0 = fightCover(b, e, peekQ(D.shift, fightRand(b, 2)), tw) || fightCover(b, e, D.shift[4], tw), DV = duelEval(b, F, c0);
       // размен выигрываю (или до укрытия дольше, чем меня убьют — уйти не успею) — стреляю дальше; следующая оценка — через время реакции
       if(DV && !DV.sees){ F.until = tick + 4; return; }   // врага не видно — стрелять не в кого: держит угол на линии (где появится), не отходит; бой кончится по «враг пропал» выше
-      if(DV && DV.sees && (DV.win || (DV.trapped && !b._reloading && b.ammo > 0))){ F.until = tick + Math.max(b.reactionTicks || 1, 8);
+      if(DV && DV.sees && (DV.win || (DV.trapped && !b._reloading && b.ammo > 0))){ F.until = tick + Math.max(b.reactionTicks || 1, 8); fcWhy(b, DV.win ? "остался: размен мой" : "остался: уйти не успею");
         if(!b._fcD || tick - b._fcD > 4*TICK_HZ){ b._fcD = tick; logEvent(b.id+": "+(DV.win ? "размен мой" : "уйти не успею")+" (мне до фрага "+DV.mine.toFixed(2)+" с, им "+DV.theirs.toFixed(2)+" с, до укрытия "+(DV.ret < 99 ? DV.ret.toFixed(2) : "—")+" с) — стреляю дальше"); }
         return; }
       if(push && duelHits(b._hitIn, F.t0, null) - duelHits(b._hitOut, F.t0, e.id) < FIGHT_PUSH_LOSE && !b._reloading && b.ammo > 0){
-        F.until = tick + Math.max(b.reactionTicks || 1, Math.round(peekQ(D.dur, fightRand(b, 9))*TICK_HZ));
+        F.until = tick + Math.max(b.reactionTicks || 1, Math.round(peekQ(D.dur, fightRand(b, 9))*TICK_HZ)); fcWhy(b, "остался: давлю по задаче");
         if(!b._fcP || tick - b._fcP > 4*TICK_HZ){ b._fcP = tick; logEvent(b.id+": давлю по задаче — остаюсь на линии"); }
         return; }
       var c = c0;
-      if(!c){ F.until = 0; F.t = tick; return; }   // укрыться негде — остаётся на линии
+      if(!c){ F.until = 0; F.t = tick; fcWhy(b, "остался: укрыться негде"); return; }   // укрыться негде — остаётся на линии
       F.ph = "off"; F.cx = c.x; F.cy = c.y; F.ax = b.baseX; F.ay = b.baseY; F.own = false;
       F.until = tick + Math.round(peekQ(D.pause, fightRand(b, 3))*TICK_HZ);
+      fcWhy(b, "ушёл: " + (!DV ? "нет оценки" : !DV.ammoOk ? (b._reloading ? "перезаряжаюсь" : "патронов мало " + b.ammo + "/" + ((b.weapon && b.weapon.mag) || "?")) : "размен не мой (мне " + (DV.mine < 99 ? DV.mine.toFixed(1) : "—") + " с, им " + (DV.theirs < 99 ? DV.theirs.toFixed(1) : "—") + " с)"));
       if(!b._fcV || tick - b._fcV > 4*TICK_HZ){ b._fcV = tick; logEvent(b.id+": размен не мой"+(DV ? " (мне до фрага "+(DV.mine < 99 ? DV.mine.toFixed(2) : "—")+" с, им "+DV.theirs.toFixed(2)+" с"+(DV.ammoOk ? "" : ", патронов мало")+")" : "")+" — ушёл с линии за укрытие"); }
     }
     return;
@@ -251,9 +254,9 @@ function fightCycleTick(b, dtSec, busy){
     // патронов на врага мало — перезаряжается здесь, за укрытием (сам начинает: тактическая перезарядка ниже 35 % магазина могла не включиться —
     // отметка владельца 10.11: karrigan 10/12 ждал перезарядку 4 с и стоял), пока идёт — ждёт
     if(DO && !DO.ammoOk && !b._sawEnemy && !b._reloading && b.weapon && b.ammo < b.weapon.mag){ b._reloading = true; b.reloadUntil = tick + Math.round(b.weapon.reload*TICK_HZ); if(BAL.soundMore) reloadHeard(b, b.weapon); }
-    if(DO && !DO.ammoOk && b._reloading){ F.until = Math.max(F.until, b.reloadUntil); return; }
-    if(!fin && !fightPush(b) && !(DO && DO.ok)){ b._fc = null; return; }   // не выглядывает снова — перестрелка закончена ((v518b) давить по задаче — выглядывает всегда)
-    F.ph = "back"; F.nPeek = (F.nPeek || 0) + 1; F.sh = null;
+    if(DO && !DO.ammoOk && b._reloading){ F.until = Math.max(F.until, b.reloadUntil); fcWhy(b, "за укрытием: перезаряжаюсь"); return; }
+    if(!fin && !fightPush(b) && !(DO && DO.ok)){ b._fc = null; fcWhy(b, "конец: не выглядываю — " + (!DO ? "врага нет" : !DO.ammoOk ? "патронов мало" : "размен не мой")); return; }   // не выглядывает снова — перестрелка закончена ((v518b) давить по задаче — выглядывает всегда)
+    F.ph = "back"; F.nPeek = (F.nPeek || 0) + 1; F.sh = null; fcWhy(b, "выглядываю: " + (fin ? "добить раненого" : (DO && DO.ok) ? "размен мой" : "задача"));
     if(F.better){ F.ax = F.better.x; F.ay = F.better.y; F.better = null; }   // (М149) выглядывает с места, откуда видно врага целиком
     // (ответ 4) второй и дальше пик в этой перестрелке — с другого места (не ближе медианы сдвига про D.shift[2] к прошлому): не однообразный джигл
     // (v521, владелец 10.11: «чередовать, чтобы врагу было тяжелее попасть: можно 2 раза пикнуть с одного места, на третий уйти, можно сразу на
@@ -272,7 +275,7 @@ function fightCycleTick(b, dtSec, busy){
   if(d < 2 && shOn){ if(!F.sh.t0) F.sh.t0 = tick; if(tick - F.sh.t0 >= peekQ(D.pause, fightRand(b, 7))*TICK_HZ) F.sh.done = true; return; }   // плечо показано — ждёт выстрела до паузы про
   if(d < 2){ if(F.ph === "back"){ F.ph = "line"; F.t = tick; F.until = 0; F.sv = undefined; } return; }
   var stp = Math.min(d, SPEED*weaponSpeedMul(b)*dtSec), nx = b.baseX + (tx-b.baseX)/d*stp, ny = b.baseY + (ty-b.baseY)/d*stp;
-  if(stepBlocked(b.baseX, b.baseY, nx, ny, b)){ b._fc = null; return; }
+  if(stepBlocked(b.baseX, b.baseY, nx, ny, b)){ b._fc = null; fcWhy(b, "конец: упёрся по пути к укрытию"); return; }
   b.baseX = nx; b.baseY = ny; F.moving = true; b.crouching = false; b.walking = false;
 }
 // ---- (3) безопасная ротация: путь мимо известных T ----
