@@ -107,38 +107,52 @@ function smokeOnLine(x1,y1,x2,y2){
 function areaHas(o, r, px, py){ return Math.hypot(px - o.x, py - o.y) < r; }
 function areaSegHits(o, r, x1, y1, x2, y2){ return segHitsCircle(x1,y1,x2,y2,o.x,o.y,r); }
 function areaPath(o, r){ ctx.beginPath(); ctx.arc(o.x, o.y, r, 0, Math.PI*2); ctx.closePath(); }   // контур области для рисования
+// (v548) дыра от пули — не «прозрачный» дым по всей высоте: сквозь дым видно только то, что попадает в окошко (smokeHoleParts, ниже)
 function smokeBlocks(x1,y1,x2,y2){
   for(var i=0;i<smokes.length;i++){
     var s = smokes[i], r = smokeRadiusNow(s);
-    if(r > 8 && areaSegHits(s, r, x1,y1,x2,y2) && !smokeHoleClear(s, r, x1,y1,x2,y2)) return true;
+    if(r > 8 && areaSegHits(s, r, x1,y1,x2,y2)) return true;
   }
   return false;
 }
-// (v271) CS2: пули пробивают в дыме временную дыру. Ширина и время жизни Valve не публикует —
-// проектные числа: SMOKE_HOLE.w (≈25 юнитов) и SMOKE_HOLE.life (1 с). Линия взгляда проходит
-// сквозь дым, если и вход, и выход её через облако лежат в живой дыре (рядом с линией пуль).
-var SMOKE_HOLE = {w:10, life:64};   // проектное число: px, тики
-function smokeBulletHole(x1, y1, x2, y2){
+// (v271) CS2: пуля пробивает в дыме временную дыру. (v548, владелец 10.11: «дыра — не коридор, а небольшое облачко вокруг места, где прошла
+// пуля: видно часть игрока — пуля прошла низко, видны ноги») дыра — линия пули в 3D (от глаз стрелка к точке, куда целился) с небольшим
+// радиусом SMOKE_HOLE.r (ед. игры) вокруг; сквозь дым видна часть тела (голова / тело), если линия взгляда на неё во всём пути через дым
+// идёт по дыре. Было: полоса 25 ед. по радару на всю высоту — сквозь неё игрока было видно целиком. Радиус и время Valve не публикует —
+// проектные числа (r — примерно с голову игрока, по решению владельца)
+var SMOKE_HOLE = {r:10, life:64};   // проектное число: ед. игры, тики
+function smokeBulletHole(x1, y1, x2, y2, z1, z2){
   smokes.forEach(function(s){
     var r = smokeRadiusNow(s); if(r <= 8 || !segHitsCircle(x1,y1,x2,y2,s.x,s.y,r)) return;
     var H = s.bholes || (s.bholes = []);
     for(var i = H.length-1; i >= 0; i--) if(H[i].until <= tick) H.splice(i, 1);
-    H.push({x1:x1, y1:y1, x2:x2, y2:y2, until:tick + SMOKE_HOLE.life});
+    H.push({x1:x1, y1:y1, z1:z1 || 0, x2:x2, y2:y2, z2:z2 != null ? z2 : (z1 || 0), until:tick + SMOKE_HOLE.life});
     if(H.length > 12) H.shift();
   });
 }
-function smokeHoleClear(s, r, x1, y1, x2, y2){
+// отрезок взгляда (x1,y1,z1) → (x2,y2,z2) там, где он идёт через дым s (радиус r), — весь по дырам (каждая точка ближе SMOKE_HOLE.r к линии пули)
+function smokeHolePass(s, r, x1, y1, z1, x2, y2, z2){
   var H = s.bholes; if(!H || !H.length) return false;
   var dx = x2-x1, dy = y2-y1, a = dx*dx + dy*dy; if(a < 1) return false;
   var fx = x1-s.x, fy = y1-s.y, bq = 2*(fx*dx + fy*dy), cq = fx*fx + fy*fy - r*r, D = bq*bq - 4*a*cq;
-  if(D < 0) return false;
-  var sq = Math.sqrt(D), t1 = Math.max(0, (-bq - sq)/(2*a)), t2 = Math.min(1, (-bq + sq)/(2*a));
-  var p = [[x1+dx*t1, y1+dy*t1], [x1+dx*t2, y1+dy*t2]];
-  return H.some(function(h){
-    if(h.until <= tick) return false;
-    var hx = h.x2-h.x1, hy = h.y2-h.y1, hl = Math.hypot(hx, hy); if(hl < 1) return false;
-    return p.every(function(q){ return Math.abs((q[0]-h.x1)*hy - (q[1]-h.y1)*hx)/hl < SMOKE_HOLE.w; });
-  });
+  if(D < 0) return true;
+  var sq = Math.sqrt(D), t1 = Math.max(0, (-bq - sq)/(2*a)), t2 = Math.min(1, (-bq + sq)/(2*a)); if(t2 <= t1) return true;
+  var K = MAP.pxUnits || 2.5, n = Math.max(2, Math.ceil((t2 - t1)*Math.sqrt(a)*K/(SMOKE_HOLE.r/2)));
+  for(var i = 0; i <= n; i++){ var t = t1 + (t2 - t1)*i/n, px = (x1 + dx*t)*K, py = (y1 + dy*t)*K, pz = z1 + (z2 - z1)*t;
+    if(!H.some(function(h){ if(h.until <= tick) return false;
+        var ux = (h.x2-h.x1)*K, uy = (h.y2-h.y1)*K, uz = h.z2-h.z1, ul = Math.hypot(ux, uy, uz); if(ul < 1) return false;
+        var wx = px - h.x1*K, wy = py - h.y1*K, wz = pz - h.z1, c = (wx*ux + wy*uy + wz*uz)/ul;
+        return wx*wx + wy*wy + wz*wz - c*c <= SMOKE_HOLE.r*SMOKE_HOLE.r; })) return false; }
+  return true;
+}
+// что из тела цели t видно бойцу v сквозь дым по дырам (голова / тело — те же точки, что в visParts, 040)
+function smokeHoleParts(v, t){
+  var ez = visFloorAt(v.x, v.y, v.z) + (v.crouching ? VIS_EYE.crouch : VIS_EYE.stand), tf = visFloorAt(t.x, t.y, t.z);
+  var pass = function(zp){ for(var i=0;i<smokes.length;i++){ var s = smokes[i], r = smokeRadiusNow(s);
+      if(r > 8 && areaSegHits(s, r, v.x, v.y, t.x, t.y) && !smokeHolePass(s, r, v.x, v.y, ez, t.x, t.y, tf + zp)) return false; } return true; };
+  var B = t.crouching ? VIS_BODY.crouch : VIS_BODY.stand, body = false;
+  for(var k = 0; k < B.length && !body; k++) body = pass(B[k]);
+  return {head: pass(t.crouching ? VIS_HEAD.crouch : VIS_HEAD.stand), body: body};
 }
 var MOLLY_SMOKE_TOUCH = 0.9;   // (v321) огонь гаснет, когда круг огня касается дыма (0,9 радиуса огня — касание с запасом) — проектное число
 var SMOKE_GROW = 40;   // тиков: дым раскрывается до полного радиуса (≈ 0,6 с; проектное число) — одно число для рисунка, видимости и выхода T (366)

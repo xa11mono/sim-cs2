@@ -235,6 +235,7 @@ function tryShoot(shooter, target, dist){
   var aimHead = w.key !== "AWP" && hashRand(seedS+5) < pAimHead;
   // (v241) целится в то, что видно: голова за укрытием не видна — в тело; видна только голова — в голову
   var vParts = visParts(shooter.x, shooter.y, shooter.crouching, target.x, target.y, target.crouching, undefined, shooter.z, target.z);
+  var SP = shooter._smkParts; if(SP && SP.id === target.id && SP.t === tick) vParts = {head: vParts.head && SP.head, body: vParts.body && SP.body};   // (v548) сквозь дыру в дыму — только то, что в окошке
   if(!vParts.head && vParts.body) aimHead = false; else if(vParts.head && !vParts.body) aimHead = true;
   // (М149, владелец 20.10) видно только плечо (цель за углом или ящиком) — целится в него, а цель это замечает: по ней стреляют,
   // а сама она стрелка целиком не видит — у неё есть время уйти за укрытие или занять место получше (fightCycleTick)
