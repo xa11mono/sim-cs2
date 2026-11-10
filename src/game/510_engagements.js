@@ -109,7 +109,10 @@ function resolveEngagements(){
     if(next !== "patrol") b.roamChecking = false;
     b.holding = (next === "hold");
     b.holdSinceTick = b.holding ? (b.holdSinceTick===-999 ? tick : b.holdSinceTick) : -999;
-    b.crouching = b.holding && (tick - b.holdSinceTick > 25);
+    // (v521, дуэли: присед за низким укрытием рвал линию — враг пропадал, перестрелка «расходилась») держит угол — приседает, только если
+    // ближайший видимый враг виден и из приседа
+    var ceN = b._nearestEnemyBot, cvp = (b.holding && tick - b.holdSinceTick > 25 && ceN && b._sawEnemy) ? visParts(b.x, b.y, true, ceN.x, ceN.y, ceN.crouching, true, b.z, ceN.z) : null;
+    b.crouching = b.holding && (tick - b.holdSinceTick > 25) && (!cvp || !!(cvp.head || cvp.body || cvp.side));
     if(next === "retreat" && !b.forcedRetreat){
       // роумер отходит на предыдущую точку маршрута, а не на спавн
       var rt = (b.role === "roamer" && b.roamPrevPt) ? b.roamPrevPt : b.spawnPt;

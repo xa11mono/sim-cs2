@@ -109,7 +109,9 @@ function fightStrafe(b, F, dtSec){
   }
   var st = F.sv*dtSec, nx = b.baseX + ax*st, ny = b.baseY + ay*st;
   if(Math.abs(st) > 1e-6){
-    if(stepBlocked(b.baseX, b.baseY, nx, ny, b)){ F.sv = 0; F.sdir = -F.sdir; F.leg = 0; }
+    // (v521, дуэли, замечание владельца 09.11 «2–3 выстрела и оба за стену» — разбор 57 расставаний: 16 — стрейф уводил за край укрытия, врага
+    // больше не видно) стрейф — в пределах линии: шаг, после которого врага, видного сейчас, уже не видно, — разворот (как упор в стену)
+    if(stepBlocked(b.baseX, b.baseY, nx, ny, b) || (b._sawEnemy && hasLOS(b.baseX, b.baseY, e.x, e.y, b.z, e.z) && !hasLOS(nx, ny, e.x, e.y, b.z, e.z))){ F.sv = 0; F.sdir = -F.sdir; F.leg = 0; }
     else { b.baseX = nx; b.baseY = ny; }
   }
   b.curSpeed = Math.abs(F.sv); b.walking = false;
@@ -148,6 +150,14 @@ function duelTTK(sh, tg, d, hp, armored, skill){
   return {t: shots*60/w.rpm, shots: shots};
 }
 var DUEL_LOSE_K = 0.6;
+// выглянуть / выйти снова на врага e в точке (x, y): размен не проигрышный и патронов на него хватает (то, что знает игрок: нанесённый урон,
+// своё HP, оружие врага, дистанция) — одна оценка для повторного пика в бою (fightCycleTick) и для выхода после боя (contactTick)
+function duelOdds(b, e, x, y){
+  if(!e || !e.alive) return null;
+  var d = Math.hypot(x-b.x, y-b.y), P = {x:x, y:y, px:x, py:y, weapon:e.weapon, crouching:e.crouching};
+  var mine = duelTTK(b, P, d, Math.max(1, 100 - duelHits(b._hitOut, roundStartTick, e.id)), true, b.skill || 1), theirs = duelTTK(P, b, d, b.hp, !!b.armor, b.skill || 1);
+  return {mine: mine, theirs: theirs, ammoOk: !b._reloading && b.ammo >= mine.shots, ok: !b._reloading && b.ammo >= mine.shots && theirs.t >= mine.t*DUEL_LOSE_K};
+}
 function duelEval(b, F, cover){
   var e = F.e; if(!e || !e.alive) return null;
   var vis = (b._visible || []).filter(function(o){ return o.alive && o.team !== b.team; }), seesE = vis.indexOf(e) >= 0;
@@ -232,10 +242,9 @@ function fightCycleTick(b, dtSec, busy){
     var fin = F.e && F.e.alive && duelHits(b._hitOut, F.t0, F.e.id) > duelHits(b._hitIn, F.t0, null);
     // (v520) выглянуть снова — по той же оценке (с места, где враг был виден): размен мой, добить раненого или задача; патронов на врага мало —
     // сначала перезарядка за укрытием (ждёт, не выходит); проигрываю — не выглядывает, перестрелка для него закончена (жребия 26 % больше нет)
-    var DR = F.e && F.e.alive ? duelTTK(b, F.e, Math.hypot(F.e.x-b.x, F.e.y-b.y), Math.max(1, 100 - duelHits(b._hitOut, roundStartTick, F.e.id)), true, b.skill || 1) : null;
-    var DRe = F.e && F.e.alive ? duelTTK(F.e, b, Math.hypot(F.e.x-b.x, F.e.y-b.y), b.hp, !!b.armor, b.skill || 1) : null;
-    if(DR && (b._reloading || b.ammo < DR.shots) && (F.wait || 0) < 4*TICK_HZ){ F.wait = (F.wait || 0) + 1; return; }
-    if(!fin && !fightPush(b) && !(DR && DRe && b.ammo >= DR.shots && DRe.t >= DR.t*DUEL_LOSE_K)){ b._fc = null; return; }   // не выглядывает снова — перестрелка закончена ((v518b) давить по задаче — выглядывает всегда)
+    var DO = F.e ? duelOdds(b, F.e, F.e.x, F.e.y) : null;
+    if(DO && !DO.ammoOk && (F.wait || 0) < 4*TICK_HZ){ F.wait = (F.wait || 0) + 1; return; }
+    if(!fin && !fightPush(b) && !(DO && DO.ok)){ b._fc = null; return; }   // не выглядывает снова — перестрелка закончена ((v518b) давить по задаче — выглядывает всегда)
     F.ph = "back"; F.nPeek = (F.nPeek || 0) + 1; F.sh = null;
     if(F.better){ F.ax = F.better.x; F.ay = F.better.y; F.better = null; }   // (М149) выглядывает с места, откуда видно врага целиком
     // (ответ 4) второй и дальше пик в этой перестрелке — с другого места (не ближе медианы сдвига про D.shift[2] к прошлому): не однообразный джигл
