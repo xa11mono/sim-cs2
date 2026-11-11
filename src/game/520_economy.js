@@ -146,11 +146,7 @@ function decideRoundType(team){
   te.ecoWhy = "";
   // у них эко, у нас "эко/хаф" — берём SMG: $600 за килл и почти гарантированный раунд
   if(E.eco && (base === "eco" || base === "half") && avg >= 1500){ te.antiEcoSmg = true; te.ecoWhy = "у них эко — берём SMG"; return "force"; }
-  // у них полный закуп, мы собирались форсить, а после эко хватит на фулл — не форсим
-  var nextInc = nextLossIncome(team);
-  var canFullNext = mates.filter(function(b){ return b.money + nextInc >= fullNeed(b); }).length;
-  if(E.full && base === "force" && !lastOfHalf && canFullNext >= 4 && !(score[team === "CT" ? "T" : "CT"] === matchWinTarget()-1)){ te.ecoWhy = "у них фулл-бай — эко, копим на полный"; return "eco"; }
-  // (v560, В94) «у них фулл — хаф-бай не берём» убрано: у про против фулла с теми же деньгами форс / хаф — треть раундов (доля — в FORCE_SHARE)
+  // (v560, В94) «у них фулл — эко, копим на полный» и «у них фулл — хаф-бай не берём» убраны: у про против фулла с теми же деньгами форс / хаф — треть раундов (доля — в FORCE_SHARE)
   return base;
 }
 var FORCE_SHARE = {CT: 0.46, T: 0.39}, FORCE_MIN = 2000;   // доля форса / хафа, когда можно копить; $ на игрока — ниже не форсят (демки, В94)
