@@ -324,3 +324,45 @@ function anchorPosOf(k){
   if(!a) return null;
   return a.post ? {x:a.post.x, y:a.post.y} : {x:a.x, y:a.y};
 }
+
+// (v555, владелец 11.11, отметка м300 р5: «стягиваются на один сайт, а мид и другие зоны вообще не чекаются; должны сами понимать, когда
+// подпушить, когда посмотреть — не правило, а логика: почекать мид, никого — пройти в андер, встретить T, и раунд уже другой») середина
+// раунда: о живых T команда давно ничего не знает (≤ INFO_QUIET с ни видели, ни слышали), — один CT (не опорник, который один на своём
+// сайте) идёт посмотреть ближайшую зону, где T по таймингу могут быть и откуда инфы нет: доходит до точки, откуда её видно (probeViewPoint),
+// видит пусто — «чекнул … — пусто» (markClear: знание команды, по нему и решают дальше — ротация, перекол), видит врага — бой, контакт.
+// Одна проверка за раз, INFO_MAX за раунд; держится INFO_HOLD с. Числа — проектные
+var INFO_QUIET = 10, INFO_MAX = 2, INFO_HOLD = 8, INFO_R = 900;
+function ctInfoCheck(b, ct, cts){
+  if(ct.saving || ct.playRetake || (bomb && bomb.state === "planted") || tick - roundStartTick < 20*TICK_HZ) return false;
+  var I = ct._info && ct._info.round === roundNum ? ct._info : (ct._info = {round: roundNum, n: 0, by: null});
+  if(I.by === b.id){
+    // дошёл и смотрит туда (точка выбрана так, что центр зоны видно): врага нет — «чекнул — пусто» (место, которое видел сам, — posChecked)
+    var done = tick >= I.until || b._sawEnemy || (b.atPost && I.at && tick - I.at > 0.5*TICK_HZ && (markClear("CT", I.x, I.y, b.id, hasVision(b.x, b.y, I.x, I.y)) || tick - I.at > 1.5*TICK_HZ));
+    if(b.atPost && !I.at) I.at = tick;
+    if(!done){ setPost(b, I.pt, I.look, true, "probeInfo"); return b.post && b.post.tag === "probeInfo"; }
+    I.by = null; if(b.post && b.post.tag === "probeInfo") clearPost(b); return false;
+  }
+  if(I.by || I.n >= INFO_MAX || b._sawEnemy || b._contact) return false;
+  // команда давно ничего не знает о живых T
+  var BL = beliefLast.CT || {}, fresh = bots.some(function(t){ var q = BL[t.id]; return t.team === "T" && t.alive && q && tick - q.tick < INFO_QUIET*TICK_HZ; });
+  if(fresh) return false;
+  // кто идёт: не опорник, оставшийся на своём сайте один
+  if(/^anchor/.test(b.tRole || "") && !cts.some(function(o){ return o !== b && nearP(o.x, o.y, o.z, b.x, b.y, b.z, 600); })) return false;
+  if(!taskCanSet(b, "probeInfo")) return false;
+  // куда: ближайшая по пути зона, где T могут быть по таймингу, никто из своих её сейчас не видит и её не чекали за INFO_QUIET с
+  var best = null;
+  for(var j = 0; j < BZ.ids.length; j++){
+    var c = BZ.cent[j]; if(!c || !reachPossible("CT", j)) continue;
+    var d = Math.hypot(c.x-b.x, c.y-b.y); if(d < 250 || d > INFO_R) continue;
+    var zid = BZ.ids[j], cz = CLEARZ.CT[zid]; if(cz && tick - cz.tick < INFO_QUIET*TICK_HZ) continue;
+    if(cts.some(function(o){ return hasVision(o.x, o.y, c.x, c.y); })) continue;
+    var w = beliefZoneKnown("CT", j); if(!(w > 0.05)) continue;
+    var sc = w/(1 + d/400); if(!best || sc > best.sc) best = {sc:sc, c:c, j:j};
+  }
+  if(!best) return false;
+  var pt = probeViewPoint({x:b.x, y:b.y}, best.c, best.c); if(!pt) return false;
+  if(!setPost(b, pt, best.c, true, "probeInfo") || !(b.post && b.post.tag === "probeInfo")) return false;
+  I.by = b.id; I.n++; I.pt = pt; I.look = {x:best.c.x, y:best.c.y}; I.x = best.c.x; I.y = best.c.y; I.until = tick + INFO_HOLD*TICK_HZ; I.at = 0;
+  voiceLog("CT", "info"+b.id+roundNum+I.n, b.id, "инфы нет — гляну "+calloutName(best.c.x, best.c.y));
+  return true;
+}

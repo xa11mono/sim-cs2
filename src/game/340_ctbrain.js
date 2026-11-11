@@ -399,6 +399,7 @@ function ctBrain(){
     }
     if(planted){ retakePost(b, cts); return; }
     if(BAL.styles && ctEarlyPeek(b, ct)) return;
+    if(ctInfoCheck(b, ct, cts)) return;   // (v555) середина раунда, инфы давно нет — один CT проверяет зону
     // ---- слышно плант рядом: сбить его — выйти на линию, откуда видно того, кто ставит ----
     var PHs = teamIntel.CT.plantHeard;
     // с умом: под плант лезут, только если нас там не меньше, чем их (или время
