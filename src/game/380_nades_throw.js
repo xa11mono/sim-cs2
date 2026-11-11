@@ -356,7 +356,9 @@ function nadeSelfWhyNot(b, type, pt){
 }
 function assignNade(b, type, target, why, opts){
   if(!b || !b.alive || !b.nades || b.nades[type] <= 0) return false;
-  if(!(opts && opts.bkey)){ var wn = nadeSelfWhyNot(b, type, target); if(wn){ NADE_FAIL = wn; return false; } }
+  // (v560, В98, разбор владельца 11.11: «зачем он кинул молотов» — молотов выхода «в любимый угол» кинул последний живой T, шедший за бомбой)
+  // граната плана команды (bkey) — тоже с проверкой пользы и времени, кроме смока (он закрывает обзор и без известного врага)
+  if(!(opts && opts.bkey) || type !== "smoke"){ var wn = nadeSelfWhyNot(b, type, target); if(wn){ NADE_FAIL = wn; return false; } }
   if(nadeFailedHere(b, type, target.x, target.y)){ NADE_FAIL = "отсюда уже не долетела"; return false; }
   if(opts && opts.bkey && !builtinAllowed(opts.bkey)) return false; // встроенная выключена или заменена своим лайнапом
   // (v428) план гранат команды (365): граната, отложенная на более поздний момент (выход, после планта, ретейк), сейчас не тратится;
@@ -416,6 +418,7 @@ function updateNadeTasks(){
 // (v499) откат v498 (24 px): прогон 148, 16 матчей — стоячие лайнап-смоки сдвинулись из 5–15 px в 15–28 px и стали длиннее
 // (> 8,1 с: Mirage 3,9 → 7,1 %, Ancient 11,0 → 13,2 %; все лайнап-смоки Mirage 8,9 → 12,8 %); флешек за раунд — в пределах шума (+2–3 %)
 var LU_AT = 9;
+var LU_NEAR = 40;   // (v560) ед. карты: до точки броска так близко, а дойти не даёт задача важнее, — бросает с места (проектное число)
 var RUN_V = 0.9, RUN_COS = 0.94;   // скорость ≥ 90 % эталона (план п. 3); направление ± 20° (как перебор точки разгона)
 var RUN_SEC = 4, RUN_MARGIN = 8, RUN_PAST = 24, RUN_NEAR = 24;   // с — разбег не дольше (проектное); px — запас к пути разгона (проектное);
 // px — проскочил (проектное); px — «у точки»: 60 ед. — радиус, в котором бейк брал броски про у точки лайнапа (runup_bake.js), бросок из
@@ -536,6 +539,13 @@ function updateNadeTask1(b){
         // только если точка не дальше по пути, чем была, когда перебили; ушёл дальше — бросок снят (идти назад за гранатой не надо)
         if(b.state === "patrol") setPost(b, t.from, {x:t.x, y:t.y}, true, "lineup");
         var lu = b.state === "patrol" && b.post && b.post.tag === "lineup";
+        // (v560, В106, разбор владельца 11.11: «куча гранат, но не кидают» — флешка ретейка 10 с ждала, пока боец встанет в точку броска, а он
+        // в 18 ед. от неё шёл по ретейку — задача важнее, к точке не пускала) задача важнее не даёт дойти, а точка рядом (≤ LU_NEAR) — бросок
+        // отсюда: подбор считает его из места бойца (лайнап — подсказкой), как свою гранату
+        var nearFrom = Math.hypot(t.from.x-b.baseX, t.from.y-b.baseY) <= LU_NEAR;
+        if(!lu && nearFrom && nadeReady(b)){
+          if(throwNade(b, t.type, t.x, t.y, true, t.why, false, t.from) || !(NADE_FAIL && /пауза|свой/.test(NADE_FAIL))){ b.nadeTask = null; }
+          return; }
         if(!lu){ if(!t.int) t.int = {d: pathLenTo(b, t.from.x, t.from.y)}; }
         else if(t.int){ var dI = t.int.d; t.int = null;
           if(pathLenTo(b, t.from.x, t.from.y) > dI + 36){ logEvent(b.id+": граната отменена — после другой задачи точка броска позади ("+t.why+")");
