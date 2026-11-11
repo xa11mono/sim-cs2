@@ -906,7 +906,9 @@ function tBrain(){
           if(bs2) adUsed.push(bs2);
           b._adSpot = {round:roundNum, pt: bs2 || bpA};
         }
-        setPost(b, b._adSpot.pt, bpA, true, "antidefuse"); b._stopPlantUntil = tick + 30; // бегом, не шагом
+        // (v555) с ножом на дефузящего (knifeDefuseTick, 450) — точка сбить дефуз — сам дефузящий, а не точка с видом на бомбу
+        var kD = b._knife && b._knDef ? bots.filter(function(o){ return o.id === b._knDef && o.alive && o.defusing; })[0] : null;
+        setPost(b, kD ? {x:kD.x, y:kD.y} : b._adSpot.pt, kD || bpA, true, "antidefuse"); b._stopPlantUntil = tick + 30; // бегом, не шагом
       });
       if(dfGo === "all" && antiDef.length && tt._adVoice !== roundNum){ tt._adVoice = roundNum; voiceLog("T", "antidef", antiDef[0].id, "дефузят! все на бомбу!"); }
       // байт — не обязательство: проверяющий не держится за бомбу после звука (снимется с решением «фейк»); все — до конца дефуза (как было)

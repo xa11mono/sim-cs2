@@ -118,6 +118,7 @@ function defuseSees(b){
   return !visWallHit(b.baseX, b.baseY, bomb.x, bomb.y) && visMarch(b.baseX, b.baseY, fv + VIS_EYE.crouch, bomb.x, bomb.y, fb + 8);
 }
 var ESC_MAX_SEC = 8;   // (05.11) ESC_WAIT_SEC (8 с всем) убран — сколько ждать сопровождающего, по ситуации (170, ответ владельца 10)
+var DEFUSE_KEEP = 2, DEFUSE_NEAR = 200;   // (v555) с — слова владельца; ед. — проектное число
 var UTIL_WAIT = 7, UTIL_WAIT_RUSH = 2.5, UTIL_AT_ENTRY = 140, UTIL_MIN_LEFT = 25;   // (v363) 7 с — между медианой 2,7 и 75 % 6,6 с у про (последняя граната → заход первого), 25 с до конца — уже не ждут   // (v346) ждать свои гранаты на выходе — проектные числа   // (v342) сопровождение носителя — проектные числа
 function defuseSound(ct){
   bots.forEach(function(o){
@@ -275,7 +276,12 @@ function bombTick(){
       var need = def.defuseUntil - tick;
       if((def.defuseUntil - tick) % 64 === 0) defuseSound(def);
       // дефуз в огне продолжается, если HP хватает дожить до конца, — fireCommit, прерывает выход из огня (v263)
-      if(def._sawEnemy && def.contactStreak > 6 && bombTimeLeftTicks() > need + 192){
+      // (v555, владелец 11.11: «дефузящий реагирует по-разному: осталось ~2 с — не реагирует на контакт; есть время — может выйти, убить и
+      // доделать») и по нему попали / рядом шаги врага (≤ DEFUSE_NEAR ед., ≤ 1 с) — бросает, если до конца дефуза больше DEFUSE_KEEP с и бомба
+      // ждёт (как при виде врага); впритык — дефузит дальше
+      var hsD = def.heardSound, hitD = (def._hitIn || []).some(function(h){ return tick - h[0] < 32; });
+      var nearD = hsD && hsD.team === "T" && tick - hsD.tick < TICK_HZ && Math.hypot(hsD.x-def.x, hsD.y-def.y) < DEFUSE_NEAR;
+      if(((def._sawEnemy && def.contactStreak > 6) || hitD || nearD) && need > DEFUSE_KEEP*TICK_HZ && bombTimeLeftTicks() > need + 192){
         def.defusing = false; def.defuseCooldownUntil = tick + 96; logEvent(def.id+" прервал дефуз — враг рядом");
       } else if(tick >= def.defuseUntil){
         def.defusing = false; bomb.state = "defused"; if(SND && SND.on) sndBomb("defused", bomb.x, bomb.y);

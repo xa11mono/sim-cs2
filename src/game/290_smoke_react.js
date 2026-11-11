@@ -93,7 +93,8 @@ function smokeSpamTick(){
       // (v528, владелец 10.11: «с AWP смок на ходу не простреливают — остановиться и выстрелить, и то редко; вдали он обычно стоит») снайперка
       // (оружие с прицелом, scopeTicks) в дым стреляет только с точной скорости (≤ 34 % — та же граница, что у разброса, shotSpread): на ходу
       // не стреляет, стоит — стреляет. Ради прострела не останавливается (как часто останавливаться — владелец: редко; числа нет)
-      if(b.weapon.scopeTicks && b.curSpeed > 0.34*SPEED*weaponSpeedMul(b)) return;
+      // (v555) звук дефуза / планта — стреляет и с AWP на ходу (дефуз важнее точности; в дыму всё равно не видно)
+      if(b.weapon.scopeTicks && b.curSpeed > 0.34*SPEED*weaponSpeedMul(b) && !P.urgent) return;
       var aim = Math.atan2(P.pt.y-b.y, P.pt.x-b.x), foe = null;
       if(b.facing !== undefined && _angOff(aim, b.facing) > 0.2 && !P.blind) return;   // сначала довести прицел (слепой не видит прицела — как есть)
       if(!P.blind) bots.forEach(function(e){ if(foe || !e.alive || e.team === b.team) return; var d = Math.hypot(e.x-b.x, e.y-b.y); if(d > 900) return;
@@ -101,7 +102,7 @@ function smokeSpamTick(){
       var fired = false;
       if(foe){ var a0 = b.ammo; b._smokeShot = true; tryShoot(b, foe, Math.hypot(foe.x-b.x, foe.y-b.y)); b._smokeShot = false; fired = b.ammo !== a0; if(fired) smokeBulletHole(b.x, b.y, foe.x, foe.y, visFloorAt(b.x, b.y, b.z) + VIS_EYE.stand, visFloorAt(foe.x, foe.y, foe.z) + VIS_BODY.stand[0]); }
       else fired = blindBullet(b, P.blind ? {x:P.pt.x, y:P.pt.y, z:P.pt.z, spread:BLIND_SPREAD} : P.pt);
-      if(fired && ++P.shot >= SMK.bullets){ P.shot = 0; P.bursts--; P.nextBurst = tick + SMK.burstGap; if(P.bursts <= 0) b._spam = null; }
+      if(fired && ++P.shot >= SMK.bullets){ P.shot = 0; P.bursts--; P.nextBurst = tick + (P.urgent ? 0 : SMK.burstGap); if(P.bursts <= 0) b._spam = null; }   // (v555) на дефуз — без пауз
       return;
     }
     if(b._sawEnemy || b.planting || b.defusing || b._reloading || tick < b.blindUntil || b.ammo <= 0 || !b.weapon) return;
@@ -123,7 +124,8 @@ function smokeSpamTick(){
     else if(b.team === "T" && bomb && bomb.state === "planted" && tick - Math.max(b._defuseHeard||-9999, b._defuseCont||-9999) < TICK_HZ) bp = {x:bomb.x, y:bomb.y};
     if(bp && Math.hypot(bp.x-b.x, bp.y-b.y) < 900 && hasLOS(b.x, b.y, bp.x, bp.y, b.z)){
       var bS = smokes.filter(function(s){ return smkActive(s) && segHitsCircle(b.x, b.y, bp.x, bp.y, s.x, s.y, smokeRadiusNow(s)); })[0];
-      if(bS){ b._spam = {pt:bp, s:bS, seen:true, bursts:SMK.burstsMax, shot:0, nextBurst:tick + b.reactionTicks, until:tick + 4*TICK_HZ};
+      // (v555, отметка владельца м300 р3: «дефузит в смоке, T выстрелил раз и всё — зажимает всю обойму») на плант / дефуз — до конца магазина
+      if(bS){ b._spam = {pt:bp, s:bS, seen:true, urgent:true, bursts:Math.max(SMK.burstsMax, Math.ceil(b.ammo/SMK.bullets)), shot:0, nextBurst:tick + b.reactionTicks, until:tick + 4*TICK_HZ};
         logEvent(b.id+": слышит "+(b.team === "CT" ? "плант" : "дефуз")+" за смоком — простреливает"); return; }
     }
     // (v469, п.6 владельца 29.10, р3 м1 т17330: kyousuke шёл через смок B Apartments к magixx, тот слышал его шаги в дыму 2 с и не стрелял —

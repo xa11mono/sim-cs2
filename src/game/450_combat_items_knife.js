@@ -147,8 +147,27 @@ function knifeEnemyDist(b){
   if(unknown) for(var j = 0; j < BZ.cent.length; j++) if(reachPossible(b.team, j)){ var d = Math.hypot(BZ.cent[j].x-b.x, BZ.cent[j].y-b.y); if(d < best) best = d; }
   return best;
 }
+// (v555, владелец 11.11, отметка м300 р3: «дефузит в смоке — T зажимает обойму; не убил, дефуз идёт — идёт резать: два удара спереди — смерть,
+// в спину — один; иногда легче сразу пойти резать») T слышит дефуз (≤ 1 с) и дефузящий рядом: магазин пуст / перезарядка / очередь в дым
+// кончилась (или он уже вплотную) — нож и к нему (та же задача «сбить дефуз»), в KNIFE_REACH — удар раз в KNIFE_GAP
+var KNIFE_REACH = 20, KNIFE_GAP = 64, KNIFE_STAB = 55, KNIFE_BACK = 180, KNIFE_GO = 300;   // проектные: ед. карты, тики, урон (слова владельца: 2 спереди, 1 в спину)
+function knifeDefuseTick(b){
+  if(b.team !== "T" || !bomb || bomb.state !== "planted" || tick - (b._defuseHeard || -9999) >= TICK_HZ || b._sawEnemy || b.planting) return false;
+  var D = bots.filter(function(o){ return o.alive && o.defusing; })[0]; if(!D) return false;
+  var d = Math.hypot(D.x-b.x, D.y-b.y); if(d > KNIFE_GO) return false;
+  if(!(b.ammo <= 0 || b._reloading || !b._spam || d <= 3*KNIFE_REACH)) return false;
+  b._knife = true; b._spam = null; b._knDef = D.id;   // точку «к нему» даёт задача «сбить дефуз» (tBrain, 170)
+  if(d > KNIFE_REACH) return true;
+  if(tick < (b._stabT || 0)) return true;
+  b._stabT = tick + KNIFE_GAP;
+  var back = D.facing !== undefined && _angOff(Math.atan2(b.y-D.y, b.x-D.x), D.facing) > 2*Math.PI/3;
+  applyDamage(b, D, back ? KNIFE_BACK : KNIFE_STAB, "knife", {wkey:"KNIFE_T", reward:1500, note:" (нож"+(back ? ", в спину" : "")+")"});
+  D.heardSound = {x:b.x, y:b.y, z:b.z, tick:tick, team:b.team, src:b.id, kind:"hit"};
+  return true;
+}
 function knifeTick(b){
   if(!BAL.knifeRun) return;
+  if(b.alive && roundState === "live" && knifeDefuseTick(b)) return;
   var ok = b.alive && roundState === "live" && (b.state === "patrol" || b.state === "hold") && !b._sawEnemy && !b.planting && !b.defusing &&
            !b.nadeTask && !(bomb && bomb.state === "carried" && bomb.carrier === b) && !(b._fc) && !b._reloading;   // (v442) перезаряжается — в руках оружие (замер: 91–112 ножей при перезарядке на 8 матчей)
   if(!ok){ b._knU = null; }
