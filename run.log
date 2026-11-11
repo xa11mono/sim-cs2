@@ -1,0 +1,27 @@
+playwright 1.56.0, браузеры: C:\Windows\system32\config\systemprofile\.simcs2_node\ms-playwright
+> git fetch --quiet origin a266081ef55b55bad2eb7670fecfef31731ea079
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_5n8pef08 FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_5n8pef08\src\build.py --map mirage C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v560b_mir.html
+> git fetch --quiet origin a266081ef55b55bad2eb7670fecfef31731ea079
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_4zhp2_50 FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_4zhp2_50\src\build.py --map ancient C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v560b_anc.html
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\engine\walk_run.py --job=v560b_mir,C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v560b_mir.html --job=v560b_anc,C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v560b_anc.html --matches=3,7,11,13,17,19,23,29 --par=12
+матчей в очереди: 16, одновременно: 12
+v560b_anc match 11  rc 0 6163595 — готово 1/16, 6 мин
+v560b_mir match 17  rc 0 6284441 — готово 2/16, 6 мин
+v560b_mir match 19  rc 0 6824656 — готово 3/16, 6 мин
+v560b_anc match 3  rc 0 7268154 — готово 4/16, 7 мин
+v560b_mir match 29  rc 0 7157041 — готово 5/16, 7 мин
+v560b_mir match 3  rc 0 7935450 — готово 6/16, 7 мин
+v560b_anc match 13  rc 0 9636970 — готово 7/16, 8 мин
+v560b_mir match 13  rc 0 8759360 — готово 8/16, 8 мин
+v560b_mir match 23  rc 0 8796863 — готово 9/16, 8 мин
+v560b_anc match 7  rc 0 11929265 — готово 10/16, 10 мин
+v560b_mir match 7  rc 0 10556548 — готово 11/16, 10 мин
+v560b_mir match 11  rc 0 10912666 — готово 12/16, 10 мин
+v560b_anc match 19  rc 0 6407080 — готово 13/16, 11 мин
+v560b_anc match 17  rc 0 9248902 — готово 14/16, 12 мин
+v560b_anc match 23  rc 0 8651638 — готово 15/16, 12 мин
+v560b_anc match 29  rc 0 11529536 — готово 16/16, 13 мин
+done
+all done
