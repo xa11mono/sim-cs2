@@ -127,8 +127,8 @@ function decideAction(bot, nearestDist, alliesNear, enemiesSeen){
 
   // раздел 12: анти-эко — у нас закуп, у них эко: не лезть в упор (там пистолет
   // опасен), держать дистанцию, где винтовка сильнее; не давать "геройский" пик
-  var myEco = teamEco[bot.team], enEco = teamEco[bot.team === "CT" ? "T" : "CT"];
-  if(BAL.antiEco && myEco && enEco && (BAL.buyRead ? antiEco(bot.team) : ((myEco.roundType === "full" || myEco.roundType === "half") && enEco.roundType === "eco"))){
+  // (v559, В76 ч.5) — цель раунда команды «выиграть, не отдав винтовок» (roundGoal, 520), одно место вместо своей проверки закупов
+  if(BAL.antiEco && roundGoal(bot.team) === "keepGuns"){
     if(nearestDist < 220){ retreatScore += 0.12; engageScore -= 0.08; }
     else { holdScore += 0.08; engageScore -= 0.04; }
   }
@@ -291,7 +291,7 @@ function afterKillReact(sh, tg, w){
   // это его новая точка (роль больше не возвращает на старую)
   if(BAL.postKill){ var pkR = postKillDecide(sh, tg, vp, here); if(pkR) return true; }
   var foes700 = foesNear.filter(function(o){ return nearP(o.x, o.y, o.z, sh.x, sh.y, sh.z, 700); });
-  if(BAL.styles && mates >= 1 && !(sh.team === "CT" && teamTac.CT && teamTac.CT.antiEco) && pa >= 0.75 && pr >= 0.7 && sh.hp > 60 && foes700.length >= 1 && foes700.length <= 2 && hashRand(tick*41 + sh.id.charCodeAt(1)*3) < pa*0.6){
+  if(BAL.styles && mates >= 1 && roundGoal(sh.team) !== "keepGuns" && pa >= 0.75 && pr >= 0.7 && sh.hp > 60 && foes700.length >= 1 && foes700.length <= 2 && hashRand(tick*41 + sh.id.charCodeAt(1)*3) < pa*0.6){
     var sw = pickSpots("swing"+tick+sh.id, vp, 3, {rMax:140, minGap:40})[0] || vp;
     var nf = foesNear.slice().sort(function(a, c){ return Math.hypot(a.x-vp.x, a.y-vp.y) - Math.hypot(c.x-vp.x, c.y-vp.y); })[0];
     sh._reposUntil = 0;

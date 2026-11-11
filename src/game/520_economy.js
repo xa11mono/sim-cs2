@@ -119,6 +119,22 @@ function enemyEcoGuess(team){
   var eco = !full && guns <= 1 && avg < 2300;
   return {avg:avg, full:full, eco:eco, guns:guns};
 }
+// (v559, В76 ч.2, владелец 11.11: «у раунда своя цель — не всегда выиграть; цель меняется по событиям») цель раунда команды — из того, что
+// она знает: свой закуп, закуп соперника по увиденному оружию (antiEco, 410: читается по первым контактам — меняется по ходу раунда).
+// Источники — ответы двух ИИ, сверенные с демками (PRO_PLAY §4): эко — на следующий закуп (забрать оружие, урон по дорогим, плант +$800);
+// у нас закуп, у них эко — выиграть, не отдав винтовок; форс — всё в этот раунд. Не хранится: считается, когда спрашивают
+var GOAL_NAME = {hero:"вокруг одной винтовки: размен ему, не отдать её", win:"выиграть раунд", economy:"на следующий закуп: оружие, урон по дорогим, плант", keepGuns:"выиграть, не отдав винтовок", allin:"всё в этот раунд"};
+// «хиро»: единственный живой с винтовкой / AWP в команде на эко (null — нет такого или их несколько)
+function heroOf(team){ var H = bots.filter(function(o){ return o.alive && o.team === team && o.primary && WEAPONS[o.primary].tier >= 5; }); return H.length === 1 ? H[0] : null; }
+function roundGoal(team){
+  var me = teamEco[team], rt = me && me.roundType;
+  // (v559, В76 ч.4) эко, но у одного живого — винтовка / AWP (сохранил, подобрал, дропнули): играют вокруг него (у про 27 % эко — демки Ancient)
+  if(rt === "eco" && heroOf(team)) return "hero";
+  if(rt === "eco") return "economy";
+  if(antiEco(team)) return "keepGuns";
+  if(rt === "force") return "allin";
+  return "win";
+}
 function decideRoundType(team){
   var base = decideRoundType0(team);
   if(!BAL.ecoRead || base === "pistol") return base;

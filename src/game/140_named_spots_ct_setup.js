@@ -122,7 +122,8 @@ function chooseCtSetup(){
   teamTac.CT = {call:null, saving:false, stack:S.stack||null, setup:S, setupWhy: why[S.id]||null};
   ctSeatRoles(S);   // (v334, М61) кто какую роль расстановки играет — по своим позициям из демок
   // против эко: без ранних пиков и доборов — не дарить оружие, держать вместе
-  if(BAL.ctAntiEco && BAL.ecoRead){ var Ee = teamEco.CT.enemyGuess || enemyEcoGuess("CT"); if(Ee.eco && (teamEco.CT.roundType === "full" || teamEco.CT.roundType === "force")){ teamTac.CT.antiEco = true; logEvent("CT: у T, похоже, эко — играем аккуратно: без ранних пиков, не отдаём оружие"); } }
+  // (v559, В76 ч.5) «против эко» — не флаг расстановки, а цель раунда команды (roundGoal, 520: «выиграть, не отдав винтовок»), читается по знанию
+  if(BAL.ctAntiEco && roundGoal("CT") === "keepGuns") logEvent("CT: у T, похоже, эко — цель: выиграть, не отдав винтовок");
   logEvent("CT: расстановка «"+S.name+"»"+(why[S.id] ? " — "+why[S.id] : ""));
 }
 // (v334, М61, владелец: «kyousuke играет Window, а должен Short — рядом с B») роли расстановки CT на раунд — по почерку игроков:

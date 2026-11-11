@@ -9,7 +9,7 @@ function antiEco(team){
     // (первые контакты), иначе — по оценке денег до раунда
     var R = teamIntel[team] && teamIntel[team].buy;
     var enEco = R && R.n >= 1 ? R.read === "eco" : !!(me && me.enemyGuess && me.enemyGuess.eco);
-    return !!(me && (me.roundType === "full" || me.roundType === "half") && enEco);
+    return !!(me && (me.roundType === "full" || me.roundType === "half" || me.roundType === "force") && enEco);   // (v559) и форс: винтовки есть — есть что отдать
   }
   return me && en && (me.roundType === "full" || me.roundType === "half") && en.roundType === "eco";
 }
@@ -28,7 +28,6 @@ function buyReadSee(team, eid){
   if(R.rifles >= 1 || (R.smg + R.rifles >= 2)) R.read = "buy";
   else if(R.pistols >= 2) R.read = "eco";
   else if(R.pistols >= 1 && R.n === 1) R.read = R.read || null;
-  if(R.read && R.read !== prev && team === "CT" && teamTac.CT){ var myT = teamEco.CT && teamEco.CT.roundType; teamTac.CT.antiEco = R.read === "eco" && (myT === "full" || myT === "force" || myT === "half"); }
   if(R.read && R.read !== prev){
     var mate = bots.filter(function(o){ return o.team === team && o.alive; })[0];
     if(mate) voiceLog(team, "buy"+R.read, mate.id, R.read === "eco" ? "у них пистолеты ("+R.pistols+" видели) — эко, не лезем в упор, держим дистанцию"
@@ -41,7 +40,7 @@ function nadeCombos(){
     if(typeof teamIntel === "undefined") return;
     var mine = bots.filter(function(b){ return b.team===team && b.alive; });
     if(mine.length < 2) return;
-    if(antiEco(team)) return; // против эко комбо-гранаты не тратим
+    if(roundGoal(team) === "keepGuns") return; // (v559) цель «не отдать винтовки» — против эко комбо-гранаты не тратим
     var sig = teamIntel[team].sig, seen = {};
     for(var i=sig.length-1;i>=0;i--){
       var s = sig[i]; if(s.type !== "spotted") continue;

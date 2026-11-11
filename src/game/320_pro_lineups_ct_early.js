@@ -135,7 +135,7 @@ function ctEarlyPeek(b, ct){
   var pa = prof(b, "aggr");
   if(!b.prof || pa < 0.7 || b._sawEnemy) return false;
   if(BAL.numbersPlay && aliveCount("CT") < aliveCount("T")) return false; // нас меньше — не рискуем ранним пиком
-  if(teamTac.CT && teamTac.CT.antiEco) return false; // против эко — не пикаем рано
+  if(roundGoal("CT") === "keepGuns") return false; // (v559) цель «не отдать винтовки» (у T эко) — без раннего пика
   if(BAL.roundMem && b.tRole === "mid" && rmemRecent(RMEM.midDeath, 3).length >= 2) return false; // мидера рано снимают — без ранних пиков
   var since = (tick - roundStartTick)/TICK_HZ;
   var E = b._early;
@@ -169,8 +169,8 @@ function ctEarlyPeek(b, ct){
     E.st = 1;
     voiceLog("CT", "early"+b.id, b.id, "выгляну за инфой "+calloutName(E.pt.x, E.pt.y));
     // (00_PLAN п.14, владелец 05.11) под ранний пик — сначала «накиньте флешку» (365: nadeAskFlash); некому — флешка себе (если есть и не эко у соперника)
-    if(BAL.ctEarlyUtil && !antiEco("CT") && nadeAskFlash(b, stg, "флешу под ранний пик "+b.id)){}
-    else if(BAL.ctEarlyUtil && b.nades && b.nades.flash > 0 && !antiEco("CT") && hashRand(roundNum*97 + b.id.charCodeAt(2)*5) < 0.6){
+    if(BAL.ctEarlyUtil && roundGoal("CT") !== "keepGuns" && nadeAskFlash(b, stg, "флешу под ранний пик "+b.id)){}
+    else if(BAL.ctEarlyUtil && b.nades && b.nades.flash > 0 && roundGoal("CT") !== "keepGuns" && hashRand(roundNum*97 + b.id.charCodeAt(2)*5) < 0.6){
       var whyF = "себе под ранний пик "+b.id;
       throwNade(b, "flash", stg.x, stg.y, true, whyF);
       b._waitPopUntil = tick + Math.round(1.1*TICK_HZ); b._waitPopKey = "pop:"+whyF;

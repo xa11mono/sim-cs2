@@ -165,6 +165,12 @@ function contactTick(b){
     if(!adv && !C.own) adv = !!nadeAskFlash(b, look, "флешу под пик "+b.id+" ("+calloutName(look.x, look.y)+")");
     if(!adv) swing = false;
   }
+  // (v559, В76 ч.4–5) есть что отдать — цель раунда «не отдать винтовки» (у них эко) или он «хиро» своей эко-команды: выходит только с
+  // преимуществом — свой рядом на размен или свой уже стреляется с этой группой; иначе держит угол (у про: «не отдать винтовку дешёвому
+  // закупу», «хиро не лезет первым без поддержки» — PRO_PLAY §4). Было: отдельные правила «анти-эко» в нескольких местах
+  var gl = roundGoal(b.team);
+  if(swing && (gl === "keepGuns" || (gl === "hero" && heroOf(b.team) === b)) && !contactMateFight(b, C) &&
+     !bots.some(function(o){ return o !== b && o.alive && o.team === b.team && nearP(o.x, o.y, o.z, b.x, b.y, b.z, TRADE_R); })) swing = false;
   if(swing && bomb && bomb.state === "carried" && bomb.carrier === b && aliveCount(b.team) > 1) swing = false;
   // (v547, ответ владельца 10.11: «T на пост-планте незачем искать дуэли — сидит, ждёт, смотрит, откуда придут; дефузят — идёт сбивать (антидефуз —
   // задача бомбы)») и на сейве на врага не выходит (держит / смотрит с места)

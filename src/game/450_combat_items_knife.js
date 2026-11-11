@@ -213,6 +213,7 @@ function awpAllowed(b){
 // (v518a, пак 09.11 п.1; владелец: «оружие заметно лучше — взять без опасного отклонения от позиции», «бомба взорвётся через 6 с …
 // у него есть время подобрать», «по пути пропустил калаш, который мог безопасно подобрать») задача ниже подбора — можно сразу; выше —
 // отклонение (detourOk, 110): цена — сколько крюк до оружия добавит к пути до своей точки задачи
+var PICK_ECO_K = 2;   // (v559) проектное число
 function pickDetour(b, G){
   if(taskCanSet(b, "pickup")) return true;
   var P = b.post, toG = pathLenTo(b, G.x, G.y), cost = toG;
@@ -275,7 +276,8 @@ function weaponPickupTick(){
       var LKf = beliefLast[b.team] || {}, foeNear = false;
       for(var eF in LKf){ if(tick - LKf[eF].tick < 3*TICK_HZ && Math.hypot(LKf[eF].x-b.x, LKf[eF].y-b.y) < 900){ foeNear = true; break; } }
       // (v518a) после планта — как везде; терпит ли это главная задача — pickDetour (цена по пути), а не «бомба стоит — только под ногами»
-      var gBest = null, gd = foeNear ? 80 : 170;
+      // (v559, В76 ч.2) цель раунда «на следующий закуп» (эко) — винтовка убитого и есть цель: идёт за ней дальше (×PICK_ECO_K, проектное число)
+      var gBest = null, gd = (foeNear ? 80 : 170)*(roundGoal(b.team) === "economy" || roundGoal(b.team) === "hero" ? PICK_ECO_K : 1);
       groundWeapons.forEach(function(G){
         if(pickValue(b, G.key) < cur + 2) return;
         if(G.key === "AWP" && !awpAllowed(b) && cur >= 5) return;
