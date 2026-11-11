@@ -12,6 +12,7 @@
 //    взрыва, CT до взрыва впритык на дефуз — тогда взгляд на контакт, смок на врага (если есть) и дальше к своей задаче.
 // Повтор не чаще раза в CONTACT_GAP с на бота. Числа — проектные. Заменяет частные правки v365–v366 (retakePick, ppCheck).
 var CONTACT_R = 700, CONTACT_AGE = 2.5, CONTACT_HOLD = 2.5, CONTACT_SWING = 220, CONTACT_GAP = 4;
+var CONTACT_PUSH = 250;   // (v555) проектное число: ед. — T в выходе заходит в зону врага (точки вокруг полпути к нему, по пути не дальше), если ближе точки с видом на него нет
 // (v408, Б5г, владелец 22.10: «игрок 5 стоит на миду и получает contact:hold, потому что 6-й стреляется в Jungle — он должен чекать
 // мид; убили 6-го — тогда помогать») контакт — только своё: видел сам (lastIntel без src), слышал сам; знание команды (видели свои,
 // коллы) — только если враг на его участке (зона, где он стоит или его пост) или свой рядом только что погиб и он идёт менять
@@ -169,17 +170,24 @@ function contactTick(b){
   // задача бомбы)») и на сейве на врага не выходит (держит / смотрит с места)
   if(swing && ((b.team === "T" && bomb && bomb.state === "planted") || (taskAlive(b) && taskProp(b._task.tag, "saveTask")))) swing = false;
   // (v450) носитель в выходе не встаёт «держать контакт»: идёт за своими на точку планта (взгляд — на контакт, задача — прежняя)
-  if(tExec && bomb.state === "carried" && bomb.carrier === b && aliveCount(b.team) > 1){ b._contact = {x:C.x, y:C.y, id:C.id, until: tick + CONTACT_HOLD*TICK_HZ, lock:false}; b._contactT = tick; return; }
-  if(swing && bots.some(function(o){ return o !== b && o.alive && o.team === b.team && o._contact && o._contact.tag === "contact:swing" && tick < o._contact.until && Math.hypot(o._contact.x-C.x, o._contact.y-C.y) < 200; })) swing = false;   // на него уже выходит свой
+  // (v555, м298 р1: бомба лежала на Balcony, идущий за ней 5 с «держал контакт», и выход стоял) и тот, кто идёт за выпавшей бомбой, — тоже
+  if(tExec && ((bomb.state === "carried" && bomb.carrier === b) || (bomb.state === "dropped" && teamTac.T.fetchId === b.id)) && aliveCount(b.team) > 1){ b._contact = {x:C.x, y:C.y, id:C.id, until: tick + CONTACT_HOLD*TICK_HZ, lock:false}; b._contactT = tick; return; }
+  // (v555, отметка владельца м298 р1: «раш вышел и стоит, перестреливаются; почему не пойти втроём и не задушить одного, занять его зону»)
+  // в выходе T на одного врага выходят вместе (размен сразу); вне выхода — по-прежнему один выходит, остальные держат
+  if(swing && !tExec && bots.some(function(o){ return o !== b && o.alive && o.team === b.team && o._contact && o._contact.tag === "contact:swing" && tick < o._contact.until && Math.hypot(o._contact.x-C.x, o._contact.y-C.y) < 200; })) swing = false;   // на него уже выходит свой
   // (v438, док владельца 27.10: точка «выхожу на него» на ящике Short / в Underpath без вида на врага — бот стоял 22 с) точка — на полу
   // своего уровня (не крыша ящика, не другой этаж: navAtLevel) и, если выходит, — оттуда видно место врага (3D-видимость с пола точки).
   // Нет такой — не выходит, держит (точку держать ищем так же, но вид не обязателен: держит угол, откуда враг придёт)
   // (v469) и держать — только оттуда, откуда видно место врага (с его этажом): точка «держу» без вида — п.13
   var spotOk = function(q){ var a = b.z == null ? null : navAtLevel(q.x, q.y, b.z); if(b.z != null && !a) return false;
     return hasLOS(q.x, q.y, look.x, look.y, a ? a.z : b.z, C.z); };
-  var contactSpots = function(sw){ return pickSpots("ct"+b.id+Math.round(look.x/40)+","+Math.round(look.y/40)+(sw ? "s" : "h"), {x:b.x, y:b.y}, 6, {rMax: sw ? CONTACT_SWING : 160, minGap:30, see:[look]})
+  var contactSpots = function(sw, rS){ var c0 = rS ? {x:b.x + (look.x-b.x)*0.5, y:b.y + (look.y-b.y)*0.5} : {x:b.x, y:b.y};   // заход — вокруг полпути к врагу
+    return pickSpots("ct"+b.id+Math.round(look.x/40)+","+Math.round(look.y/40)+(sw ? "s"+(rS||"") : "h"), c0, rS ? 12 : 6, {rMax: sw ? (rS || CONTACT_SWING) : 160, minGap:30, see:[look]})
     .filter(function(q){ return Math.hypot(q.x-look.x, q.y-look.y) >= 120 && !spotTaken(b, q) && spotOk(q); }); };
   var cand = contactSpots(swing);
+  // (v555, м298 р1: раш стоял в Tetris — точки «выйти на врага» с видом на Cross ближе 220 ед. нет, выход превращался в «держать угол») в выходе
+  // T заход — дальше, в зону врага (до CONTACT_PUSH ед.): занять её, а не стоять на краю
+  if(swing && !cand.length && tExec) cand = contactSpots(true, CONTACT_PUSH).filter(function(q){ return pathLenTo(b, q.x, q.y) <= CONTACT_PUSH; });
   if(swing && !cand.length){ swing = false; cand = contactSpots(false); }
   if(hasLOS(b.x, b.y, look.x, look.y, b.z, C.z) && !swing) cand.unshift({x:b.x, y:b.y});
   cand.sort(swing ? function(a, c){ return Math.hypot(a.x-look.x, a.y-look.y) - Math.hypot(c.x-look.x, c.y-look.y); }
