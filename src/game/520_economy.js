@@ -150,12 +150,10 @@ function decideRoundType(team){
   var nextInc = nextLossIncome(team);
   var canFullNext = mates.filter(function(b){ return b.money + nextInc >= fullNeed(b); }).length;
   if(E.full && base === "force" && !lastOfHalf && canFullNext >= 4 && !(score[team === "CT" ? "T" : "CT"] === matchWinTarget()-1)){ te.ecoWhy = "у них фулл-бай — эко, копим на полный"; return "eco"; }
-  // хаф-бай (SMG + броня) против их винтовок — худшее из двух: и раунд почти
-  // не выиграть, и деньги потрачены. Про в таком случае полный эко (кроме
-  // бонус-раунда после пистолетки и конца половины)
-  if(E.full && base === "half" && !te.bonus && !lastOfHalf){ te.ecoWhy = "у них фулл-бай — хаф-бай не берём, полный эко"; return "eco"; }
+  // (v560, В94) «у них фулл — хаф-бай не берём» убрано: у про против фулла с теми же деньгами форс / хаф — треть раундов (доля — в FORCE_SHARE)
   return base;
 }
+var FORCE_SHARE = {CT: 0.46, T: 0.39}, FORCE_MIN = 2000;   // доля форса / хафа, когда можно копить; $ на игрока — ниже не форсят (демки, В94)
 function decideRoundType0(team){
   var mates = bots.filter(function(b){ return b.team === team; });
   if(roundNum === 1 || roundNum === HALF_ROUNDS+1) return "pistol";
@@ -186,7 +184,14 @@ function decideRoundType0(team){
   // тому хватит и после эко.
   var canBare = mates.filter(function(b){ return b.money >= fullNeed(b); }).length;
   if(canBare >= 4) return "full";
-  if(canFullNext >= 4) return canFull >= 2 ? "half" : "eco";
+  // (v560, В94: «слишком часто эко, когда мог быть форс или хаф-бай») про с $2000–3500 на игрока, когда после эко хватило бы на фулл, всё равно
+  // форсят / берут хаф: CT 46 %, T 39 % таких раундов (форс против эко, без фулла; демки Ancient, оценка денег tools/eco_est.py, n 324 / 199),
+  // против фулла соперника — так же (CT 33 % форс / 36 % эко, T 38 / 50). Было: всегда «копим» → эко CT 18–23 % (про 13 %)
+  if(canFullNext >= 4){
+    var avgM = teamMoney / mates.length;
+    if(avgM >= FORCE_MIN && hashRand(roundNum*131 + matchNum*17 + (team === "CT" ? 3 : 4)) < FORCE_SHARE[team]) return canFull >= 2 ? "half" : "force";
+    return "eco";
+  }
   // даже после эко на полный не хватит — копить бессмысленно, покупаем что можем
   var avg = teamMoney / mates.length;
   return avg >= 2000 ? "force" : "eco";

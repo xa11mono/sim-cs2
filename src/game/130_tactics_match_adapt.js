@@ -182,8 +182,8 @@ function coachPlan(side){
   if(side === "T"){
     var l2 = roundHist.slice(-2);
     if(l2.length === 2 && l2.every(function(r){ return r.winner === "CT"; })){
-      if(l2.every(function(r){ return r.execSec != null && r.execSec < 32; })){ P.tempo = "slow"; P.facts.push({k: "tempoSlow", log: "два раунда проиграли быстрым выходом — играем медленно, от дефолта"}); }
-      else if(l2.every(function(r){ return r.execSec == null || r.execSec >= 45; })){ P.tempo = "fast"; P.facts.push({k: "tempoFast", log: "два раунда проиграли медленно — играем быстро"}); }
+      if(l2.every(function(r){ return roundTempo(r) === "fast"; })){ P.tempo = "slow"; P.facts.push({k: "tempoSlow", log: "два раунда проиграли быстрым выходом — играем медленно, от дефолта"}); }
+      else if(l2.every(function(r){ return roundTempo(r) === "slow"; })){ P.tempo = "fast"; P.facts.push({k: "tempoFast", log: "два раунда проиграли медленно — играем быстро"}); }
     }
     var rtk = RH.filter(function(r){ return r.planted && r.winner === "CT"; }).length;
     if(rtk >= 2){ P.fake = true; P.facts.push({k: "fake", n: rtk, of: RH.length, log: "ставим, но они забирают ретейком ("+rtk+" из "+RH.length+") — быстро ротируют: фейк"}); }
@@ -205,6 +205,11 @@ var TAC_TEMPO_NAME = {fast:"быстро", mid:"обычно", late:"поздн�
 var PLANT_MED = {pistol:42, eco:48, force:59, half:59, full:70};   // (v560) медиана планта T у про по закупу, с (демки Ancient, tools/eco_play.py)
 // темп раунда для показа — по запланированному выходу: раш / выход до 25 с — быстро, до 50 с — обычно, позже — поздно (как доли про)
 function tacTempoNow(tt){ if(!tt) return "mid"; if(tt.tac && tt.tac.style === "rush") return "fast"; var s = ((tt.execTick || roundStartTick) - roundStartTick)/TICK_HZ; return s <= 25 ? "fast" : (s <= 50 ? "mid" : "late"); }
+// (v560, В95: «пауза и перекол не связаны с новой системой закупа») быстро / медленно вышли в прошлом раунде — от обычного для его закупа: пороги
+// 32 / 45 с — для фулла (проектные, v469), на эко / форсе / пистолетке — короче во столько же, во сколько у про раньше плант (PLANT_MED).
+// Было — одни секунды на всё: поздний выход на эко (как у про) читался «проиграли медленно — на паузе: быстро»
+function roundTempo(r){ var k = (PLANT_MED[r.type] || PLANT_MED.full)/PLANT_MED.full;
+  return r.execSec != null && r.execSec < 32*k ? "fast" : (r.execSec == null || r.execSec >= 45*k ? "slow" : null); }
 function chooseTactic(){
   var type = teamEco.T.roundType;
   // (v557, В76, владелец 11.11: «от закупа зависит тактика — эко почти всегда раш; надо, чтобы при любом закупе игралась разная тактика»)
@@ -215,7 +220,7 @@ function chooseTactic(){
   var tempoRead = null;
   if(BAL.tempoShift){ var lastT = roundHist.slice(-2);
     if(lastT.length === 2 && lastT.every(function(r){ return r.winner === "CT"; })){
-      var fast = lastT.every(function(r){ return r.execSec != null && r.execSec < 32; }), slow = lastT.every(function(r){ return r.execSec == null || r.execSec >= 45; });
+      var fast = lastT.every(function(r){ return roundTempo(r) === "fast"; }), slow = lastT.every(function(r){ return roundTempo(r) === "slow"; });
       tempoRead = fast ? "slow" : (slow ? "fast" : null); } }
   // (v519, пак 09.11 п.12; А-7: «на паузе IGL говорит: медленно, идём A, — а выбирают мид-КТ, Б с двух сторон») сказанное на паузе — исходный план
   // раунда: тактика — из тех, что ему соответствуют (сайт, темп; фейк — если план «фейк»), а не вес ×1,8 / ×0,5. Нет такой в наборе для этого
