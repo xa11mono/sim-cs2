@@ -65,6 +65,15 @@ function navJumpLinked(a, z){
   return false;
 }
 function navLinked(a, b){ var E = zoneGraph[a.id] || []; for(var i=0;i<E.length;i++) if(E[i].to === b.id) return true; return false; }
+// (v550) фаза подъёма через стоянку: seg 1 — прыжок на промежуточный ящик, 0 — стоит на нём CLIMB_DWELL тиков (не больше трети времени), 2 —
+// прыжок наверх; без стоянки — один прыжок (seg 1). q — доля текущего прыжка. CLIMB_DWELL — порог стоянки сборщика из демок (PLATEAU_T, climbs_bake)
+var CLIMB_DWELL = 8;
+function climbPhase(C){
+  var t = Math.min(C.dur, tick - C.t0);
+  if(!C.mid) return {seg: 1, q: t/C.dur};
+  var W = Math.min(CLIMB_DWELL, Math.round(C.dur/3)), H = (C.dur - W)/2;
+  return t < H ? {seg: 1, q: t/H} : t < H + W ? {seg: 0, q: 0} : {seg: 2, q: Math.min(1, (t - H - W)/H)};
+}
 // (v549, владелец 11.11, скрины у Van: «стоит спиной к машине — так же прыгает спиной») прыжок (подъём из демок, через щель) — лицом туда,
 // куда смотрят про при отталкивании (a — угол на карте из демок): смотрит мимо больше JUMP_FACE — стоит у края и разворачивается (взгляд —
 // jumpLook, 270), не дольше JUMP_FACE_WAIT, потом прыгает как есть. true — ещё разворачивается (обычный шаг не делается). Числа — проектные
@@ -153,17 +162,21 @@ function ladderTick(bot){
   var C = bot._climb;
   if(C){
     if(!bot.alive){ bot._climb = null; return false; }
-    var p = Math.min(1, (tick - C.t0)/C.dur);
-    // (v533) через стоянку: первая половина времени — на промежуточный ящик, вторая — с него наверх
-    var A = C.from, B = C.to, q = p; if(C.mid){ if(p < 0.5){ B = C.mid; q = p*2; } else { A = C.mid; q = (p - 0.5)*2; } }
-    // (v543, владелец 10.11: «оттолкнуться можно беззвучно, а приземляться он должен со звуком; и видно, что он в прыжке») подъём из демок —
-    // это прыжки: доля полёта текущего прыжка (C.air, 0..1 — для рисования), приземление на промежуточный ящик и наверху — со звуком (landSound)
-    if(C.jump){ C.air = q;
-      if(C.mid && p >= 0.5 && !C.land1){ C.land1 = true; bot.baseX = bot.x = C.mid.x; bot.baseY = bot.y = C.mid.y; landSound(bot, false, "up"); bot._jump = {t: tick, up: true}; } }
-    bot.baseX = bot.x = A.x + (B.x - A.x)*q; bot.baseY = bot.y = A.y + (B.y - A.y)*q; bot.z = A.z + (B.z - A.z)*q;
+    var p = Math.min(1, (tick - C.t0)/C.dur), ph = climbPhase(C);
+    // (v533) через стоянку: прыжок на промежуточный ящик, (v550) остановка на нём, прыжок наверх
+    var A = ph.seg === 2 ? C.mid : C.from, B = ph.seg === 1 && C.mid ? C.mid : C.to, q = ph.q;
+    if(ph.seg === 0){ A = B = C.mid; q = 1; }
+    // (v543) подъём из демок — это прыжки: доля полёта текущего прыжка (C.air, 0..1 — для рисования; на остановке 0), приземление на
+    // промежуточный ящик и наверху — со звуком (landSound). (v550, владелец 11.11: «два прыжка подряд странно выглядят — сделай всё плавно»)
+    // по прыжку — плавный разгон и торможение (smoothstep), а не равномерный «лифт»; белая стрелка «прыжок» у подъёмов не ставится — в воздухе
+    // видно ободок и тень (620)
+    if(C.jump){ C.air = ph.seg === 0 ? 0 : q;
+      if(C.mid && ph.seg !== 1 && !C.land1){ C.land1 = true; bot.baseX = bot.x = C.mid.x; bot.baseY = bot.y = C.mid.y; landSound(bot, false, "up"); } }
+    var e = C.jump ? q*q*(3 - 2*q) : q;
+    bot.baseX = bot.x = A.x + (B.x - A.x)*e; bot.baseY = bot.y = A.y + (B.y - A.y)*e; bot.z = A.z + (B.z - A.z)*e;
     // (v548, владелец 10.11: «в воздухе он должен по дуге поворачивать к приземлению; стрейф в воздухе — от клавиши и от того, куда смотришь»)
     // прыжок через щель — дугой с прогибом из демок (G.bow — доля длины, + — влево): квадратичная кривая, середина отходит на bow·L
-    if(C.G && C.G.bow){ var Lc = Math.hypot(B.x - A.x, B.y - A.y), th = Math.atan2(B.y - A.y, B.x - A.x), k = 4*C.G.bow*Lc*q*(1 - q);
+    if(C.G && C.G.bow){ var Lc = Math.hypot(B.x - A.x, B.y - A.y), th = Math.atan2(B.y - A.y, B.x - A.x), k = 4*C.G.bow*Lc*e*(1 - e);
       bot.baseX = bot.x = bot.x - Math.sin(th)*k; bot.baseY = bot.y = bot.y + Math.cos(th)*k; }
     bot.curSpeed = LADDER_SPEED/2.5;
     if(p >= 1){ bot.z = C.to.z; bot._area = C.to.area; bot._climb = null; bot.path = []; bot.pathIdx = 0; if(C.jump) landSound(bot, false, C.gap && !(C.G && C.G.walkOk) ? "gap" : "up"); }   // (v549) щель, где про прыгают и с шага, — на шифте тихо
@@ -178,7 +191,7 @@ function ladderTick(bot){
     if(Math.hypot(G.a.x - bot.baseX, G.a.y - bot.baseY) > GAP_NEAR){ bot.path.splice(bot.pathIdx, 0, [G.a.x, G.a.y, G.a.z]); return false; }
     if(jumpFaceWait(bot, G.yaw0*Math.PI/180, G.b)) return true;
     bot._climb = {t0: tick, dur: Math.max(8, Math.round(G.sec*TICK_HZ)), from: {x: bot.baseX, y: bot.baseY, z: bot.z}, to: G.b, mid: null, jump: true, gap: true, G: G, a0: bot.facing};
-    bot._jump = {t: tick, up: G.b.z >= G.a.z}; bot.pathIdx++;
+    bot.pathIdx++;
     return ladderTick(bot);
   }
   if(!wp || wp[2] == null || Math.abs(wp[2] - bot.z) <= JUMP_UP) return false;
@@ -204,7 +217,6 @@ function ladderTick(bot){
   var dz = Math.abs(L.far.z - L.near.z);
   // (v546) по лестнице шагом (bot.walking) — медленнее, как шаг (WALK_SPEED_FRAC), и бесшумно (шаги на лестнице — 540)
   bot._climb = {t0: tick, dur: Math.max(8, Math.round((L.sec || dz/LADDER_SPEED/(!L.jump && bot.walking ? WALK_SPEED_FRAC : 1))*TICK_HZ)), from: {x: bot.baseX, y: bot.baseY, z: bot.z}, to: L.far, mid: L.mid || null, jump: !!L.jump, Y: L.Y || null, a0: bot.facing};
-  if(L.jump) bot._jump = {t: tick, up: true};   // (v543) подъём из демок — прыжок: стрелка «прыжок» у игрока
   if(bot.path[bot.pathIdx] && Math.hypot(bot.path[bot.pathIdx][0]-L.near.x, bot.path[bot.pathIdx][1]-L.near.y) < 4) bot.pathIdx++;
   return ladderTick(bot);
 }

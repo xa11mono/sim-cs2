@@ -635,7 +635,7 @@ function draw(){
       if(i0 < P.length){
         ctx.strokeStyle = "rgba("+col+",0.85)"; ctx.lineWidth = 1.6*s1; ctx.beginPath(); ctx.moveTo(b.baseX, b.baseY);
         // (v541) идёт подъём — линия по самому подъёму (через промежуточный ящик), а не напрямую к следующей точке пути
-        var CL = b._climb; if(CL){ if(CL.mid && (tick - CL.t0)/CL.dur < 0.5) ctx.lineTo(CL.mid.x, CL.mid.y); ctx.lineTo(CL.to.x, CL.to.y); }
+        var CL = b._climb; if(CL){ if(CL.mid && climbPhase(CL).seg === 1) ctx.lineTo(CL.mid.x, CL.mid.y); ctx.lineTo(CL.to.x, CL.to.y); }
         for(var i = i0; i < P.length; i++) ctx.lineTo(P[i][0], P[i][1]);
         ctx.stroke();
         var pz = b.z;
@@ -746,11 +746,13 @@ function draw(){
     var uV = bot._underV || 0, oV = bot._overV || 0;
     // (v543) в прыжке (подъём из демок): тень на земле смещается вниз и кружок чуть больше — по высоте прыжка (дуга 4·q·(1−q), q — доля полёта)
     var CLd = bot._climb, airH = CLd && CLd.jump ? 4*(CLd.air || 0)*(1 - (CLd.air || 0)) : 0;
-    if(CLd && CLd.jump){ var sOff = (4 + 10*airH)/view.scale;
-      ctx.beginPath(); ctx.ellipse(rx + sOff*0.4, ry + sOff, r*(1 - 0.2*airH), r*0.55, 0, 0, Math.PI*2); ctx.fillStyle = "rgba(0,0,0,0.55)"; ctx.fill();   // тень на земле
+    // (v550, владелец 11.11: «сделай всё плавно») тень и пунктирный ободок проявляются и гаснут вместе с высотой прыжка (airH), а не включаются
+    // сразу; на остановке между двумя прыжками подъёма их нет
+    if(CLd && CLd.jump && airH > 0.01){ var sOff = (4 + 10*airH)/view.scale;
+      ctx.beginPath(); ctx.ellipse(rx + sOff*0.4, ry + sOff, r*(1 - 0.2*airH), r*0.55, 0, 0, Math.PI*2); ctx.fillStyle = "rgba(0,0,0,"+(0.55*Math.min(1, airH*2)).toFixed(3)+")"; ctx.fill();   // тень на земле
       r = r*(1 + 0.35*airH);   // (v548) заметнее: до +35 % (DESIGN.md, «Маркер игрока»)
       ctx.beginPath(); ctx.arc(rx, ry, r + 3.5/view.scale, 0, Math.PI*2); ctx.setLineDash([3/view.scale, 2.5/view.scale]);
-      ctx.strokeStyle = "rgba(255,255,255,0.85)"; ctx.lineWidth = 1.4/view.scale; ctx.stroke(); ctx.setLineDash([]); }   // пунктирный ободок — «в воздухе»   // (v535) под / над другим этажом — доля 0..1, плавно (floorViewTick, 370)
+      ctx.strokeStyle = "rgba(255,255,255,"+(0.85*Math.min(1, airH*2)).toFixed(3)+")"; ctx.lineWidth = 1.4/view.scale; ctx.stroke(); ctx.setLineDash([]); }   // пунктирный ободок — «в воздухе»   // (v535) под / над другим этажом — доля 0..1, плавно (floorViewTick, 370)
     // прыжок / спрыгнул — стрелка у игрока на 0,6 с
     if(bot._jump && tick - bot._jump.t < 0.6*TICK_HZ){
       var jk = 1 - (tick - bot._jump.t)/(0.6*TICK_HZ), jy = bot._jump.up ? -1 : 1, jr = r + 7/view.scale;

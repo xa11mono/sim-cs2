@@ -488,9 +488,9 @@ function jumpLook(b){
   var cand = function(a){ return {lvl: LOOK_LEVEL.jump, kind: "jump", pt: {x: b.x + Math.cos(a)*200, y: b.y + Math.sin(a)*200}, sc: 1}; };
   var C = b._climb, Y = C && C.jump ? (C.G || C.Y) : null;
   // в полёте — от угла, с которым оттолкнулся сам бот (C.a0; отталкивается он не из той же точки, что про), к углу приземления про
-  if(Y){ var q = Math.min(1, (tick - C.t0)/C.dur), a0 = C.a0 != null ? C.a0 : Y.yaw0*R;
-    if(Y.yawM != null && C.mid) return cand(q < 0.5 ? lerp(a0, Y.yawM*R, q*2) : lerp(Y.yawM*R, Y.yaw1*R, (q - 0.5)*2));
-    return cand(lerp(a0, Y.yaw1*R, q)); }
+  if(Y){ var ph = climbPhase(C), a0 = C.a0 != null ? C.a0 : Y.yaw0*R, aM = Y.yawM != null ? Y.yawM*R : null;   // (v550) по фазам подъёма (370)
+    if(C.mid && aM != null) return cand(ph.seg === 1 ? lerp(a0, aM, ph.q) : ph.seg === 0 ? aM : lerp(aM, Y.yaw1*R, ph.q));
+    return cand(lerp(a0, Y.yaw1*R, C.mid ? (ph.seg === 2 ? ph.q : 0) : ph.q)); }
   var P = b._jumpPrep; if(P && tick - P.t <= 2) return cand(P.a);   // у края — доворот к прыжку (370: jumpFaceWait, подход к подъёму)
   if(b.path && b.pathIdx < b.path.length){
     for(var i = b.pathIdx; i < Math.min(b.path.length, b.pathIdx + 2); i++){ var g = NAV_GAP_AT[navGapKey(b.path[i][0], b.path[i][1])];
