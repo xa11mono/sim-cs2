@@ -184,7 +184,7 @@ var TASK_PROP = {
   bombSpot:         /^(defuse|plantspot)/,   // бег к бою: задача у бомбы — исключение (535)
   retakeMove:       /^(gather|retake|defuse|rotate)/,   // шаг на ретейке: проверка «успею ли шагом» (535)
   holdStrafeSkip:   /^(gather|retake|defuse|save|stopplant|antidefuse|lineup|pickup)/,   // стрейф на посту: задачи, на которых не стрейфят (540)
-  exactSpot:        /^(plantspot|defuse|lineup|pickup|fetch|stopplant|antidefuse|ladder|smokeWait|route)/,   // точное место: точку не сдвигают от своего (110)
+  exactSpot:        /^(plantspot|defuse|lineup|pickup|fetch|stopplant|antidefuse|ladder|smokeWait|route|sbGo)/,   // (v552) приказ песочницы — точно   // точное место: точку не сдвигают от своего (110)
   // (v529) проверки чужой задачи по ОДНОМУ имени (механика смотрит на задачу, которую ставит не она) — 19 мест в 10 файлах, без изменений:
   midTask:          /^tmid$/,        // пробы / «проверено — пусто»: задача мида T (150)
   waitsAhead:       /:ahead$/,       // IGL: стадия «жду впереди» (160)

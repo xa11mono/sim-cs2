@@ -273,7 +273,7 @@ function stepTick(){
         bot._stepDist -= stride; if(bot._stepDist > stride) bot._stepDist = 0;
         bot.lastStepTick = tick;
         var soundRadius = (wet ? (bot.walking ? 220 : 460) : (bot.walking ? SOUND_RADIUS_WALK : SOUND_RADIUS_RUN)) * (BAL.stepHearMul || 1);
-        soundPings.push({x:bot.baseX, y:bot.baseY, team:bot.team, born:nowTs, radius:soundRadius}); if(SND && SND.on) sndStep(bot.baseX, bot.baseY);
+        soundPings.push({x:bot.baseX, y:bot.baseY, team:bot.team, born:nowTs, radius:soundRadius}); if(SND && SND.on){ if(CL) sndLadder(bot.baseX, bot.baseY); else sndStep(bot.baseX, bot.baseY); }   // (v552) на лестнице — звук лестницы
         // (4) сам знает, что шумит: бежал в пределах слышимости места, где враг вероятен
         if(BAL.heardMe && roundState === "live"){ var zN = bzOf(bot.x, bot.y); if(zN >= 0){ var nearZ = [zN].concat(BZ.nbr[zN]||[]);
           if(nearZ.some(function(j){ var cj = BZ.cent[j]; return cj && Math.hypot(cj.x-bot.x, cj.y-bot.y) < soundRadius && reachPossible(bot.team, j) && beliefZoneKnown(bot.team, j) >= 0.2; })) bot._noisyT = tick; } }
