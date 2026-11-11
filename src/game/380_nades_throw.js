@@ -22,10 +22,13 @@ function nadeTraceFn(){ var M = m3(); return function(A, B, r){ return m3NadeTra
 function nadeSolve(type, x, y, z, tx, ty, duck, wide, guess, vel){
   var M = m3(); if(!M) return null;
   var key = type+"|"+x+","+y+","+z+"|"+tx+","+ty+(duck ? "d" : "")+(wide ? "w" : "")+(guess ? "|g"+guess.yaw+","+guess.pitch+","+guess.strength+(guess.jump ? "j" : "") : "")+(vel ? "|v"+vel[0]+","+vel[1]+","+vel[2] : "");
+  // (v560, В86: «отмотал — раунд сложился по-другому») счёт тика — каждый подбор, и из кэша тоже: было — только не из кэша, а кэш вне снимка
+  // (после перемотки в нём уже лежат подборы «из будущего» — бросок выходил на тик раньше, раунд расходился с 9-й секунды). Не время: игра не
+  // должна зависеть от скорости компьютера
+  if(NADE_TICK.t !== tick){ NADE_TICK.t = tick; NADE_TICK.n = 0; }
+  NADE_TICK.n++;
   var c0 = nadeAimCache(key); if(c0 !== undefined) return c0;
   var t0 = (typeof performance !== "undefined") ? performance.now() : 0;
-  if(NADE_TICK.t !== tick){ NADE_TICK.t = tick; NADE_TICK.n = 0; }
-  NADE_TICK.n++;   // подбор не из кэша — счёт тика (не время: игра не должна зависеть от скорости компьютера)
   var F = m3Game(M, x, y), T = m3Game(M, tx, ty), fl = nadeAimFloors(M, tx, ty), lv = nadeLandFloors(M, tx, ty), r = null;
   fl.forEach(function(fz){
     // (v554, владелец 11.11: «флешка не слепит») своя флешка (не лайнап) — разрыв на высоте, как у про (FLASH_POP_DZ), и высота считается в подборе
@@ -85,12 +88,18 @@ function nadeBetter(type, a, b){
 function nadeGuessKey(type, x, y, z, tx, ty, duck, wide){ return type+"|"+x+","+y+","+z+"|"+tx+","+ty+(duck ? "d" : "")+(wide ? "w" : ""); }
 function nadeGuess(type, x, y, z, tx, ty, duck, wide){
   var k = nadeGuessKey(type, x, y, z, tx, ty, duck, wide), g = nadeGuessStore(k);
+  // (v560, В86) подсказка, посчитанная в игре (не из набора карты), стоит в счёте тика столько же подборов, сколько стоила в первый раз:
+  // память подсказок вне снимка — после перемотки она уже есть, а счёт подборов тика должен выйти тем же
+  if(g !== undefined && nadeGuess.rt[k]){ if(NADE_TICK.t !== tick){ NADE_TICK.t = tick; NADE_TICK.n = 0; } NADE_TICK.n += nadeGuess.rt[k]; }
   if(g === undefined){ g = nadeSolve(type, x, y, z, tx, ty, duck, wide);
     var A = luAimFor(type, x, y, tx, ty);
     if(A) g = nadeBetter(type, g, nadeSolve(type, x, y, z, tx, ty, duck, wide, {yaw: A.yaw, pitch: A.pitch, strength: A.strength, jump: A.jump, e3: A.err, levelOk: true}));
-    nadeGuessStore(k, g); }
+    nadeGuessStore(k, g); nadeGuess.rt[k] = A ? 2 : 1; }
   return g;
 }
+// ключ подсказки, посчитанной в игре → сколько подборов она стоила (В86). Свойство функции, а не переменная: живёт, как память подсказок,
+// вне снимка (переменные страницы снимок восстанавливает — счёт откатился бы, а подсказки остались)
+nadeGuess.rt = {};
 // (v520, отметка владельца 09.11 м200 р3: снимок «до» не доходил до момента отметки — у владельца и в облаке разное) подсчёт лайнапов
 // в freeze-тайм был ограничен 12 мс реального времени за тик: сколько успело посчитаться — зависело от скорости компьютера, а от этого —
 // подсказка подбора и бюджет подборов в бою: матч расходился. Теперь — не больше NADE_PRECALC_N новых подборов за тик (проектное число;
@@ -102,7 +111,7 @@ function nadePrecalcTick(){
   while(NADE_PRECALC_I < L.length){
     var lu = L[NADE_PRECALC_I++]; if(!lu || !lu.from || !lu.to || !NADE[lu.type]) continue;
     var na = navAt(lu.from.x, lu.from.y, null); if(!na) continue;
-    var had = nadeGuessStore(nadeGuessKey(lu.type, lu.from.x, lu.from.y, na.z, lu.to.x, lu.to.y, false, true)) !== undefined;
+    var gk = nadeGuessKey(lu.type, lu.from.x, lu.from.y, na.z, lu.to.x, lu.to.y, false, true), had = nadeGuessStore(gk) !== undefined && !nadeGuess.rt[gk];   // (В86) посчитанная в игре — как новая
     nadeGuess(lu.type, lu.from.x, lu.from.y, na.z, lu.to.x, lu.to.y, false, true);
     if(!had && ++n >= NADE_PRECALC_N) break;
   }

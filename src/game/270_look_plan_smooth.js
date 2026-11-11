@@ -485,7 +485,7 @@ function jumpLook(b){
   // (v549, владелец 11.11: «прыгает и не поворачивает») углы — на карте, из демок (climbs_bake / gaps_bake): при отталкивании (yaw0), на
   // промежуточной стоянке (yawM), при приземлении (yaw1); между ними — плавно, кратчайшим поворотом. Было (v548): угол к направлению «низ → верх» —
   // у подъёма оно случайное (низ и верх почти друг над другом)
-  var R = Math.PI/180, lerp = function(a, c, q){ var d = ((c - a + Math.PI*3) % (2*Math.PI)) - Math.PI; return a + d*q; };
+  var R = Math.PI/180, lerp = function(a, c, q){ var d = Math.atan2(Math.sin(c - a), Math.cos(c - a)); return a + d*q; };   // (v560, В105) кратчайший поворот при любых углах: % в JS у отрицательных — отрицателен, был круг 360°
   var cand = function(a){ return {lvl: LOOK_LEVEL.jump, kind: "jump", pt: {x: b.x + Math.cos(a)*200, y: b.y + Math.sin(a)*200}, sc: 1}; };
   var C = b._climb, Y = C && C.jump ? (C.G || C.Y) : null;
   // в полёте — от угла, с которым оттолкнулся сам бот (C.a0; отталкивается он не из той же точки, что про), к углу приземления про

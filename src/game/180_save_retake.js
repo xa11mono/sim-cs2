@@ -380,7 +380,11 @@ function retakePost(b, cts){
       if(R.backWatch === b.id){ setPost(b, a, GEO.rotator, true, gTag(b, R), 0); return; }
     }
     // (док 6) уже ближе к бомбе, чем своя точка сбора, — назад на сбор не идёт: ждёт своих там, где стоит
-    if(Math.hypot(b.baseX-bp.x, b.baseY-bp.y) < Math.hypot(a.x-bp.x, a.y-bp.y)){ setPost(b, {x:b.baseX, y:b.baseY}, bp, true, gTag(b, R), 0); return; }
+    // (v560, В102, м1794418230042 р11 93,7 с CT1: точка сбора менялась каждые 0,1–0,3 с — бот в 484 от бомбы, его точка в 480: «ближе / дальше»
+    // переключалось на каждом шаге, а «где стою» ехало вместе с ним) решение «жду здесь» — одно на ретейк, в плане ретейка, с местом, где решил
+    var WS = R.waitAt || (R.waitAt = {});
+    if(!WS[b.id] && Math.hypot(b.baseX-bp.x, b.baseY-bp.y) < Math.hypot(a.x-bp.x, a.y-bp.y)) WS[b.id] = {x:b.baseX, y:b.baseY};
+    if(WS[b.id]){ setPost(b, WS[b.id], bp, true, gTag(b, R), 0); return; }
     setPost(b, a, bp, true, gTag(b, R), 0);
     return;
   }
