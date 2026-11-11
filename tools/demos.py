@@ -87,7 +87,7 @@ def rounds_of(demo):
 
 def ticks_of(demo):
     """живые игроки вне разминки: tick, steamid, side, x, y (карта), Z, yaw"""
-    t = pd.read_csv(os.path.join(DEMOS, demo + '_ticks.csv.gz'), usecols=TICK_COLS)
+    t = pd.read_csv(os.path.join(DEMOS, demo + '_ticks.csv.gz'), usecols=TICK_COLS, low_memory=False)
     t = t[(t.is_alive == True) & (t.is_warmup_period != True)]  # noqa: E712
     x, y = tr(t.X.values, t.Y.values)
     return pd.DataFrame({'tick': t.tick.values.astype(np.int64), 'steamid': t.steamid.values.astype(np.int64),

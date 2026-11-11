@@ -110,7 +110,7 @@ def pro_rounds():
     for demo in demo_names():
         rs = rounds_of(demo)
         if not rs: continue
-        t = pd.read_csv(os.path.join(DEMOS, demo + '_ticks.csv.gz'), usecols=['tick', 'steamid', 'team_num', 'is_alive', 'active_weapon_name'])
+        t = pd.read_csv(os.path.join(DEMOS, demo + '_ticks.csv.gz'), usecols=['tick', 'steamid', 'team_num', 'is_alive', 'active_weapon_name'], low_memory=False)
         t = t[t.is_alive == True].sort_values('tick')  # noqa: E712
         G = {int(s): (g.tick.values, g.team_num.values, g.active_weapon_name.values) for s, g in t.groupby('steamid')}
         d = event(demo, 'player_death'); re_ = event(demo, 'round_end'); wf = event(demo, 'weapon_fire'); df = event(demo, 'bomb_defused')

@@ -12,8 +12,8 @@ def tempo(t):   # по стилю тактики: раш — быстро, де�
 root = sys.argv[1]
 for lab in sys.argv[2:]:
     S = collections.defaultdict(lambda: collections.defaultdict(list))
-    for f in sorted(glob.glob(os.path.join(root, lab, 'rec_*.json.gz'))):
-        R = json.load(gzip.open(f))
+    for f in sorted(glob.glob(os.path.join(root, lab, 'rec_*.json*'))):
+        R = json.load(gzip.open(f) if f.endswith('.gz') else open(f))
         kills = R.get('kills', [])
         for r in R.get('rounds', []):
             if r.get('t1') is None: continue
