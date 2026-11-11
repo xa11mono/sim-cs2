@@ -345,8 +345,12 @@ function intelDeath(victim, killer){
     if(!covered) bots.forEach(function(o){
       if(!o.alive || o.team !== victim.team || o === victim || o.planting || o.defusing || o._sawEnemy || o._tradeLock || o._fillLock) return;
       if(o.team === "T" && (o.tRole === "lurker" || (bomb && bomb.carrier === o))) return;
-      if(Math.hypot(o.x-fc.x, o.y-fc.y) > 2*FILL_NEAR && aliveCount(victim.team) < 3) return;
+      // (v560, В92, разбор владельца 11.11: «путь fill ведёт на другой конец карты, потом точка отменяется — и обратно») подменять идёт только тот,
+      // кто под боком (по пути ≤ FILL_NEAR) — при любом числе живых; раньше при трёх и больше живых — ближайший без предела (AWP с выхода на B
+      // отправили на T Ramp: 1315 по пути)
+      if(Math.hypot(o.x-fc.x, o.y-fc.y) > FILL_NEAR) return;
       var L = polyLen(pathPts(o.x, o.y, fc.x, fc.y, o.z)), near = L <= FILL_NEAR;
+      if(!near) return;
       if(!near && aliveCount(victim.team) < 3) return;
       if(!near && !bots.some(function(m){ return m !== o && m.alive && m.team === o.team && nearP(m.x, m.y, m.z, o.x, o.y, o.z, TRADE_R); })) return;
       if(!near && intelEstimate(o.team, o.x, o.y, 600, 4*TICK_HZ).n > 0) return;

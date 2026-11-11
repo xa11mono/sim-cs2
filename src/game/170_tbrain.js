@@ -7,6 +7,7 @@ function tFastGo(tt, go){
   tt._fastGo = {go:go, r:roundNum, until: Math.min(eta, tick + EXU_FAST_MAX*TICK_HZ)};
   exuEv("wait", null, {why:"быстрый выход — ждём смок"}); logEvent("T: заходим, как раскроется смок");
 }
+var BOMB_HERE_R = 700;   // (v560) ед. карты: бомба лежит «у нашего сайта» — проектное число (как «рядом с сайтом» в эндгейме)
 function tBrain(){
   var tt = teamTac.T; if(!tt) return;
   exuTick(tt);   // (тактика 30.10) гранаты выхода: жизненный цикл, провал, резервный исполнитель (366)
@@ -133,7 +134,11 @@ function tBrain(){
     var carOK = !(bomb && bomb.state === "carried" && bomb.carrier && bomb.carrier.alive) ||
       secLeft > pathLenTo(bomb.carrier, SITES[other].x, SITES[other].y)/SPEED + PLANT_TICKS/TICK_HZ + 10 &&
       pathLenTo(bomb.carrier, SITES[other].x, SITES[other].y) <= pathLenTo(bomb.carrier, SITES[tt.site].x, SITES[tt.site].y) + 800;
-    if(pickOther && carOK && aliveT >= (lateOK ? 2 : 3) && beliefCount("T", BZ.siteNear[other]||[]) < 0.9 && there < 1.5 && iglReads(tt, "po") && iglTake(tt, poSig ? poSig.tick : tick)){
+    // (v560, В97, разбор владельца 11.11: «игрока перетягивают на B, хотя бомба не подобрана» — носитель погиб на Balcony, бомба легла на A,
+    // в тот же тик «на A стак — перекол на B») бомба лежит у нашего сайта — перекол на другой не идёт: без неё там нечего делать, а нести её
+    // через полкарты из-под огня — это не перекол. Сначала бомба (за ней идут — fetch), потом решение
+    var bombHere = bomb && bomb.state === "dropped" && Math.hypot(bomb.x-SITES[tt.site].x, bomb.y-SITES[tt.site].y) < BOMB_HERE_R;
+    if(!bombHere && pickOther && carOK && aliveT >= (lateOK ? 2 : 3) && beliefCount("T", BZ.siteNear[other]||[]) < 0.9 && there < 1.5 && iglReads(tt, "po") && iglTake(tt, poSig ? poSig.tick : tick)){
       tt.rebound = true;
       voiceLog("T", "reb"+other, "IGL", lateOK ? "ПЕРЕКОЛЛ "+tt.site+" → "+other+": на "+tt.site+" их больше, на "+other+" сняли опорника — бомба на "+other+"!" : "минус на "+other+", там пусто — все на "+other+"!");
       logEvent("IGL: перекол → "+other+" (сняли CT, сайт пустой)");
@@ -145,7 +150,7 @@ function tBrain(){
                                          : (here - there >= 2 && (here >= 3.5 || deathsHere >= 2));
     // стак = минимум двое реально замечены/услышаны у сайта сейчас (или минус там)
     if(BAL.recallStrict && stackRead && (freshC[tt.site]||0) < 2 && deathsHere < 1) stackRead = false;
-    if(aliveT >= needAlive && stackRead && iglReads(tt, "st") && iglTake(tt, tick)){
+    if(!bombHere && aliveT >= needAlive && stackRead && iglReads(tt, "st") && iglTake(tt, tick)){
       tt.rebound = true;
       logEvent("IGL: на "+tt.site+" стак (~"+Math.round(here)+"), перепривязка → "+other);
       // (v324) перекол говорится в войс — раньше был только в консоли, и в войсе потом звучало «бомба на B», хотя все шли на A

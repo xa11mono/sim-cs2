@@ -162,8 +162,11 @@ function ctEarlyPeek(b, ct){
   var g = GEO[k], stg = b.tRole === "mid" ? (GEO.tMid || g.tStage) : g.tStage;
   // уже слышим/видим T рядом с точкой выхода — поздно, не лезем
   if(intelEstimate("CT", g.tEntry.x, g.tEntry.y, 600, 4*TICK_HZ).n > 0){ E.st = 2; return false; }
+  // (v560, В88, разбор владельца 11.11: «странная точка раннего пика на спавне») мид без мида в расстановке выглядывает от своего места —
+  // пока места ещё нет (первые тики раунда), точка не выбирается: раньше бралась от спавна CT, где он стоял
+  if(!E.pt && b.tRole === "mid" && !midSide && !b.post) return false;
   if(!E.pt){
-    var from = b.tRole === "mid" ? (midSide ? GEO.ctMid : (b.post || b)) : g.tEntry;
+    var from = b.tRole === "mid" ? (midSide ? GEO.ctMid : b.post) : g.tEntry;
     E.pt = pickSpots("early"+k+b.tRole, from, 1, {rMax:220, minGap:40, see:[stg]})[0];
     if(!E.pt){ E.st = 2; return false; }
     E.st = 1;

@@ -8,6 +8,7 @@ function ctPlantGuessOnly(){
 // (00_PLAN, аудит 4.2, 05.11) CT «у сайта» — по длине пути с его высотой, а не по прямой: за стеной или на другом этаже по
 // прямой «рядом», а дойти — далеко; такой CT считался защитником, и на сайт не шли
 function ctNearSite(b, S, r){ return Math.hypot(b.x-S.x, b.y-S.y) < r && polyLen(pathPts(b.x, b.y, S.x, S.y, b.z)) < r; }
+var CALL_WEAK = 0.5, CALL_WEAK_QUIET = 10;   // (v560) проектные числа: «слабый» колл, с тишины
 function ctBrain(){
   var ct = teamTac.CT;
   var cts = bots.filter(function(b){ return b.team==="CT" && b.alive; });
@@ -168,7 +169,11 @@ function ctBrain(){
     var lkpHere = lkpNear("CT", SITES[ct.call.site].x, SITES[ct.call.site].y, 500);
     // (v262, К4) тишина — не новая инфа: колл, под который уже ушла ротация, тишиной не снимается
     // (раньше «давно тихо — по местам» разворачивал ротаторов на полпути и оставлял их на промежуточной точке)
-    if(!goOn && lkpHere === 0 && ((quiet > 6*64 && massNow < 0.6) || quiet > 18*64)){
+    // (v560, В80, разбор владельца 11.11: «бомба на миду, в Коннекторе шаги и флешка, а CT ротируются на другой сайт» — колл B с весом 0,33
+    // держался 33 с: под него ушла ротация, а тишина его не снимала) слабый колл (меньше CALL_WEAK врагов по знанию) — снимается тишиной и
+    // когда под него уже идут: ротация по нему — догадка, а не инфа
+    var weak = ct.call.count < CALL_WEAK && massNow < CALL_WEAK;
+    if((!goOn || (weak && quiet > CALL_WEAK_QUIET*64)) && lkpHere === 0 && ((quiet > 6*64 && massNow < 0.6) || quiet > 18*64)){
       logEvent("CT: по "+ct.call.site+" давно тихо"+(massNow < 0.6 ? " и там вероятно пусто" : "")+" — по местам");
       intelCallLog("CT", "calloff"+ct.call.site+tick, "отбой колла на "+ct.call.site+": давно тихо"+(massNow < 0.6 ? ", там вероятно пусто" : "")+" — по местам", null, "plan");   // (v321, М23)
       ct.call = null;
