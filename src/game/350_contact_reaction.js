@@ -290,10 +290,23 @@ function hurtReactTick(b){
   // (v560, В101, разбор владельца 11.11: «по нему стреляли, не попали — никак не отреагировал») стреляли и промахнулись — он это знает (пули
   // рядом: heardSound «hit» от стрелка, 490) — та же реакция, что на попадание: уйти из-под линии за укрытие
   var hs = b.heardSound, shotT = hs && hs.kind === "hit" && hs.team && hs.team !== b.team ? hs.tick : 0;
-  var evT = Math.max(b._hurtT || 0, shotT); if(!b.alive || !evT || b._hurtDone === evT) return;
+  // (v560, В78, разбор владельца 11.11: «реакция на смоки» — CT кинули смок по времени прямо на лёркера на T Ramp, он остался в нём и
+  // перестреливался с края; v561 — перенесено сюда из 290, хозяин «опасно — уйти») смок соперника раскрылся на нём, а он не на посту (идёт по
+  // маршруту, проба): тут его ждут или сейчас выйдут — назад по своему следу из дыма. На посту — смена позиции поста (290, smokeShiftOnDetonate)
+  var SM = null; if(BAL.smokeReact && b.alive && !(b.atPost && b.post && b.post.hold)) smokes.forEach(function(s){
+    if(s.team !== b.team && tick - s.born <= HURT_REACT && Math.hypot(s.x-b.x, s.y-b.y) < NADE.smoke.radius && (!SM || s.born > SM.born)) SM = s; });
+  var smT = SM ? SM.born : 0;
+  var evT = Math.max(b._hurtT || 0, shotT, smT); if(!b.alive || !evT || b._hurtDone === evT) return;
   b._hurtDone = evT;
-  var miss = evT !== (b._hurtT || 0);
-  if(tick - evT > HURT_REACT || b._sawEnemy || b._fc || (!miss && b._hurtSrc === "молотов")) return;
+  var kind = evT === (b._hurtT || 0) ? "hurt" : (evT === shotT ? "miss" : "smoke"), miss = kind === "miss";
+  if(tick - evT > HURT_REACT || b._sawEnemy || b._fc || (kind === "hurt" && b._hurtSrc === "молотов")) return;
+  if(kind === "smoke"){
+    var tr = b._trail || [], back = null;
+    for(var ti = tr.length-1; ti >= 0 && !back; ti--){ var q = tr[ti]; if(Math.hypot(q.x-SM.x, q.y-SM.y) > NADE.smoke.radius + 30) back = q; }
+    if(back && taskCanSet(b, "repos:back") && setPost(b, {x:back.x, y:back.y}, {x:SM.x, y:SM.y}, true, "repos:back")){ b._reposUntil = tick + 3*TICK_HZ;
+      logEvent(b.id+": смок соперника лёг на меня — назад из дыма"); }
+    return;
+  }
   var F = miss ? {x:hs.x, y:hs.y, z:hs.z} : b._hurtFrom; if(!F || contactCritical(b)) return;
   // (v560, В101) задача бомбы (несёт ставить) больше не запрет сама по себе: терпит ли она шаг за укрытие — решает её правило отклонения
   // (detourOk ниже, 110: ставит / дефузит / убегает от взрыва — нет; несёт на точку и время есть — да)

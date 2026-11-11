@@ -538,7 +538,8 @@ function updateNadeTask1(b){
       // (v369, владелец: «пишется "идёт кидать гранату", но как будто не успевают кинуть») бот, стоявший на угле (state hold), к
       // точке броска не шёл вовсе — пост ставился только в patrol, и задание сгорало в 40–60 ед. от точки. Теперь угол он
       // оставляет (кроме боя: engage / retreat — сначала бой)
-      if(Math.hypot(t.from.x-b.baseX, t.from.y-b.baseY) > LU_AT && !(b.atPost && b.post && b.post.tag === "lineup")){
+      var here = Math.hypot(t.from.x-b.baseX, t.from.y-b.baseY) > LU_AT && !(b.atPost && b.post && b.post.tag === "lineup");
+      if(here){
         if(b.state === "hold" && !b._sawEnemy) leaveHold(b);
         // (v378) задача важнее броска (арбитр места) — бросок не идёт, пока она не кончится (с v438 — ждёт, а не отменяется)
         // (v438, док владельца 27.10: «мид взяли без гранат, хотя куплены»; замер: 29 % заданий снимала задача важнее — бой, перестановка)
@@ -550,23 +551,20 @@ function updateNadeTask1(b){
         var lu = b.state === "patrol" && b.post && b.post.tag === "lineup";
         // (v560, В106, разбор владельца 11.11: «куча гранат, но не кидают» — флешка ретейка 10 с ждала, пока боец встанет в точку броска, а он
         // в 18 ед. от неё шёл по ретейку — задача важнее, к точке не пускала) задача важнее не даёт дойти, а точка рядом (≤ LU_NEAR) — бросок
-        // отсюда: подбор считает его из места бойца (лайнап — подсказкой), как свою гранату
-        var nearFrom = Math.hypot(t.from.x-b.baseX, t.from.y-b.baseY) <= LU_NEAR;
-        if(!lu && nearFrom && nadeReady(b)){
-          if(throwNade(b, t.type, t.x, t.y, true, t.why, false, t.from) || !(NADE_FAIL && /пауза|свой/.test(NADE_FAIL))){ b.nadeTask = null; }
-          return; }
-        if(!lu){ if(!t.int) t.int = {d: pathLenTo(b, t.from.x, t.from.y)}; }
-        else if(t.int){ var dI = t.int.d; t.int = null;
-          if(pathLenTo(b, t.from.x, t.from.y) > dI + 36){ logEvent(b.id+": граната отменена — после другой задачи точка броска позади ("+t.why+")");
-            b.nadeTask = null; b.nadeQueue = null; clearPost(b); return; } }
-        return; }
-      postKeep(b);   // стоит на точке броска — затея ещё идёт
+        // отсюда: подбор считает его из места бойца (лайнап — подсказкой), как свою гранату — тем же броском ниже (here), без ожидания остановки
+        if(lu || Math.hypot(t.from.x-b.baseX, t.from.y-b.baseY) > LU_NEAR){
+          if(!lu){ if(!t.int) t.int = {d: pathLenTo(b, t.from.x, t.from.y)}; }
+          else if(t.int){ var dI = t.int.d; t.int = null;
+            if(pathLenTo(b, t.from.x, t.from.y) > dI + 36){ logEvent(b.id+": граната отменена — после другой задачи точка броска позади ("+t.why+")");
+              b.nadeTask = null; b.nadeQueue = null; clearPost(b); return; } }
+          return; } }
+      if(!here) postKeep(b);   // стоит на точке броска — затея ещё идёт
       if(!nadeReady(b)) return;   // (v340) только что кинул другую — задание ждёт
       // (Г3, 04.11, п.19: молотов «по инфе» 4 с ждал остановки, а ретейк вёл бойца к киту — сгорел) стоя — только лайнап (точный бросок про);
       // своя точка броска (gen) — и на ходу: подбор считает бросок со скоростью бойца (nadeBotVel → nadeSolve)
-      var vNow = nadeBotVel(b); if(!t.gen && vNow && Math.hypot(vNow[0], vNow[1]) > NADE_STILL_V) return;   // (этап 4) лайнап — стоя: ещё идёт — ждёт
+      var vNow = nadeBotVel(b); if(!t.gen && !here && vNow && Math.hypot(vNow[0], vNow[1]) > NADE_STILL_V) return;   // (этап 4) лайнап — стоя: ещё идёт — ждёт
       // не вышло на время (пауза между гранатами, свой в зоне огня) — задание остаётся, попробует снова; раньше снималось молча
-      if(!throwNade(b, t.type, t.x, t.y, true, t.why, !t.gen, t.from) && NADE_FAIL && /пауза|свой/.test(NADE_FAIL)) return;   // своя точка (gen) — дуга проверяется
+      if(!throwNade(b, t.type, t.x, t.y, true, t.why, !t.gen && !here, t.from) && NADE_FAIL && /пауза|свой/.test(NADE_FAIL)) return;   // своя точка (gen) — дуга проверяется
       if(t.gen && b.nadeTask === t && /долетит/.test(NADE_FAIL||"") && nadeRunPlan(b, t)) return;   // (v504) с места не долетает — с разбега
       b.nadeTask = null; if(b.post && b.post.tag === "lineup") clearPost(b); return;
     }

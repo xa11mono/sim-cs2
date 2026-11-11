@@ -190,17 +190,7 @@ function smokeShiftOnDetonate(s){
   bots.forEach(function(b){
     if(!b.alive || b.team === s.team || b._sawEnemy) return;
     var d = Math.hypot(s.x-b.x, s.y-b.y);
-    // (v560, В78, разбор владельца 11.11: «реакция на смоки» — CT кинули смок по времени прямо на лёркера на T Ramp, он остался в нём и
-    // перестреливался с края) смок соперника лёг на него не на посту (идёт по маршруту, проба) — шаг назад по своему следу из дыма: смок
-    // соперника там, где сейчас идёт — значит, тут его ждут (или сейчас выйдут); на посту — как раньше (shiftHold ниже)
-    if(d < NADE.smoke.radius && !(b.atPost && b.post && b.post.hold) && !b._fc){
-      var tr = b._trail || [], back = null;
-      for(var i = tr.length-1; i >= 0 && !back; i--){ var q = tr[i]; if(Math.hypot(q.x-s.x, q.y-s.y) > NADE.smoke.radius + 30) back = q; }
-      if(back && taskCanSet(b, "repos:back") && setPost(b, {x:back.x, y:back.y}, {x:s.x, y:s.y}, true, "repos:back")){ b._reposUntil = tick + 3*TICK_HZ;
-        logEvent(b.id+": смок соперника лёг на меня — назад из дыма"); }
-      return;
-    }
-    if(!(b.atPost && b.post && b.post.hold)) return;
+    if(!(b.atPost && b.post && b.post.hold)) return;   // (v561) смок соперника лёг на идущего — уходит назад из дыма: реакция на опасность, 350 (hurtReactTick)
     if(d > 700 || !hasLOS(b.x, b.y, s.x, s.y, b.z)) return;
     // (Г4, 04.11, разбор отметок п.21 и ответ владельца 7Б: «позиция полезна — держит край дыма; через дым задачу не выполнить — отходит на
     // запасную») смок лёг на сам пост (стоит в дыму — не видит ничего) — меняет позицию всегда; раньше смок ближе 150 не учитывался вовсе
