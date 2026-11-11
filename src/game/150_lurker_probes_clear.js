@@ -11,12 +11,18 @@
 // маршруты лёркера по названиям зон: на B — через воду к рампе или через
 // мид/лампу к кейву; на A — через лестницу к мейну или через мид к донату
 var LURK_PLANS = MAP.tactics.lurkPlans;
+var LURK_DEATH_R = 200;   // px: смерть T «на пути лёрка» — ближе этого к точке пути (проектное число)
 var LURK_JOIN_SEC = 10, LURK_CHECK = 0.6, TAKE_ADV = 2.5, TAKE_STEP = 120, TAKE_REACH = 500, KILL_MOVE = [50, 140];
 function lurkGoNow(tt){ return tt.phase === "setup" && tt.execTick && tick >= tt.execTick - LURK_JOIN_SEC*TICK_HZ; }
 function lurkerBrain(b, tt, other){
   var go = GEO[other];
   if(!b._lurkPlan || b._lurkPlan.round !== roundNum || b._lurkPlan.site !== other){
-    var opts = LURK_PLANS[other], pi = hashRand(roundNum*733 + matchNum*19) < 0.5 ? 0 : 1, P = opts[pi];
+    // (v561, этап 2 docs/tasks/PLAN_TACTICS_V2.md: одиночка T гибнет в первые 30 с в 2–3 раза чаще про; PRO_PLAY §6з: «лёркер не бежит туда,
+    // где его ждут: факт прошлых раундов → предположение») путь лёрка — тот, на котором в этом матче T погибали реже (память смертей T, по точкам
+    // пути); поровну — жребий, как было
+    var opts = LURK_PLANS[other], dng = opts.map(function(P){ return (P.via || []).concat([P.stage, P.entry]).filter(Boolean).reduce(function(a, n){
+      var zp = zonePoint(n, go.tStage); return a + (zp ? tDeathsNear(zp.x, zp.y, LURK_DEATH_R) : 0); }, 0); });
+    var pi = dng.length > 1 && dng[0] !== dng[1] ? (dng[0] < dng[1] ? 0 : 1) : (hashRand(roundNum*733 + matchNum*19) < 0.5 ? 0 : 1), P = opts[pi];
     var st = P.stage ? zonePoint(P.stage, go.tStage) : null, en = P.entry ? zonePoint(P.entry, st || go.tStage) : null;
     b._lurkPlan = {round:roundNum, site:other, via:P.via, stage: st || go.tStage, entry: en || go.tEntry, name: P.stage || "стандарт"};
     startRoute(b, P.via, "lurk"+other+pi);

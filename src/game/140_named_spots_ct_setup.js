@@ -88,6 +88,12 @@ function lookFrom(p, list, fb, b){
 // (выход за инфой), потом — pos. rot: "212" — ротатор вторым на "горячий" сайт,
 // "111" — ротатор между сайтами. stack — сайт, на который встаёт роумер.
 var CT_SETUPS = MAP.tactics.ctSetups;
+var CT_SHARE = MAP.ctshare || null, CT_SHARE_MIN = 0.01;   // доля — не ниже 1 % (проектное: расстановка, не встретившаяся у про, всё же бывает)
+function ctShareW(S){
+  var rt = teamEco.CT && teamEco.CT.roundType, k = rt === "half" ? "force" : (rt || "full"), B = CT_SHARE && (CT_SHARE.by[k] || CT_SHARE.by.full);
+  if(!B) return S.w || 1;
+  return Math.max(CT_SHARE_MIN, B[S.id] || 0);
+}
 function chooseCtSetup(){
   var last = roundHist.slice(-4), heat = {A:0, B:0}, lost = {A:0, B:0};
   last.forEach(function(r){ heat[r.site]++; if(r.planted && r.winner === "T") lost[r.site]++; });
@@ -95,10 +101,12 @@ function chooseCtSetup(){
   var avgExec = execs.length ? execs.reduce(function(a,x){ return a+x; }, 0)/execs.length : 45;
   var why = {};
   var weights = CT_SETUPS.map(function(S){
-    var w = (BAL.proCtSetup ? {std212:4, std111:1.5, midAggro:0.5, pickA:0.4, pickB:0.4, redRoom:0.6, cavePush:0.5, stackA:0.2, stackB:0.2, retakeA:0.2, retakeB:0.2}
-                            : {std212:3, std111:1.5, midAggro:1, pickA:0.8, pickB:0.8, redRoom:1, cavePush:1, stackA:0.2, stackB:0.2, retakeA:0.2, retakeB:0.2})[S.id] || S.w || 1;
-    if(S.stack){ var h = heat[S.stack]; if(last.length >= 3 && h >= 3){ w = BAL.proCtSetup ? 1.2 : 4; why[S.id] = "T ходили на "+S.stack+" "+h+" из "+last.length; } else if(h >= 2) w = BAL.proCtSetup ? 0.4 : 1; }
-    if(/^retake/.test(S.id)){ var k = S.id.slice(-1); if(lost[k] >= 2){ w = 1.2; why[S.id] = "на "+k+" проигрываем "+lost[k]+" раунда — играем от ретейка"; } }
+    // (v561, этап 6 docs/tasks/PLAN_TACTICS_V2.md; владелец 11.11: «доли расстановок — по закупу, из демок») исходный вес — доля этой расстановки
+    // у про на такой закуп CT (MAP.ctshare: структура A-мид-B к 20 с у про по закупу → наши расстановки той же структуры; tools/ct_setup_bake.py);
+    // дальше — сдвиги по знанию команды (ниже). Было — ручные веса («стандарт ×4», проектные)
+    var w = ctShareW(S);
+    if(S.stack){ var h = heat[S.stack]; if(last.length >= 3 && h >= 3){ w *= 6; why[S.id] = "T ходили на "+S.stack+" "+h+" из "+last.length; } else if(h >= 2) w *= 2; }   // (v561) множители вместо замены веса: доля про остаётся основой (было: стак 0,2 → 1,2 / 0,4 — те же ×6 / ×2)
+    if(/^retake/.test(S.id)){ var k = S.id.slice(-1); if(lost[k] >= 2){ w *= 6; why[S.id] = "на "+k+" проигрываем "+lost[k]+" раунда — играем от ретейка"; } }
     if(S.roles && Object.keys(S.roles).some(function(r){ return S.roles[r].early; })){
       if(avgExec < 25) w *= 0.4; else if(avgExec > 45){ w *= BAL.proCtSetup ? 1.15 : 1.6; why[S.id] = "T выходят поздно (~"+Math.round(avgExec)+"с) — есть время за инфой"; }
     }
@@ -234,14 +242,19 @@ var events = []; var killfeed = []; // объявлены здесь, до loadO
 var simTime = 0; // тоже нужен logEvent-у при старте
 if(typeof OPP !== "undefined" && OPP) loadOppProfile();
 // итог раунда — в память обеих сторон
+var RND_PART = {plant: 0.25, kill: 0.1, max: 0.6};   // проектные числа: доля успеха проигранного раунда (плант / не дали поставить, каждый убитый)
 function rememberRound(winner){
   bots.forEach(function(b){ var A = aggrObs[b.id] || (aggrObs[b.id] = {e:0, r:0}); A.r++; });
   var tt = teamTac.T; if(!tt) return;
   var M = tacMem[tt.tac.id] || (tacMem[tt.tac.id] = {n:0, w:0, plants:0});
-  M.n++; if(winner === "T") M.w++; if(bomb && (bomb.state === "planted" || bomb.state === "exploded" || bomb.state === "defused")) M.plants++;
+  // (v561, этап 8 docs/tasks/PLAN_TACTICS_V2.md; PRO_PLAY §6з: «успех тактики — не только победа: плант, убитые CT») проигранный раунд даёт
+  // часть успеха: плант — RND_PART.plant, каждый убитый соперник — RND_PART.kill (вместе — меньше победы); та же мерка у расстановки CT
+  var deadCT = bots.filter(function(o){ return o.team === "CT" && !o.alive; }).length, deadT = bots.filter(function(o){ return o.team === "T" && !o.alive; }).length;
+  var planted = !!(bomb && bomb.plantTick && bomb.plantTick >= roundStartTick);
+  M.n++; M.w += winner === "T" ? 1 : Math.min(RND_PART.max, (planted ? RND_PART.plant : 0) + deadCT*RND_PART.kill); if(bomb && (bomb.state === "planted" || bomb.state === "exploded" || bomb.state === "defused")) M.plants++;
   ctRead.push({A: tt.seenCT.A, B: tt.seenCT.B});
   var cs = teamTac.CT && teamTac.CT.setup;
-  if(cs){ var CM = ctSetupMem[cs.id] || (ctSetupMem[cs.id] = {n:0, w:0}); CM.n++; if(winner === "CT") CM.w++; }
+  if(cs){ var CM = ctSetupMem[cs.id] || (ctSetupMem[cs.id] = {n:0, w:0}); CM.n++; CM.w += winner === "CT" ? 1 : Math.min(RND_PART.max, (planted ? 0 : RND_PART.plant) + deadT*RND_PART.kill); }
   roundHist.push({site: tt.site, planted: !!(bomb && bomb.plantTick && bomb.plantTick >= roundStartTick), winner: winner,
                   execSec: tt.execStart != null ? (tt.execStart - roundStartTick)/TICK_HZ : null, type: teamEco.T && teamEco.T.roundType});   // (v560, В95) закуп T — темп раунда меряется от него
 }

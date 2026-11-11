@@ -46,6 +46,10 @@ function endgameBrain(){
     var foe = team === "CT" ? "T" : "CT";
     var nFoe = aliveCount(foe), mine = bots.filter(function(b){ return b.team === team && b.alive; });
     if(nFoe === 0 || nFoe > 2 || mine.length < nFoe) return;
+    // (v561, этап 7 docs/tasks/PLAN_TACTICS_V2.md; В99 «в клатчах спешат»; PRO_PLAY §6з: «главное — кому выгодно время») до планта время на
+    // стороне CT: без перевеса (1 на 1, 2 на 2) CT не ищут последних по карте, а держат подходы к сайтам — роль / клатч CT (ctClutch, 320);
+    // охота — только большинством. T время против них — им идти, как было
+    if(team === "CT" && mine.length <= nFoe) return;
     if(team === "CT" && teamTac.CT && teamTac.CT.saving) return;
     var sig = teamIntel[team].sig, K = null;
     for(var i=sig.length-1; i>=0; i--){

@@ -32,7 +32,9 @@ function exuCritical(site, x, y){
   var g = GEO[site], ents = (g && g.tEntry ? [g.tEntry] : []).concat(entryPts(site) || []);
   return ents.some(function(q){ return q && hasLOS(x, y, q.x, q.y); });
 }
-function exuIsExec(t){ return !!(t && t.exec && t.type === "smoke"); }
+// (v561, этап 4 docs/tasks/PLAN_TACTICS_V2.md; В91 «промазал смоком — замены не было»; PRO_PLAY §6з: «граната засчитана, если сделала задачу»)
+// следим за всеми смоками плана команды (bkey), а не только за смоками выхода: сорвался — один раз ищем замену; ждёт выход только критичных
+function exuIsExec(t){ return !!(t && t.type === "smoke" && (t.exec || t.bkey)); }
 // задания гранат выхода у живых T (текущее и очередь) → записи; новые получают id и резервного исполнителя
 function exuScan(tt){
   var E = exuCur(), seen = {};
@@ -151,11 +153,11 @@ function exuTick(tt){
       exuFail(it, !o || !o.alive ? "исполнитель погиб" : !o.nades || o.nades.smoke <= 0 ? "нет гранаты" : it.goneWhy || "задание снято");
     }
     if(it.state === "forming" && tick >= it.useAt){ it.state = "ready"; exuEv("ready", it); }
-    if(it.state === "failed" && it.crit && !it.done){
+    if(it.state === "failed" && !it.done){
       if(tt.phase === "setup" && bomb.state !== "planted" && secLeft > EXU_LATE && it.re < 1 && exuReassign(it, tt)) return;
       it.done = true;   // переназначить некому / не успеть — выход без этого смока (exuGate)
       exuEv("drop", it, {why: tt.phase !== "setup" ? "выход уже идёт" : it.re >= 1 ? "уже переназначали" : secLeft <= EXU_LATE ? "поздно" : "некому: "+exuNoBackupWhy(it)});
-      if(tt.phase === "setup") voiceLog("T", "exudrop"+it.id, "IGL", "смока «"+String(it.why).replace(/^лайнап /, "")+"» не будет — заходим под флешки");
+      if(tt.phase === "setup" && it.crit) voiceLog("T", "exudrop"+it.id, "IGL", "смока «"+String(it.why).replace(/^лайнап /, "")+"» не будет — заходим под флешки");
     }
   });
 }
