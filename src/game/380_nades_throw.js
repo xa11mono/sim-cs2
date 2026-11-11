@@ -7,6 +7,7 @@
 // броском, если ближе NADE_AIM_OK × 4 (дальше — отсюда туда стоя не кинуть: у про был разбег / прыжок, данных о нём в лайнапе нет).
 var NADE_AIM_OK = 100;   // ед. игры (≈ 40 px радара) — проектное число (ветка nades-v398, В3)
 var NADE_AIM_DZ = {smoke: 0, molly: 0, flash: 80, he: 20};   // куда целиться по высоте над полом у цели, ед. (проектные числа, В3)
+var FLASH_POP_DZ = 112;   // (v554) ед. над полом: медиана высоты разрыва флешек про (демки Mirage, 2960 разрывов, 3D-пол под точкой)
 // кэш решений — внутри функции: снимок «Отметить момент» копирует глобальные var, а кэш ему не нужен (и большой)
 var nadeAimCache = (function(){ var C = {}, n = 0; return function(k, v){ if(v === undefined) return C[k]; if(++n > 4000){ C = {}; n = 0; } return (C[k] = v); }; })();
 function nadeTraceFn(){ var M = m3(); return function(A, B, r){ return m3NadeTrace(M, A, B, r); }; }
@@ -27,12 +28,15 @@ function nadeSolve(type, x, y, z, tx, ty, duck, wide, guess, vel){
   NADE_TICK.n++;   // подбор не из кэша — счёт тика (не время: игра не должна зависеть от скорости компьютера)
   var F = m3Game(M, x, y), T = m3Game(M, tx, ty), fl = nadeAimFloors(M, tx, ty), lv = nadeLandFloors(M, tx, ty), r = null;
   fl.forEach(function(fz){
-    var o = {duck: !!duck, wz: type === "flash" ? 0.5 : 1, wide: !!wide, vel: vel || null};
+    // (v554, владелец 11.11: «флешка не слепит») своя флешка (не лайнап) — разрыв на высоте, как у про (FLASH_POP_DZ), и высота считается в подборе
+    // полностью: было 80 ед. и ошибка по высоте вдвое мягче — разрыв выходил в среднем в 14 ед. над полом, за укрытием его не видно. Лайнап — как было
+    var own = type === "flash" && !wide;
+    var o = {duck: !!duck, wz: type === "flash" && !own ? 0.5 : 1, wide: !!wide, vel: vel || null};
     if(type === "smoke" || type === "molly"){ o.levels = lv; o.levelTol = NADE_LEVEL_TOL; }
     if(!wide) o.need = nadeAimLimit(type, false);   // (v502) своя граната — порог «долетит» (385: шире поворот, если мимо)
     if((type === "smoke" || type === "molly" || !wide) && NADE_AIM_SCATTER[type]) o.robust = [nadeQuant(NADE_AIM_SCATTER[type].yaw, NADE_ROBUST_Q), nadeQuant(NADE_AIM_SCATTER[type].pitch, NADE_ROBUST_Q)];   // (v501) устойчивость (385); (v505) и своя граната любого типа   // (этаж) смок и огонь — на полу у цели
     if(guess){ o.guess = guess; o.guessOk = guess.levelOk === false ? 0 : guess.e3 + NADE_GUESS_SLACK; o.wide = false; }   // уточнение не вышло — обычный (не широкий) перебор: дешевле
-    var q = nadeAim(type, [F[0], F[1], z], [T[0], T[1], fz + (NADE_AIM_DZ[type] || 0)], nadeTraceFn(), o);
+    var q = nadeAim(type, [F[0], F[1], z], [T[0], T[1], fz + (own ? FLASH_POP_DZ : (NADE_AIM_DZ[type] || 0))], nadeTraceFn(), o);
     if(q && (!r || q.e3 < r.e3)) r = q; });
   if(r){ var R = m3Radar(M, r.det[0], r.det[1]); r.x = R[0]; r.y = R[1]; }
   if(t0){ NADE_SOLVE_MS.push(performance.now() - t0); if(NADE_SOLVE_MS.length > 500) NADE_SOLVE_MS.shift(); }
@@ -332,8 +336,27 @@ function nadeFailedHere(b, type, tx, ty){
   var N = b._nadeNo; if(!N || N.round !== roundNum) return false;
   return N.list.some(function(q){ return q.type === type && Math.hypot(q.tx-tx, q.ty-ty) <= NADE_NO_TO && Math.hypot(q.x-b.x, q.y-b.y) <= NADE_NO_FROM; });
 }
+// (v554, владелец 11.11: «гранаты без лайнапа кидают рандомно — без оценки, поможет ли, успеет ли; во время файтов и перед смертью; туда, где врагов
+// точно нет, когда все убиты») одно место: своя граната (не лайнап и не граната плана команды — у тех opts.bkey) — только если есть смысл и время.
+// Облако, 24 раунда Mirage (v553): 416 своих гранат; в миг броска HP < 30 — 54, ранен за ≤ 1 с — 41, видит врага — 19. Возвращает причину отказа
+// или null. NADE_HIT_GAP, NADE_LOW_HP, NADE_FOE_R — проектные числа; порог «враг возможен» 0,2 — как «шумлю там, где враг вероятен» (540)
+var NADE_HIT_GAP = 64, NADE_LOW_HP = 30, NADE_FOE_R = 400, NADE_FOE_P = 0.2;
+function nadeSelfWhyNot(b, type, pt){
+  var foe = b.team === "CT" ? "T" : "CT";
+  if(!bots.some(function(o){ return o.alive && o.team === foe; })) return "врагов нет";
+  if(b._sawEnemy) return "видит врага — стреляется";
+  if((b._hitIn || []).some(function(h){ return tick - h[0] < NADE_HIT_GAP; })) return "под огнём";
+  if(b.hp < NADE_LOW_HP && tick - (b._lastSawT || -1e9) < 3*TICK_HZ) return "мало HP в бою";
+  if(type === "smoke") return null;   // дым режет линию — нужен только живой враг (смок поверх смока отсекает smokeCovered)
+  // флешка / молотов / HE — туда, где по знанию команды враг сейчас может быть: свежая инфа рядом с точкой или вес карты команды в её зоне
+  var BL = beliefLast[b.team] || {};
+  for(var e in BL){ var q = BL[e], o = teamBot(e); if(o && o.alive && tick - q.tick <= 6*TICK_HZ && Math.hypot(q.x-pt.x, q.y-pt.y) < NADE_FOE_R) return null; }
+  if(BZ.ids.length){ var j = bzOf(pt.x, pt.y); if(j >= 0 && [j].concat(BZ.nbr[j] || []).some(function(k){ return reachPossible(b.team, k) && beliefZoneKnown(b.team, k) >= NADE_FOE_P; })) return null; }
+  return "там врага быть не может";
+}
 function assignNade(b, type, target, why, opts){
   if(!b || !b.alive || !b.nades || b.nades[type] <= 0) return false;
+  if(!(opts && opts.bkey)){ var wn = nadeSelfWhyNot(b, type, target); if(wn){ NADE_FAIL = wn; return false; } }
   if(nadeFailedHere(b, type, target.x, target.y)){ NADE_FAIL = "отсюда уже не долетела"; return false; }
   if(opts && opts.bkey && !builtinAllowed(opts.bkey)) return false; // встроенная выключена или заменена своим лайнапом
   // (v428) план гранат команды (365): граната, отложенная на более поздний момент (выход, после планта, ретейк), сейчас не тратится;

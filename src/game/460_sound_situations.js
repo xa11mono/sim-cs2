@@ -166,14 +166,24 @@ function awpSmokeTick(){
 // Про, поймав флешку, не продолжает бежать: отходит на шаг-два назад за угол
 // (туда, откуда пришёл — там безопасно) или, если некуда, встаёт/садится и
 // держит направление, откуда шёл враг, пока не прозреет.
+var BLIND_FIRE_R = 700;   // (v554) проектное число: ед. игры — враг ближе, чем это, пойдёт на флешку, есть смысл стрелять вслепую
 function onBlind(b, threat){
   if(b.planting || b.defusing) return;
   var back = null, tr = b._trail || [];
   for(var i = tr.length-1; i >= 0; i--){ var q = tr[i]; if(Math.hypot(q.x-b.baseX, q.y-b.baseY) < 40) continue; if(Math.hypot(q.x-b.baseX, q.y-b.baseY) > 220) break;
     if(!hasLOS(q.x, q.y, threat.x, threat.y)){ back = q; break; } }
+  // (v554, владелец 11.11: «ослеплённый не должен стоять — уходит в укрытие по памяти, может ошибиться и выйти на врагов») следа
+  // назад нет — укрытие от угрозы по знанию карты (findCover, как после фрага): путь строится по памяти, врагов он не видит
+  var wp = null;
+  if(back) wp = [[back.x, back.y, b.z]];
+  else { var cv = findCover(b, threat); if(cv){ wp = buildWaypointPath(b.baseX, b.baseY, b.z, cv.x, cv.y, 0); if(wp && wp.length) back = cv; else wp = null; } }
   b._blind = {until:b.blindUntil, back:back, face:{x:threat.x, y:threat.y}};
-  if(back){ b.path = [[back.x, back.y, b.z]]; b.pathIdx = 0; }
-  logEvent(b.id+": ослеплён — "+(back ? "отходит за угол" : "присел, держит направление"));
+  if(wp){ b.path = wp; b.pathIdx = 0; }
+  // стрелять вслепую — только с настоящей причиной: видел врага перед самой вспышкой (≤ 1 с) и он рядом — он пойдёт на флешку.
+  // Очередь в точку, где видел (тот же «огонь по памяти», что сквозь дым: smokeSpamTick, 290); попадёт, если враг на линии
+  var fire = threat.tick != null && threat.src !== "call" && tick - threat.tick <= TICK_HZ && Math.hypot(threat.x-b.x, threat.y-b.y) < BLIND_FIRE_R && b.ammo > 0 && b.weapon && !b.weapon.scopeTicks;
+  if(fire) b._spam = {pt:{x:threat.x, y:threat.y, z:threat.z}, s:null, blind:true, seen:true, bursts:SMK.burstsMin, shot:0, nextBurst:tick + (b.reactionTicks||12), until:b.blindUntil};
+  logEvent(b.id+": ослеплён — "+(back ? (wp && wp.length > 1 ? "уходит в укрытие по памяти" : "отходит за угол") : "присел, держит направление")+(fire ? ", стреляет вслепую туда, где видел врага" : ""));
   // (S2) тиммейт рядом закрывает угол ослеплённого: смотрит туда и готов стрелять
   if(BAL.coverBlind){
     var mates = bots.filter(function(o){ return o !== b && o.alive && o.team === b.team && !o._sawEnemy && tick >= (o.blindUntil||0) && nearP(o.x, o.y, o.z, b.x, b.y, b.z, 260) && !o.planting && !o.defusing; });

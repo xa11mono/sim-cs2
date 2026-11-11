@@ -13,7 +13,6 @@ var SMK = {
   pBelief: 0.45, // …если по карте вероятностей там вероятно враг
   pEntry: 0.22,  // …если инфы нет, но смок на входе на сайт (за ним почти всегда кто-то)
   burstsMin: 2, burstsMax: 5, burstGap: 32, bullets: 3,
-  heP: 0.4,      // шанс разогнать HE смок на своём объекте, если за ним вероятен враг
   shiftP: 0.25   // шанс сменить позицию, когда смок закрыл угол, который держал
 };
 function smkKey(s){ return s.born+"_"+Math.round(s.x); }
@@ -62,14 +61,15 @@ function smkEvidence0(b, s){
   }
   return null;
 }
+var BLIND_SPREAD = 0.35;   // (v554) проектное число: рад — разброс очереди ослеплённого (не видит прицела), сквозь дым — 0.08
 function blindBullet(b, pt){
   var w = b.weapon; if(!w || b.ammo <= 0) return false;
   b.ammo--; b.lastShotTick = tick; b.nextShotTick = tick + (w.fireIntervalTicks||6);
-  var a = Math.atan2(pt.y-b.y, pt.x-b.x) + (hashRand(tick*31 + b.id.charCodeAt(1))-0.5)*0.08;
+  var a = Math.atan2(pt.y-b.y, pt.x-b.x) + (hashRand(tick*31 + b.id.charCodeAt(1))-0.5)*(pt.spread || 0.08);
   var cl = bulletClip3(b, b.x + Math.cos(a)*(w.range||900), b.y + Math.sin(a)*(w.range||900), {x:pt.x, y:pt.y, z:pt.z});   // (v519) по 3D-геометрии
   var ez0 = visFloorAt(b.x, b.y, b.z) + VIS_EYE.stand;   // (v548) дыра — линия пули в 3D: от глаз к точке, куда целился (на уровне груди)
   smokeBulletHole(b.x, b.y, pt.x, pt.y, ez0, (pt.z != null ? visFloorAt(pt.x, pt.y, pt.z) : visFloorAt(b.x, b.y, b.z)) + VIS_BODY.stand[0]);
-  var sv = bulletLineHit(b, cl.x, cl.y, null, tick*37 + b.id.charCodeAt(1)*11, "сквозь дым");   // (Г1) пуля сквозь дым попадает в того, кто на линии
+  var sv = bulletLineHit(b, cl.x, cl.y, null, tick*37 + b.id.charCodeAt(1)*11, b._spam && b._spam.blind ? "вслепую" : "сквозь дым");   // (Г1) пуля сквозь дым попадает в того, кто на линии
   if(sv) cl = {x:sv.x, y:sv.y};
   tracers.push({wc:tracerClass(b.weapon), wk:b.weapon && b.weapon.key, sil:!!(b.weapon && b.weapon.silenced), x1:b.x, y1:b.y, x2:cl.x, y2:cl.y, team:b.team, born:nowTs, hit:!!sv, miss:!sv}); if(tracers.length > 60) tracers.shift(); if(SND && SND.on) sndShot(b.weapon, b.x, b.y);
   bots.forEach(function(o){ if(!o.alive || o.team === b.team) return;
@@ -78,12 +78,13 @@ function blindBullet(b, pt){
   return true;
 }
 function smokeSpamTick(){
-  if(!smokes.length){ bots.forEach(function(b){ b._spam = null; }); return; }
+  if(!smokes.length && !bots.some(function(b){ return b._spam && b._spam.blind; })){ bots.forEach(function(b){ b._spam = null; }); return; }
   bots.forEach(function(b){
     if(!b.alive) return;
     var P = b._spam;
-    if(P && (tick > P.until || b._sawEnemy || b.planting || b.defusing || b._reloading || b.ammo <= 0 || tick < b.blindUntil ||
-             smokes.indexOf(P.s) < 0 || (tick % 16 === 0 && !smokeEnemyPossible(b, P.s, P.pt, P.seen)))){ b._spam = null; P = null; }
+    // (v554) P.blind — очередь вслепую после флешки (onBlind, 460): дыма нет, слепота её не отменяет
+    if(P && (tick > P.until || b._sawEnemy || b.planting || b.defusing || b._reloading || b.ammo <= 0 || (tick < b.blindUntil) !== !!P.blind ||
+             (!P.blind && (smokes.indexOf(P.s) < 0 || (tick % 16 === 0 && !smokeEnemyPossible(b, P.s, P.pt, P.seen)))))){ b._spam = null; P = null; }
     if(P){
       if(tick < P.nextBurst) return;
       // стреляем: если на линии за дымом реально кто-то есть — настоящий выстрел
@@ -94,12 +95,12 @@ function smokeSpamTick(){
       // не стреляет, стоит — стреляет. Ради прострела не останавливается (как часто останавливаться — владелец: редко; числа нет)
       if(b.weapon.scopeTicks && b.curSpeed > 0.34*SPEED*weaponSpeedMul(b)) return;
       var aim = Math.atan2(P.pt.y-b.y, P.pt.x-b.x), foe = null;
-      if(b.facing !== undefined && _angOff(aim, b.facing) > 0.2) return;   // сначала довести прицел
-      bots.forEach(function(e){ if(foe || !e.alive || e.team === b.team) return; var d = Math.hypot(e.x-b.x, e.y-b.y); if(d > 900) return;
+      if(b.facing !== undefined && _angOff(aim, b.facing) > 0.2 && !P.blind) return;   // сначала довести прицел (слепой не видит прицела — как есть)
+      if(!P.blind) bots.forEach(function(e){ if(foe || !e.alive || e.team === b.team) return; var d = Math.hypot(e.x-b.x, e.y-b.y); if(d > 900) return;
         if(_angOff(Math.atan2(e.y-b.y, e.x-b.x), aim) > 0.12 || !hasLOS(b.x, b.y, e.x, e.y, b.z) || !smokeBlocks(b.x, b.y, e.x, e.y)) return; foe = e; });
       var fired = false;
       if(foe){ var a0 = b.ammo; b._smokeShot = true; tryShoot(b, foe, Math.hypot(foe.x-b.x, foe.y-b.y)); b._smokeShot = false; fired = b.ammo !== a0; if(fired) smokeBulletHole(b.x, b.y, foe.x, foe.y, visFloorAt(b.x, b.y, b.z) + VIS_EYE.stand, visFloorAt(foe.x, foe.y, foe.z) + VIS_BODY.stand[0]); }
-      else fired = blindBullet(b, P.pt);
+      else fired = blindBullet(b, P.blind ? {x:P.pt.x, y:P.pt.y, z:P.pt.z, spread:BLIND_SPREAD} : P.pt);
       if(fired && ++P.shot >= SMK.bullets){ P.shot = 0; P.bursts--; P.nextBurst = tick + SMK.burstGap; if(P.bursts <= 0) b._spam = null; }
       return;
     }
@@ -155,22 +156,26 @@ function smokeSpamTick(){
     });
   });
 }
-// HE в смок противника у своего объекта (CT — на своём сайте/входе; T — у бомбы/на подходе)
+// HE в смок противника (v554, владелец 11.11: «HE в смок — разогнать, убить или проверить инфу; самому или попросить тиммейта, как флешку»).
+// Повод — тот же, что у прострела: за дымом только что видел / слышал врага или команда его там ждёт (smkEvidence; «смок на входе» без инфы —
+// нет). Было: только у своего сайта и по жребию (heP). Одна HE на смок от команды: есть своя — кидает сам (пользу и время проверяет
+// assignNade: nadeSelfWhyNot), нет — просит своего с HE (nadeAskFlash с типом «he», 365)
 function smokeHeTick(){
   if(!smokes.length || tick % 16) return;
   smokes.forEach(function(s){
     if(!s.team || !smkActive(s)) return;
-    var k = smkKey(s);
+    var k = smkKey(s), foe = s.team === "CT" ? "T" : "CT", D = s._heDone || (s._heDone = {});
+    if(D[foe]) return;
+    var ask = null;
     bots.forEach(function(b){
-      if(!b.alive || b.team === s.team || !b.nades || !(b.nades.he > 0) || b.nadeTask || b._sawEnemy || b.planting || b.defusing) return;
-      var D = b._heDone || (b._heDone = {}); if(D[k] !== undefined) return;
-      var d = Math.hypot(s.x-b.x, s.y-b.y); if(d < 200 || d > NADE_THROW_RANGE) return;
-      var near = ["A","B"].some(function(q){ return Math.hypot(s.x-SITES[q].x, s.y-SITES[q].y) < 700; });
-      if(!near){ D[k] = false; return; }
-      var ev = smkEvidence(b, s); if(!ev || ev.kind === "entry"){ return; }
-      D[k] = hashRand(s.born*41 + b.id.charCodeAt(0)*17 + b.id.length) < SMK.heP;
-      if(D[k] && assignNade(b, "he", {x:s.x, y:s.y}, "HE в смок — разогнать", {now:true})) voiceLog(b.team, "hesmk"+k, b.id, "кидаю HE в смок "+calloutName(s.x, s.y));
+      if(D[foe] || !b.alive || b.team !== foe || b.nadeTask || b._sawEnemy || b.planting || b.defusing || tick < (b.blindUntil||0)) return;
+      var d = Math.hypot(s.x-b.x, s.y-b.y); if(d < 200 || d > NADE_THROW_RANGE || !hasLOS(b.x, b.y, s.x, s.y, b.z)) return;
+      var ev = smkEvidence(b, s); if(!ev || ev.kind === "entry") return;
+      if(b.nades && b.nades.he > 0){
+        if(assignNade(b, "he", {x:s.x, y:s.y}, "HE в смок — разогнать", {now:true})){ D[foe] = true; voiceLog(b.team, "hesmk"+k, b.id, "кидаю HE в смок "+calloutName(s.x, s.y)); }
+      } else if(!ask) ask = b;
     });
+    if(!D[foe] && ask && nadeAskFlash(ask, {x:s.x, y:s.y}, "HE в смок "+calloutName(s.x, s.y)+" — разогнать", "he")) D[foe] = true;
   });
 }
 // смок закрыл угол, который держал: часть игроков меняет позицию (отходит глубже)

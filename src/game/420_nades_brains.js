@@ -38,9 +38,10 @@ function nadeUseTick(b){
     if(have("molly") && spots.length) opts.push({t:"molly", pts:spots, w:NBu.molly || 1});
     if(have("he") && spots.length) opts.push({t:"he", pts:spots, w:NBu.he || 0.5});
     if(have("smoke") && ents.length) opts.push({t:"smoke", pts:ents, w:NBu.smoke || 1});
-    var wS = opts.reduce(function(a, o){ return a + o.w; }, 0), rr = hashRand(tick*13 + b.id.charCodeAt(b.id.length-1)*29) * wS;
-    for(var oi = 0; oi < opts.length && !plan; oi++){ rr -= opts[oi].w; if(rr <= 0) plan = opts[oi]; }
-    if(!plan && opts.length) plan = opts[opts.length-1];
+    // (v554, владелец 11.11: «кидают рандомно — нет оценки полезности») не жребий, а лучшая: доля про этого вида (как часто про кидают её в таком
+    // раунде) × сколько свежей инфы о врагах у её целей (+1 — сама цель: вход, место выхода); пользу и время проверяет assignNade (nadeSelfWhyNot)
+    opts.forEach(function(o){ o.sc = o.w*(1 + o.pts.filter(function(p){ return known.some(function(k){ return Math.hypot(k.x-p.x, k.y-p.y) < 300; }); }).length); });
+    opts.forEach(function(o){ if(!plan || o.sc > plan.sc) plan = o; });
     why = "иду в бой — "+calloutName(b.post.x, b.post.y).replace(/^на /, "");
   } else if(bomb.state === "planted" && b.team === "T" && (bots.some(function(o){ return o.defusing; }) || known.some(function(k){ return Math.hypot(k.x-bomb.x, k.y-bomb.y) < 700; }))){
     if(have("molly")) plan = {t:"molly", pts:[{x:bomb.x, y:bomb.y}]}; else if(have("he")) plan = {t:"he", pts:[{x:bomb.x, y:bomb.y}]};

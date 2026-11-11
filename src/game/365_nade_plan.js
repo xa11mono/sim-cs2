@@ -197,16 +197,18 @@ var FLASH_ASK_WAIT = 3.5, FLASH_ASK_R = 700;   // с, ед. — те же про
 // (владелец 05.11: «за шесть раундов хотя бы в трёх-четырёх, не при каждом случае») — одна просьба на команду за раунд: проектное число из
 // слов владельца (замер облака до предела: м7 — 10 просьб в 6 раундах из 10, м11 — 18 в 8 из 8; из 28 хлопнули 9)
 var FLASH_ASK_PER_ROUND = 1, FLASH_ASK_N = {};
-function nadeAskFlash(b, pt, why){
-  var nk = matchNum+":"+roundNum+":"+b.team; if((FLASH_ASK_N[nk]||0) >= FLASH_ASK_PER_ROUND) return null;
-  var foe = b.team === "CT" ? "T" : "CT", BL = beliefLast[b.team] || {}, fuse = NADE.flash.fuse/TICK_HZ, lim = nadeAimLimit("flash", false);
+function nadeAskFlash(b, pt, why, type){
+  // (v554) type — «he»: HE в смок (smokeHeTick, 290) просит того, у кого она есть; лимит на раунд — свой у каждого типа
+  type = type || "flash"; var fl = type === "flash";
+  var nk = matchNum+":"+roundNum+":"+b.team+(fl ? "" : ":"+type); if((FLASH_ASK_N[nk]||0) >= FLASH_ASK_PER_ROUND) return null;
+  var foe = b.team === "CT" ? "T" : "CT", BL = beliefLast[b.team] || {}, fuse = (NADE[type].fuse || NADE.flash.fuse)/TICK_HZ, lim = nadeAimLimit(type, false);
   var seenBy = function(F){ return bots.some(function(e){ if(e.team !== foe || !e.alive) return false; var q = BL[e.id];
     return q && tick - q.tick <= SITE_SEEN_SEC*TICK_HZ && hasLOS(q.x, q.y, F.x, F.y); }); };
-  var LU = proLineups().filter(function(L){ return L.team === b.team && L.type === "flash" && Math.hypot(L.to.x-pt.x, L.to.y-pt.y) <= lim; });
+  var LU = proLineups().filter(function(L){ return L.team === b.team && L.type === type && Math.hypot(L.to.x-pt.x, L.to.y-pt.y) <= lim; });
   var C = [];
   bots.forEach(function(o){
-    if(o === b || !o.alive || o.team !== b.team || !o.nades || o.nades.flash <= 0 || o.nadeTask || o._sawEnemy || o.state !== "patrol" || o.planting || o.defusing) return;
-    if(!taskCanSet(o, "lineup") || !npCanUse(o, "flash", npMomentNow(o), null)) return;
+    if(o === b || !o.alive || o.team !== b.team || !o.nades || !(o.nades[type] > 0) || o.nadeTask || o._sawEnemy || o.state !== "patrol" || o.planting || o.defusing) return;
+    if(!taskCanSet(o, "lineup") || !npCanUse(o, type, npMomentNow(o), null)) return;
     // (владелец 05.11: «если стрелялся, прикрывал, держал важный угол или знал, что там вот-вот будет враг — понятно; а если может уйти и точно
     // ничего не произойдет — почему бы не кинуть») бой и задачи важнее гранаты (прикрыть, подпушить, ретейк…) отсекает taskCanSet; держит угол,
     // на который вот-вот выйдут: враг, которого команда видела / слышала за SITE_SEEN_SEC, видит его или его пост — не отвлекается
@@ -219,11 +221,12 @@ function nadeAskFlash(b, pt, why){
   // с места — бросает сразу (не долетает отсюда — просьба следующему); с лайнапа — идёт на точку броска (срок — FLASH_ASK_WAIT)
   var got = null;
   for(var i = 0; i < C.length && !got; i++){ var c = C[i], o = c.o;
-    if(c.L){ o.nadeTask = {type:"flash", x:c.L.to.x, y:c.L.to.y, from:{x:c.L.from.x, y:c.L.from.y}, until: tick + FLASH_ASK_WAIT*TICK_HZ, why:why, start:tick, lob:true, range:4000, now:true, lineup:true, npm:npMomentNow(o)}; got = c; }
-    else if(throwNade(o, "flash", pt.x, pt.y, true, why)) got = c;
+    if(c.L){ o.nadeTask = {type:type, x:c.L.to.x, y:c.L.to.y, from:{x:c.L.from.x, y:c.L.from.y}, until: tick + FLASH_ASK_WAIT*TICK_HZ, why:why, start:tick, lob:true, range:4000, now:true, lineup:true, npm:npMomentNow(o)}; got = c; }
+    else if(throwNade(o, type, pt.x, pt.y, true, why)) got = c;
   }
   if(!got) return null;
   FLASH_ASK_N[nk] = (FLASH_ASK_N[nk]||0) + 1;
+  if(!fl){ voiceLog(b.team, "ask"+type+b.id+roundNum, b.id, "дайте HE "+calloutName(pt.x, pt.y).replace(/^на /, "")+" — "+got.o.id); return got.o; }
   b._waitPopUntil = tick + Math.round(FLASH_ASK_WAIT*TICK_HZ); b._waitPopKey = "pop:"+why;
   voiceLog(b.team, "askfl"+b.id+roundNum, b.id, "накиньте флешку "+calloutName(pt.x, pt.y).replace(/^на /, "")+" — "+got.o.id+(got.L ? " с лайнапа" : "")+", выхожу на хлопок");
   return got.o;

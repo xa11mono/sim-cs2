@@ -50,7 +50,7 @@ function bulletLineHit(sh, ex, ey, skip, seed, note){
   var sm = sz < 0.22 ? 0.75 : (sz < 0.42 ? 1.25 : 1.0), sArm = sz >= 0.22 && sv.armor;
   var sdmg = w.dmg * Math.pow(w.rm, sd*PX_UNITS/500) * sm;
   sv._hitFx = {t:nowTs, head:false}; if(BAL.tagging) sv._tagUntil = tick + 16;
-  applyDamage(sh, sv, sdmg, "bullet", {armorRatio: sArm ? w.armorPen : null, wkey:w.key, reward:w.killReward||300, note:" ("+note+", дист. "+Math.round(sd)+")"});
+  applyDamage(sh, sv, sdmg, "bullet", {armorRatio: sArm ? w.armorPen : null, wkey:w.key, reward:w.killReward||300, note:" ("+note+", дист. "+Math.round(sd)+")", mods:{blind: tick < (sh.blindUntil||0), smoke: !!smokeOnLine(sh.x, sh.y, sv.x, sv.y)}});   // (v554) значки киллфида
   return sv;
 }
 // (v519, пак 09.11 п.15; Р-2: «трассеры проходят через укрытия») пуля мимо — летит по 3D-геометрии карты (та же, что видимость: ящики, укрытия,

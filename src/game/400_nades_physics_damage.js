@@ -181,6 +181,10 @@ function flashDirK(b, n){
   if(d > 1000 || !flashSeen(b, n)) return 0;
   var a = Math.atan2(n.y-b.y, n.x-b.x);
   var off = b.facing === undefined ? 0 : Math.abs(((a - b.facing + Math.PI) % (2*Math.PI) + 2*Math.PI) % (2*Math.PI) - Math.PI);
+  // (v554, владелец 11.11: «что там с углом обзора») угол — в 3D: разрыв высоко над головой / под ногами — не «прямо в лицо», хотя по радару
+  // направление то же (взгляд — по горизонтали, глаза на высоте роста)
+  if(n.z != null){ var K = MAP.pxUnits || 2.5, hd = Math.hypot(n.x-b.x, n.y-b.y)*K, vd = n.z - (visFloorAt(b.x, b.y, b.z) + VIS_EYE.stand);
+    off = Math.acos(Math.max(-1, Math.min(1, Math.cos(off)*hd/Math.max(1e-6, Math.hypot(hd, vd))))); }
   return off < 0.55 ? 1 : (off < 1.6 ? 0.5 : 0.12);  // смотрел прямо / краем глаза / спиной
 }
 function flashSeen(b, n){
