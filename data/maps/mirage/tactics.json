@@ -4,11 +4,6 @@
    "id": "splitA_tetris",
    "name": "Сплит A: Ramp + Palace",
    "site": "A",
-   "pools": [
-    "full",
-    "half",
-    "force"
-   ],
    "setupEnd": 48,
    "style": "split",
    "weight": 4.07,
@@ -46,10 +41,6 @@
    "id": "defB_bapartment",
    "name": "Дефолт → поздний выход B через Apps",
    "site": "B",
-   "pools": [
-    "full",
-    "half"
-   ],
    "setupEnd": 68,
    "style": "default",
    "weight": 2.26,
@@ -83,11 +74,6 @@
    "id": "execB_bapartment",
    "name": "Выход B через Apps",
    "site": "B",
-   "pools": [
-    "full",
-    "half",
-    "force"
-   ],
    "setupEnd": 52,
    "style": "exec",
    "weight": 2.07,
@@ -121,11 +107,6 @@
    "id": "execA_palaceexit",
    "name": "Выход A через Palace",
    "site": "A",
-   "pools": [
-    "full",
-    "half",
-    "force"
-   ],
    "setupEnd": 64,
    "style": "exec",
    "weight": 0.91,
@@ -158,11 +139,6 @@
    "id": "execA_tetris",
    "name": "Выход A через Ramp",
    "site": "A",
-   "pools": [
-    "full",
-    "half",
-    "force"
-   ],
    "setupEnd": 62,
    "style": "exec",
    "weight": 0.89,
@@ -192,11 +168,6 @@
    "id": "splitB_bapartment",
    "name": "Сплит B: Apps + Short, поздний",
    "site": "B",
-   "pools": [
-    "full",
-    "half",
-    "force"
-   ],
    "setupEnd": 67,
    "style": "split",
    "weight": 0.7,
@@ -238,11 +209,6 @@
    "id": "splitA_tetris2",
    "name": "Сплит A: Ramp + Palace (вариант 2)",
    "site": "A",
-   "pools": [
-    "full",
-    "half",
-    "force"
-   ],
    "setupEnd": 50,
    "style": "split",
    "weight": 0.57,
@@ -280,11 +246,6 @@
    "id": "splitA_cross",
    "name": "Сплит A: Connector + Palace",
    "site": "A",
-   "pools": [
-    "full",
-    "half",
-    "force"
-   ],
    "setupEnd": 59,
    "style": "split",
    "weight": 0.57,
@@ -326,10 +287,6 @@
    "id": "defA_cross",
    "name": "Дефолт → поздний выход A через Connector",
    "site": "A",
-   "pools": [
-    "full",
-    "half"
-   ],
    "setupEnd": 76,
    "style": "default",
    "weight": 0.51,
@@ -363,10 +320,6 @@
    "id": "defA_cross2",
    "name": "Дефолт → поздний выход A через Connector (вариант 2)",
    "site": "A",
-   "pools": [
-    "full",
-    "half"
-   ],
    "setupEnd": 78,
    "style": "default",
    "weight": 0.46,
@@ -400,10 +353,6 @@
    "id": "defB_bshort",
    "name": "Дефолт → поздний выход B через Short",
    "site": "B",
-   "pools": [
-    "full",
-    "half"
-   ],
    "setupEnd": 86,
    "style": "default",
    "weight": 0.32,
@@ -436,10 +385,6 @@
    "id": "defA_cross3",
    "name": "Дефолт → поздний выход A через Connector (вариант 3)",
    "site": "A",
-   "pools": [
-    "full",
-    "half"
-   ],
    "setupEnd": 91,
    "style": "default",
    "weight": 0.25,
@@ -473,11 +418,6 @@
    "id": "splitA_cross2",
    "name": "Сплит A: Connector + Palace, поздний",
    "site": "A",
-   "pools": [
-    "full",
-    "half",
-    "force"
-   ],
    "setupEnd": 79,
    "style": "split",
    "weight": 0.21,
@@ -519,11 +459,6 @@
    "id": "splitA_palaceexit",
    "name": "Сплит A: Palace + Ramp, поздний",
    "site": "A",
-   "pools": [
-    "full",
-    "half",
-    "force"
-   ],
    "setupEnd": 74,
    "style": "split",
    "weight": 0.19,
@@ -562,11 +497,6 @@
    "id": "rushA",
    "name": "Раш A через Ramp",
    "site": "A",
-   "pools": [
-    "eco",
-    "pistol",
-    "force"
-   ],
    "setupEnd": 0,
    "style": "rush",
    "rushVia": [
@@ -579,11 +509,6 @@
    "id": "rushB",
    "name": "Раш B через Apps",
    "site": "B",
-   "pools": [
-    "eco",
-    "pistol",
-    "force"
-   ],
    "setupEnd": 0,
    "style": "rush",
    "rushVia": [
@@ -601,10 +526,6 @@
    "name": "Фейк A → выход B через Apps",
    "site": "B",
    "fake": "A",
-   "pools": [
-    "full",
-    "half"
-   ],
    "setupEnd": 52,
    "style": "fake",
    "weight": 0.7,
@@ -639,10 +560,6 @@
    "name": "Фейк B → сплит A: Ramp + Palace",
    "site": "A",
    "fake": "B",
-   "pools": [
-    "full",
-    "half"
-   ],
    "setupEnd": 48,
    "style": "fake",
    "weight": 0.35,

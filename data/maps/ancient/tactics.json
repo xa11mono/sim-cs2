@@ -4,11 +4,6 @@
    "id": "execA",
    "name": "Выход A через мейн",
    "site": "A",
-   "pools": [
-    "full",
-    "half",
-    "force"
-   ],
    "setupEnd": 38,
    "style": "exec",
    "groups": [
@@ -37,11 +32,6 @@
    "id": "execB",
    "name": "Выход B через рампу",
    "site": "B",
-   "pools": [
-    "full",
-    "half",
-    "force"
-   ],
    "setupEnd": 38,
    "style": "exec",
    "groups": [
@@ -70,10 +60,6 @@
    "id": "defB",
    "name": "Дефолт → B",
    "site": "B",
-   "pools": [
-    "full",
-    "half"
-   ],
    "setupEnd": 66,
    "style": "default"
   },
@@ -81,11 +67,6 @@
    "id": "defA",
    "name": "Дефолт → A",
    "site": "A",
-   "pools": [
-    "full",
-    "half",
-    "pistol"
-   ],
    "setupEnd": 64,
    "style": "default"
   },
@@ -93,10 +74,6 @@
    "id": "splitA",
    "name": "Сплит A (мейн + донат)",
    "site": "A",
-   "pools": [
-    "full",
-    "half"
-   ],
    "setupEnd": 54,
    "style": "split",
    "groups": [
@@ -131,11 +108,6 @@
    "id": "rushB",
    "name": "Раш B через рампу",
    "site": "B",
-   "pools": [
-    "eco",
-    "pistol",
-    "force"
-   ],
    "setupEnd": 0,
    "style": "rush",
    "rushVia": [
@@ -150,11 +122,6 @@
    "id": "rushA",
    "name": "Раш A через мейн",
    "site": "A",
-   "pools": [
-    "eco",
-    "pistol",
-    "force"
-   ],
    "setupEnd": 0,
    "style": "rush",
    "rushVia": [
@@ -169,10 +136,6 @@
    "id": "splitB",
    "name": "Сплит B (рампа + кейв)",
    "site": "B",
-   "pools": [
-    "full",
-    "half"
-   ],
    "setupEnd": 54,
    "style": "split",
    "groups": [
@@ -212,10 +175,6 @@
    "name": "Фейк A → выход B",
    "site": "B",
    "fake": "A",
-   "pools": [
-    "full",
-    "half"
-   ],
    "setupEnd": 62,
    "style": "fake"
   },
@@ -224,11 +183,6 @@
    "name": "Фейк B → выход A",
    "site": "A",
    "fake": "B",
-   "pools": [
-    "full",
-    "half",
-    "force"
-   ],
    "setupEnd": 62,
    "style": "fake"
   },
@@ -236,11 +190,6 @@
    "id": "caveB",
    "name": "Выход B через кейв",
    "site": "B",
-   "pools": [
-    "full",
-    "half",
-    "force"
-   ],
    "setupEnd": 44,
    "style": "exec",
    "groups": [
@@ -281,11 +230,6 @@
    "id": "donutA",
    "name": "Выход A через донат",
    "site": "A",
-   "pools": [
-    "full",
-    "half",
-    "force"
-   ],
    "setupEnd": 44,
    "style": "exec",
    "groups": [
@@ -319,10 +263,6 @@
    "id": "ctA",
    "name": "Мид → CT, A с двух сторон",
    "site": "A",
-   "pools": [
-    "full",
-    "half"
-   ],
    "setupEnd": 60,
    "style": "split",
    "groups": [
@@ -362,11 +302,6 @@
    "id": "shortA",
    "name": "A: мейн + Short через донат",
    "site": "A",
-   "pools": [
-    "full",
-    "half",
-    "force"
-   ],
    "setupEnd": 50,
    "style": "split",
    "groups": [
@@ -405,10 +340,6 @@
    "id": "ctB",
    "name": "Мид → CT, B с двух сторон",
    "site": "B",
-   "pools": [
-    "full",
-    "half"
-   ],
    "setupEnd": 60,
    "style": "split",
    "groups": [
@@ -447,11 +378,6 @@
    "id": "execA4",
    "name": "A: четверо через мейн",
    "site": "A",
-   "pools": [
-    "full",
-    "half",
-    "force"
-   ],
    "setupEnd": 38,
    "style": "exec",
    "groups": [
@@ -475,11 +401,6 @@
    "id": "fastA",
    "name": "Быстрый A мейном, мид держат",
    "site": "A",
-   "pools": [
-    "full",
-    "half",
-    "force"
-   ],
    "setupEnd": 24,
    "style": "fast",
    "groups": [
@@ -508,10 +429,6 @@
    "id": "main3shortA",
    "name": "A: трое мейн + один Short",
    "site": "A",
-   "pools": [
-    "full",
-    "half"
-   ],
    "setupEnd": 48,
    "style": "split",
    "groups": [
@@ -547,11 +464,6 @@
    "id": "shortMidA",
    "name": "A через Short, мид держат",
    "site": "A",
-   "pools": [
-    "full",
-    "half",
-    "force"
-   ],
    "setupEnd": 44,
    "style": "exec",
    "groups": [
@@ -582,10 +494,6 @@
    "id": "slowA",
    "name": "Медленный A: двое мейн + Short",
    "site": "A",
-   "pools": [
-    "full",
-    "half"
-   ],
    "setupEnd": 66,
    "style": "default",
    "groups": [
@@ -626,11 +534,6 @@
    "id": "execB4",
    "name": "B: четверо по рампе",
    "site": "B",
-   "pools": [
-    "full",
-    "half",
-    "force"
-   ],
    "setupEnd": 38,
    "style": "exec",
    "groups": [
@@ -654,11 +557,6 @@
    "id": "ramp3caveB",
    "name": "B: трое рампа + один кейв",
    "site": "B",
-   "pools": [
-    "full",
-    "half",
-    "force"
-   ],
    "setupEnd": 50,
    "style": "split",
    "groups": [
@@ -697,10 +595,6 @@
    "id": "slowCaveB",
    "name": "Медленный B: двое кейв + рампа",
    "site": "B",
-   "pools": [
-    "full",
-    "half"
-   ],
    "setupEnd": 68,
    "style": "default",
    "groups": [
@@ -745,10 +639,6 @@
    "id": "slowRampB",
    "name": "Медленный B: двое рампа + кейв",
    "site": "B",
-   "pools": [
-    "full",
-    "half"
-   ],
    "setupEnd": 66,
    "style": "default",
    "groups": [
@@ -792,10 +682,6 @@
    "id": "lateCaveB",
    "name": "Поздний кейв: трое кейв + рампа",
    "site": "B",
-   "pools": [
-    "full",
-    "half"
-   ],
    "setupEnd": 70,
    "style": "default",
    "groups": [

@@ -197,9 +197,19 @@ function coachPlan(side){
 }
 var DEF_GROUP_R = 450;   // (v450) ед. карты: «район группы» для мест дефолта — проектное число (≈ зона и её соседи)
 var DEF_STAGE_SEC = 25;   // (v444) из демок Mirage — см. chooseTactic, need
+// (v557, В76) темп тактики: раш — быстро, дефолт (поздний выход) — поздно, остальное (выход, сплит, фейк, быстрый выход) — обычно
+function tacTempo(t){ return t.style === "rush" ? "fast" : (t.style === "default" ? "late" : "mid"); }
+// доли про по закупу T: трое T на сайте к 25 с / 25–50 с / позже или никогда (демки Ancient, 92 демки, tools/eco_play.py; PRO_PLAY §4;
+// Mirage — те же, пока не посчитаны на ПК). «Хаф» в демках не отделён от форса — его доли
+var TAC_TEMPO = {pistol:{fast:0.24, mid:0.36, late:0.40}, eco:{fast:0.06, mid:0.20, late:0.74}, force:{fast:0.14, mid:0.21, late:0.65},
+                 half:{fast:0.14, mid:0.21, late:0.65}, full:{fast:0.08, mid:0.16, late:0.76}};
+var TAC_TEMPO_NAME = {fast:"быстро", mid:"обычно", late:"поздно"};
 function chooseTactic(){
   var type = teamEco.T.roundType;
-  var pool = T_TACTICS.filter(function(t){ return t.pools.indexOf(type) >= 0; });
+  // (v557, В76, владелец 11.11: «от закупа зависит тактика — эко почти всегда раш; надо, чтобы при любом закупе игралась разная тактика»)
+  // набор тактик — один на все закупы (раньше — свой набор на тип закупа: на эко только 2 раша). Закуп меняет только то, как часто
+  // команда играет быстро / обычно / поздно — доли про по этому закупу (TAC_TEMPO, из демок), а не какие тактики есть
+  var pool = T_TACTICS.slice();
   var rd = readCT(), readTxt = null;
   var tempoRead = null;
   if(BAL.tempoShift){ var lastT = roundHist.slice(-2);
@@ -246,12 +256,14 @@ function chooseTactic(){
     return w;
   });
   if(rd.stack) readTxt = "читаем CT: "+rd.stack+" — стак "+rd.n+" из "+rd.of+" раундов → уходим от "+rd.stack+" / фейк на "+rd.stack;
-  // (v155) у про плант раньше 35с — 13% плантов; у ботов было 26%, раши шли
-  // в 19% раундов. Доля рашей теперь задана по типу закупа, остальное — выходы
+  // (v557, В76) темп по закупу — доли про (TAC_TEMPO): вес каждой группы темпа (быстро / обычно / поздно) приводится к доле про для этого
+  // закупа, внутри группы — прежние веса (память матча, чтение CT, пауза). Было (v155): доля рашей задана по типу закупа (эко 25 %, фулл 0)
   if(BAL.proTempo){
-    var RP = {pistol:0.20, eco:0.25, force:0.08, half:0, full:0}[type] || 0;
-    var rW = 0, nW = 0; pool.forEach(function(t, i){ if(t.style === "rush") rW += weights[i]; else nW += weights[i]; });
-    if(rW > 0 && nW > 0){ var kR = RP > 0 ? (RP/(1-RP))*nW/rW : 0; pool.forEach(function(t, i){ if(t.style === "rush") weights[i] *= kR; }); }
+    // нормируется по своей частоте тактик (t.weight), а не по итоговым весам: сдвиги по знанию (темп IGL после двух проигрышей, план
+    // тренера, стак CT, память матча) остаются сверху
+    var TM = TAC_TEMPO[type] || TAC_TEMPO.full, gW = {fast:0, mid:0, late:0};
+    pool.forEach(function(t){ gW[tacTempo(t)] += t.weight || 1; });
+    pool.forEach(function(t, i){ var g = tacTempo(t); if(gW[g] > 0) weights[i] *= TM[g]/gW[g]; });
   }
   var tac = pool[weightedChoice(pool, weights, roundNum*7919 + matchNum*104729 + 17)];
   lastTacticId = tac.id; tacHist.push(tac.id);

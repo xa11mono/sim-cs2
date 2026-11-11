@@ -532,6 +532,7 @@ def game_tactics(A):
     tm = [p for p in tp['mid'] if p['sec'] <= 35 and p['type'] == 'standard']
     if cm and tm:
         (gm['ct'], gm['ctLook']), (gm['t'], gm['tLook']) = top(cm), top(tm)
+    for t in tt: t.pop('pools', None)   # (v557, В76) набор тактик — один на все закупы: игра пулы не читает (темп по закупу — TAC_TEMPO, 130)
     out = {'tTactics': tt, 'pos': posd, 'ctSetups': cs, 'lurkPlans': lurk, 'shiftTo': shift, 'proRole': role, 'plays': {}}
     if gm and not TAC.get('entry'):
         out['geoMid'] = gm
