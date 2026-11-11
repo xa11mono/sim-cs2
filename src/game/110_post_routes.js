@@ -171,7 +171,8 @@ var TASK_PROP = {
   planStage:        /^(exec|stage)/,   // откат T: на стадии / выходе по плану не откатывается (300)
   siteDefender:     /^(anchor|rotator|set:|stack|cts:|rebal|rotateHold|sitehold)/,   // ребаланс: кто считается защитником сайта (300)
   reangleHolder:    /^(anchor|stack|set:)/,   // CT: кто меняет угол, слыша врагов вне вида (340)
-  teamMove:         /^(rotate|gather|retake)/,   // контакт: идёт по задаче команды — на одиночного врага не отвлекается (350)
+  teamMove:         /^(rotate|gather|retake)/,
+  fightMove:        /^contact:swing/,   // (v560, В82) задача «выйти на врага»: идёт к точке выхода и во время перестрелки, когда врага не видно (510)   // контакт: идёт по задаче команды — на одиночного врага не отвлекается (350)
   fireCommit:       /^(plantspot|defuse|antidefuse|stopplant|retake|gather|flee|fetch)/,   // огонь: задачи бомбы, ради которых идут через огонь (370)
   nadeFight:        /^(contact:swing|tradeR|retakeEntry|retake|clear)/,   // гранаты себе: идёт в бой (420)
   blindCoverBusy:   /^(defuse|plantspot|lineup|flee|save|tradeR)/,   // ослеплён: кого из своих не зовут прикрыть (460)
@@ -203,7 +204,8 @@ var TASK_PROP = {
   endhuntTask:      /^endhunt$/,     // шаг: охота на последнего — последние метры (535)
   defuseTask:       /^defuse$/       // шаг: подход к дефузу (540, defuseWalk)
 };
-function taskProp(tag, prop){ return TASK_PROP[prop].test(String(tag == null ? "" : tag)); }
+// (v560) снимок «Отметить момент» восстанавливает и TASK_PROP: в снимке старой версии нового свойства нет — тогда «нет»
+function taskProp(tag, prop){ var R = TASK_PROP[prop]; return !!R && R.test(String(tag == null ? "" : tag)); }
 // ======================= (v378, М126 этап 6) АРБИТР МЕСТА — одно место выбора задачи для позиции бота =======================
 // Раньше у каждой затеи (контакт, размен, подмена, эндгейм, подбор, ожидание у смока, лайнап, ребаланс, проба, перестановка,
 // маршрут) был свой «замок» со своим списком «кому можно меня перебить» — списки не сходились, механики перебивали друг друга
@@ -285,7 +287,9 @@ function detourOk(b, kind, cost){
   if(!b.alive || b.planting || b.defusing) return false;
   if(b._detour && b._detour.round === roundNum && tick < b._detour.until) return false;   // одно отклонение за раз
   var lv = taskAlive(b) ? b._task.lv : 1;
-  if(lv >= 11 || ((kind === "help" || kind === "seek") && lv >= 10)) return false;
+  // (v560, В101) несёт бомбу на точку планта (ещё не ставит), по нему стреляют — шаг за укрытие задача терпит (время — taskSlackSec ниже)
+  var plantGo = kind === "hurt" && taskAlive(b) && taskProp(b._task.tag, "plantSpot");
+  if((lv >= 11 && !plantGo) || ((kind === "help" || kind === "seek") && lv >= 10)) return false;
   // (v547, ответ владельца 10.11: «T на пост-планте незачем искать дуэли — сидит, ждёт; дефузят — идёт сбивать») выйти на врага самому — не T
   // с поставленной бомбой (сбить дефуз — задача «бомба», уровень 11, сама)
   if(kind === "seek" && b.team === "T" && bomb && bomb.state === "planted") return false;

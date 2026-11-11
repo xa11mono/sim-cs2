@@ -64,7 +64,7 @@ function contactInfo(b){
     if(saving){ if(mateFight0(id) && hasLOS(b.x, b.y, e.x, e.y, b.z, e.z)) take(e.x, e.y, e.src === "spotted", id, e.z); continue; }
     if(trade || retakeHunt || myZ[zoneIdAt3(e.x, e.y, e.z)] || (mateFights(id) && (phase || calm()))) take(e.x, e.y, e.src === "spotted", id, e.z); }
   // (v469) бросок гранаты (слышно чеку / бросок) — не контакт (ответ про-аналитика: на гранату вдали не реагировать); её место знание получает
-  var hs = b.heardSound; if(hs && hs.team && hs.team !== b.team && hs.kind !== "nade" && tick - hs.tick <= CONTACT_AGE*TICK_HZ && !deadSrc(hs.src) && (hs.kind !== "call" || trade || myZ[zoneIdAt3(hs.x, hs.y, hs.z)])) take(hs.x, hs.y, false, hs.src, hs.z);
+  var hs = b.heardSound; if(hs && hs.team && hs.team !== b.team && hs.kind !== "nade" && tick - hs.tick <= CONTACT_AGE*TICK_HZ && !deadSrc(hs.src) && (hs.kind !== "call" || trade || myZ[zoneIdAt3(hs.x, hs.y, hs.z)])) take(hs.x, hs.y, hs.kind === "hit", hs.src, hs.z);   // (v560, В101: «по нему стреляли, не попали — не отреагировал») по нему стреляют — откуда, он знает (пули рядом): как увиденный — по прямой, без проверки сектора
   // (v448, док владельца 28.10 №4: у игрока 1 «якорь контакт холд, когда он далеко, не стрелялся и никого не видел») своя флешка —
   // контакт только если кинута себе под пик («флешу себе и выхожу»); раньше любая своя флешка (на сайт за 700 ед.) давала «держу свой контакт»
   var N = b._lastNade; if(!best && N && N.type === "flash" && N.self && tick - N.t >= NADE.flash.fuse - 8 && tick - N.t < NADE.flash.fuse + 40 && Math.hypot(N.x-b.x, N.y-b.y) < CONTACT_R) best = {x:N.x, y:N.y, own:true};
@@ -284,11 +284,16 @@ function ctDelayNade(b){
 // — кроме «ставит / дефузит / бомба» (contactCritical, уровень 11). Взгляд — туда, откуда прилетело (look поста).
 var HURT_R = 220, HURT_REACT = 32;   // px, тики (0,5 с — реакция) — проектные числа
 function hurtReactTick(b){
-  if(!b.alive || !b._hurtT || b._hurtDone === b._hurtT) return;
-  b._hurtDone = b._hurtT;
-  if(tick - b._hurtT > HURT_REACT || b._sawEnemy || b._fc || b._hurtSrc === "молотов") return;
-  var F = b._hurtFrom; if(!F || contactCritical(b)) return;
-  if(taskAlive(b) && b._task.lv >= 11) return;
+  // (v560, В101, разбор владельца 11.11: «по нему стреляли, не попали — никак не отреагировал») стреляли и промахнулись — он это знает (пули
+  // рядом: heardSound «hit» от стрелка, 490) — та же реакция, что на попадание: уйти из-под линии за укрытие
+  var hs = b.heardSound, shotT = hs && hs.kind === "hit" && hs.team && hs.team !== b.team ? hs.tick : 0;
+  var evT = Math.max(b._hurtT || 0, shotT); if(!b.alive || !evT || b._hurtDone === evT) return;
+  b._hurtDone = evT;
+  var miss = evT !== (b._hurtT || 0);
+  if(tick - evT > HURT_REACT || b._sawEnemy || b._fc || (!miss && b._hurtSrc === "молотов")) return;
+  var F = miss ? {x:hs.x, y:hs.y, z:hs.z} : b._hurtFrom; if(!F || contactCritical(b)) return;
+  // (v560, В101) задача бомбы (несёт ставить) больше не запрет сама по себе: терпит ли она шаг за укрытие — решает её правило отклонения
+  // (detourOk ниже, 110: ставит / дефузит / убегает от взрыва — нет; несёт на точку и время есть — да)
   var fz = F.z != null ? F.z : null;
   var cand = pickSpots("hurt"+Math.round(b.x/30)+","+Math.round(b.y/30)+"|"+Math.round(F.x/60)+","+Math.round(F.y/60), {x:b.x, y:b.y}, 6, {rMax:HURT_R, minGap:30, hideFrom:[F]})
     .filter(function(q){ var a = b.z == null ? null : navAtLevel(q.x, q.y, b.z); if(b.z != null && !a) return false;
@@ -301,7 +306,7 @@ function hurtReactTick(b){
   if(!setPost(b, sp, {x:F.x, y:F.y}, true, "repos:hurt")){ b._detour = null; return; }
   if(b.state === "hold") leaveHold(b);
   b._reposUntil = 0; b._probeLock = 0;
-  logEvent(b.id+": ранен ("+b._hurtSrc+") — ухожу из-под линии "+calloutName(F.x, F.y)+" за укрытие");
+  logEvent(b.id+": "+(miss ? "по мне стреляют" : "ранен ("+b._hurtSrc+")")+" — ухожу из-под линии "+calloutName(F.x, F.y)+" за укрытие");
 }
 function teamBrains(){
   if(roundState !== "live" || !teamTac.T) return;

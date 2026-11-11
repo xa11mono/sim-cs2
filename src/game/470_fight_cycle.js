@@ -272,7 +272,9 @@ function fightCycleTick(b, dtSec, busy){
     // патронов на врага мало — перезаряжается здесь, за укрытием (сам начинает: тактическая перезарядка ниже 35 % магазина могла не включиться —
     // отметка владельца 10.11: karrigan 10/12 ждал перезарядку 4 с и стоял), пока идёт — ждёт
     if(DO && !DO.ammoOk && !b._sawEnemy && !b._reloading && b.weapon && b.ammo < b.weapon.mag && (b.ammo <= 0 || !fightPush(b))){ b._reloading = true; b.reloadUntil = tick + Math.round(b.weapon.reload*TICK_HZ); if(BAL.soundMore) reloadHeard(b, b.weapon); }
-    if(DO && !DO.ammoOk && b._reloading){ F.until = Math.max(F.until, b.reloadUntil); fcWhy(b, "за укрытием: перезаряжаюсь"); return; }
+    // (v560, В85, разбор владельца 11.11: «пострелялся, остался на месте» — выглянул «добить раненого», когда шла перезарядка, и погиб)
+    // перезарядка идёт — ждёт за укрытием всегда (патронов «хватает» по счёту, а стрелять ими нельзя, пока не перезарядился)
+    if(b._reloading){ F.until = Math.max(F.until, b.reloadUntil); fcWhy(b, "за укрытием: перезаряжаюсь"); return; }
     if(!fin && !fightPush(b) && !(DO && DO.ok)){ b._fc = null; fcWhy(b, "конец: не выглядываю — " + (!DO ? "врага нет" : "проигрываю размен")); return; }   // не выглядывает снова — перестрелка закончена ((v518b) давить по задаче — выглядывает всегда)
     F.ph = "back"; F.mv = 0; F.nPeek = (F.nPeek || 0) + 1; F.sh = null; fcWhy(b, "выглядываю: " + (fin ? "добить раненого" : (DO && DO.ok) ? "размен мой" : "задача"));
     if(F.better){ F.ax = F.better.x; F.ay = F.better.y; F.better = null; }   // (М149) выглядывает с места, откуда видно врага целиком
