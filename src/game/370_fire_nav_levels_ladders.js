@@ -67,7 +67,7 @@ function navJumpLinked(a, z){
 function navLinked(a, b){ var E = zoneGraph[a.id] || []; for(var i=0;i<E.length;i++) if(E[i].to === b.id) return true; return false; }
 // (v550) фаза подъёма через стоянку: seg 1 — прыжок на промежуточный ящик, 0 — стоит на нём CLIMB_DWELL тиков (не больше трети времени), 2 —
 // прыжок наверх; без стоянки — один прыжок (seg 1). q — доля текущего прыжка. CLIMB_DWELL — порог стоянки сборщика из демок (PLATEAU_T, climbs_bake)
-var CLIMB_DWELL = 8;
+var CLIMB_DWELL = 0;   // (v551, владелец 11.11: «нет инерции») без остановки на промежуточном ящике — прыжки подряд, с ходу (v550 было 8)
 function climbPhase(C){
   var t = Math.min(C.dur, tick - C.t0);
   if(!C.mid) return {seg: 1, q: t/C.dur};
@@ -77,7 +77,7 @@ function climbPhase(C){
 // (v549, владелец 11.11, скрины у Van: «стоит спиной к машине — так же прыгает спиной») прыжок (подъём из демок, через щель) — лицом туда,
 // куда смотрят про при отталкивании (a — угол на карте из демок): смотрит мимо больше JUMP_FACE — стоит у края и разворачивается (взгляд —
 // jumpLook, 270), не дольше JUMP_FACE_WAIT, потом прыгает как есть. true — ещё разворачивается (обычный шаг не делается). Числа — проектные
-var JUMP_FACE = Math.PI/4, JUMP_FACE_WAIT = 32;
+var JUMP_FACE = Math.PI/4, JUMP_FACE_BACK = Math.PI/2, JUMP_FACE_WAIT = 32;   // JUMP_FACE_BACK — проектное число (v551)
 function jumpFaceWait(bot, a, to){
   // куда бот на самом деле прыгает (to — точка приземления этого прыжка): угол про — только если он не дальше JUMP_FACE от этого направления
   // (про отталкиваются из своей точки, бот — до LADDER_NEAR раньше), иначе — само направление прыжка
@@ -86,7 +86,9 @@ function jumpFaceWait(bot, a, to){
   if(bot.facing === undefined) return false;
   var off = Math.abs(((bot.facing - a + Math.PI*3) % (2*Math.PI)) - Math.PI), W = bot._jfw;
   if(!W || tick - W.last > 2) W = bot._jfw = {t0: tick, last: tick}; W.last = tick;
-  if(off <= JUMP_FACE || tick - W.t0 >= JUMP_FACE_WAIT){ bot._jfw = null; return false; }
+  // (v551, владелец 11.11: «нет инерции — встаёт в точку») стоит и разворачивается, только если смотрит назад (> JUMP_FACE_BACK); иначе прыгает
+  // с ходу, доворачивая взгляд в полёте (jumpLook — срочный поворот)
+  if(off <= JUMP_FACE_BACK || tick - W.t0 >= JUMP_FACE_WAIT){ bot._jfw = null; return false; }
   bot.curSpeed = 0; return true;
 }
 // (v359, владелец: «сделать систему лестниц, чтобы не было проблем с Palace») лестница — отдельный переход: концы лестницы —
@@ -95,11 +97,12 @@ function jumpFaceWait(bot, a, to){
 // время подъёма (LADDER_SPEED ед. игры/с — проектное число, в CS2 по лестнице ~ шагом), без проверок стен и пола, в конце —
 // участок другого конца и путь заново. Раньше этаж у лестницы угадывался по полу под ногами (оба этажа рядом) — бота
 // перекидывало между этажами и он «трясся»
-var CLIMB_FLOOR_TOL = 24, CLIMB_MID_R = 50, CLIMB_MAX_STEP = 76;   // (v549) было 68: про берут 72 (пол мида −260 → ящики под окном −188, ~170 раз без буста)   // CLIMB_MAX_STEP — ед. игры: прыжок с приседом в CS2 ~66 (как у JUMP_UP) + 2 на шаг сетки 3D (проектное)   // CLIMB_MID_R — px, поиск поверхности промежуточного ящика у точки из демок (v541, проектное число)   // ед. игры — проектное число (как допуск пола участка в проверке набора)
-var GAP_NEAR = 8;   // (v546) ед. карты: у точки отталкивания — прыгает (проектное число)
+var CLIMB_FLOOR_TOL = 24, CLIMB_MID_R = 50, CLIMB_MAX_STEP = 76, CLIMB_TRUST_N = 100;   // CLIMB_TRUST_N — проектное число (v551)   // (v549) было 68: про берут 72 (пол мида −260 → ящики под окном −188, ~170 раз без буста)   // CLIMB_MAX_STEP — ед. игры: прыжок с приседом в CS2 ~66 (как у JUMP_UP) + 2 на шаг сетки 3D (проектное)   // CLIMB_MID_R — px, поиск поверхности промежуточного ящика у точки из демок (v541, проектное число)   // ед. игры — проектное число (как допуск пола участка в проверке набора)
+var GAP_NEAR = 8, JUMP_NEAR_WAIT = 16;   // JUMP_NEAR_WAIT — тиков (0,25 с), проектное число (v551)   // (v546) ед. карты: у точки отталкивания — прыгает (проектное число)
 var LADDERS = null, LADDER_SPEED = 150, LADDER_NEAR = 40, LADDER_SEEK = 260, LADDER_FAR = 150;
+var CLIMB_BY_EDGE = {}, CLIMB_AT = {};   // (v551) подъём из демок по связи графа; по точке приземления в пути (navGapKey)
 function laddersBuild(){
-  LADDERS = [];
+  LADDERS = []; CLIMB_BY_EDGE = {}; CLIMB_AT = {};
   var byId = {}; NAVAREAS.forEach(function(a){ byId[a.id] = a; });
   var cen = function(a){ var x = 0, y = 0; a.points.forEach(function(p){ x += p.x; y += p.y; }); return {x: x/a.points.length, y: y/a.points.length}; };
   ((MAP.navmesh && MAP.navmesh.ladders) || []).forEach(function(l){
@@ -144,8 +147,15 @@ function laddersBuild(){
     if(M3){ var fLo = m3FloorAt(M3, lo.x, lo.y, lo.z + 18), fHi = m3Floors(M3, hi.x, hi.y).filter(function(z){ return Math.abs(z - hi.z) <= CLIMB_FLOOR_TOL; })[0];
       if(fLo == null || fHi == null) return;
       var steps = mid ? [mid.z - fLo, fHi - mid.z] : [fHi - fLo];
-      if(steps.some(function(d){ return d > CLIMB_MAX_STEP; })) return; }
-    LADDERS.push({lo:lo, hi:hi, up:true, sec:c.sec, mid:mid ? {x:mid.x, y:mid.y, z:mid.z} : null, Y: c.yaw0 != null ? {yaw0:c.yaw0, yaw1:c.yaw1, yawM:c.yawM != null ? c.yawM : null} : null});   // (v549) взгляд из демок — углы на карте
+      // (v551, владелец 11.11, Van → B Apps: «запрыгивает на бампер, чуть пробегает и прыгает на балкон») подъём, который в демках делают очень
+      // часто (≥ CLIMB_TRUST_N раз, бусты сборщик уже отсеял), не отбрасывается по 3D-шагу: 3D-сетка там врёт (бампер → балкон по ней 81–86, а про
+      // прыгают 774 / 622 раза). Отменяет для таких мест правило v542 (отметка владельца «залезает на край ящика» — те же участки)
+      if(steps.some(function(d){ return d > CLIMB_MAX_STEP; }) && !((c.n || 0) >= CLIMB_TRUST_N)) return; }
+    var Lc = {lo:lo, hi:hi, up:true, sec:c.sec, n:c.n || 0, mid:mid ? {x:mid.x, y:mid.y, z:mid.z} : null, Y: c.yaw0 != null ? {yaw0:c.yaw0, yaw1:c.yaw1, yawM:c.yawM != null ? c.yawM : null} : null};   // (v549) взгляд из демок — углы на карте
+    LADDERS.push(Lc);
+    // (v551, владелец 11.11, Van: «идёт к треугольнику и прыгает оттуда») подъём по связи графа «низ → верх» — тот, по которому путь построен
+    // (buildWaypointPath, 050): на связь — самый частый в демках
+    var ek = lo.area + ">" + hi.area; if(!CLIMB_BY_EDGE[ek] || CLIMB_BY_EDGE[ek].n < Lc.n) CLIMB_BY_EDGE[ek] = Lc;
   });
 }
 // лестница, по которой бот с этажа z попадает на этаж zTo: конец на своём этаже в пределах r
@@ -172,7 +182,9 @@ function ladderTick(bot){
     // видно ободок и тень (620)
     if(C.jump){ C.air = ph.seg === 0 ? 0 : q;
       if(C.mid && ph.seg !== 1 && !C.land1){ C.land1 = true; bot.baseX = bot.x = C.mid.x; bot.baseY = bot.y = C.mid.y; landSound(bot, false, "up"); } }
-    var e = C.jump ? q*q*(3 - 2*q) : q;
+    // (v551, владелец 11.11: «встаёт в точку и по крутой дуге — в другую, нет инерции») по горизонтали — с постоянной скоростью (инерция разбега),
+    // без разгона с места и торможения (v550 — smoothstep)
+    var e = q;
     bot.baseX = bot.x = A.x + (B.x - A.x)*e; bot.baseY = bot.y = A.y + (B.y - A.y)*e; bot.z = A.z + (B.z - A.z)*e;
     // (v548, владелец 10.11: «в воздухе он должен по дуге поворачивать к приземлению; стрейф в воздухе — от клавиши и от того, куда смотришь»)
     // прыжок через щель — дугой с прогибом из демок (G.bow — доля длины, + — влево): квадратичная кривая, середина отходит на bow·L
@@ -186,6 +198,17 @@ function ladderTick(bot){
   var wp = bot.path[bot.pathIdx];
   // (v546) прыжок через щель (NAV_GAPS, 050): следующая точка пути — точка приземления; у точки отталкивания (≤ GAP_NEAR) — прыжок
   // (время полёта — медиана из демок, приземление — со звуком); дальше — сначала к точке отталкивания
+  // (v551) путь идёт через подъём из демок (точки вставил buildWaypointPath): следующая точка — его верх — этот подъём, а не ближайший (ladderFor)
+  var CU = wp && CLIMB_AT[navGapKey(wp[0], wp[1])];
+  if(CU && Math.abs(wp[2] - CU.hi.z) < 1){
+    var dC = Math.hypot(CU.lo.x - bot.baseX, CU.lo.y - bot.baseY);
+    if(dC > GAP_NEAR){ var JWc = bot._jnw; if(!JWc || tick - JWc.last > 2) JWc = bot._jnw = {t0: tick, last: tick}; JWc.last = tick;
+      if(dC > LADDER_NEAR || tick - JWc.t0 < JUMP_NEAR_WAIT){ bot.path.splice(bot.pathIdx, 0, [CU.lo.x, CU.lo.y, CU.lo.z]); return false; } }
+    if(jumpFaceWait(bot, CU.Y ? CU.Y.yaw0*Math.PI/180 : null, CU.mid || CU.hi)) return true;
+    bot._climb = {t0: tick, dur: Math.max(8, Math.round((CU.sec || 0.5)*TICK_HZ)), from: {x: bot.baseX, y: bot.baseY, z: bot.z}, to: CU.hi, mid: CU.mid || null, jump: true, Y: CU.Y || null, a0: bot.facing};
+    bot.pathIdx++;
+    return ladderTick(bot);
+  }
   var G = wp && NAV_GAP_AT[navGapKey(wp[0], wp[1])];
   if(G && Math.abs(wp[2] - G.b.z) < 1){
     if(Math.hypot(G.a.x - bot.baseX, G.a.y - bot.baseY) > GAP_NEAR){ bot.path.splice(bot.pathIdx, 0, [G.a.x, G.a.y, G.a.z]); return false; }
@@ -206,6 +229,10 @@ function ladderTick(bot){
   var viaFar = Math.hypot(wp[0]-L.far.x, wp[1]-L.far.y) < LADDER_FAR || (atNear && nx && nx[2] != null && Math.abs(nx[2]-L.far.z) <= JUMP_UP && Math.hypot(nx[0]-L.far.x, nx[1]-L.far.y) < LADDER_FAR);
   if(!viaFar) return false;
   var d = Math.hypot(L.near.x - bot.baseX, L.near.y - bot.baseY);
+  // (v551, владелец 11.11: «идёт к треугольнику и прыгает оттуда — а должен дойти до машины и прыгнуть») подъём из демок (прыжок) — из самой точки
+  // отталкивания (≤ GAP_NEAR), а не за LADDER_NEAR (40 px) до неё; не подходит ближе (стоит рядом JUMP_NEAR_WAIT) — прыгает, как есть
+  if(L.jump && d > GAP_NEAR && d <= LADDER_NEAR){ var JW = bot._jnw; if(!JW || tick - JW.last > 2) JW = bot._jnw = {t0: tick, last: tick}; JW.last = tick;
+    if(tick - JW.t0 < JUMP_NEAR_WAIT){ if(!(Math.hypot(wp[0]-L.near.x, wp[1]-L.near.y) < 4)) bot.path.splice(bot.pathIdx, 0, [L.near.x, L.near.y, L.near.z]); return false; } }
   if(d > LADDER_NEAR){
     // до лестницы — по своему этажу: точка низа/верха лестницы вставляется в путь перед подъёмом (один раз)
     if(!(Math.hypot(wp[0]-L.near.x, wp[1]-L.near.y) < 4 && Math.abs(wp[2]-L.near.z) < 4)) bot.path.splice(bot.pathIdx, 0, [L.near.x, L.near.y, L.near.z]);

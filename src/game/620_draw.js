@@ -748,9 +748,9 @@ function draw(){
     var CLd = bot._climb, airH = CLd && CLd.jump ? 4*(CLd.air || 0)*(1 - (CLd.air || 0)) : 0;
     // (v550, владелец 11.11: «сделай всё плавно») тень и пунктирный ободок проявляются и гаснут вместе с высотой прыжка (airH), а не включаются
     // сразу; на остановке между двумя прыжками подъёма их нет
-    if(CLd && CLd.jump && airH > 0.01){ var sOff = (4 + 10*airH)/view.scale;
+    if(CLd && CLd.jump && airH > 0.01){ var sOff = (2 + 4*airH)/view.scale;   // (v551, владелец 11.11: «будто прыгает очень высоко») тень ближе
       ctx.beginPath(); ctx.ellipse(rx + sOff*0.4, ry + sOff, r*(1 - 0.2*airH), r*0.55, 0, 0, Math.PI*2); ctx.fillStyle = "rgba(0,0,0,"+(0.55*Math.min(1, airH*2)).toFixed(3)+")"; ctx.fill();   // тень на земле
-      r = r*(1 + 0.35*airH);   // (v548) заметнее: до +35 % (DESIGN.md, «Маркер игрока»)
+      r = r*(1 + 0.12*airH);   // (v551, владелец 11.11: «слишком сильно масштаб увеличивается») до +12 % (было +35 %; DESIGN.md, «Маркер игрока»)
       ctx.beginPath(); ctx.arc(rx, ry, r + 3.5/view.scale, 0, Math.PI*2); ctx.setLineDash([3/view.scale, 2.5/view.scale]);
       ctx.strokeStyle = "rgba(255,255,255,"+(0.85*Math.min(1, airH*2)).toFixed(3)+")"; ctx.lineWidth = 1.4/view.scale; ctx.stroke(); ctx.setLineDash([]); }   // пунктирный ободок — «в воздухе»   // (v535) под / над другим этажом — доля 0..1, плавно (floorViewTick, 370)
     // прыжок / спрыгнул — стрелка у игрока на 0,6 с

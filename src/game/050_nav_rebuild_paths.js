@@ -640,11 +640,15 @@ function buildWaypointPath0(fromX, fromY, fromZ, toX, toY, toZ, team, lane){
   var start0 = {x:fromX,y:fromY,z:fromZ||0}, end0 = {x:toX,y:toY,z:toZ||0}, cuts = [], gapFix = [];
   for(var ci=0;ci<corridor.length;ci++){ var cA = zonesById[cPair[ci][0]], cB = zonesById[cPair[ci][1]], ce = corridor[ci];
     if(ce.gap){ cuts.push(ci); gapFix.push(ce.gap.a, ce.gap.b); continue; }   // (v546) прыжок через щель: путь — через точку отталкивания и приземления
+    // (v551) подъём из демок по этой связи (CLIMB_BY_EDGE, 370) — то же: путь через его точку отталкивания и верх, прыгает ladderTick именно по нему
+    var CLc = NAV_CLIMB_UP[cPair[ci][0]+">"+cPair[ci][1]] && CLIMB_BY_EDGE[cPair[ci][0]+">"+cPair[ci][1]];
+    if(CLc){ cuts.push(ci); gapFix.push(CLc.lo, CLc.hi); CLIMB_AT[navGapKey(CLc.hi.x, CLc.hi.y)] = CLc; continue; }
     if(cA && cB && ce.mid && !navPlane(cA).flat && !navPlane(cB).flat && navStepDz(cA, cB, ce.mid.x, ce.mid.y) > 18) cuts.push(ci); }
   var path;
   if(!cuts.length) path = funnel(corridor, start0, end0);
   else { path = []; var sP = start0, prevC = 0;
     cuts.concat([corridor.length]).forEach(function(ci2){ var G = ci2 < corridor.length ? corridor[ci2].gap : null;
+      if(!G && ci2 < corridor.length){ var CLk = NAV_CLIMB_UP[cPair[ci2][0]+">"+cPair[ci2][1]] && CLIMB_BY_EDGE[cPair[ci2][0]+">"+cPair[ci2][1]]; if(CLk) G = {a: CLk.lo, b: CLk.hi}; }   // (v551) подъём — как щель
       var eP = G ? {x:G.a.x, y:G.a.y, z:G.a.z} : ci2 < corridor.length ? {x:corridor[ci2].mid.x, y:corridor[ci2].mid.y, z:corridor[ci2].z} : end0;
       var seg = funnel(corridor.slice(prevC, ci2), sP, eP); path = path.concat(path.length ? seg.slice(1) : seg); sP = eP; prevC = ci2 + 1;
       if(G){ path.push([G.b.x, G.b.y, G.b.z]); sP = {x:G.b.x, y:G.b.y, z:G.b.z}; } }); }
@@ -654,7 +658,7 @@ function buildWaypointPath0(fromX, fromY, fromZ, toX, toY, toZ, team, lane){
   // стену — вместо натянутого пути идём через середины порталов (зигзаг, но
   // каждая точка гарантированно на переходе между проходимыми полигонами).
   var bad = false;
-  var gapSeg = function(A, B){ var G = NAV_GAP_AT[navGapKey(B[0], B[1])]; return !!G && Math.abs(G.a.x - A[0]) < 0.5 && Math.abs(G.a.y - A[1]) < 0.5; };   // (v546) прыжок через щель — над пустотой, это не «плохой» отрезок
+  var gapSeg = function(A, B){ var k = navGapKey(B[0], B[1]), G = NAV_GAP_AT[k], CL = CLIMB_AT[k]; return (!!G && Math.abs(G.a.x - A[0]) < 0.5 && Math.abs(G.a.y - A[1]) < 0.5) || (!!CL && Math.abs(CL.lo.x - A[0]) < 0.5 && Math.abs(CL.lo.y - A[1]) < 0.5); };   // (v551) и подъём из демок   // (v546) прыжок через щель — над пустотой, это не «плохой» отрезок
   for(var k=0;k<path.length-1;k++){
     if(gapSeg(path[k], path[k+1])) continue;
     if(segCrossesManualWalls(path[k][0],path[k][1],path[k+1][0],path[k+1][1])){ bad = true; break; }
@@ -671,7 +675,7 @@ function buildWaypointPath0(fromX, fromY, fromZ, toX, toY, toZ, team, lane){
         if(other && !hit) bad = true; } } }
   if(bad){
     var mids = [];
-    corridor.forEach(function(e){ if(e.gap) mids.push([e.gap.a.x, e.gap.a.y, e.gap.a.z], [e.gap.b.x, e.gap.b.y, e.gap.b.z]); else mids.push([e.mid.x, e.mid.y, e.z]); });
+    corridor.forEach(function(e, ie){ var CLm = NAV_CLIMB_UP[cPair[ie][0]+">"+cPair[ie][1]] && CLIMB_BY_EDGE[cPair[ie][0]+">"+cPair[ie][1]]; if(CLm){ mids.push([CLm.lo.x, CLm.lo.y, CLm.lo.z], [CLm.hi.x, CLm.hi.y, CLm.hi.z]); return; } if(e.gap) mids.push([e.gap.a.x, e.gap.a.y, e.gap.a.z], [e.gap.b.x, e.gap.b.y, e.gap.b.z]); else mids.push([e.mid.x, e.mid.y, e.z]); });
     mids.push([toX, toY, toZ||0]);
     return mids;
   }

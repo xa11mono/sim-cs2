@@ -135,7 +135,12 @@ out = []
 for ci, H in sorted(hits.items()):
     if len(H) < MIN_N or len({h[0] for h in H}) < MIN_DEMOS: continue
     c = cand[ci]; a = np.array([h[1:6] for h in H])
-    rec = {'lo': {'area': c['lo']['id'], 'x': round(float(np.median(a[:, 0])), 1), 'y': round(float(np.median(a[:, 1])), 1), 'z': c['lo']['z']},
+    # (v551, владелец 11.11, Van: «запрыгивает на бампер, пробегает и прыгает на балкон») участок низа — тот, на котором игрок стоял при отталкивании
+    # (медиана точки и высота низа), а не участок пары-кандидата: у Van в данных был 2135 / 2112 в 30 px от бампера, игра тянула точку к ящику
+    lx, ly = float(np.median(a[:, 0])), float(np.median(a[:, 1]))
+    under_lo = [q for q in nav if abs(q['z'] - c['lo']['z']) <= DZ and any(point_in_area(q, lx + dx, ly + dy) for dx in (0, -6, 6) for dy in (0, -6, 6))]   # точка бывает на краю участка — ±6 px
+    lo_area = min(under_lo, key=lambda q: abs(q['z'] - c['lo']['z'])) if under_lo else c['lo']
+    rec = {'lo': {'area': lo_area['id'], 'x': round(lx, 1), 'y': round(ly, 1), 'z': lo_area['z']},
            'hi': {'area': c['hi']['id'], 'x': round(float(np.median(a[:, 2])), 1), 'y': round(float(np.median(a[:, 3])), 1), 'z': c['hi']['z']},
            'n': len(H), 'demos': len({h[0] for h in H}), 'sec': round(float(np.median(a[:, 4])), 2)}
     cang = lambda v: round(float(np.degrees(np.arctan2(np.median(np.sin(v)), np.median(np.cos(v))))), 1)

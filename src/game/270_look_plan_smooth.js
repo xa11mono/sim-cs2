@@ -269,6 +269,7 @@ function lookUrgent(b){
   // (v291, И32) лучший вариант оценки — свежая угроза: «плавность» не держит прежний спокойный угол (раньше держала 0,7 с —
   // игрок 6 после фрага смотрел на Mid, пока второй T выходил из T Lower)
   if(b.lookReason === "look" && b._lkPick && b._lkPick.fresh) return 2;
+  if(b.lookReason === "jump") return 2;   // (v551) разворот к прыжку — сразу (иначе «плавность» держала прежний угол, бот прыгал боком)
   if(b._sawEnemy || b._lookLvl >= LOOK_LEVEL.fight) return 2;   // (v381) уровень «бой» арбитра: контакт, спам, второй угол
   if(b._lookLvl >= LOOK_LEVEL.team) return 1;                   // (v381) свежий звук / смерть рядом / инфа команды ≤ 1 с
   if(b.planting || b.defusing) return 2;
@@ -505,8 +506,9 @@ function lookFilter(b, look, LD){
     else if(b.curSpeed > 60*SPD_K){ look = null; b.lookReason = null; if(LD) LD.steps.push("на линии свой, впереди открытого нет — по ходу движения"); } }
   // (п.5 владельца 29.10, м1 р2 т12072: по zont1x стреляли из B Short, арбитр выбрал «на звук», а этот фильтр повернул его на «открытое
   // рядом» — Stove, стрелок в 45–79° от взгляда) на звук / свой контакт — угол, из-за которого враг (cornerLook), даже если стена близко
-  if(look && !/^(enemy|pro|sound|contact)$/.test(b.lookReason || "")){ var lw0 = look; look = openLook(b, look); if(LD && look !== lw0) LD.steps.push("стена по взгляду — взял открытое направление рядом"); }
-  if(!b._sawEnemy && !/^(enemy|spam|cover|contact|sound)$/.test(b.lookReason || "")){   // (п.5) и на звук — угол врага, не «открытое»
+  // (v551) взгляд на прыжок («jump») — в препятствие, на которое прыгает (фургон, ящик): «стена по взгляду» его не подменяет открытым направлением
+  if(look && !/^(enemy|pro|sound|contact|jump)$/.test(b.lookReason || "")){ var lw0 = look; look = openLook(b, look); if(LD && look !== lw0) LD.steps.push("стена по взгляду — взял открытое направление рядом"); }
+  if(!b._sawEnemy && !/^(enemy|spam|cover|contact|sound|jump)$/.test(b.lookReason || "")){   // (п.5) и на звук — угол врага, не «открытое»
     var wla = look ? Math.atan2(look.y-b.y, look.x-b.x) : (!(b.curSpeed > 15*SPD_K) && b.facing !== undefined ? b.facing : null);
     if(wla !== null && flatWallAhead(b, wla, 80)){ var wal = openDirNear(b, wla); look = wal || null; if(wal) b.lookReason = (b.lookReason||"") + "+open"; if(LD) LD.steps.push(wal ? "стена в 80 px — повернул на открытое" : "стена в 80 px — открытого нет"); }
   }
