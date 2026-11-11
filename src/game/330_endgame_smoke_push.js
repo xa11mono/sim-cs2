@@ -24,6 +24,19 @@ function egWaitPartner(b, mine, kp){
   setPost(b, b._egWait.pt, {x:kp.x, y:kp.y}, true, "endhunt");
   return true;
 }
+// (v560, В93) точка обхода по зонам карты: зона в 1–2 шагах от зоны врага, с другой стороны от ведущего (угол к врагу > 100°), куда этот CT
+// дойдёт не дольше, чем 1,6 пути ведущего (проектные числа) — заходит оттуда, смотрит на врага. Нет — null
+function egCutPoint(b, lead, kp){
+  var kz = bzOf(kp.x, kp.y); if(kz < 0) return null;
+  var near = {}; near[kz] = 1; (BZ.nbr[kz] || []).forEach(function(j){ near[j] = 1; (BZ.nbr[j] || []).forEach(function(q){ near[q] = 1; }); });
+  var la = Math.atan2(lead.y-kp.y, lead.x-kp.x), lL = pathLenTo(lead, kp.x, kp.y), best = null;
+  Object.keys(near).forEach(function(js){ var j = +js, c = BZ.cent[j]; if(!c || j === kz) return;
+    var a = Math.abs(Math.atan2(Math.sin(Math.atan2(c.y-kp.y, c.x-kp.x) - la), Math.cos(Math.atan2(c.y-kp.y, c.x-kp.x) - la)));
+    if(a < 100*Math.PI/180) return;
+    var L = pathLenTo(b, c.x, c.y); if(L > 1.6*lL + 300) return;
+    if(!best || a - L/2000 > best.s) best = {s: a - L/2000, x: c.x, y: c.y}; });
+  return best ? walk({x: best.x, y: best.y}) : null;
+}
 var EG_BOMB_SITE_R = 700;   // (v555) проектное число: ед. — носитель, замеченный ближе к центру сайта, идёт ставить туда
 function endgameBrain(){
   // (v146) после планта охоты нет: у T — пост-плант, у CT — ретейк/сейв
@@ -119,10 +132,21 @@ function endgameBrain(){
         // (v297, И41, владелец 14.10: T4 шёл на пик в Cave, на 3,1 с инфы охоту отпустило — за тик развернуло на точку лёрка)
         // начать охоту — враг свежий (≤ 3 с, демки); продолжить начатую — пока инфе ≤ 6 с (окно сигнала выше). Отпустило, а до точки
         // пика < 100 px (проектное число) — доходит и смотрит туда же (≤ 1,5 с), а не разворачивается за тик
-        var hunting = b.post && b.post.tag === "endhunt";
+        var hunting = b.post && b.post.tag === "endhunt", BS = null;
         // (v519, А-10: «идут очень поздно — про него знали ещё до того, как он убил тиммейта») охотник (ближайший по пути, выбран выше) идёт по
         // знанию, и дальше 700 px по прямой — 700 px оставлено для остальных (2 на 2)
         if(bSite && b !== hunter && (kAge > (hunting ? 6 : 3)*TICK_HZ || d > 700)){   // (v555) сайт бомбы известен — туда, а не своя роль
+          // (v560, В93, разбор владельца 11.11: «никто не идёт окружать / обходить — все в одну зону») против двоих: ближайший по пути к ним —
+          // на них (охота ниже), второй — заходит с другой стороны (точка захода, как у фланга охотнику), остальные — на сайт бомбы
+          var BS = TT0._egBS && TT0._egBS.key === roundNum+":"+mine.length+":"+K.id ? TT0._egBS : (TT0._egBS = {key: roundNum+":"+mine.length+":"+K.id,
+            ord: mine.slice().sort(function(p, q){ return pathLenTo(p, kp.x, kp.y) - pathLenTo(q, kp.x, kp.y); }).map(function(m){ return m.id; }), fl: {}});
+          var bi = !hunter ? BS.ord.indexOf(b.id) : -1, lead = bi > 0 ? mine.filter(function(m){ return m.id === BS.ord[0]; })[0] : null;
+          if(bi === 0) kAge = 0;   // ведущий — на них, без предела свежести (как охотник)
+          else if(bi === 1 && lead){ if(BS.fl[b.id] === undefined) BS.fl[b.id] = flankSpot(b, lead, kp) || egCutPoint(b, lead, kp);
+            if(BS.fl[b.id] && setPost(b, BS.fl[b.id], {x:kp.x, y:kp.y}, true, "endhunt")){ if(!(b._egL && b._egL.round === roundNum && b._egL.k === "fl")){ b._egL = {round:roundNum, k:"fl"};
+              voiceLog(team, "egbf"+b.id+roundNum, b.id, "захожу на них с другой стороны"); } return; } }
+        }
+        if(bSite && b !== hunter && !(BS && BS.ord.indexOf(b.id) === 0) && (kAge > (hunting ? 6 : 3)*TICK_HZ || d > 700)){
           var gS = GEO[bSite], sp = (gS && gS.anchor) || SITES[bSite];
           if(setPost(b, sp, {x:kp.x, y:kp.y}, true, "endhunt") && !(b._egL && b._egL.round === roundNum && b._egL.k === bSite)){ b._egL = {round:roundNum, k:bSite};
             voiceLog(team, "egbs"+b.id+roundNum, b.id, "бомба на "+bSite+" — иду туда"); }

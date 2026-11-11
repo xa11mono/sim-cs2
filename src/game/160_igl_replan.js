@@ -196,7 +196,7 @@ function tSetSite(tt, site){
 // (v359, отметка владельца р4: «почему не занимают позиции под плант — Palace, Ramp…», лёрк zont1x стоял в Underpass) на время
 // после планта T встают на места про (набор карты pos.<сайт>.tPost — где про стоят после планта, по демкам), в пределах слышимости
 // дефуза; каждому — своё, ближайшее по пути. Раньше — любые укрытия в 300–620 ед. от бомбы, имена мест не учитывались
-var PP_SHIFT = 8, PP_SHIFT_R = 150;   // (v555) проектные: с между сменами места на постпланте (±30 %), ед. — насколько далеко
+var PP_SHIFT = 16, PP_SHIFT_R = 150;   // проектные: с между сменами места на постпланте (±30 %; v560 — 16, было 8: «часто меняется»), ед. — насколько далеко
 function ppTimeNamed(group, bp0, site, rMax){
   var P = POS[site] && POS[site].tPost; if(!P || !P.length) return false;
   // (v442, док владельца 27.10, р7: «их не слышно — отходим от бомбы», а встали на Firebox / A Trash у самой бомбы; замер: T ближе 150 к бомбе
@@ -213,7 +213,11 @@ function ppTimeNamed(group, bp0, site, rMax){
       A.on = !A.on; A.t = tick + Math.round(PP_SHIFT*TICK_HZ*(0.7 + 0.6*hashRand(tick*3 + b.id.charCodeAt(1))));
       if(A.on){ var E = threatEntrances("T", bp0, 350).slice(0, 4), cur = E.filter(function(e){ return hasLOS(P.x, P.y, e.pt.x, e.pt.y); });
         var other = E.filter(function(e){ return cur.indexOf(e) < 0; }).map(function(e){ return e.pt; });
-        A.alt = other.length ? pickSpots("ppalt"+b.id+roundNum+A.i, {x:P.x, y:P.y}, 3, {rMin:40, rMax:PP_SHIFT_R, minGap:30, see:other.slice(0, 1).concat([bp0])})[0] || null : null; }
+        // (v560, В87, разбор владельца 11.11: «точки в открытых зонах под несколько выходов, а не в глубоких закрытых») соседняя точка — видит бомбу
+        // и один другой вход, а от остальных входов спрятана (а не «видит ещё вход» любой ценой)
+        var hideE = E.map(function(e){ return e.pt; }).filter(function(q){ return !other.length || q !== other[0]; });
+        A.alt = other.length ? (pickSpots("ppalt"+b.id+roundNum+A.i, {x:P.x, y:P.y}, 4, {rMin:40, rMax:PP_SHIFT_R, minGap:30, see:[other[0], bp0], hideFrom:hideE})
+          .filter(function(q){ return hasLOS(q.x, q.y, bp0.x, bp0.y) && hideE.filter(function(h){ return hasLOS(q.x, q.y, h.x, h.y); }).length <= 1; })[0] || null) : null; }
     }
     return A.on && A.alt ? A.alt : P;
   };

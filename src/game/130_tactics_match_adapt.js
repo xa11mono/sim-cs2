@@ -197,13 +197,14 @@ function coachPlan(side){
 }
 var DEF_GROUP_R = 450;   // (v450) ед. карты: «район группы» для мест дефолта — проектное число (≈ зона и её соседи)
 var DEF_STAGE_SEC = 25;   // (v444) из демок Mirage — см. chooseTactic, need
-// (v557, В76) темп тактики: раш — быстро, дефолт (поздний выход) — поздно, остальное (выход, сплит, фейк, быстрый выход) — обычно
-function tacTempo(t){ return t.style === "rush" ? "fast" : (t.style === "default" ? "late" : "mid"); }
 // доли про по закупу T: трое T на сайте к 25 с / 25–50 с / позже или никогда (демки Ancient, 92 демки, tools/eco_play.py; PRO_PLAY §4;
 // Mirage — те же, пока не посчитаны на ПК). «Хаф» в демках не отделён от форса — его доли
 var TAC_TEMPO = {pistol:{fast:0.24, mid:0.36, late:0.40}, eco:{fast:0.06, mid:0.20, late:0.74}, force:{fast:0.14, mid:0.21, late:0.65},
                  half:{fast:0.14, mid:0.21, late:0.65}, full:{fast:0.08, mid:0.16, late:0.76}};
 var TAC_TEMPO_NAME = {fast:"быстро", mid:"обычно", late:"поздно"};
+var PLANT_MED = {pistol:42, eco:48, force:59, half:59, full:70};   // (v560) медиана планта T у про по закупу, с (демки Ancient, tools/eco_play.py)
+// темп раунда для показа — по запланированному выходу: раш / выход до 25 с — быстро, до 50 с — обычно, позже — поздно (как доли про)
+function tacTempoNow(tt){ if(!tt) return "mid"; if(tt.tac && tt.tac.style === "rush") return "fast"; var s = ((tt.execTick || roundStartTick) - roundStartTick)/TICK_HZ; return s <= 25 ? "fast" : (s <= 50 ? "mid" : "late"); }
 function chooseTactic(){
   var type = teamEco.T.roundType;
   // (v557, В76, владелец 11.11: «от закупа зависит тактика — эко почти всегда раш; надо, чтобы при любом закупе игралась разная тактика»)
@@ -256,14 +257,14 @@ function chooseTactic(){
     return w;
   });
   if(rd.stack) readTxt = "читаем CT: "+rd.stack+" — стак "+rd.n+" из "+rd.of+" раундов → уходим от "+rd.stack+" / фейк на "+rd.stack;
-  // (v557, В76) темп по закупу — доли про (TAC_TEMPO): вес каждой группы темпа (быстро / обычно / поздно) приводится к доле про для этого
-  // закупа, внутри группы — прежние веса (память матча, чтение CT, пауза). Было (v155): доля рашей задана по типу закупа (эко 25 %, фулл 0)
+  // (v560, В100/В107, разбор владельца 11.11: «многие тактики перестали играться», пистолетка проваливается) закуп задаёт долю раша
+  // (трое T на сайте к 25 с у про — TAC_TEMPO.fast) — раш против остального, по своей частоте тактик; остальное — прежние веса. Было (v557):
+  // три группы по стилю (раш / выход / дефолт) с долями «к 25 с / 25–50 с / позже» — «позже» у про — это и поздние выходы, а я отдал её
+  // только дефолтам: на Mirage один дефолт шёл в 33 % раундов, на Ancient дефолты — в 56 %. Как рано выходить — решает время выхода ниже
   if(BAL.proTempo){
-    // нормируется по своей частоте тактик (t.weight), а не по итоговым весам: сдвиги по знанию (темп IGL после двух проигрышей, план
-    // тренера, стак CT, память матча) остаются сверху
-    var TM = TAC_TEMPO[type] || TAC_TEMPO.full, gW = {fast:0, mid:0, late:0};
-    pool.forEach(function(t){ gW[tacTempo(t)] += t.weight || 1; });
-    pool.forEach(function(t, i){ var g = tacTempo(t); if(gW[g] > 0) weights[i] *= TM[g]/gW[g]; });
+    var TM = TAC_TEMPO[type] || TAC_TEMPO.full, gW = {fast:0, rest:0};
+    pool.forEach(function(t){ gW[t.style === "rush" ? "fast" : "rest"] += t.weight || 1; });
+    pool.forEach(function(t, i){ var g = t.style === "rush" ? "fast" : "rest", sh = g === "fast" ? TM.fast : 1 - TM.fast; if(gW[g] > 0) weights[i] *= sh/gW[g]; });
   }
   var tac = pool[weightedChoice(pool, weights, roundNum*7919 + matchNum*104729 + 17)];
   lastTacticId = tac.id; tacHist.push(tac.id);
@@ -292,6 +293,9 @@ function chooseTactic(){
     // раундах плант на 64,6-й с против 75,8-й у про, после 75-й с — 28 % против 51 %
     var QX = [0, 0.10, 0.25, 0.50, 0.75, 0.90, 1], QY = [21, 43, 54, 76, 95, 106, 115], pT = QY[QY.length-1];
     for(var qi = 1; qi < QX.length; qi++){ if(u <= QX[qi]){ pT = QY[qi-1] + (QY[qi]-QY[qi-1])*(u-QX[qi-1])/(QX[qi]-QX[qi-1]); break; } }
+    // (v560, В107: «эко ставят на 67 с, пистолетку проигрывают», у про медиана планта: пистолетка 42, эко 48, форс 59, фулл 70 с — демки Ancient,
+    // PRO_PLAY §4) распределение выше — фулл-бай; на другом закупе оно сдвигается в той же доле, что медиана планта про на этом закупе
+    pT *= (PLANT_MED[type] || PLANT_MED.full)/PLANT_MED.full;
     setupSec = Math.round(Math.max(tac.setupEnd*0.6, Math.min(ROUND_TIME_SEC - 26, pT - 12)));
     tmode = setupSec < tac.setupEnd - 6 ? ", быстрый" : (setupSec > tac.setupEnd + 8 ? ", поздний" : "");
     // длинный сетап: сначала дефолт (контроль карты), свою расстановку тактика

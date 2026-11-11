@@ -194,7 +194,7 @@ function renderEcon(){
     h += '<div class="ec-i '+tl+' sub">цель: '+GOAL_NAME[roundGoal(team)]+'</div>';   // (v559, В76 ч.2) цель раунда команды
     if(team === "T" && teamTac.T){ var PH = {setup:"сетап", execute:"выход", postplant:"пост-плант"}; var RC = (teamTac.T.recalls || []).map(function(r){ return ' → <b>перекол '+r.from+' → '+r.to+'</b> ('+r.sec+' с)'; }).join('');   // (v450) переколы раунда
       // (v557, В76, владелец: «чтобы в панели экономики писалось, какая сейчас тактика») темп тактики и доля такого темпа у про на этом закупе
-      var TG = tacTempo(teamTac.T.tac), TMp = TAC_TEMPO[te.roundType] || TAC_TEMPO.full;
+      var TG = tacTempoNow(teamTac.T), TMp = TAC_TEMPO[te.roundType] || TAC_TEMPO.full;
       h += '<div class="ec-i t">тактика «'+teamTac.T.tac.name+'» · '+TAC_TEMPO_NAME[TG]+' · <b>'+PH[teamTac.T.phase]+'</b>'+RC+'</div>';
       h += '<div class="ec-i t sub">'+ROUND_TYPE_LABEL[te.roundType]+': у про '+["fast","mid","late"].map(function(g){ return TAC_TEMPO_NAME[g]+' '+Math.round(100*TMp[g])+' %'; }).join(' / ')+'</div>';
       if(teamTac.T.read) h += '<div class="ec-i t sub">IGL: '+teamTac.T.read+'</div>'; }

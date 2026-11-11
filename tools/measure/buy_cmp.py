@@ -6,7 +6,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 STY = {}
 for m in ('mirage', 'ancient'):
     for t in json.load(open(os.path.join(HERE, '..', '..', 'data', 'maps', m, 'tactics.json'), encoding='utf-8'))['tTactics']: STY[t['id']] = t['style']
-def tempo(t):   # как tacTempo в игре (130): раш — быстро, дефолт — поздно, остальное — обычно
+def tempo(t):   # по стилю тактики: раш — быстро, дефолт — поздно, остальное — обычно (не время выхода)
     s = STY.get(t or '', '')
     return 'быстро' if s == 'rush' else ('поздно' if s == 'default' else 'обычно')
 root = sys.argv[1]
