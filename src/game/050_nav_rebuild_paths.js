@@ -90,8 +90,13 @@ function rebuildNav(){
   // геометрией: участок .nav, под которым в геометрии нет пола на его высоте (± NAV_FLOOR_TOL) ни в центре, ни в четырёх точках
   // между центром и краями, — верх стены / перил шириной в несколько единиц (генератор навмеша игры ставит участки и туда), не место,
   // где ходят: выкидывается из графа. Mirage — 24 участка из 2544
+  // (v549, владелец 11.11: «прыжки в окно и из окна к Ladder — они должны быть в демках») участок, на котором по демкам стоят игроки (конец
+  // подъёма или прыжка через щель из демок, climbs.json), не выкидывается, даже если в 3D-геометрии там нет пола: Mirage, ящик −92 у Window —
+  // в геометрии его нет, а про прыгают на него и с него (33–91 раз)
+  var demoFloor = {}; if(MAP.climbs){ (MAP.climbs.climbs || []).forEach(function(c){ demoFloor[c.lo.area] = demoFloor[c.hi.area] = 1; if(c.mid && c.mid.area != null) demoFloor[c.mid.area] = 1; });
+    (MAP.climbs.gaps || []).forEach(function(g){ demoFloor[g.a.area] = demoFloor[g.b.area] = 1; }); }
   if(MAP3D){ var M3b = m3();
-    NAVAREAS.forEach(function(z){ var xs = z.points.map(function(p){ return p.x; }), ys = z.points.map(function(p){ return p.y; });
+    NAVAREAS.forEach(function(z){ if(demoFloor[z.id]) return; var xs = z.points.map(function(p){ return p.x; }), ys = z.points.map(function(p){ return p.y; });
       var x0 = Math.min.apply(null, xs), x1 = Math.max.apply(null, xs), y0 = Math.min.apply(null, ys), y1 = Math.max.apply(null, ys), cx = (x0+x1)/2, cy = (y0+y1)/2;
       var has = [[0,0],[0.3,0],[-0.3,0],[0,0.3],[0,-0.3]].some(function(o){ return m3Floors(M3b, cx + o[0]*(x1-x0), cy + o[1]*(y1-y0)).some(function(fz){ return Math.abs(fz - z.z) <= NAV_FLOOR_TOL; }); });
       if(!has){ NAV_BLOCKED[z.id] = true; navBlockedCount++; return; }
@@ -291,7 +296,7 @@ function navCutTall(){ navTallDone = true; navTallCut = 0;
 // точку отталкивания и точку приземления, сам прыжок — ladderTick (370), как подъём из демок. Между точками по 3D-геометрии должен быть
 // воздух: над сплошным полом (меньше GAP_AIR_MIN отсчётов из 9 без пола на высоте прыжка) это дыра навмеша, а не щель — связи нет.
 // GAP_AIR_MIN — проектное число
-var NAV_GAPS = [], NAV_GAP_AT = {}, GAP_AIR_MIN = 3;
+var NAV_GAPS = [], NAV_GAP_AT = {}, GAP_AIR_MIN = 3, GAP_WALK_N = 3;   // GAP_WALK_N — сколько прыжков с шага в демках, чтобы считать «можно на шифте» (проектное)
 function navGapKey(x, y){ return Math.round(x*2) + "," + Math.round(y*2); }
 function navGapsAdd(){
   NAV_GAPS = []; NAV_GAP_AT = {};
@@ -305,7 +310,8 @@ function navGapsAdd(){
         if(!m3Floors(M, pa.x + (pb.x - pa.x)*t, pa.y + (pb.y - pa.y)*t).some(function(f){ return Math.abs(f - z) <= NAV_FLOOR_TOL; })) air++; }
       if(air < GAP_AIR_MIN) return; }
     // (v548) как летят про (gaps_bake): угол взгляда при отталкивании / приземлении к направлению прыжка (yaw0 / yaw1, °) и прогиб дуги (bow)
-    var G = {a: {x: pa.x, y: pa.y, z: za, area: A.id}, b: {x: pb.x, y: pb.y, z: zb, area: B.id}, sec: g.sec, yaw0: g.yaw0 || 0, yaw1: g.yaw1 || 0, bow: g.bow || 0};
+    var G = {a: {x: pa.x, y: pa.y, z: za, area: A.id}, b: {x: pb.x, y: pb.y, z: zb, area: B.id}, sec: g.sec, yaw0: g.yaw0 || 0, yaw1: g.yaw1 || 0, bow: g.bow || 0,
+      walkOk: (g.walk || 0)*(g.n || 0) >= GAP_WALK_N};   // (v549) углы — на карте; walkOk — про прыгают здесь и с шага (на шифте — тихо)
     zoneGraph[A.id] = (zoneGraph[A.id] || []).filter(function(e){ return e.to !== B.id; });
     zoneGraph[A.id].push({to: B.id, mid: {x: pa.x, y: pa.y}, z: B.z, left: {x: pa.x, y: pa.y}, right: {x: pa.x, y: pa.y}, gap: G});
     NAV_GAPS.push(G); NAV_GAP_AT[navGapKey(pb.x, pb.y)] = G; });
@@ -324,7 +330,7 @@ function navJumpCost(a, edge){
 function navJumpCost0(a, edge, q){
   var b = zonesById[edge.to]; if(!a || !b || !edge.mid) return 0;
   var tJ = LAND_DELAY*SPEED;
-  if(edge.gap) return tJ + (q ? NAV_JUMP_COST : 0);
+  if(edge.gap) return tJ + (q && !edge.gap.walkOk ? NAV_JUMP_COST : 0);   // (v549) на шифте тихо — только время
   if(NAV_LAD[a.id+">"+edge.to]) return Math.abs(b.z - a.z)/LADDER_SPEED*SPEED/(q ? WALK_SPEED_FRAC : 1);   // лестница
   var dz = navEdgeDz(a, edge);
   if(dz > 18) return tJ;

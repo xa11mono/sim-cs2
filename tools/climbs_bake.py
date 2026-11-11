@@ -17,6 +17,7 @@ NEAR = 70             # px радара от места стыка
 DZ = 25               # допуск высоты, ед. игры
 MIN_N, MIN_DEMOS = 20, 10   # (v375, владелец: «забираются наверх укрытий, где нельзя», зацикливание на ящиках) — только частые подъёмы; редкие — бусты и случайные прыжки
 STEP = 40             # px радара: подъём почти вертикальный — от последней точки внизу до первой наверху не дальше (проектное)
+WALK_SPD = 150        # (v549) ед. игры/с: перед прыжком не быстрее — шаг (шифт ~130, бег 215–250) — проектное число
 DETOUR = 3.0          # подъём нужен, только если навмеш ведёт наверх в обход: путь > DETOUR × напрямую и > +150 px
 # (v379, владелец: «на ящик в миде не запрыгнуть» — 106 из 159 подъёмов Mirage вели на верх ящиков, куда один не залезет) в демках
 # наверх попадают и бустом (стоит на голове у своего) — это не подъём для одного. Не считаются:
@@ -79,16 +80,16 @@ for demo in demo_names():
     def max_step(j, i0, k, lo_z, hi_z):   # самый высокий шаг подъёма: с промежуточной стоянкой — два шага
         # (v533, владелец 10.11: «залезают на уступ 122 ед. напрямую, а должны через соседний ящик») запоминаем и саму стоянку (x, y, z):
         # раньше подъём ящик через ящик сохранялся только началом и концом — игра лезла по прямой мимо промежуточного ящика
-        w = j[(T[j] >= T[i0]) & (T[j] <= T[k])]; zs, ts = Z[w], T[w]; best = hi_z - lo_z; mid = None
+        w = j[(T[j] >= T[i0]) & (T[j] <= T[k])]; zs, ts = Z[w], T[w]; best = hi_z - lo_z; mid = None; pl = None
         r0 = 0
         for r in range(1, len(w) + 1):
             if r == len(w) or abs(zs[r] - zs[r0]) > 2:
                 zp = float(np.mean(zs[r0:r]))
                 if ts[r - 1] - ts[r0] >= PLATEAU_T and lo_z + 20 < zp < hi_z - 20:
                     st = max(zp - lo_z, hi_z - zp)
-                    if st < best: best = st; mid = (float(np.mean(X[w][r0:r])), float(np.mean(Y[w][r0:r])), zp)
+                    if st < best: best = st; mid = (float(np.mean(X[w][r0:r])), float(np.mean(Y[w][r0:r])), zp); pl = (w[r0], w[r - 1])
                 r0 = r
-        return best, mid
+        return best, mid, (pl if mid else None)
     for ci, c in enumerate(cand):
         m = (np.abs(X - c['x']) < NEAR) & (np.abs(Y - c['y']) < NEAR)
         if not m.any(): continue
@@ -101,12 +102,26 @@ for demo in demo_names():
                 if abs(Z[k] - lo_z) < DZ: last_lo = k
                 elif abs(Z[k] - hi_z) < DZ and last_lo is not None and T[k] - T[last_lo] <= CLIMB_SEC * 64 and T[k] > cool and \
                         ((X[k] - X[last_lo]) ** 2 + (Y[k] - Y[last_lo]) ** 2) ** 0.5 <= STEP:
-                    ms, mid = max_step(j, last_lo, k, lo_z, hi_z)
+                    ms, mid, pl = max_step(j, last_lo, k, lo_z, hi_z)
                     kind = 'boost' if boosted(k) else ('tall' if ms > STEP_MAX else 'ok')
                     rej[ci][kind] += 1
-                    # (v548) угол взгляда при отталкивании и приземлении к направлению подъёма (низ → верх; на карте угол = −yaw)
-                    th = np.arctan2(Y[k] - Y[last_lo], X[k] - X[last_lo]); wr = lambda a: (a + np.pi) % (2*np.pi) - np.pi
-                    yw = (float(wr(np.radians(-YW[last_lo]) - th)), float(wr(np.radians(-YW[k]) - th)))
+                    # (v549, владелец 11.11: «прыгает и не поворачивает, и нет дуги») как прыгают про — на карте (угол = −yaw): взгляд при
+                    # отталкивании, на промежуточной стоянке (уход с неё) и при приземлении; прогиб каждого прыжка (доля длины, + — влево);
+                    # скорость перед отталкиванием (ед. игры/с, за 0,25 с) — на шифте ли прыгают. Было (v548): угол к направлению «низ → верх» —
+                    # у подъёма низ и верх почти друг над другом (7–26 px), направление случайное
+                    jj = j[(T[j] >= T[last_lo]) & (T[j] <= T[k])]
+                    def bow_of(a, b):
+                        q = jj[(T[jj] >= T[a]) & (T[jj] <= T[b])]
+                        if len(q) < 3: return 0.0
+                        dx, dy = X[b] - X[a], Y[b] - Y[a]; L = max(1e-6, np.hypot(dx, dy))
+                        if L < 4: return 0.0
+                        off = (dx*(Y[q] - Y[a]) - dy*(X[q] - X[a]))/(L*L)
+                        return float(off[np.argmax(np.abs(off))])
+                    if pl: bw = (bow_of(last_lo, pl[0]), bow_of(pl[1], k)); aM = float(np.radians(-YW[pl[1]]))
+                    else: bw = (0.0, bow_of(last_lo, k)); aM = None
+                    pre = j[(T[j] >= T[last_lo] - 16) & (T[j] <= T[last_lo])]
+                    spd = (np.hypot(X[pre[-1]] - X[pre[0]], Y[pre[-1]] - Y[pre[0]])*2.5/max(1e-6, (T[pre[-1]] - T[pre[0]])/64)) if len(pre) > 1 and T[pre[-1]] > T[pre[0]] else 250.0
+                    yw = (float(np.radians(-YW[last_lo])), aM, float(np.radians(-YW[k])), bw[0], bw[1], float(spd))
                     if kind == 'ok': hits[ci].append((demo, float(X[last_lo]), float(Y[last_lo]), float(X[k]), float(Y[k]), (T[k] - T[last_lo]) / 64, mid, yw))
                     cool = T[k] + 5 * 64; last_lo = None
     del t
@@ -123,8 +138,13 @@ for ci, H in sorted(hits.items()):
     rec = {'lo': {'area': c['lo']['id'], 'x': round(float(np.median(a[:, 0])), 1), 'y': round(float(np.median(a[:, 1])), 1), 'z': c['lo']['z']},
            'hi': {'area': c['hi']['id'], 'x': round(float(np.median(a[:, 2])), 1), 'y': round(float(np.median(a[:, 3])), 1), 'z': c['hi']['z']},
            'n': len(H), 'demos': len({h[0] for h in H}), 'sec': round(float(np.median(a[:, 4])), 2)}
-    YW2 = np.array([h[7] for h in H]); cang = lambda v: round(float(np.degrees(np.arctan2(np.median(np.sin(v)), np.median(np.cos(v))))), 1)
-    rec['yaw0'], rec['yaw1'] = cang(YW2[:, 0]), cang(YW2[:, 1])   # (v548) взгляд при отталкивании / приземлении к направлению подъёма
+    cang = lambda v: round(float(np.degrees(np.arctan2(np.median(np.sin(v)), np.median(np.cos(v))))), 1)
+    YW2 = [h[7] for h in H]
+    rec['yaw0'], rec['yaw1'] = cang(np.array([y[0] for y in YW2])), cang(np.array([y[2] for y in YW2]))   # (v549) взгляд на карте (°)
+    yM = [y[1] for y in YW2 if y[1] is not None]
+    if yM: rec['yawM'] = cang(np.array(yM))
+    rec['bow1'], rec['bow2'] = round(float(np.median([y[3] for y in YW2])), 3), round(float(np.median([y[4] for y in YW2])), 3)
+    rec['walk'] = round(float(np.mean([y[5] <= WALK_SPD for y in YW2])), 2)   # доля прыжков с шага (на шифте)
     # (v533) подъём выше одного прыжка (> STEP_MAX) — только через промежуточную стоянку: её место (медиана) и участок навмеша под ней
     # (ближайший по высоте среди тех, что накрывают точку). участка навмеша под стоянкой может не быть — тогда точка без участка
     if c['hi']['z'] - c['lo']['z'] > STEP_MAX:
@@ -137,7 +157,7 @@ for ci, H in sorted(hits.items()):
         ma = min(under, key=lambda q: abs(q['z'] - mz)) if under else None
         rec['mid'] = {'area': ma['id'] if ma else None, 'x': round(mx, 1), 'y': round(my, 1), 'z': round(ma['z'] if ma else mz, 1)}
     out.append(rec)
-    print('  подъём %d → %d (перепад %d): %d раз в %d демках, медиана %.2f с; взгляд %+.0f° → %+.0f°' % (c['lo']['id'], c['hi']['id'], c['hi']['z'] - c['lo']['z'], len(H), out[-1]['demos'], out[-1]['sec'], rec['yaw0'], rec['yaw1']))
+    print('  подъём %d → %d (перепад %d): %d раз в %d демках, медиана %.2f с; взгляд %+.0f° → %+.0f°, дуги %+.2f / %+.2f, с шага %.0f%%' % (c['lo']['id'], c['hi']['id'], c['hi']['z'] - c['lo']['z'], len(H), out[-1]['demos'], out[-1]['sec'], rec['yaw0'], rec['yaw1'], rec['bow1'], rec['bow2'], 100*rec['walk']))
 # (v375) цепочки (верх одного подъёма — низ другого: ящик на ящике) — бот на них зацикливался (лез, падал); оставляем одиночные
 los = {c['lo']['area'] for c in out}
 out = [c for c in out if c['hi']['area'] not in los]

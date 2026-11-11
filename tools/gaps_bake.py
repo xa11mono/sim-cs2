@@ -12,12 +12,14 @@ HERE = os.path.dirname(os.path.abspath(__file__)); sys.path.insert(0, HERE)
 from demos import MAPNAME, demo_names, ticks_of  # noqa: E402
 import mapdir  # noqa: E402
 
-JUMP_UP = 64          # ед. игры, как JUMP_UP в игре и в climbs_bake.py
+JUMP_UP = 76          # (v549) ед. игры: перепад, который про берут прыжком (демки Mirage: пол мида −260 → ящики под окном −188 — 72, ~170 раз без буста)
+                      # + допуск 3D-сетки; было 64. Как CLIMB_MAX_STEP в игре (370)
 DZ = 25               # допуск высоты пола участка, ед. игры (как в climbs_bake.py)
 GAP_SEC = 1.0         # проектное число: прыжок через щель — меньше секунды в воздухе
 SAMPLE = 4            # тиков между отсчётами (16 в секунду)
 MIN_N, MIN_DEMOS = 20, 10   # как у подъёмов: только частые прыжки (редкие — случайные)
 DETOUR = 3.0          # прыжок нужен, только если навмеш ведёт туда в обход (как у подъёмов)
+WALK_SPD = 150        # (v549) ед. игры/с перед прыжком — шаг (шифт ~130, бег 215–250), как в climbs_bake.py — проектное число
 CELL = 2              # px карты — клетка растра участков
 
 nav = json.load(open(mapdir.path(MAPNAME, 'navmesh.json'), encoding='utf-8'))['areas']
@@ -82,11 +84,13 @@ for demo in demo_names():
                     # (v548) как летел: угол взгляда при отталкивании и приземлении относительно направления прыжка (на карте ось Y
                     # перевёрнута — угол на карте = −yaw), прогиб траектории в воздухе (доля длины прыжка, + — влево от направления)
                     th = np.arctan2(Y[k] - Y[pk], X[k] - X[pk]); L = max(1e-6, np.hypot(X[k] - X[pk], Y[k] - Y[pk]))
-                    wrap = lambda a: (a + np.pi) % (2*np.pi) - np.pi
-                    r0, r1 = wrap(np.radians(-YW[pk]) - th), wrap(np.radians(-YW[k]) - th)
+                    # (v549) углы взгляда — на карте (а не к направлению прыжка), скорость перед отталкиванием (на шифте ли прыгают)
+                    r0, r1 = float(np.radians(-YW[pk])), float(np.radians(-YW[k]))
                     off = ((X[pk:k+1] - X[pk])*np.sin(th) - (Y[pk:k+1] - Y[pk])*np.cos(th))/L * -1
                     bow = float(off[np.argmax(np.abs(off))]) if len(off) else 0.0
-                    hits[(int(pa), int(a))].append((demo, float(X[pk]), float(Y[pk]), float(X[k]), float(Y[k]), (T[k] - T[pk]) / 64, float(r0), float(r1), bow))
+                    q0 = w[(T[w] >= T[pk] - 16) & (T[w] <= T[pk])]
+                    spd = float(np.hypot(X[q0[-1]] - X[q0[0]], Y[q0[-1]] - Y[q0[0]])*2.5/max(1e-6, (T[q0[-1]] - T[q0[0]])/64)) if len(q0) > 1 and T[q0[-1]] > T[q0[0]] else 250.0
+                    hits[(int(pa), int(a))].append((demo, float(X[pk]), float(Y[pk]), float(X[k]), float(Y[k]), (T[k] - T[pk]) / 64, r0, r1, bow, spd))
             last = k
     del t
 
@@ -95,13 +99,14 @@ for (pa, a), H in sorted(hits.items()):
     if len(H) < MIN_N or len({h[0] for h in H}) < MIN_DEMOS: continue
     st = ((cen[pa][0] - cen[a][0]) ** 2 + (cen[pa][1] - cen[a][1]) ** 2) ** 0.5; cap = max(DETOUR * st, st + 150)
     if nav_len(pa, a, cap + 1) <= cap: continue
-    M = np.array([h[1:9] for h in H])
+    M = np.array([h[1:10] for h in H])
     cang = lambda v: float(np.degrees(np.arctan2(np.median(np.sin(v)), np.median(np.cos(v)))))   # медиана угла (по кругу)
     out.append({'a': {'area': pa, 'x': round(float(np.median(M[:, 0])), 1), 'y': round(float(np.median(M[:, 1])), 1), 'z': by[pa]['z']},
                 'b': {'area': a, 'x': round(float(np.median(M[:, 2])), 1), 'y': round(float(np.median(M[:, 3])), 1), 'z': by[a]['z']},
                 'n': len(H), 'demos': len({h[0] for h in H}), 'sec': round(float(np.median(M[:, 4])), 2),
-                'yaw0': round(cang(M[:, 5]), 1), 'yaw1': round(cang(M[:, 6]), 1), 'bow': round(float(np.median(M[:, 7])), 3)})
-    print('  прыжок %d → %d (перепад %+d): %d раз в %d демках, медиана %.2f с; взгляд %+.0f° → %+.0f°, прогиб %+.3f' % (pa, a, by[a]['z'] - by[pa]['z'], len(H), out[-1]['demos'], out[-1]['sec'], out[-1]['yaw0'], out[-1]['yaw1'], out[-1]['bow']))
+                'yaw0': round(cang(M[:, 5]), 1), 'yaw1': round(cang(M[:, 6]), 1), 'bow': round(float(np.median(M[:, 7])), 3),
+                'walk': round(float(np.mean(M[:, 8] <= WALK_SPD)), 2)})   # (v549) углы — на карте (°); walk — доля прыжков с шага
+    print('  прыжок %d → %d (перепад %+d): %d раз в %d демках, медиана %.2f с; взгляд %+.0f° → %+.0f°, прогиб %+.3f, с шага %.0f%%' % (pa, a, by[a]['z'] - by[pa]['z'], len(H), out[-1]['demos'], out[-1]['sec'], out[-1]['yaw0'], out[-1]['yaw1'], out[-1]['bow'], 100*out[-1]['walk']))
 f = mapdir.path(MAPNAME, 'climbs.json'); C = json.load(open(f, encoding='utf-8')); C['gaps'] = out
 json.dump(C, open(f, 'w', encoding='utf-8'), separators=(',', ':'))
 print('climbs.json: %d прыжков через щель' % len(out))

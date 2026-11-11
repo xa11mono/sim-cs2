@@ -481,17 +481,21 @@ function lookArbiter(b){
 // Про к отталкиванию уже смотрят почти по прыжку (фургон → B Apps: +5° → +11°). JUMP_TURN_R — проектное число
 var JUMP_TURN_R = 40;
 function jumpLook(b){
-  var C = b._climb, G = null, q = 0;
-  // подъём из демок (на ящик, с фургона на B Apps): углы — к направлению «низ → верх» (climbs_bake), от начала подъёма до приземления
-  if(C && C.jump && !C.G && C.Y){ q = Math.min(1, (tick - C.t0)/C.dur); var thc = Math.atan2(C.to.y - C.from.y, C.to.x - C.from.x), ac = thc + (C.Y.yaw0 + (C.Y.yaw1 - C.Y.yaw0)*q)*Math.PI/180;
-    return {lvl: LOOK_LEVEL.jump, kind: "jump", pt: {x: b.x + Math.cos(ac)*200, y: b.y + Math.sin(ac)*200}, sc: 1}; }
-  if(C && C.G){ G = C.G; q = Math.min(1, (tick - C.t0)/C.dur); }
-  else if(b.path && b.pathIdx < b.path.length){
-    for(var i = b.pathIdx; i < Math.min(b.path.length, b.pathIdx + 2); i++){ var g = NAV_GAP_AT[navGapKey(b.path[i][0], b.path[i][1])]; if(g){ G = g; break; } }
-    if(!G || Math.hypot(G.a.x - b.x, G.a.y - b.y) > JUMP_TURN_R) return null;
-  } else return null;
-  var th = Math.atan2(G.b.y - G.a.y, G.b.x - G.a.x), a = th + (G.yaw0 + (G.yaw1 - G.yaw0)*q)*Math.PI/180;
-  return {lvl: LOOK_LEVEL.jump, kind: "jump", pt: {x: b.x + Math.cos(a)*200, y: b.y + Math.sin(a)*200}, sc: 1};
+  // (v549, владелец 11.11: «прыгает и не поворачивает») углы — на карте, из демок (climbs_bake / gaps_bake): при отталкивании (yaw0), на
+  // промежуточной стоянке (yawM), при приземлении (yaw1); между ними — плавно, кратчайшим поворотом. Было (v548): угол к направлению «низ → верх» —
+  // у подъёма оно случайное (низ и верх почти друг над другом)
+  var R = Math.PI/180, lerp = function(a, c, q){ var d = ((c - a + Math.PI*3) % (2*Math.PI)) - Math.PI; return a + d*q; };
+  var cand = function(a){ return {lvl: LOOK_LEVEL.jump, kind: "jump", pt: {x: b.x + Math.cos(a)*200, y: b.y + Math.sin(a)*200}, sc: 1}; };
+  var C = b._climb, Y = C && C.jump ? (C.G || C.Y) : null;
+  // в полёте — от угла, с которым оттолкнулся сам бот (C.a0; отталкивается он не из той же точки, что про), к углу приземления про
+  if(Y){ var q = Math.min(1, (tick - C.t0)/C.dur), a0 = C.a0 != null ? C.a0 : Y.yaw0*R;
+    if(Y.yawM != null && C.mid) return cand(q < 0.5 ? lerp(a0, Y.yawM*R, q*2) : lerp(Y.yawM*R, Y.yaw1*R, (q - 0.5)*2));
+    return cand(lerp(a0, Y.yaw1*R, q)); }
+  var P = b._jumpPrep; if(P && tick - P.t <= 2) return cand(P.a);   // у края — доворот к прыжку (370: jumpFaceWait, подход к подъёму)
+  if(b.path && b.pathIdx < b.path.length){
+    for(var i = b.pathIdx; i < Math.min(b.path.length, b.pathIdx + 2); i++){ var g = NAV_GAP_AT[navGapKey(b.path[i][0], b.path[i][1])];
+      if(g && Math.hypot(g.a.x - b.x, g.a.y - b.y) <= JUMP_TURN_R) return cand(g.yaw0*R); } }
+  return null;
 }
 // общий шаг после выбора: не в спину своему, не в стену, плавный поворот (на бегу без цели — по ходу)
 function lookFilter(b, look, LD){

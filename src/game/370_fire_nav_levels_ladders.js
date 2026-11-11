@@ -65,13 +65,28 @@ function navJumpLinked(a, z){
   return false;
 }
 function navLinked(a, b){ var E = zoneGraph[a.id] || []; for(var i=0;i<E.length;i++) if(E[i].to === b.id) return true; return false; }
+// (v549, владелец 11.11, скрины у Van: «стоит спиной к машине — так же прыгает спиной») прыжок (подъём из демок, через щель) — лицом туда,
+// куда смотрят про при отталкивании (a — угол на карте из демок): смотрит мимо больше JUMP_FACE — стоит у края и разворачивается (взгляд —
+// jumpLook, 270), не дольше JUMP_FACE_WAIT, потом прыгает как есть. true — ещё разворачивается (обычный шаг не делается). Числа — проектные
+var JUMP_FACE = Math.PI/4, JUMP_FACE_WAIT = 32;
+function jumpFaceWait(bot, a, to){
+  // куда бот на самом деле прыгает (to — точка приземления этого прыжка): угол про — только если он не дальше JUMP_FACE от этого направления
+  // (про отталкиваются из своей точки, бот — до LADDER_NEAR раньше), иначе — само направление прыжка
+  if(to){ var dir = Math.atan2(to.y - bot.baseY, to.x - bot.baseX); if(a == null || Math.abs(((a - dir + Math.PI*3) % (2*Math.PI)) - Math.PI) > JUMP_FACE) a = dir; }
+  bot._jumpPrep = {a: a, t: tick};
+  if(bot.facing === undefined) return false;
+  var off = Math.abs(((bot.facing - a + Math.PI*3) % (2*Math.PI)) - Math.PI), W = bot._jfw;
+  if(!W || tick - W.last > 2) W = bot._jfw = {t0: tick, last: tick}; W.last = tick;
+  if(off <= JUMP_FACE || tick - W.t0 >= JUMP_FACE_WAIT){ bot._jfw = null; return false; }
+  bot.curSpeed = 0; return true;
+}
 // (v359, владелец: «сделать систему лестниц, чтобы не было проблем с Palace») лестница — отдельный переход: концы лестницы —
 // участки .nav (MAP.navmesh.ladders), низ и верх — ближайшая пара участков разной высоты. Путь ведёт на другой этаж через
 // лестницу — бот идёт к её концу на своём этаже (точка вставляется в путь), там лезет: позиция и высота плавно меняются за
 // время подъёма (LADDER_SPEED ед. игры/с — проектное число, в CS2 по лестнице ~ шагом), без проверок стен и пола, в конце —
 // участок другого конца и путь заново. Раньше этаж у лестницы угадывался по полу под ногами (оба этажа рядом) — бота
 // перекидывало между этажами и он «трясся»
-var CLIMB_FLOOR_TOL = 24, CLIMB_MID_R = 50, CLIMB_MAX_STEP = 68;   // CLIMB_MAX_STEP — ед. игры: прыжок с приседом в CS2 ~66 (как у JUMP_UP) + 2 на шаг сетки 3D (проектное)   // CLIMB_MID_R — px, поиск поверхности промежуточного ящика у точки из демок (v541, проектное число)   // ед. игры — проектное число (как допуск пола участка в проверке набора)
+var CLIMB_FLOOR_TOL = 24, CLIMB_MID_R = 50, CLIMB_MAX_STEP = 76;   // (v549) было 68: про берут 72 (пол мида −260 → ящики под окном −188, ~170 раз без буста)   // CLIMB_MAX_STEP — ед. игры: прыжок с приседом в CS2 ~66 (как у JUMP_UP) + 2 на шаг сетки 3D (проектное)   // CLIMB_MID_R — px, поиск поверхности промежуточного ящика у точки из демок (v541, проектное число)   // ед. игры — проектное число (как допуск пола участка в проверке набора)
 var GAP_NEAR = 8;   // (v546) ед. карты: у точки отталкивания — прыгает (проектное число)
 var LADDERS = null, LADDER_SPEED = 150, LADDER_NEAR = 40, LADDER_SEEK = 260, LADDER_FAR = 150;
 function laddersBuild(){
@@ -121,7 +136,7 @@ function laddersBuild(){
       if(fLo == null || fHi == null) return;
       var steps = mid ? [mid.z - fLo, fHi - mid.z] : [fHi - fLo];
       if(steps.some(function(d){ return d > CLIMB_MAX_STEP; })) return; }
-    LADDERS.push({lo:lo, hi:hi, up:true, sec:c.sec, mid:mid ? {x:mid.x, y:mid.y, z:mid.z} : null, yaw0:c.yaw0 || 0, yaw1:c.yaw1 || 0});   // (v548) взгляд из демок
+    LADDERS.push({lo:lo, hi:hi, up:true, sec:c.sec, mid:mid ? {x:mid.x, y:mid.y, z:mid.z} : null, Y: c.yaw0 != null ? {yaw0:c.yaw0, yaw1:c.yaw1, yawM:c.yawM != null ? c.yawM : null} : null});   // (v549) взгляд из демок — углы на карте
   });
 }
 // лестница, по которой бот с этажа z попадает на этаж zTo: конец на своём этаже в пределах r
@@ -130,7 +145,7 @@ function ladderFor(x, y, z, zTo, r){
   var best = null, bd = r;
   LADDERS.forEach(function(L){ (L.up ? [[L.lo, L.hi]] : [[L.lo, L.hi], [L.hi, L.lo]]).forEach(function(e){
     if(Math.abs(e[0].z - z) > JUMP_UP || Math.abs(e[1].z - zTo) > JUMP_UP) return;
-    var d = Math.hypot(e[0].x - x, e[0].y - y); if(d < bd){ bd = d; best = {near: e[0], far: e[1], sec: L.sec, mid: L.up ? L.mid : null, jump: !!L.up, Y: L.up ? {yaw0: L.yaw0, yaw1: L.yaw1} : null}; } }); });
+    var d = Math.hypot(e[0].x - x, e[0].y - y); if(d < bd){ bd = d; best = {near: e[0], far: e[1], sec: L.sec, mid: L.up ? L.mid : null, jump: !!L.up, Y: L.up ? L.Y : null}; } }); });
   return best;
 }
 // true — бот в этот тик на лестнице (обычный шаг не делается)
@@ -151,7 +166,7 @@ function ladderTick(bot){
     if(C.G && C.G.bow){ var Lc = Math.hypot(B.x - A.x, B.y - A.y), th = Math.atan2(B.y - A.y, B.x - A.x), k = 4*C.G.bow*Lc*q*(1 - q);
       bot.baseX = bot.x = bot.x - Math.sin(th)*k; bot.baseY = bot.y = bot.y + Math.cos(th)*k; }
     bot.curSpeed = LADDER_SPEED/2.5;
-    if(p >= 1){ bot.z = C.to.z; bot._area = C.to.area; bot._climb = null; bot.path = []; bot.pathIdx = 0; if(C.jump) landSound(bot, false, C.gap ? "gap" : "up"); }
+    if(p >= 1){ bot.z = C.to.z; bot._area = C.to.area; bot._climb = null; bot.path = []; bot.pathIdx = 0; if(C.jump) landSound(bot, false, C.gap && !(C.G && C.G.walkOk) ? "gap" : "up"); }   // (v549) щель, где про прыгают и с шага, — на шифте тихо
     return true;
   }
   if(bot.z == null || !bot.path || bot.pathIdx >= bot.path.length) return false;
@@ -161,7 +176,8 @@ function ladderTick(bot){
   var G = wp && NAV_GAP_AT[navGapKey(wp[0], wp[1])];
   if(G && Math.abs(wp[2] - G.b.z) < 1){
     if(Math.hypot(G.a.x - bot.baseX, G.a.y - bot.baseY) > GAP_NEAR){ bot.path.splice(bot.pathIdx, 0, [G.a.x, G.a.y, G.a.z]); return false; }
-    bot._climb = {t0: tick, dur: Math.max(8, Math.round(G.sec*TICK_HZ)), from: {x: bot.baseX, y: bot.baseY, z: bot.z}, to: G.b, mid: null, jump: true, gap: true, G: G};
+    if(jumpFaceWait(bot, G.yaw0*Math.PI/180, G.b)) return true;
+    bot._climb = {t0: tick, dur: Math.max(8, Math.round(G.sec*TICK_HZ)), from: {x: bot.baseX, y: bot.baseY, z: bot.z}, to: G.b, mid: null, jump: true, gap: true, G: G, a0: bot.facing};
     bot._jump = {t: tick, up: G.b.z >= G.a.z}; bot.pathIdx++;
     return ladderTick(bot);
   }
@@ -180,11 +196,14 @@ function ladderTick(bot){
   if(d > LADDER_NEAR){
     // до лестницы — по своему этажу: точка низа/верха лестницы вставляется в путь перед подъёмом (один раз)
     if(!(Math.hypot(wp[0]-L.near.x, wp[1]-L.near.y) < 4 && Math.abs(wp[2]-L.near.z) < 4)) bot.path.splice(bot.pathIdx, 0, [L.near.x, L.near.y, L.near.z]);
+    if(L.jump && d <= LADDER_NEAR + JUMP_TURN_R){ var tp = L.mid || L.far, dj = Math.atan2(tp.y - bot.baseY, tp.x - bot.baseX), ay = L.Y ? L.Y.yaw0*Math.PI/180 : dj;
+      bot._jumpPrep = {a: Math.abs(((ay - dj + Math.PI*3) % (2*Math.PI)) - Math.PI) > JUMP_FACE ? dj : ay, t: tick}; }   // (v549) на подходе — доворот к прыжку
     return false;
   }
+  if(L.jump && jumpFaceWait(bot, L.Y ? L.Y.yaw0*Math.PI/180 : null, L.mid || L.far)) return true;
   var dz = Math.abs(L.far.z - L.near.z);
   // (v546) по лестнице шагом (bot.walking) — медленнее, как шаг (WALK_SPEED_FRAC), и бесшумно (шаги на лестнице — 540)
-  bot._climb = {t0: tick, dur: Math.max(8, Math.round((L.sec || dz/LADDER_SPEED/(!L.jump && bot.walking ? WALK_SPEED_FRAC : 1))*TICK_HZ)), from: {x: bot.baseX, y: bot.baseY, z: bot.z}, to: L.far, mid: L.mid || null, jump: !!L.jump, Y: L.Y || null};
+  bot._climb = {t0: tick, dur: Math.max(8, Math.round((L.sec || dz/LADDER_SPEED/(!L.jump && bot.walking ? WALK_SPEED_FRAC : 1))*TICK_HZ)), from: {x: bot.baseX, y: bot.baseY, z: bot.z}, to: L.far, mid: L.mid || null, jump: !!L.jump, Y: L.Y || null, a0: bot.facing};
   if(L.jump) bot._jump = {t: tick, up: true};   // (v543) подъём из демок — прыжок: стрелка «прыжок» у игрока
   if(bot.path[bot.pathIdx] && Math.hypot(bot.path[bot.pathIdx][0]-L.near.x, bot.path[bot.pathIdx][1]-L.near.y) < 4) bot.pathIdx++;
   return ladderTick(bot);
