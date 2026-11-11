@@ -192,7 +192,7 @@ function plantBlock(c, tac, site){
   if(c._sawEnemy && c._nearestEnemyDist < 500) return "видит врага в " + Math.round(c._nearestEnemyDist);
   if(!canPlantAt(tac.site, c.baseX, c.baseY)) return "не на сайте / не на месте про";
   if(c._noPlantUntil > tick) return "запрет после срыва ещё " + ((c._noPlantUntil - tick)/TICK_HZ).toFixed(1) + " с";
-  if(inFire(c.baseX, c.baseY)) return "в огне";
+  if(inFire(c.baseX, c.baseY, c.z)) return "в огне";
   return null;
 }
 function bombTick(){

@@ -238,7 +238,7 @@ function fireSmokeTick(){
   fires.forEach(function(f){
     if(f.team === "T" || f._smk) return;
     var onPath = ts.some(function(b){ var P = b.path || [], px = b.baseX, py = b.baseY;
-      for(var i = b.pathIdx || 0; i < P.length; i++){ var q = P[i]; if(fireTouches(f, q[0], q[1]) || fireOnSegF(f, px, py, q[0], q[1])) return true; px = q[0]; py = q[1]; }
+      for(var i = b.pathIdx || 0; i < P.length; i++){ var q = P[i]; if(fireTouches(f, q[0], q[1], q[2]) || fireOnSegF(f, px, py, q[0], q[1], b.z)) return true; px = q[0]; py = q[1]; }
       return false; });
     if(!onPath) return;
     // (владелец 05.11: «если не критично подождать — можно не тушить») на выходе ждать нельзя — тушат; на сетапе — только если огонь прогорит
@@ -251,5 +251,5 @@ function fireSmokeTick(){
     voiceLog("T", "fsmk"+c.id+tick, c.id, "тушу молотов "+calloutName(f.x, f.y).replace(/^на /, "")+" — проходим");
   });
 }
-function fireOnSegF(f, x1, y1, x2, y2){ var n = Math.max(1, Math.ceil(Math.hypot(x2-x1, y2-y1)/8));
-  for(var i = 1; i <= n; i++) if(fireTouches(f, x1 + (x2-x1)*i/n, y1 + (y2-y1)*i/n)) return true; return false; }
+function fireOnSegF(f, x1, y1, x2, y2, z){ var n = Math.max(1, Math.ceil(Math.hypot(x2-x1, y2-y1)/8));
+  for(var i = 1; i <= n; i++) if(fireTouches(f, x1 + (x2-x1)*i/n, y1 + (y2-y1)*i/n, z)) return true; return false; }

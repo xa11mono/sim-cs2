@@ -106,7 +106,7 @@ function moveSpeedTick(bot, runSpeed, BRAKE_RADIUS, maxDelta){
     else if(!alone) bot._entryWait = null;
   }
   // стоит в огне — выбегает из него прямо сейчас, что бы ни делал
-  var burn = inFire(bot.baseX, bot.baseY);
+  var burn = inFire(bot.baseX, bot.baseY, bot.z);
   if(burn && !fireCommit(bot)){
     // Из огня бот ВЫХОДИТ обычным бегом по пути к ближайшему краю (раньше его
     // каждый тик сдвигало наружу напрямую — выглядело как отбрасывание).
@@ -114,7 +114,7 @@ function moveSpeedTick(bot, runSpeed, BRAKE_RADIUS, maxDelta){
     if(bot.planting){ bot._noPlantUntil = tick + 32; bot._plantAbort = {t:tick, why:"огонь"}; logEvent(bot.id+" прервал плант — молотов, не доживёт"); }
     bot.atPost = false; bot.defusing = false; bot.planting = false;
     bot._burning = true;
-    if(!bot._fireExit || inFire(bot._fireExit.x, bot._fireExit.y) || bot._fireExitFire !== burn){
+    if(!bot._fireExit || inFire(bot._fireExit.x, bot._fireExit.y, bot.z) || bot._fireExitFire !== burn){
       var best = null, bd = Infinity;
       for(var ai=0; ai<12; ai++){
         var aa = ai*Math.PI/6, rr = NADE.molly.radius + 28;

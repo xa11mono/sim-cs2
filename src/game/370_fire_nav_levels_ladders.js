@@ -13,7 +13,9 @@ function fireGoneRepath(fr){
 function fireRepath(fx, fy){
   var R = NADE.molly.radius + FIRE_BODY;
   bots.forEach(function(b){ if(!b.alive || !b.path || b.pathIdx >= b.path.length || b.planting || b.defusing) return;
-    if(Math.hypot(b.baseX-fx, b.baseY-fy) <= R) return;   // уже в огне — выходит своим ходом (540)
+    // уже в огне — выходит своим ходом (540). (v555, отметка владельца м300 р5: CT1 стоял в 78 ед. от центра при круге 78,4 — «в огне», хотя
+    // огонь его не касался: путь не перестроился, обход по Stairs (+43 ед.) не взят, 4,5 с ждал у края) — по настоящей форме огня (inFire)
+    if(inFire(b.baseX, b.baseY, b.z)) return;
     var px = b.baseX, py = b.baseY;
     for(var i = b.pathIdx; i < b.path.length; i++){ var q = b.path[i];
       var dx = q[0]-px, dy = q[1]-py, L2 = dx*dx + dy*dy, t = L2 > 0 ? Math.max(0, Math.min(1, ((fx-px)*dx + (fy-py)*dy)/L2)) : 0;
@@ -24,7 +26,7 @@ function fireCommit(b){
   if(!b) return false;
   if(b.planting || b.defusing) return b.hp > fireDamageFor(((b.planting ? b.plantUntil : b.defuseUntil) - tick)/TICK_HZ) + 10;
   var going = b.path && b.pathIdx < b.path.length;
-  if(!going || b.holding || (b.post && inFire(b.post.x, b.post.y))) return false;   // держит угол — не идёт насквозь, а стоит в огне
+  if(!going || b.holding || (b.post && inFire(b.post.x, b.post.y, b.post.z))) return false;   // держит угол — не идёт насквозь, а стоит в огне
   // (v438, док владельца 27.10: «боты часто идут в молик»; замер: 224 захода «сам» на 8 матчей) сквозь огонь — только задача, которая
   // не ждёт, пока он прогорит: бомба (плант, дефуз, сбить плант / дефуз, ретейк и сбор под него, убежать от взрыва, поднять бомбу).
   // Остальные ждут у края (fireSafe) или идут в обход (путь, FIRE_DETOUR). Было — любой, у кого хватало HP
@@ -523,13 +525,14 @@ function stepBlocked(x1,y1,x2,y2,b){
   if(stepWall(x1, y1, x2, y2, b)) return true;
   if(heightBlocked(x1, y1, x2, y2, b)) return true;
   if(b && b.baseX != null && offNavStep(x1, y1, x2, y2, b)) return true;   // (v336) с пола навмеша — в стену/ящик нельзя
-  if(!inFire(x1,y1) && inFire(x2,y2)) return !fireCommit(b);
+  var fz = b && b.z != null ? b.z : null;
+  if(!inFire(x1,y1,fz) && inFire(x2,y2,fz)) return !fireCommit(b);
   return false;
 }
 // точка поста в огне → ждём у края огня (с той же стороны), а не лезем внутрь
 function fireSafe(p, b){
   if(b && fireCommit(b)) return p; // идёт по делу — через огонь
-  var f = inFire(p.x, p.y); if(!f) return p;
+  var f = inFire(p.x, p.y, p.z); if(!f) return p;
   var a = Math.atan2(p.y-f.y, p.x-f.x); if(!isFinite(a)) a = 0;
   var r = NADE.molly.radius + 26;
   var q = {x:f.x + Math.cos(a)*r, y:f.y + Math.sin(a)*r};
@@ -539,13 +542,17 @@ function fireSafe(p, b){
 // (v323, М36) где жжёт — ровно нарисованный огонь: разгорается за 14 тиков от 0,35 радиуса, не проходит сквозь стены; игрок
 // горит, если касается краем (полуширина игрока 16 ед. игры = 6,4 ед. карты)
 var FIRE_BODY = 6.4;
+// (v555, отметка владельца м300 р5: «горит молотов на Cross — а он может обойти по Stairs») огонь горит на полу, где упал молотов (f.z): кто
+// выше или ниже его больше чем на FIRE_DZ, того он не касается. Было — круг на радаре без высоты: молотов на Cross (−164) «жёг» лестницу Stairs
+// над ним (−36), обход был закрыт, бот ждал у края, пока прогорит
+var FIRE_DZ = 64;   // проектное число: ед. игры — высота прыжка (JUMP_UP), выше огонь не достаёт
 function fireRadiusNow(f){ return NADE.molly.radius*Math.min(1, 0.35 + (tick - f.born)/14); }
-function fireTouches(f, x, y){ return areaHas(f, fireRadiusNow(f) + FIRE_BODY, x, y); }
+function fireTouches(f, x, y, z){ if(z != null && f.z != null && Math.abs(z - f.z) > FIRE_DZ) return false; return areaHas(f, fireRadiusNow(f) + FIRE_BODY, x, y); }
 // (v450г) отрезок проходит через огонь (шаг 8 ед.)
-function fireOnSeg(x1, y1, x2, y2){ var n = Math.max(1, Math.ceil(Math.hypot(x2-x1, y2-y1)/8));
-  for(var i = 1; i <= n; i++) if(inFire(x1 + (x2-x1)*i/n, y1 + (y2-y1)*i/n)) return true; return false; }
-function inFire(x, y){
-  for(var i=0;i<fires.length;i++){ if(fireTouches(fires[i], x, y)) return fires[i]; }
+function fireOnSeg(x1, y1, x2, y2, z){ var n = Math.max(1, Math.ceil(Math.hypot(x2-x1, y2-y1)/8));
+  for(var i = 1; i <= n; i++) if(inFire(x1 + (x2-x1)*i/n, y1 + (y2-y1)*i/n, z)) return true; return false; }
+function inFire(x, y, z){
+  for(var i=0;i<fires.length;i++){ if(fireTouches(fires[i], x, y, z)) return fires[i]; }
   return null;
 }
 

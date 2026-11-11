@@ -601,7 +601,9 @@ function tBrain(){
       // правила здесь: «свой несёт лайнап «(выход, …)»» (v349) и «любой смок T в воздухе у сайта»
       var inAir = !exuGate(tt).go;
       var mate = b.tRole !== "entry" || ts.some(function(o){ return o !== b && o.alive && o.tRole !== "lurker" && nearP(o.x, o.y, o.z, b.x, b.y, b.z, TRADE_R); });
-      if(!inAir && mate){ b._utilW = null; return false; }
+      // (v555, отметка владельца м300 р3: «ждёт гранаты, когда он один») размен ждать не от кого — живых своих нет (кроме лёрка): не ждёт
+      var anyMate = ts.some(function(o){ return o !== b && o.alive && o.tRole !== "lurker"; });
+      if(!inAir && (mate || !anyMate)){ b._utilW = null; return false; }
       if(!mate && !inAir && !(b._utilW && b._utilW.round === roundNum)) voiceLog("T", "tradewait"+b.id+roundNum, b.id, "жду размен — выходим вдвоём");
       // (v349, отметка владельца: donk ждал на выходе с T Ramp на виду у NiKo — бой начинался раньше гранат) ждёт в ближайшем
       // укрытии (≤ 150 ед.: не видно с сайта, опорника и входа CT), а не там, где застала проверка

@@ -417,7 +417,7 @@ function zoneDijkstra(fromId, toId, team){
       if(side && side[edge.to] !== undefined && side[edge.to] < ROUTE_SIDE_LINE) w *= ROUTE_ENEMY_SIDE;   // (v259) CT — по своей стороне
       // (v438, док владельца 27.10: «боты часто идут в молик») переход в горящем огне — дороже на FIRE_DETOUR: путь обходит молотов, если обход
       // не длиннее; иначе идёт через огонь (как и раньше — fireCommit / ждёт у края). Только путь движения (buildWaypointPath)
-      if(fireOn && inFire(edge.mid.x, edge.mid.y)) w += FIRE_DETOUR;
+      if(fireOn && inFire(edge.mid.x, edge.mid.y, edge.z)) w += FIRE_DETOUR;
       // (Д3, скорость; облако м7: 60 млн вызовов knownSegCost за 8000 тиков) отсев по оси — тот же, что первой строкой knownSegCost
       // (места дальше R от отрезка по оси — 0), но без вызова функции; порядок сложения и сами слагаемые те же — результат бит в бит
       if(nKP){ var sax = fromCentroid.x, say = fromCentroid.y, sbx = edge.mid.x, sby = edge.mid.y;

@@ -220,7 +220,7 @@ function escapeWallLine(bot){
       var nx = bot.baseX + Math.cos(ang)*rr, ny = bot.baseY + Math.sin(ang)*rr;
       if(insideSolidWall(nx, ny)) continue;
       if(!navFloorNear(nx, ny, NAV_STEP_TOL) && navFloorNear(bot.baseX, bot.baseY, NAV_STEP_TOL)) continue;   // (v336) не с пола в ящик/щель
-      if(inFire(nx, ny) && !inFire(bot.baseX, bot.baseY) && !fireCommit(bot)) continue;   // (этап 3, P1-4) не в огонь
+      if(inFire(nx, ny, bot.z) && !inFire(bot.baseX, bot.baseY, bot.z) && !fireCommit(bot)) continue;   // (этап 3, P1-4) не в огонь
       // из новой точки должно быть можно куда-то идти
       var free = 0;
       for(var q=0;q<8;q++){ var qa=q*Math.PI/4; if(!crossesWall(nx,ny,nx+Math.cos(qa)*4,ny+Math.sin(qa)*4)) free++; }

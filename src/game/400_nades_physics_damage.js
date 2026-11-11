@@ -45,7 +45,7 @@ function detonate(n){
     // молотов, упавший в дым или рядом так, что огонь касается дыма, гаснет (как в CS2 — наоборот тоже: дым тушит огонь;
     // v321, М12: «чуть касается смока — тушится»)
     if(!smokes.some(function(s){ return Math.hypot(s.x-n.x, s.y-n.y) < smokeRadiusNow(s) + NADE.molly.radius*MOLLY_SMOKE_TOUCH; }))
-    { fires.push({x:n.x, y:n.y, born:tick, until:tick+NADE.molly.life, team:n.team, thrower:n.thrower}); fireRepath(n.x, n.y);
+    { fires.push({x:n.x, y:n.y, z:n.z != null ? visFloorAt(n.x, n.y, n.z) : null, born:tick, until:tick+NADE.molly.life, team:n.team, thrower:n.thrower}); fireRepath(n.x, n.y);   // (v555) z — пол, где горит (fireTouches, 370)
       // (v506, владелец 04.11: «инфа про молотов — просто знали, что кинули молотов, но чтобы это никуда не уводило») враг, который видит
       // огонь, говорит в войс «молотов на …» — только колл в панель войса: знание о врагах и решения не меняются (где разорвалась граната
       // врага, команда и так помнит — nadeSeen выше)
@@ -226,7 +226,7 @@ function nadesTick(){
     if(smokes.some(function(sm){ return Math.hypot(sm.x-fr.x, sm.y-fr.y) < smokeRadiusNow(sm) + NADE.molly.radius*MOLLY_SMOKE_TOUCH; })){ if(SND && SND.on) sndNade("extinguish", fr.x, fr.y); fires.splice(f,1); fireGoneRepath(fr); continue; }
     bots.forEach(function(b){
       if(!b.alive) return;   // (v263, Б1) огонь жжёт и своих — множитель в applyDamage
-      if(fireTouches(fr, b.x, b.y)){
+      if(fireTouches(fr, b.x, b.y, b.z)){
         // (v323, М35) урон за удар растёт 1 → 8, удар раз в 0,2 с — чем дольше в огне, тем сильнее (fireDamageFor)
         if(!b._fireIn || b._fireIn.f !== fr){ b._fireIn = {f:fr, t:tick, hits:0}; }
         var hitsNow = Math.floor((tick - b._fireIn.t)/TICK_HZ/FIRE_HIT_SEC);

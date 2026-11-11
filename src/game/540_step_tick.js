@@ -375,8 +375,12 @@ function stepTick(){
         // (v450г) путь идёт сквозь огонь (обход длиннее, 050), а заходить в огонь боту не по делу (fireCommit) — ждёт у края, пока не
         // погаснет (fireGoneRepath, 370). Раньше упирался в край: веер проб, «застрял» → отталкивание, сброс пути, тот же путь заново —
         // переносы у огня на Ancient 58 → 128 на 100 раундов (замер 28.10)
-        var fireWait = !inFire(bot.baseX, bot.baseY) && inFire(nx, ny) && !fireCommit(bot) && fireOnSeg(bot.baseX, bot.baseY, target[0], target[1]);
-        if(fireWait){ bot.curSpeed = 0; bot.walking = false; bot._fireWaitT = tick; }
+        var fireWait = !inFire(bot.baseX, bot.baseY, bot.z) && inFire(nx, ny, bot.z) && !fireCommit(bot) && fireOnSeg(bot.baseX, bot.baseY, target[0], target[1], bot.z);
+        // (v555) упёрся в огонь, путь которого строился без него, — один раз на этот огонь путь заново (обход, если он не длиннее FIRE_DETOUR, 050)
+        var fwF = fireWait ? inFire(nx, ny, bot.z) : null, fwSkip = false;
+        if(fwF && bot._fireRp !== fwF){ bot._fireRp = fwF; bot.path = []; bot.pathIdx = 0; fireWait = false; fwSkip = true; bot.curSpeed = 0; }
+        if(fwSkip){}
+        else if(fireWait){ bot.curSpeed = 0; bot.walking = false; bot._fireWaitT = tick; }
         else if(!stepBlocked(bot.baseX,bot.baseY,nx,ny,bot)){ // стены + в огонь без причины не заходим
           bot.baseX = nx; bot.baseY = ny;
           if(isLastLeg && dist <= step){ bot.baseX = target[0]; bot.baseY = target[1]; bot.pathIdx++; }   // (v323) высота — только по навмешу (ниже), не по точке пути
@@ -440,7 +444,7 @@ function stepTick(){
             // (этап 3, P1-4) не через огонь: путь шёл сквозь свой/чужой молотов, обычный шаг его не пускал (stepBlocked), бот
             // 1,5 с стоял у края — и этот рывок переносил его на 30+ px прямо в огонь (матч 3, тик 23335, T1 в молотов T2).
             // Теперь у огня — ждёт у края, как при обычном шаге (зайти можно только по делу — fireCommit)
-            if(toward && inFire(toward.x, toward.y) && !inFire(bot.baseX, bot.baseY) && !fireCommit(bot)) toward = null;
+            if(toward && inFire(toward.x, toward.y, bot.z) && !inFire(bot.baseX, bot.baseY, bot.z) && !fireCommit(bot)) toward = null;
             if(toward && !navFloorNear(toward.x, toward.y, NAV_STEP_TOL)) toward = null;   // (v336) рывок — только на пол навмеша
             // (v341, отметка владельца: TeSeS «застрял и его тпшнуло» — на 380 ед.) snapToWalkable из стены ставит в центр ближайшего
             // участка, иногда далеко; рывок — не дальше 12 ед. (проектное число), иначе нет

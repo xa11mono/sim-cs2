@@ -30,7 +30,7 @@ function probStallWhy(b){
   if(crossesWall(b.baseX, b.baseY, x2, y2)) return "стена";
   if(heightBlocked(b.baseX, b.baseY, x2, y2, b)) return "уступ";
   if(offNavStep(b.baseX, b.baseY, x2, y2, b)) return "край пола";
-  if(!inFire(b.baseX, b.baseY) && inFire(x2, y2)) return "огонь";
+  if(!inFire(b.baseX, b.baseY, b.z) && inFire(x2, y2, b.z)) return "огонь";
   return "шаг проходит, а стоит";
 }
 function probTick(){

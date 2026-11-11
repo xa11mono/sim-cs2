@@ -149,7 +149,10 @@ function selfExitFlash(b){
     // (v294) типичное место без инфы — только если команда там врага ждёт (у CT «типичное место Connector» рвалось у врага в 38 %)
     if(!c.info && !nadeWorth(b.team, c)) return;
     var d = Math.hypot(c.x-b.x, c.y-b.y);
-    if(!best || c.w > best.c.w || (c.w === best.c.w && d < best.d)) best = {c:c, ex:ex, d:d};
+    // (v555, владелец 11.11: «флешка летит в типичное место, где врага нет — брать типичное место, где он вероятнее; флешек не меньше») типичное
+    // место без инфы — по тому, насколько команда ждёт врага именно там (карта команды по его зоне), а не ближайшее; инфа — по-прежнему первой
+    if(!c.info){ var zc = bzOf(c.x, c.y); c.w = zc >= 0 ? beliefCount(b.team, [zc]) : 0; }
+    if(!best || (c.info && !best.c.info) || (c.info === best.c.info && (c.w > best.c.w || (c.w === best.c.w && d < best.d)))) best = {c:c, ex:ex, d:d};
   });
   if(!best) return false;
   var c = best.c, ex = best.ex, dE = Math.hypot(c.x-ex.x, c.y-ex.y), kf = Math.min(1, 140/Math.max(1, dE));
