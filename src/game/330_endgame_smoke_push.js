@@ -8,7 +8,7 @@
 // забирал их по очереди: клатч 9% против 2% у про)
 function egWaitPartner(b, mine, kp){
   var dMe = Math.hypot(kp.x-b.x, kp.y-b.y);
-  var part = mine.filter(function(o){ return o !== b && o.alive && !o.planting && !o.defusing && Math.hypot(o.x-b.x, o.y-b.y) < 700; })
+  var part = mine.filter(function(o){ return o !== b && o.alive && !o.planting && !o.defusing && nearP(o.x, o.y, o.z, b.x, b.y, b.z, 700); })
     .sort(function(a, c){ return Math.hypot(a.x-b.x, a.y-b.y) - Math.hypot(c.x-b.x, c.y-b.y); })[0];
   if(!part) return false;
   var dP = Math.hypot(kp.x-part.x, kp.y-part.y);
@@ -63,9 +63,42 @@ function endgameBrain(){
       teamTac[team]._egKey = egId;
       voiceLog(team, "eg"+gk, mine[0].id, (nFoe === 1 ? "последний" : "их двое")+" "+calloutName(kp.x, kp.y)+" — все на него!");
     }
+    // (00_PLAN п.11, ответ владельца 6Б, 05.11: «двое CT не выбегают на одного T одновременно: один контролирует T, второй — альтернативную
+    // линию, выход или ротацию; если T отходит — не оба преследуют; главное — не дать безопасно поставить») CT против последнего T до планта:
+    // на него — ближайший по пути; остальные держат сайт, который тот не прикрывает (дальний от него), — место опорника, взгляд на T
+    var hunter = null;
+    if(team === "CT" && nFoe === 1 && mine.length >= 2 && !(bomb && bomb.state === "planted")){
+      // роли — один раз на раунд и расклад (пока охотник жив): каждый тик заново охотник менялся (CT1 ↔ CT3) и с ним — сайт второго
+      var ER = TT0._egRoles;
+      if(ER && ER.key === roundNum+":"+mine.length && mine.some(function(m){ return m.id === ER.hunter; })) hunter = mine.filter(function(m){ return m.id === ER.hunter; })[0];
+      else { var bdH = Infinity; mine.forEach(function(m){ var dl = pathLenTo(m, kp.x, kp.y); if(dl < bdH){ bdH = dl; hunter = m; } });
+        if(hunter) TT0._egRoles = {key: roundNum+":"+mine.length, hunter: hunter.id, line: {}}; }
+    }
     mine.forEach(function(b){
       if(b.planting || b.defusing || b._sawEnemy || b._stopPlantUntil > tick) return;
       if(team === "T" && bomb && bomb.state === "carried" && bomb.carrier === b) return; // носитель ставит
+      // (v521, отметка владельца 10.11) бомбу ставят — остальные прикрывают плант (170, coverplant: держат входы вокруг точки планта), не охотятся
+      var BC = team === "T" && bomb && bomb.state === "carried" ? bomb.carrier : null;
+      if(BC && BC.alive && (BC.planting || (BC.post && taskProp(BC.post.tag, "plantSpot") && Math.hypot(BC.x-BC.post.x, BC.y-BC.post.y) < 90)) && Math.hypot(b.x-BC.x, b.y-BC.y) < 550) return;
+      if(hunter && b !== hunter){
+        // (v519, пак 09.11 п.7; А-10: «идут всей толпой через одну позицию, не пытаются закрыть с двух сторон») остальные — не все на одну точку:
+        // ближайший по пути (после охотника) — альтернативная линия на T с другой стороны от охотника (flankSpot, как заход тиммейту), ответ
+        // владельца 6Б: «второй — альтернативную линию»; следующие — сайты по очереди (дальний от охотника, потом ближний). Роли — раз на расклад
+        var ERl = TT0._egRoles.line;
+        if(!TT0._egRoles.ord){ TT0._egRoles.ord = mine.filter(function(m){ return m !== hunter; }).sort(function(p, q){ return pathLenTo(p, kp.x, kp.y) - pathLenTo(q, kp.x, kp.y); }).map(function(m){ return m.id; }); }
+        var oi = TT0._egRoles.ord.indexOf(b.id);
+        if(oi === 0){
+          if(!b._egF || b._egF.gk !== gk || b._egF.round !== roundNum){ b._egF = {gk:gk, round:roundNum, spot: flankSpot(b, hunter, kp)}; }
+          if(b._egF.spot){ if(setPost(b, b._egF.spot, {x:kp.x, y:kp.y}, true, "endhunt") && b._egFv !== roundNum){ b._egFv = roundNum;
+            voiceLog(team, "egfl"+b.id+roundNum, b.id, "захожу на него с другой стороны — "+hunter.id+" держит"); } return; }
+        }
+        var sitesO = ["A","B"].sort(function(p, q){ return Math.hypot(SITES[q].x-hunter.x, SITES[q].y-hunter.y) - Math.hypot(SITES[p].x-hunter.x, SITES[p].y-hunter.y); });
+        var kL = ERl[b.id] || (ERl[b.id] = sitesO[Math.max(0, oi - 1) % 2]);
+        var gL = GEO[kL], lp = (gL && gL.anchor) || SITES[kL];
+        if(setPost(b, lp, {x:kp.x, y:kp.y}, true, "endhunt") && !(b._egL && b._egL.round === roundNum && b._egL.k === kL)){ b._egL = {round:roundNum, k:kL};
+          voiceLog(team, "egline"+b.id+roundNum, b.id, "держу "+kL+" — "+hunter.id+" на нём, не дадим поставить"); }
+        return;
+      }
       var d = Math.hypot(kp.x-b.x, kp.y-b.y);
       // (v146) по демкам: у про при перевесе до планта T в 77% идут ставить (≈8с),
       // а не ищут последних; CT — время на их стороне. Добивать идёт только тот,
@@ -77,7 +110,9 @@ function endgameBrain(){
         // начать охоту — враг свежий (≤ 3 с, демки); продолжить начатую — пока инфе ≤ 6 с (окно сигнала выше). Отпустило, а до точки
         // пика < 100 px (проектное число) — доходит и смотрит туда же (≤ 1,5 с), а не разворачивается за тик
         var hunting = b.post && b.post.tag === "endhunt";
-        if(kAge > (hunting ? 6 : 3)*TICK_HZ || d > 700){
+        // (v519, А-10: «идут очень поздно — про него знали ещё до того, как он убил тиммейта») охотник (ближайший по пути, выбран выше) идёт по
+        // знанию, и дальше 700 px по прямой — 700 px оставлено для остальных (2 на 2)
+        if(kAge > (hunting ? 6 : 3)*TICK_HZ || (d > 700 && b !== hunter)){
           if(hunting){
             var sp0 = b.post, nearSp = Math.hypot(sp0.x-b.x, sp0.y-b.y) < 100;
             if(nearSp && !b.atPost && (!b._egEnd || b._egEnd.round !== roundNum || tick - b._egEnd.t < 1.5*TICK_HZ)){
@@ -107,8 +142,11 @@ function endgameBrain(){
       }
       if(b._egC && b._egC.round === roundNum && b._egC.fl === K.id && mC){ setPost(b, b._egC.spot, {x:kp.x, y:kp.y}, true, "endhunt"); return; }
       if(!b._egC || b._egC.gk !== gk || b._egC.round !== roundNum || b._egC.fl){
-        var center = d < 650 ? {x:b.x, y:b.y} : walk({x: kp.x + (b.x-kp.x)*Math.min(0.9, 420/d), y: kp.y + (b.y-kp.y)*Math.min(0.9, 420/d)});
-        var spots = pickSpots("eg:"+b.id+":"+gk, center, 2, {rMax: d < 650 ? 120 : 200, minGap:40, see:[kp]});
+        // (v521, отметка владельца 10.11: двое стояли на Tetris — «рядом» с врагом (490 px по прямой), точка «держать угол на него» бралась рядом с
+        // собой и без вида на него) рядом — точка рядом, только если оттуда его видно; нет такой — подтягивается к нему, как дальний
+        var farC = walk({x: kp.x + (b.x-kp.x)*Math.min(0.9, 420/Math.max(1, d)), y: kp.y + (b.y-kp.y)*Math.min(0.9, 420/Math.max(1, d))});
+        var spots = d < 650 ? pickSpots("eg:"+b.id+":"+gk, {x:b.x, y:b.y}, 2, {rMax:120, minGap:40, see:[kp]}).filter(function(q){ return hasLOS(q.x, q.y, kp.x, kp.y); }) : [];
+        if(!spots.length) spots = pickSpots("egf:"+b.id+":"+gk, farC || {x:b.x, y:b.y}, 2, {rMax:200, minGap:40, see:[kp]});
         b._egC = {gk:gk, round:roundNum, spot:spots[0], look:{x:kp.x, y:kp.y}};
       }
       if(BAL.groupPlay && BAL.egPair && egWaitPartner(b, mine, kp)) return;
@@ -161,7 +199,7 @@ function enemyBeyondSmoke(b, S, r){
     if((g.x-b.x)*ax + (g.y-b.y)*ay > 0) return true;   // по ту сторону, куда идём
   }
   var zi = bzOf(S.x, S.y); if(zi < 0) return false;
-  var m = beliefZoneFresh(b.team, zi); (BZ.nbr[zi]||[]).forEach(function(n){ m += 0.5*beliefZoneFresh(b.team, n); });
+  var m = beliefZoneKnown(b.team, zi); (BZ.nbr[zi]||[]).forEach(function(n){ m += 0.5*beliefZoneKnown(b.team, n); });
   return m > 0.6;
 }
 function smokeEdgeTick(){
@@ -222,7 +260,7 @@ var LAND_PUNISH_R = 250, LAND_PUNISH_FRESH = 1.5, LAND_PUNISH_SEC = 4;
 function ctLandPunish(b){
   var P = b._lp;
   if(P && (P.round !== roundNum || tick > P.until || b._sawEnemy)){ b._lp = null; P = null; }
-  if(P){ setPost(b, P.pt, P.pt, true, "repos:land"); return true; }
+  if(P){ if(setPost(b, P.pt, P.pt, true, "repos:land")) return true; b._lp = null; return false; }   // (v547) отказали (задача важнее) — не «сделал»: мозг идёт дальше
   var h = b.heardSound;
   if(!h || !h.land || h.team === b.team || tick - h.tick > LAND_PUNISH_FRESH*TICK_HZ || b._lpDone === h.tick) return false;
   b._lpDone = h.tick;
@@ -233,7 +271,7 @@ function ctLandPunish(b){
   var go = hashRand(h.tick*13 + b.id.charCodeAt(b.id.length-1)*7 + roundNum) < (b.prof ? prof(b, "aggr") : 0.5);
   if(!go) return false;
   b._lp = {round: roundNum, pt: {x:h.x, y:h.y}, until: tick + LAND_PUNISH_SEC*TICK_HZ};
+  if(!setPost(b, b._lp.pt, b._lp.pt, true, "repos:land")){ b._lp = null; return false; }
   voiceLog("CT", "lp"+b.id+h.tick, b.id, "спрыгнул один — "+calloutName(h.x, h.y)+", выхожу на него");
-  setPost(b, b._lp.pt, b._lp.pt, true, "repos:land");
   return true;
 }

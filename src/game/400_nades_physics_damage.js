@@ -29,7 +29,8 @@ function nadeOrigin(n){
   if(!saw) return;
   var j = hashRand(tick*31 + n.ox*7), ja = hashRand(tick*17 + n.oy*3)*Math.PI*2, ex = n.ox + Math.cos(ja)*120*j, ey = n.oy + Math.sin(ja)*120*j;
   if(insideSolidWall(ex, ey)){ ex = n.ox; ey = n.oy; }
-  intelPush(foe, {type:"sound", x:ex, y:ey, id:n.thrower.id, kind:"nade", by:saw.id});
+  // (00_PLAN, аудит 2.2, 05.11) видевший бросок говорит в войс (230: «слышу» — с задержкой фразы), а не мгновенно в память команды
+  var zN = knowZoneAt(ex, ey); if(zN && saw.voice) teamPropose(saw, {kind: "hear", zone: zN, sound: "nade", count: 1});
   (saw.ears || (saw.ears = [])).push({x:ex, y:ey, tick:tick, team:n.team, kind:"nade", occl:true});
   // (док 6) в войс — через знание и канал команды (teamNotice: «гранату кинули из X»), а не отдельной надписью
 }
@@ -57,7 +58,7 @@ function detonate(n){
     nadeFlags["pop:"+n.why] = tick; // общий "хлопнула" для ожидающих (ретейк, поп на убийцу)
     bots.forEach(function(b){
       if(!b.alive) return;
-      var d = Math.hypot(b.x-n.x, b.y-n.y);
+      var d = n.z != null ? Math.hypot(b.x-n.x, b.y-n.y, (n.z - visFloorAt(b.x, b.y, b.z) - VIS_EYE.stand)/(MAP.pxUnits || 2.5)) : Math.hypot(b.x-n.x, b.y-n.y);   // (v519) в 3D
       var dirK = flashDirK(b, n); if(!dirK) return;
       // враг, который видел/слышал летящую флешку, может успеть отвернуться —
       // тем вероятнее, чем выше навык (раньше флешка слепила "по учебнику" всегда)
@@ -90,10 +91,15 @@ function detonate(n){
     });
     bots.forEach(function(b){
       if(!b.alive) return;   // (v263, Б1) HE ранит и своих, и бросившего — множитель в applyDamage
-      var d = Math.hypot(b.x-n.x, b.y-n.y);
-      if(d > NADE.he.radius || !hasLOS(n.x, n.y, b.x, b.y, null, b.z)) return;
+      // (v519, пак 09.11 п.4; А-2: «граната, взорвавшаяся в стене, убивает игрока») урон — от настоящей точки разрыва (высота — физика полёта, 385):
+      // расстояние в 3D и линия той же 3D-геометрией карты, что полёт, до корпуса или головы. Было: расстояние по радару и «видно ли» от глаз
+      // человека, стоящего на верхнем полу под гранатой (высота разрыва не бралась)
+      var bf = visFloorAt(b.x, b.y, b.z), pu = MAP.pxUnits || 2.5, nz = n.z != null ? n.z : bf + VIS_EYE.crouch;
+      var d = Math.hypot(b.x-n.x, b.y-n.y, (nz - (bf + 36))/pu);
+      if(d > NADE.he.radius) return;
+      if(n.z != null ? !(visMarch(n.x, n.y, nz + 4, b.x, b.y, bf + 36) || visMarch(n.x, n.y, nz + 4, b.x, b.y, bf + VIS_EYE.stand)) : !hasLOS(n.x, n.y, b.x, b.y, null, b.z)) return;
       var dmg = NADE.he.dmg * (1 - d/NADE.he.radius);
-      applyDamage(n.thrower, b, dmg, "HE", {armorRatio: b.armor ? NADE.he.armorK : null});
+      applyDamage(n.thrower, b, dmg, "HE", {armorRatio: b.armor ? NADE.he.armorK : null, from:{x:n.x, y:n.y, z:n.z}});
     });
   }
   nadeFx.push({type:T, x:n.x, y:n.y, born:tick});
@@ -123,6 +129,7 @@ function armorSoak(b, raw, ratio, src){
   if(b.armorHp <= 0){ b.armor = false; b.helmet = false; }
   return Math.max(0, h);
 }
+var HURT_SND_GAP = 32;   // (v546) тиков (0,5 с) — проектное число
 function applyDamage(att, b, dmg, src, o){
   o = o || {};
   if(!b.alive || dmg <= 0) return false;
@@ -131,8 +138,19 @@ function applyDamage(att, b, dmg, src, o){
   if(o.armorRatio != null) dmg = armorSoak(b, dmg, o.armorRatio, src);
   if(mate){ var fx = dmg + (b._ffFrac||0); dmg = Math.floor(fx); b._ffFrac = fx - dmg; if(dmg <= 0) return false; }
   else { dmg = Math.round(dmg); if(dmg <= 0) return false; }
-  if(foe){ var dl0 = Math.min(dmg, Math.max(0,b.hp)); foe.roundDmg = (foe.roundDmg||0) + dl0; var D0 = b._dmgBy || (b._dmgBy = {}); D0[foe.id] = (D0[foe.id]||0) + dl0; }
+  if(foe){ var dl0 = Math.min(dmg, Math.max(0,b.hp)); foe.roundDmg = (foe.roundDmg||0) + dl0; var D0 = b._dmgBy || (b._dmgBy = {}); D0[foe.id] = (D0[foe.id]||0) + dl0;
+    // (дуэли 06.11) кто кому сколько в этой перестрелке — 470 duelEval / fin: последние попадания у обоих, [тик, кто, урон]
+    var HL = b._hitIn || (b._hitIn = []); HL.push([tick, foe.id, dl0]); if(HL.length > 16) HL.shift();
+    var HO = foe._hitOut || (foe._hitOut = []); HO.push([tick, b.id, dl0]); if(HO.length > 16) HO.shift(); }
+  // (v518a, пак 09.11 п.6) «ранен» — одно место для пули, HE и огня (раньше ставили только пули, 490 / 450): откуда — то, что знает живой игрок:
+  // пуля — откуда стреляли (звук выстрела + сторона попадания), HE / огонь — где разорвалось / горит. Реакция — hurtReactTick (350)
+  if(foe){ b._hurtT = tick; b._hurtSrc = src; b._hurtFrom = o.from || {x:foe.x, y:foe.y, z:foe.z}; }
   b.hp -= dmg;
+  // (v546, владелец 10.11: «боты слышат, как кто-то подгорает в молотове или получил урон от пули, от гранаты» — это инфа) звук попадания
+  // слышат враги раненого (moveSoundEmit — как шаги: за стеной ближе, место — пятно): пуля и HE — как бег (таблица владельца: 800–900 ед.,
+  // «как бег / чуть громче»), огонь — 600 / 800 бега. Чаще раза в HURT_SND_GAP у одного игрока не повторяется (проектное число)
+  if(roundState === "live" && src !== "C4" && tick - (b._hurtSndT || -1e9) >= HURT_SND_GAP){ b._hurtSndT = tick; var fireH = src === "молотов";
+    moveSoundEmit(b, SOUND_RADIUS_RUN*(fireH ? 600/800 : 1), "steps", fireH ? "горит в молотове" : "попадание"); }
   if(b.hp > 0) return false;
   b.alive = false; b.deaths++; b._killer = att && att !== b ? att.id : null;   // (v330) кто убил — для обсервера (показ)
   dropWeaponOnDeath(b);
@@ -142,7 +160,7 @@ function applyDamage(att, b, dmg, src, o){
   intelDeath(b, foe);   // своего убил свой — в войсе «минус», без «убил X»: враг тут ни при чём
   if(foe){ LOOK_REPLAN[foe.team] = true; foe._killHowT = tick; }   // _killHowT — для обсервера (показ)
   if(foe) hlKill(foe);   // (v447) хайлайт: серия в ударе
-  if(foe){ foe.kills++; foe.roundKills++; foe.money = Math.min(MAX_MONEY, foe.money + (o.reward || 300)); }
+  if(foe){ foe.kills++; foe.roundKills++; foe.money = Math.min(MAX_MONEY, foe.money + (o.reward || 300)); ecoKnowKill(foe, o.reward || 300); }   // (Г1) награда видна в киллфиде
   else if(mate) att.money = Math.max(0, att.money + FF_TK_CASH);
   var wkey = o.wkey || (src === "HE" ? "HE" : "MOLOTOV");
   logEvent((att?att.id:(src === "C4" ? "бомба" : "?"))+" ["+(o.wkey ? (WEAPONS[o.wkey] ? WEAPONS[o.wkey].name : o.wkey) : src)+"] "+(mate ? "убил своего " : att === b ? "убил себя " : "устранил ")+b.id+(o.note||""), true);
@@ -159,13 +177,18 @@ function applyDamage(att, b, dmg, src, o){
 // (v419) насколько флешка в точке n слепит b по направлению взгляда: 0 — не видит / дальше 1000, иначе 1 / 0,5 / 0,12 (прямо /
 // краем глаза / спиной). Одно место: хлопок (выше) и проверка перед броском «не слепит своих» (flashSafeFor, 350)
 function flashDirK(b, n){
-  var d = Math.hypot(b.x-n.x, b.y-n.y);
+  var d = n.z != null ? Math.hypot(b.x-n.x, b.y-n.y, (n.z - visFloorAt(b.x, b.y, b.z) - VIS_EYE.stand)/(MAP.pxUnits || 2.5)) : Math.hypot(b.x-n.x, b.y-n.y);
   if(d > 1000 || !flashSeen(b, n)) return 0;
   var a = Math.atan2(n.y-b.y, n.x-b.x);
   var off = b.facing === undefined ? 0 : Math.abs(((a - b.facing + Math.PI) % (2*Math.PI) + 2*Math.PI) % (2*Math.PI) - Math.PI);
   return off < 0.55 ? 1 : (off < 1.6 ? 0.5 : 0.12);  // смотрел прямо / краем глаза / спиной
 }
 function flashSeen(b, n){
+  // (v519, пак 09.11 п.4; А-22 / Р-7: «флешка, которая взрывается в стене, — надо учитывать высоту: над крышами на радаре она в стене») разрыв с
+  // высотой (флешка в полёте, 385) — линия от глаз бойца (его пол + рост) до точки разрыва той же 3D-геометрией карты: над крышей — видно, за
+  // стеной — нет. Точка без высоты (проверка перед броском «не слепит своих», 350) — как было: край в 30 / 60 ед. вне стены
+  if(n.z != null){ var ez = visFloorAt(b.x, b.y, b.z) + VIS_EYE.stand;
+    return !smokeBlocks(b.x, b.y, n.x, n.y) && (visMarch(b.x, b.y, ez, n.x, n.y, n.z) || visMarch(b.x, b.y, ez, n.x, n.y, n.z + 16)); }
   if(!insideSolidWall(n.x, n.y) && hasVision(b.x, b.y, n.x, n.y)) return true;
   for(var r = 30; r <= 60; r += 30) for(var k = 0; k < 8; k++){
     var a = k*Math.PI/4, x = n.x + Math.cos(a)*r, y = n.y + Math.sin(a)*r;
@@ -203,7 +226,7 @@ function nadesTick(){
         // (v323, М35) урон за удар растёт 1 → 8, удар раз в 0,2 с — чем дольше в огне, тем сильнее (fireDamageFor)
         if(!b._fireIn || b._fireIn.f !== fr){ b._fireIn = {f:fr, t:tick, hits:0}; }
         var hitsNow = Math.floor((tick - b._fireIn.t)/TICK_HZ/FIRE_HIT_SEC);
-        while(b._fireIn.hits < hitsNow && b.alive){ b._fireIn.hits++; if(SND && SND.on && b._fireIn.hits % 3 === 1) sndBody("burn", b.x, b.y); applyDamage(fr.thrower, b, Math.min(FIRE_HIT_MAX, b._fireIn.hits), "молотов"); }
+        while(b._fireIn.hits < hitsNow && b.alive){ b._fireIn.hits++; if(SND && SND.on && b._fireIn.hits % 3 === 1) sndBody("burn", b.x, b.y); applyDamage(fr.thrower, b, Math.min(FIRE_HIT_MAX, b._fireIn.hits), "молотов", {from:{x:fr.x, y:fr.y}}); }
       } else if(b._fireIn && b._fireIn.f === fr){ b._fireIn = null; }
     });
   }

@@ -1398,7 +1398,26 @@
    "Underpath"
   ]
  },
- "plays": {},
+ "plays": {
+  "ctFlank": {
+   "_src": "ответ владельца 9 от 04.11 (docs/tasks/OWNER_ANSWERS_2026-11-04.md): фланг CT по своей стороне через мид-проход прямо на сайт",
+   "end": "site",
+   "route": {
+    "A": [
+     "Window",
+     "Ladder",
+     "Connector",
+     "Jungle"
+    ],
+    "B": [
+     "Window",
+     "Ladder",
+     "Short"
+    ]
+   },
+   "stage": {}
+  }
+ },
  "geoMid": {
   "ct": {
    "x": 811.3,

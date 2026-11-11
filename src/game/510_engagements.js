@@ -16,7 +16,11 @@ function resolveEngagements(){
       if(!(ctP.head || ctP.body) && !(tP.head || tP.body)) return;
       // ван-вей: стоящий в самом краю дыма видит наружу, а его снаружи — нет
       var smk = smokeBlocks(ct.x,ct.y,t.x,t.y), ctOW = false, tOW = false;
-      if(smk){ if(!BAL.oneWay) return; ctOW = oneWaySees(ct, t); tOW = oneWaySees(t, ct); if(!ctOW && !tOW) return; }
+      // (v548) сквозь дым по дырам от пуль видна только часть тела, которая попала в окошко (smokeHoleParts, 360) — и цель — только она
+      if(smk){ ctOW = BAL.oneWay && oneWaySees(ct, t); tOW = BAL.oneWay && oneWaySees(t, ct);   // кромка дыма (ван-вей) — как раньше, целиком
+        if(!ctOW){ var ctH = smokeHoleParts(ct, t); ctP = {head: ctP.head && ctH.head, body: ctP.body && ctH.body}; if(ctP.head || ctP.body){ ctOW = true; ct._smkParts = {id: t.id, t: tick, head: ctP.head, body: ctP.body}; } }
+        if(!tOW){ var tH = smokeHoleParts(t, ct); tP = {head: tP.head && tH.head, body: tP.body && tH.body}; if(tP.head || tP.body){ tOW = true; t._smkParts = {id: ct.id, t: tick, head: tP.head, body: tP.body}; } }
+        if(!ctOW && !tOW) return; }
       // вне поля зрения видно только того, с кем контакт уже идёт (видел его ≤ 0,125 с назад). (аудит 11.10) Раньше хватало
       // контакта с ЛЮБЫМ врагом (contactStreak > 0): в перестрелке бот видел всех врагов на линии на 360°, и второго за спиной тоже
       var ctSees = (ctP.head || ctP.body) && (!smk || ctOW) && tick >= ct.blindUntil && (inFov(ct, t.x, t.y) || seenRecently(ct, t));
@@ -83,18 +87,18 @@ function resolveEngagements(){
       // (v450) и любой T в выходе, кто не видит врага дольше паузы про в перестрелке (PEEK_PRO.T.pause, верхний край — 2,7 с): перестрелка
       // кончилась, «держу» снимается, идёт по задаче (м3 р1: T4 10 с стоял «на линии», ни разу не видя врага)
       var tEx = b.team === "T" && bomb && bomb.state !== "planted" && teamTac.T && teamTac.T.phase === "execute";
-      var carGo = tEx && bomb.state === "carried" && bomb.carrier === b && b.post && /^plantspot/.test(b.post.tag);
+      var carGo = tEx && bomb.state === "carried" && bomb.carrier === b && b.post && taskProp(b.post.tag, "plantGo");
       var lostLong = tEx && tick - (b._lastSawT || -1e9) > PEEK_PRO.T.pause[4]*TICK_HZ;
-      if((carGo || lostLong) && b._fc){ b._fc = null; }
+      if((carGo || lostLong) && b._fc){ fcEnd(b, carGo ? "конец: несу бомбу ставить" : "конец: в выходе врага не вижу дольше паузы — иду по задаче"); }
       if(carGo || lostLong) taskAway = taskAway || (b.post && !b.atPost && Math.hypot(b.post.x-b.baseX, b.post.y-b.baseY) > 40);
       var stillWatching = b.holding && !taskAway && b.lastIntel && (tick - b.lastIntel.tick) < CAUTION_TICKS;
-      if(!stillWatching && b.state !== "patrol"){ b.state = "patrol"; b.holding = false; b.forcedRetreat = false; }
+      if(!stillWatching && b.state !== "patrol"){ fightState(b, "patrol", taskAway ? "врага не вижу, задача в другом месте" : "врага не вижу, угол больше не держу"); b.holding = false; b.forcedRetreat = false; }
       return;
     }
     if(tick - b.decisionTick < DECISION_INTERVAL_TICKS) return;
     if(b.planting || b.defusing) return; // закладывает/дефузит — решение уже принято
     b.decisionTick = tick;
-    var alliesNear = bots.filter(function(o){ return o!==b && o.team===b.team && o.alive && Math.hypot(o.x-b.x,o.y-b.y) < 550; }).length;
+    var alliesNear = bots.filter(function(o){ return o!==b && o.team===b.team && o.alive && nearP(o.x, o.y, o.z, b.x, b.y, b.z, 550); }).length;
     var enemiesSeen = bots.filter(function(o){ return o.team!==b.team && o.alive && Math.hypot(o.x-b.x,o.y-b.y) <= (b._nearestEnemyDist===Infinity? b.weapon.range : Math.max(b.weapon.range, b._nearestEnemyDist)) && hasVision(b.x,b.y,o.x,o.y) && inFov(b, o.x, o.y); }).length;
     var next = decideAction(b, b._nearestEnemyDist, alliesNear, enemiesSeen);
     // гистерезис: в отход и из отхода — не чаще раза в ~1.3с, иначе бот с низким
@@ -105,11 +109,14 @@ function resolveEngagements(){
       logEvent(b.id+": "+STATE_LABEL[next]+" (HP "+Math.max(0,b.hp)+"%, союзников рядом "+alliesNear+", врагов видит "+enemiesSeen+")");
       if(next === "engage") aggrNote(b.id);   // как выглядывать — fightCycleTick (перестрелка по данным, v250)
     }
-    b.state = next;
+    if(next !== b.state){ var AS = b._actS || [0, 0, 0]; fightState(b, next, "оценка: держать " + AS[0].toFixed(2) + " · атаковать " + AS[1].toFixed(2) + " · отойти " + AS[2].toFixed(2)); }
     if(next !== "patrol") b.roamChecking = false;
     b.holding = (next === "hold");
     b.holdSinceTick = b.holding ? (b.holdSinceTick===-999 ? tick : b.holdSinceTick) : -999;
-    b.crouching = b.holding && (tick - b.holdSinceTick > 25);
+    // (v521, дуэли: присед за низким укрытием рвал линию — враг пропадал, перестрелка «расходилась») держит угол — приседает, только если
+    // ближайший видимый враг виден и из приседа
+    var ceN = b._nearestEnemyBot, cvp = (b.holding && tick - b.holdSinceTick > 25 && ceN && b._sawEnemy) ? visParts(b.x, b.y, true, ceN.x, ceN.y, ceN.crouching, true, b.z, ceN.z) : null;
+    b.crouching = b.holding && (tick - b.holdSinceTick > 25) && (!cvp || !!(cvp.head || cvp.body || cvp.side));
     if(next === "retreat" && !b.forcedRetreat){
       // роумер отходит на предыдущую точку маршрута, а не на спавн
       var rt = (b.role === "roamer" && b.roamPrevPt) ? b.roamPrevPt : b.spawnPt;
@@ -236,7 +243,7 @@ function assignNewDestination(bot, tick){
   if(bot.post && bot.state === "patrol"){
     if(bot.atPost || bot.planting || bot.defusing) return; // стоит на посту — путь не нужен
     var epp = fireSafe(bot.post, bot);
-    bot.path = buildWaypointPath(bot.baseX, bot.baseY, bot.z, epp.x, epp.y, 0, bot.team, botLane(bot));
+    bot.path = buildWaypointPath(bot.baseX, bot.baseY, bot.z, epp.x, epp.y, (epp === bot.post && bot.post.z) || 0, bot.team, botLane(bot), bot.walking);   // (v546) высота поста (ящик), если известна
     bot.pathIdx = 0; bot.pickTick = tick;
     return;
   }
@@ -245,7 +252,7 @@ function assignNewDestination(bot, tick){
     var route = ROAM_ROUTES[bot.team];
     if(route && route.length){
       var rp = route[bot.roamIdx % route.length];
-      bot.path = buildWaypointPath(bot.baseX, bot.baseY, bot.z, rp.x, rp.y, 0, bot.team, botLane(bot));
+      bot.path = buildWaypointPath(bot.baseX, bot.baseY, bot.z, rp.x, rp.y, 0, bot.team, botLane(bot), bot.walking);
       bot.pathIdx = 0; bot.pickTick = tick; bot.roamTarget = rp;
       return;
     }

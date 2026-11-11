@@ -175,7 +175,25 @@ function zonePoint(name, near){
 }
 function zoneUserName(id){ if(ZONE_NAMES[id]) return zoneMainName(ZONE_NAMES[id]); var z = zoneById(id); return z && z.name ? (ZONE_DEFAULT_LABEL[z.name]||z.name) : null; }
 function zoneLabel(id){ return zoneUserName(id) || id; }
-function zoneIdAt(x, y){ for(var i=0;i<ZONEMAP.zones.length;i++){ if(pointInPoly(x, y, ZONEMAP.zones[i].points)) return ZONEMAP.zones[i].id; } return null; }
+// (Д3, скорость: профиль облака — проверка «точка в многоугольнике» ~5 % времени тика, отсюда — перебор всех зон) сетка: в клетке —
+// номера зон, чья рамка её задевает, по возрастанию; первая зона по порядку, в которой точка, — та же, что при полном переборе (бит в бит).
+// Сетка строится заново, если зоны заменены (applyZoneLayerToData — новые массивы точек) или редактор двигал точку (ZIDX = null, 560)
+var ZIDX = null, ZIDX_C = 64;
+function zoneIdxOk(){ var Z = ZONEMAP.zones; if(!ZIDX || ZIDX.refs.length !== Z.length) return false;
+  for(var i = 0; i < Z.length; i++) if(ZIDX.refs[i] !== Z[i].points) return false; return true; }
+function zoneIdxBuild(){
+  var cells = {}, refs = [];
+  ZONEMAP.zones.forEach(function(z, i){ refs.push(z.points); var P = z.points; if(!P || !P.length) return;
+    var x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity;
+    P.forEach(function(q){ if(q.x < x0) x0 = q.x; if(q.x > x1) x1 = q.x; if(q.y < y0) y0 = q.y; if(q.y > y1) y1 = q.y; });
+    for(var cx = Math.floor(x0/ZIDX_C); cx <= Math.floor(x1/ZIDX_C); cx++) for(var cy = Math.floor(y0/ZIDX_C); cy <= Math.floor(y1/ZIDX_C); cy++){
+      var k = cx+","+cy; (cells[k] || (cells[k] = [])).push(i); } });
+  ZIDX = {cells:cells, refs:refs};
+}
+function zoneIdAt(x, y){
+  if(!zoneIdxOk()) zoneIdxBuild();
+  var L = ZIDX.cells[Math.floor(x/ZIDX_C)+","+Math.floor(y/ZIDX_C)]; if(!L) return null;
+  for(var i = 0; i < L.length; i++){ var z = ZONEMAP.zones[L[i]]; if(pointInPoly(x, y, z.points)) return z.id; } return null; }
 // ---- "войс" (как тимспик): короткие коллы, которые слышит вся команда ----
 // где это на карте — простыми словами, по ближайшей известной точке
 // from=true — "откуда" (с A), иначе "где" (на A)
@@ -213,6 +231,9 @@ function knownRole(o){
 }
 function intelDeath(victim, killer){
   if(!victim || roundState !== "live") return;
+  // (v519, пак 09.11 п.10; А-38: «убили мид, убили двоих опорников A, а опорник другого сайта до сих пор стоит» — «T у другого сайта» считался
+  // по последней позиции уже убитого) смерть видна в киллфиде всем: убитый стирается из памяти команды сразу, одно место, а не в каждом читателе
+  ["CT", "T"].forEach(function(t){ if(beliefLast[t]) delete beliefLast[t][victim.id]; });
   if(BAL.roundMem && killer){
     var secR = (tick - roundStartTick)/TICK_HZ;
     if(killer.team === "CT" && killer.weapon && killer.weapon.key === "AWP") RMEM.awp.push({x:killer.x, y:killer.y, round:roundNum});
@@ -224,13 +245,8 @@ function intelDeath(victim, killer){
   var saw = killer && hasVision(victim.x, victim.y, killer.x, killer.y);
   intelPush(victim.team, {type:"died", x:victim.x, y:victim.y, id:victim.id, conf:1, kid: killer ? killer.id : null, kx: saw ? killer.x : null, ky: saw ? killer.y : null});   // кто убил — видно в киллфиде
   if(saw) intelPush(victim.team, {type:"spotted", x:killer.x, y:killer.y, id:killer.id, by:victim.id, conf:1});
-  else if(killer){
-    // не видел, кто убил, но по попаданиям/звуку выстрела понятно, откуда
-    // стреляли — примерно (±~90px), как "убили откуда-то с ..." в войсе
-    var jx = (hashRand(tick*31 + (victim.id.charCodeAt(victim.id.length-1)||0)) - 0.5) * 180;
-    var jy = (hashRand(tick*57 + 7) - 0.5) * 180;
-    intelPush(victim.team, {type:"sound", x:killer.x+jx, y:killer.y+jy, id:killer.id, by:victim.id, kind:"shot", conf:0.6});
-  }
+  // (00_PLAN, аудит 2.2, 05.11) не видел, кто убил, — «убили откуда-то с …» говорит в войс сам погибший (230: teamDeath, с задержкой фразы),
+  // а не мгновенно в память команды (было: intelPush «sound» ±90 px в тик смерти — раньше, чем это можно сказать)
   var place = calloutName(victim.x, victim.y);
   var mine = aliveCount(victim.team), theirs = aliveCount(victim.team === "CT" ? "T" : "CT");
   voiceLog(victim.team, "die"+victim.id, victim.id, "минус "+place+
@@ -275,8 +291,8 @@ function intelDeath(victim, killer){
       // как все; раненый уходит (lowHpBack) или отдаёт бомбу (bombPassTick, HP ≤ 30) — общие правила. Раньше при 3+ живых не менял
       // (v154) снайпер и лёркер T в дефолте на размен не срываются: у про их роль — держать свою линию
       if(BAL.duelValue && !(bomb && bomb.state === "planted") && ((o.weapon && o.weapon.key === "AWP") || (o.team === "T" && o.tRole === "lurker" && teamTac.T && teamTac.T.phase === "setup"))) return;
-      if(Math.hypot(o.x-victim.x, o.y-victim.y) > TRADE_R) return;   // (v248) разменивает тот, кто рядом (как у про)
-      var L = polyLen(pathPts(o.x, o.y, victim.x, victim.y));
+      if(!nearP(o.x, o.y, o.z, victim.x, victim.y, victim.z, TRADE_R)) return;   // (v248) разменивает тот, кто рядом (как у про)
+      var L = polyLen(pathPts(o.x, o.y, victim.x, victim.y, o.z, victim.z));
       if(L <= 480) cands.push({b:o, L:L});
     });
     cands.sort(function(a, c){ return a.L - c.L; });
@@ -330,9 +346,9 @@ function intelDeath(victim, killer){
       if(!o.alive || o.team !== victim.team || o === victim || o.planting || o.defusing || o._sawEnemy || o._tradeLock || o._fillLock) return;
       if(o.team === "T" && (o.tRole === "lurker" || (bomb && bomb.carrier === o))) return;
       if(Math.hypot(o.x-fc.x, o.y-fc.y) > 2*FILL_NEAR && aliveCount(victim.team) < 3) return;
-      var L = polyLen(pathPts(o.x, o.y, fc.x, fc.y)), near = L <= FILL_NEAR;
+      var L = polyLen(pathPts(o.x, o.y, fc.x, fc.y, o.z)), near = L <= FILL_NEAR;
       if(!near && aliveCount(victim.team) < 3) return;
-      if(!near && !bots.some(function(m){ return m !== o && m.alive && m.team === o.team && Math.hypot(m.x-o.x, m.y-o.y) <= TRADE_R; })) return;
+      if(!near && !bots.some(function(m){ return m !== o && m.alive && m.team === o.team && nearP(m.x, m.y, m.z, o.x, o.y, o.z, TRADE_R); })) return;
       if(!near && intelEstimate(o.team, o.x, o.y, 600, 4*TICK_HZ).n > 0) return;
       if(L < fL){ fL = L; fBest = o; }
     });

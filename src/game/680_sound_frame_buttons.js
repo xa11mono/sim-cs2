@@ -22,6 +22,8 @@ function sndLoad(){
 }
 // запись с громкостью g; вдали глуше (фильтр по расстоянию: far 0..1)
 function sndPlay(key, g, far, delay){
+  // (v518d) повтор идёт и в начале нового раунда (675, RP_K.live): звуки живой игры под ним молчат, звучит только повтор
+  if(typeof RP !== "undefined" && RP.on && !RP.sndOwn) return false;
   var B = SND.buf[key]; if(!B) return false;
   var c = SND.ctx, t0 = c.currentTime + (delay||0), src = c.createBufferSource(); src.buffer = B;
   var fl = c.createBiquadFilter(); fl.type = "lowpass"; fl.frequency.value = 18000 - 15000*Math.min(1, far||0);
@@ -111,8 +113,9 @@ function sndBody(kind, x, y, o){
 function sndFireTick(){
   if(!SND || !SND.ctx) return;
   var M = SND.fireMap || (SND.fireMap = new Map());
-  M.forEach(function(v, f){ if(!SND.on || fires.indexOf(f) < 0){ try{ v.stop(); }catch(e){} M.delete(f); } });
-  if(!SND.on || !SND.buf.n_fireloop) return;
+  // (v530, владелец 10.11: «звук молотова при паузе цикличен») на паузе треск огня замолкает, после паузы — снова
+  M.forEach(function(v, f){ if(!SND.on || paused || fires.indexOf(f) < 0){ try{ v.stop(); }catch(e){} M.delete(f); } });
+  if(!SND.on || paused || !SND.buf.n_fireloop) return;
   fires.forEach(function(f){
     if(M.has(f)) return; var g = sndGain(f.x, f.y, SND_R.nade, "fire"); if(!g) return;
     var c = SND.ctx, src = c.createBufferSource(); src.buffer = SND.buf.n_fireloop; src.loop = true;

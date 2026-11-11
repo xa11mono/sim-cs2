@@ -9,10 +9,18 @@ function pathQ(key, fn){
   if(PATHQ_N > 6000){ PATHQ = {}; PATHQ_N = 0; }
   var v = fn(); PATHQ[key] = {t: tick, v: v}; PATHQ_N++; return v;
 }
-function pathPts(ax, ay, bx, by){
-  var Q = PATHQ_Q, p = pathQ("p"+Math.round(ax/Q)+","+Math.round(ay/Q)+">"+Math.round(bx/Q)+","+Math.round(by/Q), function(){ return buildWaypointPath(ax, ay, 0, bx, by, 0); });
+// (00_PLAN п.3б, 05.11) az / bz — высота начала / конца (бот, бомба): без неё путь строился от высоты 0, и там, где этажи один над
+// другим, начало бралось то на одном этаже, то на другом (оценка «через сколько дойду» у стоящего бота прыгала на 7 с). Нет высоты — 0, как было
+function pathPts(ax, ay, bx, by, az, bz){
+  var Q = PATHQ_Q, zk = (az == null ? "" : ","+Math.round(az/9)) + (bz == null ? "" : ">"+Math.round(bz/9));
+  var p = pathQ("p"+Math.round(ax/Q)+","+Math.round(ay/Q)+">"+Math.round(bx/Q)+","+Math.round(by/Q)+zk, function(){ return buildWaypointPath(ax, ay, az == null ? 0 : az, bx, by, bz == null ? 0 : bz); });
   return [[ax,ay]].concat(p.map(function(q){ return [q[0], q[1]]; }));
 }
+// (v532, владелец 10.11: «переведи на длину пути») «рядом» для решений (свой разменяет, сколько своих и врагов рядом, враг рядом) — по длине
+// пути, а не по прямой сквозь стены. Путь не короче прямой: дальше R по прямой — сразу «нет», без поиска пути; ближе NEAR_P_SAME — «да» (стена
+// между двумя точками в паре шагов дорогу почти не удлиняет). Путь — общий (без цены команды), высота — если известна. Одно место для всех
+var NEAR_P_SAME = 40;   // px — проектное число
+function nearP(ax, ay, az, bx, by, bz, R){ var d = Math.hypot(bx-ax, by-ay); if(d >= R) return false; if(d < NEAR_P_SAME) return true; return polyLen(pathPts(ax, ay, bx, by, az, bz)) < R; }
 function polyLen(pts){ var L=0; for(var i=1;i<pts.length;i++) L += Math.hypot(pts[i][0]-pts[i-1][0], pts[i][1]-pts[i-1][1]); return L; }
 function pointAtDist(pts, d){ // точка на ломаной на расстоянии d от начала
   var acc = 0;
@@ -79,11 +87,16 @@ function sitePlantOptions(k){
   var def = site.plant || sitePlantSpot(site), safe = null, open = null, bs = -Infinity, bo = -Infinity;
   // (v381, М135, владелец 16.10: «бомба ставится на укрытии») варианты — только места, где ставили про (MAP.pro.plants из демок):
   // центры участков навмеша на сайте включали верх ящиков и укрытий. Мест про нет — как раньше, участки навмеша
-  var PP = sitePlantPro(k);
+  // (v519, пак 09.11 п.20) места планта — только внутри зоны сайта и не на укрытии (раньше места про не проверялись ни тем, ни другим)
+  var PP = sitePlantPro(k).filter(function(c){ return (!site.poly || pointInPoly(c.x, c.y, site.poly)) && !covAt(c.x, c.y); });
+  if(covAt(def.x, def.y) && PP.length) def = {x:PP[0].x, y:PP[0].y};
+  // (v519, Р-10: бомбу «можно быстро убить с Palace Exit, Тетриса и других позиций») «безопасный» — не видно ни с одного места, откуда заходят CT
+  // (ctEntry и точки ретейка сайта, набор карты pos.<сайт>.ctRetake), а не только с одной точки входа
+  var ctIn = [g.ctEntry].concat(((POS[k] && POS[k].ctRetake) || []).map(function(n){ return zonePoint(n, def); })).filter(function(q){ return q && q.x != null; });
   (PP.length ? PP : (site.poly ? NAVAREAS.filter(function(z){ return !NAV_BLOCKED[z.id] && (zoneGraph[z.id]||[]).length; }).map(zoneCentroid) : [])).forEach(function(c){
     if(!PP.length && (!pointInPoly(c.x, c.y, site.poly) || insideSolidWall(c.x, c.y))) return;
     var dd = Math.hypot(c.x-def.x, c.y-def.y);
-    var sS = (hasLOS(c.x, c.y, g.ctEntry.x, g.ctEntry.y) ? 0 : 2) + (hasLOS(c.x, c.y, g.anchor.x, g.anchor.y) ? 0 : 0.5) - dd/400;
+    var sS = 2*ctIn.filter(function(q){ return !hasLOS(c.x, c.y, q.x, q.y); }).length/ctIn.length + (hasLOS(c.x, c.y, g.anchor.x, g.anchor.y) ? 0 : 0.5) - dd/400;
     var sO = (hasLOS(c.x, c.y, g.tEntry.x, g.tEntry.y) ? 2 : 0) + (hasLOS(c.x, c.y, g.tStage.x, g.tStage.y) ? 1 : 0) - dd/400;
     if(sS > bs){ bs = sS; safe = {x:c.x, y:c.y}; }
     if(sO > bo){ bo = sO; open = {x:c.x, y:c.y}; }
@@ -128,15 +141,19 @@ function choosePlant(tt){
 var PLANT_CELL = 24;
 function canPlantAt(k, x, y){
   var S = SITES[k]; if(!S) return false;
-  if(onSite(S, x, y)) return true;
-  return sitePlantPro(k).some(function(p){ return Math.abs(p.x-x) <= PLANT_CELL/2 && Math.abs(p.y-y) <= PLANT_CELL/2; });
+  if(covAt(x, y)) return false;   // (v519, пак 09.11 п.20; Р-11: «укрытия попадают внутрь зоны — на них плентить не могут»)
+  // (v519, владелец 09.11: «мы делали красную зону плантов — только в ней могут плентить») было ещё «или клетка, где ставили про» — она бывала
+  // и вне зоны; зоны сайта нет — как раньше (места про)
+  if(S.poly) return onSite(S, x, y);
+  return onSite(S, x, y) || sitePlantPro(k).some(function(p){ return Math.abs(p.x-x) <= PLANT_CELL/2 && Math.abs(p.y-y) <= PLANT_CELL/2; });
 }
 function sitePlantPro(k){
   return ((MAP.pro && MAP.pro.plants) || []).filter(function(p){ return p.site === k; }).sort(function(a, c){ return c.share - a.share; })
     .map(function(p){ return {x: p.x, y: p.y, share: p.share}; });
 }
 function sitePlantSpot(site){
-  var PP = sitePlantPro(site.key); if(PP.length) return {x: PP[0].x, y: PP[0].y};   // (v381, М135) самое частое место планта про
+  var PP = sitePlantPro(site.key).filter(function(c){ return (!site.poly || pointInPoly(c.x, c.y, site.poly)) && !covAt(c.x, c.y); });   // (v519) в зоне, не на укрытии
+  if(PP.length) return {x: PP[0].x, y: PP[0].y};   // (v381, М135) самое частое место планта про
   if(!site.poly) return {x:site.x, y:site.y};
   var c = centroidOf(site.poly), best = null, bd = Infinity;
   NAVAREAS.forEach(function(z){
@@ -187,7 +204,7 @@ function pickSpots(key, center, count, o){
   var expT = BAL.openAngles ? ((o && o.team) || SPOT_TEAM) : null;
   var ppTeam = BAL.proPrior ? ((o && o.team) || SPOT_TEAM) : null, ppL = ppTeam ? ppLayer(ppTeam) : null;
   var ck = key+"|"+count+"|"+Math.round(center.x)+","+Math.round(center.y) + (expT ? "|e"+expT : "") +
-    (o && o.cross ? "|x"+Math.round(o.cross.from.x/40)+","+Math.round(o.cross.from.y/40) : "") + (ppL ? "|p"+ppL : "");
+    (o && o.cross ? "|x"+Math.round(o.cross.from.x/40)+","+Math.round(o.cross.from.y/40) : "") + (ppL ? "|p"+ppL : "") + (o && o.zone ? "|z"+o.zone : "");
   if(spotCache[ck]) return spotCache[ck];
   o = o || {};
   var rMin = o.rMin||0, rMax = o.rMax||170, gap = o.minGap||55;
@@ -198,6 +215,7 @@ function pickSpots(key, center, count, o){
     var d = Math.hypot(c.x-center.x, c.y-center.y);
     if(d < rMin || d > rMax) return;
     if(insideSolidWall(c.x, c.y)) return;
+    if(o.zone && zoneIdAt(c.x, c.y) !== o.zone) return;   // (Г4, 04.11, п.13) место — внутри названной зоны
     if(o.must && !o.must.every(function(m){ return hasLOS(c.x, c.y, m.x, m.y); })) return;
     if(o.reach && segCrossesManualWalls(center.x, center.y, c.x, c.y) && d < 60) return;
     var sc = 0;

@@ -78,6 +78,16 @@ function flankPost(b, F, planted){
   if(!F.routed){ F.routed = true;
     startRoute(b, CF.route[fk], "flank"+F.site); }
   var fst = CF.stage[fk];
+  // (00_PLAN, ответ владельца 9 от 04.11) фланг «по своей стороне прямо на сайт» (набор карты: ctFlank.end = "site", Mirage): после маршрута —
+  // с последней его зоны на сайт (вход CT), без захода на сторону T
+  if(CF.end === "site"){
+    var rr = CF.route[fk] || [], lastZ = rr.length ? zonePoint(rr[rr.length-1], g.ctEntry) : null;
+    var ptsS = [{p: lastZ || g.ctEntry, look: SITES[F.site], tag: "flank0"}, {p: planted && bomb ? walk({x:bomb.x, y:bomb.y}) : g.anchor, look: g.tEntry, tag: "flank1"}];
+    if(F.stage >= ptsS.length) return false;
+    var PS = ptsS[F.stage]; setPost(b, PS.p, PS.look, true, PS.tag);
+    if(b.atPost && b.post && b.post.tag === PS.tag){ if(!F.arr) F.arr = tick; if(tick - F.arr > 40){ F.stage++; F.arr = 0; } }
+    return true;
+  }
   var pts = [
     {p: (fst && zonePoint(fst, g.tStage)) || GEO.tMid,  look: g.tStage, tag: "flank0"},
     {p: g.tStage,  look: g.tEntry, tag: "flank1"},
@@ -142,7 +152,7 @@ function ctEarlyPeek(b, ct){
   var zs = npZoneOf(b), k = zs === "A" || zs === "B" ? zs : (Math.hypot(b.x-SITES.A.x, b.y-SITES.A.y) < Math.hypot(b.x-SITES.B.x, b.y-SITES.B.y) ? "A" : "B");
   if(!/^(anchor|roamer|mid)/.test(b.tRole)) return false;
   // (v248) за инфой — не в одиночку: один выглядывает, тиммейт рядом на размене [11]
-  if(E.st === 0 && !bots.some(function(o){ return o !== b && o.alive && o.team === b.team && Math.hypot(o.x-b.x, o.y-b.y) <= TRADE_R; })) return false;
+  if(E.st === 0 && !bots.some(function(o){ return o !== b && o.alive && o.team === b.team && nearP(o.x, o.y, o.z, b.x, b.y, b.z, TRADE_R); })) return false;
   // (v285, владелец 14.10) опорник выходит за инфой, только если на его сайте остаётся свой (≤450 px — как защитники в ротациях)
   if(E.st === 0 && /^anchor/.test(b.tRole) && !bots.some(function(o){ return o !== b && o.alive && o.team === b.team && Math.hypot(o.x-SITES[k].x, o.y-SITES[k].y) < 450; })) return false;
   // (v450, док владельца 28.10 №5: «в расстановке 3-0-2 kyousuke идёт пикать окно, хотя на миду 0») роль «мид» пикает с мида, только если
@@ -158,8 +168,9 @@ function ctEarlyPeek(b, ct){
     if(!E.pt){ E.st = 2; return false; }
     E.st = 1;
     voiceLog("CT", "early"+b.id, b.id, "выгляну за инфой "+calloutName(E.pt.x, E.pt.y));
-    // флешка себе под ранний пик (если есть и не эко у соперника)
-    if(BAL.ctEarlyUtil && b.nades && b.nades.flash > 0 && !antiEco("CT") && hashRand(roundNum*97 + b.id.charCodeAt(2)*5) < 0.6){
+    // (00_PLAN п.14, владелец 05.11) под ранний пик — сначала «накиньте флешку» (365: nadeAskFlash); некому — флешка себе (если есть и не эко у соперника)
+    if(BAL.ctEarlyUtil && !antiEco("CT") && nadeAskFlash(b, stg, "флешу под ранний пик "+b.id)){}
+    else if(BAL.ctEarlyUtil && b.nades && b.nades.flash > 0 && !antiEco("CT") && hashRand(roundNum*97 + b.id.charCodeAt(2)*5) < 0.6){
       var whyF = "себе под ранний пик "+b.id;
       throwNade(b, "flash", stg.x, stg.y, true, whyF);
       b._waitPopUntil = tick + Math.round(1.1*TICK_HZ); b._waitPopKey = "pop:"+whyF;
@@ -172,11 +183,14 @@ function ctEarlyPeek(b, ct){
     // до A Hall, в 4 % — до Stairs (88 демок, первые 35 с); у ботов до v271 — 0 (стояли у входа 2,5 с и назад).
     // Дальше идти некуда — «пусто» в войс (markClear: знание команды и колл «чекнул … — пусто») и назад на точку
     if(tick - E.arr > 0.8*TICK_HZ && !E.deepDone){
-      var wp = buildWaypointPath(b.x, b.y, 0, stg.x, stg.y, 0), nxt = null;
+      // (00_PLAN, владелец 05.11: «на Top Mid — не один: либо вдвоём по миду, либо кто-то держит с Short, чтобы Top Mid был виден») подпуш
+      // дальше — только в связке: свой рядом (TRADE_R) или свой видит точку подпуша; дальше — до последней такой точки
+      var paired = function(q){ return bots.some(function(o){ return o !== b && o.alive && o.team === b.team && (nearP(o.x, o.y, o.z, q.x, q.y, q.z, TRADE_R) || hasLOS(o.x, o.y, q.x, q.y, o.z)); }); };
+      var wp = buildWaypointPath(b.x, b.y, b.z, stg.x, stg.y, 0), nxt = null;   // (п.3б) с высотой бота
       for(var wi = 0; wi < wp.length; wi++){
         var q = {x: wp[wi][0], y: wp[wi][1]}, zq = bzOf(q.x, q.y);
         if(zq < 0 || reachPossible("CT", zq)) break;   // туда T уже могли дойти — дальше не лезем
-        nxt = q;
+        if(paired(q)) nxt = q;
       }
       if(nxt && Math.hypot(nxt.x-b.x, nxt.y-b.y) > 60){ E.pt = walk(nxt); E.arr = 0; E.deep = (E.deep||0) + 1; setPost(b, E.pt, stg, true, "earlyPeek"); return true; }
       E.deepDone = true;
@@ -207,7 +221,15 @@ function ctClutch(b, ct){
   if(car && tick - car.tick < 8*TICK_HZ){ var dA = Math.hypot(car.x-SITES.A.x, car.y-SITES.A.y), dB = Math.hypot(car.x-SITES.B.x, car.y-SITES.B.y); if(Math.min(dA, dB) < 1000) carSite = dA < dB ? "A" : "B"; }
   var mA = beliefCount("CT", BZ.siteNear.A||[]), mB = beliefCount("CT", BZ.siteNear.B||[]);
   var infoSite = mA > mB + 0.5 ? "A" : (mB > mA + 0.5 ? "B" : null);
-  var want = plantSite || carSite || infoSite;
+  // (v530, отметка владельца 10.11: «у него всех убили на A, он до сих пор на посту на B») карта вероятностей за 30 с остыла, и последний CT
+  // «угадывал ближний сайт», хотя команда знала факты: где в этом раунде в последний раз видели живых T (радар, войс). Нет свежей инфы —
+  // сайт, у которого их видели последним (большинство); не видели никого — как раньше, угадывает
+  var seenSite = null;
+  if(!plantSite && !carSite && !infoSite){ var BLc = beliefLast.CT || {}, nA = 0, nB = 0;
+    for(var sid in BLc){ var sq = BLc[sid], so = teamBot(sid); if(!so || !so.alive || so.team !== "T" || sq.tick < roundStartTick) continue;
+      if(Math.hypot(sq.x-SITES.A.x, sq.y-SITES.A.y) < Math.hypot(sq.x-SITES.B.x, sq.y-SITES.B.y)) nA++; else nB++; }
+    if(nA !== nB) seenSite = nA > nB ? "A" : "B"; }
+  var want = plantSite || carSite || infoSite || seenSite;
   var nT = aliveCount("T");
   if(!C.site){
     C.site = want || (Math.hypot(b.x-SITES.A.x, b.y-SITES.A.y) < Math.hypot(b.x-SITES.B.x, b.y-SITES.B.y) ? "A" : "B");
@@ -215,7 +237,7 @@ function ctClutch(b, ct){
     voiceLog("CT", "clutch", b.id, "я один против "+nT+" — "+(want ? "по инфе они на "+C.site+", играю "+C.site : "угадываю "+C.site+", тяну время"));
   } else if(want && want !== C.site){
     if(C.want !== want){ C.want = want; C.wantSince = tick; }
-    if(plantSite || carSite || tick - C.wantSince > 8*TICK_HZ){
+    if(plantSite || carSite || (seenSite && want === seenSite) || tick - C.wantSince > 8*TICK_HZ){   // (v530) «где видели последним» — факт, не колеблется: без выдержки 8 с
       C.site = want; C.since = tick;
       voiceLog("CT", "clutchsw"+C.site, b.id, (plantSite ? "плант на "+want : carSite ? "бомба у "+want : "инфа на "+want)+" — иду туда");
     }

@@ -22,7 +22,7 @@ function nadeRoleCost(b){
   var r = (PROLE_NADES[b.team]||{})[pRole(b)]; if(r == null) return 0;
   return (2.4 - r) * BAL.utilRoleK;
 }
-var FB = { enemies:2, window:3, deathR:900, hurtHp:70, back:320, rMax:220, gainED:150, lock:10 };
+var FB = { enemies:2, window:3, deathR:900, back:320, rMax:220, gainED:150, lock:10 };
 function tFallbackTick(){
   if(!BAL.fallbackAll || tick % 8 || roundState !== "live" || (bomb && bomb.state === "planted")) return;
   var tt = teamTac.T; if(!tt || tt.phase !== "setup") return;
@@ -32,17 +32,17 @@ function tFallbackTick(){
     if(!b.alive || b.team !== "T" || b._sawEnemy || b.planting || b._fbRound === roundNum) return;
     if(bomb && bomb.state === "carried" && bomb.carrier === b && tt.phase !== "setup") return;
     if(!taskCanSet(b, "repos:fallback")) return;   // (v378) идёт по задаче не ниже отката — арбитр места
-    if(b.post && /^(exec|stage)/.test(b.post.tag||"")) return;   // на стадии / выходе по плану — не откатывается (решение плана, не важность)
+    if(b.post && taskProp(b.post.tag, "planStage")) return;   // на стадии / выходе по плану — не откатывается (решение плана, не важность)
     var zb = bzOf(b.x, b.y); if(zb < 0) return;
     var L = beliefLast.T || {}, ids = 0, cx = 0, cy = 0;
     for(var eid in L){ var lo = L[eid]; if(tick - lo.tick > FB.window*TICK_HZ) continue; var eb = bots.filter(function(o){ return o.id === eid; })[0]; if(!eb || !eb.alive) continue;
       if(Math.hypot(lo.x-b.x, lo.y-b.y) > 900) continue; ids++; cx += lo.x; cy += lo.y; }
     var mates = bots.filter(function(o){ return o !== b && o.alive && o.team === "T" && Math.hypot(o.x-b.x, o.y-b.y) <= 350; }).length;
     var died = intelDeathsNear("T", b.x, b.y, FB.deathR, FB.window*TICK_HZ) > 0;
-    var hurt = b._hurtT && tick - b._hurtT < 2*TICK_HZ && b.hp < FB.hurtHp;
-    // повод: их больше, чем нас тут; погиб свой рядом без размена; ранен
+    // повод: их больше, чем нас тут; погиб свой рядом без размена. (v518a, пак 09.11 п.6) «ранен» — не здесь: одна реакция на урон в любом
+    // состоянии — hurtReactTick (350); было три частных правила (тут только фаза setup до планта, у CT — только впереди сайтов, 250 — только на посту)
     var solo = b.tRole === "lurker" && mates === 0;
-    var why = ((ids >= 2 && ids > mates + 1) || (solo && ids >= 1)) ? "их "+ids+" — отхожу" : (died && mates === 0) ? "минус рядом — отхожу" : hurt ? "ранен — отхожу" : null;
+    var why = ((ids >= 2 && ids > mates + 1) || (solo && ids >= 1)) ? "их "+ids+" — отхожу" : (died && mates === 0) ? "минус рядом — отхожу" : null;
     if(!why) return;
     var th = ids ? {x:cx/ids, y:cy/ids} : (b.lastIntel ? {x:b.lastIntel.x, y:b.lastIntel.y} : null);
     var dx = th ? b.x-th.x : 0, dy = th ? b.y-th.y : 0, dl = Math.hypot(dx, dy);
@@ -106,7 +106,7 @@ function siteRebalanceTick(){
   });
   ["A","B"].forEach(function(k){
     var site = SITES[k];
-    var defs = cts.filter(function(o){ return o.atPost && o.post && !o._sawEnemy && !o.nadeTask && Math.hypot(o.post.x-site.x, o.post.y-site.y) < REBAL.R && /^(anchor|rotator|set:|stack|cts:|rebal|rotateHold|sitehold)/.test(o.post.tag); });
+    var defs = cts.filter(function(o){ return o.atPost && o.post && !o._sawEnemy && !o.nadeTask && Math.hypot(o.post.x-site.x, o.post.y-site.y) < REBAL.R && taskProp(o.post.tag, "siteDefender"); });
     if(!defs.length) return;
     var T = defs.map(function(o){ return rebalLookOf(o); });
     defs.forEach(function(o, i){
@@ -154,9 +154,8 @@ function infoFallbackTick(){
     // (v291, И31, владелец 14.10: раунд 1, тик 2858 — игрок 6 на Mid «минус рядом» от смерти на Back Site: 926 px по прямой,
     // 1150 пешком, другой конец карты) смерть рядом — по длине пути, а не по прямой
     var died = teamIntel.CT.sig.some(function(sg){ return sg.type === "died" && tick - sg.tick <= FB.window*TICK_HZ && Math.hypot(sg.x-b.x, sg.y-b.y) < FB.deathR &&
-      polyLen(pathPts(b.x, b.y, sg.x, sg.y)) < FB.deathR; });
-    var hurt = b._hurtT && tick - b._hurtT < 2*TICK_HZ && b.hp < FB.hurtHp;
-    var why = ids >= FB.enemies ? "их "+ids+" — откатываюсь" : died ? "минус рядом — откатываюсь" : hurt ? "ранен — откатываюсь" : null;
+      polyLen(pathPts(b.x, b.y, sg.x, sg.y, b.z)) < FB.deathR; });
+    var why = ids >= FB.enemies ? "их "+ids+" — откатываюсь" : died ? "минус рядом — откатываюсь" : null;   // (v518a) «ранен» — hurtReactTick (350)
     if(!why) return;
     var th = ids ? {x:cx/ids, y:cy/ids} : (b.lastIntel ? {x:b.lastIntel.x, y:b.lastIntel.y} : null);
     // назад = от угрозы, дальше от вражеского спавна

@@ -193,20 +193,20 @@ function zoneShapeMouseDown(e){
   var w = navScreenToWorld(e.clientX, e.clientY), tol = 8/view.scale;
   for(var i=0;i<z.points.length;i++){
     if(Math.hypot(z.points[i].x-w.x, z.points[i].y-w.y) < tol){
-      if(e.shiftKey){ if(z.points.length > 3){ z.points.splice(i,1); saveZoneShape(z.id); draw(); } return true; }
+      if(e.shiftKey){ if(z.points.length > 3){ z.points.splice(i,1); ZIDX = null; saveZoneShape(z.id); draw(); } return true; }
       zsDrag = i; return true;
     }
   }
   for(var j=0;j<z.points.length;j++){
     var a = z.points[j], b2 = z.points[(j+1)%z.points.length];
-    if(segPtDist(w.x, w.y, a.x, a.y, b2.x, b2.y) < tol){ z.points.splice(j+1, 0, {x:w.x, y:w.y}); zsDrag = j+1; draw(); return true; }
+    if(segPtDist(w.x, w.y, a.x, a.y, b2.x, b2.y) < tol){ z.points.splice(j+1, 0, {x:w.x, y:w.y}); ZIDX = null; zsDrag = j+1; draw(); return true; }
   }
   return false;
 }
 cv.addEventListener("mousemove", function(e){
   if(zsDrag < 0 || !zoneNameSel) return;
   var z = zoneById(zoneNameSel); if(!z || !z.points[zsDrag]) return;
-  var w = navScreenToWorld(e.clientX, e.clientY); z.points[zsDrag].x = w.x; z.points[zsDrag].y = w.y; draw();
+  var w = navScreenToWorld(e.clientX, e.clientY); z.points[zsDrag].x = w.x; z.points[zsDrag].y = w.y; ZIDX = null; draw();
 });
 window.addEventListener("mouseup", function(){ if(zsDrag >= 0){ zsDrag = -1; if(zoneNameSel) saveZoneShape(zoneNameSel); } });
 var zoneNamePanel = document.getElementById("zoneNamePanel"), zoneNameInput2 = document.getElementById("zoneNameInput2");

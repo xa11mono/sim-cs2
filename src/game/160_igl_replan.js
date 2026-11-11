@@ -146,7 +146,7 @@ function stagePost(mem, k){
   mem = mem.filter(function(b){
     if(!(dSt > 0)) return true;
     var dB = pathLenTo(b, SITES[k].x, SITES[k].y); if(!(dB > 0) || dB > dSt - AHEAD_GAP) return true;
-    if(b.post && /^stage/.test(b.post.tag) && /:ahead$/.test(b.post.tag)) return false;   // уже ждёт впереди
+    if(b.post && /^stage/.test(b.post.tag) && taskProp(b.post.tag, "waitsAhead")) return false;   // уже ждёт впереди
     groupPost([b], {x:b.x, y:b.y}, g.tEntry, "stage"+k+":ahead", {rMax:160, minGap:40, hideFrom:[SITES[k], g.anchor], see:[g.tEntry]});
     return false; });
   if(!mem.length) return;
@@ -185,10 +185,11 @@ function tSetSite(tt, site){
     // (п.4 владельца 29.10, м1 р2: после перекола B→A носитель ещё 3 с шёл на «stageB» в B Apartments) пост под старый сайт (стадия,
     // зачистка, удержание) — снят: новый даст тактика под новый сайт
     var tg = b.post && b.post.tag;
-    if(old && old !== site && tg && (tg.indexOf("stage" + old) === 0 || tg.indexOf("sitehold" + old) === 0 || tg.indexOf("clear" + old) === 0)) clearPost(b);
+    // (v519, пак 09.11 п.12) и проба под старый сайт (у пробы свой тег probe…, раньше не снималась — после перекола бот ещё шёл «посмотреть» старый сайт)
+    if(old && old !== site && tg && (tg.indexOf("stage" + old) === 0 || tg.indexOf("sitehold" + old) === 0 || tg.indexOf("clear" + old) === 0 || (tg.indexOf("probe" + old) === 0))){ clearPost(b); if(b._probe) b._probe = null; }
     var t = b.nadeTask;
     if(old && old !== site && t && SITES[old] && Math.hypot(t.x-SITES[old].x, t.y-SITES[old].y) < Math.hypot(t.x-SITES[site].x, t.y-SITES[site].y)){
-      b.nadeTask = null; b.nadeQueue = null; if(b.post && b.post.tag === "lineup") clearPost(b);
+      b.nadeTask = null; b.nadeQueue = null; if(b.post && taskProp(b.post.tag, "lineupTask")) clearPost(b);
     }
   });
 }

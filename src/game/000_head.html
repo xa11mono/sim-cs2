@@ -45,6 +45,8 @@
   @keyframes sbLow{50%{opacity:.55;}}
   #scoreboard .sb-time.bomb{color:var(--bomb);}
   #scoreboard .sb-time.bomb svg{width:30px;height:22px;animation:sbBomb 1s ease-in-out infinite;}
+  #scoreboard .sb-time.bomb{flex-direction:column;}   /* (v518d, владелец А-23: «под бомбой таймер до бомбы») */
+  #scoreboard .sb-c4t{font-size:14px;line-height:1;font-variant-numeric:tabular-nums;color:var(--bomb);margin-top:2px;}
   @keyframes sbBomb{0%,100%{opacity:1;}50%{opacity:.45;}}
   /* полоса оставшегося времени раунда / фризтайма — внизу середины табло */
   #scoreboard .sb-prog{position:absolute;left:0;right:0;bottom:0;height:2px;background:rgba(255,255,255,.06);overflow:hidden;}

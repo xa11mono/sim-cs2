@@ -1,3 +1,7 @@
+// (v525, «одно решение — одно место», №4 шаг 1) режим боя бота (state: patrol / hold / engage / retreat) пишется только здесь; причина —
+// b._stateWhy (подпись на экране, запись матча). Решают по-прежнему разные механики (оценка decideAction, «врага не видно», после фрага,
+// нож) — они зовут эту функцию, а не пишут поле сами. Перестрелку (_fc) снаружи снимает только fcEnd (470)
+function fightState(b, next, why){ b.state = next; b._stateWhy = why; b._stateWhyT = tick; }
 function decideAction(bot, nearestDist, alliesNear, enemiesSeen){
   var hpFrac = Math.max(0, bot.hp)/100;
   // было enemiesSeen - alliesNear — себя не считали, и КАЖДАЯ дуэль 1 на 1
@@ -20,7 +24,7 @@ function decideAction(bot, nearestDist, alliesNear, enemiesSeen){
   // рядом — отойти за укрытие и взять следующего отдельно (кроме дефуза: тогда надо идти)
   if(BAL.tClutch && bot.team === "T" && aliveCount("T") === 1 && aliveCount("CT") >= 2 && tick - (bot._defuseHeard||-9999) > 110){
     var LKc = beliefLast.T || {}, kF = enemiesSeen;
-    for(var eC in LKc){ var qC = LKc[eC]; if(tick - qC.tick < 3*TICK_HZ && Math.hypot(qC.x-bot.x, qC.y-bot.y) < 700 && bots.some(function(o){ return o.id === eC && o.alive; })) kF = Math.max(kF, 1) + (enemiesSeen ? 0 : 0); }
+    for(var eC in LKc){ var qC = LKc[eC]; if(tick - qC.tick < 3*TICK_HZ && nearP(qC.x, qC.y, qC.z, bot.x, bot.y, bot.z, 700) && bots.some(function(o){ return o.id === eC && o.alive; })) kF = Math.max(kF, 1) + (enemiesSeen ? 0 : 0); }
     var kN = 0; for(var eC2 in LKc){ var q2 = LKc[eC2]; if(tick - q2.tick < 3*TICK_HZ && Math.hypot(q2.x-bot.x, q2.y-bot.y) < 700) kN++; }
     if(Math.max(enemiesSeen, kN) >= 2){ retreatScore += 0.4; engageScore -= 0.3;
       if(bot._tcV !== roundNum){ bot._tcV = roundNum; voiceLog("T", "tcl"+roundNum, bot.id, "я один против "+aliveCount("CT")+" — не беру двоих сразу, по одному"); } }
@@ -31,9 +35,9 @@ function decideAction(bot, nearestDist, alliesNear, enemiesSeen){
   // известно 2+ T, а разменять некому — отходит, а не стоит насмерть
   if(BAL.midOutnum && bot.team === "CT" && (r === "mid" || r === "roamer") && !(bomb && bomb.state === "planted")){
     var LKo = beliefLast.CT || {}, knownF = 0;
-    for(var eO in LKo){ var qO = LKo[eO]; if(tick - qO.tick < 4*TICK_HZ && Math.hypot(qO.x-bot.x, qO.y-bot.y) < 800 && bots.some(function(o){ return o.id === eO && o.alive; })) knownF++; }
+    for(var eO in LKo){ var qO = LKo[eO]; if(tick - qO.tick < 4*TICK_HZ && nearP(qO.x, qO.y, qO.z, bot.x, bot.y, bot.z, 800) && bots.some(function(o){ return o.id === eO && o.alive; })) knownF++; }
     knownF = Math.max(knownF, enemiesSeen);
-    var tradeM = bots.filter(function(o){ return o !== bot && o.alive && o.team === bot.team && Math.hypot(o.x-bot.x, o.y-bot.y) < TRADE_R; }).length;
+    var tradeM = bots.filter(function(o){ return o !== bot && o.alive && o.team === bot.team && nearP(o.x, o.y, o.z, bot.x, bot.y, bot.z, TRADE_R); }).length;
     if(knownF >= 2 && knownF > tradeM + 1){ retreatScore += 0.35 + 0.1*(knownF - tradeM - 2); engageScore -= 0.25; holdScore -= 0.1;
       if(bot._moV !== roundNum){ bot._moV = roundNum; voiceLog("CT", "mo"+bot.id+roundNum, bot.id, "их "+knownF+" на миде, я один — отхожу, не дуэлю"); } }
   }
@@ -64,7 +68,9 @@ function decideAction(bot, nearestDist, alliesNear, enemiesSeen){
   if(bot.team === "T" && teamTac.T && teamTac.T.saving && !(bomb && bomb.state === "planted")){ engageScore -= 0.25; retreatScore += 0.25; } // сейв T — не лезть в дуэли
   if(bot.team === "CT" && teamTac.CT && teamTac.CT.preSave && !(bomb && bomb.state === "planted")){ engageScore -= 0.25; retreatScore += 0.25; }
   // враг ранен ("он на 20") — не отходить, а добивать
-  if(BAL.hurtCall && bot._nearestEnemyBot){ var HTd = teamIntel[bot.team].hurt, hk = HTd && HTd[bot._nearestEnemyBot.id];
+  // (v547, ответ владельца 10.11: «на сейве добивать раненого — нет: стрельба раскроет позицию, придут зажимать, потеря девайса») — не на сейве
+  var savingD = taskAlive(bot) && taskProp(bot._task.tag, "saveTask");
+  if(BAL.hurtCall && bot._nearestEnemyBot && !savingD){ var HTd = teamIntel[bot.team].hurt, hk = HTd && HTd[bot._nearestEnemyBot.id];
     if(hk && hk.hp <= 35 && tick - hk.tick < 10*TICK_HZ){ engageScore += 0.2; retreatScore -= 0.15; } }
   // после планта T держат бомбу, CT обязаны идти — время важнее HP
   if(bomb && bomb.state === "planted"){
@@ -79,7 +85,7 @@ function decideAction(bot, nearestDist, alliesNear, enemiesSeen){
     else if(bomb.state === "carried" && bomb.carrier === bot){
       // план §11.1 п.7: с бомбой не "всегда беги" — если рядом тиммейт для трейда,
       // играет как обычно; если изолирован — бомба дороже ещё одного фрага
-      var mate = bots.some(function(o){ return o !== bot && o.alive && o.team === "T" && Math.hypot(o.x-bot.x, o.y-bot.y) < TRADE_R; });
+      var mate = bots.some(function(o){ return o !== bot && o.alive && o.team === "T" && nearP(o.x, o.y, o.z, bot.x, bot.y, bot.z, TRADE_R); });
       if(!mate){ engageScore -= 0.2; retreatScore += 0.15; }
     }
     if(bomb.state === "planted"){
@@ -153,6 +159,7 @@ function decideAction(bot, nearestDist, alliesNear, enemiesSeen){
   var best = "hold", bestScore = holdScore;
   if(engageScore > bestScore){ best = "engage"; bestScore = engageScore; }
   if(retreatScore > bestScore){ best = "retreat"; bestScore = retreatScore; }
+  bot._actS = [holdScore, engageScore, retreatScore];   // (v525) для причины решения
   return best;
 }
 
@@ -167,7 +174,7 @@ function decideAction(bot, nearestDist, alliesNear, enemiesSeen){
 // сход с позиции после фрага: цель мертва — "смотрю на угол, где только что
 // видел врага" (hold по lastIntel) держал бота на месте ещё ~3с, и новый пост
 // не срабатывал. Снимаем бой-удержание, чтобы он реально ушёл.
-function leaveHold(b){ b.state = "patrol"; b.holding = false; b.crouching = false; b.decisionTick = tick; }
+function leaveHold(b){ fightState(b, "patrol", "после фрага — ухожу с угла"); b.holding = false; b.crouching = false; b.decisionTick = tick; }
 // (v156) решение после фрага — только по тому, что команда знает (ЛИП ≤5с),
 // а не по настоящим позициям врагов
 function postKillDecide(sh, tg, vp, here){
@@ -175,8 +182,8 @@ function postKillDecide(sh, tg, vp, here){
   var known = [], LK = beliefLast[sh.team] || {};
   for(var eid in LK){ var q = LK[eid]; if(eid === tg.id || tick - q.tick > 5*TICK_HZ) continue;
     if(!bots.some(function(o){ return o.id === eid && o.alive; })) continue;
-    if(Math.hypot(q.x-vp.x, q.y-vp.y) < 700 || Math.hypot(q.x-sh.x, q.y-sh.y) < 700) known.push({id:eid, x:q.x, y:q.y}); }
-  var mates = bots.filter(function(o){ return o !== sh && o.alive && o.team === sh.team && Math.hypot(o.x-sh.x, o.y-sh.y) <= TRADE_R; }).length;
+    if(nearP(q.x, q.y, q.z, vp.x, vp.y, vp.z, 700) || nearP(q.x, q.y, q.z, sh.x, sh.y, sh.z, 700)) known.push({id:eid, x:q.x, y:q.y}); }
+  var mates = bots.filter(function(o){ return o !== sh && o.alive && o.team === sh.team && nearP(o.x, o.y, o.z, sh.x, sh.y, sh.z, TRADE_R); }).length;
   var my = aliveCount(sh.team), their = aliveCount(tg.team);
   var HT = teamIntel[sh.team] && teamIntel[sh.team].hurt, hurtK = known.some(function(k){ var h = HT && HT[k.id]; return h && h.hp <= 40 && tick - h.tick < 8*TICK_HZ; });
   var tPP = sh.team === "T" && bomb && bomb.state === "planted";
@@ -229,7 +236,7 @@ function killMoveCover(sh, tg){
   var spK = pickSpots("kmv"+tick+sh.id, hereK, 3, {rMin:KILL_MOVE[0], rMax:KILL_MOVE[1], minGap:30, hideFrom:[vpK], see:seeK})
     .filter(function(q){ return Math.hypot(q.x-hereK.x, q.y-hereK.y) >= KILL_MOVE[0]; })[0];
   if(!spK) return false;
-  sh._reposUntil = 0; sh._probeLock = 0; sh._fc = null;   // перестрелка с убитым кончилась — цикл «линия/укрытие» не держит на месте
+  sh._reposUntil = 0; sh._probeLock = 0; fcEnd(sh, "конец: враг убит — иду дальше");   // перестрелка с убитым кончилась — цикл «линия/укрытие» не держит на месте
   setPost(sh, spK, sh.post && sh.post.look ? sh.post.look : vpK, true, "repos:killmove");
   if(!sh.post || sh.post.tag !== "repos:killmove") return false;
   leaveHold(sh); sh._reposUntil = tick + 2*TICK_HZ;
@@ -238,7 +245,7 @@ function killMoveCover(sh, tg){
 function afterKillReact(sh, tg, w){
   // (9) на сейве убил — позиция засвечена (звук выстрела, килфид): уходит на
   // другое укрытие, откуда не видно место убийства и старую точку
-  if(BAL.saveMove && sh.post && sh.post.tag === "save" && sh._saveSpot){
+  if(BAL.saveMove && sh.post && taskProp(sh.post.tag, "saveTask") && sh._saveSpot){
     var hereS = {x:sh.x, y:sh.y}, vpS = {x:tg.x, y:tg.y};
     var altS = pickSpots("svmv"+tick+sh.id, hereS, 4, {rMin:170, rMax:480, minGap:60, hideFrom:[vpS, hereS]})
       .filter(function(q){ return Math.hypot(q.x-hereS.x, q.y-hereS.y) > 150 && !hasLOS(q.x, q.y, vpS.x, vpS.y); })[0];
@@ -249,7 +256,7 @@ function afterKillReact(sh, tg, w){
   for(var eK in LKk){ var qK = LKk[eK]; if(eK === tg.id || tick - qK.tick > 5*TICK_HZ || Math.hypot(qK.x-sh.x, qK.y-sh.y) >= 1400) continue;
     if(bots.some(function(o){ return o.id === eK && o.alive; })) foesNear.push({id: eK, x: qK.x, y: qK.y}); }
   if(!foesNear.length) return false;   // (v370) без известных врагов — в укрытие (killMoveCover)
-  var mates = bots.filter(function(o){ return o !== sh && o.alive && o.team === sh.team && Math.hypot(o.x-sh.x, o.y-sh.y) <= TRADE_R; }).length;
+  var mates = bots.filter(function(o){ return o !== sh && o.alive && o.team === sh.team && nearP(o.x, o.y, o.z, sh.x, sh.y, sh.z, TRADE_R); }).length;
   // ещё кого-то видит прямо сейчас — продолжает стрелять, не бегает
   if((sh._visible||[]).some(function(o){ return o.alive && o !== tg; })) return false;
   var pa = prof(sh, "aggr"), pr = prof(sh, "risk"), pd = prof(sh, "disc");
@@ -263,7 +270,7 @@ function afterKillReact(sh, tg, w){
     // новая точка: та же линия под другим углом, и не на виду у остальных
     // известных врагов (иначе по дороге его снимает второй)
     var others = [];
-    for(var eidA in beliefLast[sh.team]){ var eA = beliefLast[sh.team][eidA]; if(eidA !== tg.id && tick - eA.tick < 8*TICK_HZ && Math.hypot(eA.x-sh.x, eA.y-sh.y) < 1300) others.push({x:eA.x, y:eA.y}); }
+    for(var eidA in beliefLast[sh.team]){ var eA = beliefLast[sh.team][eidA]; if(eidA !== tg.id && tick - eA.tick < 8*TICK_HZ && nearP(eA.x, eA.y, eA.z, sh.x, sh.y, sh.z, 1300)) others.push({x:eA.x, y:eA.y}); }
     // держал пост (опорник/линия) — новый угол должен видеть и то, что он держал
     var seeA = [vp]; if(sh.post && sh.post.look && sh.post.tag !== "repos") seeA.push(sh.post.look);
     var alt = pickSpots("awpr"+tick+sh.id, here, 4, {rMin:100, rMax:260, minGap:60, see:seeA, hideFrom:others, cross:{from:here, pt:vp}});
@@ -283,7 +290,7 @@ function afterKillReact(sh, tg, w){
   // и от известных врагов, но так, чтобы видеть тот же вход; до конца раунда
   // это его новая точка (роль больше не возвращает на старую)
   if(BAL.postKill){ var pkR = postKillDecide(sh, tg, vp, here); if(pkR) return true; }
-  var foes700 = foesNear.filter(function(o){ return Math.hypot(o.x-sh.x, o.y-sh.y) < 700; });
+  var foes700 = foesNear.filter(function(o){ return nearP(o.x, o.y, o.z, sh.x, sh.y, sh.z, 700); });
   if(BAL.styles && mates >= 1 && !(sh.team === "CT" && teamTac.CT && teamTac.CT.antiEco) && pa >= 0.75 && pr >= 0.7 && sh.hp > 60 && foes700.length >= 1 && foes700.length <= 2 && hashRand(tick*41 + sh.id.charCodeAt(1)*3) < pa*0.6){
     var sw = pickSpots("swing"+tick+sh.id, vp, 3, {rMax:140, minGap:40})[0] || vp;
     var nf = foesNear.slice().sort(function(a, c){ return Math.hypot(a.x-vp.x, a.y-vp.y) - Math.hypot(c.x-vp.x, c.y-vp.y); })[0];
@@ -303,10 +310,10 @@ function afterKillReact(sh, tg, w){
 // уйти с засвеченного угла чуть глубже: скрыто от точки контакта и известных
 // врагов, но видно тот же вход; до конца раунда это его новая точка
 function shiftHold(sh, vp, exceptId, why){
-  if(!(sh.atPost && sh.post && sh.post.hold) || /^(save|repos|defuse|plantspot|lineup|pickup|endhunt|retake|gather|stopplant|antidefuse)/.test(sh.post.tag)) return false;
+  if(!(sh.atPost && sh.post && sh.post.hold) || taskProp(sh.post.tag, "shiftHoldBusy")) return false;
   if(sh._hs && sh._hs.round === roundNum && tick - sh._hs.t < 8*TICK_HZ) return false;
   var here = {x:sh.x, y:sh.y}, knownE = [], LKs = beliefLast[sh.team] || {};
-  for(var eH in LKs){ var qH = LKs[eH]; if(eH !== exceptId && tick - qH.tick < 10*TICK_HZ && Math.hypot(qH.x-sh.x, qH.y-sh.y) < 1400) knownE.push({x:qH.x, y:qH.y}); }
+  for(var eH in LKs){ var qH = LKs[eH]; if(eH !== exceptId && tick - qH.tick < 10*TICK_HZ && nearP(qH.x, qH.y, qH.z, sh.x, sh.y, sh.z, 1400)) knownE.push({x:qH.x, y:qH.y}); }
   var dvx = here.x - vp.x, dvy = here.y - vp.y, dvl = Math.max(1, Math.hypot(dvx, dvy));
   var back = walk({x: here.x + dvx/dvl*170, y: here.y + dvy/dvl*170});
   var seeL = sh.post.look ? [sh.post.look] : [];

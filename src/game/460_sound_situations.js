@@ -39,7 +39,7 @@ function reloadHeard(b, w){
     o._heardReload = {id:b.id, x:o.heardSound.x, y:o.heardSound.y, until:b.reloadUntil};
     if(!o._rlVoice || o._rlVoice + 3*TICK_HZ < tick){ o._rlVoice = tick; voiceLog(o.team, "rl"+b.id, o.id, b.id+" перезаряжается "+calloutName(o.heardSound.x, o.heardSound.y)+"!"); }
     // по голосу знают и ближние тиммейты
-    bots.forEach(function(m){ if(m !== o && m.alive && m.team === o.team && Math.hypot(m.x-o.x, m.y-o.y) < 500) m._heardReload = o._heardReload; });
+    bots.forEach(function(m){ if(m !== o && m.alive && m.team === o.team && nearP(m.x, m.y, m.z, o.x, o.y, o.z, 500)) m._heardReload = o._heardReload; });
   });
 }
 // пик на перезарядку: держит угол рядом (≤450), сам не в бою, HP > 50 —
@@ -176,9 +176,9 @@ function onBlind(b, threat){
   logEvent(b.id+": ослеплён — "+(back ? "отходит за угол" : "присел, держит направление"));
   // (S2) тиммейт рядом закрывает угол ослеплённого: смотрит туда и готов стрелять
   if(BAL.coverBlind){
-    var mates = bots.filter(function(o){ return o !== b && o.alive && o.team === b.team && !o._sawEnemy && tick >= (o.blindUntil||0) && Math.hypot(o.x-b.x, o.y-b.y) < 260 && !o.planting && !o.defusing; });
+    var mates = bots.filter(function(o){ return o !== b && o.alive && o.team === b.team && !o._sawEnemy && tick >= (o.blindUntil||0) && nearP(o.x, o.y, o.z, b.x, b.y, b.z, 260) && !o.planting && !o.defusing; });
     mates.forEach(function(o){ o.heardSound = {x:threat.x, y:threat.y, tick:tick, team:b.team === "CT" ? "T" : "CT", src:"?", kind:"call"}; o.lastIntel = {x:threat.x, y:threat.y, tick:tick, src:"call"}; });
-    var cov = mates.filter(function(o){ return o.hp > 50 && !(o.post && /^(defuse|plantspot|lineup|flee|save|tradeR)/.test(o.post.tag)); })
+    var cov = mates.filter(function(o){ return o.hp > 50 && !(o.post && taskProp(o.post.tag, "blindCoverBusy")); })
       .sort(function(a, c){ return Math.hypot(a.x-b.x, a.y-b.y) - Math.hypot(c.x-b.x, c.y-b.y); })[0];
     if(cov){
       // (v151) раньше точка бралась вплотную к ослеплённому — а он в это время
@@ -195,8 +195,8 @@ function onBlind(b, threat){
 // ---- кончились патроны в бою: пистолет ----
 function pistolSwap(b){
   if(!BAL.pistolSwap || !b.primary || !b.secondary || b._onPistol || b.weapon !== WEAPONS[b.primary]) return false;
-  var e = b._nearestEnemyBot, near = e && e.alive && Math.hypot(e.x-b.x, e.y-b.y) < 650;
-  if(!near && !(b.lastIntel && tick - b.lastIntel.tick < TICK_HZ && Math.hypot(b.lastIntel.x-b.x, b.lastIntel.y-b.y) < 650)) return false;
+  var e = b._nearestEnemyBot, near = e && e.alive && nearP(e.x, e.y, e.z, b.x, b.y, b.z, 650);
+  if(!near && !(b.lastIntel && tick - b.lastIntel.tick < TICK_HZ && nearP(b.lastIntel.x, b.lastIntel.y, b.lastIntel.z, b.x, b.y, b.z, 650))) return false;
   var W = WEAPONS[b.secondary];
   b._onPistol = {prim:b.primary, ammo:Math.max(0, b.ammo||0)};
   b.weapon = W; b._ammoFor = W.key; b.ammo = b._secAmmo != null ? b._secAmmo : W.mag; b._reloading = false; b.reloadUntil = 0;

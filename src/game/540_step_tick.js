@@ -61,7 +61,7 @@ function moveSoundEmit(bot, soundRadius, kind, label){
 // 150 ед. игры (60 ед. карты) — шагом 77 %, 150–300 (60–120) — 34 %, дальше — всегда бегом. Шагом — только если успевает дойти
 // и дефузнуть (запас 1,5 с). Кто идёт шагом в этом раунде — жребий на раунд и бота (решение не дёргается каждый тик)
 function defuseWalk(bot){
-  if(!(bomb && bomb.state === "planted" && bot.team === "CT" && bot.post && bot.post.tag === "defuse")) return false;
+  if(!(bomb && bomb.state === "planted" && bot.team === "CT" && bot.post && taskProp(bot.post.tag, "defuseTask"))) return false;
   var d = Math.hypot(bomb.x-bot.baseX, bomb.y-bot.baseY); if(d >= 120) return false;
   if(bombTimeLeftTicks()/TICK_HZ <= d/(SPEED*WALK_SPEED_FRAC) + (bot.kit ? 5 : 10) + 1.5) return false;
   var u = hashRand(roundNum*389 + matchNum*71 + bot.id.charCodeAt(bot.id.length-1)*13);
@@ -84,10 +84,14 @@ function navSnap(bot){
   if(nb){ bot.baseX = bot.x = nb.x; bot.baseY = bot.y = nb.y; bot.z = nb.a.z; bot._area = nb.a.id; bot.path = []; bot.pathIdx = 0; bot._offNav = 0; logEvent(bot.id+": вне навмеша — перенесён на ближайший пол (заплатка)"); }
 }
 // (v335) звук приземления — одно место: слышат враги (как шаги, громко), на странице — запись приземления там, где он сейчас.
-// LAND_DELAY — время полёта при запрыгивании (CS2: прыжок ~0,6 с вверх-вниз; вверх на уступ — короче) — проектное число
-var LAND_DELAY = 0.35;
-function landSound(bot, quiet){
-  var R = SOUND_RADIUS_RUN*(quiet ? 0.5 : 1); bot._landAt = 0;
+// LAND_DELAY — время полёта при запрыгивании — в 050 (v546: нужно цене пути уже при загрузке)
+// (v546, владелец 10.11: «он может подойти вплотную и бесшумно запрыгнуть — должен уметь, когда нельзя палиться; на верхний этаж через
+// щель — с шумом») kind: "up" — запрыгнул на уступ / ящик (вплотную, шагом — бесшумно: bot.walking — решение хозяина шага, 535); "gap" — прыжок
+// через щель и спрыгивание — всегда слышно
+function landSound(bot, quiet, kind){
+  bot._landAt = 0;
+  if(kind === "up" && bot.walking) return;
+  var R = SOUND_RADIUS_RUN*(quiet ? 0.5 : 1);
   soundPings.push({x:bot.baseX, y:bot.baseY, team:bot.team, born:nowTs, radius:R});
   moveSoundEmit(bot, R, "steps", quiet ? "приземление (чек прыжком)" : "приземление");
   if(SND && SND.on) sndBody("land", bot.baseX, bot.baseY);
@@ -103,7 +107,7 @@ var JUMP_HOLD_SEC = 30;
 // «Вижу» с прыжка — как радар: visParts с поднятыми глазами (раньше только высокие стены visWallHit — 98–99 % «видели» без линии)
 var JUMP_APEX = 57;
 function jumpCheckTick(b){
-  if(b._landAt && tick >= b._landAt && b.alive && roundState === "live") landSound(b);   // (v335) запрыгнул — приземлился
+  if(b._landAt && tick >= b._landAt && b.alive && roundState === "live") landSound(b, false, "up");   // (v335) запрыгнул — приземлился
   var JS = MAP.pro && MAP.pro.jumps; if(!JS || !JS.length || roundState !== "live" || !b.alive) return;
   var J = b._jc;
   if(J){
@@ -142,6 +146,7 @@ function stepTick(){
     if(simTime >= roundStartTime){ roundState = "live"; FREEZE_FX = []; logEvent("Freeze-тайм окончен — раунд пошёл"); }
     return;
   }
+  if(SANDBOX.on) sbTick();   // (v536) песочница: часы раунда и бомбы стоят (677)
   teamBrains(); // шаг 4: тактика T / расстановка и ротации CT / бомба
   if(roundState !== "live") return;
   nadeBrains(); updateNadeTasks(); nadesTick(); // шаг 5: гранаты
@@ -169,146 +174,35 @@ function stepTick(){
   var STAIRS_SLOPE_THRESHOLD = 0.35;
   bots.forEach(function(bot){
     if(!bot.alive) return;
-    bot.px = bot.x; bot.py = bot.y; bot.pfacing = bot.facing;   // (v414, М154) взгляд на начало тика — только для рисования (сглаживание, 620_draw)
+    bot.px = bot.x; bot.py = bot.y; bot.pfacing = bot.facing;
+    if(bot._sbOff && !bot._sbGo && !bot._climb){ bot.curSpeed = 0; return; }   // (v543) начатый подъём / прыжок доводится до конца   // (v536) песочница: ИИ выключен — стоит; (v538) но идёт по приказу владельца, ИИ при этом не включается (677)   // (v414, М154) взгляд на начало тика — только для рисования (сглаживание, 620_draw)
     updatePost(bot);
     updateReload(bot);
     if(!bot.post) updateRoamer(bot);
+    // (v530, отметка владельца 10.11 «застрял в фазе роумер проверяет точку»: флаг чека остался на 98 с — его снимает только updateRoamer,
+    // а он не зовётся, пока у бота есть задача; скорость при этом 0) получил задачу — чек роумера кончился
+    else if(bot.roamChecking) bot.roamChecking = false;
     // этаж под ботом (раздел 9: метка уровня на радаре) — раз в 16 тиков хватает
-    if(tick % 16 === 0){ var za = zoneOf(bot.baseX, bot.baseY, bot.z); bot._zArea = za ? za.z : 0; bot._under = hgtUnder(bot.baseX, bot.baseY, bot.z, za); bot._lvl = hgtUnderCenter(bot.baseX, bot.baseY, bot._under) ? -1 : za ? hgtLevelOf(za.id) : 0; }
+    floorViewTick(bot);   // (v535) под / над другим этажом — по 3D-геометрии, каждый тик (370)
     // "на лестнице" пересчитывается только в ветке движения — если бот
     // остановился (держит угол, стоит на посту), флаг раньше оставался от
     // последнего отрезка пути навсегда: бот, дошедший до поста по лестнице,
     // весь раунд стрелял со штрафом лестницы 0.35 и не мог выбрать "держать
     // угол". Сбрасываем каждый тик; движение ниже выставит заново, если надо.
     bot.onStairs = false;
-    // "тихий шаг" (план §3): осторожен, если подозревает, что враг рядом —
-    // либо только что видел (lastIntel), либо услышал шаги (heardSound) —
-    // но сам сейчас его не видит и не держит угол в открытую (holding
-    // уже означает "готов стрелять", там скорость и так 0). bot._sawEnemy
-    // тут — с прошлого тика (resolveEngagements считается в конце stepTick),
-    // отставание на один тик не критично для решения "идти тише".
-    bot.walking = (BAL.pieSlice && bot._pie && bot._pie.slice && tick - bot._pie.t < 16 && !bot.holding && !bot._sawEnemy && !(bot.post && /^repos/.test(bot.post.tag))) || !bot.holding && !bot._sawEnemy && !(bot._stopPlantUntil > tick) && !(bot._tradeLock && bot._tradeLock.until > tick) &&
-      // уход с засвеченного угла после фрага — бегом, а не шифтом (позиция и так известна)
-      !(bot.post && /^repos/.test(bot.post.tag) && bot._reposUntil > tick) &&
-      // (v438, док 27.10) свежая инфа / звук — шагом, только если этот враг сам может услышать мой бег (≤ 1,5 слышимости бега — проектное
-      // число: враг мог подойти). Было — любой звук: выстрелы за 2000 px давали 6 с шифта по всей карте
-      ((bot.lastIntel && tick - bot.lastIntel.tick < CAUTION_TICKS && Math.hypot(bot.lastIntel.x-bot.baseX, bot.lastIntel.y-bot.baseY) <= 1.5*STEP_HEAR_R()) ||
-       (bot.heardSound && tick - bot.heardSound.tick < SOUND_CAUTION_TICKS && Math.hypot(bot.heardSound.x-bot.baseX, bot.heardSound.y-bot.baseY) <= 1.5*STEP_HEAR_R()) ||
-       // роумер подходит к точке чека тихо
-       (bot.role === "roamer" && !bot.roamChecking && bot.roamTarget && bot.state === "patrol" &&
-        Math.hypot(bot.roamTarget.x-bot.baseX, bot.roamTarget.y-bot.baseY) < ROAM_QUIET_RADIUS) ||
-       // заход на занятый врагом сайт (ретейк/ротация) — последние метры шагом
-       (bot.post && bot.state === "patrol" && (bot.post.tag === "flank1" || bot.post.tag === "flank2")) ||
-       (bot.post && bot.state === "patrol" && /^gather/.test(bot.post.tag) && Math.hypot(bot.post.x-bot.baseX, bot.post.y-bot.baseY) < 500) ||
-       (bot.post && bot.state === "patrol" && /^probe/.test(bot.post.tag) && Math.hypot(bot.post.x-bot.baseX, bot.post.y-bot.baseY) < 420) ||
-       (bot.post && bot.state === "patrol" && bot.post.tag === "shift" && Math.hypot(bot.post.x-bot.baseX, bot.post.y-bot.baseY) < 450) ||
-       // клатч T с бомбой: без инфы — на шифте (не палится бегом); бежит,
-       // только если время поджимает или все CT известны и далеко
-       (BAL.soloSlow && bot.team === "T" && bomb && bomb.state === "carried" && bomb.carrier === bot && aliveCount("T") === 1 && soloMayWalk(bot)) ||
-       (BAL.cautious && bot.post && bot.state === "patrol" && /^(retake|rotate|defuse)$/.test(bot.post.tag) &&
-        Math.hypot(bot.post.x-bot.baseX, bot.post.y-bot.baseY) < 350) ||
-       // лёркер ходит тихо всегда, кроме самого начала (до своей точки на сетапе)
-       (bot.tRole === "lurker" && bot.post && bot.state === "patrol" && /^lurk/.test(bot.post.tag) && bot.post.tag !== "lurkStage"+(teamTac.T && teamTac.T.site==="A"?"B":"A")) ||
-       (BAL.dangerWalk && dangerWalk(bot)) ||
-       // (v323, М39) к дефузу близко — подходит шифтом, чтобы не выдать себя, если время есть (defuseWalk)
-       defuseWalk(bot) ||
-       // добивание последнего — не бегом в открытую: последние метры тихим шагом
-       (bot.post && bot.state === "patrol" && bot.post.tag === "endhunt" && Math.hypot(bot.post.x-bot.baseX, bot.post.y-bot.baseY) < 350));
-    // (v257, К3) врагов живых нет (видно по табло) — шагом идти не от кого
-    if(bot.nadeTask && bot.nadeTask.runPh === "go") bot.walking = !!bot.nadeTask.runWalk;   // (разбег гранаты) шаг или бег — как у эталона про (380)
-    if(bot.walking && aliveCount(bot.team === "CT" ? "T" : "CT") === 0) bot.walking = false;
-    // (v299, И43, владелец 14.10: T0 стрелялся на A, лёркер T4 шёл к бою на шифте) тиммейт рядом уже в перестрелке (видит врага ≥ 0,3 с,
-    // как у дабл-пика, или стрелял / по нему стреляли за 2 с) в 900 px от меня, а моя точка — не дальше 600 px от него: иду к бою — бегом, тишина уже ничего не даёт
-    if(bot.walking && bot.post && !/^(defuse|plantspot)/.test(bot.post.tag) && bots.some(function(m){ return m !== bot && m.alive && m.team === bot.team &&
-         ((m._sawEnemy && (m.contactStreak||0) >= 20) || tick - (m.lastShotTick||-1e9) < 2*TICK_HZ || tick - (m._shotAtT||-1e9) < 2*TICK_HZ) && Math.hypot(m.x-bot.baseX, m.y-bot.baseY) < 900 && Math.hypot(m.x-bot.post.x, m.y-bot.post.y) < 600; })) bot.walking = false;
-    // (v257, К3) ретейк: шагом — только если шагом успевает дойти до бомбы и дефузнуть (та же мерка, что у ниндзя-дефуза)
-    if(bot.walking && bot.team === "CT" && bomb && bomb.state === "planted" && bot.post && /^(gather|retake|defuse|rotate)/.test(bot.post.tag)){
-      var dB = Math.hypot(bomb.x-bot.baseX, bomb.y-bot.baseY);
-      if(bombTimeLeftTicks()/TICK_HZ <= dB/(SPEED*WALK_SPEED_FRAC) + (bot.kit ? 5 : 10) + 1.5) bot.walking = false;
-    }
-    // (v438, док владельца 27.10: NiKo за 3,5 с до взрыва шёл шифтом и погиб от бомбы) в зоне смертельного взрыва (урон ≥ HP, BOMB_DMG) —
-    // шагом, только если шагом успевает выйти из неё до взрыва (+1 с — проектное число); иначе бегом. Любая сторона, любая задача
-    if(bot.walking && bomb && bomb.state === "planted" && bombDamageAt(bot.baseX, bot.baseY) >= bot.hp){
-      var rKill = BOMB_DMG.sigma*Math.sqrt(2*Math.log(BOMB_DMG.max/Math.max(1, bot.hp))), dOut = Math.max(0, rKill - bombPathLen(bot.baseX, bot.baseY));
-      if(bombTimeLeftTicks()/TICK_HZ <= dOut/(SPEED*WALK_SPEED_FRAC) + 1) bot.walking = false;
-    }
+    moveWalkTick(bot);   // шагом / бегом — одно место (535_move_mode)
     knifeTick(bot); prePeekTick(bot); exposedShiftTick(bot); jumpCheckTick(bot);
     var runSpeed = (bot.walking ? SPEED*WALK_SPEED_FRAC : SPEED) * weaponSpeedMul(bot);
     // атакующий, который прямо сейчас видит врага, останавливается и
     // стреляет (контр-страф), а не продолжает бежать по патрульному пути —
     // иначе он сам уходил из линии огня посреди перестрелки. Уйти с линии
     // за укрытие и выглянуть снова — fightCycleTick (по данным про).
-    // ждёт хлопка флешки тиммейта (поп на убийцу / ретейк) — не выбегает раньше неё
-    var waitPop = (bot._waitPopUntil > tick && nadeFlags[bot._waitPopKey] === undefined && !bot._sawEnemy) || (BAL.pieSlice && bot._ppWaitUntil > tick && !bot._sawEnemy);
-    if(BAL.pieSlice && bot._pie && bot._pie.slice && tick - bot._pie.t < 16 && !bot._sawEnemy) runSpeed *= 0.75; // режет угол
-    var targetSpeed = (waitPop || bot.holding || bot.roamChecking || bot.atPost || bot.planting || bot.defusing || tick < (bot.throwUntil||0) || (bot.state === "engage" && bot._sawEnemy)) ? 0 : runSpeed;
-    // (v375, владелец: «в 4 раунде все по одному выходили из T Ramp и умирали») демки Mirage: первый T, входящий на сайт (≤ 250
-    // от него), один (своих ближе 500 нет) в 13 % раундов у про и в 29 % у ботов; второй входит через 2,0 с у про и 3,0 с у ботов.
-    // Перед входом на сайт один — ждёт напарника на размен до ENTRY_WAIT (2 с — медиана про), потом идёт; лёркер и бой — без ожидания
-    var stS = bot.team === "T" && bomb.state !== "planted" && teamTac.T && SITES[teamTac.T.site];
-    if(stS && targetSpeed > 0 && bot.tRole !== "lurker" && !bot._sawEnemy && bot.post && Math.hypot(bot.post.x-stS.x, bot.post.y-stS.y) < 250){
-      var dS0 = Math.hypot(bot.baseX-stS.x, bot.baseY-stS.y), alone = !bots.some(function(o){ return o !== bot && o.alive && o.team === "T" && Math.hypot(o.x-bot.x, o.y-bot.y) < 500; });
-      var anyMate = bots.some(function(o){ return o !== bot && o.alive && o.team === "T" && o.tRole !== "lurker"; });
-      if(dS0 > 250 && dS0 < 340 && alone && anyMate){ if(!bot._entryWait || bot._entryWait.round !== roundNum) bot._entryWait = {t:tick, round:roundNum};
-        if(tick - bot._entryWait.t < ENTRY_WAIT){ targetSpeed = 0; if(!bot._entryWait.log){ bot._entryWait.log = true; logEvent(bot.id+": перед входом на сайт — жду напарника на размен"); } } }
-      else if(!alone) bot._entryWait = null;
-    }
-    // стоит в огне — выбегает из него прямо сейчас, что бы ни делал
-    var burn = inFire(bot.baseX, bot.baseY);
-    if(burn && !fireCommit(bot)){
-      // Из огня бот ВЫХОДИТ обычным бегом по пути к ближайшему краю (раньше его
-      // каждый тик сдвигало наружу напрямую — выглядело как отбрасывание).
-      if(bot.defusing){ bot.defuseCooldownUntil = tick + 32; logEvent(bot.id+" прервал дефуз — молотов, не доживёт"); }
-      if(bot.planting){ bot._noPlantUntil = tick + 32; bot._plantAbort = {t:tick, why:"огонь"}; logEvent(bot.id+" прервал плант — молотов, не доживёт"); }
-      bot.atPost = false; bot.defusing = false; bot.planting = false;
-      bot._burning = true;
-      if(!bot._fireExit || inFire(bot._fireExit.x, bot._fireExit.y) || bot._fireExitFire !== burn){
-        var best = null, bd = Infinity;
-        for(var ai=0; ai<12; ai++){
-          var aa = ai*Math.PI/6, rr = NADE.molly.radius + 28;
-          var qx = burn.x + Math.cos(aa)*rr, qy = burn.y + Math.sin(aa)*rr;
-          if(insideSolidWall(qx, qy) || crossesWall(bot.baseX, bot.baseY, qx, qy)) continue;
-          var dq = Math.hypot(qx-bot.baseX, qy-bot.baseY);
-          // ближе всего — и лучше в сторону, куда бот и так шёл
-          if(bot.post) dq += Math.hypot(qx-bot.post.x, qy-bot.post.y)*(BAL.fireExit ? 0.08 : 0.3);   // (v151) ближний край важнее, не через весь огонь
-          if(dq < bd){ bd = dq; best = {x:qx, y:qy}; }
-        }
-        bot._fireExit = best; bot._fireExitFire = burn;
-        if(best){ bot.path = [[best.x, best.y, bot.z]]; bot.pathIdx = 0; }
-      }
-      // (v151) раньше путь наружу перебивали пост/бой каждый тик, а держащий угол
-      // вообще не двигался — стоял в огне. Теперь, пока горит, путь только наружу
-      if(BAL.fireExit && bot._fireExit){
-        bot.holding = false;
-        var fw = bot.path && bot.path[bot.path.length-1];
-        if(!fw || Math.hypot(fw[0]-bot._fireExit.x, fw[1]-bot._fireExit.y) > 4){ bot.path = [[bot._fireExit.x, bot._fireExit.y, bot.z]]; bot.pathIdx = 0; }
-        bot.walking = false; bot.crouching = false;   // из огня — бегом, не шифтом
-      }
-      targetSpeed = BAL.fireExit ? SPEED * weaponSpeedMul(bot) : runSpeed;
-    } else {
-      bot._burning = false; if(bot._fireExit){ bot._fireExit = null; bot._fireExitFire = null; }
-      if(burn && targetSpeed > 0) targetSpeed = SPEED * weaponSpeedMul(bot);   // (v263, Б2) идёт по делу через огонь — бегом, не шифтом
-    }
-    // (v263, Б2) в огне — без торможения у конца пути: точка выхода всего в 28 px за краем, и бот, тормозя к ней, полз по
-    // огню в 3–5 раз медленнее бега (на 3 матчах v262 почти все случаи «в огне > 1 с» — это он)
-    // (физика гранат: разбег) бросок с разбега — без торможения: в точке броска скорость полная, как у про (380: runupTick)
-    if(!bot.holding && bot.path.length && !burn && !(bot.nadeTask && bot.nadeTask.runPh === "go")){
-      var finalWp = bot.path[bot.path.length-1];
-      var dFinal = Math.hypot(finalWp[0]-bot.baseX, finalWp[1]-bot.baseY);
-      if(dFinal < BRAKE_RADIUS) targetSpeed = runSpeed * Math.max(0.35, dFinal/BRAKE_RADIUS);
-    }
-    // ослеплён: либо шаг назад за угол (путь уже задан в onBlind), либо стоп
-    if(BAL.blindPlay && bot._blind && tick < bot._blind.until && !burn){
-      targetSpeed = bot._blind.back ? runSpeed*0.55 : 0;
-      if(!bot._blind.back) bot.crouching = true;
-    } else if(bot._blind && tick >= bot._blind.until){ bot._blind = null; }
-    if(bot.curSpeed < targetSpeed) bot.curSpeed = Math.min(targetSpeed, bot.curSpeed+maxDelta);
-    else if(bot.curSpeed > targetSpeed) bot.curSpeed = Math.max(targetSpeed, bot.curSpeed-maxDelta);
-    if(BAL.tagging && tick < (bot._tagUntil||0)) bot.curSpeed = Math.min(bot.curSpeed, SPEED*0.4);
+    moveSpeedTick(bot, runSpeed, BRAKE_RADIUS, maxDelta); runSpeed = MOVE.run;   // стоять / идти / огонь / торможение — одно место (535_move_mode)
+    var burn = MOVE.burn;
     if(tick % 16 === 0){ var TR = bot._trail || (bot._trail = []); TR.push({x:bot.baseX, y:bot.baseY}); if(TR.length > 8) TR.shift(); }
     // перестрелка по данным: уйти с линии за укрытие и выглянуть снова
     fightCycleTick(bot, dtSec, bot.planting || bot.defusing || burn || tick < (bot.blindUntil||0));
-    if(bot._fc && bot._fc.ph !== "line") bot.curSpeed = bot._fc.moving ? SPEED*weaponSpeedMul(bot) : 0;
+    if(bot._fc && bot._fc.ph !== "line"){ bot.curSpeed = bot._fc.moving ? (bot._fc.mv || 0) : 0; bot._stopWhy = bot._fc.moving ? "перестрелка — идёт за укрытие / на линию" : "перестрелка — стоит за укрытием"; }
 
     // ---------- держит угол "живьём" ----------
     // Стоящий на посту / держащий угол без контакта не стоит статуей: медленно
@@ -316,7 +210,7 @@ function stepTick(){
     // в пределах ~25px, иногда замирает. Это настоящее движение (с коллизией),
     // не только анимация. Как только видит врага — сразу стоп (контр-страф).
     var idleHold = (bot.atPost || (bot.holding && !bot._sawEnemy)) && !bot._sawEnemy && !bot.planting && !bot.defusing &&
-                   !(bot.post && /^(gather|retake|defuse|save|stopplant|antidefuse|lineup|pickup)/.test(bot.post.tag)) &&
+                   !(bot.post && taskProp(bot.post.tag, "holdStrafeSkip")) &&
                    tick >= (bot.throwUntil||0) && !burn && !(bot.fakeHoldUntil && tick < bot.fakeHoldUntil) && !bot._fc;
     // (v420, отметка владельца 25.10: Mirage м1 р1 62 с, T4 и CT3 «дергается») в перестрелке (_fc) двигает только цикл боя (470):
     // переминание вокруг старой точки тянуло бота назад от укрытия (0,2–0,36 ед. за тик), цикл снова шагал к укрытию (1,5) —
@@ -371,7 +265,10 @@ function stepTick(){
       // с ножом чаще, при разгоне и торможении — в такт скорости
       var stride = SPEED*(bot.walking ? WALK_SPEED_FRAC*FOOTSTEP_INTERVAL_WALK : FOOTSTEP_INTERVAL_RUN)/TICK_HZ;
       var mv = bot._stepP ? Math.min(Math.hypot(bot.baseX-bot._stepP.x, bot.baseY-bot._stepP.y), 3*SPEED/TICK_HZ) : 0;   // реально пройдено за тик (упёрся в стену — не шагает)
-      bot._stepP = {x:bot.baseX, y:bot.baseY}; bot._stepDist = (bot._stepDist||0) + mv;
+      // (v546, владелец 10.11: «добавь звук лестнице, когда он спускается и поднимается»; бег по лестнице слышно как бег, шагом — бесшумно)
+      // на лестнице шаг — и по высоте (ед. игры → ед. карты, pxUnits); в прыжке (подъём из демок, щель) шагов нет — звучит только приземление
+      var CL = bot._climb; if(CL && CL.jump) mv = 0; else if(CL && bot._stepP && bot._stepP.z != null && bot.z != null) mv = Math.hypot(mv, (bot.z - bot._stepP.z)/(MAP.pxUnits || 2.5));
+      bot._stepP = {x:bot.baseX, y:bot.baseY, z:bot.z}; bot._stepDist = (bot._stepDist||0) + mv;
       if(bot._stepDist >= stride){
         bot._stepDist -= stride; if(bot._stepDist > stride) bot._stepDist = 0;
         bot.lastStepTick = tick;
@@ -381,7 +278,7 @@ function stepTick(){
         if(BAL.heardMe && roundState === "live"){ var zN = bzOf(bot.x, bot.y); if(zN >= 0){ var nearZ = [zN].concat(BZ.nbr[zN]||[]);
           if(nearZ.some(function(j){ var cj = BZ.cent[j]; return cj && Math.hypot(cj.x-bot.x, cj.y-bot.y) < soundRadius && reachPossible(bot.team, j) && beliefZoneKnown(bot.team, j) >= 0.2; })) bot._noisyT = tick; } }
         if(soundPings.length > 40) soundPings.shift();
-        moveSoundEmit(bot, soundRadius, wet ? "water" : "steps", (wet ? "всплески в воде" : "шаги")+(bot.walking ? " (тихо)" : ""));
+        moveSoundEmit(bot, soundRadius, wet ? "water" : "steps", (wet ? "всплески в воде" : CL ? "лестница" : "шаги")+(bot.walking ? " (тихо)" : ""));
       }
     }
 
@@ -606,7 +503,7 @@ function stepTick(){
         if(TRl.length >= 8 && tick - (bot._unstickT||-1e9) > 2*TICK_HZ && tick - (bot._idleT||-1e9) > 2*TICK_HZ && bot.z != null && bot.path.length && bot.pathIdx < bot.path.length &&
            TRl.every(function(q){ return Math.hypot(q.x-TRl[0].x, q.y-TRl[0].y) < 4; })){
           bot._unstickT = tick;
-          var pe = bot.path[bot.path.length-1], fr = buildWaypointPath(bot.baseX, bot.baseY, bot.z, pe[0], pe[1], pe[2], bot.team, botLane(bot)), p0 = fr && fr[0];
+          var pe = bot.path[bot.path.length-1], fr = buildWaypointPath(bot.baseX, bot.baseY, bot.z, pe[0], pe[1], pe[2], bot.team, botLane(bot), bot.walking), p0 = fr && fr[0];
           if(p0 && p0[2] != null && p0[2] <= bot.z + 18 && Math.hypot(p0[0]-bot.baseX, p0[1]-bot.baseY) <= 40 && Math.hypot(p0[0]-bot.baseX, p0[1]-bot.baseY) > 2 && !crossesWall(bot.baseX, bot.baseY, p0[0], p0[1])){
             bot.baseX = bot.x = p0[0]; bot.baseY = bot.y = p0[1]; bot.z = p0[2]; var a0 = navAt(p0[0], p0[1], p0[2]); if(a0) bot._area = a0.id;
             bot.path = fr; bot.pathIdx = 1; bot._trail = [];
@@ -672,7 +569,7 @@ function stepTick(){
     bot.x = bot.baseX + offX;
     bot.y = bot.baseY + offY;
   });
-  resolveEngagements();
+  resolveEngagements(); ecoKnowSeeTick();   // (Г1) с каким оружием видели врагов — для подсчёта их денег
   smokeSpamTick();
   infoFallbackTick();
   if(BAL.smokeReact) smokeHeTick();

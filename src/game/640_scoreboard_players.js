@@ -50,7 +50,8 @@ function scoreboardUpdate(rtLeft){
   var prog = function(f, cls){ f = Math.max(0, Math.min(1, f)); f = Math.round(f*500)/500;
     if(pg && pg._f !== f){ pg._f = f; pg.style.transform = "scaleX("+f+")"; } domClass(pg, cls); };
   // бомба стоит — как в CS2: вместо времени раунда значок бомбы (время до взрыва зрители не видят)
-  if(planted){ domHtml(tm, hudC4()); domClass(tm, "sb-time bomb"); prog(1, "bomb"); return; }
+  // (v518d, владелец А-23: «в главном, где Team Spirit, кубики, бомба нарисована, — под ней таймер до бомбы»; на радаре таймер над бомбой закрывают игроки)
+  if(planted){ domHtml(tm, hudC4() + '<span class="sb-c4t">' + Math.max(0, (bomb.explodeTick - tick)/TICK_HZ).toFixed(1) + '</span>'); domClass(tm, "sb-time bomb"); prog(1, "bomb"); return; }
   if(roundState === "freeze"){ if(HUD_SB_FRZ.start !== roundStartTime){ HUD_SB_FRZ.start = roundStartTime; HUD_SB_FRZ.len = Math.max(1, roundStartTime - simTime); } }
   var sec = roundState === "freeze" ? Math.max(0, roundStartTime - simTime) : rtLeft;
   tm._html = undefined;   // значок бомбы снят — следующий плант нарисует его заново

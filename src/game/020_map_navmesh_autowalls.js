@@ -43,6 +43,16 @@ function navAt(x, y, z){
   if(!first) return null;
   return (best && Math.abs(best.z - first.z) > 60) ? best : first;   // разные этажи — по высоте; один этаж — как раньше
 }
+// (v546, владелец 10.11, Mirage A: «бот хочет запрыгнуть на ящик и не может») высота пола под точкой, если он там один (крыша ящика, уступ):
+// у точек поста высоты нет (места про, раскладки — по радару), и путь вёл на пол бота рядом с ящиком. Под точкой несколько этажей
+// (больше ступеньки, 18 ед.) — null: «не знаю», как раньше (пол на уровне бота)
+function navOnlyZ(x, y){
+  if(!NAV_GRID) navGridBuild();
+  var L = NAV_GRID[Math.floor(x/NAV_GRID_C)+","+Math.floor(y/NAV_GRID_C)]; if(!L) return null;
+  var lo = null, hi = -Infinity;
+  for(var i=0;i<L.length;i++){ var zn = NAVAREAS[L[i]]; if(NAV_BLOCKED[zn.id] || !pointInPoly(x, y, zn.points)) continue; if(!lo || zn.z < lo.z) lo = zn; hi = Math.max(hi, zn.z); }
+  return lo && hi - lo.z <= 18 ? navFloorZ(lo, x, y) : null;
+}
 function zoneOf(x,y,z){
   // заблокированные (внутри стены) полигоны пропускаем — иначе бот, стоящий
   // на таком, получил бы стартовую зону без единого перехода

@@ -28,12 +28,12 @@ function fireCommit(b){
   // (v438, док владельца 27.10: «боты часто идут в молик»; замер: 224 захода «сам» на 8 матчей) сквозь огонь — только задача, которая
   // не ждёт, пока он прогорит: бомба (плант, дефуз, сбить плант / дефуз, ретейк и сбор под него, убежать от взрыва, поднять бомбу).
   // Остальные ждут у края (fireSafe) или идут в обход (путь, FIRE_DETOUR). Было — любой, у кого хватало HP
-  if(!(b.post && /^(plantspot|defuse|antidefuse|stopplant|retake|gather|flee|fetch)/.test(b.post.tag || ""))) return false;
+  if(!(b.post && taskProp(b.post.tag, "fireCommit"))) return false;
   return b.hp > fireDamageFor(2*NADE.molly.radius/(SPEED*weaponSpeedMul(b))) + FIRE_MARGIN;
 }
 // (v321) высота шага: без связи в навмеше нельзя подняться выше прыжка (JUMP_UP), и нельзя залезть туда, откуда есть
 // только спуск (связь «только спрыгнуть» — окно B Apps на Mirage). Спрыгнуть — можно
-var JUMP_UP = 64;   // ед. игры: выше без помощи не запрыгнуть (CS2 ~ 66 с приседом; как JUMP_UP в tools/heights_bake.py)
+var JUMP_UP = NAV_JUMP_UP;   // ед. игры: выше без помощи не запрыгнуть (CS2 ~ 66 с приседом; как JUMP_UP в tools/heights_bake.py)
 var NAV_ID = null;
 function navArea(id){ if(id == null) return null; if(!NAV_ID || NAV_ID.src !== NAVAREAS){ NAV_ID = {src: NAVAREAS, m: {}}; NAVAREAS.forEach(function(a){ NAV_ID.m[a.id] = a; }); } return NAV_ID.m[id] || null; }
 // (v333) участок навмеша под точкой на уровне lvl (±JUMP_UP; в 12 ед. от края — тоже свой пол: щели навмеша, Ladder Room над Underpass)
@@ -52,6 +52,18 @@ function navLinked2(a, b){   // связь в сторону движения н
   for(var i=0;i<E.length;i++){ var m = navArea(E[i].to); if(m && navLinked(m, b)) return true; }
   return false;
 }
+// (v546) с участка a на уровень z (± ступенька) — прыжком по связи навмеша (перепад на краю ≤ NAV_JUMP_UP, не подъём из демок): с самого a или с
+// соседних участков его уровня (до 3 переходов — путь после натяжки пропускает участки, точка пути — на стыке участков)
+function navJumpLinked(a, z){
+  var Q = [a], seen = {}; seen[a.id] = 1;
+  for(var d = 0; d < 3 && Q.length; d++){ var N = [];
+    for(var q = 0; q < Q.length; q++){ var m = Q[q], E = zoneGraph[m.id] || [];
+      for(var i = 0; i < E.length; i++){ var t = navArea(E[i].to); if(!t) continue;
+        if(Math.abs(t.z - z) <= 18 && Math.abs(t.z - a.z) > 18 && !NAV_CLIMB_UP[m.id+">"+t.id] && navEdgeDz(m, E[i]) <= NAV_JUMP_UP) return true;
+        if(!seen[t.id] && Math.abs(t.z - a.z) <= 18){ seen[t.id] = 1; N.push(t); } } }
+    Q = N; }
+  return false;
+}
 function navLinked(a, b){ var E = zoneGraph[a.id] || []; for(var i=0;i<E.length;i++) if(E[i].to === b.id) return true; return false; }
 // (v359, владелец: «сделать систему лестниц, чтобы не было проблем с Palace») лестница — отдельный переход: концы лестницы —
 // участки .nav (MAP.navmesh.ladders), низ и верх — ближайшая пара участков разной высоты. Путь ведёт на другой этаж через
@@ -59,7 +71,8 @@ function navLinked(a, b){ var E = zoneGraph[a.id] || []; for(var i=0;i<E.length;
 // время подъёма (LADDER_SPEED ед. игры/с — проектное число, в CS2 по лестнице ~ шагом), без проверок стен и пола, в конце —
 // участок другого конца и путь заново. Раньше этаж у лестницы угадывался по полу под ногами (оба этажа рядом) — бота
 // перекидывало между этажами и он «трясся»
-var CLIMB_FLOOR_TOL = 24;   // ед. игры — проектное число (как допуск пола участка в проверке набора)
+var CLIMB_FLOOR_TOL = 24, CLIMB_MID_R = 50, CLIMB_MAX_STEP = 68;   // CLIMB_MAX_STEP — ед. игры: прыжок с приседом в CS2 ~66 (как у JUMP_UP) + 2 на шаг сетки 3D (проектное)   // CLIMB_MID_R — px, поиск поверхности промежуточного ящика у точки из демок (v541, проектное число)   // ед. игры — проектное число (как допуск пола участка в проверке набора)
+var GAP_NEAR = 8;   // (v546) ед. карты: у точки отталкивания — прыгает (проектное число)
 var LADDERS = null, LADDER_SPEED = 150, LADDER_NEAR = 40, LADDER_SEEK = 260, LADDER_FAR = 150;
 function laddersBuild(){
   LADDERS = [];
@@ -78,15 +91,37 @@ function laddersBuild(){
     if(LADDERS.some(function(L){ return L.up && Math.hypot(L.lo.x-c.lo.x, L.lo.y-c.lo.y) < 15 && Math.hypot(L.hi.x-c.hi.x, L.hi.y-c.hi.y) < 15 && Math.abs(L.hi.z-c.hi.z) < 20; })) return;
     // (v375, отметка владельца: CT0 «застряли, не следуют расстановке» — лез на ящик и падал по кругу) точка верха из демок бывает
     // на краю участка, не внутри: бот «залезал» и тут же падал на пол под ним. Концы подъёма — внутрь своих участков
+    // (v541, отметка владельца 10.11 «он всё равно залазит вот так»: точка верха из демок — где игрок первый раз на высоте верха, это ещё
+    // прыжок рядом с ящиком (118 из 123 подъёмов Mirage — без пола под точкой); раньше её тянуло к центру участка верха — бот «плыл» 150 ед.
+    // по воздуху к середине ящика) конец подъёма — ближайшая к точке из демок точка своего участка, у самого края (navClampInto)
     var inside = function(e){ var a = byId[e.area]; if(!a || pointInPoly(e.x, e.y, a.points)) return {x:e.x, y:e.y, z:e.z, area:e.area};
-      var c = cen(a), d = Math.hypot(c.x-e.x, c.y-e.y), k = d > 1 ? Math.min(1, 12/d) : 0, q = {x:e.x+(c.x-e.x)*k, y:e.y+(c.y-e.y)*k};
-      for(var i = 0; i < 6 && !pointInPoly(q.x, q.y, a.points); i++){ k = Math.min(1, k*2); q = {x:e.x+(c.x-e.x)*k, y:e.y+(c.y-e.y)*k}; }
-      return {x:q.x, y:q.y, z:e.z, area:e.area}; };
+      var q = navClampInto(a, e.x, e.y); return {x:q.x, y:q.y, z:e.z, area:e.area}; };
     // (v405, отметка владельца 22.10, Mirage у Palace Entry: «там забор так не перепрыгнуть») верх подъёма, где в 3D-геометрии нет пола
     // на его высоте (± CLIMB_FLOOR_TOL) — узкий верх стены, на котором стоит участок .nav, — не подъём: путь вёл через него на −42
     var hi = inside(c.hi), M3 = m3();
     if(M3 && !m3Floors(M3, hi.x, hi.y).some(function(z){ return Math.abs(z - hi.z) <= CLIMB_FLOOR_TOL; })) return;
-    LADDERS.push({lo:inside(c.lo), hi:hi, up:true, sec:c.sec});
+    // (v533, владелец 10.11: «залезают на уступ 122 ед. напрямую, а должны через соседний ящик») подъём выше одного прыжка — через стоянку
+    // на промежуточном ящике (c.mid, из демок): бот лезет низ → стоянка → верх, а не по прямой сквозь стену
+    // (v541) стоянка — на настоящей поверхности промежуточного ящика из 3D-геометрии (в радиусе CLIMB_MID_R от точки из демок, на её высоте,
+    // ближе всего к верху): точка из демок бывает в воздухе (13 из 15). Поверхности нет — подъёма нет
+    var mid = null;
+    if(c.mid){ if(!M3) return;
+      for(var dx = -CLIMB_MID_R; dx <= CLIMB_MID_R; dx += 2) for(var dy = -CLIMB_MID_R; dy <= CLIMB_MID_R; dy += 2){ if(Math.hypot(dx, dy) > CLIMB_MID_R) continue;
+        var mx = c.mid.x + dx, my = c.mid.y + dy;
+        m3Floors(M3, mx, my).forEach(function(f){ if(Math.abs(f - c.mid.z) > CLIMB_FLOOR_TOL || f < c.lo.z + 18 || f > c.hi.z - 18) return;
+          var g = Math.hypot(hi.x - mx, hi.y - my); if(!mid || g < mid.g) mid = {x: mx, y: my, z: f, g: g}; }); }
+      if(!mid) return; }
+    // (v542, отметка и скрин владельца 10.11: «бот забирается на уступ, где написано „не пройти — край ящика“: как он туда залазит?») залазил
+    // подъёмом из демок 2135 / 2112 → верх ящика B — с прохода прямо на край: по 3D-геометрии там 81–86 ед., а прыжок в CS2 — до ~66 (с
+    // приседом). Сборщик подъёмов принимал шаг до прыжок + 25 (допуск высоты навмеша), а высота навмеша — центр участка, не пол у края.
+    // Теперь каждый шаг подъёма — по 3D: пол внизу (у точки низа) → поверхность стоянки → поверхность верха; шаг выше CLIMB_MAX_STEP — подъёма
+    // нет (так же, как в редакторе высот: «не пройти»). Подъём через промежуточный ящик, где оба шага — прыжки, остаётся
+    var lo = inside(c.lo);
+    if(M3){ var fLo = m3FloorAt(M3, lo.x, lo.y, lo.z + 18), fHi = m3Floors(M3, hi.x, hi.y).filter(function(z){ return Math.abs(z - hi.z) <= CLIMB_FLOOR_TOL; })[0];
+      if(fLo == null || fHi == null) return;
+      var steps = mid ? [mid.z - fLo, fHi - mid.z] : [fHi - fLo];
+      if(steps.some(function(d){ return d > CLIMB_MAX_STEP; })) return; }
+    LADDERS.push({lo:lo, hi:hi, up:true, sec:c.sec, mid:mid ? {x:mid.x, y:mid.y, z:mid.z} : null, yaw0:c.yaw0 || 0, yaw1:c.yaw1 || 0});   // (v548) взгляд из демок
   });
 }
 // лестница, по которой бот с этажа z попадает на этаж zTo: конец на своём этаже в пределах r
@@ -95,7 +130,7 @@ function ladderFor(x, y, z, zTo, r){
   var best = null, bd = r;
   LADDERS.forEach(function(L){ (L.up ? [[L.lo, L.hi]] : [[L.lo, L.hi], [L.hi, L.lo]]).forEach(function(e){
     if(Math.abs(e[0].z - z) > JUMP_UP || Math.abs(e[1].z - zTo) > JUMP_UP) return;
-    var d = Math.hypot(e[0].x - x, e[0].y - y); if(d < bd){ bd = d; best = {near: e[0], far: e[1], sec: L.sec}; } }); });
+    var d = Math.hypot(e[0].x - x, e[0].y - y); if(d < bd){ bd = d; best = {near: e[0], far: e[1], sec: L.sec, mid: L.up ? L.mid : null, jump: !!L.up, Y: L.up ? {yaw0: L.yaw0, yaw1: L.yaw1} : null}; } }); });
   return best;
 }
 // true — бот в этот тик на лестнице (обычный шаг не делается)
@@ -104,13 +139,37 @@ function ladderTick(bot){
   if(C){
     if(!bot.alive){ bot._climb = null; return false; }
     var p = Math.min(1, (tick - C.t0)/C.dur);
-    bot.baseX = bot.x = C.from.x + (C.to.x - C.from.x)*p; bot.baseY = bot.y = C.from.y + (C.to.y - C.from.y)*p; bot.z = C.from.z + (C.to.z - C.from.z)*p;
+    // (v533) через стоянку: первая половина времени — на промежуточный ящик, вторая — с него наверх
+    var A = C.from, B = C.to, q = p; if(C.mid){ if(p < 0.5){ B = C.mid; q = p*2; } else { A = C.mid; q = (p - 0.5)*2; } }
+    // (v543, владелец 10.11: «оттолкнуться можно беззвучно, а приземляться он должен со звуком; и видно, что он в прыжке») подъём из демок —
+    // это прыжки: доля полёта текущего прыжка (C.air, 0..1 — для рисования), приземление на промежуточный ящик и наверху — со звуком (landSound)
+    if(C.jump){ C.air = q;
+      if(C.mid && p >= 0.5 && !C.land1){ C.land1 = true; bot.baseX = bot.x = C.mid.x; bot.baseY = bot.y = C.mid.y; landSound(bot, false, "up"); bot._jump = {t: tick, up: true}; } }
+    bot.baseX = bot.x = A.x + (B.x - A.x)*q; bot.baseY = bot.y = A.y + (B.y - A.y)*q; bot.z = A.z + (B.z - A.z)*q;
+    // (v548, владелец 10.11: «в воздухе он должен по дуге поворачивать к приземлению; стрейф в воздухе — от клавиши и от того, куда смотришь»)
+    // прыжок через щель — дугой с прогибом из демок (G.bow — доля длины, + — влево): квадратичная кривая, середина отходит на bow·L
+    if(C.G && C.G.bow){ var Lc = Math.hypot(B.x - A.x, B.y - A.y), th = Math.atan2(B.y - A.y, B.x - A.x), k = 4*C.G.bow*Lc*q*(1 - q);
+      bot.baseX = bot.x = bot.x - Math.sin(th)*k; bot.baseY = bot.y = bot.y + Math.cos(th)*k; }
     bot.curSpeed = LADDER_SPEED/2.5;
-    if(p >= 1){ bot.z = C.to.z; bot._area = C.to.area; bot._climb = null; bot.path = []; bot.pathIdx = 0; }
+    if(p >= 1){ bot.z = C.to.z; bot._area = C.to.area; bot._climb = null; bot.path = []; bot.pathIdx = 0; if(C.jump) landSound(bot, false, C.gap ? "gap" : "up"); }
     return true;
   }
   if(bot.z == null || !bot.path || bot.pathIdx >= bot.path.length) return false;
-  var wp = bot.path[bot.pathIdx]; if(!wp || wp[2] == null || Math.abs(wp[2] - bot.z) <= JUMP_UP) return false;
+  var wp = bot.path[bot.pathIdx];
+  // (v546) прыжок через щель (NAV_GAPS, 050): следующая точка пути — точка приземления; у точки отталкивания (≤ GAP_NEAR) — прыжок
+  // (время полёта — медиана из демок, приземление — со звуком); дальше — сначала к точке отталкивания
+  var G = wp && NAV_GAP_AT[navGapKey(wp[0], wp[1])];
+  if(G && Math.abs(wp[2] - G.b.z) < 1){
+    if(Math.hypot(G.a.x - bot.baseX, G.a.y - bot.baseY) > GAP_NEAR){ bot.path.splice(bot.pathIdx, 0, [G.a.x, G.a.y, G.a.z]); return false; }
+    bot._climb = {t0: tick, dur: Math.max(8, Math.round(G.sec*TICK_HZ)), from: {x: bot.baseX, y: bot.baseY, z: bot.z}, to: G.b, mid: null, jump: true, gap: true, G: G};
+    bot._jump = {t: tick, up: G.b.z >= G.a.z}; bot.pathIdx++;
+    return ladderTick(bot);
+  }
+  if(!wp || wp[2] == null || Math.abs(wp[2] - bot.z) <= JUMP_UP) return false;
+  // (v546, владелец 10.11, Mirage A: бот залез на ящик −106 и спрыгнул) высоты по центрам участков (−106 → −40: 66) больше прыжка, а на краю
+  // перепад 57 — это прыжок по связи навмеша, а не лестница: раньше в путь вставлялся подъём из демок в 100 ед. от ящика, бот шёл к нему и падал
+  // (путь после натяжки пропускает соседний участок своего уровня — связь ищется и через него, как navLinked2)
+  var ca = navArea(bot._area); if(ca && navJumpLinked(ca, wp[2])) return false;
   var L = ladderFor(bot.baseX, bot.baseY, bot.z, wp[2], LADDER_SEEK); if(!L) return false;
   // путь действительно идёт через лестницу: эта точка (или следующая за точкой у лестницы) — у другого конца лестницы. Высота
   // конечной точки пути бывает «не знаю» (0) — по ней одной на лестницу не лезть (бот лез вверх-вниз)
@@ -124,7 +183,9 @@ function ladderTick(bot){
     return false;
   }
   var dz = Math.abs(L.far.z - L.near.z);
-  bot._climb = {t0: tick, dur: Math.max(8, Math.round((L.sec || dz/LADDER_SPEED)*TICK_HZ)), from: {x: bot.baseX, y: bot.baseY, z: bot.z}, to: L.far};
+  // (v546) по лестнице шагом (bot.walking) — медленнее, как шаг (WALK_SPEED_FRAC), и бесшумно (шаги на лестнице — 540)
+  bot._climb = {t0: tick, dur: Math.max(8, Math.round((L.sec || dz/LADDER_SPEED/(!L.jump && bot.walking ? WALK_SPEED_FRAC : 1))*TICK_HZ)), from: {x: bot.baseX, y: bot.baseY, z: bot.z}, to: L.far, mid: L.mid || null, jump: !!L.jump, Y: L.Y || null};
+  if(L.jump) bot._jump = {t: tick, up: true};   // (v543) подъём из демок — прыжок: стрелка «прыжок» у игрока
   if(bot.path[bot.pathIdx] && Math.hypot(bot.path[bot.pathIdx][0]-L.near.x, bot.path[bot.pathIdx][1]-L.near.y) < 4) bot.pathIdx++;
   return ladderTick(bot);
 }
@@ -191,12 +252,17 @@ function navNearestZ(x, y, tol, z){
 // (Б1, Х1) «бот на полу» — одно место для шага (offNavStep) и для проверки «вне навмеша» (stepTick → navSnap): пол своего уровня в
 // NAV_STEP_TOL или щель к связанному участку в NAV_GAP_TOL. Раньше шаг пускал в щель, а проверка считала пол по NAV_STEP_TOL и на
 // своей высоте bot.z: бот, идущий по шву между участками, через 0,5 с «вне навмеша — перенесён» со сбросом пути
-function navOnFloor(x, y, b, cur){
+function navOnFloor(x, y, b, cur, strict){
   var lvl0 = navArea(b._area) ? navArea(b._area).z : b.z;
   if(navNearLevel(x, y, NAV_STEP_TOL, lvl0)) return true;
   cur = cur || navArea(b._area); if(!cur) return false;
   // (v403, отметка владельца 22.10, A Default: «прошёл сквозь укрытия») щель к участку, связанному только обратной связью (с него
   // можно спрыгнуть сюда), — не шаг туда, если он выше ступеньки: с пола в ящик высотой 70 бот «входил» по связи «спрыгнуть с ящика»
+  // (00_PLAN п.3а, 05.11, прогон 172: Mirage м11 — 6 переносов подряд у Vent, 844,805) для ШАГА (strict, offNavStep) щель — это шов МЕЖДУ
+  // участками: точка в NAV_GAP_TOL и от своего, и от связанного. Иначе, идя с соседнего участка, бот заходил на 7 ед. за наружный край Vent
+  // (там стена), участок становился Vent — и та же точка уже «вне пола» → перенос. Проверка «вне пола» (stepTick) — мягкая, как была:
+  // всё, что пустил шаг, она принимает (строгое для неё — прогон 173: переносов 55 → 138 — бот в законной щели, пока участок не сменился)
+  if(strict && !navFloorNear(x, y, NAV_GAP_TOL, function(a){ return a === cur; })) return false;
   return !!navFloorNear(x, y, NAV_GAP_TOL, function(a){ return a !== cur && (navLinked(cur, a) || (navLinked(a, cur) && a.z <= cur.z + 18)); });
 }
 // (v403) высота бота — одно место: после любого движения за тик (шаг пути, бой — fightCycleTick, у угла, пик; stepTick зовёт в конце
@@ -253,7 +319,9 @@ function navFollowFloor(bot){
     else if(roundState === "live" && djz > 18) bot._landAt = tick + Math.round(LAND_DELAY*TICK_HZ);
     // (v333) сменил этаж (спуск, лестница) — путь, построенный с прежнего этажа, пересчитывается с нового
     if(Math.abs(dzz) > JUMP_UP && bot.path && bot.pathIdx < bot.path.length){ bot.path = []; bot.pathIdx = 0; }
-    bot.z = naz.z; bot._area = naz.id; }
+    // (Г1, 04.11, разбор отметок п.15) высота бота — пол участка под ногами (плоскость по высотам углов, navFloorZ), а не одна высота на
+    // весь участок: на ровном Top Mid стык участков −205 / −179 давал скачок +26 за тик (сторож: 53–74 таких скачка на раунд)
+    bot.z = navFloorZ(naz, bot.baseX, bot.baseY); bot._area = naz.id; }
 }
 // (v403) как далеко от пола своего уровня (± JUMP_UP) точка: 0 — на полу, дальше NAV_OFF_R — NAV_OFF_R+1 (шаг 2 ед. карты)
 var NAV_OFF_R = 24;   // проектное число: дальше бот вне пола не бывает (перенос navSnap — через 0,5 с)
@@ -272,7 +340,7 @@ function offNavStep(x1, y1, x2, y2, b){
   // (v405) шаг по пути к следующей точке (спрыгнуть с края стенки на рампу — отметка владельца 22.10, T Ramp: T вставали на краю) — можно
   var a1 = navNearLevel(x1, y1, NAV_STEP_TOL, lvl0); if(!a1) return !navStepAlongPath(x1, y1, x2, y2, b) && navFloorDist(x2, y2, lvl0) > navFloorDist(x1, y1, lvl0);
   var cur = navArea(b._area) || a1;
-  if(navOnFloor(x2, y2, b, cur)) return false;
+  if(navOnFloor(x2, y2, b, cur, true)) return false;
   // (v341, отметка владельца: sh1ro и magixx «снова застряли там же» — спуск со спавна T, −166 → −258) щель спрыгивания бывает
   // шире NAV_GAP_TOL: шаг по пути прямо к следующей точке, под которой пол связанного участка, — это задуманный переход
   var wp = b.path && b.path[b.pathIdx];
@@ -334,6 +402,27 @@ function hgtUnder(x, y, z, a){
   }
   return out;
 }
+// (v535, владелец 10.11: «визуализируй игроков под другими этажами — Under, Dark; на лестнице эффект должен меняться плавно; не „ниже
+// основного пола“») одно место: что над игроком и под ним — по 3D-геометрии карты (m3Floors — все поверхности, на которых можно стоять, в
+// этой точке). Под этажом — над головой (выше FLOOR_HEAD) есть пол; над этажом — под ногами (ниже FLOOR_HEAD) есть другой пол. Доля —
+// по 9 точкам кружка игрока (центр + 8 по краю тела): наполовину под полом — наполовину. Считается каждый тик (на лестнице высота меняется
+// плавно — и доля тоже); рисование сглаживает (floorViewTick). Раньше — участок навмеша «внизу» пары перекрытий раз в 16 тиков, а на карте
+// без перекрытий (Ancient) — «зона ниже −40» (просто ниже основного пола)
+var FLOOR_HEAD = 72;   // ед. игры — рост стоя (CS2)
+function floorCover(x, y, z){
+  var M = typeof m3 === "function" ? m3() : null; if(!M || z == null) return {under: 0, over: 0};
+  var R = BODY_HALF, nu = 0, no = 0;
+  for(var i = 0; i < 9; i++){ var a = i*Math.PI/4, px = i ? x + Math.cos(a)*R : x, py = i ? y + Math.sin(a)*R : y, F = m3Floors(M, px, py), u = 0, o = 0;
+    for(var q = 0; q < F.length; q++){ if(F[q] > z + FLOOR_HEAD) u = 1; else if(F[q] < z - FLOOR_HEAD) o = 1; }
+    nu += u; no += o; }
+  return {under: nu/9, over: no/9};
+}
+// плавная смена на экране: доля «под этажом / над этажом» тянется к посчитанной за ~0,25 с (проектное число), без скачков
+function floorViewTick(b){
+  var c = floorCover(b.x, b.y, b.z), k = 0.25;
+  b._underV = b._underV == null ? c.under : b._underV + (c.under - b._underV)*k;
+  b._overV = b._overV == null ? c.over : b._overV + (c.over - b._overV)*k;
+}
 function hgtUnderCenter(x, y, U){   // центр игрока под другим полом — для мини-карты и повтора (там кружок целиком)
   var O = HEIGHTS.over || [];
   return (U || []).some(function(i){ return pointInPoly(x, y, O[i].poly.map(function(p){ return {x: p[0], y: p[1]}; })); });
@@ -356,8 +445,21 @@ function navUnlinkBlocked(bot, pw){
   PATHQ = {}; PATHQ_N = 0;
   logEvent("навмеш: связь "+a1.id+" → "+e.to+" непроходима (уступ) — убрана, путь заново (самоисправление)");
 }
+// (00_PLAN, владелец 05.11: «упор в стену» на Mid Boxes — 52 за 8 матчей) стена в шаге — с высотой: crossesWall — по клеткам сверху (клетка без пола
+// на любой высоте — стена во всю высоту), и боковая грань ящика под ногами стоящего на ящике была «стеной» — он не мог сойти. Плоская проверка
+// сказала «стена» — 3D-луч геометрии игры (маска «nade» — твёрдое) на высоте бота: чуть выше ступеньки (STEP_UP_Z) и на уровне тела
+// (STEP_BODY_Z); стена — если упирается. Высоты нет (Ancient без 3D, бот без z) — как было
+var STEP_UP_Z = 19, STEP_BODY_Z = 50;   // ед. игры: ступенька 18 (heightBlocked) + 1; тело — середина роста стоя (72) — проектное
+function stepWall(x1, y1, x2, y2, b){
+  if(!crossesWall(x1, y1, x2, y2)) return false;
+  var M = MAP3D && m3(); if(!M || !b || b.z == null) return true;
+  // (прогон 181, Ancient 16 матчей: переносов 45 → 67) снимать «стену» — только когда сходит вниз: пол там, куда шагает, ниже ног больше чем на
+  // ступеньку в пределах щели NAV_GAP_TOL (бот у края ящика / уступа); остальные шаги — по-старому (низкая преграда, за которой у навмеша нет пола, — стена)
+  if(!navFloorNear(x2, y2, NAV_GAP_TOL, function(a){ return a.z < b.z - 18; })) return true;   // внизу рядом (щель) пола нет — не сход
+  return !m3Line(M, x1, y1, b.z + STEP_UP_Z, x2, y2, b.z + STEP_UP_Z, "nade") || !m3Line(M, x1, y1, b.z + STEP_BODY_Z, x2, y2, b.z + STEP_BODY_Z, "nade");
+}
 function stepBlocked(x1,y1,x2,y2,b){
-  if(crossesWall(x1,y1,x2,y2)) return true;
+  if(stepWall(x1, y1, x2, y2, b)) return true;
   if(heightBlocked(x1, y1, x2, y2, b)) return true;
   if(b && b.baseX != null && offNavStep(x1, y1, x2, y2, b)) return true;   // (v336) с пола навмеша — в стену/ящик нельзя
   if(!inFire(x1,y1) && inFire(x2,y2)) return !fireCommit(b);

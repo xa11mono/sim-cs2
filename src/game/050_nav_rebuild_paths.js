@@ -37,6 +37,7 @@ function snapToWalkable(x, y){
   });
   return best ? {x:best.x, y:best.y} : {x:x, y:y};
 }
+var NAV_JUMP_UP = 64;   // (v533) ед. игры: выше без помощи не запрыгнуть — одно число для графа (нужно уже при загрузке) и движения (JUMP_UP, 370)
 function rebuildNav(){
   applyNavTransform();
   // rescale edge-matching tolerances to the current navmesh scale (see the
@@ -199,6 +200,10 @@ function rebuildNav(){
         zoneGraph[za.id].push({to:zb.id, mid:m, z:zb.z, left:sg[0], right:sg[1]});
         zoneGraph[zb.id].push({to:za.id, mid:m, z:za.z, left:sg[1], right:sg[0]});
         navAutoLinks++; } }); }
+  // (v533, владелец 10.11: «залезают на уступ, куда забраться невозможно») в .nav игры есть связи «вверх» выше прыжка (Mirage 13, Ancient 11):
+  // путь шёл по ним, и высота менялась сразу. Подняться выше прыжка можно только по лестнице (.nav ladders) или подъёмом из демок (там бот
+  // лезет — ladderTick); остальные такие связи из графа убраны
+  navTallDone = false;   // (v533) связи выше прыжка снимаются при первом поиске пути (navCutTall): при загрузке 3D-пол ещё не готов
 
   // Walls are no longer auto-derived from the navmesh at all — every attempt
   // at that (inset/MIN_KEEP tuning, then chain-stitching) kept trading one
@@ -263,17 +268,84 @@ function zoneSideMap(){
 // вёл через каждый ящик и бортик напрямик. NAV_JUMP_COST / NAV_DROP_COST — ед. карты (~2,5 ед. игры), проектные числа:
 // прыжок ≈ 1,2 с бега в обход, спрыгнуть ≈ 0,6 с
 var NAV_JUMP_COST = 120, NAV_DROP_COST = 60;
+// LAND_DELAY — время полёта при запрыгивании (CS2: прыжок ~0,6 с вверх-вниз; вверх на уступ — короче) — проектное число. Звук приземления
+// через столько после прыжка (540); с v546 — и цена прыжка в пути (navJumpCost; здесь, потому что путь ищут уже при загрузке)
+var LAND_DELAY = 0.35;
 // (v469, п.5 владельца 29.10: «спрыгивают со звуком с любого уступа») UNVERIFIED: project heuristic, not confirmed CS2 threshold — проектное
 // число. Ответ про-аналитика 29.10: маленькое падение события приземления не даёт (спецификация CS2-демок), порога в единицах Valve не
 // публикует; 48 ед. — начальная настройка до проверки по демкам с player_footstep (land). Спуск ниже — тихо и шагом, и бегом (шаги —
 // отдельно); выше — звук приземления (слышимость — отдельно, landSound, 370). Раньше порог 40 и «приземление громкое всегда» (v322, csdb.gg)
 var LAND_SOUND_DROP = 48;
+var navTallCut = 0, navTallDone = false, NAV_LAD = {};   // NAV_LAD — связи лестниц .nav ("a>b"), v546
+function navCutTall(){ navTallDone = true; navTallCut = 0;
+  (function(){ var lad = NAV_LAD = {}, climbOk = {}; if(!LADDERS) laddersBuild(); LADDERS.forEach(function(L){ if(L.up) climbOk[L.lo.area+">"+L.hi.area] = 1; });
+    ((MAP.navmesh && MAP.navmesh.ladders) || []).forEach(function(l){ var S = (l.below||[]).concat(l.above||[]); S.forEach(function(a){ S.forEach(function(b){ lad[a+">"+b] = 1; }); }); });
+    for(var id in zoneGraph){ var A = zonesById[id]; if(!A) continue;
+      zoneGraph[id] = zoneGraph[id].filter(function(e){ if(NAV_CLIMB_UP[id+">"+e.to] && !climbOk[id+">"+e.to]){ navTallCut++; return false; }   // (v542) подъём из демок, отброшенный по 3D (laddersBuild), — и связи нет
+        if(!e.mid || lad[id+">"+e.to] || NAV_CLIMB_UP[id+">"+e.to]) return true;
+        if(navEdgeDz(A, e) <= NAV_JUMP_UP) return true; navTallCut++; return false; }); } })();
+  navGapsAdd();
+}
+// (v546, владелец 10.11, Mirage A: «залезает на ящик, на второй и прыгает на верхний этаж — так быстрее») прыжки через щель из демок
+// (MAP.climbs.gaps, tools/gaps_bake.py): в .nav между участками за щелью связи нет. Связь A → B — в граф пути (edge.gap); путь идёт через
+// точку отталкивания и точку приземления, сам прыжок — ladderTick (370), как подъём из демок. Между точками по 3D-геометрии должен быть
+// воздух: над сплошным полом (меньше GAP_AIR_MIN отсчётов из 9 без пола на высоте прыжка) это дыра навмеша, а не щель — связи нет.
+// GAP_AIR_MIN — проектное число
+var NAV_GAPS = [], NAV_GAP_AT = {}, GAP_AIR_MIN = 3;
+function navGapKey(x, y){ return Math.round(x*2) + "," + Math.round(y*2); }
+function navGapsAdd(){
+  NAV_GAPS = []; NAV_GAP_AT = {};
+  var M = typeof m3 === "function" ? m3() : null;
+  ((MAP.climbs && MAP.climbs.gaps) || []).forEach(function(g){
+    var A = zonesById[g.a.area], B = zonesById[g.b.area]; if(!A || !B || NAV_BLOCKED[A.id] || NAV_BLOCKED[B.id]) return;
+    var pa = pointInPoly(g.a.x, g.a.y, A.points) ? {x: g.a.x, y: g.a.y} : navClampInto(A, g.a.x, g.a.y);
+    var pb = pointInPoly(g.b.x, g.b.y, B.points) ? {x: g.b.x, y: g.b.y} : navClampInto(B, g.b.x, g.b.y);
+    var za = navFloorZ(A, pa.x, pa.y), zb = navFloorZ(B, pb.x, pb.y);
+    if(M){ var air = 0; for(var i = 1; i < 10; i++){ var t = i/10, z = za + (zb - za)*t;
+        if(!m3Floors(M, pa.x + (pb.x - pa.x)*t, pa.y + (pb.y - pa.y)*t).some(function(f){ return Math.abs(f - z) <= NAV_FLOOR_TOL; })) air++; }
+      if(air < GAP_AIR_MIN) return; }
+    // (v548) как летят про (gaps_bake): угол взгляда при отталкивании / приземлении к направлению прыжка (yaw0 / yaw1, °) и прогиб дуги (bow)
+    var G = {a: {x: pa.x, y: pa.y, z: za, area: A.id}, b: {x: pb.x, y: pb.y, z: zb, area: B.id}, sec: g.sec, yaw0: g.yaw0 || 0, yaw1: g.yaw1 || 0, bow: g.bow || 0};
+    zoneGraph[A.id] = (zoneGraph[A.id] || []).filter(function(e){ return e.to !== B.id; });
+    zoneGraph[A.id].push({to: B.id, mid: {x: pa.x, y: pa.y}, z: B.z, left: {x: pa.x, y: pa.y}, right: {x: pa.x, y: pa.y}, gap: G});
+    NAV_GAPS.push(G); NAV_GAP_AT[navGapKey(pb.x, pb.y)] = G; });
+}
+// (v546, владелец 10.11: «чтобы бот мог выбирать разные пути: спрыгнуть, спуститься по ящикам, по лестнице — в разных ситуациях») цена
+// перехода = время + шум по режиму бота (zoneDijkstra.quiet — бот идёт шагом, решение хозяина шага 535): прыжок / приземление стоит время
+// LAND_DELAY с бега; лестница — время подъёма (шагом — медленнее); громкое (прыжок через щель, спрыгнуть выше LAND_SOUND_DROP) для того,
+// кто идёт тихо, — прежние NAV_JUMP_COST / NAV_DROP_COST (обход, только если он заметно длиннее). Запрыгнуть на ящик можно тихо (шагом
+// вплотную — landSound, 540), это только время. Раньше у всех прыжок вверх стоил 120 — ящики и прыжки через щель путь не выбирал никогда
 function navJumpCost(a, edge){
-  if(edge._jcost != null) return edge._jcost;
-  var b = zonesById[edge.to]; if(!a || !b || !edge.mid) return (edge._jcost = 0);
-  if(navPlane(a).flat || navPlane(b).flat) return (edge._jcost = 0);   // нет высот углов (Ancient) — как раньше
-  var dz = navStepDz(a, b, edge.mid.x, edge.mid.y);
-  return (edge._jcost = dz > 18 ? NAV_JUMP_COST : dz < -LAND_SOUND_DROP ? NAV_DROP_COST : 0);   // (v469) тихий спуск (≤ LAND_SOUND_DROP) — без цены
+  var q = !!zoneDijkstra.quiet, k = q ? "_jcq" : "_jcf";
+  if(edge[k] != null) return edge[k];
+  var v = navJumpCost0(a, edge, q); if(navTallDone) edge[k] = v;   // до navCutTall лестницы (NAV_LAD) ещё не известны — не запоминать
+  return v;
+}
+function navJumpCost0(a, edge, q){
+  var b = zonesById[edge.to]; if(!a || !b || !edge.mid) return 0;
+  var tJ = LAND_DELAY*SPEED;
+  if(edge.gap) return tJ + (q ? NAV_JUMP_COST : 0);
+  if(NAV_LAD[a.id+">"+edge.to]) return Math.abs(b.z - a.z)/LADDER_SPEED*SPEED/(q ? WALK_SPEED_FRAC : 1);   // лестница
+  var dz = navEdgeDz(a, edge);
+  if(dz > 18) return tJ;
+  if(dz < -LAND_SOUND_DROP) return tJ + (q ? NAV_DROP_COST : 0);
+  return 0;   // (v469) тихий спуск (≤ LAND_SOUND_DROP) — без цены
+}
+// перепад пола по переходу edge из участка a (+ — вверх); одно место для цены прыжка и для «выше прыжка — не пройти» (v533)
+function navEdgeDz(a, edge){
+  if(edge._dz != null) return edge._dz;
+  var b = zonesById[edge.to]; if(!a || !b || !edge.mid) return (edge._dz = 0);
+  var dz;
+  if(navPlane(a).flat || navPlane(b).flat){
+    // (v519, пак 09.11 п.13; А-3: «на Ancient куча мест, где T бегут и постоянно прыгают») у навмеша Ancient нет высот углов — раньше цена
+    // прыжка была 0, и путь шёл через каждый уступ. Высота пола по обе стороны прохода — из 3D-геометрии карты (та же, что видимость): в 10 px
+    // от середины прохода внутрь каждого участка, этаж — ближайший к высоте участка (пандус так не даёт ложного уступа: пол непрерывный)
+    var M = typeof m3 === "function" ? m3() : null; if(!M) return 0;
+    var cen = function(A){ var x = 0, y = 0; A.points.forEach(function(q){ x += q.x; y += q.y; }); return {x:x/A.points.length, y:y/A.points.length}; };
+    var side = function(A){ var c = cen(A), dx = c.x-edge.mid.x, dy = c.y-edge.mid.y, L = Math.hypot(dx, dy) || 1; return visFloorAt(edge.mid.x + dx/L*10, edge.mid.y + dy/L*10, A.z); };
+    dz = side(b) - side(a);
+  } else dz = navStepDz(a, b, edge.mid.x, edge.mid.y);
+  return (edge._dz = dz);
 }
 var ROUTE_PORTAL = 0;   // (v406) цена перехода между участками сверх длины (было 40 при длине от центров участков): с длиной от точки входа не нужна — спуск со спавна T по рампе (607) короче бордюра (624), а с ценой 8 выбирался бордюр
 // (v446, владелец 28.10: «трое T со спавна идут в точку на Palace Entry и спрыгивают, хотя могли бежать прямо») шум цены переходов
@@ -295,8 +367,11 @@ function knownPathSpots(team){
 }   // (док 6) продолжаемые поиски пути этого тика (zoneDijkstra) — ключ: начало и обстановка
 // (v469) штраф отрезка пути за место врага: KNOWN_DETOUR × вес × (длина отрезка внутри круга KNOWN_PATH_R) / диаметр круга
 function knownSegCost(a, b, q){
+  // (Г6, скорость) отрезок целиком дальше R от места по оси — пересечения нет (тот же 0, что дал бы расчёт ниже)
+  var R = KNOWN_PATH_R;
+  if((a.x < q.x - R && b.x < q.x - R) || (a.x > q.x + R && b.x > q.x + R) || (a.y < q.y - R && b.y < q.y - R) || (a.y > q.y + R && b.y > q.y + R)) return 0;
   var dx = b.x - a.x, dy = b.y - a.y, L2 = dx*dx + dy*dy; if(L2 < 1e-9) return 0;
-  var fx = a.x - q.x, fy = a.y - q.y, R = KNOWN_PATH_R;
+  var fx = a.x - q.x, fy = a.y - q.y;
   var B = 2*(fx*dx + fy*dy), C = fx*fx + fy*fy - R*R, D = B*B - 4*L2*C; if(D <= 0) return 0;
   var sq = Math.sqrt(D), t0 = Math.max(0, (-B - sq)/(2*L2)), t1 = Math.min(1, (-B + sq)/(2*L2)); if(t1 <= t0) return 0;
   return KNOWN_DETOUR*q.w*(t1 - t0)*Math.sqrt(L2)/(2*R);
@@ -318,7 +393,7 @@ function zoneDijkstra(fromId, toId, team){
   // зонам ухода) поиск из одного начала в одной обстановке (тот же тик, команда, точка старта, огонь, известные враги, граф) продолжается
   // с места, где остановился прошлый, а не начинается заново: порядок обхода тот же, что у отдельного поиска до цели, — путь бит в бит
   var fx0 = zoneDijkstra.from, fireOn = !!(zoneDijkstra.fire && fires.length);
-  var key = fromId + "|" + (team||"") + "|" + (fx0 ? fx0.x + "," + fx0.y : "") + "|" + (fireOn ? fires.map(function(f){ return f.x + "," + f.y + "," + f.born; }).join(";") : "") + "|" +
+  var key = fromId + "|" + (team||"") + (zoneDijkstra.quiet ? "|q" : "") + "|" + (fx0 ? fx0.x + "," + fx0.y : "") + "|" + (fireOn ? fires.map(function(f){ return f.x + "," + f.y + "," + f.born; }).join(";") : "") + "|" +
             KP.map(function(q){ return q.x + "," + q.y + "," + q.w; }).join(";");
   var DJ = ZDJ.tick === tick && ZDJ.m === matchNum && ZDJ.graph === zoneGraph ? ZDJ.s : (ZDJ.tick = tick, ZDJ.m = matchNum, ZDJ.graph = zoneGraph, ZDJ.s = {});
   var S = DJ[key];
@@ -329,19 +404,26 @@ function zoneDijkstra(fromId, toId, team){
     // вошли (середина перехода; у начала — сама точка старта, zoneDijkstra.from), а не от центра участка: по центрам мелко нарезанная
     // рампа «стоила» дороже бордюра того же пути. Переход между участками — ROUTE_PORTAL (было 40 — проектное число)
     var fromCentroid = entry[u] || zoneCentroid(zonesById[u]);
-    (zoneGraph[u]||[]).forEach(function(edge){
-      if(visited[edge.to]) return;
+    var EL = zoneGraph[u] || [], nKP = KP.length;
+    for(var ei = 0; ei < EL.length; ei++){ var edge = EL[ei];
+      if(visited[edge.to]) continue;
       var w = dist2(fromCentroid, edge.mid) + ROUTE_PORTAL + navJumpCost(zonesById[u], edge); // small fixed cost per portal crossing
       if(side && side[edge.to] !== undefined && side[edge.to] < ROUTE_SIDE_LINE) w *= ROUTE_ENEMY_SIDE;   // (v259) CT — по своей стороне
       // (v438, док владельца 27.10: «боты часто идут в молик») переход в горящем огне — дороже на FIRE_DETOUR: путь обходит молотов, если обход
       // не длиннее; иначе идёт через огонь (как и раньше — fireCommit / ждёт у края). Только путь движения (buildWaypointPath)
       if(fireOn && inFire(edge.mid.x, edge.mid.y)) w += FIRE_DETOUR;
-      for(var kq = 0; kq < KP.length; kq++) w += knownSegCost(fromCentroid, edge.mid, KP[kq]);
+      // (Д3, скорость; облако м7: 60 млн вызовов knownSegCost за 8000 тиков) отсев по оси — тот же, что первой строкой knownSegCost
+      // (места дальше R от отрезка по оси — 0), но без вызова функции; порядок сложения и сами слагаемые те же — результат бит в бит
+      if(nKP){ var sax = fromCentroid.x, say = fromCentroid.y, sbx = edge.mid.x, sby = edge.mid.y;
+        var mnx = sax < sbx ? sax : sbx, mxx = sax < sbx ? sbx : sax, mny = say < sby ? say : sby, mxy = say < sby ? sby : say, KR = KNOWN_PATH_R;
+        for(var kq = 0; kq < nKP; kq++){ var kqp = KP[kq];
+          if(mxx < kqp.x - KR || mnx > kqp.x + KR || mxy < kqp.y - KR || mny > kqp.y + KR) continue;
+          w += knownSegCost(fromCentroid, edge.mid, kqp); } }
       var alt = dist[u] + w;
       if(dist[edge.to]===undefined || alt<dist[edge.to]){
         dist[edge.to] = alt; prev[edge.to] = u; entry[edge.to] = edge.mid; heap.push(edge.to, alt);
       }
-    });
+    }
   };
   if(!visited[toId]){
     if(S.relax != null){ relax(S.relax); S.relax = null; }   // прошлый поиск остановился на своей цели, не раскрыв её переходы
@@ -482,9 +564,24 @@ function laneShift(path, lane, x0, y0, z0, fixed){
     px = out[i][0]; py = out[i][1]; pz = out[i][2]; }
   return out;
 }
-function buildWaypointPath(fromX, fromY, fromZ, toX, toY, toZ, team, lane){
+// (Г6, скорость, 04.11) путь без команды (team не задан) зависит только от карты (граф, закрытые участки, стены) и огня — не от
+// времени и знаний: тот же запрос с теми же точными аргументами при том же графе и том же огне даёт тот же путь. Такие пути
+// запоминаются (копией: вызывающие правят точки). Замер м1 р6: 59 % вызовов — без команды, повторы — точные. Игра бит в бит та же
+var WPM = {graph: null, m: -1, n: 0, s: {}};
+// quiet (v546) — путь для того, кто идёт шагом (bot.walking): громкие переходы дороже (navJumpCost)
+function buildWaypointPath(fromX, fromY, fromZ, toX, toY, toZ, team, lane, quiet){
+  if(quiet){ zoneDijkstra.quiet = true; try { return buildWaypointPath0(fromX, fromY, fromZ, toX, toY, toZ, team, lane); } finally { zoneDijkstra.quiet = false; } }
+  if(team) return buildWaypointPath0(fromX, fromY, fromZ, toX, toY, toZ, team, lane);
+  if(WPM.graph !== zoneGraph || WPM.m !== matchNum || WPM.n > 20000){ WPM.graph = zoneGraph; WPM.m = matchNum; WPM.n = 0; WPM.s = {}; }
+  var key = fromX+","+fromY+","+fromZ+">"+toX+","+toY+","+toZ+"|"+lane+"|"+(fires.length ? tick+":"+fires.map(function(f){ return f.x+","+f.y+","+f.born; }).join(";") : "");   // огонь растёт со временем — с огнём только в том же тике
+  var v = WPM.s[key];
+  if(!v){ v = WPM.s[key] = buildWaypointPath0(fromX, fromY, fromZ, toX, toY, toZ, team, lane); WPM.n++; }
+  return v.map(function(q){ return q.slice(); });
+}
+function buildWaypointPath0(fromX, fromY, fromZ, toX, toY, toZ, team, lane){
   // (v341, отметка владельца: karrigan в щели у края нижнего пола — путь начинался с верхней полоски (−140) над ним, туда хода
   // нет, бот уходил с пола и его переносило по кругу) начало пути — пол рядом на высоте бота, а не ближайший центр участка
+  if(!navTallDone) navCutTall();
   var fz = fromZ != null ? navAt(fromX, fromY, fromZ) : null;
   if(fromZ != null && (!fz || Math.abs(fz.z - fromZ) > JUMP_UP)) fz = navNearestZ(fromX, fromY, NAV_GAP_TOL, fromZ);   // под точкой чужой этаж — свой рядом
   if(fz && !(zoneGraph[fz.id]||[]).length) fz = null;   // участок без переходов — маршрута от него нет (была прямая сквозь всё)
@@ -534,21 +631,26 @@ function buildWaypointPath(fromX, fromY, fromZ, toX, toY, toZ, team, lane){
   // которой только и можно подняться, — под край верхнего пола (+96, выше прыжка), и бот стоял у стены. Теперь на каждом
   // подъёме-прыжке (> 18 ед. у края, navStepDz) путь проходит через середину перехода; нить натягивается между ними.
   // Без высот углов (Ancient) — как раньше
-  var start0 = {x:fromX,y:fromY,z:fromZ||0}, end0 = {x:toX,y:toY,z:toZ||0}, cuts = [];
+  var start0 = {x:fromX,y:fromY,z:fromZ||0}, end0 = {x:toX,y:toY,z:toZ||0}, cuts = [], gapFix = [];
   for(var ci=0;ci<corridor.length;ci++){ var cA = zonesById[cPair[ci][0]], cB = zonesById[cPair[ci][1]], ce = corridor[ci];
+    if(ce.gap){ cuts.push(ci); gapFix.push(ce.gap.a, ce.gap.b); continue; }   // (v546) прыжок через щель: путь — через точку отталкивания и приземления
     if(cA && cB && ce.mid && !navPlane(cA).flat && !navPlane(cB).flat && navStepDz(cA, cB, ce.mid.x, ce.mid.y) > 18) cuts.push(ci); }
   var path;
   if(!cuts.length) path = funnel(corridor, start0, end0);
   else { path = []; var sP = start0, prevC = 0;
-    cuts.concat([corridor.length]).forEach(function(ci2){ var eP = ci2 < corridor.length ? {x:corridor[ci2].mid.x, y:corridor[ci2].mid.y, z:corridor[ci2].z} : end0;
-      var seg = funnel(corridor.slice(prevC, ci2), sP, eP); path = path.concat(path.length ? seg.slice(1) : seg); sP = eP; prevC = ci2 + 1; }); }
+    cuts.concat([corridor.length]).forEach(function(ci2){ var G = ci2 < corridor.length ? corridor[ci2].gap : null;
+      var eP = G ? {x:G.a.x, y:G.a.y, z:G.a.z} : ci2 < corridor.length ? {x:corridor[ci2].mid.x, y:corridor[ci2].mid.y, z:corridor[ci2].z} : end0;
+      var seg = funnel(corridor.slice(prevC, ci2), sP, eP); path = path.concat(path.length ? seg.slice(1) : seg); sP = eP; prevC = ci2 + 1;
+      if(G){ path.push([G.b.x, G.b.y, G.b.z]); sP = {x:G.b.x, y:G.b.y, z:G.b.z}; } }); }
   // Проверка по стенам: funnel натягивает путь по геометрии НАВМЕША, а она
   // местами не совпадает с нарисованными стенами — натянутый отрезок может
   // срезать угол прямо сквозь стену. Если хоть один отрезок пересекает
   // стену — вместо натянутого пути идём через середины порталов (зигзаг, но
   // каждая точка гарантированно на переходе между проходимыми полигонами).
   var bad = false;
+  var gapSeg = function(A, B){ var G = NAV_GAP_AT[navGapKey(B[0], B[1])]; return !!G && Math.abs(G.a.x - A[0]) < 0.5 && Math.abs(G.a.y - A[1]) < 0.5; };   // (v546) прыжок через щель — над пустотой, это не «плохой» отрезок
   for(var k=0;k<path.length-1;k++){
+    if(gapSeg(path[k], path[k+1])) continue;
     if(segCrossesManualWalls(path[k][0],path[k][1],path[k+1][0],path[k+1][1])){ bad = true; break; }
   }
   // (v373, сторож: «застой» — бот с путём стоит у ящика: натянутый отрезок срезал угол через участок выше (ящик, уступ) вне
@@ -556,19 +658,19 @@ function buildWaypointPath(fromX, fromY, fromZ, toX, toY, toZ, team, lane){
   // другой высоты (> JUMP_UP), — тоже «плохой»: идём через середины переходов
   if(!bad){ if(!NAV_GRID) navGridBuild();
     var inR = {}; route.forEach(function(id){ inR[id] = 1; });
-    for(var k2=0;k2<path.length-1 && !bad;k2++){ var A = path[k2], B = path[k2+1], dd = Math.hypot(B[0]-A[0], B[1]-A[1]), ns = Math.ceil(dd/8);
+    for(var k2=0;k2<path.length-1 && !bad;k2++){ if(gapSeg(path[k2], path[k2+1])) continue; var A = path[k2], B = path[k2+1], dd = Math.hypot(B[0]-A[0], B[1]-A[1]), ns = Math.ceil(dd/8);
       for(var j=1;j<ns && !bad;j++){ var t = j/ns, x = A[0]+(B[0]-A[0])*t, y = A[1]+(B[1]-A[1])*t, zz = (A[2]||0)+((B[2]||0)-(A[2]||0))*t;
         var L = NAV_GRID[Math.floor(x/NAV_GRID_C)+","+Math.floor(y/NAV_GRID_C)] || [], hit = false, other = false;
         for(var q=0;q<L.length;q++){ var ar = NAVAREAS[L[q]]; if(NAV_BLOCKED[ar.id] || !pointInPoly(x, y, ar.points)) continue; if(inR[ar.id]) hit = true; else if(Math.abs(ar.z - zz) > JUMP_UP) other = true; else hit = true; }
         if(other && !hit) bad = true; } } }
   if(bad){
     var mids = [];
-    corridor.forEach(function(e){ mids.push([e.mid.x, e.mid.y, e.z]); });
+    corridor.forEach(function(e){ if(e.gap) mids.push([e.gap.a.x, e.gap.a.y, e.gap.a.z], [e.gap.b.x, e.gap.b.y, e.gap.b.z]); else mids.push([e.mid.x, e.mid.y, e.z]); });
     mids.push([toX, toY, toZ||0]);
     return mids;
   }
   // drop the leading point (== bot's current position, not a real waypoint)
-  var outP = lane != null ? laneShift(path.slice(1), lane, fromX, fromY, fromZ, cuts.map(function(ci){ return corridor[ci].mid; })) : path.slice(1);
+  var outP = lane != null ? laneShift(path.slice(1), lane, fromX, fromY, fromZ, cuts.map(function(ci){ return corridor[ci].mid; }).concat(gapFix)) : path.slice(1);
   return outP;
 }
 

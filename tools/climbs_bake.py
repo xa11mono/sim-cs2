@@ -30,6 +30,12 @@ BOOST_PX = float(abs(_u0[0][1] - _u0[0][0]) + abs(_u0[1][1] - _u0[1][0]))   # BO
 
 nav = json.load(open(mapdir.path(MAPNAME, 'navmesh.json'), encoding='utf-8'))['areas']
 by = {a['id']: a for a in nav}
+def point_in_area(A, x, y):   # (v533) точка внутри многоугольника участка навмеша
+    P = A['points']; c = False; j = len(P) - 1
+    for i in range(len(P)):
+        if (P[i]['y'] > y) != (P[j]['y'] > y) and x < (P[j]['x'] - P[i]['x']) * (y - P[i]['y']) / (P[j]['y'] - P[i]['y']) + P[i]['x']: c = not c
+        j = i
+    return c
 cand = []
 for hi in nav:
     for lid in hi['conn']:
@@ -64,21 +70,25 @@ print('кандидатов (только спрыгнуть, перепад > %
 hits = collections.defaultdict(list); rej = collections.defaultdict(collections.Counter)
 for demo in demo_names():
     t = ticks_of(demo)
-    X, Y, Z, S, T = t.x.values, t.y.values, t.Z.values, t.steamid.values, t.tick.values
+    X, Y, Z, S, T, YW = t.x.values, t.y.values, t.Z.values, t.steamid.values, t.tick.values, t.yaw.values
     SD = t.side.values; order = np.argsort(T, kind='stable'); TS = T[order]
     def boosted(k):   # свой прямо под ним в этот тик
         a0, a1 = np.searchsorted(TS, T[k]), np.searchsorted(TS, T[k], side='right'); o = order[a0:a1]
         o = o[(S[o] != S[k]) & (SD[o] == SD[k])]
         return bool(((np.hypot(X[o] - X[k], Y[o] - Y[k]) <= BOOST_PX) & (Z[o] <= Z[k] - BOOST_DZ)).any())
     def max_step(j, i0, k, lo_z, hi_z):   # самый высокий шаг подъёма: с промежуточной стоянкой — два шага
-        w = j[(T[j] >= T[i0]) & (T[j] <= T[k])]; zs, ts = Z[w], T[w]; best = hi_z - lo_z
+        # (v533, владелец 10.11: «залезают на уступ 122 ед. напрямую, а должны через соседний ящик») запоминаем и саму стоянку (x, y, z):
+        # раньше подъём ящик через ящик сохранялся только началом и концом — игра лезла по прямой мимо промежуточного ящика
+        w = j[(T[j] >= T[i0]) & (T[j] <= T[k])]; zs, ts = Z[w], T[w]; best = hi_z - lo_z; mid = None
         r0 = 0
         for r in range(1, len(w) + 1):
             if r == len(w) or abs(zs[r] - zs[r0]) > 2:
                 zp = float(np.mean(zs[r0:r]))
-                if ts[r - 1] - ts[r0] >= PLATEAU_T and lo_z + 20 < zp < hi_z - 20: best = min(best, max(zp - lo_z, hi_z - zp))
+                if ts[r - 1] - ts[r0] >= PLATEAU_T and lo_z + 20 < zp < hi_z - 20:
+                    st = max(zp - lo_z, hi_z - zp)
+                    if st < best: best = st; mid = (float(np.mean(X[w][r0:r])), float(np.mean(Y[w][r0:r])), zp)
                 r0 = r
-        return best
+        return best, mid
     for ci, c in enumerate(cand):
         m = (np.abs(X - c['x']) < NEAR) & (np.abs(Y - c['y']) < NEAR)
         if not m.any(): continue
@@ -91,9 +101,13 @@ for demo in demo_names():
                 if abs(Z[k] - lo_z) < DZ: last_lo = k
                 elif abs(Z[k] - hi_z) < DZ and last_lo is not None and T[k] - T[last_lo] <= CLIMB_SEC * 64 and T[k] > cool and \
                         ((X[k] - X[last_lo]) ** 2 + (Y[k] - Y[last_lo]) ** 2) ** 0.5 <= STEP:
-                    kind = 'boost' if boosted(k) else ('tall' if max_step(j, last_lo, k, lo_z, hi_z) > STEP_MAX else 'ok')
+                    ms, mid = max_step(j, last_lo, k, lo_z, hi_z)
+                    kind = 'boost' if boosted(k) else ('tall' if ms > STEP_MAX else 'ok')
                     rej[ci][kind] += 1
-                    if kind == 'ok': hits[ci].append((demo, float(X[last_lo]), float(Y[last_lo]), float(X[k]), float(Y[k]), (T[k] - T[last_lo]) / 64))
+                    # (v548) угол взгляда при отталкивании и приземлении к направлению подъёма (низ → верх; на карте угол = −yaw)
+                    th = np.arctan2(Y[k] - Y[last_lo], X[k] - X[last_lo]); wr = lambda a: (a + np.pi) % (2*np.pi) - np.pi
+                    yw = (float(wr(np.radians(-YW[last_lo]) - th)), float(wr(np.radians(-YW[k]) - th)))
+                    if kind == 'ok': hits[ci].append((demo, float(X[last_lo]), float(Y[last_lo]), float(X[k]), float(Y[k]), (T[k] - T[last_lo]) / 64, mid, yw))
                     cool = T[k] + 5 * 64; last_lo = None
     del t
 
@@ -105,13 +119,29 @@ json.dump(rep, open(os.path.join(HERE, 'measure', 'results', 'climbs_report_%s.j
 out = []
 for ci, H in sorted(hits.items()):
     if len(H) < MIN_N or len({h[0] for h in H}) < MIN_DEMOS: continue
-    c = cand[ci]; a = np.array([h[1:] for h in H])
-    out.append({'lo': {'area': c['lo']['id'], 'x': round(float(np.median(a[:, 0])), 1), 'y': round(float(np.median(a[:, 1])), 1), 'z': c['lo']['z']},
-                'hi': {'area': c['hi']['id'], 'x': round(float(np.median(a[:, 2])), 1), 'y': round(float(np.median(a[:, 3])), 1), 'z': c['hi']['z']},
-                'n': len(H), 'demos': len({h[0] for h in H}), 'sec': round(float(np.median(a[:, 4])), 2)})
-    print('  подъём %d → %d (перепад %d): %d раз в %d демках, медиана %.2f с' % (c['lo']['id'], c['hi']['id'], c['hi']['z'] - c['lo']['z'], len(H), out[-1]['demos'], out[-1]['sec']))
+    c = cand[ci]; a = np.array([h[1:6] for h in H])
+    rec = {'lo': {'area': c['lo']['id'], 'x': round(float(np.median(a[:, 0])), 1), 'y': round(float(np.median(a[:, 1])), 1), 'z': c['lo']['z']},
+           'hi': {'area': c['hi']['id'], 'x': round(float(np.median(a[:, 2])), 1), 'y': round(float(np.median(a[:, 3])), 1), 'z': c['hi']['z']},
+           'n': len(H), 'demos': len({h[0] for h in H}), 'sec': round(float(np.median(a[:, 4])), 2)}
+    YW2 = np.array([h[7] for h in H]); cang = lambda v: round(float(np.degrees(np.arctan2(np.median(np.sin(v)), np.median(np.cos(v))))), 1)
+    rec['yaw0'], rec['yaw1'] = cang(YW2[:, 0]), cang(YW2[:, 1])   # (v548) взгляд при отталкивании / приземлении к направлению подъёма
+    # (v533) подъём выше одного прыжка (> STEP_MAX) — только через промежуточную стоянку: её место (медиана) и участок навмеша под ней
+    # (ближайший по высоте среди тех, что накрывают точку). участка навмеша под стоянкой может не быть — тогда точка без участка
+    if c['hi']['z'] - c['lo']['z'] > STEP_MAX:
+        M = np.array([h[6] for h in H if h[6] is not None])
+        if len(M) < max(3, len(H) // 2): print('  подъём %d → %d без промежуточной стоянки — пропущен' % (c['lo']['id'], c['hi']['id'])); continue
+        mx, my, mz = float(np.median(M[:, 0])), float(np.median(M[:, 1])), float(np.median(M[:, 2]))
+        # стоянка — верх промежуточного ящика; участка навмеша на нём часто нет (мелкие ящики .nav не покрывает) — тогда точка без участка:
+        # игра лезет через неё (низ → стоянка → верх), а не по прямой
+        under = [q for q in nav if point_in_area(q, mx, my) and abs(q['z'] - mz) <= DZ]
+        ma = min(under, key=lambda q: abs(q['z'] - mz)) if under else None
+        rec['mid'] = {'area': ma['id'] if ma else None, 'x': round(mx, 1), 'y': round(my, 1), 'z': round(ma['z'] if ma else mz, 1)}
+    out.append(rec)
+    print('  подъём %d → %d (перепад %d): %d раз в %d демках, медиана %.2f с; взгляд %+.0f° → %+.0f°' % (c['lo']['id'], c['hi']['id'], c['hi']['z'] - c['lo']['z'], len(H), out[-1]['demos'], out[-1]['sec'], rec['yaw0'], rec['yaw1']))
 # (v375) цепочки (верх одного подъёма — низ другого: ящик на ящике) — бот на них зацикливался (лез, падал); оставляем одиночные
 los = {c['lo']['area'] for c in out}
 out = [c for c in out if c['hi']['area'] not in los]
-json.dump({'climbs': out}, open(mapdir.path(MAPNAME, 'climbs.json'), 'w', encoding='utf-8'), separators=(',', ':'))
+_f = mapdir.path(MAPNAME, 'climbs.json'); _old = json.load(open(_f, encoding='utf-8')) if os.path.exists(_f) else {}
+_old['climbs'] = out   # (v548) прыжки через щель (gaps, gaps_bake.py) не трогаем
+json.dump(_old, open(_f, 'w', encoding='utf-8'), separators=(',', ':'))
 print('climbs.json: %d подъёмов' % len(out))

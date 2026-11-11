@@ -1,4 +1,5 @@
 // ---------- бомба ----------
+var DEFUSE_JUDGE = 0.3;   // (v519) с — ошибка оценки таймера игроком, проектное число
 var PLANT_TICKS = Math.round(3.2*64), BOMB_TICKS = 40*64, DEFUSE_TICKS = 10*64, DEFUSE_KIT_TICKS = 5*64;
 // (v271) Урон взрыва — как в CS2 после июля 2025: волна расходится по карте от бомбы, углы и
 // стены её гасят (Valve «запекает» урон в карту, формулы не публикует). Числа — из наших демок
@@ -12,7 +13,7 @@ function bombPathLen(x, y){
   var C = bomb._pathC || (bomb._pathC = {}), k = Math.round(x/8)+","+Math.round(y/8);
   if(C[k] != null) return C[k];
   var L = Infinity;
-  if(Math.hypot(x-bomb.x, y-bomb.y) < BOMB_DMG.reach){ var pts = pathPts(bomb.x, bomb.y, x, y); if(pts.length) L = polyLen(pts); }
+  if(Math.hypot(x-bomb.x, y-bomb.y) < BOMB_DMG.reach){ var pts = pathPts(bomb.x, bomb.y, x, y, bomb.z); if(pts.length) L = polyLen(pts); }
   return (C[k] = L);
 }
 function bombDamageAt(x, y){
@@ -56,7 +57,7 @@ function bombFleePoint(b){
     if(dB > BOMB_DMG.reach + 100) return;
     var q = walk(c), dq = bombDamageAt(q.x, q.y);
     var ok = dq <= Math.max(0, b.hp - FLEE_HP_MARGIN);   // там взрыв не добьёт и с запасом
-    var pts = pathPts(b.x, b.y, q.x, q.y);
+    var pts = pathPts(b.x, b.y, q.x, q.y, b.z);
     if(pts.length < 1) return;
     var L = polyLen(pts), minD = Infinity;
     for(var k=1;k<pts.length;k++){ var dd = distToSeg(bomb.x, bomb.y, [pts[k-1][0], pts[k-1][1], pts[k][0], pts[k][1]]); if(dd < minD) minD = dd; }
@@ -82,14 +83,33 @@ function resetBomb(){
   bomb = {state:"carried", carrier:carrier, x:carrier.x, y:carrier.y, site:null, plantTick:-1, explodeTick:-1};
   bots.forEach(function(b){ b.planting = false; b.defusing = false; b.fakeUntil = 0; b.fakeHoldUntil = 0; b.retakeRole = null; b._defuseHeard = -9999; b._tradeLock = null; b._fillLock = null; });
 }
+// (00_PLAN, прогон 184: Mirage м23 — 32 переноса «вне пола» у T Ramp, 1482,1281, бот шёл за бомбой) упавшее (бомба, оружие, гранаты, кит) — на пол
+// навмеша: место смерти — рисуемая позиция (b.x: стрейф, отход от стены) и разброс предметов ±8 бывают в стене; там — ближайшая точка
+// ближайшего участка (в 40 ед., как перенос navSnap и точка поста setPost)
+function dropOnFloor(x, y, z){
+  if(navAt(x, y)) return {x:x, y:y};
+  var a = navFloorNear(x, y, 40, function(q){ return z == null || Math.abs(q.z - z) <= JUMP_UP; }); if(!a) return {x:x, y:y};
+  var c = navClampInto(a, x, y); return {x:c.x, y:c.y};
+}
 function dropBomb(b){
   if(bomb && bomb.state === "carried" && bomb.carrier === b){
-    bomb.state = "dropped"; bomb.x = b.x; bomb.y = b.y; bomb.carrier = null;
+    var dp = dropOnFloor(b.x, b.y, b.z); bomb.state = "dropped"; bomb.x = dp.x; bomb.y = dp.y; bomb.carrier = null;
     logEvent(b.id+" погиб с бомбой — C4 на земле");
   }
 }
 // звук дефуза слышат T в радиусе 700px — именно звук, а не "всезнание":
 // T, которые не рядом, про дефуз не знают
+// (Г1, 04.11, разбор отметок п.4) сколько секунд этому CT до снятия бомбы — одно место для всех оценок «успеем ли» (сейв, сбор ретейка,
+// дефузер, ниндзя, контакт): уже дефузит — остаток дефуза (раньше и ему считали полные 10 с — сейв всей команды при начатом дефузе);
+// иначе путь по навмешу (раньше в части мест — прямая × 1,3 / 1,2) + время дефуза. from — точка, откуда считать (точка сбора), иначе — сам бот
+function defuseEta(b, from){
+  if(b.defusing) return Math.max(0, (b.defuseUntil - tick)/TICK_HZ);
+  // (Г3, 04.11, разбор отметок п.32: роль дефузера CT4 ↔ CT2 каждые 0,5 с) время — по кратчайшему пути навмеша: путь команды (обход мест,
+  // где ждут врага) меняется вместе со знанием и прыгал между двумя маршрутами (Kitchen ↔ Apartments) — оценка «кто раньше» скакала
+  // (00_PLAN п.3б) путь — с высотой бота и бомбы (pathPts без высоты брал этаж наугад: оценка у стоящего бота 9,9 → 16,7 с, м11 р8)
+  var f = from || b, L = polyLen(pathPts(f.x, f.y, bomb.x, bomb.y, f.z, bomb.z));
+  return L/SPEED + (b.kit ? DEFUSE_KIT_TICKS : DEFUSE_TICKS)/TICK_HZ;
+}
 var DEFUSE_HEAR = 700;
 var DEFUSE_R = 30;
 function defuseSees(b){
@@ -97,21 +117,24 @@ function defuseSees(b){
   var fb = visFloorAt(bomb.x, bomb.y, bomb.z), az = b._area && navArea(b._area); if(bomb.z != null && Math.abs(fb - bomb.z) > JUMP_UP) fb = bomb.z;
   return !visWallHit(b.baseX, b.baseY, bomb.x, bomb.y) && visMarch(b.baseX, b.baseY, fv + VIS_EYE.crouch, bomb.x, bomb.y, fb + 8);
 }
-var ESC_MAX_SEC = 8, ESC_WAIT_SEC = 8;
+var ESC_MAX_SEC = 8;   // (05.11) ESC_WAIT_SEC (8 с всем) убран — сколько ждать сопровождающего, по ситуации (170, ответ владельца 10)
 var UTIL_WAIT = 7, UTIL_WAIT_RUSH = 2.5, UTIL_AT_ENTRY = 140, UTIL_MIN_LEFT = 25;   // (v363) 7 с — между медианой 2,7 и 75 % 6,6 с у про (последняя граната → заход первого), 25 с до конца — уже не ждут   // (v346) ждать свои гранаты на выходе — проектные числа   // (v342) сопровождение носителя — проектные числа
 function defuseSound(ct){
   bots.forEach(function(o){
     if(!o.alive || o.team !== "T") return;
-    if(Math.hypot(o.x-bomb.x, o.y-bomb.y) < DEFUSE_HEAR){ o._defuseHeard = tick; o.heardSound = hearReal(o, {x:bomb.x, y:bomb.y, tick:tick, team:"CT", kind:"defuse"}); }
+    // (v519, пак 09.11 п.19; А-36: «простреливают ровно в ту точку, где стоит бомба, а игрок может стоять чуть дальше») звук — от дефузера (там он
+    // сидит; звук дефуза слышно рядом с бомбой — DEFUSE_HEAR), а не из точки бомбы
+    if(Math.hypot(o.x-bomb.x, o.y-bomb.y) < DEFUSE_HEAR){ o._defuseHeard = tick; o.heardSound = hearReal(o, {x:ct.x, y:ct.y, z:ct.z, tick:tick, team:"CT", kind:"defuse"}); }
   });
 }
 // (6) звук дефуза длится, пока дефузят: T рядом слышат, что он продолжается
 // (фейк — короткий "тап" и тишина). По этому и отличают фейк от настоящего
 function defuseContTick(){
   if(!bomb || bomb.state !== "planted") return;
-  var dfz = bots.some(function(o){ return o.alive && o.defusing; });
+  var dfz = bots.filter(function(o){ return o.alive && o.defusing; })[0];
   if(!dfz || tick % 8) return;
-  bots.forEach(function(o){ if(o.alive && o.team === "T" && Math.hypot(o.x-bomb.x, o.y-bomb.y) < DEFUSE_HEAR) o._defuseCont = tick; });
+  bots.forEach(function(o){ if(o.alive && o.team === "T" && Math.hypot(o.x-bomb.x, o.y-bomb.y) < DEFUSE_HEAR){ o._defuseCont = tick;
+    o.heardSound = hearReal(o, {x:dfz.x, y:dfz.y, z:dfz.z, tick:tick, team:"CT", kind:"defuse"}); } });   // (v519) звук идёт — от дефузера
 }
 // T решают, бежать ли на звук дефуза сейчас: если время позволяет — ~0.8с
 // ждут, продолжается ли звук (настоящий дефуз) или стих (фейк — CT ждут пика).
@@ -121,7 +144,7 @@ function ctDefuseThreat(dTicks){
   var BL = beliefLast.CT || {};
   return bots.some(function(t){ if(t.team !== "T" || !t.alive) return false; var e = BL[t.id];
     if(!e || tick - e.tick > 8*TICK_HZ) return true;
-    return polyLen(pathPts(e.x, e.y, bomb.x, bomb.y))/SPEED*TICK_HZ < dTicks; });
+    return polyLen(pathPts(e.x, e.y, bomb.x, bomb.y, e.z, bomb.z))/SPEED*TICK_HZ < dTicks; });
 }
 // (тактика 30.10, задание владельца: «T не должны на звук дефуза выходить всей командой; один проверяет / провоцирует, остальные
 // поддерживают; не пикать на каждый звук»; PRO_PLAY 6ж) ответ: "all" — все на бомбу (дефуз идёт дальше первого звука — настоящий, или
@@ -154,7 +177,7 @@ function tDefuseGo(tt, ts){
 // и рядом с кем есть свой (≤ TRADE_R) — размен, если за звуком ждут с прицелом
 function tDefuseBaiter(ts){
   var C = ts.filter(function(b){ return !b.planting && !b._sawEnemy && Math.hypot(b.x-bomb.x, b.y-bomb.y) < 1100 &&
-    ts.some(function(o){ return o !== b && Math.hypot(o.x-b.x, o.y-b.y) <= TRADE_R; }); });
+    ts.some(function(o){ return o !== b && nearP(o.x, o.y, o.z, b.x, b.y, b.z, TRADE_R); }); });
   C.sort(function(a, c){ return bombSightLen(a, bomb) - bombSightLen(c, bomb); });
   return C[0] || null;
 }
@@ -264,8 +287,17 @@ function bombTick(){
     } else {
       // (v353, отметка владельца: kyousuke дефузил через ящик в 41 ед. от бомбы — T не мог его увидеть) дефуз — ближе DEFUSE_R ед. карты
       // (~75 ед. игры: «использовать» в Source — до ~72) и только если бомбу видно из глаз присевшего (без стен и ящиков)
-      var cand = bots.filter(function(b){ return b.team==="CT" && b.alive && b.state==="patrol" && Math.hypot(b.baseX-bomb.x, b.baseY-bomb.y) < DEFUSE_R && defuseSees(b); })[0];
+      // (v519, пак 09.11 п.22; А-23) дефузит назначенный ретейком (updateRetake, 180: раньше всех снимет бомбу — путь + дефуз с китом / без), если он
+      // у бомбы; иначе — кто у бомбы (раньше — первый по списку ботов). Перед стартом — успеет ли, по своей оценке времени: игрок оценивает таймер по
+      // писку и может ошибиться на доли секунды (владелец: «может не хватить 0,001 секунды»): ошибка — DEFUSE_JUDGE с × (1,5 − дисциплина), знак — жребий;
+      // по оценке не успевает — не садится (сам таймер бомбы и дефуз — точные)
+      var atB = bots.filter(function(b){ return b.team==="CT" && b.alive && b.state==="patrol" && Math.hypot(b.baseX-bomb.x, b.baseY-bomb.y) < DEFUSE_R && defuseSees(b); });
+      var cand = (bomb.retake && atB.filter(function(b){ return b.id === bomb.retake.defId; })[0]) || atB[0];
       var dTicks = cand ? (cand.kit ? DEFUSE_KIT_TICKS : DEFUSE_TICKS) : 0;
+      if(cand && !cand.defusing && cand._djT !== bomb.plantTick){ cand._djT = bomb.plantTick;
+        var err = (hashRand(bomb.plantTick*13 + cand.id.charCodeAt(cand.id.length-1)*7) - 0.5)*2*DEFUSE_JUDGE*(1.5 - prof(cand, "disc"));
+        cand._djErr = err; }
+      if(cand && bombTimeLeftTicks()/TICK_HZ + (cand._djErr || 0) < dTicks/TICK_HZ){ if(cand._djLog !== bomb.plantTick){ cand._djLog = bomb.plantTick; logEvent(cand.id+": по таймеру не успеваю дефузнуть — не сажусь"); } cand = null; }
       if(cand && cand.fakeUntil && tick < cand.fakeUntil){ /* идёт фейк — ждём */ }
       else if(cand && cand.fakeHoldUntil && tick < cand.fakeHoldUntil){ /* после фейка держит угол */ }
       else if(cand && tick >= (cand.defuseCooldownUntil||0) && (!cand._sawEnemy || bombTimeLeftTicks() < dTicks+64)){

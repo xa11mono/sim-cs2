@@ -195,7 +195,6 @@ function coachPlan(side){
   if(!P.facts.length) P.facts.push({k: "reset", log: "перезагрузка: спокойно, по своей игре"});
   return P;
 }
-var DEF_STAND = 13;   // (док 6) с: дольше этого про T до выхода на одном месте почти не стоят (90-й процентиль, демки Mirage)
 var DEF_GROUP_R = 450;   // (v450) ед. карты: «район группы» для мест дефолта — проектное число (≈ зона и её соседи)
 var DEF_STAGE_SEC = 25;   // (v444) из демок Mirage — см. chooseTactic, need
 function chooseTactic(){
@@ -207,6 +206,17 @@ function chooseTactic(){
     if(lastT.length === 2 && lastT.every(function(r){ return r.winner === "CT"; })){
       var fast = lastT.every(function(r){ return r.execSec != null && r.execSec < 32; }), slow = lastT.every(function(r){ return r.execSec == null || r.execSec >= 45; });
       tempoRead = fast ? "slow" : (slow ? "fast" : null); } }
+  // (v519, пак 09.11 п.12; А-7: «на паузе IGL говорит: медленно, идём A, — а выбирают мид-КТ, Б с двух сторон») сказанное на паузе — исходный план
+  // раунда: тактика — из тех, что ему соответствуют (сайт, темп; фейк — если план «фейк»), а не вес ×1,8 / ×0,5. Нет такой в наборе для этого
+  // типа раунда — как было (веса ниже). Переколл по ходу раунда — по новой информации, как обычно (160 / 170)
+  if(BAL.timeouts && roundNum <= TOUT.T.until && TOUT.T.plan){ var TPf = TOUT.T.plan;
+    var fit = pool.filter(function(t){
+      if(TPf.fake) return t.style === "fake";
+      if(TPf.site && t.site !== TPf.site) return false;
+      if(TPf.tempo === "slow" && !(t.style === "default" || (t.setupEnd && t.setupEnd > 44))) return false;
+      if(TPf.tempo === "fast" && !(t.style === "rush" || (t.setupEnd && t.setupEnd <= 44))) return false;
+      return true; });
+    if(fit.length) pool = fit; }
   var weights = pool.map(function(t){
     var M = tacMem[t.id] || {n:0, w:0};
     var w = 0.5 + 1.5*((M.w + 1)/(M.n + 2));             // удачные всплывают, проваленные тонут

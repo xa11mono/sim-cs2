@@ -3,8 +3,8 @@
 // пока стреляет (длительность перестрелки), потом уходит с линии за укрытие (сдвиг), пережидает (пауза) и
 // с долей repeek выглядывает снова на то же место; иначе перестрелка для него закончена — дальше обычная логика.
 // Квантили 10/25/50/75/90 %; длительность — от первого до последнего «окна стрельбы» (окно = 0,5 с).
-var PEEK_PRO = {CT:{dur:[0.0, 0.0, 0.55, 1.72, 3.14], pause:[1.08, 1.25, 1.62, 2.17, 2.61], shift:[13.93, 23.6, 40.79, 66.58, 96.11], repeek:0.26},
-                T:{dur:[0.0, 0.0, 0.41, 1.3, 2.84], pause:[1.09, 1.27, 1.67, 2.23, 2.7], shift:[14.29, 25.12, 47.4, 80.62, 119.72], repeek:0.24}};
+var PEEK_PRO = {CT:{dur:[0.0, 0.0, 0.55, 1.72, 3.14], pause:[1.08, 1.25, 1.62, 2.17, 2.61], shift:[13.93, 23.6, 40.79, 66.58, 96.11]},
+                T:{dur:[0.0, 0.0, 0.41, 1.3, 2.84], pause:[1.09, 1.27, 1.67, 2.23, 2.7], shift:[14.29, 25.12, 47.4, 80.62, 119.72]}};
 var PEEK_Q = [0.1, 0.25, 0.5, 0.75, 0.9];
 function peekQ(q, u){   // значение распределения по квантилям (между ними — линейно, хвосты — крайние)
   if(u <= PEEK_Q[0]) return q[0];
@@ -27,16 +27,20 @@ function fightPathFree(b, x0, y0, x1, y1){
 // (v426, владелец 25.10, Mirage м1 р4: donk 1 против 4 «ушёл с линии», а стоит в открытую) укрытие — скрытое и от остальных врагов,
 // которых бот знает (видел / слышал за 4 с, ≤ 1200 — exposedTo, то же, что у перезарядки), а не только от того, с кем стреляется. Такого
 // рядом нет — как раньше: скрытое от него одного
-function fightCover(b, e, R){
+// (v518b, пак 09.11 п.5; владелец А-5: «раш Б, и все в одном месте толпятся — никто не протягивает раш») укрытие — не туда, где уже стоит / куда
+// уходит свой (≤ FIGHT_MATE_R), и при «давить» (fightPush) — не назад: из укрытий выбирается то, что ближе к точке задачи, а не дальше от врага
+var FIGHT_MATE_R = 30;   // px — проектное число (укрытие одного человека)
+function fightMateAt(b, x, y){ return bots.some(function(o){ return o !== b && o.alive && o.team === b.team && (Math.hypot(o.baseX-x, o.baseY-y) < FIGHT_MATE_R || (o._fc && o._fc.ph === "off" && Math.hypot(o._fc.cx-x, o._fc.cy-y) < FIGHT_MATE_R)); }); }
+function fightCover(b, e, R, toward){
   var others = exposedTo(b, 1200, 4*TICK_HZ, true).filter(function(o){ return Math.hypot(o.x-e.x, o.y-e.y) > 60; });
   for(var pass = others.length ? 0 : 1; pass < 2; pass++){
     for(var k=1;k<=3;k++){
-      var r = R*k/3, best = null, bd = -1;
+      var r = R*k/3, best = null, bd = -Infinity;
       for(var i=0;i<16;i++){
         var a = i*Math.PI/8, x = b.baseX + Math.cos(a)*r, y = b.baseY + Math.sin(a)*r;
-        if(insideSolidWall(x, y) || !fightPathFree(b, b.baseX, b.baseY, x, y) || fightSeen(e, x, y, b.z)) continue;
+        if(insideSolidWall(x, y) || !fightPathFree(b, b.baseX, b.baseY, x, y) || fightSeen(e, x, y, b.z) || fightMateAt(b, x, y)) continue;
         if(pass === 0 && others.some(function(o){ return hasLOS(x, y, o.x, o.y, b.z); })) continue;
-        var de = Math.hypot(x-e.x, y-e.y); if(de > bd){ bd = de; best = {x:x, y:y}; }
+        var de = toward ? -Math.hypot(x-toward.x, y-toward.y) : Math.hypot(x-e.x, y-e.y); if(de > bd){ bd = de; best = {x:x, y:y}; }
       }
       if(best) return best;
     }
@@ -53,6 +57,24 @@ function fightBetter(b, e, cx, cy, R){
     var d = Math.hypot(x-cx, y-cy); if(d < bd){ bd = d; best = {x:x, y:y}; }
   }
   return best;
+}
+// (00_PLAN, ответ владельца 4, 05.11: «за укрытием — держит / джигл / меняет угол; не однообразный джигл; против AWP — плечо»)
+// другое место пика: как fightBetter, но не ближе minD к прошлой точке пика (px, py)
+function fightBetterAway(b, e, cx, cy, R, px, py, minD){
+  var best = null, bd = Infinity;
+  for(var k=1;k<=3;k++) for(var i=0;i<16;i++){
+    var a = i*Math.PI/8, r = R*k/3, x = cx + Math.cos(a)*r, y = cy + Math.sin(a)*r;
+    if(Math.hypot(x-px, y-py) < minD || insideSolidWall(x, y) || !fightPathFree(b, cx, cy, x, y) || !hasLOS(x, y, e.x, e.y, b.z, e.z)) continue;
+    var d = Math.hypot(x-cx, y-cy); if(d < bd){ bd = d; best = {x:x, y:y}; }
+  }
+  return best;
+}
+// место «показать плечо»: на отрезке укрытие → точка пика первое место, где врагу видно только плечо (visParts side), но не голову и тело
+function fightShoulderPt(b, e, cx, cy, ax, ay){
+  var L = Math.hypot(ax-cx, ay-cy); if(L < FIGHT_STEP) return null;
+  for(var d = FIGHT_STEP; d < L; d += FIGHT_STEP){ var x = cx + (ax-cx)*d/L, y = cy + (ay-cy)*d/L;
+    var p = visParts(e.x, e.y, e.crouching, x, y, false, true, e.z, b.z); if(p.head || p.body) return null; if(p.side) return {x:x, y:y}; }
+  return null;
 }
 // (Б4) движение на линии (одно место): стрейф поперёк линии огня, перед выстрелом — контрстрейф (встречная клавиша + трение).
 // Числа игры CS2: sv_accelerate 5.5, sv_friction 5.2, sv_stopspeed 80 ед./с. Стоял (держал угол) — до первого выстрела стоит;
@@ -87,12 +109,89 @@ function fightStrafe(b, F, dtSec){
   }
   var st = F.sv*dtSec, nx = b.baseX + ax*st, ny = b.baseY + ay*st;
   if(Math.abs(st) > 1e-6){
-    if(stepBlocked(b.baseX, b.baseY, nx, ny, b)){ F.sv = 0; F.sdir = -F.sdir; F.leg = 0; }
+    // (v521, дуэли, замечание владельца 09.11 «2–3 выстрела и оба за стену» — разбор 57 расставаний: 16 — стрейф уводил за край укрытия, врага
+    // больше не видно) стрейф — в пределах линии: шаг, после которого врага, видного сейчас, уже не видно, — разворот (как упор в стену)
+    if(stepBlocked(b.baseX, b.baseY, nx, ny, b) || (b._sawEnemy && hasLOS(b.baseX, b.baseY, e.x, e.y, b.z, e.z) && !hasLOS(nx, ny, e.x, e.y, b.z, e.z))){ F.sv = 0; F.sdir = -F.sdir; F.leg = 0; }
     else { b.baseX = nx; b.baseY = ny; }
   }
   b.curSpeed = Math.abs(F.sv); b.walking = false;
 }
 function fightRand(b, salt){ return hashRand(tick*31 + b.id.charCodeAt(0)*17 + b.id.charCodeAt(b.id.length-1)*7 + salt); }
+// (дуэли, ответ нейросети владельца 05.11 — docs/tasks/OWNER_PERF_DUELS_2026-11-05.md; замечание владельца Д1: «увидели — сразу за стенку
+// и стоят») пик за инфой и дуэль — разные: таймер про (PEEK_PRO dur — окно между первым и последним выстрелом у про, пауза, доля повторного
+// пика) — для пика; в дуэли бот остаётся на линии, пока это выгодно, и уходит, когда стало невыгодно. Выгодно: враг этой перестрелки виден
+// и жив, бот в обмене не позади (получил от всех с начала перестрелки не больше, чем нанёс ему), второй видимый враг — только если свой рядом
+// может его открыть (размен), бот не перезаряжается. Чисел нет: «впереди» — сравнение урона, а не порог HP (в ответе чисел нет)
+function duelHits(L, t0, id){ var s = 0; (L || []).forEach(function(h){ if(h[0] >= t0 && (id == null || h[1] === id)) s += h[2]; }); return s; }
+// (v518b, пак 09.11 п.5) задача требует давить, а не дуэль «по таблице»: числа перестрелки про (PEEK_PRO) — про одиночную дуэль; а когда сбивают
+// дефуз / не успевают дефузнуть (taskSlackSec, 110 — бомба) или T идёт выходом к своей точке на сайте — стоять за укрытием нельзя. Владелец:
+// А-39 «трое T просто стоят … не дают даже дефуз сбить», А-5 «никто не протягивает раш». Тогда: на линии — пока не проигрывает обмен
+// заметно (FIGHT_PUSH_LOSE HP), укрытие — вперёд по задаче, выглядывает снова всегда
+var FIGHT_PUSH_SLACK = 8, FIGHT_PUSH_LOSE = 30;   // с, HP — проектные числа
+function fightPush(b){
+  if(bomb && bomb.state === "planted") return taskSlackSec(b) < FIGHT_PUSH_SLACK;
+  var tt = teamTac.T;
+  return b.team === "T" && b.tRole !== "lurker" && !!tt && tt.phase === "execute" && !!b.post && Math.hypot(b.post.x-b.baseX, b.post.y-b.baseY) > 120 && tt.site && SITES[tt.site] && Math.hypot(b.post.x-SITES[tt.site].x, b.post.y-SITES[tt.site].y) < 600;
+}
+// (v520, отметка владельца 09.11 м200 р3 и ответ владельца: «увидели друг друга — 2–3 выстрела и оба синхронно за стену, вместо того чтобы
+// стреляться; уйти — по ситуации: в упор шансов уйти мало, вдалеке с малым HP — уходит; не выходить с малым числом патронов и не перезаряжаться
+// в дуэли; двое — по ситуации; задача (сбить дефуз) — быть всегда») уход с линии решала не картина боя, а таймер «длительность пика про» (≈ 1 с)
+// и «выгодно ли» в одном тике; повторный выход — жребий 26 %. Теперь одна оценка размена из того, что знает игрок: сколько мне стрелять до фрага
+// (урон оружия на дистанции, броня, разброс и прицел, HP врага = 100 − сколько я ему нанёс), сколько им до моего (кто меня видит — их урон
+// складывается, их прицел — как мой: чужого умения игрок не знает), сколько мне идти до укрытия, хватит ли патронов
+function duelTTK(sh, tg, d, hp, armored, skill){
+  var w = sh.weapon; if(!w || !w.dmg || !w.rpm) return {t: Infinity, shots: 0};
+  var dmg = w.dmg * Math.pow(w.rm || 1, d*PX_UNITS/500) * (armored ? (w.armorPen || 1) : 1);
+  var S = {x: sh.x, y: sh.y, px: sh.px, py: sh.py, skill: skill, weapon: w, crouching: sh.crouching};
+  // попадание и в голову — та же модель, что у выстрела (tryShoot: тело BODY_HALF, голова HEAD_HALF; в голову — урон ×4, как в CS2)
+  var dd = Math.max(8, d), a = aimSigma(S, tg, d), s2 = Math.pow(shotSpread(S, 0), 2) + a*a, pIn = function(h){ var A = Math.atan(h/dd); return 1 - Math.exp(-(A*A)/(2*s2)); };
+  var pAny = Math.max(0.02, pIn(BODY_HALF)), pHead = Math.min(pAny, pIn(HEAD_HALF)), perShot = (pAny - pHead)*dmg + pHead*dmg*4;
+  var shots = Math.ceil(Math.max(1, hp)/Math.max(0.5, perShot));
+  return {t: shots*60/w.rpm, shots: shots};
+}
+var DUEL_LOSE_K = 0.6;
+// (v524, ответ владельца 10.11: «с полным HP не уходит оттого, что у врага оружие сильнее; уходит, когда реально проигрывает — получил много
+// урона»; «уходят, когда магазин пуст»; выжимка: решает реальное преимущество — HP обоих, нанесённый урон, свои рядом, несколько врагов, путь
+// отхода, — а не класс оружия) одна оценка из того, что знает игрок. Баланс размена = (сколько нашей стороне до фрага врага) против (сколько
+// их стороне до моего): мой огонь + огонь своих, кто этого врага видит (радар); огонь каждого видимого мне врага, делённый на тех наших, по
+// кому он может стрелять (я + свои, кто его видит). «Проигрываю» — баланс заметно хуже (< DUEL_LOSE_K, проектное число), чем в таком же бою
+// 1 на 1 при полном HP у обоих (r0): само оружие и дистанция в r0 уже учтены, поэтому оружие сильнее — не причина; причина — потерянное HP,
+// второй враг без своего на размен. Патроны: стрелять нечем (магазин пуст / перезарядка) — причина уйти; «мало» — нет
+function duelBalance(b, e, d, eHp, vis){
+  var sk = b.skill || 1, mine = duelTTK(b, e, d, eHp, true, sk), mine0 = duelTTK(b, e, d, 100, true, sk), theirs0 = duelTTK(e, b, d, 100, !!b.armor, sk);
+  var mates = bots.filter(function(m){ return m !== b && m.alive && m.team === b.team; });
+  var sees = function(o){ return mates.filter(function(m){ return (m._visible || []).indexOf(o) >= 0; }); };
+  var myRate = mine.t < Infinity ? 1/mine.t : 0;
+  sees(e).forEach(function(m){ var r = duelTTK(m, e, Math.hypot(e.x-m.x, e.y-m.y), eHp, true, sk); if(r.t < Infinity) myRate += 1/r.t; });
+  var rate = 0;
+  vis.forEach(function(o){ var r = duelTTK(o, b, Math.hypot(o.x-b.x, o.y-b.y), b.hp, !!b.armor, sk); if(r.t < Infinity) rate += (1/r.t)/(1 + sees(o).length); });
+  var theirs = rate > 0 ? 1/rate : Infinity, mineT = myRate > 0 ? 1/myRate : Infinity;
+  var r0 = mine0.t < Infinity ? theirs0.t/mine0.t : 0;
+  return {mine: mine, mineT: mineT, theirs: theirs, r0: r0, lose: !(mineT < Infinity) || theirs < mineT*r0*DUEL_LOSE_K};
+}
+// выглянуть / выйти снова на врага e в точке (x, y): та же оценка (то, что знает игрок: нанесённый урон, своё HP, оружие врага, дистанция) —
+// для повторного пика в бою (fightCycleTick) и для выхода после боя (contactTick). ammoOk — хватает ли патронов на этого врага (мало и есть
+// время — перезарядится за укрытием до выхода; времени нет — выходит с остатком)
+function duelOdds(b, e, x, y){
+  if(!e || !e.alive) return null;
+  var d = Math.hypot(x-b.x, y-b.y), P = {x:x, y:y, px:x, py:y, weapon:e.weapon, crouching:e.crouching, alive:true};
+  var B = duelBalance(b, P, d, Math.max(1, 100 - duelHits(b._hitOut, roundStartTick, e.id)), [P]);
+  var need = Math.min(B.mine.shots, (b.weapon && b.weapon.mag) || B.mine.shots);
+  return {mine: B.mine, theirs: B.theirs, ammoOk: !b._reloading && b.ammo >= need, ok: !b._reloading && b.ammo > 0 && !B.lose};
+}
+function duelEval(b, F, cover){
+  var e = F.e; if(!e || !e.alive) return null;
+  var vis = (b._visible || []).filter(function(o){ return o.alive && o.team !== b.team; }), seesE = vis.indexOf(e) >= 0;
+  var eHp = Math.max(1, 100 - duelHits(b._hitOut, roundStartTick, e.id));
+  var B = duelBalance(b, e, Math.hypot(e.x-b.x, e.y-b.y), eHp, vis.length ? vis : [e]);
+  var canShoot = !b._reloading && b.ammo > 0;
+  var ret = cover ? Math.hypot(cover.x-b.baseX, cover.y-b.baseY)/(SPEED*weaponSpeedMul(b)) : Infinity;
+  return {sees: seesE, mine: B.mineT, theirs: B.theirs, ret: ret, ammoOk: canShoot, win: canShoot && !B.lose, trapped: ret >= B.theirs, bal: B.r0 > 0 && B.mineT < Infinity ? (B.theirs/B.mineT)/B.r0 : 0};
+}
+// (v523) причина последнего решения перестрелки — только запись (подпись на экране, запись матча rec2): почему ушёл с линии / остался / бой кончился
+function fcWhy(b, why){ b._fcWhy = why; b._fcWhyT = tick; }
+// (v525) перестрелку снаружи (не из fightCycleTick) снимает только эта функция — с причиной
+function fcEnd(b, why){ b._fc = null; fcWhy(b, why); }
 // каждый тик движения: фазы line (на линии) → off (за укрытием) → back (выглядывает снова) → line …
 function fightCycleTick(b, dtSec, busy){
   var F = b._fc, D = PEEK_PRO[b.team];
@@ -100,40 +199,59 @@ function fightCycleTick(b, dtSec, busy){
   // (М149, владелец 20.10) по боту стреляют в плечо, торчащее из-за укрытия, а он стрелка целиком не видит: через время реакции
   // (профиль игрока) — сразу за укрытие, где не видно ничего; выглянет снова (как у про — repeek) — с места, откуда видно врага целиком
   var SS = b._shoulderShot, ssNew = SS && SS.by.alive && tick - SS.t < TICK_HZ && tick - SS.t >= (b.reactionTicks || 0) && (!F || F.ss !== SS.t);
-  if(ssNew){ var mp = visParts(b.x, b.y, b.crouching, SS.by.x, SS.by.y, SS.by.crouching, true, b.z, SS.by.z); if((mp.head || mp.body) && !mp.side) ssNew = false; }
+  // (v520) стрелка видно хоть краем (голова, тело, плечо) — отвечать есть по чему: обычная дуэль с оценкой размена; за укрытие — только когда его не видно
+  // совсем (было: видно плечо — уходил; оба выглядывали краем — уходили оба)
+  if(ssNew){ var mp = visParts(b.x, b.y, b.crouching, SS.by.x, SS.by.y, SS.by.crouching, true, b.z, SS.by.z); if(mp.head || mp.body || mp.side) ssNew = false; }
   if(!F){
     if((!b._sawEnemy && !ssNew) || (b.state !== "engage" && b.state !== "hold")) return;
-    F = b._fc = {ph:"line", ax:b.baseX, ay:b.baseY, t:tick, until:0, seen:tick};
+    F = b._fc = {ph:"line", ax:b.baseX, ay:b.baseY, t:tick, t0:tick, until:0, seen:tick};
   }
   if(b._sawEnemy){ F.seen = tick; F.e = b._nearestEnemyBot; }
   // (v435, М168, скрин владельца 26.10: после фрага «бой · на линии · не видит врага») противник этой перестрелки убит (киллфид), другого
   // не видит и по нему не стреляют — перестрелка кончилась сейчас. Раньше «на линии» держалось до паузы про (до 2,7 с) / конца стрельбы
   // и только тогда проверялось, жив ли враг
-  if(F.e && !F.e.alive && !b._sawEnemy && !ssNew){ b._fc = null; return; }
+  if(F.e && !F.e.alive && !b._sawEnemy && !ssNew){ b._fc = null; fcWhy(b, "конец: враг убит"); return; }
   F.moving = false;
+  if(ssNew && F.sh && !F.sh.done){ F.sh.done = true; ssNew = false; F.ss = SS.t; }   // показывал плечо — AWP выстрелил: выглядывает, пока он перезаряжается
   if(ssNew && F.ph !== "off"){
     F.ss = SS.t; F.e = SS.by;
     var cs = fightCover(b, SS.by, peekQ(D.shift, fightRand(b, 5))) || fightCover(b, SS.by, D.shift[4]);
+    // (v520) уйти успеваю — ухожу; до укрытия дольше, чем меня убьют, — остаюсь (в упор уйти нельзя)
+    var DVs = cs ? duelEval(b, {e: SS.by}, cs) : null; if(DVs && DVs.trapped && b.ammo > 0 && !b._reloading) cs = null;
     if(cs){
-      F.ph = "off"; F.retreat = true; F.own = false; F.cx = cs.x; F.cy = cs.y; F.ax = b.baseX; F.ay = b.baseY; F.seen = tick;
+      F.ph = "off"; F.mv = 0; F.retreat = true; F.own = false; F.cx = cs.x; F.cy = cs.y; F.ax = b.baseX; F.ay = b.baseY; F.seen = tick;
       F.until = tick + Math.round(peekQ(D.pause, fightRand(b, 6))*TICK_HZ);
-      F.better = fightBetter(b, SS.by, cs.x, cs.y, D.shift[4]);
+      F.better = fightBetter(b, SS.by, cs.x, cs.y, D.shift[4]); fcWhy(b, "ушёл: стреляют в плечо, стрелка не видно");
       if(!b._fcS || tick - b._fcS > 4*TICK_HZ){ b._fcS = tick; logEvent(b.id+": стреляют в плечо из-за укрытия — ухожу за укрытие"); }
     }
   }
   if(F.ph === "line"){
     fightStrafe(b, F, dtSec);
-    if(!b._sawEnemy && tick - F.seen > D.pause[4]*TICK_HZ){ b._fc = null; return; }   // враг пропал — перестрелка кончилась
-    if(!F.until && b.lastShotTick >= F.t) F.until = b.lastShotTick + Math.round((peekQ(D.dur, fightRand(b, 1)) + 0.5)*TICK_HZ);
+    if(!b._sawEnemy && tick - F.seen > D.pause[4]*TICK_HZ){ b._fc = null; fcWhy(b, "конец: врага не видно дольше паузы"); return; }   // враг пропал — перестрелка кончилась
+    if(!F.until && b.lastShotTick >= F.t) F.until = b.lastShotTick + Math.max(b.reactionTicks || 1, 8);   // (v520) первая оценка размена — через время реакции после первого выстрела (было: таймер «длительность пика про» ≈ 1 с)
     if(F.until && tick >= F.until){
       var e = F.e;
       if(!e){ b._fc = null; return; }
-      var c = fightCover(b, e, peekQ(D.shift, fightRand(b, 2)));
-      if(!c) c = fightCover(b, e, D.shift[4]);
-      if(!c){ F.until = 0; F.t = tick; return; }   // укрыться негде — остаётся на линии
-      F.ph = "off"; F.cx = c.x; F.cy = c.y; F.ax = b.baseX; F.ay = b.baseY; F.own = false;
+      var push = fightPush(b), tw = push && b.post ? {x:b.post.x, y:b.post.y} : null;
+      // (v530, отметка владельца 10.11 «игра снова лагает»: поиск укрытия — 21 мс, а считался при каждой оценке размена — 68 раз за 10 с) укрытие
+      // ищется, только когда оно нужно: размен не мой или стрелять нечем. Решение то же (на «вижу врага / размен мой» укрытие не влияло)
+      var c0 = null, DV = duelEval(b, F, null);
+      if(DV && DV.sees && !DV.win){ c0 = fightCover(b, e, peekQ(D.shift, fightRand(b, 2)), tw) || fightCover(b, e, D.shift[4], tw); DV = duelEval(b, F, c0); }
+      // размен выигрываю (или до укрытия дольше, чем меня убьют — уйти не успею) — стреляю дальше; следующая оценка — через время реакции
+      if(DV && !DV.sees){ F.until = tick + 4; return; }   // врага не видно — стрелять не в кого: держит угол на линии (где появится), не отходит; бой кончится по «враг пропал» выше
+      if(DV && DV.sees && (DV.win || (DV.trapped && !b._reloading && b.ammo > 0))){ F.until = tick + Math.max(b.reactionTicks || 1, 8); fcWhy(b, DV.win ? "остался: размен мой" : "остался: уйти не успею");
+        if(!b._fcD || tick - b._fcD > 4*TICK_HZ){ b._fcD = tick; logEvent(b.id+": "+(DV.win ? "размен мой" : "уйти не успею")+" (мне до фрага "+DV.mine.toFixed(2)+" с, им "+DV.theirs.toFixed(2)+" с, до укрытия "+(DV.ret < 99 ? DV.ret.toFixed(2) : "—")+" с) — стреляю дальше"); }
+        return; }
+      if(push && duelHits(b._hitIn, F.t0, null) - duelHits(b._hitOut, F.t0, e.id) < FIGHT_PUSH_LOSE && !b._reloading && b.ammo > 0){
+        F.until = tick + Math.max(b.reactionTicks || 1, Math.round(peekQ(D.dur, fightRand(b, 9))*TICK_HZ)); fcWhy(b, "остался: давлю по задаче");
+        if(!b._fcP || tick - b._fcP > 4*TICK_HZ){ b._fcP = tick; logEvent(b.id+": давлю по задаче — остаюсь на линии"); }
+        return; }
+      var c = c0 || fightCover(b, e, peekQ(D.shift, fightRand(b, 2)), tw) || fightCover(b, e, D.shift[4], tw);
+      if(!c){ F.until = 0; F.t = tick; fcWhy(b, "остался: укрыться негде"); return; }   // укрыться негде — остаётся на линии
+      F.ph = "off"; F.mv = 0; F.cx = c.x; F.cy = c.y; F.ax = b.baseX; F.ay = b.baseY; F.own = false;
       F.until = tick + Math.round(peekQ(D.pause, fightRand(b, 3))*TICK_HZ);
-      if(!b._fcV || tick - b._fcV > 4*TICK_HZ){ b._fcV = tick; logEvent(b.id+": постреляли — ушёл с линии за укрытие"); }
+      fcWhy(b, "ушёл: " + (!DV ? "нет оценки" : !DV.ammoOk ? (b._reloading ? "перезаряжаюсь" : "магазин пуст") : "проигрываю размен (баланс " + DV.bal.toFixed(2) + " от равного; нам " + (DV.mine < 99 ? DV.mine.toFixed(1) : "—") + " с, им " + (DV.theirs < 99 ? DV.theirs.toFixed(1) : "—") + " с)"));
+      if(!b._fcV || tick - b._fcV > 4*TICK_HZ){ b._fcV = tick; logEvent(b.id+": размен не мой"+(DV ? " (мне до фрага "+(DV.mine < 99 ? DV.mine.toFixed(2) : "—")+" с, им "+DV.theirs.toFixed(2)+" с"+(DV.ammoOk ? "" : ", стрелять нечем")+")" : "")+" — ушёл с линии за укрытие"); }
     }
     return;
   }
@@ -145,15 +263,43 @@ function fightCycleTick(b, dtSec, busy){
     F.ph = "line"; F.ax = b.baseX; F.ay = b.baseY; F.t = tick; F.until = 0; F.retreat = false; F.better = null; F.sv = undefined; return; }   // снова вижу врага — на линии (уходя от выстрелов в плечо — не останавливается)
   if(F.ph === "off" && tick >= F.until && (!F.retreat || Math.hypot(F.cx-b.baseX, F.cy-b.baseY) < 2)){
     F.retreat = false;
-    if(fightRand(b, 4) >= D.repeek){ b._fc = null; return; }   // не выглядывает снова — перестрелка закончена
-    F.ph = "back";
+    // раненого мной врага (в обмене впереди) — выглядывает добить (ответ нейросети: пик становится дуэлью, если «можно добить раненого»);
+    // иначе — доля повторного пика про
+    var fin = F.e && F.e.alive && duelHits(b._hitOut, F.t0, F.e.id) > duelHits(b._hitIn, F.t0, null);
+    // (v520) выглянуть снова — по той же оценке (с места, где враг был виден): размен мой, добить раненого или задача; патронов на врага мало —
+    // сначала перезарядка за укрытием (ждёт, не выходит); проигрываю — не выглядывает, перестрелка для него закончена (жребия 26 % больше нет)
+    var DO = F.e ? duelOdds(b, F.e, F.e.x, F.e.y) : null;
+    // патронов на врага мало — перезаряжается здесь, за укрытием (сам начинает: тактическая перезарядка ниже 35 % магазина могла не включиться —
+    // отметка владельца 10.11: karrigan 10/12 ждал перезарядку 4 с и стоял), пока идёт — ждёт
+    if(DO && !DO.ammoOk && !b._sawEnemy && !b._reloading && b.weapon && b.ammo < b.weapon.mag && (b.ammo <= 0 || !fightPush(b))){ b._reloading = true; b.reloadUntil = tick + Math.round(b.weapon.reload*TICK_HZ); if(BAL.soundMore) reloadHeard(b, b.weapon); }
+    if(DO && !DO.ammoOk && b._reloading){ F.until = Math.max(F.until, b.reloadUntil); fcWhy(b, "за укрытием: перезаряжаюсь"); return; }
+    if(!fin && !fightPush(b) && !(DO && DO.ok)){ b._fc = null; fcWhy(b, "конец: не выглядываю — " + (!DO ? "врага нет" : "проигрываю размен")); return; }   // не выглядывает снова — перестрелка закончена ((v518b) давить по задаче — выглядывает всегда)
+    F.ph = "back"; F.mv = 0; F.nPeek = (F.nPeek || 0) + 1; F.sh = null; fcWhy(b, "выглядываю: " + (fin ? "добить раненого" : (DO && DO.ok) ? "размен мой" : "задача"));
     if(F.better){ F.ax = F.better.x; F.ay = F.better.y; F.better = null; }   // (М149) выглядывает с места, откуда видно врага целиком
+    // (ответ 4) второй и дальше пик в этой перестрелке — с другого места (не ближе медианы сдвига про D.shift[2] к прошлому): не однообразный джигл
+    // (v521, владелец 10.11: «чередовать, чтобы врагу было тяжелее попасть: можно 2 раза пикнуть с одного места, на третий уйти, можно сразу на
+    // второй, можно вообще не пикать — нет конкретного правила») противник видел меня в этой точке и ждёт там же: чем больше раз видел (F.samePk),
+    // тем вероятнее выход с другого места (не ближе медианы сдвига про к прошлому) — доля 1 − 0,5^раз (проектное число); выходить ли вообще — оценка
+    // размена выше (duelOdds)
+    else if(F.nPeek >= 1 && F.e && fightRand(b, 11) >= Math.pow(0.5, F.samePk || 1)){ var nb = fightBetterAway(b, F.e, F.cx, F.cy, D.shift[4], F.ax, F.ay, D.shift[2]); if(nb){ F.ax = nb.x; F.ay = nb.y; F.samePk = 0; } }
+    F.samePk = (F.samePk || 0) + 1;
+    // (ответ 4) против AWP (оружие врага видно) — сначала плечо: выстрелил — выглядывает целиком, пока он перезаряжается; нет — через паузу про
+    if(F.e && F.e.primary === "AWP"){ var shp = fightShoulderPt(b, F.e, F.cx, F.cy, F.ax, F.ay); if(shp) F.sh = {x:shp.x, y:shp.y, t0:0, shot:F.e.lastShotTick || -1, done:false}; }
   }
-  var tx = F.ph === "off" ? F.cx : F.ax, ty = F.ph === "off" ? F.cy : F.ay;
+  var shOn = F.ph === "back" && F.sh && !F.sh.done;
+  if(shOn && F.e && (F.e.lastShotTick || -1) > F.sh.shot){ F.sh.done = true; shOn = false; }   // AWP выстрелил (слышно) — выглядывает целиком
+  var tx = F.ph === "off" ? F.cx : shOn ? F.sh.x : F.ax, ty = F.ph === "off" ? F.cy : shOn ? F.sh.y : F.ay;
   var d = Math.hypot(tx-b.baseX, ty-b.baseY);
-  if(d < 2){ if(F.ph === "back"){ F.ph = "line"; F.t = tick; F.until = 0; F.sv = undefined; } return; }
-  var stp = Math.min(d, SPEED*weaponSpeedMul(b)*dtSec), nx = b.baseX + (tx-b.baseX)/d*stp, ny = b.baseY + (ty-b.baseY)/d*stp;
-  if(stepBlocked(b.baseX, b.baseY, nx, ny, b)){ b._fc = null; return; }
+  if(d < 2 && shOn){ if(!F.sh.t0) F.sh.t0 = tick; if(tick - F.sh.t0 >= peekQ(D.pause, fightRand(b, 7))*TICK_HZ) F.sh.done = true; return; }   // плечо показано — ждёт выстрела до паузы про
+  if(d < 2){ F.mv = 0; if(F.ph === "back"){ F.ph = "line"; F.t = tick; F.until = 0; F.sv = undefined; } return; }
+  // (v524, владелец 10.11: «резко уходят влево-вправо и встают») за укрытие и обратно — той же физикой, что стрейф на линии (разгон CS_ACCEL,
+  // трение CS_FRIC, остановка csDecel): с места набирает скорость, перед точкой гасит её; не медленнее CS_STOP, пока не дошёл
+  var vmax = SPEED*weaponSpeedMul(b), mv = F.mv || 0;
+  if(d <= mv*mv/(2*csDecel(mv, vmax)) + 1) mv = Math.max(CS_STOP/PX_UNITS, mv - csDecel(mv, vmax)*dtSec);
+  else mv = Math.min(vmax, mv + Math.max(0, CS_ACCEL*vmax - CS_FRIC*mv)*dtSec);
+  F.mv = mv;
+  var stp = Math.min(d, mv*dtSec), nx = b.baseX + (tx-b.baseX)/d*stp, ny = b.baseY + (ty-b.baseY)/d*stp;
+  if(stepBlocked(b.baseX, b.baseY, nx, ny, b)){ b._fc = null; fcWhy(b, "конец: упёрся по пути к укрытию"); return; }
   b.baseX = nx; b.baseY = ny; F.moving = true; b.crouching = false; b.walking = false;
 }
 // ---- (3) безопасная ротация: путь мимо известных T ----
@@ -178,9 +324,9 @@ function safeRotate(b, dest, site){
   // у самого сайта T и так ждут (туда и идём) — опасность считаем только на
   // дороге ДО последних ~5м, где выбор маршрута ещё есть
   var far = function(pts){ return densify(pts, 60).filter(function(q){ return Math.hypot(q[0]-dest.x, q[1]-dest.y) > 500; }); };
-  var direct = pathPts(b.x, b.y, dest.x, dest.y);
+  var direct = pathPts(b.x, b.y, dest.x, dest.y, b.z);
   if(!pathDanger("CT", far(direct))) return;
-  var v1 = pathPts(b.x, b.y, CT_SPAWN.x, CT_SPAWN.y), v2 = pathPts(CT_SPAWN.x, CT_SPAWN.y, dest.x, dest.y);
+  var v1 = pathPts(b.x, b.y, CT_SPAWN.x, CT_SPAWN.y, b.z), v2 = pathPts(CT_SPAWN.x, CT_SPAWN.y, dest.x, dest.y);
   var Ld = polyLen(direct), Lv = polyLen(v1) + polyLen(v2);
   if(Lv > Ld*1.7 + 150) { logEvent(b.id+": путь на "+site+" опасный, но крюк слишком длинный — иду напрямую, тихо"); return; }
   if(pathDanger("CT", far(v1.concat(v2.slice(1))))) { logEvent(b.id+": к "+site+" оба пути опасные — иду напрямую, тихо"); return; }
@@ -237,18 +383,21 @@ var LOWHP_MATE_PATH = 600;   // проектное число: px пути (~150
 function lowHpBack(b){
   if(!BAL.lowHpBack || b._sawEnemy || b.planting || b.defusing || tick < (b._lowHpNext||0)) return;
   var low = b.hp <= LOW_HP;
-  var lostNear = !low && ((teamIntel[b.team] && teamIntel[b.team].sig) || []).some(function(sg){ return sg.type === "died" && sg.id !== b.id && tick - sg.tick < 8*TICK_HZ && Math.hypot(sg.x-b.x, sg.y-b.y) < 900; });
+  // (v531, владелец 10.11: «тиммейтов убили далеко, а игрок в Jungle, ещё не дошедший и не видевший врага, получил „рядом погиб свой“») «рядом» —
+  // по пути, а не по прямой сквозь стены: 900 px по прямой через стену — это другая часть карты. Сначала прямая (путь не короче), потом путь
+  var nearPath = function(x, y, R){ return nearP(b.x, b.y, b.z, x, y, null, R); };   // (v532) общее «рядом по пути» (100)
+  var lostNear = !low && ((teamIntel[b.team] && teamIntel[b.team].sig) || []).some(function(sg){ return sg.type === "died" && sg.id !== b.id && tick - sg.tick < 8*TICK_HZ && nearPath(sg.x, sg.y, 900); });
   if(!low && !lostNear) return;
-  if(bomb && bomb.state === "planted") return; // ретейк/пост-плант — бомба важнее
-  var defending = b.team === "CT" && b.post && /^(anchor|stack|set:|cts:|clutch|midcover)/.test(b.post.tag);
+  // (v547) было «бомба стоит — не отходит» (ретейк / пост-плант важнее): терпит ли задача фазы отход — отклонение (taskCanTry, 110)
+  var defending = b.team === "CT" && b.post && taskProp(b.post.tag, "holdsGround");
   if(bomb && bomb.state === "carried" && bomb.carrier === b) return;
-  if(!taskCanSet(b, "repos:lowhp")) return;   // (v378) идёт по задаче не ниже — арбитр места
+  if(!taskCanTry(b, "repos:lowhp")) return;   // (v378) идёт по задаче не ниже — арбитр места; (v547) задача фазы — отклонением
   b._lowHpNext = tick + TICK_HZ;
   var mates = bots.filter(function(o){ return o !== b && o.alive && o.team === b.team; });
   if(!mates.length) return; // один — отходить не к кому
-  if(mates.some(function(o){ return Math.hypot(o.x-b.x, o.y-b.y) < 350; })) return; // рядом уже есть свой
+  if(mates.some(function(o){ return nearP(o.x, o.y, o.z, b.x, b.y, b.z, 350); })) return; // рядом уже есть свой (v532 — по пути)
   var threat = exposedTo(b).concat([]); var BL = beliefLast[b.team] || {};
-  var near = false; for(var eid in BL){ var lo = BL[eid]; if(tick - lo.tick < 8*TICK_HZ && Math.hypot(lo.x-b.x, lo.y-b.y) < 700){ near = true; threat.push({x:lo.x, y:lo.y}); } }
+  var near = false; for(var eid in BL){ var lo = BL[eid]; if(tick - lo.tick < 8*TICK_HZ && nearPath(lo.x, lo.y, 700)){ near = true; threat.push({x:lo.x, y:lo.y}); } }   // (v531) враг рядом — тоже по пути
   if(!near) return;
   // опорник на своём сайте с малым HP сайт не бросает — отходит, только если
   // совсем мало (≤20) и на него идут двое+
@@ -262,7 +411,7 @@ function lowHpBack(b){
     var ents = threatEntrances(b.team, cen, 700).filter(function(E){
       if(threat.some(function(t){ return Math.hypot(E.pt.x-t.x, E.pt.y-t.y) < 250; })) return false;
       if(mates.some(function(o){ return o.lookTarget && Math.hypot(o.lookTarget.x-E.pt.x, o.lookTarget.y-E.pt.y) < 220; })) return false;
-      var pe = pathPts(b.x, b.y, E.pt.x, E.pt.y); return pe.length && polyLen(pe) <= 1000; });   // 1000 px — проектное число (как у фланга)
+      var pe = pathPts(b.x, b.y, E.pt.x, E.pt.y, b.z); return pe.length && polyLen(pe) <= 1000; });   // 1000 px — проектное число (как у фланга)
     var E0 = ents[0];
     var spE = E0 ? pickSpots("lowhpE"+tick+b.id, E0.pt, 2, {rMin:120, rMax:280, minGap:40, must:[E0.pt], hideFrom:threat.slice(0, 3)})[0] : null;
     if(spE){
@@ -277,12 +426,27 @@ function lowHpBack(b){
     }
   }
   if(!low && defending) return;   // остался один на своём сайте — сайт не бросает (решение ретейка/ротации — выше)
-  // (v271) к своим — только если свой недалеко по пути (LOWHP_MATE_PATH) и путь не идёт мимо известных
+  // (Г3, 04.11, разбор отметок п.1 и ответ владельца 1: «смерть тиммейта — не повод бросить задачу, но и стоять на месте нельзя: не выходит
+  // один на дуэль, отходит за ближайшее укрытие, сохраняя контроль своего фланга») полный HP, рядом погиб свой — своя задача «рядом погиб
+  // свой» (repos:mateDown, подпись не «мало HP»): ближайшее укрытие, скрытое от известных врагов; после неё — снова своя задача (уровень
+  // перестановки держится _reposUntil). Раньше — та же задача «мало HP» и «остался один — иду к своим» через пол-карты (сторож: 214 из 242
+  // «мало HP» — при полном HP)
+  if(!low){
+    var spC = pickSpots("matedown"+tick+b.id, {x:b.x, y:b.y}, 1, {rMin:30, rMax:200, minGap:30, hideFrom:threat.slice(0, 3)})[0];
+    if(!spC) return;
+    b._reposUntil = 0; b._probeLock = 0;
+    setPost(b, spC, threat[0], true, "repos:mateDown");
+    if(!b.post || b.post.tag !== "repos:mateDown") return;
+    if(b.state === "hold") leaveHold(b);
+    b._reposUntil = tick + 6*TICK_HZ; b._lowHpNext = tick + 10*TICK_HZ;
+    return;
+  }
+  // (v271) мало HP — к своим, только если свой недалеко по пути (LOWHP_MATE_PATH) и путь не идёт мимо известных
   // врагов; иначе бежать через полкарты к далёкому тиммейту — подставиться. Тогда — укрытие рядом,
   // скрытое от врагов: играть от него и ждать своих (раньше шёл к ближайшему тиммейту на любом расстоянии).
   var m = null, mL = Infinity;
   mates.sort(function(a, c){ return Math.hypot(a.x-b.x, a.y-b.y) - Math.hypot(c.x-b.x, c.y-b.y); }).slice(0, 2).forEach(function(o){
-    var pts = pathPts(b.x, b.y, o.x, o.y); if(!pts.length) return;
+    var pts = pathPts(b.x, b.y, o.x, o.y, b.z, o.z); if(!pts.length) return;
     var L = polyLen(pts); if(L > LOWHP_MATE_PATH || L >= mL) return;
     var bad = pts.some(function(q, k){ return k > 0 && threat.some(function(t){ return Math.hypot(q[0]-t.x, q[1]-t.y) < 250; }); });
     if(!bad){ m = o; mL = L; }
@@ -295,8 +459,7 @@ function lowHpBack(b){
   if(!b.post || b.post.tag !== "repos:lowhp") return;
   if(b.state === "hold") leaveHold(b);
   b._reposUntil = tick + 6*TICK_HZ; b._lowHpNext = tick + 10*TICK_HZ;
-  if(!low && !m) return;   // один, но к своим безопасно не дойти — остаётся играть, как играл
-  voiceLog(b.team, "lowhp"+b.id, b.id, low ? (m ? "у меня "+b.hp+" — отхожу к "+m.id : "у меня "+b.hp+" — свои далеко, играю от укрытия") : "остался один — иду к "+m.id);
+  voiceLog(b.team, "lowhp"+b.id, b.id, m ? "у меня "+b.hp+" — отхожу к "+m.id : "у меня "+b.hp+" — свои далеко, играю от укрытия");
 }
 // ---- шифт по угрозе ----
 // Раньше боты бегали всегда, кроме нескольких частных случаев (слышал/видел
@@ -311,7 +474,7 @@ function STEP_HEAR_R(){ return SOUND_RADIUS_RUN * (BAL.stepHearMul || 1); }
 function dangerWalk(b){
   if(!b.post || b.state !== "patrol" || !BZ.ids.length) return false;
   var tag = b.post.tag || "";
-  if(/^(tradeR|flee|fetch|stopplant|antidefuse|repos|plantspot|lineup|defuse|smokeWait|pickup|retake|save|trade)/.test(tag)) return false;
+  if(taskProp(tag, "dangerWalkSkip")) return false;
   var secLeft = ROUND_TIME_SEC - (simTime - roundStartTime), tt = teamTac.T, ct = teamTac.CT;
   if(b.team === "T"){
     if(secLeft < 30 && bomb.state !== "planted") return false;

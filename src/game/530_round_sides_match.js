@@ -22,6 +22,7 @@ function buyPhase(){
 }
 
 function startHalf(silent){
+  ecoKnowReset();   // (Г1) подсчёт денег соперника — заново: у всех $800
   bots.forEach(function(b){
     b.money = START_MONEY; b.primary = null; b.secondary = b.team==="CT" ? "USP" : "GLOCK";
     b.armor = false; b.helmet = false; b.armorHp = 0; b.kit = false; b.weapon = WEAPONS[b.secondary]; b.nades = emptyNades();
@@ -108,7 +109,7 @@ function newMatch(){
   resetMatchMemory(); timeoutsReset();
   score.CT = 0; score.T = 0;
   roundNum = 0;
-  bots.forEach(function(b){ b.kills = 0; b.deaths = 0; });
+  bots.forEach(function(b){ b.kills = 0; b.deaths = 0; b.assists = 0; });
   startHalf(true);
   logEvent("Новый матч #"+matchNum, true);
   resetRound(); // roundNum → 1, закуп пистолетного
@@ -139,6 +140,7 @@ function checkRoundEnd(){
   endRound(ctAlive ? "CT" : (tAlive ? "T" : null), "elim");
 }
 function endRound(winner, reason){
+  if(SANDBOX.on) return;   // (v536) песочница: раунд не кончается (677)
   for(var shk in siteHeatPending){ siteHeat[shk] = (siteHeat[shk]||0) + 1; } siteHeatPending = {};
   if(winner){ score[winner]++; }
   if(BAL.roundMem && teamTac.T && teamTac.T.tac && teamTac.T.tac.style === "rush"){ RMEM.rush.push({site:teamTac.T.site, round:roundNum}); if(RMEM.rush.length > 6) RMEM.rush.shift(); }
@@ -195,7 +197,7 @@ function resetRound(){
     // прошлого раунда, продолжался после спавна — бота тянуло обратно туда, где он лез. Всё движение прошлого раунда — сброс
     b._climb = null; b._fireExit = null; b._fireExitFire = null; b._unstickT = null; b._task = null; b._hold = null;
     // (v353, владелец: «тусклость кружка сохраняется после окончания раунда») этаж для рисования — сразу по спавну, а не через 16 тиков движения
-    var za0 = navArea(b._area); b._zArea = za0 ? za0.z : 0; b._under = hgtUnder(b.x, b.y, b.z, za0); b._lvl = hgtUnderCenter(b.x, b.y, b._under) ? -1 : za0 ? hgtLevelOf(za0.id) : 0;
+    b._underV = null; b._overV = null; floorViewTick(b);   // (v535) этаж — заново с нового места
     b.baseX = b.x; b.baseY = b.y;
     b.px = b.x; b.py = b.y;
     b.path = []; b.pathIdx = 0; b.alive = true; b.hp = 100;

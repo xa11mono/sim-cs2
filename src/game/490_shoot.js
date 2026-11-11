@@ -29,10 +29,38 @@ function fireVAcc(sh, tg, dist){
   for(var k = 20; k > 0; k--){ var v = vmax*k/20; if(pB(v) >= FIRE_K*p0) return v; }
   return 0;
 }
+// (v524, владелец 10.11: «без прицела стреляют слишком часто; ноускоп — почти в упор, когда резко пикаешь и фликаешь, не успевая зайти в
+// прицел; в основном — в прицел») выстрел без прицела — то же правило «выстрел стоит того» (FIRE_K), что у стрельбы с ходу: без прицела, если
+// попасть в корпус так почти так же вероятно, как в прицеле (цель вблизи большая); иначе — время на прицел (scopeTicks). Раньше — любая
+// дистанция ближе 230 px (575 ед.). AWP_NOSCOPE — разброс AWP без прицела стоя, тыс. рад: данные игры CS2 (80,8 против 2,0 в прицеле)
+var AWP_NOSCOPE = 80.8;
+function awpNoscope(sh, tg, dist){
+  if(!BAL.awpClose || !sh.weapon || sh.weapon.key !== "AWP") return false;
+  // (v526, владелец 10.11: «в упор некоторые успевают и в прицеле»; «если есть время прицелиться — в прицел») кто стоял и уже целился в это
+  // место (держал угол), тот уже в прицеле — без прицела стреляет только застигнутый: на ходу / развернулся на врага
+  if(sh._heldAim) return false;
+  var bA = Math.atan(BODY_HALF/Math.max(8, dist)), a = aimSigma(sh, tg, dist), w0 = shotSpread(sh, 0), ns = Math.hypot(w0, AWP_NOSCOPE/1000);
+  var pB = function(sp){ return 1 - Math.exp(-(bA*bA)/(2*(sp*sp + a*a))); };
+  return pB(ns) >= FIRE_K * pB(w0);
+}
 // (Б4) готовность к выстрелу для движения в дуэли (fightCycleTick): через сколько тиков бот мог бы выстрелить в эту цель
 // (реакция, темп оружия, остывание разброса); 0 — готов, ждёт только, пока погасит скорость
 function fireReady(sh, tg, n){ sh._fire = {t:tick, tg:tg.id, inT:Math.max(0, Math.ceil(n))}; }
+// (v547, ответ владельца 10.11, сейв: «приоритет — выживание оружия; в перестрелку — только в исключительных случаях: враг не видит бота и не
+// перекрывает путь отхода — пройти мимо, любая стрельба раскроет позицию; помочь своему — только если бой прямо в зоне видимости и размен
+// быстрый») бот на сейве стреляет, если враг видит его, стоит на его пути отхода (≤ SAVE_PATH_R от оставшегося пути / точки сейва) или
+// сейчас стреляется со своим. SAVE_PATH_R — проектное число
+var SAVE_PATH_R = 150;
+function saveShootOk(b, t){
+  if(!taskAlive(b) || !taskProp(b._task.tag, "saveTask")) return true;
+  if(t._visible && t._visible.indexOf(b) >= 0) return true;
+  var m = t._nearestEnemyBot; if(m && m !== b && m.team === b.team && m.alive && m._sawEnemy) return true;
+  var P = (b.path || []).slice(b.pathIdx || 0); if(b._saveSpot) P.push([b._saveSpot.x, b._saveSpot.y]);
+  for(var i = 0; i < P.length; i++) if(Math.hypot(P[i][0]-t.x, P[i][1]-t.y) < SAVE_PATH_R) return true;
+  return false;
+}
 function tryShoot(shooter, target, dist){
+  if(shooter._sbOff) return;   // (v536) песочница: ИИ выключен — не стреляет (677)
   // (этап 2, P0-2) реакция и доводка — по ЭТОЙ цели (shooter._ts[id] — сколько тиков подряд её видно, гаснет как contactStreak),
   // а не по контакту бота с кем угодно: раньше вторая цель в живой перестрелке шла без реакции (34 % выстрелов раньше 150 мс)
   var cs = (shooter._ts && shooter._ts[target.id]) || 0;
@@ -42,6 +70,7 @@ function tryShoot(shooter, target, dist){
   // расстреливали в спину); бег и так режет ему точность
   if(shooter.planting || shooter.defusing) return; // руки заняты
   if(tick < shooter.blindUntil || tick < (shooter.throwUntil||0)) return; // ослеплён / бросает гранату
+  if(!saveShootOk(shooter, target)) return;   // (v547) сейв — проходит мимо
   // план §3: "бот, держащий угол, может выстрелить до того как истечёт обычная
   // реакция на новый визуальный контакт, если есть свежая информация 'враг там',
   // и шанс зависит от точности этой информации" — префайр обходит обычный gate
@@ -60,6 +89,7 @@ function tryShoot(shooter, target, dist){
     // стоит, выглянувший появляется на экране чуть позже (в CS — из-за сети).
     var pre = hD < 0.25 ? (shooter.curSpeed < 45*SPD_K ? BAL.holdReact : BAL.preaimReact) : (hD < 0.6 ? 0.9 : 1.1);
     shooter._reactMul = pre * (shooter.curSpeed > SPEED*0.8 ? BAL.moveReact : 1.0);
+    shooter._heldAim = hD < 0.25 && shooter.curSpeed < 45*SPD_K;   // (v526) стоял и уже целился сюда — со снайперкой он уже в прицеле
     shooter._peekLag = (shooter.curSpeed < 45*SPD_K && target.curSpeed > (BAL.pieSlice ? 60 : 45)*SPD_K) ? BAL.peekAdv : 0; // преимущество пикающего — только у быстрого выхода; кто режет угол шагом, его не имеет
     // раздел 14: "префайр угла" — кто заходил, уже целясь в типичную точку
     // (прицел почти на цели в момент появления), доводит прицел почти сразу,
@@ -92,7 +122,7 @@ function tryShoot(shooter, target, dist){
     else if(tsp > 100*SPD_K) visLag = -2;
     shooter._visLag = visLag;
   } else if(BAL.partialVis) visLag = shooter._visLag || 0;
-  effReaction = Math.max(4, Math.round(shooter.reactionTicks * (shooter._reactMul || 1) * clutchMul * hlReact(shooter)) + (shooter._peekLag || 0) + ((BAL.awpClose && shooter.weapon.key === "AWP" && dist < 230) ? 0 : Math.round((shooter.weapon.scopeTicks || 0) * hlScope(shooter))) + (shooter._hes || 0) + visLag);
+  effReaction = Math.max(4, Math.round(shooter.reactionTicks * (shooter._reactMul || 1) * clutchMul * hlReact(shooter)) + (shooter._peekLag || 0) + (awpNoscope(shooter, target, dist) ? 0 : Math.round((shooter.weapon.scopeTicks || 0) * hlScope(shooter))) + (shooter._hes || 0) + visLag);
   if(shooter._smokeShot){ /* прострел смока — без реакции на "появление", он и не появлялся */ }
   else if(cs < effReaction){
     // префаер — только по тому, что сам только что видел (≤1.4с), а не по коллу/
@@ -141,7 +171,10 @@ function tryShoot(shooter, target, dist){
   // пистолеты — с ~110px, ПП и винтовки — с ~160px
   var tapFrom = w.key === "USP" ? 45 : (w.spam >= 30 ? 0 : (w.slot === "secondary" ? 110 : 160));
   var tapK = w.key === "USP" ? 0.4 : 0.7;
-  if(w.spam && dist > tapFrom && w.spam/1000*heat > tapK*bA){ fireReady(shooter, target, (heat - tapK*bA*1000/w.spam)*(w.recov||8)); return; }
+  // (v530, отметка владельца 10.11 «зажимают, когда половина пуль идёт в укрытие»: с 450 px видна одна голова — 13 пуль за 2 с, попала 1) отсечка
+  // или зажим — по размеру того, что видно: из-за укрытия торчит только голова — цель размером с голову, очередь в неё не идёт
+  var tgA = bA; if(!thruSmoke && !prefire){ var vpT = visParts(shooter.x, shooter.y, shooter.crouching, target.x, target.y, target.crouching, undefined, shooter.z, target.z); if(vpT.head && !vpT.body) tgA = hA; }
+  if(w.spam && dist > tapFrom && w.spam/1000*heat > tapK*tgA){ fireReady(shooter, target, (heat - tapK*tgA*1000/w.spam)*(w.recov||8)); return; }
   var burstIdx = tick - shooter.lastShotTick > SPRAY_RESET_TICKS ? 0 : shooter.burstCount;
 
   // ---- раздел 14: попадание — не "шанс N%", а угловая ошибка прицела ----
@@ -152,7 +185,8 @@ function tryShoot(shooter, target, dist){
   // в упор цель огромная и промахнуться почти невозможно, на длинной дистанции
   // в голову попадают редко — как в CS, а не одинаковые 50% на любой дистанции.
   var sk = shooter.skill;
-  var wSpread = shotSpread(shooter, shooter.curSpeed);
+  var noscope = awpNoscope(shooter, target, dist), nsS = noscope ? AWP_NOSCOPE/1000 : 0;   // без прицела — разброс оружия без прицела (данные игры)
+  var wSpread = Math.hypot(shotSpread(shooter, shooter.curSpeed), nsS);
   var comp = 0.55 + 0.35*Math.max(0, Math.min(1, (sk-0.8)/0.4));
   var recoilErr = w.recoil/1000 * Math.max(0, burstIdx-1) * (1-comp) * 1.6;
   var spamErr = (w.spam||0)/1000 * heat;
@@ -164,9 +198,6 @@ function tryShoot(shooter, target, dist){
   if(BAL.hitbox) recoilErr *= 0.3; // (6) отдача теперь — паттерн (ниже), тут только её "шум"
   var rest2 = recoilErr*recoilErr + spamErr*spamErr + aimS*aimS + 0.5*aimD*aimD, sM = 1;
   if(shooter.onStairs) sM *= 2.2;
-  // AWP в упор — ноускоп: без прицела, быстро, но разброс большой
-  var noscope = BAL.awpClose && w.key === "AWP" && dist < 230;
-  if(noscope) sM *= 2.4;
   if(prefire) sM *= BAL.prefireStrict ? 1.6 + 1.8*(1-prefireConfidence) : 1.3 + 1.4*(1-prefireConfidence);
   if(thruSmoke) sM *= 3.2;   // не видит цель — стреляет по памяти, почти вслепую
   if(shooter.atPost && shooter.curSpeed < 10) sM /= BAL.holdAcc;
@@ -175,7 +206,7 @@ function tryShoot(shooter, target, dist){
   // (Б4, контрстрейф) стрелять сейчас или сначала погасить скорость: игрок жмёт, когда попасть в корпус на ходу почти так же
   // вероятно, как стоя (не ниже FIRE_K от этого) — вблизи цель большая, и на ходу попадает (пистолет, ПП стреляют с бега),
   // вдали — сначала остановка. Иначе ждёт, пока сбросит скорость (контрстрейф — fightStrafe)
-  var w0 = shotSpread(shooter, 0), sig0 = Math.sqrt(w0*w0 + rest2) * sM;
+  var w0 = Math.hypot(shotSpread(shooter, 0), nsS), sig0 = Math.sqrt(w0*w0 + rest2) * sM;
   var pBody = function(sg){ return 1 - Math.exp(-(bA*bA)/(2*sg*sg)); };
   if(wSpread > w0 && pBody(sigma) < FIRE_K * pBody(sig0)){ fireReady(shooter, target, 0); return; }
   shooter._fire = null;
@@ -204,6 +235,7 @@ function tryShoot(shooter, target, dist){
   var aimHead = w.key !== "AWP" && hashRand(seedS+5) < pAimHead;
   // (v241) целится в то, что видно: голова за укрытием не видна — в тело; видна только голова — в голову
   var vParts = visParts(shooter.x, shooter.y, shooter.crouching, target.x, target.y, target.crouching, undefined, shooter.z, target.z);
+  var SP = shooter._smkParts; if(SP && SP.id === target.id && SP.t === tick) vParts = {head: vParts.head && SP.head, body: vParts.body && SP.body};   // (v548) сквозь дыру в дыму — только то, что в окошке
   if(!vParts.head && vParts.body) aimHead = false; else if(vParts.head && !vParts.body) aimHead = true;
   // (М149, владелец 20.10) видно только плечо (цель за углом или ящиком) — целится в него, а цель это замечает: по ней стреляют,
   // а сама она стрелка целиком не видит — у неё есть время уйти за укрытие или занять место получше (fightCycleTick)
@@ -258,12 +290,11 @@ function tryShoot(shooter, target, dist){
     else if(zr < 0.42){ mult = 1.25; armored = target.armor; hitZone = "stomach"; }
     else { mult = 1.0; armored = target.armor; hitZone = "chest"; }
     var dmg = Math.max(1, Math.round(base * mult * (armored ? w.armorPen : 1)));   // ожидаемый урон в HP (для логов); сам урон — applyDamage
-    target._hurtT = tick;
     if(BAL.tagging) target._tagUntil = tick + 16; // попали — на ~0.25с замедлен
     target._hitFx = {t:nowTs, head:headshot};
     if(BAL.duelPlace && headshot && burstIdx === 0 && (shooter._place||0) > 0.8 && target.hp <= dmg && hashRand(seedS+29) < 0.5) logEvent(shooter.id+": прицел стоял на угле — хэдшот с первой пули по "+target.id);
     if(SND && SND.on) sndBody(headshot ? (target.helmet ? "hshelm" : "hs") : (target.armor ? "kevlar" : "body"), target.x, target.y);
-    var killed = applyDamage(shooter, target, base * mult, "bullet", {armorRatio: armored ? w.armorPen : null, wkey:w.key, hs:headshot, reward:w.killReward||300, mods:{blind: shooter.blindUntil > tick, smoke: thruSmoke || smokeOnLine(shooter.x, shooter.y, target.x, target.y)},
+    var killed = applyDamage(shooter, target, base * mult, "bullet", {armorRatio: armored ? w.armorPen : null, wkey:w.key, hs:headshot, reward:w.killReward||300, mods:{blind: shooter.blindUntil > tick, smoke: thruSmoke || smokeOnLine(shooter.x, shooter.y, target.x, target.y), noscope: noscope},
       note:(headshot?" (в голову)":"")+" (дист. "+Math.round(dist)+", +$"+(w.killReward||300)+")"});
     if(BAL.hurtCall && !killed){
       var HT = teamIntel[shooter.team].hurt || (teamIntel[shooter.team].hurt = {});
@@ -278,7 +309,7 @@ function tryShoot(shooter, target, dist){
       shooter._exposedUntil = tick + 4*TICK_HZ;
       var postKill = BAL.awpRepos || BAL.styles ? afterKillMove(shooter, target, w) : false;
       if(!postKill && BAL.repos && shooter.atPost && shooter.post && shooter.post.hold && !shooter.planting && !shooter.defusing &&
-         bots.some(function(o){ return o.alive && o.team === target.team && Math.hypot(o.x-shooter.x, o.y-shooter.y) < 900; })){
+         bots.some(function(o){ return o.alive && o.team === target.team && nearP(o.x, o.y, o.z, shooter.x, shooter.y, shooter.z, 900); })){
         var alt = pickSpots("repos"+Math.round(shooter.post.x/30)+","+Math.round(shooter.post.y/30), shooter.post, 3,
           {rMin:55, rMax:170, minGap:40, see: shooter.post.look ? [shooter.post.look] : [], hideFrom:[{x:target.x, y:target.y}]});
         var ap = alt[hashRand(tick + shooter.id.charCodeAt(0)) < 0.5 ? 0 : Math.min(1, alt.length-1)];
@@ -306,19 +337,12 @@ function tryShoot(shooter, target, dist){
     else { var sgn = hashRand(seedS+3) < 0.5 ? -1 : 1; dev = sgn * (bA*1.15 + Math.abs(hashRand(seedS+7)-0.5)*2*sigma); }
     var far = Math.min(w.range, Math.hypot(dx,dy)*1.6 + 60);
     var ex = shooter.x + Math.cos(ang+dev)*far, ey = shooter.y + Math.sin(ang+dev)*far;
-    var cl = rayClipWalls(shooter.x, shooter.y, ex, ey);
+    var cl = bulletClip3(shooter, ex, ey, target);   // (v519) по 3D-геометрии (ящики), не только до стен редактора
     endX = cl.x; endY = cl.y;
     // (v263, Б1) промах летит дальше и попадает в того, кто на его пути, — в своего тоже (урон по своим — в applyDamage).
     // Куда попала — по той же доле зон, что и без хитбоксов; урон — оружия на дистанции до него
-    var sv = bulletVictim(shooter, endX, endY, target);
-    if(sv){
-      var sd = Math.hypot(sv.x-shooter.x, sv.y-shooter.y), sz = hashRand(seedS+13);
-      var sm = sz < 0.22 ? 0.75 : (sz < 0.42 ? 1.25 : 1.0), sArm = sz >= 0.22 && sv.armor;
-      var sdmg = w.dmg * Math.pow(w.rm, sd*PX_UNITS/500) * sm;
-      sv._hurtT = tick; sv._hitFx = {t:nowTs, head:false}; if(BAL.tagging) sv._tagUntil = tick + 16;
-      applyDamage(shooter, sv, sdmg, "bullet", {armorRatio: sArm ? w.armorPen : null, wkey:w.key, reward:w.killReward||300, note:" (шальная пуля, дист. "+Math.round(sd)+")"});
-      endX = sv.x; endY = sv.y;
-    }
+    var sv = bulletLineHit(shooter, endX, endY, target, seedS+13, "шальная пуля");
+    if(sv){ endX = sv.x; endY = sv.y; }
   }
   tracers.push({wc:tracerClass(shooter.weapon), wk:shooter.weapon && shooter.weapon.key, sil:!!(shooter.weapon && shooter.weapon.silenced), x1:shooter.x, y1:shooter.y, x2:endX, y2:endY, team:shooter.team, born:nowTs, hit:hit, head:headshot, prefire:prefire, miss:!hit, zone:hitZone,
     tk:tick, sdx:shooter.x-(shooter.px != null ? shooter.px : shooter.x), sdy:shooter.y-(shooter.py != null ? shooter.py : shooter.y),   // (v414, М154) сдвиг за тик — для рисования
@@ -351,7 +375,7 @@ var STATE_LABEL = {patrol:"патруль", hold:"держит угол", engage
 var TRADE_R = 272;
 function duelContext(bot, enemiesSeen, alliesNear){
   var o = {trade:0, up:false, forced:false, hurtFoe:false, awpLine:false, flashed:false};
-  bots.forEach(function(m){ if(m !== bot && m.alive && m.team === bot.team && Math.hypot(m.x-bot.x, m.y-bot.y) <= TRADE_R) o.trade++; });
+  bots.forEach(function(m){ if(m !== bot && m.alive && m.team === bot.team && nearP(m.x, m.y, m.z, bot.x, bot.y, bot.z, TRADE_R)) o.trade++; });
   var my = aliveCount(bot.team), their = aliveCount(bot.team === "CT" ? "T" : "CT");
   o.up = my > their;
   var tt = teamTac.T, secLeft = ROUND_TIME_SEC - (simTime - roundStartTime);
@@ -360,7 +384,7 @@ function duelContext(bot, enemiesSeen, alliesNear){
   else if(bot.team === "T" && tt && tt.phase && tt.phase !== "setup") o.forced = true;
   else if(my === 1) o.forced = true;
   else if(secLeft < 20) o.forced = true;
-  else if(bot.post && /^(retake|defuse|plantspot|antidefuse|endhunt|tradeR)/.test(bot.post.tag || "")) o.forced = true;
+  else if(bot.post && taskProp(bot.post.tag, "tradeUrgent")) o.forced = true;
   var e = bot._nearestEnemyBot;
   if(e){
     var HT = teamIntel[bot.team] && teamIntel[bot.team].hurt, hk = HT && HT[e.id];

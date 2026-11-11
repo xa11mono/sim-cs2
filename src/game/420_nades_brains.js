@@ -9,6 +9,10 @@ function nadeUsePick(b, pts, R){
 function nadeUseTick(b){
   if(!b.alive || !b.nades || b.nadeTask || b.planting || b.defusing || !nadeReady(b) || roundState !== "live") return;
   if(tick - (b._nadeUseT || -1e9) < NADE_USE_GAP || teamSaving(b.team)) return;
+  // (v519, пак 09.11 п.14; А-30: «некоторые боты во время стрельбы кидают гранаты, вместо того чтобы стреляться») видит врага / на линии перестрелки —
+  // своя граната не берётся: пока летит рука с гранатой, он не стреляет (490). Срочные гранаты боя (флешка под выход, смок на врага у бомбы) —
+  // в своих местах (350), не здесь
+  if(b._sawEnemy || (b._fc && b._fc.ph === "line")) return;
   var have = function(t){ return b.nades[t] > 0; };
   if(!have("smoke") && !have("flash") && !have("he") && !have("molly")) return;
   var foe = b.team === "T" ? "CT" : "T", BL = beliefLast[b.team] || {}, known = [];
@@ -20,7 +24,7 @@ function nadeUseTick(b){
   // маршрута у своего спавна) в бой — только туда, где враг может быть: выход на контакт/размен/ретейк/зачистка или выход T к
   // самому сайту (≤ 600 от него); точки маршрута — не бой; и рядом с точкой нет своих (mateNear)
   var siteT = tt && SITES[tt.site];
-  var entering = b.post && toPost > 120 && toPost < 800 && !/^route/.test(tag) && (/^(contact:swing|tradeR|retakeEntry|retake|clear)/.test(tag) ||
+  var entering = b.post && toPost > 120 && toPost < 800 && !/^route/.test(tag) && (taskProp(tag, "nadeFight") ||
     (b.team === "T" && tt && tt.phase === "execute" && b.tRole !== "lurker" && siteT && Math.hypot(b.post.x-siteT.x, b.post.y-siteT.y) < 600));
   if(entering){
     var area = {x:b.post.x, y:b.post.y}, ents = threatEntrances(b.team, area, 260).slice(0, 3).map(function(E){ return E.pt; });
@@ -46,6 +50,9 @@ function nadeUseTick(b){
     if(tgt.length){ var tp = have("molly") ? "molly" : (have("he") ? "he" : (have("flash") ? "flash" : null)); if(tp) plan = {t:tp, pts:tgt}; }
     why = "по инфе — туда, где они";
   }
+  // (v519, пак 09.11 п.14; Р-8: «кинул флеш на Palace Exit — внутрь здания, не там, где был враг», Р-14: «в Андере под себя — это тоннель») флешка
+  // «иду в бой» — туда, где хлопок будет видно с точки, куда бот выходит (3D-видимость с его этажа): иначе она никого не слепит и не помогает выходу
+  if(plan && plan.t === "flash" && entering) plan.pts = plan.pts.filter(function(p){ return hasLOS(b.post.x, b.post.y, p.x, p.y, b.z, null); });
   if(!plan || !plan.pts.length) return;
   b._nadeUseT = tick;
   var pt = nadeUsePick(b, plan.pts); if(!pt) return;

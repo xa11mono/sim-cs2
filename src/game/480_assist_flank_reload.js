@@ -13,21 +13,26 @@ function flankSpot(b, mate, ep){
   // уже стою под другим углом (50–120° от линии тиммейта) — не обходить, а дожать со своей стороны: по своему пути к врагу до
   // первой точки, откуда его видно (идёт на неё с прицелом на врага — стрелять начнёт, как только тот покажется; Alley → CT Spawn: враг за углом виден с 5 px). Раньше точки обхода были только «за» врагом, и путь к ним
   // шёл мимо него — заход отменялся (игрок 6 в Connector, отметка 14.10, тик 3865)
+  // (Г4, 04.11, разбор отметок п.26: точка «дожать» бралась на пути без высоты — видимость с верхнего этажа (Vent) считалась с пола, а
+  // настоящий путь туда шёл через мид в 90 px от врага, 1313 px) путь — настоящий путь бота (его этаж, путь команды), видимость — с высотой
+  // точки пути; длина до точки ≤ 1000 и мимо врага ближе 200 — те же условия, что у обхода ниже
   var aMe = _angOff(Math.atan2(b.y-ep.y, b.x-ep.x), Math.atan2(mate.y-ep.y, mate.x-ep.x));
   if(aMe >= 0.87 && aMe <= 2.1){
-    var pp = pathPts(b.x, b.y, ep.x, ep.y), prev = {x:b.x, y:b.y};
-    if(pp.length && polyLen(pp) <= 1000) for(var i=0;i<pp.length;i++){
-      var w = {x:pp[i][0], y:pp[i][1]};
-      for(var k=1;k<=4;k++){ var q = {x:prev.x+(w.x-prev.x)*k/4, y:prev.y+(w.y-prev.y)*k/4};
-        if(hasLOS(q.x, q.y, ep.x, ep.y)) return walk(q); }
-      prev = w; }
+    var pp = buildWaypointPath(b.baseX, b.baseY, b.z, ep.x, ep.y, 0, b.team), prev = {x:b.x, y:b.y, z:b.z}, run = 0;
+    for(var i=0;i<pp.length && run <= 1000;i++){
+      var w = {x:pp[i][0], y:pp[i][1], z:pp[i][2]}, seg = Math.hypot(w.x-prev.x, w.y-prev.y);
+      for(var k=1;k<=4;k++){ var q = {x:prev.x+(w.x-prev.x)*k/4, y:prev.y+(w.y-prev.y)*k/4}, qz = prev.z != null && w.z != null ? prev.z+(w.z-prev.z)*k/4 : b.z;
+        if(run + seg*k/4 > 1000) break;
+        if(Math.hypot(q.x-ep.x, q.y-ep.y) < 200) return null;   // путь подходит к врагу ближе 200 раньше, чем открылась линия — не заход
+        if(hasLOS(q.x, q.y, ep.x, ep.y, qz)) return walk(q); }
+      run += seg; prev = w; }
   }
   var cand = pickSpots("flank"+tick+b.id, ep, 4, {rMin:150, rMax:420, minGap:40, must:[ep], cross:{from:{x:mate.x, y:mate.y}, pt:ep}});
   var sp = null;
   cand.some(function(q){
     var a1 = Math.atan2(q.y-ep.y, q.x-ep.x), a2 = Math.atan2(mate.y-ep.y, mate.x-ep.x), da = _angOff(a1, a2);
     if(da < 0.87 || da > 2.1) return false;
-    var pts = pathPts(b.x, b.y, q.x, q.y); if(!pts.length || polyLen(pts) > 1000) return false;
+    var pts = pathPts(b.x, b.y, q.x, q.y, b.z); if(!pts.length || polyLen(pts) > 1000) return false;
     if(pts.some(function(w){ return Math.hypot(w[0]-ep.x, w[1]-ep.y) < 200; })) return false;
     sp = q; return true; });
   return sp;
@@ -42,8 +47,12 @@ function flankClaim(b, eid, take){
   return !busy;
 }
 function flankAssist(b){
-  if(b.hp <= LOW_HP || b._fcFlank && tick < b._fcFlank) return false;
-  if(b.team === "CT" && b.post && /^(anchor|stack|set:|cts:|clutch|retake)/.test(b.post.tag)) return false;   // держит сайт — не бросает
+  // (v521, отметка владельца 10.11: sh1ro шёл в обход, враг сдвинулся на 40 px — с точки обхода его больше не видно, sh1ro стоял, пока zont1x не убили)
+  // точка обхода, откуда врага уже не видно, — пересматривается сразу (не через 3 с), не чаще раза в 0,5 с
+  var FL = b.post && b.post.tag === "repos:flank" && b._flankE ? teamBot(b._flankE) : null;
+  var flStale = FL && FL.alive && tick - (b._flankT || 0) >= 32 && !hasLOS(b.post.x, b.post.y, FL.x, FL.y, b.z, FL.z);
+  if(b.hp <= LOW_HP || (b._fcFlank && tick < b._fcFlank && !flStale)) return false;
+  if(b.team === "CT" && b.post && taskProp(b.post.tag, "holdsSite")) return false;   // держит сайт — не бросает
   if(b.team === "T" && b.tRole === "lurker") return false;
   var mate = null, E = null;
   bots.forEach(function(m){
@@ -56,20 +65,24 @@ function flankAssist(b){
   var ep = {x:E.x, y:E.y};
   var sp = flankSpot(b, mate, ep);
   if(!sp) return false;
+  // (v518a) идёт по задаче важнее захода — заход как отклонение (detourOk, 110): цена — время дойти до точки захода
+  if(!taskCanSet(b, "repos:flank")){ var fsec = pathLenTo(b, sp.x, sp.y)/SPEED; if(!detourOk(b, "help", fsec)) return false; detourStart(b, "help", "repos:flank", fsec + 2); }
   b._reposUntil = 0; b._probeLock = 0;
   setPost(b, sp, ep, true, "repos:flank");
   if(!b.post || b.post.tag !== "repos:flank") return false;
   if(b.state === "hold") leaveHold(b);
   b._reposUntil = tick + 6*TICK_HZ;
   b.lastIntel = {x:ep.x, y:ep.y, tick:tick, src:"call"};
-  flankClaim(b, E.id, true);
+  flankClaim(b, E.id, true); b._flankE = E.id; b._flankT = tick;
   voiceLog(b.team, "flank"+b.id, b.id, "захожу на "+E.id+" с другой стороны — помогаю "+mate.id);
   return true;
 }
 function assistPeek(b){
   if(!BAL.assistPeek || b._sawEnemy || b.planting || b.defusing || b.hp <= LOW_HP) return false;
   if(tick < (b._assistNext||0)) return false;
-  if(!taskCanSet(b, "repos:assist")) return false;   // (v378) идёт по задаче не ниже — арбитр места
+  // (v378) идёт по задаче не ниже — арбитр места; (v518a) главная задача терпит отклонение — помогает и с неё (detourOk, 110)
+  var detour = !taskCanSet(b, "repos:assist");
+  if(detour && !detourOk(b, "help")) return false;
   // (v368) носитель выходит вдвоём с тиммейтом, как все (раньше «в дуэли не лезет» — на раше magixx шёл в 400 ед. позади боя)
   var mate = null, E = null;
   bots.forEach(function(m){
@@ -87,6 +100,7 @@ function assistPeek(b){
     .filter(function(q){ return !spotTaken(b, q) && hasLOS(q.x, q.y, ep.x, ep.y); })[0];   // (v370) рядом, но не плечом к плечу (было > 22)
   if(!sp) return false;
   b._reposUntil = 0; b._probeLock = 0;
+  if(detour) detourStart(b, "help", "repos:assist", 2);
   setPost(b, sp, ep, true, "repos:assist");
   if(!b.post || b.post.tag !== "repos:assist") return false;
   if(b.state === "hold") leaveHold(b);
@@ -95,6 +109,8 @@ function assistPeek(b){
   if(!b._assistVoice || tick - b._assistVoice > 4*TICK_HZ){ b._assistVoice = tick; voiceLog(b.team, "assist"+b.id, b.id, "выхожу с "+mate.id+" на "+E.id+" — дабл!"); }
   return true;
 }
+// доля магазина, ниже которой игрок перезаряжается после боя — и (v521) ниже которой на линии «патронов мало» (470 duelEval)
+function rlFracOf(){ return BAL.soundMore ? 0.75 : 0.35; }
 function updateReload(b){
   var w = b.weapon; if(!w || !b.alive) return;
   if(b._ammoFor !== w.key){ b._ammoFor = w.key; b.ammo = w.mag; b._reloading = false; b.reloadUntil = 0; }
@@ -104,7 +120,7 @@ function updateReload(b){
   // после перестрелки про перезаряжается почти всегда, если магазин заметно
   // потрачен (а не только когда он почти пуст) — отсюда и звук перезарядки,
   // на который пикают
-  var rlFrac = BAL.soundMore ? 0.75 : 0.35, rlWait = BAL.soundMore ? 96 : 64;
+  var rlFrac = rlFracOf(), rlWait = BAL.soundMore ? 96 : 64;
   var tacRl = !b._reloading && b.ammo > 0 && !b._sawEnemy && b.ammo < w.mag*rlFrac && tick - (b.lastShotTick||-999) > rlWait;
   // тактическая перезарядка на виду у известного врага — сначала за укрытие
   // (если патронов ещё не критично мало)

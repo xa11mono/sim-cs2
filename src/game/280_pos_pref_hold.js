@@ -177,12 +177,14 @@ var HOLD = {
   burned: 1.5, burnR: 160, burnSec: 8,   // засвеченная точка
   stackR: 110, stack: 1.2,               // двое в одной точке — один пик забирает обоих
   cross: 0.8,       // кроссфаер: тот же главный вход под углом 50–120°
+  uncov: 0.3,       // (v518c) вход «опасный»: ≥ этой доли главного — пока его никто не держит, второй на тот же главный вход — штраф (проектное)
   travel: 0.6,      // штраф за путь, на 1000px
   objDist: 0.3,     // штраф за удалённость от цели (на весь радиус)
   pro: 1.2,         // бонус точке, где обычно стоят про (0..1 из демок)
   keep: 0.35,       // бонус текущей точке
   reeval: 128,      // тиков между пересчётами (2с), раньше — если сменился главный вход
-  minW: 0.02        // вход с опасностью ниже — не учитываем
+  minW: 0.02,       // вход с опасностью ниже — не учитываем
+  anyW: 0.5         // (v520) T.anyFrom: базовый вес каждого входа — неизвестный враг может прийти любым (проектное число)
 };
 var HOLD_CANDS = {};
 function holdCands(center, rMin, rMax, team){
@@ -212,12 +214,24 @@ function holdCands(center, rMin, rMax, team){
 // T: {key, center, rArea, rMin, rMax, must:[pt], mates:[{pt, see}]}
 function holdSpot(b, T){
   var team = b.team, center = T.center;
-  var E = threatEntrances(team, center, T.rArea || 280).filter(function(e){ return e.w > HOLD.minW; });
+  // (v520, отметка владельца 09.11 м200 р2: после планта трое T пошли держать Hole — знание о единственном живом CT далеко, веса входов ~0,
+  // остался один вход по шуму; владелец: «последний может выйти откуда угодно — с Ramp, с Palace, с Connector; занимают позиции, откуда видна
+  // бомба, держат в голове, откуда ждать») T.anyFrom — неизвестный враг может прийти любым входом: каждому входу базовый вес HOLD.anyW
+  // (проектное число), знание команды добавляется сверху
+  var E = threatEntrances(team, center, T.rArea || 280);
+  if(T.anyFrom) E.forEach(function(e){ e.w += HOLD.anyW; });
+  E = E.filter(function(e){ return e.w > HOLD.minW; });
   var wmax = E.length ? E[0].w : 1;
   E.forEach(function(e){ e.wn = e.w / wmax; });
   var cands = holdCands(center, T.rMin || 0, T.rMax || 340, team);
   var mustPts = T.must || [];
+  // (v518c) опасные входы, которые ещё никто из своих в этой группе не держит
+  var uncov = E.filter(function(e){ return e.wn >= HOLD.uncov && !(T.mates||[]).some(function(m){ return m.see && Math.hypot(m.see.pt.x-e.pt.x, m.see.pt.y-e.pt.y) < 60; }); });
   var eval1 = function(c, useMust){
+    // (v530, отметка владельца 10.11 «у всех постплант в одной зоне — повтор уже исправлявшейся ошибки»: троим выдана одна точка, 355,647) место,
+    // которое в этой группе уже занял свой (ближе «личного места» SPOT_PERSONAL — граница из демок), — не вариант: двое в одной точке не стоят.
+    // Раньше это был только штраф (HOLD.stack), и когда точек с видом на бомбу мало, лучшая всё равно побеждала у всех
+    if((T.mates||[]).some(function(m){ return Math.hypot(m.pt.x-c.x, m.pt.y-c.y) < SPOT_PERSONAL; })) return null;
     if(useMust && !mustPts.every(function(m){ return hasLOS(c.x, c.y, m.x, m.y); })) return null;
     var main = 0, mainE = null, open = 0;
     E.forEach(function(e){ if(!hasLOS(c.x, c.y, e.pt.x, e.pt.y)) return; var v = e.wn; open += v; if(v > main){ main = v; mainE = e; } });
@@ -228,6 +242,9 @@ function holdSpot(b, T){
     (T.mates||[]).forEach(function(m){
       var dm = Math.hypot(m.pt.x-c.x, m.pt.y-c.y);
       if(dm < HOLD.stackR) s -= HOLD.stack;
+      // (v518c, пак 09.11 п.8; Р-21: «держу бомбу, смотрю Hole» ×3) тот же главный вход, а другой опасный вход (≥ HOLD.uncov доли главного) никто
+      // из своих не держит — штраф, а не бонус кроссфайра: сначала закрыть входы, потом кроссфайр на один
+      else if(mainE && m.see && Math.hypot(m.see.pt.x-mainE.pt.x, m.see.pt.y-mainE.pt.y) < 60 && uncov.length) s -= HOLD.cross;
       else if(mainE && m.see && Math.hypot(m.see.pt.x-mainE.pt.x, m.see.pt.y-mainE.pt.y) < 60 && dm > 90){
         var a1 = Math.atan2(c.y-mainE.pt.y, c.x-mainE.pt.x), a2 = Math.atan2(m.pt.y-mainE.pt.y, m.pt.x-mainE.pt.x);
         var da = _angOff(a1, a2); if(da > 0.87 && da < 2.1) s += HOLD.cross; else if(da > 0.5) s += HOLD.cross*0.4;
@@ -267,7 +284,7 @@ function holdGroup(members, T, tag){
       // mustFirst: бомбу (цель) обязательно видит только первый; остальные держат
       // подходы и слушают — как про после планта (не все с линией на бомбу)
       var mustNow = (T.mustFirst && chosen.length > 0) ? [] : T.must;
-      var r = holdSpot(b, {key:T.key, center:T.center, rArea:T.rArea, rMin:T.rMin, rMax:(T.mustFirst && chosen.length > 0 && T.rMax2) || T.rMax, must:mustNow, mates:chosen});
+      var r = holdSpot(b, {key:T.key, center:T.center, rArea:T.rArea, rMin:T.rMin, rMax:(T.mustFirst && chosen.length > 0 && T.rMax2) || T.rMax, must:mustNow, mates:chosen, anyFrom:T.anyFrom});
       // (v373, сторож: «метание» — двое на пост-планте каждые пару секунд менялись проходами, войс «держу бомбу, смотрю…»
       // спамился) пересмотр точки — новая, только если она заметно лучше старой (на 15 % — проектное число) и старую не занял свой
       if(r && same && H.pt && r.s < (H.s || 0) + Math.abs(H.s || 0)*0.15 + 0.01 && !chosen.some(function(c){ return Math.hypot(c.pt.x-H.pt.x, c.pt.y-H.pt.y) < 60; })){ H.t = tick; r = null; }

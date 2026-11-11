@@ -27,7 +27,7 @@ function pickSaveSpot(b){
   // сейв. SAVE_TOPN — проектное число (чтобы не искать путь к 600 местам)
   cands.sort(function(a, c){ return c.sc - a.sc; });
   cands.slice(0, SAVE_TOPN).forEach(function(q){
-    var pts = pathPts(b.baseX, b.baseY, q.c.x, q.c.y), L = polyLen(pts), seenP = false;
+    var pts = pathPts(b.baseX, b.baseY, q.c.x, q.c.y, b.z), L = polyLen(pts), seenP = false;
     for(var k = 0; k < pts.length && !seenP; k++) ts.forEach(function(t){ if(!seenP && hasLOS(pts[k][0], pts[k][1], t.x, t.y)) seenP = true; });
     if(seenP) return;
     var sc2 = Math.min(q.dT, 1200)*0.6 - L - q.openC*40;
@@ -40,15 +40,23 @@ function pickSaveSpot(b){
 // раунда]; демки Ancient + Mirage, среднее двух карт (tools/measure: скрипт в DECISIONS v381), 30–316 раундов на клетку
 var T_SAVE_PRO = {1: {2: [0.09, 0.06, 0.18], 3: [0.04, 0.09, 0.18], 4: [0.05, 0.10, 0.27], 5: [0.02, 0.09, 0.21]},
                   2: {3: [0.10, 0.11, 0.20], 4: [0.08, 0.14, 0.27], 5: [0.08, 0.19, 0.35]}};
+// (v519, пак 09.11 п.22; А-19: «бежал ставить в клатче 1в3 и на полпути получил сейв, хотя успевал») решение о сейве — одно на расклад живых в раунде:
+// кусок времени (> 55 / 30–55 / < 30 с) берётся тот, когда расклад появился, а не перебрасывается кубик, когда время пересекает 55 и 30 с
+var TSAVE_K = {};
 function tSaveRoll(aT, aC, secLeft){
   var P = T_SAVE_PRO[aT] && T_SAVE_PRO[aT][Math.min(aC, 5)]; if(!P) return false;
-  var k = secLeft > 55 ? 0 : (secLeft > 30 ? 1 : 2);
+  var key = matchNum+":"+roundNum+":"+aT+"v"+aC;
+  if(TSAVE_K[key] == null) TSAVE_K[key] = secLeft > 55 ? 0 : (secLeft > 30 ? 1 : 2);
+  var k = TSAVE_K[key];
   return hashRand(roundNum*911 + matchNum*37 + aT*101 + aC*13 + k*7) < P[k];
 }
 // (v434) сейвить ли T сейчас — одно решение для начала сейва и для пересмотра (170): раунд безнадёжен по доле про для этого расклада
 // (tSaveRoll), есть что сохранять (оружие ≥ 1500 в среднем и перейдёт в следующий раунд — saveWorth, 530), носитель не на сайте
 function tSaveWant(ts, aT, aC, secLeft, site){
   if(!ts.length) return false;
+  // (00_PLAN п.10, ответ владельца 6А: «сейв отменяется, когда известна позиция противников и их можно изолировать») все живые CT замечены
+  // командой за SITE_SEEN_SEC (siteAssess: неизвестных 0) — не сейв
+  if(siteAssess("T", "A").unknown === 0) return false;
   var gunVal = ts.reduce(function(a, b){ return a + (b.primary ? WEAPONS[b.primary].price : 0); }, 0) / aT;
   var carOn = bomb.state === "carried" && bomb.carrier && bomb.carrier.alive && Math.hypot(bomb.carrier.x-site.x, bomb.carrier.y-site.y) < 380;
   // (v442, док владельца 27.10, р6: сейвили вдвоём при 10 тыс. и 9 тыс. у команды) сохранять оружие стоит, только если без него команда
@@ -57,6 +65,20 @@ function tSaveWant(ts, aT, aC, secLeft, site){
   var bank = Ts.reduce(function(a, o){ return a + o.money + inc; }, 0), need = Ts.reduce(function(a, o){ return a + fullNeedU(o); }, 0) + gunVal*aT;
   if(bank >= need) return false;
   return gunVal >= 1500 && !carOn && saveWorth("T") && tSaveRoll(aT, aC, secLeft);
+}
+// (00_PLAN п.10, ответ владельца 6А, 05.11: «если последний игрок ещё может безопасно забрать бомбу и установить её, он должен оценить
+// возможность завершить раунд; прятаться ради оружия при реальной возможности установки — плохое решение») есть ли у T реальный плант по
+// тому, что команда знает: бомба у живого T или лежит; сайт, который команда оценивает как пустой (siteAssess «empty» — все живые CT замечены
+// далеко за SITE_SEEN_SEC: верно в 95 % Mirage / 91 % Ancient, прогон 141); ближайший к бомбе T доходит до сайта и ставит до конца раунда
+function tPlantChance(ts, secLeft){
+  if(!bomb || (bomb.state !== "carried" && bomb.state !== "dropped")) return false;
+  var src = bomb.state === "carried" ? bomb.carrier : null; if(src && !src.alive) return false;
+  return ["A","B"].filter(function(k){
+    if(siteAssess("T", k).level !== "empty") return false;
+    var S = SITES[k];
+    return ts.some(function(b){ var L = src ? (b === src ? pathLenTo(b, S.x, S.y) : Infinity) : pathLenTo(b, bomb.x, bomb.y) + polyLen(pathPts(bomb.x, bomb.y, S.x, S.y, bomb.z));
+      return L/SPEED + PLANT_TICKS/TICK_HZ < secLeft; });
+  })[0] || null;   // сайт, куда успевают (A раньше B — порядок проверки; оба пусты — редкость)
 }
 // сейв T: каждый живой — к своему месту сейва (один раз выбранному), бомбу не ставит
 function tSaveHold(){
@@ -194,7 +216,9 @@ function updateRetake(cts){
   alive.forEach(function(b){
     if(R.assign[b.id] !== undefined) return;
     var bi = 0, bd = Infinity;
-    R.approaches.forEach(function(a, i){ var d = Math.hypot(a.x-b.baseX, a.y-b.baseY); if(d < bd){ bd = d; bi = i; } });
+    // (v518c, пак 09.11 п.8; владелец Р-31: «могли пройти в Маркет … зачем перебивать, когда уже почти дошли» — точка сбора была ближайшей по прямой,
+    // путь к ней — через Geyser, мид и Short) ближайшая по пути от того места, где бот сейчас (путь на пару «бот — точка» — один раз, при назначении)
+    R.approaches.forEach(function(a, i){ var d = pathLenTo(b, a.x, a.y); if(d < bd){ bd = d; bi = i; } });
     R.assign[b.id] = bi;
   });
   if(alive.length >= 3 && R.approaches.length > 1 && !R.flankSet){
@@ -210,12 +234,7 @@ function updateRetake(cts){
   // один раз в начале ретейка и оставался, пока жив: в m17 р27 (облако) sh1ro стоял в 100 ед. от бомбы с китом, а дефузер
   // magixx ушёл на CT-спавн — бомба взорвалась. Теперь пересмотр каждый тик, но смена — только если другой успеет
   // заметно раньше (на 2 с — проектное число, чтобы двое не перекидывали роль туда-сюда) и дефузер ещё не сел дефузить.
-  if(!R.bzD){ var zb = bzOf(bomb.x, bomb.y); R.bzD = zb >= 0 ? bzDist([zb]) : null; }
-  var defT = function(b){
-    var d = Math.hypot(b.x-bomb.x, b.y-bomb.y);
-    if(R.bzD){ var zi = bzOf(b.x, b.y); if(zi >= 0 && R.bzD[zi] < 1e8) d = Math.max(d, R.bzD[zi]); }
-    return d/SPEED + (b.kit ? 5 : 10);
-  };
+  var defT = function(b){ return defuseEta(b); };   // (Г1) путь по навмешу; дефузит — остаток
   var def = null, tBest = Infinity;
   alive.forEach(function(b){ var t = defT(b); if(t < tBest){ tBest = t; def = b; } });
   var prevDef = R.defId && alive.filter(function(b){ return b.id === R.defId; })[0];
@@ -224,8 +243,8 @@ function updateRetake(cts){
   if(def) R.defId = def.id;
   alive.forEach(function(b){ b.retakeRole = (b === def) ? "defuser" : (R.assign[b.id] !== 0 ? "flank" : "cover"); });
   if(BAL.ninjaDefuse && (R.phase === "gather" || R.phase === "util") && def && ninjaOk()){
-    var tLeftN = bombTimeLeftTicks()/TICK_HZ, dN = Math.hypot(def.x-bomb.x, def.y-bomb.y);
-    if(tLeftN > dN/SPEED*1.3 + (def.kit ? 5 : 10) + 1){
+    var tLeftN = bombTimeLeftTicks()/TICK_HZ;
+    if(tLeftN > defuseEta(def) + 1){
       R.phase = "go"; R.goTick = tick; R.ninja = tick; R.entryId = "-";
       voiceLog("CT", "ninja", def.id, "их нет у бомбы — тихо дефузю, прикройте");
       logEvent("CT: ниндзя-дефуз — все T известны далеко от бомбы");
@@ -248,7 +267,7 @@ function updateRetake(cts){
       // у про второй заходит через ~3с после первого, у ботов было 5с: ждём
       // каждого, кто успевает дойти до своей точки сбора и ещё зайти на дефуз
       var sL = bombTimeLeftTicks()/TICK_HZ, aD = R.approaches[R.assign[def.id]] || R.approaches[0];
-      var gN = Math.hypot(aD.x-bomb.x, aD.y-bomb.y)/SPEED*1.3 + (def.kit ? 5 : 10) + 1.5;
+      var gN = defuseEta(def, aD) + 1.5;
       need = alive.filter(function(b){ var ap = R.approaches[R.assign[b.id]] || aD; return pathLenTo(b, ap.x, ap.y)/SPEED <= sL - gN - 2; }).length;
       need = Math.max(1, need);
       if(!R.gStart) R.gStart = tick;
@@ -256,7 +275,7 @@ function updateRetake(cts){
     var secsLeft = bombTimeLeftTicks()/TICK_HZ;
     // сколько нужно на заход: от точки сбора до бомбы + дефуз
     var a0 = R.approaches[R.assign[def.id]];
-    var goNeed = Math.hypot(a0.x-bomb.x, a0.y-bomb.y)/SPEED*1.3 + (def.kit ? 5 : 10) + 1.5;
+    var goNeed = defuseEta(def, a0) + 1.5;
     var late = secsLeft - goNeed < 3;
     // (v370, владелец: «kyousuke после фрага стоит на сборе и ждёт, хотя может играть сам» — снимок р3: 12 с на Bench, T один с 46 HP)
     // инициатива: ждём своих, только пока нас на точках меньше, чем живых T (киллфид — это знает и живой игрок); на точке —
@@ -268,6 +287,7 @@ function updateRetake(cts){
       // ретейк как команда: сначала утилита (флешка на сайт/на известного T,
       // смок на подход T), заход — под хлопок; если гранат нет или время
       // поджимает — сразу
+      if(BAL.retakeRoles && !R.entryId) retakeEntryPick(R, alive, def);
       var util = BAL.retakeRoles && !late && alive.length >= 2 && retakeUtil(R, alive);
       if(util){ R.phase = "util"; R.utilTick = tick;
         logEvent("CT: ретейк — все на точках ("+ready+"/"+alive.length+"), "+util+" — заход под флешку"); }
@@ -278,7 +298,7 @@ function updateRetake(cts){
   }
   if(R.phase === "util"){
     var popped = nadeFlags["pop:ретейк"] !== undefined && tick - nadeFlags["pop:ретейк"] >= 6;
-    var lateU = bombTimeLeftTicks()/TICK_HZ - ((def ? Math.hypot(def.x-bomb.x, def.y-bomb.y) : 400)/SPEED*1.3 + (def && def.kit ? 5 : 10) + 1.5) < 3;
+    var lateU = bombTimeLeftTicks()/TICK_HZ - ((def ? defuseEta(def) : 400/SPEED*1.3 + 10) + 1.5) < 3;
     if(popped || tick - R.utilTick > 2.2*TICK_HZ || lateU){
       R.phase = "go"; R.goTick = tick;
       logEvent("CT: ретейк — заходим"+(popped ? " под флешку!" : "!"));
@@ -295,20 +315,24 @@ function updateRetake(cts){
     }
   }
   // первый входящий: не дефузер, из основной точки захода, ближе всех к бомбе
-  if(R.phase === "go" && BAL.retakeRoles && !R.entryId){
-    var ents = alive.filter(function(b){ return b !== def; });
-    ents.sort(function(a, c){ return ((R.assign[a.id] === 0 ? 0 : 300) + Math.hypot(a.x-bomb.x, a.y-bomb.y)) - ((R.assign[c.id] === 0 ? 0 : 300) + Math.hypot(c.x-bomb.x, c.y-bomb.y)); });
-    R.entryId = ents[0] ? ents[0].id : "-";
-    if(ents[0]) voiceLog("CT", "rtentry", ents[0].id, "захожу первым, "+(def ? def.id+" дефузит за мной" : "прикрывайте"));
-  }
+  if(R.phase === "go" && BAL.retakeRoles && !R.entryId) retakeEntryPick(R, alive, def);
 }
-// утилита перед заходом на ретейк: кто кидает флешку (не дефузер, если можно)
-// и куда — на известного T у бомбы (свежая инфа), иначе на саму бомбу
+// первый входящий: не дефузер, из основной точки захода, ближе всех к бомбе. (00_PLAN, ответы владельца 3 и 7А, 05.11) выбирается до
+// флешки: флешку кидает не он — «под флешку выходит не тот, кто кидает» (раньше оба — ближайший к бомбе, обычно один и тот же бот)
+function retakeEntryPick(R, alive, def){
+  var ents = alive.filter(function(b){ return b !== def; });
+  ents.sort(function(a, c){ return ((R.assign[a.id] === 0 ? 0 : 300) + Math.hypot(a.x-bomb.x, a.y-bomb.y)) - ((R.assign[c.id] === 0 ? 0 : 300) + Math.hypot(c.x-bomb.x, c.y-bomb.y)); });
+  R.entryId = ents[0] ? ents[0].id : "-";
+  if(ents[0]) voiceLog("CT", "rtentry", ents[0].id, "захожу первым, "+(def ? def.id+" дефузит за мной" : "прикрывайте"));
+}
+// утилита перед заходом на ретейк: кто кидает флешку — не первый входящий (под флешку выходит другой, ответ 7А), по возможности и не
+// дефузер; куда — на известного T у бомбы (свежая инфа), иначе на саму бомбу
 function retakeUtil(R, alive){
   if(nadeFlags.retakeFlash) return null;
   var bp = ctBombPos(), def = alive.filter(function(b){ return b.id === R.defId; })[0];
+  var rank = function(b){ return b.id === R.entryId ? 2 : b === def ? 1 : 0; };
   var fls = alive.filter(function(b){ return b.nades && b.nades.flash > 0; })
-    .sort(function(a, c){ return ((a === def) ? 500 : 0) + Math.hypot(a.x-bp.x, a.y-bp.y) - (((c === def) ? 500 : 0) + Math.hypot(c.x-bp.x, c.y-bp.y)); });
+    .sort(function(a, c){ return rank(a) - rank(c) || Math.hypot(a.x-bp.x, a.y-bp.y) - Math.hypot(c.x-bp.x, c.y-bp.y); });
   var fl = fls[0]; if(!fl) return null;
   var tgt = bp, L = beliefLast.CT, bestA = Infinity;
   for(var id in L){ var e = L[id]; if(tick - e.tick > 10*TICK_HZ) continue; if(Math.hypot(e.x-bp.x, e.y-bp.y) > 650) continue;
@@ -347,10 +371,12 @@ function retakePost(b, cts){
     if(BAL.lurkCheck && aliveCount("T") >= 2){
       var dBp = function(o){ return Math.hypot(o.x-bp.x, o.y-bp.y); };
       var bwc = cts.filter(function(o){ return o.id === R.backWatch && o.alive; })[0];
-      if(!bwc || (cts.length > 1 && cts.every(function(o){ return o === bwc || !o.alive || dBp(o) > dBp(bwc); }))){
+      // (v518c, пак 09.11 п.8; Р-31: «смотрю спину» ×3) смотрящий спину закреплён, пока жив (раньше роль передавалась, когда он оказывался ближе
+      // всех к бомбе, и каждая передача заново шла в войс); колл — один раз за раунд на игрока
+      if(!bwc){
         var bwb = null; cts.forEach(function(o){ if(o.alive && (!bwb || dBp(o) > dBp(bwb))) bwb = o; });
         var nbw = bwb ? bwb.id : "-";
-        if(nbw !== R.backWatch){ R.backWatch = nbw; if(bwb) voiceLog("CT", "back", bwb.id, "смотрю спину — может прийти люрк"); } }
+        if(nbw !== R.backWatch){ R.backWatch = nbw; if(bwb) voiceLog("CT", "back"+bwb.id+"@"+roundNum, bwb.id, "смотрю спину — может прийти люрк"); } }
       if(R.backWatch === b.id){ setPost(b, a, GEO.rotator, true, gTag(b, R), 0); return; }
     }
     // (док 6) уже ближе к бомбе, чем своя точка сбора, — назад на сбор не идёт: ждёт своих там, где стоит
@@ -405,7 +431,7 @@ function retakeClear(b, R, cts, a, bp){
 }
 function retakeDefGo(b, R, cts){
   var secsLeft = bombTimeLeftTicks()/TICK_HZ;
-  var late2 = secsLeft - (Math.hypot(b.x-bomb.x, b.y-bomb.y)/SPEED*1.2 + (b.kit ? 5 : 10) + 1) < 2.5;
+  var late2 = secsLeft - (defuseEta(b) + 1) < 2.5;
   if(late2) return true;
   // (v370, снимок р3: kyousuke один против одного T на сайте сразу сел дефузить и умер) один на ретейке или один T — дефузит
   // сразу, только если сайт уже проверен: сам у бомбы (≤ 320 — точки зачистки) ≥ 1,5 с и никого не видит, или где последний T — знаем (≤ 5 с) и он далеко

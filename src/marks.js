@@ -93,6 +93,9 @@ function mkFp(){
 }
 function mkCheckpoint(){
   if(roundState === "matchover") return;
+  // (v521, баг владельца 10.11: «отметка до начала матча — физика разминки») в разминке снимков нет: номер матча тот же, снимок разминки попадал
+  // в «снимок до» отметки / «назад 10 с» и возвращал игру в разминку (сама разминка, WARM, в снимок не входит)
+  if(typeof WARM !== "undefined" && WARM.on) return;
   if(MK.cpMatch !== matchNum){ MK.cps = []; MK.cpMatch = matchNum; }
   var fp = mkFp();
   MK.cps = MK.cps.filter(function(c){ return c.fp === fp && c.tick !== tick; });
@@ -154,7 +157,7 @@ function mkPlace(x, y){ return String(calloutName(x, y) || "").replace(/^на «
 function mkState(){
   return {
     match: matchNum, tick: tick, round: roundNum, roundTime: Math.round((simTime - roundStartTime)*10)/10,
-    roundState: roundState, score: {CT: score.CT, T: score.T}, bomb: {state: bomb.state, site: bomb.site || null,
+    roundState: roundState, sandbox: !!(typeof SANDBOX !== "undefined" && SANDBOX.on), score: {CT: score.CT, T: score.T}, bomb: {state: bomb.state, site: bomb.site || null,
       x: bomb.x != null ? Math.round(bomb.x) : null, y: bomb.y != null ? Math.round(bomb.y) : null},
     bots: bots.map(function(b){
       var f = b.facing || 0, ray = rayClipWalls(b.x, b.y, b.x + Math.cos(f)*700, b.y + Math.sin(f)*700);
@@ -261,6 +264,7 @@ function mkPreSnap(){
 }
 function mkStart(){
   if(MK.busy) return;
+  if(typeof WARM !== "undefined" && WARM.on){ mkToast("Разминка — отметки только в матче"); return; }   // (v521) снимок разминки не открывается как матч
   if(MK.cur){ mkEl("mkText").focus(); return; }
   paused = true; mkPauseLabel();
   MK.cur = { snap: mkSnapshot(), state: mkState(), match: matchNum, tick: tick, round: roundNum, roundTime: Math.round((simTime - roundStartTime)*10)/10,

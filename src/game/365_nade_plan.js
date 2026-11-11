@@ -142,9 +142,16 @@ function npFoeMaybe(team, pt){
   return alive > away;
 }
 // (v429) флешка — только под пик: рядом с точкой (≤ 700) свой собирается выглянуть (ранний пик CT, проба T) или команда ждёт там врага
+// (00_PLAN п.14, ответ 7А, 05.11) флешка под пик — под конкретного выглядывающего, не того, кто кидает: свой, кто уже выглядывает (ранний
+// пик, проба) в ЗОНУ хлопка (куда смотрит его пик — post.look). Раньше — любой пик в 700 ед. от точки: флешку «на мид» оправдывал пик CT4
+// в сторону A (разбор отметок п.14), и под неё никто не выходил. Кто выходит под флешку, если в эту зону никто не выглядывает, и откуда —
+// вопрос владельцу (ранний пик мидера ведёт на Top Mid — так не надо). Ответ — выглядывающий или null; он ждёт хлопка (380: _waitPopKey)
 function npPeekReady(team, pt, thrower){
-  return bots.some(function(o){ return o !== thrower && o.alive && o.team === team && o.post && /^(earlyPeek|probe)/.test(o.post.tag) &&
-    Math.hypot(o.post.x-pt.x, o.post.y-pt.y) < 700; });
+  var Z = npZoneAt(pt.x, pt.y), best = null, bd = Infinity;
+  bots.forEach(function(o){ if(o === thrower || !o.alive || o.team !== team || !o.post || !/^(earlyPeek|probe)/.test(o.post.tag)) return;
+    var lk = o.post.look || o.post; if(npZoneAt(lk.x, lk.y) !== Z) return;
+    var d = Math.hypot(o.post.x-pt.x, o.post.y-pt.y); if(d < bd){ bd = d; best = o; } });
+  return best;
 }
 // перед закупом: гранаты, оставшиеся с прошлого раунда, — без плана (кидать можно в любой момент)
 function npRoundStart(b){ b._nplan = []; if(b.nades) ["smoke","flash","molly","he"].forEach(function(t){ for(var i = 0; i < (b.nades[t]||0); i++) b._nplan.push({t:t, m:"now", z:null}); }); }
@@ -161,14 +168,63 @@ function npCanUse(b, t, m, z){
   var L = (b._nplan || []).filter(function(it){ return it.t === t; });
   if(!L.length || aliveCount(b.team) === 1) return true;
   var O = NP_ORDER[b.team];
-  return L.some(function(it){ return O[it.m] <= O[m] && (!z || !it.z || it.z === z); });
+  // (Г3, 04.11, разбор отметок п.9: T3 бросил запланированный смок Connector «себе» в бою — цель осталась без хозяина, её отдали лёркеру
+  // за 1300 ед.) граната, закреплённая за целью лайнапа (lu), до конца своего момента — только для этой цели (её кидает лайнап, 390)
+  return L.some(function(it){ return O[it.m] <= O[m] && (!z || !it.z || it.z === z) && !(it.lu && O[it.m] === O[m]); });
 }
 // почему нельзя — для лога: на какой момент она отложена
 function npWhyNot(b, t){ var it = (b._nplan || []).filter(function(q){ return q.t === t; })[0]; return it ? "бережёт на «"+(NP_LABEL[it.m] || it.m)+"»" : ""; }
 // граната брошена — запись плана снята: той, что на этот момент, иначе самой ранней из доступных
-function npUse(b, t, m){
+function npUse(b, t, m, lu){
   var L = b._nplan || [], O = NP_ORDER[b.team], best = -1;
-  for(var i = 0; i < L.length; i++){ if(L[i].t !== t) continue; if(L[i].m === m){ best = i; break; } if(O[L[i].m] <= O[m] && (best < 0 || O[L[i].m] < O[L[best].m])) best = i; }
+  // (Г3) брошен лайнап цели lu — снимается её запись; иначе — запись без цели (закреплённые за целью не тратятся на другое)
+  if(lu) for(var j = 0; j < L.length; j++) if(L[j].t === t && L[j].lu === lu){ L.splice(j, 1); return; }
+  // (00_PLAN п.7) цель lu кинул не её хозяин — граната хозяина больше не закреплена за ней (остаётся ему на свой момент)
+  if(lu) bots.forEach(function(o){ if(o !== b && o.team === b.team) (o._nplan || []).forEach(function(it){ if(it.lu === lu) it.lu = null; }); });
+  for(var i = 0; i < L.length; i++){ if(L[i].t !== t || L[i].lu) continue; if(L[i].m === m){ best = i; break; } if(O[L[i].m] <= O[m] && (best < 0 || O[L[i].m] < O[L[best].m])) best = i; }
+  if(best < 0) for(i = 0; i < L.length; i++){ if(L[i].t !== t) continue; if(L[i].m === m){ best = i; break; } if(O[L[i].m] <= O[m] && (best < 0 || O[L[i].m] < O[L[best].m])) best = i; }
   if(best < 0) for(i = 0; i < L.length; i++) if(L[i].t === t){ best = i; break; }
   if(best >= 0) L.splice(best, 1);
+}
+// (00_PLAN п.14, владелец 05.11: «он говорит — накиньте мне флешку; ближайший, если рядом лайнап, бежит на лайнап, не подставляясь под
+// другие позиции и не теряя свою; иначе кидает оттуда, где стоит; контакт не перебивает; хлопок — он пикает») одно место «попросить
+// флешку под пик» — для любого выглядывающего (prePeekTick 250, ранний пик CT 320). Помогает свой с флешкой, без задания гранаты, не в бою,
+// кому сейчас можно взять задачу «гранаты» (taskCanSet — важнее задачи не перебиваются) и у кого флешка не отложена на другой момент (план).
+// Как: (1) лайнап флешки про своей стороны, хлопок которого — у точки (≤ порога «долетит» флешки, nadeAimLimit), точка броска по пути
+// (luBehind) и не видна тем, кого команда видела / слышала за SITE_SEEN_SEC; (2) с места — точка в FLASH_ASK_R. Из возможных — кто раньше
+// хлопнет (дорога + запал); позже FLASH_ASK_WAIT — никто (выглядывающий не ждёт дольше). Ответ — помощник или null; выглядывающий ждёт хлопка
+var FLASH_ASK_WAIT = 3.5, FLASH_ASK_R = 700;   // с, ед. — те же проектные числа, что в «флешу под пик» v506 (250)
+// (владелец 05.11: «за шесть раундов хотя бы в трёх-четырёх, не при каждом случае») — одна просьба на команду за раунд: проектное число из
+// слов владельца (замер облака до предела: м7 — 10 просьб в 6 раундах из 10, м11 — 18 в 8 из 8; из 28 хлопнули 9)
+var FLASH_ASK_PER_ROUND = 1, FLASH_ASK_N = {};
+function nadeAskFlash(b, pt, why){
+  var nk = matchNum+":"+roundNum+":"+b.team; if((FLASH_ASK_N[nk]||0) >= FLASH_ASK_PER_ROUND) return null;
+  var foe = b.team === "CT" ? "T" : "CT", BL = beliefLast[b.team] || {}, fuse = NADE.flash.fuse/TICK_HZ, lim = nadeAimLimit("flash", false);
+  var seenBy = function(F){ return bots.some(function(e){ if(e.team !== foe || !e.alive) return false; var q = BL[e.id];
+    return q && tick - q.tick <= SITE_SEEN_SEC*TICK_HZ && hasLOS(q.x, q.y, F.x, F.y); }); };
+  var LU = proLineups().filter(function(L){ return L.team === b.team && L.type === "flash" && Math.hypot(L.to.x-pt.x, L.to.y-pt.y) <= lim; });
+  var C = [];
+  bots.forEach(function(o){
+    if(o === b || !o.alive || o.team !== b.team || !o.nades || o.nades.flash <= 0 || o.nadeTask || o._sawEnemy || o.state !== "patrol" || o.planting || o.defusing) return;
+    if(!taskCanSet(o, "lineup") || !npCanUse(o, "flash", npMomentNow(o), null)) return;
+    // (владелец 05.11: «если стрелялся, прикрывал, держал важный угол или знал, что там вот-вот будет враг — понятно; а если может уйти и точно
+    // ничего не произойдет — почему бы не кинуть») бой и задачи важнее гранаты (прикрыть, подпушить, ретейк…) отсекает taskCanSet; держит угол,
+    // на который вот-вот выйдут: враг, которого команда видела / слышала за SITE_SEEN_SEC, видит его или его пост — не отвлекается
+    if(seenBy(o) || (o.post && seenBy(o.post))) return;
+    if(Math.hypot(o.x-pt.x, o.y-pt.y) <= FLASH_ASK_R) C.push({o:o, t:fuse});
+    LU.forEach(function(L){ var F = L.from, t = pathLenTo(o, F.x, F.y)/SPEED + fuse;
+      if(t <= FLASH_ASK_WAIT && !luBehind(o, F) && !seenBy(F)) C.push({o:o, t:t, L:L}); });
+  });
+  C.sort(function(p, q){ return p.t - q.t; });
+  // с места — бросает сразу (не долетает отсюда — просьба следующему); с лайнапа — идёт на точку броска (срок — FLASH_ASK_WAIT)
+  var got = null;
+  for(var i = 0; i < C.length && !got; i++){ var c = C[i], o = c.o;
+    if(c.L){ o.nadeTask = {type:"flash", x:c.L.to.x, y:c.L.to.y, from:{x:c.L.from.x, y:c.L.from.y}, until: tick + FLASH_ASK_WAIT*TICK_HZ, why:why, start:tick, lob:true, range:4000, now:true, lineup:true, npm:npMomentNow(o)}; got = c; }
+    else if(throwNade(o, "flash", pt.x, pt.y, true, why)) got = c;
+  }
+  if(!got) return null;
+  FLASH_ASK_N[nk] = (FLASH_ASK_N[nk]||0) + 1;
+  b._waitPopUntil = tick + Math.round(FLASH_ASK_WAIT*TICK_HZ); b._waitPopKey = "pop:"+why;
+  voiceLog(b.team, "askfl"+b.id+roundNum, b.id, "накиньте флешку "+calloutName(pt.x, pt.y).replace(/^на /, "")+" — "+got.o.id+(got.L ? " с лайнапа" : "")+", выхожу на хлопок");
+  return got.o;
 }
