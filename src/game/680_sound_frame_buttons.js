@@ -84,10 +84,10 @@ function sndStep(x, y){   // (v327) шаг как в CS — «тук-тук» п
   sndNoise(0.75*g, 0.03, "bandpass", 1600, 1.5); sndTone(0.4*g, 0.05, 160, "triangle", 0, 80);
   sndNoise(0.5*g, 0.025, "bandpass", 2100, 1.5, 0.07);
 }
-// (v552, владелец 11.11: «звука подъёма по лестнице нету») перекладина лестницы — металлический «дзинь» (записи лестницы в наборе нет — синтез,
-// заглушка до записи владельца); свой лимит («other»), не теряется среди шагов бегущих. Только показ
+// (v552, владелец 11.11: «звука подъёма по лестнице нету») перекладина лестницы — записи владельца (v553, 11.11), без них — синтез; свой лимит («other»), не теряется среди шагов бегущих. Только показ
 function sndLadder(x, y){
   var g = sndGain(x, y, SND_R.step*1.2, "other"); if(!g) return;
+  var key = sndRec("ladder", 0); if(key && sndPlay(key, 0.9*g, SND.far)) return;   // (v553) записи владельца ladder_1…5 (data/sounds/extra); нет — синтез
   sndTone(0.5*g, 0.09, 620, "square", 0, 540); sndTone(0.3*g, 0.12, 1240, "triangle", 0.005, 1100);
   sndNoise(0.35*g, 0.04, "bandpass", 3200, 4);
 }
@@ -166,7 +166,7 @@ function sndNade(type, x, y){
 function sndBomb(kind, x, y){
   var g = sndGain(x, y, SND_R.bomb); if(!g) return;
   // (v331) записи: c4_beep, c4_key1..7, c4_initiate, c4_disarmstart, c4_disarmfinish, c4_explode; нет записи — синтез
-  var R = {beep:"c4_beep", planted:"c4_initiate", defuse:"c4_disarmstart", defused:"c4_disarmfinish", boom:"c4_explode"}[kind];
+  var R = {beep:"c4_beep", planted:"c4_initiate", defuse:"c4_disarmstart", defused:"c4_disarmfinish", boom:"c4_explode", final:"c4_final"}[kind];   // (v553) final — запись владельца «бомба вот-вот взорвётся»
   if(R && sndPlay(R, (kind === "beep" ? 0.7 : 0.9)*g, SND.far)) return;
   if(kind === "beep") sndTone(0.25*g, 0.09, 2800, "sine");
   else if(kind === "plant"){ var rk = !!SND.buf.c4_key1; for(var i=0;i<7;i++){ if(!rk || !sndPlay("c4_key"+(i+1), 0.8*g, SND.far, i*0.32)) sndTone(0.18*g, 0.07, 1500 + (i%3)*250, "square", i*0.32); } }
@@ -177,10 +177,15 @@ function sndBomb(kind, x, y){
 }
 // писк бомбы — одно расписание для звука и для кромки экрана (v437): раз в тик проверка, когда следующий; только вид и звук, игру не меняет
 var BEEP_NEXT = 0;
+// (v553, владелец 11.11, запись «звук, когда бомба вот-вот взорвётся») последние C4_FINAL_SEC до взрыва — эта запись (её длина — 1,28 с: кончается
+// со взрывом), обычный писк в это время молчит
+var C4_FINAL_SEC = 1.28, BEEP_FINAL = null;
 function bombBeepTick(){
-  if(!bomb || bomb.state !== "planted"){ BEEP_NEXT = 0; return; }
+  if(!bomb || bomb.state !== "planted"){ BEEP_NEXT = 0; BEEP_FINAL = null; return; }
+  var left = bombTimeLeftTicks()/TICK_HZ;
+  if(left <= C4_FINAL_SEC){ if(BEEP_FINAL !== bomb.plantTick){ BEEP_FINAL = bomb.plantTick; if(SND.on) sndBomb("final", bomb.x, bomb.y); } return; }
   if(tick < BEEP_NEXT) return;
-  var left = bombTimeLeftTicks()/TICK_HZ, gap = Math.max(0.1, Math.min(1, 0.1 + 0.9*left/40));
+  var gap = Math.max(0.1, Math.min(1, 0.1 + 0.9*left/40));
   BEEP_NEXT = tick + Math.round(gap*TICK_HZ);
   if(SND.on) sndBomb("beep", bomb.x, bomb.y);
   hudBombPulse(gap);
