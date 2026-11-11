@@ -114,7 +114,8 @@ function rlFracOf(){ return BAL.soundMore ? 0.75 : 0.35; }
 function updateReload(b){
   var w = b.weapon; if(!w || !b.alive) return;
   if(b._ammoFor !== w.key){ b._ammoFor = w.key; b.ammo = w.mag; b._reloading = false; b.reloadUntil = 0; }
-  if(b._reloading && tick >= b.reloadUntil){ b._reloading = false; b.ammo = w.mag; }
+  // (v555, м298 р1: «пострелял, ушёл за укрытие и стоит») перезарядился — укрытие больше не нужно: задача снимается, бот возвращается к своей
+  if(b._reloading && tick >= b.reloadUntil){ b._reloading = false; b.ammo = w.mag; if(b.post && b.post.tag === "repos:rlcover"){ b._reposUntil = 0; clearPost(b); } }
   if(BAL.pistolSwap && b._onPistol) pistolBack(b);
   if(BAL.pistolSwap && !b._reloading && b.ammo <= 0 && pistolSwap(b)) return;
   // после перестрелки про перезаряжается почти всегда, если магазин заметно
@@ -127,7 +128,10 @@ function updateReload(b){
   if(tacRl && BAL.reloadCover && b.ammo > w.mag*0.2 && !b.planting && !b.defusing){
     // (v296) и враг за углом (≤ 900 px, ≤ 4 с — без линии сейчас): выглянет — застанет на перезарядке; укрытие — скрытое от его места
     var ex = exposedTo(b, 900, 4*TICK_HZ, true);
-    if(ex.length){ coverForReload(b, ex); tacRl = false; }
+    // (v555, м298 р1) уже не видно ни с одного из этих мест (дошёл до укрытия / враг за углом) — перезаряжается сейчас. Было: пока инфа о враге
+    // свежая (4 с), перезарядка откладывалась, и бот стоял в укрытии, не перезаряжаясь, до 4 с + сама перезарядка
+    var exSee = ex.filter(function(f){ return hasLOS(b.x, b.y, f.x, f.y, b.z); });
+    if(exSee.length){ coverForReload(b, ex); tacRl = false; }
   }
   if(!b._reloading && (b.ammo <= 0 || tacRl)){
     // (v296, владелец 14.10: «во время перезарядки не стояли столбом») пустой магазин на виду у известного врага — перезаряжается на ходу:
@@ -141,6 +145,7 @@ function updateReload(b){
       }
     }
     b._reloading = true; b.reloadUntil = tick + Math.round(w.reload*TICK_HZ);
+    if(b.post && b.post.tag === "repos:rlcover") b._reposUntil = b.reloadUntil;   // (v555) укрытие держится, пока идёт перезарядка, — не 3 с
     if(b.ammo <= 0) logEvent(b.id+": перезарядка ("+w.name+", "+w.reload+"с)");
     if(BAL.soundMore) reloadHeard(b, w);
   }

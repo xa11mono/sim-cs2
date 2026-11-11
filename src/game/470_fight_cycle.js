@@ -357,10 +357,14 @@ function exposedTo(b, maxD, maxAge, anyLos){
      !out.some(function(q){ return Math.hypot(q.x-hs.x, q.y-hs.y) < 60; })) out.push({x:hs.x, y:hs.y});
   return out;
 }
+var RL_THREAT_W = 0.2;   // (v555) проектное число: вход, где команда ждёт врага с таким весом, — укрытие на перезарядку прячет и от него
 function coverForReload(b, from){
   if(b._rlCoverT && tick - b._rlCoverT < 3*TICK_HZ) return true;
   b._rlCoverT = tick;
-  var sp = pickSpots("rlcov"+tick+b.id, {x:b.x, y:b.y}, 2, {rMin:30, rMax:150, minGap:30, hideFrom:from})
+  // (v555, отметка владельца м298 р1: «ушёл за укрытие — а не открыт ли он с другой позиции, откуда могут убить») прятаться и от входов, где
+  // команда ждёт врага (threatEntrances: ожидание зон рядом), а не только от известных: укрытие, открытое туда, — хуже (но не запрещено)
+  var thr = threatEntrances(b.team, {x:b.x, y:b.y}, 300).filter(function(e){ return e.w >= RL_THREAT_W; }).slice(0, 3).map(function(e){ return e.pt; });
+  var sp = pickSpots("rlcov"+tick+b.id, {x:b.x, y:b.y}, 3, {rMin:30, rMax:150, minGap:30, hideFrom:from.concat(thr)})
     .filter(function(q){ return from.every(function(f){ return !hasLOS(q.x, q.y, f.x, f.y); }); })[0];
   if(!sp) return false;
   b._reposUntil = 0;
