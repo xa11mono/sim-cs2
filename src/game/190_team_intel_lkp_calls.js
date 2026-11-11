@@ -351,13 +351,16 @@ function intelDeath(victim, killer){
       if(Math.hypot(o.x-fc.x, o.y-fc.y) > FILL_NEAR) return;
       var L = polyLen(pathPts(o.x, o.y, fc.x, fc.y, o.z)), near = L <= FILL_NEAR;
       if(!near) return;
-      if(!near && aliveCount(victim.team) < 3) return;
-      if(!near && !bots.some(function(m){ return m !== o && m.alive && m.team === o.team && nearP(m.x, m.y, m.z, o.x, o.y, o.z, TRADE_R); })) return;
-      if(!near && intelEstimate(o.team, o.x, o.y, 600, 4*TICK_HZ).n > 0) return;
       if(L < fL){ fL = L; fBest = o; }
     });
     if(fBest){
-      var fp = (fl && pickSpots("fill"+tick+fBest.id, fc, 1, {rMax:170, minGap:30, see:[fl]})[0]) || fc;
+      // (v561, этап 5 docs/tasks/PLAN_TACTICS_V2.md; PRO_PLAY §6з: «подмена — сохранить функцию, а не пройти маршрут») задача погибшего — держать
+      // линию на fl; подменяющий берёт её с ближайшего к себе пригодного места (видит fl, в пределах FILL_FUNC_R от места погибшего), а не идёт
+      // точно в его точку
+      var fpC = fl ? pickSpots("fill"+tick+fBest.id, {x:(fc.x+fBest.x)/2, y:(fc.y+fBest.y)/2}, 4, {rMax:FILL_FUNC_R, minGap:30, see:[fl]})
+        .filter(function(q){ return Math.hypot(q.x-fc.x, q.y-fc.y) <= FILL_FUNC_R; })
+        .sort(function(p, q){ return Math.hypot(p.x-fBest.x, p.y-fBest.y) - Math.hypot(q.x-fBest.x, q.y-fBest.y); }) : [];
+      var fp = fpC[0] || (fl && pickSpots("fill"+tick+fBest.id, fc, 1, {rMax:170, minGap:30, see:[fl]})[0]) || fc;
       if(setPost(fBest, fp, fl, true, "fill")){ fBest._fillLock = {until: tick + 15*TICK_HZ, team: victim.team, pt: fp, ph: victim.team === "T" ? teamTac.T.phase : null};
       voiceLog(victim.team, "fill"+victim.id, fBest.id, "займу "+calloutName(fc.x, fc.y)+" вместо "+victim.id); }
     }

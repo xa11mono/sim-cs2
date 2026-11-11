@@ -548,7 +548,16 @@ function tBrain(){
             }
           } else if(sawCtAtFakeEarly && stillThere && tick - tt.fakeOn > 10*TICK_HZ){
             tt._fakeRead = tick;
-            logEvent("IGL: на "+fk+" не купились — держит место, играем по плану");
+            // (v561, этап 3 docs/tasks/PLAN_TACTICS_V2.md; PRO_PLAY §6з: «фейк не поверили — не ждать бесконечно, фейк может стать настоящим
+            // выходом») на фейке — один держит, а на нашем сайте команда знает двоих и больше: фейк становится выходом на сайт фейка (перекол), если
+            // бомба не лежит у нашего сайта и время есть; иначе — по плану
+            var hereN = siteAssess("T", tt.site).near, fkN = siteAssess("T", fk).near;
+            if(hereN >= 2 && fkN <= 1 && secLeft > 35 && !(bomb.state === "dropped" && Math.hypot(bomb.x-SITES[tt.site].x, bomb.y-SITES[tt.site].y) < BOMB_HERE_R)){
+              var trvF = Math.hypot(SITES[fk].x - SITES[tt.site].x, SITES[fk].y - SITES[tt.site].y)*1.2/SPEED;
+              tSetSite(tt, fk); tt.phase = "setup"; tt.execTick = tick + Math.round(Math.min(trvF*0.8, 12)*TICK_HZ);
+              logEvent("IGL: на "+fk+" не купились, но там один, а у нас их "+hereN+" — фейк становится выходом на "+fk);
+              voiceLog("T", "fakereal", "IGL", "на "+fk+" один и не уходит, у нас их "+hereN+" — заходим на "+fk);
+            } else logEvent("IGL: на "+fk+" не купились — держит место, играем по плану");
           }
         }
       }
