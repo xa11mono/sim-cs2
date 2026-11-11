@@ -2,9 +2,13 @@
 (демки Ancient, PRO_PLAY §4). Запуск: python3 tools/measure/buy_cmp.py <папка_с_метками> <метка> [<метка> …]"""
 import sys, os, gzip, json, glob, collections, statistics as st
 PRO = {'pistol': (69, 42, 27), 'eco': (24, 48, 27), 'force': (52, 59, 25), 'half': (52, 59, 25), 'full': (59, 70, 22)}   # плант %, плант с, первый фраг с
-def tempo(t):
-    t = t or ''
-    return 'быстро' if t.startswith('rush') else ('поздно' if t.startswith('def') else 'обычно')
+HERE = os.path.dirname(os.path.abspath(__file__))
+STY = {}
+for m in ('mirage', 'ancient'):
+    for t in json.load(open(os.path.join(HERE, '..', '..', 'data', 'maps', m, 'tactics.json'), encoding='utf-8'))['tTactics']: STY[t['id']] = t['style']
+def tempo(t):   # как tacTempo в игре (130): раш — быстро, дефолт — поздно, остальное — обычно
+    s = STY.get(t or '', '')
+    return 'быстро' if s == 'rush' else ('поздно' if s == 'default' else 'обычно')
 root = sys.argv[1]
 for lab in sys.argv[2:]:
     S = collections.defaultdict(lambda: collections.defaultdict(list))
