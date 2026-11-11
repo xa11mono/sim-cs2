@@ -180,9 +180,9 @@ function onBlind(b, threat){
   b._blind = {until:b.blindUntil, back:back, face:{x:threat.x, y:threat.y}};
   if(wp){ b.path = wp; b.pathIdx = 0; }
   // стрелять вслепую — только с настоящей причиной: видел врага перед самой вспышкой (≤ 1 с) и он рядом — он пойдёт на флешку.
-  // Очередь в точку, где видел (тот же «огонь по памяти», что сквозь дым: smokeSpamTick, 290); попадёт, если враг на линии
+  // Очередь в точку, где видел, заводит smokeSpamTick (290, хозяин огня по памяти); попадёт, если враг на линии
   var fire = threat.tick != null && threat.src !== "call" && tick - threat.tick <= TICK_HZ && Math.hypot(threat.x-b.x, threat.y-b.y) < BLIND_FIRE_R && b.ammo > 0 && b.weapon && !b.weapon.scopeTicks;
-  if(fire) b._spam = {pt:{x:threat.x, y:threat.y, z:threat.z}, s:null, blind:true, seen:true, bursts:SMK.burstsMin, shot:0, nextBurst:tick + (b.reactionTicks||12), until:b.blindUntil};
+  if(fire) b._blind.fire = {x:threat.x, y:threat.y, z:threat.z};   // (v556) очередь заводит хозяин огня по памяти — smokeSpamTick (290)
   logEvent(b.id+": ослеплён — "+(back ? (wp && wp.length > 1 ? "уходит в укрытие по памяти" : "отходит за угол") : "присел, держит направление")+(fire ? ", стреляет вслепую туда, где видел врага" : ""));
   // (S2) тиммейт рядом закрывает угол ослеплённого: смотрит туда и готов стрелять
   if(BAL.coverBlind){

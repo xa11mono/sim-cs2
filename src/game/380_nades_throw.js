@@ -340,7 +340,7 @@ function nadeFailedHere(b, type, tx, ty){
 // точно нет, когда все убиты») одно место: своя граната (не лайнап и не граната плана команды — у тех opts.bkey) — только если есть смысл и время.
 // Облако, 24 раунда Mirage (v553): 416 своих гранат; в миг броска HP < 30 — 54, ранен за ≤ 1 с — 41, видит врага — 19. Возвращает причину отказа
 // или null. NADE_HIT_GAP, NADE_LOW_HP, NADE_FOE_R — проектные числа; порог «враг возможен» 0,2 — как «шумлю там, где враг вероятен» (540)
-var NADE_HIT_GAP = 64, NADE_LOW_HP = 30, NADE_FOE_R = 400, NADE_FOE_P = 0.2;
+var NADE_HIT_GAP = 64, NADE_LOW_HP = 30, NADE_FOE_R = 400, NADE_FOE_P = 0.2;   // (v554) проектные числа: тики «под огнём», HP, ед., ожидание врага в зоне
 function nadeSelfWhyNot(b, type, pt){
   var foe = b.team === "CT" ? "T" : "CT";
   if(!bots.some(function(o){ return o.alive && o.team === foe; })) return "врагов нет";

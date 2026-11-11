@@ -363,7 +363,8 @@ function coverForReload(b, from){
   b._rlCoverT = tick;
   // (v555, отметка владельца м298 р1: «ушёл за укрытие — а не открыт ли он с другой позиции, откуда могут убить») прятаться и от входов, где
   // команда ждёт врага (threatEntrances: ожидание зон рядом), а не только от известных: укрытие, открытое туда, — хуже (но не запрещено)
-  var thr = threatEntrances(b.team, {x:b.x, y:b.y}, 300).filter(function(e){ return e.w >= RL_THREAT_W; }).slice(0, 3).map(function(e){ return e.pt; });
+  var thr = threatEntrances(b.team, {x:b.x, y:b.y}, 300).filter(   // 300 ед., 3 входа — проектные
+    function(e){ return e.w >= RL_THREAT_W; }).slice(0, 3).map(function(e){ return e.pt; });
   var sp = pickSpots("rlcov"+tick+b.id, {x:b.x, y:b.y}, 3, {rMin:30, rMax:150, minGap:30, hideFrom:from.concat(thr)})
     .filter(function(q){ return from.every(function(f){ return !hasLOS(q.x, q.y, f.x, f.y); }); })[0];
   if(!sp) return false;

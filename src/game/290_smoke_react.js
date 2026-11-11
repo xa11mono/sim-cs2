@@ -78,13 +78,18 @@ function blindBullet(b, pt){
   return true;
 }
 function smokeSpamTick(){
-  if(!smokes.length && !bots.some(function(b){ return b._spam && b._spam.blind; })){ bots.forEach(function(b){ b._spam = null; }); return; }
+  if(!smokes.length && !bots.some(function(b){ return (b._spam && b._spam.blind) || (b._blind && b._blind.fire && tick < b.blindUntil); })){ bots.forEach(function(b){ b._spam = null; }); return; }
   bots.forEach(function(b){
     if(!b.alive) return;
     var P = b._spam;
     // (v554) P.blind — очередь вслепую после флешки (onBlind, 460): дыма нет, слепота её не отменяет
-    if(P && (tick > P.until || b._sawEnemy || b.planting || b.defusing || b._reloading || b.ammo <= 0 || (tick < b.blindUntil) !== !!P.blind ||
+    // (v556) нож в руках (идёт резать дефузящего, knifeDefuseTick 450) — очередь кончается здесь, у хозяина, а не там
+    if(P && (tick > P.until || b._sawEnemy || b.planting || b.defusing || b._reloading || b.ammo <= 0 || b._knife || (tick < b.blindUntil) !== !!P.blind ||
              (!P.blind && (smokes.indexOf(P.s) < 0 || (tick % 16 === 0 && !smokeEnemyPossible(b, P.s, P.pt, P.seen)))))){ b._spam = null; P = null; }
+    // (v554 → v556 сюда) ослеплённый с причиной (onBlind, 460: видел врага ≤ 1 с до вспышки, он рядом) — очередь вслепую в ту точку, один раз
+    var BF = b._blind && b._blind.fire;
+    if(!P && BF && tick < b.blindUntil && !b._sawEnemy && b.ammo > 0 && !b._reloading && !b._knife){ b._blind.fire = null;
+      P = b._spam = {pt:BF, s:null, blind:true, seen:true, bursts:SMK.burstsMin, shot:0, nextBurst:tick + (b.reactionTicks||12), until:b.blindUntil}; }
     if(P){
       if(tick < P.nextBurst) return;
       // стреляем: если на линии за дымом реально кто-то есть — настоящий выстрел

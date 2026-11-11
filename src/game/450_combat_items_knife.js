@@ -156,7 +156,7 @@ function knifeDefuseTick(b){
   var D = bots.filter(function(o){ return o.alive && o.defusing; })[0]; if(!D) return false;
   var d = Math.hypot(D.x-b.x, D.y-b.y); if(d > KNIFE_GO) return false;
   if(!(b.ammo <= 0 || b._reloading || !b._spam || d <= 3*KNIFE_REACH)) return false;
-  b._knife = true; b._spam = null; b._knDef = D.id;   // точку «к нему» даёт задача «сбить дефуз» (tBrain, 170)
+  b._knife = true; b._knDef = D.id;   // точку «к нему» даёт задача «сбить дефуз» (tBrain, 170); очередь в дым снимает её хозяин (290)
   if(d > KNIFE_REACH) return true;
   if(tick < (b._stabT || 0)) return true;
   b._stabT = tick + KNIFE_GAP;

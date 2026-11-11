@@ -331,18 +331,22 @@ function anchorPosOf(k){
 // сайте) идёт посмотреть ближайшую зону, где T по таймингу могут быть и откуда инфы нет: доходит до точки, откуда её видно (probeViewPoint),
 // видит пусто — «чекнул … — пусто» (markClear: знание команды, по нему и решают дальше — ротация, перекол), видит врага — бой, контакт.
 // Одна проверка за раз, INFO_MAX за раунд; держится INFO_HOLD с. Числа — проектные
-var INFO_QUIET = 10, INFO_MAX = 2, INFO_HOLD = 8, INFO_R = 900;
+var INFO_QUIET = 10, INFO_MAX = 2, INFO_HOLD = 8, INFO_R = 900, INFO_EVERY = 16;   // проектные числа: с, раз за раунд, с, ед., тики
+var INFO_MIN_R = 250, INFO_W = 0.05, INFO_START = 20;   // проектные числа: ближе — не «глянуть», а рядом; ожидание врага в зоне; с от начала раунда
 function ctInfoCheck(b, ct, cts){
-  if(ct.saving || ct.playRetake || (bomb && bomb.state === "planted") || tick - roundStartTick < 20*TICK_HZ) return false;
+  if(ct.saving || ct.playRetake || (bomb && bomb.state === "planted") || tick - roundStartTick < INFO_START*TICK_HZ) return false;
   var I = ct._info && ct._info.round === roundNum ? ct._info : (ct._info = {round: roundNum, n: 0, by: null});
   if(I.by === b.id){
     // дошёл и смотрит туда (точка выбрана так, что центр зоны видно): врага нет — «чекнул — пусто» (место, которое видел сам, — posChecked)
-    var done = tick >= I.until || b._sawEnemy || (b.atPost && I.at && tick - I.at > 0.5*TICK_HZ && (markClear("CT", I.x, I.y, b.id, hasVision(b.x, b.y, I.x, I.y)) || tick - I.at > 1.5*TICK_HZ));
+    var done = tick >= I.until || b._sawEnemy || (b.atPost && I.at && tick - I.at > 0.5*TICK_HZ && (markClear("CT", I.x, I.y, b.id, hasVision(b.x, b.y, I.x, I.y)) || tick - I.at > 1.5*TICK_HZ));   // 0,5 / 1,5 с посмотреть — проектные
     if(b.atPost && !I.at) I.at = tick;
     if(!done){ setPost(b, I.pt, I.look, true, "probeInfo"); return b.post && b.post.tag === "probeInfo"; }
     I.by = null; if(b.post && b.post.tag === "probeInfo") clearPost(b); return false;
   }
   if(I.by || I.n >= INFO_MAX || b._sawEnemy || b._contact) return false;
+  // (v556, правило «код под производительность»: дорогие решения — не каждый тик у каждого) новая проверка — раз в INFO_EVERY тиков на бота
+  // (перебор зон с линиями видимости), продолжение начатой — каждый тик (дёшево)
+  if((tick + (b.id.charCodeAt(b.id.length-1)||0)) % INFO_EVERY) return false;
   // команда давно ничего не знает о живых T
   var BL = beliefLast.CT || {}, fresh = bots.some(function(t){ var q = BL[t.id]; return t.team === "T" && t.alive && q && tick - q.tick < INFO_QUIET*TICK_HZ; });
   if(fresh) return false;
@@ -353,11 +357,11 @@ function ctInfoCheck(b, ct, cts){
   var best = null;
   for(var j = 0; j < BZ.ids.length; j++){
     var c = BZ.cent[j]; if(!c || !reachPossible("CT", j)) continue;
-    var d = Math.hypot(c.x-b.x, c.y-b.y); if(d < 250 || d > INFO_R) continue;
+    var d = Math.hypot(c.x-b.x, c.y-b.y); if(d < INFO_MIN_R || d > INFO_R) continue;
     var zid = BZ.ids[j], cz = CLEARZ.CT[zid]; if(cz && tick - cz.tick < INFO_QUIET*TICK_HZ) continue;
     if(cts.some(function(o){ return hasVision(o.x, o.y, c.x, c.y); })) continue;
-    var w = beliefZoneKnown("CT", j); if(!(w > 0.05)) continue;
-    var sc = w/(1 + d/400); if(!best || sc > best.sc) best = {sc:sc, c:c, j:j};
+    var w = beliefZoneKnown("CT", j); if(!(w > INFO_W)) continue;
+    var sc = w/(1 + d/400); if(!best || sc > best.sc) best = {sc:sc, c:c, j:j};   // ближе — лучше (400 ед. — вдвое хуже; проектное число)
   }
   if(!best) return false;
   var pt = probeViewPoint({x:b.x, y:b.y}, best.c, best.c); if(!pt) return false;
