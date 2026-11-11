@@ -196,6 +196,7 @@ function tSetSite(tt, site){
 // (v359, отметка владельца р4: «почему не занимают позиции под плант — Palace, Ramp…», лёрк zont1x стоял в Underpass) на время
 // после планта T встают на места про (набор карты pos.<сайт>.tPost — где про стоят после планта, по демкам), в пределах слышимости
 // дефуза; каждому — своё, ближайшее по пути. Раньше — любые укрытия в 300–620 ед. от бомбы, имена мест не учитывались
+var PP_SHIFT = 8, PP_SHIFT_R = 150;   // (v555) проектные: с между сменами места на постпланте (±30 %), ед. — насколько далеко
 function ppTimeNamed(group, bp0, site, rMax){
   var P = POS[site] && POS[site].tPost; if(!P || !P.length) return false;
   // (v442, док владельца 27.10, р7: «их не слышно — отходим от бомбы», а встали на Firebox / A Trash у самой бомбы; замер: T ближе 150 к бомбе
@@ -203,8 +204,21 @@ function ppTimeNamed(group, bp0, site, rMax){
   var pts = []; P.forEach(function(n){ var zp = zonePoint(n, bp0); if(zp && Math.hypot(zp.x-bp0.x, zp.y-bp0.y) <= rMax && Math.hypot(zp.x-bp0.x, zp.y-bp0.y) >= 320 && !pts.some(function(q){ return Math.hypot(q.x-zp.x, q.y-zp.y) < 110; })) pts.push({n:n, x:zp.x, y:zp.y}); });
   if(!pts.length) return false;
   var used = {};
+  // (v555, отметка владельца м300 р3: «стоит и смотрит в одно место, не двигается — может стоять, но должен чуть чередовать: широко пикнул,
+  // никого — пошёл чекнул A Default / Stairs, постоял, вернулся») место «на время» держится PP_SHIFT с, потом — соседняя точка рядом с ним
+  // (до PP_SHIFT_R ед., откуда видно другой вход к бомбе, чем с прошлой), потом обратно; в контакте / при звуке дефуза — не меняет
+  var ppAlt = function(b, P){
+    var A = b._ppAlt; if(!A || A.round !== roundNum || A.i !== b._ppTN.i){ A = b._ppAlt = {round: roundNum, i: b._ppTN.i, t: tick + Math.round(PP_SHIFT*TICK_HZ*(0.7 + 0.6*hashRand(tick + b.id.charCodeAt(1)))), alt: null, on: false}; }
+    if(tick >= A.t && !b._sawEnemy && !b._contact && tick - (b._defuseHeard || -9999) > 2*TICK_HZ){
+      A.on = !A.on; A.t = tick + Math.round(PP_SHIFT*TICK_HZ*(0.7 + 0.6*hashRand(tick*3 + b.id.charCodeAt(1))));
+      if(A.on){ var E = threatEntrances("T", bp0, 350).slice(0, 4), cur = E.filter(function(e){ return hasLOS(P.x, P.y, e.pt.x, e.pt.y); });
+        var other = E.filter(function(e){ return cur.indexOf(e) < 0; }).map(function(e){ return e.pt; });
+        A.alt = other.length ? pickSpots("ppalt"+b.id+roundNum+A.i, {x:P.x, y:P.y}, 3, {rMin:40, rMax:PP_SHIFT_R, minGap:30, see:other.slice(0, 1).concat([bp0])})[0] || null : null; }
+    }
+    return A.on && A.alt ? A.alt : P;
+  };
   group.forEach(function(b){
-    var C = b._ppTN; if(C && C.round === roundNum && C.site === site && pts[C.i] && !used[C.i]){ used[C.i] = true; setPost(b, pts[C.i], bp0, true, "postplant:time:"+pts[C.i].n); return; }
+    var C = b._ppTN; if(C && C.round === roundNum && C.site === site && pts[C.i] && !used[C.i]){ used[C.i] = true; setPost(b, ppAlt(b, pts[C.i]), bp0, true, "postplant:time:"+pts[C.i].n); return; }
     var best = null, bd = Infinity;
     pts.forEach(function(q, i){ if(used[i]) return; var d = pathLenTo(b, q.x, q.y); if(d < bd){ bd = d; best = i; } });
     if(best == null) best = 0;   // мест меньше, чем игроков, — к ближайшему
