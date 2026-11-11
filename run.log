@@ -1,0 +1,51 @@
+playwright 1.56.0, браузеры: C:\Windows\system32\config\systemprofile\.simcs2_node\ms-playwright
+> git fetch --quiet origin 60f1a83b9cee2f1190d0cf2c02551b6666d52c2f
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_1__5sdrr FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_1__5sdrr\src\build.py --map mirage C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v556_mir.html
+  nadeguess.json устарел (код подбора или данные карты менялись) — не включён; пересчитать: python3 tools/nades/guess_bake.py --map mirage
+> git fetch --quiet origin 60f1a83b9cee2f1190d0cf2c02551b6666d52c2f
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_5qy3o7fv FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_5qy3o7fv\src\build.py --map ancient C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v556_anc.html
+  nadeguess.json устарел (код подбора или данные карты менялись) — не включён; пересчитать: python3 tools/nades/guess_bake.py --map ancient
+> git fetch --quiet origin 02e98c3a341a570f160bb3a0cf3c33cbd6a59bc0
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_4zp3i750 FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_4zp3i750\src\build.py --map mirage C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v559_mir.html
+> git fetch --quiet origin 02e98c3a341a570f160bb3a0cf3c33cbd6a59bc0
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_ipiffz8n FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_ipiffz8n\src\build.py --map ancient C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v559_anc.html
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\engine\walk_run.py --job=v556_mir,C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v556_mir.html --job=v556_anc,C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v556_anc.html --job=v559_mir,C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v559_mir.html --job=v559_anc,C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v559_anc.html --matches=3,7,11,13,17,19,23,29 --par=12
+матчей в очереди: 32, одновременно: 12
+v556_anc match 13  rc 0 7738892 — готово 1/32, 7 мин
+v556_anc match 11  rc 0 7155705 — готово 2/32, 7 мин
+v556_anc match 7  rc 0 7338926 — готово 3/32, 7 мин
+v556_anc match 3  rc 0 7383604 — готово 4/32, 8 мин
+v556_mir match 29  rc 0 6895976 — готово 5/32, 8 мин
+v556_mir match 23  rc 0 7061115 — готово 6/32, 8 мин
+v556_mir match 19  rc 0 7311150 — готово 7/32, 8 мин
+v556_mir match 7  rc 0 7207402 — готово 8/32, 8 мин
+v556_mir match 3  rc 0 7535251 — готово 9/32, 9 мин
+v556_mir match 13  rc 0 8742131 — готово 10/32, 10 мин
+v556_mir match 11  rc 0 9634540 — готово 11/32, 11 мин
+v556_mir match 17  rc 0 10273852 — готово 12/32, 11 мин
+v559_mir match 3  rc 0 6940256 — готово 13/32, 15 мин
+v556_anc match 17  rc 0 8382159 — готово 14/32, 15 мин
+v556_anc match 29  rc 0 8286246 — готово 15/32, 16 мин
+v556_anc match 23  rc 0 8361097 — готово 16/32, 16 мин
+v559_mir match 19  rc 0 5884329 — готово 17/32, 16 мин
+v559_mir match 17  rc 0 6920466 — готово 18/32, 16 мин
+v556_anc match 19  rc 0 10092848 — готово 19/32, 17 мин
+v559_mir match 11  rc 0 8894432 — готово 20/32, 17 мин
+v559_mir match 29  rc 0 6198203 — готово 21/32, 18 мин
+v559_mir match 13  rc 0 9097032 — готово 22/32, 18 мин
+v559_mir match 7  rc 0 11958953 — готово 23/32, 20 мин
+v559_mir match 23  rc 0 9392325 — готово 24/32, 20 мин
+v559_anc match 11  rc 0 6604119 — готово 25/32, 21 мин
+v559_anc match 13  rc 0 6824187 — готово 26/32, 21 мин
+v559_anc match 3  rc 0 8400417 — готово 27/32, 22 мин
+v559_anc match 19  rc 0 9060477 — готово 28/32, 23 мин
+v559_anc match 23  rc 0 8051300 — готово 29/32, 23 мин
+v559_anc match 29  rc 0 7882701 — готово 30/32, 23 мин
+v559_anc match 17  rc 0 10026828 — готово 31/32, 24 мин
+v559_anc match 7  rc 0 11772087 — готово 32/32, 24 мин
+done
+all done
