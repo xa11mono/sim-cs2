@@ -19,10 +19,19 @@ function posWeaponClass(b){
 // дальность оружия — с какого расстояния CT убивают этим классом (75-й процентиль, м; демки Mirage, tools/measure/pro_checks.py: ПП 272 убийства,
 // пистолет 856, винтовка 4124). Место, откуда до врага дальше дальности своего оружия, стоит меньше — во столько раз, во сколько его дальность меньше
 // нужной (относительно винтовки: у винтовок и AWP — 1, как было)
-var WPN_RANGE_M = {smg: 16.1, pistol: 21.1, rifle: 25.6};
+// (v558, В76 ч.3, владелец 11.11: «оружие меняет игру игрока — на какой дистанции он ищет бой») дистанция — по каждому оружию, а не по классу:
+// убийства этим оружием у про (демки Ancient, 92 демки, player_death.distance, м: медиана / 75-й процентиль; оружие с < 40 убийствами — по
+// классу). Было (док 6): три класса по убийствам CT на Mirage (ПП 16,1, пистолет 21,1, винтовка 25,6 м — 75-й процентиль)
+var WPN_KILL_M = {AK:[15.7, 21.4], M4S:[16.5, 22.0], M4:[15.8, 21.3], AWP:[22.3, 28.7], GALIL:[15.5, 21.9], FAMAS:[16.5, 21.7], GLOCK:[12.6, 18.3],
+  USP:[14.1, 21.1], P250:[14.1, 19.0], DEAGLE:[18.4, 24.4], TEC9:[10.5, 14.8], FIVE7:[9.3, 14.3], ELITE:[10.6, 15.7], MP9:[11.0, 15.8], MAC10:[11.9, 16.6], MP7:[12.2, 16.3]};
+var WPN_KILL_CLASS = {awp: WPN_KILL_M.AWP, rifle: WPN_KILL_M.AK, smg: WPN_KILL_M.MP9, pistol: WPN_KILL_M.GLOCK};
+// [медиана, 75 %] в ед. карты для оружия в руках (основное, если есть)
+function wpnKillDist(b){ var k = b.primary || (b.weapon && b.weapon.key) || "", M = WPN_KILL_M[k] || WPN_KILL_CLASS[posWeaponClass(b)], s = 39.37/PX_UNITS;
+  return [M[0]*s, M[1]*s]; }
+// место, откуда до врага дальше дальности (75 %) своего оружия, стоит меньше — во столько раз, во сколько его дальность меньше дальности
+// винтовки (у оружия не короче АК — 1)
 function wpnRangeFit(b, d){
-  var c = posWeaponClass(b); if(c !== "smg" && c !== "pistol") return 1;
-  var k = 39.37/PX_UNITS, R = WPN_RANGE_M[c]*k, Rr = WPN_RANGE_M.rifle*k;
+  var R = wpnKillDist(b)[1], Rr = WPN_KILL_M.AK[1]*39.37/PX_UNITS; if(R >= Rr) return 1;
   return d <= R ? 1 : d >= Rr ? R/Rr : R/d;
 }
 function posTable(side, who, wc){
