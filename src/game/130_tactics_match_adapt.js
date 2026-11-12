@@ -210,6 +210,7 @@ function tacTempoNow(tt){ if(!tt) return "mid"; if(tt.tac && tt.tac.style === "r
 // Было — одни секунды на всё: поздний выход на эко (как у про) читался «проиграли медленно — на паузе: быстро»
 function roundTempo(r){ var k = (PLANT_MED[r.type] || PLANT_MED.full)/PLANT_MED.full;
   return r.execSec != null && r.execSec < 32*k ? "fast" : (r.execSec == null || r.execSec >= 45*k ? "slow" : null); }
+var TACT_DBG = null;
 function chooseTactic(){
   var type = teamEco.T.roundType;
   // (v557, В76, владелец 11.11: «от закупа зависит тактика — эко почти всегда раш; надо, чтобы при любом закупе игралась разная тактика»)
@@ -274,6 +275,10 @@ function chooseTactic(){
     pool.forEach(function(t, i){ var g = t.style === "rush" ? "fast" : "rest", sh = g === "fast" ? TM.fast : 1 - TM.fast; if(gW[g] > 0) weights[i] *= sh/gW[g]; });
   }
   var tac = pool[weightedChoice(pool, weights, roundNum*7919 + matchNum*104729 + 17)];
+  // (v566) для «Разбора команды» (612): варианты тактики с весами, доля раша по закупу, план паузы — игру не меняет
+  TACT_DBG = {round: roundNum, type: type, fast: BAL.proTempo ? (TAC_TEMPO[type] || TAC_TEMPO.full).fast : null, read: readTxt, tempoRead: tempoRead,
+    plan: BAL.timeouts && roundNum <= TOUT.T.until ? TOUT.T.plan : null, pick: tac.id,
+    list: pool.map(function(t, i){ var M = tacMem[t.id]; return {id: t.id, name: t.name, style: t.style, site: t.site, w: weights[i], mem: M ? Math.round(M.w*10)/10+" из "+M.n : ""}; })};
   lastTacticId = tac.id; tacHist.push(tac.id);
   // тайминг выхода гуляет от раунда к раунду (иначе его читают): ~25% —
   // быстрый (на 30% раньше), ~50% — обычный ±4с, ~25% — поздний (+10…18с)

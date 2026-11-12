@@ -56,6 +56,9 @@ if(typeof window !== "undefined") window.addEventListener("keydown", function(e)
 function logEvent(text, isKill){
   text = nickify(text);
   events.unshift({t: simTime.toFixed(1), text: text, kill: !!isKill});
+  // (v566) решения команд за раунд — для «Разбора команды» (612)
+  if(/^(IGL|T:|CT:|CT |T )/.test(text) && typeof TEAMDBG !== "undefined"){ if(TEAMDBG.round !== roundNum){ TEAMDBG.round = roundNum; TEAMDBG.log = []; }
+    TEAMDBG.log.push({s: roundState === "live" ? Math.round(simTime - roundStartTime) : 0, text: text}); if(TEAMDBG.log.length > 40) TEAMDBG.log.shift(); }
   if(events.length > 40) events.length = 40;
   var el = document.getElementById("log");
   el.innerHTML = events.map(function(e){

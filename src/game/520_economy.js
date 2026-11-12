@@ -151,46 +151,48 @@ function decideRoundType(team){
 }
 var FORCE_SHARE = {CT: 0.46, T: 0.39}, FORCE_MIN = 2000;   // доля форса / хафа, когда можно копить; $ на игрока — ниже не форсят (демки, В94)
 function decideRoundType0(team){
+  // (v566) причина решения — для «Разбора команды» (612), игру не меняет
+  var BW = function(r, why){ teamEco[team].buyWhy = why; return r; };
   var mates = bots.filter(function(b){ return b.team === team; });
-  if(roundNum === 1 || roundNum === HALF_ROUNDS+1) return "pistol";
+  if(roundNum === 1 || roundNum === HALF_ROUNDS+1) return BW("pistol", "пистолетка");
   // второй раунд после выигранной пистолетки — классический "бонус": не
   // винтовки на последние деньги, а SMG + броня с запасом на следующий раунд
   teamEco[team].bonus = false;
-  if((roundNum === 2 || roundNum === HALF_ROUNDS+2) && teamEco[team].wonPistol){ teamEco[team].bonus = true; return "half"; }
+  if((roundNum === 2 || roundNum === HALF_ROUNDS+2) && teamEco[team].wonPistol){ teamEco[team].bonus = true; return BW("half", "выиграли пистолетку — бонус: SMG + броня"); }
   var canFull = mates.filter(function(b){ return b.money >= fullNeedU(b); }).length;
   // проиграли пистолетку — иногда форсят второй раунд (ПП + броня), а не эко
   var teamMoney0 = mates.reduce(function(a,b){ return a+b.money; }, 0);
   if((roundNum === 2 || roundNum === HALF_ROUNDS+2) && !teamEco[team].wonPistol && teamMoney0/mates.length >= 1700 &&
-     hashRand(roundNum*97 + matchNum*13 + (team === "CT" ? 1 : 2)) < 0.45) return "force";
+     hashRand(roundNum*97 + matchNum*13 + (team === "CT" ? 1 : 2)) < 0.45) return BW("force", "проиграли пистолетку — форс второго раунда (45 % раз)");
   // с учётом дропа: общая сумма команды покрывает полный закуп всех?
   var teamMoney = mates.reduce(function(a,b){ return a+b.money; }, 0);
   var teamNeed = mates.reduce(function(a,b){ return a+fullNeedU(b); }, 0);
-  if(canFull >= 4 || (canFull >= 3 && teamMoney >= teamNeed)) return "full";
+  if(canFull >= 4 || (canFull >= 3 && teamMoney >= teamNeed)) return BW("full", "хватает на полный закуп ("+canFull+" из 5)");
   // сэкономим — хватит ли на полный закуп с гранатами в следующем раунде (даже при поражении)?
   var nextInc = nextLossIncome(team);
   var canFullNext = mates.filter(function(b){ return b.money + nextInc >= fullNeedU(b); }).length;
   var lastOfHalf = lastOfHalfNow();
   var enemy = team === "CT" ? "T" : "CT";
   var matchPoint = score[enemy] === matchWinTarget()-1;
-  if(lastOfHalf || matchPoint) return "force";          // копить уже незачем
+  if(lastOfHalf || matchPoint) return BW("force", lastOfHalf ? "последний раунд половины — копить незачем" : "матч-пойнт соперника — копить незачем");          // копить уже незачем
   // (v251) на винтовки и броню хватает четверым, не хватает только на гранаты —
   // про заходят в фулл, гранаты на остаток (CT после проигранного фулла снова
   // в фулле 55 %, в эко 21 %, tools/ct_cmp.py). Раньше эта проверка стояла после
   // «копим на следующий раунд» и не срабатывала никогда: кому хватает сейчас,
   // тому хватит и после эко.
   var canBare = mates.filter(function(b){ return b.money >= fullNeed(b); }).length;
-  if(canBare >= 4) return "full";
+  if(canBare >= 4) return BW("full", "на винтовки и броню хватает — гранаты на остаток");
   // (v560, В94: «слишком часто эко, когда мог быть форс или хаф-бай») про с $2000–3500 на игрока, когда после эко хватило бы на фулл, всё равно
   // форсят / берут хаф: CT 46 %, T 39 % таких раундов (форс против эко, без фулла; демки Ancient, оценка денег tools/eco_est.py, n 324 / 199),
   // против фулла соперника — так же (CT 33 % форс / 36 % эко, T 38 / 50). Было: всегда «копим» → эко CT 18–23 % (про 13 %)
   if(canFullNext >= 4){
     var avgM = teamMoney / mates.length;
-    if(avgM >= FORCE_MIN && hashRand(roundNum*131 + matchNum*17 + (team === "CT" ? 3 : 4)) < FORCE_SHARE[team]) return canFull >= 2 ? "half" : "force";
-    return "eco";
+    if(avgM >= FORCE_MIN && hashRand(roundNum*131 + matchNum*17 + (team === "CT" ? 3 : 4)) < FORCE_SHARE[team]) return BW(canFull >= 2 ? "half" : "force", "могли копить, но у про так форсят "+Math.round(FORCE_SHARE[team]*100)+" % раз (деньги $"+Math.round(avgM)+")");
+    return BW("eco", "копим: после эко хватит на полный закуп");
   }
   // даже после эко на полный не хватит — копить бессмысленно, покупаем что можем
   var avg = teamMoney / mates.length;
-  return avg >= 2000 ? "force" : "eco";
+  return avg >= 2000 ? BW("force", "даже после эко на полный не хватит — берём что можем") : BW("eco", "денег мало ($"+Math.round(avg)+" в среднем)");
 }
 
 // (v321, М14) что видно в закупку: дропы своим, старое оружие на земле, боты смотрят по сторонам

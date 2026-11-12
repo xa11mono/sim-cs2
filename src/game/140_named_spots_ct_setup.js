@@ -94,6 +94,7 @@ function ctShareW(S){
   if(!B) return S.w || 1;
   return Math.max(CT_SHARE_MIN, B[S.id] || 0);
 }
+var CTSET_DBG = null;
 function chooseCtSetup(){
   var last = roundHist.slice(-4), heat = {A:0, B:0}, lost = {A:0, B:0};
   last.forEach(function(r){ heat[r.site]++; if(r.planted && r.winner === "T") lost[r.site]++; });
@@ -126,6 +127,8 @@ function chooseCtSetup(){
     return w;
   });
   var S = BAL.ctSetups ? CT_SETUPS[weightedChoice(CT_SETUPS, weights, roundNum*4217 + matchNum*881 + 5)] : (BAL.ctSetup === "1-1-1" ? CT_SETUPS[1] : CT_SETUPS[0]);
+  // (v566) для «Разбора команды» (612): из чего выбирали и почему — игру не меняет
+  CTSET_DBG = {round: roundNum, buy: teamEco.CT && teamEco.CT.roundType, pick: S.id, list: CT_SETUPS.map(function(X, i){ return {id: X.id, name: X.name, w: weights[i], base: ctShareW(X), why: why[X.id] || ""}; })};
   ctSetupHist.push(S.id);
   teamTac.CT = {call:null, saving:false, stack:S.stack||null, setup:S, setupWhy: why[S.id]||null};
   ctSeatRoles(S);   // (v334, М61) кто какую роль расстановки играет — по своим позициям из демок

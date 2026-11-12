@@ -51,6 +51,7 @@ function draw(){
   }
   drawLineups();
   lookDbgDraw();
+  if(typeof teamDbgPanel === "function") teamDbgPanel(false);   // (v566) разбор команды (612)
   if(showZones.checked) drawZoneShapeHandles();
   if(USER_ZONES.length || zoneDrawing){
     // user-drawn spawn/site zones (see zone editor above) — always shown
