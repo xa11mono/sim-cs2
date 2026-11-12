@@ -1,0 +1,53 @@
+playwright 1.56.0, браузеры: C:\Windows\system32\config\systemprofile\.simcs2_node\ms-playwright
+> git fetch --quiet origin b530660738d1d5df8254834d160146a42919abda
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_plo365b1 FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_plo365b1\src\build.py --map mirage C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v570b8_mir.html
+  nadeguess.json устарел (код подбора или данные карты менялись) — не включён; пересчитать: python3 tools/nades/guess_bake.py --map mirage
+> git fetch --quiet origin 4643ad3280ae78daca13028300849525e68c1bb9
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_k1fwpmig FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_k1fwpmig\src\build.py --map mirage C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v570b8nl_mir.html
+  nadeguess.json устарел (код подбора или данные карты менялись) — не включён; пересчитать: python3 tools/nades/guess_bake.py --map mirage
+> git fetch --quiet origin b530660738d1d5df8254834d160146a42919abda
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_4_pugv_r FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_4_pugv_r\src\build.py --map ancient C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v570b8_anc.html
+  nadeguess.json устарел (код подбора или данные карты менялись) — не включён; пересчитать: python3 tools/nades/guess_bake.py --map ancient
+> git fetch --quiet origin 4643ad3280ae78daca13028300849525e68c1bb9
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_79j8utb3 FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_79j8utb3\src\build.py --map ancient C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v570b8nl_anc.html
+  nadeguess.json устарел (код подбора или данные карты менялись) — не включён; пересчитать: python3 tools/nades/guess_bake.py --map ancient
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\engine\walk_run.py --job=v570b8_mir,C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v570b8_mir.html --job=v570b8nl_mir,C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v570b8nl_mir.html --job=v570b8_anc,C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v570b8_anc.html --job=v570b8nl_anc,C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v570b8nl_anc.html --matches=3,7,11,13,17,19,23,29 --par=12
+матчей в очереди: 32, одновременно: 12
+v570b8_mir match 3  rc 0 6538068 — готово 1/32, 7 мин
+v570b8_mir match 11  rc 0 6501760 — готово 2/32, 8 мин
+v570b8nl_mir match 7  rc 0 7112488 — готово 3/32, 8 мин
+v570b8nl_mir match 3  rc 0 8606892 — готово 4/32, 9 мин
+v570b8_mir match 19  rc 0 7543950 — готово 5/32, 9 мин
+v570b8nl_mir match 11  rc 0 8190387 — готово 6/32, 9 мин
+v570b8_mir match 7  rc 0 8640428 — готово 7/32, 10 мин
+v570b8_mir match 17  rc 0 8595541 — готово 8/32, 10 мин
+v570b8_mir match 13  rc 0 9061441 — готово 9/32, 10 мин
+v570b8nl_mir match 13  rc 0 8028806 — готово 10/32, 11 мин
+v570b8_mir match 23  rc 0 12327121 — готово 11/32, 14 мин
+v570b8_mir match 29  rc 0 11921447 — готово 12/32, 14 мин
+v570b8nl_mir match 19  rc 0 7453807 — готово 13/32, 16 мин
+v570b8nl_mir match 23  rc 0 7650833 — готово 14/32, 16 мин
+v570b8nl_mir match 17  rc 0 8236425 — готово 15/32, 16 мин
+v570b8_anc match 13  rc 0 5984305 — готово 16/32, 17 мин
+v570b8_anc match 7  rc 0 7628822 — готово 17/32, 19 мин
+v570b8_anc match 19  rc 0 7366206 — готово 18/32, 19 мин
+v570b8_anc match 17  rc 0 7632747 — готово 19/32, 19 мин
+v570b8_anc match 11  rc 0 8514338 — готово 20/32, 20 мин
+v570b8nl_mir match 29  rc 0 11830162 — готово 21/32, 22 мин
+v570b8_anc match 3  rc 0 11307388 — готово 22/32, 23 мин
+v570b8_anc match 23  rc 0 7703000 — готово 23/32, 23 мин
+v570b8nl_anc match 11  rc 0 6223456 — готово 24/32, 24 мин
+v570b8_anc match 29  rc 0 8300264 — готово 25/32, 24 мин
+v570b8nl_anc match 3  rc 0 8262533 — готово 26/32, 25 мин
+v570b8nl_anc match 13  rc 0 8237924 — готово 27/32, 26 мин
+v570b8nl_anc match 7  rc 0 9290087 — готово 28/32, 26 мин
+v570b8nl_anc match 17  rc 0 8193040 — готово 29/32, 26 мин
+v570b8nl_anc match 23  rc 0 8413331 — готово 30/32, 27 мин
+v570b8nl_anc match 19  rc 0 10148274 — готово 31/32, 27 мин
+v570b8nl_anc match 29  rc 0 11548363 — готово 32/32, 29 мин
+done
+all done
