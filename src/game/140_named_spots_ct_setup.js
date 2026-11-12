@@ -142,6 +142,11 @@ function chooseCtSetup(){
 // перебор 120 рассадок, берётся с наибольшей суммой (с v409 — доля времени игрока на позициях роли); своя постоянная роль (playerRoles, роли по демкам карты) — бонус
 // SEAT_KEEP (проектное число), чтобы опорники не скакали между раундами без причины.
 var SEAT_KEEP = 0.15;
+// (v567, владелец 12.11: «у меня karrigan всегда опорник B, а в матче 3 он роумер — роли должны быть закреплены, мы это уже 50 раз») своя роль
+// игрока из набора карты (tactics.playerRoles — по демкам этой карты) — закреплена: перевешивает любые доли мест; по местам в демках
+// распределяются только игроки без своей роли. Было: своя роль весила 0,15 — по долям мест TeSeS забирал опорника B, karrigan уходил в роумеры
+// (в матче 1 этого не видно: при загрузке страницы сохранялась готовая рассадка матча 1)
+var SEAT_FIXED = 100, PR_FIX = MAP.tactics.playerRoles || {};
 // (v555, владелец 11.11, м300: «m0NESY и TeSeS меняются местами каждый раунд — роль игрока (мидер — всегда мидер) не меняется, изредка, как
 // решение тренера; расстановки не трогать») рассадка — один раз на половину (сторона CT этой команды): по сумме долей времени игрока на
 // местах роли во ВСЕХ расстановках (а не в выпавшей в этом раунде), дальше роль игрока держится; расстановка меняет только места внутри роли.
@@ -164,7 +169,8 @@ function ctSeatRoles(S){
       names.forEach(function(nm){ var ids = zonesByName(nm);
         KNOW_POSITIONS.points.forEach(function(q){ if(q.side !== "CT" || seen[q.id]) return; if(q.zid === undefined) q.zid = zoneIdAt(q.x, q.y) || null;
           if(q.zid && ids.indexOf(q.zid) >= 0){ seen[q.id] = 1; sum += share(nick(b.id), q); } }); }); });
-    return sum + (b.tRole === r ? SEAT_KEEP : 0); }); });
+    var fixR = PR_FIX[nick(b.id)] && PR_FIX[nick(b.id)].CT;
+    return sum + (fixR === r ? SEAT_FIXED : 0) + (b.tRole === r ? SEAT_KEEP : 0); }); });
   var bestSum = -1, bestP = null;
   (function perm(arr, k){ if(k === arr.length){ var sm = 0; for(var i=0;i<arr.length;i++) sm += A[i][arr[i]]; if(sm > bestSum){ bestSum = sm; bestP = arr.slice(); } return; }
     for(var i=k;i<arr.length;i++){ var t = arr[k]; arr[k] = arr[i]; arr[i] = t; perm(arr, k+1); t = arr[k]; arr[k] = arr[i]; arr[i] = t; } })([0,1,2,3,4], 0);
