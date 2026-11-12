@@ -11,7 +11,8 @@ run_no = os.environ.get('GITHUB_RUN_NUMBER', 'local'); repo = os.environ.get('GI
 PART = next((a.split('=', 1)[1] for a in sys.argv[1:] if a.startswith('--part=')), None)
 tok = os.environ['GITHUB_TOKEN']
 # (12.11, владелец: «место на диске C кончается») раньше временная папка выкладки (pcres_*: сжатые записи + свой git) оставалась после
-# каждого прогона — >200 штук. Теперь: свою — удалить после выкладки (finally ниже); забытые прошлые pcres_* / simbuild_* старше суток — удалить
+# каждого прогона — >200 штук. Теперь: свою — удалить после выкладки (finally ниже); прошлые pcres_* / simbuild_* и профили браузера
+# playwright — удалить все: прогоны на ПК идут строго по одному (concurrency measure), к выкладке матчи кончились и браузеры закрыты
 import time, stat
 def rmdir(p):   # на Windows файлы .git только для чтения — снять признак и удалить
     def fix(f, pth, e):
@@ -22,7 +23,7 @@ TMPROOT = tempfile.gettempdir()
 for d in os.listdir(TMPROOT):
     pth = os.path.join(TMPROOT, d)
     try:
-        if (d.startswith('pcres_') or d.startswith('simbuild_')) and os.path.isdir(pth) and time.time() - os.path.getmtime(pth) > 86400:
+        if d.startswith(('pcres_', 'simbuild_', 'playwright_chromiumdev_profile-', 'playwright-artifacts-')) and os.path.isdir(pth):
             rmdir(pth)
     except Exception: pass
 tmp = tempfile.mkdtemp(prefix='pcres_')
