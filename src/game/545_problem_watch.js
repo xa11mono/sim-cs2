@@ -31,7 +31,10 @@ function probStallWhy(b){
   if(heightBlocked(b.baseX, b.baseY, x2, y2, b)) return "уступ";
   if(offNavStep(b.baseX, b.baseY, x2, y2, b)) return "край пола";
   if(!inFire(b.baseX, b.baseY, b.z) && inFire(x2, y2, b.z)) return "огонь";
-  return "шаг проходит, а стоит";
+  // (v570, диагностика прогона 215: «застрял (anchor / mid)» без причины в записи) — чем остановлен (535 _stopWhy), скорость, сколько раз за 5 с
+  // пост ставился заново (setPost — _postSets); только текст наблюдения
+  var nP = (b._postSets || []).filter(function(t){ return tick - t <= 5*TICK_HZ; }).length;
+  return "шаг проходит, а стоит (стоп: " + (b._stopWhy || "—") + "; скорость " + Math.round(b.curSpeed || 0) + "; пост заново " + nP + " раз за 5 с)";
 }
 function probTick(){
   if(PROB.match !== matchNum){ probReset(); PROB.match = matchNum; }   // новый матч — счёт заново

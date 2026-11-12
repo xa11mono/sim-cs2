@@ -416,6 +416,7 @@ function setPost(b, pt, look, hold, tag, spreadIdx){
   }
   // (v570) пересчёт того же поста (свой встал рядом) дал то же место — пост и путь не трогаем (иначе путь сбрасывался бы каждый тик)
   if(b.post && b.post.id === id && Math.hypot(b.post.x-x, b.post.y-y) < 2){ b.post.look = look || null; return true; }
+  (b._postSets || (b._postSets = [])).push(tick); if(b._postSets.length > 12) b._postSets.shift();   // (v570) диагностика для 545 (игра не читает)
   b.post = {id:id, x:x, y:y, z:(pt.z != null ? pt.z : navOnlyZ(x, y)), look:look||null, hold:hold, tag:tag};   // (v546) z — высота точки, если задана, или пол точки, если он там один (ящик); иначе null
   if(psn) b.post.pro = psn.sp;
   b.atPost = false;
