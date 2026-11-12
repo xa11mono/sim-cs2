@@ -2,7 +2,7 @@
 var roundNum = 1, score = {CT:0, T:0};
 var roundState = "live";
 var roundEndTime = -1;
-var ROUND_RESTART_DELAY_SEC = 3.5;
+var ROUND_RESTART_DELAY_SEC = 5;   // (v564, В89) с до следующего раунда — владелец: «бегают ещё ~5 с» (было 3,5; в CS2 — 7)
 
 var ROUND_TIME_SEC = 115;   // 1:55, как в CS2 (бомбы пока нет — по времени выигрывают CT)
 var roundStartTime = 0;

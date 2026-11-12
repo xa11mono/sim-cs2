@@ -97,7 +97,7 @@ function dropWeaponOnDeath(b){
 // пройти по предмету — подобрать, если нужен (как в CS: пистолет — только лучше своего, гранаты — в пределах
 // лимита 4, флешек 2, кит — CT без кита)
 function itemPickupTick(){
-  if(!groundItems.length || roundState !== "live") return;
+  if(!groundItems.length || (roundState !== "live" && roundState !== "ending")) return;   // (v564, В89) и после конца раунда, до рестарта
   bots.forEach(function(b){
     if(!b.alive) return;
     for(var i = groundItems.length-1; i >= 0; i--){
@@ -224,7 +224,7 @@ function pickDetour(b, G){
   return true;
 }
 function weaponPickupTick(){
-  if(!BAL.weaponDrop || roundState !== "live") return;
+  if(!BAL.weaponDrop || (roundState !== "live" && roundState !== "ending")) return;   // (v564, В89) и после конца раунда, до рестарта
   if(!groundWeapons.length){ bots.forEach(function(b){ if(b.alive && b.post && b.post.tag === "pickup"){ clearPost(b); } b._pickGo = null; }); return; }
   bots.forEach(function(b){
     if(!b.alive || b.planting || b.defusing) return;

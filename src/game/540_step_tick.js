@@ -133,9 +133,12 @@ function jumpCheckTick(b){
 function stepTick(){
   tick++;
   simTime = tick * TICK_MS / 1000;
+  // (v564, В89, владелец 11.11: «после конца раунда игроки бегают ещё ~5 с, плашку MVP не убирать») после конца раунда идёт только движение:
+  // боты доходят по своим путям; мозги, гранаты, стрельба и проверка конца раунда стоят (убийств и второго конца раунда нет)
+  var postRun = false;
   if(roundState === "ending"){
-    if(simTime - roundEndTime >= ROUND_RESTART_DELAY_SEC) resetRound();
-    return;
+    if(simTime - roundEndTime >= ROUND_RESTART_DELAY_SEC){ resetRound(); return; }
+    postRun = true;
   }
   if(roundState === "matchover"){
     if(simTime - roundEndTime >= 7) newMatch();
@@ -147,12 +150,15 @@ function stepTick(){
     return;
   }
   if(SANDBOX.on) sbTick();   // (v536) песочница: часы раунда и бомбы стоят (677)
+  if(postRun){ weaponPickupTick(); itemPickupTick(); }   // (v564, В89) после раунда — подбирают оружие и предметы (как в CS2 до рестарта)
+  if(!postRun){
   teamBrains(); // шаг 4: тактика T / расстановка и ротации CT / бомба
   if(roundState !== "live") return;
   nadeBrains(); updateNadeTasks(); nadesTick(); // шаг 5: гранаты
   if(roundState === "live" && tick % 16 === 0) tClearCalls();
   bombBeepTick();   // (v323, М40; v437 — и кромка экрана) пиканье бомбы   // (v321, М24) «B чисто» — T увидел пустую зону у сайта
   if(roundState !== "live") return;
+  }
   var dtSec = TICK_MS/1000, maxDelta = ACCEL*dtSec;
   // movement tuning (plan-driven "natural, not robotic" pass):
   // ARRIVE_RADIUS = corner-rounding radius — a waypoint counts as "passed"
@@ -576,6 +582,7 @@ function stepTick(){
     bot.x = bot.baseX + offX;
     bot.y = bot.baseY + offY;
   });
+  if(postRun) return;   // (v564, В89) после конца раунда — только шаги
   resolveEngagements(); ecoKnowSeeTick();   // (Г1) с каким оружием видели врагов — для подсчёта их денег
   smokeSpamTick();
   infoFallbackTick();
