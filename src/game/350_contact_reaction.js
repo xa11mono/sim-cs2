@@ -208,6 +208,9 @@ function contactTick(b){
   // (v555, м298 р1: раш стоял в Tetris — точки «выйти на врага» с видом на Cross ближе 220 ед. нет, выход превращался в «держать угол») в выходе
   // T заход — дальше, в зону врага (до CONTACT_PUSH ед.): занять её, а не стоять на краю
   if(swing && !cand.length && tExec) cand = contactSpots(true, CONTACT_PUSH).filter(function(q){ return pathLenTo(b, q.x, q.y) <= CONTACT_PUSH; });
+  // (v570, отметка м1 р3: свой на верхнем ярусе в бою с врагом внизу — центры участков навмеша рядом все за уступом) выход — и на край своего
+  // яруса, откуда враг виден (то же место, что у помощи своему — assistEdgeSpot, 480)
+  if(swing && !cand.length){ var eg = assistEdgeSpot(b, {x:C.x, y:C.y, z:C.z, crouching:false}); if(eg) cand = [eg]; }
   if(swing && !cand.length){ swing = false; cand = contactSpots(false); }
   if(hasLOS(b.x, b.y, look.x, look.y, b.z, C.z) && !swing) cand.unshift({x:b.x, y:b.y});
   // (v558, В76 ч.3) выход — на дистанцию своего оружия (медиана убийств им у про, wpnKillDist 280): с Five-SeveN / ПП — ближе, с Deagle /

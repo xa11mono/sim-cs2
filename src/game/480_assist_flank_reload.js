@@ -104,6 +104,9 @@ function assistPeek(b){
     mate = m; E = e;
   });
   if(!mate) return flankAssist(b);
+  // (v570, прогон 214: «помощь ↔ контакт» — tug repos:assist → contact → repos:assist, Ancient 1 → 9, Mirage 1 → 11) идёт реакция на контакт
+  // по этому врагу — решает она (350: свой рядом в бою с этой группой — выходит, contactMateFight); помощь не ставит свою точку поверх
+  var KC = b._contact; if(KC && tick < KC.until && Math.hypot(KC.x-E.x, KC.y-E.y) < 200) return false;
   b._assistNext = tick + 24;
   // линия есть, но смотрит в другую сторону — разворот на врага по коллу тиммейта
   // (v570, отметка владельца м1 р3 28,7 с: «другие не давят, хотя слышат пистолет и чего-то ждут») — было: линия на врага по плоской карте
