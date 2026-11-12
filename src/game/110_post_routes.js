@@ -339,10 +339,6 @@ function postViewPoint(pt, look){
   return (POST_VIEW.m[key] = best);
 }
 var OWN_LINE_GAP = 150, OWN_LINE_RINGS = [90, 130, 170, 210, 260, 310];   // (v570) проектные числа: «своя линия» ≈ 150 px (375 ед.), искать — до ~310 (рядом с сайтом)
-function spotTakenPost(b, q){ return bots.some(function(o){ return o !== b && o.alive && o.team === b.team && o.post && Math.hypot(o.post.x-q.x, o.post.y-q.y) < SPOT_PERSONAL; }); }
-function lineTaken(b, q){ return bots.some(function(o){ if(o === b || !o.alive || o.team !== b.team) return false;
-  var oh = o.post && o.post.hold && taskProp(String(o.post.tag), "ownLine");
-  return (oh && Math.hypot(o.post.x-q.x, o.post.y-q.y) < OWN_LINE_GAP) || (oh && o.atPost && Math.hypot(o.x-q.x, o.y-q.y) < OWN_LINE_GAP); }); }
 var SPREAD_RINGS = [80, 110, 145, 180];   // (v570) проектные числа: шаг ≈ «личное место» 70 + 10; дальше 180 — уже другое место, а не «рядом»
 var SPREAD_DIRS = [Math.PI/2, -Math.PI/2, Math.PI*0.75, -Math.PI*0.75, Math.PI/4, -Math.PI/4, Math.PI, 0];
 function setPost(b, pt, look, hold, tag, spreadIdx){
@@ -395,18 +391,18 @@ function setPost(b, pt, look, hold, tag, spreadIdx){
   // бот ближе 70, а сдвиг на 80 не давал дойти — маршрут вставал. Точки маршрута не сдвигаются
   // (v570) держит угол (ownLine) — сначала место не ближе OWN_LINE_GAP к своим, кто держит (кроссфайер, а не плечом к плечу), кольцами
   // дальше — до OWN_LINE_RINGS (за краем сайта — тоже: место рядом, откуда виден тот же угол); нет такого — как было (личное место 70)
-  if(ownL && lineTaken(b, {x:x, y:y})){
+  if(ownL && spotTaken(b, {x:x, y:y}, "line")){
     var la1 = look ? Math.atan2(look.y-y, look.x-x) : 0, xa = x, ya = y, losA = look && hasLOS(xa, ya, look.x, look.y), got = false;
     OWN_LINE_RINGS.some(function(r){ return SPREAD_DIRS.some(function(da){
       var nx = xa + Math.cos(la1+da)*r, ny = ya + Math.sin(la1+da)*r;
-      if(insideSolidWall(nx, ny) || segCrossesManualWalls(xa, ya, nx, ny) || !navAt(nx, ny) || lineTaken(b, {x:nx, y:ny}) || spotTakenPost(b, {x:nx, y:ny})) return false;
+      if(insideSolidWall(nx, ny) || segCrossesManualWalls(xa, ya, nx, ny) || !navAt(nx, ny) || spotTaken(b, {x:nx, y:ny}, "line") || spotTaken(b, {x:nx, y:ny}, "post")) return false;
       if(!hasLOS(xa, ya, nx, ny)) return false;
       if(losA && !hasLOS(nx, ny, look.x, look.y)) return false;
       x = nx; y = ny; got = true; return true; }); });
   }
   // (v570) держит угол — точку не сдвигает свой, который сейчас проходит мимо (было: точку пост-планта, выбранную в 161 ед. от соседа, сдвигало
-  // на 80 к нему — соседи сходились до 81 ед.): только места своих, кто держит (lineTaken); их нет рядом / уже сдвинута — личное место
-  if((spreadIdx || (ownL ? !got && lineTaken(b, {x:x, y:y}) && spotTakenPost(b, {x:x, y:y}) : spotTaken(b, {x:x, y:y}))) && !POST_EXACT.test(String(tag))){
+  // на 80 к нему — соседи сходились до 81 ед.): только места своих, кто держит (spotTaken «line»); их нет рядом / уже сдвинута — личное место
+  if((spreadIdx || (ownL ? !got && spotTaken(b, {x:x, y:y}, "line") && spotTaken(b, {x:x, y:y}, "post") : spotTaken(b, {x:x, y:y}))) && !POST_EXACT.test(String(tag))){
     // (v570, отметки владельца м1 р3 15,7 с и р4 57,3 с: «все по 1-3-1 стоят в одной точке», «слишком кучно стоят снова») — было: только
     // 4 точки на 80 ед.; в тесном месте все 4 заняты / за стеной — бот вставал прямо в точку своего (двое CT в (1014, 1577)). Теперь — кольца
     // дальше (до SPREAD_MAX), сначала поперёк взгляда; та же проверка: пол, без стены, не занято, виден прежний пост, обзор не отнимается

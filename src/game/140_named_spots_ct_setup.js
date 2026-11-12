@@ -227,7 +227,7 @@ function ctSetupRole(b, role, ct){
   // кто-то на Connector») места ролей в данных расстановки совпадают (1-3-1 Mirage: у ротатора и роумера — Window / Connector / Under
   // Window), и трое вставали в одну точку. Место роли — на своей линии: не ближе OWN_LINE_GAP к месту другого CT. Нет такого среди мест
   // роли — места, где у про стоят CT в этом районе (MAP.zoneprops: доля CT в демках, тот же край карты), ближние по пути
-  var crossOk = function(q){ return !lineTaken(b, q); };   // одна мерка «своей линии» — lineTaken / OWN_LINE_GAP (110)
+  var crossOk = function(q){ return !spotTaken(b, q, "line"); };   // одна мерка «своей линии» — spotTaken (350), OWN_LINE_GAP (110)
   ctProZones(ref).forEach(function(n){ if(tryN.indexOf(n) < 0) tryN.push(n); });
   var crossAlt = null;
   for(var ti = 0; ti < tryN.length; ti++){
@@ -241,11 +241,11 @@ function ctSetupRole(b, role, ct){
     // (v570, отметка владельца м1 р3 15,7 с: «все игроки по тактике 1-3-1 стоят в одной точке») — места ролей одной расстановки бывают
     // в одной зоне (мидер, ротатор, роумер — 25–57 ед. друг от друга), а сдвиг в setPost в тесном проходе не находил места. Точка, где уже
     // стоит / куда идёт свой (spotTaken), — не вариант; все заняты — следующее место роли; нигде нет — как было
-    var free1 = see1.filter(function(q){ return !spotTakenPost(b, q) && crossOk(q); });   // места своих, а не идущие мимо (иначе выбор менялся каждый тик)
+    var free1 = see1.filter(function(q){ return !spotTaken(b, q, "post") && crossOk(q); });   // места своих, а не идущие мимо (иначе выбор менялся каждый тик)
     if(ti === 0){ nm = tryN[0]; c = c1; lk = lk1; spots = sp1.slice(0, 3); }
     if(see1.length && !spots._see){ nm = tryN[ti]; c = c1; lk = lk1; spots = see1.slice(0, 3); spots._see = 1; }
     if(free1.length){ nm = tryN[ti]; c = c1; lk = lk1; spots = free1.slice(0, 3); spots._free = 1; break; }
-    var cross1 = sp1.filter(function(q){ return !spotTakenPost(b, q) && crossOk(q); });
+    var cross1 = sp1.filter(function(q){ return !spotTaken(b, q, "post") && crossOk(q); });
     if(cross1.length && !crossAlt) crossAlt = {nm: tryN[ti], c: c1, lk: lk1, spots: cross1.slice(0, 3)};
   }
   // ниоткуда не видно точку взгляда роли (у роумера 1-3-1 Mirage точка из демок не видна ни из одного места мида) — своя линия важнее:
@@ -255,10 +255,6 @@ function ctSetupRole(b, role, ct){
   Object.keys(RZ.z).forEach(function(n){ if(RZ.z[n] === b.id && n !== nm) delete RZ.z[n]; }); RZ.z[nm] = b.id;
   var tag = (role === "anchorA" || role === "anchorB") ? "anchor" : role === "mid" ? "mid" : "set:"+role;
   var spC = spots[weightedPick(spots.length, roundNum*53 + b.id.charCodeAt(2||1))];
-  // (v570, прогон 212: Ancient «застрял (set): шаг проходит, а стоит» — точка роли пересчитывается каждый тик и менялась, путь сбрасывался)
-  // выбранная точка держится за ботом в этом раунде и роли, пока её не занял свой (lineTaken)
-  var SPK = b._ctSpot; if(SPK && SPK.r === roundNum && SPK.role === role && SPK.nm === nm && !lineTaken(b, SPK.pt)) spC = SPK.pt;
-  else if(spC) b._ctSpot = {r: roundNum, role: role, nm: nm, pt: spC};
   // встал в той самой зоне, куда велено смотреть (роумер в Cave с взглядом
   // "на Cave") — смотрим дальше НАРУЖУ по пути к T, а не себе под ноги/на сайт
   if(spC && lk && Math.hypot(spC.x-lk.x, spC.y-lk.y) < 150){ var ow = outwardLook(spC, lk); if(ow) lk = ow; }
