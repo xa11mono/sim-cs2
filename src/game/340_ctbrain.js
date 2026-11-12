@@ -573,7 +573,10 @@ function ctBrain(){
       }
       // (v280, владелец 14.10: игрок 7 в Dark шёл петлёй ради 54 px) место сменилось на соседнее (< 100 px — проектное число) —
       // остаётся, где стоит: это то же место
-      if(b.post && b.post.tag === "anchor" && holdPt && Math.hypot(holdPt.x-b.post.x, holdPt.y-b.post.y) < 100) holdPt = {x:b.post.x, y:b.post.y};
+      // (v570, прогон 217: Ancient «застрял (anchor): пост заново 12 раз за 5 с») «то же место» — точка, которую дала задача (post.src), а не
+      // сдвинутая setPost'ом (было: сдвинутая шла назад в setPost, сдвигалась снова — два места по очереди каждый тик)
+      var hp0 = b.post && (b.post.src || b.post);
+      if(b.post && b.post.tag === "anchor" && holdPt && Math.hypot(holdPt.x-hp0.x, holdPt.y-hp0.y) < 100) holdPt = {x:hp0.x, y:hp0.y};
       setPost(b, holdPt, lookFrom(holdPt, ents, GEO[kA].tEntry, b), true, "anchor");
     }
     else if(role === "mid"){

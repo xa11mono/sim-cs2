@@ -86,11 +86,11 @@ var SPOT_PERSONAL = 70, FOLLOW_GAP = 70;   // проектные числа: «�
 // (v570) «место занято своим» — одна функция на три мерки (было три: spotTaken здесь, spotTakenPost и lineTaken в 110):
 //   how не задан — «личное место» SPOT_PERSONAL: свой стоит / идёт туда (позиция или пост) — как было;
 //   "post" — то же расстояние, но только места своих (пост), без тех, кто проходит мимо;
-//   "line" — «своя линия» OWN_LINE_GAP (110): пост или место (на посту) своего, который тоже держит угол (свойство задачи ownLine)
+//   "line" — «своя линия» OWN_LINE_GAP (110): пост своего, который тоже держит угол (свойство задачи ownLine)
 function spotTaken(b, q, how){ return bots.some(function(o){
   if(o === b || !o.alive || o.team !== b.team) return false;
   if(how === "line"){ var oh = o.post && o.post.hold && taskProp(String(o.post.tag), "ownLine");
-    return !!oh && (Math.hypot(o.post.x-q.x, o.post.y-q.y) < OWN_LINE_GAP || (o.atPost && Math.hypot(o.x-q.x, o.y-q.y) < OWN_LINE_GAP)); }
+    return !!oh && Math.hypot(o.post.x-q.x, o.post.y-q.y) < OWN_LINE_GAP; }   // (прогон 217) только места: позиция на посту мигала — пост ставился заново 12 раз за 5 с
   if(how === "post") return !!o.post && Math.hypot(o.post.x-q.x, o.post.y-q.y) < SPOT_PERSONAL;
   return Math.hypot(o.x-q.x, o.y-q.y) < SPOT_PERSONAL || (o.post && Math.hypot(o.post.x-q.x, o.post.y-q.y) < SPOT_PERSONAL); }); }
 // (v418) свой рядом (≤ 600 — как «своих рядом» в счёте) сейчас в бою, и тот, с кем он стреляется, по знанию команды (≤ 1 с) — у этого

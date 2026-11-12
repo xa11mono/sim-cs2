@@ -255,6 +255,10 @@ function ctSetupRole(b, role, ct){
   Object.keys(RZ.z).forEach(function(n){ if(RZ.z[n] === b.id && n !== nm) delete RZ.z[n]; }); RZ.z[nm] = b.id;
   var tag = (role === "anchorA" || role === "anchorB") ? "anchor" : role === "mid" ? "mid" : "set:"+role;
   var spC = spots[weightedPick(spots.length, roundNum*53 + b.id.charCodeAt(2||1))];
+  // (v570, прогон 217: Ancient «застрял (anchor): пост заново 12 раз за 5 с») место роли меняется по причине, а не при каждом пересчёте: текущее
+  // место этой роли в этом районе ещё свободно (места своих — не ближе «личного места» и «своей линии») — остаётся (как пересмотр в holdGroup, 280)
+  var cur = b.post && b.post.tag === tag && b.post.src && zoneUserName(zoneIdAt(b.post.src.x, b.post.src.y)) === nm ? b.post.src : null;
+  if(cur && !spotTaken(b, cur, "post") && !spotTaken(b, cur, "line")) spC = cur;   // своё место — точка, которую роль дала (src), не сдвинутая
   // встал в той самой зоне, куда велено смотреть (роумер в Cave с взглядом
   // "на Cave") — смотрим дальше НАРУЖУ по пути к T, а не себе под ноги/на сайт
   if(spC && lk && Math.hypot(spC.x-lk.x, spC.y-lk.y) < 150){ var ow = outwardLook(spC, lk); if(ow) lk = ow; }
