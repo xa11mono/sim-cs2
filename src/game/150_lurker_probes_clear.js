@@ -359,12 +359,16 @@ function zoneSeenAll(who, zid){
   if(!wb || !wb.alive || !smp.length || tick < (wb.blindUntil||0)) return false;
   return smp.every(function(q){ return Math.hypot(q.x-wb.x, q.y-wb.y) < 1100 && inFov(wb, q.x, q.y) && hasVision(wb.x, wb.y, q.x, q.y); });
 }
+var CLEAR_HEARD_SEC = 8;   // с: «шаги здесь» ещё свежие (проектное число)
 function markClear(team, x, y, who, posChecked){
   var zid = zoneIdAt(x, y); if(!zid) return null;
   if(!posChecked && !zoneSeenAll(who, zid)) return null;
   CLEARZ[team][zid] = {tick:tick, x:x, y:y, round:roundNum};
   knowClearZone(team, x, y);
-  voiceLog(team, "clz"+zid, who, (zoneUserName(zid) || calloutName(x, y).replace(/^на /, ""))+" чисто");
+  // (v566, владелец 12.11: «если шаги Tetris, то как Tetris чисто») звук на слух ложится в соседнюю зону; команда только что сказала шаги
+  // здесь, а глазами тут пусто — так и говорят: чисто, шаги дальше (сказанное о шагах — доска войса, 230)
+  var TH = teamOf(team).threats[zid], heard = TH && tick - TH.tick <= CLEAR_HEARD_SEC*TICK_HZ;
+  voiceLog(team, "clz"+zid, who, (zoneUserName(zid) || calloutName(x, y).replace(/^на /, ""))+" чисто"+(heard ? ", шаги дальше" : ""));
   return zid;
 }
 // (v490) оценка сайта k командой team — по тому, где команда недавно видела живых врагов: «не знаем, где» = живые враги, которых своя команда
