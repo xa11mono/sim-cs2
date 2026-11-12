@@ -772,7 +772,7 @@
   <div id="topbar">
     <div class="tb-id">
       <h1>Mirage<span id="matchTick" class="mono" title="Какой матч сейчас идёт и тик — запиши, если увидел баг"></span></h1>
-      <div class="sub mono" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 566, 12.11</div>
+      <div class="sub mono" id="simVersion" title="Если номер не совпадает с последним из чата — открыта старая копия: обнови страницу (Ctrl+Shift+R)">версия 568, 12.11</div>
     </div>
     <div class="tb-group" id="tbMatch">
       <button id="btnPause">Пауза</button>
@@ -18846,6 +18846,11 @@ function chooseCtSetup(){
 // перебор 120 рассадок, берётся с наибольшей суммой (с v409 — доля времени игрока на позициях роли); своя постоянная роль (playerRoles, роли по демкам карты) — бонус
 // SEAT_KEEP (проектное число), чтобы опорники не скакали между раундами без причины.
 var SEAT_KEEP = 0.15;
+// (v567, владелец 12.11: «у меня karrigan всегда опорник B, а в матче 3 он роумер — роли должны быть закреплены, мы это уже 50 раз») своя роль
+// игрока из набора карты (tactics.playerRoles — по демкам этой карты) — закреплена: перевешивает любые доли мест; по местам в демках
+// распределяются только игроки без своей роли. Было: своя роль весила 0,15 — по долям мест TeSeS забирал опорника B, karrigan уходил в роумеры
+// (в матче 1 этого не видно: при загрузке страницы сохранялась готовая рассадка матча 1)
+var SEAT_FIXED = 100, PR_FIX = MAP.tactics.playerRoles || {};
 // (v555, владелец 11.11, м300: «m0NESY и TeSeS меняются местами каждый раунд — роль игрока (мидер — всегда мидер) не меняется, изредка, как
 // решение тренера; расстановки не трогать») рассадка — один раз на половину (сторона CT этой команды): по сумме долей времени игрока на
 // местах роли во ВСЕХ расстановках (а не в выпавшей в этом раунде), дальше роль игрока держится; расстановка меняет только места внутри роли.
@@ -18868,7 +18873,8 @@ function ctSeatRoles(S){
       names.forEach(function(nm){ var ids = zonesByName(nm);
         KNOW_POSITIONS.points.forEach(function(q){ if(q.side !== "CT" || seen[q.id]) return; if(q.zid === undefined) q.zid = zoneIdAt(q.x, q.y) || null;
           if(q.zid && ids.indexOf(q.zid) >= 0){ seen[q.id] = 1; sum += share(nick(b.id), q); } }); }); });
-    return sum + (b.tRole === r ? SEAT_KEEP : 0); }); });
+    var fixR = PR_FIX[nick(b.id)] && PR_FIX[nick(b.id)].CT;
+    return sum + (fixR === r ? SEAT_FIXED : 0) + (b.tRole === r ? SEAT_KEEP : 0); }); });
   var bestSum = -1, bestP = null;
   (function perm(arr, k){ if(k === arr.length){ var sm = 0; for(var i=0;i<arr.length;i++) sm += A[i][arr[i]]; if(sm > bestSum){ bestSum = sm; bestP = arr.slice(); } return; }
     for(var i=k;i<arr.length;i++){ var t = arr[k]; arr[k] = arr[i]; arr[i] = t; perm(arr, k+1); t = arr[k]; arr[k] = arr[i]; arr[i] = t; } })([0,1,2,3,4], 0);
@@ -23134,11 +23140,15 @@ function openDirNear(b, a){
 // (v287, И27, владелец 14.10: раунд 9, игрок 9 в Dark смотрел в Cave, а magixx — в Lamp Room в 123 px) «угол по пути» к цели
 // не разворачивает от неё: угол дальше 1,3 рад (75°) от прямого направления на цель — смотрим в сторону цели (≤ 220 px).
 // Раньше это правило было только у угла поста (v281) — теперь одно место для всех
+var CORNER_FIGHT_OFF = 0.35;   // рад (≈ 20°) — проектное число
 function cornerLook(b, p, from){
   var r = cornerLook0(b, p, from);
   if(!r || !p || !b) return r;
   var aDir = Math.atan2(p.y-b.y, p.x-b.x);
-  if(Math.hypot(r.x-b.x, r.y-b.y) > 1 && _angOff(Math.atan2(r.y-b.y, r.x-b.x), aDir) > 1.3){
+  // (v568, отметка владельца м3 р1 47 с, CT1: «постреляли, ушёл в укрытие и смотрит вообще не туда, откуда стреляли») в перестрелке (идёт цикл
+  // боя _fc) враг выйдет на ту же линию, через которую стреляли, а не из прохода по пути пешком: угол по пути дальше CORNER_FIGHT_OFF от
+  // направления на врага — смотреть на врага (держать свою линию). Вне боя — как было (1,3 рад)
+  if(Math.hypot(r.x-b.x, r.y-b.y) > 1 && _angOff(Math.atan2(r.y-b.y, r.x-b.x), aDir) > (b._fc ? CORNER_FIGHT_OFF : 1.3)){
     var dl = Math.min(220, Math.hypot(p.x-b.x, p.y-b.y)); return {x: b.x + Math.cos(aDir)*dl, y: b.y + Math.sin(aDir)*dl}; }
   return r;
 }
@@ -23837,6 +23847,9 @@ function lookKnowPt(b, q, zb, mates, moving){
   var srcVis = hasLOS(b.x, b.y, q.x, q.y, b.z, q.z);
   var apf = srcVis ? null : appearFrom(b, q); if(apf) apf = {x: apf.x, y: apf.y, vis: true};
   var pt = srcVis ? {x: q.x, y: q.y} : (apf || cornerLook(b, q) || openToward(b, za, LOOK.sndOpen));
+  // (v568, отметка владельца м3 р1 47 с, CT1: «смотрит вообще не туда, откуда стреляли») в перестрелке (_fc) враг выйдет на линию, через
+  // которую стреляли, а не из прохода по пути пешком: точка по пути дальше CORNER_FIGHT_OFF от направления на него — смотреть по этой линии
+  if(b._fc && pt && !srcVis && _angOff(Math.atan2(pt.y-b.y, pt.x-b.x), za) > CORNER_FIGHT_OFF){ var dl0 = Math.min(220, d); pt = {x: b.x + Math.cos(za)*dl0, y: b.y + Math.sin(za)*dl0}; }
   // (v281) видимой точки нет — место, где враг на своём пути зайдёт в мою зону
   if(!pt){ var wq0 = lookKnowPath(b, q);
     for(var wi0 = 0; wi0 < wq0.length; wi0++){ if(bzOf(wq0[wi0][0], wq0[wi0][1]) === zb){ var ep = {x: wq0[wi0][0], y: wq0[wi0][1]}; if(Math.hypot(ep.x-b.x, ep.y-b.y) > 40) pt = ep; break; } } }
@@ -24266,7 +24279,11 @@ function holdGroup(members, T, tag){
       // mustFirst: бомбу (цель) обязательно видит только первый; остальные держат
       // подходы и слушают — как про после планта (не все с линией на бомбу)
       var mustNow = (T.mustFirst && chosen.length > 0) ? [] : T.must;
-      var r = holdSpot(b, {key:T.key, center:T.center, rArea:T.rArea, rMin:T.rMin, rMax:(T.mustFirst && chosen.length > 0 && T.rMax2) || T.rMax, must:mustNow, mates:chosen, anyFrom:T.anyFrom});
+      // (v568, отметка владельца м3 р1: «боты снова часто меняют точки пост-планта» — каждые 2 с T менялись точками по кругу: первый по порядку
+      // забирал точку соседа, считая её свободной) занятые — и уже выбранные в этом проходе, и текущие точки остальных из этой группы
+      var held = chosen.concat(members.filter(function(o){ var Ho = o._hTask; return o !== b && Ho && Ho.key === T.key && Ho.round === roundNum &&
+        !chosen.some(function(c){ return Math.hypot(c.pt.x-Ho.pt.x, c.pt.y-Ho.pt.y) < 1; }); }).map(function(o){ return {pt:o._hTask.pt, see:o._hTask.see}; }));
+      var r = holdSpot(b, {key:T.key, center:T.center, rArea:T.rArea, rMin:T.rMin, rMax:(T.mustFirst && chosen.length > 0 && T.rMax2) || T.rMax, must:mustNow, mates:held, anyFrom:T.anyFrom});
       // (v373, сторож: «метание» — двое на пост-планте каждые пару секунд менялись проходами, войс «держу бомбу, смотрю…»
       // спамился) пересмотр точки — новая, только если она заметно лучше старой (на 15 % — проектное число) и старую не занял свой
       if(r && same && H.pt && r.s < (H.s || 0) + Math.abs(H.s || 0)*0.15 + 0.01 && !chosen.some(function(c){ return Math.hypot(c.pt.x-H.pt.x, c.pt.y-H.pt.y) < 60; })){ H.t = tick; r = null; }
@@ -30663,7 +30680,9 @@ function fightCycleTick(b, dtSec, busy){
   }
   if(F.ph === "line"){
     fightStrafe(b, F, dtSec);
-    if(!b._sawEnemy && tick - F.seen > D.pause[4]*TICK_HZ){ b._fc = null; fcWhy(b, "конец: врага не видно дольше паузы"); return; }   // враг пропал — перестрелка кончилась
+    // (v568, отметка владельца м3 р1 47 с, CT1: «уходит в укрытие и стоит очень долго») враг пропал дольше обычной паузы про между выглядываниями
+    // (медиана D.pause[2]: CT 1,62 с, T 1,67 с) — перестрелка кончилась, дальше задача. Было — верхний край (D.pause[4], 2,6–2,7 с): стоял на линии
+    if(!b._sawEnemy && tick - F.seen > D.pause[2]*TICK_HZ){ b._fc = null; fcWhy(b, "конец: врага не видно дольше паузы"); return; }   // враг пропал — перестрелка кончилась
     if(!F.until && b.lastShotTick >= F.t) F.until = b.lastShotTick + Math.max(b.reactionTicks || 1, 8);   // (v520) первая оценка размена — через время реакции после первого выстрела (было: таймер «длительность пика про» ≈ 1 с)
     if(F.until && tick >= F.until){
       var e = F.e;
@@ -37504,6 +37523,8 @@ var __SNAP = [
 ["CT_SHARE_MIN", function(){ return CT_SHARE_MIN; }, function(v){ try{ CT_SHARE_MIN = v; }catch(e){} }],
 ["CTSET_DBG", function(){ return CTSET_DBG; }, function(v){ try{ CTSET_DBG = v; }catch(e){} }],
 ["SEAT_KEEP", function(){ return SEAT_KEEP; }, function(v){ try{ SEAT_KEEP = v; }catch(e){} }],
+["SEAT_FIXED", function(){ return SEAT_FIXED; }, function(v){ try{ SEAT_FIXED = v; }catch(e){} }],
+["PR_FIX", function(){ return PR_FIX; }, function(v){ try{ PR_FIX = v; }catch(e){} }],
 ["CT_ZONE_RES", function(){ return CT_ZONE_RES; }, function(v){ try{ CT_ZONE_RES = v; }catch(e){} }],
 ["events", function(){ return events; }, function(v){ try{ events = v; }catch(e){} }],
 ["killfeed", function(){ return killfeed; }, function(v){ try{ killfeed = v; }catch(e){} }],
@@ -37575,6 +37596,7 @@ var __SNAP = [
 ["PM_SITE_R", function(){ return PM_SITE_R; }, function(v){ try{ PM_SITE_R = v; }catch(e){} }],
 ["PM_MIN", function(){ return PM_MIN; }, function(v){ try{ PM_MIN = v; }catch(e){} }],
 ["PM_GAIN", function(){ return PM_GAIN; }, function(v){ try{ PM_GAIN = v; }catch(e){} }],
+["CORNER_FIGHT_OFF", function(){ return CORNER_FIGHT_OFF; }, function(v){ try{ CORNER_FIGHT_OFF = v; }catch(e){} }],
 ["LAST_CLEAR", function(){ return LAST_CLEAR; }, function(v){ try{ LAST_CLEAR = v; }catch(e){} }],
 ["_ED", function(){ return _ED; }, function(v){ try{ _ED = v; }catch(e){} }],
 ["REAR_WHY", function(){ return REAR_WHY; }, function(v){ try{ REAR_WHY = v; }catch(e){} }],
