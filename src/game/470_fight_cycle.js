@@ -227,7 +227,9 @@ function fightCycleTick(b, dtSec, busy){
   }
   if(F.ph === "line"){
     fightStrafe(b, F, dtSec);
-    if(!b._sawEnemy && tick - F.seen > D.pause[4]*TICK_HZ){ b._fc = null; fcWhy(b, "конец: врага не видно дольше паузы"); return; }   // враг пропал — перестрелка кончилась
+    // (v568, отметка владельца м3 р1 47 с, CT1: «уходит в укрытие и стоит очень долго») враг пропал дольше обычной паузы про между выглядываниями
+    // (медиана D.pause[2]: CT 1,62 с, T 1,67 с) — перестрелка кончилась, дальше задача. Было — верхний край (D.pause[4], 2,6–2,7 с): стоял на линии
+    if(!b._sawEnemy && tick - F.seen > D.pause[2]*TICK_HZ){ b._fc = null; fcWhy(b, "конец: врага не видно дольше паузы"); return; }   // враг пропал — перестрелка кончилась
     if(!F.until && b.lastShotTick >= F.t) F.until = b.lastShotTick + Math.max(b.reactionTicks || 1, 8);   // (v520) первая оценка размена — через время реакции после первого выстрела (было: таймер «длительность пика про» ≈ 1 с)
     if(F.until && tick >= F.until){
       var e = F.e;

@@ -293,7 +293,11 @@ function holdGroup(members, T, tag){
       // mustFirst: бомбу (цель) обязательно видит только первый; остальные держат
       // подходы и слушают — как про после планта (не все с линией на бомбу)
       var mustNow = (T.mustFirst && chosen.length > 0) ? [] : T.must;
-      var r = holdSpot(b, {key:T.key, center:T.center, rArea:T.rArea, rMin:T.rMin, rMax:(T.mustFirst && chosen.length > 0 && T.rMax2) || T.rMax, must:mustNow, mates:chosen, anyFrom:T.anyFrom});
+      // (v568, отметка владельца м3 р1: «боты снова часто меняют точки пост-планта» — каждые 2 с T менялись точками по кругу: первый по порядку
+      // забирал точку соседа, считая её свободной) занятые — и уже выбранные в этом проходе, и текущие точки остальных из этой группы
+      var held = chosen.concat(members.filter(function(o){ var Ho = o._hTask; return o !== b && Ho && Ho.key === T.key && Ho.round === roundNum &&
+        !chosen.some(function(c){ return Math.hypot(c.pt.x-Ho.pt.x, c.pt.y-Ho.pt.y) < 1; }); }).map(function(o){ return {pt:o._hTask.pt, see:o._hTask.see}; }));
+      var r = holdSpot(b, {key:T.key, center:T.center, rArea:T.rArea, rMin:T.rMin, rMax:(T.mustFirst && chosen.length > 0 && T.rMax2) || T.rMax, must:mustNow, mates:held, anyFrom:T.anyFrom});
       // (v373, сторож: «метание» — двое на пост-планте каждые пару секунд менялись проходами, войс «держу бомбу, смотрю…»
       // спамился) пересмотр точки — новая, только если она заметно лучше старой (на 15 % — проектное число) и старую не занял свой
       if(r && same && H.pt && r.s < (H.s || 0) + Math.abs(H.s || 0)*0.15 + 0.01 && !chosen.some(function(c){ return Math.hypot(c.pt.x-H.pt.x, c.pt.y-H.pt.y) < 60; })){ H.t = tick; r = null; }

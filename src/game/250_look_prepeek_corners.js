@@ -264,11 +264,15 @@ function openDirNear(b, a){
 // (v287, И27, владелец 14.10: раунд 9, игрок 9 в Dark смотрел в Cave, а magixx — в Lamp Room в 123 px) «угол по пути» к цели
 // не разворачивает от неё: угол дальше 1,3 рад (75°) от прямого направления на цель — смотрим в сторону цели (≤ 220 px).
 // Раньше это правило было только у угла поста (v281) — теперь одно место для всех
+var CORNER_FIGHT_OFF = 0.35;   // рад (≈ 20°) — проектное число
 function cornerLook(b, p, from){
   var r = cornerLook0(b, p, from);
   if(!r || !p || !b) return r;
   var aDir = Math.atan2(p.y-b.y, p.x-b.x);
-  if(Math.hypot(r.x-b.x, r.y-b.y) > 1 && _angOff(Math.atan2(r.y-b.y, r.x-b.x), aDir) > 1.3){
+  // (v568, отметка владельца м3 р1 47 с, CT1: «постреляли, ушёл в укрытие и смотрит вообще не туда, откуда стреляли») в перестрелке (идёт цикл
+  // боя _fc) враг выйдет на ту же линию, через которую стреляли, а не из прохода по пути пешком: угол по пути дальше CORNER_FIGHT_OFF от
+  // направления на врага — смотреть на врага (держать свою линию). Вне боя — как было (1,3 рад)
+  if(Math.hypot(r.x-b.x, r.y-b.y) > 1 && _angOff(Math.atan2(r.y-b.y, r.x-b.x), aDir) > (b._fc ? CORNER_FIGHT_OFF : 1.3)){
     var dl = Math.min(220, Math.hypot(p.x-b.x, p.y-b.y)); return {x: b.x + Math.cos(aDir)*dl, y: b.y + Math.sin(aDir)*dl}; }
   return r;
 }
