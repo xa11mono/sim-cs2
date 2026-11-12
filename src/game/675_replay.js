@@ -132,8 +132,11 @@ function rpRecord(){
       // (п.18/22/34 владельца 29.10) после перемотки запись раунда начинается заново, а киллфид — весь раунд: фраги до начала записи
       // в клип не попадут (кадров нет) — это не моменты этой записи (раньше давали мультикилл с пустым клипом → экран «клатч 1v2»)
       var kt = Math.round((k.at||simTime)*TICK_HZ); if(kt < RP.rec.t0) continue;
+      // (v569, В116) показал ли обсервер этот фраг вживую: и убийца, и жертва — в кадре (иначе — кандидат на повтор «пропущено в эфире»)
+      var kA = teamBot(rpIdByNick(k.att)), kV = teamBot(rpIdByNick(k.vic)), kLive = !!(OBS.on && kA && kV && obsShows(kA.x, kA.y) && obsShows(kV.x, kV.y));
+      if(OBS.on && kA){ if(OBS_ST.m !== matchNum) OBS_ST = {m: matchNum, kills: 0, live: 0, sw: 0, late: 0}; OBS_ST.kills++; if(kLive) OBS_ST.live++; }
       RP.rec.kills.push({t: Math.round((k.at||simTime)*TICK_HZ), att: rpIdByNick(k.att), vic: rpIdByNick(k.vic), attTeam: k.attTeam, vicTeam: k.vicTeam,
-        w: k.w, hs: k.hs, smoke: k.smoke, wall: k.wall, noscope: k.noscope, blind: k.blind, attN: k.att, vicN: k.vic}); }
+        w: k.w, hs: k.hs, smoke: k.smoke, wall: k.wall, noscope: k.noscope, blind: k.blind, attN: k.att, vicN: k.vic, live: kLive}); }
   }
   // конец раунда
   if(RP.prevRs === "live" && (rs === "ending" || rs === "matchover") && RP.rec) rpRoundEnd(RP.rec);
@@ -166,6 +169,12 @@ function rpRoundEnd(R){
   var lastK = R.kills.filter(function(k){ return k.att && k.attTeam !== k.vicTeam; }).slice(-1)[0];
   if(lastK && win && lastK.attTeam === win && !usedId[lastK.att] && !(bomb && (bomb.state === "exploded" || bomb.state === "defused")) && roll("last") < RP_K.pick.last){
     var h4 = mk(lastK.att, lastK.attTeam); h4.multi = true; h4.single = true; h4.n = 1; h4.kt = lastK.t; h4.t = lastK.t; h4.label = "Последний фраг"; cand.push({h: h4, pri: 20}); }
+  // (v569, В116; обсервер про: «пропущенное вживую решающее убийство — в повтор после раунда», delay observer) первый фраг раунда (открытие)
+  // или фраг, после которого остался клатч, не попавший в кадр вживую, — повтор «Пропущено в эфире»
+  var aliveN = {CT: 5, T: 5}, missK = null;
+  R.kills.forEach(function(k, ki){ if(!k.vicTeam) return; aliveN[k.vicTeam]--; var key = ki === 0 || aliveN[k.vicTeam] === 1;
+    if(!missK && key && k.live === false && k.att && k.attTeam !== k.vicTeam && !usedId[k.att]) missK = k; });
+  if(missK){ var h5 = mk(missK.att, missK.attTeam); h5.multi = true; h5.single = true; h5.n = 1; h5.kt = missK.t; h5.t = missK.t; h5.label = "Пропущено в эфире"; cand.push({h: h5, pri: 60}); usedId[missK.att] = 1; }
   if(!cand.length) return;
   cand.sort(function(a, b){ return b.pri - a.pri || a.h.t - b.h.t; });
   var avail = ROUND_RESTART_DELAY_SEC + BAL.freeze - RP_K.startDelay + RP_K.live, used = 0;

@@ -16,11 +16,20 @@ var OBS_K = {
   glimpse: 6,                     // видит врага не меньше glimpse тиков подряд — бой (мелькнул в щели на тик — ещё нет)
   focusR: 900, siteR: 700,        // фокус (выход, плант, дефуз) — кто ближе focusR; в кадре — все ближе siteR
   nearR: 450, losR: 900,          // враг ближе nearR смотрит на игрока — скоро бой; линию видимости проверять ближе losR
-  bombLast: 10,                   // последние bombLast с бомбы при CT рядом — фокус на бомбе
+  bombLast: 10, bombNearR: 380,   // последние bombLast с бомбы при CT рядом — фокус на бомбе; (v569) CT ближе bombNearR к бомбе — тоже
   closeR: 800, closeV: 150,       // (v461) сближение: ближе closeR и навстречу быстрее closeV ед. карты/с — скоро бой
-  wideToNear: 0.9                 // перелёт с общего плана на бой, с
+  wideToNear: 0.9,                // перелёт с общего плана на бой, с
+  localR: 650, execSoon: 8        // (v569) «свой бой» — враги и свои ближе localR; «скоро выход» — за execSoon с (проектные)
 };
 function obsT(sec){ return sec*TICK_HZ; }
+// (v569, В116) видна ли точка карты на экране сейчас (для «пропущено в эфире» и мерок обсервера); на общем плане — видна вся карта
+function obsShows(x, y){
+  if(typeof document === "undefined" || typeof view === "undefined") return false;
+  var r = wrapRect(), sx = x*view.scale + view.panX, sy = y*view.scale + view.panY;
+  return sx >= 0 && sy >= 0 && sx <= r.width && sy <= r.height;
+}
+// мерки обсервера за матч (только показ): убийств, из них вживую в кадре; переключений игрока; из них к бою, который уже шёл (опоздал)
+var OBS_ST = {m: -1, kills: 0, live: 0, sw: 0, late: 0};
 // (v459) общее на тик — считается один раз, а не для каждого бота: фокус, кто последним стрелял ПО ИГРОКУ (не в смок), видимость пар
 var OBC = null;
 function obsCtx(){
@@ -62,8 +71,10 @@ function obsFocus(){
   if(df) return {x: df.x, y: df.y, site: bomb && bomb.site, key: "defuse"};
   if(bomb && bomb.state === "planted" && bomb.plantTick && tick - bomb.plantTick < 3*TICK_HZ) return {x: bomb.x, y: bomb.y, site: bomb.site, key: "plant"};
   if(pl) return {x: pl.x, y: pl.y, site: tt && tt.site, key: "plant"};
-  if(bomb && bomb.state === "planted" && bombTimeLeftTicks() < obsT(OBS_K.bombLast) &&
-     bots.some(function(o){ return o.alive && o.team === "CT" && Math.hypot(o.x-bomb.x, o.y-bomb.y) < OBS_K.focusR; }))
+  // (v569, В116; обсервер про: «бомба — по состоянию, а не по таймеру») решает раунд не таймер, а кто может повлиять: CT подошёл к бомбе
+  // (≤ bombNearR — вот-вот дефуз / фейк) или последние bombLast с при CT рядом
+  if(bomb && bomb.state === "planted" && bots.some(function(o){ if(!o.alive || o.team !== "CT") return false; var d = Math.hypot(o.x-bomb.x, o.y-bomb.y);
+       return d < OBS_K.bombNearR || (d < OBS_K.focusR && bombTimeLeftTicks() < obsT(OBS_K.bombLast)); }))
     return {x: bomb.x, y: bomb.y, site: bomb.site, key: "bomb"};
   if(tt && tt.phase === "execute" && tt.execStart != null && tick - tt.execStart < 15*TICK_HZ && SITES[tt.site]) return {x: SITES[tt.site].x, y: SITES[tt.site].y, site: tt.site, key: "exec"};
   return null;
@@ -79,7 +90,20 @@ function obsScore(b){
   if(b._shotAtT != null && tick - b._shotAtT < TICK_HZ) sc += 5;
   var sb = C.shotBy[b.id]; if(sb != null && tick - sb < TICK_HZ) sc += 3;
   if(b._killHowT && tick - b._killHowT < 2*TICK_HZ) sc += 2;
-  if(C.alive[b.team] === 1 && C.alive[foe] >= 1) sc += 4;                    // клатч
+  // (v569, В116; обсервер про — sapphiRe: «в 1 на 2 почти всегда клатчер: интересно то, что может перевернуть раунд, а не ожидаемый исход»)
+  // клатчер против двоих и больше — главный; большинство против одного — менее интересно
+  if(C.alive[b.team] === 1 && C.alive[foe] >= 1) sc += C.alive[foe] >= 2 ? 8 : 4;
+  else if(C.alive[foe] === 1 && C.alive[b.team] >= 2) sc *= 0.7;
+  // меньшинство в своём бою (рядом и на линии врагов больше, чем своих рядом, на 2+) — его ход может изменить раунд
+  var nE = 0, nM = 0; bots.forEach(function(o){ if(!o.alive || o === b || Math.hypot(o.x-b.x, o.y-b.y) > OBS_K.localR) return;
+    if(o.team === foe){ if(obsLos(b, o)) nE++; } else nM++; });
+  if(nE >= nM + 2) sc += 2;
+  // фазы (sapphiRe: в начале — атакующие, они развивают раунд; к выходу — защитники сайта): до выхода без боя — T чуть выше; за execSoon с
+  // до выхода — CT у сайта выхода
+  var tt0 = teamTac && teamTac.T;
+  if(tt0 && tt0.phase === "setup" && !obsFight(b, OBS_K.fightScore)){
+    if(b.team === "T") sc += 0.6;
+    else if(tt0.execTick && tt0.execTick - tick < obsT(OBS_K.execSoon) && SITES[tt0.site] && Math.hypot(b.x-SITES[tt0.site].x, b.y-SITES[tt0.site].y) < OBS_K.siteR) sc += 1.2; }
   if(bomb && bomb.state === "carried" && bomb.carrier === b) sc += 1.5;
   // рядом враг — скоро бой. (v459) Расстояние по прямой — только если они могут увидеть друг друга; за стеной или на другом
   // этаже — меньше (раньше враг этажом ниже считался «вот-вот бой»)
@@ -110,7 +134,9 @@ function obsPickBest(except, within){
 }
 // сменить игрока обсервера (одно место): прошлого — «только что показывали», карточка по центру — новый
 function obsSet(o, ts, fly){
-  if(OBS.id && OBS.id !== o.id){ OBS.prev = OBS.id; OBS.prevUntil = tick + obsT(OBS_K.prevBlock); }
+  if(OBS_ST.m !== matchNum) OBS_ST = {m: matchNum, kills: 0, live: 0, sw: 0, late: 0};
+  if(OBS.id && OBS.id !== o.id){ OBS.prev = OBS.id; OBS.prevUntil = tick + obsT(OBS_K.prevBlock); OBS_ST.sw++;
+    if(o._shotAtT != null && tick - o._shotAtT < TICK_HZ && tick - o._shotAtT > TICK_HZ/4) OBS_ST.late++; }
   OBS.id = o.id; OBS.since = tick; OBS.deadAt = 0;
   if(fly && OBS.sc) OBS.tr = {t0: ts, fx: OBS.cx, fy: OBS.cy, fsc: OBS.sc};   // (v330, М48) начало перелёта камеры
   if(o.alive && plSelected !== o.id){ plSelected = o.id; playersUpdate(); }
@@ -164,7 +190,11 @@ function obsFrame(ts){
       // спокойный (без боя) дольше calm с — смена на другого, чтобы картинка не стояла
       if(cur && cur.alive && !obsFight(cur, OBS_K.fightScore) && held > obsT(OBS_K.calm) && best === cur){ var Q = obsPickBest(cur); if(Q.b){ best = Q.b; bs = Q.s*2; } }
       // погиб — deathShow с видно место смерти, потом к убийце, если жив (как режиссёр трансляции)
-      if(deadLong && cur._killer){ var kb = teamBot(cur._killer); if(kb && kb.alive){ best = kb; bs = Infinity; } }
+      // (v569, В116; обсервер про: «после убийства — продолжение боя (размен) или последствия, не задерживаться на погибшем») тиммейт погибшего
+      // уже бьётся с убийцей (видит его / стреляет) — размен: к нему; нет — к убийце
+      if(deadLong && cur._killer){ var kb = teamBot(cur._killer); if(kb && kb.alive){
+        var tr = null; bots.forEach(function(o){ if(!tr && o.alive && o.team === cur.team && ((o._sawEnemy && o._nearestEnemyBot === kb) || (o._shotAtBy && o._shotAtBy.id === kb.id && tick - o._shotAtT < TICK_HZ))) tr = o; });
+        best = tr || kb; bs = Infinity; } }
       // бой начался у другого, а у выбранного боя нет — сразу, без выдержки (но не чаще urgentGap и не сразу после его боя)
       var urgent = !!(best && best !== cur && obsFight(best, OBS_K.fightUrgent) && !obsFight(cur, OBS_K.fightUrgent));
       if(urgent && cur && cur.alive && (held < obsT(OBS_K.urgentGap) || obsFight(cur, OBS_K.quietGap))) urgent = false;
