@@ -215,18 +215,25 @@ function smokeLineTick(){
     var W = b._slw && b._slw.round === roundNum ? b._slw : null, on = !!(W && W.on);
     var stop = function(){ if(on && b.post && b.post.tag === "smokeLine") clearPost(b); b._slw = {round:roundNum, t:tick, on:false}; };
     if(b.team !== "T" || !b.alive) return;
-    if(b.nadeTask || b._sawEnemy || (bomb.carrier === b && b.planting)){ if(on) stop(); return; }
+    // (v562) граната с места (нет точки броска или она рядом, ≤ LU_NEAR) ожидание не снимает — бросок и так с этого места; снимает — если за
+    // броском надо идти (было: любой бросок «под пробу» на миг снимал ожидание, бот шёл на точку подготовки и тут же возвращался)
+    var ntGo = b.nadeTask && b.nadeTask.from && Math.hypot(b.nadeTask.from.x-b.baseX, b.nadeTask.from.y-b.baseY) > LU_NEAR;
+    if(ntGo || b._sawEnemy || (bomb.carrier === b && b.planting)){ if(on) stop(); return; }
+    if(b.nadeTask){ if(on) postKeep(b); return; }
     if(W && tick - W.t < 16){ if(on) postKeep(b); return; }   // пересмотр раз в 0,25 с (BELIEF_STEP)
     var P = on ? W.dest : b.post; if(!P){ if(on) stop(); return; }   // ждущий — проверяется точка, куда шёл
     if(on && b.post && b.post.tag !== "smokeLine"){ b._slw = {round:roundNum, t:tick, on:false}; return; }   // пост перебила задача важнее
     if(S === null) S = smokeLinePending("T");
-    var w = smokeLineWait(b, P, S);
+    // (v562, прогон 208: «ждёт смок ↔ маршрут» на Mirage 17 → 83 за 8 матчей — ждущий терял свой смок, когда тот ложился (точка прицела → место падения), и на миг шёл дальше; и каждые 0,25 с заново решал, видит ли его путь место CT,
+    // а оценка мест CT колеблется) начал ждать конкретный смок — ждёт, пока этот смок не встанет или его не будет (нет в списке назначенных /
+    // летящих / раскрывающихся), а не пересчитывает причину
+    var w = on && W.s ? (S.some(function(q){ return Math.hypot(q.x-W.s.x, q.y-W.s.y) < NADE.smoke.radius; }) ? {s:W.s, q:W.q} : null) : smokeLineWait(b, P, S);
     if(!w){ if(on) logEvent(b.id+": смок встал / его не будет — идёт дальше"); stop(); return; }
     if(!on){
       if(!setPost(b, {x:b.x, y:b.y}, {x:w.q.x, y:w.q.y}, true, "smokeLine")){ b._slw = {round:roundNum, t:tick, on:false}; return; }   // держит задача важнее
       logEvent(b.id+": ждёт смок у "+calloutName(w.s.x, w.s.y).replace(/^на /, "")+" — не выходит на линию с "+calloutName(w.q.x, w.q.y).replace(/^на /, "")); }
     else postKeep(b);
-    b._slw = {round:roundNum, t:tick, on:true, dest:on ? W.dest : {x:P.x, y:P.y}};
+    b._slw = {round:roundNum, t:tick, on:true, dest:on ? W.dest : {x:P.x, y:P.y}, s:{x:w.s.x, y:w.s.y}, q:{x:w.q.x, y:w.q.y}};
   });
 }
 // (00_PLAN, владелец 05.11: «тушат смоком, когда готовится выход: в коридоре — банан на Inferno, Ramp на Mirage — кинули молотов; T не бегут
