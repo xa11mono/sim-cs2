@@ -1,0 +1,27 @@
+playwright 1.56.0, браузеры: C:\Windows\system32\config\systemprofile\.simcs2_node\ms-playwright
+> git fetch --quiet origin fef7a9cafc4cc0d81aa7aa7c633309b8cfd1d4cf
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_9zpcvbjq FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_9zpcvbjq\src\build.py --map mirage C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v564b_mir.html
+> git fetch --quiet origin fef7a9cafc4cc0d81aa7aa7c633309b8cfd1d4cf
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_j5kgc27r FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_j5kgc27r\src\build.py --map ancient C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v564b_anc.html
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\engine\walk_run.py --job=v564b_mir,C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v564b_mir.html --job=v564b_anc,C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v564b_anc.html --matches=3,7,11,13,17,19,23,29 --par=12
+матчей в очереди: 16, одновременно: 12
+v564b_mir match 11  rc 0 5811347 — готово 1/16, 5 мин
+v564b_anc match 11  rc 0 7075587 — готово 2/16, 6 мин
+v564b_anc match 7  rc 0 6695629 — готово 3/16, 6 мин
+v564b_anc match 13  rc 0 8047659 — готово 4/16, 7 мин
+v564b_mir match 29  rc 0 7028912 — готово 5/16, 7 мин
+v564b_mir match 19  rc 0 7747496 — готово 6/16, 7 мин
+v564b_mir match 13  rc 0 7940457 — готово 7/16, 7 мин
+v564b_mir match 3  rc 0 8199213 — готово 8/16, 8 мин
+v564b_anc match 3  rc 0 9168947 — готово 9/16, 8 мин
+v564b_mir match 7  rc 0 11223251 — готово 10/16, 10 мин
+v564b_mir match 17  rc 0 11019076 — готово 11/16, 10 мин
+v564b_mir match 23  rc 0 12084663 — готово 12/16, 11 мин
+v564b_anc match 17  rc 0 8144912 — готово 13/16, 11 мин
+v564b_anc match 23  rc 0 7410055 — готово 14/16, 11 мин
+v564b_anc match 19  rc 0 8188391 — готово 15/16, 11 мин
+v564b_anc match 29  rc 0 7167703 — готово 16/16, 11 мин
+done
+all done
