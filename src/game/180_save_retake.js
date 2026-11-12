@@ -137,7 +137,7 @@ function ctBombPos(){
   if(!BAL.bombBeep || !bomb || bomb.state !== "planted") return {x:bomb.x, y:bomb.y};
   if(!bomb.ctSeen){
     var seen = bots.some(function(o){ return o.alive && o.team === "CT" && (Math.hypot(o.x-bomb.x, o.y-bomb.y) < 300 || (Math.hypot(o.x-bomb.x, o.y-bomb.y) < 1100 && hasVision(o.x, o.y, bomb.x, bomb.y))); });
-    if(seen){ bomb.ctSeen = tick; voiceLog("CT", "bombseen", "CT", "вижу бомбу — "+calloutName(bomb.x, bomb.y)); }
+    if(seen){ bomb.ctSeen = tick; voiceLog("CT", "bombseen", "CT", "бомба "+calloutName(bomb.x, bomb.y).replace(/^на /, "")+"!"); }
   }
   if(bomb.ctSeen) return {x:bomb.x, y:bomb.y};
   if(!bomb.ctNoise){ var a = hashRand(bomb.plantTick*7 + 3)*Math.PI*2, r = 60 + hashRand(bomb.plantTick*11 + 5)*80; bomb.ctNoise = {dx:Math.cos(a)*r, dy:Math.sin(a)*r}; }
@@ -376,7 +376,7 @@ function retakePost(b, cts){
       if(!bwc){
         var bwb = null; cts.forEach(function(o){ if(o.alive && (!bwb || dBp(o) > dBp(bwb))) bwb = o; });
         var nbw = bwb ? bwb.id : "-";
-        if(nbw !== R.backWatch){ R.backWatch = nbw; if(bwb) voiceLog("CT", "back"+bwb.id+"@"+roundNum, bwb.id, "смотрю спину — может прийти люрк"); } }
+        if(nbw !== R.backWatch){ R.backWatch = nbw; if(bwb) voiceLog("CT", "back"+bwb.id+"@"+roundNum, bwb.id, "смотрю спину"); } }
       if(R.backWatch === b.id){ setPost(b, a, GEO.rotator, true, gTag(b, R), 0); return; }
     }
     // (док 6) уже ближе к бомбе, чем своя точка сбора, — назад на сбор не идёт: ждёт своих там, где стоит

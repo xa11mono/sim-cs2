@@ -74,7 +74,7 @@ function flankAssist(b){
   b._reposUntil = tick + 6*TICK_HZ;
   b.lastIntel = {x:ep.x, y:ep.y, tick:tick, src:"call"};
   flankClaim(b, E.id, true); b._flankE = E.id; b._flankT = tick;
-  voiceLog(b.team, "flank"+b.id, b.id, "захожу на "+E.id+" с другой стороны — помогаю "+mate.id);
+  voiceLog(b.team, "flank"+b.id, b.id, "захожу с фланга на "+E.id);
   return true;
 }
 function assistPeek(b){
@@ -106,7 +106,7 @@ function assistPeek(b){
   if(b.state === "hold") leaveHold(b);
   b._reposUntil = tick + 2*TICK_HZ;
   b.lastIntel = {x:ep.x, y:ep.y, tick:tick, src:"call"}; // знает, куда выходит — прицел на враге (префайр по коллу)
-  if(!b._assistVoice || tick - b._assistVoice > 4*TICK_HZ){ b._assistVoice = tick; voiceLog(b.team, "assist"+b.id, b.id, "выхожу с "+mate.id+" на "+E.id+" — дабл!"); }
+  if(!b._assistVoice || tick - b._assistVoice > 4*TICK_HZ){ b._assistVoice = tick; voiceLog(b.team, "assist"+b.id, b.id, "дабл с "+mate.id+"!"); }
   return true;
 }
 // доля магазина, ниже которой игрок перезаряжается после боя — и (v521) ниже которой на линии «патронов мало» (470 duelEval)

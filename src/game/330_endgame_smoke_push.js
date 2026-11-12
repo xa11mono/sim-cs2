@@ -89,7 +89,7 @@ function endgameBrain(){
     var egId = K.id + "|" + nFoe;
     if(teamTac[team] && teamTac[team]._egKey !== egId){
       teamTac[team]._egKey = egId;
-      voiceLog(team, "eg"+gk, mine[0].id, (nFoe === 1 ? "последний" : "их двое")+" "+calloutName(kp.x, kp.y)+" — все на него!");
+      voiceLog(team, "eg"+gk, mine[0].id, (nFoe === 1 ? "последний " : "двое ")+calloutName(kp.x, kp.y).replace(/^на /, "")+"!");
     }
     // (00_PLAN п.11, ответ владельца 6Б, 05.11: «двое CT не выбегают на одного T одновременно: один контролирует T, второй — альтернативную
     // линию, выход или ротацию; если T отходит — не оба преследуют; главное — не дать безопасно поставить») CT против последнего T до планта:
@@ -154,7 +154,7 @@ function endgameBrain(){
         if(bSite && b !== hunter && !(BS && BS.ord.indexOf(b.id) === 0) && (kAge > (hunting ? 6 : 3)*TICK_HZ || d > 700)){
           var gS = GEO[bSite], sp = (gS && gS.anchor) || SITES[bSite];
           if(setPost(b, sp, {x:kp.x, y:kp.y}, true, "endhunt") && !(b._egL && b._egL.round === roundNum && b._egL.k === bSite)){ b._egL = {round:roundNum, k:bSite};
-            voiceLog(team, "egbs"+b.id+roundNum, b.id, "бомба на "+bSite+" — иду туда"); }
+            voiceLog(team, "egbs"+b.id+roundNum, b.id, "бомба "+bSite+", иду"); }
           return;
         }
         if(kAge > (hunting ? 6 : 3)*TICK_HZ && !(bSite && b === hunter) || (d > 700 && b !== hunter)){
@@ -183,7 +183,7 @@ function endgameBrain(){
         if(!fsp) b._fsFail = {id: K.id, t: tick};
         if(fsp) flankClaim(b, K.id, true);
         if(fsp){ b._egC = {gk:gk, round:roundNum, spot:fsp, look:{x:kp.x, y:kp.y}, fl:K.id};
-          voiceLog(team, "flank"+b.id, b.id, "захожу на "+K.id+" с другой стороны — помогаю "+mC.id); }
+          voiceLog(team, "flank"+b.id, b.id, "захожу с фланга на "+K.id); }
       }
       if(b._egC && b._egC.round === roundNum && b._egC.fl === K.id && mC){ setPost(b, b._egC.spot, {x:kp.x, y:kp.y}, true, "endhunt"); return; }
       if(!b._egC || b._egC.gk !== gk || b._egC.round !== roundNum || b._egC.fl){

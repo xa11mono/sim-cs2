@@ -74,7 +74,7 @@ function teamText(m){
   if(m.kind === "defuse") return "дефузят!";
   if(m.kind === "death") return "убили с " + z + (m.awp ? ", AWP" : "");
   if(m.kind === "flash") return "флешу!";
-  if(m.kind === "hear") return (m.count >= 3 ? "несколько, " : m.count === 2 ? "двое, " : "") + (m.sound === "shots" ? "стреляют " : m.sound === "water" ? "шаги в воде " : m.sound === "nade" ? "гранату кинули из " : "шаги ") + z;
+  if(m.kind === "hear") return (m.count >= 3 ? "несколько, " : m.count === 2 ? "двое, " : "") + (m.sound === "shots" ? "стреляют " : m.sound === "water" ? "шаги в воде " : m.sound === "nade" ? "граната с " : "шаги ") + z;
   var n = m.count >= 3 ? "несколько" : m.count === 2 ? "двое" : "один";
   if(m.awp && m.count === 1) return "AWP " + z;
   return n + " " + z + (m.awp ? ", один с AWP" : "");

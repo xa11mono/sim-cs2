@@ -124,8 +124,8 @@ function siteRebalanceTick(){
       if(!by) return;
       var taken = T.filter(function(_, j){ return j !== i; }), avoid = cts.filter(function(q){ return q !== o; }).map(function(q){ return {x:q.x, y:q.y}; });
       var sp = rebalSpot(o, k, taken, fwd ? avoid.concat([t]) : [t]), why;
-      if(sp) why = (fwd ? by.id+" вышел вперёд" : by.id+" держит тот же угол")+" — беру угол "+calloutName(sp.t.x, sp.t.y);
-      else if(fwd){ sp = rebalSpot(o, k, [], [], {see:{x:by.x, y:by.y}}); if(sp){ sp.look = {x:by.x, y:by.y}; why = by.id+" впереди — встаю под размен"; } }
+      if(sp) why = "беру "+calloutName(sp.t.x, sp.t.y).replace(/^на /, "");   // (v565, В81) без пересказа «кто что держит»
+      else if(fwd){ sp = rebalSpot(o, k, [], [], {see:{x:by.x, y:by.y}}); if(sp){ sp.look = {x:by.x, y:by.y}; why = "стою под размен "+by.id; } }
       if(!sp) return;
       if(!setPost(o, sp.pt, sp.look, true, "rebal"+k)) return;
       o._rebal = {round:roundNum, t:tick, by:by.id, fwd:fwd, fx:by.x, fy:by.y, pt:sp.pt, look:sp.look, tag:"rebal"+k};

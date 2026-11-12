@@ -33,7 +33,7 @@ function ctBrain(){
         var seer = cts.filter(function(o){ return Math.hypot(o.x-bomb.x, o.y-bomb.y) < 1000 && hasVision(o.x, o.y, bomb.x, bomb.y); })
           .sort(function(a, c){ return Math.hypot(a.x-bomb.x, a.y-bomb.y) - Math.hypot(c.x-bomb.x, c.y-bomb.y); })[0];
         if(seer){ ct.bombWatch = {id:null, pt:null};
-          voiceLog("CT", "bombw", seer.id, "бомба лежит "+calloutName(bomb.x, bomb.y)+" — держим её"); }
+          voiceLog("CT", "bombw", seer.id, "бомба лежит "+calloutName(bomb.x, bomb.y).replace(/^на /, "")+", держим"); }
       }
       if(ct.bombWatch && !ct.bombWatch.id && cts.length >= 2){
         // держит ближайший к бомбе — с укрытия рядом с собой, откуда её видно (если он далеко — у бомбы)
@@ -142,7 +142,7 @@ function ctBrain(){
         // о T ничего не знаем (только «некому держать») — так и говорят, без «T на … (~1)»
         var noT = best.count < 0.5;
         if(isNew && prevSite && prevSite !== best.site) intelCallLog("CT", "recall"+best.site+tick, "ПЕРЕКОЛЛ "+prevSite+" → "+best.site+": "+how+(noT ? "" : " (~"+n1+")"), null, "recall");
-        else intelCallLog("CT", "site"+best.site+n1, noT ? best.site+": "+how+", T там не видели" : "T на "+best.site+" (~"+n1+", "+how+")", null, "plan"); }
+        else intelCallLog("CT", "site"+best.site+n1, noT ? best.site+": "+how+", T там не видели" : best.site+" — "+(["", "один", "двое", "трое", "четверо", "все"][Math.min(5, n1)])+", "+how, null, "plan"); }
       else if(dup) ct.call.logged = Math.max(ct.call.logged||0, cm.n);
     } else { ct.call.evTick = tick; ct.call.undefended = best.undefended; if(best.carrier || best.plant) ct.call.bombSeen = true; }
   } else if(ct.call){
@@ -204,7 +204,7 @@ function ctBrain(){
       if(ct._patLog !== ks+roundNum+"|"+ct.call.since){ ct._patLog = ks+roundNum+"|"+ct.call.since; }
     }
     if(ct.call.bombSeen && !ct["_bv"+ks]){ ct["_bv"+ks] = true;
-      voiceLog("CT", "bombrot"+ks, "CT", "бомба на "+ks+" — ротатор"+(midMass < 0.9 ? " и мид" : "")+" на "+ks+"!"); }
+      voiceLog("CT", "bombrot"+ks, "CT", "бомба "+ks+"! ротейт"+(midMass < 0.9 ? " и мид" : "")); }
     if(!ct.call.since || ct.call.sinceSite !== ks){ ct.call.since = tick; ct.call.sinceSite = ks; }
     var confirmed = tick - ct.call.since > 1.5*TICK_HZ; // мидер/второй опорник снимаются не с первого звука
     var midMass = beliefMass("CT", BZ.midZ), otherMass = beliefMass("CT", BZ.siteNear[ko]||[]);
@@ -292,7 +292,7 @@ function ctBrain(){
     cts.filter(function(b){ return pri(b) < 99 && !ct.rot[b.id] && !(ct.bombWatch && ct.bombWatch.id === b.id) && Math.hypot(b.x-sc0.x, b.y-sc0.y) >= 450; })
        .sort(function(a,b){ return pri(a) - pri(b) || (Math.hypot(a.x-sc0.x,a.y-sc0.y) - Math.hypot(b.x-sc0.x,b.y-sc0.y)); })
        .slice(0, Math.max(0, send - goingFar)).forEach(function(b){ ct.rot[b.id] = true; ct.go.ids[b.id] = true;
-         voiceLog("CT", "rot"+b.id+ks+roundNum, b.id, "иду на "+ks+" ("+(ROLE_LABEL_CT(b.tRole))+")");   // (v321, М23) кто ротирует
+         voiceLog("CT", "rot"+b.id+ks+roundNum, b.id, "ротейт "+ks);   // (v321, М23) кто ротирует
        });
   } else if(!ct.call) ct.go = null;
   // ---- фланг: "поджать в спину" ----
@@ -313,7 +313,7 @@ function ctBrain(){
       return o.alive && o.team === "T" && e && tick - e.tick <= SITE_SEEN_SEC*TICK_HZ && zoneIdAt(e.x, e.y) === zz; }); })) cand = null;
     if(cand){
       ct.flank = {id:cand.id, site:fs, stage:0, arr:0};
-      voiceLog("CT", "flank"+fs, cand.id, "захожу им в спину через мид на "+fs);
+      voiceLog("CT", "flank"+fs, cand.id, "захожу в спину через мид");
     }
   }
   var planted = bomb.state === "planted";
@@ -528,7 +528,7 @@ function ctBrain(){
       if(Math.hypot(bd.x-SITES[kBomb].x, bd.y-SITES[kBomb].y) + 250 < Math.hypot(bd.x-SITES[kMine].x, bd.y-SITES[kMine].y)){
         var bdp = pickSpots("bdrot"+kBomb, GEO[kBomb].anchor, 3, {rMax:260, minGap:60, see:[{x:bd.x, y:bd.y}], hideFrom:[GEO[kBomb].tStage]})[0] || GEO[kBomb].anchor;
         var wasBd = b.post && b.post.tag === "rotate:bomb";
-        if(setPost(b, bdp, {x:bd.x, y:bd.y}, true, "rotate:bomb") && !wasBd){ voiceLog("CT", "bdrot"+b.id+roundNum, b.id, "бомба на "+kBomb+" — иду к вам с "+kMine); safeRotate(b, bdp, kBomb); }
+        if(setPost(b, bdp, {x:bd.x, y:bd.y}, true, "rotate:bomb") && !wasBd){ voiceLog("CT", "bdrot"+b.id+roundNum, b.id, "бомба "+kBomb+", иду с "+kMine); safeRotate(b, bdp, kBomb); }
         return;
       }
     }

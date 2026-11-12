@@ -58,7 +58,7 @@ function lkpTick(){
       if(checker){
         delete L[id]; var zc = zoneIdAt(e.x, e.y); if(zc) CLEARZ[team][zc] = {tick:tick, x:e.x, y:e.y};
         knowClearZone(team, e.x, e.y, id);
-        voiceLog(team, "clr"+id, checker.id, "проверил "+calloutName(e.x, e.y)+" — "+id+" там уже нет");
+        voiceLog(team, "clr"+id, checker.id, calloutName(e.x, e.y).replace(/^на /, "")+" чисто, "+id+" ушёл");
       }
     });
   });
@@ -249,15 +249,14 @@ function intelDeath(victim, killer){
   // а не мгновенно в память команды (было: intelPush «sound» ±90 px в тик смерти — раньше, чем это можно сказать)
   var place = calloutName(victim.x, victim.y);
   var mine = aliveCount(victim.team), theirs = aliveCount(victim.team === "CT" ? "T" : "CT");
-  voiceLog(victim.team, "die"+victim.id, victim.id, "минус "+place+
-    (killer ? (saw ? ", убил "+killer.id+" "+calloutName(killer.x, killer.y, true) : ", стреляли "+calloutName(killer.x, killer.y, true)) : "")+
-    (mine > 0 ? " — нас "+mine+" против "+theirs : " — я последний, их "+theirs));   // (v323) последний погибший — без «нас 0»
+  voiceLog(victim.team, "die"+victim.id, victim.id, "минус"+(killer ? (saw ? ", снял "+killer.id+" "+calloutName(killer.x, killer.y, true) : ", стреляли "+calloutName(killer.x, killer.y, true)) : " "+place)+
+    (mine > 0 ? ". "+mine+" на "+theirs : ". Все, их "+theirs));   // (v323) последний погибший — без «нас 0»
   if(mine === 1 && theirs >= 2){
     var last = bots.filter(function(o){ return o.team === victim.team && o.alive; })[0];
-    if(last) voiceLog(victim.team, "clutch", last.id, "я один против "+theirs+" — "+
+    if(last) voiceLog(victim.team, "clutch", last.id, "1 на "+theirs+" — "+
       (teamSaving(victim.team) ? "сейвлюсь" :
-       victim.team === "CT" && bomb && bomb.state !== "planted" ? "тяну время, беру по одному" :
-       victim.team === "T" && bomb && bomb.state === "planted" ? "сижу у бомбы, жду дефуз" : "беру по одному"));
+       victim.team === "CT" && bomb && bomb.state !== "planted" ? "тяну время" :
+       victim.team === "T" && bomb && bomb.state === "planted" ? "сижу на бомбе" : "по одному"));
   }
   // команда убийцы тоже "знает", где и кого сняли (свой же игрок сказал "минус ...")
   // (аудит информации 30.10) роль убитого — то, что команда убийцы может знать: где этот игрок обычно стоит (ctHabit — увиденные и
@@ -321,7 +320,7 @@ function intelDeath(victim, killer){
       o._tradeLock = {until: tick + Math.round(3.5*TICK_HZ), at:{x:victim.x, y:victim.y}, kp:kp};
       o._tradeUntil = tick + Math.round(3.5*TICK_HZ);
       o.heardSound = {x:kp.x, y:kp.y, tick:tick, team:killer.team, src:killer.id, kind:"call"};
-      if(k === 0) voiceLog(o.team, "trade"+victim.id, o.id, "меняю "+victim.id+"!");
+      if(k === 0) voiceLog(o.team, "trade"+victim.id, o.id, "размен за "+victim.id+"!");
     });
   }
   // ---- подмена (v272, просьба владельца 13.10; из «мозга 2» — tdefRefill, rebuild-v238 12_t_default.js): свой погиб, а
@@ -362,7 +361,7 @@ function intelDeath(victim, killer){
         .sort(function(p, q){ return Math.hypot(p.x-fBest.x, p.y-fBest.y) - Math.hypot(q.x-fBest.x, q.y-fBest.y); }) : [];
       var fp = fpC[0] || (fl && pickSpots("fill"+tick+fBest.id, fc, 1, {rMax:170, minGap:30, see:[fl]})[0]) || fc;
       if(setPost(fBest, fp, fl, true, "fill")){ fBest._fillLock = {until: tick + 15*TICK_HZ, team: victim.team, pt: fp, ph: victim.team === "T" ? teamTac.T.phase : null};
-      voiceLog(victim.team, "fill"+victim.id, fBest.id, "займу "+calloutName(fc.x, fc.y)+" вместо "+victim.id); }
+      voiceLog(victim.team, "fill"+victim.id, fBest.id, "закрываю "+calloutName(fc.x, fc.y).replace(/^на /, "")+" за "+victim.id); }
     }
   }
   // IGL: энтри сняли на выходе — вторая волна не пикает тот же угол "в лоб":

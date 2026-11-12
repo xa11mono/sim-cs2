@@ -300,7 +300,7 @@ function tryShoot(shooter, target, dist){
       var HT = teamIntel[shooter.team].hurt || (teamIntel[shooter.team].hurt = {});
       var prevH = HT[target.id];
       HT[target.id] = {hp:target.hp, tick:tick, by:shooter.id};
-      if(target.hp <= 40 && (!prevH || prevH.hp > 40)) voiceLog(shooter.team, "hurt"+target.id, shooter.id, target.id+" на "+target.hp+"!");
+      if(target.hp <= 40 && (!prevH || prevH.hp > 40)) voiceLog(shooter.team, "hurt"+target.id, shooter.id, "тапнул "+target.id+", "+target.hp+" хп");
     }
     if(killed){
       // раздел 12: "засвет" — после килла позиция стрелка известна врагу; если

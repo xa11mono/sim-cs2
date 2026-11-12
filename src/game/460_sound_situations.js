@@ -37,7 +37,7 @@ function reloadHeard(b, w){
   var hs = emitSound(b, b.x, b.y, 380, 220, "reload", tick*29 + (b.id.charCodeAt(b.id.length-1)||0)*7);
   hs.forEach(function(o){
     o._heardReload = {id:b.id, x:o.heardSound.x, y:o.heardSound.y, until:b.reloadUntil};
-    if(!o._rlVoice || o._rlVoice + 3*TICK_HZ < tick){ o._rlVoice = tick; voiceLog(o.team, "rl"+b.id, o.id, b.id+" перезаряжается "+calloutName(o.heardSound.x, o.heardSound.y)+"!"); }
+    if(!o._rlVoice || o._rlVoice + 3*TICK_HZ < tick){ o._rlVoice = tick; voiceLog(o.team, "rl"+b.id, o.id, "перезарядка "+calloutName(o.heardSound.x, o.heardSound.y).replace(/^на /, "")+"!"); }
     // по голосу знают и ближние тиммейты
     bots.forEach(function(m){ if(m !== o && m.alive && m.team === o.team && nearP(m.x, m.y, m.z, o.x, o.y, o.z, 500)) m._heardReload = o._heardReload; });
   });
@@ -117,7 +117,7 @@ function finishPush(b){
   setPost(b, sp, {x:tgt.x, y:tgt.y}, true, "repos:finish");
   if(!b.post || b.post.tag !== "repos:finish") return;
   b._finId = tid; b._reposUntil = tick + 3*TICK_HZ; b.lastIntel = {x:tgt.x, y:tgt.y, tick:tick, src:"call"};
-  voiceLog(b.team, "fin"+tid+b.id, b.id, tid+" на "+HT[tid].hp+" — добиваю");
+  voiceLog(b.team, "fin"+tid+b.id, b.id, tid+" лоу, "+HT[tid].hp+" — добиваю");
 }
 // ---- (S7) смок уходит — готовность к выходу из-за него ----
 function smokeFadeTick(){
@@ -137,7 +137,7 @@ function smokeFadeTick(){
       var a = Math.atan2(sm.y-b.y, sm.x-b.x), ex = {x: sm.x + Math.cos(a)*NADE.smoke.radius, y: sm.y + Math.sin(a)*NADE.smoke.radius};
       b.lastIntel = {x:ex.x, y:ex.y, tick:tick, src:"call"}; // прицел на выход из дыма — префайр, если выйдет
       b.heardSound = {x:ex.x, y:ex.y, tick:tick, team:b.team === "CT" ? "T" : "CT", src:"?", kind:"call"};
-      if(!sm._fadeVoice){ sm._fadeVoice = 1; voiceLog(b.team, "fade"+Math.round(sm.x)+b.team, b.id, "смок уходит — готовы, они за ним"); }
+      if(!sm._fadeVoice){ sm._fadeVoice = 1; voiceLog(b.team, "fade"+Math.round(sm.x)+b.team, b.id, "смок спадает — готовьтесь"); }
     });
   });
 }

@@ -246,7 +246,7 @@ function tBrain(){
   if(tt.phase === "setup" && tick % 16 === 0){ var SRd = knowSetupRead("T");
     if(SRd && SRd.n > (tt.setupRead ? tt.setupRead.n : 0)){ tt.setupRead = SRd;
       var sk = ["A","mid","B"].filter(function(r){ return SRd.seen[r]; }).map(function(r){ return (r === "mid" ? "на миду " : "на " + r + " ") + SRd.seen[r]; }).join(", ");
-      voiceLog("T", "setup" + roundNum + "_" + SRd.n, "IGL", sk + " — у них " + SRd.top.join(" или ") + ": на A ~" + SRd.E.A.toFixed(1) + ", на B ~" + SRd.E.B.toFixed(1)); } }
+      voiceLog("T", "setup" + roundNum + "_" + SRd.n, "IGL", sk + " — похоже " + SRd.top[0] + (SRd.E.A >= SRd.E.B + 0.5 ? ", на A плотнее" : SRd.E.B >= SRd.E.A + 0.5 ? ", на B плотнее" : "")); } }
   // раздел 12: проба увидела на нашем сайте ровно одного, и по карте там больше
   // никого — "там соло, заходим" (не ждём тайминга)
   if(tt.phase === "setup" && tick - roundStartTick > (BAL.proTempo ? 28 : 12)*TICK_HZ && !tt.soloGo && !(BAL.proTempo && hashRand(roundNum*577 + matchNum*41 + 3) < 0.5)){
@@ -377,7 +377,7 @@ function tBrain(){
       if(ks2 !== tt.site){ var exS = tt.execStart; tSetSite(tt, ks2); tt.execStart = exS; site = SITES[ks2]; g = GEO[ks2]; other = ks2 === "A" ? "B" : "A"; plantPt = site.plant || site; }
       if(tt.phase === "setup"){ tt.phase = "execute"; tt.execStart = tick; }
       tt.wave2 = tt.wave2 || tick;
-      voiceLog("T", "solo", solo.id, "я один — иду ставить на "+ks2+", в дуэли не лезу");
+      voiceLog("T", "solo", solo.id, "один, иду ставить "+ks2);
     }
   }
   var stageOpt = function(k){ return {rMax:200, minGap:50, hideFrom:[SITES[k], GEO[k].anchor], see:[GEO[k].tEntry], avoidNades: BAL.tAdapt ? tDeathSpots() : []}; };
@@ -618,7 +618,7 @@ function tBrain(){
       // (v555, отметка владельца м300 р3: «ждёт гранаты, когда он один») размен ждать не от кого — живых своих нет (кроме лёрка): не ждёт
       var anyMate = ts.some(function(o){ return o !== b && o.alive && o.tRole !== "lurker"; });
       if(!inAir && (mate || !anyMate)){ b._utilW = null; return false; }
-      if(!mate && !inAir && !(b._utilW && b._utilW.round === roundNum)) voiceLog("T", "tradewait"+b.id+roundNum, b.id, "жду размен — выходим вдвоём");
+      if(!mate && !inAir && !(b._utilW && b._utilW.round === roundNum)) voiceLog("T", "tradewait"+b.id+roundNum, b.id, "жду, выходим вдвоём");
       // (v349, отметка владельца: donk ждал на выходе с T Ramp на виду у NiKo — бой начинался раньше гранат) ждёт в ближайшем
       // укрытии (≤ 150 ед.: не видно с сайта, опорника и входа CT), а не там, где застала проверка
       if(!b._utilW || b._utilW.round !== roundNum){ var g0 = GEO[tt.site], hf = [S0, g0 && g0.anchor, g0 && g0.ctEntry].filter(Boolean);
@@ -822,7 +822,7 @@ function tBrain(){
             if(cz) pool.forEach(function(n){ if(used[n] || n === nm) return; var zp = zonePoint(n, site); if(!zp) return;
               if(Math.hypot(zp.x-g.ctEntry.x, zp.y-g.ctEntry.y) > dC - TAKE_STEP) return; var dz = Math.hypot(zp.x-cz.x, zp.y-cz.y); if(dz > TAKE_REACH) return;
               if(dz < bn){ bn = dz; nx2 = n; } });
-            if(nx2){ delete used[nm]; used[nx2] = true; tt.takeAssign[b.id] = nx2; voiceLog("T", "adv"+b.id+nx2+roundNum, b.id, "тут чисто, двигаюсь "+calloutName(zonePoint(nx2, site).x, zonePoint(nx2, site).y)); nm = nx2;
+            if(nx2){ delete used[nm]; used[nx2] = true; tt.takeAssign[b.id] = nx2; voiceLog("T", "adv"+b.id+nx2+roundNum, b.id, "чисто, иду "+calloutName(zonePoint(nx2, site).x, zonePoint(nx2, site).y)); nm = nx2;
               tp = namedSpot(nm, site, {see:[g.ctEntry], key:"take"+tt.site}); b._takeAt = {nm:nm, round:roundNum, arr:0}; }
             else TA.arr = tick + 10*TICK_HZ;   // глубже некуда — держит
           }
@@ -1022,7 +1022,7 @@ function tBrain(){
       holdGroup(group, {key:"pp"+bomb.site+Math.round(bp0.x/30), center:bp0, rArea: BAL.ppFar ? 420 : 320, rMin: BAL.ppFar ? 180 : 90, rMax: BAL.ppFar ? 520 : 420, must:[bp0], anyFrom:true,   // (v520, владелец 09.11: «занимают позиции, с которых видна бомба») бомбу видят все, не только первый (было mustFirst, до 680 px — встали в Hole)
         // (v442, док владельца 27.10: «войс спамится» — «держу бомбу, смотрю X» каждый игрок при каждой смене угла, 3–4 строки в секунду) — один
         // раз за раунд на игрока: куда смотрит дальше, видно на радаре
-        voice:function(b, r){ if(r.main && b._ppSaid !== roundNum && (b._ppSaid = roundNum)) voiceLog("T", "pphold"+b.id, b.id, "держу бомбу, смотрю "+calloutName(r.main.pt.x, r.main.pt.y).replace(/^на /,"")); }}, "postplant:hold");
+        voice:function(b, r){ if(r.main && b._ppSaid !== roundNum && (b._ppSaid = roundNum)) voiceLog("T", "pphold"+b.id, b.id, "смотрю бомбу "+calloutName(r.main.pt.x, r.main.pt.y).replace(/^на /,"")); }}, "postplant:hold");
       return;
     }
     if(BAL.namedPos){

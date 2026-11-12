@@ -84,7 +84,7 @@ function lurkerBrain(b, tt, other){
       b._route = null; b._routeDone = null;   // маршрут лёрка сетапа — закончен
       // (ответ владельца 05.11) прошёл свою сторону сам до выхода — поздний выход оттуда: с прохода ротации в спину сайту выхода
       b._lurkGo = {round:roundNum, site:tt.site, route: soloOn ? [GEO.rotator, gs.ctEntry] : nearOther ? [LP.entry, go.anchor, GEO.rotator, gs.ctEntry] : [gs.tStage || gs.tEntry, gs.tEntry], i:0, t:0};
-      voiceLog("T", "lurkgo"+roundNum, b.id, soloOn ? "выхожу с прохода — со спины на "+tt.site : nearOther ? "захожу с "+other+" — режу ротацию, буду со спины на "+tt.site : "иду к вам на "+tt.site);
+      voiceLog("T", "lurkgo"+roundNum, b.id, soloOn ? "иду в спину на "+tt.site : nearOther ? "режу ротацию с "+other : "иду к вам на "+tt.site);
     }
     var LG = b._lurkGo, i = Math.min(LG.i, LG.route.length-1);
     var look = i < LG.route.length-1 ? LG.route[i+1] : site;
@@ -364,7 +364,7 @@ function markClear(team, x, y, who, posChecked){
   if(!posChecked && !zoneSeenAll(who, zid)) return null;
   CLEARZ[team][zid] = {tick:tick, x:x, y:y, round:roundNum};
   knowClearZone(team, x, y);
-  voiceLog(team, "clz"+zid, who, "чекнул "+(zoneUserName(zid) || calloutName(x, y))+" — пусто");
+  voiceLog(team, "clz"+zid, who, (zoneUserName(zid) || calloutName(x, y).replace(/^на /, ""))+" чисто");
   return zid;
 }
 // (v490) оценка сайта k командой team — по тому, где команда недавно видела живых врагов: «не знаем, где» = живые враги, которых своя команда

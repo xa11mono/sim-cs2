@@ -215,7 +215,7 @@ function contactTick(b){
   // действий, а в войсе про — враг, где и сколько, свои гранаты (PRO_PLAY, «Войс»). «Держу» не говорится; «выхожу на него» — один раз
   // на врага за раунд (у каждого нового выбора точки раньше — снова)
   if(swing){ var sk = C.id || calloutName(look.x, look.y), SS = b._swSaid && b._swSaid.r === roundNum ? b._swSaid : (b._swSaid = {r:roundNum});
-    if(!SS[sk]){ SS[sk] = 1; voiceLog(b.team, "ct"+b.id+Math.round(tick/64), b.id, "выхожу на него "+calloutName(look.x, look.y)); } }
+    if(!SS[sk]){ SS[sk] = 1; voiceLog(b.team, "ct"+b.id+Math.round(tick/64), b.id, "пикаю "+calloutName(look.x, look.y).replace(/^на /, "")); } }
 }
 // ======================= (v419, хвост 350:70, владелец 25.10) ЗАДЕРЖАТЬ ГРАНАТОЙ — одно место для CT =======================
 // PRO_PLAY.md (CT): «отказать и потянуть — утилитой задерживать», «тиммейт держит утилиту и кидает при контакте», «молотов

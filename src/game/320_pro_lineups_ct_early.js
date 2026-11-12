@@ -370,6 +370,6 @@ function ctInfoCheck(b, ct, cts){
   var pt = probeViewPoint({x:b.x, y:b.y}, best.c, best.c); if(!pt) return false;
   if(!setPost(b, pt, best.c, true, "probeInfo") || !(b.post && b.post.tag === "probeInfo")) return false;
   I.by = b.id; I.n++; I.pt = pt; I.look = {x:best.c.x, y:best.c.y}; I.x = best.c.x; I.y = best.c.y; I.until = tick + INFO_HOLD*TICK_HZ; I.at = 0;
-  voiceLog("CT", "info"+b.id+roundNum+I.n, b.id, "инфы нет — гляну "+calloutName(best.c.x, best.c.y));
+  voiceLog("CT", "info"+b.id+roundNum+I.n, b.id, "гляну "+calloutName(best.c.x, best.c.y).replace(/^на /, ""));
   return true;
 }

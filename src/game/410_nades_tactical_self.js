@@ -31,7 +31,7 @@ function buyReadSee(team, eid){
   if(R.read && R.read !== prev){
     var mate = bots.filter(function(o){ return o.team === team && o.alive; })[0];
     if(mate) voiceLog(team, "buy"+R.read, mate.id, R.read === "eco" ? "у них пистолеты ("+R.pistols+" видели) — эко, не лезем в упор, держим дистанцию"
-      : "у "+eid+" "+(W ? W.name : "оружие")+" — это закуп, не эко");
+      : "у них закуп — у "+eid+" "+(W ? W.name : "винтовка"));
     logEvent(team+": закуп врага по контактам — "+(R.read === "eco" ? "эко" : "закуп")+" (видели: "+R.n+", винтовок "+R.rifles+", пистолетов "+R.pistols+")");
   }
 }
@@ -270,7 +270,7 @@ function nadeReact(){
     var why = "себе под пик "+b.id;
     throwNade(b, "flash", tgt.x, tgt.y, true, why);
     b._waitPopUntil = tick + Math.round(1.1*TICK_HZ); b._waitPopKey = "pop:"+why;
-    voiceLog(b.team, "sflash"+b.id, b.id, "флешу себе и выхожу");
+    voiceLog(b.team, "sflash"+b.id, b.id, "флешу себе");
   });
 }
 // (v374, этап 3 плана владельца: «граната — часть действия») сторож: гранаты покупают почти как про, но бросают меньше — из 3,2
