@@ -246,7 +246,8 @@ var RND_PART = {plant: 0.25, kill: 0.1, max: 0.6};   // проектные чи�
 function rememberRound(winner){
   bots.forEach(function(b){ var A = aggrObs[b.id] || (aggrObs[b.id] = {e:0, r:0}); A.r++; });
   var tt = teamTac.T; if(!tt) return;
-  var M = tacMem[tt.tac.id] || (tacMem[tt.tac.id] = {n:0, w:0, plants:0});
+  var TAC0 = tt.open || tt.tac;   // (v561) дефолт с продолжением — в памяти начало (его выбирает chooseTactic)
+  var M = tacMem[TAC0.id] || (tacMem[TAC0.id] = {n:0, w:0, plants:0});
   // (v561, этап 8 docs/tasks/PLAN_TACTICS_V2.md; PRO_PLAY §6з: «успех тактики — не только победа: плант, убитые CT») проигранный раунд даёт
   // часть успеха: плант — RND_PART.plant, каждый убитый соперник — RND_PART.kill (вместе — меньше победы); та же мерка у расстановки CT
   var deadCT = bots.filter(function(o){ return o.team === "CT" && !o.alive; }).length, deadT = bots.filter(function(o){ return o.team === "T" && !o.alive; }).length;

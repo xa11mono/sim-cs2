@@ -21,10 +21,30 @@ function carrierAtSite(tt){
   if(!BAL.carrierStay || bomb.state !== "carried" || !bomb.carrier || !bomb.carrier.alive) return false;
   var S = SITES[tt.site]; return Math.hypot(bomb.carrier.x-S.x, bomb.carrier.y-S.y) < 330 || onSite(S, bomb.carrier.x, bomb.carrier.y);
 }
+var CONT_SEC = 6, CONT_REGROUP = 6;   // с: решение о продолжении дефолта — за столько до выхода; перестроиться — столько (проектные числа)
 function tIglReplan(tt, site, other, secLeft){
   var DL = tt._dl || [], aliveT = aliveCount("T"), aliveCT = aliveCount("CT");
   if(bomb.state === "planted" || aliveT <= 1) return false;
   if(carrierAtSite(tt)) return false;
+  // (v561, этап 3 docs/tasks/PLAN_TACTICS_V2.md; PRO_PLAY §6з: «тактика — не маршрут, а начало + продолжения; продолжение — по тому, что узнали»)
+  // дефолт — начало: в конце фазы дефолта (defUntil — группа идёт на точку выхода; нет её — за CONT_SEC до выхода) IGL выбирает продолжение на этот сайт из выходов и сплитов набора — путь, который команда уже держит
+  // (свой в 250 px от точки пути), лучше; где команда знает свежего CT (300 px) — хуже; поровну — жребий. Группа перестраивается под него
+  // (выход — не раньше чем через CONT_REGROUP с). Тактика раунда в памяти матча — начало (tt.open)
+  if(tt.phase === "setup" && tt.tac.style === "default" && !tt._cont && tt.site === tt.tac.site && aliveT >= 3 && tt.execTick > tick && (tt.defUntil ? tick >= tt.defUntil : tt.execTick - tick <= CONT_SEC*TICK_HZ)){
+    tt._cont = tick;
+    var tsC = bots.filter(function(b){ return b.team === "T" && b.alive; }), BLc = beliefLast.T || {};
+    var contScore = function(t){ var sc = 0; t.groups.forEach(function(g){ (g.via || []).forEach(function(n){ var zp = zonePoint(n, site); if(!zp) return;
+      if(tsC.some(function(b){ return Math.hypot(b.x-zp.x, b.y-zp.y) < 250; })) sc += 1;
+      if(bots.some(function(o){ var e = BLc[o.id]; return o.alive && o.team === "CT" && e && tick - e.tick <= SITE_SEEN_SEC*TICK_HZ && Math.hypot(e.x-zp.x, e.y-zp.y) < 300; })) sc -= 2; }); }); return sc; };
+    var cands = T_TACTICS.filter(function(t){ return t.site === tt.site && (t.style === "exec" || t.style === "split") && t.groups && t.groups.length; });
+    var bestC = null, bsC = -Infinity;
+    cands.forEach(function(t, i){ var v = contScore(t) + hashRand(roundNum*271 + matchNum*13 + i)*0.5; if(v > bsC){ bsC = v; bestC = t; } });
+    if(bestC){
+      tt.open = tt.open || tt.tac; tt.tac = bestC; tt.execTick = Math.max(tt.execTick, tick + CONT_REGROUP*TICK_HZ);
+      voiceLog("T", "cont"+roundNum, "IGL", "после дефолта — "+bestC.name);
+      logEvent("IGL: дефолт → продолжение «"+bestC.name+"» (держим путь: "+Math.max(0, Math.round(bsC))+")");
+    }
+  }
   if(tt.phase === "setup"){
     var sd = DL.filter(function(e){ return e.t === "T" && e.phase === "setup"; });
     var last = sd[sd.length-1];

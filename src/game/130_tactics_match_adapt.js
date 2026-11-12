@@ -225,7 +225,9 @@ function chooseTactic(){
   // (v519, пак 09.11 п.12; А-7: «на паузе IGL говорит: медленно, идём A, — а выбирают мид-КТ, Б с двух сторон») сказанное на паузе — исходный план
   // раунда: тактика — из тех, что ему соответствуют (сайт, темп; фейк — если план «фейк»), а не вес ×1,8 / ×0,5. Нет такой в наборе для этого
   // типа раунда — как было (веса ниже). Переколл по ходу раунда — по новой информации, как обычно (160 / 170)
-  if(BAL.timeouts && roundNum <= TOUT.T.until && TOUT.T.plan){ var TPf = TOUT.T.plan;
+  // (v561, прогон 207: после паузы «быстро, A» — rushA три раунда подряд, до этого «фейк» — фейк три раза подряд) отбор по плану — только в
+  // первом раунде после паузы (сказанное на паузе — план этого раунда); дальше до TOUT.T.until — сдвиги весов ниже (×1,3 … ×2,5)
+  if(BAL.timeouts && roundNum <= TOUT.T.until && TOUT.T.plan && roundNum === (TOUT.T.plan.first != null ? TOUT.T.plan.first : roundNum)){ var TPf = TOUT.T.plan;
     var fit = pool.filter(function(t){
       if(TPf.fake) return t.style === "fake";
       if(TPf.site && t.site !== TPf.site) return false;
