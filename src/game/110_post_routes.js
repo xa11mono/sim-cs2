@@ -386,7 +386,7 @@ function setPost(b, pt, look, hold, tag, spreadIdx){
   // (v260, В3) та же точка и задача — путь не сбрасываем, но новое направление взгляда принимаем
   // (v570) та же точка — пост держится, но если после сдвига туда же встал свой (его пост поставлен позже — сдвиг считался без него), один
   // из двоих (у кого id больше) считает место заново: было — двое CT на охоте в одной точке (1026, 1493) до конца раунда
-  var ownL = hold && taskProp(String(tag), "ownLine") && !POST_EXACT.test(String(tag));
+  var ownL = BAL.ownLine && hold && taskProp(String(tag), "ownLine") && !POST_EXACT.test(String(tag));
   if(b.post && b.post.id === id && !(ownL && bots.some(function(o){ return o !== b && o.alive && o.team === b.team && o.id < b.id && o.post && Math.hypot(o.post.x-b.post.x, o.post.y-b.post.y) < SPOT_PERSONAL; }))){ b.post.look = look || null; return true; }
   var x = pt.x, y = pt.y;
   // (v370, владелец: «не стоят в толпе») точка, где уже стоит / куда идёт свой (≤ SPOT_PERSONAL), — встаём рядом поперёк взгляда,
