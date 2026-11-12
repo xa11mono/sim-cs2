@@ -86,15 +86,19 @@ function nadeBetter(type, a, b){
   return b.e3 < a.e3 ? b : a;
 }
 function nadeGuessKey(type, x, y, z, tx, ty, duck, wide){ return type+"|"+x+","+y+","+z+"|"+tx+","+ty+(duck ? "d" : "")+(wide ? "w" : ""); }
+var NADE_GUESS_PAID = {};   // (v570) подсказки, цена которых уже списана в лимит тика (переменная — в снимке)
 function nadeGuess(type, x, y, z, tx, ty, duck, wide){
   var k = nadeGuessKey(type, x, y, z, tx, ty, duck, wide), g = nadeGuessStore(k);
   // (v560, В86) подсказка, посчитанная в игре (не из набора карты), стоит в счёте тика столько же подборов, сколько стоила в первый раз:
   // память подсказок вне снимка — после перемотки она уже есть, а счёт подборов тика должен выйти тем же
-  if(g !== undefined && nadeGuess.rt[k]){ if(NADE_TICK.t !== tick){ NADE_TICK.t = tick; NADE_TICK.n = 0; } NADE_TICK.n += nadeGuess.rt[k]; }
+  // (v570, отметка владельца м1 р3 12,1 с, T1: «долго стоит на точке лайнапа и не кидает») — один раз, как будто её посчитали заново: было — при каждом
+  // запросе, до проверки лимита тика, и бросок не проходил никогда («пауза: подбор броска» каждый тик). «Уже оплачена» — переменная игры
+  // (в снимке): после перемотки цена снова списывается один раз, как в первый раз
+  if(g !== undefined && nadeGuess.rt[k] && !NADE_GUESS_PAID[k]){ if(NADE_TICK.t !== tick){ NADE_TICK.t = tick; NADE_TICK.n = 0; } NADE_TICK.n += nadeGuess.rt[k]; NADE_GUESS_PAID[k] = 1; }
   if(g === undefined){ g = nadeSolve(type, x, y, z, tx, ty, duck, wide);
     var A = luAimFor(type, x, y, tx, ty);
     if(A) g = nadeBetter(type, g, nadeSolve(type, x, y, z, tx, ty, duck, wide, {yaw: A.yaw, pitch: A.pitch, strength: A.strength, jump: A.jump, e3: A.err, levelOk: true}));
-    nadeGuessStore(k, g); nadeGuess.rt[k] = A ? 2 : 1; }
+    nadeGuessStore(k, g); nadeGuess.rt[k] = A ? 2 : 1; NADE_GUESS_PAID[k] = 1; }
   return g;
 }
 // ключ подсказки, посчитанной в игре → сколько подборов она стоила (В86). Свойство функции, а не переменная: живёт, как память подсказок,
@@ -540,6 +544,12 @@ function updateNadeTask1(b){
       // оставляет (кроме боя: engage / retreat — сначала бой)
       var here = Math.hypot(t.from.x-b.baseX, t.from.y-b.baseY) > LU_AT && !(b.atPost && b.post && b.post.tag === "lineup");
       if(here){
+        // (v570, отметка владельца м1 р3 15,7 с, CT1: «назначается лайнап, который он может кинуть и с текущего места») — было: к точке
+        // лайнапа шёл всегда (3+ с через мид). Сначала — одна попытка броска отсюда: подбор считает полёт из места бойца (лайнап —
+        // подсказкой), граната ложится туда же — летит сразу; не долетает / стена — идёт на точку. Пауза подбора — попробует в следующем тике
+        if(!t._hereTried && (b.state === "patrol" || b.state === "hold") && nadeReady(b)){
+          if(throwNade(b, t.type, t.x, t.y, true, t.why, false, t.from)){ b.nadeTask = null; if(b.post && b.post.tag === "lineup") clearPost(b); return; }
+          if(!/пауза/.test(NADE_FAIL || "")) t._hereTried = 1; }
         if(b.state === "hold" && !b._sawEnemy) leaveHold(b);
         // (v378) задача важнее броска (арбитр места) — бросок не идёт, пока она не кончится (с v438 — ждёт, а не отменяется)
         // (v438, док владельца 27.10: «мид взяли без гранат, хотя куплены»; замер: 29 % заданий снимала задача важнее — бой, перестановка)

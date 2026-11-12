@@ -412,7 +412,10 @@ function tBrain(){
         // «тактика одна, а игроки делают другое») места дефолта — по долям про, но в районе своей группы тактики: зона про, ближняя
         // (≤ DEF_GROUP_R) к пути или точке подготовки группы (G.via, G.stage; мид — TMID). У группы нет таких зон — встаёт на точку подготовки
         // группы. Раньше зоны выпадали жребием по всей карте — группа Паласа стояла на миде, и потом шла в Палас через карту и врагов
-        var gOf = function(b){ var r = null; (tac.groups || []).forEach(function(G){ if(!r && G.roles.indexOf(b.tRole) >= 0) r = G; }); return r; };
+        // (v570, отметка владельца м1 р4 38 с: «подобрав бомбу, пошёл в Палас дефолт, а не переколил на B, хотя знал, что там стак») после
+        // перекола на другой сайт группы тактики (пути к старому сайту — Рамп, Палас) — уже не район места: место дефолта — по долям про
+        // у нового сайта. И выбор мест (_defZ) — заново под новый сайт: было — раз на раунд, и после перекола A → B носитель шёл в Палас
+        var gOf = function(b){ var r = null; if(tac.site && tac.site !== tt.site) return null; (tac.groups || []).forEach(function(G){ if(!r && G.roles.indexOf(b.tRole) >= 0) r = G; }); return r; };
         var gPts = function(G){ var P = [];
           if(!G) return P;
           if(G.stage === "TMID"){ var tm = tt.tMidPt || GEO.tMid; if(tm) P.push(tm); return P; }
@@ -433,10 +436,10 @@ function tBrain(){
           var wt = pool.reduce(function(a, z){ return a + z[1]; }, 0), u = hashRand(seed)*wt, di = 0;
           while(di < pool.length - 1 && u > pool[di][1]){ u -= pool[di][1]; di++; }
           return pool[di][0]; };
-        if(!tt._defZ || tt._defZ.n !== dm.length){
+        if(!tt._defZ || tt._defZ.n !== dm.length || tt._defZ.site !== tt.site){
           var used = {}, ch = {};
           dm.forEach(function(b, dk){ ch[b.id] = defPick(b, used, roundNum*733 + matchNum*91 + dk*17 + 5); if(ch[b.id]) used[ch[b.id]] = 1; });
-          tt._defZ = {n: dm.length, z: ch};
+          tt._defZ = {n: dm.length, z: ch, site: tt.site};
         }
         // (Г3, 04.11, пп. 27/29 и ответ владельца: «в реальности нет таймера — место меняют по ситуации, по геймсенсу») смена места дефолта
         // через DEF_STAND (13 с стояния) убрана: место меняется по событиям — контакт (350), перестановки (470/480), план IGL (160)

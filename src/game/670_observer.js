@@ -244,8 +244,13 @@ function obsFrame(ts){
     var wantWide = !live || !hot;
     if(OBS.wide === undefined){ OBS.wide = true; OBS.planT = tick; }
     var heldP = tick - (OBS.planT||0);
+    // (v570, владелец 12.11: «когда много экшена в одном месте, камера резко на общий план, потом резко на игрока») — было: «тихо» = в этот
+    // тик никто не в бою, а на игроке уже ≥ OBS_NEAR_CALM с; в долгом бою на месте мгновенный разрыв перестрелки (перезарядка, ушёл за
+    // укрытие) уводил на общий план, и через тик бой — снова к игроку. Теперь «тихо» — OBS_NEAR_CALM с подряд без боя
+    if(hot || OBS.hotT == null) OBS.hotT = tick;
+    var calm = tick - OBS.hotT;
     if(live && OBS.wide && heldP > obsT(OBS_WIDE_MAX) && !hot) wantWide = false;          // долго общий план — к игроку
-    if(live && !OBS.wide && !hot && heldP > obsT(OBS_NEAR_CALM)) wantWide = true;         // на игроке тихо — общий план
+    if(live && !OBS.wide && !hot && calm > obsT(OBS_NEAR_CALM) && heldP > obsT(OBS_NEAR_CALM)) wantWide = true;   // на игроке тихо — общий план
     else if(live && !OBS.wide && !hot) wantWide = false;
     if(live && lockB) wantWide = false;
     if(wantWide !== OBS.wide && (heldP > obsT(OBS_PLAN_MIN) || (hot && OBS.wide) || (lockB && OBS.wide))){ OBS.wide = wantWide; OBS.planT = tick; OBS.tr = null;

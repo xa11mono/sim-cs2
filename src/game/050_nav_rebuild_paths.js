@@ -380,8 +380,13 @@ function knownSegCost(a, b, q){
   var fx = a.x - q.x, fy = a.y - q.y;
   var B = 2*(fx*dx + fy*dy), C = fx*fx + fy*fy - R*R, D = B*B - 4*L2*C; if(D <= 0) return 0;
   var sq = Math.sqrt(D), t0 = Math.max(0, (-B - sq)/(2*L2)), t1 = Math.min(1, (-B + sq)/(2*L2)); if(t1 <= t0) return 0;
-  return KNOWN_DETOUR*q.w*(t1 - t0)*Math.sqrt(L2)/(2*R);
+  // (v570, отметка владельца м1 р4 38 с: «подобрав бомбу, построился путь через стак врагов» — путь в Палас шёл через A прямо по CT, которого
+  // видели (вес 1): насквозь через круг — 500, обход через спавн T дороже) штраф растёт, чем ближе путь к самому месту врага: по краю
+  // круга — как было, через середину — ×(1 + KNOWN_CLOSE_K) — пройти мимо врага в упор почти никогда не дешевле обхода
+  var tm = Math.max(0, Math.min(1, -B/(2*L2))), cx = a.x + dx*tm - q.x, cy = a.y + dy*tm - q.y, dmin = Math.sqrt(cx*cx + cy*cy);
+  return KNOWN_DETOUR*q.w*(t1 - t0)*Math.sqrt(L2)/(2*R)*(1 + KNOWN_CLOSE_K*Math.max(0, 1 - dmin/R));
 }
+var KNOWN_CLOSE_K = 2;   // (v570) проектное число
 function zoneDijkstra(fromId, toId, team){
   if(fromId===toId) return [fromId];
   var side = team === "CT" ? zoneSideMap() : null;

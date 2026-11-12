@@ -223,6 +223,14 @@ function ctSetupRole(b, role, ct){
   // точка бралась любая внутри зоны) место роли годно, только если с точки видно то, что роль держит (точка взгляда): выбранное место
   // первым, потом остальные свободные места роли; нигде не видно — как было (выбранное место)
   var tryN = [nm0].concat(names.filter(function(n){ return n !== nm0; })), nm = nm0, c = null, lk = null, spots = null;
+  // (v570, владелец 12.11 к отметке м1 р3: «почему не сыграли кроссфайером — все в одной позиции; можно с ладдера через Catwalk / Short,
+  // кто-то на Connector») места ролей в данных расстановки совпадают (1-3-1 Mirage: у ротатора и роумера — Window / Connector / Under
+  // Window), и трое вставали в одну точку. Место роли — на своей линии: не ближе CT_CROSS_GAP к месту другого CT. Нет такого среди мест
+  // роли — места, где у про стоят CT в этом районе (MAP.zoneprops: доля CT в демках, тот же край карты), ближние по пути
+  var ctOthers = bots.filter(function(o){ return o !== b && o.alive && o.team === "CT" && o.post; });
+  var crossOk = function(q){ return ctOthers.every(function(o){ return Math.hypot(o.post.x-q.x, o.post.y-q.y) >= CT_CROSS_GAP; }); };
+  ctProZones(ref).forEach(function(n){ if(tryN.indexOf(n) < 0) tryN.push(n); });
+  var crossAlt = null;
   for(var ti = 0; ti < tryN.length; ti++){
     var c1 = zonePoint(tryN[ti], ref); if(!c1) continue;
     var lk1 = (P.lookPt && {x: P.lookPt[0], y: P.lookPt[1]}) || (P.look && zonePoint(P.look, c1)) || ref;
@@ -231,9 +239,19 @@ function ctSetupRole(b, role, ct){
     // места: в 150 от точки зоны легко попасть в соседнюю, а соседняя бывает уже чужой стороной. Нет такой — как было
     var in1 = sp1.filter(function(q){ return zoneUserName(zoneIdAt(q.x, q.y)) === tryN[ti]; }); sp1 = in1.length ? in1 : sp1;
     var see1 = sp1.filter(function(q){ return hasLOS(q.x, q.y, lk1.x, lk1.y); });
+    // (v570, отметка владельца м1 р3 15,7 с: «все игроки по тактике 1-3-1 стоят в одной точке») — места ролей одной расстановки бывают
+    // в одной зоне (мидер, ротатор, роумер — 25–57 ед. друг от друга), а сдвиг в setPost в тесном проходе не находил места. Точка, где уже
+    // стоит / куда идёт свой (spotTaken), — не вариант; все заняты — следующее место роли; нигде нет — как было
+    var free1 = see1.filter(function(q){ return !spotTaken(b, q) && crossOk(q); });
     if(ti === 0){ nm = tryN[0]; c = c1; lk = lk1; spots = sp1.slice(0, 3); }
-    if(see1.length){ nm = tryN[ti]; c = c1; lk = lk1; spots = see1.slice(0, 3); break; }
+    if(see1.length && !spots._see){ nm = tryN[ti]; c = c1; lk = lk1; spots = see1.slice(0, 3); spots._see = 1; }
+    if(free1.length){ nm = tryN[ti]; c = c1; lk = lk1; spots = free1.slice(0, 3); spots._free = 1; break; }
+    var cross1 = sp1.filter(function(q){ return !spotTaken(b, q) && crossOk(q); });
+    if(cross1.length && !crossAlt) crossAlt = {nm: tryN[ti], c: c1, lk: lk1, spots: cross1.slice(0, 3)};
   }
+  // ниоткуда не видно точку взгляда роли (у роумера 1-3-1 Mirage точка из демок не видна ни из одного места мида) — своя линия важнее:
+  // место, откуда не видно, но не в точке другого CT (было — первое место роли, в той же точке, что мидер)
+  if(spots && !spots._free && crossAlt){ nm = crossAlt.nm; c = crossAlt.c; lk = crossAlt.lk; spots = crossAlt.spots; }
   if(!c) return false;
   Object.keys(RZ.z).forEach(function(n){ if(RZ.z[n] === b.id && n !== nm) delete RZ.z[n]; }); RZ.z[nm] = b.id;
   var tag = (role === "anchorA" || role === "anchorB") ? "anchor" : role === "mid" ? "mid" : "set:"+role;
@@ -245,6 +263,16 @@ function ctSetupRole(b, role, ct){
   if(early && !b._earlyLog){ b._earlyLog = roundNum; }
   if(early && b._earlyLogged !== roundNum){ b._earlyLogged = roundNum; logEvent(b.id+" ("+ROLE_LABEL_CT(role)+"): выход за инфой — "+nm); }
   return placed;
+}
+var CT_CROSS_GAP = 150, CT_PRO_ZONE = {occ: 0.003, tShare: 0.5, path: 900, n: 6};   // (v570) проектные числа: «своя линия» ≈ 150 px (375 ед.); зона CT у про — доля ≥ 0,3 %, T < половины
+function ctProZones(ref){
+  var ZP = MAP.zoneprops && MAP.zoneprops.zones; if(!ZP || !ref) return [];
+  var zr = ZP[zoneIdAt(ref.x, ref.y)], side = zr && zr.side !== "M" ? zr.side : null, out = [];   // мид — места с обеих сторон рядом (Connector, Short)
+  Object.keys(ZP).forEach(function(k){ var z = ZP[k];
+    if(!z.name || !(z.occ >= CT_PRO_ZONE.occ) || z.tShare == null || z.tShare >= CT_PRO_ZONE.tShare || (side && z.side !== side && z.side !== "M")) return;
+    var q = zonePoint(z.name, ref); if(!q) return; var L = polyLen(pathPts(ref.x, ref.y, q.x, q.y)); if(L > CT_PRO_ZONE.path) return;
+    out.push({n: z.name, L: L}); });
+  return out.sort(function(a, c){ return a.L - c.L; }).slice(0, CT_PRO_ZONE.n).map(function(o){ return o.n; });
 }
 function ROLE_LABEL_CT(r){ return {anchorA:"опорник A", anchorB:"опорник B", mid:"мидер", rotator:"ротатор", roamer:"роумер"}[r] || r; }
 var events = []; var killfeed = []; // объявлены здесь, до loadOppProfile(), которая пишет в лог сразу при старте
