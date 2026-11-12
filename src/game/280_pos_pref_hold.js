@@ -240,7 +240,9 @@ function holdSpot(b, T){
     // (v530, отметка владельца 10.11 «у всех постплант в одной зоне — повтор уже исправлявшейся ошибки»: троим выдана одна точка, 355,647) место,
     // которое в этой группе уже занял свой (ближе «личного места» SPOT_PERSONAL — граница из демок), — не вариант: двое в одной точке не стоят.
     // Раньше это был только штраф (HOLD.stack), и когда точек с видом на бомбу мало, лучшая всё равно побеждала у всех
-    if((T.mates||[]).some(function(m){ return Math.hypot(m.pt.x-c.x, m.pt.y-c.y) < SPOT_PERSONAL; })) return null;
+    // (v570, владелец 12.11: «на пост-планте до сих пор стоят кучно» — точки 81 ед. друг от друга, обе на бомбу) сначала — не ближе «своей
+    // линии» OWN_LINE_GAP (110): одно место можно держать вдвоём, но с разных позиций, а не плечом к плечу; нет таких — личное место, как было
+    if((T.mates||[]).some(function(m){ return Math.hypot(m.pt.x-c.x, m.pt.y-c.y) < (T.gap || SPOT_PERSONAL); })) return null;
     if(useMust && !mustPts.every(function(m){ return hasLOS(c.x, c.y, m.x, m.y); })) return null;
     var main = 0, mainE = null, open = 0;
     E.forEach(function(e){ if(!hasLOS(c.x, c.y, e.pt.x, e.pt.y)) return; var v = e.wn; open += v; if(v > main){ main = v; mainE = e; } });
@@ -297,7 +299,8 @@ function holdGroup(members, T, tag){
       // забирал точку соседа, считая её свободной) занятые — и уже выбранные в этом проходе, и текущие точки остальных из этой группы
       var held = chosen.concat(members.filter(function(o){ var Ho = o._hTask; return o !== b && Ho && Ho.key === T.key && Ho.round === roundNum &&
         !chosen.some(function(c){ return Math.hypot(c.pt.x-Ho.pt.x, c.pt.y-Ho.pt.y) < 1; }); }).map(function(o){ return {pt:o._hTask.pt, see:o._hTask.see}; }));
-      var r = holdSpot(b, {key:T.key, center:T.center, rArea:T.rArea, rMin:T.rMin, rMax:(T.mustFirst && chosen.length > 0 && T.rMax2) || T.rMax, must:mustNow, mates:held, anyFrom:T.anyFrom});
+      var hT = {key:T.key, center:T.center, rArea:T.rArea, rMin:T.rMin, rMax:(T.mustFirst && chosen.length > 0 && T.rMax2) || T.rMax, must:mustNow, mates:held, anyFrom:T.anyFrom, gap:OWN_LINE_GAP};
+      var r = holdSpot(b, hT); if(!r){ hT.gap = SPOT_PERSONAL; r = holdSpot(b, hT); }
       // (v373, сторож: «метание» — двое на пост-планте каждые пару секунд менялись проходами, войс «держу бомбу, смотрю…»
       // спамился) пересмотр точки — новая, только если она заметно лучше старой (на 15 % — проектное число) и старую не занял свой
       if(r && same && H.pt && r.s < (H.s || 0) + Math.abs(H.s || 0)*0.15 + 0.01 && !chosen.some(function(c){ return Math.hypot(c.pt.x-H.pt.x, c.pt.y-H.pt.y) < 60; })){ H.t = tick; r = null; }

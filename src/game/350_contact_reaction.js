@@ -180,7 +180,9 @@ function contactTick(b){
   if(swing && ((b.team === "T" && bomb && bomb.state === "planted") || (taskAlive(b) && taskProp(b._task.tag, "saveTask")))) swing = false;
   // (v450) носитель в выходе не встаёт «держать контакт»: идёт за своими на точку планта (взгляд — на контакт, задача — прежняя)
   // (v555, м298 р1: бомба лежала на Balcony, идущий за ней 5 с «держал контакт», и выход стоял) и тот, кто идёт за выпавшей бомбой, — тоже
-  if(tExec && ((bomb.state === "carried" && bomb.carrier === b) || (bomb.state === "dropped" && teamTac.T.fetchId === b.id)) && aliveCount(b.team) > 1){ b._contact = {x:C.x, y:C.y, id:C.id, until: tick + CONTACT_HOLD*TICK_HZ, lock:false}; b._contactT = tick; return; }
+  // (v570, отметка владельца м1 р4 38 с: «подобрав бомбу, остаётся держать угол со стаком») — было только в выходе; в сетапе носитель, которому
+  // выходить нельзя, получал «держать контакт» — ближайшее место с видом на врага, то есть у стака. Носитель (пока жив кто-то ещё) — в любой фазе
+  if(((bomb.state === "carried" && bomb.carrier === b) || (tExec && bomb.state === "dropped" && teamTac.T.fetchId === b.id)) && aliveCount(b.team) > 1){ b._contact = {x:C.x, y:C.y, id:C.id, until: tick + CONTACT_HOLD*TICK_HZ, lock:false}; b._contactT = tick; return; }
   // (v555, отметка владельца м298 р1: «раш вышел и стоит, перестреливаются; почему не пойти втроём и не задушить одного, занять его зону»)
   // в выходе T на одного врага выходят вместе (размен сразу); вне выхода — по-прежнему один выходит, остальные держат
   if(swing && !tExec && bots.some(function(o){ return o !== b && o.alive && o.team === b.team && o._contact && o._contact.tag === "contact:swing" && tick < o._contact.until && Math.hypot(o._contact.x-C.x, o._contact.y-C.y) < 200; })) swing = false;   // на него уже выходит свой

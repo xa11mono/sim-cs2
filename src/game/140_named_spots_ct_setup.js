@@ -225,10 +225,9 @@ function ctSetupRole(b, role, ct){
   var tryN = [nm0].concat(names.filter(function(n){ return n !== nm0; })), nm = nm0, c = null, lk = null, spots = null;
   // (v570, владелец 12.11 к отметке м1 р3: «почему не сыграли кроссфайером — все в одной позиции; можно с ладдера через Catwalk / Short,
   // кто-то на Connector») места ролей в данных расстановки совпадают (1-3-1 Mirage: у ротатора и роумера — Window / Connector / Under
-  // Window), и трое вставали в одну точку. Место роли — на своей линии: не ближе CT_CROSS_GAP к месту другого CT. Нет такого среди мест
+  // Window), и трое вставали в одну точку. Место роли — на своей линии: не ближе OWN_LINE_GAP к месту другого CT. Нет такого среди мест
   // роли — места, где у про стоят CT в этом районе (MAP.zoneprops: доля CT в демках, тот же край карты), ближние по пути
-  var ctOthers = bots.filter(function(o){ return o !== b && o.alive && o.team === "CT" && o.post; });
-  var crossOk = function(q){ return ctOthers.every(function(o){ return Math.hypot(o.post.x-q.x, o.post.y-q.y) >= CT_CROSS_GAP; }); };
+  var crossOk = function(q){ return !lineTaken(b, q); };   // одна мерка «своей линии» — lineTaken / OWN_LINE_GAP (110)
   ctProZones(ref).forEach(function(n){ if(tryN.indexOf(n) < 0) tryN.push(n); });
   var crossAlt = null;
   for(var ti = 0; ti < tryN.length; ti++){
@@ -264,7 +263,7 @@ function ctSetupRole(b, role, ct){
   if(early && b._earlyLogged !== roundNum){ b._earlyLogged = roundNum; logEvent(b.id+" ("+ROLE_LABEL_CT(role)+"): выход за инфой — "+nm); }
   return placed;
 }
-var CT_CROSS_GAP = 150, CT_PRO_ZONE = {occ: 0.003, tShare: 0.5, path: 900, n: 6};   // (v570) проектные числа: «своя линия» ≈ 150 px (375 ед.); зона CT у про — доля ≥ 0,3 %, T < половины
+var CT_PRO_ZONE = {occ: 0.003, tShare: 0.5, path: 900, n: 6};   // (v570) проектные числа: зона CT у про — доля ≥ 0,3 %, T < половины
 function ctProZones(ref){
   var ZP = MAP.zoneprops && MAP.zoneprops.zones; if(!ZP || !ref) return [];
   var zr = ZP[zoneIdAt(ref.x, ref.y)], side = zr && zr.side !== "M" ? zr.side : null, out = [];   // мид — места с обеих сторон рядом (Connector, Short)

@@ -270,7 +270,9 @@ function tryShoot(shooter, target, dist){
       // (М149) пуля летит в свою точку и поперёк линии (ux): в плечо, видное из-за угла, — попадает, в середину за углом — нет
       var bL = Math.hypot(target.x - shooter.x, target.y - shooter.y) || 1, bk = ux / PX_UNITS / bL;
       var bx = target.x - (target.y - shooter.y)*bk, by = target.y + (target.x - shooter.x)*bk;
-      if(!visMarch(shooter.x, shooter.y, vz0, bx, by, fz1 + Math.max(4, uy))) hbZone = null; }
+      if(!visMarch(shooter.x, shooter.y, vz0, bx, by, fz1 + Math.max(4, uy))){ hbZone = null; shooter._covShot = tick; } }
+    // (v570) счёт своих пуль, ушедших в край / укрытие (видно по попаданиям в стену — как живому игроку): читает перестрелка (470, место пика)
+    var CS = shooter._covLog || (shooter._covLog = []); CS.push(shooter._covShot === tick ? 1 : 0); if(CS.length > 8) CS.shift(); (shooter._covT || (shooter._covT = [])).push(tick); if(shooter._covT.length > 8) shooter._covT.shift();
     headshot = hbZone === "head"; hit = !!hbZone;
   } else {
   if(aimHead){ pHead = pIn(hA); pAny = pIn(bA*1.25); }

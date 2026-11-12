@@ -69,6 +69,23 @@ function fightBetterAway(b, e, cx, cy, R, px, py, minD){
   }
   return best;
 }
+// (v570) место, откуда врага видно целиком (голова и грудь, и чуть вбок — не впритык над краем), на своём ярусе, ближайшее
+var FIGHT_COV = {n: 4, share: 0.6, r: 120, side: 6};   // проектные числа: 4 выстрела, 60 % в укрытие; искать до 120 px; запас вбок 6 px
+function fightClearSpot(b, e, R){
+  var best = null, bd = Infinity, Bd = VIS_BODY.stand[0], tf = visFloorAt(e.x, e.y, e.z), Hd = e.crouching ? VIS_HEAD.crouch : VIS_HEAD.stand;
+  var ux = -(e.y - b.y), uy = e.x - b.x, uL = Math.hypot(ux, uy) || 1; ux /= uL; uy /= uL;
+  for(var k=1;k<=4;k++) for(var i=0;i<16;i++){
+    var a = i*Math.PI/8, r = R*k/4, x = b.baseX + Math.cos(a)*r, y = b.baseY + Math.sin(a)*r;
+    if(insideSolidWall(x, y) || !navAt(x, y) || fightMateAt(b, x, y) || !fightPathFree(b, b.baseX, b.baseY, x, y)) continue;
+    var fz = visFloorAt(x, y, b.z); if(b.z != null && Math.abs(fz - b.z) > JUMP_UP) continue;
+    var ez = fz + VIS_EYE.stand, ok = true;
+    for(var s = -1; s <= 1 && ok; s++){ var tx = e.x + ux*FIGHT_COV.side*s, ty = e.y + uy*FIGHT_COV.side*s;
+      ok = visMarch(x, y, ez, tx, ty, tf + (e.crouching ? VIS_BODY.crouch[0] : Bd)) && visMarch(x, y, ez, tx, ty, tf + Hd); }
+    if(!ok || smokeBlocks(x, y, e.x, e.y)) continue;
+    var d = Math.hypot(x-b.baseX, y-b.baseY); if(d < bd){ bd = d; best = {x:x, y:y}; }
+  }
+  return best;
+}
 // место «показать плечо»: на отрезке укрытие → точка пика первое место, где врагу видно только плечо (visParts side), но не голову и тело
 function fightShoulderPt(b, e, cx, cy, ax, ay){
   var L = Math.hypot(ax-cx, ay-cy); if(L < FIGHT_STEP) return null;
@@ -237,6 +254,16 @@ function fightCycleTick(b, dtSec, busy){
       var push = fightPush(b), tw = push && b.post ? {x:b.post.x, y:b.post.y} : null;
       // (v530, отметка владельца 10.11 «игра снова лагает»: поиск укрытия — 21 мс, а считался при каждой оценке размена — 68 раз за 10 с) укрытие
       // ищется, только когда оно нужно: размен не мой или стрелять нечем. Решение то же (на «вижу врага / размен мой» укрытие не влияло)
+      // (v570, отметка владельца м1 р3 28,7 с: «T3 не может попасть в 8 — почему не сменит позицию, а бегает и стреляет, сливая патроны») с
+      // верхнего яруса из глубины CT внизу виден впритык: оценка «вижу, размен мой» оставляла на линии, а 35 из 40 пуль уходили в край уступа.
+      // Пули в укрытие видны (попадания в стену) — большая их часть в этом отрезке перестрелки: шаг на место рядом, откуда враг виден целиком
+      var cvL = b._covLog || [], cvT = b._covT || [], cvN = 0, cvC = 0;
+      for(var ci = 0; ci < cvL.length; ci++) if(cvT[ci] >= F.t){ cvN++; cvC += cvL[ci]; }
+      if(cvN >= FIGHT_COV.n && cvC >= FIGHT_COV.share*cvN && !b._reloading){
+        var cl = fightClearSpot(b, e, Math.max(D.shift[4], FIGHT_COV.r));
+        if(cl){ F.ph = "back"; F.mv = 0; F.ax = cl.x; F.ay = cl.y; F.cx = b.baseX; F.cy = b.baseY; b._covLog = []; b._covT = []; fcWhy(b, "меняю угол: пули уходят в укрытие");
+          if(!b._fcCv || tick - b._fcCv > 4*TICK_HZ){ b._fcCv = tick; logEvent(b.id+": пули уходят в край — шаг туда, откуда видно целиком"); }
+          return; } }
       var c0 = null, DV = duelEval(b, F, null);
       if(DV && DV.sees && !DV.win){ c0 = fightCover(b, e, peekQ(D.shift, fightRand(b, 2)), tw) || fightCover(b, e, D.shift[4], tw); DV = duelEval(b, F, c0); }
       // размен выигрываю (или до укрытия дольше, чем меня убьют — уйти не успею) — стреляю дальше; следующая оценка — через время реакции

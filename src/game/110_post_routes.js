@@ -185,6 +185,9 @@ var TASK_PROP = {
   bombSpot:         /^(defuse|plantspot)/,   // бег к бою: задача у бомбы — исключение (535)
   retakeMove:       /^(gather|retake|defuse|rotate)/,   // шаг на ретейке: проверка «успею ли шагом» (535)
   holdStrafeSkip:   /^(gather|retake|defuse|save|stopplant|antidefuse|lineup|pickup)/,   // стрейф на посту: задачи, на которых не стрейфят (540)
+  // (v570, владелец 12.11: «и когда переставляет другая механика, и на пост-планте — тоже кроссфайером, а не кучно; маленький сайт — места
+  // рядом») стоит и держит угол: место — на своей линии, не ближе OWN_LINE_GAP к месту / посту своего, кто тоже держит (setPost, 110)
+  ownLine:          /^(anchor|stack|set:|cts:|mid$|mid:back|rotator|rotateHold|rebal|sitehold|default:|postplant|coverplant|clutch|midcover|retakeCover|endhunt|after:hold|bombwatch|fill|hold)/,
   exactSpot:        /^(plantspot|defuse|lineup|pickup|fetch|stopplant|antidefuse|ladder|smokeWait|route|sbGo)/,   // (v552) приказ песочницы — точно   // точное место: точку не сдвигают от своего (110)
   // (v529) проверки чужой задачи по ОДНОМУ имени (механика смотрит на задачу, которую ставит не она) — 19 мест в 10 файлах, без изменений:
   midTask:          /^tmid$/,        // пробы / «проверено — пусто»: задача мида T (150)
@@ -335,6 +338,11 @@ function postViewPoint(pt, look){
     best = {x: c.x, y: c.y}; bd = d; });
   return (POST_VIEW.m[key] = best);
 }
+var OWN_LINE_GAP = 150, OWN_LINE_RINGS = [90, 130, 170, 210, 260, 310];   // (v570) проектные числа: «своя линия» ≈ 150 px (375 ед.), искать — до ~310 (рядом с сайтом)
+function spotTakenPost(b, q){ return bots.some(function(o){ return o !== b && o.alive && o.team === b.team && o.post && Math.hypot(o.post.x-q.x, o.post.y-q.y) < SPOT_PERSONAL; }); }
+function lineTaken(b, q){ return bots.some(function(o){ if(o === b || !o.alive || o.team !== b.team) return false;
+  var oh = o.post && o.post.hold && taskProp(String(o.post.tag), "ownLine");
+  return (oh && Math.hypot(o.post.x-q.x, o.post.y-q.y) < OWN_LINE_GAP) || (oh && o.atPost && Math.hypot(o.x-q.x, o.y-q.y) < OWN_LINE_GAP); }); }
 var SPREAD_RINGS = [80, 110, 145, 180];   // (v570) проектные числа: шаг ≈ «личное место» 70 + 10; дальше 180 — уже другое место, а не «рядом»
 var SPREAD_DIRS = [Math.PI/2, -Math.PI/2, Math.PI*0.75, -Math.PI*0.75, Math.PI/4, -Math.PI/4, Math.PI, 0];
 function setPost(b, pt, look, hold, tag, spreadIdx){
@@ -376,13 +384,29 @@ function setPost(b, pt, look, hold, tag, spreadIdx){
   if(!b._task || b._task.tb !== tagB || b._task.round !== roundNum || !taskAlive(b)) b._task = {tag:String(tag), tb:tagB, lv:lv, t0:tick, t:tick, round:roundNum};
   else { b._task.t = tick; b._task.tag = String(tag); }
   // (v260, В3) та же точка и задача — путь не сбрасываем, но новое направление взгляда принимаем
-  if(b.post && b.post.id === id){ b.post.look = look || null; return true; }
+  // (v570) та же точка — пост держится, но если после сдвига туда же встал свой (его пост поставлен позже — сдвиг считался без него), один
+  // из двоих (у кого id больше) считает место заново: было — двое CT на охоте в одной точке (1026, 1493) до конца раунда
+  var ownL = hold && taskProp(String(tag), "ownLine") && !POST_EXACT.test(String(tag));
+  if(b.post && b.post.id === id && !(ownL && bots.some(function(o){ return o !== b && o.alive && o.team === b.team && o.id < b.id && o.post && Math.hypot(o.post.x-b.post.x, o.post.y-b.post.y) < SPOT_PERSONAL; }))){ b.post.look = look || null; return true; }
   var x = pt.x, y = pt.y;
   // (v370, владелец: «не стоят в толпе») точка, где уже стоит / куда идёт свой (≤ SPOT_PERSONAL), — встаём рядом поперёк взгляда,
   // а не в него. Одно место для всех постов (было: раздвиг на 22 ед. только по spreadIdx). Точные места (бомба, лайнап, подбор) — как есть
   // (v373, отметка владельца: donk стоял на спавне T весь раунд) точка маршрута — не место, где стоять: маршрут засчитывает её, когда
   // бот ближе 70, а сдвиг на 80 не давал дойти — маршрут вставал. Точки маршрута не сдвигаются
-  if((spreadIdx || spotTaken(b, {x:x, y:y})) && !POST_EXACT.test(String(tag))){
+  // (v570) держит угол (ownLine) — сначала место не ближе OWN_LINE_GAP к своим, кто держит (кроссфайер, а не плечом к плечу), кольцами
+  // дальше — до OWN_LINE_RINGS (за краем сайта — тоже: место рядом, откуда виден тот же угол); нет такого — как было (личное место 70)
+  if(ownL && lineTaken(b, {x:x, y:y})){
+    var la1 = look ? Math.atan2(look.y-y, look.x-x) : 0, xa = x, ya = y, losA = look && hasLOS(xa, ya, look.x, look.y), got = false;
+    OWN_LINE_RINGS.some(function(r){ return SPREAD_DIRS.some(function(da){
+      var nx = xa + Math.cos(la1+da)*r, ny = ya + Math.sin(la1+da)*r;
+      if(insideSolidWall(nx, ny) || segCrossesManualWalls(xa, ya, nx, ny) || !navAt(nx, ny) || lineTaken(b, {x:nx, y:ny}) || spotTakenPost(b, {x:nx, y:ny})) return false;
+      if(!hasLOS(xa, ya, nx, ny)) return false;
+      if(losA && !hasLOS(nx, ny, look.x, look.y)) return false;
+      x = nx; y = ny; got = true; return true; }); });
+  }
+  // (v570) держит угол — точку не сдвигает свой, который сейчас проходит мимо (было: точку пост-планта, выбранную в 161 ед. от соседа, сдвигало
+  // на 80 к нему — соседи сходились до 81 ед.): только места своих, кто держит (lineTaken); их нет рядом / уже сдвинута — личное место
+  if((spreadIdx || (ownL ? !got && lineTaken(b, {x:x, y:y}) && spotTakenPost(b, {x:x, y:y}) : spotTaken(b, {x:x, y:y}))) && !POST_EXACT.test(String(tag))){
     // (v570, отметки владельца м1 р3 15,7 с и р4 57,3 с: «все по 1-3-1 стоят в одной точке», «слишком кучно стоят снова») — было: только
     // 4 точки на 80 ед.; в тесном месте все 4 заняты / за стеной — бот вставал прямо в точку своего (двое CT в (1014, 1577)). Теперь — кольца
     // дальше (до SPREAD_MAX), сначала поперёк взгляда; та же проверка: пол, без стены, не занято, виден прежний пост, обзор не отнимается
