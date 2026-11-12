@@ -575,7 +575,7 @@ function ctBrain(){
       // остаётся, где стоит: это то же место
       // (v570, прогон 217: Ancient «застрял (anchor): пост заново 12 раз за 5 с») «то же место» — точка, которую дала задача (post.src), а не
       // сдвинутая setPost'ом (было: сдвинутая шла назад в setPost, сдвигалась снова — два места по очереди каждый тик)
-      var hp0 = b.post && (b.post.src || b.post);
+      var hp0 = postSrc(b);
       if(b.post && b.post.tag === "anchor" && holdPt && Math.hypot(holdPt.x-hp0.x, holdPt.y-hp0.y) < 100) holdPt = {x:hp0.x, y:hp0.y};
       setPost(b, holdPt, lookFrom(holdPt, ents, GEO[kA].tEntry, b), true, "anchor");
     }

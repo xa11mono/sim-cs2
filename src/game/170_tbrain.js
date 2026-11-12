@@ -696,7 +696,7 @@ function tBrain(){
         if(BE.far || tick - BE.since > escW*TICK_HZ) esc = null; }
       if(esc && cLeft >= cWalk){
         var lnE = Math.hypot(ppt.x-carrier.x, ppt.y-carrier.y) || 1, ePt = walk({x: carrier.x + (ppt.x-carrier.x)/lnE*Math.min(90, lnE), y: carrier.y + (ppt.y-carrier.y)/lnE*Math.min(90, lnE)});
-        if(!(esc.post && esc.post.tag === "bombEscort" && Math.hypot(esc.post.x-ePt.x, esc.post.y-ePt.y) < 80)) setPost(esc, ePt, g.ctEntry, true, "bombEscort");
+        if(!(esc.post && esc.post.tag === "bombEscort" && Math.hypot(postSrc(esc).x-ePt.x, postSrc(esc).y-ePt.y) < 80)) setPost(esc, ePt, g.ctEntry, true, "bombEscort");
         else postKeep(esc);
         esc._probeLock = tick;
         if(nearP(esc.x, esc.y, esc.z, carrier.x, carrier.y, carrier.z, TRADE_R)) setPost(carrier, ppt, g.ctEntry, true, "plantspot");   // (v532) напарник рядом — по пути
@@ -716,13 +716,13 @@ function tBrain(){
         var fp = walk({x: eB.x + dx/dl*k, y: eB.y + dy/dl*k});
         // (v353, владелец: «тнир бежит и умирает, а донк ждёт») энтри ждёт — остальные стоят за ним (маршрут раша на паузе)
         if(eB.post && eB.post.tag === "utilWait"){
-          if(o.post && o.post.tag === "utilHold" && Math.hypot(o.post.x-eB.x, o.post.y-eB.y) < 160) return;
+          if(o.post && o.post.tag === "utilHold" && Math.hypot(postSrc(o).x-eB.x, postSrc(o).y-eB.y) < 160) return;
           var hfF = [SITES[tt.site], GEO[tt.site].anchor, GEO[tt.site].ctEntry].filter(Boolean), PCf = POS[tt.site] || {};
           (PCf.ctHold || []).concat(PCf.ctSecond || []).forEach(function(n){ var zp = zonePoint(n, SITES[tt.site]); if(zp) hfF.push(zp); });
           var hp = pickSpots("uhold"+o.id+Math.round(fp.x/30)+","+Math.round(fp.y/30), fp, 1, {rMax:90, minGap:24, hideFrom:hfF})[0];
           if(hp && hfF.some(function(q){ return hasLOS(hp.x, hp.y, q.x, q.y); })) hp = null;
           setPost(o, hp || fp, SITES[tt.site], true, "utilHold"); return; }   // за энтри — в укрытии от мест CT (v353)
-        if(o.post && o.post.tag === "rushFollow" && Math.hypot(o.post.x-fp.x, o.post.y-fp.y) < 40) return;   // не дёргать путь каждый тик
+        if(o.post && o.post.tag === "rushFollow" && Math.hypot(postSrc(o).x-fp.x, postSrc(o).y-fp.y) < 40) return;   // не дёргать путь каждый тик; (v570) сверка — с точкой задачи (src): пост, сдвинутый раздвиганием на 80, «далеко» всегда — путь ставился каждый тик
         if(o.post && taskProp(o.post.tag, "onRoute") && o._route && o._route.pts[o._route.idx] && Math.hypot(o.post.x-o._route.pts[o._route.idx].x, o.post.y-o._route.pts[o._route.idx].y) < 40) return;   // идёт по маршруту к текущей точке
         setPost(o, fp, SITES[tt.site], true, "rushFollow"); }); }
     // (S5) ставят — двое ближних прикрывают подходы к ставящему под разными углами
