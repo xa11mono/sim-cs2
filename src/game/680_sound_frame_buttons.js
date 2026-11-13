@@ -258,8 +258,8 @@ function frameBody(ts){
     obsFrame(ts);
     draw();
     obsOverlay();
+    d3Frame();   // (v571) 3D-вид поверх 2D, если включён — только показ
     miniDraw();
-    if(V3D.on) v3dFrame();   // (v571) 3D-вид (679)
   }
   frameWrapR = null;   // вне кадра (клики, перемотка) — читать заново
 }
