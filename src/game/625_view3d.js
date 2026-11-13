@@ -47,18 +47,18 @@ var D3_LFS = "#version 300 es\nprecision mediump float; in vec4 vC; in float vD;
   "void main(){ o = vec4(vC.rgb, vC.a*(1.0 - smoothstep(uFog.x, uFog.y, vD))); }";
 // мир: срез по таблице этажей; нормаль — по экранным производным (плоские грани); изнанка в разрезе — «крышка»
 var D3_WVS = "#version 300 es\nin vec3 aP; in float aK; uniform mat4 uVP; out vec3 vW; out float vK; void main(){ vW = aP; vK = aK; gl_Position = uVP*vec4(aP,1.0); }";
-var D3_CUTF = "uniform highp sampler2D uF; uniform float uCut, uLow, uSims, uRf; uniform vec3 uTgt;\n" +
+var D3_CUTF = "uniform highp sampler2D uF; uniform float uCut, uLow, uSims, uRf, uFb; uniform vec3 uTgt;\n" +
   "float refY(vec3 w){ ivec2 b = ivec2(floor(w.x/8.0), floor(w.z/8.0)); if(b.x < 0 || b.y < 0 || b.x > 255 || b.y > 255) return -1e9;\n" +
   " vec4 a = texelFetch(uF, ivec2(b.x*2, b.y), 0), c = texelFetch(uF, ivec2(b.x*2+1, b.y), 0); float lim = w.y + 3.2, r = -1e9;\n" +
   " if(a.x <= lim) r = max(r, a.x); if(a.y <= lim) r = max(r, a.y); if(a.z <= lim) r = max(r, a.z); if(a.w <= lim) r = max(r, a.w);\n" +
   " if(c.x <= lim) r = max(r, c.x); if(c.y <= lim) r = max(r, c.y); if(c.z <= lim) r = max(r, c.z); if(c.w <= lim) r = max(r, c.w);\n" +
   // (владелец 13.11: «дырки в стенках») этажи в блоке есть, но все выше точки (низ стены у возвышения) — стена видна, а не выброшена
-  " if(r < -1e8 && a.x > -1e8) r = w.y - 30.0; return r; }\n" +
+  " if(r < -1e8 && a.x > -1e8 && uFb > 0.5) r = w.y - 30.0; return r; }\n" +   // только стены: пол внутри возвышения так не рисуется
   // (владелец 13.11: «как в Симсе») опущена до бортика только стена между камерой и местом, куда она смотрит (ближе к камере, чем
   // точка взгляда, и не дальше uRf от неё), и только если за ней (от камеры) сразу пол; дальние стены и навесы — целые
   "float cutAt(vec3 w, vec3 eye){ if(uSims < 0.5) return uCut; vec2 d = w.xz - eye.xz; float l = length(d); if(l < 1.0) return uCut;\n" +
   " vec2 ct = eye.xz - uTgt.xz; if(dot(w.xz - uTgt.xz, ct) <= 0.0 || distance(w.xz, uTgt.xz) > uRf) return uCut;\n" +
-  " vec2 b = w.xz + d/l*22.0; float rb = refY(vec3(b.x, w.y, b.y)); return rb > -1e8 && w.y - rb > uLow ? uLow : uCut; }\n";
+  " vec2 b = w.xz + d/l*22.0; float rb = refY(vec3(b.x, 1e6, b.y)); return rb > -1e8 && rb < w.y - uLow ? uLow : uCut; }\n";   // за стеной весь пол ниже неё — стена; этаж на уровне её верха (бок балкона, ступени) — не опускать
 var D3_WFS = "#version 300 es\nprecision highp float; in vec3 vW; in float vK; uniform vec3 uEye, uL, uBg, uProp, uRock, uCap, uGround; uniform vec2 uFog, uZr; uniform float uA; out vec4 o;\n" + D3_CUTF +
   "void main(){ float r = refY(vW); if(r < -1e8) discard; float h = vW.y - r, cu = cutAt(vW, uEye); if(h > cu) discard;\n" +
   " vec3 n = normalize(cross(dFdx(vW), dFdy(vW))); if(dot(n, uEye - vW) < 0.0) n = -n; vec3 c;\n" +
@@ -281,6 +281,9 @@ function d3World(gl){
     var ux = b[0]-a[0], uy = b[1]-a[1], uz = b[2]-a[2], vx = c[0]-a[0], vy = c[1]-a[1], vz = c[2]-a[2];
     var nx = uy*vz - uz*vy, ny = uz*vx - ux*vz, nz = ux*vy - uy*vx, l = Math.hypot(nx, ny, nz); if(l < 1e-6) return;
     if(nz/l > 0.7 && near(Aa || Ab || Ac, zmax, 10)){   // пол и ступени — отдельно, непрозрачно, цвета пола (навмеш — под ним, где геометрии нет)
+      // пол внутри возвышения (над ним в той же клетке пол — пешком, прыжком, подсадкой — ниже роста, 8–110 ед.) — не рисуем: сквозь стекло стенки его видно (владелец)
+      var cc = m3Cell(M, (ra[0] + rb[0] + rc[0])/3, (ra[1] + rb[1] + rc[1])/3);
+      if(cc >= 0){ for(var fq = M.floors.st[cc]; fq < M.floors.st[cc+1]; fq++){ var dz = M.floors.z[fq] - zmax; if(dz > 8 && dz < 110) return; } }
       G.push(ra[0], a[2]*D3_KZ, ra[1], rb[0], b[2]*D3_KZ, rb[1], rc[0], c[2]*D3_KZ, rc[1]); GK.push(2, 2, 2); return; }
     var r0 = under(Aa || Ab || Ac, zmin); if(r0 !== null && zmin - r0 > cutU + 8) return;   // целиком выше среза
     P.push(ra[0], a[2]*D3_KZ, ra[1], rb[0], b[2]*D3_KZ, rb[1], rc[0], c[2]*D3_KZ, rc[1]); K.push(kind, kind, kind);
@@ -333,8 +336,7 @@ function d3World(gl){
       else { r.c++; if(Math.abs(NN[r.t*3]*NN[ti*3] + NN[r.t*3+1]*NN[ti*3+1] + NN[r.t*3+2]*NN[ti*3+2]) < 0.8) r.crease = true; }
     }
   }
-  var onFloor = function(i){ return near(blk(P[i], P[i+2]), P[i+1]/D3_KZ, 5); };   // конец ребра на уровне пола «пешком»
-  Em.forEach(function(r){ if((r.c === 1 || r.crease) && !(onFloor(r.a) && onFloor(r.b))) E.push(P[r.a], P[r.a+1], P[r.a+2], P[r.b], P[r.b+1], P[r.b+2]); });   // ребро по полу — нет (пунктир у низа стен)
+  Em.forEach(function(r){ if(r.c === 1 || r.crease) E.push(P[r.a], P[r.a+1], P[r.a+2], P[r.b], P[r.b+1], P[r.b+2]); });
   var buf = function(a){ var b = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, b); gl.bufferData(gl.ARRAY_BUFFER, a, gl.STATIC_DRAW); return b; };
   return {p: buf(new Float32Array(P)), k: buf(new Float32Array(K)), cnt: P.length/3, e: buf(new Float32Array(E)), ecnt: E.length/3, ftex: d3FloorTex(gl, M),
           g: buf(new Float32Array(G)), gk: buf(new Float32Array(GK)), gcnt: G.length/3};
@@ -432,7 +434,7 @@ function d3Frame(opt){
   if(D3.world && D3.world.gcnt){   // пол и ступени из геометрии — непрозрачно, со срезом, поверх навмеша
     var pW0 = D3.pW, W0 = D3.world; gl.useProgram(pW0.p); gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, W0.ftex.tex);
     gl.uniformMatrix4fv(pW0.u.uVP, false, VP); gl.uniform3fv(pW0.u.uEye, eye); gl.uniform3fv(pW0.u.uL, L); gl.uniform3fv(pW0.u.uBg, D3.cBg.slice(0, 3));
-    gl.uniform2fv(pW0.u.uFog, fog); gl.uniform1i(pW0.u.uF, 0); gl.uniform1f(pW0.u.uCut, 1e4); gl.uniform1f(pW0.u.uSims, 0); gl.uniform1f(pW0.u.uA, 1);
+    gl.uniform2fv(pW0.u.uFog, fog); gl.uniform1i(pW0.u.uF, 0); gl.uniform1f(pW0.u.uCut, 1e4); gl.uniform1f(pW0.u.uSims, 0); gl.uniform1f(pW0.u.uFb, 0); gl.uniform1f(pW0.u.uA, 1);
     gl.uniform3fv(pW0.u.uGround, D3.cFloor.slice(0, 3)); gl.uniform2fv(pW0.u.uZr, D3.zr);
     d3Attr(gl, pW0.aP, W0.g, 3); d3Attr(gl, pW0.aK, W0.gk, 1); gl.drawArrays(gl.TRIANGLES, 0, W0.gcnt); if(pW0.aK >= 0) gl.disableVertexAttribArray(pW0.aK);
     gl.useProgram(pM.p);
@@ -443,16 +445,16 @@ function d3Frame(opt){
     if(!Wd.cnt) return;
     gl.useProgram(pW.p); gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, Wd.ftex.tex);
     gl.uniformMatrix4fv(pW.u.uVP, false, VP); gl.uniform3fv(pW.u.uEye, eye); gl.uniform3fv(pW.u.uL, L); gl.uniform3fv(pW.u.uBg, D3.cBg.slice(0, 3));
-    gl.uniform2fv(pW.u.uFog, fog); gl.uniform1i(pW.u.uF, 0); gl.uniform1f(pW.u.uCut, cut); gl.uniform1f(pW.u.uLow, low); gl.uniform1f(pW.u.uSims, sims); gl.uniform3fv(pW.u.uTgt, tgt); gl.uniform1f(pW.u.uRf, dist*0.55); gl.uniform1f(pW.u.uA, STY.a); gl.uniform3fv(pW.u.uGround, D3.cFloor.slice(0, 3)); gl.uniform2fv(pW.u.uZr, D3.zr);
+    gl.uniform2fv(pW.u.uFog, fog); gl.uniform1i(pW.u.uF, 0); gl.uniform1f(pW.u.uCut, cut); gl.uniform1f(pW.u.uLow, low); gl.uniform1f(pW.u.uSims, sims); gl.uniform1f(pW.u.uFb, 1); gl.uniform3fv(pW.u.uTgt, tgt); gl.uniform1f(pW.u.uRf, dist*0.55); gl.uniform1f(pW.u.uA, STY.a); gl.uniform3fv(pW.u.uGround, D3.cFloor.slice(0, 3)); gl.uniform2fv(pW.u.uZr, D3.zr);
     gl.uniform3fv(pW.u.uProp, D3.cProp.slice(0, 3)); gl.uniform3fv(pW.u.uRock, D3.cRock.slice(0, 3)); gl.uniform3fv(pW.u.uCap, D3.cCap.slice(0, 3));
     d3Attr(gl, pW.aP, Wd.p, 3); d3Attr(gl, pW.aK, Wd.k, 1);
     // (владелец 13.11: «сквозь стены видно чужие линии — грязно») прозрачный вид без «рентгена»: сначала стены только в глубину —
     // грани и рёбра за ними не рисуются; с «рентгеном» (кнопка) — видно всё насквозь, как раньше
     if(STY.a < 1 && !D3.xray){ gl.colorMask(false, false, false, false); gl.drawArrays(gl.TRIANGLES, 0, Wd.cnt); gl.colorMask(true, true, true, true); gl.depthFunc(gl.LEQUAL); }
-    if(STY.a < 1) gl.depthMask(false);   // (владелец 13.11: «дырки в стенках») без отсева изнанки: часть граней карты повёрнута внутрь
+    if(STY.a < 1){ gl.depthMask(false); gl.enable(gl.CULL_FACE); gl.cullFace(gl.BACK); }   // изнанку не рисуем — внутренности ящиков и возвышений не видны (владелец, фото 1)
     gl.drawArrays(gl.TRIANGLES, 0, Wd.cnt); if(pW.aK >= 0) gl.disableVertexAttribArray(pW.aK);
     var pE = D3.pE; gl.useProgram(pE.p); gl.uniformMatrix4fv(pE.u.uVP, false, VP); gl.uniform3fv(pE.u.uEye, eye); gl.uniform2fv(pE.u.uFog, fog);
-    gl.uniform1i(pE.u.uF, 0); gl.uniform1f(pE.u.uCut, cut); gl.uniform1f(pE.u.uLow, low); gl.uniform1f(pE.u.uSims, sims); gl.uniform3fv(pE.u.uTgt, tgt); gl.uniform1f(pE.u.uRf, dist*0.55); gl.uniform4fv(pE.u.uC, [D3.cEdge[0], D3.cEdge[1], D3.cEdge[2], STY.ea]);
+    gl.uniform1i(pE.u.uF, 0); gl.uniform1f(pE.u.uCut, cut); gl.uniform1f(pE.u.uLow, low); gl.uniform1f(pE.u.uSims, sims); gl.uniform1f(pE.u.uFb, 1); gl.uniform3fv(pE.u.uTgt, tgt); gl.uniform1f(pE.u.uRf, dist*0.55); gl.uniform4fv(pE.u.uC, [D3.cEdge[0], D3.cEdge[1], D3.cEdge[2], STY.ea]);
     d3Attr(gl, pE.aP, Wd.e, 3); gl.drawArrays(gl.LINES, 0, Wd.ecnt);
     gl.depthMask(true); gl.disable(gl.CULL_FACE); gl.depthFunc(gl.LESS);
   };
