@@ -1,0 +1,29 @@
+playwright 1.56.0, браузеры: C:\Windows\system32\config\systemprofile\.simcs2_node\ms-playwright
+> git fetch --quiet origin 79d465f9aa89b70a4783d198ce3bf71ae33edbdb
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_ngpb_omv FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_ngpb_omv\src\build.py --map mirage C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v575a_mir.html
+  nadeguess.json устарел (код подбора или данные карты менялись) — не включён; пересчитать: python3 tools/nades/guess_bake.py --map mirage
+> git fetch --quiet origin 79d465f9aa89b70a4783d198ce3bf71ae33edbdb
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_00clu30b FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_00clu30b\src\build.py --map ancient C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v575a_anc.html
+  nadeguess.json устарел (код подбора или данные карты менялись) — не включён; пересчитать: python3 tools/nades/guess_bake.py --map ancient
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\engine\walk_run.py --job=v575a_mir,C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v575a_mir.html --job=v575a_anc,C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v575a_anc.html --matches=3,7,11,13,17,19,23,29 --par=12
+матчей в очереди: 16, одновременно: 12
+v575a_anc match 7  rc 0 6246188 — готово 1/16, 7 мин
+v575a_anc match 3  rc 0 7881609 — готово 2/16, 9 мин
+v575a_anc match 11  rc 0 8533771 — готово 3/16, 9 мин
+v575a_mir match 7  rc 0 7367233 — готово 4/16, 10 мин
+v575a_anc match 13  rc 0 8785119 — готово 5/16, 10 мин
+v575a_mir match 19  rc 0 7847535 — готово 6/16, 10 мин
+v575a_mir match 11  rc 0 7806466 — готово 7/16, 11 мин
+v575a_mir match 23  rc 0 8251848 — готово 8/16, 11 мин
+v575a_mir match 3  rc 0 9825597 — готово 9/16, 11 мин
+v575a_mir match 17  rc 0 9155897 — готово 10/16, 12 мин
+v575a_mir match 13  rc 0 8139677 — готово 11/16, 12 мин
+v575a_anc match 17  rc 0 7037788 — готово 12/16, 14 мин
+v575a_anc match 19  rc 0 6248768 — готово 13/16, 14 мин
+v575a_mir match 29  rc 0 12164691 — готово 14/16, 14 мин
+v575a_anc match 29  rc 0 5718809 — готово 15/16, 14 мин
+v575a_anc match 23  rc 0 6978131 — готово 16/16, 15 мин
+done
+all done
