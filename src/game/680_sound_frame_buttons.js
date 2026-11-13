@@ -259,6 +259,7 @@ function frameBody(ts){
     draw();
     obsOverlay();
     miniDraw();
+    if(V3D.on) v3dFrame();   // (v571) 3D-вид (679)
   }
   frameWrapR = null;   // вне кадра (клики, перемотка) — читать заново
 }

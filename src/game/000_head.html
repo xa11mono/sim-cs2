@@ -85,6 +85,7 @@
   #lookDbg tr.pick td,#teamDbg tr.pick td{color:#fff;} #lookDbg tr.pick td:first-child,#teamDbg tr.pick td:first-child{box-shadow:inset 2px 0 0 #e8dc5a;padding-left:4px;}
   #lookDbg .ld-f,#teamDbg .ld-f{color:var(--hud-dim);font-size:10px;}
   #teamDbg{left:auto;right:12px;top:390px;max-height:calc(100vh - 402px);}   /* (v566) разбор команды — справа (612) */
+  #cv3d{position:absolute;left:0;top:0;z-index:1;display:none;}   /* (v571) 3D-вид (679): поверх радара, под табло и панелями */
   /* (v571) раунд из демки (678) — та же панель отладки, слева сверху */
   #dvPanel{position:fixed;left:12px;top:90px;z-index:61;width:340px;max-height:calc(100vh - 110px);overflow:auto;background:#121610;border:1px solid var(--hud-line);
     color:#d9dfd3;font:400 11px/1.35 var(--hud-f);border-radius:var(--r);}
