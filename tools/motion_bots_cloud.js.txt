@@ -1,0 +1,15 @@
+paused=true; var U=2.5, sv=[], cs=0, nsh=0, sw=0, hold=[], still=0, fr=0, fl=[], walk=0, duck=0, al=0;
+var ST={}; var oT=tryShoot; tryShoot=function(b,t,d){ var l=b.lastShotTick; var r=oT.apply(this,arguments); if(b.lastShotTick!==l && b.burstCount===1 && b.weapon && b.weapon.slot==='primary' && !b.weapon.scoped){ nsh++; sv.push((b.curSpeed||0)*U); var S=ST[b.id]; if(S && S.sides && tick-S.sides.l<13 && tick-S.sides.r<13) cs++; } return r; };
+[3,7].forEach(function(M){ freshMatch(M); var R0=roundNum; while(roundNum<R0+6 && roundState!=='matchover'){ stepTick(); if(roundState!=='live') continue;
+ bots.forEach(function(b){ if(!b.alive) return; al++; if(b.walking) walk++; if(b.crouching) duck++;
+  var S=ST[b.id]||(ST[b.id]={x:b.x,y:b.y,f:b.facing,side:0,lt:null,run:0,sides:{l:-1e9,r:-1e9},fk:null});
+  var vx=b.x-S.x, vy=b.y-S.y, sp=Math.hypot(vx,vy); var side=0;
+  if(sp>0.3 && b.facing!==undefined){ var cr=Math.cos(b.facing)*vy-Math.sin(b.facing)*vx; var lat=cr/sp; if(lat>0.6) side=1; else if(lat<-0.6) side=-1; }
+  if(side===1) S.sides.r=tick; if(side===-1) S.sides.l=tick;
+  if(side && side!==S.side){ if(S.side && S.lt!=null && tick-S.lt<40) sw++; S.side=side; S.lt=tick; }
+  if(side) S.run++; else if(S.run){ hold.push(S.run); S.run=0; }
+  if(b.facing!==undefined && S.f!==undefined){ var dy=Math.abs(((b.facing-S.f+Math.PI)%(2*Math.PI)+2*Math.PI)%(2*Math.PI)-Math.PI)*180/Math.PI*64; fr++; if(dy<5) still++;
+   if(dy>300){ if(!S.fk) S.fk={t:tick,a0:S.f}; } else if(S.fk && dy<60){ var size=Math.abs(((b.facing-S.fk.a0+Math.PI)%(2*Math.PI)+2*Math.PI)%(2*Math.PI)-Math.PI)*180/Math.PI; if(size>10) fl.push([size,(tick-S.fk.t)/64]); S.fk=null; } }
+  S.x=b.x; S.y=b.y; S.f=b.facing; }); } });
+var med=function(a){ a=a.slice().sort(function(x,y){return x-y;}); return a.length?a[a.length>>1]:null; }; var mins=al/64/60;
+JSON.stringify({мин:Math.round(mins), скорость_медиана:Math.round(med(sv)), точно_до40:Math.round(100*sv.filter(v=>v<=40).length/Math.max(1,sv.length)), бегом_от120:Math.round(100*sv.filter(v=>v>=120).length/Math.max(1,sv.length)), AD_до_выстрела:Math.round(100*cs/Math.max(1,nsh)), выстрелов:nsh, смен_AD_в_мин:+(sw/mins).toFixed(1), нажатие_медиана_с:+(med(hold)/64).toFixed(2), прицел_неподвижен:Math.round(100*still/Math.max(1,fr)), рывков_в_мин:+(fl.length/mins).toFixed(1), рывок_медиана:Math.round(med(fl.map(f=>f[0]))), рывок_с:+(med(fl.map(f=>f[1]))||0).toFixed(2), шаг:Math.round(100*walk/al), присед:Math.round(100*duck/al)})
