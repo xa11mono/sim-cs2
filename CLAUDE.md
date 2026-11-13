@@ -236,6 +236,7 @@
 | редактор карты `MAPED` (вкладки, Ctrl+Z, база; стены); высоты; укрытия; прострелы | `570_maped_core_walls`, `580_maped_heights`, `590_maped_cover`, `600_maped_wallbang` |
 | проверка «кто кого видит» `visToolDraw`; разбор взгляда `lookDbgPanel` | `610_vistool_lookdebug` |
 | рисование кадра `draw` | `620_draw` |
+| **3D-вид** (кнопка «3D», только показ, v571): `D3`, сцена `d3Build` (пол — навмеш, ящики — `m3()` до `D3_CUT`), кадр `d3Frame`, таблички `d3Tag`; своё WebGL2 | `625_view3d` |
 | киллфид `feedKill` (иконки `KF_ICON`, затухание `kfExpireTick`), силуэты летящих гранат `NADE_ICON` / `nadeImg`, баннеры, карточка раунда, экономика на экране | `630_killfeed_banners_econ` |
 | табло `scoreboardUpdate`, панели игроков `playersUpdate` | `640_scoreboard_players` |
 | место вставки «Отметить момент» (`@@BUILD@@`) | `650_marks_hook` |
