@@ -17,6 +17,10 @@ var CONTACT_PUSH = 250;   // (v555) проектное число: ед. — T �
 // мид; убили 6-го — тогда помогать») контакт — только своё: видел сам (lastIntel без src), слышал сам; знание команды (видели свои,
 // коллы) — только если враг на его участке (зона, где он стоит или его пост) или свой рядом только что погиб и он идёт менять
 // (_tradeUntil — реакция на смерть тиммейта, 190). Раньше бралась вся память команды в CONTACT_R
+// (v570, В135: боты поворачиваются к стрелку за 1 с в 57 % / 44 %, про — 27–28 %; по 600 эпизодам прогона 225 перебор — повороты, когда стреляли
+// в другого: контакт 61 / 66, звук 50 / 25, команда 29 / 20) «чужой бой» — враг, с которым прямо сейчас стреляется (видит его) свой. Его бой
+// не мой: держу свой угол, если не иду помогать (помощь решает contactInfo — mateFights). Одно определение для 350 и взгляда (270)
+function mateFighting(b, id){ return !!id && bots.some(function(o){ return o !== b && o.alive && o.team === b.team && o._sawEnemy && o._nearestEnemyBot && o._nearestEnemyBot.id === id; }); }
 function contactInfo(b){
   var best = null, bd = CONTACT_R, BL = beliefLast[b.team] || {}, myZ = {}, trade = tick < (b._tradeUntil || 0);
   myZ[zoneIdAt3(b.x, b.y, b.z)] = 1; if(b.post) myZ[zoneIdAt3(b.post.x, b.post.y, b.post.z != null ? b.post.z : b.z)] = 1;
@@ -48,7 +52,7 @@ function contactInfo(b){
   // если главная задача терпит отклонение (detourOk, 110: не ставит / не дефузит, не бомба, не сейв, время есть); тянуть туда-обратно
   // (прогон 178) не даёт сам контакт: держится, пока знание свежее + CONTACT_HOLD, повтор — не чаще CONTACT_GAP
   var freeToHelp = !b.post || taskLevel(b.post.tag) <= 3 || detourOk(b, "help");
-  var mateFight0 = function(id){ return bots.some(function(o){ return o !== b && o.alive && o.team === b.team && o._sawEnemy && o._nearestEnemyBot && o._nearestEnemyBot.id === id; }); };
+  var mateFight0 = function(id){ return mateFighting(b, id); };
   var mateFights = function(id){ return freeToHelp && mateFight0(id); };
   // (v547, владелец 10.11: «в ретейке, пост-планте, охоте боты не помогают») «на своём участке спокойно» (calm, v408 — мидер держит мид) — только
   // у того, кто держит пост роли; у задачи фазы (ретейк, пост-плант, охота: уровень ≥ 7) участок — вся задача, терпит ли она помощь — detourOk
@@ -64,7 +68,9 @@ function contactInfo(b){
     if(saving){ if(mateFight0(id) && hasLOS(b.x, b.y, e.x, e.y, b.z, e.z)) take(e.x, e.y, e.src === "spotted", id, e.z); continue; }
     if(trade || retakeHunt || myZ[zoneIdAt3(e.x, e.y, e.z)] || (mateFights(id) && (phase || calm()))) take(e.x, e.y, e.src === "spotted", id, e.z); }
   // (v469) бросок гранаты (слышно чеку / бросок) — не контакт (ответ про-аналитика: на гранату вдали не реагировать); её место знание получает
-  var hs = b.heardSound; if(hs && hs.team && hs.team !== b.team && hs.kind !== "nade" && tick - hs.tick <= CONTACT_AGE*TICK_HZ && !deadSrc(hs.src) && (hs.kind !== "call" || trade || myZ[zoneIdAt3(hs.x, hs.y, hs.z)])) take(hs.x, hs.y, hs.kind === "hit", hs.src, hs.z);   // (v560, В101: «по нему стреляли, не попали — не отреагировал») по нему стреляют — откуда, он знает (пули рядом): как увиденный — по прямой, без проверки сектора
+  // (v570, В135) стрельба не в мою сторону в чужом бою — не мой контакт, если не помогаю (то же условие, что у «свой стреляется» выше)
+  var hs = b.heardSound, hsOther = hs && hs.kind === "shots" && !hs.near && mateFight0(hs.src) && !(trade || (mateFights(hs.src) && (phase || calm())));
+  if(hs && !hsOther && hs.team && hs.team !== b.team && hs.kind !== "nade" && tick - hs.tick <= CONTACT_AGE*TICK_HZ && !deadSrc(hs.src) && (hs.kind !== "call" || trade || myZ[zoneIdAt3(hs.x, hs.y, hs.z)])) take(hs.x, hs.y, hs.kind === "hit", hs.src, hs.z);   // (v560, В101: «по нему стреляли, не попали — не отреагировал») по нему стреляют — откуда, он знает (пули рядом): как увиденный — по прямой, без проверки сектора
   // (v448, док владельца 28.10 №4: у игрока 1 «якорь контакт холд, когда он далеко, не стрелялся и никого не видел») своя флешка —
   // контакт только если кинута себе под пик («флешу себе и выхожу»); раньше любая своя флешка (на сайт за 700 ед.) давала «держу свой контакт»
   var N = b._lastNade; if(!best && N && N.type === "flash" && N.self && tick - N.t >= NADE.flash.fuse - 8 && tick - N.t < NADE.flash.fuse + 40 && Math.hypot(N.x-b.x, N.y-b.y) < CONTACT_R) best = {x:N.x, y:N.y, own:true};
