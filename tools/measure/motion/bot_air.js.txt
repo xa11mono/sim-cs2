@@ -1,0 +1,18 @@
+paused=true; var C={}, J=[], D=[], A=[], al=0, P={}, CV={вбок:0,вперёд:0,назад:0,стоит:0}, cvT=[];
+var inc=function(k){C[k]=(C[k]||0)+1;};
+[3,7,11].forEach(function(M){ freshMatch(M); var R0=roundNum; while(roundNum<R0+6 && roundState!=='matchover'){ stepTick(); if(roundState!=='live') continue;
+ bots.forEach(function(b){ if(!b.alive){ delete P[b.id]; return; } al++; var p=P[b.id]||(P[b.id]={j:null,h:[],sh:-1e9,af:null});
+  p.h.push([b.x,b.y,b.facing,b.curSpeed||0,b.crouching?1:0,b.walking?1:0]); if(p.h.length>80) p.h.shift();
+  if(b._jump && b._jump.t===tick){ var h0=p.h[p.h.length-2]||p.h[0]; var e={up:b._jump.up, sp:h0[3]*PX_UNITS, f0:b.facing, t:tick, kind:b._climb?(b._climb.jump?'подъём/щель':'подъём'):(b._jc?'на месте у угла':'навмеш'), duck:0, walk:h0[5]}; (b._jump.up?J:D).push(e); p.j=e; }
+  if(p.j && tick-p.j.t===48){ p.j.turn=Math.abs(((b.facing-p.j.f0+Math.PI)%(2*Math.PI)+2*Math.PI)%(2*Math.PI)-Math.PI)*180/Math.PI; p.j=null; }
+  if(p.j && b.crouching) p.j.duck=1;
+  // после очереди: последняя пуля, пауза ≥ 0,5 с
+  if(b.lastShotTick===tick-1) p.sh=tick-1;
+  if(p.sh>0 && tick-p.sh===32 && tick-(b.lastShotTick||0)>=32){ var k=p.h.length-33, a=p.h[k]; var i2=k; while(i2<p.h.length-1 && p.h[i2][3]*PX_UNITS<100) i2++;
+    if(p.h[i2][3]*PX_UNITS>=100){ var q=p.h[Math.min(p.h.length-1,i2+8)], r=p.h[i2]; var mv=Math.atan2(q[1]-r[1],q[0]-r[0]); var rel=Math.abs(((mv-a[2]+Math.PI)%(2*Math.PI)+2*Math.PI)%(2*Math.PI)-Math.PI)*180/Math.PI; CV[rel<45?'вперёд':(rel>135?'назад':'вбок')]++; cvT.push((i2-k)/64); } else CV.стоит++; p.sh=-1e9; }
+ }); } });
+function q(a){a=a.slice().sort((x,y)=>x-y);return a.length?[.1,.25,.5,.75,.9].map(p=>Math.round(a[Math.min(a.length-1,Math.floor(p*a.length))]*100)/100):null;}
+var mins=al/3840, kinds={}; J.forEach(e=>kinds[e.kind]=(kinds[e.kind]||0)+1);
+JSON.stringify({минут:Math.round(mins), прыжков_в_мин:+(J.length/mins).toFixed(2), каких:kinds, скорость_до:q(J.map(e=>e.sp)), поворот_за_прыжок:q(J.filter(e=>e.turn!=null).map(e=>e.turn)), присед_в_прыжке:Math.round(100*J.filter(e=>e.duck).length/Math.max(1,J.length)),
+ спрыгиваний_в_мин:+(D.length/mins).toFixed(2), спрыг_скорость:q(D.map(e=>e.sp)), спрыг_поворот:q(D.filter(e=>e.turn!=null).map(e=>e.turn)), спрыг_присед:Math.round(100*D.filter(e=>e.duck).length/Math.max(1,D.length)), спрыг_шифт:Math.round(100*D.filter(e=>e.walk).length/Math.max(1,D.length)),
+ после_очереди:CV, до_хода:q(cvT)})
