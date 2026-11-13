@@ -150,7 +150,7 @@ function coachPlan(side){
     P.avoid = failed.slice();
     if(failed.length){ var tf = tacById(failed[failed.length-1]); P.facts.push({k: "failed", tac: tf ? tf.name : failed[0], log: "не заходит «"+(tf ? tf.name : failed[0])+"»"}); }
     var rd = readCT();
-    // (В142, v575) стак — факт для команды, а не план сайта: про после стака почти не уходят с сайта (см. STACK_K); сайт плана — только «слабый сайт» ниже
+    // (В142, v576) стак — факт для команды, а не план сайта: про после стака почти не уходят с сайта (см. STACK_K); сайт плана — только «слабый сайт» ниже
     if(rd.stack){ P.stack = rd.stack; P.facts.push({k: "stackRead", S: rd.stack, n: rd.n, of: rd.of, log: "CT стакают "+rd.stack+" ("+rd.n+" из "+rd.of+")"}); }
     else {
       var last = ctRead.slice(-4), seen = {A: 0, B: 0}; last.forEach(function(r){ seen.A += r.A||0; seen.B += r.B||0; });
@@ -259,7 +259,7 @@ function chooseTactic(){
     // (дефолт), два проигрыша медленными — быстрее (раш/ранний выход)
     if(BAL.tempoShift && tempoRead){ if(tempoRead === "slow"){ if(t.style === "default") w *= 2.2; if(t.style === "rush") w *= 0.3; }
       else { if(t.style === "rush" || (t.setupEnd && t.setupEnd <= 44)) w *= 1.8; if(t.style === "default") w *= 0.4; } }
-    // (В142, v575: у ботов «уходим от стака» ×0,3 / ×1,4 / фейк ×2,5 давало 73 % выходов на B против 37 % без стака; про почти не уходят: после
+    // (В142, v576: у ботов «уходим от стака» ×0,3 / ×1,4 / фейк ×2,5 давало 73 % выходов на B против 37 % без стака; про почти не уходят: после
     // стака A в 2 из 3 раундов выходы A 55 % против 62 % без стака — шансы ×0,75, 262 выхода, tools/shadow/plans_mirage.json) стак — только этот множитель
     if(rd.stack && t.site === rd.stack && t.style !== "fake") w *= STACK_K;
     return w;
