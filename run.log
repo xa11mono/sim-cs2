@@ -1,0 +1,29 @@
+playwright 1.56.0, браузеры: C:\Windows\system32\config\systemprofile\.simcs2_node\ms-playwright
+> git fetch --quiet origin ab4ed9edc3c916a66b10e4cad4180d1203140a12
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_i7kj4c32 FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_i7kj4c32\src\build.py --map mirage C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v570b15_mir.html
+  nadeguess.json устарел (код подбора или данные карты менялись) — не включён; пересчитать: python3 tools/nades/guess_bake.py --map mirage
+> git fetch --quiet origin ab4ed9edc3c916a66b10e4cad4180d1203140a12
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_wznr1blj FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_wznr1blj\src\build.py --map ancient C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v570b15_anc.html
+  nadeguess.json устарел (код подбора или данные карты менялись) — не включён; пересчитать: python3 tools/nades/guess_bake.py --map ancient
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\engine\walk_run.py --job=v570b15_mir,C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v570b15_mir.html --job=v570b15_anc,C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v570b15_anc.html --matches=3,7,11,13,17,19,23,29 --par=12
+матчей в очереди: 16, одновременно: 12
+v570b15_mir match 3  rc 0 6065496 — готово 1/16, 7 мин
+v570b15_anc match 3  rc 0 7376084 — готово 2/16, 7 мин
+v570b15_anc match 13  rc 0 7551919 — готово 3/16, 8 мин
+v570b15_anc match 7  rc 0 7893428 — готово 4/16, 8 мин
+v570b15_mir match 13  rc 0 7400371 — готово 5/16, 8 мин
+v570b15_mir match 19  rc 0 7333668 — готово 6/16, 9 мин
+v570b15_anc match 11  rc 0 8395010 — готово 7/16, 9 мин
+v570b15_mir match 11  rc 0 7061316 — готово 8/16, 9 мин
+v570b15_mir match 29  rc 0 8273699 — готово 9/16, 9 мин
+v570b15_mir match 7  rc 0 7916920 — готово 10/16, 9 мин
+v570b15_mir match 17  rc 0 8979650 — готово 11/16, 10 мин
+v570b15_mir match 23  rc 0 11425187 — готово 12/16, 12 мин
+v570b15_anc match 29  rc 0 6351824 — готово 13/16, 13 мин
+v570b15_anc match 19  rc 0 7024235 — готово 14/16, 13 мин
+v570b15_anc match 23  rc 0 7339003 — готово 15/16, 13 мин
+v570b15_anc match 17  rc 0 8792548 — готово 16/16, 14 мин
+done
+all done
