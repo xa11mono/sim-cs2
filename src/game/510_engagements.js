@@ -1,3 +1,14 @@
+// присед у про (12 демок Mirage): на приседе 11 % первых пуль винтовки, 37 % 2–3-х, 22 % дальше; сидят коротко (медиана 0,19 с)
+// Доли решений больше долей пуль: присед срывает «не видно из приседа» (v521), уход за укрытие (470) и конец очереди — подобраны так, чтобы
+// на приседе было столько же пуль, сколько у про (замер — бот: 1-я 6 %, 2–3 28 %, 4+ 14 % при решениях 0,11 / 0,37 / 0,22; 17 / 42 / 28 % при 0,2 / 0,49 / 0,35)
+var AIM_TRACK_BAND = 0.03;   // рад (≈ 1,7°) — меньше прицел в бою не доводит (проектное число; конус выстрела вдали — 0,05)
+var AIM_TRACK_MIN = 0.002;   // рад за тик — меньше не доворачивает (≈ 7°/с, порог «прицел неподвижен» 5°/с) (проектное число)
+var DUCK_PRO = {first: 0.13, burst: 0.46, spray: 0.27};
+function duckDecide(b, p, salt){   // присед на ближайшее решение (12 тиков); не сяду, если из приседа врага не видно (v521)
+  var e = b._nearestEnemyBot, duck = keysRand(b, salt) < p;
+  var cvp = duck && e && b._sawEnemy ? visParts(b.x, b.y, true, e.x, e.y, e.crouching, true, b.z, e.z) : null;
+  b.crouching = duck && (!cvp || !!(cvp.head || cvp.body || cvp.side)); b._duckT = tick;
+}
 function resolveEngagements(){
   var pairs = [];
   bots.forEach(function(b){ b._sawEnemy = false; b._nearestEnemyDist = Infinity; b._nearestEnemyBot = null; b._visible = []; });
@@ -57,6 +68,7 @@ function resolveEngagements(){
     if(!b.alive) return;
     if(b._sawEnemy){
       b.contactStreak++;
+      if(b.lastShotTick === tick - 1 && b.burstCount === 1) duckDecide(b, DUCK_PRO.burst, 12);   // (v571) началась очередь — сесть или нет
       var TS = b._ts || (b._ts = {}), vis = {};
       b._visible.forEach(function(e){ vis[e.id] = 1; TS[e.id] = (TS[e.id] || 0) + 1; });
       for(var tsId in TS) if(!vis[tsId]) TS[tsId] = Math.max(0, TS[tsId] - 3);
@@ -74,6 +86,8 @@ function resolveEngagements(){
       // стрелять. Теперь "реакция" остывает постепенно: короткая потеря
       // контакта почти не сбрасывает её, долгая — сбрасывает полностью.
       b.contactStreak = Math.max(0, b.contactStreak - 3);
+      // (v571, В140) врага не видно — присед кончается вместе с очередью (у про — 0,19 с); ослеплён — сидит (535)
+      if(b.crouching && tick >= (b.blindUntil || 0) && tick - (b.lastShotTick || -1e9) >= DECISION_INTERVAL_TICKS) b.crouching = false;
       if(b._ts) for(var tsId2 in b._ts) b._ts[tsId2] = Math.max(0, b._ts[tsId2] - 3);   // (этап 2, P0-2) по целям — так же
       // holding on stale-but-recent intel = "ещё смотрю на угол, где только что
       // видел врага" — это ровно то состояние, из которого возможен префайр;
@@ -117,8 +131,12 @@ function resolveEngagements(){
     b.holdSinceTick = b.holding ? (b.holdSinceTick===-999 ? tick : b.holdSinceTick) : -999;
     // (v521, дуэли: присед за низким укрытием рвал линию — враг пропадал, перестрелка «расходилась») держит угол — приседает, только если
     // ближайший видимый враг виден и из приседа
-    var ceN = b._nearestEnemyBot, cvp = (b.holding && tick - b.holdSinceTick > 25 && ceN && b._sawEnemy) ? visParts(b.x, b.y, true, ceN.x, ceN.y, ceN.crouching, true, b.z, ceN.z) : null;
-    b.crouching = b.holding && (tick - b.holdSinceTick > 25) && (!cvp || !!(cvp.head || cvp.body || cvp.side));
+    // (v571, В140, владелец 13.11: «очень часто стреляют и даже пикают на приседе») было: держит угол дольше 0,4 с — всегда сидит (8 % времени).
+    // У про (12 демок Mirage, scratchpad duck.py) присед — 3 % времени, угол держат стоя (4 %), сидят коротко (медиана 0,19 с = одно решение здесь)
+    // и в очереди (DUCK_PRO). Решение на 12 тиков: стреляю — DUCK_PRO.spray, вижу врага и вот-вот выстрелю — first; иначе стоя; первая пуля
+    // очереди — отдельное решение сразу (burst, ниже в контакте), иначе присед опаздывает к 2–3-й пуле
+    var firing = tick - (b.lastShotTick || -1e9) < DECISION_INTERVAL_TICKS;
+    if(tick - (b._duckT || -1e9) >= DECISION_INTERVAL_TICKS) duckDecide(b, firing ? DUCK_PRO.spray : (b._sawEnemy && b._nearestEnemyBot ? DUCK_PRO.first : 0), 11);
     if(next === "retreat" && !b.forcedRetreat){
       // роумер отходит на предыдущую точку маршрута, а не на спавн
       var rt = (b.role === "roamer" && b.roamPrevPt) ? b.roamPrevPt : b.spawnPt;
@@ -211,13 +229,22 @@ function resolveEngagements(){
           var da = ((FK.aim - b.facing + Math.PI) % (2*Math.PI) + 2*Math.PI) % (2*Math.PI) - Math.PI;
           if(FK.arr == null){ b.facing += Math.max(-aimStep, Math.min(aimStep, da)); if(Math.abs(da) <= aimStep) FK.arr = tick; }
           else if(tick - FK.arr >= Math.round((b.reactionTicks || 12)*FLICK.wait)){ var fs = aimStep*FLICK.fix; b.facing += Math.max(-fs, Math.min(fs, dd)); if(Math.abs(dd) <= fs) FK.done = true; }
-        } else b.facing += Math.max(-aimStep, Math.min(aimStep, dd));
+        } else {
+          // (v571, В140, владелец 13.11: «боты тупо приклеиваются к врагу прицелом» — в 3D) ведение цели — с запаздыванием про AIM_LAG (0,12 с,
+          // 490: тот же замер, по которому считается попадание): доворот за тик — доля 1 − e^(−1/(AIM_LAG·64)) ≈ 12 % остатка. Было: каждый тик
+          // ровно в цель (до 10° за тик). Большой угол (рывок) — как раньше, без запаздывания (там рывок с промахом выше)
+          // поправка порцией, как у человека: ушло больше AIM_TRACK_BAND — доводит до AIM_TRACK_BAND/5 (в бою прицел про неподвижен 50 % времени)
+          if(Math.abs(dd) >= AIM_TRACK_BAND) b._aimFix = true; else if(Math.abs(dd) <= AIM_TRACK_BAND/5) b._aimFix = false;
+          var tr = Math.abs(dd) > FLICK.min ? aimStep : Math.min(aimStep, Math.max(AIM_TRACK_MIN, Math.abs(dd)*(1 - Math.exp(-1/(AIM_LAG*TICK_HZ)))));
+          if(b._aimFix || Math.abs(dd) > FLICK.min) b.facing += Math.max(-tr, Math.min(tr, dd)); }
       }
       else {
         // (v153) вне боя: плавно, с торможением к цели, не быстрее ~260°/с;
         // стоя мелкие поправки (<3°) не делаем — прицел стоит, а не дрожит
-        var standing = !(b.curSpeed > 15*SPD_K);
-        if(!(standing && Math.abs(dd) < 0.05)){
+        // (v571, В140) и на ходу: поправка — порцией, когда точка уехала больше чем на 3°, до конца (≤ 0,6°). Было: на ходу точка из-за угла
+        // (cornerLook) сдвигалась каждый тик и прицел доворачивался непрерывно — неподвижен 35 % на шаге и 36 % на бегу, у про 55 / 52 %
+        if(Math.abs(dd) >= 0.05) b._aimFix = true; else if(Math.abs(dd) <= 0.01) b._aimFix = false;
+        if(b._aimFix){
           var cap = SL.calmRate / TICK_HZ, stp = Math.min(cap, Math.max(SL.minStep, Math.abs(dd)*SL.ease));
           b.facing += Math.max(-stp, Math.min(stp, dd));
         }

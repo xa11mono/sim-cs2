@@ -130,6 +130,49 @@ function jumpCheckTick(b){
   if(!sp) return;
   if(hashRand(tick*977 + b.id.charCodeAt(b.id.length-1)*31 + roundNum*7) < sp.rate/(JUMP_HOLD_SEC*TICK_HZ)){ b._jc = {t:tick}; b._jump = {t:tick, up:true}; }
 }
+// (v571, В140, владелец 13.11: «повтори движение игроков полностью — контрстрейфы, джиглы»; выгрузка каждого тика, 12 демок Mirage,
+// tools/motion_ctx.py) вне перестрелки про почти всё время «нажимают» A / D: стоя на угле — 52 смены в минуту, нажатие ~0,11 с, сдвиг ~3 ед.;
+// шагом — 46 в минуту, ~0,23 с, ~12 ед.; боты не качались (5,5 смен в минуту всего). Клавиши стрейфа — одно место: бот жмёт сторону по
+// расписанию из распределений про (нажатие / пауза, квантили 10/25/50/75/90 %), ход — физикой CS2 (разгон CS_ACCEL, трение CS_FRIC,
+// встречная клавиша гасит ход — как стрейф в перестрелке, 470); стоя — не уходит с точки (отъехал дальше KEYS_DRIFT — жмёт обратно).
+// Перестрелку ведёт 470 (fightStrafe); бег (≥ 200 ед./с) — без качания (у про 10 в минуту)
+// (12 демок Mirage, tools/motion_ctx.py; пауза — вся, включая длинные; same — доля нажатий в ту же сторону, что прошлое)
+var KEYS_PRO = {hold: {press: [0.047, 0.078, 0.109, 0.188, 0.422], gap: [0.0, 0.016, 0.078, 0.219, 0.625], same: 0.35},
+                walk: {press: [0.094, 0.141, 0.234, 0.375, 0.781], gap: [0.0, 0.016, 0.062, 0.203, 0.516], same: 0.35}};
+var KEYS_WALK_ON = 0.55;
+var KEYS_DRIFT = 22/PX_UNITS;   // ед. → px: стоя дольше 2 с про отходят от середины места не дальше 22 ед. (медиана наибольшего отхода, 1127 отрезков, 12 демок) — дальше жмёт обратно
+function keysRand(b, salt){ return hashRand(tick*37 + b.id.charCodeAt(0)*13 + b.id.charCodeAt(b.id.length-1)*29 + salt); }
+function strafeKeysTick(b, dt){
+  var J = b._keys || (b._keys = {key: 0, until: 0, v: 0, last: 1, ax: null, ay: null, ctx: null});
+  var sp = (b.curSpeed || 0)*PX_UNITS, ctx = null;
+  // на ходу (100–200 ед./с) про качаются не всё время: без качания 15 смен в минуту, с качанием на каждом отрезке — 70, у про 46 —
+  // качается примерно в половине отрезков ходьбы (доля подобрана под цифру про — KEYS_WALK_ON)
+  var wseg = sp >= 100 && sp < 200; if(wseg && !J.wseg) J.walkOn = keysRand(b, 4) < KEYS_WALK_ON; J.wseg = wseg;
+  if(roundState === "live" && b.alive && !b._fc && !b.planting && !b.defusing && tick >= (b.throwUntil || 0) && !b._climb && !b.onLadder && !b._sbOff){
+    if(sp < 100 && !b._sawEnemy && !(b.post && taskProp(b.post.tag, "holdStrafeSkip")) && !(b.fakeHoldUntil && tick < b.fakeHoldUntil) && !(tick < (b.blindUntil||0))) ctx = "hold"; else if(sp >= 100 && sp < 200 && !b.atPost && J.walkOn) ctx = "walk"; }
+  if(ctx !== J.ctx){ J.ctx = ctx; J.key = 0; J.until = tick; if(ctx === "hold"){ J.ax = b.baseX; J.ay = b.baseY; } }
+  // качание кончилось (увидел врага, задача, бросок) — клавиша отпущена, ход гасит трение (CS2), а не пропадает мгновенно;
+  // перестрелку ведёт 470 — она берёт этот ход себе (fightStrafe, начальная скорость)
+  if(!ctx && b._fc) return;   // ход качания забрала перестрелка (fightStrafe обнуляет J.v, когда берёт)
+  if(!ctx && (!b.alive || roundState !== "live" || b._climb || b.onLadder)){ J.v = 0; return; }
+  if(ctx){   // ось — поперёк взгляда (стоя) / хода (идёт); после конца качания — та же ось, пока ход не погаснет
+    var a = ctx === "walk" ? (b.heading !== undefined ? b.heading : 0) : (b.facing !== undefined ? b.facing : 0); J.ux = -Math.sin(a); J.uy = Math.cos(a);
+    if(tick >= J.until){
+      if(J.key){ J.key = 0; J.until = tick + Math.max(1, Math.round(peekQ(KEYS_PRO[ctx].gap, keysRand(b, 1))*TICK_HZ)); }
+      else { var s = keysRand(b, 3) < KEYS_PRO[ctx].same ? J.last : -J.last;
+        if(ctx === "hold" && J.ax != null){ var off = (b.baseX - J.ax)*J.ux + (b.baseY - J.ay)*J.uy; if(Math.abs(off) > KEYS_DRIFT) s = off > 0 ? -1 : 1; }
+        J.key = s; J.last = s; J.until = tick + Math.max(1, Math.round(peekQ(KEYS_PRO[ctx].press, keysRand(b, 2))*TICK_HZ)); } }
+  } else { if(!J.v) return; J.key = 0; }
+  var ux = J.ux, uy = J.uy;
+  var vmax = SPEED*weaponSpeedMul(b), v = J.v, av = Math.abs(v);
+  if(J.key && v*J.key >= 0) v = J.key*Math.min(vmax, av + Math.max(0, CS_ACCEL*vmax - CS_FRIC*av)*dt);
+  else { var dec = (J.key ? csDecel(av, vmax) : CS_FRIC*Math.max(av, CS_STOP/PX_UNITS))*dt; v = av <= dec ? 0 : v - (v < 0 ? -1 : 1)*dec; }
+  J.v = v;
+  if(Math.abs(v) < 1e-3) return;
+  var nx = b.baseX + ux*v*dt, ny = b.baseY + uy*v*dt;
+  if(stepBlocked(b.baseX, b.baseY, nx, ny, b)){ J.v = 0; return; }   // упёрся — клавишу не отпускает (у про длинные нажатия на малой скорости — в стену)
+  b.baseX = nx; b.baseY = ny;
+}
 function stepTick(){
   tick++;
   simTime = tick * TICK_MS / 1000;
@@ -212,53 +255,10 @@ function stepTick(){
     if(bot._fc && bot._fc.ph !== "line"){ bot.curSpeed = bot._fc.moving ? (bot._fc.mv || 0) : 0; bot._stopWhy = bot._fc.moving ? "перестрелка — идёт за укрытие / на линию" : "перестрелка — стоит за укрытием"; }
 
     // ---------- держит угол "живьём" ----------
-    // Стоящий на посту / держащий угол без контакта не стоит статуей: медленно
-    // (шагом, тихо) переставляется влево-вправо поперёк направления взгляда
-    // в пределах ~25px, иногда замирает. Это настоящее движение (с коллизией),
-    // не только анимация. Как только видит врага — сразу стоп (контр-страф).
-    var idleHold = (bot.atPost || (bot.holding && !bot._sawEnemy)) && !bot._sawEnemy && !bot.planting && !bot.defusing &&
-                   !(bot.post && taskProp(bot.post.tag, "holdStrafeSkip")) &&
-                   tick >= (bot.throwUntil||0) && !burn && !(bot.fakeHoldUntil && tick < bot.fakeHoldUntil) && !bot._fc;
-    // (v420, отметка владельца 25.10: Mirage м1 р1 62 с, T4 и CT3 «дергается») в перестрелке (_fc) двигает только цикл боя (470):
-    // переминание вокруг старой точки тянуло бота назад от укрытия (0,2–0,36 ед. за тик), цикл снова шагал к укрытию (1,5) —
-    // «к укрытию / назад» через каждые несколько тиков. Точка переминания после боя — где стоит (сброс ниже)
+    // (v571, В140) было: переминание шагом ±24 px с паузами 1–2,5 с (ручные числа). У про стоя на угле — частые мелкие касания A / D (52 в минуту,
+    // нажатие ~0,11 с, сдвиг ~3 ед.) — теперь это клавиши стрейфа (strafeKeysTick ниже, данные демок); задачи без переминания — те же
+    // (holdStrafeSkip, фейк-холд — условия в strafeKeysTick)
     if(bot._fc) bot._hold = null;
-    if(idleHold){
-      if(!bot._hold || bot._hold.post !== bot.post){ bot._hold = {post: bot.post, ax: bot.baseX, ay: bot.baseY, dir: 0, until: tick}; }
-      var H = bot._hold;
-      if(tick >= H.until){
-        var hr = hashRand(tick*7 + bot.id.charCodeAt(0)*31 + bot.id.length*101);
-        H.dir = hr < 0.25 ? 0 : (hr < 0.62 ? 1 : -1);          // иногда просто стоит
-        H.until = tick + 55 + Math.floor(hashRand(tick*3 + bot.id.charCodeAt(0))*110);
-        H.fwd = (hashRand(tick*11 + bot.id.length) - 0.5) * 14;  // чуть вперёд/назад
-        // (v298) шаг в стену не выбираем: сначала другая сторона, иначе стоим (раньше упирался и каждый тик выбирал заново — дёргался)
-        var la0 = bot.facing !== undefined ? bot.facing : 0, pa0 = la0 + Math.PI/2;
-        var tgt = function(d){ return {x: H.ax + Math.cos(pa0)*d*24 + Math.cos(la0)*H.fwd, y: H.ay + Math.sin(pa0)*d*24 + Math.sin(la0)*H.fwd}; };
-        var idleBad = function(q){ return stepBlocked(H.ax, H.ay, q.x, q.y, bot) || stepNeedsJump(H.ax, H.ay, q.x, q.y, bot); };   // (п.19) и не на уступ
-        if(H.dir){ var q0 = tgt(H.dir); if(idleBad(q0)){ var q1 = tgt(-H.dir); H.dir = idleBad(q1) ? 0 : -H.dir; } }
-      }
-      // (v298, владелец 14.10: «переминание дёрганое») направление шага берётся один раз, когда выбран новый шаг (раньше — каждый тик от
-      // взгляда: повернул голову — точка шага прыгала), и скорость не скачет: разгон и торможение к точке шага за ~0,25 с (проектное
-      // число), разворот — через остановку
-      var STRAFE = 38*SPD_K; // px/с — медленнее тихого шага
-      if(H.pa === undefined || H.paT !== H.until){ var lookA = bot.facing !== undefined ? bot.facing : 0; H.pa = lookA + Math.PI/2; H.la = lookA; H.paT = H.until; }
-      var tx = H.ax + Math.cos(H.pa)*H.dir*24 + Math.cos(H.la)*(H.fwd||0);
-      var ty = H.ay + Math.sin(H.pa)*H.dir*24 + Math.sin(H.la)*(H.fwd||0);
-      var sdx = tx - bot.baseX, sdy = ty - bot.baseY, sd = Math.hypot(sdx, sdy);
-      var acc = STRAFE/0.25, v0 = H.v || 0;
-      // текущее движение не туда (новая точка за спиной) — сначала тормозим
-      var same = !H.vx || (sd > 0.01 && (H.vx*sdx + H.vy*sdy)/sd > 0);
-      var vT = !same ? 0 : Math.min(STRAFE, Math.sqrt(2*acc*Math.max(0, sd - 0.5)));
-      var v1 = v0 < vT ? Math.min(vT, v0 + acc*dtSec) : Math.max(vT, v0 - acc*dtSec);
-      if(sd > 0.5 && (v1 > 0.5 || same)){
-        var ux = same ? sdx/sd : (H.vx || 0), uy = same ? sdy/sd : (H.vy || 0);
-        var st = Math.min(same ? sd : 99, v1*dtSec);
-        var sx = bot.baseX + ux*st, sy = bot.baseY + uy*st;
-        if(st > 0 && !stepBlocked(bot.baseX, bot.baseY, sx, sy, bot) && !stepNeedsJump(bot.baseX, bot.baseY, sx, sy, bot)){ bot.baseX = sx; bot.baseY = sy; bot.curSpeed = v1; bot.walking = true; H.vx = ux; H.vy = uy; H.v = v1; }
-        else if(st > 0){ H.dir = 0; H.until = tick + 32; H.v = 0; H.vx = H.vy = 0; } // упёрся — постоять 0,5 с, потом новый шаг
-        else { H.v = v1; if(v1 <= 0.5){ H.vx = H.vy = 0; } }
-      } else { H.v = 0; H.vx = H.vy = 0; if(bot.curSpeed <= STRAFE) bot.curSpeed = 0; }
-    } else if(bot._hold && !bot.atPost && !bot.holding){ bot._hold = null; }
 
     // ---------- эмиссия звука шагов (план §13, минимальная версия для §3) ----------
     // Дискретные "шаги" с интервалом, не сплошное поле — бег громче и чаще,
@@ -473,10 +473,12 @@ function stepTick(){
         if(actuallyMoved > 0.15 && !bot.lookTarget){
           // плавно, а не рывком — иначе после того как бот перестал смотреть
           // на звук/врага, взгляд мгновенно щёлкал бы обратно по ходу движения
+          // (v571, В140) поправка — порцией: ход ушёл от взгляда больше чем на 3° — доворот до конца (≤ 0,6°); мелкие сдвиги хода (шаги по навмешу)
+          // прицел не тянут. Было: доворот каждый тик — на бегу прицел неподвижен 36 % (у про 52 %)
           var mvA = Math.atan2(bot.baseY-startY, bot.baseX-startX);
           var mvD = ((mvA - bot.facing + Math.PI) % (2*Math.PI) + 2*Math.PI) % (2*Math.PI) - Math.PI;
-          var mvStep = TURN_RATE * dtSec;
-          bot.facing += Math.max(-mvStep, Math.min(mvStep, mvD));
+          if(Math.abs(mvD) >= 0.05) bot._aimFix = true; else if(Math.abs(mvD) <= 0.01) bot._aimFix = false;
+          if(bot._aimFix){ var mvStep = TURN_RATE * dtSec; bot.facing += Math.max(-mvStep, Math.min(mvStep, mvD)); }
         }
         // (Б1, Х1, сторож 21.10) «не сдвинулся» — меньше 15 % своего шага, без порога 0,3 ед.: при скорости < 19 ед./с (тормозит у
         // точки, шифт с тяжёлым оружием) целый шаг меньше 0,3, и бот, честно идущий медленно, через 40 тиков «застревал» → перенос
@@ -579,6 +581,7 @@ function stepTick(){
     bot._prevOffX = offX; bot._prevOffY = offY;
     // (v403, отметка владельца 22.10, Mirage A Default: CT4 «прошёл сквозь два укрытия») высота пересчитывалась только после шага
     // пути: в бою (стрейф, уход за укрытие — fightCycleTick), у угла и после пика бот сходил с ящика и шёл дальше на высоте ящика
+    strafeKeysTick(bot, dtSec);   // (v571, В140) клавиши стрейфа вне перестрелки — качание стоя / на ходу, как у про
     if(!bot._climb) navFollowFloor(bot);
     bot.x = bot.baseX + offX;
     bot.y = bot.baseY + offY;

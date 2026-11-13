@@ -10,7 +10,7 @@ RIFLES = ('AK-47', 'M4A4', 'M4A1-S', 'Galil AR', 'FAMAS', 'AUG', 'SG 553')
 
 
 def main():
-    T = collections.Counter(); SW = collections.Counter(); HL = collections.defaultdict(list); cst = []; csv_ = []; amp = collections.defaultdict(list)
+    T = collections.Counter(); SW = collections.Counter(); HL = collections.defaultdict(list); GAP = collections.defaultdict(list); cst = []; csv_ = []; amp = collections.defaultdict(list)
     for f in sorted(glob.glob(os.path.join(demos.DEMOS, '*_motion.csv.gz'))):
         d = pd.read_csv(f, low_memory=False, usecols=['tick', 'steamid', 'is_alive', 'LEFT', 'RIGHT', 'velocity_X', 'velocity_Y', 'shots_fired', 'active_weapon_name', 'X', 'Y', 'yaw'])
         d = d[d.is_alive == True].sort_values(['steamid', 'tick'])  # noqa: E712
@@ -22,7 +22,7 @@ def main():
             near = np.zeros(len(tk), bool)
             for i in shot: near[max(0, i - 96):i + 97] = True
             ctx = np.where(near, 'перестрелка', np.where(v < 100, 'держит / медленно', np.where(v < 200, 'идёт', 'бежит')))
-            side = np.where(L & ~R, -1, np.where(R & ~L, 1, 0)); last = 0; lt = None; run = 0; rs = None
+            side = np.where(L & ~R, -1, np.where(R & ~L, 1, 0)); last = 0; lt = None; run = 0; rs = None; gs = None
             for i in range(len(tk)):
                 c = ctx[i]; T[c] += 1
                 if not cont[i]: last = 0; lt = None; run = 0; continue
@@ -31,12 +31,14 @@ def main():
                     if last and lt is not None and tk[i] - lt < 40: SW[c] += 1
                     last = s; lt = tk[i]
                 if s: 
-                    if not run: rs = i
+                    if not run:
+                        rs = i
+                        if gs is not None and i - gs < 128: GAP[c].append(i - gs)
                     run += 1
                 elif run:
                     HL[c].append(run)
                     # размах качания: смещение поперёк взгляда за нажатие (ед.)
-                    a = yaw[rs]; dx = X[i] - X[rs]; dy = Y[i] - Y[rs]; amp[c].append(abs(-np.sin(a) * dx + np.cos(a) * dy)); run = 0
+                    a = yaw[rs]; dx = X[i] - X[rs]; dy = Y[i] - Y[rs]; amp[c].append(abs(-np.sin(a) * dx + np.cos(a) * dy)); run = 0; gs = i
             for i in shot:
                 if w[i] not in RIFLES or sf[i] != 1: continue
                 a = max(0, i - 20); seg = side[a:i]
@@ -51,7 +53,11 @@ def main():
     for c in ('держит / медленно', 'идёт', 'бежит', 'перестрелка'):
         mins = T[c] / 64 / 60
         print('  %-18s %5.1f%%   %8.1f   %10.2f   %10.0f' % (c, 100 * T[c] / sum(T.values()), SW[c] / max(1e-9, mins), np.median(HL[c]) / 64 if HL[c] else 0, np.median(amp[c]) if amp[c] else 0))
-    for c0 in ('перестрелка', 'идёт'):
+    for c0 in ('держит / медленно', 'идёт', 'перестрелка'):
+        Hh = np.array(HL[c0]) / 64; Gg = np.array(GAP[c0]) / 64
+        print('  «%s»: нажатие, с, квантили 10/25/50/75/90:' % c0, [round(float(x), 3) for x in np.percentile(Hh, [10, 25, 50, 75, 90])],
+              '| пауза между нажатиями, с:', [round(float(x), 2) for x in np.percentile(Gg, [10, 25, 50, 75, 90])] if len(Gg) else None)
+    for c0 in ('держит / медленно', 'перестрелка', 'идёт'):
         A = np.array(amp[c0]); A = A[A > 0.5]
         print('  размах качания «%s», квантили 10/25/50/75/90 %%, ед.:' % c0, [round(float(x), 1) for x in np.percentile(A, [10, 25, 50, 75, 90])])
     c = np.array(cst); cv = np.array(csv_)

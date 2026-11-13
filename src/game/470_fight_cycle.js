@@ -110,7 +110,8 @@ function fightStrafe(b, F, dtSec){
   if(F.sv === undefined){   // скорость, с которой вошёл в перестрелку, — дальше она (её гасит или продолжает стрейфом)
     var TR = b._trail || [], tp = TR.length >= 2 ? TR[TR.length-2] : {x:b.baseX, y:b.baseY};   // куда шёл последние ~0,25–0,5 с
     var pr = (b.baseX - tp.x)*ax + (b.baseY - tp.y)*ay;
-    F.sdir = pr >= 0 ? 1 : -1; F.sv = F.sdir*Math.min(vmax, b.curSpeed || 0); F.leg = 0;
+    F.sdir = pr >= 0 ? 1 : -1; F.sv = F.sdir*Math.min(vmax, Math.max(b.curSpeed || 0, Math.abs((b._keys || {}).v || 0))); F.leg = 0;   // (v571) и ход качания A / D (540) — дальше он у перestrелки
+    if(b._keys) b._keys.v = 0;
   }
   if(b.lastShotTick >= F.t) F.started = true;
   // контрстрейф начинается так, чтобы к моменту, когда можно стрелять, скорость упала до той, на которой выстрел «стоит того»
@@ -120,7 +121,9 @@ function fightStrafe(b, F, dtSec){
   else {
     var so = (b.baseX - F.ax)*ax + (b.baseY - F.ay)*ay;
     if(!F.leg) F.leg = Math.max(1, peekQ(STRAFE_PRO, fightRand(b, 7))/PX_UNITS);
-    if(F.sdir*so >= F.leg){ F.sdir = -F.sdir; F.leg = Math.max(1, peekQ(STRAFE_PRO, fightRand(b, 8))/PX_UNITS); }
+    // (v571, В140) до первого выстрела вышедший с ходу продолжает выход, а гасит ход встречной клавишей прямо перед выстрелом (stop выше):
+    // у про первая пуля винтовки при выходе — на 69 ед./с (медиана; 25/75 % — 32/103), у бота разворот на первом шаге стрейфа гасил ход до 0
+    if(F.started && F.sdir*so >= F.leg){ F.sdir = -F.sdir; F.leg = Math.max(1, peekQ(STRAFE_PRO, fightRand(b, 8))/PX_UNITS); }
     if(F.sv*F.sdir < 0){ var d = csDecel(v, vmax)*dtSec; F.sv = v <= d ? 0 : F.sv - (F.sv < 0 ? -1 : 1)*d; }
     else F.sv = F.sdir*Math.min(vmax, v + Math.max(0, CS_ACCEL*vmax - CS_FRIC*v)*dtSec);
   }
@@ -128,7 +131,10 @@ function fightStrafe(b, F, dtSec){
   if(Math.abs(st) > 1e-6){
     // (v521, дуэли, замечание владельца 09.11 «2–3 выстрела и оба за стену» — разбор 57 расставаний: 16 — стрейф уводил за край укрытия, врага
     // больше не видно) стрейф — в пределах линии: шаг, после которого врага, видного сейчас, уже не видно, — разворот (как упор в стену)
-    if(stepBlocked(b.baseX, b.baseY, nx, ny, b) || (b._sawEnemy && hasLOS(b.baseX, b.baseY, e.x, e.y, b.z, e.z) && !hasLOS(nx, ny, e.x, e.y, b.z, e.z))){ F.sv = 0; F.sdir = -F.sdir; F.leg = 0; }
+    // (v571, В140) у края видимости — встречная клавиша: ход гаснет физикой CS2 (как контрстрейф), бот за край не шагает; в стену — стоп сразу
+    if(stepBlocked(b.baseX, b.baseY, nx, ny, b)){ F.sv = 0; F.sdir = -F.sdir; F.leg = 0; }
+    else if(b._sawEnemy && hasLOS(b.baseX, b.baseY, e.x, e.y, b.z, e.z) && !hasLOS(nx, ny, e.x, e.y, b.z, e.z)){
+      var sg = F.sv < 0 ? -1 : 1, dE = csDecel(Math.abs(F.sv), vmax)*dtSec; F.sdir = -sg; F.leg = 0; F.sv = Math.abs(F.sv) <= dE ? 0 : F.sv - sg*dE; }
     else { b.baseX = nx; b.baseY = ny; }
   }
   b.curSpeed = Math.abs(F.sv); b.walking = false;
