@@ -14,8 +14,8 @@
     --sh-pop:0 1px 0 rgba(255,255,255,.05) inset, 0 18px 40px -12px rgba(0,0,0,.65), 0 2px 6px rgba(0,0,0,.4);
     --ease:cubic-bezier(.2,.8,.2,1); --ease-in:cubic-bezier(.5,0,.75,0); --spring:cubic-bezier(.34,1.5,.64,1);
     --d1:120ms; --d2:180ms; --d3:280ms;
-    /* (v571) 3D-вид (DESIGN.md, «3D-вид»): холст, пол, бортик пола, ящики, рёбра ящиков */
-    --v3-bg:#0b0d0a; --v3-floor:#2e3430; --v3-floor-side:#141713; --v3-prop:#e3e6dc; --v3-edge:#f6f8f1;
+    /* (v571) 3D-вид (DESIGN.md, «3D-вид»): холст, пол, бортик пола, ящики и стены, рёбра; v573 — рельеф (скалы), срез стен «крышка» */
+    --v3-bg:#0b0d0a; --v3-floor:#2e3430; --v3-floor-side:#141713; --v3-prop:#c4c8bb; --v3-edge:#f6f8f1; --v3-rock:#9ea395; --v3-cap:#eef0e8;
     --i-3d:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23000%22 stroke-width=%222.2%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpath d=%22M12 3 20 7.5v9L12 21l-8-4.5v-9z%22/%3E%3Cpath d=%22M4 7.5 12 12l8-4.5M12 12v9%22/%3E%3C/svg%3E");
     --i-lock:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23000%22 stroke-width=%222.2%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Crect x=%225%22 y=%2211%22 width=%2214%22 height=%2210%22 rx=%222%22/%3E%3Cpath d=%22M8 11V8a4 4 0 0 1 8 0v3%22/%3E%3C/svg%3E");
     --i-zin:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23000%22 stroke-width=%222.2%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Ccircle cx=%2211%22 cy=%2211%22 r=%226.5%22/%3E%3Cpath d=%22M20 20l-4.4-4.4M11 8v6M8 11h6%22/%3E%3C/svg%3E");
@@ -620,6 +620,6 @@
   #v3Tools button:hover{background:var(--panel-3);color:var(--text);}
   #v3Tools button.on{background:var(--accent-soft);color:var(--accent);}
   #v3Tools button::before{content:"";width:14px;height:14px;background:currentColor;-webkit-mask:var(--ic) center/contain no-repeat;mask:var(--ic) center/contain no-repeat;transition:transform var(--d2) var(--spring);}
-  #v3Lock{--ic:var(--i-lock);} #v3In{--ic:var(--i-zin);} #v3Out{--ic:var(--i-zout);} #v3Rot{--ic:var(--i-rot);} #v3Top{--ic:var(--i-top);}
+  #v3Lock{--ic:var(--i-lock);} #v3In{--ic:var(--i-zin);} #v3Out{--ic:var(--i-zout);} #v3Rot{--ic:var(--i-rot);} #v3Top{--ic:var(--i-top);} #v3Style{--ic:var(--i-layers);}
   #v3Rot:hover::before{transform:rotate(-60deg);}
 </style>

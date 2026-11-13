@@ -10,11 +10,13 @@
 // Координаты сцены: x, z — px радара 0..2048 (z = y радара), y — высота = ед. игры × 0,4 (1 px радара = 2,5 ед.).
 // Камера: цель и приближение — из view (обсервер ведёт её и в 3D), поворот и наклон — свои (D3.yaw / D3.pitch).
 // Цвета — токены :root (--v3-*, DESIGN.md «3D-вид»).
-var D3 = {on: false, gl: null, built: false, failed: null, yaw: 0, pitch: 0.95, yawT: 0, pitchT: 0.95, top: false, lock: false,
+var D3 = {on: false, style: 0, gl: null, built: false, failed: null, yaw: 0, pitch: 0.95, yawT: 0, pitchT: 0.95, top: false, lock: false,
           tz: null, drag: null, tagEls: {}, nadeZ: [], smZ: new WeakMap(), trZ: new WeakMap()};
 var D3_KZ = 0.4;               // ед. игры → px радара (высота)
 var D3_CUT = 150;              // проектное число: выше этого над полом геометрия не рисуется (ящик 64, два ящика 128 ед.)
 var D3_FOV = 38 * Math.PI/180;
+// виды мира (владелец 13.11: «прозрачный был лучше — от него, но сделай несколько вариаций»): a — плотность граней, ea — яркость рёбер
+var D3_STYLES = [{id: "glass", name: "стекло", a: 0.32, ea: 0.6}, {id: "line", name: "контур", a: 0.1, ea: 0.85}, {id: "solid", name: "макет", a: 1, ea: 0.3}];
 var D3_SOFT = {rock:1, grass:1, mud:1, dirt:1, sand:1, boulder:1, Wood_Tree:1, foliage:1, gravel:1, snow:1};   // природный рельеф — не ящики
 
 // ---------- матрицы (столбцами) ----------
@@ -41,12 +43,30 @@ var D3_LVS = "#version 300 es\nin vec3 aP; in vec4 aC; uniform mat4 uVP; uniform
   "void main(){ vC = aC; vD = distance(aP, uEye); gl_Position = uVP*vec4(aP,1.0); gl_Position.z -= 0.0006*gl_Position.w; }";
 var D3_LFS = "#version 300 es\nprecision mediump float; in vec4 vC; in float vD; uniform vec2 uFog; out vec4 o;\n" +
   "void main(){ o = vec4(vC.rgb, vC.a*(1.0 - smoothstep(uFog.x, uFog.y, vD))); }";
+// мир: срез по таблице этажей; нормаль — по экранным производным (плоские грани); изнанка в разрезе — «крышка»
+var D3_WVS = "#version 300 es\nin vec3 aP; in float aK; uniform mat4 uVP; out vec3 vW; out float vK; void main(){ vW = aP; vK = aK; gl_Position = uVP*vec4(aP,1.0); }";
+var D3_CUTF = "uniform highp sampler2D uF; uniform float uCut;\n" +
+  "float refY(vec3 w){ ivec2 b = ivec2(floor(w.x/8.0), floor(w.z/8.0)); if(b.x < 0 || b.y < 0 || b.x > 255 || b.y > 255) return -1e9;\n" +
+  " vec4 a = texelFetch(uF, ivec2(b.x*2, b.y), 0), c = texelFetch(uF, ivec2(b.x*2+1, b.y), 0); float lim = w.y + 3.2, r = -1e9;\n" +
+  " if(a.x <= lim) r = max(r, a.x); if(a.y <= lim) r = max(r, a.y); if(a.z <= lim) r = max(r, a.z); if(a.w <= lim) r = max(r, a.w);\n" +
+  " if(c.x <= lim) r = max(r, c.x); if(c.y <= lim) r = max(r, c.y); if(c.z <= lim) r = max(r, c.z); if(c.w <= lim) r = max(r, c.w); return r; }\n";
+var D3_WFS = "#version 300 es\nprecision highp float; in vec3 vW; in float vK; uniform vec3 uEye, uL, uBg, uProp, uRock, uCap; uniform vec2 uFog; uniform float uA; out vec4 o;\n" + D3_CUTF +
+  "void main(){ float r = refY(vW); if(r < -1e8) discard; float h = vW.y - r; if(h > uCut) discard;\n" +
+  " vec3 n = normalize(cross(dFdx(vW), dFdy(vW))); if(dot(n, uEye - vW) < 0.0) n = -n; vec3 c;\n" +
+  " if(!gl_FrontFacing) c = uCap; else { vec3 base = mix(uProp, uRock, vK); float d = max(dot(n, uL), 0.0), hm = 0.5 + 0.5*n.y;\n" +
+  "  c = base*(0.30 + 0.36*hm + 0.50*d); c *= mix(0.55, 1.0, smoothstep(0.0, 26.0, h)); }\n" +
+  " c = mix(c, uCap*1.06, smoothstep(uCut - 1.4, uCut, h)*0.85);\n" +
+  " float f = smoothstep(uFog.x, uFog.y, distance(vW, uEye)); float rim = smoothstep(uCut - 1.4, uCut, h);\n" +
+  " if(uA < 1.0) o = vec4(c, (uA + rim*0.5)*(1.0 - f)); else o = vec4(mix(c, uBg, f), 1.0); }";
+var D3_ELVS = "#version 300 es\nin vec3 aP; uniform mat4 uVP; out vec3 vW; void main(){ vW = aP; gl_Position = uVP*vec4(aP,1.0); gl_Position.z -= 0.0006*gl_Position.w; }";
+var D3_ELFS = "#version 300 es\nprecision highp float; in vec3 vW; uniform vec3 uEye; uniform vec4 uC; uniform vec2 uFog; out vec4 o;\n" + D3_CUTF +
+  "void main(){ float r = refY(vW); if(r < -1e8 || vW.y - r > uCut + 0.2) discard; o = vec4(uC.rgb, uC.a*(1.0 - smoothstep(uFog.x, uFog.y, distance(vW, uEye)))); }";
 function d3Prog(gl, vs, fs){
   function sh(t, s){ var o = gl.createShader(t); gl.shaderSource(o, s); gl.compileShader(o); if(!gl.getShaderParameter(o, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(o)); return o; }
   var p = gl.createProgram(); gl.attachShader(p, sh(gl.VERTEX_SHADER, vs)); gl.attachShader(p, sh(gl.FRAGMENT_SHADER, fs)); gl.linkProgram(p);
   if(!gl.getProgramParameter(p, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(p));
   var u = {}, n = gl.getProgramParameter(p, gl.ACTIVE_UNIFORMS); for(var i = 0; i < n; i++){ var nm = gl.getActiveUniform(p, i).name; u[nm] = gl.getUniformLocation(p, nm); }
-  return {p: p, u: u, aP: gl.getAttribLocation(p, "aP"), aN: gl.getAttribLocation(p, "aN"), aC: gl.getAttribLocation(p, "aC")};
+  return {p: p, u: u, aP: gl.getAttribLocation(p, "aP"), aN: gl.getAttribLocation(p, "aN"), aC: gl.getAttribLocation(p, "aC"), aK: gl.getAttribLocation(p, "aK")};
 }
 // сетка: P (x,y,z), N, C (r,g,b,a) — по вершине, без индексов
 function d3Mesh(gl, P, N, C){
@@ -82,14 +102,6 @@ function d3FloorBlocks(M){
         if(!dup) A.push(z); } } }
   return (D3_FB = {BS: BS, BN: BN, L: L});
 }
-// высший пол «пешком» не выше z + 4 рядом с точкой (px радара) или null
-function d3FloorUnder(M, x, y, z){
-  var F = d3FloorBlocks(M), i = Math.floor(x / M.cell / F.BS), j = Math.floor(y / M.cell / F.BS);
-  if(i < 0 || j < 0 || i >= F.BN || j >= F.BN) return null;
-  var A = F.L[j*F.BN + i], best = null; if(!A) return null;
-  for(var t = 0; t < A.length; t++) if(A[t] <= z + 4 && (best === null || A[t] > best)) best = A[t];
-  return best;
-}
 // пол под точкой для объектов без высоты (дым, огонь, бомба): ближайший к подсказке этаж клетки
 function d3FloorNear(x, y, zh){
   var M = m3(); if(M){ var c = m3Cell(M, x, y); if(c >= 0){ var st = M.floors.st, fz = M.floors.z, best = null;
@@ -103,7 +115,8 @@ function d3FloorNear(x, y, zh){
 function d3Build(){
   var gl = D3.gl, t0 = performance.now();
   var cFloor = d3Hex(d3Tok("--v3-floor", "#2b3128")), cSide = d3Hex(d3Tok("--v3-floor-side", "#161a14")), cProp = d3Hex(d3Tok("--v3-prop", "#dde1d4"));
-  D3.cBg = d3Hex(d3Tok("--v3-bg", "#0b0d0a")); D3.cEdge = d3Hex(d3Tok("--v3-edge", "#f4f6ef"), 0.3);
+  D3.cBg = d3Hex(d3Tok("--v3-bg", "#0b0d0a")); D3.cEdge = d3Hex(d3Tok("--v3-edge", "#f4f6ef"), 0.3); D3.cProp = cProp;
+  D3.cRock = d3Hex(d3Tok("--v3-rock", "#aeb3a6")); D3.cCap = d3Hex(d3Tok("--v3-cap", "#c9cec0"));
   D3.cT = d3Hex(d3Tok("--t", "#d9a24a")); D3.cCT = d3Hex(d3Tok("--ct", "#5a9bd9"));
   // пол — навмеш
   var F = d3Acc(), zLo = Infinity, zHi = -Infinity;
@@ -118,75 +131,102 @@ function d3Build(){
       F.tri(p, q, q2, [cSide, cSide, cSide]); F.tri(p, q2, p2, [cSide, cSide, cSide]); }
   });
   D3.floor = d3Mesh(gl, F.P, F.N, F.C);
-  // ящики — геометрия игры
-  var M = m3(), G = d3Acc(), nT = 0;
-  if(M){
-    var X0 = M.X0, Y0 = M.Y0, mats = M.mats || [];
-    var W = function(X, Y, Z){ return [(X - X0)*D3_KZ, Z*D3_KZ, (Y0 - Y)*D3_KZ]; };
-    // пол «пешком» под деталью (низ ящика бывает под землёй — пол ищем до 40 ед. выше низа); деталь выше D3_CUT над полом или сам пол — нет
-    var keep = function(x, y, zmin, zmax){ var f = d3FloorUnder(M, x, y, zmin + 40); if(f === null) return null; var h = zmax - f; return h > D3_CUT || h < 5 ? null : f; };
-    var shade = function(pz, f){ var k = Math.max(0, Math.min(1, (pz/D3_KZ - f)/60)); var m = 0.6 + 0.4*k; return [cProp[0]*m, cProp[1]*m, cProp[2]*m, 1]; };   // у пола темнее — «тень» в стыке
-    var T = M.tri, tf = M.triFlag, tm = M.triMat, nt = tf.length;
-    for(var k = 0; k < nt; k++){
-      if(!(tf[k] & 1) || D3_SOFT[mats[tm[k]]]) continue;
-      var o = k*9, zmin = M.triZ[k*2], zmax = M.triZ[k*2+1];
-      var a = W(T[o], T[o+1], T[o+2]), b = W(T[o+3], T[o+4], T[o+5]), c = W(T[o+6], T[o+7], T[o+8]);
-      var f = keep((a[0]+b[0]+c[0])/3, (a[2]+b[2]+c[2])/3, zmin, zmax); if(f === null) continue;
-      if(G.tri(a, b, c, [shade(a[1], f), shade(b[1], f), shade(c[1], f)])) nT++;
-    }
-    // выпуклые блоки: вершины — пересечения троек плоскостей внутри блока, грань — вершины на её плоскости по кругу
-    var hn = M.hullN, hp = M.hullP, ho = M.hullOff, hb = M.hullBox, hfl = M.hullFlag, hm = M.hullMat;
-    for(var h = 0; h < hn.length; h++){
-      if(!(hfl[h] & 1) || hn[h] > 26 || D3_SOFT[mats[hm[h]]]) continue;
-      var c0 = W(hb[h*6], hb[h*6+1], hb[h*6+2]), c1 = W(hb[h*6+3], hb[h*6+4], hb[h*6+5]);
-      var fh = keep((c0[0]+c1[0])/2, (c0[2]+c1[2])/2, hb[h*6+2], hb[h*6+5]); if(fh === null) continue;
-      var pl = [], n = hn[h]; for(var q = 0; q < n; q++){ var b4 = (ho[h] + q)*4; pl.push([hp[b4], hp[b4+1], hp[b4+2], hp[b4+3]]); }
-      var V = [];
-      for(var i1 = 0; i1 < n; i1++) for(var i2 = i1+1; i2 < n; i2++) for(var i3 = i2+1; i3 < n; i3++){
-        var A1 = pl[i1], A2 = pl[i2], A3 = pl[i3];
-        var cx = A2[1]*A3[2] - A2[2]*A3[1], cy = A2[2]*A3[0] - A2[0]*A3[2], cz = A2[0]*A3[1] - A2[1]*A3[0], det = A1[0]*cx + A1[1]*cy + A1[2]*cz;
-        if(Math.abs(det) < 1e-6) continue;
-        var ex = A3[1]*A1[2] - A3[2]*A1[1], ey = A3[2]*A1[0] - A3[0]*A1[2], ez = A3[0]*A1[1] - A3[1]*A1[0];
-        var fx = A1[1]*A2[2] - A1[2]*A2[1], fy = A1[2]*A2[0] - A1[0]*A2[2], fz = A1[0]*A2[1] - A1[1]*A2[0];
-        var px = (A1[3]*cx + A2[3]*ex + A3[3]*fx)/det, py = (A1[3]*cy + A2[3]*ey + A3[3]*fy)/det, pz = (A1[3]*cz + A2[3]*ez + A3[3]*fz)/det, ok = true;
-        for(q = 0; q < n && ok; q++) if(pl[q][0]*px + pl[q][1]*py + pl[q][2]*pz > pl[q][3] + 0.05) ok = false;
-        if(!ok) continue;
-        for(q = 0; q < V.length; q++) if(Math.abs(V[q][0]-px) + Math.abs(V[q][1]-py) + Math.abs(V[q][2]-pz) < 0.05){ ok = false; break; }
-        if(ok) V.push([px, py, pz]);
-      }
-      if(V.length < 4) continue;
-      for(q = 0; q < n; q++){
-        var P0 = pl[q], on = V.filter(function(v){ return Math.abs(P0[0]*v[0] + P0[1]*v[1] + P0[2]*v[2] - P0[3]) < 0.05; });
-        if(on.length < 3) continue;
-        var mx = 0, my = 0, mz = 0; on.forEach(function(v){ mx += v[0]; my += v[1]; mz += v[2]; }); mx /= on.length; my /= on.length; mz /= on.length;
-        var ux = Math.abs(P0[0]) < 0.9 ? [0, -P0[2], P0[1]] : [P0[2], 0, -P0[0]], ul = Math.hypot(ux[0], ux[1], ux[2]); ux = [ux[0]/ul, ux[1]/ul, ux[2]/ul];
-        var vx = [P0[1]*ux[2] - P0[2]*ux[1], P0[2]*ux[0] - P0[0]*ux[2], P0[0]*ux[1] - P0[1]*ux[0]];
-        on.sort(function(A, B){ var a1 = Math.atan2((A[0]-mx)*vx[0] + (A[1]-my)*vx[1] + (A[2]-mz)*vx[2], (A[0]-mx)*ux[0] + (A[1]-my)*ux[1] + (A[2]-mz)*ux[2]);
-          var b1 = Math.atan2((B[0]-mx)*vx[0] + (B[1]-my)*vx[1] + (B[2]-mz)*vx[2], (B[0]-mx)*ux[0] + (B[1]-my)*ux[1] + (B[2]-mz)*ux[2]); return a1 - b1; });
-        var w0 = W(on[0][0], on[0][1], on[0][2]);
-        for(var t = 1; t + 1 < on.length; t++){ var w1 = W(on[t][0], on[t][1], on[t][2]), w2 = W(on[t+1][0], on[t+1][1], on[t+1][2]);
-          if(G.tri(w0, w1, w2, [shade(w0[1], fh), shade(w1[1], fh), shade(w2[1], fh)])) nT++; }
-      }
-    }
-  }
-  D3.props = d3Mesh(gl, G.P, G.N, G.C);
-  // рёбра ящиков — излом граней больше 37° или край
-  var E = new Map(), P = G.P, N = G.N, Lq = [];
-  var key = function(i){ return Math.round(P[i]*8) + "," + Math.round(P[i+1]*8) + "," + Math.round(P[i+2]*8); };
-  for(var ti = 0; ti < P.length/9; ti++) for(var e = 0; e < 3; e++){
-    var ia = ti*9 + e*3, ib = ti*9 + ((e+1) % 3)*3, ka = key(ia), kb = key(ib), kk = ka < kb ? ka + "|" + kb : kb + "|" + ka, r = E.get(kk);
-    if(!r) E.set(kk, {a: ia, b: ib, n: ti*9, c: 1, crease: false});
-    else { r.c++; var d = Math.abs(N[r.n]*N[ti*9] + N[r.n+1]*N[ti*9+1] + N[r.n+2]*N[ti*9+2]); if(d < 0.8) r.crease = true; }
-  }
-  E.forEach(function(r){ if(r.c === 1 || r.crease) Lq.push(P[r.a], P[r.a+1], P[r.a+2], P[r.b], P[r.b+1], P[r.b+2]); });
-  var LC = new Float32Array(Lq.length/3*4); for(var li = 0; li < LC.length; li += 4){ LC[li] = D3.cEdge[0]; LC[li+1] = D3.cEdge[1]; LC[li+2] = D3.cEdge[2]; LC[li+3] = D3.cEdge[3]; }
-  D3.edges = {p: gl.createBuffer(), c: gl.createBuffer(), cnt: Lq.length/3};
-  gl.bindBuffer(gl.ARRAY_BUFFER, D3.edges.p); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(Lq), gl.STATIC_DRAW);
-  gl.bindBuffer(gl.ARRAY_BUFFER, D3.edges.c); gl.bufferData(gl.ARRAY_BUFFER, LC, gl.STATIC_DRAW);
+  // мир — вся геометрия игры (флаг «взгляд», без клипов), срез по высоте над полом под каждой точкой — в шейдере (d3World, D3_WFS)
+  var Wd = d3World(gl);
+  D3.world = Wd; var nT = Wd.cnt/3;
   // фигуры: капсула (высота 1, радиус 1 по x/z — масштаб при рисовании), шар, диск, коробка
   D3.capsule = d3Shape(gl, "capsule"); D3.sphere = d3Shape(gl, "sphere"); D3.disc = d3Shape(gl, "disc"); D3.box = d3Shape(gl, "box"); D3.cone = d3Shape(gl, "cone");
   D3.lines = {p: gl.createBuffer(), c: gl.createBuffer()};
-  D3.built = true; D3.stat = {tri: nT, edges: Lq.length/6, ms: Math.round(performance.now() - t0)};
+  D3.built = true; D3.stat = {tri: nT, edges: Wd.ecnt/2, ms: Math.round(performance.now() - t0)};
+}
+// мир: вся геометрия (треугольники и выпуклые блоки), что может попасть ниже среза; пол под ней, совпадающий с навмешем, — нет
+// (его рисует навмеш). Срез — в шейдере по таблице этажей: у каждого фрагмента пол «пешком» под ним (высший не выше фрагмента),
+// выше пола на D3_CUT — не рисуется; изнанка закрытых предметов в разрезе — «крышка» (сплошной срез стен и ящиков).
+// Таблица этажей — текстура 512 × 256: блок 8 px радара = 2 тексела по 4 высоты (до 8 этажей пешком в блоке и вокруг), px сцены.
+function d3FloorTex(gl, M){
+  var F = d3FloorBlocks(M), BN = F.BN, data = new Float32Array(BN*2*BN*4);
+  for(var k = 0; k < data.length; k++) data[k] = -1e9;
+  for(var b = 0; b < BN*BN; b++){ var A = F.L[b]; if(!A) continue;
+    A = A.slice().sort(function(a, c){ return a - c; });
+    while(A.length > 8){ var mi = 1, md = Infinity; for(var q = 1; q < A.length; q++) if(A[q] - A[q-1] < md){ md = A[q] - A[q-1]; mi = q; } A.splice(mi, 1); }   // ближайшие — в один (нижний)
+    var bi = b % BN, bj = (b / BN) | 0;
+    for(q = 0; q < A.length; q++) data[((bj*BN*2) + bi*2 + (q >> 2))*4 + (q & 3)] = A[q]*D3_KZ;
+  }
+  var t = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, t);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA32F, BN*2, BN, 0, gl.RGBA, gl.FLOAT, data);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  return {tex: t, BN: BN};
+}
+function d3World(gl){
+  var M = m3(); if(!M) return {cnt: 0, ecnt: 0};
+  var F = d3FloorBlocks(M), X0 = M.X0, Y0 = M.Y0, mats = M.mats || [], cutU = D3_CUT;
+  var P = [], K = [], E = [];
+  var blk = function(x, y){ var i = Math.floor(x / M.cell / F.BS), j = Math.floor(y / M.cell / F.BS); return (i < 0 || j < 0 || i >= F.BN || j >= F.BN) ? null : F.L[j*F.BN + i]; };
+  var near = function(A, z, d){ if(A) for(var t = 0; t < A.length; t++) if(Math.abs(A[t] - z) < d) return true; return false; };
+  var under = function(A, z){ var b = null; if(A) for(var t = 0; t < A.length; t++) if(A[t] <= z + 8 && (b === null || A[t] > b)) b = A[t]; return b; };
+  // a, b, c — ед. игры (x, y, z); kind — 1 природный рельеф; edgeOk — рёбра искать
+  var push = function(a, b, c, kind){
+    var ra = m3Radar(M, a[0], a[1]), rb = m3Radar(M, b[0], b[1]), rc = m3Radar(M, c[0], c[1]);
+    var Aa = blk(ra[0], ra[1]), Ab = blk(rb[0], rb[1]), Ac = blk(rc[0], rc[1]); if(!Aa && !Ab && !Ac) return;   // вне проходимой части карты
+    var zmin = Math.min(a[2], b[2], c[2]), zmax = Math.max(a[2], b[2], c[2]);
+    var ux = b[0]-a[0], uy = b[1]-a[1], uz = b[2]-a[2], vx = c[0]-a[0], vy = c[1]-a[1], vz = c[2]-a[2];
+    var nx = uy*vz - uz*vy, ny = uz*vx - ux*vz, nz = ux*vy - uy*vx, l = Math.hypot(nx, ny, nz); if(l < 1e-6) return;
+    if(nz/l > 0.9 && near(Aa || Ab || Ac, zmax, 6)) return;   // пол — его рисует навмеш
+    var r0 = under(Aa || Ab || Ac, zmin); if(r0 !== null && zmin - r0 > cutU + 8) return;   // целиком выше среза
+    P.push(ra[0], a[2]*D3_KZ, ra[1], rb[0], b[2]*D3_KZ, rb[1], rc[0], c[2]*D3_KZ, rc[1]); K.push(kind, kind, kind);
+  };
+  var T = M.tri, tf = M.triFlag, tm = M.triMat, nt = tf.length;
+  for(var k = 0; k < nt; k++){ if(!(tf[k] & 1)) continue; var o = k*9;
+    push([T[o], T[o+1], T[o+2]], [T[o+3], T[o+4], T[o+5]], [T[o+6], T[o+7], T[o+8]], D3_SOFT[mats[tm[k]]] ? 1 : 0); }
+  // выпуклые блоки: вершины — пересечения троек плоскостей внутри блока, грань — вершины на её плоскости по кругу (наружу)
+  var hn = M.hullN, hp = M.hullP, ho = M.hullOff, hfl = M.hullFlag, hm = M.hullMat;
+  for(var h = 0; h < hn.length; h++){
+    if(!(hfl[h] & 1) || hn[h] > 26) continue;
+    var pl = [], n = hn[h]; for(var q = 0; q < n; q++){ var b4 = (ho[h] + q)*4; pl.push([hp[b4], hp[b4+1], hp[b4+2], hp[b4+3]]); }
+    var V = [];
+    for(var i1 = 0; i1 < n; i1++) for(var i2 = i1+1; i2 < n; i2++) for(var i3 = i2+1; i3 < n; i3++){
+      var A1 = pl[i1], A2 = pl[i2], A3 = pl[i3];
+      var cx = A2[1]*A3[2] - A2[2]*A3[1], cy = A2[2]*A3[0] - A2[0]*A3[2], cz = A2[0]*A3[1] - A2[1]*A3[0], det = A1[0]*cx + A1[1]*cy + A1[2]*cz;
+      if(Math.abs(det) < 1e-6) continue;
+      var ex = A3[1]*A1[2] - A3[2]*A1[1], ey = A3[2]*A1[0] - A3[0]*A1[2], ez = A3[0]*A1[1] - A3[1]*A1[0];
+      var fx = A1[1]*A2[2] - A1[2]*A2[1], fy = A1[2]*A2[0] - A1[0]*A2[2], fz = A1[0]*A2[1] - A1[1]*A2[0];
+      var px = (A1[3]*cx + A2[3]*ex + A3[3]*fx)/det, py = (A1[3]*cy + A2[3]*ey + A3[3]*fy)/det, pz = (A1[3]*cz + A2[3]*ez + A3[3]*fz)/det, ok = true;
+      for(q = 0; q < n && ok; q++) if(pl[q][0]*px + pl[q][1]*py + pl[q][2]*pz > pl[q][3] + 0.05) ok = false;
+      if(!ok) continue;
+      for(q = 0; q < V.length; q++) if(Math.abs(V[q][0]-px) + Math.abs(V[q][1]-py) + Math.abs(V[q][2]-pz) < 0.05){ ok = false; break; }
+      if(ok) V.push([px, py, pz]);
+    }
+    if(V.length < 4) continue;
+    var kind = D3_SOFT[mats[hm[h]]] ? 1 : 0;
+    for(q = 0; q < n; q++){
+      var P0 = pl[q], on = V.filter(function(v){ return Math.abs(P0[0]*v[0] + P0[1]*v[1] + P0[2]*v[2] - P0[3]) < 0.05; });
+      if(on.length < 3) continue;
+      var mx = 0, my = 0, mz = 0; on.forEach(function(v){ mx += v[0]; my += v[1]; mz += v[2]; }); mx /= on.length; my /= on.length; mz /= on.length;
+      var ux = Math.abs(P0[0]) < 0.9 ? [0, -P0[2], P0[1]] : [P0[2], 0, -P0[0]], ul = Math.hypot(ux[0], ux[1], ux[2]); ux = [ux[0]/ul, ux[1]/ul, ux[2]/ul];
+      var vx = [P0[1]*ux[2] - P0[2]*ux[1], P0[2]*ux[0] - P0[0]*ux[2], P0[0]*ux[1] - P0[1]*ux[0]];
+      var ang = function(A){ return Math.atan2((A[0]-mx)*vx[0] + (A[1]-my)*vx[1] + (A[2]-mz)*vx[2], (A[0]-mx)*ux[0] + (A[1]-my)*ux[1] + (A[2]-mz)*ux[2]); };
+      on.sort(function(A, B){ return ang(A) - ang(B); });   // против часовой вокруг наружной нормали — лицевая сторона снаружи
+      for(var t = 1; t + 1 < on.length; t++) push(on[0], on[t], on[t+1], kind);
+    }
+  }
+  // рёбра — излом граней больше 37° или край (кроме природного рельефа: там рёбра — шум)
+  var Em = new Map(), NN = [];
+  for(var ti = 0; ti < P.length/9; ti++){ var a9 = ti*9;
+    var ux2 = P[a9+3]-P[a9], uy2 = P[a9+4]-P[a9+1], uz2 = P[a9+5]-P[a9+2], vx2 = P[a9+6]-P[a9], vy2 = P[a9+7]-P[a9+1], vz2 = P[a9+8]-P[a9+2];
+    var nx2 = uy2*vz2 - uz2*vy2, ny2 = uz2*vx2 - ux2*vz2, nz2 = ux2*vy2 - uy2*vx2, l2 = Math.hypot(nx2, ny2, nz2) || 1; NN.push(nx2/l2, ny2/l2, nz2/l2);
+    if(K[ti*3]) continue;
+    for(var e = 0; e < 3; e++){
+      var ia = a9 + e*3, ib = a9 + ((e+1) % 3)*3;
+      var ka = Math.round(P[ia]*8) + "," + Math.round(P[ia+1]*8) + "," + Math.round(P[ia+2]*8), kb = Math.round(P[ib]*8) + "," + Math.round(P[ib+1]*8) + "," + Math.round(P[ib+2]*8);
+      var kk = ka < kb ? ka + "|" + kb : kb + "|" + ka, r = Em.get(kk);
+      if(!r) Em.set(kk, {a: ia, b: ib, t: ti, c: 1, crease: false});
+      else { r.c++; if(Math.abs(NN[r.t*3]*NN[ti*3] + NN[r.t*3+1]*NN[ti*3+1] + NN[r.t*3+2]*NN[ti*3+2]) < 0.8) r.crease = true; }
+    }
+  }
+  Em.forEach(function(r){ if(r.c === 1 || r.crease) E.push(P[r.a], P[r.a+1], P[r.a+2], P[r.b], P[r.b+1], P[r.b+2]); });
+  var buf = function(a){ var b = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, b); gl.bufferData(gl.ARRAY_BUFFER, a, gl.STATIC_DRAW); return b; };
+  return {p: buf(new Float32Array(P)), k: buf(new Float32Array(K)), cnt: P.length/3, e: buf(new Float32Array(E)), ecnt: E.length/3, ftex: d3FloorTex(gl, M)};
 }
 function d3Shape(gl, kind){
   var A = d3Acc(), wh = [1, 1, 1, 1], S = 18, i, j;
@@ -218,7 +258,7 @@ function d3Init(){
   try{
     var gl = c.getContext("webgl2", {antialias: true, alpha: false, premultipliedAlpha: false});
     if(!gl) throw new Error("браузер не даёт WebGL2");
-    D3.gl = gl; D3.pM = d3Prog(gl, D3_VS, D3_FS); D3.pL = d3Prog(gl, D3_LVS, D3_LFS);
+    D3.gl = gl; D3.pM = d3Prog(gl, D3_VS, D3_FS); D3.pL = d3Prog(gl, D3_LVS, D3_LFS); D3.pW = d3Prog(gl, D3_WVS, D3_WFS); D3.pE = d3Prog(gl, D3_ELVS, D3_ELFS);
     d3Build();
   }catch(e){ D3.failed = String(e && e.message || e); D3.gl = null; logEvent && logEvent("3D-вид не включился: " + D3.failed); return false; }
   return true;
@@ -257,10 +297,23 @@ function d3Frame(){
   var draw = function(m, M4, tint, lit, soft){ gl.uniform1f(pM.u.uSoft, soft || 0); gl.uniformMatrix4fv(pM.u.uM, false, M4 || I); gl.uniform4fv(pM.u.uTint, tint || [1, 1, 1, 1]); gl.uniform1f(pM.u.uLit, lit == null ? 1 : lit);
     d3Attr(gl, pM.aP, m.p, 3); d3Attr(gl, pM.aN, m.n, 3); d3Attr(gl, pM.aC, m.c, 4); gl.drawArrays(gl.TRIANGLES, 0, m.cnt); };
   draw(D3.floor, I, null, 0.35);
-  draw(D3.props, I, null, 1);
-  // рёбра
-  var pL = D3.pL; gl.useProgram(pL.p); gl.uniformMatrix4fv(pL.u.uVP, false, VP); gl.uniform3fv(pL.u.uEye, eye); gl.uniform2fv(pL.u.uFog, fog);
-  d3Attr(gl, pL.aP, D3.edges.p, 3); d3Attr(gl, pL.aC, D3.edges.c, 4); gl.drawArrays(gl.LINES, 0, D3.edges.cnt);
+  // мир со срезом и его рёбра — вид по D3_STYLES (кнопка в колонке): непрозрачный — сразу, прозрачный — последним (видно игроков за стенами)
+  var Wd = D3.world, pW = D3.pW, cut = D3_CUT*D3_KZ, STY = D3_STYLES[D3.style] || D3_STYLES[0];
+  var drawWorld = function(){
+    if(!Wd.cnt) return;
+    if(STY.a < 1){ gl.depthMask(false); gl.enable(gl.CULL_FACE); gl.cullFace(gl.BACK); }
+    gl.useProgram(pW.p); gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, Wd.ftex.tex);
+    gl.uniformMatrix4fv(pW.u.uVP, false, VP); gl.uniform3fv(pW.u.uEye, eye); gl.uniform3fv(pW.u.uL, L); gl.uniform3fv(pW.u.uBg, D3.cBg.slice(0, 3));
+    gl.uniform2fv(pW.u.uFog, fog); gl.uniform1i(pW.u.uF, 0); gl.uniform1f(pW.u.uCut, cut); gl.uniform1f(pW.u.uA, STY.a);
+    gl.uniform3fv(pW.u.uProp, D3.cProp.slice(0, 3)); gl.uniform3fv(pW.u.uRock, D3.cRock.slice(0, 3)); gl.uniform3fv(pW.u.uCap, D3.cCap.slice(0, 3));
+    d3Attr(gl, pW.aP, Wd.p, 3); d3Attr(gl, pW.aK, Wd.k, 1); gl.drawArrays(gl.TRIANGLES, 0, Wd.cnt); if(pW.aK >= 0) gl.disableVertexAttribArray(pW.aK);
+    var pE = D3.pE; gl.useProgram(pE.p); gl.uniformMatrix4fv(pE.u.uVP, false, VP); gl.uniform3fv(pE.u.uEye, eye); gl.uniform2fv(pE.u.uFog, fog);
+    gl.uniform1i(pE.u.uF, 0); gl.uniform1f(pE.u.uCut, cut); gl.uniform4fv(pE.u.uC, [D3.cEdge[0], D3.cEdge[1], D3.cEdge[2], STY.ea]);
+    d3Attr(gl, pE.aP, Wd.e, 3); gl.drawArrays(gl.LINES, 0, Wd.ecnt);
+    gl.depthMask(true); gl.disable(gl.CULL_FACE);
+  };
+  if(STY.a >= 1) drawWorld();
+  var pL = D3.pL;
   // ---------- живое ----------
   gl.useProgram(pM.p);
   var al = Math.max(0, Math.min(1, accumulator / TICK_MS)), sz = Math.max(1.15, Math.min(2.6, dist/650)), LN = [];
@@ -335,6 +388,7 @@ function d3Frame(){
     gl.bindBuffer(gl.ARRAY_BUFFER, D3.lines.c); gl.bufferData(gl.ARRAY_BUFFER, Pc, gl.DYNAMIC_DRAW); d3Attr(gl, pL.aC, D3.lines.c, 4);
     gl.drawArrays(gl.LINES, 0, np);
   }
+  if(STY.a < 1) drawWorld();
 }
 // точка сцены → px экрана (CSS) или null (за камерой)
 function d3Proj(x, y, z){
@@ -376,6 +430,10 @@ function d3Tag(b, x, y, z, col){
     else OBS.lock = null; });
   var tb = function(id, f){ var el = document.getElementById(id); if(el) el.addEventListener("click", f); };
   tb("v3Lock", function(){ D3.lock = !D3.lock; this.classList.toggle("on", D3.lock); this.title = D3.lock ? "Угол закреплён — нажми, чтобы снова поворачивать (ПКМ)" : "Закрепить угол камеры"; });
+  var stB = document.getElementById("v3Style");
+  var stSet = function(i){ D3.style = (i + D3_STYLES.length) % D3_STYLES.length; if(stB) stB.title = "Вид стен: " + D3_STYLES[D3.style].name + " (нажми — следующий)"; try{ localStorage.setItem("sim-3d-style", D3_STYLES[D3.style].id); }catch(e){} };
+  try{ var sv = localStorage.getItem("sim-3d-style"); D3_STYLES.forEach(function(q, k){ if(q.id === sv) D3.style = k; }); }catch(e){}
+  stSet(D3.style); tb("v3Style", function(){ stSet(D3.style + 1); });
   tb("v3In", function(){ setScale(1.25); }); tb("v3Out", function(){ setScale(1/1.25); });
   tb("v3Rot", function(){ if(D3.lock) return; D3.yawT = Math.round((D3.yawT - Math.PI/2)/(Math.PI/2))*(Math.PI/2); });
   tb("v3Top", function(){ if(D3.lock) return; D3.top = !D3.top; this.classList.toggle("on", D3.top); if(!D3.top && D3.pitchT > 1.3) D3.pitchT = 0.95; });
