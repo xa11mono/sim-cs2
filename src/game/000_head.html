@@ -85,6 +85,15 @@
   #lookDbg tr.pick td,#teamDbg tr.pick td{color:#fff;} #lookDbg tr.pick td:first-child,#teamDbg tr.pick td:first-child{box-shadow:inset 2px 0 0 #e8dc5a;padding-left:4px;}
   #lookDbg .ld-f,#teamDbg .ld-f{color:var(--hud-dim);font-size:10px;}
   #teamDbg{left:auto;right:12px;top:390px;max-height:calc(100vh - 402px);}   /* (v566) разбор команды — справа (612) */
+  /* (v571) раунд из демки (678) — та же панель отладки, слева сверху */
+  #dvPanel{position:fixed;left:12px;top:90px;z-index:61;width:340px;max-height:calc(100vh - 110px);overflow:auto;background:#121610;border:1px solid var(--hud-line);
+    color:#d9dfd3;font:400 11px/1.35 var(--hud-f);border-radius:var(--r);}
+  #dvPanel .ld-h{padding:6px 8px;border-bottom:1px solid var(--hud-line);font-weight:500;letter-spacing:.04em;text-transform:uppercase;font-size:11px;}
+  #dvPanel .ld-s{padding:5px 8px;border-bottom:1px solid var(--hud-line);} #dvPanel .ld-s > div{padding:2px 0;}
+  #dvPanel .ld-k{color:var(--hud-dim);text-transform:uppercase;letter-spacing:.05em;font-size:10px;margin-bottom:2px;}
+  #dvPanel .ld-f{color:var(--hud-dim);font-size:10px;}
+  #dvPanel button{font:inherit;color:inherit;background:transparent;border:1px solid var(--hud-line);border-radius:4px;padding:2px 6px;cursor:pointer;margin:1px 0;}
+  #dvPanel button.on{border-color:#e8dc5a;color:#fff;}
   /* (v307) мини-радар: вся карта, игроки точками с номером, бомба */
   #miniMap{position:absolute;left:auto;right:12px;top:340px;cursor:default;width:232px;height:232px;z-index:5;pointer-events:none;zoom:var(--k);
     background:rgba(12,15,11,.55);border:1px solid var(--hud-line);border-radius:6px;box-shadow:0 8px 22px -10px rgba(0,0,0,.7);}

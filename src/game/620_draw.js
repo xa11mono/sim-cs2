@@ -51,6 +51,7 @@ function draw(){
   }
   drawLineups();
   lookDbgDraw();
+  if(typeof dvDraw === "function") dvDraw();   // (v571) раунд из демки — что решил бы бот (678)
   if(typeof teamDbgPanel === "function") teamDbgPanel(false);   // (v566) разбор команды (612)
   if(showZones.checked) drawZoneShapeHandles();
   if(USER_ZONES.length || zoneDrawing){

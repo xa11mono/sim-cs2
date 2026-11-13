@@ -150,6 +150,7 @@ function stepTick(){
     return;
   }
   if(SANDBOX.on) sbTick();   // (v536) песочница: часы раунда и бомбы стоят (677)
+  if(DEMOV.on) dvTick();     // (v571) раунд из демки: события и места игроков — из демки (678)
   if(postRun){ weaponPickupTick(); itemPickupTick(); }   // (v564, В89) после раунда — подбирают оружие и предметы (как в CS2 до рестарта)
   if(!postRun){
   teamBrains(); // шаг 4: тактика T / расстановка и ротации CT / бомба

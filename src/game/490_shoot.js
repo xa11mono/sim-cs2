@@ -61,6 +61,7 @@ function saveShootOk(b, t){
 }
 function tryShoot(shooter, target, dist){
   if(shooter._sbOff) return;   // (v536) песочница: ИИ выключен — не стреляет (677)
+  if(DEMOV.on) return;   // (v571) раунд из демки: стреляют только игроки демки (678)
   // (этап 2, P0-2) реакция и доводка — по ЭТОЙ цели (shooter._ts[id] — сколько тиков подряд её видно, гаснет как contactStreak),
   // а не по контакту бота с кем угодно: раньше вторая цель в живой перестрелке шла без реакции (34 % выстрелов раньше 150 мс)
   var cs = (shooter._ts && shooter._ts[target.id]) || 0;

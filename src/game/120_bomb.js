@@ -237,7 +237,7 @@ function bombTick(){
     // Плант: на сайте, в патруле; видимый враг мешает только если он близко
     // (раньше любой видимый CT через полкарты — и носитель стоял на точке
     // планта до конца раунда: это и были почти все проигрыши T по времени)
-    if(!plantBlock(c, tac, site)){
+    if(!plantBlock(c, tac, site) && !DEMOV.on){   // (v571) раунд из демки: плант — по демке (678)
       c.planting = true; c.plantUntil = tick + PLANT_TICKS; c.path = []; c.pathIdx = 0; if(SND && SND.on) sndBomb("plant", c.baseX, c.baseY);
       // фейк-плант (раз за раунд): свои рядом держат углы, CT по инфе рядом —
       // начать и через ~1с бросить: CT на звук выйдут под прицел
@@ -322,7 +322,7 @@ function bombTick(){
           cand.path = []; cand.pathIdx = 0;
           defuseSound(cand);
           logEvent(cand.id+" фейк-дефуз — ловит пик на звук");
-        } else {
+        } else if(!DEMOV.on){   // (v571) раунд из демки: дефуз — по демке (678)
           cand.defusing = true; cand.defuseUntil = tick + dTicks; if(SND && SND.on) sndBomb("defuse", cand.baseX, cand.baseY);
           cand.path = []; cand.pathIdx = 0;
           defuseSound(cand);

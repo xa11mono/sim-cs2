@@ -141,6 +141,7 @@ function checkRoundEnd(){
 }
 function endRound(winner, reason){
   if(SANDBOX.on) return;   // (v536) песочница: раунд не кончается (677)
+  if(DEMOV.on) return;     // (v571) раунд из демки: кончается по демке (678)
   for(var shk in siteHeatPending){ siteHeat[shk] = (siteHeat[shk]||0) + 1; } siteHeatPending = {};
   if(winner){ score[winner]++; }
   if(BAL.roundMem && teamTac.T && teamTac.T.tac && teamTac.T.tac.style === "rush"){ RMEM.rush.push({site:teamTac.T.site, round:roundNum}); if(RMEM.rush.length > 6) RMEM.rush.shift(); }

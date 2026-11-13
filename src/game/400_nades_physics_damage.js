@@ -132,6 +132,7 @@ function armorSoak(b, raw, ratio, src){
 }
 var HURT_SND_GAP = 32;   // (v546) тиков (0,5 с) — проектное число
 function applyDamage(att, b, dmg, src, o){
+  if(DEMOV.on && !DEMOV.allow) return false;   // (v571) раунд из демки: урон — только смерти демки (678)
   o = o || {};
   if(!b.alive || dmg <= 0) return false;
   var foe = att && att.team !== b.team ? att : null, mate = att && att !== b && att.team === b.team;
