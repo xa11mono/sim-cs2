@@ -42,6 +42,21 @@ var KNOW_POSITIONS = MAP.pro.positions;
 var KNOW_TRACE = null;   // {id: true} — чьи события пишутся в KNOW_LOG
 var KNOW_LOG = [];
 
+// (v570, В135, владелец 13.11: «слишком много разворачиваются — найди точную причину, приблизить хотя бы к 60 %») внимание к невидимому стрелку.
+// По демкам про (прогон 228, situations.py: стрелок целится в мою сторону, я смотрю в сторону > 45°): довели прицел до стрелка за 2 с —
+// стоял 43–45 %, шёл 53–59 %, бежал 59–62 %; боты — 86–93 % в любом положении: на каждый выстрел / попадание от невидимого стрелка бросали
+// свой угол. Человек часть таких выстрелов «не берёт» (внимание на своём угле). Один раз на событие (стрелок, окно NOTICE_WIN) —
+// обратил ли внимание; доли — из демок. Не обратил — держит угол; увидел стрелка глазами — реагирует как всегда (510, уровень enemy)
+var NOTICE_P = {stand: 0.44, walk: 0.56, run: 0.6}, NOTICE_WIN = 3*64;   // доли — демки про (2 с, по движению); окно — как в мерке (3 с)
+function noticeShooter(b, src){
+  if(!src) return true;
+  var N = b._notice || (b._notice = {}), e = N[src];
+  if(!e || tick - e.t > NOTICE_WIN){
+    var sp = b.curSpeed || 0, p = sp < 10*SPD_K ? NOTICE_P.stand : sp < 40*SPD_K ? NOTICE_P.walk : NOTICE_P.run;
+    e = N[src] = {t: tick, ok: hashRand(tick*37 + b.id.charCodeAt(0)*19 + b.id.charCodeAt(b.id.length-1)*5 + src.charCodeAt(src.length-1)*3) < p};
+  }
+  return e.ok;
+}
 // звук дошёл до игрока o: v166 кладёт его в o.heardSound, знание — в o.ears (одно место на «услышал»)
 function hearReal(o, s){
   if(roundState === "live"){ var sb = s.src ? teamBot(s.src) : null;   // (v358) этаж слышно (сверху / снизу) — высота источника
