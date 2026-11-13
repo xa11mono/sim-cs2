@@ -435,9 +435,7 @@ function lookKnowCands(b){
   if(lookContactFresh(b)) add(LOOK_LEVEL.fight, "contact", {x: b._contact.x, y: b._contact.y, age: 0, commit: true}, 3);
   // свои уши ≤ 1 с; бросок гранаты рядом — враг точно там (v359)
   var hs = b.heardSound;
-  // (v570, В135) стрельба не в мою сторону в чужом бою (mateFighting, 350) — знание, где бой, а не взгляд: угол не бросает (прогон 226: понижение
-  // до «мой угол» не помогло — близкий звук перевешивал назначенный угол по весу); помощь — у реакции на контакт (350)
-  if(hs && tick - hs.tick <= LOOK_FRESH && !(hs.kind === "shots" && !hs.near && mateFighting(b, hs.src))) add(LOOK_LEVEL.sound, "sound", {x: hs.x, y: hs.y, age: tick - hs.tick}, hs.kind === "nade" ? LOOK.freshK : 1);
+  if(hs && tick - hs.tick <= LOOK_FRESH) add(LOOK_LEVEL.sound, "sound", {x: hs.x, y: hs.y, age: tick - hs.tick}, hs.kind === "nade" ? LOOK.freshK : 1);
   // убили тиммейта рядом ≤ 3 с: туда, откуда убили (убийцу видел он — точка на радаре), иначе место смерти.
   // (п.26 владельца 29.10, м1 р7: CT на B смотрели в Kitchen по смерти kyousuke на Ramp — проверки «рядом» в коде не было, срабатывала
   // любая смерть на карте) «рядом» — то же, что у отхода CT «свой убит рядом» (300: FB.deathR по прямой и по пути)
@@ -450,8 +448,6 @@ function lookKnowCands(b){
   var BL = beliefLast[b.team] || {};
   for(var eid in BL){ var lo = BL[eid]; if(!lo || tick - lo.tick > LOOK_FRESH) continue;
     var eb = bots.filter(function(o){ return o.id === eid; })[0]; if(!eb || !eb.alive) continue;
-    // (v570, В135) враг в чужом бою (его прямо сейчас видит свой) — его бой: угол не бросаю (знание остаётся)
-    if(mateFighting(b, eid)) continue;
     add(LOOK_LEVEL.team, "team", {x: lo.x, y: lo.y, age: tick - lo.tick}, lo.src === "spotted" && Math.hypot(lo.x-b.x, lo.y-b.y) <= 250 ? LOOK.freshK : 1); }
   return out;
 }

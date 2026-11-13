@@ -17,11 +17,6 @@ var CONTACT_PUSH = 250;   // (v555) проектное число: ед. — T �
 // мид; убили 6-го — тогда помогать») контакт — только своё: видел сам (lastIntel без src), слышал сам; знание команды (видели свои,
 // коллы) — только если враг на его участке (зона, где он стоит или его пост) или свой рядом только что погиб и он идёт менять
 // (_tradeUntil — реакция на смерть тиммейта, 190). Раньше бралась вся память команды в CONTACT_R
-// (v570, В135: боты поворачиваются к стрелку за 1 с в 57 % / 44 %, про — 27–28 %; по 600 эпизодам прогона 225 перебор — повороты, когда стреляли
-// в другого: контакт 61 / 66, звук 50 / 25, команда 29 / 20) «чужой бой» — враг, с которым прямо сейчас стреляется (видит его) свой. Его бой
-// не мой: держу свой угол, если не иду помогать (помощь решает contactInfo — mateFights). Одно определение для 350 и взгляда (270)
-// (прогон 226: «ближайший враг тиммейта» засчитывался редко — видит он его, но ближе другой) — любой свой, кто видит этого врага сейчас
-function mateFighting(b, id){ return !!id && bots.some(function(o){ return o !== b && o.alive && o.team === b.team && (o._visible || []).some(function(e){ return e.id === id; }); }); }
 function contactInfo(b){
   var best = null, bd = CONTACT_R, BL = beliefLast[b.team] || {}, myZ = {}, trade = tick < (b._tradeUntil || 0);
   myZ[zoneIdAt3(b.x, b.y, b.z)] = 1; if(b.post) myZ[zoneIdAt3(b.post.x, b.post.y, b.post.z != null ? b.post.z : b.z)] = 1;
@@ -69,9 +64,7 @@ function contactInfo(b){
     if(saving){ if(mateFight0(id) && hasLOS(b.x, b.y, e.x, e.y, b.z, e.z)) take(e.x, e.y, e.src === "spotted", id, e.z); continue; }
     if(trade || retakeHunt || myZ[zoneIdAt3(e.x, e.y, e.z)] || (mateFights(id) && (phase || calm()))) take(e.x, e.y, e.src === "spotted", id, e.z); }
   // (v469) бросок гранаты (слышно чеку / бросок) — не контакт (ответ про-аналитика: на гранату вдали не реагировать); её место знание получает
-  // (v570, В135) стрельба не в мою сторону в чужом бою — не мой контакт, если не помогаю (то же условие, что у «свой стреляется» выше)
-  var hs = b.heardSound, hsOther = hs && hs.kind === "shots" && !hs.near && mateFight0(hs.src) && !(trade || (mateFights(hs.src) && (phase || calm())));
-  if(hs && !hsOther && hs.team && hs.team !== b.team && hs.kind !== "nade" && tick - hs.tick <= CONTACT_AGE*TICK_HZ && !deadSrc(hs.src) && (hs.kind !== "call" || trade || myZ[zoneIdAt3(hs.x, hs.y, hs.z)])) take(hs.x, hs.y, hs.kind === "hit", hs.src, hs.z);   // (v560, В101: «по нему стреляли, не попали — не отреагировал») по нему стреляют — откуда, он знает (пули рядом): как увиденный — по прямой, без проверки сектора
+  var hs = b.heardSound; if(hs && hs.team && hs.team !== b.team && hs.kind !== "nade" && tick - hs.tick <= CONTACT_AGE*TICK_HZ && !deadSrc(hs.src) && (hs.kind !== "call" || trade || myZ[zoneIdAt3(hs.x, hs.y, hs.z)])) take(hs.x, hs.y, hs.kind === "hit", hs.src, hs.z);   // (v560, В101: «по нему стреляли, не попали — не отреагировал») по нему стреляют — откуда, он знает (пули рядом): как увиденный — по прямой, без проверки сектора
   // (v448, док владельца 28.10 №4: у игрока 1 «якорь контакт холд, когда он далеко, не стрелялся и никого не видел») своя флешка —
   // контакт только если кинута себе под пик («флешу себе и выхожу»); раньше любая своя флешка (на сайт за 700 ед.) давала «держу свой контакт»
   var N = b._lastNade; if(!best && N && N.type === "flash" && N.self && tick - N.t >= NADE.flash.fuse - 8 && tick - N.t < NADE.flash.fuse + 40 && Math.hypot(N.x-b.x, N.y-b.y) < CONTACT_R) best = {x:N.x, y:N.y, own:true};

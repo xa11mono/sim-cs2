@@ -59,7 +59,6 @@ function saveShootOk(b, t){
   for(var i = 0; i < P.length; i++) if(Math.hypot(P[i][0]-t.x, P[i][1]-t.y) < SAVE_PATH_R) return true;
   return false;
 }
-var WHIZ_R = 40;   // (v570) px (~100 ед.) — пуля прошла ближе: «стреляют в мою сторону» (проектное число)
 function tryShoot(shooter, target, dist){
   if(shooter._sbOff) return;   // (v536) песочница: ИИ выключен — не стреляет (677)
   // (этап 2, P0-2) реакция и доводка — по ЭТОЙ цели (shooter._ts[id] — сколько тиков подряд её видно, гаснет как contactStreak),
@@ -363,11 +362,8 @@ function tryShoot(shooter, target, dist){
     if(dG < hearR){
       var jg = 15 + dG*0.06, ja = hashRand(tick*17 + o.id.charCodeAt(0)*7 + shooter.nextShotTick)*Math.PI*2;
       var hpS = hearPos(o, shooter.x, shooter.y, tick*17 + o.id.charCodeAt(0)*7 + (shooter.nextShotTick|0), hearR === GUN_HEAR_WALL);
-      // (v570, В135) пуля прошла рядом (свист, попадание в стену рядом — слышно и видно живому игроку): стреляют в мою сторону — near
-      var bx = endX - shooter.x, by = endY - shooter.y, bL2 = bx*bx + by*by || 1, bt = Math.max(0, Math.min(1, ((o.x-shooter.x)*bx + (o.y-shooter.y)*by)/bL2));
-      var nearMe = Math.hypot(shooter.x + bx*bt - o.x, shooter.y + by*bt - o.y) < WHIZ_R;
-      o.heardSound = hearReal(o, hpS ? {x:hpS.x, y:hpS.y, tick:tick, team:shooter.team, src:shooter.id, kind:"shots", occl:hearR === GUN_HEAR_WALL, near:nearMe}
-                         : {x:shooter.x+Math.cos(ja)*jg, y:shooter.y+Math.sin(ja)*jg, tick:tick, team:shooter.team, src:shooter.id, kind:"shots", near:nearMe});
+      o.heardSound = hearReal(o, hpS ? {x:hpS.x, y:hpS.y, tick:tick, team:shooter.team, src:shooter.id, kind:"shots", occl:hearR === GUN_HEAR_WALL}
+                         : {x:shooter.x+Math.cos(ja)*jg, y:shooter.y+Math.sin(ja)*jg, tick:tick, team:shooter.team, src:shooter.id, kind:"shots"});
     }
   });
   if(tracers.length > 60) tracers.shift();
