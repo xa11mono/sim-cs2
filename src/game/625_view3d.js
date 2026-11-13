@@ -202,19 +202,34 @@ function d3NadeCam(){
 // «авто» (обсервер под 3D): закупка и конец раунда — пролёт; следимый бросил гранату — камера за ней; иначе — обзор (ведёт обсервер)
 // (владелец 13.11: «обсервер не чередует разные виды») в раунде виды сменяются по очереди: обзор → за спиной → обзор → от первого лица;
 // смена следимого — снова с обзора (видно, за кем смотрим); граната следимого — за ней
-// (владелец 13.11: «полноценные пролёты по карте, через арки, красивые ракурсы; во время контактов и выходов главный вид — от первого лица на
-// разных игроках, как они стреляются») «авто»: закупка, конец раунда, тишина — пролёт; перестрелка — от первого лица того, кто стреляется
-// (следимый обсервером, если он в бою; иначе — первый, кто видит врага), не меньше D3_FP_HOLD с на одном (не мельтешит)
-var D3_FP_HOLD = 4;   // проектное число, с
+// «авто» (владелец 13.11: «обсервер следит в основном за игроками: на закупке летает рядом медленно, под красивым углом, смотрит, как стоят на
+// спавне; на паузе — летает по карте; в раунде в основном от первого лица; иногда — как кто-то кидает гранату и как она летит; иногда общий вид»):
+//   закупка / конец раунда — облёт команды на спавне (по очереди T и CT, D3_SPAWN_SEC); тактическая пауза — пролёт по карте;
+//   раунд — от первого лица: в перестрелке — тот, кто стреляется (следимый обсервером, если он в бою), иначе — следимый обсервером;
+//   граната следимого — за гранатой; раз в D3_OVER_EVERY с — общий вид на D3_OVER_SEC с
+var D3_FP_HOLD = 4, D3_SPAWN_SEC = 8, D3_OVER_EVERY = 25, D3_OVER_SEC = 5;   // проектные числа, с
 function d3Fighting(b){ return b && b.alive && (b._visible || []).some(function(o){ return o.alive && o.team !== b.team; }); }
 function d3AutoCam(){
-  if(roundState === "freeze" || roundState === "ending"){ D3.autoFp = null; return "flythru"; }
-  var A = D3.autoFp, cur = A && bots.filter(function(o){ return o.id === A.id; })[0];
-  if(cur && cur.alive && (d3Fighting(cur) || tick - A.last < 2*TICK_HZ || tick - A.t0 < D3_FP_HOLD*TICK_HZ)){ if(d3Fighting(cur)) A.last = tick; return "fp"; }
+  if(typeof TO_NOW !== "undefined" && TO_NOW) return "flythru";
+  if(roundState === "freeze" || roundState === "ending"){ D3.autoFp = null; D3.overT = tick; return "spawn"; }
   var oid = OBS.lock || OBS.id, ob = oid && bots.filter(function(o){ return o.id === oid; })[0];
-  var nb = d3Fighting(ob) ? ob : bots.filter(d3Fighting)[0];
-  if(nb){ D3.autoFp = {id: nb.id, t0: tick, last: tick}; return "fp"; }
-  D3.autoFp = null; return "flythru";
+  if(nadesInAir.some(function(n){ return n.z != null && n.thrower && n.thrower.id === (D3.autoFp ? D3.autoFp.id : oid); }) || (D3.nadeLast && tick - D3.nadeLast.t < 1.2*TICK_HZ)) return "nade";
+  if(D3.overT == null) D3.overT = tick;
+  var anyFight = bots.some(d3Fighting);
+  if(!anyFight && tick - D3.overT > D3_OVER_EVERY*TICK_HZ){ if(tick - D3.overT < (D3_OVER_EVERY + D3_OVER_SEC)*TICK_HZ) return "view"; D3.overT = tick; }
+  var A = D3.autoFp, cur = A && bots.filter(function(o){ return o.id === A.id; })[0];
+  if(cur && cur.alive && tick - A.t0 < D3_FP_HOLD*TICK_HZ) return "fp";
+  var nb = d3Fighting(ob) ? ob : (bots.filter(d3Fighting)[0] || (ob && ob.alive ? ob : bots.filter(function(o){ return o.alive; })[0]));
+  if(nb){ if(!A || A.id !== nb.id) D3.autoFp = {id: nb.id, t0: tick}; return "fp"; }
+  return "view";
+}
+// закупка: медленный облёт команды на спавне (центр живых игроков стороны), смотрит на игроков; стороны — по очереди
+function d3SpawnCam(){
+  var side = Math.floor(tick / (D3_SPAWN_SEC*TICK_HZ)) % 2 ? "CT" : "T", P = bots.filter(function(o){ return o.alive && o.team === side; });
+  if(!P.length) return null;
+  var cx = 0, cy = 0, cz = 0; P.forEach(function(o){ cx += o.x; cy += o.y; cz += (o.z || 0); }); cx /= P.length; cy /= P.length; cz = cz/P.length*D3_KZ;
+  var a = performance.now()/7000 + (side === "CT" ? 2 : 0), R = 150;
+  return {eye: [cx + Math.cos(a)*R, cz + 75, cy + Math.sin(a)*R], tgt: [cx, cz + 12, cy]};
 }
 // пролёт: маршрут по навмешу между случайными дальними зонами (проходы, арки), камера на высоте ~120 ед. над полом смотрит вперёд по ходу
 function d3FlyThru(){
@@ -478,11 +493,12 @@ function d3Frame(opt){
     if(mode === "chase") fpb = null;   // себя в «за спиной» видно
     D3.fpId = fpb ? fpb.id : null;
   }
+  if(mode === "spawn"){ var SC = d3SpawnCam(); if(SC){ eye = SC.eye; tgt = SC.tgt; fov = 60*Math.PI/180; near = 1.2; far = 3000; dist = 300; } }
   if(mode === "flythru"){ var FC = d3FlyThru(); if(FC){ eye = FC.eye; tgt = FC.tgt; fov = 70*Math.PI/180; near = 1.2; far = 3000; dist = 420; } }
   if(mode === "nade"){ var NC = d3NadeCam(); if(NC){ eye = NC.eye; tgt = NC.tgt; fov = 60*Math.PI/180; near = 1; far = 3000; dist = 260; } }
   // (владелец 13.11: «сразу переключается на убийство, непонятно за кем смотришь», «камера за гранатой дёргается») камера не прыгает:
   // глаз, цель и угол обзора плавно догоняют нужные (обзор с мышью — без задержки)
-  if(!opt.w){ var CS = D3.cs, k3 = (mode === "view" && D3.cam === "view") ? 1 : (mode === "nade" ? 0.12 : mode === "flythru" ? 0.15 : (mode === "fp" && D3.cam === "fp") ? 0.35 : 0.08);
+  if(!opt.w){ var CS = D3.cs, k3 = (mode === "view" && D3.cam === "view") ? 1 : (mode === "nade" ? 0.12 : mode === "flythru" ? 0.15 : mode === "spawn" ? 0.05 : (mode === "fp" && D3.cam === "fp") ? 0.35 : 0.08);
     if(!CS || CS.mode !== mode && k3 === 1){ CS = D3.cs = {eye: eye.slice(), tgt: tgt.slice(), fov: fov, mode: mode}; }
     else { for(var ci = 0; ci < 3; ci++){ CS.eye[ci] += (eye[ci] - CS.eye[ci])*k3; CS.tgt[ci] += (tgt[ci] - CS.tgt[ci])*k3; } CS.fov += (fov - CS.fov)*k3; CS.mode = mode; }
     eye = CS.eye.slice(); tgt = CS.tgt.slice(); fov = CS.fov; }
@@ -718,7 +734,7 @@ function d3Tag(b, x, y, z, col){
   var stSet = function(i){ D3.style = (i + D3_STYLES.length) % D3_STYLES.length; if(stB) stB.title = "Вид стен: " + D3_STYLES[D3.style].name + " (нажми — следующий)"; try{ localStorage.setItem("sim-3d-style", D3_STYLES[D3.style].id); }catch(e){} };
   try{ var sv = localStorage.getItem("sim-3d-style"); D3_STYLES.forEach(function(q, k){ if(q.id === sv) D3.style = k; }); }catch(e){}
   stSet(D3.style); tb("v3Style", function(){ stSet(D3.style + 1); });
-  var camB = document.getElementById("v3Cam"), CAMS = [["auto", "авто: пролёты, в перестрелке — от первого лица"], ["view", "обзор"], ["flythru", "пролёт по карте"], ["fly", "облёт"], ["chase", "за спиной"], ["nade", "за гранатой"], ["fp", "от первого лица (игрок закреплён, ПКМ — свободный взгляд)"]];
+  var camB = document.getElementById("v3Cam"), CAMS = [["auto", "авто: закупка — облёт спавна, раунд — от первого лица, гранаты, иногда общий вид"], ["view", "обзор"], ["flythru", "пролёт по карте"], ["fly", "облёт"], ["chase", "за спиной"], ["nade", "за гранатой"], ["fp", "от первого лица (игрок закреплён, ПКМ — свободный взгляд)"]];
   var camSet = function(m){ if(m === "fp" && D3.cam !== "fp"){ D3.fpLock = D3.fpId || OBS.lock || OBS.id || plSelected; D3.fpYaw = 0; D3.fpPitch = 0; }
     D3.cam = m; var fpB = document.getElementById("v3Fp"); if(fpB) fpB.classList.toggle("on", m === "fp"); var k = CAMS.map(function(q){ return q[0]; }).indexOf(m); if(camB){ camB.title = "Камера: " + CAMS[k][1] + " (нажми — следующая)"; camB.classList.toggle("on", m !== "auto"); } try{ localStorage.setItem("sim-3d-cam", m); }catch(e){} };
   var cs0 = null; try{ cs0 = localStorage.getItem("sim-3d-cam"); }catch(e){} camSet(CAMS.some(function(q){ return q[0] === cs0; }) ? cs0 : "auto"); tb("v3Cam", function(){ var k = CAMS.map(function(q){ return q[0]; }).indexOf(D3.cam); camSet(CAMS[(k + 1) % CAMS.length][0]); });
