@@ -12,9 +12,10 @@ var R_END = 0;
 freshMatch(__M__);
 var M0=matchNum;
 /*@@WATCH@@*/
-var REC={rounds:[], kills:[], pos:[], plants:[], buys:[], nades:[], jit:{alive:0, look:0, moveEng:0, moveIdle:0, moveOther:0, ev:[]}}, rs=null, cur=null;
-var ofk=feedKill; feedKill=function(att,vic,weap,hs){ REC.kills.push([tick, att?att.id:null, att?att.team:null, att?Math.round(att.x):null, att?Math.round(att.y):null, vic.id, vic.team, Math.round(vic.x), Math.round(vic.y), String(weap), hs?1:0, att&&att.weapon?att.weapon.key:null, vic.tRole||'']); return ofk.apply(this,arguments); };
-var oer=endRound; endRound=function(w,reason){ if(SNAP_ON) SNAP_NEXT = roundNum + 1; if(cur){ cur.t1=tick; cur.winner=w; cur.reason=reason; cur.bomb=bomb.state; } return oer.apply(this,arguments); };
+var REC={rounds:[], kills:[], pos:[], plants:[], buys:[], nades:[], nleft:[], jit:{alive:0, look:0, moveEng:0, moveIdle:0, moveOther:0, ev:[]}}, rs=null, cur=null;
+var NLEFT=function(b,why){ if(!b||!b.nades) return; var N=b.nades, P=(b._nplan||[]).map(function(it){ return it.t+':'+it.m; }).join(','); if(N.smoke+N.flash+N.he+N.molly>0) REC.nleft.push([tick, b.id, b.team, why, N.smoke, N.flash, N.he, N.molly, P]); };   // (В142) гранаты, что остались: при смерти и у живых в конце раунда; P — на какой момент плана берёг
+var ofk=feedKill; feedKill=function(att,vic,weap,hs){ if(roundState==='live') NLEFT(vic,'death'); REC.kills.push([tick, att?att.id:null, att?att.team:null, att?Math.round(att.x):null, att?Math.round(att.y):null, vic.id, vic.team, Math.round(vic.x), Math.round(vic.y), String(weap), hs?1:0, att&&att.weapon?att.weapon.key:null, vic.tRole||'']); return ofk.apply(this,arguments); };
+var oer=endRound; endRound=function(w,reason){ bots.forEach(function(b){ if(b.alive) NLEFT(b,'end'); }); if(SNAP_ON) SNAP_NEXT = roundNum + 1; if(cur){ cur.t1=tick; cur.winner=w; cur.reason=reason; cur.bomb=bomb.state; } return oer.apply(this,arguments); };
 var otn=throwNade; throwNade=function(b,type,tx,ty){ var ok0=roundState==='live' && b.nades && b.nades[type]>0, x0=b.x, y0=b.y, sp0=Math.round(b.curSpeed||0), lu0=(arguments[6]||arguments[7])?1:0, ls=tick-(b.lastShotTick||-999); var res=otn.apply(this,arguments); if(ok0 && res!==false) REC.nades.push([tick, b.team, type, b.id, (b.tRole||b.ctRole||''), Math.round(x0), Math.round(y0), Math.round(tx), Math.round(ty), ls, sp0, lu0]); return res; };   // (v370) только состоявшийся бросок (throwNade может отказать)
 // (v181) стрельба: каждый выстрел пулей — тик, стрелок, команда, оружие, дистанция, цель,
 // сколько тиков враг уже виден, скорость стрелка (одинаково для любой версии)
