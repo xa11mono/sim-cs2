@@ -61,7 +61,35 @@ def parse_with(p, ev, props):
             except Exception: drop.append(c)
         return p.parse_event(ev, player=use, other=['total_rounds_played']), use, drop
 
-def one(name, dem, repo_dir):
+# (13.11, владелец: «скопировать из демок движение — контрстрейфы, прицел, джиглы, как крутят камеру») каждый тик (64 Гц) для самых насыщенных
+# раундов: задание {"motion": {"map": "mirage", "demos": 12, "rounds": 4}} — по каждой демке карты 4 раунда с наибольшим числом смертей.
+# Поля, которых нет в этой версии demoparser2, отбрасываются по одному (в журнале — какие остались). Пишет <имя>_motion.csv.gz
+MOTION_PROPS = ['X', 'Y', 'Z', 'yaw', 'pitch', 'velocity_X', 'velocity_Y', 'velocity_Z', 'team_num', 'health', 'is_alive', 'ducking', 'is_walking',
+                'is_scoped', 'active_weapon_name', 'FORWARD', 'BACK', 'LEFT', 'RIGHT', 'WALK', 'JUMP', 'DUCK', 'FIRE', 'RIGHTCLICK', 'buttons', 'in_crouch',
+                'aim_punch_angle', 'shots_fired']
+
+def motion(p, name, od, warm, M):
+    import pandas as pd
+    fe = p.parse_event('round_freeze_end'); re_ = p.parse_event('round_end'); de = p.parse_event('player_death')
+    t0s = sorted(int(t) for t in fe['tick'] if t > warm); ends = sorted(int(t) for t in re_['tick'])
+    R = []
+    for i, t0 in enumerate(t0s):
+        t1 = next((e for e in ends if e > t0), None)
+        if t1 is None or (i + 1 < len(t0s) and t1 > t0s[i + 1]): continue
+        R.append((int(((de['tick'] >= t0) & (de['tick'] <= t1)).sum()), t0, t1))
+    R = sorted(R, reverse=True)[:int(M.get('rounds', 4))]
+    ticks = [t for _, t0, t1 in R for t in range(t0, t1 + 1)]
+    use, drop = [], []
+    for c in MOTION_PROPS:
+        try: p.parse_ticks([c], ticks=ticks[:2]); use.append(c)
+        except Exception: drop.append(c)
+    df = p.parse_ticks(use, ticks=ticks)
+    for c in ('X', 'Y', 'Z', 'yaw', 'pitch', 'velocity_X', 'velocity_Y', 'velocity_Z'):
+        if c in df: df[c] = df[c].round(2)
+    df.to_csv(os.path.join(od, f'{name}_motion.csv.gz'), index=False, compression='gzip')
+    return f'motion: раундов {len(R)}, строк {len(df)}' + (f' (без {",".join(drop)})' if drop else '')
+
+def one(name, dem, repo_dir, M=None):
     import pandas as pd
     from demoparser2 import DemoParser
     t0 = time.time()
@@ -69,6 +97,8 @@ def one(name, dem, repo_dir):
     warm = int(t.tick.min()) - 1
     od = os.path.join(OUT, repo_dir); os.makedirs(od, exist_ok=True)
     p = DemoParser(dem); msg = []
+    if M:   # только движение каждый тик (режим motion)
+        return name, f"{time.time()-t0:.0f} с; " + motion(p, name, od, warm, M)
     for key, ev, props in (('weapon_fire_full', 'weapon_fire', FIRE_PROPS), ('player_hurt', 'player_hurt', HURT_PROPS)):
         e, use, drop = parse_with(p, ev, props)
         if e is None or not len(e): msg.append(f'{key}: пусто'); continue
@@ -92,13 +122,17 @@ def main():
     roots = req.get('roots') or []
     if not roots:
         roots = [os.path.expanduser('~')] + [f'{c}:\\' for c in string.ascii_uppercase if os.name == 'nt' and os.path.isdir(f'{c}:\\')]
+    M = req.get('motion')
+    if M:   # только демки этой карты, не больше M.demos
+        K = {k: v for k, v in K.items() if v.endswith('maps/%s/demos' % M.get('map', 'mirage'))}
+        K = dict(sorted(K.items())[:int(M.get('demos', 12))])
     found = find_dems(roots, set(K))
     log(f'нашлось .dem: {len(found)} из {len(K)} (искал в: {", ".join(roots)})')
     for st in sorted(set(K) - set(found)): log(f'  нет файла: {st}.dem')
     if found: log('папки с демками: ' + ', '.join(sorted({os.path.dirname(v) for v in found.values()})))
     done = 0
     with ProcessPoolExecutor(int(req.get('workers', 4))) as ex:
-        fs = [ex.submit(one, n, found[n], K[n]) for n in sorted(found)]
+        fs = [ex.submit(one, n, found[n], K[n], M) for n in sorted(found)]
         for f in as_completed(fs):
             try: n, m = f.result(); done += 1; log(f'[{done}/{len(found)}] {n}: {m}')
             except Exception as e: log(f'ОШИБКА: {e!r}')
