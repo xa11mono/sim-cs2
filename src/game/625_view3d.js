@@ -10,11 +10,12 @@
 // Координаты сцены: x, z — px радара 0..2048 (z = y радара), y — высота = ед. игры × 0,4 (1 px радара = 2,5 ед.).
 // Камера: цель и приближение — из view (обсервер ведёт её и в 3D), поворот и наклон — свои (D3.yaw / D3.pitch).
 // Цвета — токены :root (--v3-*, DESIGN.md «3D-вид»).
-var D3 = {on: false, xray: false, style: 0, cam: "view", hist: {}, fpId: null, noTags: false, gl: null, built: false, failed: null, yaw: 0, pitch: 0.95, yawT: 0, pitchT: 0.95, top: false, lock: false,
+var D3 = {on: false, xray: false, sims: true, corpse: {}, mode: "view", tgt: null, nadeLast: null, style: 0, cam: "view", hist: {}, fpId: null, noTags: false, gl: null, built: false, failed: null, yaw: 0, pitch: 0.95, yawT: 0, pitchT: 0.95, top: false, lock: false,
           tz: null, drag: null, tagEls: {}, nadeZ: [], smZ: new WeakMap(), trZ: new WeakMap()};
 var D3_KZ = 0.4;               // ед. игры → px радара (высота)
 var D3_CUT = 150;              // проектное число: выше этого над полом геометрия не рисуется (ящик 64, два ящика 128 ед.)
 var D3_FOV = 38 * Math.PI/180;
+var D3_LOW = 28;               // проектное число: опущенная стена «как в Симсе» — бортик, ед. игры
 // виды мира (владелец 13.11: «прозрачный был лучше — от него, но сделай несколько вариаций»): a — плотность граней, ea — яркость рёбер
 var D3_STYLES = [{id: "glass", name: "стекло", a: 0.32, ea: 0.6}, {id: "line", name: "контур", a: 0.1, ea: 0.85}, {id: "solid", name: "макет", a: 1, ea: 0.3}];
 var D3_SOFT = {rock:1, grass:1, mud:1, dirt:1, sand:1, boulder:1, Wood_Tree:1, foliage:1, gravel:1, snow:1};   // природный рельеф — не ящики
@@ -37,37 +38,44 @@ function d3Tok(name, def){ try{ var v = getComputedStyle(document.documentElemen
 // ---------- WebGL ----------
 var D3_VS = "#version 300 es\nin vec3 aP; in vec3 aN; in vec4 aC; uniform mat4 uVP, uM; uniform vec4 uTint; uniform vec3 uEye;\n" +
   "out vec3 vN, vV; out vec4 vC; out float vD; void main(){ vec4 w = uM*vec4(aP,1.0); vN = mat3(uM)*aN; vC = aC*uTint; vV = uEye - w.xyz; vD = length(vV); gl_Position = uVP*w; }";
-var D3_FS = "#version 300 es\nprecision mediump float; in vec3 vN, vV; in vec4 vC; in float vD; uniform vec3 uL, uBg; uniform vec2 uFog; uniform float uLit, uSoft; out vec4 o;\n" +
+var D3_FS = "#version 300 es\nprecision highp float; in vec3 vN, vV; in vec4 vC; in float vD; uniform vec3 uL, uBg, uEye; uniform vec2 uFog; uniform float uLit, uSoft, uHr; uniform int uHn; uniform vec3 uHa[8], uHb[8]; out vec4 o;\n" +
   "void main(){ vec3 n = normalize(vN); if(!gl_FrontFacing) n = -n; float d = max(dot(n, uL), 0.0), h = 0.5 + 0.5*n.y;\n" +
-  " vec3 c = vC.rgb*mix(1.0, 0.34 + 0.40*h + 0.46*d, uLit); c = mix(c, uBg, smoothstep(uFog.x, uFog.y, vD));\n float a = vC.a*mix(1.0, pow(abs(dot(n, normalize(vV))), 1.6), uSoft); o = vec4(c, a); }";
+  " vec3 c = vC.rgb*mix(1.0, 0.34 + 0.40*h + 0.46*d, uLit); c = mix(c, uBg, smoothstep(uFog.x, uFog.y, vD));\n float a = vC.a*mix(1.0, pow(abs(dot(n, normalize(vV))), 1.6), uSoft);\n vec3 w = uEye - vV; for(int i = 0; i < 8; i++){ if(i >= uHn) break; vec3 ab = uHb[i] - uHa[i]; float t = clamp(dot(w - uHa[i], ab)/max(1e-3, dot(ab, ab)), 0.0, 1.0);\n  a *= smoothstep(uHr*0.45, uHr, distance(w, uHa[i] + ab*t)); }\n o = vec4(c, a); }";   // дыры от пуль в дыму (smokeBulletHole, 360) — у линии пули облако прозрачное
 var D3_LVS = "#version 300 es\nin vec3 aP; in vec4 aC; uniform mat4 uVP; uniform vec3 uEye; out vec4 vC; out float vD;\n" +
   "void main(){ vC = aC; vD = distance(aP, uEye); gl_Position = uVP*vec4(aP,1.0); gl_Position.z -= 0.0006*gl_Position.w; }";
 var D3_LFS = "#version 300 es\nprecision mediump float; in vec4 vC; in float vD; uniform vec2 uFog; out vec4 o;\n" +
   "void main(){ o = vec4(vC.rgb, vC.a*(1.0 - smoothstep(uFog.x, uFog.y, vD))); }";
 // мир: срез по таблице этажей; нормаль — по экранным производным (плоские грани); изнанка в разрезе — «крышка»
 var D3_WVS = "#version 300 es\nin vec3 aP; in float aK; uniform mat4 uVP; out vec3 vW; out float vK; void main(){ vW = aP; vK = aK; gl_Position = uVP*vec4(aP,1.0); }";
-var D3_CUTF = "uniform highp sampler2D uF; uniform float uCut;\n" +
+var D3_CUTF = "uniform highp sampler2D uF; uniform float uCut, uLow, uSims, uRf; uniform vec3 uTgt;\n" +
   "float refY(vec3 w){ ivec2 b = ivec2(floor(w.x/8.0), floor(w.z/8.0)); if(b.x < 0 || b.y < 0 || b.x > 255 || b.y > 255) return -1e9;\n" +
   " vec4 a = texelFetch(uF, ivec2(b.x*2, b.y), 0), c = texelFetch(uF, ivec2(b.x*2+1, b.y), 0); float lim = w.y + 3.2, r = -1e9;\n" +
   " if(a.x <= lim) r = max(r, a.x); if(a.y <= lim) r = max(r, a.y); if(a.z <= lim) r = max(r, a.z); if(a.w <= lim) r = max(r, a.w);\n" +
-  " if(c.x <= lim) r = max(r, c.x); if(c.y <= lim) r = max(r, c.y); if(c.z <= lim) r = max(r, c.z); if(c.w <= lim) r = max(r, c.w); return r; }\n";
+  " if(c.x <= lim) r = max(r, c.x); if(c.y <= lim) r = max(r, c.y); if(c.z <= lim) r = max(r, c.z); if(c.w <= lim) r = max(r, c.w);\n" +
+  // (владелец 13.11: «дырки в стенках») этажи в блоке есть, но все выше точки (низ стены у возвышения) — стена видна, а не выброшена
+  " if(r < -1e8 && a.x > -1e8) r = w.y - 30.0; return r; }\n" +
+  // (владелец 13.11: «как в Симсе») опущена до бортика только стена между камерой и местом, куда она смотрит (ближе к камере, чем
+  // точка взгляда, и не дальше uRf от неё), и только если за ней (от камеры) сразу пол; дальние стены и навесы — целые
+  "float cutAt(vec3 w, vec3 eye){ if(uSims < 0.5) return uCut; vec2 d = w.xz - eye.xz; float l = length(d); if(l < 1.0) return uCut;\n" +
+  " vec2 ct = eye.xz - uTgt.xz; if(dot(w.xz - uTgt.xz, ct) <= 0.0 || distance(w.xz, uTgt.xz) > uRf) return uCut;\n" +
+  " vec2 b = w.xz + d/l*22.0; float rb = refY(vec3(b.x, w.y, b.y)); return rb > -1e8 && w.y - rb > uLow ? uLow : uCut; }\n";
 var D3_WFS = "#version 300 es\nprecision highp float; in vec3 vW; in float vK; uniform vec3 uEye, uL, uBg, uProp, uRock, uCap, uGround; uniform vec2 uFog, uZr; uniform float uA; out vec4 o;\n" + D3_CUTF +
-  "void main(){ float r = refY(vW); if(r < -1e8) discard; float h = vW.y - r; if(h > uCut) discard;\n" +
+  "void main(){ float r = refY(vW); if(r < -1e8) discard; float h = vW.y - r, cu = cutAt(vW, uEye); if(h > cu) discard;\n" +
   " vec3 n = normalize(cross(dFdx(vW), dFdy(vW))); if(dot(n, uEye - vW) < 0.0) n = -n; vec3 c;\n" +
   " if(vK > 1.5){ float t = clamp((vW.y - uZr.x)/max(1.0, uZr.y - uZr.x), 0.0, 1.0); c = uGround*(0.86 + 0.32*t)*(0.95 + 0.07*max(dot(n, uL), 0.0)); }\n" +
-  " else if(!gl_FrontFacing) c = uCap; else { vec3 base = mix(uProp, uRock, vK); float d = max(dot(n, uL), 0.0), hm = 0.5 + 0.5*n.y;\n" +
+  " else if(!gl_FrontFacing && uA >= 1.0) c = uCap; else { vec3 base = mix(uProp, uRock, vK); float d = max(dot(n, uL), 0.0), hm = 0.5 + 0.5*n.y;\n" +
   "  c = base*(0.30 + 0.36*hm + 0.50*d); c *= mix(0.55, 1.0, smoothstep(0.0, 26.0, h)); }\n" +
-  " if(vK < 1.5) c = mix(c, uCap*1.06, smoothstep(uCut - 1.4, uCut, h)*0.85);\n" +
-  " float f = smoothstep(uFog.x, uFog.y, distance(vW, uEye)); float rim = smoothstep(uCut - 1.4, uCut, h);\n" +
+  " if(vK < 1.5) c = mix(c, uCap*1.06, smoothstep(cu - 1.4, cu, h)*0.85);\n" +
+  " float f = smoothstep(uFog.x, uFog.y, distance(vW, uEye)); float rim = smoothstep(cu - 1.4, cu, h);\n" +
   " if(uA < 1.0) o = vec4(c, (uA + rim*0.5)*(1.0 - f)); else o = vec4(mix(c, uBg, f), 1.0); }";
 var D3_ELVS = "#version 300 es\nin vec3 aP; uniform mat4 uVP; out vec3 vW; void main(){ vW = aP; gl_Position = uVP*vec4(aP,1.0); gl_Position.z -= 0.0006*gl_Position.w; }";
 var D3_ELFS = "#version 300 es\nprecision highp float; in vec3 vW; uniform vec3 uEye; uniform vec4 uC; uniform vec2 uFog; out vec4 o;\n" + D3_CUTF +
-  "void main(){ float r = refY(vW); if(r < -1e8 || vW.y - r > uCut + 0.2) discard; o = vec4(uC.rgb, uC.a*(1.0 - smoothstep(uFog.x, uFog.y, distance(vW, uEye)))); }";
+  "void main(){ float r = refY(vW); if(r < -1e8 || vW.y - r > cutAt(vW, uEye) + 0.2) discard; o = vec4(uC.rgb, uC.a*(1.0 - smoothstep(uFog.x, uFog.y, distance(vW, uEye)))); }";
 function d3Prog(gl, vs, fs){
   function sh(t, s){ var o = gl.createShader(t); gl.shaderSource(o, s); gl.compileShader(o); if(!gl.getShaderParameter(o, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(o)); return o; }
   var p = gl.createProgram(); gl.attachShader(p, sh(gl.VERTEX_SHADER, vs)); gl.attachShader(p, sh(gl.FRAGMENT_SHADER, fs)); gl.linkProgram(p);
   if(!gl.getProgramParameter(p, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(p));
-  var u = {}, n = gl.getProgramParameter(p, gl.ACTIVE_UNIFORMS); for(var i = 0; i < n; i++){ var nm = gl.getActiveUniform(p, i).name; u[nm] = gl.getUniformLocation(p, nm); }
+  var u = {}, n = gl.getProgramParameter(p, gl.ACTIVE_UNIFORMS); for(var i = 0; i < n; i++){ var nm = gl.getActiveUniform(p, i).name; u[nm.replace(/\[0\]$/, "")] = gl.getUniformLocation(p, nm); }
   return {p: p, u: u, aP: gl.getAttribLocation(p, "aP"), aN: gl.getAttribLocation(p, "aN"), aC: gl.getAttribLocation(p, "aC"), aK: gl.getAttribLocation(p, "aK")};
 }
 // сетка: P (x,y,z), N, C (r,g,b,a) — по вершине, без индексов
@@ -134,6 +142,74 @@ function d3FpBot(){
   bots.forEach(function(o){ if(!o.alive) return; var d = Math.hypot(o.x - cx, o.y - cy); if(d < bd){ bd = d; b = o; } });
   return b || null;
 }
+// (владелец 13.11: «моделька после смерти остаётся, голова и туловище получают физику и скатываются») тело: корпус падает вокруг
+// ступней в сторону от убийцы (или назад от взгляда), у пола — отскок и трение; голова отрывается при ударе и катится; стены — лучом
+// по геометрии (m3Line). Только показ, своё время — по тикам игры (пауза — стоит), до нового раунда.
+function d3Corpse(b, draw, col, sz){
+  var C = D3.corpse[b.id], H = D3.hist[b.id], M = m3();
+  if(!C){
+    var last = H && H.length ? H[H.length-1] : [b.x, b.y, (b.z || 0)*D3_KZ, tick], ang = (b._visFacing !== undefined ? b._visFacing : (b.facing || 0)) + Math.PI;
+    var kb = b._killedBy && b._killedBy.x != null ? b._killedBy : null; if(kb) ang = Math.atan2(b.y - kb.y, b.x - kb.x);
+    ang += (d3R(tick*0.37 + b.x) - 0.5)*0.8;
+    var h = 27*Math.max(1.15, sz);
+    C = D3.corpse[b.id] = {t: tick, dx: Math.cos(ang), dz: Math.sin(ang), th: 0.05, w: 0, x: last[0], y: last[2], zz: last[1], h: h, landed: false,
+      head: null, v: [Math.cos(ang)*18, 0, Math.sin(ang)*18]};
+    if(H) H.length = 0;
+  }
+  var steps = Math.min(16, Math.max(0, tick - (C.tk || C.t))); C.tk = tick;
+  var DT = 1/TICK_HZ, G = 320;   // сила тяжести, px сцены/с² (800 ед/с²)
+  var wallOk = function(x0, z0, x1, z1, y){ if(!M) return true; var a = m3Game(M, x0, z0), c = m3Game(M, x1, z1); return m3Line(M, a[0], a[1], y/D3_KZ + 8, c[0], c[1], y/D3_KZ + 8, "sight"); };
+  for(var i = 0; i < steps; i++){
+    if(!C.landed){ C.w += (G/(C.h*0.55))*Math.sin(C.th)*DT; C.th += C.w*DT;   // падает вокруг ступней
+      var nx = C.x + C.v[0]*DT, nz = C.zz + C.v[2]*DT; if(wallOk(C.x, C.zz, nx, nz, C.y)){ C.x = nx; C.zz = nz; } else { C.v[0] *= -0.3; C.v[2] *= -0.3; }
+      C.v[0] *= 0.97; C.v[2] *= 0.97;
+      if(C.th >= Math.PI/2){ C.th = Math.PI/2; C.landed = true;   // удар об пол — голова отрывается и катится дальше
+        var tip = [C.x + C.dx*C.h*0.95, C.y, C.zz + C.dz*C.h*0.95], sp = C.w*C.h*0.5;
+        C.head = {p: [tip[0], tip[1] + C.h*0.13, tip[2]], v: [C.dx*sp*0.6 + (d3R(C.t)-0.5)*20, sp*0.15, C.dz*sp*0.6 + (d3R(C.t+1)-0.5)*20], r: C.h*0.13, rot: 0}; } }
+    var hd = C.head; if(hd && (Math.abs(hd.v[0]) + Math.abs(hd.v[1]) + Math.abs(hd.v[2]) > 0.5)){
+      hd.v[1] -= G*DT; var hx = hd.p[0] + hd.v[0]*DT, hz = hd.p[2] + hd.v[2]*DT;
+      if(wallOk(hd.p[0], hd.p[2], hx, hz, hd.p[1])){ hd.p[0] = hx; hd.p[2] = hz; } else { hd.v[0] *= -0.4; hd.v[2] *= -0.4; }
+      hd.p[1] += hd.v[1]*DT; var fl = d3FloorBelow(hd.p[0], hd.p[2], hd.p[1]/D3_KZ + 4)*D3_KZ;
+      if(hd.p[1] - hd.r < fl){ hd.p[1] = fl + hd.r; hd.v[1] = Math.abs(hd.v[1]) > 8 ? -hd.v[1]*0.35 : 0; hd.v[0] *= 0.9; hd.v[2] *= 0.9; }
+      hd.rot += Math.hypot(hd.v[0], hd.v[2])*DT/hd.r; }
+  }
+  var dc = [col[0]*0.6, col[1]*0.6, col[2]*0.6, 1], sn = Math.sin(C.th), cs = Math.cos(C.th);
+  var side = [-C.dz, 0, C.dx], u = [C.dx*sn, cs, C.dz*sn], f = [side[1]*u[2] - side[2]*u[1], side[2]*u[0] - side[0]*u[2], side[0]*u[1] - side[1]*u[0]];
+  var R = C.h*0.6, Hh = C.h*0.8, base = [C.x, C.y + 0.3 + (C.landed ? C.h*0.12 : 0), C.zz];
+  draw(D3.capsule, new Float32Array([side[0]*R, side[1]*R, side[2]*R, 0, u[0]*Hh, u[1]*Hh, u[2]*Hh, 0, f[0]*R, f[1]*R, f[2]*R, 0, base[0], base[1], base[2], 1]), dc, 1);
+  var hp = C.head ? C.head.p : [base[0] + u[0]*C.h*0.9, base[1] + u[1]*C.h*0.9, base[2] + u[2]*C.h*0.9], hr = C.h*0.13;
+  draw(D3.sphere, d3Model(hp[0], hp[1], hp[2], hr, hr, hr), [dc[0]*1.25, dc[1]*1.25, dc[2]*1.25, 1], 1);
+}
+// камера за гранатой: летящая граната следимого (или последняя брошенная) — сзади по ходу; сработала — ещё 1,5 с на месте
+function d3NadeCam(){
+  var fid = OBS.lock || plSelected, L = nadesInAir.filter(function(n){ return n.z != null; }), n = null;
+  if(fid) n = L.filter(function(q){ return q.thrower && q.thrower.id === fid; }).slice(-1)[0];
+  if(!n) n = L.slice(-1)[0];
+  if(n){ var tr = n.trail || [], pr = tr.length ? tr[tr.length-1] : [n.x - 1, n.y, n.z];
+    var dx = n.x - pr[0], dy = n.y - pr[1], l = Math.hypot(dx, dy); if(l < 0.01){ dx = 1; dy = 0; l = 1; }
+    var P = [n.x, n.z*D3_KZ, n.y], eye = [P[0] - dx/l*55, P[1] + 22, P[2] - dy/l*55];
+    D3.nadeLast = {eye: eye, p: P, t: tick}; return {eye: eye, tgt: [P[0] + dx/l*30, P[1] - 4, P[2] + dy/l*30]}; }
+  if(D3.nadeLast && tick - D3.nadeLast.t < 1.5*TICK_HZ) return {eye: D3.nadeLast.eye, tgt: D3.nadeLast.p};
+  return null;
+}
+// «авто» (обсервер под 3D): закупка и конец раунда — пролёт; следимый бросил гранату — камера за ней; иначе — обзор (ведёт обсервер)
+function d3AutoCam(){
+  if(roundState === "freeze" || roundState === "ending") return "fly";
+  var fid = OBS.lock || plSelected;
+  if(nadesInAir.some(function(n){ return n.z != null && n.thrower && (n.thrower.id === fid || (!fid && n.type !== "flash")); }) || (D3.nadeLast && tick - D3.nadeLast.t < 1.5*TICK_HZ)) return "nade";
+  return "view";
+}
+// (оптимизация) 3D включён — 2D-кадр рисует «в пустоту»: табло, панели, киллфид, очистка трассеров идут как обычно, растр карты — нет
+var D3_NULLGRAD = {addColorStop: function(){}};
+var D3_NULLCTX = (typeof Proxy !== "undefined") ? new Proxy({}, {get: function(t, k){ if(k in t) return t[k];
+  if(k === "createLinearGradient" || k === "createRadialGradient" || k === "createPattern") return function(){ return D3_NULLGRAD; };
+  if(k === "measureText") return function(){ return {width: 0}; };
+  if(k === "getTransform") return function(){ return {a: 1, b: 0, c: 0, d: 1, e: 0, f: 0}; };
+  return function(){}; }, set: function(t, k, v){ t[k] = v; return true; }}) : null;
+function d3Draw2D(){
+  if(!D3_NULLCTX){ draw(); return; }
+  var c0 = ctx; ctx = D3_NULLCTX; try{ draw(); } finally { ctx = c0; }
+}
 // ---------- сцена ----------
 function d3Build(){
   var gl = D3.gl, t0 = performance.now();
@@ -146,12 +222,12 @@ function d3Build(){
   NAVAREAS.forEach(function(a){ a.points.forEach(function(p){ var z = p.z != null ? p.z : a.z; if(z < zLo) zLo = z; if(z > zHi) zHi = z; }); });
   var SK = 14;   // бортик, px сцены (35 ед.)
   // (владелец 13.11, Ancient: «много треугольников, стыков») тон — плавно по высоте вершины (не участком), бортик — только по краю
-  // пола и на ступенях: ребро, общее с соседним участком той же высоты, бортика не получает
-  var tone = function(z){ var hk = (z - zLo)/Math.max(1, zHi - zLo), m = 0.86 + 0.32*hk; return [cFloor[0]*m, cFloor[1]*m, cFloor[2]*m, 1]; };
+  // пола и на ступенях: ребро, общее с соседним участком той же высоты, бортика не получает (владелец: «бортик был верный»)
   var ekey = function(p, q){ var a = Math.round(p.x*2) + "," + Math.round(p.y*2), c = Math.round(q.x*2) + "," + Math.round(q.y*2); return a < c ? a + "|" + c : c + "|" + a; };
   var EZ = {};
   NAVAREAS.forEach(function(a){ if(NAV_BLOCKED[a.id] || a.points.length < 3) return;
     a.points.forEach(function(p, i){ var q = a.points[(i+1) % a.points.length], k = ekey(p, q); (EZ[k] || (EZ[k] = [])).push((p.z != null ? p.z : a.z) + (q.z != null ? q.z : a.z)); }); });
+  var tone = function(z){ var hk = (z - zLo)/Math.max(1, zHi - zLo), m = 0.86 + 0.32*hk; return [cFloor[0]*m, cFloor[1]*m, cFloor[2]*m, 1]; };
   NAVAREAS.forEach(function(a){
     if(NAV_BLOCKED[a.id] || a.points.length < 3) return;
     var zs = a.points.map(function(p){ return p.z != null ? p.z : a.z; });
@@ -257,7 +333,8 @@ function d3World(gl){
       else { r.c++; if(Math.abs(NN[r.t*3]*NN[ti*3] + NN[r.t*3+1]*NN[ti*3+1] + NN[r.t*3+2]*NN[ti*3+2]) < 0.8) r.crease = true; }
     }
   }
-  Em.forEach(function(r){ if(r.c === 1 || r.crease) E.push(P[r.a], P[r.a+1], P[r.a+2], P[r.b], P[r.b+1], P[r.b+2]); });
+  var onFloor = function(i){ return near(blk(P[i], P[i+2]), P[i+1]/D3_KZ, 5); };   // конец ребра на уровне пола «пешком»
+  Em.forEach(function(r){ if((r.c === 1 || r.crease) && !(onFloor(r.a) && onFloor(r.b))) E.push(P[r.a], P[r.a+1], P[r.a+2], P[r.b], P[r.b+1], P[r.b+2]); });   // ребро по полу — нет (пунктир у низа стен)
   var buf = function(a){ var b = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, b); gl.bufferData(gl.ARRAY_BUFFER, a, gl.STATIC_DRAW); return b; };
   return {p: buf(new Float32Array(P)), k: buf(new Float32Array(K)), cnt: P.length/3, e: buf(new Float32Array(E)), ecnt: E.length/3, ftex: d3FloorTex(gl, M),
           g: buf(new Float32Array(G)), gk: buf(new Float32Array(GK)), gcnt: G.length/3};
@@ -322,6 +399,8 @@ function d3Frame(opt){
   var a0 = typeof navAt === "function" ? navAt(cx, cy, D3.tz) : null, zt = a0 ? a0.z : (D3.tz == null ? 0 : D3.tz);
   D3.tz = D3.tz == null ? zt : D3.tz + (zt - D3.tz)*0.08;
   var mode = opt.w ? "view" : D3.cam;
+  if(mode === "auto") mode = d3AutoCam();   // обсервер под 3D: закупка — пролёт, граната следимого — за гранатой, иначе обзор
+  D3.mode = mode;
   if(mode === "fly" && !D3.drag){ D3.yawT += 0.0016; D3.pitchT = 0.88 + 0.12*Math.sin(performance.now()/9000); }
   var ease = 0.16; D3.yaw += (D3.yawT - D3.yaw)*ease; var pT = D3.top ? 1.5 : D3.pitchT; D3.pitch += (pT - D3.pitch)*ease;
   var visH = cv.height/view.scale, dist = visH/(2*Math.tan(D3_FOV/2))*0.92, fov = D3_FOV;
@@ -336,6 +415,8 @@ function d3Frame(opt){
     eye = [fx, ez, fy]; tgt = [fx + Math.cos(ff)*100, ez - 6, fy + Math.sin(ff)*100];
     fov = 74*Math.PI/180; near = 1.5; far = 2400; dist = 380;
   }
+  if(mode === "nade"){ var NC = d3NadeCam(); if(NC){ eye = NC.eye; tgt = NC.tgt; fov = 60*Math.PI/180; near = 1; far = 3000; dist = 260; } }
+  D3.tgt = tgt;
   var V = d3Look(eye, tgt);   // наклон не больше 1,5 рад — «сверху» без вырождения, поворот сохраняется
   var Pm = d3Persp(fov, Wc/Hc, near, far), VP = d3Mul(Pm, V);
   D3.VP = VP; D3.W = cw; D3.H = ch; D3.eye = eye; D3.dist = dist; D3.noTags = !!opt.noTags;
@@ -345,33 +426,33 @@ function d3Frame(opt){
   var pM = D3.pM; gl.useProgram(pM.p);
   gl.uniformMatrix4fv(pM.u.uVP, false, VP); gl.uniform3fv(pM.u.uEye, eye); gl.uniform3fv(pM.u.uL, L); gl.uniform3fv(pM.u.uBg, D3.cBg.slice(0, 3)); gl.uniform2fv(pM.u.uFog, fog);
   var I = d3Model(0, 0, 0, 1, 1, 1);
-  var draw = function(m, M4, tint, lit, soft){ gl.uniform1f(pM.u.uSoft, soft || 0); gl.uniformMatrix4fv(pM.u.uM, false, M4 || I); gl.uniform4fv(pM.u.uTint, tint || [1, 1, 1, 1]); gl.uniform1f(pM.u.uLit, lit == null ? 1 : lit);
+  var draw = function(m, M4, tint, lit, soft){ gl.uniform1f(pM.u.uSoft, soft || 0); if(pM.u.uHn) gl.uniform1i(pM.u.uHn, 0); gl.uniformMatrix4fv(pM.u.uM, false, M4 || I); gl.uniform4fv(pM.u.uTint, tint || [1, 1, 1, 1]); gl.uniform1f(pM.u.uLit, lit == null ? 1 : lit);
     d3Attr(gl, pM.aP, m.p, 3); d3Attr(gl, pM.aN, m.n, 3); d3Attr(gl, pM.aC, m.c, 4); gl.drawArrays(gl.TRIANGLES, 0, m.cnt); };
   draw(D3.floor, I, null, 0.12);
   if(D3.world && D3.world.gcnt){   // пол и ступени из геометрии — непрозрачно, со срезом, поверх навмеша
     var pW0 = D3.pW, W0 = D3.world; gl.useProgram(pW0.p); gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, W0.ftex.tex);
     gl.uniformMatrix4fv(pW0.u.uVP, false, VP); gl.uniform3fv(pW0.u.uEye, eye); gl.uniform3fv(pW0.u.uL, L); gl.uniform3fv(pW0.u.uBg, D3.cBg.slice(0, 3));
-    gl.uniform2fv(pW0.u.uFog, fog); gl.uniform1i(pW0.u.uF, 0); gl.uniform1f(pW0.u.uCut, 1e4); gl.uniform1f(pW0.u.uA, 1);
+    gl.uniform2fv(pW0.u.uFog, fog); gl.uniform1i(pW0.u.uF, 0); gl.uniform1f(pW0.u.uCut, 1e4); gl.uniform1f(pW0.u.uSims, 0); gl.uniform1f(pW0.u.uA, 1);
     gl.uniform3fv(pW0.u.uGround, D3.cFloor.slice(0, 3)); gl.uniform2fv(pW0.u.uZr, D3.zr);
     d3Attr(gl, pW0.aP, W0.g, 3); d3Attr(gl, pW0.aK, W0.gk, 1); gl.drawArrays(gl.TRIANGLES, 0, W0.gcnt); if(pW0.aK >= 0) gl.disableVertexAttribArray(pW0.aK);
     gl.useProgram(pM.p);
   }
   // мир со срезом и его рёбра — вид по D3_STYLES (кнопка в колонке): непрозрачный — сразу, прозрачный — последним (видно игроков за стенами)
-  var Wd = D3.world, pW = D3.pW, cut = (fpb ? 320 : D3_CUT)*D3_KZ, STY = D3_STYLES[D3.style] || D3_STYLES[0];
+  var Wd = D3.world, pW = D3.pW, cut = (fpb ? 320 : D3_CUT)*D3_KZ, low = D3_LOW*D3_KZ, sims = D3.sims && !fpb ? 1 : 0, STY = D3_STYLES[D3.style] || D3_STYLES[0];
   var drawWorld = function(){
     if(!Wd.cnt) return;
     gl.useProgram(pW.p); gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, Wd.ftex.tex);
     gl.uniformMatrix4fv(pW.u.uVP, false, VP); gl.uniform3fv(pW.u.uEye, eye); gl.uniform3fv(pW.u.uL, L); gl.uniform3fv(pW.u.uBg, D3.cBg.slice(0, 3));
-    gl.uniform2fv(pW.u.uFog, fog); gl.uniform1i(pW.u.uF, 0); gl.uniform1f(pW.u.uCut, cut); gl.uniform1f(pW.u.uA, STY.a); gl.uniform3fv(pW.u.uGround, D3.cFloor.slice(0, 3)); gl.uniform2fv(pW.u.uZr, D3.zr);
+    gl.uniform2fv(pW.u.uFog, fog); gl.uniform1i(pW.u.uF, 0); gl.uniform1f(pW.u.uCut, cut); gl.uniform1f(pW.u.uLow, low); gl.uniform1f(pW.u.uSims, sims); gl.uniform3fv(pW.u.uTgt, tgt); gl.uniform1f(pW.u.uRf, dist*0.55); gl.uniform1f(pW.u.uA, STY.a); gl.uniform3fv(pW.u.uGround, D3.cFloor.slice(0, 3)); gl.uniform2fv(pW.u.uZr, D3.zr);
     gl.uniform3fv(pW.u.uProp, D3.cProp.slice(0, 3)); gl.uniform3fv(pW.u.uRock, D3.cRock.slice(0, 3)); gl.uniform3fv(pW.u.uCap, D3.cCap.slice(0, 3));
     d3Attr(gl, pW.aP, Wd.p, 3); d3Attr(gl, pW.aK, Wd.k, 1);
     // (владелец 13.11: «сквозь стены видно чужие линии — грязно») прозрачный вид без «рентгена»: сначала стены только в глубину —
     // грани и рёбра за ними не рисуются; с «рентгеном» (кнопка) — видно всё насквозь, как раньше
     if(STY.a < 1 && !D3.xray){ gl.colorMask(false, false, false, false); gl.drawArrays(gl.TRIANGLES, 0, Wd.cnt); gl.colorMask(true, true, true, true); gl.depthFunc(gl.LEQUAL); }
-    if(STY.a < 1){ gl.depthMask(false); gl.enable(gl.CULL_FACE); gl.cullFace(gl.BACK); }
+    if(STY.a < 1) gl.depthMask(false);   // (владелец 13.11: «дырки в стенках») без отсева изнанки: часть граней карты повёрнута внутрь
     gl.drawArrays(gl.TRIANGLES, 0, Wd.cnt); if(pW.aK >= 0) gl.disableVertexAttribArray(pW.aK);
     var pE = D3.pE; gl.useProgram(pE.p); gl.uniformMatrix4fv(pE.u.uVP, false, VP); gl.uniform3fv(pE.u.uEye, eye); gl.uniform2fv(pE.u.uFog, fog);
-    gl.uniform1i(pE.u.uF, 0); gl.uniform1f(pE.u.uCut, cut); gl.uniform4fv(pE.u.uC, [D3.cEdge[0], D3.cEdge[1], D3.cEdge[2], STY.ea]);
+    gl.uniform1i(pE.u.uF, 0); gl.uniform1f(pE.u.uCut, cut); gl.uniform1f(pE.u.uLow, low); gl.uniform1f(pE.u.uSims, sims); gl.uniform3fv(pE.u.uTgt, tgt); gl.uniform1f(pE.u.uRf, dist*0.55); gl.uniform4fv(pE.u.uC, [D3.cEdge[0], D3.cEdge[1], D3.cEdge[2], STY.ea]);
     d3Attr(gl, pE.aP, Wd.e, 3); gl.drawArrays(gl.LINES, 0, Wd.ecnt);
     gl.depthMask(true); gl.disable(gl.CULL_FACE); gl.depthFunc(gl.LESS);
   };
@@ -389,7 +470,7 @@ function d3Frame(opt){
       draw(D3.sphere, d3Model(fr.x + Math.cos(ea)*ed, z + fh*0.6, fr.y + Math.sin(ea)*ed, 2.2, fh, 2.2), [1, 0.55 + 0.3*fk, 0.2, 0.32*fade], 0, 1); }
     gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA); gl.depthMask(true); });
   // бомба: корпус, табло, мигающий огонёк; заложена — пульс по полу; взорвалась — вспышка и волна (3 с)
-  var cb = d3Hex(d3Tok("--bomb", "#ff5a4c"));
+  var cb = D3.cBomb || (D3.cBomb = d3Hex(d3Tok("--bomb", "#ff5a4c")));
   if(bomb && (bomb.state === "dropped" || bomb.state === "planted" || bomb.state === "defused")){
     var bz = d3FloorBelow(bomb.x, bomb.y, bomb.z)*D3_KZ, pu = bomb.state === "planted" ? 0.5 + 0.5*Math.sin(tick*0.25) : 1, bs = Math.max(1, sz*0.8);
     draw(D3.box, d3Model(bomb.x, bz, bomb.y, 3.4*bs, 1.7*bs, 2.3*bs), [0.2, 0.23, 0.18, 1], 0.9);
@@ -410,11 +491,8 @@ function d3Frame(opt){
   bots.forEach(function(b){
     var x = b.px + (b.x - b.px)*al, y = b.py + (b.y - b.py)*al, z = (b.z != null ? b.z : d3FloorNear(x, y, null))*D3_KZ, col = b.team === "CT" ? D3.cCT : D3.cT;
     var CL = b._climb, air = CL && CL.jump ? 4*(CL.air || 0)*(1 - (CL.air || 0)) : 0; z += air*18;
-    d3Hist(b, x, y, z);
-    if(!b.alive){   // павший — тёмный крестик на полу
-      var dz = z + 0.4, s = 3.2*sz, dc = [col[0]*0.55, col[1]*0.55, col[2]*0.55, 0.85];
-      line([x - s, dz, y - s], [x + s, dz, y + s], dc, dc); line([x - s, dz, y + s], [x + s, dz, y - s], dc, dc); return;
-    }
+    d3Hist(b, x, y, z); if(b.alive && D3.corpse[b.id]) delete D3.corpse[b.id];
+    if(!b.alive){ d3Corpse(b, draw, col, sz); return; }   // павший — тело падает и катится (d3Corpse)
     if(b.id === D3.fpId) return;   // от первого лица — себя не видно
     var h = (b.crouching ? 20 : 27)*sz;
     var blind = tick < b.blindUntil ? Math.min(1, (b.blindUntil - tick)/64*0.5)*0.75 : 0;
@@ -454,10 +532,20 @@ function d3Frame(opt){
     var rr = smokeRadiusNow(sm); if(rr < 2) return;
     var z0 = D3.smZ.get(sm); if(z0 === undefined){ var bz2 = null, bd = 40; lastN.forEach(function(q){ var d = Math.hypot(q.x - sm.x, q.y - sm.y); if(d < bd){ bd = d; bz2 = q.z; } }); z0 = d3FloorNear(sm.x, sm.y, bz2); D3.smZ.set(sm, z0); }
     var fade = Math.min(1, (sm.until - tick)/64), zz = z0*D3_KZ, seed = sm.born*0.37 + sm.x*0.013;
+    // (владелец 13.11: «обсервер учитывал смоки и бои в них») камера смотрит в дым (бой в смоке) — облако редеет, видно игроков
+    if(D3.mode !== "fp" && D3.tgt){ var dt3 = Math.hypot(D3.tgt[0] - sm.x, D3.tgt[2] - sm.y); fade *= Math.max(0.3, Math.min(1, (dt3 - rr*0.5)/(rr*0.9))); }
     // (владелец 13.11: «смок — полноценный, плотнее») ядро почти непрозрачное, вокруг клубы в два яруса; края мягкие
-    draw(D3.sphere, d3Model(sm.x, zz + rr*0.48, sm.y, rr*0.92, rr*0.62, rr*0.92), [0.8, 0.82, 0.78, 0.94*fade], 0.5, 0.2);
+    var HL = (sm.bholes || []).filter(function(q){ return q.until > tick; }).slice(-8), HA = [], HB = [];
+    HL.forEach(function(q){ HA.push(q.x1, (q.z1 || z0 + 60)*D3_KZ, q.y1); HB.push(q.x2, (q.z2 || z0 + 60)*D3_KZ, q.y2); });
+    var hdraw = draw;
+    if(HL.length){ while(HA.length < 24){ HA.push(0); HB.push(0); }
+      hdraw = function(m, M4, tint, lit, soft){ gl.uniform1f(pM.u.uSoft, soft || 0); gl.uniform1i(pM.u.uHn, HL.length); gl.uniform1f(pM.u.uHr, 7);
+        gl.uniform3fv(pM.u.uHa, new Float32Array(HA)); gl.uniform3fv(pM.u.uHb, new Float32Array(HB));
+        gl.uniformMatrix4fv(pM.u.uM, false, M4); gl.uniform4fv(pM.u.uTint, tint); gl.uniform1f(pM.u.uLit, lit);
+        d3Attr(gl, pM.aP, m.p, 3); d3Attr(gl, pM.aN, m.n, 3); d3Attr(gl, pM.aC, m.c, 4); gl.drawArrays(gl.TRIANGLES, 0, m.cnt); }; }
+    hdraw(D3.sphere, d3Model(sm.x, zz + rr*0.48, sm.y, rr*0.92, rr*0.62, rr*0.92), [0.8, 0.82, 0.78, 0.94*fade], 0.5, 0.2);
     for(var q = 0; q < 12; q++){ var up = q >= 7, qa = d3R(seed + q*1.7)*Math.PI*2 + (tick - sm.born)*0.0016*(q % 2 ? 1 : -1), qd = rr*(up ? 0.3 : 0.55), qr = rr*(up ? 0.5 : 0.48);
-      draw(D3.sphere, d3Model(sm.x + Math.cos(qa)*qd, zz + rr*(up ? 0.85 : 0.38) + rr*0.1*d3R(seed + q), sm.y + Math.sin(qa)*qd, qr, qr*0.8, qr), [0.88, 0.9, 0.86, 0.5*fade], 0.55, 0.8); }
+      hdraw(D3.sphere, d3Model(sm.x + Math.cos(qa)*qd, zz + rr*(up ? 0.85 : 0.38) + rr*0.1*d3R(seed + q), sm.y + Math.sin(qa)*qd, qr, qr*0.8, qr), [0.88, 0.9, 0.86, 0.5*fade], 0.55, 0.8); }
   });
   gl.depthMask(true); };
   if(STY.a >= 1) drawSmokes();   // прозрачные стены — дым после них (стены не рисуются поверх облака)
@@ -544,12 +632,15 @@ function d3Tag(b, x, y, z, col){
   var stSet = function(i){ D3.style = (i + D3_STYLES.length) % D3_STYLES.length; if(stB) stB.title = "Вид стен: " + D3_STYLES[D3.style].name + " (нажми — следующий)"; try{ localStorage.setItem("sim-3d-style", D3_STYLES[D3.style].id); }catch(e){} };
   try{ var sv = localStorage.getItem("sim-3d-style"); D3_STYLES.forEach(function(q, k){ if(q.id === sv) D3.style = k; }); }catch(e){}
   stSet(D3.style); tb("v3Style", function(){ stSet(D3.style + 1); });
-  var camB = document.getElementById("v3Cam"), CAMS = [["view", "обзор"], ["fly", "пролёт"], ["fp", "от первого лица"]];
-  var camSet = function(m){ D3.cam = m; var k = CAMS.map(function(q){ return q[0]; }).indexOf(m); if(camB){ camB.title = "Камера: " + CAMS[k][1] + " (нажми — следующая)"; camB.classList.toggle("on", m !== "view"); } };
-  camSet("view"); tb("v3Cam", function(){ var k = CAMS.map(function(q){ return q[0]; }).indexOf(D3.cam); camSet(CAMS[(k + 1) % CAMS.length][0]); });
+  var camB = document.getElementById("v3Cam"), CAMS = [["auto", "авто (обсервер)"], ["view", "обзор"], ["fly", "пролёт"], ["nade", "за гранатой"], ["fp", "от первого лица"]];
+  var camSet = function(m){ D3.cam = m; var k = CAMS.map(function(q){ return q[0]; }).indexOf(m); if(camB){ camB.title = "Камера: " + CAMS[k][1] + " (нажми — следующая)"; camB.classList.toggle("on", m !== "auto"); } try{ localStorage.setItem("sim-3d-cam", m); }catch(e){} };
+  var cs0 = null; try{ cs0 = localStorage.getItem("sim-3d-cam"); }catch(e){} camSet(CAMS.some(function(q){ return q[0] === cs0; }) ? cs0 : "auto"); tb("v3Cam", function(){ var k = CAMS.map(function(q){ return q[0]; }).indexOf(D3.cam); camSet(CAMS[(k + 1) % CAMS.length][0]); });
   var xrB = document.getElementById("v3Xray");
   var xrSet = function(on){ D3.xray = on; if(xrB){ xrB.classList.toggle("on", on); xrB.title = on ? "Рентген: видно всё сквозь стены (нажми — скрыть невидимое)" : "Рентген выключен: за стенами не видно (нажми — видеть насквозь)"; } try{ localStorage.setItem("sim-3d-xray", on ? "1" : "0"); }catch(e){} };
   var xs = null; try{ xs = localStorage.getItem("sim-3d-xray"); }catch(e){} xrSet(xs === "1"); tb("v3Xray", function(){ xrSet(!D3.xray); });
+  var smB = document.getElementById("v3Sims");
+  var smSet = function(on){ D3.sims = on; if(smB){ smB.classList.toggle("on", on); smB.title = on ? "Стены перед комнатой опущены, как в Симсе (нажми — все стены целые)" : "Все стены целые (нажми — опускать стены перед комнатой)"; } try{ localStorage.setItem("sim-3d-sims", on ? "1" : "0"); }catch(e){} };
+  var ss3 = null; try{ ss3 = localStorage.getItem("sim-3d-sims"); }catch(e){} smSet(ss3 !== "0"); tb("v3Sims", function(){ smSet(!D3.sims); });
   tb("v3In", function(){ setScale(1.25); }); tb("v3Out", function(){ setScale(1/1.25); });
   tb("v3Rot", function(){ if(D3.lock) return; D3.yawT = Math.round((D3.yawT - Math.PI/2)/(Math.PI/2))*(Math.PI/2); });
   tb("v3Top", function(){ if(D3.lock) return; D3.top = !D3.top; this.classList.toggle("on", D3.top); if(!D3.top && D3.pitchT > 1.3) D3.pitchT = 0.95; });
