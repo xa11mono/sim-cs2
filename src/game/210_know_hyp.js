@@ -57,6 +57,9 @@ function noticeShooter(b, src){
   }
   return e.ok;
 }
+// (прогон 229: только звук — мало, 89 → 85 %: контакт и взгляд шли ещё из знания команды о том же стрелке) не обратил внимания на стрелка —
+// на всё окно события ни контакт, ни взгляд по нему (откуда бы ни пришло знание), пока не увидит сам
+function ignoredShooter(b, id){ var e = id && b._notice && b._notice[id]; return !!e && !e.ok && tick - e.t <= NOTICE_WIN; }
 // звук дошёл до игрока o: v166 кладёт его в o.heardSound, знание — в o.ears (одно место на «услышал»)
 function hearReal(o, s){
   if(roundState === "live"){ var sb = s.src ? teamBot(s.src) : null;   // (v358) этаж слышно (сверху / снизу) — высота источника

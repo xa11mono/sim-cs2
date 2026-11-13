@@ -60,7 +60,7 @@ function contactInfo(b){
   // (v547, ответ владельца 10.11: «CT на ретейке выбивают — их цель убить всех, по которым есть инфа, которые могут помешать дефузу») CT с
   // поставленной бомбой (не сейв) — инфа своих о враге рядом (по пути ≤ CONTACT_R, место видно — take) — его контакт, а не только своя зона
   var retakeHunt = b.team === "CT" && bomb && bomb.state === "planted" && !saving && !(teamTac.CT && teamTac.CT.saving);
-  for(var id in BL){ var e = BL[id], ob = teamBot(id); if(!ob || !ob.alive || tick - e.tick > CONTACT_AGE*TICK_HZ) continue;
+  for(var id in BL){ var e = BL[id], ob = teamBot(id); if(!ob || !ob.alive || tick - e.tick > CONTACT_AGE*TICK_HZ || ignoredShooter(b, id)) continue;
     if(saving){ if(mateFight0(id) && hasLOS(b.x, b.y, e.x, e.y, b.z, e.z)) take(e.x, e.y, e.src === "spotted", id, e.z); continue; }
     if(trade || retakeHunt || myZ[zoneIdAt3(e.x, e.y, e.z)] || (mateFights(id) && (phase || calm()))) take(e.x, e.y, e.src === "spotted", id, e.z); }
   // (v469) бросок гранаты (слышно чеку / бросок) — не контакт (ответ про-аналитика: на гранату вдали не реагировать); её место знание получает
