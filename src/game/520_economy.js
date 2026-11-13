@@ -253,14 +253,14 @@ function helmetWanted(b, type){
 function buyFullKit(b, idx){
   var T = b.team === "T", eg = teamEco[b.team].enemyGuess || {}, mates = bots.filter(function(m){ return m.team === b.team; });
   var hp = armorHpOf(b), cur = b.primary ? WEAPONS[b.primary] : null;
-  var wantAwp = idx === 1 && b.primary !== "AWP" && b.money >= WEAPONS.AWP.price + ARMOR_PRICE + HELMET_UPGRADE && !mates.some(function(m){ return m.primary === "AWP"; });
+  // (В142, v578) AWP здесь не покупается — только teamAwp (одно место: снайпер команды, доля по закупу из демок)
   var rifle = rifleFor(b.team, b), cheap = WEAPONS[T ? "GALIL" : "FAMAS"];
-  var P = {weapon: wantAwp ? WEAPONS.AWP : (cur && cur.tier >= 6 ? null : rifle), refill: hp < ARMOR_REBUY.tight, top: hp >= ARMOR_REBUY.tight && hp < ARMOR_REBUY.full,
+  var P = {weapon: cur && cur.tier >= 6 ? null : rifle, refill: hp < ARMOR_REBUY.tight, top: hp >= ARMOR_REBUY.tight && hp < ARMOR_REBUY.full,
            helmet: !b.helmet, kit: false, nades: []};
   var kitN = mates.filter(function(m){ return m !== b && m.kit; }).length;
   // (v469, п.17 владельца 29.10: «покупают не все дефузы — 2, 1, 3») ответ про-аналитика 29.10: в фулле 2–3 кита — опорник A, опорник B,
   // третий — ротатор или мидер (без AWP); кит — на сдачу, после оружия, брони и гранат (срезается первым); у остальных — нет
-  P.kit = !T && !b.kit && !wantAwp && b.primary !== "AWP" && (b.tRole === "anchorA" || b.tRole === "anchorB" || ((b.tRole === "rotator" || b.tRole === "mid") && !mates.some(function(m){ return m !== b && (m.tRole === "rotator" || m.tRole === "mid") && m.kit; })));
+  P.kit = !T && !b.kit && b.primary !== "AWP" && (b.tRole === "anchorA" || b.tRole === "anchorB" || ((b.tRole === "rotator" || b.tRole === "mid") && !mates.some(function(m){ return m !== b && (m.tRole === "rotator" || m.tRole === "mid") && m.kit; })));
   var have = {smoke:b.nades.smoke, flash:b.nades.flash, molly:b.nades.molly, he:b.nades.he}, fN = 0;
   // (v428) гранаты фулла — из плана команды (365_nade_plan: гранаты своей зоны на нужный момент), а не набор роли (NADE_WISH_PRO)
   var NPL = teamNadePlan(b.team, "full")[b.id] || [];
@@ -420,7 +420,12 @@ function teamDrops(team){
 // у T такие деньги почти не набирались, и T не брали AWP никогда. Теперь:
 // снайпер покупает сам, если хватает на AWP + кевлар; не хватает — богатый
 // тиммейт покупает и скидывает ему (как в CS)
-function teamAwp(team){
+// (В142, v578) брать ли AWP в этом раунде — доля про по стороне и закупу (MAP.pro.awpBy, tools/awp_bake.py: Mirage — T фулл 49 %, форс 15 %;
+// CT фулл 75 %, форс 20 %); раньше снайпер брал AWP всегда, когда хватало денег, только на фулле: у ботов T 62 % раундов с AWP (про 39 %), CT 46 % (про 63 %)
+function teamAwp(team, type){
+  var AB = MAP.pro && MAP.pro.awpBy && MAP.pro.awpBy[team];
+  if(AB){ if(!(hashRand(matchNum*1931 + roundNum*71 + (team === "CT" ? 13 : 29)) < (AB[type] || 0))) return; }
+  else if(type !== "full") return;   // данных карты нет — как было: только на фулле
   var mates = bots.filter(function(b){ return b.team === team; });
   var awper = mates.filter(isSniper)[0] || (team === "T" ? mates.filter(function(b){ return b.tRole === "awp"; })[0] : mates[1]);   // (v519) снайпер команды
   if(!awper || awper.primary === "AWP") return;
