@@ -1400,7 +1400,7 @@
   },
   "TeSeS": {
    "CT": "rotator",
-   "T": "lurker"
+   "T": "support"
   },
   "karrigan": {
    "CT": "anchorB",
@@ -1408,7 +1408,7 @@
   },
   "NiKo": {
    "CT": "anchorA",
-   "T": "support"
+   "T": "lurker"
   }
  }
 }
