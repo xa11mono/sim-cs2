@@ -13,21 +13,6 @@ function inFov(b, x, y){
   return off <= FOV_DEG*Math.PI/360;
 }
 
-// (v570, В132 п.1: «повернулся на выстрел за 1 с» у ботов 48–57 %, у про 27–28 %, медиана 0,5 с против 0,75; по эпизодам — чаще всего бот сам
-// замечал стрелка на краю обзора и сразу разворачивался) периферийное зрение: цель у края экрана замечают не сразу. В центре (до FOV_CENTER
-// от прицела) — сразу; к краю обзора время растёт до FOV_NOTICE с; движущуюся цель — вдвое быстрее (движение заметнее). Уже замеченную
-// (seenRecently) и в упор (FOV_NEAR) — как было. Состояние «с какого тика цель у меня на краю» — b._periph (восприятие, не решение)
-var FOV_CENTER = 30, FOV_NOTICE = 0.8;   // проектные числа: градусы, секунды на краю обзора — подбираются по мерке про (situations.py)
-function fovNotice(b, t){
-  if(!inFov(b, t.x, t.y)){ if(b._periph) delete b._periph[t.id]; return false; }
-  if(b.facing === undefined || Math.hypot(t.x-b.x, t.y-b.y) < FOV_NEAR) return true;
-  var a = Math.atan2(t.y-b.y, t.x-b.x), off = Math.abs(((a - b.facing + Math.PI) % (2*Math.PI) + 2*Math.PI) % (2*Math.PI) - Math.PI)*180/Math.PI;
-  if(off <= FOV_CENTER){ if(b._periph) delete b._periph[t.id]; return true; }
-  var P = b._periph || (b._periph = {}); if(P[t.id] == null) P[t.id] = tick;
-  var need = FOV_NOTICE*TICK_HZ*Math.min(1, (off - FOV_CENTER)/(FOV_DEG/2 - FOV_CENTER)) * ((t.curSpeed || 0) > 100*SPD_K ? 0.5 : 1);
-  return tick - P[t.id] >= need;
-}
-
 buildSites();
 
 function roamPtLabel(p){ var zid = /^zone\d+$/.test(p.name||"") ? p.name : zoneIdAt(p.x, p.y); return zid ? zoneLabel(zid) : (p.name||"точка"); }

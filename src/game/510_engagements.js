@@ -23,8 +23,8 @@ function resolveEngagements(){
         if(!ctOW && !tOW) return; }
       // вне поля зрения видно только того, с кем контакт уже идёт (видел его ≤ 0,125 с назад). (аудит 11.10) Раньше хватало
       // контакта с ЛЮБЫМ врагом (contactStreak > 0): в перестрелке бот видел всех врагов на линии на 360°, и второго за спиной тоже
-      var ctSees = (ctP.head || ctP.body) && (!smk || ctOW) && tick >= ct.blindUntil && (fovNotice(ct, t) || seenRecently(ct, t));
-      var tSees  = (tP.head || tP.body) && (!smk || tOW) && tick >= t.blindUntil  && (fovNotice(t, ct) || seenRecently(t, ct));
+      var ctSees = (ctP.head || ctP.body) && (!smk || ctOW) && tick >= ct.blindUntil && (inFov(ct, t.x, t.y) || seenRecently(ct, t));
+      var tSees  = (tP.head || tP.body) && (!smk || tOW) && tick >= t.blindUntil  && (inFov(t, ct.x, ct.y) || seenRecently(t, ct));
       if(!ctSees && !tSees) return;
       if(ctSees) (ct._seenAt || (ct._seenAt = {}))[t.id] = tick;
       if(tSees) (t._seenAt || (t._seenAt = {}))[ct.id] = tick;
