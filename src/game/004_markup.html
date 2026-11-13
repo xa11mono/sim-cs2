@@ -66,12 +66,22 @@
 
       <span class="seg"><button id="btnObs" class="on" title="Автообсервер: сам выбирает, за кем следить, и ведёт камеру (клавиша O). Двинул камеру или выбрал игрока сам — обсервер ждёт 6 с">Обсервер <kbd>O</kbd></button>
       <button id="btnObsMap" title="Обсервер чередует: когда тихо — вся карта, бой / плант / выход — камера на игроке. Выключить — всегда на игроке">Вся карта</button></span>
+      <button id="btn3d" title="3D-вид карты: ЛКМ — двигать, ПКМ — повернуть и наклонить, колесо — ближе / дальше, клик по игроку — следить">3D</button>
       <span class="tb-sep"></span>
       <span id="mkSlot" class="tb-group"></span>
     </div>
   </div>
   <div id="main">
     <canvas id="cv"></canvas>
+    <canvas id="cv3" hidden></canvas>
+    <div id="v3Lab" hidden></div>
+    <div id="v3Tools" hidden>
+      <button id="v3Lock" title="Закрепить угол камеры" aria-label="Закрепить угол"></button>
+      <button id="v3In" title="Ближе" aria-label="Ближе"></button>
+      <button id="v3Out" title="Дальше" aria-label="Дальше"></button>
+      <button id="v3Rot" title="Повернуть на 90°" aria-label="Повернуть"></button>
+      <button id="v3Top" title="Вид сверху" aria-label="Вид сверху"></button>
+    </div>
     <div id="bombEdge"></div>
     <canvas id="miniMap" width="232" height="232" title="Мини-радар: где игроки (как радар в CS2)"></canvas>
     <div id="hgtTip" class="hgt-tip" style="display:none;"></div>
