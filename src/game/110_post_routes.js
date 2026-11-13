@@ -339,6 +339,9 @@ function postViewPoint(pt, look){
   return (POST_VIEW.m[key] = best);
 }
 var OWN_LINE_GAP = 150, OWN_LINE_RINGS = [90, 130, 170, 210, 260, 310];   // (v570) проектные числа: «своя линия» ≈ 150 px (375 ед.), искать — до ~310 (рядом с сайтом)
+// (v570, прогон 221: со «своей линией» Ancient «в зоне взрыва» 8 → 24 — сейв CT и бегущие от бомбы T: раздвигание сдвигало их точку, в том
+// числе к бомбе, в радиус взрыва) раздвигание не ставит туда, где взрыв опаснее, чем в точке задачи (бомба стоит)
+function spreadBlast(x0, y0, x1, y1){ return !!(bomb && bomb.state === "planted") && bombDamageAt(x1, y1) > bombDamageAt(x0, y0); }
 var SPREAD_RINGS = [80, 110, 145, 180];   // (v570) проектные числа: шаг ≈ «личное место» 70 + 10; дальше 180 — уже другое место, а не «рядом»
 var SPREAD_DIRS = [Math.PI/2, -Math.PI/2, Math.PI*0.75, -Math.PI*0.75, Math.PI/4, -Math.PI/4, Math.PI, 0];
 // (v570) точка, которую задача дала посту (до раздвигания и сдвига к виду): «тот же ли пост» сверять с ней, а не со сдвинутым местом —
@@ -386,7 +389,7 @@ function setPost(b, pt, look, hold, tag, spreadIdx){
   // (v260, В3) та же точка и задача — путь не сбрасываем, но новое направление взгляда принимаем
   // (v570) та же точка — пост держится, но если после сдвига туда же встал свой (его пост поставлен позже — сдвиг считался без него), один
   // из двоих (у кого id больше) считает место заново: было — двое CT на охоте в одной точке (1026, 1493) до конца раунда
-  var ownL = BAL.ownLine && hold && taskProp(String(tag), "ownLine") && !POST_EXACT.test(String(tag));
+  var ownL = hold && taskProp(String(tag), "ownLine") && !POST_EXACT.test(String(tag));
   if(b.post && b.post.id === id && !(ownL && bots.some(function(o){ return o !== b && o.alive && o.team === b.team && o.id < b.id && o.post && Math.hypot(o.post.x-b.post.x, o.post.y-b.post.y) < SPOT_PERSONAL; }))){ b.post.look = look || null; return true; }
   var x = pt.x, y = pt.y;
   // (v370, владелец: «не стоят в толпе») точка, где уже стоит / куда идёт свой (≤ SPOT_PERSONAL), — встаём рядом поперёк взгляда,
@@ -397,9 +400,14 @@ function setPost(b, pt, look, hold, tag, spreadIdx){
   // дальше — до OWN_LINE_RINGS (за краем сайта — тоже: место рядом, откуда виден тот же угол); нет такого — как было (личное место 70)
   if(ownL && spotTaken(b, {x:x, y:y}, "line")){
     var la1 = look ? Math.atan2(look.y-y, look.x-x) : 0, xa = x, ya = y, losA = look && hasLOS(xa, ya, look.x, look.y), got = false;
+    // (v570, прогон 221: со «своей линией» Ancient wait 33 → 42 — точки дефолта T уезжали до 310 из своих зон, группа собиралась дольше)
+    // дальше первого кольца — только в той же зоне карты (место из демок про — зона), а не через полкарты
+    var zA = zoneIdAt(xa, ya);
     OWN_LINE_RINGS.some(function(r){ return SPREAD_DIRS.some(function(da){
       var nx = xa + Math.cos(la1+da)*r, ny = ya + Math.sin(la1+da)*r;
       if(insideSolidWall(nx, ny) || segCrossesManualWalls(xa, ya, nx, ny) || !navAt(nx, ny) || spotTaken(b, {x:nx, y:ny}, "line") || spotTaken(b, {x:nx, y:ny}, "post")) return false;
+      if(r > OWN_LINE_RINGS[0] && zA != null && zoneIdAt(nx, ny) !== zA) return false;
+      if(spreadBlast(xa, ya, nx, ny)) return false;
       if(!hasLOS(xa, ya, nx, ny)) return false;
       if(losA && !hasLOS(nx, ny, look.x, look.y)) return false;
       x = nx; y = ny; got = true; return true; }); });
@@ -413,7 +421,7 @@ function setPost(b, pt, look, hold, tag, spreadIdx){
     var la = look ? Math.atan2(look.y-y, look.x-x) : 0, x0 = x, y0 = y, losPost = look && hasLOS(x0, y0, look.x, look.y);
     SPREAD_RINGS.some(function(r){ return SPREAD_DIRS.some(function(da){
       var nx = x0 + Math.cos(la+da)*r, ny = y0 + Math.sin(la+da)*r;
-      if(insideSolidWall(nx, ny) || segCrossesManualWalls(x0, y0, nx, ny) || !navAt(nx, ny) || spotTaken(b, {x:nx, y:ny})) return false;
+      if(insideSolidWall(nx, ny) || segCrossesManualWalls(x0, y0, nx, ny) || !navAt(nx, ny) || spotTaken(b, {x:nx, y:ny}) || spreadBlast(x0, y0, nx, ny)) return false;
       if(r > SPOT_PERSONAL+10 && !hasLOS(x0, y0, nx, ny)) return false;   // дальше одного шага — та же комната, а не за углом
       if(losPost && !hasLOS(nx, ny, look.x, look.y)) return false;   // (v520) раздвигание не отнимает обзор поста
       x = nx; y = ny; return true; }); });

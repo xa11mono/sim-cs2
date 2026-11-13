@@ -227,8 +227,8 @@ function ctSetupRole(b, role, ct){
   // кто-то на Connector») места ролей в данных расстановки совпадают (1-3-1 Mirage: у ротатора и роумера — Window / Connector / Under
   // Window), и трое вставали в одну точку. Место роли — на своей линии: не ближе OWN_LINE_GAP к месту другого CT. Нет такого среди мест
   // роли — места, где у про стоят CT в этом районе (MAP.zoneprops: доля CT в демках, тот же край карты), ближние по пути
-  var crossOk = function(q){ return !BAL.ownLine || !spotTaken(b, q, "line"); };   // одна мерка «своей линии» — spotTaken (350), OWN_LINE_GAP (110)
-  if(BAL.ownLine) ctProZones(ref).forEach(function(n){ if(tryN.indexOf(n) < 0) tryN.push(n); });
+  var crossOk = function(q){ return !spotTaken(b, q, "line"); };   // одна мерка «своей линии» — spotTaken (350), OWN_LINE_GAP (110)
+  ctProZones(ref).forEach(function(n){ if(tryN.indexOf(n) < 0) tryN.push(n); });
   var crossAlt = null;
   for(var ti = 0; ti < tryN.length; ti++){
     var c1 = zonePoint(tryN[ti], ref); if(!c1) continue;
