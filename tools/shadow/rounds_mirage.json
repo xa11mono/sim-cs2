@@ -1,0 +1,191 @@
+[
+ {
+  "rid": "furia-vs-aurora-m3-mirage|16",
+  "demo": "furia-vs-aurora-m3-mirage",
+  "num": 16,
+  "t0": 132949,
+  "t1": 141847,
+  "tplant": 139543,
+  "site": "A",
+  "plantXY": [
+   1090.45164,
+   1474.3596
+  ],
+  "planter": 76561198057282432,
+  "early": 2,
+  "post": 36.0,
+  "afterKills": 2,
+  "afterT": 2,
+  "kills": 8,
+  "recall": true,
+  "nearOther": 3
+ },
+ {
+  "rid": "yawara-vs-gamehunters-m2-mirage|8",
+  "demo": "yawara-vs-gamehunters-m2-mirage",
+  "num": 8,
+  "t0": 74054,
+  "t1": 79612,
+  "tplant": 78001,
+  "site": "A",
+  "plantXY": [
+   1107.35488,
+   1476.8327199999999
+  ],
+  "planter": 76561198871691365,
+  "early": 1,
+  "post": 25.2,
+  "afterKills": 6,
+  "afterT": 4,
+  "kills": 9,
+  "recall": true,
+  "nearOther": 3
+ },
+ {
+  "rid": "ww-vs-tdk-m1-mirage|12",
+  "demo": "ww-vs-tdk-m1-mirage",
+  "num": 12,
+  "t0": 102738,
+  "t1": 110115,
+  "tplant": 107801,
+  "site": "A",
+  "plantXY": [
+   1065.743504,
+   1475.52484
+  ],
+  "planter": 76561198080114546,
+  "early": 1,
+  "post": 36.2,
+  "afterKills": 5,
+  "afterT": 3,
+  "kills": 9,
+  "recall": true,
+  "nearOther": 3
+ },
+ {
+  "rid": "spirit-vs-mouz-m2-mirage|18",
+  "demo": "spirit-vs-mouz-m2-mirage",
+  "num": 18,
+  "t0": 161148,
+  "t1": 168548,
+  "tplant": 166297,
+  "site": "A",
+  "plantXY": [
+   1071.1040520000001,
+   1475.3799999999999
+  ],
+  "planter": 76561198386265483,
+  "early": 1,
+  "post": 35.2,
+  "afterKills": 4,
+  "afterT": 2,
+  "kills": 8,
+  "recall": true,
+  "nearOther": 4
+ },
+ {
+  "rid": "k27-vs-virtus-pro-m3-mirage|3",
+  "demo": "k27-vs-virtus-pro-m3-mirage",
+  "num": 3,
+  "t0": 24849,
+  "t1": 33297,
+  "tplant": 31287,
+  "site": "A",
+  "plantXY": [
+   1069.4914,
+   1539.40848
+  ],
+  "planter": 76561198197951546,
+  "early": 1,
+  "post": 31.4,
+  "afterKills": 4,
+  "afterT": 3,
+  "kills": 6,
+  "recall": true,
+  "nearOther": 5
+ },
+ {
+  "rid": "furia-vs-vitality-m1-mirage|17",
+  "demo": "furia-vs-vitality-m1-mirage",
+  "num": 17,
+  "t0": 139671,
+  "t1": 149466,
+  "tplant": 146842,
+  "site": "A",
+  "plantXY": [
+   1107.072072,
+   1482.69144
+  ],
+  "planter": 76561197978835160,
+  "early": 1,
+  "post": 41.0,
+  "afterKills": 3,
+  "afterT": 1,
+  "kills": 8,
+  "recall": true,
+  "nearOther": 4
+ },
+ {
+  "rid": "furia-vs-falcons-m1-mirage|26",
+  "demo": "furia-vs-falcons-m1-mirage",
+  "num": 26,
+  "t0": 227241,
+  "t1": 234516,
+  "tplant": 232290,
+  "site": "B",
+  "plantXY": [
+   497.17484,
+   517.332472
+  ],
+  "planter": 76561198200982290,
+  "early": 1,
+  "post": 34.8,
+  "afterKills": 3,
+  "afterT": 2,
+  "kills": 8,
+  "recall": true,
+  "nearOther": 4
+ },
+ {
+  "rid": "new-vision-vs-atreides-m2-mirage|2",
+  "demo": "new-vision-vs-atreides-m2-mirage",
+  "num": 2,
+  "t0": 10772,
+  "t1": 18605,
+  "tplant": 15981,
+  "site": "B",
+  "plantXY": [
+   496.9316,
+   513.734948
+  ],
+  "planter": 76561198329484688,
+  "early": 1,
+  "post": 41.0,
+  "afterKills": 2,
+  "afterT": 1,
+  "kills": 9,
+  "recall": true,
+  "nearOther": 5
+ },
+ {
+  "rid": "9z-vs-legacy-m4-mirage|7",
+  "demo": "9z-vs-legacy-m4-mirage",
+  "num": 7,
+  "t0": 47347,
+  "t1": 54261,
+  "tplant": 52801,
+  "site": "A",
+  "plantXY": [
+   1118.191748,
+   1479.3856799999999
+  ],
+  "planter": 76561198061763596,
+  "early": 1,
+  "post": 22.8,
+  "afterKills": 2,
+  "afterT": 2,
+  "kills": 8,
+  "recall": true,
+  "nearOther": 3
+ }
+]
