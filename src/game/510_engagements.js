@@ -172,6 +172,7 @@ function resolveEngagements(){
   // когда прицел уже почти на цели (AIM_FIRE_CONE) — отсюда естественная
   // задержка "развернулся → выстрелил", когда враг появился сбоку/сзади.
   var aimStep = AIM_TURN_RATE / TICK_HZ;
+  var FLICK = {min: Math.PI/4, err: [0.1, 0.35], wait: 0.5, fix: 0.35};   // (v570, В135) проектные числа: рывок > 45°, промах 10–35 % угла, доводка через полреакции, скорость доводки 0,35 рывка — подбираются по мерке про
   // (v291, И32, владелец 14.10: раунд 1, тик 3087 — игрок 6 убил в T Lower и отвернулся на Mid «как у про», пока второй T стоял
   // в 35 px от убитого) после фрага оценка взгляда стрелка пересчитывается сразу, а не через до 8 тиков
   if(BZ.ids.length){
@@ -196,7 +197,22 @@ function resolveEngagements(){
       if(b.facing === undefined) b.facing = want;
       var dd = want - b.facing;
       dd = ((dd + Math.PI) % (2*Math.PI) + 2*Math.PI) % (2*Math.PI) - Math.PI;
-      if(slUrg) b.facing += Math.max(-aimStep, Math.min(aimStep, dd));
+      if(slUrg){
+        // (v570, В135, владелец 13.11: «стреляют слева — резко поворачиваешь на 90°, точно не наведёшься: перевёл, не довёл, испуг») рывок
+        // на большой угол (> FLICK.min) — не в точку, а с промахом (перелёт / недолёт FLICK.err доли угла), потом доводка: через полреакции,
+        // медленнее (FLICK.fix). Было: прицел вставал ровно в точку за ~0,15 с — к стрелку за 1 с поворачивались 71–100 % (про 41–49 %)
+        var FK = b._flick;
+        if(Math.abs(dd) > FLICK.min && (!FK || FK.done || Math.abs(((FK.want - want + Math.PI) % (2*Math.PI) + 2*Math.PI) % (2*Math.PI) - Math.PI) > FLICK.min)){
+          var fr = hashRand(tick*29 + b.id.charCodeAt(0)*13 + b.id.charCodeAt(b.id.length-1)*7), sg = hashRand(tick*31 + b.id.charCodeAt(1)*11) < 0.5 ? -1 : 1;
+          FK = b._flick = {want: want, aim: want + sg*Math.abs(dd)*(FLICK.err[0] + fr*(FLICK.err[1] - FLICK.err[0]))*(dd > 0 ? 1 : -1), t: tick, arr: null, done: false};
+        }
+        if(FK && !FK.done && Math.abs(((FK.want - want + Math.PI) % (2*Math.PI) + 2*Math.PI) % (2*Math.PI) - Math.PI) <= FLICK.min){
+          FK.aim += ((want - FK.want + Math.PI) % (2*Math.PI) + 2*Math.PI) % (2*Math.PI) - Math.PI; FK.want = want;   // цель сдвинулась немного — рывок следует
+          var da = ((FK.aim - b.facing + Math.PI) % (2*Math.PI) + 2*Math.PI) % (2*Math.PI) - Math.PI;
+          if(FK.arr == null){ b.facing += Math.max(-aimStep, Math.min(aimStep, da)); if(Math.abs(da) <= aimStep) FK.arr = tick; }
+          else if(tick - FK.arr >= Math.round((b.reactionTicks || 12)*FLICK.wait)){ var fs = aimStep*FLICK.fix; b.facing += Math.max(-fs, Math.min(fs, dd)); if(Math.abs(dd) <= fs) FK.done = true; }
+        } else b.facing += Math.max(-aimStep, Math.min(aimStep, dd));
+      }
       else {
         // (v153) вне боя: плавно, с торможением к цели, не быстрее ~260°/с;
         // стоя мелкие поправки (<3°) не делаем — прицел стоит, а не дрожит
