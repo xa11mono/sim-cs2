@@ -223,13 +223,30 @@ function d3AutoCam(){
   if(nb){ if(!A || A.id !== nb.id) D3.autoFp = {id: nb.id, t0: tick}; return "fp"; }
   return "view";
 }
-// закупка: медленный облёт команды на спавне (центр живых игроков стороны), смотрит на игроков; стороны — по очереди
+// закупка (владелец 13.11: «летать вокруг, медленно пролетать между игроками, подбирать красивые ракурсы»): планы по очереди, каждый
+// D3_SPAWN_SEC с, стороны чередуются: облёт команды; проезд вдоль строя на уровне груди с взглядом на ближайшего; крупный план игрока снизу,
+// лицом к нему, с лёгким поворотом. Камера не заходит в стену: луч от цели до камеры по геометрии, упёрся — камера ближе
 function d3SpawnCam(){
-  var side = Math.floor(tick / (D3_SPAWN_SEC*TICK_HZ)) % 2 ? "CT" : "T", P = bots.filter(function(o){ return o.alive && o.team === side; });
+  var segLen = D3_SPAWN_SEC*TICK_HZ, seg = Math.floor(tick / segLen), u = (tick % segLen) / segLen;
+  var side = seg % 2 ? "CT" : "T", P = bots.filter(function(o){ return o.alive && o.team === side; });
   if(!P.length) return null;
   var cx = 0, cy = 0, cz = 0; P.forEach(function(o){ cx += o.x; cy += o.y; cz += (o.z || 0); }); cx /= P.length; cy /= P.length; cz = cz/P.length*D3_KZ;
-  var a = performance.now()/7000 + (side === "CT" ? 2 : 0), R = 150;
-  return {eye: [cx + Math.cos(a)*R, cz + 75, cy + Math.sin(a)*R], tgt: [cx, cz + 12, cy]};
+  var shot = Math.floor(seg / 2) % 3, eye, tgt;
+  if(shot === 0){ var a = u*1.2 + seg*1.7; eye = [cx + Math.cos(a)*150, cz + 70, cy + Math.sin(a)*150]; tgt = [cx, cz + 12, cy]; }
+  else if(shot === 1){
+    var S = P.slice().sort(function(p, q){ return (p.x - cx)*(q.y - cy) > 0 ? p.x - q.x : p.y - q.y; }), A0 = S[0], B0 = S[S.length-1];
+    var dx = B0.x - A0.x, dy = B0.y - A0.y, L = Math.hypot(dx, dy) || 1, nx = -dy/L, ny = dx/L, px = A0.x + dx*u, py = A0.y + dy*u;
+    eye = [px + nx*45, cz + 26, py + ny*45];
+    var nb = P.slice().sort(function(p, q){ return Math.hypot(p.x - px, p.y - py) - Math.hypot(q.x - px, q.y - py); })[0];
+    tgt = [nb.x, (nb.z || 0)*D3_KZ + 20, nb.y];
+  } else {
+    var h = P[seg % P.length], f = h._visFacing !== undefined ? h._visFacing : (h.facing || 0), aa = f + (u - 0.5)*0.7, hz = (h.z || 0)*D3_KZ;
+    eye = [h.x + Math.cos(aa)*55, hz + 14, h.y + Math.sin(aa)*55]; tgt = [h.x, hz + 26, h.y];
+  }
+  var M = m3();
+  if(M) for(var k = 0; k < 4; k++){ if(m3Line(M, tgt[0], tgt[2], tgt[1]/D3_KZ, eye[0], eye[2], eye[1]/D3_KZ, "sight")) break;
+    eye = [tgt[0] + (eye[0] - tgt[0])*0.65, tgt[1] + (eye[1] - tgt[1])*0.65, tgt[2] + (eye[2] - tgt[2])*0.65]; }
+  return {eye: eye, tgt: tgt};
 }
 // пролёт: маршрут по навмешу между случайными дальними зонами (проходы, арки), камера на высоте ~120 ед. над полом смотрит вперёд по ходу
 function d3FlyThru(){
