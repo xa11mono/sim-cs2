@@ -20,7 +20,8 @@ var CONTACT_PUSH = 250;   // (v555) проектное число: ед. — T �
 // (v570, В135: боты поворачиваются к стрелку за 1 с в 57 % / 44 %, про — 27–28 %; по 600 эпизодам прогона 225 перебор — повороты, когда стреляли
 // в другого: контакт 61 / 66, звук 50 / 25, команда 29 / 20) «чужой бой» — враг, с которым прямо сейчас стреляется (видит его) свой. Его бой
 // не мой: держу свой угол, если не иду помогать (помощь решает contactInfo — mateFights). Одно определение для 350 и взгляда (270)
-function mateFighting(b, id){ return !!id && bots.some(function(o){ return o !== b && o.alive && o.team === b.team && o._sawEnemy && o._nearestEnemyBot && o._nearestEnemyBot.id === id; }); }
+// (прогон 226: «ближайший враг тиммейта» засчитывался редко — видит он его, но ближе другой) — любой свой, кто видит этого врага сейчас
+function mateFighting(b, id){ return !!id && bots.some(function(o){ return o !== b && o.alive && o.team === b.team && (o._visible || []).some(function(e){ return e.id === id; }); }); }
 function contactInfo(b){
   var best = null, bd = CONTACT_R, BL = beliefLast[b.team] || {}, myZ = {}, trade = tick < (b._tradeUntil || 0);
   myZ[zoneIdAt3(b.x, b.y, b.z)] = 1; if(b.post) myZ[zoneIdAt3(b.post.x, b.post.y, b.post.z != null ? b.post.z : b.z)] = 1;
@@ -52,7 +53,7 @@ function contactInfo(b){
   // если главная задача терпит отклонение (detourOk, 110: не ставит / не дефузит, не бомба, не сейв, время есть); тянуть туда-обратно
   // (прогон 178) не даёт сам контакт: держится, пока знание свежее + CONTACT_HOLD, повтор — не чаще CONTACT_GAP
   var freeToHelp = !b.post || taskLevel(b.post.tag) <= 3 || detourOk(b, "help");
-  var mateFight0 = function(id){ return mateFighting(b, id); };
+  var mateFight0 = function(id){ return bots.some(function(o){ return o !== b && o.alive && o.team === b.team && o._sawEnemy && o._nearestEnemyBot && o._nearestEnemyBot.id === id; }); };
   var mateFights = function(id){ return freeToHelp && mateFight0(id); };
   // (v547, владелец 10.11: «в ретейке, пост-планте, охоте боты не помогают») «на своём участке спокойно» (calm, v408 — мидер держит мид) — только
   // у того, кто держит пост роли; у задачи фазы (ретейк, пост-плант, охота: уровень ≥ 7) участок — вся задача, терпит ли она помощь — detourOk
