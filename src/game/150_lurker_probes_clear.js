@@ -11,6 +11,7 @@
 // маршруты лёркера по названиям зон: на B — через воду к рампе или через
 // мид/лампу к кейву; на A — через лестницу к мейну или через мид к донату
 var LURK_PLANS = MAP.tactics.lurkPlans;
+var LURK_ROUND_P = 0.6;   // проектное число (В142): доля раундов с лёрком — подбор под меру лёрка про 38 % (боты с лёрком каждый раунд — 55 %); сверка прогоном
 var LURK_DEATH_R = 200;   // px: смерть T «на пути лёрка» — ближе этого к точке пути (проектное число)
 var LURK_JOIN_SEC = 10, LURK_CHECK = 0.6, TAKE_ADV = 2.5, TAKE_STEP = 120, TAKE_REACH = 500, KILL_MOVE = [50, 140];
 function lurkGoNow(tt){ return tt.phase === "setup" && tt.execTick && tick >= tt.execTick - LURK_JOIN_SEC*TICK_HZ; }

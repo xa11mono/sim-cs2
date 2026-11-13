@@ -723,7 +723,8 @@
      "pos": [
       "Window",
       "Connector",
-      "Underpath"
+      "Underpath",
+      "Short"
      ],
      "look": "Top Mid"
     },
@@ -754,7 +755,8 @@
      "pos": [
       "Window",
       "Connector",
-      "Underpath"
+      "Underpath",
+      "Short"
      ],
      "look": "Top Mid",
      "lookPt": [
@@ -786,7 +788,8 @@
      "pos": [
       "Window",
       "Underpath",
-      "Connector"
+      "Connector",
+      "Short"
      ],
      "look": "Top Mid",
      "lookPt": [
@@ -822,7 +825,8 @@
      "pos": [
       "B Plat",
       "Kitchen",
-      "Van"
+      "Van",
+      "Short"
      ],
      "look": "B Apartments",
      "lookPt": [
@@ -849,7 +853,8 @@
     "mid": {
      "pos": [
       "Connector",
-      "Under Window"
+      "Under Window",
+      "Short"
      ],
      "look": "Top Mid"
     },
@@ -877,7 +882,8 @@
      "pos": [
       "Window",
       "Connector",
-      "Under Window"
+      "Under Window",
+      "Short"
      ],
      "look": "Top Mid",
      "lookPt": [
@@ -904,7 +910,8 @@
     "mid": {
      "pos": [
       "Window",
-      "Underpath"
+      "Underpath",
+      "Short"
      ],
      "look": "Top Mid",
      "lookPt": [
@@ -940,7 +947,8 @@
      "pos": [
       "Dark",
       "Triple Box",
-      "Jungle"
+      "Jungle",
+      "Short"
      ],
      "look": "Palace Exit",
      "lookPt": [
@@ -973,7 +981,8 @@
      "pos": [
       "Connector",
       "Underpath",
-      "Window"
+      "Window",
+      "Short"
      ],
      "look": "Top Mid"
     },
@@ -1003,7 +1012,8 @@
     "roamer": {
      "pos": [
       "B Plat",
-      "Van"
+      "Van",
+      "Short"
      ],
      "look": "B Apartments",
      "lookPt": [
@@ -1058,7 +1068,8 @@
      "pos": [
       "Dark",
       "A Site",
-      "Cross"
+      "Cross",
+      "Short"
      ],
      "look": "Palace Exit",
      "lookPt": [
@@ -1068,7 +1079,8 @@
     },
     "mid": {
      "pos": [
-      "B Plat"
+      "B Plat",
+      "Short"
      ],
      "look": "B Apartments",
      "lookPt": [
@@ -1120,7 +1132,8 @@
      "pos": [
       "Dark",
       "Triple Box",
-      "A Trash"
+      "A Trash",
+      "Short"
      ],
      "look": "Palace Exit",
      "lookPt": [
@@ -1132,7 +1145,8 @@
      "pos": [
       "Jungle",
       "Triple Box",
-      "A Trash"
+      "A Trash",
+      "Short"
      ],
      "look": "Cross",
      "lookPt": [
@@ -1189,7 +1203,8 @@
      "pos": [
       "B Plat",
       "Bench",
-      "Arches"
+      "Arches",
+      "Short"
      ],
      "look": "B Apartments",
      "lookPt": [
@@ -1201,7 +1216,8 @@
      "pos": [
       "Kitchen",
       "Bench",
-      "Arches"
+      "Arches",
+      "Short"
      ],
      "look": "B Apartments",
      "lookPt": [

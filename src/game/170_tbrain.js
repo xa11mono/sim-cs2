@@ -355,7 +355,10 @@ function tBrain(){
   var isMF = function(b){ return (b._midFlank && b._midFlank.round === roundNum) || (tt.phase === "setup" && b._shift && b._shift.round === roundNum); };
   if(tt.phase === "setup") ts.forEach(function(b){ if(b._shift && b._shift.round === roundNum && !b.planting && !(tt.fetchId === b.id)) setPost(b, b._shift.pt, b._shift.look, true, "shift"); });
   // перегруппировка IGL: лёркер больше не лёркер — идёт с основной группой как поддержка
-  var roleT = function(b){ return (tt.regroup && b.tRole === "lurker") ? "support" : b.tRole; };
+  // (В142, владелец 13.11 «да»: лёрк — решение раунда, а не роль на каждый раунд) лёрк одной меркой (tools/shadow/lurk_cmp.py): у про — 38 %
+  // раундов, у ботов с лёрком каждый раунд — 55 %; в раунде без лёрка лёркер играет с группой (поддержка), как при перегруппировке IGL
+  if(!tt._lurkR || tt._lurkR.round !== roundNum) tt._lurkR = {round: roundNum, on: hashRand(matchNum*977 + roundNum*131 + 5) < LURK_ROUND_P};
+  var roleT = function(b){ return ((tt.regroup || !tt._lurkR.on) && b.tRole === "lurker") ? "support" : b.tRole; };
   function pick(roles){ return ts.filter(function(b){ return roles.indexOf(roleT(b)) >= 0 && b !== fetcher && !b.planting && !isMF(b); }); }
   var lurker = pick(["lurker"])[0];
   // лёркер с бомбой или последний живой — уже не лёркер, а тот, кто ставит
