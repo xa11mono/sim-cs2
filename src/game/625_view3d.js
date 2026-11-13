@@ -18,6 +18,7 @@ var D3_FOV = 38 * Math.PI/180;
 var D3_LOW = 28;               // проектное число: опущенная стена «как в Симсе» — бортик, ед. игры
 // виды мира (владелец 13.11: «прозрачный был лучше — от него, но сделай несколько вариаций»): a — плотность граней, ea — яркость рёбер
 var D3_STYLES = [{id: "glass", name: "стекло", a: 0.32, ea: 0.6}, {id: "line", name: "контур", a: 0.1, ea: 0.85}, {id: "solid", name: "макет", a: 1, ea: 0.3}];
+var D3_HIDE = {"default": 1};   // (владелец 13.11: «дырки и странные объекты — как будто посчитаны невидимые стены») служебные плоскости карты (блокираторы взгляда) — не рисуются: из 25 треугольников больше 200000 ед² у Mirage 22 — этот материал
 var D3_SOFT = {rock:1, grass:1, mud:1, dirt:1, sand:1, boulder:1, Wood_Tree:1, foliage:1, gravel:1, snow:1};   // природный рельеф — не ящики
 
 // ---------- матрицы (столбцами) ----------
@@ -137,6 +138,12 @@ function d3Hist(b, x, y, z){
 }
 // от первого лица — за кем: слежка обсервера, выбранный игрок, иначе живой ближе всех к центру экрана
 function d3FpBot(){
+  // (владелец 13.11: «если камера от лица — игроков не переключает») вручную: закреплённый игрок; погиб — ближайший живой свой
+  if(D3.cam === "fp" && D3.fpLock){ var L0 = bots.filter(function(o){ return o.id === D3.fpLock; })[0];
+    if(L0 && L0.alive) return L0;
+    var nx = bots.filter(function(o){ return o.alive && L0 && o.team === L0.team; }).sort(function(a, c){ return Math.hypot(a.x - L0.x, a.y - L0.y) - Math.hypot(c.x - L0.x, c.y - L0.y); })[0];
+    if(nx){ D3.fpLock = nx.id; return nx; } }
+  if(D3.cam === "auto" && D3.autoFp){ var A0 = bots.filter(function(o){ return o.id === D3.autoFp.id && o.alive; })[0]; if(A0) return A0; }
   var id = OBS.lock || OBS.id || plSelected, b = id && bots.filter(function(o){ return o.id === id && o.alive; })[0]; if(b) return b;
   var cx = (cv.width/2 - view.panX)/view.scale, cy = (cv.height/2 - view.panY)/view.scale, bd = Infinity;
   bots.forEach(function(o){ if(!o.alive) return; var d = Math.hypot(o.x - cx, o.y - cy); if(d < bd){ bd = d; b = o; } });
@@ -195,15 +202,42 @@ function d3NadeCam(){
 // «авто» (обсервер под 3D): закупка и конец раунда — пролёт; следимый бросил гранату — камера за ней; иначе — обзор (ведёт обсервер)
 // (владелец 13.11: «обсервер не чередует разные виды») в раунде виды сменяются по очереди: обзор → за спиной → обзор → от первого лица;
 // смена следимого — снова с обзора (видно, за кем смотрим); граната следимого — за ней
-var D3_AUTO = [["view", 9], ["chase", 7], ["view", 8], ["fp", 6]];   // проектные числа: секунды на вид
+// (владелец 13.11: «полноценные пролёты по карте, через арки, красивые ракурсы; во время контактов и выходов главный вид — от первого лица на
+// разных игроках, как они стреляются») «авто»: закупка, конец раунда, тишина — пролёт; перестрелка — от первого лица того, кто стреляется
+// (следимый обсервером, если он в бою; иначе — первый, кто видит врага), не меньше D3_FP_HOLD с на одном (не мельтешит)
+var D3_FP_HOLD = 4;   // проектное число, с
+function d3Fighting(b){ return b && b.alive && (b._visible || []).some(function(o){ return o.alive && o.team !== b.team; }); }
 function d3AutoCam(){
-  if(roundState === "freeze" || roundState === "ending") return "fly";
-  var fid = OBS.lock || OBS.id || plSelected, A = D3.auto || (D3.auto = {i: 0, t0: tick, id: fid});
-  if(nadesInAir.some(function(n){ return n.z != null && n.thrower && n.thrower.id === fid; }) || (D3.nadeLast && tick - D3.nadeLast.t < 1.5*TICK_HZ)) return "nade";
-  if(A.id !== fid){ A.id = fid; A.i = 0; A.t0 = tick; }
-  if(tick - A.t0 > D3_AUTO[A.i][1]*TICK_HZ){ A.i = (A.i + 1) % D3_AUTO.length; A.t0 = tick; }
-  var m = D3_AUTO[A.i][0], fb = fid && bots.filter(function(o){ return o.id === fid && o.alive; })[0];
-  return (m === "fp" || m === "chase") && !fb ? "view" : m;
+  if(roundState === "freeze" || roundState === "ending"){ D3.autoFp = null; return "flythru"; }
+  var A = D3.autoFp, cur = A && bots.filter(function(o){ return o.id === A.id; })[0];
+  if(cur && cur.alive && (d3Fighting(cur) || tick - A.last < 2*TICK_HZ || tick - A.t0 < D3_FP_HOLD*TICK_HZ)){ if(d3Fighting(cur)) A.last = tick; return "fp"; }
+  var oid = OBS.lock || OBS.id, ob = oid && bots.filter(function(o){ return o.id === oid; })[0];
+  var nb = d3Fighting(ob) ? ob : bots.filter(d3Fighting)[0];
+  if(nb){ D3.autoFp = {id: nb.id, t0: tick, last: tick}; return "fp"; }
+  D3.autoFp = null; return "flythru";
+}
+// пролёт: маршрут по навмешу между случайными дальними зонами (проходы, арки), камера на высоте ~120 ед. над полом смотрит вперёд по ходу
+function d3FlyThru(){
+  var F = D3.flyP, now = performance.now();
+  var zc = D3.zoneC || (D3.zoneC = ZONEMAP.zones.map(function(z){ var cx = 0, cy = 0; z.points.forEach(function(p){ cx += p.x; cy += p.y; }); return [cx/z.points.length, cy/z.points.length]; })
+    .filter(function(c){ return typeof navAt !== "function" || navAt(c[0], c[1]); }));
+  if(!zc.length) return null;
+  if(!F || F.s >= F.L - 40){
+    var st = F ? F.end : zc[Math.floor(d3R(tick*0.37 + 1) * zc.length)], end = null;
+    for(var tr = 0; tr < 12 && !end; tr++){ var c = zc[Math.floor(d3R(tick*0.71 + tr*3.1 + (F ? F.n : 0)) * zc.length)]; if(Math.hypot(c[0] - st[0], c[1] - st[1]) > 600) end = c; }
+    if(!end) end = zc[0];
+    var W = buildWaypointPath(st[0], st[1], 0, end[0], end[1], 0, null, null, true) || [];
+    var P = [[st[0], st[1]]].concat(W.map(function(q){ return [q[0], q[1]]; }));
+    if(P.length < 2) P.push([end[0], end[1]]);
+    var pts = P.map(function(q){ return [q[0], (d3FloorBelow(q[0], q[1], null) + 120)*D3_KZ, q[1]]; }), Lc = [0];
+    for(var k = 1; k < pts.length; k++) Lc.push(Lc[k-1] + Math.hypot(pts[k][0] - pts[k-1][0], pts[k][2] - pts[k-1][2]));
+    F = D3.flyP = {pts: pts, Lc: Lc, L: Lc[Lc.length-1], s: 0, t: now, end: end, n: (F ? F.n : 0) + 1};
+  }
+  var dt = Math.min(0.1, (now - F.t)/1000); F.t = now; if(!paused) F.s += 150*dt;   // px сцены / с
+  var at = function(s){ s = Math.max(0, Math.min(F.L, s)); var k = 1; while(k < F.Lc.length - 1 && F.Lc[k] < s) k++;
+    var a = F.pts[k-1], b = F.pts[k], f = (s - F.Lc[k-1]) / Math.max(1e-3, F.Lc[k] - F.Lc[k-1]); return [a[0] + (b[0]-a[0])*f, a[1] + (b[1]-a[1])*f, a[2] + (b[2]-a[2])*f]; };
+  var e = at(F.s), t = at(F.s + 90); t[1] -= 10;
+  return {eye: e, tgt: t};
 }
 // (оптимизация) 3D включён — 2D-кадр рисует «в пустоту»: табло, панели, киллфид, очистка трассеров идут как обычно, растр карты — нет
 var D3_NULLGRAD = {addColorStop: function(){}};
@@ -296,6 +330,7 @@ function d3World(gl){
   };
   var T = M.tri, tf = M.triFlag, tm = M.triMat, nt = tf.length;
   for(var k = 0; k < nt; k++){ if(!(tf[k] & 1)) continue; var o = k*9;
+    if(D3_HIDE[mats[tm[k]]]) continue;
     push([T[o], T[o+1], T[o+2]], [T[o+3], T[o+4], T[o+5]], [T[o+6], T[o+7], T[o+8]], D3_SOFT[mats[tm[k]]] ? 1 : 0); }
   // выпуклые блоки: вершины — пересечения троек плоскостей внутри блока, грань — вершины на её плоскости по кругу (наружу)
   var hn = M.hullN, hp = M.hullP, ho = M.hullOff, hfl = M.hullFlag, hm = M.hullMat;
@@ -316,6 +351,7 @@ function d3World(gl){
       if(ok) V.push([px, py, pz]);
     }
     if(V.length < 4) continue;
+    if(D3_HIDE[mats[hm[h]]]) continue;
     var kind = D3_SOFT[mats[hm[h]]] ? 1 : 0;
     for(q = 0; q < n; q++){
       var P0 = pl[q], on = V.filter(function(v){ return Math.abs(P0[0]*v[0] + P0[1]*v[1] + P0[2]*v[2] - P0[3]) < 0.05; });
@@ -424,20 +460,29 @@ function d3Frame(opt){
     var eh = (fpb.crouching ? 46 : 64)*D3_KZ, ez = (fpb.z || 0)*D3_KZ + eh;
     // наклон по высоте: виден враг — на него (грудь); нет — на пол в 200 ед. впереди на высоте глаз (лестница, спуск)
     var en = (fpb._visible || []).filter(function(o){ return o.alive && o.team !== fpb.team; })[0], ty;
-    if(en){ ty = ((en.z || 0) + 48)*D3_KZ; tgt = [en.x, ty, en.y]; }
+    if(en){ ty = ((en.z || 0) + (en.crouching ? 46 : 62))*D3_KZ; tgt = [en.x, ty, en.y]; }   // прицел — на голову (бот целится в видимое, чаще в голову)
     else { var ax = fx + Math.cos(ff)*80, ay = fy + Math.sin(ff)*80; ty = d3FloorBelow(ax, ay, (fpb.z || 0) + 60)*D3_KZ + eh; tgt = [ax, ty, ay]; }
     eye = [fx, ez, fy];
-    if(mode === "chase"){   // за спиной: сзади и сверху, смотрит туда же
-      eye = [fx - Math.cos(ff)*70, ez + 34, fy - Math.sin(ff)*70]; if(!en) tgt = [fx + Math.cos(ff)*90, ez - 10, fy + Math.sin(ff)*90]; fov = 62*Math.PI/180;
-    } else fov = 74*Math.PI/180;
+    if(mode === "chase"){   // за спиной: сзади и чуть сверху; стена между игроком и камерой — камера ближе (не уходит в текстуры)
+      var M3c = m3(), back = 70, up2 = 18;
+      for(var sc = 0; sc < 5 && M3c; sc++){ var exx = fx - Math.cos(ff)*back, eyy = fy - Math.sin(ff)*back;
+        if(m3Line(M3c, fx, fy, ez/D3_KZ + 4, exx, eyy, (ez + up2)/D3_KZ, "sight")) break; back *= 0.6; up2 *= 0.6; }
+      eye = [fx - Math.cos(ff)*back, ez + up2, fy - Math.sin(ff)*back]; if(!en) tgt = [fx + Math.cos(ff)*90, ez - 6, fy + Math.sin(ff)*90]; fov = 62*Math.PI/180;
+    } else {
+      fov = (D3.fpFov || 74)*Math.PI/180;
+      if(D3.cam === "fp" && (D3.fpYaw || D3.fpPitch)){   // свободный взгляд (ПКМ): поворот и наклон относительно взгляда игрока
+        var dx0 = tgt[0] - eye[0], dy0 = tgt[1] - eye[1], dz0 = tgt[2] - eye[2], hl = Math.hypot(dx0, dz0) || 1, ya = Math.atan2(dz0, dx0) + D3.fpYaw, pa = Math.atan2(dy0, hl) + D3.fpPitch;
+        pa = Math.max(-1.45, Math.min(1.45, pa)); tgt = [eye[0] + Math.cos(ya)*Math.cos(pa)*100, eye[1] + Math.sin(pa)*100, eye[2] + Math.sin(ya)*Math.cos(pa)*100]; }
+    }
     near = 1.2; far = 2400; dist = 380;
     if(mode === "chase") fpb = null;   // себя в «за спиной» видно
     D3.fpId = fpb ? fpb.id : null;
   }
+  if(mode === "flythru"){ var FC = d3FlyThru(); if(FC){ eye = FC.eye; tgt = FC.tgt; fov = 70*Math.PI/180; near = 1.2; far = 3000; dist = 420; } }
   if(mode === "nade"){ var NC = d3NadeCam(); if(NC){ eye = NC.eye; tgt = NC.tgt; fov = 60*Math.PI/180; near = 1; far = 3000; dist = 260; } }
   // (владелец 13.11: «сразу переключается на убийство, непонятно за кем смотришь», «камера за гранатой дёргается») камера не прыгает:
   // глаз, цель и угол обзора плавно догоняют нужные (обзор с мышью — без задержки)
-  if(!opt.w){ var CS = D3.cs, k3 = (mode === "view" && D3.cam === "view") ? 1 : (mode === "nade" ? 0.12 : 0.08);
+  if(!opt.w){ var CS = D3.cs, k3 = (mode === "view" && D3.cam === "view") ? 1 : (mode === "nade" ? 0.12 : mode === "flythru" ? 0.15 : (mode === "fp" && D3.cam === "fp") ? 0.35 : 0.08);
     if(!CS || CS.mode !== mode && k3 === 1){ CS = D3.cs = {eye: eye.slice(), tgt: tgt.slice(), fov: fov, mode: mode}; }
     else { for(var ci = 0; ci < 3; ci++){ CS.eye[ci] += (eye[ci] - CS.eye[ci])*k3; CS.tgt[ci] += (tgt[ci] - CS.tgt[ci])*k3; } CS.fov += (fov - CS.fov)*k3; CS.mode = mode; }
     eye = CS.eye.slice(); tgt = CS.tgt.slice(); fov = CS.fov; }
@@ -652,10 +697,11 @@ function d3Tag(b, x, y, z, col){
   var setScale = function(f){ var cx = (cv.width/2 - view.panX)/view.scale, cy = (cv.height/2 - view.panY)/view.scale;
     view.scale = Math.max(0.15, Math.min(12, view.scale*f)); view.panX = cv.width/2 - cx*view.scale; view.panY = cv.height/2 - cy*view.scale; obsManual(); };
   c.addEventListener("contextmenu", function(e){ e.preventDefault(); });
-  c.addEventListener("wheel", function(e){ e.preventDefault(); setScale(e.deltaY < 0 ? 1.1 : 1/1.1); }, {passive: false});
+  c.addEventListener("wheel", function(e){ e.preventDefault(); if(D3.cam === "fp"){ D3.fpFov = Math.max(30, Math.min(100, (D3.fpFov || 74) + (e.deltaY < 0 ? -5 : 5))); return; } setScale(e.deltaY < 0 ? 1.1 : 1/1.1); }, {passive: false});
   c.addEventListener("pointerdown", function(e){ D3.drag = {x: e.clientX, y: e.clientY, b: e.button, moved: false}; c.setPointerCapture(e.pointerId); });
   c.addEventListener("pointermove", function(e){ var d = D3.drag; if(!d) return; var dx = e.clientX - d.x, dy = e.clientY - d.y; if(Math.abs(dx) + Math.abs(dy) > 3) d.moved = true; if(!d.moved) return;
     d.x = e.clientX; d.y = e.clientY;
+    if((d.b === 2 || e.shiftKey) && D3.cam === "fp"){ D3.fpYaw = (D3.fpYaw || 0) + dx*0.005; D3.fpPitch = Math.max(-1.2, Math.min(1.2, (D3.fpPitch || 0) - dy*0.005)); return; }   // свободный взгляд от первого лица
     if((d.b === 2 || e.shiftKey) && !D3.lock){ D3.yawT -= dx*0.006; D3.top = false; D3.pitchT = Math.max(0.35, Math.min(1.5, D3.pitchT + dy*0.005)); return; }
     var k = 1/Math.max(0.15, Math.sin(D3.pitch)), cy = Math.cos(D3.yaw), sy = Math.sin(D3.yaw);   // экран → земля с учётом поворота
     var wx = (dx*cy + dy*sy*k), wy = (-dx*sy + dy*cy*k);
@@ -663,6 +709,7 @@ function d3Tag(b, x, y, z, col){
   c.addEventListener("pointerup", function(e){ var d = D3.drag; D3.drag = null; if(!d || d.moved || d.b !== 0) return;
     var r = c.getBoundingClientRect(), mx = e.clientX - r.left, my = e.clientY - r.top, best = null, bd = 22;
     bots.forEach(function(b){ if(!b.alive) return; var p = d3Proj(b.x, (b.z || 0)*D3_KZ + 12, b.y); if(!p) return; var dd = Math.hypot(p[0] - mx, p[1] - my); if(dd < bd){ bd = dd; best = b; } });
+    if(best && D3.cam === "fp"){ D3.fpLock = best.id; D3.fpYaw = 0; D3.fpPitch = 0; return; }   // от первого лица — клик по игроку: смотреть его глазами
     if(best){ if(OBS.lock === best.id) OBS.lock = null; else { OBS.lock = best.id; OBS.on = true; OBS.manualUntil = 0; if(plSelected !== best.id){ plSelected = best.id; playersUpdate(); } } }
     else OBS.lock = null; });
   var tb = function(id, f){ var el = document.getElementById(id); if(el) el.addEventListener("click", f); };
@@ -671,8 +718,9 @@ function d3Tag(b, x, y, z, col){
   var stSet = function(i){ D3.style = (i + D3_STYLES.length) % D3_STYLES.length; if(stB) stB.title = "Вид стен: " + D3_STYLES[D3.style].name + " (нажми — следующий)"; try{ localStorage.setItem("sim-3d-style", D3_STYLES[D3.style].id); }catch(e){} };
   try{ var sv = localStorage.getItem("sim-3d-style"); D3_STYLES.forEach(function(q, k){ if(q.id === sv) D3.style = k; }); }catch(e){}
   stSet(D3.style); tb("v3Style", function(){ stSet(D3.style + 1); });
-  var camB = document.getElementById("v3Cam"), CAMS = [["auto", "авто (обсервер)"], ["view", "обзор"], ["fly", "пролёт"], ["nade", "за гранатой"], ["fp", "от первого лица"]];
-  var camSet = function(m){ D3.cam = m; var k = CAMS.map(function(q){ return q[0]; }).indexOf(m); if(camB){ camB.title = "Камера: " + CAMS[k][1] + " (нажми — следующая)"; camB.classList.toggle("on", m !== "auto"); } try{ localStorage.setItem("sim-3d-cam", m); }catch(e){} };
+  var camB = document.getElementById("v3Cam"), CAMS = [["auto", "авто: пролёты, в перестрелке — от первого лица"], ["view", "обзор"], ["flythru", "пролёт по карте"], ["fly", "облёт"], ["chase", "за спиной"], ["nade", "за гранатой"], ["fp", "от первого лица (игрок закреплён, ПКМ — свободный взгляд)"]];
+  var camSet = function(m){ if(m === "fp" && D3.cam !== "fp"){ D3.fpLock = D3.fpId || OBS.lock || OBS.id || plSelected; D3.fpYaw = 0; D3.fpPitch = 0; }
+    D3.cam = m; var fpB = document.getElementById("v3Fp"); if(fpB) fpB.classList.toggle("on", m === "fp"); var k = CAMS.map(function(q){ return q[0]; }).indexOf(m); if(camB){ camB.title = "Камера: " + CAMS[k][1] + " (нажми — следующая)"; camB.classList.toggle("on", m !== "auto"); } try{ localStorage.setItem("sim-3d-cam", m); }catch(e){} };
   var cs0 = null; try{ cs0 = localStorage.getItem("sim-3d-cam"); }catch(e){} camSet(CAMS.some(function(q){ return q[0] === cs0; }) ? cs0 : "auto"); tb("v3Cam", function(){ var k = CAMS.map(function(q){ return q[0]; }).indexOf(D3.cam); camSet(CAMS[(k + 1) % CAMS.length][0]); });
   var xrB = document.getElementById("v3Xray");
   var xrSet = function(on){ D3.xray = on; if(xrB){ xrB.classList.toggle("on", on); xrB.title = on ? "Рентген: видно всё сквозь стены (нажми — скрыть невидимое)" : "Рентген выключен: за стенами не видно (нажми — видеть насквозь)"; } try{ localStorage.setItem("sim-3d-xray", on ? "1" : "0"); }catch(e){} };
@@ -680,6 +728,7 @@ function d3Tag(b, x, y, z, col){
   var smB = document.getElementById("v3Sims");
   var smSet = function(on){ D3.sims = on; if(smB){ smB.classList.toggle("on", on); smB.title = on ? "Стены перед комнатой опущены, как в Симсе (нажми — все стены целые)" : "Все стены целые (нажми — опускать стены перед комнатой)"; } try{ localStorage.setItem("sim-3d-sims", on ? "1" : "0"); }catch(e){} };
   var ss3 = null; try{ ss3 = localStorage.getItem("sim-3d-sims"); }catch(e){} smSet(ss3 !== "0"); tb("v3Sims", function(){ smSet(!D3.sims); });
+  tb("v3Fp", function(){ camSet(D3.cam === "fp" ? "auto" : "fp"); });   // основной вид — от первого лица (вкл / выкл)
   tb("v3In", function(){ setScale(1.25); }); tb("v3Out", function(){ setScale(1/1.25); });
   tb("v3Rot", function(){ if(D3.lock) return; D3.yawT = Math.round((D3.yawT - Math.PI/2)/(Math.PI/2))*(Math.PI/2); });
   tb("v3Top", function(){ if(D3.lock) return; D3.top = !D3.top; this.classList.toggle("on", D3.top); if(!D3.top && D3.pitchT > 1.3) D3.pitchT = 0.95; });

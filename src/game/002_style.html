@@ -23,6 +23,7 @@
     --i-rot:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23000%22 stroke-width=%222.2%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpath d=%22M4 12a8 8 0 1 0 2.4-5.7%22/%3E%3Cpath d=%22M4 4v4.5h4.5%22/%3E%3C/svg%3E");
     --i-xray:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23000%22 stroke-width=%222.2%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Crect x=%223.5%22 y=%225%22 width=%2211%22 height=%2211%22 rx=%221%22/%3E%3Crect x=%229.5%22 y=%229%22 width=%2211%22 height=%2211%22 rx=%221%22 stroke-dasharray=%222.5 2%22/%3E%3C/svg%3E");
     --i-walls:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23000%22 stroke-width=%222.2%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpath d=%22M4 20V8l8-4 8 4v12%22/%3E%3Cpath d=%22M4 20h16M9 20v-5h6v5%22/%3E%3C/svg%3E");
+    --i-fp:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23000%22 stroke-width=%222.2%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Ccircle cx=%2212%22 cy=%2212%22 r=%227.5%22/%3E%3Cpath d=%22M12 2.5v4M12 17.5v4M2.5 12h4M17.5 12h4%22/%3E%3C/svg%3E");
     --i-top:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23000%22 stroke-width=%222.2%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Crect x=%224.5%22 y=%224.5%22 width=%2215%22 height=%2215%22 rx=%221.5%22/%3E%3Cpath d=%22M4.5 12h15M12 4.5v15%22 opacity=%22.5%22/%3E%3C/svg%3E");
     --k:1;   /* масштаб HUD под ширину окна (635_hud_fx.js) */
     /* (v461) показ трансляции (повтор клатча 675, пауза 676) — общие: пузырь реплики, подсветка героя */
@@ -630,6 +631,6 @@
   #v3Tools button:hover{background:var(--panel-3);color:var(--text);}
   #v3Tools button.on{background:var(--accent-soft);color:var(--accent);}
   #v3Tools button::before{content:"";width:14px;height:14px;background:currentColor;-webkit-mask:var(--ic) center/contain no-repeat;mask:var(--ic) center/contain no-repeat;transition:transform var(--d2) var(--spring);}
-  #v3Lock{--ic:var(--i-lock);} #v3In{--ic:var(--i-zin);} #v3Out{--ic:var(--i-zout);} #v3Rot{--ic:var(--i-rot);} #v3Top{--ic:var(--i-top);} #v3Style{--ic:var(--i-layers);} #v3Cam{--ic:var(--i-obs);} #v3Xray{--ic:var(--i-xray);} #v3Sims{--ic:var(--i-walls);}
+  #v3Lock{--ic:var(--i-lock);} #v3In{--ic:var(--i-zin);} #v3Out{--ic:var(--i-zout);} #v3Rot{--ic:var(--i-rot);} #v3Top{--ic:var(--i-top);} #v3Style{--ic:var(--i-layers);} #v3Cam{--ic:var(--i-obs);} #v3Fp{--ic:var(--i-fp);} #v3Xray{--ic:var(--i-xray);} #v3Sims{--ic:var(--i-walls);}
   #v3Rot:hover::before{transform:rotate(-60deg);}
 </style>
