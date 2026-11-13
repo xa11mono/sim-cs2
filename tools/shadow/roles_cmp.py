@@ -87,7 +87,7 @@ def pro_rounds():
                     if int(s) not in firsts and onsite(x, y) == p['site']: firsts[int(s)] = t
                 if firsts: entry = min(firsts, key=firsts.get)
             out.append({'win': win or p.get('win'), 'kills': kills, 'nades': nades, 'awp': awp, 'exec': p['exec'], 'site': p['site'],
-                        'plant': bool(p.get('plant')), 'entry': entry})
+                        'plant': bool(p.get('plant')), 'entry': entry, 'tbuy': p.get('tbuy'), 'ctbuy': p.get('ctbuy')})
         print(d, len(out), file=sys.stderr)
     return out
 
@@ -108,8 +108,8 @@ def bot_rounds(rd, lab):
             t0, t1 = r['t0'], r['t1']
             kills = [((q[0] - t0) / SEC, q[2], q[1], q[6], q[5]) for q in d['kills'] if t0 <= q[0] <= t1]
             nades = [((q[0] - t0) / SEC, q[1], NT.get(q[2], q[2])) for q in d['nades'] if t0 <= q[0] <= t1]
-            tk20 = t0 + 20 * SEC; tk20 -= tk20 % 16
-            awp = collections.Counter(side(q[1]) for q in bypos.get(tk20, []) if str(q[7]).upper() == 'AWP')
+            aw = set(q[1] for tt in range(t0 + 10 * SEC - (t0 + 10 * SEC) % 16, t0 + 40 * SEC, 16) for q in bypos.get(tt, []) if str(q[7]).upper() == 'AWP')   # как у про: AWP хоть раз за 10–40 с
+            awp = collections.Counter(side(i) for i in aw)
             entry = None
             if p['exec'] is not None and p['site']:
                 te = t0 + p['exec'] * SEC; firsts = {}
@@ -126,7 +126,8 @@ if __name__ == '__main__':
     cache = os.path.join(HERE, 'roles_pro_%s.json' % MAP)
     if os.path.exists(cache): PM = json.load(open(cache), object_pairs_hook=collections.OrderedDict)
     else:
-        PM = metrics(pro_rounds()); json.dump(PM, open(cache, 'w'), ensure_ascii=False, indent=1)
+        PR = pro_rounds(); PM = metrics(PR); json.dump(PM, open(cache, 'w'), ensure_ascii=False, indent=1)
+        json.dump([{'awp': dict(r['awp']), 'tbuy': r['tbuy'], 'ctbuy': r['ctbuy']} for r in PR], open(os.path.join(HERE, 'roles_pro_rounds_%s.json' % MAP), 'w'))
     BM = metrics(bot_rounds(a[0], a[1] if len(a) > 1 else 'bots_v576a_mir')) if a else None
     print('%-40s %10s %10s %8s' % ('мера', 'про', 'боты', 'разница'))
     for k, v in PM.items():
