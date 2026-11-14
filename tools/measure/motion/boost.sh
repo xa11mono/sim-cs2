@@ -3,7 +3,7 @@
 O=${1:-/tmp/bo}; mkdir -p "$O"; D=tools/measure/motion; K=${2:-}
 python3 src/build.py --map mirage "$O/mk.html" >/dev/null 2>&1
 for M in "[3,7]" "[11,13]" "[17,19]" "[23,29]"; do F="$O/q_${M//[^0-9]/_}.txt"
-  python3 -c "import sys;t=open('$D/boost.js.txt').read().replace('__M__','$M').replace('__K__', ('BOOST.k=$K;' if '$K' else ''));open('$F','w').write(t)"
+  python3 -c "import sys;t=open('$D/boost.js.txt').read().replace('__M__','$M').replace('__K__', ('BOOST.k=$K; MAP.pro.boosts.forEach(function(q){ delete q.botE; });' if '$K' else ''));open('$F','w').write(t)"
   (timeout 3000 node --max-old-space-size=2500 $D/ev.js "$O/mk.html" "$(cat $F)" | tail -1 > "$O/bo_${M//[^0-9]/_}.json") & done; wait
 python3 - "$O" <<'P'
 import json,glob,sys,numpy as np
