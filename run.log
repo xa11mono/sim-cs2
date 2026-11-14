@@ -1,0 +1,16 @@
+playwright 1.56.0, браузеры: C:\Windows\system32\config\systemprofile\.simcs2_node\ms-playwright
+> git fetch --quiet origin c65fe2f007f062516493444dc179fa8dc9c49dd2
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_zc1_4rzs FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_zc1_4rzs\src\build.py --map mirage C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v579a_mir.html
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\engine\walk_run.py --job=v579a_mir,C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v579a_mir.html --matches=3,7,11,13,17,19,23,29 --par=8
+матчей в очереди: 8, одновременно: 8
+v579a_mir match 17  rc 0 6252020 — готово 1/8, 5 мин
+v579a_mir match 11  rc 0 7602008 — готово 2/8, 6 мин
+v579a_mir match 13  rc 0 8207690 — готово 3/8, 7 мин
+v579a_mir match 3  rc 0 8373152 — готово 4/8, 7 мин
+v579a_mir match 23  rc 0 8809157 — готово 5/8, 7 мин
+v579a_mir match 19  rc 0 9237738 — готово 6/8, 7 мин
+v579a_mir match 29  rc 0 10466039 — готово 7/8, 8 мин
+v579a_mir match 7  rc 0 10538364 — готово 8/8, 8 мин
+done
+all done
