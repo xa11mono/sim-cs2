@@ -199,6 +199,21 @@ function lineupTick(){
         return;
       }
     }
+    // (В142, v579) CT: хозяин цели по плану занят своим лайнапом (идёт кидать другую гранату) — эта встаёт ему в очередь, если её точка броска
+    // рядом с точкой текущей (≤ EXEC_QUEUE_R): кинет следом, как про CT кидают молотов + флешку с одной точки. Раньше одно задание на бойца —
+    // вторая и третья граната плана сгорали (облако, v579 м7: 41 из 80 запланированных гранат CT с лайнапом не брошены; у хозяина 2–3 цели подряд)
+    if(!cand && L.pro && L.grp && L.team === "CT" && L.trigger === "timed"){
+      var ow = bots.filter(function(b){ var t = b.nadeTask; if(!npOwner(b, L) || !okBot(b) || !t || !t.lineup || !t.from || (b.nadeQueue||[]).length >= EXEC_QUEUE_N) return false;
+        var need = (t.type === L.type ? 1 : 0) + (b.nadeQueue||[]).filter(function(q){ return q.type === L.type; }).length + 1, F = spotOf(b).from;
+        return b.nades[L.type] >= need && Math.hypot(t.from.x-F.x, t.from.y-F.y) < EXEC_QUEUE_R; })[0];
+      if(ow){
+        var OS = spotOf(ow);
+        nadeFlags[key] = true; nadeFlags["luok"+L.id] = true; proGroupDone(L);
+        (ow.nadeQueue = ow.nadeQueue || []).push({type:L.type, x:OS.to.x, y:OS.to.y, from:{x:OS.from.x, y:OS.from.y}, why:"лайнап «"+(OS.name||LU_TYPE[L.type])+"»", lineup:true, npm:luM, luL:L, luId:OS.id});
+        logEvent(ow.id+": следом кинет «"+(OS.name||LU_TYPE[L.type])+"»");
+        return;
+      }
+    }
     // раньше флаг "готово" ставился ДО проверки кандидата — если в момент
     // срабатывания триггера рядом с точкой броска никого не было, лайнап
     // считался выполненным навсегда и боец, который должен был его кинуть,
@@ -238,6 +253,10 @@ var LU_REACH_PAD = 3;
 // купил гранаты») точка броска не по пути: бот идёт к своей точке (пост не достигнут), а дорога через точку броска — в основном крюк
 // — эту гранату ему не дают
 var LU_DETOUR_K = 0.5;   // проектное число: доля дороги до точки броска, которая может быть крюком
+// (В142, v579) крюк до LU_DETOUR_MIN ед. (≈ 1 с бега; проектное число) — всегда по пути. Раньше мерка была только долей дороги до точки:
+// у близкой точки любая разница путей больше половины — облако, v578 м7: точка в 66 ед. от хозяина отброшена (крюк 123), так 32 %
+// запланированных гранат CT с лайнапом остались без точки броска
+var LU_DETOUR_MIN = 250;
 function luBehind(b, F){
   var P = b.post; if(!P || b.atPost || P.tag === "lineup") return false;
   // обе длины — одной меркой: путь команды (цена за известных врагов), от бота — с его этажа (pathPts берёт z 0: у Doors уходил на другой пол)
@@ -246,7 +265,7 @@ function luBehind(b, F){
   // «не по пути»: крюк (до точки броска + от неё до своей точки − прямо) больше половины дороги до точки броска (½ — проектное число).
   // На снимке п.6: до Window 662, от Window до Short 861, от бота до Short 868 — крюк 655 из 662
   var mF = pathLenTo(b, F.x, F.y);
-  return mF + L - pathLenTo(b, P.x, P.y) > LU_DETOUR_K*mF;
+  return mF + L - pathLenTo(b, P.x, P.y) > Math.max(LU_DETOUR_MIN, LU_DETOUR_K*mF);
 }
 function luSpotFor(b, L, luM){
   var tt = teamTac.T, best = null, bl = Infinity, own = npOwner(b, L), myZ = L.team === "CT" ? npZoneAt(b.x, b.y) : null;
