@@ -165,7 +165,12 @@ function contactTick(b){
   // перестрелку») после СВОЕЙ перестрелки с этим врагом (сам видел его и стрелял за CONTACT_AGE) выход — только с преимуществом; численность
   // (nE ≤ nM + 1) и «в ударе» — не повод. Нет преимущества — «накиньте флешку» (365); некому — держит угол
   var fought = C.seen && C.id && tick - (b.lastShotTick || -1e9) <= CONTACT_AGE*TICK_HZ;
-  if(fought && swing){
+  // (В142, v580) до выхода T (сетап, бомба не стоит) на врага выходят тоже только с преимуществом — как после своей перестрелки. PRO_PLAY §2.2 [1]:
+  // «агрессия — только с поддержкой (флешка, позиция для размена)», «не умирать — потерянный игрок открывает место». Демки Mirage: контакт до 25 с
+  // кончается убийством в 5 с в 29 % (боты — 52 %), CT на сайте убит до 25 с в 6 % раундов (боты — 44 %, прогон 244). Было: «врагов не больше,
+  // чем своих + 1» — один на один выходил всегда
+  var quiet = teamTac.T && teamTac.T.phase === "setup" && bomb && bomb.state !== "planted";
+  if((fought || quiet) && swing){
     var HR = b._heardReload, PHc = teamIntel[b.team] && teamIntel[b.team].plantHeard;
     var adv = !!contactMateFight(b, C)
       || bots.some(function(o){ return o !== b && o.alive && o.team === b.team && !o._sawEnemy && nearP(o.x, o.y, o.z, b.x, b.y, b.z, TRADE_R); })   // размен рядом
