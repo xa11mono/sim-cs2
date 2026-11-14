@@ -9,7 +9,6 @@
       <button id="btnPause">Пауза</button>
       <span class="chk tb-match" title="Матч с одним номером всегда проходит одинаково. Увидел баг — запиши номер матча и тик, введи номер и нажми «Сыграть»: матч повторится с начала">№ <input id="inpMatchNum" type="number" min="1" value="1"> <select id="selSeries" title="Серия: сколько карт до победы (квадраты под табло)"><option value="1">BO1</option><option value="3" selected>BO3</option><option value="5">BO5</option></select> <label class="chk" title="Разминка перед матчем (как в CS2). Сняв галочку — матч начинается сразу"><input type="checkbox" id="chkWarm" checked> разминка</label> <button id="btnFreshMatch">Сыграть</button></span>
       <button id="btnSandbox" title="Песочница: раунд не кончается, ботов можно ставить, убирать, перетаскивать, включать и выключать им ИИ и смотреть их логику">Песочница</button>
-      <button id="btn3d" title="3D-вид карты: ЛКМ — вращать, колесо — приблизить, ПКМ или Shift+ЛКМ — сдвинуть">3D</button>
       <button id="btnDemoView" title="Раунд из демки про: игроки идут как в демке, наши боты в их телах решают — видно, где решили бы иначе">Демка</button>
       <button id="btnRestartRound" title="Немедленно сбросить текущий раунд — на случай если боты застряли">Рестарт</button>
     </div>
@@ -69,12 +68,28 @@
 
       <span class="seg"><button id="btnObs" class="on" title="Автообсервер: сам выбирает, за кем следить, и ведёт камеру (клавиша O). Двинул камеру или выбрал игрока сам — обсервер ждёт 6 с">Обсервер <kbd>O</kbd></button>
       <button id="btnObsMap" title="Обсервер чередует: когда тихо — вся карта, бой / плант / выход — камера на игроке. Выключить — всегда на игроке">Вся карта</button></span>
+      <button id="btn3d" title="3D-вид карты: ЛКМ — двигать, ПКМ — повернуть и наклонить, колесо — ближе / дальше, клик по игроку — следить">3D</button>
       <span class="tb-sep"></span>
       <span id="mkSlot" class="tb-group"></span>
     </div>
   </div>
   <div id="main">
     <canvas id="cv"></canvas>
+    <canvas id="cv3" hidden></canvas>
+    <div id="v3Lab" hidden></div>
+    <div id="v3Cross" hidden><i></i><i></i><i></i><i></i></div>
+    <div id="v3Tools" hidden>
+      <button id="v3Lock" title="Закрепить угол камеры" aria-label="Закрепить угол"></button>
+      <button id="v3In" title="Ближе" aria-label="Ближе"></button>
+      <button id="v3Out" title="Дальше" aria-label="Дальше"></button>
+      <button id="v3Rot" title="Повернуть на 90°" aria-label="Повернуть"></button>
+      <button id="v3Top" title="Вид сверху" aria-label="Вид сверху"></button>
+      <button id="v3Style" title="Вид стен" aria-label="Вид стен"></button>
+      <button id="v3Cam" title="Камера" aria-label="Камера"></button>
+      <button id="v3Fp" title="От первого лица: игрок закреплён, ПКМ — свободный взгляд, колесо — угол обзора, клик по игроку — его глазами" aria-label="От первого лица"></button>
+      <button id="v3Xray" title="Рентген" aria-label="Рентген"></button>
+      <button id="v3Sims" title="Стены перед комнатой" aria-label="Стены перед комнатой"></button>
+    </div>
     <div id="bombEdge"></div>
     <canvas id="miniMap" width="232" height="232" title="Мини-радар: где игроки (как радар в CS2)"></canvas>
     <div id="hgtTip" class="hgt-tip" style="display:none;"></div>

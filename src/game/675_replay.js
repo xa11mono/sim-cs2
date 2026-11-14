@@ -375,7 +375,8 @@ function rpDraw(E, x, P, dt, W, H, dpr){
   x = E.ctx; dpr = 1;
   x.setTransform(S,0,0,S,ox0,oy0);
   var L = 1/S;
-  (function(){ var i = ci, px = bx(i), py = by(i);
+  var d3on = typeof D3 !== "undefined" && D3.on && D3.gl;   // (v573) в 3D подсветку клатчера рисует 3D (белое кольцо), радарные кольца не нужны
+  if(!d3on) (function(){ var i = ci, px = bx(i), py = by(i);
     if(!A.b[i*RP_NB+3]) return;
     var rad = 7*L, pul = 1 + 0.12*Math.sin(performance.now()/180);
     x.strokeStyle = "rgba(255,214,110,.95)"; x.lineWidth = 2.4*L; x.beginPath(); x.arc(px, py, rad + 7*L*pul, 0, Math.PI*2); x.stroke();
@@ -383,7 +384,7 @@ function rpDraw(E, x, P, dt, W, H, dpr){
     x.fillStyle = "rgba(11,15,11,.8)"; x.fillRect(px - tw/2 - 4*L, py + rad + 9*L, tw + 8*L, 13*L); x.fillStyle = "#ffe49a"; x.textBaseline = "top"; x.fillText(nm, px, py + rad + 10.5*L); x.textBaseline = "alphabetic";
   })();
   // фраг клатчера: вспышка-кольцо у жертвы
-  if(sg) sg.m.forEach(function(m){ if(m.kind !== "kill") return; var a2 = (P.rt - m.t)/(0.7*TICK_HZ); if(a2 < 0 || a2 > 1) return; var vi = rpBotIdx(m.k.vic); if(vi < 0) return;
+  if(sg && !d3on) sg.m.forEach(function(m){ if(m.kind !== "kill") return; var a2 = (P.rt - m.t)/(0.7*TICK_HZ); if(a2 < 0 || a2 > 1) return; var vi = rpBotIdx(m.k.vic); if(vi < 0) return;
     x.strokeStyle = "rgba(255,228,150," + (1 - a2).toFixed(3) + ")"; x.lineWidth = 3*L; x.beginPath(); x.arc(bx(vi), by(vi), (10 + 34*a2)*L, 0, Math.PI*2); x.stroke(); });
   x.setTransform(1,0,0,1,0,0);
   RP.sndOwn = true; try{ rpSound(P, R, ci); } finally { RP.sndOwn = false; }
@@ -430,6 +431,8 @@ function rpWorldDraw(E, P, I, S, ox0, oy0, W, H){
       o.px = a.x; o.py = a.y; o.pfacing = a._visFacing !== undefined ? a._visFacing : a.facing; o.path = null; o._trail = []; });
     cv = E.cv; ctx = E.ctx; view.scale = S; view.panX = ox0; view.panY = oy0;
     draw.noHud = true; draw();
+    // (v573, Д6) включён 3D-вид — кадр повтора в 3D: тот же записанный мир, камера повтора; кадр копируется в холст повтора
+    if(typeof D3 !== "undefined" && D3.on && D3.gl){ d3Frame({w: W, h: H, noTags: true, focus: bots[P.ci] && bots[P.ci].id}); ctx.setTransform(1,0,0,1,0,0); ctx.drawImage(D3.gl.canvas, 0, 0, W, H); }
   } catch(e){ /* кадр повтора не нарисовался — дальше игра не страдает: всё возвращается ниже */ }
   finally {
     draw.noHud = false;

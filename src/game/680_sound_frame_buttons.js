@@ -256,10 +256,10 @@ function frameBody(ts){
   rpRecord();   // (v459) запись для повтора клатча — только читает
   if(!rpFrame(ts) && !tsFrame(ts)){   // идёт повтор клатча или сцена паузы — они рисуют экран сами
     obsFrame(ts);
-    draw();
-    obsOverlay();
+    // (v573) 3D включён — 2D-кадр без растра (табло, панели, киллфид — как обычно), поверх — 3D; выключен — как было
+    if(typeof D3 !== "undefined" && D3.on && D3.gl){ d3Draw2D(); d3Frame(); }
+    else { draw(); obsOverlay(); }
     miniDraw();
-    if(V3D.on) v3dFrame();   // (v571) 3D-вид (679)
   }
   frameWrapR = null;   // вне кадра (клики, перемотка) — читать заново
 }
