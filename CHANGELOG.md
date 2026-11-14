@@ -143,6 +143,7 @@
   в ветке `rebuild-v238`.
 
 ## Страницы (ссылки)
+- 14.11, v575a (объединение: движение В140–В146 + тактики и гранаты В142 / v580a + 3D-вид v573a) — на аккаунте владельца: Ancient https://claude.ai/artifact/FwpnXA7PSbsEyT5GXL7i5U, Mirage https://claude.ai/artifact/MJyn1PwcYKgg7WEMyoYWcv (версия 17 обеих; база отметок и правок карты — прежняя).
 - 13.11, v571 (3D-вид; отдельные новые страницы, основные не тронуты; база отметок и правок карты там не подключена): Ancient https://claude.ai/artifact/NHqoSx3ssda8csJsya526z, Mirage https://claude.ai/artifact/VvbnffzeT9z1RR92RaHw25.
 - 11.11, v553 — на втором аккаунте: Ancient 6nWEKBXyNAybDYzgPT1sH7, Mirage QzmQZEd5t9EdnhcXET9Agn.
 - 11.11, v554 — на втором аккаунте: Ancient 6nWEKBXyNAybDYzgPT1sH7, Mirage QzmQZEd5t9EdnhcXET9Agn.
