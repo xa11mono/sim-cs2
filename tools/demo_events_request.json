@@ -1,1 +1,1 @@
-{"roots": [], "workers": 4, "motion": {"map": "mirage", "demos": 12, "rounds": 4}}
+{"motion": {"map": "all", "demos": 999, "rounds": 999, "shape": true}, "workers": 4}
