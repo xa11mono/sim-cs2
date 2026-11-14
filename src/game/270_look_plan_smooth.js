@@ -259,7 +259,7 @@ function lookPlan(team){
 // бота на другой вход и тут же вернуть. Теперь: без срочной причины новое
 // направление принимается, только если старое продержалось ≥0,8с (стоя) /
 // 0,5с (на ходу), и не возвращаемся к только что брошенному направлению 1,5с.
-var SL = {holdStand: 51, holdMove: 32, backBlock: 96, holdAlert: 16, backAlert: 40, same: 0.35,
+var SL = {backBlock: 96, holdAlert: 16, backAlert: 40, same: 0.35, refine: 0.09,
           glEvery: [70, 120], glDur: 44, glMin: 0.55, glMax: 2.2, glSc: 0.05};
 // 2 — бой (враг виден, прикрытие ослеплённого, спам, бросок): без фильтра;
 // 1 — тревога (свежий звук/контакт рядом): поворот быстрый, но тоже без
@@ -286,6 +286,17 @@ function lookUrgent(b){
 function lookPtAlive(b, pt){
   if(!pt) return false; var a = Math.atan2(pt.y-b.y, pt.x-b.x);
   return (b._lkC || []).some(function(c){ return c && c.pt && c.sc > 0 && _angOff(Math.atan2(c.pt.y-b.y, c.pt.x-b.x), a) < SL.same; });
+}
+// (В147) сколько держать взгляд на точке — жребием по распределению про для ситуации (стоит / шагом / бегом), MAP.turnmodel.dwell (квантили
+// 10/25/50/75/90 пауз между поворотами ≥ 5°, tools/measure/motion/pro_dwell.py): стоя у про медиана 59 тиков, у четверти — 200+. Было: минимум
+// SL.holdStand 51 / holdMove 32 тика (проектные) — боты перекладывали взгляд в 2–3 раза чаще про (поворотов 140 в мин против 82)
+function slHold(b, S, moving){
+  if(S.hold != null) return S.hold;
+  var DW = MAP.turnmodel && MAP.turnmodel.dwell, sit = !moving ? "stand" : (b.walking ? "walk" : "run"), q = DW && DW[sit];
+  if(!q) return (S.hold = moving ? 32 : 51);
+  var u = hashRand(tick*37 + b.id.charCodeAt(b.id.length-1)*19 + b.id.charCodeAt(0)), P = [[0, q[0]*0.6], [0.1, q[0]], [0.25, q[1]], [0.5, q[2]], [0.75, q[3]], [0.9, q[4]], [1, q[4]*1.5]], h = q[4];
+  for(var i = 1; i < P.length; i++) if(u <= P[i][0]){ h = P[i-1][1] + (P[i][1] - P[i-1][1])*(u - P[i-1][0])/(P[i][0] - P[i-1][0]); break; }
+  return (S.hold = Math.round(h));
 }
 function smoothLookFilter(b, look, urgent){
   var moving = b.curSpeed > 60*SPD_K && b.heading !== undefined;
@@ -321,14 +332,14 @@ function smoothLookFilter(b, look, urgent){
   if(!look){
     if(!moving){ return look; }
     if(urgent === 2){ b._sl = null; return look; }
-    if(S && S.pt && tick - S.since < SL.holdMove) return S.pt;                    // угол ещё не «досмотрели»
+    if(S && S.pt && tick - S.since < slHold(b, S, true)) return S.pt;                    // угол ещё не «досмотрели»
     if(!S || S.pt) b._sl = {pt:null, since:tick, prev: S ? S.pt : null, left:tick}; // переходим на «по ходу»
     return look;
   }
   var aN = Math.atan2(look.y-b.y, look.x-b.x);
   if(urgent === 2 || !S){ b._sl = {pt:{x:look.x, y:look.y}, since:tick, prev: S ? S.pt : null, left: tick}; return look; }
   if(!S.pt){                                                                     // сейчас смотрит по ходу
-    if(moving && tick - S.since < (urgent ? SL.holdAlert : SL.holdMove)) return null;
+    if(moving && tick - S.since < (urgent ? SL.holdAlert : slHold(b, S, true))) return null;
     if(moving && S.prev && tick - S.since < (urgent ? SL.backAlert : SL.backBlock)){
       var aQ = Math.atan2(S.prev.y-b.y, S.prev.x-b.x), dQ = Math.abs(((aN-aQ+Math.PI)%(2*Math.PI)+2*Math.PI)%(2*Math.PI)-Math.PI);
       if(dQ < SL.same) return null;                                              // не возвращаемся сразу к брошенному углу
@@ -337,8 +348,11 @@ function smoothLookFilter(b, look, urgent){
   }
   var aS = Math.atan2(S.pt.y-b.y, S.pt.x-b.x);
   var dA = Math.abs(((aN-aS+Math.PI)%(2*Math.PI)+2*Math.PI)%(2*Math.PI)-Math.PI);
-  if(dA < SL.same){ S.pt = {x:look.x, y:look.y}; return look; }            // то же направление — просто уточняем точку
-  var hold = urgent ? SL.holdAlert : (moving ? SL.holdMove : SL.holdStand);
+  // (В147) стоя, без срочности, держимая точка не уточняется до конца срока удержания: точка плана осмотра «гуляет» на 1–5° при пересчёте, и
+  // рука доворачивала на каждый сдвиг — у ботов стоя 34 мелких поворота в минуту против 9 у про (tools/measure/motion/turn_rate.py)
+  if(dA < SL.refine && !moving && !urgent){ if(tick - S.since < slHold(b, S, false)) return S.pt; S.pt = {x:look.x, y:look.y}; S.since = tick; S.hold = null; return look; }   // уточнил — новый срок
+  if(dA < SL.refine){ S.pt = {x:look.x, y:look.y}; return look; }          // то же направление — просто уточняем точку (В147: до 5°, было до 20° — SL.same; сдвиги 5–20° шли без удержания: крупных поворотов в 1,7 раза больше про)
+  var hold = urgent ? SL.holdAlert : slHold(b, S, moving);
   if(tick - S.since < hold) return S.pt;                                    // старое ещё не "досмотрели"
   // (v448, док владельца 28.10 №4: игрок 4 «перебивает взгляд» — м1 т1368–1450 держал точку T Roof 1,3 с, хотя её уже никто не предлагал,
   // а запрет «не возвращаться к брошенному» не пускал к T Ramp, куда звал делёж) держимая точка, которую не предлагает ни один вариант
