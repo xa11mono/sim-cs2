@@ -12,7 +12,7 @@ function buyPhase(){
   ["CT","T"].forEach(function(team){
     var type = teamEco[team].roundType;
     awpSwap(team);   // (v469, п.20) AWP — снайперу, до закупа (тогда он не купит вторую)
-    if(type === "full") teamAwp(team);
+    if(type === "full" || type === "force" || type === "half") teamAwp(team, type);   // (В142, v578) и на форсе — по доле про
     if(type === "full") teamDrops(team);
     var spent = 0;
     bots.filter(function(b){ return b.team === team; }).forEach(function(b){ npRoundStart(b); });

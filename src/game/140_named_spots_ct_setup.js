@@ -96,8 +96,8 @@ function ctShareW(S){
 }
 var CTSET_DBG = null;
 function chooseCtSetup(){
-  var last = roundHist.slice(-4), heat = {A:0, B:0}, lost = {A:0, B:0};
-  last.forEach(function(r){ heat[r.site]++; if(r.planted && r.winner === "T") lost[r.site]++; });
+  var last = roundHist.slice(-4), lost = {A:0, B:0};
+  last.forEach(function(r){ if(r.planted && r.winner === "T") lost[r.site]++; });
   var execs = roundHist.slice(-3).map(function(r){ return r.execSec; }).filter(function(x){ return x != null; });
   var avgExec = execs.length ? execs.reduce(function(a,x){ return a+x; }, 0)/execs.length : 45;
   var why = {};
@@ -106,7 +106,9 @@ function chooseCtSetup(){
     // у про на такой закуп CT (MAP.ctshare: структура A-мид-B к 20 с у про по закупу → наши расстановки той же структуры; tools/ct_setup_bake.py);
     // дальше — сдвиги по знанию команды (ниже). Было — ручные веса («стандарт ×4», проектные)
     var w = ctShareW(S);
-    if(S.stack){ var h = heat[S.stack]; if(last.length >= 3 && h >= 3){ w *= 6; why[S.id] = "T ходили на "+S.stack+" "+h+" из "+last.length; } else if(h >= 2) w *= 2; }   // (v561) множители вместо замены веса: доля про остаётся основой (было: стак 0,2 → 1,2 / 0,4 — те же ×6 / ×2)
+    // (В142, v580) стак — без множителя «T ходили на этот сайт» (было ×6 при 3 из 4, ×2 при 2): у про его нет — демки Mirage, все 5 CT живы
+    // на 18-й с: ≥ 3 CT на A после 0–1 / 2 / 3–4 выходов T на A из 4 прошлых — 12 / 9 / 7 % (на B — 2 / 2 / 0 %). С множителем у ботов стаков
+    // 66 % раундов против 36 % по долям про, мид пустой 29 % против 11 %, на A ≥ 3 — 19 % против 10 % (прогоны 240 + 241)
     if(/^retake/.test(S.id)){ var k = S.id.slice(-1); if(lost[k] >= 2){ w *= 6; why[S.id] = "на "+k+" проигрываем "+lost[k]+" раунда — играем от ретейка"; } }
     if(S.roles && Object.keys(S.roles).some(function(r){ return S.roles[r].early; })){
       if(avgExec < 25) w *= 0.4; else if(avgExec > 45){ w *= BAL.proCtSetup ? 1.15 : 1.6; why[S.id] = "T выходят поздно (~"+Math.round(avgExec)+"с) — есть время за инфой"; }

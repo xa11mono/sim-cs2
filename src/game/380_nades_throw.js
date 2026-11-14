@@ -401,7 +401,7 @@ function nadeQueueNext(b){
   // заданием со свежим сроком (как в assignNade: с места — 2 с, иначе 10 с). Было: очередь знала только броски с точки, q.from.x падал (v483)
   if(!q.from){ b.nadeTask = Object.assign({}, q, {until: tick + (q.here ? 2 : 10)*TICK_HZ, start: tick, int: null}); return; }
   var qSec = Math.max(6, Math.ceil(pathLenTo(b, q.from.x, q.from.y)/SPEED + LU_REACH_PAD));   // (v359) точка следующей — бывает дальше
-  b.nadeTask = {type:q.type, x:q.x, y:q.y, from:q.from, until: tick + qSec*TICK_HZ, why:q.why, start:tick, lob:true, range:4000, now:true, lineup:true, exec:q.exec && q.type === "smoke", npm:q.npm, exu:q.exu};
+  b.nadeTask = {type:q.type, x:q.x, y:q.y, from:q.from, until: tick + qSec*TICK_HZ, why:q.why, start:tick, lob:true, range:4000, now:true, lineup:true, exec:q.exec && q.type === "smoke", npm:q.npm, exu:q.exu, luL:q.luL || null, luId:q.luId};   // (v579) цель плана — у очереди CT (390)
 }
 // (этап 4) скорость бойца в миг броска: сдвиг за последний тик (движение идёт после гранат — 540), ед/с игры [vx, vy, 0]; y игры
 // противоположен y радара. Обновляется каждый тик раунда для всех живых (nadeVelTrack), до заданий на гранату
@@ -498,7 +498,11 @@ function runupTick(b, t){
   // бросок — в ближайший к точке тик: уже у точки (≤ шаг) или прошёл ближайшее место, бывшее ≤ RUN_NEAR; прошёл дальше / не успел — стоя
   if(tick - t.runT0 > RUN_SEC*TICK_HZ || d > t.runMin + RUN_PAST){ if(t.runOwn){ b.nadeTask = null; clearPost(b); return true; } t.runFail = true; t.runPh = null; clearPost(b); return true; }
   // скорость в тик броска — как у эталона (± 10 %, план п. 3): не разогнался — не кидает (проскочит — бросок стоя)
-  var V = nadeBotVel(b), vOk = V && Math.hypot(V[0], V[1]) >= RUN_V*R.speed && (V[0]*R.dir[0] + V[1]*R.dir[1]) >= RUN_COS*Math.hypot(V[0], V[1]);
+  // (В142, v579) направление — по своей линии разгона (точка разгона → точка броска; её выбирают до ± 20° от направления про, runupStart):
+  // сверка с направлением про при том же допуске ± 20° не проходила у точек со сдвигом (облако v579 м13, молотов Stove: бежит под 58° при
+  // эталоне 28° — броска на ходу не было ни разу, стоя «не долетит»). Бросок всё равно подбирается с фактической скоростью (throwNade)
+  var rx = t.from.x - t.runStart.x, ry = -(t.from.y - t.runStart.y), rl = Math.hypot(rx, ry) || 1;
+  var V = nadeBotVel(b), vOk = V && Math.hypot(V[0], V[1]) >= RUN_V*R.speed && (V[0]*rx + V[1]*ry)/rl >= RUN_COS*Math.hypot(V[0], V[1]);
   var at = vOk && (d <= step + 2 || (passed && t.runMin <= RUN_NEAR));
   t.runMin = Math.min(t.runMin, d);
   if(!at || !nadeReady(b)) return true;

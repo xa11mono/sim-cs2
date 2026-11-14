@@ -491,3 +491,13 @@
 38. [HLTV — новая система подсчёта клатчей в CS2 — esports.ru, 23.01.2025](https://esports.ru/news/hltv-predstavili-novuyu-sistemu-podscheta-klatchej-v-cs2)
 39. [sycrone о проблемах MOUZ в сезоне — esports.ru, 15.06.2026](https://esports.ru/counter-strike-2/news/sycrone-rasskazal-o-problemah-mouz-v-tekushchem-sezone/) (про Cache / NAVI — пересказ, оригинал HLTV не открыт)
 40. [XTQZZZ: T-сторона, mid-round — HLTV-интервью в пересказе, esports.ru, 05.09.2026](https://esports.ru/counter-strike-2/news/xtqzzz-nazval-glavnuyu-slozhnost-jl/)
+
+## 6и. Роли Falcons на стороне T (13.11.2026, В141 / В142)
+- Демки Mirage с Falcons (по ~50 раундов за T у каждого): одиночка в стороне от команды на 15–45-й с (мера `tools/shadow/lurk_cmp.py`) —
+  NiKo 24 %, kyousuke 16 %, TeSeS 14 %, m0NESY 4 %, karrigan 0 % (10 раундов). Spirit: tN1R 14 %, zont1x 11 % — на ~50 раундах неразличимо.
+- Источники (второго ряда, спорят): NiKo «взял лёрк-роли ropz» / «поздний раунд» —
+  [winio.ai](https://winio.ai/blog/articles/team-falcons-cs2-analysis-how-karrigan-turned-star-power-into-a-working-system),
+  [white.market](https://news.white.market/cs2-teams/team-falcons/); TeSeS — поддержка, лидер по разменам; m0NESY — основной AWP; karrigan —
+  IGL ([hotspawn](https://www.hotspawn.com/counter-strike/news/falcons-sign-karrigan)). Spirit: magixx — IGL с конца 2025
+  ([kda.live](https://kda.live/counter-strike/news/roster-changes-in-team-spirit)); роли остальных прямо не названы.
+- Итог для набора (`tactics.json`, `playerRoles`): NiKo T — lurker (было support), TeSeS T — support (было lurker); Spirit — без изменений.

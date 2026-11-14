@@ -74,6 +74,7 @@ function weightedChoice(items, weights, seed){
   return items.length - 1;
 }
 // ---- IGL: чтение CT по прошлым раундам ----
+var STACK_K = 0.75;   // В142: шансы выхода на сайт, где CT стакали 2 из 3 прошлых раундов, — у про ×0,75 (демки Mirage, 262 выхода)
 function readCT(){
   var last = ctRead.slice(-3), out = {stack:null, n:0, of:last.length};
   // "стак" — видели у сайта 2+ CT и больше, чем у другого, в 2 из 3 последних раундов
@@ -149,7 +150,8 @@ function coachPlan(side){
     P.avoid = failed.slice();
     if(failed.length){ var tf = tacById(failed[failed.length-1]); P.facts.push({k: "failed", tac: tf ? tf.name : failed[0], log: "не заходит «"+(tf ? tf.name : failed[0])+"»"}); }
     var rd = readCT();
-    if(rd.stack){ P.stack = rd.stack; P.site = rd.stack === "A" ? "B" : "A"; P.facts.push({k: "stackRead", S: rd.stack, T: P.site, n: rd.n, of: rd.of, log: "CT стакают "+rd.stack+" ("+rd.n+" из "+rd.of+") — идём "+P.site}); }
+    // (В142, v576) стак — факт для команды, а не план сайта: про после стака почти не уходят с сайта (см. STACK_K); сайт плана — только «слабый сайт» ниже
+    if(rd.stack){ P.stack = rd.stack; P.facts.push({k: "stackRead", S: rd.stack, n: rd.n, of: rd.of, log: "CT стакают "+rd.stack+" ("+rd.n+" из "+rd.of+")"}); }
     else {
       var last = ctRead.slice(-4), seen = {A: 0, B: 0}; last.forEach(function(r){ seen.A += r.A||0; seen.B += r.B||0; });
       // разница в одного — не основание
@@ -257,11 +259,9 @@ function chooseTactic(){
     // (дефолт), два проигрыша медленными — быстрее (раш/ранний выход)
     if(BAL.tempoShift && tempoRead){ if(tempoRead === "slow"){ if(t.style === "default") w *= 2.2; if(t.style === "rush") w *= 0.3; }
       else { if(t.style === "rush" || (t.setupEnd && t.setupEnd <= 44)) w *= 1.8; if(t.style === "default") w *= 0.4; } }
-    if(rd.stack){                                       // CT стакают сайт — уходим / фейкуем его
-      if(t.site === rd.stack && t.style !== "fake") w *= 0.3;
-      else if(t.style === "fake" && t.fake === rd.stack) w *= 2.5;
-      else if(t.site !== rd.stack) w *= 1.4;
-    }
+    // (В142, v576: у ботов «уходим от стака» ×0,3 / ×1,4 / фейк ×2,5 давало 73 % выходов на B против 37 % без стака; про почти не уходят: после
+    // стака A в 2 из 3 раундов выходы A 55 % против 62 % без стака — шансы ×0,75, 262 выхода, tools/shadow/plans_mirage.json) стак — только этот множитель
+    if(rd.stack && t.site === rd.stack && t.style !== "fake") w *= STACK_K;
     return w;
   });
   if(rd.stack) readTxt = "читаем CT: "+rd.stack+" — стак "+rd.n+" из "+rd.of+" раундов → уходим от "+rd.stack+" / фейк на "+rd.stack;

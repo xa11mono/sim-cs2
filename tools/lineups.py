@@ -32,7 +32,7 @@ import mapdir  # noqa: E402
 OUT = os.path.join(mapdir.pro_dir(AD.MAPNAME), 'pro_nades.csv')
 OUT_CTX = os.path.join(mapdir.pro_dir(AD.MAPNAME), 'nade_ctx.json')
 SITES = mapdir.site_points(AD.MAPNAME)
-TYPES = {'weapon_smokegrenade': ('smoke', 'smokegrenade_detonate', (0.5, 6.5)),
+TYPES = {'weapon_smokegrenade': ('smoke', 'smokegrenade_detonate', (0.5, 10)),   # В142 (13.11): было 6,5 с — смок окна со спавна T летит 6,8–8,0 с и выпадал целиком
          'weapon_flashbang': ('flash', 'flashbang_detonate', (0.5, 3.5)),
          'weapon_hegrenade': ('he', 'hegrenade_detonate', (0.5, 4)),
          'weapon_molotov': ('molly', 'inferno_startburn', (0.3, 4)),

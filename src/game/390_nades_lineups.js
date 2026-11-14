@@ -104,7 +104,15 @@ function lineupTick(){
     // (рвались рядом с врагом в 50 % против 88 % у про)
     if(go && L.pro && L.team === "T" && L.trigger === "setup" && L.type === "flash" && !nadeWorth("T", L.to)) go = false;
     // (v429) флешка CT на тайминг — только под пик: рядом с точкой свой собирается выглянуть (ранний пик); нет — остаётся на потом
-    if(go && L.pro && L.team === "CT" && L.trigger === "timed" && L.type === "flash" && !npPeekReady("CT", L.to, null)) go = false;
+    // (В142, v579) или под тех, кто открыт этой точке: свой (и сам бросающий) стоит или встанет (пост) на линии с точкой флешки — у про
+    // самая частая флешка CT (Chair, Mirage, 55 % раундов, 5,4 с) — под проход / удержание мида, а не под пик; облако v579 м7+м13:
+    // 32 из 72 не брошенных гранат плана CT — флешки «нет выглядывающего»
+    if(go && L.pro && L.team === "CT" && L.trigger === "timed" && L.type === "flash" && !npPeekReady("CT", L.to, null) &&
+       !bots.some(function(o){ return o.alive && o.team === "CT" && (hasLOS(o.x, o.y, L.to.x, L.to.y) || (o.post && hasLOS(o.post.x, o.post.y, L.to.x, L.to.y))); })) go = false;
+    // (В142, v580) граната CT на тайминг — пока T не могли дойти до её цели (REACH, 200), если с цели видно точку броска: потом идти на эту
+    // точку — выходить под прицел (прогон 240: в 18 раундах первым T заметили CT, шедшего на лайнап; у A на 10–12-й с с T Ramp — 8 убиты;
+    // у про этот молотов в T Ramp летит на 4,3-й с). Известных T потом задерживает ctDelayNade (350). Запас LU_REACH_MARGIN — на дорогу
+    if(go && L.pro && L.team === "CT" && L.trigger === "timed" && luOpenToFoe(L)) go = false;
     // (v429) граната на тайминг «на всякий случай» — не туда, где врага точно нет (все живые враги недавно замечены далеко)
     if(go && L.pro && L.type !== "flash" && ((L.team === "CT" && L.trigger === "timed") || (L.team === "T" && L.trigger === "setup")) && !npFoeMaybe(L.team, L.to)) go = false;
     // (v438) цель уже закрыта смоком (свой смок рядом — облака перекрылись бы, smokeCovered) — второй туда не летит, лайнап закрыт
@@ -199,6 +207,21 @@ function lineupTick(){
         return;
       }
     }
+    // (В142, v579) CT: хозяин цели по плану занят своим лайнапом (идёт кидать другую гранату) — эта встаёт ему в очередь, если её точка броска
+    // рядом с точкой текущей (≤ EXEC_QUEUE_R): кинет следом, как про CT кидают молотов + флешку с одной точки. Раньше одно задание на бойца —
+    // вторая и третья граната плана сгорали (облако, v579 м7: 41 из 80 запланированных гранат CT с лайнапом не брошены; у хозяина 2–3 цели подряд)
+    if(!cand && L.pro && L.grp && L.team === "CT" && L.trigger === "timed"){
+      var ow = bots.filter(function(b){ var t = b.nadeTask; if(!npOwner(b, L) || !okBot(b) || !t || !t.lineup || !t.from || (b.nadeQueue||[]).length >= EXEC_QUEUE_N) return false;
+        var need = (t.type === L.type ? 1 : 0) + (b.nadeQueue||[]).filter(function(q){ return q.type === L.type; }).length + 1, F = spotOf(b).from;
+        return b.nades[L.type] >= need && Math.hypot(t.from.x-F.x, t.from.y-F.y) < EXEC_QUEUE_R; })[0];
+      if(ow){
+        var OS = spotOf(ow);
+        nadeFlags[key] = true; nadeFlags["luok"+L.id] = true; proGroupDone(L);
+        (ow.nadeQueue = ow.nadeQueue || []).push({type:L.type, x:OS.to.x, y:OS.to.y, from:{x:OS.from.x, y:OS.from.y}, why:"лайнап «"+(OS.name||LU_TYPE[L.type])+"»", lineup:true, npm:luM, luL:L, luId:OS.id});
+        logEvent(ow.id+": следом кинет «"+(OS.name||LU_TYPE[L.type])+"»");
+        return;
+      }
+    }
     // раньше флаг "готово" ставился ДО проверки кандидата — если в момент
     // срабатывания триггера рядом с точкой броска никого не было, лайнап
     // считался выполненным навсегда и боец, который должен был его кинуть,
@@ -230,6 +253,13 @@ function lineupTick(){
   });
 }
 var LU_REACH_PAD = 3;
+var LU_REACH_MARGIN = 2;   // с — проектное число: столько CT идёт до точки броска рядом
+function luOpenToFoe(L){
+  var R = REACH.CT, zi = bzOf(L.to.x, L.to.y); if(!R || zi < 0) return false;
+  if(R[zi] > tick + LU_REACH_MARGIN*TICK_HZ) return false;
+  if(L._los === undefined) L._los = hasLOS(L.from.x, L.from.y, L.to.x, L.to.y) ? 1 : 0;
+  return !!L._los;
+}
 // (док 6) точка броска цели L для бойца b: среди лайнапов той же цели (группа про, 320) своей стороны и сайта — ближайшая по пути из тех,
 // откуда ему можно: хозяину цели по плану гранат — любая; остальным — в зоне его гранаты (npCanUse) или (CT) в зоне, где он сейчас стоит.
 // Зона точки — как у плана: CT — откуда бросок, T — куда падает; колл, ретейк, после планта — зона не важна. Нет такой — null
@@ -238,6 +268,10 @@ var LU_REACH_PAD = 3;
 // купил гранаты») точка броска не по пути: бот идёт к своей точке (пост не достигнут), а дорога через точку броска — в основном крюк
 // — эту гранату ему не дают
 var LU_DETOUR_K = 0.5;   // проектное число: доля дороги до точки броска, которая может быть крюком
+// (В142, v579) крюк до LU_DETOUR_MIN ед. (≈ 1 с бега; проектное число) — всегда по пути. Раньше мерка была только долей дороги до точки:
+// у близкой точки любая разница путей больше половины — облако, v578 м7: точка в 66 ед. от хозяина отброшена (крюк 123), так 32 %
+// запланированных гранат CT с лайнапом остались без точки броска
+var LU_DETOUR_MIN = 250;
 function luBehind(b, F){
   var P = b.post; if(!P || b.atPost || P.tag === "lineup") return false;
   // обе длины — одной меркой: путь команды (цена за известных врагов), от бота — с его этажа (pathPts берёт z 0: у Doors уходил на другой пол)
@@ -246,7 +280,7 @@ function luBehind(b, F){
   // «не по пути»: крюк (до точки броска + от неё до своей точки − прямо) больше половины дороги до точки броска (½ — проектное число).
   // На снимке п.6: до Window 662, от Window до Short 861, от бота до Short 868 — крюк 655 из 662
   var mF = pathLenTo(b, F.x, F.y);
-  return mF + L - pathLenTo(b, P.x, P.y) > LU_DETOUR_K*mF;
+  return mF + L - pathLenTo(b, P.x, P.y) > Math.max(LU_DETOUR_MIN, LU_DETOUR_K*mF);
 }
 function luSpotFor(b, L, luM){
   var tt = teamTac.T, best = null, bl = Infinity, own = npOwner(b, L), myZ = L.team === "CT" ? npZoneAt(b.x, b.y) : null;

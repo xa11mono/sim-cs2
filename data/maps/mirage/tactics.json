@@ -709,9 +709,11 @@
    "roles": {
     "anchorA": {
      "pos": [
+      "Triple Box",
+      "CT",
+      "Ticket",
       "Dark",
-      "Sandwich",
-      "Triple Box"
+      "A Site"
      ],
      "look": "CT",
      "lookPt": [
@@ -721,16 +723,17 @@
     },
     "mid": {
      "pos": [
-      "Window",
-      "Connector",
-      "Underpath"
+      "Short",
+      "Catwalk"
      ],
      "look": "Top Mid"
     },
     "anchorB": {
      "pos": [
+      "Van",
       "B Plat",
-      "Van"
+      "Short",
+      "B Site"
      ],
      "look": "B Apartments",
      "lookPt": [
@@ -740,21 +743,18 @@
     },
     "rotator": {
      "pos": [
-      "Dark",
-      "Sandwich",
-      "Triple Box"
+      "Connector",
+      "Jungle",
+      "Stairs"
      ],
-     "look": "Palace Exit",
-     "lookPt": [
-      1285.8,
-      1559.5
-     ]
+     "look": "Top Mid"
     },
     "roamer": {
      "pos": [
+      "Hole",
       "Window",
       "Connector",
-      "Underpath"
+      "Under Window"
      ],
      "look": "Top Mid",
      "lookPt": [
@@ -773,8 +773,10 @@
     "anchorA": {
      "pos": [
       "Dark",
-      "Triple Box",
-      "A Site"
+      "Ticket",
+      "Balcony",
+      "A Site",
+      "Ninja"
      ],
      "look": "CT",
      "lookPt": [
@@ -784,9 +786,10 @@
     },
     "mid": {
      "pos": [
+      "Hole",
       "Window",
-      "Underpath",
-      "Connector"
+      "Connector",
+      "Jungle"
      ],
      "look": "Top Mid",
      "lookPt": [
@@ -798,7 +801,8 @@
      "pos": [
       "Van",
       "B Plat",
-      "Kitchen"
+      "B Site",
+      "Bench"
      ],
      "look": "B Plat",
      "lookPt": [
@@ -808,27 +812,23 @@
     },
     "rotator": {
      "pos": [
-      "Dark",
+      "Connector",
+      "Stairs",
+      "CT",
       "Triple Box",
-      "A Site"
+      "Sandwich"
      ],
-     "look": "Palace Exit",
-     "lookPt": [
-      1285.8,
-      1559.5
-     ]
+     "look": "Top Mid"
     },
     "roamer": {
      "pos": [
-      "B Plat",
+      "Short",
+      "Arches",
       "Kitchen",
-      "Van"
+      "B Window",
+      "Vent"
      ],
-     "look": "B Apartments",
-     "lookPt": [
-      689.5,
-      406.4
-     ]
+     "look": "Top Mid"
     }
    }
   },
@@ -841,23 +841,27 @@
     "anchorA": {
      "pos": [
       "Triple Box",
+      "CT",
+      "Ticket",
       "Dark",
-      "Stairs"
+      "A Site"
      ],
      "look": "Tetris"
     },
     "mid": {
      "pos": [
       "Connector",
-      "Under Window"
+      "Jungle",
+      "Stairs"
      ],
      "look": "Top Mid"
     },
     "anchorB": {
      "pos": [
-      "B Plat",
       "Van",
-      "Bench"
+      "B Plat",
+      "Short",
+      "B Site"
      ],
      "look": "B Apartments",
      "lookPt": [
@@ -867,14 +871,14 @@
     },
     "rotator": {
      "pos": [
-      "Window",
-      "Connector",
-      "Under Window"
+      "Short",
+      "Catwalk"
      ],
      "look": "Top Mid"
     },
     "roamer": {
      "pos": [
+      "Hole",
       "Window",
       "Connector",
       "Under Window"
@@ -895,16 +899,20 @@
    "roles": {
     "anchorA": {
      "pos": [
+      "Dark",
       "A Site",
-      "Triple Box",
-      "Jungle"
+      "Balcony",
+      "Ticket",
+      "Ninja"
      ],
      "look": "Tetris"
     },
     "mid": {
      "pos": [
+      "Short",
+      "Hole",
       "Window",
-      "Underpath"
+      "Catwalk"
      ],
      "look": "Top Mid",
      "lookPt": [
@@ -914,9 +922,10 @@
     },
     "anchorB": {
      "pos": [
-      "B Plat",
       "Van",
-      "Bench"
+      "B Plat",
+      "Short",
+      "B Site"
      ],
      "look": "B Apartments",
      "lookPt": [
@@ -926,21 +935,17 @@
     },
     "rotator": {
      "pos": [
-      "Dark",
-      "Triple Box",
-      "Jungle"
+      "Connector",
+      "Stairs",
+      "Sandwich",
+      "Triple Box"
      ],
-     "look": "CT",
-     "lookPt": [
-      957.5,
-      1485.6
-     ]
+     "look": "Top Mid"
     },
     "roamer": {
      "pos": [
-      "Dark",
-      "Triple Box",
-      "Jungle"
+      "Jungle",
+      "CT"
      ],
      "look": "Palace Exit",
      "lookPt": [
@@ -959,9 +964,11 @@
    "roles": {
     "anchorA": {
      "pos": [
-      "Triple Box",
       "Dark",
-      "Stairs"
+      "Ticket",
+      "Balcony",
+      "A Site",
+      "Ninja"
      ],
      "look": "Catwalk",
      "lookPt": [
@@ -972,15 +979,19 @@
     "mid": {
      "pos": [
       "Connector",
-      "Underpath",
-      "Window"
+      "Stairs",
+      "CT",
+      "Triple Box",
+      "Sandwich"
      ],
      "look": "Top Mid"
     },
     "anchorB": {
      "pos": [
+      "Van",
       "B Plat",
-      "Van"
+      "B Site",
+      "Bench"
      ],
      "look": "Stove",
      "lookPt": [
@@ -990,9 +1001,10 @@
     },
     "rotator": {
      "pos": [
+      "Hole",
       "Window",
       "Connector",
-      "Underpath"
+      "Jungle"
      ],
      "look": "Top Mid",
      "lookPt": [
@@ -1002,14 +1014,13 @@
     },
     "roamer": {
      "pos": [
-      "B Plat",
-      "Van"
+      "Short",
+      "Arches",
+      "Kitchen",
+      "B Window",
+      "Vent"
      ],
-     "look": "B Apartments",
-     "lookPt": [
-      689.5,
-      406.4
-     ]
+     "look": "Top Mid"
     }
    }
   },
@@ -1021,9 +1032,11 @@
    "roles": {
     "anchorA": {
      "pos": [
-      "Triple Box",
+      "Dark",
+      "Ticket",
+      "Balcony",
       "A Site",
-      "Cross"
+      "A Trash"
      ],
      "look": "Catwalk",
      "lookPt": [
@@ -1034,7 +1047,8 @@
     "anchorB": {
      "pos": [
       "Van",
-      "B Plat"
+      "B Plat",
+      "B Site"
      ],
      "look": "B Plat",
      "lookPt": [
@@ -1044,21 +1058,17 @@
     },
     "rotator": {
      "pos": [
-      "Dark",
-      "A Site",
-      "Cross"
+      "Connector",
+      "Stairs",
+      "Triple Box",
+      "Sandwich"
      ],
-     "look": "CT",
-     "lookPt": [
-      957.5,
-      1485.6
-     ]
+     "look": "Top Mid"
     },
     "roamer": {
      "pos": [
-      "Dark",
-      "A Site",
-      "Cross"
+      "Jungle",
+      "CT"
      ],
      "look": "Palace Exit",
      "lookPt": [
@@ -1068,13 +1078,12 @@
     },
     "mid": {
      "pos": [
-      "B Plat"
+      "Short",
+      "B Window",
+      "Kitchen",
+      "Arches"
      ],
-     "look": "B Apartments",
-     "lookPt": [
-      689.5,
-      406.4
-     ]
+     "look": "Top Mid"
     }
    },
    "stack": "A"
@@ -1088,15 +1097,20 @@
     "anchorA": {
      "pos": [
       "A Site",
-      "Triple Box",
-      "A Trash"
+      "A Trash",
+      "CT",
+      "Ticket",
+      "Ninja"
      ],
      "look": "Tetris"
     },
     "anchorB": {
      "pos": [
+      "Van",
       "B Plat",
-      "Van"
+      "Short",
+      "Drop",
+      "B Site"
      ],
      "look": "B Apartments",
      "lookPt": [
@@ -1106,21 +1120,15 @@
     },
     "rotator": {
      "pos": [
-      "Dark",
-      "Triple Box",
-      "A Trash"
+      "Connector",
+      "Jungle",
+      "Stairs"
      ],
-     "look": "CT",
-     "lookPt": [
-      957.5,
-      1485.6
-     ]
+     "look": "Top Mid"
     },
     "roamer": {
      "pos": [
-      "Dark",
-      "Triple Box",
-      "A Trash"
+      "Dark"
      ],
      "look": "Palace Exit",
      "lookPt": [
@@ -1130,9 +1138,10 @@
     },
     "mid": {
      "pos": [
-      "Jungle",
-      "Triple Box",
-      "A Trash"
+      "Balcony",
+      "90",
+      "A Default",
+      "Sandwich"
      ],
      "look": "Cross",
      "lookPt": [
@@ -1151,9 +1160,10 @@
    "roles": {
     "anchorA": {
      "pos": [
+      "Ticket",
       "Triple Box",
-      "Stairs",
-      "A Site"
+      "A Trash",
+      "CT"
      ],
      "look": "Catwalk",
      "lookPt": [
@@ -1164,8 +1174,9 @@
     "anchorB": {
      "pos": [
       "Van",
+      "B Plat",
       "Bench",
-      "Arches"
+      "B Site"
      ],
      "look": "B Plat",
      "lookPt": [
@@ -1175,33 +1186,26 @@
     },
     "rotator": {
      "pos": [
+      "Connector",
+      "Balcony",
       "Stairs",
-      "A Site",
-      "Cross"
+      "Jungle",
+      "Dark"
      ],
-     "look": "Underpath",
-     "lookPt": [
-      912.7,
-      844.8
-     ]
+     "look": "Top Mid"
     },
     "roamer": {
      "pos": [
-      "B Plat",
-      "Bench",
-      "Arches"
+      "Short",
+      "Arches",
+      "Vent"
      ],
-     "look": "B Apartments",
-     "lookPt": [
-      689.5,
-      406.4
-     ]
+     "look": "Top Mid"
     },
     "mid": {
      "pos": [
       "Kitchen",
-      "Bench",
-      "Arches"
+      "B Window"
      ],
      "look": "B Apartments",
      "lookPt": [
@@ -1384,7 +1388,7 @@
   },
   "TeSeS": {
    "CT": "rotator",
-   "T": "lurker"
+   "T": "support"
   },
   "karrigan": {
    "CT": "anchorB",
@@ -1392,7 +1396,7 @@
   },
   "NiKo": {
    "CT": "anchorA",
-   "T": "support"
+   "T": "lurker"
   }
  }
 }
