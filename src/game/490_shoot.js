@@ -187,7 +187,7 @@ function tryShoot(shooter, target, dist){
   // в голову попадают редко — как в CS, а не одинаковые 50% на любой дистанции.
   var sk = shooter.skill;
   var noscope = awpNoscope(shooter, target, dist), nsS = noscope ? AWP_NOSCOPE/1000 : 0;   // без прицела — разброс оружия без прицела (данные игры)
-  var wSpread = Math.hypot(shotSpread(shooter, Math.max(shooter.curSpeed || 0, Math.abs((shooter._keys || {}).v || 0))), nsS);   // (v575) и качание A / D (540)
+  var wSpread = Math.hypot(shotSpread(shooter, (shooter._jc && shooter._jc.run ? SPEED*weaponSpeedMul(shooter) : Math.max(shooter.curSpeed || 0, Math.abs((shooter._keys || {}).v || 0)))), nsS);   // (v575) и качание A / D (540); в прыжке на бегу — как на полном ходу
   var comp = 0.55 + 0.35*Math.max(0, Math.min(1, (sk-0.8)/0.4));
   var recoilErr = w.recoil/1000 * Math.max(0, burstIdx-1) * (1-comp) * 1.6;
   var spamErr = (w.spam||0)/1000 * heat;

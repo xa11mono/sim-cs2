@@ -155,6 +155,7 @@ function moveSpeedTick(bot, runSpeed, BRAKE_RADIUS, maxDelta){
     targetSpeed = bot._blind.back ? runSpeed*0.55 : 0; why = bot._blind.back ? "ослеплён — шаг назад" : "ослеплён — стоит";
     if(!bot._blind.back) bot.crouching = true;
   } else if(bot._blind && tick >= bot._blind.until){ bot._blind = null; }
+  if(bot._jc && bot._jc.run){ targetSpeed = bot.curSpeed; why = "в прыжке — ход не меняется"; }   // (v575, В144) в воздухе не разгоняется и не тормозит
   if(bot.curSpeed < targetSpeed) bot.curSpeed = Math.min(targetSpeed, bot.curSpeed+maxDelta);
   else if(bot.curSpeed > targetSpeed) bot.curSpeed = Math.max(targetSpeed, bot.curSpeed-maxDelta);
   if(BAL.tagging && tick < (bot._tagUntil||0)){ bot.curSpeed = Math.min(bot.curSpeed, SPEED*0.4); why = (why ? why + " + " : "") + "попали — замедлен"; }

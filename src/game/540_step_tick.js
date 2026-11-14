@@ -106,13 +106,23 @@ var JUMP_HOLD_SEC = 30;
 // (Б3, З9) верх прыжка: глаза / тело выше пола на 57 ед. — CS2: sv_jump_impulse 301,993 ед./с, sv_gravity 800 → v²/2g ≈ 57.
 // «Вижу» с прыжка — как радар: visParts с поднятыми глазами (раньше только высокие стены visWallHit — 98–99 % «видели» без линии)
 var JUMP_APEX = 57;
+// (v575, В144) прыжок на бегу у про: прыжков на минуту бега по повороту хода за 0,75 с (до 15 / 30 / 60 / 90 / 180°), полёт, с, доля скорости
+// после приземления (12 демок Mirage, бег без своих выстрелов ±2 с — 4,15 в мин; pro_runjump_turn.py, pro_jumpspots.py)
+var RUN_JUMP = {turn: [15, 30, 60, 90, 180], rate: [3.63, 3.44, 4.03, 7.43, 5.35], air: 0.77, keep: 0.65};
+function pathTurnAhead(b, dist){   // насколько повернёт путь через dist px (°): направление сейчас → направление участка пути там
+  var x = b.baseX, y = b.baseY, a0 = null, a1 = null;
+  for(var i = b.pathIdx; i < b.path.length; i++){ var w = b.path[i], d = Math.hypot(w[0]-x, w[1]-y); if(d < 1e-6) continue;
+    var a = Math.atan2(w[1]-y, w[0]-x); if(a0 === null) a0 = a; a1 = a; if(d >= dist) break; dist -= d; x = w[0]; y = w[1]; }
+  return a0 === null ? 0 : _angOff(a0, a1)*180/Math.PI;
+}
 function jumpCheckTick(b){
   if(b._landAt && tick >= b._landAt && b.alive && roundState === "live") landSound(b, false, "up");   // (v335) запрыгнул — приземлился
-  var JS = MAP.pro && MAP.pro.jumps; if(!JS || !JS.length || roundState !== "live" || !b.alive) return;
+  if(roundState !== "live" || !b.alive) return;
+  var JS = MAP.pro && MAP.pro.jumps;
   var J = b._jc;
   if(J){
     var age = tick - J.t;
-    if(age === 20){   // верх прыжка — видно поверх укрытий
+    if(age === (J.run ? Math.round(RUN_JUMP.air*TICK_HZ/2) : 20)){   // верх прыжка — видно поверх укрытий
       bots.forEach(function(o){ if(!o.alive || o.team === b.team) return; var d = Math.hypot(o.x-b.x, o.y-b.y); if(d > 1100) return;
         if(smokeBlocks(b.x, b.y, o.x, o.y)) return;
         var bS = visParts(b.x, b.y, false, o.x, o.y, o.crouching, true, b.z, o.z, JUMP_APEX, 0), oS = visParts(o.x, o.y, o.crouching, b.x, b.y, false, true, o.z, b.z, 0, JUMP_APEX);
@@ -120,11 +130,25 @@ function jumpCheckTick(b){
           voiceLog(b.team, "jc"+o.id+Math.floor(tick/(4*TICK_HZ)), b.id, "чек прыжком: вижу "+nick(o.id)+" — "+calloutName(o.x, o.y)); }
         if((oS.head || oS.body) && tick >= (o.blindUntil||0) && o.facing !== undefined && _angOff(Math.atan2(b.y-o.y, b.x-o.x), o.facing) < 1.05) intelPush(o.team, {type:"spotted", x:b.x, y:b.y, id:b.id, by:o.id, conf:1}); });
     }
-    if(age === 38){   // приземление, с приседом
+    if(J.run && age >= Math.round(RUN_JUMP.air*TICK_HZ)){   // (v575, В144) приземление с бега — громко, ход теряет долю (у про ×0,65)
+      landSound(b, false); b._jc = null; b.curSpeed *= RUN_JUMP.keep; return;
+    }
+    if(!J.run && age === 38){   // приземление, с приседом
       landSound(b, true); b._jc = null;
     }
     return;
   }
+  // (v575, В144, владелец 13.11: «как про сокращают углы — у стенки прыгает и в воздухе поворачивает») прыжок на бегу: у про (12 демок Mirage,
+  // tools/measure/motion/pro_runjump_turn.py) — 3,9 прыжка на минуту бега по земле (≥ 200 ед./с), почти не зависит от поворота хода впереди
+  // (на 60–90° — вдвое чаще); ход в полёте поворачивает (медиана 37°) — по пути, как у бота; полёт 0,77 с; после приземления скорость ×0,65.
+  // Не в бою: вижу врага / стрелял / в меня стреляли ≤ 2 с — не прыгает (у про 12 % прыжков рядом с выстрелами)
+  var sp = (b.curSpeed || 0)*PX_UNITS;
+  if(sp >= 200 && !b.walking && !b._fc && !b._sawEnemy && !b._climb && !b.onLadder && !b.planting && !b.defusing && !(b.nadeTask && b.nadeTask.runPh) &&
+     tick >= (b.throwUntil || 0) && tick - (b._shotAtT||-1e9) >= 2*TICK_HZ && tick - (b.lastShotTick||-1e9) >= 2*TICK_HZ && b.path && b.pathIdx < b.path.length){
+    var tn = pathTurnAhead(b, (b.curSpeed || 0)*RUN_JUMP.air), k = 0; while(k < RUN_JUMP.turn.length - 1 && tn > RUN_JUMP.turn[k]) k++;
+    if(hashRand(tick*613 + b.id.charCodeAt(b.id.length-1)*41 + roundNum*11) < RUN_JUMP.rate[k]/(60*TICK_HZ)){ b._jc = {t: tick, run: true}; b._jump = {t: tick, up: true}; return; }
+  }
+  if(!JS || !JS.length) return;
   if(b.curSpeed > 20 || b._sawEnemy || b.planting || b.defusing || tick - (b._shotAtT||-1e9) < 2*TICK_HZ || tick - (b.lastShotTick||-1e9) < 2*TICK_HZ) return;
   var sp = null; for(var i=0;i<JS.length;i++){ var q = JS[i]; if(q.side === b.team && Math.hypot(q.x-b.x, q.y-b.y) < 50){ sp = q; break; } }
   if(!sp) return;
@@ -151,6 +175,10 @@ function strafeKeysTick(b, dt){
   if(roundState === "live" && b.alive && !b._fc && !b.planting && !b.defusing && tick >= (b.throwUntil || 0) && !b._climb && !b.onLadder && !b._sbOff){
     if(sp < 100 && !b._sawEnemy && !(b.post && taskProp(b.post.tag, "holdStrafeSkip")) && !(b.fakeHoldUntil && tick < b.fakeHoldUntil) && !(tick < (b.blindUntil||0))) ctx = "hold"; else if(sp >= 100 && sp < 200 && !b.atPost && J.walkOn) ctx = "walk"; }
   if(ctx !== J.ctx){ J.ctx = ctx; J.key = 0; J.until = tick; if(ctx === "hold"){ J.ax = b.baseX; J.ay = b.baseY; } }
+  // (v575, прогон 233: «застрял (plantspot): шаг проходит, а стоит» 0 → 12) точка, от которой качание держит, сдвигается вместе с остальным
+  // ходом (путь, торможение у конца пути): иначе бот, идущий медленно к точке, отходил от неё дальше KEYS_DRIFT — и качание тянуло назад
+  else if(ctx === "hold" && J.px != null){ J.ax += b.baseX - J.px; J.ay += b.baseY - J.py; }
+  J.px = b.baseX; J.py = b.baseY;
   // качание кончилось (увидел врага, задача, бросок) — клавиша отпущена, ход гасит трение (CS2), а не пропадает мгновенно;
   // перестрелку ведёт 470 — она берёт этот ход себе (fightStrafe, начальная скорость)
   if(!ctx && b._fc) return;   // ход качания забрала перестрелка (fightStrafe обнуляет J.v, когда берёт)
@@ -170,8 +198,12 @@ function strafeKeysTick(b, dt){
   J.v = v;
   if(Math.abs(v) < 1e-3) return;
   var nx = b.baseX + ux*v*dt, ny = b.baseY + uy*v*dt;
-  if(stepBlocked(b.baseX, b.baseY, nx, ny, b)){ J.v = 0; return; }   // упёрся — клавишу не отпускает (у про длинные нажатия на малой скорости — в стену)
-  b.baseX = nx; b.baseY = ny;
+  // (v575, прогон 233: переносов 59 → 156 на 100 раундов Mirage — качание уводило за край навмеша, где стены нет, потом бота возвращало рывком)
+  // шаг качания — только внутрь пола навмеша своего уровня, без допуска у края: с края (допуск 3 ед., у связанных участков до 10) новый путь
+  // уводил за край (Mirage B Apps, 454,433: участки 1940 / 1960 кончаются на y 426, бот с 428 шёл на 433 — «вне навмеша», перенос)
+  var lvK = navArea(b._area) ? navArea(b._area).z : b.z;
+  if(stepBlocked(b.baseX, b.baseY, nx, ny, b) || !navNearLevel(nx, ny, 0, lvK)){ J.v = 0; return; }   // упёрся — клавишу не отпускает (у про длинные нажатия на малой скорости — в стену)
+  b.baseX = nx; b.baseY = ny; J.px = nx; J.py = ny;
 }
 function stepTick(){
   tick++;
