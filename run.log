@@ -1,0 +1,27 @@
+playwright 1.56.0, браузеры: C:\Windows\system32\config\systemprofile\.simcs2_node\ms-playwright
+> git fetch --quiet origin c65fe2f007f062516493444dc179fa8dc9c49dd2
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_9zjn3y5c FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_9zjn3y5c\src\build.py --map mirage C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v579a_mir_b.html
+> git fetch --quiet origin 66a5f1875ea625e3c9a8c9ffebe5ae18d019e474
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_5smb8oq_ FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_5smb8oq_\src\build.py --map mirage C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v579a2_mir_b.html
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\engine\walk_run.py --job=v579a_mir_b,C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v579a_mir_b.html --job=v579a2_mir_b,C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v579a2_mir_b.html --matches=31,37,41,43,47,53,59,61 --par=8
+матчей в очереди: 16, одновременно: 8
+v579a_mir_b match 47  rc 0 8390385 — готово 1/16, 6 мин
+v579a_mir_b match 31  rc 0 7411591 — готово 2/16, 7 мин
+v579a_mir_b match 53  rc 0 8389604 — готово 3/16, 7 мин
+v579a_mir_b match 41  rc 0 8844429 — готово 4/16, 7 мин
+v579a_mir_b match 59  rc 0 7813600 — готово 5/16, 7 мин
+v579a_mir_b match 37  rc 0 7634907 — готово 6/16, 7 мин
+v579a_mir_b match 43  rc 0 7793477 — готово 7/16, 7 мин
+v579a_mir_b match 61  rc 0 8968861 — готово 8/16, 7 мин
+v579a2_mir_b match 37  rc 0 6732052 — готово 9/16, 12 мин
+v579a2_mir_b match 31  rc 0 8122008 — готово 10/16, 13 мин
+v579a2_mir_b match 47  rc 0 7779946 — готово 11/16, 13 мин
+v579a2_mir_b match 43  rc 0 8035184 — готово 12/16, 13 мин
+v579a2_mir_b match 41  rc 0 8869440 — готово 13/16, 13 мин
+v579a2_mir_b match 61  rc 0 9016568 — готово 14/16, 14 мин
+v579a2_mir_b match 59  rc 0 9509422 — готово 15/16, 14 мин
+v579a2_mir_b match 53  rc 0 7765696 — готово 16/16, 15 мин
+done
+all done
