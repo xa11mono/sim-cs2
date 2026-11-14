@@ -1,0 +1,24 @@
+playwright 1.56.0, браузеры: C:\Windows\system32\config\systemprofile\.simcs2_node\ms-playwright
+> git fetch --quiet origin 6dec118d165f36fb4a61c1cb1cf82d49e3906e27
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_yjzrha5w FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_yjzrha5w\src\build.py --map mirage C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v580a4_mir16.html
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\engine\walk_run.py --job=v580a4_mir16,C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v580a4_mir16.html --matches=3,7,11,13,17,19,23,29,31,37,41,43,47,53,59,61 --par=8
+матчей в очереди: 16, одновременно: 8
+v580a4_mir16 match 29  rc 0 6892372 — готово 1/16, 6 мин
+v580a4_mir16 match 3  rc 0 8153218 — готово 2/16, 6 мин
+v580a4_mir16 match 7  rc 0 8184378 — готово 3/16, 7 мин
+v580a4_mir16 match 13  rc 0 8348782 — готово 4/16, 7 мин
+v580a4_mir16 match 19  rc 0 8546824 — готово 5/16, 7 мин
+v580a4_mir16 match 23  rc 0 8764531 — готово 6/16, 8 мин
+v580a4_mir16 match 17  rc 0 8758442 — готово 7/16, 8 мин
+v580a4_mir16 match 11  rc 0 10599017 — готово 8/16, 9 мин
+v580a4_mir16 match 31  rc 0 8444727 — готово 9/16, 13 мин
+v580a4_mir16 match 59  rc 0 5205652 — готово 10/16, 13 мин
+v580a4_mir16 match 41  rc 0 8620007 — готово 11/16, 13 мин
+v580a4_mir16 match 47  rc 0 8641291 — готово 12/16, 13 мин
+v580a4_mir16 match 37  rc 0 8540843 — готово 13/16, 14 мин
+v580a4_mir16 match 53  rc 0 8483723 — готово 14/16, 15 мин
+v580a4_mir16 match 43  rc 0 10859353 — готово 15/16, 15 мин
+v580a4_mir16 match 61  rc 0 7907091 — готово 16/16, 16 мин
+done
+all done
