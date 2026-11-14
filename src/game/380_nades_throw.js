@@ -498,7 +498,11 @@ function runupTick(b, t){
   // бросок — в ближайший к точке тик: уже у точки (≤ шаг) или прошёл ближайшее место, бывшее ≤ RUN_NEAR; прошёл дальше / не успел — стоя
   if(tick - t.runT0 > RUN_SEC*TICK_HZ || d > t.runMin + RUN_PAST){ if(t.runOwn){ b.nadeTask = null; clearPost(b); return true; } t.runFail = true; t.runPh = null; clearPost(b); return true; }
   // скорость в тик броска — как у эталона (± 10 %, план п. 3): не разогнался — не кидает (проскочит — бросок стоя)
-  var V = nadeBotVel(b), vOk = V && Math.hypot(V[0], V[1]) >= RUN_V*R.speed && (V[0]*R.dir[0] + V[1]*R.dir[1]) >= RUN_COS*Math.hypot(V[0], V[1]);
+  // (В142, v579) направление — по своей линии разгона (точка разгона → точка броска; её выбирают до ± 20° от направления про, runupStart):
+  // сверка с направлением про при том же допуске ± 20° не проходила у точек со сдвигом (облако v579 м13, молотов Stove: бежит под 58° при
+  // эталоне 28° — броска на ходу не было ни разу, стоя «не долетит»). Бросок всё равно подбирается с фактической скоростью (throwNade)
+  var rx = t.from.x - t.runStart.x, ry = -(t.from.y - t.runStart.y), rl = Math.hypot(rx, ry) || 1;
+  var V = nadeBotVel(b), vOk = V && Math.hypot(V[0], V[1]) >= RUN_V*R.speed && (V[0]*rx + V[1]*ry)/rl >= RUN_COS*Math.hypot(V[0], V[1]);
   var at = vOk && (d <= step + 2 || (passed && t.runMin <= RUN_NEAR));
   t.runMin = Math.min(t.runMin, d);
   if(!at || !nadeReady(b)) return true;

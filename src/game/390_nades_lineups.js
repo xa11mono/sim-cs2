@@ -104,7 +104,11 @@ function lineupTick(){
     // (рвались рядом с врагом в 50 % против 88 % у про)
     if(go && L.pro && L.team === "T" && L.trigger === "setup" && L.type === "flash" && !nadeWorth("T", L.to)) go = false;
     // (v429) флешка CT на тайминг — только под пик: рядом с точкой свой собирается выглянуть (ранний пик); нет — остаётся на потом
-    if(go && L.pro && L.team === "CT" && L.trigger === "timed" && L.type === "flash" && !npPeekReady("CT", L.to, null)) go = false;
+    // (В142, v579) или под тех, кто открыт этой точке: свой (и сам бросающий) стоит или встанет (пост) на линии с точкой флешки — у про
+    // самая частая флешка CT (Chair, Mirage, 55 % раундов, 5,4 с) — под проход / удержание мида, а не под пик; облако v579 м7+м13:
+    // 32 из 72 не брошенных гранат плана CT — флешки «нет выглядывающего»
+    if(go && L.pro && L.team === "CT" && L.trigger === "timed" && L.type === "flash" && !npPeekReady("CT", L.to, null) &&
+       !bots.some(function(o){ return o.alive && o.team === "CT" && (hasLOS(o.x, o.y, L.to.x, L.to.y) || (o.post && hasLOS(o.post.x, o.post.y, L.to.x, L.to.y))); })) go = false;
     // (v429) граната на тайминг «на всякий случай» — не туда, где врага точно нет (все живые враги недавно замечены далеко)
     if(go && L.pro && L.type !== "flash" && ((L.team === "CT" && L.trigger === "timed") || (L.team === "T" && L.trigger === "setup")) && !npFoeMaybe(L.team, L.to)) go = false;
     // (v438) цель уже закрыта смоком (свой смок рядом — облака перекрылись бы, smokeCovered) — второй туда не летит, лайнап закрыт
