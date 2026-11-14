@@ -148,7 +148,16 @@ def qs(F):
 def main():
     a = [x for x in sys.argv[1:] if not x.startswith('--')]
     pf = os.path.join(HERE, 'shadow', 'shape_pro_%s.json' % MAP)
-    if '--pro' in sys.argv or not os.path.exists(pf):
+    pcd = next((x.split('=', 1)[1] for x in sys.argv if x.startswith('--pcd=')), None)
+    if pcd:   # признаки с ПК (tools/demo_events_pc.py, режим motion + shape): все демки карты, все раунды, каждый тик
+        import gzip
+        F = collections.defaultdict(list); nd = 0
+        for f in glob.glob(os.path.join(pcd, '**', '*-%s_shape.json.gz' % MAP), recursive=True):
+            J = json.load(gzip.open(f, 'rt', encoding='utf-8')); nd += 1
+            for k, v in J.items():
+                if not k.startswith('_'): F[k] += v
+        print('про: демок %d' % nd); P = qs(F); json.dump(P, open(pf, 'w'))
+    elif '--pro' in sys.argv or not os.path.exists(pf):
         P = qs(features(series_pro())); json.dump(P, open(pf, 'w'))
     P = json.load(open(pf))
     B = qs(features(series_bots(a[0]))) if a else None

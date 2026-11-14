@@ -577,7 +577,7 @@ function stepTick(){
           var mvA = Math.atan2(bot.baseY-startY, bot.baseX-startX);
           var mvD = ((mvA - bot.facing + Math.PI) % (2*Math.PI) + 2*Math.PI) % (2*Math.PI) - Math.PI;
           if(Math.abs(mvD) >= 0.05) bot._aimFix = true; else if(Math.abs(mvD) <= 0.01) bot._aimFix = false;
-          if(bot._aimFix){ var mvStep = TURN_RATE * dtSec; bot.facing += Math.max(-mvStep, Math.min(mvStep, mvD)); }
+          if(bot._aimFix){ var mvStep = TURN_RATE * dtSec; bot.facing += Math.max(-mvStep, Math.min(mvStep, mvD)); }   // (В147) не рукой: у про на бегу взгляд идёт по ходу ровно (мерка формы run_lookoff; рукой — разница 10 → 65 %)
         }
         // (Б1, Х1, сторож 21.10) «не сдвинулся» — меньше 15 % своего шага, без порога 0,3 ед.: при скорости < 19 ед./с (тормозит у
         // точки, шифт с тяжёлым оружием) целый шаг меньше 0,3, и бот, честно идущий медленно, через 40 тиков «застревал» → перенос

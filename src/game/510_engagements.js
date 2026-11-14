@@ -2,7 +2,6 @@
 // Доли решений больше долей пуль: присед срывает «не видно из приседа» (v521), уход за укрытие (470) и конец очереди — подобраны так, чтобы
 // на приседе было столько же пуль, сколько у про (замер — бот: 1-я 6 %, 2–3 28 %, 4+ 14 % при решениях 0,11 / 0,37 / 0,22; 17 / 42 / 28 % при 0,2 / 0,49 / 0,35)
 var AIM_TRACK_BAND = 0.03;   // рад (≈ 1,7°) — меньше прицел в бою не доводит (проектное число; конус выстрела вдали — 0,05)
-var AIM_TRACK_MIN = 0.002;   // рад за тик — меньше не доворачивает (≈ 7°/с, порог «прицел неподвижен» 5°/с) (проектное число)
 var DUCK_PRO = {first: 0.13, burst: 0.46, spray: 0.27};
 function duckDecide(b, p, salt){   // присед на ближайшее решение (12 тиков); не сяду, если из приседа врага не видно (v521)
   var e = b._nearestEnemyBot, duck = keysRand(b, salt) < p;
@@ -186,11 +185,8 @@ function resolveEngagements(){
   // ---------- куда смотрит бот ----------
   // приоритет: видимый враг → (если держит угол) свежая память "враг был тут"
   // → свежий звук шагов → иначе направление движения (ставится в движении).
-  // Поворот плавный, но быстрый (AIM_TURN_RATE), и стрелять можно только
-  // когда прицел уже почти на цели (AIM_FIRE_CONE) — отсюда естественная
-  // задержка "развернулся → выстрелил", когда враг появился сбоку/сзади.
-  var aimStep = AIM_TURN_RATE / TICK_HZ;
-  var FLICK = {min: Math.PI/4, err: [0.1, 0.35], wait: 0.5, fix: 0.35};   // (v570, В135) проектные числа: рывок > 45°, промах 10–35 % угла, доводка через полреакции, скорость доводки 0,35 рывка — подбираются по мерке про
+  // Поворот — рукой (handTurn, по демкам), стрелять можно только когда прицел уже почти на цели (AIM_FIRE_CONE) — отсюда
+  // естественная задержка "развернулся → выстрелил", когда враг появился сбоку/сзади.
   // (v291, И32, владелец 14.10: раунд 1, тик 3087 — игрок 6 убил в T Lower и отвернулся на Mid «как у про», пока второй T стоял
   // в 35 px от убитого) после фрага оценка взгляда стрелка пересчитывается сразу, а не через до 8 тиков
   if(BZ.ids.length){
@@ -216,38 +212,24 @@ function resolveEngagements(){
       var dd = want - b.facing;
       dd = ((dd + Math.PI) % (2*Math.PI) + 2*Math.PI) % (2*Math.PI) - Math.PI;
       if(slUrg){
-        // (v570, В135, владелец 13.11: «стреляют слева — резко поворачиваешь на 90°, точно не наведёшься: перевёл, не довёл, испуг») рывок
-        // на большой угол (> FLICK.min) — не в точку, а с промахом (перелёт / недолёт FLICK.err доли угла), потом доводка: через полреакции,
-        // медленнее (FLICK.fix). Было: прицел вставал ровно в точку за ~0,15 с — к стрелку за 1 с поворачивались 71–100 % (про 41–49 %)
-        var FK = b._flick;
-        if(Math.abs(dd) > FLICK.min && (!FK || FK.done || Math.abs(((FK.want - want + Math.PI) % (2*Math.PI) + 2*Math.PI) % (2*Math.PI) - Math.PI) > FLICK.min)){
-          var fr = hashRand(tick*29 + b.id.charCodeAt(0)*13 + b.id.charCodeAt(b.id.length-1)*7), sg = hashRand(tick*31 + b.id.charCodeAt(1)*11) < 0.5 ? -1 : 1;
-          FK = b._flick = {want: want, aim: want + sg*Math.abs(dd)*(FLICK.err[0] + fr*(FLICK.err[1] - FLICK.err[0]))*(dd > 0 ? 1 : -1), t: tick, arr: null, done: false};
-        }
-        if(FK && !FK.done && Math.abs(((FK.want - want + Math.PI) % (2*Math.PI) + 2*Math.PI) % (2*Math.PI) - Math.PI) <= FLICK.min){
-          FK.aim += ((want - FK.want + Math.PI) % (2*Math.PI) + 2*Math.PI) % (2*Math.PI) - Math.PI; FK.want = want;   // цель сдвинулась немного — рывок следует
-          var da = ((FK.aim - b.facing + Math.PI) % (2*Math.PI) + 2*Math.PI) % (2*Math.PI) - Math.PI;
-          if(FK.arr == null){ b.facing += Math.max(-aimStep, Math.min(aimStep, da)); if(Math.abs(da) <= aimStep) FK.arr = tick; }
-          else if(tick - FK.arr >= Math.round((b.reactionTicks || 12)*FLICK.wait)){ var fs = aimStep*FLICK.fix; b.facing += Math.max(-fs, Math.min(fs, dd)); if(Math.abs(dd) <= fs) FK.done = true; }
-        } else {
-          // (v575, В140, владелец 13.11: «боты тупо приклеиваются к врагу прицелом» — в 3D) ведение цели — с запаздыванием про AIM_LAG (0,12 с,
-          // 490: тот же замер, по которому считается попадание): доворот за тик — доля 1 − e^(−1/(AIM_LAG·64)) ≈ 12 % остатка. Было: каждый тик
-          // ровно в цель (до 10° за тик). Большой угол (рывок) — как раньше, без запаздывания (там рывок с промахом выше)
-          // поправка порцией, как у человека: ушло больше AIM_TRACK_BAND — доводит до AIM_TRACK_BAND/5 (в бою прицел про неподвижен 50 % времени)
-          if(Math.abs(dd) >= AIM_TRACK_BAND) b._aimFix = true; else if(Math.abs(dd) <= AIM_TRACK_BAND/5) b._aimFix = false;
-          var tr = Math.abs(dd) > FLICK.min ? aimStep : Math.min(aimStep, Math.max(AIM_TRACK_MIN, Math.abs(dd)*(1 - Math.exp(-1/(AIM_LAG*TICK_HZ)))));
-          if(b._aimFix || Math.abs(dd) > FLICK.min) b.facing += Math.max(-tr, Math.min(tr, dd)); }
+        // (В147) поворот к врагу — рукой (handTurn, модель «перестрелка» из демок): рывок с колоколом скорости, промах, пауза, доводка.
+        // Прицел, ушедший меньше AIM_TRACK_BAND, стоит (в бою прицел про неподвижен ~50 % времени). Было: рывок FLICK (> 45°, проектные
+        // числа) и ведение цели с запаздыванием AIM_LAG (доворот 12 % остатка за тик) — длинный хвост поворота (мерка формы: время поворота
+        // в перестрелке — разница 45–81 %). AIM_LAG остаётся в расчёте попадания (490)
+        var hA = b._hand && b._hand.f && tick < b._hand.t0 + b._hand.T + b._hand.gap;
+        if(Math.abs(dd) >= AIM_TRACK_BAND || hA){ b._aimFix = true; handTurn(b, dd, "f"); if(b._hand) b._hand.f = true; }
+        else b._aimFix = false;
       }
       else {
         // (v153) вне боя: плавно, с торможением к цели, не быстрее ~260°/с;
         // стоя мелкие поправки (<3°) не делаем — прицел стоит, а не дрожит
         // (v575, В140) и на ходу: поправка — порцией, когда точка уехала больше чем на 3°, до конца (≤ 0,6°). Было: на ходу точка из-за угла
         // (cornerLook) сдвигалась каждый тик и прицел доворачивался непрерывно — неподвижен 35 % на шаге и 36 % на бегу, у про 55 / 52 %
-        if(Math.abs(dd) >= 0.05) b._aimFix = true; else if(Math.abs(dd) <= 0.01) b._aimFix = false;
-        if(b._aimFix){
-          var cap = SL.calmRate / TICK_HZ, stp = Math.min(cap, Math.max(SL.minStep, Math.abs(dd)*SL.ease));
-          b.facing += Math.max(-stp, Math.min(stp, dd));
-        }
+        // (В147, владелец 14.11: «как поворачивается кружочек — точь-в-точь как у про») поворот — рукой (handTurn): рывок с колоколом скорости,
+        // длительность по углу, промах и пауза перед доводкой — из демок (MAP.turnmodel). Было: затухание SL.ease с потолком SL.calmRate —
+        // ровный медленный разворот (мерка формы tools/motion_shape.py: угол / время / пик поворота вне боя — разница 81 / 63 / 67 %)
+        if(Math.abs(dd) >= HAND_START) b._aimFix = true; else if(Math.abs(dd) <= 0.01) b._aimFix = false;
+        handTurn(b, dd, "n");
       }
     }
   });
@@ -256,6 +238,45 @@ function resolveEngagements(){
     if(p.ctSees && p.ct._nearestEnemyBot === p.t) tryShoot(p.ct, p.t, p.dist);
     if(p.tSees && p.t._nearestEnemyBot === p.ct) tryShoot(p.t, p.ct, p.dist);
   });
+}
+
+// (В147) «рука» — как человек ведёт мышь к цели: рывок (мин. рывок: s = 10τ³ − 15τ⁴ + 6τ⁵ — колокол скорости) за T тиков на угол
+// цели с промахом (перелёт / недолёт — доля угла), потом пауза, и только потом — доводка следующим рывком, если осталось больше порога.
+// Длительность, промах, доля перелётов, пауза — по корзинам угла из демок карты (MAP.turnmodel, tools/measure/motion/pro_turn_model.py),
+// отдельно вне боя (n) и в перестрелке (f); внутри квартилей — жребий (hashRand). Цель сдвинулась во время рывка — рывок доводится как был.
+// Рука пишет только b.facing и только отсюда (хозяин поворота — resolveEngagements); состояние рывка — b._hand
+var HAND_ERR_MAX = 0.6;   // доля угла: больше — у про это уже новое намерение, а не промах (проектное число)
+var HAND_START = 0.02;    // рад (≈ 1,1°): с какого ухода цели рука начинает рывок — подбор по доле неподвижного прицела про (57,5 %, мерка формы); было 0,05 — мелких доводок про (0,6–5°, 43 % поворотов) не было
+function handQ(q, u, lo, hi){   // жребий u ∈ [0, 1] по квартилям q = [q25, q50, q75]; края — до lo·q25 и hi·q75
+  if(!q) return 0;
+  var P = [[0, q[0]*lo], [0.25, q[0]], [0.5, q[1]], [0.75, q[2]], [1, q[2]*hi]];
+  for(var i = 1; i < P.length; i++) if(u <= P[i][0]) return P[i-1][1] + (P[i][1] - P[i-1][1])*(u - P[i-1][0])/(P[i][0] - P[i-1][0]);
+  return P[P.length-1][1];
+}
+function handTurn(b, dd, ctx){
+  var H = b._hand;
+  if(H && tick < H.t0 + H.T){   // рывок идёт
+    var tau = (tick - H.t0 + 1)/H.T, s = tau*tau*tau*(10 - 15*tau + 6*tau*tau), sp = H.s || 0;
+    b.facing += H.A*(s - sp); H.s = s; return;
+  }
+  if(H && !H.end) H.end = tick;
+  if(H && tick < H.end + H.gap) return;   // пауза перед доводкой
+  if(!b._aimFix) return;                  // прицел стоит (порог — как был)
+  var TM = MAP.turnmodel, deg = Math.abs(dd)*180/Math.PI;
+  if(!TM){ var st0 = Math.min(Math.abs(dd), 4.5/TICK_HZ); b.facing += dd > 0 ? st0 : -st0; return; }   // набора нет — как раньше (потолок 4,5 рад/с)
+  var Bn = TM.bins, bi = 0; while(bi < Bn.length - 2 && deg >= Bn[bi+1]) bi++;
+  var M = TM.model[ctx + "|" + Bn[bi] + "-" + Bn[bi+1]] || TM.model["n|" + Bn[bi] + "-" + Bn[bi+1]];
+  if(!M){ b.facing += dd; return; }
+  var k = b.id.charCodeAt(b.id.length-1)*7 + b.id.charCodeAt(0)*3;
+  var u1 = hashRand(tick*17 + k), u2 = hashRand(tick*29 + k + 5), u3 = hashRand(tick*41 + k + 11), u4 = hashRand(tick*53 + k + 17);
+  // длительность — из угла и пика: у колокола пик = 1,875·угол / T; пик — жребием по квартилям про для этого угла, T — в пределах квартилей
+  // длительности про (у мелких доводок про пик ~0,4°/тик — медленный сдвиг, а не рывок)
+  var pk = handQ(M.pk, u1, 0.7, 1.3), Tq = M.T || [2, 3, 4];
+  var T = Math.max(2, Math.round(Math.max(Tq[0]*0.7, Math.min(Tq[2]*1.4, 1.875*deg/Math.max(0.05, pk)))));
+  var er = Math.min(HAND_ERR_MAX, handQ(M.ratio, u2, 0.5, 1.2)), over = u3 < (M.back || 0.3);
+  var A = dd*(1 + (over ? er : -er)*(u4 < (M.corr || 0.6) ? 1 : 0));   // промах — в той доле рывков, за которыми у про идёт доводка
+  b._hand = {t0: tick, T: T, A: A, s: 0, end: 0, gap: Math.max(1, Math.round(handQ(M.gap, hashRand(tick*61 + k + 23), 0.5, 1.3)))};
+  handTurn(b, dd, ctx);
 }
 
 function escapeWallLine(bot){
