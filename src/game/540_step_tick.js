@@ -110,7 +110,7 @@ var JUMP_APEX = 57;
 // подсадок за раунд, сколько стоит наверху, насколько выше, когда от начала раунда). Решение — один раз за раунд, когда у места (≤ R px) двое своих
 // (≤ pair px друг от друга), не в бою, во время, когда это делают про (± tPad с): с вероятностью rate·k — k подобран так, чтобы подсадок за раунд
 // было как у про (замер — tools/measure/motion/boost.js.txt). Наверху глаза выше на lift (видит и виден поверх укрытий — visParts)
-var BOOST = {R: 25, pair: 120, tPad: 5, k: 1};
+var BOOST = {R: 40, pair: 120, tPad: 5, k: 1};   // R — как сетка мест в boosts_bake (40 px); pair, tPad — проектные
 function boostLift(b){ return b._boost && b._boost.top ? b._boost.lift : 0; }
 function boostEnd(b){
   var BS = b._boost; if(!BS) return; b._boost = null;
