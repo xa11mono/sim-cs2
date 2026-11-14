@@ -112,10 +112,23 @@ function proSpotLook(b){
     var bi = 0, bsc = -1e9;
     M.forEach(function(m, i){ var sc = m[1] - (ref === null ? 0 : _angOff(m[0], ref)/Math.PI*0.6); if(sc > bsc){ bsc = sc; bi = i; } });
     if(S && S.k === P.k && S.r === roundNum && S.i !== bi){ var cur = M[S.i]; var curSc = cur ? cur[1] - (ref === null ? 0 : _angOff(cur[0], ref)/Math.PI*0.6) : -1e9; if(curSc > bsc - 0.15) bi = S.i; }
-    S = b._proM = {k:P.k, r:roundNum, i:bi, t:tick};
+    S = b._proM = {k:P.k, r:roundNum, i:bi, t:tick, pt:null};
   }
-  var a = M[S.i][0];
-  return {x: b.x + Math.cos(a)*300, y: b.y + Math.sin(a)*300};
+  // (В147) точка — от места поста, там, где луч упирается в стену (не дальше PRO_LOOK_R): прицел держится на углу, и при выглядывании
+  // взгляд доворачивается к нему, как у про (мерка формы peek_yaw). Было: точка в 300 px от текущего места бота — ехала вместе с ним,
+  // поворот за выглядывание 0° (73 из 280 выглядываний ботов, облако 14.11)
+  if(!S.pt){ var a = M[S.i][0], ox = b.post.x, oy = b.post.y, R = proLookRay(ox, oy, a, PRO_LOOK_R); S.pt = {x: ox + Math.cos(a)*R, y: oy + Math.sin(a)*R}; }
+  return S.pt;
+}
+var PRO_LOOK_R = 300;   // px — дальше прицел не ставится (как было)
+function proLookRay(x, y, a, R){   // расстояние до первой стены по лучу (стены радара MANUAL_WALLS; как конус обзора, 620)
+  var dx = Math.cos(a), dy = Math.sin(a), tMin = R;
+  for(var k = 0; k < MANUAL_WALLS.length; k++){ var w = MANUAL_WALLS[k];
+    if(Math.max(w[0], w[2]) < x - R || Math.min(w[0], w[2]) > x + R || Math.max(w[1], w[3]) < y - R || Math.min(w[1], w[3]) > y + R) continue;
+    var sx = w[2]-w[0], sy = w[3]-w[1], den = dx*sy - dy*sx; if(Math.abs(den) < 1e-9) continue;
+    var qx = w[0]-x, qy = w[1]-y, t = (qx*sy - qy*sx)/den, u = (qx*dy - qy*dx)/den;
+    if(t > 8 && t < tMin && u >= 0 && u <= 1) tMin = t; }
+  return tMin;
 }
 // (v162) отдельно стоящие ящики/колонны — небольшие замкнутые контуры стен
 var _WB = null, _WBn = -1;
