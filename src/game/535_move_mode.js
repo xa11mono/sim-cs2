@@ -155,7 +155,9 @@ function moveSpeedTick(bot, runSpeed, BRAKE_RADIUS, maxDelta){
     targetSpeed = bot._blind.back ? runSpeed*0.55 : 0; why = bot._blind.back ? "ослеплён — шаг назад" : "ослеплён — стоит";
     if(!bot._blind.back) bot.crouching = true;
   } else if(bot._blind && tick >= bot._blind.until){ bot._blind = null; }
-  if(bot._jc && bot._jc.run){ targetSpeed = bot.curSpeed; why = "в прыжке — ход не меняется"; }   // (v575, В144) в воздухе не разгоняется и не тормозит
+  if(bot._boost){ targetSpeed = 0; bot.curSpeed = 0; why = "подсадка"; }   // (v575, В144) подсадка — оба стоят (540, jumpCheckTick)
+  // (v575, В144) в воздухе — не разгоняется; ход гаснет к доле про к приземлению (поворот A / D в воздухе у про стоит скорости, RUN_JUMP.keep, 540)
+  if(bot._jc && bot._jc.run){ var jq = Math.min(1, (tick - bot._jc.t)/(RUN_JUMP.air*TICK_HZ)); bot.curSpeed = bot._jc.v0*(1 - (1 - bot._jc.kt)*jq); targetSpeed = bot.curSpeed; why = "в прыжке"; }
   if(bot.curSpeed < targetSpeed) bot.curSpeed = Math.min(targetSpeed, bot.curSpeed+maxDelta);
   else if(bot.curSpeed > targetSpeed) bot.curSpeed = Math.max(targetSpeed, bot.curSpeed-maxDelta);
   if(BAL.tagging && tick < (bot._tagUntil||0)){ bot.curSpeed = Math.min(bot.curSpeed, SPEED*0.4); why = (why ? why + " + " : "") + "попали — замедлен"; }

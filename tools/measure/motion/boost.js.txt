@@ -1,0 +1,5 @@
+paused=true; __K__ var N={}, R=0, D=[], on={};
+__M__.forEach(function(M){ freshMatch(M); var R0=roundNum; while(roundNum<R0+6 && roundState!=='matchover'){ var rn=roundNum; stepTick(); if(roundNum!==rn) R++; if(roundState!=='live') continue;
+ bots.forEach(function(b){ var B=b._boost; if(B && B.top && !on[b.id]){ on[b.id]={t:tick}; var best=null, bd=1e9; (MAP.pro.boosts||[]).forEach(function(q,i){ var d=Math.hypot(q.x-b.x,q.y-b.y); if(d<bd){bd=d;best=q.side+' ('+Math.round(q.x)+','+Math.round(q.y)+')';} }); N[best]=(N[best]||0)+1; }
+  if(on[b.id] && !(B && B.top)){ D.push((tick-on[b.id].t)/64); delete on[b.id]; } }); } });
+JSON.stringify({N:N, R:R, D:D})

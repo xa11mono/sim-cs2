@@ -1,0 +1,13 @@
+paused=true; var H={}, JJ=[], FB=[0,0,0,0,0], RM=0, BB=[15,30,60,90,180];
+function bin(a){ a=Math.abs(a); var k=0; while(k<4 && a>BB[k]) k++; return k; }
+function ang(a,b){ return Math.atan2(Math.sin(a-b),Math.cos(a-b))*180/Math.PI; }
+__M__.forEach(function(M){ freshMatch(M); var R0=roundNum; while(roundNum<R0+6 && roundState!=='matchover'){ stepTick(); if(roundState!=='live') continue;
+ bots.forEach(function(b){ if(!b.alive){ delete H[b.id]; return; } var h=H[b.id]||(H[b.id]={p:[],J:null}); h.p.push([b.x,b.y,b.facing,(b.curSpeed||0)*PX_UNITS]); if(h.p.length>8) h.p.shift();
+  var calm=(b.curSpeed||0)*PX_UNITS>=200 && !b._sawEnemy && !b._fc && tick-(b.lastShotTick||-1e9)>=128 && tick-(b._shotAtT||-1e9)>=128 && !b._climb && !b._jc;
+  if(calm){ RM++; if(tick%8===0 && b.path && b.pathIdx<b.path.length) FB[bin(pathTurnAhead(b,(b.curSpeed||0)*RUN_JUMP.air))]++; }
+  var J=b._jc; if(J && J.run && J.t===tick && h.p.length>=4){ var a=h.p[h.p.length-3], c=h.p[h.p.length-4]; h.J={t:tick, h0:Math.atan2(a[1]-c[1],a[0]-c[0]), f0:h.p[h.p.length-2][2], v0:a[3], ad:0, L:0, R:0, T:Math.round(RUN_JUMP.air*TICK_HZ)}; }
+  var Q=h.J; if(Q){ var age=tick-Q.t; if(age<Q.T){ var k=airKey(b); if(k){ Q.ad++; if(k>0) Q.L=1; else Q.R=1; } if(age===Q.T-1) Q.f1=b.facing; }
+   if(age===Q.T+4 && h.p.length>=2){ var p1=h.p[h.p.length-1], p0=h.p[h.p.length-2]; var mv=Math.hypot(p1[0]-p0[0],p1[1]-p0[1])>0.3?ang(Math.atan2(p1[1]-p0[1],p1[0]-p0[0]),Q.h0):0;
+     JJ.push({mv:mv, cam:ang(Q.f1,Q.f0), keep:p1[3]/Math.max(1,Q.v0), adf:Q.ad/Q.T, both:Q.L&&Q.R}); h.J=null; } }
+ }); } });
+JSON.stringify({JJ:JJ, FB:FB, RM:RM})

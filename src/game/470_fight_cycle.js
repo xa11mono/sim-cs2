@@ -103,6 +103,7 @@ var STRAFE_PRO = [3.0, 10.6, 34.9, 73.7, 118.6];
 function csDecel(v, vmax){ return CS_FRIC*Math.max(v, CS_STOP/PX_UNITS) + CS_ACCEL*vmax; }   // px/с²
 function csTicksTo(v, vT, vmax){ var n = 0; while(v > vT + 0.5 && n < 30){ v -= csDecel(v, vmax)/TICK_HZ; n++; } return n; }
 function fightStrafe(b, F, dtSec){
+  if(b._boost){ F.sv = 0; b.curSpeed = 0; return; }   // (v575, В144) на подсадке / под ней — не стрейфится
   var e = F.e, fr = b._fire, fresh = fr && tick - fr.t <= 1;
   F.own = !!(e && e.alive && (b._sawEnemy || (fr && tick - fr.t < 16)));
   if(!F.own){ F.sv = undefined; return; }

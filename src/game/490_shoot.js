@@ -174,7 +174,7 @@ function tryShoot(shooter, target, dist){
   var tapK = w.key === "USP" ? 0.4 : 0.7;
   // (v530, отметка владельца 10.11 «зажимают, когда половина пуль идёт в укрытие»: с 450 px видна одна голова — 13 пуль за 2 с, попала 1) отсечка
   // или зажим — по размеру того, что видно: из-за укрытия торчит только голова — цель размером с голову, очередь в неё не идёт
-  var tgA = bA; if(!thruSmoke && !prefire){ var vpT = visParts(shooter.x, shooter.y, shooter.crouching, target.x, target.y, target.crouching, undefined, shooter.z, target.z); if(vpT.head && !vpT.body) tgA = hA; }
+  var tgA = bA; if(!thruSmoke && !prefire){ var vpT = visParts(shooter.x, shooter.y, shooter.crouching, target.x, target.y, target.crouching, undefined, shooter.z, target.z, boostLift(shooter), boostLift(target)); if(vpT.head && !vpT.body) tgA = hA; }
   if(w.spam && dist > tapFrom && w.spam/1000*heat > tapK*tgA){ fireReady(shooter, target, (heat - tapK*tgA*1000/w.spam)*(w.recov||8)); return; }
   var burstIdx = tick - shooter.lastShotTick > SPRAY_RESET_TICKS ? 0 : shooter.burstCount;
 
@@ -235,7 +235,7 @@ function tryShoot(shooter, target, dist){
   if(w.key === "SSG") pAimHead = Math.max(pAimHead, 0.8); // скаут — в голову (корпус не убивает)
   var aimHead = w.key !== "AWP" && hashRand(seedS+5) < pAimHead;
   // (v241) целится в то, что видно: голова за укрытием не видна — в тело; видна только голова — в голову
-  var vParts = visParts(shooter.x, shooter.y, shooter.crouching, target.x, target.y, target.crouching, undefined, shooter.z, target.z);
+  var vParts = visParts(shooter.x, shooter.y, shooter.crouching, target.x, target.y, target.crouching, undefined, shooter.z, target.z, boostLift(shooter), boostLift(target));
   var SP = shooter._smkParts; if(SP && SP.id === target.id && SP.t === tick) vParts = {head: vParts.head && SP.head, body: vParts.body && SP.body};   // (v548) сквозь дыру в дыму — только то, что в окошке
   if(!vParts.head && vParts.body) aimHead = false; else if(vParts.head && !vParts.body) aimHead = true;
   // (М149, владелец 20.10) видно только плечо (цель за углом или ящиком) — целится в него, а цель это замечает: по ней стреляют,

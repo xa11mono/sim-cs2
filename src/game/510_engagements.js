@@ -23,7 +23,7 @@ function resolveEngagements(){
       // взгляда (или вплотную, или контакт уже идёт), и кто не ослеплён
       // (v241) что каждый видит у другого — в 3D: стены, укрытия, пол/уступы, крыши (visParts: голова / тело)
       // (М140, В4) высокие стены проверяет visParts — и у плеч цели: центр за углом, а край тела виден
-      var ctP = visParts(ct.x, ct.y, ct.crouching, t.x, t.y, t.crouching, true, ct.z, t.z), tP = visParts(t.x, t.y, t.crouching, ct.x, ct.y, ct.crouching, true, t.z, ct.z);
+      var ctP = visParts(ct.x, ct.y, ct.crouching, t.x, t.y, t.crouching, true, ct.z, t.z, boostLift(ct), boostLift(t)), tP = visParts(t.x, t.y, t.crouching, ct.x, ct.y, ct.crouching, true, t.z, ct.z, boostLift(t), boostLift(ct));   // (v575) на подсадке глаза выше
       if(!(ctP.head || ctP.body) && !(tP.head || tP.body)) return;
       // ван-вей: стоящий в самом краю дыма видит наружу, а его снаружи — нет
       var smk = smokeBlocks(ct.x,ct.y,t.x,t.y), ctOW = false, tOW = false;
