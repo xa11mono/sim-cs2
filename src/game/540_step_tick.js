@@ -173,11 +173,13 @@ function strafeKeysTick(b, dt){
   // качается примерно в половине отрезков ходьбы (доля подобрана под цифру про — KEYS_WALK_ON)
   var wseg = sp >= 100 && sp < 200; if(wseg && !J.wseg) J.walkOn = keysRand(b, 4) < KEYS_WALK_ON; J.wseg = wseg;
   if(roundState === "live" && b.alive && !b._fc && !b.planting && !b.defusing && tick >= (b.throwUntil || 0) && !b._climb && !b.onLadder && !b._sbOff){
-    if(sp < 100 && !b._sawEnemy && !(b.post && taskProp(b.post.tag, "holdStrafeSkip")) && !(b.fakeHoldUntil && tick < b.fakeHoldUntil) && !(tick < (b.blindUntil||0))) ctx = "hold"; else if(sp >= 100 && sp < 200 && !b.atPost && J.walkOn) ctx = "walk"; }
-  if(ctx !== J.ctx){ J.ctx = ctx; J.key = 0; J.until = tick; if(ctx === "hold"){ J.ax = b.baseX; J.ay = b.baseY; } }
-  // (v575, прогон 233: «застрял (plantspot): шаг проходит, а стоит» 0 → 12) точка, от которой качание держит, сдвигается вместе с остальным
+    // (v575, замер 8 матчей: переносов 21 → 62 на 48 раундов) стоя — только когда дошёл (пути нет): качание у конца пути сбивало бота с края пола
+    if(sp < 100 && !(b.path && b.pathIdx < b.path.length) && !b._sawEnemy && !(b.post && taskProp(b.post.tag, "holdStrafeSkip")) && !(b.fakeHoldUntil && tick < b.fakeHoldUntil) && !(tick < (b.blindUntil||0))) ctx = "hold"; else if(sp >= 100 && sp < 200 && !b.atPost && J.walkOn) ctx = "walk"; }
+  if(ctx !== J.ctx){ J.ctx = ctx; J.key = 0; J.until = tick; J.ax = b.baseX; J.ay = b.baseY; }
+  // (v575, прогон 233: «застрял (plantspot): шаг проходит, а стоит» 0 → 12) точка, от которой качание держит (стоя и на ходу — снос от линии
+  // пути тоже не больше KEYS_DRIFT; было: на ходу без предела — нажатия в ту же сторону копили снос), сдвигается вместе с остальным
   // ходом (путь, торможение у конца пути): иначе бот, идущий медленно к точке, отходил от неё дальше KEYS_DRIFT — и качание тянуло назад
-  else if(ctx === "hold" && J.px != null){ J.ax += b.baseX - J.px; J.ay += b.baseY - J.py; }
+  else if(ctx && J.px != null){ J.ax += b.baseX - J.px; J.ay += b.baseY - J.py; }
   J.px = b.baseX; J.py = b.baseY;
   // качание кончилось (увидел врага, задача, бросок) — клавиша отпущена, ход гасит трение (CS2), а не пропадает мгновенно;
   // перестрелку ведёт 470 — она берёт этот ход себе (fightStrafe, начальная скорость)
@@ -188,7 +190,7 @@ function strafeKeysTick(b, dt){
     if(tick >= J.until){
       if(J.key){ J.key = 0; J.until = tick + Math.max(1, Math.round(peekQ(KEYS_PRO[ctx].gap, keysRand(b, 1))*TICK_HZ)); }
       else { var s = keysRand(b, 3) < KEYS_PRO[ctx].same ? J.last : -J.last;
-        if(ctx === "hold" && J.ax != null){ var off = (b.baseX - J.ax)*J.ux + (b.baseY - J.ay)*J.uy; if(Math.abs(off) > KEYS_DRIFT) s = off > 0 ? -1 : 1; }
+        if(J.ax != null){ var off = (b.baseX - J.ax)*J.ux + (b.baseY - J.ay)*J.uy; if(Math.abs(off) > KEYS_DRIFT) s = off > 0 ? -1 : 1; }
         J.key = s; J.last = s; J.until = tick + Math.max(1, Math.round(peekQ(KEYS_PRO[ctx].press, keysRand(b, 2))*TICK_HZ)); } }
   } else { if(!J.v) return; J.key = 0; }
   var ux = J.ux, uy = J.uy;
