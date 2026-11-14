@@ -195,10 +195,10 @@ function jumpCheckTick(b){
         if((oS.head || oS.body) && tick >= (o.blindUntil||0) && o.facing !== undefined && _angOff(Math.atan2(b.y-o.y, b.x-o.x), o.facing) < 1.05) intelPush(o.team, {type:"spotted", x:b.x, y:b.y, id:b.id, by:o.id, conf:1}); });
     }
     if(J.run && age >= Math.round(RUN_JUMP.air*TICK_HZ)){   // (v575, В144) приземление с бега — громко, ход теряет долю (у про ×0,65)
-      landSound(b, false); b._jc = null; return;
+      landSound(b, false); b._jc = null; landLook(b); return;
     }
     if(!J.run && age === 38){   // приземление, с приседом
-      landSound(b, true); b._jc = null;
+      landSound(b, true); b._jc = null; landLook(b);
     }
     return;
   }

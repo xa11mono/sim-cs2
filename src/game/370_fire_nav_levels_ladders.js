@@ -196,7 +196,7 @@ function ladderTick(bot){
     if(C.G && C.G.bow){ var Lc = Math.hypot(B.x - A.x, B.y - A.y), th = Math.atan2(B.y - A.y, B.x - A.x), k = 4*C.G.bow*Lc*e*(1 - e);
       bot.baseX = bot.x = bot.x - Math.sin(th)*k; bot.baseY = bot.y = bot.y + Math.cos(th)*k; }
     bot.curSpeed = LADDER_SPEED/2.5;
-    if(p >= 1){ bot.z = C.to.z; bot._area = C.to.area; bot._climb = null; bot.path = []; bot.pathIdx = 0; if(C.jump) landSound(bot, false, C.gap && !(C.G && C.G.walkOk) ? "gap" : "up"); }   // (v549) щель, где про прыгают и с шага, — на шифте тихо
+    if(p >= 1){ bot.z = C.to.z; bot._area = C.to.area; bot._climb = null; bot.path = []; bot.pathIdx = 0; if(C.jump) landLook(bot); if(C.jump) landSound(bot, false, C.gap && !(C.G && C.G.walkOk) ? "gap" : "up"); }   // (v549) щель, где про прыгают и с шага, — на шифте тихо
     return true;
   }
   if(bot.z == null || !bot.path || bot.pathIdx >= bot.path.length) return false;

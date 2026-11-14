@@ -485,6 +485,8 @@ function lookArbiter(b){
 // у края (≤ JUMP_TURN_R до точки отталкивания, следующий шаг пути — прыжок) — доворот к yaw0; в полёте — плавно от yaw0 к yaw1.
 // Про к отталкиванию уже смотрят почти по прыжку (фургон → B Apps: +5° → +11°). JUMP_TURN_R — проектное число
 var JUMP_TURN_R = 40;
+var LAND_HOLD = [16, 42, 90];   // тики: сколько держится взгляд после приземления (квартили про, выгрузка 64 Гц Mirage)
+function landLook(b){ b._land = {t: tick, a: b.facing, h: Math.round(handQ(LAND_HOLD, hashRand(tick*71 + b.id.charCodeAt(b.id.length-1)*13), 0.5, 2.1))}; }   // приземлился — держать этот взгляд (jumpLook)
 function jumpLook(b){
   // (v549, владелец 11.11: «прыгает и не поворачивает») углы — на карте, из демок (climbs_bake / gaps_bake): при отталкивании (yaw0), на
   // промежуточной стоянке (yawM), при приземлении (yaw1); между ними — плавно, кратчайшим поворотом. Было (v548): угол к направлению «низ → верх» —
@@ -493,13 +495,22 @@ function jumpLook(b){
   var cand = function(a){ return {lvl: LOOK_LEVEL.jump, kind: "jump", pt: {x: b.x + Math.cos(a)*200, y: b.y + Math.sin(a)*200}, sc: 1}; };
   var C = b._climb, Y = C && C.jump ? (C.G || C.Y) : null;
   // в полёте — от угла, с которым оттолкнулся сам бот (C.a0; отталкивается он не из той же точки, что про), к углу приземления про
-  if(Y){ var ph = climbPhase(C), a0 = C.a0 != null ? C.a0 : Y.yaw0*R, aM = Y.yawM != null ? Y.yawM*R : null;   // (v550) по фазам подъёма (370)
-    if(C.mid && aM != null) return cand(ph.seg === 1 ? lerp(a0, aM, ph.q) : ph.seg === 0 ? aM : lerp(aM, Y.yaw1*R, ph.q));
-    return cand(lerp(a0, Y.yaw1*R, C.mid ? (ph.seg === 2 ? ph.q : 0) : ph.q)); }
+  // (В147) угол на промежуточной стоянке (yawM) не используется: он снят одним кадром выгрузки 4 Гц в миг ухода с ящика — у 37 % подъёмов
+  // Mirage он в стороне > 45° от углов отталкивания и приземления (их разница — медиана 5°), а по выгрузке 64 Гц про между прыжками
+  // поворачивают на 4,7° (медиана; мерка формы air_between). Было: a0 → yawM → yaw1 — у Window боты разворачивались на 100–145° и обратно
+  if(Y){ var ph = climbPhase(C), a0 = C.a0 != null ? C.a0 : Y.yaw0*R;   // (v550) по фазам подъёма (370)
+    var q = C.mid ? (ph.seg === 1 ? ph.q*0.5 : ph.seg === 0 ? 0.5 : 0.5 + ph.q*0.5) : ph.q;
+    return cand(lerp(a0, Y.yaw1*R, q)); }
+  // (В147) после приземления взгляд держится: у про до поворота > 10° проходит q25 / медиана / q75 = 16 / 42 / 90 тиков (выгрузка 64 Гц,
+  // 2555 прыжков) — LAND_HOLD; было: сразу осмотр углов / по ходу (между прыжками цепочки поворот 27–31° против 4,7° у про)
+  var Ld = b._land; if(Ld && tick - Ld.t <= Ld.h && !b._sawEnemy) return cand(Ld.a);
   var P = b._jumpPrep; if(P && tick - P.t <= 2) return cand(P.a);   // у края — доворот к прыжку (370: jumpFaceWait, подход к подъёму)
   if(b.path && b.pathIdx < b.path.length){
-    for(var i = b.pathIdx; i < Math.min(b.path.length, b.pathIdx + 2); i++){ var g = NAV_GAP_AT[navGapKey(b.path[i][0], b.path[i][1])];
-      if(g && Math.hypot(g.a.x - b.x, g.a.y - b.y) <= JUMP_TURN_R) return cand(g.yaw0*R); } }
+    for(var i = b.pathIdx; i < Math.min(b.path.length, b.pathIdx + 3); i++){ var kk = navGapKey(b.path[i][0], b.path[i][1]), g = NAV_GAP_AT[kk];
+      if(g && Math.hypot(g.a.x - b.x, g.a.y - b.y) <= JUMP_TURN_R) return cand(g.yaw0*R);
+      // (В147) и подъём из демок впереди (CLIMB_AT — путь идёт через его верх): между прыжками цепочки взгляд остаётся на прыжке — у про между
+      // прыжками поворот 4,7° (медиана, мерка формы air_between), у ботов был 27–31°: «осмотр углов» (42 %) и «по ходу» (29 %) между прыжками
+      var cu = CLIMB_AT[kk]; if(cu && cu.Y && Math.abs(b.path[i][2] - cu.hi.z) < 1 && Math.hypot(cu.lo.x - b.x, cu.lo.y - b.y) <= JUMP_TURN_R) return cand(cu.Y.yaw0*R); } }
   return null;
 }
 // общий шаг после выбора: не в спину своему, не в стену, плавный поворот (на бегу без цели — по ходу)

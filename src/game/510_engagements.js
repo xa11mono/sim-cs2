@@ -255,9 +255,10 @@ function handQ(q, u, lo, hi){   // жребий u ∈ [0, 1] по квартил
 }
 function handTurn(b, dd, ctx){
   var H = b._hand;
-  if(H && tick < H.t0 + H.T){   // рывок идёт
-    var tau = (tick - H.t0 + 1)/H.T, s = tau*tau*tau*(10 - 15*tau + 6*tau*tau), sp = H.s || 0;
-    b.facing += H.A*(s - sp); H.s = s; return;
+  if(H && tick < H.t0 + H.T){   // рывок идёт: сумма колоколов (составной поворот, возврат после перелёта)
+    H.segs.forEach(function(g){ var a = tick - g.t0 + 1; if(a < 1 || a > g.T) return; var tau = a/g.T, s = tau*tau*tau*(10 - 15*tau + 6*tau*tau);
+      b.facing += g.A*(s - (g.s || 0)); g.s = s; });
+    return;
   }
   if(H && !H.end) H.end = tick;
   if(H && tick < H.end + H.gap) return;   // пауза перед доводкой
@@ -265,17 +266,27 @@ function handTurn(b, dd, ctx){
   var TM = MAP.turnmodel, deg = Math.abs(dd)*180/Math.PI;
   if(!TM){ var st0 = Math.min(Math.abs(dd), 4.5/TICK_HZ); b.facing += dd > 0 ? st0 : -st0; return; }   // набора нет — как раньше (потолок 4,5 рад/с)
   var Bn = TM.bins, bi = 0; while(bi < Bn.length - 2 && deg >= Bn[bi+1]) bi++;
-  var M = TM.model[ctx + "|" + Bn[bi] + "-" + Bn[bi+1]] || TM.model["n|" + Bn[bi] + "-" + Bn[bi+1]];
+  var bk = Bn[bi] + "-" + Bn[bi+1], M = TM.model[ctx + "|" + bk] || TM.model["n|" + bk], SB = (TM.sub || {})[ctx + "|" + bk] || {};
   if(!M){ b.facing += dd; return; }
-  var k = b.id.charCodeAt(b.id.length-1)*7 + b.id.charCodeAt(0)*3;
-  var u1 = hashRand(tick*17 + k), u2 = hashRand(tick*29 + k + 5), u3 = hashRand(tick*41 + k + 11), u4 = hashRand(tick*53 + k + 17);
+  var k = b.id.charCodeAt(b.id.length-1)*7 + b.id.charCodeAt(0)*3, U = function(n){ return hashRand(tick*(17 + 12*n) + k + 6*n); };
   // длительность — из угла и пика: у колокола пик = 1,875·угол / T; пик — жребием по квартилям про для этого угла, T — в пределах квартилей
   // длительности про (у мелких доводок про пик ~0,4°/тик — медленный сдвиг, а не рывок)
-  var pk = handQ(M.pk, u1, 0.7, 1.3), Tq = M.T || [2, 3, 4];
+  var pk = handQ(M.pk, U(0), 0.7, 1.3), Tq = M.T || [2, 3, 4];
   var T = Math.max(2, Math.round(Math.max(Tq[0]*0.7, Math.min(Tq[2]*1.4, 1.875*deg/Math.max(0.05, pk)))));
-  var er = Math.min(HAND_ERR_MAX, handQ(M.ratio, u2, 0.5, 1.2)), over = u3 < (M.back || 0.3);
-  var A = dd*(1 + (over ? er : -er)*(u4 < (M.corr || 0.6) ? 1 : 0));   // промах — в той доле рывков, за которыми у про идёт доводка
-  b._hand = {t0: tick, T: T, A: A, s: 0, end: 0, gap: Math.max(1, Math.round(handQ(M.gap, hashRand(tick*61 + k + 23), 0.5, 1.3)))};
+  // промах: перелёт — с быстрым возвратом (у про — доля SB.pb поворотов, через 1–3 тика, на долю угла SB.bratio); иначе — недолёт в той доле,
+  // за которой у про идёт доводка (M.corr), её делает следующий рывок после паузы
+  var back = U(1) < (SB.pb || 0), A = dd, segs = [];
+  if(back){ var ob = Math.min(HAND_ERR_MAX*deg, handQ(SB.bdeg, U(2), 0.5, 1.2))*Math.PI/180; A = dd + (dd > 0 ? ob : -ob); }   // перелёт — в градусах (демки: 1–8° медиана)
+  else if(U(3) < Math.max(0, (M.corr || 0.6) - (SB.pb || 0))) A = dd*(1 - Math.min(HAND_ERR_MAX, handQ(M.ratio, U(2), 0.5, 1.2)));
+  // составной поворот (у про — доля SB.p): два слитных колокола — разгон и основной, второй с доли SB.at длительности, на долю угла SB.share
+  if(T >= 4 && U(4) < (SB.p || 0)){
+    var at = handQ(SB.at, U(5), 0.8, 1.2), sh = handQ(SB.share, U(6), 0.9, 1.05), t2 = Math.max(1, Math.round(at*T));
+    segs.push({t0: tick, T: Math.max(2, Math.min(T, Math.round(t2*1.25))), A: A*(1 - sh)}); segs.push({t0: tick + t2, T: Math.max(2, T - t2), A: A*sh});   // первый кончается чуть позже начала второго — провал скорости между пиками, как у про
+  } else segs.push({t0: tick, T: T, A: A});
+  var Tend = T;
+  if(back){ var bg = Math.max(1, Math.round(handQ(SB.bgap, U(7), 0.7, 1.3))), bT = Math.max(2, Math.round(T*0.4));
+    segs.push({t0: tick + T + bg - 1, T: bT, A: dd - A}); Tend = T + bg - 1 + bT; }
+  b._hand = {t0: tick, T: Tend, segs: segs, end: 0, gap: Math.max(1, Math.round(handQ(M.gap, U(8), 0.5, 1.3)))};
   handTurn(b, dd, ctx);
 }
 
