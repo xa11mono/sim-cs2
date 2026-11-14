@@ -204,7 +204,7 @@ function jumpCheckTick(b){
   if(sp >= 200 && !b.walking && !b._fc && !b._sawEnemy && !b._climb && !b.onLadder && !b.planting && !b.defusing && !(b.nadeTask && b.nadeTask.runPh) &&
      tick >= (b.throwUntil || 0) && tick - (b._shotAtT||-1e9) >= 2*TICK_HZ && tick - (b.lastShotTick||-1e9) >= 2*TICK_HZ && b.path && b.pathIdx < b.path.length){
     var tn = pathTurnAhead(b, (b.curSpeed || 0)*RUN_JUMP.air), k = 0; while(k < RUN_JUMP.turn.length - 1 && Math.abs(tn) > RUN_JUMP.turn[k]) k++;
-    if(hashRand(tick*613 + b.id.charCodeAt(b.id.length-1)*41 + roundNum*11) < RUN_JUMP.rate[k]/(60*TICK_HZ)){ b._jc = {t: tick, run: true, keys: airKeysPlan(b, tn), v0: b.curSpeed, kt: Math.max(0.1, peekQ(RUN_JUMP.keep, hashRand(tick*71 + b.id.charCodeAt(0)*5)) - RUN_JUMP.keepAcc)}; b._jump = {t: tick, up: true}; return; }
+    if(hashRand(tick*613 + b.id.charCodeAt(b.id.length-1)*41 + roundNum*11) < RUN_JUMP.rate[k]/(60*TICK_HZ)){ b._jc = {t: tick, run: true, tn: tn, keys: airKeysPlan(b, tn), v0: b.curSpeed, kt: Math.max(0.1, peekQ(RUN_JUMP.keep, hashRand(tick*71 + b.id.charCodeAt(0)*5)) - RUN_JUMP.keepAcc)}; b._jump = {t: tick, up: true}; return; }
   }
   if(!JS || !JS.length) return;
   if(b.curSpeed > 20 || b._sawEnemy || b.planting || b.defusing || tick - (b._shotAtT||-1e9) < 2*TICK_HZ || tick - (b.lastShotTick||-1e9) < 2*TICK_HZ) return;
