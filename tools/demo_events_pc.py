@@ -86,6 +86,14 @@ def motion(p, name, od, warm, M):
     df = p.parse_ticks(use, ticks=ticks)
     for c in ('X', 'Y', 'Z', 'yaw', 'pitch', 'velocity_X', 'velocity_Y', 'velocity_Z'):
         if c in df: df[c] = df[c].round(2)
+    if M.get('shape'):   # (В147) на ПК же — признаки формы движения по кускам (tools/motion_shape.py), сырые тики не возвращаются
+        import gzip
+        sys.argv = [sys.argv[0], '--map', 'mirage' if 'mirage' in od.replace('\\', '/') else 'ancient']
+        import motion_shape
+        CL = []; F = motion_shape.features(motion_shape.series_df(df), clips=CL)
+        J = {k: [round(float(x), 3) for x in v] for k, v in F.items()}; J['_clips'] = CL
+        with gzip.open(os.path.join(od, f'{name}_shape.json.gz'), 'wt', encoding='utf-8') as fh: json.dump(J, fh)
+        return f'shape: раундов {len(R)}, тиков {len(df)}, кусков ' + ', '.join(f'{k} {len(v)}' for k, v in sorted(F.items()) if not k.startswith('_'))
     df.to_csv(os.path.join(od, f'{name}_motion.csv.gz'), index=False, compression='gzip')
     return f'motion: раундов {len(R)}, строк {len(df)}' + (f' (без {",".join(drop)})' if drop else '')
 
@@ -124,7 +132,7 @@ def main():
         roots = [os.path.expanduser('~')] + [f'{c}:\\' for c in string.ascii_uppercase if os.name == 'nt' and os.path.isdir(f'{c}:\\')]
     M = req.get('motion')
     if M:   # только демки этой карты, не больше M.demos
-        K = {k: v for k, v in K.items() if v.endswith('maps/%s/demos' % M.get('map', 'mirage'))}
+        if M.get('map', 'mirage') != 'all': K = {k: v for k, v in K.items() if v.endswith('maps/%s/demos' % M.get('map', 'mirage'))}
         K = dict(sorted(K.items())[:int(M.get('demos', 12))])
     found = find_dems(roots, set(K))
     log(f'нашлось .dem: {len(found)} из {len(K)} (искал в: {", ".join(roots)})')
