@@ -8,6 +8,6 @@ __M__.forEach(function(M){ freshMatch(M); var R0=roundNum; while(roundNum<R0+6 &
   var J=b._jc; if(J && J.run && J.t===tick && h.p.length>=8){ var a=h.p[h.p.length-3], c=h.p[h.p.length-7]; h.J={t:tick, h0:Math.atan2(a[1]-c[1],a[0]-c[0]), f0:h.p[h.p.length-2][2], v0:a[3], tn:J.tn, ad:0, L:0, R:0, T:Math.round(RUN_JUMP.air*TICK_HZ)}; }
   var Q=h.J; if(Q){ var age=tick-Q.t; if(age<Q.T){ var k=airKey(b); if(k){ Q.ad++; if(k>0) Q.L=1; else Q.R=1; } if(age===Q.T-1) Q.f1=b.facing; }
    if(age===Q.T+6 && h.p.length>=5){ var p1=h.p[h.p.length-1], p0=h.p[h.p.length-5]; var mv=Math.hypot(p1[0]-p0[0],p1[1]-p0[1])>1?ang(Math.atan2(p1[1]-p0[1],p1[0]-p0[0]),Q.h0):0;
-     JJ.push({tn:Q.tn, mv:mv, cam:ang(Q.f1,Q.f0), keep:p1[3]/Math.max(1,Q.v0), adf:Q.ad/Q.T, both:Q.L&&Q.R}); h.J=null; } }
+     JJ.push({tn:Q.tn, mv:mv, cam:ang(Q.f1,Q.f0), keep:h.p[h.p.length-3][3]/Math.max(1,Q.v0), adf:Q.ad/Q.T, both:Q.L&&Q.R}); h.J=null; } }
  }); } });
 JSON.stringify({JJ:JJ, FB:FB, RM:RM})
