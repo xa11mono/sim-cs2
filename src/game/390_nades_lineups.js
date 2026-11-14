@@ -109,6 +109,10 @@ function lineupTick(){
     // 32 из 72 не брошенных гранат плана CT — флешки «нет выглядывающего»
     if(go && L.pro && L.team === "CT" && L.trigger === "timed" && L.type === "flash" && !npPeekReady("CT", L.to, null) &&
        !bots.some(function(o){ return o.alive && o.team === "CT" && (hasLOS(o.x, o.y, L.to.x, L.to.y) || (o.post && hasLOS(o.post.x, o.post.y, L.to.x, L.to.y))); })) go = false;
+    // (В142, v580) граната CT на тайминг — пока T не могли дойти до её цели (REACH, 200), если с цели видно точку броска: потом идти на эту
+    // точку — выходить под прицел (прогон 240: в 18 раундах первым T заметили CT, шедшего на лайнап; у A на 10–12-й с с T Ramp — 8 убиты;
+    // у про этот молотов в T Ramp летит на 4,3-й с). Известных T потом задерживает ctDelayNade (350). Запас LU_REACH_MARGIN — на дорогу
+    if(go && L.pro && L.team === "CT" && L.trigger === "timed" && luOpenToFoe(L)) go = false;
     // (v429) граната на тайминг «на всякий случай» — не туда, где врага точно нет (все живые враги недавно замечены далеко)
     if(go && L.pro && L.type !== "flash" && ((L.team === "CT" && L.trigger === "timed") || (L.team === "T" && L.trigger === "setup")) && !npFoeMaybe(L.team, L.to)) go = false;
     // (v438) цель уже закрыта смоком (свой смок рядом — облака перекрылись бы, smokeCovered) — второй туда не летит, лайнап закрыт
@@ -249,6 +253,13 @@ function lineupTick(){
   });
 }
 var LU_REACH_PAD = 3;
+var LU_REACH_MARGIN = 2;   // с — проектное число: столько CT идёт до точки броска рядом
+function luOpenToFoe(L){
+  var R = REACH.CT, zi = bzOf(L.to.x, L.to.y); if(!R || zi < 0) return false;
+  if(R[zi] > tick + LU_REACH_MARGIN*TICK_HZ) return false;
+  if(L._los === undefined) L._los = hasLOS(L.from.x, L.from.y, L.to.x, L.to.y) ? 1 : 0;
+  return !!L._los;
+}
 // (док 6) точка броска цели L для бойца b: среди лайнапов той же цели (группа про, 320) своей стороны и сайта — ближайшая по пути из тех,
 // откуда ему можно: хозяину цели по плану гранат — любая; остальным — в зоне его гранаты (npCanUse) или (CT) в зоне, где он сейчас стоит.
 // Зона точки — как у плана: CT — откуда бросок, T — куда падает; колл, ретейк, после планта — зона не важна. Нет такой — null

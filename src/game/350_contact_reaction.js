@@ -254,7 +254,7 @@ function flashSafeFor(b, t){
   return !bots.some(function(o){ if(o === b || !o.alive || o.team !== b.team) return false;
     var k = flashDirK(o, t); return k && BAL.flashMax*k*Math.max(0, 1 - Math.hypot(o.x-t.x, o.y-t.y)/1100) > 0.35; });   // как хлопок (400), без увёртки и колла
 }
-function delayCanThrow(o){ return o.alive && o.team === "CT" && o.nades && (o.nades.molly > 0 || o.nades.smoke > 0) && !o.nadeTask && !o._sawEnemy; }
+function delayCanThrow(o){ return o.alive && o.team === "CT" && o.nades && (o.nades.molly > 0 || o.nades.smoke > 0 || o.nades.he > 0) && !o.nadeTask && !o._sawEnemy; }
 function delayTarget(b){
   var K = b._contact;
   if(K && K.tag === "contact:hold" && tick < K.until)
@@ -274,6 +274,17 @@ function delayTarget(b){
     if(bots.some(function(o){ return o !== b && delayCanThrow(o) && ok(o) && Math.hypot(o.x-ent.x, o.y-ent.y) < dB; })) return;   // кидает ближайший
     if(!best || dB < best.d) best = {x:ent.x, y:ent.y, d:dB, why:"вход "+k};
   });
+  // (В142, v580) не только входы на сайты: T, которых команда только что видела (≤ 1,5 с) или слышала (≤ 2,5 с) где угодно в радиусе
+  // броска, — кидает ближайший, кто может. У про гранаты CT рвутся рядом с T (демки Mirage, 5249 гранат CT: HE — 43 % ближе 150 px от T,
+  // молотов — 75 % ближе 400 px), до планта их 9,5 за раунд; у ботов задержка была только у входов A / B — гранат CT вдвое меньше про
+  if(!best){
+    var fresh = sig.filter(function(sg){ return sg.id && sg.id !== "?" && ((sg.type === "spotted" && tick - sg.tick < 1.5*TICK_HZ) || (sg.type === "sound" && tick - sg.tick < 2.5*TICK_HZ)); })
+      .sort(function(p, q){ return q.tick - p.tick; });
+    fresh.some(function(sg){
+      var dB = Math.hypot(b.x-sg.x, b.y-sg.y); if(dB < DELAY_SAFE || dB > NADE_THROW_RANGE) return false;
+      if(bots.some(function(o){ return o !== b && delayCanThrow(o) && Math.hypot(o.x-sg.x, o.y-sg.y) >= DELAY_SAFE && Math.hypot(o.x-sg.x, o.y-sg.y) < dB; })) return false;
+      best = {x:sg.x, y:sg.y, d:dB, why:calloutName(sg.x, sg.y), seen: sg.type === "spotted"}; return true; });
+  }
   return best;
 }
 function ctDelayNade(b){
@@ -286,7 +297,8 @@ function ctDelayNade(b){
     if(b.nades.he > 0 && !inSmoke) type = "he";
     else if(b.nades.flash > 0 && flashSafeFor(b, t)) type = "flash";
   } else if(!fires.some(function(f){ return Math.hypot(f.x-t.x, f.y-t.y) < NADE.molly.radius; })){
-    type = b.nades.molly > 0 ? "molly" : (b.nades.smoke > 0 ? "smoke" : null);
+    // (v580) T видели в точке — HE (у про CT HE 2,1 за раунд, почти все — в T), иначе молотов, смок, HE
+    type = t.seen && b.nades.he > 0 ? "he" : b.nades.molly > 0 ? "molly" : b.nades.smoke > 0 ? "smoke" : b.nades.he > 0 ? "he" : null;
   }
   if(!type || !assignNade(b, type, t, "задержать: "+t.why, {now:true, here:true})) return;
   b._delayT = tick;

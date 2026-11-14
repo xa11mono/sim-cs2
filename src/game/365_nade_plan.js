@@ -170,7 +170,18 @@ function npCanUse(b, t, m, z){
   var O = NP_ORDER[b.team];
   // (Г3, 04.11, разбор отметок п.9: T3 бросил запланированный смок Connector «себе» в бою — цель осталась без хозяина, её отдали лёркеру
   // за 1300 ед.) граната, закреплённая за целью лайнапа (lu), до конца своего момента — только для этой цели (её кидает лайнап, 390)
-  return L.some(function(it){ return O[it.m] <= O[m] && (!z || !it.z || it.z === z) && !(it.lu && O[it.m] === O[m]); });
+  return L.some(function(it){ return O[it.m] <= O[m] && (!z || !it.z || it.z === z) && !(it.lu && O[it.m] === O[m] && npLuOpen(it.lu)); });
+}
+// (В142, v580) закреплённая за целью лайнапа граната держится за ней, пока окно этой цели открыто: CT по времени — до at + 12 с (390:
+// окно броска), T «сейчас» (инста / сетап) — пока идёт сетап. Окно прошло, лайнап не полетел — граната свободна (задержать, своя).
+// Было: закреплена до конца момента «сейчас» — у CT весь раунд до колла; облако v579a2 м7 + м13: 60 из 154 гранат с лайнапом не брошены,
+// прогон 240: CT погибают с 5,2 гранатами за раунд
+function npLuOpen(grp){
+  var G = PRO_GROUPS[grp]; if(!G || !G.length) return true;
+  var L0 = G[0], since = tick - roundStartTick;
+  if(L0.team === "CT" && L0.trigger === "timed") return G.some(function(L){ return since < ((L.at || 0) + 12)*TICK_HZ; });
+  if(L0.team === "T" && (L0.trigger === "insta" || L0.trigger === "setup")) return !teamTac.T || teamTac.T.phase === "setup";
+  return true;
 }
 // почему нельзя — для лога: на какой момент она отложена
 function npWhyNot(b, t){ var it = (b._nplan || []).filter(function(q){ return q.t === t; })[0]; return it ? "бережёт на «"+(NP_LABEL[it.m] || it.m)+"»" : ""; }
