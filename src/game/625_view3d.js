@@ -10,6 +10,8 @@
 // Координаты сцены: x, z — px радара 0..2048 (z = y радара), y — высота = ед. игры × 0,4 (1 px радара = 2,5 ед.).
 // Камера: цель и приближение — из view (обсервер ведёт её и в 3D), поворот и наклон — свои (D3.yaw / D3.pitch).
 // Цвета — токены :root (--v3-*, DESIGN.md «3D-вид»).
+var D3_FP_AIM = 0.26, D3_FP_PRATE = 87*Math.PI/180, D3_FP_PEASE = 6;   // от первого лица: на врага — если смотрит в ± 15°; наклон ≤ 87°/с (p99 про); плавность 6/с — проектное
+var D3_TR_SHOT = 58, D3_TR_HIT = 50;   // ед. игры: трассер — от оружия у глаз (глаза 64), в грудь цели (проектные)
 var D3 = {on: false, xray: false, sims: true, corpse: {}, mode: "view", tgt: null, nadeLast: null, style: 0, cam: "view", hist: {}, fpId: null, noTags: false, gl: null, built: false, failed: null, yaw: 0, pitch: 0.95, yawT: 0, pitchT: 0.95, top: false, lock: false,
           tz: null, drag: null, tagEls: {}, nadeZ: [], smZ: new WeakMap(), trZ: new WeakMap()};
 var D3_KZ = 0.4;               // ед. игры → px радара (высота)
@@ -490,10 +492,19 @@ function d3Frame(opt){
     var al0 = Math.max(0, Math.min(1, accumulator / TICK_MS)), fx = fpb.px + (fpb.x - fpb.px)*al0, fy = fpb.py + (fpb.y - fpb.py)*al0;
     var ff = fpb._visFacing !== undefined ? fpb._visFacing : (fpb.facing || 0);
     var eh = (fpb.crouching ? 46 : 64)*D3_KZ, ez = (fpb.z || 0)*D3_KZ + eh;
-    // наклон по высоте: виден враг — на него (грудь); нет — на пол в 200 ед. впереди на высоте глаз (лестница, спуск)
-    var en = (fpb._visible || []).filter(function(o){ return o.alive && o.team !== fpb.team; })[0], ty;
-    if(en){ ty = ((en.z || 0) + (en.crouching ? 46 : 62))*D3_KZ; tgt = [en.x, ty, en.y]; }   // прицел — на голову (бот целится в видимое, чаще в голову)
-    else { var ax = fx + Math.cos(ff)*80, ay = fy + Math.sin(ff)*80; ty = d3FloorBelow(ax, ay, (fpb.z || 0) + 60)*D3_KZ + eh; tgt = [ax, ty, ay]; }
+    // (владелец 14.11: «камера резко прыгает», «взгляд — плавно, как в демках») поворот — взгляд бота из игры (_visFacing: прицел с запаздыванием,
+    // 510); наклон по высоте — к голове врага, только если бот смотрит на него (± D3_FP_AIM рад), иначе — к полу впереди на высоте глаз;
+    // наклон догоняет нужный не быстрее, чем у про: демки Mirage (motion, 789 тыс. тиков) — |Δpitch| за тик: медиана 0°, p90 0,2°, p99 1,36°
+    // (≈ 87°/с) — D3_FP_PRATE; плавность — D3_FP_PEASE (проектное). Было: виден враг — камера сразу на его голову
+    var en = (fpb._visible || []).filter(function(o){ return o.alive && o.team !== fpb.team; })
+      .filter(function(o){ var da = Math.atan2(o.y - fy, o.x - fx) - ff; da = Math.atan2(Math.sin(da), Math.cos(da)); return Math.abs(da) < D3_FP_AIM; })[0], ty, hd;
+    if(en){ ty = ((en.z || 0) + (en.crouching ? 46 : 62))*D3_KZ; hd = Math.max(8, Math.hypot(en.x - fx, en.y - fy)); }
+    else { var ax = fx + Math.cos(ff)*80, ay = fy + Math.sin(ff)*80; ty = d3FloorBelow(ax, ay, (fpb.z || 0) + 60)*D3_KZ + eh; hd = 80; }
+    var pD = Math.atan2(ty - ez, hd), nowP = performance.now(), FP = D3.fpP;
+    if(!FP || FP.id !== fpb.id || nowP - FP.t > 500) FP = D3.fpP = {id: fpb.id, p: pD, t: nowP};
+    var dtP = Math.min(0.1, (nowP - FP.t)/1000), stP = D3_FP_PRATE*dtP, dP = (pD - FP.p)*Math.min(1, dtP*D3_FP_PEASE);
+    FP.p += Math.max(-stP, Math.min(stP, dP)); FP.t = nowP;
+    tgt = [fx + Math.cos(ff)*Math.cos(FP.p)*100, ez + Math.sin(FP.p)*100, fy + Math.sin(ff)*Math.cos(FP.p)*100];
     eye = [fx, ez, fy];
     if(mode === "chase"){   // за спиной: сзади и чуть сверху; стена между игроком и камерой — камера ближе (не уходит в текстуры)
       var M3c = m3(), back = 70, up2 = 18;
@@ -515,7 +526,7 @@ function d3Frame(opt){
   if(mode === "nade"){ var NC = d3NadeCam(); if(NC){ eye = NC.eye; tgt = NC.tgt; fov = 60*Math.PI/180; near = 1; far = 3000; dist = 260; } }
   // (владелец 13.11: «сразу переключается на убийство, непонятно за кем смотришь», «камера за гранатой дёргается») камера не прыгает:
   // глаз, цель и угол обзора плавно догоняют нужные (обзор с мышью — без задержки)
-  if(!opt.w){ var CS = D3.cs, k3 = (mode === "view" && D3.cam === "view") ? 1 : (mode === "nade" ? 0.12 : mode === "flythru" ? 0.15 : mode === "spawn" ? 0.05 : (mode === "fp" && D3.cam === "fp") ? 0.35 : 0.08);
+  if(!opt.w){ var CS = D3.cs, k3 = (mode === "view" && D3.cam === "view") ? 1 : (mode === "nade" ? 0.12 : mode === "flythru" ? 0.15 : mode === "spawn" ? 0.05 : mode === "fp" ? 1 : 0.08);   // (14.11) от первого лица — взгляд бота как есть (плавность — у прицела, выше)
     if(!CS || CS.mode !== mode && k3 === 1){ CS = D3.cs = {eye: eye.slice(), tgt: tgt.slice(), fov: fov, mode: mode}; }
     else { for(var ci = 0; ci < 3; ci++){ CS.eye[ci] += (eye[ci] - CS.eye[ci])*k3; CS.tgt[ci] += (tgt[ci] - CS.tgt[ci])*k3; } CS.fov += (fov - CS.fov)*k3; CS.mode = mode; }
     eye = CS.eye.slice(); tgt = CS.tgt.slice(); fov = CS.fov; }
@@ -542,7 +553,7 @@ function d3Frame(opt){
     gl.useProgram(pM.p);
   }
   // мир со срезом и его рёбра — вид по D3_STYLES (кнопка в колонке): непрозрачный — сразу, прозрачный — последним (видно игроков за стенами)
-  var Wd = D3.world, pW = D3.pW, inFp = D3.mode === "fp", cut = (inFp ? 320 : D3_CUT)*D3_KZ, low = D3_LOW*D3_KZ, sims = D3.sims && !inFp ? 1 : 0, STY = inFp ? D3_STYLES[2] : (D3_STYLES[D3.style] || D3_STYLES[0]);   // от первого лица — стены сплошные
+  var Wd = D3.world, pW = D3.pW, inFp = D3.mode === "fp", cut = (inFp ? 1e5 : D3_CUT)*D3_KZ, low = D3_LOW*D3_KZ, sims = D3.sims && !inFp ? 1 : 0, STY = inFp ? D3_STYLES[2] : (D3_STYLES[D3.style] || D3_STYLES[0]);   // от первого лица — стены сплошные
   var drawWorld = function(){
     if(!Wd.cnt) return;
     gl.useProgram(pW.p); gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, Wd.ftex.tex);
@@ -670,9 +681,16 @@ function d3Frame(opt){
     var age = nowTs - t.born; if(age > 260) return;
     var zz = D3.trZ.get(t);
     if(!zz){ var near = function(x, y){ var best = null, bd = 18; bots.forEach(function(o){ var d = Math.hypot(o.x - x, o.y - y); if(d < bd && o.z != null){ bd = d; best = o.z; } }); return best; };
-      var z1 = near(t.x1, t.y1), z2 = near(t.x2, t.y2); if(z1 == null) z1 = d3FloorNear(t.x1, t.y1, null); if(z2 == null) z2 = z1; zz = [z1, z2]; D3.trZ.set(t, zz); }
+      var z1 = near(t.x1, t.y1), z2 = near(t.x2, t.y2), hitB = z2 != null; if(z1 == null) z1 = d3FloorNear(t.x1, t.y1, null);
+      if(z2 == null){   // у конца никого — игрок у линии выстрела (в 30 px), иначе высота стрелка
+        var lx = t.x2 - t.x1, ly = t.y2 - t.y1, l2 = lx*lx + ly*ly || 1;
+        bots.forEach(function(o){ if(!o.alive || o.z == null || z2 != null) return; var u = ((o.x - t.x1)*lx + (o.y - t.y1)*ly)/l2; if(u < 0.05 || u > 1.05) return;
+          if(Math.hypot(t.x1 + lx*u - o.x, t.y1 + ly*u - o.y) < 30){ z2 = o.z; hitB = true; } }); }
+      if(z2 == null) z2 = z1; zz = [z1, z2, hitB]; D3.trZ.set(t, zz); }
     var k = 1 - age/260, tc2 = t.team === "CT" ? [0.56, 0.75, 0.94] : [0.96, 0.75, 0.38];
-    var A3 = [t.x1, zz[0]*D3_KZ + 21*1.15*0.7, t.y1], B3 = [t.x2, zz[1]*D3_KZ + 21*1.15*0.6, t.y2];
+    // (владелец 14.11: «трассеры не совпадают со взглядом по высоте — уходят в стену») от высоты оружия у глаз стрелка (D3_TR_SHOT ед.) — к груди
+    // того, в кого шла пуля (zz[2]: игрок у конца или у линии выстрела); никого — на той же высоте. Было: 42 / 36 ед. над полом — ниже прицела
+    var A3 = [t.x1, (zz[0] + D3_TR_SHOT)*D3_KZ, t.y1], B3 = [t.x2, (zz[1] + (zz[2] ? D3_TR_HIT : D3_TR_SHOT))*D3_KZ, t.y2];
     TRC.push([A3, B3, [tc2[0], tc2[1], tc2[2], 0.9*k], t.hit]);
   });
   // (владелец 13.11: «нет трассеров») луч — вытянутый брусок, светится (линия WebGL в 1 px не видна)
