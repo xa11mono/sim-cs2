@@ -38,6 +38,10 @@ _SF = os.path.join(HERE, '..', 'data', 'sounds', 'sounds.json')
 if os.path.exists(_SF):
     s = s.replace('/*@@SOUNDS@@*/', 'SND_DATA = ' + open(_SF, encoding='utf-8').read() + ';')   # (v306) опубликованная страница начинается с разминки; sim.html — нет (замеры, снимки)
 assert '__ev' not in s
+# (14.11) строки, целиком состоящие из комментария «//», в публикуемой странице не нужны (~0,9 МБ на Ancient; лимит страницы — 16 МБ);
+# код и данные не меняются. Проверено: страница загружается без ошибок, матч идёт
+import re as _re
+s = '\n'.join(l for l in s.split('\n') if not _re.match(r'^\s*//', l))
 open(os.path.join(HERE, '..', MAPNAME + '-radar.html'), 'w', encoding='utf-8').write(s)
 from syntaxcheck import check; check(os.path.join(HERE, '..', MAPNAME + '-radar.html'))   # (v461)
 print(len(s))
