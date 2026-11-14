@@ -236,8 +236,22 @@ function resolveEngagements(){
         // (В147, владелец 14.11: «как поворачивается кружочек — точь-в-точь как у про») поворот — рукой (handTurn): рывок с колоколом скорости,
         // длительность по углу, промах и пауза перед доводкой — из демок (MAP.turnmodel). Было: затухание SL.ease с потолком SL.calmRate —
         // ровный медленный разворот (мерка формы tools/motion_shape.py: угол / время / пик поворота вне боя — разница 81 / 63 / 67 %)
-        if(Math.abs(dd) >= HAND_START) b._aimFix = true; else if(Math.abs(dd) <= 0.01) b._aimFix = false;
-        handTurn(b, dd, "n");
+        // (В147) точка та же, сдвинулось тело (качание A/D на месте, шаг мимо угла) — взгляд ведёт точку плавно, как в бою (порог AIM_TRACK_BAND,
+        // запаздывание AIM_LAG), а не рывком руки: рывок — новое намерение (сменилась точка) или доводка промаха руки (≥ HAND_START); ведение —
+        // мышь держит угол, мелкий уход (< 1,7°) не правится. Не в паузе после рывка — там у человека мышь стоит. Было: при каждом сдвиге тела на
+        // 2° — рывок, пауза, доводка: стоя 30 мелких поворотов в минуту против 9 у про, шагом 61 против 39 (turn_rate.py)
+        var W0 = b._lkW, same = W0 && W0.t === tick - 1 && Math.abs(W0.x - look.x) < 0.5 && Math.abs(W0.y - look.y) < 0.5;
+        b._lkW = {x: look.x, y: look.y, w: want, t: tick};
+        var hBusy = b._hand && tick < b._hand.t0 + b._hand.T + b._hand.gap;
+        if(same && !hBusy && Math.abs(dd) < HAND_START){
+          if(Math.abs(dd) >= AIM_TRACK_BAND) b._aimTrk = true; else if(Math.abs(dd) <= AIM_TRACK_BAND/5) b._aimTrk = false;
+          if(b._aimTrk){ var tr = Math.max(AIM_TRACK_MIN, Math.abs(dd)*(1 - Math.exp(-1/(AIM_LAG*TICK_HZ)))); b.facing += Math.max(-tr, Math.min(tr, dd)); }
+          b._aimFix = false;
+        } else {
+          b._aimTrk = false;
+          if(Math.abs(dd) >= HAND_START) b._aimFix = true; else if(Math.abs(dd) <= 0.01) b._aimFix = false;
+          handTurn(b, dd, "n");
+        }
       }
     }
   });
