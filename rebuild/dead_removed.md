@@ -306,3 +306,38 @@ function stepNeedsJump(x1, y1, x2, y2, b){
 ```js
 function rpLerpAng(a, b, f){ if(isNaN(a)) return b; if(isNaN(b)) return a; var d = ((b - a + Math.PI*3) % (Math.PI*2)) - Math.PI; return a + d*f; }
 ```
+
+# Дубли, сведённые в фазе 1 (15.11): одинаковый код слово в слово (тело и параметры) — вызовы переведены на одну функцию
+
+- `medWArea` (`src/game/570_maped_core_walls.js:171`) → `covPolyArea`:
+
+```js
+function medWArea(p){ var a = 0; for(var i=0;i<p.length;i++){ var b = p[(i+1)%p.length]; a += p[i][0]*b[1] - b[0]*p[i][1]; } return Math.abs(a)/2; }
+```
+
+- `sbBot` (`src/game/677_sandbox.js:12`) → `teamBot`:
+
+```js
+function sbBot(id){ for(var i = 0; i < bots.length; i++) if(bots[i].id === id) return bots[i]; return null; }
+```
+
+- `smokeOnLine` (`src/game/360_nades_buy_smoke_vision.js:100`) → `smokeBlocks`:
+
+```js
+function smokeOnLine(x1,y1,x2,y2){
+  for(var i=0;i<smokes.length;i++){ var s = smokes[i], r = smokeRadiusNow(s); if(r > 8 && areaSegHits(s, r, x1,y1,x2,y2)) return true; }
+  return false;
+}
+```
+
+- `medBR` (`src/game/600_maped_wallbang.js:5`) → `medWR`:
+
+```js
+function medBR(v){ return Math.round(v*10)/10; }
+```
+
+- `dvEsc` (`src/game/678_demo_view.js:81`) → `sbEsc`:
+
+```js
+function dvEsc(s){ return String(s == null ? "" : s).replace(/[&<>]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;"}[c]; }); }
+```
