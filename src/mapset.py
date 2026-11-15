@@ -37,7 +37,7 @@ def nade_hash(name):
         if fn.startswith(NADE_SRC): h.update(fn.encode()); h.update(open(os.path.join(g, fn), 'rb').read())
     d = os.path.join(MAPS, name)
     for fn in sorted(os.listdir(d)):
-        if fn.endswith('.json') and not fn.startswith('_') and fn not in NOT_MAP and fn not in ('nadeguess.json', 'demorounds.json'):   # (v571) раунды демок (678) к броскам не относятся
+        if fn.endswith('.json') and not fn.startswith('_') and fn not in NOT_MAP and fn not in ('nadeguess.json', 'demorounds.json', 'turnmodel.json'):   # (v571) раунды демок (678) к броскам не относятся; (15.11) модель поворота прицела (510) — тоже: с ней отпечаток не совпадал, и сборка выкидывала подбор бросков во всех прогонах В147 (249–252)
             h.update(fn.encode()); h.update(open(os.path.join(d, fn), 'rb').read())
     return h.hexdigest()[:16]
 
