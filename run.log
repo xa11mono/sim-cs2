@@ -1,0 +1,24 @@
+playwright 1.56.0, браузеры: C:\Windows\system32\config\systemprofile\.simcs2_node\ms-playwright
+> git fetch --quiet origin fefc98b8d4426274c68da45e0b3c3787eb7f4703
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_r9ryeben FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_r9ryeben\src\build.py --map mirage C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v582a6_fp_mir.html
+> git fetch --quiet origin fefc98b8d4426274c68da45e0b3c3787eb7f4703
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_8r16ncep FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_8r16ncep\src\build.py --map ancient C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v582a6_fp_anc.html
+fp v582a6_fp_mir.html m3
+fp v582a6_fp_mir.html m7
+fp v582a6_fp_mir.html m11
+fp v582a6_fp_mir.html m13
+fp v582a6_fp_mir.html m17
+fp v582a6_fp_mir.html m19
+fp v582a6_fp_mir.html m23
+fp v582a6_fp_mir.html m29
+fp v582a6_fp_anc.html m3
+fp v582a6_fp_anc.html m7
+fp v582a6_fp_anc.html m11
+fp v582a6_fp_anc.html m13
+fp v582a6_fp_anc.html m17
+fp v582a6_fp_anc.html m19
+fp v582a6_fp_anc.html m23
+fp v582a6_fp_anc.html m29
+all done
