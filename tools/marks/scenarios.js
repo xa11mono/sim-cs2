@@ -1,8 +1,11 @@
 // (15.11, перестройка, фаза 2) проверки по отметкам владельца: снимок отметки → повторяемый сценарий с ответом «да / нет».
-// Список — rebuild/scenarios.json: [{id, map, snap, ask, steps?, check, expect?}]
+// Список — rebuild/scenarios.json: [{id, map, pre, tick, snap?, ask, steps?, check, expect?}] (pre + tick — главный путь; snap — только если снимка до нет)
 //   snap   — файл снимка (tools/marks/snaps/<id>.json — снимок отметки, mkPack), путь от корня репо
 //   ask    — вопрос словами владельца («CT0 держит угол на Jungle, а не бежит?»)
-//   steps  — сколько тиков проиграть от снимка перед проверкой (по умолчанию 0)
+//   pre    — снимок за 15 с до отметки (preSnap, есть у отметок с v401) — ГЛАВНЫЙ путь (замечание владельца 15.11): снимок момента
+//            уже несёт принятое решение, новый код его не пересматривает; от pre игра пересчитывается до тика отметки (tick) новым кодом
+//   tick   — тик отметки (с pre обязателен): до него — пересчёт, потом steps
+//   steps  — сколько тиков проиграть после момента отметки перед проверкой (по умолчанию 0)
 //   check  — код в игре, возвращает true / false (можно смотреть всё: bots, tick, bomb, b._dlog …)
 //   expect — какой ответ правильный (по умолчанию true); «нет» там, где ошибка ушла, — пишется как expect: false
 // Запуск: node tools/marks/scenarios.js [--map=mirage] [--only=id1,id2]   (сборка — python3 src/build.py --map <карта> во временную папку)
@@ -25,7 +28,8 @@ const opt = Object.fromEntries(process.argv.slice(2).filter(a => a.startsWith("-
     let ans, err = "";
     try {
       await pg.goto(require("url").pathToFileURL(sims[s.map]).href); await pg.waitForFunction(() => typeof window.__ev === "function", null, { timeout: 60000 });
-      await pg.evaluate(t => window.__ev("mkOpenSnap")(t), fs.readFileSync(path.resolve(ROOT, s.snap), "utf8"));
+      await pg.evaluate(t => window.__ev("mkOpenSnap")(t), fs.readFileSync(path.resolve(ROOT, s.pre || s.snap), "utf8"));
+      if (s.pre) await pg.evaluate(t => window.__ev("paused = true; var __n = 0; while(tick < " + (t | 0) + " && __n++ < 200000) stepTick(); tick"), s.tick);
       ans = await pg.evaluate(([n, code]) => window.__ev("paused = true; for(var __i = 0; __i < " + (n | 0) + "; __i++) stepTick(); !!(function(){ return (" + code + "); })()"), [s.steps || 0, s.check]);
     } catch (e) { err = String(e.message || e).split("\n")[0]; }
     await pg.close();

@@ -338,9 +338,15 @@ function mkJump(d){
   if(!d.snapAsset){ mkToast("У этой отметки нет снимка игры (сделана до v175) — открыть точно нельзя"); return; }
   if(MK.busy) return;
   MK.busy = true; paused = true; mkPauseLabel();
-  fetch("/_blob/" + d.snapAsset).then(function(r){ if(!r.ok) throw new Error("HTTP " + r.status); return r.text(); })
-    .then(function(t){ mkOpenSnap(t); MK.busy = false; mkPauseLabel();
-      mkToast("Отметка: матч " + d.match + ", раунд " + d.round + ", " + mkClock(d.roundTime) + " — открыта из снимка"); })
+  // (15.11, замечание владельца: «кликнул отметку — тот же раунд, приходится мотать назад 10 с, чтобы пересчитался») снимок в момент
+  // отметки уже несёт принятое (ошибочное) решение — новый код его не пересматривает. Есть снимок за MK_PRE_SEC до — открываем его и
+  // пересчитываем до момента отметки кодом этой страницы (решения принимаются заново); нет — как раньше, снимок момента.
+  var pre = !!d.preSnapAsset && d.preTick != null && d.preTick < d.tick;
+  fetch("/_blob/" + (pre ? d.preSnapAsset : d.snapAsset)).then(function(r){ if(!r.ok) throw new Error("HTTP " + r.status); return r.text(); })
+    .then(function(t){ mkOpenSnap(t); MK.busy = false;
+      var msg = "Отметка: матч " + d.match + ", раунд " + d.round + ", " + mkClock(d.roundTime);
+      if(!pre){ mkPauseLabel(); mkToast(msg + " — открыта из снимка момента (снимка до нет — пересчёта нет)"); return; }
+      mkGoTo(matchNum, d.tick, function(ok){ mkToast(msg + (ok ? " — пересчитана этой версией с " + Math.round((d.tick - d.preTick)/TICK_HZ) + " с до отметки" : " — пересчёт не удался")); }); })
     .catch(function(e){ MK.busy = false; mkToast("Не удалось открыть снимок отметки: " + (e && e.message)); });
 }
 function mkCopyAll(){
