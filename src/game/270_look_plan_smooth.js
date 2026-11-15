@@ -229,10 +229,6 @@ function lookPlan(team){
   list.forEach(function(b){
     var p = b._lkPick, why = [];
     if(p && p.sc < LOOK.minScore){ why.push("лучший угол слабее порога " + LOOK.minScore); p = null; }
-    if(p && b._lkZ != null && p.j !== b._lkZ && !p.fresh && tick - (b._lkSince||0) < LOOK.minDwell){
-      var cur = b._lkC.filter(function(c){ return c.j === b._lkZ; })[0];
-      if(cur && p.sc < LOOK.switchK * cur.sc){ why.push("держит старый угол: новый не в " + LOOK.switchK + " раза сильнее"); p = cur; }
-    }
     // (v260, В3) стоя без свежей инфы — изредка проверяет второй сильный угол, если он сбоку/за спиной
     // (игрок на месте не держит спиной вход, откуда тоже могут прийти). Угол, который держит тиммейт, уже
     // ослаблен дележом выше и сюда не проходит. Числа LOOK.check* — проектные
@@ -246,7 +242,7 @@ function lookPlan(team){
           b._chkNext = tick + Math.round((1 + hashRand(tick*7 + b.id.charCodeAt(b.id.length-1)*13)) * LOOK.checkEvery*TICK_HZ); }
       }
     } else b._chk = null;
-    if((p ? p.j : null) !== b._lkZ){ b._lkSince = tick; b._lkZ = p ? p.j : null; }
+    if((p ? p.j : null) !== b._lkZ){ b._lkZ = p ? p.j : null; }
     b._lkPt = p ? p.pt : null;
     if(LOOKDBG.on) b._ldPlan = {tick: tick, pick: p ? p.j : null, why: why, cands: b._lkC.map(function(c){ return {j: c.j, pt: c.pt, src: c.src, pos: c.pos, sc: c.sc, f: c.f, fresh: c.fresh, snd: c.snd, pro: c.pro}; })};
     b._lkTop = b._lkC.slice().sort(function(x, y){ return y.sc - x.sc; }).slice(0, 3).map(function(c){ return [c.pro ? "как у про" : c.snd ? "звук/контакт" : typeof c.j === "string" ? "свой угол" : c.j >= 1000 ? "выход из " + (ZONE_NAMES[BZ.ids[c.j-1000]] || BZ.ids[c.j-1000]) : (ZONE_NAMES[BZ.ids[c.j]] || BZ.ids[c.j]), c.sc]; });
@@ -257,9 +253,11 @@ function lookPlan(team){
 // У про взгляд "туда-обратно" больше 45° за полсекунды — 0,8 раза в минуту,
 // у ботов было 4,6: каждые 8 тиков делёж углов в команде мог перекинуть
 // бота на другой вход и тут же вернуть. Теперь: без срочной причины новое
-// направление принимается, только если старое продержалось ≥0,8с (стоя) /
-// 0,5с (на ходу), и не возвращаемся к только что брошенному направлению 1,5с.
-var SL = {backBlock: 96, backAlert: 40, same: 0.35, refine: 0.09,
+// направление принимается, только когда старое продержалось срок удержания (slHold — паузы про из демок, В147).
+// (15.11, перестройка, фаза 3 шаг 3) удержание взгляда — одно: slHold. Убраны дубли по проектным числам: «не менять зону раньше
+// LOOK.minDwell» (48 тиков, lookPlan) и «не возвращаться к брошенному углу» SL.backBlock / backAlert (96 / 40 тиков) с исключением
+// lookPtAlive (v448) — держали взгляд в ≈ 2 % решений каждый, slHold — в 37 % (замер 15.11, 2 матча Mirage).
+var SL = {refine: 0.09,
           glEvery: [70, 120], glDur: 44, glMin: 0.55, glMax: 2.2, glSc: 0.05};
 // 2 — бой (враг виден, прикрытие ослеплённого, спам, бросок): без фильтра;
 // 1 — тревога (свежий звук/контакт рядом): поворот быстрый, но тоже без
@@ -284,10 +282,6 @@ function lookUrgent(b){
   if(b._tradeLock && tick < b._tradeLock.until) return 1;
   if(hs && hs.team && hs.team !== b.team && tick - hs.tick <= 96 && Math.hypot(hs.x-b.x, hs.y-b.y) < 300) return 1;
   return 0;
-}
-function lookPtAlive(b, pt){
-  if(!pt) return false; var a = Math.atan2(pt.y-b.y, pt.x-b.x);
-  return (b._lkC || []).some(function(c){ return c && c.pt && c.sc > 0 && _angOff(Math.atan2(c.pt.y-b.y, c.pt.x-b.x), a) < SL.same; });
 }
 // (В147) сколько держать взгляд на точке — жребием по распределению про для ситуации (стоит / шагом / бегом), MAP.turnmodel.dwell (квантили
 // 10/25/50/75/90 пауз между поворотами ≥ 5°, tools/measure/motion/pro_dwell.py): стоя у про медиана 59 тиков, у четверти — 200+. Было: минимум
@@ -336,18 +330,14 @@ function smoothLookFilter(b, look, urgent){
     if(!moving){ return look; }
     if(urgent === 2){ b._sl = null; return look; }
     if(S && S.pt && tick - S.since < slHold(b, S, true)) return S.pt;                    // угол ещё не «досмотрели»
-    if(!S || S.pt) b._sl = {pt:null, since:tick, prev: S ? S.pt : null, left:tick}; // переходим на «по ходу»
+    if(!S || S.pt) b._sl = {pt:null, since:tick}; // переходим на «по ходу»
     return look;
   }
   var aN = Math.atan2(look.y-b.y, look.x-b.x);
-  if(urgent === 2 || !S){ b._sl = {pt:{x:look.x, y:look.y}, since:tick, prev: S ? S.pt : null, left: tick}; return look; }
+  if(urgent === 2 || !S){ b._sl = {pt:{x:look.x, y:look.y}, since:tick}; return look; }
   if(!S.pt){                                                                     // сейчас смотрит по ходу
     if(moving && tick - S.since < slHold(b, S, true, !!urgent)) return null;
-    if(moving && S.prev && tick - S.since < (urgent ? SL.backAlert : SL.backBlock)){
-      var aQ = Math.atan2(S.prev.y-b.y, S.prev.x-b.x), dQ = Math.abs(((aN-aQ+Math.PI)%(2*Math.PI)+2*Math.PI)%(2*Math.PI)-Math.PI);
-      if(dQ < SL.same) return null;                                              // не возвращаемся сразу к брошенному углу
-    }
-    b._sl = {pt:{x:look.x, y:look.y}, since:tick, prev:null, left:tick}; return look;
+    b._sl = {pt:{x:look.x, y:look.y}, since:tick}; return look;
   }
   var aS = Math.atan2(S.pt.y-b.y, S.pt.x-b.x);
   var dA = Math.abs(((aN-aS+Math.PI)%(2*Math.PI)+2*Math.PI)%(2*Math.PI)-Math.PI);
@@ -357,16 +347,7 @@ function smoothLookFilter(b, look, urgent){
   if(dA < SL.refine){ S.pt = {x:look.x, y:look.y}; return look; }          // то же направление — просто уточняем точку (В147: до 5°, было до 20° — SL.same; сдвиги 5–20° шли без удержания: крупных поворотов в 1,7 раза больше про)
   var hold = slHold(b, S, moving, !!urgent);   // (15.11) тревога — паузы про в перестрелке; было SL.holdAlert (16 тиков, проектное)
   if(tick - S.since < hold) return S.pt;                                    // старое ещё не "досмотрели"
-  // (v448, док владельца 28.10 №4: игрок 4 «перебивает взгляд» — м1 т1368–1450 держал точку T Roof 1,3 с, хотя её уже никто не предлагал,
-  // а запрет «не возвращаться к брошенному» не пускал к T Ramp, куда звал делёж) держимая точка, которую не предлагает ни один вариант
-  // взгляда (lookCands) и ни свой путь, — не держится дольше hold: запрет возврата — против метаний между двумя живыми вариантами
-  if(moving && !lookPtAlive(b, S.pt)){ b._sl = {pt:{x:look.x, y:look.y}, since:tick, prev:S.pt, left:tick}; return look; }
-  if(S.prev && tick - S.left < (urgent ? SL.backAlert : SL.backBlock)){                                // не возвращаться сразу к брошенному
-    var aP = Math.atan2(S.prev.y-b.y, S.prev.x-b.x);
-    var dP = Math.abs(((aN-aP+Math.PI)%(2*Math.PI)+2*Math.PI)%(2*Math.PI)-Math.PI);
-    if(dP < SL.same && tick - S.since < (urgent ? SL.backAlert : SL.backBlock)) return S.pt;
-  }
-  b._sl = {pt:{x:look.x, y:look.y}, since:tick, prev:S.pt, left:tick};
+  b._sl = {pt:{x:look.x, y:look.y}, since:tick};
   return look;
 }
 // (v273) разбор взгляда: какой бот выбран для показа (галочка «разбор взгляда» + клик по игроку). Только для записи —
