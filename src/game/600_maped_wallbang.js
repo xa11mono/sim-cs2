@@ -2,14 +2,14 @@
 // Выделено: кусок из списка (sel = id) или стена без разметки (wall = точка клика).
 var MED_B = { tool: "select", sel: null, wall: null, rect: null };
 function medBSel(){ return wbList().filter(function(c){ return c.id === MED_B.sel || c.ownId === MED_B.sel; })[0] || null; }
-function medBR(v){ return Math.round(v*10)/10; }
+// (15.11, перестройка) medBR — тот же код, что medWR: вызовы переведены на medWR
 // правка выделенного: f — {on?, mat?, t?}; совпало с автоматическим — правка убирается
 function medBApply(f){
   var c = medBSel();
   if(!c && MED_B.wall){         // стена без разметки → новая отметка «простреливается»
     if(f.on === false) return;
     var p = MED_B.wall, id = "w" + Math.round(p[0]) + "_" + Math.round(p[1]);
-    mapEdDo(function(){ WB_OWN[id] = {pt: [medBR(p[0]), medBR(p[1])], on: true, mat: f.mat || "wood", t: f.t || 8}; });
+    mapEdDo(function(){ WB_OWN[id] = {pt: [medWR(p[0]), medWR(p[1])], on: true, mat: f.mat || "wood", t: f.t || 8}; });
     MED_B.sel = id; MED_B.wall = null; mapEdRefresh(); return;
   }
   if(!c) return;
@@ -117,10 +117,10 @@ mapEdAddTab({
   move: function(w){ if(MED_B.rect){ MED_B.rect.x1 = w.x; MED_B.rect.y1 = w.y; } },
   up: function(){
     var r = MED_B.rect; if(!r) return; MED_B.rect = null;
-    var x0 = medBR(Math.min(r.x0, r.x1)), x1 = medBR(Math.max(r.x0, r.x1)), y0 = medBR(Math.min(r.y0, r.y1)), y1 = medBR(Math.max(r.y0, r.y1));
+    var x0 = medWR(Math.min(r.x0, r.x1)), x1 = medWR(Math.max(r.x0, r.x1)), y0 = medWR(Math.min(r.y0, r.y1)), y1 = medWR(Math.max(r.y0, r.y1));
     if(x1 - x0 >= 3 && y1 - y0 >= 3){
       var id = "p" + Math.round((x0 + x1)/2) + "_" + Math.round((y0 + y1)/2);
-      mapEdDo(function(){ WB_OWN[id] = {pt: [medBR((x0 + x1)/2), medBR((y0 + y1)/2)], on: true, mat: "wood", t: 8, poly: [[x0, y0], [x1, y0], [x1, y1], [x0, y1]]}; });
+      mapEdDo(function(){ WB_OWN[id] = {pt: [medWR((x0 + x1)/2), medWR((y0 + y1)/2)], on: true, mat: "wood", t: 8, poly: [[x0, y0], [x1, y0], [x1, y1], [x0, y1]]}; });
       MED_B.sel = id; MED_B.wall = null; MED_B.tool = "select";
     }
     mapEdRefresh();

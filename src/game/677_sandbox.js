@@ -9,7 +9,7 @@ var SANDBOX = {on: false, sel: null, drag: null, place: null, last: 0};
 // (v537, владелец 10.11: «чтобы отметки тоже работали в песочнице») SANDBOX — только данные (копируется в снимок отметки: открытый снимок
 // снова в песочнице, с теми же ИИ вкл / выкл у ботов); элемент панели — отдельно (элементы страницы в снимок не идут)
 var SB_PANEL_EL = null;
-function sbBot(id){ for(var i = 0; i < bots.length; i++) if(bots[i].id === id) return bots[i]; return null; }
+// (15.11, перестройка) sbBot — тот же код, что teamBot: вызовы переведены на teamBot
 // один тик песочницы (stepTick, раунд идёт): часы раунда и бомбы стоят
 function sbTick(){
   roundStartTime += TICK_MS/1000;
@@ -57,7 +57,7 @@ function sbPanel(){
   document.getElementById("main").appendChild(el);
   el.addEventListener("click", function(e){
     var t = e.target.closest && e.target.closest("[data-sb]"); if(!t) return;
-    var k = t.getAttribute("data-sb"), id = t.getAttribute("data-id"), b = id ? sbBot(id) : null;
+    var k = t.getAttribute("data-sb"), id = t.getAttribute("data-id"), b = id ? teamBot(id) : null;
     if(k === "allOn") bots.forEach(function(o){ o._sbOff = false; });
     else if(k === "allOff") bots.forEach(function(o){ o._sbOff = true; });
     else if(k === "allOut") bots.forEach(function(o){ if(o.alive) sbRemove(o); });

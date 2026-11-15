@@ -415,16 +415,6 @@ function offNavStep(x1, y1, x2, y2, b){
       if(aw) return false; } }
   return true;
 }
-// (п.19 владельца 29.10, м1 р5 т34629: TeSeS переминался на посту и шагнул на ящик в Ticket, 62 ед. выше пола) шаг без прыжка: выше
-// ступеньки (18, как в heightBlocked) — только прыжком; переминание на месте не прыгает
-function stepNeedsJump(x1, y1, x2, y2, b){
-  if(!b || b.z == null) return false;
-  var a1 = navAt(x1, y1, b.z) || navArea(b._area); if(!a1) return false;
-  var a2 = navAt(x2, y2, b.z) || navAtLevel(x2, y2, a1.z);   // (снимок п.19: уступ +63 navAt своего уровня не отдаёт — берётся пол в пределах прыжка)
-  if(!a2 || a2 === a1) return false;
-  var up = navStepDz(a1, a2, x2, y2);
-  return up > 18 && !(up > 72 && a2.z - b.z > 72);   // выше роста над головой — потолок, не уступ (как в heightBlocked)
-}
 function heightBlocked(x1, y1, x2, y2, b){
   if(!b || b.z == null) return false;
   // (v323, М38) стоит в щели между участками навмеша — берётся участок, где был (bot._area); раньше щель пропускала проверку,
@@ -453,21 +443,6 @@ var HGT_TOP = null;
 // нижним) и игрок ниже верхнего пола (на лестнице он уже выше — не серый). Раньше серым был весь нижний участок, даже его часть под небом.
 // hgtUnder → номера перекрытий над игроком (рядом с ним, HGT_NEAR) — рисование кладёт серое только на их часть кружка.
 var HGT_NEAR = 60;   // проектное число; ед. радара: перекрытие ближе — может задеть кружок игрока (7 пикселей экрана — до ~20 ед. при мелком масштабе)
-function hgtLevelOf(id){   // 1 — пол над другим полом (светлый ободок), 0 — обычный
-  if(!HGT_TOP){ HGT_TOP = {}; (HEIGHTS.over || []).forEach(function(o){ HGT_TOP[o.top] = 1; }); }
-  return HGT_TOP[id] ? 1 : 0;
-}
-function hgtUnder(x, y, z, a){
-  var O = HEIGHTS.over || [], out = []; if(!a || z == null) return out;
-  for(var i = 0; i < O.length; i++){ var o = O[i]; if(o.bottom !== a.id || !o.poly || o.poly.length < 3) continue;
-    var t = navArea(o.top); if(!t || t.z < z + 40) continue;   // 40 — выше ступеньки: игрок стоит на верхнем полу или над ним
-    var x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity;
-    o.poly.forEach(function(p){ if(p[0] < x0) x0 = p[0]; if(p[0] > x1) x1 = p[0]; if(p[1] < y0) y0 = p[1]; if(p[1] > y1) y1 = p[1]; });
-    if(x < x0 - HGT_NEAR || x > x1 + HGT_NEAR || y < y0 - HGT_NEAR || y > y1 + HGT_NEAR) continue;
-    out.push(i);
-  }
-  return out;
-}
 // (v535, владелец 10.11: «визуализируй игроков под другими этажами — Under, Dark; на лестнице эффект должен меняться плавно; не „ниже
 // основного пола“») одно место: что над игроком и под ним — по 3D-геометрии карты (m3Floors — все поверхности, на которых можно стоять, в
 // этой точке). Под этажом — над головой (выше FLOOR_HEAD) есть пол; над этажом — под ногами (ниже FLOOR_HEAD) есть другой пол. Доля —
@@ -488,10 +463,6 @@ function floorViewTick(b){
   var c = floorCover(b.x, b.y, b.z), k = 0.25;
   b._underV = b._underV == null ? c.under : b._underV + (c.under - b._underV)*k;
   b._overV = b._overV == null ? c.over : b._overV + (c.over - b._overV)*k;
-}
-function hgtUnderCenter(x, y, U){   // центр игрока под другим полом — для мини-карты и повтора (там кружок целиком)
-  var O = HEIGHTS.over || [];
-  return (U || []).some(function(i){ return pointInPoly(x, y, O[i].poly.map(function(p){ return {x: p[0], y: p[1]}; })); });
 }
 // (v373, сторож: «застой» — 20 раз за раунд на Ancient; бот с путём упирается в уступ, и новый путь — тот же) путь строится по
 // связям навмеша, а шаг проверяет высоту уступа (heightBlocked) — если они расходятся, бот стоит до конца раунда. Самоисправление:

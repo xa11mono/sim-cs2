@@ -349,7 +349,6 @@ function rpAt(R, t){
   var f = B.t > A.t ? Math.max(0, Math.min(1, (t - A.t)/(B.t - A.t))) : 0;
   return {A: A, B: B, f: f};
 }
-function rpLerpAng(a, b, f){ if(isNaN(a)) return b; if(isNaN(b)) return a; var d = ((b - a + Math.PI*3) % (Math.PI*2)) - Math.PI; return a + d*f; }
 function rpDraw(E, x, P, dt, W, H, dpr){
   P.drawn = true;
   var R = P.R, I = rpAt(R, P.rt), A = I.A, B = I.B, f = I.f, n = bots.length, ci = P.ci;   // (v463) x, dpr переопределяются после кадра игры

@@ -66,18 +66,6 @@ function lkpTick(){
 function lkpNear(team, x, y, r){
   if(BZ.ids.length && belief[team]){ var n1 = 0, S = beliefSeen[team]; Object.keys(belief[team]).forEach(function(eid){ if(S[eid] != null && beliefMassNear(team, eid, x, y, r) >= 0.35) n1++; }); return n1; }
   var n = 0, L = beliefLast[team]; for(var id in L){ if(Math.hypot(L[id].x-x, L[id].y-y) < r) n++; } return n; }
-// взгляд без свежей инфы: на угол, за которым последняя известная позиция врага
-// Раньше брали просто БЛИЖАЙШУЮ позицию — и бот смотрел на старую инфу про
-// одного CT у Cave, хотя 5 секунд назад двое убили троих его тиммейтов на
-// миде. Теперь свежесть весит: каждая секунда давности = +40px "расстояния".
-// maxAgeT — вариант "только свежая угроза" (выше плана/преэйма в приоритете)
-function lkpLook(b, maxAgeT){
-  var L = beliefLast[b.team], best = null, bs = Infinity, rMax = maxAgeT ? 850 : 750;
-  for(var id in L){ var e = L[id], age = tick - e.tick; if(age < TICK_HZ) continue; if(maxAgeT && age > maxAgeT) continue;
-    var d = Math.hypot(e.x-b.x, e.y-b.y); if(d >= rMax) continue;
-    var sc = d + 40*age/TICK_HZ; if(sc < bs){ bs = sc; best = e; } }
-  return best ? cornerLook(b, best) : null;
-}
 function teamInfoTick(){
   if(roundState !== "live") return;
   bots.forEach(function(b){
@@ -398,20 +386,6 @@ function intelDeath(victim, killer){
     b._tradeUntil = tick + 150;
     if(killer){ b.heardSound = {x:killer.x, y:killer.y, tick:tick, team:killer.team, src:killer.id, kind:"call"}; }
   });
-}
-// префайр по коллу: свежий (≤2с) "вижу" от тиммейта в 150..650px и есть линия — смотреть туда
-function teamCallLook(b){
-  var sig = teamIntel[b.team].sig, best = null, bd = 650;
-  for(var i = sig.length-1; i >= 0; i--){
-    var s = sig[i];
-    if(tick - s.tick > 2*TICK_HZ) break;
-    if(s.type !== "spotted" || s.by === b.id) continue;
-    var d = Math.hypot(s.x-b.x, s.y-b.y);
-    if(d < 150 || d >= bd) continue;
-    if(!hasVision(b.x, b.y, s.x, s.y)) continue;
-    best = s; bd = d;
-  }
-  return best;
 }
 // лог коллов — не спамить: раз в 4с на команду+зону
 function intelCallLog(team, key, text, who, kind){

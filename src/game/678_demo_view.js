@@ -78,7 +78,7 @@ function dvDraw(){
     if(D.mv || D.lk){ ctx.strokeStyle = "rgba(255,107,94,0.95)"; ctx.lineWidth = 2.5*s1; ctx.beginPath(); ctx.arc(q[1], q[2], 24, 0, 7); ctx.stroke(); } });
   ctx.restore();
 }
-function dvEsc(s){ return String(s == null ? "" : s).replace(/[&<>]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;"}[c]; }); }
+// (15.11, перестройка) dvEsc — тот же код, что sbEsc: вызовы переведены на sbEsc
 function dvPanel(){
   if(DV_PANEL_EL || typeof document === "undefined") return DV_PANEL_EL;
   DV_PANEL_EL = document.createElement("div"); DV_PANEL_EL.id = "dvPanel"; DV_PANEL_EL.className = "dbgPanel"; document.body.appendChild(DV_PANEL_EL);
@@ -91,12 +91,12 @@ function dvRender(force){
   if(!DEMOV.open){ el.style.display = "none"; return; } el.style.display = "";
   if(!force && nowTs - (dvRender._t || 0) < 300) return; dvRender._t = nowTs;
   var h = ['<div class="ld-h">Раунд из демки · тень</div>'];
-  h.push('<div class="ld-s"><div class="ld-k">Раунды</div>' + dvRounds().map(function(r, i){ return '<div><button data-dv="' + i + '"' + (DEMOV.on && DEMOV.i === i ? ' class="on"' : '') + '>' + dvEsc(r.title || (r.demo + " р" + r.num)) + '</button></div>'; }).join('') +
+  h.push('<div class="ld-s"><div class="ld-k">Раунды</div>' + dvRounds().map(function(r, i){ return '<div><button data-dv="' + i + '"' + (DEMOV.on && DEMOV.i === i ? ' class="on"' : '') + '>' + sbEsc(r.title || (r.demo + " р" + r.num)) + '</button></div>'; }).join('') +
     (DEMOV.on ? '<div><button data-dv="stop">Выключить</button></div>' : '') + '</div>');
   if(DEMOV.on){ var t = tick - DEMOV.t0, nM = 0, nL = 0, rows = [];
-    Object.keys(DEMOV.BOT).forEach(function(s){ var x = DEMOV.BOT[s]; if(!x.alive){ rows.push('<div class="ld-f">' + dvEsc(x._dvName) + ' — погиб</div>'); return; } var D = dvDiff(s, x); if(D.mv) nM++; if(D.lk) nL++;
-      rows.push('<div>' + '<b style="color:' + (x.team === "T" ? '#e2a03f' : '#5aa3e6') + '">' + dvEsc(x._dvName) + '</b> <span class="ld-f">(' + x.id + ')</span><div class="ld-f">бот: задача ' + dvEsc(x.post ? x.post.tag : '—') + ', взгляд ' + dvEsc(x.lookReason || '—') + '</div>' +
-        (D.mv ? '<div style="color:#ff6b5e">' + D.mv + '</div>' : '') + (D.lk ? '<div style="color:#ff6b5e">взгляд не как у про: ' + dvEsc(D.lk) + '</div>' : '') + '</div>'); });
+    Object.keys(DEMOV.BOT).forEach(function(s){ var x = DEMOV.BOT[s]; if(!x.alive){ rows.push('<div class="ld-f">' + sbEsc(x._dvName) + ' — погиб</div>'); return; } var D = dvDiff(s, x); if(D.mv) nM++; if(D.lk) nL++;
+      rows.push('<div>' + '<b style="color:' + (x.team === "T" ? '#e2a03f' : '#5aa3e6') + '">' + sbEsc(x._dvName) + '</b> <span class="ld-f">(' + x.id + ')</span><div class="ld-f">бот: задача ' + sbEsc(x.post ? x.post.tag : '—') + ', взгляд ' + sbEsc(x.lookReason || '—') + '</div>' +
+        (D.mv ? '<div style="color:#ff6b5e">' + D.mv + '</div>' : '') + (D.lk ? '<div style="color:#ff6b5e">взгляд не как у про: ' + sbEsc(D.lk) + '</div>' : '') + '</div>'); });
     h.push('<div class="ld-s"><div class="ld-k">' + (t/TICK_HZ).toFixed(1) + ' с из ' + (DEMOV.R.len/TICK_HZ).toFixed(0) + ' · расходятся: ходьба ' + nM + ', взгляд ' + nL + '</div>' + rows.join('') + '</div>');
     h.push('<div class="ld-s ld-f">Зелёные точки — куда про придёт за 3 с; белый пунктир — куда пошёл бы бот (задача); сиреневый — куда смотрел бы; красное — не как у про. План раунда у бота свой — часть расхождений = другой план. Клик по игроку и «Разбор взгляда» — почему бот так решил.</div>'); }
   el.innerHTML = h.join('');
