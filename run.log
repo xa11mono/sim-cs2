@@ -1,0 +1,29 @@
+playwright 1.56.0, браузеры: C:\Windows\system32\config\systemprofile\.simcs2_node\ms-playwright
+> git fetch --quiet origin 654a5f7cfc694b7337de0522ddd7e514c0abd7ab
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_6vj36nj9 FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_6vj36nj9\src\build.py --map mirage C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v147d_mir.html
+  nadeguess.json устарел (код подбора или данные карты менялись) — не включён; пересчитать: python3 tools/nades/guess_bake.py --map mirage
+> git fetch --quiet origin 654a5f7cfc694b7337de0522ddd7e514c0abd7ab
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_q4snstnh FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_q4snstnh\src\build.py --map ancient C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v147d_anc.html
+  nadeguess.json устарел (код подбора или данные карты менялись) — не включён; пересчитать: python3 tools/nades/guess_bake.py --map ancient
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\engine\walk_run.py --job=v147d_mir,C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v147d_mir.html --job=v147d_anc,C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v147d_anc.html --matches=3,7,11,13,17,19,23,29 --par=8
+матчей в очереди: 16, одновременно: 8
+v147d_mir match 19  rc 0 6946332 — готово 1/16, 6 мин
+v147d_mir match 29  rc 0 7816155 — готово 2/16, 6 мин
+v147d_mir match 7  rc 0 7693079 — готово 3/16, 7 мин
+v147d_mir match 13  rc 0 7024523 — готово 4/16, 7 мин
+v147d_mir match 11  rc 0 8654980 — готово 5/16, 7 мин
+v147d_mir match 17  rc 0 8290918 — готово 6/16, 8 мин
+v147d_mir match 23  rc 0 9321394 — готово 7/16, 9 мин
+v147d_mir match 3  rc 0 9900923 — готово 8/16, 9 мин
+v147d_anc match 3  rc 0 8083158 — готово 9/16, 13 мин
+v147d_anc match 17  rc 0 6447705 — готово 10/16, 13 мин
+v147d_anc match 7  rc 0 7735993 — готово 11/16, 13 мин
+v147d_anc match 13  rc 0 7635646 — готово 12/16, 13 мин
+v147d_anc match 19  rc 0 7863831 — готово 13/16, 13 мин
+v147d_anc match 11  rc 0 8627580 — готово 14/16, 14 мин
+v147d_anc match 23  rc 0 7723057 — готово 15/16, 14 мин
+v147d_anc match 29  rc 0 11566025 — готово 16/16, 17 мин
+done
+all done
