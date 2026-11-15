@@ -264,7 +264,7 @@ function taskKeepUntil(b, tag){
     if(tick >= FL.until || (bomb && bomb.state === "planted") || (FL.team === "T" ? !(teamTac.T && teamTac.T.phase === FL.ph) : !!(teamTac.CT && teamTac.CT.playRetake))){ b._fillLock = null; return 0; }
     return FL.until; }
   if(f[1] === "repos") return b._reposUntil || 0;
-  return BAL.siteRebal && b._rebal && b._rebal.round === roundNum ? Infinity : 0;   // ребаланс — до конца раунда
+  return b._rebal && b._rebal.round === roundNum ? Infinity : 0;   // ребаланс — до конца раунда
 }
 function taskTagB(tag){ tag = String(tag); var r = /^repos:\w+/.exec(tag); return r ? r[0] : tag.replace(/[:|].*$/, ""); }
 function taskLevel(tag){ tag = String(tag || ""); for(var i=0;i<TASK_LEVEL.length;i++) if(TASK_LEVEL[i].re.test(tag)) return TASK_LEVEL[i].lv; return 1; }
@@ -363,7 +363,7 @@ function postSrc(b){ return b.post ? (b.post.src || b.post) : null; }
 function setPost(b, pt, look, hold, tag, spreadIdx){
   var pt0 = pt;   // (v570) точка, как её дала задача (до сдвигов ниже) — у поста src: задача сверяет своё место с ней, а не со сдвинутым
   // сменил позицию после фрага — роль в этом раунде ставит его уже на новую точку
-  if(BAL.holdShift && b._hs && b._hs.round === roundNum && b._hs.tag === tag && pt && Math.hypot(pt.x-b._hs.pt.x, pt.y-b._hs.pt.y) < 320) pt = b._hs.pt;
+  if(b._hs && b._hs.round === roundNum && b._hs.tag === tag && pt && Math.hypot(pt.x-b._hs.pt.x, pt.y-b._hs.pt.y) < 320) pt = b._hs.pt;
   var lv = taskLevel(tag);
   // маршрут раша — путь к посту роли: пост роли, пока маршрут не пройден, становится его концом (R.want); задача уровня
   // TASK_ROUTE_CANCEL и выше (и у CT — поставленная бомба) маршрут снимает; задачи между ними — пауза маршрута (v349)
@@ -381,7 +381,7 @@ function setPost(b, pt, look, hold, tag, spreadIdx){
     if(!dk || !pt || !detourOk(b, dk, pathLenTo(b, pt.x, pt.y)/SPEED)) return false;
     detourStart(b, dk, tag, DETOUR_MAX[dk]); }
   var tagB = taskTagB(tag);
-  var psn = (BAL.proSpots && hold && pt) ? proSnap(b, pt, look, tag) : null;
+  var psn = (hold && pt) ? proSnap(b, pt, look, tag) : null;
   // (v520, отметки владельца 09.11 м200 р1/р3: мидер у Window и NiKo у Hole — точку уводило к месту про, откуда не видно того, что держит пост:
   // (824,857) → (838,867), Mid виден → не виден) место про — только если оттуда точка взгляда поста видна не хуже, чем с выбранной
   if(psn && look && hasLOS(pt.x, pt.y, look.x, look.y) && !hasLOS(psn.pt.x, psn.pt.y, look.x, look.y)) psn = null;
@@ -484,7 +484,7 @@ function updatePost(b){
       (d < POST_ARRIVE && (b.atPost || canView()) && (b.post.z == null || b.z == null || Math.abs(b.post.z - b.z) <= 40));   // (v546) пост на ящике — «дошёл» только наверху
     // (опорник "не дошёл") точка поста чуть внутри угла/стены: бот доходил на
     // 30–60px и крутился рядом, не "вставая" на пост. Не приближается ~1.5с — встал
-    if(BAL.arriveNear && !b.atPost && !arrived && b.post.tag !== "plantspot" && b.post.tag !== "defuse"){
+    if(!b.atPost && !arrived && b.post.tag !== "plantspot" && b.post.tag !== "defuse"){
       if(b._apId !== b.post.id){ b._apId = b.post.id; b._apBest = d; b._apT = tick; }
       else if(d < b._apBest - 6){ b._apBest = d; b._apT = tick; }
       // (v519, пак 09.11 п.3; Р-32: bomb-watch «стоял на ступеньках, на точку не пришёл») «не приближается — значит дошёл» — только на этаже точки
@@ -494,7 +494,7 @@ function updatePost(b){
     }
     if(!b.atPost && arrived){ b.atPost = true; b.path = []; b.pathIdx = 0;
       // встал с AWP на угол — щелчок зума слышно рядом (≤200 по прямой, ≤120 за стеной)
-      if(BAL.soundMore && b.weapon && b.weapon.key === "AWP" && roundState === "live" && tick - (b._zoomTick||-9999) > 3*TICK_HZ){
+      if(b.weapon && b.weapon.key === "AWP" && roundState === "live" && tick - (b._zoomTick||-9999) > 3*TICK_HZ){
         b._zoomTick = tick;
         emitSound(b, b.x, b.y, 200, 120, "zoom", tick*53 + (b.id.charCodeAt(b.id.length-1)||0)).forEach(function(o){
           voiceLog(o.team, "zoom"+b.id, o.id, "слышу зум AWP "+calloutName(o.heardSound.x, o.heardSound.y));

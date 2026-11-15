@@ -62,13 +62,13 @@ function sideOk(w, team){ return w.side === "both" || w.side === team; }
 function rifleFor(team, b){
   if(team !== "CT") return WEAPONS.AK;
   // (7) у каждого CT своя винтовка: примерно половина играет с M4A1-S
-  if(BAL.moreWeapons && b && hashRand(pHash(b.id)*7 + 3) < 0.5) return WEAPONS.M4S;
+  if(b && hashRand(pHash(b.id)*7 + 3) < 0.5) return WEAPONS.M4S;
   return WEAPONS.M4;
 }
 // (v271) какое ПП берут — доли у про на форсах (tools/buy_pro.py, data/pro/buys.json): CT — MP9 90%, MP7 7%;
 // T — MAC-10 87%, MP7 10%, UMP 2% (было: UMP 25%, MP7 20% у всех — у про UMP почти не берут)
 function smgFor(team, b){
-  if(BAL.moreWeapons && b){ var h = hashRand(pHash(b.id)*11 + roundNum*3 + 5);
+  if(b){ var h = hashRand(pHash(b.id)*11 + roundNum*3 + 5);
     if(team === "CT"){ if(h < 0.07) return WEAPONS.MP7; }
     else { if(h < 0.10) return WEAPONS.MP7; if(h < 0.12) return WEAPONS.UMP; } }
   return team === "CT" ? WEAPONS.MP9 : WEAPONS.MAC10;
@@ -137,7 +137,7 @@ function roundGoal(team){
 }
 function decideRoundType(team){
   var base = decideRoundType0(team);
-  if(!BAL.ecoRead || base === "pistol") return base;
+  if(base === "pistol") return base;
   var E = enemyEcoGuess(team), te = teamEco[team];
   te.enemyGuess = E; // оценка ДО закупа — по ней CT потом решают "играем против эко"
   var mates = bots.filter(function(b){ return b.team === team; });
@@ -348,7 +348,7 @@ function buyForPlayer(b, type, idx){
     var cur0 = b.primary ? WEAPONS[b.primary].tier : -1, rf = rifleFor(b.team, b), smg = smgFor(b.team, b);
     // (7) снайпер на форсе — скаут (дёшево, ваншот в голову, точен на ходу)
     var sniperRole = b.tRole === "awp" || (b.team === "CT" && b.tRole === "mid");
-    if(BAL.moreWeapons && cur0 < 5 && sniperRole && b.money < rf.price + 300 && b.money >= WEAPONS.SSG.price + ARMOR_PRICE) buyItem(b, "SSG");
+    if(cur0 < 5 && sniperRole && b.money < rf.price + 300 && b.money >= WEAPONS.SSG.price + ARMOR_PRICE) buyItem(b, "SSG");
     if(cur0 < 4 && !(b.primary === "SSG")){
       // (v271) дешёвая винтовка вместо ПП — доли у про на форсе (tools/buy_pro.py): T Galil 22% против ПП 20%,
       // CT FAMAS 5% против ПП 35% (было 0.35 для обеих сторон)

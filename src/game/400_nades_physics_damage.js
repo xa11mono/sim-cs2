@@ -39,8 +39,8 @@ function detonate(n){
   if(SND && SND.on) sndNade(T, n.x, n.y);
   if(T !== "decoy") nadeOrigin(n);
   // (11) гранаты видно/слышно: где разорвалась граната врага — это инфа о его плане
-  if(BAL.tacRead && roundState === "live" && T !== "decoy"){ var foeT = n.team === "T" ? "CT" : "T"; var NS = teamIntel[foeT].nadeSeen || (teamIntel[foeT].nadeSeen = []); NS.push({x:n.x, y:n.y, type:T, tick:tick}); if(NS.length > 30) NS.shift(); }
-  if(T === "smoke"){ exuLanded(n, false); smokes.push({x:n.x, y:n.y, born:tick, until:tick+NADE.smoke.life, team:n.team}); if(BAL.smokeReact) smokeShiftOnDetonate(smokes[smokes.length-1]); }
+  if(roundState === "live" && T !== "decoy"){ var foeT = n.team === "T" ? "CT" : "T"; var NS = teamIntel[foeT].nadeSeen || (teamIntel[foeT].nadeSeen = []); NS.push({x:n.x, y:n.y, type:T, tick:tick}); if(NS.length > 30) NS.shift(); }
+  if(T === "smoke"){ exuLanded(n, false); smokes.push({x:n.x, y:n.y, born:tick, until:tick+NADE.smoke.life, team:n.team}); smokeShiftOnDetonate(smokes[smokes.length-1]); }
   else if(T === "molly"){
     // молотов, упавший в дым или рядом так, что огонь касается дыма, гаснет (как в CS2 — наоборот тоже: дым тушит огонь;
     // v321, М12: «чуть касается смока — тушится»)
@@ -68,9 +68,9 @@ function detonate(n){
       if(!warned){
         // увернуться можно, только если знал о флешке (видел/слышал бросок);
         // поп-флешка из-за стены почти всегда застаёт врасплох
-        var pD = BAL.flashAware ? ((n.aware && n.aware[b.id]) ? 0.5 + 0.3*prof(b, "disc") + 0.1*(b.skill-0.8)/0.4 : 0.3) : 0.25 + 0.3*(b.skill-0.8)/0.4;
+        var pD = (n.aware && n.aware[b.id]) ? 0.5 + 0.3*prof(b, "disc") + 0.1*(b.skill-0.8)/0.4 : 0.3;
         var dodge = hashRand(tick*29 + b.id.charCodeAt(0)*13 + b.id.length*7) < pD;
-        if(dodge){ dirK *= 0.3; if(BAL.flashAware && dirK > 0.1) logEvent(b.id+" отвернулся от флешки"); }
+        if(dodge){ dirK *= 0.3; if(dirK > 0.1) logEvent(b.id+" отвернулся от флешки"); }
       }
       var secs = BAL.flashMax * dirK * Math.max(0, 1 - d/1100);
       // свои, кто знает про флешку (бросил сам / колл «флешу!»), отворачиваются — слепит их редко и слабо
@@ -80,12 +80,12 @@ function detonate(n){
         b.blindUntil = Math.max(b.blindUntil, tick + Math.round(secs*TICK_HZ)); if(n.thrower && n.thrower.team !== b.team) b._blindBy = n.thrower.id;
         b.contactStreak = 0; b._ts = {}; b.lastIntel = null;
         if(secs > 1.2) logEvent(b.id+" ослеплён"+(b.team===n.team?" своей флешкой":"")+" ("+secs.toFixed(1)+"с)");
-        if(BAL.blindPlay && b.team !== n.team && secs > 0.8) onBlind(b, lkBefore || {x:n.x, y:n.y});
+        if(b.team !== n.team && secs > 0.8) onBlind(b, lkBefore || {x:n.x, y:n.y});
       }
     });
   }
   else if(T === "he"){
-    if(BAL.heClearsSmoke) smokes.forEach(function(sm){
+    smokes.forEach(function(sm){
       if(Math.hypot(sm.x-n.x, sm.y-n.y) < NADE.smoke.radius + 40){ sm.holeLen = Math.round(1.3*TICK_HZ); sm.holeUntil = tick + sm.holeLen;
         logEvent("HE разогнал смок "+calloutName(sm.x, sm.y)); }
     });

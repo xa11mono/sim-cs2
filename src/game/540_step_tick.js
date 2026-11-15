@@ -45,7 +45,7 @@ function moveSoundEmit(bot, soundRadius, kind, label){
     if(listener===bot || !listener.alive || listener.team===bot.team) return;
     var dHear = Math.hypot(listener.x-bot.x, listener.y-bot.y);
     if(dHear > soundRadius) return;
-    var occS = BAL.soundDir && !hasLOS(listener.x, listener.y, bot.x, bot.y, listener.z, bot.z);
+    var occS = !hasLOS(listener.x, listener.y, bot.x, bot.y, listener.z, bot.z);
     if(occS && dHear > soundRadius*0.75) return;
     var wasStale = !listener.heardSound || (tick - listener.heardSound.tick) > 90;
     var seed = tick*331 + bot.id.charCodeAt(0)*17 + listener.id.charCodeAt(0)*11 + bot.lastStepTick;
@@ -363,8 +363,8 @@ function stepTick(){
     // тихий шаг тише и реже. Без затухания через стены (упрощение v1 — если
     // понадобится точнее, тут же место, где учитывать hasLOS/дистанцию до стены).
     // вода (зоны со свойством water в наборе карты) — всплески слышно громче, и даже шифтом
-    var wet = BAL.soundMore && bot.curSpeed > 5 && inWater(bot.baseX, bot.baseY);
-    if(bot.curSpeed > 5 && (!(BAL.silentWalk && bot.walking) || wet)){ // шифт (тихий шаг) не слышно, как в CS
+    var wet = bot.curSpeed > 5 && inWater(bot.baseX, bot.baseY);
+    if(bot.curSpeed > 5 && (!(bot.walking) || wet)){ // шифт (тихий шаг) не слышно, как в CS
       // (v332, М50, владелец: «скорость шагов не соответствует скорости игрока») шаг — по пройденному пути, а не по времени:
       // длина шага такая, что на полной скорости (225 ед./с, винтовка) — раз в FOOTSTEP_INTERVAL_RUN тиков, как было; с AWP реже,
       // с ножом чаще, при разгоне и торможении — в такт скорости
@@ -380,7 +380,7 @@ function stepTick(){
         var soundRadius = (wet ? (bot.walking ? 220 : 460) : (bot.walking ? SOUND_RADIUS_WALK : SOUND_RADIUS_RUN)) * (BAL.stepHearMul || 1);
         soundPings.push({x:bot.baseX, y:bot.baseY, team:bot.team, born:nowTs, radius:soundRadius}); if(SND && SND.on){ if(CL) sndLadder(bot.baseX, bot.baseY); else sndStep(bot.baseX, bot.baseY); }   // (v552) на лестнице — звук лестницы
         // (4) сам знает, что шумит: бежал в пределах слышимости места, где враг вероятен
-        if(BAL.heardMe && roundState === "live"){ var zN = bzOf(bot.x, bot.y); if(zN >= 0){ var nearZ = [zN].concat(BZ.nbr[zN]||[]);
+        if(roundState === "live"){ var zN = bzOf(bot.x, bot.y); if(zN >= 0){ var nearZ = [zN].concat(BZ.nbr[zN]||[]);
           if(nearZ.some(function(j){ var cj = BZ.cent[j]; return cj && Math.hypot(cj.x-bot.x, cj.y-bot.y) < soundRadius && reachPossible(bot.team, j) && beliefZoneKnown(bot.team, j) >= 0.2; })) bot._noisyT = tick; } }
         if(soundPings.length > 40) soundPings.shift();
         moveSoundEmit(bot, soundRadius, wet ? "water" : "steps", (wet ? "всплески в воде" : CL ? "лестница" : "шаги")+(bot.walking ? " (тихо)" : ""));
@@ -471,7 +471,7 @@ function stepTick(){
           // (10) крутой поворот: сбросить скорость, а не бежать дугой по старому
           // направлению в угол стены (там бот тёрся и "залипал")
           var daLeft = Math.abs(((desiredHeading - bot.heading + Math.PI) % (2*Math.PI) + 2*Math.PI) % (2*Math.PI) - Math.PI);
-          if(BAL.cornerSlow && daLeft > 0.5){ var cs = Math.max(0.3, 1 - (daLeft-0.5)/1.6); step *= cs; bot.curSpeed = Math.min(bot.curSpeed, Math.max(bot.curSpeed*0.9, runSpeed*cs)); }
+          if(daLeft > 0.5){ var cs = Math.max(0.3, 1 - (daLeft-0.5)/1.6); step *= cs; bot.curSpeed = Math.min(bot.curSpeed, Math.max(bot.curSpeed*0.9, runSpeed*cs)); }
           moveX = Math.cos(bot.heading) * step;
           moveY = Math.sin(bot.heading) * step;
         }
@@ -654,12 +654,10 @@ function stepTick(){
       // на чеке роумер не стоит столбом, а джиглит угол — короткие выглядывания
       var rla = Math.atan2(bot.roamLookPt.y-bot.baseY, bot.roamLookPt.x-bot.baseX) + Math.PI/2;
       var ramp;
-      if(BAL.roamSmooth){
-        // цикл ~2,1с: выглянуть 0,35с → постоять 0,5с → назад 0,35с → пауза
-        var cyc = (tick - bot.roamCheckStart) % 136, e3 = function(u){ u = Math.max(0, Math.min(1, u)); return u*u*(3-2*u); };
-        var sgn = (Math.floor((tick - bot.roamCheckStart)/136) % 2) ? -1 : 1;
-        ramp = sgn*12*(cyc < 22 ? e3(cyc/22) : cyc < 54 ? 1 : cyc < 76 ? 1-e3((cyc-54)/22) : 0);
-      } else ramp = 14*Math.sin((tick - bot.roamCheckStart)*0.3);
+      // цикл ~2,1с: выглянуть 0,35с → постоять 0,5с → назад 0,35с → пауза
+      var cyc = (tick - bot.roamCheckStart) % 136, e3 = function(u){ u = Math.max(0, Math.min(1, u)); return u*u*(3-2*u); };
+      var sgn = (Math.floor((tick - bot.roamCheckStart)/136) % 2) ? -1 : 1;
+      ramp = sgn*12*(cyc < 22 ? e3(cyc/22) : cyc < 54 ? 1 : cyc < 76 ? 1-e3((cyc-54)/22) : 0);
       offX = Math.cos(rla)*ramp; offY = Math.sin(rla)*ramp;
       // (v503) смещение в стену — до стены (наибольшая доля без пересечения, 5 делений пополам), а не 0: обнуление при плавном росте
       // смещения давало скачок на 8–10 px дважды за выглядывание (сторож nav, прогон 153: Mirage, роумер CT у лайнапа prx88 —
@@ -689,7 +687,7 @@ function stepTick(){
   resolveEngagements(); ecoKnowSeeTick();   // (Г1) с каким оружием видели врагов — для подсчёта их денег
   smokeSpamTick();
   infoFallbackTick();
-  if(BAL.smokeReact) smokeHeTick();
+  smokeHeTick();
   teamInfoTick(); // раздел 11: коллы из восприятия этого тика → командная память
   posTick();      // где бот стоит (память «не сработало — меняю место»)
   knowTick();     // знание каждого бота о врагах (гипотезы) — из того, что он увидел/услышал/узнал

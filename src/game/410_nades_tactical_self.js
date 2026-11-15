@@ -2,15 +2,12 @@
 var nadeFlags = {};
 var comboCd = {}; // раздел 11.1: кулдаун комбо-гранаты на конкретного замеченного врага
 function antiEco(team){
-  if(!BAL.antiEco) return false;
   var me = teamEco[team], en = teamEco[team === "CT" ? "T" : "CT"];
-  if(BAL.buyRead){
-    // не "знаем" чужой закуп, а читаем: по оружию, которое реально увидели
-    // (первые контакты), иначе — по оценке денег до раунда
-    var R = teamIntel[team] && teamIntel[team].buy;
-    var enEco = R && R.n >= 1 ? R.read === "eco" : !!(me && me.enemyGuess && me.enemyGuess.eco);
-    return !!(me && (me.roundType === "full" || me.roundType === "half" || me.roundType === "force") && enEco);   // (v559) и форс: винтовки есть — есть что отдать
-  }
+  // не "знаем" чужой закуп, а читаем: по оружию, которое реально увидели
+  // (первые контакты), иначе — по оценке денег до раунда
+  var R = teamIntel[team] && teamIntel[team].buy;
+  var enEco = R && R.n >= 1 ? R.read === "eco" : !!(me && me.enemyGuess && me.enemyGuess.eco);
+  return !!(me && (me.roundType === "full" || me.roundType === "half" || me.roundType === "force") && enEco);   // (v559) и форс: винтовки есть — есть что отдать
   return me && en && (me.roundType === "full" || me.roundType === "half") && en.roundType === "eco";
 }
 // (13) инфа о закупе врага по первым контактам: увидели — запомнили, с чем он.
@@ -204,7 +201,7 @@ function nadeReact(){
   heDodgeTick();
   if(tick % 8) return;
   // (19) мало HP и враг рядом — выкинуть оставшиеся гранаты во врага, пока жив
-  if(BAL.utilDump) bots.forEach(function(b){
+  bots.forEach(function(b){
     if(!b.alive || b.hp > 25 || b.nadeTask || b.planting || b.defusing || !b.nades || tick < (b._dumpCd||0)) return;
     var tp = b.nades.molly > 0 ? "molly" : b.nades.he > 0 ? "he" : b.nades.flash > 0 ? "flash" : null; if(!tp) return;
     var BLd = beliefLast[b.team] || {}, tg = null, bd = Infinity;
@@ -216,7 +213,7 @@ function nadeReact(){
     if(assignNade(b, tp, {x:tg.x, y:tg.y}, "у меня "+b.hp+" — кидаю всё", {now:true}) && !b._dumpVoice){ b._dumpVoice = roundNum; voiceLog(b.team, "dump"+b.id, b.id, "у меня "+b.hp+" — выкидываю гранаты"); }
   });
   // (16) HE по раненому за укрытием (HE до 57 урона, по броне вдвое меньше)
-  if(BAL.heFinish) ["CT","T"].forEach(function(team){
+  ["CT","T"].forEach(function(team){
     var HT = teamIntel[team].hurt; if(!HT) return;
     var BLh = beliefLast[team] || {};
     for(var eH in HT){ var h = HT[eH]; if(h.hp > 28 || tick - h.tick > 8*TICK_HZ || h._heDone) continue;

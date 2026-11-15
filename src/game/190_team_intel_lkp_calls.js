@@ -23,7 +23,7 @@ function commSend(team, sig, by){ intelPush(team, sig); }
 function resetTeamIntel(){ if(typeof lkpReset === "function") lkpReset(); teamIntel = { CT:{sig:[], carrier:null, lastCall:{}}, T:{sig:[], carrier:null, lastCall:{}} }; }
 resetTeamIntel();
 function intelPush(team, sig){ sig.tick = tick; teamIntel[team].sig.push(sig); if(typeof beliefObserve === "function") beliefObserve(team, sig);
-  if(BAL.buyRead && sig.type === "spotted" && sig.id && sig.id !== "?") buyReadSee(team, sig.id);
+  if(sig.type === "spotted" && sig.id && sig.id !== "?") buyReadSee(team, sig.id);
   if((sig.type === "spotted" || sig.type === "sound") && sig.id && sig.id !== "?") lkpSet(team, sig.id, sig.x, sig.y, sig.type); }
 // ---- последняя известная позиция (ЛИП) каждого врага ----
 // Инфа не "испаряется" через несколько секунд: где врага последний раз видели/
@@ -51,7 +51,7 @@ function lkpTick(){
       if(tick - e.tick < 3*TICK_HZ) return;
       // единое хранилище: если по карте вероятностей врага у этой точки уже
       // нет (ушёл/вычистили взглядом) — метка ЛИП тоже снимается, без своей логики
-      if(BAL.oneStore && BZ.ids.length && beliefMassNear(team, id, e.x, e.y, 260) < 0.12){ delete L[id]; return; }
+      if(BZ.ids.length && beliefMassNear(team, id, e.x, e.y, 260) < 0.12){ delete L[id]; return; }
       // кто-то из своих смотрит на это место (в поле зрения, есть линия) и его там нет
       var checker = bots.filter(function(b){ return b.alive && b.team === team && Math.hypot(b.x-e.x, b.y-e.y) < 550 &&
         hasVision(b.x, b.y, e.x, e.y) && inFov(b, e.x, e.y) && b._visible.indexOf(foe) < 0; })[0];
@@ -64,7 +64,7 @@ function lkpTick(){
   });
 }
 function lkpNear(team, x, y, r){
-  if(BAL.oneStore && BZ.ids.length && belief[team]){ var n1 = 0, S = beliefSeen[team]; Object.keys(belief[team]).forEach(function(eid){ if(S[eid] != null && beliefMassNear(team, eid, x, y, r) >= 0.35) n1++; }); return n1; }
+  if(BZ.ids.length && belief[team]){ var n1 = 0, S = beliefSeen[team]; Object.keys(belief[team]).forEach(function(eid){ if(S[eid] != null && beliefMassNear(team, eid, x, y, r) >= 0.35) n1++; }); return n1; }
   var n = 0, L = beliefLast[team]; for(var id in L){ if(Math.hypot(L[id].x-x, L[id].y-y) < r) n++; } return n; }
 // взгляд без свежей инфы: на угол, за которым последняя известная позиция врага
 // Раньше брали просто БЛИЖАЙШУЮ позицию — и бот смотрел на старую инфу про
@@ -107,7 +107,7 @@ function teamInfoTick(){
 }
 // сколько врагов команда "знает" рядом с точкой за последние windowTicks
 function intelEstimate(team, x, y, r, windowTicks){
-  if(BAL.oneStore && BZ.ids.length && belief[team]){
+  if(BZ.ids.length && belief[team]){
     // из единого хранилища: враг "здесь", пока его вероятность рядом ≥0.35 —
     // не "пока не прошло N секунд". seen/heard — было ли РЕАЛЬНОЕ наблюдение
     // здесь за окно (для решений "видели недавно")
@@ -234,7 +234,7 @@ function intelDeath(victim, killer){
   // (v519, пак 09.11 п.10; А-38: «убили мид, убили двоих опорников A, а опорник другого сайта до сих пор стоит» — «T у другого сайта» считался
   // по последней позиции уже убитого) смерть видна в киллфиде всем: убитый стирается из памяти команды сразу, одно место, а не в каждом читателе
   ["CT", "T"].forEach(function(t){ if(beliefLast[t]) delete beliefLast[t][victim.id]; });
-  if(BAL.roundMem && killer){
+  if(killer){
     var secR = (tick - roundStartTick)/TICK_HZ;
     if(killer.team === "CT" && killer.weapon && killer.weapon.key === "AWP") RMEM.awp.push({x:killer.x, y:killer.y, round:roundNum});
     if(killer.team === "CT" && victim.team === "T" && secR < 30 && tSideZone(killer.x, killer.y))
@@ -281,7 +281,7 @@ function intelDeath(victim, killer){
   // сразу выходит на убийцу, пока тот перезаряжается/меняет позицию; это
   // срывает бота с тактики на ~3.5с). Разменивают 1–2 ближайших ПО ПУТИ.
   var traders = [];
-  if(BAL.tradeReflex && killer && killer.alive){
+  if(killer && killer.alive){
     var kp = saw ? {x:killer.x, y:killer.y} : {x:killer.x + (hashRand(tick*31 + 5)-0.5)*160, y:killer.y + (hashRand(tick*57 + 9)-0.5)*160};
     var cands = [];
     bots.forEach(function(o){
@@ -289,7 +289,7 @@ function intelDeath(victim, killer){
       // (v368, владелец: «тот, кто несёт бомбу, может так же стрелять; ранят — отойдёт, как любой, или отдаст бомбу») носитель меняет,
       // как все; раненый уходит (lowHpBack) или отдаёт бомбу (bombPassTick, HP ≤ 30) — общие правила. Раньше при 3+ живых не менял
       // (v154) снайпер и лёркер T в дефолте на размен не срываются: у про их роль — держать свою линию
-      if(BAL.duelValue && !(bomb && bomb.state === "planted") && ((o.weapon && o.weapon.key === "AWP") || (o.team === "T" && o.tRole === "lurker" && teamTac.T && teamTac.T.phase === "setup"))) return;
+      if(!(bomb && bomb.state === "planted") && ((o.weapon && o.weapon.key === "AWP") || (o.team === "T" && o.tRole === "lurker" && teamTac.T && teamTac.T.phase === "setup"))) return;
       if(!nearP(o.x, o.y, o.z, victim.x, victim.y, victim.z, TRADE_R)) return;   // (v248) разменивает тот, кто рядом (как у про)
       var L = polyLen(pathPts(o.x, o.y, victim.x, victim.y, o.z, victim.z));
       if(L <= 480) cands.push({b:o, L:L});
@@ -301,7 +301,7 @@ function intelDeath(victim, killer){
       Math.hypot(sg.x-victim.x, sg.y-victim.y) <= 300 && sg.kid === killer.id; });
     if(chainK && cands.length < 2) cands = [];
     if(cands[0]) traders.push(cands[0]);
-    if(cands[1] && cands[1].L <= (BAL.groupPlay ? 450 : 350) && aliveCount(victim.team) >= 3) traders.push(cands[1]);
+    if(cands[1] && cands[1].L <= (450) && aliveCount(victim.team) >= 3) traders.push(cands[1]);
     if(chainK && traders.length < 2) traders = [];   // вдвоём или никак
     traders.forEach(function(T, k){
       var o = T.b;
@@ -366,7 +366,7 @@ function intelDeath(victim, killer){
   }
   // IGL: энтри сняли на выходе — вторая волна не пикает тот же угол "в лоб":
   // ближайший с флешкой кидает поп-флешку на убийцу, размен идёт под неё
-  if(BAL.iglReplan && victim.team === "T" && killer && killer.alive && teamTac.T && teamTac.T.phase === "execute" &&
+  if(victim.team === "T" && killer && killer.alive && teamTac.T && teamTac.T.phase === "execute" &&
      (victim.tRole === "entry" || !teamTac.T._popDone)){
     var kpF = {x:killer.x + (saw ? 0 : (hashRand(tick*23+1)-0.5)*140), y:killer.y + (saw ? 0 : (hashRand(tick*29+2)-0.5)*140)};
     var flc = bots.filter(function(o){ return o.alive && o.team === "T" && o !== victim && o.nades && o.nades.flash > 0 && !o.planting &&
@@ -386,7 +386,7 @@ function intelDeath(victim, killer){
     var d = Math.hypot(b.x-victim.x, b.y-victim.y);
     if(d > 550) return;
     // размен уже взял ближайший — остальные не лезут в тот же прострелянный угол
-    if(BAL.tradeReflex && traders.length){ b._avoidPeekUntil = tick + 8*TICK_HZ; b._avoidPeekAt = {x:victim.x, y:victim.y}; return; }
+    if(traders.length){ b._avoidPeekUntil = tick + 8*TICK_HZ; b._avoidPeekAt = {x:victim.x, y:victim.y}; return; }
     // "меня убили отсюда" — ближние тиммейты смотрят туда и идут разменивать
     if(BAL.execErr && b.prof && hashRand(tick*29 + b.id.charCodeAt(1)*11) < (1-prof(b, "disc"))*0.12){ noteMistake(b, "не разменял "+victim.id); return; }
     // стрелка не видели и он не рядом — это не трейд, а второй пик в тот же

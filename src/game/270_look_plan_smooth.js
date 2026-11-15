@@ -17,11 +17,11 @@ function lookCands(b, W){
     // 1) сколько врагов оттуда вероятно выйдет
     var th = beliefZoneKnown(team, j), nBest = -1, nVal = 0, dz = D ? (D[j] = {bel: th, nbr: 0, hab: 0, unc: 0, tim: 0, wd: Wd[zid]||0}) : null;
     BZ.nbr[j].forEach(function(nn){ if(nn === zb) return;
-      if(BAL.timing && !reachPossible(team, nn)) return;
+      if(!reachPossible(team, nn)) return;
       var v = LOOK.nbrW * nbrThreat(team, j, nn, zb);
       if(PW[j+","+nn]) v *= LOOK.watchedNbr;          // вход видит свой — враг выйдет на него первым
       th += v; if(dz) dz.nbr += v; if(v > nVal){ nVal = v; nBest = nn; } });
-    if(habZ[j] && (!BAL.timing || reachPossible(team, j))){ th += LOOK.habitW; if(dz) dz.hab = LOOK.habitW; }
+    if(habZ[j] && (reachPossible(team, j))){ th += LOOK.habitW; if(dz) dz.hab = LOOK.habitW; }
     if(moving){ var uw = LOOK.uncheckW * uncheckedW(team, j); th += uw; if(dz) dz.unc = uw; }   // стоя — держит главный угол, непроверенные углы чекает на ходу
     // тайминг: инфы ещё нет — смотрим туда, где враг МОЖЕТ появиться раньше всего.
     // Зона, куда враг не может попасть незаметно (тупик за спиной своего), даёт 0
@@ -74,7 +74,7 @@ function lookCands(b, W){
     if(isRearZone(team, zb, nn, b)) return;   // (v148) проход в свой тыл — не угроза
     var d = Math.hypot(p.x-b.x, p.y-b.y); if(d < 40 || d > LOOK.maxDist || !hasLOS(b.x, b.y, p.x, p.y, b.z)) return;
     var th = beliefZoneKnown(team, nn);
-    BZ.nbr[nn].forEach(function(n2){ if(n2 === zb) return; if(BAL.timing && !reachPossible(team, n2)) return;
+    BZ.nbr[nn].forEach(function(n2){ if(n2 === zb) return; if(!reachPossible(team, n2)) return;
       var v = LOOK.nbrW * nbrThreat(team, nn, n2, zb); if(PW[nn+","+n2]) v *= LOOK.watchedNbr; th += v; });
     if(habZ[nn]) th += LOOK.habitW;
     if(moving) th += LOOK.uncheckW * uncheckedW(team, nn);
@@ -101,10 +101,10 @@ function lookCands(b, W){
   // по частоте позиции у про (сумма по позициям зоны = опасность зоны, не прибавка), дальше — те же множители, что у зон
   enemyPositions(team).forEach(function(q){
     var d = Math.hypot(q.x-b.x, q.y-b.y); if(d < 60 || d > LOOK.maxDist) return;
-    if(posClearValid(team, q.id) || (BAL.timing && !reachPossible(team, q.z))) return;
+    if(posClearValid(team, q.id) || (!reachPossible(team, q.z))) return;
     if(!hasLOS(b.x, b.y, q.x, q.y, b.z)) return;
     var th = beliefZoneKnown(team, q.z);
-    BZ.nbr[q.z].forEach(function(nn){ if(nn === zb) return; if(BAL.timing && !reachPossible(team, nn)) return; th += LOOK.nbrW * nbrThreat(team, q.z, nn, zb); });
+    BZ.nbr[q.z].forEach(function(nn){ if(nn === zb) return; if(!reachPossible(team, nn)) return; th += LOOK.nbrW * nbrThreat(team, q.z, nn, zb); });
     if(th <= 0) return;
     var za = Math.atan2(q.y-b.y, q.x-b.x), fresh = freshThreatNear(team, q);
     var sc = th * q.frac / (1 + d/(moving ? LOOK.distMove : LOOK.distHold));
@@ -154,12 +154,12 @@ function lookCands(b, W){
     // cornerLook вёл "по пути к ней", часто назад; берём видимый проход к врагу
     // (v296, И38, владелец 14.10: T4 шёл в Dark спиной — проход «к врагу» из Lamp Room оказался сзади, в сторону мида) замена не
     // уводит дальше 1,3 рад (75°) от самого угла поста — то же правило, что у «угла по пути» (cornerLook, v287)
-    if(BAL.enemyward && !hasLOS(b.x, b.y, b.post.look.x, b.post.look.y, b.z)){ var ew0 = enemywardLook(team, b);
+    if(!hasLOS(b.x, b.y, b.post.look.x, b.post.look.y, b.z)){ var ew0 = enemywardLook(team, b);
       if(ew0 && _angOff(Math.atan2(ew0.y-b.y, ew0.x-b.x), Math.atan2(b.post.look.y-b.y, b.post.look.x-b.x)) <= 1.3) pl = ew0; }
     // (v149) угол поста смотрит в тыл (заданная точка оказалась в своём коридоре) —
     // берём видимый проход, откуда враг придёт раньше всего
-    if(BAL.enemyward){ var zpl = bzOf(pl.x, pl.y), zbb = bzOf(b.x, b.y);
-      if(zpl >= 0 && zbb >= 0 && zpl !== zbb && isRearZone(team, zbb, zpl, b) || Math.hypot(pl.x-b.x, pl.y-b.y) < 60){ var ew = enemywardLook(team, b); if(ew) pl = cornerLook(b, ew) || ew; } }
+    var zpl = bzOf(pl.x, pl.y), zbb = bzOf(b.x, b.y);
+      if(zpl >= 0 && zbb >= 0 && zpl !== zbb && isRearZone(team, zbb, zpl, b) || Math.hypot(pl.x-b.x, pl.y-b.y) < 60){ var ew = enemywardLook(team, b); if(ew) pl = cornerLook(b, ew) || ew; } 
     out.push({j:"post"+b.id, pt:pl, sc:LOOK.postBase, fresh:false, a:Math.atan2(pl.y-b.y, pl.x-b.x), f: D ? [["угол поста по сетапу", LOOK.postBase]] : null}); }
   // (v328, М45, отметка владельца: zont1x в коридоре у Short смотрел в стену «как у про», хотя команда 3 с назад видела
   // последнего CT на A) команда знает, где враг (видели / слышали ≤ KNOWN_SEC), — смотреть туда, откуда он придёт: вдоль
@@ -473,7 +473,7 @@ function lookKnowCands(b){
 function lookAngleCand(b, moving){
   if(b.roamChecking && b.roamLookPt) return {lvl: LOOK_LEVEL.angle, kind: "roam", pt: b.roamLookPt, sc: 1};
   if(b.fakeHoldUntil && tick < b.fakeHoldUntil && bomb && bomb.site) return {lvl: LOOK_LEVEL.angle, kind: "fake", pt: GEO[bomb.site].tEntry, sc: 1};
-  if(BAL.proSpots && b.atPost && b.post && b.post.pro && !moving){ var plk = proSpotLook(b); if(plk) return {lvl: LOOK_LEVEL.angle, kind: "pro", pt: plk, sc: 1}; }
+  if(b.atPost && b.post && b.post.pro && !moving){ var plk = proSpotLook(b); if(plk) return {lvl: LOOK_LEVEL.angle, kind: "pro", pt: plk, sc: 1}; }
   // (15.11, владелец: «точки в паре, чтобы смотрели все зоны, откуда выходят T») угол роли расстановки CT из демок (spot / lookYaw, 140) — поручен
   // задачей, как точка про на посту. Было: делёж углов команды перебивал его — на 20-й с угол роли держали редко (уход — медиана 27°), выход
   // из Palace закрывали в 0–17 % раундов против 43–66 % у про (tools/ct_cover.js)
@@ -567,7 +567,7 @@ function threatEntrances(team, center, r){
     BZ.nbr[i].forEach(function(nn){ if(inside[nn]) return; var p = BZ.portal[i][nn]; if(!p) return;
       var w = beliefZoneKnown(team, nn);
       BZ.nbr[nn].forEach(function(n2){ if(!inside[n2]) w += LOOK.nbrW * beliefZoneKnown(team, n2); });
-      if(!BAL.timing || reachPossible(team, nn)) w += 0.02;
+      if(reachPossible(team, nn)) w += 0.02;
       var m = E.filter(function(e){ return Math.hypot(e.pt.x-p.x, e.pt.y-p.y) < 120; })[0];
       if(m){ m.w += w; } else E.push({pt:p, w:w, z:nn}); }); });
   E.sort(function(a, b){ return b.w - a.w; });

@@ -42,7 +42,6 @@ try{ OPP = JSON.parse(localStorage.getItem(OPP_KEY)||"null"); }catch(e){}
 function oppNorm(){ if(OPP && !OPP.by) OPP = OPP.matches ? {by:{sp:OPP}} : null; return OPP; }
 function oppFor(key){ oppNorm(); return OPP && OPP.by[key] && OPP.by[key].matches ? OPP.by[key] : null; }
 function saveOppProfile(){
-  if(!BAL.oppProfile) return;
   oppNorm(); if(!OPP) OPP = {by:{}};
   var mergeCnt = function(dst, src, keys){ for(var k in src){ var d = dst[k] || (dst[k] = {}); keys.forEach(function(f){ d[f] = (d[f]||0)*0.5 + (src[k][f]||0); }); } };
   var saved = [];
@@ -60,7 +59,7 @@ function saveOppProfile(){
   logEvent("Профиль соперника обновлён ("+saved.join("; ")+")");
 }
 function loadOppProfile(){
-  var P = BAL.oppProfile ? oppFor(SIDE_TEAM.T) : null; if(!P) return;
+  var P = oppFor(SIDE_TEAM.T); if(!P) return;
   var cp = function(src, keys, k0){ var r = {}; for(var k in src){ r[k] = {}; keys.forEach(function(f){ r[k][f] = (src[k][f]||0)*k0; }); } return r; };
   tacMem = cp(P.tacMem, ["n","w","plants"], 0.5);
   ctSetupMem = cp(P.ctSetupMem, ["n","w"], 0.5);
@@ -95,11 +94,10 @@ var TOUT = {CT:{left:3, streak:0, until:0, avoid:[], plan:null}, T:{left:3, stre
 var TO_NOW = null, TO_LAST = null, TO_FORCE = false, TO_DEATHS = {CT:[], T:[]};
 function timeoutsReset(){ TOUT = {CT:{left:3, streak:0, until:0, avoid:[], plan:null}, T:{left:3, streak:0, until:0, avoid:[], plan:null}}; TO_NOW = null; TO_DEATHS = {CT:[], T:[]}; }
 function timeoutCheck(winner){
-  if(!BAL.timeouts) return;
   TO_NOW = null;
   var nx = roundNum + 1;
   // перед первым раундом каждого овертайма — ровно одна пауза у каждой команды (оставшиеся сгорают)
-  if(BAL.overtime && nx > regRounds() && (nx - regRounds() - 1) % (OT_HALF*2) === 0) ["CT","T"].forEach(function(s){ TOUT[s].left = 1; });
+  if(nx > regRounds() && (nx - regRounds() - 1) % (OT_HALF*2) === 0) ["CT","T"].forEach(function(s){ TOUT[s].left = 1; });
   // где умирали в этом раунде (зоны) — тренер видит это по своей команде
   ["CT","T"].forEach(function(s){ TO_DEATHS[s].push(bots.filter(function(b){ return b.team === s && !b.alive; }).map(function(b){ var zid = zoneIdAt3(b.x, b.y, b.z); return (zid && zoneMainName(ZONE_NAMES[zid])) || "?"; }));
     if(TO_DEATHS[s].length > 6) TO_DEATHS[s].shift(); });
@@ -221,16 +219,16 @@ function chooseTactic(){
   var pool = T_TACTICS.slice();
   var rd = readCT(), readTxt = null;
   var tempoRead = null;
-  if(BAL.tempoShift){ var lastT = roundHist.slice(-2);
+  var lastT = roundHist.slice(-2);
     if(lastT.length === 2 && lastT.every(function(r){ return r.winner === "CT"; })){
       var fast = lastT.every(function(r){ return roundTempo(r) === "fast"; }), slow = lastT.every(function(r){ return roundTempo(r) === "slow"; });
-      tempoRead = fast ? "slow" : (slow ? "fast" : null); } }
+      tempoRead = fast ? "slow" : (slow ? "fast" : null); } 
   // (v519, пак 09.11 п.12; А-7: «на паузе IGL говорит: медленно, идём A, — а выбирают мид-КТ, Б с двух сторон») сказанное на паузе — исходный план
   // раунда: тактика — из тех, что ему соответствуют (сайт, темп; фейк — если план «фейк»), а не вес ×1,8 / ×0,5. Нет такой в наборе для этого
   // типа раунда — как было (веса ниже). Переколл по ходу раунда — по новой информации, как обычно (160 / 170)
   // (v561, прогон 207: после паузы «быстро, A» — rushA три раунда подряд, до этого «фейк» — фейк три раза подряд) отбор по плану — только в
   // первом раунде после паузы (сказанное на паузе — план этого раунда); дальше до TOUT.T.until — сдвиги весов ниже (×1,3 … ×2,5)
-  if(BAL.timeouts && roundNum <= TOUT.T.until && TOUT.T.plan && roundNum === (TOUT.T.plan.first != null ? TOUT.T.plan.first : roundNum)){ var TPf = TOUT.T.plan;
+  if(roundNum <= TOUT.T.until && TOUT.T.plan && roundNum === (TOUT.T.plan.first != null ? TOUT.T.plan.first : roundNum)){ var TPf = TOUT.T.plan;
     var fit = pool.filter(function(t){
       if(TPf.fake) return t.style === "fake";
       if(TPf.site && t.site !== TPf.site) return false;
@@ -246,7 +244,7 @@ function chooseTactic(){
     var l1 = tacHist[tacHist.length-1], l2 = tacHist[tacHist.length-2];
     if(l1 === t.id) w *= 0.35;                          // только что играли
     if(l1 === t.id && l2 === t.id) w *= 0.1;            // третий раз подряд — прочитана
-    if(BAL.timeouts && roundNum <= TOUT.T.until){ var TP = TOUT.T.plan || {};   // (v460) план тренера после паузы
+    if(roundNum <= TOUT.T.until){ var TP = TOUT.T.plan || {};   // (v460) план тренера после паузы
       if(TOUT.T.avoid.indexOf(t.id) >= 0) w *= 0.15; else w *= 1.3;
       if(TP.site) w *= t.site === TP.site ? 1.8 : 0.5;
       if(TP.avoidZone && tacUsesZone(t, TP.avoidZone)) w *= 0.3;                        // (v461) где умирали — обходим
@@ -257,7 +255,7 @@ function chooseTactic(){
       if(TP.fake && t.style === "fake") w *= 3; }   // (v469) план «фейк»
     // (8) темп по счёту: два проигрыша подряд быстрыми выходами — медленнее
     // (дефолт), два проигрыша медленными — быстрее (раш/ранний выход)
-    if(BAL.tempoShift && tempoRead){ if(tempoRead === "slow"){ if(t.style === "default") w *= 2.2; if(t.style === "rush") w *= 0.3; }
+    if(tempoRead){ if(tempoRead === "slow"){ if(t.style === "default") w *= 2.2; if(t.style === "rush") w *= 0.3; }
       else { if(t.style === "rush" || (t.setupEnd && t.setupEnd <= 44)) w *= 1.8; if(t.style === "default") w *= 0.4; } }
     // (В142, v576: у ботов «уходим от стака» ×0,3 / ×1,4 / фейк ×2,5 давало 73 % выходов на B против 37 % без стака; про почти не уходят: после
     // стака A в 2 из 3 раундов выходы A 55 % против 62 % без стака — шансы ×0,75, 262 выхода, tools/shadow/plans_mirage.json) стак — только этот множитель
@@ -269,22 +267,20 @@ function chooseTactic(){
   // (трое T на сайте к 25 с у про — TAC_TEMPO.fast) — раш против остального, по своей частоте тактик; остальное — прежние веса. Было (v557):
   // три группы по стилю (раш / выход / дефолт) с долями «к 25 с / 25–50 с / позже» — «позже» у про — это и поздние выходы, а я отдал её
   // только дефолтам: на Mirage один дефолт шёл в 33 % раундов, на Ancient дефолты — в 56 %. Как рано выходить — решает время выхода ниже
-  if(BAL.proTempo){
-    var TM = TAC_TEMPO[type] || TAC_TEMPO.full, gW = {fast:0, rest:0};
-    pool.forEach(function(t){ gW[t.style === "rush" ? "fast" : "rest"] += t.weight || 1; });
-    pool.forEach(function(t, i){ var g = t.style === "rush" ? "fast" : "rest", sh = g === "fast" ? TM.fast : 1 - TM.fast; if(gW[g] > 0) weights[i] *= sh/gW[g]; });
-  }
+  var TM = TAC_TEMPO[type] || TAC_TEMPO.full, gW = {fast:0, rest:0};
+  pool.forEach(function(t){ gW[t.style === "rush" ? "fast" : "rest"] += t.weight || 1; });
+  pool.forEach(function(t, i){ var g = t.style === "rush" ? "fast" : "rest", sh = g === "fast" ? TM.fast : 1 - TM.fast; if(gW[g] > 0) weights[i] *= sh/gW[g]; });
   var tac = pool[weightedChoice(pool, weights, roundNum*7919 + matchNum*104729 + 17)];
   // (v566) для «Разбора команды» (612): варианты тактики с весами, доля раша по закупу, план паузы — игру не меняет
-  TACT_DBG = {round: roundNum, type: type, fast: BAL.proTempo ? (TAC_TEMPO[type] || TAC_TEMPO.full).fast : null, read: readTxt, tempoRead: tempoRead,
-    plan: BAL.timeouts && roundNum <= TOUT.T.until ? TOUT.T.plan : null, pick: tac.id,
+  TACT_DBG = {round: roundNum, type: type, fast: (TAC_TEMPO[type] || TAC_TEMPO.full).fast, read: readTxt, tempoRead: tempoRead,
+    plan: roundNum <= TOUT.T.until ? TOUT.T.plan : null, pick: tac.id,
     list: pool.map(function(t, i){ var M = tacMem[t.id]; return {id: t.id, name: t.name, style: t.style, site: t.site, w: weights[i], mem: M ? Math.round(M.w*10)/10+" из "+M.n : ""}; })};
   lastTacticId = tac.id; tacHist.push(tac.id);
   // тайминг выхода гуляет от раунда к раунду (иначе его читают): ~25% —
   // быстрый (на 30% раньше), ~50% — обычный ±4с, ~25% — поздний (+10…18с)
   var setupSec = tac.setupEnd, tmode = "";
   if(tempoRead) logEvent("IGL: два раунда проиграли "+(tempoRead === "slow" ? "быстрыми выходами — сейчас медленно, от дефолта" : "медленно — сейчас быстрее, пока не ждут"));
-  if(BAL.timingVar && setupSec > 0){
+  if(setupSec > 0){
     var rT = hashRand(roundNum*6271 + matchNum*353 + 29);
     if(tempoRead === "slow") rT = 0.8 + 0.2*rT; else if(tempoRead === "fast") rT = 0.2*rT;   // (8) темп
     if(rT < 0.25){ tmode = ", быстрый"; setupSec = Math.max(16, Math.round(setupSec*0.7)); }
@@ -292,7 +288,7 @@ function chooseTactic(){
     else { tmode = ", поздний"; setupSec = Math.min(ROUND_TIME_SEC - 38, setupSec + 10 + Math.round(hashRand(roundNum*131 + matchNum*7)*8)); }
   }
   var defUntil = null;
-  if(BAL.proTempo && tac.setupEnd > 0){
+  if(tac.setupEnd > 0){
     // время планта — из распределения про (QY ниже),
     // выход ~12с до планта (у ботов от выхода до планта 10–15с); стиль тактики сдвигает: выходы раньше, дефолт/фейк позже
     var u = hashRand(roundNum*6271 + matchNum*353 + 29);
@@ -322,7 +318,7 @@ function chooseTactic(){
     var need = tac.style === "default" ? DEF_STAGE_SEC : Math.max(14, tac.setupEnd - 6);
     if(setupSec - need >= 12) defUntil = roundStartTick + (setupSec - need)*64;
   }
-  teamTac.T = {tac:tac, site:tac.site, phase: tac.setupEnd > 0 ? "setup" : "execute", execTick: roundStartTick + setupSec*64, defUntil: defUntil, minExec: (BAL.proTempo && tac.setupEnd > 0) ? Math.min(setupSec, 30) : 0, needT: (BAL.proTempo && tac.setupEnd > 0) ? (tac.style === "default" ? DEF_STAGE_SEC : Math.max(14, tac.setupEnd - 6)) : 0,   // (v443) у дефолта — как need выше: иначе фаза дефолта (170, inDef) не включалась вовсе
+  teamTac.T = {tac:tac, site:tac.site, phase: tac.setupEnd > 0 ? "setup" : "execute", execTick: roundStartTick + setupSec*64, defUntil: defUntil, minExec: (tac.setupEnd > 0) ? Math.min(setupSec, 30) : 0, needT: (tac.setupEnd > 0) ? (tac.style === "default" ? DEF_STAGE_SEC : Math.max(14, tac.setupEnd - 6)) : 0,   // (v443) у дефолта — как need выше: иначе фаза дефолта (170, inDef) не включалась вовсе
                execStart: tac.setupEnd > 0 ? null : tick, // раш: выход сразу — отсчёт задержек ролей с начала раунда
                read: readTxt, seenCT:{A:0, B:0}, setupSec:setupSec};
   var M = tacMem[tac.id];

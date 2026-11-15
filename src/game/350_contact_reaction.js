@@ -325,7 +325,7 @@ function hurtReactTick(b){
   // (v560, В78, разбор владельца 11.11: «реакция на смоки» — CT кинули смок по времени прямо на лёркера на T Ramp, он остался в нём и
   // перестреливался с края; v561 — перенесено сюда из 290, хозяин «опасно — уйти») смок соперника раскрылся на нём, а он не на посту (идёт по
   // маршруту, проба): тут его ждут или сейчас выйдут — назад по своему следу из дыма. На посту — смена позиции поста (290, smokeShiftOnDetonate)
-  var SM = null; if(BAL.smokeReact && b.alive && !(b.atPost && b.post && b.post.hold)) smokes.forEach(function(s){
+  var SM = null; if(b.alive && !(b.atPost && b.post && b.post.hold)) smokes.forEach(function(s){
     if(s.team !== b.team && tick - s.born <= HURT_REACT && Math.hypot(s.x-b.x, s.y-b.y) < NADE.smoke.radius && (!SM || s.born > SM.born)) SM = s; });
   var smT = SM ? SM.born : 0;
   var evT = Math.max(b._hurtT || 0, shotT, smT); if(!b.alive || !evT || b._hurtDone === evT) return;
@@ -364,10 +364,10 @@ function teamBrains(){
   bots.forEach(function(b){ contactTick(b); hurtReactTick(b); });   // (v367) реакция на контакт — до мозгов, их посты её не перебивают; (v518a) и на урон
   bots.forEach(function(b){ ctDelayNade(b); });   // (v419) задержать гранатой — после реакции на контакт (знает, держит ли угол)
   SPOT_TEAM = "T"; tBrain(); SPOT_TEAM = "CT"; ctBrain(); SPOT_TEAM = null; endgameBrain(); lineupTick(); smokeEdgeTick(); smokeLineTick(); fireSmokeTick(); weaponPickupTick(); itemPickupTick(); lkpTick();
-  if(BAL.soundMore) bots.forEach(function(b){ if(b.alive && b._heardReload) reloadPeek(b); });
-  if(BAL.assistPeek && tick % 4 === 0) bots.forEach(function(b){ if(b.alive) assistPeek(b); });
-  if(BAL.lowHpBack && tick % 8 === 2) bots.forEach(function(b){ if(b.alive) lowHpBack(b); });
-  if(BAL.hurtCall && tick % 8 === 4) bots.forEach(function(b){ if(b.alive) finishPush(b); });
+  bots.forEach(function(b){ if(b.alive && b._heardReload) reloadPeek(b); });
+  if(tick % 4 === 0) bots.forEach(function(b){ if(b.alive) assistPeek(b); });
+  if(tick % 8 === 2) bots.forEach(function(b){ if(b.alive) lowHpBack(b); });
+  if(tick % 8 === 4) bots.forEach(function(b){ if(b.alive) finishPush(b); });
   smokeFadeTick(); awpSmokeTick(); bombPassTick();
 }
 

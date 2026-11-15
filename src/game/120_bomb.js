@@ -155,7 +155,6 @@ var BAIT_MAX = 2;   // байт-пиков за раунд — проектно�
 function tDefuseGo(tt, ts){
   var heard = ts.filter(function(b){ return tick - (b._defuseHeard||-9999) < 110; });
   if(!heard.length) return false;
-  if(!BAL.fakeRead) return "all";
   var h0 = Math.max.apply(null, heard.map(function(b){ return b._defuseHeard; }));
   var cont = ts.some(function(b){ return (b._defuseCont||-9999) > h0 + 36; });
   if(cont){ if(tt._dfRead !== h0){ tt._dfRead = h0; voiceLog("T", "dfreal"+h0, heard[0].id, "дефуз не прекращается — настоящий, все на бомбу!"); } return "all"; }
@@ -167,7 +166,7 @@ function tDefuseGo(tt, ts){
   if(tick - h0 < 52){                                                       // слушают ~0,8 с; один может выглянуть проверить
     if(tt._baitH0 === h0) return "bait";
     if((tt._baitN && tt._baitN.round === roundNum ? tt._baitN.n : 0) >= BAIT_MAX) return false;
-    var bt = BAL.fakeBait ? tDefuseBaiter(ts) : null; if(!bt) return false;                       // некому без размена — слушают
+    var bt = tDefuseBaiter(ts); if(!bt) return false;                       // некому без размена — слушают
     tt._baitH0 = h0; tt._baiter = bt.id; tt._baitN = {round: roundNum, n: (tt._baitN && tt._baitN.round === roundNum ? tt._baitN.n : 0) + 1};
     return "bait";
   }
@@ -209,7 +208,7 @@ function bombTick(){
       // (7) по нему стреляют, а плант ещё далеко не закончен — бросает плант и
       // отвечает (раньше доставлял бомбу под огнём, не отстреливаясь). Если
       // осталось меньше ~0.8с или стрелок далеко и мажет — дожимает плант
-      if(BAL.plantReact && c._shotAtT && tick - c._shotAtT < 12 && c.plantUntil - tick > 0.8*TICK_HZ){
+      if(c._shotAtT && tick - c._shotAtT < 12 && c.plantUntil - tick > 0.8*TICK_HZ){
         var sh = c._shotAtBy, dSh = sh ? Math.hypot(sh.x-c.x, sh.y-c.y) : 0;
         var hitRecent = c._hurtT && tick - c._hurtT < 20;
         if(sh && sh.alive && (hitRecent || dSh < 700)){
@@ -241,7 +240,7 @@ function bombTick(){
       c.planting = true; c.plantUntil = tick + PLANT_TICKS; c.path = []; c.pathIdx = 0; if(SND && SND.on) sndBomb("plant", c.baseX, c.baseY);
       // фейк-плант (раз за раунд): свои рядом держат углы, CT по инфе рядом —
       // начать и через ~1с бросить: CT на звук выйдут под прицел
-      if(BAL.fakePlant && c._fakePlanted !== roundNum){
+      if(c._fakePlanted !== roundNum){
         var BLf = beliefLast.T || {}, ctNearF = false;
         for(var eF in BLf){ if(tick - BLf[eF].tick < 6*TICK_HZ && Math.hypot(BLf[eF].x-c.x, BLf[eF].y-c.y) < 700) ctNearF = true; }
         var mateF = bots.some(function(o){ return o !== c && o.alive && o.team === "T" && Math.hypot(o.x-c.x, o.y-c.y) < 350; });
@@ -266,7 +265,7 @@ function bombTick(){
     // энтри и AWP бомбу на бегу не подбирают (им лезть первыми) — только тот, кто
     // за ней послан, или если нас осталось двое
     var pick = bots.filter(function(b){ return b.team==="T" && b.alive && Math.hypot(b.baseX-bomb.x, b.baseY-bomb.y) < 36 &&
-      !(BAL.bombCarrier && (b.tRole === "entry" || b.tRole === "awp") && aliveTp > 2 && !(teamTac.T && teamTac.T.fetchId === b.id)); })[0];
+      !(b.tRole === "entry" || b.tRole === "awp" && aliveTp > 2 && !(teamTac.T && teamTac.T.fetchId === b.id)); })[0];
     if(pick){ bomb.state = "carried"; bomb.carrier = pick; logEvent(pick.id+" подобрал бомбу"); }
   } else if(bomb.state === "planted"){
     var def = bots.filter(function(b){ return b.defusing && b.alive; })[0];
@@ -315,7 +314,7 @@ function bombTick(){
         // по знанию команды (≤ 8 с) ближе к бомбе, чем пробежит за время дефуза, или о ком-то из живых нет свежей инфы (угол не проверен —
         // вслепую не дефузят, тапают и ждут пик). Все T известны далеко — фейк бесполезен, дефуз сразу
         var doFake = tLeftAlive && !bomb.fakeDone && bombTimeLeftTicks() > dTicks + 5*TICK_HZ;
-        if(doFake && BAL.fakeRead){ bomb.fakeDone = true; doFake = BAL.fakeBait && ctDefuseThreat(dTicks); }
+        if(doFake){ bomb.fakeDone = true; doFake = ctDefuseThreat(dTicks); }
         if(doFake){
           bomb.fakeDone = true;
           cand.fakeUntil = tick + 26; cand.fakeHoldUntil = tick + 26 + 110;

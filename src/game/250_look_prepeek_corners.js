@@ -109,7 +109,6 @@ function pieBusy(b){
     (bomb && bomb.state === "carried" && bomb.carrier === b && (ROUND_TIME_SEC - (simTime - roundStartTime)) < 30);
 }
 function prePeekTick(b){
-  if(!BAL.pieSlice){ b._pie = null; return; }
   if(pieBusy(b)){ b._pie = null; if(b._ppWaitUntil && b._sawEnemy) b._ppWaitUntil = 0; return; }
   if(tick % 8 === (b.id.charCodeAt(1) % 8)){
     var C = aheadCorner(b);
@@ -138,34 +137,32 @@ function prePeekDecide(b, C, zB){
   var L = beliefLast[b.team] || {}, holder = null;
   for(var e in L){ var q = L[e]; if(tick - q.tick < 8*TICK_HZ && Math.hypot(q.x-C.beyond.x, q.y-C.beyond.y) < 450){ holder = q; break; } }
   // (10) в прошлых раундах CT пикнули отсюда агрессивно — считаем, что угол держат
-  if(!holder && BAL.roundMem && b.team === "T"){ var ag = rmemRecent(RMEM.aggro, 2).filter(function(e){ return Math.hypot(e.x-C.beyond.x, e.y-C.beyond.y) < 380; })[0];
+  if(!holder && b.team === "T"){ var ag = rmemRecent(RMEM.aggro, 2).filter(function(e){ return Math.hypot(e.x-C.beyond.x, e.y-C.beyond.y) < 380; })[0];
     if(ag){ holder = {x:ag.x, y:ag.y, tick:tick}; if(!b._agV || b._agV !== roundNum){ b._agV = roundNum; logEvent(b.id+": в прошлом раунде отсюда пикнули ("+ag.id+", "+calloutName(ag.x, ag.y)+") — беру угол аккуратно"); } } }
   var info = !!holder || beliefZoneKnown(b.team, zB) >= 0.45;
-  var heardMe = BAL.heardMe && b._noisyT && tick - b._noisyT < 3*TICK_HZ;       // (4) он меня, скорее всего, слышал
+  var heardMe = b._noisyT && tick - b._noisyT < 3*TICK_HZ;       // (4) он меня, скорее всего, слышал
   var repeek = b._avoidPeekUntil > tick && b._avoidPeekAt && Math.hypot(b._avoidPeekAt.x-C.beyond.x, b._avoidPeekAt.y-C.beyond.y) < 450;
   var tt = teamTac.T, execEntry = b.team === "T" && tt && tt.phase === "execute" && b.tRole === "entry";
   var secLeft = ROUND_TIME_SEC - (simTime - roundStartTime);
   var mates = bots.filter(function(o){ return o !== b && o.alive && o.team === b.team && nearP(o.x, o.y, o.z, b.x, b.y, b.z, TRADE_R) && !o._sawEnemy; });
   // (3) один угол за раз: из-за угла видно два опасных направления — второе
   // отдаём тиммейту (смотрит туда) или закрываем флешкой
-  if(BAL.oneAngle){
-    var dirs = [], zs = {};
-    // (v136) раньше — только центры зон и вероятность ≥0.12: центры из-за угла
-    // почти никогда не видны, и механика не срабатывала. Теперь — любые видимые
-    // точки зоны (и соседей соседей), враг там может быть по таймингу
-    var addD = function(j){ if(j < 0 || zs[j] || !reachPossible(b.team, j)) return; zs[j] = 1;
-      var bj = beliefZoneKnown(b.team, j); if(bj < 0.04) return;
-      var smp = ZONE_SAMPLES[BZ.ids[j]] || (BZ.cent[j] ? [BZ.cent[j]] : []), bestQ = null, bdq = Infinity;
-      smp.forEach(function(q){ var dq = Math.hypot(q.x-C.beyond.x, q.y-C.beyond.y); if(dq > 60 && dq < 900 && dq < bdq && hasLOS(C.beyond.x, C.beyond.y, q.x, q.y)){ bdq = dq; bestQ = q; } });
-      if(bestQ) dirs.push({pt:bestQ, a:Math.atan2(bestQ.y-C.beyond.y, bestQ.x-C.beyond.x), w:bj, d:bdq}); };
-    addD(zB); (BZ.nbr[zB]||[]).forEach(function(j){ addD(j); (BZ.nbr[j]||[]).forEach(addD); });
-    dirs.sort(function(a, c){ return a.d - c.d; });
-    var second = dirs.slice(1).filter(function(x){ return Math.abs(((x.a-dirs[0].a+Math.PI)%(2*Math.PI)+2*Math.PI)%(2*Math.PI)-Math.PI) > 0.9; })[0];
-    if(second){
-      var cm = mates[0];
-      if(cm){ cm._coverDir = {pt:second.pt, until: tick + 4*TICK_HZ}; voiceLog(b.team, "cov"+b.id+key, b.id, "беру "+calloutName(dirs[0].pt.x, dirs[0].pt.y)+", "+cm.id+" — смотри "+calloutName(second.pt.x, second.pt.y)); }
-      else if(b.nades && b.nades.flash > 1 && !b.nadeTask && assignNade(b, "flash", second.pt, "закрыть второй угол", {now:true, range:700})) {}
-    }
+  var dirs = [], zs = {};
+  // (v136) раньше — только центры зон и вероятность ≥0.12: центры из-за угла
+  // почти никогда не видны, и механика не срабатывала. Теперь — любые видимые
+  // точки зоны (и соседей соседей), враг там может быть по таймингу
+  var addD = function(j){ if(j < 0 || zs[j] || !reachPossible(b.team, j)) return; zs[j] = 1;
+    var bj = beliefZoneKnown(b.team, j); if(bj < 0.04) return;
+    var smp = ZONE_SAMPLES[BZ.ids[j]] || (BZ.cent[j] ? [BZ.cent[j]] : []), bestQ = null, bdq = Infinity;
+    smp.forEach(function(q){ var dq = Math.hypot(q.x-C.beyond.x, q.y-C.beyond.y); if(dq > 60 && dq < 900 && dq < bdq && hasLOS(C.beyond.x, C.beyond.y, q.x, q.y)){ bdq = dq; bestQ = q; } });
+    if(bestQ) dirs.push({pt:bestQ, a:Math.atan2(bestQ.y-C.beyond.y, bestQ.x-C.beyond.x), w:bj, d:bdq}); };
+  addD(zB); (BZ.nbr[zB]||[]).forEach(function(j){ addD(j); (BZ.nbr[j]||[]).forEach(addD); });
+  dirs.sort(function(a, c){ return a.d - c.d; });
+  var second = dirs.slice(1).filter(function(x){ return Math.abs(((x.a-dirs[0].a+Math.PI)%(2*Math.PI)+2*Math.PI)%(2*Math.PI)-Math.PI) > 0.9; })[0];
+  if(second){
+    var cm = mates[0];
+    if(cm){ cm._coverDir = {pt:second.pt, until: tick + 4*TICK_HZ}; voiceLog(b.team, "cov"+b.id+key, b.id, "беру "+calloutName(dirs[0].pt.x, dirs[0].pt.y)+", "+cm.id+" — смотри "+calloutName(second.pt.x, second.pt.y)); }
+    else if(b.nades && b.nades.flash > 1 && !b.nadeTask && assignNade(b, "flash", second.pt, "закрыть второй угол", {now:true, range:700})) {}
   }
   if(!info && !heardMe && !repeek) return;
   // (2) угол держат — прямо не выходим
@@ -175,17 +172,17 @@ function prePeekDecide(b, C, zB){
   var hPos = holder ? {x:holder.x, y:holder.y} : null;
   if(!hPos){ var bz0 = -1, bv0 = 0; [zB].concat(BZ.nbr[zB]||[]).forEach(function(j){ var v = beliefZoneKnown(b.team, j); if(v > bv0 && BZ.cent[j]){ bv0 = v; bz0 = j; } }); if(bz0 >= 0) hPos = BZ.cent[bz0]; }
   var popPt = C.beyond;
-  if(BAL.popAim && hPos){ var fr = [0.35, 0.5, 0.22, 0.65];
+  if(hPos){ var fr = [0.35, 0.5, 0.22, 0.65];
     for(var fi=0; fi<fr.length; fi++){ var P = {x: C.pt.x + (hPos.x-C.pt.x)*fr[fi], y: C.pt.y + (hPos.y-C.pt.y)*fr[fi]};
       if(!insideSolidWall(P.x, P.y) && hasLOS(hPos.x, hPos.y, P.x, P.y) && Math.hypot(P.x-hPos.x, P.y-hPos.y) > 90){ popPt = P; break; } } }
   // (v506, владелец 04.11: «флешка тиммейту под пик — очень часто так выбивают позиции: один флешит, второй выходит») — просьба «накиньте
   // флешку» (365: nadeAskFlash — ближайший свой, с лайнапа рядом или с места; 05.11 — не только в TRADE_R); пикер ждёт хлопка и выходит.
   // Нет такого — флешка себе, как было
-  if(!BAL.popAim || holder){ var whyM = "флешу под пик "+b.id+" ("+calloutName(C.beyond.x, C.beyond.y)+")", fm = nadeAskFlash(b, popPt, whyM);
+  if(holder){ var whyM = "флешу под пик "+b.id+" ("+calloutName(C.beyond.x, C.beyond.y)+")", fm = nadeAskFlash(b, popPt, whyM);
     if(fm){ b._ppMate = null;
       if(!b._ppV || tick - b._ppV > 6*TICK_HZ){ b._ppV = tick; logEvent(b.id+": угол держат — "+fm.id+" флешит мне, выхожу под хлопок"); }
       return; } }
-  if(b.nades && b.nades.flash > 0 && !b.nadeTask && b._ppFlashR !== roundNum && (!BAL.popAim || holder) && assignNade(b, "flash", popPt, "флешу себе под пик", {now:true, range:700})){
+  if(b.nades && b.nades.flash > 0 && !b.nadeTask && b._ppFlashR !== roundNum && (holder) && assignNade(b, "flash", popPt, "флешу себе под пик", {now:true, range:700})){
     b._ppFlashR = roundNum; b._ppWaitUntil = tick + 40; b._ppMate = null;
     if(!b._ppV || tick - b._ppV > 6*TICK_HZ){ b._ppV = tick; logEvent(b.id+": угол держат — флешу себе и выхожу"); }
     return;
@@ -204,7 +201,7 @@ function prePeekDecide(b, C, zB){
 // (5) засветился/ранен без фрага: контакт закончился, враги рядом живы —
 // позиция известна, уходит глубже (как после фрага)
 function exposedShiftTick(b){
-  if(!BAL.seenShift || !b.alive || b._sawEnemy || !b.atPost || !b.post || !b.post.hold) return;
+  if(!b.alive || b._sawEnemy || !b.atPost || !b.post || !b.post.hold) return;
   var li = b.lastIntel; if(!li || li.src || tick - li.tick < 24 || tick - li.tick > 90) return;
   // (v518a) ранен — одна реакция на урон, hurtReactTick (350); здесь — только «стреляли, но не попали» (позиция известна)
   var hurt = false, shot = b._shotAtT && tick - b._shotAtT < 3*TICK_HZ && !(b._hurtT && tick - b._hurtT < 4*TICK_HZ);

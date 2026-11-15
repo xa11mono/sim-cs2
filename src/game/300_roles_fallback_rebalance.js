@@ -18,13 +18,12 @@ var PROLE_LABEL = {entry:"энтри", second:"второй (размен)", sup
 function pRole(b){ var M = PRO_PROLE[b.team]; return (M && M[b.tRole]) || b.tRole; }
 // кто кидает лайнап: при прочих равных — тот, чья роль кидает больше гранат
 function nadeRoleCost(b){
-  if(!BAL.proRoles) return 0;
   var r = (PROLE_NADES[b.team]||{})[pRole(b)]; if(r == null) return 0;
   return (2.4 - r) * BAL.utilRoleK;
 }
 var FB = { enemies:2, window:3, deathR:900, back:320, rMax:220, gainED:150, lock:10 };
 function tFallbackTick(){
-  if(!BAL.fallbackAll || tick % 8 || roundState !== "live" || (bomb && bomb.state === "planted")) return;
+  if(tick % 8 || roundState !== "live" || (bomb && bomb.state === "planted")) return;
   var tt = teamTac.T; if(!tt || tt.phase !== "setup") return;
   var secLeft = ROUND_TIME_SEC - (simTime - roundStartTime); if(secLeft < 35) return;
   var ED = enemySpawnDist("T");
@@ -93,7 +92,7 @@ function rebalSpot(b, k, taken, avoidPts, opt){
   return best;
 }
 function siteRebalanceTick(){
-  if(!BAL.siteRebal || tick % REBAL.every || roundState !== "live" || (bomb && bomb.state === "planted")) return;
+  if(tick % REBAL.every || roundState !== "live" || (bomb && bomb.state === "planted")) return;
   if(tick - roundStartTick < 12*TICK_HZ) return;
   var cts = bots.filter(function(o){ return o.alive && o.team === "CT"; });
   cts.forEach(function(o){ var R = o._rebal; if(!R) return;
@@ -136,7 +135,7 @@ function siteRebalanceTick(){
 function infoFallbackTick(){
   siteRebalanceTick();
   tFallbackTick();
-  if(!BAL.infoFallback || tick % 8 || roundState !== "live" || (bomb && bomb.state === "planted")) return;
+  if(tick % 8 || roundState !== "live" || (bomb && bomb.state === "planted")) return;
   var ED = enemySpawnDist("CT");
   bots.forEach(function(b){
     if(!b.alive || b.team !== "CT" || b._sawEnemy || b.planting || b.defusing) return;

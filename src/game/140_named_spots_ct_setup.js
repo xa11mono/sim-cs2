@@ -112,16 +112,16 @@ function chooseCtSetup(){
     // 66 % раундов против 36 % по долям про, мид пустой 29 % против 11 %, на A ≥ 3 — 19 % против 10 % (прогоны 240 + 241)
     if(/^retake/.test(S.id)){ var k = S.id.slice(-1); if(lost[k] >= 2){ w *= 6; why[S.id] = "на "+k+" проигрываем "+lost[k]+" раунда — играем от ретейка"; } }
     if(S.roles && Object.keys(S.roles).some(function(r){ return S.roles[r].early; })){
-      if(avgExec < 25) w *= 0.4; else if(avgExec > 45){ w *= BAL.proCtSetup ? 1.15 : 1.6; why[S.id] = "T выходят поздно (~"+Math.round(avgExec)+"с) — есть время за инфой"; }
+      if(avgExec < 25) w *= 0.4; else if(avgExec > 45){ w *= 1.15; why[S.id] = "T выходят поздно (~"+Math.round(avgExec)+"с) — есть время за инфой"; }
     }
     var l1 = ctSetupHist[ctSetupHist.length-1], l2 = ctSetupHist[ctSetupHist.length-2];
     if(l1 === S.id && l2 === S.id) w *= 0.15;
     // (1) мидер рано умирал в 2 из 3 последних раундов — агрессивный мид реже
-    if(BAL.roundMem && S.midAggressive && rmemRecent(RMEM.midDeath, 3).length >= 2){ w *= 0.2; why[S.id] = null; }
+    if(S.midAggressive && rmemRecent(RMEM.midDeath, 3).length >= 2){ w *= 0.2; why[S.id] = null; }
     // CT тоже помнят, какие расстановки в этом матче сработали, а какие нет
     var CM = ctSetupMem[S.id] || {n:0, w:0};
     w *= 0.3 + 1.7*((CM.w + 1)/(CM.n + 2));
-    if(BAL.timeouts && roundNum <= TOUT.CT.until){ var CP = TOUT.CT.plan || {};   // (v460) план тренера после паузы
+    if(roundNum <= TOUT.CT.until){ var CP = TOUT.CT.plan || {};   // (v460) план тренера после паузы
       if(TOUT.CT.avoid.indexOf(S.id) >= 0) w *= 0.15;
       if(CP.stack && S.stack === CP.stack) w *= 6;
       if(CP.avoidZone && setupUsesZone(S, CP.avoidZone)) w *= 0.35;   // (v461) где умирали — эти раунды там не стоим
@@ -129,7 +129,7 @@ function chooseCtSetup(){
       if(CP.midAgg && S.midAggressive) w *= 4; }   // (v469) план «ранний пик AWP на миде»
     return w;
   });
-  var S = BAL.ctSetups ? CT_SETUPS[weightedChoice(CT_SETUPS, weights, roundNum*4217 + matchNum*881 + 5)] : (BAL.ctSetup === "1-1-1" ? CT_SETUPS[1] : CT_SETUPS[0]);
+  var S = CT_SETUPS[weightedChoice(CT_SETUPS, weights, roundNum*4217 + matchNum*881 + 5)];
   // (v566) для «Разбора команды» (612): из чего выбирали и почему — игру не меняет
   CTSET_DBG = {round: roundNum, buy: teamEco.CT && teamEco.CT.roundType, pick: S.id, list: CT_SETUPS.map(function(X, i){ return {id: X.id, name: X.name, w: weights[i], base: ctShareW(X), why: why[X.id] || ""}; })};
   ctSetupHist.push(S.id);
@@ -137,7 +137,7 @@ function chooseCtSetup(){
   ctSeatRoles(S);   // (v334, М61) кто какую роль расстановки играет — по своим позициям из демок
   // против эко: без ранних пиков и доборов — не дарить оружие, держать вместе
   // (v559, В76 ч.5) «против эко» — не флаг расстановки, а цель раунда команды (roundGoal, 520: «выиграть, не отдав винтовок»), читается по знанию
-  if(BAL.ctAntiEco && roundGoal("CT") === "keepGuns") logEvent("CT: у T, похоже, эко — цель: выиграть, не отдав винтовок");
+  if(roundGoal("CT") === "keepGuns") logEvent("CT: у T, похоже, эко — цель: выиграть, не отдав винтовок");
   logEvent("CT: расстановка «"+S.name+"»"+(why[S.id] ? " — "+why[S.id] : ""));
 }
 // (v334, М61, владелец: «kyousuke играет Window, а должен Short — рядом с B») роли расстановки CT на раунд — по почерку игроков:
@@ -155,7 +155,7 @@ var SEAT_FIXED = 100, PR_FIX = MAP.tactics.playerRoles || {};
 // местах роли во ВСЕХ расстановках (а не в выпавшей в этом раунде), дальше роль игрока держится; расстановка меняет только места внутри роли.
 // Было: перебор заново каждый раунд по местам выпавшей расстановки (+SEAT_KEEP 0,15 за прошлую роль) — опорник A переходил от игрока к игроку
 function ctSeatRoles(S){
-  if(!S || !S.roles || !BAL.proPrior) return;
+  if(!S || !S.roles) return;
   var team = bots.filter(function(b){ return b.team === "CT"; }), roles = Object.keys(S.roles);
   if(team.length !== 5 || roles.length !== 5) return;
   var key = matchNum+':'+SIDE_TEAM.CT+':'+(roundNum > HALF_ROUNDS ? 2 : 1);
@@ -189,7 +189,7 @@ function ctSetupRole(b, role, ct){
   // по оружию (ближний угол / дальняя точка), а не вперёд в дуэль на дистанции
   // (v359) роль mid в раскладке без мида (3-0-2, 4-0-1 — места на сайте) — не мидер: правило «мидер по оружию» не для неё
   var midReal = role === "mid" && (R.pos || []).some(function(n){ return ((POS.M && POS.M.ctHold) || []).indexOf(n) >= 0; });
-  if(BAL.midWeapon && midReal && b.weapon && (b.weapon.tier < 5 || ((b.weapon.key === "AWP" || b.weapon.key === "SSG") && R.early))) return false;
+  if(midReal && b.weapon && (b.weapon.tier < 5 || ((b.weapon.key === "AWP" || b.weapon.key === "SSG") && R.early))) return false;
   var early = R.early && tick - roundStartTick < R.early.sec*TICK_HZ;
   var P = early ? R.early : R;
   if(early && b._sawEnemy) b._earlySaw = roundNum;
@@ -213,7 +213,7 @@ function ctSetupRole(b, role, ct){
   var mineZ = names.filter(function(n){ return RZ.z[n] === b.id; })[0];
   var freeZ = names.filter(function(n){ var o = RZ.z[n] ? teamBot(RZ.z[n]) : null; return !o || !o.alive || o === b; });
   if(freeZ.length) names = freeZ;
-  var nm0 = mineZ || (BAL.proPrior ? names[posPickName(b, names, roundNum*97 + role.length*13 + matchNum)] : names[Math.floor(hashRand(roundNum*97 + role.length*13 + matchNum) * names.length)]);
+  var nm0 = mineZ || (names[posPickName(b, names, roundNum*97 + role.length*13 + matchNum)]);
   var ref = role === "anchorA" ? GEO.A.anchor : role === "anchorB" ? GEO.B.anchor : GEO.ctMid;
   // (v417, М153) куда смотрят про с этой точки — точка из демок (lookPt, tools/tactics_bake.py / ct_lookpt_add.py); по имени зоны точка
   // бралась рядом с ботом и направление терялось (Mirage, опорник A в ctStd_212: про смотрят на −52° к A, а точка зоны «CT» — на 159°, назад)

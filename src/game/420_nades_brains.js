@@ -75,7 +75,7 @@ function nadeBrains(){
   // инста-смок T — Sniper Nest, Chamber Lane, Lamp Room), а у ботов он был 32 % смоков T и рвался рядом с врагом в 9 % случаев
   // (10) AWP CT в прошлых раундах стрелял с одной точки — смок на его линию,
   // когда кто-то из T проходит рядом (один раз за раунд, запас смоков на выход не трогаем)
-  if(BAL.roundMem && tt.phase === "setup" && !nadeFlags.antiAwp && tick - roundStartTick > 6*TICK_HZ && BAL.tUtil){
+  if(tt.phase === "setup" && !nadeFlags.antiAwp && tick - roundStartTick > 6*TICK_HZ){
     var aw = rmemRecent(RMEM.awp, 3);
     if(aw.length){
       var A0 = aw[aw.length-1];
@@ -90,7 +90,7 @@ function nadeBrains(){
   }
   // раздел 12: фейк — смок на вход CT и флешка на фейковый сайт, чтобы звучало
   // и выглядело как настоящий выход
-  if(tt.fakeOn && !nadeFlags.fakeNades && tt.phase === "setup" && BAL.tUtil){
+  if(tt.fakeOn && !nadeFlags.fakeNades && tt.phase === "setup"){
     nadeFlags.fakeNades = true;
     var gf = GEO[tt.tac.fake], fsite = SITES[tt.tac.fake];
     var fakers = ts.filter(function(b){ return b.tRole === "support" || b.tRole === "lurker"; });
@@ -102,28 +102,28 @@ function nadeBrains(){
   // T: выход — два смока (вход CT, линия опорника), флешка ПОД ПИК энтри от
   // поддержки (синхронизация двух ботов: энтри ждёт хлопка), молотов на опорника
   var preEx = preExecNow(tt);
-  if((tt.phase === "execute" || preEx) && !nadeFlags.tExecSm && BAL.tUtil){
+  if((tt.phase === "execute" || preEx) && !nadeFlags.tExecSm){
     nadeFlags.tExecSm = true;
     var smokers = ts.filter(function(b){ return b.nades.smoke > 0 && b.tRole !== "lurker"; });
     var cross = {x:(g.anchor.x+g.ctEntry.x)/2, y:(g.anchor.y+g.ctEntry.y)/2};
-    var eo = BAL.nadeEarly ? {now:true, range:1300} : {};
+    var eo = {now:true, range:1300};
     // (v511) смоки выхода — из лайнапов про (390, план команды 365). «Вход CT» / «кросс» (точки геометрии v166, не из демок; прогон 157:
     // из них — почти все провалы критичных смоков: «не долетит», «стена на пути», «не дошёл за срок») — только запасом, если у карты
     // нет лайнапа про со смоком выхода на этот сайт
     if(npHasExecSmoke(tt.site)) smokers = [];
-    if(BAL.tSmoke && smokers[0] && assignNade(smokers[0], "smoke", g.ctEntry, "вход CT", Object.assign({bkey:"T.exec.ctEntry."+tt.site}, eo))) smokers[0].nadeTask.exec = true;
-    if(BAL.tSmoke && smokers[1] && assignNade(smokers[1], "smoke", cross, "кросс", Object.assign({bkey:"T.exec.cross."+tt.site}, eo))) smokers[1].nadeTask.exec = true;
+    if(smokers[0] && assignNade(smokers[0], "smoke", g.ctEntry, "вход CT", Object.assign({bkey:"T.exec.ctEntry."+tt.site}, eo))) smokers[0].nadeTask.exec = true;
+    if(smokers[1] && assignNade(smokers[1], "smoke", cross, "кросс", Object.assign({bkey:"T.exec.cross."+tt.site}, eo))) smokers[1].nadeTask.exec = true;
     if(preEx) logEvent("T: гранаты выхода на "+tt.site+" — заранее, до пика");
   }
-  if(tt.phase === "execute" && !nadeFlags.tExec && BAL.tUtil){
+  if(tt.phase === "execute" && !nadeFlags.tExec){
     nadeFlags.tExec = true;
     var ent = byRole(ts, "entry");
     var fx = g.tEntry.x + (site.x-g.tEntry.x)*0.35, fy = g.tEntry.y + (site.y-g.tEntry.y)*0.35;
     var flasher = ts.filter(function(b){ return b !== ent && b.nades.flash > 0 && (b.tRole === "support" || b.tRole === "awp"); })[0];
-    if(BAL.tFlash && ent && flasher){
+    if(ent && flasher){
       nadeFlags.peekFlashPlanned = tick;
       assignNade(flasher, "flash", {x:fx, y:fy}, "под пик", {now:true, bkey:"T.exec.flash."+tt.site});
-    } else if(BAL.tFlash && ent && ent.nades.flash > 0){
+    } else if(ent && ent.nades.flash > 0){
       assignNade(ent, "flash", {x:fx, y:fy}, "под заход", {bkey:"T.exec.flash."+tt.site}); // некому — сам себе
     }
     var mollies = ts.filter(function(b){ return b.nades.molly > 0; });
@@ -140,12 +140,12 @@ function nadeBrains(){
       });
       if(molWhy !== "выжечь опорника") logEvent("T: знают привычку — молотов "+molWhy+" ("+(zoneUserName(zoneIdAt(molT.x, molT.y))||"сайт "+tt.site)+")");
     }
-    if(BAL.tMolly && mol) assignNade(mol, "molly", molT, molWhy, BAL.nadeEarly ? {bkey:"T.exec.molly."+tt.site, now:true, range:1200} : {bkey:"T.exec.molly."+tt.site});
+    if(mol) assignNade(mol, "molly", molT, molWhy, {bkey:"T.exec.molly."+tt.site, now:true, range:1200});
   }
   // (7) молотов "на всякий" в угол: на выходе, не зная, есть ли там кто, —
   // выжечь ближний угол сайта, куда обычно встают CT (из списка позиций сайта),
   // пока он ещё не виден. По одному на раунд, последний молотов — на пост-плант
-  if(BAL.mollyClear && tt.phase === "execute" && !nadeFlags.molClear && tick - (tt.execStart != null ? tt.execStart : tick) < 10*TICK_HZ){
+  if(tt.phase === "execute" && !nadeFlags.molClear && tick - (tt.execStart != null ? tt.execStart : tick) < 10*TICK_HZ){
     var mc = ts.filter(function(b){ return b.nades.molly > 0 && !b.nadeTask && Math.hypot(b.x-site.x, b.y-site.y) < 750 && !(bomb.state === "carried" && bomb.carrier === b); })[0];
     var molLeft = ts.reduce(function(a, b){ return a + b.nades.molly; }, 0);
     if(mc && (molLeft >= 2 || aliveCount("CT") <= 1)){
@@ -167,7 +167,7 @@ function nadeBrains(){
   }
   // CT: T закрыли сайт смоком на выходе — не дать спокойно занять позиции за
   // ним: HE/молотов в точки, куда T встают первыми (вход и первые углы сайта)
-  if(BAL.smokeEntry && tt.phase === "execute" && !nadeFlags["ctTake"+tt.site]){
+  if(tt.phase === "execute" && !nadeFlags["ctTake"+tt.site]){
     var gs2 = GEO[tt.site], sT = SITES[tt.site];
     var smokeOn = smokes.some(function(sm){ return tick - sm.born < 3*TICK_HZ && (Math.hypot(sm.x-gs2.ctEntry.x, sm.y-gs2.ctEntry.y) < 260 || Math.hypot(sm.x-sT.x, sm.y-sT.y) < 300); });
     if(smokeOn){
@@ -190,8 +190,8 @@ function nadeBrains(){
     var anc = byRole(cts, call.site === "A" ? "anchorA" : "anchorB");
     var ge = GEO[call.site];
     var rot = byRole(cts, "rotator");
-    if(rot && rot.nades.smoke > 0 && (call.count >= 2 || BAL.ctUtilEarly)) assignNade(rot, "smoke", ge.tEntry, "перекрыть вход", {bkey:"CT.call.smoke."+call.site});
-    if(BAL.ctUtilEarly && anc && !anc.nadeTask && anc.nades.smoke > 0) assignNade(anc, "smoke", ge.tEntry, "перекрыть вход", {bkey:"CT.call.smoke."+call.site});
+    if(rot && rot.nades.smoke > 0) assignNade(rot, "smoke", ge.tEntry, "перекрыть вход", {bkey:"CT.call.smoke."+call.site});
+    if(anc && !anc.nadeTask && anc.nades.smoke > 0) assignNade(anc, "smoke", ge.tEntry, "перекрыть вход", {bkey:"CT.call.smoke."+call.site});
   }
   // раздел 11.1: гранатный комбо — не одна граната по инфе от одного бота, а
   // несколько РАЗНЫХ типов от РАЗНЫХ тиммейтов синхронно по одному только что
@@ -214,7 +214,7 @@ function nadeBrains(){
     b._nadeCd = tick + 8*TICK_HZ;
     assignNade(b, type, {x:L.x, y:L.y}, "по инфе — выкурить", {now:true});
   });
-  if(BAL.nadeReact) nadeReact();
+  nadeReact();
   selfNadeTick();
   // план §7: граната на отходе — проигрывает дуэль и уходит: смок между собой
   // и врагом (или флешка в него), чтобы выйти живым. Реакция, а не план.
@@ -238,7 +238,7 @@ function nadeBrains(){
 // смок "отрезать вход T" на ретейке нужен, только если кто-то из T может
 // прийти на подмогу снаружи; если все T по инфе уже на сайте — смок пустой
 function retakeCutUseful(){
-  if(!BAL.ctUtilSmart || !bomb) return true;
+  if(!bomb) return true;
   var ts = bots.filter(function(o){ return o.alive && o.team === "T"; });
   var L = beliefLast.CT || {}, outside = 0, known = 0;
   ts.forEach(function(t){ var e = L[t.id]; if(!e || tick - e.tick > 12*TICK_HZ){ outside++; return; } known++; if(Math.hypot(e.x-bomb.x, e.y-bomb.y) > 650) outside++; });

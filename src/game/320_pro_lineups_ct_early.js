@@ -5,7 +5,7 @@
 // Каждый раунд лайнап "разыгрывается" с этой вероятностью — так набор гранат
 // меняется от раунда к раунду, как у живых команд.
 // =====================================================================
-if(BAL.nadeMore) PRO_LINEUPS_RAW = PRO_LINEUPS_RAW.concat(MAP.lineups.proExtra);
+PRO_LINEUPS_RAW = PRO_LINEUPS_RAW.concat(MAP.lineups.proExtra);
 var PRO_LINEUPS = null, PRO_GROUPS = {};
 function proLineups(){
   if(PRO_LINEUPS) return PRO_LINEUPS;
@@ -52,7 +52,6 @@ function proGroupDone(L){
 // покрывают эту ситуацию (сторона, триггер, сайт)
 var PRO_COVER = null;
 function proCovers(key){
-  if(!BAL.proLineups) return false;
   if(!PRO_COVER){ PRO_COVER = {}; proLineups().forEach(function(L){ PRO_COVER[L.team+"|"+L.trigger+"|"+L.site+"|"+L.type] = 1; if(L.site === "any"){ PRO_COVER[L.team+"|"+L.trigger+"|A|"+L.type] = 1; PRO_COVER[L.team+"|"+L.trigger+"|B|"+L.type] = 1; } }); }
   var p = key.split("."), trig = {insta:"insta", exec:"exec", pp:"postplant", call:"call", retake:"retake"}[p[1]];
   if(!trig) return false;
@@ -110,12 +109,11 @@ function flankPost(b, F, planted){
 // выбирает точку под перекрёстный огонь относительно него
 // второй защитник сайта: названная позиция под перекрёстный огонь с опорником
 function secondOnSite(b, k, ap){
-  if(!BAL.namedPos) return false;
   var names = POS[k].ctSecond, ents = [GEO[k].tEntry].concat(entryPts(k));
   // точка выбирается один раз на раунд: иначе при каждом сдвиге опорника
   // (ap) ключ менялся и второй прыгал между двумя точками ("анкор-флап")
   if(BAL.stable2nd !== false && b._2nd && b._2nd.round === roundNum && b._2nd.k === k && b._2nd.m === matchNum){ setPost(b, b._2nd.p, b._2nd.look, true, "anchor2"+k); return true; }
-  var ni = BAL.proPrior ? posPickName(b, names, roundNum*211 + matchNum*37 + b.id.charCodeAt(2||1)) : weightedPick(names.length, roundNum*211 + matchNum*37 + b.id.charCodeAt(2||1));
+  var ni = posPickName(b, names, roundNum*211 + matchNum*37 + b.id.charCodeAt(2||1));
   var p = null;
   for(var t=0; t<names.length && !p; t++){
     var nm = names[(ni + t) % names.length];
@@ -134,9 +132,9 @@ function secondOnSite(b, k, ap){
 function ctEarlyPeek(b, ct){
   var pa = prof(b, "aggr");
   if(!b.prof || pa < 0.7 || b._sawEnemy) return false;
-  if(BAL.numbersPlay && aliveCount("CT") < aliveCount("T")) return false; // нас меньше — не рискуем ранним пиком
+  if(aliveCount("CT") < aliveCount("T")) return false; // нас меньше — не рискуем ранним пиком
   if(roundGoal("CT") === "keepGuns") return false; // (v559) цель «не отдать винтовки» (у T эко) — без раннего пика
-  if(BAL.roundMem && b.tRole === "mid" && rmemRecent(RMEM.midDeath, 3).length >= 2) return false; // мидера рано снимают — без ранних пиков
+  if(b.tRole === "mid" && rmemRecent(RMEM.midDeath, 3).length >= 2) return false; // мидера рано снимают — без ранних пиков
   var since = (tick - roundStartTick)/TICK_HZ;
   var E = b._early;
   if(!E || E.round !== roundNum){
@@ -172,8 +170,8 @@ function ctEarlyPeek(b, ct){
     E.st = 1;
     voiceLog("CT", "early"+b.id, b.id, "выгляну за инфой "+calloutName(E.pt.x, E.pt.y));
     // (00_PLAN п.14, владелец 05.11) под ранний пик — сначала «накиньте флешку» (365: nadeAskFlash); некому — флешка себе (если есть и не эко у соперника)
-    if(BAL.ctEarlyUtil && roundGoal("CT") !== "keepGuns" && nadeAskFlash(b, stg, "флешу под ранний пик "+b.id)){}
-    else if(BAL.ctEarlyUtil && b.nades && b.nades.flash > 0 && roundGoal("CT") !== "keepGuns" && hashRand(roundNum*97 + b.id.charCodeAt(2)*5) < 0.6){
+    if(roundGoal("CT") !== "keepGuns" && nadeAskFlash(b, stg, "флешу под ранний пик "+b.id)){}
+    else if(b.nades && b.nades.flash > 0 && roundGoal("CT") !== "keepGuns" && hashRand(roundNum*97 + b.id.charCodeAt(2)*5) < 0.6){
       var whyF = "себе под ранний пик "+b.id;
       throwNade(b, "flash", stg.x, stg.y, true, whyF);
       b._waitPopUntil = tick + Math.round(1.1*TICK_HZ); b._waitPopKey = "pop:"+whyF;
@@ -246,11 +244,9 @@ function ctClutch(b, ct){
     }
   }
   var k = C.site, g = GEO[k];
-  if(BAL.holdTask){
-    holdGroup([b], {key:"clutch"+k, center:g.anchor, rArea:280, rMax:340,
-      voice:function(bb, r){ if(r.main) voiceLog("CT", "clutchpos"+k+Math.round(r.main.pt.x/60), bb.id, "встаю под "+calloutName(r.main.pt.x, r.main.pt.y).replace(/^на /,"")+(r.open - (r.main ? r.main.wn : 0) < 0.2 ? ", остальные входы закрыты" : "")); }}, "clutch:"+k);
-    return true;
-  }
+  holdGroup([b], {key:"clutch"+k, center:g.anchor, rArea:280, rMax:340,
+    voice:function(bb, r){ if(r.main) voiceLog("CT", "clutchpos"+k+Math.round(r.main.pt.x/60), bb.id, "встаю под "+calloutName(r.main.pt.x, r.main.pt.y).replace(/^на /,"")+(r.open - (r.main ? r.main.wn : 0) < 0.2 ? ", остальные входы закрыты" : "")); }}, "clutch:"+k);
+  return true;
   // (v142) позиция под реальные входы: откуда вероятно придут — туда смотреть
   // (один вход, максимум два), от остальных входов закрыться стеной
   if((!C.dynT || tick - C.dynT > 3*TICK_HZ || C.ptSite !== k)){
@@ -297,19 +293,17 @@ function midCoverPick(cts){
 }
 function midCoverPost(b, cts){
   var midAlive = cts.some(function(o){ return o.tRole === "mid"; }); if(midAlive) return false;
-  if(BAL.midCover2){
-    if(tick - roundStartTick < 5*TICK_HZ || (bomb && bomb.state === "planted")) return false;
-    if(midCoverPick(cts) !== b.id) return false;
-    var M2 = b._midCover;
-    if(!M2 || M2.round !== roundNum){
-      var sps2 = pickSpots("midcover", GEO.ctMid, 3, {rMin:60, rMax:300, minGap:60, see:[GEO.ctMidLook], hideFrom:[GEO.tMid]});
-      M2 = b._midCover = {round:roundNum, pt: sps2[0] || GEO.ctMid};
-      voiceLog("CT", "midcover"+roundNum, b.id, "минус мид — я ближе всех, беру мид");
-    }
-    var far = Math.hypot(b.x-M2.pt.x, b.y-M2.pt.y) > 220;
-    setPost(b, M2.pt, GEO.ctMidLook, true, far ? "midcover:go" : "midcover");
-    return true;
+  if(tick - roundStartTick < 5*TICK_HZ || (bomb && bomb.state === "planted")) return false;
+  if(midCoverPick(cts) !== b.id) return false;
+  var M2 = b._midCover;
+  if(!M2 || M2.round !== roundNum){
+    var sps2 = pickSpots("midcover", GEO.ctMid, 3, {rMin:60, rMax:300, minGap:60, see:[GEO.ctMidLook], hideFrom:[GEO.tMid]});
+    M2 = b._midCover = {round:roundNum, pt: sps2[0] || GEO.ctMid};
+    voiceLog("CT", "midcover"+roundNum, b.id, "минус мид — я ближе всех, беру мид");
   }
+  var far = Math.hypot(b.x-M2.pt.x, b.y-M2.pt.y) > 220;
+  setPost(b, M2.pt, GEO.ctMidLook, true, far ? "midcover:go" : "midcover");
+  return true;
   var rotAlive = cts.some(function(o){ return o.tRole === "rotator"; });
   if(!(b.tRole === "rotator" || (b.tRole === "roamer" && !rotAlive))) return false;
   if(tick - roundStartTick < 5*TICK_HZ) return false;

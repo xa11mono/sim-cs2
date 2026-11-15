@@ -18,7 +18,7 @@
 // забирает событие; решения по более старым событиям не принимаются. Решает и говорит IGL.
 function iglTake(tt, evTick){ if(evTick <= (tt._evDone||-1)) return false; tt._evDone = evTick; return true; }
 function carrierAtSite(tt){
-  if(!BAL.carrierStay || bomb.state !== "carried" || !bomb.carrier || !bomb.carrier.alive) return false;
+  if(bomb.state !== "carried" || !bomb.carrier || !bomb.carrier.alive) return false;
   var S = SITES[tt.site]; return Math.hypot(bomb.carrier.x-S.x, bomb.carrier.y-S.y) < 330 || onSite(S, bomb.carrier.x, bomb.carrier.y);
 }
 var CONT_SEC = 6, CONT_REGROUP = 6;   // с: решение о продолжении дефолта — за столько до выхода; перестроиться — столько (проектные числа)
@@ -61,7 +61,7 @@ function tIglReplan(tt, site, other, secLeft){
     }
     // (0) сняли CT в сетапе, мы в большинстве — не спешим: контроль карты и
     // выход всей группой (не дарить размен, заходя по одному в спешке)
-    if(BAL.numbersPlay && !tt._upSlow && aliveT >= aliveCT + 1 && secLeft > 50){
+    if(!tt._upSlow && aliveT >= aliveCT + 1 && secLeft > 50){
       var cdS = DL.filter(function(e){ return e.t === "CT" && e.phase === "setup"; });
       var lastC = cdS[cdS.length-1];
       if(lastC && tick - lastC.tick < 2*TICK_HZ && iglTake(tt, lastC.tick)){
@@ -84,7 +84,7 @@ function tIglReplan(tt, site, other, secLeft){
     // (S8) слышим ротацию CT на наш сайт — можно перейти на другой. Но это
     // только чтение, не гарантия: IGL верит ему не всегда (~60%), и другой сайт
     // НЕ считается пустым — заходим туда обычным выходом, с гранатами и чеком углов
-    if(BAL.rotRead && !tt.rebound && !tt._rotDone && aliveT >= 3 && secLeft > 45 && tick % 16 === 0){
+    if(!tt.rebound && !tt._rotDone && aliveT >= 3 && secLeft > 45 && tick % 16 === 0){
       var RH = tt._rotH || (tt._rotH = {});
       teamIntel.T.sig.forEach(function(sg){ if((sg.type !== "spotted" && sg.type !== "sound") || !sg.id || sg.id === "?" || tick - sg.tick > 16) return;
         var h = RH[sg.id] || (RH[sg.id] = []); if(!h.length || sg.tick - h[h.length-1].tick >= TICK_HZ){ h.push({x:sg.x, y:sg.y, tick:sg.tick}); if(h.length > 3) h.shift(); } });
@@ -143,7 +143,6 @@ function fl2idx(b){ return bots.filter(function(o){ return o._midFlank && o._mid
 // upLook — куда смотрит верхняя). На Ancient так у B (T Lower + T Upper), а не Ruins: точка 560px по пути от сайта
 // попадала глубоко назад, выход шёл растянутой колонной через весь Ramp
 function bStageFix(){
-  if(!BAL.bStageLow) return;
   var SS = MAP.tactics.plays.stageSplit || {};
   for(var k in SS){
     var g = GEO[k]; if(!g || g._lowSet) continue;
@@ -156,7 +155,7 @@ function bStageFix(){
 }
 var AHEAD_GAP = 120;   // (v450) ед. карты: «уже впереди точки подготовки» — проектное число
 function stagePost(mem, k){
-  var g = GEO[k], opt = {rMax:200, minGap:50, hideFrom:[SITES[k], g.anchor], see:[g.tEntry], avoidNades: BAL.tAdapt ? tDeathSpots() : []};
+  var g = GEO[k], opt = {rMax:200, minGap:50, hideFrom:[SITES[k], g.anchor], see:[g.tEntry], avoidNades: tDeathSpots()};
   // (v450, владелец 28.10: м1 р6 — «почти вышли на B, у игрока 0 появляется якорь stageB, который ведёт назад. Зачем?») точка подготовки —
   // одна на всех, и кто уже прошёл дальше неё к сайту (после перекола, после дефолта), шёл назад «собираться». Теперь он ждёт там, где
   // стоит, — в укрытии рядом (≤ 160 ед., не видно с сайта и с якоря CT, видно вход), а выход начинается и от него. «Дальше» — ближе к сайту
@@ -171,7 +170,7 @@ function stagePost(mem, k){
     return false; });
   if(!mem.length) return;
   var SSk = (MAP.tactics.plays.stageSplit || {})[k];
-  if(SSk && BAL.bStageLow && g.tStageUp && mem.length >= 3){
+  if(SSk && g.tStageUp && mem.length >= 3){
     // двое-трое ниже, один-двое выше (Ancient B: T Lower → Ramp и T Upper → Rat/Dark): выход с двух сторон
     var nUp = mem.length >= 4 ? 2 : 1;
     var srt = mem.slice().sort(function(a, c){ return Math.hypot(a.x-g.tStageUp.x, a.y-g.tStageUp.y) - Math.hypot(c.x-g.tStageUp.x, c.y-g.tStageUp.y); });

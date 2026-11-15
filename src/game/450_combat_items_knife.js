@@ -49,7 +49,7 @@ function bulletLineHit(sh, ex, ey, skip, seed, note){
   var w = sh.weapon, sd = Math.hypot(sv.x-sh.x, sv.y-sh.y), sz = hashRand(seed);
   var sm = sz < 0.22 ? 0.75 : (sz < 0.42 ? 1.25 : 1.0), sArm = sz >= 0.22 && sv.armor;
   var sdmg = w.dmg * Math.pow(w.rm, sd*PX_UNITS/500) * sm;
-  sv._hitFx = {t:nowTs, head:false}; if(BAL.tagging) sv._tagUntil = tick + 16;
+  sv._hitFx = {t:nowTs, head:false}; sv._tagUntil = tick + 16;
   applyDamage(sh, sv, sdmg, "bullet", {armorRatio: sArm ? w.armorPen : null, wkey:w.key, reward:w.killReward||300, note:" ("+note+", дист. "+Math.round(sd)+")", mods:{blind: tick < (sh.blindUntil||0), smoke: !!smokeOnLine(sh.x, sh.y, sv.x, sv.y)}});   // (v554) значки киллфида
   return sv;
 }
@@ -166,7 +166,6 @@ function knifeDefuseTick(b){
   return true;
 }
 function knifeTick(b){
-  if(!BAL.knifeRun) return;
   if(b.alive && roundState === "live" && knifeDefuseTick(b)) return;
   var ok = b.alive && roundState === "live" && (b.state === "patrol" || b.state === "hold") && !b._sawEnemy && !b.planting && !b.defusing &&
            !b.nadeTask && !(bomb && bomb.state === "carried" && bomb.carrier === b) && !(b._fc) && !b._reloading;   // (v442) перезаряжается — в руках оружие (замер: 91–112 ножей при перезарядке на 8 матчей)
@@ -182,13 +181,13 @@ function knifeTick(b){
   else if(!want && b._knife){ b._knife = false; b._drawUntil = tick + Math.round(0.4*TICK_HZ); }
 }
 function weaponSpeedMul(b){
-  if(BAL.knifeRun && b._knife) return 250/225;
-  if(!BAL.weaponSpeed || !b.weapon) return 1;
+  if(b._knife) return 250/225;
+  if(!b.weapon) return 1;
   var v = WSPEED[b.weapon.key] || 225, m = v/225;
   if(b.weapon.key === "AWP" && (b._sawEnemy || b.state === "engage" || b.state === "hold")) m *= 0.5; // в прицеле
   return m;
 }
-function weaponValue(k){ return k ? (WEAPONS[k].tier + (k === "AWP" ? 1.5 : 0) + (BAL.pickupMore && k === "AK" ? 0.5 : 0)) : -1; }
+function weaponValue(k){ return k ? (WEAPONS[k].tier + (k === "AWP" ? 1.5 : 0) + (k === "AK" ? 0.5 : 0)) : -1; }
 // (v334, М60, владелец: «часто подбирают две AWP, хотя лучше АК, если есть деньги на AWP — это для T; для CT почти всегда лучше АК»)
 // ценность подбора для этого игрока: вторая AWP у команды — ниже АК; T с деньгами на AWP — АК лучше (AWP купит сам);
 // CT — АК выше своей M4 и AWP (кроме снайпера команды без AWP)
@@ -207,7 +206,6 @@ function pickValue(b, k){
 // живой снайпер или AWP у кого-то; нет — поднимает любой (AWP не бросают)
 function awpAllowed(b){
   if(isSniper(b)) return true;   // (v519) AWP — снайперу команды (было: роль «awp» или «мид» — у CT «мид» переходит по расстановке)
-  if(!BAL.pickupMore) return false;
   return !bots.some(function(o){ return o.alive && o.team === b.team && o !== b && (o.primary === "AWP" || isSniper(o)); });
 }
 // (v518a, пак 09.11 п.1; владелец: «оружие заметно лучше — взять без опасного отклонения от позиции», «бомба взорвётся через 6 с …
@@ -224,7 +222,7 @@ function pickDetour(b, G){
   return true;
 }
 function weaponPickupTick(){
-  if(!BAL.weaponDrop || (roundState !== "live" && roundState !== "ending")) return;   // (v564, В89) и после конца раунда, до рестарта
+  if(roundState !== "live" && roundState !== "ending") return;   // (v564, В89) и после конца раунда, до рестарта
   if(!groundWeapons.length){ bots.forEach(function(b){ if(b.alive && b.post && b.post.tag === "pickup"){ clearPost(b); } b._pickGo = null; }); return; }
   bots.forEach(function(b){
     if(!b.alive || b.planting || b.defusing) return;
@@ -243,7 +241,7 @@ function weaponPickupTick(){
       // (п.10 владельца 29.10, м1 р4 т24280: m0NESY 3,3 с стоял у края молотова на Mid, и «идёт дольше 6 с» сняло затею за 215 ед. до
       // оружия) ждёт, пока погаснет огонь на пути (540: fireWait), — это не «иду слишком долго»: сроки на это время стоят
       if(b._fireWaitT != null && tick - b._fireWaitT <= 1){ b._pickT.t++; b._pickSince++; }
-      var pickTooLong = BAL.pickFix && tick - b._pickSince > (b._pickSave === roundNum ? 12 : 7)*TICK_HZ;   // (v334) на сейве идёт шагом — дольше
+      var pickTooLong = tick - b._pickSince > (b._pickSave === roundNum ? 12 : 7)*TICK_HZ;   // (v334) на сейве идёт шагом — дольше
       if((b.atPost && tick - b._pickT.t > TICK_HZ) || tick - b._pickT.t > (b._pickSave === roundNum ? 12 : 6)*TICK_HZ || pickTooLong){ b._pickIgnore = {x:b.post.x, y:b.post.y, round:roundNum}; if(pickTooLong) b._pickBan = tick + 8*TICK_HZ; clearPost(b); b._pickGo = null; b._pickSince = 0; }
       else postKeep(b);   // идёт за оружием — затея ещё идёт (арбитр места)
     }
@@ -269,7 +267,7 @@ function weaponPickupTick(){
     }
     // (9) в бою: с пистолетом/ПП, рядом (≤170px) лежит винтовка/AWP убитого, врага
     // сейчас не видно ~0.5с — быстро поднять (как в CS: "подобрал АК и дальше")
-    if(BAL.fightPickup && !b._sawEnemy && (b.state === "hold" || b.state === "engage" || b.state === "patrol") && tick - (b._lastSawT||0) > 32 &&
+    if(!b._sawEnemy && (b.state === "hold" || b.state === "engage" || b.state === "patrol") && tick - (b._lastSawT||0) > 32 &&
        !(bomb.state === "carried" && bomb.carrier === b) && b._fpT !== tick){
       // не срывается ради гана с важной позиции: после планта (ретейк/пост-плант)
       // и когда рядом свежая инфа о враге — только если ган почти под ногами
@@ -306,11 +304,11 @@ function weaponPickupTick(){
     var LKp = beliefLast[b.team] || {}, phaseP = taskAlive(b) && b._task.lv >= 7;
     if(!phaseP) for(var eP in LKp){ if(tick - LKp[eP].tick < 3*TICK_HZ && Math.hypot(LKp[eP].x-b.x, LKp[eP].y-b.y) < 1200/MAP.pxUnits) return; }
     if((b.tRole === "anchorA" || b.tRole === "anchorB") && b.primary && WEAPONS[b.primary].tier >= 5) return;
-    if(BAL.pickFix && b._pickBan > tick) return;
-    var best = null, bd = BAL.pickupMore ? 420 : 230;
+    if(b._pickBan > tick) return;
+    var best = null, bd = 420;
     groundWeapons.forEach(function(G){
       if(b._pickIgnore && b._pickIgnore.round === roundNum && Math.hypot(G.x-b._pickIgnore.x, G.y-b._pickIgnore.y) < 40) return;
-      if(pickValue(b, G.key) < cur + (BAL.pickupMore ? 1 : 2) && !(G.key === "AWP" && awpAllowed(b) && pickValue(b, G.key) > cur)) return; // своя AWP — за второй не ходит (раньше шёл и стоял над ней)
+      if(pickValue(b, G.key) < cur + (1) && !(G.key === "AWP" && awpAllowed(b) && pickValue(b, G.key) > cur)) return; // своя AWP — за второй не ходит (раньше шёл и стоял над ней)
       // то же правило, что при подборе: AWP с винтовкой в руках берёт только снайпер/мидер
       // (раньше шёл к AWP, а поднять "не имел права" — и стоял над ней)
       if(G.key === "AWP" && !awpAllowed(b) && cur >= 5) return;

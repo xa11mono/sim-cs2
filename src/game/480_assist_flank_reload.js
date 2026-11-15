@@ -57,7 +57,7 @@ function flankAssist(b){
   var mate = null, E = null;
   bots.forEach(function(m){
     if(mate || m === b || !m.alive || m.team !== b.team || !m._sawEnemy || (m.contactStreak||0) < 20) return;
-    var d = Math.hypot(m.x-b.x, m.y-b.y); if(d <= (BAL.groupPlay ? 300 : 160) || d > 900) return;
+    var d = Math.hypot(m.x-b.x, m.y-b.y); if(d <= (300) || d > 900) return;
     var e = m._nearestEnemyBot; if(!e || !e.alive) return; mate = m; E = e; });
   if(!mate) return false;
   if(!flankClaim(b, E.id)) return false;
@@ -90,7 +90,7 @@ function assistEdgeSpot(b, E){
   return best;
 }
 function assistPeek(b){
-  if(!BAL.assistPeek || b._sawEnemy || b.planting || b.defusing || b.hp <= LOW_HP) return false;
+  if(b._sawEnemy || b.planting || b.defusing || b.hp <= LOW_HP) return false;
   if(tick < (b._assistNext||0)) return false;
   // (v378) идёт по задаче не ниже — арбитр места; (v518a) главная задача терпит отклонение — помогает и с неё (detourOk, 110)
   var detour = !taskCanSet(b, "repos:assist");
@@ -99,7 +99,7 @@ function assistPeek(b){
   var mate = null, E = null;
   bots.forEach(function(m){
     if(mate || m === b || !m.alive || m.team !== b.team || !m._sawEnemy || (m.contactStreak||0) < 20) return;
-    if(Math.hypot(m.x-b.x, m.y-b.y) > (BAL.groupPlay ? 300 : 160)) return;
+    if(Math.hypot(m.x-b.x, m.y-b.y) > (300)) return;
     var e = m._nearestEnemyBot; if(!e || !e.alive || Math.hypot(e.x-b.x, e.y-b.y) > 900) return;
     mate = m; E = e;
   });
@@ -115,7 +115,7 @@ function assistPeek(b){
   var vpE = visParts(b.x, b.y, b.crouching, E.x, E.y, E.crouching, undefined, b.z, E.z);
   if((vpE.head || vpE.body) && !smokeBlocks(b.x, b.y, E.x, E.y)){ b.heardSound = {x:E.x, y:E.y, tick:tick, team:E.team, src:E.id, kind:"call"}; b.lastIntel = {x:E.x, y:E.y, tick:tick, src:"call"}; return false; }
   var ep = {x:E.x, y:E.y};
-  var sp = pickSpots("assist"+tick+b.id, BAL.groupPlay ? {x:mate.x, y:mate.y} : {x:(b.x+mate.x)/2, y:(b.y+mate.y)/2}, 3, {rMax: BAL.groupPlay ? 140 : 110, minGap:24, must:[ep]})
+  var sp = pickSpots("assist"+tick+b.id, {x:mate.x, y:mate.y}, 3, {rMax: 140, minGap:24, must:[ep]})
     .filter(function(q){ return !spotTaken(b, q) && hasLOS(q.x, q.y, ep.x, ep.y, q.z, E.z); })[0];   // (v370) рядом, но не плечом к плечу; (v570) с высотой врага
   // (v570, та же отметка) центры участков навмеша рядом — все за уступом (верхний ярус, враг внизу): линия открывается только у края. Ищем
   // точку на моём ярусе ближе к врагу — вперёд по линии на него и в стороны от неё, — откуда видна хоть часть врага; ближайшую
@@ -132,22 +132,22 @@ function assistPeek(b){
   return true;
 }
 // доля магазина, ниже которой игрок перезаряжается после боя — и (v521) ниже которой на линии «патронов мало» (470 duelEval)
-function rlFracOf(){ return BAL.soundMore ? 0.75 : 0.35; }
+function rlFracOf(){ return 0.75; }
 function updateReload(b){
   var w = b.weapon; if(!w || !b.alive) return;
   if(b._ammoFor !== w.key){ b._ammoFor = w.key; b.ammo = w.mag; b._reloading = false; b.reloadUntil = 0; }
   // (v555, м298 р1: «пострелял, ушёл за укрытие и стоит») перезарядился — укрытие больше не нужно: задача снимается, бот возвращается к своей
   if(b._reloading && tick >= b.reloadUntil){ b._reloading = false; b.ammo = w.mag; if(b.post && b.post.tag === "repos:rlcover"){ b._reposUntil = 0; clearPost(b); } }
-  if(BAL.pistolSwap && b._onPistol) pistolBack(b);
-  if(BAL.pistolSwap && !b._reloading && b.ammo <= 0 && pistolSwap(b)) return;
+  if(b._onPistol) pistolBack(b);
+  if(!b._reloading && b.ammo <= 0 && pistolSwap(b)) return;
   // после перестрелки про перезаряжается почти всегда, если магазин заметно
   // потрачен (а не только когда он почти пуст) — отсюда и звук перезарядки,
   // на который пикают
-  var rlFrac = rlFracOf(), rlWait = BAL.soundMore ? 96 : 64;
+  var rlFrac = rlFracOf(), rlWait = 96;
   var tacRl = !b._reloading && b.ammo > 0 && !b._sawEnemy && b.ammo < w.mag*rlFrac && tick - (b.lastShotTick||-999) > rlWait;
   // тактическая перезарядка на виду у известного врага — сначала за укрытие
   // (если патронов ещё не критично мало)
-  if(tacRl && BAL.reloadCover && b.ammo > w.mag*0.2 && !b.planting && !b.defusing){
+  if(tacRl && b.ammo > w.mag*0.2 && !b.planting && !b.defusing){
     // (v296) и враг за углом (≤ 900 px, ≤ 4 с — без линии сейчас): выглянет — застанет на перезарядке; укрытие — скрытое от его места
     var ex = exposedTo(b, 900, 4*TICK_HZ, true);
     // (v555, м298 р1) уже не видно ни с одного из этих мест (дошёл до укрытия / враг за углом) — перезаряжается сейчас. Было: пока инфа о враге
@@ -158,7 +158,7 @@ function updateReload(b){
   if(!b._reloading && (b.ammo <= 0 || tacRl)){
     // (v296, владелец 14.10: «во время перезарядки не стояли столбом») пустой магазин на виду у известного врага — перезаряжается на ходу:
     // за укрытие рядом (то же, что у тактической перезарядки), а нет укрытия — шаг вбок от линии врага (стрейф, ~50 px — проектное число)
-    if(b.ammo <= 0 && BAL.reloadCover && !b.planting && !b.defusing){
+    if(b.ammo <= 0 && !b.planting && !b.defusing){
       var exE = exposedTo(b, 900, 4*TICK_HZ, true);
       if(exE.length && !coverForReload(b, exE) && !(b._rlCoverT && tick - b._rlCoverT < 3*TICK_HZ && b.post && b.post.tag === "repos:rlcover")){
         var ea = Math.atan2(exE[0].y-b.y, exE[0].x-b.x), sgn = hashRand(tick + b.id.charCodeAt(1)) < 0.5 ? 1 : -1;
@@ -169,7 +169,7 @@ function updateReload(b){
     b._reloading = true; b.reloadUntil = tick + Math.round(w.reload*TICK_HZ);
     if(b.post && b.post.tag === "repos:rlcover") b._reposUntil = b.reloadUntil;   // (v555) укрытие держится, пока идёт перезарядка, — не 3 с
     if(b.ammo <= 0) logEvent(b.id+": перезарядка ("+w.name+", "+w.reload+"с)");
-    if(BAL.soundMore) reloadHeard(b, w);
+    reloadHeard(b, w);
   }
 }
 var SPRAY_PATTERN = [0, 0.06, 0.13, 0.22, 0.33, 0.46, 0.60, 0.74, 0.86, 0.95];

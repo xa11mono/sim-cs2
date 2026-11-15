@@ -452,7 +452,7 @@ function draw(){
     // точке (~70мс), след гаснет; попадание — красный всплеск (в голову —
     // с белым кольцом), промах — пуля летит мимо цели дальше, до стены (искра)
     ctx.lineCap = "round";
-    var TS0 = BAL.tracerStyle;
+    var TS0 = true;
     for(var ti=tracers.length-1; ti>=0; ti--){
       var tr = tracers[ti];
       // (v414, М154) пока не прошёл следующий тик, стрелок и цель нарисованы со сглаживанием (отстают до тика) — трассер от них же, а не от
@@ -788,12 +788,6 @@ function draw(){
     ctx.fillStyle = fillC; ctx.fill();
     ctx.lineWidth = (blindK > 0 ? 2 : smokeIn ? 2.2 : 1.5)/view.scale; ctx.strokeStyle = blindK > 0 ? "#fff" : smokeIn ? "#2b3029" : under ? "rgba(11,15,11,0.5)" : "#0b0f0b";
     if(smokeIn && !blindK) ctx.setLineDash([1.4/view.scale, 1.4/view.scale]); ctx.stroke(); ctx.setLineDash([]);
-    if(false){
-      var fx = rx + Math.cos(vf)*r*1.8;
-      var fy = ry + Math.sin(vf)*r*1.8;
-      ctx.strokeStyle = "#fff"; ctx.lineWidth = 2/view.scale;
-      ctx.beginPath(); ctx.moveTo(rx,ry); ctx.lineTo(fx,fy); ctx.stroke();
-    }
     var bw = 18/view.scale, bh = 2.5/view.scale;
     ctx.fillStyle = "rgba(0,0,0,0.5)"; ctx.fillRect(rx-bw/2, ry-r-8/view.scale, bw, bh);
     ctx.fillStyle = bot.hp>50 ? "#94b449" : (bot.hp>25 ? "#d9832f" : "#c1584f");
