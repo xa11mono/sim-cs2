@@ -1,0 +1,87 @@
+# Порядок тика (генерируется: `tools/rebuild/gen_maps.js`)
+
+Что вызывает `stepTick` по порядку исходника (функции игры; отступ — внутри условия / обхода ботов).
+Это порядок вызовов в коде, а не замер: что срабатывает в тике — по условиям. Слои фазы 2 (знания → намерения → согласование → исполнители → физика) — в «Устройстве».
+
+    - `resetRound` (530) — если simTime - roundEndTime >= ROUND_RESTART_DELAY_SEC
+    - `newMatch` (530) — если simTime - roundEndTime >= 7
+  - `freezeLookTick` (540) — если roundState === "freeze"
+  - `nadePrecalcTick` (380) — если roundState === "freeze"
+    - `logEvent` (440) — если simTime >= roundStartTime
+  - `sbTick` (677) — если SANDBOX.on
+  - `dvTick` (678) — если DEMOV.on
+  - `weaponPickupTick` (450) — если postRun
+  - `itemPickupTick` (450) — если postRun
+  - `teamBrains` (350) — если !postRun
+  - `nadeBrains` (420) — если !postRun
+  - `updateNadeTasks` (380) — если !postRun
+  - `nadesTick` (400) — если !postRun
+    - `tClearCalls` (150) — если roundState === "live" && tick % 16 === 0
+  - `bombBeepTick` (680) — если !postRun
+  - `updatePost` (110) — в обходе (forEach и т.п.)
+  - `updateReload` (480) — в обходе (forEach и т.п.)
+    - `updateRoamer` (430) — если !bot.post
+  - `floorViewTick` (370) — в обходе (forEach и т.п.)
+  - `moveWalkTick` (535) — в обходе (forEach и т.п.)
+  - `knifeTick` (450) — в обходе (forEach и т.п.)
+  - `prePeekTick` (250) — в обходе (forEach и т.п.)
+  - `exposedShiftTick` (250) — в обходе (forEach и т.п.)
+  - `jumpCheckTick` (540) — в обходе (forEach и т.п.)
+  - `weaponSpeedMul` (450) — в обходе (forEach и т.п.)
+  - `moveSpeedTick` (535) — в обходе (forEach и т.п.)
+  - `fightCycleTick` (470) — в обходе (forEach и т.п.)
+  - `inWater` (460) — в обходе (forEach и т.п.)
+          - `sndLadder` (680) — если CL
+          - `sndStep` (680) — иначе (CL)
+        - `bzOf` (200) — если roundState === "live"
+            - `reachPossible` (200) — в обходе (forEach и т.п.)
+            - `beliefZoneKnown` (260) — в обходе (forEach и т.п.)
+      - `moveSoundEmit` (540) — если bot._stepDist >= stride
+  - `ladderTick` (370) — в обходе (forEach и т.п.)
+      - `assignNewDestination` (510) — если bot.path.length === 0 // bot.pathIdx >= bot.path.length
+      - `crossesWall` (060) — иначе (bot.path.length === 0 // bot.pathIdx >= bot.path.length)
+      - `navSegOnLevel` (370) — иначе (bot.path.length === 0 // bot.pathIdx >= bot.path.length)
+      - `fireOnSeg` (370) — иначе (bot.path.length === 0 // bot.pathIdx >= bot.path.length)
+          - `stepBlocked` (370) — если folK < 1
+          - `navSegOnLevel` (370) — если folK < 1
+          - `navSegNoDrop` (050) — если folK < 1
+      - `inFire` (370) — иначе (bot.path.length === 0 // bot.pathIdx >= bot.path.length)
+      - `fireCommit` (370) — иначе (bot.path.length === 0 // bot.pathIdx >= bot.path.length)
+          - `stepBlocked` (370) — иначе (fireWait)
+            - `stepBlocked` (370) — иначе (!stepBlocked(bot.baseX,bot.baseY,nx,ny,bot))
+              - `stepBlocked` (370) — иначе (Math.abs(moveX) >= minSlide && !stepBlocked(bot.baseX,bot.baseY,nx1,bo)
+                - `stepBlocked` (370) — цикл
+        - `navFollowFloor` (370) — если actuallyMoved > 0
+              - `snapToWalkable` (050) — если bot._netStuck >= 3 && wpN
+              - `inFire` (370) — если bot._netStuck >= 3 && wpN
+              - `fireCommit` (370) — если bot._netStuck >= 3 && wpN
+              - `navFloorNear` (370) — если bot._netStuck >= 3 && wpN
+              - `escapeWallLine` (510) — иначе (bot._netStuck >= 3 && wpN)
+              - `escapeWallLine` (510) — если bot._stuckResets >= 2
+            - `navOnFloor` (370) — если bot.stuckTicks > 40
+              - `navSnap` (540) — если bot._stuckResets >= 2 // !navOnFloor(bot.baseX, bot.baseY, bot)
+          - `buildWaypointPath` (050) — если TRl.length >= 8 && tick - (bot._unstickT//-1e9) > 2*TICK_HZ && tick - 
+          - `botLane` (050) — если TRl.length >= 8 && tick - (bot._unstickT//-1e9) > 2*TICK_HZ && tick - 
+          - `crossesWall` (060) — если TRl.length >= 8 && tick - (bot._unstickT//-1e9) > 2*TICK_HZ && tick - 
+            - `navAt` (020) — если p0 && p0[2] != null && p0[2] <= bot.z + 18 && Math.hypot(p0[0]-bot.bas
+            - `logEvent` (440) — если p0 && p0[2] != null && p0[2] <= bot.z + 18 && Math.hypot(p0[0]-bot.bas
+        - `navOnFloor` (370) — иначе (fireWait)
+            - `navSnap` (540) — если ++bot._offNav > 32
+              - `navUnlinkBlocked` (370) — если tick - bot._progTick > 96
+    - `crossesWall` (060) — если bot.roamChecking && bot.state === "patrol" && bot.roamLookPt
+        - `crossesWall` (060) — цикл
+    - `crossesWall` (060) — если offX === 0 && offY === 0 && (bot._prevOffX // bot._prevOffY) && bot._s
+  - `strafeKeysTick` (540) — в обходе (forEach и т.п.)
+    - `navFollowFloor` (370) — если !bot._climb
+- `resolveEngagements` (510)
+- `ecoKnowSeeTick` (520)
+- `smokeSpamTick` (290)
+- `infoFallbackTick` (300)
+- `smokeHeTick` (290)
+- `teamInfoTick` (190)
+- `posTick` (280)
+- `knowTick` (220)
+- `teamTick` (230)
+- `beliefTick` (240)
+- `checkRoundEnd` (530)
+- `probTick` (545)

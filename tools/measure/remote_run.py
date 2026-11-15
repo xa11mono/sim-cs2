@@ -75,8 +75,9 @@ def main():
     for j in req.get('fp', []):
         sim = os.path.join(sims, j['label'] + '.html'); build(j['ref'], j.get('map', 'ancient'), sim)
         out = os.path.join(ROOT, 'tools', 'measure', 'runs', j['label']); os.makedirs(out, exist_ok=True)
-        for m in j.get('matches', [3, 7, 11, 13, 17, 19, 23, 29]): fps.append((sim, m, os.path.join(out, 'fp_%d.json' % m)))
+        for m in j.get('matches', [3, 7, 11, 13, 17, 19, 23, 29]): fps.append((sim, m, os.path.join(out, 'fp_%d.json' % m), bool(j.get('fields'))))
     fpjs = open(os.path.join(HERE, 'fingerprint.js'), encoding='utf-8').read()
+    fwjs = open(os.path.join(HERE, 'engine', 'field_watch.js'), encoding='utf-8').read()   # (15.11) "fields": true — ловец писателей полей
     # (15.11, перестройка) покрытие кода: {"cov": [{"label", "ref", "map", "matches"?, "rounds"?}]} — code_cov.js по матчу на процесс →
     # runs/<label>/cov_<m>.json (функция и сколько раз вызвана); мёртвые — не вызванные ни в одном матче (сводит облако)
     covs = []
@@ -86,14 +87,15 @@ def main():
         for m in j.get('matches', [3, 7, 11, 13, 17, 19, 23, 29]):
             covs.append(['node', os.path.join(HERE, 'code_cov.js'), sim, os.path.join(out, 'cov_%d.json' % m), str(j.get('rounds', 99)), str(m)])
     run = []
-    for sim, m, out in fps:
+    for sim, m, out, fw in fps:
         while len(run) >= par:
             for p, f in run:
                 if p.poll() is not None and f: f.close()
             run = [(p, f) for p, f in run if p.poll() is None]
             if len(run) >= par: __import__('time').sleep(2)
         f = open(out, 'w', encoding='utf-8'); log('fp %s m%d' % (os.path.basename(sim), m))
-        run.append((subprocess.Popen(['node', os.path.join(ROOT, 'src', 'q.js'), sim, fpjs.replace('__M__', str(m))], cwd=ROOT, stdout=f), f))
+        code = (fwjs + '\n' if fw else '') + fpjs.replace('__M__', str(m)); cf = out[:-5] + '.code.js'; open(cf, 'w', encoding='utf-8').write(code)
+        run.append((subprocess.Popen(['node', os.path.join(ROOT, 'src', 'q.js'), sim, '@' + cf], cwd=ROOT, stdout=f), f))
     for c in covs:
         while len(run) >= par:
             for p, f in run:
@@ -104,6 +106,14 @@ def main():
     for p, f in run:
         p.wait()
         if f: f.close()
+    # ловец полей — из fp_<m>.json в fw_<m>.json (отпечаток остаётся как без ловца — сравним с прошлыми); код замера — удалить
+    for sim, m, out, fw in fps:
+        try: os.remove(out[:-5] + '.code.js')
+        except OSError: pass
+        if not fw: continue
+        try: d = json.load(open(out, encoding='utf-8'))
+        except Exception: continue
+        if 'fields' in d: json.dump(d.pop('fields'), open(os.path.join(os.path.dirname(out), 'fw_%d.json' % m), 'w', encoding='utf-8')); json.dump(d, open(out, 'w', encoding='utf-8'), separators=(',', ':'))
     for j in req.get('jobs', []):
         sim = os.path.join(sims, j['label'] + '.html')
         build(j['ref'], j.get('map', 'ancient'), sim); jobargs.append('--job=%s,%s' % (j['label'], sim))

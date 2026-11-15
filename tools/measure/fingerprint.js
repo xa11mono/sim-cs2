@@ -18,4 +18,5 @@ for(var t = 0; t < 400000; t++){
   bots.forEach(function(b){ mix(b.x); mix(b.y); mix(b.facing); mix(b.hp); mix(b.alive ? 1 : 0); mixS(b.weapon && b.weapon.key); mix(b.money); });
 }
 FP.ticks = tick; FP.hash = h;
+if(typeof FW_OUT === "function") FP.fields = FW_OUT();   // (15.11) ловец писателей полей (engine/field_watch.js), если подключён — remote_run вынесет в fw_<m>.json
 JSON.stringify(FP)
