@@ -30,7 +30,7 @@ function voiceFeed(team, who, text, kind){
   voiceLines.unshift({t: planted ? "💣" : Math.floor(sec/60)+":"+("0"+Math.floor(sec%60)).slice(-2), team: team,
                       who: who && who !== team ? nick(who) : "колл", text: nickify(text), kind: kind});
   if(voiceLines.length > 60) voiceLines.length = 60;
-  renderVoice();
+  VOICE_DIRTY = true;   // (15.11, перестройка: показ отдельно от симуляции) рисует кадр (680), не симуляция
 }
 // (v430) новая фраза появляется плавно (класс in — один раз); бомба во времени — значок C4, а не эмодзи
 var HUD_VOICE_SHOWN = typeof WeakSet !== "undefined" ? new WeakSet() : null;
@@ -60,7 +60,12 @@ function logEvent(text, isKill){
   if(/^(IGL|T:|CT:|CT |T )/.test(text) && typeof TEAMDBG !== "undefined"){ if(TEAMDBG.round !== roundNum){ TEAMDBG.round = roundNum; TEAMDBG.log = []; }
     TEAMDBG.log.push({s: roundState === "live" ? Math.round(simTime - roundStartTime) : 0, text: text}); if(TEAMDBG.log.length > 40) TEAMDBG.log.shift(); }
   if(events.length > 40) events.length = 40;
-  var el = document.getElementById("log");
+  LOG_DIRTY = true;   // (15.11, перестройка) консоль рисует кадр (680): logRender
+}
+// (15.11, перестройка: показ отдельно от симуляции) симуляция только ставит «есть новое», кадр рисует — VOICE_DIRTY / LOG_DIRTY
+var VOICE_DIRTY = false, LOG_DIRTY = false;
+function logRender(){
+  var el = document.getElementById("log"); if(!el) return;
   el.innerHTML = events.map(function(e){
     return '<div class="ev'+(e.kill?' kill':'')+'">['+e.t+'s] '+e.text+'</div>';
   }).join("");

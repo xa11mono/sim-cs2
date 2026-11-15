@@ -233,6 +233,15 @@ function showFatal(e){
   document.body.appendChild(d);
 }
 window.addEventListener("error", function(ev){ showFatal(ev.error || ev.message); });
+// (15.11, перестройка: показ отдельно от симуляции) симуляция ставит отметки, кадр рисует
+var RC_HALF = null, WSK_EL = null;
+function showSync(){
+  if(VOICE_DIRTY){ VOICE_DIRTY = false; renderVoice(); }
+  if(LOG_DIRTY){ LOG_DIRTY = false; logRender(); }
+  if(RC_HALF !== null){ var rh = document.getElementById("rcHalf"); if(rh) rh.textContent = RC_HALF; RC_HALF = null; }
+  var sk = WSK_EL || (WSK_EL = document.getElementById("btnWarmSkip"));
+  if(sk && !WARM.on && sk.style.display !== "none") sk.style.display = "none";
+}
 function frame(ts){
   try{ frameBody(ts); }catch(e){ showFatal(e); }
   requestAnimationFrame(frame);
@@ -261,8 +270,16 @@ function frameBody(ts){
     else { draw(); obsOverlay(); }
     miniDraw();
   }
+  showSync();   // (15.11, перестройка) показ того, что симуляция отметила: войс, консоль, карточка, кнопка разминки
   frameWrapR = null;   // вне кадра (клики, перемотка) — читать заново
 }
+// (15.11, перестройка: показ отдельно) перенесено из 495_highlights — кнопки и ползунки живут в показе
+// ползунок «хайлайты» (меню «Инструменты»): шанс в процентах на дуэль; сразу в игре, хранится в браузере
+(function(){ if(typeof document === "undefined") return; var r = document.getElementById("hlP"), v = document.getElementById("hlPv"); if(!r) return;
+  var show = function(){ v.textContent = Math.round(HL.p*100) + "%"; };
+  r.value = Math.round(HL.p*100); show();
+  r.addEventListener("input", function(){ HL.p = (+r.value || 0)/100; show(); try{ localStorage.setItem(HL_KEY, JSON.stringify({p: HL.p})); }catch(e){} });
+})();
 document.getElementById("btnFreshMatch").addEventListener("click", function(){ var n = Math.max(1, parseInt(document.getElementById("inpMatchNum").value, 10) || 1); var sel = document.getElementById("selSeries"), bo = sel ? +sel.value : 3; if(bo !== SERIES.bo || seriesDone()) SERIES = {bo:bo, maps:{}}; var cw = document.getElementById("chkWarm"); if(cw && !cw.checked) freshMatch(n); else warmStart(n); paused = false; var bp = document.getElementById("btnPause"); if(bp){ bp.textContent = "Пауза"; bp.classList.remove("active"); } logEvent("Матч №"+n+" с чистого листа (воспроизводимый)", true); });
 setInterval(function(){ var el = document.getElementById("matchTick"); if(el) el.textContent = "матч "+matchNum+" · тик "+tick; }, 250);
 var BOT_INIT = bots.map(function(b){ var o = {keys:{}, vals:{}}; for(var k in b){ o.keys[k] = 1; var v = b[k]; if(v === null || (typeof v !== "object" && typeof v !== "function")) o.vals[k] = v; } return o; });
