@@ -106,6 +106,13 @@ function onePass(src, file, tagOf) {
     if (n.type === "IfStatement" && isBoolLit(n.test)) {
       const tv = litVal(n.test), keepN = tv ? n.consequent : n.alternate, drop = tv ? n.alternate : n.consequent;
       if (drop) removed.push({ tag: tagOf(n.test.start, n.test.end), file, line: lineOf(src, n.start), what: tv ? "else" : "if(ложь)", text: S(drop) });
+      const par = n._p, inBody = par && (par.type === "BlockStatement" || par.type === "Program" || par.type === "SwitchCase");
+      // (ошибка второй свёртки 15.11, найдена отпечатком на ПК 257: `} else if(!BAL.namedPos){…}` убиралось без `else`, и следующая
+      // строка (`groupPost(… "awpline" …)`, 170_tbrain) становилась веткой else) — не в теле блока: else уходит вместе с if, иначе — `{}`
+      if (!keepN && !inBody) {
+        if (par && par.type === "IfStatement" && par.alternate === n) { edit = { s: par.consequent.end, e: n.end, t: "" }; return; }
+        edit = { s: n.start, e: n.end, t: "{}" }; return;
+      }
       if (!keepN) {   // весь if уходит
         let s = n.start, e = n.end;
         const ls = src.lastIndexOf("\n", s - 1) + 1, le = src.indexOf("\n", e); const le2 = le < 0 ? src.length : le;
@@ -113,7 +120,7 @@ function onePass(src, file, tagOf) {
         else if (/^\s*$/.test(src.slice(ls, s))) { /* оставить хвост строки */ while (src[e] === " ") e++; s = ls + (s - ls); }
         edit = { s, e, t: "" }; return;
       }
-      if (keepN.type === "BlockStatement" && !hasBlockDecl(keepN)) {
+      if (keepN.type === "BlockStatement" && !hasBlockDecl(keepN) && inBody) {   // раскрыть блок — только в теле блока
         let inner = src.slice(keepN.start + 1, keepN.end - 1);
         const ls = src.lastIndexOf("\n", n.start - 1) + 1, ind = src.slice(ls, n.start);
         if (/\n/.test(inner) && /^\s*$/.test(ind)) {   // многострочный блок: снять отступ на шаг, убрать пустые края

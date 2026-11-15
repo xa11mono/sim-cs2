@@ -836,7 +836,7 @@ function tBrain(){
         if(tp) setPost(b, tp, g.ctEntry, true, (b.tRole === "entry" ? "clear" : "sitehold")+tt.site+":"+nm);
         else groupPost([b], plantPt, g.ctEntry, "sitehold"+tt.site, {rMin:40, rMax:210, minGap:60, see:[g.ctEntry]});
       });
-    } else 
+    }
     groupPost(rest.filter(function(b){ return b.tRole==="awp" && b.primary==="AWP"; }), g.tEntry, g.ctEntry, "awpline"+tt.site, {rMax:130, minGap:50, see:[g.ctEntry, plantPt]});
   } else if(tt.phase === "postplant"){
     var gs = GEO[bomb.site];
