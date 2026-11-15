@@ -29,7 +29,7 @@ function resolveEngagements(){
       // ван-вей: стоящий в самом краю дыма видит наружу, а его снаружи — нет
       var smk = smokeBlocks(ct.x,ct.y,t.x,t.y), ctOW = false, tOW = false;
       // (v548) сквозь дым по дырам от пуль видна только часть тела, которая попала в окошко (smokeHoleParts, 360) — и цель — только она
-      if(smk){ ctOW = BAL.oneWay && oneWaySees(ct, t); tOW = BAL.oneWay && oneWaySees(t, ct);   // кромка дыма (ван-вей) — как раньше, целиком
+      if(smk){ ctOW = oneWaySees(ct, t); tOW = oneWaySees(t, ct);   // кромка дыма (ван-вей) — как раньше, целиком
         if(!ctOW){ var ctH = smokeHoleParts(ct, t); ctP = {head: ctP.head && ctH.head, body: ctP.body && ctH.body}; if(ctP.head || ctP.body){ ctOW = true; ct._smkParts = {id: t.id, t: tick, head: ctP.head, body: ctP.body}; } }
         if(!tOW){ var tH = smokeHoleParts(t, ct); tP = {head: tP.head && tH.head, body: tP.body && tH.body}; if(tP.head || tP.body){ tOW = true; t._smkParts = {id: ct.id, t: tick, head: tP.head, body: tP.body}; } }
         if(!ctOW && !tOW) return; }

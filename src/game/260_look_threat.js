@@ -96,7 +96,6 @@ function uncheckedW(team, j){
 // (REACH — знание команды) или что держит свой (свой в зоне / ≤ 400 px от её центра). Остальное позади — обычный вариант
 // взгляда с ослаблением «за спиной» (LOOK.behindHold / behindMove)
 function isRearZone(team, zb, j, b){
-  if(!BAL.rearCut) return false;
   // сам слышал/видел врага в этой зоне за последние 3 с — не тыл, даже если команда ещё не знает
   var c0 = BZ.cent[j];
   if(b && c0 && [b.heardSound, b.lastIntel].some(function(q){ return q && (!q.team || q.team !== team) && tick - q.tick <= 3*TICK_HZ && (bzOf(q.x, q.y) === j || Math.hypot(q.x-c0.x, q.y-c0.y) <= 400); })) return false;
@@ -106,7 +105,7 @@ function isRearZone(team, zb, j, b){
   if(BZ.cent[j] && freshThreatNear(team, BZ.cent[j])) return false;
   // (v280) по таймингу — тыл, только если враг не успеет туда дольше LOOK.timingSec (раньше — «не успел прямо сейчас»:
   // выкидывался угол, куда враг выйдет через 0,1 с); держит — другой тиммейт, не сам бот (игрок 8 «держал» Donut сам)
-  if(!BAL.timing || !REACH[team] || REACH[team][j] - tick > LOOK.timingSec*TICK_HZ){ REAR_WHY = "тыл: по таймингу враг не успеет туда " + LOOK.timingSec + "+ с"; return true; }
+  if(!REACH[team] || REACH[team][j] - tick > LOOK.timingSec*TICK_HZ){ REAR_WHY = "тыл: по таймингу враг не успеет туда " + LOOK.timingSec + "+ с"; return true; }
   var c = BZ.cent[j], m = c ? bots.filter(function(o){ return o !== b && o.alive && o.team === team && (bzOf(o.x, o.y) === j || Math.hypot(o.x-c.x, o.y-c.y) <= 400); })[0] : null;
   if(m){ REAR_WHY = "тыл: держит " + m.id; return true; }
   return false;
@@ -213,7 +212,7 @@ function nbrThreat(team, j, nn, zb){
   var W = bzWalk(), t = 0;
   for(var k=0;k<W.length;k++){ if(k === j || k === zb) continue;
     var dn = W[k][nn]; if(!(dn < W[k][j])) continue;
-    if(k !== nn && BAL.timing && !reachPossible(team, k)) continue;
+    if(k !== nn && !reachPossible(team, k)) continue;
     var bk = beliefZoneKnown(team, k); if(bk > 0) t += bk * Math.exp(-dn / LOOK.nearPx); }
   return t;
 }

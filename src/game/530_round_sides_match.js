@@ -35,10 +35,9 @@ function startHalf(silent){
 // на перерыве внутри овертайма (раунды 28, 34, …).
 // (v434) раунд r начинается с нуля по снаряжению: вторая половина, каждая половина овертайма (startHalf). Одно место для resetRound и
 // для сейва (saveWorth): сохранять оружие имеет смысл, только если оно перейдёт в следующий раунд
-function roundResetsGear(r){ return r === HALF_ROUNDS+1 || (!!BAL.overtime && r > regRounds() && (r - regRounds() - 1) % OT_HALF === 0); }
+function roundResetsGear(r){ return r === HALF_ROUNDS+1 || (r > regRounds() && (r - regRounds() - 1) % OT_HALF === 0); }
 // (v434) окончен ли матч после раунда r при счёте sCT : sT — одно место для endRound и для сейва
 function matchOverWith(r, sCT, sT){
-  if(!BAL.overtime) return sCT >= MATCH_WIN || sT >= MATCH_WIN || r >= regRounds();
   if(r < regRounds()) return sCT >= MATCH_WIN || sT >= MATCH_WIN;
   if(r === regRounds()) return sCT !== sT;
   var tgt = matchWinTarget(); if(sCT >= tgt || sT >= tgt) return true;
@@ -52,7 +51,7 @@ function saveWorth(team){
 }
 function sideSwapNow(r){
   if(r === HALF_ROUNDS+1) return true;
-  if(!BAL.overtime || r <= regRounds()) return false;
+  if(r <= regRounds()) return false;
   var k = r - regRounds() - 1; return k % OT_HALF === 0 && (k/OT_HALF) % 2 === 1;
 }
 function swapSides(){
@@ -144,7 +143,7 @@ function endRound(winner, reason){
   if(DEMOV.on) return;     // (v571) раунд из демки: кончается по демке (678)
   for(var shk in siteHeatPending){ siteHeat[shk] = (siteHeat[shk]||0) + 1; } siteHeatPending = {};
   if(winner){ score[winner]++; }
-  if(BAL.roundMem && teamTac.T && teamTac.T.tac && teamTac.T.tac.style === "rush"){ RMEM.rush.push({site:teamTac.T.site, round:roundNum}); if(RMEM.rush.length > 6) RMEM.rush.shift(); }
+  if(teamTac.T && teamTac.T.tac && teamTac.T.tac.style === "rush"){ RMEM.rush.push({site:teamTac.T.site, round:roundNum}); if(RMEM.rush.length > 6) RMEM.rush.shift(); }
   rememberRound(winner);
   posRoundEnd(winner);
   timeoutCheck(winner);
@@ -155,10 +154,8 @@ function endRound(winner, reason){
   var why = reason === "time" ? " (время вышло)" : (reason === "bomb" ? " (взрыв)" : (reason === "defuse" ? " (дефуз)" : ""));
   logEvent("Раунд "+roundNum+" завершён"+(winner? " — победа "+winner+" ("+TEAM_NAME[winner]+")"+why : " — обе команды уничтожены")+". Счёт "+TEAM_NAME.CT+" (CT) "+score.CT+" : "+score.T+" "+TEAM_NAME.T+" (T)", true);
   var over = matchOverWith(roundNum, score.CT, score.T);
-  if(BAL.overtime){
-    if(!over && roundNum >= regRounds() && (roundNum - regRounds()) % (OT_HALF*2) === 0)
-      logEvent((roundNum === regRounds() ? "" : "ещё ")+"ОВЕРТАЙМ при "+score.CT+":"+score.T+" — MR3, по $"+OT_MONEY+", до "+(MATCH_WIN + OT_HALF*(otIndex(roundNum+1)+1))+" побед", true);
-  }
+  if(!over && roundNum >= regRounds() && (roundNum - regRounds()) % (OT_HALF*2) === 0)
+    logEvent((roundNum === regRounds() ? "" : "ещё ")+"ОВЕРТАЙМ при "+score.CT+":"+score.T+" — MR3, по $"+OT_MONEY+", до "+(MATCH_WIN + OT_HALF*(otIndex(roundNum+1)+1))+" побед", true);
   if(!over && sideSwapNow(roundNum+1) && typeof document !== "undefined"){
     var rh = document.getElementById("rcHalf"); if(rh) rh.textContent = "Смена сторон: "+TEAM_NAME.T+" — CT, "+TEAM_NAME.CT+" — T";
   }

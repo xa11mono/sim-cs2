@@ -74,7 +74,7 @@ function proRolePost(b, key, names, ref, look, tag){
     if(!p) return false;
     // (v149) взгляд с этой точки — туда, откуда враг придёт раньше всего,
     // а не заданная заранее точка (с Back Halls "на мид" = в свой коридор)
-    if(BAL.enemyward){ var ewp = enemywardLook("CT", p); if(ewp) look = ewp; }
+    var ewp = enemywardLook("CT", p); if(ewp) look = ewp;
     P = b._proRole = {round:roundNum, m:matchNum, key:key, p:p, look:look, nm:nm};
     logEvent(b.id+": "+({rot:"сзади на ротации", roam:"второй на B"})[key]+" — «"+nm+"»");
   }

@@ -35,7 +35,7 @@ function fireVAcc(sh, tg, dist){
 // дистанция ближе 230 px (575 ед.). AWP_NOSCOPE — разброс AWP без прицела стоя, тыс. рад: данные игры CS2 (80,8 против 2,0 в прицеле)
 var AWP_NOSCOPE = 80.8;
 function awpNoscope(sh, tg, dist){
-  if(!BAL.awpClose || !sh.weapon || sh.weapon.key !== "AWP") return false;
+  if(!sh.weapon || sh.weapon.key !== "AWP") return false;
   // (v526, владелец 10.11: «в упор некоторые успевают и в прицеле»; «если есть время прицелиться — в прицел») кто стоял и уже целился в это
   // место (держал угол), тот уже в прицеле — без прицела стреляет только застигнутый: на ходу / развернулся на врага
   if(sh._heldAim) return false;
@@ -66,7 +66,7 @@ function tryShoot(shooter, target, dist){
   // а не по контакту бота с кем угодно: раньше вторая цель в живой перестрелке шла без реакции (34 % выстрелов раньше 150 мс)
   var cs = (shooter._ts && shooter._ts[target.id]) || 0;
   if(!shooter.alive || !target.alive) return;
-  if(BAL.knifeRun && (shooter._knife || (shooter._drawUntil && tick < shooter._drawUntil))){ if(shooter._knife){ shooter._knife = false; shooter._drawUntil = tick + Math.round(0.4*TICK_HZ); } return; } // достаёт оружие
+  if(shooter._knife || (shooter._drawUntil && tick < shooter._drawUntil)){ if(shooter._knife){ shooter._knife = false; shooter._drawUntil = tick + Math.round(0.4*TICK_HZ); } return; } // достаёт оружие
   // отступающий стреляет на отходе (раньше не стрелял вообще — его просто
   // расстреливали в спину); бег и так режет ему точность
   if(shooter.planting || shooter.defusing) return; // руки заняты
@@ -91,7 +91,7 @@ function tryShoot(shooter, target, dist){
     var pre = hD < 0.25 ? (shooter.curSpeed < 45*SPD_K ? BAL.holdReact : BAL.preaimReact) : (hD < 0.6 ? 0.9 : 1.1);
     shooter._reactMul = pre * (shooter.curSpeed > SPEED*0.8 ? BAL.moveReact : 1.0);
     shooter._heldAim = hD < 0.25 && shooter.curSpeed < 45*SPD_K;   // (v526) стоял и уже целился сюда — со снайперкой он уже в прицеле
-    shooter._peekLag = (shooter.curSpeed < 45*SPD_K && target.curSpeed > (BAL.pieSlice ? 60 : 45)*SPD_K) ? BAL.peekAdv : 0; // преимущество пикающего — только у быстрого выхода; кто режет угол шагом, его не имеет
+    shooter._peekLag = (shooter.curSpeed < 45*SPD_K && target.curSpeed > (60)*SPD_K) ? BAL.peekAdv : 0; // преимущество пикающего — только у быстрого выхода; кто режет угол шагом, его не имеет
     // раздел 14: "префайр угла" — кто заходил, уже целясь в типичную точку
     // (прицел почти на цели в момент появления), доводит прицел почти сразу,
     // как и тот, кто держит; разворачиваться на 90° — долго и неточно
@@ -117,23 +117,23 @@ function tryShoot(shooter, target, dist){
   // частичная видимость: неподвижного (особенно сидящего) врага вдали
   // замечают позже — виден кусок модели на фоне угла; бегущего — сразу
   var visLag = 0;
-  if(BAL.partialVis && cs <= 1){
+  if(cs <= 1){
     var tsp = target.curSpeed || 0;
     if(tsp < 20 && dist > 350) visLag = Math.round(Math.min(10, 3 + (dist-350)/80) + (target.crouching ? 3 : 0));
     else if(tsp > 100*SPD_K) visLag = -2;
     shooter._visLag = visLag;
-  } else if(BAL.partialVis) visLag = shooter._visLag || 0;
+  } else visLag = shooter._visLag || 0;
   effReaction = Math.max(4, Math.round(shooter.reactionTicks * (shooter._reactMul || 1) * clutchMul * hlReact(shooter)) + (shooter._peekLag || 0) + (awpNoscope(shooter, target, dist) ? 0 : Math.round((shooter.weapon.scopeTicks || 0) * hlScope(shooter))) + (shooter._hes || 0) + visLag);
   if(shooter._smokeShot){ /* прострел смока — без реакции на "появление", он и не появлялся */ }
   else if(cs < effReaction){
     // префаер — только по тому, что сам только что видел (≤1.4с), а не по коллу/
     // догадке: раньше ~30% выстрелов были префаерами, и ТТК выглядел мгновенным
-    var pfWin = BAL.prefireStrict ? 90 : CAUTION_TICKS, LI = shooter._intelPre;   // что знал до этого контакта
-    if(shooter.holding && LI && (!BAL.prefireStrict || LI.src !== "call") && (tick - LI.tick) < pfWin &&
+    var pfWin = 90, LI = shooter._intelPre;   // что знал до этого контакта
+    if(shooter.holding && LI && (LI.src !== "call") && (tick - LI.tick) < pfWin &&
        Math.hypot(target.x-LI.x, target.y-LI.y) < PREFIRE_RADIUS &&
        // перевыход после потери: мгновенно — только если видел <0.5с назад,
        // иначе нужна хотя бы половина реакции (прицел "примерно там", а не на голове)
-       (!BAL.prefireStrict || (tick - LI.tick) < 32 || cs >= Math.round(effReaction*0.5))){
+       ((tick - LI.tick) < 32 || cs >= Math.round(effReaction*0.5))){
       prefire = true;
       prefireConfidence = 1 - (tick - LI.tick)/pfWin; // 1 = только что видел, 0 = на грани "забыл"
     } else {
@@ -196,10 +196,10 @@ function tryShoot(shooter, target, dist){
   // следующих (Mirage, видимые цели) → ×(1 + AIM_FLICK); кто держал угол / заходил с прицелом — меньше
   var settle = Math.max(0, 1 - (cs - effReaction)/24);
   var aimS = hlAim(shooter) * aimSigma(shooter, target, dist) * (1 + AIM_FLICK * settle * Math.min(shooter._preAim||1, (shooter._reactMul||1) < 1 ? 0.35 : 1));
-  if(BAL.hitbox) recoilErr *= 0.3; // (6) отдача теперь — паттерн (ниже), тут только её "шум"
+  recoilErr *= 0.3; // (6) отдача теперь — паттерн (ниже), тут только её "шум"
   var rest2 = recoilErr*recoilErr + spamErr*spamErr + aimS*aimS + 0.5*aimD*aimD, sM = 1;
   if(shooter.onStairs) sM *= 2.2;
-  if(prefire) sM *= BAL.prefireStrict ? 1.6 + 1.8*(1-prefireConfidence) : 1.3 + 1.4*(1-prefireConfidence);
+  if(prefire) sM *= 1.6 + 1.8*(1-prefireConfidence);
   if(thruSmoke) sM *= 3.2;   // не видит цель — стреляет по памяти, почти вслепую
   if(shooter.atPost && shooter.curSpeed < 10) sM /= BAL.holdAcc;
   if(w.scoped && shooter.curSpeed < 10 && dist > 300) sM *= 0.8; // AUG/SG в прицеле на дистанции
@@ -223,15 +223,15 @@ function tryShoot(shooter, target, dist){
   var pAimHead = 0.25 + 0.45*Math.max(0, Math.min(1, (sk-0.8)/0.4));
   // первые пули на появление: если прицел стоял на угле и на уровне головы —
   // целит в голову куда чаще (ваншот "на выходе"); если доводил прицел — в тело
-  if(BAL.duelPlace && burstIdx <= 1 && shooter._place != null){
+  if(burstIdx <= 1 && shooter._place != null){
     pAimHead = Math.min(0.92, pAimHead * (0.45 + 0.9*shooter._place) * (0.6 + 0.6*(shooter._headLvl||0.7)));
   }
-  if(BAL.hitbox) pAimHead *= (BAL.hbHead || 0.75);
+  pAimHead *= (BAL.hbHead || 0.75);
   // (Б4) с пистолетом целятся в голову чаще (тап в голову): у про голова среди попаданий пистолетом 33–38 %, винтовкой 13–24 %
   // (Mirage, видимые цели, b4_shots.py); у ботов было 15–20 % и 18–20 % → множитель подобран по этому отношению (проектное число
   // по демкам, первый кандидат на уточнение)
   if(w.slot === "secondary") pAimHead = Math.min(0.95, pAimHead * AIM_HEAD_PISTOL);
-  if(BAL.hitbox && burstIdx >= 3) pAimHead *= 0.35; // спрей — в корпус: отдача сама тянет в голову
+  if(burstIdx >= 3) pAimHead *= 0.35; // спрей — в корпус: отдача сама тянет в голову
   if(w.key === "SSG") pAimHead = Math.max(pAimHead, 0.8); // скаут — в голову (корпус не убивает)
   var aimHead = w.key !== "AWP" && hashRand(seedS+5) < pAimHead;
   // (v241) целится в то, что видно: голова за укрытием не видна — в тело; видна только голова — в голову
@@ -243,44 +243,37 @@ function tryShoot(shooter, target, dist){
   var aimSide = vParts.side || 0;
   if(aimSide){ aimHead = false; target._shoulderShot = {t: tick, by: shooter}; }
   var pHead, pAny, headshot, hit, hbZone = null;
-  if(BAL.hitbox){
-    // (6) хитбоксы: пуля летит в точку прицела + ошибка по двум осям +
-    // паттерн отдачи (вверх, потом влево-вправо), который бот гасит по навыку.
-    // Куда попала — голова/грудь/живот/ноги — по реальной высоте модели,
-    // а не "случайная зона": спрей в грудь уходит в голову, в голову — выше неё
-    var u1 = Math.atan(1/PX_UNITS/Math.max(8, dist));           // рад на 1 юнит на этой дистанции
-    var kC = target.crouching ? 0.75 : 1, hH = 64*kC;            // центр головы
-    var aimY = aimHead ? hH : 46*kC;
-    var sp = sprayPat(w, burstIdx), cmp = Math.min(0.95, comp + 0.08);
-    var gu1 = Math.max(1e-9, hashRand(seedS+21)), gu2 = hashRand(seedS+22), gr = Math.sqrt(-2*Math.log(gu1));
-    var sgm = sigma * (BAL.hbK || 1);
-    var ex = gr*Math.cos(2*Math.PI*gu2)*sgm + sp.x*(1-cmp), ey = gr*Math.sin(2*Math.PI*gu2)*sgm + sp.y*(1-cmp);
-    var ux = aimSide*VIS_SHOULDER + ex/u1, uy = aimY + ey/u1;   // (М149) поперёк — от видимого плеча
-    var hDev = ex;   // (v289) настоящая ошибка вбок, рад — по ней летит трассер промаха
-    if(Math.hypot(ux, uy-hH) < 5.5) hbZone = "head";
-    else if(uy >= hH-20*kC && uy < hH-6*kC && Math.abs(ux) < 15) hbZone = "chest";
-    else if(uy >= hH-30*kC && uy < hH-20*kC && Math.abs(ux) < 13) hbZone = "stomach";
-    else if(uy >= 0 && uy < hH-30*kC && Math.abs(ux) < 10) hbZone = "legs";
-    // (v241) пуля в точку модели, которую закрывает укрытие / уступ / край пола, — уходит в укрытие (геометрия карты)
-    // (v375, отметка владельца: «стреляют в упор и не убивают, выстрелили всю обойму» — T2 на ящике Tetris, z −50, а пол под ним
-    // −164: проверка пули шла от пола под ногами, не от бота — пули «уходили в ящик», хотя видимость (visParts) считалась по z)
-    // высота — та же, что у видимости: бота (z), иначе пол под точкой
-    if(hbZone){ var fz0 = visFloorAt(shooter.x, shooter.y, shooter.z), fz1 = visFloorAt(target.x, target.y, target.z);   // то же правило, что в visParts
-      if(shooter.z != null && Math.abs(fz0 - shooter.z) > JUMP_UP) fz0 = shooter.z; if(target.z != null && Math.abs(fz1 - target.z) > JUMP_UP) fz1 = target.z;
-      var vz0 = fz0 + (shooter.crouching ? VIS_EYE.crouch : VIS_EYE.stand);
-      // (М149) пуля летит в свою точку и поперёк линии (ux): в плечо, видное из-за угла, — попадает, в середину за углом — нет
-      var bL = Math.hypot(target.x - shooter.x, target.y - shooter.y) || 1, bk = ux / PX_UNITS / bL;
-      var bx = target.x - (target.y - shooter.y)*bk, by = target.y + (target.x - shooter.x)*bk;
-      if(!visMarch(shooter.x, shooter.y, vz0, bx, by, fz1 + Math.max(4, uy))){ hbZone = null; shooter._covShot = tick; } }
-    // (v570) счёт своих пуль, ушедших в край / укрытие (видно по попаданиям в стену — как живому игроку): читает перестрелка (470, место пика)
-    var CS = shooter._covLog || (shooter._covLog = []); CS.push(shooter._covShot === tick ? 1 : 0); if(CS.length > 8) CS.shift(); (shooter._covT || (shooter._covT = [])).push(tick); if(shooter._covT.length > 8) shooter._covT.shift();
-    headshot = hbZone === "head"; hit = !!hbZone;
-  } else {
-  if(aimHead){ pHead = pIn(hA); pAny = pIn(bA*1.25); }
-  else { pAny = pIn(bA*1.6); pHead = 0.10*pAny; }
-  var r = hashRand(seedS);
-  headshot = r < pHead; hit = r < pAny;
-  }
+  // (6) хитбоксы: пуля летит в точку прицела + ошибка по двум осям +
+  // паттерн отдачи (вверх, потом влево-вправо), который бот гасит по навыку.
+  // Куда попала — голова/грудь/живот/ноги — по реальной высоте модели,
+  // а не "случайная зона": спрей в грудь уходит в голову, в голову — выше неё
+  var u1 = Math.atan(1/PX_UNITS/Math.max(8, dist));           // рад на 1 юнит на этой дистанции
+  var kC = target.crouching ? 0.75 : 1, hH = 64*kC;            // центр головы
+  var aimY = aimHead ? hH : 46*kC;
+  var sp = sprayPat(w, burstIdx), cmp = Math.min(0.95, comp + 0.08);
+  var gu1 = Math.max(1e-9, hashRand(seedS+21)), gu2 = hashRand(seedS+22), gr = Math.sqrt(-2*Math.log(gu1));
+  var sgm = sigma * (BAL.hbK || 1);
+  var ex = gr*Math.cos(2*Math.PI*gu2)*sgm + sp.x*(1-cmp), ey = gr*Math.sin(2*Math.PI*gu2)*sgm + sp.y*(1-cmp);
+  var ux = aimSide*VIS_SHOULDER + ex/u1, uy = aimY + ey/u1;   // (М149) поперёк — от видимого плеча
+  var hDev = ex;   // (v289) настоящая ошибка вбок, рад — по ней летит трассер промаха
+  if(Math.hypot(ux, uy-hH) < 5.5) hbZone = "head";
+  else if(uy >= hH-20*kC && uy < hH-6*kC && Math.abs(ux) < 15) hbZone = "chest";
+  else if(uy >= hH-30*kC && uy < hH-20*kC && Math.abs(ux) < 13) hbZone = "stomach";
+  else if(uy >= 0 && uy < hH-30*kC && Math.abs(ux) < 10) hbZone = "legs";
+  // (v241) пуля в точку модели, которую закрывает укрытие / уступ / край пола, — уходит в укрытие (геометрия карты)
+  // (v375, отметка владельца: «стреляют в упор и не убивают, выстрелили всю обойму» — T2 на ящике Tetris, z −50, а пол под ним
+  // −164: проверка пули шла от пола под ногами, не от бота — пули «уходили в ящик», хотя видимость (visParts) считалась по z)
+  // высота — та же, что у видимости: бота (z), иначе пол под точкой
+  if(hbZone){ var fz0 = visFloorAt(shooter.x, shooter.y, shooter.z), fz1 = visFloorAt(target.x, target.y, target.z);   // то же правило, что в visParts
+    if(shooter.z != null && Math.abs(fz0 - shooter.z) > JUMP_UP) fz0 = shooter.z; if(target.z != null && Math.abs(fz1 - target.z) > JUMP_UP) fz1 = target.z;
+    var vz0 = fz0 + (shooter.crouching ? VIS_EYE.crouch : VIS_EYE.stand);
+    // (М149) пуля летит в свою точку и поперёк линии (ux): в плечо, видное из-за угла, — попадает, в середину за углом — нет
+    var bL = Math.hypot(target.x - shooter.x, target.y - shooter.y) || 1, bk = ux / PX_UNITS / bL;
+    var bx = target.x - (target.y - shooter.y)*bk, by = target.y + (target.x - shooter.x)*bk;
+    if(!visMarch(shooter.x, shooter.y, vz0, bx, by, fz1 + Math.max(4, uy))){ hbZone = null; shooter._covShot = tick; } }
+  // (v570) счёт своих пуль, ушедших в край / укрытие (видно по попаданиям в стену — как живому игроку): читает перестрелка (470, место пика)
+  var CS = shooter._covLog || (shooter._covLog = []); CS.push(shooter._covShot === tick ? 1 : 0); if(CS.length > 8) CS.shift(); (shooter._covT || (shooter._covT = [])).push(tick); if(shooter._covT.length > 8) shooter._covT.shift();
+  headshot = hbZone === "head"; hit = !!hbZone;
   var endX = target.x, endY = target.y, hitZone = null;
   if(hit){
     var base = w.dmg * Math.pow(w.rm, dist*PX_UNITS/500);
@@ -293,13 +286,13 @@ function tryShoot(shooter, target, dist){
     else if(zr < 0.42){ mult = 1.25; armored = target.armor; hitZone = "stomach"; }
     else { mult = 1.0; armored = target.armor; hitZone = "chest"; }
     var dmg = Math.max(1, Math.round(base * mult * (armored ? w.armorPen : 1)));   // ожидаемый урон в HP (для логов); сам урон — applyDamage
-    if(BAL.tagging) target._tagUntil = tick + 16; // попали — на ~0.25с замедлен
+    target._tagUntil = tick + 16; // попали — на ~0.25с замедлен
     target._hitFx = {t:nowTs, head:headshot};
-    if(BAL.duelPlace && headshot && burstIdx === 0 && (shooter._place||0) > 0.8 && target.hp <= dmg && hashRand(seedS+29) < 0.5) logEvent(shooter.id+": прицел стоял на угле — хэдшот с первой пули по "+target.id);
+    if(headshot && burstIdx === 0 && (shooter._place||0) > 0.8 && target.hp <= dmg && hashRand(seedS+29) < 0.5) logEvent(shooter.id+": прицел стоял на угле — хэдшот с первой пули по "+target.id);
     if(SND && SND.on) sndBody(headshot ? (target.helmet ? "hshelm" : "hs") : (target.armor ? "kevlar" : "body"), target.x, target.y);
     var killed = applyDamage(shooter, target, base * mult, "bullet", {armorRatio: armored ? w.armorPen : null, wkey:w.key, hs:headshot, reward:w.killReward||300, mods:{blind: shooter.blindUntil > tick, smoke: thruSmoke || smokeOnLine(shooter.x, shooter.y, target.x, target.y), noscope: noscope},
       note:(headshot?" (в голову)":"")+" (дист. "+Math.round(dist)+", +$"+(w.killReward||300)+")"});
-    if(BAL.hurtCall && !killed){
+    if(!killed){
       var HT = teamIntel[shooter.team].hurt || (teamIntel[shooter.team].hurt = {});
       var prevH = HT[target.id];
       HT[target.id] = {hp:target.hp, tick:tick, by:shooter.id};
@@ -310,8 +303,8 @@ function tryShoot(shooter, target, dist){
       // он держал точку, а рядом ещё живые враги, — на несколько секунд уходит
       // на соседнюю позицию, а не ждёт трейда на том же месте
       shooter._exposedUntil = tick + 4*TICK_HZ;
-      var postKill = BAL.awpRepos || BAL.styles ? afterKillMove(shooter, target, w) : false;
-      if(!postKill && BAL.repos && shooter.atPost && shooter.post && shooter.post.hold && !shooter.planting && !shooter.defusing &&
+      var postKill = afterKillMove(shooter, target, w);
+      if(!postKill && shooter.atPost && shooter.post && shooter.post.hold && !shooter.planting && !shooter.defusing &&
          bots.some(function(o){ return o.alive && o.team === target.team && nearP(o.x, o.y, o.z, shooter.x, shooter.y, shooter.z, 900); })){
         var alt = pickSpots("repos"+Math.round(shooter.post.x/30)+","+Math.round(shooter.post.y/30), shooter.post, 3,
           {rMin:55, rMax:170, minGap:40, see: shooter.post.look ? [shooter.post.look] : [], hideFrom:[{x:target.x, y:target.y}]});
@@ -319,7 +312,7 @@ function tryShoot(shooter, target, dist){
         if(ap && Math.hypot(ap.x-shooter.post.x, ap.y-shooter.post.y) > 40){
           var lk = shooter.post.look;
           shooter._reposUntil = 0;
-          setPost(shooter, ap, lk, true, "repos"); if(BAL.awpRepos || BAL.styles) leaveHold(shooter);
+          setPost(shooter, ap, lk, true, "repos"); leaveHold(shooter);
           shooter._reposUntil = tick + 5*TICK_HZ;
           logEvent(shooter.id+": после килла меняет позицию");
         }
@@ -327,7 +320,7 @@ function tryShoot(shooter, target, dist){
     }
   } else {
     // AWP промахнулся, враг близко — не ждёт перезатвора, а достаёт пистолет
-    if(BAL.awpClose && w.key === "AWP" && dist < 280 && target.alive && shooter.secondary && hashRand(seedS+41) < 0.6 && pistolSwap(shooter)) logEvent(shooter.id+" (AWP): промах вблизи — на пистолет");
+    if(w.key === "AWP" && dist < 280 && target.alive && shooter.secondary && hashRand(seedS+41) < 0.6 && pistolSwap(shooter)) logEvent(shooter.id+" (AWP): промах вблизи — на пистолет");
     // промах: пуля уходит мимо на величину реальной ошибки и летит дальше
     // цели до первой стены (раньше трассер обрывался в воздухе у цели)
     var dx = target.x-shooter.x, dy = target.y-shooter.y;

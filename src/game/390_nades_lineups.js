@@ -16,7 +16,7 @@ function builtinAllowed(key){
   if(!rep.length) return true;
   return rep.every(function(L){ return nadeFlags["lu"+L.id] && !nadeFlags["luok"+L.id]; });
 }
-function allLineups(){ var L = LINEUPS_BAKED.concat(USER_LINEUPS); return BAL.proLineups ? L.concat(proLineups()) : L; }
+function allLineups(){ var L = LINEUPS_BAKED.concat(USER_LINEUPS); return L.concat(proLineups()); }
 var LU_TRIG = {insta:"инста", setup:"сетап T", exec:"выход T", postplant:"пост-плант", call:"колл CT", retake:"ретейк"};
 var LU_TYPE = {smoke:"смок", flash:"флешка", molly:"молотов", he:"HE"};
 // (14) гранаты выхода раньше: смоки/молотов летят за ~4с до выхода (пока
@@ -25,7 +25,7 @@ var LU_TYPE = {smoke:"смок", flash:"флешка", molly:"молотов", h
 // (v428) запас гранат на выход / после планта / ретейк — в плане гранат команды (365_nade_plan, npCanUse в assignNade и лайнапах);
 // было отдельное правило «смоки на выход — последние два не тратить» (tSmokeReserveOk)
 function preExecNow(tt){
-  if(!BAL.nadeEarly || !tt || tt.phase !== "setup" || !tt.execTick || tt.rebound && tick - (tt._rbT||0) < 2*TICK_HZ) return false;
+  if(!tt || tt.phase !== "setup" || !tt.execTick || tt.rebound && tick - (tt._rbT||0) < 2*TICK_HZ) return false;
   var secLeft = ROUND_TIME_SEC - (simTime - roundStartTime);
   return tick >= tt.execTick - 4*TICK_HZ && secLeft > 30 && !(tt.tac && (tt.tac.style === "rush" || tt.tac.style === "fake"));
 }
@@ -126,15 +126,15 @@ function lineupTick(){
     // носитель бомбы; в горячих фазах (выход, колл, ретейк, пост-плант) — только
     // тот, кому до точки броска недалеко, иначе он бросит свою задачу и уйдёт назад
     var hot = L.trigger !== "insta" && L.trigger !== "setup";
-    var maxD = hot ? (BAL.nadeReach ? 650 : 480) : 1600;
+    var maxD = hot ? (650) : 1600;
     // (v355, владелец: «на выходе закрывают максимум один-два выхода, у про много смоков, флешек, молотов») гранаты выхода T
     // берёт тот, кому до точки броска до EXEC_REACH (проектное число) — группа на выходе стоит шире 650
     var execT = L.team === "T" && L.trigger === "exec";
-    if(execT && BAL.nadeReach) maxD = EXEC_REACH;
+    if(execT) maxD = EXEC_REACH;
     // (v150) про-лайнапы кидает тот, кто и так рядом: сетап — в пределах ~7 м,
     // "по времени" — ~4 м (не бросать позицию ради гранаты)
-    if(L.pro && L.trigger === "setup") maxD = BAL.nadeReach ? 1100 : 700;
-    if(L.pro && L.trigger === "timed"){ maxD = BAL.nadeReach ? 850 : 400; hot = true; }
+    if(L.pro && L.trigger === "setup") maxD = 1100;
+    if(L.pro && L.trigger === "timed"){ maxD = 850; hot = true; }
     // (v438, док владельца 27.10: TN1R из Ramp шёл к T Roof «538 по прямой» — 1500 по пути, через спавн) до точки броска — по пути
     // (док 6, п.1/15: kyousuke на B Short получил молотов в Underpass с Connector — путь 704, а с B Short — 239; T1 на T Ramp — смок Stairs
     // с T Roof через спавн, 732, а с T Ramp — 50; у про за 8 с до броска сетапа бросающий в 165 ед. от точки, дальше 500 — 6 %) у цели про
@@ -242,7 +242,7 @@ function lineupTick(){
     // (v340, отметка владельца: sh1ro шёл на смок Connector, задание сгорело у уступа — развернулся, «отталкивает») срок — не
     // меньше дороги до точки броска по пути + LU_REACH_PAD с (проектное число); раньше только 7 / 12 / 20 с
     var LS = spotOf(cand);
-    var luBase = hot ? ((BAL.nadeReach && L.trigger === "timed") ? 12 : 7) : 20, luP = buildWaypointPath(cand.baseX, cand.baseY, cand.z, LS.from.x, LS.from.y, 0), luLen = 0, luX = cand.baseX, luY = cand.baseY;
+    var luBase = hot ? ((L.trigger === "timed") ? 12 : 7) : 20, luP = buildWaypointPath(cand.baseX, cand.baseY, cand.z, LS.from.x, LS.from.y, 0), luLen = 0, luX = cand.baseX, luY = cand.baseY;
     luP.forEach(function(q){ luLen += Math.hypot(q[0]-luX, q[1]-luY); luX = q[0]; luY = q[1]; });
     var luSec = Math.max(luBase, Math.ceil(luLen/(SPEED*weaponSpeedMul(cand)) + LU_REACH_PAD));
     cand.nadeTask = {type:L.type, x:LS.to.x, y:LS.to.y, from:{x:LS.from.x, y:LS.from.y}, until: tick + luSec*TICK_HZ, why:"лайнап «"+(LS.name||LU_TYPE[L.type])+"»",

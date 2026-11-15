@@ -63,17 +63,17 @@ function buyNades(b, type){
   if(type === "eco" || type === "force" || type === "half"){
     var TP = teamNadePlan(b.team, type === "eco" ? "eco" : "force")[b.id] || [];
     if(!b.nades) b.nades = emptyNades();
-    var keepE = (BAL.nadeBuy && type === "eco") ? fullNeed(b) - nextLossIncome(b.team) : -1e9;
+    var keepE = (type === "eco") ? fullNeed(b) - nextLossIncome(b.team) : -1e9;
     TP.forEach(function(t){ var pr = nadePrice(t, b.team), tot = b.nades.smoke + b.nades.flash + b.nades.he + b.nades.molly;
       if(tot >= 4 || (t === "flash" ? b.nades.flash >= 2 : b.nades[t] >= 1) || b.money < pr || b.money - pr < keepE) return;
       b.money -= pr; b.nades[t]++; npBought(b, t); });
     return;
   }
-  var wish = (BAL.proNades ? NADE_WISH_PRO[b.tRole] : null) || NADE_WISH[b.tRole] || [];
-  var budget = type === "full" ? 99 : (type === "force" || type === "half" ? (BAL.nadeBuy ? 2 : 1) : 0);
-  if(type === "eco") budget = BAL.nadeBuy ? 1 : 0;
+  var wish = (NADE_WISH_PRO[b.tRole]) || NADE_WISH[b.tRole] || [];
+  var budget = type === "full" ? 99 : (type === "force" || type === "half" ? (2) : 0);
+  if(type === "eco") budget = 1;
   if(type === "pistol") budget = 0;   // (v293) на пистолетке гранаты — по плану команды (teamNadePlan)
-  var keepEco = (BAL.nadeBuy && type === "eco") ? fullNeed(b) - nextLossIncome(b.team) : -1e9;
+  var keepEco = (type === "eco") ? fullNeed(b) - nextLossIncome(b.team) : -1e9;
   var bought = 0;
   for(var i=0;i<wish.length && bought<budget;i++){
     var t = wish[i], pr = nadePrice(t, b.team);
@@ -81,9 +81,9 @@ function buyNades(b, type){
     if(total >= 4) break;
     if(t === "flash" ? b.nades.flash >= 2 : b.nades[t] >= 1){ continue; }
     // на хаф/форсе — только если после этого остаётся запас
-    if(type !== "full" && b.money - pr < 200 && !(BAL.nadeBuy && type === "pistol" && b.money >= pr)) continue;
-    if(BAL.nadeBuy && (type === "eco" || type === "pistol") && t === "molly") continue;
-    if(BAL.nadeBuy && type === "eco" && b.money - pr < keepEco) continue;
+    if(type !== "full" && b.money - pr < 200 && !(type === "pistol" && b.money >= pr)) continue;
+    if(type === "eco" || type === "pistol" && t === "molly") continue;
+    if(type === "eco" && b.money - pr < keepEco) continue;
     if(b.money < pr) continue;
     b.money -= pr; b.nades[t]++; npBought(b, t); bought++;
   }

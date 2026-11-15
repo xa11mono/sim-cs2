@@ -13,7 +13,7 @@ var MOVE = {run: 0, burn: null};   // выход moveSpeedTick: скорость
 
 // почему бот идёт шагом (первая подходящая причина; null — не шагом)
 function moveWalkWhy(bot){
-  if(BAL.pieSlice && bot._pie && bot._pie.slice && tick - bot._pie.t < 16 && !bot.holding && !bot._sawEnemy && !(bot.post && taskProp(bot.post.tag, "reposMove"))) return "режет угол";
+  if(bot._pie && bot._pie.slice && tick - bot._pie.t < 16 && !bot.holding && !bot._sawEnemy && !(bot.post && taskProp(bot.post.tag, "reposMove"))) return "режет угол";
   // "тихий шаг" (план §3): осторожен, если подозревает, что враг рядом —
   // либо только что видел (lastIntel), либо услышал шаги (heardSound) —
   // но сам сейчас его не видит и не держит угол в открытую (holding
@@ -38,14 +38,14 @@ function moveWalkWhy(bot){
   if(bot.post && bot.state === "patrol" && taskProp(bot.post.tag, "shiftTask") && Math.hypot(bot.post.x-bot.baseX, bot.post.y-bot.baseY) < 450) return "перестановка — последние метры";
   // клатч T с бомбой: без инфы — на шифте (не палится бегом); бежит,
   // только если время поджимает или все CT известны и далеко
-  if(BAL.soloSlow && bot.team === "T" && bomb && bomb.state === "carried" && bomb.carrier === bot && aliveCount("T") === 1 && soloMayWalk(bot)) return "клатч с бомбой";
-  if(BAL.cautious && bot.post && bot.state === "patrol" && taskProp(bot.post.tag, "cautiousEnd") &&
+  if(bot.team === "T" && bomb && bomb.state === "carried" && bomb.carrier === bot && aliveCount("T") === 1 && soloMayWalk(bot)) return "клатч с бомбой";
+  if(bot.post && bot.state === "patrol" && taskProp(bot.post.tag, "cautiousEnd") &&
      Math.hypot(bot.post.x-bot.baseX, bot.post.y-bot.baseY) < 350) return "ретейк / ротация / дефуз — последние метры";
   // лёркер ходит тихо всегда, кроме самого начала (до своей точки на сетапе)
   // (v530, отметка владельца 10.11 «раш, а лёрк ходит на шифте») тишина лёркера — чтобы его не услышали, пока команда играет медленно; на раше
   // команда сама шумит и выходит сразу — шаг ничего не скрывает, он отстаёт
   if(bot.tRole === "lurker" && !(teamTac.T && teamTac.T.tac && teamTac.T.tac.style === "rush") && bot.post && bot.state === "patrol" && taskProp(bot.post.tag, "lurkTask") && bot.post.tag !== "lurkStage"+(teamTac.T && teamTac.T.site==="A"?"B":"A")) return "лёркер";
-  if(BAL.dangerWalk && dangerWalk(bot)) return "опасное место";
+  if(dangerWalk(bot)) return "опасное место";
   // (v323, М39) к дефузу близко — подходит шифтом, чтобы не выдать себя, если время есть (defuseWalk)
   if(defuseWalk(bot)) return "подход к дефузу";
   // добивание последнего — не бегом в открытую: последние метры тихим шагом
@@ -89,8 +89,8 @@ function moveWalkTick(bot){
 function moveSpeedTick(bot, runSpeed, BRAKE_RADIUS, maxDelta){
   var why = null;
   // ждёт хлопка флешки тиммейта (поп на убийцу / ретейк) — не выбегает раньше неё
-  var waitPop = (bot._waitPopUntil > tick && nadeFlags[bot._waitPopKey] === undefined && !bot._sawEnemy) || (BAL.pieSlice && bot._ppWaitUntil > tick && !bot._sawEnemy);
-  if(BAL.pieSlice && bot._pie && bot._pie.slice && tick - bot._pie.t < 16 && !bot._sawEnemy) runSpeed *= 0.75; // режет угол
+  var waitPop = (bot._waitPopUntil > tick && nadeFlags[bot._waitPopKey] === undefined && !bot._sawEnemy) || (bot._ppWaitUntil > tick && !bot._sawEnemy);
+  if(bot._pie && bot._pie.slice && tick - bot._pie.t < 16 && !bot._sawEnemy) runSpeed *= 0.75; // режет угол
   var targetSpeed = runSpeed;
   if(waitPop){ targetSpeed = 0; why = "ждёт флешку своего"; } else if(bot.holding){ targetSpeed = 0; why = "держит угол"; } else if(bot.roamChecking){ targetSpeed = 0; why = "роумер проверяет точку"; }
   else if(bot.atPost){ targetSpeed = 0; why = "на посту"; } else if(bot.planting){ targetSpeed = 0; why = "ставит бомбу"; } else if(bot.defusing){ targetSpeed = 0; why = "дефузит"; }
@@ -123,7 +123,7 @@ function moveSpeedTick(bot, runSpeed, BRAKE_RADIUS, maxDelta){
         if(insideSolidWall(qx, qy) || crossesWall(bot.baseX, bot.baseY, qx, qy)) continue;
         var dq = Math.hypot(qx-bot.baseX, qy-bot.baseY);
         // ближе всего — и лучше в сторону, куда бот и так шёл
-        if(bot.post) dq += Math.hypot(qx-bot.post.x, qy-bot.post.y)*(BAL.fireExit ? 0.08 : 0.3);   // (v151) ближний край важнее, не через весь огонь
+        if(bot.post) dq += Math.hypot(qx-bot.post.x, qy-bot.post.y)*(0.08);   // (v151) ближний край важнее, не через весь огонь
         if(dq < bd){ bd = dq; best = {x:qx, y:qy}; }
       }
       bot._fireExit = best; bot._fireExitFire = burn;
@@ -131,13 +131,13 @@ function moveSpeedTick(bot, runSpeed, BRAKE_RADIUS, maxDelta){
     }
     // (v151) раньше путь наружу перебивали пост/бой каждый тик, а держащий угол
     // вообще не двигался — стоял в огне. Теперь, пока горит, путь только наружу
-    if(BAL.fireExit && bot._fireExit){
+    if(bot._fireExit){
       bot.holding = false;
       var fw = bot.path && bot.path[bot.path.length-1];
       if(!fw || Math.hypot(fw[0]-bot._fireExit.x, fw[1]-bot._fireExit.y) > 4){ bot.path = [[bot._fireExit.x, bot._fireExit.y, bot.z]]; bot.pathIdx = 0; }
       bot.walking = false; bot.crouching = false;   // из огня — бегом, не шифтом
     }
-    targetSpeed = BAL.fireExit ? SPEED * weaponSpeedMul(bot) : runSpeed; why = "выбегает из огня";
+    targetSpeed = SPEED * weaponSpeedMul(bot); why = "выбегает из огня";
   } else {
     bot._burning = false; if(bot._fireExit){ bot._fireExit = null; bot._fireExitFire = null; }
     if(burn && targetSpeed > 0) targetSpeed = SPEED * weaponSpeedMul(bot);   // (v263, Б2) идёт по делу через огонь — бегом, не шифтом
@@ -151,7 +151,7 @@ function moveSpeedTick(bot, runSpeed, BRAKE_RADIUS, maxDelta){
     if(dFinal < BRAKE_RADIUS){ targetSpeed = runSpeed * Math.max(0.35, dFinal/BRAKE_RADIUS); why = "тормозит у конца пути"; }
   }
   // ослеплён: либо шаг назад за угол (путь уже задан в onBlind), либо стоп
-  if(BAL.blindPlay && bot._blind && tick < bot._blind.until && !burn){
+  if(bot._blind && tick < bot._blind.until && !burn){
     targetSpeed = bot._blind.back ? runSpeed*0.55 : 0; why = bot._blind.back ? "ослеплён — шаг назад" : "ослеплён — стоит";
     if(!bot._blind.back) bot.crouching = true;
   } else if(bot._blind && tick >= bot._blind.until){ bot._blind = null; }
@@ -160,6 +160,6 @@ function moveSpeedTick(bot, runSpeed, BRAKE_RADIUS, maxDelta){
   if(bot._jc && bot._jc.run){ var jq = Math.min(1, (tick - bot._jc.t)/(RUN_JUMP.air*TICK_HZ)); bot.curSpeed = bot._jc.v0*(1 - (1 - bot._jc.kt)*jq); targetSpeed = bot.curSpeed; why = "в прыжке"; }
   if(bot.curSpeed < targetSpeed) bot.curSpeed = Math.min(targetSpeed, bot.curSpeed+maxDelta);
   else if(bot.curSpeed > targetSpeed) bot.curSpeed = Math.max(targetSpeed, bot.curSpeed-maxDelta);
-  if(BAL.tagging && tick < (bot._tagUntil||0)){ bot.curSpeed = Math.min(bot.curSpeed, SPEED*0.4); why = (why ? why + " + " : "") + "попали — замедлен"; }
+  if(tick < (bot._tagUntil||0)){ bot.curSpeed = Math.min(bot.curSpeed, SPEED*0.4); why = (why ? why + " + " : "") + "попали — замедлен"; }
   bot._stopWhy = why; MOVE.run = runSpeed; MOVE.burn = burn;
 }

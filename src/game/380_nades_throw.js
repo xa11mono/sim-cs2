@@ -290,7 +290,7 @@ function throwNadeTry(b, type, tx, ty, lob, why, trusted, from){
   var nd = Object.assign(nadeState(type, L.p, L.v), {type:type, x:b.x, y:b.y, z:L.p[2], tx:PR[0], ty:PR[1], born:tick, thrower:b, team:b.team,
             trail:[], why:why||"", ox:b.x, oy:b.y, lob:!!lob, etaDet: tick + Math.ceil(Fl.t*TICK_HZ), aimX:tx, aimY:ty, exec:[+dYaw.toFixed(2), +dPit.toFixed(2)], plan:[S.x, S.y, S.det[2], S.e3], from0:[b.x, b.y, bz], vel0:V});   // exec — ошибка исполнения (поворот, наклон, °); plan — где сработает по подбору (радар x, y; z, ошибка e3); from0 — откуда кинул
   // кто может увернуться от этой флешки: видел бросающего или был рядом (слышит чеку)
-  if(type === "flash" && BAL.flashAware){
+  if(type === "flash"){
     nd.aware = {};
     // (этап 3, P2-2) и свои: кто рядом или видел бросок, знает о нём так же, как враг; остальным — колл «флешу!» в войсе
     bots.forEach(function(o){ if(o.alive && o !== b && (Math.hypot(o.x-b.x, o.y-b.y) < 450 || hasVision(o.x, o.y, b.x, b.y))) nd.aware[o.id] = true; });
@@ -384,7 +384,7 @@ function assignNade(b, type, target, why, opts){
   if(type === "smoke" && smokeCovered(target.x, target.y)) return false;
   // одна граната одного типа в одну точку: другие механики (комбо, флешка
   // себе, дамп…) не дублируют уже летящую/назначенную туда же
-  if(BAL.nadeDedup && type !== "smoke" && (nadesInAir.some(function(n){ return n.team === b.team && n.type === type && Math.hypot((n.tx||n.x)-target.x, (n.ty||n.y)-target.y) < 120; }) ||
+  if(type !== "smoke" && (nadesInAir.some(function(n){ return n.team === b.team && n.type === type && Math.hypot((n.tx||n.x)-target.x, (n.ty||n.y)-target.y) < 120; }) ||
      bots.some(function(o){ return o !== b && o.alive && o.team === b.team && o.nadeTask && o.nadeTask.type === type && Math.hypot(o.nadeTask.x-target.x, o.nadeTask.y-target.y) < 120; }))) return false;
   // (v419) here — бросок только с места (задержать гранатой, 350): срок 2 с, на точку броска не идёт
   var here = !!(opts && opts.here);

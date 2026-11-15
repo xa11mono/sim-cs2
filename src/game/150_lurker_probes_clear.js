@@ -125,7 +125,6 @@ function tDeathsNear(x, y, r, id){ if(TDEATHS.m !== matchNum) return 0;
   return TDEATHS.list.filter(function(d){ return d.round < roundNum && Math.hypot(d.x-x, d.y-y) < r && (!id || d.id === id); }).length; }
 function tDeathSpots(){ return TDEATHS.m === matchNum ? TDEATHS.list.filter(function(d){ return d.round < roundNum; }) : []; }
 function tProbes(tt, ts){
-  if(!BAL.tProbe) return;
   if(tick - roundStartTick < 10*TICK_HZ) return;
   if(tick > tt.execTick - 3*TICK_HZ) return;          // перед выходом — все на местах
   var groups = {};
@@ -152,7 +151,7 @@ function tProbes(tt, ts){
     // кто пробует — не всегда один и тот же (иначе CT читают "4-й всегда первый
     // на мид"): роль + случайная добавка на раунд; кто уже умирал на этой пробе
     // в этом матче — реже
-    var ordK = function(o){ return (PRI[o.tRole]||9) + (BAL.tAdapt ? 1.3*hashRand(roundNum*97 + matchNum*13 + o.id.charCodeAt(1)*7) : 0) + (BAL.tAdapt ? 1.5*tDeathsNear(o.x, o.y, 700, o.id) : 0); };
+    var ordK = function(o){ return (PRI[o.tRole]||9) + (1.3*hashRand(roundNum*97 + matchNum*13 + o.id.charCodeAt(1)*7)) + (1.5*tDeathsNear(o.x, o.y, 700, o.id)); };
     gr.sort(function(a,b2){ return ordK(a) - ordK(b2); });
     var pb = gr[0];
     var from, to, look, SI = pb._stageInfo;
@@ -167,7 +166,7 @@ function tProbes(tt, ts){
       // на этом выходе только что убили своего — не пикать туда же ещё раз
       if(tick >= P.until && teamIntel.T.sig.some(function(sg){ return sg.type === "died" && tick - sg.tick < 10*TICK_HZ && Math.hypot(sg.x-to.x, sg.y-to.y) < 400; })){ P.until = tick + 6*TICK_HZ; return; }
       // адаптация: здесь в этом матче уже умирали ≥2 раз — на сухую не пикаем
-      if(tick >= P.until && BAL.tAdapt && tDeathsNear(to.x, to.y, 450) >= 2){
+      if(tick >= P.until && tDeathsNear(to.x, to.y, 450) >= 2){
         var hasU = ts.some(function(o){ return Math.hypot(o.x-pb.x, o.y-pb.y) < 500 && o.nades && (o.nades.flash > 0 || o.nades.smoke > 0); });
         if(!hasU){ P.until = tick + 30*TICK_HZ; if(!tt["_ad"+key]){ tt["_ad"+key] = true; logEvent("T: на «"+(zoneUserName(zoneIdAt(to.x, to.y)) || key)+"» уже умирали "+tDeathsNear(to.x, to.y, 450)+" раза — без гранат туда не пикаем"); } return; }
         P.needUtil = true;
@@ -175,16 +174,14 @@ function tProbes(tt, ts){
       if(tick >= P.until){ P.ph = 1; P.n++; P.since = tick;
         // напарник: второй встаёт в 1–2с позади и держит тот же угол — если
         // пробу снимут, он первый на размен
-        if(BAL.pairs){
-          // (v423, Mirage м1 р2: AWP и саппорт со стадии A уходили напарником пробы B) напарник — из той же группы (стадии), не любой ближайший
-          var bud = gr.filter(function(o){ return o !== pb && o.alive && o.tRole !== "lurker" && !(bomb.state === "carried" && bomb.carrier === o) &&
-            !(o._probeLock && o._probeLock >= tick-1) && Math.hypot(o.x-pb.x, o.y-pb.y) < 500; })
-            .sort(function(a, c){ return Math.hypot(a.x-pb.x, a.y-pb.y) - Math.hypot(c.x-pb.x, c.y-pb.y); })[0];
-          P.buddy = bud ? bud.id : null;
-        }
+        // (v423, Mirage м1 р2: AWP и саппорт со стадии A уходили напарником пробы B) напарник — из той же группы (стадии), не любой ближайший
+        var bud = gr.filter(function(o){ return o !== pb && o.alive && o.tRole !== "lurker" && !(bomb.state === "carried" && bomb.carrier === o) &&
+          !(o._probeLock && o._probeLock >= tick-1) && Math.hypot(o.x-pb.x, o.y-pb.y) < 500; })
+          .sort(function(a, c){ return Math.hypot(a.x-pb.x, a.y-pb.y) - Math.hypot(c.x-pb.x, c.y-pb.y); })[0];
+        P.buddy = bud ? bud.id : null;
         // гранаты под пробу: флешка от напарника/тиммейта (на мид — смок на линию
         // CT, если флешки нет); раньше — только на глубокую пробу, чаще на сухую
-        if(BAL.probeUtil && roundGoal("T") !== "keepGuns"){
+        if(roundGoal("T") !== "keepGuns"){
           var uFp = {x: to.x + (look.x-to.x)*0.3, y: to.y + (look.y-to.y)*0.3};
           var uFl = ts.filter(function(o){ return o !== pb && !o.nadeTask && o.nades && o.nades.flash > 0 && Math.hypot(o.x-pb.x, o.y-pb.y) < 500; })[0];
           var uSm = ts.filter(function(o){ return !o.nadeTask && o.nades && o.nades.smoke > 0 && Math.hypot(o.x-pb.x, o.y-pb.y) < 600; })[0];
@@ -208,7 +205,7 @@ function tProbes(tt, ts){
           voiceLog("T", "probe"+key+pb.id, pb.id, "подпушу "+(key === "M" ? "мид" : (zoneUserName(zoneIdAt(to.x, to.y)) || key.charAt(0)))+", посмотрю, сколько их там");
           // флешка под подпуш от ближайшего тиммейта (не вся раскидка — одна)
           var fl = ts.filter(function(o){ return o !== pb && !o.nadeTask && o.nades && o.nades.flash > 0 && Math.hypot(o.x-pb.x, o.y-pb.y) < 500; })[0];
-          if(fl && BAL.tUtil && roundGoal("T") !== "keepGuns"){ var fp = {x: to.x + (look.x-to.x)*0.3, y: to.y + (look.y-to.y)*0.3}; assignNade(fl, "flash", fp, "под подпуш", {now:true}); }
+          if(fl && roundGoal("T") !== "keepGuns"){ var fp = {x: to.x + (look.x-to.x)*0.3, y: to.y + (look.y-to.y)*0.3}; assignNade(fl, "flash", fp, "под подпуш", {now:true}); }
         }
       }
       return;
@@ -220,7 +217,7 @@ function tProbes(tt, ts){
     if(pb.post && /^probe/.test(pb.post.tag)) pb._shift = null;
     pb._probeLock = tick;
     // напарник — ~150px позади пробы по той же линии, смотрит туда же
-    if(BAL.pairs && P.buddy){
+    if(P.buddy){
       var bu = ts.filter(function(o){ return o.id === P.buddy; })[0];
       // (аудит 11.10) напарник сам вышел пробой своей группы — он занят: раньше обе пробы ставили ему пост каждый тик
       // (probeB ↔ probePairA, сотни смен поста подряд — стоял на месте)
@@ -244,7 +241,7 @@ function tProbes(tt, ts){
         // там пусто — двое из этой группы идут брать контроль в другом месте,
         // пока до выхода есть время (потом зайдут на сайт уже оттуда)
         var tt2 = teamTac.T, SH = SHIFT_TO[key.charAt(0)];
-        if(BAL.shiftOnClear && SH && tt2 && tt2.phase === "setup" && tt2.execTick - tick > 10*TICK_HZ && !tt2["_sh"+key]){
+        if(SH && tt2 && tt2.phase === "setup" && tt2.execTick - tick > 10*TICK_HZ && !tt2["_sh"+key]){
           tt2["_sh"+key] = true;
           var movers = ts.filter(function(o){ return o !== pb && o.alive && o.post && o.post.tag.indexOf("stage"+key.charAt(0)) === 0 &&
             !(bomb.state === "carried" && bomb.carrier === o) && o.tRole !== "awp"; }).slice(0, 2);

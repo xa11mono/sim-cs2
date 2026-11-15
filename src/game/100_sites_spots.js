@@ -201,8 +201,8 @@ function spotExposure(team, x, y){
   return n;
 }
 function pickSpots(key, center, count, o){
-  var expT = BAL.openAngles ? ((o && o.team) || SPOT_TEAM) : null;
-  var ppTeam = BAL.proPrior ? ((o && o.team) || SPOT_TEAM) : null, ppL = ppTeam ? ppLayer(ppTeam) : null;
+  var expT = (o && o.team) || SPOT_TEAM;
+  var ppTeam = (o && o.team) || SPOT_TEAM, ppL = ppTeam ? ppLayer(ppTeam) : null;
   var ck = key+"|"+count+"|"+Math.round(center.x)+","+Math.round(center.y) + (expT ? "|e"+expT : "") +
     (o && o.cross ? "|x"+Math.round(o.cross.from.x/40)+","+Math.round(o.cross.from.y/40) : "") + (ppL ? "|p"+ppL : "") + (o && o.zone ? "|z"+o.zone : "");
   if(spotCache[ck]) return spotCache[ck];

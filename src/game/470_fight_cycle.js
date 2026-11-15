@@ -307,7 +307,7 @@ function fightCycleTick(b, dtSec, busy){
     var DO = F.e ? duelOdds(b, F.e, F.e.x, F.e.y) : null;
     // патронов на врага мало — перезаряжается здесь, за укрытием (сам начинает: тактическая перезарядка ниже 35 % магазина могла не включиться —
     // отметка владельца 10.11: karrigan 10/12 ждал перезарядку 4 с и стоял), пока идёт — ждёт
-    if(DO && !DO.ammoOk && !b._sawEnemy && !b._reloading && b.weapon && b.ammo < b.weapon.mag && (b.ammo <= 0 || !fightPush(b))){ b._reloading = true; b.reloadUntil = tick + Math.round(b.weapon.reload*TICK_HZ); if(BAL.soundMore) reloadHeard(b, b.weapon); }
+    if(DO && !DO.ammoOk && !b._sawEnemy && !b._reloading && b.weapon && b.ammo < b.weapon.mag && (b.ammo <= 0 || !fightPush(b))){ b._reloading = true; b.reloadUntil = tick + Math.round(b.weapon.reload*TICK_HZ); reloadHeard(b, b.weapon); }
     // (v560, В85, разбор владельца 11.11: «пострелялся, остался на месте» — выглянул «добить раненого», когда шла перезарядка, и погиб)
     // перезарядка идёт — ждёт за укрытием всегда (патронов «хватает» по счёту, а стрелять ими нельзя, пока не перезарядился)
     if(b._reloading){ F.until = Math.max(F.until, b.reloadUntil); fcWhy(b, "за укрытием: перезаряжаюсь"); return; }
@@ -355,7 +355,6 @@ function pathDanger(team, pts){
 }
 function densify(pts, step){ var out = []; for(var i = 1; i < pts.length; i++){ var a = pts[i-1], b = pts[i], L = Math.hypot(b[0]-a[0], b[1]-a[1]), n = Math.max(1, Math.ceil(L/step)); for(var k = 0; k < n; k++) out.push([a[0]+(b[0]-a[0])*k/n, a[1]+(b[1]-a[1])*k/n]); } if(pts.length) out.push(pts[pts.length-1]); return out; }
 function safeRotate(b, dest, site){
-  if(!BAL.safeRot) return;
   var key = "saferot"+site+roundNum;
   if(b._safeRotK === key) return; b._safeRotK = key;
   if(Math.hypot(b.x-CT_SPAWN.x, b.y-CT_SPAWN.y) < 250) return;
@@ -424,7 +423,7 @@ var LOWHP_MATE_PATH = 600;   // проектное число: px пути (~150
 //  • остался один (своих ≤350 px нет), а рядом (≤900 px) за 8 с погиб свой и враг рядом известен — уходит к своим
 //    (A main после смертей на миду так и стоял один)
 function lowHpBack(b){
-  if(!BAL.lowHpBack || b._sawEnemy || b.planting || b.defusing || tick < (b._lowHpNext||0)) return;
+  if(b._sawEnemy || b.planting || b.defusing || tick < (b._lowHpNext||0)) return;
   var low = b.hp <= LOW_HP;
   // (v531, владелец 10.11: «тиммейтов убили далеко, а игрок в Jungle, ещё не дошедший и не видевший врага, получил „рядом погиб свой“») «рядом» —
   // по пути, а не по прямой сквозь стены: 900 px по прямой через стену — это другая часть карты. Сначала прямая (путь не короче), потом путь
@@ -533,7 +532,7 @@ function dangerWalk(b){
   if(b._dwTick && tick - b._dwTick < 8) return !!b._dwVal;
   // включился шифт — держим его хотя бы ~1с (иначе на границе порога бот
   // переключался шаг/бег/шаг несколько раз в секунду)
-  if(BAL.lookCommit && b._dwVal && tick - (b._dwOnT||0) < 64){ b._dwTick = tick; return true; }
+  if(b._dwVal && tick - (b._dwOnT||0) < 64){ b._dwTick = tick; return true; }
   b._dwTick = tick; var dwPrev = b._dwVal;
   var foe = b.team, pts = [], acc = 0, px = b.baseX, py = b.baseY;
   for(var i = b.pathIdx; i < b.path.length && acc < 260; i++){
@@ -566,7 +565,7 @@ function dangerWalk(b){
   // "проверил — пусто" обнуляет зону, и раньше бот сразу срывался на бег и
   // палил позицию. Если враг недавно (≤15с) был засвечен рядом с путём (≤650px)
   // и он жив — идём тихо, пока его не найдут снова
-  if(!b._dwVal && BAL.clearQuiet){
+  if(!b._dwVal){
     var L = beliefLast[b.team] || {}, BL = beliefLast[b.team] || {};
     outer: for(var eid in BL){
       var lo = BL[eid]; if(!lo || tick - lo.tick > 15*TICK_HZ) continue;

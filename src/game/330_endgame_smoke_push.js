@@ -40,8 +40,8 @@ function egCutPoint(b, lead, kp){
 var EG_BOMB_SITE_R = 700;   // (v555) проектное число: ед. — носитель, замеченный ближе к центру сайта, идёт ставить туда
 function endgameBrain(){
   // (v146) после планта охоты нет: у T — пост-плант, у CT — ретейк/сейв
-  if(BAL.egFix && bomb && bomb.state === "planted") bots.forEach(function(o){ if(o.alive && o.post && o.post.tag === "endhunt"){ o._egC = null; clearPost(o); } });
-  if(!BAL.endgame || roundState !== "live" || (bomb && bomb.state === "planted")) return;
+  if(bomb && bomb.state === "planted") bots.forEach(function(o){ if(o.alive && o.post && o.post.tag === "endhunt"){ o._egC = null; clearPost(o); } });
+  if(roundState !== "live" || (bomb && bomb.state === "planted")) return;
   ["CT","T"].forEach(function(team){
     var foe = team === "CT" ? "T" : "CT";
     var nFoe = aliveCount(foe), mine = bots.filter(function(b){ return b.team === team && b.alive; });
@@ -66,7 +66,7 @@ function endgameBrain(){
     // туда-обратно. Теперь помним последнюю точку ещё до 12с
     var TT0 = teamTac[team] || {};
     if(K) TT0._egLast = {id:K.id, x:K.x, y:K.y, type:K.type, tick:tick};
-    else if(BAL.ppCommit && TT0._egLast && tick - TT0._egLast.tick < 12*TICK_HZ && bots.some(function(o){ return o.id === TT0._egLast.id && o.alive; })) K = TT0._egLast;
+    else if(TT0._egLast && tick - TT0._egLast.tick < 12*TICK_HZ && bots.some(function(o){ return o.id === TT0._egLast.id && o.alive; })) K = TT0._egLast;
     // (v555, отметка владельца м300 р3: «последний с бомбой на A, а опорник B ждёт»; «для всех: есть инфа по бомбе — скорее всего пойдёт туда,
     // перекол навряд ли») CT знают носителя (видели с бомбой, teamIntel.carrierId) и где его видели последний раз: он у сайта (≤ EG_BOMB_SITE_R) —
     // сайт бомбы. Тогда все CT идут туда: охотник — на него, без предела свежести инфы; остальные — на этот сайт, а не держат дальний
@@ -131,45 +131,43 @@ function endgameBrain(){
       // (v146) по демкам: у про при перевесе до планта T в 77% идут ставить (≈8с),
       // а не ищут последних; CT — время на их стороне. Добивать идёт только тот,
       // кто рядом со СВЕЖИМ врагом (≤3с, ≤700px) — остальные играют свою задачу
-      if(BAL.egFix){
-        var klo = (beliefLast[team] || {})[K.id], kAge = klo ? tick - klo.tick : 1e9;
-        if(klo && Math.hypot(klo.x-kp.x, klo.y-kp.y) > 300) kAge = Math.min(kAge, K.tick != null ? tick - K.tick : kAge);
-        // (v297, И41, владелец 14.10: T4 шёл на пик в Cave, на 3,1 с инфы охоту отпустило — за тик развернуло на точку лёрка)
-        // начать охоту — враг свежий (≤ 3 с, демки); продолжить начатую — пока инфе ≤ 6 с (окно сигнала выше). Отпустило, а до точки
-        // пика < 100 px (проектное число) — доходит и смотрит туда же (≤ 1,5 с), а не разворачивается за тик
-        var hunting = b.post && b.post.tag === "endhunt", BS = null;
-        // (v519, А-10: «идут очень поздно — про него знали ещё до того, как он убил тиммейта») охотник (ближайший по пути, выбран выше) идёт по
-        // знанию, и дальше 700 px по прямой — 700 px оставлено для остальных (2 на 2)
-        if(bSite && b !== hunter && (kAge > (hunting ? 6 : 3)*TICK_HZ || d > 700)){   // (v555) сайт бомбы известен — туда, а не своя роль
-          // (v560, В93, разбор владельца 11.11: «никто не идёт окружать / обходить — все в одну зону») против двоих: ближайший по пути к ним —
-          // на них (охота ниже), второй — заходит с другой стороны (точка захода, как у фланга охотнику), остальные — на сайт бомбы
-          var BS = TT0._egBS && TT0._egBS.key === roundNum+":"+mine.length+":"+K.id ? TT0._egBS : (TT0._egBS = {key: roundNum+":"+mine.length+":"+K.id,
-            ord: mine.slice().sort(function(p, q){ return pathLenTo(p, kp.x, kp.y) - pathLenTo(q, kp.x, kp.y); }).map(function(m){ return m.id; }), fl: {}});
-          var bi = !hunter ? BS.ord.indexOf(b.id) : -1, lead = bi > 0 ? mine.filter(function(m){ return m.id === BS.ord[0]; })[0] : null;
-          if(bi === 0) kAge = 0;   // ведущий — на них, без предела свежести (как охотник)
-          else if(bi === 1 && lead){ if(BS.fl[b.id] === undefined) BS.fl[b.id] = flankSpot(b, lead, kp) || egCutPoint(b, lead, kp);
-            if(BS.fl[b.id] && setPost(b, BS.fl[b.id], {x:kp.x, y:kp.y}, true, "endhunt")){ if(!(b._egL && b._egL.round === roundNum && b._egL.k === "fl")){ b._egL = {round:roundNum, k:"fl"};
-              voiceLog(team, "egbf"+b.id+roundNum, b.id, "захожу на них с другой стороны"); } return; } }
-        }
-        if(bSite && b !== hunter && !(BS && BS.ord.indexOf(b.id) === 0) && (kAge > (hunting ? 6 : 3)*TICK_HZ || d > 700)){
-          var gS = GEO[bSite], sp = (gS && gS.anchor) || SITES[bSite];
-          if(setPost(b, sp, {x:kp.x, y:kp.y}, true, "endhunt") && !(b._egL && b._egL.round === roundNum && b._egL.k === bSite)){ b._egL = {round:roundNum, k:bSite};
-            voiceLog(team, "egbs"+b.id+roundNum, b.id, "бомба "+bSite+", иду"); }
-          return;
-        }
-        if(kAge > (hunting ? 6 : 3)*TICK_HZ && !(bSite && b === hunter) || (d > 700 && b !== hunter)){
-          if(hunting){
-            var sp0 = b.post, nearSp = Math.hypot(sp0.x-b.x, sp0.y-b.y) < 100;
-            if(nearSp && !b.atPost && (!b._egEnd || b._egEnd.round !== roundNum || tick - b._egEnd.t < 1.5*TICK_HZ)){
-              if(!b._egEnd || b._egEnd.round !== roundNum) b._egEnd = {round:roundNum, t:tick};
-              postKeep(b); return;
-            }
-            b._egC = null; b._egEnd = null; clearPost(b);
-          }
-          return;
-        }
-        b._egEnd = null;
+      var klo = (beliefLast[team] || {})[K.id], kAge = klo ? tick - klo.tick : 1e9;
+      if(klo && Math.hypot(klo.x-kp.x, klo.y-kp.y) > 300) kAge = Math.min(kAge, K.tick != null ? tick - K.tick : kAge);
+      // (v297, И41, владелец 14.10: T4 шёл на пик в Cave, на 3,1 с инфы охоту отпустило — за тик развернуло на точку лёрка)
+      // начать охоту — враг свежий (≤ 3 с, демки); продолжить начатую — пока инфе ≤ 6 с (окно сигнала выше). Отпустило, а до точки
+      // пика < 100 px (проектное число) — доходит и смотрит туда же (≤ 1,5 с), а не разворачивается за тик
+      var hunting = b.post && b.post.tag === "endhunt", BS = null;
+      // (v519, А-10: «идут очень поздно — про него знали ещё до того, как он убил тиммейта») охотник (ближайший по пути, выбран выше) идёт по
+      // знанию, и дальше 700 px по прямой — 700 px оставлено для остальных (2 на 2)
+      if(bSite && b !== hunter && (kAge > (hunting ? 6 : 3)*TICK_HZ || d > 700)){   // (v555) сайт бомбы известен — туда, а не своя роль
+        // (v560, В93, разбор владельца 11.11: «никто не идёт окружать / обходить — все в одну зону») против двоих: ближайший по пути к ним —
+        // на них (охота ниже), второй — заходит с другой стороны (точка захода, как у фланга охотнику), остальные — на сайт бомбы
+        var BS = TT0._egBS && TT0._egBS.key === roundNum+":"+mine.length+":"+K.id ? TT0._egBS : (TT0._egBS = {key: roundNum+":"+mine.length+":"+K.id,
+          ord: mine.slice().sort(function(p, q){ return pathLenTo(p, kp.x, kp.y) - pathLenTo(q, kp.x, kp.y); }).map(function(m){ return m.id; }), fl: {}});
+        var bi = !hunter ? BS.ord.indexOf(b.id) : -1, lead = bi > 0 ? mine.filter(function(m){ return m.id === BS.ord[0]; })[0] : null;
+        if(bi === 0) kAge = 0;   // ведущий — на них, без предела свежести (как охотник)
+        else if(bi === 1 && lead){ if(BS.fl[b.id] === undefined) BS.fl[b.id] = flankSpot(b, lead, kp) || egCutPoint(b, lead, kp);
+          if(BS.fl[b.id] && setPost(b, BS.fl[b.id], {x:kp.x, y:kp.y}, true, "endhunt")){ if(!(b._egL && b._egL.round === roundNum && b._egL.k === "fl")){ b._egL = {round:roundNum, k:"fl"};
+            voiceLog(team, "egbf"+b.id+roundNum, b.id, "захожу на них с другой стороны"); } return; } }
       }
+      if(bSite && b !== hunter && !(BS && BS.ord.indexOf(b.id) === 0) && (kAge > (hunting ? 6 : 3)*TICK_HZ || d > 700)){
+        var gS = GEO[bSite], sp = (gS && gS.anchor) || SITES[bSite];
+        if(setPost(b, sp, {x:kp.x, y:kp.y}, true, "endhunt") && !(b._egL && b._egL.round === roundNum && b._egL.k === bSite)){ b._egL = {round:roundNum, k:bSite};
+          voiceLog(team, "egbs"+b.id+roundNum, b.id, "бомба "+bSite+", иду"); }
+        return;
+      }
+      if(kAge > (hunting ? 6 : 3)*TICK_HZ && !(bSite && b === hunter) || (d > 700 && b !== hunter)){
+        if(hunting){
+          var sp0 = b.post, nearSp = Math.hypot(sp0.x-b.x, sp0.y-b.y) < 100;
+          if(nearSp && !b.atPost && (!b._egEnd || b._egEnd.round !== roundNum || tick - b._egEnd.t < 1.5*TICK_HZ)){
+            if(!b._egEnd || b._egEnd.round !== roundNum) b._egEnd = {round:roundNum, t:tick};
+            postKeep(b); return;
+          }
+          b._egC = null; b._egEnd = null; clearPost(b);
+        }
+        return;
+      }
+      b._egEnd = null;
       // точка выбирается один раз на "клетку" цели (80px), а не каждый тик
       // заново от текущей позиции бота — иначе пост менялся на ходу
       // (v292, И33, владелец 14.10: раунд 1, тик 3865 — игрок 6 стоял в Connector и ждал пика, пока игрок 9 стрелялся с T2 в
@@ -194,7 +192,7 @@ function endgameBrain(){
         if(!spots.length) spots = pickSpots("egf:"+b.id+":"+gk, farC || {x:b.x, y:b.y}, 2, {rMax:200, minGap:40, see:[kp]});
         b._egC = {gk:gk, round:roundNum, spot:spots[0], look:{x:kp.x, y:kp.y}};
       }
-      if(BAL.groupPlay && BAL.egPair && egWaitPartner(b, mine, kp)) return;
+      if(BAL.egPair && egWaitPartner(b, mine, kp)) return;
       setPost(b, b._egC.spot, b._egC.look, true, "endhunt");
     });
   });
@@ -248,7 +246,7 @@ function enemyBeyondSmoke(b, S, r){
   return m > 0.6;
 }
 function smokeEdgeTick(){
-  if(!BAL.smokePush || !smokes.length && !bots.some(function(b){ return b._smokeWait; })) return;
+  if(!smokes.length && !bots.some(function(b){ return b._smokeWait; })) return;
   bots.forEach(function(b){
     if(!b.alive) return;
     var W = b._smokeWait;
@@ -262,7 +260,7 @@ function smokeEdgeTick(){
         return;
       }
       // ждёт у дыма, за ним враг — HE в дым: и урон, и дыра, через которую видно
-      if(BAL.heClearsSmoke && b.nades && b.nades.he > 0 && !b.nadeTask && !W.heDone && tick - W.start > 20){
+      if(b.nades && b.nades.he > 0 && !b.nadeTask && !W.heDone && tick - W.start > 20){
         W.heDone = true; assignNade(b, "he", {x:W.S.x, y:W.S.y}, "HE в смок — разогнать", {now:true});
         voiceLog(b.team, "hesm"+b.id, b.id, "кидаю HE в смок — разгоню и посмотрю");
       }
