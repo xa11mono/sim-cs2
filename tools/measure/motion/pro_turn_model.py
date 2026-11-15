@@ -24,9 +24,14 @@ for f in sorted(glob.glob(os.path.join(mapdir.path(MAP, ''), 'demos', '*_motion.
             c = 'f' if fight[a:b].any() else 'n'; r = R[(c, bi)]
             r['T'].append(b - a); r['pk'].append(ad[a:b].max())
             sg = np.sign(dy[a:b].sum())
-            if k + 1 < len(S) and S[k + 1][0] - b <= 24:
-                a2, b2 = S[k + 1]; A2 = dy[a2:b2].sum()
-                r['corr'].append(1); r['gap'].append(a2 - b); r['ratio'].append(abs(A2) / max(A, 1e-6)); r['back'].append(1 if np.sign(A2) != sg else 0)
+            # (15.11) доводка недолёта — следующий рывок в 24 тика ТУДА ЖЕ и меньше основного (≤ 0,6 угла — HAND_ERR_MAX, 510). Было: любой
+            # следующий рывок в 24 тика (в любую сторону, любой величины) — частые повороты подряд, а не доводка: рука делала лишнюю доводку
+            # после 60–70 % поворотов (у ботов стоя крупных поворотов 25 в мин против 15,5, у трети — «доводка» через 15 тиков)
+            nx = k + 1 < len(S) and S[k + 1][0] - b <= 24
+            if nx:
+                a2, b2 = S[k + 1]; A2 = dy[a2:b2].sum(); r['back'].append(1 if np.sign(A2) != sg else 0)
+            if nx and np.sign(A2) == sg and abs(A2) <= 0.6 * A:
+                r['corr'].append(1); r['gap'].append(a2 - b); r['ratio'].append(abs(A2) / max(A, 1e-6))
             else: r['corr'].append(0)
 out = {}
 for c in ('n', 'f'):
@@ -39,4 +44,6 @@ for c in ('n', 'f'):
              'back': round(float(np.mean(r['back'])), 3) if r['back'] else None}
         out['%s|%g-%g' % (c, B[bi], B[bi + 1])] = o
         print('  %5g–%-4g° n=%-6d T %s пик %s доводка %d %% через %s тиков, доля угла %s, назад %s' % (B[bi], B[bi + 1], o['n'], o['T'], o['pk'], round(100 * o['corr']), o['gap'], o['ratio'], o['back']))
-if '--json' in sys.argv: json.dump({'bins': B, 'model': out}, open(os.path.join(mapdir.path(MAP, ''), 'turnmodel.json'), 'w'))
+if '--json' in sys.argv:   # (15.11) дописывает bins / model, остальные поля набора (sub, dwell, _src) сохраняет
+    fp = os.path.join(mapdir.path(MAP, ''), 'turnmodel.json'); J = json.load(open(fp)) if os.path.exists(fp) else {}
+    J['bins'] = B; J['model'] = out; json.dump(J, open(fp, 'w'))

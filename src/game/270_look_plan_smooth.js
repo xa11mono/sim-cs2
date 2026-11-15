@@ -259,7 +259,7 @@ function lookPlan(team){
 // бота на другой вход и тут же вернуть. Теперь: без срочной причины новое
 // направление принимается, только если старое продержалось ≥0,8с (стоя) /
 // 0,5с (на ходу), и не возвращаемся к только что брошенному направлению 1,5с.
-var SL = {backBlock: 96, holdAlert: 16, backAlert: 40, same: 0.35, refine: 0.09,
+var SL = {backBlock: 96, backAlert: 40, same: 0.35, refine: 0.09,
           glEvery: [70, 120], glDur: 44, glMin: 0.55, glMax: 2.2, glSc: 0.05};
 // 2 — бой (враг виден, прикрытие ослеплённого, спам, бросок): без фильтра;
 // 1 — тревога (свежий звук/контакт рядом): поворот быстрый, но тоже без
@@ -268,7 +268,9 @@ var LOOK_REPLAN = {CT:false, T:false};   // (v291) фраг — пересчит
 function lookUrgent(b){
   // (v291, И32) лучший вариант оценки — свежая угроза: «плавность» не держит прежний спокойный угол (раньше держала 0,7 с —
   // игрок 6 после фрага смотрел на Mid, пока второй T выходил из T Lower)
-  if(b.lookReason === "look" && b._lkPick && b._lkPick.fresh) return 2;
+  // (В147, 15.11) свежая угроза из дележа — «тревога» (1): поворот сразу, новое направление держится по паузам про в перестрелке (slHold).
+  // Было 2 (без фильтра): точка свежего угла перескакивала при каждом пересчёте дележа — стоя 3,4 крупных поворота в мин
+  if(b.lookReason === "look" && b._lkPick && b._lkPick.fresh) return 1;
   if(b.lookReason === "jump") return 2;   // (v551) разворот к прыжку — сразу (иначе «плавность» держала прежний угол, бот прыгал боком)
   if(b._sawEnemy || b._lookLvl >= LOOK_LEVEL.fight) return 2;   // (v381) уровень «бой» арбитра: контакт, спам, второй угол
   if(b._lookLvl >= LOOK_LEVEL.team) return 1;                   // (v381) свежий звук / смерть рядом / инфа команды ≤ 1 с
@@ -290,9 +292,10 @@ function lookPtAlive(b, pt){
 // (В147) сколько держать взгляд на точке — жребием по распределению про для ситуации (стоит / шагом / бегом), MAP.turnmodel.dwell (квантили
 // 10/25/50/75/90 пауз между поворотами ≥ 5°, tools/measure/motion/pro_dwell.py): стоя у про медиана 59 тиков, у четверти — 200+. Было: минимум
 // SL.holdStand 51 / holdMove 32 тика (проектные) — боты перекладывали взгляд в 2–3 раза чаще про (поворотов 140 в мин против 82)
-function slHold(b, S, moving){
+function slHold(b, S, moving, alert){   // alert — тревога (lookUrgent 1): паузы про в перестрелке (dwell.fight)
   if(S.hold != null) return S.hold;
-  var DW = MAP.turnmodel && MAP.turnmodel.dwell, sit = !moving ? "stand" : (b.walking ? "walk" : "run"), q = DW && DW[sit];
+  var TMd = MAP.turnmodel, DW = TMd && TMd.dwell, sit = alert ? "fight" : !moving ? "stand" : (b.walking ? "walk" : "run"), q = DW && DW[sit];
+  if(alert) DW = TMd && TMd.dwell, q = DW && DW.fight;
   if(!q) return (S.hold = moving ? 32 : 51);
   var u = hashRand(tick*37 + b.id.charCodeAt(b.id.length-1)*19 + b.id.charCodeAt(0)), P = [[0, q[0]*0.6], [0.1, q[0]], [0.25, q[1]], [0.5, q[2]], [0.75, q[3]], [0.9, q[4]], [1, q[4]*1.5]], h = q[4];
   for(var i = 1; i < P.length; i++) if(u <= P[i][0]){ h = P[i-1][1] + (P[i][1] - P[i-1][1])*(u - P[i-1][0])/(P[i][0] - P[i-1][0]); break; }
@@ -339,7 +342,7 @@ function smoothLookFilter(b, look, urgent){
   var aN = Math.atan2(look.y-b.y, look.x-b.x);
   if(urgent === 2 || !S){ b._sl = {pt:{x:look.x, y:look.y}, since:tick, prev: S ? S.pt : null, left: tick}; return look; }
   if(!S.pt){                                                                     // сейчас смотрит по ходу
-    if(moving && tick - S.since < (urgent ? SL.holdAlert : slHold(b, S, true))) return null;
+    if(moving && tick - S.since < slHold(b, S, true, !!urgent)) return null;
     if(moving && S.prev && tick - S.since < (urgent ? SL.backAlert : SL.backBlock)){
       var aQ = Math.atan2(S.prev.y-b.y, S.prev.x-b.x), dQ = Math.abs(((aN-aQ+Math.PI)%(2*Math.PI)+2*Math.PI)%(2*Math.PI)-Math.PI);
       if(dQ < SL.same) return null;                                              // не возвращаемся сразу к брошенному углу
@@ -352,7 +355,7 @@ function smoothLookFilter(b, look, urgent){
   // рука доворачивала на каждый сдвиг — у ботов стоя 34 мелких поворота в минуту против 9 у про (tools/measure/motion/turn_rate.py)
   if(dA < SL.refine && !moving && !urgent){ if(tick - S.since < slHold(b, S, false)) return S.pt; S.pt = {x:look.x, y:look.y}; S.since = tick; S.hold = null; return look; }   // уточнил — новый срок
   if(dA < SL.refine){ S.pt = {x:look.x, y:look.y}; return look; }          // то же направление — просто уточняем точку (В147: до 5°, было до 20° — SL.same; сдвиги 5–20° шли без удержания: крупных поворотов в 1,7 раза больше про)
-  var hold = urgent ? SL.holdAlert : slHold(b, S, moving);
+  var hold = slHold(b, S, moving, !!urgent);   // (15.11) тревога — паузы про в перестрелке; было SL.holdAlert (16 тиков, проектное)
   if(tick - S.since < hold) return S.pt;                                    // старое ещё не "досмотрели"
   // (v448, док владельца 28.10 №4: игрок 4 «перебивает взгляд» — м1 т1368–1450 держал точку T Roof 1,3 с, хотя её уже никто не предлагал,
   // а запрет «не возвращаться к брошенному» не пускал к T Ramp, куда звал делёж) держимая точка, которую не предлагает ни один вариант
@@ -543,7 +546,7 @@ function lookFilter(b, look, LD){
   }
   var urg = lookUrgent(b), lk0 = look;
   look = smoothLookFilter(b, look, urg);
-  if(LD){ LD.urgent = urg; if(look !== lk0) LD.steps.push(look ? "плавность: держит прежний угол ещё " + (b._sl ? Math.max(0, ((urg ? SL.holdAlert : (b.curSpeed > 60*SPD_K ? SL.holdMove : SL.holdStand)) - (tick - b._sl.since))/TICK_HZ).toFixed(1) : "?") + " с" : "плавность: пока смотрит по ходу");
+  if(LD){ LD.urgent = urg; if(look !== lk0) LD.steps.push(look ? "плавность: держит прежний угол ещё " + (b._sl ? Math.max(0, ((b._sl.hold || 0) - (tick - b._sl.since))/TICK_HZ).toFixed(1) : "?") + " с" : "плавность: пока смотрит по ходу");
     if(b.lookReason === "glance") LD.steps.push("на бегу мельком глянул на опасный угол сбоку"); }
   return {look: look, urgent: urg};
 }
