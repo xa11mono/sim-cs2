@@ -15,3 +15,4 @@
 | форма движения / взгляда | `tools/motion_shape.py`, `tools/measure/motion/` | В147 |
 | покрытие входов T расстановками CT | `tools/ct_cover_pro.py`, `tools/ct_cover.js`, `tools/ct_setup_shot.py` | задел фазы 4 |
 | отпечаток на ПК (с 15.11; облако матчи не гоняет) | `"fp"` в `tools/measure/request.json` (`remote_run.py`) | `{"par": 8, "fp": [{"label": "v582a_fp_mir", "ref": "<коммит>", "map": "mirage"}]}` в ветке `measure/…` → `pc-results/<N>/<метка>/fp_<m>.json.gz`; сравнить метки — `diff` распакованных |
+| мёртвый код на ПК (с 15.11) | `"cov"` в `request.json` → `code_cov.js` по матчу на процесс | `{"cov": [{"label": "…_cov_mir", "ref": "<коммит>", "map": "mirage"}]}` → `cov_<m>.json`: функция, сколько раз вызвана; мёртвая — 0 во всех матчах обеих карт (+ ручная проверка: показ, кнопки, редакторы headless не вызываются) |
