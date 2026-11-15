@@ -69,6 +69,24 @@ def main():
             sh(['node', os.path.join(ROOT, 'tools', scr), sim, str(j['match']), str(j['round']), out, str(j.get('ticks', 3000))], cwd=ROOT); continue
         sh(['node', os.path.join(ROOT, 'tools', scr), sim, str(j['match']), str(j['round']), out,
             str(j.get('step', 900)), str(j.get('n', 26)), '1600', '900', j.get('mode', 'both')], cwd=ROOT)
+    # (15.11, перестройка) отпечаток бит в бит: {"fp": [{"label", "ref", "map", "matches"?}]} — fingerprint.js на каждый матч (параллельно
+    # по par) → runs/<label>/fp_<m>.json; сравнение в облаке — diff двух меток (игру не меняет, только играет и хэширует)
+    fps = []
+    for j in req.get('fp', []):
+        sim = os.path.join(sims, j['label'] + '.html'); build(j['ref'], j.get('map', 'ancient'), sim)
+        out = os.path.join(ROOT, 'tools', 'measure', 'runs', j['label']); os.makedirs(out, exist_ok=True)
+        for m in j.get('matches', [3, 7, 11, 13, 17, 19, 23, 29]): fps.append((sim, m, os.path.join(out, 'fp_%d.json' % m)))
+    fpjs = open(os.path.join(HERE, 'fingerprint.js'), encoding='utf-8').read()
+    run = []
+    for sim, m, out in fps:
+        while len(run) >= par:
+            for p, f in run:
+                if p.poll() is not None: f.close()
+            run = [(p, f) for p, f in run if p.poll() is None]
+            if len(run) >= par: __import__('time').sleep(2)
+        f = open(out, 'w', encoding='utf-8'); log('fp %s m%d' % (os.path.basename(sim), m))
+        run.append((subprocess.Popen(['node', os.path.join(ROOT, 'src', 'q.js'), sim, fpjs.replace('__M__', str(m))], cwd=ROOT, stdout=f), f))
+    for p, f in run: p.wait(); f.close()
     for j in req.get('jobs', []):
         sim = os.path.join(sims, j['label'] + '.html')
         build(j['ref'], j.get('map', 'ancient'), sim); jobargs.append('--job=%s,%s' % (j['label'], sim))
