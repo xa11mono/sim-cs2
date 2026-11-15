@@ -1,0 +1,57 @@
+playwright 1.56.0, браузеры: C:\Windows\system32\config\systemprofile\.simcs2_node\ms-playwright
+> git fetch --quiet origin acf409f1032e6a16f497765afb158762113f58c9
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_3gsj7i6u FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_3gsj7i6u\src\build.py --map mirage C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v581a_ng_fp_mir.html
+> git fetch --quiet origin 0ef54dd7c5113f0cb0f40fb99c47cf68e92f446a
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_yct99khg FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_yct99khg\src\build.py --map mirage C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v582a3_fp_mir.html
+> git fetch --quiet origin 0ef54dd7c5113f0cb0f40fb99c47cf68e92f446a
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_oycr1w8s FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_oycr1w8s\src\build.py --map ancient C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v582a3_fp_anc.html
+> git fetch --quiet origin 0ef54dd7c5113f0cb0f40fb99c47cf68e92f446a
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_fwkv2o6o FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_fwkv2o6o\src\build.py --map mirage C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v582a3_cov_mir.html
+> git fetch --quiet origin 0ef54dd7c5113f0cb0f40fb99c47cf68e92f446a
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_waj5i775 FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_waj5i775\src\build.py --map ancient C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v582a3_cov_anc.html
+fp v581a_ng_fp_mir.html m3
+fp v581a_ng_fp_mir.html m7
+fp v581a_ng_fp_mir.html m11
+fp v581a_ng_fp_mir.html m13
+fp v581a_ng_fp_mir.html m17
+fp v581a_ng_fp_mir.html m19
+fp v581a_ng_fp_mir.html m23
+fp v581a_ng_fp_mir.html m29
+fp v582a3_fp_mir.html m3
+fp v582a3_fp_mir.html m7
+fp v582a3_fp_mir.html m11
+fp v582a3_fp_mir.html m13
+fp v582a3_fp_mir.html m17
+fp v582a3_fp_mir.html m19
+fp v582a3_fp_mir.html m23
+fp v582a3_fp_mir.html m29
+fp v582a3_fp_anc.html m3
+fp v582a3_fp_anc.html m7
+fp v582a3_fp_anc.html m11
+fp v582a3_fp_anc.html m13
+fp v582a3_fp_anc.html m17
+fp v582a3_fp_anc.html m19
+fp v582a3_fp_anc.html m23
+fp v582a3_fp_anc.html m29
+cov 99 3
+cov 99 7
+cov 99 11
+cov 99 13
+cov 99 17
+cov 99 19
+cov 99 23
+cov 99 29
+cov 99 3
+cov 99 7
+cov 99 11
+cov 99 13
+cov 99 17
+cov 99 19
+cov 99 23
+cov 99 29
+all done
