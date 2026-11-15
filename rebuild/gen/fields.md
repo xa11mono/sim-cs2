@@ -5,7 +5,7 @@
 
 | поле | мест | функций | из них хозяин |
 |---|---|---|---|
-| `facing` | 15 | 9 | `handTurn · 510` |
+| `facing` | 11 | 7 | `lookFace · 275`, `lookTurnBy · 275`, `lookReset · 275`, `lookTick · 275`, `lookTrack · 275`, `handTurn · 275`, `freezeLookTick · 275` |
 | `walking` | 6 | 6 | `moveWalkTick · 535`, `moveSpeedTick · 535` |
 | `curSpeed` | 19 | 9 | `moveSpeedTick · 535` |
 | `post` | 3 | 3 | `setPost · 110`, `clearPost · 110` |
@@ -18,15 +18,13 @@
 
 ## `facing`
 
-- **хозяин** `handTurn · 510` — 3 (стр. 288, 295, 298)
-- `resolveEngagements · 510` — 2 (стр. 213, 224)
-- `freezeLookTick · 540` — 2 (стр. 23, 37)
-- `stepTick · 540` — 2 (стр. 473, 591)
-- `warmTurn · 660` — 2 (стр. 17, 19)
-- `throwNadeTry · 380` — 1 (стр. 305)
-- `lookTrack · 510` — 1 (стр. 268)
-- `resetRound · 530` — 1 (стр. 204)
-- `dvPlace · 678` — 1 (стр. 53)
+- **хозяин** `handTurn · 275` — 3 (стр. 113, 120, 123)
+- **хозяин** `lookTick · 275` — 2 (стр. 43, 54)
+- **хозяин** `freezeLookTick · 275` — 2 (стр. 155, 169)
+- **хозяин** `lookFace · 275` — 1 (стр. 9)
+- **хозяин** `lookTurnBy · 275` — 1 (стр. 10)
+- **хозяин** `lookReset · 275` — 1 (стр. 11)
+- **хозяин** `lookTrack · 275` — 1 (стр. 93)
 
 ## `walking`
 
@@ -35,12 +33,12 @@
 - `resetRound · 530` — 1 (стр. 205)
 - **хозяин** `moveWalkTick · 535` — 1 (стр. 85)
 - **хозяин** `moveSpeedTick · 535` — 1 (стр. 138)
-- `stepTick · 540` — 1 (стр. 502)
+- `stepTick · 540` — 1 (стр. 478)
 
 ## `curSpeed`
 
 - **хозяин** `moveSpeedTick · 535` — 5 (стр. 158, 160, 161, 162, 163)
-- `stepTick · 540` — 5 (стр. 337, 364, 485, 500, 502)
+- `stepTick · 540` — 5 (стр. 313, 340, 461, 476, 478)
 - `fightStrafe · 470` — 2 (стр. 106, 141)
 - `warmTick · 660` — 2 (стр. 54, 84)
 - `jumpFaceWait · 370` — 1 (стр. 97)
@@ -79,7 +77,7 @@
 
 ## `holding`
 
-- `resolveEngagements · 510` — 2 (стр. 112, 131)
+- `resolveEngagements · 510` — 2 (стр. 109, 128)
 - `weaponPickupTick · 450` — 1 (стр. 286)
 - `leaveHold · 500` — 1 (стр. 175)
 - `resetRound · 530` — 1 (стр. 203)
@@ -93,18 +91,18 @@
 - `moveSpeedTick · 535` — 2 (стр. 138, 156)
 - `fightCycleTick · 470` — 1 (стр. 341)
 - `leaveHold · 500` — 1 (стр. 175)
-- `duckDecide · 510` — 1 (стр. 11)
-- `resolveEngagements · 510` — 1 (стр. 91)
+- `duckDecide · 510` — 1 (стр. 8)
+- `resolveEngagements · 510` — 1 (стр. 88)
 - `resetRound · 530` — 1 (стр. 204)
 
 ## `path`
 
-- `stepTick · 540` — 5 (стр. 500, 574, 613, 635, 650)
-- `assignNewDestination · 510` — 4 (стр. 345, 352, 361, 369)
+- `stepTick · 540` — 5 (стр. 476, 550, 589, 611, 626)
+- `assignNewDestination · 510` — 4 (стр. 216, 223, 232, 240)
 - `updatePost · 110` — 3 (стр. 471, 495, 504)
 - `bombTick · 120` — 3 (стр. 240, 321, 326)
 - `updateRoamer · 430` — 3 (стр. 30, 59, 68)
-- `resolveEngagements · 510` — 2 (стр. 163, 181)
+- `resolveEngagements · 510` — 2 (стр. 160, 178)
 - `moveSpeedTick · 535` — 2 (стр. 130, 137)
 - `rpWorldDraw · 675` — 2 (стр. 430, 438)
 - `rebuildNav · 050` — 1 (стр. 228)
@@ -116,9 +114,9 @@
 - `ladderTick · 370` — 1 (стр. 199)
 - `navFollowFloor · 370` — 1 (стр. 387)
 - `onBlind · 460` — 1 (стр. 180)
-- `escapeWallLine · 510` — 1 (стр. 333)
+- `escapeWallLine · 510` — 1 (стр. 204)
 - `resetRound · 530` — 1 (стр. 201)
-- `navSnap · 540` — 1 (стр. 84)
+- `navSnap · 540` — 1 (стр. 60)
 - `sbPlace · 677` — 1 (стр. 38)
 
 не бот (то же имя у другого объекта — в проверку владения не идёт): `hgtCache · 580` (16 HGT_C)
