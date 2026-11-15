@@ -213,7 +213,13 @@ function resolveEngagements(){
       if(b.facing === undefined) b.facing = want;
       var dd = want - b.facing;
       dd = ((dd + Math.PI) % (2*Math.PI) + 2*Math.PI) % (2*Math.PI) - Math.PI;
-      if(slUrg){
+      // (В147) точка та же, что тиком раньше (не враг на виду — он двигается сам), рука не занята — тело сдвинулось: ведение (lookTrack)
+      // «та же» — направление на неё сдвинулось меньше AIM_TRACK_BAND (точка «из-за угла» сдвигается сама, пока бот идёт)
+      var W0 = b._lkW, same = !b._sawEnemy && W0 && W0.t === tick - 1 && _angOff(want, Math.atan2(W0.y - b.y, W0.x - b.x)) < AIM_TRACK_BAND;
+      b._lkW = {x: look.x, y: look.y, w: want, t: tick};
+      var hBusy = b._hand && tick < b._hand.t0 + b._hand.T + b._hand.gap;
+      if(same && !hBusy && Math.abs(dd) < HAND_START){ lookTrack(b, dd); }
+      else if(slUrg){
         // (В147) поворот к врагу — рукой (handTurn, модель «перестрелка» из демок): рывок с колоколом скорости, промах, пауза, доводка.
         // Прицел, ушедший меньше AIM_TRACK_BAND, стоит (в бою прицел про неподвижен ~50 % времени). Было: рывок FLICK (> 45°, проектные
         // числа) и ведение цели с запаздыванием AIM_LAG (доворот 12 % остатка за тик) — длинный хвост поворота (мерка формы: время поворота
@@ -224,8 +230,12 @@ function resolveEngagements(){
         var hA = b._hand && b._hand.f && tick < b._hand.t0 + b._hand.T + b._hand.gap;
         if(Math.abs(dd) >= HAND_FIGHT || hA){ b._aimFix = true; handTurn(b, dd, "f"); if(b._hand) b._hand.f = true; }
         else {
-          if(Math.abs(dd) >= AIM_TRACK_BAND) b._aimFix = true; else if(Math.abs(dd) <= AIM_TRACK_BAND/5) b._aimFix = false;
-          if(b._aimFix){ var tr = Math.max(AIM_TRACK_MIN, Math.abs(dd)*(1 - Math.exp(-1/(AIM_LAG*TICK_HZ)))); b.facing += Math.max(-tr, Math.min(tr, dd)); }
+          // (В147) ведение цели — короткими рывками-колоколами подряд (прерывистое слежение человека: Miall, Weir, Stein 1993 — 2–3
+          // подвижки в секунду), длительность — по модели «перестрелка» из демок, без промаха и паузы. Было: непрерывное ведение с запаздыванием —
+          // у ботов в бою 72 поворота в мин против 140 у про, длительность — медиана 10 тиков против 6 (мерка формы)
+          var hT = b._hand && tick < b._hand.t0 + b._hand.T;
+          // порог подвижки — как у руки вне боя (2°); меньше — медленное ведение между подвижками (у про в бою прицел движется половину времени)
+          if(hT || Math.abs(dd) >= HAND_START){ b._aimTrk = false; b._aimFix = true; handTurn(b, dd, "f", true); } else lookTrack(b, dd);
         }
       }
       else {
@@ -236,22 +246,9 @@ function resolveEngagements(){
         // (В147, владелец 14.11: «как поворачивается кружочек — точь-в-точь как у про») поворот — рукой (handTurn): рывок с колоколом скорости,
         // длительность по углу, промах и пауза перед доводкой — из демок (MAP.turnmodel). Было: затухание SL.ease с потолком SL.calmRate —
         // ровный медленный разворот (мерка формы tools/motion_shape.py: угол / время / пик поворота вне боя — разница 81 / 63 / 67 %)
-        // (В147) точка та же, сдвинулось тело (качание A/D на месте, шаг мимо угла) — взгляд ведёт точку плавно, как в бою (порог AIM_TRACK_BAND,
-        // запаздывание AIM_LAG), а не рывком руки: рывок — новое намерение (сменилась точка) или доводка промаха руки (≥ HAND_START); ведение —
-        // мышь держит угол, мелкий уход (< 1,7°) не правится. Не в паузе после рывка — там у человека мышь стоит. Было: при каждом сдвиге тела на
-        // 2° — рывок, пауза, доводка: стоя 30 мелких поворотов в минуту против 9 у про, шагом 61 против 39 (turn_rate.py)
-        var W0 = b._lkW, same = W0 && W0.t === tick - 1 && Math.abs(W0.x - look.x) < 0.5 && Math.abs(W0.y - look.y) < 0.5;
-        b._lkW = {x: look.x, y: look.y, w: want, t: tick};
-        var hBusy = b._hand && tick < b._hand.t0 + b._hand.T + b._hand.gap;
-        if(same && !hBusy && Math.abs(dd) < HAND_START){
-          if(Math.abs(dd) >= AIM_TRACK_BAND) b._aimTrk = true; else if(Math.abs(dd) <= AIM_TRACK_BAND/5) b._aimTrk = false;
-          if(b._aimTrk){ var tr = Math.max(AIM_TRACK_MIN, Math.abs(dd)*(1 - Math.exp(-1/(AIM_LAG*TICK_HZ)))); b.facing += Math.max(-tr, Math.min(tr, dd)); }
-          b._aimFix = false;
-        } else {
-          b._aimTrk = false;
-          if(Math.abs(dd) >= HAND_START) b._aimFix = true; else if(Math.abs(dd) <= 0.01) b._aimFix = false;
-          handTurn(b, dd, "n");
-        }
+        b._aimTrk = false;
+        if(Math.abs(dd) >= HAND_START) b._aimFix = true; else if(Math.abs(dd) <= 0.01) b._aimFix = false;
+        handTurn(b, dd, "n");
       }
     }
   });
@@ -262,6 +259,15 @@ function resolveEngagements(){
   });
 }
 
+// (В147) ведение той же точки, когда сдвинулось тело (качание A/D на месте, шаг мимо угла): плавно, как в бою (порог AIM_TRACK_BAND,
+// запаздывание AIM_LAG), а не рывком руки — рывок только на новое намерение (сменилась точка), доводку промаха (≥ HAND_START) или
+// движущегося врага. Мелкий уход (< 1,7°) не правится. Было: каждый сдвиг тела на 2° — рывок, пауза, доводка: стоя 30 мелких поворотов в
+// минуту против 9 у про, шагом 61 против 39 (turn_rate.py)
+function lookTrack(b, dd){
+  if(Math.abs(dd) >= AIM_TRACK_BAND) b._aimTrk = true; else if(Math.abs(dd) <= AIM_TRACK_BAND/5) b._aimTrk = false;
+  if(b._aimTrk){ var tr = Math.max(AIM_TRACK_MIN, Math.abs(dd)*(1 - Math.exp(-1/(AIM_LAG*TICK_HZ)))); b.facing += Math.max(-tr, Math.min(tr, dd)); }
+  b._aimFix = false;
+}
 // (В147) «рука» — как человек ведёт мышь к цели: рывок (мин. рывок: s = 10τ³ − 15τ⁴ + 6τ⁵ — колокол скорости) за T тиков на угол
 // цели с промахом (перелёт / недолёт — доля угла), потом пауза, и только потом — доводка следующим рывком, если осталось больше порога.
 // Длительность, промах, доля перелётов, пауза — по корзинам угла из демок карты (MAP.turnmodel, tools/measure/motion/pro_turn_model.py),
@@ -275,7 +281,7 @@ function handQ(q, u, lo, hi){   // жребий u ∈ [0, 1] по квартил
   for(var i = 1; i < P.length; i++) if(u <= P[i][0]) return P[i-1][1] + (P[i][1] - P[i-1][1])*(u - P[i-1][0])/(P[i][0] - P[i-1][0]);
   return P[P.length-1][1];
 }
-function handTurn(b, dd, ctx){
+function handTurn(b, dd, ctx, trk){   // trk — подвижка ведения цели: без промаха и паузы
   var H = b._hand;
   if(H && tick < H.t0 + H.T){   // рывок идёт: сумма колоколов (составной поворот, возврат после перелёта)
     H.segs.forEach(function(g){ var a = tick - g.t0 + 1; if(a < 1 || a > g.T) return; var tau = a/g.T, s = tau*tau*tau*(10 - 15*tau + 6*tau*tau);
@@ -297,19 +303,19 @@ function handTurn(b, dd, ctx){
   var T = Math.max(2, Math.round(Math.max(Tq[0]*0.7, Math.min(Tq[2]*1.4, 1.875*deg/Math.max(0.05, pk)))));
   // промах: перелёт — с быстрым возвратом (у про — доля SB.pb поворотов, через 1–3 тика, на долю угла SB.bratio); иначе — недолёт в той доле,
   // за которой у про идёт доводка (M.corr), её делает следующий рывок после паузы
-  var back = U(1) < (SB.pb || 0), A = dd, segs = [];
+  var back = !trk && U(1) < (SB.pb || 0), A = dd, segs = [];
   if(back){ var ob = Math.min(HAND_ERR_MAX*deg, handQ(SB.bdeg, U(2), 0.5, 1.2))*Math.PI/180; A = dd + (dd > 0 ? ob : -ob); }   // перелёт — в градусах (демки: 1–8° медиана)
-  else if(U(3) < Math.max(0, (M.corr || 0.6) - (SB.pb || 0))) A = dd*(1 - Math.min(ctx === "f" ? HAND_ERR_MAX_F : HAND_ERR_MAX, handQ(M.ratio, U(2), 0.5, 1.2)));
+  else if(!trk && U(3) < Math.max(0, (M.corr || 0.6) - (SB.pb || 0))) A = dd*(1 - Math.min(ctx === "f" ? HAND_ERR_MAX_F : HAND_ERR_MAX, handQ(M.ratio, U(2), 0.5, 1.2)));
   // составной поворот (у про — доля SB.p): два слитных колокола — разгон и основной, второй с доли SB.at длительности, на долю угла SB.share
-  if(T >= 4 && U(4) < (SB.p || 0)){
+  if(!trk && T >= 4 && U(4) < (SB.p || 0)){
     var at = handQ(SB.at, U(5), 0.8, 1.2), sh = handQ(SB.share, U(6), 0.9, 1.05), t2 = Math.max(1, Math.round(at*T));
     segs.push({t0: tick, T: Math.max(2, Math.min(T, Math.round(t2*1.25))), A: A*(1 - sh)}); segs.push({t0: tick + t2, T: Math.max(2, T - t2), A: A*sh});   // первый кончается чуть позже начала второго — провал скорости между пиками, как у про
   } else segs.push({t0: tick, T: T, A: A});
   var Tend = T;
   if(back){ var bg = Math.max(1, Math.round(handQ(SB.bgap, U(7), 0.7, 1.3))), bT = Math.max(2, Math.round(T*0.4));
     segs.push({t0: tick + T + bg - 1, T: bT, A: dd - A}); Tend = T + bg - 1 + bT; }
-  b._hand = {t0: tick, T: Tend, segs: segs, end: 0, gap: Math.max(1, Math.round(handQ(M.gap, U(8), 0.5, 1.3)))};
-  handTurn(b, dd, ctx);
+  b._hand = {t0: tick, T: Tend, segs: segs, end: 0, gap: trk ? 0 : Math.max(1, Math.round(handQ(M.gap, U(8), 0.5, 1.3)))};
+  handTurn(b, dd, ctx, trk);
 }
 
 function escapeWallLine(bot){
