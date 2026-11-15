@@ -37,7 +37,7 @@ def nade_hash(name):
         if fn.startswith(NADE_SRC): h.update(fn.encode()); h.update(open(os.path.join(g, fn), 'rb').read())
     d = os.path.join(MAPS, name)
     for fn in sorted(os.listdir(d)):
-        if fn.endswith('.json') and not fn.startswith('_') and fn not in NOT_MAP and fn not in ('nadeguess.json', 'demorounds.json', 'turnmodel.json'):   # (v571) раунды демок (678) к броскам не относятся; (15.11) модель поворота прицела (510) — тоже: с ней отпечаток не совпадал, и сборка выкидывала подбор бросков во всех прогонах В147 (249–252)
+        if fn.endswith('.json') and not fn.startswith('_') and fn not in NOT_MAP and fn not in ('nadeguess.json', 'demorounds.json', 'turnmodel.json', 'tactics.json'):   # (v571) раунды демок (678) к броскам не относятся; (15.11) модель поворота прицела (510) — тоже: с ней отпечаток не совпадал, и сборка выкидывала подбор бросков во всех прогонах В147 (249–252); (15.11, перестройка) тактики и расстановки (tactics.json) — тоже: подбор хранится по точным входам броска (тип, откуда, куда), а лайнапы — из lineups / pro; правка расстановок CT в v581a устарила подбор Mirage, хотя пересчёт дал те же 312 решений
             h.update(fn.encode()); h.update(open(os.path.join(d, fn), 'rb').read())
     return h.hexdigest()[:16]
 
@@ -54,9 +54,17 @@ def map_js(name):
         if fn in NOT_MAP: continue
         txt = open(os.path.join(d, fn), encoding='utf-8').read().strip()
         if fn == 'nadeguess.json' and json.loads(txt).get('v') != nade_hash(name):
-            import sys
-            print('  nadeguess.json устарел (код подбора или данные карты менялись) — не включён; пересчитать: python3 tools/nades/guess_bake.py --map ' + name, file=sys.stderr)
-            continue
+            # (15.11, владелец: «чтобы не надо было считать руками») устаревший подбор бросков сборка пересчитывает сама
+            # (tools/nades/guess_bake.py, ~20 с, без матчей) — раньше молча не включала, и игра шла без него (Mirage с v581a).
+            # Внутри самого пересчёта (NADEGUESS_BAKING) — без файла: подбор считается с нуля.
+            import sys, subprocess
+            if os.environ.get('NADEGUESS_BAKING'): continue
+            print('  nadeguess.json устарел — пересчитываю (tools/nades/guess_bake.py --map %s)' % name, file=sys.stderr)
+            bake = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'tools', 'nades', 'guess_bake.py')
+            r = subprocess.run([sys.executable, bake, '--map', name], env=dict(os.environ, NADEGUESS_BAKING='1'))
+            txt = open(os.path.join(d, fn), encoding='utf-8').read().strip() if r.returncode == 0 else ''
+            if not txt or json.loads(txt).get('v') != nade_hash(name):
+                sys.exit('ОШИБКА СБОРКИ: подбор бросков %s не пересчитался (код %s) — без него игра другая; пересчитать: python3 tools/nades/guess_bake.py --map %s' % (name, r.returncode, name))
         json.loads(txt)  # битый файл — ошибка сборки, а не страницы
         parts.append(',' + json.dumps(fn[:-5]) + ':' + txt)
     js = ''.join(parts) + '}'
