@@ -1,0 +1,10 @@
+{
+  "_": "Хозяева полей бота (rebuild/DEVICE.md §1, §3). allow — функции канала: хозяин и исполнитель внутри канала; остальные записи — мимо хозяина. enforce: false — предупреждение (канал ещё не перенесён), true — сборка падает (ставится, когда канал перенесён, фаза 3). Читают tools/rebuild/gen_maps.js и проверка сборки (src/build.py). Полей без хозяина (nadeTask, path, phase) здесь нет — назначит перенос.",
+  "facing":    {"channel": "взгляд", "allow": ["lookArbiter", "lookApply", "faceTick", "smoothLookFilter", "handTurn"], "enforce": false},
+  "crouching": {"channel": "место",  "allow": ["setPost", "updatePost"], "enforce": false},
+  "post":      {"channel": "место",  "allow": ["setPost", "updatePost", "clearPost"], "enforce": false},
+  "state":     {"channel": "бой",    "allow": ["fightState"], "enforce": false},
+  "holding":   {"channel": "бой",    "allow": ["fightState", "duelBalance"], "enforce": false},
+  "walking":   {"channel": "ход",    "allow": ["moveWalkTick", "moveSpeedTick"], "enforce": false},
+  "curSpeed":  {"channel": "ход",    "allow": ["moveSpeedTick"], "enforce": false}
+}

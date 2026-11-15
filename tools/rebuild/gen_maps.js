@@ -8,7 +8,10 @@
 "use strict";
 const acorn = require("acorn"), walk = require("acorn-walk"), fs = require("fs"), path = require("path");
 const ROOT = path.resolve(__dirname, "..", ".."), GAME = path.join(ROOT, "src", "game"), OUT = path.join(ROOT, "rebuild", "gen");
-fs.mkdirSync(OUT, { recursive: true });
+// --check: только проверка владения (сборка, src/build.py) — ничего не пишет; нарушение поля с enforce — код выхода 1
+const CHECK = process.argv.includes("--check");
+if (!CHECK) fs.mkdirSync(OUT, { recursive: true });
+const save = (f, s) => { if (!CHECK) fs.writeFileSync(f, s); };
 
 // ---- склейка как src/gamesrc.py, с границами файлов
 const files = fs.readdirSync(GAME).filter(f => /\.(html|js)$/.test(f)).sort();
@@ -67,7 +70,7 @@ for (const r of reg) { const p = R[R.length - 1];
   if (p && p.file === r.file && p.fn === r.fn && r.line === p.lineEnd + 1 && !MARK.test(r.text.slice(0, 12))) { p.text += " " + r.text; p.lineEnd = r.line; p.owner = p.owner || r.owner; continue; }
   R.push(Object.assign({ lineEnd: r.line }, r)); }
 const byVer = {}; R.forEach(r => { if (r.ver) (byVer[r.ver] = byVer[r.ver] || []).push(r); });
-fs.writeFileSync(path.join(OUT, "registry.json"), JSON.stringify(R, null, 0));
+save(path.join(OUT, "registry.json"), JSON.stringify(R, null, 0));
 {
   const bySys = {}; R.forEach(r => (bySys[r.sys] = bySys[r.sys] || []).push(r));
   let md = "# Реестр решений (генерируется: `tools/rebuild/gen_maps.js`)\n\nКаждая пометка в коде (`(vNNN …)`, `(ВNN …)`, `(дата …)`) — запись: где (файл:строка, функция), система, есть ли слова владельца / отметка.\n" +
@@ -80,13 +83,14 @@ fs.writeFileSync(path.join(OUT, "registry.json"), JSON.stringify(R, null, 0));
   multi.forEach(([v, L]) => { const ss = [...new Set(L.map(r => r.sys))]; md += "| " + v + " | " + L.length + " | " + ss.length + " | " + ss.join(", ") + " |\n"; });
   const fnHot = {}; R.forEach(r => { const k = r.fn + " (" + r.file.slice(0, 3) + ")"; fnHot[k] = (fnHot[k] || 0) + 1; });
   md += "\n## Функции с больше всего пометками (где решения копятся)\n\n" + Object.entries(fnHot).sort((a, b) => b[1] - a[1]).slice(0, 30).map(([k, n]) => "- `" + k + "` — " + n).join("\n") + "\n";
-  fs.writeFileSync(path.join(OUT, "registry.md"), md);
+  save(path.join(OUT, "registry.md"), md);
 }
 
 // ---- 2) кто пишет поля бота
 const FIELDS = ["facing", "walking", "curSpeed", "post", "state", "nadeTask", "holding", "crouching", "path", "phase"];
-const OWNER = { facing: /^(lookArbiter|lookApply|faceTick|smoothLookFilter)$/, walking: /^(moveWalkTick|moveSpeedTick)$/, curSpeed: /^moveSpeedTick$/,
-  post: /^(setPost|updatePost)$/, state: /^fightState$/, nadeTask: /^$/, holding: /^$/, crouching: /^$/, path: /^$/, phase: /^$/ };
+// хозяева — rebuild/owners.json (одно место; его же читает проверка сборки); поля без хозяина — пусто
+const OWN = JSON.parse(fs.readFileSync(path.join(ROOT, "rebuild", "owners.json"), "utf8"));
+const OWNER = {}; FIELDS.forEach(f => { OWNER[f] = OWN[f] ? new RegExp("^(" + OWN[f].allow.join("|") + ")$") : /^$/; });
 const W = {}, WO = {}; FIELDS.forEach(f => { W[f] = {}; WO[f] = {}; });
 // (15.11, замечание владельца) одно имя поля у разных объектов: bot.state ≠ bomb.state ≠ редактор.state. Объект — бот, если в той же
 // функции у этого имени читают поля, какие есть только у бота (BOTP); `bots[i].x` — бот; остальное — «другой объект» (чей — по имени).
@@ -122,10 +126,23 @@ for (const { ast, off } of asts) walk.fullAncestor(ast, (n, _st, anc) => {
   FIELDS.forEach(fl => { const E = Object.entries(W[fl]).sort((a, b) => b[1].length - a[1].length), O = Object.entries(WO[fl]);
     md += "\n## `" + fl + "`\n\n" + E.map(([k, L]) => "- " + (OWNER[fl].test(k.split(" · ")[0]) ? "**хозяин** " : "") + "`" + k + "` — " + L.length + " (стр. " + L.slice(0, 8).join(", ") + (L.length > 8 ? ", …" : "") + ")").join("\n") + "\n";
     if (O.length) md += "\nне бот (то же имя у другого объекта — в проверку владения не идёт): " + O.map(([k, L]) => "`" + k + "` (" + L.slice(0, 3).join("; ") + ")").join(", ") + "\n"; });
-  fs.writeFileSync(path.join(OUT, "fields.md"), md);
+  save(path.join(OUT, "fields.md"), md);
 }
 
 // ---- 3) порядок тика
+// ---- проверка владения: запись поля из функции не из канала (owners.json → allow) — предупреждение, при enforce — ошибка
+if (CHECK) {
+  let bad = 0, warn = [];
+  for (const fl of Object.keys(OWN).filter(k => k !== "_")) {
+    const E = Object.entries(W[fl]).filter(([k]) => !OWNER[fl].test(k.split(" · ")[0]));
+    if (!E.length) continue;
+    const n = E.reduce((a, [, L]) => a + L.length, 0), txt = "`" + fl + "` (" + OWN[fl].channel + "): " + n + " мест мимо хозяина — " + E.map(([k, L]) => k + "×" + L.length).join(", ");
+    if (OWN[fl].enforce) { bad++; console.error("ОШИБКА владения " + txt); } else warn.push(txt);
+  }
+  if (warn.length) console.log("владение полей — предупреждения (" + warn.length + " полей, каналы ещё не перенесены):\n  " + warn.join("\n  "));
+  process.exit(bad ? 1 : 0);
+}
+
 function callOrder(fnName) {
   const t = tops.find(x => x.name === fnName); if (!t) return [];
   const { ast, off } = asts.find(a => t.s >= a.off && t.e <= a.off + a.src.length);
@@ -151,7 +168,7 @@ function callOrder(fnName) {
   const seen = new Set();
   callOrder("stepTick").forEach(c => { const k = c.fn + c.c; if (seen.has(k)) return; seen.add(k);
     const t = tops.find(x => x.name === c.fn); md += "  ".repeat(c.d) + "- `" + c.fn + "` (" + fileAt(t.s)[2].slice(0, 3) + ")" + (c.c ? " — " + c.c.replace(/\|/g, "/") : "") + "\n"; });
-  fs.writeFileSync(path.join(OUT, "tick.md"), md);
+  save(path.join(OUT, "tick.md"), md);
 }
 console.log("пометок", R.length, "| полей", FIELDS.map(f => f + ":" + Object.keys(W[f]).length).join(" "), "| функций", tops.length);
 
@@ -178,7 +195,7 @@ console.log("пометок", R.length, "| полей", FIELDS.map(f => f + ":" 
     "канал (взгляд / место / гранаты / бой / ход / знание), мир (карта, навмеш, видимость), раунд (тик, состояние раунда, бомба, счёт), кэш, временное, показ.\n\n" +
     "| переменная | объявлена | пишут (файл×мест) | читают файлов | категория | хозяин | почему |\n|---|---|---|---|---|---|---|\n";
   cross.forEach(([k, v]) => { const c = cats[k] || {}; md += "| `" + k + "` | " + v.home + " | " + Object.entries(v.w).map(([f, n]) => f + "×" + n).join(" ") + " | " + Object.keys(v.r).length + " | " + (c.cat || "?") + " | " + (c.owner || "") + " | " + (c.why || "") + " |\n"; });
-  fs.writeFileSync(path.join(OUT, "vars.md"), md);
-  fs.writeFileSync(path.join(OUT, "vars.json"), JSON.stringify(Object.fromEntries(cross.map(([k, v]) => [k, v]))));
+  save(path.join(OUT, "vars.md"), md);
+  save(path.join(OUT, "vars.json"), JSON.stringify(Object.fromEntries(cross.map(([k, v]) => [k, v]))));
   console.log("общих переменных", Object.keys(V).length, "из чужих файлов пишут", cross.length);
 }

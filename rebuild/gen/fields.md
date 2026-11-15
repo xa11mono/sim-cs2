@@ -5,10 +5,10 @@
 
 | поле | мест | функций | из них хозяин |
 |---|---|---|---|
-| `facing` | 15 | 9 | — |
+| `facing` | 15 | 9 | `handTurn · 510` |
 | `walking` | 6 | 6 | `moveWalkTick · 535`, `moveSpeedTick · 535` |
 | `curSpeed` | 19 | 9 | `moveSpeedTick · 535` |
-| `post` | 3 | 3 | `setPost · 110` |
+| `post` | 3 | 3 | `setPost · 110`, `clearPost · 110` |
 | `state` | 3 | 3 | `fightState · 500` |
 | `nadeTask` | 28 | 11 | — |
 | `holding` | 7 | 6 | — |
@@ -18,10 +18,10 @@
 
 ## `facing`
 
-- `handTurn · 510` — 3 (стр. 288, 295, 298)
+- **хозяин** `handTurn · 510` — 3 (стр. 288, 295, 298)
 - `resolveEngagements · 510` — 2 (стр. 213, 224)
 - `freezeLookTick · 540` — 2 (стр. 23, 37)
-- `stepTick · 540` — 2 (стр. 462, 580)
+- `stepTick · 540` — 2 (стр. 473, 591)
 - `warmTurn · 660` — 2 (стр. 17, 19)
 - `throwNadeTry · 380` — 1 (стр. 305)
 - `lookTrack · 510` — 1 (стр. 268)
@@ -35,12 +35,12 @@
 - `resetRound · 530` — 1 (стр. 205)
 - **хозяин** `moveWalkTick · 535` — 1 (стр. 85)
 - **хозяин** `moveSpeedTick · 535` — 1 (стр. 138)
-- `stepTick · 540` — 1 (стр. 491)
+- `stepTick · 540` — 1 (стр. 502)
 
 ## `curSpeed`
 
 - **хозяин** `moveSpeedTick · 535` — 5 (стр. 158, 160, 161, 162, 163)
-- `stepTick · 540` — 5 (стр. 326, 353, 474, 489, 491)
+- `stepTick · 540` — 5 (стр. 337, 364, 485, 500, 502)
 - `fightStrafe · 470` — 2 (стр. 106, 141)
 - `warmTick · 660` — 2 (стр. 54, 84)
 - `jumpFaceWait · 370` — 1 (стр. 97)
@@ -52,7 +52,7 @@
 ## `post`
 
 - **хозяин** `setPost · 110` — 1 (стр. 445)
-- `clearPost · 110` — 1 (стр. 467)
+- **хозяин** `clearPost · 110` — 1 (стр. 467)
 - `resetRound · 530` — 1 (стр. 222)
 
 ## `state`
@@ -99,7 +99,7 @@
 
 ## `path`
 
-- `stepTick · 540` — 5 (стр. 489, 563, 602, 624, 639)
+- `stepTick · 540` — 5 (стр. 500, 574, 613, 635, 650)
 - `assignNewDestination · 510` — 4 (стр. 345, 352, 361, 369)
 - `updatePost · 110` — 3 (стр. 471, 495, 504)
 - `bombTick · 120` — 3 (стр. 240, 321, 326)
