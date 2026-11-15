@@ -1,5 +1,5 @@
 // (15.11, владелец: «мне это надо видеть») видео момента отметки в этой версии: снимок «до» → пересчёт этим кодом → кадр каждые 2 тика
-// (32 к/с = настоящая скорость), камера на боте, подпись: секунды до / после отметки, задача, в прыжке ли и поворот за полёт.
+// (32 к/с = настоящая скорость), камера на боте, подпись: секунды до / после отметки, задача, высота, поворот за последнюю 1 с (красным — больше 180°), причина взгляда.
 // Игру не меняет (только рисует). Нужен ffmpeg.
 //   node tools/marks/mark_video.js sim.html до.json[.gz] <тик отметки> <бот> <с, от> <с, до> out.mp4 [--zoom=2.2] [--speed=1] [--label=подпись версии]
 const { chromium } = require("playwright"); const fs = require("fs"), path = require("path"), cp = require("child_process"), os = require("os");
@@ -27,7 +27,9 @@ const { chromium } = require("playwright"); const fs = require("fs"), path = req
       while (tick < t) { stepTick();
         var b0 = bots.filter(function (o) { return o.id === M.id; })[0];
         if (b0 && b0.alive && b0._jump && tick - b0._jump.t < 45) { if (M.pf != null) { var d = b0.facing - M.pf; M.turn += Math.abs(Math.atan2(Math.sin(d), Math.cos(d))); } M.pf = b0.facing; M.max = Math.max(M.max, M.turn); }
-        else { M.pf = null; if (M.turn > 0) M.last = M.turn; M.turn = 0; } }
+        else { M.pf = null; if (M.turn > 0) M.last = M.turn; M.turn = 0; }
+        if (b0) { if (M.hf != null) { var dd = b0.facing - M.hf; (M.h = M.h || []).push([tick, Math.abs(Math.atan2(Math.sin(dd), Math.cos(dd)))]); } M.hf = b0.facing; while (M.h && M.h.length && M.h[0][0] <= tick - 64) M.h.shift(); } }
+      var turn1 = (M.h || []).reduce(function (a, x) { return a + x[1]; }, 0) * 180 / Math.PI;
       var b = bots.filter(function (o) { return o.id === M.id; })[0], W = 900, H = 700;
       var sv = { s: view.scale, x: view.panX, y: view.panY, w: cv.width, h: cv.height }, u = null;
       if (typeof soundPings !== "undefined") soundPings.length = 0;
@@ -36,10 +38,10 @@ const { chromium } = require("playwright"); const fs = require("fs"), path = req
         if (b && b.alive) { ctx.save(); ctx.setLineDash([6, 4]); ctx.lineWidth = 2.5; ctx.strokeStyle = "#ff5a4f"; ctx.beginPath(); ctx.arc(b.x * zoom + view.panX, b.y * zoom + view.panY, 24, 0, Math.PI * 2); ctx.stroke(); ctx.restore(); }
         var sec = (tick - T) / 64, air = b && b._jump && tick - b._jump.t < 45;
         var L = [(sec < 0 ? "" : "+") + sec.toFixed(1) + " с " + (sec < 0 ? "до отметки" : "после отметки") + (Math.abs(sec) < 0.04 ? "  ◀ МОМЕНТ ОТМЕТКИ" : ""),
-          M.id + (b ? " · " + (b.alive ? (b.post && b.post.tag || "без задачи") : "убит") : "") + (air ? " · В ПРЫЖКЕ, поворот " + Math.round(M.turn * 180 / Math.PI) + "°" : (M.last ? " · прошлый прыжок: " + Math.round(M.last * 180 / Math.PI) + "°" : "")),
+          M.id + (b ? " · " + (b.alive ? (b.post && b.post.tag || "без задачи") : "убит") : "") + " · высота " + Math.round(b ? b.z || 0 : 0) + " · поворот за 1 с: " + Math.round(turn1) + "°" + (b && b.lookReason ? " · взгляд: " + b.lookReason : ""),
           LBL];
         ctx.save(); ctx.fillStyle = "rgba(0,0,0,.72)"; ctx.fillRect(0, 0, W, 78); ctx.font = "bold 20px sans-serif"; ctx.fillStyle = Math.abs(sec) < 0.5 ? "#ffd166" : "#fff";
-        ctx.fillText(L[0], 14, 26); ctx.font = "18px sans-serif"; ctx.fillStyle = air ? "#ff8a80" : "#e6e6e6"; ctx.fillText(L[1], 14, 50); ctx.font = "13px sans-serif"; ctx.fillStyle = "#aaa"; ctx.fillText(L[2], 14, 70); ctx.restore();
+        ctx.fillText(L[0], 14, 26); ctx.font = "18px sans-serif"; ctx.fillStyle = turn1 > 180 ? "#ff8a80" : "#e6e6e6"; ctx.fillText(L[1], 14, 50); ctx.font = "13px sans-serif"; ctx.fillStyle = "#aaa"; ctx.fillText(L[2], 14, 70); ctx.restore();
         u = cv.toDataURL("image/png");
       } finally { cv.width = sv.w; cv.height = sv.h; view.scale = sv.s; view.panX = sv.x; view.panY = sv.y; }
       return u;

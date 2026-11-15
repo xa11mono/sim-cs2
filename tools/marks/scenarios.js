@@ -24,7 +24,8 @@ const opt = Object.fromEntries(process.argv.slice(2).filter(a => a.startsWith("-
   if (opt.only) { const o = new Set(opt.only.split(",")); list = list.filter(s => o.has(s.id)); }
   if (!list.length) { console.log("сценариев нет"); return; }
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "scen_")), sims = {};
-  for (const m of new Set(list.map(s => s.map))) { sims[m] = path.join(tmp, m + ".html"); cp.execFileSync("python3", [path.join(ROOT, "src", "build.py"), "--map", m, sims[m]], { stdio: "ignore" }); }
+  // --sim=страница.html — проверить другую сборку (например, версию, в которой поставлена отметка: там ответ должен быть «нет»)
+  for (const m of new Set(list.map(s => s.map))) { if (opt.sim) { sims[m] = path.resolve(opt.sim); continue; } sims[m] = path.join(tmp, m + ".html"); cp.execFileSync("python3", [path.join(ROOT, "src", "build.py"), "--map", m, sims[m]], { stdio: "ignore" }); }
   const br = await chromium.launch(); let bad = 0, skip = 0; const rows = [];
   for (const s of list) {
     const pg = await br.newPage(); await pg.route(/^https?:/, r => r.abort());
