@@ -1,3 +1,4 @@
-{"par": 8, "jobs": [
-  {"label": "b2_mir_a5", "ref": "d71ba75743497183374dc3762db1de5484583fbc", "map": "mirage", "matches": [3, 7, 11, 13, 17, 19, 23, 29]}
+{"par": 8, "fp": [
+  {"label": "v581a_fp_mir", "ref": "c312eace42e2cb0b8f88862cae0e5f5f5e883ede", "map": "mirage"},
+  {"label": "v581a_fp_anc", "ref": "c312eace42e2cb0b8f88862cae0e5f5f5e883ede", "map": "ancient"}
 ]}
