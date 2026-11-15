@@ -1,17 +1,17 @@
 # Живая карта: кто пишет поля бота (генерируется — tools/rebuild/fw_map.js)
 
-Источник — ловец `field_watch.js` на ПК (v582a5w_fp_mir, v582a5w_fp_anc), 8 матчей каждой карты; доля — от всех записей поля (оценка: стек каждой 16-й записи).
+Источник — ловец `field_watch.js` на ПК (v582a8_fp_mir, v582a8_fp_anc), 8 матчей каждой карты; доля — от всех записей поля (оценка: стек каждой 16-й записи).
 «писатель ← кто вызвал». Хозяин — по `rebuild/DEVICE.md`.
 
 ## `facing` — записей ≈ 13 990 000, смен значения 8 414 418
 
 | писатель | доля |
 |---|---|
-| resolveEngagements | 42 % |
+| lookTick | 42 % |
 | freezeLookTick | 34 % |
 | handTurn | 20 % |
-| stepTick | 3 % |
-| lookTrack ← resolveEngagements | 0.9 % |
+| lookTurnBy ← stepTick | 3 % |
+| lookTrack ← lookTick | 0.9 % |
 
 ## `walking` — записей ≈ 12 928 448, смен значения 107 774
 
@@ -45,9 +45,8 @@
 
 | писатель | доля |
 |---|---|
-| fightState ← resolveEngagements | 75 % |
+| fightState | 84 % |
 | resetRound | 16 % |
-| fightState ← leaveHold | 9 % |
 
 ## `nadeTask` — записей ≈ 25 904, смен значения 20 252
 
