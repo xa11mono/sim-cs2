@@ -157,7 +157,7 @@ function applyDamage(att, b, dmg, src, o){
   b.alive = false; b.deaths++; b._killer = att && att !== b ? att.id : null;   // (v330) кто убил — для обсервера (показ)
   dropWeaponOnDeath(b);
   b.primary = null; b.secondary = b.team==="CT" ? "USP" : "GLOCK"; b.armor = false; b.helmet = false; b.armorHp = 0; b.kit = false;
-  b.planting = false; b.defusing = false; b.nades = emptyNades(); b.nadeTask = null; b.nadeQueue = null;
+  b.planting = false; b.defusing = false; b.nades = emptyNades(); nadeCancel(b, "death");
   dropBomb(b);
   intelDeath(b, foe);   // своего убил свой — в войсе «минус», без «убил X»: враг тут ни при чём
   if(foe){ LOOK_REPLAN[foe.team] = true; foe._killHowT = tick; }   // _killHowT — для обсервера (показ)

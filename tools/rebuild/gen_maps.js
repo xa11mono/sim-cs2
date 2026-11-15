@@ -91,6 +91,10 @@ const FIELDS = ["facing", "walking", "curSpeed", "post", "_task", "state", "nade
 // хозяева — rebuild/owners.json (одно место; его же читает проверка сборки); поля без хозяина — пусто
 const OWN = JSON.parse(fs.readFileSync(path.join(ROOT, "rebuild", "owners.json"), "utf8"));
 const OWNER = {}; FIELDS.forEach(f => { OWNER[f] = OWN[f] ? new RegExp("^(" + OWN[f].allow.join("|") + ")$") : /^$/; });
+// канал может быть набором файлов (гранаты — 360–420): files — номера файлов канала, запись из любой их функции — своя;
+// функция из чужого файла, но в allow (интерфейс канала) — тоже своя
+const OWNF = {}; FIELDS.forEach(f => { OWNF[f] = new Set((OWN[f] && OWN[f].files) || []); });
+const isOwn = (fl, k) => { const [fn, ff] = k.split(" · "); return OWNER[fl].test(fn) || OWNF[fl].has(ff); };
 const W = {}, WO = {}; FIELDS.forEach(f => { W[f] = {}; WO[f] = {}; });
 // (15.11, замечание владельца) одно имя поля у разных объектов: bot.state ≠ bomb.state ≠ редактор.state. Объект — бот, если в той же
 // функции у этого имени читают поля, какие есть только у бота (BOTP); `bots[i].x` — бот; остальное — «другой объект» (чей — по имени).
@@ -121,10 +125,10 @@ for (const { ast, off } of asts) walk.fullAncestor(ast, (n, _st, anc) => {
   let md = "# Кто пишет поля бота (генерируется: `tools/rebuild/gen_maps.js`, статический разбор кода)\n\n" +
     "Запись — присваивание `бот.поле = …` / `++` в функции (файл — номер); то же имя у другого объекта (бомба, редактор, смок выхода) — отдельно. Хозяин — по CLAUDE.md §7; у полей без хозяина его пока нет (назначит перенос каналов).\n" +
     "Живой ловец (кто пишет во время матча, со стеком) — `tools/measure/engine/field_watch.js`.\n\n| поле | мест | функций | из них хозяин |\n|---|---|---|---|\n";
-  FIELDS.forEach(fl => { const E = Object.entries(W[fl]); const own = E.filter(([k]) => OWNER[fl].test(k.split(" · ")[0]));
+  FIELDS.forEach(fl => { const E = Object.entries(W[fl]); const own = E.filter(([k]) => isOwn(fl, k));
     md += "| `" + fl + "` | " + E.reduce((a, [, L]) => a + L.length, 0) + " | " + E.length + " | " + (own.map(([k]) => "`" + k + "`").join(", ") || "—") + " |\n"; });
   FIELDS.forEach(fl => { const E = Object.entries(W[fl]).sort((a, b) => b[1].length - a[1].length), O = Object.entries(WO[fl]);
-    md += "\n## `" + fl + "`\n\n" + E.map(([k, L]) => "- " + (OWNER[fl].test(k.split(" · ")[0]) ? "**хозяин** " : "") + "`" + k + "` — " + L.length + " (стр. " + L.slice(0, 8).join(", ") + (L.length > 8 ? ", …" : "") + ")").join("\n") + "\n";
+    md += "\n## `" + fl + "`\n\n" + E.map(([k, L]) => "- " + (isOwn(fl, k) ? "**хозяин** " : "") + "`" + k + "` — " + L.length + " (стр. " + L.slice(0, 8).join(", ") + (L.length > 8 ? ", …" : "") + ")").join("\n") + "\n";
     if (O.length) md += "\nне бот (то же имя у другого объекта — в проверку владения не идёт): " + O.map(([k, L]) => "`" + k + "` (" + L.slice(0, 3).join("; ") + ")").join(", ") + "\n"; });
   save(path.join(OUT, "fields.md"), md);
 }
@@ -189,7 +193,7 @@ for (const { ast, off } of asts) walk.fullAncestor(ast, (n, _st, anc) => {
 if (CHECK) {
   let bad = 0, warn = [];
   for (const fl of Object.keys(OWN).filter(k => k[0] !== "_")) {
-    const E = Object.entries(W[fl]).filter(([k]) => !OWNER[fl].test(k.split(" · ")[0]));
+    const E = Object.entries(W[fl]).filter(([k]) => !isOwn(fl, k));
     if (!E.length) continue;
     const n = E.reduce((a, [, L]) => a + L.length, 0), txt = "`" + fl + "` (" + OWN[fl].channel + "): " + n + " мест мимо хозяина — " + E.map(([k, L]) => k + "×" + L.length).join(", ");
     if (OWN[fl].enforce) { bad++; console.error("ОШИБКА владения " + txt); } else warn.push(txt);

@@ -208,7 +208,7 @@ function tSetSite(tt, site){
     if(old && old !== site && tg && (tg.indexOf("stage" + old) === 0 || tg.indexOf("sitehold" + old) === 0 || tg.indexOf("clear" + old) === 0 || (tg.indexOf("probe" + old) === 0))){ clearPost(b); if(b._probe) b._probe = null; }
     var t = b.nadeTask;
     if(old && old !== site && t && SITES[old] && Math.hypot(t.x-SITES[old].x, t.y-SITES[old].y) < Math.hypot(t.x-SITES[site].x, t.y-SITES[site].y)){
-      b.nadeTask = null; b.nadeQueue = null; if(b.post && taskProp(b.post.tag, "lineupTask")) clearPost(b);
+      nadeCancel(b, "igl-site"); if(b.post && taskProp(b.post.tag, "lineupTask")) clearPost(b);
     }
   });
 }

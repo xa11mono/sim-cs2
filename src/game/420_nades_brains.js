@@ -244,6 +244,9 @@ function retakeCutUseful(){
   ts.forEach(function(t){ var e = L[t.id]; if(!e || tick - e.tick > 12*TICK_HZ){ outside++; return; } known++; if(Math.hypot(e.x-bomb.x, e.y-bomb.y) > 650) outside++; });
   return outside > 0;
 }
+// (15.11, перестройка, фаза 3 — канал гранат, шаг 1) задачу гранаты бота (nadeTask, очередь nadeQueue) пишут только файлы гранат 360–420;
+// остальные — через интерфейс nadeCancel(b, причина): смена сайта IGL (160), смерть (applyDamage, 400). Причина — b._nadeWhy.
+function nadeCancel(b, why){ b.nadeTask = null; b.nadeQueue = null; b._nadeWhy = why; }
 function resetNades(){
   nadesInAir.length = 0; smokes.length = 0; fires.length = 0; nadeFx.length = 0; nadeFlags = {}; groundWeapons.length = 0; groundItems.length = 0;
   comboCd = {};

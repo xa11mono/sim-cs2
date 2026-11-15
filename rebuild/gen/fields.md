@@ -11,7 +11,7 @@
 | `post` | 3 | 3 | `setPost · 110`, `clearPost · 110`, `placeResetPost · 110` |
 | `_task` | 4 | 4 | `routeTick · 110`, `setPost · 110`, `clearPost · 110`, `placeResetTask · 110` |
 | `state` | 3 | 3 | `fightState · 500` |
-| `nadeTask` | 28 | 11 | — |
+| `nadeTask` | 27 | 10 | `(верх файла) · 360`, `nadeAskFlash · 365`, `exuReassign · 366`, `assignNade · 380`, `nadeQueueNext · 380`, `runupTick · 380`, `updateNadeTask1 · 380`, `lineupTick · 390`, `nadeCancel · 420`, `resetNades · 420` |
 | `holding` | 7 | 6 | — |
 | `crouching` | 1 | 1 | `placeStance · 110` |
 | `path` | 37 | 21 | — |
@@ -71,17 +71,16 @@
 
 ## `nadeTask`
 
-- `updateNadeTask1 · 380` — 11 (стр. 519, 524, 528, 531, 555, 573, 583, 588, …)
-- `runupTick · 380` — 4 (стр. 484, 499, 511, 513)
-- `exuReassign · 366` — 3 (стр. 128, 131, 132)
-- `nadeQueueNext · 380` — 2 (стр. 402, 404)
-- `lineupTick · 390` — 2 (стр. 188, 248)
-- `tSetSite · 160` — 1 (стр. 211)
-- `(верх файла) · 360` — 1 (стр. 37)
-- `nadeAskFlash · 365` — 1 (стр. 235)
-- `assignNade · 380` — 1 (стр. 391)
-- `applyDamage · 400` — 1 (стр. 160)
-- `resetNades · 420` — 1 (стр. 250)
+- **хозяин** `updateNadeTask1 · 380` — 11 (стр. 519, 524, 528, 531, 555, 573, 583, 588, …)
+- **хозяин** `runupTick · 380` — 4 (стр. 484, 499, 511, 513)
+- **хозяин** `exuReassign · 366` — 3 (стр. 128, 131, 132)
+- **хозяин** `nadeQueueNext · 380` — 2 (стр. 402, 404)
+- **хозяин** `lineupTick · 390` — 2 (стр. 188, 248)
+- **хозяин** `(верх файла) · 360` — 1 (стр. 37)
+- **хозяин** `nadeAskFlash · 365` — 1 (стр. 235)
+- **хозяин** `assignNade · 380` — 1 (стр. 391)
+- **хозяин** `nadeCancel · 420` — 1 (стр. 249)
+- **хозяин** `resetNades · 420` — 1 (стр. 253)
 
 ## `holding`
 
