@@ -172,7 +172,7 @@ function decideAction(bot, nearestDist, alliesNear, enemiesSeen){
 // сход с позиции после фрага: цель мертва — "смотрю на угол, где только что
 // видел врага" (hold по lastIntel) держал бота на месте ещё ~3с, и новый пост
 // не срабатывал. Снимаем бой-удержание, чтобы он реально ушёл.
-function leaveHold(b){ fightState(b, "patrol", "после фрага — ухожу с угла"); b.holding = false; b.crouching = false; b.decisionTick = tick; }
+function leaveHold(b){ fightState(b, "patrol", "после фрага — ухожу с угла"); b.holding = false; placeStance(b, false, "leave-hold"); b.decisionTick = tick; }
 // (v156) решение после фрага — только по тому, что команда знает (ЛИП ≤5с),
 // а не по настоящим позициям врагов
 function postKillDecide(sh, tg, vp, here){

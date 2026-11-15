@@ -193,7 +193,7 @@ function resetRound(){
     b._jump = null; b._boost = null; b._jc = null; b._nadeT = null; b._nadeNo = null;   // (v340) интервал гранат — с нового раунда заново; (v489) память отказавших бросков
     // (v375, отметки владельца: «заспавнился на Tetris / на сайте A в начале раунда») подъём по лестнице/ящику, начатый в конце
     // прошлого раунда, продолжался после спавна — бота тянуло обратно туда, где он лез. Всё движение прошлого раунда — сброс
-    b._climb = null; b._fireExit = null; b._fireExitFire = null; b._unstickT = null; b._task = null; b._hold = null;
+    b._climb = null; b._fireExit = null; b._fireExitFire = null; b._unstickT = null; placeResetTask(b); b._hold = null;
     // (v353, владелец: «тусклость кружка сохраняется после окончания раунда») этаж для рисования — сразу по спавну, а не через 16 тиков движения
     b._underV = null; b._overV = null; floorViewTick(b);   // (v535) этаж — заново с нового места
     b.baseX = b.x; b.baseY = b.y;
@@ -201,7 +201,7 @@ function resetRound(){
     b.path = []; b.pathIdx = 0; b.alive = true; b.hp = 100;
     b.pickTick = -999; b.contactStreak = 0; b._ts = {}; b.nextShotTick = 0;
     b.state = "patrol"; b.decisionTick = -999; b.holding = false; b.forcedRetreat = false;
-    lookReset(b); b.heading = undefined; b.curSpeed = 0; b.crouching = false; b.holdSinceTick = -999; b.onStairs = false;
+    lookReset(b); b.heading = undefined; b.curSpeed = 0; placeStance(b, false, "reset"); b.holdSinceTick = -999; b.onStairs = false;
     b.lastIntel = null; b.walking = false; b.lastStepTick = -999; b.heardSound = null;
     b.burstCount = 0; b.lastShotTick = -999; b._ammoFor = null; b._reloading = false; b._onPistol = null; b._secAmmo = null; b._blind = null; b._fc = null; b._trail = []; b._tagUntil = 0; b._knife = false; b._drawUntil = 0; b.stuckTicks = 0;
     b._prevOffX = 0; b._prevOffY = 0; b.lookTarget = null; b.lookReason = null;
@@ -219,7 +219,7 @@ function resetRound(){
   resetTeamIntel();
   beliefReset();
   clutchShown = null; clutchInfo = null;
-  bots.forEach(function(b){ b.roundKills = 0; b.roundDmg = 0; b._dmgBy = null; b._blindBy = null; b.post = null; b.atPost = false; b.planting = false; b.defusing = false; b._saveSpot = null; b._huntIdx = undefined; b._huntArrive = 0; b._lurkIdx = 0; b._lurkArr = 0; b._lurkPh = undefined; });
+  bots.forEach(function(b){ b.roundKills = 0; b.roundDmg = 0; b._dmgBy = null; b._blindBy = null; placeResetPost(b); b.atPost = false; b.planting = false; b.defusing = false; b._saveSpot = null; b._huntIdx = undefined; b._huntArrive = 0; b._lurkIdx = 0; b._lurkArr = 0; b._lurkPh = undefined; });
   spotCache = {};
   resetNades();
   buyPhase();   // (v428) выбор тактики — внутри, до закупа

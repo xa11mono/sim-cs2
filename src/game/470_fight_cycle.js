@@ -338,7 +338,7 @@ function fightCycleTick(b, dtSec, busy){
   F.mv = mv;
   var stp = Math.min(d, mv*dtSec), nx = b.baseX + (tx-b.baseX)/d*stp, ny = b.baseY + (ty-b.baseY)/d*stp;
   if(stepBlocked(b.baseX, b.baseY, nx, ny, b)){ b._fc = null; fcWhy(b, "конец: упёрся по пути к укрытию"); return; }
-  b.baseX = nx; b.baseY = ny; F.moving = true; b.crouching = false; b.walking = false;
+  b.baseX = nx; b.baseY = ny; F.moving = true; placeStance(b, false, "fight-move"); b.walking = false;
 }
 // ---- (3) безопасная ротация: путь мимо известных T ----
 // опасность пути: рядом (≤380px) со свежей (≤10с) позицией живого T или через

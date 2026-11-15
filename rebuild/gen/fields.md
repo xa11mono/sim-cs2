@@ -8,11 +8,12 @@
 | `facing` | 11 | 7 | `lookFace · 275`, `lookTurnBy · 275`, `lookReset · 275`, `lookTick · 275`, `lookTrack · 275`, `handTurn · 275`, `freezeLookTick · 275` |
 | `walking` | 6 | 6 | `moveWalkTick · 535`, `moveSpeedTick · 535` |
 | `curSpeed` | 19 | 9 | `moveSpeedTick · 535` |
-| `post` | 3 | 3 | `setPost · 110`, `clearPost · 110` |
+| `post` | 3 | 3 | `setPost · 110`, `clearPost · 110`, `placeResetPost · 110` |
+| `_task` | 4 | 4 | `routeTick · 110`, `setPost · 110`, `clearPost · 110`, `placeResetTask · 110` |
 | `state` | 3 | 3 | `fightState · 500` |
 | `nadeTask` | 28 | 11 | — |
 | `holding` | 7 | 6 | — |
-| `crouching` | 7 | 6 | — |
+| `crouching` | 1 | 1 | `placeStance · 110` |
 | `path` | 37 | 21 | — |
 | `phase` | 14 | 2 | — |
 
@@ -51,7 +52,14 @@
 
 - **хозяин** `setPost · 110` — 1 (стр. 445)
 - **хозяин** `clearPost · 110` — 1 (стр. 467)
-- `resetRound · 530` — 1 (стр. 222)
+- **хозяин** `placeResetPost · 110` — 1 (стр. 472)
+
+## `_task`
+
+- **хозяин** `routeTick · 110` — 1 (стр. 66)
+- **хозяин** `setPost · 110` — 1 (стр. 400)
+- **хозяин** `clearPost · 110` — 1 (стр. 467)
+- **хозяин** `placeResetTask · 110` — 1 (стр. 473)
 
 ## `state`
 
@@ -88,18 +96,13 @@
 
 ## `crouching`
 
-- `moveSpeedTick · 535` — 2 (стр. 138, 156)
-- `fightCycleTick · 470` — 1 (стр. 341)
-- `leaveHold · 500` — 1 (стр. 175)
-- `duckDecide · 510` — 1 (стр. 8)
-- `resolveEngagements · 510` — 1 (стр. 88)
-- `resetRound · 530` — 1 (стр. 204)
+- **хозяин** `placeStance · 110` — 1 (стр. 471)
 
 ## `path`
 
 - `stepTick · 540` — 5 (стр. 476, 550, 589, 611, 626)
 - `assignNewDestination · 510` — 4 (стр. 216, 223, 232, 240)
-- `updatePost · 110` — 3 (стр. 471, 495, 504)
+- `updatePost · 110` — 3 (стр. 477, 501, 510)
 - `bombTick · 120` — 3 (стр. 240, 321, 326)
 - `updateRoamer · 430` — 3 (стр. 30, 59, 68)
 - `resolveEngagements · 510` — 2 (стр. 160, 178)

@@ -465,6 +465,12 @@ function afterTaskPick(b, pt){
 }
 // механика сама сняла свою точку — её задача кончилась (следующая ставится без ожидания)
 function clearPost(b){ b._task = null; if(b._detour && b.post && taskTagB(b.post.tag) === b._detour.tb) b._detour = null; if(b.post){ b.post = null; b.atPost = false; if(b.state==="patrol"){ b.path = []; b.pathIdx = 0; } } }
+// (15.11, перестройка, фаза 3 — канал места, шаг 1) поля места — post, _task и стойка crouching (владелец 15.11: присед — место) — пишет
+// только этот файл; остальные — через интерфейс: стойка placeStance(b, сидеть?, причина) (бой — присед в очереди, ход — встать из огня,
+// ослеплён — присесть), сброс раунда placeResetPost / placeResetTask (530). Причина стойки — b._stanceWhy.
+function placeStance(b, c, why){ b.crouching = c; b._stanceWhy = why; }
+function placeResetPost(b){ b.post = null; }
+function placeResetTask(b){ b._task = null; }
 function updatePost(b){
   if(!b.post || b.state !== "patrol"){ b.atPost = false; return; }
   var ep = fireSafe(b.post, b);

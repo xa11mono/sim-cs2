@@ -135,7 +135,7 @@ function moveSpeedTick(bot, runSpeed, BRAKE_RADIUS, maxDelta){
       bot.holding = false;
       var fw = bot.path && bot.path[bot.path.length-1];
       if(!fw || Math.hypot(fw[0]-bot._fireExit.x, fw[1]-bot._fireExit.y) > 4){ bot.path = [[bot._fireExit.x, bot._fireExit.y, bot.z]]; bot.pathIdx = 0; }
-      bot.walking = false; bot.crouching = false;   // из огня — бегом, не шифтом
+      bot.walking = false; placeStance(bot, false, "fire-run");   // из огня — бегом, не шифтом
     }
     targetSpeed = SPEED * weaponSpeedMul(bot); why = "выбегает из огня";
   } else {
@@ -153,7 +153,7 @@ function moveSpeedTick(bot, runSpeed, BRAKE_RADIUS, maxDelta){
   // ослеплён: либо шаг назад за угол (путь уже задан в onBlind), либо стоп
   if(bot._blind && tick < bot._blind.until && !burn){
     targetSpeed = bot._blind.back ? runSpeed*0.55 : 0; why = bot._blind.back ? "ослеплён — шаг назад" : "ослеплён — стоит";
-    if(!bot._blind.back) bot.crouching = true;
+    if(!bot._blind.back) placeStance(bot, true, "blind");
   } else if(bot._blind && tick >= bot._blind.until){ bot._blind = null; }
   if(bot._boost){ targetSpeed = 0; bot.curSpeed = 0; why = "подсадка"; }   // (v575, В144) подсадка — оба стоят (540, jumpCheckTick)
   // (v575, В144) в воздухе — не разгоняется; ход гаснет к доле про к приземлению (поворот A / D в воздухе у про стоит скорости, RUN_JUMP.keep, 540)

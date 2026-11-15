@@ -5,7 +5,7 @@ var DUCK_PRO = {first: 0.13, burst: 0.46, spray: 0.27};
 function duckDecide(b, p, salt){   // присед на ближайшее решение (12 тиков); не сяду, если из приседа врага не видно (v521)
   var e = b._nearestEnemyBot, duck = keysRand(b, salt) < p;
   var cvp = duck && e && b._sawEnemy ? visParts(b.x, b.y, true, e.x, e.y, e.crouching, true, b.z, e.z) : null;
-  b.crouching = duck && (!cvp || !!(cvp.head || cvp.body || cvp.side)); b._duckT = tick;
+  placeStance(b, duck && (!cvp || !!(cvp.head || cvp.body || cvp.side)), "duck"); b._duckT = tick;
 }
 function resolveEngagements(){
   var pairs = [];
@@ -85,7 +85,7 @@ function resolveEngagements(){
       // контакта почти не сбрасывает её, долгая — сбрасывает полностью.
       b.contactStreak = Math.max(0, b.contactStreak - 3);
       // (v575, В140) врага не видно — присед кончается вместе с очередью (у про — 0,19 с); ослеплён — сидит (535)
-      if(b.crouching && tick >= (b.blindUntil || 0) && tick - (b.lastShotTick || -1e9) >= DECISION_INTERVAL_TICKS) b.crouching = false;
+      if(b.crouching && tick >= (b.blindUntil || 0) && tick - (b.lastShotTick || -1e9) >= DECISION_INTERVAL_TICKS) placeStance(b, false, "burst-end");
       if(b._ts) for(var tsId2 in b._ts) b._ts[tsId2] = Math.max(0, b._ts[tsId2] - 3);   // (этап 2, P0-2) по целям — так же
       // holding on stale-but-recent intel = "ещё смотрю на угол, где только что
       // видел врага" — это ровно то состояние, из которого возможен префайр;
