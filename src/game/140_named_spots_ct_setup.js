@@ -338,20 +338,5 @@ function habitTop(ctId, minN){
   for(var k in H){ if(H[k].n >= (minN||2) && (!best || H[k].n > best.n)) best = H[k]; }
   return best;
 }
-// без свежей инфы — смотрит в любимый угол живого врага (у каждого игрока свой,
-// копится за матч и между матчами), если он рядом и виден
-function habitLook(b){
-  if(!teamTac.T || (b.team === "T" && teamTac.T.phase === "postplant")) return null;
-  var best = null, bd = Infinity;
-  bots.forEach(function(o){
-    if(o.team === b.team || !o.alive) return;
-    var h = habitTop(o.id, 2.5); if(!h) return;
-    var d = Math.hypot(h.x-b.x, h.y-b.y);
-    if(d < 150 || d > 650 || d >= bd) return;
-    if(!hasLOS(b.x, b.y, h.x, h.y, b.z)) return;
-    bd = d; best = h;
-  });
-  return best;
-}
 var roundStartTick = 0;
 
