@@ -1,8 +1,4 @@
 {"par": 8, "fp": [
-  {"label": "v581a_ng_fp_mir", "ref": "acf409f1032e6a16f497765afb158762113f58c9", "map": "mirage"},
-  {"label": "v582a3_fp_mir", "ref": "0ef54dd7c5113f0cb0f40fb99c47cf68e92f446a", "map": "mirage"},
-  {"label": "v582a3_fp_anc", "ref": "0ef54dd7c5113f0cb0f40fb99c47cf68e92f446a", "map": "ancient"}
-], "cov": [
-  {"label": "v582a3_cov_mir", "ref": "0ef54dd7c5113f0cb0f40fb99c47cf68e92f446a", "map": "mirage"},
-  {"label": "v582a3_cov_anc", "ref": "0ef54dd7c5113f0cb0f40fb99c47cf68e92f446a", "map": "ancient"}
+  {"label": "v582a4_fp_mir", "ref": "9d9ce47bf5ecce9a5f6578e21364208a66d0e0a4", "map": "mirage"},
+  {"label": "v582a4_fp_anc", "ref": "9d9ce47bf5ecce9a5f6578e21364208a66d0e0a4", "map": "ancient"}
 ]}
