@@ -1,0 +1,26 @@
+playwright 1.56.0, браузеры: C:\Windows\system32\config\systemprofile\.simcs2_node\ms-playwright
+> git fetch --quiet origin 015e5ae303f9bd2be93c3dd415365bac7bc96e0a
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_za14ceh4 FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_za14ceh4\src\build.py --map mirage C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v582a7_fp_mir.html
+проверка владения полей пропущена: нет acorn / acorn-walk (npm i acorn acorn-walk или NODE_PATH)
+> git fetch --quiet origin 015e5ae303f9bd2be93c3dd415365bac7bc96e0a
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_ik6g04fw FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_ik6g04fw\src\build.py --map ancient C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v582a7_fp_anc.html
+проверка владения полей пропущена: нет acorn / acorn-walk (npm i acorn acorn-walk или NODE_PATH)
+fp v582a7_fp_mir.html m3
+fp v582a7_fp_mir.html m7
+fp v582a7_fp_mir.html m11
+fp v582a7_fp_mir.html m13
+fp v582a7_fp_mir.html m17
+fp v582a7_fp_mir.html m19
+fp v582a7_fp_mir.html m23
+fp v582a7_fp_mir.html m29
+fp v582a7_fp_anc.html m3
+fp v582a7_fp_anc.html m7
+fp v582a7_fp_anc.html m11
+fp v582a7_fp_anc.html m13
+fp v582a7_fp_anc.html m17
+fp v582a7_fp_anc.html m19
+fp v582a7_fp_anc.html m23
+fp v582a7_fp_anc.html m29
+all done
