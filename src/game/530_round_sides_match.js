@@ -200,7 +200,7 @@ function resetRound(){
     b.px = b.x; b.py = b.y;
     b.path = []; b.pathIdx = 0; b.alive = true; b.hp = 100;
     b.pickTick = -999; b.contactStreak = 0; b._ts = {}; b.nextShotTick = 0;
-    b.state = "patrol"; b.decisionTick = -999; b.holding = false; b.forcedRetreat = false;
+    fightReset(b); b.decisionTick = -999; b.forcedRetreat = false;
     lookReset(b); b.heading = undefined; b.curSpeed = 0; placeStance(b, false, "reset"); b.holdSinceTick = -999; b.onStairs = false;
     b.lastIntel = null; b.walking = false; b.lastStepTick = -999; b.heardSound = null;
     b.burstCount = 0; b.lastShotTick = -999; b._ammoFor = null; b._reloading = false; b._onPistol = null; b._secAmmo = null; b._blind = null; b._fc = null; b._trail = []; b._tagUntil = 0; b._knife = false; b._drawUntil = 0; b.stuckTicks = 0;

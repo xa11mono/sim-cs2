@@ -39,7 +39,7 @@ function sbPlace(b, x, y){
   b._underV = null; b._overV = null; floorViewTick(b);
 }
 function sbRevive(b, x, y){
-  b.alive = true; b.hp = 100; b.state = "patrol"; b.holding = false; clearPost(b); b._contact = null;
+  b.alive = true; b.hp = 100; fightReset(b); clearPost(b); b._contact = null;
   b.contactStreak = 0; b._ts = {}; b.nextShotTick = 0; b._reloading = false; b._blind = null; b.blindUntil = 0;
   sbPlace(b, x, y);
   logEvent("песочница: " + b.id + " в игре");

@@ -6,8 +6,8 @@
   "crouching": {"channel": "место",  "allow": ["placeStance"], "enforce": true, "since": "фаза 3, 15.11: канал места — 110 (placeStance / placeResetPost / placeResetTask)"},
   "post":      {"channel": "место",  "allow": ["setPost", "updatePost", "clearPost", "placeResetPost"], "enforce": true, "since": "фаза 3, 15.11: канал места — 110 (placeStance / placeResetPost / placeResetTask)"},
   "_task":     {"channel": "место",  "allow": ["setPost", "updatePost", "clearPost", "placeResetTask", "routeTick"], "enforce": true, "since": "фаза 3, 15.11: канал места — 110 (placeStance / placeResetPost / placeResetTask)"},
-  "state":     {"channel": "бой",    "allow": ["fightState"], "enforce": false},
-  "holding":   {"channel": "бой",    "allow": ["fightState", "duelBalance"], "enforce": false},
+  "state":     {"channel": "бой", "files": ["470", "480", "490", "500", "510"], "allow": ["fightReset"], "enforce": true, "since": "фаза 3, 15.11: канал боя — файлы 470–510; снаружи — fightState / fightReset"},
+  "holding":   {"channel": "бой", "files": ["470", "480", "490", "500", "510"], "allow": ["fightReset", "fightHoldOff"], "enforce": true, "since": "фаза 3, 15.11: снаружи — fightHoldOff / fightReset"},
   "walking":   {"channel": "ход",    "allow": ["moveWalkTick", "moveSpeedTick"], "enforce": false},
   "curSpeed":  {"channel": "ход",    "allow": ["moveSpeedTick"], "enforce": false},
   "nadeTask":  {"channel": "гранаты", "files": ["360", "365", "366", "380", "385", "390", "400", "410", "420"], "allow": ["nadeCancel"], "enforce": true, "since": "фаза 3, 15.11: канал гранат — файлы 360–420; снаружи — nadeCancel"}

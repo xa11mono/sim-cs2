@@ -2,6 +2,11 @@
 // b._stateWhy (подпись на экране, запись матча). Решают по-прежнему разные механики (оценка decideAction, «врага не видно», после фрага,
 // нож) — они зовут эту функцию, а не пишут поле сами. Перестрелку (_fc) снаружи снимает только fcEnd (470)
 function fightState(b, next, why){ b.state = next; b._stateWhy = why; b._stateWhyT = tick; }
+// (15.11, перестройка, фаза 3 — канал боя, шаг 1) режим боя state и «держит угол» holding (владелец 15.11: держит угол — бой) пишут только
+// файлы боя 470–510; остальные — через интерфейс: fightReset(b) — сброс к новому раунду / песочница (530, 677), fightHoldOff(b, причина) —
+// снять удержание (нож — 450, огонь — 535). Причина снятия — b._holdWhy.
+function fightReset(b){ b.state = "patrol"; b.holding = false; }
+function fightHoldOff(b, why){ b.holding = false; b._holdWhy = why; }
 function decideAction(bot, nearestDist, alliesNear, enemiesSeen){
   var hpFrac = Math.max(0, bot.hp)/100;
   // было enemiesSeen - alliesNear — себя не считали, и КАЖДАЯ дуэль 1 на 1

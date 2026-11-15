@@ -10,9 +10,9 @@
 | `curSpeed` | 19 | 9 | `moveSpeedTick · 535` |
 | `post` | 3 | 3 | `setPost · 110`, `clearPost · 110`, `placeResetPost · 110` |
 | `_task` | 4 | 4 | `routeTick · 110`, `setPost · 110`, `clearPost · 110`, `placeResetTask · 110` |
-| `state` | 3 | 3 | `fightState · 500` |
+| `state` | 2 | 2 | `fightState · 500`, `fightReset · 500` |
 | `nadeTask` | 27 | 10 | `(верх файла) · 360`, `nadeAskFlash · 365`, `exuReassign · 366`, `assignNade · 380`, `nadeQueueNext · 380`, `runupTick · 380`, `updateNadeTask1 · 380`, `lineupTick · 390`, `nadeCancel · 420`, `resetNades · 420` |
-| `holding` | 7 | 6 | — |
+| `holding` | 5 | 4 | `fightReset · 500`, `fightHoldOff · 500`, `leaveHold · 500`, `resolveEngagements · 510` |
 | `crouching` | 1 | 1 | `placeStance · 110` |
 | `path` | 37 | 21 | — |
 | `phase` | 14 | 2 | — |
@@ -64,8 +64,7 @@
 ## `state`
 
 - **хозяин** `fightState · 500` — 1 (стр. 4)
-- `resetRound · 530` — 1 (стр. 203)
-- `sbRevive · 677` — 1 (стр. 42)
+- **хозяин** `fightReset · 500` — 1 (стр. 8)
 
 не бот (то же имя у другого объекта — в проверку владения не идёт): `dropBomb · 120` (96 bomb), `bombTick · 120` (228 bomb; 269 bomb; 286 bomb), `exuThrown · 366` (70 it), `exuLanded · 366` (82 it), `exuFail · 366` (86 it), `exuReassign · 366` (137 it), `exuTick · 366` (149 it; 151 it; 155 it), `bombPassTick · 460` (86 bomb), `checkRoundEnd · 530` (125 bomb), `mapEdQueueSave · 570` (66 S; 67 S), `mapEdSaveNow · 570` (74 S; 81 S; 82 S), `dvTick · 678` (46 bomb; 47 bomb)
 
@@ -84,12 +83,10 @@
 
 ## `holding`
 
-- `resolveEngagements · 510` — 2 (стр. 109, 128)
-- `weaponPickupTick · 450` — 1 (стр. 286)
-- `leaveHold · 500` — 1 (стр. 175)
-- `resetRound · 530` — 1 (стр. 203)
-- `moveSpeedTick · 535` — 1 (стр. 135)
-- `sbRevive · 677` — 1 (стр. 42)
+- **хозяин** `resolveEngagements · 510` — 2 (стр. 109, 128)
+- **хозяин** `fightReset · 500` — 1 (стр. 8)
+- **хозяин** `fightHoldOff · 500` — 1 (стр. 9)
+- **хозяин** `leaveHold · 500` — 1 (стр. 180)
 
 не бот (то же имя у другого объекта — в проверку владения не идёт): `rpEnd · 675` (262 RP), `rpHold · 675` (269 RP)
 

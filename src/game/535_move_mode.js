@@ -132,7 +132,7 @@ function moveSpeedTick(bot, runSpeed, BRAKE_RADIUS, maxDelta){
     // (v151) раньше путь наружу перебивали пост/бой каждый тик, а держащий угол
     // вообще не двигался — стоял в огне. Теперь, пока горит, путь только наружу
     if(bot._fireExit){
-      bot.holding = false;
+      fightHoldOff(bot, "fire");
       var fw = bot.path && bot.path[bot.path.length-1];
       if(!fw || Math.hypot(fw[0]-bot._fireExit.x, fw[1]-bot._fireExit.y) > 4){ bot.path = [[bot._fireExit.x, bot._fireExit.y, bot.z]]; bot.pathIdx = 0; }
       bot.walking = false; placeStance(bot, false, "fire-run");   // из огня — бегом, не шифтом
