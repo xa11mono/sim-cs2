@@ -3,14 +3,14 @@
   "id": "mir_jump360",
   "map": "mirage",
   "mark": "m1794418376570 (11.11, матч 3, раунд 12, CT0): «крутился 360 во время прыжка»",
-  "pre": "tools/marks/snaps/mir_m1794418376570_pre.json.gz",
+  "pre": "tools/marks/snaps/mir_m1794418376570_v559_m3.5s.json.gz",
   "tick": 69014,
-  "steps": 320,
-  "ask": "CT0 не крутится в прыжке: за один полёт поворот меньше полкруга (180°)?",
+  "steps": 0,
+  "ask": "CT0 на подъёме у Window не крутится: за любую 1 с поворот меньше 180°? (в v559 — 307°, «крутился 360»)",
   "when": "bots.some(function(b){ return b.id === 'CT0' && b.alive; })",
-  "each": "var b = bots.find(function(x){ return x.id === 'CT0'; }); if(!b || !b.alive) return; var air = b._jump && tick - b._jump.t < 45; if(air){ if(SCN.pf != null){ var d = b.facing - SCN.pf; SCN.cur = (SCN.cur || 0) + Math.abs(Math.atan2(Math.sin(d), Math.cos(d))); } SCN.max = Math.max(SCN.max || 0, SCN.cur || 0); SCN.pf = b.facing; } else { SCN.cur = 0; SCN.pf = null; }",
+  "each": "var b = bots.find(function(x){ return x.id === 'CT0'; }); if(!b || !b.alive) return; if(SCN.pf != null){ var d = b.facing - SCN.pf; (SCN.h = SCN.h || []).push([tick, Math.abs(Math.atan2(Math.sin(d), Math.cos(d)))]); while(SCN.h[0][0] <= tick - 64) SCN.h.shift(); SCN.max = Math.max(SCN.max || 0, SCN.h.reduce(function(a, x){ return a + x[1]; }, 0)); } SCN.pf = b.facing;",
   "check": "(SCN.max || 0) < Math.PI",
-  "note": "180° — проектное число (владелец написал «360»); при v582a максимум за полёт 144°"
+  "note": "снимок — состояние v559 за 3,5 с до отметки (как у владельца, бит в бит с его снимком «до»): новый код с того же места; иначе раунд расходится раньше и ситуации нет. 180° за 1 с — проектное число; v559 — 307°, v582a — около 110°"
  },
  {
   "id": "mir_stuck_window",
