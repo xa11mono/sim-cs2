@@ -43,7 +43,8 @@ const fs = require('fs'), path = require('path');
         var cts = bots.filter(function(b){ return b.alive && b.team === "CT"; });
         BOT.push({setup: S.id, name: S.name, round: roundNum, alive: cts.length,
           ct: cts.map(function(b){ return {id: b.id, x: Math.round(b.x), y: Math.round(b.y), f: +(b.facing||0).toFixed(3), tag: b.post ? b.post.tag : null,
-            zone: zoneUserName(zoneIdAt(b.x, b.y)), seen: b._sawEnemy ? 1 : 0}; }),
+            zone: zoneUserName(zoneIdAt(b.x, b.y)), seen: b._sawEnemy ? 1 : 0, why: b.lookReason || null, lvl: b._lookLvl || 0,
+            pl: b.post && b.post.look ? +Math.atan2(b.post.look.y - b.y, b.post.look.x - b.x).toFixed(3) : null}; }),
           cov: cover(cts)});
         got++; var R0 = roundNum; while(roundNum === R0 && roundState !== "matchover") stepTick();
       }

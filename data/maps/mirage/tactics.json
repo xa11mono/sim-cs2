@@ -719,14 +719,24 @@
      "lookPt": [
       957.5,
       1485.6
-     ]
+     ],
+     "spot": [
+      1007.3,
+      1537.8
+     ],
+     "lookYaw": -0.597
     },
     "mid": {
      "pos": [
       "Short",
       "Catwalk"
      ],
-     "look": "Top Mid"
+     "look": "Top Mid",
+     "spot": [
+      956.6,
+      818.5
+     ],
+     "lookYaw": 0.408
     },
     "anchorB": {
      "pos": [
@@ -739,7 +749,12 @@
      "lookPt": [
       689.5,
       406.4
-     ]
+     ],
+     "spot": [
+      445.5,
+      412.9
+     ],
+     "lookYaw": 0.011
     },
     "rotator": {
      "pos": [
@@ -747,7 +762,12 @@
       "Jungle",
       "Stairs"
      ],
-     "look": "Top Mid"
+     "look": "Top Mid",
+     "spot": [
+      830.8,
+      1021.4
+     ],
+     "lookYaw": -0.677
     },
     "roamer": {
      "pos": [
@@ -760,7 +780,12 @@
      "lookPt": [
       1505.9,
       778.8
-     ]
+     ],
+     "spot": [
+      1043.6,
+      1260.6
+     ],
+     "lookYaw": -0.141
     }
    }
   },
@@ -782,7 +807,12 @@
      "lookPt": [
       957.5,
       1485.6
-     ]
+     ],
+     "spot": [
+      1039.0,
+      1549.0
+     ],
+     "lookYaw": -0.655
     },
     "mid": {
      "pos": [
@@ -795,7 +825,12 @@
      "lookPt": [
       1505.9,
       778.8
-     ]
+     ],
+     "spot": [
+      812.3,
+      1044.0
+     ],
+     "lookYaw": -0.399
     },
     "anchorB": {
      "pos": [
@@ -808,7 +843,12 @@
      "lookPt": [
       514.3,
       406.4
-     ]
+     ],
+     "spot": [
+      441.1,
+      404.1
+     ],
+     "lookYaw": -0.023
     },
     "rotator": {
      "pos": [
@@ -818,7 +858,12 @@
       "Triple Box",
       "Sandwich"
      ],
-     "look": "Top Mid"
+     "look": "Top Mid",
+     "spot": [
+      1065.8,
+      1261.8
+     ],
+     "lookYaw": -0.46
     },
     "roamer": {
      "pos": [
@@ -828,7 +873,12 @@
       "B Window",
       "Vent"
      ],
-     "look": "Top Mid"
+     "look": "Top Mid",
+     "spot": [
+      844.7,
+      598.1
+     ],
+     "lookYaw": 0.92
     }
    }
   },
@@ -846,7 +896,12 @@
       "Dark",
       "A Site"
      ],
-     "look": "Tetris"
+     "look": "Tetris",
+     "spot": [
+      1000.2,
+      1521.8
+     ],
+     "lookYaw": -0.395
     },
     "mid": {
      "pos": [
@@ -854,7 +909,12 @@
       "Jungle",
       "Stairs"
      ],
-     "look": "Top Mid"
+     "look": "Top Mid",
+     "spot": [
+      1004.3,
+      1002.0
+     ],
+     "lookYaw": -0.948
     },
     "anchorB": {
      "pos": [
@@ -867,14 +927,24 @@
      "lookPt": [
       689.5,
       406.4
-     ]
+     ],
+     "spot": [
+      440.4,
+      418.4
+     ],
+     "lookYaw": -0.111
     },
     "rotator": {
      "pos": [
       "Short",
       "Catwalk"
      ],
-     "look": "Top Mid"
+     "look": "Top Mid",
+     "spot": [
+      819.8,
+      976.8
+     ],
+     "lookYaw": -0.197
     },
     "roamer": {
      "pos": [
@@ -887,7 +957,12 @@
      "lookPt": [
       1505.9,
       778.8
-     ]
+     ],
+     "spot": [
+      966.2,
+      815.9
+     ],
+     "lookYaw": 0.328
     }
    }
   },
@@ -905,7 +980,12 @@
       "Ticket",
       "Ninja"
      ],
-     "look": "Tetris"
+     "look": "Tetris",
+     "spot": [
+      1153.3,
+      1526.7
+     ],
+     "lookYaw": -0.551
     },
     "mid": {
      "pos": [
@@ -918,7 +998,12 @@
      "lookPt": [
       1505.9,
       778.8
-     ]
+     ],
+     "spot": [
+      837.6,
+      922.8
+     ],
+     "lookYaw": 0.388
     },
     "anchorB": {
      "pos": [
@@ -931,7 +1016,12 @@
      "lookPt": [
       689.5,
       406.4
-     ]
+     ],
+     "spot": [
+      444.8,
+      406.9
+     ],
+     "lookYaw": 0.036
     },
     "rotator": {
      "pos": [
@@ -940,7 +1030,12 @@
       "Sandwich",
       "Triple Box"
      ],
-     "look": "Top Mid"
+     "look": "Top Mid",
+     "spot": [
+      1032.4,
+      1233.8
+     ],
+     "lookYaw": -1.177
     },
     "roamer": {
      "pos": [
@@ -951,7 +1046,12 @@
      "lookPt": [
       1285.8,
       1559.5
-     ]
+     ],
+     "spot": [
+      1018.2,
+      1286.8
+     ],
+     "lookYaw": 0.464
     }
    },
    "stack": "A"
@@ -974,7 +1074,12 @@
      "lookPt": [
       1057.3,
       811.5
-     ]
+     ],
+     "spot": [
+      1013.6,
+      1511.8
+     ],
+     "lookYaw": -0.429
     },
     "mid": {
      "pos": [
@@ -984,7 +1089,12 @@
       "Triple Box",
       "Sandwich"
      ],
-     "look": "Top Mid"
+     "look": "Top Mid",
+     "spot": [
+      818.6,
+      969.6
+     ],
+     "lookYaw": -0.075
     },
     "anchorB": {
      "pos": [
@@ -997,7 +1107,12 @@
      "lookPt": [
       667.6,
       325.5
-     ]
+     ],
+     "spot": [
+      439.1,
+      416.2
+     ],
+     "lookYaw": -0.021
     },
     "rotator": {
      "pos": [
@@ -1010,7 +1125,12 @@
      "lookPt": [
       1505.9,
       778.8
-     ]
+     ],
+     "spot": [
+      970.1,
+      1021.6
+     ],
+     "lookYaw": -1.194
     },
     "roamer": {
      "pos": [
@@ -1020,7 +1140,12 @@
       "B Window",
       "Vent"
      ],
-     "look": "Top Mid"
+     "look": "Top Mid",
+     "spot": [
+      859.1,
+      621.4
+     ],
+     "lookYaw": 0.208
     }
    }
   },
@@ -1042,7 +1167,12 @@
      "lookPt": [
       1057.3,
       811.5
-     ]
+     ],
+     "spot": [
+      974.6,
+      1579.7
+     ],
+     "lookYaw": -0.607
     },
     "anchorB": {
      "pos": [
@@ -1054,7 +1184,12 @@
      "lookPt": [
       514.3,
       406.4
-     ]
+     ],
+     "spot": [
+      442.3,
+      403.4
+     ],
+     "lookYaw": -0.021
     },
     "rotator": {
      "pos": [
@@ -1063,7 +1198,12 @@
       "Triple Box",
       "Sandwich"
      ],
-     "look": "Top Mid"
+     "look": "Top Mid",
+     "spot": [
+      858.6,
+      586.8
+     ],
+     "lookYaw": 0.906
     },
     "roamer": {
      "pos": [
@@ -1074,7 +1214,12 @@
      "lookPt": [
       1285.8,
       1559.5
-     ]
+     ],
+     "spot": [
+      1278.2,
+      1450.8
+     ],
+     "lookYaw": 0.051
     },
     "mid": {
      "pos": [
@@ -1083,7 +1228,12 @@
       "Kitchen",
       "Arches"
      ],
-     "look": "Top Mid"
+     "look": "Top Mid",
+     "spot": [
+      998.1,
+      1224.6
+     ],
+     "lookYaw": -1.054
     }
    },
    "stack": "A"
@@ -1102,7 +1252,12 @@
       "Ticket",
       "Ninja"
      ],
-     "look": "Tetris"
+     "look": "Tetris",
+     "spot": [
+      1002.2,
+      1576.2
+     ],
+     "lookYaw": -0.722
     },
     "anchorB": {
      "pos": [
@@ -1116,7 +1271,12 @@
      "lookPt": [
       689.5,
       406.4
-     ]
+     ],
+     "spot": [
+      478.7,
+      448.4
+     ],
+     "lookYaw": 0.014
     },
     "rotator": {
      "pos": [
@@ -1124,7 +1284,12 @@
       "Jungle",
       "Stairs"
      ],
-     "look": "Top Mid"
+     "look": "Top Mid",
+     "spot": [
+      1267.8,
+      1454.9
+     ],
+     "lookYaw": -0.742
     },
     "roamer": {
      "pos": [
@@ -1134,7 +1299,12 @@
      "lookPt": [
       1285.8,
       1559.5
-     ]
+     ],
+     "spot": [
+      1330.9,
+      1452.4
+     ],
+     "lookYaw": 1.399
     },
     "mid": {
      "pos": [
@@ -1147,7 +1317,12 @@
      "lookPt": [
       1101.7,
       1230.0
-     ]
+     ],
+     "spot": [
+      992.0,
+      1251.1
+     ],
+     "lookYaw": -0.783
     }
    },
    "stack": "A"
@@ -1169,7 +1344,12 @@
      "lookPt": [
       1057.3,
       811.5
-     ]
+     ],
+     "spot": [
+      1008.2,
+      1527.7
+     ],
+     "lookYaw": -0.559
     },
     "anchorB": {
      "pos": [
@@ -1182,7 +1362,12 @@
      "lookPt": [
       514.3,
       406.4
-     ]
+     ],
+     "spot": [
+      441.5,
+      399.0
+     ],
+     "lookYaw": 0.032
     },
     "rotator": {
      "pos": [
@@ -1192,7 +1377,12 @@
       "Jungle",
       "Dark"
      ],
-     "look": "Top Mid"
+     "look": "Top Mid",
+     "spot": [
+      857.9,
+      577.4
+     ],
+     "lookYaw": 0.982
     },
     "roamer": {
      "pos": [
@@ -1200,7 +1390,12 @@
       "Arches",
       "Vent"
      ],
-     "look": "Top Mid"
+     "look": "Top Mid",
+     "spot": [
+      533.2,
+      679.0
+     ],
+     "lookYaw": -0.642
     },
     "mid": {
      "pos": [
@@ -1211,7 +1406,12 @@
      "lookPt": [
       638.5,
       420.0
-     ]
+     ],
+     "spot": [
+      1030.2,
+      1225.1
+     ],
+     "lookYaw": -1.168
     }
    },
    "stack": "B"

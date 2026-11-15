@@ -88,6 +88,7 @@ function lookFrom(p, list, fb, b){
 // (выход за инфой), потом — pos. rot: "212" — ротатор вторым на "горячий" сайт,
 // "111" — ротатор между сайтами. stack — сайт, на который встаёт роумер.
 var CT_SETUPS = MAP.tactics.ctSetups;
+var CT_SPOT_R = 60;   // px: место роли — не дальше от точки из демок (spot); у про разброс у точки — медиана 60–210 px (проектное число)
 var CT_SHARE = MAP.ctshare || null, CT_SHARE_MIN = 0.01;   // доля — не ниже 1 % (проектное: расстановка, не встретившаяся у про, всё же бывает)
 function ctShareW(S){
   var rt = teamEco.CT && teamEco.CT.roundType, k = rt === "half" ? "force" : (rt || "full"), B = CT_SHARE && (CT_SHARE.by[k] || CT_SHARE.by.full);
@@ -232,6 +233,17 @@ function ctSetupRole(b, role, ct){
   var crossOk = function(q){ return !spotTaken(b, q, "line"); };   // одна мерка «своей линии» — spotTaken (350), OWN_LINE_GAP (110)
   ctProZones(ref).forEach(function(n){ if(tryN.indexOf(n) < 0) tryN.push(n); });
   var crossAlt = null;
+  // (15.11, владелец: «расстановки — по демкам, где обычно стоят; точки в паре, чтобы смотрели все зоны, откуда выходят T») место роли —
+  // точка из демок про этой структуры (spot, tools/ct_setup_spots_bake.py), взгляд — угол про у этой точки (lookYaw) до стены. Место
+  // в CT_SPOT_R от точки, откуда видно, куда смотреть, не занятое своим; нет такого — места по зонам роли (ниже), как было
+  if(P.spot){
+    var cS = {x: P.spot[0], y: P.spot[1]}, lkS = null;
+    if(P.lookYaw != null){ var RS = proLookRay(cS.x, cS.y, P.lookYaw, PRO_LOOK_R); lkS = {x: cS.x + Math.cos(P.lookYaw)*RS, y: cS.y + Math.sin(P.lookYaw)*RS}; }
+    else lkS = (P.lookPt && {x: P.lookPt[0], y: P.lookPt[1]}) || ref;
+    var spS = pickSpots("cts:"+S.id+":"+role+":spot", cS, 6, {rMax: CT_SPOT_R, minGap: 30, see: [lkS]});
+    var freeS = spS.filter(function(q){ return hasLOS(q.x, q.y, lkS.x, lkS.y) && !spotTaken(b, q, "post") && crossOk(q); });
+    if(freeS.length){ nm = zoneUserName(zoneIdAt(cS.x, cS.y)) || nm0; c = cS; lk = lkS; spots = freeS.slice(0, 3); spots._free = 1; spots._see = 1; tryN = []; }
+  }
   for(var ti = 0; ti < tryN.length; ti++){
     var c1 = zonePoint(tryN[ti], ref); if(!c1) continue;
     var lk1 = (P.lookPt && {x: P.lookPt[0], y: P.lookPt[1]}) || (P.look && zonePoint(P.look, c1)) || ref;
