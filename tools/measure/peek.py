@@ -1,6 +1,7 @@
-"""Детектор (v250): перестрелки ботов — как tools/peek_bake.py у про (тот же код analyze, выстрелы прорежены как в демках).
+"""Детектор (v250): перестрелки ботов — как tools/map/peek_bake.py у про (тот же код analyze, выстрелы прорежены как в демках).
 Запуск: python3 tools/measure/peek.py <run> [<run> …]"""
 import json, os, sys, collections
+sys.path[:0] = [os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), g) for g in ('map', 'ct', 'pro', 'marks', 'logs', 'motion', 'page')]   # (15.11) модули tools/ разложены по группам
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, '..'))
 from peek_bake import analyze, new_stats, summary  # noqa: E402

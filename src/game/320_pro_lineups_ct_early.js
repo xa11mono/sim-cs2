@@ -15,7 +15,7 @@ function proLineups(){
     return {id:L.id, team:L.team, type:L.type, trigger:L.trigger, site:L.site, name:L.name, from:{x:f.x, y:f.y}, to:L.to, prob:L.prob, at:L.at, pro:true};
   });
   // (v423, 3в) одна цель — одна граната: лайнапы про одной стороны, триггера, сайта и типа с целью в одной зоне карты — группа
-  // (tools/cluster.py режет броски по месту броска: смок на Stairs с T Roof, с T Ramp… — у каждого свой маленький p)
+  // (tools/pro/cluster.py режет броски по месту броска: смок на Stairs с T Roof, с T Ramp… — у каждого свой маленький p)
   PRO_GROUPS = {};
   PRO_LINEUPS.forEach(function(L){
     var zt = zoneIdAt(L.to.x, L.to.y) || (Math.round(L.to.x/150)+","+Math.round(L.to.y/150));
@@ -28,7 +28,7 @@ function proLineups(){
   return PRO_LINEUPS;
 }
 // розыгрыш группы на раунд: граната в эту цель летит с вероятностью — сумма долей её лайнапов (не больше 1; доли посчитаны на одни
-// и те же раунды — tools/cluster.py ctxN). Место броска заранее не выбирается (v424: в v423 выбиралось по долям — на Mirage м1 р3 выпал
+// и те же раунды — tools/pro/cluster.py ctxN). Место броска заранее не выбирается (v424: в v423 выбиралось по долям — на Mirage м1 р3 выпал
 // смок в Window со спавна, а со спавна кинуть было некому — окно не закрыли): выпала цель — открыты все места группы, кидают с того,
 // где первым нашёлся бросающий, остальные места группы гасятся (proGroupDone)
 function proRollGroup(L){

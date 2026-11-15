@@ -2,6 +2,7 @@
 дальше LURK_D ед. от всех живых своих и в другой стороне карты (регион A / B по tools/pro_tactics.region), чем большинство своих.
 Запуск: python3 tools/shadow/lurk_cmp.py [--map mirage] [папка записей ботов rec_*.json.gz]"""
 import sys, os, json, gzip, glob, collections
+sys.path[:0] = [os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), g) for g in ('map', 'ct', 'pro', 'marks', 'logs', 'motion', 'page')]   # (15.11) модули tools/ разложены по группам
 import numpy as np
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import mapdir  # noqa: E402

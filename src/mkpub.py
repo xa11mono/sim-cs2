@@ -33,7 +33,7 @@ if _m:
     _lab = 'версия %s, %s' % (max(_vs), _dt.date.today().strftime('%d.%m'))
     s, _n = _re.subn(r'(id="simVersion"[^>]*>)[^<]*(</div>)', lambda mm: mm.group(1) + _lab + mm.group(2), s, count=1)
     print('  подпись:', _lab if _n else 'не найдена')
-# (v329, М46) звуки — записи из data/sounds/sounds.json (tools/sounds_bake.py); в sim.html не нужны
+# (v329, М46) звуки — записи из data/sounds/sounds.json (tools/map/sounds_bake.py); в sim.html не нужны
 _SF = os.path.join(HERE, '..', 'data', 'sounds', 'sounds.json')
 if os.path.exists(_SF):
     s = s.replace('/*@@SOUNDS@@*/', 'SND_DATA = ' + open(_SF, encoding='utf-8').read() + ';')   # (v306) опубликованная страница начинается с разминки; sim.html — нет (замеры, снимки)

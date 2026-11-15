@@ -1,4 +1,4 @@
-"""Детектор (v248): смерть до планта — был ли свой ближе 350 px, отдельно T и CT; про — tools/alone_bake.py (92 демки).
+"""Детектор (v248): смерть до планта — был ли свой ближе 350 px, отдельно T и CT; про — tools/map/alone_bake.py (92 демки).
 Запуск: python3 tools/measure/alone.py <run> [<run> …]"""
 import json, sys, os, math, bisect, collections
 HERE = os.path.dirname(os.path.abspath(__file__))

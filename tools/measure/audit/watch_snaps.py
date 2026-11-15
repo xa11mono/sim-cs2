@@ -18,7 +18,7 @@ def merge(a, b):
 
 tot = {}
 for cur in snaps:
-    r = subprocess.run(['timeout', '300', 'node', os.path.join(ROOT, 'tools', 'mark_open.js'), sim, cur, code], capture_output=True, text=True)
+    r = subprocess.run(['timeout', '300', 'node', os.path.join(ROOT, 'tools', 'marks', 'mark_open.js'), sim, cur, code], capture_output=True, text=True)
     line = next((l for l in r.stdout.splitlines() if l.startswith('{"n"')), None)
     if not line: print('нет результата:', cur, r.stderr[-300:]); continue
     merge(tot, json.loads(line))

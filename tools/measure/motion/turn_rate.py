@@ -1,6 +1,7 @@
 """В147: частота поворотов взгляда в минуту по ситуациям (бой / стоит / шагом / бегом), мелких (< 5°) и крупных (≥ 5°) — про и боты.
 Запуск: python3 tools/measure/motion/turn_rate.py --map mirage [папка bshape_*.json]"""
 import sys, os, collections
+sys.path[:0] = [os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), g) for g in ('map', 'ct', 'pro', 'marks', 'logs', 'motion', 'page')]   # (15.11) модули tools/ разложены по группам
 import numpy as np
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..'))
 import mapdir  # noqa: E402

@@ -12,7 +12,7 @@
 >
 > **v250:** движение в перестрелке — одно место `fightCycleTick` (вызывается из движения в `stepTick`): на линии, пока
 > стреляет → за укрытие (`fightCover`) → пауза → с долей про выглядывает снова. Числа — `PEEK_PRO` из
-> `tools/peek_bake.py`. Убраны пики v166 `peekType` (широкий/плечо/джиггл) и стрейф дуэли `_ds`/`duelStrafeOk`.
+> `tools/map/peek_bake.py`. Убраны пики v166 `peekType` (широкий/плечо/джиггл) и стрейф дуэли `_ds`/`duelStrafeOk`.
 >
 > **v390 (Б4):** на линии движение ведёт `fightStrafe` (внутри `fightCycleTick`; пока он ведёт, `F.own`, путь в `stepTick` бота не
 > двигает): стрейф вбок, перед выстрелом — контрстрейф (числа CS2) до скорости `fireVAcc`. Когда можно стрелять, сообщает `tryShoot`
@@ -73,19 +73,19 @@
 > и `siteHeat`, `tSiteHist`, `RMEM`, `nadeLandHistory`) — по раскладу «кто за T»: `memSnapshot`/`memRestore`/`memStart`,
 > отложенная — в `MEM_BOX`; профиль соперника — `OPP.by[кто за T]`. Убран `halfReview`/`HALF_ADJ`.
 >
-> **v271:** взрыв бомбы — `bombDamageAt` (урон по длине пути по навмешу от бомбы, `BOMB_DMG` из демок, `tools/bomb_dmg.py`)
+> **v271:** взрыв бомбы — `bombDamageAt` (урон по длине пути по навмешу от бомбы, `BOMB_DMG` из демок, `tools/pro/bomb_dmg.py`)
 > через `applyDamage(…, "C4")`; от него же — куда бежать (`bombFleePoint`) и где сейвиться CT. Выпадение при смерти —
 > `dropWeaponOnDeath`: основное → `groundWeapons` (подбор `weaponPickupTick`, как был), пистолет/граната/кит →
 > `groundItems` (подбор проходом — `itemPickupTick`). Дым: дыры от пуль `smokeBulletHole`/`smokeHoleClear` (в
 > `smokeBlocks`); прострел смока — одно место `smokeSpamTick`, повод — `smkEvidence` + `smokeEnemyPossible` (тайминг,
 > все враги известны далеко); убран старый `smokeShots`. Мало HP — `lowHpBack` (к своим ближе `LOWHP_MATE_PATH`, иначе
-> укрытие рядом). Закуп — доли у про (`smgFor`, `PRO_PISTOL`/`proPistol`, пистолетка; `tools/buy_pro.py`); убран `scopedFor`.
+> укрытие рядом). Закуп — доли у про (`smgFor`, `PRO_PISTOL`/`proPistol`, пистолетка; `tools/pro/buy_pro.py`); убран `scopedFor`.
 >
 > **v317:** набор карты — игра не знает ни одной карты, всё про карту читает из объекта `MAP` (раздел ниже).
 
 ## Исходник по модулям (v377)
 
-> **v430:** `001_fonts.html` — шрифты внутри страницы (`tools/embed_fonts.py`); `635_hud_fx.js` — одно место движения HUD (только вид,
+> **v430:** `001_fonts.html` — шрифты внутри страницы (`tools/page/embed_fonts.py`); `635_hud_fx.js` — одно место движения HUD (только вид,
 > игру не читает и не меняет); глобальные переменные только вида — с приставкой `HUD_`, снимок «Отметить момент» их пропускает.
 > `mkpub.py` пишет страницу целым документом (`<!doctype html>` + обёртка из `000_head.html`).
 Игра — один `<script>` (внутри обёртки `(function(){ … })();`) плюс разметка и стили вокруг, но лежит не одним файлом, а
@@ -103,15 +103,15 @@
   (или ниже в том же файле) — так же, как раньше было «ниже по строкам».
 - **Правка механики — в её файле** (таблица «Где что» — в CLAUDE.md); новую функцию класть в файл своей механики; файл
   больше ~600 строк — делить по границе функций (неделимые пока: `tBrain`, `draw`, `ctBrain`, `stepTick`).
-- Разрезал `tools/split_game.py` (одноразовый; план кусков — в нём, проверка «склейка == исходник» — тоже).
+- Разрезал `tools/page/split_game.py` (одноразовый; план кусков — в нём, проверка «склейка == исходник» — тоже).
 
 ## План гранат команды — одно место (v428, 25.10.2026, PRINCIPLES М160)
 `src/game/365_nade_plan.js`. Одно место для решения «какие гранаты команда покупает на раунд, у кого какая, на какой момент и для
 какой зоны» и проверки «можно ли бойцу кинуть гранату сейчас». Заменяет: закуп гранат по роли на фулле (`buyFullKit` / `NADE_WISH_PRO`),
 план команды на пистолетке / эко / форсе (`teamNadePlan` из `520` — переехал сюда, раздаёт по зонам, а не по ролям), отдельные правила
 запаса (`tSmokeReserveOk`, `keepMol`), выбор бросающего лайнап «опорник не дальше 300» (v285) и «по пути, крюк 300» (v424).
-- Данные: сколько каких гранат на раунд — `MAP.pro.nadesBy` (`tools/nades_pro.py`); доли «момент|зона» для каждого типа —
-  `MAP.nadeplan` (`tools/nadeplan_bake.py`, шаг `demos_bake.py`; зона — как `positions_bake.py region_of`).
+- Данные: сколько каких гранат на раунд — `MAP.pro.nadesBy` (`tools/pro/nades_pro.py`); доли «момент|зона» для каждого типа —
+  `MAP.nadeplan` (`tools/map/nadeplan_bake.py`, шаг `demos_bake.py`; зона — как `positions_bake.py region_of`).
 - Момент: CT — now → call → retake; T — now → exec → postplant (`npMomentNow`). Зона: A / B / mid (`npZoneOf` — из расстановки CT /
   тактики T; `npZoneAt` — места на карте через `posSideOf`).
 - Порядок раунда (`buyPhase`, `530`): тип раунда → `chooseTactic` (и `chooseCtSetup`) → закуп. Раньше тактика выбиралась после закупа.
@@ -187,13 +187,13 @@ maxDelta)` (целевая скорость: стоять / идти / выбе�
 | `zones.json` | `zones` | (А5) `navZone` (необязательное) — зона каждого участка навмеша по этажу геометрии (`zoneIdAt3` без растекания), у зоны `level` (`low` — нижний этаж) и `z` — её высота; `centers` (v319, необязательное) — середина зоны на её этаже, игра берёт её вместо среднего углов (`zoneMapCentroid`); `zonemap` (зоны, точки, переходы; `name` у зоны — роль: `Asite`, `Bsite`, `CTspawn`, `Tspawn`), `shapes` (свои формы зон), `names` (названия для людей и тактик, «Red Room / Red» — основное и варианты), `synonyms`, `props` — **свойства зон** (`water` — вода, громкие шаги) | `ZONEMAP`, `ZONE_SHAPES_BAKED`, `ZONE_NAMES_BAKED`, `ZONE_SYNONYMS`, `inWater` |
 | `navmesh.json` | `navmesh.areas` | навмеш в пространстве радара (2048×2048) | `NAVAREAS` |
 | `walls.json` | `walls.polys` | стены | `WALL_POLYS_CODE` |
-| `heights.json`, `cover.json`, `wallbang.json` | `heights`, `cover`, `wallbang` | высоты, укрытия, прострелы (поле `own` — правки владельца, `tools/map_pull.py`) | `HEIGHTS`, `COVER`, `WALLBANG` |
+| `heights.json`, `cover.json`, `wallbang.json` | `heights`, `cover`, `wallbang` | высоты, укрытия, прострелы (поле `own` — правки владельца, `tools/map/map_pull.py`) | `HEIGHTS`, `COVER`, `WALLBANG` |
 | `tactics.json` | `tactics` | `geoMid` (v319, необязательное) — мид CT и T из демок `{ct, ctLook, t, tLook}` вместо точек на пути между спавнами (`buildSites`); `tTactics` (у тактики `weight` — своя частота), `ctSetups` (у сетапа `midAggressive` — агрессивный мид), `pos`, `lurkPlans`, `shiftTo`, `proRole`, `plays` — розыгрыши (ниже) | `T_TACTICS`, `CT_SETUPS`, `POS`, `LURK_PLANS`, `SHIFT_TO`, `PRO_ROLE` |
-| `defaultpos.json` | `defaultpos` | (v443) где стоят T в фазе дефолта: `sites.A/B` — `[зона, игроков из 5]` на 20–50-й с у про (`tools/defpos_bake.py`: Mirage — раунды с плантом после 60 с, Ancient — фаза setup); игра (170, `inDef`) раздаёт зоны жребием по долям. Нет файла — по-старому (подготовка у цели) |
+| `defaultpos.json` | `defaultpos` | (v443) где стоят T в фазе дефолта: `sites.A/B` — `[зона, игроков из 5]` на 20–50-й с у про (`tools/map/defpos_bake.py`: Mirage — раунды с плантом после 60 с, Ancient — фаза setup); игра (170, `inDef`) раздаёт зоны жребием по долям. Нет файла — по-старому (подготовка у цели) |
 | `lineups.json` | `lineups` | `baked` (лайнапы из редактора), `pro` и `proExtra` (из демок; `proExtra` — только при `BAL.nadeMore`; с В4 у записи `throws` — записанные броски про: варианты с `rec`, сила `s`, прыжок `j`, `tools/nades/lineups_rec.py` + `lineups_fit.js`), `builtinOff` | `LINEUPS_BAKED`, `PRO_LINEUPS_RAW`, `BUILTIN_OFF_BAKED` |
-| `pro.json` | `pro` | места и взгляды про из демок: `spots`, `prior`, `look`, `positions`; `pistolNades` (v370, `tools/nades_pro.py`) | `PRO_SPOTS`, `PRO_PRIOR`, `PRO_LOOK`, `KNOW_POSITIONS` |
+| `pro.json` | `pro` | места и взгляды про из демок: `spots`, `prior`, `look`, `positions`; `pistolNades` (v370, `tools/pro/nades_pro.py`) | `PRO_SPOTS`, `PRO_PRIOR`, `PRO_LOOK`, `KNOW_POSITIONS` |
 | `map3d.json` (А5, необязательный) | `map3d` | 3D-геометрия игры (раздел «Карта 3D» ниже): есть — видимость, «в стене», гранатные проверки идут по ней, стены радара — только рисование | `MAP3D`, `m3()` (`035_map3d.js`) |
-| `climbs.json` (v372, необязательный) | `climbs`, `gaps` (v546) | подъёмы из демок (`tools/climbs_bake.py`): уступ «только спрыгнуть», куда про залезают — `{lo, hi, n, sec}`; прыжки через щель (`tools/gaps_bake.py`) — `{a, b, n, demos, sec}` | связь «вверх» в `NAVAREAS[].conn`, `LADDERS` (`up:true`); щель — `navGapsAdd` (050) |
+| `climbs.json` (v372, необязательный) | `climbs`, `gaps` (v546) | подъёмы из демок (`tools/map/climbs_bake.py`): уступ «только спрыгнуть», куда про залезают — `{lo, hi, n, sec}`; прыжки через щель (`tools/map/gaps_bake.py`) — `{a, b, n, demos, sec}` | связь «вверх» в `NAVAREAS[].conn`, `LADDERS` (`up:true`); щель — `navGapsAdd` (050) |
 
 Старые имена (`ZONEMAP`, `HEIGHTS`, `T_TACTICS`, …) остались короткими ссылками на `MAP.…` на тех же местах кода — порядок
 выполнения и правки на месте (выравнивание зон, навмеша, правки редактора) прежние.
@@ -226,7 +226,7 @@ CT идёт через зону с ролью `CTspawn`.
 
 ## Сборка набора карты из исходников (v318, этап 2 из 3)
 
-`python3 tools/map_build.py <карта> [--only шаг,…] [--from шаг]` — один вход для любой карты. Что делать, говорит рецепт
+`python3 tools/map/map_build.py <карта> [--only шаг,…] [--from шаг]` — один вход для любой карты. Что делать, говорит рецепт
 `data/maps/<карта>/_build.json` (в `MAP` не попадает: `src/mapset.py` пропускает файлы на «_»): `sources` — исходники в папке
 карты, `steps` — шаги, `frozen` — файлы набора, которые не пересобираются, с причиной; плюс данные для bake-скриптов
 (`callouts` — подписи радара, `roles` — роли зон, `regions` — стороны карты, `tactics` — списки для разбора тактик, у Ancient
@@ -234,18 +234,18 @@ CT идёт через зону с ролью `CTspawn`.
 
 | шаг | что делает | файл набора |
 |---|---|---|
-| `navmesh` | `.nav` → навмеш в координатах радара 0..2048 (`tools/nav36.py` — перенос разбора awpy `crates/awpy/src/nav.rs`, версии 30–36; z — средняя высота углов); v320: лестницы (`ladders`) — связи в обе стороны; связь «только спрыгнуть» остаётся односторонней (игра строит граф с направлением, `rebuildNav`) | `navmesh.json` |
+| `navmesh` | `.nav` → навмеш в координатах радара 0..2048 (`tools/map/nav36.py` — перенос разбора awpy `crates/awpy/src/nav.rs`, версии 30–36; z — средняя высота углов); v320: лестницы (`ladders`) — связи в обе стороны; связь «только спрыгнуть» остаётся односторонней (игра строит граф с направлением, `rebuildNav`) | `navmesh.json` |
 | `walls` | v320: стены = всё, что не пол, до края карты, с отступом 2 ед. от пола (упрощение 1,5 — на пол не заходит); щели между связанными участками (уступы, ступени, спуски, лестницы) — пол; проверка связности как в игре (участки в стене, связи сквозь стену) с добивкой; режется на четверти карты (мельче — где островок пола) | `walls.json` |
-| `heights` | `tools/heights_bake.py --map` (крыто — по штриховке радара Simple Radar `sources.simpleRadar`; v321: `roofs` — контуры крыш оттуда же: в игре потолок видимости и слой высот) | `heights.json` |
-| `cover` | `tools/cover_bake.py --map` (ящик без стены — не больше 4000 ед.² и плотный: крыши и галереи — не ящики) | `cover.json` |
-| `zones` | `tools/zones_bake.py --map`: каждый участок навмеша — к ближайшей ПО ПОЛУ подписи радара (`callouts`), контур зоны — по картинке участков; переходы — по связям навмеша; роли и точки — `roles`; спорные зоны — `_zones_report.json`; v321: зона длиннее 380 ед. от своей подписи делится, кусок зовётся «<зона> → <соседняя подпись>» | `zones.json` |
+| `heights` | `tools/map/heights_bake.py --map` (крыто — по штриховке радара Simple Radar `sources.simpleRadar`; v321: `roofs` — контуры крыш оттуда же: в игре потолок видимости и слой высот) | `heights.json` |
+| `cover` | `tools/map/cover_bake.py --map` (ящик без стены — не больше 4000 ед.² и плотный: крыши и галереи — не ящики) | `cover.json` |
+| `zones` | `tools/map/zones_bake.py --map`: каждый участок навмеша — к ближайшей ПО ПОЛУ подписи радара (`callouts`), контур зоны — по картинке участков; переходы — по связям навмеша; роли и точки — `roles`; спорные зоны — `_zones_report.json`; v321: зона длиннее 380 ед. от своей подписи делится, кусок зовётся «<зона> → <соседняя подпись>» | `zones.json` |
 | `zones3d` | (А5, Mirage — вместо `zones`) `tools/map3d/zones_game.py --map`: зоны владельца `geom3d/zones_owner.json` (А4) → формат игры: контур — клетки зоны (больший кусок), `z` — медиана пола, зоны нижнего этажа — в конце списка, `navZone` — зона участка навмеша по этажу под его серединой, переходы — по связям навмеша; точки ролей и `sites` — прежние. После него — `demos` (`positions_bake`, `player_positions_bake`, `tactics_bake --game`, `roles_bake`: названия зон в тактиках) | `zones.json` |
-| `wallbang` | `tools/wallbang_bake.py --map`: правила CS2 + куски карты (у Ancient — список с источниками; v321: у карты без списка — из демок: убийства с `penetrated` ≥ 1, где линия выстрела проходит сквозь одну стену, кластер ≥ 3 убийств из ≥ 2 матчей; материал — проектное число) | `wallbang.json` |
+| `wallbang` | `tools/map/wallbang_bake.py --map`: правила CS2 + куски карты (у Ancient — список с источниками; v321: у карты без списка — из демок: убийства с `penetrated` ≥ 1, где линия выстрела проходит сквозь одну стену, кластер ≥ 3 убийств из ≥ 2 матчей; материал — проектное число) | `wallbang.json` |
 | `map` | `map.json` (масштаб из `.txt`, спавны — точки зон-ролей, `spawnFix.T` = точка спавна T) и `radar.png` | `map.json`, `radar.png` |
-| `demos` | `tools/demos_bake.py --map` — все скрипты по демкам по порядку (ниже), промежуточное — в `data/maps/<карта>/pro/` (у Ancient — `data/pro/`); v321: границы сайтов — красные квадраты Simple Radar (без него — оболочка плантов) → `zones.json` `sites` | `pro.json`, `lineups.json`, `tactics.json`, `zones.json` (`sites`) |
-| `spawns` | v321: `tools/spawns_bake.py --map` — места спавна из демок (позиции в конце фризтайма, ≥ 1 % раундов) | `map.json` (`spawnSpots`) |
+| `demos` | `tools/map/demos_bake.py --map` — все скрипты по демкам по порядку (ниже), промежуточное — в `data/maps/<карта>/pro/` (у Ancient — `data/pro/`); v321: границы сайтов — красные квадраты Simple Radar (без него — оболочка плантов) → `zones.json` `sites` | `pro.json`, `lineups.json`, `tactics.json`, `zones.json` (`sites`) |
+| `spawns` | v321: `tools/map/spawns_bake.py --map` — места спавна из демок (позиции в конце фризтайма, ≥ 1 % раундов) | `map.json` (`spawnSpots`) |
 
-Демки → набор (`tools/demos_bake.py`; раунды для всех — `tools/demos.py`, бывший `ancient_demos.py`: карта — `--map`, перевод
+Демки → набор (`tools/map/demos_bake.py`; раунды для всех — `tools/demos.py`, бывший `ancient_demos.py`: карта — `--map`, перевод
 координат — по `.txt` карты, сайт планта — ближайшая точка сайта):
 `pro.py` (сэмплы «где стоят, куда смотрят») → `progrid_bake.py` (`pro.spots`, `pro.prior`, `pro.look` в формате v166) →
 `lineups.py` + `cluster.py` (лайнапы; в набор — частота ≥ 5 % → `pro`, 1,5–5 % и 3+ матча → `proExtra`) →
@@ -260,19 +260,19 @@ CT идёт через зону с ролью `CTspawn`.
 появление вещи на панели игрока — `plItem`. v324: область дыма и огня до стен — `areaRays`/`areaHas` (одно место для видимости, урона и рисунка);
 куда навесом не кинуть — `nadeCovered`; этаж бота — только по связи навмеша (`navLinked2`); закуп по очереди на панели —
 `buyShowStart`/`buyShowHidden`; звук (только показ) — модуль `SND` (`snd*`), вызовы в местах событий; v329: записи — `data/sounds/` →
-`tools/sounds_bake.py` → `sounds.json`, в страницу вставляет `src/mkpub.py` (метка `@@SOUNDS@@`), в sim.html их нет.
+`tools/map/sounds_bake.py` → `sounds.json`, в страницу вставляет `src/mkpub.py` (метка `@@SOUNDS@@`), в sim.html их нет.
 Все bake-скрипты берут карту ключом `--map` (по умолчанию `ancient`, как раньше) — общий модуль `tools/mapdir.py`.
 
 **Ancient** тем же скриптом: шаги `heights`, `cover`, `wallbang` воспроизводят прежние файлы (данные совпадают, другая только
 строка `_about`); остальные файлы заморожены (нет `.nav`, зоны/тактики/лайнапы/места про — ручные или из старых 12 матчей —
 причины в `frozen`). Отпечаток 8 матчей до и после — бит в бит.
 
-Проверка новой карты глазами: `python3 src/build.py --map <карта> <sim.html>` и `node tools/map_shot.js <sim.html> <префикс> 3` —
+Проверка новой карты глазами: `python3 src/build.py --map <карта> <sim.html>` и `node tools/map/map_shot.js <sim.html> <префикс> 3` —
 несколько раундов и снимок всей карты на 35-й секунде каждого.
 
 **Новая карта** = папка `data/maps/<карта>/`: исходники (`.nav`, `.txt` с pos_x/pos_y/scale, радар, радар Simple Radar с
 подписями, демки), рецепт `_build.json` (по образцу Mirage: `map.name`, `sources`, `callouts` — подписи радара с координатами,
-`roles`, `regions`, `steps`) и `python3 tools/map_build.py <карта>`. Обязательные файлы набора — `map.json`, `radar.png`,
+`roles`, `regions`, `steps`) и `python3 tools/map/map_build.py <карта>`. Обязательные файлы набора — `map.json`, `radar.png`,
 `zones.json`, `navmesh.json`, `walls.json` и остальные; `tactics.plays` можно пустой `{}` (розыгрыши пропускаются).
 
 Устройство на v197–v204 (src/js/*, заглушка вместо мозга, таблица файлов и цифры здоровья того времени) — `docs/archive/ARCHITECTURE-v204.md`.
@@ -357,7 +357,7 @@ CT идёт через зону с ролью `CTspawn`.
 ## Проверка без экрана
 - Сборка: `python3 src/build.py`; игра шагами — `node src/q.js sim.html "<код>"`
   (код выполняется в странице: `freshMatch(1); stepTick(); …`).
-- Отметка: снимок открывается `node tools/mark_open.js sim.html <снимок.json> "<код>"`.
+- Отметка: снимок открывается `node tools/marks/mark_open.js sim.html <снимок.json> "<код>"`.
 - Правка не должна менять игру: `bash tools/measure/fingerprint.sh sim.html <папка>`
   до и после, затем `diff -r`.
 - Замер против про — `tools/measure/measure.py`, сколько матчей — `docs/tasks/work_rules.md` («Прогоны»); общая проверка —
@@ -379,7 +379,7 @@ CT идёт через зону с ролью `CTspawn`.
   `TO_NOW` — пауза перед следующим раундом (закупка + `TO_SEC` в `resetRound`). Показ (676, `tsFrame` после `rpFrame` в кадре):
   сцены по времени игры; в сцене «спавн» показ сам ставит камеру, обсервер ждёт.
 - (v462) Звук и голос показа — одно место `showSnd` / `showSay` / `showHush` (675). Мгновенный переход к раунду — `rpJump`: готовый
-  снимок (`RP_SNAPS`, хранилище файлов страницы) → `mkOpenSnap`; снимки считает `tools/snap_round.js` (на ПК, с проверкой бит в бит).
+  снимок (`RP_SNAPS`, хранилище файлов страницы) → `mkOpenSnap`; снимки считает `tools/marks/snap_round.js` (на ПК, с проверкой бит в бит).
 - (v571 → v573a) 3D-вид — одно место 3D-рисования `625_view3d.js` (`D3`, `d3Build`, `d3World`, `d3Frame`): в кадре после `draw` /
   `obsOverlay`, если включён кнопкой «3D»; в повторе клатча (675, `rpWorldDraw`) — тем же записанным миром, кадр копируется в холст повтора.
   Только читает игру; камера «обзор» — из `view` (обсервер ведёт и 3D), «пролёт» и «от первого лица» — свои. Сцена строится раз:
@@ -432,7 +432,7 @@ CT идёт через зону с ролью `CTspawn`.
 `jumpLook` (270). Участки, где по демкам стоят игроки (концы подъёмов / прыжков), `rebuildNav` не выкидывает (`NAV_BLOCKED`).
 Отклонение вместо отказа (v547): `setPost` (110) при отказе задаче уровня 3–6 из-за задачи фазы (7–10) спрашивает `taskDetourKind` (вид — по
 свойствам `detourSelf` / `detourHelp` / `detourSeek` в `TASK_PROP`) и `detourOk`; механики, решающие до `setPost`, — `taskCanTry`. «Дошёл» — `POST_ARRIVE`.
-Прыжки через щель (v546): `climbs.json` → `gaps` (`tools/gaps_bake.py`, демки); `navGapsAdd` (050, из `navCutTall`) кладёт связь A → B с
+Прыжки через щель (v546): `climbs.json` → `gaps` (`tools/map/gaps_bake.py`, демки); `navGapsAdd` (050, из `navCutTall`) кладёт связь A → B с
 `edge.gap` (над сплошным полом по 3D — нет); путь проходит точку отталкивания и приземления (`NAV_GAP_AT`), прыжок — `ladderTick`. Цена
 перехода `navJumpCost` — время + шум по режиму (`zoneDijkstra.quiet` = бот на шифте; `buildWaypointPath(..., quiet)`). Звук приземления —
 `landSound(bot, quiet, kind)` (540), шаги на лестнице — в хозяине шагов (540), звук ранения — `applyDamage` (400).
@@ -485,7 +485,7 @@ CT идёт через зону с ролью `CTspawn`.
 - **Удержание точки** — `smoothLookFilter` / `slHold` (270): срок — жребием по паузам про `turnmodel.dwell` (стоит / шагом / бегом), в тревоге
   (`lookUrgent` 1, в т. ч. свежий угол дележа) — по паузам про в перестрелке (`dwell.fight`).
 - Прыжок: `jumpLook` (270) — дуга от отталкивания к приземлению по углам из демок, после приземления взгляд держится `LAND_HOLD`.
-- Мерки: форма — `tools/motion_shape.py` (боты — `tools/measure/motion/shape.sh`), частота поворотов — `turn_rate.py`, частоты В140 — `run.sh`.
+- Мерки: форма — `tools/motion/motion_shape.py` (боты — `tools/measure/motion/shape.sh`), частота поворотов — `turn_rate.py`, частоты В140 — `run.sh`.
 
 ## Реакция на контакт (v367)
 Одно место: `contactTick` (вызывается в `teamBrains` до мозгов). Свежий контакт рядом закрепляет взгляд (уровень «бой» арбитра взгляда, ≤ 1 с) и на 2,5 с занимает место (задача «бой» в арбитре места, срок `taskKeepUntil`); задача важнее (бомба, сейв) — место не отдаёт, контакт только во взгляде; исключения — `contactCritical`.

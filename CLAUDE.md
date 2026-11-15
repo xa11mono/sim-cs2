@@ -72,7 +72,7 @@
 - **Принятие:** эпизоды исправлены, B сохранён, новых ошибок в соседних системах нет, на новых раундах эпизодов значительно меньше
   («было 60 — стало 5», а не −5 %). Новый подтверждённый случай — в регрессионный набор. Нет события в счётчике ≠ нет ошибки.
 - **Разбор по отметкам (главнее цифр).** Владелец смотрит матч, шлёт пункты + отметки + скриншоты (N-й скриншот = N-й пункт). На каждый
-  пункт — все причины по снимку отметки (`tools/mark_open.js`, `docs/tasks/02-mark-moment.md` раздел 4; не перепроигрывать матч);
+  пункт — все причины по снимку отметки (`tools/marks/mark_open.js`, `docs/tasks/02-mark-moment.md` раздел 4; не перепроигрывать матч);
   проверить каждую побочную странность («не проверял» — нельзя). Как должно быть — **только как расписал владелец**; не расписал —
   ситуации вопросами. Правка → прогнать этот раунд со снимка: играет, как написал владелец, — пункт закрыт. Все пункты карты закрыты —
   8 матчей этой карты на ПК. Мерило — «проблема ушла», а не % цифр.
@@ -89,7 +89,7 @@
   со ссылкой в `PRO_PLAY.md`; нет и там — так и писать, а не ставить по месту в составе молча.
 - **Оформление страницы** — по репозиториям владельца (`docs/DESIGN_SOURCES.md`). Перед любой правкой вида — `DESIGN.md` (корень:
   цвета, шрифты, размеры, компоненты, движение), значения — оттуда; новое значение — сначала в `DESIGN.md` и токены `:root`.
-  Проверка — снимки `tools/broadcast_shot.js`.
+  Проверка — снимки `tools/page/broadcast_shot.js`.
 
 ## 7. Правила кода
 - **Заменять, а не добавлять** — старая логика удаляется в той же правке.
@@ -146,8 +146,8 @@
   `docs/reports/BOT_BEHAVIOR_AUDIT_REPORT.md`. Пути в скриптах `tools/measure/` указывают на /home/claude/sim — поправить под репо.
 
 ## 9. Отметки владельца и страницы
-- Отметки (кнопка M на странице): `src/marks.js`, сборка — `src/marks_build.py`. Открыть снимок — `tools/mark_open.js`; разбор по истории —
-  `tools/mark_story.js`; раскадровка — `tools/mark_frames.js`; повтор с хранилищем браузера владельца — `tools/replay_owner.js`.
+- Отметки (кнопка M на странице): `src/marks.js`, сборка — `src/marks_build.py`. Открыть снимок — `tools/marks/mark_open.js`; разбор по истории —
+  `tools/marks/mark_story.js`; раскадровка — `tools/marks/mark_frames.js`; повтор с хранилищем браузера владельца — `tools/marks/replay_owner.js`.
   Разбор 34 пунктов по снимкам (v469) — https://claude.ai/artifact/3yAa3dPJcPvfJxbZ5cHTL7.
 - **Страницы** (публиковать — только по просьбе владельца). Сборка: `python3 src/mkpub.py --map ancient` → `ancient-radar.html`,
   `--map mirage` → `mirage-radar.html`. Основные — на аккаунте владельца: Ancient https://claude.ai/artifact/FwpnXA7PSbsEyT5GXL7i5U
@@ -174,10 +174,10 @@
 - **Набор карты:** игра не знает ни одной карты — всё про карту (зоны, навмеш, стены, высоты, укрытия, прострелы, тактики, лайнапы, места
   про, радар) лежит в `data/maps/<карта>/` и приходит в код одним объектом `MAP` (`docs/ARCHITECTURE.md`, «Набор карты»). В коде — никаких
   названий мест и координат: место карты — поле набора (свойство зоны или розыгрыш `tactics.plays`).
-- **Сборка набора:** `python3 tools/map_build.py <карта>` по рецепту `data/maps/<карта>/_build.json` (навмеш из `.nav`, стены, высоты,
+- **Сборка набора:** `python3 tools/map/map_build.py <карта>` по рецепту `data/maps/<карта>/_build.json` (навмеш из `.nav`, стены, высоты,
   укрытия, зоны по подписям радара — из демок; общий `tools/mapdir.py`). Ancient — заморожено всё, кроме высот / укрытий / прострелов.
-  Подъёмы и прыжки через щель из демок — `tools/climbs_bake.py`, `tools/gaps_bake.py` (вручную; после них — пересчитать подбор гранат
-  `tools/nades/guess_bake.py`). Проверка глазами — `tools/map_shot.js`.
+  Подъёмы и прыжки через щель из демок — `tools/map/climbs_bake.py`, `tools/map/gaps_bake.py` (вручную; после них — пересчитать подбор гранат
+  `tools/nades/guess_bake.py`). Проверка глазами — `tools/map/map_shot.js`.
 - **Сборка игры:** `python3 src/build.py [--map ancient]` → `sim.html` (склейка `src/game/*` с набором карты и тестовым входом для замеров).
 - **Исходник — модули `src/game/NNN_*.js`:** склейка по порядку номеров (`src/gamesrc.py`); порядок, видимость `var` / функций, числа при
   загрузке — `docs/ARCHITECTURE.md`, «Исходник по модулям». Разметка и стили — `000_head.html`, `002_style.html`, `004_markup.html`; конец
@@ -191,7 +191,7 @@
 | **карта** (данные — `MAP`, набор `data/maps/<карта>/`): стены `WALL_POLYS` / `applyWalls`; высоты `HEIGHTS` / `hgtInfo`; укрытия `COVER` / `covList`; прострелы `WALLBANG` / `wbList`, `wbAfter` | `030_map_walls_heights_cover_wallbang` |
 | **3D-геометрия игры** (А5 Mirage, А6 Ancient — с v388 у обеих карт, `MAP.map3d`): `m3()`, луч `m3Line`/`m3Hit`, этажи `m3Floors`, «в стене» `m3Solid`/`m3SolidHit`, распаковка `zInflate` | `035_map3d` |
 | **кто кого видит** (одно место, 3D): `VIS_*`, `visLine`, `visParts`, `visFloorAt`, `visInvalidate`; через неё `hasLOS` и таблица «откуда простреливается» `computeZoneDanger` | `040_visibility`; `hasLOS` — `050_nav_rebuild_paths`; `computeZoneDanger` — `060_zone_danger_user_zones` |
-| навмеш и пути: `rebuildNav`, `zoneDijkstra`, `funnel`, `buildWaypointPath`; связи выше прыжка `navCutTall` / перепад `navEdgeDz` (v533); уровни/лестницы/подъёмы `navAtLevel`, `laddersBuild`, `ladderTick` (подъём через промежуточный ящик — `mid`, v533); **под / над этажом** `floorCover` / `floorViewTick` (v535); «на полу» — одно место `navOnFloor`; огонь `inFire`; **прыжки через щель** из демок `navGapsAdd` (`tools/gaps_bake.py`), цена перехода «время + шум по режиму» `navJumpCost` (v546) | `050_nav_rebuild_paths`; `370_fire_nav_levels_ladders` |
+| навмеш и пути: `rebuildNav`, `zoneDijkstra`, `funnel`, `buildWaypointPath`; связи выше прыжка `navCutTall` / перепад `navEdgeDz` (v533); уровни/лестницы/подъёмы `navAtLevel`, `laddersBuild`, `ladderTick` (подъём через промежуточный ящик — `mid`, v533); **под / над этажом** `floorCover` / `floorViewTick` (v535); «на полу» — одно место `navOnFloor`; огонь `inFire`; **прыжки через щель** из демок `navGapsAdd` (`tools/map/gaps_bake.py`), цена перехода «время + шум по режиму» `navJumpCost` (v546) | `050_nav_rebuild_paths`; `370_fire_nav_levels_ladders` |
 | оружие, боты `makeTeam`, роумер | `070_weapons_bots_roam`; `updateRoamer` — `430_fov_roam` |
 | переключатели и числа движка `BAL` | `080_bal` |
 | профили игроков, **команды** `LINEUP`, `SIDE_TEAM`, `seatPlayers` | `090_profiles_teams` |
@@ -219,7 +219,7 @@
 | **реакция на контакт** (одно место): `contactTick`; `teamBrains`; **CT задерживает гранатой** (одно место, v419): `ctDelayNade` | `350_contact_reaction` |
 | гранаты: закуп `buyNades`, дым и видимость `smokeBlocks`; бросок `throwNade` (подбор физикой `nadeSolve`); **полёт — физика 3D (30.10): `385_nades_flight` (`nadeLaunch` / `nadeStep` / `nadeAim`), луч кубиком `m3NadeTrace` (035)**, отчёт `docs/reports/GRENADE_PHYSICS_IMPLEMENTATION.md`; бросок смока с разбега `runupTick` (эталон `MAP.runups`, `tools/nades/runup_bake.js`, v491); лайнапы `lineupTick`; срабатывание `detonate`, `nadesTick`; гранаты «себе» `selfNadeTick`, `nadeReact`; решения `nadeBrains` / `nadeUseTick` | `360_nades_buy_smoke_vision`, `380_nades_throw`, `385_nades_flight`, `390_nades_lineups`, `400_nades_physics_damage`, `410_nades_tactical_self`, `420_nades_brains` |
 | **синхронизация выхода T с гранатами** (одно место, v481): жизненный цикл смока выхода `EXU` (`exuTick`, `exuThrown`, `exuLanded`), можно ли выходить `exuGate` / `exuPending`, резервный исполнитель `exuBackup` / `exuReassign` | `366_exec_sync` |
-| **план гранат команды** (одно место, v428): закуп под план раунда по зонам, хозяин и момент гранаты — `teamNadePlan`, `npBought`, `npCanUse`, `npUse`, `npZoneOf`; данные — `MAP.nadeplan` (`tools/nadeplan_bake.py`) | `365_nade_plan` |
+| **план гранат команды** (одно место, v428): закуп под план раунда по зонам, хозяин и момент гранаты — `teamNadePlan`, `npBought`, `npCanUse`, `npUse`, `npZoneOf`; данные — `MAP.nadeplan` (`tools/map/nadeplan_bake.py`) | `365_nade_plan` |
 | **урон и смерть — одно место** `applyDamage` (пули, HE, молотов; по своим `FF_MUL`) | `400_nades_physics_damage` |
 | **панель войса** (одно место показа): `voiceFeed` / `renderVoice`, цвета `VOICE_KIND` / `VOICE_KEYS`; консоль `logEvent` (#log) — по Ё, `toggleConsole` | `440_voicepanel_console` |
 | трассеры, свой на линии `bulletVictim`; выпадение при смерти `dropWeaponOnDeath` → `groundWeapons` / `groundItems` (`itemPickupTick`); нож `knifeTick`; подбор оружия | `450_combat_items_knife` |
@@ -229,7 +229,7 @@
 | стрельба `tryShoot` (целится в видимое); ошибка прицела `aimSigma`, разброс `shotSpread`, «стрелять с ходу» `FIRE_K`/`fireVAcc` (v390) | `490_shoot` |
 | **режим боя** (`state`: patrol / hold / engage / retreat) — одна точка записи `fightState` (v525), оценка `decideAction`; после фрага `afterKillMove`, `findCover`; **оценка размена** `duelBalance` / `duelEval` / `duelOdds` и конец перестрелки снаружи `fcEnd` — в `470_fight_cycle` | `500_decide_afterkill_cover` |
 | перестрелки `resolveEngagements` (visParts), `assignNewDestination` | `510_engagements` |
-| экономика: `decideRoundType0`, `buyForPlayer`; что берут — доли про `smgFor`, `PRO_PISTOL` (`tools/buy_pro.py`) | `520_economy` |
+| экономика: `decideRoundType0`, `buyForPlayer`; что берут — доли про `smgFor`, `PRO_PISTOL` (`tools/pro/buy_pro.py`) | `520_economy` |
 | **смена сторон и раунд**: `buyPhase`, `sideSwapNow`, `swapSides`, `freshMatch`, `endRound`, `resetRound` | `530_round_sides_match` |
 | **шагом / бегом / стоять** (одно место, v522): `moveWalkWhy` (причина шага), `moveRunWhy` (отмена шага), `moveWalkTick`, целевая скорость `moveSpeedTick`; причины у бота `_walkWhy` / `_runWhy` / `_stopWhy` | `535_move_mode` |
 | цикл `stepTick` (+ замирание, шаги, прыжки; звук приземления — одно место `landSound`, шаги на лестнице — v546) | `540_step_tick` |
@@ -244,4 +244,4 @@
 | место вставки «Отметить момент» (`@@BUILD@@`) | `650_marks_hook` |
 | **песочница** (одно место, v536): `SANDBOX`, `sbTick` (часы стоят), `sbPlace` / `sbRevive` / `sbRemove`, панель `sbRender` / `sbLogic`; приказ `sbGo` | `677_sandbox` |
 | разминка `warm*`; автообсервер `obs*` (числа `OBS_K`, бой `obsFight`, слежка `OBS.lock`), мини-карта; **повтор клатча** `rp*` (запись `rpRecord`, клип `rpBuild`, эмоции `rpEmotions`, перейти к раунду `rpGoto` / `#round=М.Р`); звук `snd*` (писк бомбы и кромка экрана — одно расписание `bombBeepTick`), главный цикл `frame`, кнопки | `660_warmup`, `670_observer`, `675_replay`, `680_sound_frame_buttons` |
-| **отметки владельца** (v255): `src/marks.js` (кнопка M, снимок, перемотка), сборка — `src/marks_build.py`; открыть снимок — `tools/mark_open.js`; разбор по истории (что было до, что перебило, веса зон) — `tools/mark_story.js` (v401); раскадровка со слоями — `tools/mark_frames.js` (v407б); повтор с хранилищем браузера владельца — `tools/replay_owner.js` | отдельные файлы |
+| **отметки владельца** (v255): `src/marks.js` (кнопка M, снимок, перемотка), сборка — `src/marks_build.py`; открыть снимок — `tools/marks/mark_open.js`; разбор по истории (что было до, что перебило, веса зон) — `tools/marks/mark_story.js` (v401); раскадровка со слоями — `tools/marks/mark_frames.js` (v407б); повтор с хранилищем браузера владельца — `tools/marks/replay_owner.js` | отдельные файлы |

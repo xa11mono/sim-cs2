@@ -2,7 +2,7 @@
 # ни одной карты и читает только объект MAP. Здесь набор склеивается в MAP и вшивается в страницу.
 #   map.json      — поля верхнего уровня MAP (имя, ключи хранилища, масштаб, спавны, подсказки UI; radar — имя картинки)
 #   <имя>.json    — MAP.<имя> (zones, navmesh, walls, heights, cover, wallbang, tactics, lineups, pro); _*.json — не в MAP
-#                   (рецепт сборки _build.json и отчёты tools/map_build.py); NOT_MAP (throws.json — В1) — тоже не в MAP
+#                   (рецепт сборки _build.json и отчёты tools/map/map_build.py); NOT_MAP (throws.json — В1) — тоже не в MAP
 #   radar.png     — фон; в MAP.radar — data URI
 # JSON-файлы вставляются текстом, без перекодирования: числа остаются ровно как записаны (в т.ч. -0).
 # Метки в исходнике игры (src/game/*): @@MAP@@ — объект MAP; @@MAP_NAME@@, @@MAP_ZONE_HINT@@, @@MAP_ZONE_LAYER_HINT@@ — надписи в разметке.
@@ -50,7 +50,7 @@ def map_js(name):
     meta['radar'] = 'data:image/png;base64,' + base64.b64encode(png).decode()
     parts = [json.dumps(meta, ensure_ascii=False, separators=(',', ':'))[:-1]]
     for fn in sorted(os.listdir(d)):
-        if not fn.endswith('.json') or fn == 'map.json' or fn.startswith('_'): continue   # _*.json — рецепт и отчёты tools/map_build.py
+        if not fn.endswith('.json') or fn == 'map.json' or fn.startswith('_'): continue   # _*.json — рецепт и отчёты tools/map/map_build.py
         if fn in NOT_MAP: continue
         txt = open(os.path.join(d, fn), encoding='utf-8').read().strip()
         if fn == 'nadeguess.json' and json.loads(txt).get('v') != nade_hash(name):

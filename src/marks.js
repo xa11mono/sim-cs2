@@ -253,7 +253,7 @@ function mkUrlToBlob(url){ var p = url.split(","), bin = atob(p[1]), u = new Uin
 function mkEl(id){ return document.getElementById(id); }
 function mkEsc(t){ return String(t == null ? "" : t).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c]; }); }
 function mkToast(t){ var el = mkEl("mkToast"); el.textContent = t; el.style.display = "block"; clearTimeout(MK._tt); MK._tt = setTimeout(function(){ el.style.display = "none"; }, 4000); }
-// (v401) снимок за 15–25 с до отметки — по нему в чате проигрывается история до момента (tools/mark_story.js): что было до, что
+// (v401) снимок за 15–25 с до отметки — по нему в чате проигрывается история до момента (tools/marks/mark_story.js): что было до, что
 // перебило, как менялись веса зон. Чекпоинты пишутся каждые 10 с (CP_EVERY); MK_PRE_SEC — проектное число (= журнал решений DLOG_SEC)
 var MK_PRE_SEC = 15;
 function mkPreSnap(){
@@ -279,7 +279,7 @@ function mkStart(){
 }
 function mkClock(s){ s = Math.max(0, Math.round(s)); return Math.floor(s/60) + ":" + ("0" + (s%60)).slice(-2); }
 function mkClose(){ MK.cur = null; MK.pick = false; mkEl("mkPanel").style.display = "none"; }
-// (v397, М147) отметка сохраняется сразу — без разбора нейросетью на странице; разбор — в чате по снимку (tools/mark_open.js)
+// (v397, М147) отметка сохраняется сразу — без разбора нейросетью на странице; разбор — в чате по снимку (tools/marks/mark_open.js)
 async function mkSubmit(){
   var m = MK.cur; if(!m) return;
   m.text = mkEl("mkText").value.trim(); m.want = mkEl("mkWant").value.trim(); m.category = mkEl("mkCat").value; m.priority = mkEl("mkPrioU").checked ? "urgent" : "normal";

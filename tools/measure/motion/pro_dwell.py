@@ -1,6 +1,7 @@
 """В147: сколько про держат взгляд между поворотами ≥ 5° (тики; квантили 10/25/50/75/90) — стоит / шагом / бегом / бой; для удержания точки
 взгляда (270 smoothLookFilter). Пишет поле dwell в data/maps/<карта>/turnmodel.json. Запуск: python3 tools/measure/motion/pro_dwell.py --map mirage"""
 import sys, os, json, collections
+sys.path[:0] = [os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), g) for g in ('map', 'ct', 'pro', 'marks', 'logs', 'motion', 'page')]   # (15.11) модули tools/ разложены по группам
 import numpy as np
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..'))
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..'))

@@ -155,11 +155,11 @@ function nadeLands(type, x, y, z, tx, ty){
   var S = nadeSolve(type, x, y, z != null ? z : visFloorAt(x, y), tx, ty, false);
   return !!S && S.levelOk !== false && S.e3 <= nadeAimLimit(type, false);
 }
-// (v373) своя граната через стену — только так, как кидают про. Замер (tools/nade_walls_pro.py, Mirage, 35 592 броска): у про 79 %
+// (v373) своя граната через стену — только так, как кидают про. Замер (tools/pro/nade_walls_pro.py, Mirage, 35 592 броска): у про 79 %
 // бросков прямая «рука → разрыв» проходит сквозь стену радара (через крыши, над ящиками), толщиной — до 290 px у 10 % смоков;
 // толщиной стены «можно / нельзя» не отличить (v370 — порог 100 px — резал броски: «стена на пути» — первая причина пропавших
 // гранат у сторожа). Теперь: прямая без стен — можно; сквозь стену — если про кидали отсюда (≤ NADE_LANE_FROM) почти туда же
-// (≤ NADE_LANE_TO): MAP.nadelanes (tools/nade_lanes_bake.py — все броски из демок карты). Радиусы — проектные числа
+// (≤ NADE_LANE_TO): MAP.nadelanes (tools/map/nade_lanes_bake.py — все броски из демок карты). Радиусы — проектные числа
 var NADE_LANE_FROM = 60, NADE_LANE_TO = 80, NADE_LANE_IDX = null;
 function nadeLaneIdx(){
   if(NADE_LANE_IDX) return NADE_LANE_IDX;
@@ -175,7 +175,7 @@ function nadeLaneFroms(ex, ey){
   return out;
 }
 // флешку, HE и молотов в точку, куда про не кидали, — можно через стену не толще, чем у 90 % бросков про этого типа
-// (MAP.pro.nadeWallP90, tools/nade_walls_pro.py: Mirage — флешка 233, HE 96, молотов 142 px); смок — только как про (лайнапы)
+// (MAP.pro.nadeWallP90, tools/pro/nade_walls_pro.py: Mirage — флешка 233, HE 96, молотов 142 px); смок — только как про (лайнапы)
 function nadeTallWall(x1, y1, x2, y2, type){
   if(!crossesWall(x1, y1, x2, y2)) return false;
   if(nadeLaneFroms(x2, y2).some(function(q){ return Math.hypot(q.x-x1, q.y-y1) <= NADE_LANE_FROM; })) return false;

@@ -367,7 +367,7 @@ function tryShoot(shooter, target, dist){
 var STATE_LABEL = {patrol:"патруль", hold:"держит угол", engage:"атакует", retreat:"отступает"};
 // (v154) обстановка для решения о дуэли
 // (v248) дистанция размена — из демок: в 80 % разменов про разменявший был не дальше стольких ед. карты от места
-// смерти своего (tools/trade_bake.py → src/data/trades.json, 92 демки). Одно число на «есть ли кому разменять»
+// смерти своего (tools/map/trade_bake.py → src/data/trades.json, 92 демки). Одно число на «есть ли кому разменять»
 var TRADE_R = 272;
 function duelContext(bot, enemiesSeen, alliesNear){
   var o = {trade:0, up:false, forced:false, hurtFoe:false, awpLine:false, flashed:false};

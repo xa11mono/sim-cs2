@@ -1,5 +1,5 @@
 """Детектор (v246): встаёт ли бот на ту же позицию демок в следующем раунде той же стороной.
-Стоянка — как в tools/player_positions_bake.py: 2+ с, скорость < 10 ед. карты/с, до планта; позиция — ближайшая
+Стоянка — как в tools/map/player_positions_bake.py: 2+ с, скорость < 10 ед. карты/с, до планта; позиция — ближайшая
 точка positions.json своей стороны в пределах её разброса (не меньше 40). Про — из src/data/player_positions.json.
 Запуск: python3 tools/measure/pos_repeat.py <positions.json> <run> [<run> …]"""
 import json, math, sys, collections, os

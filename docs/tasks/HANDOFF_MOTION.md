@@ -20,7 +20,7 @@
   `python3 src/build.py --map mirage /tmp/mk.html`);
 - про: `python3 -I tools/measure/motion/pro_*.py --map mirage` (из корня репо; данные — `data/maps/mirage/demos/*_motion.csv.gz`, 12 демок,
   каждый тик): `pro_air` (прыжки, спрыгивания, подсадки, после очереди), `pro_jumpspots` (прыжки по местам), `pro_gaps`, `pro_acc`,
-  `pro_duck`, `pro_drift`, `pro_aimctx`; общая таблица — `tools/motion_ctx.py --map mirage`.
+  `pro_duck`, `pro_drift`, `pro_aimctx`; общая таблица — `tools/motion/motion_ctx.py --map mirage`.
 - прогон на ПК: `tools/measure/request.json` в ветке `measure/<имя>` (от `origin/measure/v568b`), база — тот же набор матчей прошлой версии
   (`v570b16_mir`, `v570b16_anc`); правила — `CLAUDE.md` §8.
 
@@ -33,10 +33,10 @@
   поворота хода 25° / про 26°, камера 22° / 20°, A/D 94 / 95 %, обе стороны 53 / 52 %, скорость ×0,72 / 0,76, развороты > 90° 14 / 18 %;
   частота была 3,4 / 4,15 в мин — поднята (rate[0] 3,0 → 4,4), НЕ перемерено. Частоты по корзинам — решение по матрице «поворот впереди →
   поворот за полёт» (печатает тот же замер).
-- подсадки (540, `BOOST`, `boostLift`; данные `pro.json` boosts — `tools/boosts_bake.py`; вероятность по месту — `botE`, вписывает
+- подсадки (540, `BOOST`, `boostLift`; данные `pro.json` boosts — `tools/map/boosts_bake.py`; вероятность по месту — `botE`, вписывает
   `tools/measure/motion/boost_calib.py <папка>` по замеру `bash tools/measure/motion/boost.sh <папка> 1000000`): после радиуса места 40 px
   `botE` НЕ пересчитан — сделать boost.sh … 1000000 → boost_calib.py → boost.sh без k (цель — ~0,09 подсадки за раунд в 5 местах).
-  Внимание: `tools/demos_bake.py` переписывает pro.json — `botE` после него вписать заново.
+  Внимание: `tools/map/demos_bake.py` переписывает pro.json — `botE` после него вписать заново.
 - прогоны на ПК: 233 (v575a) и 238 (v575a2) против базы v570b16 — переносы (`nav`) Mirage 60 → 156 → 105, Ancient 29 → 88 → 52; застревания
   Mirage 82 → 131 → 117, Ancient 87 → 97 → 120; перетягивание Ancient 93 → 110. Главная причина переносов, найденная по эпизодам, — качание
   A/D (540 `strafeKeysTick`) уводило на край пола навмеша; остаток не найден. Владелец (14.11, в 3D): боты не спрыгивают, а «притягиваются вниз»,

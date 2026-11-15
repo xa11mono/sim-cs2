@@ -1,5 +1,5 @@
 // Повтор после открытия снимка отметки (п.18/22/34): доиграть раунд с записью, как в кадре, и показать, что попало в очередь показа
-// и куда пошёл бы каждый показ (клип / реакции). node tools/mark_open.js sim.html снимок.json "$(cat tools/tests/replay_mark.js)"
+// и куда пошёл бы каждый показ (клип / реакции). node tools/marks/mark_open.js sim.html снимок.json "$(cat tools/tests/replay_mark.js)"
 (function(){
   var r0 = roundNum, g = 0;
   while(g++ < 20000 && roundNum === r0 && roundState !== "freeze"){ stepTick(); rpRecord(); }

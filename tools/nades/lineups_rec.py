@@ -2,12 +2,12 @@
 """В4 (21.10.2026): лайнап = записанный бросок про.  python3 tools/nades/lineups_rec.py --map <карта>
 
 Из data/maps/<карта>/throws.json (В1, броски про со связанным разрывом) собирает лайнапы и пишет их в набор карты
-(lineups.json: pro / proExtra) ВМЕСТО прежних «откуда → куда» (tools/cluster.py + demos_bake.write_lineups).
+(lineups.json: pro / proExtra) ВМЕСТО прежних «откуда → куда» (tools/pro/cluster.py + demos_bake.write_lineups).
 
 1. Вариант броска = один и тот же бросок ≥ VAR_MIN раз (в ≥ VAR_DEMOS демках): та же сторона и граната, место ног ±POS_TOL ед.
    (с хода — ±POS_TOL_MOVE), поворот и наклон ±ANG_TOL°, как двигался (стоял / шёл / бежал / в прыжке), присед, скорость игрока
    ±VEL_TOL ед/с (разбег). Определение «того же броска» — как в В1 / В2б (NADES.md: ±6 ед., ±0,3°).
-2. Когда кидают (insta / setup / exec / timed / call …, сайт) — у каждого броска из pro_nades.csv (tools/lineups.py), связь —
+2. Когда кидают (insta / setup / exec / timed / call …, сайт) — у каждого броска из pro_nades.csv (tools/pro/lineups.py), связь —
    демка, игрок, граната, поворот, время. Гранаты «себе» (purpose) в лайнапы не идут — как и раньше (cluster.py).
 3. Лайнап (запись набора) = варианты одной стороны / гранаты / «когда» / сайта, которые рвутся в одном месте (разрыв ±TO_TOL px)
    и кидаются из одного места (±FROM_TOL px) — те же радиусы, что у прежних лайнапов (cluster.py). Доля раундов prob, время at —
@@ -129,7 +129,7 @@ def main():
     C = json.load(open(os.path.join(mapdir.pro_dir(m), 'nade_ctx.json')))
     ctxN = lambda site: C['planted'][site] if site in ('A', 'B') else C['rounds']
     zn = zones(m)
-    # записи набора («когда / откуда / куда», доля раундов) — прежние (tools/cluster.py → demos_bake.py), не меняются: В4 меняет только
+    # записи набора («когда / откуда / куда», доля раундов) — прежние (tools/pro/cluster.py → demos_bake.py), не меняются: В4 меняет только
     # то, КАК кидают. К записи — броски про той же стороны / гранаты / «когда» / сайта из её места (±FROM_TOL px) в её место разрыва
     # (±TO_TOL px); из них — варианты (записанные лайнапы). Нет варианта — бросок «на глаз» (до В5 — физикой, как своя граната)
     fo = mapdir.path(m, 'lineups.json')
