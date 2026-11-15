@@ -45,7 +45,7 @@
 3. слияние дублей (например, четыре таймера удержания взгляда → один) — отдельной правкой с поведением: реестр + прогон на ПК.
 
 ## Фаза 4. Снова поведение
-- Расстановки CT (8 на Mirage, скриншоты владельцу) — после канала «место». Задел: `tools/ct_cover_pro.py`, `tools/ct_cover.js`,
-  `tools/ct_setup_spots_bake.py`, `tools/ct_setup_shot.py`, точки ролей `spot` / `lookYaw` в `data/maps/mirage/tactics.json` (ветка v581a).
-- Дефолт A под расстановки (стак / один / двое на A) — после канала «гранаты». Задел: `tools/defA_pro.py`.
+- Расстановки CT (8 на Mirage, скриншоты владельцу) — после канала «место». Задел: `tools/ct/ct_cover_pro.py`, `tools/ct/ct_cover.js`,
+  `tools/ct/ct_setup_spots_bake.py`, `tools/ct/ct_setup_shot.py`, точки ролей `spot` / `lookYaw` в `data/maps/mirage/tactics.json` (ветка v581a).
+- Дефолт A под расстановки (стак / один / двое на A) — после канала «гранаты». Задел: `tools/ct/defA_pro.py`.
 - Каждая правка поведения — по `RULES.md` п. 5–6.
