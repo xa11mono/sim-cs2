@@ -78,7 +78,7 @@ function swapSides(){
 // Кэши чистим целиком: часть ключей содержит tick, и после сброса tick старые
 // записи прошлого матча подставлялись бы в новый.
 function freshMatch(n, keepProfile){
-  if(typeof WARM !== "undefined" && WARM.on){ WARM = {on:false}; var wsk0 = typeof document !== "undefined" && document.getElementById("btnWarmSkip"); if(wsk0) wsk0.style.display = "none"; }   // (v306) новый матч / перемотка — разминка кончилась
+  if(typeof WARM !== "undefined" && WARM.on){ WARM = {on:false}; }   // кнопку «пропустить разминку» прячет кадр (680, warmSkipSync)   // (v306) новый матч / перемотка — разминка кончилась
   paused = true;
   tick = 0; simTime = 0; roundStartTick = 0;
   if(!keepProfile) OPP = null;
@@ -157,7 +157,7 @@ function endRound(winner, reason){
   if(!over && roundNum >= regRounds() && (roundNum - regRounds()) % (OT_HALF*2) === 0)
     logEvent((roundNum === regRounds() ? "" : "ещё ")+"ОВЕРТАЙМ при "+score.CT+":"+score.T+" — MR3, по $"+OT_MONEY+", до "+(MATCH_WIN + OT_HALF*(otIndex(roundNum+1)+1))+" побед", true);
   if(!over && sideSwapNow(roundNum+1) && typeof document !== "undefined"){
-    var rh = document.getElementById("rcHalf"); if(rh) rh.textContent = "Смена сторон: "+TEAM_NAME.T+" — CT, "+TEAM_NAME.CT+" — T";
+    RC_HALF = "Смена сторон: "+TEAM_NAME.T+" — CT, "+TEAM_NAME.CT+" — T";   // (15.11, перестройка) надпись на карточке ставит кадр (680)
   }
   if(over){
     roundState = "matchover";
@@ -169,7 +169,7 @@ function endRound(winner, reason){
 }
 
 function resetRound(){
-  voiceLines = []; if(typeof document !== "undefined") renderVoice();   // (v264) войс — только этого раунда
+  voiceLines = []; VOICE_DIRTY = true;   // (v264) войс — только этого раунда
   roundNum++;
   if(sideSwapNow(roundNum)) swapSides();
   if(roundResetsGear(roundNum)){   // вторая половина / половина овертайма: деньги и оружие с нуля

@@ -87,23 +87,41 @@ fs.writeFileSync(path.join(OUT, "registry.json"), JSON.stringify(R, null, 0));
 const FIELDS = ["facing", "walking", "curSpeed", "post", "state", "nadeTask", "holding", "crouching", "path", "phase"];
 const OWNER = { facing: /^(lookArbiter|lookApply|faceTick|smoothLookFilter)$/, walking: /^(moveWalkTick|moveSpeedTick)$/, curSpeed: /^moveSpeedTick$/,
   post: /^(setPost|updatePost)$/, state: /^fightState$/, nadeTask: /^$/, holding: /^$/, crouching: /^$/, path: /^$/, phase: /^$/ };
-const W = {}; FIELDS.forEach(f => W[f] = {});
-for (const { ast, off } of asts) walk.full(ast, n => {
+const W = {}, WO = {}; FIELDS.forEach(f => { W[f] = {}; WO[f] = {}; });
+// (15.11, замечание владельца) одно имя поля у разных объектов: bot.state ≠ bomb.state ≠ редактор.state. Объект — бот, если в той же
+// функции у этого имени читают поля, какие есть только у бота (BOTP); `bots[i].x` — бот; остальное — «другой объект» (чей — по имени).
+const BOTP = new Set(["alive", "hp", "tRole", "team", "weapon", "baseX", "baseY", "nades", "primary", "money", "reactionTicks", "skill"]);
+const rootOf = e => { while (e && e.type === "MemberExpression") { if (e.object.type === "Identifier" && e.object.name === "bots" && e.computed) return "#bot"; e = e.object; } return e && e.type === "Identifier" ? e.name : e && e.type === "ThisExpression" ? "this" : null; };
+for (const { ast, off } of asts) walk.fullAncestor(ast, (n, _st, anc) => {
   let tgt = null;
   if (n.type === "AssignmentExpression") tgt = n.left; else if (n.type === "UpdateExpression") tgt = n.argument;
   if (!tgt || tgt.type !== "MemberExpression" || tgt.computed || !FIELDS.includes(tgt.property.name)) return;
   const fld = tgt.property.name, pos = n.start + off, fn = fnAt(pos), f = fileAt(pos)[2];
-  if (fld === "phase" && !/tt|tac|teamTac|T0|TT/.test(all.slice(tgt.object.start + off, tgt.object.end + off))) return;   // фаза плана T, а не другие phase
-  const k = fn + " · " + f.slice(0, 3); (W[fld][k] = W[fld][k] || []).push(lineAt(pos));
+  const objTxt = all.slice(tgt.object.start + off, tgt.object.end + off);
+  if (fld === "phase") { if (!/tt|tac|teamTac|T0|TT/.test(objTxt)) return; (W[fld][fn + " · " + f.slice(0, 3)] = W[fld][fn + " · " + f.slice(0, 3)] || []).push(lineAt(pos)); return; }   // фаза плана T
+  const root = tgt.object.type === "Identifier" ? tgt.object.name : rootOf(tgt.object);
+  const NONBOT = new Set(["bomb", "it", "S", "RP", "HGT_C", "E", "MAPED", "DEMOV", "SANDBOX"]), BOTN = new Set(["b", "bot", "bt", "sh", "shooter", "target", "vic", "victim", "att", "killer", "mate"]);
+  let isBot = !NONBOT.has(root) && (root === "#bot" || /^bots\[/.test(objTxt) || BOTN.has(root));
+  // параметр обхода bots.forEach / filter / … — бот
+  if (!isBot && !NONBOT.has(root)) for (let i = anc.length - 1; i >= 1; i--) { const a = anc[i], c = anc[i - 1];
+    if (/Function/.test(a.type) && c.type === "CallExpression" && c.callee.type === "MemberExpression" && c.callee.object.type === "Identifier" && c.callee.object.name === "bots" && a.params.some(q => q.name === root)) { isBot = true; break; } }
+  if (!isBot && !NONBOT.has(root) && tgt.object.type === "Identifier") {
+    const fnNode = [...anc].reverse().find(a => /Function/.test(a.type)) || ast; const props = new Set();
+    walk.simple(fnNode, { MemberExpression(m) { if (!m.computed && m.object.type === "Identifier" && m.object.name === root) props.add(m.property.name); } });
+    isBot = [...props].some(p => BOTP.has(p));
+  }
+  const k = fn + " · " + f.slice(0, 3), T = isBot ? W : WO;
+  (T[fld][k] = T[fld][k] || []).push(lineAt(pos) + (isBot ? "" : " " + objTxt.slice(0, 24)));
 });
 {
   let md = "# Кто пишет поля бота (генерируется: `tools/rebuild/gen_maps.js`, статический разбор кода)\n\n" +
-    "Запись — присваивание `x.поле = …` / `++` в функции (файл — номер). Хозяин — по CLAUDE.md §7; у полей без хозяина его пока нет (назначит перенос каналов).\n" +
+    "Запись — присваивание `бот.поле = …` / `++` в функции (файл — номер); то же имя у другого объекта (бомба, редактор, смок выхода) — отдельно. Хозяин — по CLAUDE.md §7; у полей без хозяина его пока нет (назначит перенос каналов).\n" +
     "Живой ловец (кто пишет во время матча, со стеком) — `tools/measure/engine/field_watch.js`.\n\n| поле | мест | функций | из них хозяин |\n|---|---|---|---|\n";
   FIELDS.forEach(fl => { const E = Object.entries(W[fl]); const own = E.filter(([k]) => OWNER[fl].test(k.split(" · ")[0]));
     md += "| `" + fl + "` | " + E.reduce((a, [, L]) => a + L.length, 0) + " | " + E.length + " | " + (own.map(([k]) => "`" + k + "`").join(", ") || "—") + " |\n"; });
-  FIELDS.forEach(fl => { const E = Object.entries(W[fl]).sort((a, b) => b[1].length - a[1].length);
-    md += "\n## `" + fl + "`\n\n" + E.map(([k, L]) => "- " + (OWNER[fl].test(k.split(" · ")[0]) ? "**хозяин** " : "") + "`" + k + "` — " + L.length + " (стр. " + L.slice(0, 8).join(", ") + (L.length > 8 ? ", …" : "") + ")").join("\n") + "\n"; });
+  FIELDS.forEach(fl => { const E = Object.entries(W[fl]).sort((a, b) => b[1].length - a[1].length), O = Object.entries(WO[fl]);
+    md += "\n## `" + fl + "`\n\n" + E.map(([k, L]) => "- " + (OWNER[fl].test(k.split(" · ")[0]) ? "**хозяин** " : "") + "`" + k + "` — " + L.length + " (стр. " + L.slice(0, 8).join(", ") + (L.length > 8 ? ", …" : "") + ")").join("\n") + "\n";
+    if (O.length) md += "\nне бот (то же имя у другого объекта — в проверку владения не идёт): " + O.map(([k, L]) => "`" + k + "` (" + L.slice(0, 3).join("; ") + ")").join(", ") + "\n"; });
   fs.writeFileSync(path.join(OUT, "fields.md"), md);
 }
 
@@ -136,3 +154,31 @@ function callOrder(fnName) {
   fs.writeFileSync(path.join(OUT, "tick.md"), md);
 }
 console.log("пометок", R.length, "| полей", FIELDS.map(f => f + ":" + Object.keys(W[f]).length).join(" "), "| функций", tops.length);
+
+// ---- 4) общие переменные: где объявлена, кто пишет, кто читает (по файлам) — для категорий (владелец 15.11: канал / мир / раунд /
+// кэш / временное; хозяин — по смыслу, не по файлу). Категория — из rebuild/var_cats.json (ставится руками), без неё — «?».
+{
+  const main = asts.reduce((a, b) => (b.src.length > a.src.length ? b : a));
+  let body = main.ast.body; const iife = body.find(st => st.type === "ExpressionStatement" && st.expression.type === "CallExpression" && /Function/.test(st.expression.callee.type));
+  if (iife) body = body.concat(iife.expression.callee.body.body);
+  const V = {};
+  body.forEach(st => { if (st.type === "VariableDeclaration") st.declarations.forEach(d => { if (d.id.type === "Identifier") V[d.id.name] = { home: fileAt(st.start + main.off)[2].slice(0, 3), w: {}, r: {} }; }); });
+  walk.fullAncestor(main.ast, (n, _s, anc) => {
+    if (n.type !== "Identifier" || !V[n.name]) return; const p = anc[anc.length - 2]; if (!p) return;
+    if (p.type === "VariableDeclarator" && p.id === n) return;
+    if ((p.type === "MemberExpression" && p.property === n && !p.computed) || (p.type === "Property" && p.key === n && !p.computed)) return;
+    const f = fileAt(n.start + main.off)[2].slice(0, 3);
+    const isW = (p.type === "AssignmentExpression" && p.left === n) || (p.type === "UpdateExpression");
+    const T = isW ? V[n.name].w : V[n.name].r; T[f] = (T[f] || 0) + 1;
+  });
+  let cats = {}; try { cats = JSON.parse(fs.readFileSync(path.join(ROOT, "rebuild", "var_cats.json"), "utf8")); } catch (e) {}
+  const cross = Object.entries(V).filter(([k, v]) => Object.keys(v.w).some(f => f !== v.home)).sort((a, b) => Object.keys(b[1].w).length - Object.keys(a[1].w).length);
+  let md = "# Общие переменные, которые пишут из чужих файлов (генерируется: `tools/rebuild/gen_maps.js`)\n\nВсего переменных верхнего уровня: " +
+    Object.keys(V).length + ", из них пишут не только в своём файле: **" + cross.length + "**. Категория и хозяин — по смыслу (`rebuild/var_cats.json`):\n" +
+    "канал (взгляд / место / гранаты / бой / ход / знание), мир (карта, навмеш, видимость), раунд (тик, состояние раунда, бомба, счёт), кэш, временное, показ.\n\n" +
+    "| переменная | объявлена | пишут (файл×мест) | читают файлов | категория | хозяин | почему |\n|---|---|---|---|---|---|---|\n";
+  cross.forEach(([k, v]) => { const c = cats[k] || {}; md += "| `" + k + "` | " + v.home + " | " + Object.entries(v.w).map(([f, n]) => f + "×" + n).join(" ") + " | " + Object.keys(v.r).length + " | " + (c.cat || "?") + " | " + (c.owner || "") + " | " + (c.why || "") + " |\n"; });
+  fs.writeFileSync(path.join(OUT, "vars.md"), md);
+  fs.writeFileSync(path.join(OUT, "vars.json"), JSON.stringify(Object.fromEntries(cross.map(([k, v]) => [k, v]))));
+  console.log("общих переменных", Object.keys(V).length, "из чужих файлов пишут", cross.length);
+}

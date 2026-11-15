@@ -17,7 +17,7 @@ function dvAt(s, t){ var T = DEMOV.R.players[s].track, lo = 0, hi = T.length - 1
 function dvStart(i){
   var R = dvRounds()[i]; if(!R) return;
   DEMOV.on = false;
-  if(WARM.on){ WARM = {on:false}; var sk = document.getElementById("btnWarmSkip"); if(sk) sk.style.display = "none"; }   // из разминки — сразу в раунд демки
+  if(WARM.on){ WARM = {on:false}; }   // кнопку прячет кадр (680, warmSkipSync)   // из разминки — сразу в раунд демки
   freshMatch(1); var guard = 0; while(roundState !== "live" && guard++ < 20000) stepTick();
   DEMOV.R = R; DEMOV.i = i; DEMOV.t0 = tick; DEMOV.ei = 0; DEMOV.BOT = {};
   var P = R.players, ids = Object.keys(P), used = {};
