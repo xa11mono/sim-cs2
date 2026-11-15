@@ -242,7 +242,7 @@ function ctSetupRole(b, role, ct){
     else lkS = (P.lookPt && {x: P.lookPt[0], y: P.lookPt[1]}) || ref;
     var spS = pickSpots("cts:"+S.id+":"+role+":spot", cS, 6, {rMax: CT_SPOT_R, minGap: 30, see: [lkS]});
     var freeS = spS.filter(function(q){ return hasLOS(q.x, q.y, lkS.x, lkS.y) && !spotTaken(b, q, "post") && crossOk(q); });
-    if(freeS.length){ nm = zoneUserName(zoneIdAt(cS.x, cS.y)) || nm0; c = cS; lk = lkS; spots = freeS.slice(0, 3); spots._free = 1; spots._see = 1; tryN = []; }
+    if(freeS.length){ nm = zoneUserName(zoneIdAt(cS.x, cS.y)) || nm0; c = cS; lk = lkS; spots = freeS.slice(0, 3); spots._free = 1; spots._see = 1; spots._spot = 1; tryN = []; }
   }
   for(var ti = 0; ti < tryN.length; ti++){
     var c1 = zonePoint(tryN[ti], ref); if(!c1) continue;
@@ -277,6 +277,7 @@ function ctSetupRole(b, role, ct){
   // "на Cave") — смотрим дальше НАРУЖУ по пути к T, а не себе под ноги/на сайт
   if(spC && lk && Math.hypot(spC.x-lk.x, spC.y-lk.y) < 150){ var ow = outwardLook(spC, lk); if(ow) lk = ow; }
   var placed = setPost(b, spC, lk, true, tag);   // (v518a, пак 09.11 п.1) отказ арбитра — роль не обслужена (было: всегда «сделано»)
+  if(placed && spots._spot && b.post) b.post.setupLook = 1;   // (15.11) угол роли из демок (lookYaw) — поручен задачей: арбитр взгляда держит его (270 lookAngleCand)
   if(early && !b._earlyLog){ b._earlyLog = roundNum; }
   if(early && b._earlyLogged !== roundNum){ b._earlyLogged = roundNum; logEvent(b.id+" ("+ROLE_LABEL_CT(role)+"): выход за инфой — "+nm); }
   return placed;
