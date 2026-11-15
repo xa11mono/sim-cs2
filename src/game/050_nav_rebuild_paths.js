@@ -225,7 +225,7 @@ function rebuildNav(){
   // possibly-wrong line (only matters once bots actually exist, i.e. on a
   // re-alignment, not the very first call at load).
   if(typeof bots !== "undefined"){
-    bots.forEach(function(b){ b.path = []; b.pathIdx = 0; });
+    bots.forEach(function(b){ movePath(b, [], "nav-rebuild"); b.pathIdx = 0; });
   }
 }
 rebuildNav();

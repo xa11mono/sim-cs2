@@ -237,7 +237,7 @@ function bombTick(){
     // (раньше любой видимый CT через полкарты — и носитель стоял на точке
     // планта до конца раунда: это и были почти все проигрыши T по времени)
     if(!plantBlock(c, tac, site) && !DEMOV.on){   // (v571) раунд из демки: плант — по демке (678)
-      c.planting = true; c.plantUntil = tick + PLANT_TICKS; c.path = []; c.pathIdx = 0; if(SND && SND.on) sndBomb("plant", c.baseX, c.baseY);
+      c.planting = true; c.plantUntil = tick + PLANT_TICKS; movePath(c, [], "bomb"); c.pathIdx = 0; if(SND && SND.on) sndBomb("plant", c.baseX, c.baseY);
       // фейк-плант (раз за раунд): свои рядом держат углы, CT по инфе рядом —
       // начать и через ~1с бросить: CT на звук выйдут под прицел
       if(c._fakePlanted !== roundNum){
@@ -318,12 +318,12 @@ function bombTick(){
         if(doFake){
           bomb.fakeDone = true;
           cand.fakeUntil = tick + 26; cand.fakeHoldUntil = tick + 26 + 110;
-          cand.path = []; cand.pathIdx = 0;
+          movePath(cand, [], "bomb"); cand.pathIdx = 0;
           defuseSound(cand);
           logEvent(cand.id+" фейк-дефуз — ловит пик на звук");
         } else if(!DEMOV.on){   // (v571) раунд из демки: дефуз — по демке (678)
           cand.defusing = true; cand.defuseUntil = tick + dTicks; if(SND && SND.on) sndBomb("defuse", cand.baseX, cand.baseY);
-          cand.path = []; cand.pathIdx = 0;
+          movePath(cand, [], "bomb"); cand.pathIdx = 0;
           defuseSound(cand);
           logEvent(cand.id+" дефузит"+(cand.kit?" с китом (5с)":" без кита (10с)")+"…");
         }

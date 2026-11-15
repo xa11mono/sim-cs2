@@ -427,7 +427,7 @@ function rpWorldDraw(E, P, I, S, ox0, oy0, W, H){
     tracers = tl; soundPings = []; teamTac = {T: null, CT: keep.teamTac && keep.teamTac.CT}; FREEZE_FX = [];
     if(R.side){ SIDE_TEAM = R.side; } if(R.NK){ NICKS = R.NK; }
     bots.forEach(function(o, i){ var a = A.b[i], b2 = B.b[i]; RP_BF.forEach(function(k){ o[k] = b2[k]; });
-      o.px = a.x; o.py = a.y; o.pfacing = a._visFacing !== undefined ? a._visFacing : a.facing; o.path = null; o._trail = []; });
+      o.px = a.x; o.py = a.y; o.pfacing = a._visFacing !== undefined ? a._visFacing : a.facing; movePath(o, null, "replay"); o._trail = []; });
     cv = E.cv; ctx = E.ctx; view.scale = S; view.panX = ox0; view.panY = oy0;
     draw.noHud = true; draw();
     // (v573, Д6) включён 3D-вид — кадр повтора в 3D: тот же записанный мир, камера повтора; кадр копируется в холст повтора
@@ -435,7 +435,7 @@ function rpWorldDraw(E, P, I, S, ox0, oy0, W, H){
   } catch(e){ /* кадр повтора не нарисовался — дальше игра не страдает: всё возвращается ниже */ }
   finally {
     draw.noHud = false;
-    bots.forEach(function(o, i){ var c = saved[i]; RP_BF.forEach(function(k){ o[k] = c[k]; }); o.px = c.px; o.py = c.py; o.pfacing = c.pfacing; o.path = c.path; o._trail = c._trail; });
+    bots.forEach(function(o, i){ var c = saved[i]; RP_BF.forEach(function(k){ o[k] = c[k]; }); o.px = c.px; o.py = c.py; o.pfacing = c.pfacing; movePath(o, c.path, "replay"); o._trail = c._trail; });
     tick = keep.tick; simTime = keep.simTime; roundNum = keep.roundNum; roundState = keep.roundState; accumulator = keep.accumulator;
     smokes = keep.smokes; fires = keep.fires; nadesInAir = keep.nadesInAir; nadeFx = keep.nadeFx; bomb = keep.bomb; tracers = keep.tracers; soundPings = keep.soundPings;
     groundWeapons = keep.groundWeapons; groundItems = keep.groundItems; teamTac = keep.teamTac; FREEZE_FX = keep.FREEZE_FX; SIDE_TEAM = keep.SIDE_TEAM; NICKS = keep.NICKS;

@@ -51,7 +51,7 @@ function warmTick(dt){
     bots.forEach(function(o){ if(o.alive && o.team !== b.team){ var d = Math.hypot(o.x-b.x, o.y-b.y); if(d < fd && hasLOS(b.x, b.y, o.x, o.y, b.z, o.z)){ fd = d; foe = o; } } });
     if(foe){
       var a = Math.atan2(foe.y-b.y, foe.x-b.x);
-      warmTurn(b, a, AIM_TURN_RATE*dt); b._nearestEnemyBot = foe; b._wv = Math.max(0, (b._wv||0) - ACCEL*dt); b.curSpeed = b._wv;   // (v312) доворот и торможение, а не щелчок
+      warmTurn(b, a, AIM_TURN_RATE*dt); b._nearestEnemyBot = foe; b._wv = Math.max(0, (b._wv||0) - ACCEL*dt); moveSpeed(b, b._wv, "warm");   // (v312) доворот и торможение, а не щелчок
       // (v313, владелец 14.10: «в разминку такую же стрельбу») стрельба — та же, что в матче (tryShoot: реакция, разброс, отдача,
       // хитбоксы, урон, киллфид); разминка после себя всё сбрасывает (freshMatch), так что матч не меняется
       if(!b._sawEnemy){ b._sawEnemy = true; b.contactStreak = 0; }
@@ -81,6 +81,6 @@ function warmTick(dt){
       if(stepBlocked(b.x, b.y, nx, ny, b)){ nx = b.x + dx/(d||1)*st; ny = b.y + dy/(d||1)*st; b.heading = want; }
       b.x = b.baseX = nx; b.y = b.baseY = ny; }
     warmTurn(b, b.heading, AIM_TURN_RATE*dt);
-    b.curSpeed = b._wv;
+    moveSpeed(b, b._wv, "warm");
   });
 }

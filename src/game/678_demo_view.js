@@ -50,7 +50,7 @@ function dvTick(){
 }
 function dvPlace(){ var t = tick - DEMOV.t0;
   Object.keys(DEMOV.BOT).forEach(function(s){ var x = DEMOV.BOT[s]; if(!x.alive) return; var q = dvAt(s, t), q1 = dvAt(s, t - 8);
-    x.x = x.baseX = x.px = q[1]; x.y = x.baseY = x.py = q[2]; lookFace(x, q[4], "demo"); x.curSpeed = Math.hypot(q[1]-q1[1], q[2]-q1[2]) / (8/TICK_HZ); if(q[6] > 0) x.hp = q[6]; }); }
+    x.x = x.baseX = x.px = q[1]; x.y = x.baseY = x.py = q[2]; lookFace(x, q[4], "demo"); moveSpeed(x, Math.hypot(q[1]-q1[1], q[2]-q1[2]) / (8/TICK_HZ), "demo"); if(q[6] > 0) x.hp = q[6]; }); }
 // выстрел демки слышат враги — как в игре (490: слышимость по прямой / сквозь стены, место — с ошибкой hearPos)
 function dvHearShot(sh){ bots.forEach(function(o){ if(!o.alive || o.team === sh.team) return; var dG = Math.hypot(o.x-sh.x, o.y-sh.y);
   var hearR = hasLOS(o.x, o.y, sh.x, sh.y, o.z, sh.z) ? GUN_HEAR_OPEN : GUN_HEAR_WALL; if(dG >= hearR) return;

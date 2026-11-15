@@ -103,7 +103,7 @@ var STRAFE_PRO = [3.0, 10.6, 34.9, 73.7, 118.6];
 function csDecel(v, vmax){ return CS_FRIC*Math.max(v, CS_STOP/PX_UNITS) + CS_ACCEL*vmax; }   // px/с²
 function csTicksTo(v, vT, vmax){ var n = 0; while(v > vT + 0.5 && n < 30){ v -= csDecel(v, vmax)/TICK_HZ; n++; } return n; }
 function fightStrafe(b, F, dtSec){
-  if(b._boost){ F.sv = 0; b.curSpeed = 0; return; }   // (v575, В144) на подсадке / под ней — не стрейфится
+  if(b._boost){ F.sv = 0; moveSpeed(b, 0, "strafe"); return; }   // (v575, В144) на подсадке / под ней — не стрейфится
   var e = F.e, fr = b._fire, fresh = fr && tick - fr.t <= 1;
   F.own = !!(e && e.alive && (b._sawEnemy || (fr && tick - fr.t < 16)));
   if(!F.own){ F.sv = undefined; return; }
@@ -138,7 +138,7 @@ function fightStrafe(b, F, dtSec){
       var sg = F.sv < 0 ? -1 : 1, dE = csDecel(Math.abs(F.sv), vmax)*dtSec; F.sdir = -sg; F.leg = 0; F.sv = Math.abs(F.sv) <= dE ? 0 : F.sv - sg*dE; }
     else { b.baseX = nx; b.baseY = ny; }
   }
-  b.curSpeed = Math.abs(F.sv); b.walking = false;
+  moveSpeed(b, Math.abs(F.sv), "strafe"); moveWalk(b, false, "strafe");
 }
 function fightRand(b, salt){ return hashRand(tick*31 + b.id.charCodeAt(0)*17 + b.id.charCodeAt(b.id.length-1)*7 + salt); }
 // (дуэли, ответ нейросети владельца 05.11 — docs/tasks/OWNER_PERF_DUELS_2026-11-05.md; замечание владельца Д1: «увидели — сразу за стенку
@@ -338,7 +338,7 @@ function fightCycleTick(b, dtSec, busy){
   F.mv = mv;
   var stp = Math.min(d, mv*dtSec), nx = b.baseX + (tx-b.baseX)/d*stp, ny = b.baseY + (ty-b.baseY)/d*stp;
   if(stepBlocked(b.baseX, b.baseY, nx, ny, b)){ b._fc = null; fcWhy(b, "конец: упёрся по пути к укрытию"); return; }
-  b.baseX = nx; b.baseY = ny; F.moving = true; placeStance(b, false, "fight-move"); b.walking = false;
+  b.baseX = nx; b.baseY = ny; F.moving = true; placeStance(b, false, "fight-move"); moveWalk(b, false, "strafe");
 }
 // ---- (3) безопасная ротация: путь мимо известных T ----
 // опасность пути: рядом (≤380px) со свежей (≤10с) позицией живого T или через

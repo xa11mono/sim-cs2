@@ -157,7 +157,7 @@ function buildRoamRoutes(){
     ROAM_ROUTES[team] = user.length >= 2 ? user : buildAutoRoamRoute(team);
     ROAM_ROUTES[team].forEach(function(p){ p.cleared = -99999; });
   });
-  bots.forEach(function(b){ if(b.role==="roamer"){ b.roamIdx = 0; b.roamChecking = false; b.roamTarget = null; b.path = []; b.pathIdx = 0; } });
+  bots.forEach(function(b){ if(b.role==="roamer"){ b.roamIdx = 0; b.roamChecking = false; b.roamTarget = null; movePath(b, [], "roam-routes"); b.pathIdx = 0; } });
 }
 function initRoam(b){
   b.roamIdx = 0; b.roamChecking = false; b.roamCheckUntil = 0; b.roamCheckStart = 0;

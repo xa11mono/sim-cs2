@@ -12,6 +12,13 @@
 var MOVE = {run: 0, burn: null};   // выход moveSpeedTick: скорость бега после поправок и огонь под ботом (нужны stepTick дальше)
 
 // почему бот идёт шагом (первая подходящая причина; null — не шагом)
+// (15.11, перестройка, фаза 3 — канал хода, шаг 1) ход бота — шагом / бегом walking, скорость curSpeed, путь path — пишут только файлы
+// хода 535, 540, 370 (уровни, лестницы, огонь); остальные — через интерфейс: movePath(b, путь, причина), moveSpeed(b, скорость, причина),
+// moveWalk(b, шагом?, причина) — место (110), бомба (120), роумер (430, 070), ослеплён (460), бой (470 стрейф, 510), сброс (530, 050),
+// разминка (660), повтор (675), песочница (677), демо (678). Причина — b._moveWhy.
+function movePath(b, p, why){ b.path = p; b._moveWhy = why; }
+function moveSpeed(b, v, why){ b.curSpeed = v; b._moveWhy = why; }
+function moveWalk(b, w, why){ b.walking = w; b._moveWhy = why; }
 function moveWalkWhy(bot){
   if(bot._pie && bot._pie.slice && tick - bot._pie.t < 16 && !bot.holding && !bot._sawEnemy && !(bot.post && taskProp(bot.post.tag, "reposMove"))) return "режет угол";
   // "тихий шаг" (план §3): осторожен, если подозревает, что враг рядом —
