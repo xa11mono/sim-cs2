@@ -12,31 +12,7 @@ buyPhase(); // закуп первого (пистолетного) раунда
 resetBomb();
 beliefBuild(); beliefReset(); // раздел 13: карта вероятностей врага
 
-// (v322, М14) свободный обзор в закупку: каждый смотрит сам по себе — держит взгляд, потом поворачивает мышь.
-// Сколько держат и на сколько поворачивают — из демок про Mirage (25 матчей, фризтайм, взгляд раз в 0,25 с; поворот —
-// больше 8° за 0,25 с): держат 0,25 / 0,25 / 1 / 2,5 / 5,75 с, поворот 11 / 21 / 50 / 98 / 145° (10/25/50/75/90 %).
-var FREEZE_HOLD = [0.25, 0.25, 1, 2.5, 5.75], FREEZE_TURN = [11, 21, 50, 98, 145], FREEZE_TURN_SPEED = 0.25*Math.PI/16;  // скорость — поворот за ~0,25 с (шаг демок)
-function freezePick(q, u){ var k = Math.min(3, Math.floor(u*4)), f = u*4 - k; return q[k] + (q[k+1]-q[k])*f; }   // доля u → число по процентилям (упрощение)
-function freezeLookTick(){
-  bots.forEach(function(b, i){
-    if(!b.alive) return;
-    if(!isFinite(b.facing)) b.facing = Math.atan2(1024-b.y, 1024-b.x);   // ещё не смотрел никуда — к середине карты
-    // (v430, М167, владелец: «на закупке крутятся, троятся; на мини-карте нормально») взгляд на начало тика — для сглаживания
-    // рисования (620_draw), как в живом раунде (строка «bot.pfacing» ниже): на закупке не запоминался, и большой радар каждый
-    // тик заново проводил взгляд от угла прошлого раунда до нынешнего
-    b.pfacing = b.facing;
-    var F = b._fz;
-    if(!F || F.round !== roundNum){ F = b._fz = {round: roundNum, until: tick, target: b.facing}; }
-    if(tick >= F.until){
-      var seed = roundNum*7919 + i*104729 + tick;
-      var turn = freezePick(FREEZE_TURN, hashRand(seed)) * Math.PI/180 * (hashRand(seed+1) < 0.5 ? -1 : 1);
-      F.target = b.facing + turn;
-      F.until = tick + Math.round(freezePick(FREEZE_HOLD, hashRand(seed+2)) * TICK_HZ) + Math.ceil(Math.abs(turn)/FREEZE_TURN_SPEED);
-    }
-    var d = F.target - b.facing;
-    b.facing += Math.max(-FREEZE_TURN_SPEED, Math.min(FREEZE_TURN_SPEED, d));
-  });
-}
+// (v322, М14) свободный обзор в закупку — канал взгляда (275_look_turn.js, freezeLookTick)
 
 // (v322) звук движения — шаги, вода, прыжок (одно место «кто из врагов услышал»): через стену слышно ближе (~75 % радиуса),
 // место — пятно, а не точка (hearPos), в уши — hearReal
@@ -470,7 +446,7 @@ function stepTick(){
         // инерции ещё несколько шагов бежал туда же, куда бежал — то есть на врага
         var maxTurn = TURN_RATE * dtSec * (bot.state === "retreat" ? 5 : 1);
         bot.heading += Math.max(-maxTurn, Math.min(maxTurn, da));
-        if(bot.facing === undefined) bot.facing = bot.heading; // first tick / just respawned — nothing to derive an actual-movement facing from yet
+        if(bot.facing === undefined) lookFace(bot, bot.heading, "start"); // first tick / just respawned — nothing to derive an actual-movement facing from yet
         // NOTE: bot.facing (the rendered/visual direction) is otherwise set
         // further down from the ACTUAL movement this tick, not from
         // bot.heading — see the comment there for why.
@@ -588,7 +564,7 @@ function stepTick(){
           var mvA = Math.atan2(bot.baseY-startY, bot.baseX-startX);
           var mvD = ((mvA - bot.facing + Math.PI) % (2*Math.PI) + 2*Math.PI) % (2*Math.PI) - Math.PI;
           if(Math.abs(mvD) >= 0.05) bot._aimFix = true; else if(Math.abs(mvD) <= 0.01) bot._aimFix = false;
-          if(bot._aimFix){ var mvStep = TURN_RATE * dtSec; bot.facing += Math.max(-mvStep, Math.min(mvStep, mvD)); }   // (В147) не рукой: у про на бегу взгляд идёт по ходу ровно (мерка формы run_lookoff; рукой — разница 10 → 65 %)
+          if(bot._aimFix){ var mvStep = TURN_RATE * dtSec; lookTurnBy(bot, Math.max(-mvStep, Math.min(mvStep, mvD)), "move"); }   // (В147) не рукой: у про на бегу взгляд идёт по ходу ровно (мерка формы run_lookoff; рукой — разница 10 → 65 %)
         }
         // (Б1, Х1, сторож 21.10) «не сдвинулся» — меньше 15 % своего шага, без порога 0,3 ед.: при скорости < 19 ед./с (тормозит у
         // точки, шифт с тяжёлым оружием) целый шаг меньше 0,3, и бот, честно идущий медленно, через 40 тиков «застревал» → перенос

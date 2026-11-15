@@ -302,7 +302,7 @@ function throwNadeTry(b, type, tx, ty, lob, why, trusted, from){
   if(b.nadeTask) b.nadeTask.exuThrown = true; exuThrown(b, nd);   // (тактика 30.10) граната выхода T: когда сработает — знает команда (366)
   if(type === "flash" && b.voice) teamPropose(b, {kind: "flash", nade: nd});
   b.throwUntil = tick + 18; // ~0.3с стоит на броске
-  b.facing = a;
+  lookFace(b, a, "nade");   // (15.11, фаза 3) поворот — через канал взгляда
   logEvent(b.id+" кинул "+NADE[type].name+(why ? " — "+why : "")+(lob ? " (лайнап)" : ""));
   // раздел 11.1: бросок гранаты — тоже источник инфы о враге, не только выстрел/
   // шаги. Кто видел бросок — фиксирует позицию бросавшего как обычный "вижу"

@@ -14,9 +14,9 @@ function warmSpawn(b){
   b.armor = true; b.helmet = true; b.armorHp = 100; b._ts = {}; b.contactStreak = 0; b.blindUntil = 0; b.nextShotTick = 0; b.planting = b.defusing = false;
 }
 function warmTurn(b, a, maxA){
-  if(b.facing === undefined){ b.facing = b._visFacing = a; return; }
+  if(b.facing === undefined){ b._visFacing = a; lookFace(b, a, "warm"); return; }
   var d = ((a - b.facing + Math.PI) % (2*Math.PI) + 2*Math.PI) % (2*Math.PI) - Math.PI;
-  b.facing += Math.max(-maxA, Math.min(maxA, d)); b._visFacing = b.facing;
+  lookTurnBy(b, Math.max(-maxA, Math.min(maxA, d)), "warm"); b._visFacing = b.facing;
 }
 function warmStart(n){
   var hr = function(k){ return hashRand(n*7919 + k*131); };

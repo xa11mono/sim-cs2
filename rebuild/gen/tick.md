@@ -5,7 +5,7 @@
 
     - `resetRound` (530) — если simTime - roundEndTime >= ROUND_RESTART_DELAY_SEC
     - `newMatch` (530) — если simTime - roundEndTime >= 7
-  - `freezeLookTick` (540) — если roundState === "freeze"
+  - `freezeLookTick` (275) — если roundState === "freeze"
   - `nadePrecalcTick` (380) — если roundState === "freeze"
     - `logEvent` (440) — если simTime >= roundStartTime
   - `sbTick` (677) — если SANDBOX.on
@@ -45,6 +45,7 @@
           - `stepBlocked` (370) — если folK < 1
           - `navSegOnLevel` (370) — если folK < 1
           - `navSegNoDrop` (050) — если folK < 1
+        - `lookFace` (275) — если bot.facing === undefined
       - `inFire` (370) — иначе (bot.path.length === 0 // bot.pathIdx >= bot.path.length)
       - `fireCommit` (370) — иначе (bot.path.length === 0 // bot.pathIdx >= bot.path.length)
           - `stepBlocked` (370) — иначе (fireWait)
@@ -57,6 +58,7 @@
               - `fireCommit` (370) — если bot._netStuck >= 3 && wpN
               - `navFloorNear` (370) — если bot._netStuck >= 3 && wpN
               - `escapeWallLine` (510) — иначе (bot._netStuck >= 3 && wpN)
+            - `lookTurnBy` (275) — если bot._aimFix
               - `escapeWallLine` (510) — если bot._stuckResets >= 2
             - `navOnFloor` (370) — если bot.stuckTicks > 40
               - `navSnap` (540) — если bot._stuckResets >= 2 // !navOnFloor(bot.baseX, bot.baseY, bot)
