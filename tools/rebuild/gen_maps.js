@@ -130,10 +130,65 @@ for (const { ast, off } of asts) walk.fullAncestor(ast, (n, _st, anc) => {
 }
 
 // ---- 3) порядок тика
+// ---- 5) граф зависимостей (вариант А, владелец 15.11: модули — по каналу в фазе 3, сейчас — свои проверки по склейке):
+// система → какие системы она использует (вызов функции / чтение / запись имени верхнего уровня, объявленного в другом файле).
+// Запрет: симуляция не трогает показ (DEVICE.md §5) — обращения симуляции к именам показа выводятся предупреждениями (--check).
+// Приближение: локальная переменная с тем же именем, что и общее имя, считается обращением к общему (таких мало; для графа хватает).
+{
+  const main = asts.reduce((a, b) => (b.src.length > a.src.length ? b : a));
+  let body = main.ast.body; const iife = body.find(st => st.type === "ExpressionStatement" && st.expression.type === "CallExpression" && /Function/.test(st.expression.callee.type));
+  if (iife) body = body.concat(iife.expression.callee.body.body);
+  const HOME = {};   // имя → файл
+  body.forEach(st => {
+    if (st.type === "FunctionDeclaration") HOME[st.id.name] = fileAt(st.start + main.off)[2];
+    if (st.type === "VariableDeclaration") st.declarations.forEach(d => { if (d.id.type === "Identifier") HOME[d.id.name] = fileAt(st.start + main.off)[2]; });
+  });
+  const SHOW = new Set(["показ", "показ и инструменты"]), OUTSIDE = new Set(["разметка", "наблюдение"]);
+  const isSim = f => !SHOW.has(sysOf(f)) && !OUTSIDE.has(sysOf(f));
+  // локальные имена функции: параметры, var / let / const, вложенные function, catch (вложенные функции тоже — с запасом)
+  const WRAP = iife ? iife.expression.callee : null;   // обёртка всей игры — её имена и есть общие
+  const LOC = new WeakMap(), pid = (q, S) => { if (!q) return; if (q.type === "Identifier") S.add(q.name); else if (q.type === "AssignmentPattern") pid(q.left, S);
+    else if (q.type === "RestElement") pid(q.argument, S); else if (q.type === "ArrayPattern") q.elements.forEach(e => pid(e, S)); else if (q.type === "ObjectPattern") q.properties.forEach(e => pid(e.value || e.argument, S)); };
+  const localsOf = fnN => { let S = LOC.get(fnN); if (S) return S; S = new Set(); fnN.params.forEach(q => pid(q, S));
+    walk.simple(fnN.body, { VariableDeclarator(d) { pid(d.id, S); }, FunctionDeclaration(f) { if (f.id) S.add(f.id.name); }, CatchClause(c) { pid(c.param, S); } });
+    LOC.set(fnN, S); return S; };
+  const E = {}, S2V = {};   // E[из][в] = мест; S2V[имя] = {файл: мест, kind}
+  walk.fullAncestor(main.ast, (n, _s, anc) => {
+    if (n.type !== "Identifier" || !HOME[n.name]) return; const p = anc[anc.length - 2]; if (!p) return;
+    if ((p.type === "VariableDeclarator" && p.id === n) || (p.type === "FunctionDeclaration" && p.id === n)) return;
+    if ((p.type === "MemberExpression" && p.property === n && !p.computed) || (p.type === "Property" && p.key === n && !p.computed)) return;
+    if (/Function/.test(p.type) && p.params && p.params.includes(n)) return;
+    for (let i = anc.length - 2; i >= 0; i--) if (/Function/.test(anc[i].type) && anc[i] !== WRAP && localsOf(anc[i]).has(n.name)) return;   // своё локальное имя
+    const from = fileAt(n.start + main.off)[2], to = HOME[n.name]; if (from === to) return;
+    const a = sysOf(from), b = sysOf(to); if (a !== b) { E[a] = E[a] || {}; E[a][b] = (E[a][b] || 0) + 1; }
+    if (isSim(from) && SHOW.has(b) && !(OWN._show_marks || []).includes(n.name)) { const k = n.name, w = (p.type === "AssignmentExpression" && p.left === n) || p.type === "UpdateExpression";
+      const x = S2V[k] = S2V[k] || { home: to.slice(0, 3), from: {}, write: false, call: false };
+      x.from[from.slice(0, 3)] = (x.from[from.slice(0, 3)] || 0) + 1; if (w) x.write = true; if (p.type === "CallExpression" && p.callee === n) x.call = true; }
+  });
+  const sim2show = Object.entries(S2V).sort((a, b) => Object.values(b[1].from).reduce((s, v) => s + v, 0) - Object.values(a[1].from).reduce((s, v) => s + v, 0));
+  if (CHECK) {
+    if (sim2show.length) console.log("симуляция трогает показ — предупреждения (" + sim2show.length + " имён показа; запрет станет ошибкой после переноса):\n  " +
+      sim2show.map(([k, v]) => k + (v.write ? " (пишет)" : v.call ? "()" : "") + " ← " + Object.keys(v.from).join(",")).join(", "));
+  } else {
+    const sys = [...new Set(Object.keys(E).concat(...Object.values(E).map(o => Object.keys(o))))].sort();
+    let md = "# Граф зависимостей систем (генерируется: `tools/rebuild/gen_maps.js`, по склейке)\n\n" +
+      "Строка — кто использует, столбец — чьё (функция / переменная верхнего уровня из файла этой системы), число — мест в коде. " +
+      "Модули с `import` / `export` — по каналу в фазе 3 (вариант А, владелец 15.11); до того граф и запреты — этим скриптом.\n\n";
+    md += "| использует ↓ / чьё → | " + sys.join(" | ") + " |\n|" + "---|".repeat(sys.length + 1) + "\n";
+    sys.forEach(a => { md += "| **" + a + "** | " + sys.map(b => (E[a] && E[a][b]) || "").join(" | ") + " |\n"; });
+    md += "\n## Запрет «симуляция не трогает показ» — нарушения сейчас (" + sim2show.length + " имён)\n\n" +
+      "Пишет — симуляция меняет переменную показа; `()` — вызывает функцию показа; иначе читает. Цель — симуляция только отмечает событие, показ рисует (`DEVICE.md` §5).\n\n" +
+      "| имя показа | файл | из файлов симуляции (мест) | как |\n|---|---|---|---|\n";
+    sim2show.forEach(([k, v]) => { md += "| `" + k + "` | " + v.home + " | " + Object.entries(v.from).map(([f, c]) => f + "×" + c).join(" ") + " | " + (v.write ? "пишет" : v.call ? "вызывает" : "читает") + " |\n"; });
+    save(path.join(OUT, "deps.md"), md);
+    console.log("граф: систем", sys.length, "| симуляция трогает имён показа", sim2show.length);
+  }
+}
+
 // ---- проверка владения: запись поля из функции не из канала (owners.json → allow) — предупреждение, при enforce — ошибка
 if (CHECK) {
   let bad = 0, warn = [];
-  for (const fl of Object.keys(OWN).filter(k => k !== "_")) {
+  for (const fl of Object.keys(OWN).filter(k => k[0] !== "_")) {
     const E = Object.entries(W[fl]).filter(([k]) => !OWNER[fl].test(k.split(" · ")[0]));
     if (!E.length) continue;
     const n = E.reduce((a, [, L]) => a + L.length, 0), txt = "`" + fl + "` (" + OWN[fl].channel + "): " + n + " мест мимо хозяина — " + E.map(([k, L]) => k + "×" + L.length).join(", ");
