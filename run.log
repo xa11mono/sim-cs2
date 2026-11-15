@@ -1,0 +1,58 @@
+playwright 1.56.0, браузеры: C:\Windows\system32\config\systemprofile\.simcs2_node\ms-playwright
+> git fetch --quiet origin 6658990f247148dc76778887751e88b579a63cf2
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_me_70q1w FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_me_70q1w\src\build.py --map mirage C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v582a_fp_mir.html
+  nadeguess.json устарел (код подбора или данные карты менялись) — не включён; пересчитать: python3 tools/nades/guess_bake.py --map mirage
+> git fetch --quiet origin 6658990f247148dc76778887751e88b579a63cf2
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_m9s14rnd FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_m9s14rnd\src\build.py --map ancient C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v582a_fp_anc.html
+> git fetch --quiet origin 42bc2c7d9a32acc13286cb3c61af79ebc8572e26
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_bkas5zlc FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_bkas5zlc\src\build.py --map mirage C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v582a2_fp_mir.html
+> git fetch --quiet origin 42bc2c7d9a32acc13286cb3c61af79ebc8572e26
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_tbq9bask FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_tbq9bask\src\build.py --map mirage C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v582a2_cov_mir.html
+> git fetch --quiet origin 42bc2c7d9a32acc13286cb3c61af79ebc8572e26
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_ui4vlv9u FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_ui4vlv9u\src\build.py --map ancient C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v582a2_cov_anc.html
+fp v582a_fp_mir.html m3
+fp v582a_fp_mir.html m7
+fp v582a_fp_mir.html m11
+fp v582a_fp_mir.html m13
+fp v582a_fp_mir.html m17
+fp v582a_fp_mir.html m19
+fp v582a_fp_mir.html m23
+fp v582a_fp_mir.html m29
+fp v582a_fp_anc.html m3
+fp v582a_fp_anc.html m7
+fp v582a_fp_anc.html m11
+fp v582a_fp_anc.html m13
+fp v582a_fp_anc.html m17
+fp v582a_fp_anc.html m19
+fp v582a_fp_anc.html m23
+fp v582a_fp_anc.html m29
+fp v582a2_fp_mir.html m3
+fp v582a2_fp_mir.html m7
+fp v582a2_fp_mir.html m11
+fp v582a2_fp_mir.html m13
+fp v582a2_fp_mir.html m17
+fp v582a2_fp_mir.html m19
+fp v582a2_fp_mir.html m23
+fp v582a2_fp_mir.html m29
+cov 99 3
+cov 99 7
+cov 99 11
+cov 99 13
+cov 99 17
+cov 99 19
+cov 99 23
+cov 99 29
+cov 99 3
+cov 99 7
+cov 99 11
+cov 99 13
+cov 99 17
+cov 99 19
+cov 99 23
+cov 99 29
+all done

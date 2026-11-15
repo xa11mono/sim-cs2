@@ -1,0 +1,8 @@
+{"par": 8, "fp": [
+  {"label": "v582a_fp_mir", "ref": "6658990f247148dc76778887751e88b579a63cf2", "map": "mirage"},
+  {"label": "v582a_fp_anc", "ref": "6658990f247148dc76778887751e88b579a63cf2", "map": "ancient"},
+  {"label": "v582a2_fp_mir", "ref": "42bc2c7d9a32acc13286cb3c61af79ebc8572e26", "map": "mirage"}
+], "cov": [
+  {"label": "v582a2_cov_mir", "ref": "42bc2c7d9a32acc13286cb3c61af79ebc8572e26", "map": "mirage"},
+  {"label": "v582a2_cov_anc", "ref": "42bc2c7d9a32acc13286cb3c61af79ebc8572e26", "map": "ancient"}
+]}
