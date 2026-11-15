@@ -1,0 +1,25 @@
+playwright 1.56.0, браузеры: C:\Windows\system32\config\systemprofile\.simcs2_node\ms-playwright
+> git fetch --quiet origin c312eace42e2cb0b8f88862cae0e5f5f5e883ede
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_br1wzyzw FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_br1wzyzw\src\build.py --map mirage C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v581a_fp_mir.html
+  nadeguess.json устарел (код подбора или данные карты менялись) — не включён; пересчитать: python3 tools/nades/guess_bake.py --map mirage
+> git fetch --quiet origin c312eace42e2cb0b8f88862cae0e5f5f5e883ede
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_rm1j0_o7 FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_rm1j0_o7\src\build.py --map ancient C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v581a_fp_anc.html
+fp v581a_fp_mir.html m3
+fp v581a_fp_mir.html m7
+fp v581a_fp_mir.html m11
+fp v581a_fp_mir.html m13
+fp v581a_fp_mir.html m17
+fp v581a_fp_mir.html m19
+fp v581a_fp_mir.html m23
+fp v581a_fp_mir.html m29
+fp v581a_fp_anc.html m3
+fp v581a_fp_anc.html m7
+fp v581a_fp_anc.html m11
+fp v581a_fp_anc.html m13
+fp v581a_fp_anc.html m17
+fp v581a_fp_anc.html m19
+fp v581a_fp_anc.html m23
+fp v581a_fp_anc.html m29
+all done
