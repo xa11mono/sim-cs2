@@ -10,6 +10,9 @@ import base64, json, os
 
 # данные из демок в папке карты, которые игре не нужны (В1: броски про, ≈ 15 МБ) — в MAP не кладутся
 NOT_MAP = {'throws.json', 'throws_check.json'}
+MAP_FILES = ('map.json', 'navmesh.json', 'map3d.json', 'zones.json', 'walls.json', 'heights.json', 'cover.json', 'wallbang.json', 'climbs.json',
+             'lineups.json', 'luaim.json', 'runups.json', 'nadelanes.json', 'nadeplan.json', 'pro.json', 'tactics.json', 'defaultpos.json',
+             'ctshare.json', 'zoneprops.json', 'turnmodel.json')
 # (v512) nadeguess.json — подборы бросков лайнапов, посчитанные заранее (tools/nades/guess_bake.py): в MAP только если отпечаток
 # кода подбора и данных карты (nade_hash) тот же, с которым считали; иначе игра считает их сама во freeze-тайм, как раньше
 NADE_SRC = ('035_', '080_', '360_', '365_', '380_', '385_', '390_', '400_')
@@ -44,6 +47,12 @@ def nade_hash(name):
 
 def map_js(name):
     d = os.path.join(MAPS, name)
+    # (15.11, перестройка) набор карты без обязательного файла — ошибка сборки с понятным текстом, а не страница, которая падает
+    # или молча играет без данных. Список — файлы, которые есть у обеих карт и нужны игре (nadeguess пересчитывается сам).
+    need = [f for f in MAP_FILES if not os.path.exists(os.path.join(d, f))]
+    if need:
+        import sys
+        sys.exit('ОШИБКА СБОРКИ: в data/maps/%s нет %s — набор карты собирается tools/map/map_build.py' % (name, ', '.join(need)))
     meta = json.load(open(os.path.join(d, 'map.json'), encoding='utf-8'))
     meta.pop('_about', None)
     png = open(os.path.join(d, meta['radar']), 'rb').read()
