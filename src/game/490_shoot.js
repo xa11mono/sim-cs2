@@ -66,7 +66,7 @@ function tryShoot(shooter, target, dist){
   // а не по контакту бота с кем угодно: раньше вторая цель в живой перестрелке шла без реакции (34 % выстрелов раньше 150 мс)
   var cs = (shooter._ts && shooter._ts[target.id]) || 0;
   if(!shooter.alive || !target.alive) return;
-  if(shooter._knife || (shooter._drawUntil && tick < shooter._drawUntil)){ if(shooter._knife){ shooter._knife = false; shooter._drawUntil = tick + Math.round(0.4*TICK_HZ); } return; } // достаёт оружие
+  if((shooter._knife || (shooter._drawUntil && tick < shooter._drawUntil))){ if(shooter._knife){ shooter._knife = false; shooter._drawUntil = tick + Math.round(0.4*TICK_HZ); } return; } // достаёт оружие
   // отступающий стреляет на отходе (раньше не стрелял вообще — его просто
   // расстреливали в спину); бег и так режет ему точность
   if(shooter.planting || shooter.defusing) return; // руки заняты
@@ -367,7 +367,7 @@ function tryShoot(shooter, target, dist){
 var STATE_LABEL = {patrol:"патруль", hold:"держит угол", engage:"атакует", retreat:"отступает"};
 // (v154) обстановка для решения о дуэли
 // (v248) дистанция размена — из демок: в 80 % разменов про разменявший был не дальше стольких ед. карты от места
-// смерти своего (tools/trade_bake.py → src/data/trades.json, 92 демки). Одно число на «есть ли кому разменять»
+// смерти своего (tools/map/trade_bake.py → src/data/trades.json, 92 демки). Одно число на «есть ли кому разменять»
 var TRADE_R = 272;
 function duelContext(bot, enemiesSeen, alliesNear){
   var o = {trade:0, up:false, forced:false, hurtFoe:false, awpLine:false, flashed:false};

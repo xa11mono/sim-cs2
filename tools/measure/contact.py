@@ -1,4 +1,4 @@
-"""Детектор (v250): первый контакт — один или с тиммейтом, что дальше (как tools/contact_bake.py у про).
+"""Детектор (v250): первый контакт — один или с тиммейтом, что дальше (как tools/map/contact_bake.py у про).
 Запуск: python3 tools/measure/contact.py <run> [<run> …]"""
 import json, os, sys, math, bisect, collections
 HERE = os.path.dirname(os.path.abspath(__file__))

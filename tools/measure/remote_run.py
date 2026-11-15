@@ -60,14 +60,14 @@ def main():
     par = int(req.get('par', 6)); sims = os.path.join(ROOT, 'tools', 'measure', 'runs', '_sims'); os.makedirs(sims, exist_ok=True)
     # сначала собрать все версии, потом все матчи одной очередью (освободилось место — сразу следующий матч любой версии)
     jobargs = []; mset = None
-    # (v459) снимки экрана: {"shots": [{"label", "ref", "map", "match", "round", "step"?, "n"?}]} — tools/clutch_replay_shot.js
+    # (v459) снимки экрана: {"shots": [{"label", "ref", "map", "match", "round", "step"?, "n"?}]} — tools/marks/clutch_replay_shot.js
     for j in req.get('shots', []):
         sim = os.path.join(sims, j['label'] + '.html'); build(j['ref'], j.get('map', 'ancient'), sim)
         out = os.path.join(ROOT, 'tools', 'measure', 'runs', j['label']); os.makedirs(out, exist_ok=True)
         scr = {'timeout': 'timeout_shot.js', 'snap': 'snap_round.js'}.get(j.get('kind'), 'clutch_replay_shot.js')
         if scr == 'snap_round.js':
-            sh(['node', os.path.join(ROOT, 'tools', scr), sim, str(j['match']), str(j['round']), out, str(j.get('ticks', 3000))], cwd=ROOT); continue
-        sh(['node', os.path.join(ROOT, 'tools', scr), sim, str(j['match']), str(j['round']), out,
+            sh(['node', os.path.join(ROOT, 'tools', 'marks', scr), sim, str(j['match']), str(j['round']), out, str(j.get('ticks', 3000))], cwd=ROOT); continue
+        sh(['node', os.path.join(ROOT, 'tools', 'marks', scr), sim, str(j['match']), str(j['round']), out,
             str(j.get('step', 900)), str(j.get('n', 26)), '1600', '900', j.get('mode', 'both')], cwd=ROOT)
     # (15.11, перестройка) отпечаток бит в бит: {"fp": [{"label", "ref", "map", "matches"?}]} — fingerprint.js на каждый матч (параллельно
     # по par) → runs/<label>/fp_<m>.json; сравнение в облаке — diff двух меток (игру не меняет, только играет и хэширует)

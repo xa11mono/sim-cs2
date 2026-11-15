@@ -65,7 +65,7 @@ function rifleFor(team, b){
   if(b && hashRand(pHash(b.id)*7 + 3) < 0.5) return WEAPONS.M4S;
   return WEAPONS.M4;
 }
-// (v271) какое ПП берут — доли у про на форсах (tools/buy_pro.py, data/pro/buys.json): CT — MP9 90%, MP7 7%;
+// (v271) какое ПП берут — доли у про на форсах (tools/pro/buy_pro.py, data/pro/buys.json): CT — MP9 90%, MP7 7%;
 // T — MAC-10 87%, MP7 10%, UMP 2% (было: UMP 25%, MP7 20% у всех — у про UMP почти не берут)
 function smgFor(team, b){
   if(b){ var h = hashRand(pHash(b.id)*11 + roundNum*3 + 5);
@@ -73,7 +73,7 @@ function smgFor(team, b){
     else { if(h < 0.10) return WEAPONS.MP7; if(h < 0.12) return WEAPONS.UMP; } }
   return team === "CT" ? WEAPONS.MP9 : WEAPONS.MAC10;
 }
-// (v271) пистолет на эко / форсе без основного — доли у про (tools/buy_pro.py); null — остаётся стартовый
+// (v271) пистолет на эко / форсе без основного — доли у про (tools/pro/buy_pro.py); null — остаётся стартовый
 var PRO_PISTOL = {
   eco:   {CT:[["FIVE7",0.32],["DEAGLE",0.21],["P250",0.06]], T:[["TEC9",0.34],["DEAGLE",0.255],["P250",0.08]]},
   force: {CT:[["FIVE7",0.44],["DEAGLE",0.21],["P250",0.03]], T:[["TEC9",0.42],["DEAGLE",0.24],["P250",0.06]]}
@@ -177,13 +177,13 @@ function decideRoundType0(team){
   if(lastOfHalf || matchPoint) return BW("force", lastOfHalf ? "последний раунд половины — копить незачем" : "матч-пойнт соперника — копить незачем");          // копить уже незачем
   // (v251) на винтовки и броню хватает четверым, не хватает только на гранаты —
   // про заходят в фулл, гранаты на остаток (CT после проигранного фулла снова
-  // в фулле 55 %, в эко 21 %, tools/ct_cmp.py). Раньше эта проверка стояла после
+  // в фулле 55 %, в эко 21 %, tools/ct/ct_cmp.py). Раньше эта проверка стояла после
   // «копим на следующий раунд» и не срабатывала никогда: кому хватает сейчас,
   // тому хватит и после эко.
   var canBare = mates.filter(function(b){ return b.money >= fullNeed(b); }).length;
   if(canBare >= 4) return BW("full", "на винтовки и броню хватает — гранаты на остаток");
   // (v560, В94: «слишком часто эко, когда мог быть форс или хаф-бай») про с $2000–3500 на игрока, когда после эко хватило бы на фулл, всё равно
-  // форсят / берут хаф: CT 46 %, T 39 % таких раундов (форс против эко, без фулла; демки Ancient, оценка денег tools/eco_est.py, n 324 / 199),
+  // форсят / берут хаф: CT 46 %, T 39 % таких раундов (форс против эко, без фулла; демки Ancient, оценка денег tools/pro/eco_est.py, n 324 / 199),
   // против фулла соперника — так же (CT 33 % форс / 36 % эко, T 38 / 50). Было: всегда «копим» → эко CT 18–23 % (про 13 %)
   if(canFullNext >= 4){
     var avgM = teamMoney / mates.length;
@@ -324,7 +324,7 @@ function buyForPlayer(b, type, idx){
   var before = b.money;
   if(type === "pistol"){
     // (v271) у про: CT — USP 75%, Dual Berettas 24%; T — Glock 92%, P250 7%, Tec-9 почти никогда
-    // (tools/buy_pro.py). Кто не взял пистолет — кевлар; остальное — гранаты
+    // (tools/pro/buy_pro.py). Кто не взял пистолет — кевлар; остальное — гранаты
     var hP = hashRand(pHash(b.id)*19 + matchNum*5 + roundNum);
     if(b.team === "CT" && hP < 0.24) buyItem(b, "ELITE");
     else if(b.team === "T" && hP < 0.07) buyItem(b, "P250");
@@ -350,7 +350,7 @@ function buyForPlayer(b, type, idx){
     var sniperRole = b.tRole === "awp" || (b.team === "CT" && b.tRole === "mid");
     if(cur0 < 5 && sniperRole && b.money < rf.price + 300 && b.money >= WEAPONS.SSG.price + ARMOR_PRICE) buyItem(b, "SSG");
     if(cur0 < 4 && !(b.primary === "SSG")){
-      // (v271) дешёвая винтовка вместо ПП — доли у про на форсе (tools/buy_pro.py): T Galil 22% против ПП 20%,
+      // (v271) дешёвая винтовка вместо ПП — доли у про на форсе (tools/pro/buy_pro.py): T Galil 22% против ПП 20%,
       // CT FAMAS 5% против ПП 35% (было 0.35 для обеих сторон)
       var wantRifle = b.money >= rf.price + 300 || (b.money >= WEAPONS[b.team === "CT" ? "FAMAS" : "GALIL"].price + 200 && hashRand(roundNum*53 + idx*7 + matchNum) < (b.team === "CT" ? 0.13 : 0.52));
       if(b.money >= rf.price + 300) buyItem(b, rf.key);
@@ -420,7 +420,7 @@ function teamDrops(team){
 // у T такие деньги почти не набирались, и T не брали AWP никогда. Теперь:
 // снайпер покупает сам, если хватает на AWP + кевлар; не хватает — богатый
 // тиммейт покупает и скидывает ему (как в CS)
-// (В142, v578) брать ли AWP в этом раунде — доля про по стороне и закупу (MAP.pro.awpBy, tools/awp_bake.py: Mirage — T фулл 49 %, форс 15 %;
+// (В142, v578) брать ли AWP в этом раунде — доля про по стороне и закупу (MAP.pro.awpBy, tools/map/awp_bake.py: Mirage — T фулл 49 %, форс 15 %;
 // CT фулл 75 %, форс 20 %); раньше снайпер брал AWP всегда, когда хватало денег, только на фулле: у ботов T 62 % раундов с AWP (про 39 %), CT 46 % (про 63 %)
 function teamAwp(team, type){
   var AB = MAP.pro && MAP.pro.awpBy && MAP.pro.awpBy[team];

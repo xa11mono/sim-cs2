@@ -476,7 +476,7 @@ function lookAngleCand(b, moving){
   if(b.atPost && b.post && b.post.pro && !moving){ var plk = proSpotLook(b); if(plk) return {lvl: LOOK_LEVEL.angle, kind: "pro", pt: plk, sc: 1}; }
   // (15.11, владелец: «точки в паре, чтобы смотрели все зоны, откуда выходят T») угол роли расстановки CT из демок (spot / lookYaw, 140) — поручен
   // задачей, как точка про на посту. Было: делёж углов команды перебивал его — на 20-й с угол роли держали редко (уход — медиана 27°), выход
-  // из Palace закрывали в 0–17 % раундов против 43–66 % у про (tools/ct_cover.js)
+  // из Palace закрывали в 0–17 % раундов против 43–66 % у про (tools/ct/ct_cover.js)
   if(b.atPost && b.post && b.post.setupLook && b.post.look && !moving) return {lvl: LOOK_LEVEL.angle, kind: "pro", pt: b.post.look, sc: 1};
   if(!b._lkPt) return null;
   // (v259, В2) после планта на бегу не идёт спиной вперёд ради угла из дележа (догадка, не свежая угроза): смотрит, куда идёт.

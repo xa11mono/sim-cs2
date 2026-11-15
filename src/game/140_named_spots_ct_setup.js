@@ -104,7 +104,7 @@ function chooseCtSetup(){
   var why = {};
   var weights = CT_SETUPS.map(function(S){
     // (v561, этап 6 docs/tasks/PLAN_TACTICS_V2.md; владелец 11.11: «доли расстановок — по закупу, из демок») исходный вес — доля этой расстановки
-    // у про на такой закуп CT (MAP.ctshare: структура A-мид-B к 20 с у про по закупу → наши расстановки той же структуры; tools/ct_setup_bake.py);
+    // у про на такой закуп CT (MAP.ctshare: структура A-мид-B к 20 с у про по закупу → наши расстановки той же структуры; tools/ct/ct_setup_bake.py);
     // дальше — сдвиги по знанию команды (ниже). Было — ручные веса («стандарт ×4», проектные)
     var w = ctShareW(S);
     // (В142, v580) стак — без множителя «T ходили на этот сайт» (было ×6 при 3 из 4, ×2 при 2): у про его нет — демки Mirage, все 5 CT живы
@@ -215,7 +215,7 @@ function ctSetupRole(b, role, ct){
   if(freeZ.length) names = freeZ;
   var nm0 = mineZ || (names[posPickName(b, names, roundNum*97 + role.length*13 + matchNum)]);
   var ref = role === "anchorA" ? GEO.A.anchor : role === "anchorB" ? GEO.B.anchor : GEO.ctMid;
-  // (v417, М153) куда смотрят про с этой точки — точка из демок (lookPt, tools/tactics_bake.py / ct_lookpt_add.py); по имени зоны точка
+  // (v417, М153) куда смотрят про с этой точки — точка из демок (lookPt, tools/map/tactics_bake.py / ct_lookpt_add.py); по имени зоны точка
   // бралась рядом с ботом и направление терялось (Mirage, опорник A в ctStd_212: про смотрят на −52° к A, а точка зоны «CT» — на 159°, назад)
   // прятаться от мида по умолчанию — но не тогда, когда сам взгляд НАПРАВЛЕН
   // в сторону мида/тоннеля (Пуш кейва): иначе позицию тянуло в укромный
@@ -234,7 +234,7 @@ function ctSetupRole(b, role, ct){
   ctProZones(ref).forEach(function(n){ if(tryN.indexOf(n) < 0) tryN.push(n); });
   var crossAlt = null;
   // (15.11, владелец: «расстановки — по демкам, где обычно стоят; точки в паре, чтобы смотрели все зоны, откуда выходят T») место роли —
-  // точка из демок про этой структуры (spot, tools/ct_setup_spots_bake.py), взгляд — угол про у этой точки (lookYaw) до стены. Место
+  // точка из демок про этой структуры (spot, tools/ct/ct_setup_spots_bake.py), взгляд — угол про у этой точки (lookYaw) до стены. Место
   // в CT_SPOT_R от точки, откуда видно, куда смотреть, не занятое своим; нет такого — места по зонам роли (ниже), как было
   if(P.spot){
     var cS = {x: P.spot[0], y: P.spot[1]}, lkS = null;

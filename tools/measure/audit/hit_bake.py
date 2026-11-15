@@ -11,6 +11,7 @@
 python3 tools/measure/audit/hit_bake.py pro            → runs/hits_pro.json
 python3 tools/measure/audit/hit_bake.py bots <метка>…   → по tools/measure/audit/runs/<метка>/hit_rec_*.json"""
 import sys, os, json, glob, math, bisect, collections
+sys.path[:0] = [os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), g) for g in ('map', 'ct', 'pro', 'marks', 'logs', 'motion', 'page')]   # (15.11) модули tools/ разложены по группам
 HERE = os.path.dirname(os.path.abspath(__file__)); ROOT = os.path.dirname(os.path.dirname(os.path.dirname(HERE)))
 sys.path.insert(0, os.path.join(ROOT, 'tools'))
 W, R_CONTACT = 32, 700

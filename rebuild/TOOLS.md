@@ -10,9 +10,9 @@
 | сравнить прогон с базой | `tools/measure/check.py --base=…`, `tools/measure/noise.py`, `tools/measure/replay_cmp.py` | `CLAUDE.md` §8 |
 | разбор взгляда | `LOOKDBG`, `lookDbgPanel` (610), `_ldArb` | галочка «разбор взгляда» на странице |
 | журнал решений | `src/game/645_decision_log.js` (`dlog`) | последние 15 с решений бота |
-| отметки владельца | `tools/mark_open.js`, `tools/mark_story.js`, `tools/mark_frames.js`, `tools/replay_owner.js` | `docs/tasks/02-mark-moment.md` |
+| отметки владельца | `tools/marks/mark_open.js`, `tools/marks/mark_story.js`, `tools/marks/mark_frames.js`, `tools/marks/replay_owner.js` | `docs/tasks/02-mark-moment.md` |
 | прогоны на ПК | `tools/measure/request.json` в ветке `measure/v580a` → `pc-results/<N>` | `CLAUDE.md` §8 |
-| форма движения / взгляда | `tools/motion_shape.py`, `tools/measure/motion/` | В147 |
-| покрытие входов T расстановками CT | `tools/ct_cover_pro.py`, `tools/ct_cover.js`, `tools/ct_setup_shot.py` | задел фазы 4 |
+| форма движения / взгляда | `tools/motion/motion_shape.py`, `tools/measure/motion/` | В147 |
+| покрытие входов T расстановками CT | `tools/ct/ct_cover_pro.py`, `tools/ct/ct_cover.js`, `tools/ct/ct_setup_shot.py` | задел фазы 4 |
 | отпечаток на ПК (с 15.11; облако матчи не гоняет) | `"fp"` в `tools/measure/request.json` (`remote_run.py`) | `{"par": 8, "fp": [{"label": "v582a_fp_mir", "ref": "<коммит>", "map": "mirage"}]}` в ветке `measure/…` → `pc-results/<N>/<метка>/fp_<m>.json.gz`; сравнить метки — `diff` распакованных |
 | мёртвый код на ПК (с 15.11) | `"cov"` в `request.json` → `code_cov.js` по матчу на процесс | `{"cov": [{"label": "…_cov_mir", "ref": "<коммит>", "map": "mirage"}]}` → `cov_<m>.json`: функция, сколько раз вызвана; мёртвая — 0 во всех матчах обеих карт (+ ручная проверка: показ, кнопки, редакторы headless не вызываются) |

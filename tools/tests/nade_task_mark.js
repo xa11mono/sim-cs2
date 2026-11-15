@@ -1,5 +1,5 @@
 // Посты и гранатная задача бота ID за N тиков после снимка: смены поста и задачи (why → точка броска).
-// node tools/mark_open.js sim.html снимок.json "var ID='T0', N=900; $(cat tools/tests/nade_task_mark.js)"
+// node tools/marks/mark_open.js sim.html снимок.json "var ID='T0', N=900; $(cat tools/tests/nade_task_mark.js)"
 (function(){
   var b = teamBot(ID), last = null, o = [];
   var ol = logEvent; logEvent = function(s){ if(String(s).indexOf(ID + ":") === 0 && /гранат/.test(s)) o.push(tick + " LOG " + s); return ol.apply(this, arguments); };

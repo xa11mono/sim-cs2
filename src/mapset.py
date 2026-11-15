@@ -2,7 +2,7 @@
 # ни одной карты и читает только объект MAP. Здесь набор склеивается в MAP и вшивается в страницу.
 #   map.json      — поля верхнего уровня MAP (имя, ключи хранилища, масштаб, спавны, подсказки UI; radar — имя картинки)
 #   <имя>.json    — MAP.<имя> (zones, navmesh, walls, heights, cover, wallbang, tactics, lineups, pro); _*.json — не в MAP
-#                   (рецепт сборки _build.json и отчёты tools/map_build.py); NOT_MAP (throws.json — В1) — тоже не в MAP
+#                   (рецепт сборки _build.json и отчёты tools/map/map_build.py); NOT_MAP (throws.json — В1) — тоже не в MAP
 #   radar.png     — фон; в MAP.radar — data URI
 # JSON-файлы вставляются текстом, без перекодирования: числа остаются ровно как записаны (в т.ч. -0).
 # Метки в исходнике игры (src/game/*): @@MAP@@ — объект MAP; @@MAP_NAME@@, @@MAP_ZONE_HINT@@, @@MAP_ZONE_LAYER_HINT@@ — надписи в разметке.
@@ -10,6 +10,9 @@ import base64, json, os
 
 # данные из демок в папке карты, которые игре не нужны (В1: броски про, ≈ 15 МБ) — в MAP не кладутся
 NOT_MAP = {'throws.json', 'throws_check.json'}
+MAP_FILES = ('map.json', 'navmesh.json', 'map3d.json', 'zones.json', 'walls.json', 'heights.json', 'cover.json', 'wallbang.json', 'climbs.json',
+             'lineups.json', 'luaim.json', 'runups.json', 'nadelanes.json', 'nadeplan.json', 'pro.json', 'tactics.json', 'defaultpos.json',
+             'ctshare.json', 'zoneprops.json', 'turnmodel.json')
 # (v512) nadeguess.json — подборы бросков лайнапов, посчитанные заранее (tools/nades/guess_bake.py): в MAP только если отпечаток
 # кода подбора и данных карты (nade_hash) тот же, с которым считали; иначе игра считает их сама во freeze-тайм, как раньше
 NADE_SRC = ('035_', '080_', '360_', '365_', '380_', '385_', '390_', '400_')
@@ -44,13 +47,19 @@ def nade_hash(name):
 
 def map_js(name):
     d = os.path.join(MAPS, name)
+    # (15.11, перестройка) набор карты без обязательного файла — ошибка сборки с понятным текстом, а не страница, которая падает
+    # или молча играет без данных. Список — файлы, которые есть у обеих карт и нужны игре (nadeguess пересчитывается сам).
+    need = [f for f in MAP_FILES if not os.path.exists(os.path.join(d, f))]
+    if need:
+        import sys
+        sys.exit('ОШИБКА СБОРКИ: в data/maps/%s нет %s — набор карты собирается tools/map/map_build.py' % (name, ', '.join(need)))
     meta = json.load(open(os.path.join(d, 'map.json'), encoding='utf-8'))
     meta.pop('_about', None)
     png = open(os.path.join(d, meta['radar']), 'rb').read()
     meta['radar'] = 'data:image/png;base64,' + base64.b64encode(png).decode()
     parts = [json.dumps(meta, ensure_ascii=False, separators=(',', ':'))[:-1]]
     for fn in sorted(os.listdir(d)):
-        if not fn.endswith('.json') or fn == 'map.json' or fn.startswith('_'): continue   # _*.json — рецепт и отчёты tools/map_build.py
+        if not fn.endswith('.json') or fn == 'map.json' or fn.startswith('_'): continue   # _*.json — рецепт и отчёты tools/map/map_build.py
         if fn in NOT_MAP: continue
         txt = open(os.path.join(d, fn), encoding='utf-8').read().strip()
         if fn == 'nadeguess.json' and json.loads(txt).get('v') != nade_hash(name):

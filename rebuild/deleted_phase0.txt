@@ -255,7 +255,6 @@ tools/measure/ff_count.py
 tools/measure/ff_scene.js
 tools/measure/lookwall.py
 tools/measure/match_scan.js
-tools/measure/pc_fetch.sh
 tools/measure/pro_smoke_play.py
 tools/measure/results/b4_shoot_report.json
 tools/measure/results/b4_shots_report.json

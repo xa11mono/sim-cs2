@@ -37,7 +37,10 @@ const removed = [];   // {key, file, line, what, text}
 const manual = [];
 function lineOf(src, pos) { return src.slice(0, pos).split("\n").length; }
 
-function parse(src) { return acorn.parse(src, { ecmaVersion: "latest", ranges: true, allowReturnOutsideFunction: true, sourceType: "script" }); }
+// preserveParens: скобки — свои узлы, и подставленный кусок берётся вместе с ними (иначе `true && (a || b) && c` → `a || b && c`,
+// ошибка первой свёртки 15.11, найдена отпечатком на ПК: перевыбор носителя бомбы, 120_bomb)
+function parse(src) { return acorn.parse(src, { ecmaVersion: "latest", ranges: true, allowReturnOutsideFunction: true, sourceType: "script", preserveParens: true }); }
+const unp = n => { while (n && n.type === "ParenthesizedExpression") n = n.expression; return n; };
 // обход с родителями
 function walk(node, parent, fn) {
   if (!node || typeof node.type !== "string") return;
@@ -49,9 +52,10 @@ function walk(node, parent, fn) {
     else if (v && typeof v.type === "string") walk(v, node, fn);
   }
 }
-const isBoolLit = n => n && n.type === "Literal" && typeof n.value === "boolean";
+const isBoolLit = n => { n = unp(n); return !!n && n.type === "Literal" && typeof n.value === "boolean"; };
+const litVal = n => unp(n).value;
 function boolCtx(n) {   // результат n нужен только как истина / ложь
-  const p = n._p; if (!p) return false;
+  let p = n._p; while (p && p.type === "ParenthesizedExpression") { n = p; p = n._p; } if (!p) return false;
   if ((p.type === "IfStatement" || p.type === "WhileStatement" || p.type === "DoWhileStatement" || p.type === "ConditionalExpression") && p.test === n) return true;
   if (p.type === "ForStatement" && p.test === n) return true;
   if (p.type === "UnaryExpression" && p.operator === "!") return true;
@@ -81,27 +85,27 @@ function onePass(src, file, tagOf) {
   walk(ast, null, (n) => {
     if (edit) return;
     const S = x => src.slice(x.start, x.end);
-    if (n.type === "UnaryExpression" && n.operator === "!" && isBoolLit(n.argument)) { edit = { s: n.start, e: n.end, t: String(!n.argument.value) }; return; }
+    if (n.type === "UnaryExpression" && n.operator === "!" && isBoolLit(n.argument)) { edit = { s: n.start, e: n.end, t: String(!litVal(n.argument)) }; return; }
     if (n.type === "LogicalExpression" && (n.operator === "&&" || n.operator === "||")) {
       const A = n.operator === "&&";
       if (isBoolLit(n.left)) {
-        if (n.left.value === A) { edit = { s: n.start, e: n.end, t: S(n.right) }; return; }           // true && X / false || X
+        if (litVal(n.left) === A) { edit = { s: n.start, e: n.end, t: S(n.right) }; return; }           // true && X / false || X
         // true || X / false && X — X и раньше никогда не вычислялся (короткое замыкание): остаётся литерал, X — в реестр
         removed.push({ tag: tagOf(n.left.start, n.left.end), file, line: lineOf(src, n.start), what: "правая часть " + n.operator + " (не вычислялась)", text: S(n.right) });
-        edit = { s: n.start, e: n.end, t: String(n.left.value) }; return;
+        edit = { s: n.start, e: n.end, t: String(litVal(n.left)) }; return;
       }
-      if (isBoolLit(n.right) && n.right.value === A && boolCtx(n)) { edit = { s: n.start, e: n.end, t: S(n.left) }; return; }   // X && true / X || false
+      if (isBoolLit(n.right) && litVal(n.right) === A && boolCtx(n)) { edit = { s: n.start, e: n.end, t: S(n.left) }; return; }   // X && true / X || false
       if (isBoolLit(n.right) && !n.right._seen) { n.right._seen = 1; manual.push(file + ":" + lineOf(src, n.start) + "  " + S(n).slice(0, 120)); }
       return;
     }
     if (n.type === "ConditionalExpression" && isBoolLit(n.test)) {
-      const keepN = n.test.value ? n.consequent : n.alternate, drop = n.test.value ? n.alternate : n.consequent;
-      removed.push({ tag: tagOf(n.test.start, n.test.end), file, line: lineOf(src, n.start), what: "ветка ?: (" + (n.test.value ? "ложь" : "истина") + ")", text: S(drop) });
+      const tv = litVal(n.test), keepN = tv ? n.consequent : n.alternate, drop = tv ? n.alternate : n.consequent;
+      removed.push({ tag: tagOf(n.test.start, n.test.end), file, line: lineOf(src, n.start), what: "ветка ?: (" + (tv ? "ложь" : "истина") + ")", text: S(drop) });
       edit = { s: n.start, e: n.end, t: S(keepN) }; return;
     }
     if (n.type === "IfStatement" && isBoolLit(n.test)) {
-      const keepN = n.test.value ? n.consequent : n.alternate, drop = n.test.value ? n.alternate : n.consequent;
-      if (drop) removed.push({ tag: tagOf(n.test.start, n.test.end), file, line: lineOf(src, n.start), what: n.test.value ? "else" : "if(ложь)", text: S(drop) });
+      const tv = litVal(n.test), keepN = tv ? n.consequent : n.alternate, drop = tv ? n.alternate : n.consequent;
+      if (drop) removed.push({ tag: tagOf(n.test.start, n.test.end), file, line: lineOf(src, n.start), what: tv ? "else" : "if(ложь)", text: S(drop) });
       if (!keepN) {   // весь if уходит
         let s = n.start, e = n.end;
         const ls = src.lastIndexOf("\n", s - 1) + 1, le = src.indexOf("\n", e); const le2 = le < 0 ? src.length : le;

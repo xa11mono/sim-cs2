@@ -49,7 +49,7 @@ function nadePrice(type, team){ return (type === "molly" && team === "CT") ? NAD
 // кидают ~10, T ~9.4); набор по роли игрока (демки): саппорт/снайпер — больше утилиты
 var NADE_WISH_PRO = {
   // (v357, владелец: «гранаты не закупаются так часто») набор на фулле по роли — из ответа Claude + JSON cs2_buy_rules (сверено с
-  // ответом Гугла) и поправлен по демкам Mirage (tools/nades_pro.py, броски за фулл-раунд на команду: T смок 4,1, флешка 4,0,
+  // ответом Гугла) и поправлен по демкам Mirage (tools/pro/nades_pro.py, броски за фулл-раунд на команду: T смок 4,1, флешка 4,0,
   // молотов 3,0, HE 1,1; CT 3,5 / 3,0 / зажигалка 3,5 / HE 3,0 — у CT HE втрое больше, чем в оценке JSON). Порядок — что держат
   // дольше всего (первое режут последним). Закуп фулла на команду: T 5 смоков, 7 флешек, 4 молотова, 2 HE; CT 5 / 6 / 4 / 4
   entry:["smoke","flash","flash","molly"], support:["smoke","flash","molly","flash"], igl:["smoke","flash","molly","he"],
@@ -82,7 +82,7 @@ function buyNades(b, type){
     if(t === "flash" ? b.nades.flash >= 2 : b.nades[t] >= 1){ continue; }
     // на хаф/форсе — только если после этого остаётся запас
     if(type !== "full" && b.money - pr < 200 && !(type === "pistol" && b.money >= pr)) continue;
-    if(type === "eco" || type === "pistol" && t === "molly") continue;
+    if((type === "eco" || type === "pistol") && t === "molly") continue;
     if(type === "eco" && b.money - pr < keepEco) continue;
     if(b.money < pr) continue;
     b.money -= pr; b.nades[t]++; npBought(b, t); bought++;

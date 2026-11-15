@@ -888,7 +888,7 @@ return false;
 - выброшено (ветка ?: (ложь)) `src/game/140_named_spots_ct_setup.js:132`:
 
 ```js
-BAL.ctSetup === "1-1-1" ? CT_SETUPS[1] : CT_SETUPS[0]
+(BAL.ctSetup === "1-1-1" ? CT_SETUPS[1] : CT_SETUPS[0])
 ```
 
 ## `BAL.endgame` = true

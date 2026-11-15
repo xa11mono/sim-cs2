@@ -404,7 +404,7 @@ function tBrain(){
       if(!tt._defLog){ tt._defLog = true; logEvent("T: сначала дефолт, "+tac.name+" — позже"); }
       // (снайпер — с группой у цели, мид держит поддержка: AWP на миде в дефолте
       // у ботов был первой жертвой в 19% раундов, у про — 4%)
-      // (v443, док владельца 27.10 «дефолт сравнить с про») места — из демок (MAP.defaultpos, tools/defpos_bake.py): сколько T в среднем
+      // (v443, док владельца 27.10 «дефолт сравнить с про») места — из демок (MAP.defaultpos, tools/map/defpos_bake.py): сколько T в среднем
       // в каждой зоне на 20–50-й с раундов с выходом на этот сайт. Раньше трое шли к точке подготовки цели: на Mirage B — 2,1 игрока
       // в T Apps / Stove / B Apartments против 1,1 у про, на миде 1,0 против 1,9. Зоны — жребий раз на раунд по этим долям (без
       // повтора); ближняя к цели — энтри, дальше IGL, AWP, поддержка; взгляд — на ближайший к зоне вход (A, B или мид)
@@ -892,7 +892,7 @@ function tBrain(){
         if(AS && b.atPost && dfNow && !b._sawEnemy){ if(!AS.arr) AS.arr = tick; else if(tick - AS.arr > 32 && !AS.push){ AS.push = true; AS.pt = bpC; voiceLog("T", "adpush"+b.id+roundNum, b.id, "отсюда бомбу не видно — иду прямо на дефуз"); } }
         setPost(b, AS ? AS.pt : bpC, bpC, true, "antidefuse"); b._stopPlantUntil = tick + 30; });
     } else
-    if(dfGo = tDefuseGo(tt, ts)){
+    if((dfGo = tDefuseGo(tt, ts))){
       var bpA = {x:bomb.x, y:bomb.y};
       // байт-пик: на первый звук выглядывает один (tDefuseBaiter), остальные держат свои места (120: tDefuseGo)
       antiDef = dfGo === "bait" ? ts.filter(function(b){ return b.id === tt._baiter && !b.planting; }) : ts.filter(function(b){ return !b.planting && Math.hypot(b.x-bpA.x, b.y-bpA.y) < 1100; });

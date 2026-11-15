@@ -242,7 +242,7 @@ function updateRetake(cts){
   if(def && prevDef && def !== prevDef && R.phase === "go") voiceLog("CT", "rtdef", def.id, "я ближе — дефужу я");
   if(def) R.defId = def.id;
   alive.forEach(function(b){ b.retakeRole = (b === def) ? "defuser" : (R.assign[b.id] !== 0 ? "flank" : "cover"); });
-  if(R.phase === "gather" || R.phase === "util" && def && ninjaOk()){
+  if((R.phase === "gather" || R.phase === "util") && def && ninjaOk()){
     var tLeftN = bombTimeLeftTicks()/TICK_HZ;
     if(tLeftN > defuseEta(def) + 1){
       R.phase = "go"; R.goTick = tick; R.ninja = tick; R.entryId = "-";
