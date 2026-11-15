@@ -6,7 +6,10 @@
 //            уже несёт принятое решение, новый код его не пересматривает; от pre игра пересчитывается до тика отметки (tick) новым кодом
 //   tick   — тик отметки (с pre обязателен): до него — пересчёт, потом steps
 //   steps  — сколько тиков проиграть после момента отметки перед проверкой (по умолчанию 0)
-//   check  — код в игре, возвращает true / false (можно смотреть всё: bots, tick, bomb, b._dlog …)
+//   when   — (необязательно) код: возникла ли ситуация в момент отметки (после пересчёта новый код может сыграть раунд иначе —
+//            тогда ответ «не возникло», это не ошибка и не «да»; владелец видит то же, открыв отметку)
+//   each   — (необязательно) код на каждый тик от снимка до конца steps; копит наблюдения в объект SCN (SCN.t0 — тик отметки)
+//   check  — код в игре, возвращает true / false (можно смотреть всё: bots, tick, bomb, SCN, b._dlog …)
 //   expect — какой ответ правильный (по умолчанию true); «нет» там, где ошибка ушла, — пишется как expect: false
 // Запуск: node tools/marks/scenarios.js [--map=mirage] [--only=id1,id2]   (сборка — python3 src/build.py --map <карта> во временную папку)
 // Итог — таблица: сценарий, вопрос, ответ, совпало ли с ожидаемым; код выхода 1, если хоть один не совпал.
@@ -22,22 +25,27 @@ const opt = Object.fromEntries(process.argv.slice(2).filter(a => a.startsWith("-
   if (!list.length) { console.log("сценариев нет"); return; }
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "scen_")), sims = {};
   for (const m of new Set(list.map(s => s.map))) { sims[m] = path.join(tmp, m + ".html"); cp.execFileSync("python3", [path.join(ROOT, "src", "build.py"), "--map", m, sims[m]], { stdio: "ignore" }); }
-  const br = await chromium.launch(); let bad = 0; const rows = [];
+  const br = await chromium.launch(); let bad = 0, skip = 0; const rows = [];
   for (const s of list) {
     const pg = await br.newPage(); await pg.route(/^https?:/, r => r.abort());
     let ans, err = "";
     try {
       await pg.goto(require("url").pathToFileURL(sims[s.map]).href); await pg.waitForFunction(() => typeof window.__ev === "function", null, { timeout: 60000 });
-      await pg.evaluate(t => window.__ev("mkOpenSnap")(t), fs.readFileSync(path.resolve(ROOT, s.pre || s.snap), "utf8"));
-      if (s.pre) await pg.evaluate(t => window.__ev("paused = true; var __n = 0; while(tick < " + (t | 0) + " && __n++ < 200000) stepTick(); tick"), s.tick);
-      ans = await pg.evaluate(([n, code]) => window.__ev("paused = true; for(var __i = 0; __i < " + (n | 0) + "; __i++) stepTick(); !!(function(){ return (" + code + "); })()"), [s.steps || 0, s.check]);
+      const sf = path.resolve(ROOT, s.pre || s.snap), raw = fs.readFileSync(sf);
+      await pg.evaluate(t => window.__ev("mkOpenSnap")(t), (sf.endsWith(".gz") ? require("zlib").gunzipSync(raw) : raw).toString("utf8"));
+      const each = s.each ? "(function(){ " + s.each + " })();" : "";
+      await pg.evaluate(([t, each]) => window.__ev("paused = true; window.SCN = {t0: " + (t | 0) + "}; var __n = 0; while(tick < " + (t | 0) + " && __n++ < 200000){ stepTick(); " + each + " } tick"), [s.pre ? s.tick : 0, each]);
+      const when = s.when ? await pg.evaluate(c => window.__ev("!!(function(){ return (" + c + "); })()"), s.when) : true;
+      if (!when) ans = null;
+      else ans = await pg.evaluate(([n, code, each]) => window.__ev("paused = true; for(var __i = 0; __i < " + (n | 0) + "; __i++){ stepTick(); " + each + " } !!(function(){ return (" + code + "); })()"), [s.steps || 0, s.check, each]);
     } catch (e) { err = String(e.message || e).split("\n")[0]; }
     await pg.close();
-    const want = s.expect === undefined ? true : !!s.expect, ok = !err && ans === want; if (!ok) bad++;
-    rows.push("| " + s.id + " | " + s.ask + " | " + (err ? "ошибка: " + err : ans ? "да" : "нет") + " | " + (ok ? "✓" : "✗ (ждали " + (want ? "да" : "нет") + ")") + " |");
+    const want = s.expect === undefined ? true : !!s.expect, none = !err && ans === null, ok = !err && (none || ans === want);
+    if (!ok) bad++; if (none) skip++;
+    rows.push("| " + s.id + " | " + s.ask + " | " + (err ? "ошибка: " + err : none ? "ситуация не возникла" : ans ? "да" : "нет") + " | " + (none ? "—" : ok ? "✓" : "✗ (ждали " + (want ? "да" : "нет") + ")") + " |");
   }
   await br.close(); fs.rmSync(tmp, { recursive: true, force: true });
   console.log("| сценарий | вопрос | ответ | |\n|---|---|---|---|\n" + rows.join("\n"));
-  console.log(bad ? "НЕ СОВПАЛО: " + bad + " из " + list.length : "всё совпало: " + list.length);
+  console.log((bad ? "НЕ СОВПАЛО: " + bad + " из " + list.length : "всё совпало: " + (list.length - skip)) + (skip ? "; ситуация не возникла: " + skip : ""));
   process.exit(bad ? 1 : 0);
 })();
