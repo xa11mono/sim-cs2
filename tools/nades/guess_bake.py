@@ -9,9 +9,11 @@ sys.path.insert(0, os.path.join(ROOT, 'src'))
 import mapset
 name, argv = mapset.map_arg(sys.argv[1:])
 out = os.path.join(mapset.MAPS, name, 'nadeguess.json')
+old = open(out, 'rb').read() if os.path.exists(out) else None   # (15.11) не удалось — вернуть прежний файл
 if os.path.exists(out): os.remove(out)   # считать без старого файла
 sim = os.path.join(tempfile.mkdtemp(), 'sim.html')
-subprocess.run(['python3', os.path.join(ROOT, 'src', 'build.py'), '--map', name, sim], check=True, stdout=subprocess.DEVNULL)
+subprocess.run([sys.executable, os.path.join(ROOT, 'src', 'build.py'), '--map', name, sim], check=True, stdout=subprocess.DEVNULL,
+               env=dict(os.environ, NADEGUESS_BAKING='1'))   # (15.11) сборка внутри пересчёта не пересчитывает сама
 js = r'''freshMatch(3); NADE_PRECALC_N = 1e9; var n = allLineups().length;
 while(NADE_PRECALC_I < n) nadePrecalcTick();
 var bad = 0, s = JSON.stringify(nadeGuessStore.all(), function(k, v){ if(typeof v === "number" && !isFinite(v)) bad++; return v; });
@@ -19,7 +21,9 @@ bad ? "BAD " + bad : s'''
 f = os.path.join(tempfile.mkdtemp(), 'bake.js'); open(f, 'w').write(js)
 r = subprocess.run(['node', os.path.join(ROOT, 'src', 'q.js'), sim, '@' + f], capture_output=True, text=True, timeout=3600)
 txt = r.stdout.strip()
-if not txt.startswith('{'): sys.exit('ошибка: ' + (txt or r.stderr)[-500:])
+if not txt.startswith('{'):
+    if old is not None: open(out, 'wb').write(old)
+    sys.exit('ошибка: ' + (txt or r.stderr)[-500:])
 g = json.loads(txt)
 json.dump({'v': mapset.nade_hash(name), 'g': g}, open(out, 'w'), separators=(',', ':'))
 print(json.dumps({'map': name, 'guesses': len(g), 'bytes': os.path.getsize(out)}))
