@@ -66,7 +66,7 @@ function tryShoot(shooter, target, dist){
   // а не по контакту бота с кем угодно: раньше вторая цель в живой перестрелке шла без реакции (34 % выстрелов раньше 150 мс)
   var cs = (shooter._ts && shooter._ts[target.id]) || 0;
   if(!shooter.alive || !target.alive) return;
-  if(shooter._knife || (shooter._drawUntil && tick < shooter._drawUntil)){ if(shooter._knife){ shooter._knife = false; shooter._drawUntil = tick + Math.round(0.4*TICK_HZ); } return; } // достаёт оружие
+  if((shooter._knife || (shooter._drawUntil && tick < shooter._drawUntil))){ if(shooter._knife){ shooter._knife = false; shooter._drawUntil = tick + Math.round(0.4*TICK_HZ); } return; } // достаёт оружие
   // отступающий стреляет на отходе (раньше не стрелял вообще — его просто
   // расстреливали в спину); бег и так режет ему точность
   if(shooter.planting || shooter.defusing) return; // руки заняты

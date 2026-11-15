@@ -222,7 +222,7 @@ function pickDetour(b, G){
   return true;
 }
 function weaponPickupTick(){
-  if(roundState !== "live" && roundState !== "ending") return;   // (v564, В89) и после конца раунда, до рестарта
+  if((roundState !== "live" && roundState !== "ending")) return;   // (v564, В89) и после конца раунда, до рестарта
   if(!groundWeapons.length){ bots.forEach(function(b){ if(b.alive && b.post && b.post.tag === "pickup"){ clearPost(b); } b._pickGo = null; }); return; }
   bots.forEach(function(b){
     if(!b.alive || b.planting || b.defusing) return;

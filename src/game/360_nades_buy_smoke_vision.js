@@ -82,7 +82,7 @@ function buyNades(b, type){
     if(t === "flash" ? b.nades.flash >= 2 : b.nades[t] >= 1){ continue; }
     // на хаф/форсе — только если после этого остаётся запас
     if(type !== "full" && b.money - pr < 200 && !(type === "pistol" && b.money >= pr)) continue;
-    if(type === "eco" || type === "pistol" && t === "molly") continue;
+    if((type === "eco" || type === "pistol") && t === "molly") continue;
     if(type === "eco" && b.money - pr < keepEco) continue;
     if(b.money < pr) continue;
     b.money -= pr; b.nades[t]++; npBought(b, t); bought++;

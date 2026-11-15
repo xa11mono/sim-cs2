@@ -68,7 +68,7 @@ function detonate(n){
       if(!warned){
         // увернуться можно, только если знал о флешке (видел/слышал бросок);
         // поп-флешка из-за стены почти всегда застаёт врасплох
-        var pD = (n.aware && n.aware[b.id]) ? 0.5 + 0.3*prof(b, "disc") + 0.1*(b.skill-0.8)/0.4 : 0.3;
+        var pD = ((n.aware && n.aware[b.id]) ? 0.5 + 0.3*prof(b, "disc") + 0.1*(b.skill-0.8)/0.4 : 0.3);
         var dodge = hashRand(tick*29 + b.id.charCodeAt(0)*13 + b.id.length*7) < pD;
         if(dodge){ dirK *= 0.3; if(dirK > 0.1) logEvent(b.id+" отвернулся от флешки"); }
       }

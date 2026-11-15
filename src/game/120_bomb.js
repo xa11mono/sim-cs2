@@ -265,7 +265,7 @@ function bombTick(){
     // энтри и AWP бомбу на бегу не подбирают (им лезть первыми) — только тот, кто
     // за ней послан, или если нас осталось двое
     var pick = bots.filter(function(b){ return b.team==="T" && b.alive && Math.hypot(b.baseX-bomb.x, b.baseY-bomb.y) < 36 &&
-      !(b.tRole === "entry" || b.tRole === "awp" && aliveTp > 2 && !(teamTac.T && teamTac.T.fetchId === b.id)); })[0];
+      !((b.tRole === "entry" || b.tRole === "awp") && aliveTp > 2 && !(teamTac.T && teamTac.T.fetchId === b.id)); })[0];
     if(pick){ bomb.state = "carried"; bomb.carrier = pick; logEvent(pick.id+" подобрал бомбу"); }
   } else if(bomb.state === "planted"){
     var def = bots.filter(function(b){ return b.defusing && b.alive; })[0];

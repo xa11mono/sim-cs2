@@ -892,7 +892,7 @@ function tBrain(){
         if(AS && b.atPost && dfNow && !b._sawEnemy){ if(!AS.arr) AS.arr = tick; else if(tick - AS.arr > 32 && !AS.push){ AS.push = true; AS.pt = bpC; voiceLog("T", "adpush"+b.id+roundNum, b.id, "отсюда бомбу не видно — иду прямо на дефуз"); } }
         setPost(b, AS ? AS.pt : bpC, bpC, true, "antidefuse"); b._stopPlantUntil = tick + 30; });
     } else
-    if(dfGo = tDefuseGo(tt, ts)){
+    if((dfGo = tDefuseGo(tt, ts))){
       var bpA = {x:bomb.x, y:bomb.y};
       // байт-пик: на первый звук выглядывает один (tDefuseBaiter), остальные держат свои места (120: tDefuseGo)
       antiDef = dfGo === "bait" ? ts.filter(function(b){ return b.id === tt._baiter && !b.planting; }) : ts.filter(function(b){ return !b.planting && Math.hypot(b.x-bpA.x, b.y-bpA.y) < 1100; });
