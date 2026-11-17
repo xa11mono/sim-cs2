@@ -11,6 +11,7 @@ name, args = map_arg(sys.argv[1:])
 out = args[0] if args else os.path.join(HERE, '..', 'sim.html')
 s = inject_map(inject(game_source()), name)
 open(out, 'w', encoding='utf-8').write(s)
+from gamesrc import bundle_modules; bundle_modules(out)   # (17.11, перестройка — модули) каналы-модули — esbuild
 from syntaxcheck import check; check(out)   # (v461) битая страница — сборка падает сразу
 # (15.11, перестройка, фаза 2) проверка владения полей бота (rebuild/owners.json, tools/rebuild/gen_maps.js --check): страницу не меняет.
 # До переноса канала — предупреждения; перенесённый канал (enforce) — сборка падает. Нет node или acorn — проверка пропущена (с надписью).

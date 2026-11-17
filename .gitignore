@@ -21,3 +21,4 @@ tools/demo_events_out/
 
 # В2: итог проверки физики по броскам (tools/nades/check.js, ≈ 1 мин)
 data/maps/*/throws_check.json
+node_modules/
