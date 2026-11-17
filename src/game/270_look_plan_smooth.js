@@ -210,7 +210,7 @@ function knownWayLook(b){
   return {pt:far, sc:KNOWN_W*Math.exp(-best.age/KNOWN_SEC)*(cov ? LOOK.mateThere : 1), id:best.id, age:best.age, cov:cov};
 }
 // раз в 8 тиков: кандидаты всем + делёж направлений внутри команды
-var LOOK_SMOKE_K = 0.3;
+var LOOK_SMOKE_K = 0.6;   // (владелец 17.11: «дым тоже надо смотреть») проектное: видимый угол той же угрозы важнее, но дым не выпадает; угол в дым закрепляется за взявшим — смотрит один
 function lookPlan(team){
   PORTAL_W[team] = portalWatched(team);
   posClearTick(team);
@@ -233,9 +233,7 @@ function lookPlan(team){
     if(!bestB){ left.forEach(function(b){ b._lkPick = null; }); break; }
     bestB._lkPick = bestC;
     left.splice(left.indexOf(bestB), 1);
-    // (v583a, владелец 17.11: «игрок 3 смотрит в смок, а Short не видит никто — у T1 на Bench на Short смок») угол, на который у взявшего
-    // линия закрыта дымом, за ним не закрепляется: он его не видит — другой, у кого линия чистая, может взять его тоже
-    if(!(bestC.sc < LOOK.claimMin) && !smokeBlocks(bestB.x, bestB.y, bestC.pt.x, bestC.pt.y)) left.forEach(function(o){ if(Math.hypot(o.x-bestB.x, o.y-bestB.y) > LOOK.claimR) return;
+    if(!(bestC.sc < LOOK.claimMin)) left.forEach(function(o){ if(Math.hypot(o.x-bestB.x, o.y-bestB.y) > LOOK.claimR) return;
       o._lkC.forEach(function(c){ if(c.fresh) return;
         if(c.j === bestC.j || Math.hypot(c.pt.x-bestC.pt.x, c.pt.y-bestC.pt.y) < 220){ c.sc *= LOOK.claim; if(c.f) c.f.push(["угол держит " + bestB.id, LOOK.claim]); } }); });
   }

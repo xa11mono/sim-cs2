@@ -80,6 +80,7 @@ function knowCompat(h, s, err, g){
   if(h.type === "moved_unknown") return KNOW.unknownCompat;
   if(h.type === "held") return h.x !== undefined && Math.hypot(h.x-s.x, h.y-s.y) <= err + 60 ? 1 : (h.x === undefined && h.zone === knowZoneAt(s.x, s.y) ? 1 : 0);
   if(h.heard) return Math.hypot(h.x-s.x, h.y-s.y) <= err + 80 ? 1 : 0;
+  if(h.type === "retake") return Math.hypot(h.x-s.x, h.y-s.y) <= err + 120 ? 1 : 0;   // (v583a) идёт на ретейк — рядом с его точкой на пути
   for(var i = 0; i < h.route.length; i++){
     var c = g.c[h.route[i]];
     if(Math.hypot(c.x-s.x, c.y-s.y) <= err + g.r[h.route[i]]) return 1;
@@ -277,8 +278,9 @@ function knowTick(){
     knowWindowsTick(b);
     knowLook(b);
     knowAge(b);
+    knowRetakeDrift(b);
   });
-  ["CT", "T"].forEach(function(team){ var A = teamAgent(team); knowVision(A); knowPlant(A); knowTeamLook(A); knowAge(A); });
+  ["CT", "T"].forEach(function(team){ var A = teamAgent(team); knowVision(A); knowPlant(A); knowTeamLook(A); knowAge(A); knowRetakeDrift(A); });
 }
 // (v269, решение владельца 12.10) гипотеза «остался, где видели» (held) стареет со временем. У про доля тех, кто через Δt
 // после потери из вида всё ещё в 150 px от того места: 2 с — 0,95, 5 — 0,65, 10 — 0,43, 20 — 0,27, 40 — 0,13 (88 демок,
@@ -301,6 +303,30 @@ function knowAge(b){
     var t1 = (tick - B.last.tick)/TICK_HZ, t0 = Math.max(0, t1 - BELIEF_STEP/TICK_HZ), f = knowAgeP(t1)/knowAgeP(t0), hit = false;
     B.hyps.forEach(function(h){ if(h.type === "held" && !h.heard && h.weight > KNOW.heldFloor){ h.weight *= f; hit = true; } });
     if(hit) knowNorm(B.hyps);
+  }
+}
+// (v583a, Д15, владелец 17.11: «никто не смотрит Short, хотя была инфа, что CT на Mid») T после планта знает, как играют CT: идут к бомбе
+// ближайшим путём. CT, которого не видно: та доля, на которую он уже ушёл с места, где видели (вес «стоит, где видели» стареет по кривой
+// про — knowAge), — гипотеза «идёт на ретейк» на его пути к бомбе; она движется по пути со скоростью подхода про (RETAKE_V: первый CT у бомбы
+// при медиане 950 ед. — через 11,5 с, (950 − 250)/11,5 ≈ 60 ед./с; 813 плантов Mirage, tools/measure/retake_cmp.py) и встаёт у бомбы (RETAKE_STOP).
+// Было: после планта гипотезы CT оставались там, где их видели 30 с назад (Window, A Site, Mid), у Short — 0,01
+var RETAKE_V = 60, RETAKE_STOP = 150;
+function knowRetakeDrift(b){
+  var K = b.know; if(!K || b.team !== "T" || !K.planted || !bomb || bomb.state !== "planted" || tick % BELIEF_STEP) return;
+  for(var id in K.enemies){
+    var B = K.enemies[id]; if(B.visible || !B.last || B.last.x == null) continue;
+    var from = Math.max(bomb.plantTick || tick, B.last.tick || 0);
+    if(!B._rt || B._rt.from !== from){ var P = pathPts(B.last.x, B.last.y, bomb.x, bomb.y, B.last.z, bomb.z); B._rt = {from: from, P: P && P.length ? P : [[B.last.x, B.last.y], [bomb.x, bomb.y]]}; }
+    var d = RETAKE_V/PX_UNITS*Math.max(0, (tick - from)/TICK_HZ), P = B._rt.P, L = polyLen(P), x = P[0][0], y = P[0][1];
+    d = Math.min(d, Math.max(0, L - RETAKE_STOP));
+    for(var i = 1; i < P.length; i++){ var sl = Math.hypot(P[i][0]-P[i-1][0], P[i][1]-P[i-1][1]); if(d <= sl){ x = P[i-1][0] + (P[i][0]-P[i-1][0])*d/(sl || 1); y = P[i-1][1] + (P[i][1]-P[i-1][1])*d/(sl || 1); break; } d -= sl; x = P[i][0]; y = P[i][1]; }
+    var h = knowHyp(B, "retake");
+    if(!h){
+      var tSeen = (tick - (B.last.tick || tick))/TICK_HZ, w = 0;
+      B.hyps.forEach(function(q){ if(q.type === "held" && !q.heard) return; var m = q.weight*0.5; q.weight -= m; w += m; });   // прогнозы — пополам (CT могут и сейвить)
+      h = {type: "retake", zone: knowZoneAt(x, y), x: x, y: y, weight: Math.max(w, 1 - knowAgeP(tSeen))}; B.hyps.push(h);
+    } else { h.x = x; h.y = y; h.zone = knowZoneAt(x, y); }
+    knowNorm(B.hyps);
   }
 }
 // ---------- (этап 2, P1-2) знание КОМАНДЫ — отдельный «слушатель» на команду ----------
