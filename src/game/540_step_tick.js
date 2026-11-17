@@ -221,20 +221,18 @@ function jumpCheckTick(b){
 // встречная клавиша гасит ход — как стрейф в перестрелке, 470); стоя — не уходит с точки (отъехал дальше KEYS_DRIFT — жмёт обратно).
 // Перестрелку ведёт 470 (fightStrafe); бег (≥ 200 ед./с) — без качания (у про 10 в минуту)
 // (12 демок Mirage, tools/motion/motion_ctx.py; пауза — вся, включая длинные; same — доля нажатий в ту же сторону, что прошлое)
-var KEYS_PRO = {hold: {press: [0.047, 0.078, 0.109, 0.188, 0.422], gap: [0.0, 0.016, 0.078, 0.219, 0.625], same: 0.35},
-                walk: {press: [0.094, 0.141, 0.234, 0.375, 0.781], gap: [0.0, 0.016, 0.062, 0.203, 0.516], same: 0.35}};
-var KEYS_WALK_ON = 0.55;
+var KEYS_PRO = {hold: {press: [0.047, 0.078, 0.109, 0.188, 0.422], gap: [0.0, 0.016, 0.078, 0.219, 0.625], same: 0.35}};
+// (v583a, Д8, владелец 17.11: «игроки, когда идут, виляют как змейка — чуть вправо, чуть влево; так быть не должно») качание A / D на ходу
+// убрано (было v575: шагом — 46 смен в минуту по выгрузке 12 демок, KEYS_PRO.walk, в половине отрезков ходьбы KEYS_WALK_ON = 0,55):
+// на ходу A / D только по делу (пик, стрейф в перестрелке — 470), стоя на угле — как было
 var KEYS_DRIFT = 22/PX_UNITS;   // ед. → px: стоя дольше 2 с про отходят от середины места не дальше 22 ед. (медиана наибольшего отхода, 1127 отрезков, 12 демок) — дальше жмёт обратно
 function keysRand(b, salt){ return hashRand(tick*37 + b.id.charCodeAt(0)*13 + b.id.charCodeAt(b.id.length-1)*29 + salt); }
 function strafeKeysTick(b, dt){
   var J = b._keys || (b._keys = {key: 0, until: 0, v: 0, last: 1, ax: null, ay: null, ctx: null});
   var sp = (b.curSpeed || 0)*PX_UNITS, ctx = null;
-  // на ходу (100–200 ед./с) про качаются не всё время: без качания 15 смен в минуту, с качанием на каждом отрезке — 70, у про 46 —
-  // качается примерно в половине отрезков ходьбы (доля подобрана под цифру про — KEYS_WALK_ON)
-  var wseg = sp >= 100 && sp < 200; if(wseg && !J.wseg) J.walkOn = keysRand(b, 4) < KEYS_WALK_ON; J.wseg = wseg;
   if(roundState === "live" && b.alive && !b._fc && !b._boost && !b.planting && !b.defusing && tick >= (b.throwUntil || 0) && !b._climb && !b.onLadder && !b._sbOff){
     // (v575, замер 8 матчей: переносов 21 → 62 на 48 раундов) стоя — только когда дошёл (пути нет): качание у конца пути сбивало бота с края пола
-    if(sp < 100 && !(b.path && b.pathIdx < b.path.length) && !b._sawEnemy && !(b.post && taskProp(b.post.tag, "holdStrafeSkip")) && !(b.fakeHoldUntil && tick < b.fakeHoldUntil) && !(tick < (b.blindUntil||0))) ctx = "hold"; else if(sp >= 100 && sp < 200 && !b.atPost && J.walkOn) ctx = "walk"; }
+    if(sp < 100 && !(b.path && b.pathIdx < b.path.length) && !b._sawEnemy && !(b.post && taskProp(b.post.tag, "holdStrafeSkip")) && !(b.fakeHoldUntil && tick < b.fakeHoldUntil) && !(tick < (b.blindUntil||0))) ctx = "hold"; }
   if(ctx !== J.ctx){ J.ctx = ctx; J.key = 0; J.until = tick; J.ax = b.baseX; J.ay = b.baseY; }
   // (v575, прогон 233: «застрял (plantspot): шаг проходит, а стоит» 0 → 12) точка, от которой качание держит (стоя и на ходу — снос от линии
   // пути тоже не больше KEYS_DRIFT; было: на ходу без предела — нажатия в ту же сторону копили снос), сдвигается вместе с остальным
@@ -246,7 +244,7 @@ function strafeKeysTick(b, dt){
   if(!ctx && b._fc) return;   // ход качания забрала перестрелка (fightStrafe обнуляет J.v, когда берёт)
   if(!ctx && (!b.alive || roundState !== "live" || b._climb || b.onLadder)){ J.v = 0; return; }
   if(ctx){   // ось — поперёк взгляда (стоя) / хода (идёт); после конца качания — та же ось, пока ход не погаснет
-    var a = ctx === "walk" ? (b.heading !== undefined ? b.heading : 0) : (b.facing !== undefined ? b.facing : 0); J.ux = -Math.sin(a); J.uy = Math.cos(a);
+    var a = b.facing !== undefined ? b.facing : 0; J.ux = -Math.sin(a); J.uy = Math.cos(a);
     if(tick >= J.until){
       if(J.key){ J.key = 0; J.until = tick + Math.max(1, Math.round(peekQ(KEYS_PRO[ctx].gap, keysRand(b, 1))*TICK_HZ)); }
       else { var s = keysRand(b, 3) < KEYS_PRO[ctx].same ? J.last : -J.last;

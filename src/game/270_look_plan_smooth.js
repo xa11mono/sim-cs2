@@ -62,7 +62,7 @@ function lookCands(b, W){
     if(postA !== null && _angOff(za, postA) < 0.9){ sc *= LOOK.postK; if(F) F.push(["угол поста", LOOK.postK]); }
     if(moving){ var hd = _angOff(za, b.heading); if(hd < 0.9){ sc *= LOOK.headK; if(F) F.push(["по ходу", LOOK.headK]); } else if(hd > 1.9 && !(fresh && d <= 250)){ sc *= rearCov(c) ? LOOK.behindMoveCov : LOOK.behindMove; if(F) F.push([rearCov(c) ? "за спиной (прикрыт)" : "за спиной", rearCov(c) ? LOOK.behindMoveCov : LOOK.behindMove]); } }
     else if(behind && !fresh){ sc *= LOOK.behindHold; if(F) F.push(["за спиной поста", LOOK.behindHold]); }
-    if(!fresh) sc *= lookMateAhead(b, mates, j, c, d, za, F);
+    if(!fresh){ var mk = lookMateAhead(b, mates, j, c, d, za, F); if(!mk){ if(dz) dz.skip = "там стоит свой"; return; } sc *= mk; }
     out.push({j:j, pt:c, sc:sc, fresh:fresh, a:za, f:F});
   });
   // входы в СВОЮ зону: враг из соседней зоны сначала войдёт туда, где стоит бот
@@ -92,7 +92,7 @@ function lookCands(b, W){
     if(postA !== null && _angOff(za, postA) < 0.9){ sc *= LOOK.postK; if(F) F.push(["угол поста", LOOK.postK]); }
     if(moving){ var hd = _angOff(za, b.heading); if(hd < 0.9){ sc *= LOOK.headK; if(F) F.push(["по ходу", LOOK.headK]); } else if(hd > 1.9 && !(fresh && d <= 250)){ sc *= rearCov(c) ? LOOK.behindMoveCov : LOOK.behindMove; if(F) F.push([rearCov(c) ? "за спиной (прикрыт)" : "за спиной", rearCov(c) ? LOOK.behindMoveCov : LOOK.behindMove]); } }
     else if(behind && !fresh){ sc *= LOOK.behindHold; if(F) F.push(["за спиной поста", LOOK.behindHold]); }
-    if(!fresh) sc *= lookMateAhead(b, mates, nn, c, d, za, F, p);   // (v583a, Д5) вход — то же правило, что зона за ним
+    if(!fresh){ var mk = lookMateAhead(b, mates, nn, c, d, za, F, p); if(!mk) return; sc *= mk; }   // (v583a, Д5) вход — то же правило, что зона за ним
     out.push({j:1000+nn, pt:c, sc:sc, fresh:fresh, a:za, f:F});
   });
   // (v281) известные позиции врага (из демок), которые отсюда видно и которые команда ещё не видела пустыми — в т. ч. в своей
@@ -111,7 +111,7 @@ function lookCands(b, W){
     if(fresh){ sc *= LOOK.freshK; if(F) F.push(["свежая угроза", LOOK.freshK]); }
     if(moving){ var hd = _angOff(za, b.heading); if(hd < 0.9){ sc *= LOOK.headK; if(F) F.push(["по ходу", LOOK.headK]); } else if(hd > 1.9 && !(fresh && d <= 250)){ sc *= rearCov(q) ? LOOK.behindMoveCov : LOOK.behindMove; if(F) F.push(["за спиной", rearCov(q) ? LOOK.behindMoveCov : LOOK.behindMove]); } }
     else if(atHold && postA !== null && _angOff(za, postA) > 2.2 && !fresh){ sc *= LOOK.behindHold; if(F) F.push(["за спиной поста", LOOK.behindHold]); }
-    if(!fresh && mates.some(function(o){ return Math.hypot(o.x-q.x, o.y-q.y) < 140; })){ sc *= LOOK.mateThere; if(F) F.push(["там свой", LOOK.mateThere]); }
+    if(!fresh){ var mk = lookMateAhead(b, mates, q.z, q, d, za, F); if(!mk) return; sc *= mk; }   // (v583a, Д5) то же правило «свой впереди»
     out.push({j: "pos:" + q.id, pt: {x: q.x, y: q.y}, sc: sc, fresh: fresh, a: za, pos: q.id, f: F});
   });
   // (v381, арбитр взгляда) свежее ≤ 1 с (свои уши, команда, закреплённый контакт) — отдельные уровни арбитра (lookKnowCands), здесь
@@ -142,7 +142,7 @@ function lookCands(b, W){
       // (v273, владелец 14.10) направление про упирается в стену (у нас геометрия чуть другая) — не точка на стене, а самое открытое
       // направление в пределах ±30° от него (±30° — проектное число), если там видно дальше
       if(dl < 400){ var opn = openToward(b, ae, 0.52), dop = opn ? Math.hypot(opn.x-b.x, opn.y-b.y) : 0; if(opn && dop > dl + 40){ cl = opn; dl = dop; ae = Math.atan2(opn.y-b.y, opn.x-b.x); } }
-      if(dl > 90){ var scp = LOOK.proLook * PL.R;
+      if(dl > 90 && lookMateAhead(b, mates, bzOf(cl.x, cl.y), cl, dl, ae, null)){ var scp = LOOK.proLook * PL.R;   // (v583a, Д5) туда, где свой, — нет
         if(moving){ var hdp = _angOff(ae, b.heading); if(hdp < 0.9) scp *= LOOK.headK; else scp = 0; }
         if(scp > 0) out.push({j:"pl", pt:{x:cl.x, y:cl.y}, sc:scp, fresh:false, a:ae, pro:true, f: D ? [["как у про с этой точки", LOOK.proLook], ["доля про", PL.R]] : null}); } } }
   // угол поста по сетапу — тоже кандидат (слабый), чтобы и он шёл через делёж:
@@ -176,10 +176,10 @@ var KNOWN_SEC = 10, KNOWN_W = 0.2;
 var KWL_CELL = 24, KWL_TTL = 32;   // проектные числа
 // (v583a, Д5, владелец 17.11: «туда, где стоит свой, смотреть не нужно — враг встретит его первым; один вход с разных сторон — нужно»)
 // свой впереди на угрозу — одно правило для зоны и для входа в неё (раньше у входа — только «свой в 140 px от прохода»: T3 у B Window
-// смотрел на выход из Kitchen, где стоял T4): свой у точки появления (140 px) или в самой зоне угрозы рядом с ней (260 px) — «там свой»;
+// смотрел на выход из Kitchen, где стоял T4): свой у точки появления (140 px) или в самой зоне угрозы рядом с ней (260 px) — 0 (не смотреть);
 // свой на моей линии к ней — «свой на линии». Множитель веса; F — разбор
 function lookMateAhead(b, mates, j, c, d, za, F, p){
-  if(mates.some(function(o){ return Math.hypot(o.x-c.x, o.y-c.y) < 140 || (p && Math.hypot(o.x-p.x, o.y-p.y) < 140) || (bzOf(o.x, o.y) === j && Math.hypot(o.x-c.x, o.y-c.y) < 260); })){ if(F) F.push(["там свой", LOOK.mateThere]); return LOOK.mateThere; }
+  if(mates.some(function(o){ return Math.hypot(o.x-c.x, o.y-c.y) < 140 || (p && Math.hypot(o.x-p.x, o.y-p.y) < 140) || (bzOf(o.x, o.y) === j && Math.hypot(o.x-c.x, o.y-c.y) < 260); })) return 0;   // (владелец 17.11, второй раз: «зачем смотрит выход, если там стоит тиммейт») — не кандидат вовсе (было ×0,15)
   if(mates.some(function(o){ var dm = Math.hypot(o.x-b.x, o.y-b.y); return dm > 20 && dm < Math.min(d, 600) && _angOff(Math.atan2(o.y-b.y, o.x-b.x), za) < 0.22; })){ if(F) F.push(["свой на линии", LOOK.mateInLine]); return LOOK.mateInLine; }
   return 1;
 }
