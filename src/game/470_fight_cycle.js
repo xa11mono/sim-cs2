@@ -282,7 +282,11 @@ function fightCycleTick(b, dtSec, busy){
         F.until = tick + Math.max(b.reactionTicks || 1, Math.round(peekQ(D.dur, fightRand(b, 9))*TICK_HZ)); fcWhy(b, "остался: давлю по задаче");
         if(!b._fcP || tick - b._fcP > 4*TICK_HZ){ b._fcP = tick; logEvent(b.id+": давлю по задаче — остаюсь на линии"); }
         return; }
-      var c = c0 || fightCover(b, e, peekQ(D.shift, fightRand(b, 2)), tw) || fightCover(b, e, D.shift[4], tw);
+      // (v583a, владелец 17.11: «раненый боец потом стоит и ничего не делает»; демки про, 9,3 тыс. раненых CT на сайте до планта, Mirage + Ancient:
+      // за 3 с отходят от врага 21 %, стоят 9–11 %; у ботов — отходят 10–13 %, стоят 16–22 %) уже ранен в этой перестрелке — уходит не на шаг
+      // за угол, а глубже: дальнее кольцо укрытия (D.shift[4] — верх сдвигов про), от врага. Проектное: правило «ранен → глубже»
+      var hurtNow = duelHits(b._hitIn, F.t0, null) > 0;
+      var c = (hurtNow ? fightCover(b, e, D.shift[4], tw) : null) || c0 || fightCover(b, e, peekQ(D.shift, fightRand(b, 2)), tw) || fightCover(b, e, D.shift[4], tw);
       if(!c){ F.until = 0; F.t = tick; fcWhy(b, "остался: укрыться негде"); return; }   // укрыться негде — остаётся на линии
       F.ph = "off"; F.mv = 0; F.cx = c.x; F.cy = c.y; F.ax = b.baseX; F.ay = b.baseY; F.own = false;
       F.until = tick + Math.round(peekQ(D.pause, fightRand(b, 3))*TICK_HZ);
