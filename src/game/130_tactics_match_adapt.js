@@ -25,10 +25,10 @@ var MEM_BOX = {};
 function memSnapshot(){ return {tacMem:tacMem, ctRead:ctRead, roundHist:roundHist, ctHabit:ctHabit, tacHist:tacHist, ctSetupHist:ctSetupHist, ctSetupMem:ctSetupMem,
   aggrObs:aggrObs, siteHeat:siteHeat, tSiteHist:tSiteHist, RMEM:RMEM, nadeLandHistory:nadeLandHistory, lastTacticId:lastTacticId}; }
 function memRestore(M){ tacMem = M.tacMem; ctRead = M.ctRead; roundHist = M.roundHist; ctHabit = M.ctHabit; tacHist = M.tacHist; ctSetupHist = M.ctSetupHist; ctSetupMem = M.ctSetupMem;
-  aggrObs = M.aggrObs; siteHeat = M.siteHeat; tSiteHist = M.tSiteHist; RMEM = M.RMEM; nadeLandHistory = M.nadeLandHistory; lastTacticId = M.lastTacticId; }
+  aggrObs = M.aggrObs; siteHeat = M.siteHeat; tSiteHist = M.tSiteHist; rmemSet(M.RMEM); nadeLandHistory = M.nadeLandHistory; lastTacticId = M.lastTacticId; }
 // новый расклад: пустая память + профиль соперника по этому раскладу
 function memStart(){
-  siteHeat = {A:1, B:1}; tSiteHist = []; RMEM = {awp:[], aggro:[], rush:[], midDeath:[]}; nadeLandHistory = {A:[], B:[]}; lastTacticId = null;
+  siteHeat = {A:1, B:1}; tSiteHist = []; rmemSet({awp:[], aggro:[], rush:[], midDeath:[]}); nadeLandHistory = {A:[], B:[]}; lastTacticId = null;
   tacMem = {}; ctRead = []; roundHist = []; ctHabit = {}; tacHist = []; ctSetupHist = []; ctSetupMem = {}; aggrObs = {}; loadOppProfile();
 }
 function resetMatchMemory(){ MEM_BOX = {}; bots.forEach(function(b){ b._mistakes = 0; }); memStart(); }

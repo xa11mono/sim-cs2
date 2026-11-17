@@ -87,7 +87,7 @@ function freshMatch(n, keepProfile){
   nadeLandHistory = {A:[], B:[]};
   tracers.length = 0; soundPings.length = 0; nadesInAir.length = 0; smokes.length = 0; fires.length = 0; nadeFx.length = 0;
   groundWeapons.length = 0; groundItems.length = 0; events.length = 0; killfeed.length = 0;
-  CLEARZ = {CT:{}, T:{}}; LAST_CLEAR = {CT:{}, T:{}}; POSCLR = {CT:{}, T:{}};
+  clearzReset(); LAST_CLEAR = {CT:{}, T:{}}; POSCLR = {CT:{}, T:{}};
   if(typeof beliefReset === "function") beliefReset();
   if(typeof lkpReset === "function") lkpReset();
   clutchInfo = null;

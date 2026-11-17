@@ -37,7 +37,7 @@ function intelPush(team, sig){ sig.tick = tick; teamIntel[team].sig.push(sig); i
 // (Б3, З6) подпись метки — по тому, откуда она: «видели» — только увиденное (радар, смерть своего, бросок, прыжок), остальное
 // (звук, войс «слышу», выстрел убийцы) — «слышали». Раньше на панели взгляда всё подписывалось «видели»: 31–34 % таких меток — звук
 function lkpWord(q){ return q && q.src === "spotted" ? "видели" : "слышали"; }
-function lkpReset(){ if(typeof CLEARZ !== "undefined") CLEARZ = {CT:{}, T:{}}; }
+function lkpReset(){ if(typeof CLEARZ !== "undefined") clearzReset(); }
 function lkpSet(team, id, x, y, src){ var e = beliefLast[team][id]; if(e && src === "sound" && e.src === "spotted" && tick - e.tick < 2*TICK_HZ) return;
   beliefLast[team][id] = {x:x, y:y, tick:tick, src:src};
   var zi = zoneIdAt(x, y); if(zi && CLEARZ[team][zi]) delete CLEARZ[team][zi]; }
@@ -400,3 +400,8 @@ function tradeAlertSet(b, ticks){ b._tradeUntil = tick + ticks; }
 function tradeGoing(b){ return !!(b._tradeLock && b._tradeLock.until > tick); }
 function tradeAlert(b){ return tick < (b._tradeUntil || 0); }
 function tradeEnd(b, all){ b._tradeLock = null; if(all) b._tradeUntil = 0; }
+// (17.11, перестройка — модули) хранилища знания команды сбрасывают / подменяют только через свой файл: индекс зон (редактор зон 560),
+// кэш «зоны по названию» (200, 560), память раунда RMEM (память матча 130). Импорт модуля — только для чтения
+function zoneIndexReset(){ ZIDX = null; }
+function zoneNameCacheReset(){ _zbnCache = {}; }
+function rmemSet(v){ RMEM = v; }

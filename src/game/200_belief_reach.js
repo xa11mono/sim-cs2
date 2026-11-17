@@ -15,7 +15,7 @@
 // куда смотреть, стоя на посту, и не открыта ли точка под два опасных угла.
 var BZ = {ids:[], idx:{}, nbr:[], cent:[], grid:{}, siteZ:{A:[],B:[]}, midZ:[]};
 function beliefBuild(){
-  _zbnCache = {};   // (v334) кэш «зоны по названию» мог заполниться пустыми ответами до графа зон — на Mirage расстановки CT не находили ни одной зоны
+  zoneNameCacheReset();   // (v334) кэш «зоны по названию» мог заполниться пустыми ответами до графа зон — на Mirage расстановки CT не находили ни одной зоны
   BZ.ids = ZONEMAP.zones.map(function(z){ return z.id; });
   BZ.idx = {}; BZ.ids.forEach(function(id,i){ BZ.idx[id] = i; });
   BZ.nbr = BZ.ids.map(function(){ return []; });
