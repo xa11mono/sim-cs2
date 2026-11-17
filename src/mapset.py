@@ -61,13 +61,14 @@ def map_js(name):
     for fn in sorted(os.listdir(d)):
         if not fn.endswith('.json') or fn == 'map.json' or fn.startswith('_'): continue   # _*.json — рецепт и отчёты tools/map/map_build.py
         if fn in NOT_MAP: continue
+        # (17.11) внутри пересчёта подбора (NADEGUESS_BAKING) — всегда без файла: подбор считается с нуля, старый файл не трогается
+        if fn == 'nadeguess.json' and os.environ.get('NADEGUESS_BAKING'): continue
         txt = open(os.path.join(d, fn), encoding='utf-8').read().strip()
         if fn == 'nadeguess.json' and json.loads(txt).get('v') != nade_hash(name):
             # (15.11, владелец: «чтобы не надо было считать руками») устаревший подбор бросков сборка пересчитывает сама
             # (tools/nades/guess_bake.py, ~20 с, без матчей) — раньше молча не включала, и игра шла без него (Mirage с v581a).
             # Внутри самого пересчёта (NADEGUESS_BAKING) — без файла: подбор считается с нуля.
             import sys, subprocess
-            if os.environ.get('NADEGUESS_BAKING'): continue
             print('  nadeguess.json устарел — пересчитываю (tools/nades/guess_bake.py --map %s)' % name, file=sys.stderr)
             bake = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'tools', 'nades', 'guess_bake.py')
             r = subprocess.run([sys.executable, bake, '--map', name], env=dict(os.environ, NADEGUESS_BAKING='1'))
