@@ -405,10 +405,10 @@ function coverForReload(b, from){
   var sp = pickSpots("rlcov"+tick+b.id, {x:b.x, y:b.y}, 3, {rMin:30, rMax:150, minGap:30, hideFrom:from.concat(thr)})
     .filter(function(q){ return from.every(function(f){ return !hasLOS(q.x, q.y, f.x, f.y); }); })[0];
   if(!sp) return false;
-  b._reposUntil = 0;
+  taskKeep(b, 0, "fight");
   setPost(b, sp, from[0], true, "repos:rlcover");
   if(!b.post || b.post.tag !== "repos:rlcover") return false;
-  b._reposUntil = tick + 3*TICK_HZ;
+  taskKeep(b, tick + 3*TICK_HZ, "fight");
   logEvent(b.id+": уходит за укрытие перезарядиться");
   return true;
 }
@@ -457,11 +457,11 @@ function lowHpBack(b){
     var E0 = ents[0];
     var spE = E0 ? pickSpots("lowhpE"+tick+b.id, E0.pt, 2, {rMin:120, rMax:280, minGap:40, must:[E0.pt], hideFrom:threat.slice(0, 3)})[0] : null;
     if(spE){
-      b._reposUntil = 0; b._probeLock = 0;
+      taskKeep(b, 0, "fight"); b._probeLock = 0;
       setPost(b, spE, E0.pt, true, "repos:lowhp");
       if(b.post && b.post.tag === "repos:lowhp"){
         if(b.state === "hold") leaveHold(b);
-        b._reposUntil = tick + 10*TICK_HZ; b._lowHpNext = tick + 10*TICK_HZ;
+        taskKeep(b, tick + 10*TICK_HZ, "fight"); b._lowHpNext = tick + 10*TICK_HZ;
         voiceLog(b.team, "lowhp"+b.id, b.id, "у меня "+b.hp+" — держу проход "+calloutName(E0.pt.x, E0.pt.y));
         return;
       }
@@ -476,11 +476,11 @@ function lowHpBack(b){
   if(!low){
     var spC = pickSpots("matedown"+tick+b.id, {x:b.x, y:b.y}, 1, {rMin:30, rMax:200, minGap:30, hideFrom:threat.slice(0, 3)})[0];
     if(!spC) return;
-    b._reposUntil = 0; b._probeLock = 0;
+    taskKeep(b, 0, "fight"); b._probeLock = 0;
     setPost(b, spC, threat[0], true, "repos:mateDown");
     if(!b.post || b.post.tag !== "repos:mateDown") return;
     if(b.state === "hold") leaveHold(b);
-    b._reposUntil = tick + 6*TICK_HZ; b._lowHpNext = tick + 10*TICK_HZ;
+    taskKeep(b, tick + 6*TICK_HZ, "fight"); b._lowHpNext = tick + 10*TICK_HZ;
     return;
   }
   // (v271) мало HP — к своим, только если свой недалеко по пути (LOWHP_MATE_PATH) и путь не идёт мимо известных
@@ -496,11 +496,11 @@ function lowHpBack(b){
   var sp = m ? (pickSpots("lowhp"+tick+b.id, {x:m.x, y:m.y}, 2, {rMin:40, rMax:180, minGap:40, hideFrom:threat.slice(0, 3)})[0] || {x:m.x, y:m.y})
              : pickSpots("lowhpc"+tick+b.id, {x:b.x, y:b.y}, 1, {rMin:30, rMax:200, minGap:30, hideFrom:threat.slice(0, 3)})[0];
   if(!sp) return;
-  b._reposUntil = 0; b._probeLock = 0;
+  taskKeep(b, 0, "fight"); b._probeLock = 0;
   setPost(b, sp, threat[0], true, "repos:lowhp");
   if(!b.post || b.post.tag !== "repos:lowhp") return;
   if(b.state === "hold") leaveHold(b);
-  b._reposUntil = tick + 6*TICK_HZ; b._lowHpNext = tick + 10*TICK_HZ;
+  taskKeep(b, tick + 6*TICK_HZ, "fight"); b._lowHpNext = tick + 10*TICK_HZ;
   voiceLog(b.team, "lowhp"+b.id, b.id, m ? "у меня "+b.hp+" — отхожу к "+m.id : "у меня "+b.hp+" — свои далеко, играю от укрытия");
 }
 // ---- шифт по угрозе ----

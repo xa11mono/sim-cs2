@@ -192,7 +192,7 @@ function heDodgeTick(){
       var sp = pickSpots("hed"+Math.round(b.x/30)+","+Math.round(b.y/30), {x:b.x, y:b.y}, 4, {rMax:Math.max(40, reach), minGap:20, hideFrom:[det]})
         .filter(function(q){ return Math.hypot(q.x-b.x, q.y-b.y) <= reach && (Math.hypot(q.x-det.x, q.y-det.y) > R || !hasLOS(q.x, q.y, det.x, det.y)); })
         .sort(function(p, q){ return Math.hypot(p.x-b.x, p.y-b.y) - Math.hypot(q.x-b.x, q.y-b.y); })[0];
-      if(sp && setPost(b, sp, det, true, "repos:he")){ b._reposUntil = tick + Math.round((eta + 0.5)*TICK_HZ);
+      if(sp && setPost(b, sp, det, true, "repos:he")){ taskKeep(b, tick + Math.round((eta + 0.5)*TICK_HZ), "he");
         if(!b._heDodgeLog || tick - b._heDodgeLog > 3*TICK_HZ){ b._heDodgeLog = tick; logEvent(b.id+": HE рядом — ухожу ("+eta.toFixed(1)+" с до взрыва)"); } }
     });
   });

@@ -67,11 +67,11 @@ function flankAssist(b){
   if(!sp) return false;
   // (v518a) идёт по задаче важнее захода — заход как отклонение (detourOk, 110): цена — время дойти до точки захода
   if(!taskCanSet(b, "repos:flank")){ var fsec = pathLenTo(b, sp.x, sp.y)/SPEED; if(!detourOk(b, "help", fsec)) return false; detourStart(b, "help", "repos:flank", fsec + 2); }
-  b._reposUntil = 0; b._probeLock = 0;
+  taskKeep(b, 0, "assist"); b._probeLock = 0;
   setPost(b, sp, ep, true, "repos:flank");
   if(!b.post || b.post.tag !== "repos:flank") return false;
   if(b.state === "hold") leaveHold(b);
-  b._reposUntil = tick + 6*TICK_HZ;
+  taskKeep(b, tick + 6*TICK_HZ, "assist");
   b.lastIntel = {x:ep.x, y:ep.y, tick:tick, src:"call"};
   flankClaim(b, E.id, true); b._flankE = E.id; b._flankT = tick;
   voiceLog(b.team, "flank"+b.id, b.id, "захожу с фланга на "+E.id);
@@ -121,12 +121,12 @@ function assistPeek(b){
   // точку на моём ярусе ближе к врагу — вперёд по линии на него и в стороны от неё, — откуда видна хоть часть врага; ближайшую
   if(!sp) sp = assistEdgeSpot(b, E);
   if(!sp) return false;
-  b._reposUntil = 0; b._probeLock = 0;
+  taskKeep(b, 0, "assist"); b._probeLock = 0;
   if(detour) detourStart(b, "help", "repos:assist", 2);
   setPost(b, sp, ep, true, "repos:assist");
   if(!b.post || b.post.tag !== "repos:assist") return false;
   if(b.state === "hold") leaveHold(b);
-  b._reposUntil = tick + 2*TICK_HZ;
+  taskKeep(b, tick + 2*TICK_HZ, "assist");
   b.lastIntel = {x:ep.x, y:ep.y, tick:tick, src:"call"}; // знает, куда выходит — прицел на враге (префайр по коллу)
   if(!b._assistVoice || tick - b._assistVoice > 4*TICK_HZ){ b._assistVoice = tick; voiceLog(b.team, "assist"+b.id, b.id, "дабл с "+mate.id+"!"); }
   return true;
@@ -137,7 +137,7 @@ function updateReload(b){
   var w = b.weapon; if(!w || !b.alive) return;
   if(b._ammoFor !== w.key){ b._ammoFor = w.key; b.ammo = w.mag; b._reloading = false; b.reloadUntil = 0; }
   // (v555, м298 р1: «пострелял, ушёл за укрытие и стоит») перезарядился — укрытие больше не нужно: задача снимается, бот возвращается к своей
-  if(b._reloading && tick >= b.reloadUntil){ b._reloading = false; b.ammo = w.mag; if(b.post && b.post.tag === "repos:rlcover"){ b._reposUntil = 0; clearPost(b); } }
+  if(b._reloading && tick >= b.reloadUntil){ b._reloading = false; b.ammo = w.mag; if(b.post && b.post.tag === "repos:rlcover"){ taskKeep(b, 0, "assist"); clearPost(b); } }
   if(b._onPistol) pistolBack(b);
   if(!b._reloading && b.ammo <= 0 && pistolSwap(b)) return;
   // после перестрелки про перезаряжается почти всегда, если магазин заметно
@@ -163,11 +163,11 @@ function updateReload(b){
       if(exE.length && !coverForReload(b, exE) && !(b._rlCoverT && tick - b._rlCoverT < 3*TICK_HZ && b.post && b.post.tag === "repos:rlcover")){
         var ea = Math.atan2(exE[0].y-b.y, exE[0].x-b.x), sgn = hashRand(tick + b.id.charCodeAt(1)) < 0.5 ? 1 : -1;
         var sq = walk({x: b.x + Math.cos(ea + sgn*Math.PI/2)*50, y: b.y + Math.sin(ea + sgn*Math.PI/2)*50});
-        if(sq && !stepBlocked(b.x, b.y, sq.x, sq.y, b)){ b._reposUntil = 0; setPost(b, sq, exE[0], true, "repos:rlcover"); if(b.post && b.post.tag === "repos:rlcover") b._reposUntil = tick + Math.round(w.reload*TICK_HZ); }
+        if(sq && !stepBlocked(b.x, b.y, sq.x, sq.y, b)){ taskKeep(b, 0, "assist"); setPost(b, sq, exE[0], true, "repos:rlcover"); if(b.post && b.post.tag === "repos:rlcover") taskKeep(b, tick + Math.round(w.reload*TICK_HZ), "assist"); }
       }
     }
     b._reloading = true; b.reloadUntil = tick + Math.round(w.reload*TICK_HZ);
-    if(b.post && b.post.tag === "repos:rlcover") b._reposUntil = b.reloadUntil;   // (v555) укрытие держится, пока идёт перезарядка, — не 3 с
+    if(b.post && b.post.tag === "repos:rlcover") taskKeep(b, b.reloadUntil, "assist");   // (v555) укрытие держится, пока идёт перезарядка, — не 3 с
     if(b.ammo <= 0) logEvent(b.id+": перезарядка ("+w.name+", "+w.reload+"с)");
     reloadHeard(b, w);
   }

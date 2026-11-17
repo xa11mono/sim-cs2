@@ -304,7 +304,7 @@ function intelDeath(victim, killer){
         var sc = Math.min(da, 0.8) - Math.hypot(q.x-o.x, q.y-o.y)/1500; if(sc > sBest){ sBest = sc; sw = q; } });
       sw = sw || {x:victim.x, y:victim.y};
       if(!setPost(o, sw, kp, true, "tradeR")) return;   // (v378) занят задачей важнее размена (бомба, сейв) — арбитр места
-      o._probeLock = 0; o._reposUntil = 0;
+      o._probeLock = 0; taskKeep(o, 0, "call");
       o._tradeLock = {until: tick + Math.round(3.5*TICK_HZ), at:{x:victim.x, y:victim.y}, kp:kp};
       o._tradeUntil = tick + Math.round(3.5*TICK_HZ);
       o.heardSound = {x:kp.x, y:kp.y, tick:tick, team:killer.team, src:killer.id, kind:"call"};

@@ -200,9 +200,9 @@ function postKillDecide(sh, tg, vp, here){
     var np = pickSpots("pkb"+tick+sh.id, back, 4, {rMin:0, rMax:200, minGap:50, see: sh.post && sh.post.look ? [sh.post.look] : [], hideFrom:hide})
       .filter(function(p){ return Math.hypot(p.x-here.x, p.y-here.y) > 70 && !hasLOS(p.x, p.y, vp.x, vp.y); })[0];
     if(np){
-      sh._reposUntil = 0; sh._probeLock = 0;
+      taskKeep(sh, 0, "afterkill"); sh._probeLock = 0;
       setPost(sh, np, vp, true, "repos:back");
-      if(sh.post && sh.post.tag === "repos:back"){ leaveHold(sh); sh._reposUntil = tick + 4*TICK_HZ;
+      if(sh.post && sh.post.tag === "repos:back"){ leaveHold(sh); taskKeep(sh, tick + 4*TICK_HZ, "afterkill");
         logEvent(sh.id+": после фрага откат — "+(sh.hp <= 45 ? "мало HP" : "их ещё "+known.length+" рядом")); return true; }
     }
   }
@@ -213,9 +213,9 @@ function postKillDecide(sh, tg, vp, here){
       var tgt = known[0] ? {x:known[0].x, y:known[0].y} : vp;
       var sw = pickSpots("pkp"+tick+sh.id, vp, 4, {rMax:150, minGap:40, see:[tgt]})
         .filter(function(p){ return Math.hypot(p.x-here.x, p.y-here.y) > 60; })[0] || vp;
-      sh._reposUntil = 0;
+      taskKeep(sh, 0, "afterkill");
       setPost(sh, sw, tgt, true, "repos:push");
-      if(sh.post && sh.post.tag === "repos:push"){ leaveHold(sh); sh._reposUntil = tick + 3*TICK_HZ;
+      if(sh.post && sh.post.tag === "repos:push"){ leaveHold(sh); taskKeep(sh, tick + 3*TICK_HZ, "afterkill");
         logEvent(sh.id+": после фрага добирает — "+(known.length ? "второй рядом" : "дальше по месту фрага")); return true; }
     }
   }
@@ -239,10 +239,10 @@ function killMoveCover(sh, tg){
   var spK = pickSpots("kmv"+tick+sh.id, hereK, 3, {rMin:KILL_MOVE[0], rMax:KILL_MOVE[1], minGap:30, hideFrom:[vpK], see:seeK})
     .filter(function(q){ return Math.hypot(q.x-hereK.x, q.y-hereK.y) >= KILL_MOVE[0]; })[0];
   if(!spK) return false;
-  sh._reposUntil = 0; sh._probeLock = 0; fcEnd(sh, "конец: враг убит — иду дальше");   // перестрелка с убитым кончилась — цикл «линия/укрытие» не держит на месте
+  taskKeep(sh, 0, "afterkill"); sh._probeLock = 0; fcEnd(sh, "конец: враг убит — иду дальше");   // перестрелка с убитым кончилась — цикл «линия/укрытие» не держит на месте
   setPost(sh, spK, sh.post && sh.post.look ? sh.post.look : vpK, true, "repos:killmove");
   if(!sh.post || sh.post.tag !== "repos:killmove") return false;
-  leaveHold(sh); sh._reposUntil = tick + 2*TICK_HZ;
+  leaveHold(sh); taskKeep(sh, tick + 2*TICK_HZ, "afterkill");
   return true;
 }
 function afterKillReact(sh, tg, w){
@@ -279,11 +279,11 @@ function afterKillReact(sh, tg, w){
     var alt = pickSpots("awpr"+tick+sh.id, here, 4, {rMin:100, rMax:260, minGap:60, see:seeA, hideFrom:others, cross:{from:here, pt:vp}});
     var ap = alt.filter(function(q){ return Math.hypot(q.x-here.x, q.y-here.y) > 90; })[0];
     if(!ap) return false;
-    sh._reposUntil = 0; sh._probeLock = 0;
+    taskKeep(sh, 0, "afterkill"); sh._probeLock = 0;
     setPost(sh, ap, vp, true, "repos");
     if(!sh.post || sh.post.tag !== "repos") return false; // пост перебит (размен/лайнап) — не уходит
     leaveHold(sh);
-    sh._reposUntil = tick + Math.round((5 + 2*pd)*TICK_HZ);
+    taskKeep(sh, tick + Math.round((5 + 2*pd)*TICK_HZ), "afterkill");
     logEvent(sh.id+" (AWP): после фрага уходит с угла — новый угол, держит "+calloutName(vp.x, vp.y));
     return true;
   }
@@ -297,11 +297,11 @@ function afterKillReact(sh, tg, w){
   if(mates >= 1 && roundGoal(sh.team) !== "keepGuns" && pa >= 0.75 && pr >= 0.7 && sh.hp > 60 && foes700.length >= 1 && foes700.length <= 2 && hashRand(tick*41 + sh.id.charCodeAt(1)*3) < pa*0.6){
     var sw = pickSpots("swing"+tick+sh.id, vp, 3, {rMax:140, minGap:40})[0] || vp;
     var nf = foesNear.slice().sort(function(a, c){ return Math.hypot(a.x-vp.x, a.y-vp.y) - Math.hypot(c.x-vp.x, c.y-vp.y); })[0];
-    sh._reposUntil = 0;
+    taskKeep(sh, 0, "afterkill");
     setPost(sh, sw, {x:nf.x, y:nf.y}, true, "repos:swing");
     if(!sh.post || sh.post.tag !== "repos:swing") return false;
     leaveHold(sh);
-    sh._reposUntil = tick + 3*TICK_HZ;
+    taskKeep(sh, tick + 3*TICK_HZ, "afterkill");
     logEvent(sh.id+": агрессивно добирает после фрага — выходит за вторым");
     return true;
   }
@@ -325,7 +325,7 @@ function shiftHold(sh, vp, exceptId, why){
   if(!np) return false;
   sh._hs = {round:roundNum, tag:sh.post.tag, pt:np, t:tick};
   var lk0 = sh.post.look, tg0 = sh.post.tag;
-  sh._reposUntil = 0; sh._probeLock = 0;
+  taskKeep(sh, 0, "afterkill"); sh._probeLock = 0;
   setPost(sh, np, lk0, true, tg0);
   leaveHold(sh);
   sh._avoidPeekUntil = tick + 6*TICK_HZ; sh._avoidPeekAt = {x:vp.x, y:vp.y};

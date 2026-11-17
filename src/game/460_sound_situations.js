@@ -55,10 +55,10 @@ function reloadPeek(b){
   if(hashRand(tick*43 + (b.id.charCodeAt(b.id.length-1)||0)*3) > (0.35 + 0.5*prof(b, "aggr"))*(downN ? 0.5 : 1)) return false;
   var sp = pickSpots("rlpeek"+tick+b.id, {x:b.x, y:b.y}, 2, {rMax:140, minGap:40, see:[{x:R.x, y:R.y}]})[0];
   if(!sp) return false;
-  b._reposUntil = 0; b._probeLock = 0;
+  taskKeep(b, 0, "sound"); b._probeLock = 0;
   setPost(b, sp, {x:R.x, y:R.y}, true, "repos:reload");
   if(!b.post || b.post.tag !== "repos:reload") return false;
-  b._reposUntil = Math.min(R.until + 32, tick + 3*TICK_HZ);
+  taskKeep(b, Math.min(R.until + 32, tick + 3*TICK_HZ), "sound");
   logEvent(b.id+": пикает на перезарядку "+R.id);
   return true;
 }
@@ -112,10 +112,10 @@ function finishPush(b){
   if(!tgt) return;
   var sp = pickSpots("finish"+tick+b.id, {x:b.x, y:b.y}, 2, {rMax:200, minGap:40, see:[{x:tgt.x, y:tgt.y}]})[0];
   if(!sp) return;
-  b._reposUntil = 0; b._probeLock = 0;
+  taskKeep(b, 0, "sound"); b._probeLock = 0;
   setPost(b, sp, {x:tgt.x, y:tgt.y}, true, "repos:finish");
   if(!b.post || b.post.tag !== "repos:finish") return;
-  b._finId = tid; b._reposUntil = tick + 3*TICK_HZ; b.lastIntel = {x:tgt.x, y:tgt.y, tick:tick, src:"call"};
+  b._finId = tid; taskKeep(b, tick + 3*TICK_HZ, "sound"); b.lastIntel = {x:tgt.x, y:tgt.y, tick:tick, src:"call"};
   voiceLog(b.team, "fin"+tid+b.id, b.id, tid+" лоу, "+HT[tid].hp+" — добиваю");
 }
 // ---- (S7) смок уходит — готовность к выходу из-за него ----
@@ -196,7 +196,7 @@ function onBlind(b, threat){
     var cs = hasLOS(cov.x, cov.y, threat.x, threat.y) ? null : pickSpots("covblind"+tick+cov.id, {x:cov.x, y:cov.y}, 3, {rMax:130, minGap:24, see:[threat]})
           .filter(function(q){ return hasLOS(q.x, q.y, threat.x, threat.y) && Math.hypot(q.x-b.x, q.y-b.y) > 60 && !(back && Math.hypot(q.x-back.x, q.y-back.y) < 60); })[0];
     if(!cs){ cov._coverDir = {pt:{x:threat.x, y:threat.y}, until:b.blindUntil}; voiceLog(b.team, "cb"+b.id+tick, cov.id, "держу угол за "+b.id); }
-    if(cs){ cov._reposUntil = 0; setPost(cov, cs, threat, true, "repos:coverblind"); if(cov.post && cov.post.tag === "repos:coverblind"){ cov._reposUntil = tick + Math.max(2*TICK_HZ, b.blindUntil - tick); voiceLog(b.team, "cb"+b.id, cov.id, b.id+" слепой — держу его угол"); } }
+    if(cs){ taskKeep(cov, 0, "sound"); setPost(cov, cs, threat, true, "repos:coverblind"); if(cov.post && cov.post.tag === "repos:coverblind"){ taskKeep(cov, tick + Math.max(2*TICK_HZ, b.blindUntil - tick), "sound"); voiceLog(b.team, "cb"+b.id, cov.id, b.id+" слепой — держу его угол"); } }
   }
 }
 // ---- кончились патроны в бою: пистолет ----

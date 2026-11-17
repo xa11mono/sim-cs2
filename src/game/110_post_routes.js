@@ -266,6 +266,9 @@ function taskKeepUntil(b, tag){
   if(f[1] === "repos") return b._reposUntil || 0;
   return b._rebal && b._rebal.round === roundNum ? Infinity : 0;   // ребаланс — до конца раунда
 }
+// (17.11, перестройка, фаза 3 шаг 3) срок перестановки в бою (repos:*) — у арбитра места: механики не пишут свой замок _reposUntil
+// (было 32 места в 8 файлах), а просят taskKeep(b, до_тика, причина); читают — taskKeepUntil(b, "repos"). Причина — b._keepWhy
+function taskKeep(b, until, why){ b._reposUntil = until; b._keepWhy = why; }
 function taskTagB(tag){ tag = String(tag); var r = /^repos:\w+/.exec(tag); return r ? r[0] : tag.replace(/[:|].*$/, ""); }
 function taskLevel(tag){ tag = String(tag || ""); for(var i=0;i<TASK_LEVEL.length;i++) if(TASK_LEVEL[i].re.test(tag)) return TASK_LEVEL[i].lv; return 1; }
 function taskAlive(b){ var T = b._task; return !!T && T.round === roundNum && (tick - T.t <= TASK_STALE || tick < taskKeepUntil(b, T.tag)); }

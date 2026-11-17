@@ -29,7 +29,7 @@ function moveWalkWhy(bot){
   // отставание на один тик не критично для решения "идти тише".
   if(bot.holding || bot._sawEnemy || bot._stopPlantUntil > tick || (bot._tradeLock && bot._tradeLock.until > tick)) return null;
   // уход с засвеченного угла после фрага — бегом, а не шифтом (позиция и так известна)
-  if(bot.post && taskProp(bot.post.tag, "reposMove") && bot._reposUntil > tick) return null;
+  if(bot.post && taskProp(bot.post.tag, "reposMove") && taskKeepUntil(bot, "repos") > tick) return null;
   // (v438, док 27.10) свежая инфа / звук — шагом, только если этот враг сам может услышать мой бег (≤ 1,5 слышимости бега — проектное
   // число: враг мог подойти). Было — любой звук: выстрелы за 2000 px давали 6 с шифта по всей карте
   if(bot.lastIntel && tick - bot.lastIntel.tick < CAUTION_TICKS && Math.hypot(bot.lastIntel.x-bot.baseX, bot.lastIntel.y-bot.baseY) <= 1.5*STEP_HEAR_R()) return "видел врага рядом";

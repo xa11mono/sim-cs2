@@ -420,7 +420,7 @@ function ctBrain(){
         bsp = null; }
       if(bsp){
         if(b._stopPlantLog !== PHs.tick){ b._stopPlantLog = PHs.tick; voiceLog("CT", "stop"+b.id, b.id, "слышу плант — иду сбивать!"); }
-        b._stopPlantUntil = tick + 2*TICK_HZ; b._reposUntil = 0;
+        b._stopPlantUntil = tick + 2*TICK_HZ; taskKeep(b, 0, "ct");
         setPost(b, bsp, ppt, true, "stopplant");
         return;
       }
@@ -449,7 +449,7 @@ function ctBrain(){
         b._reangleNext = tick + 8*TICK_HZ;
         if(bestR){
           logEvent(b.id+": слышит "+sn+" — выходит на «"+bestRN+"», откуда их видно");
-          b._reposUntil = 0; setPost(b, bestR, sc0, true, "repos"); b._reposUntil = tick + 6*TICK_HZ;
+          taskKeep(b, 0, "ct"); setPost(b, bestR, sc0, true, "repos"); taskKeep(b, tick + 6*TICK_HZ, "ct");
           return;
         }
       }

@@ -229,7 +229,7 @@ function contactTick(b){
   // (v378) задача важнее контакта (бомба, сейв — арбитр места, setPost) — ноги остаются на ней, взгляд — на контакт
   if(!setPost(b, sp, look, true, tag)){ b._contact = {x:C.x, y:C.y, id:C.id, until: tick + CONTACT_HOLD*TICK_HZ, lock:false}; b._contactT = tick; return; }
   b._contact = {x:C.x, y:C.y, id:C.id, until: tick + CONTACT_HOLD*TICK_HZ, lock:true, pt:sp, tag:tag}; b._contactT = tick;
-  b._reposUntil = 0; b._probeLock = 0; b.lastIntel = {x:look.x, y:look.y, tick:tick, src:"call"};
+  taskKeep(b, 0, "contact"); b._probeLock = 0; b.lastIntel = {x:look.x, y:look.y, tick:tick, src:"call"};
   if(swing && !C.own && b.nades && b.nades.flash > 0 && C.d > 150 && !hasLOS(b.x, b.y, look.x, look.y, b.z)) assignNade(b, "flash", look, "флешка под выход на врага рядом", {now:true, range:900});
   // (v443, док владельца 27.10: «войс раунда спамится») «держу X» — 23 строки за раунд, один бот повторял её ~3 раза: это пересказ своих
   // действий, а в войсе про — враг, где и сколько, свои гранаты (PRO_PLAY, «Войс»). «Держу» не говорится; «выхожу на него» — один раз
@@ -335,7 +335,7 @@ function hurtReactTick(b){
   if(kind === "smoke"){
     var tr = b._trail || [], back = null;
     for(var ti = tr.length-1; ti >= 0 && !back; ti--){ var q = tr[ti]; if(Math.hypot(q.x-SM.x, q.y-SM.y) > NADE.smoke.radius + 30) back = q; }
-    if(back && taskCanSet(b, "repos:back") && setPost(b, {x:back.x, y:back.y}, {x:SM.x, y:SM.y}, true, "repos:back")){ b._reposUntil = tick + 3*TICK_HZ;
+    if(back && taskCanSet(b, "repos:back") && setPost(b, {x:back.x, y:back.y}, {x:SM.x, y:SM.y}, true, "repos:back")){ taskKeep(b, tick + 3*TICK_HZ, "contact");
       logEvent(b.id+": смок соперника лёг на меня — назад из дыма"); }
     return;
   }
@@ -353,7 +353,7 @@ function hurtReactTick(b){
   detourStart(b, "hurt", "repos:hurt", sec + 1.5);
   if(!setPost(b, sp, {x:F.x, y:F.y}, true, "repos:hurt")){ b._detour = null; return; }
   if(b.state === "hold") leaveHold(b);
-  b._reposUntil = 0; b._probeLock = 0;
+  taskKeep(b, 0, "contact"); b._probeLock = 0;
   logEvent(b.id+": "+(miss ? "по мне стреляют" : "ранен ("+b._hurtSrc+")")+" — ухожу из-под линии "+calloutName(F.x, F.y)+" за укрытие");
 }
 function teamBrains(){

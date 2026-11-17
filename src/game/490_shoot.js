@@ -311,9 +311,9 @@ function tryShoot(shooter, target, dist){
         var ap = alt[hashRand(tick + shooter.id.charCodeAt(0)) < 0.5 ? 0 : Math.min(1, alt.length-1)];
         if(ap && Math.hypot(ap.x-shooter.post.x, ap.y-shooter.post.y) > 40){
           var lk = shooter.post.look;
-          shooter._reposUntil = 0;
+          taskKeep(shooter, 0, "shoot");
           setPost(shooter, ap, lk, true, "repos"); leaveHold(shooter);
-          shooter._reposUntil = tick + 5*TICK_HZ;
+          taskKeep(shooter, tick + 5*TICK_HZ, "shoot");
           logEvent(shooter.id+": после килла меняет позицию");
         }
       }

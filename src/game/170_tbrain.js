@@ -679,7 +679,7 @@ function tBrain(){
       // носитель ждёт его в пределах того же времени ожидания / ESC_MAX_SEC (раньше бой снимал сопровождение сразу)
       var esc = BE ? cm.filter(function(o){ return o.id === BE.id && !o.planting; })[0] : null;
       if(!esc && !cm.some(function(o){ return ready(o) && nearP(o.x, o.y, o.z, carrier.x, carrier.y, carrier.z, TRADE_R); }) && cLeft >= cWalk){
-        esc = cm.filter(function(o){ return !o._sawEnemy && !o.planting && !o.nadeTask && !(o._tradeLock && o._tradeLock.until > tick) && !(o._reposUntil && tick < o._reposUntil) && Math.hypot(o.x-ppt.x, o.y-ppt.y) > 350; })
+        esc = cm.filter(function(o){ return !o._sawEnemy && !o.planting && !o.nadeTask && !(o._tradeLock && o._tradeLock.until > tick) && !(tick < taskKeepUntil(o, "repos")) && Math.hypot(o.x-ppt.x, o.y-ppt.y) > 350; })
           .sort(function(a, c){ return Math.hypot(a.x-carrier.x, a.y-carrier.y) - Math.hypot(c.x-carrier.x, c.y-carrier.y); })[0] || null;
         // (v342, отметка владельца: magixx с бомбой ждал у B «сопровождение» с A — через всю карту) сопровождающий — не дальше
         // ESC_MAX_SEC бега до носителя; иначе носитель идёт ставить сам
