@@ -295,6 +295,14 @@ function slHold(b, S, moving, alert){   // alert — тревога (lookUrgent 
   for(var i = 1; i < P.length; i++) if(u <= P[i][0]){ h = P[i-1][1] + (P[i][1] - P[i-1][1])*(u - P[i-1][0])/(P[i][0] - P[i-1][0]); break; }
   return (S.hold = Math.round(h));
 }
+// (v583a, Д1 / Д4, владелец 17.11: «смотрит в старую сторону, хотя угроза важнее», «смотрит правее, пока идёт») что держит плавность:
+// зону плана (её ключ j в дележе) или замену без угрозы («open» — на линии свой / стена, «glance» — мельком на ходу). Живой игрок держит
+// проход, а не точку: пока идёт, прицел остаётся на той же зоне; и досматривает угол, только пока другой не стал важнее
+var SL_MORE = 2;   // проектное число: новый угол «важнее» держимого, если его вес в дележе хотя бы вдвое больше (меньше — паузы про, slHold)
+function slKey(b){ return b.lookReason === "look" && b._lkPick ? b._lkPick.j : (b.lookReason || null); }
+function slSub(k){ return typeof k === "string" && /(open|^glance)$/.test(k); }   // замена без угрозы — не досматривается ради угрозы
+function slVal(b, k){ var c = (b._lkC || []).filter(function(x){ return x.j === k; })[0]; return c ? c.sc : 0; }   // вес зоны k в текущем дележе
+function slNew(b, pt){ return (b._sl = {pt: pt ? {x: pt.x, y: pt.y} : null, since: tick, key: pt ? slKey(b) : null, plan: !!pt && b.lookReason === "look" && !!b._lkPick, val: pt && b._lkPick ? (b._lkPick.sc || 0) : 0, lvl: pt ? b._lookLvl : 0}); }
 function smoothLookFilter(b, look, urgent){
   var moving = b.curSpeed > 60*SPD_K && b.heading !== undefined;
   // на бегу без цели — изредка короткий взгляд на опасный угол сбоку
@@ -330,14 +338,14 @@ function smoothLookFilter(b, look, urgent){
     if(!moving){ return look; }
     if(urgent === 2){ b._sl = null; return look; }
     if(S && S.pt && tick - S.since < slHold(b, S, true)) return S.pt;                    // угол ещё не «досмотрели»
-    if(!S || S.pt) b._sl = {pt:null, since:tick}; // переходим на «по ходу»
+    if(!S || S.pt) slNew(b, null); // переходим на «по ходу»
     return look;
   }
   var aN = Math.atan2(look.y-b.y, look.x-b.x);
-  if(urgent === 2 || !S){ b._sl = {pt:{x:look.x, y:look.y}, since:tick}; return look; }
+  if(urgent === 2 || !S){ slNew(b, look); return look; }
   if(!S.pt){                                                                     // сейчас смотрит по ходу
     if(moving && tick - S.since < slHold(b, S, true, !!urgent)) return null;
-    b._sl = {pt:{x:look.x, y:look.y}, since:tick}; return look;
+    slNew(b, look); return look;
   }
   var aS = Math.atan2(S.pt.y-b.y, S.pt.x-b.x);
   var dA = Math.abs(((aN-aS+Math.PI)%(2*Math.PI)+2*Math.PI)%(2*Math.PI)-Math.PI);
@@ -345,9 +353,16 @@ function smoothLookFilter(b, look, urgent){
   // рука доворачивала на каждый сдвиг — у ботов стоя 34 мелких поворота в минуту против 9 у про (tools/measure/motion/turn_rate.py)
   if(dA < SL.refine && !moving && !urgent){ if(tick - S.since < slHold(b, S, false)) return S.pt; S.pt = {x:look.x, y:look.y}; S.since = tick; S.hold = null; return look; }   // уточнил — новый срок
   if(dA < SL.refine){ S.pt = {x:look.x, y:look.y}; return look; }          // то же направление — просто уточняем точку (В147: до 5°, было до 20° — SL.same; сдвиги 5–20° шли без удержания: крупных поворотов в 1,7 раза больше про)
+  // (v583a, Д4) на ходу та же зона плана — держим её: точка зоны с нового места (угол меняется сам), срок удержания не сбрасывается
+  var kN = slKey(b);
+  if(moving && S.plan && b.lookReason === "look" && kN === S.key){ S.pt = {x:look.x, y:look.y}; return look; }
+  // (v583a, Д1) важнее держимого — сразу, без досматривания: уровень арбитра выше (звук, команда, бой) или вес в дележе вдвое больше;
+  // вес держимого — на момент, когда угол взяли (проверенный угол теряет вес сам — это не «стал важнее другой»); у замены («open», «glance») —
+  // вес зоны плана, вместо которой её взяли
+  if(b._lookLvl > (S.lvl || 0) || b.lookReason === "look" && kN != null && (S.plan || slSub(S.key)) && slVal(b, kN) >= SL_MORE*(S.val || 0) && slVal(b, kN) > 0){ slNew(b, look); return look; }
   var hold = slHold(b, S, moving, !!urgent);   // (15.11) тревога — паузы про в перестрелке; было SL.holdAlert (16 тиков, проектное)
   if(tick - S.since < hold) return S.pt;                                    // старое ещё не "досмотрели"
-  b._sl = {pt:{x:look.x, y:look.y}, since:tick};
+  slNew(b, look);
   return look;
 }
 // (v273) разбор взгляда: какой бот выбран для показа (галочка «разбор взгляда» + клик по игроку). Только для записи —
