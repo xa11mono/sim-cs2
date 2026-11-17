@@ -547,7 +547,19 @@ function jumpLook(b){
   return null;
 }
 // общий шаг после выбора: не в спину своему, не в стену, плавный поворот (на бегу без цели — по ходу)
+// (v583a, Д9, владелец 17.11: «в 3D боты смотрят в стенку рядом с окном, а не в проём») видна ли точка взгляда из глаз — кэш на бота: бот сдвинулся
+// меньше 8 px и точка меньше 16 px — тот же ответ (CLAUDE.md §7: линия видимости на пару «бот — точка» один раз за решение)
+function lookVisible(b, p){
+  var C = b._lvc; if(C && Math.abs(C.x-b.x) < 8 && Math.abs(C.y-b.y) < 8 && Math.abs(C.lx-p.x) < 16 && Math.abs(C.ly-p.y) < 16) return C.r;
+  var r = hasLOS(b.x, b.y, p.x, p.y, b.z); b._lvc = {x: b.x, y: b.y, lx: p.x, ly: p.y, r: r}; return r;
+}
 function lookFilter(b, look, LD){
+  // (v583a, Д9) точка за стеной (стоя на посту, звук, направление про, зона плана) — не в стену, а туда, где враг из неё выйдет на мою линию
+  // (первая видимая точка его пути ко мне — appearFrom; нет — ближайший видимый угол по пути). Враг на виду, прострел (spam), прыжок — как есть.
+  // Было: по всем ботам взгляд в невидимую точку ~19 % времени (м302 р2–р4)
+  if(look && !b._sawEnemy && !/^(enemy|spam|jump)$/.test(b.lookReason || "") && !lookVisible(b, look)){
+    var apL = appearFrom(b, look) || cornerLook(b, look);
+    if(apL && apL !== look && lookVisible(b, apL)){ look = apL; if(LD) LD.steps.push("точка за стеной — смотрю, откуда выйдет"); } }
   if(look && b._lookLvl <= LOOK_LEVEL.angle && lookOnMate(b, look)){ var alt = openDirLook(b);
     if(alt){ look = alt; b.lookReason = "open"; if(LD) LD.steps.push("на линии свой — взял другое открытое направление"); }
     // (v413, Б5д-3) на бегу открытого направления впереди нет — по ходу движения, а не в спину своему
