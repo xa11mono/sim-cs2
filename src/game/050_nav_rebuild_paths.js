@@ -700,4 +700,12 @@ function segIntersect(ax,ay,bx,by,cx,cy,dx,dy){
 function hasLOS(x1,y1,x2,y2,z1,z2){
   return visLine(x1, y1, visFloorAt(x1, y1, z1) + VIS_EYE.stand, x2, y2, visFloorAt(x2, y2, z2) + VIS_EYE.stand, false);
 }
-
+// (17.11, перестройка) расстояние от точки до отрезка — перенесено из 550 (файл показа): им пользуются бомба (120) и места (140)
+function distToSeg(px,py, s){
+  var x1=s[0],y1=s[1],x2=s[2],y2=s[3];
+  var dx=x2-x1, dy=y2-y1;
+  var len2 = dx*dx+dy*dy;
+  var t = len2 < 1e-9 ? 0 : Math.max(0, Math.min(1, ((px-x1)*dx+(py-y1)*dy)/len2));
+  var cx = x1+t*dx, cy = y1+t*dy;
+  return Math.hypot(px-cx, py-cy);
+}

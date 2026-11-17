@@ -293,3 +293,25 @@ function luSpotFor(b, L, luM){
   return best;
 }
 var CLR_REB_SEC = 12, EXEC_REACH = 1000, EXEC_QUEUE_R = 600, EXEC_QUEUE_N = 3, EXEC_WAIT_SEC = 20;   // (v355) проектные числа
+// (17.11, перестройка) перенесено из 560 (редактор) — ими пользуются лайнапы CT (320)
+// встроенные гранаты — то, что боты кидают сами (цели считаются так же, как в
+// nadeBrains/комбо); "откуда" — примерная точка, где обычно стоит бросающий
+function builtinLineups(){
+  if(!GEO.A || !GEO.B) return [];
+  var out = [], mid = function(a, b2, f){ f = f == null ? 0.5 : f; return {x:a.x+(b2.x-a.x)*f, y:a.y+(b2.y-a.y)*f}; };
+  ["A","B"].forEach(function(k){
+    var g = GEO[k], st = SITES[k];
+    out.push({key:"T.exec.ctEntry."+k, team:"T", type:"smoke", trigger:"exec", site:k, name:"вход CT", from:g.tStage, to:g.ctEntry});
+    out.push({key:"T.exec.cross."+k, team:"T", type:"smoke", trigger:"exec", site:k, name:"кросс", from:g.tStage, to:mid(g.anchor, g.ctEntry)});
+    out.push({key:"T.exec.flash."+k, team:"T", type:"flash", trigger:"exec", site:k, name:"под пик энтри", from:g.tStage, to:mid(g.tEntry, st, 0.35)});
+    out.push({key:"T.exec.molly."+k, team:"T", type:"molly", trigger:"exec", site:k, name:"выжечь опорника / любимый угол", from:g.tStage, to:g.anchor});
+    out.push({key:"T.fake.smoke."+k, team:"T", type:"smoke", trigger:"setup", site:k, name:"фейк-смок (фейк на "+k+")", from:g.tStage, to:g.ctEntry});
+    out.push({key:"T.fake.flash."+k, team:"T", type:"flash", trigger:"setup", site:k, name:"фейк-флешка (фейк на "+k+")", from:g.tStage, to:mid(g.tEntry, st, 0.4)});
+    out.push({key:"T.pp.molly."+k, team:"T", type:"molly", trigger:"postplant", site:k, name:"на дефуз", from:g.tEntry, to:st.plant || st});
+    out.push({key:"CT.call.smoke."+k, team:"CT", type:"smoke", trigger:"call", site:k, name:"перекрыть вход", from:g.anchor, to:g.tEntry});
+    out.push({key:"CT.take.he."+k, team:"CT", type:"he", trigger:"exec", site:k, name:"в смок — не дать занять сайт", from:g.anchor, to:mid(g.tEntry, st, 0.35)});
+    out.push({key:"CT.retake.flash."+k, team:"CT", type:"flash", trigger:"retake", site:k, name:"ретейк", from:g.ctEntry, to:st.plant || st});
+    out.push({key:"CT.retake.smoke."+k, team:"CT", type:"smoke", trigger:"retake", site:k, name:"отрезать вход T", from:g.ctEntry, to:g.tEntry});
+  });
+  return out;
+}

@@ -126,14 +126,6 @@ var camDragging = false, camDragStart = null, camDragOrig = null;
 
 var HIT_TOL_PX = 8;   // screen px, converted to world units by /view.scale (редактор зон)
 var HANDLE_TOL_PX = 10;
-function distToSeg(px,py, s){
-  var x1=s[0],y1=s[1],x2=s[2],y2=s[3];
-  var dx=x2-x1, dy=y2-y1;
-  var len2 = dx*dx+dy*dy;
-  var t = len2 < 1e-9 ? 0 : Math.max(0, Math.min(1, ((px-x1)*dx+(py-y1)*dy)/len2));
-  var cx = x1+t*dx, cy = y1+t*dy;
-  return Math.hypot(px-cx, py-cy);
-}
 // ---------- navmesh multi-anchor calibration UI: click a navmesh vertex,
 // then click where it should actually be — repeat 3+ times in different
 // corners of the map to fix the non-uniform drift a single affine
