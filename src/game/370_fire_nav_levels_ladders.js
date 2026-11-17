@@ -4,11 +4,18 @@ function fireDamageFor(sec){ var n = Math.floor(sec/FIRE_HIT_SEC), d = 0; for(va
 // (v450, док владельца 28.10 №5: «раш через Рампу, а идут через Палас»; м19 р1: CT кинули молотов на T Ramp, путь T0 к Tetris построился
 // в обход через Palace Entry и после того, как огонь погас, остался тем же — T0 вернулся на спавн и пошёл через Палас) огонь погас / потушен
 // — пути, построенные, пока он горел (обход, v438), строятся заново: обход больше не нужен
+var FIRE_GONE_GAIN = 1;   // (v583a) с: новый путь после огня берётся, если короче старого хотя бы на секунду бега — проектное число
 var FIRE_GONE_R = 1500;   // (v450) ед. карты: кто мог идти в обход этого огня — проектное число
 function fireGoneRepath(fr){
   // (путь, построенный при огне, отметить нельзя: маршрут тактики склеивает свои куски) — пути всех, кто в FIRE_GONE_R от огня
-  bots.forEach(function(b){ if(!b.alive || !b.path || !b.path.length || b.planting || b.defusing || Math.hypot(b.baseX-fr.x, b.baseY-fr.y) > FIRE_GONE_R) return;
-    b.path = []; b.pathIdx = 0; });
+  // (v583a, владелец 17.11: «огонь погас — это не всегда повод менять путь»; м302, CT1 у Connector развернулся назад, когда догорел молотов у входа
+  // на B в 977 px от него) путь меняет только тот, кому новый путь от его места заметно короче оставшегося старого (обходил огонь); остальные идут
+  // как шли. И радиус — в px (было: FIRE_GONE_R в единицах сравнивался с px — сбрасывались пути почти всей карты)
+  bots.forEach(function(b){ if(!b.alive || !b.path || !b.path.length || b.planting || b.defusing || b.pathIdx >= b.path.length || Math.hypot(b.baseX-fr.x, b.baseY-fr.y) > FIRE_GONE_R/PX_UNITS) return;
+    var P = b.path, e = P[P.length-1], old = 0, px = b.baseX, py = b.baseY;
+    for(var i = b.pathIdx; i < P.length; i++){ old += Math.hypot(P[i][0]-px, P[i][1]-py); px = P[i][0]; py = P[i][1]; }
+    var np = pathPts(b.baseX, b.baseY, e[0], e[1], b.z, e[2]); if(!np || !np.length) return;
+    if(old - polyLen(np) >= SPEED*FIRE_GONE_GAIN){ movePath(b, [], "огонь погас — путь короче"); b.pathIdx = 0; } });
 }
 function fireRepath(fx, fy){
   var R = NADE.molly.radius + FIRE_BODY;
