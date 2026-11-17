@@ -262,7 +262,7 @@ function taskKeepUntil(b, tag){
   var f = /^(contact|tradeR|fill|repos|rebal)/.exec(String(tag)); if(!f) return 0;
   if(f[1] === "contact") return b._contact && b._contact.lock ? b._contact.until : 0;   // CONTACT_HOLD
   if(f[1] === "tradeR"){ var L = b._tradeLock; if(!L) return 0;   // окно размена 3,5 с; кончилось, а убийцу не сняли — туда же второй раз не лезет
-    if(tick >= L.until){ knowAvoidPeek(b, L.at, 6); b._tradeLock = null; return 0; } return L.until; }
+    if(tick >= L.until){ knowAvoidPeek(b, L.at, 6); tradeEnd(b); return 0; } return L.until; }
   if(f[1] === "fill"){ var FL = b._fillLock; if(!FL) return 0;   // ≤ 15 с, пока план не сдвинулся (T — смена фазы, CT — «играем ретейк»), бомба
     if(tick >= FL.until || (bomb && bomb.state === "planted") || (FL.team === "T" ? !(teamTac.T && teamTac.T.phase === FL.ph) : !!(teamTac.CT && teamTac.CT.playRetake))){ b._fillLock = null; return 0; }
     return FL.until; }

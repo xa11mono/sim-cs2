@@ -106,7 +106,7 @@ function decideAction(bot, nearestDist, alliesNear, enemiesSeen){
   if(bot._reloading){ retreatScore += 0.35; engageScore -= 0.35; holdScore -= 0.1; }
   // ---- раздел 11: командная информация в весах ----
   // тиммейт только что погиб рядом — идти разменивать, а не прятаться
-  if(tick < (bot._tradeUntil||0)){ engageScore += 0.2; retreatScore -= 0.15; }
+  if(tradeAlert(bot)){ engageScore += 0.2; retreatScore -= 0.15; }
   // команда знает, что рядом стак (2+ врагов), а своих меньше — в одиночку в дуэль не лезть
   var nearEst = intelEstimate(bot.team, bot.x, bot.y, 500, 4*64);
   if(nearEst.n >= 2 && alliesNear + 1 < nearEst.n){ engageScore -= 0.15; holdScore += 0.08; }

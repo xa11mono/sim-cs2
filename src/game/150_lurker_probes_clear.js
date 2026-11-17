@@ -223,7 +223,7 @@ function tProbes(tt, ts){
       // (probeB ↔ probePairA, сотни смен поста подряд — стоял на месте)
       if(bu && bu._probe && bu._probe !== P && bu._probe.round === roundNum && bu._probe.ph === 1){ P.buddy = null; bu = null; }
       if(bu && bomb.state === "dropped" && (tt.fetchId === bu.id || (tt.fetchCover && tt.fetchCover.id === bu.id))){ P.buddy = null; bu = null; } // (v286) занят бомбой
-      if(bu && !bu._sawEnemy && !(bu._tradeLock && bu._tradeLock.until > tick)){
+      if(bu && !bu._sawEnemy && !tradeGoing(bu)){
         var ln = Math.hypot(P.pt.x-from.x, P.pt.y-from.y) || 1, back = Math.min(150, ln*0.6);
         var bp = walk({x: P.pt.x + (from.x-P.pt.x)/ln*back, y: P.pt.y + (from.y-P.pt.y)/ln*back});
         setPost(bu, bp, look, true, "probePair"+key); bu._probeLock = tick;

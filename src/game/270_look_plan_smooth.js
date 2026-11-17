@@ -279,7 +279,7 @@ function lookUrgent(b){
   if(hs && hs.team && hs.team !== b.team && tick - hs.tick < 24 && Math.hypot(hs.x-b.x, hs.y-b.y) < 700) return 1;
   // (v261, В6) рядом убили тиммейта (окно размена) или враг шумел совсем близко (≤300 px, ≤1,5 с — те же числа,
   // что у кандидата «звук/контакт») — игрок настороже: поворачивается быстро, не досматривая старый угол
-  if(b._tradeLock && tick < b._tradeLock.until) return 1;
+  if(tradeGoing(b)) return 1;
   if(hs && hs.team && hs.team !== b.team && tick - hs.tick <= 96 && Math.hypot(hs.x-b.x, hs.y-b.y) < 300) return 1;
   return 0;
 }

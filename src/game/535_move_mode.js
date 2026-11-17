@@ -30,7 +30,7 @@ function moveWalkWhy(bot){
   // уже означает "готов стрелять", там скорость и так 0). bot._sawEnemy
   // тут — с прошлого тика (resolveEngagements считается в конце stepTick),
   // отставание на один тик не критично для решения "идти тише".
-  if(bot.holding || bot._sawEnemy || bot._stopPlantUntil > tick || (bot._tradeLock && bot._tradeLock.until > tick)) return null;
+  if(bot.holding || bot._sawEnemy || bot._stopPlantUntil > tick || tradeGoing(bot)) return null;
   // уход с засвеченного угла после фрага — бегом, а не шифтом (позиция и так известна)
   if(bot.post && taskProp(bot.post.tag, "reposMove") && taskKeepUntil(bot, "repos") > tick) return null;
   // (v438, док 27.10) свежая инфа / звук — шагом, только если этот враг сам может услышать мой бег (≤ 1,5 слышимости бега — проектное

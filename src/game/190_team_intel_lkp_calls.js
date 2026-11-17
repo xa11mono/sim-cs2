@@ -305,8 +305,7 @@ function intelDeath(victim, killer){
       sw = sw || {x:victim.x, y:victim.y};
       if(!setPost(o, sw, kp, true, "tradeR")) return;   // (v378) занят задачей важнее размена (бомба, сейв) — арбитр места
       o._probeLock = 0; taskKeep(o, 0, "call");
-      o._tradeLock = {until: tick + Math.round(3.5*TICK_HZ), at:{x:victim.x, y:victim.y}, kp:kp};
-      o._tradeUntil = tick + Math.round(3.5*TICK_HZ);
+      tradeStart(o, {x:victim.x, y:victim.y}, kp);
       o.heardSound = {x:kp.x, y:kp.y, tick:tick, team:killer.team, src:killer.id, kind:"call"};
       if(k === 0) voiceLog(o.team, "trade"+victim.id, o.id, "размен за "+victim.id+"!");
     });
@@ -383,7 +382,7 @@ function intelDeath(victim, killer){
       knowAvoidPeek(b, {x:victim.x, y:victim.y}, 8);
       return;
     }
-    b._tradeUntil = tick + 150;
+    tradeAlertSet(b, 150);
     if(killer){ b.heardSound = {x:killer.x, y:killer.y, tick:tick, team:killer.team, src:killer.id, kind:"call"}; }
   });
 }
@@ -394,5 +393,10 @@ function intelCallLog(team, key, text, who, kind){
   L[key] = tick;
   if(kind) voiceFeed(team, who, text, kind); else logEvent(text);
 }
-
-
+// (17.11, перестройка, дубль 8) окно размена — одно место: «иду менять» (_tradeLock: до, где убили, kp) и «тревога после смерти своего»
+// (_tradeUntil); было — писали 110, 120, 180, 190, читали 150, 170 ×3, 270, 350, 500, 535 сами
+function tradeStart(o, at, kp){ o._tradeLock = {until: tick + Math.round(3.5*TICK_HZ), at: at, kp: kp}; o._tradeUntil = tick + Math.round(3.5*TICK_HZ); }
+function tradeAlertSet(b, ticks){ b._tradeUntil = tick + ticks; }
+function tradeGoing(b){ return !!(b._tradeLock && b._tradeLock.until > tick); }
+function tradeAlert(b){ return tick < (b._tradeUntil || 0); }
+function tradeEnd(b, all){ b._tradeLock = null; if(all) b._tradeUntil = 0; }
