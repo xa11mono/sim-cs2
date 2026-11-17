@@ -8,7 +8,8 @@
 const fs = require("fs"), path = require("path"), os = require("os");
 const NM = process.env.MOD_NODE_MODULES || path.join(__dirname, "node_modules");
 const acorn = require(path.join(NM, "acorn")), walk = require(path.join(NM, "acorn-walk")), esbuild = require(path.join(NM, "esbuild"));
-const [page, srcDir, ...mods] = process.argv.slice(2);
+const argv = process.argv.slice(2), COMPACT = argv.includes("--compact");   // --compact — без лишних пробелов (публикуемая страница, mkpub.py)
+const [page, srcDir, ...mods] = argv.filter(a => a !== "--compact");
 let html = fs.readFileSync(page, "utf8");
 
 // главная функция страницы: «(function(){ "use strict"; … })();» в большом <script> (начало — 010_map_zones_warp.js)
@@ -83,7 +84,7 @@ let coreHead = ""; M.forEach(m => { if (coreImp[m.f].length) coreHead += "import
 fs.writeFileSync(path.join(tmp, "__core.js"), coreHead + core + "\nexport { " + [...coreExp].join(", ") + " };\n");
 fs.writeFileSync(path.join(tmp, "__entry.js"), "import \"./__core.js\";\n");
 const r = esbuild.buildSync({ entryPoints: [path.join(tmp, "__entry.js")], bundle: true, format: "esm", write: false, target: "esnext",
-  logLevel: "silent", legalComments: "none", charset: "utf8" });
+  logLevel: "silent", legalComments: "none", charset: "utf8", minifyWhitespace: COMPACT });
 (r.warnings || []).filter(w => !/direct eval/i.test(w.text)).forEach(w => console.warn("esbuild:", w.text));
 let out = r.outputFiles[0].text;
 const bundled = "(function(){\n\"use strict\";\n" + out + "\n})();";

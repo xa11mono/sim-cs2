@@ -43,6 +43,6 @@ assert '__ev' not in s
 import re as _re
 s = '\n'.join(l for l in s.split('\n') if not _re.match(r'^\s*//', l))
 open(os.path.join(HERE, '..', MAPNAME + '-radar.html'), 'w', encoding='utf-8').write(s)
-from gamesrc import bundle_modules; bundle_modules(os.path.join(HERE, '..', MAPNAME + '-radar.html'))   # (17.11) каналы-модули — после всех вставок
+from gamesrc import bundle_modules; bundle_modules(os.path.join(HERE, '..', MAPNAME + '-radar.html'), compact=True)   # (17.11) каналы-модули — после всех вставок
 from syntaxcheck import check; check(os.path.join(HERE, '..', MAPNAME + '-radar.html'))   # (v461)
 print(len(s))

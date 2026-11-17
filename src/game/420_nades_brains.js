@@ -248,8 +248,8 @@ function retakeCutUseful(){
 // остальные — через интерфейс nadeCancel(b, причина): смена сайта IGL (160), смерть (applyDamage, 400). Причина — b._nadeWhy.
 function nadeCancel(b, why){ b.nadeTask = null; b.nadeQueue = null; b._nadeWhy = why; }
 function resetNades(){
-  nadesInAir.length = 0; smokes.length = 0; fires.length = 0; nadeFx.length = 0; nadeFlags = {}; groundWeapons.length = 0; groundItems.length = 0;
-  comboCd = {};
+  nadesInAir.length = 0; smokes.length = 0; fires.length = 0; nadeFx.length = 0; nadeFlagsReset(); groundWeapons.length = 0; groundItems.length = 0;
+  comboCdReset();
   bots.forEach(function(b){ b._route = null; b.nadeTask = null; b.nadeQueue = null; b.blindUntil = 0; b.throwUntil = 0; b._fireAcc = 0; b._fireIn = null; b._nadeCd = 0; if(!b.nades) b.nades = emptyNades(); });
 }
 

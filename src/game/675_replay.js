@@ -420,7 +420,7 @@ function rpWorldDraw(E, P, I, S, ox0, oy0, W, H){
   var gw = null, gi = null; for(var j = R.s.indexOf(I.A); j >= 0; j--){ var w = R.s[j].w; if(w && w.gw){ gw = w.gw; gi = w.gi; break; } }
   try{
     tick = A.tick; simTime = tick*TICK_MS/1000; roundNum = R.round; roundState = "live"; accumulator = f*TICK_MS;
-    smokes = A.sm; fires = A.fi; nadesInAir = A.nd; nadeFx = A.fx; groundWeapons = gw || []; groundItems = gi || [];
+    nadeWorldSet(A.sm, A.fi, A.nd, A.fx); groundWeapons = gw || []; groundItems = gi || [];
     bomb = A.bomb ? rpCl(A.bomb) : null; if(bomb) bomb.carrier = A.bc >= 0 ? bots[A.bc] : null;
     var t0 = rpTrFrom(R, P.rt - 0.5*TICK_HZ), tl = [];
     for(var q = t0; q < R.tr.length && R.tr[q].t <= P.rt; q++){ var c = rpCl(R.tr[q]); c.born = nowTs - (P.rt - c.t)*TICK_MS; c.tk = null; tl.push(c); }
@@ -437,7 +437,7 @@ function rpWorldDraw(E, P, I, S, ox0, oy0, W, H){
     draw.noHud = false;
     bots.forEach(function(o, i){ var c = saved[i]; RP_BF.forEach(function(k){ o[k] = c[k]; }); o.px = c.px; o.py = c.py; o.pfacing = c.pfacing; movePath(o, c.path, "replay"); o._trail = c._trail; });
     tick = keep.tick; simTime = keep.simTime; roundNum = keep.roundNum; roundState = keep.roundState; accumulator = keep.accumulator;
-    smokes = keep.smokes; fires = keep.fires; nadesInAir = keep.nadesInAir; nadeFx = keep.nadeFx; bomb = keep.bomb; tracers = keep.tracers; soundPings = keep.soundPings;
+    nadeWorldSet(keep.smokes, keep.fires, keep.nadesInAir, keep.nadeFx); bomb = keep.bomb; tracers = keep.tracers; soundPings = keep.soundPings;
     groundWeapons = keep.groundWeapons; groundItems = keep.groundItems; teamTac = keep.teamTac; FREEZE_FX = keep.FREEZE_FX; SIDE_TEAM = keep.SIDE_TEAM; NICKS = keep.NICKS;
     cv = keep.cv; ctx = keep.ctx; view.scale = keep.view.scale; view.panX = keep.view.panX; view.panY = keep.view.panY;
   }

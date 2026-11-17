@@ -281,3 +281,7 @@ function nadeReact(){
 // Куда — откуда сюда кидали про (MAP.nadelanes: бросок с этого места (≤ 60 px) в нужную точку), иначе прямо, если стены нет.
 // Пауза бойца между такими решениями — 3 с (проектное число)
 var NADE_USE_GAP = 192;   // 3 с (TICK_HZ объявлен ниже — число)
+// (17.11, перестройка — модули) запись извне — только через хозяина (импорт модуля только для чтения): сброс гранат (420 resetNades), сброс раунда (530)
+function nadeFlagsReset(){ nadeFlags = {}; }
+function comboCdReset(){ comboCd = {}; }
+function nadeReactReset(){ nadeReactCd = {CT:0, T:0}; }

@@ -27,7 +27,7 @@ def module_source():
     return ''.join(open(os.path.join(GAME_DIR, f), encoding='utf-8').read() for f in sorted(module_files()))
 
 
-def bundle_modules(page):
+def bundle_modules(page, compact=False):
     """Собрать каналы-модули в странице page (на месте главной функции); нет модулей — ничего. Нужны node и npm: зависимости
     (tools/rebuild/package.json) ставятся сами при первой сборке."""
     mods = module_files()
@@ -39,7 +39,7 @@ def bundle_modules(page):
         npm = shutil.which('npm') or shutil.which('npm.cmd')
         if not npm or subprocess.run([npm, 'install', '--no-audit', '--no-fund', '--prefix', tools], capture_output=True).returncode:
             sys.exit('сборка модулей: не поставились зависимости (npm install в tools/rebuild)')
-    r = subprocess.run(['node', os.path.join(tools, 'mod_build.js'), page, GAME_DIR] + mods)
+    r = subprocess.run(['node', os.path.join(tools, 'mod_build.js'), page, GAME_DIR] + mods + (['--compact'] if compact else []))
     if r.returncode:
         sys.exit('сборка модулей не удалась (tools/rebuild/mod_build.js)')
 

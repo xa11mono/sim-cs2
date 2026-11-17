@@ -479,7 +479,7 @@ function navUnlinkBlocked(bot, pw){
   E.forEach(function(e, i){ var to = navArea(e.to); if(!to) return; var dd = pointInPoly(px, py, to.points) ? 0 : Math.hypot(e.mid.x-px, e.mid.y-py); if(dd < bd){ bd = dd; best = i; } });
   if(best < 0 || bd > 40) return;
   var e = E[best]; E.splice(best, 1); NAV_UNLINKED.push([a1.id, e.to]);
-  PATHQ = {}; PATHQ_N = 0;
+  pathCacheReset();
   logEvent("навмеш: связь "+a1.id+" → "+e.to+" непроходима (уступ) — убрана, путь заново (самоисправление)");
 }
 // (00_PLAN, владелец 05.11: «упор в стену» на Mid Boxes — 52 за 8 матчей) стена в шаге — с высотой: crossesWall — по клеткам сверху (клетка без пола
@@ -529,4 +529,5 @@ function inFire(x, y, z){
   for(var i=0;i<fires.length;i++){ if(fireTouches(fires[i], x, y, z)) return fires[i]; }
   return null;
 }
-
+// (17.11, перестройка — модули) запись извне — только через хозяина (импорт модуля только для чтения): лестницы сбрасывает пересборка навмеша (050)
+function laddersReset(){ LADDERS = null; }

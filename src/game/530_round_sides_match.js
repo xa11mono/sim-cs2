@@ -84,14 +84,14 @@ function freshMatch(n, keepProfile){
   if(!keepProfile) OPP = null;
   var clr = function(o){ for(var k in o) delete o[k]; };
   [spotCache, OUTWARD_CACHE, _ED, EWL, APPEAR, HOLD_CANDS, nadeFlags, comboCd, siteHeatPending].forEach(function(o){ if(o) clr(o); });
-  nadeLandHistory = {A:[], B:[]};
+  nadeLandSet({A:[], B:[]});
   tracers.length = 0; soundPings.length = 0; nadesInAir.length = 0; smokes.length = 0; fires.length = 0; nadeFx.length = 0;
   groundWeapons.length = 0; groundItems.length = 0; events.length = 0; killfeed.length = 0;
   clearzReset(); LAST_CLEAR = {CT:{}, T:{}}; POSCLR = {CT:{}, T:{}};
   if(typeof beliefReset === "function") beliefReset();
   if(typeof lkpReset === "function") lkpReset();
   clutchInfo = null;
-  nadeReactCd = {CT:0, T:0}; awpSmokeCd = {CT:0, T:0};
+  nadeReactReset(); awpSmokeCd = {CT:0, T:0};
   teamEco = { CT: {lossLevel: 1, roundType: "pistol", lastIncome: 0}, T: {lossLevel: 1, roundType: "pistol", lastIncome: 0} };
   // бот — как при загрузке страницы: лишние поля (накопленные за прошлые матчи)
   // удаляем, простые значения возвращаем к исходным

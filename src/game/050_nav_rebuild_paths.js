@@ -60,7 +60,7 @@ function rebuildNav(){
 
   zonesById = {};
   NAVAREAS.forEach(function(z){ zonesById[z.id] = z; });
-  NAV_GRID = null; NAV_ZONE = null; M3_SOLID = null; LADDERS = null; PATHQ = {}; PATHQ_N = 0;   // (v321) сетка участков под точкой — пересобрать
+  NAV_GRID = null; NAV_ZONE = null; M3_SOLID = null; laddersReset(); pathCacheReset();   // (v321) сетка участков под точкой — пересобрать
 
   // ---------- граф с учётом стен ----------
   // navmesh и стены — два независимых слоя, и после выравнивания/калибровки
