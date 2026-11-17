@@ -210,6 +210,7 @@ function knownWayLook(b){
   return {pt:far, sc:KNOWN_W*Math.exp(-best.age/KNOWN_SEC)*(cov ? LOOK.mateThere : 1), id:best.id, age:best.age, cov:cov};
 }
 // раз в 8 тиков: кандидаты всем + делёж направлений внутри команды
+var LOOK_SMOKE_K = 0.3;
 function lookPlan(team){
   PORTAL_W[team] = portalWatched(team);
   posClearTick(team);
@@ -217,6 +218,9 @@ function lookPlan(team){
   var list = bots.filter(function(b){ return b.alive && b.team === team && !b._sawEnemy; });
   list.forEach(function(b){
     b._lkC = lookCands(b, W);
+    // (v583a, владелец 17.11: «игрок 3 смотрит в смок, а Short никто не видит») угол, на который у меня линия закрыта дымом, — мне виден только
+    // край дыма: вес ×LOOK_SMOKE_K (проектное число); свежий (только что видел / слышал) — как есть
+    if(smokes.length) b._lkC.forEach(function(c){ if(!c.fresh && c.pt && smokeBlocks(b.x, b.y, c.pt.x, c.pt.y)){ c.sc *= LOOK_SMOKE_K; if(c.f) c.f.push(["в дым", LOOK_SMOKE_K]); } });
     // инерция: текущее направление получает бонус
     b._lkC.forEach(function(c){ if(c.j === b._lkZ){ c.sc *= LOOK.stick; if(c.f) c.f.push(["уже смотрит сюда", LOOK.stick]); } });
     b._lkPick = null;
@@ -229,7 +233,9 @@ function lookPlan(team){
     if(!bestB){ left.forEach(function(b){ b._lkPick = null; }); break; }
     bestB._lkPick = bestC;
     left.splice(left.indexOf(bestB), 1);
-    if(!(bestC.sc < LOOK.claimMin)) left.forEach(function(o){ if(Math.hypot(o.x-bestB.x, o.y-bestB.y) > LOOK.claimR) return;
+    // (v583a, владелец 17.11: «игрок 3 смотрит в смок, а Short не видит никто — у T1 на Bench на Short смок») угол, на который у взявшего
+    // линия закрыта дымом, за ним не закрепляется: он его не видит — другой, у кого линия чистая, может взять его тоже
+    if(!(bestC.sc < LOOK.claimMin) && !smokeBlocks(bestB.x, bestB.y, bestC.pt.x, bestC.pt.y)) left.forEach(function(o){ if(Math.hypot(o.x-bestB.x, o.y-bestB.y) > LOOK.claimR) return;
       o._lkC.forEach(function(c){ if(c.fresh) return;
         if(c.j === bestC.j || Math.hypot(c.pt.x-bestC.pt.x, c.pt.y-bestC.pt.y) < 220){ c.sc *= LOOK.claim; if(c.f) c.f.push(["угол держит " + bestB.id, LOOK.claim]); } }); });
   }
@@ -482,35 +488,16 @@ function lookKnowCands(b){
   return out;
 }
 // уровень angle: угол, поручённый задачей, иначе угол из дележа команды
-// (v583a, владелец 17.11, пост-плант р4: «игрок 0 у бомбы смотрит в смок на дверь, а её держит тиммейт; и пусть кто-то чередует взгляд на
-// другую зону, хоть B-дом») углы места после планта — из демок про (post.pro.m: [угол, доля], до двух): сначала каждый вход — хоть один, потом
-// кроссфайр. Мой основной угол туда же, куда основной угол своего (точки, где враг выйдет, ≤ 160 px) — уступает тот, у кого второй угол
-// про весомее (поровну — у кого id больше): берёт второй. Иначе — чередование своих углов про: основной — пауза про стоя q75
-// (MAP.turnmodel.dwell.stand, ≈ 3 с), второй — медиана паузы (≈ 0,9 с). Р4: T0 у бомбы — Doors (49 %) и вход со стороны B Apps (30 %);
-// окно оттуда не видно (ящики в 160 px). Только для мест пост-планта (post.ppAlt, 280); null — как было (угол про по proSpotLook)
-function ppAltLook(b, ptPro){
-  var P = b.post; if(!P || !P.ppAlt || !P.pro || !P.pro.m || !P.pro.m.length) return null;
-  var M = P.pro.m.slice().sort(function(a, c){ return c[1] - a[1]; }), pt = function(a){ var c = rayClipWalls(b.x, b.y, b.x + Math.cos(a)*420, b.y + Math.sin(a)*420); return {x: c.x, y: c.y}; };
-  var p0 = pt(M[0][0]), mine = appearFrom(b, p0) || p0;
-  b._ppMine = {x: mine.x, y: mine.y, alt: M[1] ? M[1][1] : 0, t: tick};   // свой основной угол — всем (и у кого угол один)
-  if(M.length < 2) return null;
-  var p1 = pt(M[1][0]);
-  var yieldTo = bots.some(function(o){ var Q = o._ppMine; return o !== b && o.alive && o.team === b.team && o.atPost && o.post && o.post.ppAlt && Q && tick - Q.t <= 8 &&
-    Math.hypot(Q.x-mine.x, Q.y-mine.y) < 160 && (M[1][1] > Q.alt || M[1][1] === Q.alt && b.id > o.id); });
-  if(yieldTo) return {lvl: LOOK_LEVEL.angle, kind: "pro", pt: p1, sc: 1};
-  var DWs = (MAP.turnmodel && MAP.turnmodel.dwell && MAP.turnmodel.dwell.stand) || [10, 18, 59, 200, 464];
-  var A = b._ppAlt; if(!A || A.post !== P){ A = b._ppAlt = {post: P, t: tick, on: false}; }
-  if(tick - A.t >= (A.on ? DWs[2] : DWs[3])){ A.on = !A.on; A.t = tick; b._sl = null; }   // смена намерения — плавность не досматривает прежний
-  return {lvl: LOOK_LEVEL.angle, kind: "pro", pt: A.on ? p1 : p0, sc: 1};
-}
 function lookAngleCand(b, moving){
   if(b.roamChecking && b.roamLookPt) return {lvl: LOOK_LEVEL.angle, kind: "roam", pt: b.roamLookPt, sc: 1};
   if(b.fakeHoldUntil && tick < b.fakeHoldUntil && bomb && bomb.site) return {lvl: LOOK_LEVEL.angle, kind: "fake", pt: GEO[bomb.site].tEntry, sc: 1};
-  if(b.atPost && b.post && b.post.pro && !moving){ var plk = proSpotLook(b); if(plk) return ppAltLook(b, plk) || {lvl: LOOK_LEVEL.angle, kind: "pro", pt: plk, sc: 1}; }
+  // (v583a, владелец 17.11: «более живыми — могут смотреть одну позицию, потом распределиться; не только два угла про») место после планта
+  // (post.ppAlt, 280) угол про не навязывает: взгляд — по дележу команды (lookPlan), как у всех
+  if(b.atPost && b.post && b.post.pro && !b.post.ppAlt && !moving){ var plk = proSpotLook(b); if(plk) return {lvl: LOOK_LEVEL.angle, kind: "pro", pt: plk, sc: 1}; }
   // (15.11, владелец: «точки в паре, чтобы смотрели все зоны, откуда выходят T») угол роли расстановки CT из демок (spot / lookYaw, 140) — поручен
   // задачей, как точка про на посту. Было: делёж углов команды перебивал его — на 20-й с угол роли держали редко (уход — медиана 27°), выход
   // из Palace закрывали в 0–17 % раундов против 43–66 % у про (tools/ct/ct_cover.js)
-  if(b.atPost && b.post && b.post.setupLook && b.post.look && !moving) return ppAltLook(b, b.post.look) || {lvl: LOOK_LEVEL.angle, kind: "pro", pt: b.post.look, sc: 1};
+  if(b.atPost && b.post && b.post.setupLook && b.post.look && !moving) return {lvl: LOOK_LEVEL.angle, kind: "pro", pt: b.post.look, sc: 1};
   if(!b._lkPt) return null;
   // (v259, В2) после планта на бегу не идёт спиной вперёд ради угла из дележа (догадка, не свежая угроза): смотрит, куда идёт.
   // Отход (repos, flee, save) — исключение. После планта у ботов спиной было T 20 % / CT 15 %, у про 10 / 6,5 %

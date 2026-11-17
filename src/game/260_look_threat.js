@@ -95,8 +95,11 @@ function uncheckedW(team, j){
 // взгляда с ослаблением «за спиной» (LOOK.behindHold / behindMove)
 // (v583a, Д1 / Д5) свой «смотрит туда»: точка у него в поле зрения и видна ему (направление своего видно на радаре — это знает и живой игрок).
 // Одно правило для «зону держит свой» (isRearZone) и «спину прикрывает свой» (270, lookCands)
+// (владелец 17.11, р4: «выход из B Apps помечен "держит T1", а T1 ни разу туда не повернулся»; «у T1 на Short смок — он не видит Short») держит —
+// смотрит прямо туда (≤ MATE_AIM от его взгляда, проектное число ≈ 25°) и линия не закрыта стеной и дымом; было — точка в поле зрения 110°
+var MATE_AIM = 0.45;
 function mateWatches(o, pt){
-  return !!o && o.alive && o.facing !== undefined && _angOff(Math.atan2(pt.y-o.y, pt.x-o.x), o.facing) <= FOV_DEG*Math.PI/360 && hasLOS(o.x, o.y, pt.x, pt.y, o.z);
+  return !!o && o.alive && o.facing !== undefined && _angOff(Math.atan2(pt.y-o.y, pt.x-o.x), o.facing) <= MATE_AIM && hasLOS(o.x, o.y, pt.x, pt.y, o.z) && !smokeBlocks(o.x, o.y, pt.x, pt.y);
 }
 function isRearZone(team, zb, j, b){
   // сам слышал/видел врага в этой зоне за последние 3 с — не тыл, даже если команда ещё не знает
