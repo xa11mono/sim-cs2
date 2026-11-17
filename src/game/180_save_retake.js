@@ -201,7 +201,8 @@ function computeApproaches(){
 function gTag(b, R){ var i = R.assign[b.id]||0, a = R.approaches[i];
   if(bots.filter(function(o){ return o.team === "CT" && o.alive && !o._saveSpot; }).length <= 1) return "gatherSolo"+i;
   return (a && bomb && Math.hypot(a.x-bomb.x, a.y-bomb.y) < 300 ? "gatherSite" : "gather")+i; }
-var RT_WAIT = 3;   // с — у про второй заходит через ~3 с после первого (комментарий «need» ниже; демки)
+var RT_WAIT = 3, RT_GAP = 400;   // RT_GAP, ед.: второй CT от первого при заходе у про — медиана 411 (322 ретейка Mirage)
+var _rtw = 0;   // с — у про второй заходит через ~3 с после первого (комментарий «need» ниже; демки)
 function updateRetake(cts){
   var R = bomb.retake;
   if(!R){
@@ -263,6 +264,12 @@ function updateRetake(cts){
     // точка сбора, — уже зашёл: он «на месте»
     var atAp = function(b, a){ return a && (Math.hypot(a.x-b.baseX, a.y-b.baseY) < 70 || Math.hypot(b.baseX-bomb.x, b.baseY-bomb.y) < Math.hypot(a.x-bomb.x, a.y-bomb.y)); };
     var ready = alive.filter(function(b){ return atAp(b, R.approaches[R.assign[b.id]]); }).length;
+    // (v583a, владелец 17.11: «сделай нормальный ретейк — посмотри, как ретейкают про»; 322 ретейка Mirage, CT ≥ 2: когда первый у бомбы, второй
+    // от него — медиана 411 ед., заходят с одной стороны (разница 21°, зажим 15 %), а стоял ли первый перед заходом ≥ 2 с — 7 %: про не ждут
+    // на точке, а сходятся на ходу) путь каждого CT до своей точки — раз в 8 тиков (R.apDist, читает и ход — 535: кто впереди, идёт шагом);
+    // «рядом» — на точке или не дальше RT_GAP по пути: заход, когда рядом все, кто успевает (было: все стоят на точках)
+    if(!R.apDist || tick % 8 === 0){ R.apDist = {}; alive.forEach(function(b){ var ap = R.approaches[R.assign[b.id]]; if(ap) R.apDist[b.id] = atAp(b, ap) ? 0 : pathLenTo(b, ap.x, ap.y); }); }
+    var near = alive.filter(function(b){ var d = R.apDist[b.id]; return d != null && d <= RT_GAP/PX_UNITS; }).length;
     var need = Math.min(alive.length, alive.length >= 3 ? 3 : alive.length);
     // у про второй заходит через ~3с после первого, у ботов было 5с: ждём
     // каждого, кто успевает дойти до своей точки сбора и ещё зайти на дефуз
@@ -286,7 +293,7 @@ function updateRetake(cts){
     if(ready >= 1 && !R.firstAt) R.firstAt = tick; else if(!ready) R.firstAt = 0;   // на точках никого (первый погиб / ушёл) — отсчёт заново
     var waited = R.firstAt && tick - R.firstAt >= RT_WAIT*TICK_HZ;
     if(waited && ready < need) logEvent("CT: ретейк — ждали остальных " + RT_WAIT + " с — заходим");
-    if(ready >= need || late || initiative || waited){
+    if((ready >= 1 && near >= need) || late || initiative || waited){
       if(initiative) logEvent("CT: ретейк — нас на точках "+readyFit+", живых T "+aliveCount("T")+" — заходим, не дожидаясь остальных");
       // ретейк как команда: сначала утилита (флешка на сайт/на известного T,
       // смок на подход T), заход — под хлопок; если гранат нет или время

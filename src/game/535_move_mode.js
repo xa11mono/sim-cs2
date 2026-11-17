@@ -43,6 +43,10 @@ function moveWalkWhy(bot){
      Math.hypot(bot.roamTarget.x-bot.baseX, bot.roamTarget.y-bot.baseY) < ROAM_QUIET_RADIUS) return "роумер у точки чека";
   // заход на занятый врагом сайт (ретейк/ротация) — последние метры шагом
   if(bot.post && bot.state === "patrol" && taskProp(bot.post.tag, "flankTask")) return "фланг";
+  // (v583a, ретейк как у про: сходятся на ходу, не стоят на точке) CT на сборе ушёл вперёд своего больше чем на RT_GAP по пути — идёт шагом,
+  // пока тот не подтянется (расстояния — хозяин ретейка, 180: bomb.retake.apDist)
+  if(bot.post && bot.state === "patrol" && taskProp(bot.post.tag, "gatherTask") && bomb && bomb.retake && bomb.retake.apDist){ var AD = bomb.retake.apDist, me = AD[bot.id];
+    if(me != null && Object.keys(AD).some(function(id){ return id !== bot.id && AD[id] - me > RT_GAP/PX_UNITS; })) return "ретейк — свой отстаёт, иду шагом"; }
   if(bot.post && bot.state === "patrol" && taskProp(bot.post.tag, "gatherTask") && Math.hypot(bot.post.x-bot.baseX, bot.post.y-bot.baseY) < 500) return "сбор на ретейк — последние метры";
   if(bot.post && bot.state === "patrol" && taskProp(bot.post.tag, "probeTask") && Math.hypot(bot.post.x-bot.baseX, bot.post.y-bot.baseY) < 420) return "проба — последние метры";
   if(bot.post && bot.state === "patrol" && taskProp(bot.post.tag, "shiftTask") && Math.hypot(bot.post.x-bot.baseX, bot.post.y-bot.baseY) < 450) return "перестановка — последние метры";
