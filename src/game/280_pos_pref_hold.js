@@ -280,6 +280,48 @@ function holdSpot(b, T){
   return best;
 }
 // раздать задачу "держать район" группе: по очереди, каждый учитывает уже выбранные точки тиммейтов
+// (v583a, Д14, владелец 17.11: «постплент — от того, куда поставили бомбу; взгляд в стену не отбрасывать — доджат флешку; вдвоём на одной
+// позиции — можно, кроссфайр; выбор — умный, не рандомный») места T после планта из демок про (MAP.postplant, tools/map/postplant_pairs_bake.py):
+// зона бомбы — ближайшая к бомбе того же сайта (≤ PP_ZONE_R); места — где про стояли при такой бомбе (доля раундов), с их взглядом.
+// Раздача — один раз за раунд, жадно по лучшей паре «бот — место»: вес = доля про × успеет дойти (опоздание к приходу про —
+// exp(−опоздание / PP_LATE)) × занятость (второй на то же место — доля «вдвоём» у про; тот же угол рядом — PP_DUP, дубль, не кроссфайр).
+// Смена — только по событию (нет назначения — новый в группе; место осталось за ним до конца раунда); пересмотра по таймеру нет.
+// Нет зоны бомбы в данных — null; кому места не досталось — список (им держать район вокруг бомбы, holdGroup). PP_ZONE_R, PP_LATE, PP_DUP — проектные числа
+var PP_ZONE_R = 150, PP_LATE = 5, PP_DUP = 0.3, PP_LOOK_D = 300;
+function ppProZone(bp, site){
+  var best = null, bd = PP_ZONE_R;
+  ((MAP.postplant && MAP.postplant.plants) || []).forEach(function(z){ if(z.site !== site || !z.spots || z.spots.length < 2) return;
+    var d = Math.hypot(z.x-bp.x, z.y-bp.y); if(d < bd){ bd = d; best = z; } });
+  return best;
+}
+function ppProGroup(members, bp, site, tag){
+  var Z = ppProZone(bp, site); if(!Z) return null;
+  var key = roundNum + ":" + Math.round(Z.x) + "," + Math.round(Z.y);
+  var taken = {}, chosen = [];
+  members.forEach(function(b){ var A = b._ppPro; if(A && A.key === key){ taken[A.i] = (taken[A.i] || 0) + 1; chosen.push(Z.spots[A.i]); } });
+  var free = members.filter(function(b){ return !(b._ppPro && b._ppPro.key === key); });
+  var T = {};
+  free.forEach(function(b){ T[b.id] = Z.spots.map(function(s){ return pathLenTo(b, s.x, s.y)/(SPEED*weaponSpeedMul(b)); }); });   // один раз на раздачу
+  while(free.length){
+    var bb = null, bi = -1, bs = -1;
+    free.forEach(function(b){ Z.spots.forEach(function(s, i){
+      var sc = s.share*Math.exp(-Math.max(0, T[b.id][i] - (s.tArr || 0))/PP_LATE);
+      if(taken[i]) sc *= Math.pow(s.two || 0, taken[i]);
+      var a0 = s.look && s.look[0] ? s.look[0][0] : null;
+      if(a0 !== null && chosen.some(function(c){ return c !== s && Math.hypot(c.x-s.x, c.y-s.y) < 120 && c.look && c.look[0] && _angOff(c.look[0][0], a0) < 0.52; })) sc *= PP_DUP;
+      if(sc > bs){ bs = sc; bb = b; bi = i; } }); });
+    if(!bb || bs <= 0) break;
+    bb._ppPro = {key: key, i: bi}; taken[bi] = (taken[bi] || 0) + 1; chosen.push(Z.spots[bi]);
+    free = free.filter(function(o){ return o !== bb; });
+    voiceLog("T", "pppro"+bb.id, bb.id, "после планта встаю " + calloutName(Z.spots[bi].x, Z.spots[bi].y).replace(/^на /,""));
+  }
+  members.forEach(function(b){ var A = b._ppPro; if(!A || A.key !== key){ return; }
+    var s = Z.spots[A.i], a = s.look && s.look[0] ? s.look[0][0] : Math.atan2(bp.y-s.y, bp.x-s.x);
+    setPost(b, {x: s.x, y: s.y}, {x: s.x + Math.cos(a)*PP_LOOK_D, y: s.y + Math.sin(a)*PP_LOOK_D}, true, tag);
+    if(b.post) b.post.setupLook = 1;   // угол места из демок — поручен задачей (как угол роли расстановки CT, 140)
+  });
+  return members.filter(function(b){ return !(b._ppPro && b._ppPro.key === key); });   // кому места не досталось
+}
 function holdGroup(members, T, tag){
   var chosen = [];
   members.slice().sort(function(a, c){ return Math.hypot(a.x-T.center.x, a.y-T.center.y) - Math.hypot(c.x-T.center.x, c.y-T.center.y); })

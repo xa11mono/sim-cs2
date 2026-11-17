@@ -1018,7 +1018,9 @@ function tBrain(){
     // (v145) пост-плант у бомбы = "держать район вокруг бомбы": бомбу видеть
     // обязательно (снять дефузера), встать под главный вход ретейка, от
     // остальных закрыться, не стоять кучей, по возможности кроссфаер
-    holdGroup(group, {key:"pp"+bomb.site+Math.round(bp0.x/30), center:bp0, rArea: 420, rMin: 180, rMax: 520, must:[bp0], anyFrom:true,   // (v520, владелец 09.11: «занимают позиции, с которых видна бомба») бомбу видят все, не только первый (было mustFirst, до 680 px — встали в Hole)
+    // (v583a, Д14) места про при такой бомбе (MAP.postplant) — ppProGroup (280); нет данных о зоне бомбы — держать район вокруг бомбы
+    var ppRest = ppProGroup(group, bp0, bomb.site, "postplant:hold"); if(ppRest && !ppRest.length) return;
+    holdGroup(ppRest || group, {key:"pp"+bomb.site+Math.round(bp0.x/30), center:bp0, rArea: 420, rMin: 180, rMax: 520, must:[bp0], anyFrom:true,   // (v520, владелец 09.11: «занимают позиции, с которых видна бомба») бомбу видят все, не только первый (было mustFirst, до 680 px — встали в Hole)
       // (v442, док владельца 27.10: «войс спамится» — «держу бомбу, смотрю X» каждый игрок при каждой смене угла, 3–4 строки в секунду) — один
       // раз за раунд на игрока: куда смотрит дальше, видно на радаре
       voice:function(b, r){ if(r.main && b._ppSaid !== roundNum && (b._ppSaid = roundNum)) voiceLog("T", "pphold"+b.id, b.id, "смотрю бомбу "+calloutName(r.main.pt.x, r.main.pt.y).replace(/^на /,"")); }}, "postplant:hold");

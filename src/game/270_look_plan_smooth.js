@@ -555,9 +555,10 @@ function lookVisible(b, p){
 }
 function lookFilter(b, look, LD){
   // (v583a, Д9) точка за стеной (стоя на посту, звук, направление про, зона плана) — не в стену, а туда, где враг из неё выйдет на мою линию
-  // (первая видимая точка его пути ко мне — appearFrom; нет — ближайший видимый угол по пути). Враг на виду, прострел (spam), прыжок — как есть.
+  // (первая видимая точка его пути ко мне — appearFrom; нет — ближайший видимый угол по пути). Враг на виду, прострел (spam), прыжок — как есть;
+  // угол про из демок (pro) — тоже: у про взгляд «в стену» — преэйм кромки или отворот от флешки (владелец 17.11), это данные, не ошибка.
   // Было: по всем ботам взгляд в невидимую точку ~19 % времени (м302 р2–р4)
-  if(look && !b._sawEnemy && !/^(enemy|spam|jump)$/.test(b.lookReason || "") && !lookVisible(b, look)){
+  if(look && !b._sawEnemy && !/^(enemy|spam|jump|pro)$/.test(b.lookReason || "") && !lookVisible(b, look)){
     var apL = appearFrom(b, look) || cornerLook(b, look);
     if(apL && apL !== look && lookVisible(b, apL)){ look = apL; if(LD) LD.steps.push("точка за стеной — смотрю, откуда выйдет"); } }
   if(look && b._lookLvl <= LOOK_LEVEL.angle && lookOnMate(b, look)){ var alt = openDirLook(b);
