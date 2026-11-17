@@ -306,7 +306,9 @@ function slHold(b, S, moving, alert){   // alert — тревога (lookUrgent 
 // (v583a, Д1 / Д4, владелец 17.11: «смотрит в старую сторону, хотя угроза важнее», «смотрит правее, пока идёт») что держит плавность:
 // зону плана (её ключ j в дележе) или замену без угрозы («open» — на линии свой / стена, «glance» — мельком на ходу). Живой игрок держит
 // проход, а не точку: пока идёт, прицел остаётся на той же зоне; и досматривает угол, только пока другой не стал важнее
-var SL_MORE = 2;   // проектное число: новый угол «важнее» держимого, если его вес в дележе хотя бы вдвое больше (меньше — паузы про, slHold)
+var SL_MORE = 2, SL_THREAT = 1;   // проектные числа: SL_MORE — новый угол «важнее» держимого, если его вес в дележе хотя бы вдвое больше (меньше — паузы про, slHold)
+// SL_THREAT — «настоящая угроза» в дележе (вес ≈ один вероятный враг): мелочь (0,05–0,3) переставляется сама и на ходу удержание не снимает
+// (владелец 17.11, кадр +3,6 с: T3 на уходе от бомбы развернулся на 113° к B Site из-за мелькания плана на 0,08 с)
 function slKey(b){ return b.lookReason === "look" && b._lkPick ? b._lkPick.j : (b.lookReason || null); }
 function slSub(k){ return typeof k === "string" && /(open|^glance)$/.test(k); }   // замена без угрозы — не досматривается ради угрозы
 function slVal(b, k){ var c = (b._lkC || []).filter(function(x){ return x.j === k; })[0]; return c ? c.sc : 0; }   // вес зоны k в текущем дележе
@@ -370,7 +372,7 @@ function smoothLookFilter(b, look, urgent){
   // (v583a, Д5, владелец 17.11, кадр +2,4 с: «а вот сюда он зачем смотрит») держимая зона выпала из кандидатов — угрозы там больше нет, там встал
   // свой, она стала тылом: досматривать нечего (м302 р2, T3: Empty → «угрозы нет», а удержание держало её ещё 9,5 с)
   if(S.plan && S.key != null && b._lkC && !b._lkC.some(function(x){ return x.j === S.key; })){ slNew(b, look); return look; }
-  if(b._lookLvl > (S.lvl || 0) || b.lookReason === "look" && kN != null && (slSub(S.key) || moving && S.plan && slVal(b, kN) >= SL_MORE*(S.val || 0)) && slVal(b, kN) > 0){ slNew(b, look); return look; }
+  if(b._lookLvl > (S.lvl || 0) || b.lookReason === "look" && kN != null && (slSub(S.key) || moving && S.plan && slVal(b, kN) >= Math.max(SL_MORE*(S.val || 0), SL_THREAT)) && slVal(b, kN) > 0){ slNew(b, look); return look; }
   var hold = slHold(b, S, moving, !!urgent);   // (15.11) тревога — паузы про в перестрелке; было SL.holdAlert (16 тиков, проектное)
   if(tick - S.since < hold) return S.pt;                                    // старое ещё не "досмотрели"
   slNew(b, look);
