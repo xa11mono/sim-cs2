@@ -1,1 +1,1 @@
-{"modules": ["275_look_turn.js"]}
+{"modules": ["110_post_routes.js", "190_team_intel_lkp_calls.js", "220_know_events_tick.js", "275_look_turn.js", "470_fight_cycle.js", "480_assist_flank_reload.js", "490_shoot.js", "500_decide_afterkill_cover.js", "510_engagements.js"]}

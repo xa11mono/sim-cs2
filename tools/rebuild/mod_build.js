@@ -34,6 +34,22 @@ function usedNames(a) {   // идентификаторы-ссылки (не к�
     U.add(n.name); });
   return U;
 }
+// «запуск» модуля: всё, что модуль делает при загрузке (присваивания переменных, вызовы), — в функцию __mi_<файл>, которую ядро
+// вызывает на месте метки /*@@MODINIT <файл>@@*/ (gamesrc.py) — порядок выполнения при загрузке тот же, что в склейке. Наверху модуля —
+// только объявления функций и переменных (без значений)
+const initName = f => "__mi_" + f.replace(/\.js$/, "").replace(/[^\w]/g, "_");
+function splitInit(src, f) {
+  const a = acorn.parse(src, { ecmaVersion: "latest", sourceType: "module", allowReturnOutsideFunction: true });
+  const top = [], vars = [], init = [];
+  a.body.forEach(st => {
+    if (st.type === "FunctionDeclaration") { top.push(src.slice(st.start, st.end)); return; }
+    if (st.type === "VariableDeclaration") { st.declarations.forEach(d => { vars.push(d.id.name);
+      if (d.init) init.push(d.id.name + " = " + src.slice(d.init.start, d.init.end) + ";"); }); return; }
+    if (st.type === "EmptyStatement") return;
+    init.push(src.slice(st.start, st.end));
+  });
+  return (vars.length ? "var " + vars.join(", ") + ";\n" : "") + top.join("\n") + "\nfunction " + initName(f) + "(){\n" + init.join("\n") + "\n}\n";
+}
 const C = topNames(core, false), CU = usedNames(C.a);
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "modb_")), coreExp = new Set(), coreImp = {};
 const M = mods.map(f => { const src = fs.readFileSync(path.join(srcDir, f), "utf8"), t = topNames(src, true), U = usedNames(t.a);
@@ -59,8 +75,10 @@ const js = f => "./" + f;
 M.forEach(m => {
   let head = (m.imp.length ? "import { " + m.imp.join(", ") + " } from \"./__core.js\";\n" : "");
   Object.entries(m.fromMods || {}).forEach(([f, L]) => { head += "import { " + L.join(", ") + " } from \"" + js(f) + "\";\n"; });
-  fs.writeFileSync(path.join(tmp, m.f), head + m.src + "\nexport { " + (m.exp.length ? m.exp.join(", ") : "") + " };\n");
+  fs.writeFileSync(path.join(tmp, m.f), head + splitInit(m.src, m.f) + "\nexport { " + m.exp.concat([initName(m.f)]).join(", ") + " };\n");
 });
+M.forEach(m => { const mk = "/*@@MODINIT " + m.f + "@@*/"; if (core.indexOf(mk) < 0) throw new Error("нет метки модуля " + m.f);
+  core = core.replace(mk, initName(m.f) + "();"); coreImp[m.f] = (coreImp[m.f] || []).concat([initName(m.f)]); });
 let coreHead = ""; M.forEach(m => { if (coreImp[m.f].length) coreHead += "import { " + coreImp[m.f].join(", ") + " } from \"" + js(m.f) + "\";\n"; });
 fs.writeFileSync(path.join(tmp, "__core.js"), coreHead + core + "\nexport { " + [...coreExp].join(", ") + " };\n");
 fs.writeFileSync(path.join(tmp, "__entry.js"), "import \"./__core.js\";\n");

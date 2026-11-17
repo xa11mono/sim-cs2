@@ -49,8 +49,15 @@ def game_files():
     return [os.path.join(GAME_DIR, f) for f in sorted(os.listdir(GAME_DIR)) if f.endswith(('.html', '.js')) and f not in skip]
 
 
+def _all_files():
+    return [f for f in sorted(os.listdir(GAME_DIR)) if f.endswith(('.html', '.js'))]
+
+
 def game_source():
-    return b''.join(open(p, 'rb').read() for p in game_files()).decode('utf-8')
+    # файл-модуль — метка на своём месте склейки: там ядро вызывает «запуск» модуля (то, что он делает при загрузке), порядок — как в склейке
+    mods = set(module_files())
+    return b''.join(('/*@@MODINIT %s@@*/\n' % f).encode('utf-8') if f in mods else open(os.path.join(GAME_DIR, f), 'rb').read()
+                    for f in _all_files()).decode('utf-8')
 
 
 if __name__ == '__main__':
