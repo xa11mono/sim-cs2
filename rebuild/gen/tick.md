@@ -3,11 +3,14 @@
 Что вызывает `stepTick` по порядку исходника (функции игры; отступ — внутри условия / обхода ботов).
 Это порядок вызовов в коде, а не замер: что срабатывает в тике — по условиям. Слои фазы 2 (знания → намерения → согласование → исполнители → физика) — в «Устройстве».
 
+- `simTimeSet` (530)
     - `resetRound` (530) — если simTime - roundEndTime >= ROUND_RESTART_DELAY_SEC
     - `newMatch` (530) — если simTime - roundEndTime >= 7
   - `freezeLookTick` (275) — если roundState === "freeze"
   - `nadePrecalcTick` (380) — если roundState === "freeze"
-    - `logEvent` (440) — если simTime >= roundStartTime
+    - `roundSetState` (530) — если simTime >= roundStartTime
+    - `freezeFxReset` (530) — если simTime >= roundStartTime
+    - `logEvent` (435) — если simTime >= roundStartTime
   - `sbTick` (677) — если SANDBOX.on
   - `dvTick` (678) — если DEMOV.on
   - `weaponPickupTick` (450) — если postRun
@@ -17,7 +20,7 @@
   - `updateNadeTasks` (380) — если !postRun
   - `nadesTick` (400) — если !postRun
     - `tClearCalls` (150) — если roundState === "live" && tick % 16 === 0
-  - `bombBeepTick` (680) — если !postRun
+  - `bombBeepTick` (435) — если !postRun
   - `updatePost` (110) — в обходе (forEach и т.п.)
   - `updateReload` (480) — в обходе (forEach и т.п.)
     - `updateRoamer` (430) — если !bot.post
@@ -31,8 +34,8 @@
   - `moveSpeedTick` (535) — в обходе (forEach и т.п.)
   - `fightCycleTick` (470) — в обходе (forEach и т.п.)
   - `inWater` (460) — в обходе (forEach и т.п.)
-          - `sndLadder` (680) — если CL
-          - `sndStep` (680) — иначе (CL)
+        - `soundEv` (435) — если CL
+        - `soundEv` (435) — иначе (CL)
         - `bzOf` (200) — если roundState === "live"
             - `reachPossible` (200) — в обходе (forEach и т.п.)
             - `beliefZoneKnown` (260) — в обходе (forEach и т.п.)
@@ -66,7 +69,7 @@
           - `botLane` (050) — если TRl.length >= 8 && tick - (bot._unstickT//-1e9) > 2*TICK_HZ && tick - 
           - `crossesWall` (060) — если TRl.length >= 8 && tick - (bot._unstickT//-1e9) > 2*TICK_HZ && tick - 
             - `navAt` (020) — если p0 && p0[2] != null && p0[2] <= bot.z + 18 && Math.hypot(p0[0]-bot.bas
-            - `logEvent` (440) — если p0 && p0[2] != null && p0[2] <= bot.z + 18 && Math.hypot(p0[0]-bot.bas
+            - `logEvent` (435) — если p0 && p0[2] != null && p0[2] <= bot.z + 18 && Math.hypot(p0[0]-bot.bas
         - `navOnFloor` (370) — иначе (fireWait)
             - `navSnap` (540) — если ++bot._offNav > 32
               - `navUnlinkBlocked` (370) — если tick - bot._progTick > 96
