@@ -17,7 +17,7 @@ from syntaxcheck import check; check(out)   # (v461) битая страница
 # До переноса канала — предупреждения; перенесённый канал (enforce) — сборка падает. Нет node или acorn — проверка пропущена (с надписью).
 import subprocess, shutil
 _gm = os.path.join(HERE, '..', 'tools', 'rebuild', 'gen_maps.js')
-_env = dict(os.environ); _env['NODE_PATH'] = os.pathsep.join(filter(None, [_env.get('NODE_PATH'), '/opt/node-tools/node_modules', '/opt/npm-tools/node_modules']))
+_env = dict(os.environ); _env['NODE_PATH'] = os.pathsep.join(filter(None, [_env.get('NODE_PATH'), os.path.join(HERE, '..', 'tools', 'rebuild', 'node_modules'), '/opt/node-tools/node_modules', '/opt/npm-tools/node_modules']))   # (17.11) — и пакеты сборки модулей (ставятся сами)
 if not shutil.which('node'): print('проверка владения полей пропущена: нет node')
 else:
     _r = subprocess.run(['node', '-e', 'require("acorn");require("acorn-walk")'], env=_env, capture_output=True)

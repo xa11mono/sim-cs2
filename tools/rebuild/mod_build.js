@@ -62,7 +62,7 @@ M.forEach(m => M.forEach(o => { if (o === m) return; const U = usedNames(acorn.p
   o.fromMods = o.fromMods || {}; const need = [...m.N].filter(n => U.has(n) && !o.N.has(n)); if (need.length) { o.fromMods[m.f] = need; m.exp = [...new Set(m.exp.concat(need))]; } }));
 // снимок отметки (__SNAP, 650 — вставляет src/marks_build.py): «записать» переменной модуля — через её сеттер в модуле (__set_<имя>);
 // переписывается только список снимка — любая другая запись в чужую переменную остаётся ошибкой сборки (нужен интерфейс по смыслу)
-const SNAP = /var __SNAP = \[\n([\s\S]*?)\n\];/.exec(core), setters = {};
+const SNAP = /var __SNAP = \[\r?\n([\s\S]*?)\r?\n\];/.exec(core), setters = {};   // \r\n — страница с Windows (Python пишет так)
 if (SNAP) {
   const owner = {}; M.forEach(m => m.N.forEach(n => { owner[n] = m; }));
   const body = SNAP[1].replace(/function\(v\)\{ try\{ ([A-Za-z_$][\w$]*) = v; \}catch\(e\)\{\} \}/g, (all, n) => {
