@@ -499,6 +499,11 @@ function d3Frame(opt){
     var en = (fpb._visible || []).filter(function(o){ return o.alive && o.team !== fpb.team; })
       .filter(function(o){ var da = Math.atan2(o.y - fy, o.x - fx) - ff; da = Math.atan2(Math.sin(da), Math.cos(da)); return Math.abs(da) < D3_FP_AIM; })[0], ty, hd;
     if(en){ ty = ((en.z || 0) + (en.crouching ? 46 : 62))*D3_KZ; hd = Math.max(8, Math.hypot(en.x - fx, en.y - fy)); }
+    // (v583a, Д9, владелец 17.11: «в 3D смотрит в стенку рядом с окном») прицел на точке взгляда (lookTarget, ± D3_FP_AIM) — наклон к ней на высоте
+    // головы (пол у точки + 62; пол — ниже глаз бота + 200 ед., окно Mid → Window выше на 105): окно выше / ниже бота видно в проёме, а не стена
+    // под ним. Было: всегда горизонт на высоте глаз (у игры взгляд — только поворот)
+    else if(fpb.lookTarget && Math.abs(Math.atan2(Math.sin(Math.atan2(fpb.lookTarget.y - fy, fpb.lookTarget.x - fx) - ff), Math.cos(Math.atan2(fpb.lookTarget.y - fy, fpb.lookTarget.x - fx) - ff))) < D3_FP_AIM && Math.hypot(fpb.lookTarget.x - fx, fpb.lookTarget.y - fy) > 40){
+      var lt3 = fpb.lookTarget; ty = (d3FloorBelow(lt3.x, lt3.y, (fpb.z || 0) + 200) + 62)*D3_KZ; hd = Math.hypot(lt3.x - fx, lt3.y - fy); }
     else { var ax = fx + Math.cos(ff)*80, ay = fy + Math.sin(ff)*80; ty = d3FloorBelow(ax, ay, (fpb.z || 0) + 60)*D3_KZ + eh; hd = 80; }
     var pD = Math.atan2(ty - ez, hd), nowP = performance.now(), FP = D3.fpP;
     if(!FP || FP.id !== fpb.id || nowP - FP.t > 500) FP = D3.fpP = {id: fpb.id, p: pD, t: nowP};
