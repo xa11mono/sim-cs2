@@ -318,7 +318,7 @@ function ppProGroup(members, bp, site, tag){
   members.forEach(function(b){ var A = b._ppPro; if(!A || A.key !== key){ return; }
     var s = Z.spots[A.i], a = s.look && s.look[0] ? s.look[0][0] : Math.atan2(bp.y-s.y, bp.x-s.x);
     setPost(b, {x: s.x, y: s.y}, {x: s.x + Math.cos(a)*PP_LOOK_D, y: s.y + Math.sin(a)*PP_LOOK_D}, true, tag);
-    if(b.post) b.post.setupLook = 1;   // угол места из демок — поручен задачей (как угол роли расстановки CT, 140)
+    if(b.post){ b.post.setupLook = 1; b.post.ppAlt = 1; }   // угол места из демок — поручен задачей (как угол роли CT, 140); ppAlt — сначала свободные входы, чередование (270)
   });
   return members.filter(function(b){ return !(b._ppPro && b._ppPro.key === key); });   // кому места не досталось
 }

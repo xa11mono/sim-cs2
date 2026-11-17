@@ -482,14 +482,35 @@ function lookKnowCands(b){
   return out;
 }
 // уровень angle: угол, поручённый задачей, иначе угол из дележа команды
+// (v583a, владелец 17.11, пост-плант р4: «игрок 0 у бомбы смотрит в смок на дверь, а её держит тиммейт; и пусть кто-то чередует взгляд на
+// другую зону, хоть B-дом») углы места после планта — из демок про (post.pro.m: [угол, доля], до двух): сначала каждый вход — хоть один, потом
+// кроссфайр. Мой основной угол туда же, куда основной угол своего (точки, где враг выйдет, ≤ 160 px) — уступает тот, у кого второй угол
+// про весомее (поровну — у кого id больше): берёт второй. Иначе — чередование своих углов про: основной — пауза про стоя q75
+// (MAP.turnmodel.dwell.stand, ≈ 3 с), второй — медиана паузы (≈ 0,9 с). Р4: T0 у бомбы — Doors (49 %) и вход со стороны B Apps (30 %);
+// окно оттуда не видно (ящики в 160 px). Только для мест пост-планта (post.ppAlt, 280); null — как было (угол про по proSpotLook)
+function ppAltLook(b, ptPro){
+  var P = b.post; if(!P || !P.ppAlt || !P.pro || !P.pro.m || !P.pro.m.length) return null;
+  var M = P.pro.m.slice().sort(function(a, c){ return c[1] - a[1]; }), pt = function(a){ var c = rayClipWalls(b.x, b.y, b.x + Math.cos(a)*420, b.y + Math.sin(a)*420); return {x: c.x, y: c.y}; };
+  var p0 = pt(M[0][0]), mine = appearFrom(b, p0) || p0;
+  b._ppMine = {x: mine.x, y: mine.y, alt: M[1] ? M[1][1] : 0, t: tick};   // свой основной угол — всем (и у кого угол один)
+  if(M.length < 2) return null;
+  var p1 = pt(M[1][0]);
+  var yieldTo = bots.some(function(o){ var Q = o._ppMine; return o !== b && o.alive && o.team === b.team && o.atPost && o.post && o.post.ppAlt && Q && tick - Q.t <= 8 &&
+    Math.hypot(Q.x-mine.x, Q.y-mine.y) < 160 && (M[1][1] > Q.alt || M[1][1] === Q.alt && b.id > o.id); });
+  if(yieldTo) return {lvl: LOOK_LEVEL.angle, kind: "pro", pt: p1, sc: 1};
+  var DWs = (MAP.turnmodel && MAP.turnmodel.dwell && MAP.turnmodel.dwell.stand) || [10, 18, 59, 200, 464];
+  var A = b._ppAlt; if(!A || A.post !== P){ A = b._ppAlt = {post: P, t: tick, on: false}; }
+  if(tick - A.t >= (A.on ? DWs[2] : DWs[3])){ A.on = !A.on; A.t = tick; b._sl = null; }   // смена намерения — плавность не досматривает прежний
+  return {lvl: LOOK_LEVEL.angle, kind: "pro", pt: A.on ? p1 : p0, sc: 1};
+}
 function lookAngleCand(b, moving){
   if(b.roamChecking && b.roamLookPt) return {lvl: LOOK_LEVEL.angle, kind: "roam", pt: b.roamLookPt, sc: 1};
   if(b.fakeHoldUntil && tick < b.fakeHoldUntil && bomb && bomb.site) return {lvl: LOOK_LEVEL.angle, kind: "fake", pt: GEO[bomb.site].tEntry, sc: 1};
-  if(b.atPost && b.post && b.post.pro && !moving){ var plk = proSpotLook(b); if(plk) return {lvl: LOOK_LEVEL.angle, kind: "pro", pt: plk, sc: 1}; }
+  if(b.atPost && b.post && b.post.pro && !moving){ var plk = proSpotLook(b); if(plk) return ppAltLook(b, plk) || {lvl: LOOK_LEVEL.angle, kind: "pro", pt: plk, sc: 1}; }
   // (15.11, владелец: «точки в паре, чтобы смотрели все зоны, откуда выходят T») угол роли расстановки CT из демок (spot / lookYaw, 140) — поручен
   // задачей, как точка про на посту. Было: делёж углов команды перебивал его — на 20-й с угол роли держали редко (уход — медиана 27°), выход
   // из Palace закрывали в 0–17 % раундов против 43–66 % у про (tools/ct/ct_cover.js)
-  if(b.atPost && b.post && b.post.setupLook && b.post.look && !moving) return {lvl: LOOK_LEVEL.angle, kind: "pro", pt: b.post.look, sc: 1};
+  if(b.atPost && b.post && b.post.setupLook && b.post.look && !moving) return ppAltLook(b, b.post.look) || {lvl: LOOK_LEVEL.angle, kind: "pro", pt: b.post.look, sc: 1};
   if(!b._lkPt) return null;
   // (v259, В2) после планта на бегу не идёт спиной вперёд ради угла из дележа (догадка, не свежая угроза): смотрит, куда идёт.
   // Отход (repos, flee, save) — исключение. После планта у ботов спиной было T 20 % / CT 15 %, у про 10 / 6,5 %
@@ -553,12 +574,16 @@ function lookVisible(b, p){
   var C = b._lvc; if(C && Math.abs(C.x-b.x) < 8 && Math.abs(C.y-b.y) < 8 && Math.abs(C.lx-p.x) < 16 && Math.abs(C.ly-p.y) < 16) return C.r;
   var r = hasLOS(b.x, b.y, p.x, p.y, b.z); b._lvc = {x: b.x, y: b.y, lx: p.x, ly: p.y, r: r}; return r;
 }
+// (v583a, владелец 17.11: «взгляд в стену — только когда стоят к стенке впритык: это отворот от флешки») стена по направлению на точку ближе
+// LOOK_WALL_CLOSE px — угол про из демок остаётся как есть; дальше — смотреть, откуда выйдет враг (проектное число: 40 px ≈ 100 ед., шаг-полтора)
+var LOOK_WALL_CLOSE = 40;
+function lookWallClose(b, p){ var a = Math.atan2(p.y-b.y, p.x-b.x); return !hasLOS(b.x, b.y, b.x + Math.cos(a)*LOOK_WALL_CLOSE, b.y + Math.sin(a)*LOOK_WALL_CLOSE, b.z); }
 function lookFilter(b, look, LD){
   // (v583a, Д9) точка за стеной (стоя на посту, звук, направление про, зона плана) — не в стену, а туда, где враг из неё выйдет на мою линию
   // (первая видимая точка его пути ко мне — appearFrom; нет — ближайший видимый угол по пути). Враг на виду, прострел (spam), прыжок — как есть;
-  // угол про из демок (pro) — тоже: у про взгляд «в стену» — преэйм кромки или отворот от флешки (владелец 17.11), это данные, не ошибка.
+  // угол про из демок (pro) — только если стена впритык (lookWallClose): отворот от флешки (владелец 17.11); дальше — как все.
   // Было: по всем ботам взгляд в невидимую точку ~19 % времени (м302 р2–р4)
-  if(look && !b._sawEnemy && !/^(enemy|spam|jump|pro)$/.test(b.lookReason || "") && !lookVisible(b, look)){
+  if(look && !b._sawEnemy && !/^(enemy|spam|jump)$/.test(b.lookReason || "") && !(b.lookReason === "pro" && lookWallClose(b, look)) && !lookVisible(b, look)){
     var apL = appearFrom(b, look) || cornerLook(b, look);
     if(apL && apL !== look && lookVisible(b, apL)){ look = apL; if(LD) LD.steps.push("точка за стеной — смотрю, откуда выйдет"); } }
   if(look && b._lookLvl <= LOOK_LEVEL.angle && lookOnMate(b, look)){ var alt = openDirLook(b);
