@@ -1,0 +1,37 @@
+playwright 1.56.0, браузеры: C:\Windows\system32\config\systemprofile\.simcs2_node\ms-playwright
+> git fetch --quiet origin 92a913a454eff56911d7dc1e27507c3ab939617c
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_u70ubr0a FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_u70ubr0a\src\build.py --map mirage C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v583b_mir.html
+esbuild: The CommonJS "module" variable is treated as a global variable in an ECMAScript module and may not work as expected
+esbuild: The CommonJS "module" variable is treated as a global variable in an ECMAScript module and may not work as expected
+модули: 110_post_routes.js, 190_team_intel_lkp_calls.js, 220_know_events_tick.js, 275_look_turn.js, 360_nades_buy_smoke_vision.js, 365_nade_plan.js, 366_exec_sync.js, 370_fire_nav_levels_ladders.js, 380_nades_throw.js, 385_nades_flight.js, 390_nades_lineups.js, 400_nades_physics_damage.js, 410_nades_tactical_self.js, 420_nades_brains.js, 470_fight_cycle.js, 480_assist_flank_reload.js, 490_shoot.js, 500_decide_afterkill_cover.js, 510_engagements.js, 535_move_mode.js, 540_step_tick.js — ядро отдаёт 271 имён, берёт 611
+пометок 1625 | полей facing:7 walking:4 curSpeed:5 post:3 _task:4 _reposUntil:1 _waitPopUntil:1 _avoidPeekUntil:1 _tradeUntil:2 _tradeLock:1 state:2 nadeTask:10 holding:4 crouching:1 path:7 phase:2 | функций 1231
+общих переменных 921 из чужих файлов пишут 86
+> git fetch --quiet origin 92a913a454eff56911d7dc1e27507c3ab939617c
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_r9t5tslo FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_r9t5tslo\src\build.py --map ancient C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v583b_anc.html
+esbuild: The CommonJS "module" variable is treated as a global variable in an ECMAScript module and may not work as expected
+esbuild: The CommonJS "module" variable is treated as a global variable in an ECMAScript module and may not work as expected
+модули: 110_post_routes.js, 190_team_intel_lkp_calls.js, 220_know_events_tick.js, 275_look_turn.js, 360_nades_buy_smoke_vision.js, 365_nade_plan.js, 366_exec_sync.js, 370_fire_nav_levels_ladders.js, 380_nades_throw.js, 385_nades_flight.js, 390_nades_lineups.js, 400_nades_physics_damage.js, 410_nades_tactical_self.js, 420_nades_brains.js, 470_fight_cycle.js, 480_assist_flank_reload.js, 490_shoot.js, 500_decide_afterkill_cover.js, 510_engagements.js, 535_move_mode.js, 540_step_tick.js — ядро отдаёт 271 имён, берёт 611
+пометок 1625 | полей facing:7 walking:4 curSpeed:5 post:3 _task:4 _reposUntil:1 _waitPopUntil:1 _avoidPeekUntil:1 _tradeUntil:2 _tradeLock:1 state:2 nadeTask:10 holding:4 crouching:1 path:7 phase:2 | функций 1231
+общих переменных 921 из чужих файлов пишут 86
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\engine\walk_run.py --job=v583b_mir,C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v583b_mir.html --job=v583b_anc,C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v583b_anc.html --matches=3,7,11,13,17,19,23,29 --par=8
+матчей в очереди: 16, одновременно: 8
+v583b_mir match 29  rc 0 5913821 — готово 1/16, 5 мин
+v583b_mir match 3  rc 0 6549256 — готово 2/16, 6 мин
+v583b_mir match 19  rc 0 7651034 — готово 3/16, 6 мин
+v583b_mir match 13  rc 0 7209469 — готово 4/16, 7 мин
+v583b_mir match 17  rc 0 9032607 — готово 5/16, 8 мин
+v583b_mir match 7  rc 0 10206144 — готово 6/16, 8 мин
+v583b_mir match 11  rc 0 7952825 — готово 7/16, 9 мин
+v583b_mir match 23  rc 0 9592695 — готово 8/16, 9 мин
+v583b_anc match 3  rc 0 8148895 — готово 9/16, 11 мин
+v583b_anc match 11  rc 0 7640855 — готово 10/16, 12 мин
+v583b_anc match 7  rc 0 7829712 — готово 11/16, 12 мин
+v583b_anc match 13  rc 0 7567233 — готово 12/16, 12 мин
+v583b_anc match 17  rc 0 6926699 — готово 13/16, 13 мин
+v583b_anc match 29  rc 0 6505221 — готово 14/16, 14 мин
+v583b_anc match 19  rc 0 8042484 — готово 15/16, 14 мин
+v583b_anc match 23  rc 0 8595129 — готово 16/16, 15 мин
+done
+all done
