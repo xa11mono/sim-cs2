@@ -225,7 +225,7 @@ function wrapRect(){ return frameWrapR || (frameWrapR = wrap.getBoundingClientRe
 // игру на паузу и показывает себя на экране (что, матч, тик) — для скриншота; цикл кадров не умирает
 var FATAL = null;
 function showFatal(e){
-  paused = true; var bp = document.getElementById("btnPause"); if(bp) bp.textContent = "Продолжить";
+  clockPause(true); var bp = document.getElementById("btnPause"); if(bp) bp.textContent = "Продолжить";
   if(FATAL) return; FATAL = e;
   var d = document.createElement("div"); d.id = "fatalBox";
   d.style.cssText = "position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:9999;max-width:80vw;padding:12px 16px;background:#3a0d0d;border:1px solid #e5484d;color:#ffd7d7;font:12px/1.45 monospace;white-space:pre-wrap;border-radius:6px";
@@ -249,17 +249,16 @@ function frame(ts){
 function frameBody(ts){
   nowTs = ts; frameWrapR = null; wrapRect();
   if(SND && SND.ctx) sndFireTick();   // (v333) треск огня — и останавливается, когда огонь погас / раунд кончился / звук выключен
-  if(lastFrame===null) lastFrame = ts;
-  var dt = ts - lastFrame; lastFrame = ts;
-  if(!paused && WARM.on){ var wdt = Math.min(0.1, dt/1000); warmTick(wdt); accumulator = 0; }
+  var dt = clockFrameDt(ts);
+  if(!paused && WARM.on){ var wdt = Math.min(0.1, dt/1000); warmTick(wdt); clockAcc(0); }
   else if(!paused){
     // (v397, М146) догонять не больше FRAME_CATCHUP_MS за кадр: после скрытой вкладки или долгого кадра цикл раньше считал все
     // пропущенные тики разом (минута вкладки в фоне = ~3800 тиков в одном кадре — страница вставала на секунды, а следующий кадр
     // снова долгий — «снежный ком»). Теперь игра в такой момент идёт медленнее реального времени. Тики те же — игра не меняется
-    accumulator += Math.min(dt, FRAME_CATCHUP_MS);
+    clockAcc(accumulator + Math.min(dt, FRAME_CATCHUP_MS));
     // (v459) повтор клатча не успел до конца закупки — игра ждёт (те же тики потом, исход тот же)
-    if(rpHold()) accumulator = 0;
-    while(accumulator >= TICK_MS){ stepTick(); accumulator -= TICK_MS; }
+    if(rpHold()) clockAcc(0);
+    while(accumulator >= TICK_MS){ stepTick(); clockAcc(accumulator - TICK_MS); }
     mkAfterTicks();
   }
   rpRecord();   // (v459) запись для повтора клатча — только читает
@@ -280,7 +279,7 @@ function frameBody(ts){
   r.value = Math.round(HL.p*100); show();
   r.addEventListener("input", function(){ HL.p = (+r.value || 0)/100; show(); try{ localStorage.setItem(HL_KEY, JSON.stringify({p: HL.p})); }catch(e){} });
 })();
-document.getElementById("btnFreshMatch").addEventListener("click", function(){ var n = Math.max(1, parseInt(document.getElementById("inpMatchNum").value, 10) || 1); var sel = document.getElementById("selSeries"), bo = sel ? +sel.value : 3; if(bo !== SERIES.bo || seriesDone()) SERIES = {bo:bo, maps:{}}; var cw = document.getElementById("chkWarm"); if(cw && !cw.checked) freshMatch(n); else warmStart(n); paused = false; var bp = document.getElementById("btnPause"); if(bp){ bp.textContent = "Пауза"; bp.classList.remove("active"); } logEvent("Матч №"+n+" с чистого листа (воспроизводимый)", true); });
+document.getElementById("btnFreshMatch").addEventListener("click", function(){ var n = Math.max(1, parseInt(document.getElementById("inpMatchNum").value, 10) || 1); var sel = document.getElementById("selSeries"), bo = sel ? +sel.value : 3; if(bo !== SERIES.bo || seriesDone()) SERIES = {bo:bo, maps:{}}; var cw = document.getElementById("chkWarm"); if(cw && !cw.checked) freshMatch(n); else warmStart(n); clockPause(false); var bp = document.getElementById("btnPause"); if(bp){ bp.textContent = "Пауза"; bp.classList.remove("active"); } logEvent("Матч №"+n+" с чистого листа (воспроизводимый)", true); });
 setInterval(function(){ var el = document.getElementById("matchTick"); if(el) el.textContent = "матч "+matchNum+" · тик "+tick; }, 250);
 var BOT_INIT = bots.map(function(b){ var o = {keys:{}, vals:{}}; for(var k in b){ o.keys[k] = 1; var v = b[k]; if(v === null || (typeof v !== "object" && typeof v !== "function")) o.vals[k] = v; } return o; });
 window.__ev=function(src){return eval(src);};
@@ -295,7 +294,7 @@ requestAnimationFrame(frame);
   document.addEventListener("keydown", function(e){ if(e.key === "Escape") dds.forEach(function(d){ d.open = false; }); });
 })();
 document.getElementById("btnPause").addEventListener("click", function(){
-  paused = !paused;
+  clockPause(!paused);
   this.textContent = paused ? "Продолжить" : "Пауза";
   this.classList.toggle("active", paused);
 });

@@ -83,7 +83,7 @@ function mkUnpack(text){
 // открыть момент из снимка отметки: вся игра ровно как в момент нажатия
 function mkOpenSnap(text){
   mkRestore(mkUnpack(text));
-  paused = true; MK.cps = []; MK.cpMatch = matchNum; MK.lastCpTick = -1;
+  clockPause(true); MK.cps = []; MK.cpMatch = matchNum; MK.lastCpTick = -1;
 }
 // «отпечаток» настроек: если стены/зоны/лайнапы/переключатели поменялись — матч пойдёт иначе
 function mkFp(){
@@ -120,7 +120,7 @@ function mkAfterTicks(){
 // перемотка: ближайший снимок не позже цели (или начало матча) → быстрый пересчёт до тика
 function mkGoTo(match, target, done){
   if(MK.busy) return;
-  MK.busy = true; paused = true; mkPauseLabel();
+  MK.busy = true; clockPause(true); mkPauseLabel();
   var fp = mkFp(), cp = null;
   if(match === matchNum) MK.cps.forEach(function(c){ if(c.fp === fp && c.match === match && c.tick <= target && (!cp || c.tick > cp.tick)) cp = c; });
   if(match === matchNum && tick <= target && (!cp || tick >= cp.tick)){ /* идём вперёд от текущего */ }
@@ -139,7 +139,7 @@ function mkGoTo(match, target, done){
       prog.textContent = "Пересчитываю матч " + match + "… " + Math.round(100*(tick-from)/total) + "%";
       setTimeout(step, 0); return;
     }
-    prog.style.display = "none"; MK.busy = false; paused = true; mkPauseLabel();
+    prog.style.display = "none"; MK.busy = false; clockPause(true); mkPauseLabel();
     if(done) done(tick === target && matchNum === match);
   }
   step();
@@ -266,7 +266,7 @@ function mkStart(){
   if(MK.busy) return;
   if(typeof WARM !== "undefined" && WARM.on){ mkToast("Разминка — отметки только в матче"); return; }   // (v521) снимок разминки не открывается как матч
   if(MK.cur){ mkEl("mkText").focus(); return; }
-  paused = true; mkPauseLabel();
+  clockPause(true); mkPauseLabel();
   MK.cur = { snap: mkSnapshot(), state: mkState(), match: matchNum, tick: tick, round: roundNum, roundTime: Math.round((simTime - roundStartTime)*10)/10,
              fp: mkFp(), bot: null, text: "", want: "", category: "Взгляд", priority: "normal", pre: mkPreSnap() };
   MK.cur.screenP = mkScreen();   // (v385) весь экран — до того, как открылась панель отметки
@@ -337,7 +337,7 @@ function mkJump(d){
   mkEl("mkList").style.display = "none";
   if(!d.snapAsset){ mkToast("У этой отметки нет снимка игры (сделана до v175) — открыть точно нельзя"); return; }
   if(MK.busy) return;
-  MK.busy = true; paused = true; mkPauseLabel();
+  MK.busy = true; clockPause(true); mkPauseLabel();
   // (15.11, замечание владельца: «кликнул отметку — тот же раунд, приходится мотать назад 10 с, чтобы пересчитался») снимок в момент
   // отметки уже несёт принятое (ошибочное) решение — новый код его не пересматривает. Есть снимок за MK_PRE_SEC до — открываем его и
   // пересчитываем до момента отметки кодом этой страницы (решения принимаются заново); нет — как раньше, снимок момента.

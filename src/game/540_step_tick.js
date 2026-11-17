@@ -6,8 +6,14 @@ var tick = 0;
 var paused = false;
 var accumulator = 0;
 var lastFrame = null;
-roundState = BAL.freeze > 0 ? "freeze" : "live";
-roundStartTime = BAL.freeze; roundStartTick = Math.round(BAL.freeze*TICK_HZ);
+// (17.11, перестройка — модули) ЧАСЫ игры — у главного цикла: пауза, тик, накопитель кадра, время кадра пишут только эти функции
+// (сброс матча 530, разминка 660, повтор 675, демо 678, кадр и кнопки 680 — через них; импорт модуля только для чтения)
+function clockPause(on){ paused = on; }
+function clockSet(t){ tick = t; }
+function clockAcc(v){ accumulator = v; }
+function clockFrameDt(ts){ if(lastFrame===null) lastFrame = ts; var dt = ts - lastFrame; lastFrame = ts; return dt; }
+roundSetState(BAL.freeze > 0 ? "freeze" : "live");
+roundSetStart(BAL.freeze, Math.round(BAL.freeze*TICK_HZ));
 buyPhase(); // закуп первого (пистолетного) раунда — после объявления simTime (logEvent его использует); (v428) тактика выбирается в нём
 resetBomb();
 beliefBuild(); beliefReset(); // раздел 13: карта вероятностей врага
@@ -255,7 +261,7 @@ function strafeKeysTick(b, dt){
 function stepTick(){
   // ── этап 0. часы
   tick++;
-  simTime = tick * TICK_MS / 1000;
+  simTimeSet(tick * TICK_MS / 1000);
   // (v564, В89, владелец 11.11: «после конца раунда игроки бегают ещё ~5 с, плашку MVP не убирать») после конца раунда идёт только движение:
   // боты доходят по своим путям; мозги, гранаты, стрельба и проверка конца раунда стоят (убийств и второго конца раунда нет)
   // ── этап 1. раунд: конец раунда / матча, фриз (взгляд во фризе, подбор бросков)
@@ -270,7 +276,7 @@ function stepTick(){
   }
   if(roundState === "freeze"){
     freezeLookTick(); nadePrecalcTick();   // (физика гранат, этап 3) решения лайнапов — заранее, пока стоят
-    if(simTime >= roundStartTime){ roundState = "live"; FREEZE_FX = []; logEvent("Freeze-тайм окончен — раунд пошёл"); }
+    if(simTime >= roundStartTime){ roundSetState("live"); freezeFxReset(); logEvent("Freeze-тайм окончен — раунд пошёл"); }
     return;
   }
   // ── этап 2. особые режимы: песочница, раунд из демки

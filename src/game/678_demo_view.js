@@ -29,7 +29,7 @@ function dvStart(i){
   Object.keys(DEMOV.BOT).forEach(function(s){ var x = DEMOV.BOT[s], pr = null, sc = null;
     P[s].track.forEach(function(r){ var k = wkey[r[7]]; if(!k) return; if(WEAPONS[k].slot === "secondary") sc = k; else pr = k; });
     x.primary = pr; if(sc) x.secondary = sc; x.weapon = WEAPONS[pr || x.secondary]; x._ammoFor = null; x.armor = true; x.helmet = true; x._dvName = P[s].name; });
-  DEMOV.on = true; dvPlace(); paused = false;
+  DEMOV.on = true; dvPlace(); clockPause(false);
   logEvent("раунд из демки: " + R.demo + " р" + R.num + " — игроки по демке, боты решают («тень»)");
   dvRender(true);
 }
@@ -37,7 +37,7 @@ function dvStop(){ DEMOV.on = false; bots.forEach(function(x){ x._dvName = null;
 // каждый тик (stepTick, 540): события демки до этого момента, игроки — на места демки
 function dvTick(){
   var R = DEMOV.R, t = tick - DEMOV.t0, B = DEMOV.BOT;
-  if(t >= R.len){ DEMOV.on = false; paused = true; logEvent("раунд из демки кончился"); dvRender(true); return; }
+  if(t >= R.len){ DEMOV.on = false; clockPause(true); logEvent("раунд из демки кончился"); dvRender(true); return; }
   while(DEMOV.ei < R.ev.length && R.ev[DEMOV.ei][1] <= t){ var e = R.ev[DEMOV.ei++], A = B[e[2]];
     if(e[0] === "shot" && A && A.alive){ A.lastShotTick = tick; dvHearShot(A); }
     else if(e[0] === "hurt" && A && B[e[3]] && B[e[3]].alive){ var V = B[e[3]]; V.heardSound = hearReal(V, {x: A.x, y: A.y, tick: tick, team: A.team, src: A.id, kind: "hit"}); V._shotAtT = tick; V._shotAtBy = A; }

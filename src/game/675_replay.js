@@ -419,7 +419,7 @@ function rpWorldDraw(E, P, I, S, ox0, oy0, W, H){
   var saved = bots.map(function(o){ var c = {px: o.px, py: o.py, pfacing: o.pfacing, path: o.path, _trail: o._trail}; RP_BF.forEach(function(k){ c[k] = o[k]; }); return c; });
   var gw = null, gi = null; for(var j = R.s.indexOf(I.A); j >= 0; j--){ var w = R.s[j].w; if(w && w.gw){ gw = w.gw; gi = w.gi; break; } }
   try{
-    tick = A.tick; simTime = tick*TICK_MS/1000; roundNum = R.round; roundState = "live"; accumulator = f*TICK_MS;
+    clockSet(A.tick); simTime = tick*TICK_MS/1000; roundNum = R.round; roundState = "live"; clockAcc(f*TICK_MS);
     nadeWorldSet(A.sm, A.fi, A.nd, A.fx); groundWeapons = gw || []; groundItems = gi || [];
     bomb = A.bomb ? rpCl(A.bomb) : null; if(bomb) bomb.carrier = A.bc >= 0 ? bots[A.bc] : null;
     var t0 = rpTrFrom(R, P.rt - 0.5*TICK_HZ), tl = [];
@@ -436,7 +436,7 @@ function rpWorldDraw(E, P, I, S, ox0, oy0, W, H){
   finally {
     draw.noHud = false;
     bots.forEach(function(o, i){ var c = saved[i]; RP_BF.forEach(function(k){ o[k] = c[k]; }); o.px = c.px; o.py = c.py; o.pfacing = c.pfacing; movePath(o, c.path, "replay"); o._trail = c._trail; });
-    tick = keep.tick; simTime = keep.simTime; roundNum = keep.roundNum; roundState = keep.roundState; accumulator = keep.accumulator;
+    clockSet(keep.tick); simTime = keep.simTime; roundNum = keep.roundNum; roundState = keep.roundState; clockAcc(keep.accumulator);
     nadeWorldSet(keep.smokes, keep.fires, keep.nadesInAir, keep.nadeFx); bomb = keep.bomb; tracers = keep.tracers; soundPings = keep.soundPings;
     groundWeapons = keep.groundWeapons; groundItems = keep.groundItems; teamTac = keep.teamTac; FREEZE_FX = keep.FREEZE_FX; SIDE_TEAM = keep.SIDE_TEAM; NICKS = keep.NICKS;
     cv = keep.cv; ctx = keep.ctx; view.scale = keep.view.scale; view.panX = keep.view.panX; view.panY = keep.view.panY;
@@ -631,7 +631,7 @@ function rpJump(m, r){
   fetch(u.url).then(function(q){ if(!q.ok) throw new Error("HTTP " + q.status); return q.text(); }).then(function(t){
     if(WARM.on) WARM = {on: false};
     if(RP.on) rpEnd(); RP.rec = null; RP.pending = null; if(typeof TS !== "undefined"){ TS.lastRound = -1; if(TS.P) tsEnd(); }
-    mkOpenSnap(t); tg.remove(); paused = false;
+    mkOpenSnap(t); tg.remove(); clockPause(false);
     var bp = document.getElementById("btnPause"); if(bp){ bp.textContent = "Пауза"; bp.classList.remove("active"); }
     if(typeof OBS !== "undefined") OBS.sc = 0;
     logEvent("Матч №" + m + ", раунд " + roundNum + " — открыт из готового снимка", true);
@@ -640,13 +640,13 @@ function rpJump(m, r){
 }
 function rpGoto(m, r){
   m = Math.max(1, m|0); r = Math.max(1, r|0);
-  freshMatch(m); paused = true; RP.rec = null; RP.pending = null; if(RP.on) rpEnd();
+  freshMatch(m); clockPause(true); RP.rec = null; RP.pending = null; if(RP.on) rpEnd();
   var M0 = matchNum, tg = document.createElement("div"); tg.className = "mk-prog"; tg.textContent = "перематываю к раунду " + r + "…"; wrap.appendChild(tg);
   var step = function(){
     var t0 = performance.now();
     while(performance.now() - t0 < 40){
       if(matchNum !== M0 || roundNum > r || (roundNum === r && roundState === "freeze")){
-        tg.remove(); paused = false; var bp = document.getElementById("btnPause"); if(bp){ bp.textContent = "Пауза"; bp.classList.remove("active"); }
+        tg.remove(); clockPause(false); var bp = document.getElementById("btnPause"); if(bp){ bp.textContent = "Пауза"; bp.classList.remove("active"); }
         if(typeof logEvent === "function") logEvent("Матч №" + m + ", раунд " + roundNum + " — перемотано", true); return; }
       stepTick();
     }

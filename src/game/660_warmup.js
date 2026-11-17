@@ -37,12 +37,12 @@ function warmEnd(){
   var sk = document.getElementById("btnWarmSkip"); if(sk) sk.style.display = "none";
   freshMatch(n); if(snap && typeof mkRestore === "function") mkRestore(snap);
   if(typeof MK !== "undefined" && MK){ MK.cps = []; MK.lastCpTick = -1; }   // (v521) снимки для отметок — только из матча, не из разминки
-  killfeed = []; renderFeed(); voiceLines = []; if(typeof renderVoice === "function") renderVoice(); paused = false;
+  killfeed = []; renderFeed(); voiceLines = []; if(typeof renderVoice === "function") renderVoice(); clockPause(false);
 }
 function warmTick(dt){
   if(!WARM.on) return;
   WARM.left -= dt; if(WARM.left <= 0){ warmEnd(); return; }
-  tick++;
+  clockSet(tick + 1);
   bots.forEach(function(b){
     b.px = b.x; b.py = b.y;
     if(!b.alive){ if(!b._wRespawn) b._wRespawn = tick + 2*TICK_HZ; if(tick >= b._wRespawn) warmSpawn(b); return; }

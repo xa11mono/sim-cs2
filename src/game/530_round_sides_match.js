@@ -79,8 +79,8 @@ function swapSides(){
 // записи прошлого матча подставлялись бы в новый.
 function freshMatch(n, keepProfile){
   if(typeof WARM !== "undefined" && WARM.on){ WARM = {on:false}; }   // кнопку «пропустить разминку» прячет кадр (680, warmSkipSync)   // (v306) новый матч / перемотка — разминка кончилась
-  paused = true;
-  tick = 0; simTime = 0; roundStartTick = 0;
+  clockPause(true);
+  clockSet(0); simTime = 0; roundStartTick = 0;
   if(!keepProfile) OPP = null;
   var clr = function(o){ for(var k in o) delete o[k]; };
   [spotCache, OUTWARD_CACHE, _ED, EWL, APPEAR, HOLD_CANDS, nadeFlags, comboCd, siteHeatPending].forEach(function(o){ if(o) clr(o); });
@@ -226,4 +226,8 @@ function resetRound(){
   resetBomb();
   logEvent("Раунд "+roundNum+" начался");
 }
-
+// (17.11, перестройка — модули) время и состояние раунда двигает главный цикл (540, модуль) — через хозяина раунда
+function roundSetState(s){ roundState = s; }
+function roundSetStart(time, tk){ roundStartTime = time; roundStartTick = tk; }
+function simTimeSet(v){ simTime = v; }
+function freezeFxReset(){ FREEZE_FX = []; }
