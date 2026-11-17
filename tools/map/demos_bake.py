@@ -14,6 +14,7 @@ python3 tools/map/demos_bake.py --map <карта> [--only скрипт,скри
   jumps_bake.py            — места прыжка-чека про (jumps.json → pro.json, jumps)
   boosts_bake.py           — подсадки про (boosts.json → pro.json, boosts)
   plants_bake.py           — места планта про (plants.json → pro.json, plants; v381)
+  postplant_pairs_bake.py  — пост-плант «бомба → места T, взгляды, вдвоём» (после сборки pro.json → postplant.json; v583a)
 Потом сборка файлов набора: границы сайтов по плантам (zones.json, sites), pro.json, lineups.json, tactics.json
 (--assemble — только она).
 Отбор лайнапов в набор (как у Ancient v166): pro — частота ≥ 5 % раундов ситуации; proExtra (при BAL.nadeMore) — 1,5–5 %
@@ -171,6 +172,9 @@ def main():
     write_pro(PRO)
     write_lineups(PRO)
     write_tactics(PRO)
+    # (v583a) пост-плант «бомба → места» — после сборки pro.json (берёт места планта про из него) → postplant.json (MAP.postplant)
+    if '--assemble' not in sys.argv and (only is None or 'postplant_pairs_bake.py' in only):
+        run(('postplant_pairs_bake.py',))
 
 
 if __name__ == '__main__':

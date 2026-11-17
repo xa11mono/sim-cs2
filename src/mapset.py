@@ -12,7 +12,7 @@ import base64, json, os
 NOT_MAP = {'throws.json', 'throws_check.json'}
 MAP_FILES = ('map.json', 'navmesh.json', 'map3d.json', 'zones.json', 'walls.json', 'heights.json', 'cover.json', 'wallbang.json', 'climbs.json',
              'lineups.json', 'luaim.json', 'runups.json', 'nadelanes.json', 'nadeplan.json', 'pro.json', 'tactics.json', 'defaultpos.json',
-             'ctshare.json', 'zoneprops.json', 'turnmodel.json')
+             'ctshare.json', 'zoneprops.json', 'turnmodel.json', 'postplant.json')
 # (v512) nadeguess.json — подборы бросков лайнапов, посчитанные заранее (tools/nades/guess_bake.py): в MAP только если отпечаток
 # кода подбора и данных карты (nade_hash) тот же, с которым считали; иначе игра считает их сама во freeze-тайм, как раньше
 NADE_SRC = ('035_', '080_', '360_', '365_', '380_', '385_', '390_', '400_')
