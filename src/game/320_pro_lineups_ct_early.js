@@ -140,7 +140,11 @@ function ctEarlyPeek(b, ct){
   if(!E || E.round !== roundNum){
     // (v272) чаще не выходят: с выходом сразу CT были в мейне A в первые 35 с в 39 % раундов против 13,5 % у про (88 демок;
     // tools/measure/audit/ct_early.py) — шанс ×0,35 (= 13,5 / 39)
-    E = b._early = {round:roundNum, go: hashRand(roundNum*733 + matchNum*41 + b.id.charCodeAt(2)*9) < (pa-0.5)*1.3*0.35, st:0};
+    // (v583a, Д18) и спавн: зона, откуда пикает (мид — центр мида, иначе вход T на его сайт), — ранняя зона (MAP.spawnearly): шанс × множитель
+    // про для его места спавна среди своих (Mirage CT Window: с ближайшего 1,59, с 4-го 0,53 — AWP с дальнего спавна у про почти не выходит)
+    var kE = npZoneOf(b), gE = GEO[kE === "A" || kE === "B" ? kE : (Math.hypot(b.x-SITES.A.x, b.y-SITES.A.y) < Math.hypot(b.x-SITES.B.x, b.y-SITES.B.y) ? "A" : "B")];
+    var fE = b.tRole === "mid" ? GEO.ctMid : gE && gE.tEntry, spK = fE ? spawnEarlyK(b, calloutName(fE.x, fE.y).replace(/^(на|у|в)\s+/, "").replace(/[«»]/g, "")) : 1;
+    E = b._early = {round:roundNum, go: hashRand(roundNum*733 + matchNum*41 + b.id.charCodeAt(2)*9) < (pa-0.5)*1.3*0.35*spK, st:0, spK: spK};
   }
   if(!E.go || E.st === 2) return false;
   if(ct.call || since > 24){ if(E.st === 1){ E.st = 2; } return false; }
