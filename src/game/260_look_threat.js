@@ -93,6 +93,11 @@ function uncheckedW(team, j){
 // так тылом становились Triple, T Upper, Sniper Nest — откуда шли T), а то, куда враг ещё не мог дойти по таймингу
 // (REACH — знание команды) или что держит свой (свой в зоне / ≤ 400 px от её центра). Остальное позади — обычный вариант
 // взгляда с ослаблением «за спиной» (LOOK.behindHold / behindMove)
+// (v583a, Д1 / Д5) свой «смотрит туда»: точка у него в поле зрения и видна ему (направление своего видно на радаре — это знает и живой игрок).
+// Одно правило для «зону держит свой» (isRearZone) и «спину прикрывает свой» (270, lookCands)
+function mateWatches(o, pt){
+  return !!o && o.alive && o.facing !== undefined && _angOff(Math.atan2(pt.y-o.y, pt.x-o.x), o.facing) <= FOV_DEG*Math.PI/360 && hasLOS(o.x, o.y, pt.x, pt.y, o.z);
+}
 function isRearZone(team, zb, j, b){
   // сам слышал/видел врага в этой зоне за последние 3 с — не тыл, даже если команда ещё не знает
   var c0 = BZ.cent[j];
@@ -109,7 +114,7 @@ function isRearZone(team, zb, j, b){
   // B Site, Drop, Arches считались его и выпадали из взгляда T3
   var c = BZ.cent[j], m = c ? bots.filter(function(o){ if(o === b || !o.alive || o.team !== team) return false;
     if(bzOf(o.x, o.y) === j) return true;
-    return Math.hypot(o.x-c.x, o.y-c.y) <= 400 && o.facing !== undefined && _angOff(Math.atan2(c.y-o.y, c.x-o.x), o.facing) <= FOV_DEG*Math.PI/360 && hasLOS(o.x, o.y, c.x, c.y, o.z); })[0] : null;
+    return Math.hypot(o.x-c.x, o.y-c.y) <= 400 && mateWatches(o, c); })[0] : null;
   if(m){ REAR_WHY = "тыл: держит " + m.id; return true; }
   return false;
 }

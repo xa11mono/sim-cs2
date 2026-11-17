@@ -5,7 +5,9 @@ function lookCands(b, W){
   var atHold = !moving && b.post && b.post.look && Math.hypot(b.post.x-b.x, b.post.y-b.y) < 160;
   var postA = (b.post && b.post.look && !(taskProp(b.post.tag, "saveTask"))) ? Math.atan2(b.post.look.y-(b.post.y||b.y), b.post.look.x-(b.post.x||b.x)) : null;
   var mates = bots.filter(function(o){ return o !== b && o.alive && o.team === team; });
-  var rearCov = moving && mates.some(function(o){ return Math.hypot(o.x-b.x, o.y-b.y) < 500; });
+  // (v583a, Д1, владелец 17.11: «пока бежит, враг всё время смотрел на него справа — не повернулся»; м302 р2, CT2: Tetris за спиной ×0,15
+  // «прикрыт», а свой рядом смотрел в другую сторону) спину прикрывает свой рядом (500 px), только если он смотрит туда (mateWatches, 260)
+  var rearCov = function(pt){ return moving && mates.some(function(o){ return Math.hypot(o.x-b.x, o.y-b.y) < 500 && mateWatches(o, pt); }); };
   var habZ = {};
   bots.forEach(function(o){ if(!o.alive || o.team === team) return; var h = habitTop(o.id, 2); if(h){ var zh = bzOf(h.x, h.y); if(zh >= 0) habZ[zh] = 1; } });
   var Wd = ZONE_DANGER_W[BZ.ids[zb]] || {}, PW = PORTAL_W[team] || {};
@@ -58,7 +60,7 @@ function lookCands(b, W){
     if(d < LOOK.closeR && !behind){ sc *= LOOK.closeK; if(F) F.push(["близко", LOOK.closeK]); }
     if(fresh){ sc *= LOOK.freshK; if(F) F.push(["свежая угроза", LOOK.freshK]); }
     if(postA !== null && _angOff(za, postA) < 0.9){ sc *= LOOK.postK; if(F) F.push(["угол поста", LOOK.postK]); }
-    if(moving){ var hd = _angOff(za, b.heading); if(hd < 0.9){ sc *= LOOK.headK; if(F) F.push(["по ходу", LOOK.headK]); } else if(hd > 1.9 && !(fresh && d <= 250)){ sc *= rearCov ? LOOK.behindMoveCov : LOOK.behindMove; if(F) F.push([rearCov ? "за спиной (прикрыт)" : "за спиной", rearCov ? LOOK.behindMoveCov : LOOK.behindMove]); } }
+    if(moving){ var hd = _angOff(za, b.heading); if(hd < 0.9){ sc *= LOOK.headK; if(F) F.push(["по ходу", LOOK.headK]); } else if(hd > 1.9 && !(fresh && d <= 250)){ sc *= rearCov(c) ? LOOK.behindMoveCov : LOOK.behindMove; if(F) F.push([rearCov(c) ? "за спиной (прикрыт)" : "за спиной", rearCov(c) ? LOOK.behindMoveCov : LOOK.behindMove]); } }
     else if(behind && !fresh){ sc *= LOOK.behindHold; if(F) F.push(["за спиной поста", LOOK.behindHold]); }
     if(!fresh) sc *= lookMateAhead(b, mates, j, c, d, za, F);
     out.push({j:j, pt:c, sc:sc, fresh:fresh, a:za, f:F});
@@ -88,7 +90,7 @@ function lookCands(b, W){
     if(d < LOOK.closeR && !behind){ sc *= LOOK.closeK; if(F) F.push(["близко", LOOK.closeK]); }
     if(fresh){ sc *= LOOK.freshK; if(F) F.push(["свежая угроза", LOOK.freshK]); }
     if(postA !== null && _angOff(za, postA) < 0.9){ sc *= LOOK.postK; if(F) F.push(["угол поста", LOOK.postK]); }
-    if(moving){ var hd = _angOff(za, b.heading); if(hd < 0.9){ sc *= LOOK.headK; if(F) F.push(["по ходу", LOOK.headK]); } else if(hd > 1.9 && !(fresh && d <= 250)){ sc *= rearCov ? LOOK.behindMoveCov : LOOK.behindMove; if(F) F.push([rearCov ? "за спиной (прикрыт)" : "за спиной", rearCov ? LOOK.behindMoveCov : LOOK.behindMove]); } }
+    if(moving){ var hd = _angOff(za, b.heading); if(hd < 0.9){ sc *= LOOK.headK; if(F) F.push(["по ходу", LOOK.headK]); } else if(hd > 1.9 && !(fresh && d <= 250)){ sc *= rearCov(c) ? LOOK.behindMoveCov : LOOK.behindMove; if(F) F.push([rearCov(c) ? "за спиной (прикрыт)" : "за спиной", rearCov(c) ? LOOK.behindMoveCov : LOOK.behindMove]); } }
     else if(behind && !fresh){ sc *= LOOK.behindHold; if(F) F.push(["за спиной поста", LOOK.behindHold]); }
     if(!fresh) sc *= lookMateAhead(b, mates, nn, c, d, za, F, p);   // (v583a, Д5) вход — то же правило, что зона за ним
     out.push({j:1000+nn, pt:c, sc:sc, fresh:fresh, a:za, f:F});
@@ -107,7 +109,7 @@ function lookCands(b, W){
     var sc = th * q.frac / (1 + d/(moving ? LOOK.distMove : LOOK.distHold));
     var F = D ? [["опасность зоны " + (zoneUserName(BZ.ids[q.z]) || BZ.ids[q.z]), th], ["доля позиции у про", q.frac], ["дистанция " + Math.round(d), 1/(1 + d/(moving ? LOOK.distMove : LOOK.distHold))]] : null;
     if(fresh){ sc *= LOOK.freshK; if(F) F.push(["свежая угроза", LOOK.freshK]); }
-    if(moving){ var hd = _angOff(za, b.heading); if(hd < 0.9){ sc *= LOOK.headK; if(F) F.push(["по ходу", LOOK.headK]); } else if(hd > 1.9 && !(fresh && d <= 250)){ sc *= rearCov ? LOOK.behindMoveCov : LOOK.behindMove; if(F) F.push(["за спиной", rearCov ? LOOK.behindMoveCov : LOOK.behindMove]); } }
+    if(moving){ var hd = _angOff(za, b.heading); if(hd < 0.9){ sc *= LOOK.headK; if(F) F.push(["по ходу", LOOK.headK]); } else if(hd > 1.9 && !(fresh && d <= 250)){ sc *= rearCov(q) ? LOOK.behindMoveCov : LOOK.behindMove; if(F) F.push(["за спиной", rearCov(q) ? LOOK.behindMoveCov : LOOK.behindMove]); } }
     else if(atHold && postA !== null && _angOff(za, postA) > 2.2 && !fresh){ sc *= LOOK.behindHold; if(F) F.push(["за спиной поста", LOOK.behindHold]); }
     if(!fresh && mates.some(function(o){ return Math.hypot(o.x-q.x, o.y-q.y) < 140; })){ sc *= LOOK.mateThere; if(F) F.push(["там свой", LOOK.mateThere]); }
     out.push({j: "pos:" + q.id, pt: {x: q.x, y: q.y}, sc: sc, fresh: fresh, a: za, pos: q.id, f: F});
@@ -166,7 +168,7 @@ function lookCands(b, W){
   // взгляда на ходу — за спиной) на ходу — те же множители, что у остальных вариантов («по ходу» / «за спиной»); раньше их не было
   if(kw){ var kwa = Math.atan2(kw.pt.y-b.y, kw.pt.x-b.x), kws = kw.sc, kwF = D ? [["путь к известному врагу ("+kw.id+", "+kw.age.toFixed(1)+" с)", kw.cov ? kw.sc/LOOK.mateThere : kw.sc]].concat(kw.cov ? [["путь закрывает свой", LOOK.mateThere]] : []) : null;
     if(moving){ var kwh = _angOff(kwa, b.heading); if(kwh < 0.9){ kws *= LOOK.headK; if(kwF) kwF.push(["по ходу", LOOK.headK]); }
-      else if(kwh > 1.9){ kws *= rearCov ? LOOK.behindMoveCov : LOOK.behindMove; if(kwF) kwF.push([rearCov ? "за спиной (прикрыт)" : "за спиной", rearCov ? LOOK.behindMoveCov : LOOK.behindMove]); } }
+      else if(kwh > 1.9){ kws *= rearCov(kw.pt) ? LOOK.behindMoveCov : LOOK.behindMove; if(kwF) kwF.push([rearCov(kw.pt) ? "за спиной (прикрыт)" : "за спиной", rearCov(kw.pt) ? LOOK.behindMoveCov : LOOK.behindMove]); } }
     out.push({j:"known", pt:kw.pt, sc:kws, fresh:false, a:kwa, f:kwF}); }
   return out;
 }
