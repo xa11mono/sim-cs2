@@ -11,7 +11,7 @@ function lookCands(b, W){
   var habZ = {};
   bots.forEach(function(o){ if(!o.alive || o.team === team) return; var h = habitTop(o.id, 2); if(h){ var zh = bzOf(h.x, h.y); if(zh >= 0) habZ[zh] = 1; } });
   var Wd = ZONE_DANGER_W[BZ.ids[zb]] || {}, PW = PORTAL_W[team] || {};
-  var D = LOOKDBG.on ? (b._ldZones = {}) : null;   // (v273) разбор взгляда: только запись для выбранного бота
+  var D = LOOKDBG.on ? (b._ldZones = {}) : null, mateZ = {};   // mateZ — зоны, где стоит свой (v583a, Д5): туда не смотрим ни на зону, ни на вход из неё   // (v273) разбор взгляда: только запись для выбранного бота
   (ZONE_DANGER[BZ.ids[zb]]||[]).forEach(function(zid){
     var j = BZ.idx[zid]; if(j === undefined || j === zb) return;
     var cz = BZ.cent[j]; if(!cz || Math.hypot(cz.x-b.x, cz.y-b.y) > LOOK.maxDist){ if(D && cz) D[j] = {skip: "далеко"}; return; }
@@ -62,7 +62,7 @@ function lookCands(b, W){
     if(postA !== null && _angOff(za, postA) < 0.9){ sc *= LOOK.postK; if(F) F.push(["угол поста", LOOK.postK]); }
     if(moving){ var hd = _angOff(za, b.heading); if(hd < 0.9){ sc *= LOOK.headK; if(F) F.push(["по ходу", LOOK.headK]); } else if(hd > 1.9 && !(fresh && d <= 250)){ sc *= rearCov(c) ? LOOK.behindMoveCov : LOOK.behindMove; if(F) F.push([rearCov(c) ? "за спиной (прикрыт)" : "за спиной", rearCov(c) ? LOOK.behindMoveCov : LOOK.behindMove]); } }
     else if(behind && !fresh){ sc *= LOOK.behindHold; if(F) F.push(["за спиной поста", LOOK.behindHold]); }
-    if(!fresh){ var mk = lookMateAhead(b, mates, j, c, d, za, F); if(!mk){ if(dz) dz.skip = "там стоит свой"; return; } sc *= mk; }
+    if(!fresh){ var mk = lookMateAhead(b, mates, j, c, d, za, F); if(!mk){ mateZ[j] = 1; if(dz) dz.skip = "там стоит свой"; return; } sc *= mk; }
     out.push({j:j, pt:c, sc:sc, fresh:fresh, a:za, f:F});
   });
   // входы в СВОЮ зону: враг из соседней зоны сначала войдёт туда, где стоит бот
@@ -92,7 +92,7 @@ function lookCands(b, W){
     if(postA !== null && _angOff(za, postA) < 0.9){ sc *= LOOK.postK; if(F) F.push(["угол поста", LOOK.postK]); }
     if(moving){ var hd = _angOff(za, b.heading); if(hd < 0.9){ sc *= LOOK.headK; if(F) F.push(["по ходу", LOOK.headK]); } else if(hd > 1.9 && !(fresh && d <= 250)){ sc *= rearCov(c) ? LOOK.behindMoveCov : LOOK.behindMove; if(F) F.push([rearCov(c) ? "за спиной (прикрыт)" : "за спиной", rearCov(c) ? LOOK.behindMoveCov : LOOK.behindMove]); } }
     else if(behind && !fresh){ sc *= LOOK.behindHold; if(F) F.push(["за спиной поста", LOOK.behindHold]); }
-    if(!fresh){ var mk = lookMateAhead(b, mates, nn, c, d, za, F, p); if(!mk) return; sc *= mk; }   // (v583a, Д5) вход — то же правило, что зона за ним
+    if(!fresh){ var mk = mateZ[nn] ? 0 : lookMateAhead(b, mates, nn, c, d, za, F, p); if(!mk) return; sc *= mk; }   // зона за входом выкинута из-за своего — и вход   // (v583a, Д5) вход — то же правило, что зона за ним
     out.push({j:1000+nn, pt:c, sc:sc, fresh:fresh, a:za, f:F});
   });
   // (v281) известные позиции врага (из демок), которые отсюда видно и которые команда ещё не видела пустыми — в т. ч. в своей
@@ -367,7 +367,10 @@ function smoothLookFilter(b, look, urgent){
   // (v583a, Д1) важнее держимого — сразу, без досматривания: уровень арбитра выше (звук, команда, бой) или вес в дележе вдвое больше;
   // вес держимого — на момент, когда угол взяли (проверенный угол теряет вес сам — это не «стал важнее другой»); у замены («open», «glance») —
   // вес зоны плана, вместо которой её взяли; текущий вес не годится — он гуляет сам (угроза зоны по таймингу, делёж соседних зон)
-  if(b._lookLvl > (S.lvl || 0) || b.lookReason === "look" && kN != null && (S.plan || slSub(S.key)) && slVal(b, kN) >= SL_MORE*(S.val || 0) && slVal(b, kN) > 0){ slNew(b, look); return look; }
+  // (v583a, Д5, владелец 17.11, кадр +2,4 с: «а вот сюда он зачем смотрит») держимая зона выпала из кандидатов — угрозы там больше нет, там встал
+  // свой, она стала тылом: досматривать нечего (м302 р2, T3: Empty → «угрозы нет», а удержание держало её ещё 9,5 с)
+  if(S.plan && S.key != null && b._lkC && !b._lkC.some(function(x){ return x.j === S.key; })){ slNew(b, look); return look; }
+  if(b._lookLvl > (S.lvl || 0) || b.lookReason === "look" && kN != null && (slSub(S.key) || moving && S.plan && slVal(b, kN) >= SL_MORE*(S.val || 0)) && slVal(b, kN) > 0){ slNew(b, look); return look; }
   var hold = slHold(b, S, moving, !!urgent);   // (15.11) тревога — паузы про в перестрелке; было SL.holdAlert (16 тиков, проектное)
   if(tick - S.since < hold) return S.pt;                                    // старое ещё не "досмотрели"
   slNew(b, look);
