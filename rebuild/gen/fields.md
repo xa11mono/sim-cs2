@@ -8,15 +8,15 @@
 | `facing` | 11 | 7 | `lookFace · 275`, `lookTurnBy · 275`, `lookReset · 275`, `lookTick · 275`, `lookTrack · 275`, `handTurn · 275`, `freezeLookTick · 275` |
 | `walking` | 4 | 4 | `moveWalk · 535`, `moveWalkTick · 535`, `moveSpeedTick · 535`, `stepTick · 540` |
 | `curSpeed` | 13 | 5 | `jumpFaceWait · 370`, `ladderTick · 370`, `moveSpeed · 535`, `moveSpeedTick · 535`, `stepTick · 540` |
-| `post` | 3 | 3 | `setPost · 110`, `clearPost · 110`, `placeResetPost · 110` |
-| `_task` | 4 | 4 | `routeTick · 110`, `setPost · 110`, `clearPost · 110`, `placeResetTask · 110` |
+| `post` | 3 | 3 | `setPostDo · 110`, `clearPostDo · 110`, `placeResetPost · 110` |
+| `_task` | 4 | 4 | `routeTick · 110`, `setPostDo · 110`, `clearPostDo · 110`, `placeResetTask · 110` |
 | `_reposUntil` | 1 | 1 | `taskKeep · 110` |
 | `_waitPopUntil` | 1 | 1 | `moveWaitPop · 535` |
 | `_avoidPeekUntil` | 1 | 1 | `knowAvoidPeek · 220` |
 | `_tradeUntil` | 2 | 2 | `tradeAlertSet · 190`, `tradeEnd · 190` |
 | `_tradeLock` | 1 | 1 | `tradeEnd · 190` |
-| `state` | 2 | 2 | `fightState · 500`, `fightReset · 500` |
-| `nadeTask` | 27 | 10 | `(верх файла) · 360`, `nadeAskFlash · 365`, `exuReassign · 366`, `assignNade · 380`, `nadeQueueNext · 380`, `runupTick · 380`, `updateNadeTask1 · 380`, `lineupTick · 390`, `nadeCancel · 420`, `resetNades · 420` |
+| `state` | 2 | 2 | `fightStateDo · 500`, `fightReset · 500` |
+| `nadeTask` | 27 | 10 | `(верх файла) · 360`, `nadeAskFlash · 365`, `exuReassign · 366`, `assignNadeDo · 380`, `nadeQueueNext · 380`, `runupTick · 380`, `updateNadeTask1 · 380`, `lineupTick · 390`, `nadeCancel · 420`, `resetNades · 420` |
 | `holding` | 5 | 4 | `fightReset · 500`, `fightHoldOff · 500`, `leaveHold · 500`, `resolveEngagements · 510` |
 | `crouching` | 1 | 1 | `placeStance · 110` |
 | `path` | 13 | 8 | `fireGoneRepath · 370`, `fireRepath · 370`, `ladderTick · 370`, `navFollowFloor · 370`, `movePath · 535`, `moveSpeedTick · 535`, `navSnap · 540`, `stepTick · 540` |
@@ -49,16 +49,16 @@
 
 ## `post`
 
-- **хозяин** `setPost · 110` — 1 (стр. 451)
-- **хозяин** `clearPost · 110` — 1 (стр. 473)
-- **хозяин** `placeResetPost · 110` — 1 (стр. 478)
+- **хозяин** `setPostDo · 110` — 1 (стр. 451)
+- **хозяин** `clearPostDo · 110` — 1 (стр. 482)
+- **хозяин** `placeResetPost · 110` — 1 (стр. 491)
 
 ## `_task`
 
 - **хозяин** `routeTick · 110` — 1 (стр. 66)
-- **хозяин** `setPost · 110` — 1 (стр. 406)
-- **хозяин** `clearPost · 110` — 1 (стр. 473)
-- **хозяин** `placeResetTask · 110` — 1 (стр. 479)
+- **хозяин** `setPostDo · 110` — 1 (стр. 406)
+- **хозяин** `clearPostDo · 110` — 1 (стр. 482)
+- **хозяин** `placeResetTask · 110` — 1 (стр. 492)
 
 ## `_reposUntil`
 
@@ -87,36 +87,36 @@
 
 ## `state`
 
-- **хозяин** `fightState · 500` — 1 (стр. 4)
-- **хозяин** `fightReset · 500` — 1 (стр. 8)
+- **хозяин** `fightStateDo · 500` — 1 (стр. 4)
+- **хозяин** `fightReset · 500` — 1 (стр. 13)
 
 не бот (то же имя у другого объекта — в проверку владения не идёт): `dropBomb · 120` (96 bomb), `bombTick · 120` (228 bomb; 269 bomb; 286 bomb), `exuThrown · 366` (70 it), `exuLanded · 366` (82 it), `exuFail · 366` (86 it), `exuReassign · 366` (137 it), `exuTick · 366` (149 it; 151 it; 155 it), `bombPassTick · 460` (86 bomb), `checkRoundEnd · 530` (125 bomb), `mapEdQueueSave · 570` (66 S; 67 S), `mapEdSaveNow · 570` (74 S; 81 S; 82 S), `dvTick · 678` (46 bomb; 47 bomb)
 
 ## `nadeTask`
 
-- **хозяин** `updateNadeTask1 · 380` — 11 (стр. 519, 524, 528, 531, 555, 573, 583, 588, …)
-- **хозяин** `runupTick · 380` — 4 (стр. 484, 499, 511, 513)
+- **хозяин** `updateNadeTask1 · 380` — 11 (стр. 531, 536, 540, 543, 567, 585, 595, 600, …)
+- **хозяин** `runupTick · 380` — 4 (стр. 496, 511, 523, 525)
 - **хозяин** `exuReassign · 366` — 3 (стр. 128, 131, 132)
-- **хозяин** `nadeQueueNext · 380` — 2 (стр. 402, 404)
+- **хозяин** `nadeQueueNext · 380` — 2 (стр. 414, 416)
 - **хозяин** `lineupTick · 390` — 2 (стр. 188, 248)
 - **хозяин** `(верх файла) · 360` — 1 (стр. 37)
 - **хозяин** `nadeAskFlash · 365` — 1 (стр. 235)
-- **хозяин** `assignNade · 380` — 1 (стр. 391)
+- **хозяин** `assignNadeDo · 380` — 1 (стр. 397)
 - **хозяин** `nadeCancel · 420` — 1 (стр. 249)
 - **хозяин** `resetNades · 420` — 1 (стр. 253)
 
 ## `holding`
 
 - **хозяин** `resolveEngagements · 510` — 2 (стр. 109, 128)
-- **хозяин** `fightReset · 500` — 1 (стр. 8)
-- **хозяин** `fightHoldOff · 500` — 1 (стр. 9)
-- **хозяин** `leaveHold · 500` — 1 (стр. 180)
+- **хозяин** `fightReset · 500` — 1 (стр. 13)
+- **хозяин** `fightHoldOff · 500` — 1 (стр. 14)
+- **хозяин** `leaveHold · 500` — 1 (стр. 185)
 
 не бот (то же имя у другого объекта — в проверку владения не идёт): `rpEnd · 675` (262 RP), `rpHold · 675` (269 RP)
 
 ## `crouching`
 
-- **хозяин** `placeStance · 110` — 1 (стр. 477)
+- **хозяин** `placeStance · 110` — 1 (стр. 490)
 
 ## `path`
 
