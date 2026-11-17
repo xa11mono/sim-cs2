@@ -131,6 +131,20 @@ function pathTurnAhead(b, dist){   // насколько повернёт пут
     var a = Math.atan2(w[1]-y, w[0]-x); if(a0 === null) a0 = a; a1 = a; if(d >= dist) break; dist -= d; x = w[0]; y = w[1]; }
   return a0 === null ? 0 : Math.atan2(Math.sin(a1 - a0), Math.cos(a1 - a0))*180/Math.PI;   // со знаком
 }
+// (v583a, Д3 / Д8, владелец 17.11: «бежит и смотрит то влево, то вправо», «когда цели нет — смотрит по ходу, а ход виляет») куда смотреть
+// «по ходу»: направление пути впереди, от проекции бота на текущий отрезок пути — у живого игрока мышь не связана с клавишами: качание A / D
+// (strafeKeysTick) и снос мимо точки пути прицел не тянут. MOVE_LOOK_AHEAD — проектное число (≈ 120 ед. — полсекунды шагом)
+var MOVE_LOOK_AHEAD = 48;
+function pathAheadDir(b, D){
+  var P = b.path, i = b.pathIdx; if(!P || i == null || i >= P.length) return null;
+  var x = b.baseX, y = b.baseY;
+  if(i > 0){ var p0 = P[i-1], p1 = P[i], dx = p1[0]-p0[0], dy = p1[1]-p0[1], l2 = dx*dx + dy*dy;
+    if(l2 > 1e-6){ var t = Math.max(0, Math.min(1, ((x-p0[0])*dx + (y-p0[1])*dy)/l2)); x = p0[0] + dx*t; y = p0[1] + dy*t; } }
+  var qx = x, qy = y;
+  for(var k = i; k < P.length; k++){ var w = P[k], d = Math.hypot(w[0]-x, w[1]-y); if(d < 1e-6) continue;
+    if(d >= D){ x += (w[0]-x)*D/d; y += (w[1]-y)*D/d; break; } D -= d; x = w[0]; y = w[1]; }
+  return Math.hypot(x-qx, y-qy) < 1 ? null : Math.atan2(y-qy, x-qx);
+}
 function jumpCheckTick(b){
   if(b._landAt && tick >= b._landAt && b.alive && roundState === "live") landSound(b, false, "up");   // (v335) запрыгнул — приземлился
   if(b._boost && (roundState !== "live" || !b.alive)){ boostEnd(b); return; }
@@ -238,9 +252,12 @@ function strafeKeysTick(b, dt){
       else { var s = keysRand(b, 3) < KEYS_PRO[ctx].same ? J.last : -J.last;
         if(J.ax != null){ var off = (b.baseX - J.ax)*J.ux + (b.baseY - J.ay)*J.uy; if(Math.abs(off) > KEYS_DRIFT) s = off > 0 ? -1 : 1; }
         J.key = s; J.last = s; J.until = tick + Math.max(1, Math.round(peekQ(KEYS_PRO[ctx].press, keysRand(b, 2))*TICK_HZ)); } }
+    // (v583a, Д8) снос держится и во время нажатия: ушёл от линии дальше KEYS_DRIFT в сторону нажатия — клавиша отпущена (пауза — по про).
+    // Было: предел проверялся только в начале нажатия, нажатие до 0,8 с — снос 27 px (≈ 67 ед.) против ~12 ед. за нажатие у про
+    else if(J.key && J.ax != null && ((b.baseX - J.ax)*J.ux + (b.baseY - J.ay)*J.uy)*J.key > KEYS_DRIFT){ J.key = 0; J.until = tick + Math.max(1, Math.round(peekQ(KEYS_PRO[ctx].gap, keysRand(b, 1))*TICK_HZ)); }
   } else { if(!J.v) return; J.key = 0; }
   var ux = J.ux, uy = J.uy;
-  var vmax = SPEED*weaponSpeedMul(b), v = J.v, av = Math.abs(v);
+  var vmax = SPEED*weaponSpeedMul(b)*(b.walking ? WALK_SPEED_FRAC : 1), v = J.v, av = Math.abs(v);   // (v583a, Д8) на шифте в CS2 и вбок не быстрее шага
   if(J.key && v*J.key >= 0) v = J.key*Math.min(vmax, av + Math.max(0, CS_ACCEL*vmax - CS_FRIC*av)*dt);
   else { var dec = (J.key ? csDecel(av, vmax) : CS_FRIC*Math.max(av, CS_STOP/PX_UNITS))*dt; v = av <= dec ? 0 : v - (v < 0 ? -1 : 1)*dec; }
   J.v = v;
@@ -567,7 +584,7 @@ function stepTick(){
           // на звук/врага, взгляд мгновенно щёлкал бы обратно по ходу движения
           // (v575, В140) поправка — порцией: ход ушёл от взгляда больше чем на 3° — доворот до конца (≤ 0,6°); мелкие сдвиги хода (шаги по навмешу)
           // прицел не тянут. Было: доворот каждый тик — на бегу прицел неподвижен 36 % (у про 52 %)
-          var mvA = Math.atan2(bot.baseY-startY, bot.baseX-startX);
+          var mvA = pathAheadDir(bot, MOVE_LOOK_AHEAD); if(mvA === null) mvA = Math.atan2(bot.baseY-startY, bot.baseX-startX);   // (v583a, Д8) по пути, не за качанием
           var mvD = ((mvA - bot.facing + Math.PI) % (2*Math.PI) + 2*Math.PI) % (2*Math.PI) - Math.PI;
           if(Math.abs(mvD) >= 0.05) bot._aimFix = true; else if(Math.abs(mvD) <= 0.01) bot._aimFix = false;
           if(bot._aimFix){ var mvStep = TURN_RATE * dtSec; lookTurnBy(bot, Math.max(-mvStep, Math.min(mvStep, mvD)), "move"); }   // (В147) не рукой: у про на бегу взгляд идёт по ходу ровно (мерка формы run_lookoff; рукой — разница 10 → 65 %)
