@@ -366,7 +366,7 @@ var SPREAD_DIRS = [Math.PI/2, -Math.PI/2, Math.PI*0.75, -Math.PI*0.75, Math.PI/4
 // (v570) точка, которую задача дала посту (до раздвигания и сдвига к виду): «тот же ли пост» сверять с ней, а не со сдвинутым местом —
 // иначе сдвинутый пост «далеко» от точки задачи всегда, и задача ставит его заново каждый тик (340 опорник v280, 170 раш / прикрытие)
 function postSrc(b){ return b.post ? (b.post.src || b.post) : null; }
-function setPost(b, pt, look, hold, tag, spreadIdx){
+function setPostDo(b, pt, look, hold, tag, spreadIdx){
   var pt0 = pt;   // (v570) точка, как её дала задача (до сдвигов ниже) — у поста src: задача сверяет своё место с ней, а не со сдвинутым
   // сменил позицию после фрага — роль в этом раунде ставит его уже на новую точку
   if(b._hs && b._hs.round === roundNum && b._hs.tag === tag && pt && Math.hypot(pt.x-b._hs.pt.x, pt.y-b._hs.pt.y) < 320) pt = b._hs.pt;
@@ -454,6 +454,15 @@ function setPost(b, pt, look, hold, tag, spreadIdx){
   if(b.state === "patrol"){ movePath(b, [], "post"); b.pathIdx = 0; }
   return true;
 }
+// (17.11, перестройка — модули) запись в журнал решений (645) — здесь, у хозяина (было: 645 подменял функцию обёрткой)
+function setPost(b, pt, look, hold, tag){
+  var was = b && b.post ? b.post.tag : null, r = setPostDo.apply(this, arguments);
+  if(!b) return r;
+  var cur = b._task ? " (уровень " + b._task.lv + ")" : "";
+  if(r && tag !== was) dlog(b, "место", "задача «" + tag + "»" + cur + (was ? " вместо «" + was + "»" : "") + " — " + calloutName(pt.x, pt.y));
+  else if(!r) dlog(b, "место", "отказ «" + tag + "»: занят «" + (b._task ? b._task.tag : (b.post && b.post.tag)) + "»" + cur);
+  return r;
+}
 // (5) после временной задачи (ответ владельца 04.11, `docs/tasks/OWNER_ANSWERS_2026-11-04.md`): не «вернуться на пост», а оценить. Ушёл
 // по бою (контакт, перестановка в бою — уровни 9 и 6), задача кончилась, роль зовёт на пост: если враг, известный команде (за SITE_SEEN_SEC),
 // простреливает пост, а место, где бот сейчас, — нет, угроза осталась: остаётся, где стоит, смотрит на врага; инфа устарела / враг ушёл —
@@ -470,7 +479,11 @@ function afterTaskPick(b, pt){
   return {pt:{x:A.x, y:A.y}, look:{x:th.x, y:th.y}};
 }
 // механика сама сняла свою точку — её задача кончилась (следующая ставится без ожидания)
-function clearPost(b){ b._task = null; if(b._detour && b.post && taskTagB(b.post.tag) === b._detour.tb) b._detour = null; if(b.post){ b.post = null; b.atPost = false; if(b.state==="patrol"){ movePath(b, [], "post"); b.pathIdx = 0; } } }
+function clearPostDo(b){ b._task = null; if(b._detour && b.post && taskTagB(b.post.tag) === b._detour.tb) b._detour = null; if(b.post){ b.post = null; b.atPost = false; if(b.state==="patrol"){ movePath(b, [], "post"); b.pathIdx = 0; } } }
+// (17.11, перестройка — модули) запись в журнал решений (645) — здесь, у хозяина (было: 645 подменял функцию обёрткой)
+function clearPost(b){
+  if(b && b.post) dlog(b, "место", "снята задача «" + b.post.tag + "»"); return clearPostDo.apply(this, arguments);
+}
 // (15.11, перестройка, фаза 3 — канал места, шаг 1) поля места — post, _task и стойка crouching (владелец 15.11: присед — место) — пишет
 // только этот файл; остальные — через интерфейс: стойка placeStance(b, сидеть?, причина) (бой — присед в очереди, ход — встать из огня,
 // ослеплён — присесть), сброс раунда placeResetPost / placeResetTask (530). Причина стойки — b._stanceWhy.

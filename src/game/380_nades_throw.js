@@ -214,13 +214,19 @@ var NADE_FAIL = null;   // (v369) почему последний бросок �
 // когда бот сместился на NADE_RETRY_D от места прошлой попытки (проектное число: на ходу это ≈ 6–8 тиков, а не каждый тик) — обстановка
 // для полёта поменялась; до того — тот же отказ
 var NADE_RETRY_D = 24;
-function throwNade(b, type, tx, ty, lob, why, trusted, from){
+function throwNadeDo(b, type, tx, ty, lob, why, trusted, from){
   var M0 = b._tnMiss;
   if(M0 && M0.r === roundNum && M0.type === type && M0.tx === tx && M0.ty === ty && M0.lob === !!lob && Math.hypot(b.baseX-M0.x, b.baseY-M0.y) < NADE_RETRY_D &&
      b.nades && b.nades[type] > 0 && nadeReady(b)){ NADE_FAIL = M0.why; return false; }
   var ok = throwNadeTry(b, type, tx, ty, lob, why, trusted, from);
   b._tnMiss = (!ok && /долетит|стена|потолок/.test(NADE_FAIL || "")) ? {r: roundNum, type: type, tx: tx, ty: ty, lob: !!lob, x: b.baseX, y: b.baseY, why: NADE_FAIL} : null;
   return ok;
+}
+// (17.11, перестройка — модули) запись в журнал решений (645) — здесь, у хозяина (было: 645 подменял функцию обёрткой)
+function throwNade(b, type, tx, ty, lob, why){
+  var r = throwNadeDo.apply(this, arguments);
+  if(b) dlog(b, "граната", (r ? "кинул " : "не кинул ") + type + " — " + (why || "") + (r ? "" : ": " + (NADE_FAIL || "?")));
+  return r;
 }
 function throwNadeTry(b, type, tx, ty, lob, why, trusted, from){
   NADE_FAIL = null;
@@ -367,7 +373,7 @@ function nadeSelfWhyNot(b, type, pt){
   if(BZ.ids.length){ var j = bzOf(pt.x, pt.y); if(j >= 0 && [j].concat(BZ.nbr[j] || []).some(function(k){ return reachPossible(b.team, k) && beliefZoneKnown(b.team, k) >= NADE_FOE_P; })) return null; }
   return "там врага быть не может";
 }
-function assignNade(b, type, target, why, opts){
+function assignNadeDo(b, type, target, why, opts){
   if(!b || !b.alive || !b.nades || b.nades[type] <= 0) return false;
   // (v560, В98, разбор владельца 11.11: «зачем он кинул молотов» — молотов выхода «в любимый угол» кинул последний живой T, шедший за бомбой)
   // граната плана команды (bkey) — тоже с проверкой пользы и времени, кроме смока (он закрывает обзор и без известного врага)
@@ -390,6 +396,12 @@ function assignNade(b, type, target, why, opts){
   var here = !!(opts && opts.here);
   b.nadeTask = {type:type, x:target.x, y:target.y, until: tick + (here ? 2 : 10)*64, why:why||"", start:tick, lob:true, range:(opts && opts.range) || NADE_THROW_RANGE, now:!!(opts && opts.now), here:here, npm:npm};
   return true;
+}
+// (17.11, перестройка — модули) запись в журнал решений (645) — здесь, у хозяина (было: 645 подменял функцию обёрткой)
+function assignNade(b, type, target, why){
+  var r = assignNadeDo.apply(this, arguments);
+  if(b) dlog(b, "граната", (r ? "заказ " : "отказ в заказе ") + type + " — " + (why || "") + (r ? "" : (b.nadeTask ? " (занят: " + b.nadeTask.type + " — " + b.nadeTask.why + ")" : "")));
+  return r;
 }
 // задание на гранату выполняется, как только точка видна и в пределах броска
 function nadeQueueNext(b){

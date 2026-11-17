@@ -1,7 +1,12 @@
 // (v525, «одно решение — одно место», №4 шаг 1) режим боя бота (state: patrol / hold / engage / retreat) пишется только здесь; причина —
 // b._stateWhy (подпись на экране, запись матча). Решают по-прежнему разные механики (оценка decideAction, «врага не видно», после фрага,
 // нож) — они зовут эту функцию, а не пишут поле сами. Перестрелку (_fc) снаружи снимает только fcEnd (470)
-function fightState(b, next, why){ b.state = next; b._stateWhy = why; b._stateWhyT = tick; }
+function fightStateDo(b, next, why){ b.state = next; b._stateWhy = why; b._stateWhyT = tick; }
+// (17.11, перестройка — модули) запись в журнал решений (645) — здесь, у хозяина (было: 645 подменял функцию обёрткой)
+function fightState(b, next, why){
+  var was = b && b.state; var r = fightStateDo.apply(this, arguments);
+  if(b && next !== was) dlog(b, "бой", (was || "-") + " → " + next + (why ? " — " + why : ""), "_dlog2"); return r;
+}
 // (15.11, перестройка, фаза 3 — канал боя, шаг 1) режим боя state и «держит угол» holding (владелец 15.11: держит угол — бой) пишут только
 // файлы боя 470–510; остальные — через интерфейс: fightReset(b) — сброс к новому раунду / песочница (530, 677), fightHoldOff(b, причина) —
 // снять удержание (нож — 450, огонь — 535). Причина снятия — b._holdWhy.
