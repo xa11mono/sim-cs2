@@ -104,7 +104,12 @@ function isRearZone(team, zb, j, b){
   // (v280) по таймингу — тыл, только если враг не успеет туда дольше LOOK.timingSec (раньше — «не успел прямо сейчас»:
   // выкидывался угол, куда враг выйдет через 0,1 с); держит — другой тиммейт, не сам бот (игрок 8 «держал» Donut сам)
   if(!REACH[team] || REACH[team][j] - tick > LOOK.timingSec*TICK_HZ){ REAR_WHY = "тыл: по таймингу враг не успеет туда " + LOOK.timingSec + "+ с"; return true; }
-  var c = BZ.cent[j], m = c ? bots.filter(function(o){ return o !== b && o.alive && o.team === team && (bzOf(o.x, o.y) === j || Math.hypot(o.x-c.x, o.y-c.y) <= 400); })[0] : null;
+  // (v583a, Д5, владелец 17.11) «держит» — свой стоит в этой зоне (враг встретит его первым) или рядом (400 px) и смотрит туда: зона в его
+  // поле зрения и видна ему (направление своего видно на радаре). Было: просто «свой в 400 px» — T1 в B Apartments смотрел на Van, а B Short,
+  // B Site, Drop, Arches считались его и выпадали из взгляда T3
+  var c = BZ.cent[j], m = c ? bots.filter(function(o){ if(o === b || !o.alive || o.team !== team) return false;
+    if(bzOf(o.x, o.y) === j) return true;
+    return Math.hypot(o.x-c.x, o.y-c.y) <= 400 && o.facing !== undefined && _angOff(Math.atan2(c.y-o.y, c.x-o.x), o.facing) <= FOV_DEG*Math.PI/360 && hasLOS(o.x, o.y, c.x, c.y, o.z); })[0] : null;
   if(m){ REAR_WHY = "тыл: держит " + m.id; return true; }
   return false;
 }

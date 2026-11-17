@@ -60,10 +60,7 @@ function lookCands(b, W){
     if(postA !== null && _angOff(za, postA) < 0.9){ sc *= LOOK.postK; if(F) F.push(["угол поста", LOOK.postK]); }
     if(moving){ var hd = _angOff(za, b.heading); if(hd < 0.9){ sc *= LOOK.headK; if(F) F.push(["по ходу", LOOK.headK]); } else if(hd > 1.9 && !(fresh && d <= 250)){ sc *= rearCov ? LOOK.behindMoveCov : LOOK.behindMove; if(F) F.push([rearCov ? "за спиной (прикрыт)" : "за спиной", rearCov ? LOOK.behindMoveCov : LOOK.behindMove]); } }
     else if(behind && !fresh){ sc *= LOOK.behindHold; if(F) F.push(["за спиной поста", LOOK.behindHold]); }
-    if(!fresh){
-      if(mates.some(function(o){ return Math.hypot(o.x-c.x, o.y-c.y) < 140 || (bzOf(o.x, o.y) === j && Math.hypot(o.x-c.x, o.y-c.y) < 260); })){ sc *= LOOK.mateThere; if(F) F.push(["там свой", LOOK.mateThere]); }
-      else if(mates.some(function(o){ var dm = Math.hypot(o.x-b.x, o.y-b.y); return dm > 20 && dm < Math.min(d, 600) && _angOff(Math.atan2(o.y-b.y, o.x-b.x), za) < 0.22; })){ sc *= LOOK.mateInLine; if(F) F.push(["свой на линии", LOOK.mateInLine]); }
-    }
+    if(!fresh) sc *= lookMateAhead(b, mates, j, c, d, za, F);
     out.push({j:j, pt:c, sc:sc, fresh:fresh, a:za, f:F});
   });
   // входы в СВОЮ зону: враг из соседней зоны сначала войдёт туда, где стоит бот
@@ -93,7 +90,7 @@ function lookCands(b, W){
     if(postA !== null && _angOff(za, postA) < 0.9){ sc *= LOOK.postK; if(F) F.push(["угол поста", LOOK.postK]); }
     if(moving){ var hd = _angOff(za, b.heading); if(hd < 0.9){ sc *= LOOK.headK; if(F) F.push(["по ходу", LOOK.headK]); } else if(hd > 1.9 && !(fresh && d <= 250)){ sc *= rearCov ? LOOK.behindMoveCov : LOOK.behindMove; if(F) F.push([rearCov ? "за спиной (прикрыт)" : "за спиной", rearCov ? LOOK.behindMoveCov : LOOK.behindMove]); } }
     else if(behind && !fresh){ sc *= LOOK.behindHold; if(F) F.push(["за спиной поста", LOOK.behindHold]); }
-    if(!fresh && mates.some(function(o){ return Math.hypot(o.x-p.x, o.y-p.y) < 140; })){ sc *= LOOK.mateThere; if(F) F.push(["там свой", LOOK.mateThere]); }
+    if(!fresh) sc *= lookMateAhead(b, mates, nn, c, d, za, F, p);   // (v583a, Д5) вход — то же правило, что зона за ним
     out.push({j:1000+nn, pt:c, sc:sc, fresh:fresh, a:za, f:F});
   });
   // (v281) известные позиции врага (из демок), которые отсюда видно и которые команда ещё не видела пустыми — в т. ч. в своей
@@ -175,6 +172,15 @@ function lookCands(b, W){
 }
 var KNOWN_SEC = 10, KNOWN_W = 0.2;
 var KWL_CELL = 24, KWL_TTL = 32;   // проектные числа
+// (v583a, Д5, владелец 17.11: «туда, где стоит свой, смотреть не нужно — враг встретит его первым; один вход с разных сторон — нужно»)
+// свой впереди на угрозу — одно правило для зоны и для входа в неё (раньше у входа — только «свой в 140 px от прохода»: T3 у B Window
+// смотрел на выход из Kitchen, где стоял T4): свой у точки появления (140 px) или в самой зоне угрозы рядом с ней (260 px) — «там свой»;
+// свой на моей линии к ней — «свой на линии». Множитель веса; F — разбор
+function lookMateAhead(b, mates, j, c, d, za, F, p){
+  if(mates.some(function(o){ return Math.hypot(o.x-c.x, o.y-c.y) < 140 || (p && Math.hypot(o.x-p.x, o.y-p.y) < 140) || (bzOf(o.x, o.y) === j && Math.hypot(o.x-c.x, o.y-c.y) < 260); })){ if(F) F.push(["там свой", LOOK.mateThere]); return LOOK.mateThere; }
+  if(mates.some(function(o){ var dm = Math.hypot(o.x-b.x, o.y-b.y); return dm > 20 && dm < Math.min(d, 600) && _angOff(Math.atan2(o.y-b.y, o.x-b.x), za) < 0.22; })){ if(F) F.push(["свой на линии", LOOK.mateInLine]); return LOOK.mateInLine; }
+  return 1;
+}
 function knownWayLook(b){
   var BL = beliefLast[b.team] || {}, best = null;
   for(var id in BL){ var l = BL[id]; if(!l) continue; var age = (tick - l.tick)/TICK_HZ; if(age > KNOWN_SEC) continue;
@@ -358,7 +364,7 @@ function smoothLookFilter(b, look, urgent){
   if(moving && S.plan && b.lookReason === "look" && kN === S.key){ S.pt = {x:look.x, y:look.y}; return look; }
   // (v583a, Д1) важнее держимого — сразу, без досматривания: уровень арбитра выше (звук, команда, бой) или вес в дележе вдвое больше;
   // вес держимого — на момент, когда угол взяли (проверенный угол теряет вес сам — это не «стал важнее другой»); у замены («open», «glance») —
-  // вес зоны плана, вместо которой её взяли
+  // вес зоны плана, вместо которой её взяли; текущий вес не годится — он гуляет сам (угроза зоны по таймингу, делёж соседних зон)
   if(b._lookLvl > (S.lvl || 0) || b.lookReason === "look" && kN != null && (S.plan || slSub(S.key)) && slVal(b, kN) >= SL_MORE*(S.val || 0) && slVal(b, kN) > 0){ slNew(b, look); return look; }
   var hold = slHold(b, S, moving, !!urgent);   // (15.11) тревога — паузы про в перестрелке; было SL.holdAlert (16 тиков, проектное)
   if(tick - S.since < hold) return S.pt;                                    // старое ещё не "досмотрели"
