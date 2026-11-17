@@ -10,6 +10,7 @@ const acorn = require("acorn"), walk = require("acorn-walk"), fs = require("fs")
 const ROOT = path.resolve(__dirname, "..", ".."), GAME = path.join(ROOT, "src", "game"), OUT = path.join(ROOT, "rebuild", "gen");
 // --check: только проверка владения (сборка, src/build.py) — ничего не пишет; нарушение поля с enforce — код выхода 1
 const CHECK = process.argv.includes("--check");
+let VARS_CROSS = [], VARS_CATS = {};   // (17.11) для проверок сборки (раздел 4 → проверка в конце)
 if (!CHECK) fs.mkdirSync(OUT, { recursive: true });
 const save = (f, s) => { if (!CHECK) fs.writeFileSync(f, s); };
 
@@ -191,19 +192,6 @@ for (const { ast, off } of asts) walk.fullAncestor(ast, (n, _st, anc) => {
   }
 }
 
-// ---- проверка владения: запись поля из функции не из канала (owners.json → allow) — предупреждение, при enforce — ошибка
-if (CHECK) {
-  let bad = 0, warn = [];
-  for (const fl of Object.keys(OWN).filter(k => k[0] !== "_")) {
-    const E = Object.entries(W[fl]).filter(([k]) => !isOwn(fl, k));
-    if (!E.length) continue;
-    const n = E.reduce((a, [, L]) => a + L.length, 0), txt = "`" + fl + "` (" + OWN[fl].channel + "): " + n + " мест мимо хозяина — " + E.map(([k, L]) => k + "×" + L.length).join(", ");
-    if (OWN[fl].enforce) { bad++; console.error("ОШИБКА владения " + txt); } else warn.push(txt);
-  }
-  if (warn.length) console.log("владение полей — предупреждения (" + warn.length + " полей, каналы ещё не перенесены):\n  " + warn.join("\n  "));
-  process.exit(bad ? 1 : 0);
-}
-
 function callOrder(fnName) {
   const t = tops.find(x => x.name === fnName); if (!t) return [];
   const { ast, off } = asts.find(a => t.s >= a.off && t.e <= a.off + a.src.length);
@@ -250,7 +238,8 @@ console.log("пометок", R.length, "| полей", FIELDS.map(f => f + ":" 
     const T = isW ? V[n.name].w : V[n.name].r; T[f] = (T[f] || 0) + 1;
   });
   let cats = {}; try { cats = JSON.parse(fs.readFileSync(path.join(ROOT, "rebuild", "var_cats.json"), "utf8")); } catch (e) {}
-  const cross = Object.entries(V).filter(([k, v]) => Object.keys(v.w).some(f => f !== v.home)).sort((a, b) => Object.keys(b[1].w).length - Object.keys(a[1].w).length);
+  VARS_CATS = cats;
+  const cross = VARS_CROSS = Object.entries(V).filter(([k, v]) => Object.keys(v.w).some(f => f !== v.home)).sort((a, b) => Object.keys(b[1].w).length - Object.keys(a[1].w).length);
   let md = "# Общие переменные, которые пишут из чужих файлов (генерируется: `tools/rebuild/gen_maps.js`)\n\nВсего переменных верхнего уровня: " +
     Object.keys(V).length + ", из них пишут не только в своём файле: **" + cross.length + "**. Категория и хозяин — по смыслу (`rebuild/var_cats.json`):\n" +
     "канал (взгляд / место / гранаты / бой / ход / знание), мир (карта, навмеш, видимость), раунд (тик, состояние раунда, бомба, счёт), кэш, временное, показ.\n\n" +
@@ -260,3 +249,33 @@ console.log("пометок", R.length, "| полей", FIELDS.map(f => f + ":" 
   save(path.join(OUT, "vars.json"), JSON.stringify(Object.fromEntries(cross.map(([k, v]) => [k, v]))));
   console.log("общих переменных", Object.keys(V).length, "из чужих файлов пишут", cross.length);
 }
+
+// ---- (17.11, владелец: «чтобы нейронка не создавала новые файлы и дубли») защита устройства — ошибка сборки:
+//   новый файл в src/game (нет в rebuild/files.json); новый замок _xxxUntil или новый файл, который пишет замок (owners.json _locks);
+//   две функции с одним именем (в склейке вторая молча заменяет первую); общая переменная, которую пишет чужой файл, — без категории и
+//   хозяина (rebuild/var_cats.json)
+if (CHECK) {
+  const G = [];
+  let FL = []; try { FL = JSON.parse(fs.readFileSync(path.join(ROOT, "rebuild", "files.json"), "utf8")).files || []; } catch (e) {}
+  files.filter(f => FL.indexOf(f) < 0).forEach(f => G.push("новый файл " + f + " — без согласия владельца нельзя (rebuild/files.json, ARCHITECTURE.md); код — в файл своей механики"));
+  const LK = OWN._locks || {};
+  spans.forEach(([a, b, f]) => { const t = all.slice(a, b); for (const m of t.matchAll(/\b\w+\.(_[A-Za-z]*Until)\s*=[^=]/g)) {
+    const n = m[1], ff = f.slice(0, 3); if (!LK[n]) G.push("новый замок " + n + " (" + f + ") — срок решения держит хозяин канала, а не свой таймер");
+    else if (LK[n].indexOf(ff) < 0) G.push("замок " + n + " пишет новый файл " + f + " — через интерфейс хозяина"); } });
+  const seen = {}; tops.forEach(t => { const f = fileAt(t.s)[2]; if (seen[t.name] && seen[t.name] !== f) G.push("функция " + t.name + " — в двух файлах: " + seen[t.name] + " и " + f); else seen[t.name] = f; });
+  VARS_CROSS.forEach(([k]) => { if (!(VARS_CATS[k] && VARS_CATS[k].cat)) G.push("общая переменная " + k + " пишется из чужого файла — сначала категория и хозяин (rebuild/var_cats.json) или интерфейс у хозяина"); });
+  if (G.length) { G.forEach(g => console.error("ОШИБКА устройства: " + g)); process.exit(1); }
+}
+// ---- проверка владения: запись поля из функции не из канала (owners.json → allow) — предупреждение, при enforce — ошибка
+if (CHECK) {
+  let bad = 0, warn = [];
+  for (const fl of Object.keys(OWN).filter(k => k[0] !== "_")) {
+    const E = Object.entries(W[fl]).filter(([k]) => !isOwn(fl, k));
+    if (!E.length) continue;
+    const n = E.reduce((a, [, L]) => a + L.length, 0), txt = "`" + fl + "` (" + OWN[fl].channel + "): " + n + " мест мимо хозяина — " + E.map(([k, L]) => k + "×" + L.length).join(", ");
+    if (OWN[fl].enforce) { bad++; console.error("ОШИБКА владения " + txt); } else warn.push(txt);
+  }
+  if (warn.length) console.log("владение полей — предупреждения (" + warn.length + " полей, каналы ещё не перенесены):\n  " + warn.join("\n  "));
+  process.exit(bad ? 1 : 0);
+}
+
