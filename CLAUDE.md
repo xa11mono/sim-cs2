@@ -226,7 +226,8 @@
 | **синхронизация выхода T с гранатами** (одно место, v481): жизненный цикл смока выхода `EXU` (`exuTick`, `exuThrown`, `exuLanded`), можно ли выходить `exuGate` / `exuPending`, резервный исполнитель `exuBackup` / `exuReassign` | `366_exec_sync` |
 | **план гранат команды** (одно место, v428): закуп под план раунда по зонам, хозяин и момент гранаты — `teamNadePlan`, `npBought`, `npCanUse`, `npUse`, `npZoneOf`; данные — `MAP.nadeplan` (`tools/map/nadeplan_bake.py`) | `365_nade_plan` |
 | **урон и смерть — одно место** `applyDamage` (пули, HE, молотов; по своим `FF_MUL`) | `400_nades_physics_damage` |
-| **панель войса** (одно место показа): `voiceFeed` / `renderVoice`, цвета `VOICE_KIND` / `VOICE_KEYS`; консоль `logEvent` (#log) — по Ё, `toggleConsole` | `440_voicepanel_console` |
+| **журнал матча** (данные игры, с 17.11): строки консоли `logEvent`, войса `voiceFeed` / `voiceKind`, киллфида `feedKill` (+ знание о смерти, ассист, клатч `clutchInfo`) / `feedBombKill` / `feedEvent`, серия `SERIES`, решения команд `TEAM_LOG`, расписание писка бомбы `bombBeepTick`; **события для показа** — очередь `SHOW_Q` (`showEv` / `soundEv`), «есть новое» — `VOICE_DIRTY` / `LOG_DIRTY` / `KF_DIRTY` | `435_match_events` |
+| **панель войса и консоль** (только показ): `renderVoice`, `logRender`, `toggleConsole` (по Ё) | `440_voicepanel_console` |
 | трассеры, свой на линии `bulletVictim`; выпадение при смерти `dropWeaponOnDeath` → `groundWeapons` / `groundItems` (`itemPickupTick`); нож `knifeTick`; подбор оружия | `450_combat_items_knife` |
 | звук `emitSound`, мелкие ситуации (пас бомбы, добить, смок уходит, ослеплён, пистолет) | `460_sound_situations` |
 | **движение в перестрелке** (одно место): `fightCycleTick` — на линии (стрейф и контрстрейф `fightStrafe`, v390) → за укрытие `fightCover` → снова; числа `PEEK_PRO`, `STRAFE_PRO`; безопасная ротация, мало HP | `470_fight_cycle` |
@@ -244,9 +245,9 @@
 | проверка «кто кого видит» `visToolDraw`; разбор взгляда `lookDbgPanel` | `610_vistool_lookdebug` |
 | рисование кадра `draw` | `620_draw` |
 | **3D-вид** (кнопка «3D», только показ, v571): `D3`, сцена `d3Build` (пол — навмеш, ящики — `m3()` до `D3_CUT`), кадр `d3Frame`, таблички `d3Tag`; своё WebGL2 | `625_view3d` |
-| киллфид `feedKill` (иконки `KF_ICON`, затухание `kfExpireTick`), силуэты летящих гранат `NADE_ICON` / `nadeImg`, баннеры, карточка раунда, экономика на экране | `630_killfeed_banners_econ` |
+| киллфид — рисует `renderFeed` (иконки `KF_ICON`, затухание `kfExpireTick`), силуэты летящих гранат `NADE_ICON` / `nadeImg`, баннеры, карточка раунда, экономика на экране | `630_killfeed_banners_econ` |
 | табло `scoreboardUpdate`, панели игроков `playersUpdate` | `640_scoreboard_players` |
 | место вставки «Отметить момент» (`@@BUILD@@`) | `650_marks_hook` |
 | **песочница** (одно место, v536): `SANDBOX`, `sbTick` (часы стоят), `sbPlace` / `sbRevive` / `sbRemove`, панель `sbRender` / `sbLogic`; приказ `sbGo` | `677_sandbox` |
-| разминка `warm*`; автообсервер `obs*` (числа `OBS_K`, бой `obsFight`, слежка `OBS.lock`), мини-карта; **повтор клатча** `rp*` (запись `rpRecord`, клип `rpBuild`, эмоции `rpEmotions`, перейти к раунду `rpGoto` / `#round=М.Р`); звук `snd*` (писк бомбы и кромка экрана — одно расписание `bombBeepTick`), главный цикл `frame`, кнопки | `660_warmup`, `670_observer`, `675_replay`, `680_sound_frame_buttons` |
+| разминка `warm*`; автообсервер `obs*` (числа `OBS_K`, бой `obsFight`, слежка `OBS.lock`), мини-карта; **повтор клатча** `rp*` (запись `rpRecord`, клип `rpBuild`, эмоции `rpEmotions`, перейти к раунду `rpGoto` / `#round=М.Р`); звук `snd*`, разбор событий игры для показа `showSync` (звуки, баннеры, карточка раунда, закупка), главный цикл `frame`, кнопки | `660_warmup`, `670_observer`, `675_replay`, `680_sound_frame_buttons` |
 | **отметки владельца** (v255): `src/marks.js` (кнопка M, снимок, перемотка), сборка — `src/marks_build.py`; открыть снимок — `tools/marks/mark_open.js`; разбор по истории (что было до, что перебило, веса зон) — `tools/marks/mark_story.js` (v401); раскадровка со слоями — `tools/marks/mark_frames.js` (v407б); повтор с хранилищем браузера владельца — `tools/marks/replay_owner.js` | отдельные файлы |

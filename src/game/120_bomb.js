@@ -225,7 +225,7 @@ function bombTick(){
       }
       if(tick >= c.plantUntil){
         c.planting = false;
-        bomb.state = "planted"; bomb.site = tac.site; bomb.x = c.baseX; bomb.y = c.baseY; bomb.z = c.z;   // (v353) высота — для «видно ли бомбу» при дефузе if(SND && SND.on) sndBomb("planted", c.baseX, c.baseY);
+        bomb.state = "planted"; bomb.site = tac.site; bomb.x = c.baseX; bomb.y = c.baseY; bomb.z = c.z;   // (v353) высота — для «видно ли бомбу» при дефузе soundEv("sndBomb", "planted", c.baseX, c.baseY);
         bomb.plantTick = tick; bomb.explodeTick = tick + BOMB_TICKS; bomb.carrier = null;
         c.money = Math.min(MAX_MONEY, c.money + 300);
         logEvent(c.id+" заложил бомбу на "+tac.site+" (+$300)", true);
@@ -237,7 +237,7 @@ function bombTick(){
     // (раньше любой видимый CT через полкарты — и носитель стоял на точке
     // планта до конца раунда: это и были почти все проигрыши T по времени)
     if(!plantBlock(c, tac, site) && !DEMOV.on){   // (v571) раунд из демки: плант — по демке (678)
-      c.planting = true; c.plantUntil = tick + PLANT_TICKS; movePath(c, [], "bomb"); c.pathIdx = 0; if(SND && SND.on) sndBomb("plant", c.baseX, c.baseY);
+      c.planting = true; c.plantUntil = tick + PLANT_TICKS; movePath(c, [], "bomb"); c.pathIdx = 0; soundEv("sndBomb", "plant", c.baseX, c.baseY);
       // фейк-плант (раз за раунд): свои рядом держат углы, CT по инфе рядом —
       // начать и через ~1с бросить: CT на звук выйдут под прицел
       if(c._fakePlanted !== roundNum){
@@ -283,7 +283,7 @@ function bombTick(){
       if(((def._sawEnemy && def.contactStreak > 6) || hitD || nearD) && need > DEFUSE_KEEP*TICK_HZ && bombTimeLeftTicks() > need + 192){
         def.defusing = false; def.defuseCooldownUntil = tick + 96; logEvent(def.id+" прервал дефуз — враг рядом");
       } else if(tick >= def.defuseUntil){
-        def.defusing = false; bomb.state = "defused"; if(SND && SND.on) sndBomb("defused", bomb.x, bomb.y);
+        def.defusing = false; bomb.state = "defused"; soundEv("sndBomb", "defused", bomb.x, bomb.y);
         def.money = Math.min(MAX_MONEY, def.money + 300);
         logEvent(def.id+" обезвредил бомбу (+$300)", true);
         feedEvent("defuse", def.id+" обезвредил бомбу"+(bots.some(function(o){ return o.team==="T" && o.alive; }) ? " под носом у T" : ""));
@@ -322,7 +322,7 @@ function bombTick(){
           defuseSound(cand);
           logEvent(cand.id+" фейк-дефуз — ловит пик на звук");
         } else if(!DEMOV.on){   // (v571) раунд из демки: дефуз — по демке (678)
-          cand.defusing = true; cand.defuseUntil = tick + dTicks; if(SND && SND.on) sndBomb("defuse", cand.baseX, cand.baseY);
+          cand.defusing = true; cand.defuseUntil = tick + dTicks; soundEv("sndBomb", "defuse", cand.baseX, cand.baseY);
           movePath(cand, [], "bomb"); cand.pathIdx = 0;
           defuseSound(cand);
           logEvent(cand.id+" дефузит"+(cand.kit?" с китом (5с)":" без кита (10с)")+"…");

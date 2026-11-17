@@ -1,5 +1,5 @@
 function buyPhase(){
-  if(typeof buyShowStart === "function") buyShowStart();
+  showEv("buyShow", tick, bots.map(function(b){ return {id: b.id, team: b.team, _knife: b._knife, weapon: b.weapon, helmet: b.helmet, armor: b.armor, kit: b.kit, nades: Object.assign({}, b.nades), primary: b.primary, secondary: b.secondary}; }));   // (17.11) снаряжение до закупа — для показа закупки по одной (640)
   ["CT","T"].forEach(function(team){
     teamEco[team].antiEcoSmg = false;
     var type = decideRoundType(team);
@@ -72,7 +72,7 @@ function swapSides(){
   MEM_BOX[oldT] = memSnapshot();
   if(MEM_BOX[SIDE_TEAM.T]) memRestore(MEM_BOX[SIDE_TEAM.T]); else memStart();
   logEvent("СМЕНА СТОРОН — "+TEAM_NAME.CT+" за CT, "+TEAM_NAME.T+" за T. Счёт "+TEAM_NAME.CT+" "+score.CT+" : "+score.T+" "+TEAM_NAME.T, true);
-  if(typeof document !== "undefined"){ plSelected = null; showBanner("Смена сторон · "+TEAM_NAME.CT+" — CT", null, 3000); }
+  showEv("sideSwap", "Смена сторон · "+TEAM_NAME.CT+" — CT");
 }
 // (v152) воспроизводимый старт: всё, что влияет на решения ботов, — с нуля.
 // Кэши чистим целиком: часть ключей содержит tick, и после сброса tick старые
@@ -122,7 +122,7 @@ function checkRoundEnd(){
     // после планта смерть всех T раунд НЕ заканчивает — CT ещё должны дефузнуть
     if(!ctAlive){ endRound("T", "elim"); return; }
     if(tick >= bomb.explodeTick){
-      bomb.state = "exploded"; if(SND && SND.on) sndBomb("boom", bomb.x, bomb.y); hudBombBoom();   // (v437) вспышка кромки — только вид
+      bomb.state = "exploded"; soundEv("sndBomb", "boom", bomb.x, bomb.y); showEv("bombBoom");   // (v437) вспышка кромки — только вид
       bots.forEach(function(b){
         if(b.alive) applyDamage(null, b, bombDamageAt(b.x, b.y), "C4", {wkey:"C4", noFeed:true});
       });
@@ -147,7 +147,7 @@ function endRound(winner, reason){
   rememberRound(winner);
   posRoundEnd(winner);
   timeoutCheck(winner);
-  showRoundCard(winner, reason);
+  roundClutchResult(winner); showEv("roundCard", winner, reason, tick);
   payRoundEconomy(winner, reason);
   roundState = "ending";
   roundEndTime = simTime;
@@ -215,7 +215,7 @@ function resetRound(){
   roundState = FZ > 0 ? "freeze" : "live";
   roundStartTime = simTime + FZ; roundStartTick = tick + Math.round(FZ*TICK_HZ);
   // киллфид — только текущий раунд
-  killfeed.length = 0; renderFeed();
+  killfeed.length = 0; KF_DIRTY = true;
   resetTeamIntel();
   beliefReset();
   clutchShown = null; clutchInfo = null;

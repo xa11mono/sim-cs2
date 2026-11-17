@@ -52,7 +52,7 @@ const SYS = [
   [/^28/, "место"], [/^29/, "смоки"], [/^(30|31)/, "роли, про-позиции"], [/^(32|33)/, "эндгейм, клатч, ранний пик"], [/^34/, "мозг CT"],
   [/^35/, "реакция на контакт"], [/^(36|38|385|39|40|41|42)/, "гранаты"], [/^365/, "гранаты"], [/^366/, "гранаты"], [/^37/, "ход (уровни, лестницы, огонь)"],
   [/^43/, "взгляд"], [/^44/, "показ"], [/^45/, "бой"], [/^46/, "звук и ситуации"], [/^(47|48|49|495|50|51)/, "бой"], [/^52/, "экономика"],
-  [/^53/, "раунд и стороны"], [/^535/, "ход"], [/^54/, "ход"], [/^545/, "наблюдение"], [/^[5-9]/, "показ и инструменты"], [/^0/, "разметка"]];
+  [/^53/, "раунд и стороны"], [/^535/, "ход"], [/^54/, "ход"], [/^545/, "наблюдение"], [/^645/, "наблюдение"], [/^(660|677|678)/, "режимы и инструменты"], [/^[5-9]/, "показ и инструменты"], [/^0/, "разметка"]];   // (17.11) журнал решений — наблюдение; разминка, песочница, демо — режимы игры, не показ
 const sysOf = f => { const n = f.slice(0, 3); for (const [re, s] of SYS) if (re.test(n)) return s; return "?"; };
 
 // ---- 1) реестр решений
@@ -147,7 +147,7 @@ for (const { ast, off } of asts) walk.fullAncestor(ast, (n, _st, anc) => {
     if (st.type === "FunctionDeclaration") HOME[st.id.name] = fileAt(st.start + main.off)[2];
     if (st.type === "VariableDeclaration") st.declarations.forEach(d => { if (d.id.type === "Identifier") HOME[d.id.name] = fileAt(st.start + main.off)[2]; });
   });
-  const SHOW = new Set(["показ", "показ и инструменты"]), OUTSIDE = new Set(["разметка", "наблюдение"]);
+  const SHOW = new Set(["показ", "показ и инструменты"]), OUTSIDE = new Set(["разметка", "наблюдение", "режимы и инструменты"]);
   const isSim = f => !SHOW.has(sysOf(f)) && !OUTSIDE.has(sysOf(f));
   // локальные имена функции: параметры, var / let / const, вложенные function, catch (вложенные функции тоже — с запасом)
   const WRAP = iife ? iife.expression.callee : null;   // обёртка всей игры — её имена и есть общие
@@ -171,6 +171,8 @@ for (const { ast, off } of asts) walk.fullAncestor(ast, (n, _st, anc) => {
   });
   const sim2show = Object.entries(S2V).sort((a, b) => Object.values(b[1].from).reduce((s, v) => s + v, 0) - Object.values(a[1].from).reduce((s, v) => s + v, 0));
   if (CHECK) {
+    // (17.11) запрет включён (owners.json "_show_ban": true) — обращение игры к показу останавливает сборку
+    if (sim2show.length && OWN._show_ban) { console.error("ОШИБКА: симуляция трогает показ — " + sim2show.map(([k, v]) => k + " ← " + Object.keys(v.from).join(",")).join(", ")); process.exit(1); }
     if (sim2show.length) console.log("симуляция трогает показ — предупреждения (" + sim2show.length + " имён показа; запрет станет ошибкой после переноса):\n  " +
       sim2show.map(([k, v]) => k + (v.write ? " (пишет)" : v.call ? "()" : "") + " ← " + Object.keys(v.from).join(",")).join(", "));
   } else {

@@ -301,7 +301,7 @@ function throwNadeTry(b, type, tx, ty, lob, why, trusted, from){
     // (этап 3, P2-2) и свои: кто рядом или видел бросок, знает о нём так же, как враг; остальным — колл «флешу!» в войсе
     bots.forEach(function(o){ if(o.alive && o !== b && (Math.hypot(o.x-b.x, o.y-b.y) < 450 || hasVision(o.x, o.y, b.x, b.y))) nd.aware[o.id] = true; });
   }
-  nadesInAir.push(nd); if(SND && SND.on) sndNade("throw", b.x, b.y);
+  nadesInAir.push(nd); soundEv("sndNade", "throw", b.x, b.y);
   // (00_PLAN п.14) флешка под чужой пик (nadeTask.peekFor, 390) — выглядывающий ждёт её хлопка (540: _waitPopKey), до срабатывания по полёту
   var pkT = b.nadeTask && b.nadeTask.type === type && b.nadeTask.peekFor, pkB = pkT && bots.filter(function(o){ return o.id === pkT && o.alive; })[0];
   if(pkB && type === "flash"){ moveWaitPop(pkB, nd.etaDet + 1, "pop:"+nd.why, "peek-flash"); voiceLog(b.team, "pkfl"+b.id+roundNum, b.id, "флешу под пик "+pkB.id+" — выходи на хлопок"); }

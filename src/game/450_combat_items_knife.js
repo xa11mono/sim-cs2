@@ -118,7 +118,7 @@ function itemPickupTick(){
       } else continue;
       groundItems.splice(i, 1);
       logEvent(b.id+" подобрал "+(G.kind === "kit" ? "кит" : G.kind === "nade" ? NADE[G.key].name : WEAPONS[G.key].name)+(G.from ? " ("+G.from+")" : ""));
-      if(G.kind !== "kit") sndPickup(b, G.kind === "nade" ? "nade" : "w");   // (v338) звук подбора — только показ
+      if(G.kind !== "kit") soundEv("sndPickup", b, G.kind === "nade" ? "nade" : "w");   // (v338) звук подбора — только показ
     }
   });
 }
@@ -262,7 +262,7 @@ function weaponPickupTick(){
       if(b.primary && !sellItem(b, b.primary)) groundWeapons.push({key:b.primary, x:b.x, y:b.y, t:tick, from:b.id});   // (v334) купил в этом раунде — продаёт
       b.primary = G.key; b.weapon = WEAPONS[G.key]; b._ammoFor = null; b._pickGo = null;
       logEvent(b.id+" подобрал "+WEAPONS[G.key].name+(G.from ? " ("+G.from+")" : ""));
-      sndPickup(b, "w");   // (v338) звук подбора — только показ
+      soundEv("sndPickup", b, "w");   // (v338) звук подбора — только показ
       return;
     }
     // (9) в бою: с пистолетом/ПП, рядом (≤170px) лежит винтовка/AWP убитого, врага

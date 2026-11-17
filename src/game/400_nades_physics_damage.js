@@ -36,7 +36,7 @@ function nadeOrigin(n){
 }
 function detonate(n){
   var T = n.type;
-  if(SND && SND.on) sndNade(T, n.x, n.y);
+  soundEv("sndNade", T, n.x, n.y);
   if(T !== "decoy") nadeOrigin(n);
   // (11) гранаты видно/слышно: где разорвалась граната врага — это инфа о его плане
   if(roundState === "live" && T !== "decoy"){ var foeT = n.team === "T" ? "CT" : "T"; var NS = teamIntel[foeT].nadeSeen || (teamIntel[foeT].nadeSeen = []); NS.push({x:n.x, y:n.y, type:T, tick:tick}); if(NS.length > 30) NS.shift(); }
@@ -212,7 +212,7 @@ function nadesTick(){
     // клеток 2D-сетки удалены
     var nb0 = n.bounces.length, how = nadeStep(n, nTr);
     var R = m3Radar(m3(), n.p[0], n.p[1]); n.x = R[0]; n.y = R[1]; n.z = n.p[2];
-    if(n.bounces.length > nb0 && SND && SND.on) sndNade("bounce", n.x, n.y);
+    if(n.bounces.length > nb0) soundEv("sndNade", "bounce", n.x, n.y);
     if(tick % 2 === 0){ n.trail.push([n.x, n.y, n.z]); if(n.trail.length > 40) n.trail.shift(); }
     if(!how) continue;
     nadesInAir.splice(i,1);
@@ -225,14 +225,14 @@ function nadesTick(){
     var fr = fires[f];
     if(tick >= fr.until){ fires.splice(f,1); fireGoneRepath(fr); continue; }
     // дым, раскрывшийся на огне, тушит его
-    if(smokes.some(function(sm){ return Math.hypot(sm.x-fr.x, sm.y-fr.y) < smokeRadiusNow(sm) + NADE.molly.radius*MOLLY_SMOKE_TOUCH; })){ if(SND && SND.on) sndNade("extinguish", fr.x, fr.y); fires.splice(f,1); fireGoneRepath(fr); continue; }
+    if(smokes.some(function(sm){ return Math.hypot(sm.x-fr.x, sm.y-fr.y) < smokeRadiusNow(sm) + NADE.molly.radius*MOLLY_SMOKE_TOUCH; })){ soundEv("sndNade", "extinguish", fr.x, fr.y); fires.splice(f,1); fireGoneRepath(fr); continue; }
     bots.forEach(function(b){
       if(!b.alive) return;   // (v263, Б1) огонь жжёт и своих — множитель в applyDamage
       if(fireTouches(fr, b.x, b.y, b.z)){
         // (v323, М35) урон за удар растёт 1 → 8, удар раз в 0,2 с — чем дольше в огне, тем сильнее (fireDamageFor)
         if(!b._fireIn || b._fireIn.f !== fr){ b._fireIn = {f:fr, t:tick, hits:0}; }
         var hitsNow = Math.floor((tick - b._fireIn.t)/TICK_HZ/FIRE_HIT_SEC);
-        while(b._fireIn.hits < hitsNow && b.alive){ b._fireIn.hits++; if(SND && SND.on && b._fireIn.hits % 3 === 1) sndBody("burn", b.x, b.y); applyDamage(fr.thrower, b, Math.min(FIRE_HIT_MAX, b._fireIn.hits), "молотов", {from:{x:fr.x, y:fr.y}}); }
+        while(b._fireIn.hits < hitsNow && b.alive){ b._fireIn.hits++; if(b._fireIn.hits % 3 === 1) soundEv("sndBody", "burn", b.x, b.y); applyDamage(fr.thrower, b, Math.min(FIRE_HIT_MAX, b._fireIn.hits), "молотов", {from:{x:fr.x, y:fr.y}}); }
       } else if(b._fireIn && b._fireIn.f === fr){ b._fireIn = null; }
     });
   }

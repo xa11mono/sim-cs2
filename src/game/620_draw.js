@@ -886,4 +886,5 @@ function draw(){
     ctx.restore();
   }
 }
-
+// (17.11) контур круга дыма / огня — рисование (перенесено из 360)
+function areaPath(o, r){ ctx.beginPath(); ctx.arc(o.x, o.y, r, 0, Math.PI*2); ctx.closePath(); }   // контур области для рисования

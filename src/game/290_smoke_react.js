@@ -71,7 +71,7 @@ function blindBullet(b, pt){
   smokeBulletHole(b.x, b.y, pt.x, pt.y, ez0, (pt.z != null ? visFloorAt(pt.x, pt.y, pt.z) : visFloorAt(b.x, b.y, b.z)) + VIS_BODY.stand[0]);
   var sv = bulletLineHit(b, cl.x, cl.y, null, tick*37 + b.id.charCodeAt(1)*11, b._spam && b._spam.blind ? "вслепую" : "сквозь дым");   // (Г1) пуля сквозь дым попадает в того, кто на линии
   if(sv) cl = {x:sv.x, y:sv.y};
-  tracers.push({wc:tracerClass(b.weapon), wk:b.weapon && b.weapon.key, sil:!!(b.weapon && b.weapon.silenced), x1:b.x, y1:b.y, x2:cl.x, y2:cl.y, team:b.team, born:nowTs, hit:!!sv, miss:!sv}); if(tracers.length > 60) tracers.shift(); if(SND && SND.on) sndShot(b.weapon, b.x, b.y);
+  tracers.push({wc:tracerClass(b.weapon), wk:b.weapon && b.weapon.key, sil:!!(b.weapon && b.weapon.silenced), x1:b.x, y1:b.y, x2:cl.x, y2:cl.y, team:b.team, born:nowTs, hit:!!sv, miss:!sv}); if(tracers.length > 60) tracers.shift(); soundEv("sndShot", b.weapon, b.x, b.y);
   bots.forEach(function(o){ if(!o.alive || o.team === b.team) return;
     var hr = (hasLOS(o.x, o.y, b.x, b.y, o.z, b.z) ? GUN_HEAR_OPEN : GUN_HEAR_WALL) * (w.silenced ? 0.55 : 1);
     if(Math.hypot(o.x-b.x, o.y-b.y) < hr) o.heardSound = hearReal(o, {x:b.x, y:b.y, tick:tick, team:b.team, src:b.id, kind:"shots"}); });

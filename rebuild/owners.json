@@ -1,7 +1,8 @@
 {
   "_": "Хозяева полей бота (rebuild/DEVICE.md §1, §3). allow — функции канала: хозяин и исполнитель внутри канала; остальные записи — мимо хозяина. enforce: false — предупреждение (канал ещё не перенесён), true — сборка падает (ставится, когда канал перенесён, фаза 3). Читают tools/rebuild/gen_maps.js и проверка сборки (src/build.py). Полей без хозяина (nadeTask, path, phase) здесь нет — назначит перенос.",
-  "_show_marks": ["VOICE_DIRTY", "LOG_DIRTY", "RC_HALF"],
-  "_show_marks_why": "отметки «показ, обнови» — задуманный путь симуляция → показ (DEVICE.md §5): симуляция ставит, показ рисует и снимает; в запрет «симуляция не трогает показ» не идут",
+  "_show_ban": true,
+  "_show_marks": ["VOICE_DIRTY", "LOG_DIRTY", "RC_HALF", "plSelected", "BOT_INIT"],
+  "_show_marks_why": "отметки «показ, обнови» — задуманный путь симуляция → показ (DEVICE.md §5): симуляция ставит, показ рисует и снимает; plSelected — выбор игрока для разбора взгляда (270, отладка), BOT_INIT — исходные поля ботов (680, считается в конце загрузки) — только чтение; в запрет «симуляция не трогает показ» не идут",
   "facing":    {"channel": "взгляд", "allow": ["lookFace", "lookTurnBy", "lookReset", "lookTick", "lookTrack", "handTurn", "freezeLookTick"], "enforce": true, "since": "фаза 3, 15.11: канал перенесён в 275_look_turn.js; остальные — через lookFace / lookTurnBy / lookReset"},
   "crouching": {"channel": "место",  "allow": ["placeStance"], "enforce": true, "since": "фаза 3, 15.11: канал места — 110 (placeStance / placeResetPost / placeResetTask)"},
   "post":      {"channel": "место",  "allow": ["setPost", "setPostDo", "updatePost", "clearPost", "clearPostDo", "placeResetPost"], "enforce": true, "since": "фаза 3, 15.11: канал места — 110 (placeStance / placeResetPost / placeResetTask)"},

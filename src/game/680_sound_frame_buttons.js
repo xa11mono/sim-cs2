@@ -175,21 +175,7 @@ function sndBomb(kind, x, y){
   else if(kind === "boom"){ sndNoise(1.0*g, 2.2, "lowpass", 220, 0.6); sndTone(0.8*g, 1.4, 55, "sine", 0, 25); }
   else if(kind === "defused") sndTone(0.25*g, 0.5, 1200, "sine", 0, 2400);
 }
-// писк бомбы — одно расписание для звука и для кромки экрана (v437): раз в тик проверка, когда следующий; только вид и звук, игру не меняет
-var BEEP_NEXT = 0;
-// (v553, владелец 11.11, запись «звук, когда бомба вот-вот взорвётся») последние C4_FINAL_SEC до взрыва — эта запись (её длина — 1,28 с: кончается
-// со взрывом), обычный писк в это время молчит
-var C4_FINAL_SEC = 1.28, BEEP_FINAL = null;
-function bombBeepTick(){
-  if(!bomb || bomb.state !== "planted"){ BEEP_NEXT = 0; BEEP_FINAL = null; return; }
-  var left = bombTimeLeftTicks()/TICK_HZ;
-  if(left <= C4_FINAL_SEC){ if(BEEP_FINAL !== bomb.plantTick){ BEEP_FINAL = bomb.plantTick; if(SND.on) sndBomb("final", bomb.x, bomb.y); } return; }
-  if(tick < BEEP_NEXT) return;
-  var gap = Math.max(0.1, Math.min(1, 0.1 + 0.9*left/40));
-  BEEP_NEXT = tick + Math.round(gap*TICK_HZ);
-  if(SND.on) sndBomb("beep", bomb.x, bomb.y);
-  hudBombPulse(gap);
-}
+// писк бомбы — расписание в журнале матча (435 bombBeepTick, в тике); здесь — только звук и вспышка кромки (showSync)
 (function(){
   var b = document.getElementById("btnSnd"); if(!b) return;
   // (v346, владелец: «сделай, чтобы звук был включён по умолчанию») звук включён сразу; браузер даёт звук только после действия
@@ -236,6 +222,20 @@ window.addEventListener("error", function(ev){ showFatal(ev.error || ev.message)
 // (15.11, перестройка: показ отдельно от симуляции) симуляция ставит отметки, кадр рисует
 var RC_HALF = null, WSK_EL = null;
 function showSync(){
+  // (17.11, перестройка) события игры для показа (435: showEv / soundEv) — разбор раз в кадр; киллфид — по KF_DIRTY; писк бомбы — здесь
+  if(KF_DIRTY){ KF_DIRTY = false; renderFeed(); }
+  for(var qi = 0; qi < SHOW_Q.length; qi++){ var E = SHOW_Q[qi];
+    try{
+      if(E[0] === "snd"){ if(SND && SND.on){ var F = {sndBomb: sndBomb, sndNade: sndNade, sndBody: sndBody, sndShot: sndShot, sndPickup: sndPickup, sndStep: sndStep, sndLadder: sndLadder}[E[1]]; if(F) F.apply(null, E.slice(2)); } }
+      else if(E[0] === "banner") showBanner(E[1], E[2], E[3]);
+      else if(E[0] === "sideSwap"){ plSelected = null; showBanner(E[1], null, 3000); }
+      else if(E[0] === "roundCard") showRoundCard(E[1], E[2], E[3]);
+      else if(E[0] === "bombBoom") hudBombBoom();
+      else if(E[0] === "buyShow"){ if(typeof buyShowStart === "function") buyShowStart(E[1], E[2]); }
+      else if(E[0] === "bombPulse") hudBombPulse(E[1]);
+    }catch(err){}
+  }
+  SHOW_Q.length = 0;
   if(VOICE_DIRTY){ VOICE_DIRTY = false; renderVoice(); }
   if(LOG_DIRTY){ LOG_DIRTY = false; logRender(); }
   if(RC_HALF !== null){ var rh = document.getElementById("rcHalf"); if(rh) rh.textContent = RC_HALF; RC_HALF = null; }

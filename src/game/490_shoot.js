@@ -289,7 +289,7 @@ function tryShoot(shooter, target, dist){
     target._tagUntil = tick + 16; // попали — на ~0.25с замедлен
     target._hitFx = {t:nowTs, head:headshot};
     if(headshot && burstIdx === 0 && (shooter._place||0) > 0.8 && target.hp <= dmg && hashRand(seedS+29) < 0.5) logEvent(shooter.id+": прицел стоял на угле — хэдшот с первой пули по "+target.id);
-    if(SND && SND.on) sndBody(headshot ? (target.helmet ? "hshelm" : "hs") : (target.armor ? "kevlar" : "body"), target.x, target.y);
+    soundEv("sndBody", headshot ? (target.helmet ? "hshelm" : "hs") : (target.armor ? "kevlar" : "body"), target.x, target.y);
     var killed = applyDamage(shooter, target, base * mult, "bullet", {armorRatio: armored ? w.armorPen : null, wkey:w.key, hs:headshot, reward:w.killReward||300, mods:{blind: shooter.blindUntil > tick, smoke: thruSmoke || smokeBlocks(shooter.x, shooter.y, target.x, target.y), noscope: noscope},
       note:(headshot?" (в голову)":"")+" (дист. "+Math.round(dist)+", +$"+(w.killReward||300)+")"});
     if(!killed){
@@ -343,7 +343,7 @@ function tryShoot(shooter, target, dist){
   tracers.push({wc:tracerClass(shooter.weapon), wk:shooter.weapon && shooter.weapon.key, sil:!!(shooter.weapon && shooter.weapon.silenced), x1:shooter.x, y1:shooter.y, x2:endX, y2:endY, team:shooter.team, born:nowTs, hit:hit, head:headshot, prefire:prefire, miss:!hit, zone:hitZone,
     tk:tick, sdx:shooter.x-(shooter.px != null ? shooter.px : shooter.x), sdy:shooter.y-(shooter.py != null ? shooter.py : shooter.y),   // (v414, М154) сдвиг за тик — для рисования
     tdx: hit ? target.x-(target.px != null ? target.px : target.x) : 0, tdy: hit ? target.y-(target.py != null ? target.py : target.y) : 0});
-  if(SND && SND.on) sndShot(shooter.weapon, shooter.x, shooter.y);
+  soundEv("sndShot", shooter.weapon, shooter.x, shooter.y);
   // выстрел слышно далеко (шаг 5: с конусом обзора боты не видят спиной —
   // но разворачиваются на звук стрельбы; в кого попали — точно знает откуда)
   bots.forEach(function(o){

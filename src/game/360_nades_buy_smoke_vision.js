@@ -103,7 +103,6 @@ function segHitsCircle(x1,y1,x2,y2,cx,cy,r){
 // стены сквозь дым всё равно не видно — видимость идёт по 3D-геометрии игры
 function areaHas(o, r, px, py){ return Math.hypot(px - o.x, py - o.y) < r; }
 function areaSegHits(o, r, x1, y1, x2, y2){ return segHitsCircle(x1,y1,x2,y2,o.x,o.y,r); }
-function areaPath(o, r){ ctx.beginPath(); ctx.arc(o.x, o.y, r, 0, Math.PI*2); ctx.closePath(); }   // контур области для рисования
 // (v548) дыра от пули — не «прозрачный» дым по всей высоте: сквозь дым видно только то, что попадает в окошко (smokeHoleParts, ниже)
 function smokeBlocks(x1,y1,x2,y2){
   for(var i=0;i<smokes.length;i++){

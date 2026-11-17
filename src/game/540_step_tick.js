@@ -76,7 +76,7 @@ function landSound(bot, quiet, kind){
   var R = SOUND_RADIUS_RUN*(quiet ? 0.5 : 1);
   soundPings.push({x:bot.baseX, y:bot.baseY, team:bot.team, born:nowTs, radius:R});
   moveSoundEmit(bot, R, "steps", quiet ? "приземление (чек прыжком)" : "приземление");
-  if(SND && SND.on) sndBody("land", bot.baseX, bot.baseY);
+  soundEv("sndBody", "land", bot.baseX, bot.baseY);
 }
 // (v334, М58, владелец: «в CS2 есть места, где прыгают для чека, — у B Apps, где стоит karrigan») чек прыжком. Места и как часто —
 // из демок (tools/map/jumps_bake.py → MAP.pro.jumps: прыжок на месте, rate — прыжков за раунд; Mirage у B Apps — 0,49, у Ticket —
@@ -371,7 +371,7 @@ function stepTick(){
         bot._stepDist -= stride; if(bot._stepDist > stride) bot._stepDist = 0;
         bot.lastStepTick = tick;
         var soundRadius = (wet ? (bot.walking ? 220 : 460) : (bot.walking ? SOUND_RADIUS_WALK : SOUND_RADIUS_RUN)) * (BAL.stepHearMul || 1);
-        soundPings.push({x:bot.baseX, y:bot.baseY, team:bot.team, born:nowTs, radius:soundRadius}); if(SND && SND.on){ if(CL) sndLadder(bot.baseX, bot.baseY); else sndStep(bot.baseX, bot.baseY); }   // (v552) на лестнице — звук лестницы
+        soundPings.push({x:bot.baseX, y:bot.baseY, team:bot.team, born:nowTs, radius:soundRadius}); if(CL) soundEv("sndLadder", bot.baseX, bot.baseY); else { soundEv("sndStep", bot.baseX, bot.baseY); }   // (v552) на лестнице — звук лестницы
         // (4) сам знает, что шумит: бежал в пределах слышимости места, где враг вероятен
         if(roundState === "live"){ var zN = bzOf(bot.x, bot.y); if(zN >= 0){ var nearZ = [zN].concat(BZ.nbr[zN]||[]);
           if(nearZ.some(function(j){ var cj = BZ.cent[j]; return cj && Math.hypot(cj.x-bot.x, cj.y-bot.y) < soundRadius && reachPossible(bot.team, j) && beliefZoneKnown(bot.team, j) >= 0.2; })) bot._noisyT = tick; } }
