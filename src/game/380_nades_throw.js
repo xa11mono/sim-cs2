@@ -394,7 +394,7 @@ function assignNadeDo(b, type, target, why, opts){
      bots.some(function(o){ return o !== b && o.alive && o.team === b.team && o.nadeTask && o.nadeTask.type === type && Math.hypot(o.nadeTask.x-target.x, o.nadeTask.y-target.y) < 120; }))) return false;
   // (v419) here — бросок только с места (задержать гранатой, 350): срок 2 с, на точку броска не идёт
   var here = !!(opts && opts.here);
-  b.nadeTask = {type:type, x:target.x, y:target.y, until: tick + (here ? 2 : 10)*64, why:why||"", start:tick, lob:true, range:(opts && opts.range) || NADE_THROW_RANGE, now:!!(opts && opts.now), here:here, npm:npm};
+  b.nadeTask = {type:type, x:target.x, y:target.y, until: tick + (here ? 2 : 10)*64, why:why||"", start:tick, lob:true, range:(opts && opts.range) || NADE_THROW_RANGE, now:!!(opts && opts.now), here:here, npm:npm, eid:(opts && opts.eid) || null};
   return true;
 }
 // (17.11, перестройка — модули) запись в журнал решений (645) — здесь, у хозяина (было: 645 подменял функцию обёрткой)
@@ -533,6 +533,9 @@ function updateNadeTask1(b){
       if(b.post && b.post.tag === "lineup") clearPost(b);
       return; }
     if(b.planting || b.defusing) return;
+    // (v583a, Д20, владелец 17.11: «почему кидают гранаты на труп») граната по конкретному врагу (комбо, добить HE, выкурить по инфе) — он
+    // убит (киллфид знают все) — бросать незачем: задание снимается
+    if(t.eid && !bots.some(function(o){ return o.id === t.eid && o.alive; })){ b.nadeTask = null; return; }
     if(t.here && !delaySafe(b)){ b.nadeTask = null; return; }   // (v419) враг виден / в упор — граната убирается, в руках оружие
     // (v359, р7) T уже на сайте выхода, а точка броска позади — задание снимается: с взятого сайта назад за гранатой не уходят
     if(t.lineup && t.from && b.team === "T" && teamTac.T && SITES[teamTac.T.site] && bomb.state !== "planted"){

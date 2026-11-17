@@ -212,7 +212,7 @@ function nadeBrains(){
     if(fires.some(function(f){ return Math.hypot(f.x-L.x, f.y-L.y) < 100; })) return;
     if(bots.some(function(o){ return o.alive && o.team === b.team && Math.hypot(o.x-L.x, o.y-L.y) < 130; })) return;
     b._nadeCd = tick + 8*TICK_HZ;
-    assignNade(b, type, {x:L.x, y:L.y}, "по инфе — выкурить", {now:true});
+    assignNade(b, type, {x:L.x, y:L.y}, "по инфе — выкурить", {now:true, eid:L.id || null});
   });
   nadeReact();
   selfNadeTick();

@@ -42,7 +42,7 @@ function nadeCombos(){
     for(var i=sig.length-1;i>=0;i--){
       var s = sig[i]; if(s.type !== "spotted") continue;
       if(tick - s.tick > 20) continue; // только очень свежий контакт — комбо не по старой памяти
-      if(!seen[s.id]) seen[s.id] = s;
+      if(!seen[s.id] && bots.some(function(o){ return o.id === s.id && o.alive; })) seen[s.id] = s;   // (Д20) убит — в киллфиде, комбо не по нему
     }
     Object.keys(seen).forEach(function(eid){
       var key = team+":"+eid;
@@ -63,7 +63,7 @@ function nadeCombos(){
         var b = cands[ci];
         var t = order.filter(function(tp){ return b.nades[tp]>0 && !typesUsed[tp]; })[0];
         if(!t) continue;
-        assignNade(b, t, {x:s.x, y:s.y}, "комбо по "+eid, {now:true});
+        assignNade(b, t, {x:s.x, y:s.y}, "комбо по "+eid, {now:true, eid:eid});
         typesUsed[t] = true; thrown++;
       }
       if(thrown >= 2){
@@ -222,7 +222,7 @@ function nadeReact(){
       if(bots.some(function(o){ return o.alive && o.team === team && Math.hypot(o.x-lo.x, o.y-lo.y) < 170; })) continue;
       var th = bots.filter(function(b){ return b.alive && b.team === team && b.nades && b.nades.he > 0 && !b.nadeTask && !b._sawEnemy &&
         Math.hypot(b.x-lo.x, b.y-lo.y) > 150 && Math.hypot(b.x-lo.x, b.y-lo.y) < NADE_THROW_RANGE && !hasLOS(b.x, b.y, lo.x, lo.y, b.z); })[0];
-      if(th && assignNade(th, "he", {x:lo.x, y:lo.y}, "HE добить "+eH, {now:true})){ h._heDone = true;
+      if(th && assignNade(th, "he", {x:lo.x, y:lo.y}, "HE добить "+eH, {now:true, eid:eH})){ h._heDone = true;
         voiceLog(team, "hefin"+eH, th.id, eH+" на "+h.hp+" за углом — HE"); }
     }
   });
