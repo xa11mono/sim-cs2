@@ -10,6 +10,8 @@
 | `curSpeed` | 13 | 5 | `jumpFaceWait · 370`, `ladderTick · 370`, `moveSpeed · 535`, `moveSpeedTick · 535`, `stepTick · 540` |
 | `post` | 3 | 3 | `setPost · 110`, `clearPost · 110`, `placeResetPost · 110` |
 | `_task` | 4 | 4 | `routeTick · 110`, `setPost · 110`, `clearPost · 110`, `placeResetTask · 110` |
+| `_reposUntil` | 1 | 1 | `taskKeep · 110` |
+| `_waitPopUntil` | 1 | 1 | `moveWaitPop · 535` |
 | `state` | 2 | 2 | `fightState · 500`, `fightReset · 500` |
 | `nadeTask` | 27 | 10 | `(верх файла) · 360`, `nadeAskFlash · 365`, `exuReassign · 366`, `assignNade · 380`, `nadeQueueNext · 380`, `runupTick · 380`, `updateNadeTask1 · 380`, `lineupTick · 390`, `nadeCancel · 420`, `resetNades · 420` |
 | `holding` | 5 | 4 | `fightReset · 500`, `fightHoldOff · 500`, `leaveHold · 500`, `resolveEngagements · 510` |
@@ -29,31 +31,39 @@
 
 ## `walking`
 
-- **хозяин** `moveWalk · 535` — 1 (стр. 21)
-- **хозяин** `moveWalkTick · 535` — 1 (стр. 92)
-- **хозяин** `moveSpeedTick · 535` — 1 (стр. 145)
+- **хозяин** `moveWalk · 535` — 1 (стр. 24)
+- **хозяин** `moveWalkTick · 535` — 1 (стр. 95)
+- **хозяин** `moveSpeedTick · 535` — 1 (стр. 148)
 - **хозяин** `stepTick · 540` — 1 (стр. 478)
 
 ## `curSpeed`
 
-- **хозяин** `moveSpeedTick · 535` — 5 (стр. 165, 167, 168, 169, 170)
+- **хозяин** `moveSpeedTick · 535` — 5 (стр. 168, 170, 171, 172, 173)
 - **хозяин** `stepTick · 540` — 5 (стр. 313, 340, 461, 476, 478)
 - **хозяин** `jumpFaceWait · 370` — 1 (стр. 97)
 - **хозяин** `ladderTick · 370` — 1 (стр. 198)
-- **хозяин** `moveSpeed · 535` — 1 (стр. 20)
+- **хозяин** `moveSpeed · 535` — 1 (стр. 23)
 
 ## `post`
 
-- **хозяин** `setPost · 110` — 1 (стр. 445)
-- **хозяин** `clearPost · 110` — 1 (стр. 467)
-- **хозяин** `placeResetPost · 110` — 1 (стр. 472)
+- **хозяин** `setPost · 110` — 1 (стр. 448)
+- **хозяин** `clearPost · 110` — 1 (стр. 470)
+- **хозяин** `placeResetPost · 110` — 1 (стр. 475)
 
 ## `_task`
 
 - **хозяин** `routeTick · 110` — 1 (стр. 66)
-- **хозяин** `setPost · 110` — 1 (стр. 400)
-- **хозяин** `clearPost · 110` — 1 (стр. 467)
-- **хозяин** `placeResetTask · 110` — 1 (стр. 473)
+- **хозяин** `setPost · 110` — 1 (стр. 403)
+- **хозяин** `clearPost · 110` — 1 (стр. 470)
+- **хозяин** `placeResetTask · 110` — 1 (стр. 476)
+
+## `_reposUntil`
+
+- **хозяин** `taskKeep · 110` — 1 (стр. 271)
+
+## `_waitPopUntil`
+
+- **хозяин** `moveWaitPop · 535` — 1 (стр. 21)
 
 ## `state`
 
@@ -86,17 +96,17 @@
 
 ## `crouching`
 
-- **хозяин** `placeStance · 110` — 1 (стр. 471)
+- **хозяин** `placeStance · 110` — 1 (стр. 474)
 
 ## `path`
 
 - **хозяин** `stepTick · 540` — 5 (стр. 476, 550, 589, 611, 626)
-- **хозяин** `moveSpeedTick · 535` — 2 (стр. 137, 144)
+- **хозяин** `moveSpeedTick · 535` — 2 (стр. 140, 147)
 - **хозяин** `fireGoneRepath · 370` — 1 (стр. 11)
 - **хозяин** `fireRepath · 370` — 1 (стр. 22)
 - **хозяин** `ladderTick · 370` — 1 (стр. 199)
 - **хозяин** `navFollowFloor · 370` — 1 (стр. 387)
-- **хозяин** `movePath · 535` — 1 (стр. 19)
+- **хозяин** `movePath · 535` — 1 (стр. 22)
 - **хозяин** `navSnap · 540` — 1 (стр. 60)
 
 не бот (то же имя у другого объекта — в проверку владения не идёт): `hgtCache · 580` (16 HGT_C)
