@@ -84,6 +84,13 @@ function sndStep(x, y){   // (v327) шаг как в CS — «тук-тук» п
   sndNoise(0.75*g, 0.03, "bandpass", 1600, 1.5); sndTone(0.4*g, 0.05, 160, "triangle", 0, 80);
   sndNoise(0.5*g, 0.025, "bandpass", 2100, 1.5, 0.07);
 }
+// (v552, владелец 11.11: «звука подъёма по лестнице нету») перекладина лестницы — записи владельца (v553, 11.11), без них — синтез; свой лимит («other»), не теряется среди шагов бегущих. Только показ
+function sndLadder(x, y){
+  var g = sndGain(x, y, SND_R.step*1.2, "other"); if(!g) return;
+  var key = sndRec("ladder", 0); if(key && sndPlay(key, 0.9*g, SND.far)) return;   // (v553) записи владельца ladder_1…5 (data/sounds/extra); нет — синтез
+  sndTone(0.5*g, 0.09, 620, "square", 0, 540); sndTone(0.3*g, 0.12, 1240, "triangle", 0.005, 1100);
+  sndNoise(0.35*g, 0.04, "bandpass", 3200, 4);
+}
 // (v338, владелец прислал записи CS2) покупка и подбор: оружие — pickup_weapon_1/_2, граната — pickup_grenade. Слышно рядом
 // с игроком (радиус шагов, проектное число); не больше 3 за 50 мс (закуп всей команды — не каша). Только показ.
 // chat_talk — звук сообщения в чате: ключ в наборе есть, чата пока нет (добавим позже)
@@ -159,7 +166,7 @@ function sndNade(type, x, y){
 function sndBomb(kind, x, y){
   var g = sndGain(x, y, SND_R.bomb); if(!g) return;
   // (v331) записи: c4_beep, c4_key1..7, c4_initiate, c4_disarmstart, c4_disarmfinish, c4_explode; нет записи — синтез
-  var R = {beep:"c4_beep", planted:"c4_initiate", defuse:"c4_disarmstart", defused:"c4_disarmfinish", boom:"c4_explode"}[kind];
+  var R = {beep:"c4_beep", planted:"c4_initiate", defuse:"c4_disarmstart", defused:"c4_disarmfinish", boom:"c4_explode", final:"c4_final"}[kind];   // (v553) final — запись владельца «бомба вот-вот взорвётся»
   if(R && sndPlay(R, (kind === "beep" ? 0.7 : 0.9)*g, SND.far)) return;
   if(kind === "beep") sndTone(0.25*g, 0.09, 2800, "sine");
   else if(kind === "plant"){ var rk = !!SND.buf.c4_key1; for(var i=0;i<7;i++){ if(!rk || !sndPlay("c4_key"+(i+1), 0.8*g, SND.far, i*0.32)) sndTone(0.18*g, 0.07, 1500 + (i%3)*250, "square", i*0.32); } }
@@ -168,16 +175,7 @@ function sndBomb(kind, x, y){
   else if(kind === "boom"){ sndNoise(1.0*g, 2.2, "lowpass", 220, 0.6); sndTone(0.8*g, 1.4, 55, "sine", 0, 25); }
   else if(kind === "defused") sndTone(0.25*g, 0.5, 1200, "sine", 0, 2400);
 }
-// писк бомбы — одно расписание для звука и для кромки экрана (v437): раз в тик проверка, когда следующий; только вид и звук, игру не меняет
-var BEEP_NEXT = 0;
-function bombBeepTick(){
-  if(!bomb || bomb.state !== "planted"){ BEEP_NEXT = 0; return; }
-  if(tick < BEEP_NEXT) return;
-  var left = bombTimeLeftTicks()/TICK_HZ, gap = Math.max(0.1, Math.min(1, 0.1 + 0.9*left/40));
-  BEEP_NEXT = tick + Math.round(gap*TICK_HZ);
-  if(SND.on) sndBomb("beep", bomb.x, bomb.y);
-  hudBombPulse(gap);
-}
+// писк бомбы — расписание в журнале матча (435 bombBeepTick, в тике); здесь — только звук и вспышка кромки (showSync)
 (function(){
   var b = document.getElementById("btnSnd"); if(!b) return;
   // (v346, владелец: «сделай, чтобы звук был включён по умолчанию») звук включён сразу; браузер даёт звук только после действия
@@ -213,7 +211,7 @@ function wrapRect(){ return frameWrapR || (frameWrapR = wrap.getBoundingClientRe
 // игру на паузу и показывает себя на экране (что, матч, тик) — для скриншота; цикл кадров не умирает
 var FATAL = null;
 function showFatal(e){
-  paused = true; var bp = document.getElementById("btnPause"); if(bp) bp.textContent = "Продолжить";
+  clockPause(true); var bp = document.getElementById("btnPause"); if(bp) bp.textContent = "Продолжить";
   if(FATAL) return; FATAL = e;
   var d = document.createElement("div"); d.id = "fatalBox";
   d.style.cssText = "position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:9999;max-width:80vw;padding:12px 16px;background:#3a0d0d;border:1px solid #e5484d;color:#ffd7d7;font:12px/1.45 monospace;white-space:pre-wrap;border-radius:6px";
@@ -221,6 +219,29 @@ function showFatal(e){
   document.body.appendChild(d);
 }
 window.addEventListener("error", function(ev){ showFatal(ev.error || ev.message); });
+// (15.11, перестройка: показ отдельно от симуляции) симуляция ставит отметки, кадр рисует
+var RC_HALF = null, WSK_EL = null;
+function showSync(){
+  // (17.11, перестройка) события игры для показа (435: showEv / soundEv) — разбор раз в кадр; киллфид — по KF_DIRTY; писк бомбы — здесь
+  if(KF_DIRTY){ KF_DIRTY = false; renderFeed(); }
+  for(var qi = 0; qi < SHOW_Q.length; qi++){ var E = SHOW_Q[qi];
+    try{
+      if(E[0] === "snd"){ if(SND && SND.on){ var F = {sndBomb: sndBomb, sndNade: sndNade, sndBody: sndBody, sndShot: sndShot, sndPickup: sndPickup, sndStep: sndStep, sndLadder: sndLadder}[E[1]]; if(F) F.apply(null, E.slice(2)); } }
+      else if(E[0] === "banner") showBanner(E[1], E[2], E[3]);
+      else if(E[0] === "sideSwap"){ plSelected = null; showBanner(E[1], null, 3000); }
+      else if(E[0] === "roundCard") showRoundCard(E[1], E[2], E[3]);
+      else if(E[0] === "bombBoom") hudBombBoom();
+      else if(E[0] === "buyShow"){ if(typeof buyShowStart === "function") buyShowStart(E[1], E[2]); }
+      else if(E[0] === "bombPulse") hudBombPulse(E[1]);
+    }catch(err){}
+  }
+  SHOW_Q.length = 0;
+  if(VOICE_DIRTY){ VOICE_DIRTY = false; renderVoice(); }
+  if(LOG_DIRTY){ LOG_DIRTY = false; logRender(); }
+  if(RC_HALF !== null){ var rh = document.getElementById("rcHalf"); if(rh) rh.textContent = RC_HALF; RC_HALF = null; }
+  var sk = WSK_EL || (WSK_EL = document.getElementById("btnWarmSkip"));
+  if(sk && !WARM.on && sk.style.display !== "none") sk.style.display = "none";
+}
 function frame(ts){
   try{ frameBody(ts); }catch(e){ showFatal(e); }
   requestAnimationFrame(frame);
@@ -228,29 +249,37 @@ function frame(ts){
 function frameBody(ts){
   nowTs = ts; frameWrapR = null; wrapRect();
   if(SND && SND.ctx) sndFireTick();   // (v333) треск огня — и останавливается, когда огонь погас / раунд кончился / звук выключен
-  if(lastFrame===null) lastFrame = ts;
-  var dt = ts - lastFrame; lastFrame = ts;
-  if(!paused && WARM.on){ var wdt = Math.min(0.1, dt/1000); warmTick(wdt); accumulator = 0; }
+  var dt = clockFrameDt(ts);
+  if(!paused && WARM.on){ var wdt = Math.min(0.1, dt/1000); warmTick(wdt); clockAcc(0); }
   else if(!paused){
     // (v397, М146) догонять не больше FRAME_CATCHUP_MS за кадр: после скрытой вкладки или долгого кадра цикл раньше считал все
     // пропущенные тики разом (минута вкладки в фоне = ~3800 тиков в одном кадре — страница вставала на секунды, а следующий кадр
     // снова долгий — «снежный ком»). Теперь игра в такой момент идёт медленнее реального времени. Тики те же — игра не меняется
-    accumulator += Math.min(dt, FRAME_CATCHUP_MS);
+    clockAcc(accumulator + Math.min(dt, FRAME_CATCHUP_MS));
     // (v459) повтор клатча не успел до конца закупки — игра ждёт (те же тики потом, исход тот же)
-    if(rpHold()) accumulator = 0;
-    while(accumulator >= TICK_MS){ stepTick(); accumulator -= TICK_MS; }
+    if(rpHold()) clockAcc(0);
+    while(accumulator >= TICK_MS){ stepTick(); clockAcc(accumulator - TICK_MS); }
     mkAfterTicks();
   }
   rpRecord();   // (v459) запись для повтора клатча — только читает
   if(!rpFrame(ts) && !tsFrame(ts)){   // идёт повтор клатча или сцена паузы — они рисуют экран сами
     obsFrame(ts);
-    draw();
-    obsOverlay();
+    // (v573) 3D включён — 2D-кадр без растра (табло, панели, киллфид — как обычно), поверх — 3D; выключен — как было
+    if(typeof D3 !== "undefined" && D3.on && D3.gl){ d3Draw2D(); d3Frame(); }
+    else { draw(); obsOverlay(); }
     miniDraw();
   }
+  showSync();   // (15.11, перестройка) показ того, что симуляция отметила: войс, консоль, карточка, кнопка разминки
   frameWrapR = null;   // вне кадра (клики, перемотка) — читать заново
 }
-document.getElementById("btnFreshMatch").addEventListener("click", function(){ var n = Math.max(1, parseInt(document.getElementById("inpMatchNum").value, 10) || 1); var sel = document.getElementById("selSeries"), bo = sel ? +sel.value : 3; if(bo !== SERIES.bo || seriesDone()) SERIES = {bo:bo, maps:{}}; var cw = document.getElementById("chkWarm"); if(cw && !cw.checked) freshMatch(n); else warmStart(n); paused = false; var bp = document.getElementById("btnPause"); if(bp){ bp.textContent = "Пауза"; bp.classList.remove("active"); } logEvent("Матч №"+n+" с чистого листа (воспроизводимый)", true); });
+// (15.11, перестройка: показ отдельно) перенесено из 495_highlights — кнопки и ползунки живут в показе
+// ползунок «хайлайты» (меню «Инструменты»): шанс в процентах на дуэль; сразу в игре, хранится в браузере
+(function(){ if(typeof document === "undefined") return; var r = document.getElementById("hlP"), v = document.getElementById("hlPv"); if(!r) return;
+  var show = function(){ v.textContent = Math.round(HL.p*100) + "%"; };
+  r.value = Math.round(HL.p*100); show();
+  r.addEventListener("input", function(){ HL.p = (+r.value || 0)/100; show(); try{ localStorage.setItem(HL_KEY, JSON.stringify({p: HL.p})); }catch(e){} });
+})();
+document.getElementById("btnFreshMatch").addEventListener("click", function(){ var n = Math.max(1, parseInt(document.getElementById("inpMatchNum").value, 10) || 1); var sel = document.getElementById("selSeries"), bo = sel ? +sel.value : 3; if(bo !== SERIES.bo || seriesDone()) SERIES = {bo:bo, maps:{}}; var cw = document.getElementById("chkWarm"); if(cw && !cw.checked) freshMatch(n); else warmStart(n); clockPause(false); var bp = document.getElementById("btnPause"); if(bp){ bp.textContent = "Пауза"; bp.classList.remove("active"); } logEvent("Матч №"+n+" с чистого листа (воспроизводимый)", true); });
 setInterval(function(){ var el = document.getElementById("matchTick"); if(el) el.textContent = "матч "+matchNum+" · тик "+tick; }, 250);
 var BOT_INIT = bots.map(function(b){ var o = {keys:{}, vals:{}}; for(var k in b){ o.keys[k] = 1; var v = b[k]; if(v === null || (typeof v !== "object" && typeof v !== "function")) o.vals[k] = v; } return o; });
 window.__ev=function(src){return eval(src);};
@@ -265,7 +294,7 @@ requestAnimationFrame(frame);
   document.addEventListener("keydown", function(e){ if(e.key === "Escape") dds.forEach(function(d){ d.open = false; }); });
 })();
 document.getElementById("btnPause").addEventListener("click", function(){
-  paused = !paused;
+  clockPause(!paused);
   this.textContent = paused ? "Продолжить" : "Пауза";
   this.classList.toggle("active", paused);
 });

@@ -1,0 +1,5 @@
+paused=true; var OUT={pxu:PX_UNITS, bots:{}};
+__M__.forEach(function(M){ freshMatch(M); var R0=roundNum; while(roundNum<R0+__R__ && roundState!=='matchover'){ stepTick(); if(roundState!=='live') continue;
+ bots.forEach(function(b){ if(!b.alive) return; var k=b.id+'|'+M, A=OUT.bots[k]||(OUT.bots[k]={t:[],x:[],y:[],z:[],f:[],s:[],a:[],r:[],g:[],w:[]});
+  A.t.push(tick); A.x.push(+b.x.toFixed(2)); A.y.push(+b.y.toFixed(2)); A.z.push(Math.round(b.z||0)); A.f.push(+(b.facing||0).toFixed(4)); A.s.push(b.lastShotTick===tick?1:0); A.a.push((b._jc||b._climb)?1:0); A.r.push((b._climb?'C':b._jc?(b._jc.run?'R':'J'):'')+(b.lookTarget?(b.lookReason||'?'):'-')); A.w.push(lookUrgent(b)+'/'+(b._sl?(b._sl.pt?1:0)+'/'+(tick-b._sl.since)+'/'+b._sl.hold:'')+'/'+(b._lookLvl||0)+'/'+(b._chk&&tick<b._chk.until?1:0)+'/'+b._lkZ+'/'+(b._lkSince||0)); A.g.push(((b.post&&b.post.tag)||'')+'/'+b.state+'/'+(b.atPost?1:0)+(b.holding?1:0)+'/'+(b._walkWhy||'')+'/'+(b._fc?b._fc.ph||'fc':'')); }); } });
+JSON.stringify(OUT)

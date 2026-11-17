@@ -4,6 +4,8 @@ var SITES = {}, GEO = {};
 // до …» в мозгах (флажок, эндгейм, пост-плант) — одни и те же пары точек каждый тик) запросы «путь / длина пути» для решений
 // помнятся PATHQ_TTL тиков с точностью PATHQ_Q ед. карты (проектные числа); движение ботов строит путь как раньше
 var PATHQ = {}, PATHQ_N = 0, PATHQ_TTL = 32, PATHQ_Q = 6;
+// (17.11, перестройка — модули) запись извне — только через хозяина (импорт модуля только для чтения): сброс кэша путей — 050 (пересборка навмеша), 370 (лестницы)
+function pathCacheReset(){ PATHQ = {}; PATHQ_N = 0; }
 function pathQ(key, fn){
   var c = PATHQ[key]; if(c && tick - c.t <= PATHQ_TTL && c.t <= tick) return c.v;
   if(PATHQ_N > 6000){ PATHQ = {}; PATHQ_N = 0; }
@@ -132,12 +134,12 @@ function choosePlant(tt){
   logEvent("T: плант "+({safe:"в безопасную точку (не видно со входа CT)", open:"открытый — держим снаружи", def:"дефолтный", molly:"под молотов — сбить дефуз с пост-планта"})[kind]+" на "+tt.site);
   return tt.plantPick;
 }
-// (v381, М135) места планта про на этом сайте (MAP.pro.plants, tools/plants_bake.py), сначала частые
+// (v381, М135) места планта про на этом сайте (MAP.pro.plants, tools/map/plants_bake.py), сначала частые
 // (v409, владелец 22.10: «почему он не ставит первые 10 секунд») место планта выбирается только из мест про (sitePlantPro), а начать
 // плант можно было только внутри границы сайта (onSite). Граница — красный квадрат радара (Mirage) / зона «Asite» (Ancient) — не
 // покрывает места, где ставили про: вне её 13 из 22 мест A Mirage (66 % плантов), 11 из 14 мест A Ancient (96 %). Носитель доходил до
 // точки, стоял и топтался, пока случайно не шагнёт внутрь (м1 р1 Mirage: на точке с 44,5 с, плант — в 60,0). Теперь ставить можно и
-// в клетке места про (PLANT_CELL — сетка кластера в tools/plants_bake.py: там про ставили ≥ 3 раз), а не только внутри границы
+// в клетке места про (PLANT_CELL — сетка кластера в tools/map/plants_bake.py: там про ставили ≥ 3 раз), а не только внутри границы
 var PLANT_CELL = 24;
 function canPlantAt(k, x, y){
   var S = SITES[k]; if(!S) return false;
@@ -201,8 +203,8 @@ function spotExposure(team, x, y){
   return n;
 }
 function pickSpots(key, center, count, o){
-  var expT = BAL.openAngles ? ((o && o.team) || SPOT_TEAM) : null;
-  var ppTeam = BAL.proPrior ? ((o && o.team) || SPOT_TEAM) : null, ppL = ppTeam ? ppLayer(ppTeam) : null;
+  var expT = ((o && o.team) || SPOT_TEAM);
+  var ppTeam = ((o && o.team) || SPOT_TEAM), ppL = ppTeam ? ppLayer(ppTeam) : null;
   var ck = key+"|"+count+"|"+Math.round(center.x)+","+Math.round(center.y) + (expT ? "|e"+expT : "") +
     (o && o.cross ? "|x"+Math.round(o.cross.from.x/40)+","+Math.round(o.cross.from.y/40) : "") + (ppL ? "|p"+ppL : "") + (o && o.zone ? "|z"+o.zone : "");
   if(spotCache[ck]) return spotCache[ck];

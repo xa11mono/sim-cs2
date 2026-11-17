@@ -2,15 +2,12 @@
 var nadeFlags = {};
 var comboCd = {}; // раздел 11.1: кулдаун комбо-гранаты на конкретного замеченного врага
 function antiEco(team){
-  if(!BAL.antiEco) return false;
   var me = teamEco[team], en = teamEco[team === "CT" ? "T" : "CT"];
-  if(BAL.buyRead){
-    // не "знаем" чужой закуп, а читаем: по оружию, которое реально увидели
-    // (первые контакты), иначе — по оценке денег до раунда
-    var R = teamIntel[team] && teamIntel[team].buy;
-    var enEco = R && R.n >= 1 ? R.read === "eco" : !!(me && me.enemyGuess && me.enemyGuess.eco);
-    return !!(me && (me.roundType === "full" || me.roundType === "half") && enEco);
-  }
+  // не "знаем" чужой закуп, а читаем: по оружию, которое реально увидели
+  // (первые контакты), иначе — по оценке денег до раунда
+  var R = teamIntel[team] && teamIntel[team].buy;
+  var enEco = R && R.n >= 1 ? R.read === "eco" : !!(me && me.enemyGuess && me.enemyGuess.eco);
+  return !!(me && (me.roundType === "full" || me.roundType === "half" || me.roundType === "force") && enEco);   // (v559) и форс: винтовки есть — есть что отдать
   return me && en && (me.roundType === "full" || me.roundType === "half") && en.roundType === "eco";
 }
 // (13) инфа о закупе врага по первым контактам: увидели — запомнили, с чем он.
@@ -28,11 +25,10 @@ function buyReadSee(team, eid){
   if(R.rifles >= 1 || (R.smg + R.rifles >= 2)) R.read = "buy";
   else if(R.pistols >= 2) R.read = "eco";
   else if(R.pistols >= 1 && R.n === 1) R.read = R.read || null;
-  if(R.read && R.read !== prev && team === "CT" && teamTac.CT){ var myT = teamEco.CT && teamEco.CT.roundType; teamTac.CT.antiEco = R.read === "eco" && (myT === "full" || myT === "force" || myT === "half"); }
   if(R.read && R.read !== prev){
     var mate = bots.filter(function(o){ return o.team === team && o.alive; })[0];
     if(mate) voiceLog(team, "buy"+R.read, mate.id, R.read === "eco" ? "у них пистолеты ("+R.pistols+" видели) — эко, не лезем в упор, держим дистанцию"
-      : "у "+eid+" "+(W ? W.name : "оружие")+" — это закуп, не эко");
+      : "у них закуп — у "+eid+" "+(W ? W.name : "винтовка"));
     logEvent(team+": закуп врага по контактам — "+(R.read === "eco" ? "эко" : "закуп")+" (видели: "+R.n+", винтовок "+R.rifles+", пистолетов "+R.pistols+")");
   }
 }
@@ -41,7 +37,7 @@ function nadeCombos(){
     if(typeof teamIntel === "undefined") return;
     var mine = bots.filter(function(b){ return b.team===team && b.alive; });
     if(mine.length < 2) return;
-    if(antiEco(team)) return; // против эко комбо-гранаты не тратим
+    if(roundGoal(team) === "keepGuns") return; // (v559) цель «не отдать винтовки» — против эко комбо-гранаты не тратим
     var sig = teamIntel[team].sig, seen = {};
     for(var i=sig.length-1;i>=0;i--){
       var s = sig[i]; if(s.type !== "spotted") continue;
@@ -149,7 +145,10 @@ function selfExitFlash(b){
     // (v294) типичное место без инфы — только если команда там врага ждёт (у CT «типичное место Connector» рвалось у врага в 38 %)
     if(!c.info && !nadeWorth(b.team, c)) return;
     var d = Math.hypot(c.x-b.x, c.y-b.y);
-    if(!best || c.w > best.c.w || (c.w === best.c.w && d < best.d)) best = {c:c, ex:ex, d:d};
+    // (v555, владелец 11.11: «флешка летит в типичное место, где врага нет — брать типичное место, где он вероятнее; флешек не меньше») типичное
+    // место без инфы — по тому, насколько команда ждёт врага именно там (карта команды по его зоне), а не ближайшее; инфа — по-прежнему первой
+    if(!c.info){ var zc = bzOf(c.x, c.y); c.w = zc >= 0 ? beliefCount(b.team, [zc]) : 0; }
+    if(!best || (c.info && !best.c.info) || (c.info === best.c.info && (c.w > best.c.w || (c.w === best.c.w && d < best.d)))) best = {c:c, ex:ex, d:d};
   });
   if(!best) return false;
   var c = best.c, ex = best.ex, dE = Math.hypot(c.x-ex.x, c.y-ex.y), kf = Math.min(1, 140/Math.max(1, dE));
@@ -193,7 +192,7 @@ function heDodgeTick(){
       var sp = pickSpots("hed"+Math.round(b.x/30)+","+Math.round(b.y/30), {x:b.x, y:b.y}, 4, {rMax:Math.max(40, reach), minGap:20, hideFrom:[det]})
         .filter(function(q){ return Math.hypot(q.x-b.x, q.y-b.y) <= reach && (Math.hypot(q.x-det.x, q.y-det.y) > R || !hasLOS(q.x, q.y, det.x, det.y)); })
         .sort(function(p, q){ return Math.hypot(p.x-b.x, p.y-b.y) - Math.hypot(q.x-b.x, q.y-b.y); })[0];
-      if(sp && setPost(b, sp, det, true, "repos:he")){ b._reposUntil = tick + Math.round((eta + 0.5)*TICK_HZ);
+      if(sp && setPost(b, sp, det, true, "repos:he")){ taskKeep(b, tick + Math.round((eta + 0.5)*TICK_HZ), "he");
         if(!b._heDodgeLog || tick - b._heDodgeLog > 3*TICK_HZ){ b._heDodgeLog = tick; logEvent(b.id+": HE рядом — ухожу ("+eta.toFixed(1)+" с до взрыва)"); } }
     });
   });
@@ -202,7 +201,7 @@ function nadeReact(){
   heDodgeTick();
   if(tick % 8) return;
   // (19) мало HP и враг рядом — выкинуть оставшиеся гранаты во врага, пока жив
-  if(BAL.utilDump) bots.forEach(function(b){
+  bots.forEach(function(b){
     if(!b.alive || b.hp > 25 || b.nadeTask || b.planting || b.defusing || !b.nades || tick < (b._dumpCd||0)) return;
     var tp = b.nades.molly > 0 ? "molly" : b.nades.he > 0 ? "he" : b.nades.flash > 0 ? "flash" : null; if(!tp) return;
     var BLd = beliefLast[b.team] || {}, tg = null, bd = Infinity;
@@ -214,7 +213,7 @@ function nadeReact(){
     if(assignNade(b, tp, {x:tg.x, y:tg.y}, "у меня "+b.hp+" — кидаю всё", {now:true}) && !b._dumpVoice){ b._dumpVoice = roundNum; voiceLog(b.team, "dump"+b.id, b.id, "у меня "+b.hp+" — выкидываю гранаты"); }
   });
   // (16) HE по раненому за укрытием (HE до 57 урона, по броне вдвое меньше)
-  if(BAL.heFinish) ["CT","T"].forEach(function(team){
+  ["CT","T"].forEach(function(team){
     var HT = teamIntel[team].hurt; if(!HT) return;
     var BLh = beliefLast[team] || {};
     for(var eH in HT){ var h = HT[eH]; if(h.hp > 28 || tick - h.tick > 8*TICK_HZ || h._heDone) continue;
@@ -267,8 +266,8 @@ function nadeReact(){
     b._selfFlashCd = tick + 12*TICK_HZ;
     var why = "себе под пик "+b.id;
     throwNade(b, "flash", tgt.x, tgt.y, true, why);
-    b._waitPopUntil = tick + Math.round(1.1*TICK_HZ); b._waitPopKey = "pop:"+why;
-    voiceLog(b.team, "sflash"+b.id, b.id, "флешу себе и выхожу");
+    moveWaitPop(b, tick + Math.round(1.1*TICK_HZ), "pop:"+why, "self-flash");
+    voiceLog(b.team, "sflash"+b.id, b.id, "флешу себе");
   });
 }
 // (v374, этап 3 плана владельца: «граната — часть действия») сторож: гранаты покупают почти как про, но бросают меньше — из 3,2
@@ -282,3 +281,7 @@ function nadeReact(){
 // Куда — откуда сюда кидали про (MAP.nadelanes: бросок с этого места (≤ 60 px) в нужную точку), иначе прямо, если стены нет.
 // Пауза бойца между такими решениями — 3 с (проектное число)
 var NADE_USE_GAP = 192;   // 3 с (TICK_HZ объявлен ниже — число)
+// (17.11, перестройка — модули) запись извне — только через хозяина (импорт модуля только для чтения): сброс гранат (420 resetNades), сброс раунда (530)
+function nadeFlagsReset(){ nadeFlags = {}; }
+function comboCdReset(){ comboCd = {}; }
+function nadeReactReset(){ nadeReactCd = {CT:0, T:0}; }

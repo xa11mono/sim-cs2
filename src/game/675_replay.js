@@ -132,8 +132,11 @@ function rpRecord(){
       // (п.18/22/34 владельца 29.10) после перемотки запись раунда начинается заново, а киллфид — весь раунд: фраги до начала записи
       // в клип не попадут (кадров нет) — это не моменты этой записи (раньше давали мультикилл с пустым клипом → экран «клатч 1v2»)
       var kt = Math.round((k.at||simTime)*TICK_HZ); if(kt < RP.rec.t0) continue;
+      // (v569, В116) показал ли обсервер этот фраг вживую: и убийца, и жертва — в кадре (иначе — кандидат на повтор «пропущено в эфире»)
+      var kA = teamBot(rpIdByNick(k.att)), kV = teamBot(rpIdByNick(k.vic)), kLive = !!(OBS.on && kA && kV && obsShows(kA.x, kA.y) && obsShows(kV.x, kV.y));
+      if(OBS.on && kA){ if(OBS_ST.m !== matchNum) OBS_ST = {m: matchNum, kills: 0, live: 0, sw: 0, late: 0}; OBS_ST.kills++; if(kLive) OBS_ST.live++; }
       RP.rec.kills.push({t: Math.round((k.at||simTime)*TICK_HZ), att: rpIdByNick(k.att), vic: rpIdByNick(k.vic), attTeam: k.attTeam, vicTeam: k.vicTeam,
-        w: k.w, hs: k.hs, smoke: k.smoke, wall: k.wall, noscope: k.noscope, blind: k.blind, attN: k.att, vicN: k.vic}); }
+        w: k.w, hs: k.hs, smoke: k.smoke, wall: k.wall, noscope: k.noscope, blind: k.blind, attN: k.att, vicN: k.vic, live: kLive}); }
   }
   // конец раунда
   if(RP.prevRs === "live" && (rs === "ending" || rs === "matchover") && RP.rec) rpRoundEnd(RP.rec);
@@ -166,6 +169,12 @@ function rpRoundEnd(R){
   var lastK = R.kills.filter(function(k){ return k.att && k.attTeam !== k.vicTeam; }).slice(-1)[0];
   if(lastK && win && lastK.attTeam === win && !usedId[lastK.att] && !(bomb && (bomb.state === "exploded" || bomb.state === "defused")) && roll("last") < RP_K.pick.last){
     var h4 = mk(lastK.att, lastK.attTeam); h4.multi = true; h4.single = true; h4.n = 1; h4.kt = lastK.t; h4.t = lastK.t; h4.label = "Последний фраг"; cand.push({h: h4, pri: 20}); }
+  // (v569, В116; обсервер про: «пропущенное вживую решающее убийство — в повтор после раунда», delay observer) первый фраг раунда (открытие)
+  // или фраг, после которого остался клатч, не попавший в кадр вживую, — повтор «Пропущено в эфире»
+  var aliveN = {CT: 5, T: 5}, missK = null;
+  R.kills.forEach(function(k, ki){ if(!k.vicTeam) return; aliveN[k.vicTeam]--; var key = ki === 0 || aliveN[k.vicTeam] === 1;
+    if(!missK && key && k.live === false && k.att && k.attTeam !== k.vicTeam && !usedId[k.att]) missK = k; });
+  if(missK){ var h5 = mk(missK.att, missK.attTeam); h5.multi = true; h5.single = true; h5.n = 1; h5.kt = missK.t; h5.t = missK.t; h5.label = "Пропущено в эфире"; cand.push({h: h5, pri: 60}); usedId[missK.att] = 1; }
   if(!cand.length) return;
   cand.sort(function(a, b){ return b.pri - a.pri || a.h.t - b.h.t; });
   var avail = ROUND_RESTART_DELAY_SEC + BAL.freeze - RP_K.startDelay + RP_K.live, used = 0;
@@ -340,7 +349,6 @@ function rpAt(R, t){
   var f = B.t > A.t ? Math.max(0, Math.min(1, (t - A.t)/(B.t - A.t))) : 0;
   return {A: A, B: B, f: f};
 }
-function rpLerpAng(a, b, f){ if(isNaN(a)) return b; if(isNaN(b)) return a; var d = ((b - a + Math.PI*3) % (Math.PI*2)) - Math.PI; return a + d*f; }
 function rpDraw(E, x, P, dt, W, H, dpr){
   P.drawn = true;
   var R = P.R, I = rpAt(R, P.rt), A = I.A, B = I.B, f = I.f, n = bots.length, ci = P.ci;   // (v463) x, dpr переопределяются после кадра игры
@@ -366,7 +374,8 @@ function rpDraw(E, x, P, dt, W, H, dpr){
   x = E.ctx; dpr = 1;
   x.setTransform(S,0,0,S,ox0,oy0);
   var L = 1/S;
-  (function(){ var i = ci, px = bx(i), py = by(i);
+  var d3on = typeof D3 !== "undefined" && D3.on && D3.gl;   // (v573) в 3D подсветку клатчера рисует 3D (белое кольцо), радарные кольца не нужны
+  if(!d3on) (function(){ var i = ci, px = bx(i), py = by(i);
     if(!A.b[i*RP_NB+3]) return;
     var rad = 7*L, pul = 1 + 0.12*Math.sin(performance.now()/180);
     x.strokeStyle = "rgba(255,214,110,.95)"; x.lineWidth = 2.4*L; x.beginPath(); x.arc(px, py, rad + 7*L*pul, 0, Math.PI*2); x.stroke();
@@ -374,7 +383,7 @@ function rpDraw(E, x, P, dt, W, H, dpr){
     x.fillStyle = "rgba(11,15,11,.8)"; x.fillRect(px - tw/2 - 4*L, py + rad + 9*L, tw + 8*L, 13*L); x.fillStyle = "#ffe49a"; x.textBaseline = "top"; x.fillText(nm, px, py + rad + 10.5*L); x.textBaseline = "alphabetic";
   })();
   // фраг клатчера: вспышка-кольцо у жертвы
-  if(sg) sg.m.forEach(function(m){ if(m.kind !== "kill") return; var a2 = (P.rt - m.t)/(0.7*TICK_HZ); if(a2 < 0 || a2 > 1) return; var vi = rpBotIdx(m.k.vic); if(vi < 0) return;
+  if(sg && !d3on) sg.m.forEach(function(m){ if(m.kind !== "kill") return; var a2 = (P.rt - m.t)/(0.7*TICK_HZ); if(a2 < 0 || a2 > 1) return; var vi = rpBotIdx(m.k.vic); if(vi < 0) return;
     x.strokeStyle = "rgba(255,228,150," + (1 - a2).toFixed(3) + ")"; x.lineWidth = 3*L; x.beginPath(); x.arc(bx(vi), by(vi), (10 + 34*a2)*L, 0, Math.PI*2); x.stroke(); });
   x.setTransform(1,0,0,1,0,0);
   RP.sndOwn = true; try{ rpSound(P, R, ci); } finally { RP.sndOwn = false; }
@@ -410,23 +419,25 @@ function rpWorldDraw(E, P, I, S, ox0, oy0, W, H){
   var saved = bots.map(function(o){ var c = {px: o.px, py: o.py, pfacing: o.pfacing, path: o.path, _trail: o._trail}; RP_BF.forEach(function(k){ c[k] = o[k]; }); return c; });
   var gw = null, gi = null; for(var j = R.s.indexOf(I.A); j >= 0; j--){ var w = R.s[j].w; if(w && w.gw){ gw = w.gw; gi = w.gi; break; } }
   try{
-    tick = A.tick; simTime = tick*TICK_MS/1000; roundNum = R.round; roundState = "live"; accumulator = f*TICK_MS;
-    smokes = A.sm; fires = A.fi; nadesInAir = A.nd; nadeFx = A.fx; groundWeapons = gw || []; groundItems = gi || [];
+    clockSet(A.tick); simTime = tick*TICK_MS/1000; roundNum = R.round; roundState = "live"; clockAcc(f*TICK_MS);
+    nadeWorldSet(A.sm, A.fi, A.nd, A.fx); groundWeapons = gw || []; groundItems = gi || [];
     bomb = A.bomb ? rpCl(A.bomb) : null; if(bomb) bomb.carrier = A.bc >= 0 ? bots[A.bc] : null;
     var t0 = rpTrFrom(R, P.rt - 0.5*TICK_HZ), tl = [];
     for(var q = t0; q < R.tr.length && R.tr[q].t <= P.rt; q++){ var c = rpCl(R.tr[q]); c.born = nowTs - (P.rt - c.t)*TICK_MS; c.tk = null; tl.push(c); }
     tracers = tl; soundPings = []; teamTac = {T: null, CT: keep.teamTac && keep.teamTac.CT}; FREEZE_FX = [];
     if(R.side){ SIDE_TEAM = R.side; } if(R.NK){ NICKS = R.NK; }
     bots.forEach(function(o, i){ var a = A.b[i], b2 = B.b[i]; RP_BF.forEach(function(k){ o[k] = b2[k]; });
-      o.px = a.x; o.py = a.y; o.pfacing = a._visFacing !== undefined ? a._visFacing : a.facing; o.path = null; o._trail = []; });
+      o.px = a.x; o.py = a.y; o.pfacing = a._visFacing !== undefined ? a._visFacing : a.facing; movePath(o, null, "replay"); o._trail = []; });
     cv = E.cv; ctx = E.ctx; view.scale = S; view.panX = ox0; view.panY = oy0;
     draw.noHud = true; draw();
+    // (v573, Д6) включён 3D-вид — кадр повтора в 3D: тот же записанный мир, камера повтора; кадр копируется в холст повтора
+    if(typeof D3 !== "undefined" && D3.on && D3.gl){ d3Frame({w: W, h: H, noTags: true, focus: bots[P.ci] && bots[P.ci].id}); ctx.setTransform(1,0,0,1,0,0); ctx.drawImage(D3.gl.canvas, 0, 0, W, H); }
   } catch(e){ /* кадр повтора не нарисовался — дальше игра не страдает: всё возвращается ниже */ }
   finally {
     draw.noHud = false;
-    bots.forEach(function(o, i){ var c = saved[i]; RP_BF.forEach(function(k){ o[k] = c[k]; }); o.px = c.px; o.py = c.py; o.pfacing = c.pfacing; o.path = c.path; o._trail = c._trail; });
-    tick = keep.tick; simTime = keep.simTime; roundNum = keep.roundNum; roundState = keep.roundState; accumulator = keep.accumulator;
-    smokes = keep.smokes; fires = keep.fires; nadesInAir = keep.nadesInAir; nadeFx = keep.nadeFx; bomb = keep.bomb; tracers = keep.tracers; soundPings = keep.soundPings;
+    bots.forEach(function(o, i){ var c = saved[i]; RP_BF.forEach(function(k){ o[k] = c[k]; }); o.px = c.px; o.py = c.py; o.pfacing = c.pfacing; movePath(o, c.path, "replay"); o._trail = c._trail; });
+    clockSet(keep.tick); simTime = keep.simTime; roundNum = keep.roundNum; roundState = keep.roundState; clockAcc(keep.accumulator);
+    nadeWorldSet(keep.smokes, keep.fires, keep.nadesInAir, keep.nadeFx); bomb = keep.bomb; tracers = keep.tracers; soundPings = keep.soundPings;
     groundWeapons = keep.groundWeapons; groundItems = keep.groundItems; teamTac = keep.teamTac; FREEZE_FX = keep.FREEZE_FX; SIDE_TEAM = keep.SIDE_TEAM; NICKS = keep.NICKS;
     cv = keep.cv; ctx = keep.ctx; view.scale = keep.view.scale; view.panX = keep.view.panX; view.panY = keep.view.panY;
   }
@@ -608,9 +619,9 @@ function rpEmotions(E, R, P){
 }
 // ---------- переход к раунду (найти и посмотреть клатч): #round=матч.раунд в адресе или rpGoto(матч, раунд) ----------
 // Матч перематывается тиками без отрисовки до закупки нужного раунда — дальше идёт обычным ходом (тот же матч бит в бит)
-// (v462) мгновенный переход: готовый снимок игры на закупке раунда (посчитан на ПК, tools/snap_round.js; лежит в хранилище файлов
+// (v462) мгновенный переход: готовый снимок игры на закупке раунда (посчитан на ПК, tools/marks/snap_round.js; лежит в хранилище файлов
 // страницы) — открывается как снимок отметки (mkOpenSnap), дальше игра идёт теми же тиками. Нет снимка или не загрузился — rpGoto
-// снимки v461 (м17 р27 и м13 р7, tools/snap_round.js на ПК, прогон pc-results/113: восстановление — бит в бит); лежат в хранилище файлов
+// снимки v461 (м17 р27 и м13 р7, tools/marks/snap_round.js на ПК, прогон pc-results/113: восстановление — бит в бит); лежат в хранилище файлов
 // опубликованной страницы Ancient (артефакт владельца); fp — отпечаток настроек, при котором снимок считался
 var RP_SNAPS = {"17.27": {url: "/_blob/796483b1a08520d9144489538cc82d9a", fp: "1gecw3a"}, "13.7": {url: "/_blob/f3db2bee0eb3f72bc4f1e76a4fbc0e4a", fp: "1gecw3a"}};
 function rpJump(m, r){
@@ -620,7 +631,7 @@ function rpJump(m, r){
   fetch(u.url).then(function(q){ if(!q.ok) throw new Error("HTTP " + q.status); return q.text(); }).then(function(t){
     if(WARM.on) WARM = {on: false};
     if(RP.on) rpEnd(); RP.rec = null; RP.pending = null; if(typeof TS !== "undefined"){ TS.lastRound = -1; if(TS.P) tsEnd(); }
-    mkOpenSnap(t); tg.remove(); paused = false;
+    mkOpenSnap(t); tg.remove(); clockPause(false);
     var bp = document.getElementById("btnPause"); if(bp){ bp.textContent = "Пауза"; bp.classList.remove("active"); }
     if(typeof OBS !== "undefined") OBS.sc = 0;
     logEvent("Матч №" + m + ", раунд " + roundNum + " — открыт из готового снимка", true);
@@ -629,13 +640,13 @@ function rpJump(m, r){
 }
 function rpGoto(m, r){
   m = Math.max(1, m|0); r = Math.max(1, r|0);
-  freshMatch(m); paused = true; RP.rec = null; RP.pending = null; if(RP.on) rpEnd();
+  freshMatch(m); clockPause(true); RP.rec = null; RP.pending = null; if(RP.on) rpEnd();
   var M0 = matchNum, tg = document.createElement("div"); tg.className = "mk-prog"; tg.textContent = "перематываю к раунду " + r + "…"; wrap.appendChild(tg);
   var step = function(){
     var t0 = performance.now();
     while(performance.now() - t0 < 40){
       if(matchNum !== M0 || roundNum > r || (roundNum === r && roundState === "freeze")){
-        tg.remove(); paused = false; var bp = document.getElementById("btnPause"); if(bp){ bp.textContent = "Пауза"; bp.classList.remove("active"); }
+        tg.remove(); clockPause(false); var bp = document.getElementById("btnPause"); if(bp){ bp.textContent = "Пауза"; bp.classList.remove("active"); }
         if(typeof logEvent === "function") logEvent("Матч №" + m + ", раунд " + roundNum + " — перемотано", true); return; }
       stepTick();
     }

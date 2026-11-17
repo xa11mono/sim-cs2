@@ -2,43 +2,43 @@
  "_about": "tools/nadeplan_bake.py: доли бросков про по «момент|зона» для каждого типа гранаты (сумма по типу = 1); fakeBy — гранат T на другой сайт до планта за раунд, где такие были",
  "CT": {
   "molly": {
-   "now|A": 0.3899,
+   "now|A": 0.3893,
    "now|B": 0.3015,
-   "now|mid": 0.2518,
-   "call|A": 0.0148,
-   "call|mid": 0.0114,
+   "now|mid": 0.252,
+   "call|A": 0.0155,
+   "call|mid": 0.0112,
    "retake|A": 0.0099,
    "call|B": 0.0086,
    "retake|mid": 0.0071,
    "retake|B": 0.0049
   },
   "flash": {
-   "now|A": 0.558,
+   "now|A": 0.5577,
    "now|B": 0.1898,
-   "now|mid": 0.1273,
-   "call|A": 0.0352,
+   "now|mid": 0.1268,
+   "call|A": 0.0355,
    "call|B": 0.0306,
    "retake|A": 0.0199,
-   "call|mid": 0.0148,
+   "call|mid": 0.0153,
    "retake|mid": 0.0148,
    "retake|B": 0.0095
   },
   "smoke": {
-   "now|A": 0.5564,
-   "now|B": 0.2751,
-   "now|mid": 0.0849,
-   "call|A": 0.0308,
-   "call|B": 0.0189,
-   "retake|A": 0.0183,
+   "now|A": 0.5542,
+   "now|B": 0.2777,
+   "now|mid": 0.0847,
+   "call|A": 0.0304,
+   "call|B": 0.0194,
+   "retake|A": 0.0182,
    "call|mid": 0.0056,
    "retake|B": 0.0054,
    "retake|mid": 0.0044
   },
   "he": {
-   "now|A": 0.3752,
+   "now|A": 0.3744,
    "now|mid": 0.2702,
    "now|B": 0.24,
-   "call|A": 0.0414,
+   "call|A": 0.0421,
    "call|mid": 0.0207,
    "call|B": 0.0171,
    "retake|A": 0.0156,
@@ -48,54 +48,54 @@
  },
  "T": {
   "smoke": {
-   "now|mid": 0.6084,
-   "now|A": 0.1744,
-   "exec|A": 0.0792,
-   "exec|mid": 0.0369,
-   "exec|B": 0.0369,
-   "now|B": 0.0337,
-   "postplant|B": 0.0132,
-   "postplant|A": 0.01,
-   "postplant|mid": 0.0073
+   "now|mid": 0.6553,
+   "now|A": 0.1748,
+   "exec|A": 0.0646,
+   "now|B": 0.0295,
+   "exec|B": 0.028,
+   "exec|mid": 0.0266,
+   "postplant|B": 0.009,
+   "postplant|A": 0.007,
+   "postplant|mid": 0.005
   },
   "flash": {
-   "now|mid": 0.3892,
+   "now|mid": 0.3893,
    "now|A": 0.2183,
    "exec|A": 0.133,
    "now|B": 0.1221,
    "exec|B": 0.0738,
    "postplant|A": 0.0268,
-   "exec|mid": 0.0147,
+   "exec|mid": 0.0145,
    "postplant|B": 0.0133,
    "postplant|mid": 0.0089
   },
   "molly": {
-   "now|mid": 0.3319,
+   "now|mid": 0.3317,
    "now|A": 0.2365,
    "exec|A": 0.1587,
    "now|B": 0.1373,
    "exec|B": 0.0901,
-   "exec|mid": 0.0161,
+   "exec|mid": 0.0163,
    "postplant|A": 0.0143,
    "postplant|B": 0.0115,
    "postplant|mid": 0.0035
   },
   "he": {
-   "now|mid": 0.3936,
+   "now|mid": 0.3929,
    "now|A": 0.2115,
    "now|B": 0.1241,
    "exec|A": 0.1146,
    "exec|B": 0.0505,
    "postplant|A": 0.0389,
    "postplant|B": 0.0266,
-   "exec|mid": 0.0239,
+   "exec|mid": 0.0246,
    "postplant|mid": 0.0164
   }
  },
  "fakeBy": {
-  "smoke": 0.39,
-  "flash": 0.94,
-  "molly": 0.72,
-  "he": 0.22
+  "smoke": 0.55,
+  "flash": 0.88,
+  "molly": 0.67,
+  "he": 0.21
  }
 }

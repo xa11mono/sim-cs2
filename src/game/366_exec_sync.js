@@ -32,7 +32,9 @@ function exuCritical(site, x, y){
   var g = GEO[site], ents = (g && g.tEntry ? [g.tEntry] : []).concat(entryPts(site) || []);
   return ents.some(function(q){ return q && hasLOS(x, y, q.x, q.y); });
 }
-function exuIsExec(t){ return !!(t && t.exec && t.type === "smoke"); }
+// (v561, этап 4 docs/tasks/PLAN_TACTICS_V2.md; В91 «промазал смоком — замены не было»; PRO_PLAY §6з: «граната засчитана, если сделала задачу»)
+// следим за всеми смоками плана команды (bkey), а не только за смоками выхода: сорвался — один раз ищем замену; ждёт выход только критичных
+function exuIsExec(t){ return !!(t && t.type === "smoke" && (t.exec || t.bkey)); }
 // задания гранат выхода у живых T (текущее и очередь) → записи; новые получают id и резервного исполнителя
 function exuScan(tt){
   var E = exuCur(), seen = {};
@@ -151,11 +153,11 @@ function exuTick(tt){
       exuFail(it, !o || !o.alive ? "исполнитель погиб" : !o.nades || o.nades.smoke <= 0 ? "нет гранаты" : it.goneWhy || "задание снято");
     }
     if(it.state === "forming" && tick >= it.useAt){ it.state = "ready"; exuEv("ready", it); }
-    if(it.state === "failed" && it.crit && !it.done){
+    if(it.state === "failed" && !it.done){
       if(tt.phase === "setup" && bomb.state !== "planted" && secLeft > EXU_LATE && it.re < 1 && exuReassign(it, tt)) return;
       it.done = true;   // переназначить некому / не успеть — выход без этого смока (exuGate)
       exuEv("drop", it, {why: tt.phase !== "setup" ? "выход уже идёт" : it.re >= 1 ? "уже переназначали" : secLeft <= EXU_LATE ? "поздно" : "некому: "+exuNoBackupWhy(it)});
-      if(tt.phase === "setup") voiceLog("T", "exudrop"+it.id, "IGL", "смока «"+String(it.why).replace(/^лайнап /, "")+"» не будет — заходим под флешки");
+      if(tt.phase === "setup" && it.crit) voiceLog("T", "exudrop"+it.id, "IGL", "смока «"+String(it.why).replace(/^лайнап /, "")+"» не будет — заходим под флешки");
     }
   });
 }
@@ -213,18 +215,25 @@ function smokeLineTick(){
     var W = b._slw && b._slw.round === roundNum ? b._slw : null, on = !!(W && W.on);
     var stop = function(){ if(on && b.post && b.post.tag === "smokeLine") clearPost(b); b._slw = {round:roundNum, t:tick, on:false}; };
     if(b.team !== "T" || !b.alive) return;
-    if(b.nadeTask || b._sawEnemy || (bomb.carrier === b && b.planting)){ if(on) stop(); return; }
+    // (v562) граната с места (нет точки броска или она рядом, ≤ LU_NEAR) ожидание не снимает — бросок и так с этого места; снимает — если за
+    // броском надо идти (было: любой бросок «под пробу» на миг снимал ожидание, бот шёл на точку подготовки и тут же возвращался)
+    var ntGo = b.nadeTask && b.nadeTask.from && Math.hypot(b.nadeTask.from.x-b.baseX, b.nadeTask.from.y-b.baseY) > LU_NEAR;
+    if(ntGo || b._sawEnemy || (bomb.carrier === b && b.planting)){ if(on) stop(); return; }
+    if(b.nadeTask){ if(on) postKeep(b); return; }
     if(W && tick - W.t < 16){ if(on) postKeep(b); return; }   // пересмотр раз в 0,25 с (BELIEF_STEP)
     var P = on ? W.dest : b.post; if(!P){ if(on) stop(); return; }   // ждущий — проверяется точка, куда шёл
     if(on && b.post && b.post.tag !== "smokeLine"){ b._slw = {round:roundNum, t:tick, on:false}; return; }   // пост перебила задача важнее
     if(S === null) S = smokeLinePending("T");
-    var w = smokeLineWait(b, P, S);
+    // (v562, прогон 208: «ждёт смок ↔ маршрут» на Mirage 17 → 83 за 8 матчей — ждущий терял свой смок, когда тот ложился (точка прицела → место падения), и на миг шёл дальше; и каждые 0,25 с заново решал, видит ли его путь место CT,
+    // а оценка мест CT колеблется) начал ждать конкретный смок — ждёт, пока этот смок не встанет или его не будет (нет в списке назначенных /
+    // летящих / раскрывающихся), а не пересчитывает причину
+    var w = on && W.s ? (S.some(function(q){ return Math.hypot(q.x-W.s.x, q.y-W.s.y) < NADE.smoke.radius; }) ? {s:W.s, q:W.q} : null) : smokeLineWait(b, P, S);
     if(!w){ if(on) logEvent(b.id+": смок встал / его не будет — идёт дальше"); stop(); return; }
     if(!on){
       if(!setPost(b, {x:b.x, y:b.y}, {x:w.q.x, y:w.q.y}, true, "smokeLine")){ b._slw = {round:roundNum, t:tick, on:false}; return; }   // держит задача важнее
       logEvent(b.id+": ждёт смок у "+calloutName(w.s.x, w.s.y).replace(/^на /, "")+" — не выходит на линию с "+calloutName(w.q.x, w.q.y).replace(/^на /, "")); }
     else postKeep(b);
-    b._slw = {round:roundNum, t:tick, on:true, dest:on ? W.dest : {x:P.x, y:P.y}};
+    b._slw = {round:roundNum, t:tick, on:true, dest:on ? W.dest : {x:P.x, y:P.y}, s:{x:w.s.x, y:w.s.y}, q:{x:w.q.x, y:w.q.y}};
   });
 }
 // (00_PLAN, владелец 05.11: «тушат смоком, когда готовится выход: в коридоре — банан на Inferno, Ramp на Mirage — кинули молотов; T не бегут
@@ -238,7 +247,7 @@ function fireSmokeTick(){
   fires.forEach(function(f){
     if(f.team === "T" || f._smk) return;
     var onPath = ts.some(function(b){ var P = b.path || [], px = b.baseX, py = b.baseY;
-      for(var i = b.pathIdx || 0; i < P.length; i++){ var q = P[i]; if(fireTouches(f, q[0], q[1]) || fireOnSegF(f, px, py, q[0], q[1])) return true; px = q[0]; py = q[1]; }
+      for(var i = b.pathIdx || 0; i < P.length; i++){ var q = P[i]; if(fireTouches(f, q[0], q[1], q[2]) || fireOnSegF(f, px, py, q[0], q[1], b.z)) return true; px = q[0]; py = q[1]; }
       return false; });
     if(!onPath) return;
     // (владелец 05.11: «если не критично подождать — можно не тушить») на выходе ждать нельзя — тушат; на сетапе — только если огонь прогорит
@@ -251,5 +260,5 @@ function fireSmokeTick(){
     voiceLog("T", "fsmk"+c.id+tick, c.id, "тушу молотов "+calloutName(f.x, f.y).replace(/^на /, "")+" — проходим");
   });
 }
-function fireOnSegF(f, x1, y1, x2, y2){ var n = Math.max(1, Math.ceil(Math.hypot(x2-x1, y2-y1)/8));
-  for(var i = 1; i <= n; i++) if(fireTouches(f, x1 + (x2-x1)*i/n, y1 + (y2-y1)*i/n)) return true; return false; }
+function fireOnSegF(f, x1, y1, x2, y2, z){ var n = Math.max(1, Math.ceil(Math.hypot(x2-x1, y2-y1)/8));
+  for(var i = 1; i <= n; i++) if(fireTouches(f, x1 + (x2-x1)*i/n, y1 + (y2-y1)*i/n, z)) return true; return false; }

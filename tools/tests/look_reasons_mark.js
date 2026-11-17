@@ -1,5 +1,5 @@
 // Взгляд живых игроков стороны SIDE после открытия снимка: причина взгляда (lookReason) и куда (зона), раз в 16 тиков N тиков.
-// node tools/mark_open.js sim.html снимок.json "var SIDE='CT', N=64; $(cat tools/tests/look_reasons_mark.js)"
+// node tools/marks/mark_open.js sim.html снимок.json "var SIDE='CT', N=64; $(cat tools/tests/look_reasons_mark.js)"
 (function(){
   var o = [];
   for(var t = 0; t <= N; t++){ if(t) stepTick(); if(t % 16) continue;

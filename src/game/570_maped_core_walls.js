@@ -168,7 +168,7 @@ function medWSet(data){
   applyWalls(true);
 }
 function medWR(v){ return Math.round(v*10)/10; }
-function medWArea(p){ var a = 0; for(var i=0;i<p.length;i++){ var b = p[(i+1)%p.length]; a += p[i][0]*b[1] - b[0]*p[i][1]; } return Math.abs(a)/2; }
+// (15.11, перестройка) medWArea — тот же код, что covPolyArea: вызовы переведены на covPolyArea
 function medWEdgeDist(p, x, y){
   var best = Infinity;
   for(var i=0;i<p.length;i++){ var a = p[i], b = p[(i+1)%p.length]; best = Math.min(best, distToSeg(x, y, [a[0],a[1],b[0],b[1]])); }
@@ -181,7 +181,7 @@ function medWHit(x, y){
   WALL_POLYS.forEach(function(p, i){ var d = medWEdgeDist(p, x, y); if(d < bd){ bd = d; best = i; } });
   if(best >= 0) return best;
   var ba = Infinity;
-  WALL_POLYS.forEach(function(p, i){ if(pointInPoly(x, y, p.map(function(q){ return {x:q[0], y:q[1]}; }))){ var a = medWArea(p); if(a < ba){ ba = a; best = i; } } });
+  WALL_POLYS.forEach(function(p, i){ if(pointInPoly(x, y, p.map(function(q){ return {x:q[0], y:q[1]}; }))){ var a = covPolyArea(p); if(a < ba){ ba = a; best = i; } } });
   return best;
 }
 function medWVertexAt(i, x, y){

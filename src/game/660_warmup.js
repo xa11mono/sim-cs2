@@ -14,9 +14,9 @@ function warmSpawn(b){
   b.armor = true; b.helmet = true; b.armorHp = 100; b._ts = {}; b.contactStreak = 0; b.blindUntil = 0; b.nextShotTick = 0; b.planting = b.defusing = false;
 }
 function warmTurn(b, a, maxA){
-  if(b.facing === undefined){ b.facing = b._visFacing = a; return; }
+  if(b.facing === undefined){ b._visFacing = a; lookFace(b, a, "warm"); return; }
   var d = ((a - b.facing + Math.PI) % (2*Math.PI) + 2*Math.PI) % (2*Math.PI) - Math.PI;
-  b.facing += Math.max(-maxA, Math.min(maxA, d)); b._visFacing = b.facing;
+  lookTurnBy(b, Math.max(-maxA, Math.min(maxA, d)), "warm"); b._visFacing = b.facing;
 }
 function warmStart(n){
   var hr = function(k){ return hashRand(n*7919 + k*131); };
@@ -37,12 +37,12 @@ function warmEnd(){
   var sk = document.getElementById("btnWarmSkip"); if(sk) sk.style.display = "none";
   freshMatch(n); if(snap && typeof mkRestore === "function") mkRestore(snap);
   if(typeof MK !== "undefined" && MK){ MK.cps = []; MK.lastCpTick = -1; }   // (v521) снимки для отметок — только из матча, не из разминки
-  killfeed = []; renderFeed(); voiceLines = []; if(typeof renderVoice === "function") renderVoice(); paused = false;
+  killfeed = []; renderFeed(); voiceLines = []; if(typeof renderVoice === "function") renderVoice(); clockPause(false);
 }
 function warmTick(dt){
   if(!WARM.on) return;
   WARM.left -= dt; if(WARM.left <= 0){ warmEnd(); return; }
-  tick++;
+  clockSet(tick + 1);
   bots.forEach(function(b){
     b.px = b.x; b.py = b.y;
     if(!b.alive){ if(!b._wRespawn) b._wRespawn = tick + 2*TICK_HZ; if(tick >= b._wRespawn) warmSpawn(b); return; }
@@ -51,7 +51,7 @@ function warmTick(dt){
     bots.forEach(function(o){ if(o.alive && o.team !== b.team){ var d = Math.hypot(o.x-b.x, o.y-b.y); if(d < fd && hasLOS(b.x, b.y, o.x, o.y, b.z, o.z)){ fd = d; foe = o; } } });
     if(foe){
       var a = Math.atan2(foe.y-b.y, foe.x-b.x);
-      warmTurn(b, a, AIM_TURN_RATE*dt); b._nearestEnemyBot = foe; b._wv = Math.max(0, (b._wv||0) - ACCEL*dt); b.curSpeed = b._wv;   // (v312) доворот и торможение, а не щелчок
+      warmTurn(b, a, AIM_TURN_RATE*dt); b._nearestEnemyBot = foe; b._wv = Math.max(0, (b._wv||0) - ACCEL*dt); moveSpeed(b, b._wv, "warm");   // (v312) доворот и торможение, а не щелчок
       // (v313, владелец 14.10: «в разминку такую же стрельбу») стрельба — та же, что в матче (tryShoot: реакция, разброс, отдача,
       // хитбоксы, урон, киллфид); разминка после себя всё сбрасывает (freshMatch), так что матч не меняется
       if(!b._sawEnemy){ b._sawEnemy = true; b.contactStreak = 0; }
@@ -81,6 +81,6 @@ function warmTick(dt){
       if(stepBlocked(b.x, b.y, nx, ny, b)){ nx = b.x + dx/(d||1)*st; ny = b.y + dy/(d||1)*st; b.heading = want; }
       b.x = b.baseX = nx; b.y = b.baseY = ny; }
     warmTurn(b, b.heading, AIM_TURN_RATE*dt);
-    b.curSpeed = b._wv;
+    moveSpeed(b, b._wv, "warm");
   });
 }

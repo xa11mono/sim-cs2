@@ -1,3 +1,12 @@
+// присед у про (12 демок Mirage): на приседе 11 % первых пуль винтовки, 37 % 2–3-х, 22 % дальше; сидят коротко (медиана 0,19 с)
+// Доли решений больше долей пуль: присед срывает «не видно из приседа» (v521), уход за укрытие (470) и конец очереди — подобраны так, чтобы
+// на приседе было столько же пуль, сколько у про (замер — бот: 1-я 6 %, 2–3 28 %, 4+ 14 % при решениях 0,11 / 0,37 / 0,22; 17 / 42 / 28 % при 0,2 / 0,49 / 0,35)
+var DUCK_PRO = {first: 0.13, burst: 0.46, spray: 0.27};
+function duckDecide(b, p, salt){   // присед на ближайшее решение (12 тиков); не сяду, если из приседа врага не видно (v521)
+  var e = b._nearestEnemyBot, duck = keysRand(b, salt) < p;
+  var cvp = duck && e && b._sawEnemy ? visParts(b.x, b.y, true, e.x, e.y, e.crouching, true, b.z, e.z) : null;
+  placeStance(b, duck && (!cvp || !!(cvp.head || cvp.body || cvp.side)), "duck"); b._duckT = tick;
+}
 function resolveEngagements(){
   var pairs = [];
   bots.forEach(function(b){ b._sawEnemy = false; b._nearestEnemyDist = Infinity; b._nearestEnemyBot = null; b._visible = []; });
@@ -12,12 +21,12 @@ function resolveEngagements(){
       // взгляда (или вплотную, или контакт уже идёт), и кто не ослеплён
       // (v241) что каждый видит у другого — в 3D: стены, укрытия, пол/уступы, крыши (visParts: голова / тело)
       // (М140, В4) высокие стены проверяет visParts — и у плеч цели: центр за углом, а край тела виден
-      var ctP = visParts(ct.x, ct.y, ct.crouching, t.x, t.y, t.crouching, true, ct.z, t.z), tP = visParts(t.x, t.y, t.crouching, ct.x, ct.y, ct.crouching, true, t.z, ct.z);
+      var ctP = visParts(ct.x, ct.y, ct.crouching, t.x, t.y, t.crouching, true, ct.z, t.z, boostLift(ct), boostLift(t)), tP = visParts(t.x, t.y, t.crouching, ct.x, ct.y, ct.crouching, true, t.z, ct.z, boostLift(t), boostLift(ct));   // (v575) на подсадке глаза выше
       if(!(ctP.head || ctP.body) && !(tP.head || tP.body)) return;
       // ван-вей: стоящий в самом краю дыма видит наружу, а его снаружи — нет
       var smk = smokeBlocks(ct.x,ct.y,t.x,t.y), ctOW = false, tOW = false;
       // (v548) сквозь дым по дырам от пуль видна только часть тела, которая попала в окошко (smokeHoleParts, 360) — и цель — только она
-      if(smk){ ctOW = BAL.oneWay && oneWaySees(ct, t); tOW = BAL.oneWay && oneWaySees(t, ct);   // кромка дыма (ван-вей) — как раньше, целиком
+      if(smk){ ctOW = oneWaySees(ct, t); tOW = oneWaySees(t, ct);   // кромка дыма (ван-вей) — как раньше, целиком
         if(!ctOW){ var ctH = smokeHoleParts(ct, t); ctP = {head: ctP.head && ctH.head, body: ctP.body && ctH.body}; if(ctP.head || ctP.body){ ctOW = true; ct._smkParts = {id: t.id, t: tick, head: ctP.head, body: ctP.body}; } }
         if(!tOW){ var tH = smokeHoleParts(t, ct); tP = {head: tP.head && tH.head, body: tP.body && tH.body}; if(tP.head || tP.body){ tOW = true; t._smkParts = {id: ct.id, t: tick, head: tP.head, body: tP.body}; } }
         if(!ctOW && !tOW) return; }
@@ -57,6 +66,7 @@ function resolveEngagements(){
     if(!b.alive) return;
     if(b._sawEnemy){
       b.contactStreak++;
+      if(b.lastShotTick === tick - 1 && b.burstCount === 1) duckDecide(b, DUCK_PRO.burst, 12);   // (v575) началась очередь — сесть или нет
       var TS = b._ts || (b._ts = {}), vis = {};
       b._visible.forEach(function(e){ vis[e.id] = 1; TS[e.id] = (TS[e.id] || 0) + 1; });
       for(var tsId in TS) if(!vis[tsId]) TS[tsId] = Math.max(0, TS[tsId] - 3);
@@ -74,6 +84,8 @@ function resolveEngagements(){
       // стрелять. Теперь "реакция" остывает постепенно: короткая потеря
       // контакта почти не сбрасывает её, долгая — сбрасывает полностью.
       b.contactStreak = Math.max(0, b.contactStreak - 3);
+      // (v575, В140) врага не видно — присед кончается вместе с очередью (у про — 0,19 с); ослеплён — сидит (535)
+      if(b.crouching && tick >= (b.blindUntil || 0) && tick - (b.lastShotTick || -1e9) >= DECISION_INTERVAL_TICKS) placeStance(b, false, "burst-end");
       if(b._ts) for(var tsId2 in b._ts) b._ts[tsId2] = Math.max(0, b._ts[tsId2] - 3);   // (этап 2, P0-2) по целям — так же
       // holding on stale-but-recent intel = "ещё смотрю на угол, где только что
       // видел врага" — это ровно то состояние, из которого возможен префайр;
@@ -81,7 +93,9 @@ function resolveEngagements(){
       // на миг теряется, и префайру было бы неоткуда взяться
       // (v408, Б5в, видео владельца 22.10: игрок 9 стоял 2,5 с с новой задачей «трейд» в 80 ед. и построенным путём — «держу» здесь
       // значит скорость 0 и путь не идёт) задача в другом месте (пост не достигнут) и перестрелка кончилась (_fc снят) — «держу» снимается
-      var taskAway = !b._fc && b.post && !b.atPost && Math.hypot(b.post.x-b.baseX, b.post.y-b.baseY) > 40;
+      // (v560, В82, разбор владельца 11.11: «почему встал, если никого не увидел» — видел врага 1 тик, «держит угол» на всю паузу перестрелки,
+      // хотя задача — выйти на него) задача «выйти на врага» уводит с угла и во время перестрелки, пока врага не видно
+      var taskAway = (!b._fc || (b.post && taskProp(b.post.tag, "fightMove"))) && b.post && !b.atPost && Math.hypot(b.post.x-b.baseX, b.post.y-b.baseY) > 40;
       // (v450, док владельца 28.10 №5; м3 р1: носитель T4 с задачей «плант» в 270 ед. 14 с ходил «линия / укрытие» по слуху, ни разу не видя
       // врага) носитель в выходе, врага не видит — перестрелка по памяти кончилась, идёт ставить
       // (v450) и любой T в выходе, кто не видит врага дольше паузы про в перестрелке (PEEK_PRO.T.pause, верхний край — 2,7 с): перестрелка
@@ -115,8 +129,12 @@ function resolveEngagements(){
     b.holdSinceTick = b.holding ? (b.holdSinceTick===-999 ? tick : b.holdSinceTick) : -999;
     // (v521, дуэли: присед за низким укрытием рвал линию — враг пропадал, перестрелка «расходилась») держит угол — приседает, только если
     // ближайший видимый враг виден и из приседа
-    var ceN = b._nearestEnemyBot, cvp = (b.holding && tick - b.holdSinceTick > 25 && ceN && b._sawEnemy) ? visParts(b.x, b.y, true, ceN.x, ceN.y, ceN.crouching, true, b.z, ceN.z) : null;
-    b.crouching = b.holding && (tick - b.holdSinceTick > 25) && (!cvp || !!(cvp.head || cvp.body || cvp.side));
+    // (v575, В140, владелец 13.11: «очень часто стреляют и даже пикают на приседе») было: держит угол дольше 0,4 с — всегда сидит (8 % времени).
+    // У про (12 демок Mirage, scratchpad duck.py) присед — 3 % времени, угол держат стоя (4 %), сидят коротко (медиана 0,19 с = одно решение здесь)
+    // и в очереди (DUCK_PRO). Решение на 12 тиков: стреляю — DUCK_PRO.spray, вижу врага и вот-вот выстрелю — first; иначе стоя; первая пуля
+    // очереди — отдельное решение сразу (burst, ниже в контакте), иначе присед опаздывает к 2–3-й пуле
+    var firing = tick - (b.lastShotTick || -1e9) < DECISION_INTERVAL_TICKS;
+    if(tick - (b._duckT || -1e9) >= DECISION_INTERVAL_TICKS) duckDecide(b, firing ? DUCK_PRO.spray : (b._sawEnemy && b._nearestEnemyBot ? DUCK_PRO.first : 0), 11);
     if(next === "retreat" && !b.forcedRetreat){
       // роумер отходит на предыдущую точку маршрута, а не на спавн
       var rt = (b.role === "roamer" && b.roamPrevPt) ? b.roamPrevPt : b.spawnPt;
@@ -139,7 +157,7 @@ function resolveEngagements(){
         var dA = Math.abs(((wa - fa + Math.PI) % (2*Math.PI) + 2*Math.PI) % (2*Math.PI) - Math.PI);
         if(dA < 1.2){ var cov = findCover(b, foe); if(cov) wp = buildWaypointPath(b.baseX, b.baseY, b.z, cov.x, cov.y, 0); }
       }
-      b.path = wp; b.pathIdx = 0;
+      movePath(b, wp, "fight"); b.pathIdx = 0;
       b.forcedRetreat = true;
     } else if(next !== "retreat"){
       b.forcedRetreat = false;
@@ -157,55 +175,14 @@ function resolveEngagements(){
     if(tick - b._rtChk.t >= 16){
       if(dF < b._rtChk.d - 4){
         var cv = findCover(b, foe);
-        if(cv){ b.path = buildWaypointPath(b.baseX, b.baseY, b.z, cv.x, cv.y, 0, b.team, botLane(b)); b.pathIdx = 0; }
+        if(cv){ movePath(b, buildWaypointPath(b.baseX, b.baseY, b.z, cv.x, cv.y, 0, b.team, botLane(b)), "fight"); b.pathIdx = 0; }
       }
       b._rtChk = {t:tick, d:dF};
     }
   });
 
-  // ---------- куда смотрит бот ----------
-  // приоритет: видимый враг → (если держит угол) свежая память "враг был тут"
-  // → свежий звук шагов → иначе направление движения (ставится в движении).
-  // Поворот плавный, но быстрый (AIM_TURN_RATE), и стрелять можно только
-  // когда прицел уже почти на цели (AIM_FIRE_CONE) — отсюда естественная
-  // задержка "развернулся → выстрелил", когда враг появился сбоку/сзади.
-  var aimStep = AIM_TURN_RATE / TICK_HZ;
-  // (v291, И32, владелец 14.10: раунд 1, тик 3087 — игрок 6 убил в T Lower и отвернулся на Mid «как у про», пока второй T стоял
-  // в 35 px от убитого) после фрага оценка взгляда стрелка пересчитывается сразу, а не через до 8 тиков
-  if(BZ.ids.length){
-    if(tick % 8 === 0){ lookPlan("CT"); lookPlan("T"); LOOK_REPLAN.CT = LOOK_REPLAN.T = false; }
-    else ["CT","T"].forEach(function(t){ if(LOOK_REPLAN[t]){ LOOK_REPLAN[t] = false; lookPlan(t); } });
-  }
-  bots.forEach(function(b){
-    if(!b.alive) return;
-    // (v381, М126 шаг 4) куда смотреть — одно место: арбитр взгляда (270_look_plan_smooth.js, LOOK_LEVEL); враг виден — верхний уровень
-    var look;
-    if(b._sawEnemy && b._nearestEnemyBot){ look = b._nearestEnemyBot; b.lookReason = "enemy"; b._lookLvl = LOOK_LEVEL.enemy; if(LOOKDBG.on) b._ldArb = null; }
-    else look = lookArbiter(b);
-    var LD = LOOKDBG.on ? {tick: tick, reason: b.lookReason || null, raw: look ? {x: look.x, y: look.y} : null, steps: []} : null;
-    var LF = lookFilter(b, look, LD), slUrg = LF.urgent; look = LF.look;
-    if(LD){ LD.final = look ? {x: look.x, y: look.y} : null; LD.reasonFinal = b.lookReason || null; b._ld = LD; }
-    b.lookTarget = look ? {x:look.x, y:look.y} : null;
-    // (v153) бросает гранату — смотрит туда, куда кинул, пока бросок не закончен
-    // (раньше за 0,2с после броска взгляд щёлкал обратно — самый частый "рывок")
-    if(look && b.throwUntil && tick < b.throwUntil && !b._sawEnemy) look = null;
-    if(look){
-      var want = Math.atan2(look.y-b.y, look.x-b.x);
-      if(b.facing === undefined) b.facing = want;
-      var dd = want - b.facing;
-      dd = ((dd + Math.PI) % (2*Math.PI) + 2*Math.PI) % (2*Math.PI) - Math.PI;
-      if(slUrg) b.facing += Math.max(-aimStep, Math.min(aimStep, dd));
-      else {
-        // (v153) вне боя: плавно, с торможением к цели, не быстрее ~260°/с;
-        // стоя мелкие поправки (<3°) не делаем — прицел стоит, а не дрожит
-        var standing = !(b.curSpeed > 15*SPD_K);
-        if(!(standing && Math.abs(dd) < 0.05)){
-          var cap = SL.calmRate / TICK_HZ, stp = Math.min(cap, Math.max(SL.minStep, Math.abs(dd)*SL.ease));
-          b.facing += Math.max(-stp, Math.min(stp, dd));
-        }
-      }
-    }
-  });
+  // ---------- куда смотрит бот ---------- — канал взгляда (275_look_turn.js, lookTick)
+  lookTick();
 
   pairs.forEach(function(p){
     if(p.ctSees && p.ct._nearestEnemyBot === p.t) tryShoot(p.ct, p.t, p.dist);
@@ -220,11 +197,11 @@ function escapeWallLine(bot){
       var nx = bot.baseX + Math.cos(ang)*rr, ny = bot.baseY + Math.sin(ang)*rr;
       if(insideSolidWall(nx, ny)) continue;
       if(!navFloorNear(nx, ny, NAV_STEP_TOL) && navFloorNear(bot.baseX, bot.baseY, NAV_STEP_TOL)) continue;   // (v336) не с пола в ящик/щель
-      if(inFire(nx, ny) && !inFire(bot.baseX, bot.baseY) && !fireCommit(bot)) continue;   // (этап 3, P1-4) не в огонь
+      if(inFire(nx, ny, bot.z) && !inFire(bot.baseX, bot.baseY, bot.z) && !fireCommit(bot)) continue;   // (этап 3, P1-4) не в огонь
       // из новой точки должно быть можно куда-то идти
       var free = 0;
       for(var q=0;q<8;q++){ var qa=q*Math.PI/4; if(!crossesWall(nx,ny,nx+Math.cos(qa)*4,ny+Math.sin(qa)*4)) free++; }
-      if(free >= 5){ bot.baseX = nx; bot.baseY = ny; bot.x = nx; bot.y = ny; bot.path = []; bot.pathIdx = 0; return true; }
+      if(free >= 5){ bot.baseX = nx; bot.baseY = ny; bot.x = nx; bot.y = ny; movePath(bot, [], "fight"); bot.pathIdx = 0; return true; }
     }
   }
   return false;
@@ -236,14 +213,14 @@ function assignNewDestination(bot, tick){
     var foe = bot._nearestEnemyBot || (bot.lastIntel ? {x:bot.lastIntel.x, y:bot.lastIntel.y} : null);
     var cv = foe ? findCover(bot, foe) : null;
     var tgt = cv || bot.spawnPt;
-    bot.path = buildWaypointPath(bot.baseX, bot.baseY, bot.z, tgt.x, tgt.y, 0, bot.team, botLane(bot));
+    movePath(bot, buildWaypointPath(bot.baseX, bot.baseY, bot.z, tgt.x, tgt.y, 0, bot.team, botLane(bot)), "fight");
     bot.pathIdx = 0; bot.pickTick = tick;
     return;
   }
   if(bot.post && bot.state === "patrol"){
     if(bot.atPost || bot.planting || bot.defusing) return; // стоит на посту — путь не нужен
     var epp = fireSafe(bot.post, bot);
-    bot.path = buildWaypointPath(bot.baseX, bot.baseY, bot.z, epp.x, epp.y, (epp === bot.post && bot.post.z) || 0, bot.team, botLane(bot), bot.walking);   // (v546) высота поста (ящик), если известна
+    movePath(bot, buildWaypointPath(bot.baseX, bot.baseY, bot.z, epp.x, epp.y, (epp === bot.post && bot.post.z) || 0, bot.team, botLane(bot), bot.walking), "fight");   // (v546) высота поста (ящик), если известна
     bot.pathIdx = 0; bot.pickTick = tick;
     return;
   }
@@ -252,7 +229,7 @@ function assignNewDestination(bot, tick){
     var route = ROAM_ROUTES[bot.team];
     if(route && route.length){
       var rp = route[bot.roamIdx % route.length];
-      bot.path = buildWaypointPath(bot.baseX, bot.baseY, bot.z, rp.x, rp.y, 0, bot.team, botLane(bot), bot.walking);
+      movePath(bot, buildWaypointPath(bot.baseX, bot.baseY, bot.z, rp.x, rp.y, 0, bot.team, botLane(bot), bot.walking), "fight");
       bot.pathIdx = 0; bot.pickTick = tick; bot.roamTarget = rp;
       return;
     }
@@ -260,7 +237,7 @@ function assignNewDestination(bot, tick){
   // (Б1, ENGINE_AUDIT Х3) нет задачи (поста), не отход и не роумер — бот никуда не идёт, пока задачу не поставит механика (setPost,
   // арбитр места). Раньше здесь сам выбирал цель: случайную точку карты (в бою — тоже: путь кончился в engage — бежит на случайную
   // точку) или место сбора тактики T со сдвигом; мозг ставил пост на следующем тике — цель менялась туда-обратно
-  if(bot.path.length) bot.path = [];
+  if(bot.path.length) movePath(bot, [], "fight");
   bot.pathIdx = 0;
 }
 

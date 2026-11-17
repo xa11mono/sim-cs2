@@ -1,0 +1,10 @@
+{
+  "name": "simcs2-modules",
+  "private": true,
+  "description": "Сборка каналов-модулей игры (tools/rebuild/mod_build.js): esbuild + разбор кода acorn. Ставится сама при сборке (src/gamesrc.py bundle_modules).",
+  "dependencies": {
+    "esbuild": "0.24.0",
+    "acorn": "8.14.0",
+    "acorn-walk": "8.3.4"
+  }
+}

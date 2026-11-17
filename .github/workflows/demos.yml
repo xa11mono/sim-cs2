@@ -1,5 +1,5 @@
-# (Б4) Выгрузка из демок про на ПК владельца: все выстрелы со скоростью и весь урон (tools/demo_events_pc.py). Игру не меняет.
-# Задание — tools/demo_events_request.json в ветке demos/…; результат — ветка pc-demos/<номер прогона> (пути как в репо).
+# (Б4) Выгрузка из демок про на ПК владельца: все выстрелы со скоростью и весь урон (tools/pro/demo_events_pc.py). Игру не меняет.
+# Задание — tools/pro/demo_events_request.json в ветке demos/…; результат — ветка pc-demos/<номер прогона> (пути как в репо).
 name: demos
 on:
   push:
@@ -21,7 +21,7 @@ jobs:
       - name: Parse demos
         shell: cmd
         run: |
-          python tools/demo_events_pc.py
+          python tools/pro/demo_events_pc.py
           set RC=%ERRORLEVEL%
           python -c "[print('::notice::'+l.rstrip()) for l in open(__import__('os').path.expanduser('~/simcs2_run.log'),encoding='utf-8',errors='replace').readlines()[-8:]]"
           exit /b %RC%
@@ -30,4 +30,4 @@ jobs:
         shell: cmd
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: python tools/demo_events_pc.py --publish
+        run: python tools/pro/demo_events_pc.py --publish

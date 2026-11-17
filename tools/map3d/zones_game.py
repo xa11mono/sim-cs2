@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """А5 (20.10.2026): зоны владельца (А4, geom3d/zones_owner.json) → zones.json набора в формате игры.
-python3 tools/map3d/zones_game.py [--map mirage]   (шаг zones3d в tools/map_build.py; после zones_owner.py)
+python3 tools/map3d/zones_game.py [--map mirage]   (шаг zones3d в tools/map/map_build.py; после zones_owner.py)
 
-Что пишет (как tools/zones_bake.py, тот же формат — игра читает MAP.zones):
+Что пишет (как tools/map/zones_bake.py, тот же формат — игра читает MAP.zones):
   zonemap.zones — зона: id, z (медиана пола зоны, ед. игры — по нему таблица «откуда простреливается» берёт этаж: Underpath
                   под Short), points — контур клеток зоны (все её этажи; больший связный кусок; ед. карты 0..2048),
                   level ('low' — нижний этаж), name — роль (спавны, сайты), как у zones_bake;
@@ -13,6 +13,7 @@ python3 tools/map3d/zones_game.py [--map mirage]   (шаг zones3d в tools/map_
   portals — соседние зоны по связям навмеша (перепад ≤ 40 ед. — walk, больше — stairs);
   points и sites — как были (точки ролей — середины подписей рецепта; границы сайтов — по плантам, demos_bake --assemble)."""
 import sys, os, json, base64, zlib
+sys.path[:0] = [os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), g) for g in ('map', 'ct', 'pro', 'marks', 'logs', 'motion', 'page')]   # (15.11) модули tools/ разложены по группам
 import numpy as np
 import contourpy
 from scipy import ndimage

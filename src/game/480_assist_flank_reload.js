@@ -57,7 +57,7 @@ function flankAssist(b){
   var mate = null, E = null;
   bots.forEach(function(m){
     if(mate || m === b || !m.alive || m.team !== b.team || !m._sawEnemy || (m.contactStreak||0) < 20) return;
-    var d = Math.hypot(m.x-b.x, m.y-b.y); if(d <= (BAL.groupPlay ? 300 : 160) || d > 900) return;
+    var d = Math.hypot(m.x-b.x, m.y-b.y); if(d <= (300) || d > 900) return;
     var e = m._nearestEnemyBot; if(!e || !e.alive) return; mate = m; E = e; });
   if(!mate) return false;
   if(!flankClaim(b, E.id)) return false;
@@ -67,18 +67,30 @@ function flankAssist(b){
   if(!sp) return false;
   // (v518a) идёт по задаче важнее захода — заход как отклонение (detourOk, 110): цена — время дойти до точки захода
   if(!taskCanSet(b, "repos:flank")){ var fsec = pathLenTo(b, sp.x, sp.y)/SPEED; if(!detourOk(b, "help", fsec)) return false; detourStart(b, "help", "repos:flank", fsec + 2); }
-  b._reposUntil = 0; b._probeLock = 0;
+  taskKeep(b, 0, "assist"); b._probeLock = 0;
   setPost(b, sp, ep, true, "repos:flank");
   if(!b.post || b.post.tag !== "repos:flank") return false;
   if(b.state === "hold") leaveHold(b);
-  b._reposUntil = tick + 6*TICK_HZ;
+  taskKeep(b, tick + 6*TICK_HZ, "assist");
   b.lastIntel = {x:ep.x, y:ep.y, tick:tick, src:"call"};
   flankClaim(b, E.id, true); b._flankE = E.id; b._flankT = tick;
-  voiceLog(b.team, "flank"+b.id, b.id, "захожу на "+E.id+" с другой стороны — помогаю "+mate.id);
+  voiceLog(b.team, "flank"+b.id, b.id, "захожу с фланга на "+E.id);
   return true;
 }
+var ASSIST_EDGE = {fwd: [30, 45, 60, 75, 90, 110, 130], side: [0, 40, -40, 80, -80]};   // (v570) проектные числа: шаг вперёд ≈ полкорпуса, в стороны ≈ «личное место»
+function assistEdgeSpot(b, E){
+  var a = Math.atan2(E.y-b.y, E.x-b.x), c = Math.cos(a), s = Math.sin(a), best = null;
+  ASSIST_EDGE.fwd.some(function(f){ return ASSIST_EDGE.side.some(function(l){
+    var x = b.x + c*f - s*l, y = b.y + s*f + c*l;
+    if(!navAt(x, y) || insideSolidWall(x, y) || segCrossesManualWalls(b.x, b.y, x, y)) return false;
+    var fz = visFloorAt(x, y, b.z); if(b.z != null && Math.abs(fz - b.z) > JUMP_UP) return false;   // свой ярус: не спрыгивать к врагу
+    if(spotTaken(b, {x:x, y:y}) || smokeBlocks(x, y, E.x, E.y)) return false;
+    var vp = visParts(x, y, false, E.x, E.y, E.crouching, undefined, fz, E.z); if(!vp.head && !vp.body) return false;
+    best = {x:x, y:y, z:fz}; return true; }); });
+  return best;
+}
 function assistPeek(b){
-  if(!BAL.assistPeek || b._sawEnemy || b.planting || b.defusing || b.hp <= LOW_HP) return false;
+  if(b._sawEnemy || b.planting || b.defusing || b.hp <= LOW_HP) return false;
   if(tick < (b._assistNext||0)) return false;
   // (v378) идёт по задаче не ниже — арбитр места; (v518a) главная задача терпит отклонение — помогает и с неё (detourOk, 110)
   var detour = !taskCanSet(b, "repos:assist");
@@ -87,62 +99,77 @@ function assistPeek(b){
   var mate = null, E = null;
   bots.forEach(function(m){
     if(mate || m === b || !m.alive || m.team !== b.team || !m._sawEnemy || (m.contactStreak||0) < 20) return;
-    if(Math.hypot(m.x-b.x, m.y-b.y) > (BAL.groupPlay ? 300 : 160)) return;
+    if(Math.hypot(m.x-b.x, m.y-b.y) > (300)) return;
     var e = m._nearestEnemyBot; if(!e || !e.alive || Math.hypot(e.x-b.x, e.y-b.y) > 900) return;
     mate = m; E = e;
   });
   if(!mate) return flankAssist(b);
+  // (v570, прогон 214: «помощь ↔ контакт» — tug repos:assist → contact → repos:assist, Ancient 1 → 9, Mirage 1 → 11) идёт реакция на контакт
+  // по этому врагу — решает она (350: свой рядом в бою с этой группой — выходит, contactMateFight); помощь не ставит свою точку поверх
+  var KC = b._contact; if(KC && tick < KC.until && Math.hypot(KC.x-E.x, KC.y-E.y) < 200) return false;
   b._assistNext = tick + 24;
   // линия есть, но смотрит в другую сторону — разворот на врага по коллу тиммейта
-  if(hasVision(b.x, b.y, E.x, E.y)){ b.heardSound = {x:E.x, y:E.y, tick:tick, team:E.team, src:E.id, kind:"call"}; b.lastIntel = {x:E.x, y:E.y, tick:tick, src:"call"}; return false; }
+  // (v570, отметка владельца м1 р3 28,7 с: «другие не давят, хотя слышат пистолет и чего-то ждут») — было: линия на врага по плоской карте
+  // (hasVision без высоты): T4 в 20–70 ед. от T3 на верхнем ярусе «видел» CT внизу, только поворачивался — а из-за уступа врага не видно,
+  // и на помощь не выходил 6 с. Теперь — видно ли хоть часть врага с моей высоты (visParts, как в бою)
+  var vpE = visParts(b.x, b.y, b.crouching, E.x, E.y, E.crouching, undefined, b.z, E.z);
+  if((vpE.head || vpE.body) && !smokeBlocks(b.x, b.y, E.x, E.y)){ b.heardSound = {x:E.x, y:E.y, tick:tick, team:E.team, src:E.id, kind:"call"}; b.lastIntel = {x:E.x, y:E.y, tick:tick, src:"call"}; return false; }
   var ep = {x:E.x, y:E.y};
-  var sp = pickSpots("assist"+tick+b.id, BAL.groupPlay ? {x:mate.x, y:mate.y} : {x:(b.x+mate.x)/2, y:(b.y+mate.y)/2}, 3, {rMax: BAL.groupPlay ? 140 : 110, minGap:24, must:[ep]})
-    .filter(function(q){ return !spotTaken(b, q) && hasLOS(q.x, q.y, ep.x, ep.y); })[0];   // (v370) рядом, но не плечом к плечу (было > 22)
+  var sp = pickSpots("assist"+tick+b.id, {x:mate.x, y:mate.y}, 3, {rMax: 140, minGap:24, must:[ep]})
+    .filter(function(q){ return !spotTaken(b, q) && hasLOS(q.x, q.y, ep.x, ep.y, q.z, E.z); })[0];   // (v370) рядом, но не плечом к плечу; (v570) с высотой врага
+  // (v570, та же отметка) центры участков навмеша рядом — все за уступом (верхний ярус, враг внизу): линия открывается только у края. Ищем
+  // точку на моём ярусе ближе к врагу — вперёд по линии на него и в стороны от неё, — откуда видна хоть часть врага; ближайшую
+  if(!sp) sp = assistEdgeSpot(b, E);
   if(!sp) return false;
-  b._reposUntil = 0; b._probeLock = 0;
+  taskKeep(b, 0, "assist"); b._probeLock = 0;
   if(detour) detourStart(b, "help", "repos:assist", 2);
   setPost(b, sp, ep, true, "repos:assist");
   if(!b.post || b.post.tag !== "repos:assist") return false;
   if(b.state === "hold") leaveHold(b);
-  b._reposUntil = tick + 2*TICK_HZ;
+  taskKeep(b, tick + 2*TICK_HZ, "assist");
   b.lastIntel = {x:ep.x, y:ep.y, tick:tick, src:"call"}; // знает, куда выходит — прицел на враге (префайр по коллу)
-  if(!b._assistVoice || tick - b._assistVoice > 4*TICK_HZ){ b._assistVoice = tick; voiceLog(b.team, "assist"+b.id, b.id, "выхожу с "+mate.id+" на "+E.id+" — дабл!"); }
+  if(!b._assistVoice || tick - b._assistVoice > 4*TICK_HZ){ b._assistVoice = tick; voiceLog(b.team, "assist"+b.id, b.id, "дабл с "+mate.id+"!"); }
   return true;
 }
 // доля магазина, ниже которой игрок перезаряжается после боя — и (v521) ниже которой на линии «патронов мало» (470 duelEval)
-function rlFracOf(){ return BAL.soundMore ? 0.75 : 0.35; }
+function rlFracOf(){ return 0.75; }
 function updateReload(b){
   var w = b.weapon; if(!w || !b.alive) return;
   if(b._ammoFor !== w.key){ b._ammoFor = w.key; b.ammo = w.mag; b._reloading = false; b.reloadUntil = 0; }
-  if(b._reloading && tick >= b.reloadUntil){ b._reloading = false; b.ammo = w.mag; }
-  if(BAL.pistolSwap && b._onPistol) pistolBack(b);
-  if(BAL.pistolSwap && !b._reloading && b.ammo <= 0 && pistolSwap(b)) return;
+  // (v555, м298 р1: «пострелял, ушёл за укрытие и стоит») перезарядился — укрытие больше не нужно: задача снимается, бот возвращается к своей
+  if(b._reloading && tick >= b.reloadUntil){ b._reloading = false; b.ammo = w.mag; if(b.post && b.post.tag === "repos:rlcover"){ taskKeep(b, 0, "assist"); clearPost(b); } }
+  if(b._onPistol) pistolBack(b);
+  if(!b._reloading && b.ammo <= 0 && pistolSwap(b)) return;
   // после перестрелки про перезаряжается почти всегда, если магазин заметно
   // потрачен (а не только когда он почти пуст) — отсюда и звук перезарядки,
   // на который пикают
-  var rlFrac = rlFracOf(), rlWait = BAL.soundMore ? 96 : 64;
+  var rlFrac = rlFracOf(), rlWait = 96;
   var tacRl = !b._reloading && b.ammo > 0 && !b._sawEnemy && b.ammo < w.mag*rlFrac && tick - (b.lastShotTick||-999) > rlWait;
   // тактическая перезарядка на виду у известного врага — сначала за укрытие
   // (если патронов ещё не критично мало)
-  if(tacRl && BAL.reloadCover && b.ammo > w.mag*0.2 && !b.planting && !b.defusing){
+  if(tacRl && b.ammo > w.mag*0.2 && !b.planting && !b.defusing){
     // (v296) и враг за углом (≤ 900 px, ≤ 4 с — без линии сейчас): выглянет — застанет на перезарядке; укрытие — скрытое от его места
     var ex = exposedTo(b, 900, 4*TICK_HZ, true);
-    if(ex.length){ coverForReload(b, ex); tacRl = false; }
+    // (v555, м298 р1) уже не видно ни с одного из этих мест (дошёл до укрытия / враг за углом) — перезаряжается сейчас. Было: пока инфа о враге
+    // свежая (4 с), перезарядка откладывалась, и бот стоял в укрытии, не перезаряжаясь, до 4 с + сама перезарядка
+    var exSee = ex.filter(function(f){ return hasLOS(b.x, b.y, f.x, f.y, b.z); });
+    if(exSee.length){ coverForReload(b, ex); tacRl = false; }
   }
   if(!b._reloading && (b.ammo <= 0 || tacRl)){
     // (v296, владелец 14.10: «во время перезарядки не стояли столбом») пустой магазин на виду у известного врага — перезаряжается на ходу:
     // за укрытие рядом (то же, что у тактической перезарядки), а нет укрытия — шаг вбок от линии врага (стрейф, ~50 px — проектное число)
-    if(b.ammo <= 0 && BAL.reloadCover && !b.planting && !b.defusing){
+    if(b.ammo <= 0 && !b.planting && !b.defusing){
       var exE = exposedTo(b, 900, 4*TICK_HZ, true);
       if(exE.length && !coverForReload(b, exE) && !(b._rlCoverT && tick - b._rlCoverT < 3*TICK_HZ && b.post && b.post.tag === "repos:rlcover")){
         var ea = Math.atan2(exE[0].y-b.y, exE[0].x-b.x), sgn = hashRand(tick + b.id.charCodeAt(1)) < 0.5 ? 1 : -1;
         var sq = walk({x: b.x + Math.cos(ea + sgn*Math.PI/2)*50, y: b.y + Math.sin(ea + sgn*Math.PI/2)*50});
-        if(sq && !stepBlocked(b.x, b.y, sq.x, sq.y, b)){ b._reposUntil = 0; setPost(b, sq, exE[0], true, "repos:rlcover"); if(b.post && b.post.tag === "repos:rlcover") b._reposUntil = tick + Math.round(w.reload*TICK_HZ); }
+        if(sq && !stepBlocked(b.x, b.y, sq.x, sq.y, b)){ taskKeep(b, 0, "assist"); setPost(b, sq, exE[0], true, "repos:rlcover"); if(b.post && b.post.tag === "repos:rlcover") taskKeep(b, tick + Math.round(w.reload*TICK_HZ), "assist"); }
       }
     }
     b._reloading = true; b.reloadUntil = tick + Math.round(w.reload*TICK_HZ);
+    if(b.post && b.post.tag === "repos:rlcover") taskKeep(b, b.reloadUntil, "assist");   // (v555) укрытие держится, пока идёт перезарядка, — не 3 с
     if(b.ammo <= 0) logEvent(b.id+": перезарядка ("+w.name+", "+w.reload+"с)");
-    if(BAL.soundMore) reloadHeard(b, w);
+    reloadHeard(b, w);
   }
 }
 var SPRAY_PATTERN = [0, 0.06, 0.13, 0.22, 0.33, 0.46, 0.60, 0.74, 0.86, 0.95];

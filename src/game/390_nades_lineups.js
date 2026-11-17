@@ -16,7 +16,7 @@ function builtinAllowed(key){
   if(!rep.length) return true;
   return rep.every(function(L){ return nadeFlags["lu"+L.id] && !nadeFlags["luok"+L.id]; });
 }
-function allLineups(){ var L = LINEUPS_BAKED.concat(USER_LINEUPS); return BAL.proLineups ? L.concat(proLineups()) : L; }
+function allLineups(){ var L = LINEUPS_BAKED.concat(USER_LINEUPS); return L.concat(proLineups()); }
 var LU_TRIG = {insta:"инста", setup:"сетап T", exec:"выход T", postplant:"пост-плант", call:"колл CT", retake:"ретейк"};
 var LU_TYPE = {smoke:"смок", flash:"флешка", molly:"молотов", he:"HE"};
 // (14) гранаты выхода раньше: смоки/молотов летят за ~4с до выхода (пока
@@ -25,7 +25,7 @@ var LU_TYPE = {smoke:"смок", flash:"флешка", molly:"молотов", h
 // (v428) запас гранат на выход / после планта / ретейк — в плане гранат команды (365_nade_plan, npCanUse в assignNade и лайнапах);
 // было отдельное правило «смоки на выход — последние два не тратить» (tSmokeReserveOk)
 function preExecNow(tt){
-  if(!BAL.nadeEarly || !tt || tt.phase !== "setup" || !tt.execTick || tt.rebound && tick - (tt._rbT||0) < 2*TICK_HZ) return false;
+  if(!tt || tt.phase !== "setup" || !tt.execTick || tt.rebound && tick - (tt._rbT||0) < 2*TICK_HZ) return false;
   var secLeft = ROUND_TIME_SEC - (simTime - roundStartTime);
   return tick >= tt.execTick - 4*TICK_HZ && secLeft > 30 && !(tt.tac && (tt.tac.style === "rush" || tt.tac.style === "fake"));
 }
@@ -104,7 +104,15 @@ function lineupTick(){
     // (рвались рядом с врагом в 50 % против 88 % у про)
     if(go && L.pro && L.team === "T" && L.trigger === "setup" && L.type === "flash" && !nadeWorth("T", L.to)) go = false;
     // (v429) флешка CT на тайминг — только под пик: рядом с точкой свой собирается выглянуть (ранний пик); нет — остаётся на потом
-    if(go && L.pro && L.team === "CT" && L.trigger === "timed" && L.type === "flash" && !npPeekReady("CT", L.to, null)) go = false;
+    // (В142, v579) или под тех, кто открыт этой точке: свой (и сам бросающий) стоит или встанет (пост) на линии с точкой флешки — у про
+    // самая частая флешка CT (Chair, Mirage, 55 % раундов, 5,4 с) — под проход / удержание мида, а не под пик; облако v579 м7+м13:
+    // 32 из 72 не брошенных гранат плана CT — флешки «нет выглядывающего»
+    if(go && L.pro && L.team === "CT" && L.trigger === "timed" && L.type === "flash" && !npPeekReady("CT", L.to, null) &&
+       !bots.some(function(o){ return o.alive && o.team === "CT" && (hasLOS(o.x, o.y, L.to.x, L.to.y) || (o.post && hasLOS(o.post.x, o.post.y, L.to.x, L.to.y))); })) go = false;
+    // (В142, v580) граната CT на тайминг — пока T не могли дойти до её цели (REACH, 200), если с цели видно точку броска: потом идти на эту
+    // точку — выходить под прицел (прогон 240: в 18 раундах первым T заметили CT, шедшего на лайнап; у A на 10–12-й с с T Ramp — 8 убиты;
+    // у про этот молотов в T Ramp летит на 4,3-й с). Известных T потом задерживает ctDelayNade (350). Запас LU_REACH_MARGIN — на дорогу
+    if(go && L.pro && L.team === "CT" && L.trigger === "timed" && luOpenToFoe(L)) go = false;
     // (v429) граната на тайминг «на всякий случай» — не туда, где врага точно нет (все живые враги недавно замечены далеко)
     if(go && L.pro && L.type !== "flash" && ((L.team === "CT" && L.trigger === "timed") || (L.team === "T" && L.trigger === "setup")) && !npFoeMaybe(L.team, L.to)) go = false;
     // (v438) цель уже закрыта смоком (свой смок рядом — облака перекрылись бы, smokeCovered) — второй туда не летит, лайнап закрыт
@@ -118,15 +126,15 @@ function lineupTick(){
     // носитель бомбы; в горячих фазах (выход, колл, ретейк, пост-плант) — только
     // тот, кому до точки броска недалеко, иначе он бросит свою задачу и уйдёт назад
     var hot = L.trigger !== "insta" && L.trigger !== "setup";
-    var maxD = hot ? (BAL.nadeReach ? 650 : 480) : 1600;
+    var maxD = hot ? (650) : 1600;
     // (v355, владелец: «на выходе закрывают максимум один-два выхода, у про много смоков, флешек, молотов») гранаты выхода T
     // берёт тот, кому до точки броска до EXEC_REACH (проектное число) — группа на выходе стоит шире 650
     var execT = L.team === "T" && L.trigger === "exec";
-    if(execT && BAL.nadeReach) maxD = EXEC_REACH;
+    if(execT) maxD = EXEC_REACH;
     // (v150) про-лайнапы кидает тот, кто и так рядом: сетап — в пределах ~7 м,
     // "по времени" — ~4 м (не бросать позицию ради гранаты)
-    if(L.pro && L.trigger === "setup") maxD = BAL.nadeReach ? 1100 : 700;
-    if(L.pro && L.trigger === "timed"){ maxD = BAL.nadeReach ? 850 : 400; hot = true; }
+    if(L.pro && L.trigger === "setup") maxD = 1100;
+    if(L.pro && L.trigger === "timed"){ maxD = 850; hot = true; }
     // (v438, док владельца 27.10: TN1R из Ramp шёл к T Roof «538 по прямой» — 1500 по пути, через спавн) до точки броска — по пути
     // (док 6, п.1/15: kyousuke на B Short получил молотов в Underpass с Connector — путь 704, а с B Short — 239; T1 на T Ramp — смок Stairs
     // с T Roof через спавн, 732, а с T Ramp — 50; у про за 8 с до броска сетапа бросающий в 165 ед. от точки, дальше 500 — 6 %) у цели про
@@ -137,7 +145,7 @@ function lineupTick(){
     var cost = function(b){ var F = spotOf(b).from; return pathLenTo(b, F.x, F.y) + (b.tRole === "entry" ? 300 : 0) + nadeRoleCost(b); };
     // (v428, PRINCIPLES М160; заменяет «опорник — не дальше 300 от поста» v285 и «лайнап сетапа по пути, крюк 300» v424) кидает хозяин
     // гранаты по плану команды (365): граната этого типа отложена на этот момент или раньше и — до контакта / на сетапе / на выходе —
-    // для зоны лайнапа (CT — где стоит бросающий, T — куда падает граната; как в tools/nadeplan_bake.py). Колл, ретейк, после
+    // для зоны лайнапа (CT — где стоит бросающий, T — куда падает граната; как в tools/map/nadeplan_bake.py). Колл, ретейк, после
     // планта — помощь: зона не важна, кидает ближайший, у кого есть
     var luM = npMomentOfLineup(L);
     // зона лайнапа — до контакта / на сетапе / на выходе (CT — откуда бросок, T — куда падает); колл, ретейк, после планта — помощь, зона
@@ -199,6 +207,21 @@ function lineupTick(){
         return;
       }
     }
+    // (В142, v579) CT: хозяин цели по плану занят своим лайнапом (идёт кидать другую гранату) — эта встаёт ему в очередь, если её точка броска
+    // рядом с точкой текущей (≤ EXEC_QUEUE_R): кинет следом, как про CT кидают молотов + флешку с одной точки. Раньше одно задание на бойца —
+    // вторая и третья граната плана сгорали (облако, v579 м7: 41 из 80 запланированных гранат CT с лайнапом не брошены; у хозяина 2–3 цели подряд)
+    if(!cand && L.pro && L.grp && L.team === "CT" && L.trigger === "timed"){
+      var ow = bots.filter(function(b){ var t = b.nadeTask; if(!npOwner(b, L) || !okBot(b) || !t || !t.lineup || !t.from || (b.nadeQueue||[]).length >= EXEC_QUEUE_N) return false;
+        var need = (t.type === L.type ? 1 : 0) + (b.nadeQueue||[]).filter(function(q){ return q.type === L.type; }).length + 1, F = spotOf(b).from;
+        return b.nades[L.type] >= need && Math.hypot(t.from.x-F.x, t.from.y-F.y) < EXEC_QUEUE_R; })[0];
+      if(ow){
+        var OS = spotOf(ow);
+        nadeFlags[key] = true; nadeFlags["luok"+L.id] = true; proGroupDone(L);
+        (ow.nadeQueue = ow.nadeQueue || []).push({type:L.type, x:OS.to.x, y:OS.to.y, from:{x:OS.from.x, y:OS.from.y}, why:"лайнап «"+(OS.name||LU_TYPE[L.type])+"»", lineup:true, npm:luM, luL:L, luId:OS.id});
+        logEvent(ow.id+": следом кинет «"+(OS.name||LU_TYPE[L.type])+"»");
+        return;
+      }
+    }
     // раньше флаг "готово" ставился ДО проверки кандидата — если в момент
     // срабатывания триггера рядом с точкой броска никого не было, лайнап
     // считался выполненным навсегда и боец, который должен был его кинуть,
@@ -219,7 +242,7 @@ function lineupTick(){
     // (v340, отметка владельца: sh1ro шёл на смок Connector, задание сгорело у уступа — развернулся, «отталкивает») срок — не
     // меньше дороги до точки броска по пути + LU_REACH_PAD с (проектное число); раньше только 7 / 12 / 20 с
     var LS = spotOf(cand);
-    var luBase = hot ? ((BAL.nadeReach && L.trigger === "timed") ? 12 : 7) : 20, luP = buildWaypointPath(cand.baseX, cand.baseY, cand.z, LS.from.x, LS.from.y, 0), luLen = 0, luX = cand.baseX, luY = cand.baseY;
+    var luBase = hot ? ((L.trigger === "timed") ? 12 : 7) : 20, luP = buildWaypointPath(cand.baseX, cand.baseY, cand.z, LS.from.x, LS.from.y, 0), luLen = 0, luX = cand.baseX, luY = cand.baseY;
     luP.forEach(function(q){ luLen += Math.hypot(q[0]-luX, q[1]-luY); luX = q[0]; luY = q[1]; });
     var luSec = Math.max(luBase, Math.ceil(luLen/(SPEED*weaponSpeedMul(cand)) + LU_REACH_PAD));
     cand.nadeTask = {type:L.type, x:LS.to.x, y:LS.to.y, from:{x:LS.from.x, y:LS.from.y}, until: tick + luSec*TICK_HZ, why:"лайнап «"+(LS.name||LU_TYPE[L.type])+"»",
@@ -230,6 +253,13 @@ function lineupTick(){
   });
 }
 var LU_REACH_PAD = 3;
+var LU_REACH_MARGIN = 2;   // с — проектное число: столько CT идёт до точки броска рядом
+function luOpenToFoe(L){
+  var R = REACH.CT, zi = bzOf(L.to.x, L.to.y); if(!R || zi < 0) return false;
+  if(R[zi] > tick + LU_REACH_MARGIN*TICK_HZ) return false;
+  if(L._los === undefined) L._los = hasLOS(L.from.x, L.from.y, L.to.x, L.to.y) ? 1 : 0;
+  return !!L._los;
+}
 // (док 6) точка броска цели L для бойца b: среди лайнапов той же цели (группа про, 320) своей стороны и сайта — ближайшая по пути из тех,
 // откуда ему можно: хозяину цели по плану гранат — любая; остальным — в зоне его гранаты (npCanUse) или (CT) в зоне, где он сейчас стоит.
 // Зона точки — как у плана: CT — откуда бросок, T — куда падает; колл, ретейк, после планта — зона не важна. Нет такой — null
@@ -238,6 +268,10 @@ var LU_REACH_PAD = 3;
 // купил гранаты») точка броска не по пути: бот идёт к своей точке (пост не достигнут), а дорога через точку броска — в основном крюк
 // — эту гранату ему не дают
 var LU_DETOUR_K = 0.5;   // проектное число: доля дороги до точки броска, которая может быть крюком
+// (В142, v579) крюк до LU_DETOUR_MIN ед. (≈ 1 с бега; проектное число) — всегда по пути. Раньше мерка была только долей дороги до точки:
+// у близкой точки любая разница путей больше половины — облако, v578 м7: точка в 66 ед. от хозяина отброшена (крюк 123), так 32 %
+// запланированных гранат CT с лайнапом остались без точки броска
+var LU_DETOUR_MIN = 250;
 function luBehind(b, F){
   var P = b.post; if(!P || b.atPost || P.tag === "lineup") return false;
   // обе длины — одной меркой: путь команды (цена за известных врагов), от бота — с его этажа (pathPts берёт z 0: у Doors уходил на другой пол)
@@ -246,7 +280,7 @@ function luBehind(b, F){
   // «не по пути»: крюк (до точки броска + от неё до своей точки − прямо) больше половины дороги до точки броска (½ — проектное число).
   // На снимке п.6: до Window 662, от Window до Short 861, от бота до Short 868 — крюк 655 из 662
   var mF = pathLenTo(b, F.x, F.y);
-  return mF + L - pathLenTo(b, P.x, P.y) > LU_DETOUR_K*mF;
+  return mF + L - pathLenTo(b, P.x, P.y) > Math.max(LU_DETOUR_MIN, LU_DETOUR_K*mF);
 }
 function luSpotFor(b, L, luM){
   var tt = teamTac.T, best = null, bl = Infinity, own = npOwner(b, L), myZ = L.team === "CT" ? npZoneAt(b.x, b.y) : null;
@@ -259,3 +293,25 @@ function luSpotFor(b, L, luM){
   return best;
 }
 var CLR_REB_SEC = 12, EXEC_REACH = 1000, EXEC_QUEUE_R = 600, EXEC_QUEUE_N = 3, EXEC_WAIT_SEC = 20;   // (v355) проектные числа
+// (17.11, перестройка) перенесено из 560 (редактор) — ими пользуются лайнапы CT (320)
+// встроенные гранаты — то, что боты кидают сами (цели считаются так же, как в
+// nadeBrains/комбо); "откуда" — примерная точка, где обычно стоит бросающий
+function builtinLineups(){
+  if(!GEO.A || !GEO.B) return [];
+  var out = [], mid = function(a, b2, f){ f = f == null ? 0.5 : f; return {x:a.x+(b2.x-a.x)*f, y:a.y+(b2.y-a.y)*f}; };
+  ["A","B"].forEach(function(k){
+    var g = GEO[k], st = SITES[k];
+    out.push({key:"T.exec.ctEntry."+k, team:"T", type:"smoke", trigger:"exec", site:k, name:"вход CT", from:g.tStage, to:g.ctEntry});
+    out.push({key:"T.exec.cross."+k, team:"T", type:"smoke", trigger:"exec", site:k, name:"кросс", from:g.tStage, to:mid(g.anchor, g.ctEntry)});
+    out.push({key:"T.exec.flash."+k, team:"T", type:"flash", trigger:"exec", site:k, name:"под пик энтри", from:g.tStage, to:mid(g.tEntry, st, 0.35)});
+    out.push({key:"T.exec.molly."+k, team:"T", type:"molly", trigger:"exec", site:k, name:"выжечь опорника / любимый угол", from:g.tStage, to:g.anchor});
+    out.push({key:"T.fake.smoke."+k, team:"T", type:"smoke", trigger:"setup", site:k, name:"фейк-смок (фейк на "+k+")", from:g.tStage, to:g.ctEntry});
+    out.push({key:"T.fake.flash."+k, team:"T", type:"flash", trigger:"setup", site:k, name:"фейк-флешка (фейк на "+k+")", from:g.tStage, to:mid(g.tEntry, st, 0.4)});
+    out.push({key:"T.pp.molly."+k, team:"T", type:"molly", trigger:"postplant", site:k, name:"на дефуз", from:g.tEntry, to:st.plant || st});
+    out.push({key:"CT.call.smoke."+k, team:"CT", type:"smoke", trigger:"call", site:k, name:"перекрыть вход", from:g.anchor, to:g.tEntry});
+    out.push({key:"CT.take.he."+k, team:"CT", type:"he", trigger:"exec", site:k, name:"в смок — не дать занять сайт", from:g.anchor, to:mid(g.tEntry, st, 0.35)});
+    out.push({key:"CT.retake.flash."+k, team:"CT", type:"flash", trigger:"retake", site:k, name:"ретейк", from:g.ctEntry, to:st.plant || st});
+    out.push({key:"CT.retake.smoke."+k, team:"CT", type:"smoke", trigger:"retake", site:k, name:"отрезать вход T", from:g.ctEntry, to:g.tEntry});
+  });
+  return out;
+}

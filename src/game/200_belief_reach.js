@@ -15,7 +15,7 @@
 // куда смотреть, стоя на посту, и не открыта ли точка под два опасных угла.
 var BZ = {ids:[], idx:{}, nbr:[], cent:[], grid:{}, siteZ:{A:[],B:[]}, midZ:[]};
 function beliefBuild(){
-  _zbnCache = {};   // (v334) кэш «зоны по названию» мог заполниться пустыми ответами до графа зон — на Mirage расстановки CT не находили ни одной зоны
+  zoneNameCacheReset();   // (v334) кэш «зоны по названию» мог заполниться пустыми ответами до графа зон — на Mirage расстановки CT не находили ни одной зоны
   BZ.ids = ZONEMAP.zones.map(function(z){ return z.id; });
   BZ.idx = {}; BZ.ids.forEach(function(id,i){ BZ.idx[id] = i; });
   BZ.nbr = BZ.ids.map(function(){ return []; });
@@ -137,28 +137,26 @@ function reachStep(team, clearList){
 // один фронт: зоны, куда свои смотрят и там пусто, закрываются; закрытые пересчитываются от открытых
 function reachStepOne(R, clearList){
   clearList.forEach(function(cz){ if(cz[1] >= 0.5) R[cz[0]] = Math.max(R[cz[0]], tick + BELIEF_STEP + 1); });
-  if(BAL.reachBlock){
-    // (фото) раньше "куда враг мог успеть" считалось один раз от спавна по
-    // свободной карте — и зоны за живым мидером считались достижимыми, хотя
-    // пройти туда можно только через него. Теперь каждый шаг: закрытые зоны
-    // пересчитываются от открытых, а зона, которую держит/видит свой, — стена:
-    // через неё путь не идёт, пока её не "откроет" контакт или уход своего
-    var n = R.length, fixed = new Uint8Array(n), D = new Float64Array(n);
-    clearList.forEach(function(cz){ if(cz[1] >= 0.5) fixed[cz[0]] = 1; });
-    for(var i0=0;i0<n;i0++) D[i0] = (R[i0] <= tick || fixed[i0]) ? R[i0] : Infinity;
-    var done = new Uint8Array(n);
-    for(var it0=0; it0<n; it0++){
-      var u = -1, bd = Infinity;
-      for(var i1=0;i1<n;i1++) if(!done[i1] && D[i1] < bd){ bd = D[i1]; u = i1; }
-      if(u < 0) break; done[u] = 1;
-      if(fixed[u] && R[u] > tick) continue; // держат свои — дальше через неё не пройти
-      var nbu = BZ.nbr[u], cu = BZ.cent[u]; if(!cu) continue;
-      for(var k0=0;k0<nbu.length;k0++){ var v = nbu[k0], cv = BZ.cent[v]; if(!cv || done[v] || fixed[v] || R[v] <= tick) continue;
-        var tv = D[u] + Math.hypot(cu.x-cv.x, cu.y-cv.y)/SPEED*TICK_HZ; if(tv < D[v]) D[v] = tv; }
-    }
-    for(var i2=0;i2<n;i2++) if(R[i2] > tick && !fixed[i2]) R[i2] = D[i2];
-    return;
+  // (фото) раньше "куда враг мог успеть" считалось один раз от спавна по
+  // свободной карте — и зоны за живым мидером считались достижимыми, хотя
+  // пройти туда можно только через него. Теперь каждый шаг: закрытые зоны
+  // пересчитываются от открытых, а зона, которую держит/видит свой, — стена:
+  // через неё путь не идёт, пока её не "откроет" контакт или уход своего
+  var n = R.length, fixed = new Uint8Array(n), D = new Float64Array(n);
+  clearList.forEach(function(cz){ if(cz[1] >= 0.5) fixed[cz[0]] = 1; });
+  for(var i0=0;i0<n;i0++) D[i0] = (R[i0] <= tick || fixed[i0]) ? R[i0] : Infinity;
+  var done = new Uint8Array(n);
+  for(var it0=0; it0<n; it0++){
+    var u = -1, bd = Infinity;
+    for(var i1=0;i1<n;i1++) if(!done[i1] && D[i1] < bd){ bd = D[i1]; u = i1; }
+    if(u < 0) break; done[u] = 1;
+    if(fixed[u] && R[u] > tick) continue; // держат свои — дальше через неё не пройти
+    var nbu = BZ.nbr[u], cu = BZ.cent[u]; if(!cu) continue;
+    for(var k0=0;k0<nbu.length;k0++){ var v = nbu[k0], cv = BZ.cent[v]; if(!cv || done[v] || fixed[v] || R[v] <= tick) continue;
+      var tv = D[u] + Math.hypot(cu.x-cv.x, cu.y-cv.y)/SPEED*TICK_HZ; if(tv < D[v]) D[v] = tv; }
   }
+  for(var i2=0;i2<n;i2++) if(R[i2] > tick && !fixed[i2]) R[i2] = D[i2];
+  return;
   for(var it=0; it<3; it++){
     for(var i=0;i<R.length;i++){
       var nb = BZ.nbr[i], ci = BZ.cent[i]; if(!ci) continue;

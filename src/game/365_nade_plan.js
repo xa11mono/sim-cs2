@@ -3,8 +3,8 @@
 // Владелец 25.10: «каждый покупает гранаты своей зоны и кидает их в своей зоне (ретейк, выбивание, помощь — исключение); часть
 // оставляет на ретейк; у команды общая картина гранат». Данные (Mirage, 33 тыс. бросков про): с сайта на сайт про почти не кидают
 // (CT до контакта 1 %, T 0 %); у CT до контакта 9,5 гранаты за раунд, по коллу 0,65, на ретейке 0,34 — у ботов было 5,5 / 2,2 / 0,05.
-//   сколько каких гранат на раунд — MAP.pro.nadesBy (tools/nades_pro.py: брошено за раунд на команду по типу раунда);
-//   на какой момент и в какую зону — MAP.nadeplan (tools/nadeplan_bake.py: доли бросков про «момент|зона» для каждого типа).
+//   сколько каких гранат на раунд — MAP.pro.nadesBy (tools/pro/nades_pro.py: брошено за раунд на команду по типу раунда);
+//   на какой момент и в какую зону — MAP.nadeplan (tools/map/nadeplan_bake.py: доли бросков про «момент|зона» для каждого типа).
 //   момент: CT — now (до контакта) → call (увидели T) → retake;  T — now (сетап) → exec (выход) → postplant.
 //   зона: A / B / mid — сторона карты (posSideOf, 280): у CT — сторона его места в расстановке, у T — сайт его группы в тактике.
 // План строится в закупе — после выбора тактики и расстановки (buyPhase, 530): команда знает план раунда и покупает под него.
@@ -131,7 +131,7 @@ function teamNadePlan(team, rt){
 }
 // (v429) лайнап этой группы запланирован командой на раунд — у кого-то из живых граната с этой целью
 // (v511) есть ли у карты лайнап про T со смоком выхода на сайт (тогда смоки выхода — только из лайнапов, 420)
-function npHasExecSmoke(site){ return !!BAL.proLineups && proLineups().some(function(L){ return L.team === "T" && L.trigger === "exec" && L.type === "smoke" && (L.site === site || L.site === "any"); }); }
+function npHasExecSmoke(site){ return proLineups().some(function(L){ return L.team === "T" && L.trigger === "exec" && L.type === "smoke" && (L.site === site || L.site === "any"); }); }
 function npPlanned(L){ return bots.some(function(o){ return o.alive && o.team === L.team && (o._nplan || []).some(function(it){ return it.lu === L.grp; }); }); }
 function npOwner(b, L){ return (b._nplan || []).some(function(it){ return it.lu === L.grp; }); }
 // (v429) может ли враг быть у точки — по тому, что команда знает: все живые враги недавно (≤ 4 с) замечены далеко (> 900) — нет.
@@ -170,7 +170,18 @@ function npCanUse(b, t, m, z){
   var O = NP_ORDER[b.team];
   // (Г3, 04.11, разбор отметок п.9: T3 бросил запланированный смок Connector «себе» в бою — цель осталась без хозяина, её отдали лёркеру
   // за 1300 ед.) граната, закреплённая за целью лайнапа (lu), до конца своего момента — только для этой цели (её кидает лайнап, 390)
-  return L.some(function(it){ return O[it.m] <= O[m] && (!z || !it.z || it.z === z) && !(it.lu && O[it.m] === O[m]); });
+  return L.some(function(it){ return O[it.m] <= O[m] && (!z || !it.z || it.z === z) && !(it.lu && O[it.m] === O[m] && npLuOpen(it.lu)); });
+}
+// (В142, v580) закреплённая за целью лайнапа граната держится за ней, пока окно этой цели открыто: CT по времени — до at + 12 с (390:
+// окно броска), T «сейчас» (инста / сетап) — пока идёт сетап. Окно прошло, лайнап не полетел — граната свободна (задержать, своя).
+// Было: закреплена до конца момента «сейчас» — у CT весь раунд до колла; облако v579a2 м7 + м13: 60 из 154 гранат с лайнапом не брошены,
+// прогон 240: CT погибают с 5,2 гранатами за раунд
+function npLuOpen(grp){
+  var G = PRO_GROUPS[grp]; if(!G || !G.length) return true;
+  var L0 = G[0], since = tick - roundStartTick;
+  if(L0.team === "CT" && L0.trigger === "timed") return G.some(function(L){ return since < ((L.at || 0) + 12)*TICK_HZ; });
+  if(L0.team === "T" && (L0.trigger === "insta" || L0.trigger === "setup")) return !teamTac.T || teamTac.T.phase === "setup";
+  return true;
 }
 // почему нельзя — для лога: на какой момент она отложена
 function npWhyNot(b, t){ var it = (b._nplan || []).filter(function(q){ return q.t === t; })[0]; return it ? "бережёт на «"+(NP_LABEL[it.m] || it.m)+"»" : ""; }
@@ -197,16 +208,18 @@ var FLASH_ASK_WAIT = 3.5, FLASH_ASK_R = 700;   // с, ед. — те же про
 // (владелец 05.11: «за шесть раундов хотя бы в трёх-четырёх, не при каждом случае») — одна просьба на команду за раунд: проектное число из
 // слов владельца (замер облака до предела: м7 — 10 просьб в 6 раундах из 10, м11 — 18 в 8 из 8; из 28 хлопнули 9)
 var FLASH_ASK_PER_ROUND = 1, FLASH_ASK_N = {};
-function nadeAskFlash(b, pt, why){
-  var nk = matchNum+":"+roundNum+":"+b.team; if((FLASH_ASK_N[nk]||0) >= FLASH_ASK_PER_ROUND) return null;
-  var foe = b.team === "CT" ? "T" : "CT", BL = beliefLast[b.team] || {}, fuse = NADE.flash.fuse/TICK_HZ, lim = nadeAimLimit("flash", false);
+function nadeAskFlash(b, pt, why, type){
+  // (v554) type — «he»: HE в смок (smokeHeTick, 290) просит того, у кого она есть; лимит на раунд — свой у каждого типа
+  type = type || "flash"; var fl = type === "flash";
+  var nk = matchNum+":"+roundNum+":"+b.team+(fl ? "" : ":"+type); if((FLASH_ASK_N[nk]||0) >= FLASH_ASK_PER_ROUND) return null;
+  var foe = b.team === "CT" ? "T" : "CT", BL = beliefLast[b.team] || {}, fuse = (NADE[type].fuse || NADE.flash.fuse)/TICK_HZ, lim = nadeAimLimit(type, false);
   var seenBy = function(F){ return bots.some(function(e){ if(e.team !== foe || !e.alive) return false; var q = BL[e.id];
     return q && tick - q.tick <= SITE_SEEN_SEC*TICK_HZ && hasLOS(q.x, q.y, F.x, F.y); }); };
-  var LU = proLineups().filter(function(L){ return L.team === b.team && L.type === "flash" && Math.hypot(L.to.x-pt.x, L.to.y-pt.y) <= lim; });
+  var LU = proLineups().filter(function(L){ return L.team === b.team && L.type === type && Math.hypot(L.to.x-pt.x, L.to.y-pt.y) <= lim; });
   var C = [];
   bots.forEach(function(o){
-    if(o === b || !o.alive || o.team !== b.team || !o.nades || o.nades.flash <= 0 || o.nadeTask || o._sawEnemy || o.state !== "patrol" || o.planting || o.defusing) return;
-    if(!taskCanSet(o, "lineup") || !npCanUse(o, "flash", npMomentNow(o), null)) return;
+    if(o === b || !o.alive || o.team !== b.team || !o.nades || !(o.nades[type] > 0) || o.nadeTask || o._sawEnemy || o.state !== "patrol" || o.planting || o.defusing) return;
+    if(!taskCanSet(o, "lineup") || !npCanUse(o, type, npMomentNow(o), null)) return;
     // (владелец 05.11: «если стрелялся, прикрывал, держал важный угол или знал, что там вот-вот будет враг — понятно; а если может уйти и точно
     // ничего не произойдет — почему бы не кинуть») бой и задачи важнее гранаты (прикрыть, подпушить, ретейк…) отсекает taskCanSet; держит угол,
     // на который вот-вот выйдут: враг, которого команда видела / слышала за SITE_SEEN_SEC, видит его или его пост — не отвлекается
@@ -219,12 +232,13 @@ function nadeAskFlash(b, pt, why){
   // с места — бросает сразу (не долетает отсюда — просьба следующему); с лайнапа — идёт на точку броска (срок — FLASH_ASK_WAIT)
   var got = null;
   for(var i = 0; i < C.length && !got; i++){ var c = C[i], o = c.o;
-    if(c.L){ o.nadeTask = {type:"flash", x:c.L.to.x, y:c.L.to.y, from:{x:c.L.from.x, y:c.L.from.y}, until: tick + FLASH_ASK_WAIT*TICK_HZ, why:why, start:tick, lob:true, range:4000, now:true, lineup:true, npm:npMomentNow(o)}; got = c; }
-    else if(throwNade(o, "flash", pt.x, pt.y, true, why)) got = c;
+    if(c.L){ o.nadeTask = {type:type, x:c.L.to.x, y:c.L.to.y, from:{x:c.L.from.x, y:c.L.from.y}, until: tick + FLASH_ASK_WAIT*TICK_HZ, why:why, start:tick, lob:true, range:4000, now:true, lineup:true, npm:npMomentNow(o)}; got = c; }
+    else if(throwNade(o, type, pt.x, pt.y, true, why)) got = c;
   }
   if(!got) return null;
   FLASH_ASK_N[nk] = (FLASH_ASK_N[nk]||0) + 1;
-  b._waitPopUntil = tick + Math.round(FLASH_ASK_WAIT*TICK_HZ); b._waitPopKey = "pop:"+why;
+  if(!fl){ voiceLog(b.team, "ask"+type+b.id+roundNum, b.id, "дайте HE "+calloutName(pt.x, pt.y).replace(/^на /, "")+" — "+got.o.id); return got.o; }
+  moveWaitPop(b, tick + Math.round(FLASH_ASK_WAIT*TICK_HZ), "pop:"+why, "flash-ask");
   voiceLog(b.team, "askfl"+b.id+roundNum, b.id, "накиньте флешку "+calloutName(pt.x, pt.y).replace(/^на /, "")+" — "+got.o.id+(got.L ? " с лайнапа" : "")+", выхожу на хлопок");
   return got.o;
 }

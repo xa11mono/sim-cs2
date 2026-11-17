@@ -11,12 +11,19 @@
 // маршруты лёркера по названиям зон: на B — через воду к рампе или через
 // мид/лампу к кейву; на A — через лестницу к мейну или через мид к донату
 var LURK_PLANS = MAP.tactics.lurkPlans;
+var LURK_ROUND_P = 0.6;   // проектное число (В142): доля раундов с лёрком — подбор под меру лёрка про 38 % (боты с лёрком каждый раунд — 55 %); сверка прогоном
+var LURK_DEATH_R = 200;   // px: смерть T «на пути лёрка» — ближе этого к точке пути (проектное число)
 var LURK_JOIN_SEC = 10, LURK_CHECK = 0.6, TAKE_ADV = 2.5, TAKE_STEP = 120, TAKE_REACH = 500, KILL_MOVE = [50, 140];
 function lurkGoNow(tt){ return tt.phase === "setup" && tt.execTick && tick >= tt.execTick - LURK_JOIN_SEC*TICK_HZ; }
 function lurkerBrain(b, tt, other){
   var go = GEO[other];
   if(!b._lurkPlan || b._lurkPlan.round !== roundNum || b._lurkPlan.site !== other){
-    var opts = LURK_PLANS[other], pi = hashRand(roundNum*733 + matchNum*19) < 0.5 ? 0 : 1, P = opts[pi];
+    // (v561, этап 2 docs/tasks/PLAN_TACTICS_V2.md: одиночка T гибнет в первые 30 с в 2–3 раза чаще про; PRO_PLAY §6з: «лёркер не бежит туда,
+    // где его ждут: факт прошлых раундов → предположение») путь лёрка — тот, на котором в этом матче T погибали реже (память смертей T, по точкам
+    // пути); поровну — жребий, как было
+    var opts = LURK_PLANS[other], dng = opts.map(function(P){ return (P.via || []).concat([P.stage, P.entry]).filter(Boolean).reduce(function(a, n){
+      var zp = zonePoint(n, go.tStage); return a + (zp ? tDeathsNear(zp.x, zp.y, LURK_DEATH_R) : 0); }, 0); });
+    var pi = dng.length > 1 && dng[0] !== dng[1] ? (dng[0] < dng[1] ? 0 : 1) : (hashRand(roundNum*733 + matchNum*19) < 0.5 ? 0 : 1), P = opts[pi];
     var st = P.stage ? zonePoint(P.stage, go.tStage) : null, en = P.entry ? zonePoint(P.entry, st || go.tStage) : null;
     b._lurkPlan = {round:roundNum, site:other, via:P.via, stage: st || go.tStage, entry: en || go.tEntry, name: P.stage || "стандарт"};
     startRoute(b, P.via, "lurk"+other+pi);
@@ -78,7 +85,7 @@ function lurkerBrain(b, tt, other){
       b._route = null; b._routeDone = null;   // маршрут лёрка сетапа — закончен
       // (ответ владельца 05.11) прошёл свою сторону сам до выхода — поздний выход оттуда: с прохода ротации в спину сайту выхода
       b._lurkGo = {round:roundNum, site:tt.site, route: soloOn ? [GEO.rotator, gs.ctEntry] : nearOther ? [LP.entry, go.anchor, GEO.rotator, gs.ctEntry] : [gs.tStage || gs.tEntry, gs.tEntry], i:0, t:0};
-      voiceLog("T", "lurkgo"+roundNum, b.id, soloOn ? "выхожу с прохода — со спины на "+tt.site : nearOther ? "захожу с "+other+" — режу ротацию, буду со спины на "+tt.site : "иду к вам на "+tt.site);
+      voiceLog("T", "lurkgo"+roundNum, b.id, soloOn ? "иду в спину на "+tt.site : nearOther ? "режу ротацию с "+other : "иду к вам на "+tt.site);
     }
     var LG = b._lurkGo, i = Math.min(LG.i, LG.route.length-1);
     var look = i < LG.route.length-1 ? LG.route[i+1] : site;
@@ -118,7 +125,6 @@ function tDeathsNear(x, y, r, id){ if(TDEATHS.m !== matchNum) return 0;
   return TDEATHS.list.filter(function(d){ return d.round < roundNum && Math.hypot(d.x-x, d.y-y) < r && (!id || d.id === id); }).length; }
 function tDeathSpots(){ return TDEATHS.m === matchNum ? TDEATHS.list.filter(function(d){ return d.round < roundNum; }) : []; }
 function tProbes(tt, ts){
-  if(!BAL.tProbe) return;
   if(tick - roundStartTick < 10*TICK_HZ) return;
   if(tick > tt.execTick - 3*TICK_HZ) return;          // перед выходом — все на местах
   var groups = {};
@@ -145,7 +151,7 @@ function tProbes(tt, ts){
     // кто пробует — не всегда один и тот же (иначе CT читают "4-й всегда первый
     // на мид"): роль + случайная добавка на раунд; кто уже умирал на этой пробе
     // в этом матче — реже
-    var ordK = function(o){ return (PRI[o.tRole]||9) + (BAL.tAdapt ? 1.3*hashRand(roundNum*97 + matchNum*13 + o.id.charCodeAt(1)*7) : 0) + (BAL.tAdapt ? 1.5*tDeathsNear(o.x, o.y, 700, o.id) : 0); };
+    var ordK = function(o){ return (PRI[o.tRole]||9) + (1.3*hashRand(roundNum*97 + matchNum*13 + o.id.charCodeAt(1)*7)) + (1.5*tDeathsNear(o.x, o.y, 700, o.id)); };
     gr.sort(function(a,b2){ return ordK(a) - ordK(b2); });
     var pb = gr[0];
     var from, to, look, SI = pb._stageInfo;
@@ -160,7 +166,7 @@ function tProbes(tt, ts){
       // на этом выходе только что убили своего — не пикать туда же ещё раз
       if(tick >= P.until && teamIntel.T.sig.some(function(sg){ return sg.type === "died" && tick - sg.tick < 10*TICK_HZ && Math.hypot(sg.x-to.x, sg.y-to.y) < 400; })){ P.until = tick + 6*TICK_HZ; return; }
       // адаптация: здесь в этом матче уже умирали ≥2 раз — на сухую не пикаем
-      if(tick >= P.until && BAL.tAdapt && tDeathsNear(to.x, to.y, 450) >= 2){
+      if(tick >= P.until && tDeathsNear(to.x, to.y, 450) >= 2){
         var hasU = ts.some(function(o){ return Math.hypot(o.x-pb.x, o.y-pb.y) < 500 && o.nades && (o.nades.flash > 0 || o.nades.smoke > 0); });
         if(!hasU){ P.until = tick + 30*TICK_HZ; if(!tt["_ad"+key]){ tt["_ad"+key] = true; logEvent("T: на «"+(zoneUserName(zoneIdAt(to.x, to.y)) || key)+"» уже умирали "+tDeathsNear(to.x, to.y, 450)+" раза — без гранат туда не пикаем"); } return; }
         P.needUtil = true;
@@ -168,16 +174,14 @@ function tProbes(tt, ts){
       if(tick >= P.until){ P.ph = 1; P.n++; P.since = tick;
         // напарник: второй встаёт в 1–2с позади и держит тот же угол — если
         // пробу снимут, он первый на размен
-        if(BAL.pairs){
-          // (v423, Mirage м1 р2: AWP и саппорт со стадии A уходили напарником пробы B) напарник — из той же группы (стадии), не любой ближайший
-          var bud = gr.filter(function(o){ return o !== pb && o.alive && o.tRole !== "lurker" && !(bomb.state === "carried" && bomb.carrier === o) &&
-            !(o._probeLock && o._probeLock >= tick-1) && Math.hypot(o.x-pb.x, o.y-pb.y) < 500; })
-            .sort(function(a, c){ return Math.hypot(a.x-pb.x, a.y-pb.y) - Math.hypot(c.x-pb.x, c.y-pb.y); })[0];
-          P.buddy = bud ? bud.id : null;
-        }
+        // (v423, Mirage м1 р2: AWP и саппорт со стадии A уходили напарником пробы B) напарник — из той же группы (стадии), не любой ближайший
+        var bud = gr.filter(function(o){ return o !== pb && o.alive && o.tRole !== "lurker" && !(bomb.state === "carried" && bomb.carrier === o) &&
+          !(o._probeLock && o._probeLock >= tick-1) && Math.hypot(o.x-pb.x, o.y-pb.y) < 500; })
+          .sort(function(a, c){ return Math.hypot(a.x-pb.x, a.y-pb.y) - Math.hypot(c.x-pb.x, c.y-pb.y); })[0];
+        P.buddy = bud ? bud.id : null;
         // гранаты под пробу: флешка от напарника/тиммейта (на мид — смок на линию
         // CT, если флешки нет); раньше — только на глубокую пробу, чаще на сухую
-        if(BAL.probeUtil && !antiEco("T")){
+        if(roundGoal("T") !== "keepGuns"){
           var uFp = {x: to.x + (look.x-to.x)*0.3, y: to.y + (look.y-to.y)*0.3};
           var uFl = ts.filter(function(o){ return o !== pb && !o.nadeTask && o.nades && o.nades.flash > 0 && Math.hypot(o.x-pb.x, o.y-pb.y) < 500; })[0];
           var uSm = ts.filter(function(o){ return !o.nadeTask && o.nades && o.nades.smoke > 0 && Math.hypot(o.x-pb.x, o.y-pb.y) < 600; })[0];
@@ -201,7 +205,7 @@ function tProbes(tt, ts){
           voiceLog("T", "probe"+key+pb.id, pb.id, "подпушу "+(key === "M" ? "мид" : (zoneUserName(zoneIdAt(to.x, to.y)) || key.charAt(0)))+", посмотрю, сколько их там");
           // флешка под подпуш от ближайшего тиммейта (не вся раскидка — одна)
           var fl = ts.filter(function(o){ return o !== pb && !o.nadeTask && o.nades && o.nades.flash > 0 && Math.hypot(o.x-pb.x, o.y-pb.y) < 500; })[0];
-          if(fl && BAL.tUtil && !antiEco("T")){ var fp = {x: to.x + (look.x-to.x)*0.3, y: to.y + (look.y-to.y)*0.3}; assignNade(fl, "flash", fp, "под подпуш", {now:true}); }
+          if(fl && roundGoal("T") !== "keepGuns"){ var fp = {x: to.x + (look.x-to.x)*0.3, y: to.y + (look.y-to.y)*0.3}; assignNade(fl, "flash", fp, "под подпуш", {now:true}); }
         }
       }
       return;
@@ -213,13 +217,13 @@ function tProbes(tt, ts){
     if(pb.post && /^probe/.test(pb.post.tag)) pb._shift = null;
     pb._probeLock = tick;
     // напарник — ~150px позади пробы по той же линии, смотрит туда же
-    if(BAL.pairs && P.buddy){
+    if(P.buddy){
       var bu = ts.filter(function(o){ return o.id === P.buddy; })[0];
       // (аудит 11.10) напарник сам вышел пробой своей группы — он занят: раньше обе пробы ставили ему пост каждый тик
       // (probeB ↔ probePairA, сотни смен поста подряд — стоял на месте)
       if(bu && bu._probe && bu._probe !== P && bu._probe.round === roundNum && bu._probe.ph === 1){ P.buddy = null; bu = null; }
       if(bu && bomb.state === "dropped" && (tt.fetchId === bu.id || (tt.fetchCover && tt.fetchCover.id === bu.id))){ P.buddy = null; bu = null; } // (v286) занят бомбой
-      if(bu && !bu._sawEnemy && !(bu._tradeLock && bu._tradeLock.until > tick)){
+      if(bu && !bu._sawEnemy && !tradeGoing(bu)){
         var ln = Math.hypot(P.pt.x-from.x, P.pt.y-from.y) || 1, back = Math.min(150, ln*0.6);
         var bp = walk({x: P.pt.x + (from.x-P.pt.x)/ln*back, y: P.pt.y + (from.y-P.pt.y)/ln*back});
         setPost(bu, bp, look, true, "probePair"+key); bu._probeLock = tick;
@@ -237,7 +241,7 @@ function tProbes(tt, ts){
         // там пусто — двое из этой группы идут брать контроль в другом месте,
         // пока до выхода есть время (потом зайдут на сайт уже оттуда)
         var tt2 = teamTac.T, SH = SHIFT_TO[key.charAt(0)];
-        if(BAL.shiftOnClear && SH && tt2 && tt2.phase === "setup" && tt2.execTick - tick > 10*TICK_HZ && !tt2["_sh"+key]){
+        if(SH && tt2 && tt2.phase === "setup" && tt2.execTick - tick > 10*TICK_HZ && !tt2["_sh"+key]){
           tt2["_sh"+key] = true;
           var movers = ts.filter(function(o){ return o !== pb && o.alive && o.post && o.post.tag.indexOf("stage"+key.charAt(0)) === 0 &&
             !(bomb.state === "carried" && bomb.carrier === o) && o.tRole !== "awp"; }).slice(0, 2);
@@ -286,6 +290,7 @@ function probeViewPoint(from, to, look){
 }
 // ---- отмеченные "проверено — пусто" зоны (для слоя «коллы» и решений) ----
 var CLEARZ = {CT:{}, T:{}};
+function clearzReset(){ CLEARZ = {CT:{}, T:{}}; }   // (17.11, модули) сброс «проверено — пусто» — у хозяина (190 lkpReset, 530)
 // (v281, владелец 14.10: Donut, тики 6190–6250 — трое CT прошли мимо T в известной позиции t_donut_3) известные позиции
 // врага из демок (KNOW_POSITIONS): какие команда уже видела пустыми. Позиция «чистая», только если свой реально видел
 // именно эту точку (обзор + линия, не сквозь дым); снова опасна, когда враг успел бы добежать до неё из любой зоны,
@@ -353,12 +358,16 @@ function zoneSeenAll(who, zid){
   if(!wb || !wb.alive || !smp.length || tick < (wb.blindUntil||0)) return false;
   return smp.every(function(q){ return Math.hypot(q.x-wb.x, q.y-wb.y) < 1100 && inFov(wb, q.x, q.y) && hasVision(wb.x, wb.y, q.x, q.y); });
 }
+var CLEAR_HEARD_SEC = 8;   // с: «шаги здесь» ещё свежие (проектное число)
 function markClear(team, x, y, who, posChecked){
   var zid = zoneIdAt(x, y); if(!zid) return null;
   if(!posChecked && !zoneSeenAll(who, zid)) return null;
   CLEARZ[team][zid] = {tick:tick, x:x, y:y, round:roundNum};
   knowClearZone(team, x, y);
-  voiceLog(team, "clz"+zid, who, "чекнул "+(zoneUserName(zid) || calloutName(x, y))+" — пусто");
+  // (v566, владелец 12.11: «если шаги Tetris, то как Tetris чисто») звук на слух ложится в соседнюю зону; команда только что сказала шаги
+  // здесь, а глазами тут пусто — так и говорят: чисто, шаги дальше (сказанное о шагах — доска войса, 230)
+  var TH = teamOf(team).threats[zid], heard = TH && tick - TH.tick <= CLEAR_HEARD_SEC*TICK_HZ;
+  voiceLog(team, "clz"+zid, who, (zoneUserName(zid) || calloutName(x, y).replace(/^на /, ""))+" чисто"+(heard ? ", шаги дальше" : ""));
   return zid;
 }
 // (v490) оценка сайта k командой team — по тому, где команда недавно видела живых врагов: «не знаем, где» = живые враги, которых своя команда

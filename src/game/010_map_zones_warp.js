@@ -54,7 +54,7 @@ function autoPortals(){
 autoPortals();
 
 var NAVAREAS = MAP.navmesh.areas;
-// (v372) подъёмы из демок (tools/climbs_bake.py → MAP.climbs): уступ, на который .nav даёт только спрыгнуть, а про забираются
+// (v372) подъёмы из демок (tools/map/climbs_bake.py → MAP.climbs): уступ, на который .nav даёт только спрыгнуть, а про забираются
 // (ящики, выступы; Ancient — Mid → Xbox). Связь «вверх» — в граф навмеша, сам подъём — как по лестнице (laddersBuild)
 // NAV_CLIMB_UP — связи «вверх», которых нет в .nav (только подъём из демок): по ним лезут подъёмом (ladderTick), не шагом (v430)
 var NAV_CLIMB_UP = {};

@@ -49,7 +49,7 @@ function nadePrice(type, team){ return (type === "molly" && team === "CT") ? NAD
 // кидают ~10, T ~9.4); набор по роли игрока (демки): саппорт/снайпер — больше утилиты
 var NADE_WISH_PRO = {
   // (v357, владелец: «гранаты не закупаются так часто») набор на фулле по роли — из ответа Claude + JSON cs2_buy_rules (сверено с
-  // ответом Гугла) и поправлен по демкам Mirage (tools/nades_pro.py, броски за фулл-раунд на команду: T смок 4,1, флешка 4,0,
+  // ответом Гугла) и поправлен по демкам Mirage (tools/pro/nades_pro.py, броски за фулл-раунд на команду: T смок 4,1, флешка 4,0,
   // молотов 3,0, HE 1,1; CT 3,5 / 3,0 / зажигалка 3,5 / HE 3,0 — у CT HE втрое больше, чем в оценке JSON). Порядок — что держат
   // дольше всего (первое режут последним). Закуп фулла на команду: T 5 смоков, 7 флешек, 4 молотова, 2 HE; CT 5 / 6 / 4 / 4
   entry:["smoke","flash","flash","molly"], support:["smoke","flash","molly","flash"], igl:["smoke","flash","molly","he"],
@@ -63,17 +63,17 @@ function buyNades(b, type){
   if(type === "eco" || type === "force" || type === "half"){
     var TP = teamNadePlan(b.team, type === "eco" ? "eco" : "force")[b.id] || [];
     if(!b.nades) b.nades = emptyNades();
-    var keepE = (BAL.nadeBuy && type === "eco") ? fullNeed(b) - nextLossIncome(b.team) : -1e9;
+    var keepE = (type === "eco") ? fullNeed(b) - nextLossIncome(b.team) : -1e9;
     TP.forEach(function(t){ var pr = nadePrice(t, b.team), tot = b.nades.smoke + b.nades.flash + b.nades.he + b.nades.molly;
       if(tot >= 4 || (t === "flash" ? b.nades.flash >= 2 : b.nades[t] >= 1) || b.money < pr || b.money - pr < keepE) return;
       b.money -= pr; b.nades[t]++; npBought(b, t); });
     return;
   }
-  var wish = (BAL.proNades ? NADE_WISH_PRO[b.tRole] : null) || NADE_WISH[b.tRole] || [];
-  var budget = type === "full" ? 99 : (type === "force" || type === "half" ? (BAL.nadeBuy ? 2 : 1) : 0);
-  if(type === "eco") budget = BAL.nadeBuy ? 1 : 0;
+  var wish = (NADE_WISH_PRO[b.tRole]) || NADE_WISH[b.tRole] || [];
+  var budget = type === "full" ? 99 : (type === "force" || type === "half" ? (2) : 0);
+  if(type === "eco") budget = 1;
   if(type === "pistol") budget = 0;   // (v293) на пистолетке гранаты — по плану команды (teamNadePlan)
-  var keepEco = (BAL.nadeBuy && type === "eco") ? fullNeed(b) - nextLossIncome(b.team) : -1e9;
+  var keepEco = (type === "eco") ? fullNeed(b) - nextLossIncome(b.team) : -1e9;
   var bought = 0;
   for(var i=0;i<wish.length && bought<budget;i++){
     var t = wish[i], pr = nadePrice(t, b.team);
@@ -81,9 +81,9 @@ function buyNades(b, type){
     if(total >= 4) break;
     if(t === "flash" ? b.nades.flash >= 2 : b.nades[t] >= 1){ continue; }
     // на хаф/форсе — только если после этого остаётся запас
-    if(type !== "full" && b.money - pr < 200 && !(BAL.nadeBuy && type === "pistol" && b.money >= pr)) continue;
-    if(BAL.nadeBuy && (type === "eco" || type === "pistol") && t === "molly") continue;
-    if(BAL.nadeBuy && type === "eco" && b.money - pr < keepEco) continue;
+    if(type !== "full" && b.money - pr < 200 && !(type === "pistol" && b.money >= pr)) continue;
+    if((type === "eco" || type === "pistol") && t === "molly") continue;
+    if(type === "eco" && b.money - pr < keepEco) continue;
     if(b.money < pr) continue;
     b.money -= pr; b.nades[t]++; npBought(b, t); bought++;
   }
@@ -97,16 +97,12 @@ function segHitsCircle(x1,y1,x2,y2,cx,cy,r){
   return px*px+py*py < r*r;
 }
 // (v288) для показа (киллфид, радар): линия выстрела прошла через облако — с дырами от пуль или без
-function smokeOnLine(x1,y1,x2,y2){
-  for(var i=0;i<smokes.length;i++){ var s = smokes[i], r = smokeRadiusNow(s); if(r > 8 && areaSegHits(s, r, x1,y1,x2,y2)) return true; }
-  return false;
-}
+// (15.11, перестройка) smokeOnLine — тот же код, что smokeBlocks: вызовы переведены на smokeBlocks
 // (М150, 21.10, владелец: «смок и молотов обрезаются по стенам — убери») дым и огонь — полный круг своего радиуса. Раньше
 // (v323, М36) круг обрезался стенами радара (areaRays): с А5/А6 они только рисунок, настоящих стен там нет. Сквозь настоящие
 // стены сквозь дым всё равно не видно — видимость идёт по 3D-геометрии игры
 function areaHas(o, r, px, py){ return Math.hypot(px - o.x, py - o.y) < r; }
 function areaSegHits(o, r, x1, y1, x2, y2){ return segHitsCircle(x1,y1,x2,y2,o.x,o.y,r); }
-function areaPath(o, r){ ctx.beginPath(); ctx.arc(o.x, o.y, r, 0, Math.PI*2); ctx.closePath(); }   // контур области для рисования
 // (v548) дыра от пули — не «прозрачный» дым по всей высоте: сквозь дым видно только то, что попадает в окошко (smokeHoleParts, ниже)
 function smokeBlocks(x1,y1,x2,y2){
   for(var i=0;i<smokes.length;i++){
@@ -120,7 +116,7 @@ function smokeBlocks(x1,y1,x2,y2){
 // радиусом SMOKE_HOLE.r (ед. игры) вокруг; сквозь дым видна часть тела (голова / тело), если линия взгляда на неё во всём пути через дым
 // идёт по дыре. Было: полоса 25 ед. по радару на всю высоту — сквозь неё игрока было видно целиком. Радиус и время Valve не публикует —
 // проектные числа (r — примерно с голову игрока, по решению владельца)
-var SMOKE_HOLE = {r:10, life:64};   // проектное число: ед. игры, тики
+var SMOKE_HOLE = {r:10, life:64, w:10};   // проектное число: ед. игры, тики; w — px, только рисунок (v554, владелец 11.11: «дыры стали маленькие — как раньше»)
 function smokeBulletHole(x1, y1, x2, y2, z1, z2){
   smokes.forEach(function(s){
     var r = smokeRadiusNow(s); if(r <= 8 || !segHitsCircle(x1,y1,x2,y2,s.x,s.y,r)) return;
@@ -191,3 +187,6 @@ function oneWaySees(v, t){
 // Кто идёт по делу (есть путь и не держит угол) — проходит насквозь, если переживёт пересечение (2 радиуса бегом) с запасом
 // FIRE_MARGIN HP; плант/дефуз — доделает, если переживёт до конца. Кто стоит с углом — в огонь не заходит
 var FIRE_HIT_SEC = 0.2, FIRE_HIT_MAX = 8, FIRE_MARGIN = 20;   // запас 20 HP — проектное число
+// (17.11, перестройка — модули) запись извне — только через хозяина (импорт модуля только для чтения): история бросков — память матча (130), сброс раунда (530); мир гранат на кадр повтора (675)
+function nadeLandSet(v){ nadeLandHistory = v; }
+function nadeWorldSet(sm, fi, nd, fx){ smokes = sm; fires = fi; nadesInAir = nd; nadeFx = fx; }

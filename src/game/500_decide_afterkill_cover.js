@@ -1,7 +1,17 @@
 // (v525, «одно решение — одно место», №4 шаг 1) режим боя бота (state: patrol / hold / engage / retreat) пишется только здесь; причина —
 // b._stateWhy (подпись на экране, запись матча). Решают по-прежнему разные механики (оценка decideAction, «врага не видно», после фрага,
 // нож) — они зовут эту функцию, а не пишут поле сами. Перестрелку (_fc) снаружи снимает только fcEnd (470)
-function fightState(b, next, why){ b.state = next; b._stateWhy = why; b._stateWhyT = tick; }
+function fightStateDo(b, next, why){ b.state = next; b._stateWhy = why; b._stateWhyT = tick; }
+// (17.11, перестройка — модули) запись в журнал решений (645) — здесь, у хозяина (было: 645 подменял функцию обёрткой)
+function fightState(b, next, why){
+  var was = b && b.state; var r = fightStateDo.apply(this, arguments);
+  if(b && next !== was) dlog(b, "бой", (was || "-") + " → " + next + (why ? " — " + why : ""), "_dlog2"); return r;
+}
+// (15.11, перестройка, фаза 3 — канал боя, шаг 1) режим боя state и «держит угол» holding (владелец 15.11: держит угол — бой) пишут только
+// файлы боя 470–510; остальные — через интерфейс: fightReset(b) — сброс к новому раунду / песочница (530, 677), fightHoldOff(b, причина) —
+// снять удержание (нож — 450, огонь — 535). Причина снятия — b._holdWhy.
+function fightReset(b){ b.state = "patrol"; b.holding = false; }
+function fightHoldOff(b, why){ b.holding = false; b._holdWhy = why; }
 function decideAction(bot, nearestDist, alliesNear, enemiesSeen){
   var hpFrac = Math.max(0, bot.hp)/100;
   // было enemiesSeen - alliesNear — себя не считали, и КАЖДАЯ дуэль 1 на 1
@@ -22,7 +32,7 @@ function decideAction(bot, nearestDist, alliesNear, enemiesSeen){
   var r = bot.tRole, wk = bot.weapon && bot.weapon.key;
   // (5) клатч T: один против нескольких — дуэли по одной. Видно/известно двоих
   // рядом — отойти за укрытие и взять следующего отдельно (кроме дефуза: тогда надо идти)
-  if(BAL.tClutch && bot.team === "T" && aliveCount("T") === 1 && aliveCount("CT") >= 2 && tick - (bot._defuseHeard||-9999) > 110){
+  if(bot.team === "T" && aliveCount("T") === 1 && aliveCount("CT") >= 2 && tick - (bot._defuseHeard||-9999) > 110){
     var LKc = beliefLast.T || {}, kF = enemiesSeen;
     for(var eC in LKc){ var qC = LKc[eC]; if(tick - qC.tick < 3*TICK_HZ && nearP(qC.x, qC.y, qC.z, bot.x, bot.y, bot.z, 700) && bots.some(function(o){ return o.id === eC && o.alive; })) kF = Math.max(kF, 1) + (enemiesSeen ? 0 : 0); }
     var kN = 0; for(var eC2 in LKc){ var q2 = LKc[eC2]; if(tick - q2.tick < 3*TICK_HZ && Math.hypot(q2.x-bot.x, q2.y-bot.y) < 700) kN++; }
@@ -33,7 +43,7 @@ function decideAction(bot, nearestDist, alliesNear, enemiesSeen){
   // все в 550px (стоят на сайте за стеной и помочь не могут) — и мидер держал
   // дуэль против 3–5 T. Считаем тех, кто реально рядом на размен (≤300px);
   // известно 2+ T, а разменять некому — отходит, а не стоит насмерть
-  if(BAL.midOutnum && bot.team === "CT" && (r === "mid" || r === "roamer") && !(bomb && bomb.state === "planted")){
+  if(bot.team === "CT" && (r === "mid" || r === "roamer") && !(bomb && bomb.state === "planted")){
     var LKo = beliefLast.CT || {}, knownF = 0;
     for(var eO in LKo){ var qO = LKo[eO]; if(tick - qO.tick < 4*TICK_HZ && nearP(qO.x, qO.y, qO.z, bot.x, bot.y, bot.z, 800) && bots.some(function(o){ return o.id === eO && o.alive; })) knownF++; }
     knownF = Math.max(knownF, enemiesSeen);
@@ -43,18 +53,16 @@ function decideAction(bot, nearestDist, alliesNear, enemiesSeen){
   }
   // (v154) ценность дуэли. По демкам: у про в момент смерти в 71–77% рядом (≤350px)
   // есть свой на размен, у ботов было 38–54% — боты дерутся в одиночку.
-  if(BAL.duelValue){
-    var dv = duelContext(bot, enemiesSeen, alliesNear);
-    if(!dv.forced){
-      if(dv.trade === 0 && !dv.hurtFoe){ engageScore -= 0.18; retreatScore += 0.10; holdScore += 0.04; }
-      if(dv.up){ engageScore += 0.08; }
-      if(dv.awpLine && !dv.flashed){ engageScore -= 0.12; holdScore += 0.05; }
-      // по демкам первым в раунде у T гибнет энтри (22%), лёркер — 13%, AWP — 4%;
-      // у ботов было: лёркер 25%, AWP 9%, энтри 9%. Лёркер играет от инфы и
-      // тайминга, а не от дуэлей; AWP T в дефолте — не первая жертва
-      if(bot.team === "T" && r === "lurker"){ engageScore -= 0.22; retreatScore += 0.14; }
-      if(bot.team === "T" && wk === "AWP"){ engageScore -= 0.08; retreatScore += 0.05; }
-    }
+  var dv = duelContext(bot, enemiesSeen, alliesNear);
+  if(!dv.forced){
+    if(dv.trade === 0 && !dv.hurtFoe){ engageScore -= 0.18; retreatScore += 0.10; holdScore += 0.04; }
+    if(dv.up){ engageScore += 0.08; }
+    if(dv.awpLine && !dv.flashed){ engageScore -= 0.12; holdScore += 0.05; }
+    // по демкам первым в раунде у T гибнет энтри (22%), лёркер — 13%, AWP — 4%;
+    // у ботов было: лёркер 25%, AWP 9%, энтри 9%. Лёркер играет от инфы и
+    // тайминга, а не от дуэлей; AWP T в дефолте — не первая жертва
+    if(bot.team === "T" && r === "lurker"){ engageScore -= 0.22; retreatScore += 0.14; }
+    if(bot.team === "T" && wk === "AWP"){ engageScore -= 0.08; retreatScore += 0.05; }
   }
   if(r === "anchorA" || r === "anchorB"){ holdScore += 0.15; retreatScore -= 0.05; } // опорник держит, ждёт помощь
   // (v440, док 27.10, р8: носитель с 22 HP держал угол и ждал файта) носитель бомбы не лезет в дуэль, пока есть кому разменять / донести:
@@ -70,7 +78,7 @@ function decideAction(bot, nearestDist, alliesNear, enemiesSeen){
   // враг ранен ("он на 20") — не отходить, а добивать
   // (v547, ответ владельца 10.11: «на сейве добивать раненого — нет: стрельба раскроет позицию, придут зажимать, потеря девайса») — не на сейве
   var savingD = taskAlive(bot) && taskProp(bot._task.tag, "saveTask");
-  if(BAL.hurtCall && bot._nearestEnemyBot && !savingD){ var HTd = teamIntel[bot.team].hurt, hk = HTd && HTd[bot._nearestEnemyBot.id];
+  if(bot._nearestEnemyBot && !savingD){ var HTd = teamIntel[bot.team].hurt, hk = HTd && HTd[bot._nearestEnemyBot.id];
     if(hk && hk.hp <= 35 && tick - hk.tick < 10*TICK_HZ){ engageScore += 0.2; retreatScore -= 0.15; } }
   // после планта T держат бомбу, CT обязаны идти — время важнее HP
   if(bomb && bomb.state === "planted"){
@@ -96,14 +104,14 @@ function decideAction(bot, nearestDist, alliesNear, enemiesSeen){
   }
   if(bot._smokePush && tick < bot._smokePush.until){ holdScore -= 0.2; engageScore += 0.05; }
   // только что на этом углу убили тиммейта, а стрелка не видели — не выходить туда же
-  if(bot._avoidPeekUntil > tick && bot._avoidPeekAt && Math.hypot(bot._avoidPeekAt.x-bot.x, bot._avoidPeekAt.y-bot.y) < 450){ engageScore -= 0.25; holdScore += 0.1; }
+  if(knowAvoidPeekNear(bot, bot)){ engageScore -= 0.25; holdScore += 0.1; }
   // сбивает плант — время важнее всего: лезет в дуэль, не отходит
   if(bot._stopPlantUntil > tick){ engageScore += 0.3; holdScore -= 0.15; retreatScore -= 0.25; }
   // раздел 14: перезаряжается посреди боя — не высовываться, уйти за угол
   if(bot._reloading){ retreatScore += 0.35; engageScore -= 0.35; holdScore -= 0.1; }
   // ---- раздел 11: командная информация в весах ----
   // тиммейт только что погиб рядом — идти разменивать, а не прятаться
-  if(tick < (bot._tradeUntil||0)){ engageScore += 0.2; retreatScore -= 0.15; }
+  if(tradeAlert(bot)){ engageScore += 0.2; retreatScore -= 0.15; }
   // команда знает, что рядом стак (2+ врагов), а своих меньше — в одиночку в дуэль не лезть
   var nearEst = intelEstimate(bot.team, bot.x, bot.y, 500, 4*64);
   if(nearEst.n >= 2 && alliesNear + 1 < nearEst.n){ engageScore -= 0.15; holdScore += 0.08; }
@@ -127,8 +135,8 @@ function decideAction(bot, nearestDist, alliesNear, enemiesSeen){
 
   // раздел 12: анти-эко — у нас закуп, у них эко: не лезть в упор (там пистолет
   // опасен), держать дистанцию, где винтовка сильнее; не давать "геройский" пик
-  var myEco = teamEco[bot.team], enEco = teamEco[bot.team === "CT" ? "T" : "CT"];
-  if(BAL.antiEco && myEco && enEco && (BAL.buyRead ? antiEco(bot.team) : ((myEco.roundType === "full" || myEco.roundType === "half") && enEco.roundType === "eco"))){
+  // (v559, В76 ч.5) — цель раунда команды «выиграть, не отдав винтовок» (roundGoal, 520), одно место вместо своей проверки закупов
+  if(roundGoal(bot.team) === "keepGuns"){
     if(nearestDist < 220){ retreatScore += 0.12; engageScore -= 0.08; }
     else { holdScore += 0.08; engageScore -= 0.04; }
   }
@@ -147,7 +155,7 @@ function decideAction(bot, nearestDist, alliesNear, enemiesSeen){
       if(nearestDist > 230){ engageScore -= 0.25; retreatScore += 0.15; holdScore -= 0.05; }
     }
   }
-  if(BAL.profiles && bot.prof){
+  if(bot.prof){
     var pa = prof(bot, "aggr"), pd = prof(bot, "disc"), pr = prof(bot, "risk");
     engageScore += (pa-0.5)*0.24;
     holdScore   += (pd-0.5)*0.12 - (pa-0.5)*0.08;
@@ -174,7 +182,7 @@ function decideAction(bot, nearestDist, alliesNear, enemiesSeen){
 // сход с позиции после фрага: цель мертва — "смотрю на угол, где только что
 // видел врага" (hold по lastIntel) держал бота на месте ещё ~3с, и новый пост
 // не срабатывал. Снимаем бой-удержание, чтобы он реально ушёл.
-function leaveHold(b){ fightState(b, "patrol", "после фрага — ухожу с угла"); b.holding = false; b.crouching = false; b.decisionTick = tick; }
+function leaveHold(b){ fightState(b, "patrol", "после фрага — ухожу с угла"); b.holding = false; placeStance(b, false, "leave-hold"); b.decisionTick = tick; }
 // (v156) решение после фрага — только по тому, что команда знает (ЛИП ≤5с),
 // а не по настоящим позициям врагов
 function postKillDecide(sh, tg, vp, here){
@@ -197,9 +205,9 @@ function postKillDecide(sh, tg, vp, here){
     var np = pickSpots("pkb"+tick+sh.id, back, 4, {rMin:0, rMax:200, minGap:50, see: sh.post && sh.post.look ? [sh.post.look] : [], hideFrom:hide})
       .filter(function(p){ return Math.hypot(p.x-here.x, p.y-here.y) > 70 && !hasLOS(p.x, p.y, vp.x, vp.y); })[0];
     if(np){
-      sh._reposUntil = 0; sh._probeLock = 0;
+      taskKeep(sh, 0, "afterkill"); sh._probeLock = 0;
       setPost(sh, np, vp, true, "repos:back");
-      if(sh.post && sh.post.tag === "repos:back"){ leaveHold(sh); sh._reposUntil = tick + 4*TICK_HZ;
+      if(sh.post && sh.post.tag === "repos:back"){ leaveHold(sh); taskKeep(sh, tick + 4*TICK_HZ, "afterkill");
         logEvent(sh.id+": после фрага откат — "+(sh.hp <= 45 ? "мало HP" : "их ещё "+known.length+" рядом")); return true; }
     }
   }
@@ -210,9 +218,9 @@ function postKillDecide(sh, tg, vp, here){
       var tgt = known[0] ? {x:known[0].x, y:known[0].y} : vp;
       var sw = pickSpots("pkp"+tick+sh.id, vp, 4, {rMax:150, minGap:40, see:[tgt]})
         .filter(function(p){ return Math.hypot(p.x-here.x, p.y-here.y) > 60; })[0] || vp;
-      sh._reposUntil = 0;
+      taskKeep(sh, 0, "afterkill");
       setPost(sh, sw, tgt, true, "repos:push");
-      if(sh.post && sh.post.tag === "repos:push"){ leaveHold(sh); sh._reposUntil = tick + 3*TICK_HZ;
+      if(sh.post && sh.post.tag === "repos:push"){ leaveHold(sh); taskKeep(sh, tick + 3*TICK_HZ, "afterkill");
         logEvent(sh.id+": после фрага добирает — "+(known.length ? "второй рядом" : "дальше по месту фрага")); return true; }
     }
   }
@@ -236,16 +244,16 @@ function killMoveCover(sh, tg){
   var spK = pickSpots("kmv"+tick+sh.id, hereK, 3, {rMin:KILL_MOVE[0], rMax:KILL_MOVE[1], minGap:30, hideFrom:[vpK], see:seeK})
     .filter(function(q){ return Math.hypot(q.x-hereK.x, q.y-hereK.y) >= KILL_MOVE[0]; })[0];
   if(!spK) return false;
-  sh._reposUntil = 0; sh._probeLock = 0; fcEnd(sh, "конец: враг убит — иду дальше");   // перестрелка с убитым кончилась — цикл «линия/укрытие» не держит на месте
+  taskKeep(sh, 0, "afterkill"); sh._probeLock = 0; fcEnd(sh, "конец: враг убит — иду дальше");   // перестрелка с убитым кончилась — цикл «линия/укрытие» не держит на месте
   setPost(sh, spK, sh.post && sh.post.look ? sh.post.look : vpK, true, "repos:killmove");
   if(!sh.post || sh.post.tag !== "repos:killmove") return false;
-  leaveHold(sh); sh._reposUntil = tick + 2*TICK_HZ;
+  leaveHold(sh); taskKeep(sh, tick + 2*TICK_HZ, "afterkill");
   return true;
 }
 function afterKillReact(sh, tg, w){
   // (9) на сейве убил — позиция засвечена (звук выстрела, килфид): уходит на
   // другое укрытие, откуда не видно место убийства и старую точку
-  if(BAL.saveMove && sh.post && taskProp(sh.post.tag, "saveTask") && sh._saveSpot){
+  if(sh.post && taskProp(sh.post.tag, "saveTask") && sh._saveSpot){
     var hereS = {x:sh.x, y:sh.y}, vpS = {x:tg.x, y:tg.y};
     var altS = pickSpots("svmv"+tick+sh.id, hereS, 4, {rMin:170, rMax:480, minGap:60, hideFrom:[vpS, hereS]})
       .filter(function(q){ return Math.hypot(q.x-hereS.x, q.y-hereS.y) > 150 && !hasLOS(q.x, q.y, vpS.x, vpS.y); })[0];
@@ -261,8 +269,8 @@ function afterKillReact(sh, tg, w){
   if((sh._visible||[]).some(function(o){ return o.alive && o !== tg; })) return false;
   var pa = prof(sh, "aggr"), pr = prof(sh, "risk"), pd = prof(sh, "disc");
   var vp = {x:tg.x, y:tg.y}, here = {x:sh.x, y:sh.y};
-  if(BAL.awpRepos && w && w.key === "AWP" && (!BAL.awpSide || BAL.awpSide === sh.team)){
-    if(BAL.styles && pa > 0.7 && pr > 0.7 && sh._repeeked !== roundNum && hashRand(tick*37 + sh.id.charCodeAt(1)*5) < 0.35){
+  if(w && w.key === "AWP" && (!BAL.awpSide || BAL.awpSide === sh.team)){
+    if(pa > 0.7 && pr > 0.7 && sh._repeeked !== roundNum && hashRand(tick*37 + sh.id.charCodeAt(1)*5) < 0.35){
       sh._repeeked = roundNum;
       logEvent(sh.id+" (AWP): рискует — остаётся на том же угле");
       return true;
@@ -276,11 +284,11 @@ function afterKillReact(sh, tg, w){
     var alt = pickSpots("awpr"+tick+sh.id, here, 4, {rMin:100, rMax:260, minGap:60, see:seeA, hideFrom:others, cross:{from:here, pt:vp}});
     var ap = alt.filter(function(q){ return Math.hypot(q.x-here.x, q.y-here.y) > 90; })[0];
     if(!ap) return false;
-    sh._reposUntil = 0; sh._probeLock = 0;
+    taskKeep(sh, 0, "afterkill"); sh._probeLock = 0;
     setPost(sh, ap, vp, true, "repos");
     if(!sh.post || sh.post.tag !== "repos") return false; // пост перебит (размен/лайнап) — не уходит
     leaveHold(sh);
-    sh._reposUntil = tick + Math.round((5 + 2*pd)*TICK_HZ);
+    taskKeep(sh, tick + Math.round((5 + 2*pd)*TICK_HZ), "afterkill");
     logEvent(sh.id+" (AWP): после фрага уходит с угла — новый угол, держит "+calloutName(vp.x, vp.y));
     return true;
   }
@@ -289,22 +297,22 @@ function afterKillReact(sh, tg, w){
   // зайдёт с другой стороны. Уходит чуть глубже, в укрытие от места убийства
   // и от известных врагов, но так, чтобы видеть тот же вход; до конца раунда
   // это его новая точка (роль больше не возвращает на старую)
-  if(BAL.postKill){ var pkR = postKillDecide(sh, tg, vp, here); if(pkR) return true; }
+  var pkR = postKillDecide(sh, tg, vp, here); if(pkR) return true;
   var foes700 = foesNear.filter(function(o){ return nearP(o.x, o.y, o.z, sh.x, sh.y, sh.z, 700); });
-  if(BAL.styles && mates >= 1 && !(sh.team === "CT" && teamTac.CT && teamTac.CT.antiEco) && pa >= 0.75 && pr >= 0.7 && sh.hp > 60 && foes700.length >= 1 && foes700.length <= 2 && hashRand(tick*41 + sh.id.charCodeAt(1)*3) < pa*0.6){
+  if(mates >= 1 && roundGoal(sh.team) !== "keepGuns" && pa >= 0.75 && pr >= 0.7 && sh.hp > 60 && foes700.length >= 1 && foes700.length <= 2 && hashRand(tick*41 + sh.id.charCodeAt(1)*3) < pa*0.6){
     var sw = pickSpots("swing"+tick+sh.id, vp, 3, {rMax:140, minGap:40})[0] || vp;
     var nf = foesNear.slice().sort(function(a, c){ return Math.hypot(a.x-vp.x, a.y-vp.y) - Math.hypot(c.x-vp.x, c.y-vp.y); })[0];
-    sh._reposUntil = 0;
+    taskKeep(sh, 0, "afterkill");
     setPost(sh, sw, {x:nf.x, y:nf.y}, true, "repos:swing");
     if(!sh.post || sh.post.tag !== "repos:swing") return false;
     leaveHold(sh);
-    sh._reposUntil = tick + 3*TICK_HZ;
+    taskKeep(sh, tick + 3*TICK_HZ, "afterkill");
     logEvent(sh.id+": агрессивно добирает после фрага — выходит за вторым");
     return true;
   }
   // (смена позиции после фрага) — после проверки агрессивного добора: раньше
   // шла первой и агрессивный стиль "убил — сразу за вторым" почти не срабатывал
-  if(BAL.holdShift && foesNear.length >= 1 && shiftHold(sh, vp, tg.id, "после фрага засветился")) return true;
+  if(foesNear.length >= 1 && shiftHold(sh, vp, tg.id, "после фрага засветился")) return true;
   return false;
 }
 // уйти с засвеченного угла чуть глубже: скрыто от точки контакта и известных
@@ -322,10 +330,10 @@ function shiftHold(sh, vp, exceptId, why){
   if(!np) return false;
   sh._hs = {round:roundNum, tag:sh.post.tag, pt:np, t:tick};
   var lk0 = sh.post.look, tg0 = sh.post.tag;
-  sh._reposUntil = 0; sh._probeLock = 0;
+  taskKeep(sh, 0, "afterkill"); sh._probeLock = 0;
   setPost(sh, np, lk0, true, tg0);
   leaveHold(sh);
-  sh._avoidPeekUntil = tick + 6*TICK_HZ; sh._avoidPeekAt = {x:vp.x, y:vp.y};
+  knowAvoidPeek(sh, {x:vp.x, y:vp.y}, 6);
   logEvent(sh.id+": "+why+" — ухожу глубже ("+calloutName(np.x, np.y)+")");
   return true;
 }

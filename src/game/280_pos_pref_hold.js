@@ -19,10 +19,19 @@ function posWeaponClass(b){
 // дальность оружия — с какого расстояния CT убивают этим классом (75-й процентиль, м; демки Mirage, tools/measure/pro_checks.py: ПП 272 убийства,
 // пистолет 856, винтовка 4124). Место, откуда до врага дальше дальности своего оружия, стоит меньше — во столько раз, во сколько его дальность меньше
 // нужной (относительно винтовки: у винтовок и AWP — 1, как было)
-var WPN_RANGE_M = {smg: 16.1, pistol: 21.1, rifle: 25.6};
+// (v558, В76 ч.3, владелец 11.11: «оружие меняет игру игрока — на какой дистанции он ищет бой») дистанция — по каждому оружию, а не по классу:
+// убийства этим оружием у про (демки Ancient, 92 демки, player_death.distance, м: медиана / 75-й процентиль; оружие с < 40 убийствами — по
+// классу). Было (док 6): три класса по убийствам CT на Mirage (ПП 16,1, пистолет 21,1, винтовка 25,6 м — 75-й процентиль)
+var WPN_KILL_M = {AK:[15.7, 21.4], M4S:[16.5, 22.0], M4:[15.8, 21.3], AWP:[22.3, 28.7], GALIL:[15.5, 21.9], FAMAS:[16.5, 21.7], GLOCK:[12.6, 18.3],
+  USP:[14.1, 21.1], P250:[14.1, 19.0], DEAGLE:[18.4, 24.4], TEC9:[10.5, 14.8], FIVE7:[9.3, 14.3], ELITE:[10.6, 15.7], MP9:[11.0, 15.8], MAC10:[11.9, 16.6], MP7:[12.2, 16.3]};
+var WPN_KILL_CLASS = {awp: WPN_KILL_M.AWP, rifle: WPN_KILL_M.AK, smg: WPN_KILL_M.MP9, pistol: WPN_KILL_M.GLOCK};
+// [медиана, 75 %] в ед. карты для оружия в руках (основное, если есть)
+function wpnKillDist(b){ var k = b.primary || (b.weapon && b.weapon.key) || "", M = WPN_KILL_M[k] || WPN_KILL_CLASS[posWeaponClass(b)], s = 39.37/PX_UNITS;
+  return [M[0]*s, M[1]*s]; }
+// место, откуда до врага дальше дальности (75 %) своего оружия, стоит меньше — во столько раз, во сколько его дальность меньше дальности
+// винтовки (у оружия не короче АК — 1)
 function wpnRangeFit(b, d){
-  var c = posWeaponClass(b); if(c !== "smg" && c !== "pistol") return 1;
-  var k = 39.37/PX_UNITS, R = WPN_RANGE_M[c]*k, Rr = WPN_RANGE_M.rifle*k;
+  var R = wpnKillDist(b)[1], Rr = WPN_KILL_M.AK[1]*39.37/PX_UNITS; if(R >= Rr) return 1;
   return d <= R ? 1 : d >= Rr ? R/Rr : R/d;
 }
 function posTable(side, who, wc){
@@ -231,7 +240,9 @@ function holdSpot(b, T){
     // (v530, отметка владельца 10.11 «у всех постплант в одной зоне — повтор уже исправлявшейся ошибки»: троим выдана одна точка, 355,647) место,
     // которое в этой группе уже занял свой (ближе «личного места» SPOT_PERSONAL — граница из демок), — не вариант: двое в одной точке не стоят.
     // Раньше это был только штраф (HOLD.stack), и когда точек с видом на бомбу мало, лучшая всё равно побеждала у всех
-    if((T.mates||[]).some(function(m){ return Math.hypot(m.pt.x-c.x, m.pt.y-c.y) < SPOT_PERSONAL; })) return null;
+    // (v570, владелец 12.11: «на пост-планте до сих пор стоят кучно» — точки 81 ед. друг от друга, обе на бомбу) сначала — не ближе «своей
+    // линии» OWN_LINE_GAP (110): одно место можно держать вдвоём, но с разных позиций, а не плечом к плечу; нет таких — личное место, как было
+    if((T.mates||[]).some(function(m){ return Math.hypot(m.pt.x-c.x, m.pt.y-c.y) < (T.gap || SPOT_PERSONAL); })) return null;
     if(useMust && !mustPts.every(function(m){ return hasLOS(c.x, c.y, m.x, m.y); })) return null;
     var main = 0, mainE = null, open = 0;
     E.forEach(function(e){ if(!hasLOS(c.x, c.y, e.pt.x, e.pt.y)) return; var v = e.wn; open += v; if(v > main){ main = v; mainE = e; } });
@@ -284,7 +295,12 @@ function holdGroup(members, T, tag){
       // mustFirst: бомбу (цель) обязательно видит только первый; остальные держат
       // подходы и слушают — как про после планта (не все с линией на бомбу)
       var mustNow = (T.mustFirst && chosen.length > 0) ? [] : T.must;
-      var r = holdSpot(b, {key:T.key, center:T.center, rArea:T.rArea, rMin:T.rMin, rMax:(T.mustFirst && chosen.length > 0 && T.rMax2) || T.rMax, must:mustNow, mates:chosen, anyFrom:T.anyFrom});
+      // (v568, отметка владельца м3 р1: «боты снова часто меняют точки пост-планта» — каждые 2 с T менялись точками по кругу: первый по порядку
+      // забирал точку соседа, считая её свободной) занятые — и уже выбранные в этом проходе, и текущие точки остальных из этой группы
+      var held = chosen.concat(members.filter(function(o){ var Ho = o._hTask; return o !== b && Ho && Ho.key === T.key && Ho.round === roundNum &&
+        !chosen.some(function(c){ return Math.hypot(c.pt.x-Ho.pt.x, c.pt.y-Ho.pt.y) < 1; }); }).map(function(o){ return {pt:o._hTask.pt, see:o._hTask.see}; }));
+      var hT = {key:T.key, center:T.center, rArea:T.rArea, rMin:T.rMin, rMax:(T.mustFirst && chosen.length > 0 && T.rMax2) || T.rMax, must:mustNow, mates:held, anyFrom:T.anyFrom, gap:OWN_LINE_GAP};
+      var r = holdSpot(b, hT); if(!r){ hT.gap = SPOT_PERSONAL; r = holdSpot(b, hT); }
       // (v373, сторож: «метание» — двое на пост-планте каждые пару секунд менялись проходами, войс «держу бомбу, смотрю…»
       // спамился) пересмотр точки — новая, только если она заметно лучше старой (на 15 % — проектное число) и старую не занял свой
       if(r && same && H.pt && r.s < (H.s || 0) + Math.abs(H.s || 0)*0.15 + 0.01 && !chosen.some(function(c){ return Math.hypot(c.pt.x-H.pt.x, c.pt.y-H.pt.y) < 60; })){ H.t = tick; r = null; }

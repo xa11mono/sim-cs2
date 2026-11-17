@@ -2,7 +2,6 @@
 // Логотипы команд — LINEUP[команда].logo (картинка data:/svg), по сторонам — TEAM_LOGO; пока нет — буква стороны.
 // (v304) серия: карта = матч; победитель карты закрашивает свой квадрат. Счёт — по командам (не по сторонам), по номеру матча
 // (перемотка того же матча не считает карту дважды). Серия решена — следующий «Сыграть» начинает новую
-var SERIES = {bo:3, maps:{}};
 function seriesWins(k){ var n = 0; for(var m in SERIES.maps) if(SERIES.maps[m] === k) n++; return n; }
 function seriesDone(){ var need = Math.ceil(SERIES.bo/2); return seriesWins("sp") >= need || seriesWins("fa") >= need; }
 function seriesUpdate(){
@@ -106,13 +105,14 @@ function plKeys(b){
 // (v381, М131, владелец 16.10: «панели по бокам не обновляют список оружия после конца раунда для нового») погибший в прошлом раунде
 // показывал до своего закупа то оружие, с которым умер (b.weapon после смерти не сбрасывается) — хотя у него уже стартовый пистолет.
 // «Что было до закупа» — то, чем игрок владеет (основное, иначе пистолет), а не что было в руках в момент смерти
-function buyShowStart(){
+function buyShowStart(t0, pre){   // t0 — тик начала закупки, pre — снаряжение ботов до закупа (событие из очереди, 435 / 530)
   BUY_SHOW = {};
   bots.forEach(function(b, i){
-    var own = b.primary || b.secondary || (b.weapon && b.weapon.key) || null;
-    var before = {}; plKeys(b).forEach(function(it){ if(!it.w) before[it.key] = true; });
+    var p = pre && pre[i] && pre[i].id === b.id ? pre[i] : b;
+    var own = p.primary || p.secondary || (p.weapon && p.weapon.key) || null;
+    var before = {}; plKeys(p).forEach(function(it){ if(!it.w) before[it.key] = true; });
     if(own) before["w:"+own] = own;
-    BUY_SHOW[b.id] = {before: before, t0: tick, first: freezePick(BUY_SHOW_FIRST, hashRand(roundNum*733 + i*97 + matchNum*13)), oldW: own};
+    BUY_SHOW[b.id] = {before: before, t0: t0 != null ? t0 : tick, first: freezePick(BUY_SHOW_FIRST, hashRand(roundNum*733 + i*97 + matchNum*13)), oldW: own};
   });
 }
 function buyShowHidden(b){

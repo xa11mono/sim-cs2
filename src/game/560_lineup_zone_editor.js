@@ -2,27 +2,6 @@
 var chkLineups = document.getElementById("chkLineups"), lineupPanel = document.getElementById("lineupPanel");
 var luPending = null, luHover = null;
 var LU_COL = {smoke:"rgba(200,205,210,0.95)", flash:"rgba(255,240,150,0.95)", molly:"rgba(255,140,60,0.95)", he:"rgba(150,230,120,0.95)"};
-// встроенные гранаты — то, что боты кидают сами (цели считаются так же, как в
-// nadeBrains/комбо); "откуда" — примерная точка, где обычно стоит бросающий
-function builtinLineups(){
-  if(!GEO.A || !GEO.B) return [];
-  var out = [], mid = function(a, b2, f){ f = f == null ? 0.5 : f; return {x:a.x+(b2.x-a.x)*f, y:a.y+(b2.y-a.y)*f}; };
-  ["A","B"].forEach(function(k){
-    var g = GEO[k], st = SITES[k];
-    out.push({key:"T.exec.ctEntry."+k, team:"T", type:"smoke", trigger:"exec", site:k, name:"вход CT", from:g.tStage, to:g.ctEntry});
-    out.push({key:"T.exec.cross."+k, team:"T", type:"smoke", trigger:"exec", site:k, name:"кросс", from:g.tStage, to:mid(g.anchor, g.ctEntry)});
-    out.push({key:"T.exec.flash."+k, team:"T", type:"flash", trigger:"exec", site:k, name:"под пик энтри", from:g.tStage, to:mid(g.tEntry, st, 0.35)});
-    out.push({key:"T.exec.molly."+k, team:"T", type:"molly", trigger:"exec", site:k, name:"выжечь опорника / любимый угол", from:g.tStage, to:g.anchor});
-    out.push({key:"T.fake.smoke."+k, team:"T", type:"smoke", trigger:"setup", site:k, name:"фейк-смок (фейк на "+k+")", from:g.tStage, to:g.ctEntry});
-    out.push({key:"T.fake.flash."+k, team:"T", type:"flash", trigger:"setup", site:k, name:"фейк-флешка (фейк на "+k+")", from:g.tStage, to:mid(g.tEntry, st, 0.4)});
-    out.push({key:"T.pp.molly."+k, team:"T", type:"molly", trigger:"postplant", site:k, name:"на дефуз", from:g.tEntry, to:st.plant || st});
-    out.push({key:"CT.call.smoke."+k, team:"CT", type:"smoke", trigger:"call", site:k, name:"перекрыть вход", from:g.anchor, to:g.tEntry});
-    out.push({key:"CT.take.he."+k, team:"CT", type:"he", trigger:"exec", site:k, name:"в смок — не дать занять сайт", from:g.anchor, to:mid(g.tEntry, st, 0.35)});
-    out.push({key:"CT.retake.flash."+k, team:"CT", type:"flash", trigger:"retake", site:k, name:"ретейк", from:g.ctEntry, to:st.plant || st});
-    out.push({key:"CT.retake.smoke."+k, team:"CT", type:"smoke", trigger:"retake", site:k, name:"отрезать вход T", from:g.ctEntry, to:g.tEntry});
-  });
-  return out;
-}
 function drawLineups(){
   var show = chkLineups && chkLineups.checked; if(!show) return;
   ctx.save();
@@ -168,7 +147,7 @@ function saveZoneShape(id){
 }
 function rebuildAfterZoneShape(){
   if(zsRebuildTimer) clearTimeout(zsRebuildTimer);
-  zsRebuildTimer = setTimeout(function(){ zsRebuildTimer = null; spotCache = {}; _zbnCache = {}; applyZoneLayer(true); draw(); }, 150);
+  zsRebuildTimer = setTimeout(function(){ zsRebuildTimer = null; spotCache = {}; zoneNameCacheReset(); applyZoneLayer(true); draw(); }, 150);
 }
 document.getElementById("chkZoneShape").addEventListener("change", function(){
   document.getElementById("zoneShapeHint").style.display = this.checked ? "block" : "none"; draw();
@@ -193,20 +172,20 @@ function zoneShapeMouseDown(e){
   var w = navScreenToWorld(e.clientX, e.clientY), tol = 8/view.scale;
   for(var i=0;i<z.points.length;i++){
     if(Math.hypot(z.points[i].x-w.x, z.points[i].y-w.y) < tol){
-      if(e.shiftKey){ if(z.points.length > 3){ z.points.splice(i,1); ZIDX = null; saveZoneShape(z.id); draw(); } return true; }
+      if(e.shiftKey){ if(z.points.length > 3){ z.points.splice(i,1); zoneIndexReset(); saveZoneShape(z.id); draw(); } return true; }
       zsDrag = i; return true;
     }
   }
   for(var j=0;j<z.points.length;j++){
     var a = z.points[j], b2 = z.points[(j+1)%z.points.length];
-    if(segPtDist(w.x, w.y, a.x, a.y, b2.x, b2.y) < tol){ z.points.splice(j+1, 0, {x:w.x, y:w.y}); ZIDX = null; zsDrag = j+1; draw(); return true; }
+    if(segPtDist(w.x, w.y, a.x, a.y, b2.x, b2.y) < tol){ z.points.splice(j+1, 0, {x:w.x, y:w.y}); zoneIndexReset(); zsDrag = j+1; draw(); return true; }
   }
   return false;
 }
 cv.addEventListener("mousemove", function(e){
   if(zsDrag < 0 || !zoneNameSel) return;
   var z = zoneById(zoneNameSel); if(!z || !z.points[zsDrag]) return;
-  var w = navScreenToWorld(e.clientX, e.clientY); z.points[zsDrag].x = w.x; z.points[zsDrag].y = w.y; ZIDX = null; draw();
+  var w = navScreenToWorld(e.clientX, e.clientY); z.points[zsDrag].x = w.x; z.points[zsDrag].y = w.y; zoneIndexReset(); draw();
 });
 window.addEventListener("mouseup", function(){ if(zsDrag >= 0){ zsDrag = -1; if(zoneNameSel) saveZoneShape(zoneNameSel); } });
 var zoneNamePanel = document.getElementById("zoneNamePanel"), zoneNameInput2 = document.getElementById("zoneNameInput2");

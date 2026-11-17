@@ -51,6 +51,8 @@ function draw(){
   }
   drawLineups();
   lookDbgDraw();
+  if(typeof dvDraw === "function") dvDraw();   // (v571) раунд из демки — что решил бы бот (678)
+  if(typeof teamDbgPanel === "function") teamDbgPanel(false);   // (v566) разбор команды (612)
   if(showZones.checked) drawZoneShapeHandles();
   if(USER_ZONES.length || zoneDrawing){
     // user-drawn spawn/site zones (see zone editor above) — always shown
@@ -244,7 +246,8 @@ function draw(){
   var contacts = 0;
   // контакты для HUD — считаем всегда, независимо от отрисовки
   bots.forEach(function(ct){
-    if(ct.team!=="CT"||!ct.alive) return;
+    // (v560, В83: «плашка контакта остаётся после раунда») после конца раунда шаг игры стоит — `_visible` с последнего тика; контакта нет
+    if(ct.team!=="CT"||!ct.alive||roundState!=="live") return;
     // (v545, отметка владельца 10.11: T в Dark под этажом, CT над ним — «ОБНАРУЖЕН КОНТАКТ», хотя друг друга не видят) табличка считала прямую
     // по радару без высот (hasVision — 2D). Контакт — когда кто-то из пары правда видит другого (видимость ботов, 3D, _visible)
     bots.forEach(function(t){ if(t.team==="T" && t.alive && ((ct._visible||[]).indexOf(t) >= 0 || (t._visible||[]).indexOf(ct) >= 0)) contacts++; });
@@ -449,7 +452,7 @@ function draw(){
     // точке (~70мс), след гаснет; попадание — красный всплеск (в голову —
     // с белым кольцом), промах — пуля летит мимо цели дальше, до стены (искра)
     ctx.lineCap = "round";
-    var TS0 = BAL.tracerStyle;
+    var TS0 = true;
     for(var ti=tracers.length-1; ti>=0; ti--){
       var tr = tracers[ti];
       // (v414, М154) пока не прошёл следующий тик, стрелок и цель нарисованы со сглаживанием (отстают до тика) — трассер от них же, а не от
@@ -635,7 +638,7 @@ function draw(){
       if(i0 < P.length){
         ctx.strokeStyle = "rgba("+col+",0.85)"; ctx.lineWidth = 1.6*s1; ctx.beginPath(); ctx.moveTo(b.baseX, b.baseY);
         // (v541) идёт подъём — линия по самому подъёму (через промежуточный ящик), а не напрямую к следующей точке пути
-        var CL = b._climb; if(CL){ if(CL.mid && (tick - CL.t0)/CL.dur < 0.5) ctx.lineTo(CL.mid.x, CL.mid.y); ctx.lineTo(CL.to.x, CL.to.y); }
+        var CL = b._climb; if(CL){ if(CL.mid && climbPhase(CL).seg === 1) ctx.lineTo(CL.mid.x, CL.mid.y); ctx.lineTo(CL.to.x, CL.to.y); }
         for(var i = i0; i < P.length; i++) ctx.lineTo(P[i][0], P[i][1]);
         ctx.stroke();
         var pz = b.z;
@@ -746,11 +749,13 @@ function draw(){
     var uV = bot._underV || 0, oV = bot._overV || 0;
     // (v543) в прыжке (подъём из демок): тень на земле смещается вниз и кружок чуть больше — по высоте прыжка (дуга 4·q·(1−q), q — доля полёта)
     var CLd = bot._climb, airH = CLd && CLd.jump ? 4*(CLd.air || 0)*(1 - (CLd.air || 0)) : 0;
-    if(CLd && CLd.jump){ var sOff = (4 + 10*airH)/view.scale;
-      ctx.beginPath(); ctx.ellipse(rx + sOff*0.4, ry + sOff, r*(1 - 0.2*airH), r*0.55, 0, 0, Math.PI*2); ctx.fillStyle = "rgba(0,0,0,0.55)"; ctx.fill();   // тень на земле
-      r = r*(1 + 0.35*airH);   // (v548) заметнее: до +35 % (DESIGN.md, «Маркер игрока»)
+    // (v550, владелец 11.11: «сделай всё плавно») тень и пунктирный ободок проявляются и гаснут вместе с высотой прыжка (airH), а не включаются
+    // сразу; на остановке между двумя прыжками подъёма их нет
+    if(CLd && CLd.jump && airH > 0.01){ var sOff = (2 + 4*airH)/view.scale;   // (v551, владелец 11.11: «будто прыгает очень высоко») тень ближе
+      ctx.beginPath(); ctx.ellipse(rx + sOff*0.4, ry + sOff, r*(1 - 0.2*airH), r*0.55, 0, 0, Math.PI*2); ctx.fillStyle = "rgba(0,0,0,"+(0.55*Math.min(1, airH*2)).toFixed(3)+")"; ctx.fill();   // тень на земле
+      r = r*(1 + 0.12*airH);   // (v551, владелец 11.11: «слишком сильно масштаб увеличивается») до +12 % (было +35 %; DESIGN.md, «Маркер игрока»)
       ctx.beginPath(); ctx.arc(rx, ry, r + 3.5/view.scale, 0, Math.PI*2); ctx.setLineDash([3/view.scale, 2.5/view.scale]);
-      ctx.strokeStyle = "rgba(255,255,255,0.85)"; ctx.lineWidth = 1.4/view.scale; ctx.stroke(); ctx.setLineDash([]); }   // пунктирный ободок — «в воздухе»   // (v535) под / над другим этажом — доля 0..1, плавно (floorViewTick, 370)
+      ctx.strokeStyle = "rgba(255,255,255,"+(0.85*Math.min(1, airH*2)).toFixed(3)+")"; ctx.lineWidth = 1.4/view.scale; ctx.stroke(); ctx.setLineDash([]); }   // пунктирный ободок — «в воздухе»   // (v535) под / над другим этажом — доля 0..1, плавно (floorViewTick, 370)
     // прыжок / спрыгнул — стрелка у игрока на 0,6 с
     if(bot._jump && tick - bot._jump.t < 0.6*TICK_HZ){
       var jk = 1 - (tick - bot._jump.t)/(0.6*TICK_HZ), jy = bot._jump.up ? -1 : 1, jr = r + 7/view.scale;
@@ -783,12 +788,6 @@ function draw(){
     ctx.fillStyle = fillC; ctx.fill();
     ctx.lineWidth = (blindK > 0 ? 2 : smokeIn ? 2.2 : 1.5)/view.scale; ctx.strokeStyle = blindK > 0 ? "#fff" : smokeIn ? "#2b3029" : under ? "rgba(11,15,11,0.5)" : "#0b0f0b";
     if(smokeIn && !blindK) ctx.setLineDash([1.4/view.scale, 1.4/view.scale]); ctx.stroke(); ctx.setLineDash([]);
-    if(false){
-      var fx = rx + Math.cos(vf)*r*1.8;
-      var fy = ry + Math.sin(vf)*r*1.8;
-      ctx.strokeStyle = "#fff"; ctx.lineWidth = 2/view.scale;
-      ctx.beginPath(); ctx.moveTo(rx,ry); ctx.lineTo(fx,fy); ctx.stroke();
-    }
     var bw = 18/view.scale, bh = 2.5/view.scale;
     ctx.fillStyle = "rgba(0,0,0,0.5)"; ctx.fillRect(rx-bw/2, ry-r-8/view.scale, bw, bh);
     ctx.fillStyle = bot.hp>50 ? "#94b449" : (bot.hp>25 ? "#d9832f" : "#c1584f");
@@ -887,4 +886,5 @@ function draw(){
     ctx.restore();
   }
 }
-
+// (17.11) контур круга дыма / огня — рисование (перенесено из 360)
+function areaPath(o, r){ ctx.beginPath(); ctx.arc(o.x, o.y, r, 0, Math.PI*2); ctx.closePath(); }   // контур области для рисования

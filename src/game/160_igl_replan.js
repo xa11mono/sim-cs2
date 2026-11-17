@@ -18,13 +18,33 @@
 // забирает событие; решения по более старым событиям не принимаются. Решает и говорит IGL.
 function iglTake(tt, evTick){ if(evTick <= (tt._evDone||-1)) return false; tt._evDone = evTick; return true; }
 function carrierAtSite(tt){
-  if(!BAL.carrierStay || bomb.state !== "carried" || !bomb.carrier || !bomb.carrier.alive) return false;
+  if(bomb.state !== "carried" || !bomb.carrier || !bomb.carrier.alive) return false;
   var S = SITES[tt.site]; return Math.hypot(bomb.carrier.x-S.x, bomb.carrier.y-S.y) < 330 || onSite(S, bomb.carrier.x, bomb.carrier.y);
 }
+var CONT_SEC = 6, CONT_REGROUP = 6;   // с: решение о продолжении дефолта — за столько до выхода; перестроиться — столько (проектные числа)
 function tIglReplan(tt, site, other, secLeft){
   var DL = tt._dl || [], aliveT = aliveCount("T"), aliveCT = aliveCount("CT");
   if(bomb.state === "planted" || aliveT <= 1) return false;
   if(carrierAtSite(tt)) return false;
+  // (v561, этап 3 docs/tasks/PLAN_TACTICS_V2.md; PRO_PLAY §6з: «тактика — не маршрут, а начало + продолжения; продолжение — по тому, что узнали»)
+  // дефолт — начало: в конце фазы дефолта (defUntil — группа идёт на точку выхода; нет её — за CONT_SEC до выхода) IGL выбирает продолжение на этот сайт из выходов и сплитов набора — путь, который команда уже держит
+  // (свой в 250 px от точки пути), лучше; где команда знает свежего CT (300 px) — хуже; поровну — жребий. Группа перестраивается под него
+  // (выход — не раньше чем через CONT_REGROUP с). Тактика раунда в памяти матча — начало (tt.open)
+  if(tt.phase === "setup" && tt.tac.style === "default" && !tt._cont && tt.site === tt.tac.site && aliveT >= 3 && tt.execTick > tick && (tt.defUntil ? tick >= tt.defUntil : tt.execTick - tick <= CONT_SEC*TICK_HZ)){
+    tt._cont = tick;
+    var tsC = bots.filter(function(b){ return b.team === "T" && b.alive; }), BLc = beliefLast.T || {};
+    var contScore = function(t){ var sc = 0; t.groups.forEach(function(g){ (g.via || []).forEach(function(n){ var zp = zonePoint(n, site); if(!zp) return;
+      if(tsC.some(function(b){ return Math.hypot(b.x-zp.x, b.y-zp.y) < 250; })) sc += 1;
+      if(bots.some(function(o){ var e = BLc[o.id]; return o.alive && o.team === "CT" && e && tick - e.tick <= SITE_SEEN_SEC*TICK_HZ && Math.hypot(e.x-zp.x, e.y-zp.y) < 300; })) sc -= 2; }); }); return sc; };
+    var cands = T_TACTICS.filter(function(t){ return t.site === tt.site && (t.style === "exec" || t.style === "split") && t.groups && t.groups.length; });
+    var bestC = null, bsC = -Infinity;
+    cands.forEach(function(t, i){ var v = contScore(t) + hashRand(roundNum*271 + matchNum*13 + i)*0.5; if(v > bsC){ bsC = v; bestC = t; } });
+    if(bestC){
+      tt.open = tt.open || tt.tac; tt.tac = bestC; tt.execTick = Math.max(tt.execTick, tick + CONT_REGROUP*TICK_HZ);
+      voiceLog("T", "cont"+roundNum, "IGL", "после дефолта — "+bestC.name);
+      logEvent("IGL: дефолт → продолжение «"+bestC.name+"» (держим путь: "+Math.max(0, Math.round(bsC))+")");
+    }
+  }
   if(tt.phase === "setup"){
     var sd = DL.filter(function(e){ return e.t === "T" && e.phase === "setup"; });
     var last = sd[sd.length-1];
@@ -41,7 +61,7 @@ function tIglReplan(tt, site, other, secLeft){
     }
     // (0) сняли CT в сетапе, мы в большинстве — не спешим: контроль карты и
     // выход всей группой (не дарить размен, заходя по одному в спешке)
-    if(BAL.numbersPlay && !tt._upSlow && aliveT >= aliveCT + 1 && secLeft > 50){
+    if(!tt._upSlow && aliveT >= aliveCT + 1 && secLeft > 50){
       var cdS = DL.filter(function(e){ return e.t === "CT" && e.phase === "setup"; });
       var lastC = cdS[cdS.length-1];
       if(lastC && tick - lastC.tick < 2*TICK_HZ && iglTake(tt, lastC.tick)){
@@ -64,7 +84,7 @@ function tIglReplan(tt, site, other, secLeft){
     // (S8) слышим ротацию CT на наш сайт — можно перейти на другой. Но это
     // только чтение, не гарантия: IGL верит ему не всегда (~60%), и другой сайт
     // НЕ считается пустым — заходим туда обычным выходом, с гранатами и чеком углов
-    if(BAL.rotRead && !tt.rebound && !tt._rotDone && aliveT >= 3 && secLeft > 45 && tick % 16 === 0){
+    if(!tt.rebound && !tt._rotDone && aliveT >= 3 && secLeft > 45 && tick % 16 === 0){
       var RH = tt._rotH || (tt._rotH = {});
       teamIntel.T.sig.forEach(function(sg){ if((sg.type !== "spotted" && sg.type !== "sound") || !sg.id || sg.id === "?" || tick - sg.tick > 16) return;
         var h = RH[sg.id] || (RH[sg.id] = []); if(!h.length || sg.tick - h[h.length-1].tick >= TICK_HZ){ h.push({x:sg.x, y:sg.y, tick:sg.tick}); if(h.length > 3) h.shift(); } });
@@ -123,7 +143,6 @@ function fl2idx(b){ return bots.filter(function(o){ return o._midFlank && o._mid
 // upLook — куда смотрит верхняя). На Ancient так у B (T Lower + T Upper), а не Ruins: точка 560px по пути от сайта
 // попадала глубоко назад, выход шёл растянутой колонной через весь Ramp
 function bStageFix(){
-  if(!BAL.bStageLow) return;
   var SS = MAP.tactics.plays.stageSplit || {};
   for(var k in SS){
     var g = GEO[k]; if(!g || g._lowSet) continue;
@@ -136,7 +155,7 @@ function bStageFix(){
 }
 var AHEAD_GAP = 120;   // (v450) ед. карты: «уже впереди точки подготовки» — проектное число
 function stagePost(mem, k){
-  var g = GEO[k], opt = {rMax:200, minGap:50, hideFrom:[SITES[k], g.anchor], see:[g.tEntry], avoidNades: BAL.tAdapt ? tDeathSpots() : []};
+  var g = GEO[k], opt = {rMax:200, minGap:50, hideFrom:[SITES[k], g.anchor], see:[g.tEntry], avoidNades: tDeathSpots()};
   // (v450, владелец 28.10: м1 р6 — «почти вышли на B, у игрока 0 появляется якорь stageB, который ведёт назад. Зачем?») точка подготовки —
   // одна на всех, и кто уже прошёл дальше неё к сайту (после перекола, после дефолта), шёл назад «собираться». Теперь он ждёт там, где
   // стоит, — в укрытии рядом (≤ 160 ед., не видно с сайта и с якоря CT, видно вход), а выход начинается и от него. «Дальше» — ближе к сайту
@@ -151,7 +170,7 @@ function stagePost(mem, k){
     return false; });
   if(!mem.length) return;
   var SSk = (MAP.tactics.plays.stageSplit || {})[k];
-  if(SSk && BAL.bStageLow && g.tStageUp && mem.length >= 3){
+  if(SSk && g.tStageUp && mem.length >= 3){
     // двое-трое ниже, один-двое выше (Ancient B: T Lower → Ramp и T Upper → Rat/Dark): выход с двух сторон
     var nUp = mem.length >= 4 ? 2 : 1;
     var srt = mem.slice().sort(function(a, c){ return Math.hypot(a.x-g.tStageUp.x, a.y-g.tStageUp.y) - Math.hypot(c.x-g.tStageUp.x, c.y-g.tStageUp.y); });
@@ -189,13 +208,14 @@ function tSetSite(tt, site){
     if(old && old !== site && tg && (tg.indexOf("stage" + old) === 0 || tg.indexOf("sitehold" + old) === 0 || tg.indexOf("clear" + old) === 0 || (tg.indexOf("probe" + old) === 0))){ clearPost(b); if(b._probe) b._probe = null; }
     var t = b.nadeTask;
     if(old && old !== site && t && SITES[old] && Math.hypot(t.x-SITES[old].x, t.y-SITES[old].y) < Math.hypot(t.x-SITES[site].x, t.y-SITES[site].y)){
-      b.nadeTask = null; b.nadeQueue = null; if(b.post && taskProp(b.post.tag, "lineupTask")) clearPost(b);
+      nadeCancel(b, "igl-site"); if(b.post && taskProp(b.post.tag, "lineupTask")) clearPost(b);
     }
   });
 }
 // (v359, отметка владельца р4: «почему не занимают позиции под плант — Palace, Ramp…», лёрк zont1x стоял в Underpass) на время
 // после планта T встают на места про (набор карты pos.<сайт>.tPost — где про стоят после планта, по демкам), в пределах слышимости
 // дефуза; каждому — своё, ближайшее по пути. Раньше — любые укрытия в 300–620 ед. от бомбы, имена мест не учитывались
+var PP_SHIFT = 16, PP_SHIFT_R = 150;   // проектные: с между сменами места на постпланте (±30 %; v560 — 16, было 8: «часто меняется»), ед. — насколько далеко
 function ppTimeNamed(group, bp0, site, rMax){
   var P = POS[site] && POS[site].tPost; if(!P || !P.length) return false;
   // (v442, док владельца 27.10, р7: «их не слышно — отходим от бомбы», а встали на Firebox / A Trash у самой бомбы; замер: T ближе 150 к бомбе
@@ -203,8 +223,25 @@ function ppTimeNamed(group, bp0, site, rMax){
   var pts = []; P.forEach(function(n){ var zp = zonePoint(n, bp0); if(zp && Math.hypot(zp.x-bp0.x, zp.y-bp0.y) <= rMax && Math.hypot(zp.x-bp0.x, zp.y-bp0.y) >= 320 && !pts.some(function(q){ return Math.hypot(q.x-zp.x, q.y-zp.y) < 110; })) pts.push({n:n, x:zp.x, y:zp.y}); });
   if(!pts.length) return false;
   var used = {};
+  // (v555, отметка владельца м300 р3: «стоит и смотрит в одно место, не двигается — может стоять, но должен чуть чередовать: широко пикнул,
+  // никого — пошёл чекнул A Default / Stairs, постоял, вернулся») место «на время» держится PP_SHIFT с, потом — соседняя точка рядом с ним
+  // (до PP_SHIFT_R ед., откуда видно другой вход к бомбе, чем с прошлой), потом обратно; в контакте / при звуке дефуза — не меняет
+  var ppAlt = function(b, P){
+    var A = b._ppAlt; if(!A || A.round !== roundNum || A.i !== b._ppTN.i){ A = b._ppAlt = {round: roundNum, i: b._ppTN.i, t: tick + Math.round(PP_SHIFT*TICK_HZ*(0.7 + 0.6*hashRand(tick + b.id.charCodeAt(1)))), alt: null, on: false}; }
+    if(tick >= A.t && !b._sawEnemy && !b._contact && tick - (b._defuseHeard || -9999) > 2*TICK_HZ){
+      A.on = !A.on; A.t = tick + Math.round(PP_SHIFT*TICK_HZ*(0.7 + 0.6*hashRand(tick*3 + b.id.charCodeAt(1))));
+      if(A.on){ var E = threatEntrances("T", bp0, 350).slice(0, 4), cur = E.filter(function(e){ return hasLOS(P.x, P.y, e.pt.x, e.pt.y); });
+        var other = E.filter(function(e){ return cur.indexOf(e) < 0; }).map(function(e){ return e.pt; });
+        // (v560, В87, разбор владельца 11.11: «точки в открытых зонах под несколько выходов, а не в глубоких закрытых») соседняя точка — видит бомбу
+        // и один другой вход, а от остальных входов спрятана (а не «видит ещё вход» любой ценой)
+        var hideE = E.map(function(e){ return e.pt; }).filter(function(q){ return !other.length || q !== other[0]; });
+        A.alt = other.length ? (pickSpots("ppalt"+b.id+roundNum+A.i, {x:P.x, y:P.y}, 4, {rMin:40, rMax:PP_SHIFT_R, minGap:30, see:[other[0], bp0], hideFrom:hideE})
+          .filter(function(q){ return hasLOS(q.x, q.y, bp0.x, bp0.y) && hideE.filter(function(h){ return hasLOS(q.x, q.y, h.x, h.y); }).length <= 1; })[0] || null) : null; }
+    }
+    return A.on && A.alt ? A.alt : P;
+  };
   group.forEach(function(b){
-    var C = b._ppTN; if(C && C.round === roundNum && C.site === site && pts[C.i] && !used[C.i]){ used[C.i] = true; setPost(b, pts[C.i], bp0, true, "postplant:time:"+pts[C.i].n); return; }
+    var C = b._ppTN; if(C && C.round === roundNum && C.site === site && pts[C.i] && !used[C.i]){ used[C.i] = true; setPost(b, ppAlt(b, pts[C.i]), bp0, true, "postplant:time:"+pts[C.i].n); return; }
     var best = null, bd = Infinity;
     pts.forEach(function(q, i){ if(used[i]) return; var d = pathLenTo(b, q.x, q.y); if(d < bd){ bd = d; best = i; } });
     if(best == null) best = 0;   // мест меньше, чем игроков, — к ближайшему

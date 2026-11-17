@@ -3,11 +3,20 @@
 Каждый bake-скрипт берёт карту ключом --map <карта> (по умолчанию ancient) и читает/пишет data/maps/<карта>/.
 Рецепт карты — data/maps/<карта>/_build.json (в объект MAP не попадает: src/mapset.py пропускает файлы на «_»):
   * map.json-подобные сведения для скриптов: перевод координат демок, точки сайтов, названия мест для отчётов;
-  * какие шаги tools/map_build.py делает для этой карты, а какие файлы набора заморожены (и почему).
+  * какие шаги tools/map/map_build.py делает для этой карты, а какие файлы набора заморожены (и почему).
 """
 import json, os, sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+TOOL_GROUPS = ('map', 'ct', 'pro', 'marks', 'logs', 'motion', 'page')   # (15.11) скрипты tools/ разложены по группам
+
+
+def tool(name):
+    """Путь к скрипту tools/ по имени файла — в своей группе или в корне tools/."""
+    t = os.path.join(ROOT, 'tools')
+    for g in TOOL_GROUPS:
+        if os.path.exists(os.path.join(t, g, name)): return os.path.join(t, g, name)
+    return os.path.join(t, name)
 sys.path.insert(0, os.path.join(ROOT, 'src'))
 from mapset import map_arg  # noqa: E402,F401  (то же правило --map, что у сборки страницы)
 
@@ -28,7 +37,7 @@ def current():
 
 
 def set_current(name):
-    """для tools/map_build.py: вызвать bake-модуль как функцию для заданной карты"""
+    """для tools/map/map_build.py: вызвать bake-модуль как функцию для заданной карты"""
     _CUR[:] = [name]
 
 
@@ -98,7 +107,7 @@ def pro_dir(name):
 
 def site_points(name):
     """центры сайтов {'A': (x, y), 'B': (x, y)} для правил «у сайта»: nadeSites рецепта (у Ancient — числа из
-    tools/lineups.py, как было), иначе — точки зон с ролями Asite/Bsite (zones.json набора)"""
+    tools/pro/lineups.py, как было), иначе — точки зон с ролями Asite/Bsite (zones.json набора)"""
     R = recipe(name)
     if 'nadeSites' in R:
         return {k: tuple(v) for k, v in R['nadeSites'].items()}

@@ -1,0 +1,20 @@
+paused=true; var U=PX_UNITS, D={}, sv=[], shotT={};
+var oT=tryShoot; tryShoot=function(b,t,d){ var l=b.lastShotTick; var r=oT.apply(this,arguments); if(b.lastShotTick!==l){ if(b.weapon && b.weapon.slot==='primary' && !b.weapon.scoped){ var kk=b.burstCount===1?'1':(b.burstCount<=3?'23':'4'); DB[kk][0]++; if(b.crouching) DB[kk][1]++; } (shotT[b.id+'|'+MID]||(shotT[b.id+'|'+MID]=[])).push(tick); if(b.burstCount===1 && b.weapon && b.weapon.slot==='primary' && !b.weapon.scoped){ var A=D[b.id+'|'+MID]; var n=A?A.v.length:0; sv.push([Math.max(b.curSpeed||0,Math.abs((b._keys||{}).v||0))*U, n>32?A.v[n-32]:0]); } } return r; };
+var MID=0, DB={'1':[0,0],'23':[0,0],'4':[0,0]};
+__M__.forEach(function(M){ MID=M; freshMatch(M); var R0=roundNum; while(roundNum<R0+6 && roundState!=='matchover'){ stepTick(); if(roundState!=='live') continue;
+ bots.forEach(function(b){ var k=b.id+'|'+M, A=D[k]||(D[k]={t:[],v:[],lat:[],f:[],w:[],c:[],x:b.x,y:b.y}); if(!b.alive){ A.x=null; return; }
+  if(A.x==null){A.x=b.x;A.y=b.y;}
+  var vx=(b.x-A.x)*U*64, vy=(b.y-A.y)*U*64, f=b.facing||0; A.t.push(tick); A.v.push(Math.hypot(vx,vy)); A.lat.push(Math.cos(f)*vy-Math.sin(f)*vx); A.f.push(f); A.w.push(b.walking?1:0); A.c.push(b.crouching?1:0); var J=b._keys, F=b._fc, key=0; if(J&&J.ctx&&J.key) key=J.key; else if(F&&F.own&&F.sv!==undefined){ var pv=A.psv||0; if(Math.abs(F.sv)<Math.abs(pv)-0.01) key=pv>0?1:-1; else if(Math.abs(F.sv)>=1) key=F.sv>0?1:-1; A.psv=F.sv; } else A.psv=0; (A.k||(A.k=[])).push(key); A.x=b.x; A.y=b.y; }); } });
+var AS={}, AR={}, KK={}, T={}, SW={}, HL={}, still=0, fr=0, fl=0, fls=[], fld=[], walk=0, duck=0, al=0;
+function q(a,p){ a=a.slice().sort((x,y)=>x-y); return a.length?a[Math.min(a.length-1,Math.floor(p*a.length))]:null; }
+Object.keys(D).forEach(function(k){ var A=D[k], n=A.t.length, st=shotT[k]||[], near=new Uint8Array(n), si=0;
+ for(var i=0;i<n;i++){ while(si<st.length && st[si]<A.t[i]-96) si++; if(si<st.length && st[si]<=A.t[i]+96) near[i]=1; }
+ var last=0, lt=null, run=0, side=0, fk=null;
+ for(var i=0;i<n;i++){ var cont=i>0 && A.t[i]-A.t[i-1]===1; var v=A.v[i]; var c=near[i]?'fight':(v<100?'hold':(v<200?'walk':'run')); T[c]=(T[c]||0)+1; if(A.k[i]) KK[c]=(KK[c]||0)+1; al++; walk+=A.w[i]; duck+=A.c[i];
+  if(!cont){ last=0; lt=null; run=0; continue; }
+  var s=A.k[i];
+  if(s && s!==last){ if(last && lt!=null && A.t[i]-lt<40) SW[c]=(SW[c]||0)+1; last=s; lt=A.t[i]; }
+  if(s) run++; else if(run){ (HL[c]||(HL[c]=[])).push(run); run=0; }
+  var dy=Math.abs(((A.f[i]-A.f[i-1]+Math.PI)%(2*Math.PI)+2*Math.PI)%(2*Math.PI)-Math.PI)*180/Math.PI*64; fr++; if(dy<5) still++; AS[c]=AS[c]||[0,0]; AS[c][0]++; if(dy<5) AS[c][1]++; if(i%16===0) (AR[c]||(AR[c]=[])).push(Math.round(dy));
+  if(dy>300){ if(!fk) fk={i:i,a0:A.f[i-1]}; } else if(fk && dy<60){ var size=Math.abs(((A.f[i]-fk.a0+Math.PI)%(2*Math.PI)+2*Math.PI)%(2*Math.PI)-Math.PI)*180/Math.PI; if(size>10){fl++; fls.push(size); fld.push((i-fk.i)/64);} fk=null; } } });
+JSON.stringify({AS:AS,AR:AR,DB:DB,T:T,KK:KK,SW:SW,HL:HL,sv:sv,still:still,fr:fr,fl:fl,fls:fls,fld:fld,walk:walk,duck:duck,al:al})

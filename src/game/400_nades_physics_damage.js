@@ -36,16 +36,16 @@ function nadeOrigin(n){
 }
 function detonate(n){
   var T = n.type;
-  if(SND && SND.on) sndNade(T, n.x, n.y);
+  soundEv("sndNade", T, n.x, n.y);
   if(T !== "decoy") nadeOrigin(n);
   // (11) гранаты видно/слышно: где разорвалась граната врага — это инфа о его плане
-  if(BAL.tacRead && roundState === "live" && T !== "decoy"){ var foeT = n.team === "T" ? "CT" : "T"; var NS = teamIntel[foeT].nadeSeen || (teamIntel[foeT].nadeSeen = []); NS.push({x:n.x, y:n.y, type:T, tick:tick}); if(NS.length > 30) NS.shift(); }
-  if(T === "smoke"){ exuLanded(n, false); smokes.push({x:n.x, y:n.y, born:tick, until:tick+NADE.smoke.life, team:n.team}); if(BAL.smokeReact) smokeShiftOnDetonate(smokes[smokes.length-1]); }
+  if(roundState === "live" && T !== "decoy"){ var foeT = n.team === "T" ? "CT" : "T"; var NS = teamIntel[foeT].nadeSeen || (teamIntel[foeT].nadeSeen = []); NS.push({x:n.x, y:n.y, type:T, tick:tick}); if(NS.length > 30) NS.shift(); }
+  if(T === "smoke"){ exuLanded(n, false); smokes.push({x:n.x, y:n.y, born:tick, until:tick+NADE.smoke.life, team:n.team}); smokeShiftOnDetonate(smokes[smokes.length-1]); }
   else if(T === "molly"){
     // молотов, упавший в дым или рядом так, что огонь касается дыма, гаснет (как в CS2 — наоборот тоже: дым тушит огонь;
     // v321, М12: «чуть касается смока — тушится»)
     if(!smokes.some(function(s){ return Math.hypot(s.x-n.x, s.y-n.y) < smokeRadiusNow(s) + NADE.molly.radius*MOLLY_SMOKE_TOUCH; }))
-    { fires.push({x:n.x, y:n.y, born:tick, until:tick+NADE.molly.life, team:n.team, thrower:n.thrower}); fireRepath(n.x, n.y);
+    { fires.push({x:n.x, y:n.y, z:n.z != null ? visFloorAt(n.x, n.y, n.z) : null, born:tick, until:tick+NADE.molly.life, team:n.team, thrower:n.thrower}); fireRepath(n.x, n.y);   // (v555) z — пол, где горит (fireTouches, 370)
       // (v506, владелец 04.11: «инфа про молотов — просто знали, что кинули молотов, но чтобы это никуда не уводило») враг, который видит
       // огонь, говорит в войс «молотов на …» — только колл в панель войса: знание о врагах и решения не меняются (где разорвалась граната
       // врага, команда и так помнит — nadeSeen выше)
@@ -68,9 +68,9 @@ function detonate(n){
       if(!warned){
         // увернуться можно, только если знал о флешке (видел/слышал бросок);
         // поп-флешка из-за стены почти всегда застаёт врасплох
-        var pD = BAL.flashAware ? ((n.aware && n.aware[b.id]) ? 0.5 + 0.3*prof(b, "disc") + 0.1*(b.skill-0.8)/0.4 : 0.3) : 0.25 + 0.3*(b.skill-0.8)/0.4;
+        var pD = ((n.aware && n.aware[b.id]) ? 0.5 + 0.3*prof(b, "disc") + 0.1*(b.skill-0.8)/0.4 : 0.3);
         var dodge = hashRand(tick*29 + b.id.charCodeAt(0)*13 + b.id.length*7) < pD;
-        if(dodge){ dirK *= 0.3; if(BAL.flashAware && dirK > 0.1) logEvent(b.id+" отвернулся от флешки"); }
+        if(dodge){ dirK *= 0.3; if(dirK > 0.1) logEvent(b.id+" отвернулся от флешки"); }
       }
       var secs = BAL.flashMax * dirK * Math.max(0, 1 - d/1100);
       // свои, кто знает про флешку (бросил сам / колл «флешу!»), отворачиваются — слепит их редко и слабо
@@ -80,12 +80,12 @@ function detonate(n){
         b.blindUntil = Math.max(b.blindUntil, tick + Math.round(secs*TICK_HZ)); if(n.thrower && n.thrower.team !== b.team) b._blindBy = n.thrower.id;
         b.contactStreak = 0; b._ts = {}; b.lastIntel = null;
         if(secs > 1.2) logEvent(b.id+" ослеплён"+(b.team===n.team?" своей флешкой":"")+" ("+secs.toFixed(1)+"с)");
-        if(BAL.blindPlay && b.team !== n.team && secs > 0.8) onBlind(b, lkBefore || {x:n.x, y:n.y});
+        if(b.team !== n.team && secs > 0.8) onBlind(b, lkBefore || {x:n.x, y:n.y});
       }
     });
   }
   else if(T === "he"){
-    if(BAL.heClearsSmoke) smokes.forEach(function(sm){
+    smokes.forEach(function(sm){
       if(Math.hypot(sm.x-n.x, sm.y-n.y) < NADE.smoke.radius + 40){ sm.holeLen = Math.round(1.3*TICK_HZ); sm.holeUntil = tick + sm.holeLen;
         logEvent("HE разогнал смок "+calloutName(sm.x, sm.y)); }
     });
@@ -110,6 +110,7 @@ function detonate(n){
 // (…_grenade_self); молотов ×0,4 — как «прочее» (ff_damage_reduction_other): к какой группе огонь относится, источника
 // нет — проектное число. Убил своего — −$300 (cash_player_killed_teammate), фраг не засчитан.
 var FF_MUL = {bullet: 0.33, HE: 0.85, "молотов": 0.4};
+var FILL_FUNC_R = 300;   // (v561, этап 5) px: держать линию погибшего — с места не дальше этого от его точки (проектное число)
 var FILL_NEAR = 900;   // (v359) подмена «под боком» — путь до места погибшего, ед. карты (проектное число)
 var FF_TK_CASH = -300;
 // Урон и смерть — одно место для пуль, HE и молотова. o: {wkey, hs, reward, mods, note}. Вернёт true, если убил.
@@ -131,6 +132,7 @@ function armorSoak(b, raw, ratio, src){
 }
 var HURT_SND_GAP = 32;   // (v546) тиков (0,5 с) — проектное число
 function applyDamage(att, b, dmg, src, o){
+  if(DEMOV.on && !DEMOV.allow) return false;   // (v571) раунд из демки: урон — только смерти демки (678)
   o = o || {};
   if(!b.alive || dmg <= 0) return false;
   var foe = att && att.team !== b.team ? att : null, mate = att && att !== b && att.team === b.team;
@@ -155,7 +157,7 @@ function applyDamage(att, b, dmg, src, o){
   b.alive = false; b.deaths++; b._killer = att && att !== b ? att.id : null;   // (v330) кто убил — для обсервера (показ)
   dropWeaponOnDeath(b);
   b.primary = null; b.secondary = b.team==="CT" ? "USP" : "GLOCK"; b.armor = false; b.helmet = false; b.armorHp = 0; b.kit = false;
-  b.planting = false; b.defusing = false; b.nades = emptyNades(); b.nadeTask = null; b.nadeQueue = null;
+  b.planting = false; b.defusing = false; b.nades = emptyNades(); nadeCancel(b, "death");
   dropBomb(b);
   intelDeath(b, foe);   // своего убил свой — в войсе «минус», без «убил X»: враг тут ни при чём
   if(foe){ LOOK_REPLAN[foe.team] = true; foe._killHowT = tick; }   // _killHowT — для обсервера (показ)
@@ -181,6 +183,10 @@ function flashDirK(b, n){
   if(d > 1000 || !flashSeen(b, n)) return 0;
   var a = Math.atan2(n.y-b.y, n.x-b.x);
   var off = b.facing === undefined ? 0 : Math.abs(((a - b.facing + Math.PI) % (2*Math.PI) + 2*Math.PI) % (2*Math.PI) - Math.PI);
+  // (v554, владелец 11.11: «что там с углом обзора») угол — в 3D: разрыв высоко над головой / под ногами — не «прямо в лицо», хотя по радару
+  // направление то же (взгляд — по горизонтали, глаза на высоте роста)
+  if(n.z != null){ var K = MAP.pxUnits || 2.5, hd = Math.hypot(n.x-b.x, n.y-b.y)*K, vd = n.z - (visFloorAt(b.x, b.y, b.z) + VIS_EYE.stand);
+    off = Math.acos(Math.max(-1, Math.min(1, Math.cos(off)*hd/Math.max(1e-6, Math.hypot(hd, vd))))); }
   return off < 0.55 ? 1 : (off < 1.6 ? 0.5 : 0.12);  // смотрел прямо / краем глаза / спиной
 }
 function flashSeen(b, n){
@@ -206,7 +212,7 @@ function nadesTick(){
     // клеток 2D-сетки удалены
     var nb0 = n.bounces.length, how = nadeStep(n, nTr);
     var R = m3Radar(m3(), n.p[0], n.p[1]); n.x = R[0]; n.y = R[1]; n.z = n.p[2];
-    if(n.bounces.length > nb0 && SND && SND.on) sndNade("bounce", n.x, n.y);
+    if(n.bounces.length > nb0) soundEv("sndNade", "bounce", n.x, n.y);
     if(tick % 2 === 0){ n.trail.push([n.x, n.y, n.z]); if(n.trail.length > 40) n.trail.shift(); }
     if(!how) continue;
     nadesInAir.splice(i,1);
@@ -219,14 +225,14 @@ function nadesTick(){
     var fr = fires[f];
     if(tick >= fr.until){ fires.splice(f,1); fireGoneRepath(fr); continue; }
     // дым, раскрывшийся на огне, тушит его
-    if(smokes.some(function(sm){ return Math.hypot(sm.x-fr.x, sm.y-fr.y) < smokeRadiusNow(sm) + NADE.molly.radius*MOLLY_SMOKE_TOUCH; })){ if(SND && SND.on) sndNade("extinguish", fr.x, fr.y); fires.splice(f,1); fireGoneRepath(fr); continue; }
+    if(smokes.some(function(sm){ return Math.hypot(sm.x-fr.x, sm.y-fr.y) < smokeRadiusNow(sm) + NADE.molly.radius*MOLLY_SMOKE_TOUCH; })){ soundEv("sndNade", "extinguish", fr.x, fr.y); fires.splice(f,1); fireGoneRepath(fr); continue; }
     bots.forEach(function(b){
       if(!b.alive) return;   // (v263, Б1) огонь жжёт и своих — множитель в applyDamage
-      if(fireTouches(fr, b.x, b.y)){
+      if(fireTouches(fr, b.x, b.y, b.z)){
         // (v323, М35) урон за удар растёт 1 → 8, удар раз в 0,2 с — чем дольше в огне, тем сильнее (fireDamageFor)
         if(!b._fireIn || b._fireIn.f !== fr){ b._fireIn = {f:fr, t:tick, hits:0}; }
         var hitsNow = Math.floor((tick - b._fireIn.t)/TICK_HZ/FIRE_HIT_SEC);
-        while(b._fireIn.hits < hitsNow && b.alive){ b._fireIn.hits++; if(SND && SND.on && b._fireIn.hits % 3 === 1) sndBody("burn", b.x, b.y); applyDamage(fr.thrower, b, Math.min(FIRE_HIT_MAX, b._fireIn.hits), "молотов", {from:{x:fr.x, y:fr.y}}); }
+        while(b._fireIn.hits < hitsNow && b.alive){ b._fireIn.hits++; if(b._fireIn.hits % 3 === 1) soundEv("sndBody", "burn", b.x, b.y); applyDamage(fr.thrower, b, Math.min(FIRE_HIT_MAX, b._fireIn.hits), "молотов", {from:{x:fr.x, y:fr.y}}); }
       } else if(b._fireIn && b._fireIn.f === fr){ b._fireIn = null; }
     });
   }

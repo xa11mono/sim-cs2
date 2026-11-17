@@ -25,7 +25,7 @@ var WEAPONS = {
   GLOCK:  {name:"Glock-18",    slot:"secondary", side:"T",    price:200,  tier:0, range: 700, dmg:30,  armorPen:0.47,  rm:0.85, rpm:400, mag:20, reload:2.2, stand:6.0, move:13,  recoil:4,  spam:11, recov:22, killReward:300},
   USP:    {name:"USP-S",       slot:"secondary", side:"CT",   price:200,  tier:0, range: 750, dmg:35,  armorPen:0.505, rm:0.99, rpm:352, mag:12, reload:2.2, stand:3.7, move:11,  recoil:5,  spam:12, recov:22, killReward:300},
   P250:   {name:"P250",        slot:"secondary", side:"both", price:300,  tier:1, range: 750, dmg:38,  armorPen:0.64,  rm:0.85, rpm:400, mag:13, reload:2.2, stand:6.2, move:13,  recoil:6,  spam:14, recov:24, killReward:300},
-  // (v271) Dual Berettas — у про CT на пистолетке 24% (tools/buy_pro.py); цена/урон/пробитие/темп/магазин/перезарядка/
+  // (v271) Dual Berettas — у про CT на пистолетке 24% (tools/pro/buy_pro.py); цена/урон/пробитие/темп/магазин/перезарядка/
   // дальность — csdb.gg; точность (stand/move/recoil/spam/recov) — как у P250, проектное число
   ELITE:  {name:"Dual Berettas",slot:"secondary",side:"both", price:300,  tier:1, range: 700, dmg:38,  armorPen:0.52,  rm:0.79, rpm:500, mag:30, reload:3.8, stand:6.2, move:13,  recoil:6,  spam:14, recov:24, killReward:300},
   TEC9:   {name:"Tec-9",       slot:"secondary", side:"T",    price:500,  tier:2, range: 700, dmg:33,  armorPen:0.906, rm:0.83, rpm:500, mag:18, reload:2.5, stand:7.0, move:14,  recoil:6,  spam:12, recov:20, killReward:300},
@@ -157,7 +157,7 @@ function buildRoamRoutes(){
     ROAM_ROUTES[team] = user.length >= 2 ? user : buildAutoRoamRoute(team);
     ROAM_ROUTES[team].forEach(function(p){ p.cleared = -99999; });
   });
-  bots.forEach(function(b){ if(b.role==="roamer"){ b.roamIdx = 0; b.roamChecking = false; b.roamTarget = null; b.path = []; b.pathIdx = 0; } });
+  bots.forEach(function(b){ if(b.role==="roamer"){ b.roamIdx = 0; b.roamChecking = false; b.roamTarget = null; movePath(b, [], "roam-routes"); b.pathIdx = 0; } });
 }
 function initRoam(b){
   b.roamIdx = 0; b.roamChecking = false; b.roamCheckUntil = 0; b.roamCheckStart = 0;

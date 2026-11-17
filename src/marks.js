@@ -83,7 +83,7 @@ function mkUnpack(text){
 // открыть момент из снимка отметки: вся игра ровно как в момент нажатия
 function mkOpenSnap(text){
   mkRestore(mkUnpack(text));
-  paused = true; MK.cps = []; MK.cpMatch = matchNum; MK.lastCpTick = -1;
+  clockPause(true); MK.cps = []; MK.cpMatch = matchNum; MK.lastCpTick = -1;
 }
 // «отпечаток» настроек: если стены/зоны/лайнапы/переключатели поменялись — матч пойдёт иначе
 function mkFp(){
@@ -120,7 +120,7 @@ function mkAfterTicks(){
 // перемотка: ближайший снимок не позже цели (или начало матча) → быстрый пересчёт до тика
 function mkGoTo(match, target, done){
   if(MK.busy) return;
-  MK.busy = true; paused = true; mkPauseLabel();
+  MK.busy = true; clockPause(true); mkPauseLabel();
   var fp = mkFp(), cp = null;
   if(match === matchNum) MK.cps.forEach(function(c){ if(c.fp === fp && c.match === match && c.tick <= target && (!cp || c.tick > cp.tick)) cp = c; });
   if(match === matchNum && tick <= target && (!cp || tick >= cp.tick)){ /* идём вперёд от текущего */ }
@@ -139,7 +139,7 @@ function mkGoTo(match, target, done){
       prog.textContent = "Пересчитываю матч " + match + "… " + Math.round(100*(tick-from)/total) + "%";
       setTimeout(step, 0); return;
     }
-    prog.style.display = "none"; MK.busy = false; paused = true; mkPauseLabel();
+    prog.style.display = "none"; MK.busy = false; clockPause(true); mkPauseLabel();
     if(done) done(tick === target && matchNum === match);
   }
   step();
@@ -168,7 +168,7 @@ function mkState(){
         wallAhead: ray.wall ? Math.round(Math.hypot(ray.x-b.x, ray.y-b.y)) : null,
         lookReason: b.lookReason || "", why: whyText(b),
         sees: (b._visible || []).map(function(e){ return e.id; }), moving: b.curSpeed > 15*SPD_K,
-        log: (b._dlog || []).map(function(e){ return Math.round((e[0]-tick)/TICK_HZ*10)/10 + " с · " + e[1] + ": " + e[2]; }),   // (v384) журнал решений за 15 с
+        log: (b._dlog || []).concat(b._dlog2 || []).sort(function(x, y){ return x[0] - y[0]; }).map(function(e){ return Math.round((e[0]-tick)/TICK_HZ*10)/10 + " с · " + e[1] + ": " + e[2]; }),   // (v384) журнал решений за 15 с; (15.11) + бой и ход
         // (v385) вспомогательное по игроку: роль, задача места и её уровень, граната в задаче, гранаты, деньги, броня
         role: b.tRole || "", task: b.post ? String(b.post.tag) : "", taskLv: b._task ? b._task.lv : null,
         nadeTask: b.nadeTask ? b.nadeTask.type + " — " + (b.nadeTask.why || "") : "", nades: b.nades ? {smoke: b.nades.smoke, flash: b.nades.flash, he: b.nades.he, molly: b.nades.molly} : null,
@@ -253,7 +253,7 @@ function mkUrlToBlob(url){ var p = url.split(","), bin = atob(p[1]), u = new Uin
 function mkEl(id){ return document.getElementById(id); }
 function mkEsc(t){ return String(t == null ? "" : t).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c]; }); }
 function mkToast(t){ var el = mkEl("mkToast"); el.textContent = t; el.style.display = "block"; clearTimeout(MK._tt); MK._tt = setTimeout(function(){ el.style.display = "none"; }, 4000); }
-// (v401) снимок за 15–25 с до отметки — по нему в чате проигрывается история до момента (tools/mark_story.js): что было до, что
+// (v401) снимок за 15–25 с до отметки — по нему в чате проигрывается история до момента (tools/marks/mark_story.js): что было до, что
 // перебило, как менялись веса зон. Чекпоинты пишутся каждые 10 с (CP_EVERY); MK_PRE_SEC — проектное число (= журнал решений DLOG_SEC)
 var MK_PRE_SEC = 15;
 function mkPreSnap(){
@@ -266,7 +266,7 @@ function mkStart(){
   if(MK.busy) return;
   if(typeof WARM !== "undefined" && WARM.on){ mkToast("Разминка — отметки только в матче"); return; }   // (v521) снимок разминки не открывается как матч
   if(MK.cur){ mkEl("mkText").focus(); return; }
-  paused = true; mkPauseLabel();
+  clockPause(true); mkPauseLabel();
   MK.cur = { snap: mkSnapshot(), state: mkState(), match: matchNum, tick: tick, round: roundNum, roundTime: Math.round((simTime - roundStartTime)*10)/10,
              fp: mkFp(), bot: null, text: "", want: "", category: "Взгляд", priority: "normal", pre: mkPreSnap() };
   MK.cur.screenP = mkScreen();   // (v385) весь экран — до того, как открылась панель отметки
@@ -279,7 +279,7 @@ function mkStart(){
 }
 function mkClock(s){ s = Math.max(0, Math.round(s)); return Math.floor(s/60) + ":" + ("0" + (s%60)).slice(-2); }
 function mkClose(){ MK.cur = null; MK.pick = false; mkEl("mkPanel").style.display = "none"; }
-// (v397, М147) отметка сохраняется сразу — без разбора нейросетью на странице; разбор — в чате по снимку (tools/mark_open.js)
+// (v397, М147) отметка сохраняется сразу — без разбора нейросетью на странице; разбор — в чате по снимку (tools/marks/mark_open.js)
 async function mkSubmit(){
   var m = MK.cur; if(!m) return;
   m.text = mkEl("mkText").value.trim(); m.want = mkEl("mkWant").value.trim(); m.category = mkEl("mkCat").value; m.priority = mkEl("mkPrioU").checked ? "urgent" : "normal";
@@ -337,10 +337,16 @@ function mkJump(d){
   mkEl("mkList").style.display = "none";
   if(!d.snapAsset){ mkToast("У этой отметки нет снимка игры (сделана до v175) — открыть точно нельзя"); return; }
   if(MK.busy) return;
-  MK.busy = true; paused = true; mkPauseLabel();
-  fetch("/_blob/" + d.snapAsset).then(function(r){ if(!r.ok) throw new Error("HTTP " + r.status); return r.text(); })
-    .then(function(t){ mkOpenSnap(t); MK.busy = false; mkPauseLabel();
-      mkToast("Отметка: матч " + d.match + ", раунд " + d.round + ", " + mkClock(d.roundTime) + " — открыта из снимка"); })
+  MK.busy = true; clockPause(true); mkPauseLabel();
+  // (15.11, замечание владельца: «кликнул отметку — тот же раунд, приходится мотать назад 10 с, чтобы пересчитался») снимок в момент
+  // отметки уже несёт принятое (ошибочное) решение — новый код его не пересматривает. Есть снимок за MK_PRE_SEC до — открываем его и
+  // пересчитываем до момента отметки кодом этой страницы (решения принимаются заново); нет — как раньше, снимок момента.
+  var pre = !!d.preSnapAsset && d.preTick != null && d.preTick < d.tick;
+  fetch("/_blob/" + (pre ? d.preSnapAsset : d.snapAsset)).then(function(r){ if(!r.ok) throw new Error("HTTP " + r.status); return r.text(); })
+    .then(function(t){ mkOpenSnap(t); MK.busy = false;
+      var msg = "Отметка: матч " + d.match + ", раунд " + d.round + ", " + mkClock(d.roundTime);
+      if(!pre){ mkPauseLabel(); mkToast(msg + " — открыта из снимка момента (снимка до нет — пересчёта нет)"); return; }
+      mkGoTo(matchNum, d.tick, function(ok){ mkToast(msg + (ok ? " — пересчитана этой версией с " + Math.round((d.tick - d.preTick)/TICK_HZ) + " с до отметки" : " — пересчёт не удался")); }); })
     .catch(function(e){ MK.busy = false; mkToast("Не удалось открыть снимок отметки: " + (e && e.message)); });
 }
 function mkCopyAll(){

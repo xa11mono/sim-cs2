@@ -14,6 +14,17 @@
     --sh-pop:0 1px 0 rgba(255,255,255,.05) inset, 0 18px 40px -12px rgba(0,0,0,.65), 0 2px 6px rgba(0,0,0,.4);
     --ease:cubic-bezier(.2,.8,.2,1); --ease-in:cubic-bezier(.5,0,.75,0); --spring:cubic-bezier(.34,1.5,.64,1);
     --d1:120ms; --d2:180ms; --d3:280ms;
+    /* (v571) 3D-вид (DESIGN.md, «3D-вид»): холст, пол, бортик пола, ящики и стены, рёбра; v573 — рельеф (скалы), срез стен «крышка» */
+    --v3-bg:#0b0d0a; --v3-floor:#2e3430; --v3-floor-side:#141713; --v3-prop:#c4c8bb; --v3-edge:#f6f8f1; --v3-rock:#9ea395; --v3-cap:#eef0e8;
+    --i-3d:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23000%22 stroke-width=%222.2%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpath d=%22M12 3 20 7.5v9L12 21l-8-4.5v-9z%22/%3E%3Cpath d=%22M4 7.5 12 12l8-4.5M12 12v9%22/%3E%3C/svg%3E");
+    --i-lock:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23000%22 stroke-width=%222.2%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Crect x=%225%22 y=%2211%22 width=%2214%22 height=%2210%22 rx=%222%22/%3E%3Cpath d=%22M8 11V8a4 4 0 0 1 8 0v3%22/%3E%3C/svg%3E");
+    --i-zin:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23000%22 stroke-width=%222.2%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Ccircle cx=%2211%22 cy=%2211%22 r=%226.5%22/%3E%3Cpath d=%22M20 20l-4.4-4.4M11 8v6M8 11h6%22/%3E%3C/svg%3E");
+    --i-zout:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23000%22 stroke-width=%222.2%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Ccircle cx=%2211%22 cy=%2211%22 r=%226.5%22/%3E%3Cpath d=%22M20 20l-4.4-4.4M8 11h6%22/%3E%3C/svg%3E");
+    --i-rot:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23000%22 stroke-width=%222.2%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpath d=%22M4 12a8 8 0 1 0 2.4-5.7%22/%3E%3Cpath d=%22M4 4v4.5h4.5%22/%3E%3C/svg%3E");
+    --i-xray:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23000%22 stroke-width=%222.2%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Crect x=%223.5%22 y=%225%22 width=%2211%22 height=%2211%22 rx=%221%22/%3E%3Crect x=%229.5%22 y=%229%22 width=%2211%22 height=%2211%22 rx=%221%22 stroke-dasharray=%222.5 2%22/%3E%3C/svg%3E");
+    --i-walls:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23000%22 stroke-width=%222.2%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpath d=%22M4 20V8l8-4 8 4v12%22/%3E%3Cpath d=%22M4 20h16M9 20v-5h6v5%22/%3E%3C/svg%3E");
+    --i-fp:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23000%22 stroke-width=%222.2%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Ccircle cx=%2212%22 cy=%2212%22 r=%227.5%22/%3E%3Cpath d=%22M12 2.5v4M12 17.5v4M2.5 12h4M17.5 12h4%22/%3E%3C/svg%3E");
+    --i-top:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23000%22 stroke-width=%222.2%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Crect x=%224.5%22 y=%224.5%22 width=%2215%22 height=%2215%22 rx=%221.5%22/%3E%3Cpath d=%22M4.5 12h15M12 4.5v15%22 opacity=%22.5%22/%3E%3C/svg%3E");
     --k:1;   /* масштаб HUD под ширину окна (635_hud_fx.js) */
     /* (v461) показ трансляции (повтор клатча 675, пауза 676) — общие: пузырь реплики, подсветка героя */
     --bubble:#fff; --bubble-ink:#0b0f0b; --bubble-quiet:rgba(255,255,255,.8); --bubble-dark:rgba(20,24,18,.92); --hero:var(--mark);
@@ -590,4 +601,36 @@
   @media (prefers-reduced-motion: reduce){
     *,*::before,*::after{animation-duration:1ms!important;animation-iteration-count:1!important;animation-delay:0ms!important;transition-duration:1ms!important;}
   }
+
+  /* (v571) 3D-вид: холст поверх радара, таблички ников, колонка кнопок (DESIGN.md, «3D-вид») */
+  #btn3d{display:inline-flex;align-items:center;gap:6px;--ic:var(--i-3d);}
+  #btn3d::before{content:"";width:13px;height:13px;flex:none;background:currentColor;-webkit-mask:var(--ic) center/contain no-repeat;mask:var(--ic) center/contain no-repeat;}
+  #cv3{position:absolute;inset:0;width:100%;height:100%;display:block;background:var(--v3-bg);cursor:grab;touch-action:none;}
+  #cv3:active{cursor:grabbing;}
+  #cv3[hidden],#v3Lab[hidden],#v3Tools[hidden]{display:none;}
+  /* прицел в виде от первого лица: четыре штриха с зазором, белые с тёмной обводкой (DESIGN.md, «3D-вид») */
+  #v3Cross{position:absolute;left:50%;top:50%;width:0;height:0;pointer-events:none;z-index:0;}
+  #v3Cross[hidden]{display:none;}
+  #v3Cross i{position:absolute;background:#fff;box-shadow:0 0 0 1px rgba(0,0,0,.75);}
+  #v3Cross i:nth-child(1),#v3Cross i:nth-child(2){width:7px;height:2px;top:-1px;}
+  #v3Cross i:nth-child(1){right:4px;} #v3Cross i:nth-child(2){left:4px;}
+  #v3Cross i:nth-child(3),#v3Cross i:nth-child(4){width:2px;height:7px;left:-1px;}
+  #v3Cross i:nth-child(3){bottom:4px;} #v3Cross i:nth-child(4){top:4px;}
+  #v3Lab{position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:0;}   /* свой слой 0: таблички под всем HUD и панелями, что идут в разметке позже */
+  .v3-tag{position:absolute;left:0;top:0;display:flex;flex-direction:column;align-items:center;gap:2px;will-change:transform;
+    font:600 10.5px/1 var(--cond);letter-spacing:.04em;text-transform:uppercase;white-space:nowrap;}
+  .v3-tag b{font-weight:600;padding:2px 5px;color:var(--hud-ink,#10130e);background:var(--t);box-shadow:0 4px 10px -4px rgba(0,0,0,.7);}
+  .v3-tag.ct b{background:var(--ct);}
+  .v3-tag.sel b{outline:1px solid #fff;outline-offset:1px;}
+  .v3-wp{display:flex;height:10px;opacity:.9;filter:drop-shadow(0 1px 1px rgba(0,0,0,.9));}
+  .v3-wp svg{height:10px;width:auto;}
+  .v3-wp:empty{display:none;}
+  #v3Tools{position:absolute;top:10px;left:calc(24px + 330px*var(--k,1));display:flex;flex-direction:column;gap:2px;padding:4px;z-index:3;
+    background:var(--hud-row,rgba(15,19,14,.93));border:1px solid var(--hud-line,rgba(255,255,255,.06));border-radius:var(--r-sm);box-shadow:0 10px 24px -8px rgba(0,0,0,.55);}
+  #v3Tools button{width:28px;height:28px;padding:0;display:grid;place-items:center;background:transparent;border-color:transparent;box-shadow:none;color:var(--text-dim);}
+  #v3Tools button:hover{background:var(--panel-3);color:var(--text);}
+  #v3Tools button.on{background:var(--accent-soft);color:var(--accent);}
+  #v3Tools button::before{content:"";width:14px;height:14px;background:currentColor;-webkit-mask:var(--ic) center/contain no-repeat;mask:var(--ic) center/contain no-repeat;transition:transform var(--d2) var(--spring);}
+  #v3Lock{--ic:var(--i-lock);} #v3In{--ic:var(--i-zin);} #v3Out{--ic:var(--i-zout);} #v3Rot{--ic:var(--i-rot);} #v3Top{--ic:var(--i-top);} #v3Style{--ic:var(--i-layers);} #v3Cam{--ic:var(--i-obs);} #v3Fp{--ic:var(--i-fp);} #v3Xray{--ic:var(--i-xray);} #v3Sims{--ic:var(--i-walls);}
+  #v3Rot:hover::before{transform:rotate(-60deg);}
 </style>

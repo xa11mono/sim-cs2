@@ -60,7 +60,7 @@ function rebuildNav(){
 
   zonesById = {};
   NAVAREAS.forEach(function(z){ zonesById[z.id] = z; });
-  NAV_GRID = null; NAV_ZONE = null; M3_SOLID = null; LADDERS = null; PATHQ = {}; PATHQ_N = 0;   // (v321) сетка участков под точкой — пересобрать
+  NAV_GRID = null; NAV_ZONE = null; M3_SOLID = null; laddersReset(); pathCacheReset();   // (v321) сетка участков под точкой — пересобрать
 
   // ---------- граф с учётом стен ----------
   // navmesh и стены — два независимых слоя, и после выравнивания/калибровки
@@ -90,8 +90,13 @@ function rebuildNav(){
   // геометрией: участок .nav, под которым в геометрии нет пола на его высоте (± NAV_FLOOR_TOL) ни в центре, ни в четырёх точках
   // между центром и краями, — верх стены / перил шириной в несколько единиц (генератор навмеша игры ставит участки и туда), не место,
   // где ходят: выкидывается из графа. Mirage — 24 участка из 2544
+  // (v549, владелец 11.11: «прыжки в окно и из окна к Ladder — они должны быть в демках») участок, на котором по демкам стоят игроки (конец
+  // подъёма или прыжка через щель из демок, climbs.json), не выкидывается, даже если в 3D-геометрии там нет пола: Mirage, ящик −92 у Window —
+  // в геометрии его нет, а про прыгают на него и с него (33–91 раз)
+  var demoFloor = {}; if(MAP.climbs){ (MAP.climbs.climbs || []).forEach(function(c){ demoFloor[c.lo.area] = demoFloor[c.hi.area] = 1; if(c.mid && c.mid.area != null) demoFloor[c.mid.area] = 1; });
+    (MAP.climbs.gaps || []).forEach(function(g){ demoFloor[g.a.area] = demoFloor[g.b.area] = 1; }); }
   if(MAP3D){ var M3b = m3();
-    NAVAREAS.forEach(function(z){ var xs = z.points.map(function(p){ return p.x; }), ys = z.points.map(function(p){ return p.y; });
+    NAVAREAS.forEach(function(z){ if(demoFloor[z.id]) return; var xs = z.points.map(function(p){ return p.x; }), ys = z.points.map(function(p){ return p.y; });
       var x0 = Math.min.apply(null, xs), x1 = Math.max.apply(null, xs), y0 = Math.min.apply(null, ys), y1 = Math.max.apply(null, ys), cx = (x0+x1)/2, cy = (y0+y1)/2;
       var has = [[0,0],[0.3,0],[-0.3,0],[0,0.3],[0,-0.3]].some(function(o){ return m3Floors(M3b, cx + o[0]*(x1-x0), cy + o[1]*(y1-y0)).some(function(fz){ return Math.abs(fz - z.z) <= NAV_FLOOR_TOL; }); });
       if(!has){ NAV_BLOCKED[z.id] = true; navBlockedCount++; return; }
@@ -220,7 +225,7 @@ function rebuildNav(){
   // possibly-wrong line (only matters once bots actually exist, i.e. on a
   // re-alignment, not the very first call at load).
   if(typeof bots !== "undefined"){
-    bots.forEach(function(b){ b.path = []; b.pathIdx = 0; });
+    bots.forEach(function(b){ movePath(b, [], "nav-rebuild"); b.pathIdx = 0; });
   }
 }
 rebuildNav();
@@ -287,11 +292,11 @@ function navCutTall(){ navTallDone = true; navTallCut = 0;
   navGapsAdd();
 }
 // (v546, владелец 10.11, Mirage A: «залезает на ящик, на второй и прыгает на верхний этаж — так быстрее») прыжки через щель из демок
-// (MAP.climbs.gaps, tools/gaps_bake.py): в .nav между участками за щелью связи нет. Связь A → B — в граф пути (edge.gap); путь идёт через
+// (MAP.climbs.gaps, tools/map/gaps_bake.py): в .nav между участками за щелью связи нет. Связь A → B — в граф пути (edge.gap); путь идёт через
 // точку отталкивания и точку приземления, сам прыжок — ladderTick (370), как подъём из демок. Между точками по 3D-геометрии должен быть
 // воздух: над сплошным полом (меньше GAP_AIR_MIN отсчётов из 9 без пола на высоте прыжка) это дыра навмеша, а не щель — связи нет.
 // GAP_AIR_MIN — проектное число
-var NAV_GAPS = [], NAV_GAP_AT = {}, GAP_AIR_MIN = 3;
+var NAV_GAPS = [], NAV_GAP_AT = {}, GAP_AIR_MIN = 3, GAP_WALK_N = 3;   // GAP_WALK_N — сколько прыжков с шага в демках, чтобы считать «можно на шифте» (проектное)
 function navGapKey(x, y){ return Math.round(x*2) + "," + Math.round(y*2); }
 function navGapsAdd(){
   NAV_GAPS = []; NAV_GAP_AT = {};
@@ -305,7 +310,8 @@ function navGapsAdd(){
         if(!m3Floors(M, pa.x + (pb.x - pa.x)*t, pa.y + (pb.y - pa.y)*t).some(function(f){ return Math.abs(f - z) <= NAV_FLOOR_TOL; })) air++; }
       if(air < GAP_AIR_MIN) return; }
     // (v548) как летят про (gaps_bake): угол взгляда при отталкивании / приземлении к направлению прыжка (yaw0 / yaw1, °) и прогиб дуги (bow)
-    var G = {a: {x: pa.x, y: pa.y, z: za, area: A.id}, b: {x: pb.x, y: pb.y, z: zb, area: B.id}, sec: g.sec, yaw0: g.yaw0 || 0, yaw1: g.yaw1 || 0, bow: g.bow || 0};
+    var G = {a: {x: pa.x, y: pa.y, z: za, area: A.id}, b: {x: pb.x, y: pb.y, z: zb, area: B.id}, sec: g.sec, yaw0: g.yaw0 || 0, yaw1: g.yaw1 || 0, bow: g.bow || 0,
+      walkOk: (g.walk || 0)*(g.n || 0) >= GAP_WALK_N};   // (v549) углы — на карте; walkOk — про прыгают здесь и с шага (на шифте — тихо)
     zoneGraph[A.id] = (zoneGraph[A.id] || []).filter(function(e){ return e.to !== B.id; });
     zoneGraph[A.id].push({to: B.id, mid: {x: pa.x, y: pa.y}, z: B.z, left: {x: pa.x, y: pa.y}, right: {x: pa.x, y: pa.y}, gap: G});
     NAV_GAPS.push(G); NAV_GAP_AT[navGapKey(pb.x, pb.y)] = G; });
@@ -324,7 +330,7 @@ function navJumpCost(a, edge){
 function navJumpCost0(a, edge, q){
   var b = zonesById[edge.to]; if(!a || !b || !edge.mid) return 0;
   var tJ = LAND_DELAY*SPEED;
-  if(edge.gap) return tJ + (q ? NAV_JUMP_COST : 0);
+  if(edge.gap) return tJ + (q && !edge.gap.walkOk ? NAV_JUMP_COST : 0);   // (v549) на шифте тихо — только время
   if(NAV_LAD[a.id+">"+edge.to]) return Math.abs(b.z - a.z)/LADDER_SPEED*SPEED/(q ? WALK_SPEED_FRAC : 1);   // лестница
   var dz = navEdgeDz(a, edge);
   if(dz > 18) return tJ;
@@ -374,8 +380,13 @@ function knownSegCost(a, b, q){
   var fx = a.x - q.x, fy = a.y - q.y;
   var B = 2*(fx*dx + fy*dy), C = fx*fx + fy*fy - R*R, D = B*B - 4*L2*C; if(D <= 0) return 0;
   var sq = Math.sqrt(D), t0 = Math.max(0, (-B - sq)/(2*L2)), t1 = Math.min(1, (-B + sq)/(2*L2)); if(t1 <= t0) return 0;
-  return KNOWN_DETOUR*q.w*(t1 - t0)*Math.sqrt(L2)/(2*R);
+  // (v570, отметка владельца м1 р4 38 с: «подобрав бомбу, построился путь через стак врагов» — путь в Палас шёл через A прямо по CT, которого
+  // видели (вес 1): насквозь через круг — 500, обход через спавн T дороже) штраф растёт, чем ближе путь к самому месту врага: по краю
+  // круга — как было, через середину — ×(1 + KNOWN_CLOSE_K) — пройти мимо врага в упор почти никогда не дешевле обхода
+  var tm = Math.max(0, Math.min(1, -B/(2*L2))), cx = a.x + dx*tm - q.x, cy = a.y + dy*tm - q.y, dmin = Math.sqrt(cx*cx + cy*cy);
+  return KNOWN_DETOUR*q.w*(t1 - t0)*Math.sqrt(L2)/(2*R)*(1 + KNOWN_CLOSE_K*Math.max(0, 1 - dmin/R));
 }
+var KNOWN_CLOSE_K = 2;   // (v570) проектное число
 function zoneDijkstra(fromId, toId, team){
   if(fromId===toId) return [fromId];
   var side = team === "CT" ? zoneSideMap() : null;
@@ -411,7 +422,7 @@ function zoneDijkstra(fromId, toId, team){
       if(side && side[edge.to] !== undefined && side[edge.to] < ROUTE_SIDE_LINE) w *= ROUTE_ENEMY_SIDE;   // (v259) CT — по своей стороне
       // (v438, док владельца 27.10: «боты часто идут в молик») переход в горящем огне — дороже на FIRE_DETOUR: путь обходит молотов, если обход
       // не длиннее; иначе идёт через огонь (как и раньше — fireCommit / ждёт у края). Только путь движения (buildWaypointPath)
-      if(fireOn && inFire(edge.mid.x, edge.mid.y)) w += FIRE_DETOUR;
+      if(fireOn && inFire(edge.mid.x, edge.mid.y, edge.z)) w += FIRE_DETOUR;
       // (Д3, скорость; облако м7: 60 млн вызовов knownSegCost за 8000 тиков) отсев по оси — тот же, что первой строкой knownSegCost
       // (места дальше R от отрезка по оси — 0), но без вызова функции; порядок сложения и сами слагаемые те же — результат бит в бит
       if(nKP){ var sax = fromCentroid.x, say = fromCentroid.y, sbx = edge.mid.x, sby = edge.mid.y;
@@ -634,11 +645,15 @@ function buildWaypointPath0(fromX, fromY, fromZ, toX, toY, toZ, team, lane){
   var start0 = {x:fromX,y:fromY,z:fromZ||0}, end0 = {x:toX,y:toY,z:toZ||0}, cuts = [], gapFix = [];
   for(var ci=0;ci<corridor.length;ci++){ var cA = zonesById[cPair[ci][0]], cB = zonesById[cPair[ci][1]], ce = corridor[ci];
     if(ce.gap){ cuts.push(ci); gapFix.push(ce.gap.a, ce.gap.b); continue; }   // (v546) прыжок через щель: путь — через точку отталкивания и приземления
+    // (v551) подъём из демок по этой связи (CLIMB_BY_EDGE, 370) — то же: путь через его точку отталкивания и верх, прыгает ladderTick именно по нему
+    var CLc = NAV_CLIMB_UP[cPair[ci][0]+">"+cPair[ci][1]] && CLIMB_BY_EDGE[cPair[ci][0]+">"+cPair[ci][1]];
+    if(CLc){ cuts.push(ci); gapFix.push(CLc.lo, CLc.hi); CLIMB_AT[navGapKey(CLc.hi.x, CLc.hi.y)] = CLc; continue; }
     if(cA && cB && ce.mid && !navPlane(cA).flat && !navPlane(cB).flat && navStepDz(cA, cB, ce.mid.x, ce.mid.y) > 18) cuts.push(ci); }
   var path;
   if(!cuts.length) path = funnel(corridor, start0, end0);
   else { path = []; var sP = start0, prevC = 0;
     cuts.concat([corridor.length]).forEach(function(ci2){ var G = ci2 < corridor.length ? corridor[ci2].gap : null;
+      if(!G && ci2 < corridor.length){ var CLk = NAV_CLIMB_UP[cPair[ci2][0]+">"+cPair[ci2][1]] && CLIMB_BY_EDGE[cPair[ci2][0]+">"+cPair[ci2][1]]; if(CLk) G = {a: CLk.lo, b: CLk.hi}; }   // (v551) подъём — как щель
       var eP = G ? {x:G.a.x, y:G.a.y, z:G.a.z} : ci2 < corridor.length ? {x:corridor[ci2].mid.x, y:corridor[ci2].mid.y, z:corridor[ci2].z} : end0;
       var seg = funnel(corridor.slice(prevC, ci2), sP, eP); path = path.concat(path.length ? seg.slice(1) : seg); sP = eP; prevC = ci2 + 1;
       if(G){ path.push([G.b.x, G.b.y, G.b.z]); sP = {x:G.b.x, y:G.b.y, z:G.b.z}; } }); }
@@ -648,7 +663,7 @@ function buildWaypointPath0(fromX, fromY, fromZ, toX, toY, toZ, team, lane){
   // стену — вместо натянутого пути идём через середины порталов (зигзаг, но
   // каждая точка гарантированно на переходе между проходимыми полигонами).
   var bad = false;
-  var gapSeg = function(A, B){ var G = NAV_GAP_AT[navGapKey(B[0], B[1])]; return !!G && Math.abs(G.a.x - A[0]) < 0.5 && Math.abs(G.a.y - A[1]) < 0.5; };   // (v546) прыжок через щель — над пустотой, это не «плохой» отрезок
+  var gapSeg = function(A, B){ var k = navGapKey(B[0], B[1]), G = NAV_GAP_AT[k], CL = CLIMB_AT[k]; return (!!G && Math.abs(G.a.x - A[0]) < 0.5 && Math.abs(G.a.y - A[1]) < 0.5) || (!!CL && Math.abs(CL.lo.x - A[0]) < 0.5 && Math.abs(CL.lo.y - A[1]) < 0.5); };   // (v551) и подъём из демок   // (v546) прыжок через щель — над пустотой, это не «плохой» отрезок
   for(var k=0;k<path.length-1;k++){
     if(gapSeg(path[k], path[k+1])) continue;
     if(segCrossesManualWalls(path[k][0],path[k][1],path[k+1][0],path[k+1][1])){ bad = true; break; }
@@ -665,7 +680,7 @@ function buildWaypointPath0(fromX, fromY, fromZ, toX, toY, toZ, team, lane){
         if(other && !hit) bad = true; } } }
   if(bad){
     var mids = [];
-    corridor.forEach(function(e){ if(e.gap) mids.push([e.gap.a.x, e.gap.a.y, e.gap.a.z], [e.gap.b.x, e.gap.b.y, e.gap.b.z]); else mids.push([e.mid.x, e.mid.y, e.z]); });
+    corridor.forEach(function(e, ie){ var CLm = NAV_CLIMB_UP[cPair[ie][0]+">"+cPair[ie][1]] && CLIMB_BY_EDGE[cPair[ie][0]+">"+cPair[ie][1]]; if(CLm){ mids.push([CLm.lo.x, CLm.lo.y, CLm.lo.z], [CLm.hi.x, CLm.hi.y, CLm.hi.z]); return; } if(e.gap) mids.push([e.gap.a.x, e.gap.a.y, e.gap.a.z], [e.gap.b.x, e.gap.b.y, e.gap.b.z]); else mids.push([e.mid.x, e.mid.y, e.z]); });
     mids.push([toX, toY, toZ||0]);
     return mids;
   }
@@ -685,4 +700,12 @@ function segIntersect(ax,ay,bx,by,cx,cy,dx,dy){
 function hasLOS(x1,y1,x2,y2,z1,z2){
   return visLine(x1, y1, visFloorAt(x1, y1, z1) + VIS_EYE.stand, x2, y2, visFloorAt(x2, y2, z2) + VIS_EYE.stand, false);
 }
-
+// (17.11, перестройка) расстояние от точки до отрезка — перенесено из 550 (файл показа): им пользуются бомба (120) и места (140)
+function distToSeg(px,py, s){
+  var x1=s[0],y1=s[1],x2=s[2],y2=s[3];
+  var dx=x2-x1, dy=y2-y1;
+  var len2 = dx*dx+dy*dy;
+  var t = len2 < 1e-9 ? 0 : Math.max(0, Math.min(1, ((px-x1)*dx+(py-y1)*dy)/len2));
+  var cx = x1+t*dx, cy = y1+t*dy;
+  return Math.hypot(px-cx, py-cy);
+}

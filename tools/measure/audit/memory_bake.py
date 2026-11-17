@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
 """Этап 2, P1-3: где враг через Δt после того, как его потеряли из вида (у про и у ботов, одно определение).
-Встречи «видят друг друга» — как tools/vis_bake.py (та же видимость игры, позиции раз в 16 тиков, до планта).
+Встречи «видят друг друга» — как tools/map/vis_bake.py (та же видимость игры, позиции раз в 16 тиков, до планта).
 Берутся встречи, которые кончились без смерти («ушли из вида»). Для каждой стороны: где был соперник в последний
 момент видимости и насколько он сдвинулся через 2/5/10/20/40 с (если жив и раунд идёт). Доли: остался (<150 px),
 рядом (150–300), ушёл (>300). Это то, насколько верна гипотеза «остался на месте» спустя Δt.
 python3 tools/measure/audit/memory_bake.py pro              → runs/memory_pro.json (долго: 88 демок)
 python3 tools/measure/audit/memory_bake.py bots <run>…      → по tools/measure/runs/<run>/rec_*.json"""
 import sys, os, json, bisect, collections, math
+sys.path[:0] = [os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), g) for g in ('map', 'ct', 'pro', 'marks', 'logs', 'motion', 'page')]   # (15.11) модули tools/ разложены по группам
 HERE = os.path.dirname(os.path.abspath(__file__)); ROOT = os.path.dirname(os.path.dirname(os.path.dirname(HERE)))
 sys.path.insert(0, os.path.join(ROOT, 'tools'))
 import vis_bake as V

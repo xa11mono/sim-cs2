@@ -18,13 +18,12 @@ var PROLE_LABEL = {entry:"энтри", second:"второй (размен)", sup
 function pRole(b){ var M = PRO_PROLE[b.team]; return (M && M[b.tRole]) || b.tRole; }
 // кто кидает лайнап: при прочих равных — тот, чья роль кидает больше гранат
 function nadeRoleCost(b){
-  if(!BAL.proRoles) return 0;
   var r = (PROLE_NADES[b.team]||{})[pRole(b)]; if(r == null) return 0;
   return (2.4 - r) * BAL.utilRoleK;
 }
 var FB = { enemies:2, window:3, deathR:900, back:320, rMax:220, gainED:150, lock:10 };
 function tFallbackTick(){
-  if(!BAL.fallbackAll || tick % 8 || roundState !== "live" || (bomb && bomb.state === "planted")) return;
+  if(tick % 8 || roundState !== "live" || (bomb && bomb.state === "planted")) return;
   var tt = teamTac.T; if(!tt || tt.phase !== "setup") return;
   var secLeft = ROUND_TIME_SEC - (simTime - roundStartTime); if(secLeft < 35) return;
   var ED = enemySpawnDist("T");
@@ -50,9 +49,9 @@ function tFallbackTick(){
     var cand = center ? pickSpots("tfb"+tick+b.id, center, 4, {rMax:FB.rMax, minGap:40, hideFrom: th ? [th] : []}) : [];
     var sp = cand.filter(function(q){ var zq = bzOf(q.x, q.y); return zq >= 0 && ED[zq] >= ED[zb] + FB.gainED && (!th || !hasLOS(q.x, q.y, th.x, th.y)); })[0];
     if(!sp) return;
-    b._fbRound = roundNum; b._reposUntil = 0; b._probeLock = 0;
+    b._fbRound = roundNum; taskKeep(b, 0, "fallback"); b._probeLock = 0;
     setPost(b, sp, th || null, true, "repos:fallback");
-    b._reposUntil = tick + FB.lock*TICK_HZ;
+    taskKeep(b, tick + FB.lock*TICK_HZ, "fallback");
     voiceLog("T", "tfb"+b.id+roundNum, b.id, why+" ("+calloutName(sp.x, sp.y).replace(/^на /,"")+")");
   });
 }
@@ -93,7 +92,7 @@ function rebalSpot(b, k, taken, avoidPts, opt){
   return best;
 }
 function siteRebalanceTick(){
-  if(!BAL.siteRebal || tick % REBAL.every || roundState !== "live" || (bomb && bomb.state === "planted")) return;
+  if(tick % REBAL.every || roundState !== "live" || (bomb && bomb.state === "planted")) return;
   if(tick - roundStartTick < 12*TICK_HZ) return;
   var cts = bots.filter(function(o){ return o.alive && o.team === "CT"; });
   cts.forEach(function(o){ var R = o._rebal; if(!R) return;
@@ -124,8 +123,8 @@ function siteRebalanceTick(){
       if(!by) return;
       var taken = T.filter(function(_, j){ return j !== i; }), avoid = cts.filter(function(q){ return q !== o; }).map(function(q){ return {x:q.x, y:q.y}; });
       var sp = rebalSpot(o, k, taken, fwd ? avoid.concat([t]) : [t]), why;
-      if(sp) why = (fwd ? by.id+" вышел вперёд" : by.id+" держит тот же угол")+" — беру угол "+calloutName(sp.t.x, sp.t.y);
-      else if(fwd){ sp = rebalSpot(o, k, [], [], {see:{x:by.x, y:by.y}}); if(sp){ sp.look = {x:by.x, y:by.y}; why = by.id+" впереди — встаю под размен"; } }
+      if(sp) why = "беру "+calloutName(sp.t.x, sp.t.y).replace(/^на /, "");   // (v565, В81) без пересказа «кто что держит»
+      else if(fwd){ sp = rebalSpot(o, k, [], [], {see:{x:by.x, y:by.y}}); if(sp){ sp.look = {x:by.x, y:by.y}; why = "стою под размен "+by.id; } }
       if(!sp) return;
       if(!setPost(o, sp.pt, sp.look, true, "rebal"+k)) return;
       o._rebal = {round:roundNum, t:tick, by:by.id, fwd:fwd, fx:by.x, fy:by.y, pt:sp.pt, look:sp.look, tag:"rebal"+k};
@@ -136,7 +135,7 @@ function siteRebalanceTick(){
 function infoFallbackTick(){
   siteRebalanceTick();
   tFallbackTick();
-  if(!BAL.infoFallback || tick % 8 || roundState !== "live" || (bomb && bomb.state === "planted")) return;
+  if(tick % 8 || roundState !== "live" || (bomb && bomb.state === "planted")) return;
   var ED = enemySpawnDist("CT");
   bots.forEach(function(b){
     if(!b.alive || b.team !== "CT" || b._sawEnemy || b.planting || b.defusing) return;
@@ -174,9 +173,9 @@ function infoFallbackTick(){
       var nz = bzOf(nm.x, nm.y); if(!(nz >= 0 && beliefCount("CT", [nz]) >= 0.5)) sp = walk({x: nm.x, y: nm.y}); }
     if(!sp) return;
     b._fbRound = roundNum;
-    b._reposUntil = 0; b._probeLock = 0;
+    taskKeep(b, 0, "fallback"); b._probeLock = 0;
     setPost(b, sp, th || null, true, "repos:fallback");
-    b._reposUntil = tick + FB.lock*TICK_HZ;
+    taskKeep(b, tick + FB.lock*TICK_HZ, "fallback");
     voiceLog("CT", "fb"+b.id+roundNum, b.id, why+" ("+calloutName(sp.x, sp.y).replace(/^на /,"")+")");
   });
 }

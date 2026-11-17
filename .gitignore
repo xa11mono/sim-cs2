@@ -9,7 +9,7 @@ tools/measure/audit/runs/*/aud_*.json
 tools/measure/audit/runs/*/sim_audit.html
 tools/measure/audit/runs/*/*_rec_*.json
 
-# v318: сэмплы про новых карт (tools/pro.py --map, ~60 МБ) — пересобираются из демок за ~1,5 мин
+# v318: сэмплы про новых карт (tools/pro/pro.py --map, ~60 МБ) — пересобираются из демок за ~1,5 мин
 data/maps/*/pro/pro_samples.csv.gz
 data/sounds/src/
 
@@ -21,3 +21,4 @@ tools/demo_events_out/
 
 # В2: итог проверки физики по броскам (tools/nades/check.js, ≈ 1 мин)
 data/maps/*/throws_check.json
+node_modules/

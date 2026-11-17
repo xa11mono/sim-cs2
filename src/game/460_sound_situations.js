@@ -4,7 +4,6 @@
 // (±15–20°), дистанция гуляет сильнее (±30%). Раньше услышанная точка = реальная
 // + случайный сдвиг в ЛЮБУЮ сторону, одинаковый для открытого места и стен.
 function hearPos(o, sx, sy, seed, occl){
-  if(!BAL.soundDir) return null;
   var d = Math.hypot(sx-o.x, sy-o.y), a = Math.atan2(sy-o.y, sx-o.x);
   var sa = occl ? 0.30 : 0.10, sd = occl ? 0.30 : 0.15;
   var ra = hashRand(seed) + hashRand(seed*7+3) - 1;       // треугольное −1…1: чаще около нуля
@@ -37,7 +36,7 @@ function reloadHeard(b, w){
   var hs = emitSound(b, b.x, b.y, 380, 220, "reload", tick*29 + (b.id.charCodeAt(b.id.length-1)||0)*7);
   hs.forEach(function(o){
     o._heardReload = {id:b.id, x:o.heardSound.x, y:o.heardSound.y, until:b.reloadUntil};
-    if(!o._rlVoice || o._rlVoice + 3*TICK_HZ < tick){ o._rlVoice = tick; voiceLog(o.team, "rl"+b.id, o.id, b.id+" перезаряжается "+calloutName(o.heardSound.x, o.heardSound.y)+"!"); }
+    if(!o._rlVoice || o._rlVoice + 3*TICK_HZ < tick){ o._rlVoice = tick; voiceLog(o.team, "rl"+b.id, o.id, "перезарядка "+calloutName(o.heardSound.x, o.heardSound.y).replace(/^на /, "")+"!"); }
     // по голосу знают и ближние тиммейты
     bots.forEach(function(m){ if(m !== o && m.alive && m.team === o.team && nearP(m.x, m.y, m.z, o.x, o.y, o.z, 500)) m._heardReload = o._heardReload; });
   });
@@ -48,18 +47,18 @@ function reloadPeek(b){
   var R = b._heardReload;
   // (v442, док владельца 27.10, р9: zont1x «пикает на перезарядку», сам перезаряжаясь 15/30) пикает на перезарядку врага — только с полным
   // магазином: сам перезаряжается — не выходит
-  if(!BAL.soundMore || !R || tick >= R.until || b._sawEnemy || b.planting || b.defusing || b.hp <= 50 || b._reloading) return false;
+  if(!R || tick >= R.until || b._sawEnemy || b.planting || b.defusing || b.hp <= 50 || b._reloading) return false;
   if(b._rlPeekDone === R.until) return false;
   var d = Math.hypot(R.x-b.x, R.y-b.y); if(d > 450 || d < 60) return false;
   b._rlPeekDone = R.until;
-  var downN = BAL.numbersPlay && aliveCount(b.team) < aliveCount(b.team === "CT" ? "T" : "CT");
+  var downN = aliveCount(b.team) < aliveCount(b.team === "CT" ? "T" : "CT");
   if(hashRand(tick*43 + (b.id.charCodeAt(b.id.length-1)||0)*3) > (0.35 + 0.5*prof(b, "aggr"))*(downN ? 0.5 : 1)) return false;
   var sp = pickSpots("rlpeek"+tick+b.id, {x:b.x, y:b.y}, 2, {rMax:140, minGap:40, see:[{x:R.x, y:R.y}]})[0];
   if(!sp) return false;
-  b._reposUntil = 0; b._probeLock = 0;
+  taskKeep(b, 0, "sound"); b._probeLock = 0;
   setPost(b, sp, {x:R.x, y:R.y}, true, "repos:reload");
   if(!b.post || b.post.tag !== "repos:reload") return false;
-  b._reposUntil = Math.min(R.until + 32, tick + 3*TICK_HZ);
+  taskKeep(b, Math.min(R.until + 32, tick + 3*TICK_HZ), "sound");
   logEvent(b.id+": пикает на перезарядку "+R.id);
   return true;
 }
@@ -68,7 +67,7 @@ function reloadPeek(b){
 // энтри отдают её тому, кто рядом из основной группы; раненый носитель (≤30 HP)
 // рядом со здоровым тиммейтом тоже отдаёт — бомба не должна умереть с ним.
 function bombPassTick(){
-  if(!BAL.bombPass || tick % 16 || bomb.state !== "carried" || !teamTac.T) return;
+  if(tick % 16 || bomb.state !== "carried" || !teamTac.T) return;
   var c = bomb.carrier; if(!c || !c.alive || c.planting || c._sawEnemy) return;
   var tt = teamTac.T, ts = bots.filter(function(b){ return b.team === "T" && b.alive && b !== c; });
   if(!ts.length || tt.phase === "postplant") return;
@@ -91,7 +90,7 @@ function bombPassTick(){
 }
 // ---- (S1) добить раненого ----
 function finishPush(b){
-  if(!BAL.hurtCall || b._sawEnemy || b.planting || b.defusing || b.hp <= 50 || tick < (b._finNext||0)) return;
+  if(b._sawEnemy || b.planting || b.defusing || b.hp <= 50 || tick < (b._finNext||0)) return;
   if(!taskCanSet(b, "repos:finish") || (b.post && b.post.tag === "repos:finish")) return;   // (v378) идёт по задаче не ниже / уже добивает — арбитр места
   if(bomb && bomb.state === "carried" && bomb.carrier === b) return;
   if((b.team === "CT" && teamTac.CT && teamTac.CT.saving) || (b.team === "T" && teamTac.T && teamTac.T.saving)) return;
@@ -113,15 +112,15 @@ function finishPush(b){
   if(!tgt) return;
   var sp = pickSpots("finish"+tick+b.id, {x:b.x, y:b.y}, 2, {rMax:200, minGap:40, see:[{x:tgt.x, y:tgt.y}]})[0];
   if(!sp) return;
-  b._reposUntil = 0; b._probeLock = 0;
+  taskKeep(b, 0, "sound"); b._probeLock = 0;
   setPost(b, sp, {x:tgt.x, y:tgt.y}, true, "repos:finish");
   if(!b.post || b.post.tag !== "repos:finish") return;
-  b._finId = tid; b._reposUntil = tick + 3*TICK_HZ; b.lastIntel = {x:tgt.x, y:tgt.y, tick:tick, src:"call"};
-  voiceLog(b.team, "fin"+tid+b.id, b.id, tid+" на "+HT[tid].hp+" — добиваю");
+  b._finId = tid; taskKeep(b, tick + 3*TICK_HZ, "sound"); b.lastIntel = {x:tgt.x, y:tgt.y, tick:tick, src:"call"};
+  voiceLog(b.team, "fin"+tid+b.id, b.id, tid+" лоу, "+HT[tid].hp+" — добиваю");
 }
 // ---- (S7) смок уходит — готовность к выходу из-за него ----
 function smokeFadeTick(){
-  if(!BAL.smokeFade || tick % 8) return;
+  if(tick % 8) return;
   smokes.forEach(function(sm){
     var left = sm.until - tick; if(left > 2.5*TICK_HZ || left <= 0) return;
     sm._fadeReady = sm._fadeReady || {};
@@ -137,14 +136,14 @@ function smokeFadeTick(){
       var a = Math.atan2(sm.y-b.y, sm.x-b.x), ex = {x: sm.x + Math.cos(a)*NADE.smoke.radius, y: sm.y + Math.sin(a)*NADE.smoke.radius};
       b.lastIntel = {x:ex.x, y:ex.y, tick:tick, src:"call"}; // прицел на выход из дыма — префайр, если выйдет
       b.heardSound = {x:ex.x, y:ex.y, tick:tick, team:b.team === "CT" ? "T" : "CT", src:"?", kind:"call"};
-      if(!sm._fadeVoice){ sm._fadeVoice = 1; voiceLog(b.team, "fade"+Math.round(sm.x)+b.team, b.id, "смок уходит — готовы, они за ним"); }
+      if(!sm._fadeVoice){ sm._fadeVoice = 1; voiceLog(b.team, "fade"+Math.round(sm.x)+b.team, b.id, "смок спадает — готовьтесь"); }
     });
   });
 }
 // ---- (S3) смок на засвеченного AWP ----
 var awpSmokeCd = {CT:0, T:0};
 function awpSmokeTick(){
-  if(!BAL.awpSmoke || tick % 16) return;
+  if(tick % 16) return;
   ["CT","T"].forEach(function(team){
     if(tick < awpSmokeCd[team]) return;
     var BL = beliefLast[team] || {};
@@ -166,35 +165,43 @@ function awpSmokeTick(){
 // Про, поймав флешку, не продолжает бежать: отходит на шаг-два назад за угол
 // (туда, откуда пришёл — там безопасно) или, если некуда, встаёт/садится и
 // держит направление, откуда шёл враг, пока не прозреет.
+var BLIND_FIRE_R = 700;   // (v554) проектное число: ед. игры — враг ближе, чем это, пойдёт на флешку, есть смысл стрелять вслепую
 function onBlind(b, threat){
   if(b.planting || b.defusing) return;
   var back = null, tr = b._trail || [];
   for(var i = tr.length-1; i >= 0; i--){ var q = tr[i]; if(Math.hypot(q.x-b.baseX, q.y-b.baseY) < 40) continue; if(Math.hypot(q.x-b.baseX, q.y-b.baseY) > 220) break;
     if(!hasLOS(q.x, q.y, threat.x, threat.y)){ back = q; break; } }
+  // (v554, владелец 11.11: «ослеплённый не должен стоять — уходит в укрытие по памяти, может ошибиться и выйти на врагов») следа
+  // назад нет — укрытие от угрозы по знанию карты (findCover, как после фрага): путь строится по памяти, врагов он не видит
+  var wp = null;
+  if(back) wp = [[back.x, back.y, b.z]];
+  else { var cv = findCover(b, threat); if(cv){ wp = buildWaypointPath(b.baseX, b.baseY, b.z, cv.x, cv.y, 0); if(wp && wp.length) back = cv; else wp = null; } }
   b._blind = {until:b.blindUntil, back:back, face:{x:threat.x, y:threat.y}};
-  if(back){ b.path = [[back.x, back.y, b.z]]; b.pathIdx = 0; }
-  logEvent(b.id+": ослеплён — "+(back ? "отходит за угол" : "присел, держит направление"));
+  if(wp){ movePath(b, wp, "blind"); b.pathIdx = 0; }
+  // стрелять вслепую — только с настоящей причиной: видел врага перед самой вспышкой (≤ 1 с) и он рядом — он пойдёт на флешку.
+  // Очередь в точку, где видел, заводит smokeSpamTick (290, хозяин огня по памяти); попадёт, если враг на линии
+  var fire = threat.tick != null && threat.src !== "call" && tick - threat.tick <= TICK_HZ && Math.hypot(threat.x-b.x, threat.y-b.y) < BLIND_FIRE_R && b.ammo > 0 && b.weapon && !b.weapon.scopeTicks;
+  if(fire) b._blind.fire = {x:threat.x, y:threat.y, z:threat.z};   // (v556) очередь заводит хозяин огня по памяти — smokeSpamTick (290)
+  logEvent(b.id+": ослеплён — "+(back ? (wp && wp.length > 1 ? "уходит в укрытие по памяти" : "отходит за угол") : "присел, держит направление")+(fire ? ", стреляет вслепую туда, где видел врага" : ""));
   // (S2) тиммейт рядом закрывает угол ослеплённого: смотрит туда и готов стрелять
-  if(BAL.coverBlind){
-    var mates = bots.filter(function(o){ return o !== b && o.alive && o.team === b.team && !o._sawEnemy && tick >= (o.blindUntil||0) && nearP(o.x, o.y, o.z, b.x, b.y, b.z, 260) && !o.planting && !o.defusing; });
-    mates.forEach(function(o){ o.heardSound = {x:threat.x, y:threat.y, tick:tick, team:b.team === "CT" ? "T" : "CT", src:"?", kind:"call"}; o.lastIntel = {x:threat.x, y:threat.y, tick:tick, src:"call"}; });
-    var cov = mates.filter(function(o){ return o.hp > 50 && !(o.post && taskProp(o.post.tag, "blindCoverBusy")); })
-      .sort(function(a, c){ return Math.hypot(a.x-b.x, a.y-b.y) - Math.hypot(c.x-b.x, c.y-b.y); })[0];
-    if(cov){
-      // (v151) раньше точка бралась вплотную к ослеплённому — а он в это время
-      // отходит по тому же проходу: оба упирались друг в друга и дёргались.
-      // Теперь: если угол и так видно — стоим и целимся; иначе шаг рядом с собой,
-      // не ближе ~1м к слепому и к точке, куда он отходит
-      var cs = hasLOS(cov.x, cov.y, threat.x, threat.y) ? null : pickSpots("covblind"+tick+cov.id, {x:cov.x, y:cov.y}, 3, {rMax:130, minGap:24, see:[threat]})
-            .filter(function(q){ return hasLOS(q.x, q.y, threat.x, threat.y) && Math.hypot(q.x-b.x, q.y-b.y) > 60 && !(back && Math.hypot(q.x-back.x, q.y-back.y) < 60); })[0];
-      if(!cs){ cov._coverDir = {pt:{x:threat.x, y:threat.y}, until:b.blindUntil}; voiceLog(b.team, "cb"+b.id+tick, cov.id, "держу угол за "+b.id); }
-      if(cs){ cov._reposUntil = 0; setPost(cov, cs, threat, true, "repos:coverblind"); if(cov.post && cov.post.tag === "repos:coverblind"){ cov._reposUntil = tick + Math.max(2*TICK_HZ, b.blindUntil - tick); voiceLog(b.team, "cb"+b.id, cov.id, b.id+" слепой — держу его угол"); } }
-    }
+  var mates = bots.filter(function(o){ return o !== b && o.alive && o.team === b.team && !o._sawEnemy && tick >= (o.blindUntil||0) && nearP(o.x, o.y, o.z, b.x, b.y, b.z, 260) && !o.planting && !o.defusing; });
+  mates.forEach(function(o){ o.heardSound = {x:threat.x, y:threat.y, tick:tick, team:b.team === "CT" ? "T" : "CT", src:"?", kind:"call"}; o.lastIntel = {x:threat.x, y:threat.y, tick:tick, src:"call"}; });
+  var cov = mates.filter(function(o){ return o.hp > 50 && !(o.post && taskProp(o.post.tag, "blindCoverBusy")); })
+    .sort(function(a, c){ return Math.hypot(a.x-b.x, a.y-b.y) - Math.hypot(c.x-b.x, c.y-b.y); })[0];
+  if(cov){
+    // (v151) раньше точка бралась вплотную к ослеплённому — а он в это время
+    // отходит по тому же проходу: оба упирались друг в друга и дёргались.
+    // Теперь: если угол и так видно — стоим и целимся; иначе шаг рядом с собой,
+    // не ближе ~1м к слепому и к точке, куда он отходит
+    var cs = hasLOS(cov.x, cov.y, threat.x, threat.y) ? null : pickSpots("covblind"+tick+cov.id, {x:cov.x, y:cov.y}, 3, {rMax:130, minGap:24, see:[threat]})
+          .filter(function(q){ return hasLOS(q.x, q.y, threat.x, threat.y) && Math.hypot(q.x-b.x, q.y-b.y) > 60 && !(back && Math.hypot(q.x-back.x, q.y-back.y) < 60); })[0];
+    if(!cs){ cov._coverDir = {pt:{x:threat.x, y:threat.y}, until:b.blindUntil}; voiceLog(b.team, "cb"+b.id+tick, cov.id, "держу угол за "+b.id); }
+    if(cs){ taskKeep(cov, 0, "sound"); setPost(cov, cs, threat, true, "repos:coverblind"); if(cov.post && cov.post.tag === "repos:coverblind"){ taskKeep(cov, tick + Math.max(2*TICK_HZ, b.blindUntil - tick), "sound"); voiceLog(b.team, "cb"+b.id, cov.id, b.id+" слепой — держу его угол"); } }
   }
 }
 // ---- кончились патроны в бою: пистолет ----
 function pistolSwap(b){
-  if(!BAL.pistolSwap || !b.primary || !b.secondary || b._onPistol || b.weapon !== WEAPONS[b.primary]) return false;
+  if(!b.primary || !b.secondary || b._onPistol || b.weapon !== WEAPONS[b.primary]) return false;
   var e = b._nearestEnemyBot, near = e && e.alive && nearP(e.x, e.y, e.z, b.x, b.y, b.z, 650);
   if(!near && !(b.lastIntel && tick - b.lastIntel.tick < TICK_HZ && nearP(b.lastIntel.x, b.lastIntel.y, b.lastIntel.z, b.x, b.y, b.z, 650))) return false;
   var W = WEAPONS[b.secondary];

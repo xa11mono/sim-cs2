@@ -88,28 +88,40 @@ function lookFrom(p, list, fb, b){
 // (выход за инфой), потом — pos. rot: "212" — ротатор вторым на "горячий" сайт,
 // "111" — ротатор между сайтами. stack — сайт, на который встаёт роумер.
 var CT_SETUPS = MAP.tactics.ctSetups;
+var CT_SPOT_R = 60;   // px: место роли — не дальше от точки из демок (spot); у про разброс у точки — медиана 60–210 px (проектное число)
+var CT_SHARE = MAP.ctshare || null, CT_SHARE_MIN = 0.01;   // доля — не ниже 1 % (проектное: расстановка, не встретившаяся у про, всё же бывает)
+function ctShareW(S){
+  var rt = teamEco.CT && teamEco.CT.roundType, k = rt === "half" ? "force" : (rt || "full"), B = CT_SHARE && (CT_SHARE.by[k] || CT_SHARE.by.full);
+  if(!B) return S.w || 1;
+  return Math.max(CT_SHARE_MIN, B[S.id] || 0);
+}
+var CTSET_DBG = null;
 function chooseCtSetup(){
-  var last = roundHist.slice(-4), heat = {A:0, B:0}, lost = {A:0, B:0};
-  last.forEach(function(r){ heat[r.site]++; if(r.planted && r.winner === "T") lost[r.site]++; });
+  var last = roundHist.slice(-4), lost = {A:0, B:0};
+  last.forEach(function(r){ if(r.planted && r.winner === "T") lost[r.site]++; });
   var execs = roundHist.slice(-3).map(function(r){ return r.execSec; }).filter(function(x){ return x != null; });
   var avgExec = execs.length ? execs.reduce(function(a,x){ return a+x; }, 0)/execs.length : 45;
   var why = {};
   var weights = CT_SETUPS.map(function(S){
-    var w = (BAL.proCtSetup ? {std212:4, std111:1.5, midAggro:0.5, pickA:0.4, pickB:0.4, redRoom:0.6, cavePush:0.5, stackA:0.2, stackB:0.2, retakeA:0.2, retakeB:0.2}
-                            : {std212:3, std111:1.5, midAggro:1, pickA:0.8, pickB:0.8, redRoom:1, cavePush:1, stackA:0.2, stackB:0.2, retakeA:0.2, retakeB:0.2})[S.id] || S.w || 1;
-    if(S.stack){ var h = heat[S.stack]; if(last.length >= 3 && h >= 3){ w = BAL.proCtSetup ? 1.2 : 4; why[S.id] = "T ходили на "+S.stack+" "+h+" из "+last.length; } else if(h >= 2) w = BAL.proCtSetup ? 0.4 : 1; }
-    if(/^retake/.test(S.id)){ var k = S.id.slice(-1); if(lost[k] >= 2){ w = 1.2; why[S.id] = "на "+k+" проигрываем "+lost[k]+" раунда — играем от ретейка"; } }
+    // (v561, этап 6 docs/tasks/PLAN_TACTICS_V2.md; владелец 11.11: «доли расстановок — по закупу, из демок») исходный вес — доля этой расстановки
+    // у про на такой закуп CT (MAP.ctshare: структура A-мид-B к 20 с у про по закупу → наши расстановки той же структуры; tools/ct/ct_setup_bake.py);
+    // дальше — сдвиги по знанию команды (ниже). Было — ручные веса («стандарт ×4», проектные)
+    var w = ctShareW(S);
+    // (В142, v580) стак — без множителя «T ходили на этот сайт» (было ×6 при 3 из 4, ×2 при 2): у про его нет — демки Mirage, все 5 CT живы
+    // на 18-й с: ≥ 3 CT на A после 0–1 / 2 / 3–4 выходов T на A из 4 прошлых — 12 / 9 / 7 % (на B — 2 / 2 / 0 %). С множителем у ботов стаков
+    // 66 % раундов против 36 % по долям про, мид пустой 29 % против 11 %, на A ≥ 3 — 19 % против 10 % (прогоны 240 + 241)
+    if(/^retake/.test(S.id)){ var k = S.id.slice(-1); if(lost[k] >= 2){ w *= 6; why[S.id] = "на "+k+" проигрываем "+lost[k]+" раунда — играем от ретейка"; } }
     if(S.roles && Object.keys(S.roles).some(function(r){ return S.roles[r].early; })){
-      if(avgExec < 25) w *= 0.4; else if(avgExec > 45){ w *= BAL.proCtSetup ? 1.15 : 1.6; why[S.id] = "T выходят поздно (~"+Math.round(avgExec)+"с) — есть время за инфой"; }
+      if(avgExec < 25) w *= 0.4; else if(avgExec > 45){ w *= 1.15; why[S.id] = "T выходят поздно (~"+Math.round(avgExec)+"с) — есть время за инфой"; }
     }
     var l1 = ctSetupHist[ctSetupHist.length-1], l2 = ctSetupHist[ctSetupHist.length-2];
     if(l1 === S.id && l2 === S.id) w *= 0.15;
     // (1) мидер рано умирал в 2 из 3 последних раундов — агрессивный мид реже
-    if(BAL.roundMem && S.midAggressive && rmemRecent(RMEM.midDeath, 3).length >= 2){ w *= 0.2; why[S.id] = null; }
+    if(S.midAggressive && rmemRecent(RMEM.midDeath, 3).length >= 2){ w *= 0.2; why[S.id] = null; }
     // CT тоже помнят, какие расстановки в этом матче сработали, а какие нет
     var CM = ctSetupMem[S.id] || {n:0, w:0};
     w *= 0.3 + 1.7*((CM.w + 1)/(CM.n + 2));
-    if(BAL.timeouts && roundNum <= TOUT.CT.until){ var CP = TOUT.CT.plan || {};   // (v460) план тренера после паузы
+    if(roundNum <= TOUT.CT.until){ var CP = TOUT.CT.plan || {};   // (v460) план тренера после паузы
       if(TOUT.CT.avoid.indexOf(S.id) >= 0) w *= 0.15;
       if(CP.stack && S.stack === CP.stack) w *= 6;
       if(CP.avoidZone && setupUsesZone(S, CP.avoidZone)) w *= 0.35;   // (v461) где умирали — эти раунды там не стоим
@@ -117,41 +129,56 @@ function chooseCtSetup(){
       if(CP.midAgg && S.midAggressive) w *= 4; }   // (v469) план «ранний пик AWP на миде»
     return w;
   });
-  var S = BAL.ctSetups ? CT_SETUPS[weightedChoice(CT_SETUPS, weights, roundNum*4217 + matchNum*881 + 5)] : (BAL.ctSetup === "1-1-1" ? CT_SETUPS[1] : CT_SETUPS[0]);
+  var S = CT_SETUPS[weightedChoice(CT_SETUPS, weights, roundNum*4217 + matchNum*881 + 5)];
+  // (v566) для «Разбора команды» (612): из чего выбирали и почему — игру не меняет
+  CTSET_DBG = {round: roundNum, buy: teamEco.CT && teamEco.CT.roundType, pick: S.id, list: CT_SETUPS.map(function(X, i){ return {id: X.id, name: X.name, w: weights[i], base: ctShareW(X), why: why[X.id] || ""}; })};
   ctSetupHist.push(S.id);
   teamTac.CT = {call:null, saving:false, stack:S.stack||null, setup:S, setupWhy: why[S.id]||null};
   ctSeatRoles(S);   // (v334, М61) кто какую роль расстановки играет — по своим позициям из демок
   // против эко: без ранних пиков и доборов — не дарить оружие, держать вместе
-  if(BAL.ctAntiEco && BAL.ecoRead){ var Ee = teamEco.CT.enemyGuess || enemyEcoGuess("CT"); if(Ee.eco && (teamEco.CT.roundType === "full" || teamEco.CT.roundType === "force")){ teamTac.CT.antiEco = true; logEvent("CT: у T, похоже, эко — играем аккуратно: без ранних пиков, не отдаём оружие"); } }
+  // (v559, В76 ч.5) «против эко» — не флаг расстановки, а цель раунда команды (roundGoal, 520: «выиграть, не отдав винтовок»), читается по знанию
+  if(roundGoal("CT") === "keepGuns") logEvent("CT: у T, похоже, эко — цель: выиграть, не отдав винтовок");
   logEvent("CT: расстановка «"+S.name+"»"+(why[S.id] ? " — "+why[S.id] : ""));
 }
 // (v334, М61, владелец: «kyousuke играет Window, а должен Short — рядом с B») роли расстановки CT на раунд — по почерку игроков:
 // для каждой роли — насколько её места (pos) похожи на места этого игрока в демках (posPref: почерк + оружие, как posPickName);
 // перебор 120 рассадок, берётся с наибольшей суммой (с v409 — доля времени игрока на позициях роли); своя постоянная роль (playerRoles, роли по демкам карты) — бонус
-// SEAT_KEEP (проектное число), чтобы опорники не скакали между раундами без причины
+// SEAT_KEEP (проектное число), чтобы опорники не скакали между раундами без причины.
 var SEAT_KEEP = 0.15;
+// (v567, владелец 12.11: «у меня karrigan всегда опорник B, а в матче 3 он роумер — роли должны быть закреплены, мы это уже 50 раз») своя роль
+// игрока из набора карты (tactics.playerRoles — по демкам этой карты) — закреплена: перевешивает любые доли мест; по местам в демках
+// распределяются только игроки без своей роли. Было: своя роль весила 0,15 — по долям мест TeSeS забирал опорника B, karrigan уходил в роумеры
+// (в матче 1 этого не видно: при загрузке страницы сохранялась готовая рассадка матча 1)
+var SEAT_FIXED = 100, PR_FIX = MAP.tactics.playerRoles || {};
+// (v555, владелец 11.11, м300: «m0NESY и TeSeS меняются местами каждый раунд — роль игрока (мидер — всегда мидер) не меняется, изредка, как
+// решение тренера; расстановки не трогать») рассадка — один раз на половину (сторона CT этой команды): по сумме долей времени игрока на
+// местах роли во ВСЕХ расстановках (а не в выпавшей в этом раунде), дальше роль игрока держится; расстановка меняет только места внутри роли.
+// Было: перебор заново каждый раунд по местам выпавшей расстановки (+SEAT_KEEP 0,15 за прошлую роль) — опорник A переходил от игрока к игроку
 function ctSeatRoles(S){
-  if(!S || !S.roles || !BAL.proPrior) return;
+  if(!S || !S.roles) return;
   var team = bots.filter(function(b){ return b.team === "CT"; }), roles = Object.keys(S.roles);
   if(team.length !== 5 || roles.length !== 5) return;
-  var base = {}; team.forEach(function(b){ if(!b._seatRole || b._seatSide !== matchNum+':'+b.team+':'+(roundNum > HALF_ROUNDS ? 2 : 1)){ b._seatRole = b.tRole; b._seatSide = matchNum+':'+b.team+':'+(roundNum > HALF_ROUNDS ? 2 : 1); } base[b.id] = b._seatRole; });
-  // (v409, владелец 22.10: «почему TeSeS опорник?») мера была — САМАЯ похожая одна позиция роли (posPref: 50 % почерк игрока + 50 % его
-  // оружие, нормировано на максимум) — у всех почти 1 где-нибудь, и на Mirage роли выходили наоборот демкам: karrigan (на B 86 % времени
-  // в демках) — ротатор в 5 расстановках из 8, TeSeS (B 57 %, A 31 %) — опорник B в 7 из 8. Теперь — доля времени игрока в демках на
-  // позициях этой роли (сумма, без оружия): кто там чаще стоит, тот и играет
+  var key = matchNum+':'+SIDE_TEAM.CT+':'+(roundNum > HALF_ROUNDS ? 2 : 1);
+  if(team.every(function(b){ return b._seatSide === key && b._seatRole && roles.indexOf(b._seatRole) >= 0; })){
+    team.forEach(function(b){ b.tRole = b._seatRole; }); return; }
+  // (v409, владелец 22.10: «почему TeSeS опорник?») мера — доля времени игрока в демках на позициях этой роли (сумма, без оружия): кто там
+  // чаще стоит, тот и играет
   var NP = {}, share = function(who, q){ if(NP[who] == null){ NP[who] = 0; KNOW_POSITIONS.points.forEach(function(p){ if(p.side === "CT") NP[who] += (p.byP && p.byP[who]) || 0; }); }
     return NP[who] ? ((q.byP && q.byP[who]) || 0)/NP[who] : 0; };
+  var setups = CT_SETUPS.filter(function(X){ return X.roles && roles.every(function(r){ return X.roles[r]; }); });
   var A = team.map(function(b){ return roles.map(function(r){
-    var names = S.roles[r].pos || [], sum = 0, seen = {};
-    names.forEach(function(nm){ var ids = zonesByName(nm);
-      KNOW_POSITIONS.points.forEach(function(q){ if(q.side !== "CT" || seen[q.id]) return; if(q.zid === undefined) q.zid = zoneIdAt(q.x, q.y) || null;
-        if(q.zid && ids.indexOf(q.zid) >= 0){ seen[q.id] = 1; sum += share(nick(b.id), q); } }); });
-    return sum + (base[b.id] === r ? SEAT_KEEP : 0); }); });
+    var sum = 0;
+    setups.forEach(function(X){ var names = X.roles[r].pos || [], seen = {};
+      names.forEach(function(nm){ var ids = zonesByName(nm);
+        KNOW_POSITIONS.points.forEach(function(q){ if(q.side !== "CT" || seen[q.id]) return; if(q.zid === undefined) q.zid = zoneIdAt(q.x, q.y) || null;
+          if(q.zid && ids.indexOf(q.zid) >= 0){ seen[q.id] = 1; sum += share(nick(b.id), q); } }); }); });
+    var fixR = PR_FIX[nick(b.id)] && PR_FIX[nick(b.id)].CT;
+    return sum + (fixR === r ? SEAT_FIXED : 0) + (b.tRole === r ? SEAT_KEEP : 0); }); });
   var bestSum = -1, bestP = null;
   (function perm(arr, k){ if(k === arr.length){ var sm = 0; for(var i=0;i<arr.length;i++) sm += A[i][arr[i]]; if(sm > bestSum){ bestSum = sm; bestP = arr.slice(); } return; }
     for(var i=k;i<arr.length;i++){ var t = arr[k]; arr[k] = arr[i]; arr[i] = t; perm(arr, k+1); t = arr[k]; arr[k] = arr[i]; arr[i] = t; } })([0,1,2,3,4], 0);
   if(!bestP) return;
-  team.forEach(function(b, i){ var r = roles[bestP[i]]; if(b.tRole !== r){ logEvent("CT: "+nick(b.id)+" в этой расстановке — "+r+" (по своим позициям)"); b.tRole = r; } });
+  team.forEach(function(b, i){ var r = roles[bestP[i]]; b._seatRole = r; b._seatSide = key; if(b.tRole !== r){ logEvent("CT: "+nick(b.id)+" в этой половине — "+r+" (по своим позициям)"); b.tRole = r; } });
 }
 // роль CT по расстановке: позиция по названию зоны (из нескольких — по раунду)
 var CT_ZONE_RES = {k:null, z:{}};   // (v518c) зоны мест CT, занятые в этом раунде: имя зоны → id бота
@@ -162,7 +189,7 @@ function ctSetupRole(b, role, ct){
   // по оружию (ближний угол / дальняя точка), а не вперёд в дуэль на дистанции
   // (v359) роль mid в раскладке без мида (3-0-2, 4-0-1 — места на сайте) — не мидер: правило «мидер по оружию» не для неё
   var midReal = role === "mid" && (R.pos || []).some(function(n){ return ((POS.M && POS.M.ctHold) || []).indexOf(n) >= 0; });
-  if(BAL.midWeapon && midReal && b.weapon && (b.weapon.tier < 5 || ((b.weapon.key === "AWP" || b.weapon.key === "SSG") && R.early))) return false;
+  if(midReal && b.weapon && (b.weapon.tier < 5 || ((b.weapon.key === "AWP" || b.weapon.key === "SSG") && R.early))) return false;
   var early = R.early && tick - roundStartTick < R.early.sec*TICK_HZ;
   var P = early ? R.early : R;
   if(early && b._sawEnemy) b._earlySaw = roundNum;
@@ -186,9 +213,9 @@ function ctSetupRole(b, role, ct){
   var mineZ = names.filter(function(n){ return RZ.z[n] === b.id; })[0];
   var freeZ = names.filter(function(n){ var o = RZ.z[n] ? teamBot(RZ.z[n]) : null; return !o || !o.alive || o === b; });
   if(freeZ.length) names = freeZ;
-  var nm0 = mineZ || (BAL.proPrior ? names[posPickName(b, names, roundNum*97 + role.length*13 + matchNum)] : names[Math.floor(hashRand(roundNum*97 + role.length*13 + matchNum) * names.length)]);
+  var nm0 = mineZ || (names[posPickName(b, names, roundNum*97 + role.length*13 + matchNum)]);
   var ref = role === "anchorA" ? GEO.A.anchor : role === "anchorB" ? GEO.B.anchor : GEO.ctMid;
-  // (v417, М153) куда смотрят про с этой точки — точка из демок (lookPt, tools/tactics_bake.py / ct_lookpt_add.py); по имени зоны точка
+  // (v417, М153) куда смотрят про с этой точки — точка из демок (lookPt, tools/map/tactics_bake.py / ct_lookpt_add.py); по имени зоны точка
   // бралась рядом с ботом и направление терялось (Mirage, опорник A в ctStd_212: про смотрят на −52° к A, а точка зоны «CT» — на 159°, назад)
   // прятаться от мида по умолчанию — но не тогда, когда сам взгляд НАПРАВЛЕН
   // в сторону мида/тоннеля (Пуш кейва): иначе позицию тянуло в укромный
@@ -199,6 +226,24 @@ function ctSetupRole(b, role, ct){
   // точка бралась любая внутри зоны) место роли годно, только если с точки видно то, что роль держит (точка взгляда): выбранное место
   // первым, потом остальные свободные места роли; нигде не видно — как было (выбранное место)
   var tryN = [nm0].concat(names.filter(function(n){ return n !== nm0; })), nm = nm0, c = null, lk = null, spots = null;
+  // (v570, владелец 12.11 к отметке м1 р3: «почему не сыграли кроссфайером — все в одной позиции; можно с ладдера через Catwalk / Short,
+  // кто-то на Connector») места ролей в данных расстановки совпадают (1-3-1 Mirage: у ротатора и роумера — Window / Connector / Under
+  // Window), и трое вставали в одну точку. Место роли — на своей линии: не ближе OWN_LINE_GAP к месту другого CT. Нет такого среди мест
+  // роли — места, где у про стоят CT в этом районе (MAP.zoneprops: доля CT в демках, тот же край карты), ближние по пути
+  var crossOk = function(q){ return !spotTaken(b, q, "line"); };   // одна мерка «своей линии» — spotTaken (350), OWN_LINE_GAP (110)
+  ctProZones(ref).forEach(function(n){ if(tryN.indexOf(n) < 0) tryN.push(n); });
+  var crossAlt = null;
+  // (15.11, владелец: «расстановки — по демкам, где обычно стоят; точки в паре, чтобы смотрели все зоны, откуда выходят T») место роли —
+  // точка из демок про этой структуры (spot, tools/ct/ct_setup_spots_bake.py), взгляд — угол про у этой точки (lookYaw) до стены. Место
+  // в CT_SPOT_R от точки, откуда видно, куда смотреть, не занятое своим; нет такого — места по зонам роли (ниже), как было
+  if(P.spot){
+    var cS = {x: P.spot[0], y: P.spot[1]}, lkS = null;
+    if(P.lookYaw != null){ var RS = proLookRay(cS.x, cS.y, P.lookYaw, PRO_LOOK_R); lkS = {x: cS.x + Math.cos(P.lookYaw)*RS, y: cS.y + Math.sin(P.lookYaw)*RS}; }
+    else lkS = (P.lookPt && {x: P.lookPt[0], y: P.lookPt[1]}) || ref;
+    var spS = pickSpots("cts:"+S.id+":"+role+":spot", cS, 6, {rMax: CT_SPOT_R, minGap: 30, see: [lkS]});
+    var freeS = spS.filter(function(q){ return hasLOS(q.x, q.y, lkS.x, lkS.y) && !spotTaken(b, q, "post") && crossOk(q); });
+    if(freeS.length){ nm = zoneUserName(zoneIdAt(cS.x, cS.y)) || nm0; c = cS; lk = lkS; spots = freeS.slice(0, 3); spots._free = 1; spots._see = 1; spots._spot = 1; tryN = []; }
+  }
   for(var ti = 0; ti < tryN.length; ti++){
     var c1 = zonePoint(tryN[ti], ref); if(!c1) continue;
     var lk1 = (P.lookPt && {x: P.lookPt[0], y: P.lookPt[1]}) || (P.look && zonePoint(P.look, c1)) || ref;
@@ -207,36 +252,67 @@ function ctSetupRole(b, role, ct){
     // места: в 150 от точки зоны легко попасть в соседнюю, а соседняя бывает уже чужой стороной. Нет такой — как было
     var in1 = sp1.filter(function(q){ return zoneUserName(zoneIdAt(q.x, q.y)) === tryN[ti]; }); sp1 = in1.length ? in1 : sp1;
     var see1 = sp1.filter(function(q){ return hasLOS(q.x, q.y, lk1.x, lk1.y); });
+    // (v570, отметка владельца м1 р3 15,7 с: «все игроки по тактике 1-3-1 стоят в одной точке») — места ролей одной расстановки бывают
+    // в одной зоне (мидер, ротатор, роумер — 25–57 ед. друг от друга), а сдвиг в setPost в тесном проходе не находил места. Точка, где уже
+    // стоит / куда идёт свой (spotTaken), — не вариант; все заняты — следующее место роли; нигде нет — как было
+    var free1 = see1.filter(function(q){ return !spotTaken(b, q, "post") && crossOk(q); });   // места своих, а не идущие мимо (иначе выбор менялся каждый тик)
     if(ti === 0){ nm = tryN[0]; c = c1; lk = lk1; spots = sp1.slice(0, 3); }
-    if(see1.length){ nm = tryN[ti]; c = c1; lk = lk1; spots = see1.slice(0, 3); break; }
+    if(see1.length && !spots._see){ nm = tryN[ti]; c = c1; lk = lk1; spots = see1.slice(0, 3); spots._see = 1; }
+    if(free1.length){ nm = tryN[ti]; c = c1; lk = lk1; spots = free1.slice(0, 3); spots._free = 1; break; }
+    var cross1 = sp1.filter(function(q){ return !spotTaken(b, q, "post") && crossOk(q); });
+    if(cross1.length && !crossAlt) crossAlt = {nm: tryN[ti], c: c1, lk: lk1, spots: cross1.slice(0, 3)};
   }
+  // ниоткуда не видно точку взгляда роли (у роумера 1-3-1 Mirage точка из демок не видна ни из одного места мида) — своя линия важнее:
+  // место, откуда не видно, но не в точке другого CT (было — первое место роли, в той же точке, что мидер)
+  if(spots && !spots._free && crossAlt){ nm = crossAlt.nm; c = crossAlt.c; lk = crossAlt.lk; spots = crossAlt.spots; }
   if(!c) return false;
   Object.keys(RZ.z).forEach(function(n){ if(RZ.z[n] === b.id && n !== nm) delete RZ.z[n]; }); RZ.z[nm] = b.id;
   var tag = (role === "anchorA" || role === "anchorB") ? "anchor" : role === "mid" ? "mid" : "set:"+role;
   var spC = spots[weightedPick(spots.length, roundNum*53 + b.id.charCodeAt(2||1))];
+  // (v570, прогон 217: Ancient «застрял (anchor): пост заново 12 раз за 5 с») место роли меняется по причине, а не при каждом пересчёте: текущее
+  // место этой роли в этом районе ещё свободно (места своих — не ближе «личного места» и «своей линии») — остаётся (как пересмотр в holdGroup, 280)
+  var cur = b.post && b.post.tag === tag && zoneUserName(zoneIdAt(postSrc(b).x, postSrc(b).y)) === nm ? postSrc(b) : null;
+  if(cur && !spotTaken(b, cur, "post") && !spotTaken(b, cur, "line")) spC = cur;   // своё место — точка, которую роль дала (src), не сдвинутая
   // встал в той самой зоне, куда велено смотреть (роумер в Cave с взглядом
   // "на Cave") — смотрим дальше НАРУЖУ по пути к T, а не себе под ноги/на сайт
   if(spC && lk && Math.hypot(spC.x-lk.x, spC.y-lk.y) < 150){ var ow = outwardLook(spC, lk); if(ow) lk = ow; }
   var placed = setPost(b, spC, lk, true, tag);   // (v518a, пак 09.11 п.1) отказ арбитра — роль не обслужена (было: всегда «сделано»)
+  if(placed && spots._spot && b.post) b.post.setupLook = 1;   // (15.11) угол роли из демок (lookYaw) — поручен задачей: арбитр взгляда держит его (270 lookAngleCand)
   if(early && !b._earlyLog){ b._earlyLog = roundNum; }
   if(early && b._earlyLogged !== roundNum){ b._earlyLogged = roundNum; logEvent(b.id+" ("+ROLE_LABEL_CT(role)+"): выход за инфой — "+nm); }
   return placed;
+}
+var CT_PRO_ZONE = {occ: 0.003, tShare: 0.5, path: 900, n: 6};   // (v570) проектные числа: зона CT у про — доля ≥ 0,3 %, T < половины
+function ctProZones(ref){
+  var ZP = MAP.zoneprops && MAP.zoneprops.zones; if(!ZP || !ref) return [];
+  var zr = ZP[zoneIdAt(ref.x, ref.y)], side = zr && zr.side !== "M" ? zr.side : null, out = [];   // мид — места с обеих сторон рядом (Connector, Short)
+  Object.keys(ZP).forEach(function(k){ var z = ZP[k];
+    if(!z.name || !(z.occ >= CT_PRO_ZONE.occ) || z.tShare == null || z.tShare >= CT_PRO_ZONE.tShare || (side && z.side !== side && z.side !== "M")) return;
+    var q = zonePoint(z.name, ref); if(!q) return; var L = polyLen(pathPts(ref.x, ref.y, q.x, q.y)); if(L > CT_PRO_ZONE.path) return;
+    out.push({n: z.name, L: L}); });
+  return out.sort(function(a, c){ return a.L - c.L; }).slice(0, CT_PRO_ZONE.n).map(function(o){ return o.n; });
 }
 function ROLE_LABEL_CT(r){ return {anchorA:"опорник A", anchorB:"опорник B", mid:"мидер", rotator:"ротатор", roamer:"роумер"}[r] || r; }
 var events = []; var killfeed = []; // объявлены здесь, до loadOppProfile(), которая пишет в лог сразу при старте
 var simTime = 0; // тоже нужен logEvent-у при старте
 if(typeof OPP !== "undefined" && OPP) loadOppProfile();
 // итог раунда — в память обеих сторон
+var RND_PART = {plant: 0.25, kill: 0.1, max: 0.6};   // проектные числа: доля успеха проигранного раунда (плант / не дали поставить, каждый убитый)
 function rememberRound(winner){
   bots.forEach(function(b){ var A = aggrObs[b.id] || (aggrObs[b.id] = {e:0, r:0}); A.r++; });
   var tt = teamTac.T; if(!tt) return;
-  var M = tacMem[tt.tac.id] || (tacMem[tt.tac.id] = {n:0, w:0, plants:0});
-  M.n++; if(winner === "T") M.w++; if(bomb && (bomb.state === "planted" || bomb.state === "exploded" || bomb.state === "defused")) M.plants++;
+  var TAC0 = tt.open || tt.tac;   // (v561) дефолт с продолжением — в памяти начало (его выбирает chooseTactic)
+  var M = tacMem[TAC0.id] || (tacMem[TAC0.id] = {n:0, w:0, plants:0});
+  // (v561, этап 8 docs/tasks/PLAN_TACTICS_V2.md; PRO_PLAY §6з: «успех тактики — не только победа: плант, убитые CT») проигранный раунд даёт
+  // часть успеха: плант — RND_PART.plant, каждый убитый соперник — RND_PART.kill (вместе — меньше победы); та же мерка у расстановки CT
+  var deadCT = bots.filter(function(o){ return o.team === "CT" && !o.alive; }).length, deadT = bots.filter(function(o){ return o.team === "T" && !o.alive; }).length;
+  var planted = !!(bomb && bomb.plantTick && bomb.plantTick >= roundStartTick);
+  M.n++; M.w += winner === "T" ? 1 : Math.min(RND_PART.max, (planted ? RND_PART.plant : 0) + deadCT*RND_PART.kill); if(bomb && (bomb.state === "planted" || bomb.state === "exploded" || bomb.state === "defused")) M.plants++;
   ctRead.push({A: tt.seenCT.A, B: tt.seenCT.B});
   var cs = teamTac.CT && teamTac.CT.setup;
-  if(cs){ var CM = ctSetupMem[cs.id] || (ctSetupMem[cs.id] = {n:0, w:0}); CM.n++; if(winner === "CT") CM.w++; }
+  if(cs){ var CM = ctSetupMem[cs.id] || (ctSetupMem[cs.id] = {n:0, w:0}); CM.n++; CM.w += winner === "CT" ? 1 : Math.min(RND_PART.max, (planted ? 0 : RND_PART.plant) + deadT*RND_PART.kill); }
   roundHist.push({site: tt.site, planted: !!(bomb && bomb.plantTick && bomb.plantTick >= roundStartTick), winner: winner,
-                  execSec: tt.execStart != null ? (tt.execStart - roundStartTick)/TICK_HZ : null});
+                  execSec: tt.execStart != null ? (tt.execStart - roundStartTick)/TICK_HZ : null, type: teamEco.T && teamEco.T.roundType});   // (v560, В95) закуп T — темп раунда меряется от него
 }
 // ---- любимые углы CT (для T) ----
 // ошибки исполнения — в лог не каждую (чтобы не засорять), но видно, что они есть
@@ -260,21 +336,6 @@ function habitAdd(ctId, x, y, w){
 function habitTop(ctId, minN){
   var H = ctHabit[ctId], best = null; if(!H) return null;
   for(var k in H){ if(H[k].n >= (minN||2) && (!best || H[k].n > best.n)) best = H[k]; }
-  return best;
-}
-// без свежей инфы — смотрит в любимый угол живого врага (у каждого игрока свой,
-// копится за матч и между матчами), если он рядом и виден
-function habitLook(b){
-  if(!teamTac.T || (b.team === "T" && teamTac.T.phase === "postplant")) return null;
-  var best = null, bd = Infinity;
-  bots.forEach(function(o){
-    if(o.team === b.team || !o.alive) return;
-    var h = habitTop(o.id, 2.5); if(!h) return;
-    var d = Math.hypot(h.x-b.x, h.y-b.y);
-    if(d < 150 || d > 650 || d >= bd) return;
-    if(!hasLOS(b.x, b.y, h.x, h.y, b.z)) return;
-    bd = d; best = h;
-  });
   return best;
 }
 var roundStartTick = 0;

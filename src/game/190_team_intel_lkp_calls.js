@@ -23,7 +23,7 @@ function commSend(team, sig, by){ intelPush(team, sig); }
 function resetTeamIntel(){ if(typeof lkpReset === "function") lkpReset(); teamIntel = { CT:{sig:[], carrier:null, lastCall:{}}, T:{sig:[], carrier:null, lastCall:{}} }; }
 resetTeamIntel();
 function intelPush(team, sig){ sig.tick = tick; teamIntel[team].sig.push(sig); if(typeof beliefObserve === "function") beliefObserve(team, sig);
-  if(BAL.buyRead && sig.type === "spotted" && sig.id && sig.id !== "?") buyReadSee(team, sig.id);
+  if(sig.type === "spotted" && sig.id && sig.id !== "?") buyReadSee(team, sig.id);
   if((sig.type === "spotted" || sig.type === "sound") && sig.id && sig.id !== "?") lkpSet(team, sig.id, sig.x, sig.y, sig.type); }
 // ---- последняя известная позиция (ЛИП) каждого врага ----
 // Инфа не "испаряется" через несколько секунд: где врага последний раз видели/
@@ -37,7 +37,7 @@ function intelPush(team, sig){ sig.tick = tick; teamIntel[team].sig.push(sig); i
 // (Б3, З6) подпись метки — по тому, откуда она: «видели» — только увиденное (радар, смерть своего, бросок, прыжок), остальное
 // (звук, войс «слышу», выстрел убийцы) — «слышали». Раньше на панели взгляда всё подписывалось «видели»: 31–34 % таких меток — звук
 function lkpWord(q){ return q && q.src === "spotted" ? "видели" : "слышали"; }
-function lkpReset(){ if(typeof CLEARZ !== "undefined") CLEARZ = {CT:{}, T:{}}; }
+function lkpReset(){ if(typeof CLEARZ !== "undefined") clearzReset(); }
 function lkpSet(team, id, x, y, src){ var e = beliefLast[team][id]; if(e && src === "sound" && e.src === "spotted" && tick - e.tick < 2*TICK_HZ) return;
   beliefLast[team][id] = {x:x, y:y, tick:tick, src:src};
   var zi = zoneIdAt(x, y); if(zi && CLEARZ[team][zi]) delete CLEARZ[team][zi]; }
@@ -51,33 +51,21 @@ function lkpTick(){
       if(tick - e.tick < 3*TICK_HZ) return;
       // единое хранилище: если по карте вероятностей врага у этой точки уже
       // нет (ушёл/вычистили взглядом) — метка ЛИП тоже снимается, без своей логики
-      if(BAL.oneStore && BZ.ids.length && beliefMassNear(team, id, e.x, e.y, 260) < 0.12){ delete L[id]; return; }
+      if(BZ.ids.length && beliefMassNear(team, id, e.x, e.y, 260) < 0.12){ delete L[id]; return; }
       // кто-то из своих смотрит на это место (в поле зрения, есть линия) и его там нет
       var checker = bots.filter(function(b){ return b.alive && b.team === team && Math.hypot(b.x-e.x, b.y-e.y) < 550 &&
         hasVision(b.x, b.y, e.x, e.y) && inFov(b, e.x, e.y) && b._visible.indexOf(foe) < 0; })[0];
       if(checker){
         delete L[id]; var zc = zoneIdAt(e.x, e.y); if(zc) CLEARZ[team][zc] = {tick:tick, x:e.x, y:e.y};
         knowClearZone(team, e.x, e.y, id);
-        voiceLog(team, "clr"+id, checker.id, "проверил "+calloutName(e.x, e.y)+" — "+id+" там уже нет");
+        voiceLog(team, "clr"+id, checker.id, calloutName(e.x, e.y).replace(/^на /, "")+" чисто, "+id+" ушёл");
       }
     });
   });
 }
 function lkpNear(team, x, y, r){
-  if(BAL.oneStore && BZ.ids.length && belief[team]){ var n1 = 0, S = beliefSeen[team]; Object.keys(belief[team]).forEach(function(eid){ if(S[eid] != null && beliefMassNear(team, eid, x, y, r) >= 0.35) n1++; }); return n1; }
+  if(BZ.ids.length && belief[team]){ var n1 = 0, S = beliefSeen[team]; Object.keys(belief[team]).forEach(function(eid){ if(S[eid] != null && beliefMassNear(team, eid, x, y, r) >= 0.35) n1++; }); return n1; }
   var n = 0, L = beliefLast[team]; for(var id in L){ if(Math.hypot(L[id].x-x, L[id].y-y) < r) n++; } return n; }
-// взгляд без свежей инфы: на угол, за которым последняя известная позиция врага
-// Раньше брали просто БЛИЖАЙШУЮ позицию — и бот смотрел на старую инфу про
-// одного CT у Cave, хотя 5 секунд назад двое убили троих его тиммейтов на
-// миде. Теперь свежесть весит: каждая секунда давности = +40px "расстояния".
-// maxAgeT — вариант "только свежая угроза" (выше плана/преэйма в приоритете)
-function lkpLook(b, maxAgeT){
-  var L = beliefLast[b.team], best = null, bs = Infinity, rMax = maxAgeT ? 850 : 750;
-  for(var id in L){ var e = L[id], age = tick - e.tick; if(age < TICK_HZ) continue; if(maxAgeT && age > maxAgeT) continue;
-    var d = Math.hypot(e.x-b.x, e.y-b.y); if(d >= rMax) continue;
-    var sc = d + 40*age/TICK_HZ; if(sc < bs){ bs = sc; best = e; } }
-  return best ? cornerLook(b, best) : null;
-}
 function teamInfoTick(){
   if(roundState !== "live") return;
   bots.forEach(function(b){
@@ -94,7 +82,7 @@ function teamInfoTick(){
         var prevCar = teamIntel[b.team].carrier;
         if(!prevCar || tick - prevCar.tick > 5*64)
           voiceLog(b.team, "bomb", b.id, "бомба у "+e.id+" "+calloutName(e.x, e.y)+"!");
-        teamIntel[b.team].carrier = {x:e.x, y:e.y, tick:tick, by:b.id}; teamIntel[b.team].carrierId = e.id;   // (v432) кто носитель — помнят до конца раунда, где он — знание (knowEnemySpots)
+        teamIntel[b.team].carrier = {x:e.x, y:e.y, tick:tick, by:b.id}; teamIntel[b.team].carrierId = e.id; teamIntel[b.team].carrierLast = teamIntel[b.team].carrier;   // (v555) где последний раз видели с бомбой — до конца раунда (carrier забывается через INTEL_KEEP)   // (v432) кто носитель — помнят до конца раунда, где он — знание (knowEnemySpots)
       }
     });
     // слышу — своё; команде — только то, что сказано в войсе (teamChannel → teamHeardToIntel)
@@ -107,7 +95,7 @@ function teamInfoTick(){
 }
 // сколько врагов команда "знает" рядом с точкой за последние windowTicks
 function intelEstimate(team, x, y, r, windowTicks){
-  if(BAL.oneStore && BZ.ids.length && belief[team]){
+  if(BZ.ids.length && belief[team]){
     // из единого хранилища: враг "здесь", пока его вероятность рядом ≥0.35 —
     // не "пока не прошло N секунд". seen/heard — было ли РЕАЛЬНОЕ наблюдение
     // здесь за окно (для решений "видели недавно")
@@ -234,7 +222,7 @@ function intelDeath(victim, killer){
   // (v519, пак 09.11 п.10; А-38: «убили мид, убили двоих опорников A, а опорник другого сайта до сих пор стоит» — «T у другого сайта» считался
   // по последней позиции уже убитого) смерть видна в киллфиде всем: убитый стирается из памяти команды сразу, одно место, а не в каждом читателе
   ["CT", "T"].forEach(function(t){ if(beliefLast[t]) delete beliefLast[t][victim.id]; });
-  if(BAL.roundMem && killer){
+  if(killer){
     var secR = (tick - roundStartTick)/TICK_HZ;
     if(killer.team === "CT" && killer.weapon && killer.weapon.key === "AWP") RMEM.awp.push({x:killer.x, y:killer.y, round:roundNum});
     if(killer.team === "CT" && victim.team === "T" && secR < 30 && tSideZone(killer.x, killer.y))
@@ -249,15 +237,14 @@ function intelDeath(victim, killer){
   // а не мгновенно в память команды (было: intelPush «sound» ±90 px в тик смерти — раньше, чем это можно сказать)
   var place = calloutName(victim.x, victim.y);
   var mine = aliveCount(victim.team), theirs = aliveCount(victim.team === "CT" ? "T" : "CT");
-  voiceLog(victim.team, "die"+victim.id, victim.id, "минус "+place+
-    (killer ? (saw ? ", убил "+killer.id+" "+calloutName(killer.x, killer.y, true) : ", стреляли "+calloutName(killer.x, killer.y, true)) : "")+
-    (mine > 0 ? " — нас "+mine+" против "+theirs : " — я последний, их "+theirs));   // (v323) последний погибший — без «нас 0»
+  voiceLog(victim.team, "die"+victim.id, victim.id, "минус"+(killer ? (saw ? ", снял "+killer.id+" "+calloutName(killer.x, killer.y, true) : ", стреляли "+calloutName(killer.x, killer.y, true)) : " "+place)+
+    (mine > 0 ? ". "+mine+" на "+theirs : ". Все, их "+theirs));   // (v323) последний погибший — без «нас 0»
   if(mine === 1 && theirs >= 2){
     var last = bots.filter(function(o){ return o.team === victim.team && o.alive; })[0];
-    if(last) voiceLog(victim.team, "clutch", last.id, "я один против "+theirs+" — "+
+    if(last) voiceLog(victim.team, "clutch", last.id, "1 на "+theirs+" — "+
       (teamSaving(victim.team) ? "сейвлюсь" :
-       victim.team === "CT" && bomb && bomb.state !== "planted" ? "тяну время, беру по одному" :
-       victim.team === "T" && bomb && bomb.state === "planted" ? "сижу у бомбы, жду дефуз" : "беру по одному"));
+       victim.team === "CT" && bomb && bomb.state !== "planted" ? "тяну время" :
+       victim.team === "T" && bomb && bomb.state === "planted" ? "сижу на бомбе" : "по одному"));
   }
   // команда убийцы тоже "знает", где и кого сняли (свой же игрок сказал "минус ...")
   // (аудит информации 30.10) роль убитого — то, что команда убийцы может знать: где этот игрок обычно стоит (ctHabit — увиденные и
@@ -282,7 +269,7 @@ function intelDeath(victim, killer){
   // сразу выходит на убийцу, пока тот перезаряжается/меняет позицию; это
   // срывает бота с тактики на ~3.5с). Разменивают 1–2 ближайших ПО ПУТИ.
   var traders = [];
-  if(BAL.tradeReflex && killer && killer.alive){
+  if(killer && killer.alive){
     var kp = saw ? {x:killer.x, y:killer.y} : {x:killer.x + (hashRand(tick*31 + 5)-0.5)*160, y:killer.y + (hashRand(tick*57 + 9)-0.5)*160};
     var cands = [];
     bots.forEach(function(o){
@@ -290,7 +277,7 @@ function intelDeath(victim, killer){
       // (v368, владелец: «тот, кто несёт бомбу, может так же стрелять; ранят — отойдёт, как любой, или отдаст бомбу») носитель меняет,
       // как все; раненый уходит (lowHpBack) или отдаёт бомбу (bombPassTick, HP ≤ 30) — общие правила. Раньше при 3+ живых не менял
       // (v154) снайпер и лёркер T в дефолте на размен не срываются: у про их роль — держать свою линию
-      if(BAL.duelValue && !(bomb && bomb.state === "planted") && ((o.weapon && o.weapon.key === "AWP") || (o.team === "T" && o.tRole === "lurker" && teamTac.T && teamTac.T.phase === "setup"))) return;
+      if(!(bomb && bomb.state === "planted") && ((o.weapon && o.weapon.key === "AWP") || (o.team === "T" && o.tRole === "lurker" && teamTac.T && teamTac.T.phase === "setup"))) return;
       if(!nearP(o.x, o.y, o.z, victim.x, victim.y, victim.z, TRADE_R)) return;   // (v248) разменивает тот, кто рядом (как у про)
       var L = polyLen(pathPts(o.x, o.y, victim.x, victim.y, o.z, victim.z));
       if(L <= 480) cands.push({b:o, L:L});
@@ -302,7 +289,7 @@ function intelDeath(victim, killer){
       Math.hypot(sg.x-victim.x, sg.y-victim.y) <= 300 && sg.kid === killer.id; });
     if(chainK && cands.length < 2) cands = [];
     if(cands[0]) traders.push(cands[0]);
-    if(cands[1] && cands[1].L <= (BAL.groupPlay ? 450 : 350) && aliveCount(victim.team) >= 3) traders.push(cands[1]);
+    if(cands[1] && cands[1].L <= (450) && aliveCount(victim.team) >= 3) traders.push(cands[1]);
     if(chainK && traders.length < 2) traders = [];   // вдвоём или никак
     traders.forEach(function(T, k){
       var o = T.b;
@@ -317,11 +304,10 @@ function intelDeath(victim, killer){
         var sc = Math.min(da, 0.8) - Math.hypot(q.x-o.x, q.y-o.y)/1500; if(sc > sBest){ sBest = sc; sw = q; } });
       sw = sw || {x:victim.x, y:victim.y};
       if(!setPost(o, sw, kp, true, "tradeR")) return;   // (v378) занят задачей важнее размена (бомба, сейв) — арбитр места
-      o._probeLock = 0; o._reposUntil = 0;
-      o._tradeLock = {until: tick + Math.round(3.5*TICK_HZ), at:{x:victim.x, y:victim.y}, kp:kp};
-      o._tradeUntil = tick + Math.round(3.5*TICK_HZ);
+      o._probeLock = 0; taskKeep(o, 0, "call");
+      tradeStart(o, {x:victim.x, y:victim.y}, kp);
       o.heardSound = {x:kp.x, y:kp.y, tick:tick, team:killer.team, src:killer.id, kind:"call"};
-      if(k === 0) voiceLog(o.team, "trade"+victim.id, o.id, "меняю "+victim.id+"!");
+      if(k === 0) voiceLog(o.team, "trade"+victim.id, o.id, "размен за "+victim.id+"!");
     });
   }
   // ---- подмена (v272, просьба владельца 13.10; из «мозга 2» — tdefRefill, rebuild-v238 12_t_default.js): свой погиб, а
@@ -345,22 +331,29 @@ function intelDeath(victim, killer){
     if(!covered) bots.forEach(function(o){
       if(!o.alive || o.team !== victim.team || o === victim || o.planting || o.defusing || o._sawEnemy || o._tradeLock || o._fillLock) return;
       if(o.team === "T" && (o.tRole === "lurker" || (bomb && bomb.carrier === o))) return;
-      if(Math.hypot(o.x-fc.x, o.y-fc.y) > 2*FILL_NEAR && aliveCount(victim.team) < 3) return;
+      // (v560, В92, разбор владельца 11.11: «путь fill ведёт на другой конец карты, потом точка отменяется — и обратно») подменять идёт только тот,
+      // кто под боком (по пути ≤ FILL_NEAR) — при любом числе живых; раньше при трёх и больше живых — ближайший без предела (AWP с выхода на B
+      // отправили на T Ramp: 1315 по пути)
+      if(Math.hypot(o.x-fc.x, o.y-fc.y) > FILL_NEAR) return;
       var L = polyLen(pathPts(o.x, o.y, fc.x, fc.y, o.z)), near = L <= FILL_NEAR;
-      if(!near && aliveCount(victim.team) < 3) return;
-      if(!near && !bots.some(function(m){ return m !== o && m.alive && m.team === o.team && nearP(m.x, m.y, m.z, o.x, o.y, o.z, TRADE_R); })) return;
-      if(!near && intelEstimate(o.team, o.x, o.y, 600, 4*TICK_HZ).n > 0) return;
+      if(!near) return;
       if(L < fL){ fL = L; fBest = o; }
     });
     if(fBest){
-      var fp = (fl && pickSpots("fill"+tick+fBest.id, fc, 1, {rMax:170, minGap:30, see:[fl]})[0]) || fc;
+      // (v561, этап 5 docs/tasks/PLAN_TACTICS_V2.md; PRO_PLAY §6з: «подмена — сохранить функцию, а не пройти маршрут») задача погибшего — держать
+      // линию на fl; подменяющий берёт её с ближайшего к себе пригодного места (видит fl, в пределах FILL_FUNC_R от места погибшего), а не идёт
+      // точно в его точку
+      var fpC = fl ? pickSpots("fill"+tick+fBest.id, {x:(fc.x+fBest.x)/2, y:(fc.y+fBest.y)/2}, 4, {rMax:FILL_FUNC_R, minGap:30, see:[fl]})
+        .filter(function(q){ return Math.hypot(q.x-fc.x, q.y-fc.y) <= FILL_FUNC_R; })
+        .sort(function(p, q){ return Math.hypot(p.x-fBest.x, p.y-fBest.y) - Math.hypot(q.x-fBest.x, q.y-fBest.y); }) : [];
+      var fp = fpC[0] || (fl && pickSpots("fill"+tick+fBest.id, fc, 1, {rMax:170, minGap:30, see:[fl]})[0]) || fc;
       if(setPost(fBest, fp, fl, true, "fill")){ fBest._fillLock = {until: tick + 15*TICK_HZ, team: victim.team, pt: fp, ph: victim.team === "T" ? teamTac.T.phase : null};
-      voiceLog(victim.team, "fill"+victim.id, fBest.id, "займу "+calloutName(fc.x, fc.y)+" вместо "+victim.id); }
+      voiceLog(victim.team, "fill"+victim.id, fBest.id, "закрываю "+calloutName(fc.x, fc.y).replace(/^на /, "")+" за "+victim.id); }
     }
   }
   // IGL: энтри сняли на выходе — вторая волна не пикает тот же угол "в лоб":
   // ближайший с флешкой кидает поп-флешку на убийцу, размен идёт под неё
-  if(BAL.iglReplan && victim.team === "T" && killer && killer.alive && teamTac.T && teamTac.T.phase === "execute" &&
+  if(victim.team === "T" && killer && killer.alive && teamTac.T && teamTac.T.phase === "execute" &&
      (victim.tRole === "entry" || !teamTac.T._popDone)){
     var kpF = {x:killer.x + (saw ? 0 : (hashRand(tick*23+1)-0.5)*140), y:killer.y + (saw ? 0 : (hashRand(tick*29+2)-0.5)*140)};
     var flc = bots.filter(function(o){ return o.alive && o.team === "T" && o !== victim && o.nades && o.nades.flash > 0 && !o.planting &&
@@ -371,7 +364,7 @@ function intelDeath(victim, killer){
       teamTac.T._popDone = true;
       voiceLog("T", "pop"+victim.id, flc.id, "даю флешку на "+killer.id+" "+calloutName(kpF.x, kpF.y)+" — меняйте под неё!");
       // размен ждёт хлопка (не дольше ~1.2с): не выбегает раньше флешки
-      traders.forEach(function(T){ T.b._waitPopUntil = tick + Math.round(1.2*TICK_HZ); T.b._waitPopKey = "pop:поп на убийцу "+victim.id; });
+      traders.forEach(function(T){ moveWaitPop(T.b, tick + Math.round(1.2*TICK_HZ), "pop:поп на убийцу "+victim.id, "trade"); });
     }
   }
   bots.forEach(function(b){
@@ -380,32 +373,18 @@ function intelDeath(victim, killer){
     var d = Math.hypot(b.x-victim.x, b.y-victim.y);
     if(d > 550) return;
     // размен уже взял ближайший — остальные не лезут в тот же прострелянный угол
-    if(BAL.tradeReflex && traders.length){ b._avoidPeekUntil = tick + 8*TICK_HZ; b._avoidPeekAt = {x:victim.x, y:victim.y}; return; }
+    if(traders.length){ knowAvoidPeek(b, {x:victim.x, y:victim.y}, 8); return; }
     // "меня убили отсюда" — ближние тиммейты смотрят туда и идут разменивать
     if(BAL.execErr && b.prof && hashRand(tick*29 + b.id.charCodeAt(1)*11) < (1-prof(b, "disc"))*0.12){ noteMistake(b, "не разменял "+victim.id); return; }
     // стрелка не видели и он не рядом — это не трейд, а второй пик в тот же
     // прострелянный угол: не лезть туда же ~8с (держать, ждать, обходить)
     if(!saw || (killer && Math.hypot(killer.x-b.x, killer.y-b.y) > 650)){
-      b._avoidPeekUntil = tick + 8*TICK_HZ; b._avoidPeekAt = {x:victim.x, y:victim.y};
+      knowAvoidPeek(b, {x:victim.x, y:victim.y}, 8);
       return;
     }
-    b._tradeUntil = tick + 150;
+    tradeAlertSet(b, 150);
     if(killer){ b.heardSound = {x:killer.x, y:killer.y, tick:tick, team:killer.team, src:killer.id, kind:"call"}; }
   });
-}
-// префайр по коллу: свежий (≤2с) "вижу" от тиммейта в 150..650px и есть линия — смотреть туда
-function teamCallLook(b){
-  var sig = teamIntel[b.team].sig, best = null, bd = 650;
-  for(var i = sig.length-1; i >= 0; i--){
-    var s = sig[i];
-    if(tick - s.tick > 2*TICK_HZ) break;
-    if(s.type !== "spotted" || s.by === b.id) continue;
-    var d = Math.hypot(s.x-b.x, s.y-b.y);
-    if(d < 150 || d >= bd) continue;
-    if(!hasVision(b.x, b.y, s.x, s.y)) continue;
-    best = s; bd = d;
-  }
-  return best;
 }
 // лог коллов — не спамить: раз в 4с на команду+зону
 function intelCallLog(team, key, text, who, kind){
@@ -414,5 +393,15 @@ function intelCallLog(team, key, text, who, kind){
   L[key] = tick;
   if(kind) voiceFeed(team, who, text, kind); else logEvent(text);
 }
-
-
+// (17.11, перестройка, дубль 8) окно размена — одно место: «иду менять» (_tradeLock: до, где убили, kp) и «тревога после смерти своего»
+// (_tradeUntil); было — писали 110, 120, 180, 190, читали 150, 170 ×3, 270, 350, 500, 535 сами
+function tradeStart(o, at, kp){ o._tradeLock = {until: tick + Math.round(3.5*TICK_HZ), at: at, kp: kp}; o._tradeUntil = tick + Math.round(3.5*TICK_HZ); }
+function tradeAlertSet(b, ticks){ b._tradeUntil = tick + ticks; }
+function tradeGoing(b){ return !!(b._tradeLock && b._tradeLock.until > tick); }
+function tradeAlert(b){ return tick < (b._tradeUntil || 0); }
+function tradeEnd(b, all){ b._tradeLock = null; if(all) b._tradeUntil = 0; }
+// (17.11, перестройка — модули) хранилища знания команды сбрасывают / подменяют только через свой файл: индекс зон (редактор зон 560),
+// кэш «зоны по названию» (200, 560), память раунда RMEM (память матча 130). Импорт модуля — только для чтения
+function zoneIndexReset(){ ZIDX = null; }
+function zoneNameCacheReset(){ _zbnCache = {}; }
+function rmemSet(v){ RMEM = v; }

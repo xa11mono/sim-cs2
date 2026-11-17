@@ -26,9 +26,3 @@ function hlKill(killer){
 function hlReact(b){ return hlHot(b) ? HL.react : 1; }
 function hlAim(b){ return hlHot(b) ? HL.aim : 1; }
 function hlScope(b){ return hlHot(b) ? HL.scope : 1; }
-// ползунок «хайлайты» (меню «Инструменты»): шанс в процентах на дуэль; сразу в игре, хранится в браузере
-(function(){ if(typeof document === "undefined") return; var r = document.getElementById("hlP"), v = document.getElementById("hlPv"); if(!r) return;
-  var show = function(){ v.textContent = Math.round(HL.p*100) + "%"; };
-  r.value = Math.round(HL.p*100); show();
-  r.addEventListener("input", function(){ HL.p = (+r.value || 0)/100; show(); try{ localStorage.setItem(HL_KEY, JSON.stringify({p: HL.p})); }catch(e){} });
-})();

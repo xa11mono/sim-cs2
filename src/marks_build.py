@@ -54,7 +54,10 @@ EXTRA_STATIC = set("PRO_PRIOR PRO_LOOK PRO_SPOTS ZDJ KPC".split())   # (v458) ZD
 
 def inject(s):
     assert s.count(MARK) == 1, "нет метки @@BUILD@@ в игре"
-    V = [v for v in top_vars(s) if v not in STATIC | SETTINGS | UI | EXTRA_STATIC and not v.startswith('__') and not v.startswith('MK') and not v.startswith('mk')]
+    # (17.11, перестройка — модули) переменные каналов-модулей (rebuild/modules.json) — тоже в снимок: их нет в склейке; запись — через
+    # сеттер модуля (сборщик tools/rebuild/mod_build.js переписывает строки __SNAP на __set_<имя>)
+    from gamesrc import module_source
+    V = [v for v in top_vars(s) + [x for x in top_vars(module_source()) if x not in top_vars(s)] if v not in STATIC | SETTINGS | UI | EXTRA_STATIC and not v.startswith('__') and not v.startswith('MK') and not v.startswith('mk')]
     for must in ['tick', 'bots', 'bomb', 'roundNum', 'matchNum', 'smokes', 'score', 'roundState']:
         assert must in V, must
     snap = "var __SNAP = [\n" + ",\n".join('["%s", function(){ return %s; }, function(v){ try{ %s = v; }catch(e){} }]' % (v, v, v) for v in V) + "\n];\n"

@@ -3,7 +3,7 @@ var DEFUSE_JUDGE = 0.3;   // (v519) с — ошибка оценки тайме�
 var PLANT_TICKS = Math.round(3.2*64), BOMB_TICKS = 40*64, DEFUSE_TICKS = 10*64, DEFUSE_KIT_TICKS = 5*64;
 // (v271) Урон взрыва — как в CS2 после июля 2025: волна расходится по карте от бомбы, углы и
 // стены её гасят (Valve «запекает» урон в карту, формулы не публикует). Числа — из наших демок
-// (tools/bomb_dmg.py: 1727 игроков в 347 взрывах на Ancient): урон по HP хорошо ложится на длину
+// (tools/pro/bomb_dmg.py: 1727 игроков в 347 взрывах на Ancient): урон по HP хорошо ложится на длину
 // пути по навмешу от бомбы, а не на прямую — 182·exp(−путь²/(2·1091²)) в юнитах; медианы у про:
 // путь 1500–1750 → 60, 1750–2000 → 37, 2000–2250 → 31, 2250–2500 → 17, 2500–3000 → 5; до ~500 — гибнут.
 // Броня не учитывается отдельно: в демках урон по HP у игроков почти всегда в броне.
@@ -81,7 +81,7 @@ function resetBomb(){
   order.forEach(function(r){ if(!carrier) carrier = bots.filter(function(b){ return b.team==="T" && b.tRole===r; })[0]; });
   carrier = carrier || bots.filter(function(b){ return b.team==="T"; })[0];
   bomb = {state:"carried", carrier:carrier, x:carrier.x, y:carrier.y, site:null, plantTick:-1, explodeTick:-1};
-  bots.forEach(function(b){ b.planting = false; b.defusing = false; b.fakeUntil = 0; b.fakeHoldUntil = 0; b.retakeRole = null; b._defuseHeard = -9999; b._tradeLock = null; b._fillLock = null; });
+  bots.forEach(function(b){ b.planting = false; b.defusing = false; b.fakeUntil = 0; b.fakeHoldUntil = 0; b.retakeRole = null; b._defuseHeard = -9999; tradeEnd(b); b._fillLock = null; });
 }
 // (00_PLAN, прогон 184: Mirage м23 — 32 переноса «вне пола» у T Ramp, 1482,1281, бот шёл за бомбой) упавшее (бомба, оружие, гранаты, кит) — на пол
 // навмеша: место смерти — рисуемая позиция (b.x: стрейф, отход от стены) и разброс предметов ±8 бывают в стене; там — ближайшая точка
@@ -118,6 +118,7 @@ function defuseSees(b){
   return !visWallHit(b.baseX, b.baseY, bomb.x, bomb.y) && visMarch(b.baseX, b.baseY, fv + VIS_EYE.crouch, bomb.x, bomb.y, fb + 8);
 }
 var ESC_MAX_SEC = 8;   // (05.11) ESC_WAIT_SEC (8 с всем) убран — сколько ждать сопровождающего, по ситуации (170, ответ владельца 10)
+var DEFUSE_KEEP = 2, DEFUSE_NEAR = 200;   // (v555) с — слова владельца; ед. — проектное число
 var UTIL_WAIT = 7, UTIL_WAIT_RUSH = 2.5, UTIL_AT_ENTRY = 140, UTIL_MIN_LEFT = 25;   // (v363) 7 с — между медианой 2,7 и 75 % 6,6 с у про (последняя граната → заход первого), 25 с до конца — уже не ждут   // (v346) ждать свои гранаты на выходе — проектные числа   // (v342) сопровождение носителя — проектные числа
 function defuseSound(ct){
   bots.forEach(function(o){
@@ -154,7 +155,6 @@ var BAIT_MAX = 2;   // байт-пиков за раунд — проектно�
 function tDefuseGo(tt, ts){
   var heard = ts.filter(function(b){ return tick - (b._defuseHeard||-9999) < 110; });
   if(!heard.length) return false;
-  if(!BAL.fakeRead) return "all";
   var h0 = Math.max.apply(null, heard.map(function(b){ return b._defuseHeard; }));
   var cont = ts.some(function(b){ return (b._defuseCont||-9999) > h0 + 36; });
   if(cont){ if(tt._dfRead !== h0){ tt._dfRead = h0; voiceLog("T", "dfreal"+h0, heard[0].id, "дефуз не прекращается — настоящий, все на бомбу!"); } return "all"; }
@@ -166,7 +166,7 @@ function tDefuseGo(tt, ts){
   if(tick - h0 < 52){                                                       // слушают ~0,8 с; один может выглянуть проверить
     if(tt._baitH0 === h0) return "bait";
     if((tt._baitN && tt._baitN.round === roundNum ? tt._baitN.n : 0) >= BAIT_MAX) return false;
-    var bt = BAL.fakeBait ? tDefuseBaiter(ts) : null; if(!bt) return false;                       // некому без размена — слушают
+    var bt = tDefuseBaiter(ts); if(!bt) return false;                       // некому без размена — слушают
     tt._baitH0 = h0; tt._baiter = bt.id; tt._baitN = {round: roundNum, n: (tt._baitN && tt._baitN.round === roundNum ? tt._baitN.n : 0) + 1};
     return "bait";
   }
@@ -192,7 +192,7 @@ function plantBlock(c, tac, site){
   if(c._sawEnemy && c._nearestEnemyDist < 500) return "видит врага в " + Math.round(c._nearestEnemyDist);
   if(!canPlantAt(tac.site, c.baseX, c.baseY)) return "не на сайте / не на месте про";
   if(c._noPlantUntil > tick) return "запрет после срыва ещё " + ((c._noPlantUntil - tick)/TICK_HZ).toFixed(1) + " с";
-  if(inFire(c.baseX, c.baseY)) return "в огне";
+  if(inFire(c.baseX, c.baseY, c.z)) return "в огне";
   return null;
 }
 function bombTick(){
@@ -208,7 +208,7 @@ function bombTick(){
       // (7) по нему стреляют, а плант ещё далеко не закончен — бросает плант и
       // отвечает (раньше доставлял бомбу под огнём, не отстреливаясь). Если
       // осталось меньше ~0.8с или стрелок далеко и мажет — дожимает плант
-      if(BAL.plantReact && c._shotAtT && tick - c._shotAtT < 12 && c.plantUntil - tick > 0.8*TICK_HZ){
+      if(c._shotAtT && tick - c._shotAtT < 12 && c.plantUntil - tick > 0.8*TICK_HZ){
         var sh = c._shotAtBy, dSh = sh ? Math.hypot(sh.x-c.x, sh.y-c.y) : 0;
         var hitRecent = c._hurtT && tick - c._hurtT < 20;
         if(sh && sh.alive && (hitRecent || dSh < 700)){
@@ -225,7 +225,7 @@ function bombTick(){
       }
       if(tick >= c.plantUntil){
         c.planting = false;
-        bomb.state = "planted"; bomb.site = tac.site; bomb.x = c.baseX; bomb.y = c.baseY; bomb.z = c.z;   // (v353) высота — для «видно ли бомбу» при дефузе if(SND && SND.on) sndBomb("planted", c.baseX, c.baseY);
+        bomb.state = "planted"; bomb.site = tac.site; bomb.x = c.baseX; bomb.y = c.baseY; bomb.z = c.z;   // (v353) высота — для «видно ли бомбу» при дефузе soundEv("sndBomb", "planted", c.baseX, c.baseY);
         bomb.plantTick = tick; bomb.explodeTick = tick + BOMB_TICKS; bomb.carrier = null;
         c.money = Math.min(MAX_MONEY, c.money + 300);
         logEvent(c.id+" заложил бомбу на "+tac.site+" (+$300)", true);
@@ -236,11 +236,11 @@ function bombTick(){
     // Плант: на сайте, в патруле; видимый враг мешает только если он близко
     // (раньше любой видимый CT через полкарты — и носитель стоял на точке
     // планта до конца раунда: это и были почти все проигрыши T по времени)
-    if(!plantBlock(c, tac, site)){
-      c.planting = true; c.plantUntil = tick + PLANT_TICKS; c.path = []; c.pathIdx = 0; if(SND && SND.on) sndBomb("plant", c.baseX, c.baseY);
+    if(!plantBlock(c, tac, site) && !DEMOV.on){   // (v571) раунд из демки: плант — по демке (678)
+      c.planting = true; c.plantUntil = tick + PLANT_TICKS; movePath(c, [], "bomb"); c.pathIdx = 0; soundEv("sndBomb", "plant", c.baseX, c.baseY);
       // фейк-плант (раз за раунд): свои рядом держат углы, CT по инфе рядом —
       // начать и через ~1с бросить: CT на звук выйдут под прицел
-      if(BAL.fakePlant && c._fakePlanted !== roundNum){
+      if(c._fakePlanted !== roundNum){
         var BLf = beliefLast.T || {}, ctNearF = false;
         for(var eF in BLf){ if(tick - BLf[eF].tick < 6*TICK_HZ && Math.hypot(BLf[eF].x-c.x, BLf[eF].y-c.y) < 700) ctNearF = true; }
         var mateF = bots.some(function(o){ return o !== c && o.alive && o.team === "T" && Math.hypot(o.x-c.x, o.y-c.y) < 350; });
@@ -265,7 +265,7 @@ function bombTick(){
     // энтри и AWP бомбу на бегу не подбирают (им лезть первыми) — только тот, кто
     // за ней послан, или если нас осталось двое
     var pick = bots.filter(function(b){ return b.team==="T" && b.alive && Math.hypot(b.baseX-bomb.x, b.baseY-bomb.y) < 36 &&
-      !(BAL.bombCarrier && (b.tRole === "entry" || b.tRole === "awp") && aliveTp > 2 && !(teamTac.T && teamTac.T.fetchId === b.id)); })[0];
+      !((b.tRole === "entry" || b.tRole === "awp") && aliveTp > 2 && !(teamTac.T && teamTac.T.fetchId === b.id)); })[0];
     if(pick){ bomb.state = "carried"; bomb.carrier = pick; logEvent(pick.id+" подобрал бомбу"); }
   } else if(bomb.state === "planted"){
     var def = bots.filter(function(b){ return b.defusing && b.alive; })[0];
@@ -275,10 +275,15 @@ function bombTick(){
       var need = def.defuseUntil - tick;
       if((def.defuseUntil - tick) % 64 === 0) defuseSound(def);
       // дефуз в огне продолжается, если HP хватает дожить до конца, — fireCommit, прерывает выход из огня (v263)
-      if(def._sawEnemy && def.contactStreak > 6 && bombTimeLeftTicks() > need + 192){
+      // (v555, владелец 11.11: «дефузящий реагирует по-разному: осталось ~2 с — не реагирует на контакт; есть время — может выйти, убить и
+      // доделать») и по нему попали / рядом шаги врага (≤ DEFUSE_NEAR ед., ≤ 1 с) — бросает, если до конца дефуза больше DEFUSE_KEEP с и бомба
+      // ждёт (как при виде врага); впритык — дефузит дальше
+      var hsD = def.heardSound, hitD = (def._hitIn || []).some(function(h){ return tick - h[0] < 32; });
+      var nearD = hsD && hsD.team === "T" && tick - hsD.tick < TICK_HZ && Math.hypot(hsD.x-def.x, hsD.y-def.y) < DEFUSE_NEAR;
+      if(((def._sawEnemy && def.contactStreak > 6) || hitD || nearD) && need > DEFUSE_KEEP*TICK_HZ && bombTimeLeftTicks() > need + 192){
         def.defusing = false; def.defuseCooldownUntil = tick + 96; logEvent(def.id+" прервал дефуз — враг рядом");
       } else if(tick >= def.defuseUntil){
-        def.defusing = false; bomb.state = "defused"; if(SND && SND.on) sndBomb("defused", bomb.x, bomb.y);
+        def.defusing = false; bomb.state = "defused"; soundEv("sndBomb", "defused", bomb.x, bomb.y);
         def.money = Math.min(MAX_MONEY, def.money + 300);
         logEvent(def.id+" обезвредил бомбу (+$300)", true);
         feedEvent("defuse", def.id+" обезвредил бомбу"+(bots.some(function(o){ return o.team==="T" && o.alive; }) ? " под носом у T" : ""));
@@ -309,16 +314,16 @@ function bombTick(){
         // по знанию команды (≤ 8 с) ближе к бомбе, чем пробежит за время дефуза, или о ком-то из живых нет свежей инфы (угол не проверен —
         // вслепую не дефузят, тапают и ждут пик). Все T известны далеко — фейк бесполезен, дефуз сразу
         var doFake = tLeftAlive && !bomb.fakeDone && bombTimeLeftTicks() > dTicks + 5*TICK_HZ;
-        if(doFake && BAL.fakeRead){ bomb.fakeDone = true; doFake = BAL.fakeBait && ctDefuseThreat(dTicks); }
+        if(doFake){ bomb.fakeDone = true; doFake = ctDefuseThreat(dTicks); }
         if(doFake){
           bomb.fakeDone = true;
           cand.fakeUntil = tick + 26; cand.fakeHoldUntil = tick + 26 + 110;
-          cand.path = []; cand.pathIdx = 0;
+          movePath(cand, [], "bomb"); cand.pathIdx = 0;
           defuseSound(cand);
           logEvent(cand.id+" фейк-дефуз — ловит пик на звук");
-        } else {
-          cand.defusing = true; cand.defuseUntil = tick + dTicks; if(SND && SND.on) sndBomb("defuse", cand.baseX, cand.baseY);
-          cand.path = []; cand.pathIdx = 0;
+        } else if(!DEMOV.on){   // (v571) раунд из демки: дефуз — по демке (678)
+          cand.defusing = true; cand.defuseUntil = tick + dTicks; soundEv("sndBomb", "defuse", cand.baseX, cand.baseY);
+          movePath(cand, [], "bomb"); cand.pathIdx = 0;
           defuseSound(cand);
           logEvent(cand.id+" дефузит"+(cand.kit?" с китом (5с)":" без кита (10с)")+"…");
         }

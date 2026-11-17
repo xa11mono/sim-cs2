@@ -9,25 +9,37 @@ var SANDBOX = {on: false, sel: null, drag: null, place: null, last: 0};
 // (v537, владелец 10.11: «чтобы отметки тоже работали в песочнице») SANDBOX — только данные (копируется в снимок отметки: открытый снимок
 // снова в песочнице, с теми же ИИ вкл / выкл у ботов); элемент панели — отдельно (элементы страницы в снимок не идут)
 var SB_PANEL_EL = null;
-function sbBot(id){ for(var i = 0; i < bots.length; i++) if(bots[i].id === id) return bots[i]; return null; }
+// (15.11, перестройка) sbBot — тот же код, что teamBot: вызовы переведены на teamBot
 // один тик песочницы (stepTick, раунд идёт): часы раунда и бомбы стоят
 function sbTick(){
   roundStartTime += TICK_MS/1000;
   // приказ «иди сюда» (Shift + клик): держится, пока не дошёл — задача уровня выше всех (TASK_LEVEL, «приказ песочницы»)
-  bots.forEach(function(b){ var G = b._sbGo; if(!G) return; if(!b.alive || (b.atPost && !b._climb && b.post && b.post.tag === "sbGo")){ b._sbGo = null; return; }
+  // (v552, отметка владельца 11.11 «бот T залез и сразу слез»: дошёл до точки приказа на ящике — приказ снимался, бот возвращался к задаче роли
+  // (siteholdA:Stairs) и уходил) приказ держится и после того, как дошёл: стоит на точке, пока не дан новый приказ (или бот погиб)
+  bots.forEach(function(b){ var G = b._sbGo; if(!G) return; if(!b.alive){ b._sbGo = null; return; }
     setPost(b, G, G.look || null, true, "sbGo"); });
   if(bomb && bomb.state === "planted" && bomb.explodeTick != null) bomb.explodeTick++;
+}
+// (v552, владелец 11.11: «ставлю боту точку на ящик, а у него уводит якорь») точка приказа — там, где клик, если там есть пол навмеша (верхний:
+// на ящике — его крыша), с его высотой; нет пола — ближайшее проходимое, как раньше (snapToWalkable: ящик на плоской карте — сплошная стена,
+// точку уводило к центру ближайшего участка)
+function sbOrderPoint(x, y){
+  if(!NAV_GRID) navGridBuild();
+  var L = NAV_GRID[Math.floor(x/NAV_GRID_C)+","+Math.floor(y/NAV_GRID_C)] || [], top = null;
+  for(var i = 0; i < L.length; i++){ var a = NAVAREAS[L[i]]; if(NAV_BLOCKED[a.id] || !pointInPoly(x, y, a.points)) continue; if(!top || a.z > top.z) top = a; }
+  if(top) return {x: x, y: y, z: navFloorZ(top, x, y)};
+  var g = snapToWalkable(x, y); return {x: g.x, y: g.y};
 }
 // поставить бота в точку (x, y): пол — ближайший участок навмеша, всё движение и задачи — заново
 function sbPlace(b, x, y){
   var w = snapToWalkable(x, y), a = navFloorNear(w.x, w.y, 40, null) || navAt(w.x, w.y, b.z || 0);
   b.x = b.baseX = b.px = w.x; b.y = b.baseY = b.py = w.y;
   if(a){ b.z = navFloorZ(a, w.x, w.y); b._area = a.id; }
-  b.path = []; b.pathIdx = 0; b._climb = null; b._fc = null; b._hold = null; b._trail = []; b.curSpeed = 0;
+  movePath(b, [], "sandbox"); b.pathIdx = 0; b._climb = null; b._fc = null; b._hold = null; b._trail = []; moveSpeed(b, 0, "sandbox");
   b._underV = null; b._overV = null; floorViewTick(b);
 }
 function sbRevive(b, x, y){
-  b.alive = true; b.hp = 100; b.state = "patrol"; b.holding = false; clearPost(b); b._contact = null;
+  b.alive = true; b.hp = 100; fightReset(b); clearPost(b); b._contact = null;
   b.contactStreak = 0; b._ts = {}; b.nextShotTick = 0; b._reloading = false; b._blind = null; b.blindUntil = 0;
   sbPlace(b, x, y);
   logEvent("песочница: " + b.id + " в игре");
@@ -45,7 +57,7 @@ function sbPanel(){
   document.getElementById("main").appendChild(el);
   el.addEventListener("click", function(e){
     var t = e.target.closest && e.target.closest("[data-sb]"); if(!t) return;
-    var k = t.getAttribute("data-sb"), id = t.getAttribute("data-id"), b = id ? sbBot(id) : null;
+    var k = t.getAttribute("data-sb"), id = t.getAttribute("data-id"), b = id ? teamBot(id) : null;
     if(k === "allOn") bots.forEach(function(o){ o._sbOff = false; });
     else if(k === "allOff") bots.forEach(function(o){ o._sbOff = true; });
     else if(k === "allOut") bots.forEach(function(o){ if(o.alive) sbRemove(o); });
@@ -115,7 +127,7 @@ cv.addEventListener("mousedown", function(e){
   if(!SANDBOX.on || e.button !== 0 || (typeof mapEdOn === "function" && mapEdOn())) return;
   var w = navScreenToWorld(e.clientX, e.clientY);
   if(SANDBOX.place){ sbRevive(SANDBOX.place, w.x, w.y); SANDBOX.place = null; }
-  else if(e.shiftKey && SANDBOX.sel && SANDBOX.sel.alive){ var g = snapToWalkable(w.x, w.y); SANDBOX.sel._sbGo = {x: g.x, y: g.y}; /* (v538, владелец: «если ИИ выключен и я веду его — ИИ не включать») ИИ не трогаем */ logEvent("песочница: " + SANDBOX.sel.id + " — иди сюда"); }
+  else if(e.shiftKey && SANDBOX.sel && SANDBOX.sel.alive){ var g = sbOrderPoint(w.x, w.y); SANDBOX.sel._sbGo = g; /* (v538, владелец: «если ИИ выключен и я веду его — ИИ не включать») ИИ не трогаем */ logEvent("песочница: " + SANDBOX.sel.id + " — иди сюда"); }
   else { var b = sbPick(w); if(!b) return; SANDBOX.sel = b; SANDBOX.drag = b; }
   e.stopImmediatePropagation(); e.preventDefault(); sbRender(true); if(typeof draw === "function") draw();
 }, true);
