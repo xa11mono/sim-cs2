@@ -12,6 +12,9 @@
 | `_task` | 4 | 4 | `routeTick · 110`, `setPost · 110`, `clearPost · 110`, `placeResetTask · 110` |
 | `_reposUntil` | 1 | 1 | `taskKeep · 110` |
 | `_waitPopUntil` | 1 | 1 | `moveWaitPop · 535` |
+| `_avoidPeekUntil` | 1 | 1 | `knowAvoidPeek · 220` |
+| `_tradeUntil` | 2 | 2 | `tradeAlertSet · 190`, `tradeEnd · 190` |
+| `_tradeLock` | 1 | 1 | `tradeEnd · 190` |
 | `state` | 2 | 2 | `fightState · 500`, `fightReset · 500` |
 | `nadeTask` | 27 | 10 | `(верх файла) · 360`, `nadeAskFlash · 365`, `exuReassign · 366`, `assignNade · 380`, `nadeQueueNext · 380`, `runupTick · 380`, `updateNadeTask1 · 380`, `lineupTick · 390`, `nadeCancel · 420`, `resetNades · 420` |
 | `holding` | 5 | 4 | `fightReset · 500`, `fightHoldOff · 500`, `leaveHold · 500`, `resolveEngagements · 510` |
@@ -46,24 +49,41 @@
 
 ## `post`
 
-- **хозяин** `setPost · 110` — 1 (стр. 448)
-- **хозяин** `clearPost · 110` — 1 (стр. 470)
-- **хозяин** `placeResetPost · 110` — 1 (стр. 475)
+- **хозяин** `setPost · 110` — 1 (стр. 451)
+- **хозяин** `clearPost · 110` — 1 (стр. 473)
+- **хозяин** `placeResetPost · 110` — 1 (стр. 478)
 
 ## `_task`
 
 - **хозяин** `routeTick · 110` — 1 (стр. 66)
-- **хозяин** `setPost · 110` — 1 (стр. 403)
-- **хозяин** `clearPost · 110` — 1 (стр. 470)
-- **хозяин** `placeResetTask · 110` — 1 (стр. 476)
+- **хозяин** `setPost · 110` — 1 (стр. 406)
+- **хозяин** `clearPost · 110` — 1 (стр. 473)
+- **хозяин** `placeResetTask · 110` — 1 (стр. 479)
 
 ## `_reposUntil`
 
-- **хозяин** `taskKeep · 110` — 1 (стр. 271)
+- **хозяин** `taskKeep · 110` — 1 (стр. 274)
 
 ## `_waitPopUntil`
 
 - **хозяин** `moveWaitPop · 535` — 1 (стр. 21)
+
+## `_avoidPeekUntil`
+
+- **хозяин** `knowAvoidPeek · 220` — 1 (стр. 367)
+
+## `_tradeUntil`
+
+- **хозяин** `tradeAlertSet · 190` — 1 (стр. 399)
+- **хозяин** `tradeEnd · 190` — 1 (стр. 402)
+
+не бот (то же имя у другого объекта — в проверку владения не идёт): `tradeStart · 190` (398 o)
+
+## `_tradeLock`
+
+- **хозяин** `tradeEnd · 190` — 1 (стр. 402)
+
+не бот (то же имя у другого объекта — в проверку владения не идёт): `tradeStart · 190` (398 o)
 
 ## `state`
 
@@ -96,7 +116,7 @@
 
 ## `crouching`
 
-- **хозяин** `placeStance · 110` — 1 (стр. 474)
+- **хозяин** `placeStance · 110` — 1 (стр. 477)
 
 ## `path`
 
