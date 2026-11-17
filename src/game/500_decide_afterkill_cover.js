@@ -99,7 +99,7 @@ function decideAction(bot, nearestDist, alliesNear, enemiesSeen){
   }
   if(bot._smokePush && tick < bot._smokePush.until){ holdScore -= 0.2; engageScore += 0.05; }
   // только что на этом углу убили тиммейта, а стрелка не видели — не выходить туда же
-  if(bot._avoidPeekUntil > tick && bot._avoidPeekAt && Math.hypot(bot._avoidPeekAt.x-bot.x, bot._avoidPeekAt.y-bot.y) < 450){ engageScore -= 0.25; holdScore += 0.1; }
+  if(knowAvoidPeekNear(bot, bot)){ engageScore -= 0.25; holdScore += 0.1; }
   // сбивает плант — время важнее всего: лезет в дуэль, не отходит
   if(bot._stopPlantUntil > tick){ engageScore += 0.3; holdScore -= 0.15; retreatScore -= 0.25; }
   // раздел 14: перезаряжается посреди боя — не высовываться, уйти за угол
@@ -328,7 +328,7 @@ function shiftHold(sh, vp, exceptId, why){
   taskKeep(sh, 0, "afterkill"); sh._probeLock = 0;
   setPost(sh, np, lk0, true, tg0);
   leaveHold(sh);
-  sh._avoidPeekUntil = tick + 6*TICK_HZ; sh._avoidPeekAt = {x:vp.x, y:vp.y};
+  knowAvoidPeek(sh, {x:vp.x, y:vp.y}, 6);
   logEvent(sh.id+": "+why+" — ухожу глубже ("+calloutName(np.x, np.y)+")");
   return true;
 }

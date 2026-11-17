@@ -374,13 +374,13 @@ function intelDeath(victim, killer){
     var d = Math.hypot(b.x-victim.x, b.y-victim.y);
     if(d > 550) return;
     // размен уже взял ближайший — остальные не лезут в тот же прострелянный угол
-    if(traders.length){ b._avoidPeekUntil = tick + 8*TICK_HZ; b._avoidPeekAt = {x:victim.x, y:victim.y}; return; }
+    if(traders.length){ knowAvoidPeek(b, {x:victim.x, y:victim.y}, 8); return; }
     // "меня убили отсюда" — ближние тиммейты смотрят туда и идут разменивать
     if(BAL.execErr && b.prof && hashRand(tick*29 + b.id.charCodeAt(1)*11) < (1-prof(b, "disc"))*0.12){ noteMistake(b, "не разменял "+victim.id); return; }
     // стрелка не видели и он не рядом — это не трейд, а второй пик в тот же
     // прострелянный угол: не лезть туда же ~8с (держать, ждать, обходить)
     if(!saw || (killer && Math.hypot(killer.x-b.x, killer.y-b.y) > 650)){
-      b._avoidPeekUntil = tick + 8*TICK_HZ; b._avoidPeekAt = {x:victim.x, y:victim.y};
+      knowAvoidPeek(b, {x:victim.x, y:victim.y}, 8);
       return;
     }
     b._tradeUntil = tick + 150;

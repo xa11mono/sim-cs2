@@ -362,4 +362,7 @@ function knowHypSpread(h, B){
   }
   var zi = knowHypZone(h, B); return zi >= 0 ? [[zi, h.weight]] : [];
 }
-
+// (17.11, перестройка, дубль 7) «туда не выглядывать: там убили своего / размен не вышел / только что стрелялся» — одно знание бота, одно
+// место (было: замок _avoidPeekUntil / _avoidPeekAt писали 110, 190 ×2, 500, читали 250, 500). 450 — проектное число, как было
+function knowAvoidPeek(b, at, sec){ b._avoidPeekUntil = tick + sec*TICK_HZ; b._avoidPeekAt = at; }
+function knowAvoidPeekNear(b, pt){ return !!(b._avoidPeekUntil > tick && b._avoidPeekAt && Math.hypot(b._avoidPeekAt.x-pt.x, b._avoidPeekAt.y-pt.y) < 450); }

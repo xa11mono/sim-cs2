@@ -141,7 +141,7 @@ function prePeekDecide(b, C, zB){
     if(ag){ holder = {x:ag.x, y:ag.y, tick:tick}; if(!b._agV || b._agV !== roundNum){ b._agV = roundNum; logEvent(b.id+": в прошлом раунде отсюда пикнули ("+ag.id+", "+calloutName(ag.x, ag.y)+") — беру угол аккуратно"); } } }
   var info = !!holder || beliefZoneKnown(b.team, zB) >= 0.45;
   var heardMe = b._noisyT && tick - b._noisyT < 3*TICK_HZ;       // (4) он меня, скорее всего, слышал
-  var repeek = b._avoidPeekUntil > tick && b._avoidPeekAt && Math.hypot(b._avoidPeekAt.x-C.beyond.x, b._avoidPeekAt.y-C.beyond.y) < 450;
+  var repeek = knowAvoidPeekNear(b, C.beyond);
   var tt = teamTac.T, execEntry = b.team === "T" && tt && tt.phase === "execute" && b.tRole === "entry";
   var secLeft = ROUND_TIME_SEC - (simTime - roundStartTime);
   var mates = bots.filter(function(o){ return o !== b && o.alive && o.team === b.team && nearP(o.x, o.y, o.z, b.x, b.y, b.z, TRADE_R) && !o._sawEnemy; });

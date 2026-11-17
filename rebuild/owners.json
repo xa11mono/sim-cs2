@@ -13,5 +13,6 @@
   "path":      {"channel": "ход", "files": ["535", "540", "370"], "allow": ["movePath"], "enforce": true, "since": "фаза 3, 15.11"},
   "nadeTask":  {"channel": "гранаты", "files": ["360", "365", "366", "380", "385", "390", "400", "410", "420"], "allow": ["nadeCancel"], "enforce": true, "since": "фаза 3, 15.11: канал гранат — файлы 360–420; снаружи — nadeCancel"},
   "_reposUntil": {"channel": "место", "files": ["110"], "allow": ["taskKeep"], "enforce": true, "since": "фаза 3 шаг 3, 17.11: срок перестановки — у арбитра места (taskKeep / taskKeepUntil)"},
-  "_waitPopUntil": {"channel": "ход", "files": ["535"], "allow": ["moveWaitPop"], "enforce": true, "since": "фаза 3 шаг 3, 17.11: «подождать флешку» — причина стоять у хода (moveWaitPop)"}
+  "_waitPopUntil": {"channel": "ход", "files": ["535"], "allow": ["moveWaitPop"], "enforce": true, "since": "фаза 3 шаг 3, 17.11: «подождать флешку» — причина стоять у хода (moveWaitPop)"},
+  "_avoidPeekUntil": {"channel": "знание", "files": ["220"], "allow": ["knowAvoidPeek"], "enforce": true, "since": "дубль 7, 17.11: «туда не выглядывать» — знание бота (knowAvoidPeek / knowAvoidPeekNear)"}
 }
