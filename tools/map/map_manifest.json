@@ -36,6 +36,8 @@
     {"file": "defaultpos.json", "key": "", "what": "позиции по умолчанию", "bake": "defpos_bake.py"},
     {"file": "ctshare.json", "key": "", "what": "доли расстановок CT", "bake": "tools/ct (см. README)"},
     {"file": "demorounds.json", "key": "rounds", "what": "раунды демок (для разборов)", "bake": "tools/demos.py"},
+    {"file": "spawnearly.json", "key": "CT", "what": "СПАВН: ранние зоны CT — кто с какого спавна туда ходит", "bake": "spawn_early_bake.py"},
+    {"file": "spawnearly.json", "key": "T", "what": "СПАВН: ранние зоны T — кто с какого спавна туда ходит", "bake": "spawn_early_bake.py"},
     {"file": "-", "key": "", "what": "СЕЙВ: где прячутся про, когда сейвят", "need": "нет скрипта"},
     {"file": "-", "key": "", "what": "РЕТЕЙК: откуда и в каком порядке CT заходят на сайт (пути, кто первый)", "need": "нет скрипта"},
     {"file": "postplant.json", "key": "plants", "what": "ПОСТ-ПЛАНТ: бомба здесь → где встают T, куда смотрят, вдвоём", "bake": "postplant_pairs_bake.py (demos, после pro.json)"},

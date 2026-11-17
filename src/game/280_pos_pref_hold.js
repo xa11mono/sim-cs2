@@ -143,6 +143,23 @@ function posNamesOwn(b, names){
   own.forEach(function(o){ if(o.share >= 1/own.length && out.indexOf(o.name) < 0 && zonesByName(o.name).length && (!side || posSideOf(o.name) === side)) out.push(o.name); });
   return out;
 }
+// (v583a, Д18, владелец 17.11: «0,7–1,2 с разницы спавна сильно влияют на тайминги»; разбор другой нейронки — «спавн меняет исполнителя
+// ранней задачи, а не роль») ранняя зона (MAP.spawnearly — у про первый приход ≤ 10 с, tools/map/spawn_early_bake.py): вес места умножается
+// на множитель про для моего места спавна среди своих по времени пути до зоны (1 — ближе всех). Пример Mirage, CT на Window: 1,59 / 1,16 /
+// 0,95 / 0,53 / 0,77 (AWP с ближайшего спавна выходит в 86 % раундов, с 5-го — в 12 %). Только в начале раунда (SPAWN_EARLY_WIN — пока
+// все со спавна); места и роли остаются — меняется, кто из тех, кому зона по роли, её возьмёт. Ранги — раз на раунд и зону (SPN)
+var SPAWN_EARLY_WIN = 6, SPN = {key: null, v: {}};
+function spawnEarlyK(b, nm){
+  var E = MAP.spawnearly && MAP.spawnearly[b.team]; if(!E) return 1;
+  var z = E[nm]; if(!z){ var nn = normZoneName(nm); for(var k in E) if(normZoneName(k) === nn){ z = E[k]; break; } }
+  if(!z || !z.k || simTime - roundStartTime > SPAWN_EARLY_WIN) return 1;
+  var rk = matchNum + ":" + roundNum; if(SPN.key !== rk){ SPN.key = rk; SPN.v = {}; }
+  var ck = b.team + "|" + nm;
+  if(!SPN.v[ck]){ var p = zonePoint(nm, b); if(!p) return 1;
+    SPN.v[ck] = bots.filter(function(o){ return o.alive && o.team === b.team; }).map(function(o){ return {id: o.id, t: pathLenTo(o, p.x, p.y)}; })
+      .sort(function(a, c){ return a.t - c.t; }).map(function(o){ return o.id; }); }
+  var i = SPN.v[ck].indexOf(b.id); return i < 0 ? 1 : (z.k[Math.min(i, z.k.length-1)] || 1);
+}
 function posPickName(b, names, seed){
   if(!b || (bomb && bomb.state === "planted")) return proPick("CT", names, seed);
   var rk = matchNum + ":" + roundNum; if(PPN.key !== rk || tick < PPN.t){ PPN.key = rk; PPN.v = {}; } PPN.t = tick;   // тик назад — матч начат заново
@@ -162,6 +179,7 @@ function posPickName(b, names, seed){
     KNOW_POSITIONS.points.forEach(function(q){ if(q.side !== b.team) return; if(q.zid === undefined) q.zid = zoneIdAt(q.x, q.y) || null;
       if(q.zid && ids.indexOf(q.zid) >= 0) best = Math.max(best, posPref(b, q)); });
     return (BAL.proFloor + best)*fitOf(nm); });
+  w = w.map(function(v, i){ return v*spawnEarlyK(b, names[i]); });   // (v583a, Д18) ранняя зона — кто ближе спавном, тот туда чаще
   var tot = w.reduce(function(a, v){ return a+v; }, 0), r = hashRand(seed)*tot, pick = w.length-1;
   for(var i=0;i<w.length;i++){ r -= w[i]; if(r <= 0){ pick = i; break; } }
   return (PPN.v[ck] = pick);
