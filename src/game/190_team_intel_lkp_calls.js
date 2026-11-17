@@ -365,7 +365,7 @@ function intelDeath(victim, killer){
       teamTac.T._popDone = true;
       voiceLog("T", "pop"+victim.id, flc.id, "даю флешку на "+killer.id+" "+calloutName(kpF.x, kpF.y)+" — меняйте под неё!");
       // размен ждёт хлопка (не дольше ~1.2с): не выбегает раньше флешки
-      traders.forEach(function(T){ T.b._waitPopUntil = tick + Math.round(1.2*TICK_HZ); T.b._waitPopKey = "pop:поп на убийцу "+victim.id; });
+      traders.forEach(function(T){ moveWaitPop(T.b, tick + Math.round(1.2*TICK_HZ), "pop:поп на убийцу "+victim.id, "trade"); });
     }
   }
   bots.forEach(function(b){

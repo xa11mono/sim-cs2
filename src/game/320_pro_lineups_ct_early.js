@@ -174,7 +174,7 @@ function ctEarlyPeek(b, ct){
     else if(b.nades && b.nades.flash > 0 && roundGoal("CT") !== "keepGuns" && hashRand(roundNum*97 + b.id.charCodeAt(2)*5) < 0.6){
       var whyF = "себе под ранний пик "+b.id;
       throwNade(b, "flash", stg.x, stg.y, true, whyF);
-      b._waitPopUntil = tick + Math.round(1.1*TICK_HZ); b._waitPopKey = "pop:"+whyF;
+      moveWaitPop(b, tick + Math.round(1.1*TICK_HZ), "pop:"+whyF, "ct-early");
     }
   }
   if(b.atPost && b.post && b.post.tag === "earlyPeek"){

@@ -238,7 +238,7 @@ function nadeAskFlash(b, pt, why, type){
   if(!got) return null;
   FLASH_ASK_N[nk] = (FLASH_ASK_N[nk]||0) + 1;
   if(!fl){ voiceLog(b.team, "ask"+type+b.id+roundNum, b.id, "дайте HE "+calloutName(pt.x, pt.y).replace(/^на /, "")+" — "+got.o.id); return got.o; }
-  b._waitPopUntil = tick + Math.round(FLASH_ASK_WAIT*TICK_HZ); b._waitPopKey = "pop:"+why;
+  moveWaitPop(b, tick + Math.round(FLASH_ASK_WAIT*TICK_HZ), "pop:"+why, "flash-ask");
   voiceLog(b.team, "askfl"+b.id+roundNum, b.id, "накиньте флешку "+calloutName(pt.x, pt.y).replace(/^на /, "")+" — "+got.o.id+(got.L ? " с лайнапа" : "")+", выхожу на хлопок");
   return got.o;
 }

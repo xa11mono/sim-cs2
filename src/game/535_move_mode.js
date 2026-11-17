@@ -16,6 +16,9 @@ var MOVE = {run: 0, burn: null};   // выход moveSpeedTick: скорость
 // хода 535, 540, 370 (уровни, лестницы, огонь); остальные — через интерфейс: movePath(b, путь, причина), moveSpeed(b, скорость, причина),
 // moveWalk(b, шагом?, причина) — место (110), бомба (120), роумер (430, 070), ослеплён (460), бой (470 стрейф, 510), сброс (530, 050),
 // разминка (660), повтор (675), песочница (677), демо (678). Причина — b._moveWhy.
+// (17.11, перестройка, фаза 3 шаг 3) «подождать флешку перед выходом» — причина стоять у хода; механики (размен 190, ранний выход CT 320,
+// просьба о флешке 365, флешка под пик 380, своя флешка 410, сейв 180) не пишут _waitPopUntil / _waitPopKey, а просят moveWaitPop
+function moveWaitPop(b, until, key, why){ b._waitPopUntil = until; if(key !== undefined) b._waitPopKey = key; b._moveWhy = why; }
 function movePath(b, p, why){ b.path = p; b._moveWhy = why; }
 function moveSpeed(b, v, why){ b.curSpeed = v; b._moveWhy = why; }
 function moveWalk(b, w, why){ b.walking = w; b._moveWhy = why; }

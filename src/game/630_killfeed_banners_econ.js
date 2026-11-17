@@ -1,11 +1,3 @@
-// (v247) сейв — решение команды: личные размены и пики отменяются, в дуэли никто не выходит
-function saveCancelTrades(team){
-  bots.forEach(function(b){ if(b.team !== team || !b.alive) return;
-    b._tradeLock = null; b._fillLock = null; b._tradeUntil = 0; b._waitPopUntil = 0;
-    if(b.post && b.post.tag === "tradeR") clearPost(b); });
-}
-function teamSaving(team){ var t = team === "CT" ? teamTac.CT : teamTac.T; return !!(t && t.saving); }
-function cl0save(){ return teamTac.CT && teamTac.CT.saving; }
 // ======================= РАЗДЕЛ 9: подача матча =======================
 
 var clutchShown = null, clutchInfo = null;

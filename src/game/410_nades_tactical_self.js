@@ -266,7 +266,7 @@ function nadeReact(){
     b._selfFlashCd = tick + 12*TICK_HZ;
     var why = "себе под пик "+b.id;
     throwNade(b, "flash", tgt.x, tgt.y, true, why);
-    b._waitPopUntil = tick + Math.round(1.1*TICK_HZ); b._waitPopKey = "pop:"+why;
+    moveWaitPop(b, tick + Math.round(1.1*TICK_HZ), "pop:"+why, "self-flash");
     voiceLog(b.team, "sflash"+b.id, b.id, "флешу себе");
   });
 }
