@@ -1,0 +1,85 @@
+playwright 1.56.0, браузеры: C:\Windows\system32\config\systemprofile\.simcs2_node\ms-playwright
+> git fetch --quiet origin 4dbb5d4d0bdedde64fd1d2a8e1cf22b17ed4687b
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_40gq8ecv FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_40gq8ecv\src\build.py --map mirage C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v582a12_fp_mir.html
+проверка владения полей пропущена: нет acorn / acorn-walk (npm i acorn acorn-walk или NODE_PATH)
+> git fetch --quiet origin 4dbb5d4d0bdedde64fd1d2a8e1cf22b17ed4687b
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_zijw70sb FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_zijw70sb\src\build.py --map ancient C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v582a12_fp_anc.html
+проверка владения полей пропущена: нет acorn / acorn-walk (npm i acorn acorn-walk или NODE_PATH)
+> git fetch --quiet origin f7874ca79f28fdca4dc85aba8d2bfc15b9a34867
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_fd236f1l FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_fd236f1l\src\build.py --map mirage C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v582a15_fp_mir.html
+esbuild: The CommonJS "module" variable is treated as a global variable in an ECMAScript module and may not work as expected
+esbuild: The CommonJS "module" variable is treated as a global variable in an ECMAScript module and may not work as expected
+модули: 110_post_routes.js, 190_team_intel_lkp_calls.js, 220_know_events_tick.js, 275_look_turn.js, 360_nades_buy_smoke_vision.js, 365_nade_plan.js, 366_exec_sync.js, 370_fire_nav_levels_ladders.js, 380_nades_throw.js, 385_nades_flight.js, 390_nades_lineups.js, 400_nades_physics_damage.js, 410_nades_tactical_self.js, 420_nades_brains.js, 470_fight_cycle.js, 480_assist_flank_reload.js, 490_shoot.js, 500_decide_afterkill_cover.js, 510_engagements.js, 535_move_mode.js, 540_step_tick.js — ядро отдаёт 275 имён, берёт 600
+симуляция трогает показ — предупреждения (34 имён показа; запрет станет ошибкой после переноса):
+  logEvent() ← 100,110,120,130,140,150,160,170,180,190,250,290,310,320,330,340,350,366,370,380,390,400,410,420,430,450,460,470,480,490,500,510,520,530,535,540, SND ← 120,290,380,400,490,530,540, DEMOV ← 120,400,490,530,540, dlog() ← 110,380,500, clutchInfo (пишет) ← 130,530, sndBomb() ← 120,530, sndNade() ← 380,400, SANDBOX ← 530,535,540, feedEvent() ← 120,530, plSelected (пишет) ← 270,530, ctx ← 360, sndBody() ← 400,490,540, WARM (пишет) ← 530, voiceFeed() ← 190,230, sndShot() ← 290,490, sndPickup() ← 450, buyShowStart() ← 530, voiceKind() ← 190, VOICE_KIND ← 230, feedKill() ← 400, feedBombKill() ← 400, showBanner() ← 530, BOT_INIT ← 530, hudBombBoom() ← 530, showRoundCard() ← 530, SERIES ← 530, voiceLines (пишет) ← 530, renderFeed() ← 530, clutchShown (пишет) ← 530, sbTick() ← 540, dvTick() ← 540, bombBeepTick() ← 540, sndLadder() ← 540, sndStep() ← 540
+> git fetch --quiet origin f7874ca79f28fdca4dc85aba8d2bfc15b9a34867
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_anzs4ism FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_anzs4ism\src\build.py --map ancient C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v582a15_fp_anc.html
+esbuild: The CommonJS "module" variable is treated as a global variable in an ECMAScript module and may not work as expected
+esbuild: The CommonJS "module" variable is treated as a global variable in an ECMAScript module and may not work as expected
+модули: 110_post_routes.js, 190_team_intel_lkp_calls.js, 220_know_events_tick.js, 275_look_turn.js, 360_nades_buy_smoke_vision.js, 365_nade_plan.js, 366_exec_sync.js, 370_fire_nav_levels_ladders.js, 380_nades_throw.js, 385_nades_flight.js, 390_nades_lineups.js, 400_nades_physics_damage.js, 410_nades_tactical_self.js, 420_nades_brains.js, 470_fight_cycle.js, 480_assist_flank_reload.js, 490_shoot.js, 500_decide_afterkill_cover.js, 510_engagements.js, 535_move_mode.js, 540_step_tick.js — ядро отдаёт 275 имён, берёт 600
+симуляция трогает показ — предупреждения (34 имён показа; запрет станет ошибкой после переноса):
+  logEvent() ← 100,110,120,130,140,150,160,170,180,190,250,290,310,320,330,340,350,366,370,380,390,400,410,420,430,450,460,470,480,490,500,510,520,530,535,540, SND ← 120,290,380,400,490,530,540, DEMOV ← 120,400,490,530,540, dlog() ← 110,380,500, clutchInfo (пишет) ← 130,530, sndBomb() ← 120,530, sndNade() ← 380,400, SANDBOX ← 530,535,540, feedEvent() ← 120,530, plSelected (пишет) ← 270,530, ctx ← 360, sndBody() ← 400,490,540, WARM (пишет) ← 530, voiceFeed() ← 190,230, sndShot() ← 290,490, sndPickup() ← 450, buyShowStart() ← 530, voiceKind() ← 190, VOICE_KIND ← 230, feedKill() ← 400, feedBombKill() ← 400, showBanner() ← 530, BOT_INIT ← 530, hudBombBoom() ← 530, showRoundCard() ← 530, SERIES ← 530, voiceLines (пишет) ← 530, renderFeed() ← 530, clutchShown (пишет) ← 530, sbTick() ← 540, dvTick() ← 540, bombBeepTick() ← 540, sndLadder() ← 540, sndStep() ← 540
+fp v582a12_fp_mir.html m3
+fp v582a12_fp_mir.html m7
+fp v582a12_fp_mir.html m11
+fp v582a12_fp_mir.html m13
+fp v582a12_fp_mir.html m17
+fp v582a12_fp_mir.html m19
+fp v582a12_fp_mir.html m23
+fp v582a12_fp_mir.html m29
+fp v582a12_fp_anc.html m3
+fp v582a12_fp_anc.html m7
+fp v582a12_fp_anc.html m11
+fp v582a12_fp_anc.html m13
+fp v582a12_fp_anc.html m17
+fp v582a12_fp_anc.html m19
+fp v582a12_fp_anc.html m23
+fp v582a12_fp_anc.html m29
+fp v582a15_fp_mir.html m3
+fp v582a15_fp_mir.html m7
+fp v582a15_fp_mir.html m11
+fp v582a15_fp_mir.html m13
+fp v582a15_fp_mir.html m17
+fp v582a15_fp_mir.html m19
+fp v582a15_fp_mir.html m23
+fp v582a15_fp_mir.html m29
+fp v582a15_fp_anc.html m3
+fp v582a15_fp_anc.html m7
+fp v582a15_fp_anc.html m11
+fp v582a15_fp_anc.html m13
+fp v582a15_fp_anc.html m17
+fp v582a15_fp_anc.html m19
+fp v582a15_fp_anc.html m23
+fp v582a15_fp_anc.html m29
+> git fetch --quiet origin 4dbb5d4d0bdedde64fd1d2a8e1cf22b17ed4687b
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_hwx8_eap FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_hwx8_eap\src\build.py --map mirage C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v582a12_mir.html
+проверка владения полей пропущена: нет acorn / acorn-walk (npm i acorn acorn-walk или NODE_PATH)
+> git fetch --quiet origin 4dbb5d4d0bdedde64fd1d2a8e1cf22b17ed4687b
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_tqkk2vbo FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_tqkk2vbo\src\build.py --map ancient C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v582a12_anc.html
+проверка владения полей пропущена: нет acorn / acorn-walk (npm i acorn acorn-walk или NODE_PATH)
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\engine\walk_run.py --job=v582a12_mir,C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v582a12_mir.html --job=v582a12_anc,C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v582a12_anc.html --matches=3,7,11,13,17,19,23,29 --par=8
+матчей в очереди: 16, одновременно: 8
+v582a12_mir match 19  rc 0 7222986 — готово 1/16, 6 мин
+v582a12_mir match 11  rc 0 8175578 — готово 2/16, 7 мин
+v582a12_mir match 13  rc 0 6838140 — готово 3/16, 7 мин
+v582a12_mir match 23  rc 0 8147383 — готово 4/16, 7 мин
+v582a12_mir match 3  rc 0 8904053 — готово 5/16, 7 мин
+v582a12_mir match 29  rc 0 9699401 — готово 6/16, 9 мин
+v582a12_mir match 17  rc 0 10896488 — готово 7/16, 10 мин
+v582a12_mir match 7  rc 0 12256168 — готово 8/16, 11 мин
+v582a12_anc match 3  rc 0 7479061 — готово 9/16, 12 мин
+v582a12_anc match 7  rc 0 7991326 — готово 10/16, 13 мин
+v582a12_anc match 13  rc 0 8007782 — готово 11/16, 13 мин
+v582a12_anc match 11  rc 0 8468458 — готово 12/16, 13 мин
+v582a12_anc match 17  rc 0 8401249 — готово 13/16, 14 мин
+v582a12_anc match 19  rc 0 7420225 — готово 14/16, 15 мин
+v582a12_anc match 23  rc 0 7190571 — готово 15/16, 15 мин
+v582a12_anc match 29  rc 0 6774352 — готово 16/16, 16 мин
+done
+all done
