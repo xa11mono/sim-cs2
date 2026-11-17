@@ -1,4 +1,6 @@
-{"par": 8, "jobs": [
-  {"label": "v582a12_mir", "ref": "4dbb5d4d0bdedde64fd1d2a8e1cf22b17ed4687b", "map": "mirage", "matches": [3, 7, 11, 13, 17, 19, 23, 29]},
-  {"label": "v582a12_anc", "ref": "4dbb5d4d0bdedde64fd1d2a8e1cf22b17ed4687b", "map": "ancient", "matches": [3, 7, 11, 13, 17, 19, 23, 29]}
+{"par": 8, "fp": [
+  {"label": "v582a12_fp_mir", "ref": "f46080d262bad27e3f569e3fc792f630bc629e5d", "map": "mirage"},
+  {"label": "v582a12_fp_anc", "ref": "f46080d262bad27e3f569e3fc792f630bc629e5d", "map": "ancient"},
+  {"label": "v582a13_fp_mir", "ref": "3f742ad41d490961764f21db6b26b514c8ecb259", "map": "mirage"},
+  {"label": "v582a13_fp_anc", "ref": "3f742ad41d490961764f21db6b26b514c8ecb259", "map": "ancient"}
 ]}
