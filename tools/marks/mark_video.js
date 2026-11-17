@@ -35,10 +35,20 @@ const { chromium } = require("playwright"); const fs = require("fs"), path = req
       if (typeof soundPings !== "undefined") soundPings.length = 0;
       try {
         cv.width = W; cv.height = H; view.scale = zoom; view.panX = W / 2 - (b ? b.x : 1024) * zoom; view.panY = H / 2 - (b ? b.y : 1024) * zoom; draw();
+        // (15.11, владелец: «надо видеть всю картину взгляда») куда смотрит: луч взгляда (жёлтый, 160 px), точка взгляда (lookTarget —
+        // голубой пунктир и кружок), пост (зелёный квадрат и пунктир от бота), причина взгляда — в подписи
+        if (b && b.alive) { var X = function (v) { return v * zoom + view.panX; }, Y = function (v) { return v * zoom + view.panY; };
+          ctx.save(); ctx.lineWidth = 3; ctx.strokeStyle = "rgba(255,214,102,.95)"; ctx.beginPath(); ctx.moveTo(X(b.x), Y(b.y));
+          ctx.lineTo(X(b.x + Math.cos(b.facing) * 160), Y(b.y + Math.sin(b.facing) * 160)); ctx.stroke();
+          if (b.lookTarget) { ctx.setLineDash([4, 5]); ctx.lineWidth = 1.5; ctx.strokeStyle = "rgba(120,200,255,.9)"; ctx.beginPath(); ctx.moveTo(X(b.x), Y(b.y)); ctx.lineTo(X(b.lookTarget.x), Y(b.lookTarget.y)); ctx.stroke();
+            ctx.setLineDash([]); ctx.beginPath(); ctx.arc(X(b.lookTarget.x), Y(b.lookTarget.y), 7, 0, Math.PI * 2); ctx.stroke(); }
+          if (b.post) { ctx.setLineDash([2, 4]); ctx.lineWidth = 1.5; ctx.strokeStyle = "rgba(120,230,140,.9)"; ctx.beginPath(); ctx.moveTo(X(b.x), Y(b.y)); ctx.lineTo(X(b.post.x), Y(b.post.y)); ctx.stroke();
+            ctx.setLineDash([]); ctx.strokeRect(X(b.post.x) - 7, Y(b.post.y) - 7, 14, 14); }
+          ctx.restore(); }
         if (b && b.alive) { ctx.save(); ctx.setLineDash([6, 4]); ctx.lineWidth = 2.5; ctx.strokeStyle = "#ff5a4f"; ctx.beginPath(); ctx.arc(b.x * zoom + view.panX, b.y * zoom + view.panY, 24, 0, Math.PI * 2); ctx.stroke(); ctx.restore(); }
         var sec = (tick - T) / 64, air = b && b._jump && tick - b._jump.t < 45;
         var L = [(sec < 0 ? "" : "+") + sec.toFixed(1) + " с " + (sec < 0 ? "до отметки" : "после отметки") + (Math.abs(sec) < 0.04 ? "  ◀ МОМЕНТ ОТМЕТКИ" : ""),
-          M.id + (b ? " · " + (b.alive ? (b.post && b.post.tag || "без задачи") : "убит") : "") + " · высота " + Math.round(b ? b.z || 0 : 0) + " · поворот за 1 с: " + Math.round(turn1) + "°" + (b && b.lookReason ? " · взгляд: " + b.lookReason : ""),
+          M.id + (b ? " · " + (b.alive ? (b.post && b.post.tag || "без задачи") : "убит") : "") + (b && b.post ? " · пост: " + b.post.tag : "") + " · высота " + Math.round(b ? b.z || 0 : 0) + " · поворот за 1 с: " + Math.round(turn1) + "°" + (b && b.lookReason ? " · взгляд: " + b.lookReason : ""),
           LBL];
         ctx.save(); ctx.fillStyle = "rgba(0,0,0,.72)"; ctx.fillRect(0, 0, W, 78); ctx.font = "bold 20px sans-serif"; ctx.fillStyle = Math.abs(sec) < 0.5 ? "#ffd166" : "#fff";
         ctx.fillText(L[0], 14, 26); ctx.font = "18px sans-serif"; ctx.fillStyle = turn1 > 180 ? "#ff8a80" : "#e6e6e6"; ctx.fillText(L[1], 14, 50); ctx.font = "13px sans-serif"; ctx.fillStyle = "#aaa"; ctx.fillText(L[2], 14, 70); ctx.restore();
