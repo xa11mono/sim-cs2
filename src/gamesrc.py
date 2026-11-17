@@ -22,6 +22,11 @@ def module_files():
         return []
 
 
+def module_source():
+    """Текст каналов-модулей (по порядку номеров) — для тех, кто ищет переменные игры по исходнику (снимок отметки)."""
+    return ''.join(open(os.path.join(GAME_DIR, f), encoding='utf-8').read() for f in sorted(module_files()))
+
+
 def bundle_modules(page):
     """Собрать каналы-модули в странице page (на месте главной функции); нет модулей — ничего. Нужны node и npm: зависимости
     (tools/rebuild/package.json) ставятся сами при первой сборке."""

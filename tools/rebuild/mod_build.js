@@ -43,6 +43,18 @@ const M = mods.map(f => { const src = fs.readFileSync(path.join(srcDir, f), "utf
 // модуль ↔ модуль: имена, объявленные в одном модуле и упомянутые в другом
 M.forEach(m => M.forEach(o => { if (o === m) return; const U = usedNames(acorn.parse(o.src, { ecmaVersion: "latest", sourceType: "module" }));
   o.fromMods = o.fromMods || {}; const need = [...m.N].filter(n => U.has(n) && !o.N.has(n)); if (need.length) { o.fromMods[m.f] = need; m.exp = [...new Set(m.exp.concat(need))]; } }));
+// снимок отметки (__SNAP, 650 — вставляет src/marks_build.py): «записать» переменной модуля — через её сеттер в модуле (__set_<имя>);
+// переписывается только список снимка — любая другая запись в чужую переменную остаётся ошибкой сборки (нужен интерфейс по смыслу)
+const SNAP = /var __SNAP = \[\n([\s\S]*?)\n\];/.exec(core), setters = {};
+if (SNAP) {
+  const owner = {}; M.forEach(m => m.N.forEach(n => { owner[n] = m; }));
+  const body = SNAP[1].replace(/function\(v\)\{ try\{ ([A-Za-z_$][\w$]*) = v; \}catch\(e\)\{\} \}/g, (all, n) => {
+    if (!owner[n]) return all; (setters[owner[n].f] = setters[owner[n].f] || []).push(n); return "function(v){ try{ __set_" + n + "(v); }catch(e){} }"; });
+  core = core.replace(SNAP[0], "var __SNAP = [\n" + body + "\n];");
+  Object.entries(setters).forEach(([f, L]) => { const m = M.find(x => x.f === f);
+    m.src += "\n" + L.map(n => "function __set_" + n + "(v){ " + n + " = v; }").join("\n");
+    m.exp = m.exp.concat(L.map(n => "__set_" + n)); coreImp[f] = (coreImp[f] || []).concat(L.map(n => "__set_" + n)); });
+}
 const js = f => "./" + f;
 M.forEach(m => {
   let head = (m.imp.length ? "import { " + m.imp.join(", ") + " } from \"./__core.js\";\n" : "");
