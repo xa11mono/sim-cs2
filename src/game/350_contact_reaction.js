@@ -92,8 +92,9 @@ function spotTaken(b, q, how){ return bots.some(function(o){
   if(o === b || !o.alive || o.team !== b.team) return false;
   if(how === "line"){ var oh = o.post && o.post.hold && taskProp(String(o.post.tag), "ownLine");
     return !!oh && Math.hypot(o.post.x-q.x, o.post.y-q.y) < OWN_LINE_GAP; }   // (прогон 217) только места: позиция на посту мигала — пост ставился заново 12 раз за 5 с
-  if(how === "post") return !!o.post && Math.hypot(o.post.x-q.x, o.post.y-q.y) < SPOT_PERSONAL;
-  return Math.hypot(o.x-q.x, o.y-q.y) < SPOT_PERSONAL || (o.post && Math.hypot(o.post.x-q.x, o.post.y-q.y) < SPOT_PERSONAL); }); }
+  var op = o.post && !taskProp(String(o.post.tag), "briefStop") ? o.post : null;   // (17.11) короткая остановка своего — не его место
+  if(how === "post") return !!op && Math.hypot(op.x-q.x, op.y-q.y) < SPOT_PERSONAL;
+  return Math.hypot(o.x-q.x, o.y-q.y) < SPOT_PERSONAL || (op && Math.hypot(op.x-q.x, op.y-q.y) < SPOT_PERSONAL); }); }
 // (v418) свой рядом (≤ 600 — как «своих рядом» в счёте) сейчас в бою, и тот, с кем он стреляется, по знанию команды (≤ 1 с) — у этого
 // контакта (≤ 400). 600 — как nM ниже; 400 — проектное число («та же группа»)
 function contactMateFight(b, C){

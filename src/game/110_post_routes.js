@@ -201,6 +201,9 @@ var TASK_PROP = {
   // (v570, владелец 12.11: «и когда переставляет другая механика, и на пост-планте — тоже кроссфайером, а не кучно; маленький сайт — места
   // рядом») стоит и держит угол: место — на своей линии, не ближе OWN_LINE_GAP к месту / посту своего, кто тоже держит (setPost, 110)
   ownLine:          /^(anchor|stack|set:|cts:|mid$|mid:back|rotator|rotateHold|rebal|sitehold|default:|postplant|coverplant|clutch|midcover|retakeCover|endhunt|after:hold|bombwatch|fill|hold)/,
+  // (17.11, владелец к видео CT4: «бежит, не добегая разворачивается — туда-сюда»; дубль №5) короткая остановка своего — бросок с лайнапа,
+  // подбор, точка маршрута — не занимает чужое место (spotTaken «post» и личное место по посту, 350); сам свой, стоящий там, — занимает
+  briefStop:        /^(lineup|pickup|fetch|route)/,
   exactSpot:        /^(plantspot|defuse|lineup|pickup|fetch|stopplant|antidefuse|ladder|smokeWait|route|sbGo)/,   // (v552) приказ песочницы — точно   // точное место: точку не сдвигают от своего (110)
   // (v529) проверки чужой задачи по ОДНОМУ имени (механика смотрит на задачу, которую ставит не она) — 19 мест в 10 файлах, без изменений:
   midTask:          /^tmid$/,        // пробы / «проверено — пусто»: задача мида T (150)
