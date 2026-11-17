@@ -56,9 +56,11 @@ function bulletLineHit(sh, ex, ey, skip, seed, note){
 // (v519, пак 09.11 п.15; Р-2: «трассеры проходят через укрытия») пуля мимо — летит по 3D-геометрии карты (та же, что видимость: ящики, укрытия,
 // уступы), а не только до плоских стен редактора: от глаз стрелка к точке на высоте корпуса цели (tz — пол цели, ед. игры) и дальше по той же прямой;
 // где упёрлась — там конец трассера и шальной пули (bulletVictim ищет только до этой точки)
-function bulletClip3(sh, ex, ey, tgt){
+// (v583a, Д7, владелец 17.11: «стреляют в пол — трассеры в пол»; р3 м302: у обоих видна только голова, промах летел на грудь за краем этажа и
+// упирался в край пола) headOnly — видна только голова: линия промаха — на высоте головы цели, а не груди
+function bulletClip3(sh, ex, ey, tgt, headOnly){
   var c = rayClipWalls(sh.x, sh.y, ex, ey), M = typeof m3 === "function" ? m3() : null; if(!M || !tgt) return c;
-  var az = visFloorAt(sh.x, sh.y, sh.z) + (sh.crouching ? VIS_EYE.crouch : VIS_EYE.stand), tz = visFloorAt(tgt.x, tgt.y, tgt.z) + 40;
+  var az = visFloorAt(sh.x, sh.y, sh.z) + (sh.crouching ? VIS_EYE.crouch : VIS_EYE.stand), tz = visFloorAt(tgt.x, tgt.y, tgt.z) + (headOnly ? (tgt.crouching ? VIS_EYE.crouch : VIS_EYE.stand) - 2 : 40);
   var dT = Math.hypot(tgt.x-sh.x, tgt.y-sh.y) || 1, L = Math.hypot(c.x-sh.x, c.y-sh.y), bz = az + (tz - az)*L/dT;
   var h = m3Cast(M, sh.x, sh.y, az, c.x, c.y, bz, "sight", true);
   return h && h.t < 1 ? {x: sh.x + (c.x-sh.x)*h.t, y: sh.y + (c.y-sh.y)*h.t, wall: true} : c;

@@ -59,6 +59,7 @@ function saveShootOk(b, t){
   for(var i = 0; i < P.length; i++) if(Math.hypot(P[i][0]-t.x, P[i][1]-t.y) < SAVE_PATH_R) return true;
   return false;
 }
+var TAP_PAUSE = 0.5;   // с — пауза между очередями у про (медиана, все дистанции)
 function tryShoot(shooter, target, dist){
   if(shooter._sbOff) return;   // (v536) песочница: ИИ выключен — не стреляет (677)
   if(DEMOV.on) return;   // (v571) раунд из демки: стреляют только игроки демки (678)
@@ -171,11 +172,19 @@ function tryShoot(shooter, target, dist){
   // всегда тапом (быстро жмут только вплотную), дигл — всегда, остальные
   // пистолеты — с ~110px, ПП и винтовки — с ~160px
   var tapFrom = w.key === "USP" ? 45 : (w.spam >= 30 ? 0 : (w.slot === "secondary" ? 110 : 160));
-  var tapK = w.key === "USP" ? 0.4 : 0.7;
   // (v530, отметка владельца 10.11 «зажимают, когда половина пуль идёт в укрытие»: с 450 px видна одна голова — 13 пуль за 2 с, попала 1) отсечка
   // или зажим — по размеру того, что видно: из-за укрытия торчит только голова — цель размером с голову, очередь в неё не идёт
-  var tgA = bA; if(!thruSmoke && !prefire){ var vpT = visParts(shooter.x, shooter.y, shooter.crouching, target.x, target.y, target.crouching, undefined, shooter.z, target.z, boostLift(shooter), boostLift(target)); if(vpT.head && !vpT.body) tgA = hA; }
-  if(w.spam && dist > tapFrom && w.spam/1000*heat > tapK*tgA){ fireReady(shooter, target, (heat - tapK*tgA*1000/w.spam)*(w.recov||8)); return; }
+  var headOnly = false; if(!thruSmoke && !prefire){ var vpT = visParts(shooter.x, shooter.y, shooter.crouching, target.x, target.y, target.crouching, undefined, shooter.z, target.z, boostLift(shooter), boostLift(target)); headOnly = !!(vpT.head && !vpT.body); }
+  // (v583a, Д7, владелец 17.11: «про бы не зажимал всю обойму, стрелял короткими очередями или тапами»; 16,7 тыс. очередей винтовок про, Mirage —
+  // tools: один тап на 1000–1500 ед. 82 %, 1500+ — 87 %, остальное 2–3 пули; пауза между очередями — медиана 0,5 с) дальше tapFrom — очередь
+  // из TAP_LEN пуль (тап или 2–3 по долям про для дистанции), потом пауза не меньше TAP_PAUSE. Было: «ждать, пока остынет разброс» — выстрел
+  // каждые 0,125 с, по сути зажим (р3 м302: CT4 10+ пуль подряд на 564 px в одну голову)
+  if(w.spam && dist > tapFrom){
+    var sinceT = tick - (shooter.lastShotTick || -1e9), du = dist*PX_UNITS, T = shooter._tap;
+    if(!T || sinceT >= TAP_PAUSE*TICK_HZ){ var pT = du < 500 ? 0.78 : du < 1000 ? 0.79 : du < 1500 ? 0.82 : 0.87, u = hashRand(tick*29 + shooter.id.charCodeAt(shooter.id.length-1)*17);
+      T = shooter._tap = {n: 0, len: u < pT ? 1 : (u < pT + (1 - pT)/2 ? 2 : 3)}; }
+    if(T.n >= T.len){ fireReady(shooter, target, TAP_PAUSE*TICK_HZ - sinceT); return; }
+  }
   var burstIdx = tick - shooter.lastShotTick > SPRAY_RESET_TICKS ? 0 : shooter.burstCount;
 
   // ---- раздел 14: попадание — не "шанс N%", а угловая ошибка прицела ----
@@ -216,7 +225,7 @@ function tryShoot(shooter, target, dist){
   target._shotAtT = tick; target._shotAtBy = shooter;
   shooter.nextShotTick = tick + w.fireIntervalTicks;
   shooter.ammo--;
-  shooter._heat = heat + 1;
+  shooter._heat = heat + 1; if(shooter._tap) shooter._tap.n++;
   var pIn = function(R){ return 1 - Math.exp(-(R*R)/(2*sigma*sigma)); };
   var seedS = tick*104729 + shooter.id.charCodeAt(0)*31 + shooter.id.length*7 + target.id.charCodeAt(0)*17 + Math.floor(shooter.nextShotTick*8);
   // сильные игроки чаще целятся в голову; AWP — всегда в корпус
@@ -333,7 +342,7 @@ function tryShoot(shooter, target, dist){
     else { var sgn = hashRand(seedS+3) < 0.5 ? -1 : 1; dev = sgn * (bA*1.15 + Math.abs(hashRand(seedS+7)-0.5)*2*sigma); }
     var far = Math.min(w.range, Math.hypot(dx,dy)*1.6 + 60);
     var ex = shooter.x + Math.cos(ang+dev)*far, ey = shooter.y + Math.sin(ang+dev)*far;
-    var cl = bulletClip3(shooter, ex, ey, target);   // (v519) по 3D-геометрии (ящики), не только до стен редактора
+    var cl = bulletClip3(shooter, ex, ey, target, headOnly);   // (v583a, Д7) видна только голова — промах летит на уровне головы   // (v519) по 3D-геометрии (ящики), не только до стен редактора
     endX = cl.x; endY = cl.y;
     // (v263, Б1) промах летит дальше и попадает в того, кто на его пути, — в своего тоже (урон по своим — в applyDamage).
     // Куда попала — по той же доле зон, что и без хитбоксов; урон — оружия на дистанции до него
