@@ -290,6 +290,12 @@ function ctBrain(){
   // к входу на сайт, в спину заходящим. Раз за раунд, один игрок.
   var secLeftCT = ROUND_TIME_SEC - (simTime - roundStartTime);
   if(ct.flank && !bots.some(function(o){ return o.id === ct.flank.id && o.alive; })) ct.flank.dead = true;
+  // (v583a, Д2, владелец 17.11: р2 м302 — kyousuke получил фланг при колле «A», колл сменился на B, опорник B погиб — фланг не пересмотрен, «играю B»
+  // только через 20 с) фланг — по колу и раскладу: колл сменил сайт, бомба стоит на другом сайте или флангер остался один — фланг отменяется
+  // (дальше — обычные решения: ротация на колл, клатч)
+  if(ct.flank && !ct.flank.dead){ var fWhy = cts.length <= 1 ? "остался один" : (ct.call && ct.call.site !== ct.flank.site) ? "колл сменился на " + ct.call.site :
+      (planted0 && bomb && bomb.site && bomb.site !== ct.flank.site) ? "бомба на " + bomb.site : null;
+    if(fWhy){ ct.flank.dead = true; voiceLog("CT", "flankoff", ct.flank.id, "фланг отменяю — " + fWhy); } }
   if(!ct.flank && ct.call && !planted0 && ct.call.count >= 2 && tick - (ct.call.since||tick) > 2*TICK_HZ && secLeftCT > 25 && cts.length >= 2){
     var fs = ct.call.site;
     var cand = cts.filter(function(b){ return (b.tRole === "mid" || b.tRole === "roamer") && !(ct.rot && ct.rot[b.id]) &&

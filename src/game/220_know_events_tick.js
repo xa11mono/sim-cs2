@@ -198,6 +198,19 @@ function knowPlantShift(K, site){
     if(toBomb > 0) B.hyps.push({type: "held", zone: z, x: S.x, y: S.y, weight: toBomb, plant: true});
     knowNorm(B.hyps); knowTrim(B); }
 }
+// (v583a, Д2.2) сдвиг невидимых врагов к сайту с долей share: «видели» (held, не плант) — остаются (инфа), слышали — по кривой про
+// (knowAgeP), прогнозы — доля share уходит в «у сайта». KILL_SITE_R — 240 px ≈ 600 ед. от центра сайта (тот же радиус, что в замере)
+var KILL_SITE_SHARE = 0.72, KILL_SITE_R = 240;
+function knowSiteShift(K, site, share, skipId){
+  var S = SITES[site]; if(!S) return; var z = knowZoneAt(S.x, S.y);
+  for(var id in K.enemies){ if(id === skipId) continue; var B = K.enemies[id]; if(B.visible) continue;
+    var moved = 0, seen = B.last && B.last.source !== "spawn";
+    B.hyps.forEach(function(h){
+      var keep = h.type === "held" && !h.plant ? (seen ? 1 : 0) : (h.heard && h.htick != null ? knowAgeP((tick - h.htick)/TICK_HZ) : 0);
+      var w = h.weight*(1 - keep)*share; moved += w; h.weight -= w; });
+    if(moved > 0) B.hyps.push({type: "held", zone: z, x: S.x, y: S.y, weight: moved, plant: true});
+    knowNorm(B.hyps); knowTrim(B); }
+}
 // CT видит саму бомбу на земле — знает сайт
 function knowBombSeen(b){
   var K = b.know;
@@ -219,6 +232,12 @@ function knowKill(att, vic){
       if(b.lastIntel && b.lastIntel.tick <= tick && Math.hypot(b.lastIntel.x-vic.x, b.lastIntel.y-vic.y) <= 300) b.lastIntel = null;
       return;
     }
+    // (v583a, Д2.2, владелец 17.11: «опорника B убили — понятно, где остальные враги, и плант будет там же») свой CT погиб на сайте до планта
+    // (киллфид + радар) — невидимые T сдвигаются к этому сайту с долей KILL_SITE_SHARE: у про (1300 смертей CT на сайте до планта, Mirage)
+    // остальные живые T в этот момент в 1200 ед. от сайта — в среднем 72 %, плант потом на этом сайте — 90–93 %
+    if(b.team === "CT" && !(bomb && bomb.state === "planted")){ var ks = null;
+      ["A", "B"].forEach(function(X){ if(SITES[X] && Math.hypot(vic.x-SITES[X].x, vic.y-SITES[X].y) <= KILL_SITE_R) ks = X; });
+      if(ks) knowSiteShift(K, ks, KILL_SITE_SHARE, att && att.id); }
     if(!att || att.team === b.team) return;
     var last = {x: vic.x, y: vic.y, zone: knowZoneAt(vic.x, vic.y, vic.z), tick: tick, stance: "stand", source: "killfeed", vx: 0, vy: 0};
     var B = K.enemies[att.id];

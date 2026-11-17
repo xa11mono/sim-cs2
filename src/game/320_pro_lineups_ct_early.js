@@ -230,7 +230,13 @@ function ctClutch(b, ct){
     for(var sid in BLc){ var sq = BLc[sid], so = teamBot(sid); if(!so || !so.alive || so.team !== "T" || sq.tick < roundStartTick) continue;
       if(Math.hypot(sq.x-SITES.A.x, sq.y-SITES.A.y) < Math.hypot(sq.x-SITES.B.x, sq.y-SITES.B.y)) nA++; else nB++; }
     if(nA !== nB) seenSite = nA > nB ? "A" : "B"; }
-  var want = plantSite || carSite || infoSite || seenSite;
+  // (v583a, Д2.2) свой погиб на сайте ≤ 3 с назад (киллфид + радар) — факт, как «видели бомбу»: у про после смерти CT на сайте до планта
+  // плант на этом сайте в 90–93 % (220, knowSiteShift); клатч берёт его сразу (знание обновится только в конце тика — без этого брал старый сайт
+  // и ждал 8 с выдержки, р2 м302: «играю B» через 20 с)
+  var deathSite = null, sgD = teamIntel.CT && teamIntel.CT.sig;
+  if(sgD) for(var iD = sgD.length-1; iD >= 0; iD--){ var sD = sgD[iD]; if(tick - sD.tick > 3*TICK_HZ) break; if(sD.type !== "died" || sD.id === b.id) continue;
+    ["A", "B"].forEach(function(X){ if(!deathSite && Math.hypot(sD.x-SITES[X].x, sD.y-SITES[X].y) <= KILL_SITE_R) deathSite = X; }); if(deathSite) break; }
+  var want = plantSite || carSite || deathSite || infoSite || seenSite;
   var nT = aliveCount("T");
   if(!C.site){
     C.site = want || (Math.hypot(b.x-SITES.A.x, b.y-SITES.A.y) < Math.hypot(b.x-SITES.B.x, b.y-SITES.B.y) ? "A" : "B");
@@ -238,9 +244,9 @@ function ctClutch(b, ct){
     voiceLog("CT", "clutch", b.id, "я один против "+nT+" — "+(want ? "по инфе они на "+C.site+", играю "+C.site : "угадываю "+C.site+", тяну время"));
   } else if(want && want !== C.site){
     if(C.want !== want){ C.want = want; C.wantSince = tick; }
-    if(plantSite || carSite || (seenSite && want === seenSite) || tick - C.wantSince > 8*TICK_HZ){   // (v530) «где видели последним» — факт, не колеблется: без выдержки 8 с
+    if(plantSite || carSite || (deathSite && want === deathSite) || (seenSite && want === seenSite) || tick - C.wantSince > 8*TICK_HZ){   // (v530) «где видели последним» — факт, не колеблется: без выдержки 8 с
       C.site = want; C.since = tick;
-      voiceLog("CT", "clutchsw"+C.site, b.id, (plantSite ? "плант на "+want : carSite ? "бомба у "+want : "инфа на "+want)+" — иду туда");
+      voiceLog("CT", "clutchsw"+C.site, b.id, (plantSite ? "плант на "+want : carSite ? "бомба у "+want : deathSite === want ? "наших убили на "+want : "инфа на "+want)+" — иду туда");
     }
   }
   var k = C.site, g = GEO[k];
