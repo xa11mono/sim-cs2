@@ -294,6 +294,35 @@ function ppProZone(bp, site){
     var d = Math.hypot(z.x-bp.x, z.y-bp.y); if(d < bd){ bd = d; best = z; } });
   return best;
 }
+// (v583a, Д16, владелец 17.11: «может чуть выйти левее, к Drop, посмотреть Short, никто ли не пришёл — живее») после планта зона с угрозой
+// (знание команды: beliefZoneKnown, с гипотезой «CT идёт на ретейк», 220) — её вход к бомбе (PP_ENTRY по пути), который никто из своих не видит
+// (не смотрит туда — mateWatches, и с мест её не видно) — ближайший T, у кого рядом (≤ PP_CHK_R) есть точка, откуда она видна, выходит туда,
+// смотрит (угол поручен) и возвращается на место (всего PP_CHK_DUR); тот же T — не чаще PP_CHK_EVERY. Числа — проектные
+var PP_CHK_MIN = 0.12, PP_CHK_R = 90, PP_CHK_DUR = 3, PP_CHK_EVERY = 6, PP_ENTRY = 300;
+function ppCheckStep(members, bp){
+  if(tick % 32) return;
+  // угроза — не сама зона (она далеко, от бомбы не видна), а место, где враг из неё войдёт к бомбе: точка его пути за PP_ENTRY до бомбы;
+  // одинаковые входы (ближе 120 px) складываются
+  var Zs = [];
+  BZ.cent.forEach(function(c, j){ if(!c) return; var w = beliefZoneKnown("T", j); if(w < 0.03) return;
+    var P = pathPts(c.x, c.y, bp.x, bp.y); if(!P || P.length < 2) return;
+    var e = null, acc = 0; for(var i = P.length-1; i > 0; i--){ var sl = Math.hypot(P[i][0]-P[i-1][0], P[i][1]-P[i-1][1]); if(acc + sl >= PP_ENTRY){ var q = (PP_ENTRY-acc)/(sl || 1); e = {x: P[i][0] + (P[i-1][0]-P[i][0])*q, y: P[i][1] + (P[i-1][1]-P[i][1])*q}; break; } acc += sl; }
+    if(!e) return;
+    var m = Zs.filter(function(z){ return Math.hypot(z.c.x-e.x, z.c.y-e.y) < 120; })[0];
+    if(m) m.w += w; else Zs.push({j: "e" + Math.round(e.x/40) + "," + Math.round(e.y/40), c: e, w: w}); });
+  Zs = Zs.filter(function(z){ return z.w >= PP_CHK_MIN; }).sort(function(a, c){ return c.w - a.w; });
+  Zs.forEach(function(z){
+    if(bots.some(function(o){ return o.alive && o.team === "T" && (mateWatches(o, z.c) || (o._ppChk && o._ppChk.j === z.j && tick - o._ppChk.t0 < PP_CHK_DUR*TICK_HZ)); })) return;
+    if(members.some(function(o){ return o.post && hasLOS(o.post.x, o.post.y, z.c.x, z.c.y) && !smokeBlocks(o.post.x, o.post.y, z.c.x, z.c.y); })) return;   // видно с места — повернётся сам (делёж)
+    var best = null, bpt = null, bd = Infinity;
+    members.forEach(function(o){ if(!o.atPost || !o.post || (o._ppChk && tick - o._ppChk.t0 < PP_CHK_EVERY*TICK_HZ)) return;
+      var sp = pickSpots("ppchk" + z.j + o.id + Math.round(o.post.x) + "," + Math.round(o.post.y), {x: o.post.x, y: o.post.y}, 1, {rMin: 16, rMax: PP_CHK_R, see: [z.c], minGap: 20})[0];
+      if(!sp || !hasLOS(sp.x, sp.y, z.c.x, z.c.y) || smokeBlocks(sp.x, sp.y, z.c.x, z.c.y)) return;
+      var d = Math.hypot(sp.x-o.x, sp.y-o.y); if(d < bd){ bd = d; best = o; bpt = sp; } });
+    if(best){ best._ppChk = {j: z.j, pt: {x: bpt.x, y: bpt.y}, look: {x: z.c.x, y: z.c.y}, t0: tick};
+      logEvent(best.id + ": после планта — шаг, посмотреть " + calloutName(z.c.x, z.c.y).replace(/^на /,"")); }
+  });
+}
 function ppProGroup(members, bp, site, tag){
   var Z = ppProZone(bp, site); if(!Z) return null;
   var key = roundNum + ":" + Math.round(Z.x) + "," + Math.round(Z.y);
@@ -315,7 +344,9 @@ function ppProGroup(members, bp, site, tag){
     free = free.filter(function(o){ return o !== bb; });
     voiceLog("T", "pppro"+bb.id, bb.id, "после планта встаю " + calloutName(Z.spots[bi].x, Z.spots[bi].y).replace(/^на /,""));
   }
+  ppCheckStep(members, bp);
   members.forEach(function(b){ var A = b._ppPro; if(!A || A.key !== key){ return; }
+    var C = b._ppChk; if(C && tick - C.t0 < PP_CHK_DUR*TICK_HZ){ setPost(b, C.pt, C.look, true, tag); if(b.post){ b.post.ppAlt = 1; b.post.setupLook = 1; b.post.lookMoving = 1; } return; }
     var s = Z.spots[A.i], a = s.look && s.look[0] ? s.look[0][0] : Math.atan2(bp.y-s.y, bp.x-s.x);
     setPost(b, {x: s.x, y: s.y}, {x: s.x + Math.cos(a)*PP_LOOK_D, y: s.y + Math.sin(a)*PP_LOOK_D}, true, tag);
     if(b.post) b.post.ppAlt = 1;   // место пост-планта: угол про не навязывается — взгляд по дележу команды (270, владелец 17.11: «живее»)
