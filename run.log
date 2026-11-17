@@ -1,0 +1,2221 @@
+playwright 1.56.0, браузеры: C:\Windows\system32\config\systemprofile\.simcs2_node\ms-playwright
+> git fetch --quiet origin 4dbb5d4d0bdedde64fd1d2a8e1cf22b17ed4687b
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_rw3mg3id FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_rw3mg3id\src\build.py --map mirage C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v582a12_fp_mir.html
+проверка владения полей пропущена: нет acorn / acorn-walk (npm i acorn acorn-walk или NODE_PATH)
+> git fetch --quiet origin 4dbb5d4d0bdedde64fd1d2a8e1cf22b17ed4687b
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_nkaq_h_f FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_nkaq_h_f\src\build.py --map ancient C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v582a12_fp_anc.html
+проверка владения полей пропущена: нет acorn / acorn-walk (npm i acorn acorn-walk или NODE_PATH)
+> git fetch --quiet origin 0255152939508fff8cdc0d66753aec7d7196906c
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_3m6y7q53 FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_3m6y7q53\src\build.py --map mirage C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v582a14_fp_mir.html
+C:\Windows\TEMP\simbuild_3m6y7q53\tools\rebuild\node_modules\esbuild\lib\main.js:2148
+      throw reject;
+      ^
+
+Error: Build failed with 204 errors:
+../modb_EQpXIP/__core.js:31665:53: ERROR: Cannot assign to import "PSN"
+../modb_EQpXIP/__core.js:31666:63: ERROR: Cannot assign to import "PSN_TAGS"
+../modb_EQpXIP/__core.js:31667:67: ERROR: Cannot assign to import "PRO_LOOK_R"
+../modb_EQpXIP/__core.js:31668:67: ERROR: Cannot assign to import "ENTRY_WAIT"
+../modb_EQpXIP/__core.js:31669:65: ERROR: Cannot assign to import "TASK_PROP"
+...
+    at failureErrorWithLog (C:\Windows\TEMP\simbuild_3m6y7q53\tools\rebuild\node_modules\esbuild\lib\main.js:1476:15)
+    at C:\Windows\TEMP\simbuild_3m6y7q53\tools\rebuild\node_modules\esbuild\lib\main.js:945:25
+    at C:\Windows\TEMP\simbuild_3m6y7q53\tools\rebuild\node_modules\esbuild\lib\main.js:897:52
+    at buildResponseToResult (C:\Windows\TEMP\simbuild_3m6y7q53\tools\rebuild\node_modules\esbuild\lib\main.js:943:7)
+    at C:\Windows\TEMP\simbuild_3m6y7q53\tools\rebuild\node_modules\esbuild\lib\main.js:970:16
+    at responseCallbacks.<computed> (C:\Windows\TEMP\simbuild_3m6y7q53\tools\rebuild\node_modules\esbuild\lib\main.js:622:9)
+    at handleIncomingPacket (C:\Windows\TEMP\simbuild_3m6y7q53\tools\rebuild\node_modules\esbuild\lib\main.js:677:12)
+    at Socket.readFromStdout (C:\Windows\TEMP\simbuild_3m6y7q53\tools\rebuild\node_modules\esbuild\lib\main.js:600:7)
+    at Socket.emit (node:events:514:28)
+    at addChunk (node:internal/streams/readable:568:12) {
+  errors: [
+    {
+      detail: undefined,
+      id: '',
+      location: {
+        column: 53,
+        file: '../modb_EQpXIP/__core.js',
+        length: 3,
+        line: 31665,
+        lineText: '["PSN", function(){ return PSN; }, function(v){ try{ PSN = v; }catch(e){} }],',
+        namespace: '',
+        suggestion: ''
+      },
+      notes: [
+        {
+          location: null,
+          text: 'Imports are immutable in JavaScript. To modify the value of this import, you must export a setter function in the imported file (e.g. "setPSN") and then import and call that function here instead.'
+        }
+      ],
+      pluginName: '',
+      text: 'Cannot assign to import "PSN"'
+    },
+    {
+      detail: undefined,
+      id: '',
+      location: {
+        column: 63,
+        file: '../modb_EQpXIP/__core.js',
+        length: 8,
+        line: 31666,
+        lineText: '["PSN_TAGS", function(){ return PSN_TAGS; }, function(v){ try{ PSN_TAGS = v; }catch(e){} }],',
+        namespace: '',
+        suggestion: ''
+      },
+      notes: [
+        {
+          location: null,
+          text: 'Imports are immutable in JavaScript. To modify the value of this import, you must export a setter function in the imported file (e.g. "setPSN_TAGS") and then import and call that function here instead.'
+        }
+      ],
+      pluginName: '',
+      text: 'Cannot assign to import "PSN_TAGS"'
+    },
+    {
+      detail: undefined,
+      id: '',
+      location: {
+        column: 67,
+        file: '../modb_EQpXIP/__core.js',
+        length: 10,
+        line: 31667,
+        lineText: '["PRO_LOOK_R", function(){ return PRO_LOOK_R; }, function(v){ try{ PRO_LOOK_R = v; }catch(e){} }],',
+        namespace: '',
+        suggestion: ''
+      },
+      notes: [
+        {
+          location: null,
+          text: 'Imports are immutable in JavaScript. To modify the value of this import, you must export a setter function in the imported file (e.g. "setPRO_LOOK_R") and then import and call that function here instead.'
+        }
+      ],
+      pluginName: '',
+      text: 'Cannot assign to import "PRO_LOOK_R"'
+    },
+    {
+      detail: undefined,
+      id: '',
+      location: {
+        column: 67,
+        file: '../modb_EQpXIP/__core.js',
+        length: 10,
+        line: 31668,
+        lineText: '["ENTRY_WAIT", function(){ return ENTRY_WAIT; }, function(v){ try{ ENTRY_WAIT = v; }catch(e){} }],',
+        namespace: '',
+        suggestion: ''
+      },
+      notes: [
+        {
+          location: null,
+          text: 'Imports are immutable in JavaScript. To modify the value of this import, you must export a setter function in the imported file (e.g. "setENTRY_WAIT") and then import and call that function here instead.'
+        }
+      ],
+      pluginName: '',
+      text: 'Cannot assign to import "ENTRY_WAIT"'
+    },
+    {
+      detail: undefined,
+      id: '',
+      location: {
+        column: 65,
+        file: '../modb_EQpXIP/__core.js',
+        length: 9,
+        line: 31669,
+        lineText: '["TASK_PROP", function(){ return TASK_PROP; }, function(v){ try{ TASK_PROP = v; }catch(e){} }],',
+        namespace: '',
+        suggestion: ''
+      },
+      notes: [
+        {
+          location: null,
+          text: 'Imports are immutable in JavaScript. To modify the value of this import, you must export a setter function in the imported file (e.g. "setTASK_PROP") and then import and call that function here instead.'
+        }
+      ],
+      pluginName: '',
+      text: 'Cannot assign to import "TASK_PROP"'
+    },
+    {
+      detail: undefined,
+      id: '',
+      location: {
+        column: 67,
+        file: '../modb_EQpXIP/__core.js',
+        length: 10,
+        line: 31670,
+        lineText: '["TASK_LEVEL", function(){ return TASK_LEVEL; }, function(v){ try{ TASK_LEVEL = v; }catch(e){} }],',
+        namespace: '',
+        suggestion: ''
+      },
+      notes: [
+        {
+          location: null,
+          text: 'Imports are immutable in JavaScript. To modify the value of this import, you must export a setter function in the imported file (e.g. "setTASK_LEVEL") and then import and call that function here instead.'
+        }
+      ],
+      pluginName: '',
+      text: 'Cannot assign to import "TASK_LEVEL"'
+    },
+    {
+      detail: undefined,
+      id: '',
+      location: {
+        column: 81,
+        file: '../modb_EQpXIP/__core.js',
+        length: 17,
+        line: 31671,
+        lineText: '["TASK_ROUTE_CANCEL", function(){ return TASK_ROUTE_CANCEL; }, function(v){ try{ TASK_ROUTE_CANCEL = v; }catch(e){} }],',
+        namespace: '',
+        suggestion: ''
+      },
+      notes: [
+        {
+          location: null,
+          text: 'Imports are immutable in JavaScript. To modify the value of this import, you must export a setter function in the imported file (e.g. "setTASK_ROUTE_CANCEL") and then import and call that function here instead.'
+        }
+      ],
+      pluginName: '',
+      text: 'Cannot assign to import "TASK_ROUTE_CANCEL"'
+    },
+    {
+      detail: undefined,
+      id: '',
+      location: {
+        column: 67,
+        file: '../modb_EQpXIP/__core.js',
+        length: 10,
+        line: 31672,
+        lineText: '["TASK_STALE", function(){ return TASK_STALE; }, function(v){ try{ TASK_STALE = v; }catch(e){} }],',
+        namespace: '',
+        suggestion: ''
+      },
+      notes: [
+        {
+          location: null,
+          text: 'Imports are immutable in JavaScript. To modify the value of this import, you must export a setter function in the imported file (e.g. "setTASK_STALE") and then import and call that function here instead.'
+        }
+      ],
+      pluginName: '',
+      text: 'Cannot assign to import "TASK_STALE"'
+    },
+    {
+      detail: undefined,
+      id: '',
+      location: {
+        column: 67,
+        file: '../modb_EQpXIP/__core.js',
+        length: 10,
+        line: 31673,
+        lineText: '["DETOUR_MAX", function(){ return DETOUR_MAX; }, function(v){ try{ DETOUR_MAX = v; }catch(e){} }],',
+        namespace: '',
+        suggestion: ''
+      },
+      notes: [
+        {
+          location: null,
+          text: 'Imports are immutable in JavaScript. To modify the value of this import, you must export a setter function in the imported file (e.g. "setDETOUR_MAX") and then import and call that function here instead.'
+        }
+      ],
+      pluginName: '',
+      text: 'Cannot assign to import "DETOUR_MAX"'
+    },
+    {
+      detail: undefined,
+      id: '',
+      location: {
+        column: 67,
+        file: '../modb_EQpXIP/__core.js',
+        length: 10,
+        line: 31674,
+        lineText: '["POST_DWELL", function(){ return POST_DWELL; }, function(v){ try{ POST_DWELL = v; }catch(e){} }],',
+        namespace: '',
+        suggestion: ''
+      },
+      notes: [
+        {
+          location: null,
+          text: 'Imports are immutable in JavaScript. To modify the value of this import, you must export a setter function in the imported file (e.g. "setPOST_DWELL") and then import and call that function here instead.'
+        }
+      ],
+      pluginName: '',
+      text: 'Cannot assign to import "POST_DWELL"'
+    },
+    {
+      detail: undefined,
+      id: '',
+      location: {
+        column: 69,
+        file: '../modb_EQpXIP/__core.js',
+        length: 11,
+        line: 31675,
+        lineText: '["POST_ARRIVE", function(){ return POST_ARRIVE; }, function(v){ try{ POST_ARRIVE = v; }catch(e){} }],',
+        namespace: '',
+        suggestion: ''
+      },
+      notes: [
+        {
+          location: null,
+          text: 'Imports are immutable in JavaScript. To modify the value of this import, you must export a setter function in the imported file (e.g. "setPOST_ARRIVE") and then import and call that function here instead.'
+        }
+      ],
+      pluginName: '',
+      text: 'Cannot assign to import "POST_ARRIVE"'
+    },
+    {
+      detail: undefined,
+      id: '',
+      location: {
+        column: 67,
+        file: '../modb_EQpXIP/__core.js',
+        length: 10,
+        line: 31676,
+        lineText: '["POST_EXACT", function(){ return POST_EXACT; }, function(v){ try{ POST_EXACT = v; }catch(e){} }],',
+        namespace: '',
+        suggestion: ''
+      },
+      notes: [
+        {
+          location: null,
+          text: 'Imports are immutable in JavaScript. To modify the value of this import, you must export a setter function in the imported file (e.g. "setPOST_EXACT") and then import and call that function here instead.'
+        }
+      ],
+      pluginName: '',
+      text: 'Cannot assign to import "POST_EXACT"'
+    },
+    {
+      detail: undefined,
+      id: '',
+      location: {
+        column: 69,
+        file: '../modb_EQpXIP/__core.js',
+        length: 11,
+        line: 31677,
+        lineText: '["POST_VIEW_R", function(){ return POST_VIEW_R; }, function(v){ try{ POST_VIEW_R = v; }catch(e){} }],',
+        namespace: '',
+        suggestion: ''
+      },
+      notes: [
+        {
+          location: null,
+          text: 'Imports are immutable in JavaScript. To modify the value of this import, you must export a setter function in the imported file (e.g. "setPOST_VIEW_R") and then import and call that function here instead.'
+        }
+      ],
+      pluginName: '',
+      text: 'Cannot assign to import "POST_VIEW_R"'
+    },
+    {
+      detail: undefined,
+      id: '',
+      location: {
+        column: 65,
+        file: '../modb_EQpXIP/__core.js',
+        length: 9,
+        line: 31678,
+        lineText: '["POST_VIEW", function(){ return POST_VIEW; }, function(v){ try{ POST_VIEW = v; }catch(e){} }],',
+        namespace: '',
+        suggestion: ''
+      },
+      notes: [
+        {
+          location: null,
+          text: 'Imports are immutable in JavaScript. To modify the value of this import, you must export a setter function in the imported file (e.g. "setPOST_VIEW") and then import and call that function here instead.'
+        }
+      ],
+      pluginName: '',
+      text: 'Cannot assign to import "POST_VIEW"'
+    },
+    {
+      detail: undefined,
+      id: '',
+      location: {
+        column: 71,
+        file: '../modb_EQpXIP/__core.js',
+        length: 12,
+        line: 31679,
+        lineText: '["OWN_LINE_GAP", function(){ return OWN_LINE_GAP; }, function(v){ try{ OWN_LINE_GAP = v; }catch(e){} }],',
+        namespace: '',
+        suggestion: ''
+      },
+      notes: [
+        {
+          location: null,
+          text: 'Imports are immutable in JavaScript. To modify the value of this import, you must export a setter function in the imported file (e.g. "setOWN_LINE_GAP") and then import and call that function here instead.'
+        }
+      ],
+      pluginName: '',
+      text: 'Cannot assign to import "OWN_LINE_GAP"'
+    },
+    {
+      detail: undefined,
+      id: '',
+      location: {
+        column: 75,
+        file: '../modb_EQpXIP/__core.js',
+        length: 14,
+        line: 31680,
+        lineText: '["OWN_LINE_RINGS", function(){ return OWN_LINE_RINGS; }, function(v){ try{ OWN_LINE_RINGS = v; }catch(e){} }],',
+        namespace: '',
+        suggestion: ''
+      },
+      notes: [
+        {
+          location: null,
+          text: 'Imports are immutable in JavaScript. To modify the value of this import, you must export a setter function in the imported file (e.g. "setOWN_LINE_RINGS") and then import and call that function here instead.'
+        }
+      ],
+      pluginName: '',
+      text: 'Cannot assign to import "OWN_LINE_RINGS"'
+    },
+    {
+      detail: undefined,
+      id: '',
+      location: {
+        column: 71,
+        file: '../modb_EQpXIP/__core.js',
+        length: 12,
+        line: 31681,
+        lineText: '["SPREAD_RINGS", function(){ return SPREAD_RINGS; }, function(v){ try{ SPREAD_RINGS = v; }catch(e){} }],',
+        namespace: '',
+        suggestion: ''
+      },
+      notes: [
+        {
+          location: null,
+          text: 'Imports are immutable in JavaScript. To modify the value of this import, you must export a setter function in the imported file (e.g. "setSPREAD_RINGS") and then import and call that function here instead.'
+        }
+      ],
+      pluginName: '',
+      text: 'Cannot assign to import "SPREAD_RINGS"'
+    },
+    {
+      detail: undefined,
+      id: '',
+      location: {
+        column: 69,
+        file: '../modb_EQpXIP/__core.js',
+        length: 11,
+        line: 31682,
+        lineText: '["SPREAD_DIRS", function(){ return SPREAD_DIRS; }, function(v){ try{ SPREAD_DIRS = v; }catch(e){} }],',
+        namespace: '',
+        suggestion: ''
+      },
+      notes: [
+        {
+          location: null,
+          text: 'Imports are immutable in JavaScript. To modify the value of this import, you must export a setter function in the imported file (e.g. "setSPREAD_DIRS") and then import and call that function here instead.'
+        }
+      ],
+      pluginName: '',
+      text: 'Cannot assign to import "SPREAD_DIRS"'
+    },
+    {
+      detail: undefined,
+      id: '',
+      location: {
+        column: 65,
+        file: '../modb_EQpXIP/__core.js',
+        length: 9,
+        line: 31683,
+        lineText: '["teamIntel", function(){ return teamIntel; }, function(v){ try{ teamIntel = v; }catch(e){} }],',
+        namespace: '',
+        suggestion: ''
+      },
+      notes: [
+        {
+          location: null,
+          text: 'Imports are immutable in JavaScript. To modify the value of this import, you must export a setter function in the imported file (e.g. "setTeamIntel") and then import and call that function here instead.'
+        }
+      ],
+      pluginName: '',
+      text: 'Cannot assign to import "teamIntel"'
+    },
+    {
+      detail: undefined,
+      id: '',
+      location: {
+        column: 67,
+        file: '../modb_EQpXIP/__core.js',
+        length: 10,
+        line: 31684,
+        lineText: '["INTEL_KEEP", function(){ return INTEL_KEEP; }, function(v){ try{ INTEL_KEEP = v; }catch(e){} }],',
+        namespace: '',
+        suggestion: ''
+      },
+      notes: [
+        {
+          location: null,
+          text: 'Imports are immutable in JavaScript. To modify the value of this import, you must export a setter function in the imported file (e.g. "setINTEL_KEEP") and then import and call that function here instead.'
+        }
+      ],
+      pluginName: '',
+      text: 'Cannot assign to import "INTEL_KEEP"'
+    },
+    {
+      detail: undefined,
+      id: '',
+      location: {
+        column: 79,
+        file: '../modb_EQpXIP/__core.js',
+        length: 16,
+        line: 31685,
+        lineText: '["ZONE_NAMES_BAKED", function(){ return ZONE_NAMES_BAKED; }, function(v){ try{ ZONE_NAMES_BAKED = v; }catch(e){} }],',
+        namespace: '',
+        suggestion: ''
+      },
+      notes: [
+        {
+          location: null,
+          text: 'Imports are immutable in JavaScript. To modify the value of this import, you must export a setter function in the imported file (e.g. "setZONE_NAMES_BAKED") and then import and call that function here instead.'
+        }
+      ],
+      pluginName: '',
+      text: 'Cannot assign to import "ZONE_NAMES_BAKED"'
+    },
+    {
+      detail: undefined,
+      id: '',
+      location: {
+        column: 75,
+        file: '../modb_EQpXIP/__core.js',
+        length: 14,
+        line: 31686,
+        lineText: '["ZONE_NAMES_KEY", function(){ return ZONE_NAMES_KEY; }, function(v){ try{ ZONE_NAMES_KEY = v; }catch(e){} }],',
+        namespace: '',
+        suggestion: ''
+      },
+      notes: [
+        {
+          location: null,
+          text: 'Imports are immutable in JavaScript. To modify the value of this import, you must export a setter function in the imported file (e.g. "setZONE_NAMES_KEY") and then import and call that function here instead.'
+        }
+      ],
+      pluginName: '',
+      text: 'Cannot assign to import "ZONE_NAMES_KEY"'
+    },
+    {
+      detail: undefined,
+      id: '',
+      location: {
+        column: 83,
+        file: '../modb_EQpXIP/__core.js',
+        length: 18,
+        line: 31687,
+        lineText: '["ZONE_DEFAULT_LABEL", function(){ return ZONE_DEFAULT_LABEL; }, function(v){ try{ ZONE_DEFAULT_LABEL = v; }catch(e){} }],',
+        namespace: '',
+        suggestion: ''
+      },
+      notes: [
+        {
+          location: null,
+          text: 'Imports are immutable in JavaScript. To modify the value of this import, you must export a setter function in the imported file (e.g. "setZONE_DEFAULT_LABEL") and then import and call that function here instead.'
+        }
+      ],
+      pluginName: '',
+      text: 'Cannot assign to import "ZONE_DEFAULT_LABEL"'
+    },
+    {
+      detail: undefined,
+      id: '',
+      location: {
+        column: 73,
+        file: '../modb_EQpXIP/__core.js',
+        length: 13,
+        line: 31688,
+        lineText: '["ZONE_SYNONYMS", function(){ return ZONE_SYNONYMS; }, function(v){ try{ ZONE_SYNONYMS = v; }catch(e){} }],',
+        namespace: '',
+        suggestion: ''
+      },
+      notes: [
+        {
+          location: null,
+          text: 'Imports are immutable in JavaScript. To modify the value of this import, you must export a setter function in the imported file (e.g. "setZONE_SYNONYMS") and then import and call that function here instead.'
+        }
+      ],
+      pluginName: '',
+      text: 'Cannot assign to import "ZONE_SYNONYMS"'
+    },
+    {
+      detail: undefined,
+      id: '',
+      location: {
+        column: 65,
+        file: '../modb_EQpXIP/__core.js',
+        length: 9,
+        line: 31689,
+        lineText: '["_zbnCache", function(){ return _zbnCache; }, function(v){ try{ _zbnCache = v; }catch(e){} }],',
+        namespace: '',
+        suggestion: ''
+      },
+      notes: [
+        {
+          location: null,
+          text: 'Imports are immutable in JavaScript. To modify the value of this import, you must export a setter function in the imported file (e.g. "set_zbnCache") and then import and call that function here instead.'
+        }
+      ],
+      pluginName: '',
+      text: 'Cannot assign to import "_zbnCache"'
+    },
+    {
+      detail: undefined,
+      id: '',
+      location: {
+        column: 55,
+        file: '../modb_EQpXIP/__core.js',
+        length: 4,
+        line: 31690,
+        lineText: '["ZIDX", function(){ return ZIDX; }, function(v){ try{ ZIDX = v; }catch(e){} }],',
+        namespace: '',
+        suggestion: ''
+      },
+      notes: [
+        {
+          location: null,
+          text: 'Imports are immutable in JavaScript. To modify the value of this import, you must export a setter function in the imported file (e.g. "setZIDX") and then import and call that function here instead.'
+        }
+      ],
+      pluginName: '',
+      text: 'Cannot assign to import "ZIDX"'
+    },
+    {
+      detail: undefined,
+      id: '',
+      location: {
+        column: 59,
+        file: '../modb_EQpXIP/__core.js',
+        length: 6,
+        line: 31691,
+        lineText: '["ZIDX_C", function(){ return ZIDX_C; }, function(v){ try{ ZIDX_C = v; }catch(e){} }],',
+        namespace: '',
+        suggestion: ''
+      },
+      notes: [
+        {
+          location: null,
+          text: 'Imports are immutable in JavaScript. To modify the value of this import, you must export a setter function in the imported file (e.g. "setZIDX_C") and then import and call that function here instead.'
+        }
+      ],
+      pluginName: '',
+      text: 'Cannot assign to import "ZIDX_C"'
+    },
+    {
+      detail: undefined,
+      id: '',
+      location: {
+        column: 55,
+        file: '../modb_EQpXIP/__core.js',
+        length: 4,
+        line: 31692,
+        lineText: '["RMEM", function(){ return RMEM; }, function(v){ try{ RMEM = v; }catch(e){} }],',
+        namespace: '',
+        suggestion: ''
+      },
+      notes: [
+        {
+          location: null,
+          text: 'Imports are immutable in JavaScript. To modify the value of this import, you must export a setter function in the imported file (e.g. "setRMEM") and then import and call that function here instead.'
+        }
+      ],
+      pluginName: '',
+      text: 'Cannot assign to import "RMEM"'
+    },
+    {
+      detail: undefined,
+      id: '',
+      location: {
+        column: 65,
+        file: '../modb_EQpXIP/__core.js',
+        length: 9,
+        line: 31693,
+        lineText: '["SETUP_REG", function(){ return SETUP_REG; }, function(v){ try{ SETUP_REG = v; }catch(e){} }],',
+        namespace: '',
+        suggestion: ''
+      },
+      notes: [
+        {
+          location: null,
+          text: 'Imports are immutable in JavaScript. To modify the value of this import, you must export a setter function in the imported file (e.g. "setSETUP_REG") and then import and call that function here instead.'
+        }
+      ],
+      pluginName: '',
+      text: 'Cannot assign to import "SETUP_REG"'
+    },
+    {
+      detail: undefined,
+      id: '',
+      location: {
+        column: 63,
+        file: '../modb_EQpXIP/__core.js',
+        length: 8,
+        line: 31694,
+        lineText: '["KNOW_AGE", function(){ return KNOW_AGE; }, function(v){ try{ KNOW_AGE = v; }catch(e){} }],',
+        namespace: '',
+        suggestion: ''
+      },
+      notes: [
+        {
+          location: null,
+          text: 'Imports are immutable in JavaScript. To modify the value of this import, you must export a setter function in the imported file (e.g. "setKNOW_AGE") and then import and call that function here instead.'
+        }
+      ],
+      pluginName: '',
+      text: 'Cannot assign to import "KNOW_AGE"'
+    },
+    {
+      detail: undefined,
+      id: '',
+      location: {
+        column: 57,
+        file: '../modb_EQpXIP/__core.js',
+        length: 5,
+        line: 31695,
+        lineText: '["TEAMK", function(){ return TEAMK; }, function(v){ try{ TEAMK = v; }catch(e){} }],',
+        namespace: '',
+        suggestion: ''
+      },
+      notes: [
+        {
+          location: null,
+          text: 'Imports are immutable in JavaScript. To modify the value of this import, you must export a setter function in the imported file (e.g. "setTEAMK") and then import and call that function here instead.'
+        }
+      ],
+      pluginName: '',
+      text: 'Cannot assign to import "TEAMK"'
+    },
+    {
+      detail: undefined,
+      id: '',
+      location: {
+        column: 75,
+        file: '../modb_EQpXIP/__core.js',
+        length: 14,
+        line: 31696,
+        lineText: '["AIM_TRACK_BAND", function(){ return AIM_TRACK_BAND; }, function(v){ try{ AIM_TRACK_BAND = v; }catch(e){} }],',
+        namespace: '',
+        suggestion: ''
+      },
+      notes: [
+        {
+          location: null,
+          text: 'Imports are immutable in JavaScript. To modify the value of this import, you must export a setter function in the imported file (e.g. "setAIM_TRACK_BAND") and then import and call that function here instead.'
+        }
+      ],
+      pluginName: '',
+      text: 'Cannot assign to import "AIM_TRACK_BAND"'
+    },
+    {
+      detail: undefined,
+      id: '',
+      location: {
+        column: 73,
+        file: '../modb_EQpXIP/__core.js',
+        length: 13,
+        line: 31697,
+        lineText: '["AIM_TRACK_MIN", function(){ return AIM_TRACK_MIN; }, function(v){ try{ AIM_TRACK_MIN = v; }catch(e){} }],',
+        namespace: '',
+        suggestion: ''
+      },
+      notes: [
+        {
+          location: null,
+          text: 'Imports are immutable in JavaScript. To modify the value of this import, you must export a setter function in the imported file (e.g. "setAIM_TRACK_MIN") and then import and call that function here instead.'
+        }
+      ],
+      pluginName: '',
+      text: 'Cannot assign to import "AIM_TRACK_MIN"'
+    },
+    {
+      detail: undefined,
+      id: '',
+      location: {
+        column: 67,
+        file: '../modb_EQpXIP/__core.js',
+        length: 10,
+        line: 31698,
+        lineText: '["HAND_FIGHT", function(){ return HAND_FIGHT; }, function(v){ try{ HAND_FIGHT = v; }catch(e){} }],',
+        namespace: '',
+        suggestion: ''
+      },
+      notes: [
+        {
+          location: null,
+          text: 'Imports are immutable in JavaScript. To modify the value of this import, you must export a setter function in the imported file (e.g. "setHAND_FIGHT") and then import and call that function here instead.'
+        }
+      ],
+      pluginName: '',
+      text: 'Cannot assign to import "HAND_FIGHT"'
+    },
+    {
+      detail: undefined,
+      id: '',
+      location: {
+        column: 71,
+        file: '../modb_EQpXIP/__core.js',
+        length: 12,
+        line: 31699,
+        lineText: '["HAND_ERR_MAX", function(){ return HAND_ERR_MAX; }, function(v){ try{ HAND_ERR_MAX = v; }catch(e){} }],',
+        namespace: '',
+        suggestion: ''
+      },
+      notes: [
+        {
+          location: null,
+          text: 'Imports are immutable in JavaScript. To modify the value of this import, you must export a setter function in the imported file (e.g. "setHAND_ERR_MAX") and then import and call that function here instead.'
+        }
+      ],
+      pluginName: '',
+      text: 'Cannot assign to import "HAND_ERR_MAX"'
+    },
+    {
+      detail: undefined,
+      id: '',
+      location: {
+        column: 75,
+        file: '../modb_EQpXIP/__core.js',
+        length: 14,
+        line: 31700,
+        lineText: '["HAND_ERR_MAX_F", function(){ return HAND_ERR_MAX_F; }, function(v){ try{ HAND_ERR_MAX_F = v; }catch(e){} }],',
+        namespace: '',
+        suggestion: ''
+      },
+      notes: [
+        {
+          location: null,
+          text: 'Imports are immutable in JavaScript. To modify the value of this import, you must export a setter function in the imported file (e.g. "setHAND_ERR_MAX_F") and then import and call that function here instead.'
+        }
+      ],
+      pluginName: '',
+      text: 'Cannot assign to import "HAND_ERR_MAX_F"'
+    },
+    {
+      detail: undefined,
+      id: '',
+      location: {
+        column: 67,
+        file: '../modb_EQpXIP/__core.js',
+        length: 10,
+        line: 31701,
+        lineText: '["HAND_START", function(){ return HAND_START; }, function(v){ try{ HAND_START = v; }catch(e){} }],',
+        namespace: '',
+        suggestion: ''
+      },
+      notes: [
+        {
+          location: null,
+          text: 'Imports are immutable in JavaScript. To modify the value of this import, you must export a setter function in the imported file (e.g. "setHAND_START") and then import and call that function here instead.'
+        }
+      ],
+      pluginName: '',
+      text: 'Cannot assign to import "HAND_START"'
+    },
+    {
+      detail: undefined,
+      id: '',
+      location: {
+        column: 69,
+        file: '../modb_EQpXIP/__core.js',
+        length: 11,
+        line: 31702,
+        lineText: '["FREEZE_HOLD", function(){ return FREEZE_HOLD; }, function(v){ try{ FREEZE_HOLD = v; }catch(e){} }],',
+        namespace: '',
+        suggestion: ''
+      },
+      notes: [
+        {
+          location: null,
+          text: 'Imports are immutable in JavaScript. To modify the value of this import, you must export a setter function in the imported file (e.g. "setFREEZE_HOLD") and then import and call that function here instead.'
+        }
+      ],
+      pluginName: '',
+      text: 'Cannot assign to import "FREEZE_HOLD"'
+    },
+    {
+      detail: undefined,
+      id: '',
+      location: {
+        column: 69,
+        file: '../modb_EQpXIP/__core.js',
+        length: 11,
+        line: 31703,
+        lineText: '["FREEZE_TURN", function(){ return FREEZE_TURN; }, function(v){ try{ FREEZE_TURN = v; }catch(e){} }],',
+        namespace: '',
+        suggestion: ''
+      },
+      notes: [
+        {
+          location: null,
+          text: 'Imports are immutable in JavaScript. To modify the value of this import, you must export a setter function in the imported file (e.g. "setFREEZE_TURN") and then import and call that function here instead.'
+        }
+      ],
+      pluginName: '',
+      text: 'Cannot assign to import "FREEZE_TURN"'
+    },
+    {
+      detail: undefined,
+      id: '',
+      location: {
+        column: 81,
+        file: '../modb_EQpXIP/__core.js',
+        length: 17,
+        line: 31704,
+        lineText: '["FREEZE_TURN_SPEED", function(){ return FREEZE_TURN_SPEED; }, function(v){ try{ FREEZE_TURN_SPEED = v; }catch(e){} }],',
+        namespace: '',
+        suggestion: ''
+      },
+      notes: [
+        {
+          location: null,
+          text: 'Imports are immutable in JavaScript. To modify the value of this import, you must export a setter function in the imported file (e.g. "setFREEZE_TURN_SPEED") and then import and call that function here instead.'
+        }
+      ],
+      pluginName: '',
+      text: 'Cannot assign to import "FREEZE_TURN_SPEED"'
+    },
+    {
+      detail: undefined,
+      id: '',
+      location: {
+        column: 55,
+        file: '../modb_EQpXIP/__core.js',
+        length: 4,
+        line: 31705,
+        lineText: '["NADE", function(){ return NADE; }, function(v){ try{ NADE = v; }catch(e){} }],',
+        namespace: '',
+        suggestion: ''
+      },
+      notes: [
+        {
+          location: null,
+          text: 'Imports are immutable in JavaScript. To modify the value of this import, you must export a setter function in the imported file (e.g. "setNADE") and then import and call that function here instead.'
+        }
+      ],
+      pluginName: '',
+      text: 'Cannot assign to import "NADE"'
+    },
+    {
+      detail: undefined,
+      id: '',
+      location: {
+        column: 79,
+        file: '../modb_EQpXIP/__core.js',
+        length: 16,
+        line: 31706,
+        lineText: '["NADE_THROW_RANGE", function(){ return NADE_THROW_RANGE; }, function(v){ try{ NADE_THROW_RANGE = v; }catch(e){} }],',
+        namespace: '',
+        suggestion: ''
+      },
+      notes: [
+        {
+          location: null,
+          text: 'Imports are immutable in JavaScript. To modify the value of this import, you must export a setter function in the imported file (e.g. "setNADE_THROW_RANGE") and then import and call that function here instead.'
+        }
+      ],
+      pluginName: '',
+      text: 'Cannot assign to import "NADE_THROW_RANGE"'
+    },
+    {
+      detail: undefined,
+      id: '',
+      location: {
+        column: 69,
+        file: '../modb_EQpXIP/__core.js',
+        length: 11,
+        line: 31707,
+        lineText: '["NADE_HEAR_R", function(){ return NADE_HEAR_R; }, function(v){ try{ NADE_HEAR_R = v; }catch(e){} }],',
+        namespace: '',
+        suggestion: ''
+      },
+      notes: [
+        {
+          location: null,
+          text: 'Imports are immutable in JavaScript. To modify the value of this import, you must export a setter function in the imported file (e.g. "setNADE_HEAR_R") and then import and call that function here instead.'
+        }
+      ],
+      pluginName: '',
+      text: 'Cannot assign to import "NADE_HEAR_R"'
+    },
+    {
+      detail: undefined,
+      id: '',
+      location: {
+        column: 67,
+        file: '../modb_EQpXIP/__core.js',
+        length: 10,
+        line: 31708,
+        lineText: '["nadesInAir", function(){ return nadesInAir; }, function(v){ try{ nadesInAir = v; }catch(e){} }],',
+        namespace: '',
+        suggestion: ''
+      },
+      notes: [
+        {
+          location: null,
+          text: 'Imports are immutable in JavaScript. To modify the value of this import, you must export a setter function in the imported file (e.g. "setNadesInAir") and then import and call that function here instead.'
+        }
+      ],
+      pluginName: '',
+      text: 'Cannot assign to import "nadesInAir"'
+    },
+    {
+      detail: undefined,
+      id: '',
+      location: {
+        column: 77,
+        file: '../modb_EQpXIP/__core.js',
+        length: 15,
+        line: 31709,
+        lineText: '["nadeLandHistory", function(){ return nadeLandHistory; }, function(v){ try{ nadeLandHistory = v; }catch(e){} }],',
+        namespace: '',
+        suggestion: ''
+      },
+      notes: [
+        {
+          location: null,
+          text: 'Imports are immutable in JavaScript. To modify the value of this import, you must export a setter function in the imported file (e.g. "setNadeLandHistory") and then import and call that function here instead.'
+        }
+      ],
+      pluginName: '',
+      text: 'Cannot assign to import "nadeLandHistory"'
+    },
+    {
+      detail: undefined,
+      id: '',
+      location: {
+        column: 59,
+        file: '../modb_EQpXIP/__core.js',
+        length: 6,
+        line: 31710,
+        lineText: '["smokes", function(){ return smokes; }, function(v){ try{ smokes = v; }catch(e){} }],',
+        namespace: '',
+        suggestion: ''
+      },
+      notes: [
+        {
+          location: null,
+          text: 'Imports are immutable in JavaScript. To modify the value of this import, you must export a setter function in the imported file (e.g. "setSmokes") and then import and call that function here instead.'
+        }
+      ],
+      pluginName: '',
+      text: 'Cannot assign to import "smokes"'
+    },
+    {
+      detail: undefined,
+      id: '',
+      location: {
+        column: 57,
+        file: '../modb_EQpXIP/__core.js',
+        length: 5,
+        line: 31711,
+        lineText: '["fires", function(){ return fires; }, function(v){ try{ fires = v; }catch(e){} }],',
+        namespace: '',
+        suggestion: ''
+      },
+      notes: [
+        {
+          location: null,
+          text: 'Imports are immutable in JavaScript. To modify the value of this import, you must export a setter function in the imported file (e.g. "setFires") and then import and call that function here instead.'
+        }
+      ],
+      pluginName: '',
+      text: 'Cannot assign to import "fires"'
+    },
+    {
+      detail: undefined,
+      id: '',
+      location: {
+        column: 59,
+        file: '../modb_EQpXIP/__core.js',
+        length: 6,
+        line: 31712,
+        lineText: '["nadeFx", function(){ return nadeFx; }, function(v){ try{ nadeFx = v; }catch(e){} }],',
+        namespace: '',
+        suggestion: ''
+      },
+      notes: [
+        {
+          location: null,
+          text: 'Imports are immutable in JavaScript. To modify the value of this import, you must export a setter function in the imported file (e.g. "setNadeFx") and then import and call that function here instead.'
+        }
+      ],
+      pluginName: '',
+      text: 'Cannot assign to import "nadeFx"'
+    },
+    {
+      detail: undefined,
+      id: '',
+      location: {
+        column: 65,
+        file: '../modb_EQpXIP/__core.js',
+        length: 9,
+        line: 31713,
+        lineText: '["NADE_WISH", function(){ return NADE_WISH; }, function(v){ try{ NADE_WISH = v; }catch(e){} }],',
+        namespace: '',
+        suggestion: ''
+      },
+      notes: [
+        {
+          location: null,
+          text: 'Imports are immutable in JavaScript. To modify the value of this import, you must export a setter function in the imported file (e.g. "setNADE_WISH") and then import and call that function here instead.'
+        }
+      ],
+      pluginName: '',
+      text: 'Cannot assign to import "NADE_WISH"'
+    },
+    {
+      detail: undefined,
+      id: '',
+      location: {
+        column: 73,
+        file: '../modb_EQpXIP/__core.js',
+        length: 13,
+        line: 31714,
+        lineText: '["NADE_WISH_PRO", function(){ return NADE_WISH_PRO; }, function(v){ try{ NADE_WISH_PRO = v; }catch(e){} }],',
+        namespace: '',
+        suggestion: ''
+      },
+      notes: [
+        {
+          location: null,
+          text: 'Imports are immutable in JavaScript. To modify the value of this import, you must export a setter function in the imported file (e.g. "setNADE_WISH_PRO") and then import and call that function here instead.'
+        }
+      ],
+      pluginName: '',
+      text: 'Cannot assign to import "NADE_WISH_PRO"'
+    },
+    {
+      detail: undefined,
+      id: '',
+      location: {
+        column: 67,
+        file: '../modb_EQpXIP/__core.js',
+        length: 10,
+        line: 31715,
+        lineText: '["SMOKE_HOLE", function(){ return SMOKE_HOLE; }, function(v){ try{ SMOKE_HOLE = v; }catch(e){} }],',
+        namespace: '',
+        suggestion: ''
+      },
+      notes: [
+        {
+          location: null,
+          text: 'Imports are immutable in JavaScript. To modify the value of this import, you must export a setter function in the imported file (e.g. "setSMOKE_HOLE") and then import and call that function here instead.'
+        }
+      ],
+      pluginName: '',
+      text: 'Cannot assign to import "SMOKE_HOLE"'
+    },
+    {
+      detail: undefined,
+      id: '',
+      location: {
+        column: 81,
+        file: '../modb_EQpXIP/__core.js',
+        length: 17,
+        line: 31716,
+        lineText: '["MOLLY_SMOKE_TOUCH", function(){ return MOLLY_SMOKE_TOUCH; }, function(v){ try{ MOLLY_SMOKE_TOUCH = v; }catch(e){} }],',
+        namespace: '',
+        suggestion: ''
+      },
+      notes: [
+        {
+          location: null,
+          text: 'Imports are immutable in JavaScript. To modify the value of this import, you must export a setter function in the imported file (e.g. "setMOLLY_SMOKE_TOUCH") and then import and call that function here instead.'
+        }
+      ],
+      pluginName: '',
+      text: 'Cannot assign to import "MOLLY_SMOKE_TOUCH"'
+    },
+    {
+      detail: undefined,
+      id: '',
+      location: {
+        column: 67,
+        file: '../modb_EQpXIP/__core.js',
+        length: 10,
+        line: 31717,
+        lineText: '["SMOKE_GROW", function(){ return SMOKE_GROW; }, function(v){ try{ SMOKE_GROW = v; }catch(e){} }],',
+        namespace: '',
+        suggestion: ''
+      },
+      notes: [
+        {
+          location: null,
+          text: 'Imports are immutable in JavaScript. To modify the value of this import, you must export a setter function in the imported file (e.g. "setSMOKE_GROW") and then import and call that function here instead.'
+        }
+      ],
+      pluginName: '',
+      text: 'Cannot assign to import "SMOKE_GROW"'
+    },
+    {
+      detail: undefined,
+      id: '',
+      location: {
+        column: 71,
+        file: '../modb_EQpXIP/__core.js',
+        length: 12,
+        line: 31718,
+        lineText: '["FIRE_HIT_SEC", function(){ return FIRE_HIT_SEC; }, function(v){ try{ FIRE_HIT_SEC = v; }catch(e){} }],',
+        namespace: '',
+        suggestion: ''
+      },
+      notes: [
+        {
+          location: null,
+          text: 'Imports are immutable in JavaScript. To modify the value of this import, you must export a setter function in the imported file (e.g. "setFIRE_HIT_SEC") and then import and call that function here instead.'
+        }
+      ],
+      pluginName: '',
+      text: 'Cannot assign to import "FIRE_HIT_SEC"'
+    },
+    {
+      detail: undefined,
+      id: '',
+      location: {
+        column: 71,
+        file: '../modb_EQpXIP/__core.js',
+        length: 12,
+        line: 31719,
+        lineText: '["FIRE_HIT_MAX", function(){ return FIRE_HIT_MAX; }, function(v){ try{ FIRE_HIT_MAX = v; }catch(e){} }],',
+        namespace: '',
+        suggestion: ''
+      },
+      notes: [
+        {
+          location: null,
+          text: 'Imports are immutable in JavaScript. To modify the value of this import, you must export a setter function in the imported file (e.g. "setFIRE_HIT_MAX") and then import and call that function here instead.'
+        }
+      ],
+      pluginName: '',
+      text: 'Cannot assign to import "FIRE_HIT_MAX"'
+    },
+    {
+      detail: undefined,
+      id: '',
+      location: {
+        column: 69,
+        file: '../modb_EQpXIP/__core.js',
+        length: 11,
+        line: 31720,
+        lineText: '["FIRE_MARGIN", function(){ return FIRE_MARGIN; }, function(v){ try{ FIRE_MARGIN = v; }catch(e){} }],',
+        namespace: '',
+        suggestion: ''
+      },
+      notes: [
+        {
+          location: null,
+          text: 'Imports are immutable in JavaScript. To modify the value of this import, you must export a setter function in the imported file (e.g. "setFIRE_MARGIN") and then import and call that function here instead.'
+        }
+      ],
+      pluginName: '',
+      text: 'Cannot assign to import "FIRE_MARGIN"'
+    },
+    {
+      detail: undefined,
+      id: '',
+      location: {
+        column: 63,
+        file: '../modb_EQpXIP/__core.js',
+        length: 8,
+        line: 31721,
+        lineText: '["NP_ORDER", function(){ return NP_ORDER; }, function(v){ try{ NP_ORDER = v; }catch(e){} }],',
+        namespace: '',
+        suggestion: ''
+      },
+      notes: [
+        {
+          location: null,
+          text: 'Imports are immutable in JavaScript. To modify the value of this import, you must export a setter function in the imported file (e.g. "setNP_ORDER") and then import and call that function here instead.'
+        }
+      ],
+      pluginName: '',
+      text: 'Cannot assign to import "NP_ORDER"'
+    },
+    {
+      detail: undefined,
+      id: '',
+      location: {
+        column: 63,
+        file: '../modb_EQpXIP/__core.js',
+        length: 8,
+        line: 31722,
+        lineText: '["NP_LABEL", function(){ return NP_LABEL; }, function(v){ try{ NP_LABEL = v; }catch(e){} }],',
+        namespace: '',
+        suggestion: ''
+      },
+      notes: [
+        {
+          location: null,
+          text: 'Imports are immutable in JavaScript. To modify the value of this import, you must export a setter function in the imported file (e.g. "setNP_LABEL") and then import and call that function here instead.'
+        }
+      ],
+      pluginName: '',
+      text: 'Cannot assign to import "NP_LABEL"'
+    },
+    {
+      detail: undefined,
+      id: '',
+      location: {
+        column: 75,
+        file: '../modb_EQpXIP/__core.js',
+        length: 14,
+        line: 31723,
+        lineText: '["FLASH_ASK_WAIT", function(){ return FLASH_ASK_WAIT; }, function(v){ try{ FLASH_ASK_WAIT = v; }catch(e){} }],',
+        namespace: '',
+        suggestion: ''
+      },
+      notes: [
+        {
+          location: null,
+          text: 'Imports are immutable in JavaScript. To modify the value of this import, you must export a setter function in the imported file (e.g. "setFLASH_ASK_WAIT") and then import and call that function here instead.'
+        }
+      ],
+      pluginName: '',
+      text: 'Cannot assign to import "FLASH_ASK_WAIT"'
+    },
+    {
+      detail: undefined,
+      id: '',
+      location: {
+        column: 69,
+        file: '../modb_EQpXIP/__core.js',
+        length: 11,
+        line: 31724,
+        lineText: '["FLASH_ASK_R", function(){ return FLASH_ASK_R; }, function(v){ try{ FLASH_ASK_R = v; }catch(e){} }],',
+        namespace: '',
+        suggestion: ''
+      },
+      notes: [
+        {
+          location: null,
+          text: 'Imports are immutable in JavaScript. To modify the value of this import, you must export a setter function in the imported file (e.g. "setFLASH_ASK_R") and then import and call that function here instead.'
+        }
+      ],
+      pluginName: '',
+      text: 'Cannot assign to import "FLASH_ASK_R"'
+    },
+    {
+      detail: undefined,
+      id: '',
+      location: {
+        column: 85,
+        file: '../modb_EQpXIP/__core.js',
+        length: 19,
+        line: 31725,
+        lineText: '["FLASH_ASK_PER_ROUND", function(){ return FLASH_ASK_PER_ROUND; }, function(v){ try{ FLASH_ASK_PER_ROUND = v; }catch(e){} }],',
+        namespace: '',
+        suggestion: ''
+      },
+      notes: [
+        {
+          location: null,
+          text: 'Imports are immutable in JavaScript. To modify the value of this import, you must export a setter function in the imported file (e.g. "setFLASH_ASK_PER_ROUND") and then import and call that function here instead.'
+        }
+      ],
+      pluginName: '',
+      text: 'Cannot assign to import "FLASH_ASK_PER_ROUND"'
+    },
+    {
+      detail: undefined,
+      id: '',
+      location: {
+        column: 69,
+        file: '../modb_EQpXIP/__core.js',
+        length: 11,
+        line: 31726,
+        lineText: '["FLASH_ASK_N", function(){ return FLASH_ASK_N; }, function(v){ try{ FLASH_ASK_N = v; }catch(e){} }],',
+        namespace: '',
+        suggestion: ''
+      },
+      notes: [
+        {
+          location: null,
+          text: 'Imports are immutable in JavaScript. To modify the value of this import, you must export a setter function in the imported file (e.g. "setFLASH_ASK_N") and then import and call that function here instead.'
+        }
+      ],
+      pluginName: '',
+      text: 'Cannot assign to import "FLASH_ASK_N"'
+    },
+    {
+      detail: undefined,
+      id: '',
+      location: {
+        column: 53,
+        file: '../modb_EQpXIP/__core.js',
+        length: 3,
+        line: 31727,
+        lineText: '["EXU", function(){ return EXU; }, function(v){ try{ EXU = v; }catch(e){} }],',
+        namespace: '',
+        suggestion: ''
+      },
+      notes: [
+        {
+          location: null,
+          text: 'Imports are immutable in JavaScript. To modify the value of this import, you must export a setter function in the imported file (e.g. "setEXU") and then import and call that function here instead.'
+        }
+      ],
+      pluginName: '',
+      text: 'Cannot assign to import "EXU"'
+    },
+    {
+      detail: undefined,
+      id: '',
+      location: {
+        column: 63,
+        file: '../modb_EQpXIP/__core.js',
+        length: 8,
+        line: 31728,
+        lineText: '["EXU_LATE", function(){ return EXU_LATE; }, function(v){ try{ EXU_LATE = v; }catch(e){} }],',
+        namespace: '',
+        suggestion: ''
+      },
+      notes: [
+        {
+          location: null,
+          text: 'Imports are immutable in JavaScript. To modify the value of this import, you must export a setter function in the imported file (e.g. "setEXU_LATE") and then import and call that function here instead.'
+        }
+      ],
+      pluginName: '',
+      text: 'Cannot assign to import "EXU_LATE"'
+    },
+    {
+      detail: undefined,
+      id: '',
+      location: {
+        column: 57,
+        file: '../modb_EQpXIP/__core.js',
+        length: 5,
+        line: 31729,
+        lineText: '["SLW_R", function(){ return SLW_R; }, function(v){ try{ SLW_R = v; }catch(e){} }],',
+        namespace: '',
+        suggestion: ''
+      },
+      notes: [
+        {
+          location: null,
+          text: 'Imports are immutable in JavaScript. To modify the value of this import, you must export a setter function in the imported file (e.g. "setSLW_R") and then import and call that function here instead.'
+        }
+      ],
+      pluginName: '',
+      text: 'Cannot assign to import "SLW_R"'
+    },
+    {
+      detail: undefined,
+      id: '',
+      location: {
+        column: 69,
+        file: '../modb_EQpXIP/__core.js',
+        length: 11,
+        line: 31730,
+        lineText: '["FIRE_GONE_R", function(){ return FIRE_GONE_R; }, function(v){ try{ FIRE_GONE_R = v; }catch(e){} }],',
+        namespace: '',
+        suggestion: ''
+      },
+      notes: [
+        {
+          location: null,
+          text: 'Imports are immutable in JavaScript. To modify the value of this import, you must export a setter function in the imported file (e.g. "setFIRE_GONE_R") and then import and call that function here instead.'
+        }
+      ],
+      pluginName: '',
+      text: 'Cannot assign to import "FIRE_GONE_R"'
+    },
+    {
+      detail: undefined,
+      id: '',
+      location: {
+        column: 61,
+        file: '../modb_EQpXIP/__core.js',
+        length: 7,
+        line: 31731,
+        lineText: '["JUMP_UP", function(){ return JUMP_UP; }, function(v){ try{ JUMP_UP = v; }catch(e){} }],',
+        namespace: '',
+        suggestion: ''
+      },
+      notes: [
+        {
+          location: null,
+          text: 'Imports are immutable in JavaScript. To modify the value of this import, you must export a setter function in the imported file (e.g. "setJUMP_UP") and then import and call that function here instead.'
+        }
+      ],
+      pluginName: '',
+      text: 'Cannot assign to import "JUMP_UP"'
+    },
+    {
+      detail: undefined,
+      id: '',
+      location: {
+        column: 59,
+        file: '../modb_EQpXIP/__core.js',
+        length: 6,
+        line: 31732,
+        lineText: '["NAV_ID", function(){ return NAV_ID; }, function(v){ try{ NAV_ID = v; }catch(e){} }],',
+        namespace: '',
+        suggestion: ''
+      },
+      notes: [
+        {
+          location: null,
+          text: 'Imports are immutable in JavaScript. To modify the value of this import, you must export a setter function in the imported file (e.g. "setNAV_ID") and then import and call that function here instead.'
+        }
+      ],
+      pluginName: '',
+      text: 'Cannot assign to import "NAV_ID"'
+    },
+    {
+      detail: undefined,
+      id: '',
+      location: {
+        column: 69,
+        file: '../modb_EQpXIP/__core.js',
+        length: 11,
+        line: 31733,
+        lineText: '["CLIMB_DWELL", function(){ return CLIMB_DWELL; }, function(v){ try{ CLIMB_DWELL = v; }catch(e){} }],',
+        namespace: '',
+        suggestion: ''
+      },
+      notes: [
+        {
+          location: null,
+          text: 'Imports are immutable in JavaScript. To modify the value of this import, you must export a setter function in the imported file (e.g. "setCLIMB_DWELL") and then import and call that function here instead.'
+        }
+      ],
+      pluginName: '',
+      text: 'Cannot assign to import "CLIMB_DWELL"'
+    },
+    {
+      detail: undefined,
+      id: '',
+      location: {
+        column: 65,
+        file: '../modb_EQpXIP/__core.js',
+        length: 9,
+        line: 31734,
+        lineText: '["JUMP_FACE", function(){ return JUMP_FACE; }, function(v){ try{ JUMP_FACE = v; }catch(e){} }],',
+        namespace: '',
+        suggestion: ''
+      },
+      notes: [
+        {
+          location: null,
+          text: 'Imports are immutable in JavaScript. To modify the value of this import, you must export a setter function in the imported file (e.g. "setJUMP_FACE") and then import and call that function here instead.'
+        }
+      ],
+      pluginName: '',
+      text: 'Cannot assign to import "JUMP_FACE"'
+    },
+    {
+      detail: undefined,
+      id: '',
+      location: {
+        column: 75,
+        file: '../modb_EQpXIP/__core.js',
+        length: 14,
+        line: 31735,
+        lineText: '["JUMP_FACE_BACK", function(){ return JUMP_FACE_BACK; }, function(v){ try{ JUMP_FACE_BACK = v; }catch(e){} }],',
+        namespace: '',
+        suggestion: ''
+      },
+      notes: [
+        {
+          location: null,
+          text: 'Imports are immutable in JavaScript. To modify the value of this import, you must export a setter function in the imported file (e.g. "setJUMP_FACE_BACK") and then import and call that function here instead.'
+        }
+      ],
+      pluginName: '',
+      text: 'Cannot assign to import "JUMP_FACE_BACK"'
+    },
+    {
+      detail: undefined,
+      id: '',
+      location: {
+        column: 75,
+        file: '../modb_EQpXIP/__core.js',
+        length: 14,
+        line: 31736,
+        lineText: '["JUMP_FACE_WAIT", function(){ return JUMP_FACE_WAIT; }, function(v){ try{ JUMP_FACE_WAIT = v; }catch(e){} }],',
+        namespace: '',
+        suggestion: ''
+      },
+      notes: [
+        {
+          location: null,
+          text: 'Imports are immutable in JavaScript. To modify the value of this import, you must export a setter function in the imported file (e.g. "setJUMP_FACE_WAIT") and then import and call that function here instead.'
+        }
+      ],
+      pluginName: '',
+      text: 'Cannot assign to import "JUMP_FACE_WAIT"'
+    },
+    {
+      detail: undefined,
+      id: '',
+      location: {
+        column: 77,
+        file: '../modb_EQpXIP/__core.js',
+        length: 15,
+        line: 31737,
+        lineText: '["CLIMB_FLOOR_TOL", function(){ return CLIMB_FLOOR_TOL; }, function(v){ try{ CLIMB_FLOOR_TOL = v; }catch(e){} }],',
+        namespace: '',
+        suggestion: ''
+      },
+      notes: [
+        {
+          location: null,
+          text: 'Imports are immutable in JavaScript. To modify the value of this import, you must export a setter function in the imported file (e.g. "setCLIMB_FLOOR_TOL") and then import and call that function here instead.'
+        }
+      ],
+      pluginName: '',
+      text: 'Cannot assign to import "CLIMB_FLOOR_TOL"'
+    },
+    {
+      detail: undefined,
+      id: '',
+      location: {
+        column: 69,
+        file: '../modb_EQpXIP/__core.js',
+        length: 11,
+        line: 31738,
+        lineText: '["CLIMB_MID_R", function(){ return CLIMB_MID_R; }, function(v){ try{ CLIMB_MID_R = v; }catch(e){} }],',
+        namespace: '',
+        suggestion: ''
+      },
+      notes: [
+        {
+          location: null,
+          text: 'Imports are immutable in JavaScript. To modify the value of this import, you must export a setter function in the imported file (e.g. "setCLIMB_MID_R") and then import and call that function here instead.'
+        }
+      ],
+      pluginName: '',
+      text: 'Cannot assign to import "CLIMB_MID_R"'
+    },
+    {
+      detail: undefined,
+      id: '',
+      location: {
+        column: 75,
+        file: '../modb_EQpXIP/__core.js',
+        length: 14,
+        line: 31739,
+        lineText: '["CLIMB_MAX_STEP", function(){ return CLIMB_MAX_STEP; }, function(v){ try{ CLIMB_MAX_STEP = v; }catch(e){} }],',
+        namespace: '',
+        suggestion: ''
+      },
+      notes: [
+        {
+          location: null,
+          text: 'Imports are immutable in JavaScript. To modify the value of this import, you must export a setter function in the imported file (e.g. "setCLIMB_MAX_STEP") and then import and call that function here instead.'
+        }
+      ],
+      pluginName: '',
+      text: 'Cannot assign to import "CLIMB_MAX_STEP"'
+    },
+    {
+      detail: undefined,
+      id: '',
+      location: {
+        column: 73,
+        file: '../modb_EQpXIP/__core.js',
+        length: 13,
+        line: 31740,
+        lineText: '["CLIMB_TRUST_N", function(){ return CLIMB_TRUST_N; }, function(v){ try{ CLIMB_TRUST_N = v; }catch(e){} }],',
+        namespace: '',
+        suggestion: ''
+      },
+      notes: [
+        {
+          location: null,
+          text: 'Imports are immutable in JavaScript. To modify the value of this import, you must export a setter function in the imported file (e.g. "setCLIMB_TRUST_N") and then import and call that function here instead.'
+        }
+      ],
+      pluginName: '',
+      text: 'Cannot assign to import "CLIMB_TRUST_N"'
+    },
+    {
+      detail: undefined,
+      id: '',
+      location: {
+        column: 63,
+        file: '../modb_EQpXIP/__core.js',
+        length: 8,
+        line: 31741,
+        lineText: '["GAP_NEAR", function(){ return GAP_NEAR; }, function(v){ try{ GAP_NEAR = v; }catch(e){} }],',
+        namespace: '',
+        suggestion: ''
+      },
+      notes: [
+        {
+          location: null,
+          text: 'Imports are immutable in JavaScript. To modify the value of this import, you must export a setter function in the imported file (e.g. "setGAP_NEAR") and then import and call that function here instead.'
+        }
+      ],
+      pluginName: '',
+      text: 'Cannot assign to import "GAP_NEAR"'
+    },
+    {
+      detail: undefined,
+      id: '',
+      location: {
+        column: 75,
+        file: '../modb_EQpXIP/__core.js',
+        length: 14,
+        line: 31742,
+        lineText: '["JUMP_NEAR_WAIT", function(){ return JUMP_NEAR_WAIT; }, function(v){ try{ JUMP_NEAR_WAIT = v; }catch(e){} }],',
+        namespace: '',
+        suggestion: ''
+      },
+      notes: [
+        {
+          location: null,
+          text: 'Imports are immutable in JavaScript. To modify the value of this import, you must export a setter function in the imported file (e.g. "setJUMP_NEAR_WAIT") and then import and call that function here instead.'
+        }
+      ],
+      pluginName: '',
+      text: 'Cannot assign to import "JUMP_NEAR_WAIT"'
+    },
+    {
+      detail: undefined,
+      id: '',
+      location: {
+        column: 71,
+        file: '../modb_EQpXIP/__core.js',
+        length: 12,
+        line: 31743,
+        lineText: '["LADDER_SPEED", function(){ return LADDER_SPEED; }, function(v){ try{ LADDER_SPEED = v; }catch(e){} }],',
+        namespace: '',
+        suggestion: ''
+      },
+      notes: [
+        {
+          location: null,
+          text: 'Imports are immutable in JavaScript. To modify the value of this import, you must export a setter function in the imported file (e.g. "setLADDER_SPEED") and then import and call that function here instead.'
+        }
+      ],
+      pluginName: '',
+      text: 'Cannot assign to import "LADDER_SPEED"'
+    },
+    {
+      detail: undefined,
+      id: '',
+      location: {
+        column: 69,
+        file: '../modb_EQpXIP/__core.js',
+        length: 11,
+        line: 31744,
+        lineText: '["LADDER_NEAR", function(){ return LADDER_NEAR; }, function(v){ try{ LADDER_NEAR = v; }catch(e){} }],',
+        namespace: '',
+        suggestion: ''
+      },
+      notes: [
+        {
+          location: null,
+          text: 'Imports are immutable in JavaScript. To modify the value of this import, you must export a setter function in the imported file (e.g. "setLADDER_NEAR") and then import and call that function here instead.'
+        }
+      ],
+      pluginName: '',
+      text: 'Cannot assign to import "LADDER_NEAR"'
+    },
+    {
+      detail: undefined,
+      id: '',
+      location: {
+        column: 69,
+        file: '../modb_EQpXIP/__core.js',
+        length: 11,
+        line: 31745,
+        lineText: '["LADDER_SEEK", function(){ return LADDER_SEEK; }, function(v){ try{ LADDER_SEEK = v; }catch(e){} }],',
+        namespace: '',
+        suggestion: ''
+      },
+      notes: [
+        {
+          location: null,
+          text: 'Imports are immutable in JavaScript. To modify the value of this import, you must export a setter function in the imported file (e.g. "setLADDER_SEEK") and then import and call that function here instead.'
+        }
+      ],
+      pluginName: '',
+      text: 'Cannot assign to import "LADDER_SEEK"'
+    },
+    {
+      detail: undefined,
+      id: '',
+      location: {
+        column: 67,
+        file: '../modb_EQpXIP/__core.js',
+        length: 10,
+        line: 31746,
+        lineText: '["LADDER_FAR", function(){ return LADDER_FAR; }, function(v){ try{ LADDER_FAR = v; }catch(e){} }],',
+        namespace: '',
+        suggestion: ''
+      },
+      notes: [
+        {
+          location: null,
+          text: 'Imports are immutable in JavaScript. To modify the value of this import, you must export a setter function in the imported file (e.g. "setLADDER_FAR") and then import and call that function here instead.'
+        }
+      ],
+      pluginName: '',
+      text: 'Cannot assign to import "LADDER_FAR"'
+    },
+    {
+      detail: undefined,
+      id: '',
+      location: {
+        column: 73,
+        file: '../modb_EQpXIP/__core.js',
+        length: 13,
+        line: 31747,
+        lineText: '["CLIMB_BY_EDGE", function(){ return CLIMB_BY_EDGE; }, function(v){ try{ CLIMB_BY_EDGE = v; }catch(e){} }],',
+        namespace: '',
+        suggestion: ''
+      },
+      notes: [
+        {
+          location: null,
+          text: 'Imports are immutable in JavaScript. To modify the value of this import, you must export a setter function in the imported file (e.g. "setCLIMB_BY_EDGE") and then import and call that function here instead.'
+        }
+      ],
+      pluginName: '',
+      text: 'Cannot assign to import "CLIMB_BY_EDGE"'
+    },
+    {
+      detail: undefined,
+      id: '',
+      location: {
+        column: 63,
+        file: '../modb_EQpXIP/__core.js',
+        length: 8,
+        line: 31748,
+        lineText: '["CLIMB_AT", function(){ return CLIMB_AT; }, function(v){ try{ CLIMB_AT = v; }catch(e){} }],',
+        namespace: '',
+        suggestion: ''
+      },
+      notes: [
+        {
+          location: null,
+          text: 'Imports are immutable in JavaScript. To modify the value of this import, you must export a setter function in the imported file (e.g. "setCLIMB_AT") and then import and call that function here instead.'
+        }
+      ],
+      pluginName: '',
+      text: 'Cannot assign to import "CLIMB_AT"'
+    },
+    {
+      detail: undefined,
+      id: '',
+      location: {
+        column: 73,
+        file: '../modb_EQpXIP/__core.js',
+        length: 13,
+        line: 31749,
+        lineText: '["NAV_NEAR_DIRS", function(){ return NAV_NEAR_DIRS; }, function(v){ try{ NAV_NEAR_DIRS = v; }catch(e){} }],',
+        namespace: '',
+        suggestion: ''
+      },
+      notes: [
+        {
+          location: null,
+          text: 'Imports are immutable in JavaScript. To modify the value of this import, you must export a setter function in the imported file (e.g. "setNAV_NEAR_DIRS") and then import and call that function here instead.'
+        }
+      ],
+      pluginName: '',
+      text: 'Cannot assign to import "NAV_NEAR_DIRS"'
+    },
+    {
+      detail: undefined,
+      id: '',
+      location: {
+        column: 71,
+        file: '../modb_EQpXIP/__core.js',
+        length: 12,
+        line: 31750,
+        lineText: '["NAV_STEP_TOL", function(){ return NAV_STEP_TOL; }, function(v){ try{ NAV_STEP_TOL = v; }catch(e){} }],',
+        namespace: '',
+        suggestion: ''
+      },
+      notes: [
+        {
+          location: null,
+          text: 'Imports are immutable in JavaScript. To modify the value of this import, you must export a setter function in the imported file (e.g. "setNAV_STEP_TOL") and then import and call that function here instead.'
+        }
+      ],
+      pluginName: '',
+      text: 'Cannot assign to import "NAV_STEP_TOL"'
+    },
+    {
+      detail: undefined,
+      id: '',
+      location: {
+        column: 69,
+        file: '../modb_EQpXIP/__core.js',
+        length: 11,
+        line: 31751,
+        lineText: '["NAV_GAP_TOL", function(){ return NAV_GAP_TOL; }, function(v){ try{ NAV_GAP_TOL = v; }catch(e){} }],',
+        namespace: '',
+        suggestion: ''
+      },
+      notes: [
+        {
+          location: null,
+          text: 'Imports are immutable in JavaScript. To modify the value of this import, you must export a setter function in the imported file (e.g. "setNAV_GAP_TOL") and then import and call that function here instead.'
+        }
+      ],
+      pluginName: '',
+      text: 'Cannot assign to import "NAV_GAP_TOL"'
+    },
+    {
+      detail: undefined,
+      id: '',
+      location: {
+        column: 65,
+        file: '../modb_EQpXIP/__core.js',
+        length: 9,
+        line: 31752,
+        lineText: '["NAV_OFF_R", function(){ return NAV_OFF_R; }, function(v){ try{ NAV_OFF_R = v; }catch(e){} }],',
+        namespace: '',
+        suggestion: ''
+      },
+      notes: [
+        {
+          location: null,
+          text: 'Imports are immutable in JavaScript. To modify the value of this import, you must export a setter function in the imported file (e.g. "setNAV_OFF_R") and then import and call that function here instead.'
+        }
+      ],
+      pluginName: '',
+      text: 'Cannot assign to import "NAV_OFF_R"'
+    },
+    {
+      detail: undefined,
+      id: '',
+      location: {
+        column: 61,
+        file: '../modb_EQpXIP/__core.js',
+        length: 7,
+        line: 31753,
+        lineText: '["HGT_TOP", function(){ return HGT_TOP; }, function(v){ try{ HGT_TOP = v; }catch(e){} }],',
+        namespace: '',
+        suggestion: ''
+      },
+      notes: [
+        {
+          location: null,
+          text: 'Imports are immutable in JavaScript. To modify the value of this import, you must export a setter function in the imported file (e.g. "setHGT_TOP") and then import and call that function here instead.'
+        }
+      ],
+      pluginName: '',
+      text: 'Cannot assign to import "HGT_TOP"'
+    },
+    {
+      detail: undefined,
+      id: '',
+      location: {
+        column: 63,
+        file: '../modb_EQpXIP/__core.js',
+        length: 8,
+        line: 31754,
+        lineText: '["HGT_NEAR", function(){ return HGT_NEAR; }, function(v){ try{ HGT_NEAR = v; }catch(e){} }],',
+        namespace: '',
+        suggestion: ''
+      },
+      notes: [
+        {
+          location: null,
+          text: 'Imports are immutable in JavaScript. To modify the value of this import, you must export a setter function in the imported file (e.g. "setHGT_NEAR") and then import and call that function here instead.'
+        }
+      ],
+      pluginName: '',
+      text: 'Cannot assign to import "HGT_NEAR"'
+    },
+    {
+      detail: undefined,
+      id: '',
+      location: {
+        column: 67,
+        file: '../modb_EQpXIP/__core.js',
+        length: 10,
+        line: 31755,
+        lineText: '["FLOOR_HEAD", function(){ return FLOOR_HEAD; }, function(v){ try{ FLOOR_HEAD = v; }catch(e){} }],',
+        namespace: '',
+        suggestion: ''
+      },
+      notes: [
+        {
+          location: null,
+          text: 'Imports are immutable in JavaScript. To modify the value of this import, you must export a setter function in the imported file (e.g. "setFLOOR_HEAD") and then import and call that function here instead.'
+        }
+      ],
+      pluginName: '',
+      text: 'Cannot assign to import "FLOOR_HEAD"'
+    },
+    {
+      detail: undefined,
+      id: '',
+      location: {
+        column: 71,
+        file: '../modb_EQpXIP/__core.js',
+        length: 12,
+        line: 31756,
+        lineText: '["NAV_UNLINKED", function(){ return NAV_UNLINKED; }, function(v){ try{ NAV_UNLINKED = v; }catch(e){} }],',
+        namespace: '',
+        suggestion: ''
+      },
+      notes: [
+        {
+          location: null,
+          text: 'Imports are immutable in JavaScript. To modify the value of this import, you must export a setter function in the imported file (e.g. "setNAV_UNLINKED") and then import and call that function here instead.'
+        }
+      ],
+      pluginName: '',
+      text: 'Cannot assign to import "NAV_UNLINKED"'
+    },
+    {
+      detail: undefined,
+      id: '',
+      location: {
+        column: 65,
+        file: '../modb_EQpXIP/__core.js',
+        length: 9,
+        line: 31757,
+        lineText: '["STEP_UP_Z", function(){ return STEP_UP_Z; }, function(v){ try{ STEP_UP_Z = v; }catch(e){} }],',
+        namespace: '',
+        suggestion: ''
+      },
+      notes: [
+        {
+          location: null,
+          text: 'Imports are immutable in JavaScript. To modify the value of this import, you must export a setter function in the imported file (e.g. "setSTEP_UP_Z") and then import and call that function here instead.'
+        }
+      ],
+      pluginName: '',
+      text: 'Cannot assign to import "STEP_UP_Z"'
+    },
+    {
+      detail: undefined,
+      id: '',
+      location: {
+        column: 69,
+        file: '../modb_EQpXIP/__core.js',
+        length: 11,
+        line: 31758,
+        lineText: '["STEP_BODY_Z", function(){ return STEP_BODY_Z; }, function(v){ try{ STEP_BODY_Z = v; }catch(e){} }],',
+        namespace: '',
+        suggestion: ''
+      },
+      notes: [
+        {
+          location: null,
+          text: 'Imports are immutable in JavaScript. To modify the value of this import, you must export a setter function in the imported file (e.g. "setSTEP_BODY_Z") and then import and call that function here instead.'
+        }
+      ],
+      pluginName: '',
+      text: 'Cannot assign to import "STEP_BODY_Z"'
+    },
+    {
+      detail: undefined,
+      id: '',
+      location: {
+        column: 65,
+        file: '../modb_EQpXIP/__core.js',
+        length: 9,
+        line: 31759,
+        lineText: '["FIRE_BODY", function(){ return FIRE_BODY; }, function(v){ try{ FIRE_BODY = v; }catch(e){} }],',
+        namespace: '',
+        suggestion: ''
+      },
+      notes: [
+        {
+          location: null,
+          text: 'Imports are immutable in JavaScript. To modify the value of this import, you must export a setter function in the imported file (e.g. "setFIRE_BODY") and then import and call that function here instead.'
+        }
+      ],
+      pluginName: '',
+      text: 'Cannot assign to import "FIRE_BODY"'
+    },
+    {
+      detail: undefined,
+      id: '',
+      location: {
+        column: 61,
+        file: '../modb_EQpXIP/__core.js',
+        length: 7,
+        line: 31760,
+        lineText: '["FIRE_DZ", function(){ return FIRE_DZ; }, function(v){ try{ FIRE_DZ = v; }catch(e){} }],',
+        namespace: '',
+        suggestion: ''
+      },
+      notes: [
+        {
+          location: null,
+          text: 'Imports are immutable in JavaScript. To modify the value of this import, you must export a setter function in the imported file (e.g. "setFIRE_DZ") and then import and call that function here instead.'
+        }
+      ],
+      pluginName: '',
+      text: 'Cannot assign to import "FIRE_DZ"'
+    },
+    {
+      detail: undefined,
+      id: '',
+      location: {
+        column: 69,
+        file: '../modb_EQpXIP/__core.js',
+        length: 11,
+        line: 31761,
+        lineText: '["NADE_AIM_OK", function(){ return NADE_AIM_OK; }, function(v){ try{ NADE_AIM_OK = v; }catch(e){} }],',
+        namespace: '',
+        suggestion: ''
+      },
+      notes: [
+        {
+          location: null,
+          text: 'Imports are immutable in JavaScript. To modify the value of this import, you must export a setter function in the imported file (e.g. "setNADE_AIM_OK") and then import and call that function here instead.'
+        }
+      ],
+      pluginName: '',
+      text: 'Cannot assign to import "NADE_AIM_OK"'
+    },
+    {
+      detail: undefined,
+      id: '',
+      location: {
+        column: 69,
+        file: '../modb_EQpXIP/__core.js',
+        length: 11,
+        line: 31762,
+        lineText: '["NADE_AIM_DZ", function(){ return NADE_AIM_DZ; }, function(v){ try{ NADE_AIM_DZ = v; }catch(e){} }],',
+        namespace: '',
+        suggestion: ''
+      },
+      notes: [
+        {
+          location: null,
+          text: 'Imports are immutable in JavaScript. To modify the value of this import, you must export a setter function in the imported file (e.g. "setNADE_AIM_DZ") and then import and call that function here instead.'
+        }
+      ],
+      pluginName: '',
+      text: 'Cannot assign to import "NADE_AIM_DZ"'
+    },
+    {
+      detail: undefined,
+      id: '',
+      location: {
+        column: 71,
+        file: '../modb_EQpXIP/__core.js',
+        length: 12,
+        line: 31763,
+        lineText: '["FLASH_POP_DZ", function(){ return FLASH_POP_DZ; }, function(v){ try{ FLASH_POP_DZ = v; }catch(e){} }],',
+        namespace: '',
+        suggestion: ''
+      },
+      notes: [
+        {
+          location: null,
+          text: 'Imports are immutable in JavaScript. To modify the value of this import, you must export a setter function in the imported file (e.g. "setFLASH_POP_DZ") and then import and call that function here instead.'
+        }
+      ],
+      pluginName: '',
+      text: 'Cannot assign to import "FLASH_POP_DZ"'
+    },
+    {
+      detail: undefined,
+      id: '',
+      location: {
+        column: 71,
+        file: '../modb_EQpXIP/__core.js',
+        length: 12,
+        line: 31764,
+        lineText: '["nadeAimCache", function(){ return nadeAimCache; }, function(v){ try{ nadeAimCache = v; }catch(e){} }],',
+        namespace: '',
+        suggestion: ''
+      },
+      notes: [
+        {
+          location: null,
+          text: 'Imports are immutable in JavaScript. To modify the value of this import, you must export a setter function in the imported file (e.g. "setNadeAimCache") and then import and call that function here instead.'
+        }
+      ],
+      pluginName: '',
+      text: 'Cannot assign to import "nadeAimCache"'
+    },
+    ... 104 more items
+  ],
+  warnings: [
+    {
+      detail: undefined,
+      id: 'commonjs-variable-in-esm',
+      location: {
+        column: 55,
+        file: '../modb_EQpXIP/385_nades_flight.js',
+        length: 6,
+        line: 321,
+        lineText: "  if (typeof module !== 'undefined' && module.exports) module.exports = api;",
+        namespace: '',
+        suggestion: ''
+      },
+      notes: [
+        {
+          location: {
+            column: 0,
+            file: '../modb_EQpXIP/385_nades_flight.js',
+            length: 6,
+            line: 325,
+            lineText: 'export { __mi_385_nades_flight };',
+            namespace: '',
+            suggestion: ''
+          },
+          text: 'This file is considered to be an ECMAScript module because of the "export" keyword here:'
+        }
+      ],
+      pluginName: '',
+      text: 'The CommonJS "module" variable is treated as a global variable in an ECMAScript module and may not work as expected'
+    },
+    {
+      detail: undefined,
+      id: 'commonjs-variable-in-esm',
+      location: {
+        column: 52,
+        file: '../modb_EQpXIP/__core.js',
+        length: 6,
+        line: 14955,
+        lineText: 'if(typeof module !== "undefined" && module.exports) module.exports = {zInflate: zInflate, m3Load: m3Load, m3Line: m3Line, m3Hit: m3Hit,',
+        namespace: '',
+        suggestion: ''
+      },
+      notes: [
+        {
+          location: {
+            column: 0,
+            file: '../modb_EQpXIP/__core.js',
+            length: 6,
+            line: 34248,
+            lineText: 'export { BZ, zoneIdAt3, segIntersect, walk, roundNum, tick, bots, roundState, TICK_HZ, MAP, bomb, matchNum, hasLOS, rayClipWalls, insideSolidWall, _angOff, posAt, posTable, nick, posWeaponClass, posPref, MANUAL_WALLS, teamTac, bombTimeLeftTicks, pathLenTo, SPEED, defuseEta, CONTACT_HOLD, navAt, NAVAREAS, NAV_BLOCKED, zoneGraph, zoneCentroid, bombDamageAt, navClampInto, SPOT_PERSONAL, spotTaken, segCrossesManualWalls, navOnlyZ, dlog, beliefLast, SITE_SEEN_SEC, logEvent, SITES, onSite, DEFUSE_R, emitSound, beliefObserve, CLEARZ, clearzReset, beliefMassNear, inFov, belief, beliefSeen, habitAdd, ZONES_GEN, ZONEMAP, pointInPoly, GEO, CT_SPAWN, T_SPAWN, voiceKind, bzOf, ED_CACHE, bzDist, habitTop, roundStartTick, teamSaving, tDeathAdd, hashRand, nearP, polyLen, pathPts, BAL, prof, noteMistake, pickSpots, voiceFeed, knowGraph, KNOW, knowZoneAt, knowNorm, knowHyp, knowTrace, knowZoneName, SOUND_RADIUS_RUN, PP, sitePlantPro, knowValue, knowNewBelief, knowBuild, ZONE_DANGER, knowRoundStart, knowVision, knowHearing, BELIEF_STEP, ZONE_DANGER_W, lookPlan, LOOK_REPLAN, LOOK_LEVEL, LOOKDBG, lookArbiter, lookFilter, ctx, fullNeed, nextLossIncome, visFloorAt, VIS_EYE, VIS_BODY, VIS_HEAD, posSideOf, teamEco, FB, proLineups, PRO_GROUPS, entryPts, ROUND_TIME_SEC, simTime, roundStartTime, weaponSpeedMul, enemyPositions, segPtDist, NAV_JUMP_UP, NAV_GRID, navGridBuild, NAV_GRID_C, NAV_CLIMB_UP, navEdgeDz, M3, m3, m3Floors, m3FloorAt, landSound, landLook, navGapKey, NAV_GAP_AT, JUMP_TURN_R, WALK_SPEED_FRAC, LAND_SOUND_DROP, LAND_DELAY, BODY_HALF, pathCacheReset, crossesWall, MAP3D, m3Line, m3NadeTrace, m3Game, m3Radar, PROFILES, m3Cell, m3Col, visReady, VIS_CELL, VIS, SND, sndNade, teamPropose, visParts, hearReal, teamBot, reachPossible, beliefZoneKnown, ACCEL, buildWaypointPath, delaySafe, score, proCovers, POS, beliefCount, proRollGroup, nadeRoleCost, proGroupDone, REACH, PATHQ_Q, pathQ, smokeShiftOnDetonate, onBlind, visMarch, DEMOV, HL, moveSoundEmit, dropWeaponOnDeath, dropBomb, hlKill, MAX_MONEY, ecoKnowKill, WEAPONS, feedKill, feedBombKill, sndBody, roundGoal, knowSpotReach, threatEntrances, groundWeapons, groundItems, PX_UNITS, HEAD_HALF, reloadHeard, uncheckedW, LOOK, pistolBack, pistolSwap, SPD_K, hlContact, hlReact, hlScope, PREFIRE_RADIUS, AIM_FIRE_CONE, bulletVictim, boostLift, SPRAY_RESET_TICKS, hlAim, VIS_SHOULDER, nowTs, bulletClip3, bulletLineHit, tracers, tracerClass, sndShot, GUN_HEAR_OPEN, GUN_HEAR_WALL, hearPos, aggrRate, hlHot, KILL_MOVE, keysRand, TS, DECISION_INTERVAL_TICKS, CAUTION_TICKS, aggrNote, cv, botLane, ROAM_ROUTES, SOUND_CAUTION_TICKS, ROAM_QUIET_RADIUS, soloMayWalk, defuseWalk, BOMB_DMG, bombPathLen, SANDBOX, RUN_JUMP };',
+            namespace: '',
+            suggestion: ''
+          },
+          text: 'This file is considered to be an ECMAScript module because of the "export" keyword here:'
+        }
+      ],
+      pluginName: '',
+      text: 'The CommonJS "module" variable is treated as a global variable in an ECMAScript module and may not work as expected'
+    },
+    {
+      detail: undefined,
+      id: 'direct-eval',
+      location: {
+        column: 33,
+        file: '../modb_EQpXIP/__core.js',
+        length: 4,
+        line: 34199,
+        lineText: 'window.__ev=function(src){return eval(src);};',
+        namespace: '',
+        suggestion: ''
+      },
+      notes: [
+        {
+          location: null,
+          text: 'You can read more about direct eval and bundling here: https://esbuild.github.io/link/direct-eval'
+        }
+      ],
+      pluginName: '',
+      text: 'Using direct eval with a bundler is not recommended and may cause problems'
+    }
+  ]
+}
+
+Node.js v24.21.0
+сборка модулей не удалась (tools/rebuild/mod_build.js)
