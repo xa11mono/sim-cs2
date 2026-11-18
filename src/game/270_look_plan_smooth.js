@@ -409,7 +409,11 @@ var LOOK_LEVEL = {
 };
 var LOOK_FRESH = 64;   // 1 с (TICK_HZ): «свежее» для уровней fight / sound / team — проектное число (задача шага 4: «свежий, ≤ 1 с»)
 function lookContactFresh(b){
-  return !!(b._contact && tick < b._contact.until && tick - Math.max(b._contactT || -1e9, b._lastSawT || -1e9) <= LOOK_FRESH);
+  // (отметка владельца 18.11, м5 р2 т6382, CT1: «он должен сосредоточиться на контакте, который перед ним») бот выходит на свой контакт
+  // (задача контакта, lock — точка выхода выбрана, 350) — взгляд держит его, пока задача идёт, а не только 1 с: шаги за стеной не перебивают
+  var K = b._contact; if(!K || tick >= K.until) return false;
+  if(K.lock && b.post && K.tag && b.post.tag === K.tag) return true;
+  return tick - Math.max(b._contactT || -1e9, b._lastSawT || -1e9) <= LOOK_FRESH;
 }
 // точка взгляда на знание «враг там» (звук, контакт, инфа): не сквозь стену, а туда, где он выйдет на линию
 // (v520, отметка владельца 09.11 м200 р2 «лагает»: путь «враг → я» для взгляда строился каждый тик у каждого бота на каждое знание — 4949
@@ -419,8 +423,10 @@ var LKP_PATH = {k: null, m: {}}, LKP_PATH_TTL = 32;
 function lookKnowPath(b, q){
   var a = navAt(b.x, b.y, b.z), fs = fires.map(function(f){ return f.born; }).join(","), kk = matchNum+":"+roundNum;
   if(LKP_PATH.k !== kk || LKP_PATH.n > 20000){ LKP_PATH.n = 0; LKP_PATH.k = kk; LKP_PATH.m = {}; }
-  var key = Math.round(q.x)+","+Math.round(q.y)+"|"+(a ? a.id : Math.round(b.x/16)+","+Math.round(b.y/16))+"|"+fs, e = LKP_PATH.m[key];
-  if(!e || tick - e.t >= LKP_PATH_TTL || tick < e.t){ LKP_PATH.n = (LKP_PATH.n||0) + 1; e = LKP_PATH.m[key] = {t: tick, p: buildWaypointPath(q.x, q.y, 0, b.x, b.y, 0) || []}; }
+  // (отметка владельца 18.11, м5 р2 т6382: шаги в Underpath под B Short) путь — с настоящими высотами: было 0 — путь от звука снизу начинался
+  // на верхнем полу, «рядом» по прямой
+  var key = Math.round(q.x)+","+Math.round(q.y)+","+(q.z != null ? Math.round(q.z/40) : "")+"|"+(a ? a.id : Math.round(b.x/16)+","+Math.round(b.y/16))+"|"+fs, e = LKP_PATH.m[key];
+  if(!e || tick - e.t >= LKP_PATH_TTL || tick < e.t){ LKP_PATH.n = (LKP_PATH.n||0) + 1; e = LKP_PATH.m[key] = {t: tick, p: buildWaypointPath(q.x, q.y, q.z != null ? q.z : null, b.x, b.y, b.z) || []}; }
   return e.p;
 }
 function lookKnowPt(b, q, zb, mates, moving){
@@ -462,7 +468,10 @@ function lookKnowCands(b){
   var mates = bots.filter(function(o){ return o !== b && o.alive && o.team === b.team; });
   var add = function(lvl, kind, q, k){
     var c = lookKnowPt(b, q, zb, mates, moving); if(!c || (c.cov && !q.commit)) return;   // путь закрывает свой — угол его
-    out.push({lvl: lvl, kind: kind, pt: c.pt, sc: LOOK.contactW * (c.d < 300 ? 2 : 1) / (1 + c.d/700) * Math.max(0.05, 1 - q.age/192) * (k || 1)});
+    // (отметка владельца 18.11, м5 р2 т6382, CT1 на B Short: шаги T этажом ниже — по прямой 200, по пути 924 — перебили врага, убившего своего,
+    // в 422 по пути) «близко» — по пути с высотами (сколько ему идти до меня), а не по прямой
+    var dW = c.d; if(!q.commit){ var wp = lookKnowPath(b, q); if(wp.length > 1) dW = Math.max(dW, polyLen(wp)); }
+    out.push({lvl: lvl, kind: kind, pt: c.pt, sc: LOOK.contactW * (dW < 300 ? 2 : 1) / (1 + dW/700) * Math.max(0.05, 1 - q.age/192) * (k || 1)});
   };
   // бой: прикрыть второй угол по просьбе тиммейта, спам в смок, свой контакт (v367; держится, пока видно или видели ≤ 1 с)
   if(b._coverDir && tick < b._coverDir.until && !b._sawEnemy) out.push({lvl: LOOK_LEVEL.fight, kind: "cover", pt: cornerLook(b, b._coverDir.pt) || b._coverDir.pt, sc: 1});
@@ -471,7 +480,7 @@ function lookKnowCands(b){
   // свои уши ≤ 1 с; бросок гранаты рядом — враг точно там (v359)
   var hs = b.heardSound;
   // (v570, В135) выстрел / попадание от невидимого стрелка — взгляд, только если бот обратил на него внимание (noticeShooter, 210)
-  if(hs && tick - hs.tick <= LOOK_FRESH && !((hs.kind === "shots" || hs.kind === "hit") && !noticeShooter(b, hs.src))) add(LOOK_LEVEL.sound, "sound", {x: hs.x, y: hs.y, age: tick - hs.tick}, hs.kind === "nade" ? LOOK.freshK : 1);
+  if(hs && tick - hs.tick <= LOOK_FRESH && !((hs.kind === "shots" || hs.kind === "hit") && !noticeShooter(b, hs.src))) add(LOOK_LEVEL.sound, "sound", {x: hs.x, y: hs.y, z: hs.z, age: tick - hs.tick}, hs.kind === "nade" ? LOOK.freshK : 1);
   // убили тиммейта рядом ≤ 3 с: туда, откуда убили (убийцу видел он — точка на радаре), иначе место смерти.
   // (п.26 владельца 29.10, м1 р7: CT на B смотрели в Kitchen по смерти kyousuke на Ramp — проверки «рядом» в коде не было, срабатывала
   // любая смерть на карте) «рядом» — то же, что у отхода CT «свой убит рядом» (300: FB.deathR по прямой и по пути)
