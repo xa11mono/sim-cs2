@@ -121,10 +121,12 @@ function fightStrafe(b, F, dtSec){
   if(stop || (!F.started && v < 1)){ v = Math.max(0, v - csDecel(v, vmax)*dtSec); F.sv = (F.sv < 0 ? -1 : 1)*v; }
   else {
     var so = (b.baseX - F.ax)*ax + (b.baseY - F.ay)*ay;
-    if(!F.leg) F.leg = Math.max(1, peekQ(STRAFE_PRO, fightRand(b, 7))/PX_UNITS);
+    // (v583a, Д29, владелец 18.11 по видео: «слишком широкие стрейфы, как будто с AWP») шаг стрейфа — нижняя половина сдвигов про (3–35 ед.), не весь
+    // разброс до 119 ед. (сдвиги про между очередями — и с переходом на другое место). Проектное, по слову владельца
+    if(!F.leg) F.leg = Math.max(1, peekQ(STRAFE_PRO, 0.5*fightRand(b, 7))/PX_UNITS);
     // (v575, В140) до первого выстрела вышедший с ходу продолжает выход, а гасит ход встречной клавишей прямо перед выстрелом (stop выше):
     // у про первая пуля винтовки при выходе — на 69 ед./с (медиана; 25/75 % — 32/103), у бота разворот на первом шаге стрейфа гасил ход до 0
-    if(F.started && F.sdir*so >= F.leg){ F.sdir = -F.sdir; F.leg = Math.max(1, peekQ(STRAFE_PRO, fightRand(b, 8))/PX_UNITS); }
+    if(F.started && F.sdir*so >= F.leg){ F.sdir = -F.sdir; F.leg = Math.max(1, peekQ(STRAFE_PRO, 0.5*fightRand(b, 8))/PX_UNITS); }
     if(F.sv*F.sdir < 0){ var d = csDecel(v, vmax)*dtSec; F.sv = v <= d ? 0 : F.sv - (F.sv < 0 ? -1 : 1)*d; }
     else F.sv = F.sdir*Math.min(vmax, v + Math.max(0, CS_ACCEL*vmax - CS_FRIC*v)*dtSec);
   }

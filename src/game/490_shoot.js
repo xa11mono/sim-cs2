@@ -60,6 +60,7 @@ function saveShootOk(b, t){
   return false;
 }
 var TAP_PAUSE = 0.5;   // с — пауза между очередями у про (медиана, все дистанции)
+var TAP_P1 = 0.20, TAP_P23 = 0.33, TAP_SPRAY = 10;   // (Д29) доли очередей в дуэли у про; зажим — до 10 пуль (проектное)
 function tryShoot(shooter, target, dist){
   if(shooter._sbOff) return;   // (v536) песочница: ИИ выключен — не стреляет (677)
   if(DEMOV.on) return;   // (v571) раунд из демки: стреляют только игроки демки (678)
@@ -181,8 +182,11 @@ function tryShoot(shooter, target, dist){
   // каждые 0,125 с, по сути зажим (р3 м302: CT4 10+ пуль подряд на 564 px в одну голову)
   if(w.spam && dist > tapFrom){
     var sinceT = tick - (shooter.lastShotTick || -1e9), du = dist*PX_UNITS, T = shooter._tap;
-    if(!T || sinceT >= TAP_PAUSE*TICK_HZ){ var pT = du < 500 ? 0.78 : du < 1000 ? 0.79 : du < 1500 ? 0.82 : 0.87, u = hashRand(tick*29 + shooter.id.charCodeAt(shooter.id.length-1)*17);
-      T = shooter._tap = {n: 0, len: u < pT ? 1 : (u < pT + (1 - pT)/2 ? 2 : 3)}; }
+    // (v583a, Д29, владелец 18.11: «про в основном зажимают, даже вдаль; тапами — редко») доли — из перестрелок с убийством (демки Mirage, 4684
+    // убийства из винтовки: последняя очередь убийцы перед фрагом — 1 пуля 20 %, 2–3 — 33 %, 4+ — 47 %, пуль за 1,5 с — медиана 4). Было — доли всех
+    // очередей про (тапы 78–87 %: туда входят прострелы, спам, префайр), в дуэли бот тапал раз в 0,5 с против очереди. 4+ — до TAP_SPRAY (проектное)
+    if(!T || sinceT >= TAP_PAUSE*TICK_HZ){ var u = hashRand(tick*29 + shooter.id.charCodeAt(shooter.id.length-1)*17), u2 = hashRand(tick*31 + shooter.id.charCodeAt(0)*13);
+      T = shooter._tap = {n: 0, len: u < TAP_P1 ? 1 : u < TAP_P1 + TAP_P23 ? (u2 < 0.5 ? 2 : 3) : 4 + Math.floor(u2*(TAP_SPRAY - 3))}; }
     if(T.n >= T.len){ fireReady(shooter, target, TAP_PAUSE*TICK_HZ - sinceT); return; }
   }
   var burstIdx = tick - shooter.lastShotTick > SPRAY_RESET_TICKS ? 0 : shooter.burstCount;
