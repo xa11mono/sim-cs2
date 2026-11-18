@@ -47,7 +47,7 @@ function tFallbackTick(){
     var dx = th ? b.x-th.x : 0, dy = th ? b.y-th.y : 0, dl = Math.hypot(dx, dy);
     var center = dl > 1 ? walk({x:b.x+dx/dl*FB.back, y:b.y+dy/dl*FB.back}) : null;
     var cand = center ? pickSpots("tfb"+tick+b.id, center, 4, {rMax:FB.rMax, minGap:40, hideFrom: th ? [th] : []}) : [];
-    var sp = cand.filter(function(q){ var zq = bzOf(q.x, q.y); return zq >= 0 && ED[zq] >= ED[zb] + FB.gainED && (!th || !hasLOS(q.x, q.y, th.x, th.y)); })[0];
+    var sp = cand.filter(function(q){ var zq = bzOf(q.x, q.y); return zq >= 0 && ED[zq] >= ED[zb] + FB.gainED && (!th || coverSafe(q, navOnlyZ(q.x, q.y) != null ? navOnlyZ(q.x, q.y) : b.z, [th])); })[0];   // (18.11) общая проверка укрытия (470)
     if(!sp) return;
     b._fbRound = roundNum; taskKeep(b, 0, "fallback"); b._probeLock = 0;
     setPost(b, sp, th || null, true, "repos:fallback");
@@ -167,7 +167,7 @@ function infoFallbackTick(){
     var mates = bots.filter(function(o){ return o !== b && o.alive && o.team === "CT"; });
     var mateD = function(q){ var m = Infinity; mates.forEach(function(o){ m = Math.min(m, Math.hypot(o.x-q.x, o.y-q.y)); }); return m; };
     var myMate = mateD(b);
-    var sp = cand.filter(function(q){ var zq = bzOf(q.x, q.y); return zq >= 0 && ED[zq] >= ED[zb] + FB.gainED && (!th || !hasLOS(q.x, q.y, th.x, th.y)) &&
+    var sp = cand.filter(function(q){ var zq = bzOf(q.x, q.y); return zq >= 0 && ED[zq] >= ED[zb] + FB.gainED && (!th || coverSafe(q, navOnlyZ(q.x, q.y) != null ? navOnlyZ(q.x, q.y) : b.z, [th])) &&
       mateD(q) < myMate && beliefCount("CT", [zq]) < 0.5; })[0];
     if(!sp && mates.length){ var nm = mates.slice().sort(function(a, c){ return Math.hypot(a.x-b.x, a.y-b.y) - Math.hypot(c.x-b.x, c.y-b.y); })[0];
       var nz = bzOf(nm.x, nm.y); if(!(nz >= 0 && beliefCount("CT", [nz]) >= 0.5)) sp = walk({x: nm.x, y: nm.y}); }

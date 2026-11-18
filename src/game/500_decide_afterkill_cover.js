@@ -201,9 +201,9 @@ function postKillDecide(sh, tg, vp, here){
   if(!ctMust && ((known.length >= 2 && known.length > mates) || sh.hp <= 45)){
     var dvx = here.x - vp.x, dvy = here.y - vp.y, dvl = Math.max(1, Math.hypot(dvx, dvy));
     var back = walk({x: here.x + dvx/dvl*170, y: here.y + dvy/dvl*170});
-    var hide = [vp].concat(known.map(function(k){ return {x:k.x, y:k.y}; }));
+    var hide = [vp].concat(known.map(function(k){ return {x:k.x, y:k.y}; })), akT = coverThreats(sh, hide);
     var np = pickSpots("pkb"+tick+sh.id, back, 4, {rMin:0, rMax:200, minGap:50, see: sh.post && sh.post.look ? [sh.post.look] : [], hideFrom:hide})
-      .filter(function(p){ return Math.hypot(p.x-here.x, p.y-here.y) > 70 && !hasLOS(p.x, p.y, vp.x, vp.y); })[0];
+      .filter(function(p){ return Math.hypot(p.x-here.x, p.y-here.y) > 70 && coverSafe(p, navOnlyZ(p.x, p.y) != null ? navOnlyZ(p.x, p.y) : sh.z, akT); })[0];   // (18.11) общая проверка укрытия (470)
     if(np){
       taskKeep(sh, 0, "afterkill"); sh._probeLock = 0;
       setPost(sh, np, vp, true, "repos:back");
@@ -349,7 +349,7 @@ function findCover(b, foe){
     var d = Math.hypot(c.x-b.baseX, c.y-b.baseY);
     if(d < 40 || d > 420) return;
     if(Math.hypot(c.x-foe.x, c.y-foe.y) <= dFoe + 20) return;
-    if(hasLOS(c.x, c.y, foe.x, foe.y)) return;
+    if(!coverSafe(c, z.z, [foe])) return;   // (18.11) общая проверка укрытия (470): 3D, с шагом врага
     var ca = Math.atan2(c.y-b.baseY, c.x-b.baseX);
     var dA = Math.abs(((ca - fa + Math.PI) % (2*Math.PI) + 2*Math.PI) % (2*Math.PI) - Math.PI);
     if(dA < 1.3) return;

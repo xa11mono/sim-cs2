@@ -357,10 +357,10 @@ function hurtReactTick(b){
   var F = miss ? {x:hs.x, y:hs.y, z:hs.z} : b._hurtFrom; if(!F || contactCritical(b)) return;
   // (v560, В101) задача бомбы (несёт ставить) больше не запрет сама по себе: терпит ли она шаг за укрытие — решает её правило отклонения
   // (detourOk ниже, 110: ставит / дефузит / убегает от взрыва — нет; несёт на точку и время есть — да)
-  var fz = F.z != null ? F.z : null;
+  var fz = F.z != null ? F.z : null, hurtT = coverThreats(b, [{x:F.x, y:F.y, z:fz}]);
   var cand = pickSpots("hurt"+Math.round(b.x/30)+","+Math.round(b.y/30)+"|"+Math.round(F.x/60)+","+Math.round(F.y/60), {x:b.x, y:b.y}, 6, {rMax:HURT_R, minGap:30, hideFrom:[F]})
     .filter(function(q){ var a = b.z == null ? null : navAtLevel(q.x, q.y, b.z); if(b.z != null && !a) return false;
-      return !spotTaken(b, q) && !hasLOS(q.x, q.y, F.x, F.y, a ? a.z : b.z, fz); })
+      return !spotTaken(b, q) && coverSafe(q, a ? a.z : b.z, hurtT); })   // (18.11) общая проверка укрытия: стрелок + известные, 3D, с шагом (470)
     .sort(function(p, q){ return Math.hypot(p.x-b.x, p.y-b.y) - Math.hypot(q.x-b.x, q.y-b.y); });
   var sp = cand[0]; if(!sp) return;
   var sec = pathLenTo(b, sp.x, sp.y)/SPEED;

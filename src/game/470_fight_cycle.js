@@ -32,17 +32,20 @@ function fightPathFree(b, x0, y0, x1, y1){
 var FIGHT_MATE_R = 30;   // px — проектное число (укрытие одного человека)
 function fightMateAt(b, x, y){ return bots.some(function(o){ return o !== b && o.alive && o.team === b.team && (Math.hypot(o.baseX-x, o.baseY-y) < FIGHT_MATE_R || (o._fc && o._fc.ph === "off" && Math.hypot(o._fc.cx-x, o._fc.cy-y) < FIGHT_MATE_R)); }); }
 function fightCover(b, e, R, toward){
-  var others = exposedTo(b, 1200, 4*TICK_HZ, true).filter(function(o){ return Math.hypot(o.x-e.x, o.y-e.y) > 60; });
+  // (отметка владельца 18.11, м1 р1 т2754, kyousuke: «опять ушёл за укрытие, но стоит в открытом») стрелок проверялся в 3D, остальные известные
+  // враги — плоской линией: три укрытия подряд были на виду у T1 / T0 / T4. Теперь — общая проверка coverSafe (стрелок + известные, с шагом)
+  var others = coverThreats(b, []).filter(function(o){ return Math.hypot(o.x-e.x, o.y-e.y) > 60; });
   for(var pass = others.length ? 0 : 1; pass < 2; pass++){
     for(var k=1;k<=3;k++){
-      var r = R*k/3, best = null, bd = -Infinity;
+      var r = R*k/3, C = [];
       for(var i=0;i<16;i++){
         var a = i*Math.PI/8, x = b.baseX + Math.cos(a)*r, y = b.baseY + Math.sin(a)*r;
         if(insideSolidWall(x, y) || !fightPathFree(b, b.baseX, b.baseY, x, y) || fightSeen(e, x, y, b.z) || fightMateAt(b, x, y)) continue;
-        if(pass === 0 && others.some(function(o){ return hasLOS(x, y, o.x, o.y, b.z); })) continue;
-        var de = toward ? -Math.hypot(x-toward.x, y-toward.y) : Math.hypot(x-e.x, y-e.y); if(de > bd){ bd = de; best = {x:x, y:y}; }
+        C.push({x:x, y:y, de: toward ? -Math.hypot(x-toward.x, y-toward.y) : Math.hypot(x-e.x, y-e.y)});
       }
-      if(best) return best;
+      C.sort(function(p, q){ return q.de - p.de; });
+      var qz = b.z, T = pass === 0 ? [e].concat(others) : [e];
+      for(var c = 0; c < C.length; c++) if(coverSafe(C[c], qz, T)) return {x:C[c].x, y:C[c].y};
     }
   }
   return null;
@@ -431,13 +434,26 @@ function exposedTo(b, maxD, maxAge, anyLos){
   return out;
 }
 var RL_PEEK_R = 80, RL_PATH_FREE = 30;   // проектные числа: ед. карты — шаг врага из-за угла (выглянуть); начало пути к укрытию, которое и так на виду
-function rlSeen(q, z, f){
+// (владелец 18.11: «причина должна фиксить все подобные проблемы с этой механикой») ОДНА проверка «место видно врагу» для всех укрытий от врага
+// (цикл боя fightCover, перезарядка coverForReload, отход раненого 350, отход после фрага и findCover 500, фоллбэк 300): игра видит через visParts
+// (3D: голова / тело) — от точки врага (все её полы, если высота не известна) и, с peek, от мест в шаг от неё (RL_PEEK_R), куда он выйдет.
+// Было: в каждом месте своя — плоская линия (hasLOS без высоты), только от одного врага, без шага; укрытие оказывалось на виду
+function spotSeen(q, qz, f, peek){
   var P = [{x:f.x, y:f.y}];
-  for(var k = 0; k < 8; k++){ var a = k*Math.PI/4, p = {x:f.x + Math.cos(a)*RL_PEEK_R, y:f.y + Math.sin(a)*RL_PEEK_R}; if(navAt(p.x, p.y) && !crossesWall(f.x, f.y, p.x, p.y)) P.push(p); }
-  return P.some(function(p){ var A = [], a0 = navAt(p.x, p.y), lo = navAt(p.x, p.y, -9999), hi = navAt(p.x, p.y, 9999);   // все полы точки: нижний, верхний, первый
-    [a0, lo, hi].forEach(function(x){ if(x && A.indexOf(x) < 0) A.push(x); });
-    return A.some(function(ar){ var v = visParts(p.x, p.y, false, q.x, q.y, false, true, ar.z, z); return v.head || v.body; }); });
+  if(peek) for(var k = 0; k < 8; k++){ var a = k*Math.PI/4, p = {x:f.x + Math.cos(a)*RL_PEEK_R, y:f.y + Math.sin(a)*RL_PEEK_R}; if(navAt(p.x, p.y) && !crossesWall(f.x, f.y, p.x, p.y)) P.push(p); }
+  return P.some(function(p, i){
+    var A = []; if(i === 0 && f.z != null) A = [{z: f.z}];
+    else { var a0 = navAt(p.x, p.y), lo = navAt(p.x, p.y, -9999), hi = navAt(p.x, p.y, 9999); [a0, lo, hi].forEach(function(x){ if(x && A.indexOf(x) < 0) A.push(x); }); }
+    return A.some(function(ar){ var v = visParts(p.x, p.y, false, q.x, q.y, false, true, ar.z, qz); return v.head || v.body; }); });
 }
+// от кого прячется укрытие: заданные (стрелок, враг перед ним) + все, кого команда знает рядом (exposedTo: ≤ 4 с, ≤ 1200)
+function coverThreats(b, extra){
+  var T = (extra || []).filter(Boolean).map(function(f){ return {x:f.x, y:f.y, z:f.z}; });
+  exposedTo(b, 1200, 4*TICK_HZ, true).forEach(function(o){ if(!T.some(function(t){ return Math.hypot(t.x-o.x, t.y-o.y) < 60; })) T.push(o); });
+  return T;
+}
+function coverSafe(q, qz, threats){ return threats.every(function(f){ return !spotSeen(q, qz, f, true); }); }
+function rlSeen(q, z, f){ return spotSeen(q, z, f, true); }
 var RL_THREAT_W = 0.2;   // (v555) проектное число: вход, где команда ждёт врага с таким весом, — укрытие на перезарядку прячет и от него
 function coverForReload(b, from){
   if(b._rlCoverT && tick - b._rlCoverT < 3*TICK_HZ) return true;
@@ -451,7 +467,7 @@ function coverForReload(b, from){
   // друг друга (visParts, 3D: голова / тело), от места врага и от мест рядом, куда он выйдет за шаг (RL_PEEK_R)
   var qz = function(q){ var z = navOnlyZ(q.x, q.y); return z != null ? z : b.z; };
   var sp = pickSpots("rlcov"+tick+b.id, {x:b.x, y:b.y}, 6, {rMin:30, rMax:150, minGap:30, hideFrom:from.concat(thr)})
-    .filter(function(q){ if(!from.every(function(f){ return !rlSeen(q, qz(q), f); })) return false;
+    .filter(function(q){ if(!coverSafe(q, qz(q), from)) return false;
       // и дорога туда не на виду (первые RL_PATH_FREE ед. — он и так стоит на виду): было — укрытие закрыто, а путь к нему шёл по открытому к A
       var P = pathPts(b.x, b.y, q.x, q.y, b.z), Lp = polyLen(P);
       for(var dd = RL_PATH_FREE; dd < Lp - 8; dd += 24){ var s = pointAtDist(P, dd), sz = navOnlyZ(s.x, s.y); if(sz == null) sz = b.z;
