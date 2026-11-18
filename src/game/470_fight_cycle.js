@@ -108,6 +108,8 @@ var PEEK_KIND = {CT: [0.44, 0.47, 0.09], T: [0.12, 0.66, 0.23]};   // (Д30) д�
 var PEEK_SHORT_DWELL = 9, PEEK_WIDE_EXTRA = 60;   // тики (медиана нажатия A/D у про), ед. — проектное (у про широкий — дальше 80 ед. от стойки)
 function csDecel(v, vmax){ return CS_FRIC*Math.max(v, CS_STOP/PX_UNITS) + CS_ACCEL*vmax; }   // px/с²
 function csTicksTo(v, vT, vmax){ var n = 0; while(v > vT + 0.5 && n < 30){ v -= csDecel(v, vmax)/TICK_HZ; n++; } return n; }
+// в перестрелке, но врага не видно (не «держит» его — F.own), задача — выйти на него (fightMove), до точки выхода не дошёл — идёт к ней
+function fcSwingGo(b){ var F = b._fc; return !!(F && !F.own && !b._sawEnemy && b.post && !b.atPost && taskProp(b.post.tag, "fightMove")); }
 function fightStrafe(b, F, dtSec){
   if(b._boost){ F.sv = 0; moveSpeed(b, 0, "strafe"); return; }   // (v575, В144) на подсадке / под ней — не стрейфится
   var e = F.e, fr = b._fire, fresh = fr && tick - fr.t <= 1;

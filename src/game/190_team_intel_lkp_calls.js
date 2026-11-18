@@ -76,7 +76,7 @@ function teamInfoTick(){
       // один и тот же враг — не чаще раза в 8 тиков на команду (память не раздувается)
       if(!(LS[e.id] && tick - LS[e.id] < 8)){ LS[e.id] = tick;
         // сам видит — знает сразу (lastIntel), команда — через колл
-        commSend(b.team, {type:"spotted", x:e.x, y:e.y, id:e.id, by:b.id, conf:1}, b.id);
+        commSend(b.team, {type:"spotted", x:e.x, y:e.y, z:e.z, id:e.id, by:b.id, conf:1}, b.id);   // (18.11) z — этаж, где его видели (взгляд «по ходу его движения», 270)
         if(e.curSpeed < 30 && bomb.state !== "planted") habitAdd(e.id, e.x, e.y, 0.125); }
       if(bomb && bomb.state === "carried" && bomb.carrier === e){
         var prevCar = teamIntel[b.team].carrier;

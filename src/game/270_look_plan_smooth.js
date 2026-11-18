@@ -438,6 +438,18 @@ function lookKnowPath(b, q){
   if(!e || tick - e.t >= LKP_PATH_TTL || tick < e.t){ LKP_PATH.n = (LKP_PATH.n||0) + 1; e = LKP_PATH.m[key] = {t: tick, p: buildWaypointPath(q.x, q.y, q.z != null ? q.z : null, b.x, b.y, b.z) || []}; }
   return e.p;
 }
+var MOVE_SEEN = 6, MOVE_MIN = 8, MOVE_FAR = 320;   // проектные числа: с; ед. карты — сдвиг между «видели», дальше линии не продлеваем
+function lookMovePt(b, q){
+  var S = (teamIntel[b.team] && teamIntel[b.team].sig) || [], last = null, prev = null;
+  for(var i = S.length-1; i >= 0 && tick - S[i].tick <= MOVE_SEEN*TICK_HZ; i--){ var s = S[i]; if(s.type !== "spotted" || s.id !== q.id) continue;
+    if(!last) last = s; else if(Math.hypot(s.x-last.x, s.y-last.y) >= MOVE_MIN){ prev = s; break; } }
+  if(!last || !prev) return null;
+  var dx = last.x-prev.x, dy = last.y-prev.y, L = Math.hypot(dx, dy); dx /= L; dy /= L;
+  var z0 = last.z != null ? last.z : null;
+  for(var d = 40; d <= MOVE_FAR; d += 20){ var x = last.x + dx*d, y = last.y + dy*d, a = navAt(x, y, z0); if(!a || (z0 != null && Math.abs(a.z - z0) > JUMP_UP)) break;
+    var fz = navFloorZ(a, x, y); if(hasLOS(b.x, b.y, x, y, b.z, fz)) return {x: x, y: y}; }
+  return null;
+}
 function lookKnowPt(b, q, zb, mates, moving){
   var d = Math.hypot(q.x-b.x, q.y-b.y); if(d > 700 || d < 20) return null;
   // (v279, владелец 14.10: якорь B развернулся спиной к Ramp на бой на миде в 650 px) держит пост — дальняя инфа вне его угла не
@@ -452,10 +464,14 @@ function lookKnowPt(b, q, zb, mates, moving){
   // по пути» в Kitchen, себе за спину) место знания видно отсюда (3D, с его высотой) — смотреть на само место; не видно — как раньше
   var srcVis = hasLOS(b.x, b.y, q.x, q.y, b.z, q.z);
   var apf = srcVis ? null : appearFrom(b, q); if(apf) apf = {x: apf.x, y: apf.y, vis: true};
-  var pt = srcVis ? {x: q.x, y: q.y} : (apf || cornerLook(b, q) || openToward(b, za, LOOK.sndOpen));
+  // (отметка владельца 18.11, м5 р2 т6916, CT1 на Catwalk: «смотреть, куда придёт враг», нарисовал — вниз-влево, куда T0 уходил под Catwalk)
+  // свой контакт пропал из вида — сначала туда, где он покажется, если идёт дальше, куда шёл (два последних «видели» команды ≤ MOVE_SEEN с:
+  // направление; первая видимая отсюда точка этой линии на его этаже). Его путь ко мне (appearFrom) — если такой точки нет
+  var mvp = (!srcVis && q.commit && q.id) ? lookMovePt(b, q) : null;
+  var pt = srcVis ? {x: q.x, y: q.y} : (mvp || apf || cornerLook(b, q) || openToward(b, za, LOOK.sndOpen));
   // (v568, отметка владельца м3 р1 47 с, CT1: «смотрит вообще не туда, откуда стреляли») в перестрелке (_fc) враг выйдет на линию, через
   // которую стреляли, а не из прохода по пути пешком: точка по пути дальше CORNER_FIGHT_OFF от направления на него — смотреть по этой линии
-  if(b._fc && pt && !srcVis && _angOff(Math.atan2(pt.y-b.y, pt.x-b.x), za) > CORNER_FIGHT_OFF){ var dl0 = Math.min(220, d); pt = {x: b.x + Math.cos(za)*dl0, y: b.y + Math.sin(za)*dl0};
+  if(b._fc && pt && pt !== mvp && !srcVis && _angOff(Math.atan2(pt.y-b.y, pt.x-b.x), za) > CORNER_FIGHT_OFF){ var dl0 = Math.min(220, d); pt = {x: b.x + Math.cos(za)*dl0, y: b.y + Math.sin(za)*dl0};
     // (владелец 18.11: «всегда в сторону врага; стоит в упор к стенке — не в стенку, а чуть за край стенки, чтобы враг выходил под прицел»)
     if(lookWallClose(b, pt)){ var ce0 = cornerLook(b, q); if(ce0) pt = ce0; } }
   // (v281) видимой точки нет — место, где враг на своём пути зайдёт в мою зону
@@ -485,7 +501,7 @@ function lookKnowCands(b){
   // бой: прикрыть второй угол по просьбе тиммейта, спам в смок, свой контакт (v367; держится, пока видно или видели ≤ 1 с)
   if(b._coverDir && tick < b._coverDir.until && !b._sawEnemy) out.push({lvl: LOOK_LEVEL.fight, kind: "cover", pt: cornerLook(b, b._coverDir.pt) || b._coverDir.pt, sc: 1});
   if(b._spam && tick < b._spam.until) out.push({lvl: LOOK_LEVEL.fight, kind: "spam", pt: b._spam.pt, sc: 2});
-  if(lookContactFresh(b) && !ignoredShooter(b, b._contact.id)) add(LOOK_LEVEL.fight, "contact", {x: b._contact.x, y: b._contact.y, age: 0, commit: true}, 3);
+  if(lookContactFresh(b) && !ignoredShooter(b, b._contact.id)) add(LOOK_LEVEL.fight, "contact", {x: b._contact.x, y: b._contact.y, id: b._contact.id, age: 0, commit: true}, 3);
   // свои уши ≤ 1 с; бросок гранаты рядом — враг точно там (v359)
   var hs = b.heardSound;
   // (v570, В135) выстрел / попадание от невидимого стрелка — взгляд, только если бот обратил на него внимание (noticeShooter, 210)

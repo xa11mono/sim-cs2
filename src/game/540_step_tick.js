@@ -398,7 +398,9 @@ function stepTick(){
     // (v415, Б5к шаг 3, М154) в живой перестрелке (_fc) по маршруту не идёт. Раньше на линии шёл, когда «не держит» врага (_fc.own гаснет
     // ≈ 0,25 с после контакта): при мигающей видимости бот чередовал стрейф и шаг по маршруту (подпись v414 на м3: 116 снимков за 45 с).
     // Перестрелка кончается как раньше — врага не видно дольше паузы про (470, PEEK_PRO.pause)
-    if(!ladderTick(bot) && !((bot.holding && !bot._burning) || bot.curSpeed <= 0.5 || bot._fc)){
+    // (отметка владельца 18.11, м5 р2 т6916, CT1 в 33 ед. от точки выхода на бортике) задача «выйти на врага», врага не видно — по пути до точки
+    // и в перестрелке (fcSwingGo, 470): иначе бот стоял, не дойдя, и задача «встала» через 1,5 с
+    if(!ladderTick(bot) && !((bot.holding && !bot._burning) || bot.curSpeed <= 0.5 || (bot._fc && !fcSwingGo(bot)))){
       if(bot.path.length === 0 || bot.pathIdx >= bot.path.length){
         if(bot.forcedRetreat) bot.forcedRetreat = false;
         assignNewDestination(bot, tick);
