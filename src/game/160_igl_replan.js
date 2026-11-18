@@ -169,6 +169,7 @@ function stagePost(mem, k){
     groupPost([b], {x:b.x, y:b.y}, g.tEntry, "stage"+k+":ahead", {rMax:160, minGap:40, hideFrom:[SITES[k], g.anchor], see:[g.tEntry]});
     return false; });
   if(!mem.length) return;
+  if(tStageSpots(mem, k)) return;
   var SSk = (MAP.tactics.plays.stageSplit || {})[k];
   if(SSk && g.tStageUp && mem.length >= 3){
     // двое-трое ниже, один-двое выше (Ancient B: T Lower → Ramp и T Upper → Rat/Dark): выход с двух сторон
@@ -182,6 +183,35 @@ function stagePost(mem, k){
     return;
   }
   groupPost(mem, g.tStage, g.tEntry, "stage"+k, opt);
+}
+// (v583a, Д27, владелец 18.11: «на подготовке стоят у самого сайта») места ожидания выхода — из демок про (MAP.tstage, tools/map/t_stage_bake.py):
+// где T стоят за 2–15 с до захода на этот сайт, по доле у про × «пара» с местами, которые уже взяли свои (кто с кем ждёт — заход с двух сторон);
+// занятое своим или ближе TSTAGE_GAP — не вариант. Было: все вокруг одной точки подготовки (tStage, ≤ 200 ед.) — прогон 274: у выхода из
+// Apartments (Stove) 6,1 % T против 2,4 % у про, у низа T Ramp 4,9 / 1,7. Выбор держится, пока тот же раунд и сайт. Нет данных — как было
+var TSTAGE_RES = {k: null, by: {}}, TSTAGE_GAP = 60, TSTAGE_PAIR0 = 0.05;   // ед.; доля «не встречались вместе» — проектные числа
+function tStageSpots(mem, k){
+  var TS = MAP.tstage && MAP.tstage.sites && MAP.tstage.sites[k]; if(!TS || !TS.spots || !TS.spots.length) return false;
+  var key = matchNum+":"+roundNum+":"+k, RS = TSTAGE_RES.k === key ? TSTAGE_RES : (TSTAGE_RES = {k: key, by: {}});
+  mem.forEach(function(b){
+    var mine = RS.by[b.id];
+    if(!mine){
+      var others = Object.keys(RS.by).map(function(id){ return RS.by[id]; }).filter(function(o){ var ob = teamBot(o.id); return o.i >= 0 && ob && ob.alive; });
+      var w = TS.spots.map(function(sp, i){
+        if(others.some(function(o){ return o.i === i || Math.hypot(o.x - sp.x, o.y - sp.y) < TSTAGE_GAP; })) return 0;
+        var v = sp.share; others.forEach(function(o){ v *= ((TS.spots[o.i].pair || {})[i] || TSTAGE_PAIR0); }); return v; });
+      var tot = w.reduce(function(a, v){ return a + v; }, 0), pick = -1;
+      if(tot > 0){ var r = hashRand(roundNum*6113 + matchNum*97 + b.id.charCodeAt(b.id.length-1)*29 + k.charCodeAt(0))*tot;
+        for(var i = 0; i < w.length; i++){ r -= w[i]; if(r <= 0 && w[i] > 0){ pick = i; break; } } }
+      var s0 = pick >= 0 ? TS.spots[pick] : null, l0 = s0 && s0.look && s0.look[0];
+      mine = RS.by[b.id] = {id: b.id, i: pick, x: s0 ? s0.x : 0, y: s0 ? s0.y : 0, yaw: l0 ? l0[0] : null};
+    }
+    var g = GEO[k], pt = mine.i >= 0 ? {x: mine.x, y: mine.y} : g.tStage;
+    var sp = pickSpots("tst"+k+":"+Math.round(pt.x)+","+Math.round(pt.y), pt, 1, {rMax: 60, minGap: 20})[0] || pt;
+    var lk = g.tEntry;
+    if(mine.i >= 0 && mine.yaw != null){ var R0 = proLookRay(sp.x, sp.y, mine.yaw, PRO_LOOK_R); lk = {x: sp.x + Math.cos(mine.yaw)*R0, y: sp.y + Math.sin(mine.yaw)*R0}; }
+    setPost(b, sp, lk, true, "stage"+k);
+  });
+  return true;
 }
 // (аудит 11.10) смена сайта плана T — одно место. Раньше из пяти мест смены только два снимали маршруты к старому сайту,
 // и ни одно — гранаты-задания туда: через 5 с после смены у кого-то из T в 37 % смен ещё был маршрут, а в части смен —
