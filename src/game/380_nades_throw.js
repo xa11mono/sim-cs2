@@ -566,7 +566,8 @@ function updateNadeTask1(b){
         // (v570, отметка владельца м1 р3 15,7 с, CT1: «назначается лайнап, который он может кинуть и с текущего места») — было: к точке
         // лайнапа шёл всегда (3+ с через мид). Сначала — одна попытка броска отсюда: подбор считает полёт из места бойца (лайнап —
         // подсказкой), граната ложится туда же — летит сразу; не долетает / стена — идёт на точку. Пауза подбора — попробует в следующем тике
-        if(!t._hereTried && (b.state === "patrol" || b.state === "hold") && nadeReady(b)){
+        var nbWait = t.notBefore && tick < t.notBefore && teamTac.T && teamTac.T.phase === "setup";   // (v583a, Д27) раздали заранее — сначала встать на точку
+        if(!nbWait && !t._hereTried && (b.state === "patrol" || b.state === "hold") && nadeReady(b)){
           if(throwNade(b, t.type, t.x, t.y, true, t.why, false, t.from)){ b.nadeTask = null; if(b.post && b.post.tag === "lineup") clearPost(b); return; }
           if(!/пауза/.test(NADE_FAIL || "")) t._hereTried = 1; }
         if(b.state === "hold" && !b._sawEnemy) leaveHold(b);
@@ -588,6 +589,7 @@ function updateNadeTask1(b){
               b.nadeTask = null; b.nadeQueue = null; clearPost(b); return; } }
           return; } }
       if(!here) postKeep(b);   // стоит на точке броска — затея ещё идёт
+      if(t.notBefore && tick < t.notBefore && teamTac.T && teamTac.T.phase === "setup") return;   // (v583a, Д27) стоит на точке и ждёт колла (preExecNow)
       if(!nadeReady(b)) return;   // (v340) только что кинул другую — задание ждёт
       // (Г3, 04.11, п.19: молотов «по инфе» 4 с ждал остановки, а ретейк вёл бойца к киту — сгорел) стоя — только лайнап (точный бросок про);
       // своя точка броска (gen) — и на ходу: подбор считает бросок со скоростью бойца (nadeBotVel → nadeSolve)
