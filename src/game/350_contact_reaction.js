@@ -211,6 +211,12 @@ function contactTick(b){
   var contactSpots = function(sw, rS){ var c0 = rS ? {x:b.x + (look.x-b.x)*0.5, y:b.y + (look.y-b.y)*0.5} : {x:b.x, y:b.y};   // заход — вокруг полпути к врагу (0,5, 12 точек — проектные)
     return pickSpots("ct"+b.id+Math.round(look.x/40)+","+Math.round(look.y/40)+(sw ? "s"+(rS||"") : "h"), c0, rS ? 12 : 6, {rMax: sw ? (rS || CONTACT_SWING) : 160, minGap:30, see:[look]})
     .filter(function(q){ return Math.hypot(q.x-look.x, q.y-look.y) >= 120 && !spotTaken(b, q) && spotOk(q); }); };
+  // (v583a, Д26, владелец 18.11: «попробуй — держать вход, откуда T выйдет, из укрытия, а не стоять на линии с врагом») прогон 276: до выхода T
+  // CT у сайта гибнут в первые 30 с 82 раза на 100 раундов против 31 у про; пары «T Ramp → Cross / A Site / Triple Box», «Stove → B Plat» —
+  // ≈ 6 против ≤ 0,9; жертва — «держу контакт» 33 (точка контакта выбирается так, чтобы было видно место врага — шаг на его линию). До выхода
+  // T защитник сайта (опорник, расстановка) на контакт не встаёт на линию: остаётся на месте роли (оно из демок про и смотрит на вход T),
+  // взгляд — на контакт; выйти — только с преимуществом (выше, swing)
+  if(!swing && quiet && b.team === "CT" && b.post && taskProp(b.post.tag, "siteDefender")){ b._contact = {x:C.x, y:C.y, id:C.id, until: tick + CONTACT_HOLD*TICK_HZ, lock:false}; b._contactT = tick; return; }
   var cand = contactSpots(swing);
   // (v555, м298 р1: раш стоял в Tetris — точки «выйти на врага» с видом на Cross ближе 220 ед. нет, выход превращался в «держать угол») в выходе
   // T заход — дальше, в зону врага (до CONTACT_PUSH ед.): занять её, а не стоять на краю
