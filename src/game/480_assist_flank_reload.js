@@ -53,6 +53,10 @@ function flankAssist(b){
   var flStale = FL && FL.alive && tick - (b._flankT || 0) >= 32 && !hasLOS(b.post.x, b.post.y, FL.x, FL.y, b.z, FL.z);
   if(b.hp <= LOW_HP || (b._fcFlank && tick < b._fcFlank && !flStale)) return false;
   if(b.team === "CT" && b.post && taskProp(b.post.tag, "holdsSite")) return false;   // держит сайт — не бросает
+  // (отметка владельца 18.11, м1 р1 т1912: мидер ушёл с мида заходить на одного T, замеченного на A; владелец: «когда только выход начался либо
+  // бомба обнаружена»; гайды: «не ротейтиться на один контакт — ждать гранат или нескольких T», docs/PRO_PLAY.md) CT бросает своё место ради захода,
+  // только когда у команды есть колл сайта (ct.call: выход / бомба / несколько T). Было: любой контакт своего в 300–900
+  if(b.team === "CT" && !(teamTac.CT && teamTac.CT.call)) return false;
   if(b.team === "T" && b.tRole === "lurker") return false;
   var mate = null, E = null;
   bots.forEach(function(m){
