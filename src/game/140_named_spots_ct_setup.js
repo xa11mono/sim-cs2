@@ -236,9 +236,13 @@ function ctSetupRole(b, role, ct){
   // (15.11, владелец: «расстановки — по демкам, где обычно стоят; точки в паре, чтобы смотрели все зоны, откуда выходят T») место роли —
   // точка из демок про этой структуры (spot, tools/ct/ct_setup_spots_bake.py), взгляд — угол про у этой точки (lookYaw) до стены. Место
   // в CT_SPOT_R от точки, откуда видно, куда смотреть, не занятое своим; нет такого — места по зонам роли (ниже), как было
-  if(P.spot){
-    var cS = {x: P.spot[0], y: P.spot[1]}, lkS = null;
-    if(P.lookYaw != null){ var RS = proLookRay(cS.x, cS.y, P.lookYaw, PRO_LOOK_R); lkS = {x: cS.x + Math.cos(P.lookYaw)*RS, y: cS.y + Math.sin(P.lookYaw)*RS}; }
+  // (v583a, Д28, владелец 18.11: «расстановки — как постплент: хорошие позиции, кроссфайр») точка роли — одно из мест, где про реально стоят
+  // при стольких CT на этой стороне (MAP.ctspots, tools/map/ct_spots_bake.py), с парами про (кто с кем держит сторону) — ctSpotPick; было:
+  // одна точка-середина мест про (k-медиан), у сайта A Mirage — Triple Box (у про 1–2 % раундов, у ботов 12 %). Нет данных — как было
+  var CPk = early ? null : ctSpotPick(b, S, role), spotP = CPk ? [CPk.x, CPk.y] : P.spot, yawP = CPk ? CPk.yaw : P.lookYaw;
+  if(spotP){
+    var cS = {x: spotP[0], y: spotP[1]}, lkS = null;
+    if(yawP != null){ var RS = proLookRay(cS.x, cS.y, yawP, PRO_LOOK_R); lkS = {x: cS.x + Math.cos(yawP)*RS, y: cS.y + Math.sin(yawP)*RS}; }
     else lkS = (P.lookPt && {x: P.lookPt[0], y: P.lookPt[1]}) || ref;
     var spS = pickSpots("cts:"+S.id+":"+role+":spot", cS, 6, {rMax: CT_SPOT_R, minGap: 30, see: [lkS]});
     var freeS = spS.filter(function(q){ return hasLOS(q.x, q.y, lkS.x, lkS.y) && !spotTaken(b, q, "post") && crossOk(q); });
@@ -281,6 +285,30 @@ function ctSetupRole(b, role, ct){
   if(early && !b._earlyLog){ b._earlyLog = roundNum; }
   if(early && b._earlyLogged !== roundNum){ b._earlyLogged = roundNum; logEvent(b.id+" ("+ROLE_LABEL_CT(role)+"): выход за инфой — "+nm); }
   return placed;
+}
+// (v583a, Д28) места CT по демкам про (MAP.ctspots): сторона карты — как в запекании (ближе к сайту в 0,6 раза — его сторона, иначе мид);
+// место — по доле у про × «пара» с местами, которые уже взяли свои на этой стороне (у про: кто с кем держит сторону — кроссфайр); место, занятое
+// своим или ближе CT_SPOT_GAP к нему, — не вариант. Выбор держится весь раунд (CT_SPOTS_RES), пока та же роль той же расстановки
+var CT_SPOTS_RES = {k: null, by: {}}, CT_SPOT_GAP = 60, CT_SPOT_PAIR0 = 0.05;   // ед.; доля «не встречались вместе» — проектные числа
+function ctSideOf(x, y){ var Sc = MAP.ctspots && MAP.ctspots.site; if(!Sc || !Sc.A || !Sc.B) return null;
+  var dA = Math.hypot(x - Sc.A[0], y - Sc.A[1]), dB = Math.hypot(x - Sc.B[0], y - Sc.B[1]); return dA < 0.6*dB ? "A" : dB < 0.6*dA ? "B" : "M"; }
+function ctRolePt(S, r){ var q = S.roles[r]; if(!q) return null; if(q.spot) return {x: q.spot[0], y: q.spot[1]}; return q.pos && q.pos[0] ? zonePoint(q.pos[0], GEO.ctMid) : null; }
+function ctSpotPick(b, S, role){
+  var CS = MAP.ctspots; if(!CS || !CS.sides || !S || !S.roles) return null;
+  var RS = CT_SPOTS_RES.k === matchNum+":"+roundNum ? CT_SPOTS_RES : (CT_SPOTS_RES = {k: matchNum+":"+roundNum, by: {}});
+  var mine = RS.by[b.id]; if(mine && mine.role === role && mine.setup === S.id) return mine.i >= 0 ? mine : null;
+  var ref = ctRolePt(S, role), side = ref ? ctSideOf(ref.x, ref.y) : null, TS = side && CS.sides[side]; if(!TS) return null;
+  var n = Object.keys(S.roles).filter(function(r){ var q = ctRolePt(S, r); return q && ctSideOf(q.x, q.y) === side; }).length, T = TS[n];
+  if(!T){ var ks = Object.keys(TS).map(Number).sort(function(a, c){ return Math.abs(a - n) - Math.abs(c - n); }); T = TS[ks[0]]; }
+  var others = Object.keys(RS.by).map(function(k){ return RS.by[k]; }).filter(function(o){ var ob = teamBot(o.id); return o.id !== b.id && o.side === side && o.i >= 0 && ob && ob.alive && ob.team === b.team; });
+  var w = T.spots.map(function(sp, i){
+    if(others.some(function(o){ return o.i === i || Math.hypot(o.x - sp.x, o.y - sp.y) < CT_SPOT_GAP; })) return 0;
+    var v = sp.share; others.forEach(function(o){ var P2 = T.spots[o.i].pair || {}; v *= (P2[i] || CT_SPOT_PAIR0); }); return v; });
+  var tot = w.reduce(function(a, v){ return a + v; }, 0), pick = -1;
+  if(tot > 0){ var r = hashRand(roundNum*7919 + matchNum*131 + b.id.charCodeAt(b.id.length-1)*17 + role.length)*tot; for(var i = 0; i < w.length; i++){ r -= w[i]; if(r <= 0 && w[i] > 0){ pick = i; break; } } }
+  var sp0 = pick >= 0 ? T.spots[pick] : null, lk0 = sp0 && sp0.look && sp0.look[0];
+  RS.by[b.id] = {id: b.id, role: role, setup: S.id, side: side, i: pick, x: sp0 ? sp0.x : 0, y: sp0 ? sp0.y : 0, yaw: lk0 ? lk0[0] : null};
+  return pick >= 0 ? RS.by[b.id] : null;
 }
 var CT_PRO_ZONE = {occ: 0.003, tShare: 0.5, path: 900, n: 6};   // (v570) проектные числа: зона CT у про — доля ≥ 0,3 %, T < половины
 function ctProZones(ref){

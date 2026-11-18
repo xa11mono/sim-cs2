@@ -70,6 +70,8 @@ function moveWalkWhy(bot){
 function moveRunWhy(bot){
   // (v257, К3) врагов живых нет (видно по табло) — шагом идти не от кого
   if(aliveCount(bot.team === "CT" ? "T" : "CT") === 0) return "врагов не осталось";
+  // (v583a, Д26) уходит из-под линии раненым — бегом: шаг «видел / слышал врага рядом» держал его на линии (прогон 274: 30 из 149 погибших так)
+  if(bot.post && !bot.atPost && taskProp(bot.post.tag, "escape")) return "ухожу из-под линии — бегом";
   // (v299, И43, владелец 14.10: T0 стрелялся на A, лёркер T4 шёл к бою на шифте) тиммейт рядом уже в перестрелке (видит врага ≥ 0,3 с,
   // как у дабл-пика, или стрелял / по нему стреляли за 2 с) в 900 px от меня, а моя точка — не дальше 600 px от него: иду к бою — бегом, тишина уже ничего не даёт
   if(bot.post && !taskProp(bot.post.tag, "bombSpot") && bots.some(function(m){ return m !== bot && m.alive && m.team === bot.team &&
@@ -106,7 +108,9 @@ function moveSpeedTick(bot, runSpeed, BRAKE_RADIUS, maxDelta){
   var waitPop = (bot._waitPopUntil > tick && nadeFlags[bot._waitPopKey] === undefined && !bot._sawEnemy) || (bot._ppWaitUntil > tick && !bot._sawEnemy);
   if(bot._pie && bot._pie.slice && tick - bot._pie.t < 16 && !bot._sawEnemy) runSpeed *= 0.75; // режет угол
   var targetSpeed = runSpeed;
-  if(waitPop){ targetSpeed = 0; why = "ждёт флешку своего"; } else if(bot.holding){ targetSpeed = 0; why = "держит угол"; } else if(bot.roamChecking){ targetSpeed = 0; why = "роумер проверяет точку"; }
+  // (v583a, Д26, прогон 274: раненый CT с задачей «уйти из-под линии» погиб, стоя «держу угол», в 68 из 149 случаев — снова увидел врага, режим
+  // боя «держать» останавливал ноги на линии) уходит из-под линии — «держит угол» не останавливает, пока не дошёл до укрытия
+  if(waitPop){ targetSpeed = 0; why = "ждёт флешку своего"; } else if(bot.holding && !(bot.post && !bot.atPost && taskProp(bot.post.tag, "escape"))){ targetSpeed = 0; why = "держит угол"; } else if(bot.roamChecking){ targetSpeed = 0; why = "роумер проверяет точку"; }
   else if(bot.atPost){ targetSpeed = 0; why = "на посту"; } else if(bot.planting){ targetSpeed = 0; why = "ставит бомбу"; } else if(bot.defusing){ targetSpeed = 0; why = "дефузит"; }
   else if(tick < (bot.throwUntil||0)){ targetSpeed = 0; why = "бросает гранату"; } else if(bot.state === "engage" && bot._sawEnemy){ targetSpeed = 0; why = "стреляет по врагу"; }
   // (v375, владелец: «в 4 раунде все по одному выходили из T Ramp и умирали») демки Mirage: первый T, входящий на сайт (≤ 250
