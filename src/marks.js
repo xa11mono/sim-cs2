@@ -11,6 +11,8 @@ function mkSnapList(){
   if(MK.snap) return MK.snap;
   MK.snap = __SNAP.filter(function(e){
     if(/^(SND|HUD_)/.test(e[0])) return false;
+    // (18.11) таблицы кода — не состояние игры: снимок старой версии не подменяет их в новой (свойства задач TASK_PROP, уровни TASK_LEVEL)
+    if(/^(TASK_PROP|TASK_LEVEL)$/.test(e[0])) return false;
     // (v445, скрин владельца 28.10: «Ошибка игры… HTMLImageElement object could not be cloned», м1 тик 1280) кэши картинок (KF_IMG — иконки
     // киллфида, NADE_IMG — силуэты гранат, v437) — показ, не игра; список снимка собирается один раз, когда кэш ещё пуст, — поэтому по имени
     if(/IMG$/.test(e[0])) return false;   // (v324) звук и (v430) HUD_* — только показ (AudioContext, элементы страницы) — в снимок не идут

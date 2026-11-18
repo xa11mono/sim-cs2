@@ -108,8 +108,11 @@ var PEEK_KIND = {CT: [0.44, 0.47, 0.09], T: [0.12, 0.66, 0.23]};   // (Д30) д�
 var PEEK_SHORT_DWELL = 9, PEEK_WIDE_EXTRA = 60;   // тики (медиана нажатия A/D у про), ед. — проектное (у про широкий — дальше 80 ед. от стойки)
 function csDecel(v, vmax){ return CS_FRIC*Math.max(v, CS_STOP/PX_UNITS) + CS_ACCEL*vmax; }   // px/с²
 function csTicksTo(v, vT, vmax){ var n = 0; while(v > vT + 0.5 && n < 30){ v -= csDecel(v, vmax)/TICK_HZ; n++; } return n; }
-// в перестрелке, но врага не видно (не «держит» его — F.own), задача — выйти на него (fightMove), до точки выхода не дошёл — идёт к ней
-function fcSwingGo(b){ var F = b._fc; return !!(F && !F.own && !b._sawEnemy && b.post && !b.atPost && taskProp(b.post.tag, "fightMove")); }
+// в перестрелке идёт по пути к задаче: выйти на врага (fightMove), пока его не видно (не «держит» — F.own), и уйти из-под линии (escape: укрытие
+// на перезарядку, отход раненого — отметка владельца 18.11 №7: TeSeS с пустым магазином 2,3 с «стоял за укрытием» на открытом, к укрытию не шёл)
+function fcSwingGo(b){ var F = b._fc; if(!F || !b.post || b.atPost) return false;
+  if(taskProp(b.post.tag, "escape")) return true;
+  return !F.own && !b._sawEnemy && taskProp(b.post.tag, "fightMove"); }
 function fightStrafe(b, F, dtSec){
   if(b._boost){ F.sv = 0; moveSpeed(b, 0, "strafe"); return; }   // (v575, В144) на подсадке / под ней — не стрейфится
   var e = F.e, fr = b._fire, fresh = fr && tick - fr.t <= 1;
@@ -316,6 +319,8 @@ function fightCycleTick(b, dtSec, busy){
   // уход от выстрелов в плечо (retreat) не возвращал на линию и у укрытия. Теперь у укрытия враг виден — укрытие не спасает: на линию, стрелять
   if(b._sawEnemy && !(F.ph === "off" && !atCover)){ if(F.ph === "off") b._fcSnap = tick;   // у укрытия видно врага — для подписи «почему»
     F.ph = "line"; F.ax = b.baseX; F.ay = b.baseY; F.t = tick; F.until = 0; F.retreat = false; F.better = null; F.sv = undefined; return; }   // снова вижу врага — на линии (уходя от выстрелов в плечо — не останавливается)
+  // (отметка владельца 18.11 №7) за укрытием перезаряжается — на линию не выходит, пока не перезарядился (было: с пустым магазином шёл выглядывать)
+  if(F.ph === "off" && b._reloading) F.until = Math.max(F.until || 0, tick + 1);
   if(F.ph === "off" && tick >= F.until && (!F.retreat || Math.hypot(F.cx-b.baseX, F.cy-b.baseY) < 2)){
     F.retreat = false;
     // раненого мной врага (в обмене впереди) — выглядывает добить (ответ нейросети: пик становится дуэлью, если «можно добить раненого»);
@@ -351,6 +356,10 @@ function fightCycleTick(b, dtSec, busy){
     // (ответ 4) против AWP (оружие врага видно) — сначала плечо: выстрелил — выглядывает целиком, пока он перезаряжается; нет — через паузу про
     if(F.e && F.e.primary === "AWP"){ var shp = fightShoulderPt(b, F.e, F.cx, F.cy, F.ax, F.ay); if(shp) F.sh = {x:shp.x, y:shp.y, t0:0, shot:F.e.lastShotTick || -1, done:false}; }
   }
+  // (отметка владельца 18.11 №7) уходит из-под линии по задаче (escape: укрытие на перезарядку, отход раненого) — ноги ведёт путь задачи (540,
+  // fcSwingGo), цикл свою точку укрытия не тянет: было — путь к укрытию и цикл к своему гасили друг друга, бот стоял на открытом
+  // дошёл — его укрытие и есть место задачи (у цикла было своё — то, откуда ушёл, на открытом)
+  if(b.post && taskProp(b.post.tag, "escape")){ if(F.ph === "off"){ F.cx = b.post.x; F.cy = b.post.y; } if(!b.atPost){ F.mv = 0; return; } }
   var shOn = F.ph === "back" && F.sh && !F.sh.done;
   if(shOn && F.e && (F.e.lastShotTick || -1) > F.sh.shot){ F.sh.done = true; shOn = false; }   // AWP выстрелил (слышно) — выглядывает целиком
   var tx = F.ph === "off" ? F.cx : shOn ? F.sh.x : F.ax, ty = F.ph === "off" ? F.cy : shOn ? F.sh.y : F.ay;
@@ -421,7 +430,7 @@ function exposedTo(b, maxD, maxAge, anyLos){
      !out.some(function(q){ return Math.hypot(q.x-hs.x, q.y-hs.y) < 60; })) out.push({x:hs.x, y:hs.y});
   return out;
 }
-var RL_PEEK_R = 80;   // проектное число: ед. карты — шаг врага из-за угла (выглянуть)
+var RL_PEEK_R = 80, RL_PATH_FREE = 30;   // проектные числа: ед. карты — шаг врага из-за угла (выглянуть); начало пути к укрытию, которое и так на виду
 function rlSeen(q, z, f){
   var P = [{x:f.x, y:f.y}];
   for(var k = 0; k < 8; k++){ var a = k*Math.PI/4, p = {x:f.x + Math.cos(a)*RL_PEEK_R, y:f.y + Math.sin(a)*RL_PEEK_R}; if(navAt(p.x, p.y) && !crossesWall(f.x, f.y, p.x, p.y)) P.push(p); }
@@ -442,7 +451,12 @@ function coverForReload(b, from){
   // друг друга (visParts, 3D: голова / тело), от места врага и от мест рядом, куда он выйдет за шаг (RL_PEEK_R)
   var qz = function(q){ var z = navOnlyZ(q.x, q.y); return z != null ? z : b.z; };
   var sp = pickSpots("rlcov"+tick+b.id, {x:b.x, y:b.y}, 6, {rMin:30, rMax:150, minGap:30, hideFrom:from.concat(thr)})
-    .filter(function(q){ return from.every(function(f){ return !rlSeen(q, qz(q), f); }); })[0];
+    .filter(function(q){ if(!from.every(function(f){ return !rlSeen(q, qz(q), f); })) return false;
+      // и дорога туда не на виду (первые RL_PATH_FREE ед. — он и так стоит на виду): было — укрытие закрыто, а путь к нему шёл по открытому к A
+      var P = pathPts(b.x, b.y, q.x, q.y, b.z), Lp = polyLen(P);
+      for(var dd = RL_PATH_FREE; dd < Lp - 8; dd += 24){ var s = pointAtDist(P, dd), sz = navOnlyZ(s.x, s.y); if(sz == null) sz = b.z;
+        if(from.some(function(f){ return rlSeen(s, sz, f); })) return false; }
+      return true; })[0];
   if(!sp) return false;
   taskKeep(b, 0, "fight");
   setPost(b, sp, from[0], true, "repos:rlcover");
