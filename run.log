@@ -1,0 +1,45 @@
+playwright 1.56.0, браузеры: C:\Windows\system32\config\systemprofile\.simcs2_node\ms-playwright
+> git fetch --quiet origin 226de8050a1307815d0970c8e1278636114d819a
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_6jy9dsar FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_6jy9dsar\src\build.py --map mirage C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v583d_mir.html
+  nadeguess.json устарел — пересчитываю (tools/nades/guess_bake.py --map mirage)
+esbuild: The CommonJS "module" variable is treated as a global variable in an ECMAScript module and may not work as expected
+esbuild: The CommonJS "module" variable is treated as a global variable in an ECMAScript module and may not work as expected
+{"map": "mirage", "guesses": 312, "bytes": 122806}
+esbuild: The CommonJS "module" variable is treated as a global variable in an ECMAScript module and may not work as expected
+esbuild: The CommonJS "module" variable is treated as a global variable in an ECMAScript module and may not work as expected
+модули: 110_post_routes.js, 190_team_intel_lkp_calls.js, 220_know_events_tick.js, 275_look_turn.js, 360_nades_buy_smoke_vision.js, 365_nade_plan.js, 366_exec_sync.js, 370_fire_nav_levels_ladders.js, 380_nades_throw.js, 385_nades_flight.js, 390_nades_lineups.js, 400_nades_physics_damage.js, 410_nades_tactical_self.js, 420_nades_brains.js, 470_fight_cycle.js, 480_assist_flank_reload.js, 490_shoot.js, 500_decide_afterkill_cover.js, 510_engagements.js, 535_move_mode.js, 540_step_tick.js — ядро отдаёт 271 имён, берёт 611
+пометок 1640 | полей facing:7 walking:4 curSpeed:5 post:3 _task:4 _reposUntil:1 _waitPopUntil:1 _avoidPeekUntil:1 _tradeUntil:2 _tradeLock:1 state:2 nadeTask:10 holding:4 crouching:1 path:7 phase:2 | функций 1234
+общих переменных 924 из чужих файлов пишут 86
+> git fetch --quiet origin 226de8050a1307815d0970c8e1278636114d819a
+> git -c core.autocrlf=false worktree add --quiet --detach --force C:\Windows\TEMP\simbuild_bvs4wnct FETCH_HEAD
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\Windows\TEMP\simbuild_bvs4wnct\src\build.py --map ancient C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v583d_anc.html
+  nadeguess.json устарел — пересчитываю (tools/nades/guess_bake.py --map ancient)
+esbuild: The CommonJS "module" variable is treated as a global variable in an ECMAScript module and may not work as expected
+esbuild: The CommonJS "module" variable is treated as a global variable in an ECMAScript module and may not work as expected
+{"map": "ancient", "guesses": 162, "bytes": 63566}
+esbuild: The CommonJS "module" variable is treated as a global variable in an ECMAScript module and may not work as expected
+esbuild: The CommonJS "module" variable is treated as a global variable in an ECMAScript module and may not work as expected
+модули: 110_post_routes.js, 190_team_intel_lkp_calls.js, 220_know_events_tick.js, 275_look_turn.js, 360_nades_buy_smoke_vision.js, 365_nade_plan.js, 366_exec_sync.js, 370_fire_nav_levels_ladders.js, 380_nades_throw.js, 385_nades_flight.js, 390_nades_lineups.js, 400_nades_physics_damage.js, 410_nades_tactical_self.js, 420_nades_brains.js, 470_fight_cycle.js, 480_assist_flank_reload.js, 490_shoot.js, 500_decide_afterkill_cover.js, 510_engagements.js, 535_move_mode.js, 540_step_tick.js — ядро отдаёт 271 имён, берёт 611
+пометок 1640 | полей facing:7 walking:4 curSpeed:5 post:3 _task:4 _reposUntil:1 _waitPopUntil:1 _avoidPeekUntil:1 _tradeUntil:2 _tradeLock:1 state:2 nadeTask:10 holding:4 crouching:1 path:7 phase:2 | функций 1234
+общих переменных 924 из чужих файлов пишут 86
+> C:\Users\Mono\AppData\Local\Programs\Python\Python310\python.exe C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\engine\walk_run.py --job=v583d_mir,C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v583d_mir.html --job=v583d_anc,C:\actions-runner\_work\sim-cs2\sim-cs2\tools\measure\runs\_sims\v583d_anc.html --matches=3,7,11,13,17,19,23,29 --par=8
+матчей в очереди: 16, одновременно: 8
+v583d_mir match 3  rc 0 7740230 — готово 1/16, 7 мин
+v583d_mir match 13  rc 0 9342447 — готово 2/16, 8 мин
+v583d_mir match 29  rc 0 8784474 — готово 3/16, 9 мин
+v583d_mir match 23  rc 0 10617116 — готово 4/16, 9 мин
+v583d_mir match 17  rc 0 9722852 — готово 5/16, 10 мин
+v583d_mir match 19  rc 0 9724789 — готово 6/16, 10 мин
+v583d_mir match 7  rc 0 12461160 — готово 7/16, 11 мин
+v583d_mir match 11  rc 0 13399776 — готово 8/16, 11 мин
+v583d_anc match 3  rc 0 8568317 — готово 9/16, 14 мин
+v583d_anc match 11  rc 0 7475381 — готово 10/16, 14 мин
+v583d_anc match 7  rc 0 8251065 — готово 11/16, 15 мин
+v583d_anc match 19  rc 0 6599623 — готово 12/16, 15 мин
+v583d_anc match 17  rc 0 7987884 — готово 13/16, 16 мин
+v583d_anc match 29  rc 0 6571329 — готово 14/16, 16 мин
+v583d_anc match 23  rc 0 7689573 — готово 15/16, 16 мин
+v583d_anc match 13  rc 0 10620896 — готово 16/16, 17 мин
+done
+all done
