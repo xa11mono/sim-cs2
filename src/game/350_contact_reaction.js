@@ -254,7 +254,7 @@ function contactTick(b){
 //  · между ним и группой дым, а свой рядом стреляется с ней (contactMateFight) — HE (не в сам дым: HE его разрывает), нет —
 //    флешка, если её хлопок по формуле ослепления (flashDirK) не слепит ни одного своего; свой не в бою — дым держит проход сам.
 // Потом — снова угол с оружием. Заменяет «молотов на раш» (410) и молотов / HE опорника «задержать выход» по коллу (420).
-var DELAY_SAFE = 350, DELAY_GAP = 6;   // проектные числа: 350 — из ТЗ владельца (300–400, не из демок), 6 с — пауза между бросками
+var DELAY_SAFE = 350, DELAY_GAP = 6, DELAY_GROUP_R = 175;   // DELAY_GROUP_R (Д30) — px ≈ 350 ед.: «T рядом с местом гранаты» как в замере про   // проектные числа: 350 — из ТЗ владельца (300–400, не из демок), 6 с — пауза между бросками
 function delaySafe(b){
   if(b._sawEnemy) return false;
   var BL = beliefLast[b.team] || {};
@@ -295,7 +295,8 @@ function delayTarget(b){
     fresh.some(function(sg){
       var dB = Math.hypot(b.x-sg.x, b.y-sg.y); if(dB < DELAY_SAFE || dB > NADE_THROW_RANGE) return false;
       if(bots.some(function(o){ return o !== b && delayCanThrow(o) && Math.hypot(o.x-sg.x, o.y-sg.y) >= DELAY_SAFE && Math.hypot(o.x-sg.x, o.y-sg.y) < dB; })) return false;
-      best = {x:sg.x, y:sg.y, d:dB, why:calloutName(sg.x, sg.y), seen: sg.type === "spotted"}; return true; });
+      var nN = {}; fresh.forEach(function(q){ if(Math.hypot(q.x-sg.x, q.y-sg.y) < DELAY_GROUP_R) nN[q.id] = 1; });
+      best = {x:sg.x, y:sg.y, d:dB, why:calloutName(sg.x, sg.y), seen: sg.type === "spotted", n: Object.keys(nN).length}; return true; });
   }
   return best;
 }
@@ -309,8 +310,15 @@ function ctDelayNade(b){
     if(b.nades.he > 0 && !inSmoke) type = "he";
     else if(b.nades.flash > 0 && flashSafeFor(b, t)) type = "flash";
   } else if(!fires.some(function(f){ return Math.hypot(f.x-t.x, f.y-t.y) < NADE.molly.radius; })){
-    // (v580) T видели в точке — HE (у про CT HE 2,1 за раунд, почти все — в T), иначе молотов, смок, HE
-    type = t.seen && b.nades.he > 0 ? "he" : b.nades.molly > 0 ? "molly" : b.nades.smoke > 0 ? "smoke" : b.nades.he > 0 ? "he" : null;
+    // (v583a, Д30, владелец 18.11: «увидел — кинул подходящую гранату: заходят в Connector — молотов, в яме игроки — смок; не только HE / молотов»)
+    // какая граната — жребий из тех, что есть, с весами про: гранаты CT до планта, сработавшие рядом с T (≤ 350 ед.; демки Mirage,
+    // tools/motion/nade_react_pro.py): смоков 2,6 тыс., молотовов 2,6 тыс., HE 1,65 тыс.; T рядом двое и больше — у HE 61 %, у молотова 56 %, у смока
+    // 48 % — для группы веса HE и молотова × (доля / 0,5). Было (v580): видели — HE, иначе молотов, смок, HE по порядку
+    var WN = {smoke: 2605, molly: 2585, he: 1650}, grp = (t.n || 1) >= 2, wsum = 0, wl = [];
+    ["smoke", "molly", "he"].forEach(function(k){ if(b.nades[k] > 0){ var w = WN[k]*(grp ? ({smoke: 0.96, molly: 1.12, he: 1.22})[k] : 1); wl.push([k, w]); wsum += w; } });
+    var ru = hashRand(tick*59 + b.id.charCodeAt(b.id.length-1)*23 + roundNum*3)*wsum;
+    for(var wi = 0; wi < wl.length && !type; wi++){ ru -= wl[wi][1]; if(ru <= 0) type = wl[wi][0]; }
+    if(!type && wl.length) type = wl[wl.length-1][0];
   }
   if(!type || !assignNade(b, type, t, "задержать: "+t.why, {now:true, here:true})) return;
   b._delayT = tick;
