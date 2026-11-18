@@ -334,13 +334,13 @@ function ctProZones(ref){
 // пропадает: её берёт живой с ролью ниже по важности (CT_ROLE_PRI — проектный порядок: опорники, мидер, ротатор, роумер), один раз за раунд, кто
 // ниже всех. Опорник свою роль не бросает (держит сайт). Было: роли — на весь раунд по началу; погиб ротатор (Short) — роумер так и стоял
 // у Hole вторым на миду, Short и B держал один опорник
-var CT_ROLE_PRI = ["anchorA", "anchorB", "mid", "rotator", "roamer"];
+var CT_ROLE_PRI = ["anchorA", "anchorB", "mid", "rotator", "roamer"], CT_SITE_COVER = 500;   // ед. пути — проектное число
 function ctRoleNow(b){
   var ct = teamTac.CT, S = ct && ct.setup; if(!S || !S.roles) return b.tRole;
   var RT = ct._roleTake && ct._roleTake.k === matchNum+":"+roundNum ? ct._roleTake : (ct._roleTake = {k: matchNum+":"+roundNum, by: {}});
   if(RT.by[b.id]) return RT.by[b.id];
   var pri = function(r){ var i = CT_ROLE_PRI.indexOf(r); return i < 0 ? 99 : i; };
-  var holder = function(r){ return bots.filter(function(o){ return o.team === "CT" && (RT.by[o.id] || o.tRole) === r; })[0]; };
+  var holder = function(r){ return bots.filter(function(o){ return o.team === "CT" && o.tRole === r && RT.by[o.id] !== "-"; })[0]; };
   var mine = pri(b.tRole); if(/^anchor/.test(b.tRole || "")) return b.tRole;
   // свободная роль (держатель мёртв, его роль никто не взял) важнее моей — беру, если я ниже всех среди живых не-опорников
   var lost = CT_ROLE_PRI.filter(function(r){ var h = holder(r); return S.roles[r] && h && !h.alive && pri(r) < mine; })[0];
@@ -348,9 +348,19 @@ function ctRoleNow(b){
   var low = bots.filter(function(o){ return o.alive && o.team === "CT" && !/^anchor/.test(o.tRole || "") && !RT.by[o.id] && pri(o.tRole) > pri(lost); })
     .sort(function(p, q){ return pri(q.tRole) - pri(p.tRole); })[0];
   if(low !== b) return b.tRole;
-  RT.by[b.id] = lost; var dead = holder(lost); if(dead && dead !== b) RT.by[dead.id] = "-";
-  voiceLog("CT", "roletake"+b.id+roundNum, b.id, "беру за "+nick(dead ? dead.id : "")+": "+ROLE_LABEL_CT(lost));
-  return lost;
+  var dead = holder(lost);
+  // (владелец 18.11: «игроку 8 у Ladder стоять неплохо, но тогда 6 должен идти на B — или поменяться») сначала — сайт, где никого: у сайта (≤ CT_SITE_COVER
+  // по пути — проектное число) нет живого CT — беру роль опорника этого сайта вторым (место — пара про к тому, кто на этой стороне, ctSpotPick);
+  // оба сайта держат — роль погибшего. Гайды: вчетвером не оставлять сайт пустым (docs/PRO_PLAY.md)
+  var empty = ["A", "B"].filter(function(k){ return SITES[k] && S.roles["anchor"+k] && !bots.some(function(o){ if(o === b || !o.alive || o.team !== "CT") return false;
+      // где он играет: место роли по расстановке (ctSpotPick), иначе пост, иначе где стоит — не временное укрытие
+      var RS = CT_SPOTS_RES.k === matchNum+":"+roundNum && CT_SPOTS_RES.by[o.id], q = RS && RS.i >= 0 ? RS : (o.post && /^(anchor|set:|mid$)/.test(o.post.tag || "") ? o.post : o);
+      return nearP(q.x, q.y, null, SITES[k].x, SITES[k].y, null, CT_SITE_COVER); }); })
+    .sort(function(p, q){ return pathLenTo(b, SITES[p].x, SITES[p].y) - pathLenTo(b, SITES[q].x, SITES[q].y); })[0];
+  var take = empty ? "anchor" + empty : lost;
+  RT.by[b.id] = take; if(dead && dead !== b) RT.by[dead.id] = "-";
+  voiceLog("CT", "roletake"+b.id+roundNum, b.id, empty ? "минус "+nick(dead ? dead.id : "")+" — на "+empty+" никого, иду на "+empty : "беру за "+nick(dead ? dead.id : "")+": "+ROLE_LABEL_CT(lost));
+  return take;
 }
 function ROLE_LABEL_CT(r){ return {anchorA:"опорник A", anchorB:"опорник B", mid:"мидер", rotator:"ротатор", roamer:"роумер"}[r] || r; }
 var events = []; var killfeed = []; // объявлены здесь, до loadOppProfile(), которая пишет в лог сразу при старте
