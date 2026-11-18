@@ -55,18 +55,24 @@ function knowApply(b, s, err, zone, L, opt){
     var ls = B2.lastSound, same = !opt.voice && ls && tick - ls.tick <= KNOW.sameSource*TICK_HZ &&
              Math.hypot(ls.x-s.x, ls.y-s.y) <= err + 100 && KNOW.soundL[s.kind] <= KNOW.soundL[ls.kind];
     if(!opt.voice) B2.lastSound = {x: s.x, y: s.y, tick: tick, kind: same ? ls.kind : s.kind};
+    // (отметка владельца 18.11, м33 р1 т4055, magixx: «отворачивается от Kitchen, хотя оттуда только что граната и шаги») звук «объясняет» и
+    // прогноз «идёт по маршруту» (ретейк, «ушёл туда») — раньше такой прогноз только набирал вес, а место оставалось прогнозным (шаги Kitchen
+    // → «ретейк, Hole» 0,45 → 0,79), и «слышали здесь» не появлялось: событие должно обновить картину мира — враг там, где его слышали.
+    // Теперь вес набирает только ветка «слышали» (её точка — на звук); прогнозы, которые звук объясняет, держат свой вес, а новый вес —
+    // новой веткой «слышали здесь»
     var mOk = 0, mNo = 0;
-    B2.hyps.forEach(function(h){ if(h._c > 0) mOk += h.weight*h._c; else mNo += h.weight; });
+    B2.hyps.forEach(function(h){ if(h._c > 0 && h.heard) mOk += h.weight*h._c; else if(!(h._c > 0)) mNo += h.weight; });
     var move = same ? 0 : r*L;
     B2.hyps.forEach(function(h){
       if(h._c > 0){
+        if(!h.heard) return;
         if(mOk > 0) h.weight += move*mNo*(h.weight*h._c/mOk);
-        if(h.type !== "moved_unknown") specific = true;
-        if(h.heard && zone){ h.x = s.x; h.y = s.y; h.zone = h.route[0] = zone; h.inView = false; h.htick = tick; h.voice = !!opt.voice; }
+        specific = true;
+        if(zone){ h.x = s.x; h.y = s.y; h.zone = h.route[0] = zone; h.inView = false; h.htick = tick; h.voice = !!opt.voice; }
       } else h.weight *= 1 - move;
     });
     if(same && specific){ knowNorm(B2.hyps); continue; }
-    if(!specific && un && zone){
+    if(!specific && zone){
       var take = r*L*(same ? 0.5 : 1);
       B2.hyps.forEach(function(h){ h.weight *= 1 - take; });
       B2.hyps.splice(B2.hyps.length-1, 0, {type: "moved", zone: zone, x: s.x, y: s.y, route: [zone], windows: [], weight: take, heard: true, htick: tick, voice: !!opt.voice});
@@ -200,7 +206,7 @@ function knowPlantShift(K, site){
 }
 // (v583a, Д2.2) сдвиг невидимых врагов к сайту с долей share: «видели» (held, не плант) — остаются (инфа), слышали — по кривой про
 // (knowAgeP), прогнозы — доля share уходит в «у сайта». KILL_SITE_R — 240 px ≈ 600 ед. от центра сайта (тот же радиус, что в замере)
-var KILL_SITE_SHARE = 0.72, KILL_SITE_R = 240;
+var KILL_SITE_SHARE = 0.72, KILL_SITE_R = 240, KILL_NEAR_R = 480, KILL_SITE_ON = 0.36;   // KILL_SITE_ON = 0,25 / 0,70 (на сайте / в 480, kill_site_pro.py)
 function knowSiteShift(K, site, share, skipId){
   var S = SITES[site]; if(!S) return; var z = knowZoneAt(S.x, S.y);
   for(var id in K.enemies){ if(id === skipId) continue; var B = K.enemies[id]; if(B.visible) continue;
@@ -208,7 +214,14 @@ function knowSiteShift(K, site, share, skipId){
     B.hyps.forEach(function(h){
       var keep = h.type === "held" && !h.plant ? (seen ? 1 : 0) : (h.heard && h.htick != null ? knowAgeP((tick - h.htick)/TICK_HZ) : 0);
       var w = h.weight*(1 - keep)*share; moved += w; h.weight -= w; });
-    if(moved > 0) B.hyps.push({type: "held", zone: z, x: S.x, y: S.y, weight: moved, plant: true});
+    // (отметка владельца 18.11, м33 р1: «у игроков 5 и 7 растёт угроза в Jungle») было: вся доля — «стоит на самом сайте»; одиночный выход T4
+    // с T Ramp убил CT4 на A — команда CT решила «на A ~2,85», и это растекалось в соседние зоны. У про в момент такой смерти остальные T на
+    // самом сайте (≤ 240) — 24–30 %, в 480 (подходы) — 68–74 % (tools/pro/kill_site_pro.py, Mirage, 663 смерти): на сайт — KILL_SITE_ON
+    // сдвинутого, остальное — поровну по местам про у подходов (240–480 от сайта), куда враг уже мог дойти
+    if(moved > 0){ var NP = K.spots.filter(function(p){ var dS = Math.hypot(p.x-S.x, p.y-S.y); return dS > KILL_SITE_R && dS <= KILL_NEAR_R && knowSpotReach(p); });
+      var on = NP.length ? moved*KILL_SITE_ON : moved;
+      B.hyps.push({type: "held", zone: z, x: S.x, y: S.y, weight: on, plant: true});
+      NP.forEach(function(p){ B.hyps.push({type: "held", zone: p.zone, x: p.x, y: p.y, weight: (moved - on)/NP.length, plant: true}); }); }
     knowNorm(B.hyps); knowTrim(B); }
 }
 // CT видит саму бомбу на земле — знает сайт

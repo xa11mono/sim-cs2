@@ -416,6 +416,7 @@ var LOOK_LEVEL = {
   corner:  6,  // угол по пути, за которым может быть враг (prePeekTick)
   post:    4   // угол поста по сетапу (делёж ничего не выдал)
 };
+var KNOW_NEAR_SLACK = 60;   // проектное число: ед. карты — «не дальше ближайшего известного» с запасом
 var LOOK_FRESH = 64;   // 1 с (TICK_HZ): «свежее» для уровней fight / sound / team — проектное число (задача шага 4: «свежий, ≤ 1 с»)
 function lookContactFresh(b){
   // (отметка владельца 18.11, м5 р2 т6382, CT1: «он должен сосредоточиться на контакте, который перед ним») бот выходит на свой контакт
@@ -510,14 +511,24 @@ function lookKnowCands(b){
   // (п.26 владельца 29.10, м1 р7: CT на B смотрели в Kitchen по смерти kyousuke на Ramp — проверки «рядом» в коде не было, срабатывала
   // любая смерть на карте) «рядом» — то же, что у отхода CT «свой убит рядом» (300: FB.deathR по прямой и по пути)
   var sg = teamIntel[b.team] && teamIntel[b.team].sig;
-  if(sg) for(var i = sg.length-1; i >= 0; i--){ var s = sg[i]; if(tick - s.tick > 3*TICK_HZ) break;
+  // (отметка владельца 18.11, м33 р1 т2629, kyousuke: «смотрит Jungle, т. к. убили на миду, но забывает про врага на A») было ≤ 3 с на уровне
+  // «свои уши» — вес 0,11 перебивал угрозу 9,4 (арбитр по уровням); теперь, как свой звук и инфа команды, ≤ LOOK_FRESH: дальше убийца уже в
+  // знании команды (киллфид) и взвешивается вместе со всеми в оценке углов
+  if(sg) for(var i = sg.length-1; i >= 0; i--){ var s = sg[i]; if(tick - s.tick > LOOK_FRESH) break;
     if(s.type !== "died" || s.id === b.id) continue;
     if(Math.hypot(s.x-b.x, s.y-b.y) >= FB.deathR || polyLen(pathPts(b.x, b.y, s.x, s.y, b.z)) >= FB.deathR) continue;
     add(LOOK_LEVEL.sound, "death", {x: s.kx != null ? s.kx : s.x, y: s.kx != null ? s.ky : s.y, age: tick - s.tick}); break; }
   // команда знает сейчас: видят (радар) / слышали / сказали ≤ 1 с; в упор (≤ 250 px) — та же «свежая угроза», что у зоны
   var BL = beliefLast[b.team] || {};
+  // (отметка владельца 18.11, м33 р1 т2016, m0NESY: «открыт под рампу, где враг, а смотрит Connector») свежая инфа про дальнего врага (T2 — 684 по
+  // пути) перебивала по уровню того, с кем он стрелялся 3 с назад (T4 — 504): инфа команды берёт взгляд, только если этот враг — ближайший по
+  // пути из известных команде (≤ BACK_KNOW с); иначе он — в общей оценке углов
+  var kd = {}, kMin = Infinity;
+  for(var ek in BL){ var lk = BL[ek], ok = teamBot(ek); if(!lk || !ok || !ok.alive || tick - lk.tick > BACK_KNOW*TICK_HZ) continue;
+    kd[ek] = polyLen(pathPts(lk.x, lk.y, b.x, b.y, null, b.z)); if(kd[ek] < kMin) kMin = kd[ek]; }
   for(var eid in BL){ var lo = BL[eid]; if(!lo || tick - lo.tick > LOOK_FRESH) continue;
     var eb = bots.filter(function(o){ return o.id === eid; })[0]; if(!eb || !eb.alive) continue;
+    if(kd[eid] != null && kd[eid] > kMin + KNOW_NEAR_SLACK) continue;
     add(LOOK_LEVEL.team, "team", {x: lo.x, y: lo.y, age: tick - lo.tick}, lo.src === "spotted" && Math.hypot(lo.x-b.x, lo.y-b.y) <= 250 ? LOOK.freshK : 1); }
   return out;
 }

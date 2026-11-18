@@ -219,12 +219,18 @@ function bzWalk(){
     return D; });
   return BZ_WALK;
 }
+// (отметка владельца 18.11, м33 р1: «у игроков 5 и 7 растёт угроза в Jungle, когда там тиммейты») враг из зоны k входит в nn через соседа p
+// (последний шаг его пути: W[k][p] + W[p][nn] = W[k][nn]); этот проход видит свой (PORTAL_W — как у входа в зону бота) — встретит его первым:
+// доля × LOOK.watchedNbr. Было: «вход видит свой» проверялся только у самого входа в зону бота — угроза из A Site текла в Jungle через Cross,
+// хотя проход A Site → Cross держал CT1 с Triple Box
 function nbrThreat(team, j, nn, zb){
-  var W = bzWalk(), t = 0;
+  var W = bzWalk(), t = 0, PW = PORTAL_W[team] || {};
   for(var k=0;k<W.length;k++){ if(k === j || k === zb) continue;
     var dn = W[k][nn]; if(!(dn < W[k][j])) continue;
     if(k !== nn && !reachPossible(team, k)) continue;
-    var bk = beliefZoneKnown(team, k); if(bk > 0) t += bk * Math.exp(-dn / LOOK.nearPx); }
+    var bk = beliefZoneKnown(team, k); if(bk > 0){
+      var seen = k !== nn && BZ.nbr[nn].some(function(p){ return PW[p+","+nn] && W[k][p] + W[p][nn] <= dn + 1; });
+      t += bk * Math.exp(-dn / LOOK.nearPx) * (seen ? LOOK.watchedNbr : 1); } }
   return t;
 }
 // (v261, В5) шум слышен, а видимого угла, откуда выйдет враг, нет (стоит в углу за ящиком) — игрок всё равно
