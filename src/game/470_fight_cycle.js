@@ -345,7 +345,7 @@ function fightCycleTick(b, dtSec, busy){
     var PW = PEEK_KIND[b.team] || PEEK_KIND.T, ur = fightRand(b, 13); F.pk = ur < PW[0] ? "short" : ur < PW[0] + PW[1] ? "mid" : "wide";
     if(F.pk === "wide"){ var wdx = F.ax - F.cx, wdy = F.ay - F.cy, wl = Math.hypot(wdx, wdy);
       if(wl > 0.5){ var wx = F.ax + wdx/wl*PEEK_WIDE_EXTRA/PX_UNITS, wy = F.ay + wdy/wl*PEEK_WIDE_EXTRA/PX_UNITS;
-        if(!stepBlocked(F.ax, F.ay, wx, wy, b) && navNearLevel(wx, wy, 0, b.z)){ F.ax = wx; F.ay = wy; } else F.pk = "mid"; } else F.pk = "mid"; }
+        if(!stepBlocked(F.ax, F.ay, wx, wy, b) && navNearLevel(wx, wy, 0, b.z) && !inFire(wx, wy, b.z)){ F.ax = wx; F.ay = wy; } else F.pk = "mid"; } else F.pk = "mid"; }
     // (ответ 4) против AWP (оружие врага видно) — сначала плечо: выстрелил — выглядывает целиком, пока он перезаряжается; нет — через паузу про
     if(F.e && F.e.primary === "AWP"){ var shp = fightShoulderPt(b, F.e, F.cx, F.cy, F.ax, F.ay); if(shp) F.sh = {x:shp.x, y:shp.y, t0:0, shot:F.e.lastShotTick || -1, done:false}; }
   }

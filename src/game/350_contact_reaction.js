@@ -210,7 +210,7 @@ function contactTick(b){
     return hasLOS(q.x, q.y, look.x, look.y, a ? a.z : b.z, C.z); };
   var contactSpots = function(sw, rS){ var c0 = rS ? {x:b.x + (look.x-b.x)*0.5, y:b.y + (look.y-b.y)*0.5} : {x:b.x, y:b.y};   // заход — вокруг полпути к врагу (0,5, 12 точек — проектные)
     return pickSpots("ct"+b.id+Math.round(look.x/40)+","+Math.round(look.y/40)+(sw ? "s"+(rS||"") : "h"), c0, rS ? 12 : 6, {rMax: sw ? (rS || CONTACT_SWING) : 160, minGap:30, see:[look]})
-    .filter(function(q){ return Math.hypot(q.x-look.x, q.y-look.y) >= 120 && !spotTaken(b, q) && spotOk(q); }); };
+    .filter(function(q){ return Math.hypot(q.x-look.x, q.y-look.y) >= 120 && !spotTaken(b, q) && spotOk(q) && !inFire(q.x, q.y, b.z); }); };   // (v583a, Д30, прогон 284: «стоит в огне» 36 → 58 — точка контакта в огне; выбор «ближняя / дальняя» стал её находить)
   var cand = contactSpots(swing);
   // (v555, м298 р1: раш стоял в Tetris — точки «выйти на врага» с видом на Cross ближе 220 ед. нет, выход превращался в «держать угол») в выходе
   // T заход — дальше, в зону врага (до CONTACT_PUSH ед.): занять её, а не стоять на краю
