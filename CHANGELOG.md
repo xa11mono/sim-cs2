@@ -152,6 +152,7 @@
   в ветке `rebuild-v238`.
 
 ## Страницы (ссылки)
+- 18.11, v583a (перестрелки: очереди и стрейф как у про, виды пика, места CT из демок, обсервер, огонь, повторы по времени) — на втором аккаунте: Ancient 6nWEKBXyNAybDYzgPT1sH7 (версия 54), Mirage QzmQZEd5t9EdnhcXET9Agn (версия 90).
 - 15.11, v582a (перестройка: поля бота у каналов — игра та же, отпечаток бит в бит; отметка открывается со снимка за 15 с до и пересчитывается этой версией) — на втором аккаунте (основные этой сессии недоступны): Ancient https://claude.ai/artifact/6nWEKBXyNAybDYzgPT1sH7, Mirage https://claude.ai/artifact/QzmQZEd5t9EdnhcXET9Agn.
 - 15.11, v575a + В147 (рука из демок, ведение той же точки, удержание взгляда по паузам про) — на аккаунте владельца: Ancient https://claude.ai/artifact/FwpnXA7PSbsEyT5GXL7i5U, Mirage https://claude.ai/artifact/MJyn1PwcYKgg7WEMyoYWcv (версия 18).
 - 14.11, v575a (объединение: движение В140–В146 + тактики и гранаты В142 / v580a + 3D-вид v573a) — на аккаунте владельца: Ancient https://claude.ai/artifact/FwpnXA7PSbsEyT5GXL7i5U, Mirage https://claude.ai/artifact/MJyn1PwcYKgg7WEMyoYWcv (версия 17 обеих; база отметок и правок карты — прежняя).
