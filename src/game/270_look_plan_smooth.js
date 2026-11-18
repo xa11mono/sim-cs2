@@ -440,7 +440,9 @@ function lookKnowPt(b, q, zb, mates, moving){
   var pt = srcVis ? {x: q.x, y: q.y} : (apf || cornerLook(b, q) || openToward(b, za, LOOK.sndOpen));
   // (v568, отметка владельца м3 р1 47 с, CT1: «смотрит вообще не туда, откуда стреляли») в перестрелке (_fc) враг выйдет на линию, через
   // которую стреляли, а не из прохода по пути пешком: точка по пути дальше CORNER_FIGHT_OFF от направления на него — смотреть по этой линии
-  if(b._fc && pt && !srcVis && _angOff(Math.atan2(pt.y-b.y, pt.x-b.x), za) > CORNER_FIGHT_OFF){ var dl0 = Math.min(220, d); pt = {x: b.x + Math.cos(za)*dl0, y: b.y + Math.sin(za)*dl0}; }
+  if(b._fc && pt && !srcVis && _angOff(Math.atan2(pt.y-b.y, pt.x-b.x), za) > CORNER_FIGHT_OFF){ var dl0 = Math.min(220, d); pt = {x: b.x + Math.cos(za)*dl0, y: b.y + Math.sin(za)*dl0};
+    // (владелец 18.11: «всегда в сторону врага; стоит в упор к стенке — не в стенку, а чуть за край стенки, чтобы враг выходил под прицел»)
+    if(lookWallClose(b, pt)){ var ce0 = cornerLook(b, q); if(ce0) pt = ce0; } }
   // (v281) видимой точки нет — место, где враг на своём пути зайдёт в мою зону
   if(!pt){ var wq0 = lookKnowPath(b, q);
     for(var wi0 = 0; wi0 < wq0.length; wi0++){ if(bzOf(wq0[wi0][0], wq0[wi0][1]) === zb){ var ep = {x: wq0[wi0][0], y: wq0[wi0][1]}; if(Math.hypot(ep.x-b.x, ep.y-b.y) > 40) pt = ep; break; } } }
@@ -569,7 +571,9 @@ function lookFilter(b, look, LD){
   // (первая видимая точка его пути ко мне — appearFrom; нет — ближайший видимый угол по пути). Враг на виду, прострел (spam), прыжок — как есть;
   // угол про из демок (pro) — только если стена впритык (lookWallClose): отворот от флешки (владелец 17.11); дальше — как все.
   // Было: по всем ботам взгляд в невидимую точку ~19 % времени (м302 р2–р4)
-  if(look && !b._sawEnemy && !/^(enemy|spam|jump)$/.test(b.lookReason || "") && !(b.lookReason === "pro" && lookWallClose(b, look)) && !lookVisible(b, look)){
+  // (отметка владельца 18.11, м5 р2 т6837, CT1: «увидел игрока 0, посмотрел на него и отвернулся») свой контакт — не сюда: его точку уже
+  // считает lookKnowPt (в перестрелке — по линии на врага, 250: CORNER_FIGHT_OFF); здесь её меняли на «где выйдет по пути ко мне» — в сторону
+  if(look && !b._sawEnemy && !/^(enemy|spam|jump|contact)$/.test(b.lookReason || "") && !(b.lookReason === "pro" && lookWallClose(b, look)) && !lookVisible(b, look)){
     var apL = appearFrom(b, look) || cornerLook(b, look);
     if(apL && apL !== look && lookVisible(b, apL)){ look = apL; if(LD) LD.steps.push("точка за стеной — смотрю, откуда выйдет"); } }
   if(look && b._lookLvl <= LOOK_LEVEL.angle && lookOnMate(b, look)){ var alt = openDirLook(b);

@@ -68,7 +68,9 @@ function blindBullet(b, pt){
   var a = Math.atan2(pt.y-b.y, pt.x-b.x) + (hashRand(tick*31 + b.id.charCodeAt(1))-0.5)*(pt.spread || 0.08);
   var cl = bulletClip3(b, b.x + Math.cos(a)*(w.range||900), b.y + Math.sin(a)*(w.range||900), {x:pt.x, y:pt.y, z:pt.z});   // (v519) по 3D-геометрии
   var ez0 = visFloorAt(b.x, b.y, b.z) + VIS_EYE.stand;   // (v548) дыра — линия пули в 3D: от глаз к точке, куда целился (на уровне груди)
-  smokeBulletHole(b.x, b.y, pt.x, pt.y, ez0, (pt.z != null ? visFloorAt(pt.x, pt.y, pt.z) : visFloorAt(b.x, b.y, b.z)) + VIS_BODY.stand[0]);
+  // дыра — только по пролёту пули: до места, где она упёрлась (cl), высота — по той же линии
+  var ez1 = (pt.z != null ? visFloorAt(pt.x, pt.y, pt.z) : visFloorAt(b.x, b.y, b.z)) + VIS_BODY.stand[0], dP = Math.hypot(pt.x-b.x, pt.y-b.y) || 1, dC = Math.hypot(cl.x-b.x, cl.y-b.y);
+  if(dC < dP) smokeBulletHole(b.x, b.y, cl.x, cl.y, ez0, ez0 + (ez1-ez0)*dC/dP); else smokeBulletHole(b.x, b.y, pt.x, pt.y, ez0, ez1);
   var sv = bulletLineHit(b, cl.x, cl.y, null, tick*37 + b.id.charCodeAt(1)*11, b._spam && b._spam.blind ? "вслепую" : "сквозь дым");   // (Г1) пуля сквозь дым попадает в того, кто на линии
   if(sv) cl = {x:sv.x, y:sv.y};
   tracers.push({wc:tracerClass(b.weapon), wk:b.weapon && b.weapon.key, sil:!!(b.weapon && b.weapon.silenced), x1:b.x, y1:b.y, x2:cl.x, y2:cl.y, team:b.team, born:nowTs, hit:!!sv, miss:!sv}); if(tracers.length > 60) tracers.shift(); soundEv("sndShot", b.weapon, b.x, b.y);
@@ -104,6 +106,11 @@ function smokeSpamTick(){
       if(b.facing !== undefined && _angOff(aim, b.facing) > 0.2 && !P.blind) return;   // сначала довести прицел (слепой не видит прицела — как есть)
       if(!P.blind) bots.forEach(function(e){ if(foe || !e.alive || e.team === b.team) return; var d = Math.hypot(e.x-b.x, e.y-b.y); if(d > 900) return;
         if(_angOff(Math.atan2(e.y-b.y, e.x-b.x), aim) > 0.12 || !hasLOS(b.x, b.y, e.x, e.y, b.z) || !smokeBlocks(b.x, b.y, e.x, e.y)) return; foe = e; });
+      // (отметка владельца 18.11, м5 р2 т6916, CT1 на Catwalk: «на радаре стреляет в пол») цель прямо под краем Catwalk — линия от глаз к
+      // её груди упирается в бортик края через 32 ед. (3D-геометрия, bulletClip3), до смока пуля не долетает. Живой игрок так не простреливает:
+      // упёрся — прострел снят (слепой не видит, куда стреляет, — как есть)
+      if(!foe && !P.blind){ var cl0 = bulletClip3(b, P.pt.x, P.pt.y, P.pt), sm0 = P.s || smokes.filter(function(s){ return segHitsCircle(b.x, b.y, P.pt.x, P.pt.y, s.x, s.y, smokeRadiusNow(s)); })[0];
+        if(cl0.wall && (!sm0 || Math.hypot(cl0.x-b.x, cl0.y-b.y) < Math.hypot(sm0.x-b.x, sm0.y-b.y) - smokeRadiusNow(sm0))){ b._spam = null; return; } }
       var fired = false;
       if(foe){ var a0 = b.ammo; b._smokeShot = true; tryShoot(b, foe, Math.hypot(foe.x-b.x, foe.y-b.y)); b._smokeShot = false; fired = b.ammo !== a0; if(fired) smokeBulletHole(b.x, b.y, foe.x, foe.y, visFloorAt(b.x, b.y, b.z) + VIS_EYE.stand, visFloorAt(foe.x, foe.y, foe.z) + VIS_BODY.stand[0]); }
       else fired = blindBullet(b, P.blind ? {x:P.pt.x, y:P.pt.y, z:P.pt.z, spread:BLIND_SPREAD} : P.pt);
