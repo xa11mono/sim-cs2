@@ -206,7 +206,7 @@ var TASK_PROP = {
   // (17.11, владелец к видео CT4: «бежит, не добегая разворачивается — туда-сюда»; дубль №5) короткая остановка своего — бросок с лайнапа,
   // подбор, точка маршрута — не занимает чужое место (spotTaken «post» и личное место по посту, 350); сам свой, стоящий там, — занимает
   briefStop:        /^(lineup|pickup|fetch|route)/,
-  exactSpot:        /^(plantspot|defuse|lineup|pickup|fetch|stopplant|antidefuse|ladder|smokeWait|route|sbGo)/,   // (v552) приказ песочницы — точно   // точное место: точку не сдвигают от своего (110)
+  exactSpot:        /^(plantspot|defuse|lineup|pickup|fetch|stopplant|antidefuse|ladder|smokeWait|route|sbGo|postplant:pro)/,   // (v552) приказ песочницы — точно   // точное место: точку не сдвигают от своего (110)
   // (v529) проверки чужой задачи по ОДНОМУ имени (механика смотрит на задачу, которую ставит не она) — 19 мест в 10 файлах, без изменений:
   midTask:          /^tmid$/,        // пробы / «проверено — пусто»: задача мида T (150)
   waitsAhead:       /:ahead$/,       // IGL: стадия «жду впереди» (160)

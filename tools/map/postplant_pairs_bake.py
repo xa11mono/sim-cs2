@@ -11,7 +11,8 @@ python3 tools/map/postplant_pairs_bake.py --map <карта>  → data/maps/<к�
   look   — до двух главных направлений взгляда стоящих [угол (рад, как facing в игре: atan2(dy, dx), y вниз), доля] — все взгляды,
            и «в стену» тоже (у про это бывает отворот от флешки), не отбрасываются;
   two    — доля раундов места, где там стояли двое одновременно (кроссфайр / вдвоём на позиции);
-  tArr   — медиана, через сколько секунд после планта T там встал; dBomb — до бомбы по прямой (ед. карты 0..2048).
+  tArr   — медиана, через сколько секунд после планта T там встал; dBomb — до бомбы по прямой (ед. карты 0..2048);
+  pair   — {j: доля раундов этого места, где занято и место j} — кто с кем держит бомбу у про (раздача в игре — ppProGroup, 280).
 Пороги — проектные числа (подобраны, чтобы мест на сайт было 5–20). Общий для всех карт; входит в шаг demos (tools/map/demos_bake.py)
 и в памятку (tools/map/map_manifest.json).
 """
@@ -91,13 +92,15 @@ def main():
             if n >= MIN_ROUNDS and all(math.hypot(cx - c[0], cy - c[1]) >= MERGE for c in cent):
                 cent.append([cx, cy])
         spots = []
+        occ = []   # место → раунды (номер в rounds), где там стояли
         for cx, cy in cent:
             rr, two, ang, arr, xs, ys = 0, 0, [], [], [], []
-            for rid, S in rounds:
+            ids = set()
+            for ri, (rid, S) in enumerate(rounds):
                 here = [s for s in S if math.hypot(s[1] - cx, s[2] - cy) < MERGE / 2]
                 if len(here) < 4:
                     continue
-                rr += 1
+                rr += 1; ids.add(ri)
                 by_t = {}
                 for s in here:
                     by_t.setdefault(s[5], set()).add(s[0])
@@ -121,7 +124,12 @@ def main():
             mx, my = float(np.median(xs)), float(np.median(ys))
             spots.append({'x': round(mx, 1), 'y': round(my, 1), 'share': round(rr / len(rounds), 3), 'rounds': rr, 'look': look,
                           'two': round(two / rr, 2), 'tArr': round(float(np.median(arr)), 1), 'dBomb': round(math.hypot(mx - p['x'], my - p['y']))})
-        spots.sort(key=lambda s: -s['share'])
+            occ.append(ids)
+        order = sorted(range(len(spots)), key=lambda i: -spots[i]['share'])
+        spots = [spots[i] for i in order]; occ = [occ[i] for i in order]
+        # pair — {j: доля раундов места i, где занято и место j} (владелец 18.11: «распределять, как про стоят вместе», а не четыре частых места)
+        for i, sp in enumerate(spots):
+            sp['pair'] = {str(j): round(len(occ[i] & occ[j]) / len(occ[i]), 2) for j in range(len(spots)) if j != i and occ[i] & occ[j]}
         out.append({'x': p['x'], 'y': p['y'], 'site': p['site'], 'rounds': len(rounds), 'spots': spots})
     res = {'_about': 'tools/map/postplant_pairs_bake.py: место бомбы (MAP.pro.plants) → где встают T после планта, куда смотрят, вдвоём ли',
            'map': MAPNAME, 'plants': out}
