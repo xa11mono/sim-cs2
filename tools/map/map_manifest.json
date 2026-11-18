@@ -42,7 +42,6 @@
     {"file": "-", "key": "", "what": "РЕТЕЙК: откуда и в каком порядке CT заходят на сайт (пути, кто первый)", "need": "нет скрипта"},
     {"file": "postplant.json", "key": "plants", "what": "ПОСТ-ПЛАНТ: бомба здесь → где встают T, куда смотрят, вдвоём", "bake": "postplant_pairs_bake.py (demos, после pro.json)"},
     {"file": "ctspots.json", "key": "sides", "what": "РАССТАНОВКИ CT: где стоят CT про по стороне и числу CT на ней, куда смотрят, кто с кем в паре", "bake": "ct_spots_bake.py (demos)"},
-    {"file": "tstage.json", "key": "sites", "what": "ПОДГОТОВКА T: где T ждут захода на сайт, куда смотрят, кто с кем", "bake": "t_stage_bake.py (demos, после pro.json)"},
     {"file": "-", "key": "", "what": "КЛАТЧ: где и как играют 1vN", "need": "нет скрипта"}
   ]
 }

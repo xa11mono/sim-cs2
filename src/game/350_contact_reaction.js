@@ -174,16 +174,13 @@ function contactTick(b){
   if((fought || quiet) && swing){
     var HR = b._heardReload, PHc = teamIntel[b.team] && teamIntel[b.team].plantHeard;
     var adv = !!contactMateFight(b, C)
-      // (v583a, Д26–Д27, прогон 274: до выхода T у сайта CT гибнут до 30-й с в 51 % раундов (у про 21 %) — жертва «выходил на врага» 30, «держал» 19,
-      // убийца T «выходил на врага» 32, — и после фрага T заходят сразу, на 19-й с вместо 29–48-й по плану, без смоков) до выхода «свой рядом на
-      // размен» и «размен не проигрышный» — не преимущество: оба держат, преимущество — свой уже стреляется, перезарядка, урон, флешка
-      || (!quiet && bots.some(function(o){ return o !== b && o.alive && o.team === b.team && !o._sawEnemy && nearP(o.x, o.y, o.z, b.x, b.y, b.z, TRADE_R); }))   // размен рядом
+      || bots.some(function(o){ return o !== b && o.alive && o.team === b.team && !o._sawEnemy && nearP(o.x, o.y, o.z, b.x, b.y, b.z, TRADE_R); })   // размен рядом
       || !!(HR && HR.id === C.id && tick < HR.until)                                                                                            // перезаряжается
       || !!(b.team === "CT" && PHc && tick - PHc.tick < 5*TICK_HZ)                                                                               // сорвать плант
       || duelHits(b._hitOut, tick - CONTACT_AGE*TICK_HZ, C.id) > duelHits(b._hitIn, tick - CONTACT_AGE*TICK_HZ, null)
       // (v521, владелец 10.11: «после боя слишком долго стоят»; ответ про дуэли: «по ситуации — мало HP у обоих: могут отойти, могут допушить»)
       // размен с ним сейчас не проигрышный (та же оценка, что повторный пик в бою — 470 duelOdds) — тоже преимущество
-      || (!quiet && !!(function(){ var eo = C.id ? teamBot(C.id) : null, o = eo ? duelOdds(b, eo, C.x, C.y) : null; return o && o.ok; })());                         // (дуэли 06.11) ранил его больше, чем получил, — добить
+      || !!(function(){ var eo = C.id ? teamBot(C.id) : null, o = eo ? duelOdds(b, eo, C.x, C.y) : null; return o && o.ok; })();                         // (дуэли 06.11) ранил его больше, чем получил, — добить
     if(!adv && !C.own) adv = !!nadeAskFlash(b, look, "флешу под пик "+b.id+" ("+calloutName(look.x, look.y)+")");
     if(!adv) swing = false;
   }
