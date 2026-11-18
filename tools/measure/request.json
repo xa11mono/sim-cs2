@@ -2,8 +2,8 @@
  "par": 8,
  "jobs": [
   {
-   "label": "v583n_mir",
-   "ref": "749d8f99d0d920ef6fca2913af69a03d5f172d59",
+   "label": "v583o_mir",
+   "ref": "58ff1d9e87b3dfd22826481e33b21a79d8d4ef7b",
    "map": "mirage",
    "matches": [
     3,
@@ -17,8 +17,8 @@
    ]
   },
   {
-   "label": "v583n_anc",
-   "ref": "749d8f99d0d920ef6fca2913af69a03d5f172d59",
+   "label": "v583o_anc",
+   "ref": "58ff1d9e87b3dfd22826481e33b21a79d8d4ef7b",
    "map": "ancient",
    "matches": [
     3,
