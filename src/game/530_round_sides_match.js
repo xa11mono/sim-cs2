@@ -195,7 +195,7 @@ function resetRound(){
     // прошлого раунда, продолжался после спавна — бота тянуло обратно туда, где он лез. Всё движение прошлого раунда — сброс
     b._climb = null; b._fireExit = null; b._fireExitFire = null; b._unstickT = null; placeResetTask(b); b._hold = null;
     // (v353, владелец: «тусклость кружка сохраняется после окончания раунда») этаж для рисования — сразу по спавну, а не через 16 тиков движения
-    b._underV = null; b._overV = null; floorViewTick(b);   // (v535) этаж — заново с нового места
+    b._underV = null; b._overV = null; b._fall = null; floorViewTick(b);   // (v535) этаж — заново с нового места
     b.baseX = b.x; b.baseY = b.y;
     b.px = b.x; b.py = b.y;
     movePath(b, [], "reset"); b.pathIdx = 0; b.alive = true; b.hp = 100;

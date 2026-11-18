@@ -185,6 +185,11 @@ function ladderFor(x, y, z, zTo, r){
     var d = Math.hypot(e[0].x - x, e[0].y - y); if(d < bd){ bd = d; best = {near: e[0], far: e[1], sec: L.sec, mid: L.up ? L.mid : null, jump: !!L.up, Y: L.up ? L.Y : null}; } }); });
   return best;
 }
+function navDropTo(a, b){
+  var ok = function(x){ return (zoneGraph[x.id] || []).some(function(e){ return e.to === b.id && !NAV_LAD[x.id+">"+b.id]; }); };
+  if(ok(a)) return true;
+  return (zoneGraph[a.id] || []).some(function(e){ var m = navArea(e.to); return m && Math.abs(m.z - a.z) <= 18 && ok(m); });
+}
 // true — бот в этот тик на лестнице (обычный шаг не делается)
 function ladderTick(bot){
   var C = bot._climb;
@@ -240,6 +245,11 @@ function ladderTick(bot){
   // перепад 57 — это прыжок по связи навмеша, а не лестница: раньше в путь вставлялся подъём из демок в 100 ед. от ящика, бот шёл к нему и падал
   // (путь после натяжки пропускает соседний участок своего уровня — связь ищется и через него, как navLinked2)
   var ca = navArea(bot._area); if(ca && navJumpLinked(ca, wp[2])) return false;
+  // (владелец 18.11, м5 р1: «у тиммейта рядом почему путь повёл на лестницу») путь задуман спуском по связи навмеша (спрыгнуть с края, 050) к
+  // участку следующей точки — с этого участка или соседнего своего уровня, и это не связь лестницы (NAV_LAD): лестница не подставляется. Было:
+  // низ лестницы в 105 ед. от точки приземления — «путь через лестницу», бот разворачивался к ней от самого края
+  var aw = navAt(wp[0], wp[1], wp[2]);
+  if(ca && aw && Math.abs(aw.z - wp[2]) <= JUMP_UP && navDropTo(ca, aw)) return false;
   var L = ladderFor(bot.baseX, bot.baseY, bot.z, wp[2], LADDER_SEEK); if(!L) return false;
   // путь действительно идёт через лестницу: эта точка (или следующая за точкой у лестницы) — у другого конца лестницы. Высота
   // конечной точки пути бывает «не знаю» (0) — по ней одной на лестницу не лезть (бот лез вверх-вниз)
@@ -360,7 +370,19 @@ function navNearestFall(x, y, tol, z){
   }
   return best;
 }
+// (владелец 18.11: «сделай нормальное падение — инерция и т. п.») сошёл с края вниз (ниже ступеньки) — падает с ускорением CS2 (sv_gravity 800
+// ед./с²), ход по пути продолжается (инерция), приземление — когда высота дошла до пола под ногами: тогда звук приземления, пересчёт пути.
+// Было: высота менялась за тик (128 ед. — мгновенно), звук — в момент схода
+var FALL_G = 800;
 function navFollowFloor(bot){
+  var FA = bot._fall;
+  if(FA){ var tf = (tick - FA.t0)/TICK_HZ, zf = FA.z0 - 0.5*FALL_G*tf*tf, g = navAt(bot.baseX, bot.baseY, FA.zt) || navArea(FA.area), gz = g ? navFloorZ(g, bot.baseX, bot.baseY) : FA.zt;
+    bot._flx = bot.baseX; bot._fly = bot.baseY;
+    if(zf > gz){ bot.z = zf; return; }
+    bot._fall = null; bot.z = gz; if(g) bot._area = g.id;
+    if(FA.z0 - gz > LAND_SOUND_DROP){ bot._jump = {t:tick, up:false}; if(roundState === "live") landSound(bot); }
+    if(FA.z0 - gz > JUMP_UP && bot.path && bot.pathIdx < bot.path.length){ bot.path = []; bot.pathIdx = 0; }
+    return; }
   if(bot._flx === bot.baseX && bot._fly === bot.baseY) return;
   bot._flx = bot.baseX; bot._fly = bot.baseY;
   var naz = navAt(bot.baseX, bot.baseY, bot.z) || navNearestFall(bot.baseX, bot.baseY, NAV_STEP_TOL, bot.z);
@@ -389,6 +411,7 @@ function navFollowFloor(bot){
     // (v336, владелец: «прыгают на рандом, где не нужно, и палятся») прыжок и приземление — по полу у края (navStepDz),
     // а не по центрам участков: ступени и пандусы Mirage (Stairs, Palace, рампы) больше не «прыжок» со звуком
     var djz = (a0z && naz !== a0z) ? navStepDz(a0z, naz, bot.baseX, bot.baseY) : (naz === a0z ? 0 : dzz);
+    if(bot.z != null && djz < -18 && dzz < -18){ bot._fall = {z0: bot.z, t0: tick, area: naz.id, zt: naz.z}; bot._area = naz.id; return; }   // падение (выше)
     if(djz > 18) bot._jump = {t:tick, up:true}; else if(djz < -LAND_SOUND_DROP) bot._jump = {t:tick, up:false};
     // (v322, М29) прыжок / приземление слышно и при тихом шаге, далеко (csdb.gg: «громкий звук приземления, слышно
     // издалека», без числа) — радиус как у бега: проектное число
@@ -476,6 +499,9 @@ function floorCover(x, y, z){
 // плавная смена на экране: доля «под этажом / над этажом» тянется к посчитанной за ~0,25 с (проектное число), без скачков
 function floorViewTick(b){
   var c = floorCover(b.x, b.y, b.z), k = 0.25;
+  // (отметка владельца 18.11, м5 р1, лестница с Balcony: «стал серым, как будто под этажом») лестница в данных — в 4–5 ед. внутри контура пола
+  // над ней, в игре она висит на краю, снаружи: на лестнице «под полом» не считается
+  if(b._climb) c.under = 0;
   b._underV = b._underV == null ? c.under : b._underV + (c.under - b._underV)*k;
   b._overV = b._overV == null ? c.over : b._overV + (c.over - b._overV)*k;
 }
