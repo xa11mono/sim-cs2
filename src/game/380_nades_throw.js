@@ -582,7 +582,7 @@ function updateNadeTask1(b){
         // (v560, В106, разбор владельца 11.11: «куча гранат, но не кидают» — флешка ретейка 10 с ждала, пока боец встанет в точку броска, а он
         // в 18 ед. от неё шёл по ретейку — задача важнее, к точке не пускала) задача важнее не даёт дойти, а точка рядом (≤ LU_NEAR) — бросок
         // отсюда: подбор считает его из места бойца (лайнап — подсказкой), как свою гранату — тем же броском ниже (here), без ожидания остановки
-        if(lu || Math.hypot(t.from.x-b.baseX, t.from.y-b.baseY) > LU_NEAR){
+        if(lu || t._nearFail || Math.hypot(t.from.x-b.baseX, t.from.y-b.baseY) > LU_NEAR){   // (Д27) «отсюда» не долетел — только из точки
           if(!lu){ if(!t.int) t.int = {d: pathLenTo(b, t.from.x, t.from.y)}; }
           else if(t.int){ var dI = t.int.d; t.int = null;
             if(pathLenTo(b, t.from.x, t.from.y) > dI + 36){ logEvent(b.id+": граната отменена — после другой задачи точка броска позади ("+t.why+")");
@@ -597,6 +597,9 @@ function updateNadeTask1(b){
       // не вышло на время (пауза между гранатами, свой в зоне огня) — задание остаётся, попробует снова; раньше снималось молча
       if(!throwNade(b, t.type, t.x, t.y, true, t.why, !t.gen && !here, t.from) && NADE_FAIL && /пауза|свой/.test(NADE_FAIL)) return;   // своя точка (gen) — дуга проверяется
       if(t.gen && b.nadeTask === t && /долетит/.test(NADE_FAIL||"") && nadeRunPlan(b, t)) return;   // (v504) с места не долетает — с разбега
+      // (v583a, Д27, прогоны 282–285: смок выхода «Cross» — 11 отказов «не долетит» в 15–39 ед. от точки броска) бросок не из самой точки лайнапа
+      // (задача важнее не пускала дойти — бросок «отсюда», LU_NEAR) не долетел — задание не снимается: дойдёт до точки и кинет оттуда (срок — прежний)
+      if(here && !t.gen && b.nadeTask === t && /долетит|стена|потолок|этаж/.test(NADE_FAIL||"")){ t._nearFail = 1; return; }
       b.nadeTask = null; if(b.post && b.post.tag === "lineup") clearPost(b); return;
     }
     if(d <= t.range && hasLOS(b.x, b.y, t.x, t.y, b.z)){
