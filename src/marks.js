@@ -36,7 +36,16 @@ function mkSnapshot(){
     }
   }
 }
-function mkRestore(data){ var c = structuredClone(data); mkSnapList().forEach(function(e){ if(e[0] in c) e[2](c[e[0]]); }); }
+function mkRestore(data){ var c = structuredClone(data); mkSnapList().forEach(function(e){ if(e[0] in c) e[2](c[e[0]]); }); mkRebaseShow(); }
+// (18.11) показ (трассеры, круги звука) помнит время рождения по часам страницы (nowTs), а часы в снимок не входят: после открытия снимка
+// «возраст» выходил отрицательным — вспышка выстрела на весь экран (оранжевый кадр), круг звука с отрицательным радиусом ронял кадр.
+// Сдвиг: самое свежее из снимка — «сейчас» по часам этой страницы, остальные — на тот же сдвиг
+function mkRebaseShow(){
+  var L = [typeof tracers !== "undefined" ? tracers : null, typeof soundPings !== "undefined" ? soundPings : null].filter(Boolean), mx = -Infinity;
+  L.forEach(function(A){ A.forEach(function(o){ if(o && o.born > mx) mx = o.born; }); });
+  if(!(mx > nowTs)) return; var sh = nowTs - mx;
+  L.forEach(function(A){ A.forEach(function(o){ if(o && o.born != null) o.born += sh; }); });
+}
 // (v175) снимок → текст и обратно, чтобы хранить его в отметке файлом. В снимке
 // объекты ссылаются друг на друга (бот → цель → бот), поэтому каждый объект
 // записывается один раз, а ссылки — номером. Сохраняются Map/Set, массивы чисел,
