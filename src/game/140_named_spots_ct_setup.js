@@ -302,9 +302,13 @@ function ctRolePt(S, r){ var q = S.roles[r]; if(!q) return null; if(q.spot) retu
 function ctSpotPick(b, S, role){
   var CS = MAP.ctspots; if(!CS || !CS.sides || !S || !S.roles) return null;
   var RS = CT_SPOTS_RES.k === matchNum+":"+roundNum ? CT_SPOTS_RES : (CT_SPOTS_RES = {k: matchNum+":"+roundNum, by: {}});
-  var mine = RS.by[b.id]; if(mine && mine.role === role && mine.setup === S.id) return mine.i >= 0 ? mine : null;
   var ref = ctRolePt(S, role), side = ref ? ctSideOf(ref.x, ref.y) : null, TS = side && CS.sides[side]; if(!TS) return null;
-  var n = Object.keys(S.roles).filter(function(r){ var q = ctRolePt(S, r); return q && ctSideOf(q.x, q.y) === side; }).length, T = TS[n];
+  // (отметка владельца 18.11, м1 р2 т8395: «никто на B не стоит; шорт смотрит пятый — должен шестой») сколько CT на этой стороне — по живым, кто
+  // сейчас играет роль этой стороны (ctRoleNow), а не по числу ролей расстановки: погиб свой — места стороны пересчитываются (у про при одном
+  // CT на стороне B он стоит иначе, чем при двух). Было: по ролям — у karrigan выбор «Ladder» из пар «двое на B» держался весь раунд и после
+  // смерти ротатора, B стоял пустой
+  var n = bots.filter(function(o){ if(!o.alive || o.team !== "CT") return false; var r = ctRoleNow(o), q = r && S.roles[r] ? ctRolePt(S, r) : null; return q && ctSideOf(q.x, q.y) === side; }).length || 1, T = TS[n];
+  var mine = RS.by[b.id]; if(mine && mine.role === role && mine.setup === S.id && mine.n === n) return mine.i >= 0 ? mine : null;
   if(!T){ var ks = Object.keys(TS).map(Number).sort(function(a, c){ return Math.abs(a - n) - Math.abs(c - n); }); T = TS[ks[0]]; }
   var others = Object.keys(RS.by).map(function(k){ return RS.by[k]; }).filter(function(o){ var ob = teamBot(o.id); return o.id !== b.id && o.side === side && o.i >= 0 && ob && ob.alive && ob.team === b.team; });
   var w = T.spots.map(function(sp, i){
@@ -313,7 +317,7 @@ function ctSpotPick(b, S, role){
   var tot = w.reduce(function(a, v){ return a + v; }, 0), pick = -1;
   if(tot > 0){ var r = hashRand(roundNum*7919 + matchNum*131 + b.id.charCodeAt(b.id.length-1)*17 + role.length)*tot; for(var i = 0; i < w.length; i++){ r -= w[i]; if(r <= 0 && w[i] > 0){ pick = i; break; } } }
   var sp0 = pick >= 0 ? T.spots[pick] : null, lk0 = sp0 && sp0.look && sp0.look[0];
-  RS.by[b.id] = {id: b.id, role: role, setup: S.id, side: side, i: pick, x: sp0 ? sp0.x : 0, y: sp0 ? sp0.y : 0, yaw: lk0 ? lk0[0] : null};
+  RS.by[b.id] = {id: b.id, role: role, setup: S.id, side: side, n: n, i: pick, x: sp0 ? sp0.x : 0, y: sp0 ? sp0.y : 0, yaw: lk0 ? lk0[0] : null};
   return pick >= 0 ? RS.by[b.id] : null;
 }
 var CT_PRO_ZONE = {occ: 0.003, tShare: 0.5, path: 900, n: 6};   // (v570) проектные числа: зона CT у про — доля ≥ 0,3 %, T < половины
@@ -325,6 +329,28 @@ function ctProZones(ref){
     var q = zonePoint(z.name, ref); if(!q) return; var L = polyLen(pathPts(ref.x, ref.y, q.x, q.y)); if(L > CT_PRO_ZONE.path) return;
     out.push({n: z.name, L: L}); });
   return out.sort(function(a, c){ return a.L - c.L; }).slice(0, CT_PRO_ZONE.n).map(function(o){ return o.n; });
+}
+// (отметка владельца 18.11, м1 р2 т8395: «игрок 6 стоит у Hole, когда на миду уже есть игрок; шорт должен смотреть шестой») роль погибшего CT не
+// пропадает: её берёт живой с ролью ниже по важности (CT_ROLE_PRI — проектный порядок: опорники, мидер, ротатор, роумер), один раз за раунд, кто
+// ниже всех. Опорник свою роль не бросает (держит сайт). Было: роли — на весь раунд по началу; погиб ротатор (Short) — роумер так и стоял
+// у Hole вторым на миду, Short и B держал один опорник
+var CT_ROLE_PRI = ["anchorA", "anchorB", "mid", "rotator", "roamer"];
+function ctRoleNow(b){
+  var ct = teamTac.CT, S = ct && ct.setup; if(!S || !S.roles) return b.tRole;
+  var RT = ct._roleTake && ct._roleTake.k === matchNum+":"+roundNum ? ct._roleTake : (ct._roleTake = {k: matchNum+":"+roundNum, by: {}});
+  if(RT.by[b.id]) return RT.by[b.id];
+  var pri = function(r){ var i = CT_ROLE_PRI.indexOf(r); return i < 0 ? 99 : i; };
+  var holder = function(r){ return bots.filter(function(o){ return o.team === "CT" && (RT.by[o.id] || o.tRole) === r; })[0]; };
+  var mine = pri(b.tRole); if(/^anchor/.test(b.tRole || "")) return b.tRole;
+  // свободная роль (держатель мёртв, его роль никто не взял) важнее моей — беру, если я ниже всех среди живых не-опорников
+  var lost = CT_ROLE_PRI.filter(function(r){ var h = holder(r); return S.roles[r] && h && !h.alive && pri(r) < mine; })[0];
+  if(!lost) return b.tRole;
+  var low = bots.filter(function(o){ return o.alive && o.team === "CT" && !/^anchor/.test(o.tRole || "") && !RT.by[o.id] && pri(o.tRole) > pri(lost); })
+    .sort(function(p, q){ return pri(q.tRole) - pri(p.tRole); })[0];
+  if(low !== b) return b.tRole;
+  RT.by[b.id] = lost; var dead = holder(lost); if(dead && dead !== b) RT.by[dead.id] = "-";
+  voiceLog("CT", "roletake"+b.id+roundNum, b.id, "беру за "+nick(dead ? dead.id : "")+": "+ROLE_LABEL_CT(lost));
+  return lost;
 }
 function ROLE_LABEL_CT(r){ return {anchorA:"опорник A", anchorB:"опорник B", mid:"мидер", rotator:"ротатор", roamer:"роумер"}[r] || r; }
 var events = []; var killfeed = []; // объявлены здесь, до loadOppProfile(), которая пишет в лог сразу при старте
