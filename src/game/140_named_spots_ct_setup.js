@@ -246,6 +246,11 @@ function ctSetupRole(b, role, ct){
     else lkS = (P.lookPt && {x: P.lookPt[0], y: P.lookPt[1]}) || ref;
     var spS = pickSpots("cts:"+S.id+":"+role+":spot", cS, 6, {rMax: CT_SPOT_R, minGap: 30, see: [lkS]});
     var freeS = spS.filter(function(q){ return hasLOS(q.x, q.y, lkS.x, lkS.y) && !spotTaken(b, q, "post") && crossOk(q); });
+    // (v583a, Д29, владелец 18.11 по видео: «открытая позиция» — CT4 на Cross, м5 р5) место про из ctspots — само по себе ответ «где стоять»: про там
+    // стоят. Точка взгляда (луч угла про до стены, 2D) из 3D часто «не видна» (уступ, другой этаж) — и роль уходила на запасные места по зонам
+    // (Cross посреди сайта, 120 ед. от места про). Нет мест с видом — ближайшее к месту про свободное, взгляд — тот же угол про
+    if(!freeS.length && CPk) freeS = spS.filter(function(q){ return !spotTaken(b, q, "post") && crossOk(q); })
+      .sort(function(p, q){ return Math.hypot(p.x-cS.x, p.y-cS.y) - Math.hypot(q.x-cS.x, q.y-cS.y); });
     if(freeS.length){ nm = zoneUserName(zoneIdAt(cS.x, cS.y)) || nm0; c = cS; lk = lkS; spots = freeS.slice(0, 3); spots._free = 1; spots._see = 1; spots._spot = 1; tryN = []; }
   }
   for(var ti = 0; ti < tryN.length; ti++){
