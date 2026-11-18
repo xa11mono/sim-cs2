@@ -1,5 +1,8 @@
 var BACK_KNOW = 15, BACK_R = 900;   // проектные числа: с — враг, которого знает команда, ещё «тот, от кого отхожу»; ед. карты — и он рядом
 function lookCands(b, W){
+  return beliefAsBot(b, function(){ return lookCands0(b, W); });
+}
+function lookCands0(b, W){
   var zb = (b.atPost && b.post) ? bzOf(b.post.x, b.post.y) : bzOf(b.x, b.y);
   if(zb < 0) zb = bzOf(b.x, b.y); if(zb < 0) return [];
   var team = b.team, out = [], moving = b.curSpeed > 60*SPD_K && b.heading !== undefined;
@@ -20,6 +23,10 @@ function lookCands(b, W){
   var habZ = {};
   bots.forEach(function(o){ if(!o.alive || o.team === team) return; var h = habitTop(o.id, 2); if(h){ var zh = bzOf(h.x, h.y); if(zh >= 0) habZ[zh] = 1; } });
   var Wd = ZONE_DANGER_W[BZ.ids[zb]] || {}, PW = PORTAL_W[team] || {};
+  // (отметка владельца 18.11, м33 р1 т4055, magixx: «смотрел на Doors, потом отвернулся на вход из B Window») угроза из Kitchen шла к входу
+  // в мою зону через Doors и Empty — обе я вижу: враг сначала покажется там. Угроза, которая течёт через видимую мне зону, считается у самой
+  // этой зоны (её кандидат), а не у точки дальше по его пути (раньше вход в 87 ед. брал «близко ×2» и перевешивал Doors)
+  var visZ = {}; (ZONE_DANGER[BZ.ids[zb]]||[]).forEach(function(zid){ var q = BZ.idx[zid]; if(q !== undefined) visZ[q] = 1; });
   var D = LOOKDBG.on ? (b._ldZones = {}) : null, mateZ = {};   // mateZ — зоны, где стоит свой (v583a, Д5): туда не смотрим ни на зону, ни на вход из неё   // (v273) разбор взгляда: только запись для выбранного бота
   (ZONE_DANGER[BZ.ids[zb]]||[]).forEach(function(zid){
     var j = BZ.idx[zid]; if(j === undefined || j === zb) return;
@@ -29,6 +36,7 @@ function lookCands(b, W){
     var th = beliefZoneKnown(team, j), nBest = -1, nVal = 0, dz = D ? (D[j] = {bel: th, nbr: 0, hab: 0, unc: 0, tim: 0, wd: Wd[zid]||0}) : null;
     BZ.nbr[j].forEach(function(nn){ if(nn === zb) return;
       if(!reachPossible(team, nn)) return;
+      if(visZ[nn]) return;   // (18.11) враг идёт через зону, которую я вижу, — увижу его там (у её кандидата), а не дальше по пути
       var v = LOOK.nbrW * nbrThreat(team, j, nn, zb);
       if(PW[j+","+nn]) v *= LOOK.watchedNbr;          // вход видит свой — враг выйдет на него первым
       th += v; if(dz) dz.nbr += v; if(v > nVal){ nVal = v; nBest = nn; } });
@@ -80,9 +88,12 @@ function lookCands(b, W){
   if(BZ.portal) BZ.nbr[zb].forEach(function(nn){
     var p = BZ.portal[zb][nn]; if(!p) return;
     if(isRearZone(team, zb, nn, b)) return;   // (v148) проход в свой тыл — не угроза
+    // (владелец 18.11: «выход из зоны B Window — просто открытое место, зоны — только чтобы обозначить, где враг») зону nn я вижу — врага увижу
+    // в ней самой (её кандидат: точка, где он из неё появится), граница зон посреди пола — не выход; вход в мою зону — только из невидимой зоны
+    if(visZ[nn]) return;
     var d = Math.hypot(p.x-b.x, p.y-b.y); if(d < 40 || d > LOOK.maxDist || !hasLOS(b.x, b.y, p.x, p.y, b.z)) return;
     var th = beliefZoneKnown(team, nn);
-    BZ.nbr[nn].forEach(function(n2){ if(n2 === zb) return; if(!reachPossible(team, n2)) return;
+    BZ.nbr[nn].forEach(function(n2){ if(n2 === zb) return; if(!reachPossible(team, n2)) return; if(visZ[n2]) return;
       var v = LOOK.nbrW * nbrThreat(team, nn, n2, zb); if(PW[nn+","+n2]) v *= LOOK.watchedNbr; th += v; });
     if(habZ[nn]) th += LOOK.habitW;
     if(moving) th += LOOK.uncheckW * uncheckedW(team, nn);

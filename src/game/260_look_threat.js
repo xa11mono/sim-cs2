@@ -5,9 +5,13 @@
 // (Г2, 04.11, разбор отметок «угроза»: веса 0,3 «ни разу не видели» и пол 0,5 «старая инфа не забывается» — без источника, второй раз
 // занижали врага поверх гипотез: на старте раунда 5 живых CT весили 1,5; старая инфа держалась 0,5 навсегда) враг весит, сколько
 // говорят его гипотезы: устаревание — уже в них (вес «стоит, где видели» тает, переходя в «ушёл» — 210, KNOW.heldStill … heldFloor)
+// (владелец 18.11) пока считаются углы одного бота (lookCands, 270: LOOK_BEL_BOT) — по врагу, о котором его своё знание свежее, чем у
+// команды, берётся его раскладка (240: b._belOwn)
+var LOOK_BEL_BOT = null;
+function beliefAsBot(b, fn){ LOOK_BEL_BOT = b; try { return fn(); } finally { LOOK_BEL_BOT = null; } }
 function beliefZoneKnown(team, i){
-  var B = belief[team], t = 0;
-  for(var eid in B) t += B[eid][i];
+  var B = belief[team], t = 0, O = LOOK_BEL_BOT && LOOK_BEL_BOT.team === team ? LOOK_BEL_BOT._belOwn : null;
+  for(var eid in B) t += (O && O[eid] ? O[eid][i] : B[eid][i]);
   return t;
 }
 // в этой зоне (или рядом, ≤400) есть враг, которого видели/слышали ≤3с назад
