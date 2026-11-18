@@ -200,7 +200,7 @@ function tProbes(tt, ts){
         if(!P.deep){ var vp = probeViewPoint(from, to, look); if(vp) P.pt = vp; }
         // (Г3, 04.11, разбор отметок п.16: проба снималась через 9 с от начала — шагом до точки у окна не доходила, 211 из 345 проб на
         // 8 матчах Mirage) срок пробы — 9 с (проектное число, как было) после расчётного прихода: дорога шагом по пути + 9 с
-        P.dl = tick + Math.ceil((pathLenTo(pb, P.pt.x, P.pt.y)/(SPEED*WALK_SPEED_FRAC) + 9)*TICK_HZ);
+        P.dl = taskDeadline(pb, P.pt, 9, true);
         if(P.deep){
           voiceLog("T", "probe"+key+pb.id, pb.id, "подпушу "+(key === "M" ? "мид" : (zoneUserName(zoneIdAt(to.x, to.y)) || key.charAt(0)))+", посмотрю, сколько их там");
           // флешка под подпуш от ближайшего тиммейта (не вся раскидка — одна)

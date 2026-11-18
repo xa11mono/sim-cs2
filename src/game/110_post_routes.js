@@ -465,6 +465,13 @@ function setPostDo(b, pt, look, hold, tag, spreadIdx){
   return true;
 }
 // (17.11, перестройка — модули) запись в журнал решений (645) — здесь, у хозяина (было: 645 подменял функцию обёрткой)
+// (владелец 18.11 м1 р2: «опять не дошёл до пробы»; «чинить механику целиком») срок задачи «дойти и сделать» — одно место: от расчётного прихода
+// (путь по навмешу / скорость по режиму: шагом — WALK_SPEED_FRAC), а не от выдачи. Было: у пробы T — так (Г3, 04.11), у пробы CT (8 с от выдачи)
+// и выхода на контакт — нет: на полпути задача истекала
+function taskDeadline(b, pt, holdSec, walking){
+  var v = SPEED*(walking ? WALK_SPEED_FRAC : 1)*(typeof weaponSpeedMul === "function" ? weaponSpeedMul(b) : 1);
+  return tick + Math.ceil((pathLenTo(b, pt.x, pt.y)/Math.max(1, v) + holdSec)*TICK_HZ);
+}
 function setPost(b, pt, look, hold, tag){
   var was = b && b.post ? b.post.tag : null, r = setPostDo.apply(this, arguments);
   if(!b) return r;

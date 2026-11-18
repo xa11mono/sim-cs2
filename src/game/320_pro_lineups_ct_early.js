@@ -365,6 +365,7 @@ function ctInfoCheck(b, ct, cts){
   for(var j = 0; j < BZ.ids.length; j++){
     var c = BZ.cent[j]; if(!c || !reachPossible("CT", j)) continue;
     var d = Math.hypot(c.x-b.x, c.y-b.y); if(d < INFO_MIN_R || d > INFO_R) continue;
+    d = Math.max(d, pathLenTo(b, c.x, c.y)); if(d > INFO_R) continue;   // (18.11) «ближе» — по пути (проба в Underpath Stairs была 735 по пути при 400 по прямой)
     var zid = BZ.ids[j], cz = CLEARZ.CT[zid]; if(cz && tick - cz.tick < INFO_QUIET*TICK_HZ) continue;
     if(cts.some(function(o){ return hasVision(o.x, o.y, c.x, c.y); })) continue;
     var w = beliefZoneKnown("CT", j); if(!(w > INFO_W)) continue;
@@ -373,7 +374,7 @@ function ctInfoCheck(b, ct, cts){
   if(!best) return false;
   var pt = probeViewPoint({x:b.x, y:b.y}, best.c, best.c); if(!pt) return false;
   if(!setPost(b, pt, best.c, true, "probeInfo") || !(b.post && b.post.tag === "probeInfo")) return false;
-  I.by = b.id; I.n++; I.pt = pt; I.look = {x:best.c.x, y:best.c.y}; I.x = best.c.x; I.y = best.c.y; I.until = tick + INFO_HOLD*TICK_HZ; I.at = 0;
+  I.by = b.id; I.n++; I.pt = pt; I.look = {x:best.c.x, y:best.c.y}; I.x = best.c.x; I.y = best.c.y; I.until = taskDeadline(b, pt, INFO_HOLD, false); I.at = 0;
   voiceLog("CT", "info"+b.id+roundNum+I.n, b.id, "гляну "+calloutName(best.c.x, best.c.y).replace(/^на /, ""));
   return true;
 }

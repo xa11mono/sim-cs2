@@ -235,7 +235,7 @@ function contactTick(b){
   var tag = swing ? "contact:swing" : "contact:hold";
   // (v378) задача важнее контакта (бомба, сейв — арбитр места, setPost) — ноги остаются на ней, взгляд — на контакт
   if(!setPost(b, sp, look, true, tag)){ b._contact = {x:C.x, y:C.y, id:C.id, until: tick + CONTACT_HOLD*TICK_HZ, lock:false}; b._contactT = tick; return; }
-  b._contact = {x:C.x, y:C.y, id:C.id, until: tick + CONTACT_HOLD*TICK_HZ, lock:true, pt:sp, tag:tag}; b._contactT = tick;
+  b._contact = {x:C.x, y:C.y, id:C.id, until: taskDeadline(b, sp, CONTACT_HOLD, b.walking), lock:true, pt:sp, tag:tag}; b._contactT = tick;   // (18.11) срок — от прихода на точку выхода (110)
   taskKeep(b, 0, "contact"); b._probeLock = 0; b.lastIntel = {x:look.x, y:look.y, tick:tick, src:"call"};
   if(swing && !C.own && b.nades && b.nades.flash > 0 && C.d > 150 && !hasLOS(b.x, b.y, look.x, look.y, b.z)) assignNade(b, "flash", look, "флешка под выход на врага рядом", {now:true, range:900});
   // (v443, док владельца 27.10: «войс раунда спамится») «держу X» — 23 строки за раунд, один бот повторял её ~3 раза: это пересказ своих

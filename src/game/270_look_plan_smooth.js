@@ -203,8 +203,18 @@ var KWL_CELL = 24, KWL_TTL = 32;   // проектные числа
 // свой впереди на угрозу — одно правило для зоны и для входа в неё (раньше у входа — только «свой в 140 px от прохода»: T3 у B Window
 // смотрел на выход из Kitchen, где стоял T4): свой у точки появления (140 px) или в самой зоне угрозы рядом с ней (260 px) — 0 (не смотреть);
 // свой на моей линии к ней — «свой на линии». Множитель веса; F — разбор
+// пол в точке c, который видно с глаз бота (из всех полов этой точки по 3D-геометрии; не видно ни один — null)
+function lookPtFloor(b, c){
+  var M = typeof m3 === "function" ? m3() : null; if(!M || b.z == null) return null;
+  var ez = visFloorAt(b.x, b.y, b.z) + VIS_EYE.stand, F = m3Floors(M, c.x, c.y).slice().sort(function(p, q){ return Math.abs(p - b.z) - Math.abs(q - b.z); });
+  for(var i = 0; i < F.length; i++) if(visMarch(b.x, b.y, ez, c.x, c.y, F[i] + VIS_BODY.stand[0])) return F[i];
+  return null;
+}
 function lookMateAhead(b, mates, j, c, d, za, F, p){
-  if(mates.some(function(o){ return Math.hypot(o.x-c.x, o.y-c.y) < 140 || (p && Math.hypot(o.x-p.x, o.y-p.y) < 140) || (bzOf(o.x, o.y) === j && Math.hypot(o.x-c.x, o.y-c.y) < 260); })) return 0;   // (владелец 17.11, второй раз: «зачем смотрит выход, если там стоит тиммейт») — не кандидат вовсе (было ×0,15)
+  // (отметка владельца 18.11, м1 р2: «игрок 5 не учитывает Under»; «чинить механику целиком» — этаж) свой «там» — только на том этаже, где точка
+  // угрозы, которую вижу я (пол в точке c, видимый с моих глаз): над Underpath стоять — не значит держать Underpath. Было: 140 ед. на плоскости
+  var zf = lookPtFloor(b, c), lvl = function(o){ return zf == null || o.z == null || Math.abs(o.z - zf) <= 2*JUMP_UP; };
+  if(mates.some(function(o){ return lvl(o) && (Math.hypot(o.x-c.x, o.y-c.y) < 140 || (p && Math.hypot(o.x-p.x, o.y-p.y) < 140) || (bzOf(o.x, o.y) === j && Math.hypot(o.x-c.x, o.y-c.y) < 260)); })) return 0;   // (владелец 17.11, второй раз: «зачем смотрит выход, если там стоит тиммейт») — не кандидат вовсе (было ×0,15)
   if(mates.some(function(o){ var dm = Math.hypot(o.x-b.x, o.y-b.y); return dm > 20 && dm < Math.min(d, 600) && _angOff(Math.atan2(o.y-b.y, o.x-b.x), za) < 0.22; })){ if(F) F.push(["свой на линии", LOOK.mateInLine]); return LOOK.mateInLine; }
   return 1;
 }
@@ -432,7 +442,7 @@ var LOOK_LEVEL = {
   corner:  6,  // угол по пути, за которым может быть враг (prePeekTick)
   post:    4   // угол поста по сетапу (делёж ничего не выдал)
 };
-var KNOW_NEAR_SLACK = 60;   // проектное число: ед. карты — «не дальше ближайшего известного» с запасом
+var KNOW_NEAR_SLACK = 60, LOOK_PRO_YIELD = 0.5;   // проектное число: ед. карты — «не дальше ближайшего известного» с запасом
 var LOOK_FRESH = 64;   // 1 с (TICK_HZ): «свежее» для уровней fight / sound / team — проектное число (задача шага 4: «свежий, ≤ 1 с»)
 function lookContactFresh(b){
   // (отметка владельца 18.11, м5 р2 т6382, CT1: «он должен сосредоточиться на контакте, который перед ним») бот выходит на свой контакт
@@ -552,7 +562,10 @@ function lookAngleCand(b, moving){
   if(b.fakeHoldUntil && tick < b.fakeHoldUntil && bomb && bomb.site) return {lvl: LOOK_LEVEL.angle, kind: "fake", pt: GEO[bomb.site].tEntry, sc: 1};
   // (v583a, владелец 17.11: «более живыми — могут смотреть одну позицию, потом распределиться; не только два угла про») место после планта
   // (post.ppAlt, 280) угол про не навязывает: взгляд — по дележу команды (lookPlan), как у всех
-  if(b.atPost && b.post && b.post.pro && !b.post.ppAlt && !moving){ var plk = proSpotLook(b); if(plk) return {lvl: LOOK_LEVEL.angle, kind: "pro", pt: plk, sc: 1}; }
+  // (отметка владельца 18.11, м1 р2: «игрок 5 не учитывает Under») угол про с места про — пока нет заметной угрозы: делёж углов дал этому боту
+  // угол весом ≥ LOOK_PRO_YIELD (проектное число) — смотрит на угрозу. Было: на месте про — всегда угол про, что бы ни было вокруг
+  var lpk = b._lkPick;
+  if(b.atPost && b.post && b.post.pro && !b.post.ppAlt && !moving && !(lpk && lpk.sc >= LOOK_PRO_YIELD)){ var plk = proSpotLook(b); if(plk) return {lvl: LOOK_LEVEL.angle, kind: "pro", pt: plk, sc: 1}; }
   // (15.11, владелец: «точки в паре, чтобы смотрели все зоны, откуда выходят T») угол роли расстановки CT из демок (spot / lookYaw, 140) — поручен
   // задачей, как точка про на посту. Было: делёж углов команды перебивал его — на 20-й с угол роли держали редко (уход — медиана 27°), выход
   // из Palace закрывали в 0–17 % раундов против 43–66 % у про (tools/ct/ct_cover.js)
