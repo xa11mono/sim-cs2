@@ -4,6 +4,7 @@
 // per-point transform (applyNavTransform) runs on every drag/wheel tick for
 // live visual feedback; this heavier rebuild (graph + both wall sets) is
 // debounced to run only after the user stops adjusting. ----------
+var NAV_DROP_MAX = 200, NAV_DROP_OUT = 6, NAV_DROP_STEP = 8, navDropLinks = 0;   // (18.11) спрыгнуть с края: ед. игры / ед. карты / шаг проверки края — проектные числа
 var NAV_FLOOR_TOL = 24, NAV_RIDGE_W = 6, NAV_RIDGE_SIDE = 4, NAV_LINK_MIN = 6, NAV_LINK_KNEE = 16, navAutoLinks = 0;   // ед. игры / ед. карты — проектные числа (v405)
 var NAV_BLOCKED = {}, navBlockedCount = 0, navCutPortals = 0, navNarrowPortals = 0;
 // WALL_SOLID_POLYS — см. applyWalls выше
@@ -205,6 +206,28 @@ function rebuildNav(){
         zoneGraph[za.id].push({to:zb.id, mid:m, z:zb.z, left:sg[0], right:sg[1]});
         zoneGraph[zb.id].push({to:za.id, mid:m, z:za.z, left:sg[1], right:sg[0]});
         navAutoLinks++; } }); }
+  // (отметка владельца 18.11, м5 р1, T4 на Balcony: «доходит до края, разворачивается и идёт к месту спрыгивания — зачем, если можно просто
+  // шагнуть вперёд и упасть?») в .nav игры спрыгнуть с края верхнего пола можно только там, где Valve поставили связь, и где прыгали про в
+  // демках (MAP.climbs.gaps). Теперь — с любого открытого края: за краем участка (NAV_DROP_OUT) своего пола нет, ниже — пол другого участка
+  // (перепад от ступеньки до NAV_DROP_MAX), бортика нет (3D-геометрия на уровне колен и груди, visLine) — связь «спрыгнуть» A → B (в одну
+  // сторону). Отрезок связи — самый длинный открытый кусок края. Числа — проектные (NAV_DROP_MAX — падение без урона в CS2, порог не проверен)
+  navDropLinks = 0;
+  if(MAP3D){ var dropBest = {};
+    NAVAREAS.forEach(function(za){ if(NAV_BLOCKED[za.id]) return; var P = za.points, c0 = zoneCentroid(za);
+      P.forEach(function(p, i){ var q = P[(i+1)%P.length], L = Math.hypot(q.x-p.x, q.y-p.y); if(L < 4) return;
+        var ux = (q.x-p.x)/L, uy = (q.y-p.y)/L, nx = uy, ny = -ux; if((c0.x-p.x)*nx + (c0.y-p.y)*ny > 0){ nx = -nx; ny = -ny; }   // наружу
+        var run = null, flush = function(){ if(run && run.n >= 2){ var k = za.id + ">" + run.b.id, len = Math.hypot(run.q.x-run.p.x, run.q.y-run.p.y);
+            if(!dropBest[k] || dropBest[k].len < len) dropBest[k] = {a: za, b: run.b, p: run.p, q: run.q, len: len}; } run = null; };
+        for(var t = 2; t <= L - 2; t += NAV_DROP_STEP){ var ex = p.x + ux*t, ey = p.y + uy*t, ox = ex + nx*NAV_DROP_OUT, oy = ey + ny*NAV_DROP_OUT, ix = ex - nx*3, iy = ey - ny*3;
+          var zA = navFloorZ(za, ex, ey), own = navAt(ox, oy, zA), zb = navAt(ox, oy, zA - NAV_DROP_MAX), ok = false;
+          if(!(own && Math.abs(own.z - zA) <= 18) && zb && zb !== za && !NAV_BLOCKED[zb.id]){ var dz = zA - navFloorZ(zb, ox, oy);
+            if(dz > 18 && dz <= NAV_DROP_MAX && visLine(ix, iy, zA + NAV_LINK_KNEE, ox, oy, zA + NAV_LINK_KNEE) && visLine(ix, iy, zA + 40, ox, oy, zA + 40)) ok = true; }
+          if(ok && run && run.b === zb){ run.q = {x: ex, y: ey}; run.n++; }
+          else { flush(); if(ok) run = {b: zb, p: {x: ex, y: ey}, q: {x: ex, y: ey}, n: 1}; } }
+        flush(); }); });
+    Object.keys(dropBest).forEach(function(k){ var D = dropBest[k];
+      if((zoneGraph[D.a.id]||[]).some(function(e){ return e.to === D.b.id; })) return;
+      zoneGraph[D.a.id].push({to: D.b.id, mid: {x: (D.p.x+D.q.x)/2, y: (D.p.y+D.q.y)/2}, z: D.b.z, left: D.p, right: D.q, drop: 1}); navDropLinks++; }); }
   // (v533, владелец 10.11: «залезают на уступ, куда забраться невозможно») в .nav игры есть связи «вверх» выше прыжка (Mirage 13, Ancient 11):
   // путь шёл по ним, и высота менялась сразу. Подняться выше прыжка можно только по лестнице (.nav ladders) или подъёмом из демок (там бот
   // лезет — ladderTick); остальные такие связи из графа убраны
