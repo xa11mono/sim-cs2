@@ -201,8 +201,19 @@ function knowPlantShift(K, site){
     B.hyps.forEach(function(h){
       var keep = h.type === "held" && !h.plant ? (seen ? 1 : 0) : (h.heard && h.htick != null ? knowAgeP((tick - h.htick)/TICK_HZ) : 0);
       var w = h.weight*(1 - keep)*0.848; toBomb += w; h.weight -= w; });
-    if(toBomb > 0) B.hyps.push({type: "held", zone: z, x: S.x, y: S.y, weight: toBomb, plant: true});
+    // (владелец 18.11: «чинить механику целиком») «у бомбы» — не точка бомбы, а места, где про стоят после планта при такой бомбе (MAP.postplant,
+    // доли про); нет данных — точка сайта, как было. Та же раскладка, что у сдвига после смерти на сайте (knowShiftPut)
+    var bp = bomb && bomb.state === "planted" ? {x: bomb.x, y: bomb.y} : S, PZ = typeof ppProZone === "function" ? ppProZone(bp, site) : null;
+    knowShiftPut(B, toBomb, z, S, PZ ? PZ.spots.map(function(p){ return {x: p.x, y: p.y, zone: knowZoneAt(p.x, p.y), w: p.share}; }).filter(function(p){ return p.zone; }) : null, 0);
     knowNorm(B.hyps); knowTrim(B); }
+}
+// сдвинутую к сайту долю moved — на точку сайта (доля on) и по местам P ({x, y, zone, w}, вес w); мест нет — всё на точку сайта
+function knowShiftPut(B, moved, z, S, P, on){
+  if(!(moved > 0)) return;
+  if(!P || !P.length){ B.hyps.push({type: "held", zone: z, x: S.x, y: S.y, weight: moved, plant: true}); return; }
+  var a = moved*on, W = P.reduce(function(t, p){ return t + (p.w || 1); }, 0) || 1;
+  if(a > 0) B.hyps.push({type: "held", zone: z, x: S.x, y: S.y, weight: a, plant: true});
+  P.forEach(function(p){ B.hyps.push({type: "held", zone: p.zone, x: p.x, y: p.y, weight: (moved - a)*(p.w || 1)/W, plant: true}); });
 }
 // (v583a, Д2.2) сдвиг невидимых врагов к сайту с долей share: «видели» (held, не плант) — остаются (инфа), слышали — по кривой про
 // (knowAgeP), прогнозы — доля share уходит в «у сайта». KILL_SITE_R — 240 px ≈ 600 ед. от центра сайта (тот же радиус, что в замере)
@@ -218,10 +229,7 @@ function knowSiteShift(K, site, share, skipId){
     // с T Ramp убил CT4 на A — команда CT решила «на A ~2,85», и это растекалось в соседние зоны. У про в момент такой смерти остальные T на
     // самом сайте (≤ 240) — 24–30 %, в 480 (подходы) — 68–74 % (tools/pro/kill_site_pro.py, Mirage, 663 смерти): на сайт — KILL_SITE_ON
     // сдвинутого, остальное — поровну по местам про у подходов (240–480 от сайта), куда враг уже мог дойти
-    if(moved > 0){ var NP = K.spots.filter(function(p){ var dS = Math.hypot(p.x-S.x, p.y-S.y); return dS > KILL_SITE_R && dS <= KILL_NEAR_R && knowSpotReach(p); });
-      var on = NP.length ? moved*KILL_SITE_ON : moved;
-      B.hyps.push({type: "held", zone: z, x: S.x, y: S.y, weight: on, plant: true});
-      NP.forEach(function(p){ B.hyps.push({type: "held", zone: p.zone, x: p.x, y: p.y, weight: (moved - on)/NP.length, plant: true}); }); }
+    knowShiftPut(B, moved, z, S, K.spots.filter(function(p){ var dS = Math.hypot(p.x-S.x, p.y-S.y); return dS > KILL_SITE_R && dS <= KILL_NEAR_R && knowSpotReach(p); }), KILL_SITE_ON);
     knowNorm(B.hyps); knowTrim(B); }
 }
 // CT видит саму бомбу на земле — знает сайт

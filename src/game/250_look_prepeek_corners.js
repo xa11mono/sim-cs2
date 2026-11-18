@@ -44,7 +44,7 @@ function lookOnMate(b, p){
 function openDirLook(b){
   var moving = b.curSpeed > 60*SPD_K && b.heading !== undefined;
   var postA = b.post && b.post.look ? Math.atan2(b.post.look.y-b.y, b.post.look.x-b.x) : null;
-  var refA = moving ? b.heading : postA;
+  var refA = moving ? lookHeading(b) : postA;   // (18.11) отходит от врагов — «впереди» — к ним (270)
   // (v448, док владельца 28.10 №4: «перебивает взгляд у игрока 1» — м1 т1768: на развороте взял «открытое» на T Spawn в 1,27 рад от бега,
   // через 0,1 с бег выпрямился, а взгляд остался за спиной сбоку) на бегу «впереди» — в 0,9 рад от направления бега (как у взгляда про
   // на ходу, 270), стоя — в 1,5 рад от угла поста, как было
@@ -56,7 +56,7 @@ function openDirLook(b){
     if(zi >= 0 && j !== zi && isRearZone(b.team, zi, j, b)) return;
     (ZONE_SAMPLES[BZ.ids[j]] || (BZ.cent[j] ? [BZ.cent[j]] : [])).forEach(function(q){ var d = Math.hypot(q.x-b.x, q.y-b.y);
       if(d < 120 || d > 900 || !ahead(q) || !hasLOS(b.x, b.y, q.x, q.y, b.z) || lookOnMate(b, q)) return;
-      var sc = beliefZoneKnown(b.team, j) + (reachPossible(b.team, j) ? 0.35 : 0) + d/3000;
+      var sc = beliefZoneKnownB(b, j) + (reachPossible(b.team, j) ? 0.35 : 0) + d/3000;
       if(postA !== null){ var off = Math.abs(((Math.atan2(q.y-b.y, q.x-b.x)-postA+Math.PI)%(2*Math.PI)+2*Math.PI)%(2*Math.PI)-Math.PI); sc += 0.15*Math.cos(off); }
       cands.push({p:q, sc:sc}); }); };
   if(zi >= 0){ addZ(zi); (BZ.nbr[zi]||[]).forEach(function(j){ addZ(j); (BZ.nbr[j]||[]).forEach(addZ); }); }
@@ -117,7 +117,7 @@ function prePeekTick(b){
       // за углом враг может быть (по таймингу/инфе) и там не стоит свой
       var open = zB >= 0 && reachPossible(b.team, zB) &&
         !bots.some(function(o){ return o !== b && o.alive && o.team === b.team && Math.hypot(o.x-C.beyond.x, o.y-C.beyond.y) < 160; });
-      C.danger = open ? (beliefZoneKnown(b.team, zB) + 0.1) : 0;
+      C.danger = open ? (beliefZoneKnownB(b, zB) + 0.1) : 0;
       C.slice = open && C.dist < 110;
       C.t = tick; b._pie = C;
       if(open && C.dist < 150) prePeekDecide(b, C, zB);
@@ -139,7 +139,7 @@ function prePeekDecide(b, C, zB){
   // (10) в прошлых раундах CT пикнули отсюда агрессивно — считаем, что угол держат
   if(!holder && b.team === "T"){ var ag = rmemRecent(RMEM.aggro, 2).filter(function(e){ return Math.hypot(e.x-C.beyond.x, e.y-C.beyond.y) < 380; })[0];
     if(ag){ holder = {x:ag.x, y:ag.y, tick:tick}; if(!b._agV || b._agV !== roundNum){ b._agV = roundNum; logEvent(b.id+": в прошлом раунде отсюда пикнули ("+ag.id+", "+calloutName(ag.x, ag.y)+") — беру угол аккуратно"); } } }
-  var info = !!holder || beliefZoneKnown(b.team, zB) >= 0.45;
+  var info = !!holder || beliefZoneKnownB(b, zB) >= 0.45;
   var heardMe = b._noisyT && tick - b._noisyT < 3*TICK_HZ;       // (4) он меня, скорее всего, слышал
   var repeek = knowAvoidPeekNear(b, C.beyond);
   var tt = teamTac.T, execEntry = b.team === "T" && tt && tt.phase === "execute" && b.tRole === "entry";
@@ -152,7 +152,7 @@ function prePeekDecide(b, C, zB){
   // почти никогда не видны, и механика не срабатывала. Теперь — любые видимые
   // точки зоны (и соседей соседей), враг там может быть по таймингу
   var addD = function(j){ if(j < 0 || zs[j] || !reachPossible(b.team, j)) return; zs[j] = 1;
-    var bj = beliefZoneKnown(b.team, j); if(bj < 0.04) return;
+    var bj = beliefZoneKnownB(b, j); if(bj < 0.04) return;
     var smp = ZONE_SAMPLES[BZ.ids[j]] || (BZ.cent[j] ? [BZ.cent[j]] : []), bestQ = null, bdq = Infinity;
     smp.forEach(function(q){ var dq = Math.hypot(q.x-C.beyond.x, q.y-C.beyond.y); if(dq > 60 && dq < 900 && dq < bdq && hasLOS(C.beyond.x, C.beyond.y, q.x, q.y)){ bdq = dq; bestQ = q; } });
     if(bestQ) dirs.push({pt:bestQ, a:Math.atan2(bestQ.y-C.beyond.y, bestQ.x-C.beyond.x), w:bj, d:bdq}); };
@@ -170,7 +170,7 @@ function prePeekDecide(b, C, zB){
   // смотрит (или вообще не видит): из 13 флешек слепила одна. Поп-флешка
   // должна хлопнуть у него перед глазами: на линии "держащий → край угла"
   var hPos = holder ? {x:holder.x, y:holder.y} : null;
-  if(!hPos){ var bz0 = -1, bv0 = 0; [zB].concat(BZ.nbr[zB]||[]).forEach(function(j){ var v = beliefZoneKnown(b.team, j); if(v > bv0 && BZ.cent[j]){ bv0 = v; bz0 = j; } }); if(bz0 >= 0) hPos = BZ.cent[bz0]; }
+  if(!hPos){ var bz0 = -1, bv0 = 0; [zB].concat(BZ.nbr[zB]||[]).forEach(function(j){ var v = beliefZoneKnownB(b, j); if(v > bv0 && BZ.cent[j]){ bv0 = v; bz0 = j; } }); if(bz0 >= 0) hPos = BZ.cent[bz0]; }
   var popPt = C.beyond;
   if(hPos){ var fr = [0.35, 0.5, 0.22, 0.65];
     for(var fi=0; fi<fr.length; fi++){ var P = {x: C.pt.x + (hPos.x-C.pt.x)*fr[fi], y: C.pt.y + (hPos.y-C.pt.y)*fr[fi]};

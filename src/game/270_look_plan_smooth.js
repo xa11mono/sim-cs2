@@ -1,3 +1,12 @@
+// (18.11, «чинить механику целиком») направление «по ходу» для взгляда — одно место: отходит от известных врагов (знание команды ≤ BACK_KNOW с,
+// ближе BACK_R, ход от них дальше 115°) — пятится лицом к ним: «по ходу» / «за спиной» — от направления на врагов, иначе — по ходу движения
+function lookHeading(b){
+  var h = b.heading; if(h === undefined) return h;
+  var BLk = beliefLast[b.team] || {}, ekx = 0, eky = 0;
+  for(var ek in BLk){ var lk = BLk[ek]; if(!lk || tick - lk.tick > BACK_KNOW*TICK_HZ) continue; var eo = teamBot(ek); if(!eo || !eo.alive || eo.team === b.team) continue;
+    if(Math.hypot(lk.x-b.x, lk.y-b.y) > BACK_R) continue; var ea = Math.atan2(lk.y-b.y, lk.x-b.x); ekx += Math.cos(ea); eky += Math.sin(ea); }
+  return (ekx || eky) && _angOff(Math.atan2(eky, ekx), h) > 2.0 ? Math.atan2(eky, ekx) : h;
+}
 var BACK_KNOW = 15, BACK_R = 900;   // проектные числа: с — враг, которого знает команда, ещё «тот, от кого отхожу»; ед. карты — и он рядом
 function lookCands(b, W){
   return beliefAsBot(b, function(){ return lookCands0(b, W); });
@@ -12,11 +21,7 @@ function lookCands0(b, W){
   // (отметка владельца 18.11, м5 р2 т8883, CT3: «зачем стал отворачиваться от врагов» — отходил от известных врагов за укрытие, и «по ходу» /
   // «близко» дали первое место выходу у себя за спиной) отходит от известных врагов (знание команды ≤ BACK_KNOW с, ход от них дальше 115°) —
   // пятится лицом к ним, как живой игрок: «по ходу» и «за спиной» считаются от направления на врагов, а не от хода
-  var hdA = moving ? b.heading : 0;
-  if(moving){ var BLk = beliefLast[team] || {}, ekx = 0, eky = 0;
-    for(var ek in BLk){ var lk = BLk[ek]; if(!lk || tick - lk.tick > BACK_KNOW*TICK_HZ) continue; var eo = teamBot(ek); if(!eo || !eo.alive || eo.team === team) continue;
-      if(Math.hypot(lk.x-b.x, lk.y-b.y) > BACK_R) continue; var ea = Math.atan2(lk.y-b.y, lk.x-b.x); ekx += Math.cos(ea); eky += Math.sin(ea); }
-    if((ekx || eky) && _angOff(Math.atan2(eky, ekx), b.heading) > 2.0) hdA = Math.atan2(eky, ekx); }
+  var hdA = moving ? lookHeading(b) : 0;
   // (v583a, Д1, владелец 17.11: «пока бежит, враг всё время смотрел на него справа — не повернулся»; м302 р2, CT2: Tetris за спиной ×0,15
   // «прикрыт», а свой рядом смотрел в другую сторону) спину прикрывает свой рядом (500 px), только если он смотрит туда (mateWatches, 260)
   var rearCov = function(pt){ return moving && mates.some(function(o){ return Math.hypot(o.x-b.x, o.y-b.y) < 500 && mateWatches(o, pt); }); };
@@ -347,7 +352,7 @@ function smoothLookFilter(b, look, urgent){
       var best = null, bs = SL.glSc;
       (typeof lookCands === "function" ? lookCands(b) : []).forEach(function(c){
         if(!c || !c.pt) return;
-        var a = Math.atan2(c.pt.y-b.y, c.pt.x-b.x), d = Math.abs(((a-b.heading+Math.PI)%(2*Math.PI)+2*Math.PI)%(2*Math.PI)-Math.PI);
+        var a = Math.atan2(c.pt.y-b.y, c.pt.x-b.x), d = Math.abs(((a-lookHeading(b)+Math.PI)%(2*Math.PI)+2*Math.PI)%(2*Math.PI)-Math.PI);
         if(d < SL.glMin || d > SL.glMax) return;
         if(c.sc > bs){ bs = c.sc; best = c.pt; } });
       if(best){ b._gl = {pt:{x:best.x, y:best.y}, until: tick + SL.glDur}; look = b._gl.pt; b.lookReason = "glance"; }
@@ -367,7 +372,7 @@ function smoothLookFilter(b, look, urgent){
   if(S && S.pt && Math.hypot(S.pt.x-b.x, S.pt.y-b.y) < 60){ b._sl = S = null; }
   // (v278, владелец 14.10: матч 1, тики 1452–1508, игрок 7 крутился в Cave) на бегу повернул — удерживаемая точка осталась
   // за спиной (> 1,9 рад ≈ 110° от направления бега — тот же порог «за спиной на ходу», что во всём взгляде): не держим
-  if(S && S.pt && moving && _angOff(Math.atan2(S.pt.y-b.y, S.pt.x-b.x), b.heading) > 1.9){ b._sl = S = null; }
+  if(S && S.pt && moving && _angOff(Math.atan2(S.pt.y-b.y, S.pt.x-b.x), lookHeading(b)) > 1.9){ b._sl = S = null; }
   // (v583a, владелец 17.11, кадр CT1 у Connector: «забежал за несколько стен, а смотрит в старую точку — прилип прицел») на ходу держимая точка
   // скрылась за стеной — держать нечего: удержание снимается (проверка раз в 4 тика — путь бота «за угол» за это время короче шага)
   if(S && S.pt && moving && (tick & 3) === 0 && !hasLOS(b.x, b.y, S.pt.x, S.pt.y, b.z)){ b._sl = S = null; }
@@ -442,7 +447,7 @@ function lookContactFresh(b){
 // (проектное число): бот на бегу пересекает участок за доли секунды — путь «откуда враг зайдёт» за это время не меняется
 var LKP_PATH = {k: null, m: {}}, LKP_PATH_TTL = 32;
 function lookKnowPath(b, q){
-  var a = navAt(b.x, b.y, b.z), fs = fires.map(function(f){ return f.born; }).join(","), kk = matchNum+":"+roundNum;
+  var a = navOwnArea(b, b.x, b.y), fs = fires.map(function(f){ return f.born; }).join(","), kk = matchNum+":"+roundNum;
   if(LKP_PATH.k !== kk || LKP_PATH.n > 20000){ LKP_PATH.n = 0; LKP_PATH.k = kk; LKP_PATH.m = {}; }
   // (отметка владельца 18.11, м5 р2 т6382: шаги в Underpath под B Short) путь — с настоящими высотами: было 0 — путь от звука снизу начинался
   // на верхнем полу, «рядом» по прямой
@@ -503,11 +508,16 @@ function lookKnowCands(b){
   var out = [], moving = b.curSpeed > 60*SPD_K && b.heading !== undefined;
   var zb = (b.atPost && b.post) ? bzOf(b.post.x, b.post.y) : bzOf(b.x, b.y); if(zb < 0) zb = bzOf(b.x, b.y);
   var mates = bots.filter(function(o){ return o !== b && o.alive && o.team === b.team; });
+  // (отметка владельца 18.11 м33, m0NESY; «чинить механику целиком») знание (звук, инфа команды, «где убили своего») берёт взгляд, только если
+  // это место не дальше по пути, чем ближайший враг, известный команде (≤ BACK_KNOW с): дальнее — в общей оценке углов. Свой контакт — всегда
+  var BLk = beliefLast[b.team] || {}, kMin = Infinity;
+  for(var ek in BLk){ var lk = BLk[ek], ok = teamBot(ek); if(!lk || !ok || !ok.alive || tick - lk.tick > BACK_KNOW*TICK_HZ) continue;
+    var dk = polyLen(pathPts(lk.x, lk.y, b.x, b.y, null, b.z)); if(dk < kMin) kMin = dk; }
   var add = function(lvl, kind, q, k){
     var c = lookKnowPt(b, q, zb, mates, moving); if(!c || (c.cov && !q.commit)) return;   // путь закрывает свой — угол его
     // (отметка владельца 18.11, м5 р2 т6382, CT1 на B Short: шаги T этажом ниже — по прямой 200, по пути 924 — перебили врага, убившего своего,
     // в 422 по пути) «близко» — по пути с высотами (сколько ему идти до меня), а не по прямой
-    var dW = c.d; if(!q.commit){ var wp = lookKnowPath(b, q); if(wp.length > 1) dW = Math.max(dW, polyLen(wp)); }
+    var dW = c.d; if(!q.commit){ var wp = lookKnowPath(b, q); if(wp.length > 1) dW = Math.max(dW, polyLen(wp)); if(dW > kMin + KNOW_NEAR_SLACK) return; }
     out.push({lvl: lvl, kind: kind, pt: c.pt, sc: LOOK.contactW * (dW < 300 ? 2 : 1) / (1 + dW/700) * Math.max(0.05, 1 - q.age/192) * (k || 1)});
   };
   // бой: прикрыть второй угол по просьбе тиммейта, спам в смок, свой контакт (v367; держится, пока видно или видели ≤ 1 с)
@@ -531,15 +541,8 @@ function lookKnowCands(b){
     add(LOOK_LEVEL.sound, "death", {x: s.kx != null ? s.kx : s.x, y: s.kx != null ? s.ky : s.y, age: tick - s.tick}); break; }
   // команда знает сейчас: видят (радар) / слышали / сказали ≤ 1 с; в упор (≤ 250 px) — та же «свежая угроза», что у зоны
   var BL = beliefLast[b.team] || {};
-  // (отметка владельца 18.11, м33 р1 т2016, m0NESY: «открыт под рампу, где враг, а смотрит Connector») свежая инфа про дальнего врага (T2 — 684 по
-  // пути) перебивала по уровню того, с кем он стрелялся 3 с назад (T4 — 504): инфа команды берёт взгляд, только если этот враг — ближайший по
-  // пути из известных команде (≤ BACK_KNOW с); иначе он — в общей оценке углов
-  var kd = {}, kMin = Infinity;
-  for(var ek in BL){ var lk = BL[ek], ok = teamBot(ek); if(!lk || !ok || !ok.alive || tick - lk.tick > BACK_KNOW*TICK_HZ) continue;
-    kd[ek] = polyLen(pathPts(lk.x, lk.y, b.x, b.y, null, b.z)); if(kd[ek] < kMin) kMin = kd[ek]; }
   for(var eid in BL){ var lo = BL[eid]; if(!lo || tick - lo.tick > LOOK_FRESH) continue;
     var eb = bots.filter(function(o){ return o.id === eid; })[0]; if(!eb || !eb.alive) continue;
-    if(kd[eid] != null && kd[eid] > kMin + KNOW_NEAR_SLACK) continue;
     add(LOOK_LEVEL.team, "team", {x: lo.x, y: lo.y, age: tick - lo.tick}, lo.src === "spotted" && Math.hypot(lo.x-b.x, lo.y-b.y) <= 250 ? LOOK.freshK : 1); }
   return out;
 }
@@ -559,7 +562,7 @@ function lookAngleCand(b, moving){
   // (v259, В2) после планта на бегу не идёт спиной вперёд ради угла из дележа (догадка, не свежая угроза): смотрит, куда идёт.
   // Отход (repos, flee, save) — исключение. После планта у ботов спиной было T 20 % / CT 15 %, у про 10 / 6,5 %
   if(moving && bomb && bomb.state === "planted" && !(b.post && taskProp(b.post.tag, "lookAlongRetreat")) && !(b.lastIntel && tick - b.lastIntel.tick < CAUTION_TICKS) &&
-     _angOff(Math.atan2(b._lkPt.y-b.y, b._lkPt.x-b.x), b.heading) > 1.9) return null;
+     _angOff(Math.atan2(b._lkPt.y-b.y, b._lkPt.x-b.x), lookHeading(b)) > 1.9) return null;
   return {lvl: LOOK_LEVEL.angle, kind: "look", pt: (b._lkPt.vis ? b._lkPt : cornerLook(b, b._lkPt)) || b._lkPt, sc: 1};
 }
 function lookArbiter(b){
@@ -629,7 +632,9 @@ function lookFilter(b, look, LD){
   // Было: по всем ботам взгляд в невидимую точку ~19 % времени (м302 р2–р4)
   // (отметка владельца 18.11, м5 р2 т6837, CT1: «увидел игрока 0, посмотрел на него и отвернулся») свой контакт — не сюда: его точку уже
   // считает lookKnowPt (в перестрелке — по линии на врага, 250: CORNER_FIGHT_OFF); здесь её меняли на «где выйдет по пути ко мне» — в сторону
-  if(look && !b._sawEnemy && !/^(enemy|spam|jump|contact)$/.test(b.lookReason || "") && !(b.lookReason === "pro" && lookWallClose(b, look)) && !lookVisible(b, look)){
+  // (18.11, «чинить механику целиком») и звук / инфа команды / «где убили своего» — их точку тоже уже считает lookKnowPt (видна — сама точка,
+  // нет — где он выйдет на линию / по ходу его движения)
+  if(look && !b._sawEnemy && !/^(enemy|spam|jump|contact|sound|team|death)$/.test(b.lookReason || "") && !(b.lookReason === "pro" && lookWallClose(b, look)) && !lookVisible(b, look)){
     var apL = appearFrom(b, look) || cornerLook(b, look);
     if(apL && apL !== look && lookVisible(b, apL)){ look = apL; if(LD) LD.steps.push("точка за стеной — смотрю, откуда выйдет"); } }
   if(look && b._lookLvl <= LOOK_LEVEL.angle && lookOnMate(b, look)){ var alt = openDirLook(b);
@@ -662,7 +667,8 @@ function threatEntrances(team, center, r){
   Object.keys(inside).forEach(function(is){ var i = +is;
     BZ.nbr[i].forEach(function(nn){ if(inside[nn]) return; var p = BZ.portal[i][nn]; if(!p) return;
       var w = beliefZoneKnown(team, nn);
-      BZ.nbr[nn].forEach(function(n2){ if(!inside[n2]) w += LOOK.nbrW * beliefZoneKnown(team, n2); });
+      // (18.11, «чинить механику целиком») соседи — той же nbrThreat, что во взгляде: враг, чей проход видит свой, — с весом watchedNbr
+      BZ.nbr[nn].forEach(function(n2){ if(!inside[n2] && reachPossible(team, n2)) w += LOOK.nbrW * nbrThreat(team, nn, n2, zc); });
       if(reachPossible(team, nn)) w += 0.02;
       var m = E.filter(function(e){ return Math.hypot(e.pt.x-p.x, e.pt.y-p.y) < 120; })[0];
       if(m){ m.w += w; } else E.push({pt:p, w:w, z:nn}); }); });

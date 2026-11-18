@@ -280,8 +280,10 @@ function ctBrain(){
     // (отметка владельца 18.11 №7: «почему у тиммейта 3 раза путь пересобрался, пока седьмой стрелялся») опорник другого сайта уже у сайта колла
     // (пришёл к выбитой бомбе, ≤ 450) — играет этот сайт, а не уходит по роли на свой через перестрелку: в раздачу ротации шли только те, кто
     // дальше 450, и karrigan с A ушёл «опорником B» (473,385), потом «выйти на врага», потом снова на B
-    cts.forEach(function(b){ var own = b.tRole === "anchorA" ? "A" : b.tRole === "anchorB" ? "B" : null;
-      if(own && own !== ks && !ct.rot[b.id] && !(ct.bombWatch && ct.bombWatch.id === b.id) && Math.hypot(b.x-sc0.x, b.y-sc0.y) < 450){ ct.rot[b.id] = true; ct.go.ids[b.id] = true; } });
+    // (18.11, «чинить механику целиком») не только опорник другого сайта — любая роль (мидер, ротатор, роумер), кто уже у сайта колла и не в
+    // ротации; кроме опорника этого сайта (его пост и так здесь)
+    cts.forEach(function(b){
+      if(b.tRole !== "anchor"+ks && !ct.rot[b.id] && !(ct.bombWatch && ct.bombWatch.id === b.id) && Math.hypot(b.x-sc0.x, b.y-sc0.y) < 450){ ct.rot[b.id] = true; ct.go.ids[b.id] = true; } });
     cts.filter(function(b){ return pri(b) < 99 && !ct.rot[b.id] && !(ct.bombWatch && ct.bombWatch.id === b.id) && Math.hypot(b.x-sc0.x, b.y-sc0.y) >= 450; })
        .sort(function(a,b){ return pri(a) - pri(b) || (Math.hypot(a.x-sc0.x,a.y-sc0.y) - Math.hypot(b.x-sc0.x,b.y-sc0.y)); })
        .slice(0, Math.max(0, send - goingFar)).forEach(function(b){ ct.rot[b.id] = true; ct.go.ids[b.id] = true;

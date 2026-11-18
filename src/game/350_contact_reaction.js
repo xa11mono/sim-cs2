@@ -40,7 +40,7 @@ function contactInfo(b){
   var myThreat = null;
   var calm = function(){ if(myThreat === null){ myThreat = false;
       for(var k in BL){ var q = BL[k], oq = teamBot(k); if(oq && oq.alive && tick - q.tick <= SITE_SEEN_SEC*TICK_HZ && myZ[zoneIdAt3(q.x, q.y, q.z)]){ myThreat = true; break; } }
-      if(!myThreat) Object.keys(myZ).forEach(function(z){ var j = BZ.idx[z]; if(j !== undefined && beliefZoneKnown(b.team, j) >= 0.45) myThreat = true; }); }
+      if(!myThreat) Object.keys(myZ).forEach(function(z){ var j = BZ.idx[z]; if(j !== undefined && beliefZoneKnownB(b, j) >= 0.45) myThreat = true; }); }
     return !myThreat; };
   // (прогон 178: перетягивание Ancient 67 → 97 — «пост-плант / лайнап → контакт → обратно») помогает тот, у кого задача не важнее личной
   // перестановки (уровни 1–3: пост роли, маршрут, личное) — держащий бомбу, идущий кидать гранату и т. п. свою задачу ради помощи не бросает

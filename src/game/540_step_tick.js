@@ -389,7 +389,7 @@ function stepTick(){
         soundPings.push({x:bot.baseX, y:bot.baseY, team:bot.team, born:nowTs, radius:soundRadius}); if(CL) soundEv("sndLadder", bot.baseX, bot.baseY); else { soundEv("sndStep", bot.baseX, bot.baseY); }   // (v552) на лестнице — звук лестницы
         // (4) сам знает, что шумит: бежал в пределах слышимости места, где враг вероятен
         if(roundState === "live"){ var zN = bzOf(bot.x, bot.y); if(zN >= 0){ var nearZ = [zN].concat(BZ.nbr[zN]||[]);
-          if(nearZ.some(function(j){ var cj = BZ.cent[j]; return cj && Math.hypot(cj.x-bot.x, cj.y-bot.y) < soundRadius && reachPossible(bot.team, j) && beliefZoneKnown(bot.team, j) >= 0.2; })) bot._noisyT = tick; } }
+          if(nearZ.some(function(j){ var cj = BZ.cent[j]; return cj && Math.hypot(cj.x-bot.x, cj.y-bot.y) < soundRadius && reachPossible(bot.team, j) && beliefZoneKnownB(bot, j) >= 0.2; })) bot._noisyT = tick; } }
         if(soundPings.length > 40) soundPings.shift();
         moveSoundEmit(bot, soundRadius, wet ? "water" : "steps", (wet ? "всплески в воде" : CL ? "лестница" : "шаги")+(bot.walking ? " (тихо)" : ""));
       }

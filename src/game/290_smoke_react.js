@@ -61,16 +61,22 @@ function smkEvidence0(b, s){
   }
   return null;
 }
+// (18.11, «чинить механику целиком») дыра в смоке — по пролёту пули (одно место для всех выстрелов сквозь дым): от глаз стрелка к точке t
+// (на уровне груди), но только до места, где пуля упёрлась в геометрию (cl — bulletClip3); было: прострел вслепую — по пролёту, по видимому
+// за дымом врагу — по всей линии
+function smokeHoleFlight(b, t, cl){
+  cl = cl || bulletClip3(b, t.x, t.y, t);
+  var ez0 = visFloorAt(b.x, b.y, b.z) + VIS_EYE.stand, ez1 = (t.z != null ? visFloorAt(t.x, t.y, t.z) : visFloorAt(b.x, b.y, b.z)) + VIS_BODY.stand[0];
+  var dP = Math.hypot(t.x-b.x, t.y-b.y) || 1, dC = Math.hypot(cl.x-b.x, cl.y-b.y);
+  if(dC < dP) smokeBulletHole(b.x, b.y, cl.x, cl.y, ez0, ez0 + (ez1-ez0)*dC/dP); else smokeBulletHole(b.x, b.y, t.x, t.y, ez0, ez1);
+}
 var BLIND_SPREAD = 0.35;   // (v554) проектное число: рад — разброс очереди ослеплённого (не видит прицела), сквозь дым — 0.08
 function blindBullet(b, pt){
   var w = b.weapon; if(!w || b.ammo <= 0) return false;
   b.ammo--; b.lastShotTick = tick; b.nextShotTick = tick + (w.fireIntervalTicks||6);
   var a = Math.atan2(pt.y-b.y, pt.x-b.x) + (hashRand(tick*31 + b.id.charCodeAt(1))-0.5)*(pt.spread || 0.08);
   var cl = bulletClip3(b, b.x + Math.cos(a)*(w.range||900), b.y + Math.sin(a)*(w.range||900), {x:pt.x, y:pt.y, z:pt.z});   // (v519) по 3D-геометрии
-  var ez0 = visFloorAt(b.x, b.y, b.z) + VIS_EYE.stand;   // (v548) дыра — линия пули в 3D: от глаз к точке, куда целился (на уровне груди)
-  // дыра — только по пролёту пули: до места, где она упёрлась (cl), высота — по той же линии
-  var ez1 = (pt.z != null ? visFloorAt(pt.x, pt.y, pt.z) : visFloorAt(b.x, b.y, b.z)) + VIS_BODY.stand[0], dP = Math.hypot(pt.x-b.x, pt.y-b.y) || 1, dC = Math.hypot(cl.x-b.x, cl.y-b.y);
-  if(dC < dP) smokeBulletHole(b.x, b.y, cl.x, cl.y, ez0, ez0 + (ez1-ez0)*dC/dP); else smokeBulletHole(b.x, b.y, pt.x, pt.y, ez0, ez1);
+  smokeHoleFlight(b, pt, cl);
   var sv = bulletLineHit(b, cl.x, cl.y, null, tick*37 + b.id.charCodeAt(1)*11, b._spam && b._spam.blind ? "вслепую" : "сквозь дым");   // (Г1) пуля сквозь дым попадает в того, кто на линии
   if(sv) cl = {x:sv.x, y:sv.y};
   tracers.push({wc:tracerClass(b.weapon), wk:b.weapon && b.weapon.key, sil:!!(b.weapon && b.weapon.silenced), x1:b.x, y1:b.y, x2:cl.x, y2:cl.y, team:b.team, born:nowTs, hit:!!sv, miss:!sv}); if(tracers.length > 60) tracers.shift(); soundEv("sndShot", b.weapon, b.x, b.y);
@@ -112,7 +118,7 @@ function smokeSpamTick(){
       if(!foe && !P.blind){ var cl0 = bulletClip3(b, P.pt.x, P.pt.y, P.pt), sm0 = P.s || smokes.filter(function(s){ return segHitsCircle(b.x, b.y, P.pt.x, P.pt.y, s.x, s.y, smokeRadiusNow(s)); })[0];
         if(cl0.wall && (!sm0 || Math.hypot(cl0.x-b.x, cl0.y-b.y) < Math.hypot(sm0.x-b.x, sm0.y-b.y) - smokeRadiusNow(sm0))){ b._spam = null; return; } }
       var fired = false;
-      if(foe){ var a0 = b.ammo; b._smokeShot = true; tryShoot(b, foe, Math.hypot(foe.x-b.x, foe.y-b.y)); b._smokeShot = false; fired = b.ammo !== a0; if(fired) smokeBulletHole(b.x, b.y, foe.x, foe.y, visFloorAt(b.x, b.y, b.z) + VIS_EYE.stand, visFloorAt(foe.x, foe.y, foe.z) + VIS_BODY.stand[0]); }
+      if(foe){ var a0 = b.ammo; b._smokeShot = true; tryShoot(b, foe, Math.hypot(foe.x-b.x, foe.y-b.y)); b._smokeShot = false; fired = b.ammo !== a0; if(fired) smokeHoleFlight(b, {x: foe.x, y: foe.y, z: foe.z}); }
       else fired = blindBullet(b, P.blind ? {x:P.pt.x, y:P.pt.y, z:P.pt.z, spread:BLIND_SPREAD} : P.pt);
       if(fired && ++P.shot >= SMK.bullets){ P.shot = 0; P.bursts--; P.nextBurst = tick + (P.urgent ? 0 : SMK.burstGap); if(P.bursts <= 0) b._spam = null; }   // (v555) на дефуз — без пауз
       return;

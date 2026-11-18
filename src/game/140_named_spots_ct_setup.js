@@ -251,6 +251,7 @@ function ctSetupRole(b, role, ct){
     // (Cross посреди сайта, 120 ед. от места про). Нет мест с видом — ближайшее к месту про свободное, взгляд — тот же угол про
     if(!freeS.length && CPk) freeS = spS.filter(function(q){ return !spotTaken(b, q, "post") && crossOk(q); })
       .sort(function(p, q){ return Math.hypot(p.x-cS.x, p.y-cS.y) - Math.hypot(q.x-cS.x, q.y-cS.y); });
+    if(CPk) freeS.forEach(function(q){ q.pro = 1; });   // (18.11) место про (ctspots) — точное в setPost
     if(freeS.length){ nm = zoneUserName(zoneIdAt(cS.x, cS.y)) || nm0; c = cS; lk = lkS; spots = freeS.slice(0, 3); spots._free = 1; spots._see = 1; spots._spot = 1; tryN = []; }
   }
   for(var ti = 0; ti < tryN.length; ti++){

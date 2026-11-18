@@ -66,7 +66,7 @@ function bombFleePoint(b){
     var minD = Infinity;
     for(var k=1;k<pts.length;k++){ var dd = distToSeg(bomb.x, bomb.y, [pts[k-1][0], pts[k-1][1], pts[k][0], pts[k][1]]); if(dd < minD) minD = dd; }
     // старт уже внутри радиуса — путь неизбежно начинается в нём; штрафуем только если путь уходит к бомбе ближе, чем бот стоит сейчас
-    var sc = Math.round(dq/FLEE_DMG_STEP)*1e5 + L + (minD < Math.min(R*0.75, dNow - 30) ? 900 : 0) + 600*beliefZoneKnown(b.team, i);
+    var sc = Math.round(dq/FLEE_DMG_STEP)*1e5 + L + (minD < Math.min(R*0.75, dNow - 30) ? 900 : 0) + 600*beliefZoneKnownB(b, i);
     if(sc < bs){ bs = sc; best = q; }
   });
   b._flee = {round:roundNum, m:matchNum, pt:best, hp:b.hp, x0:b.x, y0:b.y};

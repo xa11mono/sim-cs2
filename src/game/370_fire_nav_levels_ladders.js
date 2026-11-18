@@ -451,13 +451,16 @@ function offNavStep(x1, y1, x2, y2, b){
       if(aw) return false; } }
   return true;
 }
+// (18.11, «чинить механику целиком») пол под ботом — одно место: участок в (x, y) на его уровне (± прыжок); в щели у края, где под точкой только
+// пол другого этажа, — участок, где он стоял (b._area). Было: navAt по высоте брал и чужой этаж (T4 на краю Balcony «стоял» на земле)
+function navOwnArea(b, x, y){ var a = navAt(x, y, b.z); return (!a || (b.z != null && Math.abs(a.z - b.z) > JUMP_UP)) ? (navArea(b._area) || a) : a; }
 function heightBlocked(x1, y1, x2, y2, b){
   if(!b || b.z == null) return false;
   // (v323, М38) стоит в щели между участками навмеша — берётся участок, где был (bot._area); раньше щель пропускала проверку,
   // и бот «залезал» на этаж выше без лестницы (102 раза за 6 раундов Mirage, отметка владельца: из-под Palace на Palace)
   // (отметка владельца 18.11, м5 р1 т2567, T4 на краю Balcony) участок под ногами — только своего уровня: стоя в щели у края, navAt давал
   // землю внизу (−164 при ногах на −36), и каждый шаг обратно на балкон считался прыжком на 128 вверх — бот 1,5 с дёргался на краю
-  var a1 = navAt(x1, y1, b.z); if(!a1 || Math.abs(a1.z - b.z) > JUMP_UP) a1 = navArea(b._area) || a1; if(!a1) return false;
+  var a1 = navOwnArea(b, x1, y1); if(!a1) return false;
   // (v333, владелец: «через Ladder Room спускаются в Underpass», «застрял в Palace», стрельба сквозь стену нижнего этажа) у
   // этажа под другим этажом своих стен на радаре нет (стены — по всем этажам сразу): шаг туда, где своего пола нет, а ниже
   // есть чужой, — со стены вниз; можно только по связи навмеша (спуск, лестница), иначе это стена своего этажа
@@ -512,7 +515,7 @@ function floorViewTick(b){
 var NAV_UNLINKED = [];
 function navUnlinkBlocked(bot, pw){
   if(bot.z == null || !pw) return;
-  var a1 = navAt(bot.baseX, bot.baseY, bot.z) || navArea(bot._area); if(!a1) return;
+  var a1 = navOwnArea(bot, bot.baseX, bot.baseY); if(!a1) return;
   var d = Math.hypot(pw[0]-bot.baseX, pw[1]-bot.baseY); if(d < 1) return;
   var px = bot.baseX + (pw[0]-bot.baseX)/d*6, py = bot.baseY + (pw[1]-bot.baseY)/d*6;
   if(!heightBlocked(bot.baseX, bot.baseY, px, py, bot)) return;

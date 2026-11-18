@@ -206,7 +206,7 @@ var TASK_PROP = {
   // (17.11, владелец к видео CT4: «бежит, не добегая разворачивается — туда-сюда»; дубль №5) короткая остановка своего — бросок с лайнапа,
   // подбор, точка маршрута — не занимает чужое место (spotTaken «post» и личное место по посту, 350); сам свой, стоящий там, — занимает
   briefStop:        /^(lineup|pickup|fetch|route)/,
-  exactSpot:        /^(plantspot|defuse|lineup|pickup|fetch|stopplant|antidefuse|ladder|smokeWait|route|sbGo|postplant:pro)/,   // (v552) приказ песочницы — точно   // точное место: точку не сдвигают от своего (110)
+  exactSpot:        /^(plantspot|defuse|lineup|pickup|fetch|stopplant|antidefuse|ladder|smokeWait|route|sbGo)/,   // (v552) приказ песочницы — точно   // точное место: точку не сдвигают от своего (110)
   // (v529) проверки чужой задачи по ОДНОМУ имени (механика смотрит на задачу, которую ставит не она) — 19 мест в 10 файлах, без изменений:
   midTask:          /^tmid$/,        // пробы / «проверено — пусто»: задача мида T (150)
   waitsAhead:       /:ahead$/,       // IGL: стадия «жду впереди» (160)
@@ -394,6 +394,9 @@ function setPostDo(b, pt, look, hold, tag, spreadIdx){
   // (824,857) → (838,867), Mid виден → не виден) место про — только если оттуда точка взгляда поста видна не хуже, чем с выбранной
   if(psn && look && hasLOS(pt.x, pt.y, look.x, look.y) && !hasLOS(psn.pt.x, psn.pt.y, look.x, look.y)) psn = null;
   if(psn){ pt = psn.pt; spreadIdx = 0; }
+  // (владелец 18.11: «чинить механику целиком») место про (из демок: пост-плант, места CT — pt0.pro; привязка к месту про — psn) — точное: сдвиги
+  // «ради обзора» и «от своего» его не трогают (кто где стоит — решает раздача мест про). Было: только пост-плант (тег postplant:pro)
+  var exact = POST_EXACT.test(String(tag)) || !!(pt0 && pt0.pro) || !!psn;
   // (00_PLAN п.3а, 05.11, прогон 173: Mirage — «держать бомбу» / «мало HP» у Vent на (845, 807), за краем пола, — бот упирался или его
   // переносило по кругу) точка поста — на полу: вне навмеша — ближайшая точка ближайшего участка (в 40 ед., как перенос navSnap)
   if(pt && !navAt(pt.x, pt.y)){ var naP = navFloorNear(pt.x, pt.y, 40, function(a){ return b.z == null || Math.abs(a.z - b.z) <= JUMP_UP; });
@@ -403,7 +406,7 @@ function setPostDo(b, pt, look, hold, tag, spreadIdx){
   // Мидер вставал за стену Window, NiKo — в Hole, откуда Top Mid не виден) одно место для всех: пост с точкой взгляда, откуда её не видно, —
   // на ближайшую точку рядом (≤ POST_VIEW_R, тот же этаж), откуда видно; нет такой — как выбрано. Точные места (бомба, лайнап, подбор,
   // маршрут) — как есть
-  if(hold && look && pt && !POST_EXACT.test(String(tag)) && !hasLOS(pt.x, pt.y, look.x, look.y)){ var pv = postViewPoint(pt, look); if(pv) pt = Object.assign({}, pt, {x:pv.x, y:pv.y}); }
+  if(hold && look && pt && !exact && !hasLOS(pt.x, pt.y, look.x, look.y)){ var pv = postViewPoint(pt, look); if(pv) pt = Object.assign({}, pt, {x:pv.x, y:pv.y}); }
   // (v583a, шаг 2, «прыгающие посты»: 80 эпизодов на 4 матча, 61 — та же задача и та же точка задачи, место сдвигалось само) пост — это
   // задача и её точка (pt0), а не итоговое место: итоговое сдвигают взгляд (место про, «откуда видно точку взгляда»), и каждый новый взгляд
   // давал «новый пост» — бот перебегал. Живой игрок, получив тот же приказ, остаётся на месте и только поворачивает голову; переставляется,
@@ -415,7 +418,7 @@ function setPostDo(b, pt, look, hold, tag, spreadIdx){
   // (v260, В3) та же точка и задача — путь не сбрасываем, но новое направление взгляда принимаем
   // (v570) та же точка — пост держится, но если после сдвига туда же встал свой (его пост поставлен позже — сдвиг считался без него), один
   // из двоих (у кого id больше) считает место заново: было — двое CT на охоте в одной точке (1026, 1493) до конца раунда
-  var ownL = hold && taskProp(String(tag), "ownLine") && !POST_EXACT.test(String(tag));
+  var ownL = hold && taskProp(String(tag), "ownLine") && !exact;
   if(b.post && b.post.id === id && !(ownL && bots.some(function(o){ return o !== b && o.alive && o.team === b.team && o.id < b.id && o.post && Math.hypot(o.post.x-b.post.x, o.post.y-b.post.y) < SPOT_PERSONAL; }))){ b.post.look = look || null; return true; }
   var x = pt.x, y = pt.y;
   // (v370, владелец: «не стоят в толпе») точка, где уже стоит / куда идёт свой (≤ SPOT_PERSONAL), — встаём рядом поперёк взгляда,
@@ -440,7 +443,7 @@ function setPostDo(b, pt, look, hold, tag, spreadIdx){
   }
   // (v570) держит угол — точку не сдвигает свой, который сейчас проходит мимо (было: точку пост-планта, выбранную в 161 ед. от соседа, сдвигало
   // на 80 к нему — соседи сходились до 81 ед.): только места своих, кто держит (spotTaken «line»); их нет рядом / уже сдвинута — личное место
-  if((spreadIdx || (ownL ? !got && spotTaken(b, {x:x, y:y}, "line") && spotTaken(b, {x:x, y:y}, "post") : spotTaken(b, {x:x, y:y}))) && !POST_EXACT.test(String(tag))){
+  if((spreadIdx || (ownL ? !got && spotTaken(b, {x:x, y:y}, "line") && spotTaken(b, {x:x, y:y}, "post") : spotTaken(b, {x:x, y:y}))) && !exact){
     // (v570, отметки владельца м1 р3 15,7 с и р4 57,3 с: «все по 1-3-1 стоят в одной точке», «слишком кучно стоят снова») — было: только
     // 4 точки на 80 ед.; в тесном месте все 4 заняты / за стеной — бот вставал прямо в точку своего (двое CT в (1014, 1577)). Теперь — кольца
     // дальше (до SPREAD_MAX), сначала поперёк взгляда; та же проверка: пол, без стены, не занято, виден прежний пост, обзор не отнимается

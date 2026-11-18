@@ -370,7 +370,7 @@ function nadeSelfWhyNot(b, type, pt){
   // флешка / молотов / HE — туда, где по знанию команды враг сейчас может быть: свежая инфа рядом с точкой или вес карты команды в её зоне
   var BL = beliefLast[b.team] || {};
   for(var e in BL){ var q = BL[e], o = teamBot(e); if(o && o.alive && tick - q.tick <= 6*TICK_HZ && Math.hypot(q.x-pt.x, q.y-pt.y) < NADE_FOE_R) return null; }
-  if(BZ.ids.length){ var j = bzOf(pt.x, pt.y); if(j >= 0 && [j].concat(BZ.nbr[j] || []).some(function(k){ return reachPossible(b.team, k) && beliefZoneKnown(b.team, k) >= NADE_FOE_P; })) return null; }
+  if(BZ.ids.length){ var j = bzOf(pt.x, pt.y); if(j >= 0 && [j].concat(BZ.nbr[j] || []).some(function(k){ return reachPossible(b.team, k) && beliefZoneKnownB(b, k) >= NADE_FOE_P; })) return null; }
   return "там врага быть не может";
 }
 function assignNadeDo(b, type, target, why, opts){

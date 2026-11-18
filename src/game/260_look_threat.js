@@ -10,7 +10,16 @@
 var LOOK_BEL_BOT = null;
 function beliefAsBot(b, fn){ LOOK_BEL_BOT = b; try { return fn(); } finally { LOOK_BEL_BOT = null; } }
 function beliefZoneKnown(team, i){
-  var B = belief[team], t = 0, O = LOOK_BEL_BOT && LOOK_BEL_BOT.team === team ? LOOK_BEL_BOT._belOwn : null;
+  if(LOOK_BEL_BOT && LOOK_BEL_BOT.team === team) return beliefZoneKnownB(LOOK_BEL_BOT, i);
+  var B = belief[team], t = 0;
+  for(var eid in B) t += B[eid][i];
+  return t;
+}
+// (18.11, «чинить механику целиком») угроза зоны для решений ОДНОГО бота (взгляд, пики, отход от бомбы, эндгейм, контакт, гранаты, «шумлю ли
+// я»): по врагу, о котором его своё знание свежее, чем у команды, — его раскладка (240: b._belOwn), иначе — карта команды. Командные решения
+// (коллы, план) — beliefZoneKnown / beliefMass по карте команды
+function beliefZoneKnownB(b, i){
+  var B = belief[b.team], O = b._belOwn, t = 0;
   for(var eid in B) t += (O && O[eid] ? O[eid][i] : B[eid][i]);
   return t;
 }

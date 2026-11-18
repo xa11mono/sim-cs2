@@ -373,7 +373,7 @@ function ppProGroup(members, bp, site, tag){
   members.forEach(function(b){ var A = b._ppPro; if(!A || A.key !== key){ return; }
     var C = b._ppChk; if(C && tick - C.t0 < PP_CHK_DUR*TICK_HZ){ setPost(b, C.pt, C.look, true, tag); if(b.post){ b.post.ppAlt = 1; b.post.setupLook = 1; b.post.lookMoving = 1; } return; }
     var s = Z.spots[A.i], a = s.look && s.look[0] ? s.look[0][0] : Math.atan2(bp.y-s.y, bp.x-s.x);
-    setPost(b, {x: s.x, y: s.y}, {x: s.x + Math.cos(a)*PP_LOOK_D, y: s.y + Math.sin(a)*PP_LOOK_D}, true, tag);
+    setPost(b, {x: s.x, y: s.y, pro: 1}, {x: s.x + Math.cos(a)*PP_LOOK_D, y: s.y + Math.sin(a)*PP_LOOK_D}, true, tag);
     if(b.post) b.post.ppAlt = 1;   // место пост-планта: угол про не навязывается — взгляд по дележу команды (270, владелец 17.11: «живее»)
   });
   return members.filter(function(b){ return !(b._ppPro && b._ppPro.key === key); });   // кому места не досталось
