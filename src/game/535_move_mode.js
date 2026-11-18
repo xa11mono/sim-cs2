@@ -102,7 +102,6 @@ function moveWalkTick(bot){
 }
 // целевая скорость этого тика: стоять / идти / выбегать из огня / тормозить; заодно разгон к ней. Возвращает ничего;
 // MOVE.run — скорость хода после поправок, MOVE.burn — огонь под ботом
-var HOLD_FOE_SEC = 2, HOLD_FOE_R = 700;   // (v583a, Д26) с; px — проектные числа
 function moveSpeedTick(bot, runSpeed, BRAKE_RADIUS, maxDelta){
   var why = null;
   // ждёт хлопка флешки тиммейта (поп на убийцу / ретейк) — не выбегает раньше неё
@@ -124,17 +123,6 @@ function moveSpeedTick(bot, runSpeed, BRAKE_RADIUS, maxDelta){
     if(dS0 > 250 && dS0 < 340 && alone && anyMate){ if(!bot._entryWait || bot._entryWait.round !== roundNum) bot._entryWait = {t:tick, round:roundNum};
       if(tick - bot._entryWait.t < ENTRY_WAIT){ targetSpeed = 0; why = "ждёт напарника перед входом на сайт"; if(!bot._entryWait.log){ bot._entryWait.log = true; logEvent(bot.id+": перед входом на сайт — жду напарника на размен"); } } }
     else if(!alone) bot._entryWait = null;
-  }
-  // (v583a, Д26 комплекс, владелец 18.11: «три правки мимо — найди настоящую причину») прогон 277, ранние (до 30 с) перестрелки у сайта: у про CT их
-  // выигрывает (гибнут CT 31 / T 35 на 100 раундов), у ботов проигрывает (82 / 53); в момент гибели CT у про двигался в 24–28 %, у ботов — 37–46 %,
-  // на своём месте стоял 9–21 % (идёт на место, переставляется, ротируется — и встречает врага на ходу). Держащий угол выигрывает, пока стоит:
-  // защитник сайта до планта, когда его команда знает врага рядом (≤ HOLD_FOE_R, не старше HOLD_FOE_SEC; место врага обычно за углом — вид не нужен), —
-  // останавливается и держит угол здесь, а не идёт дальше навстречу. Числа — проектные
-  if(targetSpeed > 0 && bot.team === "CT" && bomb.state !== "planted" && !bot._sawEnemy && !bot.atPost && bot.post && taskProp(bot.post.tag, "siteDefender")){
-    var BLh = beliefLast.CT || {};
-    for(var hid in BLh){ var he = BLh[hid], hb = teamBot(hid);
-      if(hb && hb.alive && hb.team === "T" && tick - he.tick <= HOLD_FOE_SEC*TICK_HZ && Math.hypot(he.x-bot.baseX, he.y-bot.baseY) < HOLD_FOE_R){
-        targetSpeed = 0; why = "враг рядом — стою, держу угол"; break; } }
   }
   // стоит в огне — выбегает из него прямо сейчас, что бы ни делал
   var burn = inFire(bot.baseX, bot.baseY, bot.z);
