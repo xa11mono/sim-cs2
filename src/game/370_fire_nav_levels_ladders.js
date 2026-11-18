@@ -29,6 +29,7 @@ function fireRepath(fx, fy){
       if(Math.hypot(px + dx*t - fx, py + dy*t - fy) <= R){ b.path = []; b.pathIdx = 0; return; }
       px = q[0]; py = q[1]; } });
 }
+var FIRE_GATHER_LEFT = 17;   // (v583a) с
 function fireCommit(b){
   if(!b) return false;
   if(b.planting || b.defusing) return b.hp > fireDamageFor(((b.planting ? b.plantUntil : b.defuseUntil) - tick)/TICK_HZ) + 10;
@@ -38,6 +39,11 @@ function fireCommit(b){
   // не ждёт, пока он прогорит: бомба (плант, дефуз, сбить плант / дефуз, ретейк и сбор под него, убежать от взрыва, поднять бомбу).
   // Остальные ждут у края (fireSafe) или идут в обход (путь, FIRE_DETOUR). Было — любой, у кого хватало HP
   if(!(b.post && taskProp(b.post.tag, "fireCommit"))) return false;
+  // (v583a, владелец 18.11: «разбери огонь полностью, чтобы не стояли в нём»; снимок м5 т46080: CT2 «сбор под ретейк» пошёл через молотов к
+  // середине, получил 87 урона за 1,8 с; потом тот же CT на ретейке — 52 урона за 2,1 с) сбор и заход на ретейк ждут, пока огонь прогорит, если время
+  // есть: сквозь огонь — только когда до взрыва
+  // меньше, чем горит молотов и дефуз без кита (FIRE_GATHER_LEFT, проектное: 7 + 10 с)
+  if(taskProp(b.post.tag, "fireIfLate") && !(bomb && bomb.state === "planted" && bombTimeLeftTicks() < FIRE_GATHER_LEFT*TICK_HZ)) return false;
   return b.hp > fireDamageFor(2*NADE.molly.radius/(SPEED*weaponSpeedMul(b))) + FIRE_MARGIN;
 }
 // (v321) высота шага: без связи в навмеше нельзя подняться выше прыжка (JUMP_UP), и нельзя залезть туда, откуда есть
