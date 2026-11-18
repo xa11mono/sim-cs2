@@ -1,3 +1,4 @@
+var BACK_KNOW = 15, BACK_R = 900;   // проектные числа: с — враг, которого знает команда, ещё «тот, от кого отхожу»; ед. карты — и он рядом
 function lookCands(b, W){
   var zb = (b.atPost && b.post) ? bzOf(b.post.x, b.post.y) : bzOf(b.x, b.y);
   if(zb < 0) zb = bzOf(b.x, b.y); if(zb < 0) return [];
@@ -5,6 +6,14 @@ function lookCands(b, W){
   var atHold = !moving && b.post && b.post.look && Math.hypot(b.post.x-b.x, b.post.y-b.y) < 160;
   var postA = (b.post && b.post.look && !(taskProp(b.post.tag, "saveTask"))) ? Math.atan2(b.post.look.y-(b.post.y||b.y), b.post.look.x-(b.post.x||b.x)) : null;
   var mates = bots.filter(function(o){ return o !== b && o.alive && o.team === team; });
+  // (отметка владельца 18.11, м5 р2 т8883, CT3: «зачем стал отворачиваться от врагов» — отходил от известных врагов за укрытие, и «по ходу» /
+  // «близко» дали первое место выходу у себя за спиной) отходит от известных врагов (знание команды ≤ BACK_KNOW с, ход от них дальше 115°) —
+  // пятится лицом к ним, как живой игрок: «по ходу» и «за спиной» считаются от направления на врагов, а не от хода
+  var hdA = moving ? b.heading : 0;
+  if(moving){ var BLk = beliefLast[team] || {}, ekx = 0, eky = 0;
+    for(var ek in BLk){ var lk = BLk[ek]; if(!lk || tick - lk.tick > BACK_KNOW*TICK_HZ) continue; var eo = teamBot(ek); if(!eo || !eo.alive || eo.team === team) continue;
+      if(Math.hypot(lk.x-b.x, lk.y-b.y) > BACK_R) continue; var ea = Math.atan2(lk.y-b.y, lk.x-b.x); ekx += Math.cos(ea); eky += Math.sin(ea); }
+    if((ekx || eky) && _angOff(Math.atan2(eky, ekx), b.heading) > 2.0) hdA = Math.atan2(eky, ekx); }
   // (v583a, Д1, владелец 17.11: «пока бежит, враг всё время смотрел на него справа — не повернулся»; м302 р2, CT2: Tetris за спиной ×0,15
   // «прикрыт», а свой рядом смотрел в другую сторону) спину прикрывает свой рядом (500 px), только если он смотрит туда (mateWatches, 260)
   var rearCov = function(pt){ return moving && mates.some(function(o){ return Math.hypot(o.x-b.x, o.y-b.y) < 500 && mateWatches(o, pt); }); };
@@ -56,11 +65,11 @@ function lookCands(b, W){
     // 3) оценка
     var sc = th * (0.4 + (Wd[zid]||0)) / (1 + d/(moving ? LOOK.distMove : LOOK.distHold));
     var F = D ? [["угроза зоны", th], ["простреливает меня", 0.4 + (Wd[zid]||0)], ["дистанция " + Math.round(d), 1/(1 + d/(moving ? LOOK.distMove : LOOK.distHold))]] : null;
-    var behind = moving ? _angOff(za, b.heading) > 1.9 : (atHold && postA !== null && _angOff(za, postA) > 2.2);
+    var behind = moving ? _angOff(za, hdA) > 1.9 : (atHold && postA !== null && _angOff(za, postA) > 2.2);
     if(d < LOOK.closeR && !behind){ sc *= LOOK.closeK; if(F) F.push(["близко", LOOK.closeK]); }
     if(fresh){ sc *= LOOK.freshK; if(F) F.push(["свежая угроза", LOOK.freshK]); }
     if(postA !== null && _angOff(za, postA) < 0.9){ sc *= LOOK.postK; if(F) F.push(["угол поста", LOOK.postK]); }
-    if(moving){ var hd = _angOff(za, b.heading); if(hd < 0.9){ sc *= LOOK.headK; if(F) F.push(["по ходу", LOOK.headK]); } else if(hd > 1.9 && !(fresh && d <= 250)){ sc *= rearCov(c) ? LOOK.behindMoveCov : LOOK.behindMove; if(F) F.push([rearCov(c) ? "за спиной (прикрыт)" : "за спиной", rearCov(c) ? LOOK.behindMoveCov : LOOK.behindMove]); } }
+    if(moving){ var hd = _angOff(za, hdA); if(hd < 0.9){ sc *= LOOK.headK; if(F) F.push(["по ходу", LOOK.headK]); } else if(hd > 1.9 && !(fresh && d <= 250)){ sc *= rearCov(c) ? LOOK.behindMoveCov : LOOK.behindMove; if(F) F.push([rearCov(c) ? "за спиной (прикрыт)" : "за спиной", rearCov(c) ? LOOK.behindMoveCov : LOOK.behindMove]); } }
     else if(behind && !fresh){ sc *= LOOK.behindHold; if(F) F.push(["за спиной поста", LOOK.behindHold]); }
     if(!fresh){ var mk = lookMateAhead(b, mates, j, c, d, za, F); if(!mk){ mateZ[j] = 1; if(dz) dz.skip = "там стоит свой"; return; } sc *= mk; }
     out.push({j:j, pt:c, sc:sc, fresh:fresh, a:za, f:F});
@@ -86,11 +95,11 @@ function lookCands(b, W){
     var sc = th * LOOK.entryExp / (1 + Math.max(d,200)/(moving ? LOOK.distMove : LOOK.distHold));
     var F = D ? [["угроза за входом", th], ["вход в мою зону", LOOK.entryExp], ["дистанция " + Math.round(d), 1/(1 + Math.max(d,200)/(moving ? LOOK.distMove : LOOK.distHold))]] : null;
     if(D && !D[nn]) D[nn] = {th: th, bel: beliefZoneKnown(team, nn), entry: true};
-    var behind = moving ? _angOff(za, b.heading) > 1.9 : (atHold && postA !== null && _angOff(za, postA) > 2.2);
+    var behind = moving ? _angOff(za, hdA) > 1.9 : (atHold && postA !== null && _angOff(za, postA) > 2.2);
     if(d < LOOK.closeR && !behind){ sc *= LOOK.closeK; if(F) F.push(["близко", LOOK.closeK]); }
     if(fresh){ sc *= LOOK.freshK; if(F) F.push(["свежая угроза", LOOK.freshK]); }
     if(postA !== null && _angOff(za, postA) < 0.9){ sc *= LOOK.postK; if(F) F.push(["угол поста", LOOK.postK]); }
-    if(moving){ var hd = _angOff(za, b.heading); if(hd < 0.9){ sc *= LOOK.headK; if(F) F.push(["по ходу", LOOK.headK]); } else if(hd > 1.9 && !(fresh && d <= 250)){ sc *= rearCov(c) ? LOOK.behindMoveCov : LOOK.behindMove; if(F) F.push([rearCov(c) ? "за спиной (прикрыт)" : "за спиной", rearCov(c) ? LOOK.behindMoveCov : LOOK.behindMove]); } }
+    if(moving){ var hd = _angOff(za, hdA); if(hd < 0.9){ sc *= LOOK.headK; if(F) F.push(["по ходу", LOOK.headK]); } else if(hd > 1.9 && !(fresh && d <= 250)){ sc *= rearCov(c) ? LOOK.behindMoveCov : LOOK.behindMove; if(F) F.push([rearCov(c) ? "за спиной (прикрыт)" : "за спиной", rearCov(c) ? LOOK.behindMoveCov : LOOK.behindMove]); } }
     else if(behind && !fresh){ sc *= LOOK.behindHold; if(F) F.push(["за спиной поста", LOOK.behindHold]); }
     if(!fresh){ var mk = mateZ[nn] ? 0 : lookMateAhead(b, mates, nn, c, d, za, F, p); if(!mk) return; sc *= mk; }   // зона за входом выкинута из-за своего — и вход   // (v583a, Д5) вход — то же правило, что зона за ним
     out.push({j:1000+nn, pt:c, sc:sc, fresh:fresh, a:za, f:F});
@@ -109,7 +118,7 @@ function lookCands(b, W){
     var sc = th * q.frac / (1 + d/(moving ? LOOK.distMove : LOOK.distHold));
     var F = D ? [["опасность зоны " + (zoneUserName(BZ.ids[q.z]) || BZ.ids[q.z]), th], ["доля позиции у про", q.frac], ["дистанция " + Math.round(d), 1/(1 + d/(moving ? LOOK.distMove : LOOK.distHold))]] : null;
     if(fresh){ sc *= LOOK.freshK; if(F) F.push(["свежая угроза", LOOK.freshK]); }
-    if(moving){ var hd = _angOff(za, b.heading); if(hd < 0.9){ sc *= LOOK.headK; if(F) F.push(["по ходу", LOOK.headK]); } else if(hd > 1.9 && !(fresh && d <= 250)){ sc *= rearCov(q) ? LOOK.behindMoveCov : LOOK.behindMove; if(F) F.push(["за спиной", rearCov(q) ? LOOK.behindMoveCov : LOOK.behindMove]); } }
+    if(moving){ var hd = _angOff(za, hdA); if(hd < 0.9){ sc *= LOOK.headK; if(F) F.push(["по ходу", LOOK.headK]); } else if(hd > 1.9 && !(fresh && d <= 250)){ sc *= rearCov(q) ? LOOK.behindMoveCov : LOOK.behindMove; if(F) F.push(["за спиной", rearCov(q) ? LOOK.behindMoveCov : LOOK.behindMove]); } }
     else if(atHold && postA !== null && _angOff(za, postA) > 2.2 && !fresh){ sc *= LOOK.behindHold; if(F) F.push(["за спиной поста", LOOK.behindHold]); }
     if(!fresh){ var mk = lookMateAhead(b, mates, q.z, q, d, za, F); if(!mk) return; sc *= mk; }   // (v583a, Д5) то же правило «свой впереди»
     out.push({j: "pos:" + q.id, pt: {x: q.x, y: q.y}, sc: sc, fresh: fresh, a: za, pos: q.id, f: F});
@@ -143,7 +152,7 @@ function lookCands(b, W){
       // направление в пределах ±30° от него (±30° — проектное число), если там видно дальше
       if(dl < 400){ var opn = openToward(b, ae, 0.52), dop = opn ? Math.hypot(opn.x-b.x, opn.y-b.y) : 0; if(opn && dop > dl + 40){ cl = opn; dl = dop; ae = Math.atan2(opn.y-b.y, opn.x-b.x); } }
       if(dl > 90 && lookMateAhead(b, mates, bzOf(cl.x, cl.y), cl, dl, ae, null)){ var scp = LOOK.proLook * PL.R;   // (v583a, Д5) туда, где свой, — нет
-        if(moving){ var hdp = _angOff(ae, b.heading); if(hdp < 0.9) scp *= LOOK.headK; else scp = 0; }
+        if(moving){ var hdp = _angOff(ae, hdA); if(hdp < 0.9) scp *= LOOK.headK; else scp = 0; }
         if(scp > 0) out.push({j:"pl", pt:{x:cl.x, y:cl.y}, sc:scp, fresh:false, a:ae, pro:true, f: D ? [["как у про с этой точки", LOOK.proLook], ["доля про", PL.R]] : null}); } } }
   // угол поста по сетапу — тоже кандидат (слабый), чтобы и он шёл через делёж:
   // двое на соседних постах не смотрят в одну точку, когда угроз нет
@@ -167,7 +176,7 @@ function lookCands(b, W){
   // (v441, док владельца 27.10, р1: m0NESY и karrigan шли к Van и смотрели назад на Kitchen — «путь» к sh1ro на T Spawn; замер: 36 % этого
   // взгляда на ходу — за спиной) на ходу — те же множители, что у остальных вариантов («по ходу» / «за спиной»); раньше их не было
   if(kw){ var kwa = Math.atan2(kw.pt.y-b.y, kw.pt.x-b.x), kws = kw.sc, kwF = D ? [["путь к известному врагу ("+kw.id+", "+kw.age.toFixed(1)+" с)", kw.cov ? kw.sc/LOOK.mateThere : kw.sc]].concat(kw.cov ? [["путь закрывает свой", LOOK.mateThere]] : []) : null;
-    if(moving){ var kwh = _angOff(kwa, b.heading); if(kwh < 0.9){ kws *= LOOK.headK; if(kwF) kwF.push(["по ходу", LOOK.headK]); }
+    if(moving){ var kwh = _angOff(kwa, hdA); if(kwh < 0.9){ kws *= LOOK.headK; if(kwF) kwF.push(["по ходу", LOOK.headK]); }
       else if(kwh > 1.9){ kws *= rearCov(kw.pt) ? LOOK.behindMoveCov : LOOK.behindMove; if(kwF) kwF.push([rearCov(kw.pt) ? "за спиной (прикрыт)" : "за спиной", rearCov(kw.pt) ? LOOK.behindMoveCov : LOOK.behindMove]); } }
     out.push({j:"known", pt:kw.pt, sc:kws, fresh:false, a:kwa, f:kwF}); }
   return out;
