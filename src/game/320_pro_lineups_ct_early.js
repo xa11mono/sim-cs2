@@ -337,17 +337,39 @@ function anchorPosOf(k){
 // раунда: о живых T команда давно ничего не знает (≤ INFO_QUIET с ни видели, ни слышали), — один CT (не опорник, который один на своём
 // сайте) идёт посмотреть ближайшую зону, где T по таймингу могут быть и откуда инфы нет: доходит до точки, откуда её видно (probeViewPoint),
 // видит пусто — «чекнул … — пусто» (markClear: знание команды, по нему и решают дальше — ротация, перекол), видит врага — бой, контакт.
-// Одна проверка за раз, INFO_MAX за раунд; держится INFO_HOLD с. Числа — проектные
-var INFO_QUIET = 10, INFO_MAX = 2, INFO_HOLD = 8, INFO_R = 900, INFO_EVERY = 16;   // проектные числа: с, раз за раунд, с, ед., тики
+// Одна проверка за раз, INFO_MAX за раунд; пусто — идёт дальше вглубь (infoNext), пока не встретит / не застрянет. Числа — проектные
+var INFO_QUIET = 10, INFO_MAX = 2, INFO_R = 900, INFO_EVERY = 16;   // проектные числа: с, раз за раунд, с, ед., тики
 var INFO_MIN_R = 250, INFO_W = 0.05, INFO_START = 20;   // проектные числа: ближе — не «глянуть», а рядом; ожидание врага в зоне; с от начала раунда
+function infoGo(I, b, nx){ I.pt = nx.pt; I.j = nx.j; I.look = {x:nx.c.x, y:nx.c.y}; I.x = nx.c.x; I.y = nx.c.y; I.at = 0; I.prD = null; I.prT = 0; I.prBest = 0; }
+// следующая зона проверки: соседняя с проверенной, глубже к спавну T (меньше зон до него — BZ.DT), куда T по таймингу могут дойти и которую не чекали
+// за INFO_QUIET с; из нескольких — где команда ждёт T больше
+function infoNext(b, j, cts){
+  if(j == null) return null;
+  if(!BZ.DT){ var zs = bzOf(T_SPAWN.x, T_SPAWN.y); BZ.DT = bzDist(zs >= 0 ? [zs] : []); }
+  var best = null;
+  (BZ.nbr[j] || []).forEach(function(n){
+    var c = BZ.cent[n]; if(!c || !(BZ.DT[n] < BZ.DT[j]) || !reachPossible("CT", n)) return;
+    var cz = CLEARZ.CT[BZ.ids[n]]; if(cz && tick - cz.tick < INFO_QUIET*TICK_HZ) return;
+    if(cts.some(function(o){ return o !== b && hasVision(o.x, o.y, c.x, c.y); })) return;
+    var w = beliefZoneKnown("CT", n); if(!best || w > best.w) best = {w:w, c:c, j:n};
+  });
+  if(!best) return null;
+  best.pt = probeViewPoint({x:b.x, y:b.y}, best.c, best.c);
+  return best.pt ? best : null;
+}
 function ctInfoCheck(b, ct, cts){
   if(ct.saving || ct.playRetake || (bomb && bomb.state === "planted") || tick - roundStartTick < INFO_START*TICK_HZ) return false;
   var I = ct._info && ct._info.round === roundNum ? ct._info : (ct._info = {round: roundNum, n: 0, by: null});
   if(I.by === b.id){
-    // дошёл и смотрит туда (точка выбрана так, что центр зоны видно): врага нет — «чекнул — пусто» (место, которое видел сам, — posChecked)
-    var done = tick >= I.until || b._sawEnemy || (b.atPost && I.at && tick - I.at > 0.5*TICK_HZ && (markClear("CT", I.x, I.y, b.id, hasVision(b.x, b.y, I.x, I.y)) || tick - I.at > 1.5*TICK_HZ));   // 0,5 / 1,5 с посмотреть — проектные
+    // (владелец 18.11: «пробы не надо отменять за какое-то время; дошёл, контакта нет — идёт дальше: не увидел — не значит, что их там не может
+    // быть») снимается: увидел врага; не идёт к точке (застрял — taskWalkOn, 110); команда узнала о T свежее (смысл проверки ушёл). Дошёл и
+    // глянул (0,5 / 1,5 с — проектные): пусто — «чекнул — пусто» (markClear) и дальше вглубь — соседняя зона ближе к их спавну (infoNext)
+    var BLi = beliefLast.CT || {}, fresh = bots.some(function(t){ var q = BLi[t.id]; return t.team === "T" && t.alive && q && q.tick > I.t0; });
     if(b.atPost && !I.at) I.at = tick;
-    if(!done){ setPost(b, I.pt, I.look, true, "probeInfo"); return b.post && b.post.tag === "probeInfo"; }
+    var looked = b.atPost && I.at && tick - I.at > 0.5*TICK_HZ && (markClear("CT", I.x, I.y, b.id, hasVision(b.x, b.y, I.x, I.y)) || tick - I.at > 1.5*TICK_HZ);
+    var stop = b._sawEnemy || fresh || (!b.atPost && !taskWalkOn(b, I.pt, I));
+    if(looked && !stop){ var nx = infoNext(b, I.j, cts); if(nx){ infoGo(I, b, nx); voiceLog("CT", "info"+b.id+roundNum+I.n+"_"+nx.j, b.id, "пусто, иду дальше — "+calloutName(nx.c.x, nx.c.y).replace(/^на /, "")); } else stop = true; }
+    if(!stop){ setPost(b, I.pt, I.look, true, "probeInfo"); return b.post && b.post.tag === "probeInfo"; }
     I.by = null; if(b.post && b.post.tag === "probeInfo") clearPost(b); return false;
   }
   if(I.by || I.n >= INFO_MAX || b._sawEnemy || b._contact) return false;
@@ -374,7 +396,7 @@ function ctInfoCheck(b, ct, cts){
   if(!best) return false;
   var pt = probeViewPoint({x:b.x, y:b.y}, best.c, best.c); if(!pt) return false;
   if(!setPost(b, pt, best.c, true, "probeInfo") || !(b.post && b.post.tag === "probeInfo")) return false;
-  I.by = b.id; I.n++; I.pt = pt; I.look = {x:best.c.x, y:best.c.y}; I.x = best.c.x; I.y = best.c.y; I.until = taskDeadline(b, pt, INFO_HOLD, false); I.at = 0;
+  I.by = b.id; I.n++; I.t0 = tick; infoGo(I, b, {c:best.c, j:best.j, pt:pt});
   voiceLog("CT", "info"+b.id+roundNum+I.n, b.id, "гляну "+calloutName(best.c.x, best.c.y).replace(/^на /, ""));
   return true;
 }

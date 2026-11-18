@@ -468,6 +468,15 @@ function setPostDo(b, pt, look, hold, tag, spreadIdx){
 // (владелец 18.11 м1 р2: «опять не дошёл до пробы»; «чинить механику целиком») срок задачи «дойти и сделать» — одно место: от расчётного прихода
 // (путь по навмешу / скорость по режиму: шагом — WALK_SPEED_FRAC), а не от выдачи. Было: у пробы T — так (Г3, 04.11), у пробы CT (8 с от выдачи)
 // и выхода на контакт — нет: на полпути задача истекала
+// (владелец 18.11: «пробы не надо отменять за какое-то время») идёт ли бот к точке задачи: за последние TASK_STUCK_SEC с путь до неё стал короче
+// лучшего замера хотя бы на 10 ед. (проектные числа: 3 с — обход, лестница, подъём; 10 ед. — шаг). Одно место для задач «дойти и посмотреть»
+// (проба T, проверка CT): снимается не по часам, а тот, кто не идёт (застрял / стоит). R — запись задачи (лучший замер); путь — раз в секунду
+var TASK_STUCK_SEC = 3;
+function taskWalkOn(b, pt, R){
+  if(!R.prT || tick - R.prT >= TICK_HZ){ var d = pathLenTo(b, pt.x, pt.y); R.prT = tick;
+    if(R.prD == null || d < R.prD - 10){ R.prD = d; R.prBest = tick; } }
+  return tick - (R.prBest || tick) < TASK_STUCK_SEC*TICK_HZ;
+}
 function taskDeadline(b, pt, holdSec, walking){
   var v = SPEED*(walking ? WALK_SPEED_FRAC : 1)*(typeof weaponSpeedMul === "function" ? weaponSpeedMul(b) : 1);
   return tick + Math.ceil((pathLenTo(b, pt.x, pt.y)/Math.max(1, v) + holdSec)*TICK_HZ);

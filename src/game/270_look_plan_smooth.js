@@ -210,12 +210,15 @@ function lookPtFloor(b, c){
   for(var i = 0; i < F.length; i++) if(visMarch(b.x, b.y, ez, c.x, c.y, F[i] + VIS_BODY.stand[0])) return F[i];
   return null;
 }
+// свой на том же уровне, что точка взгляда (этаж zf — lookPtFloor): иначе он стоит над / под ней и угол не закрывает. Одно место для «там стоит
+// свой» (lookMateAhead) и «на линии свой» (здесь и lookOnMate, 250); на линии — свой на моём уровне или на уровне точки
+function mateOnLevel(o, zf){ return zf == null || o.z == null || Math.abs(o.z - zf) <= 2*JUMP_UP; }
 function lookMateAhead(b, mates, j, c, d, za, F, p){
   // (отметка владельца 18.11, м1 р2: «игрок 5 не учитывает Under»; «чинить механику целиком» — этаж) свой «там» — только на том этаже, где точка
   // угрозы, которую вижу я (пол в точке c, видимый с моих глаз): над Underpath стоять — не значит держать Underpath. Было: 140 ед. на плоскости
-  var zf = lookPtFloor(b, c), lvl = function(o){ return zf == null || o.z == null || Math.abs(o.z - zf) <= 2*JUMP_UP; };
+  var zf = lookPtFloor(b, c), lvl = function(o){ return mateOnLevel(o, zf); };
   if(mates.some(function(o){ return lvl(o) && (Math.hypot(o.x-c.x, o.y-c.y) < 140 || (p && Math.hypot(o.x-p.x, o.y-p.y) < 140) || (bzOf(o.x, o.y) === j && Math.hypot(o.x-c.x, o.y-c.y) < 260)); })) return 0;   // (владелец 17.11, второй раз: «зачем смотрит выход, если там стоит тиммейт») — не кандидат вовсе (было ×0,15)
-  if(mates.some(function(o){ var dm = Math.hypot(o.x-b.x, o.y-b.y); return dm > 20 && dm < Math.min(d, 600) && _angOff(Math.atan2(o.y-b.y, o.x-b.x), za) < 0.22; })){ if(F) F.push(["свой на линии", LOOK.mateInLine]); return LOOK.mateInLine; }
+  if(mates.some(function(o){ var dm = Math.hypot(o.x-b.x, o.y-b.y); return (lvl(o) || mateOnLevel(o, b.z)) && dm > 20 && dm < Math.min(d, 600) && _angOff(Math.atan2(o.y-b.y, o.x-b.x), za) < 0.22; })){ if(F) F.push(["свой на линии", LOOK.mateInLine]); return LOOK.mateInLine; }
   return 1;
 }
 function knownWayLook(b){
@@ -354,8 +357,16 @@ function slVal(b, k){ var c = (b._lkC || []).filter(function(x){ return x.j === 
 function slNew(b, pt){ return (b._sl = {pt: pt ? {x: pt.x, y: pt.y} : null, since: tick, key: pt ? slKey(b) : null, plan: !!pt && b.lookReason === "look" && !!b._lkPick, val: pt && b._lkPick ? (b._lkPick.sc || 0) : 0, lvl: pt ? b._lookLvl : 0}); }
 function smoothLookFilter(b, look, urgent){
   var moving = b.curSpeed > 60*SPD_K && b.heading !== undefined;
+  // (18.11, владелец: «чередовать») стоя с поручённым углом — мельком на второй угол (lookAssigned) по тем же часам, что на ходу
+  if(!urgent && !moving && b._lkAltPt && look){
+    if(b._gl && tick < b._gl.until) look = b._gl.pt;
+    else if(tick >= (b._glNext||0)){
+      if(b._glNext) { b._gl = {pt:{x:b._lkAltPt.x, y:b._lkAltPt.y}, until: tick + SL.glDur}; look = b._gl.pt; b.lookReason = "glance"; }
+      b._glNext = tick + SL.glEvery[0] + Math.floor(hashRand(tick*13 + b.id.charCodeAt(b.id.length-1)*7)*(SL.glEvery[1]-SL.glEvery[0]));
+    }
+  }
   // на бегу без цели — изредка короткий взгляд на опасный угол сбоку
-  if(!look && !urgent && moving){
+  else if(!look && !urgent && moving){
     if(b._gl && tick < b._gl.until) look = b._gl.pt;
     else if(tick >= (b._glNext||0)){
       b._glNext = tick + SL.glEvery[0] + Math.floor(hashRand(tick*13 + b.id.charCodeAt(b.id.length-1)*7)*(SL.glEvery[1]-SL.glEvery[0]));
@@ -367,7 +378,7 @@ function smoothLookFilter(b, look, urgent){
         if(c.sc > bs){ bs = c.sc; best = c.pt; } });
       if(best){ b._gl = {pt:{x:best.x, y:best.y}, until: tick + SL.glDur}; look = b._gl.pt; b.lookReason = "glance"; }
     }
-  } else if(!moving) b._gl = null;
+  } else if(!moving && !b._lkAltPt) b._gl = null;
   // (v259, В1) «нет цели — смотрю по ходу» — такое же направление, как любое: держится не меньше holdMove и к
   // только что брошенному углу сразу не возвращаемся. Раньше пропажа цели на ходу сбрасывала память фильтра, и взгляд
   // метался «на угол ↔ по ходу» (матч 1 владельца: 255 раз за матч «туда-сюда» за 1 с)
@@ -557,20 +568,31 @@ function lookKnowCands(b){
   return out;
 }
 // уровень angle: угол, поручённый задачей, иначе угол из дележа команды
+// поручённый угол стоя: держит главный — угрозу из дележа, если её вес ≥ LOOK_PRO_YIELD (проектное число), иначе поручённый, — а второй
+// (угроза весом ≥ LOOK.claimMin или поручённый) оставляет на «мельком глянуть» (b._lkAltPt → smoothLookFilter: раз в SL.glEvery на SL.glDur —
+// те же числа, что мельком на ходу). Угроза в ту же сторону (< SL.glMin) — второго угла нет
+function lookAssigned(b, ptA){
+  var lpk = b._lkPick, thr = lpk && b._lkPt && lpk.sc >= LOOK.claimMin ? ((b._lkPt.vis ? b._lkPt : cornerLook(b, b._lkPt)) || b._lkPt) : null;
+  var A = {lvl: LOOK_LEVEL.angle, kind: "pro", pt: ptA, sc: 1};
+  if(!thr || _angOff(Math.atan2(thr.y-b.y, thr.x-b.x), Math.atan2(ptA.y-b.y, ptA.x-b.x)) < SL.glMin) return A;
+  if(lpk.sc >= LOOK_PRO_YIELD){ b._lkAltPt = ptA; return {lvl: LOOK_LEVEL.angle, kind: "look", pt: thr, sc: 1}; }
+  b._lkAltPt = thr; return A;
+}
 function lookAngleCand(b, moving){
   if(b.roamChecking && b.roamLookPt) return {lvl: LOOK_LEVEL.angle, kind: "roam", pt: b.roamLookPt, sc: 1};
   if(b.fakeHoldUntil && tick < b.fakeHoldUntil && bomb && bomb.site) return {lvl: LOOK_LEVEL.angle, kind: "fake", pt: GEO[bomb.site].tEntry, sc: 1};
   // (v583a, владелец 17.11: «более живыми — могут смотреть одну позицию, потом распределиться; не только два угла про») место после планта
   // (post.ppAlt, 280) угол про не навязывает: взгляд — по дележу команды (lookPlan), как у всех
-  // (отметка владельца 18.11, м1 р2: «игрок 5 не учитывает Under») угол про с места про — пока нет заметной угрозы: делёж углов дал этому боту
-  // угол весом ≥ LOOK_PRO_YIELD (проектное число) — смотрит на угрозу. Было: на месте про — всегда угол про, что бы ни было вокруг
-  var lpk = b._lkPick;
-  if(b.atPost && b.post && b.post.pro && !b.post.ppAlt && !moving && !(lpk && lpk.sc >= LOOK_PRO_YIELD)){ var plk = proSpotLook(b); if(plk) return {lvl: LOOK_LEVEL.angle, kind: "pro", pt: plk, sc: 1}; }
+  // (отметка владельца 18.11, м1 р2: «игрок 5 не учитывает Under»; «чередовать») поручённый угол (место про — proSpotLook; угол роли сетапа CT из
+  // демок — post.setupLook) и угроза из дележа команды — один выбор lookAssigned. Было: поручённый угол всегда, что бы ни было вокруг
+  b._lkAltPt = null;
+  if(b.atPost && b.post && b.post.pro && !b.post.ppAlt && !moving){ var plk = proSpotLook(b); if(plk) return lookAssigned(b, plk); }
   // (15.11, владелец: «точки в паре, чтобы смотрели все зоны, откуда выходят T») угол роли расстановки CT из демок (spot / lookYaw, 140) — поручен
   // задачей, как точка про на посту. Было: делёж углов команды перебивал его — на 20-й с угол роли держали редко (уход — медиана 27°), выход
   // из Palace закрывали в 0–17 % раундов против 43–66 % у про (tools/ct/ct_cover.js)
+  if(b.post && b.post.setupLook && b.post.look && b.atPost && !moving) return lookAssigned(b, b.post.look);
   // (v583a, Д16) шаг-проверка после планта (post.lookMoving, 280) — смотрит на проверяемый вход и на ходу
-  if(b.post && b.post.setupLook && b.post.look && (b.atPost && !moving || b.post.lookMoving)) return {lvl: LOOK_LEVEL.angle, kind: "pro", pt: b.post.look, sc: 1};
+  if(b.post && b.post.setupLook && b.post.look && b.post.lookMoving) return {lvl: LOOK_LEVEL.angle, kind: "pro", pt: b.post.look, sc: 1};
   if(!b._lkPt) return null;
   // (v259, В2) после планта на бегу не идёт спиной вперёд ради угла из дележа (догадка, не свежая угроза): смотрит, куда идёт.
   // Отход (repos, flee, save) — исключение. После планта у ботов спиной было T 20 % / CT 15 %, у про 10 / 6,5 %

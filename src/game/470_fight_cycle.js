@@ -34,19 +34,20 @@ function fightMateAt(b, x, y){ return bots.some(function(o){ return o !== b && o
 function fightCover(b, e, R, toward){
   // (отметка владельца 18.11, м1 р1 т2754, kyousuke: «опять ушёл за укрытие, но стоит в открытом») стрелок проверялся в 3D, остальные известные
   // враги — плоской линией: три укрытия подряд были на виду у T1 / T0 / T4. Теперь — общая проверка coverSafe (стрелок + известные, с шагом)
-  var others = coverThreats(b, []).filter(function(o){ return Math.hypot(o.x-e.x, o.y-e.y) > 60; });
+  var T0 = coverThreats(b, [e]), others = T0.filter(function(o){ return Math.hypot(o.x-e.x, o.y-e.y) > 60; });
   for(var pass = others.length ? 0 : 1; pass < 2; pass++){
+    var C = [];
     for(var k=1;k<=3;k++){
-      var r = R*k/3, C = [];
+      var r = R*k/3, Ck = [];
       for(var i=0;i<16;i++){
         var a = i*Math.PI/8, x = b.baseX + Math.cos(a)*r, y = b.baseY + Math.sin(a)*r;
         if(insideSolidWall(x, y) || !fightPathFree(b, b.baseX, b.baseY, x, y) || fightSeen(e, x, y, b.z) || fightMateAt(b, x, y)) continue;
-        C.push({x:x, y:y, de: toward ? -Math.hypot(x-toward.x, y-toward.y) : Math.hypot(x-e.x, y-e.y)});
+        Ck.push({x:x, y:y, z:b.z, de: toward ? -Math.hypot(x-toward.x, y-toward.y) : Math.hypot(x-e.x, y-e.y)});
       }
-      C.sort(function(p, q){ return q.de - p.de; });
-      var qz = b.z, T = pass === 0 ? [e].concat(others) : [e];
-      for(var c = 0; c < C.length; c++) if(coverSafe(C[c], qz, T)) return {x:C[c].x, y:C[c].y};
+      Ck.sort(function(p, q){ return q.de - p.de; }); C = C.concat(Ck);
     }
+    var T = pass === 0 ? [e].concat(others) : [e]; T.exp = T0.exp;
+    var q = coverPick(C, coverZ(b), T); if(q) return {x:q.x, y:q.y};
   }
   return null;
 }
@@ -446,33 +447,42 @@ function spotSeen(q, qz, f, peek){
     else { var a0 = navAt(p.x, p.y), lo = navAt(p.x, p.y, -9999), hi = navAt(p.x, p.y, 9999); [a0, lo, hi].forEach(function(x){ if(x && A.indexOf(x) < 0) A.push(x); }); }
     return A.some(function(ar){ var v = visParts(p.x, p.y, false, q.x, q.y, false, true, ar.z, qz); return v.head || v.body; }); });
 }
-// от кого прячется укрытие: заданные (стрелок, враг перед ним) + все, кого команда знает рядом (exposedTo: ≤ 4 с, ≤ 1200)
+// от кого прячется укрытие: заданные (стрелок, враг перед ним) + все, кого команда знает рядом (exposedTo: ≤ 4 с, ≤ 1200); T.exp — входы рядом,
+// откуда команда ждёт врага (threatEntrances, вес ≥ RL_THREAT_W; 300 ед., 3 входа — проектные). (отметка владельца 18.11, м1 р1 т1912, kyousuke:
+// «стоит возле кона открыто» — «рядом погиб свой — в укрытие» прятался только от T Ramp, а место открыто под Catwalk, откуда ждут.) Было: входы
+// учитывала одна перезарядка (v555), остальные укрытия — только известных врагов
 function coverThreats(b, extra){
   var T = (extra || []).filter(Boolean).map(function(f){ return {x:f.x, y:f.y, z:f.z}; });
   exposedTo(b, 1200, 4*TICK_HZ, true).forEach(function(o){ if(!T.some(function(t){ return Math.hypot(t.x-o.x, t.y-o.y) < 60; })) T.push(o); });
+  T.exp = threatEntrances(b.team, {x:b.x, y:b.y}, 300).filter(function(e){ return e.w >= RL_THREAT_W && !T.some(function(t){ return Math.hypot(t.x-e.pt.x, t.y-e.pt.y) < 120; }); })
+    .slice(0, 3).map(function(e){ return e.pt; });
   return T;
 }
+// укрыто от известных (обязательно)
 function coverSafe(q, qz, threats){ return threats.every(function(f){ return !spotSeen(q, qz, f, true); }); }
+// выбор укрытия — одно правило для всех мест (бой, ранен, после фрага, отход, перезарядка, «рядом погиб свой», мало HP): из подходящих (по порядку
+// вызывающего) — первое, укрытое и от известных, и от входов, где ждут (T.exp); такого нет — первое, укрытое от известных
+var COVER_CANDS = 12;   // проектное число: мест-кандидатов для выбора укрытия (м1 р1 т1912: из 6 лучших по pickSpots все были открыты под Catwalk, скрытое — 12-е)
+function coverPick(cands, zf, T){
+  var ok = cands.filter(function(q){ return coverSafe(q, zf(q), T); });
+  return ok.filter(function(q){ return coverSafe(q, zf(q), T.exp || []); })[0] || ok[0] || null;
+}
+function coverZ(b){ return function(q){ if(q.z != null) return q.z; var z = navOnlyZ(q.x, q.y); return z != null ? z : b.z; }; }
 function rlSeen(q, z, f){ return spotSeen(q, z, f, true); }
 var RL_THREAT_W = 0.2;   // (v555) проектное число: вход, где команда ждёт врага с таким весом, — укрытие на перезарядку прячет и от него
 function coverForReload(b, from){
   if(b._rlCoverT && tick - b._rlCoverT < 3*TICK_HZ) return true;
   b._rlCoverT = tick;
-  // (v555, отметка владельца м298 р1: «ушёл за укрытие — а не открыт ли он с другой позиции, откуда могут убить») прятаться и от входов, где
-  // команда ждёт врага (threatEntrances: ожидание зон рядом), а не только от известных: укрытие, открытое туда, — хуже (но не запрещено)
-  var thr = threatEntrances(b.team, {x:b.x, y:b.y}, 300).filter(   // 300 ед., 3 входа — проектные
-    function(e){ return e.w >= RL_THREAT_W; }).slice(0, 3).map(function(e){ return e.pt; });
-  // (отметка владельца 18.11, м5 р2 т8227, TeSeS: «ушёл за укрытие, а он открыт под игрока 4 с Palace») укрытие проверялось плоской линией от
-  // одной точки, где врага видели (за стеной Palace); с края балкона в шаге от неё место видно целиком. Теперь — той же проверкой, что видят
-  // друг друга (visParts, 3D: голова / тело), от места врага и от мест рядом, куда он выйдет за шаг (RL_PEEK_R)
-  var qz = function(q){ var z = navOnlyZ(q.x, q.y); return z != null ? z : b.z; };
-  var sp = pickSpots("rlcov"+tick+b.id, {x:b.x, y:b.y}, 6, {rMin:30, rMax:150, minGap:30, hideFrom:from.concat(thr)})
-    .filter(function(q){ if(!coverSafe(q, qz(q), from)) return false;
+  // (v555, отметка владельца м298 р1: «а не открыт ли он с другой позиции») прятаться и от входов, где команда ждёт врага, — общий выбор coverPick
+  // (отметка владельца 18.11, м5 р2 т8227, TeSeS: «открыт под игрока 4 с Palace») проверка — 3D с шагом врага (spotSeen)
+  var T = coverThreats(b, from), qz = coverZ(b);
+  var sp = coverPick(pickSpots("rlcov"+tick+b.id, {x:b.x, y:b.y}, COVER_CANDS, {rMin:30, rMax:150, minGap:30, hideFrom:T.concat(T.exp)})
+    .filter(function(q){
       // и дорога туда не на виду (первые RL_PATH_FREE ед. — он и так стоит на виду): было — укрытие закрыто, а путь к нему шёл по открытому к A
       var P = pathPts(b.x, b.y, q.x, q.y, b.z), Lp = polyLen(P);
       for(var dd = RL_PATH_FREE; dd < Lp - 8; dd += 24){ var s = pointAtDist(P, dd), sz = navOnlyZ(s.x, s.y); if(sz == null) sz = b.z;
-        if(from.some(function(f){ return rlSeen(s, sz, f); })) return false; }
-      return true; })[0];
+        if(T.some(function(f){ return rlSeen(s, sz, f); })) return false; }
+      return true; }), qz, T);
   if(!sp) return false;
   taskKeep(b, 0, "fight");
   setPost(b, sp, from[0], true, "repos:rlcover");
@@ -524,7 +534,7 @@ function lowHpBack(b){
       if(mates.some(function(o){ return o.lookTarget && Math.hypot(o.lookTarget.x-E.pt.x, o.lookTarget.y-E.pt.y) < 220; })) return false;
       var pe = pathPts(b.x, b.y, E.pt.x, E.pt.y, b.z); return pe.length && polyLen(pe) <= 1000; });   // 1000 px — проектное число (как у фланга)
     var E0 = ents[0];
-    var spE = E0 ? pickSpots("lowhpE"+tick+b.id, E0.pt, 2, {rMin:120, rMax:280, minGap:40, must:[E0.pt], hideFrom:threat.slice(0, 3)})[0] : null;
+    var TE = coverThreats(b, threat.slice(0, 3)), spE = E0 ? coverPick(pickSpots("lowhpE"+tick+b.id, E0.pt, COVER_CANDS, {rMin:120, rMax:280, minGap:40, must:[E0.pt], hideFrom:TE.concat(TE.exp)}), coverZ(b), TE) : null;
     if(spE){
       taskKeep(b, 0, "fight"); b._probeLock = 0;
       setPost(b, spE, E0.pt, true, "repos:lowhp");
@@ -543,7 +553,7 @@ function lowHpBack(b){
   // перестановки держится _reposUntil). Раньше — та же задача «мало HP» и «остался один — иду к своим» через пол-карты (сторож: 214 из 242
   // «мало HP» — при полном HP)
   if(!low){
-    var spC = pickSpots("matedown"+tick+b.id, {x:b.x, y:b.y}, 1, {rMin:30, rMax:200, minGap:30, hideFrom:threat.slice(0, 3)})[0];
+    var TC = coverThreats(b, threat.slice(0, 3)), spC = coverPick(pickSpots("matedown"+tick+b.id, {x:b.x, y:b.y}, COVER_CANDS, {rMin:30, rMax:200, minGap:30, hideFrom:TC.concat(TC.exp)}), coverZ(b), TC);
     if(!spC) return;
     taskKeep(b, 0, "fight"); b._probeLock = 0;
     setPost(b, spC, threat[0], true, "repos:mateDown");
@@ -562,8 +572,9 @@ function lowHpBack(b){
     var bad = pts.some(function(q, k){ return k > 0 && threat.some(function(t){ return Math.hypot(q[0]-t.x, q[1]-t.y) < 250; }); });
     if(!bad){ m = o; mL = L; }
   });
-  var sp = m ? (pickSpots("lowhp"+tick+b.id, {x:m.x, y:m.y}, 2, {rMin:40, rMax:180, minGap:40, hideFrom:threat.slice(0, 3)})[0] || {x:m.x, y:m.y})
-             : pickSpots("lowhpc"+tick+b.id, {x:b.x, y:b.y}, 1, {rMin:30, rMax:200, minGap:30, hideFrom:threat.slice(0, 3)})[0];
+  var TL = coverThreats(b, threat.slice(0, 3));
+  var sp = m ? (coverPick(pickSpots("lowhp"+tick+b.id, {x:m.x, y:m.y}, COVER_CANDS, {rMin:40, rMax:180, minGap:40, hideFrom:TL.concat(TL.exp)}), coverZ(b), TL) || {x:m.x, y:m.y})
+             : coverPick(pickSpots("lowhpc"+tick+b.id, {x:b.x, y:b.y}, COVER_CANDS, {rMin:30, rMax:200, minGap:30, hideFrom:TL.concat(TL.exp)}), coverZ(b), TL);
   if(!sp) return;
   taskKeep(b, 0, "fight"); b._probeLock = 0;
   setPost(b, sp, threat[0], true, "repos:lowhp");

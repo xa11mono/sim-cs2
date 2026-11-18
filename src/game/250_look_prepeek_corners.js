@@ -25,14 +25,16 @@ function smokeEdge(o, p){
 // «туда же» — ходы в пределах 60° (cos > 0,5 — проектное число)
 function lookOnMate(b, p){
   var dp = Math.hypot(p.x-b.x, p.y-b.y), ap = Math.atan2(p.y-b.y, p.x-b.x);
-  var run = b.curSpeed > 60*SPD_K && b.heading !== undefined;
+  var run = b.curSpeed > 60*SPD_K && b.heading !== undefined, zf;
   return bots.some(function(o){ if(o === b || !o.alive || o.team !== b.team) return false;
+    // (отметка владельца 18.11, м1 р2: «игрок 5 не учитывает андер») свой у точки — только на её этаже; на линии — на её или моём (mateOnLevel, 270) (mateOnLevel, 270)
+    if(zf === undefined) zf = lookPtFloor(b, p); var atP = mateOnLevel(o, zf), onL = atP || mateOnLevel(o, b.z);
     if(run && o.curSpeed > 60*SPD_K && o.heading !== undefined && Math.cos(o.heading - b.heading) > 0.5) return false;
     var dm = Math.hypot(o.x-b.x, o.y-b.y); if(dm < 20) return false;
     var off = Math.abs(((Math.atan2(o.y-b.y, o.x-b.x)-ap+Math.PI)%(2*Math.PI)+2*Math.PI)%(2*Math.PI)-Math.PI);
     // свой ближе точки на той же линии (смотрит ему в спину) или стоит у самой
     // точки и смотрит туда же (держит этот угол сам)
-    return (off < 0.2 && dm < dp + 40 && dm > 60) || (Math.hypot(o.x-p.x, o.y-p.y) < 90 && dm < dp + 150); });
+    return (onL && off < 0.2 && dm < dp + 40 && dm > 60) || (atP && Math.hypot(o.x-p.x, o.y-p.y) < 90 && dm < dp + 150); });
 }
 // открытое направление: видимые точки своей и соседних зон (как проходы для
 // сейва), не перекрытые своими; лучше — где враг может быть и ближе к углу поста

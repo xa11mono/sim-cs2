@@ -198,9 +198,7 @@ function tProbes(tt, ts){
         // не "60% пути", а до первого места, откуда ВИДНО, что там дальше
         // (опорника/вход) — иначе подпуш кончался за углом и колл был "пусто"
         if(!P.deep){ var vp = probeViewPoint(from, to, look); if(vp) P.pt = vp; }
-        // (Г3, 04.11, разбор отметок п.16: проба снималась через 9 с от начала — шагом до точки у окна не доходила, 211 из 345 проб на
-        // 8 матчах Mirage) срок пробы — 9 с (проектное число, как было) после расчётного прихода: дорога шагом по пути + 9 с
-        P.dl = taskDeadline(pb, P.pt, 9, true);
+        P.prD = null; P.prT = 0; P.prBest = 0;
         if(P.deep){
           voiceLog("T", "probe"+key+pb.id, pb.id, "подпушу "+(key === "M" ? "мид" : (zoneUserName(zoneIdAt(to.x, to.y)) || key.charAt(0)))+", посмотрю, сколько их там");
           // флешка под подпуш от ближайшего тиммейта (не вся раскидка — одна)
@@ -254,14 +252,10 @@ function tProbes(tt, ts){
         }
       }
     }
-    // (v519, пак 09.11 п.13; Р-30: «почти дошёл, а пришлось возвращаться на другой конец мида — пусть идёт дальше от того места, докуда дошёл, как
-    // продолжение пробы») срок вышел, а бот за последнюю секунду приблизился к точке пробы — проба продолжается (срок — оставшийся путь + запас);
-    // снимается по сроку только тот, кто не идёт (застрял / стоит)
-    var dPr = Math.hypot(P.pt.x-pb.baseX, P.pt.y-pb.baseY);
-    if(!P.prT || tick - P.prT >= TICK_HZ){ P.prog = P.prD != null && dPr < P.prD - 10; P.prD = dPr; P.prT = tick; }
-    if(!pb.atPost && P.prog && tick > (P.dl || P.since + 9*TICK_HZ)) P.dl = tick + Math.ceil((pathLenTo(pb, P.pt.x, P.pt.y)/(SPEED*WALK_SPEED_FRAC) + 2)*TICK_HZ);
-    if((pb.atPost && tick - (P.at || (P.at = tick)) > stay) || tick > (P.dl || P.since + 9*TICK_HZ)){
-      P.prD = null; P.prT = 0; P.prog = false;
+    // (v519, пак 09.11 п.13; Р-30: «почти дошёл — пусть идёт дальше») (владелец 18.11: «пробы не надо отменять за какое-то время») проба
+    // снимается не по сроку, а когда бот не идёт к точке (застрял / стоит) — общее «идёт ли» taskWalkOn (110)
+    if((pb.atPost && tick - (P.at || (P.at = tick)) > stay) || (!pb.atPost && !taskWalkOn(pb, P.pt, P))){
+      P.prD = null; P.prT = 0; P.prBest = 0;
       P.ph = 0; P.cleared = false; P.at = 0; P.saw = 0; P.until = tick + (6 + 3*hashRand(tick + pb.id.charCodeAt(1)))*TICK_HZ;
       pb._probeLock = 0; clearPost(pb); // вернётся на пост группы со следующего тика
     }

@@ -358,11 +358,11 @@ function hurtReactTick(b){
   // (v560, В101) задача бомбы (несёт ставить) больше не запрет сама по себе: терпит ли она шаг за укрытие — решает её правило отклонения
   // (detourOk ниже, 110: ставит / дефузит / убегает от взрыва — нет; несёт на точку и время есть — да)
   var fz = F.z != null ? F.z : null, hurtT = coverThreats(b, [{x:F.x, y:F.y, z:fz}]);
-  var cand = pickSpots("hurt"+Math.round(b.x/30)+","+Math.round(b.y/30)+"|"+Math.round(F.x/60)+","+Math.round(F.y/60), {x:b.x, y:b.y}, 6, {rMax:HURT_R, minGap:30, hideFrom:[F]})
-    .filter(function(q){ var a = b.z == null ? null : navAtLevel(q.x, q.y, b.z); if(b.z != null && !a) return false;
-      return !spotTaken(b, q) && coverSafe(q, a ? a.z : b.z, hurtT); })   // (18.11) общая проверка укрытия: стрелок + известные, 3D, с шагом (470)
+  var cand = pickSpots("hurt"+Math.round(b.x/30)+","+Math.round(b.y/30)+"|"+Math.round(F.x/60)+","+Math.round(F.y/60), {x:b.x, y:b.y}, COVER_CANDS, {rMax:HURT_R, minGap:30, hideFrom:[F].concat(hurtT.exp)})
+    .filter(function(q){ var a = b.z == null ? null : navAtLevel(q.x, q.y, b.z); if(b.z != null && !a) return false; q.z = a ? a.z : b.z;
+      return !spotTaken(b, q); })
     .sort(function(p, q){ return Math.hypot(p.x-b.x, p.y-b.y) - Math.hypot(q.x-b.x, q.y-b.y); });
-  var sp = cand[0]; if(!sp) return;
+  var sp = coverPick(cand, coverZ(b), hurtT); if(!sp) return;   // (18.11) общий выбор укрытия (470): стрелок + известные + входы, где ждут; 3D, с шагом
   var sec = pathLenTo(b, sp.x, sp.y)/SPEED;
   if(sec > DETOUR_MAX.hurt || (!taskCanSet(b, "repos:hurt") && !detourOk(b, "hurt", sec))) return;
   detourStart(b, "hurt", "repos:hurt", sec + 1.5);
