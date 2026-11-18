@@ -104,6 +104,8 @@ var CS_ACCEL = 5.5, CS_FRIC = 5.2, CS_STOP = 80;
 // жмут противоположную (джиггл / стрейф): демки Mirage с каждым тиком (_motion.csv, 12 демок, 15,3 тыс. нажатий, винтовки) — сдвиг за
 // нажатие 0 / 2 / 6 / 15 / 32 ед., длительность 4 / 5 / 9 / 15 / 22 тика (tools/motion/jig_pro.py)
 var STRAFE_PRO = [0.5, 2, 6, 15, 32], STRAFE_PRO_T = [4, 5, 9, 15, 22];
+var PEEK_KIND = {CT: [0.44, 0.47, 0.09], T: [0.12, 0.66, 0.23]};   // (Д30) доли короткий / средний / широкий в начале дуэли у про
+var PEEK_SHORT_DWELL = 9, PEEK_WIDE_EXTRA = 60;   // тики (медиана нажатия A/D у про), ед. — проектное (у про широкий — дальше 80 ед. от стойки)
 function csDecel(v, vmax){ return CS_FRIC*Math.max(v, CS_STOP/PX_UNITS) + CS_ACCEL*vmax; }   // px/с²
 function csTicksTo(v, vT, vmax){ var n = 0; while(v > vT + 0.5 && n < 30){ v -= csDecel(v, vmax)/TICK_HZ; n++; } return n; }
 function fightStrafe(b, F, dtSec){
@@ -281,6 +283,7 @@ function fightCycleTick(b, dtSec, busy){
       var c0 = null, DV = duelEval(b, F, null);
       if(DV && DV.sees && !DV.win){ c0 = fightCover(b, e, peekQ(D.shift, fightRand(b, 2)), tw) || fightCover(b, e, D.shift[4], tw); DV = duelEval(b, F, c0); }
       // размен выигрываю (или до укрытия дольше, чем меня убьют — уйти не успею) — стреляю дальше; следующая оценка — через время реакции
+      if(DV && !DV.sees && F.pk === "short" && F.cx != null){ F.pk = null; F.ph = "off"; F.mv = 0; F.until = tick + Math.round(peekQ(D.pause, fightRand(b, 14))*TICK_HZ); fcWhy(b, "короткий пик: врага не видно — назад"); return; }   // (Д30)
       if(DV && !DV.sees){ F.until = tick + 4; return; }   // врага не видно — стрелять не в кого: держит угол на линии (где появится), не отходит; бой кончится по «враг пропал» выше
       if(DV && DV.sees && (DV.win || (DV.trapped && !b._reloading && b.ammo > 0))){ F.until = tick + Math.max(b.reactionTicks || 1, 8); fcWhy(b, DV.win ? "остался: размен мой" : "остался: уйти не успею");
         if(!b._fcD || tick - b._fcD > 4*TICK_HZ){ b._fcD = tick; logEvent(b.id+": "+(DV.win ? "размен мой" : "уйти не успею")+" (мне до фрага "+DV.mine.toFixed(2)+" с, им "+DV.theirs.toFixed(2)+" с, до укрытия "+(DV.ret < 99 ? DV.ret.toFixed(2) : "—")+" с) — стреляю дальше"); }
@@ -335,6 +338,14 @@ function fightCycleTick(b, dtSec, busy){
     // размена выше (duelOdds)
     else if(F.nPeek >= 1 && F.e && fightRand(b, 11) >= Math.pow(0.5, F.samePk || 1)){ var nb = fightBetterAway(b, F.e, F.cx, F.cy, D.shift[4], F.ax, F.ay, D.shift[2]); if(nb){ F.ax = nb.x; F.ay = nb.y; F.samePk = 0; } }
     F.samePk = (F.samePk || 0) + 1;
+    // (v583a, Д30, владелец 18.11: «в перестрелке — разные пики, не один вид под одну ситуацию») вид выхода — жребий с весами про: каким пиком
+    // начиналась перестрелка (12 демок Mirage с каждым тиком, tools/motion/peek_types_pro.py; ≈ 93 дуэли — доли примерные): CT короткий 44 % /
+    // средний 47 % / широкий 9 %, T — 12 / 66 / 23 %. Короткий — выглянул и сразу назад, если размен не мой (оценка — через PEEK_SHORT_DWELL);
+    // средний — на место выхода, как было; широкий — дальше места выхода от укрытия на PEEK_WIDE_EXTRA (если там пол и не упёрся)
+    var PW = PEEK_KIND[b.team] || PEEK_KIND.T, ur = fightRand(b, 13); F.pk = ur < PW[0] ? "short" : ur < PW[0] + PW[1] ? "mid" : "wide";
+    if(F.pk === "wide"){ var wdx = F.ax - F.cx, wdy = F.ay - F.cy, wl = Math.hypot(wdx, wdy);
+      if(wl > 0.5){ var wx = F.ax + wdx/wl*PEEK_WIDE_EXTRA/PX_UNITS, wy = F.ay + wdy/wl*PEEK_WIDE_EXTRA/PX_UNITS;
+        if(!stepBlocked(F.ax, F.ay, wx, wy, b) && navNearLevel(wx, wy, 0, b.z)){ F.ax = wx; F.ay = wy; } else F.pk = "mid"; } else F.pk = "mid"; }
     // (ответ 4) против AWP (оружие врага видно) — сначала плечо: выстрелил — выглядывает целиком, пока он перезаряжается; нет — через паузу про
     if(F.e && F.e.primary === "AWP"){ var shp = fightShoulderPt(b, F.e, F.cx, F.cy, F.ax, F.ay); if(shp) F.sh = {x:shp.x, y:shp.y, t0:0, shot:F.e.lastShotTick || -1, done:false}; }
   }
@@ -343,7 +354,7 @@ function fightCycleTick(b, dtSec, busy){
   var tx = F.ph === "off" ? F.cx : shOn ? F.sh.x : F.ax, ty = F.ph === "off" ? F.cy : shOn ? F.sh.y : F.ay;
   var d = Math.hypot(tx-b.baseX, ty-b.baseY);
   if(d < 2 && shOn){ if(!F.sh.t0) F.sh.t0 = tick; if(tick - F.sh.t0 >= peekQ(D.pause, fightRand(b, 7))*TICK_HZ) F.sh.done = true; return; }   // плечо показано — ждёт выстрела до паузы про
-  if(d < 2){ F.mv = 0; if(F.ph === "back"){ F.ph = "line"; F.t = tick; F.until = 0; F.sv = undefined; } return; }
+  if(d < 2){ F.mv = 0; if(F.ph === "back"){ F.ph = "line"; F.t = tick; F.until = F.pk === "short" ? tick + PEEK_SHORT_DWELL : 0; F.sv = undefined; } return; }   // (Д30) короткий — оценка размена сразу: не мой — назад
   // (v524, владелец 10.11: «резко уходят влево-вправо и встают») за укрытие и обратно — той же физикой, что стрейф на линии (разгон CS_ACCEL,
   // трение CS_FRIC, остановка csDecel): с места набирает скорость, перед точкой гасит её; не медленнее CS_STOP, пока не дошёл
   var vmax = SPEED*weaponSpeedMul(b), mv = F.mv || 0;

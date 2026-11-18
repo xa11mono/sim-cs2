@@ -223,7 +223,13 @@ function contactTick(b){
   // (v558, В76 ч.3) выход — на дистанцию своего оружия (медиана убийств им у про, wpnKillDist 280): с Five-SeveN / ПП — ближе, с Deagle /
   // AWP — не лезть вплотную; было — всегда ближайшая к врагу точка
   var wD = wpnKillDist(b)[0];
-  cand.sort(swing ? function(a, c){ return Math.abs(Math.hypot(a.x-look.x, a.y-look.y) - wD) - Math.abs(Math.hypot(c.x-look.x, c.y-look.y) - wD); }
+  // (v583a, Д30, владелец 18.11: «в перестрелке — разные пики») выход на врага — жребий вида пика с весами про (PEEK_KIND, 470): короткий — ближайшая
+  // к себе точка, откуда видно врага (чуть выглянуть); средний — на дистанции своего оружия (как было); широкий — самая дальняя от себя (выйти широко)
+  var pkU = swing ? hashRand(tick*43 + b.id.charCodeAt(b.id.length-1)*19 + roundNum*7) : 0, PKW = PEEK_KIND[b.team] || PEEK_KIND.T;
+  var pkK = !swing ? null : pkU < PKW[0] ? "short" : pkU < PKW[0] + PKW[1] ? "mid" : "wide";
+  cand.sort(pkK === "short" ? function(a, c){ return Math.hypot(a.x-b.x, a.y-b.y) - Math.hypot(c.x-b.x, c.y-b.y); }
+          : pkK === "wide" ? function(a, c){ return Math.hypot(c.x-b.x, c.y-b.y) - Math.hypot(a.x-b.x, a.y-b.y); }
+          : swing ? function(a, c){ return Math.abs(Math.hypot(a.x-look.x, a.y-look.y) - wD) - Math.abs(Math.hypot(c.x-look.x, c.y-look.y) - wD); }
                   : function(a, c){ return Math.hypot(a.x-b.x, a.y-b.y) - Math.hypot(c.x-b.x, c.y-b.y); });
   var sp = cand[0]; if(!sp) return;
   var tag = swing ? "contact:swing" : "contact:hold";
