@@ -355,6 +355,17 @@ function slKey(b){ return b.lookReason === "look" && b._lkPick ? b._lkPick.j : (
 function slSub(k){ return typeof k === "string" && /(open|^glance)$/.test(k); }   // замена без угрозы — не досматривается ради угрозы
 function slVal(b, k){ var c = (b._lkC || []).filter(function(x){ return x.j === k; })[0]; return c ? c.sc : 0; }   // вес зоны k в текущем дележе
 function slNew(b, pt){ return (b._sl = {pt: pt ? {x: pt.x, y: pt.y} : null, since: tick, key: pt ? slKey(b) : null, plan: !!pt && b.lookReason === "look" && !!b._lkPick, val: pt && b._lkPick ? (b._lkPick.sc || 0) : 0, lvl: pt ? b._lookLvl : 0}); }
+// (К3) вход за спиной, откуда команда допускает врага, — для того, кто идёт последним: своих позади (в REAR_MATE_R, за линией плеч) нет.
+// REAR_MATE_R, радиус входов 400 — проектные числа
+var REAR_MATE_R = 500;
+function lookRearThreat(b){
+  var hd = lookHeading(b); if(hd == null) return null;
+  var behind = function(x, y){ return Math.cos(Math.atan2(y-b.y, x-b.x) - hd) < 0; };
+  if(bots.some(function(o){ return o !== b && o.alive && o.team === b.team && Math.hypot(o.x-b.x, o.y-b.y) < REAR_MATE_R && behind(o.x, o.y); })) return null;
+  var best = null;
+  threatEntrances(b.team, {x:b.x, y:b.y}, 400).forEach(function(e){ if(e.w >= LOOK.claimMin && _angOff(Math.atan2(e.pt.y-b.y, e.pt.x-b.x), hd) > SL.glMax && (!best || e.w > best.w)) best = {pt:e.pt, w:e.w}; });
+  return best;
+}
 function smoothLookFilter(b, look, urgent){
   var moving = b.curSpeed > 60*SPD_K && b.heading !== undefined;
   // (18.11, владелец: «чередовать») стоя с поручённым углом — мельком на второй угол (lookAssigned) по тем же часам, что на ходу
@@ -376,6 +387,9 @@ function smoothLookFilter(b, look, urgent){
         var a = Math.atan2(c.pt.y-b.y, c.pt.x-b.x), d = Math.abs(((a-lookHeading(b)+Math.PI)%(2*Math.PI)+2*Math.PI)%(2*Math.PI)-Math.PI);
         if(d < SL.glMin || d > SL.glMax) return;
         if(c.sc > bs){ bs = c.sc; best = c.pt; } });
+      // (К3, владелец 18.11: «T должны понимать, что их могут обходить») идёт последним (своих за спиной нет) — мельком и назад, на вход сзади,
+      // где команда допускает врага (threatEntrances: ожидание зон по таймингам / инфе), если он весомее найденного сбоку
+      var rr = lookRearThreat(b); if(rr && rr.w > bs){ bs = rr.w; best = rr.pt; }
       if(best){ b._gl = {pt:{x:best.x, y:best.y}, until: tick + SL.glDur}; look = b._gl.pt; b.lookReason = "glance"; }
     }
   } else if(!moving && !b._lkAltPt) b._gl = null;
