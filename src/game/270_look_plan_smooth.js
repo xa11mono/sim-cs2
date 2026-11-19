@@ -594,6 +594,10 @@ function lookAngleCand(b, moving){
   // (v583a, Д16) шаг-проверка после планта (post.lookMoving, 280) — смотрит на проверяемый вход и на ходу
   if(b.post && b.post.setupLook && b.post.look && b.post.lookMoving) return {lvl: LOOK_LEVEL.angle, kind: "pro", pt: b.post.look, sc: 1};
   if(!b._lkPt) return null;
+  // (отметка владельца 18.11, м1 р2, видео игрока 6: «почему жёлтая линия левее») на ходу угол из дележа весом меньше LOOK.claimMin (угрозы почти
+  // нет: 0,00–0,03) взгляд не ведёт — смотрит по ходу и на углы по пути (cornerLook). Было: такие углы менялись каждые 0,25–0,5 с (Jungle → Vent →
+  // Window → CT Spawn за 0,8 с), рука догоняла их на 90–180° и не успевала
+  if(moving && !(b._lkPick && b._lkPick.sc >= LOOK.claimMin)) return null;
   // (v259, В2) после планта на бегу не идёт спиной вперёд ради угла из дележа (догадка, не свежая угроза): смотрит, куда идёт.
   // Отход (repos, flee, save) — исключение. После планта у ботов спиной было T 20 % / CT 15 %, у про 10 / 6,5 %
   if(moving && bomb && bomb.state === "planted" && !(b.post && taskProp(b.post.tag, "lookAlongRetreat")) && !(b.lastIntel && tick - b.lastIntel.tick < CAUTION_TICKS) &&

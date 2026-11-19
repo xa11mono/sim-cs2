@@ -394,6 +394,10 @@ function ctInfoCheck(b, ct, cts){
     var sc = w/(1 + d/400); if(!best || sc > best.sc) best = {sc:sc, c:c, j:j};   // ближе — лучше (400 ед. — вдвое хуже; проектное число)
   }
   if(!best) return false;
+  // (отметка владельца 18.11, м1 р2: «куда пошёл игрок 5 — мид теперь не смотрит») зону проверяет тот CT, кому она ближе по пути: мидер не идёт
+  // через полкарты в Stove, когда рядом стоит опорник B (тот проверит сам или видит со своего места). Было: шёл первый, кто посчитал
+  var myL = pathLenTo(b, best.c.x, best.c.y);
+  if(cts.some(function(o){ return o !== b && o.alive && pathLenTo(o, best.c.x, best.c.y) < myL; })) return false;
   var pt = probeViewPoint({x:b.x, y:b.y}, best.c, best.c); if(!pt) return false;
   if(!setPost(b, pt, best.c, true, "probeInfo") || !(b.post && b.post.tag === "probeInfo")) return false;
   I.by = b.id; I.n++; I.t0 = tick; infoGo(I, b, {c:best.c, j:best.j, pt:pt});
