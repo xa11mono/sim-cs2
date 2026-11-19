@@ -170,6 +170,7 @@
 - 11.11, v550 — на втором аккаунте: Ancient 6nWEKBXyNAybDYzgPT1sH7, Mirage QzmQZEd5t9EdnhcXET9Agn.
 - 11.11, v549 — на втором аккаунте: Ancient 6nWEKBXyNAybDYzgPT1sH7, Mirage QzmQZEd5t9EdnhcXET9Agn.
 - 10.11, v548 — на втором аккаунте: Ancient 6nWEKBXyNAybDYzgPT1sH7, Mirage QzmQZEd5t9EdnhcXET9Agn.
+- 19.11, v583a — на втором аккаунте: Mirage v96, Ancient v60 — пробы у каждого CT, перестройка по инфе, случайное время в засаде.
 - 19.11, v583a — на втором аккаунте: Mirage v95, Ancient v59 — К1–К3 (засада и заход в спину, проба засел и слушает, T оглядываются назад).
 - 19.11, v583a — на втором аккаунте: Mirage v93 https://claude.ai/artifact/QzmQZEd5t9EdnhcXET9Agn, Ancient v57 https://claude.ai/artifact/6nWEKBXyNAybDYzgPT1sH7 (укрытия coverPick, пробы без срока, роли CT после смерти, взгляд: этаж / чередование).
 - 10.11, v547 — на втором аккаунте: Ancient 6nWEKBXyNAybDYzgPT1sH7, Mirage QzmQZEd5t9EdnhcXET9Agn.
