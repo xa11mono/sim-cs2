@@ -685,6 +685,10 @@ function stepTick(){
       var cX = bot.baseX + bot._prevOffX, cY = bot.baseY + bot._prevOffY;
       if(!crossesWall(bot.baseX, bot.baseY, cX, cY)){ bot.baseX = cX; bot.baseY = cY; }
     }
+    // (19.11, прогон v583q: Mirage «перенос на 13–15 px» 3 → 106) выглядывание оборвалось на середине (проверку роумера перебила задача — засада,
+    // проба, заход в спину), врага не видно: смещение не обнуляется скачком, а гаснет за несколько тиков (×0,7 за тик, проектное число)
+    else if(offX === 0 && offY === 0 && Math.hypot(bot._prevOffX || 0, bot._prevOffY || 0) > 1){
+      var dx0 = bot._prevOffX*0.7, dy0 = bot._prevOffY*0.7; if(!crossesWall(bot.baseX, bot.baseY, bot.baseX+dx0, bot.baseY+dy0)){ offX = dx0; offY = dy0; } }
     bot._prevOffX = offX; bot._prevOffY = offY;
     // (v403, отметка владельца 22.10, Mirage A Default: CT4 «прошёл сквозь два укрытия») высота пересчитывалась только после шага
     // пути: в бою (стрейф, уход за укрытие — fightCycleTick), у угла и после пика бот сходил с ящика и шёл дальше на высоте ящика
