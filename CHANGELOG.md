@@ -170,6 +170,7 @@
 - 11.11, v550 — на втором аккаунте: Ancient 6nWEKBXyNAybDYzgPT1sH7, Mirage QzmQZEd5t9EdnhcXET9Agn.
 - 11.11, v549 — на втором аккаунте: Ancient 6nWEKBXyNAybDYzgPT1sH7, Mirage QzmQZEd5t9EdnhcXET9Agn.
 - 10.11, v548 — на втором аккаунте: Ancient 6nWEKBXyNAybDYzgPT1sH7, Mirage QzmQZEd5t9EdnhcXET9Agn.
+- 19.11, v583a — на втором аккаунте: Mirage v93 https://claude.ai/artifact/QzmQZEd5t9EdnhcXET9Agn, Ancient v57 https://claude.ai/artifact/6nWEKBXyNAybDYzgPT1sH7 (укрытия coverPick, пробы без срока, роли CT после смерти, взгляд: этаж / чередование).
 - 10.11, v547 — на втором аккаунте: Ancient 6nWEKBXyNAybDYzgPT1sH7, Mirage QzmQZEd5t9EdnhcXET9Agn.
 - 10.11, v546 — на втором аккаунте: Ancient https://claude.ai/artifact/6nWEKBXyNAybDYzgPT1sH7 (до этого v370–v386, v457),
   Mirage https://claude.ai/artifact/QzmQZEd5t9EdnhcXET9Agn (до этого v457).
