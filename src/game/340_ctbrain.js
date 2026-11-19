@@ -210,8 +210,8 @@ function ctBrain(){
     // (v281, владелец 14.10: после зачистки B колл «все 1 на B» при последнем T на A) честное число: хвост 0,3 — это 0, а не 1
     var tAliveN = aliveCount("T"), here = Math.min(tAliveN, Math.round(ct.call.count));
     var elseO = 0, elseM = 0, elseAny = 0, hereKnown = 0;
-    var BLh = beliefLast.CT || {}; for(var eidH in BLh){ var eH = BLh[eidH], obH = teamBot(eidH); if(!obH || !obH.alive || tick - eH.tick > 8*TICK_HZ) continue; if(Math.hypot(eH.x-sc0.x, eH.y-sc0.y) < 900) hereKnown++; }   // (v365) знание команды по игрокам — beliefLast (beliefLast бывает пуст)
-    for(var eidR in beliefLast.CT){ var eR = beliefLast.CT[eidR]; if(tick - eR.tick > 8*TICK_HZ) continue; if(Math.hypot(eR.x-sc0.x, eR.y-sc0.y) < 900) continue;
+    knowEnemies("CT").forEach(function(eH){ if(Math.hypot(eH.x-sc0.x, eH.y-sc0.y) < 900) hereKnown++; });   // (19.11) знание команды без срока — knowWhere (240); (v365) знание команды по игрокам — beliefLast (beliefLast бывает пуст)
+    for(var eidR in beliefLast.CT){ var eR = knowWhere("CT", eidR); if(!eR || eR.conf < KNOW_CONF) continue; if(Math.hypot(eR.x-sc0.x, eR.y-sc0.y) < 900) continue;
       elseAny++; if(Math.hypot(eR.x-SITES[ko].x, eR.y-SITES[ko].y) < 750) elseO++; else if(Math.hypot(eR.x-GEO.ctMid.x, eR.y-GEO.ctMid.y) < 650) elseM++; }
     var unacc = Math.max(0, tAliveN - here - elseAny);
     ct.call.unacc = unacc;
@@ -237,7 +237,7 @@ function ctBrain(){
     var spread = false;
     if(!ct.call.bombSeen && !ct.call.undefended && aliveCount("T") >= 3){
       var zA = 0, zB = 0, zM = 0;
-      for(var eidS in beliefLast.CT){ var eS = beliefLast.CT[eidS]; if(tick - eS.tick > 10*TICK_HZ) continue;
+      for(var eidS in beliefLast.CT){ var eS = knowWhere("CT", eidS); if(!eS || eS.conf < KNOW_CONF) continue;
         if(Math.hypot(eS.x-SITES.A.x, eS.y-SITES.A.y) < 800) zA++; else if(Math.hypot(eS.x-SITES.B.x, eS.y-SITES.B.y) < 800) zB++; else if(Math.hypot(eS.x-GEO.ctMid.x, eS.y-GEO.ctMid.y) < 700 || Math.hypot(eS.x-GEO.tMid.x, eS.y-GEO.tMid.y) < 500) zM++; }
       var bA = beliefMass("CT", BZ.siteNear.A||[]), bB = beliefMass("CT", BZ.siteNear.B||[]), bM = beliefMass("CT", BZ.midZ);
       var areas = ((zA || bA > 0.6) ? 1 : 0) + ((zB || bB > 0.6) ? 1 : 0) + ((zM || bM > 0.6) ? 1 : 0);
