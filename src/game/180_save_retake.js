@@ -455,7 +455,7 @@ function retakeDefGo(b, R, cts){
   if(solo || oneT){
     if(Math.hypot(b.x-bomb.x, b.y-bomb.y) < 320 && !b._sawEnemy && tick - (b._lastSawT||-1e9) > 1.5*TICK_HZ){ if((b._nearBombT = b._nearBombT || tick) && tick - b._nearBombT > 1.5*TICK_HZ) return true; }
     else b._nearBombT = 0;
-    var farT = knowEnemies("CT").some(function(q){ return Math.hypot(q.x-bomb.x, q.y-bomb.y) > 600; });
+    var BLd = beliefLast.CT || {}, farT = Object.keys(BLd).some(function(e){ var q = BLd[e]; return q && tick - q.tick <= 5*TICK_HZ && bots.some(function(o){ return o.id === e && o.alive; }) && Math.hypot(q.x-bomb.x, q.y-bomb.y) > 600; });
     if(oneT && farT) return true;
     if(solo) return false;
   }

@@ -278,7 +278,7 @@ function afterKillReact(sh, tg, w){
     // новая точка: та же линия под другим углом, и не на виду у остальных
     // известных врагов (иначе по дороге его снимает второй)
     var others = [];
-    for(var eidA in beliefLast[sh.team]){ var eA = knowWhere(sh.team, eidA); if(eA && eidA !== tg.id && eA.conf >= KNOW_CONF && nearP(eA.x, eA.y, eA.z, sh.x, sh.y, sh.z, 1300)) others.push({x:eA.x, y:eA.y}); }
+    for(var eidA in beliefLast[sh.team]){ var eA = beliefLast[sh.team][eidA]; if(eidA !== tg.id && tick - eA.tick < 8*TICK_HZ && nearP(eA.x, eA.y, eA.z, sh.x, sh.y, sh.z, 1300)) others.push({x:eA.x, y:eA.y}); }
     // держал пост (опорник/линия) — новый угол должен видеть и то, что он держал
     var seeA = [vp]; if(sh.post && sh.post.look && sh.post.tag !== "repos") seeA.push(sh.post.look);
     var alt = pickSpots("awpr"+tick+sh.id, here, 4, {rMin:100, rMax:260, minGap:60, see:seeA, hideFrom:others, cross:{from:here, pt:vp}});

@@ -200,7 +200,7 @@ function sprayPat(w, i){
 //    спины (≤ KNIFE_REACH) — нож;
 //  · конец: меня увидели (обычный бой), все цели мертвы / потеряны ≥ AMB_LOST с, мало HP.
 // Числа — проектные
-var AMB_HEAR = 1.5, AMB_AWAY = Math.PI/3, AMB_PASS = 380, AMB_GONE = [1, 6], AMB_LOST = 5, AMB_SHOOT = 260, AMB_R = 700, AMB_MIN = 90;
+var AMB_HEAR = 1.5, AMB_AWAY = Math.PI/3, AMB_PASS = 380, AMB_GONE = [1, 6], AMB_LOST = 5, AMB_TRAIL = 12, AMB_SHOOT = 260, AMB_R = 700, AMB_MIN = 90;
 function ambSeenBy(b){ return bots.some(function(o){ return o.alive && o.team !== b.team && o._visible && o._visible.indexOf(b) >= 0; }); }
 // кого из врагов я сейчас воспринимаю сам: вижу или слышал (звук с источником) недавно, в AMB_R
 function ambFoes(b){
@@ -276,8 +276,7 @@ function ambushTick(b){
       var c = P.sort(function(p, q){ return Math.hypot(p.x-b.x, p.y-b.y) - Math.hypot(q.x-b.x, q.y-b.y); })[0]; A.last = {x: c.x, y: c.y, z: c.z, id: c.id}; A.lastT = tick; } }
   else if(!A.via && tick - A.seen > AMB_LOST*TICK_HZ){
     // потерял — но команда знает, где они: иду туда (инфа команды, не своё восприятие)
-    // (19.11) знание команды без срока (knowWhere, 240): где их ждут — пока не опровергнуто, а не «12 с — потерял»
-    var kn = knowEnemies(b.team).sort(function(p, r){ return p.age - r.age || r.conf - p.conf; })[0];   // по следу — пока инфа не старше AMB_TRAIL с (проектное число)
+    var BLk = beliefLast[b.team] || {}, kn = bots.filter(function(o){ return o.alive && o.team !== b.team; }).map(function(o){ return BLk[o.id]; }).filter(function(q){ return q && tick - q.tick < AMB_TRAIL*TICK_HZ; }).sort(function(p, r){ return r.tick - p.tick; })[0];   // свежее всего, что знает команда   // по следу — пока инфа не старше AMB_TRAIL с (проектное число)
     if(kn){ A.seen = tick; A.last = {x: kn.x, y: kn.y, z: kn.z}; } else return ambEnd(b, "потерял");
   }
   if(A.ph === "wait"){

@@ -391,7 +391,7 @@ function ctRoleShift(b, S, RT){
   var T = ctSideThreat(); if(!(T[my] <= CT_SHIFT.low)) return RT.sh[b.id] ? RT.sh[b.id].role : null;
   var to = ["A", "M", "B"].filter(function(k){ return k !== my && T[k] >= CT_SHIFT.high; }).sort(function(p, r){ return T[r] - T[p]; })[0];
   if(!to) return RT.sh[b.id] ? RT.sh[b.id].role : null;
-  var freshTo = bots.filter(function(t){ var p = t.team === "T" ? knowWhere("CT", t.id) : null; if(!(p && p.conf >= 0.5)) return false; var zj = bzOf(p.x, p.y), c = zj >= 0 ? BZ.cent[zj] : p; return ctSideOf(c.x, c.y) === to; }).length;
+  var BL = beliefLast.CT || {}, freshTo = bots.filter(function(t){ var p = BL[t.id]; if(!(t.team === "T" && t.alive && p && tick - p.tick < CT_SHIFT.fresh*TICK_HZ)) return false; var zj = bzOf(p.x, p.y), c = zj >= 0 ? BZ.cent[zj] : p; return ctSideOf(c.x, c.y) === to; }).length;
   var clr = Object.keys(CLEARZ.CT || {}).some(function(zid){ var cz = CLEARZ.CT[zid], j = BZ.idx[zid], c = j != null ? BZ.cent[j] : null; return cz && tick - cz.tick < INFO_QUIET*TICK_HZ && c && ctSideOf(c.x, c.y) === my; });
   if(!clr && freshTo < 2) return RT.sh[b.id] ? RT.sh[b.id].role : null;
   var mates = bots.filter(function(o){ if(o === b || !o.alive || o.team !== "CT") return false; var r = RT.sh[o.id] ? RT.sh[o.id].role : (RT.by[o.id] || o.tRole), p = S.roles[r] ? ctRolePt(S, r) : null; return p && ctSideOf(p.x, p.y) === my; });

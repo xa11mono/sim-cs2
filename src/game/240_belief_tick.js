@@ -104,30 +104,6 @@ function beliefTick(){
     var CLT = LAST_CLEAR[team] || (LAST_CLEAR[team] = {}); clearAll.forEach(function(cz){ if(cz[1] >= 0.5) CLT[cz[0]] = tick; });
   });
 }
-// ======================= (владелец 19.11) ГДЕ ВРАГ ПО ЗНАНИЮ КОМАНДЫ — одно место для решений, без срока =======================
-// «Информация держится, пока её не опровергнут: говорим, что он там, даже если долго не пикает, пока не появится в другом месте» (гайды: колл
-// живёт до нового колла; IGL помнит, где кого видели; docs/PRO_PLAY.md). Было: решения брали «последнее, где видели» (beliefLast) и отрезали
-// по таймеру (2, 4, 5, 8, 10, 12, 15 с — у каждого места своё) — через 5 с «потерял», хотя никто его нигде больше не видел.
-// knowWhere(team, id): видит кто-то из своих сейчас — точка (seen); видели ≤ KNOW_EXACT с назад — точка, где видели (exact: уйти далеко не
-// успел); иначе — зона, где его ждёт карта команды (belief: гипотезы «стоит / ушёл по маршруту / ушёл тихо», веса меняют только события —
-// увидели в другом месте, проверили «пусто», убил, плант), conf — её доля. age — с последнего точного места (для «насколько свежо», не срок).
-// KNOW_EXACT, KNOW_CONF — проектные числа
-var KNOW_EXACT = 2, KNOW_CONF = 0.3;
-function knowWhere(team, eid){
-  var e = teamBot(eid); if(!e || !e.alive || e.team === team) return null;
-  if(bots.some(function(o){ return o.alive && o.team === team && o._visible && o._visible.indexOf(e) >= 0; })) return {id: eid, x: e.x, y: e.y, z: e.z, seen: true, exact: true, age: 0, conf: 1};
-  var bl = (beliefLast[team] || {})[eid], Q = belief[team] && belief[team][eid], age = bl ? (tick - bl.tick)/TICK_HZ : Infinity;
-  if(!bl) return null;   // о нём в раунде инфы не было (ни видели, ни слышали) — где он, не знаем: предположения по таймингам — для карты угроз, не ответ
-  if(bl && age <= KNOW_EXACT) return {id: eid, x: bl.x, y: bl.y, z: bl.z, seen: false, exact: true, age: age, conf: 1};
-  var bj = -1, bw = 0; if(Q) for(var j = 0; j < Q.length; j++) if(Q[j] > bw){ bw = Q[j]; bj = j; }
-  // зона места, где видели, держит свой вес — точка остаётся точной (стоит, где видели); иначе — середина лучшей зоны
-  if(bl){ var zl = bzOf(bl.x, bl.y); if(zl >= 0 && Q && Q[zl] >= bw - 1e-6) return {id: eid, x: bl.x, y: bl.y, z: bl.z, seen: false, exact: false, age: age, conf: Q[zl]}; }
-  if(bj >= 0 && BZ.cent[bj]) return {id: eid, x: BZ.cent[bj].x, y: BZ.cent[bj].y, z: null, seen: false, exact: false, age: age, conf: bw};
-  return {id: eid, x: bl.x, y: bl.y, z: bl.z, seen: false, exact: false, age: age, conf: 0};
-}
-// все живые враги, о которых команда что-то знает с уверенностью ≥ minConf (по умолчанию KNOW_CONF)
-function knowEnemies(team, minConf){ var mc = minConf == null ? KNOW_CONF : minConf, out = [];
-  bots.forEach(function(e){ if(!e.alive || e.team === team) return; var k = knowWhere(team, e.id); if(k && k.conf >= mc) out.push(k); }); return out; }
 // сколько врагов команда ожидает в наборе зон (сумма по всем живым врагам)
 function beliefMass(team, zoneList){
   var B = belief[team], tot = 0;

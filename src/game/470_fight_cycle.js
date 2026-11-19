@@ -385,7 +385,7 @@ function fightCycleTick(b, dtSec, busy){
 // зону, где T по карте вероятностей почти наверняка есть
 function pathDanger(team, pts){
   var BL = beliefLast[team] || {}, foes = [];
-  for(var eid in BL){ var lo = knowWhere(team, eid); if(lo && lo.conf >= KNOW_CONF) foes.push(lo); }   // (19.11) без срока — knowWhere (240)
+  for(var eid in BL){ var lo = BL[eid]; if(tick - lo.tick > 10*TICK_HZ) continue; var e = bots.filter(function(o){ return o.id === eid; })[0]; if(e && e.alive) foes.push(lo); }
   for(var i = 0; i < pts.length; i++){
     var q = pts[i];
     for(var f = 0; f < foes.length; f++) if(Math.hypot(q[0]-foes[f].x, q[1]-foes[f].y) < 380) return true;
@@ -417,7 +417,7 @@ function safeRotate(b, dest, site){
 function ninjaOk(){
   var ts = bots.filter(function(o){ return o.team === "T" && o.alive; }); if(!ts.length) return false;
   var BL = beliefLast.CT || {};
-  return ts.every(function(t){ var lo = knowWhere("CT", t.id); return lo && lo.conf >= KNOW_CONF && Math.hypot(lo.x-bomb.x, lo.y-bomb.y) > 700; });
+  return ts.every(function(t){ var lo = BL[t.id]; return lo && tick - lo.tick < 8*TICK_HZ && Math.hypot(lo.x-bomb.x, lo.y-bomb.y) > 700; });
 }
 // ---- (7) перезарядка за укрытием ----
 function exposedTo(b, maxD, maxAge, anyLos){
@@ -425,8 +425,7 @@ function exposedTo(b, maxD, maxAge, anyLos){
   // иначе бот уходил с угла на каждую перезарядку и сайт оставался пустым
   maxD = maxD || 600; maxAge = maxAge || 4*TICK_HZ;
   var BL = beliefLast[b.team] || {}, out = [];
-  // (19.11) враги из знания команды — без срока (knowWhere, 240): стоит, где видели, пока не опровергнуто; maxAge — только для звука ниже
-  for(var eid in BL){ var lo = knowWhere(b.team, eid); if(!lo || lo.conf < KNOW_CONF) continue;
+  for(var eid in BL){ var lo = BL[eid]; if(tick - lo.tick > maxAge) continue; var e = bots.filter(function(o){ return o.id === eid; })[0]; if(!e || !e.alive) continue;
     if(Math.hypot(lo.x-b.x, lo.y-b.y) < maxD && (anyLos || hasLOS(b.x, b.y, lo.x, lo.y, b.z))) out.push({x:lo.x, y:lo.y}); }
   // (п.5 владельца 29.10, м1 р2 т12112: zont1x с 16 HP перезаряжался на виду — метку стрелка lkpTick стёр в тот же тик) по нему самому
   // попали — откуда, он знает сам (урон + звук выстрела, heardSound «hit»): это тоже «на виду»
@@ -519,11 +518,11 @@ function lowHpBack(b){
   if(!mates.length) return; // один — отходить не к кому
   if(mates.some(function(o){ return nearP(o.x, o.y, o.z, b.x, b.y, b.z, 350); })) return; // рядом уже есть свой (v532 — по пути)
   var threat = exposedTo(b).concat([]); var BL = beliefLast[b.team] || {};
-  var near = false; for(var eid in BL){ var lo = knowWhere(b.team, eid); if(lo && lo.conf >= KNOW_CONF && nearPath(lo.x, lo.y, 700)){ near = true; threat.push({x:lo.x, y:lo.y}); } }   // (v531) враг рядом — тоже по пути
+  var near = false; for(var eid in BL){ var lo = BL[eid]; if(tick - lo.tick < 8*TICK_HZ && nearPath(lo.x, lo.y, 700)){ near = true; threat.push({x:lo.x, y:lo.y}); } }   // (v531) враг рядом — тоже по пути
   if(!near) return;
   // опорник на своём сайте с малым HP сайт не бросает — отходит, только если
   // совсем мало (≤20) и на него идут двое+
-  if(defending){ var nNear = 0; for(var eid2 in BL){ var lo2 = knowWhere(b.team, eid2); if(lo2 && lo2.conf >= KNOW_CONF && Math.hypot(lo2.x-b.x, lo2.y-b.y) < 700) nNear++; } if(b.hp > 20 || nNear < 2) return; }
+  if(defending){ var nNear = 0; for(var eid2 in BL){ var lo2 = BL[eid2]; if(tick - lo2.tick < 6*TICK_HZ && Math.hypot(lo2.x-b.x, lo2.y-b.y) < 700) nNear++; } if(b.hp > 20 || nNear < 2) return; }
   // мало HP — роль: держать проход к своим/к цели, который никто не держит (угроза по знанию — threatEntrances), не первым
   // контактом (точка прохода не ближе 250 px к известным врагам) и не дальше по пути, чем пошёл бы к своим
   if(low && !defending){
@@ -649,7 +648,7 @@ function dangerWalk(b){
   if(!b._dwVal){
     var L = beliefLast[b.team] || {}, BL = beliefLast[b.team] || {};
     outer: for(var eid in BL){
-      var lo = knowWhere(b.team, eid); if(!lo || lo.conf < KNOW_CONF) continue;
+      var lo = BL[eid]; if(!lo || tick - lo.tick > 15*TICK_HZ) continue;
       var foeB = bots.filter(function(o){ return o.id === eid; })[0]; if(!foeB || !foeB.alive) continue;
       for(var pi = 0; pi < pts.length; pi++) if(Math.hypot(pts[pi][0]-lo.x, pts[pi][1]-lo.y) < 650){ b._dwVal = true; b._dwWhy = "near"; if(!dwPrev) b._dwOnT = tick; break outer; }
     }

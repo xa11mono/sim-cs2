@@ -407,6 +407,6 @@ function soloMayWalk(b){
   var d = Math.hypot(site.x-b.x, site.y-b.y) * 1.3;
   if(d / (SPEED*WALK_SPEED_FRAC) > secLeft - 12) return false;
   var cts = bots.filter(function(o){ return o.team === "CT" && o.alive; });
-  var allKnownFar = cts.every(function(o){ var e = knowWhere("T", o.id); return e && e.conf >= KNOW_CONF && Math.hypot(e.x-site.x, e.y-site.y) > 1100; });
+  var allKnownFar = cts.every(function(o){ var e = beliefLast.T[o.id]; return e && tick - e.tick < 5*TICK_HZ && Math.hypot(e.x-site.x, e.y-site.y) > 1100; });
   return !allKnownFar;
 }

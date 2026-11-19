@@ -344,7 +344,7 @@ var INFO_MIN_R = 250, INFO_W = 0.05, INFO_START = 20, INFO_WAIT = [2, 9];   // �
 // они уже прошли дальше меня к нашим сайтам. Было: по числу зон до спавна (BZ.DT) — «в тылу» выходило, когда он был сбоку (владелец 19.11, м7 р3)
 var INFO_BEHIND = 150;
 function infoBehind(b){
-  var known = knowEnemies("CT"), BL = {}; known.forEach(function(q){ BL[q.id] = q; });   // (19.11) без срока — knowWhere (240)
+  var BL = beliefLast.CT || {}, known = bots.filter(function(t){ var q = BL[t.id]; return t.team === "T" && t.alive && q && tick - q.tick < 2*TICK_HZ; });
   if(!known.length) return false;
   var dS = function(x, y, z){ var P = pathPts(T_SPAWN.x, T_SPAWN.y, x, y, null, z); return P.length ? polyLen(P) : Infinity; };
   var me = dS(b.x, b.y, b.z); if(!isFinite(me)) return false;
