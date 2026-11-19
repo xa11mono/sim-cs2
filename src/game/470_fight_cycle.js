@@ -385,7 +385,7 @@ function fightCycleTick(b, dtSec, busy){
 // зону, где T по карте вероятностей почти наверняка есть
 function pathDanger(team, pts){
   var BL = beliefLast[team] || {}, foes = [];
-  for(var eid in BL){ var lo = knowWhere(b.team, eid); if(lo && lo.conf >= KNOW_CONF) foes.push(lo); }   // (19.11) без срока — knowWhere (240)
+  for(var eid in BL){ var lo = knowWhere(team, eid); if(lo && lo.conf >= KNOW_CONF) foes.push(lo); }   // (19.11) без срока — knowWhere (240)
   for(var i = 0; i < pts.length; i++){
     var q = pts[i];
     for(var f = 0; f < foes.length; f++) if(Math.hypot(q[0]-foes[f].x, q[1]-foes[f].y) < 380) return true;
@@ -417,7 +417,7 @@ function safeRotate(b, dest, site){
 function ninjaOk(){
   var ts = bots.filter(function(o){ return o.team === "T" && o.alive; }); if(!ts.length) return false;
   var BL = beliefLast.CT || {};
-  return ts.every(function(t){ var lo = knowWhere(b.team, t.id); return lo && lo.conf >= KNOW_CONF && Math.hypot(lo.x-bomb.x, lo.y-bomb.y) > 700; });
+  return ts.every(function(t){ var lo = knowWhere("CT", t.id); return lo && lo.conf >= KNOW_CONF && Math.hypot(lo.x-bomb.x, lo.y-bomb.y) > 700; });
 }
 // ---- (7) перезарядка за укрытием ----
 function exposedTo(b, maxD, maxAge, anyLos){
