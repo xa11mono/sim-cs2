@@ -357,7 +357,7 @@ function stepTick(){
     var burn = MOVE.burn;
     if(tick % 16 === 0){ var TR = bot._trail || (bot._trail = []); TR.push({x:bot.baseX, y:bot.baseY}); if(TR.length > 8) TR.shift(); }
     // перестрелка по данным: уйти с линии за укрытие и выглянуть снова
-    fightCycleTick(bot, dtSec, bot.planting || bot.defusing || burn || tick < (bot.blindUntil||0));
+    fightCycleTick(bot, dtSec, bot.planting || bot.defusing || burn || tick < (bot.blindUntil||0) || ambushHoldFire(bot));   // (К1) в засаде не выглядывает
     if(bot._fc && bot._fc.ph !== "line" && !fcSwingGo(bot)){ bot.curSpeed = bot._fc.moving ? (bot._fc.mv || 0) : 0; bot._stopWhy = bot._fc.moving ? "перестрелка — идёт за укрытие / на линию" : "перестрелка — стоит за укрытием"; }
 
     // ---------- держит угол "живьём" ----------

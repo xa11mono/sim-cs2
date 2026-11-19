@@ -217,7 +217,7 @@ var TASK_PROP = {
   plantGo:          /^plantspot/,    // бой: носитель идёт ставить — перестрелка по памяти кончилась (510)
   pickupTask:       /^pickup$/,      // CT: идёт подбирать — не переставлять (340)
   reposMove:        /^repos/,        // шаг: перестановка в бою — бегом, угол не режет (535)
-  flankTask:        /^(flank1|flank2)$/,   // шаг: фланг (535)
+  flankTask:        /^(flank1|flank2|ambush|backstab)$/,   // шаг: фланг; засада / заход в спину — тихо (535, К1)
   gatherTask:       /^gather/,       // шаг: сбор на ретейк — последние метры (535)
   probeTask:        /^probe/,        // шаг: проба — последние метры (535)
   shiftTask:        /^shift$/,       // шаг: перестановка — последние метры (535)
@@ -242,10 +242,10 @@ var TASK_LEVEL = [   // сверху — важнее; первая подход
   {lv:12, kind:"приказ песочницы",   re:/^sbGo$/},   // (v536) только в песочнице (677): владелец сказал боту «иди сюда»
   {lv:11, kind:"бомба",              re:/^(flee|defuse|stopplant|antidefuse|plantspot)$/},
   {lv:10, kind:"выжить",             re:/^save/},
-  {lv:9,  kind:"бой",                re:/^(contact|tradeR$|repos:killmove|repos:finish)/},   // (v469, п.25) добить раненого — тоже бой, контакт его не перебивает
+  {lv:9,  kind:"бой",                re:/^(contact|tradeR$|repos:killmove|repos:finish|ambush$|backstab$)/},   // (К1/К2, 18.11) засада / заход в спину — ход боя: в тылу у врага ротация сквозь него хуже (480)   // (v469, п.25) добить раненого — тоже бой, контакт его не перебивает
   {lv:8,  kind:"ретейк/сбор/ротация",re:/^(retake|gather|rotate$|rotate:|bombwatch|postplant|fetch$)/},
   {lv:7,  kind:"эндгейм/клатч",      re:/^(endhunt|hunt$|clutch)/},   // охота на последних — общий план команды, как и было (замок эндгейма)
-  {lv:6,  kind:"перестановка в бою", re:/^repos/},
+  {lv:6,  kind:"перестановка в бою", re:/^(repos|probeHide$)/},   // (К1/К2, 18.11) засел на пробе и слушает (320)
   {lv:5,  kind:"команда",            re:/^(fill$|rotateHold|fetchCover|bombEscort|bombWait|coverplant|flank\d$)/},   // (п.20 владельца 29.10: фланг CT
   // «из-за частого перебивания путей… нет захода в спину» — был уровнем 1, его перебивало и ожидание у дыма) фланг — задача команды
   {lv:4,  kind:"гранаты/ожидания",   re:/^(lineup|smokeWait|smokeLine|utilWait|utilHold)$/},

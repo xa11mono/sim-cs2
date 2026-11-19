@@ -74,6 +74,7 @@ function tryShoot(shooter, target, dist){
   if(shooter.planting || shooter.defusing) return; // руки заняты
   if(tick < shooter.blindUntil || tick < (shooter.throwUntil||0)) return; // ослеплён / бросает гранату
   if(!saveShootOk(shooter, target)) return;   // (v547) сейв — проходит мимо
+  if(ambushHoldFire(shooter, target)) return;   // (К1, 18.11) засада: пропускаю / подхожу в спину, пока он меня не видит (480)
   // план §3: "бот, держащий угол, может выстрелить до того как истечёт обычная
   // реакция на новый визуальный контакт, если есть свежая информация 'враг там',
   // и шанс зависит от точности этой информации" — префайр обходит обычный gate

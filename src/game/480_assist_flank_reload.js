@@ -188,3 +188,108 @@ function sprayPat(w, i){
   var x = i < 7 ? 0.03*i : X*Math.sin((i-7)/2.6) * (w.key === "AK" ? 1.2 : 1);
   return {x:x*d2r, y:y*d2r};
 }
+// ======================= (К1 / К2, владелец 18.11) ЗАСАДА И ЗАХОД В СПИНУ — одно место =======================
+// «CT подпушил и встал укромно (как про): слышит / видит троих — не стреляет в первого, пропускает дальше (к сайту) и бьёт в спину; один —
+// идёт за ним и убивает (можно ножом — экономика). Не только с такой точки: враг его не заметил — пропустить и зайти за ним». Гайды: лёркер
+// ловит тайминг, когда враг прошёл; тот, кто не замечен, бьёт в спину во время выхода (docs/PRO_PLAY.md). Правило общее, для обеих сторон.
+//  · начало: меня не видит ни один враг, а я воспринимаю врагов рядом (вижу или слышу ≤ AMB_HEAR с), и они идут не на меня (их ход и взгляд
+//    отвёрнуты от меня больше AMB_AWAY) — «проходят мимо»;
+//  · двое и больше — «пропускаю» (задача ambush): стою укрыто, не стреляю, пока они не уйдут дальше AMB_PASS от меня / не скроются ≥ AMB_GONE с /
+//    колл сайта; потом — «в спину» (backstab): иду шагом за ними, стреляю в спины;
+//  · один — сразу «в спину»: иду шагом за ним; не стреляю, пока он меня не видит и не повернулся ко мне и он ближе AMB_SHOOT; вплотную со
+//    спины (≤ KNIFE_REACH) — нож;
+//  · конец: меня увидели (обычный бой), все цели мертвы / потеряны ≥ AMB_LOST с, мало HP.
+// Числа — проектные
+var AMB_HEAR = 1.5, AMB_AWAY = Math.PI/3, AMB_PASS = 380, AMB_GONE = 1.5, AMB_LOST = 5, AMB_SHOOT = 260, AMB_R = 700, AMB_MIN = 90;
+function ambSeenBy(b){ return bots.some(function(o){ return o.alive && o.team !== b.team && o._visible && o._visible.indexOf(b) >= 0; }); }
+// кого из врагов я сейчас воспринимаю сам: вижу или слышал (звук с источником) недавно, в AMB_R
+function ambFoes(b){
+  var out = [];
+  bots.forEach(function(o){ if(!o.alive || o.team === b.team) return;
+    var seen = b._visible && b._visible.indexOf(o) >= 0, hs = b.heardSound, heard = hs && hs.src === o.id && tick - hs.tick < AMB_HEAR*TICK_HZ;
+    if((seen || heard) && Math.hypot(o.x-b.x, o.y-b.y) < AMB_R) out.push(o); });
+  return out;
+}
+// враг идёт не на меня. Вижу — по его ходу и взгляду (отвёрнуты от меня); только слышу — по звуку: шаги удаляются (расстояние до услышанного
+// растёт от замера к замеру, A.hd — раз в секунду). Настоящее направление невидимого врага бот не знает
+function ambPassing(b, o){
+  if(!(b._visible && b._visible.indexOf(o) >= 0)){
+    var A = b._amb, h = A && A.hd && A.hd[o.id]; return !!(h && h.d1 != null && h.d1 > h.d0 + 5);
+  }
+  var a = Math.atan2(b.y-o.y, b.x-o.x);
+  var fOk = o.facing === undefined || _angOff(a, o.facing) > AMB_AWAY, hOk = !(o.curSpeed > 15*SPD_K) || o.heading === undefined || _angOff(a, o.heading) > AMB_AWAY;
+  return fOk && hOk && Math.hypot(o.x-b.x, o.y-b.y) > AMB_MIN;
+}
+function ambOn(b){ var A = b._amb; return !!(A && A.round === roundNum && b.alive && b.post && /^(ambush|backstab)$/.test(b.post.tag || "")); }
+// не стрелять: засада ждёт / заход в спину ещё не подошёл, а цель меня не видит и не повернулась ко мне. t — цель (без цели — любая)
+function ambushHoldFire(b, t){
+  if(!ambOn(b)) return false;
+  var A = b._amb; if(ambSeenBy(b)) return false;
+  if(A.ph === "wait") return true;
+  if(!t) return false;
+  return ambPassing(b, t) && Math.hypot(t.x-b.x, t.y-b.y) > AMB_SHOOT && !(A.n === 1 && Math.hypot(t.x-b.x, t.y-b.y) > 1.6*AMB_SHOOT);
+}
+function ambEnd(b, why){ if(b._amb){ dlog(b, "засада", "конец — " + why); } b._amb = null; if(b.post && /^(ambush|backstab)$/.test(b.post.tag || "")) clearPost(b); return false; }
+// К2: проба / заход — враг впереди известен, а я у него в тылу: не бросаю, иду за ним в спину (вызов из пробы CT, 320)
+function ambushStartBack(b, ids, why){
+  var F = ids.map(teamBot).filter(function(o){ return o && o.alive; }); if(!F.length || b.hp <= LOW_HP) return false;
+  b._amb = {round: roundNum, ph: "go", ids: F.map(function(o){ return o.id; }), n: F.length, t0: tick, seen: tick, last: {x: F[0].x, y: F[0].y}};
+  voiceLog(b.team, "amb"+b.id+roundNum, b.id, why);
+  return ambushTick(b);
+}
+function ambushTick(b){
+  if(!b.alive || roundState !== "live" || b.planting || b.defusing || (bomb && bomb.state === "carried" && bomb.carrier === b)) { if(b._amb) ambEnd(b, "занят"); return false; }
+  var A = b._amb && b._amb.round === roundNum ? b._amb : null;
+  if(A && (ambSeenBy(b) || b.hp <= LOW_HP)) return ambEnd(b, ambSeenBy(b) ? "меня увидели — бой" : "мало HP");
+  var F = ambFoes(b);
+  if(!A){
+    if(!F.length || ambSeenBy(b) || b.hp <= LOW_HP || b._fc || !F.every(function(o){ return !(b._visible && b._visible.indexOf(o) >= 0) || ambPassing(b, o); }) || !F.some(function(o){ return !(b._visible && b._visible.indexOf(o) >= 0) || o.curSpeed > 40*SPD_K; })) return false;   // идут мимо (видимые — не стоят; слышу — значит идут)
+    if(b.post && taskProp(b.post.tag, "holdsSite") && F.some(function(o){ return nearP(o.x, o.y, o.z, b.x, b.y, b.z, AMB_PASS); })) return false;   // идут на мой сайт рядом — держу
+    // один — «иду за ним», только если вижу его и других рядом не знаю (владелец: «он точно должен увидеть, что он один»); слышу / их больше — жду
+    var solo = F.length === 1 && b._visible && b._visible.indexOf(F[0]) >= 0 && !bots.some(function(o){ var q = (beliefLast[b.team] || {})[o.id];
+      return o !== F[0] && o.alive && o.team !== b.team && q && tick - q.tick < 3*TICK_HZ && Math.hypot(q.x-b.x, q.y-b.y) < AMB_R; });
+    A = b._amb = {round: roundNum, ph: solo ? "go" : "wait", ids: F.map(function(o){ return o.id; }), n: F.length, t0: tick, seen: tick, last: {x: F[0].x, y: F[0].y}};
+    var where = calloutName(F[0].x, F[0].y).replace(/^на /, "");
+    voiceLog(b.team, "amb"+b.id+roundNum, b.id, !solo ? (F.length >= 2 ? F.length+" идут" : "слышу")+" через "+where+" — пропускаю, зайду в спину" : "один на "+where+" — иду за ним");
+  }
+  // услышанные: расстояние до звука раз в секунду (по нему — «удаляются ли»)
+  var hs = b.heardSound; A.hd = A.hd || {};
+  if(hs && hs.src && tick - hs.tick < AMB_HEAR*TICK_HZ){ var h = A.hd[hs.src] || (A.hd[hs.src] = {}), dd = Math.hypot(hs.x-b.x, hs.y-b.y);
+    if(!h.t || tick - h.t >= TICK_HZ){ h.d0 = h.d1 != null ? h.d1 : dd; h.d1 = dd; h.t = tick; } }
+  // цели: кого воспринимаю из своих целей + новые рядом
+  F.forEach(function(o){ if(A.ids.indexOf(o.id) < 0) A.ids.push(o.id); });
+  var T = A.ids.map(teamBot).filter(function(o){ return o && o.alive; });
+  if(!T.length) return ambEnd(b, "цели мертвы");
+  var seenNow = T.filter(function(o){ return F.indexOf(o) >= 0; });
+  // куда идти: увиденного — сразу; услышанного — не чаще раза в секунду (иначе путь пересчитывался на каждый шаг и бот топтался на месте)
+  var vis = seenNow.filter(function(o){ return b._visible && b._visible.indexOf(o) >= 0; });
+  if(seenNow.length){ A.seen = tick; var P = vis.length ? vis : (tick - (A.lastT || 0) >= TICK_HZ ? seenNow : null);
+    if(P && A.ph === "go" && !vis.length && P.every(function(o){ var h = A.hd[o.id]; return h && h.d1 != null && h.d1 < h.d0 - 5; })) return ambEnd(b, "слышу — идут на меня, не лезу навстречу");
+    if(P){ var Pb = P.filter(function(o){ return ambPassing(b, o); }); if(Pb.length) P = Pb;   // в спину — тем, кто ко мне спиной
+      var c = P.sort(function(p, q){ return Math.hypot(p.x-b.x, p.y-b.y) - Math.hypot(q.x-b.x, q.y-b.y); })[0]; A.last = {x: c.x, y: c.y, z: c.z, id: c.id}; A.lastT = tick; } }
+  else if(tick - A.seen > AMB_LOST*TICK_HZ) return ambEnd(b, "потерял");
+  if(A.ph === "wait"){
+    // выхожу, когда пропущенные ушли из восприятия (не вижу и не слышу ≥ AMB_GONE с) или колл сайта (начался выход): пока они рядом и могут
+    // обернуться — сижу (было: выходил, как только отошли на AMB_PASS, — его видели, м1 р1, T Roof)
+    var call = teamTac[b.team] && teamTac[b.team].call;
+    if(tick - A.seen > AMB_GONE*TICK_HZ || (call && !seenNow.some(function(o){ return Math.hypot(o.x-b.x, o.y-b.y) < AMB_PASS; }) && tick - A.t0 > TICK_HZ)){ A.ph = "go"; dlog(b, "засада", "прошли — иду в спину"); }
+    else {
+      // стою, где меня не видно: место — здесь, если оно укрыто от них; иначе ближайшее укрытое (общий выбор укрытия, 470)
+      if(!A.spot){ var TC = coverThreats(b, T); A.spot = coverSafe({x:b.x, y:b.y}, b.z, TC) ? {x:b.x, y:b.y} : (coverPick(pickSpots("amb"+tick+b.id, {x:b.x, y:b.y}, COVER_CANDS, {rMin:0, rMax:120, minGap:20, hideFrom:TC}), coverZ(b), TC) || {x:b.x, y:b.y}); }
+      setPost(b, A.spot, A.last, true, "ambush");
+      return ambOn(b) || ambEnd(b, "задача выше");
+    }
+  }
+  // в спину: к последнему месту ближайшей цели, шагом; вплотную со спины — нож
+  var tg = A.last.id ? teamBot(A.last.id) : null;
+  if(tg && tg.alive && seenNow.indexOf(tg) >= 0 && Math.hypot(tg.x-b.x, tg.y-b.y) <= 3*KNIFE_REACH && ambPassing(b, tg) && !b._reloading){
+    b._knife = true;
+    if(Math.hypot(tg.x-b.x, tg.y-b.y) <= KNIFE_REACH && tick >= (b._stabT || 0)){
+      b._stabT = tick + KNIFE_GAP;
+      applyDamage(b, tg, KNIFE_BACK, "knife", {wkey: "KNIFE_T", reward: 1500, note: " (нож, в спину)"});
+      tg.heardSound = {x: b.x, y: b.y, z: b.z, tick: tick, team: b.team, src: b.id, kind: "hit"};
+    }
+  }
+  setPost(b, A.last, A.last, true, "backstab");
+  return ambOn(b) || ambEnd(b, "задача выше");
+}
