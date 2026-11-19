@@ -357,7 +357,7 @@ function slVal(b, k){ var c = (b._lkC || []).filter(function(x){ return x.j === 
 function slNew(b, pt){ return (b._sl = {pt: pt ? {x: pt.x, y: pt.y} : null, since: tick, key: pt ? slKey(b) : null, plan: !!pt && b.lookReason === "look" && !!b._lkPick, val: pt && b._lkPick ? (b._lkPick.sc || 0) : 0, lvl: pt ? b._lookLvl : 0}); }
 // (К3) вход за спиной, откуда команда допускает врага, — для того, кто идёт последним: своих позади (в REAR_MATE_R, за линией плеч) нет.
 // REAR_MATE_R, радиус входов 400 — проектные числа
-var REAR_MATE_R = 500;
+var REAR_MATE_R = 500, REAR_EVERY = [3, 6];
 function lookRearThreat(b){
   var hd = lookHeading(b); if(hd == null) return null;
   var behind = function(x, y){ return Math.cos(Math.atan2(y-b.y, x-b.x) - hd) < 0; };
@@ -370,7 +370,7 @@ function smoothLookFilter(b, look, urgent){
   var moving = b.curSpeed > 60*SPD_K && b.heading !== undefined;
   // (18.11, владелец: «чередовать») стоя с поручённым углом — мельком на второй угол (lookAssigned) по тем же часам, что на ходу
   if(!urgent && !moving && b._lkAltPt && look){
-    if(b._gl && tick < b._gl.until) look = b._gl.pt;
+    if(b._gl && tick < b._gl.until){ look = b._gl.pt; b.lookReason = "glance"; }
     else if(tick >= (b._glNext||0)){
       if(b._glNext) { b._gl = {pt:{x:b._lkAltPt.x, y:b._lkAltPt.y}, until: tick + SL.glDur}; look = b._gl.pt; b.lookReason = "glance"; }
       b._glNext = tick + SL.glEvery[0] + Math.floor(hashRand(tick*13 + b.id.charCodeAt(b.id.length-1)*7)*(SL.glEvery[1]-SL.glEvery[0]));
@@ -378,7 +378,9 @@ function smoothLookFilter(b, look, urgent){
   }
   // на бегу без цели — изредка короткий взгляд на опасный угол сбоку
   else if(!look && !urgent && moving){
-    if(b._gl && tick < b._gl.until) look = b._gl.pt;
+    // (19.11, видео пробы CT0: «что за точки взгляда» — взгляд назад на Balcony держался секундами) мельком — весь срок с пометкой «glance»: без неё со
+    // второго тика удержание принимало точку за угол плана и держало после конца взгляда
+    if(b._gl && tick < b._gl.until && (tick & 3 || lookVisible(b, b._gl.pt))){ look = b._gl.pt; b.lookReason = "glance"; }   // скрылась за стеной — мельком кончился
     else if(tick >= (b._glNext||0)){
       b._glNext = tick + SL.glEvery[0] + Math.floor(hashRand(tick*13 + b.id.charCodeAt(b.id.length-1)*7)*(SL.glEvery[1]-SL.glEvery[0]));
       var best = null, bs = SL.glSc;
@@ -389,7 +391,11 @@ function smoothLookFilter(b, look, urgent){
         if(c.sc > bs){ bs = c.sc; best = c.pt; } });
       // (К3, владелец 18.11: «T должны понимать, что их могут обходить») идёт последним (своих за спиной нет) — мельком и назад, на вход сзади,
       // где команда допускает врага (threatEntrances: ожидание зон по таймингам / инфе), если он весомее найденного сбоку
-      var rr = lookRearThreat(b); if(rr && rr.w > bs){ bs = rr.w; best = rr.pt; }
+      // назад — реже, чем вбок: раз в REAR_EVERY с (случайно в диапазоне; проектные числа)
+      var rr = tick >= (b._rearNext || 0) ? lookRearThreat(b) : null; if(rr && rr.w > bs){ bs = rr.w; best = rr.pt; b._rearNext = tick + Math.round((REAR_EVERY[0] + (REAR_EVERY[1]-REAR_EVERY[0])*hashRand(tick*7 + b.id.charCodeAt(b.id.length-1)))*TICK_HZ); }
+      // (19.11, владелец, фото 3: «почему взгляд через стенки») точка «мельком» — середина зоны за стеной: как у любого взгляда (lookFilter) — туда, откуда
+      // враг выйдет на мою линию (appearFrom / cornerLook); видимой нет — мельком не смотрит
+      if(best && !lookVisible(b, best)){ var bv = appearFrom(b, best) || cornerLook(b, best); best = bv && lookVisible(b, bv) ? bv : null; }
       if(best){ b._gl = {pt:{x:best.x, y:best.y}, until: tick + SL.glDur}; look = b._gl.pt; b.lookReason = "glance"; }
     }
   } else if(!moving && !b._lkAltPt) b._gl = null;
@@ -414,7 +420,7 @@ function smoothLookFilter(b, look, urgent){
   if(!look){
     if(!moving){ return look; }
     if(urgent === 2){ b._sl = null; return look; }
-    if(S && S.pt && tick - S.since < slHold(b, S, true)) return S.pt;                    // угол ещё не «досмотрели»
+    if(S && S.pt && !slSub(S.key) && tick - S.since < slHold(b, S, true)) return S.pt;   // угол ещё не «досмотрели» (мельком / замену — не досматривает)
     if(!S || S.pt) slNew(b, null); // переходим на «по ходу»
     return look;
   }
