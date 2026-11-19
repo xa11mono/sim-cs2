@@ -200,7 +200,7 @@ function sprayPat(w, i){
 //    спины (≤ KNIFE_REACH) — нож;
 //  · конец: меня увидели (обычный бой), все цели мертвы / потеряны ≥ AMB_LOST с, мало HP.
 // Числа — проектные
-var AMB_HEAR = 1.5, AMB_AWAY = Math.PI/3, AMB_PASS = 380, AMB_GONE = [1, 6], AMB_LOST = 5, AMB_SHOOT = 260, AMB_R = 700, AMB_MIN = 90;
+var AMB_HEAR = 1.5, AMB_AWAY = Math.PI/3, AMB_PASS = 380, AMB_GONE = [1, 6], AMB_LOST = 5, AMB_TRAIL = 12, AMB_SHOOT = 260, AMB_R = 700, AMB_MIN = 90;
 function ambSeenBy(b){ return bots.some(function(o){ return o.alive && o.team !== b.team && o._visible && o._visible.indexOf(b) >= 0; }); }
 // кого из врагов я сейчас воспринимаю сам: вижу или слышал (звук с источником) недавно, в AMB_R
 function ambFoes(b){
@@ -231,9 +231,12 @@ function ambushHoldFire(b, t){
 }
 function ambEnd(b, why){ if(b._amb){ dlog(b, "засада", "конец — " + why); } b._amb = null; if(b.post && /^(ambush|backstab)$/.test(b.post.tag || "")) clearPost(b); return false; }
 // К2: проба / заход — враг впереди известен, а я у него в тылу: не бросаю, иду за ним в спину (вызов из пробы CT, 320)
-function ambushStartBack(b, ids, why){
+// via — точка, через которую идти (их спавн): в спину — их же дорогой, а не кратчайшим путём через свою половину (владелец 19.11, м7 р3: «дальше
+// по рампе до спавна, оттуда в спину», а бот пошёл назад через Stairs и мид к B Apartments — это ротация, не заход)
+function ambushStartBack(b, ids, why, via){
   var F = ids.map(teamBot).filter(function(o){ return o && o.alive; }); if(!F.length || b.hp <= LOW_HP) return false;
-  b._amb = {round: roundNum, ph: "go", ids: F.map(function(o){ return o.id; }), n: F.length, t0: tick, seen: tick, last: {x: F[0].x, y: F[0].y}};
+  var BL = beliefLast[b.team] || {}, q0 = BL[F[0].id] || F[0];
+  b._amb = {round: roundNum, ph: "go", ids: F.map(function(o){ return o.id; }), n: F.length, t0: tick, seen: tick, last: {x: q0.x, y: q0.y, z: q0.z}, lastT: tick, via: via || null};
   voiceLog(b.team, "amb"+b.id+roundNum, b.id, why);
   return ambushTick(b);
 }
@@ -271,7 +274,11 @@ function ambushTick(b){
     if(P && A.ph === "go" && !vis.length && P.every(function(o){ var h = A.hd[o.id]; return h && h.d1 != null && h.d1 < h.d0 - 5; })) return ambEnd(b, "слышу — идут на меня, не лезу навстречу");
     if(P){ var Pb = P.filter(function(o){ return ambPassing(b, o); }); if(Pb.length) P = Pb;   // в спину — тем, кто ко мне спиной
       var c = P.sort(function(p, q){ return Math.hypot(p.x-b.x, p.y-b.y) - Math.hypot(q.x-b.x, q.y-b.y); })[0]; A.last = {x: c.x, y: c.y, z: c.z, id: c.id}; A.lastT = tick; } }
-  else if(tick - A.seen > AMB_LOST*TICK_HZ) return ambEnd(b, "потерял");
+  else if(!A.via && tick - A.seen > AMB_LOST*TICK_HZ){
+    // потерял — но команда знает, где они: иду туда (инфа команды, не своё восприятие)
+    var BLk = beliefLast[b.team] || {}, kn = bots.filter(function(o){ return o.alive && o.team !== b.team; }).map(function(o){ return BLk[o.id]; }).filter(function(q){ return q && tick - q.tick < AMB_TRAIL*TICK_HZ; }).sort(function(p, r){ return r.tick - p.tick; })[0];   // свежее всего, что знает команда   // по следу — пока инфа не старше AMB_TRAIL с (проектное число)
+    if(kn){ A.seen = tick; A.last = {x: kn.x, y: kn.y, z: kn.z}; } else return ambEnd(b, "потерял");
+  }
   if(A.ph === "wait"){
     // выхожу, когда пропущенные ушли из восприятия (не вижу и не слышу случайно AMB_GONE с — сколько ждать, у каждого по-своему) или колл сайта (начался выход): пока они рядом и могут
     // обернуться — сижу (было: выходил, как только отошли на AMB_PASS, — его видели, м1 р1, T Roof)
@@ -288,6 +295,8 @@ function ambushTick(b){
       return ambOn(b) || ambEnd(b, "задача выше");
     }
   }
+  // в спину их дорогой: сначала через via (их спавн), потом за ними
+  if(A.via){ if(Math.hypot(A.via.x-b.x, A.via.y-b.y) > 120 && !seenNow.some(function(o){ return b._visible && b._visible.indexOf(o) >= 0; })){ setPost(b, A.via, A.last, true, "backstab"); return ambOn(b) || ambEnd(b, "задача выше"); } A.via = null; }
   // в спину: к последнему месту ближайшей цели, шагом; вплотную со спины — нож
   var tg = A.last.id ? teamBot(A.last.id) : null;
   if(tg && tg.alive && seenNow.indexOf(tg) >= 0 && Math.hypot(tg.x-b.x, tg.y-b.y) <= 3*KNIFE_REACH && ambPassing(b, tg) && !b._reloading){

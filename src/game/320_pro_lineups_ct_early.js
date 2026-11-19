@@ -340,13 +340,20 @@ function anchorPosOf(k){
 // Одна проверка за раз, INFO_MAX за раунд; пусто — идёт дальше вглубь (infoNext), пока не встретит / не застрянет. Числа — проектные
 var INFO_QUIET = 10, INFO_MAX = 3, INFO_PAR = 2, INFO_GO = 0.6, INFO_R = 900, INFO_EVERY = 16;   // проектные числа: с, раз за раунд, с, ед., тики
 var INFO_MIN_R = 250, INFO_W = 0.05, INFO_START = 20, INFO_WAIT = [2, 9];   // проектные числа: ближе — не «глянуть», а рядом; ожидание врага в зоне; с от начала раунда
-// я в тылу у T, о которых команда только что узнала: моя зона ближе к их спавну (BZ.DT), чем зоны, где их знают
+// я в тылу у T, о которых команда только что узнала: по пути от их спавна я ближе, чем каждый из них, с запасом INFO_BEHIND (проектное число) —
+// они уже прошли дальше меня к нашим сайтам. Было: по числу зон до спавна (BZ.DT) — «в тылу» выходило, когда он был сбоку (владелец 19.11, м7 р3)
+var INFO_BEHIND = 150;
 function infoBehind(b){
-  if(!BZ.DT){ var zs = bzOf(T_SPAWN.x, T_SPAWN.y); BZ.DT = bzDist(zs >= 0 ? [zs] : []); }
-  var zb = bzOf(b.x, b.y), BL = beliefLast.CT || {}; if(zb < 0) return false;
-  var known = bots.filter(function(t){ var q = BL[t.id]; return t.team === "T" && t.alive && q && tick - q.tick < 2*TICK_HZ; });
-  return known.length > 0 && known.every(function(t){ var q = BL[t.id], zt = bzOf(q.x, q.y); return zt >= 0 && BZ.DT[zb] < BZ.DT[zt]; });
+  var BL = beliefLast.CT || {}, known = bots.filter(function(t){ var q = BL[t.id]; return t.team === "T" && t.alive && q && tick - q.tick < 2*TICK_HZ; });
+  if(!known.length) return false;
+  var dS = function(x, y, z){ var P = pathPts(T_SPAWN.x, T_SPAWN.y, x, y, null, z); return P.length ? polyLen(P) : Infinity; };
+  var me = dS(b.x, b.y, b.z); if(!isFinite(me)) return false;
+  return known.every(function(t){ var q = BL[t.id]; return me + INFO_BEHIND < dS(q.x, q.y, q.z); });
 }
+// (владелец 19.11: «он даже не чекнул — издалека увидел кусок рампы, не увидел никого — это не значит, что там никого нет») точка проверки — в
+// самой зоне (её середина на навмеше), а не первое место по пути, откуда видна середина (probeViewPoint — с края, издалека): «проверено — пусто»
+// только изнутри зоны
+function infoPoint(c){ var w = walk({x: c.x, y: c.y}); return w && navAt(w.x, w.y) ? w : null; }
 function infoGo(I, b, nx){ I.pt = nx.pt; I.j = nx.j; I.look = {x:nx.c.x, y:nx.c.y}; I.x = nx.c.x; I.y = nx.c.y; I.at = 0; I.prD = null; I.prT = 0; I.prBest = 0; }
 // следующая зона проверки: соседняя с проверенной, глубже к спавну T (меньше зон до него — BZ.DT), куда T по таймингу могут дойти и которую не чекали
 // за INFO_QUIET с; из нескольких — где команда ждёт T больше
@@ -361,7 +368,7 @@ function infoNext(b, j, cts){
     var w = beliefZoneKnown("CT", n); if(!best || w > best.w) best = {w:w, c:c, j:n};
   });
   if(!best) return null;
-  best.pt = probeViewPoint({x:b.x, y:b.y}, best.c, best.c);
+  best.pt = infoPoint(best.c);
   return best.pt ? best : null;
 }
 function ctInfoCheck(b, ct, cts){
@@ -390,7 +397,10 @@ function ctInfoCheck(b, ct, cts){
     // (К2, владелец 18.11: «даже если уже начался выход, он продолжает идти — это второй фланг») команда узнала о T, а я у них в тылу (моя зона
     // ближе к их спавну, чем зона, где их знают): не бросаю — иду в спину (заход, 480)
     if(fresh && !b._sawEnemy && infoBehind(b)){ var ids = bots.filter(function(t){ var q = BLi[t.id]; return t.team === "T" && t.alive && q && q.tick > I.t0; }).map(function(t){ return t.id; });
-      I.on = false; if(ambushStartBack(b, ids, "я у них в тылу — захожу в спину")) return true; }
+      // их дорогой: через их спавн, если до него мне ближе, чем до них (я на их половине)
+      var sp = infoPoint(T_SPAWN), BLs = beliefLast.CT || {}, myS = sp ? pathLenTo(b, sp.x, sp.y) : Infinity;
+      var via = sp && ids.every(function(id){ var q = BLs[id]; return q && myS < pathLenTo(b, q.x, q.y); }) ? sp : null;
+      I.on = false; if(ambushStartBack(b, ids, via ? "я у них в тылу — иду их дорогой через спавн, зайду в спину" : "я у них в тылу — захожу в спину", via)) return true; }
     if(!stop){ setPost(b, I.pt, I.look, true, "probeInfo"); return b.post && b.post.tag === "probeInfo"; }
     I.on = false; if(b.post && /^probe(Info|Hide)$/.test(b.post.tag)) clearPost(b); return false;
   }
@@ -424,7 +434,7 @@ function ctInfoCheck(b, ct, cts){
   // через полкарты в Stove, когда рядом стоит опорник B (тот проверит сам или видит со своего места). Было: шёл первый, кто посчитал
   var myL = pathLenTo(b, best.c.x, best.c.y);
   if(cts.some(function(o){ return o !== b && o.alive && pathLenTo(o, best.c.x, best.c.y) < myL; })) return false;
-  var pt = probeViewPoint({x:b.x, y:b.y}, best.c, best.c); if(!pt) return false;
+  var pt = infoPoint(best.c); if(!pt) return false;
   if(!setPost(b, pt, best.c, true, "probeInfo") || !(b.post && b.post.tag === "probeInfo")) return false;
   // идти ли — решение игрока, а не правило: жребий на раунд (INFO_GO — проектное число), иначе каждый раунд одно и то же
   if(hashRand(roundNum*7919 + matchNum*131 + b.id.charCodeAt(b.id.length-1)*37) > INFO_GO){ R.P[b.id] = {on: false}; return false; }
