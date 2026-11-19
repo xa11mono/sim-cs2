@@ -338,8 +338,8 @@ function anchorPosOf(k){
 // сайте) идёт посмотреть ближайшую зону, где T по таймингу могут быть и откуда инфы нет: доходит до точки, откуда её видно (probeViewPoint),
 // видит пусто — «чекнул … — пусто» (markClear: знание команды, по нему и решают дальше — ротация, перекол), видит врага — бой, контакт.
 // Одна проверка за раз, INFO_MAX за раунд; пусто — идёт дальше вглубь (infoNext), пока не встретит / не застрянет. Числа — проектные
-var INFO_QUIET = 10, INFO_MAX = 2, INFO_R = 900, INFO_EVERY = 16;   // проектные числа: с, раз за раунд, с, ед., тики
-var INFO_MIN_R = 250, INFO_W = 0.05, INFO_START = 20, INFO_WAIT = 5;   // проектные числа: ближе — не «глянуть», а рядом; ожидание врага в зоне; с от начала раунда
+var INFO_QUIET = 10, INFO_MAX = 3, INFO_PAR = 2, INFO_GO = 0.6, INFO_R = 900, INFO_EVERY = 16;   // проектные числа: с, раз за раунд, с, ед., тики
+var INFO_MIN_R = 250, INFO_W = 0.05, INFO_START = 20, INFO_WAIT = [2, 9];   // проектные числа: ближе — не «глянуть», а рядом; ожидание врага в зоне; с от начала раунда
 // я в тылу у T, о которых команда только что узнала: моя зона ближе к их спавну (BZ.DT), чем зоны, где их знают
 function infoBehind(b){
   if(!BZ.DT){ var zs = bzOf(T_SPAWN.x, T_SPAWN.y); BZ.DT = bzDist(zs >= 0 ? [zs] : []); }
@@ -366,8 +366,11 @@ function infoNext(b, j, cts){
 }
 function ctInfoCheck(b, ct, cts){
   if(ct.saving || ct.playRetake || (bomb && bomb.state === "planted") || tick - roundStartTick < INFO_START*TICK_HZ) return false;
-  var I = ct._info && ct._info.round === roundNum ? ct._info : (ct._info = {round: roundNum, n: 0, by: null});
-  if(I.by === b.id){
+  // (владелец 19.11: «отдельные пути для пробы — мидер по своему, опорник по своему; большая вариативность») у каждого CT — своя проба из своего
+  // района (зона — тому, кому ближе по пути), одновременно до INFO_PAR, за раунд до INFO_MAX, один бот — одна проба за раунд. Было: одна на команду
+  var R = ct._info && ct._info.round === roundNum ? ct._info : (ct._info = {round: roundNum, n: 0, P: {}});
+  var I = R.P[b.id];
+  if(I && I.on){
     // (владелец 18.11: «пробы не надо отменять за какое-то время; дошёл, контакта нет — идёт дальше: не увидел — не значит, что их там не может
     // быть») снимается: увидел врага; не идёт к точке (застрял — taskWalkOn, 110); команда узнала о T свежее (смысл проверки ушёл). Дошёл и
     // глянул (0,5 / 1,5 с — проектные): пусто — «чекнул — пусто» (markClear) и дальше вглубь — соседняя зона ближе к их спавну (infoNext)
@@ -376,10 +379,10 @@ function ctInfoCheck(b, ct, cts){
     var looked = b.atPost && I.at && tick - I.at > 0.5*TICK_HZ && (markClear("CT", I.x, I.y, b.id, hasVision(b.x, b.y, I.x, I.y)) || tick - I.at > 1.5*TICK_HZ);
     var stop = b._sawEnemy || fresh || (!b.atPost && !taskWalkOn(b, I.pt, I));
     // (К1/К2, владелец 18.11: «прошёл, никого не увидел и встал — подождать, может кто-то придёт; никто не пришёл — пошёл дальше») глянул, пусто —
-    // встаёт рядом укрыто от того, откуда они придут (следующая зона вглубь), и слушает INFO_WAIT с (проектное число); кто-то идёт мимо — засада
+    // встаёт рядом укрыто от того, откуда они придут (следующая зона вглубь), и слушает случайно INFO_WAIT с (проектный разброс); кто-то идёт мимо — засада
     // (480); тишина — сама по себе инфа (markClear уже сказал «пусто») — дальше вглубь
     if(looked && !stop && !I.waitT){ var nw = infoNext(b, I.j, cts), from = nw ? nw.c : {x:I.x, y:I.y}, TC = coverThreats(b, [from]);
-      I.waitT = tick + INFO_WAIT*TICK_HZ;
+      I.waitT = tick + Math.round((INFO_WAIT[0] + (INFO_WAIT[1]-INFO_WAIT[0])*hashRand(tick*17 + b.id.charCodeAt(b.id.length-1)*7))*TICK_HZ);   // (владелец 19.11: «сколько сидеть — рандомно»)
       I.hide = coverPick(pickSpots("infow"+tick+b.id, {x:b.x, y:b.y}, COVER_CANDS, {rMin:0, rMax:120, minGap:20, hideFrom:TC.concat(TC.exp)}), coverZ(b), TC) || {x:b.x, y:b.y};
       I.hideLook = from; voiceLog("CT", "infow"+b.id+roundNum+I.n, b.id, calloutName(I.x, I.y).replace(/^на /, "")+" пусто — жду тут"); }
     if(I.waitT && tick < I.waitT && !stop){ setPost(b, I.hide, I.hideLook, true, "probeHide"); return b.post && b.post.tag === "probeHide"; }
@@ -387,11 +390,12 @@ function ctInfoCheck(b, ct, cts){
     // (К2, владелец 18.11: «даже если уже начался выход, он продолжает идти — это второй фланг») команда узнала о T, а я у них в тылу (моя зона
     // ближе к их спавну, чем зона, где их знают): не бросаю — иду в спину (заход, 480)
     if(fresh && !b._sawEnemy && infoBehind(b)){ var ids = bots.filter(function(t){ var q = BLi[t.id]; return t.team === "T" && t.alive && q && q.tick > I.t0; }).map(function(t){ return t.id; });
-      I.by = null; if(ambushStartBack(b, ids, "я у них в тылу — захожу в спину")) return true; }
+      I.on = false; if(ambushStartBack(b, ids, "я у них в тылу — захожу в спину")) return true; }
     if(!stop){ setPost(b, I.pt, I.look, true, "probeInfo"); return b.post && b.post.tag === "probeInfo"; }
-    I.by = null; if(b.post && /^probe(Info|Hide)$/.test(b.post.tag)) clearPost(b); return false;
+    I.on = false; if(b.post && /^probe(Info|Hide)$/.test(b.post.tag)) clearPost(b); return false;
   }
-  if(I.by || I.n >= INFO_MAX || b._sawEnemy || b._contact) return false;
+  if(I || R.n >= INFO_MAX || b._sawEnemy || b._contact) return false;
+  if(Object.keys(R.P).filter(function(k){ return R.P[k].on; }).length >= INFO_PAR) return false;
   // (v556, правило «код под производительность»: дорогие решения — не каждый тик у каждого) новая проверка — раз в INFO_EVERY тиков на бота
   // (перебор зон с линиями видимости), продолжение начатой — каждый тик (дёшево)
   if((tick + (b.id.charCodeAt(b.id.length-1)||0)) % INFO_EVERY) return false;
@@ -410,7 +414,10 @@ function ctInfoCheck(b, ct, cts){
     var zid = BZ.ids[j], cz = CLEARZ.CT[zid]; if(cz && tick - cz.tick < INFO_QUIET*TICK_HZ) continue;
     if(cts.some(function(o){ return hasVision(o.x, o.y, c.x, c.y); })) continue;
     var w = beliefZoneKnown("CT", j); if(!(w > INFO_W)) continue;
-    var sc = w/(1 + d/400); if(!best || sc > best.sc) best = {sc:sc, c:c, j:j};   // ближе — лучше (400 ед. — вдвое хуже; проектное число)
+    // (владелец 19.11: «где угрозы меньше — туда проба вглубь, понять, что точно никого, и перестроиться») зона на стороне, где команда ждёт
+    // меньше T, — важнее: проверка ради перестройки (ctRoleShift, 140)
+    var sdT = ctSideThreat(), sd = ctSideOf(c.x, c.y), kS = sd && sdT[sd] != null ? 1/(1 + sdT[sd]) : 1;
+    var sc = w*kS/(1 + d/400); if(!best || sc > best.sc) best = {sc:sc, c:c, j:j};   // ближе — лучше (400 ед. — вдвое хуже; проектное число)
   }
   if(!best) return false;
   // (отметка владельца 18.11, м1 р2: «куда пошёл игрок 5 — мид теперь не смотрит») зону проверяет тот CT, кому она ближе по пути: мидер не идёт
@@ -419,7 +426,9 @@ function ctInfoCheck(b, ct, cts){
   if(cts.some(function(o){ return o !== b && o.alive && pathLenTo(o, best.c.x, best.c.y) < myL; })) return false;
   var pt = probeViewPoint({x:b.x, y:b.y}, best.c, best.c); if(!pt) return false;
   if(!setPost(b, pt, best.c, true, "probeInfo") || !(b.post && b.post.tag === "probeInfo")) return false;
-  I.by = b.id; I.n++; I.t0 = tick; infoGo(I, b, {c:best.c, j:best.j, pt:pt});
+  // идти ли — решение игрока, а не правило: жребий на раунд (INFO_GO — проектное число), иначе каждый раунд одно и то же
+  if(hashRand(roundNum*7919 + matchNum*131 + b.id.charCodeAt(b.id.length-1)*37) > INFO_GO){ R.P[b.id] = {on: false}; return false; }
+  I = R.P[b.id] = {on: true, n: ++R.n, t0: tick}; infoGo(I, b, {c:best.c, j:best.j, pt:pt});
   voiceLog("CT", "info"+b.id+roundNum+I.n, b.id, "гляну "+calloutName(best.c.x, best.c.y).replace(/^на /, ""));
   return true;
 }

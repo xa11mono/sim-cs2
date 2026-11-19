@@ -200,7 +200,7 @@ function sprayPat(w, i){
 //    спины (≤ KNIFE_REACH) — нож;
 //  · конец: меня увидели (обычный бой), все цели мертвы / потеряны ≥ AMB_LOST с, мало HP.
 // Числа — проектные
-var AMB_HEAR = 1.5, AMB_AWAY = Math.PI/3, AMB_PASS = 380, AMB_GONE = 1.5, AMB_LOST = 5, AMB_SHOOT = 260, AMB_R = 700, AMB_MIN = 90;
+var AMB_HEAR = 1.5, AMB_AWAY = Math.PI/3, AMB_PASS = 380, AMB_GONE = [1, 6], AMB_LOST = 5, AMB_SHOOT = 260, AMB_R = 700, AMB_MIN = 90;
 function ambSeenBy(b){ return bots.some(function(o){ return o.alive && o.team !== b.team && o._visible && o._visible.indexOf(b) >= 0; }); }
 // кого из врагов я сейчас воспринимаю сам: вижу или слышал (звук с источником) недавно, в AMB_R
 function ambFoes(b){
@@ -243,6 +243,10 @@ function ambushTick(b){
   if(A && (ambSeenBy(b) || b.hp <= LOW_HP)) return ambEnd(b, ambSeenBy(b) ? "меня увидели — бой" : "мало HP");
   var F = ambFoes(b);
   if(!A){
+    // (19.11, скан м3: «пропускаю» на каждый услышанный шаг у обеих сторон) по одному звуку — засада только у того, кто засел нарочно (засел на
+    // пробе / лёркает / заходит); остальные — только если видят врага, идущего мимо спиной
+    var lurkNow = b.post && /^(probeHide|probeInfo|lurk|flank)/.test(b.post.tag || "");
+    if(!lurkNow && !F.some(function(o){ return b._visible && b._visible.indexOf(o) >= 0; })) return false;
     if(!F.length || ambSeenBy(b) || b.hp <= LOW_HP || b._fc || !F.every(function(o){ return !(b._visible && b._visible.indexOf(o) >= 0) || ambPassing(b, o); }) || !F.some(function(o){ return !(b._visible && b._visible.indexOf(o) >= 0) || o.curSpeed > 40*SPD_K; })) return false;   // идут мимо (видимые — не стоят; слышу — значит идут)
     if(b.post && taskProp(b.post.tag, "holdsSite") && F.some(function(o){ return nearP(o.x, o.y, o.z, b.x, b.y, b.z, AMB_PASS); })) return false;   // идут на мой сайт рядом — держу
     // один — «иду за ним», только если вижу его и других рядом не знаю (владелец: «он точно должен увидеть, что он один»); слышу / их больше — жду
@@ -269,13 +273,17 @@ function ambushTick(b){
       var c = P.sort(function(p, q){ return Math.hypot(p.x-b.x, p.y-b.y) - Math.hypot(q.x-b.x, q.y-b.y); })[0]; A.last = {x: c.x, y: c.y, z: c.z, id: c.id}; A.lastT = tick; } }
   else if(tick - A.seen > AMB_LOST*TICK_HZ) return ambEnd(b, "потерял");
   if(A.ph === "wait"){
-    // выхожу, когда пропущенные ушли из восприятия (не вижу и не слышу ≥ AMB_GONE с) или колл сайта (начался выход): пока они рядом и могут
+    // выхожу, когда пропущенные ушли из восприятия (не вижу и не слышу случайно AMB_GONE с — сколько ждать, у каждого по-своему) или колл сайта (начался выход): пока они рядом и могут
     // обернуться — сижу (было: выходил, как только отошли на AMB_PASS, — его видели, м1 р1, T Roof)
     var call = teamTac[b.team] && teamTac[b.team].call;
-    if(tick - A.seen > AMB_GONE*TICK_HZ || (call && !seenNow.some(function(o){ return Math.hypot(o.x-b.x, o.y-b.y) < AMB_PASS; }) && tick - A.t0 > TICK_HZ)){ A.ph = "go"; dlog(b, "засада", "прошли — иду в спину"); }
+    if(A.gone == null) A.gone = AMB_GONE[0] + (AMB_GONE[1]-AMB_GONE[0])*hashRand(tick*31 + b.id.charCodeAt(b.id.length-1)*13);   // (владелец 19.11: «сколько сидеть — рандомно»)
+    if(tick - A.seen > A.gone*TICK_HZ || (call && !seenNow.some(function(o){ return Math.hypot(o.x-b.x, o.y-b.y) < AMB_PASS; }) && tick - A.t0 > TICK_HZ)){ A.ph = "go"; dlog(b, "засада", "прошли — иду в спину"); }
     else {
       // стою, где меня не видно: место — здесь, если оно укрыто от них; иначе ближайшее укрытое (общий выбор укрытия, 470)
-      if(!A.spot){ var TC = coverThreats(b, T); A.spot = coverSafe({x:b.x, y:b.y}, b.z, TC) ? {x:b.x, y:b.y} : (coverPick(pickSpots("amb"+tick+b.id, {x:b.x, y:b.y}, COVER_CANDS, {rMin:0, rMax:120, minGap:20, hideFrom:TC}), coverZ(b), TC) || {x:b.x, y:b.y}); }
+      // (19.11, м3 р4, CT1: укрытие выбрал к Palace Exit — ближе к ним, там увидели) укрытие — не ближе к врагам, чем стою сейчас
+      if(!A.spot){ var TC = coverThreats(b, T), dNear = function(p){ return Math.min.apply(null, T.map(function(o){ return Math.hypot(o.x-p.x, o.y-p.y); })); }, d0 = dNear(b);
+        A.spot = coverSafe({x:b.x, y:b.y}, b.z, TC) ? {x:b.x, y:b.y} : (coverPick(pickSpots("amb"+tick+b.id, {x:b.x, y:b.y}, COVER_CANDS, {rMin:0, rMax:120, minGap:20, hideFrom:TC})
+          .filter(function(p){ return dNear(p) >= d0; }), coverZ(b), TC) || {x:b.x, y:b.y}); }
       setPost(b, A.spot, A.last, true, "ambush");
       return ambOn(b) || ambEnd(b, "задача выше");
     }

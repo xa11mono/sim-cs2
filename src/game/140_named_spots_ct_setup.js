@@ -312,8 +312,9 @@ function ctSpotPick(b, S, role){
   if(!T){ var ks = Object.keys(TS).map(Number).sort(function(a, c){ return Math.abs(a - n) - Math.abs(c - n); }); T = TS[ks[0]]; }
   var others = Object.keys(RS.by).map(function(k){ return RS.by[k]; }).filter(function(o){ var ob = teamBot(o.id); return o.id !== b.id && o.side === side && o.i >= 0 && ob && ob.alive && ob.team === b.team; });
   var w = T.spots.map(function(sp, i){
-    if(others.some(function(o){ return o.i === i || Math.hypot(o.x - sp.x, o.y - sp.y) < CT_SPOT_GAP; })) return 0;
-    var v = sp.share; others.forEach(function(o){ var P2 = T.spots[o.i].pair || {}; v *= (P2[i] || CT_SPOT_PAIR0); }); return v; });
+    if(others.some(function(o){ return (o.n === n && o.i === i) || Math.hypot(o.x - sp.x, o.y - sp.y) < CT_SPOT_GAP; })) return 0;
+    // пары — только из той же таблицы (тот же счёт CT на стороне): номер места из другой таблицы — другое место (было падение после пересчёта)
+    var v = sp.share; others.forEach(function(o){ var P2 = (o.n === n && T.spots[o.i] && T.spots[o.i].pair) || {}; v *= (P2[i] || CT_SPOT_PAIR0); }); return v; });
   var tot = w.reduce(function(a, v){ return a + v; }, 0), pick = -1;
   if(tot > 0){ var r = hashRand(roundNum*7919 + matchNum*131 + b.id.charCodeAt(b.id.length-1)*17 + role.length)*tot; for(var i = 0; i < w.length; i++){ r -= w[i]; if(r <= 0 && w[i] > 0){ pick = i; break; } } }
   var sp0 = pick >= 0 ? T.spots[pick] : null, lk0 = sp0 && sp0.look && sp0.look[0];
@@ -338,10 +339,13 @@ var CT_ROLE_PRI = ["anchorA", "anchorB", "mid", "rotator", "roamer"], CT_SITE_CO
 function ctRoleNow(b){
   var ct = teamTac.CT, S = ct && ct.setup; if(!S || !S.roles) return b.tRole;
   var RT = ct._roleTake && ct._roleTake.k === matchNum+":"+roundNum ? ct._roleTake : (ct._roleTake = {k: matchNum+":"+roundNum, by: {}});
+  RT.sh = RT.sh || {};
+  if(!RT.by[b.id] || RT.sh[b.id]){ var sh0 = ctRoleShift(b, S, RT); if(sh0) return sh0; }
   if(RT.by[b.id]) return RT.by[b.id];
   var pri = function(r){ var i = CT_ROLE_PRI.indexOf(r); return i < 0 ? 99 : i; };
   var holder = function(r){ return bots.filter(function(o){ return o.team === "CT" && o.tRole === r && RT.by[o.id] !== "-"; })[0]; };
-  var mine = pri(b.tRole); if(/^anchor/.test(b.tRole || "")) return b.tRole;
+  var mine = pri(b.tRole);
+  if(/^anchor/.test(b.tRole || "")) return b.tRole;
   // свободная роль (держатель мёртв, его роль никто не взял) важнее моей — беру, если я ниже всех среди живых не-опорников
   var lost = CT_ROLE_PRI.filter(function(r){ var h = holder(r); return S.roles[r] && h && !h.alive && pri(r) < mine; })[0];
   if(!lost) return b.tRole;
@@ -361,6 +365,45 @@ function ctRoleNow(b){
   RT.by[b.id] = take; if(dead && dead !== b) RT.by[dead.id] = "-";
   voiceLog("CT", "roletake"+b.id+roundNum, b.id, empty ? "минус "+nick(dead ? dead.id : "")+" — на "+empty+" никого, иду на "+empty : "беру за "+nick(dead ? dead.id : "")+": "+ROLE_LABEL_CT(lost));
   return take;
+}
+// (владелец 19.11: «перестройка по инфе — не только „на B пусто“») сколько T команда ждёт на стороне карты (A / мид / B — ctSideOf центра зоны):
+// сумма ожидания по зонам (beliefZoneKnown — тайминги + инфа + «проверено — пусто»). Раз в CT_SHIFT_EVERY тиков
+var CT_SHIFT = {low: 0.15, high: 0.9, every: 32}, CT_SIDE_THR = {t: -1, v: null};   // проектные числа: «пусто» / «там они» (ожидаемых T), тики
+function ctSideThreat(){
+  if(CT_SIDE_THR.t === tick) return CT_SIDE_THR.v;
+  var v = {A: 0, B: 0, M: 0};
+  for(var j = 0; j < BZ.ids.length; j++){ var c = BZ.cent[j]; if(!c) continue; var sd = ctSideOf(c.x, c.y); if(sd && v[sd] != null) v[sd] += beliefZoneKnown("CT", j) || 0; }
+  CT_SIDE_THR.t = tick; CT_SIDE_THR.v = v; return v;
+}
+// смещение по инфе (владелец 19.11: «перестройка — не один раз: зашедшего в спину убили на B, T поняли, развернулись на A, — CT понимают и
+// перестраиваются снова, не обязательно стак — кто-то идёт чекать мид»): сторона моей нынешней роли пуста (ожидание ≤ low), на другой их ждут
+// (≥ high) — иду туда (роль опорника той стороны — место в пару про, ctSpotPick; мид — роль ротатора). Основание — инфа, не тайминги: на моей
+// стороне кто-то из своих сказал «пусто» (CLEARZ за INFO_QUIET с) или там, куда иду, свежо (≤ CT_SHIFT.fresh с) знают двоих+. Сторону, где я
+// один, оставляю только при их ≥ 2 там. Пересчёт — по смене инфы: у бота пауза CT_SHIFT.cool с, у команды — одно смещение за CT_SHIFT.team с;
+// вернуться — тем же правилом (угроза снова у моей роли по расстановке). До колла (после колла — ротация, 340)
+CT_SHIFT.cool = 4; CT_SHIFT.team = 1.5; CT_SHIFT.fresh = 5;
+function ctRoleShift(b, S, RT){
+  var ct = teamTac.CT; if(ct.call || ct.saving || (bomb && bomb.state === "planted") || (tick + b.id.charCodeAt(b.id.length-1)) % CT_SHIFT.every) return null;
+  if(tick - roundStartTick < INFO_START*TICK_HZ) return null;   // начало раунда: ожидание — одни тайминги
+  var cur = RT.sh[b.id] ? RT.sh[b.id].role : b.tRole, q = ctRolePt(S, cur), my = q ? ctSideOf(q.x, q.y) : null; if(!my) return null;
+  if(RT.sh[b.id] && tick - RT.sh[b.id].t < CT_SHIFT.cool*TICK_HZ) return RT.sh[b.id].role;
+  if(RT.lastShift && tick - RT.lastShift < CT_SHIFT.team*TICK_HZ) return RT.sh[b.id] ? RT.sh[b.id].role : null;
+  var T = ctSideThreat(); if(!(T[my] <= CT_SHIFT.low)) return RT.sh[b.id] ? RT.sh[b.id].role : null;
+  var to = ["A", "M", "B"].filter(function(k){ return k !== my && T[k] >= CT_SHIFT.high; }).sort(function(p, r){ return T[r] - T[p]; })[0];
+  if(!to) return RT.sh[b.id] ? RT.sh[b.id].role : null;
+  var BL = beliefLast.CT || {}, freshTo = bots.filter(function(t){ var p = BL[t.id]; if(!(t.team === "T" && t.alive && p && tick - p.tick < CT_SHIFT.fresh*TICK_HZ)) return false; var zj = bzOf(p.x, p.y), c = zj >= 0 ? BZ.cent[zj] : p; return ctSideOf(c.x, c.y) === to; }).length;
+  var clr = Object.keys(CLEARZ.CT || {}).some(function(zid){ var cz = CLEARZ.CT[zid], j = BZ.idx[zid], c = j != null ? BZ.cent[j] : null; return cz && tick - cz.tick < INFO_QUIET*TICK_HZ && c && ctSideOf(c.x, c.y) === my; });
+  if(!clr && freshTo < 2) return RT.sh[b.id] ? RT.sh[b.id].role : null;
+  var mates = bots.filter(function(o){ if(o === b || !o.alive || o.team !== "CT") return false; var r = RT.sh[o.id] ? RT.sh[o.id].role : (RT.by[o.id] || o.tRole), p = S.roles[r] ? ctRolePt(S, r) : null; return p && ctSideOf(p.x, p.y) === my; });
+  if(!mates.length && T[to] < 2) return RT.sh[b.id] ? RT.sh[b.id].role : null;
+  // своя роль по расстановке — на той стороне: возвращаюсь в неё; иначе — роль той стороны
+  var q0 = ctRolePt(S, b.tRole), home = q0 && ctSideOf(q0.x, q0.y) === to;
+  var role = home ? b.tRole : (to === "M" ? "rotator" : "anchor" + to); if(!S.roles[role]) return RT.sh[b.id] ? RT.sh[b.id].role : null;
+  if(home) delete RT.sh[b.id]; else RT.sh[b.id] = {role: role, t: tick};
+  RT.by[b.id] = home ? null : role; if(home) delete RT.by[b.id]; RT.lastShift = tick;
+  var nm = {A: "A", B: "B", M: "мид"};
+  voiceLog("CT", "shift"+b.id+roundNum+tick, b.id, (clr ? "на "+nm[my]+" пусто" : "на "+nm[to]+" их "+freshTo)+" — "+(home ? "возвращаюсь на " : "смещаюсь на ")+nm[to]);
+  return role;
 }
 function ROLE_LABEL_CT(r){ return {anchorA:"опорник A", anchorB:"опорник B", mid:"мидер", rotator:"ротатор", roamer:"роумер"}[r] || r; }
 var events = []; var killfeed = []; // объявлены здесь, до loadOppProfile(), которая пишет в лог сразу при старте
