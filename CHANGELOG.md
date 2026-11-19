@@ -170,7 +170,7 @@
 - 11.11, v550 — на втором аккаунте: Ancient 6nWEKBXyNAybDYzgPT1sH7, Mirage QzmQZEd5t9EdnhcXET9Agn.
 - 11.11, v549 — на втором аккаунте: Ancient 6nWEKBXyNAybDYzgPT1sH7, Mirage QzmQZEd5t9EdnhcXET9Agn.
 - 10.11, v548 — на втором аккаунте: Ancient 6nWEKBXyNAybDYzgPT1sH7, Mirage QzmQZEd5t9EdnhcXET9Agn.
-- 19.11, v583a (не опубликована, прогон v583p): знание о врагах без срока (knowWhere), проба вглубь их дорогой, взгляд мельком без стен.
+- 19.11, v583a — на втором аккаунте: Mirage v98, Ancient v62 — проба вглубь их дорогой, взгляд мельком без стен; «знание без срока» (knowWhere) откачено (прогоны v583q / v583r: Ancient stall 70 → 124, Mirage nav 100 → 153).
 - 19.11, v583a — на втором аккаунте: Mirage v97, Ancient v61 — проба CT не перебивается перестановкой.
 - 19.11, v583a — на втором аккаунте: Mirage v96, Ancient v60 — пробы у каждого CT, перестройка по инфе, случайное время в засаде.
 - 19.11, v583a — на втором аккаунте: Mirage v95, Ancient v59 — К1–К3 (засада и заход в спину, проба засел и слушает, T оглядываются назад).
