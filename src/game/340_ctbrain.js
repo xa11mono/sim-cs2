@@ -99,7 +99,11 @@ function ctBrain(){
     // держать: повод заполнить сайт (pri ниже), но не знание о T — в счёт T не входит (было +1, и колл звучал «сайт пустой (~1)»)
     var cnt = Math.max(est.seen, est.heard ? 1 : 0, (carrierHere||carrierTo) ? 2 : 0, plantHere ? 2 : 0, Math.min(3, deathsHere), Math.min(5, mass), nadeHere >= 2 ? 1 : 0);
     var score = ev + mass;
-    res[k] = {site:k, score:score, ev:ev, count:cnt, est:est, carrier:carrierHere||carrierTo, undefended:undefended, deaths:deathsHere, plant:plantHere, nades:nadeHere};
+    // (22.11, Ж23, разбор м271222 р6: колл «A — двое» 40 с «свежий» каждый тик по догадке «носитель на T Ramp» — тишина его не снимала)
+    // obs — новое НАБЛЮДЕНИЕ о T у сайта (видели / слышали / минус свой / плант / гранаты / бомба лежит на виду); догадка (вес гипотез,
+    // носитель «скорее всего там», «некому держать») колл держит, но свежим его не делает
+    var obs = est.seen + est.heard > 0 || deathsHere > 0 || !!plantHere || nadeHere > 0 || !!(ct.bombDown && (carrierHere || carrierTo));
+    res[k] = {site:k, score:score, ev:ev, count:cnt, est:est, carrier:carrierHere||carrierTo, undefended:undefended, deaths:deathsHere, plant:plantHere, nades:nadeHere, obs:obs};
     if(!best || score > best.score) best = res[k];
   });
   // (v262, К4) одна ротация — одно решение. Ротаторы уже бегут на сайт колла — другой сайт перебивает колл
@@ -120,7 +124,7 @@ function ctBrain(){
     if(isNew || best.count > ct.call.count + 0.4 || tick - ct.call.tick > 64){
       var prevSite = ct.call ? ct.call.site : null;   // (v321, М23) колл переходит на другой сайт — «переколл»
       var prevCnt = isNew ? 0 : ct.call.count, prevLogged = isNew ? 0 : (ct.call.logged || 0);
-      ct.call = {logged: prevLogged, site:best.site, count:best.count, tick:tick, evTick:tick, since:(!isNew && ct.call.since) || tick, sinceSite:best.site, undefended:best.undefended, bombSeen: best.carrier || best.plant, seen: best.est ? best.est.seen : 0, nades: best.nades || 0};
+      ct.call = {logged: prevLogged, site:best.site, count:best.count, tick:tick, evTick:(isNew || best.obs) ? tick : (ct.call.evTick || ct.call.tick), since:(!isNew && ct.call.since) || tick, sinceSite:best.site, undefended:best.undefended, bombSeen: best.carrier || best.plant, seen: best.est ? best.est.seen : 0, nades: best.nades || 0};
       var how = best.plant ? "слышно плант" : (best.nades >= 2 && !best.est.seen) ? "гранаты на "+best.site+" — выход" : best.undefended ? "некому держать — опорник погиб" : best.carrier ? (ct.bombDown ? "бомба выбита, лежит там" : ctPlantGuessOnly() ? "плант не слышали на "+(best.site === "A" ? "B" : "A")+" — значит "+best.site : "бомба замечена") : best.deaths ? "минус на сайте" : (best.est.seen ? "вижу "+best.est.seen : best.est.heard ? "слышу" : "по инфе");
       var n1 = Math.max(1, Math.round(best.count));
       // в войс — только новый колл или когда их стало БОЛЬШЕ, чем уже говорили
@@ -136,7 +140,7 @@ function ctBrain(){
         if(isNew && prevSite && prevSite !== best.site) intelCallLog("CT", "recall"+best.site+tick, "ПЕРЕКОЛЛ "+prevSite+" → "+best.site+": "+how+(noT ? "" : " (~"+n1+")"), null, "recall");
         else intelCallLog("CT", "site"+best.site+n1, noT ? best.site+": "+how+", T там не видели" : best.site+" — "+(["", "один", "двое", "трое", "четверо", "все"][Math.min(5, n1)])+", "+how, null, "plan"); }
       else if(dup) ct.call.logged = Math.max(ct.call.logged||0, cm.n);
-    } else { ct.call.evTick = tick; ct.call.undefended = best.undefended; if(best.carrier || best.plant) ct.call.bombSeen = true; }
+    } else { if(best.obs) ct.call.evTick = tick; ct.call.undefended = best.undefended; if(best.carrier || best.plant) ct.call.bombSeen = true; }
   } else if(ct.call){
     // новой инфы нет — оценка "сколько там" только тает вместе с картой
     ct.call.count = Math.min(ct.call.count, beliefCount("CT", BZ.siteNear[ct.call.site]||[]) + 0.3);

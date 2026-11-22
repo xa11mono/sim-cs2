@@ -160,15 +160,13 @@ function knowValue(zid, side, K){
 // (v432) где, по знанию команды, враг id сейчас: виден — где виден; иначе точки гипотез с весами (held — где был, moved — центр зоны,
 // куда мог уйти с учётом направления хода; moved_unknown — без места). Знание у бойцов одной команды общее по радару — берётся у первого живого
 function knowEnemySpots(team, id){
-  var g = knowGraph();
-  for(var i = 0; i < bots.length; i++){ var b = bots[i]; if(!b.alive || b.team !== team || !b.know || !b.know.enemies) continue;
-    // (v469, п.3 владельца: путь kyousuke в первый тик раунда — по знанию прошлого раунда «T на Drop 1.00») знание другого раунда — не знание
-    if(b.know.key !== matchNum + ":" + roundNum) return [];
-    var B = b.know.enemies[id]; if(!B) return [];
-    if(B.visible) return [{x: B.last.x, y: B.last.y, w: 1}];
-    return (B.hyps || []).map(function(h){ var p = h.type === "held" ? h : (h.zone && g.c[h.zone]); return p ? {x: p.x, y: p.y, w: h.weight || 0} : null; }).filter(Boolean);
-  }
-  return [];
+  // (22.11, Ж23, разбор м271222 р6: колл CT «A — двое» 40 с держала память kyousuke о носителе) где враг для решений команды — знание
+  // КОМАНДЫ (teamAgent, 220: радар, войс, киллфид), а не личная память первого живого бота (его слух, который он не сказал). Было: первый живой бот
+  var g = knowGraph(), A = TEAMK[team], K = A && A.know;   // только читаем: агента создаёт knowTick (220) в живом раунде
+  if(!K || !K.enemies || K.key !== matchNum + ":" + roundNum) return [];
+  var B = K.enemies[id]; if(!B) return [];
+  if(B.visible) return [{x: B.last.x, y: B.last.y, w: 1}];
+  return (B.hyps || []).map(function(h){ var p = h.type === "held" ? h : (h.zone && g.c[h.zone]); return p ? {x: p.x, y: p.y, w: h.weight || 0} : null; }).filter(Boolean);
 }
 
 // ---------- гипотезы от последнего точного контакта ----------

@@ -328,7 +328,7 @@ function knowTick(){
 // на P(Δt)/P(Δt − шаг): шансы held против остальных гипотез к моменту Δt — стартовые × P(Δt); освободившийся вес уходит
 // остальным (knowNorm), не ниже KNOW.heldFloor.
 // События (тишина в окне, «посмотрел — пусто») по-прежнему меняют вес сверх этого. Стартовые веса held (KNOW.heldStill /
-// heldMoving) не менялись. Слух/войс (heard) — не трогаем: для них кривой у про нет
+// heldMoving) не менялись. Ветки «ушёл туда» и «слышали здесь» (с 22.11) стареют по той же кривой — ниже, в knowAge
 var KNOW_AGE = [[0, 1], [2, 0.95], [5, 0.651], [10, 0.425], [20, 0.268], [40, 0.129]];
 function knowAgeP(t){
   if(t <= 0) return 1;
@@ -342,6 +342,19 @@ function knowAge(b){
     var B = K.enemies[id]; if(B.visible || !B.hyps || !B.last || B.last.tick == null) continue;
     var t1 = (tick - B.last.tick)/TICK_HZ, t0 = Math.max(0, t1 - BELIEF_STEP/TICK_HZ), f = knowAgeP(t1)/knowAgeP(t0), hit = false;
     B.hyps.forEach(function(h){ if(h.type === "held" && !h.heard && h.weight > KNOW.heldFloor){ h.weight *= f; hit = true; } });
+    // (22.11, Ж23, разбор м271222 р6: «носитель на T Ramp 0,95» 24 с — проверенные зоны отпадали, весь вес собрался на последней ветке
+    // и не старел) место без подтверждения стареет одинаково, чем бы оно ни было: ветка «ушёл туда» — с момента, когда он бы туда дошёл
+    // (конец окна последней зоны маршрута), ветка «слышали здесь» — с момента звука. Та же кривая про KNOW_AGE (доля тех, кто через Δt
+    // ещё в 150 px от места; к таким веткам перенесена без своей выборки — кандидат на замер). Освободившийся вес — в «ушёл, куда —
+    // неизвестно» (moved_unknown), а не соседним названным местам: иначе последняя непроверенная ветка набирает ложную уверенность
+    var un = knowHyp(B, "moved_unknown");
+    if(un) B.hyps.forEach(function(h){
+      if(h.type !== "moved") return;
+      var tp = h.heard ? h.htick : (h.windows && h.windows.length ? h.windows[h.windows.length-1].t1 : null);
+      if(tp == null || tick <= tp) return;
+      var a1 = (tick - tp)/TICK_HZ, a0 = Math.max(0, a1 - BELIEF_STEP/TICK_HZ), dw = h.weight*(1 - knowAgeP(a1)/knowAgeP(a0));
+      if(dw > 0){ h.weight -= dw; un.weight += dw; hit = true; }
+    });
     if(hit) knowNorm(B.hyps);
   }
 }

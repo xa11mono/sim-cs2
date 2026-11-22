@@ -208,7 +208,7 @@ var FLASH_ASK_WAIT = 3.5, FLASH_ASK_R = 700;   // с, ед. — те же про
 // (владелец 05.11: «за шесть раундов хотя бы в трёх-четырёх, не при каждом случае») — одна просьба на команду за раунд: проектное число из
 // слов владельца (замер облака до предела: м7 — 10 просьб в 6 раундах из 10, м11 — 18 в 8 из 8; из 28 хлопнули 9)
 var FLASH_ASK_PER_ROUND = 1, FLASH_ASK_N = {};
-function nadeAskFlash(b, pt, why, type){
+function nadeAskFlash(b, pt, why, type, forC){   // (22.11, Ж23) forC — заказ под задачу просящего (380 nadeOwnerOk): умерла задача — флешку не кидают
   // (v554) type — «he»: HE в смок (smokeHeTick, 290) просит того, у кого она есть; лимит на раунд — свой у каждого типа
   type = type || "flash"; var fl = type === "flash";
   var nk = matchNum+":"+roundNum+":"+b.team+(fl ? "" : ":"+type); if((FLASH_ASK_N[nk]||0) >= FLASH_ASK_PER_ROUND) return null;
@@ -232,7 +232,7 @@ function nadeAskFlash(b, pt, why, type){
   // с места — бросает сразу (не долетает отсюда — просьба следующему); с лайнапа — идёт на точку броска (срок — FLASH_ASK_WAIT)
   var got = null;
   for(var i = 0; i < C.length && !got; i++){ var c = C[i], o = c.o;
-    if(c.L){ o.nadeTask = {type:type, x:c.L.to.x, y:c.L.to.y, from:{x:c.L.from.x, y:c.L.from.y}, until: tick + FLASH_ASK_WAIT*TICK_HZ, why:why, start:tick, lob:true, range:4000, now:true, lineup:true, npm:npMomentNow(o)}; got = c; }
+    if(c.L){ o.nadeTask = {type:type, x:c.L.to.x, y:c.L.to.y, from:{x:c.L.from.x, y:c.L.from.y}, until: tick + FLASH_ASK_WAIT*TICK_HZ, why:why, start:tick, lob:true, range:4000, now:true, lineup:true, npm:npMomentNow(o), forC: forC || null}; got = c; }
     else if(throwNade(o, type, pt.x, pt.y, true, why)) got = c;
   }
   if(!got) return null;

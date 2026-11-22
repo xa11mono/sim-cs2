@@ -394,8 +394,16 @@ function assignNadeDo(b, type, target, why, opts){
      bots.some(function(o){ return o !== b && o.alive && o.team === b.team && o.nadeTask && o.nadeTask.type === type && Math.hypot(o.nadeTask.x-target.x, o.nadeTask.y-target.y) < 120; }))) return false;
   // (v419) here — бросок только с места (задержать гранатой, 350): срок 2 с, на точку броска не идёт
   var here = !!(opts && opts.here);
-  b.nadeTask = {type:type, x:target.x, y:target.y, until: tick + (here ? 2 : 10)*64, why:why||"", start:tick, lob:true, range:(opts && opts.range) || NADE_THROW_RANGE, now:!!(opts && opts.now), here:here, npm:npm, eid:(opts && opts.eid) || null};
+  b.nadeTask = {type:type, x:target.x, y:target.y, until: tick + (here ? 2 : 10)*64, why:why||"", start:tick, lob:true, range:(opts && opts.range) || NADE_THROW_RANGE, now:!!(opts && opts.now), here:here, npm:npm, eid:(opts && opts.eid) || null, forC:(opts && opts.forC) || null};
   return true;
+}
+// (22.11, Ж23) заказчик гранаты: «под мой / его выход на врага» — {by, cid}: жива, пока у заказчика контакт с этим врагом (_contact, 350);
+// «под его пробу» — {by, tag}: пока заказчик на той же задаче (тег поста при заказе). Только свойства задачи заказчика, без списков имён
+function nadeOwnerOf(o, cid){ return cid !== undefined ? {by: o.id, cid: cid} : {by: o.id, tag: o.post ? o.post.tag : null}; }
+function nadeOwnerOk(F){
+  var o = teamBot(F.by); if(!o || !o.alive) return false;
+  if(F.cid !== undefined) return !!(o._contact && tick < o._contact.until && (F.cid == null || o._contact.id === F.cid));
+  return !!(o.post && o.post.tag === F.tag);
 }
 // (17.11, перестройка — модули) запись в журнал решений (645) — здесь, у хозяина (было: 645 подменял функцию обёрткой)
 function assignNade(b, type, target, why){
@@ -536,6 +544,10 @@ function updateNadeTask1(b){
     // (v583a, Д20, владелец 17.11: «почему кидают гранаты на труп») граната по конкретному врагу (комбо, добить HE, выкурить по инфе) — он
     // убит (киллфид знают все) — бросать незачем: задание снимается
     if(t.eid && !bots.some(function(o){ return o.id === t.eid && o.alive; })){ b.nadeTask = null; return; }
+    // (22.11, Ж23, разбор м271222 р6: karrigan вышел на звук с флешкой «под выход», выход отменился в 48 с, а флешка брошена в 50,5 с в
+    // старую точку и раскрыла его) граната ПОД ЧЬЮ-ТО ЗАДАЧУ (свой выход на врага, проба тиммейта, просьба «накиньте флешку») живёт, пока жива
+    // та задача: заказчик жив и всё ещё в ней (nadeOwnerOk). Гранаты плана команды и лайнапы без заказчика это не трогает
+    if(t.forC && !nadeOwnerOk(t.forC)){ b.nadeTask = null; if(b.post && b.post.tag === "lineup") clearPost(b); return; }
     if(t.here && !delaySafe(b)){ b.nadeTask = null; return; }   // (v419) враг виден / в упор — граната убирается, в руках оружие
     // (v359, р7) T уже на сайте выхода, а точка броска позади — задание снимается: с взятого сайта назад за гранатой не уходят
     if(t.lineup && t.from && b.team === "T" && teamTac.T && SITES[teamTac.T.site] && bomb.state !== "planted"){

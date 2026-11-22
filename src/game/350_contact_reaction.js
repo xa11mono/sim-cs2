@@ -171,7 +171,10 @@ function contactTick(b){
   // «агрессия — только с поддержкой (флешка, позиция для размена)», «не умирать — потерянный игрок открывает место». Демки Mirage: контакт до 25 с
   // кончается убийством в 5 с в 29 % (боты — 52 %), CT на сайте убит до 25 с в 6 % раундов (боты — 44 %, прогон 244). Было: «врагов не больше,
   // чем своих + 1» — один на один выходил всегда
-  var quiet = teamTac.T && teamTac.T.phase === "setup" && bomb && bomb.state !== "planted";
+  // (22.11, Ж23, разбор м271222 р6: CT karrigan по фазе плана T «выход» вышел 1 на 1 на звук и раскрылся) «не в своём активном моменте» —
+  // по своему знанию: T — фаза своей тактики «сетап»; CT — бомба не стоит (ретейк, срыв планта — свои моменты). Было: фаза плана T
+  // для обеих сторон — CT знал внутренний план соперника
+  var quiet = bomb && bomb.state !== "planted" && (b.team === "T" ? !!(teamTac.T && teamTac.T.phase === "setup") : true);
   if((fought || quiet) && swing){
     var HR = b._heardReload, PHc = teamIntel[b.team] && teamIntel[b.team].plantHeard;
     var adv = !!contactMateFight(b, C)
@@ -181,8 +184,10 @@ function contactTick(b){
       || duelHits(b._hitOut, tick - CONTACT_AGE*TICK_HZ, C.id) > duelHits(b._hitIn, tick - CONTACT_AGE*TICK_HZ, null)
       // (v521, владелец 10.11: «после боя слишком долго стоят»; ответ про дуэли: «по ситуации — мало HP у обоих: могут отойти, могут допушить»)
       // размен с ним сейчас не проигрышный (та же оценка, что повторный пик в бою — 470 duelOdds) — тоже преимущество
-      || !!(function(){ var eo = C.id ? teamBot(C.id) : null, o = eo ? duelOdds(b, eo, C.x, C.y) : null; return o && o.ok; })();                         // (дуэли 06.11) ранил его больше, чем получил, — добить
-    if(!adv && !C.own) adv = !!nadeAskFlash(b, look, "флешу под пик "+b.id+" ("+calloutName(look.x, look.y)+")");
+      // (22.11, Ж23, м271222 р6: karrigan до контакта получил «преимущество» по оценке дуэли с настоящим оружием врага, которого только слышал)
+      // оценка дуэли — довод только после СВОЕЙ перестрелки с ним (видел его и оружие); до контакта это знание, которого нет
+      || (fought && !!(function(){ var eo = C.id ? teamBot(C.id) : null, o = eo ? duelOdds(b, eo, C.x, C.y) : null; return o && o.ok; })());                         // (дуэли 06.11) ранил его больше, чем получил, — добить
+    if(!adv && !C.own) adv = !!nadeAskFlash(b, look, "флешу под пик "+b.id+" ("+calloutName(look.x, look.y)+")", undefined, nadeOwnerOf(b, C.id || null));
     if(!adv) swing = false;
   }
   // (v559, В76 ч.4–5) есть что отдать — цель раунда «не отдать винтовки» (у них эко) или он «хиро» своей эко-команды: выходит только с
@@ -238,7 +243,7 @@ function contactTick(b){
   if(!setPost(b, sp, look, true, tag)){ b._contact = {x:C.x, y:C.y, id:C.id, until: tick + CONTACT_HOLD*TICK_HZ, lock:false}; b._contactT = tick; return; }
   b._contact = {x:C.x, y:C.y, id:C.id, until: taskDeadline(b, sp, CONTACT_HOLD, b.walking), lock:true, pt:sp, tag:tag}; b._contactT = tick;   // (18.11) срок — от прихода на точку выхода (110)
   taskKeep(b, 0, "contact"); b._probeLock = 0; b.lastIntel = {x:look.x, y:look.y, tick:tick, src:"call"};
-  if(swing && !C.own && b.nades && b.nades.flash > 0 && C.d > 150 && !hasLOS(b.x, b.y, look.x, look.y, b.z)) assignNade(b, "flash", look, "флешка под выход на врага рядом", {now:true, range:900});
+  if(swing && !C.own && b.nades && b.nades.flash > 0 && C.d > 150 && !hasLOS(b.x, b.y, look.x, look.y, b.z)) assignNade(b, "flash", look, "флешка под выход на врага рядом", {now:true, range:900, forC: nadeOwnerOf(b, C.id || null)});
   // (v443, док владельца 27.10: «войс раунда спамится») «держу X» — 23 строки за раунд, один бот повторял её ~3 раза: это пересказ своих
   // действий, а в войсе про — враг, где и сколько, свои гранаты (PRO_PLAY, «Войс»). «Держу» не говорится; «выхожу на него» — один раз
   // на врага за раунд (у каждого нового выбора точки раньше — снова)
