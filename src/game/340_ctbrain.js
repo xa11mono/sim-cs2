@@ -290,7 +290,12 @@ function ctBrain(){
     if(allIn && ct._allInLog !== ks+roundNum){ ct._allInLog = ks+roundNum;
       voiceLog("CT", "allin"+ks, "CT", "все "+tAliveN+" на "+ks+" — "+ko+" пустой, все на "+ks+"!"); }
     // нас меньше, а на сайт идёт стак — не в одиночку на сайт, а ретейк
-    var stackIn = here >= defenders + 2 && here >= 3;
+    // (22.11, аудит 002/003) «не лезем по одному — играем ретейк»: было — «их здесь на 2 больше нас и ≥ 3». Стало — сравнение шансов: держать сейчас
+    // (кто уже у сайта против ожидаемых здесь T, преимущество — у держащего сайт, RT_A, то же число, что у T на бомбе: допущение симметрии) против
+    // ретейка потом (ctRetakeOdds со всеми, время — до конца раунда + горение бомбы)
+    var defS = cts.reduce(function(a, b){ return a + (ctNearSite(b, sc0, 450) ? (b.hp/100)*ctWeaponK(b) : 0); }, 0);
+    var pNow = 1/(1 + Math.exp(-RT_K*(RT_A*defS*defS - here*here))), pLater = ctRetakeOdds(cts, ks, ROUND_TIME_SEC - (simTime - roundStartTime) + BOMB_TICKS/TICK_HZ, null).p;
+    var stackIn = here >= 2 && pLater > pNow;
     if(stackIn && cts.length < tAliveN && !ct.call.bombSeen){
       if(!ct.playRetake || ct.playRetake.site !== ks){ ct.playRetake = {site:ks, tick:tick};
         voiceLog("CT", "prt"+ks, "CT", "их больше ("+here+" на "+ks+", нас "+cts.length+") — не лезем по одному, играем ретейк"); }
