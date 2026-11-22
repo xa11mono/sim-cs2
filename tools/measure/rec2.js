@@ -56,7 +56,7 @@ if(typeof tSetSite==='function'){ var oss=tSetSite; tSetSite=function(tt,site){ 
 if(typeof logEvent==='function'){ var olp=logEvent; logEvent=function(text){ if(roundState==='live'&&/подобрал/.test(String(text))&&REC.pick.length<5000) REC.pick.push([tick, String(text).slice(0,120)]); return olp.apply(this,arguments); }; }
 var odh=detonate; detonate=function(n){ if(roundState==='live'&&n&&n.type==='he'&&typeof visLine==='function'){ bots.forEach(function(b){ if(!b.alive||Math.hypot(b.x-n.x,b.y-n.y)>NADE.he.radius) return; if(!hasLOS(n.x,n.y,b.x,b.y,null,b.z)) return;
   var l3=visLine(n.x,n.y,n.z,b.x,b.y,visFloorAt(b.x,b.y,b.z)+VIS_EYE.crouch,false)?1:0; REC.he.push([tick, b.id, l3]); }); } return odh.apply(this,arguments); };
-REC.rotx={n:0, rev:0, back:0, drop:0, ev:[]}; REC.bd=[]; var RX={}, BD=null, BS0=null;
+REC.rotx={n:0, rev:0, back:0, drop:0, ev:[]}; var PPK={}, PPCR=null; REC.bd=[]; var RX={}, BD=null, BS0=null;
 for(var t=0;t<__T__;t++){ var _t0=performance.now(); stepTick(); var _dt=performance.now()-_t0; if(_dt>25 && roundState==='live'){ var _nt=bots.filter(function(b){return b.alive&&b.nadeTask;}); REC.slow.push([tick, Math.round(_dt), (typeof nadesInAir!=='undefined'&&nadesInAir.length)||0, _nt.length, _nt.map(function(b){return b.id+':'+b.nadeTask.type;}).join(' ')]); } if(typeof WATCH!=='undefined') WATCH.tick();
  if(SNAP_NEXT && matchNum===M0){ REC.snaps[SNAP_NEXT] = {t:tick, s:snapTake()}; SNAP_NEXT = 0; }
  if(R_END && roundNum > R_END) break;
@@ -81,6 +81,15 @@ for(var t=0;t<__T__;t++){ var _t0=performance.now(); stepTick(); var _dt=perform
    BD.dist=cts.map(function(o){ return Math.round(Math.hypot(o.x-BD.x,o.y-BD.y)); }).sort(function(a,c){ return a-c; }); }
   if(BD&&BD.pick==null&&bomb.state==='carried') BD.pick=tick-BD.t0;
  })();
+ // (22.11, аудит 050) постплант T: назначение места — [тик, бот, ключ, место, x, y, оценка, лучшая оценка бота, доля стороны CT, знают ли CT]; раз в раунд
+ // через 8 с после планта — прикрытие: [тик, мест, пар с линией видимости, доля входов к бомбе (threatEntrances), видимых хоть с одного места, дошли]
+ if(!REC.pp){ REC.pp=[]; REC.ppc=[]; }
+ if(roundState==='live' && bomb.state==='planted' && tick%16===0){ bots.forEach(function(b){ var A=b._ppPro; if(!b.alive||b.team!=='T'||!A) return; var k=b.id+'|'+A.key+'|'+A.i;
+   if(PPK[b.id]!==k){ PPK[b.id]=k; var P=b.post; REC.pp.push([tick, b.id, A.key, A.i, P?Math.round(P.x):0, P?Math.round(P.y):0, A.u!=null?+A.u.toFixed(4):null, A.ub!=null?+A.ub.toFixed(4):null, A.side!=null?+A.side.toFixed(2):null, A.ctKnown!=null?A.ctKnown:null]); } });
+   if(cur && cur.plant!=null && tick-cur.plant>=8*64 && PPCR!==cur.t0){ PPCR=cur.t0; var M=bots.filter(function(b){ return b.alive&&b.team==='T'&&b._ppPro&&b.post; }), pr=0, np=0;
+     for(var x=0;x<M.length;x++) for(var y=x+1;y<M.length;y++){ np++; if(hasLOS(M[x].post.x,M[x].post.y,M[y].post.x,M[y].post.y)) pr++; }
+     var E=threatEntrances('T',{x:bomb.x,y:bomb.y},350).slice(0,4), cov=E.filter(function(e){ return M.some(function(b){ return hasLOS(b.post.x,b.post.y,e.pt.x,e.pt.y); }); }).length;
+     REC.ppc.push([tick, M.length, np, pr, E.length, cov, M.filter(function(b){ return b.atPost; }).length]); } }
  if(bomb.state==='planted' && cur && cur.plant==null){ cur.plant=tick; cur.site=bomb.site; REC.plants.push([tick, bomb.site, Math.round(bomb.x), Math.round(bomb.y)]); }
 
  if(roundState==='live') bots.forEach(function(b){ var V=b.alive?(b._visible||[]):[], now={}; V.forEach(function(v){ now[v.id]=1; if(!(SEEN[b.id]||{})[v.id]) REC.see.push([tick, b.id, v.id, Math.round(Math.hypot(v.x-b.x,v.y-b.y))]); }); SEEN[b.id]=now; });
