@@ -365,6 +365,15 @@ function knowMeRevealed(b){
   var t = Math.max(b.lastShotTick || -1e9, b._hurtT || -1e9, b._thrownT || -1e9, b._lastSawT || -1e9);
   return t >= roundStartTick && knowAgeP((tick - t)/TICK_HZ) > 0.5;
 }
+// (22.11, Ж23, владелец: «разберись с утечкой») «враг меня видит» — только то, что видно самому: я вижу его, и он смотрит в мою сторону
+// (его взгляд виден, раз виден он), или он только что стрелял в меня (попадание / пуля рядом — heardSound «hit» от него, 490). Было (480
+// ambSeenBy, 490 saveShootOk): чтение того, кого враг видит на самом деле (o._visible), — знание, которого у игрока нет
+function knowSeenByFoe(b, o){
+  if(!o || !o.alive || o.team === b.team) return false;
+  if(b._visible && b._visible.indexOf(o) >= 0 && inFov(o, b.x, b.y)) return true;
+  var hs = b.heardSound; return !!(hs && hs.kind === "hit" && hs.src === o.id && tick - hs.tick <= TICK_HZ);
+}
+function knowSeenByAny(b){ return bots.some(function(o){ return knowSeenByFoe(b, o); }); }
 // (v583a, Д15, владелец 17.11: «никто не смотрит Short, хотя была инфа, что CT на Mid») T после планта знает, как играют CT: идут к бомбе
 // ближайшим путём. CT, которого не видно: та доля, на которую он уже ушёл с места, где видели (вес «стоит, где видели» стареет по кривой
 // про — knowAge), — гипотеза «идёт на ретейк» на его пути к бомбе; она движется по пути со скоростью подхода про (RETAKE_V: первый CT у бомбы

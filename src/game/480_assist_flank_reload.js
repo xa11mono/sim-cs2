@@ -201,13 +201,17 @@ function sprayPat(w, i){
 //  · конец: меня увидели (обычный бой), все цели мертвы / потеряны ≥ AMB_LOST с, мало HP.
 // Числа — проектные
 var AMB_HEAR = 1.5, AMB_AWAY = Math.PI/3, AMB_PASS = 380, AMB_GONE = [1, 6], AMB_LOST = 5, AMB_TRAIL = 12, AMB_SHOOT = 260, AMB_R = 700, AMB_MIN = 90;
-function ambSeenBy(b){ return bots.some(function(o){ return o.alive && o.team !== b.team && o._visible && o._visible.indexOf(b) >= 0; }); }
+function ambSeenBy(b){ return knowSeenByAny(b); }   // (22.11, Ж23) по своему восприятию (220 knowSeenByFoe), не по зрению врага
 // кого из врагов я сейчас воспринимаю сам: вижу или слышал (звук с источником) недавно, в AMB_R
+// (22.11, Ж23) где враг по моему восприятию: вижу — где он есть; слышу — место звука (с ошибкой «на слух»), а не его настоящее место
+function ambAt(b, o){ var hs = b.heardSound; return (b._visible && b._visible.indexOf(o) >= 0) || !(hs && hs.src === o.id) ? {x: o.x, y: o.y, z: o.z} : {x: hs.x, y: hs.y, z: hs.z}; }
 function ambFoes(b){
   var out = [];
   bots.forEach(function(o){ if(!o.alive || o.team === b.team) return;
     var seen = b._visible && b._visible.indexOf(o) >= 0, hs = b.heardSound, heard = hs && hs.src === o.id && tick - hs.tick < AMB_HEAR*TICK_HZ;
-    if((seen || heard) && Math.hypot(o.x-b.x, o.y-b.y) < AMB_R) out.push(o); });
+    // (22.11, Ж23) услышанный — далеко ли, по месту звука, а не по его настоящему месту
+    var px = seen ? o.x : heard ? hs.x : 0, py = seen ? o.y : heard ? hs.y : 0;
+    if((seen || heard) && Math.hypot(px-b.x, py-b.y) < AMB_R) out.push(o); });
   return out;
 }
 // враг идёт не на меня. Вижу — по его ходу и взгляду (отвёрнуты от меня); только слышу — по звуку: шаги удаляются (расстояние до услышанного
@@ -258,8 +262,8 @@ function ambushTick(b){
     // один — «иду за ним», только если вижу его и других рядом не знаю (владелец: «он точно должен увидеть, что он один»); слышу / их больше — жду
     var solo = F.length === 1 && b._visible && b._visible.indexOf(F[0]) >= 0 && !bots.some(function(o){ var q = (beliefLast[b.team] || {})[o.id];
       return o !== F[0] && o.alive && o.team !== b.team && q && tick - q.tick < 3*TICK_HZ && Math.hypot(q.x-b.x, q.y-b.y) < AMB_R; });
-    A = b._amb = {round: roundNum, ph: solo ? "go" : "wait", ids: F.map(function(o){ return o.id; }), n: F.length, t0: tick, seen: tick, last: {x: F[0].x, y: F[0].y}};
-    var where = calloutName(F[0].x, F[0].y).replace(/^на /, "");
+    A = b._amb = {round: roundNum, ph: solo ? "go" : "wait", ids: F.map(function(o){ return o.id; }), n: F.length, t0: tick, seen: tick, last: ambAt(b, F[0])};
+    var w0 = ambAt(b, F[0]), where = calloutName(w0.x, w0.y).replace(/^на /, "");
     voiceLog(b.team, "amb"+b.id+roundNum, b.id, !solo ? (F.length >= 2 ? F.length+" идут" : "слышу")+" через "+where+" — пропускаю, зайду в спину" : "один на "+where+" — иду за ним");
   }
   // услышанные: расстояние до звука раз в секунду (по нему — «удаляются ли»)
@@ -276,22 +280,30 @@ function ambushTick(b){
   if(seenNow.length){ A.seen = tick; var P = vis.length ? vis : (tick - (A.lastT || 0) >= TICK_HZ ? seenNow : null);
     if(P && A.ph === "go" && !vis.length && P.every(function(o){ var h = A.hd[o.id]; return h && h.d1 != null && h.d1 < h.d0 - 5; })) return ambEnd(b, "слышу — идут на меня, не лезу навстречу");
     if(P){ var Pb = P.filter(function(o){ return ambPassing(b, o); }); if(Pb.length) P = Pb;   // в спину — тем, кто ко мне спиной
-      var c = P.sort(function(p, q){ return Math.hypot(p.x-b.x, p.y-b.y) - Math.hypot(q.x-b.x, q.y-b.y); })[0]; A.last = {x: c.x, y: c.y, z: c.z, id: c.id}; A.lastT = tick; } }
+      // (22.11, Ж23, разбор м271222 р6: karrigan шёл за magixx по его настоящим координатам, слыша только шаги) куда идти: видимого — где он есть,
+      // услышанного — где был звук (с ошибкой «на слух»), не его настоящее место
+      var at = function(o){ return ambAt(b, o); };
+      var c = P.sort(function(p, q){ var a = at(p), d = at(q); return Math.hypot(a.x-b.x, a.y-b.y) - Math.hypot(d.x-b.x, d.y-b.y); })[0], ca = at(c);
+      A.last = {x: ca.x, y: ca.y, z: ca.z, id: c.id}; A.lastT = tick; } }
   else if(!A.via && tick - A.seen > AMB_LOST*TICK_HZ){
-    // потерял — но команда знает, где они: иду туда (инфа команды, не своё восприятие)
-    var BLk = beliefLast[b.team] || {}, kn = bots.filter(function(o){ return o.alive && o.team !== b.team; }).map(function(o){ return BLk[o.id]; }).filter(function(q){ return q && tick - q.tick < AMB_TRAIL*TICK_HZ; }).sort(function(p, r){ return r.tick - p.tick; })[0];   // свежее всего, что знает команда   // по следу — пока инфа не старше AMB_TRAIL с (проектное число)
-    if(kn){ A.seen = tick; A.last = {x: kn.x, y: kn.y, z: kn.z}; } else return ambEnd(b, "потерял");
+    // потерял — но команда знает, где они: иду туда (знание команды, не своё восприятие). (22.11, Ж23, разбор м271222 р6: потеряв magixx у B,
+    // karrigan пошёл к Pillars — свежайшая запись о ЛЮБОМ враге за 12 с, другой T у A) — только про тех, за кем иду (A.ids), и только
+    // уверенное место (вес ≥ 0,5 в знании команды, knowEnemySpots); нет — засада кончена, бот возвращается к своей задаче
+    var kn = null; A.ids.forEach(function(id){ (knowEnemySpots(b.team, id) || []).forEach(function(q){ if(q.w >= 0.5 && (!kn || q.w > kn.w)) kn = q; }); });
+    if(kn){ A.seen = tick; A.last = {x: kn.x, y: kn.y}; } else return ambEnd(b, "потерял");
   }
   if(A.ph === "wait"){
     // выхожу, когда пропущенные ушли из восприятия (не вижу и не слышу случайно AMB_GONE с — сколько ждать, у каждого по-своему) или колл сайта (начался выход): пока они рядом и могут
     // обернуться — сижу (было: выходил, как только отошли на AMB_PASS, — его видели, м1 р1, T Roof)
     var call = teamTac[b.team] && teamTac[b.team].call;
     if(A.gone == null) A.gone = AMB_GONE[0] + (AMB_GONE[1]-AMB_GONE[0])*hashRand(tick*31 + b.id.charCodeAt(b.id.length-1)*13);   // (владелец 19.11: «сколько сидеть — рандомно»)
-    if(tick - A.seen > A.gone*TICK_HZ || (call && !seenNow.some(function(o){ return Math.hypot(o.x-b.x, o.y-b.y) < AMB_PASS; }) && tick - A.t0 > TICK_HZ)){ A.ph = "go"; dlog(b, "засада", "прошли — иду в спину"); }
+    if(tick - A.seen > A.gone*TICK_HZ || (call && !seenNow.some(function(o){ var q = ambAt(b, o); return Math.hypot(q.x-b.x, q.y-b.y) < AMB_PASS; }) && tick - A.t0 > TICK_HZ)){ A.ph = "go"; dlog(b, "засада", "прошли — иду в спину"); }
     else {
       // стою, где меня не видно: место — здесь, если оно укрыто от них; иначе ближайшее укрытое (общий выбор укрытия, 470)
       // (19.11, м3 р4, CT1: укрытие выбрал к Palace Exit — ближе к ним, там увидели) укрытие — не ближе к врагам, чем стою сейчас
-      if(!A.spot){ var TC = coverThreats(b, T), dNear = function(p){ return Math.min.apply(null, T.map(function(o){ return Math.hypot(o.x-p.x, o.y-p.y); })); }, d0 = dNear(b);
+      // (22.11, Ж23) от кого прятаться — где они по моему восприятию (видимые — где есть, услышанные — место звука A.last), не настоящие места
+      if(!A.spot){ var TK = T.map(function(o){ return (b._visible && b._visible.indexOf(o) >= 0) ? o : A.last; }).filter(Boolean);
+        var TC = coverThreats(b, TK), dNear = function(p){ return Math.min.apply(null, TK.map(function(o){ return Math.hypot(o.x-p.x, o.y-p.y); })); }, d0 = dNear(b);
         A.spot = coverSafe({x:b.x, y:b.y}, b.z, TC) ? {x:b.x, y:b.y} : (coverPick(pickSpots("amb"+tick+b.id, {x:b.x, y:b.y}, COVER_CANDS, {rMin:0, rMax:120, minGap:20, hideFrom:TC})
           .filter(function(p){ return dNear(p) >= d0; }), coverZ(b), TC) || {x:b.x, y:b.y}); }
       setPost(b, A.spot, A.last, true, "ambush");

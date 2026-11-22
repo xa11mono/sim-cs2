@@ -53,8 +53,10 @@ function fireReady(sh, tg, n){ sh._fire = {t:tick, tg:tg.id, inT:Math.max(0, Mat
 var SAVE_PATH_R = 150;
 function saveShootOk(b, t){
   if(!taskAlive(b) || !taskProp(b._task.tag, "saveTask")) return true;
-  if(t._visible && t._visible.indexOf(b) >= 0) return true;
-  var m = t._nearestEnemyBot; if(m && m !== b && m.team === b.team && m.alive && m._sawEnemy) return true;
+  // (22.11, Ж23) «враг видит меня» и «стреляется со своим» — по тому, что знает бот (220 knowSeenByFoe; свой видит его — радар), а не по
+  // зрению и цели врага (было: t._visible, t._nearestEnemyBot)
+  if(knowSeenByFoe(b, t)) return true;
+  if(bots.some(function(m){ return m !== b && m.team === b.team && m.alive && m._visible && m._visible.indexOf(t) >= 0; })) return true;
   var P = (b.path || []).slice(b.pathIdx || 0); if(b._saveSpot) P.push([b._saveSpot.x, b._saveSpot.y]);
   for(var i = 0; i < P.length; i++) if(Math.hypot(P[i][0]-t.x, P[i][1]-t.y) < SAVE_PATH_R) return true;
   return false;
