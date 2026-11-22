@@ -309,7 +309,7 @@ function ctLandPunish(b){
   b._lpDone = h.tick;
   if(Math.hypot(h.x-b.x, h.y-b.y) > LAND_PUNISH_R || hasLOS(b.x, b.y, h.x, h.y, b.z) || b.hp < 50) return false;
   // один: другого известного врага рядом с точкой команда не знает (свежая инфа за 3 с; безымянный звук — тот же игрок)
-  var others = (teamIntel.CT && teamIntel.CT.sig || []).filter(function(q){ return q && q.x != null && q.id && q.id !== "?" && q.id !== h.src && tick - q.tick < 3*TICK_HZ && Math.hypot(q.x-h.x, q.y-h.y) < 400; }).length;
+  var others = (teamIntel.CT && teamIntel.CT.sig || []).filter(function(q){ return q && q.x != null && q.id && q.id !== "?" && Math.hypot(q.x-h.x, q.y-h.y) > knowHearErr(b, h) && tick - q.tick < 3*TICK_HZ && Math.hypot(q.x-h.x, q.y-h.y) < 400; }).length;   // (аудит 048) «другой» — замечен не в точке этого звука (с ошибкой на слух), а не по id источника
   if(others) return false;
   var go = hashRand(h.tick*13 + b.id.charCodeAt(b.id.length-1)*7 + roundNum) < (b.prof ? prof(b, "aggr") : 0.5);
   if(!go) return false;
