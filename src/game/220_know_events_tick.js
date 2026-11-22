@@ -222,10 +222,11 @@ function knowSiteShift(K, site, share, skipId){
   var S = SITES[site]; if(!S) return; var z = knowZoneAt(S.x, S.y);
   for(var id in K.enemies){ if(id === skipId) continue; var B = K.enemies[id]; if(B.visible) continue;
     // (22.11, аудит 053, владелец Ж6: «лёркер убил на B — решили, что все на B, хотя на A тоже был кил») сдвигаются только те, кто успел бы
-    // дойти до сайта от места, где его последний раз видели / слышали (длина пути / скорость бега ≤ сколько прошло — тот же счёт, что у
+    // дойти до сайта или его подходов (KILL_NEAR_R — туда же кладётся сдвиг, ниже) от места, где его последний раз видели / слышали (длина пути / скорость бега ≤ сколько прошло — тот же счёт, что у
     // таймингов «может ли там уже кто-то быть»). Кого видели далеко секунды назад — не сдвигается: он не мог там оказаться. О ком знают только
-    // «со спавна» — как было. Было: 72 % догадок каждого невидимого T, где бы его ни видели
-    if(B.last && B.last.source !== "spawn" && B.last.x != null && B.last.tick != null && polyLen(pathPts(B.last.x, B.last.y, S.x, S.y, B.last.z))/SPEED > (tick - B.last.tick)/TICK_HZ) continue;
+    // «со спавна» — как было. (Проверка shiftlog м3/7/11: со счётом до центра сайта 8 из 21 пропущенных на деле стояли у сайта —
+    // их видели 0,1–4 с назад в 0–12 ед. от настоящего места, уже на подходах.) Было: 72 % догадок каждого невидимого T, где бы его ни видели
+    if(B.last && B.last.source !== "spawn" && B.last.x != null && B.last.tick != null && (polyLen(pathPts(B.last.x, B.last.y, S.x, S.y, B.last.z)) - KILL_NEAR_R)/SPEED > (tick - B.last.tick)/TICK_HZ) continue;
     var moved = 0, seen = B.last && B.last.source !== "spawn";
     B.hyps.forEach(function(h){
       var keep = h.type === "held" && !h.plant ? (seen ? 1 : 0) : (h.heard && h.htick != null ? knowAgeP((tick - h.htick)/TICK_HZ) : 0);
