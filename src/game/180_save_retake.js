@@ -36,22 +36,30 @@ function pickSaveSpot(b){
   return best ? {x:best.x, y:best.y} : {x:CT_SPAWN.x, y:CT_SPAWN.y};
 }
 // укрытие для сейва T: подальше от известных CT и от сайтов, не на виду у живых CT
-// (v381, М137) доля раундов, где T в меньшинстве до планта выжили без планта (сейв), у про: [T][CT] → [> 55 с, 30–55 с, < 30 с до конца
-// раунда]; демки Ancient + Mirage, среднее двух карт (tools/measure: скрипт в DECISIONS v381), 30–316 раундов на клетку
-var T_SAVE_PRO = {1: {2: [0.09, 0.06, 0.18], 3: [0.04, 0.09, 0.18], 4: [0.05, 0.10, 0.27], 5: [0.02, 0.09, 0.21]},
-                  2: {3: [0.10, 0.11, 0.20], 4: [0.08, 0.14, 0.27], 5: [0.08, 0.19, 0.35]}};
-// (v519, пак 09.11 п.22; А-19: «бежал ставить в клатче 1в3 и на полпути получил сейв, хотя успевал») решение о сейве — одно на расклад живых в раунде:
-// кусок времени (> 55 / 30–55 / < 30 с) берётся тот, когда расклад появился, а не перебрасывается кубик, когда время пересекает 55 и 30 с
-var TSAVE_K = {};
-function tSaveRoll(aT, aC, secLeft){
-  var P = T_SAVE_PRO[aT] && T_SAVE_PRO[aT][Math.min(aC, 5)]; if(!P) return false;
-  var key = matchNum+":"+roundNum+":"+aT+"v"+aC;
-  if(TSAVE_K[key] == null) TSAVE_K[key] = secLeft > 55 ? 0 : (secLeft > 30 ? 1 : 2);
-  var k = TSAVE_K[key];
-  return hashRand(roundNum*911 + matchNum*37 + aT*101 + aC*13 + k*7) < P[k];
+// (22.11, аудит 001, владелец: «сейв T — оценкой реальной ситуации… таблицы про — для проверки, а не вместо решения») было: жребий по доле про
+// «в меньшинстве выжили без планта» (T_SAVE_PRO [T][CT] × время, hashRand). Стало — шанс раунда, если ставить (tPlantOdds): для каждого сайта,
+// куда носитель (или ближайший к упавшей бомбе) успевает дойти по пути и поставить до конца раунда, — бой за сайт с теми CT, кто, по карте команды T,
+// у сайта (у держащего преимущество RT_A, 340), выжившие по Ланчестеру St' = √(St² − A·d²), затем защита бомбы от остальных CT (преимущество у T):
+// P = P(вход) × P(удержать). Силы T — HP × оружие (ctWeaponK, 340); CT — живые по табло, раненые — по журналу попаданий T. Сейв — лучший сайт ниже
+// RT_SAVE_P (та же граница, что у CT). Сверка с про — tools/measure (T_SAVE_PRO из DECISIONS v381), не в решении
+function tPlantOdds(ts, secLeft){
+  if(!bomb || (bomb.state !== "carried" && bomb.state !== "dropped")) return {p: 0, site: null};
+  var src = bomb.state === "carried" ? bomb.carrier : null; if(src && !src.alive) return {p: 0, site: null};
+  var st2 = 0; ts.forEach(function(b){ var s1 = (b.hp/100)*ctWeaponK(b); st2 += s1*s1; }); var st = Math.sqrt(st2);
+  var HT = teamIntel.T && teamIntel.T.hurt, ctS = 0; bots.forEach(function(o){ if(o.team !== "CT" || !o.alive) return; var h = HT && HT[o.id]; ctS += (h && tick - h.tick < 20*TICK_HZ) ? h.hp/100 : 1; });
+  var best = {p: 0, site: null};
+  ["A","B"].forEach(function(k){ var S = SITES[k];
+    var go = ts.some(function(b){ var L = src ? (b === src ? pathLenTo(b, S.x, S.y) : Infinity) : pathLenTo(b, bomb.x, bomb.y) + polyLen(pathPts(bomb.x, bomb.y, S.x, S.y, bomb.z));
+      return L/(SPEED*weaponSpeedMul(b)) + PLANT_TICKS/TICK_HZ < secLeft; });
+    if(!go) return;
+    var d = Math.min(ctS, beliefMass("T", BZ.siteNear[k] || []));
+    var pIn = 1/(1 + Math.exp(-RT_K*(st*st - RT_A*d*d))), left = Math.sqrt(Math.max(0, st*st - RT_A*d*d)), rest = Math.max(0, ctS - d);
+    var pHold = 1 - 1/(1 + Math.exp(-RT_K*(rest*rest - RT_A*left*left)));
+    var p = pIn*pHold; if(p > best.p) best = {p: p, site: k}; });
+  return best;
 }
 // (v434) сейвить ли T сейчас — одно решение для начала сейва и для пересмотра (170): раунд безнадёжен по доле про для этого расклада
-// (tSaveRoll), есть что сохранять (оружие ≥ 1500 в среднем и перейдёт в следующий раунд — saveWorth, 530), носитель не на сайте
+// (tPlantOdds — шанс раунда, если ставить, 22.11), есть что сохранять (оружие ≥ 1500 в среднем и перейдёт в следующий раунд — saveWorth, 530), носитель не на сайте
 function tSaveWant(ts, aT, aC, secLeft, site){
   if(!ts.length) return false;
   // (00_PLAN п.10, ответ владельца 6А: «сейв отменяется, когда известна позиция противников и их можно изолировать») все живые CT замечены
@@ -64,7 +72,7 @@ function tSaveWant(ts, aT, aC, secLeft, site){
   var Ts = bots.filter(function(o){ return o.team === "T"; }), inc = nextLossIncome("T");
   var bank = Ts.reduce(function(a, o){ return a + o.money + inc; }, 0), need = Ts.reduce(function(a, o){ return a + fullNeedU(o); }, 0) + gunVal*aT;
   if(bank >= need) return false;
-  return gunVal >= 1500 && !carOn && saveWorth("T") && tSaveRoll(aT, aC, secLeft);
+  return gunVal >= 1500 && !carOn && saveWorth("T") && tPlantOdds(ts, secLeft).p < RT_SAVE_P;   // (аудит 001) оценка, было — жребий tSaveRoll
 }
 // (00_PLAN п.10, ответ владельца 6А, 05.11: «если последний игрок ещё может безопасно забрать бомбу и установить её, он должен оценить
 // возможность завершить раунд; прятаться ради оружия при реальной возможности установки — плохое решение») есть ли у T реальный плант по
