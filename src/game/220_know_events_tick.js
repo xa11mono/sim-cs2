@@ -373,6 +373,14 @@ function knowSeenByFoe(b, o){
   if(b._visible && b._visible.indexOf(o) >= 0 && inFov(o, b.x, b.y)) return true;
   var hs = b.heardSound; return !!(hs && hs.kind === "hit" && hs.src === o.id && tick - hs.tick <= TICK_HZ);
 }
+// (22.11, аудит 006) враг для оценки дуэли — как его знает бот: вижу сам — как есть; нет — последнее своё знание (место, стойка, оружие —
+// knowVision 210: увиденное), а не настоящее место / оружие / присед сейчас; не знает — null. Одно место для 470 duelOdds / duelEval
+function knowFoeView(b, e){
+  if(!e || !e.alive) return null;
+  if(b._visible && b._visible.indexOf(e) >= 0) return e;
+  var B = b.know && b.know.enemies && b.know.enemies[e.id], L = B && B.last; if(!L || L.x == null) return null;
+  return {id: e.id, team: e.team, x: L.x, y: L.y, z: L.z, px: L.x, py: L.y, weapon: (L.weapon && WEAPONS[L.weapon]) || null, crouching: L.stance === "crouch", alive: true, known: true};
+}
 function knowSeenByAny(b){ return bots.some(function(o){ return knowSeenByFoe(b, o); }); }
 // (22.11, Ж18, владелец: «гранаты на труп кидают»; журнал бросков, 2 матча: 6 из 130 — «задержать», лайнап «по времени / выход»,
 // «по инфе — выкурить»: враг, ради которого граната, убит там за 0–2 с до броска, живых рядом нет) бросок в труп: рядом с точкой

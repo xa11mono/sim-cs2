@@ -286,7 +286,7 @@ function knowVision(b){
     var B = K.enemies[e.id];
     var last = {x: e.x, y: e.y, zone: knowZoneAt(e.x, e.y, e.z), tick: tick, stance: e.crouching ? "crouch" : "stand",
                 source: "vision", vx: (e.x - (e.px === undefined ? e.x : e.px))*TICK_HZ, vy: (e.y - (e.py === undefined ? e.y : e.py))*TICK_HZ,
-                weapon: e.weapon && e.weapon.key};
+                weapon: e.weapon && e.weapon.key, z: e.z};
     var was = B && B.visible;
     if(!B){ B = K.enemies[e.id] = {id: e.id, side: e.team}; }
     B.last = last; B.visible = true; B.mine = !!own[e.id];   // (v432) visible — видит команда (радар), mine — сам (колл «вижу» — только своё)
