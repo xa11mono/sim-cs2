@@ -1,0 +1,70 @@
+{
+ "par": 8,
+ "jobs": [
+  {
+   "label": "a059_mir",
+   "ref": "654b931b027ddcbc68a11260908f1527be2e926d",
+   "map": "mirage",
+   "matches": [
+    3,
+    7,
+    11,
+    13,
+    17,
+    19,
+    23,
+    29
+   ]
+  },
+  {
+   "label": "a060_mir",
+   "ref": "947c796215b1af1c7ba9b2a532f4f552c3673dfc",
+   "map": "mirage",
+   "matches": [
+    3,
+    7,
+    11,
+    13,
+    17,
+    19,
+    23,
+    29
+   ]
+  },
+  {
+   "label": "a061_mir",
+   "ref": "af8cb9b0d75291e08b6d58127061244cdf945aa2",
+   "map": "mirage",
+   "matches": [
+    3,
+    7,
+    11,
+    13,
+    17,
+    19,
+    23,
+    29
+   ]
+  }
+ ],
+ "shots": [
+  {
+   "label": "s053b_m7r13",
+   "ref": "644a0017173773a6e0e785f398eb5d731c12aaa1",
+   "map": "mirage",
+   "match": 7,
+   "round": 13,
+   "kind": "snap",
+   "ticks": 3000
+  },
+  {
+   "label": "s053b_m29r11",
+   "ref": "644a0017173773a6e0e785f398eb5d731c12aaa1",
+   "map": "mirage",
+   "match": 29,
+   "round": 11,
+   "kind": "snap",
+   "ticks": 3000
+  }
+ ]
+}
