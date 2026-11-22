@@ -31,9 +31,11 @@ function beliefKnowQ(team, m, eid, e, n){
   var Q = new Float32Array(n), H = m.know.enemies[eid]; if(!H) return Q;
   H.hyps.forEach(function(h){
     if(h.type === "moved_unknown"){
-      // доля на место — от ВСЕХ мест, куда враг уже мог дойти: проверенные (закрытые) свою долю
-      // просто теряют, а не перекладывают на непроверенные (иначе вес «где не смотрел» рос бы сам)
-      var S = m.know.spots.filter(function(p){ return knowSpotReach(p) && BZ.idx[p.zone] !== undefined; });
+      // (22.11, аудит 011, м271222 р6: 3 живых T, на карте CT ≈ 0,4) было: доля на место — от всех мест, куда враг мог дойти, проверенные свою
+      // долю теряли — когда проверены все, враг пропадал с карты («нигде»). Стало: живой враг где-то есть (табло) — его «неизвестно где» делится
+      // между непроверенными местами, куда он мог дойти; проверены все — между всеми, куда мог дойти (проверка устарела: мог прийти после)
+      var S0 = m.know.spots.filter(function(p){ return knowSpotReach(p) && BZ.idx[p.zone] !== undefined; });
+      var S = S0.filter(function(p){ return p.open; }); if(!S.length) S = S0.map(function(p){ return {zone: p.zone, open: true}; });
       // (v354, владелец: «по никам должны понимать, где примерно игрок — жив kyousuke, а он игрок B, значит скорее всего он там»)
       // доля места — по памяти матча: где этого игрока видели/слышали в прошлых раундах за эту сторону (pmWeight)
       var WS = S.map(function(p){ return pmWeight(team, e, BZ.cent[BZ.idx[p.zone]]); }), WT = WS.reduce(function(a, c){ return a + c; }, 0) || 1;
