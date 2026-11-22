@@ -33,6 +33,13 @@ REC.dmg=[]; REC.see=[]; REC.act=[]; var SEEN={};
 // 25 мс [тик, мс, гранат в полёте, у скольких задание гранаты, задание у кого (тип)]; exu — события смоков выхода (366)
 REC.fc=[]; REC.task=[]; REC.voice=[]; REC.slow=[]; REC.exu=[]; var FCP={}, TKP={};
 // duel — строки журнала игры о решениях в бою (почему ушёл с линии / держит / отходит / атакует, союзников рядом, врагов видит) [тик, текст]
+// (этап 0, аудит 046) выход на контакт: при новом контакте — [тик, бот, тег поста (contact:swing / contact:hold / другое), враг, свой рядом стреляется с ним,
+// свой рядом на размен (TRADE_R, не видит врага), HP, перезарядка, цель раунда, носитель бомбы, врагов видит сам]
+REC.cont=[]; if(typeof contactTick==='function'){ var oct=contactTick; contactTick=function(b){ var t0=b._contactT; var r=oct.apply(this,arguments);
+  if(roundState==='live'&&b&&b._contactT===tick&&t0!==tick&&REC.cont.length<40000){ var C=b._contact||{}; var mf=0; try{ mf=(typeof contactMateFight==='function'&&contactMateFight(b,C))?1:0; }catch(e){}
+    var tm=bots.some(function(o){ return o!==b&&o.alive&&o.team===b.team&&!o._sawEnemy&&Math.hypot(o.x-b.x,o.y-b.y)<(typeof TRADE_R!=='undefined'?TRADE_R:400); })?1:0;
+    REC.cont.push([tick, b.id, b.post?String(b.post.tag):'', C.id||'', mf, tm, b.hp, b._reloading?1:0, typeof roundGoal==='function'?String(roundGoal(b.team)):'', (bomb&&bomb.carrier===b)?1:0, (b._visible||[]).length]); }
+  return r; }; }
 REC.duel=[]; var DUEL_RE=/укрыт|с линии|в плечо|выгляд|держ|отход|отступ|атак|дуэл|пик|размен|добив|сближ|не лезет/;
 if(typeof logEvent==='function'){ var olg=logEvent; logEvent=function(text){ if(roundState==='live' && REC.duel.length<40000 && DUEL_RE.test(String(text))) REC.duel.push([tick, String(text).slice(0,200)]); return olg.apply(this,arguments); }; }
 if(SNAP_ON){ REC.snaps = {}; }
@@ -101,7 +108,7 @@ for(var t=0;t<__T__;t++){ var _t0=performance.now(); stepTick(); var _dt=perform
    if(b.defusing&&!DFP[b.id]) REC.defst.push([tick, b.id, (bomb.retake&&bomb.retake.defId)||'']); DFP[b.id]=!!b.defusing;
    var bu=b.blindUntil||0; if(bu>tick&&bu>(BLP[b.id]||0)+8) REC.blind.push([tick, b.id, Math.round((bu-tick)/TICK_HZ*10)/10, b._blindBy||'']); BLP[b.id]=bu; });
  if(tick%32===0 && roundState==='live') bots.forEach(function(b){ if(b.alive) REC.act.push([tick, b.id, b.post?String(b.post.tag):'', b.state||'', b._fc?b._fc.ph:'', tick<(b.blindUntil||0)?1:0, b.crouching?1:0, b.atPost?1:0, b._walkWhy||'', b._runWhy||'', b._stopWhy||'', (tick-(b._stateWhyT||-99)<32)?b._stateWhy:'', b.lookReason||'', b._lookLvl||0, b._contact?(String(b._contact.tag||'')+'>'+(b._contact.id||'')):'']); });
- if(tick%32===0 && roundState==='live' && typeof teamTac!=='undefined' && teamTac.CT){ var CC=teamTac.CT.call, GO=teamTac.CT.go; REC.ctcall.push([tick, CC?CC.site:'', CC?Math.round(CC.count*100)/100:0, CC?Math.round((tick-(CC.evTick||CC.tick))/6.4)/10:-1, (GO&&CC&&GO.site===CC.site)?1:0, Object.keys(teamTac.CT.rot||{}).length, teamTac.CT.saving?1:0]);
+ if(tick%32===0 && roundState==='live' && typeof teamTac!=='undefined' && teamTac.CT){ var CC=teamTac.CT.call, GO=teamTac.CT.go; REC.ctcall.push([tick, CC?CC.site:'', CC?Math.round(CC.count*100)/100:0, CC?Math.round((tick-(CC.evTick||CC.tick))/6.4)/10:-1, (GO&&CC&&GO.site===CC.site)?1:0, Object.keys(teamTac.CT.rot||{}).length, teamTac.CT.saving?1:0, CC&&CC.bombSeen?1:0, CC&&CC.undefended?1:0, CC?(CC.seen||0):0, CC?(CC.nades||0):0]);   // (этап 0, аудит 046) основание колла: бомбу видели, сайт без защиты, замечено врагов, гранат
    var cid=teamIntel.CT&&teamIntel.CT.carrierId; if(cid && typeof knowEnemySpots==='function'){ REC.carh.push([tick, cid, (knowEnemySpots('CT',cid)||[]).slice().sort(function(a,c){ return c.w-a.w; }).slice(0,3).map(function(q){ return [Math.round(q.x),Math.round(q.y),Math.round(q.w*100)/100]; })]); } }   // (22.11, аудит 046) колл CT и гипотезы о носителе
  if(tick%64===0 && roundState==='live' && typeof beliefCount==='function' && typeof BZ!=='undefined' && BZ.ids){ var ALLZ=[]; for(var zi=0; zi<BZ.ids.length; zi++) ALLZ.push(zi); ['CT','T'].forEach(function(tm){ REC.bsum.push([tick, tm, Math.round(beliefCount(tm, ALLZ)*100)/100, bots.filter(function(o){ return o.alive&&o.team!==tm; }).length]); }); }   // (22.11, аудит 011) карта команды против живых   // (13.11) + причина и уровень взгляда (В132 п.1)
  if(cur && typeof teamTac!=='undefined' && teamTac.T){ if(cur.lowPlan===undefined) cur.lowPlan=teamTac.T.lowPlan||null; if(cur.exec==null && teamTac.T.execStart!=null) cur.exec=teamTac.T.execStart; }

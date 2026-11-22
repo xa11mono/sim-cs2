@@ -2,8 +2,8 @@
  "par": 8,
  "jobs": [
   {
-   "label": "a059_mir",
-   "ref": "654b931b027ddcbc68a11260908f1527be2e926d",
+   "label": "b0_mir",
+   "ref": "496860ed359dac127449db079ca1d8cf270a4e09",
    "map": "mirage",
    "matches": [
     3,
@@ -17,8 +17,8 @@
    ]
   },
   {
-   "label": "a060_mir",
-   "ref": "947c796215b1af1c7ba9b2a532f4f552c3673dfc",
+   "label": "a030_mir",
+   "ref": "dd04417d045ea2fd0f8120bf9bdefc239b4c5d8c",
    "map": "mirage",
    "matches": [
     3,
@@ -32,8 +32,8 @@
    ]
   },
   {
-   "label": "a061_mir",
-   "ref": "af8cb9b0d75291e08b6d58127061244cdf945aa2",
+   "label": "a028_mir",
+   "ref": "0ae9730ced2e527c6418b21875a0888f56bdfbd6",
    "map": "mirage",
    "matches": [
     3,
@@ -45,26 +45,6 @@
     23,
     29
    ]
-  }
- ],
- "shots": [
-  {
-   "label": "s053b_m7r13",
-   "ref": "644a0017173773a6e0e785f398eb5d731c12aaa1",
-   "map": "mirage",
-   "match": 7,
-   "round": 13,
-   "kind": "snap",
-   "ticks": 3000
-  },
-  {
-   "label": "s053b_m29r11",
-   "ref": "644a0017173773a6e0e785f398eb5d731c12aaa1",
-   "map": "mirage",
-   "match": 29,
-   "round": 11,
-   "kind": "snap",
-   "ticks": 3000
   }
  ]
 }
