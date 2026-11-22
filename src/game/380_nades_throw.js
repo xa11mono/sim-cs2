@@ -218,6 +218,7 @@ function throwNadeDo(b, type, tx, ty, lob, why, trusted, from){
   var M0 = b._tnMiss;
   if(M0 && M0.r === roundNum && M0.type === type && M0.tx === tx && M0.ty === ty && M0.lob === !!lob && Math.hypot(b.baseX-M0.x, b.baseY-M0.y) < NADE_RETRY_D &&
      b.nades && b.nades[type] > 0 && nadeReady(b)){ NADE_FAIL = M0.why; return false; }
+  if(type !== "smoke" && type !== "decoy" && roundState === "live" && knowCorpseOnly(b.team, {x: tx, y: ty})){ NADE_FAIL = "в труп — врага там уже нет"; return false; }   // (22.11, Ж18) и прямые броски мимо задачи
   var ok = throwNadeTry(b, type, tx, ty, lob, why, trusted, from);
   b._tnMiss = (!ok && /долетит|стена|потолок/.test(NADE_FAIL || "")) ? {r: roundNum, type: type, tx: tx, ty: ty, lob: !!lob, x: b.baseX, y: b.baseY, why: NADE_FAIL} : null;
   return ok;
@@ -561,6 +562,7 @@ function updateNadeTask1(b){
     // (22.11, Ж23, разбор м271222 р6: karrigan вышел на звук с флешкой «под выход», выход отменился в 48 с, а флешка брошена в 50,5 с в
     // старую точку и раскрыла его) граната ПОД ЧЬЮ-ТО ЗАДАЧУ (свой выход на врага, проба тиммейта, просьба «накиньте флешку») живёт, пока жива
     // та задача: заказчик жив и всё ещё в ней (nadeOwnerOk). Гранаты плана команды и лайнапы без заказчика это не трогает
+    if(t.type !== "smoke" && knowCorpseOnly(b.team, t)){ b.nadeTask = null; b.nadeQueue = null; if(b.post && b.post.tag === "lineup") clearPost(b); return; }   // (22.11, Ж18) в труп — незачем
     if(t.forC && !nadeOwnerOk(t.forC)){ b.nadeTask = null; if(b.post && b.post.tag === "lineup") clearPost(b); return; }
     if(t.here && !delaySafe(b)){ b.nadeTask = null; return; }   // (v419) враг виден / в упор — граната убирается, в руках оружие
     // (v359, р7) T уже на сайте выхода, а точка броска позади — задание снимается: с взятого сайта назад за гранатой не уходят

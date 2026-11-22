@@ -35,8 +35,12 @@ function moveWalkWhy(bot){
   if(bot.post && taskProp(bot.post.tag, "reposMove") && taskKeepUntil(bot, "repos") > tick) return null;
   // (v438, док 27.10) свежая инфа / звук — шагом, только если этот враг сам может услышать мой бег (≤ 1,5 слышимости бега — проектное
   // число: враг мог подойти). Было — любой звук: выстрелы за 2000 px давали 6 с шифта по всей карте
-  if(bot.lastIntel && tick - bot.lastIntel.tick < CAUTION_TICKS && Math.hypot(bot.lastIntel.x-bot.baseX, bot.lastIntel.y-bot.baseY) <= 1.5*STEP_HEAR_R()) return "видел врага рядом";
-  if(bot.heardSound && tick - bot.heardSound.tick < SOUND_CAUTION_TICKS && Math.hypot(bot.heardSound.x-bot.baseX, bot.heardSound.y-bot.baseY) <= 1.5*STEP_HEAR_R()) return "слышал врага рядом";
+  // (22.11, Ж17, владелец: «после убийства игроки шифтят, смысла нет»; прогон v583n Mirage: после убийства шагом 24 % времени, главные
+  // причины — «видел / слышал врага рядом» про того, кого только что убил) враг из инфы / звука убит (киллфид знают все) или в том месте
+  // только труп (220 knowCorpseOnly: убили, после — тихо, живых по знанию нет) — не повод идти тихо. Другие враги рядом — свои причины ниже
+  var deadSrc = function(id, p){ if(id){ var o = teamBot(id); if(o && !o.alive) return true; } return !!(p && knowCorpseOnly(bot.team, p)); };
+  if(bot.lastIntel && tick - bot.lastIntel.tick < CAUTION_TICKS && Math.hypot(bot.lastIntel.x-bot.baseX, bot.lastIntel.y-bot.baseY) <= 1.5*STEP_HEAR_R() && !deadSrc(bot.lastIntel.id, bot.lastIntel)) return "видел врага рядом";
+  if(bot.heardSound && tick - bot.heardSound.tick < SOUND_CAUTION_TICKS && Math.hypot(bot.heardSound.x-bot.baseX, bot.heardSound.y-bot.baseY) <= 1.5*STEP_HEAR_R() && !deadSrc(bot.heardSound.src, bot.heardSound)) return "слышал врага рядом";
   // роумер подходит к точке чека тихо (v560, В104: только пока он роумит — без задачи, как в stepTick → updateRoamer; было — и на чужой
   // задаче по старой точке чека: ротирующий шёл шагом «роумер у точки чека»)
   if(bot.role === "roamer" && !bot.post && !bot.roamChecking && bot.roamTarget && bot.state === "patrol" &&

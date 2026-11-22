@@ -374,6 +374,19 @@ function knowSeenByFoe(b, o){
   var hs = b.heardSound; return !!(hs && hs.kind === "hit" && hs.src === o.id && tick - hs.tick <= TICK_HZ);
 }
 function knowSeenByAny(b){ return bots.some(function(o){ return knowSeenByFoe(b, o); }); }
+// (22.11, Ж18, владелец: «гранаты на труп кидают»; журнал бросков, 2 матча: 6 из 130 — «задержать», лайнап «по времени / выход»,
+// «по инфе — выкурить»: враг, ради которого граната, убит там за 0–2 с до броска, живых рядом нет) бросок в труп: рядом с точкой
+// (KNOW_CORPSE_R) свои убили врага (киллфид / сам видел — sig «kill»), после этого там никого не видели и не слышали, и по знанию
+// команды живых там нет — там только труп. Одно место (знание): гранаты (380: перед броском и в самом броске), «шагом — враг рядом» (535)
+var KNOW_CORPSE_R = 150;   // проектное число: «то же место», ед. карты
+function knowCorpseOnly(team, pt){
+  var sig = (teamIntel[team] && teamIntel[team].sig) || [], kt = -1, R = KNOW_CORPSE_R;
+  for(var i = sig.length - 1; i >= 0; i--){ var sg = sig[i]; if(sg.tick < roundStartTick) break;
+    if(sg.type === "kill" && Math.hypot(sg.x-pt.x, sg.y-pt.y) < R){ kt = sg.tick; break; } }
+  if(kt < 0) return false;
+  if(sig.some(function(sg){ return sg.tick > kt && (sg.type === "spotted" || sg.type === "sound") && sg.id && sg.id !== "?" && Math.hypot(sg.x-pt.x, sg.y-pt.y) < R; })) return false;
+  return !bots.some(function(o){ return o.alive && o.team !== team && (knowEnemySpots(team, o.id) || []).some(function(q){ return q.w >= 0.05 && Math.hypot(q.x-pt.x, q.y-pt.y) < R; }); });
+}
 // (v583a, Д15, владелец 17.11: «никто не смотрит Short, хотя была инфа, что CT на Mid») T после планта знает, как играют CT: идут к бомбе
 // ближайшим путём. CT, которого не видно: та доля, на которую он уже ушёл с места, где видели (вес «стоит, где видели» стареет по кривой
 // про — knowAge), — гипотеза «идёт на ретейк» на его пути к бомбе; она движется по пути со скоростью подхода про (RETAKE_V: первый CT у бомбы
