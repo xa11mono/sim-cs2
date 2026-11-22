@@ -11,6 +11,9 @@ function hearPos(o, sx, sy, seed, occl){
   var pd = Math.max(20, d*(1 + rd*sd)), pa = a + ra*sa;
   return {x:o.x + Math.cos(pa)*pd, y:o.y + Math.sin(pa)*pd};
 }
+// (22.11, аудит 048а / 004) где игрок o «слышит» точку (x, y) — та же модель ошибки, что у любого звука (hearPos: направление, расстояние,
+// через стену — грубее). Для мест, где решение получало точку врага, которого не видели (размен, поп-флешка на убийцу)
+function hearPoint(o, x, y, seed){ var occl = !hasLOS(o.x, o.y, x, y, o.z); return hearPos(o, x, y, seed, occl) || {x: x, y: y}; }
 var WATER_Z = {};
 function inWater(x, y){
   var zid = zoneIdAt(x, y); if(!zid) return false;
