@@ -40,6 +40,8 @@ REC.cont=[]; if(typeof contactTick==='function'){ var oct=contactTick; contactTi
     var tm=bots.some(function(o){ return o!==b&&o.alive&&o.team===b.team&&!o._sawEnemy&&Math.hypot(o.x-b.x,o.y-b.y)<(typeof TRADE_R!=='undefined'?TRADE_R:400); })?1:0;
     REC.cont.push([tick, b.id, b.post?String(b.post.tag):'', C.id||'', mf, tm, b.hp, b._reloading?1:0, typeof roundGoal==='function'?String(roundGoal(b.team)):'', (bomb&&bomb.carrier===b)?1:0, (b._visible||[]).length]); }
   return r; }; }
+// (шаг 1, 030) конец засады: [тик, бот, причина, длилась тиков, фаза, тег поста]
+REC.ambx=[]; if(typeof ambEnd==='function'){ var oae=ambEnd; ambEnd=function(b,why){ var A=b&&b._amb; if(A&&roundState==='live'&&REC.ambx.length<20000) REC.ambx.push([tick, b.id, String(why), tick-A.t0, A.ph, b.post?String(b.post.tag):'']); return oae.apply(this,arguments); }; }
 REC.duel=[]; var DUEL_RE=/укрыт|с линии|в плечо|выгляд|держ|отход|отступ|атак|дуэл|пик|размен|добив|сближ|не лезет/;
 if(typeof logEvent==='function'){ var olg=logEvent; logEvent=function(text){ if(roundState==='live' && REC.duel.length<40000 && DUEL_RE.test(String(text))) REC.duel.push([tick, String(text).slice(0,200)]); return olg.apply(this,arguments); }; }
 if(SNAP_ON){ REC.snaps = {}; }
