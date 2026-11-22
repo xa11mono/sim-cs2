@@ -21,6 +21,15 @@ function carrierAtSite(tt){
   if(bomb.state !== "carried" || !bomb.carrier || !bomb.carrier.alive) return false;
   var S = SITES[tt.site]; return Math.hypot(bomb.carrier.x-S.x, bomb.carrier.y-S.y) < 330 || onSite(S, bomb.carrier.x, bomb.carrier.y);
 }
+// (22.11, аудит 059) время группы T до точки — по пути (медиана живых, кроме лёркера), а не «прямая × 1,4» от центра группы; одно место
+// для перекола по ротации, отмены выхода и ускорения после минуса
+function iglTravel(x, y){
+  var ts = bots.filter(function(b){ return b.team === "T" && b.alive && b.tRole !== "lurker"; }); if(!ts.length) ts = bots.filter(function(b){ return b.team === "T" && b.alive; });
+  var t = ts.map(function(b){ return pathLenTo(b, x, y)/(SPEED*weaponSpeedMul(b)); }).sort(function(a, c){ return a - c; });
+  return t.length ? t[t.length >> 1] : Infinity;
+}
+// ожидаемые CT по карте команды T (belief — своё знание) у точки: зоны с центром ближе r
+function iglCtNear(x, y, r){ var m = 0; BZ.cent.forEach(function(c, j){ if(c && Math.hypot(c.x-x, c.y-y) < r) m += beliefZoneKnown("T", j); }); return m; }
 var CONT_SEC = 6, CONT_REGROUP = 6;   // с: решение о продолжении дефолта — за столько до выхода; перестроиться — столько (проектные числа)
 function tIglReplan(tt, site, other, secLeft){
   var DL = tt._dl || [], aliveT = aliveCount("T"), aliveCT = aliveCount("CT");
@@ -32,13 +41,17 @@ function tIglReplan(tt, site, other, secLeft){
   // (выход — не раньше чем через CONT_REGROUP с). Тактика раунда в памяти матча — начало (tt.open)
   if(tt.phase === "setup" && tt.tac.style === "default" && !tt._cont && tt.site === tt.tac.site && aliveT >= 3 && tt.execTick > tick && (tt.defUntil ? tick >= tt.defUntil : tt.execTick - tick <= CONT_SEC*TICK_HZ)){
     tt._cont = tick;
-    var tsC = bots.filter(function(b){ return b.team === "T" && b.alive; }), BLc = beliefLast.T || {};
+    var tsC = bots.filter(function(b){ return b.team === "T" && b.alive; });
     var contScore = function(t){ var sc = 0; t.groups.forEach(function(g){ (g.via || []).forEach(function(n){ var zp = zonePoint(n, site); if(!zp) return;
       if(tsC.some(function(b){ return Math.hypot(b.x-zp.x, b.y-zp.y) < 250; })) sc += 1;
-      if(bots.some(function(o){ var e = BLc[o.id]; return o.alive && o.team === "CT" && e && tick - e.tick <= SITE_SEEN_SEC*TICK_HZ && Math.hypot(e.x-zp.x, e.y-zp.y) < 300; })) sc -= 2; }); }); return sc; };
+      sc -= 2*Math.min(1, iglCtNear(zp.x, zp.y, 300)); }); }); return sc; };   // (аудит 059) CT по карте команды (с давностью), было — «свежий виденный в 300»
     var cands = T_TACTICS.filter(function(t){ return t.site === tt.site && (t.style === "exec" || t.style === "split") && t.groups && t.groups.length; });
     var bestC = null, bsC = -Infinity;
-    cands.forEach(function(t, i){ var v = contScore(t) + hashRand(roundNum*271 + matchNum*13 + i)*0.5; if(v > bsC){ bsC = v; bestC = t; } });
+    // (22.11, аудит 059, владелец: «убрать случайное число») было: + жребий до 0,5. Равные по оценке — то, что дольше не играли в этом матче
+    // (CT читают повторы — та же память, что у выбора тактики, tacHist), затем — что чаще выигрывали (tacMem); жребия нет
+    var since = function(t){ var k = tacHist.lastIndexOf(t.id); return k < 0 ? 1e9 : tacHist.length - k; }, wr = function(t){ var M = tacMem[t.id]; return M && M.n ? M.w/M.n : 0.5; };
+    cands.forEach(function(t){ var v = contScore(t);
+      if(v > bsC + 1e-9 || (Math.abs(v - bsC) <= 1e-9 && bestC && (since(t) > since(bestC) || (since(t) === since(bestC) && wr(t) > wr(bestC))))){ bsC = v; bestC = t; } });
     if(bestC){
       tt.open = tt.open || tt.tac; tt.tac = bestC; tt.execTick = Math.max(tt.execTick, tick + CONT_REGROUP*TICK_HZ);
       voiceLog("T", "cont"+roundNum, "IGL", "после дефолта — "+bestC.name);
@@ -49,10 +62,14 @@ function tIglReplan(tt, site, other, secLeft){
     var sd = DL.filter(function(e){ return e.t === "T" && e.phase === "setup"; });
     var last = sd[sd.length-1];
     // (1) убийца далеко от нашего сайта
-    if(last && !tt._rpFast && tick - last.tick > 1.5*TICK_HZ && tick - last.tick < 4*TICK_HZ && last.kx !== null &&
-       aliveT >= 3 && tt.execTick - tick > 6*TICK_HZ && !last.traded){
-      var dS = Math.hypot(last.kx-site.x, last.ky-site.y);
-      if(dS > 1100 && iglTake(tt, last.tick)){
+    // (22.11, аудит 059) было: окно 1,5–4 с после минуса и «убийца дальше 1100 по прямой». Стало — гонка по пути: CT, который нас убил, обратно на
+    // наш сайт идёт path(место убийцы → сайт) / скорость минус уже прошедшее; мы — время группы по пути + 4 с на подготовку выхода (то же, что ниже
+    // ставится в execTick). Успеваем раньше — заходим раньше; пока минус не разменян и событие не взято. Решение — по каждому тику до выхода,
+    // а не в окне: перестали успевать — не ускоряемся
+    var raceOk = function(e){ if(e.kx === null) return false; var back = polyLen(pathPts(e.kx, e.ky, site.x, site.y))/SPEED - (tick - e.tick)/TICK_HZ; return iglTravel(site.x, site.y) + 4 < back; };
+    if(last && !tt._rpFast && last.kx !== null && tick % 16 === 0 &&
+       aliveT >= 3 && tt.execTick - tick > 6*TICK_HZ && !last.traded && last.tick > (tt._evDone||-1)){
+      if(raceOk(last) && iglTake(tt, last.tick)){
         tt._rpFast = true;
         tt.execTick = Math.max(tick + 4*TICK_HZ, Math.min(tt.execTick, tick + 6*TICK_HZ));
         voiceLog("T", "rpfast", "IGL", "их игрок "+calloutName(last.kx, last.ky)+" — на "+tt.site+" без него, заходим раньше!");
@@ -95,17 +112,17 @@ function tIglReplan(tt, site, other, secLeft){
         if(dS0 - dS1 > 120 && dO1 - dO0 > 80 && dS1 < 1400) toward.push(rid); }
       if(toward.length >= (aliveCT <= 3 ? 1 : 2) && !tSiteTaking(tt) && iglTake(tt, tick)){   // (22.11, Ж16) сайт берётся — не уходим
         tt._rotDone = tick;
-        if(hashRand(roundNum*389 + matchNum*23 + 7) < 0.6){
+        // (22.11, аудит 059) было: «верим чтению» жребием 60 %. Стало — сравнение по карте команды (ротация уже в ней — гипотезы движения): CT ожидается
+        // на другом сайте меньше, чем на нашем, и время дойти туда по пути оставляет 15 с на выход (то же, что при отмене выхода ниже)
+        var ctHere = beliefCount("T", BZ.siteNear[tt.site] || []), ctOther = beliefCount("T", BZ.siteNear[other] || []), trvR = iglTravel(SITES[other].x, SITES[other].y);
+        if(ctOther < ctHere && secLeft > trvR + 15){
           tt.rebound = true;
-          var ctrR = {x:0, y:0}, tsR = bots.filter(function(b){ return b.team === "T" && b.alive; });
-          tsR.forEach(function(b){ ctrR.x += b.x/tsR.length; ctrR.y += b.y/tsR.length; });
-          var trvR = Math.hypot(ctrR.x-SITES[other].x, ctrR.y-SITES[other].y)*1.4/SPEED;
           voiceLog("T", "rotread", "IGL", toward.length+" CT ротируют на "+tt.site+" — идём на "+other+", но углы чекаем, там может кто-то остаться");
           logEvent("IGL: слышим ротацию CT на "+tt.site+" → перекол на "+other+" (не значит, что там пусто)");
           tSetSite(tt, other); tt.phase = "setup";
           tt.execTick = tick + Math.round(Math.min(Math.max(4, trvR*0.7), 12)*TICK_HZ);
           return true;
-        } else logEvent("IGL: слышим ротацию CT на "+tt.site+", но это может быть фейк — играем по плану");
+        } else logEvent("IGL: слышим ротацию CT на "+tt.site+", но на "+other+" их не меньше (" + ctOther.toFixed(1) + " против " + ctHere.toFixed(1) + ") или не успеть — играем по плану");
       }
     }
     return false;
@@ -117,9 +134,8 @@ function tIglReplan(tt, site, other, secLeft){
     if(tD - cD >= 2 && aliveT <= 3 && aliveCT >= aliveT && iglTake(tt, lastD)){
       tt.aborted = tick;
       var otherB = beliefCount("T", BZ.siteNear[other]||[]);
-      var ctr = {x:0, y:0}, tsA = bots.filter(function(b){ return b.team === "T" && b.alive; });
-      tsA.forEach(function(b){ ctr.x += b.x/tsA.length; ctr.y += b.y/tsA.length; });
-      var travel = Math.hypot(ctr.x-SITES[other].x, ctr.y-SITES[other].y)*1.4/SPEED;
+      var tsA = bots.filter(function(b){ return b.team === "T" && b.alive; });
+      var travel = iglTravel(SITES[other].x, SITES[other].y);   // (аудит 059) по пути, было — прямая × 1,4
       var goOther = otherB < 1.2 && secLeft > travel + 15 && !tSiteTaking(tt);   // (22.11, Ж16)
       tsA.forEach(function(b){ b._route = null; b._routeDone = null; b._stageInfo = null; });
       tt.takeAssign = null; tt.plantPick = null; tt.wave2 = null; tt.w1Contact = null; tt._popDone = false; tt._waitLog = false;
