@@ -4,16 +4,14 @@
 // оружие, гранаты») шанс ретейка / защиты сайта — оценка, а не пороги по числу живых. Силы — закон Ланчестера: P = 1/(1 + e^(−K·(Sct² − A·St²))),
 // A = 1,4 (преимущество обороняющих бомбу), K = 0,18 — подобраны по исходам после планта у про (Mirage, 86 демок, 1016 плантов: 2v2 — CT выиграли
 // 47 %, 3v3 — 27 %, 4v4 — 21 %, 2v3 — 3 %, 1v3 — 0 %; модель 43 / 34 / 24 / 18 / 11 %). Sct — CT, которые успевают (путь до сайта + дефуз
-// дефузера ≤ сколько осталось), × HP/100 × оружие (время убийства с АК / с его оружием — duelTTK, та же модель, что в бою); кто уже стянулся к
+// дефузера ≤ сколько осталось), × HP/100 × оружие (ctWeaponK: ценность оружия относительно АК); кто уже стянулся к
 // сайту — успевает раньше (связь с ротацией, 003). St — каждый живой T (табло), кроме тех, кого команда CT свежо (≤ 10 с) знает далеко от сайта
 // (вне siteRing; доля массы карты), × HP по своему урону (журнал «тапнул»). Гранаты CT: каждая флешка / смок у тех, кто успевает, — +RT_UTIL_W к силе
 // (проектное число, кандидат на замер). site — сайт бомбы (или колла до планта), secs — сколько есть времени
 var RT_A = 1.4, RT_K = 0.18, RT_UTIL_W = 0.1, RT_SAVE_P = 0.15;   // RT_SAVE_P: ниже — сейв (у про при шансе ≤ 0,11–0,18 сейв в 35–47 % раундов, при 0,24+ — ≤ 18 %)
-var RT_WF = {};
-function ctWeaponK(b){ var k = (b.weapon && b.weapon.key) || "none"; if(RT_WF[k] != null) return RT_WF[k];
-  var ref = {x:0, y:0, px:0, py:0, weapon:WEAPONS.AK, crouching:false}, tg = {x:400, y:0, px:400, py:0, crouching:false};
-  var t0 = duelTTK(ref, tg, 400, 100, true, 0.6).t, w = b.weapon && WEAPONS[b.weapon.key], t1 = w ? duelTTK({x:0, y:0, px:0, py:0, weapon:w, crouching:false}, tg, 400, 100, true, 0.6).t : Infinity;
-  return RT_WF[k] = t1 < Infinity && t0 < Infinity ? Math.min(1.5, t0/t1) : 0.2; }
+// оружие — ценность оружия в игре (weaponValue, 450: уровень, AWP и АК выше) относительно АК; было — время убийства duelTTK (AWP выходил 0,27: темп стрельбы,
+// а не убийство с выстрела) — прогон 298: сейвы 3v3 с MP9 и 4v4 с FAMAS сразу после планта
+function ctWeaponK(b){ var k = b.primary || (b.weapon && b.weapon.key); return Math.max(0.15, weaponValue(k) / weaponValue("AK")); }
 function ctRetakeOdds(cts, site, secs, bombPos){
   var S = SITES[site]; if(!S) return {p: 0, ct: 0, t: 0, can: false};
   var bp = bombPos || S, can = false, sct = 0, st = 0;
