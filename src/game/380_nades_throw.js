@@ -9,7 +9,10 @@ var NADE_AIM_OK = 100;   // ед. игры (≈ 40 px радара) — прое
 var NADE_AIM_DZ = {smoke: 0, molly: 0, flash: 80, he: 20};   // куда целиться по высоте над полом у цели, ед. (проектные числа, В3)
 var FLASH_POP_DZ = 112;   // (v554) ед. над полом: медиана высоты разрыва флешек про (демки Mirage, 2960 разрывов, 3D-пол под точкой)
 // кэш решений — внутри функции: снимок «Отметить момент» копирует глобальные var, а кэш ему не нужен (и большой)
-var nadeAimCache = (function(){ var C = {}, n = 0; return function(k, v){ if(v === undefined) return C[k]; if(++n > 4000){ C = {}; n = 0; } return (C[k] = v); }; })();
+// (22.11, аудит 047) кэши подбора — обычные переменные (были в замыкании / свойстве функции): снимок раунда их не сохранял, а подбор из кэша
+// не тратит лимит тика — со снимка бросок сдвигался на тик, раунд расходился (м13 р7, +980 тиков). Логика та же — отпечаток бит в бит
+var NADE_AIM_C = {C: {}, n: 0};
+var nadeAimCache = function(k, v){ if(v === undefined) return NADE_AIM_C.C[k]; if(++NADE_AIM_C.n > 4000){ NADE_AIM_C.C = {}; NADE_AIM_C.n = 0; } return (NADE_AIM_C.C[k] = v); };
 function nadeTraceFn(){ var M = m3(); return function(A, B, r){ return m3NadeTrace(M, A, B, r); }; }
 // лучший бросок стоя из (x, y) радара с пола z (ед. игры) в точку (tx, ty) радара → решение nadeAim + x, y радара, где сработает
 // (той же физикой, что полетит), или null (цель под ногами / нет геометрии). Ошибка e3 — в 3D (флешке высота вдвое легче: ей важно
@@ -66,8 +69,9 @@ var NADE_GUESS_SLACK = 16;
 // (v512, владелец: «первые секунды закупки после начала матча очень лагает» — подбор после v500–v505 до 170 мс, лимит NADE_PRECALC_MS
 // проверялся только после него) решения посчитаны заранее при сборке (MAP.nadeguess, tools/nades/guess_bake.py; в MAP — только если
 // отпечаток кода подбора и данных карты тот же, src/mapset.py) — те же значения, что посчитал бы nadePrecalcTick; нет — считает он
-var nadeGuessStore = (function(){ var C = {}, G = MAP.nadeguess && MAP.nadeguess.g; if(G) for(var k in G) C[k] = G[k];
-  var f = function(k, v){ if(v === undefined) return C[k]; return (C[k] = v); }; f.all = function(){ return C; }; return f; })();
+var NADE_GUESS_C = (function(){ var C = {}, G = MAP.nadeguess && MAP.nadeguess.g; if(G) for(var k in G) C[k] = G[k]; return C; })();   // (22.11, аудит 047) в снимке
+var nadeGuessStore = function(k, v){ if(v === undefined) return NADE_GUESS_C[k]; return (NADE_GUESS_C[k] = v); };
+nadeGuessStore.all = function(){ return NADE_GUESS_C; };
 // (v493) прицел про для точки лайнапа (MAP.luaim, tools/nades/luaim_bake.js: броски про стоя у точки, повторённые нашей физикой ≤ 32 ед.
 // от цели) — вторая подсказка: подбор ищет ± 12° от направления на цель и не видит бросков со стены (Mirage «Jungle (выход, A)»: про —
 // поворот на ~105°). Из двух решений — лучшее (nadeBetter): Mirage — 26 из 106 таких лайнапов обычный подбор кладёт дальше 32 ед.
@@ -94,16 +98,16 @@ function nadeGuess(type, x, y, z, tx, ty, duck, wide){
   // (v570, отметка владельца м1 р3 12,1 с, T1: «долго стоит на точке лайнапа и не кидает») — один раз, как будто её посчитали заново: было — при каждом
   // запросе, до проверки лимита тика, и бросок не проходил никогда («пауза: подбор броска» каждый тик). «Уже оплачена» — переменная игры
   // (в снимке): после перемотки цена снова списывается один раз, как в первый раз
-  if(g !== undefined && nadeGuess.rt[k] && !NADE_GUESS_PAID[k]){ if(NADE_TICK.t !== tick){ NADE_TICK.t = tick; NADE_TICK.n = 0; } NADE_TICK.n += nadeGuess.rt[k]; NADE_GUESS_PAID[k] = 1; }
+  if(g !== undefined && NADE_GUESS_RT[k] && !NADE_GUESS_PAID[k]){ if(NADE_TICK.t !== tick){ NADE_TICK.t = tick; NADE_TICK.n = 0; } NADE_TICK.n += NADE_GUESS_RT[k]; NADE_GUESS_PAID[k] = 1; }
   if(g === undefined){ g = nadeSolve(type, x, y, z, tx, ty, duck, wide);
     var A = luAimFor(type, x, y, tx, ty);
     if(A) g = nadeBetter(type, g, nadeSolve(type, x, y, z, tx, ty, duck, wide, {yaw: A.yaw, pitch: A.pitch, strength: A.strength, jump: A.jump, e3: A.err, levelOk: true}));
-    nadeGuessStore(k, g); nadeGuess.rt[k] = A ? 2 : 1; NADE_GUESS_PAID[k] = 1; }
+    nadeGuessStore(k, g); NADE_GUESS_RT[k] = A ? 2 : 1; NADE_GUESS_PAID[k] = 1; }
   return g;
 }
 // ключ подсказки, посчитанной в игре → сколько подборов она стоила (В86). Свойство функции, а не переменная: живёт, как память подсказок,
 // вне снимка (переменные страницы снимок восстанавливает — счёт откатился бы, а подсказки остались)
-nadeGuess.rt = {};
+var NADE_GUESS_RT = {};   // (22.11, аудит 047) было nadeGuess.rt — свойство функции, в снимок не попадало
 // (v520, отметка владельца 09.11 м200 р3: снимок «до» не доходил до момента отметки — у владельца и в облаке разное) подсчёт лайнапов
 // в freeze-тайм был ограничен 12 мс реального времени за тик: сколько успело посчитаться — зависело от скорости компьютера, а от этого —
 // подсказка подбора и бюджет подборов в бою: матч расходился. Теперь — не больше NADE_PRECALC_N новых подборов за тик (проектное число;
@@ -115,7 +119,7 @@ function nadePrecalcTick(){
   while(NADE_PRECALC_I < L.length){
     var lu = L[NADE_PRECALC_I++]; if(!lu || !lu.from || !lu.to || !NADE[lu.type]) continue;
     var na = navAt(lu.from.x, lu.from.y, null); if(!na) continue;
-    var gk = nadeGuessKey(lu.type, lu.from.x, lu.from.y, na.z, lu.to.x, lu.to.y, false, true), had = nadeGuessStore(gk) !== undefined && !nadeGuess.rt[gk];   // (В86) посчитанная в игре — как новая
+    var gk = nadeGuessKey(lu.type, lu.from.x, lu.from.y, na.z, lu.to.x, lu.to.y, false, true), had = nadeGuessStore(gk) !== undefined && !NADE_GUESS_RT[gk];   // (В86) посчитанная в игре — как новая
     nadeGuess(lu.type, lu.from.x, lu.from.y, na.z, lu.to.x, lu.to.y, false, true);
     if(!had && ++n >= NADE_PRECALC_N) break;
   }
