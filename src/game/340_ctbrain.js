@@ -1,11 +1,7 @@
 // (v469, п.18 владельца 29.10, р8 м1: в войсе «ПЕРЕКОЛЛ A → B: бомба замечена (~2)», а бомбу никто не видел) сайт планта выведен
 // исключением («никто у A не услышал писк — значит B», 220 knowPlant, plantGuess) — так и говорится, а не «замечена»
-// сила CT для решений команды: HP / 100 × оружие (время убийства с АК / с его оружием, duelTTK)
-var CT_WF = {};
-function ctStrength(b){ var k = (b.weapon && b.weapon.key) || "none";
-  if(CT_WF[k] == null){ var tg = {x:400, y:0, px:400, py:0, crouching:false}, t0 = duelTTK({x:0, y:0, px:0, py:0, weapon:WEAPONS.AK, crouching:false}, tg, 400, 100, true, 0.6).t, w = WEAPONS[k];
-    var t1 = w ? duelTTK({x:0, y:0, px:0, py:0, weapon:w, crouching:false}, tg, 400, 100, true, 0.6).t : Infinity; CT_WF[k] = t1 < Infinity && t0 < Infinity ? Math.min(1.5, t0/t1) : 0.2; }
-  return (b.hp/100)*CT_WF[k]; }
+// сила CT для решений команды: HP / 100 × ценность оружия относительно АК (weaponValue, 450) — та же мера, что в оценке ретейка (002)
+function ctStrength(b){ var k = b.primary || (b.weapon && b.weapon.key); return (b.hp/100)*Math.max(0.15, weaponValue(k) / weaponValue("AK")); }
 function ctPlantGuessOnly(){
   if(!bomb || bomb.state !== "planted") return false;
   var cts = bots.filter(function(o){ return o.team === "CT" && o.alive && o.know; });
