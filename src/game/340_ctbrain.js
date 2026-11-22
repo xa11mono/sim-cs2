@@ -1,5 +1,11 @@
 // (v469, п.18 владельца 29.10, р8 м1: в войсе «ПЕРЕКОЛЛ A → B: бомба замечена (~2)», а бомбу никто не видел) сайт планта выведен
 // исключением («никто у A не услышал писк — значит B», 220 knowPlant, plantGuess) — так и говорится, а не «замечена»
+// сила CT для решений команды: HP / 100 × оружие (время убийства с АК / с его оружием, duelTTK)
+var CT_WF = {};
+function ctStrength(b){ var k = (b.weapon && b.weapon.key) || "none";
+  if(CT_WF[k] == null){ var tg = {x:400, y:0, px:400, py:0, crouching:false}, t0 = duelTTK({x:0, y:0, px:0, py:0, weapon:WEAPONS.AK, crouching:false}, tg, 400, 100, true, 0.6).t, w = WEAPONS[k];
+    var t1 = w ? duelTTK({x:0, y:0, px:0, py:0, weapon:w, crouching:false}, tg, 400, 100, true, 0.6).t : Infinity; CT_WF[k] = t1 < Infinity && t0 < Infinity ? Math.min(1.5, t0/t1) : 0.2; }
+  return (b.hp/100)*CT_WF[k]; }
 function ctPlantGuessOnly(){
   if(!bomb || bomb.state !== "planted") return false;
   var cts = bots.filter(function(o){ return o.team === "CT" && o.alive && o.know; });
@@ -215,8 +221,10 @@ function ctBrain(){
     var ks = ct.call.site, ko = ks === "A" ? "B" : "A", sc0 = SITES[ks];
     var need = Math.max(1, Math.ceil(ct.call.count - 0.25));
     var defenders = cts.filter(function(b){ return ctNearSite(b, sc0, 450); }).length;
-    // защитников ≈ сколько там врагов (сайт даёт позиционное преимущество)
-    var send = Math.max(0, Math.min(3, need - defenders));
+    // защитников ≈ сколько там врагов (сайт даёт позиционное преимущество). (22.11, аудит 016) защитник — по силе (HP × оружие, ctStrength — та же мера,
+    // что в оценке ретейка), а не по головам: раненый с пистолетом — не полный защитник; врагов — сколько по колл-счёту
+    var defStr = cts.reduce(function(a, b){ return a + (ctNearSite(b, sc0, 450) ? ctStrength(b) : 0); }, 0);
+    var send = Math.max(0, Math.min(3, Math.ceil(need - defStr - 0.25)));
     // (22.11, Ж23-П4, разбор м271222 р6) тишина меняет колл (PRO_PLAY: ротируют по давности и надёжности инфы; «тишина меняет колл»):
     // у этого сайта свежее наблюдение, у другого давно тихо (то же «давно», что у отбоя колла, 6 с), а живых T, о которых команда не знает,
     // где они, ≥ 2 — один ротатор идёт, даже если по счёту «хватает» своих (опорник один против неизвестно скольких). Не всех: может быть фейк
